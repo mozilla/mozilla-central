@@ -31,14 +31,52 @@
  * GPL.
  */
 
-#ifndef _SECRNGT_H_
-#define _SECRNGT_H_
+#ifndef _SECRNG_H_
+#define _SECRNG_H_
 /*
- * secrngt.h - public data structures for the secure random number generator
+ * secrng.h - public data structures and prototypes for the secure random
+ *	      number generator
  *
- * $Id: secrngt.h,v 1.1 2000-03-31 19:41:32 relyea%netscape.com Exp $
+ * $Id: secrng.h,v 1.1 2001-11-15 04:29:23 nelsonb%netscape.com Exp $
  */
 
-/* This file is really dead now.  */
+/******************************************/
+/*
+** Random number generation. A cryptographically strong random number
+** generator.
+*/
 
-#endif /* _SECRNGT_H_ */
+#include "blapi.h"
+
+SEC_BEGIN_PROTOS
+
+/*
+** The following 3 functions are provided by the security library
+** but are differently implemented for the UNIX, Mac and Win
+** versions
+*/
+
+/*
+** Get the "noisiest" information available on the system.
+** The amount of data returned depends on the system implementation.
+** It will not exceed maxbytes, but may be (much) less.
+** Returns number of noise bytes copied into buf, or zero if error.
+*/
+extern size_t RNG_GetNoise(void *buf, size_t maxbytes);
+
+/*
+** RNG_SystemInfoForRNG should be called before any use of SSL. It
+** gathers up the system specific information to help seed the
+** state of the global random number generator.
+*/
+extern void RNG_SystemInfoForRNG(void);
+
+/* 
+** Use the contents (and stat) of a file to help seed the
+** global random number generator.
+*/
+extern void RNG_FileForRNG(const char *filename);
+
+SEC_END_PROTOS
+
+#endif /* _SECUTIL_H_ */
