@@ -5,12 +5,42 @@
 
 <script language="JavaScript" src="PrefsWindow.js">
 </script>
+<style TYPE="text/css">
+@import url(pref.css);
+</style>
 
-<body bgcolor="#FF0000" text="#000000" onload="return StartUp('Fonts')">
+<body ID=here onload="return StartUp('Fonts')">
 
-<h1>Fonts panel</h1>
-<P>Watch this space...</P>
+<DIV ID=top>
+		<SPAN ID=lefttext>Fonts</SPAN>
+</DIV>
 
 
+<table>
+  <FORM>
+
+
+			<tr><td>For the Encoding:</td><td><select id="pref"><OPTION>Western</td><td>Size<select id="pref"><OPTION>10</td</tr>
+			<tr><td>Variable Width Font:</td><td><select  id="pref"><OPTION>Filler</td><td>Size<select id="pref"><OPTION>10</td></tr>
+			<tr><td>Fixed Width Font:</td><td><select  id="pref"><OPTION>Filler</td><td></td></tr>
+
+  </FORM>
+
+
+
+</table>
+<br>
+<table>
+   <tr><td>Sometimes a document will provide its own fonts.</tr></td>
+   <FORM>
+
+
+			<tr><td><input name="fonts" type="radio" id="pref:0:int:browser.use_document_fonts" checked>Use my default fonts, overriding document-specified fonts</td></tr>
+			<tr><td><input name="fonts" type="radio" id="pref:1:int:browser.use_document_fonts">Use document-specified fonts. but disable Dynamic Fonts</td></tr>
+			<tr><td><input name="fonts" type="radio" id="pref:2:int:browser.use_document_fonts">use docuent-specified fonts, but disable Dynamic Fonts</td></tr>
+		</table>
+   </FORM>
+
+</table>
 </body>
 </html>
