@@ -1,0 +1,10 @@
+﻿<?xml version="1.0"?>
+
+<preferences xmlns="http://www.silverstone.net.nz/2001/manticore/uidl">
+  <browser>
+    <homepage value="http://www.mozillazine.org/">
+      <mode value="1"/>
+    </homepage>
+    <layoutengine value="gecko"/>
+  </browser>
+</preferences>
