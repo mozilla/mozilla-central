@@ -36,71 +36,75 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-/**
- * Represents a AdditiveExpr, an binary expression that
- * performs an additive operation between it's lvalue and rvalue:
- *  +   : addition
- *  -   : subtraction
-**/
+#ifndef __txCore_h__
+#define __txCore_h__
 
-#include "Expr.h"
-#include "ExprResult.h"
-#include "txIXPathContext.h"
+#include "nscore.h"
+#include "nsDebug.h"
+#include "prtypes.h"
 
-/**
- * Evaluates this Expr based on the given context node and processor state
- * @param context the context node for evaluation of this Expr
- * @param ps the ContextState containing the stack information needed
- * for evaluation
- * @return the result of the evaluation
-**/
-nsresult
-AdditiveExpr::evaluate(txIEvalContext* aContext, txAExprResult** aResult)
+class nsAString;
+
+class txObject
 {
-    *aResult = nsnull;
+public:
+    /**
+     * Deletes this txObject
+    **/
+    virtual ~txObject()
+    {
+    };
+};
 
-    nsRefPtr<txAExprResult> exprRes;
-    nsresult rv = rightExpr->evaluate(aContext, getter_AddRefs(exprRes));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    double rightDbl = exprRes->numberValue();
-
-    rv = leftExpr->evaluate(aContext, getter_AddRefs(exprRes));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    double leftDbl = exprRes->numberValue();
-
-    double result = 0;
-    switch ( op ) {
-        case SUBTRACTION:
-            result = leftDbl - rightDbl;
-            break;
-        default:
-            result = leftDbl + rightDbl;
-            break;
-    }
-
-    return aContext->recycler()->getNumberResult(result, aResult);
-} //-- evaluate
-
-#ifdef TX_TO_STRING
-void
-AdditiveExpr::toString(nsAString& str)
+/**
+ * Utility class for doubles
+ */
+class txDouble
 {
-    if ( leftExpr ) leftExpr->toString(str);
-    else str.Append(NS_LITERAL_STRING("null"));
+public:
+    /**
+     * Useful constants
+     */
+    static const double NaN;
+    static const double POSITIVE_INFINITY;
+    static const double NEGATIVE_INFINITY;
 
-    switch ( op ) {
-        case SUBTRACTION:
-            str.Append(NS_LITERAL_STRING(" - "));
-            break;
-        default:
-            str.Append(NS_LITERAL_STRING(" + "));
-            break;
-    }
-    if ( rightExpr ) rightExpr->toString(str);
-    else str.Append(NS_LITERAL_STRING("null"));
+    /**
+     * Determines whether the given double represents positive or negative.
+     * inifinity
+     */
+    static PRBool isInfinite(double aDbl);
 
-}
+    /**
+     * Determines whether the given double is NaN.
+     */
+    static PRBool isNaN(double aDbl);
+
+    /**
+     * Determines whether the given double is negative.
+     */
+    static PRBool isNeg(double aDbl);
+
+    /**
+     * Converts the value of the given double to a string, and appends
+     * the result to the destination string.
+     */
+    static void toString(double aValue, nsAString& aDest);
+
+    /**
+     * Converts the given String to a double, if the string value does not
+     * represent a double, NaN will be returned
+     */
+    static double toDouble(const nsAString& aStr);
+};
+
+// XXX These should go away eventually.
+#define TxObject txObject
+typedef txDouble Double;
+typedef PRBool MBool;
+
+#define MB_TRUE  PR_TRUE
+#define MB_FALSE PR_FALSE
+// XXX
+
 #endif
-
