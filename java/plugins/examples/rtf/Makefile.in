@@ -1,5 +1,4 @@
-#!nmake
-#
+# 
 # The contents of this file are subject to the Mozilla Public
 # License Version 1.1 (the "License"); you may not use this file
 # except in compliance with the License. You may obtain a copy of
@@ -19,25 +18,9 @@
 #
 # Contributor(s): 
 
-IGNORE_MANIFEST=1 
-#//------------------------------------------------------------------------
-#//
-#// Makefile to build the java enhancers to mozilla
-#//
-#//------------------------------------------------------------------------
+DEPTH= ../../../..
 
+PLUGLET=JView
+CLASSES=JView.class
 
-#//------------------------------------------------------------------------
-#//
-#// Specify the depth of the current directory relative to the
-#// root of NS
-#//
-#//------------------------------------------------------------------------
-DEPTH = ..
-
-DIRS  = external \
-	util \
-	dom \
-	webclient 
-
-include <$(DEPTH)\config\rules.mak>
+include ../../config/rules.mk
