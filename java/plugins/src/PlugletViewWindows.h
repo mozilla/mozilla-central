@@ -18,17 +18,27 @@
  *
  * Contributor(s): 
  */
-#ifndef __PlugletView_h__
-#define __PlugletView_h__
+#ifndef __PlugletViewWindows_h__
+#define __PlugletViewWindows_h__
+#include <windows.h>
 #include "nsplugindefs.h"
 #include "jni.h"
+#include "PlugletView.h"
 
-class PlugletView {
+class PlugletViewWindows : public PlugletView {
  public:
-    virtual jobject GetJObject(void) = 0;
-    virtual PRBool SetWindow(nsPluginWindow* window) = 0;
+    PlugletViewWindows(void);
+    virtual jobject GetJObject(void);
+    virtual PRBool SetWindow(nsPluginWindow* window);
+ private:
+    static  void Initialize(void);
+    static  jclass clazz;
+    static  jmethodID initMID;
+    HWND    hWND;
+    BOOL    isCreated;
+    jobject frame;
 };
-#endif /* __PlugletView_h__ */
+#endif /* __PlugletViewWindows_h__ */
 
 
 

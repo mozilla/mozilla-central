@@ -18,24 +18,16 @@
  *
  * Contributor(s): 
  */
-#ifndef __PlugletView_h__
-#define __PlugletView_h__
-#include "nsplugindefs.h"
-#include "jni.h"
 
-class PlugletView {
- public:
-    virtual jobject GetJObject(void) = 0;
-    virtual PRBool SetWindow(nsPluginWindow* window) = 0;
-};
-#endif /* __PlugletView_h__ */
+#include "PlugletViewFactory.h"
+#ifdef XP_PC
+#include "PlugletViewWindows.h"
+#define VIEW PlugletViewWindows
+#else /* XP_PC */
+#include "PlugletViewMotif.h"
+#define VIEW PlugletViewMotif
+#endif  /* XP_PC */
 
-
-
-
-
-
-
-
-
-
+PlugletView * PlugletViewFactory::GetPlugletView(void) {
+    return new VIEW();
+}

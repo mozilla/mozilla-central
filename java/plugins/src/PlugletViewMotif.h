@@ -18,17 +18,25 @@
  *
  * Contributor(s): 
  */
-#ifndef __PlugletView_h__
-#define __PlugletView_h__
+#ifndef __PlugletViewMotif_h__
+#define __PlugletViewMotif_h__
 #include "nsplugindefs.h"
 #include "jni.h"
+#include "PlugletView.h"
 
-class PlugletView {
+class PlugletViewMotif : public PlugletView {
  public:
-    virtual jobject GetJObject(void) = 0;
-    virtual PRBool SetWindow(nsPluginWindow* window) = 0;
+    PlugletViewMotif(void);
+    virtual jobject GetJObject(void);
+    virtual PRBool SetWindow(nsPluginWindow* window);
+ private:
+    static  void Initialize(void);
+    static  jclass clazz;
+    static  jmethodID initMID;
+    int     WindowID;
+    jobject frame;
 };
-#endif /* __PlugletView_h__ */
+#endif /* __PlugletViewMotif_h__ */
 
 
 

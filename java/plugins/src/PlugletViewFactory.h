@@ -18,24 +18,13 @@
  *
  * Contributor(s): 
  */
-#ifndef __PlugletView_h__
-#define __PlugletView_h__
-#include "nsplugindefs.h"
-#include "jni.h"
+#ifndef __PlugletViewFactory_h__
+#define  __PlugletViewFactory_h__
+#include "PlugletView.h"
 
-class PlugletView {
+class PlugletViewFactory {
  public:
-    virtual jobject GetJObject(void) = 0;
-    virtual PRBool SetWindow(nsPluginWindow* window) = 0;
+    static PlugletView * GetPlugletView(void);
 };
-#endif /* __PlugletView_h__ */
 
-
-
-
-
-
-
-
-
-
+#endif /* __PlugletViewFactory_h__ */
