@@ -61,7 +61,7 @@
   </path>
 
   <target name="main" 
-          depends="compile.classes_spec,compile.src_share,compile.src_moz,create.webclient.scripts"/>
+          depends="compile.classes_spec,compile.src_share,compile.src_moz,compile.src_ie,create.webclient.scripts"/>
 
   <target name="compile.classes_spec">
 
@@ -196,6 +196,16 @@
 
   </target>
 
+  <target name="compile.src_ie" depends="compile.src_share">
+
+    <exec os="Windows 2000" dir="${basedir}/src_ie" executable="make" 
+                     failonerror="yes"/>
+
+    <exec os="Windows 2000" dir="${basedir}/src_ie" executable="make" 
+                     failonerror="yes"/>
+
+  </target>
+
   <target name="create.webclient.scripts"
 depends="create.win32.webclient.scripts,create.unix.webclient.scripts"/>
 
@@ -254,6 +264,10 @@ ${myenv.MOZ_JDKHOME}/bin/java ${debug.options} org.mozilla.webclient.test.Embedd
 
     </exec>
     <exec os="Windows 2000" dir="${basedir}/src_moz" executable="make" 
+                     failonerror="yes">
+      <arg line="clobber_all"/>
+    </exec>
+    <exec os="Windows 2000" dir="${basedir}/src_ie" executable="make" 
                      failonerror="yes">
       <arg line="clobber_all"/>
     </exec>
