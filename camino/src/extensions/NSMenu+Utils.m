@@ -67,6 +67,22 @@
   }
 }
 
+- (void)setAllItemsEnabled:(BOOL)inEnable startingWithItemAtIndex:(int)inFirstItem includingSubmenus:(BOOL)includeSubmenus
+{
+  NSArray* menuItems = [self itemArray];
+
+  int i;
+  for (i = inFirstItem; i < [menuItems count]; i ++)
+  {
+    id<NSMenuItem> curItem = [self itemAtIndex:i];
+    [curItem setEnabled:inEnable];
+    if (includeSubmenus && [curItem hasSubmenu])
+    {
+      [[curItem submenu] setAllItemsEnabled:inEnable startingWithItemAtIndex:0 includingSubmenus:includeSubmenus];
+    }
+  }
+}
+
 @end
 
 
