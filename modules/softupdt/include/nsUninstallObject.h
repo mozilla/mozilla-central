@@ -16,15 +16,16 @@
  * Reserved.
  */
 
-#ifndef nsInstallExecute_h__
-#define nsInstallExecute_h__
+#ifndef nsUninstallObject_h__
+#define nsUninstallObject_h__
 
 #include "prtypes.h"
 #include "nsSoftwareUpdate.h"
 
+
 PR_BEGIN_EXTERN_C
 
-struct nsInstallExecute  : public nsInstallObject {
+struct nsUninstallObject : public nsInstallObject {
 
 public:
 
@@ -32,43 +33,32 @@ public:
 
   /* Public Methods */
 
-  /*	Constructor
-   *	inJarLocation	- location inside the JAR file
-   *	inZigPtr        - pointer to the ZIG *
-   */
-  nsInstallExecute(nsSoftwareUpdate* inSoftUpdate, char* inJarLocation, char* *errorMsg, char* inArgs);
-  
-  virtual ~nsInstallExecute();
-  
-  /* Prepare
-   * Extracts	file out of	the	JAR	archive	into the temp directory
-   */
-  char* Prepare(void);
+  nsUninstallObject(nsSoftwareUpdate* inSoftUpdate, char* inRegName, char* *errorMsg);
+
+  virtual ~nsUninstallObject();
   
   /* Complete
-   * Completes the install by executing the file
-   * Security hazard: make sure we request the right permissions
+   * Uninstalls the package
    */
-  char* Complete(void);
+  char* Complete();
   
-  void Abort(void);
+  char* Prepare();
+  
+  void Abort();
   
   char* toString();
   
 private:
   
   /* Private Fields */
-  char* jarLocation; // Location in the JAR
-  char* tempFile;    // temporary file location
-  char* args;        // command line arguments
-  char* cmdline;     // constructed command-line
+  char* regName;     // Registry name of package
+  char* userName;    // User name of package
   
   /* Private Methods */
-  char* NativeComplete(void);
-  void NativeAbort(void);
+  char* NativeComplete(char* regname);
   
 };
 
 PR_END_EXTERN_C
 
-#endif /* nsInstallExecute_h__ */
+#endif /* nsUninstallObject_h__ */
