@@ -1,9 +1,0 @@
-<!ENTITY removeinstructions.description "Drag an item from the toolbar below to the trash to remove it.">
-<!ENTITY instructions.description "Drag an item into the toolbar above to add it.">
-<!ENTITY show.label               "Show:">
-<!ENTITY iconsAndText.label       "Icons and Text">
-<!ENTITY icons.label              "Icons">
-<!ENTITY text.label               "Text">
-<!ENTITY useSmallIcons.label      "Use Small Icons">
-<!ENTITY restoreDefaultSet.label  "Restore Default Set">
-<!ENTITY window.title             "Customize Toolbar">
