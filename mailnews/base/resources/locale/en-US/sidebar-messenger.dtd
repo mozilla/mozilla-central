@@ -1,5 +1,0 @@
-<!-- extracted from sidebar-messenger.xul -->
-
-<!ENTITY sidebar.title.label         "Sidebar">
-<!ENTITY sidebar.reload.label        "Reload">
-<!ENTITY sidebar.customize.label     "Customize">
