@@ -18,26 +18,18 @@
  *
  * Contributor(s): 
  */
-#ifndef __PlugletsDir_h__
-#define __PlugletsDir_h__
-#include "PlugletFactory.h"
-#include "List.h"
+#ifndef __PlugletPeer_h__
+#define __PlugletPeer_h__
+#include "nsIPluginInstancePeer.h"
+#include "jni.h"
 
-class PlugletsDir {
-    friend class PlugletsDirIterator;
+class PlugletPeer {
  public:
-    PlugletsDir(void);
-    ~PlugletsDir(void);
-    void LoadPluglets();
-    nsresult GetPlugletFactory(const char * mimeType,PlugletFactory **plugletFactory);
+    static jobject GetJObject(const nsIPluginInstancePeer *instancePeer);
  private:
-    List * list;
+    static void Initialize(void);
+    static void Destroy(void);
+    static jclass    clazz;
+    static jmethodID initMID;
 };
-#endif /* __PlugletsDir_h__ */
-
-
-
-
-
-
-
+#endif /*  __PlugletPeer_h__ */

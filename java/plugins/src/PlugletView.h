@@ -18,22 +18,29 @@
  *
  * Contributor(s): 
  */
-#ifndef __PlugletsDir_h__
-#define __PlugletsDir_h__
-#include "PlugletFactory.h"
-#include "List.h"
+#ifndef __PlugletView_h__
+#define __PlugletView_h__
+#include <windows.h>
+#include "nsplugindefs.h"
+#include "jni.h"
 
-class PlugletsDir {
-    friend class PlugletsDirIterator;
+class PlugletView {
  public:
-    PlugletsDir(void);
-    ~PlugletsDir(void);
-    void LoadPluglets();
-    nsresult GetPlugletFactory(const char * mimeType,PlugletFactory **plugletFactory);
+    PlugletView(void);
+    jobject GetJObject(void);
+    BOOLEAN SetWindow(nsPluginWindow* window);
  private:
-    List * list;
+    static  void Initialize(void);
+    static  jclass clazz;
+    static  jmethodID initMID;
+    HWND    hWND;
+    BOOL    isCreated;
+    jobject frame;
 };
-#endif /* __PlugletsDir_h__ */
+#endif /* __PlugletInstanceView_h__ */
+
+
+
 
 
 

@@ -18,24 +18,28 @@
  *
  * Contributor(s): 
  */
-#ifndef __PlugletsDir_h__
-#define __PlugletsDir_h__
-#include "PlugletFactory.h"
-#include "List.h"
+package org.mozilla.pluglet;
 
-class PlugletsDir {
-    friend class PlugletsDirIterator;
- public:
-    PlugletsDir(void);
-    ~PlugletsDir(void);
-    void LoadPluglets();
-    nsresult GetPlugletFactory(const char * mimeType,PlugletFactory **plugletFactory);
- private:
-    List * list;
-};
-#endif /* __PlugletsDir_h__ */
+import org.mozilla.pluglet.mozilla.*;
 
-
+public interface PlugletFactory {
+    /**
+     * Creates a new pluglet instance, based on a MIME type. This
+     * allows different impelementations to be created depending on
+     * the specified MIME type.
+     */
+    public Pluglet createPluglet(String mimeType);
+    /**
+     * Initializes the pluglet and will be called before any new instances are
+     * created.
+     */
+    public void initialize(PlugletManager manager);
+    /**
+     * Called when the browser is done with the pluglet factory, or when
+     * the pluglet is disabled by the user.
+     */
+    public void shutdown();
+}
 
 
 
