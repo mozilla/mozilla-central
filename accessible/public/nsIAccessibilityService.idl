@@ -23,13 +23,15 @@
  */
 
 #include "nsISupports.idl"
-//#include "domstubs.idl"
-#include "nsIAccessible.idl"
+#include "domstubs.idl"
+#include "nsIMutableAccessible.idl"
 
 [scriptable, uuid(68D9720A-0984-42b6-A3F5-8237ED925727)]
 interface nsIAccessibilityService : nsISupports
 {
-  nsIAccessible getAccessibleFor(in nsISupports frame, in nsISupports presShell);
+  nsIAccessible createRootAccessible(in nsISupports aPresShell);
+  nsIAccessible createHTMLBlockAccessible(in nsIAccessible aAccessible, in nsIDOMNode aNode, in nsISupports aPresShell);
+  nsIMutableAccessible createMutableAccessible(in nsIDOMNode aNode);
 };
 
 
