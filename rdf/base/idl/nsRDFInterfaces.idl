@@ -1,0 +1,174 @@
+/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+ *
+ * The contents of this file are subject to the Netscape Public License
+ * Version 1.0 (the "NPL"); you may not use this file except in
+ * compliance with the NPL.  You may obtain a copy of the NPL at
+ * http://www.mozilla.org/NPL/
+ *
+ * Software distributed under the NPL is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the NPL
+ * for the specific language governing rights and limitations under the
+ * NPL.
+ *
+ * The Initial Developer of this code under the NPL is Netscape
+ * Communications Corporation.  Portions created by Netscape are
+ * Copyright (C) 1998 Netscape Communications Corporation.  All Rights
+ * Reserved.
+ */
+
+/*
+
+  This file contains _all_ of the interface definitions, lumped into
+  one big happy file. It's done this way to circumvent problems with
+  forward declarations in the current version of `xpidl'.
+
+ */
+
+#include "nsISupports.idl"
+
+[uuid(0F78DA50-8321-11d2-8EAC-00805F29F370)]
+interface nsIRDFNode : nsISupports {
+    void Init(in string uri);
+    boolean EqualsNode(in nsIRDFNode aNode);
+};
+
+
+[uuid(E0C493D1-9542-11d2-8EB8-00805F29F370)]
+interface nsIRDFResource : nsIRDFNode {
+    readonly attribute string Value;
+    boolean EqualsResource(in nsIRDFResource aResource);
+    boolean EqualsString(in string aURI);
+};
+
+[uuid(E0C493D2-9542-11d2-8EB8-00805F29F370)]
+interface nsIRDFLiteral : nsIRDFNode {
+    readonly attribute wstring Value;
+    boolean EqualsLiteral(in nsIRDFLiteral literal);
+};
+
+interface nsIRDFDataSource;
+
+[uuid(1C2ABDB0-4CEF-11D2-BC16-00805F912FE7)]
+interface nsIRDFCursor : nsISupports {
+    void Advance();
+    readonly attribute nsIRDFDataSource DataSource;
+    readonly attribute nsIRDFNode Value;
+};
+
+[uuid(1ED57100-9904-11d2-8EBA-00805F29F370)]
+interface nsIRDFAssertionCursor : nsIRDFCursor {
+    readonly attribute nsIRDFResource Source;
+    readonly attribute nsIRDFResource Label;
+    readonly attribute nsIRDFNode     Target;
+    readonly attribute boolean TruthValue;
+};
+
+
+[uuid(1ED57102-9904-11d2-8EBA-00805F29F370)]
+interface nsIRDFArcsInCursor : nsIRDFCursor {
+    readonly attribute nsIRDFResource Label;
+    readonly attribute nsIRDFNode     Target;
+};
+
+[uuid(1ED57101-9904-11d2-8EBA-00805F29F370)]
+interface nsIRDFArcsOutCursor : nsIRDFCursor {
+    readonly attribute nsIRDFResource Source;
+    readonly attribute nsIRDFResource Label;
+};
+
+[uuid(C2850C10-B0CF-11d2-A684-00104BDE6048)]
+interface nsIRDFResourceCursor : nsIRDFCursor {
+    readonly attribute nsIRDFResource Resource;
+};
+
+[uuid(3CC75360-484A-11D2-BC16-00805F912FE7)]
+interface nsIRDFObserver : nsISupports {
+    void OnAssert(in nsIRDFResource aSource,
+                  in nsIRDFResource aLabel,
+                  in nsIRDFNode     aTarget);
+
+    void OnUnassert(in nsIRDFResource aSource,
+                    in nsIRDFResource aLabel,
+                    in nsIRDFNode     aTarget);
+};
+
+
+[uuid(0F78DA58-8321-11d2-8EAC-00805F29F370)]
+interface nsIRDFDataSource : nsISupports {
+    void Init(in string uri);
+    readonly attribute string URI;
+
+    nsIRDFResource GetSource(in nsIRDFResource aProperty,
+                             in nsIRDFNode     aTarget,
+                             in boolean        aTruthValue);
+
+    nsIRDFAssertionCursor GetSources(in nsIRDFResource aProperty,
+                                     in nsIRDFNode     aTarget,
+                                     in boolean        aTruthValue);
+
+    nsIRDFNode GetTarget(in nsIRDFResource aSource,
+                         in nsIRDFResource aProperty,
+                         in boolean        aTruthValue);
+
+    nsIRDFAssertionCursor GetTargets(in nsIRDFResource aSource,
+                                     in nsIRDFResource aProperty,
+                                     in boolean aTruthValue);
+
+    void Assert(in nsIRDFResource aSource, 
+                in nsIRDFResource aProperty, 
+                in nsIRDFNode     aTarget,
+                in boolean        aTruthValue);
+
+    void Unassert(in nsIRDFResource aSource,
+                  in nsIRDFResource aProperty,
+                  in nsIRDFNode     aTarget);
+
+    boolean HasAssertion(in nsIRDFResource aSource,
+                         in nsIRDFResource aProperty,
+                         in nsIRDFNode     aTarget,
+                         in boolean        aTruthValue);
+
+    void AddObserver(in nsIRDFObserver aObserver);
+
+    void RemoveObserver(in nsIRDFObserver aObserver);
+
+    nsIRDFArcsInCursor ArcLabelsIn(in nsIRDFNode aNode);
+
+    nsIRDFArcsOutCursor ArcLabelsOut(in nsIRDFResource aSource);
+
+    nsIRDFResourceCursor GetAllResources();
+
+    void Flush();
+
+    boolean IsCommandEnabled(in string         aCommand,
+                             in nsIRDFResource aCommandTarget);
+
+    void DoCommand(in string         aCommand,
+                   in nsIRDFResource aCommandTarget);
+                            
+};
+
+[uuid(96343820-307C-11D2-BC15-00805F912FE7)]
+interface nsIRDFCompositeDataSource : nsIRDFDataSource {
+    void AddDataSource(in nsIRDFDataSource aDataSource);
+    void RemoveDataSource(in nsIRDFDataSource aDataSource);
+};
+
+[uuid(BFD05261-834C-11d2-8EAC-00805F29F370)]
+interface nsIRDFService : nsISupports {
+    // Resource management routines
+
+    nsIRDFResource GetResource(in string aURI);
+    nsIRDFResource GetUnicodeResource(in wstring aURI);
+    nsIRDFLiteral  GetLiteral(in wstring aValue);
+
+    void RegisterResource(in nsIRDFResource aResource, in boolean aReplace);
+    void UnregisterResource(in nsIRDFResource aResource);
+
+    void RegisterDataSource(in nsIRDFDataSource aDataSource,
+                            in boolean          aReplace);
+
+    void UnregisterDataSource(in nsIRDFDataSource aDataSource);
+
+    nsIRDFDataSource GetDataSource(in string aURI);
+};
