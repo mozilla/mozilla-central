@@ -1,3 +1,0 @@
-NSRegisterSelf ; 1
-NSCanUnload ; 1
-nsCOMPtr<nsIServiceManager>::nsCOMPtr<nsIServiceManager> ; 1

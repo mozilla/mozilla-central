@@ -1,6 +1,0 @@
-nsCLiveconnectFactory::AddRef ; 2
-nsCLiveconnectFactory::Release ; 2
-nsCLiveconnectFactory::~nsCLiveconnectFactory ; 1
-JSJ_RegisterLiveConnectFactory ; 1
-nsCLiveconnectFactory::nsCLiveconnectFactory ; 1
-nsCLiveconnectFactory::`vector deleting destructor' ; 1

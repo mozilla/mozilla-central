@@ -1,5 +1,0 @@
-NSGetModule ; 1
-do_GetService ; 1
-do_GetService ; 1
-TextRegister ; 1
-nsTextStringBundle::Cleanup ; 1

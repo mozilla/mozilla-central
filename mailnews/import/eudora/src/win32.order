@@ -1,7 +1,0 @@
-basic_nsAWritableString<unsigned short>::Assign ; 1
-EudoraRegister ; 1
-nsEudoraStringBundle::Cleanup ; 1
-do_GetService ; 1
-do_GetService ; 1
-NSGetModule ; 1
-basic_nsAWritableString<unsigned short>::Assign ; 1

@@ -1,5 +1,0 @@
-do_GetService ; 1
-nsOutlookStringBundle::Cleanup ; 1
-OutlookRegister ; 1
-NSGetModule ; 1
-do_GetService ; 1

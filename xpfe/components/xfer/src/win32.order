@@ -1,7 +1,0 @@
-nsStreamTransferModule::AddRef ; 4
-nsStreamTransferModule::Release ; 4
-nsStreamTransferModule::QueryInterface ; 1
-nsStreamTransferModule::`vector deleting destructor' ; 1
-nsStreamTransferModule::CanUnload ; 1
-NSGetModule ; 1
-nsStreamTransferModule::RegisterSelf ; 1

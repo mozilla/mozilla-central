@@ -1,5 +1,0 @@
-OERegister ; 1
-nsOEStringBundle::Cleanup ; 1
-do_GetService ; 1
-do_GetService ; 1
-NSGetModule ; 1
