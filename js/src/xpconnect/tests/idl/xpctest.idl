@@ -1,0 +1,209 @@
+/* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+ *
+ * The contents of this file are subject to the Netscape Public
+ * License Version 1.1 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of
+ * the License at http://www.mozilla.org/NPL/
+ *
+ * Software distributed under the License is distributed on an "AS
+ * IS" basis, WITHOUT WARRANTY OF ANY KIND, either express oqr
+ * implied. See the License for the specific language governing
+ * rights and limitations under the License.
+ *
+ * The Original Code is Mozilla Communicator client code, released
+ * March 31, 1998.
+ *
+ * The Initial Developer of the Original Code is Netscape
+ * Communications Corporation.  Portions created by Netscape are
+ * Copyright (C) 1999 Netscape Communications Corporation. All
+ * Rights Reserved.
+ *
+ * Contributor(s): 
+ *
+ * Alternatively, the contents of this file may be used under the
+ * terms of the GNU Public License (the "GPL"), in which case the
+ * provisions of the GPL are applicable instead of those above.
+ * If you wish to allow use of your version of this file only
+ * under the terms of the GPL and not to allow others to use your
+ * version of this file under the NPL, indicate your decision by
+ * deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL.  If you do not delete
+ * the provisions above, a recipient may use your version of this
+ * file under either the NPL or the GPL.
+ */
+
+#include "nsISupports.idl"
+#include "xpcexception.idl"
+
+// forward declaration (to test that such things work)
+interface nsITestXPCSomeUselessThing;
+
+[scriptable, uuid(159E36D0-991E-11d2-AC3F-00C09300144B)]
+interface nsITestXPCFoo : nsISupports {
+    long Test(in long p1, in long p2);
+    void Test2();
+
+    attribute string Foo;
+
+    const short one = 1;
+    const short five = 5;
+    const short six = 6;
+};
+
+[scriptable, uuid(5F9D20C0-9B6B-11d2-9FFE-000064657374)]
+interface nsITestXPCFoo2 : nsITestXPCFoo {
+};
+
+[scriptable, uuid(CD2F2F40-C5D9-11d2-9838-006008962422)]
+interface nsIEcho : nsISupports {
+
+    void SetReceiver(in nsIEcho aReceiver);
+    void SendOneString(in string str);
+    long In2OutOneInt(in long input);
+
+    long In2OutAddTwoInts(in  long input1,  in  long input2,
+                          out long output1, out long output2);
+
+    string In2OutOneString(in string input);
+    void SimpleCallNoEcho();
+    void SendManyTypes(in octet                 p1,
+                       in short                 p2,
+                       in long                  p3,
+                       in long long             p4,
+                       in octet                 p5,
+                       in unsigned short        p6,
+                       in unsigned long         p7,
+                       in unsigned long long    p8,
+                       in float                 p9,
+                       in double                p10,
+                       in boolean               p11,
+                       in char                  p12,
+                       in wchar                 p13,
+                       in nsIDPtr               p14,
+                       in string                p15,
+                       in wstring               p16);
+
+    void SendInOutManyTypes(inout octet                 p1,
+                            inout short                 p2,
+                            inout long                  p3,
+                            inout long long             p4,
+                            inout octet                 p5,
+                            inout unsigned short        p6,
+                            inout unsigned long         p7,
+                            inout unsigned long long    p8,
+                            inout float                 p9,
+                            inout double                p10,
+                            inout boolean               p11,
+                            inout char                  p12,
+                            inout wchar                 p13,
+                            inout nsIDPtr               p14,
+                            inout string                p15,
+                            inout wstring               p16);
+
+    [noscript] void MethodWithNative(in long p1, in voidStar p2);
+    void ReturnCode(in long code);
+    void FailInJSTest(in long fail);
+    void SharedString([retval, shared] out string str);
+
+    void ReturnCode_NS_OK();
+    void ReturnCode_NS_ERROR_NULL_POINTER();
+    void ReturnCode_NS_ERROR_UNEXPECTED();
+    void ReturnCode_NS_ERROR_OUT_OF_MEMORY();
+
+    nsISupports ReturnInterface(in nsISupports obj);
+
+    nsIJSStackFrameLocation GetStack();
+    void SetReceiverReturnOldReceiver(inout nsIEcho aReceiver);
+
+    void MethodWithForwardDeclaredParam(in nsITestXPCSomeUselessThing sut);
+
+    void PseudoQueryInterface(in nsIIDRef uuid, 
+                              [iid_is(uuid),retval] out nsQIResult result);
+
+    void DebugDumpJSStack();
+
+    void printArgTypes(/* optional params */);
+    void throwArg(/* optional param */);
+
+    void callReceiverSometimeLater();
+
+    readonly attribute short throwInGetter;
+
+    const short one = 1;
+    const short five = 5;
+    const short six = 6;
+
+};
+
+/***************************************************************************/
+
+[scriptable, uuid(83849a30-0d6e-11d3-bab8-00805f8a5dd7)]
+interface nsIXPCTestParent : nsISupports {
+    void method1(in short i);
+    void method1a(in nsIXPCTestParent foo);
+};
+
+[scriptable, uuid(9ddf0f00-0d6e-11d3-bab8-00805f8a5dd7)]
+interface nsIXPCTestChild : nsIXPCTestParent {
+    void method2(in short i, in short j);
+};
+
+[scriptable, uuid(7bca65e0-0d73-11d3-bab8-00805f8a5dd7)]
+interface nsIXPCTestOther : nsISupports {
+    void method3(in short i, in short j, in short k);
+};
+
+[scriptable, uuid(1e4cf7b0-237a-11d3-9879-006008962422)]
+interface nsIXPCTestNoisy : nsISupports {
+    void squawk();
+};
+
+[scriptable, uuid(d970e910-30d8-11d3-9885-006008962422)]
+interface nsIXPCTestString : nsISupports {
+    string GetStringA();
+    void GetStringB(out string s);
+    void GetStringC([shared,retval] out string s);
+
+    void GetWStringCopied([retval] out wstring s);
+    void GetWStringShared([shared,retval] out wstring s);
+};
+
+[scriptable, uuid(0ff4faf0-439a-11d3-988c-006008962422)]
+interface nsIXPCTestOverloaded : nsISupports {
+    void Foo1(in PRInt32 p1);
+    void Foo2(in PRInt32 p1, in PRInt32 p2);
+};
+
+[scriptable, uuid(3d2e64b0-6552-11d3-989e-006008962422)]
+interface nsIXPCTestArray : nsISupports {
+
+    void SetReceiver(in nsIXPCTestArray aReceiver);
+
+    void PrintIntegerArray(in PRUint32 count, 
+                           [array, size_is(count)] in PRInt32 valueArray);
+    void PrintStringArray(in PRUint32 count, 
+                          [array, size_is(count)] in string valueArray);
+    void MultiplyEachItemInIntegerArray(
+                           in PRInt32 val, 
+                           in PRUint32 count, 
+                           [array, size_is(count)] inout PRInt32 valueArray);
+    void MultiplyEachItemInIntegerArrayAndAppend(
+                           in PRInt32 val, 
+                           inout PRUint32 count, 
+                           [array, size_is(count)] inout PRInt32 valueArray);
+
+    void CallEchoMethodOnEachInArray(inout nsIIDPtr uuid, 
+                                     inout PRUint32 count, 
+       [array, size_is(count), iid_is(uuid)] inout nsQIResult result);
+
+    void DoubleStringArray(inout PRUint32 count, 
+                           [array, size_is(count)] inout string valueArray);
+    void ReverseStringArray(in PRUint32 count, 
+                            [array, size_is(count)] inout string valueArray);
+
+    void PrintStringWithSize(in PRUint32 count, 
+                             [size_is(count)] in string str);
+    void DoubleString(inout PRUint32 count, 
+                      [size_is(count)] inout string str);
+};
+
