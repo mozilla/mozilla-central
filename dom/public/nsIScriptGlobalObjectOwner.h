@@ -1,6 +1,5 @@
-/* -*- Mode: IDL; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 2 -*-
- *
- * ***** BEGIN LICENSE BLOCK *****
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -13,11 +12,11 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is the Mozilla browser.
+ * The Original Code is mozilla.org code.
  *
  * The Initial Developer of the Original Code is
- * Netscape Communications, Inc.
- * Portions created by the Initial Developer are Copyright (C) 1999
+ * Netscape Communications Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 1998-1999
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
@@ -37,28 +36,31 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsIDocShell.idl"
-#include "nsIDocShellTreeItem.idl"
-#include "nsIDocShellTreeNode.idl"
-#include "nsIBaseWindow.idl"
-#include "nsIScrollable.idl"
-#include "nsITextScroll.idl"
+#ifndef nsIScriptGlobalObjectOwner_h__
+#define nsIScriptGlobalObjectOwner_h__
 
-/*
-nsCHTMLDocShell implements:
--------------------------
-nsIDocShell
-nsIDocShellTreeItem
-nsIDocShellTreeNode
-nsIBaseWindow
-nsIScrollable
-nsITextScroll
-*/
+#include "nsISupports.h"
 
-%{ C++
-//  {F1EAC762-87E9-11d3-AF80-00A024FFC08C} - 
-#define NS_DOCSHELL_CID \
-{ 0xf1eac762, 0x87e9, 0x11d3, { 0xaf, 0x80, 0x00, 0xa0, 0x24, 0xff, 0xc0, 0x8c } }
-#define NS_DOCSHELL_CONTRACTID \
-"@mozilla.org/docshell/html;1"
-%}
+class nsIScriptGlobalObject;
+
+#define NS_ISCRIPTGLOBALOBJECTOWNER_IID \
+  {0xfd25ca8e, 0x6b63, 0x435f, \
+    { 0xb8, 0xc6, 0xb8, 0x07, 0x68, 0xa4, 0x0a, 0xdc }}
+
+/**
+ * Implemented by any object capable of supplying a nsIScriptGlobalObject.
+ * The implentor may create the script global object on demand.
+ */
+
+class nsIScriptGlobalObjectOwner : public nsISupports
+{
+public:
+  NS_DEFINE_STATIC_IID_ACCESSOR(NS_ISCRIPTGLOBALOBJECTOWNER_IID)
+
+  /**
+   * Returns the script global object
+   */
+  virtual nsIScriptGlobalObject* GetScriptGlobalObject() = 0;
+};
+
+#endif /* nsIScriptGlobalObjectOwner_h__ */
