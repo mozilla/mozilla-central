@@ -71,25 +71,6 @@ public:
     // Convert from the os-native PICT format. Most likely
     // used for clipboard.  
   NS_IMETHOD ConvertFromPICT ( PicHandle inPicture ) = 0;
-  
-    // Get the PixMap for this image
-  NS_IMETHOD GetGWorldPtr ( GWorldPtr* aGWorld ) = 0;
-  
-    //Convert to the os-native icon format. Most used to put icons
-    //onto windows and menus. The outIcon will be allocated, the caller
-    //is responsible for disposing the memory
-  NS_IMETHOD ConvertToIcon(  const nsRect& aSrcRegion, 
-                             const PRInt16 aIconDepth, 
-                             const PRInt16 aIconSize,
-                             Handle* aOutIcon,
-                             OSType* aOutIconType) = 0;
-    //Companion method for ConvertToIcon, makes icon masks
-    //see nsImageMac.cpp for full details
-  NS_IMETHOD ConvertAlphaToIconMask(  const nsRect& aSrcRegion, 
-                                      const PRInt16 aMaskDepth, 
-                                      const PRInt16 aMaskSize,
-                                      Handle* aOutMask,
-                                      OSType* aOutIconType) = 0;  
 
 }; // nsIImageMac
 
