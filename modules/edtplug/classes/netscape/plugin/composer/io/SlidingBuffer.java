@@ -17,10 +17,13 @@
  */
 
 /*
- * $Header: /home/jrmuizel/cvs-mirror/mozilla/modules/edtplug/classes/netscape/plugin/composer/io/SlidingBuffer.java,v 1.1 1998-03-28 02:39:09 ltabb Exp $
+ * $Header: /home/jrmuizel/cvs-mirror/mozilla/modules/edtplug/classes/netscape/plugin/composer/io/SlidingBuffer.java,v 3.1 1998-03-28 03:33:50 ltabb Exp $
  *
  * $Log: SlidingBuffer.java,v $
- * Revision 1.1  1998-03-28 02:39:09  ltabb
+ * Revision 3.1  1998-03-28 03:33:50  ltabb
+ * bump rev to 3.1
+ *
+ * Revision 1.1  1998/03/28 02:39:09  ltabb
  * Free the lizard
  *
  * Revision 2.1  1998/03/11 23:56:37  anthonyd
