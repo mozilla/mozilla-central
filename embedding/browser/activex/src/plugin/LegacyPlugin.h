@@ -52,11 +52,15 @@ enum PluginInstanceType
 
 // Data associated with a plugin instance
 struct PluginInstanceData {
+    NPP pPluginInstance;
     PluginInstanceType nType;
     union
     {
         CActiveScriptSiteInstance *pScriptSite;
-        CControlSiteInstance *pControlSite;
+        struct {
+            CControlSiteInstance *pControlSite;
+            CControlEventSinkInstance *pControlEventSink;
+        };
     };
     char *szUrl;
     char *szContentType;
@@ -65,14 +69,5 @@ struct PluginInstanceData {
     nsISupports *pScriptingPeer;
 #endif
 };
-
-#ifdef MOZ_ACTIVEX_PLUGIN_LIVECONNECT
-extern void liveconnect_shutdown();
-extern jref liveconnect_getjavaclass();
-#endif
-
-#ifdef MOZ_ACTIVEX_PLUGIN_XPCONNECT
-extern NPError xpconnect_getvalue(NPP instance, NPPVariable variable, void *value);
-#endif
 
 #endif
