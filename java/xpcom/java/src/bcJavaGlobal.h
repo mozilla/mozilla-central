@@ -23,7 +23,10 @@
 #define __bcJavaGlobal_h_
 #include "nscore.h"
 #include "jni.h"
+#include "prlog.h"
 
+
+#define LOG_MODULE "blackConnect"
 #define EXCEPTION_CHECKING(env) \
     do {                                     \
         if ((env)->ExceptionOccurred()) {    \
@@ -31,10 +34,13 @@
 	}                                    \
     } while (0);
    
+
 class bcJavaGlobal {
  public:
     static JNIEnv * GetJNIEnv(void);
+    static PRLogModuleInfo * GetLog();
  private:
+    static PRLogModuleInfo* log;
     static JavaVM *jvm;
     static void StartJVM(void);
 };
