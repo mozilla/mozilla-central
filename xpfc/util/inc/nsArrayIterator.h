@@ -16,30 +16,38 @@
  * Reserved.
  */
 
-#ifndef nsXPFCToolbarManager_h___
-#define nsXPFCToolbarManager_h___
+#ifndef nsArrayIterator_h___
+#define nsArrayIterator_h___
 
-#include "nsIXPFCToolbarManager.h"
-#include "nsIArray.h"
 #include "nsIIterator.h"
+#include "nsIArray.h"
 
-class nsXPFCToolbarManager : public nsIXPFCToolbarManager
+class nsArrayIterator : public nsIIterator
 {
-
 public:
-  nsXPFCToolbarManager();
+  nsArrayIterator();
 
   NS_DECL_ISUPPORTS
 
-  NS_IMETHOD                 Init();
-  NS_IMETHOD                 AddToolbar(nsIXPFCToolbar * aToolbar);
+  NS_IMETHOD                  Init() ;
+  NS_IMETHOD                  Init(nsIArray * aVector) ;
+
+  NS_IMETHOD                  First() ;
+  NS_IMETHOD                  Last() ;
+  NS_IMETHOD                  Next() ;
+  NS_IMETHOD                  Previous() ;
+  NS_IMETHOD_(PRBool)         IsDone() ;
+  NS_IMETHOD_(PRBool)         IsFirst() ;
+  NS_IMETHOD_(nsComponent)    CurrentItem() ;
+  NS_IMETHOD_(PRUint32)       Count() ;
 
 protected:
-  ~nsXPFCToolbarManager();
+  ~nsArrayIterator();
 
 private:
-  nsIArray * mToolbars;
+  nsIArray * mVector;
+  PRUint32  mCurrentElement;
 
 };
 
-#endif /* nsXPFCToolbarManager_h___ */
+#endif /* nsArrayIterator_h___ */
