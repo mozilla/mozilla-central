@@ -18,57 +18,50 @@
 
 /*----------------------------------------------------------------------*/
 /*																		*/
-/* Name:		<Xfe/Logo.h>											*/
-/* Description:	XfeLogo widget public header file.						*/
+/* Name:		<Xfe/ToolItem.h>										*/
+/* Description:	XfeToolItem widget public header file.					*/
 /* Author:		Ramiro Estrugo <ramiro@netscape.com>					*/
 /*																		*/
 /*----------------------------------------------------------------------*/
 
-#ifndef _XfeLogo_h_								/* start Logo.h			*/
-#define _XfeLogo_h_
+#ifndef _XfeToolItem_h_						/* start ToolItem.h	*/
+#define _XfeToolItem_h_
 
-#include <Xfe/Button.h>
+#include <Xfe/Xfe.h>
+#include <Xfe/Logo.h>
+#include <Xfe/ToolBar.h>
 
 XFE_BEGIN_CPLUSPLUS_PROTECTION
 
 /*----------------------------------------------------------------------*/
 /*																		*/
-/* XfeLogo class names													*/
+/* XfeBox class names													*/
 /*																		*/
 /*----------------------------------------------------------------------*/
-externalref WidgetClass xfeLogoWidgetClass;
-    
-typedef struct _XfeLogoClassRec *	XfeLogoWidgetClass;
-typedef struct _XfeLogoRec *		XfeLogoWidget;
+externalref WidgetClass xfeToolItemWidgetClass;
+
+typedef struct _XfeToolItemClassRec *		XfeToolItemWidgetClass;
+typedef struct _XfeToolItemRec *			XfeToolItemWidget;
 
 /*----------------------------------------------------------------------*/
 /*																		*/
-/* XfeLogo subclass test macro											*/
+/* XfeBox subclass test macro											*/
 /*																		*/
 /*----------------------------------------------------------------------*/
-#define XfeIsLogo(w)	XtIsSubclass(w,xfeLogoWidgetClass)
+#define XfeIsToolItem(w)	XtIsSubclass(w,xfeToolItemWidgetClass)
 
 /*----------------------------------------------------------------------*/
 /*																		*/
-/* XfeLogo public functions												*/
+/* XfeToolItem Public Methods											*/
 /*																		*/
 /*----------------------------------------------------------------------*/
 extern Widget
-XfeCreateLogo				(Widget		parent,
-							 String		name,
-							 Arg *		args,
-							 Cardinal	num_args);
-/*----------------------------------------------------------------------*/
-extern void
-XfeLogoAnimationStart		(Widget		w);
-/*----------------------------------------------------------------------*/
-extern void
-XfeLogoAnimationStop		(Widget		w);
-/*----------------------------------------------------------------------*/
-extern void
-XfeLogoAnimationReset		(Widget		w);
+XfeCreateToolItem				(Widget		pw,
+								 String		name,
+								 Arg *		av,
+								 Cardinal	ac);
 /*----------------------------------------------------------------------*/
 
 XFE_END_CPLUSPLUS_PROTECTION
 
-#endif											/* end Logo.h			*/
+#endif											/* end ToolItem.h		*/

@@ -18,57 +18,52 @@
 
 /*----------------------------------------------------------------------*/
 /*																		*/
-/* Name:		<Xfe/Logo.h>											*/
-/* Description:	XfeLogo widget public header file.						*/
+/* Name:		<Xfe/Tab.h>												*/
+/* Description:	XfeTab widget public header file.						*/
 /* Author:		Ramiro Estrugo <ramiro@netscape.com>					*/
 /*																		*/
 /*----------------------------------------------------------------------*/
 
-#ifndef _XfeLogo_h_								/* start Logo.h			*/
-#define _XfeLogo_h_
+#ifndef _XfeTab_h_								/* start Tab.h			*/
+#define _XfeTab_h_
 
-#include <Xfe/Button.h>
+#include <Xfe/Xfe.h>
 
 XFE_BEGIN_CPLUSPLUS_PROTECTION
 
 /*----------------------------------------------------------------------*/
 /*																		*/
-/* XfeLogo class names													*/
+/* XfeTab class names													*/
 /*																		*/
 /*----------------------------------------------------------------------*/
-externalref WidgetClass xfeLogoWidgetClass;
+externalref WidgetClass xfeTabWidgetClass;
     
-typedef struct _XfeLogoClassRec *	XfeLogoWidgetClass;
-typedef struct _XfeLogoRec *		XfeLogoWidget;
+typedef struct _XfeTabClassRec *	XfeTabWidgetClass;
+typedef struct _XfeTabRec *			XfeTabWidget;
 
 /*----------------------------------------------------------------------*/
 /*																		*/
-/* XfeLogo subclass test macro											*/
+/* XfeTab subclass test macro											*/
 /*																		*/
 /*----------------------------------------------------------------------*/
-#define XfeIsLogo(w)	XtIsSubclass(w,xfeLogoWidgetClass)
+#define XfeIsTab(w)	XtIsSubclass(w,xfeTabWidgetClass)
 
 /*----------------------------------------------------------------------*/
 /*																		*/
-/* XfeLogo public functions												*/
+/* XfeTab public functions												*/
 /*																		*/
 /*----------------------------------------------------------------------*/
 extern Widget
-XfeCreateLogo				(Widget		parent,
+XfeCreateTab				(Widget		pw,
 							 String		name,
-							 Arg *		args,
-							 Cardinal	num_args);
+							 Arg *		av,
+							 Cardinal	ac);
 /*----------------------------------------------------------------------*/
 extern void
-XfeLogoAnimationStart		(Widget		w);
-/*----------------------------------------------------------------------*/
-extern void
-XfeLogoAnimationStop		(Widget		w);
-/*----------------------------------------------------------------------*/
-extern void
-XfeLogoAnimationReset		(Widget		w);
+XfeTabDrawRaised			(Widget		w,
+							 Boolean	raised);
 /*----------------------------------------------------------------------*/
 
 XFE_END_CPLUSPLUS_PROTECTION
 
-#endif											/* end Logo.h			*/
+#endif											/* end Tab.h		*/

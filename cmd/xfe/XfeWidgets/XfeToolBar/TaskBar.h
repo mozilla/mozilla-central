@@ -18,57 +18,48 @@
 
 /*----------------------------------------------------------------------*/
 /*																		*/
-/* Name:		<Xfe/Logo.h>											*/
-/* Description:	XfeLogo widget public header file.						*/
+/* Name:		<Xfe/TaskBar.h>											*/
+/* Description:	XfeTaskBar widget public header file.					*/
 /* Author:		Ramiro Estrugo <ramiro@netscape.com>					*/
 /*																		*/
 /*----------------------------------------------------------------------*/
 
-#ifndef _XfeLogo_h_								/* start Logo.h			*/
-#define _XfeLogo_h_
+#ifndef _XfeTaskBar_h_							/* start TaskBar.h		*/
+#define _XfeTaskBar_h_
 
-#include <Xfe/Button.h>
+#include <Xfe/Xfe.h>
 
 XFE_BEGIN_CPLUSPLUS_PROTECTION
 
 /*----------------------------------------------------------------------*/
 /*																		*/
-/* XfeLogo class names													*/
+/* XfeBox class names													*/
 /*																		*/
 /*----------------------------------------------------------------------*/
-externalref WidgetClass xfeLogoWidgetClass;
-    
-typedef struct _XfeLogoClassRec *	XfeLogoWidgetClass;
-typedef struct _XfeLogoRec *		XfeLogoWidget;
+externalref WidgetClass xfeTaskBarWidgetClass;
+
+typedef struct _XfeTaskBarClassRec *		XfeTaskBarWidgetClass;
+typedef struct _XfeTaskBarRec *				XfeTaskBarWidget;
 
 /*----------------------------------------------------------------------*/
 /*																		*/
-/* XfeLogo subclass test macro											*/
+/* XfeBox subclass test macro											*/
 /*																		*/
 /*----------------------------------------------------------------------*/
-#define XfeIsLogo(w)	XtIsSubclass(w,xfeLogoWidgetClass)
+#define XfeIsTaskBar(w)	XtIsSubclass(w,xfeTaskBarWidgetClass)
 
 /*----------------------------------------------------------------------*/
 /*																		*/
-/* XfeLogo public functions												*/
+/* XfeTaskBar Public Methods											*/
 /*																		*/
 /*----------------------------------------------------------------------*/
 extern Widget
-XfeCreateLogo				(Widget		parent,
-							 String		name,
-							 Arg *		args,
-							 Cardinal	num_args);
-/*----------------------------------------------------------------------*/
-extern void
-XfeLogoAnimationStart		(Widget		w);
-/*----------------------------------------------------------------------*/
-extern void
-XfeLogoAnimationStop		(Widget		w);
-/*----------------------------------------------------------------------*/
-extern void
-XfeLogoAnimationReset		(Widget		w);
+XfeCreateTaskBar				(Widget		parent,
+								 String		name,
+								 Arg *		args,
+								 Cardinal	num_args);
 /*----------------------------------------------------------------------*/
 
 XFE_END_CPLUSPLUS_PROTECTION
 
-#endif											/* end Logo.h			*/
+#endif											/* end TaskBar.h		*/

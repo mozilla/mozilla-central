@@ -18,57 +18,84 @@
 
 /*----------------------------------------------------------------------*/
 /*																		*/
-/* Name:		<Xfe/Logo.h>											*/
-/* Description:	XfeLogo widget public header file.						*/
+/* Name:		<Xfe/ToolItemP.h>										*/
+/* Description:	XfeToolItem widget private header file.					*/
 /* Author:		Ramiro Estrugo <ramiro@netscape.com>					*/
 /*																		*/
 /*----------------------------------------------------------------------*/
 
-#ifndef _XfeLogo_h_								/* start Logo.h			*/
-#define _XfeLogo_h_
+#ifndef _XfeToolItemP_h_						/* start ToolItemP.h	*/
+#define _XfeToolItemP_h_
 
-#include <Xfe/Button.h>
+#include <Xfe/ToolItem.h>
+#include <Xfe/ManagerP.h>
 
 XFE_BEGIN_CPLUSPLUS_PROTECTION
+   
+/*----------------------------------------------------------------------*/
+/*																		*/
+/* XfeToolItemClassPart													*/
+/*																		*/
+/*----------------------------------------------------------------------*/
+typedef struct
+{
+	XtPointer		extension;					/* Extension			*/ 
+} XfeToolItemClassPart;
 
 /*----------------------------------------------------------------------*/
 /*																		*/
-/* XfeLogo class names													*/
+/* XfeToolItemClassRec													*/
 /*																		*/
 /*----------------------------------------------------------------------*/
-externalref WidgetClass xfeLogoWidgetClass;
-    
-typedef struct _XfeLogoClassRec *	XfeLogoWidgetClass;
-typedef struct _XfeLogoRec *		XfeLogoWidget;
+typedef struct _XfeToolItemClassRec
+{
+	CoreClassPart				core_class;
+	CompositeClassPart			composite_class;
+	ConstraintClassPart			constraint_class;
+	XmManagerClassPart			manager_class;
+	XfeManagerClassPart			xfe_manager_class;
+	XfeToolItemClassPart		xfe_tool_item_class;
+} XfeToolItemClassRec;
+
+externalref XfeToolItemClassRec xfeToolItemClassRec;
 
 /*----------------------------------------------------------------------*/
 /*																		*/
-/* XfeLogo subclass test macro											*/
+/* XfeToolItemPart														*/
 /*																		*/
 /*----------------------------------------------------------------------*/
-#define XfeIsLogo(w)	XtIsSubclass(w,xfeLogoWidgetClass)
+typedef struct _XfeToolItemPart
+{
+    /* Resources */
+	Widget				item;					/* Item					*/
+    Widget				logo;					/* Logo					*/
+    Dimension			spacing;				/* Spacing				*/
+
+} XfeToolItemPart;
 
 /*----------------------------------------------------------------------*/
 /*																		*/
-/* XfeLogo public functions												*/
+/* XfeToolItemRec														*/
 /*																		*/
 /*----------------------------------------------------------------------*/
-extern Widget
-XfeCreateLogo				(Widget		parent,
-							 String		name,
-							 Arg *		args,
-							 Cardinal	num_args);
+typedef struct _XfeToolItemRec
+{
+   CorePart				core;
+   CompositePart		composite;
+   ConstraintPart		constraint;
+   XmManagerPart		manager;
+   XfeManagerPart		xfe_manager;
+   XfeToolItemPart		xfe_tool_item;
+} XfeToolItemRec;
+
 /*----------------------------------------------------------------------*/
-extern void
-XfeLogoAnimationStart		(Widget		w);
+/*																		*/
+/* XfeToolItemPart Access Macro											*/
+/*																		*/
 /*----------------------------------------------------------------------*/
-extern void
-XfeLogoAnimationStop		(Widget		w);
-/*----------------------------------------------------------------------*/
-extern void
-XfeLogoAnimationReset		(Widget		w);
-/*----------------------------------------------------------------------*/
+#define _XfeToolItemPart(w) &(((XfeToolItemWidget) w) -> xfe_tool_item)
 
 XFE_END_CPLUSPLUS_PROTECTION
 
-#endif											/* end Logo.h			*/
+#endif											/* end ToolItemP.h		*/
+

@@ -18,57 +18,73 @@
 
 /*----------------------------------------------------------------------*/
 /*																		*/
-/* Name:		<Xfe/Logo.h>											*/
-/* Description:	XfeLogo widget public header file.						*/
+/* Name:		<Xfe/Chrome.h>											*/
+/* Description:	XfeChrome widget public header file.					*/
 /* Author:		Ramiro Estrugo <ramiro@netscape.com>					*/
 /*																		*/
 /*----------------------------------------------------------------------*/
 
-#ifndef _XfeLogo_h_								/* start Logo.h			*/
-#define _XfeLogo_h_
+#ifndef _XfeChrome_h_							/* start Chrome.h		*/
+#define _XfeChrome_h_
 
-#include <Xfe/Button.h>
+#include <Xfe/ToolBox.h>
+#include <Xfe/DashBoard.h>
+#include <Xfe/TaskBar.h>
+#include <Xm/RowColumn.h>
 
 XFE_BEGIN_CPLUSPLUS_PROTECTION
 
 /*----------------------------------------------------------------------*/
 /*																		*/
-/* XfeLogo class names													*/
+/* XmRChromeChildType													*/
 /*																		*/
 /*----------------------------------------------------------------------*/
-externalref WidgetClass xfeLogoWidgetClass;
-    
-typedef struct _XfeLogoClassRec *	XfeLogoWidgetClass;
-typedef struct _XfeLogoRec *		XfeLogoWidget;
+enum
+{
+	XmCHROME_BOTTOM_VIEW,
+	XmCHROME_CENTER_VIEW,
+	XmCHROME_DASH_BOARD,
+	XmCHROME_IGNORE,
+	XmCHROME_LEFT_VIEW,
+	XmCHROME_MENU_BAR,
+	XmCHROME_RIGHT_VIEW,
+	XmCHROME_TOOL_BOX,
+	XmCHROME_TOP_VIEW
+};
 
 /*----------------------------------------------------------------------*/
 /*																		*/
-/* XfeLogo subclass test macro											*/
+/* XfeBox class names													*/
 /*																		*/
 /*----------------------------------------------------------------------*/
-#define XfeIsLogo(w)	XtIsSubclass(w,xfeLogoWidgetClass)
+externalref WidgetClass xfeChromeWidgetClass;
+
+typedef struct _XfeChromeClassRec *			XfeChromeWidgetClass;
+typedef struct _XfeChromeRec *				XfeChromeWidget;
 
 /*----------------------------------------------------------------------*/
 /*																		*/
-/* XfeLogo public functions												*/
+/* XfeBox subclass test macro											*/
+/*																		*/
+/*----------------------------------------------------------------------*/
+#define XfeIsChrome(w)	XtIsSubclass(w,xfeChromeWidgetClass)
+
+/*----------------------------------------------------------------------*/
+/*																		*/
+/* XfeChrome public methods												*/
 /*																		*/
 /*----------------------------------------------------------------------*/
 extern Widget
-XfeCreateLogo				(Widget		parent,
-							 String		name,
-							 Arg *		args,
-							 Cardinal	num_args);
+XfeCreateChrome					(Widget				pw,
+								 String				name,
+								 Arg *				av,
+								 Cardinal			ac);
 /*----------------------------------------------------------------------*/
-extern void
-XfeLogoAnimationStart		(Widget		w);
-/*----------------------------------------------------------------------*/
-extern void
-XfeLogoAnimationStop		(Widget		w);
-/*----------------------------------------------------------------------*/
-extern void
-XfeLogoAnimationReset		(Widget		w);
+extern Widget
+XfeChromeGetComponent			(Widget				w,
+								 unsigned char		component);
 /*----------------------------------------------------------------------*/
 
 XFE_END_CPLUSPLUS_PROTECTION
 
-#endif											/* end Logo.h			*/
+#endif											/* end Chrome.h			*/

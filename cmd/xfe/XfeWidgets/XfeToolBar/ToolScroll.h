@@ -18,57 +18,62 @@
 
 /*----------------------------------------------------------------------*/
 /*																		*/
-/* Name:		<Xfe/Logo.h>											*/
-/* Description:	XfeLogo widget public header file.						*/
+/* Name:		<Xfe/ToolScroll.h>										*/
+/* Description:	XfeToolScroll widget public header file.				*/
 /* Author:		Ramiro Estrugo <ramiro@netscape.com>					*/
 /*																		*/
 /*----------------------------------------------------------------------*/
 
-#ifndef _XfeLogo_h_								/* start Logo.h			*/
-#define _XfeLogo_h_
+#ifndef _XfeToolScroll_h_						/* start ToolScroll.h	*/
+#define _XfeToolScroll_h_
 
-#include <Xfe/Button.h>
+#include <Xfe/Oriented.h>
+#include <Xfe/Logo.h>
+#include <Xfe/ToolBar.h>
 
 XFE_BEGIN_CPLUSPLUS_PROTECTION
 
 /*----------------------------------------------------------------------*/
 /*																		*/
-/* XfeLogo class names													*/
+/* XmRarrowPlacement													*/
 /*																		*/
 /*----------------------------------------------------------------------*/
-externalref WidgetClass xfeLogoWidgetClass;
-    
-typedef struct _XfeLogoClassRec *	XfeLogoWidgetClass;
-typedef struct _XfeLogoRec *		XfeLogoWidget;
+enum
+{
+	XmTOOL_SCROLL_ARROW_PLACEMENT_BOTH,
+	XmTOOL_SCROLL_ARROW_PLACEMENT_END,
+	XmTOOL_SCROLL_ARROW_PLACEMENT_START
+};
 
 /*----------------------------------------------------------------------*/
 /*																		*/
-/* XfeLogo subclass test macro											*/
+/* XfeBox class names													*/
 /*																		*/
 /*----------------------------------------------------------------------*/
-#define XfeIsLogo(w)	XtIsSubclass(w,xfeLogoWidgetClass)
+externalref WidgetClass xfeToolScrollWidgetClass;
+
+typedef struct _XfeToolScrollClassRec *		XfeToolScrollWidgetClass;
+typedef struct _XfeToolScrollRec *			XfeToolScrollWidget;
 
 /*----------------------------------------------------------------------*/
 /*																		*/
-/* XfeLogo public functions												*/
+/* XfeBox subclass test macro											*/
+/*																		*/
+/*----------------------------------------------------------------------*/
+#define XfeIsToolScroll(w)	XtIsSubclass(w,xfeToolScrollWidgetClass)
+
+/*----------------------------------------------------------------------*/
+/*																		*/
+/* XfeToolScroll Public Methods											*/
 /*																		*/
 /*----------------------------------------------------------------------*/
 extern Widget
-XfeCreateLogo				(Widget		parent,
-							 String		name,
-							 Arg *		args,
-							 Cardinal	num_args);
-/*----------------------------------------------------------------------*/
-extern void
-XfeLogoAnimationStart		(Widget		w);
-/*----------------------------------------------------------------------*/
-extern void
-XfeLogoAnimationStop		(Widget		w);
-/*----------------------------------------------------------------------*/
-extern void
-XfeLogoAnimationReset		(Widget		w);
+XfeCreateToolScroll				(Widget		pw,
+								 String		name,
+								 Arg *		av,
+								 Cardinal	ac);
 /*----------------------------------------------------------------------*/
 
 XFE_END_CPLUSPLUS_PROTECTION
 
-#endif											/* end Logo.h			*/
+#endif											/* end ToolScroll.h		*/
