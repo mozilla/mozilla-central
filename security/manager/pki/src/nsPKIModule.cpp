@@ -25,8 +25,10 @@
 #include "nsIGenericFactory.h"
 
 #include "nsNSSDialogs.h"
+#include "nsCertificateManager.h"
 
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsNSSDialogs, Init)
+NS_GENERIC_FACTORY_CONSTRUCTOR(nsCertificateManager)
 
 static nsModuleComponentInfo components[] =
 {
@@ -36,6 +38,13 @@ static nsModuleComponentInfo components[] =
     NS_NSSDIALOGS_CONTRACTID,
     nsNSSDialogsConstructor
   },
+
+  { "PSM Certificate Manager", 
+    NS_CERTIFICATEMANAGER_CID,
+    NS_CERTIFICATEMANAGER_CONTRACTID,
+    nsCertificateManagerConstructor
+  }
+
 };
 
-NS_IMPL_NSGETMODULE("PKI", components);
+NS_IMPL_NSGETMODULE("PKI", components)
