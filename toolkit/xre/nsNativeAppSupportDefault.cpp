@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -12,14 +11,14 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is The Browser Profile Migrator.
+ * The Original Code is the Mozilla XUL toolkit.
  *
- * The Initial Developer of the Original Code is Ben Goodger.
+ * The Initial Developer of the Original Code is
+ * Benjamin Smedberg <bsmedberg@covad.net>
  * Portions created by the Initial Developer are Copyright (C) 2004
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *  Ben Goodger <ben@bengoodger.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -34,37 +33,17 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
- 
-#ifndef profilemigrator___h___
-#define profilemigrator___h___
 
-#include "nsIBrowserProfileMigrator.h"
-#include "nsIProfileMigrator.h"
-#include "nsCOMPtr.h"
+#include "nsNativeAppSupportBase.h"
 
-#define NS_FIREFOX_PROFILEMIGRATOR_CID \
-{ 0x4ca3c946, 0x5408, 0x49f0, { 0x9e, 0xca, 0x3a, 0x97, 0xd5, 0xc6, 0x77, 0x50 } }
-
-class nsProfileMigrator : public nsIProfileMigrator
+nsresult
+NS_CreateNativeAppSupport( nsINativeAppSupport **aResult )
 {
-public:
-  NS_DECL_NSIPROFILEMIGRATOR
-  NS_DECL_ISUPPORTS
+  nsNativeAppSupportBase* native = new nsNativeAppSupportBase();
+  if (!native) return NS_ERROR_OUT_OF_MEMORY;
 
-  nsProfileMigrator() { };
+  *aResult = native;
+  NS_ADDREF( *aResult );
 
-protected:
-  ~nsProfileMigrator() { };
-
-  nsresult GetDefaultBrowserMigratorKey(nsACString& key,
-                                        nsCOMPtr<nsIBrowserProfileMigrator>& bpm);
-
-  /**
-   * Import profiles from ~/.firefox/ or ~/.phoenix/
-   * @return PR_TRUE if any profiles imported.
-   */
-  PRBool ImportRegistryProfiles(const nsACString& aAppName);
-};
-
-#endif
-
+  return NS_OK;
+}
