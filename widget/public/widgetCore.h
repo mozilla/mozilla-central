@@ -1,6 +1,5 @@
-/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
- *
- * ***** BEGIN LICENSE BLOCK *****
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -13,15 +12,14 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is Mozilla Communicator.
+ * The Original Code is mozilla.org code.
  *
  * The Initial Developer of the Original Code is
- * Netscape Communications Corp.
- * Portions created by the Initial Developer are Copyright (C) 1999
+ * Marco Pesenti Gritti <marco@gnome.org>
+ * Portions created by the Initial Developer are Copyright (C) 2004
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Patrick Beard
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -37,23 +35,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsIScriptableRegion.h"
-#include "gfxCore.h"
+#ifndef widgetCore_h__
+#define widgetCore_h__
 
-class nsIRegion;
+#include "nscore.h"
 
-/**
- * An adapter class for the unscriptable nsIRegion interface.
- */
-class NS_GFX nsScriptableRegion : public nsIScriptableRegion {
-public:
-	nsScriptableRegion(nsIRegion* region);
-	virtual ~nsScriptableRegion();
-	
-	NS_DECL_ISUPPORTS
+#ifdef _IMPL_NS_WIDGET
+#define NS_WIDGET NS_EXPORT
+#else
+#define NS_WIDGET NS_IMPORT
+#endif
 
-	NS_DECL_NSISCRIPTABLEREGION
-
-private:
-	nsIRegion* mRegion;
-};
+#endif
