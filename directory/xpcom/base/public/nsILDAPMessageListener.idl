@@ -32,47 +32,40 @@
  */
 
 #include "nsISupports.idl"
-#include "nsILDAPOperation.idl"
+#include "nsILDAPMessage.idl"
 
-// for the ldapMsgHandle typedef
+// a callback interface to be implemented by any objects that want to 
+// receive results from an nsILDAPOperation (ie nsILDAPMessages) as they
+// come in.
 //
-%{C++
-#include "ldap.h"
-%}
-
-[ptr] native ldapMsgHandle(LDAPMessage);
-
-[scriptable, uuid(973ff50f-2002-4f0c-b57d-2242156139a2)]
-interface nsILDAPMessage : nsISupports
+[scriptable, uuid(dc721d4b-3ff2-4387-a80c-5e29545f774a)]
+interface nsILDAPMessageListener : nsISupports
 {
-    // initialize an operation
-    //
-    [noscript] void init(in nsILDAPOperation operation, 
-			 in ldapMsgHandle msgHandle);
+    // when ldap_result() returns, one of these routines is called, depending
+    // on the return value
 
-    // wrapper for ldap_get_dn
-    //
-    // XXX - currently must use ldap_mem_free to free
-    //
-    readonly attribute string dn;
+    // return value = LDAP_RES_SEARCH_ENTRY 
+    // 
+    void OnLDAPSearchEntry(in nsILDAPMessage aMessage);
 
-    // wrappers for ldap_{first,next}_attribute
+    // return value = LDAP_RES_SEARCH_REFERENCE
+    //
+    void OnLDAPSearchReference(in nsILDAPMessage aMessage);
+
+    // return value = LDAP_RES_SEARCH_RESULT
+    //
+    void OnLDAPSearchResult(in nsILDAPMessage aMessage);
+
+    // return value of -1
+    //
+    // XXX should have an arg?
+    //
+    void OnLDAPError();
+
+    // return value of 0
     //	
-    // XXX - currently must use ldap_mem_free to free the results
-    //
-    string firstAttribute();
-    string nextAttribute();
+    void OnLDAPTimeout();
 
-    // wrapper for ldap_get_values
-    //
-    // XXX - values must be freed with ldap_value_free
-    //
-    void getValues(in string attr, out unsigned long count, 
-		   [retval, array, size_is(count)] out string values);
-
-    // turn an error condition associated with this message into an LDAP 
-    // errcode (wrapper around ldap_parse_result)
-    //
-    long getErrorCode();
-    
+    // XXX need to add other possible ldap_result return values 
 };
+
