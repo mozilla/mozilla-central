@@ -49,6 +49,9 @@ public:
 
   nsSMimeJSHelper();
   virtual ~nsSMimeJSHelper();
+
+private:
+  nsresult getMailboxList(nsIMsgCompFields *compFields, PRUint32 *mailbox_count, char **mailbox_list);
 };
 
 #endif
