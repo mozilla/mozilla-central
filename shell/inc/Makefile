@@ -15,9 +15,14 @@
 # Copyright (C) 1998 Netscape Communications Corporation.  All Rights
 # Reserved.
 
-DEPTH = ..
+DEPTH = ../..
 
-DIRS = public inc src tests
+MODULE = shell
+
+EXPORTS =			\
+    nsMenuBar.h \
+    nsMenuItem.h \
+	$(NULL)
 
 include $(DEPTH)/config/config.mk
 
