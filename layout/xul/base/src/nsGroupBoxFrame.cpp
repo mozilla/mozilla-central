@@ -37,9 +37,9 @@
 
 // YY need to pass isMultiple before create called
 
+#include "nsBoxFrame.h"
 #include "nsCSSRendering.h"
 #include "nsIStyleContext.h"
-#include "nsBoxFrame.h"
 
 class nsGroupBoxFrame : public nsBoxFrame {
 public:
