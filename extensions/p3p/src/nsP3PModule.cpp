@@ -51,7 +51,7 @@ static nsModuleComponentInfo gP3PComponents[] =
 {
   {"P3P Service",
    NS_P3PSERVICE_CID,
-   NS_P3PSERVICE_CONTRACTID,
+   NS_COOKIECONSENT_CONTRACTID,
    nsP3PServiceConstructor,
   }
 };
