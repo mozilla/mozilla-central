@@ -39,32 +39,34 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __MAI_TOP_LEVEL_H__
-#define __MAI_TOP_LEVEL_H__
+#ifndef __MAI_CACHE_H__
+#define __MAI_CACHE_H__
 
-#include "nsIAccessibleEventListener.h"
-#include "nsMaiWidget.h"
+#include "nsMaiObject.h"
 
-/* MaiTopLevel is the MaiObject class for toplevel Window. The instance of
- * MaiTopLevel will be child of MaiRoot instance. It is added into root when
- * the toplevel window is created, and remove from root when the toplevel
- * window is destroyed.
- */
-
-class MaiTopLevel: public MaiWidget, public nsIAccessibleEventListener
+struct MaiCacheItem
 {
-public:
-    MaiTopLevel(nsIAccessible *aAcc);
-    virtual ~MaiTopLevel();
-
-    NS_DECL_ISUPPORTS
-    // nsIAccessibleEventListener
-    NS_DECL_NSIACCESSIBLEEVENTLISTENER
-
-    /* virtual functions called by callbacks */
-
-private:
-    MaiObject *CreateMaiObjectFor(nsIAccessible* aAccessible);
+    guint uid;
+    MaiObject *maiObject;
 };
 
-#endif   /* __MAI_TOP_LEVEL_H__ */
+class MaiCache
+{
+public:
+    MaiCache();
+    ~MaiCache();
+
+    gboolean Add(MaiObject *aMaiObj);
+    gboolean Remove(MaiObject *aMaiObj);
+    MaiObject *Fetch(guint uid);
+    MaiObject *Fetch(MaiObject *aMaiObj);
+    MaiObject *Fetch(nsIAccessible *aAccess);
+    MaiObject *Fetch(AtkObject *aAtkObj);
+
+private:
+    enum { MAI_CACHE_SIZE = 100 };
+    MaiCacheItem mCache [MAI_CACHE_SIZE];
+    gint mCacheIndex;
+};
+
+#endif   /* __MAI_CACHE_H__ */
