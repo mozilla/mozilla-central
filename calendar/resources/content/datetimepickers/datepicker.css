@@ -1,8 +1,0 @@
-@import url("chrome://calendar/content/datetimepickers/minimonth.css");
-
-@import url("chrome://calendar/skin/datetimepickers/datepicker.css");
-
-datepicker {
-  -moz-binding: url("chrome://calendar/content/datetimepickers/datepicker.xbl#datepicker");
-}
-

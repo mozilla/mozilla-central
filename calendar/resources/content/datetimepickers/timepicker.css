@@ -1,9 +1,0 @@
-@import url("chrome://calendar/skin/datetimepickers/timepicker.css");
-
-timepicker {
-  -moz-binding: url("chrome://calendar/content/datetimepickers/timepicker.xbl#timepicker");
-}
-timepicker-grids {
-  -moz-binding: url("chrome://calendar/content/datetimepickers/timepicker.xbl#timepicker-grids");
-}
-
