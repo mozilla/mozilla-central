@@ -35,49 +35,32 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsICategoryManager.h"
-#include "nsIComponentManager.h"
-#include "nsIGenericFactory.h"
-#include "nsIHttpProtocolHandler.h"
-#include "nsIServiceManager.h"
-#include "nsP3PCIID.h"
-#include "nsP3PService.h"
-#include "nsCompactPolicy.h"
-#include "nsPolicyReference.h"
+#ifndef NS_P3PUTILS_H__
+#define NS_P3PUTILS_H__
 
-NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsP3PService,Init)
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsPolicyReference)
+#include "nsString.h"
+#include "nsCRT.h"
+#include "nsVoidArray.h"
+#include "nsCOMPtr.h"                                                           
 
-static nsModuleComponentInfo gP3PComponents[] =
-{
-  {"P3P Service",
-   NS_P3PSERVICE_CID,
-   NS_COOKIECONSENT_CONTRACTID,
-   nsP3PServiceConstructor,
-  },
-  {"P3P Service",
-   NS_P3PSERVICE_CID,
-   "@mozilla.org/p3p/p3pservice;1",
-   nsP3PServiceConstructor,
-  },
-  {"Policy Reference",
-   NS_POLICYREFERENCE_CID,
-   "@mozilla.org/p3p/policyreference;1",
-   nsPolicyReferenceConstructor,
-  }
+
+class nsIDOMNode;
+
+class nsP3PUtils {
+  public:
+    static nsresult GetAttributeValue(nsIDOMNode* aNode, char* aAttrName, nsAString& aAttrValue);
+    static nsresult DeterminePolicyScope(const nsVoidArray& aNodeList, const char* aPath, PRBool* aOut);
+    static nsresult GetElementsByTagName(nsIDOMNode* aNode, const nsAString& aTagName, nsVoidArray& aReturn);
+    static PRBool   IsPathIncluded(const nsAString& aURI, const nsAString& aPath);
+    static PRBool   ParseWildCard(nsAString& aLhs,  nsAString& aRhs);
+    static const    nsDependentSubstring TrimCharsInSet(const char* aSet, const nsAString& aValue);
+    static void     CleanArray(nsVoidArray& aArray);
+  private:
+    //  Use the |static| methods |only|
+    nsP3PUtils()  {}
+    ~nsP3PUtils() {}
 };
 
-PR_STATIC_CALLBACK(nsresult)
-Initialize(nsIModule* aSelf)
-{
-  return nsCompactPolicy::InitTokenTable(); 
-}
+#endif
 
-PR_STATIC_CALLBACK(void)
-Shutdown(nsIModule* aSelf)
-{
-  nsCompactPolicy::DestroyTokenTable();
-}
-
-NS_IMPL_NSGETMODULE_WITH_CTOR_DTOR(nsP3PModule, gP3PComponents,Initialize,Shutdown)
 
