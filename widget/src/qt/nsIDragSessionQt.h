@@ -1,4 +1,4 @@
-/* -*- Mode: c++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
  *
  * The contents of this file are subject to the Netscape Public
  * License Version 1.1 (the "License"); you may not use this file
@@ -17,34 +17,31 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
- *		John C. Griggs <johng@corel.com>
+ * Contributor(s):
+ *      Denis Issoupov <denis@macadamian.com>
  *
  */
-#ifndef nsAppShell_h__
-#define nsAppShell_h__
+#ifndef nsIDragSessionQt_h__
+#define nsIDragSessionQt_h__
 
-#include "nsIAppShell.h"
-#include "nsIEventQueue.h"
-#include "nsQApplication.h"
+#include "nsISupports.h"
+#include <qdragobject.h> 
 
-/* Native QT Application shell wrapper */
-class nsAppShell : public nsIAppShell
+#define NS_IDRAGSESSIONQT_IID      \
+{ 0x36c4c381, 0x09e3, 0x11d4, { 0xb0, 0x33, 0xa4, 0x20, 0xf4, 0x2c, 0xfd, 0x7c } };
+
+class nsIDragSessionQt : public nsISupports
 {
-public:
-    nsAppShell();
-    virtual ~nsAppShell();
+  public:
+    NS_DEFINE_STATIC_IID_ACCESSOR(NS_IDRAGSESSIONQT_IID)
 
-    NS_DECL_ISUPPORTS
-
-    NS_DECL_NSIAPPSHELL
-
-private:
-    nsDispatchListener	    *mDispatchListener;
-    nsCOMPtr<nsIEventQueue> mEventQueue;
-    nsQApplication          *mApplication;
-    PRInt32                 mID;
-    static PRBool           mRunning;
+  /**
+    * Since the drag may originate in an external application, we need some
+    * way of communicating the QDragObject to the session so it can use it
+    * when filling in data requests.
+    *
+    */
+   NS_IMETHOD SetDragReference(QMimeSource* aDragRef) = 0; 
 };
 
-#endif // nsAppShell_h__
+#endif
