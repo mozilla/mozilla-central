@@ -43,6 +43,7 @@
 #define __MAI_UTIL_H__
 
 #include <atk/atk.h>
+#include "nsAccessibilityInterface.h"
 
 #define MAI_TYPE_UTIL              (mai_util_get_type ())
 #define MAI_UTIL(obj)              (G_TYPE_CHECK_INSTANCE_CAST ((obj), \
@@ -80,10 +81,9 @@ struct _MaiUtilClass
 
 MaiAppRoot *mai_get_root(void);
 MaiCache *mai_get_cache(void);
-gboolean mai_init(void);
 
 G_BEGIN_DECLS
-int gtk_module_init(gint *argc, char** argv[]);
+gboolean mai_init(MaiHook **);
 G_END_DECLS
 
 #endif /* __MAI_UTIL_H__ */
