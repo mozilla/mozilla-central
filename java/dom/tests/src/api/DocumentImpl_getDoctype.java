@@ -81,8 +81,8 @@ public class DocumentImpl_getDoctype extends BWBaseTest implements Execution
       {
        try {
              DocumentType dt = d.getDoctype();
-	     if (dt == null) {
-                TestLoader.logErrPrint("Document Type is  NULL..");
+	     if (dt != null) {
+                TestLoader.logErrPrint("Document Type for HTML is NULL..");
                 return BWBaseTest.FAILED;
              } else {
                 TestLoader.logErrPrint("Document Type is  " + dt.getName());
