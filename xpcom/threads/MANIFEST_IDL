@@ -1,7 +1,0 @@
-nsIRunnable.idl
-nsIThread.idl
-nsIThreadPool.idl
-nsITimerManager.idl
-nsIEventQueue.idl
-nsIEventQueueService.idl
-nsIScriptableTimer.idl
