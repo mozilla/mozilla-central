@@ -65,3 +65,7 @@
 <!ENTITY outdent.label "Outdent">
 <!ENTITY indent.label "Indent">
 <!ENTITY underline.label "Underline">
+
+<!ENTITY absolutePosition.label "Absolute positioning">
+<!ENTITY decreaseZIndex.label "Sent to back">
+<!ENTITY increaseZIndex.label "Bring to front">
