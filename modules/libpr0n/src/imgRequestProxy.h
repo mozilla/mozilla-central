@@ -21,33 +21,40 @@
  *   Stuart Parmenter <pavlov@netscape.com>
  */
 
-#ifndef ImageCache_h__
-#define ImageCache_h__
-
-#include "nsIURI.h"
 #include "imgRequest.h"
+#include "nsIImageDecoderObserver.h"
 
+#include "gfxIImageContainer.h"
+#include "nsIImageDecoder.h"
+#include "nsCOMPtr.h"
 
-#define IMAGE_CACHE_CID \
-{ /* 70058a20-1dd2-11b2-9d22-db0a9d82e8bd */         \
-     0x70058a20,                                     \
+#define NS_IMAGEREQUESTPROXY_CID \
+{ /* 20557898-1dd2-11b2-8f65-9c462ee2bc95 */         \
+     0x20557898,                                     \
      0x1dd2,                                         \
      0x11b2,                                         \
-    {0x9d, 0x22, 0xdb, 0x0a, 0x9d, 0x82, 0xe8, 0xbd} \
+    {0x8f, 0x65, 0x9c, 0x46, 0x2e, 0xe2, 0xbc, 0x95} \
 }
 
-class ImageCache
+class imgRequestProxy : public imgIRequest,
+                            public nsIImageDecoderObserver
 {
 public:
-  ImageCache();
-  ~ImageCache();
+  NS_DECL_ISUPPORTS
+  NS_DECL_IMGIREQUEST
+  NS_DECL_NSIIMAGEDECODEROBSERVER
+  NS_DECL_GFXIIMAGECONTAINEROBSERVER
+
+  imgRequestProxy();
+  virtual ~imgRequestProxy();
 
   /* additional members */
-  static PRBool Put(nsIURI *aKey, imgRequest *request);
-  static PRBool Get(nsIURI *aKey, imgRequest **request);
-  static PRBool Remove(nsIURI *aKey);
+  nsresult Init(imgRequest *request, nsIImageDecoderObserver *aObserver, nsISupports *cx);
 
 private:
-};
+  nsCOMPtr<nsIImageDecoderObserver> mObserver;
 
-#endif
+  nsCOMPtr<nsISupports> mContext;
+
+  nsCOMPtr<imgIRequest> mOwner;
+};
