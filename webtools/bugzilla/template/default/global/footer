@@ -1,6 +1,0 @@
-
-[% PerformSubsts(Param('footerhtml')) %]
-
-</body>
-</html>
-
