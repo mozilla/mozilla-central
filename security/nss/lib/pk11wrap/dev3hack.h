@@ -31,36 +31,28 @@
  * GPL.
  */
 
-/*
- * This file is in part derived from a file "pkcs11t.h" made available
- * by RSA Security at ftp://ftp.rsasecurity.com/pub/pkcs/pkcs-11/pkcs11t.h
- */
-
-#ifndef NSSCKP_H
-#define NSSCKP_H
+#ifndef DEVNSS3HACK_H
+#define DEVNSS3HACK_H
 
 #ifdef DEBUG
-static const char NSSCKP_CVS_ID[] = "@(#) $RCSfile: nssckp.h,v $ $Revision: 1.1 $ $Date: 2000-03-31 19:43:33 $ $Name:  $";
+static const char DEVNSS3HACK_CVS_ID[] = "@(#) $RCSfile: dev3hack.h,v $ $Revision: 1.1 $ $Date: 2001-11-08 00:15:06 $ $Name:  $";
 #endif /* DEBUG */
 
-#endif /* NSSCKP_H */
+#include "cert.h"
 
-/*
- * These platform-dependent packing rules are required by all PKCS#11
- * modules, to be binary compatible.  These rules have been placed in 
- * separate header files (nssckp.h to enable the packing, nsscku.h to 
- * disable) for consistancy.  These files can be included many times,
- * so the bodies should *NOT* be in the multiple-inclusion-preventing
- * #ifndef/#endif area above.
- */
+PR_BEGIN_EXTERN_C
 
-/*
- * WIN32 is defined (when appropriate) in NSPR's prcpucfg.h.
- */
+NSS_EXTERN NSSToken *
+nssToken_CreateFromPK11SlotInfo(NSSTrustDomain *td, PK11SlotInfo *nss3slot);
 
-#ifdef WIN32
-#pragma warning(disable:4103)
-#pragma pack(push, cryptoki, 1)
-#endif /* WIN32 */
+NSSTrustDomain *
+nssToken_GetTrustDomain(NSSToken *token);
 
-/* End of nssckp.h */
+void PK11Slot_SetNSSToken(PK11SlotInfo *sl, NSSToken *nsst);
+
+NSSToken * PK11Slot_GetNSSToken(PK11SlotInfo *sl);
+
+
+PR_END_EXTERN_C
+
+#endif /* DEVNSS3HACK_H */

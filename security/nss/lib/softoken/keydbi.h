@@ -1,4 +1,6 @@
 /*
+ * private.h - Private data structures for the software token library
+ *
  * The contents of this file are subject to the Mozilla Public
  * License Version 1.1 (the "License"); you may not use this file
  * except in compliance with the License. You may obtain a copy of
@@ -29,29 +31,50 @@
  * the GPL.  If you do not delete the provisions above, a recipient
  * may use your version of this file under either the MPL or the
  * GPL.
- */
-/*
- * cdbhdl.h - certificate database handle
- *   private to the certdb module
  *
- * $Id: cdbhdl.h,v 1.2 2001-01-03 19:48:52 larryh%netscape.com Exp $
+ * $Id: keydbi.h,v 1.2 2001-11-08 00:15:31 relyea%netscape.com Exp $
  */
-#ifndef _CDBHDL_H_
-#define _CDBHDL_H_
+
+#ifndef _KEYDBI_H_
+#define _KEYDBI_H_
 
 #include "nspr.h"
+#include "seccomon.h"
 #include "mcom_db.h"
-#include "certt.h"
 
 /*
- * Handle structure for open certificate databases
+ * Handle structure for open key databases
  */
-struct CERTCertDBHandleStr {
-    DB *permCertDB;
-    DB *tempCertDB;
-    void *spkDigestInfo;
-    CERTStatusConfig *statusConfig;
-    PZMonitor *dbMon;
+struct NSSLOWKEYDBHandleStr {
+    DB *db;
+    DB *updatedb;		/* used when updating an old version */
+    SECItem *global_salt;	/* password hashing salt for this db */
+    int version;		/* version of the database */
+    char *dbname;		/* name of the openned DB */
+    PRBool readOnly;		/* is the DB read only */
 };
 
-#endif
+/*
+** Typedef for callback for traversing key database.
+**      "key" is the key used to index the data in the database (nickname)
+**      "data" is the key data
+**      "pdata" is the user's data 
+*/
+typedef SECStatus (* NSSLOWKEYTraverseKeysFunc)(DBT *key, DBT *data, void *pdata);
+
+
+SEC_BEGIN_PROTOS
+
+/*
+** Traverse the entire key database, and pass the nicknames and keys to a 
+** user supplied function.
+**      "f" is the user function to call for each key
+**      "udata" is the user's data, which is passed through to "f"
+*/
+extern SECStatus NSSLOWKEY_TraverseKeys(NSSLOWKEYDBHandle *handle, 
+				NSSLOWKEYTraverseKeysFunc f,
+				void *udata);
+
+SEC_END_PROTOS
+
+#endif /* _KEYDBI_H_ */

@@ -1,4 +1,4 @@
-/* 
+/*
  * The contents of this file are subject to the Mozilla Public
  * License Version 1.1 (the "License"); you may not use this file
  * except in compliance with the License. You may obtain a copy of
@@ -30,23 +30,34 @@
  * may use your version of this file under either the MPL or the
  * GPL.
  */
+/*
+ * Internal header file included in pk11wrap dir, or in softoken
+ */
+#ifndef _PK11_INIT_H_
+#define _PK11_INIT_H_ 1
 
-#ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: util.c,v $ $Revision: 1.1 $ $Date: 2001-09-13 22:06:10 $ $Name:  $";
-#endif /* DEBUG */
+/* hold slot default flags until we initialize a slot. This structure is only
+ * useful between the time we define a module (either by hand or from the
+ * database) and the time the module is loaded. Not reference counted  */
+struct PK11PreSlotInfoStr {
+    CK_SLOT_ID slotID;  	/* slot these flags are for */
+    unsigned long defaultFlags; /* bit mask of default implementation this slot
+				 * provides */
+    int askpw;			/* slot specific password bits */
+    long timeout;		/* slot specific timeout value */
+    char hasRootCerts;		/* is this the root cert PKCS #11 module? */
+    char hasRootTrust;		/* is this the root cert PKCS #11 module? */
+};
 
-#ifndef DEVM_H
-#include "devm.h"
-#endif /* DEVM_H */
+#define SECMOD_SLOT_FLAGS "slotFlags=[RSA,DSA,DH,RC2,RC4,DES,RANDOM,SHA1,MD5,MD2,SSL,TLS,AES]"
 
-NSS_IMPLEMENT PRUint32
-nssPKCS11StringLength(CK_CHAR *pkcs11Str, PRUint32 bufLen)
-{
-    PRInt32 i;
-    for (i = bufLen - 1; i>=0; ) {
-	if (pkcs11Str[i] != ' ') break;
-	--i;
-    }
-    return (PRUint32)(i + 1);
-}
+#define SECMOD_MAKE_NSS_FLAGS(fips,slot) \
+"Flags=internal,critical"fips" slotparams=("#slot"={"SECMOD_SLOT_FLAGS"})"
 
+#define SECMOD_INT_NAME "NSS Internal PKCS #11 Module"
+#define SECMOD_INT_FLAGS SECMOD_MAKE_NSS_FLAGS("",1)
+#define SECMOD_FIPS_NAME "NSS Internal FIPS PKCS #11 Module"
+#define SECMOD_FIPS_FLAGS SECMOD_MAKE_NSS_FLAGS(",fips",3)
+
+
+#endif /* _PK11_INIT_H_ 1 */

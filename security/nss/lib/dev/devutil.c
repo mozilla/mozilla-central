@@ -31,41 +31,22 @@
  * GPL.
  */
 
-/*
- * This file is in part derived from a file "pkcs11t.h" made available
- * by RSA Security at ftp://ftp.rsasecurity.com/pub/pkcs/pkcs-11/pkcs11t.h
- *
- * Copyright (C) 1994-1999 RSA Security Inc. Licence to copy this document
- * is granted provided that it is identified as "RSA Security Inc. Public-Key
- * Cryptography Standards (PKCS)" in all material mentioning or referencing
- * this document.
- */
-
-#ifndef NSSCKU_H
-#define NSSCKU_H
-
 #ifdef DEBUG
-static const char NSSCKU_CVS_ID[] = "@(#) $RCSfile: nsscku.h,v $ $Revision: 1.2 $ $Date: 2000-04-03 21:58:34 $ $Name:  $";
+static const char CVS_ID[] = "@(#) $RCSfile: devutil.c,v $ $Revision: 1.1 $ $Date: 2001-11-08 00:14:53 $ $Name:  $";
 #endif /* DEBUG */
 
-#endif /* NSSCKU_H */
+#ifndef DEVM_H
+#include "devm.h"
+#endif /* DEVM_H */
 
-/*
- * These platform-dependent packing rules are required by all PKCS#11
- * modules, to be binary compatible.  These rules have been placed in 
- * separate header files (nssckp.h to enable the packing, nsscku.h to 
- * disable) for consistancy.  These files can be included many times,
- * so the bodies should *NOT* be in the multiple-inclusion-preventing
- * #ifndef/#endif area above.
- */
+NSS_IMPLEMENT PRUint32
+nssPKCS11StringLength(CK_CHAR *pkcs11Str, PRUint32 bufLen)
+{
+    PRInt32 i;
+    for (i = bufLen - 1; i>=0; ) {
+	if (pkcs11Str[i] != ' ') break;
+	--i;
+    }
+    return (PRUint32)(i + 1);
+}
 
-/*
- * WIN32 is defined (when appropriate) in NSPR's prcpucfg.h.
- */
-
-#ifdef WIN32
-#pragma warning(disable:4103)
-#pragma pack(pop, cryptoki)
-#endif /* WIN32 */
-
-/* End of nsscku.h */
