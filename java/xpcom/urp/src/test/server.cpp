@@ -7,6 +7,7 @@
 #include "plevent.h"
 #include "prmem.h"
 #include "prnetdb.h"
+#include "prthread.h"
 
 #include "urpManager.h"
 #include "urpTransport.h"
@@ -24,6 +25,22 @@
 
 static NS_DEFINE_CID(kXPCOMStubsAndProxies,BC_XPCOMSTUBSANDPROXIES_CID);
 static NS_DEFINE_CID(kORBCIID,BC_ORBCOMPONENT_CID);
+
+struct localThreadArg {
+    urpManager *mgr;
+    urpConnection *conn;
+    localThreadArg( urpManager *mgr, urpConnection *conn ) {
+        this->mgr = mgr;
+        this->conn = conn;
+    }
+};
+
+void thread_start_server( void *arg )
+{
+    urpManager *manager = ((localThreadArg *)arg)->mgr;
+    urpConnection *connection = ((localThreadArg *)arg)->conn;
+    nsresult rv = manager->ReadMessage( connection, PR_FALSE );
+}
 
 int main( int argc, char *argv[] ) {
 
@@ -46,22 +63,39 @@ printf("NS_WITH_SERVICE(bcXPC in Marshal failed\n");
 
 	bcIORB *orb;
         _orb->GetORB(&orb);
-        bcIStub *stub = NULL;
+        bcIStub *stub = nsnull;
         urpITest *object = new urpTestImpl();
         object->AddRef();
-        urpITest *proxy = NULL;
+        urpITest *proxy = nsnull;
         xpcomStubsAndProxies->GetStub((nsISupports*)object, &stub);
         bcOID oid = orb->RegisterStub(stub);
 
 	urpTransport* trans = new urpAcceptor();
 	PRStatus status = trans->Open(connectString);
-	if(status == PR_SUCCESS) printf("succes\n");
+	if(status == PR_SUCCESS) printf("succes %ld\n",oid);
 	else printf("failed\n");
 	object->AddRef();
-	urpManager* mngr = new urpManager(trans, orb);
+	urpManager* mngr = new urpManager(PR_FALSE, orb, nsnull);
 	rv = NS_OK;
 	while(NS_SUCCEEDED(rv)) {
-		rv = mngr->HandleRequest(trans->GetConnection());
+	    // rv = mngr->HandleRequest(trans->GetConnection());
+            urpConnection *conn = trans->GetConnection();
+            if( conn != NULL ) {
+                // handle request in new thread
+                localThreadArg *arg = new localThreadArg( mngr, conn );
+                PRThread *thr = PR_CreateThread( PR_USER_THREAD,
+                                                  thread_start_server,
+                                                  arg,
+                                                  PR_PRIORITY_NORMAL,
+                                                  PR_GLOBAL_THREAD,
+                                                  PR_UNJOINABLE_THREAD,
+                                                  0);
+                if( thr == nsnull ) {
+                    rv = NS_ERROR_FAILURE;
+                }
+            } else {
+                rv = NS_ERROR_FAILURE;
+            }
 	}
 	return 1;
 }
