@@ -39,33 +39,13 @@ extern "C" {
 /*																		*/
 /*----------------------------------------------------------------------*/
 extern Boolean
-XfeRepTypeCheck				(Widget				w,
-							 String				rep_type,
-							 unsigned char *	address,
-							 unsigned char		fallback);
+XfeRepTypeCheck						(Widget				w,
+									 String				rep_type,
+									 unsigned char *	address,
+									 unsigned char		fallback);
 /*----------------------------------------------------------------------*/
-extern void			XfeRegisterAccentType				(void);
-extern void			XfeRegisterArrowType				(void);
-extern void			XfeRegisterBmSelectionType			(void);
-extern void			XfeRegisterBoxType					(void);
-extern void			XfeRegisterBufferType				(void);
-extern void			XfeRegisterButtonLayout				(void);
-extern void			XfeRegisterButtonTrigger			(void);
-extern void			XfeRegisterButtonType				(void);
-extern void			XfeRegisterChromeChildType			(void);
-extern void			XfeRegisterComboBoxType				(void);
-extern void			XfeRegisterLocationType				(void);
-extern void			XfeRegisterPaneChildAttachment		(void);
-extern void			XfeRegisterPaneChildType			(void);
-extern void			XfeRegisterPaneDragModeType			(void);
-extern void			XfeRegisterPaneSashType				(void);
-extern void			XfeRegisterRulesType				(void);
-extern void			XfeRegisterToolBarIndicatorLocation	(void);
-extern void			XfeRegisterToolBarSelectionPolicy	(void);
-extern void			XfeRegisterToolScrollArrowPlacement	(void);
-/*----------------------------------------------------------------------*/
-
-extern void			XfeRegisterRepresentationTypes		(void);
+extern void			
+XfeRegisterRepresentationTypes		(void);
 /*----------------------------------------------------------------------*/
 
 #ifdef __cplusplus								/* end C++				*/
