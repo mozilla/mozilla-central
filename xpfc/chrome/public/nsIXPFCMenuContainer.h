@@ -16,34 +16,36 @@
  * Reserved.
  */
 
-#ifndef nsIMenuManager_h___
-#define nsIMenuManager_h___
+#ifndef nsIXPFCMenuContainer_h___
+#define nsIXPFCMenuContainer_h___
 
 #include "nsISupports.h"
-#include "nsIXPFCMenuContainer.h"
-#include "nsIXPFCCommandReceiver.h"
+#include "nsIShellInstance.h"
+#include "nsIXPFCMenuItem.h"
 
-class nsIXPFCMenuBar;
+// 0b396820-2f54-11d2-bede-00805f8a8dbd
+#define NS_IXPFCMENUCONTAINER_IID      \
+ { 0x0b396820, 0x2f54, 0x11d2, \
+   {0xbe, 0xde, 0x00, 0x80, 0x5f, 0x8a, 0x8d, 0xbd} }
 
-//5e1180e0-30a9-11d2-9247-00805f8a7ab6
-#define NS_IMENU_MANAGER_IID   \
-{ 0x5e1180e0, 0x30a9, 0x11d2,    \
-{ 0x92, 0x47, 0x00, 0x80, 0x5f, 0x8a, 0x7a, 0xb6 } }
-
-class nsIMenuManager : public nsISupports
+class nsIXPFCMenuContainer : public nsISupports 
 {
 
 public:
 
-  NS_IMETHOD                 Init() = 0 ;
-  NS_IMETHOD                 SetMenuBar(nsIXPFCMenuBar * aMenuBar) = 0;
-  NS_IMETHOD_(nsIXPFCMenuBar *)  GetMenuBar() = 0;
-  NS_IMETHOD                 AddMenuContainer(nsIXPFCMenuContainer * aMenuContainer) = 0;
+  /**
+   * Initialize the XPFCMenuContainer
+   * @result The result of the initialization, NS_Ok if no errors
+   */
+  NS_IMETHOD Init() = 0;
+
+  NS_IMETHOD AddMenuItem(nsIXPFCMenuItem * aMenuItem) = 0;
+  NS_IMETHOD_(void*) GetNativeHandle() = 0;
+  NS_IMETHOD AddChild(nsIXPFCMenuItem * aItem) = 0;
+  NS_IMETHOD Update() = 0;
   NS_IMETHOD_(nsIXPFCMenuItem *) MenuItemFromID(PRUint32 aID) = 0;
-  NS_IMETHOD_(PRUint32)      GetID() = 0;
-  NS_IMETHOD_(nsIXPFCCommandReceiver*) GetDefaultReceiver() = 0;
-  NS_IMETHOD SetDefaultReceiver(nsIXPFCCommandReceiver* aReceiver) = 0;
 
 };
 
-#endif /* nsIMenuManager_h___ */
+#endif /* nsIXPFCMenuContainer_h___ */
+

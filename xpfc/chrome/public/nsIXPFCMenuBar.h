@@ -16,34 +16,29 @@
  * Reserved.
  */
 
-#ifndef nsIMenuManager_h___
-#define nsIMenuManager_h___
+#ifndef nsIXPFCMenuBar_h___
+#define nsIXPFCMenuBar_h___
 
 #include "nsISupports.h"
+#include "nsIShellInstance.h"
+#include "nsIXPFCMenuItem.h"
 #include "nsIXPFCMenuContainer.h"
-#include "nsIXPFCCommandReceiver.h"
+#include "nsIWebViewerContainer.h"
 
-class nsIXPFCMenuBar;
+// 52fb95f0-2cbe-11d2-9246-00805f8a7ab6
+#define NS_IXPFCMENUBAR_IID      \
+ { 0x52fb95f0, 0x2cbe, 0x11d2, \
+   {0x92, 0x46, 0x00, 0x80, 0x5f, 0x8a, 0x7a, 0xb6} }
 
-//5e1180e0-30a9-11d2-9247-00805f8a7ab6
-#define NS_IMENU_MANAGER_IID   \
-{ 0x5e1180e0, 0x30a9, 0x11d2,    \
-{ 0x92, 0x47, 0x00, 0x80, 0x5f, 0x8a, 0x7a, 0xb6 } }
-
-class nsIMenuManager : public nsISupports
+class nsIXPFCMenuBar : public nsISupports
 {
 
 public:
 
-  NS_IMETHOD                 Init() = 0 ;
-  NS_IMETHOD                 SetMenuBar(nsIXPFCMenuBar * aMenuBar) = 0;
-  NS_IMETHOD_(nsIXPFCMenuBar *)  GetMenuBar() = 0;
-  NS_IMETHOD                 AddMenuContainer(nsIXPFCMenuContainer * aMenuContainer) = 0;
+  NS_IMETHOD SetShellContainer(nsIShellInstance * aShellInstance,
+                               nsIWebViewerContainer * aWebViewerContainer) = 0 ;
   NS_IMETHOD_(nsIXPFCMenuItem *) MenuItemFromID(PRUint32 aID) = 0;
-  NS_IMETHOD_(PRUint32)      GetID() = 0;
-  NS_IMETHOD_(nsIXPFCCommandReceiver*) GetDefaultReceiver() = 0;
-  NS_IMETHOD SetDefaultReceiver(nsIXPFCCommandReceiver* aReceiver) = 0;
-
 };
 
-#endif /* nsIMenuManager_h___ */
+#endif /* nsIXPFCMenuBar_h___ */
+

@@ -16,39 +16,30 @@
  * Reserved.
  */
 
-#ifndef nsMenuManager_h___
-#define nsMenuManager_h___
+#ifndef nsXPFCToolbarManager_h___
+#define nsXPFCToolbarManager_h___
 
-#include "nsIMenuManager.h"
+#include "nsIXPFCToolbarManager.h"
 #include "nsIVector.h"
 #include "nsIIterator.h"
 
-class nsMenuManager : public nsIMenuManager
+class nsXPFCToolbarManager : public nsIXPFCToolbarManager
 {
 
 public:
-  nsMenuManager();
+  nsXPFCToolbarManager();
 
   NS_DECL_ISUPPORTS
 
   NS_IMETHOD                 Init();
-  NS_IMETHOD                 SetMenuBar(nsIXPFCMenuBar * aMenuBar);
-  NS_IMETHOD_(nsIXPFCMenuBar *)  GetMenuBar();
-  NS_IMETHOD                 AddMenuContainer(nsIXPFCMenuContainer * aMenuContainer) ;
-  NS_IMETHOD_(nsIXPFCMenuItem *) MenuItemFromID(PRUint32 aID) ;
-  NS_IMETHOD_(PRUint32)      GetID();
-  NS_IMETHOD_(nsIXPFCCommandReceiver*) GetDefaultReceiver() ;
-  NS_IMETHOD SetDefaultReceiver(nsIXPFCCommandReceiver* aReceiver) ;
+  NS_IMETHOD                 AddToolbar(nsIXPFCToolbar * aToolbar);
 
 protected:
-  ~nsMenuManager();
+  ~nsXPFCToolbarManager();
 
 private:
-  nsIXPFCMenuBar * mMenuBar;
-  nsIVector * mMenuContainers;
-  PRUint32    mValidMenuID;
-  nsIXPFCCommandReceiver * mDefaultReceiver;
+  nsIVector * mToolbars;
 
 };
 
-#endif /* nsMenuManager_h___ */
+#endif /* nsXPFCToolbarManager_h___ */
