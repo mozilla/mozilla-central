@@ -34,7 +34,7 @@
 #include "nsRect.h"
 #include "prprf.h"
 #include "nsIFrame.h"
-#include "nsIContent.h"
+#include "nsIMarkupDocumentViewer.h"
 
 #ifdef XXX_NS_DEBUG       // XXX: we'll need a logging facility for debugging
 #define WEB_TRACE(_bit,_args)            \
@@ -54,11 +54,11 @@
 //***    nsDocShell: Object Management
 //*****************************************************************************
 
-nsDocShell::nsDocShell() : mCreated(PR_FALSE), mContentListener(nsnull),
-   //XXX Remove HTML Specific ones
-   mAllowPlugins(PR_TRUE), mMarginWidth(0), mMarginHeight(0), 
-   mIsFrame(PR_FALSE)
-
+nsDocShell::nsDocShell() : 
+  mCreated(PR_FALSE), 
+  mContentListener(nsnull),
+  mMarginWidth(0), 
+  mMarginHeight(0)
 {
 	NS_INIT_REFCNT();
 }
@@ -103,9 +103,6 @@ NS_IMPL_RELEASE(nsDocShell)
 
 NS_IMPL_QUERY_HEAD(nsDocShell)
    NS_IMPL_QUERY_BODY(nsIDocShell)
-   NS_IMPL_QUERY_BODY(nsIHTMLDocShell)
-   NS_IMPL_QUERY_BODY(nsIDocShellEdit)
-   NS_IMPL_QUERY_BODY(nsIDocShellFile)
    NS_IMPL_QUERY_BODY(nsIBaseWindow)
    NS_IMPL_QUERY_BODY(nsIScrollable)
    NS_IMPL_QUERY_BODY(nsITextScroll)
@@ -459,6 +456,42 @@ nsDocShell::SetDocLoaderObserver(nsIDocumentLoaderObserver * aDocLoaderObserver)
   return NS_OK;
 }
 
+NS_IMETHODIMP
+nsDocShell::GetMarginWidth(PRInt32* aWidth)
+{
+  NS_ENSURE_ARG_POINTER(aWidth);
+
+  *aWidth = mMarginWidth;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsDocShell::SetMarginWidth(PRInt32 aWidth)
+{
+  mMarginWidth = aWidth;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsDocShell::GetMarginHeight(PRInt32* aHeight)
+{
+  NS_ENSURE_ARG_POINTER(aHeight);
+
+  *aHeight = mMarginHeight;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsDocShell::SetMarginHeight(PRInt32 aHeight)
+{
+  mMarginHeight = aHeight;
+  return NS_OK;
+}
+
+
+
+// the following code is to be removed.  It will show up on content viewer classes
+#if 0
 //*****************************************************************************
 // nsDocShell::nsIDocShellEdit
 //*****************************************************************************   
@@ -686,6 +719,7 @@ NS_IMETHODIMP nsDocShell::GetPrintable(PRBool* printable)
    *printable = PR_FALSE;
    return NS_OK;
 } 
+#endif
 
 //*****************************************************************************
 // nsDocShell::nsIDocShellContainer
@@ -700,26 +734,38 @@ NS_IMETHODIMP nsDocShell::GetChildCount(PRInt32 *aChildCount)
 
 NS_IMETHODIMP nsDocShell::AddChild(nsIDocShell *aChild)
 {
-   NS_ENSURE_ARG_POINTER(aChild);
+  NS_ENSURE_ARG_POINTER(aChild);
 
-   NS_ENSURE_SUCCESS(aChild->SetParent(this), NS_ERROR_FAILURE);
-   mChildren.AppendElement(aChild);
-   NS_ADDREF(aChild);
+  NS_ENSURE_SUCCESS(aChild->SetParent(this), NS_ERROR_FAILURE);
+  mChildren.AppendElement(aChild);
+  NS_ADDREF(aChild);
 
-   //XXX HTML Specifics need to be moved out.
-   nsCOMPtr<nsIHTMLDocShell> childAsHTMLDocShell = do_QueryInterface(aChild);
-   if (childAsHTMLDocShell)
+  PRUnichar *defaultCharset=nsnull;
+  PRUnichar *forceCharset=nsnull;
+  nsCOMPtr<nsIContentViewer> cv;
+  NS_ENSURE_SUCCESS(GetContentViewer(getter_AddRefs(cv)), NS_ERROR_FAILURE);
+  if (cv)
+  {
+    nsCOMPtr<nsIMarkupDocumentViewer> muDV = do_QueryInterface(cv);
+    if (muDV)
+    {
+      NS_ENSURE_SUCCESS(muDV->GetDefaultCharacterSet (&defaultCharset), NS_ERROR_FAILURE);
+      NS_ENSURE_SUCCESS(muDV->GetForceCharacterSet (&forceCharset), NS_ERROR_FAILURE);
+    }
+    nsCOMPtr<nsIContentViewer> childCV;
+    NS_ENSURE_SUCCESS(aChild->GetContentViewer(getter_AddRefs(childCV)), NS_ERROR_FAILURE);
+    if (childCV)
+    {
+      nsCOMPtr<nsIMarkupDocumentViewer> childmuDV = do_QueryInterface(cv);
+      if (childmuDV)
       {
-      PRUnichar *defaultCharset=nsnull;
-      NS_ENSURE_SUCCESS(GetDefaultCharacterSet(&defaultCharset), 
-         NS_ERROR_FAILURE);
-      NS_ENSURE_SUCCESS(childAsHTMLDocShell->SetDefaultCharacterSet(
-         defaultCharset), NS_ERROR_FAILURE);
-      NS_ENSURE_SUCCESS(childAsHTMLDocShell->SetForceCharacterSet(
-         mForceCharacterSet.GetUnicode()), NS_ERROR_FAILURE);
+        NS_ENSURE_SUCCESS(childmuDV->SetDefaultCharacterSet(defaultCharset), NS_ERROR_FAILURE);
+        NS_ENSURE_SUCCESS(childmuDV->SetForceCharacterSet(forceCharset), NS_ERROR_FAILURE);
       }
+    }
+  }
 
-   return NS_OK;
+  return NS_OK;
 }
 
 // tiny semantic change from webshell.  aChild is only effected if it was actually a child of this docshell
@@ -730,7 +776,7 @@ NS_IMETHODIMP nsDocShell::RemoveChild(nsIDocShell *aChild)
   PRBool childRemoved = mChildren.RemoveElement(aChild);
   if (PR_TRUE==childRemoved)
   {
-    aChild->SetParent(nsnull);
+    NS_ENSURE_SUCCESS(aChild->SetParent(nsnull), NS_ERROR_FAILURE);
     NS_RELEASE(aChild);
   }
   return NS_OK;
@@ -1321,246 +1367,6 @@ NS_IMETHODIMP nsDocShell::ScrollByPages(PRInt32 numPages)
 }
 
 //*****************************************************************************
-// nsDocShell::nsIHTMLDocShell
-//*****************************************************************************   
-
-NS_IMETHODIMP nsDocShell::ScrollToNode(nsIDOMNode* aNode)
-{
-   NS_ENSURE_ARG(aNode);
-   NS_ENSURE_STATE(mContentViewer);
-   nsCOMPtr<nsIPresShell> presShell;
-   NS_ENSURE_SUCCESS(GetPresShell(getter_AddRefs(presShell)), NS_ERROR_FAILURE);
-
-   // Get the nsIContent interface, because that's what we need to 
-   // get the primary frame
-   
-   nsCOMPtr<nsIContent> content(do_QueryInterface(aNode));
-   NS_ENSURE_TRUE(content, NS_ERROR_FAILURE);
-
-   // Get the primary frame
-   nsIFrame* frame;  // Remember Frames aren't ref-counted.  They are in their 
-                     // own special little world.
-
-   NS_ENSURE_SUCCESS(GetPrimaryFrameFor(content, &frame),
-      NS_ERROR_FAILURE);
-
-   // tell the pres shell to scroll to the frame
-   NS_ENSURE_SUCCESS(presShell->ScrollFrameIntoView(frame, 
-      NS_PRESSHELL_SCROLL_TOP, NS_PRESSHELL_SCROLL_ANYWHERE), NS_ERROR_FAILURE); 
-   return NS_OK; 
-}
-
-NS_IMETHODIMP nsDocShell::GetAllowPlugins(PRBool* aAllowPlugins)
-{
-   NS_ENSURE_ARG_POINTER(aAllowPlugins);
-
-   *aAllowPlugins = mAllowPlugins;
-   return NS_OK;
-}
-
-NS_IMETHODIMP nsDocShell::SetAllowPlugins(PRBool aAllowPlugins)
-{
-   mAllowPlugins = aAllowPlugins;
-   return NS_OK;
-}
-
-NS_IMETHODIMP nsDocShell::GetMarginWidth(PRInt32* aMarginWidth)
-{
-   NS_ENSURE_ARG_POINTER(aMarginWidth);
-
-   *aMarginWidth = mMarginWidth;
-   return NS_OK;  
-}
-
-NS_IMETHODIMP nsDocShell::SetMarginWidth(PRInt32 aMarginWidth)
-{
-   mMarginWidth = aMarginWidth;
-   return NS_OK;
-}
-
-NS_IMETHODIMP nsDocShell::GetMarginHeight(PRInt32* aMarginHeight)
-{
-   NS_ENSURE_ARG_POINTER(aMarginHeight);
-
-   *aMarginHeight = mMarginHeight;
-   return NS_OK; 
-}
-
-NS_IMETHODIMP nsDocShell::SetMarginHeight(PRInt32 aMarginHeight)
-{
-   mMarginHeight = aMarginHeight;
-   return NS_OK;
-}
-
-NS_IMETHODIMP nsDocShell::GetIsFrame(PRBool* aIsFrame)
-{
-  NS_ENSURE_ARG_POINTER(aIsFrame);
-
-  *aIsFrame = mIsFrame;
-  return NS_OK;
-}
-
-NS_IMETHODIMP nsDocShell::SetIsFrame(PRBool aIsFrame)
-{
-  mIsFrame = aIsFrame;
-  return NS_OK;
-}
-
-// XXX: SEMANTIC CHANGE! 
-//      returns a copy of the string.  Caller is responsible for freeing result
-//      using Recycle(aDefaultCharacterSet)
-NS_IMETHODIMP nsDocShell::GetDefaultCharacterSet(PRUnichar** aDefaultCharacterSet)
-{
-  NS_ENSURE_ARG_POINTER(aDefaultCharacterSet);
-
-  static char *gDefCharset = nsnull;    // XXX: memory leak!
-
-  if (0 == mDefaultCharacterSet.Length()) 
-  {
-    if ((nsnull == gDefCharset) || (nsnull == *gDefCharset)) 
-    {
-      if(mPrefs)
-        mPrefs->CopyCharPref("intl.charset.default", &gDefCharset);
-    }
-    if ((nsnull == gDefCharset) || (nsnull == *gDefCharset))
-      mDefaultCharacterSet = "ISO-8859-1";
-    else
-      mDefaultCharacterSet = gDefCharset;
-  }
-  *aDefaultCharacterSet = mDefaultCharacterSet.ToNewUnicode();
-  return NS_OK;
-}
-
-NS_IMETHODIMP nsDocShell::SetDefaultCharacterSet(const PRUnichar* aDefaultCharacterSet)
-{
-  mDefaultCharacterSet = aDefaultCharacterSet;  // this does a copy of aDefaultCharacterSet
-  PRInt32 i, n = mChildren.Count();
-  for (i = 0; i < n; i++) 
-  {
-    nsIDocShell* child = (nsIDocShell*) mChildren.ElementAt(i);
-    NS_WARN_IF_FALSE(child, "null child in docshell");
-    if (child) 
-    {
-      nsCOMPtr<nsIHTMLDocShell> childAsHTMLDocShell = do_QueryInterface(child);
-      if (childAsHTMLDocShell) {
-        childAsHTMLDocShell->SetDefaultCharacterSet(aDefaultCharacterSet);
-      }
-    }
-  }
-  return NS_OK;
-}
-
-// XXX: SEMANTIC CHANGE! 
-//      returns a copy of the string.  Caller is responsible for freeing result
-//      using Recycle(aForceCharacterSet)
-NS_IMETHODIMP nsDocShell::GetForceCharacterSet(PRUnichar** aForceCharacterSet)
-{
-  NS_ENSURE_ARG_POINTER(aForceCharacterSet);
-
-  nsAutoString emptyStr;
-  if (mForceCharacterSet.Equals(emptyStr)) {
-    *aForceCharacterSet = nsnull;
-  }
-  else {
-    *aForceCharacterSet = mForceCharacterSet.ToNewUnicode();
-  }
-  return NS_OK;
-}
-
-NS_IMETHODIMP nsDocShell::SetForceCharacterSet(const PRUnichar* aForceCharacterSet)
-{
-  mForceCharacterSet = aForceCharacterSet;
-  PRInt32 i, n = mChildren.Count();
-  for (i = 0; i < n; i++) {
-    nsIDocShell* child = (nsIDocShell*) mChildren.ElementAt(i);
-    NS_WARN_IF_FALSE(child, "null child in docshell");
-    if (child) 
-    {
-      nsCOMPtr<nsIHTMLDocShell> childAsHTMLDocShell = do_QueryInterface(child);
-      if (childAsHTMLDocShell) {
-        childAsHTMLDocShell->SetForceCharacterSet(aForceCharacterSet);
-      }
-    }
-  }
-  return NS_OK;
-}
-
-// XXX: SEMANTIC CHANGE! 
-//      returns a copy of the string.  Caller is responsible for freeing result
-//      using Recycle(aHintCharacterSet)
-NS_IMETHODIMP nsDocShell::GetHintCharacterSet(PRUnichar * *aHintCharacterSet)
-{
-  NS_ENSURE_ARG_POINTER(aHintCharacterSet);
-
-  if(kCharsetUninitialized == mHintCharsetSource) {
-    *aHintCharacterSet = nsnull;
-  } else {
-    *aHintCharacterSet = mHintCharset.ToNewUnicode();
-     mHintCharsetSource = kCharsetUninitialized;
-  }
-  return NS_OK;
-}
-
-NS_IMETHODIMP nsDocShell::GetHintCharacterSetSource(PRInt32 *aHintCharacterSetSource)
-{
-  NS_ENSURE_ARG_POINTER(aHintCharacterSetSource);
-
-  *aHintCharacterSetSource = mHintCharsetSource;
-  return NS_OK;
-}
-
-// XXX: poor error checking
-NS_IMETHODIMP nsDocShell::SizeToContent()
-{
-
-  // get the presentation shell
-  nsCOMPtr<nsIPresShell> presShell;
-  NS_ENSURE_SUCCESS(GetPresShell(getter_AddRefs(presShell)), NS_ERROR_FAILURE);
-  NS_ENSURE_TRUE(presShell, NS_ERROR_FAILURE);
-
-  nsRect  shellArea;
-  PRInt32 width, height;
-  float   pixelScale;
-  NS_ENSURE_SUCCESS(presShell->ResizeReflow(NS_UNCONSTRAINEDSIZE, NS_UNCONSTRAINEDSIZE), 
-                    NS_ERROR_FAILURE);
-
-  // so how big is it?
-  nsCOMPtr<nsIPresContext> presContext;
-  NS_ENSURE_SUCCESS(GetPresContext(getter_AddRefs(presContext)), 
-                    NS_ERROR_FAILURE);
-  NS_ENSURE_TRUE(presContext, NS_ERROR_FAILURE);
-  presContext->GetVisibleArea(shellArea);
-  presContext->GetTwipsToPixels(&pixelScale);
-  width = PRInt32((float)shellArea.width*pixelScale);
-  height = PRInt32((float)shellArea.height*pixelScale);
-
-  // if we're the outermost webshell for this window, size the window
-  /* XXX: how do we do this now?
-  if (mContainer) 
-  {
-    nsCOMPtr<nsIBrowserWindow> browser = do_QueryInterface(mContainer);
-    if (browser) 
-    {
-      nsCOMPtr<nsIDocShell> browserWebShell;
-      PRInt32 oldX, oldY, oldWidth, oldHeight,
-              widthDelta, heightDelta;
-      nsRect  windowBounds;
-
-      GetBounds(oldX, oldY, oldWidth, oldHeight);
-      widthDelta = width - oldWidth;
-      heightDelta = height - oldHeight;
-      browser->GetWindowBounds(windowBounds);
-      browser->SizeWindowTo(windowBounds.width + widthDelta,
-                            windowBounds.height + heightDelta);
-    }
-  }
-  */
-  NS_ASSERTION(PR_FALSE, "NOT YET IMPLEMENTED");
-  return NS_ERROR_NOT_IMPLEMENTED;
-  //return NS_OK;
-}
-
-//*****************************************************************************
 // nsDocShell::nsIContentViewerContainer
 //*****************************************************************************   
 
@@ -2007,3 +1813,4 @@ NS_IMETHODIMP nsDocShell::GetInterface(const nsIID& anIID, void** aSink)
 {
   return QueryInterface(anIID, aSink);
 }
+
