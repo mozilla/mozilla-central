@@ -20,26 +20,12 @@
  * Contributor(s): 
  */
 
-#include "stdio.h"
-#include "xp_core.h"                    //this is a hack to get it to build. MMP
-#include "nscore.h"
-#include "nsIFactory.h"
-#include "nsIGenericFactory.h"     // need this for ps code
-#include "nsISupports.h"
-#include "nsGfxCIID.h"
-#include "nsIModule.h"
-#include "nsCOMPtr.h"
-#include "nsDeviceContextXP.h"
-#include "nsGfxXPrintCID.h"
+#ifndef nsGfxFactoryXP_h__
+#define nsGfxFactoryXP_h__
 
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsDeviceContextXP)
+/* {4c2bb896-13c9-11d3-9304-006008948010} */
+#define NS_DEVICECONTEXTXP_CID \
+  {0x4c2bb896, 0x13c9, 0x11d3, \
+    {0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01}}
 
-static nsModuleComponentInfo components[] =
-{
-  { "GFX Postscript Device Context",
-    NS_DEVICECONTEXTXP_CID,
-    "component://netscape/gfx/decidecontext/xprt",
-    nsDeviceContextXPConstructor }  
-};
-
-NS_IMPL_NSGETMODULE("nsGfxXPModule", components)
+#endif
