@@ -35,68 +35,44 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsISuiteRemoteService.h"
+#include "nsISupports.idl"
 
-#include "nsCOMPtr.h"
-#include "nsString.h"
+interface nsIDOMWindow;
 
-class nsIDOMWindowInternal;
+/**
+ * Start and stop the remote service (xremote/phremote), and register
+ * windows with the service for backwards compatibility with old xremote
+ * clients.
+ *
+ * @status FLUID This interface is not frozen and is not intended for embedders
+ *               who want a frozen API. If you are an embedder and need this
+ *               functionality, contact Benjamin Smedberg about the possibility
+ *               of freezing the functionality you need.
+ */
 
-// {3dfe7324-1dd2-11b2-9ff2-8853f91e8a20}
-
-#define NS_XREMOTESERVICE_CID \
-  { 0x3dfe7324, 0x1dd2, 0x11b2, \
-  { 0x9f, 0xf2, 0x88, 0x53, 0xf9, 0x1e, 0x8a, 0x20 } }
-
-class XRemoteService : public nsISuiteRemoteService
+[scriptable, uuid(a2240f6a-f1e4-4548-9e1a-6f3bc9b2426c)]
+interface nsIRemoteService : nsISupports
 {
- public:
-  XRemoteService();
-  virtual ~XRemoteService();
+  /**
+   * Start the remote service. This should not be done until app startup
+   * appears to have been successful.
+   *
+   * @param appName     (Required) Sets a window property identifying the
+   *                    application.
+   * @param profileName (May be null) Sets a window property identifying the
+   *                    profile name.
+   */
+  void startup(in string appName, in string profileName);
 
-  NS_DEFINE_STATIC_CID_ACCESSOR(NS_XREMOTESERVICE_CID);
+  /**
+   * Register a XUL window with the xremote service. The window will be
+   * configured to accept incoming remote requests. If this method is called
+   * before startup(), the registration will happen once startup() is called.
+   */
+  void registerWindow(in nsIDOMWindow aWindow);
 
-  NS_DECL_ISUPPORTS
-
-  NS_DECL_NSISUITEREMOTESERVICE
-
- private:
-  // find the last argument in an argument string
-  void FindLastInList(nsCString &aString, nsCString &retString,
-                      PRUint32 *aIndexRet);
-
-  // find the second argument through the last argument in the string
-  void FindRestInList(nsCString &aString, nsCString &retString,
-		      PRUint32 *aIndexRet);
-
-  // short cut for opening chrome windows
-  nsresult OpenChromeWindow(nsIDOMWindow *aParent,
-			    const char *aUrl,
-			    const char *aFeatures,
-			    nsISupports *aArguments,
-			    nsIDOMWindow **_retval);
-
-  // get the primary browser chrome location
-  nsresult GetBrowserLocation(char **_retval);
-  nsresult GetMailLocation(char **_retval);
-  nsresult GetComposeLocation(const char **_retval);
-  nsresult GetCalendarLocation(char **_retval);
-
-  // returns true if the URL may be loaded.
-  PRBool   MayOpenURL(const nsCString &aURL);
-
-  // remote command handlers
-  nsresult OpenURL(nsCString &aArgument,
-                   nsIDOMWindow* aParent,
-                   PRBool aOpenBrowser);
-
-  nsresult OpenURLDialog(nsIDOMWindow* aParent);
-
-  // handle xfe commands
-  nsresult XfeDoCommand(nsCString &aArgument,
-                        nsIDOMWindow* aParent);
-
-  // find the most recent window of a certain type
-  nsresult FindWindow(const PRUnichar *aType,
-                      nsIDOMWindowInternal **_retval);
+  /**
+   * Stop the remote service from accepting additional requests.
+   */
+  void shutdown();
 };
