@@ -19,25 +19,14 @@
 # Contributor(s): 
 #
 
-DEPTH		= ../../../..
+DEPTH		= ../..
 topsrcdir	= @top_srcdir@
 srcdir		= @srcdir@
 VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE		= layout
-
-EXPORTS		= \
-		nsICSSLoader.h \
-		nsICSSParser.h \
-		nsICSSPseudoComparator.h \
-		nsICSSStyleSheet.h \
-		nsICSSLoaderObserver.h \
-		nsIComputedDOMStyle.h \
-		$(NULL)
-
-EXPORTS		:= $(addprefix $(srcdir)/, $(EXPORTS))
+DIRS		= public src
 
 include $(topsrcdir)/config/rules.mk
 
