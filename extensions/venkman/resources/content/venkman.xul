@@ -36,142 +36,37 @@
    -
    -->
 
-<!DOCTYPE window SYSTEM "chrome://venkman/locale/venkman.dtd" >
+<!DOCTYPE window SYSTEM "chrome://venkman/locale/venkman.dtd">
 
 <?xml-stylesheet href="chrome://venkman/skin/venkman.css" type="text/css"?>
 
 <?xul-overlay href="chrome://global/content/globalOverlay.xul"?>
+<?xul-overlay href="chrome://communicator/content/utilityOverlay.xul"?>
+
 <?xul-overlay href="chrome://venkman/content/venkman-menus.xul"?>
 <?xul-overlay href="chrome://venkman/content/venkman-scripts.xul"?>
-<?xul-overlay href="chrome://communicator/content/utilityOverlay.xul"?>
+<?xul-overlay href="chrome://venkman/content/venkman-views.xul"?>
 
 <window id="venkman-window"
   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
   onload="console.onLoad();" onclose="return console.onClose();"
   onunload="return console.onUnload();"
-  width="640" height="480"
+  onmouseover="console.onMouseOver(event);"
+  width="800" height="600"
   persist="width height screenX screenY" title="&MainWindow.title;"
   windowtype="mozapp:venkman">
 
+  <!-- parents for the command manager-managed objects -->
+  <keyset id="dynamic-keys"/>
+  <popupset id="dynamic-popups"/>
+
   <overlaytarget id="scripts-overlay-target"/>
   <overlaytarget id="menu-overlay-target"/>
+  <overlaytarget id="views-overlay-target"/>
 
-  <vbox flex="1">
-      <hbox flex="1" id="top-hbox" persist="height">
-
-        <vbox flex="1" id="top-left-pane" persist="width">
-
-          <!-- project view -->
-
-          <tree flex="1" id="project-tree" persist="height"
-            ondblclick="console.onProjectSelect(event);">
-
-            <treecols>
-              <treecol id="project-col-0" label="" primary="true" flex="5"
-                persist="hidden width"/>
-              <splitter class="tree-splitter"/>
-              <treecol id="project-col-1" flex="1" label = ""
-                persist="hidden width"/>
-              <splitter class="tree-splitter"/>
-              <treecol id="project-col-2" flex="1" label = ""
-                persist="hidden width"/>
-              <splitter class="tree-splitter"/>
-              <treecol id="project-col-3" flex="1" label = ""
-                persist="hidden width"/>
-            </treecols>
-
-            <treechildren id="project-body"/>
-          </tree>
-
-          <splitter collapse="before"><grippy/></splitter>
-
-          <!-- script view -->
-
-          <tree flex="1" id="script-list-tree" persist="height"
-            ondblclick="console.onScriptSelect(event);"
-            onclick="console.onScriptClick(event);">
-
-            <treecols>
-              <treecol id="script-name" label="&ScriptCol0.header;"
-                primary="true" flex="5" persist="hidden width"/>
-              <splitter class="tree-splitter"/>
-              <treecol flex="1" id="script-line-start"
-                label="&ScriptCol1.header;" persist="hidden width"/>
-              <splitter class="tree-splitter"/>
-              <treecol flex="1" id="script-line-extent"
-                label="&ScriptCol2.header;" persist="hidden width" hidden="true"/>
-            </treecols>
-            <treechildren id="script-list-body"/>
-          </tree>
-        </vbox>
-
-        <splitter collapse="before"><grippy/></splitter>
-
-        <!-- source view -->
-
-        <tree id="source-tree" flex="50" persist="width"
-          onselectXXX="console.onSourceSelect(event);"
-          onclick="console.onSourceClick(event);">
-          <treecols>
-            <treecol id="breakpoint-col" flex="3"
-              display="&SourceCol0.display;" persist="hidden width"/>
-            <splitter class="tree-splitter"/>
-            <treecol id="source-line-number" flex="7"
-              display="&SourceCol1.display;" persist="hidden width"/>
-            <splitter class="tree-splitter"/>
-            <treecol id="source-line-text" flex="90"
-              ignoreincolumnpicker="true" persist="hidden width"/>
-          </treecols>
-          <treechildren id="source-tree-body"/>
-        </tree>
-
-      </hbox>
-
-      <splitter collapse="after" persist="top"><grippy/></splitter>
-
-      <hbox id="bottom-hbox" persist="height">
-
-        <!-- stack view -->
-
-        <tree flex="2" id="stack-tree" persist="width"
-          ondblclick="console.onStackSelect(event);">
-
-          <treecols>
-            <treecol id="stack-col-0" flex="1" persist="hidden width"
-              primary="true" label="&StackCol0.header;"/>
-            <splitter class="tree-splitter"/>
-
-            <treecol flex="2" id="stack-col-1" persist="hidden width"
-              hidden="true" label="&StackCol1.header;"/>
-            <splitter class="tree-splitter"/>
-
-            <treecol flex="1" id="stack-col-2" persist="hidden width"
-              label="&StackCol2.header;"/>
-            <splitter class="tree-splitter"/>
-
-            <treecol flex="1" id="stack-col-3" persist="hidden width"
-              label="&StackCol3.header;" hidden="true"/>
-          </treecols>
-
-          <treechildren id="stack-body"/>
-        </tree>
-
-        <splitter collapse="after" persist="left"><grippy/></splitter>
-
-        <!-- console view -->
-
-        <vbox id="console-box" flex="50" persist="width">
-          <iframe id="output-iframe" flex="1"
-            ondraggesture=
-              "nsDragAndDrop.startDrag(event, contentAreaDNDObserver);"
-            src="chrome://venkman/content/venkman-output-window.html"
-            type="content"/>
-          <textbox id="input-single-line" class="input-widget"
-            onkeypress="console.onSingleLineKeypress(event);"/>
-        </vbox>
-
-      </hbox>
-  </vbox>
+  <viewcontainer id="root-container" flex="1" type="horizontal">
+    <viewcontainer id="initial-container" type="vertical" flex="1"/>
+  </viewcontainer>
 
   <overlaytarget id="statusbar-overlay-target"/>
 
