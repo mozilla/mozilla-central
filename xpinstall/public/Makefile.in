@@ -52,6 +52,7 @@ XPIDLSRCS	= \
 		nsIXPIDialogService.idl \
 		nsIXPIProgressDialog.idl \
 		nsIXPINotifier.idl \
+		nsIXPInstallManager.idl \
 		nsPIXPIProxy.idl \
 		nsPIXPIStubHook.idl \
 		nsPICertNotification.idl \
