@@ -20,7 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *		Simon Fraser <sfraser@netscape.com>
+ *   Simon Fraser <smfr@smfr.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or 
@@ -36,37 +36,57 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#import <Cocoa/Cocoa.h>
+#import "NSDate+Utils.h"
 
-@class BookmarkToolbar;
-@class BrowserTabView;
-@class BrowserTabBarView;
+@implementation NSDate(ChimeraDateUtils)
 
-@interface BrowserContentView : NSView
++ (id)dateWithPRTime:(PRTime)microseconds
 {
-  IBOutlet BookmarkToolbar  *mBookmarksToolbar;
-  IBOutlet NSView           *mBrowserContainerView;   // manages tabs and web content
-  IBOutlet NSView           *mBookmarkManagerView;    // swapped in and out by activating bm manager, replacing browser container
-  IBOutlet NSView           *mStatusBar;
-  
-  NSView* mCurrentContentView;   // either the bookmark manager or the browser container, whichever is visible
-}
-
-- (void)setBookmarkManagerView:(NSView*)bmView;
-- (IBAction)toggleBookmarkManager:(id)sender;
-- (BOOL)isBookmarkManagerVisible;
-
-@end
-
-@interface BrowserContainerView : NSView
-{
-  IBOutlet BrowserTabView *mTabView;
-  IBOutlet BrowserTabBarView *mTabBarView;
+  // assume we have 64-bit math
+  return [NSDate dateWithTimeIntervalSince1970:(double)(microseconds / 1000000LL)];
 }
 
 @end
 
-@interface BookmarkManagerView : NSView
+
+@implementation NSCalendarDate(ChimeraCalendarDateUtils)
+
+// XXX this sucks pretty badly, mostly because of cocoa.
+// Cocoa does not follow the system prefs for the preferred date format, so
+// we hardcode some formats for now. This should be improved.
+- (NSString*)relativeDateDescription
 {
+	int todayDayOfEra = [[NSCalendarDate calendarDate] dayOfCommonEra];
+  NSString* result;
+
+	int myDayOfEra = [self dayOfCommonEra];
+	if (myDayOfEra == todayDayOfEra)
+	{
+	  NSString* dayString = NSLocalizedString(@"Today", @"");
+		result = [dayString stringByAppendingString:[self descriptionWithCalendarFormat:@" %I:%M %p"]];
+	}
+	else if (myDayOfEra == (todayDayOfEra - 1))
+	{
+	  NSString* dayString = NSLocalizedString(@"Yesterday", @"");
+		result = [dayString stringByAppendingString:[self descriptionWithCalendarFormat:@" %I:%M %p"]];
+	}
+	else if (myDayOfEra == (todayDayOfEra + 1))
+	{
+	  NSString* dayString = NSLocalizedString(@"Tomorrow", @"");
+		result = [dayString stringByAppendingString:[self descriptionWithCalendarFormat:@" %I:%M %p"]];
+	}
+	else if (myDayOfEra >= (todayDayOfEra - 7))
+	{
+    // up to a week ago, show the time
+    result = [self descriptionWithCalendarFormat:@"%a %b %d %Y %I:%M %p" locale:nil];
+  }
+  else
+  {
+    // older than a week, just show the date
+    result = [self descriptionWithCalendarFormat:@"%b %d %Y %I:%M %p" locale:nil];
+  }
+
+  return result;
 }
+
 @end

@@ -20,7 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *		Simon Fraser <sfraser@netscape.com>
+ *   Simon Fraser <smfr@smfr.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or 
@@ -36,37 +36,19 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#import <Cocoa/Cocoa.h>
 
-@class BookmarkToolbar;
-@class BrowserTabView;
-@class BrowserTabBarView;
+#import <Foundation/Foundation.h>
 
-@interface BrowserContentView : NSView
-{
-  IBOutlet BookmarkToolbar  *mBookmarksToolbar;
-  IBOutlet NSView           *mBrowserContainerView;   // manages tabs and web content
-  IBOutlet NSView           *mBookmarkManagerView;    // swapped in and out by activating bm manager, replacing browser container
-  IBOutlet NSView           *mStatusBar;
-  
-  NSView* mCurrentContentView;   // either the bookmark manager or the browser container, whichever is visible
-}
+#import "prtime.h"
 
-- (void)setBookmarkManagerView:(NSView*)bmView;
-- (IBAction)toggleBookmarkManager:(id)sender;
-- (BOOL)isBookmarkManagerVisible;
+@interface NSDate(ChimeraDateUtils)
+
++ (id)dateWithPRTime:(PRTime)microseconds;
 
 @end
 
-@interface BrowserContainerView : NSView
-{
-  IBOutlet BrowserTabView *mTabView;
-  IBOutlet BrowserTabBarView *mTabBarView;
-}
+@interface NSCalendarDate(ChimeraCalendarDateUtils)
 
-@end
+- (NSString*)relativeDateDescription;
 
-@interface BookmarkManagerView : NSView
-{
-}
 @end
