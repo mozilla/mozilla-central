@@ -1,5 +1,0 @@
-nsILanguageAtom.idl
-nsILanguageAtomService.idl
-nsILocale.idl
-nsILocaleService.idl
-nsIScriptableDateFormat.idl
