@@ -26,40 +26,15 @@
 # provisions above, a recipient may use your version of this file
 # under either the MPL or the GPL.
 
-package PLIF::Service::UserFieldFactory;
+package PLIF::Service::UserField::String;
 use strict;
 use vars qw(@ISA);
-use PLIF::Service;
-@ISA = qw(PLIF::Service);
+use PLIF::Service::UserField;
+@ISA = qw(PLIF::Service::UserField);
 1;
 
-sub provides {
-    my $class = shift;
-    my($service) = @_;
-    return ($service eq 'user.fieldFactory' or $class->SUPER::provides($service));
+sub type {
+    return 'string';
 }
 
-# Field Factory
-#
-# The factory methods below should return service instances (not
-# objects or pointers to services in the controller's service
-# list!). These service instances should provide the 'user.field.X'
-# service where 'X' is a field type. The field type should be
-# determined from the fieldID or fieldCategory.fieldName identifiers
-# passed to the factory methods.
-
-# typically used when the data comes from the database
-sub createFieldByID {
-    my $self = shift;
-    my($app, $user, $fieldID, $fieldData) = @_;
-    return undef; # XXX
-}
-
-# typically used when the field is being created
-sub createFieldByName {
-    my $self = shift;
-    my($app, $user, $fieldCategory, $fieldName, $fieldData) = @_;
-    # fieldData is likely to be undefined, as the field is unlikely to
-    # exist for this user.
-    return undef; # XXX
-}
+# XXX anything else required here?
