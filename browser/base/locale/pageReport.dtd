@@ -1,9 +1,0 @@
-<!ENTITY caption.label "Blocked Popups">
-
-<!ENTITY intro.label "The following pages were prevented from displaying 
-unrequested popup windows:">
-
-<!ENTITY done.label "Done">
-<!ENTITY unblock.label "Unblock Site">
-
-<!ENTITY unblockedPopupMsg.label " will now be able to open unrequested popup windows.">
