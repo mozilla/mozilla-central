@@ -18,56 +18,37 @@
 
 /*----------------------------------------------------------------------*/
 /*																		*/
-/* Name:		<Xfe/Oriented.h>										*/
-/* Description:	XfeOriented widget public header file.					*/
+/* Name:		<Xfe/DynamicManager.h>									*/
+/* Description:	XfeDynamicManager widget public header file.			*/
 /* Author:		Ramiro Estrugo <ramiro@netscape.com>					*/
 /*																		*/
 /*----------------------------------------------------------------------*/
 
-#ifndef _XfeOriented_h_							/* start Oriented.h		*/
-#define _XfeOriented_h_
+#ifndef _XfeDynamicManager_h_				/* start DynamicManager.h	*/
+#define _XfeDynamicManager_h_
 
-#include <Xfe/Xfe.h>
-#include <Xfe/DynamicManager.h>
+#include <Xfe/Manager.h>
 
 XFE_BEGIN_CPLUSPLUS_PROTECTION
 
 /*----------------------------------------------------------------------*/
 /*																		*/
-/* XfeBox class names													*/
+/* XfeDynamicManager class names										*/
 /*																		*/
 /*----------------------------------------------------------------------*/
-externalref WidgetClass xfeOrientedWidgetClass;
+externalref WidgetClass xfeDynamicManagerWidgetClass;
 
-typedef struct _XfeOrientedClassRec *		XfeOrientedWidgetClass;
-typedef struct _XfeOrientedRec *			XfeOrientedWidget;
+typedef struct _XfeDynamicManagerClassRec *		XfeDynamicManagerWidgetClass;
+typedef struct _XfeDynamicManagerRec *			XfeDynamicManagerWidget;
 
-/*----------------------------------------------------------------------*/
-/*																		*/
-/* XfeBox subclass test macro											*/
-/*																		*/
-/*----------------------------------------------------------------------*/
-#define XfeIsOriented(w)	XtIsSubclass(w,xfeOrientedWidgetClass)
+#define XfeIsDynamicManager(w)	XtIsSubclass(w,xfeDynamicManagerWidgetClass)
 
 /*----------------------------------------------------------------------*/
 /*																		*/
-/* XfeOriented public methods											*/
+/* XfeDynamicManager class names										*/
 /*																		*/
-/*----------------------------------------------------------------------*/
-extern Boolean
-XfeOrientedSetAllowDrag				(Widget			w,
-									 Boolean		draggable);
-/*----------------------------------------------------------------------*/
-extern Boolean
-XfeOrientedDescendantSetAllowDrag	(Widget			w,
-									 Widget			descendant,
-									 Boolean		draggable);
-/*----------------------------------------------------------------------*/
-extern void
-XfeOrientedChildrenSetAllowDrag		(Widget			w,
-									 Boolean		draggable);
 /*----------------------------------------------------------------------*/
 
 XFE_END_CPLUSPLUS_PROTECTION
 
-#endif											/* end Oriented.h		*/
+#endif										/* end DynamicManager.h		*/
