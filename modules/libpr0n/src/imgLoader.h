@@ -21,47 +21,33 @@
  *   Stuart Parmenter <pavlov@netscape.com>
  */
 
-#ifndef nsPPMDecoder_h__
-#define nsPPMDecoder_h__
+//#define LOADER_THREADSAFE 1
 
-#include "imgIDecoder.h"
+#include "imgILoader.h"
 
-#include "nsCOMPtr.h"
+#ifdef LOADER_THREADSAFE
+#include "prlock.h"
+#endif
 
-#include "gfxIImageContainer.h"
-#include "imgIDecoderObserver.h"
-#include "gfxIImageFrame.h"
-#include "imgIRequest.h"
-
-#define NS_PPMDECODER_CID \
-{ /* e90bfa06-1dd1-11b2-8217-f38fe5d431a2 */         \
-     0xe90bfa06,                                     \
+#define NS_IMGLOADER_CID \
+{ /* 9f6a0d2e-1dd1-11b2-a5b8-951f13c846f7 */         \
+     0x9f6a0d2e,                                     \
      0x1dd1,                                         \
      0x11b2,                                         \
-    {0x82, 0x17, 0xf3, 0x8f, 0xe5, 0xd4, 0x31, 0xa2} \
+    {0xa5, 0xb8, 0x95, 0x1f, 0x13, 0xc8, 0x46, 0xf7} \
 }
 
-class nsPPMDecoder : public imgIDecoder
+class imgLoader : public imgILoader
 {
 public:
   NS_DECL_ISUPPORTS
-  NS_DECL_NSIIMAGEDECODER
-  NS_DECL_NSIOUTPUTSTREAM
+  NS_DECL_NSIIMAGELOADER
 
-  nsPPMDecoder();
-  virtual ~nsPPMDecoder();
+  imgLoader();
+  virtual ~imgLoader();
 
 private:
-  nsCOMPtr<gfxIImageContainer> mImage;
-  nsCOMPtr<gfxIImageFrame> mFrame;
-  nsCOMPtr<imgIRequest> mRequest;
-  nsCOMPtr<imgIDecoderObserver> mObserver; // this is just qi'd from mRequest for speed
-
-  PRUint32 mDataReceived;
-  PRUint32 mDataWritten;
-
-  PRUint32 mDataLeft;
-  char *mPrevData;
+#ifdef LOADER_THREADSAFE
+  PRLock *mLock;
+#endif
 };
-
-#endif // nsPPMDecoder_h__
