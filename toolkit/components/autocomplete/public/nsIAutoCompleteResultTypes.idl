@@ -35,42 +35,51 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __nsAutoCompleteResultBase__
-#define __nsAutoCompleteResultBase__
+#include "nsIAutoCompleteResult.idl"
 
-#include "nsIAutoCompleteResult.h"
-#include "nsIAutoCompleteResultTypes.h"
-#include "nsString.h"
-#include "nsVoidArray.h"
+interface nsIMdbTable;
+interface nsIMdbEnv;
+interface nsIMdbRow;
+
+%{ C++
 #include "mdb.h"
+%}
 
-class nsAutoCompleteMdbResult : public nsIAutoCompleteMdbResult
+native mdb_scope(mdb_scope);
+native mdb_column(mdb_column);
+
+/* noscript */
+[uuid(c5257f44-b4d0-41aa-a50b-5b7bcefcc235)]
+interface nsIAutoCompleteBaseResult : nsIAutoCompleteResult
 {
-public:
-  NS_DECL_ISUPPORTS
-  NS_DECL_NSIAUTOCOMPLETERESULT
-
-  nsAutoCompleteMdbResult();
-  virtual ~nsAutoCompleteMdbResult();
-
-  NS_DECL_NSIAUTOCOMPLETEBASERESULT
-  NS_DECL_NSIAUTOCOMPLETEMDBRESULT
-
-protected:
-  nsAutoVoidArray mResults;
-
-  nsAutoString mSearchString;
-  nsAutoString mErrorDescription;
-  PRInt32 mDefaultIndex;
-  PRUint32 mSearchResult;
-  
-  nsIMdbEnv *mEnv;
-  nsIMdbTable *mTable;
-  
-  mdb_scope mValueToken;
-  PRInt16   mValueType;
-  mdb_scope mCommentToken;
-  PRInt16   mCommentType;
+  void setSearchString(in AString searchString);
+  void setErrorDescription(in AString errorDescription);
+  void setDefaultIndex(in long defaultIndex);
+  void setSearchResult(in unsigned long searchResult);
 };
 
-#endif // __nsAutoCompleteResultBase__
+/* noscript */
+[uuid(f7e7b341-2d5c-4d04-9f51-496cb2ce178c)]
+interface nsIAutoCompleteMdbResult : nsIAutoCompleteBaseResult
+{
+  const short kUnicharType = 0;
+  const short kCharType    = 1;
+  const short kIntType     = 2;
+
+  void init(in nsIMdbEnv env, in nsIMdbTable table);
+
+  void setTokens(in mdb_scope valueToken, in short valueType,
+		 in mdb_scope commentToken, in short commentType);
+
+  void addRow(in nsIMdbRow row);
+
+  void removeRowAt(in unsigned long rowIndex);
+
+  nsIMdbRow getRowAt(in unsigned long rowIndex);
+
+  AString getRowValue(in nsIMdbRow row, in mdb_column col);
+
+  AUTF8String getUTF8RowValue(in nsIMdbRow row, in mdb_column col);
+
+  long getIntRowValue(in nsIMdbRow row, in mdb_column col);
+};
