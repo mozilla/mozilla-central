@@ -1,9 +1,0 @@
-window[sitemode="hideAOL"] box#AOLBox
-{
-visibility:collapse;
-}
-
-window[sitemode="hideNetcenter"] box#NetcenterBox
-{
-visibility:collapse;
-}
