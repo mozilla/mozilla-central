@@ -19,33 +19,26 @@
  * Contributor(s):
  * Igor Kushnirskiy <idk@eng.sun.com>
  */
-#ifndef __bcXPCOMStubsAndProxies_h
-#define __bcXPCOMStubsAndProxies_h
-#include "bcIXPCOMStubsAndProxies.h"
-#include "bcIORB.h"
-#include "bcIStub.h"
-#include "bcXPCOMStubsAndProxiesCID.h"
 
+#ifndef __bcIXPCOMStubsAndProxies_h__
+#define __bcIXPCOMStubsAndProxies_h__
+#include "nsISupports.h"
+#include "bcDefs.h"
 
-class nsSupportsHashtable;
+/* 843ff582-1dd2-11b2-84b5-b43ba3ad3ef4 */
+#define BC_XPCOMSTUBSANDPROXIES_IID \
+  {0x843ff582, 0x1dd2, 0x11b2, \
+  {0x84, 0xb5,0xb4, 0x3b, 0xa3, 0xad, 0x3e, 0xf4}}
 
-class bcXPCOMStubsAndProxies : public bcIXPCOMStubsAndProxies {
-    NS_DECL_ISUPPORTS
+class bcIStub;
+class bcIORB;
+
+class bcIXPCOMStubsAndProxies : public nsISupports {
+public:
     NS_DEFINE_STATIC_IID_ACCESSOR(BC_XPCOMSTUBSANDPROXIES_IID)  
-    NS_IMETHOD GetStub(nsISupports *obj, bcIStub **stub);
-    NS_IMETHOD GetOID(nsISupports *obj, bcIORB *orb, bcOID *oid);
-    NS_IMETHOD GetProxy(bcOID oid, const nsIID &iid, bcIORB *orb, nsISupports **proxy);
-    bcXPCOMStubsAndProxies();
-    virtual ~bcXPCOMStubsAndProxies();
-private:
-    nsSupportsHashtable * oid2objectMap;
+    NS_IMETHOD GetStub(nsISupports *obj, bcIStub **stub) = 0;
+    NS_IMETHOD GetOID(nsISupports *obj, bcIORB *orb, bcOID *oid) = 0;
+    NS_IMETHOD GetProxy(bcOID oid, const nsIID &iid, bcIORB *orb, nsISupports **proxy) = 0;
 };
-#endif /*  __bcXPCOMStubsAndProxies_h */
 
-
-
-
-
-
-
-
+#endif
