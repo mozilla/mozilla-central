@@ -21,33 +21,33 @@
  *   Stuart Parmenter <pavlov@netscape.com>
  */
 
-#include "nsISupports.idl"
-#include "nsIOutputStream.idl"
-#include "gfxtypes.idl"
+#ifndef ImageCache_h__
+#define ImageCache_h__
 
-interface nsIImageRequest;
+#include "nsIURI.h"
+#include "nsImageRequest.h"
 
-/**
- * nsIImageDecoder interface
- *
- * @author Stuart Parmenter <pavlov@netscape.com>
- * @version 0.1
- * @see imagelib2
- */
-[scriptable, uuid(9eebf43a-1dd1-11b2-953e-f1782f4cbad3)]
-interface nsIImageDecoder : nsIOutputStream
+
+#define IMAGE_CACHE_CID \
+{ /* 70058a20-1dd2-11b2-9d22-db0a9d82e8bd */         \
+     0x70058a20,                                     \
+     0x1dd2,                                         \
+     0x11b2,                                         \
+    {0x9d, 0x22, 0xdb, 0x0a, 0x9d, 0x82, 0xe8, 0xbd} \
+}
+
+class ImageCache
 {
-  /**
-   * Initalize an image decoder.
-   * @param aRequest the request that owns the decoder.
-   *
-   * @note The decode should QI \a aRequest to an nsIImageDecoderObserver
-   * and should send decoder notifications to the request.
-   * The decoder should always pass NULL as the first two parameters to
-   * all of the nsIImageDecoderObserver APIs.
-   */
-  void init(in nsIImageRequest aRequest);
+public:
+  ImageCache();
+  ~ImageCache();
 
-  /// allows access to the nsIImage we have to put bits in to.
-  readonly attribute nsIImageRequest request;
+  /* additional members */
+  static PRBool Put(nsIURI *aKey, nsImageRequest *request);
+  static PRBool Get(nsIURI *aKey, nsImageRequest **request);
+  static PRBool Remove(nsIURI *aKey);
+
+private:
 };
+
+#endif

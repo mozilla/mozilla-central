@@ -21,47 +21,40 @@
  *   Stuart Parmenter <pavlov@netscape.com>
  */
 
-#ifndef nsPPMDecoder_h__
-#define nsPPMDecoder_h__
-
-#include "nsIImageDecoder.h"
-
-#include "nsCOMPtr.h"
+#include "nsImageRequest.h"
+#include "nsIImageDecoderObserver.h"
 
 #include "nsIImageContainer.h"
-#include "nsIImageDecoderObserver.h"
-#include "nsIImageFrame.h"
-#include "nsIImageRequest2.h"
+#include "nsIImageDecoder.h"
+#include "nsCOMPtr.h"
 
-#define NS_PPMDECODER_CID \
-{ /* e90bfa06-1dd1-11b2-8217-f38fe5d431a2 */         \
-     0xe90bfa06,                                     \
-     0x1dd1,                                         \
+#define NS_IMAGEREQUESTPROXY_CID \
+{ /* 20557898-1dd2-11b2-8f65-9c462ee2bc95 */         \
+     0x20557898,                                     \
+     0x1dd2,                                         \
      0x11b2,                                         \
-    {0x82, 0x17, 0xf3, 0x8f, 0xe5, 0xd4, 0x31, 0xa2} \
+    {0x8f, 0x65, 0x9c, 0x46, 0x2e, 0xe2, 0xbc, 0x95} \
 }
 
-class nsPPMDecoder : public nsIImageDecoder
+class nsImageRequestProxy : public nsIImageRequest,
+                            public nsIImageDecoderObserver
 {
 public:
   NS_DECL_ISUPPORTS
-  NS_DECL_NSIIMAGEDECODER
-  NS_DECL_NSIOUTPUTSTREAM
+  NS_DECL_NSIIMAGEREQUEST
+  NS_DECL_NSIIMAGEDECODEROBSERVER
+  NS_DECL_NSIIMAGECONTAINEROBSERVER
 
-  nsPPMDecoder();
-  virtual ~nsPPMDecoder();
+  nsImageRequestProxy();
+  virtual ~nsImageRequestProxy();
+
+  /* additional members */
+  nsresult Init(nsImageRequest *request, nsIImageDecoderObserver *aObserver, nsISupports *cx);
 
 private:
-  nsCOMPtr<nsIImageContainer> mImage;
-  nsCOMPtr<nsIImageFrame> mFrame;
-  nsCOMPtr<nsIImageRequest> mRequest;
-  nsCOMPtr<nsIImageDecoderObserver> mObserver; // this is just qi'd from mRequest for speed
+  nsCOMPtr<nsIImageDecoderObserver> mObserver;
 
-  PRUint32 mDataReceived;
-  PRUint32 mDataWritten;
+  nsCOMPtr<nsISupports> mContext;
 
-  PRUint32 mDataLeft;
-  char *mPrevData;
+  nsCOMPtr<nsIImageRequest> mOwner;
 };
-
-#endif // nsPPMDecoder_h__
