@@ -26,14 +26,28 @@
 #define nsMsgLocalMailFolder_h__
 
 #include "nsMsgFolder.h" /* include the interface we are going to support */
+#include "nsFileSpec.h"
 
 class nsMsgLocalMailFolder : public nsMsgFolder, public nsIMsgLocalMailFolder
 {
 public:
 	nsMsgLocalMailFolder(const char* uri);
-	~nsMsgLocalMailFolder();
+	virtual ~nsMsgLocalMailFolder();
 
   NS_DECL_ISUPPORTS
+#if 0
+  static nsresult GetRoot(nsIMsgFolder* *result);
+#endif
+  // nsICollection methods:
+  NS_IMETHOD Enumerate(nsIEnumerator* *result);
+
+  // nsIFolder methods:
+  NS_IMETHOD GetSubFolders(nsIEnumerator* *result);
+
+  // nsIMsgFolder methods:
+  NS_IMETHOD AddUnique(nsISupports* element);
+  NS_IMETHOD ReplaceElement(nsISupports* element, nsISupports* newElement);
+  NS_IMETHOD GetMessages(nsIEnumerator* *result);
 
 #ifdef HAVE_DB	
 	virtual nsresult BeginCopyingMessages(MSG_FolderInfo *dstFolder, 
@@ -60,11 +74,11 @@ public:
 	NS_IMETHOD Rename (const char *newName);
 	NS_IMETHOD Adopt(const nsIMsgFolder *srcFolder, PRUint32 *outPos);
 
-  NS_IMETHOD FindChildNamed(const char *name, nsIMsgFolder ** aChild);
+  NS_IMETHOD GetChildNamed(nsString& name, nsISupports ** aChild);
 
   // this override pulls the value from the db
-	NS_IMETHOD GetName(char** name);   // Name of this folder (as presented to user).
-	NS_IMETHOD GetPrettyName(char ** prettyName);	// Override of the base, for top-level mail folder
+	NS_IMETHOD GetName(nsString& name);   // Name of this folder (as presented to user).
+	NS_IMETHOD GetPrettyName(nsString& prettyName);	// Override of the base, for top-level mail folder
 
   NS_IMETHOD BuildFolderURL(char **url);
 
@@ -76,10 +90,6 @@ public:
 	NS_IMETHOD GetCanBeRenamed (PRBool *canBeRenamed);
 	NS_IMETHOD GetRequiresCleanup(PRBool *requiresCleanup);
 
-
-	NS_IMETHOD GetRelativePathName (char **pathName);
-
-
 	NS_IMETHOD GetSizeOnDisk(PRUint32 size);
 
 	NS_IMETHOD GetUserName(char** userName);
@@ -89,14 +99,18 @@ public:
 	NS_IMETHOD GetRememberedPassword(char ** password);
 
 	//nsIMsgMailFolder
-  NS_IMETHOD GetPathName(char * *aPathName);
-  NS_IMETHOD SetPathName(char * aPathName);
+  NS_IMETHOD GetPath(nsNativeFileSpec& aPathName);
 
 protected:
-	char*			mPathName;
+  nsresult CreateSubFolders(void);
+  nsresult Initialize(void);
+
+protected:
+  nsNativeFileSpec mPath;
 	PRUint32  mExpungedBytes;
 	PRBool		mHaveReadNameFromDB;
 	PRBool		mGettingMail;
+	PRBool		mInitialized;
 };
 
 #endif // nsMsgLocalMailFolder_h__
