@@ -1,4 +1,4 @@
-/* -*- Mode: idl; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -36,56 +36,24 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsISupports.idl"
+#ifndef CALBASECID_H_
+#define CALBASECID_H_
 
-interface nsIArray;
-interface nsIMutableArray;
+/* C++ */
+#define CAL_DATETIME_CID \
+    { 0x85475b45, 0x110a, 0x443c, { 0xaf, 0x3f, 0xb6, 0x63, 0x98, 0xa5, 0xa7, 0xcd } }
+#define CAL_DATETIME_CONTRACTID \
+    "@mozilla.org/calendar/datetime;1"
 
-interface calIDateTime;
-interface calIItemOccurrence;
+/* JS -- Update these from calItemModule.js */
+#define CAL_EVENT_CID \
+    { 0x974339d5, 0xab86, 0x4491, { 0xaa, 0xaf, 0x2b, 0x2c, 0xa1, 0x77, 0xc1, 0x2b } }
+#define CAL_EVENT_CONTRACTID \
+    "@mozilla.org/calendar/event;1"
 
-[scriptable, uuid(a6a458cf-052c-45d1-bee7-b700ad21109a)]
-interface calIRecurrenceInfo : nsISupports
-{
-  // returns true if this thing is able to be modified;
-  // if the item is not mutable, attempts to modify
-  // any data will throw CAL_ERROR_ITEM_IS_IMMUTABLE
-  readonly attribute boolean isMutable;
+#define CAL_TODO_CID \
+    { 0x7af51168, 0x6abe, 0x4a31, { 0x98, 0x4d, 0x6f, 0x8a, 0x39, 0x89, 0x21, 0x2d } }
+#define CAL_TODO_CONTRACTID \
+    "@mozilla.org/calendar/todo;1"
 
-  // makes this item immutable
-  void makeImmutable();
-
-  // clone always returns a mutable event
-  calIItemBase clone();
-
-  //
-  //
-  // recurrence
-  //
-  const long CAL_ITEM_RECUR_TYPE_NONE = 0;
-  const long CAL_ITEM_RECUR_TYPE_MINUTELY = 1;
-  const long CAL_ITEM_RECUR_TYPE_HOURLY = 2;
-  const long CAL_ITEM_RECUR_TYPE_DAILY = 3;
-  const long CAL_ITEM_RECUR_TYPE_MONTHLY = 4;
-  const long CAL_ITEM_RECUR_TYPE_YEARLY = 5;
-
-  attribute long recurType;
-  attribute calIDateTime recurEnd; // if null, then forever
-  // array of calIDateTime
-  attribute nsIArray recurrenceExceptions;
-  // rest of recurrence in properties (?)
-
-  // return the next display item for this event,
-  // where the start time is >= aStartTime
-  calIItemOccurrence getNextOccurrence (in calIDateTime aStartTime);
-
-  // return the previous display item for this event,
-  // where the start time is < aStartTime
-  calIItemOccurrence getPreviousOccurrence (in calIDateTime aStartTime);
-
-  // return array of calIItemOccurrence representing all
-  // occurances of this event between start and end.
-  nsIArray getAllOccurrences (in calIDateTime aStartTime,
-                              in calIDateTime aEndTime);
-};
-
+#endif /* CALBASECID_H_ */

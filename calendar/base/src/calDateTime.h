@@ -1,4 +1,4 @@
-/* -*- Mode: idl; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -36,56 +36,51 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsISupports.idl"
+#ifndef CALDATETIME_H_
+#define CALDATETIME_H_
 
-interface nsIArray;
-interface nsIMutableArray;
+#include "nsString.h"
 
-interface calIDateTime;
-interface calIItemOccurrence;
+#include "calIDateTime.h"
 
-[scriptable, uuid(a6a458cf-052c-45d1-bee7-b700ad21109a)]
-interface calIRecurrenceInfo : nsISupports
+struct icaltimetype;
+
+class calDateTime : public calIDateTime
 {
-  // returns true if this thing is able to be modified;
-  // if the item is not mutable, attempts to modify
-  // any data will throw CAL_ERROR_ITEM_IS_IMMUTABLE
-  readonly attribute boolean isMutable;
+public:
+    calDateTime ();
+    calDateTime (struct icaltimetype *timeptr);
 
-  // makes this item immutable
-  void makeImmutable();
+    // nsISupports interface
+    NS_DECL_ISUPPORTS
 
-  // clone always returns a mutable event
-  calIItemBase clone();
+    // calIDateTime interface
+    NS_DECL_CALIDATETIME
 
-  //
-  //
-  // recurrence
-  //
-  const long CAL_ITEM_RECUR_TYPE_NONE = 0;
-  const long CAL_ITEM_RECUR_TYPE_MINUTELY = 1;
-  const long CAL_ITEM_RECUR_TYPE_HOURLY = 2;
-  const long CAL_ITEM_RECUR_TYPE_DAILY = 3;
-  const long CAL_ITEM_RECUR_TYPE_MONTHLY = 4;
-  const long CAL_ITEM_RECUR_TYPE_YEARLY = 5;
+protected:
+    PRBool mImmutable;
 
-  attribute long recurType;
-  attribute calIDateTime recurEnd; // if null, then forever
-  // array of calIDateTime
-  attribute nsIArray recurrenceExceptions;
-  // rest of recurrence in properties (?)
+    PRBool mValid;
 
-  // return the next display item for this event,
-  // where the start time is >= aStartTime
-  calIItemOccurrence getNextOccurrence (in calIDateTime aStartTime);
+    PRTime mNativeTime;
 
-  // return the previous display item for this event,
-  // where the start time is < aStartTime
-  calIItemOccurrence getPreviousOccurrence (in calIDateTime aStartTime);
+    PRInt16 mYear;
+    PRInt16 mMonth;
+    PRInt16 mDay;
+    PRInt16 mHour;
+    PRInt16 mMinute;
+    PRInt16 mSecond;
 
-  // return array of calIItemOccurrence representing all
-  // occurances of this event between start and end.
-  nsIArray getAllOccurrences (in calIDateTime aStartTime,
-                              in calIDateTime aEndTime);
+    PRBool mIsUtc;
+
+    PRInt16 mWeekday;
+    PRInt16 mYearday;
+
+    void toIcalTime(icaltimetype *icalt);
+    void fromIcalTime(icaltimetype *icalt);
+
+    PRTime mLastModified;
 };
+
+#endif /* CALDATETIME_H_ */
 
