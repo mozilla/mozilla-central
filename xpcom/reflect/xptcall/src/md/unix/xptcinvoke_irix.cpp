@@ -65,7 +65,7 @@ invoke_copy_to_stack(PRUint64* d, PRUint32 paramCount,
            if (i < N_ARG_REGS)
               ((PRInt64*)regs)[i] = s->val.i32;
            else
-              *d++ = s->val.i64;
+              *d++ = s->val.i32;
            break;
         case nsXPTType::T_I64:
            if (i < N_ARG_REGS)
