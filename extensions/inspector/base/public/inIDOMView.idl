@@ -36,5 +36,25 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-@import url("chrome://communicator/skin");
-@import url("chrome://inspector/content/inspector.css");
+#include "nsISupports.idl"
+
+interface nsIDOMNode;
+
+[scriptable, uuid(3EB4C760-DFFD-4983-94A8-18BCB99100E4)]
+interface inIDOMView : nsISupports
+{
+  attribute nsIDOMNode rootNode;
+
+  attribute boolean showAnonymousContent;
+  attribute boolean showSubDocuments;
+
+  nsIDOMNode getNodeFromRowIndex(in long rowIndex);
+  long getRowIndexFromNode(in nsIDOMNode node);
+
+  void addFilterByType(in unsigned short type, in boolean exclusive);
+  void removeFilterByType(in unsigned short type);
+  boolean isFiltered(in unsigned short type);
+
+
+  void rebuild();
+};
