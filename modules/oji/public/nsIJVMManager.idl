@@ -1,0 +1,87 @@
+/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+ *
+ * The contents of this file are subject to the Netscape Public License
+ * Version 1.0 (the "NPL"); you may not use this file except in
+ * compliance with the NPL.  You may obtain a copy of the NPL at
+ * http://www.mozilla.org/NPL/
+ *
+ * Software distributed under the NPL is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the NPL
+ * for the specific language governing rights and limitations under the
+ * NPL.
+ *
+ * The Initial Developer of this code under the NPL is Netscape
+ * Communications Corporation.  Portions created by Netscape are
+ * Copyright (C) 1998 Netscape Communications Corporation.  All Rights
+ * Reserved.
+ */
+
+#include "nsISupports.idl"
+
+%{C++
+#ifndef JNI_H
+#include "jni.h"
+#endif
+
+////////////////////////////////////////////////////////////////////////////////
+// Java VM Plugin Manager
+// This interface defines additional entry points that are available
+// to JVM plugins for browsers that support JVM plugins.
+
+
+      //#define NS_IJVMMANAGER_IID                           \
+      //{ /* a1e5ed50-aa4a-11d1-85b2-00805f0e4dfe */         \
+//    0xa1e5ed50,                                      \
+//    0xaa4a,                                          \
+//    0x11d1,                                          \
+//    {0x85, 0xb2, 0x00, 0x80, 0x5f, 0x0e, 0x4d, 0xfe} \
+//}
+
+#define NS_JVMMANAGER_CID                            \
+{ /* 38e7ef10-58df-11d2-8164-006008119d7a */         \
+    0x38e7ef10,                                      \
+    0x58df,                                          \
+    0x11d2,                                          \
+    {0x81, 0x64, 0x00, 0x60, 0x08, 0x11, 0x9d, 0x7a} \
+}
+
+%}
+
+interface nsIJVMPlugin;
+interface nsISecureEnv;
+native JNIEnv(JNIEnv *);
+
+[scriptable, uuid(a1e5ed50-aa4a-11d1-85b2-00805f0e4dfe)]
+interface nsIJVMManager : nsISupports {
+
+%{C++
+      //	NS_DEFINE_STATIC_IID_ACCESSOR(NS_IJVMMANAGER_IID)
+	NS_DEFINE_STATIC_CID_ACCESSOR(NS_JVMMANAGER_CID)
+%}
+
+    /**
+     * Creates a proxy JNI with an optional secure environment (which can be NULL).
+     * There is a one-to-one correspondence between proxy JNIs and threads, so
+     * calling this method multiple times from the same thread will return
+     * the same proxy JNI.
+     */
+	void CreateProxyJNI(in nsISecureEnv secureEnv, out JNIEnv outProxyEnv);
+
+	/**
+	 * Returns the proxy JNI associated with the current thread, or NULL if no
+	 * such association exists.
+	 */
+	void GetProxyJNI(out JNIEnv outProxyEnv);
+
+	/**
+	 * Returns whether or not Java is enabled.
+	 */
+	void IsJavaEnabled(out boolean outEnabled);
+
+	/**
+	 * Called from Java Console menu item.
+	 */
+
+	void ShowJavaConsole();
+
+};
