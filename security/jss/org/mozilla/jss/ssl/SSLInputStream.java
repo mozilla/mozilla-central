@@ -13,7 +13,7 @@
  * 
  * The Initial Developer of the Original Code is Netscape
  * Communications Corporation.  Portions created by Netscape are 
- * Copyright (C) 1998-2000 Netscape Communications Corporation.  All
+ * Copyright (C) 2001 Netscape Communications Corporation.  All
  * Rights Reserved.
  * 
  * Contributor(s):
@@ -30,44 +30,59 @@
  * may use your version of this file under either the MPL or the
  * GPL.
  */
-/*
- * SSLHandshakeCompletedEvent.java
- * 
- * 
- */
 
 package org.mozilla.jss.ssl;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.io.IOException;
 
-/*
- * right now, this only extends EventObject, but it will eventually
- * extend javax.net.ssl.HandshakeCompletedEvent
- */
+public class SSLInputStream extends java.io.InputStream {
 
-/**
- * This class represents the event telling you a handshake
- * operation is complete.
- */
-public class SSLHandshakeCompletedEvent extends EventObject {
-    public SSLHandshakeCompletedEvent(SSLSocket socket) {
-	super(socket);
+    SSLInputStream(SSLSocket sock) {
+        this.sock = sock;
     }
-    
-    /**
-     * get security information about this socket, including
-     * cert data
-     */
-    public SSLSecurityStatus getStatus() throws SocketException {
-	return getSocket().getStatus();
+
+    public int available() throws IOException {
+        return sock.socketAvailable();
     }
-    
-    /**
-     * get socket on which the event occured
-     */
-    public SSLSocket getSocket() {
-	return (SSLSocket)getSource();
+
+    public void close() throws IOException {
+        sock.close();
     }
+
+    public int read() throws IOException {
+        byte[] b = new byte[1];
+        int nread = read(b, 0, 1);
+        if( nread == -1 ) {
+            return nread;
+        } else {
+            return ((int) b[0]) & (0xff);
+        }
+    }
+
+    public int read(byte[] b) throws IOException {
+        return read(b, 0, b.length);
+    }
+
+    public int read(byte[] b, int off, int len) throws IOException {
+        return sock.read(b, off, len);
+    }
+
+    public long skip(long n) throws IOException {
+        long numSkipped = 0;
+
+        int size = (int) (n < 2048 ? n : 2048);
+        byte[] trash = new byte[size];
+        while( n > 0) {
+            size = (int) (n < 2048 ? n : 2048);
+            int nread = read(trash, 0, size);
+            if( nread <= 0 ) {
+                break;
+            }
+            numSkipped += nread;
+            n -= nread;
+        }
+        return numSkipped;
+    }
+
+    private SSLSocket sock;
 }

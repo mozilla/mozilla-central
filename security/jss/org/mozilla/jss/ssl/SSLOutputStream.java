@@ -13,7 +13,7 @@
  * 
  * The Initial Developer of the Original Code is Netscape
  * Communications Corporation.  Portions created by Netscape are 
- * Copyright (C) 1998-2000 Netscape Communications Corporation.  All
+ * Copyright (C) 2001 Netscape Communications Corporation.  All
  * Rights Reserved.
  * 
  * Contributor(s):
@@ -30,44 +30,32 @@
  * may use your version of this file under either the MPL or the
  * GPL.
  */
-/*
- * SSLHandshakeCompletedEvent.java
- * 
- * 
- */
 
 package org.mozilla.jss.ssl;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.io.IOException;
 
-/*
- * right now, this only extends EventObject, but it will eventually
- * extend javax.net.ssl.HandshakeCompletedEvent
- */
+public class SSLOutputStream extends java.io.OutputStream {
 
-/**
- * This class represents the event telling you a handshake
- * operation is complete.
- */
-public class SSLHandshakeCompletedEvent extends EventObject {
-    public SSLHandshakeCompletedEvent(SSLSocket socket) {
-	super(socket);
+    SSLOutputStream(SSLSocket sock) {
+        this.sock = sock;
     }
-    
-    /**
-     * get security information about this socket, including
-     * cert data
-     */
-    public SSLSecurityStatus getStatus() throws SocketException {
-	return getSocket().getStatus();
+
+    public void write(int b) throws IOException {
+        write( new byte[] {(byte)b}, 0, 1 );
     }
-    
-    /**
-     * get socket on which the event occured
-     */
-    public SSLSocket getSocket() {
-	return (SSLSocket)getSource();
+
+    public void write(byte[] b) throws IOException {
+        write( b, 0, b.length);
     }
+
+    public void write(byte[] b, int off, int len) throws IOException {
+        sock.write(b, off, len);
+    }       
+
+    public void close() throws IOException {
+        sock.close();
+    }
+
+    private SSLSocket sock;
 }
