@@ -1,4 +1,4 @@
-#!gmake
+#!nmake
 #
 # The contents of this file are subject to the Netscape Public License
 # Version 1.0 (the "NPL"); you may not use this file except in
@@ -15,34 +15,11 @@
 # Copyright (C) 1998 Netscape Communications Corporation.  All Rights
 # Reserved.
 
-DEPTH=../../../..
+DEPTH=..\..\..\.. 
 
-include $(DEPTH)/config/config.mk
+EXPORTS=nsIFormControl.h nsIForm.h 
 
-LIBRARY_NAME = raptorhtmlforms_s
+MODULE=raptor 
 
-DEFINES += -D_IMPL_NS_HTML
-
-# Note the sophisticated alphabetical ordering :-|
-CPPSRCS =				\
-	nsFormFrame.cpp			\
-	nsFormControlFrame.cpp		\
-	nsButtonControlFrame.cpp	\
-	nsCheckboxControlFrame.cpp	\
-	nsFileControlFrame.cpp		\
-	nsRadioControlFrame.cpp		\
-	nsTextControlFrame.cpp  	\
-	nsSelectControlFrame.cpp        \
-	$(NULL)
-
-MODULE = raptor
-
-INCLUDES += -I../../../base/src -I../../base/src -I../../style/src \
- -I../../content/src
-
-REQUIRES = xpcom raptor dom netlib js
-
-MKSHLIB :=
-
-include $(DEPTH)/config/rules.mk
+include <$(DEPTH)\layout\config\rules.mak>
 
