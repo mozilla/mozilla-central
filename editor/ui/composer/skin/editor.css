@@ -1,0 +1,173 @@
+/* 
+ * The contents of this file are subject to the Netscape Public
+ * License Version 1.1 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of
+ * the License at http://www.mozilla.org/NPL/
+ *  
+ * Software distributed under the License is distributed on an "AS
+ * IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
+ * implied. See the License for the specific language governing
+ * rights and limitations under the License.
+ *  
+ * The Original Code is Mozilla Communicator client code, released
+ * March 31, 1998.
+ * 
+ * The Initial Developer of the Original Code is Netscape
+ * Communications Corporation. Portions created by Netscape are
+ * Copyright (C) 1998-1999 Netscape Communications Corporation. All
+ * Rights Reserved.
+ * 
+ * Contributor(s): 
+ */
+
+iframe#content-frame { 
+  min-width: 100px; 
+  min-height: 20px;
+  height: 400px;
+} 
+
+toolbox#EditorToolbars {
+  min-width: 20px;
+}
+
+box#EditorStatusBar {
+  min-width: 50px;
+  border-top: 1px solid darkgray;
+}
+
+box#EditorProgessBox {
+  min-width:30px;
+}
+
+box#DisplayModeBar {
+  /*margin-top: -2px;*/
+  border-top: 1px solid darkgray;
+  min-width:30px;
+  background-color: inherit;
+}
+
+window.popup {
+  border: 2px outset;
+}
+
+select.combobox {
+  font-family: Sans-Serif;
+  font-size: 8pt;
+  border-top: 3px;
+  border-left: 4px;
+  border-right: 4px;
+  border-style: outset;
+}
+
+titledbutton#TextColorPopupButton {
+  margin-right: -3px;
+}
+
+titledbutton#BackColorPopupButton {
+  margin-left: -3px;
+}
+
+titledbutton#boldButton {
+  min-width: 16px; 
+  font-size: 19px; 
+  font-weight: bold; 
+  font-family: times, serif, sans-serif;
+}
+
+titledbutton#boldButton:hover {
+  text-decoration: none;
+}
+
+titledbutton#italicButton {
+  min-width: 16px; 
+  font-size: 19px; 
+  font-weight: bold; 
+  font-family: times, serif, sans-serif; 
+  font-style:  italic;
+}
+
+titledbutton#italicButton:hover {
+  text-decoration: none;
+}
+
+titledbutton#underlineButton {
+  min-width: 16px; 
+  font-size: 19px; 
+  font-weight: normal; 
+  font-family: times, serif, sans-serif; 
+  text-decoration: underline;
+}
+
+titledbutton[class~=DisplayModeButton] {
+  padding: 1px 4px 0px 4px;
+  margin: 0px;
+  border-width: 1px;
+  border: 1px solid transparent;
+  border-left: 1px solid darkgray;
+}
+
+/* Color must be same as for DisplayModeButton's border-left */
+div.VerticalSeparator { 
+	 height: 100%; 
+	 max-width: 1px; 
+   border-left: 1px solid darkgray;
+	 margin: 1px 0px;
+}
+
+titledbutton[class~=DisplayModeButton][selected="1"] {
+  border:  1px white outset;
+  padding: 2px 4px 0px 4px;
+  margin: -2px 0px 0px 0px;
+  background-color: white;
+}
+
+button.PopupButton {
+  align: left;
+  margin: 0px;
+  min-width: 5em;
+  border: 1px solid transparent;
+}
+
+button.PopupButton:hover {
+  border: 1px outset white;
+  min-width: 5em;
+  text-decoration: none;
+}
+
+button.PopupButton:active {
+  min-width: 5em;
+  border: 1px inset;
+}
+
+titledbutton.PopupButton {
+  min-width: 50px;
+  min-height: 10px;
+  list-style-image: url(chrome://editor/skin/images/left.gif); 
+}
+
+titledbutton#SaveButton {
+  list-style-image:url(chrome://editor/skin/images/savefile.gif); 
+}
+
+titledbutton#SaveButton[dirty="true"] {
+  list-style-image:url(chrome://editor/skin/images/savemod.gif); 
+}
+
+titledbutton[toggled="1"]:hover {
+    border:                     1px solid white;
+}
+
+titledbutton[toggled="1"] {
+    border:                     1px white inset;
+}
+
+/* Messenger uses this -- IT SHOULD BE IN XUL.CSS */
+spring.spacer {
+      width:                    5px;
+      height:                   5px;
+}
+
+spring.bigspacer {
+      width:                    10px;
+      height:                   10px;
+}
