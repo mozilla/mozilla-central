@@ -11,5 +11,6 @@ GDEPTH = ../..
 DEPTH  = ../..
 
 #DIRS_EXPORT = public inc 
-#DIRS_LIBS = src
+#DIRS_LIBS = src 
+DIRS = test
 
