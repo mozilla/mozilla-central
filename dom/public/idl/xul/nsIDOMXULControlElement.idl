@@ -48,6 +48,7 @@ interface nsIDOMXULControlElement : nsIDOMXULElement {
   attribute boolean disabled;
   attribute long tabIndex;
   
+// XXX defined in XULElement, but should be defined here
 //  readonly attribute nsIControllers controllers;
   
 //  void focus();
