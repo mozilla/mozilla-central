@@ -36,27 +36,26 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __NS_ISVGSVGELEMENT__
-#define __NS_ISVGSVGELEMENT__
+#ifndef __NS_ISVGSVGFRAME_H__
+#define __NS_ISVGSVGFRAME_H__
 
 #include "nsISupports.h"
-#include "nsIDOMSVGSVGElement.h"
 
-class nsSVGCoordCtxProvider;
+class nsIFrame;
+class nsISVGRendererRegion;
+class nsIPresContext;
 
-////////////////////////////////////////////////////////////////////////
-// nsISVGSVGElement: private interface implemented by <svg>-elements
+// {C38FDFC3-7030-47CB-BA69-D7C5F45E657C}
+#define NS_ISVGSVGFRAME_IID \
+{ 0xc38fdfc3, 0x7030, 0x47cb, { 0xba, 0x69, 0xd7, 0xc5, 0xf4, 0x5e, 0x65, 0x7c } }
 
-// {EB4533A1-10F3-4366-88CE-77682D140759}
-#define NS_ISVGSVGELEMENT_IID \
-{ 0xeb4533a1, 0x10f3, 0x4366, { 0x88, 0xce, 0x77, 0x68, 0x2d, 0x14, 0x07, 0x59 } }
-
-class nsISVGSVGElement : public nsIDOMSVGSVGElement
-{
+class nsISVGSVGFrame : public nsISupports {
 public:
-  static const nsIID& GetIID() { static nsIID iid = NS_ISVGSVGELEMENT_IID; return iid; }
+  NS_DEFINE_STATIC_IID_ACCESSOR(NS_ISVGSVGFRAME_IID)
 
-  NS_IMETHOD SetParentCoordCtxProvider(nsSVGCoordCtxProvider *parentCtx)=0;
+  NS_IMETHOD SuspendRedraw()=0;        
+  NS_IMETHOD UnsuspendRedraw()=0;      
+  NS_IMETHOD NotifyViewportChange()=0; 
 };
 
-#endif // __NS_ISVGSVGELEMENT__
+#endif // __NS_ISVGSVGFRAME_H__
