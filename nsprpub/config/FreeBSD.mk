@@ -15,36 +15,36 @@
 # Reserved.
 #
 
-#! gmake
+#
+# Config stuff for FreeBSD
+#
 
-MOD_DEPTH = ../../../..
+include $(MOD_DEPTH)/config/UNIX.mk
 
-include $(MOD_DEPTH)/config/config.mk
+CC			= gcc
+CCC			= g++
+RANLIB			= ranlib
 
-ifeq ($(OS_TARGET), OS2)
-CSRCS = \
-    os2misc.c \
-    os2sem.c   \
-    os2inrval.c \
-    os2gc.c \
-    os2thred.c \
-    os2io.c \
-    os2cv.c \
-    os2sock.c \
-    os2_errors.c \
-    os2poll.c \
-    $(NULL)
+OS_REL_CFLAGS		= -mno-486 -Di386
+CPU_ARCH		= x86
+
+OS_CFLAGS		= $(DSO_CFLAGS) $(OS_REL_CFLAGS) -ansi -Wall -pipe -DFREEBSD -DHAVE_STRERROR -DHAVE_BSD_FLOCK -D_PR_NEED_POLL
+
+ifeq ($(USE_PTHREADS),1)
+OS_LIBS			= -lc_r
+# XXX probably should define _THREAD_SAFE too.
+DEFINES			+= -D_PR_NEED_FAKE_POLL
+else
+OS_LIBS			= -lc
+DEFINES			+= -D_PR_LOCAL_THREADS_ONLY
 endif
 
-TARGETS	= $(OBJS)
+ARCH			= freebsd
 
-INCLUDES = -I$(DIST)/include/private -I$(DIST)/include
+DSO_CFLAGS		= -fPIC
+DSO_LDOPTS		= -Bshareable
+DSO_LDFLAGS		=
 
-include $(MOD_DEPTH)/config/rules.mk
+MKSHLIB			= $(LD) $(DSO_LDOPTS)
 
-export:: $(TARGETS)
-
-install:: export
-
-
-
+G++INCLUDES		= -I/usr/include/g++

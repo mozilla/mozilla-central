@@ -15,36 +15,24 @@
 # Reserved.
 #
 
-#! gmake
+#
+# Config stuff for SCO UnixWare
+#
 
-MOD_DEPTH = ../../../..
+include $(MOD_DEPTH)/config/UNIX.mk
 
-include $(MOD_DEPTH)/config/config.mk
+CC		= $(NSDEPTH)/build/hcc
+CCC		= $(NSDEPTH)/build/hcpp
 
-ifeq ($(OS_TARGET), OS2)
-CSRCS = \
-    os2misc.c \
-    os2sem.c   \
-    os2inrval.c \
-    os2gc.c \
-    os2thred.c \
-    os2io.c \
-    os2cv.c \
-    os2sock.c \
-    os2_errors.c \
-    os2poll.c \
-    $(NULL)
-endif
+RANLIB		= true
 
-TARGETS	= $(OBJS)
+DEFINES		+= -D_PR_LOCAL_THREADS_ONLY
+OS_CFLAGS	= -DSVR4 -DSYSV -DUNIXWARE
 
-INCLUDES = -I$(DIST)/include/private -I$(DIST)/include
+MKSHLIB		= $(LD) $(DSO_LDOPTS)
+DSO_LDOPTS	= -G
 
-include $(MOD_DEPTH)/config/rules.mk
+CPU_ARCH	= x86
+ARCH		= sco
 
-export:: $(TARGETS)
-
-install:: export
-
-
-
+NOSUCHFILE	= /no-such-file

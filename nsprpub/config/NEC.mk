@@ -15,36 +15,31 @@
 # Reserved.
 #
 
-#! gmake
+#
+# Config stuff for NEC Mips SYSV
+#
 
-MOD_DEPTH = ../../../..
+include $(MOD_DEPTH)/config/UNIX.mk
 
-include $(MOD_DEPTH)/config/config.mk
+CPU_ARCH		= mips
 
-ifeq ($(OS_TARGET), OS2)
-CSRCS = \
-    os2misc.c \
-    os2sem.c   \
-    os2inrval.c \
-    os2gc.c \
-    os2thred.c \
-    os2io.c \
-    os2cv.c \
-    os2sock.c \
-    os2_errors.c \
-    os2poll.c \
-    $(NULL)
+ifdef NS_USE_GCC
+CC			= gcc
+CCC			= g++
+else
+CC			= $(NSDEPTH)/build/hcc -Xa -KGnum=0 -KOlimit=4000
+CCC			= g++
 endif
 
-TARGETS	= $(OBJS)
+MKSHLIB			= $(LD) $(DSO_LDOPTS)
 
-INCLUDES = -I$(DIST)/include/private -I$(DIST)/include
+RANLIB			= /bin/true
 
-include $(MOD_DEPTH)/config/rules.mk
+DEFINES			+= -D_PR_LOCAL_THREADS_ONLY
+OS_CFLAGS		= $(ODD_CFLAGS) -DSVR4 -D__SVR4 -DNEC -Dnec_ews -DHAVE_STRERROR
+OS_LIBS			= -lsocket -lnsl -ldl $(LDOPTIONS)
+LDOPTIONS		= -lc -L/usr/ucblib -lucb
 
-export:: $(TARGETS)
+NOSUCHFILE		= /no-such-file
 
-install:: export
-
-
-
+DSO_LDOPTS		= -G

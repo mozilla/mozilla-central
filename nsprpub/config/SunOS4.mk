@@ -15,36 +15,34 @@
 # Reserved.
 #
 
-#! gmake
+#
+# Config stuff for SunOS4.1
+#
 
-MOD_DEPTH = ../../../..
+include $(MOD_DEPTH)/config/UNIX.mk
 
-include $(MOD_DEPTH)/config/config.mk
+# SunOS 4 _requires_ that shared libs have a version number.
+# XXX FIXME: Version number should use NSPR_VERSION_NUMBER?
+DLL_SUFFIX	= so.1.0
 
-ifeq ($(OS_TARGET), OS2)
-CSRCS = \
-    os2misc.c \
-    os2sem.c   \
-    os2inrval.c \
-    os2gc.c \
-    os2thred.c \
-    os2io.c \
-    os2cv.c \
-    os2sock.c \
-    os2_errors.c \
-    os2poll.c \
-    $(NULL)
-endif
+CC			= gcc
+COMPILER_TAG		= _gcc
 
-TARGETS	= $(OBJS)
+RANLIB			= ranlib
 
-INCLUDES = -I$(DIST)/include/private -I$(DIST)/include
+CPU_ARCH		= sparc
 
-include $(MOD_DEPTH)/config/rules.mk
+DEFINES			+= -D_PR_LOCAL_THREADS_ONLY
+# Purify doesn't like -MDupdate
+NOMD_OS_CFLAGS		= -Wall -Wno-format -DSUNOS4
+OS_CFLAGS		= $(DSO_CFLAGS) $(NOMD_OS_CFLAGS) -MDupdate $(DEPENDENCIES)
 
-export:: $(TARGETS)
+MKSHLIB			= $(LD) $(DSO_LDOPTS)
 
-install:: export
+HAVE_PURIFY		= 1
 
+NOSUCHFILE		= /no-such-file
 
-
+DSO_LDOPTS		=
+# -fPIC generates position-independent code for use in a shared library.
+DSO_CFLAGS		= -fPIC

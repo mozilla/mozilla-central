@@ -15,36 +15,12 @@
 # Reserved.
 #
 
-#! gmake
-
-MOD_DEPTH = ../../../..
-
-include $(MOD_DEPTH)/config/config.mk
-
-ifeq ($(OS_TARGET), OS2)
-CSRCS = \
-    os2misc.c \
-    os2sem.c   \
-    os2inrval.c \
-    os2gc.c \
-    os2thred.c \
-    os2io.c \
-    os2cv.c \
-    os2sock.c \
-    os2_errors.c \
-    os2poll.c \
-    $(NULL)
+#
+# Config stuff for SunOS.
+# 4 and 5 are vastly different, so we use 2 different files.
+#
+ifeq ($(basename $(OS_RELEASE)),4.1)
+include $(MOD_DEPTH)/config/SunOS4.mk
+else
+include $(MOD_DEPTH)/config/SunOS5.mk
 endif
-
-TARGETS	= $(OBJS)
-
-INCLUDES = -I$(DIST)/include/private -I$(DIST)/include
-
-include $(MOD_DEPTH)/config/rules.mk
-
-export:: $(TARGETS)
-
-install:: export
-
-
-

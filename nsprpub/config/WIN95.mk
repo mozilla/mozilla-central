@@ -15,36 +15,8 @@
 # Reserved.
 #
 
-#! gmake
+#
+# Config stuff for WIN95
+#
 
-MOD_DEPTH = ../../../..
-
-include $(MOD_DEPTH)/config/config.mk
-
-ifeq ($(OS_TARGET), OS2)
-CSRCS = \
-    os2misc.c \
-    os2sem.c   \
-    os2inrval.c \
-    os2gc.c \
-    os2thred.c \
-    os2io.c \
-    os2cv.c \
-    os2sock.c \
-    os2_errors.c \
-    os2poll.c \
-    $(NULL)
-endif
-
-TARGETS	= $(OBJS)
-
-INCLUDES = -I$(DIST)/include/private -I$(DIST)/include
-
-include $(MOD_DEPTH)/config/rules.mk
-
-export:: $(TARGETS)
-
-install:: export
-
-
-
+include $(MOD_DEPTH)/config/WIN32.mk
