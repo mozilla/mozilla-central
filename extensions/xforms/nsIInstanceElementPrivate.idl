@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -36,27 +36,19 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsIGenericFactory.h"
-#include "nsXFormsElementFactory.h"
-#include "nsXFormsAtoms.h"
-#include "nsXFormsModelElement.h"
-#include "nsXFormsUtils.h"
+#include "nsISupports.idl"
 
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsXFormsElementFactory)
+/**
+ * Private interface implemented by the instance element.
+ */
 
-static const nsModuleComponentInfo components[] = {
-  { "XForms element factory",
-    NS_XFORMSELEMENTFACTORY_CID,
-    NS_XTF_ELEMENT_FACTORY_CONTRACTID_PREFIX NS_NAMESPACE_XFORMS,
-    nsXFormsElementFactoryConstructor }
-};
+interface nsIDOMDocument;
 
-PR_STATIC_CALLBACK(nsresult)
-XFormsModuleCtor(nsIModule* aSelf)
+[uuid(8c9dd10d-4189-4a7b-a2eb-fd695cf33b27)]
+interface nsIInstanceElementPrivate : nsISupports
 {
-  nsXFormsAtoms::InitAtoms();
-  nsXFormsModelElement::Startup();
-  return NS_OK;
-}
-
-NS_IMPL_NSGETMODULE_WITH_CTOR(xforms, components, XFormsModuleCtor)
+  /**
+   * The document which holds the live instance data.
+   */
+  attribute nsIDOMDocument document;
+};

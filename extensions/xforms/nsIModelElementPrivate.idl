@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -36,27 +36,49 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsIGenericFactory.h"
-#include "nsXFormsElementFactory.h"
-#include "nsXFormsAtoms.h"
-#include "nsXFormsModelElement.h"
-#include "nsXFormsUtils.h"
+/**
+ * Private interface implemented by the model element for other
+ * elements to use.
+ */
 
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsXFormsElementFactory)
+#include "nsIXFormsModelElement.idl"
 
-static const nsModuleComponentInfo components[] = {
-  { "XForms element factory",
-    NS_XFORMSELEMENTFACTORY_CID,
-    NS_XTF_ELEMENT_FACTORY_CONTRACTID_PREFIX NS_NAMESPACE_XFORMS,
-    nsXFormsElementFactoryConstructor }
-};
+interface nsIXFormsControl;
+interface nsISchemaType;
+interface nsIInstanceElementPrivate;
 
-PR_STATIC_CALLBACK(nsresult)
-XFormsModuleCtor(nsIModule* aSelf)
+[uuid(b21b65d3-3305-4ce0-a604-3648cff61aca)]
+interface nsIModelElementPrivate : nsIXFormsModelElement
 {
-  nsXFormsAtoms::InitAtoms();
-  nsXFormsModelElement::Startup();
-  return NS_OK;
-}
+  /**
+   * Called by form control elements when they are bound to or unbound from
+   * this model.  These form controls will be refreshed when refresh() is
+   * called on the model.
+   */
+  void addFormControl(in nsIXFormsControl control);
+  void removeFormControl(in nsIXFormsControl control);
 
-NS_IMPL_NSGETMODULE_WITH_CTOR(xforms, components, XFormsModuleCtor)
+  /**
+   * Determine the type for a form control based on the schema included by
+   * this model.
+   */
+  nsISchemaType getTypeForControl(in nsIXFormsControl control);
+
+  /**
+   * Notification that an instance element has started or finished loading
+   * its instance data.  Model contstruction cannot complete until all of
+   * the instances have loaded their data.
+   */
+  void instanceLoadStarted();
+  void instanceLoadFinished(in boolean success);
+
+  /**
+   * Locate the instance element child with the given id.
+   */
+  nsIInstanceElementPrivate findInstanceElement(in AString id);
+
+  /**
+   * Track whether there is a form submit in progress for this model.
+   */
+  attribute boolean submissionActive;
+};

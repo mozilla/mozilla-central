@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -36,27 +36,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsIGenericFactory.h"
-#include "nsXFormsElementFactory.h"
-#include "nsXFormsAtoms.h"
-#include "nsXFormsModelElement.h"
-#include "nsXFormsUtils.h"
+/**
+ * Interface implemented by all XForms form control classes.
+ */
 
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsXFormsElementFactory)
+#include "nsISupports.idl"
 
-static const nsModuleComponentInfo components[] = {
-  { "XForms element factory",
-    NS_XFORMSELEMENTFACTORY_CID,
-    NS_XTF_ELEMENT_FACTORY_CONTRACTID_PREFIX NS_NAMESPACE_XFORMS,
-    nsXFormsElementFactoryConstructor }
-};
-
-PR_STATIC_CALLBACK(nsresult)
-XFormsModuleCtor(nsIModule* aSelf)
+[uuid(8377c845-5d55-4eee-9a76-0f86751dcbc8)]
+interface nsIXFormsControl : nsISupports
 {
-  nsXFormsAtoms::InitAtoms();
-  nsXFormsModelElement::Startup();
-  return NS_OK;
-}
-
-NS_IMPL_NSGETMODULE_WITH_CTOR(xforms, components, XFormsModuleCtor)
+  /**
+   * This tells the form control to update its state based on the current
+   * instance data.
+   */
+  void refresh();
+};
