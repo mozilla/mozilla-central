@@ -5,7 +5,7 @@
 	name=".Netscape"
 	description = "Netscape Search"
 	method="GET"
-	action="http://info.netscape.com/fwd/sidb1net/http://search.netscape.com/cgi-bin/search"
+	action="http://info.netscape.com/fwd/sidb1dnet/http://search.netscape.com/cgi-bin/search"
 >
 
 <INPUT NAME="search" user>
