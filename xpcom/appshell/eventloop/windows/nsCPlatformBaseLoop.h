@@ -20,27 +20,37 @@
  *   Travis Bogard <travis@netscape.com>
  */
 
-#ifndef nsCBreathLoop_h__
-#define nsCBreathLoop_h__
+#ifndef nsCPlatformBaseLoop_h__
+#define nsCPlatformBaseLoop_h__
 
 #include "windows.h"
 
-#include "nsCBaseBreathLoop.h"
+#include "nsCBaseLoop.h"
 
-class nsCBreathLoop : public nsCBaseBreathLoop 
+class nsCPlatformBaseLoop : public nsCBaseLoop 
 {
-public:
-	static NS_METHOD Create(nsISupports* aOuter, const nsIID& aIID, void** ppv);
-
 protected:
-	nsCBreathLoop();
-	virtual ~nsCBreathLoop();
+	nsCPlatformBaseLoop(nsEventLoopType type);
+	virtual ~nsCPlatformBaseLoop();
 
 	// Internal Platform Implementations of nsIEventLoop 
 	// (Error checking is ensured above)
-	nsresult PlatformExit(PRInt32 exitCode);
-
+	// We can over-ride these at a high level because they are the same
+	// across all types of event loops.
+	nsresult PlatformGetNextEvent(void* platformFilterData, void* platformEventData);
+	nsresult PlatformPeekNextEvent(void* FilterData, void* platformEventData, 
+		PRBool fRemoveElement);
+	nsresult PlatformTranslateEvent(void* platformEventData);
+	nsresult PlatformDispatchEvent(void* platformEventData);
+	nsresult PlatformSendLoopEvent(void* platformEventData, PRInt32* result);
+	nsresult PlatformPostLoopEvent(void* platformEventData);
+	
+	nsNativeEventDataType PlatformGetEventType();
+	nsNativeFilterDataType PlatformGetFilterType();
 	PRInt32 PlatformGetReturnCode(void* platformEventData);
+	
+protected:
+	DWORD m_WinThreadId;  
 };
 
-#endif /* nsCBreathLoop_h__ */
+#endif /* nsCAppLoop_h__ */
