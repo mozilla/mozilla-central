@@ -12,7 +12,7 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is Mozilla Communicator client code.
+ * The Original Code is mozilla.org code.
  *
  * The Initial Developer of the Original Code is 
  * Netscape Communications Corporation.
@@ -20,7 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *
+ *        Simon Fraser <sfraser@netscape.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -36,23 +36,33 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef nsEditorController_h__
-#define nsEditorController_h__
-
-#define NS_EDITORCONTROLLER_CID \
-{ 0x26fb965c, 0x9de6, 0x11d3, { 0xbc, 0xcc, 0x0, 0x60, 0xb0, 0xfc, 0x76, 0xbd } }
-
-class nsIControllerCommandTable;
+#ifndef nsControllerCommandTable_h_
+#define nsControllerCommandTable_h_
 
 
-// the editor controller is used for both text widgets, and basic text editing
-// commands in composer. The refCon that gets passed to its commands is an nsIEditor.
+#include "nsIControllerCommandTable.h"
+#include "nsWeakReference.h"
+#include "nsHashtable.h"
 
-class nsEditorController 
+class nsIControllerCommand;
+
+class  nsControllerCommandTable : public nsIControllerCommandTable,
+                                  public nsSupportsWeakReference
 {
 public:
-  static nsresult RegisterEditorCommands(nsIControllerCommandTable* inCommandTable);
+
+                  nsControllerCommandTable();
+  virtual         ~nsControllerCommandTable();
+
+  NS_DECL_ISUPPORTS
+
+  NS_DECL_NSICONTROLLERCOMMANDTABLE
+
+protected:
+
+  nsSupportsHashtable   mCommandsTable;   // hash table of nsIControllerCommands, keyed by command name
+  PRBool                mMutable;         // are we mutable?
 };
 
-#endif /* nsEditorController_h__ */
 
+#endif // nsControllerCommandTable_h_
