@@ -1,4 +1,4 @@
-/* -*- Mode: IDL; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
  *
  * The contents of this file are subject to the Netscape Public License
  * Version 1.0 (the "NPL"); you may not use this file except in
@@ -16,10 +16,14 @@
  * Reserved.
  */
 
-#include "nsISupports.idl"
 
-[scriptable, uuid(85c86e4c-6a6c-11d3-9a55-004005263078)]
-interface nsIPrefMigration: nsISupports
-{
-  void processPrefs(in string oldProfilePathStr, in string newProfilePathStr);
-};
+#ifndef nsPrefMigrationCIDs_h___
+#define nsPrefMigrationCIDs_h___
+
+#define NS_PREFMIGRATION_CID {0xa2a7f03c, 0x6a6c, 0x11d3, \
+    {0x9e, 0x9f, 0x00, 0x40, 0x05, 0x26, 0x30, 0x78}}
+
+#define NS_PrefMigrationFactory_CID {0xad1b40a0, 0x6a6c, 0x11d3, \
+    {0x8d, 0x83, 0x00, 0x40, 0x05, 0x26, 0x30, 0x78}}
+
+#endif /* nsPrefMigrationCIDs_h___ */
