@@ -1,5 +1,6 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
-/* ***** BEGIN LICENSE BLOCK *****
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
+ *
+ * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -12,14 +13,16 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is mozilla.org code.
+ * The Original Code is Mozilla Communicator.
  *
  * The Initial Developer of the Original Code is
- * Netscape Communications Corporation.
+ * Netscape Communications Corp.
  * Portions created by the Initial Developer are Copyright (C) 2000
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Erik van der Poel
+ *   Brian Ryner <bryner@brianryner.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -35,43 +38,36 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#ifndef nsILanguageAtomService_h_
+#define nsILanguageAtomService_h_
+
+/*
+ * The nsILanguageAtomService provides a mapping from languages or
+ * character sets to language groups.
+ */
+
+#include "nsISupports.h"
 #include "nsCOMPtr.h"
-#include "nsICharsetConverterManager.h"
-#include "nsILanguageAtomService.h"
-#include "nsIStringBundle.h"
-#include "nsISupportsArray.h"
-#include "nsCRT.h"
-#include "nsInterfaceHashtable.h"
 #include "nsIAtom.h"
 
-#define NS_LANGUAGEATOMSERVICE_CID \
-  {0xa6cf9120, 0x15b3, 0x11d2, {0x93, 0x2e, 0x00, 0x80, 0x5f, 0x8a, 0xdd, 0x32}}
+#define NS_ILANGUAGEATOMSERVICE_IID \
+  {0x24b45737, 0x9e94, 0x4e40, \
+    { 0x9d, 0x59, 0x29, 0xcd, 0x62, 0x96, 0x3a, 0xdd }}
 
-class nsLanguageAtomService : public nsILanguageAtomService
+#define NS_LANGUAGEATOMSERVICE_CONTRACTID \
+  "@mozilla.org/intl/nslanguageatomservice;1"
+
+class nsILanguageAtomService : public nsISupports
 {
-public:
-  NS_DECL_ISUPPORTS
+ public: 
+  NS_DEFINE_STATIC_IID_ACCESSOR(NS_ILANGUAGEATOMSERVICE_IID)
 
-  // nsILanguageAtomService
-  virtual NS_HIDDEN_(nsIAtom*)
-    LookupLanguage(const nsAString &aLanguage, nsresult *aError);
+  virtual nsIAtom* LookupLanguage(const nsAString &aLanguage,
+                                  nsresult *aError = nsnull) = 0;
+  virtual already_AddRefed<nsIAtom>
+  LookupCharSet(const char *aCharSet, nsresult *aError = nsnull) = 0;
 
-  virtual NS_HIDDEN_(already_AddRefed<nsIAtom>)
-    LookupCharSet(const char *aCharSet, nsresult *aError);
-
-  virtual NS_HIDDEN_(nsIAtom*) GetLocaleLanguageGroup(nsresult *aError);
-
-  nsLanguageAtomService() NS_HIDDEN;
-
-private:
-  NS_HIDDEN ~nsLanguageAtomService() { }
-
-protected:
-  NS_HIDDEN_(nsresult) InitLangGroupTable();
-
-  nsCOMPtr<nsICharsetConverterManager> mCharSets;
-  nsInterfaceHashtable<nsStringHashKey, nsIAtom> mLangs;
-  nsCOMPtr<nsIStringBundle> mLangGroups;
-  nsCOMPtr<nsIAtom> mLocaleLangGroup;
-  nsCOMPtr<nsIAtom> mUnicode;
+  virtual nsIAtom* GetLocaleLanguageGroup(nsresult *aError = nsnull) = 0;
 };
+
+#endif
