@@ -1,8 +1,0 @@
-nsCollationCID.h
-nsDateTimeFormatCID.h
-nsICollation.h
-nsIDateTimeFormat.h
-nsILocaleFactory.h
-nsLocaleCID.h
-nsIMacLocale.h
-
