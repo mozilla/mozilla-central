@@ -40,17 +40,18 @@
 #include "nsMenu.h"
 #include "nsMenuItem.h"
 #include "nsPopUpMenu.h"
-#include "nsTabWidget.h"
-#include "nsTooltipWidget.h"
-#include "nsFontRetrieverService.h"
+// #include "nsTabWidget.h"
+// #include "nsFontRetrieverService.h"
 
 // Drag & Drop, Clipboard
-#include "nsClipboard.h"
+// #include "nsClipboard.h"
 #include "nsTransferable.h"
 #include "nsXIFFormatConverter.h"
-#include "nsDragService.h"
 
-#include "nsISound.h"
+// #include "nsDragService.h"
+// #include "nsDragSource.h"
+// #include "nsDragTarget.h"
+// #include "nsDraggedObject.h"
 
 static NS_DEFINE_IID(kCWindow,        NS_WINDOW_CID);
 static NS_DEFINE_IID(kCChild,         NS_CHILD_CID);
@@ -64,7 +65,7 @@ static NS_DEFINE_IID(kCHorzScrollbar, NS_HORZSCROLLBAR_CID);
 static NS_DEFINE_IID(kCVertScrollbar, NS_VERTSCROLLBAR_CID);
 static NS_DEFINE_IID(kCTextArea,      NS_TEXTAREA_CID);
 static NS_DEFINE_IID(kCTextField,     NS_TEXTFIELD_CID);
-static NS_DEFINE_IID(kCTabWidget,     NS_TABWIDGET_CID);
+// static NS_DEFINE_IID(kCTabWidget,     NS_TABWIDGET_CID);
 static NS_DEFINE_IID(kCTooltipWidget, NS_TOOLTIPWIDGET_CID);
 static NS_DEFINE_IID(kCAppShell,      NS_APPSHELL_CID);
 static NS_DEFINE_IID(kCToolkit,       NS_TOOLKIT_CID);
@@ -82,13 +83,13 @@ static NS_DEFINE_IID(kCClipboard,     NS_CLIPBOARD_CID);
 static NS_DEFINE_IID(kCTransferable,  NS_TRANSFERABLE_CID);
 static NS_DEFINE_IID(kCDataFlavor,    NS_DATAFLAVOR_CID);
 static NS_DEFINE_IID(kCXIFFormatConverter,  NS_XIFFORMATCONVERTER_CID);
-static NS_DEFINE_IID(kCDragService,   NS_DRAGSERVICE_CID);
+// static NS_DEFINE_IID(kCDragService,   NS_DRAGSERVICE_CID);
+// static NS_DEFINE_IID(kCDragSource,    NS_DRAGSOURCE_CID);
+// static NS_DEFINE_IID(kCDragTarget,    NS_DRAGTARGET_CID);
+// static NS_DEFINE_IID(kCDraggedObject, NS_DRAGGEDOBJECT_CID);
 
 static NS_DEFINE_IID(kISupportsIID,   NS_ISUPPORTS_IID);
 static NS_DEFINE_IID(kIFactoryIID,    NS_IFACTORY_IID);
-
-// Sound services (just Beep for now)
-static NS_DEFINE_CID(kCSound,   NS_SOUND_CID);
 
 
 class nsWidgetFactory : public nsIFactory
@@ -171,52 +172,53 @@ nsresult nsWidgetFactory::CreateInstance(nsISupports *aOuter,
       inst = (nsISupports *)new ChildWindow();
     }
     else if (mClassID.Equals(kCButton)) {
-      inst = (nsISupports*)(nsWindow *)new nsButton();
+      inst = (nsISupports*)(nsIWidget *)new nsButton();
     }
     else if (mClassID.Equals(kCCheckButton)) {
-        inst = (nsISupports*)(nsWindow *)new nsCheckButton();
+        inst = (nsISupports*)(nsIWidget *)new nsCheckButton();
     }
     else if (mClassID.Equals(kCCombobox)) {
-        inst = (nsISupports*)(nsWindow *)new nsComboBox();
+        inst = (nsISupports*)(nsIWidget *)new nsComboBox();
     }
     else if (mClassID.Equals(kCRadioButton)) {
-        inst = (nsISupports*)(nsWindow *)new nsRadioButton();
+        inst = (nsISupports*)(nsIWidget *)new nsRadioButton();
     }
     else if (mClassID.Equals(kCFileOpen)) {
-        inst = (nsISupports*)new nsFileWidget();
+        inst = (nsISupports*)(nsIWidget *)new nsFileWidget();
     }
     else if (mClassID.Equals(kCListbox)) {
-        inst = (nsISupports*)(nsWindow *)new nsListBox();
+        inst = (nsISupports*)(nsIWidget *)new nsListBox();
     }
     else if (mClassID.Equals(kCHorzScrollbar)) {
-        inst = (nsISupports*)(nsWindow *)new nsScrollbar(PR_FALSE);
+        inst = (nsISupports*)(nsIWidget *)new nsScrollbar(PR_FALSE);
     }
     else if (mClassID.Equals(kCVertScrollbar)) {
-        inst = (nsISupports*)(nsWindow *)new nsScrollbar(PR_TRUE);
+        inst = (nsISupports*)(nsIWidget *)new nsScrollbar(PR_TRUE);
     }
     else if (mClassID.Equals(kCTextArea)) {
-        inst = (nsISupports*)(nsWindow *)new nsTextAreaWidget();
+        inst = (nsISupports*)(nsIWidget *)new nsTextAreaWidget();
     }
     else if (mClassID.Equals(kCTextField)) {
-        inst = (nsISupports*)(nsWindow *)new nsTextWidget();
+        inst = (nsISupports*)(nsIWidget *)new nsTextWidget();
     }
-    else if (mClassID.Equals(kCTabWidget)) {
-        inst = (nsISupports*)(nsWindow *)new nsTabWidget();
-    }
+//     else if (mClassID.Equals(kCTabWidget)) {
+//         inst = (nsISupports*)(nsIWidget *)new nsTabWidget();
+//     }
     else if (mClassID.Equals(kCTooltipWidget)) {
-		inst = (nsISupports*)(nsWindow *)new nsTooltipWidget();
+      //      no tooltips??
+      //      inst = (nsISupports*)(nsIWidget *)new nsTooltipWidget();
     }
     else if (mClassID.Equals(kCAppShell)) {
         inst = (nsISupports*)new nsAppShell();
     }
     else if (mClassID.Equals(kCToolkit)) {
-        inst = (nsISupports*)new nsToolkit();
+        inst = (nsISupports*)(nsIWidget *)new nsToolkit();
     }
     else if (mClassID.Equals(kCLookAndFeel)) {
-        inst = (nsISupports*)new nsLookAndFeel();
+        inst = (nsISupports*)(nsIWidget *)new nsLookAndFeel();
     }
     else if (mClassID.Equals(kCLabel)) {
-        inst = (nsISupports*)(nsWindow *)new nsLabel();
+        inst = (nsISupports*)(nsIWidget *)new nsLabel();
     }
     else if (mClassID.Equals(kCMenuBar)) {
         inst = (nsISupports*)(nsIMenuBar *)new nsMenuBar();
@@ -230,26 +232,23 @@ nsresult nsWidgetFactory::CreateInstance(nsISupports *aOuter,
     else if (mClassID.Equals(kCPopUpMenu)) {
         inst = (nsISupports*)new nsPopUpMenu();
     }
-    else if (mClassID.Equals(kCSound)) {
-    	nsISound* aSound = nsnull;
-    	NS_NewSound(&aSound);
-        inst = (nsISupports*) aSound;
-    }
     else if (mClassID.Equals(kCTransferable)) {
         inst = (nsISupports*)new nsTransferable();
     }
-    else if (mClassID.Equals(kCClipboard)) {
-        inst = (nsISupports*)new nsClipboard();
-    }
+//     else if (mClassID.Equals(kCClipboard)) {
+//         inst = (nsISupports*)new nsClipboard();
+//     }
     else if (mClassID.Equals(kCXIFFormatConverter)) {
         inst = (nsISupports*)new nsXIFFormatConverter();
     }
-    else if (mClassID.Equals(kCFontRetrieverService)) {
-        inst = (nsISupports*)(nsIFontRetrieverService *) new nsFontRetrieverService();
-    }
+//     else if (mClassID.Equals(kCFontRetrieverService)) {
+//         inst = (nsISupports*)(nsIFontRetrieverService *) new nsFontRetrieverService();
+//     }
+#if 0
     else if (mClassID.Equals(kCDragService)) {
-        inst = (nsISupports*) (nsIDragService *) new nsDragService();
+        inst = (nsISupports*)new nsDragService();
     }
+#endif
     else {
         printf("nsWidgetFactory::CreateInstance(), unhandled class.\n");
     }
