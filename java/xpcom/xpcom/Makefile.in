@@ -41,20 +41,15 @@ CPPSRCS =  \
      bcXPCOMStubsAndProxies.cpp \
      bcXPCOMLog.cpp \
      $(NULL)
-     
 EXPORTS = \
 	bcIXPCOMStubsAndProxies.h \
 	bcXPCOMStubsAndProxiesCID.h \
 	$(NULL)
-LIBS     = \
-        -lxpcom \
-	-lxptinfo \
-	$(NSPR_LIBS) \
-	$(NULL)
 
-EXTRA_DSO_LDOPTS += \
-      -L$(DIST)/bin/components/ \
-      $(NULL)
+
+DSO_LDOPTS            += \
+	$(XPCOM_LIBS) \
+	$(NULL)
 
 include $(topsrcdir)/config/rules.mk
 
