@@ -1,5 +1,0 @@
-nsICommandManager.idl
-nsPICommandUpdater.idl
-nsICommandParams.idl
-nsIControllerCommand.idl
-nsIControllerCommandManager.idl
