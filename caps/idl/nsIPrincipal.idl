@@ -19,6 +19,6 @@
 #include "nsISupports.idl"
 [uuid(ff9313d0-25e1-11d2-8160-006008119d7a)]
 interface nsIPrincipal : nsISupports {
-void IsTrusted(in string scope, out boolean pbIsTrusted);
+void IsTrusted([const] in string scope, out boolean pbIsTrusted);
 };
 
