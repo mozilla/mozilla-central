@@ -1,6 +1,0 @@
-InstallConsole
-RemoveConsole
-WriteCharsToConsole
-ReadCharsFromConsole
-SIOUXHandleOneEvent
-SIOUXSettings
