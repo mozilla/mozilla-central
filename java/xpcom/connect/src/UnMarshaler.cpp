@@ -37,7 +37,13 @@ int UnMarshaler::ReadSimple(void *ptr, bcXPType type) {
     return 0;
 }
 int UnMarshaler::ReadString(void *ptr, size_t *size, bcIAllocator * allocator) {
-    ReadArray(ptr, size, bc_T_CHAR, allocator);
+    size_t length;
+    in->read((char*)size,sizeof(size_t));
+    *(char**)ptr = (char *)allocator->Alloc(*size * type2size(bc_T_CHAR));
+    if (*size) {
+        in->read(*(char**)ptr,*size * type2size(bc_T_CHAR));
+    }
+
     if (*size == 1) {
         if (!(*(char**)ptr)[0]) {
             *size = 0;
@@ -45,85 +51,3 @@ int UnMarshaler::ReadString(void *ptr, size_t *size, bcIAllocator * allocator) {
     }
     return 0;
 }
-
-int UnMarshaler::ReadArray(void *ptr, size_t *length, bcXPType type, bcIAllocator * allocator) {
-    in->read((char*)length,sizeof(size_t));
-    cout<<"UnMarshaler *length "<<*length<<"\n";
-
-    if (!length) {
-        ptr = 0;
-    }
-    switch (type) {
-        case bc_T_CHAR_STR:
-        case bc_T_WCHAR_STR:
-            {
-                char **strArray = *(char***)ptr;
-                *strArray = (char*)allocator->Alloc(*length * sizeof(char*));
-                
-                for (unsigned int i = 0; i < *length; i++) {
-                    char * str;
-                    size_t size;
-                    ReadString((void*)&str, &size, allocator);
-                    strArray[i] = str;
-                }
-                break;
-            }
-        default:
-            char *p = *(char**)ptr = (char *)allocator->Alloc(*length * type2size(type));
-            if (*length) {
-                in->read(p,*length * type2size(type));
-            }
-    }
-    return 0;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
