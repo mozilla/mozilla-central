@@ -31,6 +31,7 @@ create table profiles (
 userid mediumint not null auto_increment primary key,
 login_name varchar(255) not null,
 password varchar(16),
+cryptpassword varchar(64),
 realname varchar(255),
 index(login_name)
 );
