@@ -5,22 +5,30 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
-	<string>Downloads</string>
+	<string>Personal</string>
+	<key>CFBundleGetInfoString</key>
+	<string></string>
 	<key>CFBundleIconFile</key>
-	<string>Downloads.tiff</string>
+	<string>Personal.tiff</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.mozilla.camino.preference.downloads</string>
+	<string>org.mozilla.chimera.preference.personal</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>Personal</string>
 	<key>CFBundlePackageType</key>
 	<string>BNDL</string>
+	<key>CFBundleShortVersionString</key>
+	<string></string>
 	<key>CFBundleSignature</key>
-	<string>CHIM</string>
+	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>1.0</string>
+	<string>0.0.1d1</string>
 	<key>NSMainNibFile</key>
-	<string>Downloads</string>
+	<string>Personal</string>
+	<key>NSPrefPaneIconFIle</key>
+	<string>Personal.tiff</string>
 	<key>NSPrincipalClass</key>
-	<string>OrgMozillaChimeraPreferenceDownloads</string>
+	<string>OrgMozillaChimeraPreferencePersonal</string>
 </dict>
 </plist>
