@@ -39,22 +39,16 @@
 
 #include "domstubs.idl"
 
-interface nsIDOMLSParser;
-interface nsIDOMLSSerializer;
-interface nsIDOMLSInput;
-interface nsIDOMLSOutput;
-
-[scriptable, uuid(e2c8b03c-a49a-4923-81b0-ba9a86da0e21)]
-interface nsIDOMDOMImplementationLS : nsISupports
+[scriptable, uuid(10e8893d-ddf5-45d1-8872-615d72065fb4)]
+interface nsIDOMLSParserFilter : nsISupports
 {
-  // DOMImplementationLSMode
-  const unsigned short     MODE_SYNCHRONOUS               = 1;
-  const unsigned short     MODE_ASYNCHRONOUS              = 2;
+  // Constants returned by startElement and acceptNode
+  const short               FILTER_ACCEPT                  = 1;
+  const short               FILTER_REJECT                  = 2;
+  const short               FILTER_SKIP                    = 3;
+  const short               FILTER_INTERRUPT               = 4;
 
-  nsIDOMLSParser           createLSParser(in unsigned short mode, 
-					  in DOMString schemaType)
-                                              raises(DOMException);
-  nsIDOMLSSerializer       createLSSerializer();
-  nsIDOMLSInput            createLSInput();
-  nsIDOMLSOutput           createLSOutput();
+  unsigned short     startElement(in nsIDOMElement elementArg);
+  unsigned short     acceptNode(in nsIDOMNode nodeArg);
+  readonly attribute unsigned long   whatToShow;
 };
