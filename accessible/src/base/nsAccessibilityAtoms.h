@@ -19,8 +19,8 @@
  * Portions created by the Initial Developer are Copyright (C) 1998
  * the Initial Developer. All Rights Reserved.
  *
- * Original Author: David W. Hyatt (hyatt@netscape.com)
- * Contributor(s):  John Gaunt (jgaunt@netscape.com)
+ * Contributor(s):
+ *
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,39 +35,35 @@
  * the terms of any one of the NPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
+#ifndef nsAccessibilityAtoms_h___
+#define nsAccessibilityAtoms_h___
 
-#ifndef __nsAccessibilityService_h__
-#define __nsAccessibilityService_h__
+#include "nsIAtom.h"
 
-#include "nsIAccessibilityService.h"
-#include "nsIObserver.h"
+/**
+ * This class wraps up the creation (and destruction) of the standard
+ * set of atoms used in the accessibility module. These objects
+ * are created when the are needed by accessibility is being used and they
+ * are destroyed when the last nsRootAccessible is destroyed via 
+ * nsRootAccessible::ShutdownAll()
+ */
 
-class nsIFrame;
-class nsIWeakReference;
-class nsIDOMNode;
-class nsObjectFrame;
-class nsIDocShell;
-class nsIPresShell;
-class nsIContent;
-
-class nsAccessibilityService : public nsIAccessibilityService, public nsIObserver
-{
+class nsAccessibilityAtoms {
 public:
-  nsAccessibilityService();
-  virtual ~nsAccessibilityService();
 
-  NS_DECL_ISUPPORTS
-  NS_DECL_NSIACCESSIBILITYSERVICE
-  NS_DECL_NSIOBSERVER
+  static void AddRefAtoms();
+  static void ReleaseAtoms();
 
-  static nsresult GetShellFromNode(nsIDOMNode *aNode, nsIWeakReference **weakShell);
+  /* Declare all atoms
 
-private:
-  nsresult GetInfo(nsISupports* aFrame, nsIFrame** aRealFrame, nsIWeakReference** aShell, nsIDOMNode** aContent);
-  void GetOwnerFor(nsIPresShell *aPresShell, nsIPresShell **aOwnerShell, nsIContent **aOwnerContent);
-  nsIContent* FindContentForDocShell(nsIPresShell* aPresShell, nsIContent* aContent, nsIDocShell*  aDocShell);
-  nsresult GetAccessible(nsIDOMNode *aNode, nsIPresShell *aPresShell,
-                         nsIWeakReference *aWeakShell, nsIAccessible **aAccessible);
+     The atom names and values are stored in nsAccessibilityAtomList.h and
+     are brought to you by the magic of C preprocessing
+
+     Add new atoms to nsAccessibilityAtomList and all support logic will be auto-generated
+   */
+#define ACCESSIBILITY_ATOM(_name, _value) static nsIAtom* _name;
+#include "nsAccessibilityAtomList.h"
+#undef ACCESSIBILITY_ATOM
 };
 
-#endif /* __nsIAccessibilityService_h__ */
+#endif /* nsLayoutAtoms_h___ */
