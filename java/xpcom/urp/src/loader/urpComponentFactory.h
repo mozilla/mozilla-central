@@ -17,7 +17,7 @@
  * Rights Reserved.
  *
  * Contributor(s):
- * Sergey Lunegov <lsv@sparc.spb.su>
+ * Igor Kushnirskiy <idk@eng.sun.com>
  */
 #ifndef __urpComponentFactory_h
 #define __urpComponentFactory_h
@@ -27,11 +27,13 @@ class urpComponentFactory : public nsIFactory {
 public:
     NS_DECL_ISUPPORTS
     NS_DECL_NSIFACTORY
-    urpComponentFactory(const char *location, const nsCID &aCID);
+    urpComponentFactory(const char *location, const nsCID &aCID,
+			nsIComponentManager* m);
     virtual ~urpComponentFactory();
 private:
     char *location;
     nsCID aClass;    
+    nsCOMPtr<nsIComponentManager> compM;
 };
 
 #endif
