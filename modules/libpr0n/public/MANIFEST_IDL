@@ -1,7 +1,0 @@
-imgICache.idl
-imgIContainer.idl
-imgIContainerObserver.idl
-imgIDecoder.idl
-imgIDecoderObserver.idl
-imgILoader.idl
-imgIRequest.idl
