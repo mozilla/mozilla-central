@@ -54,7 +54,8 @@ DIRS =						\
 	range					\
 	xbl					\
 	xpath					\
-	xul
+	xul					\
+	webforms
 
 ifdef MOZ_SVG
 DIRS += svg
