@@ -1,4 +1,4 @@
-/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -35,25 +35,48 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#ifndef extensionmanagerdatasource___h___
+#define extensionmanagerdatasource___h___
 
-#include "nsISupports.idl"
+#include "nsCOMPtr.h"
+#include "nsIRDFDataSource.h"
+#include "nsIRDFCompositeDataSource.h"
 
-interface nsIInputStream;
-interface nsIRDFDataSource;
+class nsIFile;
 
-[scriptable, uuid(c3515b0f-99f4-453b-805e-1fdf5724d6d9)]
-interface nsIExtensionManager : nsISupports
+class nsExtensionManagerDataSource : public nsIRDFDataSource
 {
-  void installExtensionFromStream(in nsIInputStream aStream, in boolean aUseProfile);
-  void uninstallExtension(in wstring aExtensionID);
-  void enableExtension(in wstring aExtensionID);
-  void disableExtension(in wstring aExtensionID);
+public:
+  NS_DECL_NSIRDFDATASOURCE
+  NS_DECL_ISUPPORTS
 
-  void installTheme(in wstring aThemeID);
-  void uninstallTheme(in wstring aThemeID);
-  void enableTheme(in wstring aThemeID);
-  void disableTheme(in wstring aThemeID);
+  nsExtensionManagerDataSource();
+  virtual ~nsExtensionManagerDataSource();
 
-  readonly attribute nsIRDFDataSource datasource;
+public:
+  nsresult InstallExtension(nsIRDFDataSource* aSourceDataSource,
+                            PRBool aProfile);
+
+  nsresult SetToBeEnabled(const PRUnichar* aExtensionID);
+  nsresult SetToBeDisabled(const PRUnichar* aExtensionID);
+  nsresult SetToBeUninstalled(const PRUnichar* aExtensionID);
+
+  nsresult LoadExtensions(PRBool aProfile);
+
+protected:
+  nsresult SetExtensionProperty(const PRUnichar* aExtensionID, 
+                                nsIRDFResource* aPropertyArc, 
+                                nsIRDFNode* aPropertyValue);
+  void      InitLexicalResources();
+
+private:
+  nsCOMPtr<nsIRDFCompositeDataSource> mComposite; // A convenience to handle 
+                                                  // precedence between the 
+                                                  // profile and app extensions
+                                                  // datasources.
+  nsCOMPtr<nsIRDFDataSource> mProfileExtensions;
+  nsCOMPtr<nsIRDFDataSource> mAppExtensions;
 };
+ 
+#endif
 
