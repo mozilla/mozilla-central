@@ -1,0 +1,568 @@
+<?xml version="1.0"?>
+
+<bindings id="treeBindings"
+   xmlns="http://www.mozilla.org/xbl"
+   xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  
+  <binding id="tree-base">
+    <resources>
+      <stylesheet src="chrome://global/content/bindings/tree.css"/>
+      <stylesheet src="chrome://global/skin/tree.css"/>
+    </resources>
+  </binding>
+  
+  <binding id="tree"
+           extends="chrome://global/content/bindings/tree.xml#tree-base">
+    <content>
+      <children>
+      <xul:treecolgroup>
+      <xul:treecol flex="1"/>
+    </xul:treecolgroup>
+    </children>
+      <xul:treerows class="tree-container-treerows" inherits="dragover,dragdroptree">
+        <children includes="treehead|treechildren"/>
+      </xul:treerows> 
+    </content>
+    <implementation>
+      <property name="selectedIndex"
+                onget="return (this.selectedItems.length > 0 ? this.getIndexOfItem(this.selectedItems[0]) : -1)"
+                onset="if(val>=0){var item=this.getItemAtIndex(val); if(item) this.selectItem(item);} else this.clearItemSelection();"
+                />
+      <property name="treeBoxObject"
+                onget="return this.boxObject.QueryInterface(Components.interfaces.nsITreeBoxObject);"
+                readonly="true"/>
+      <property name="isUpSelection">
+        0
+      </property>
+      <property name="isDownSelection">
+        0
+      </property>
+      <method name="getNextItem">
+        <parameter name="startItem"/>
+        <parameter name="delta"/>
+        <body>
+          return this.treeBoxObject.getNextItem(startItem, delta);
+        </body>
+      </method>
+      <method name="getPreviousItem">
+        <parameter name="startItem"/>
+        <parameter name="delta"/>
+        <body>
+          return this.treeBoxObject.getPreviousItem(startItem, delta);
+        </body>
+      </method>
+      <method name="getIndexOfItem">
+        <parameter name="item"/>
+        <body>
+          return this.treeBoxObject.getIndexOfItem(item);
+        </body>
+      </method>
+      <method name="getItemAtIndex">
+        <parameter name="index"/>
+        <body>
+          return this.treeBoxObject.getItemAtIndex(index);
+        </body>
+      </method>
+      <method name="ensureIndexIsVisible">
+        <parameter name="index"/>
+        <body>
+          return this.treeBoxObject.ensureIndexIsVisible(index);
+        </body>
+      </method>
+      <method name="ensureElementIsVisible">
+        <parameter name="element"/>
+        <body>
+          return this.ensureIndexIsVisible(this.treeBoxObject.getIndexOfItem(element));
+        </body>
+      </method>
+      <method name="scrollToIndex">
+        <parameter name="index"/>
+        <body>
+          return this.treeBoxObject.scrollToIndex(index);
+        </body>
+      </method>
+      <method name="getNumberOfVisibleRows">
+        <body>
+          return this.treeBoxObject.getNumberOfVisibleRows();
+        </body>
+      </method>
+      <method name="getIndexOfFirstVisibleRow">
+        <body>
+          return this.treeBoxObject.getIndexOfFirstVisibleRow();
+        </body>
+      </method>
+      <method name="getRowCount">
+        <body>
+          return this.treeBoxObject.getRowCount();
+        </body>
+      </method>
+    </implementation>
+    <handlers>
+      <handler event="keypress" keycode="vk_enter">
+        <![CDATA[
+         if (event.target != this || selectedItems.length != 1)
+           return;
+         this.selectedItems[0].toggleOpenState();
+        ]]>
+      </handler>
+      <handler event="keypress" keycode="vk_return">
+        <![CDATA[
+         if (event.target != this || selectedItems.length != 1)
+           return;
+         this.selectedItems[0].toggleOpenState();
+        ]]>
+      </handler>
+      <handler event="keypress" keycode="vk_left">
+        <![CDATA[
+         if (event.target != this || this.selectedItems.length != 1)
+           return;
+         if (this.selectedItems[0].getAttribute("open") != "true") {
+           var el = this.selectedItems[0].parentNode.parentNode 
+           if ( el && (el.tagName != "tree") ) this.selectItem(el);
+         }
+         else {
+           el = this.selectedItems[0];
+           el.close();
+         }
+        ]]>
+      </handler>
+      <handler event="keypress" keycode="vk_right">
+        <![CDATA[
+         if (event.target != this || this.selectedItems.length != 1)
+           return;
+         this.selectedItems[0].open();
+        ]]>
+      </handler>
+      <handler event="keypress" keycode="vk_up">
+        <![CDATA[
+         if (event.target != this || this.selectedItems.length < 1)
+           return;
+         this.isUpSelection=0;
+         this.isDownSelection=0;
+         var n = this.getPreviousItem(this.selectedItems[this.selectedItems.length-1], 1);
+         if (n) {
+           this.ensureIndexIsVisible(this.getIndexOfItem(n));
+           this.timedSelect(n, 500);
+         }
+        ]]>
+      </handler>
+      <handler event="keypress" keycode="vk_down">
+        <![CDATA[
+         if (event.target != this)
+           return;
+
+         var n;
+         if (this.selectedItems.length == 0) {
+           n = this.getItemAtIndex(0);
+         }
+         else {
+           this.isUpSelection=0;
+           this.isDownSelection=0;
+           n = this.getNextItem(this.selectedItems[this.selectedItems.length-1], 1);
+         }
+
+         if (n) {
+           this.ensureIndexIsVisible(this.getIndexOfItem(n));
+           this.timedSelect(n, 500);
+         }
+        ]]>
+      </handler>
+      <handler event="keypress" modifiers="shift" keycode="vk_up">
+        <![CDATA[
+         var l=this.selectedItems.length;
+         if (event.target != this || l < 1 || this.getAttribute("multiple") != "true")
+           return;
+         var n = this.getPreviousItem(this.selectedItems[l-1], 1);
+         if (n) {
+           this.ensureElementIsVisible(n);
+           if ( this.isDownSelection) {
+             if ( l > 1 )
+               this.removeItemFromSelection(this.selectedItems[l-1]);
+             if ( l <= 2 )
+               this.isDownSelection=0;
+     }
+           else {
+             this.addItemToSelection(n);
+             this.isUpSelection=1;
+           }
+         }
+        ]]>
+      </handler>
+      <handler event="keypress" modifiers="shift" keycode="vk_down">
+        <![CDATA[
+         var l=this.selectedItems.length;
+         if (event.target != this || l < 1 || this.getAttribute("multiple") != "true")
+           return;
+         var n = this.getNextItem(this.selectedItems[l-1], 1);
+         if (n) {
+           this.ensureElementIsVisible(n);
+           if ( this.isUpSelection) {
+             if ( l > 1 )
+         this.removeItemFromSelection(this.selectedItems[l-1]);
+             if ( l <= 2 )
+               this.isUpSelection=0;
+           }
+           else {
+             this.addItemToSelection(n);
+             this.isDownSelection=1;
+           }
+         }
+        ]]>
+      </handler>
+      <handler event="keypress" keycode="vk_page_up">
+        <![CDATA[
+         var l = this.selectedItems.length;
+         if (event.target != this || l < 1)
+           return;
+         this.isUpSelection=0;
+         this.isDownSelection=0;
+         var i = this.getIndexOfFirstVisibleRow();
+         if ( i == 0 )
+           var n=this.getItemAtIndex(0);
+         else {
+           var v = this.getNumberOfVisibleRows();
+           n = this.getPreviousItem(this.selectedItems[l-1], v);
+           var newIndex = i - v;
+           if ( ! n || newIndex < 0 ) {
+             newIndex=0;
+             n=this.getItemAtIndex(this.getIndexOfItem(this.selectedItems[l-1]) - i);
+           }
+           this.scrollToIndex(newIndex);
+         }
+         this.timedSelect(n, 500);
+        ]]>
+      </handler>
+      <handler event="keypress" keycode="vk_page_down">
+        <![CDATA[
+         var l = this.selectedItems.length;
+         if (event.target != this || l < 1)
+           return;
+         this.isUpSelection=0;
+         this.isDownSelection=0;
+         var i = this.getIndexOfFirstVisibleRow();
+         var v = this.getNumberOfVisibleRows();
+         var count = this.getRowCount();
+         var n;
+         if ( i >= count - v )
+           n=this.getItemAtIndex(count - 1);
+         else {
+           n = this.getNextItem(this.selectedItems[l-1], v);
+           var newIndex = i + v;
+           if ( ! n || newIndex > count - v ) {
+             newIndex = count - v;
+             n = this.getItemAtIndex(newIndex + this.getIndexOfItem(this.selectedItems[l-1]) - i);
+           }
+           this.scrollToIndex(newIndex);
+         }
+         this.timedSelect(n, 500);
+        ]]>
+      </handler>
+      <handler event="keypress" keycode="vk_home">
+        <![CDATA[
+         if (event.target != this || this.selectedItems.length < 1)
+           return;
+         this.isUpSelection=0;
+         this.isDownSelection=0;
+         this.scrollToIndex(0);
+         this.selectItem(this.getItemAtIndex(0));
+        ]]>
+      </handler>
+      <handler event="keypress" keycode="vk_end">
+        <![CDATA[
+         if (event.target != this || this.selectedItems.length < 1)
+           return;
+         this.isUpSelection=0;
+         this.isDownSelection=0;
+         var count = this.getRowCount();
+         this.ensureIndexIsVisible(count-1);
+         this.selectItem(this.getItemAtIndex(count-1));
+        ]]>
+      </handler>
+    </handlers>    
+  </binding>
+
+  <binding id="treerows"
+           extends="chrome://global/content/bindings/tree.xml#tree-base">
+    <content outer="true"/>
+    <handlers>
+      <!-- If there is no modifier key, we select on mousedown, not
+           click, so that drags work correctly. -->
+      <handler event="mousedown">
+      <![CDATA[
+         var lt = event.originalTarget.localName;
+         var target = (lt == 'treecell' || lt == 'treerow') ? lt : null;
+         if (target && !event.ctrlKey && !event.shiftKey && !event.metaKey) {
+           var parent = lt == 'treecell' ? event.target.parentNode.parentNode : event.target.parentNode;
+           var isSelected = parent.getAttribute("selected");
+           if (!isSelected) {
+             parentNode.selectItem(parent);
+           }
+           parentNode.currentItem = parent;
+         }
+      ]]>
+      </handler>
+
+      <!-- On a click (up+down on the same item), deselect everything
+           except this item. -->
+      <handler event="click">
+      <![CDATA[
+         if (event.button != 0) return;
+         var t = event.originalTarget;
+         if (t.localName == 'treecell') {
+           if (event.ctrlKey || event.metaKey) {
+             parentNode.toggleItemSelection(t.parentNode.parentNode);
+             parentNode.currentItem = t.parentNode.parentNode;
+           }
+           else if (event.shiftKey) {
+             parentNode.selectItemRange(null, t.parentNode.parentNode);
+             parentNode.currentItem = t.parentNode.parentNode;
+           }
+           else {
+             /* We want to deselect all the selected items except what was
+                clicked, UNLESS it was a right-click.  We have to do this
+                in click rather than mousedown so that you can drag a
+                selected group of items */
+
+             var selectedItems = parentNode.selectedItems;
+             var didSuppressSelect = false;
+             var i = 0;
+             while (i < selectedItems.length) {
+               if (selectedItems[i] != t.parentNode.parentNode) {
+                 if (!didSuppressSelect) {
+                   parentNode.suppressOnSelect = true;
+                   didSuppressSelect = true;
+                 }
+                 parentNode.removeItemFromSelection(selectedItems[i]);
+               }
+               else
+                 i++;
+             }
+             if (didSuppressSelect)
+               parentNode.suppressOnSelect = false;
+           }
+         }
+      ]]>
+      </handler>
+
+      <!-- double-click -->
+      <handler event="click" clickcount="2">
+      <![CDATA[
+         if (event.originalTarget.localName == 'treecell') {
+           var n = event.originalTarget.parentNode.parentNode;
+           n.toggleOpenState();
+         }
+      ]]>
+      </handler>
+
+      <!-- normal, single click -->
+      <handler event="click">
+      <![CDATA[
+         try {
+           if (event.originalTarget.getAttribute('twisty') == 'true') {
+             var n = event.originalTarget.parentNode.parentNode.parentNode;
+             n.toggleOpenState();
+            }
+         } catch (e) {}
+      ]]>
+      </handler>
+      
+    </handlers>
+  </binding>
+ 
+  <binding id="treeitem"
+           extends="chrome://global/content/bindings/tree.xml#tree-base">
+    <implementation>
+      <method name="toggleOpenState">
+        <body>
+          <![CDATA[
+            if ((this.getAttribute('container') == 'true') &&
+                 (this.getAttribute('empty') != 'true')) {
+               if (this.getAttribute('open') == 'true')
+                 this.removeAttribute('open');
+               else this.setAttribute('open', 'true');
+            }
+          ]]>
+        </body>
+      </method>
+     <method name="open">
+       <body>
+          <![CDATA[
+            if ((this.getAttribute('container') == 'true') &&
+                 (this.getAttribute('empty') != 'true')) {
+               if (this.getAttribute('open') != 'true')
+                 this.setAttribute('open', 'true');
+            }
+          ]]>
+        </body>
+     </method>
+     <method name="close">
+       <body>
+          <![CDATA[
+            if ((this.getAttribute('container') == 'true') &&
+                 (this.getAttribute('empty') != 'true')) {
+               if (this.getAttribute('open') == 'true')
+                 this.removeAttribute('open');
+            }
+          ]]>
+        </body>
+     </method>    
+   </implementation>
+  </binding>     
+
+  <binding id="treecell"
+           extends="chrome://global/content/bindings/tree.xml#tree-base">
+    <content autostretch="never">
+       <xul:text class="tree-cell-text" inherits="crop,value=label,align" flex="1" crop="right"/>
+    </content>
+  </binding>
+
+  <binding id="treecell-align-right"
+           extends="chrome://global/content/bindings/tree.xml#tree-base">
+    <content autostretch="never">
+      <xul:spring flex="5"/>
+      <xul:text class="tree-cell-text" inherits="crop,value=label,align" flex="1" crop="right"/>
+    </content>
+  </binding>
+
+  <binding id="treecell-iconic"
+           extends="chrome://global/content/bindings/tree.xml#tree-base">
+    <content autostretch="never">
+      <xul:image class="tree-cell-icon" inherits="src"/>
+      <xul:text class="tree-cell-text" inherits="crop,value=label,align" flex="1" crop="right"/>
+    </content>
+  </binding>
+
+  <binding id="treecell-image"
+           extends="chrome://global/content/bindings/tree.xml#tree-base">
+    <content autostretch="never">
+      <xul:image class="tree-cell-image" inherits="src"/>
+    </content>
+  </binding>
+ 
+  <binding id="treecell-indented-folder"
+           extends="chrome://global/content/bindings/tree.xml#tree-base">
+    <content autostretch="never">
+      <xul:treeindentation/>
+      <xul:image class="tree-cell-twisty" twisty="true" inherits="hidden=notwisty" allowevents="true"/>
+      <xul:image class="tree-cell-primary-icon" inherits="src"/>
+      <xul:text class="tree-cell-text" inherits="crop,value=label,align" flex="1" crop="right"/>
+    </content>
+  </binding>
+
+  <binding id="treecell-indented-folder-inline-edit" 
+           extends="chrome://global/content/bindings/general.xml#inline-edit-base">
+    <resources>
+      <stylesheet src="chrome://global/content/bindings/tree.css"/>
+      <stylesheet src="chrome://global/skin/tree.css"/>
+    </resources>
+
+    <content autostretch="never">
+      <xul:treeindentation/>
+      <xul:image class="tree-cell-twisty" twisty="true" inherits="hidden=notwisty" allowevents="true"/>
+      <xul:image class="tree-cell-primary-icon-inline-edit-folder" inherits="src"/>
+      <xul:box class="inline-edit-cell-box" flex="1" ileattr="text-container">
+        <xul:text class="inline-edit-cell-text" ileattr="text" rootcontent="treecell"
+                  inherits="crop,value=label,align,mode" flex="1" crop="right"/>
+      </xul:box>
+    </content>
+  </binding>
+  
+  <binding id="treecell-indented-leaf-inline-edit"
+           extends="chrome://global/content/bindings/general.xml#inline-edit-base">
+    <resources>
+      <stylesheet src="chrome://global/content/bindings/tree.css"/>
+      <stylesheet src="chrome://global/skin/tree.css"/>
+    </resources>
+
+    <content autostretch="never">
+      <xul:treeindentation/>
+      <xul:image class="tree-cell-primary-icon" inherits="src"/>
+      <xul:box class="inline-edit-cell-box" flex="1" ileattr="text-container">
+        <xul:text class="tree-cell-text" ileattr="text" rootcontent="treecell"
+                  inherits="crop,value=label,align,mode" flex="1" crop="right"/>
+      </xul:box>
+    </content>
+  </binding>
+  
+  <binding id="treecell-inline-edit"
+           extends="chrome://global/content/bindings/general.xml#inline-edit-base">
+    <resources>
+      <stylesheet src="chrome://global/content/bindings/tree.css"/>
+      <stylesheet src="chrome://global/skin/tree.css"/>
+    </resources>
+
+    <content autostretch="never">
+      <xul:box class="inline-edit-cell-box" flex="1" ileattr="text-container">
+        <xul:text class="tree-cell-text" ileattr="text" rootcontent="treecell" 
+                  inherits="crop,value=label,align,mode" flex="1" crop="right"/>
+      </xul:box>
+    </content>
+  </binding>
+
+  <binding id="treecell-indented-leaf"
+           extends="chrome://global/content/bindings/tree.xml#tree-base">
+    <content autostretch="never">
+      <xul:treeindentation/>
+      <xul:image class="tree-cell-primary-icon" inherits="src"/>
+      <xul:text class="tree-cell-text" inherits="crop,value=label,align" flex="1" crop="right"/>
+    </content>
+  </binding>
+
+  <binding id="treecell-text" extends="xul:text">
+    <content crop="right"/>
+  </binding>
+
+  <binding id="treecell-header"
+           extends="chrome://global/content/bindings/tree.xml#tree-base">
+    <content>
+      <xul:box class="treecell-header-box" flex="1" autostretch="never">
+        <xul:image class="tree-header-image" inherits="src"/>
+        <xul:text class="tree-header-text" inherits="crop,value=label,disabled" flex="1" crop="right"/>
+        <xul:image class="tree-header-sortdirection"/>
+      </xul:box>
+    </content>
+  </binding>
+
+  <binding id="treecell-header-image"
+           extends="chrome://global/content/bindings/tree.xml#tree-base">
+    <content>
+      <xul:box class="treecell-header-image-box" flex="1" autostretch="never">
+        <xul:image class="tree-header-image" inherits="src"/>
+      </xul:box>
+    </content>
+  </binding>
+  
+  <binding id="listbox" extends="xul:tree">
+    <content>
+      <xul:cols>
+        <xul:col flex="1"/>
+      </xul:cols>
+      <xul:treerows>
+        <xul:treerows>
+          <children includes="listhead"/>
+          <xul:treechildren>
+            <children/>
+          </xul:treechildren>
+        </xul:treerows>
+      </xul:treerows> 
+    </content>    
+  </binding>
+
+  <binding id="listhead" extends="xul:treehead">
+    <content>
+      <xul:treerow>
+        <xul:treecell inherits="label" class="listcell-header"/>
+      </xul:treerow>
+    </content>
+  </binding>
+
+  <binding id="listitem" extends="xul:treeitem">
+    <content>
+      <xul:treerow>
+        <xul:treecell inherits="label" class="listcell-text"/>
+      </xul:treerow>
+    </content>
+  </binding>
+
+</bindings>
+
