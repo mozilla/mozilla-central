@@ -1,9 +1,0 @@
-nsXPComFactory.h
-nsComponentManagerUtils.h
-nsCategoryManagerUtils.h
-nsStaticComponent.h
-nsIServiceManagerObsolete.h
-nsIServiceManagerUtils.h
-nsComponentManagerObsolete.h
-nsIComponentManagerUtils.h
-nsObsoleteModuleLoading.h
