@@ -38,20 +38,26 @@
 #define nsgnomeshellservice_h____
 
 #include "nsIShellService.h"
+#include "nsString.h"
 
 class nsGNOMEShellService : public nsIShellService
 {
 public:
-  nsGNOMEShellService() : mCheckedThisSession(PR_FALSE) {};
-  virtual ~nsGNOMEShellService() {};
+  nsGNOMEShellService() : mCheckedThisSession(PR_FALSE) { }
 
   NS_DECL_ISUPPORTS
   NS_DECL_NSISHELLSERVICE
 
-protected:
+  nsresult Init() NS_HIDDEN;
 
 private:
-  PRBool    mCheckedThisSession;
+  ~nsGNOMEShellService() {}
+
+  NS_HIDDEN_(PRBool) KeyMatchesAppName(const char *aKeyValue) const;
+
+  PRPackedBool mCheckedThisSession;
+  PRPackedBool mUseLocaleFilenames;
+  nsCString    mAppPath;
 };
 
 #endif // nsgnomeshellservice_h____
