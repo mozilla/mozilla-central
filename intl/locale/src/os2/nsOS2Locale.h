@@ -15,32 +15,34 @@
  * <john_fairhurst@iname.com>.  Portions created by John Fairhurst are
  * Copyright (C) 1999 John Fairhurst. All Rights Reserved.
  *
- * Contributor(s): Henry Sobotka <sobotka@axess.com> January 2000 update
- *
+ * Contributor(s): 
  */
+#ifndef _nslocaleos2_h_
+#define _nslocaleos2_h_
 
-#ifndef _nsios2locale_h_
-#define _nsios2locale_h_
 
 #include "nsISupports.h"
 #include "nscore.h"
 #include "nsString.h"
-#include "unidef.h"     
+#include "nsIOS2Locale.h"
 
 
-// {F25F74F0-FB59-11d3-A9F2-00203522A03C}
-#define NS_IOS2LOCALE_IID	                    \
-{ 0xf25f74f0, 0xfb59, 0x11d3,                     \
-{ 0xa9, 0xf2, 0x0, 0x20, 0x35, 0x22, 0xa0, 0x3c }}
+class nsOS2Locale : public nsIOS2Locale {
 
+  NS_DECL_ISUPPORTS
 
-class nsIOS2Locale : public nsISupports
-{
- public:
+public:
 
-   NS_DEFINE_STATIC_IID_ACCESSOR(NS_IOS2LOCALE_IID)
-   NS_IMETHOD GetPlatformLocale(PRUnichar* os2Locale,size_t length)=0;
-   NS_IMETHOD GetXPLocale(const char* os2Locale, nsString* locale)=0;
+  nsOS2Locale();
+  virtual ~nsOS2Locale();
+   
+  NS_IMETHOD GetPlatformLocale(PRUnichar* os2Locale,
+                                size_t length);
+  NS_IMETHOD GetXPLocale(const char* os2Locale, nsString* locale);
+
+protected:
+  inline PRBool ParseLocaleString(const char* locale_string, char* language, char* country, char* extra, char separator);
+
 };
 
 #endif
