@@ -19,37 +19,45 @@
   # Contributor(s): Myk Melez <myk@mozilla.org>
   # %]
 
+[% DEFAULT 
+  message = "An unknown error occurred."
+  title = "Error"
+%]
+
 <html>
 
   <head>
-    <title>Doctor - select file to edit</title>
+    <title>Doctor - [% title %]</title>
   </head>
 
-  <body bgcolor="white" color="black">
-
-    <big><b>Doctor - select file to edit</b></big>
-
-    <br><br>
-
+  <body>
+    <h1>Doctor - [% title %]</h1>
+    
     <p>
-      Welcome to Doctor, a tool for editing the mozilla.org web site.
+      Doctor couldn't process your request because of the following problem:
     </p>
+    
+    <p><big><b>[% message %]</b></big></p>
+    
+    [% IF cvs_error_code %]
+      <p>
+        The problem occurred when Doctor tried to execute the CVS command:
+      </p>
 
+      <p>
+        <em>[% cvs_command FILTER html %]</em>
+      </p>
+      
+      <p>
+        CVS returned the error code <em>[% cvs_error_code %]</em> and the message:
+      </p>
+
+      <pre>[% cvs_error_message FILTER html %]</pre>
+    [% END %]
+    
     <p>
-      To edit a file on the web site, enter its URL or the path
-      to the file in the CVS repository.  To create a new file, 
-      enter the URL or path where you would like it to be.
+      Please go back and try again.
     </p>
-
-    <form method="get" action="doctor.cgi">
-
-      <input type="hidden" name="action" value="edit">
-      <input type="text" name="file" value="" size="60">
-
-      <input type="submit" value="Edit">
-
-  </form>
-
   </body>
 
 </html>

@@ -19,37 +19,29 @@
   # Contributor(s): Myk Melez <myk@mozilla.org>
   # %]
 
+[% DEFAULT 
+  message = "An unknown error occurred."
+  title = "Error"
+%]
+
 <html>
 
   <head>
-    <title>Doctor - select file to edit</title>
+    <title>Doctor - [% title %]</title>
   </head>
 
-  <body bgcolor="white" color="black">
-
-    <big><b>Doctor - select file to edit</b></big>
-
-    <br><br>
-
+  <body>
+    <h1>Doctor - [% title %]</h1>
+    
     <p>
-      Welcome to Doctor, a tool for editing the mozilla.org web site.
+      Unfortunately Doctor has experienced an internal error from which it was
+      unable to recover.  More information about the error is provided below.
+      Please forward this information along with any other information
+      that would help diagnose and fix this problem to the system administrator
+      at <a href="mailto:[% CONFIG.ADMIN_EMAIL %]">[% CONFIG.ADMIN_EMAIL %]</a>.
     </p>
-
-    <p>
-      To edit a file on the web site, enter its URL or the path
-      to the file in the CVS repository.  To create a new file, 
-      enter the URL or path where you would like it to be.
-    </p>
-
-    <form method="get" action="doctor.cgi">
-
-      <input type="hidden" name="action" value="edit">
-      <input type="text" name="file" value="" size="60">
-
-      <input type="submit" value="Edit">
-
-  </form>
-
+    
+    <p>[% message %]</p>
   </body>
 
 </html>
