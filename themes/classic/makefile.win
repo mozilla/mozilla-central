@@ -33,6 +33,7 @@ DIRS =  communicator\search\win  \
         communicator\win         \
         global\win               \
         messenger\win            \
+        preview\win              \
         navigator\win
 
 include <$(DEPTH)\config\rules.mak>
