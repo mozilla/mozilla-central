@@ -37,45 +37,36 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#import "RDFOutlineViewDataSource.h"
+#import <Appkit/Appkit.h>
 
-class nsAString;
-class HistoryRDFObserver;
+#import "RDFItem.h"
 
-@class BrowserWindowController;
-@class HistoryItem;
+// YES if you want to have history flattened
+// eliminates the per-site folders that nsGlobalHistory returns
+// and also sorts the resulting flat list by date
+const bool kFlattenHistory = YES;
 
-@interface HistoryDataSource : RDFOutlineViewDataSource
+// URIs for RDF properties
+#define NC_NAME_KEY @"http://home.netscape.com/NC-rdf#Name"
+#define NC_URL_KEY @"http://home.netscape.com/NC-rdf#URL"
+#define NC_DATE_KEY @"http://home.netscape.com/NC-rdf#Date"
+  
+// HistoryItem's are the rows of the history outline view
+// extends RDFItem to support flattened history list
+@interface HistoryItem : RDFItem
 {
-  HistoryRDFObserver* mObserver;   // STRONG ref, should be nsCOMPtr but can't
-  IBOutlet BrowserWindowController* mBrowserWindowController;
-  BOOL mUpdatesEnabled;
-  BOOL mNeedsRefresh;
-  bool mLoaded;
-
-  HistoryItem * mRootHistoryItem;
+  NSArray * mGrandChildNodes;
 }
 
-- (HistoryItem *)rootRDFItem;
-- (void)setRootRDFItem:(HistoryItem *)item;
+- (void)deleteFromGecko;
 
-- (void)enableObserver;
-- (void)disableObserver;
+- (void)buildGrandChildCache;
 
-- (void)setNeedsRefresh:(BOOL)needsRefresh;
-- (BOOL)needsRefresh;
-- (void)refresh;
+- (HistoryItem*)childAtIndex:(int)index;
 
-- (IBAction)openHistoryItem: (id)aSender;
-- (IBAction)deleteHistoryItems: (id)aSender;
-- (IBAction)openHistoryItemInNewWindow:(id)aSender;
-- (IBAction)openHistoryItemInNewTab:(id)aSender;
-
-  // NSOutlineViewDataSource protocol
-- (BOOL)outlineView:(NSOutlineView *)ov writeItems:(NSArray*)items toPasteboard:(NSPasteboard*)pboard;
-- (NSString *)outlineView:(NSOutlineView *)outlineView tooltipStringForItem:(id)anItem;
-- (void)outlineView:(NSOutlineView *)outlineView willDisplayCell:(NSCell *)inCell forTableColumn:(NSTableColumn *)tableColumn item:(id)item;
-- (NSMenu *)outlineView:(NSOutlineView *)outlineView contextMenuForItem:(id)item;
-
+// RDF properties
+- (NSString*)name;
+- (NSString*)url;
+- (NSString*)date;
 
 @end
