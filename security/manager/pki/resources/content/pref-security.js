@@ -48,6 +48,11 @@ function onLoad()
 
 function openCertManager()
 {
-  window.open('chrome://pippki/content/certManager.xul',  "",
-              'chrome,width=500,height=400,resizable=1');
+//  var windowReference = document.getElementById("certmanager");
+//  if (windowReference != null) {
+//    windowReference.focus();
+//  } else {
+    window.open('chrome://pippki/content/certManager.xul',  "",
+                'chrome,width=500,height=400,resizable=1');
+//  }
 }
