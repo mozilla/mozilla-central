@@ -1,4 +1,0 @@
-domstubs.idl
-nsIScriptContextOwner.idl
-nsIScriptGlobalObjectOwner.idl
-nsIEntropyCollector.idl
