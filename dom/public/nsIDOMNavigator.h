@@ -27,7 +27,7 @@
 class nsIDOMNavigator;
 
 #define NS_IDOMNAVIGATOR_IID \
-{ 0x6f7652ed,  0xee43, 0x11d1, \
+{ 0x6f7652ee,  0xee43, 0x11d1, \
  { 0x9b, 0xc3, 0x00, 0x60, 0x08, 0x8c, 0xa6, 0xb3 } } 
 
 class nsIDOMNavigator : public nsISupports {
@@ -52,6 +52,6 @@ public:
 
 extern nsresult NS_InitNavigatorClass(nsIScriptContext *aContext, void **aPrototype);
 
-extern "C" NS_DOM NS_NewScriptNavigator(nsIScriptContext *aContext, nsIDOMNavigator *aSupports, nsISupports *aParent, void **aReturn);
+extern "C" NS_DOM nsresult NS_NewScriptNavigator(nsIScriptContext *aContext, nsIDOMNavigator *aSupports, nsISupports *aParent, void **aReturn);
 
 #endif // nsIDOMNavigator_h__

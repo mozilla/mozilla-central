@@ -39,8 +39,9 @@ NS_DEF_PTR(nsIDOMAttribute);
 // Attribute property ids
 //
 enum Attribute_slots {
-  ATTRIBUTE_VALUE = -11,
-  ATTRIBUTE_SPECIFIED = -12
+  ATTRIBUTE_NAME = -11,
+  ATTRIBUTE_SPECIFIED = -12,
+  ATTRIBUTE_VALUE = -13
 };
 
 /***********************************************************************/
@@ -59,10 +60,10 @@ GetAttributeProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 
   if (JSVAL_IS_INT(id)) {
     switch(JSVAL_TO_INT(id)) {
-      case ATTRIBUTE_VALUE:
+      case ATTRIBUTE_NAME:
       {
         nsAutoString prop;
-        if (NS_OK == a->GetValue(prop)) {
+        if (NS_OK == a->GetName(prop)) {
           JSString *jsstring = JS_NewUCStringCopyN(cx, prop, prop.Length());
           // set the return value
           *vp = STRING_TO_JSVAL(jsstring);
@@ -77,6 +78,19 @@ GetAttributeProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
         PRBool prop;
         if (NS_OK == a->GetSpecified(&prop)) {
           *vp = BOOLEAN_TO_JSVAL(prop);
+        }
+        else {
+          return JS_FALSE;
+        }
+        break;
+      }
+      case ATTRIBUTE_VALUE:
+      {
+        nsAutoString prop;
+        if (NS_OK == a->GetValue(prop)) {
+          JSString *jsstring = JS_NewUCStringCopyN(cx, prop, prop.Length());
+          // set the return value
+          *vp = STRING_TO_JSVAL(jsstring);
         }
         else {
           return JS_FALSE;
@@ -115,21 +129,6 @@ SetAttributeProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 
   if (JSVAL_IS_INT(id)) {
     switch(JSVAL_TO_INT(id)) {
-      case ATTRIBUTE_VALUE:
-      {
-        nsAutoString prop;
-        JSString *jsstring;
-        if ((jsstring = JS_ValueToString(cx, *vp)) != nsnull) {
-          prop.SetString(JS_GetStringChars(jsstring));
-        }
-        else {
-          prop.SetString((const char *)nsnull);
-        }
-      
-        a->SetValue(prop);
-        
-        break;
-      }
       case ATTRIBUTE_SPECIFIED:
       {
         PRBool prop;
@@ -224,78 +223,6 @@ ResolveAttribute(JSContext *cx, JSObject *obj, jsval id)
 }
 
 
-//
-// Native method GetName
-//
-PR_STATIC_CALLBACK(JSBool)
-AttributeGetName(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-  nsIDOMAttribute *nativeThis = (nsIDOMAttribute*)JS_GetPrivate(cx, obj);
-  JSBool rBool = JS_FALSE;
-  nsAutoString nativeRet;
-
-  *rval = JSVAL_NULL;
-
-  // If there's no private data, this must be the prototype, so ignore
-  if (nsnull == nativeThis) {
-    return JS_TRUE;
-  }
-
-  if (argc >= 0) {
-
-    if (NS_OK != nativeThis->GetName(nativeRet)) {
-      return JS_FALSE;
-    }
-
-    JSString *jsstring = JS_NewUCStringCopyN(cx, nativeRet, nativeRet.Length());
-    // set the return value
-    *rval = STRING_TO_JSVAL(jsstring);
-  }
-  else {
-    JS_ReportError(cx, "Function getName requires 0 parameters");
-    return JS_FALSE;
-  }
-
-  return JS_TRUE;
-}
-
-
-//
-// Native method ToString
-//
-PR_STATIC_CALLBACK(JSBool)
-AttributeToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-  nsIDOMAttribute *nativeThis = (nsIDOMAttribute*)JS_GetPrivate(cx, obj);
-  JSBool rBool = JS_FALSE;
-  nsAutoString nativeRet;
-
-  *rval = JSVAL_NULL;
-
-  // If there's no private data, this must be the prototype, so ignore
-  if (nsnull == nativeThis) {
-    return JS_TRUE;
-  }
-
-  if (argc >= 0) {
-
-    if (NS_OK != nativeThis->ToString(nativeRet)) {
-      return JS_FALSE;
-    }
-
-    JSString *jsstring = JS_NewUCStringCopyN(cx, nativeRet, nativeRet.Length());
-    // set the return value
-    *rval = STRING_TO_JSVAL(jsstring);
-  }
-  else {
-    JS_ReportError(cx, "Function toString requires 0 parameters");
-    return JS_FALSE;
-  }
-
-  return JS_TRUE;
-}
-
-
 /***********************************************************************/
 //
 // class for Attribute
@@ -319,8 +246,9 @@ JSClass AttributeClass = {
 //
 static JSPropertySpec AttributeProperties[] =
 {
-  {"value",    ATTRIBUTE_VALUE,    JSPROP_ENUMERATE},
+  {"name",    ATTRIBUTE_NAME,    JSPROP_ENUMERATE | JSPROP_READONLY},
   {"specified",    ATTRIBUTE_SPECIFIED,    JSPROP_ENUMERATE},
+  {"value",    ATTRIBUTE_VALUE,    JSPROP_ENUMERATE | JSPROP_READONLY},
   {0}
 };
 
@@ -330,8 +258,6 @@ static JSPropertySpec AttributeProperties[] =
 //
 static JSFunctionSpec AttributeMethods[] = 
 {
-  {"getName",          AttributeGetName,     0},
-  {"toString",          AttributeToString,     0},
   {0}
 };
 
@@ -364,6 +290,9 @@ nsresult NS_InitAttributeClass(nsIScriptContext *aContext, void **aPrototype)
       (PR_TRUE != JS_LookupProperty(jscontext, JSVAL_TO_OBJECT(vp), "prototype", &vp)) || 
       !JSVAL_IS_OBJECT(vp)) {
 
+    if (NS_OK != NS_InitNodeClass(aContext, (void **)&parent_proto)) {
+      return NS_ERROR_FAILURE;
+    }
     proto = JS_InitClass(jscontext,     // context
                          global,        // global object
                          parent_proto,  // parent proto 
@@ -396,7 +325,7 @@ nsresult NS_InitAttributeClass(nsIScriptContext *aContext, void **aPrototype)
 //
 // Method for creating a new Attribute JavaScript object
 //
-extern "C" NS_DOM NS_NewScriptAttribute(nsIScriptContext *aContext, nsIDOMAttribute *aSupports, nsISupports *aParent, void **aReturn)
+extern "C" NS_DOM nsresult NS_NewScriptAttribute(nsIScriptContext *aContext, nsIDOMAttribute *aSupports, nsISupports *aParent, void **aReturn)
 {
   NS_PRECONDITION(nsnull != aContext && nsnull != aSupports && nsnull != aReturn, "null argument to NS_NewScriptAttribute");
   JSObject *proto;

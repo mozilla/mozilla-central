@@ -23,34 +23,24 @@
 #include "nsISupports.h"
 #include "nsString.h"
 #include "nsIScriptContext.h"
-#include "nsIDOMNode.h"
+#include "nsIDOMData.h"
 
-class nsIDOMElement;
 class nsIDOMText;
 
 #define NS_IDOMTEXT_IID \
-{ 0x6f7652eb,  0xee43, 0x11d1, \
+{ 0x6f7652ed,  0xee43, 0x11d1, \
  { 0x9b, 0xc3, 0x00, 0x60, 0x08, 0x8c, 0xa6, 0xb3 } } 
 
-class nsIDOMText : public nsIDOMNode {
+class nsIDOMText : public nsIDOMData {
 public:
 
-  NS_IMETHOD    GetData(nsString& aData)=0;
-  NS_IMETHOD    SetData(nsString& aData)=0;
+  NS_IMETHOD    SplitText(PRUint32 aOffset, nsIDOMText** aReturn)=0;
 
-  NS_IMETHOD    Append(nsString& aData)=0;
-
-  NS_IMETHOD    Insert(PRInt32 aOffset, nsString& aData)=0;
-
-  NS_IMETHOD    Delete(PRInt32 aOffset, PRInt32 aCount)=0;
-
-  NS_IMETHOD    Replace(PRInt32 aOffset, PRInt32 aCount, nsString& aData)=0;
-
-  NS_IMETHOD    Splice(nsIDOMElement* aElement, PRInt32 aOffset, PRInt32 aCount)=0;
+  NS_IMETHOD    JoinText(nsIDOMText* aNode1, nsIDOMText* aNode2, nsIDOMText** aReturn)=0;
 };
 
 extern nsresult NS_InitTextClass(nsIScriptContext *aContext, void **aPrototype);
 
-extern "C" NS_DOM NS_NewScriptText(nsIScriptContext *aContext, nsIDOMText *aSupports, nsISupports *aParent, void **aReturn);
+extern "C" NS_DOM nsresult NS_NewScriptText(nsIScriptContext *aContext, nsIDOMText *aSupports, nsISupports *aParent, void **aReturn);
 
 #endif // nsIDOMText_h__

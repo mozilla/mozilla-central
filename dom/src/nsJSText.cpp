@@ -25,25 +25,16 @@
 #include "nsIScriptGlobalObject.h"
 #include "nsIPtr.h"
 #include "nsString.h"
-#include "nsIDOMElement.h"
 #include "nsIDOMText.h"
 
 
 static NS_DEFINE_IID(kIScriptObjectOwnerIID, NS_ISCRIPTOBJECTOWNER_IID);
 static NS_DEFINE_IID(kIJSScriptObjectIID, NS_IJSSCRIPTOBJECT_IID);
 static NS_DEFINE_IID(kIScriptGlobalObjectIID, NS_ISCRIPTGLOBALOBJECT_IID);
-static NS_DEFINE_IID(kIElementIID, NS_IDOMELEMENT_IID);
 static NS_DEFINE_IID(kITextIID, NS_IDOMTEXT_IID);
 
-NS_DEF_PTR(nsIDOMElement);
 NS_DEF_PTR(nsIDOMText);
 
-//
-// Text property ids
-//
-enum Text_slots {
-  TEXT_DATA = -11
-};
 
 /***********************************************************************/
 //
@@ -61,19 +52,7 @@ GetTextProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 
   if (JSVAL_IS_INT(id)) {
     switch(JSVAL_TO_INT(id)) {
-      case TEXT_DATA:
-      {
-        nsAutoString prop;
-        if (NS_OK == a->GetData(prop)) {
-          JSString *jsstring = JS_NewUCStringCopyN(cx, prop, prop.Length());
-          // set the return value
-          *vp = STRING_TO_JSVAL(jsstring);
-        }
-        else {
-          return JS_FALSE;
-        }
-        break;
-      }
+      case 0:
       default:
       {
         nsIJSScriptObject *object;
@@ -106,21 +85,7 @@ SetTextProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 
   if (JSVAL_IS_INT(id)) {
     switch(JSVAL_TO_INT(id)) {
-      case TEXT_DATA:
-      {
-        nsAutoString prop;
-        JSString *jsstring;
-        if ((jsstring = JS_ValueToString(cx, *vp)) != nsnull) {
-          prop.SetString(JS_GetStringChars(jsstring));
-        }
-        else {
-          prop.SetString((const char *)nsnull);
-        }
-      
-        a->SetData(prop);
-        
-        break;
-      }
+      case 0:
       default:
       {
         nsIJSScriptObject *object;
@@ -200,14 +165,15 @@ ResolveText(JSContext *cx, JSObject *obj, jsval id)
 
 
 //
-// Native method Append
+// Native method SplitText
 //
 PR_STATIC_CALLBACK(JSBool)
-TextAppend(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+TextSplitText(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
   nsIDOMText *nativeThis = (nsIDOMText*)JS_GetPrivate(cx, obj);
   JSBool rBool = JS_FALSE;
-  nsAutoString b0;
+  nsIDOMText* nativeRet;
+  PRUint32 b0;
 
   *rval = JSVAL_NULL;
 
@@ -218,22 +184,34 @@ TextAppend(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 
   if (argc >= 1) {
 
-    JSString *jsstring0 = JS_ValueToString(cx, argv[0]);
-    if (nsnull != jsstring0) {
-      b0.SetString(JS_GetStringChars(jsstring0));
-    }
-    else {
-      b0.SetString("");   // Should this really be null?? 
-    }
-
-    if (NS_OK != nativeThis->Append(b0)) {
+    if (!JS_ValueToInt32(cx, argv[0], (int32 *)&b0)) {
+      JS_ReportError(cx, "Parameter must be a number");
       return JS_FALSE;
     }
 
-    *rval = JSVAL_VOID;
+    if (NS_OK != nativeThis->SplitText(b0, &nativeRet)) {
+      return JS_FALSE;
+    }
+
+    if (nativeRet != nsnull) {
+      nsIScriptObjectOwner *owner = nsnull;
+      if (NS_OK == nativeRet->QueryInterface(kIScriptObjectOwnerIID, (void**)&owner)) {
+        JSObject *object = nsnull;
+        nsIScriptContext *script_cx = (nsIScriptContext *)JS_GetContextPrivate(cx);
+        if (NS_OK == owner->GetScriptObject(script_cx, (void**)&object)) {
+          // set the return value
+          *rval = OBJECT_TO_JSVAL(object);
+        }
+        NS_RELEASE(owner);
+      }
+      NS_RELEASE(nativeRet);
+    }
+    else {
+      *rval = JSVAL_NULL;
+    }
   }
   else {
-    JS_ReportError(cx, "Function append requires 1 parameters");
+    JS_ReportError(cx, "Function splitText requires 1 parameters");
     return JS_FALSE;
   }
 
@@ -242,15 +220,16 @@ TextAppend(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 
 
 //
-// Native method Insert
+// Native method JoinText
 //
 PR_STATIC_CALLBACK(JSBool)
-TextInsert(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+TextJoinText(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
   nsIDOMText *nativeThis = (nsIDOMText*)JS_GetPrivate(cx, obj);
   JSBool rBool = JS_FALSE;
-  PRInt32 b0;
-  nsAutoString b1;
+  nsIDOMText* nativeRet;
+  nsIDOMTextPtr b0;
+  nsIDOMTextPtr b1;
 
   *rval = JSVAL_NULL;
 
@@ -260,154 +239,6 @@ TextInsert(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
   }
 
   if (argc >= 2) {
-
-    if (!JS_ValueToInt32(cx, argv[0], (int32 *)&b0)) {
-      JS_ReportError(cx, "Parameter must be a number");
-      return JS_FALSE;
-    }
-
-    JSString *jsstring1 = JS_ValueToString(cx, argv[1]);
-    if (nsnull != jsstring1) {
-      b1.SetString(JS_GetStringChars(jsstring1));
-    }
-    else {
-      b1.SetString("");   // Should this really be null?? 
-    }
-
-    if (NS_OK != nativeThis->Insert(b0, b1)) {
-      return JS_FALSE;
-    }
-
-    *rval = JSVAL_VOID;
-  }
-  else {
-    JS_ReportError(cx, "Function insert requires 2 parameters");
-    return JS_FALSE;
-  }
-
-  return JS_TRUE;
-}
-
-
-//
-// Native method Delete
-//
-PR_STATIC_CALLBACK(JSBool)
-TextDelete(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-  nsIDOMText *nativeThis = (nsIDOMText*)JS_GetPrivate(cx, obj);
-  JSBool rBool = JS_FALSE;
-  PRInt32 b0;
-  PRInt32 b1;
-
-  *rval = JSVAL_NULL;
-
-  // If there's no private data, this must be the prototype, so ignore
-  if (nsnull == nativeThis) {
-    return JS_TRUE;
-  }
-
-  if (argc >= 2) {
-
-    if (!JS_ValueToInt32(cx, argv[0], (int32 *)&b0)) {
-      JS_ReportError(cx, "Parameter must be a number");
-      return JS_FALSE;
-    }
-
-    if (!JS_ValueToInt32(cx, argv[1], (int32 *)&b1)) {
-      JS_ReportError(cx, "Parameter must be a number");
-      return JS_FALSE;
-    }
-
-    if (NS_OK != nativeThis->Delete(b0, b1)) {
-      return JS_FALSE;
-    }
-
-    *rval = JSVAL_VOID;
-  }
-  else {
-    JS_ReportError(cx, "Function delete requires 2 parameters");
-    return JS_FALSE;
-  }
-
-  return JS_TRUE;
-}
-
-
-//
-// Native method Replace
-//
-PR_STATIC_CALLBACK(JSBool)
-TextReplace(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-  nsIDOMText *nativeThis = (nsIDOMText*)JS_GetPrivate(cx, obj);
-  JSBool rBool = JS_FALSE;
-  PRInt32 b0;
-  PRInt32 b1;
-  nsAutoString b2;
-
-  *rval = JSVAL_NULL;
-
-  // If there's no private data, this must be the prototype, so ignore
-  if (nsnull == nativeThis) {
-    return JS_TRUE;
-  }
-
-  if (argc >= 3) {
-
-    if (!JS_ValueToInt32(cx, argv[0], (int32 *)&b0)) {
-      JS_ReportError(cx, "Parameter must be a number");
-      return JS_FALSE;
-    }
-
-    if (!JS_ValueToInt32(cx, argv[1], (int32 *)&b1)) {
-      JS_ReportError(cx, "Parameter must be a number");
-      return JS_FALSE;
-    }
-
-    JSString *jsstring2 = JS_ValueToString(cx, argv[2]);
-    if (nsnull != jsstring2) {
-      b2.SetString(JS_GetStringChars(jsstring2));
-    }
-    else {
-      b2.SetString("");   // Should this really be null?? 
-    }
-
-    if (NS_OK != nativeThis->Replace(b0, b1, b2)) {
-      return JS_FALSE;
-    }
-
-    *rval = JSVAL_VOID;
-  }
-  else {
-    JS_ReportError(cx, "Function replace requires 3 parameters");
-    return JS_FALSE;
-  }
-
-  return JS_TRUE;
-}
-
-
-//
-// Native method Splice
-//
-PR_STATIC_CALLBACK(JSBool)
-TextSplice(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-  nsIDOMText *nativeThis = (nsIDOMText*)JS_GetPrivate(cx, obj);
-  JSBool rBool = JS_FALSE;
-  nsIDOMElementPtr b0;
-  PRInt32 b1;
-  PRInt32 b2;
-
-  *rval = JSVAL_NULL;
-
-  // If there's no private data, this must be the prototype, so ignore
-  if (nsnull == nativeThis) {
-    return JS_TRUE;
-  }
-
-  if (argc >= 3) {
 
     if (JSVAL_IS_NULL(argv[0])){
       b0 = nsnull;
@@ -417,8 +248,8 @@ TextSplice(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
       NS_ASSERTION(nsnull != supports0, "null pointer");
 
       if ((nsnull == supports0) ||
-          (NS_OK != supports0->QueryInterface(kIElementIID, (void **)(b0.Query())))) {
-        JS_ReportError(cx, "Parameter must be of type Element");
+          (NS_OK != supports0->QueryInterface(kITextIID, (void **)(b0.Query())))) {
+        JS_ReportError(cx, "Parameter must be of type Text");
         return JS_FALSE;
       }
     }
@@ -427,24 +258,47 @@ TextSplice(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
       return JS_FALSE;
     }
 
-    if (!JS_ValueToInt32(cx, argv[1], (int32 *)&b1)) {
-      JS_ReportError(cx, "Parameter must be a number");
+    if (JSVAL_IS_NULL(argv[1])){
+      b1 = nsnull;
+    }
+    else if (JSVAL_IS_OBJECT(argv[1])) {
+      nsISupports *supports1 = (nsISupports *)JS_GetPrivate(cx, JSVAL_TO_OBJECT(argv[1]));
+      NS_ASSERTION(nsnull != supports1, "null pointer");
+
+      if ((nsnull == supports1) ||
+          (NS_OK != supports1->QueryInterface(kITextIID, (void **)(b1.Query())))) {
+        JS_ReportError(cx, "Parameter must be of type Text");
+        return JS_FALSE;
+      }
+    }
+    else {
+      JS_ReportError(cx, "Parameter must be an object");
       return JS_FALSE;
     }
 
-    if (!JS_ValueToInt32(cx, argv[2], (int32 *)&b2)) {
-      JS_ReportError(cx, "Parameter must be a number");
+    if (NS_OK != nativeThis->JoinText(b0, b1, &nativeRet)) {
       return JS_FALSE;
     }
 
-    if (NS_OK != nativeThis->Splice(b0, b1, b2)) {
-      return JS_FALSE;
+    if (nativeRet != nsnull) {
+      nsIScriptObjectOwner *owner = nsnull;
+      if (NS_OK == nativeRet->QueryInterface(kIScriptObjectOwnerIID, (void**)&owner)) {
+        JSObject *object = nsnull;
+        nsIScriptContext *script_cx = (nsIScriptContext *)JS_GetContextPrivate(cx);
+        if (NS_OK == owner->GetScriptObject(script_cx, (void**)&object)) {
+          // set the return value
+          *rval = OBJECT_TO_JSVAL(object);
+        }
+        NS_RELEASE(owner);
+      }
+      NS_RELEASE(nativeRet);
     }
-
-    *rval = JSVAL_VOID;
+    else {
+      *rval = JSVAL_NULL;
+    }
   }
   else {
-    JS_ReportError(cx, "Function splice requires 3 parameters");
+    JS_ReportError(cx, "Function joinText requires 2 parameters");
     return JS_FALSE;
   }
 
@@ -475,7 +329,6 @@ JSClass TextClass = {
 //
 static JSPropertySpec TextProperties[] =
 {
-  {"data",    TEXT_DATA,    JSPROP_ENUMERATE},
   {0}
 };
 
@@ -485,11 +338,8 @@ static JSPropertySpec TextProperties[] =
 //
 static JSFunctionSpec TextMethods[] = 
 {
-  {"append",          TextAppend,     1},
-  {"insert",          TextInsert,     2},
-  {"delete",          TextDelete,     2},
-  {"replace",          TextReplace,     3},
-  {"splice",          TextSplice,     3},
+  {"splitText",          TextSplitText,     1},
+  {"joinText",          TextJoinText,     2},
   {0}
 };
 
@@ -522,7 +372,7 @@ nsresult NS_InitTextClass(nsIScriptContext *aContext, void **aPrototype)
       (PR_TRUE != JS_LookupProperty(jscontext, JSVAL_TO_OBJECT(vp), "prototype", &vp)) || 
       !JSVAL_IS_OBJECT(vp)) {
 
-    if (NS_OK != NS_InitNodeClass(aContext, (void **)&parent_proto)) {
+    if (NS_OK != NS_InitDataClass(aContext, (void **)&parent_proto)) {
       return NS_ERROR_FAILURE;
     }
     proto = JS_InitClass(jscontext,     // context
@@ -557,7 +407,7 @@ nsresult NS_InitTextClass(nsIScriptContext *aContext, void **aPrototype)
 //
 // Method for creating a new Text JavaScript object
 //
-extern "C" NS_DOM NS_NewScriptText(nsIScriptContext *aContext, nsIDOMText *aSupports, nsISupports *aParent, void **aReturn)
+extern "C" NS_DOM nsresult NS_NewScriptText(nsIScriptContext *aContext, nsIDOMText *aSupports, nsISupports *aParent, void **aReturn)
 {
   NS_PRECONDITION(nsnull != aContext && nsnull != aSupports && nsnull != aReturn, "null argument to NS_NewScriptText");
   JSObject *proto;
