@@ -22,40 +22,36 @@
  *     Samir Gehani <sgehani@netscape.com>
  */
 
-#ifndef _NS_COMPONENTSDLG_H_
-#define _NS_COMPONENTSDLG_H_
+#include "nsXIContext.h"
 
-#include "XIErrors.h"
-
-#include "nsXInstallerDlg.h"
-#include "nsComponentList.h"
-
-class nsComponentsDlg : public nsXInstallerDlg
+nsXIContext::nsXIContext()
 {
-public:
-    nsComponentsDlg();
-    ~nsComponentsDlg();
+    me = NULL;
 
-/*--------------------------------------------------------------------*
- *   Navigation
- *--------------------------------------------------------------------*/
-    int     Back();
-    int     Next();
+    ldlg = NULL;
+    wdlg = NULL;
+    sdlg = NULL;
+    cdlg = NULL;
+    idlg = NULL;
 
-    int     Parse(nsINIParser* aParser);
+    window = NULL;
+    back = NULL;
+    next = NULL;
+    logo = NULL; 
+}
 
-/*--------------------------------------------------------------------*
- *   INI Properties
- *--------------------------------------------------------------------*/
-    int             SetMsg0(char *aMsg);
-    char            *GetMsg0();
+nsXIContext::~nsXIContext()
+{
+    // NOTE: don't try to delete "me" cause I control thee
 
-    int             SetCompList(nsComponentList *aCompList);
-    nsComponentList *GetCompList();
+    XI_IF_DELETE(ldlg);
+    XI_IF_DELETE(wdlg);
+    XI_IF_DELETE(sdlg);
+    XI_IF_DELETE(cdlg);
+    XI_IF_DELETE(idlg);
 
-private:
-    char            *mMsg0;
-    nsComponentList *mCompList;
-};
-
-#endif /* _NS_COMPONENTSDLG_H_ */
+    XI_IF_FREE(window);
+    XI_IF_FREE(back);
+    XI_IF_FREE(next);
+    XI_IF_FREE(logo);
+}
