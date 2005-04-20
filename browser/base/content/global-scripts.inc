@@ -1,6 +1,4 @@
-<?xml version="1.0"?>
-# -*- Mode: HTML -*-
-#
+# -*- Mode: Java; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -14,17 +12,16 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is Mozilla Communicator client code, released
-# March 31, 1998.
+# The Original Code is Mozilla.org Code.
 #
 # The Initial Developer of the Original Code is
 # Netscape Communications Corporation.
-# Portions created by the Initial Developer are Copyright (C) 1998-2000
+# Portions created by the Initial Developer are Copyright (C) 2001
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#   David Hyatt <hyatt@mozilla.org> (Original Author)
-#   Asaf Romano <mozilla.mano@sent.com>
+#   Ben Goodger <ben@bengoodger.com> (v2.0)
+#   Blake Ross <blakeross@telocity.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -40,34 +37,14 @@
 #
 # ***** END LICENSE BLOCK *****
 
-# All DTD information is stored in a separate file so that it can be shared by
-# hiddenWindow.xul.
-#include browser-doctype.inc
-
-<overlay id="hidden-overlay"
-        xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-
-<?xul-overlay href="chrome://browser/content/baseMenuOverlay.xul"?>
-
-# All JS files which are not content (only) dependent that browser.xul
-# wishes to include *must* go into the global-scripts.inc file
-# so that they can be shared by this overlay.
-#include global-scripts.inc
-
-<script type="application/x-javascript">
-  addEventListener("load", nonBrowserWindowStartup, false);
-</script>
-
-# All sets except for popupsets (commands, keys, stringbundles and broadcasters) *must* go into the 
-# browser-sets.inc file for sharing with hiddenWindow.xul.
-#include browser-sets.inc
-
-# The hacky hidden tree used by the Go menu to build items.
-#include browser-gotreehack.inc
-
-# The entire main menubar is placed into browser-menubar.inc, so that it can be shared by 
-# hiddenWindow.xul.
-#include browser-menubar.inc
-
-</overlay>
+<script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
+<script type="application/x-javascript" src="chrome://global/content/globalOverlay.js"/>
+<script type="application/x-javascript" src="chrome://global/content/findBar.js"/>
+<script type="application/x-javascript" src="chrome://global/content/printUtils.js"/>
+<script type="application/x-javascript" src="chrome://browser/content/utilityOverlay.js"/>
+<script type="application/x-javascript" src="chrome://browser/content/bookmarks/bookmarks.js"/>
+<script type="application/x-javascript" src="chrome://browser/content/bookmarks/bookmarksMenu.js"/>
+<script type="application/x-javascript" src="chrome://global/content/viewZoomOverlay.js"/>
+<script type="application/x-javascript" src="chrome://browser/content/browser.js"/>
+<script type="application/x-javascript" src="chrome://global/content/XPCNativeWrapper.js"/>
+<script type="application/x-javascript" src="chrome://browser/content/sanitize.js"/>
