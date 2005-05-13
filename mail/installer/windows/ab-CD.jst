@@ -1,0 +1,45 @@
+#filter substitution
+
+// main
+var srDest;
+var err;
+var fProgram;
+logComment("initInstall"); 
+
+// end
+// end - OS type detection
+
+srDest = $SpaceRequired$:bin;
+err    = initInstall("@AB_CD@ Langpack", "@AB_CD@", "$Version$");
+logComment("initInstall: " + err);
+
+fProgram = getFolder("Program");
+logComment("fProgram: " + fProgram);
+
+if(verifyDiskSpace(fProgram, srDest))
+{
+  var chromeType = LOCALE;
+  err = addDirectory("",
+                     "bin",     // dir name in jar to extract 
+                     fProgram,  // Where to put this file (Returned from GetFolder) 
+                     "");       // Force Flag 
+  logComment("addDirectory() returned: " + err);
+
+  setPackageFolder(fProgram);
+ 
+  // check return value
+  if (err == SUCCESS)
+  {
+    err = performInstall(); 
+    logComment("performInstall() returned: " + err);
+  }
+  else 
+  {
+    cancelInstall(err);
+    logComment("cancelInstall due to error: " + err);
+  }
+}
+else
+  cancelInstall(INSUFFICIENT_DISK_SPACE);
+
+// end main
