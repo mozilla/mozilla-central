@@ -36,28 +36,32 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-require_once('../../config.inc.php');
-require_once($config['app_path'].'/includes/iolib.inc.php');
+class userlib {
 
-// start the session
-session_name('reportSessID');
-session_start();
-header("Cache-control: private"); //IE 6 Fix
-printheaders();
+function login($username, $password){
+    global $db;
 
-$_SESSION = array();
-session_destroy();
-
-if (isset($_GET['redirect'])){
-	$redirect = $_GET['redirect'];
-} else {
-	$redirect = $config['app_url'];
+    $data =& $db->getRow("SELECT user.user_id, user.user_username, user.user_password, user.user_realname, user.user_status
+                          FROM user
+                          WHERE  user.user_username = ".$db->quote($username)." AND user.user_password = md5(".$db->quote($password).")", DB_FETCHMODE_ASSOC);
+    if ($data['user_status'] == 1){
+        $_SESSION['user_id'] = $data['user_id'];
+        $_SESSION['user_realname'] = $data['user_realname'];
+        $_SESSION['user_username'] = $data['user_username'];
+        $_SESSION['login'] = true;
+        return array(true, '');
+    }
+    return array(false, 'Bad Status');
 }
 
-if($_SESSION['username']){
-    // not sure if this could ever happen, but just incase.
-    echo 'Failed to logout';
-} else {
-	header("Location: ".$redirect);
+function isLoggedIn(){
+    if ($_SESSION['user_username'] && $_SESSION['login'] == true){
+       return true;
+    }
+    return false;
 }
-?> 
+
+// End Class
+}
+$userlib = new userlib;
+?>
