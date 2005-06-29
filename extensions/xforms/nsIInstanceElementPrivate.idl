@@ -39,6 +39,7 @@
 #include "nsISupports.idl"
 
 interface nsIDOMDocument;
+interface nsIDOMElement;
 
 /**
  * Private interface implemented by the instance element.
@@ -50,6 +51,7 @@ interface nsIInstanceElementPrivate : nsISupports
    * The document which holds the live instance data.
    */
   attribute nsIDOMDocument document;
+  readonly attribute nsIDOMElement element;
   void backupOriginalDocument();
   void restoreOriginalDocument();
 };
