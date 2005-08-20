@@ -19,7 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Stuart Parmenter <pavlov@pavlov.net>
+ *   Vladimir Vukicevic <vladimir@pobox.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,63 +35,41 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef GFX_ASURFACE_H
-#define GFX_ASURFACE_H
+#ifndef GFX_GLITZSURFACE_H
+#define GFX_GLITZSURFACE_H
 
-#include <cairo.h>
+#include "gfxASurface.h"
 
-#include "gfxTypes.h"
+#include <cairo-glitz.h>
 
 /**
- * A surface is something you can draw on. Instantiate a subclass of this
- * abstract class, and use gfxContext to draw on this surface.
+ * A surface that wraps a glitz surface.
  */
-class gfxASurface {
-    THEBES_DECL_REFCOUNTING_ABSTRACT
+class gfxGlitzSurface : public gfxASurface {
+    THEBES_DECL_ISUPPORTS_INHERITED
 
 public:
-    /**
-     * The format for an image surface. For all formats with alpha data, 0
-     * means transparent, 1 or 255 means fully opaque.
-     */
-    typedef enum {
-        ImageFormatARGB32, ///< ARGB data in native endianness, using premultiplied alpha
-        ImageFormatRGB24,  ///< xRGB data in native endianness
-        ImageFormatA8,     ///< Only an alpha channel
-        ImageFormatA1      ///< Packed transparency information (one byte refers to 8 pixels)
-    } gfxImageFormat;
+    gfxGlitzSurface(glitz_drawable_t *drawable,
+                    glitz_surface_t *glitzSurface,
+                    PRBool takeOwnership = PR_FALSE);
 
-    /*** this DOES NOT addref the surface */
-    cairo_surface_t* CairoSurface() { return mSurface; }
+    virtual ~gfxGlitzSurface();
+
+    /**
+     * When double-buffering is used, swaps the back and the front buffer.
+     */
+    void SwapBuffers();
+
+    unsigned long Width();
+    unsigned long Height();
+
+    glitz_surface_t* GlitzSurface() { return mGlitzSurface; }
+    glitz_drawable_t* GlitzDrawable() { return mGlitzDrawable; }
 
 protected:
-    void Init(cairo_surface_t* surface) {
-        mDestroyed = PR_FALSE;
-        mSurface = surface;
-    }
-
-    void Destroy() {
-        if (mDestroyed) {
-            NS_WARNING("Calling Destroy on an already-destroyed surface!");
-            return;
-        }
-
-        cairo_surface_destroy(mSurface);
-        mDestroyed = PR_TRUE;
-    }
-
-    PRBool Destroyed() {
-        return mDestroyed;
-    }
-
-    virtual ~gfxASurface() {
-        if (!mDestroyed) {
-            NS_WARNING("gfxASurface::~gfxASurface called, but cairo surface was not destroyed! (Did someone forget to call Destroy()?)");
-        }
-    }
-private:
-    cairo_surface_t* mSurface;
-    PRBool mDestroyed;
+    glitz_drawable_t *mGlitzDrawable;
+    glitz_surface_t *mGlitzSurface;
+    PRBool mOwnsSurface;
 };
 
-#endif /* GFX_ASURFACE_H */
+#endif /* GFX_GLITZSURFACE_H */

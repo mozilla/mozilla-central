@@ -1,5 +1,5 @@
-/* -*- Mode: C++; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*-
- * ***** BEGIN LICENSE BLOCK *****
+/* -*- Mode: C++; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -12,14 +12,14 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is Oracle Corporation code.
+ * The Original Code is mozilla.org code.
  *
- * The Initial Developer of the Original Code is Oracle Corporation.
- * Portions created by the Initial Developer are Copyright (C) 2005
+ * The Initial Developer of the Original Code is
+ * Christopher Blizzard <blizzard@mozilla.org>.  
+ * Portions created by the Initial Developer are Copyright (C) 2002
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Stuart Parmenter <pavlov@pavlov.net>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,31 +35,23 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef GFX_WINDOWSSURFACE_H
-#define GFX_WINDOWSSURFACE_H
+#ifndef __nsIThebesRenderingContext_h
+#define __nsIThebesRenderingContext_h
 
-#include "gfxASurface.h"
+#include "nsIRenderingContext.h"
 
-#include <cairo-win32.h>
+// IID for the nsIRenderingContext interface
+#define NSI_THEBES_RENDERING_CONTEXT_IID \
+{ 0x8591c4c6, 0x41d4, 0x485a, \
+{ 0xb2, 0x4f, 0x9d, 0xe1, 0x9b, 0x69, 0xce, 0x02 } }
 
-class gfxWindowsSurface : public gfxASurface {
-    THEBES_DECL_ISUPPORTS_INHERITED
-
+class nsIThebesRenderingContext : public nsISupports
+{
 public:
-    gfxWindowsSurface(HDC dc);
-    gfxWindowsSurface(HDC dc, unsigned long width, unsigned long height);
-    gfxWindowsSurface(unsigned long width, unsigned long height);
-    virtual ~gfxWindowsSurface();
+    NS_DEFINE_STATIC_IID_ACCESSOR(NSI_THEBES_RENDERING_CONTEXT_IID)
 
+    NS_IMETHOD CreateDrawingSurface(nsNativeWidget aWidget, nsIDrawingSurface* &aSurface) = 0;
 
-    HDC GetDC() { return mDC; }
-private:
-    PRBool mOwnsDC;
-    HDC mDC;
-    HBITMAP mOrigBitmap;
-
-    PRInt32 mWidth;
-    PRInt32 mHeight;
 };
 
-#endif /* GFX_WINDOWSSURFACE_H */
+#endif /* __nsIThebesRenderingContext_h */

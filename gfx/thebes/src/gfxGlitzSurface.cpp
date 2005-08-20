@@ -12,14 +12,15 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is Oracle Corporation code.
+ * The Original Code is thebes
  *
- * The Initial Developer of the Original Code is Oracle Corporation.
+ * The Initial Developer of the Original Code is
+ *   mozilla.org
  * Portions created by the Initial Developer are Copyright (C) 2005
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Stuart Parmenter <pavlov@pavlov.net>
+ *   Vladimir Vukicevic <vladimir@pobox.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,31 +36,49 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef GFX_WINDOWSSURFACE_H
-#define GFX_WINDOWSSURFACE_H
+#include "gfxGlitzSurface.h"
 
-#include "gfxASurface.h"
+THEBES_IMPL_REFCOUNTING(gfxGlitzSurface)
 
-#include <cairo-win32.h>
+gfxGlitzSurface::gfxGlitzSurface(glitz_drawable_t *drawable, glitz_surface_t *surface, PRBool takeOwnership)
+    : mGlitzDrawable (drawable), mGlitzSurface(surface), mOwnsSurface(takeOwnership)
+{
+    cairo_surface_t *surf = cairo_glitz_surface_create (mGlitzSurface);
+    Init(surf);
+}
 
-class gfxWindowsSurface : public gfxASurface {
-    THEBES_DECL_ISUPPORTS_INHERITED
+gfxGlitzSurface::~gfxGlitzSurface()
+{
+    Destroy();
 
-public:
-    gfxWindowsSurface(HDC dc);
-    gfxWindowsSurface(HDC dc, unsigned long width, unsigned long height);
-    gfxWindowsSurface(unsigned long width, unsigned long height);
-    virtual ~gfxWindowsSurface();
+    if (mOwnsSurface) {
+        if (mGlitzSurface) {
+            glitz_surface_flush(mGlitzSurface);
+            glitz_surface_destroy(mGlitzSurface);
+        }
 
+        if (mGlitzDrawable) {
+            glitz_drawable_flush(mGlitzDrawable);
+            glitz_drawable_finish(mGlitzDrawable);
+            glitz_drawable_destroy(mGlitzDrawable);
+        }
+    }
+}
 
-    HDC GetDC() { return mDC; }
-private:
-    PRBool mOwnsDC;
-    HDC mDC;
-    HBITMAP mOrigBitmap;
+void
+gfxGlitzSurface::SwapBuffers()
+{
+    glitz_drawable_swap_buffers (GlitzDrawable());
+}
 
-    PRInt32 mWidth;
-    PRInt32 mHeight;
-};
+unsigned long
+gfxGlitzSurface::Width()
+{
+    return glitz_drawable_get_width (GlitzDrawable());
+}
 
-#endif /* GFX_WINDOWSSURFACE_H */
+unsigned long
+gfxGlitzSurface::Height()
+{
+    return glitz_drawable_get_height (GlitzDrawable());
+}
