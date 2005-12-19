@@ -59,7 +59,3 @@ expect = 3;
 actual = obj.length;
 reportCompare(expect, actual, summary + ': immutable');
 
-// length inherited
-expect = false;
-actual = obj.hasOwnProperty('length');
-reportCompare(expect, actual, summary + ': inherited');
