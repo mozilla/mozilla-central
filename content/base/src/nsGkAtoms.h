@@ -15,12 +15,11 @@
  * The Original Code is mozilla.org code.
  *
  * The Initial Developer of the Original Code is
- * Netscape Communications Corporation.
- * Portions created by the Initial Developer are Copyright (C) 1998
+ * Mozilla Foundation.
+ * Portions created by the Initial Developer are Copyright (C) 2006
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Original Author: David W. Hyatt (hyatt@netscape.com)
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -35,10 +34,32 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-#ifndef nsXULAtoms_h___
-#define nsXULAtoms_h___
+#ifndef nsGkAtoms_h___
+#define nsGkAtoms_h___
 
-#include "nsGkAtoms.h"
-typedef class nsGkAtoms nsXULAtoms;
+#include "nsIAtom.h"
 
-#endif /* nsXULAtoms_h___ */
+/**
+ * This class wraps up the creation (and destruction) of the standard
+ * set of atoms used by gklayout. This objects are created when gklayout
+ * is loaded and they destroyed when gklayout is unloaded.
+ */
+
+class nsGkAtoms {
+public:
+
+  static void AddRefAtoms();
+
+  /* Declare all atoms
+
+     The atom names and values are stored in nsGkAtomList.h and
+     are brought to you by the magic of C preprocessing
+
+     Add new atoms to nsGkAtomList and all support logic will be auto-generated
+   */
+#define GK_ATOM(_name, _value) static nsIAtom* _name;
+#include "nsGkAtomList.h"
+#undef GK_ATOM
+};
+
+#endif /* nsGkAtoms_h___ */

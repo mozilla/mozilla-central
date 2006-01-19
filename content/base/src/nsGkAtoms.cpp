@@ -15,12 +15,11 @@
  * The Original Code is mozilla.org code.
  *
  * The Initial Developer of the Original Code is
- * Netscape Communications Corporation.
- * Portions created by the Initial Developer are Copyright (C) 1998
+ * Mozilla Foundation.
+ * Portions created by the Initial Developer are Copyright (C) 2006
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Original Author: David W. Hyatt (hyatt@netscape.com)
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -35,10 +34,22 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-#ifndef nsXULAtoms_h___
-#define nsXULAtoms_h___
-
 #include "nsGkAtoms.h"
-typedef class nsGkAtoms nsXULAtoms;
+#include "nsStaticAtom.h"
 
-#endif /* nsXULAtoms_h___ */
+// define storage for all atoms
+#define GK_ATOM(_name, _value) nsIAtom* nsGkAtoms::_name;
+#include "nsGkAtomList.h"
+#undef GK_ATOM
+
+static const nsStaticAtom GkAtoms_info[] = {
+#define GK_ATOM(name_, value_) { value_, &nsGkAtoms::name_ },
+#include "nsGkAtomList.h"
+#undef GK_ATOM
+};
+
+void nsGkAtoms::AddRefAtoms()
+{
+  NS_RegisterStaticAtoms(GkAtoms_info, NS_ARRAY_LENGTH(GkAtoms_info));
+}
+
