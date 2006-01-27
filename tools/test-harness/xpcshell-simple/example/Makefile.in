@@ -43,15 +43,14 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE		= test_content
+MODULE		= test_harness_xpcshell_simple
 
 include $(topsrcdir)/config/rules.mk
 
 _UNIT_FILES := $(wildcard $(srcdir)/unit/*.js)
 
 libs:: $(_UNIT_FILES)
-	$(INSTALL) $^ $(DIST)/bin/content_unit_tests
+	$(INSTALL) $^ $(DIST)/bin/$(MODULE)
 
 check::
-	$(RUN_TEST_PROGRAM) $(DIST)/bin/test_all.sh \
-		$(DIST)/bin/content_unit_tests
+	$(RUN_TEST_PROGRAM) $(DIST)/bin/test_all.sh $(DIST)/bin/$(MODULE)

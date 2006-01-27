@@ -15,12 +15,12 @@
 # The Original Code is mozilla.org code.
 #
 # The Initial Developer of the Original Code is
-# Mozilla.org.
-# Portions created by the Initial Developer are Copyright (C) 2005
+# Netscape Communications Corporation.
+# Portions created by the Initial Developer are Copyright (C) 1998
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#     Boris Zbarsky <bzbarsky@mit.edu>  (Original author)
+#     David Liebreich <davel@mozilla.com>  (Original author)
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -43,15 +43,8 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE		= test_content
+MODULE		= test_harness
+DIRS		= xpcshell-simple
 
 include $(topsrcdir)/config/rules.mk
 
-_UNIT_FILES := $(wildcard $(srcdir)/unit/*.js)
-
-libs:: $(_UNIT_FILES)
-	$(INSTALL) $^ $(DIST)/bin/content_unit_tests
-
-check::
-	$(RUN_TEST_PROGRAM) $(DIST)/bin/test_all.sh \
-		$(DIST)/bin/content_unit_tests
