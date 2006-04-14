@@ -14,18 +14,15 @@
  *
  * The Original Code is the Mozilla SVG project.
  *
- * The Initial Developer of the Original Code is
- * Crocodile Clips Ltd..
- * Portions created by the Initial Developer are Copyright (C) 2001
+ * The Initial Developer of the Original Code is IBM Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 2005
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Alex Fritze <alex.fritze@crocodile-clips.com> (original author)
- *   Jonathan Watt <jonathan.watt@strath.ac.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
- * either of the GNU General Public License Version 2 or later (the "GPL"),
- * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
  * in which case the provisions of the GPL or the LGPL are applicable instead
  * of those above. If you wish to allow use of your version of this file only
  * under the terms of either the GPL or the LGPL, and not to allow others to
@@ -37,21 +34,50 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __NS_SVGRECT_H__
-#define __NS_SVGRECT_H__
+#ifndef __NS_SVGMASKELEMENT_H__
+#define __NS_SVGMASKELEMENT_H__
 
-#include "nsIDOMSVGRect.h"
+#include "nsSVGStylableElement.h"
+#include "nsIDOMSVGMaskElement.h"
+#include "nsSVGLength2.h"
 
-class nsIDOMSVGLength;
+//--------------------- Masks ------------------------
 
-nsresult
-NS_NewSVGRect(nsIDOMSVGRect** result,
-              float x=0.0f, float y=0.0f,
-              float width=0.0f, float height=0.0f);
+typedef nsSVGStylableElement nsSVGMaskElementBase;
 
-nsresult
-NS_NewSVGReadonlyRect(nsIDOMSVGRect** result,
-                      float x=0.0f, float y=0.0f,
-                      float width=0.0f, float height=0.0f);
+class nsSVGMaskElement : public nsSVGMaskElementBase,
+                         public nsIDOMSVGMaskElement
+{
+  friend class nsSVGMaskFrame;
 
-#endif //__NS_SVGRECT_H__
+protected:
+  friend nsresult NS_NewSVGMaskElement(nsIContent **aResult,
+                                         nsINodeInfo *aNodeInfo);
+  nsSVGMaskElement(nsINodeInfo* aNodeInfo);
+  nsresult Init();
+
+public:
+  // interfaces:
+  NS_DECL_ISUPPORTS_INHERITED
+
+  // Mask Element
+  NS_DECL_NSIDOMSVGMASKELEMENT
+
+  NS_FORWARD_NSIDOMNODE_NO_CLONENODE(nsSVGElement::)
+  NS_FORWARD_NSIDOMELEMENT(nsSVGElement::)
+  NS_FORWARD_NSIDOMSVGELEMENT(nsSVGElement::)
+
+protected:
+
+  virtual LengthAttributesInfo GetLengthInfo();
+
+  // nsIDOMSVGMaskElement values
+  enum { X, Y, WIDTH, HEIGHT };
+  nsSVGLength2 mLengthAttributes[4];
+  static LengthInfo sLengthInfo[4];
+
+  nsCOMPtr<nsIDOMSVGAnimatedEnumeration> mMaskUnits;
+  nsCOMPtr<nsIDOMSVGAnimatedEnumeration> mMaskContentUnits;
+};
+
+#endif
