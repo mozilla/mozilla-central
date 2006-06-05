@@ -30,23 +30,15 @@
 
 =cut
 
-package Litmus::DB::Locale;
+package Litmus::DB::ResultStatus;
 
 use strict;
 use base 'Litmus::DBI';
 
-Litmus::DB::Locale->table('locale_lookup');
+Litmus::DB::ResultStatus->table('test_result_status_lookup');
 
-Litmus::DB::Locale->columns(All => qw/abbrev name/);
+Litmus::DB::ResultStatus->columns(All => qw/result_status_id name class_name/);
 
-Litmus::DB::Locale->column_alias("abbrev", "locale");
-
-Litmus::DB::Locale->has_many(test_results => "Litmus::DB::Testresult");
-
-__PACKAGE__->set_sql(RetrieveAll => qq{
-                                       SELECT __ESSENTIAL__
-                                       FROM   __TABLE__
-                                       ORDER BY abbrev ASC
-});
+Litmus::DB::ResultStatus->has_many(test_results => "Litmus::DB::Testresult");
 
 1;
