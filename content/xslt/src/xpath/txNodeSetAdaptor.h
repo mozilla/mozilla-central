@@ -1,4 +1,4 @@
-/* -*- Mode: IDL; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -15,12 +15,13 @@
  * The Original Code is mozilla.org code.
  *
  * The Initial Developer of the Original Code is
- * Netscape Communications Corporation.
- * Portions created by the Initial Developer are Copyright (C) 2002
+ * Peter Van der Beken.
+ * Portions created by the Initial Developer are Copyright (C) 2005
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Jonas Sicking <sicking@bigfoot.com> (Original author)
+ *   Peter Van der Beken <peterv@propagandism.org>
+ *
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,40 +36,31 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
- 
-#ifndef nsIXPathEvaluatorInternal_h__
-#define nsIXPathEvaluatorInternal_h__
 
-#include "nsCOMArray.h"
+#ifndef txNodeSetAdaptor_h__
+#define txNodeSetAdaptor_h__
 
-class nsIDOMDocument;
-class nsIDOMXPathExpression;
-class nsIDOMXPathNSResolver;
+#include "txINodeSet.h"
+#include "txNodeSet.h"
 
-#define NS_IXPATHEVALUATORINTERNAL_IID \
-  {0xb4b72daa, 0x65d6, 0x440f, \
-    { 0xb6, 0x08, 0xe2, 0xee, 0x9a, 0x82, 0xf3, 0x13 }}
+/**
+ * Implements an XPCOM wrapper around an XPath NodeSet.
+ */
 
-class nsIXPathEvaluatorInternal : public nsISupports
+class txNodeSetAdaptor : public txINodeSet 
 {
-public: 
+public:
+    txNodeSetAdaptor();
+    txNodeSetAdaptor(txNodeSet *aNodeSet);
 
-  NS_DECLARE_STATIC_IID_ACCESSOR(NS_IXPATHEVALUATORINTERNAL_IID)
+    nsresult Init();
 
-  /**
-   * Sets the document this evaluator corresponds to
-   */
-  NS_IMETHOD SetDocument(nsIDOMDocument* aDocument) = 0;
+    NS_DECL_ISUPPORTS
+    NS_DECL_TXINODESET
 
-  NS_IMETHOD CreateExpression(const nsAString &aExpression,
-                              nsIDOMXPathNSResolver *aResolver,
-                              nsStringArray *aNamespaceURIs,
-                              nsCStringArray *aContractIDs,
-                              nsCOMArray<nsISupports> *aState,
-                              nsIDOMXPathExpression **aResult) = 0;
+private:
+    nsRefPtr<txNodeSet> mNodeSet;
+    PRBool mWritable;
 };
 
-NS_DEFINE_STATIC_IID_ACCESSOR(nsIXPathEvaluatorInternal,
-                              NS_IXPATHEVALUATORINTERNAL_IID)
-
-#endif //nsIXPathEvaluatorInternal_h__
+#endif // txNodeSetAdaptor_h__
