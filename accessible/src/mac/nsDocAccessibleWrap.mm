@@ -36,29 +36,28 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-/* For documentation of the accessibility architecture, 
- * see http://lxr.mozilla.org/seamonkey/source/accessible/accessible-docs.html
- */
+#include "nsDocAccessibleWrap.h"
 
-#ifndef _nsRootAccessibleWrap_H_
-#define _nsRootAccessibleWrap_H_
+#import "mozDocAccessible.h"
+#import "mozAccessibleWrapper.h"
 
-#include "nsRootAccessible.h"
-
-struct objc_class;
-
-class nsRootAccessibleWrap : public nsRootAccessible
+nsDocAccessibleWrap::nsDocAccessibleWrap(nsIDOMNode *aDOMNode, nsIWeakReference *aShell): 
+  nsDocAccessible(aDOMNode, aShell)
 {
-  public:
-    nsRootAccessibleWrap(nsIDOMNode *aNode, nsIWeakReference *aShell);
-    virtual ~nsRootAccessibleWrap();
+}
 
-    objc_class* GetNativeType ();
-    
-    // let's our native accessible get in touch with the
-    // native cocoa view that is our accessible parent.
-    void GetNativeWidget (void **aOutView);
-};
+nsDocAccessibleWrap::~nsDocAccessibleWrap()
+{
+}
 
+NS_IMETHODIMP
+nsDocAccessibleWrap::FireToolkitEvent(PRUint32 aEvent, nsIAccessible* aAccessible, void* aData)
+{
+  return NS_OK;
+}
 
-#endif
+objc_class*
+nsDocAccessibleWrap::GetNativeType ()
+{
+  return [mozDocAccessible class];
+}

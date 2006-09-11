@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* -*- Mode: Objective-C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -36,29 +36,60 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-/* For documentation of the accessibility architecture, 
- * see http://lxr.mozilla.org/seamonkey/source/accessible/accessible-docs.html
- */
+#include "nsRootAccessibleWrap.h"
 
-#ifndef _nsRootAccessibleWrap_H_
-#define _nsRootAccessibleWrap_H_
+#import "mozDocAccessible.h"
 
-#include "nsRootAccessible.h"
+#import "mozView.h"
 
-struct objc_class;
-
-class nsRootAccessibleWrap : public nsRootAccessible
+static id <mozAccessible, mozView> getNativeViewFromRootAccessible (nsAccessible *accessible)
 {
-  public:
-    nsRootAccessibleWrap(nsIDOMNode *aNode, nsIWeakReference *aShell);
-    virtual ~nsRootAccessibleWrap();
+  nsRootAccessibleWrap *root = NS_STATIC_CAST (nsRootAccessibleWrap*, accessible);
+  id <mozAccessible, mozView> nativeView = nil;
+  root->GetNativeWidget ((void**)&nativeView);
+  return nativeView;
+}
 
-    objc_class* GetNativeType ();
-    
-    // let's our native accessible get in touch with the
-    // native cocoa view that is our accessible parent.
-    void GetNativeWidget (void **aOutView);
-};
+#pragma mark -
 
+@implementation mozDocAccessible
 
+- (NSString*)role
+{
+  return @"mozDocAccessible";
+}
+
+@end
+
+@implementation mozRootAccessible
+
+// return the AXParent that our parallell NSView tells us about.
+- (id)parent
+{
+  if (!parallelView)
+    parallelView = (id<mozView, mozAccessible>)[self ourself];
+  
+  return [parallelView accessibilityAttributeValue:NSAccessibilityParentAttribute];
+}
+
+// this will return our parallell NSView. see mozDocAccessible.h
+- (id)ourself
+{
+  if (parallelView)
+    return (id)parallelView;
+  
+  parallelView = getNativeViewFromRootAccessible (geckoAccessible);
+  
+#ifdef DEBUG
+  if (!parallelView)
+    NSLog (@"!!! can't return root accessible's native parallel view.");
 #endif
+  return parallelView;
+}
+
+- (NSString*)role
+{
+  return @"mozRootAccessible";
+}
+
+@end

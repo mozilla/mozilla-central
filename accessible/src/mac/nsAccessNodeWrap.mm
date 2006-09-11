@@ -15,12 +15,12 @@
  * The Original Code is mozilla.org code.
  *
  * The Initial Developer of the Original Code is
- * Mozilla Foundation.
- * Portions created by the Initial Developer are Copyright (C) 2006
+ * Netscape Communications Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 2003
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Original Author: Håkan Waara <hwaara@gmail.com>
+ *   Original Author: Aaron Leventhal (aaronl@netscape.com)
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -36,29 +36,41 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#include "nsAccessNodeWrap.h"
+
 /* For documentation of the accessibility architecture, 
  * see http://lxr.mozilla.org/seamonkey/source/accessible/accessible-docs.html
  */
 
-#ifndef _nsRootAccessibleWrap_H_
-#define _nsRootAccessibleWrap_H_
 
-#include "nsRootAccessible.h"
+/*
+ * Class nsAccessNodeWrap
+ */
 
-struct objc_class;
+//-----------------------------------------------------
+// construction 
+//-----------------------------------------------------
 
-class nsRootAccessibleWrap : public nsRootAccessible
+nsAccessNodeWrap::nsAccessNodeWrap(nsIDOMNode *aNode, nsIWeakReference* aShell): 
+  nsAccessNode(aNode, aShell)
 {
-  public:
-    nsRootAccessibleWrap(nsIDOMNode *aNode, nsIWeakReference *aShell);
-    virtual ~nsRootAccessibleWrap();
+}
 
-    objc_class* GetNativeType ();
-    
-    // let's our native accessible get in touch with the
-    // native cocoa view that is our accessible parent.
-    void GetNativeWidget (void **aOutView);
-};
+//-----------------------------------------------------
+// destruction
+//-----------------------------------------------------
+nsAccessNodeWrap::~nsAccessNodeWrap()
+{
+}
 
 
-#endif
+void nsAccessNodeWrap::InitAccessibility()
+{
+  nsAccessNode::InitXPAccessibility();
+}
+
+void nsAccessNodeWrap::ShutdownAccessibility()
+{
+  nsAccessNode::ShutdownXPAccessibility();
+}
+

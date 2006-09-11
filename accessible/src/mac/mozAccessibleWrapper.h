@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* -*- Mode: Objective-C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -35,30 +35,39 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
+ 
+#include "nsAccessibleWrap.h"
 
-/* For documentation of the accessibility architecture, 
- * see http://lxr.mozilla.org/seamonkey/source/accessible/accessible-docs.html
- */
+#import "mozAccessible.h"
 
-#ifndef _nsRootAccessibleWrap_H_
-#define _nsRootAccessibleWrap_H_
+/* Wrapper class.  
 
-#include "nsRootAccessible.h"
+   This is needed because C++-only headers such as nsAccessibleWrap.h must not depend
+   on Objective-C and Cocoa. Classes in accessible/src/base depend on them, and other modules in turn
+   depend on them, so in the end all of Mozilla would end up having to link against Cocoa and be renamed .mm :-)
 
-struct objc_class;
+   In order to have a mozAccessible object wrapped, the user passes itself (nsAccessible*) and the subclass of
+   mozAccessible that should be instantiated.
 
-class nsRootAccessibleWrap : public nsRootAccessible
-{
-  public:
-    nsRootAccessibleWrap(nsIDOMNode *aNode, nsIWeakReference *aShell);
-    virtual ~nsRootAccessibleWrap();
+   In the header file, the AccessibleWrapper is used as the member, and is forward-declared (because this header
+   cannot be #included directly.
+*/
 
-    objc_class* GetNativeType ();
+struct AccessibleWrapper {
+  mozAccessible *object;
+  AccessibleWrapper (nsAccessibleWrap *parent, Class classType) {
+    object = (mozAccessible*)[[classType alloc] initWithAccessible:parent];
+  }
+
+  ~AccessibleWrapper () {
+    // if some third-party still holds on to the object, it's important that it is marked
+    // as expired, so it can't do any harm (e.g., walk into an expired hierarchy of nodes).
+    [object expire];
     
-    // let's our native accessible get in touch with the
-    // native cocoa view that is our accessible parent.
-    void GetNativeWidget (void **aOutView);
+    [object release];
+  }
+
+  mozAccessible* getNativeObject () {
+    return object;
+  }
 };
-
-
-#endif
