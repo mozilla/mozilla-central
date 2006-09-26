@@ -1,6 +1,7 @@
+/* vim: set sw=4 sts=4 et cin: */
 /* cairo - a vector graphics library with display and print output
  *
- * Copyright © 2005 Red Hat, Inc
+ * Copyright (c) 2005-2006 netlabs.org
  *
  * This library is free software; you can redistribute it and/or
  * modify it either under the terms of the GNU Lesser General Public
@@ -27,51 +28,50 @@
  *
  * The Original Code is the cairo graphics library.
  *
- * The Initial Developer of the Original Code is Red Hat, Inc.
+ * The Initial Developer of the Original Code is
+ *     Doodle <doodle@scenergy.dfmk.hu>
  *
  * Contributor(s):
- *      Graydon Hoare <graydon@redhat.com>
- *	Owen Taylor <otaylor@redhat.com>
+ *     Peter Weilbacher <mozilla@Weilbacher.org>
  */
 
-#ifndef CAIRO_FT_PRIVATE_H
-#define CAIRO_FT_PRIVATE_H
+#ifndef CAIRO_OS2_PRIVATE_H
+#define CAIRO_OS2_PRIVATE_H
 
-#include <cairo-ft.h>
+#define INCL_DOS
+#define INCL_DOSSEMAPHORES
+#define INCL_DOSERRORS
+#define INCL_WIN
+#define INCL_GPI
+#ifdef __WATCOMC__
+# include <os2.h>
+#else
+# include <os2emx.h>
+#endif
+
+#include <cairo-os2.h>
 #include <cairoint.h>
 
-#if CAIRO_HAS_FT_FONT
+typedef struct _cairo_os2_surface
+{
+    cairo_surface_t        base;
 
-CAIRO_BEGIN_DECLS
+    /* Mutex semaphore to protect private fields from concurrent access */
+    HMTX                   hmtx_use_private_fields;
+    /* Private fields: */
+    HPS                    hps_client_window;
+    HWND                   hwnd_client_window;
+    BITMAPINFO2            bitmap_info;
+    unsigned char         *pixels;
+    cairo_image_surface_t *image_surface;
+    int                    pixel_array_lend_count;
+    HEV                    hev_pixel_array_came_back;
 
-typedef struct _cairo_ft_unscaled_font cairo_ft_unscaled_font_t;
+    RECTL                  rcl_dirty_area;
+    cairo_bool_t           dirty_area_present;
 
-cairo_private cairo_bool_t
-_cairo_unscaled_font_is_ft (cairo_unscaled_font_t *unscaled_font);
+    /* General flags: */
+    cairo_bool_t           blit_as_changes;
+} cairo_os2_surface_t;
 
-cairo_private cairo_bool_t
-_cairo_scaled_font_is_ft (cairo_scaled_font_t *scaled_font);
-
-/* These functions are needed by the PDF backend, which needs to keep track of the
- * the different fonts-on-disk used by a document, so it can embed them
- */
-cairo_private cairo_unscaled_font_t *
-_cairo_ft_scaled_font_get_unscaled_font (cairo_scaled_font_t *scaled_font);
-
-cairo_private FT_Face
-_cairo_ft_unscaled_font_lock_face (cairo_ft_unscaled_font_t *unscaled);
-
-cairo_private void
-_cairo_ft_unscaled_font_unlock_face (cairo_ft_unscaled_font_t *unscaled);
-
-cairo_private cairo_bool_t
-_cairo_ft_scaled_font_is_vertical (cairo_scaled_font_t *scaled_font);
-
-slim_hidden_proto (cairo_ft_font_options_substitute);
-slim_hidden_proto (cairo_ft_scaled_font_lock_face);
-slim_hidden_proto (cairo_ft_scaled_font_unlock_face);
-
-CAIRO_END_DECLS
-
-#endif /* CAIRO_HAS_FT_FONT */
-#endif /* CAIRO_FT_PRIVATE_H */
+#endif /* CAIRO_OS2_PRIVATE_H */
