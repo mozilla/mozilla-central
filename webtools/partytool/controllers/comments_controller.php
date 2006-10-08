@@ -34,28 +34,38 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-class Comment extends AppModel {
-  var $name = 'Comment';
+uses('sanitize');
 
-  var $validate = array(
-    'text' => VALID_NOT_EMPTY
-  );
+class CommentsController extends AppController {
+  var $name = 'Comments';
+  var $components = array('Security');
+  
+  function beforeFilter() {
+    $this->Security->requirePost('add');
+  }
 
-  function canComment($pid, $uid) {
-    $status = $this->query('SELECT owner, guestcomments FROM parties WHERE id = '.$pid);
-    $guest = null;
-    if ($status[0]['parties']['owner'] != $uid)
-      $guest = $this->query('SELECT uid FROM guests WHERE pid = '.$pid.' AND uid = '.$uid);
+  function add($pid, $uid) {
+    if (!$this->Session->check('User') || $uid != $_SESSION['User']['id'])
+      $this->redirect('/');
 
-    if ($status[0]['parties']['guestcomments'] == 1) {
-      if (!empty($guest[0]['guests']['uid']) || $uid == $status[0]['parties']['owner'])
-        return true;
-      else
-        return false;
+    if (!empty($this->data) && $this->Comment->canComment($pid, $uid)) {
+      // Explictly destroy the last model to avoid an edit instead of an insert
+      $this->Comment->create();
+
+      $clean = new Sanitize();
+      $text = $clean->html($this->data['Comment']['text']);
+      $this->data['Comment']['text'] = nl2br($text);
+      $this->data['Comment']['owner'] = $uid;
+      $this->data['Comment']['assoc'] = $pid;
+      $this->data['Comment']['time'] = gmmktime();
+
+      if ($this->Comment->save($this->data)) {
+        $this->redirect('/parties/view/'.$pid.'#c'.$this->Comment->getLastInsertID());
+      }
     }
 
     else
-      return true;
+      $this->redirect('/parties/view/'.$pid);
   }
 }
 ?>
