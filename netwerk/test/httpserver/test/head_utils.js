@@ -36,7 +36,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-do_import_script("test-harness/xpcshell-simple/httpd.js");
+do_import_script("netwerk/test/httpserver/httpd.js");
 
 /**
  * Constructs a new nsHttpServer instance.  This function is intended to
