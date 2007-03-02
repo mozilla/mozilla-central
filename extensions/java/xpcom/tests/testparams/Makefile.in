@@ -34,24 +34,49 @@
 #
 # ***** END LICENSE BLOCK *****
 
-DEPTH		= ../../..
+DEPTH		= ../../../../..
 topsrcdir	= @top_srcdir@
 srcdir		= @srcdir@
 VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-DIRS = interfaces glue
+MODULE = test_jxtestparams
 
-ifdef ENABLE_TESTS
-DIRS += tests
-endif
+# This module makes use of the interfaces from the XPConnect tests.
+# Make sure they have been built.
+DIRS = $(DEPTH)/js/src/xpconnect/tests/idl
+
+XPIDLSRCS = \
+	nsIJXTestParams.idl \
+	$(NULL)
+
+EXTRA_COMPONENTS = \
+	nsJXTestParams.js \
+	xpctests.js \
+	$(NULL)
+
+JAVA_LIBRARY_NAME = test_jxtestparams
+
+JAVA_SRCS = \
+	TestParams.java \
+	$(NULL)
+
+JAVA_CLASSPATH = \
+	../../interfaces/MozillaInterfaces.jar \
+	../../interfaces/MozillaGlue.jar \
+	$(NULL)
+
+JAVA_SOURCEPATH = $(srcdir)/..	# to pick up LocationProvider.java
 
 include $(topsrcdir)/config/rules.mk
 
-# Build the implementation Java classes
-libs::
-	make -C src jar-libs
+ifeq ($(OS_ARCH),Darwin)
+DIST_BIN = $(PWD)/$(DIST)/XUL.framework/Versions/Current
+else
+DIST_BIN = $(PWD)/$(DIST)/bin
+endif
 
-install::
-	make -C src jar-install
+check::
+	$(CYGWIN_WRAPPER) $(JAVA) -classpath $(_JAVA_CLASSPATH)$(SEP)$(JAVA_LIBRARY) \
+			TestParams $(DIST_BIN)
