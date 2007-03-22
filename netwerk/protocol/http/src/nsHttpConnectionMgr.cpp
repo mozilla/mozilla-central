@@ -236,8 +236,8 @@ nsHttpConnectionMgr::AddTransactionToPipeline(nsHttpPipeline *pipeline)
 
     NS_ASSERTION(PR_GetCurrentThread() == gSocketThread, "wrong thread");
 
-    nsRefPtr<nsHttpConnectionInfo> ci;
-    pipeline->GetConnectionInfo(getter_AddRefs(ci));
+    nsHttpConnectionInfo *ci = nsnull;
+    pipeline->GetConnectionInfo(&ci);
     if (ci) {
         nsCStringKey key(ci->HashKey());
         nsConnectionEntry *ent = (nsConnectionEntry *) mCT.Get(&key);

@@ -55,9 +55,7 @@ REQUIRES	= xpcom \
 		  nkcache \
 		  gfx \
 		  thebes \
-		  caps \
-		  xpconnect \
-		  js \
+		  cairo \
 		  $(NULL)
 
 CPPSRCS		= \
@@ -65,8 +63,7 @@ CPPSRCS		= \
 			imgContainer.cpp \
 			imgLoader.cpp    \
 			imgRequest.cpp   \
-			imgRequestProxy.cpp \
-			imgTools.cpp
+			imgRequestProxy.cpp
 
 include $(topsrcdir)/config/rules.mk
 

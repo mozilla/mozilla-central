@@ -50,32 +50,30 @@ toolbox {
 
 /* ::::: menubar & toolbar ::::: */
 
-toolbar {
-  -moz-appearance: toolbar;
+menubar, toolbar[type="menubar"] {
+  -moz-appearance: menubar !important;
   min-width: 1px;
   min-height: 20px;
-  padding: 2px 0px;
 }
 
-menubar, toolbar[type="menubar"] {
-  -moz-appearance: menubar;
+toolbar {
+  -moz-appearance: toolbar !important;
   min-width: 1px;
   min-height: 20px;
-  padding: 1px 0px;
 }
 
 /* in browser.xul, the menubar is inside a toolbar... */
 toolbaritem > menubar {
-  -moz-appearance: none;
+  -moz-appearance: none !important;
 }
 
 /* ::::: toolbar decorations ::::: */
 
 toolbarseparator {
-  -moz-appearance: separator !important;
-  margin : 0;
-  border: 0;
-  min-width: 2px;
+  margin : 2px 0.2em;
+  border-right : 1px solid ThreeDHighlight;
+  border-left : 1px solid ThreeDShadow;
+  width : 2px;
 }
 
 toolbarspacer {
@@ -139,7 +137,7 @@ toolbarpaletteitem[place="toolbar"] > toolbarspacer {
 }
 
 .toolbarpaletteitem-box[type="spring"][place="palette"] {
-  background: url("chrome://global/skin/toolbar/spring.png") no-repeat center;
+  background: url("chrome://global/skin/toolbar/spring.gif") no-repeat center;
 }
 
 /* ..... drag and drop feedback ..... */

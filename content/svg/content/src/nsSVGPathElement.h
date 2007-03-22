@@ -43,9 +43,7 @@
 #include "nsIDOMSVGPathElement.h"
 #include "nsIDOMSVGAnimatedPathData.h"
 #include "nsSVGNumber2.h"
-#include "gfxPath.h"
-
-class gfxContext;
+#include "cairo.h"
 
 class nsSVGPathList
 {
@@ -55,13 +53,33 @@ public:
   enum { MOVETO, LINETO, CURVETO, CLOSEPATH };
   nsSVGPathList() : mArguments(nsnull), mNumCommands(0), mNumArguments(0) {}
   ~nsSVGPathList() { Clear(); }
-  void Playback(gfxContext *aCtx);
-  void Clear();
+  void Playback(cairo_t *aCtx);
 
 protected:
+  void Clear();
+
   float   *mArguments;
   PRUint32 mNumCommands;
   PRUint32 mNumArguments;
+};
+
+class nsSVGFlattenedPath
+{
+private:
+  cairo_path_t *mPath;
+
+public:
+  nsSVGFlattenedPath(cairo_path_t *aPath) : mPath(aPath) {}
+  ~nsSVGFlattenedPath() { if (mPath) cairo_path_destroy(mPath); }
+
+  // Returns calculated length of path
+  float GetLength();
+
+  // Finds a point aXOffset along this path, for a character with
+  // aAdvance wide, offset from the path by aYOffset.  Returns
+  // position and angle.
+  void FindPoint(float aAdvance, float aXOffset, float aYOffset,
+                 float *aX, float *aY, float *aAngle);
 };
 
 typedef nsSVGPathGeometryElement nsSVGPathElementBase;
@@ -71,7 +89,6 @@ class nsSVGPathElement : public nsSVGPathElementBase,
                          public nsIDOMSVGAnimatedPathData
 {
 friend class nsSVGPathFrame;
-friend class nsSVGTextPathFrame;
 
 protected:
   friend nsresult NS_NewSVGPathElement(nsIContent **aResult,
@@ -102,19 +119,17 @@ public:
   virtual PRBool IsDependentAttribute(nsIAtom *aName);
   virtual PRBool IsMarkable();
   virtual void GetMarkPoints(nsTArray<nsSVGMark> *aMarks);
-  virtual void ConstructPath(gfxContext *aCtx);
+  virtual void ConstructPath(cairo_t *aCtx);
 
-  virtual already_AddRefed<gfxFlattenedPath> GetFlattenedPath(nsIDOMSVGMatrix *aMatrix);
+  virtual nsSVGFlattenedPath *GetFlattenedPath(nsIDOMSVGMatrix *aMatrix);
 
-  // nsIContent interface
   virtual nsresult Clone(nsINodeInfo *aNodeInfo, nsINode **aResult) const;
-  virtual nsresult BeforeSetAttr(PRInt32 aNamespaceID, nsIAtom* aName,
-                                 const nsAString* aValue, PRBool aNotify);
 
 protected:
 
-  // nsSVGElement method
   virtual NumberAttributesInfo GetNumberInfo();
+  virtual nsresult BeforeSetAttr(PRInt32 aNamespaceID, nsIAtom* aName,
+                                 const nsAString* aValue, PRBool aNotify);
 
   // Helper for lazily creating pathseg list
   nsresult CreatePathSegList();

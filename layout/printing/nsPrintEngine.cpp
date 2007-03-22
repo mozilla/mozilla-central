@@ -57,10 +57,13 @@
 #include "nsGfxCIID.h"
 #include "nsIServiceManager.h"
 #include "nsGkAtoms.h"
+#include "nsISimpleEnumerator.h"
 #include "nsXPCOM.h"
 #include "nsISupportsPrimitives.h"
 
+// PrintOptions is now implemented by PrintSettingsService
 static const char sPrintSettingsServiceContractID[] = "@mozilla.org/gfx/printsettings-service;1";
+static const char sPrintOptionsContractID[]         = "@mozilla.org/gfx/printsettings-service;1";
 
 // Printing Events
 #include "nsPrintPreviewListener.h"
@@ -99,7 +102,7 @@ static const char kPrintingPromptService[] = "@mozilla.org/embedcomp/printingpro
 #include "nsIDocument.h"
 
 // Focus
-#include "nsIDOMEventTarget.h"
+#include "nsIDOMEventReceiver.h"
 #include "nsIDOMFocusListener.h"
 #include "nsISelectionController.h"
 
@@ -139,7 +142,6 @@ static const char kPrintingPromptService[] = "@mozilla.org/embedcomp/printingpro
 #include "nsIDocShellTreeItem.h"
 #include "nsIDocShellTreeNode.h"
 #include "nsIDocShellTreeOwner.h"
-#include "nsIWebBrowserChrome.h"
 #include "nsIDocShell.h"
 #include "nsIBaseWindow.h"
 #include "nsIFrameDebug.h"
@@ -226,18 +228,18 @@ NS_IMPL_ISUPPORTS1(nsPrintEngine, nsIObserver)
 nsPrintEngine::nsPrintEngine() :
   mIsCreatingPrintPreview(PR_FALSE),
   mIsDoingPrinting(PR_FALSE),
-  mIsDoingPrintPreview(PR_FALSE),
-  mProgressDialogIsShown(PR_FALSE),
   mDocViewerPrint(nsnull),
   mContainer(nsnull),
   mDeviceContext(nsnull),
   mPrt(nsnull),
   mPagePrintTimer(nsnull),
   mPageSeqFrame(nsnull),
+  mIsDoingPrintPreview(PR_FALSE),
   mParentWidget(nsnull),
   mPrtPreview(nsnull),
   mOldPrtPreview(nsnull),
-  mDebugFile(nsnull)
+  mDebugFile(nsnull),
+  mProgressDialogIsShown(PR_FALSE)
 {
 }
 
@@ -466,7 +468,9 @@ nsPrintEngine::DoCommonPrint(PRBool                  aIsPrintPreview,
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
-  rv = CheckForPrinters(mPrt->mPrintSettings);
+  mPrt->mPrintOptions = do_GetService(sPrintOptionsContractID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = CheckForPrinters(mPrt->mPrintOptions, mPrt->mPrintSettings);
   NS_ENSURE_SUCCESS(rv, rv);
 
   mPrt->mPrintSettings->SetIsCancelled(PR_FALSE);
@@ -475,12 +479,6 @@ nsPrintEngine::DoCommonPrint(PRBool                  aIsPrintPreview,
   if (aIsPrintPreview) {
     SetIsCreatingPrintPreview(PR_TRUE);
     SetIsPrintPreview(PR_TRUE);
-    nsCOMPtr<nsIMarkupDocumentViewer> viewer =
-      do_QueryInterface(mDocViewerPrint);
-    if (viewer) {
-      viewer->SetTextZoom(1.0f);
-      viewer->SetFullZoom(1.0f);
-    }
   } else {
     SetIsPrinting(PR_TRUE);
   }
@@ -597,14 +595,9 @@ nsPrintEngine::DoCommonPrint(PRBool                  aIsPrintPreview,
           // are telling GFX we want to print silent
           printSilently = PR_TRUE;
         }
-        // The user might have changed shrink-to-fit in the print dialog, so update our copy of its state
-        mPrt->mPrintSettings->GetShrinkToFit(&mPrt->mShrinkToFit);
       } else {
         rv = NS_ERROR_GFX_NO_PRINTROMPTSERVICE;
       }
-    } else {
-      // Call any code that requires a run of the event loop.
-      rv = mPrt->mPrintSettings->SetupSilentPrinting();
     }
     // Check explicitly for abort because it's expected
     if (rv == NS_ERROR_ABORT) 
@@ -724,25 +717,18 @@ nsPrintEngine::Print(nsIPrintSettings*       aPrintSettings,
   return CommonPrint(PR_FALSE, aPrintSettings, aWebProgressListener);
 }
 
+/** ---------------------------------------------------
+ *  See documentation above in the nsIContentViewerfile class definition
+ *	@update 11/01/01 rods
+ *
+ *  For a full and detailed understanding of the issues with
+ *  PrintPreview: See the design spec that is attached to Bug 107562
+ */
 NS_IMETHODIMP
 nsPrintEngine::PrintPreview(nsIPrintSettings* aPrintSettings, 
                                  nsIDOMWindow *aChildDOMWin, 
                                  nsIWebProgressListener* aWebProgressListener)
 {
-  // Get the DocShell and see if it is busy
-  // (We can't Print Preview this document if it is still busy)
-  nsCOMPtr<nsIDocShell> docShell(do_QueryInterface(mContainer));
-  NS_ASSERTION(docShell, "This has to be a docshell");
-
-  PRUint32 busyFlags = nsIDocShell::BUSY_FLAGS_NONE;
-  if (NS_FAILED(docShell->GetBusyFlags(&busyFlags)) ||
-      busyFlags != nsIDocShell::BUSY_FLAGS_NONE) {
-    CloseProgressDialog(aWebProgressListener);
-    ShowPrintErrorDialog(NS_ERROR_GFX_PRINTER_DOC_IS_BUSY_PP, PR_FALSE);
-    return NS_ERROR_FAILURE;
-  }
-
-  // Document is not busy -- go ahead with the Print Preview
   return CommonPrint(PR_TRUE, aPrintSettings, aWebProgressListener);
 }
 
@@ -928,32 +914,48 @@ nsPrintEngine::GetCurrentPrintSettings(nsIPrintSettings * *aCurrentPrintSettings
 // and if so, it sets the first printer in the list as the default name
 // in the PrintSettings which is then used for Printer Preview
 nsresult
-nsPrintEngine::CheckForPrinters(nsIPrintSettings* aPrintSettings)
+nsPrintEngine::CheckForPrinters(nsIPrintOptions*  aPrintOptions,
+                                nsIPrintSettings* aPrintSettings)
 {
-#ifdef XP_MACOSX
-  // Mac doesn't support retrieving a printer list.
-  return NS_OK;
-#else
+  NS_ENSURE_ARG_POINTER(aPrintOptions);
   NS_ENSURE_ARG_POINTER(aPrintSettings);
 
-  // See if aPrintSettings already has a printer
-  nsXPIDLString printerName;
-  nsresult rv = aPrintSettings->GetPrinterName(getter_Copies(printerName));
-  if (NS_SUCCEEDED(rv) && !printerName.IsEmpty()) {
-    return NS_OK;
-  }
+  nsresult rv;
 
-  // aPrintSettings doesn't have a printer set. Try to fetch the default.
-  nsCOMPtr<nsIPrintSettingsService> printSettingsService =
-    do_GetService(sPrintSettingsServiceContractID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = printSettingsService->GetDefaultPrinterName(getter_Copies(printerName));
-  if (NS_SUCCEEDED(rv) && !printerName.IsEmpty()) {
-    rv = aPrintSettings->SetPrinterName(printerName.get());
+  nsCOMPtr<nsISimpleEnumerator> simpEnum;
+  rv = aPrintOptions->AvailablePrinters(getter_AddRefs(simpEnum));
+  if (simpEnum) {
+    PRBool fndPrinter = PR_FALSE;
+    simpEnum->HasMoreElements(&fndPrinter);
+    if (fndPrinter) {
+      // For now, it assumes the first item in the list
+      // is the default printer, but only set the
+      // printer name if there isn't one
+      nsCOMPtr<nsISupports> supps;
+      simpEnum->GetNext(getter_AddRefs(supps));
+      PRUnichar* defPrinterName;
+      aPrintSettings->GetPrinterName(&defPrinterName);
+      if (!defPrinterName || !*defPrinterName) {
+        if (defPrinterName) nsMemory::Free(defPrinterName);
+        nsCOMPtr<nsISupportsString> wStr = do_QueryInterface(supps);
+        if (wStr) {
+          wStr->ToString(&defPrinterName);
+          aPrintSettings->SetPrinterName(defPrinterName);
+          nsMemory::Free(defPrinterName);
+        }
+      } else {
+        nsMemory::Free(defPrinterName);
+      }
+      rv = NS_OK;
+    }
+  } else {
+    // this means there were no printers
+    // XXX the ifdefs are temporary until they correctly implement Available Printers
+#if defined(XP_MAC) || defined(XP_MACOSX)
+    rv = NS_OK;
+#endif
   }
   return rv;
-#endif
 }
 
 //----------------------------------------------------------------------
@@ -990,21 +992,6 @@ nsPrintEngine::ShowPrintProgress(PRBool aIsForPrinting, PRBool& aDoNotify)
     if (printPromptService) {
       nsPIDOMWindow *domWin = mDocument->GetWindow(); 
       if (!domWin) return;
-
-      nsCOMPtr<nsIDocShellTreeItem> docShellItem =
-        do_QueryInterface(domWin->GetDocShell());
-      if (!docShellItem) return;
-      nsCOMPtr<nsIDocShellTreeOwner> owner;
-      docShellItem->GetTreeOwner(getter_AddRefs(owner));
-      nsCOMPtr<nsIWebBrowserChrome> browserChrome = do_GetInterface(owner);
-      if (!browserChrome) return;
-      PRBool isModal = PR_TRUE;
-      browserChrome->IsWindowModal(&isModal);
-      if (isModal) {
-        // Showing a print progress dialog when printing a modal window
-        // isn't supported. See bug 301560.
-        return;
-      }
 
       nsCOMPtr<nsIWebProgressListener> printProgressListener;
 
@@ -1281,9 +1268,7 @@ nsPrintEngine::MapContentForPO(nsPrintObject*   aPO,
         po->mContent  = aContent;
 
         nsCOMPtr<nsIDOMHTMLFrameElement> frame(do_QueryInterface(aContent));
-        // "frame" elements not in a frameset context should be treated
-        // as iframes
-        if (frame && po->mParent->mFrameType == eFrameSet) {
+        if (frame) {
           po->mFrameType = eFrame;
         } else {
           // Assume something iframe-like, i.e. iframe, object, or embed
@@ -1520,11 +1505,13 @@ nsPrintEngine::ShowPrintErrorDialog(nsresult aPrintError, PRBool aIsPrinting)
       NS_ERROR_TO_LOCALIZED_PRINT_ERROR_MSG(NS_ERROR_GFX_PRINTER_COLORSPACE_NOT_SUPPORTED)
       NS_ERROR_TO_LOCALIZED_PRINT_ERROR_MSG(NS_ERROR_GFX_PRINTER_TOO_MANY_COPIES)
       NS_ERROR_TO_LOCALIZED_PRINT_ERROR_MSG(NS_ERROR_GFX_PRINTER_DRIVER_CONFIGURATION_ERROR)
+      NS_ERROR_TO_LOCALIZED_PRINT_ERROR_MSG(NS_ERROR_GFX_PRINTER_XPRINT_BROKEN_XPRT)
       NS_ERROR_TO_LOCALIZED_PRINT_ERROR_MSG(NS_ERROR_GFX_PRINTER_DOC_IS_BUSY_PP)
       NS_ERROR_TO_LOCALIZED_PRINT_ERROR_MSG(NS_ERROR_GFX_PRINTER_DOC_WAS_DESTORYED)
       NS_ERROR_TO_LOCALIZED_PRINT_ERROR_MSG(NS_ERROR_GFX_NO_PRINTDIALOG_IN_TOOLKIT)
       NS_ERROR_TO_LOCALIZED_PRINT_ERROR_MSG(NS_ERROR_GFX_NO_PRINTROMPTSERVICE)
       NS_ERROR_TO_LOCALIZED_PRINT_ERROR_MSG(NS_ERROR_GFX_PRINTER_NO_XUL)   // Temporary code for Bug 136185 / bug 240490
+      NS_ERROR_TO_LOCALIZED_PRINT_ERROR_MSG(NS_ERROR_GFX_PRINTER_XPRINT_NO_XPRINT_SERVERS_FOUND)
       NS_ERROR_TO_LOCALIZED_PRINT_ERROR_MSG(NS_ERROR_GFX_PRINTER_PLEX_NOT_SUPPORTED)
       NS_ERROR_TO_LOCALIZED_PRINT_ERROR_MSG(NS_ERROR_GFX_PRINTER_DOC_IS_BUSY)
       NS_ERROR_TO_LOCALIZED_PRINT_ERROR_MSG(NS_ERROR_GFX_PRINTING_NOT_IMPLEMENTED)
@@ -1725,23 +1712,12 @@ nsPrintEngine::SetupToPrintContent()
   // Don't start printing when regression test are executed  
   if (!mPrt->mDebugFilePtr && mIsDoingPrinting) {
     rv = mPrt->mPrintDC->BeginDocument(docTitleStr, fileName, startPage, endPage);
-  } 
-
-  if (mIsCreatingPrintPreview) {
-    // Print Preview -- Pass ownership of docTitleStr and docURLStr
-    // to the pageSequenceFrame, to be displayed in the header
-    nsIPageSequenceFrame *seqFrame = nsnull;
-    mPrt->mPrintObject->mPresShell->GetPageSequenceFrame(&seqFrame);
-    if (seqFrame) {
-      seqFrame->StartPrint(mPrt->mPrintObject->mPresContext, 
-                           mPrt->mPrintSettings, docTitleStr, docURLStr);
-    }
-  } else {
-    if (docTitleStr) nsMemory::Free(docTitleStr);
-    if (docURLStr) nsMemory::Free(docURLStr);
   }
 
   PR_PL(("****************** Begin Document ************************\n"));
+
+  if (docTitleStr) nsMemory::Free(docTitleStr);
+  if (docURLStr) nsMemory::Free(docURLStr);
 
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -1835,22 +1811,9 @@ nsPrintEngine::ReflowPrintObject(nsPrintObject * aPO)
     documentIsTopLevel = PR_FALSE;
     // presshell exists because parent is printable
   } else {
-    nscoord pageWidth, pageHeight;
+    PRInt32 pageWidth, pageHeight;
     mPrt->mPrintDC->GetDeviceSurfaceDimensions(pageWidth, pageHeight);
-#if defined(XP_UNIX) && !defined(XP_MACOSX)
-    // If we're in landscape mode on Linux, the device surface will have 
-    // been rotated, so for the purposes of reflowing content, we'll 
-    // treat device's height as our width and its width as our height, 
-    PRInt32 orientation;
-    mPrt->mPrintSettings->GetOrientation(&orientation);
-    if (nsIPrintSettings::kLandscapeOrientation == orientation) {
-      adjSize = nsSize(pageHeight, pageWidth);
-    } else {
-      adjSize = nsSize(pageWidth, pageHeight);
-    }
-#else
     adjSize = nsSize(pageWidth, pageHeight);
-#endif // XP_UNIX && !XP_MACOSX
     documentIsTopLevel = PR_TRUE;
   }
 
@@ -1896,6 +1859,20 @@ nsPrintEngine::ReflowPrintObject(nsPrintObject * aPO)
 
   PR_PL(("In DV::ReflowPrintObject PO: %p (%9s) Setting w,h to %d,%d\n", aPO,
          gFrameTypesStr[aPO->mFrameType], adjSize.width, adjSize.height));
+
+  // XXX - Hack Alert
+  // OK, so there is a selection, we will print the entire selection
+  // on one page and then crop the page.
+  // This means you can never print any selection that is longer than
+  // one page put it keeps it from page breaking in the middle of your
+  // print of the selection (see also nsSimplePageSequence.cpp)
+  PRInt16 printRangeType = nsIPrintSettings::kRangeAllPages;
+  mPrt->mPrintSettings->GetPrintRange(&printRangeType);
+
+  if (printRangeType == nsIPrintSettings::kRangeSelection &&
+      IsThereARangeSelection(mPrt->mCurrentFocusWin)) {
+    adjSize.height = NS_UNCONSTRAINEDSIZE;
+  }
 
   // Here we decide whether we need scrollbars and
   // what the parent will be of the widget
@@ -1952,19 +1929,15 @@ nsPrintEngine::ReflowPrintObject(nsPrintObject * aPO)
   aPO->mPresContext->SetIsRootPaginatedDocument(documentIsTopLevel);
   aPO->mPresContext->SetPageScale(aPO->mZoomRatio);
   // Calculate scale factor from printer to screen
-  float printDPI = float(mPrt->mPrintDC->AppUnitsPerInch()) /
-                   float(mPrt->mPrintDC->AppUnitsPerDevPixel());
-  float screenDPI = float(mDeviceContext->AppUnitsPerInch()) /
-                    float(mDeviceContext->AppUnitsPerDevPixel());
-  aPO->mPresContext->SetPrintPreviewScale(screenDPI / printDPI);
+  PRInt32 printDPI = mPrt->mPrintDC->AppUnitsPerInch() /
+                     mPrt->mPrintDC->AppUnitsPerDevPixel();
+  PRInt32 screenDPI = mDeviceContext->AppUnitsPerInch() /
+                      mDeviceContext->AppUnitsPerDevPixel();
+  aPO->mPresContext->SetPrintPreviewScale(float(screenDPI) / float(printDPI));
 
   rv = aPO->mPresShell->InitialReflow(adjSize.width, adjSize.height);
 
   NS_ENSURE_SUCCESS(rv, rv);
-  NS_ASSERTION(aPO->mPresShell, "Presshell should still be here");
-
-  // Process the reflow event InitialReflow posted
-  aPO->mPresShell->FlushPendingNotifications(Flush_Layout);
 
   nsCOMPtr<nsIPresShell> displayShell;
   aPO->mDocShell->GetPresShell(getter_AddRefs(displayShell));
@@ -2191,48 +2164,24 @@ nsPrintEngine::DoPrint(nsPrintObject * aPO)
           if (NS_SUCCEEDED(rv)) {
             mPrt->mPrintSettings->SetStartPageRange(startPageNum);
             mPrt->mPrintSettings->SetEndPageRange(endPageNum);
-            nsMargin marginTwips(0,0,0,0);
-            nsMargin unwrtMarginTwips(0,0,0,0);
-            mPrt->mPrintSettings->GetMarginInTwips(marginTwips);
-            mPrt->mPrintSettings->GetUnwriteableMarginInTwips(unwrtMarginTwips);
-            nsMargin totalMargin = poPresContext->TwipsToAppUnits(marginTwips + 
-                                                              unwrtMarginTwips);
+            nsMargin margin(0,0,0,0);
+            mPrt->mPrintSettings->GetMarginInTwips(margin);
+
             if (startPageNum == endPageNum) {
               {
-                startRect.y -= totalMargin.top;
-                endRect.y   -= totalMargin.top;
-
-                // Clip out selection regions above the top of the first page
-                if (startRect.y < 0) {
-                  // Reduce height to be the height of the positive-territory
-                  // region of original rect
-                  startRect.height = PR_MAX(0, startRect.YMost());
-                  startRect.y = 0;
-                }
-                if (endRect.y < 0) {
-                  // Reduce height to be the height of the positive-territory
-                  // region of original rect
-                  endRect.height = PR_MAX(0, endRect.YMost());
-                  endRect.y = 0;
-                }
-                NS_ASSERTION(endRect.y >= startRect.y,
-                             "Selection end point should be after start point");
-                NS_ASSERTION(startRect.height >= 0,
-                             "rect should have non-negative height.");
-                NS_ASSERTION(endRect.height >= 0,
-                             "rect should have non-negative height.");
-
-                nscoord selectionHgt = endRect.y + endRect.height - startRect.y;
+                nsPresContext* presContext = poPresShell->GetPresContext();
+                startRect.y -= presContext->TwipsToAppUnits(margin.top);
+                endRect.y   -= presContext->TwipsToAppUnits(margin.top);
                 // XXX This is temporary fix for printing more than one page of a selection
-                pageSequence->SetSelectionHeight(startRect.y * aPO->mZoomRatio,
-                                                 selectionHgt * aPO->mZoomRatio);
+                pageSequence->SetSelectionHeight(startRect.y, endRect.y+endRect.height-startRect.y);
 
                 // calc total pages by getting calculating the selection's height
                 // and then dividing it by how page content frames will fit.
-                nscoord pageWidth, pageHeight;
+                nscoord selectionHgt = endRect.y + endRect.height - startRect.y;
+                PRInt32 pageWidth, pageHeight;
                 mPrt->mPrintDC->GetDeviceSurfaceDimensions(pageWidth, pageHeight);
-                pageHeight -= totalMargin.top + totalMargin.bottom;
-                PRInt32 totalPages = NSToIntCeil(float(selectionHgt) * aPO->mZoomRatio / float(pageHeight));
+                pageHeight -= margin.top + margin.bottom;
+                PRInt32 totalPages = PRInt32((float(selectionHgt) / float(pageHeight))+0.99);
                 pageSequence->SetTotalNumPages(totalPages);
               }
             }
@@ -2603,9 +2552,6 @@ void nsPrintEngine::SetIsPrinting(PRBool aIsPrinting)
   mIsDoingPrinting = aIsPrinting;
   if (mDocViewerPrint) {
     mDocViewerPrint->SetIsPrinting(aIsPrinting);
-  }
-  if (mPrt && aIsPrinting) {
-    mPrt->mPreparingForPrint = PR_TRUE;
   }
 }
 
@@ -3088,11 +3034,6 @@ nsPrintEngine::FinishPrintPreview()
 
 #ifdef NS_PRINT_PREVIEW
 
-  if (!mPrt) {
-    /* we're already finished with print preview */
-    return rv;
-  }
-
   rv = DocumentReadyForPrinting();
 
   SetIsCreatingPrintPreview(PR_FALSE);
@@ -3105,7 +3046,7 @@ nsPrintEngine::FinishPrintPreview()
     mPrt->OnEndPrinting();
     TurnScriptingOn(PR_TRUE);
 
-    return rv;
+    return CleanupOnFailure(rv, PR_FALSE); // ignore return value here
   }
 
   // At this point we are done preparing everything
@@ -3170,9 +3111,6 @@ nsPrintEngine::Observe(nsISupports *aSubject, const char *aTopic, const PRUnicha
     }
   } else {
     rv = FinishPrintPreview();
-    if (NS_FAILED(rv)) {
-      CleanupOnFailure(rv, PR_FALSE);
-    }
     if (mPrtPreview) {
       mPrtPreview->OnEndPrinting();
     }

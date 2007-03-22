@@ -114,7 +114,7 @@ public:
     /**
      * Check if matrix is singular (no inverse exists).
      */
-    PRBool IsSingular() const {
+    PRBool IsSingular() {
         // if the determinant (ad - bc) is zero it's singular
         return (xx * yy) == (yx * xy);
     }

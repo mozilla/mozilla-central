@@ -44,8 +44,6 @@
 #include "nsIComponentManager.idl"
 #include "nsIScriptableInterfaces.idl"
 
-interface xpcIJSWeakReference;
-
 /**
 * interface of Components.classes
 * (interesting stuff only reflected into JavaScript)
@@ -123,7 +121,7 @@ interface nsIXPCComponents_utils_Sandbox : nsISupports
 /**
 * interface of Components.utils
 */
-[scriptable, uuid(da2267f2-d4cc-448f-9d70-1c7fe134d2fe)]
+[scriptable, uuid(bcd54a63-34d9-468c-9a55-0fb5d2d8c677)]
 interface nsIXPCComponents_Utils : nsISupports
 {
 
@@ -157,7 +155,7 @@ interface nsIXPCComponents_Utils : nsISupports
     readonly attribute nsIXPCComponents_utils_Sandbox Sandbox;
 
     /*
-     * evalInSandbox is designed to be called from JavaScript only.
+     * evalInSandbox is only meant to be called from JavaScript.
      *
      * evalInSandbox evaluates the provided source string in the given sandbox.
      * It returns the result of the evaluation to the caller.
@@ -169,54 +167,6 @@ interface nsIXPCComponents_Utils : nsISupports
      * var thirtyFive = C.u.evalInSandbox("five * seven", s);
      */
     void evalInSandbox(in AString source/*, obj */);
-
-
-    /*
-     * import is designed to be called from JavaScript only.
-     *
-     * Synchronously loads and evaluates the js file located at
-     * 'registryLocation' with a new, fully privileged global object.
-     *
-     * If 'targetObj' is specified and equal to null, returns the
-     * module's global object. Otherwise (if 'targetObj' is not
-     * specified, or 'targetObj' is != null) looks for a property
-     * 'EXPORTED_SYMBOLS' on the new global object. 'EXPORTED_SYMBOLS'
-     * is expected to be an array of strings identifying properties on
-     * the global object.  These properties will be installed as
-     * properties on 'targetObj', or, if 'targetObj' is not specified,
-     * on the caller's global object. If 'EXPORTED_SYMBOLS' is not
-     * found, an error is thrown.
-     *
-     * @param resourceURI A resource:// URI string to load the module from.
-     * @param targetObj  the object to install the exported properties on.
-     *        If this parameter is a primitive value, this method throws
-     *        an exception.
-     * @returns the module code's global object.
-     *
-     * The implementation maintains a hash of registryLocation->global obj.
-     * Subsequent invocations of importModule with 'registryLocation'
-     * pointing to the same file will not cause the module to be re-evaluated,
-     * but the symbols in EXPORTED_SYMBOLS will be exported into the
-     * specified target object and the global object returned as above.
-     *
-     * (This comment is duplicated from xpcIJSModuleLoader.)
-     */
-    void /* JSObject */ import(in AUTF8String registryLocation
-                               /*, [optional] in JSObject targetObj */);
-
-    /*
-     * To be called from JS only.
-     *
-     * Return a weak reference for the given JS object.
-     */
-    xpcIJSWeakReference getWeakReference(/* in JSObject obj */);
-
-    /*
-     * To be called from JS only.
-     *
-     * Force an immediate garbage collection cycle.
-     */
-    void forceGC();
 };
 
 /**

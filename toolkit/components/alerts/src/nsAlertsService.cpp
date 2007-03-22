@@ -70,8 +70,7 @@ nsAlertsService::~nsAlertsService()
 NS_IMETHODIMP nsAlertsService::ShowAlertNotification(const nsAString & aImageUrl, const nsAString & aAlertTitle, 
                                                      const nsAString & aAlertText, PRBool aAlertTextClickable,
                                                      const nsAString & aAlertCookie,
-                                                     nsIObserver * aAlertListener,
-                                                     const nsAString & aAlertName)
+                                                     nsIObserver * aAlertListener)
 {
   nsCOMPtr<nsIWindowWatcher> wwatch(do_GetService(NS_WINDOWWATCHER_CONTRACTID));
   nsCOMPtr<nsIDOMWindow> newWindow;

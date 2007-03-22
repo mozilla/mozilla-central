@@ -93,11 +93,6 @@ public:
 private:
   ~nsNativeKeyBindings() NS_HIDDEN;
 
-  PRBool KeyPressInternal(const nsNativeKeyEvent& aEvent,
-                          DoCommandCallback aCallback,
-                          void *aCallbackData,
-                          PRUint32 aKeyCode);
-
   GtkWidget *mNativeTarget;
 };
 

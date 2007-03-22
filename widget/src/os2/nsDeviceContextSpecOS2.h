@@ -52,6 +52,9 @@
 #include "nsIPrintOptions.h"
 #include "nsIPrintSettings.h"
 #include "nsVoidArray.h"
+#ifdef USE_XPRINT
+#include "nsIDeviceContextSpecXPrint.h"
+#endif /* USE_XPRINT */
 #include "nsPrintdOS2.h"
 #include <os2.h>
 #include <pmddim.h>
@@ -62,6 +65,9 @@
 //---------------------------------------------------------------------
 
 class nsDeviceContextSpecOS2 : public nsIDeviceContextSpec
+#ifdef USE_XPRINT
+                             , public nsIDeviceContextSpecXp
+#endif
 {
 public:
 /**
@@ -96,12 +102,14 @@ public:
 
   NS_IMETHOD GetPRTQUEUE(PRTQUEUE *&p);
 
+#ifdef MOZ_CAIRO_GFX
   NS_IMETHOD GetSurfaceForPrinter(gfxASurface **nativeSurface);
   NS_IMETHOD BeginDocument(PRUnichar* aTitle, PRUnichar* aPrintToFileName,
                            PRInt32 aStartPage, PRInt32 aEndPage);
   NS_IMETHOD EndDocument();
   NS_IMETHOD BeginPage();
   NS_IMETHOD EndPage();
+#endif
 
 /**
  * Destructor for nsDeviceContextSpecOS2, this will release the printrecord
@@ -113,11 +121,10 @@ public:
   static nsresult SetPrintSettingsFromDevMode(nsIPrintSettings* aPrintSettings, ULONG printer);
 
 protected:
+
   OS2PrData mPrData;
   PRTQUEUE *mQueue;
   nsCOMPtr<nsIPrintSettings> mPrintSettings;
-  HDC mPrintDC;
-  PRPackedBool mPrintingStarted;
 };
 
 //-------------------------------------------------------------------------

@@ -48,10 +48,11 @@
 #include "nsCacheDevice.h"
 #include "nsMemoryCacheDevice.h"
 #include "nsICacheVisitor.h"
-#include "nsDiskCacheDevice.h"
 
-#ifdef NECKO_OFFLINE_CACHE
+#ifdef NECKO_DISK_CACHE_SQL
 #include "nsDiskCacheDeviceSQL.h"
+#else
+#include "nsDiskCacheDevice.h"
 #endif
 
 #include "nsIObserverService.h"
@@ -85,31 +86,12 @@
 #define OFFLINE_CACHE_ENABLE_PREF   "browser.cache.offline.enable"
 #define OFFLINE_CACHE_DIR_PREF      "browser.cache.offline.parent_directory"
 #define OFFLINE_CACHE_CAPACITY_PREF "browser.cache.offline.capacity"
-#define OFFLINE_CACHE_CAPACITY      512000
+#define OFFLINE_CACHE_CAPACITY      51200
 
 #define MEMORY_CACHE_ENABLE_PREF    "browser.cache.memory.enable"
 #define MEMORY_CACHE_CAPACITY_PREF  "browser.cache.memory.capacity"
 #define MEMORY_CACHE_MAX_ENTRY_SIZE_PREF "browser.cache.memory.max_entry_size"
 
-static const char * observerList[] = { 
-    "profile-before-change",
-    "profile-after-change",
-    NS_XPCOM_SHUTDOWN_OBSERVER_ID
-};
-static const char * prefList[] = { 
-#ifdef NECKO_DISK_CACHE
-    DISK_CACHE_ENABLE_PREF,
-    DISK_CACHE_CAPACITY_PREF,
-    DISK_CACHE_DIR_PREF,
-#endif
-#ifdef NECKO_OFFLINE_CACHE
-    OFFLINE_CACHE_ENABLE_PREF,
-    OFFLINE_CACHE_CAPACITY_PREF,
-    OFFLINE_CACHE_DIR_PREF,
-#endif
-    MEMORY_CACHE_ENABLE_PREF,
-    MEMORY_CACHE_CAPACITY_PREF
-};
 
 class nsCacheProfilePrefObserver : public nsIObserver
 {
@@ -170,24 +152,40 @@ nsCacheProfilePrefObserver::Install()
     
     // install profile-change observer
     nsCOMPtr<nsIObserverService> observerService = do_GetService("@mozilla.org/observer-service;1", &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
+    if (NS_FAILED(rv)) return rv;
     NS_ENSURE_ARG(observerService);
     
-    for (int i=0; i<NS_ARRAY_LENGTH(observerList); i++) {
-        rv = observerService->AddObserver(this, observerList[i], PR_FALSE);
-        if (NS_FAILED(rv)) 
-            rv2 = rv;
-    }
+    rv = observerService->AddObserver(this, "profile-before-change", PR_FALSE);
+    if (NS_FAILED(rv)) rv2 = rv;
+    
+    rv = observerService->AddObserver(this, "profile-after-change", PR_FALSE);
+    if (NS_FAILED(rv)) rv2 = rv;
+
+
+    // install xpcom shutdown observer
+    rv = observerService->AddObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID, PR_FALSE);
+    if (NS_FAILED(rv)) rv2 = rv;
     
     
     // install preferences observer
     nsCOMPtr<nsIPrefBranch2> branch = do_GetService(NS_PREFSERVICE_CONTRACTID);
     if (!branch) return NS_ERROR_FAILURE;
 
-    for (int i=0; i<NS_ARRAY_LENGTH(prefList); i++) {
+    char * prefList[] = { 
+        DISK_CACHE_ENABLE_PREF,
+        DISK_CACHE_CAPACITY_PREF,
+        DISK_CACHE_DIR_PREF,
+        OFFLINE_CACHE_ENABLE_PREF,
+        OFFLINE_CACHE_CAPACITY_PREF,
+        OFFLINE_CACHE_DIR_PREF,
+        MEMORY_CACHE_ENABLE_PREF,
+        MEMORY_CACHE_CAPACITY_PREF
+    };
+    int listCount = NS_ARRAY_LENGTH(prefList);
+      
+    for (int i=0; i<listCount; i++) {
         rv = branch->AddObserver(prefList[i], this, PR_FALSE);
-        if (NS_FAILED(rv))
-            rv2 = rv;
+        if (NS_FAILED(rv))  rv2 = rv;
     }
 
     // Determine if we have a profile already
@@ -205,9 +203,8 @@ nsCacheProfilePrefObserver::Install()
     }
 
     rv = ReadPrefs(branch);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    return rv2;
+    
+    return NS_SUCCEEDED(rv) ? rv2 : rv;
 }
 
 
@@ -218,19 +215,28 @@ nsCacheProfilePrefObserver::Remove()
     nsCOMPtr<nsIObserverService> obs =
             do_GetService("@mozilla.org/observer-service;1");
     if (obs) {
-        for (int i=0; i<NS_ARRAY_LENGTH(observerList); i++) {
-            obs->RemoveObserver(this, observerList[i]);
-        }
+        obs->RemoveObserver(this, "profile-before-change");
+        obs->RemoveObserver(this, "profile-after-change");
+        obs->RemoveObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID);
     }
 
     // remove Pref Service observers
     nsCOMPtr<nsIPrefBranch2> prefs =
            do_GetService(NS_PREFSERVICE_CONTRACTID);
     if (prefs) {
-        for (int i=0; i<NS_ARRAY_LENGTH(prefList); i++) {
-            // remove cache pref observers
-            prefs->RemoveObserver(prefList[i], this);
-        }
+        // remove Disk cache pref observers
+        prefs->RemoveObserver(DISK_CACHE_ENABLE_PREF, this);
+        prefs->RemoveObserver(DISK_CACHE_CAPACITY_PREF, this);
+        prefs->RemoveObserver(DISK_CACHE_DIR_PREF, this);
+
+        // remove Offline cache pref observers
+        prefs->RemoveObserver(OFFLINE_CACHE_ENABLE_PREF, this);
+        prefs->RemoveObserver(OFFLINE_CACHE_CAPACITY_PREF, this);
+        prefs->RemoveObserver(OFFLINE_CACHE_DIR_PREF, this);
+
+        // remove Memory cache pref observers
+        prefs->RemoveObserver(MEMORY_CACHE_ENABLE_PREF, this);
+        prefs->RemoveObserver(MEMORY_CACHE_CAPACITY_PREF, this);
     }
 }
 
@@ -296,9 +302,7 @@ nsCacheProfilePrefObserver::Observe(nsISupports *     subject,
             // XXX the next time the profile changes (browser launch)
 #endif            
         } else 
-#endif // !NECKO_DISK_CACHE
 
-#ifdef NECKO_OFFLINE_CACHE
         // which preference changed?
         if (!strcmp(OFFLINE_CACHE_ENABLE_PREF, data.get())) {
 
@@ -315,14 +319,14 @@ nsCacheProfilePrefObserver::Observe(nsISupports *     subject,
             mOfflineCacheCapacity = PR_MAX(0, capacity);
             nsCacheService::SetOfflineCacheCapacity(mOfflineCacheCapacity);
 #if 0
-        } else if (!strcmp(OFFLINE_CACHE_DIR_PREF, data.get())) {
+        } else if (!strcmp(DISK_OFFLINE_DIR_PREF, data.get())) {
             // XXX We probaby don't want to respond to this pref except after
             // XXX profile changes.  Ideally, there should be some kind of user
             // XXX notification that the pref change won't take effect until
             // XXX the next time the profile changes (browser launch)
 #endif
         } else
-#endif // !NECKO_OFFLINE_CACHE
+#endif // !NECKO_DISK_CACHE
 
         if (!strcmp(MEMORY_CACHE_ENABLE_PREF, data.get())) {
 
@@ -401,9 +405,7 @@ nsCacheProfilePrefObserver::ReadPrefs(nsIPrefBranch* branch)
         if (directory)
             mDiskCacheParentDirectory = do_QueryInterface(directory, &rv);
     }
-#endif // !NECKO_DISK_CACHE
 
-#ifdef NECKO_OFFLINE_CACHE
     // read offline cache device prefs
     mOfflineCacheEnabled = PR_TRUE;  // presume offline cache is enabled
     (void) branch->GetBoolPref(OFFLINE_CACHE_ENABLE_PREF,
@@ -444,7 +446,7 @@ nsCacheProfilePrefObserver::ReadPrefs(nsIPrefBranch* branch)
         if (directory)
             mOfflineCacheParentDirectory = do_QueryInterface(directory, &rv);
     }
-#endif // !NECKO_OFFLINE_CACHE
+#endif // !NECKO_DISK_CACHE
     
     // read memory cache device prefs
     (void) branch->GetBoolPref(MEMORY_CACHE_ENABLE_PREF, &mMemoryCacheEnabled);
@@ -660,16 +662,14 @@ nsCacheService::Shutdown()
 #ifdef NECKO_DISK_CACHE
         delete mDiskDevice;
         mDiskDevice = nsnull;
-#endif // !NECKO_DISK_CACHE
 
-#ifdef NECKO_OFFLINE_CACHE
         delete mOfflineDevice;
         mOfflineDevice = nsnull;
-#endif // !NECKO_OFFLINE_CACHE
 
-#if defined(NECKO_DISK_CACHE) && defined(PR_LOGGING)
+#if defined(PR_LOGGING)
         LogCacheStatistics();
 #endif
+#endif // !NECKO_DISK_CACHE
     }
 }
 
@@ -765,11 +765,9 @@ nsCacheService::EvictEntriesForClient(const char *          clientID,
             if (NS_FAILED(rv)) return rv;
         }
     }
-#endif // ! NECKO_DISK_CACHE
 
-#ifdef NECKO_OFFLINE_CACHE
-    // Only clear the offline cache if it has been specifically asked for.
-    if (storagePolicy == nsICache::STORE_OFFLINE) {
+    if (storagePolicy == nsICache::STORE_ANYWHERE ||
+        storagePolicy == nsICache::STORE_OFFLINE) {
         if (mEnableOfflineDevice) {
             if (!mOfflineDevice) {
                 rv = CreateOfflineDevice();
@@ -779,7 +777,7 @@ nsCacheService::EvictEntriesForClient(const char *          clientID,
             if (NS_FAILED(rv)) return rv;
         }
     }
-#endif // ! NECKO_OFFLINE_CACHE
+#endif // ! NECKO_DISK_CACHE
 
     if (storagePolicy == nsICache::STORE_ANYWHERE ||
         storagePolicy == nsICache::STORE_IN_MEMORY) {
@@ -830,244 +828,6 @@ nsCacheService::IsStorageEnabledForPolicy_Locked(nsCacheStoragePolicy  storagePo
 }
 
 
-nsresult nsCacheService::GetOfflineOwnerDomains(nsCacheSession * session,
-                                                PRUint32 * count,
-                                                char *** domains)
-{
-#ifdef NECKO_OFFLINE_CACHE
-    if (session->StoragePolicy() != nsICache::STORE_OFFLINE)
-        return NS_ERROR_NOT_AVAILABLE;
-
-    if (!gService->mOfflineDevice) {
-        nsresult rv = gService->CreateOfflineDevice();
-        if (NS_FAILED(rv)) return rv;
-    }
-
-    return gService->mOfflineDevice->GetOwnerDomains(session->ClientID()->get(),
-                                                     count, domains);
-#else // !NECKO_OFFLINE_CACHE
-    return NS_ERROR_NOT_IMPLEMENTED;
-#endif
-}
-
-
-nsresult nsCacheService::GetOfflineOwnerURIs(nsCacheSession * session,
-                                             const nsACString & ownerDomain,
-                                             PRUint32 * count,
-                                             char *** uris)
-{
-#ifdef NECKO_OFFLINE_CACHE
-    if (session->StoragePolicy() != nsICache::STORE_OFFLINE)
-        return NS_ERROR_NOT_AVAILABLE;
-
-    if (!gService->mOfflineDevice) {
-        nsresult rv = gService->CreateOfflineDevice();
-        if (NS_FAILED(rv)) return rv;
-    }
-
-    return gService->mOfflineDevice->GetOwnerURIs(session->ClientID()->get(),
-                                                  ownerDomain, count, uris);
-#else // !NECKO_OFFLINE_CACHE
-    return NS_ERROR_NOT_IMPLEMENTED;
-#endif
-}
-
-nsresult
-nsCacheService::SetOfflineOwnedKeys(nsCacheSession * session,
-                                    const nsACString & ownerDomain,
-                                    const nsACString & ownerURI,
-                                    PRUint32 count,
-                                    const char ** keys)
-{
-#ifdef NECKO_OFFLINE_CACHE
-    if (session->StoragePolicy() != nsICache::STORE_OFFLINE)
-        return NS_ERROR_NOT_AVAILABLE;
-
-    if (!gService->mOfflineDevice) {
-        nsresult rv = gService->CreateOfflineDevice();
-        if (NS_FAILED(rv)) return rv;
-    }
-
-    return gService->mOfflineDevice->SetOwnedKeys(session->ClientID()->get(),
-                                                  ownerDomain,
-                                                  ownerURI,
-                                                  count,
-                                                  keys);
-#else // !NECKO_OFFLINE_CACHE
-    return NS_ERROR_NOT_IMPLEMENTED;
-#endif
-}
-
-nsresult nsCacheService::GetOfflineOwnedKeys(nsCacheSession * session,
-                                             const nsACString & ownerDomain,
-                                             const nsACString & ownerURI,
-                                             PRUint32 * count,
-                                             char *** keys)
-{
-#ifdef NECKO_OFFLINE_CACHE
-    if (session->StoragePolicy() != nsICache::STORE_OFFLINE)
-        return NS_ERROR_NOT_AVAILABLE;
-
-    if (!gService->mOfflineDevice) {
-        nsresult rv = gService->CreateOfflineDevice();
-        if (NS_FAILED(rv)) return rv;
-    }
-
-    return gService->mOfflineDevice->GetOwnedKeys(session->ClientID()->get(),
-                                                  ownerDomain,
-                                                  ownerURI,
-                                                  count,
-                                                  keys);
-#else // !NECKO_OFFLINE_CACHE
-    return NS_ERROR_NOT_IMPLEMENTED;
-#endif
-}
-
-nsresult nsCacheService::AddOfflineOwnedKey(nsCacheSession * session,
-                                            const nsACString & ownerDomain,
-                                            const nsACString & ownerURI,
-                                            const nsACString & key)
-{
-#ifdef NECKO_OFFLINE_CACHE
-    if (session->StoragePolicy() != nsICache::STORE_OFFLINE)
-        return NS_ERROR_NOT_AVAILABLE;
-
-    if (!gService->mOfflineDevice) {
-        nsresult rv = gService->CreateOfflineDevice();
-        if (NS_FAILED(rv)) return rv;
-    }
-
-    return gService->mOfflineDevice->AddOwnedKey(session->ClientID()->get(),
-                                                 ownerDomain,
-                                                 ownerURI,
-                                                 key);
-#else // !NECKO_OFFLINE_CACHE
-    return NS_ERROR_NOT_IMPLEMENTED;
-#endif
-}
-
-nsresult nsCacheService::RemoveOfflineOwnedKey(nsCacheSession * session,
-                                               const nsACString & ownerDomain,
-                                               const nsACString & ownerURI,
-                                               const nsACString & key)
-{
-#ifdef NECKO_OFFLINE_CACHE
-    if (session->StoragePolicy() != nsICache::STORE_OFFLINE)
-        return NS_ERROR_NOT_AVAILABLE;
-
-    if (!gService->mOfflineDevice) {
-        nsresult rv = gService->CreateOfflineDevice();
-        if (NS_FAILED(rv)) return rv;
-    }
-
-    return gService->mOfflineDevice->RemoveOwnedKey(session->ClientID()->get(),
-                                                    ownerDomain,
-                                                    ownerURI,
-                                                    key);
-#else // !NECKO_OFFLINE_CACHE
-    return NS_ERROR_NOT_IMPLEMENTED;
-#endif
-}
-
-nsresult nsCacheService::OfflineKeyIsOwned(nsCacheSession * session,
-                                           const nsACString &  ownerDomain,
-                                           const nsACString & ownerURI,
-                                           const nsACString & key,
-                                           PRBool *isOwned)
-{
-#ifdef NECKO_OFFLINE_CACHE
-    if (session->StoragePolicy() != nsICache::STORE_OFFLINE)
-        return NS_ERROR_NOT_AVAILABLE;
-
-    if (!gService->mOfflineDevice) {
-        nsresult rv = gService->CreateOfflineDevice();
-        if (NS_FAILED(rv)) return rv;
-    }
-
-    return gService->mOfflineDevice->KeyIsOwned(session->ClientID()->get(),
-                                                ownerDomain,
-                                                ownerURI,
-                                                key,
-                                                isOwned);
-#else // !NECKO_OFFLINE_CACHE
-    return NS_ERROR_NOT_IMPLEMENTED;
-#endif
-}
-
-nsresult nsCacheService::ClearOfflineKeysOwnedByDomain(nsCacheSession * session,
-                                                       const nsACString & domain)
-{
-#ifdef NECKO_OFFLINE_CACHE
-    if (session->StoragePolicy() != nsICache::STORE_OFFLINE)
-        return NS_ERROR_NOT_AVAILABLE;
-    if (!gService->mOfflineDevice) {
-        nsresult rv = gService->CreateOfflineDevice();
-        if (NS_FAILED(rv)) return rv;
-    }
-
-    return gService->mOfflineDevice->ClearKeysOwnedByDomain(session->ClientID()->get(),
-                                                            domain);
-#else // !NECKO_OFFLINE_CACHE
-    return NS_ERROR_NOT_IMPLEMENTED;
-#endif
-}
-
-nsresult nsCacheService::GetOfflineDomainUsage(nsCacheSession * session,
-                                               const nsACString & domain,
-                                               PRUint32 * usage)
-{
-#ifdef NECKO_OFFLINE_CACHE
-    if (session->StoragePolicy() != nsICache::STORE_OFFLINE)
-        return NS_ERROR_NOT_AVAILABLE;
-    if (!gService->mOfflineDevice) {
-        nsresult rv = gService->CreateOfflineDevice();
-        if (NS_FAILED(rv)) return rv;
-    }
-
-    return gService->mOfflineDevice->GetDomainUsage(session->ClientID()->get(),
-                                                    domain,
-                                                    usage);
-#else // !NECKO_OFFLINE_CACHE
-    return NS_ERROR_NOT_IMPLEMENTED;
-#endif
-}
-
-nsresult nsCacheService::EvictUnownedOfflineEntries(nsCacheSession * session)
-{
-#ifdef NECKO_OFFLINE_CACHE
-    if (session->StoragePolicy() != nsICache::STORE_OFFLINE)
-        return NS_ERROR_NOT_AVAILABLE;
-
-    if (!gService->mOfflineDevice) {
-        nsresult rv = gService->CreateOfflineDevice();
-        if (NS_FAILED(rv)) return rv;
-    }
-
-    return gService->mOfflineDevice->EvictUnownedEntries(session->ClientID()->get());
-#else // !NECKO_OFFLINE_CACHE
-    return NS_ERROR_NOT_IMPLEMENTED;
-#endif
-}
-
-nsresult nsCacheService::MergeTemporaryClientID(nsCacheSession * session,
-                                                const nsACString & clientID)
-{
-#ifdef NECKO_OFFLINE_CACHE
-    if (session->StoragePolicy() != nsICache::STORE_OFFLINE)
-        return NS_ERROR_NOT_AVAILABLE;
-
-    if (!gService->mOfflineDevice) {
-        nsresult rv = gService->CreateOfflineDevice();
-        if (NS_FAILED(rv)) return rv;
-    }
-
-    return gService->mOfflineDevice->MergeTemporaryClientID
-        (session->ClientID()->get(), PromiseFlatCString(clientID).get());
-#else // !NECKO_OFFLINE_CACHE
-    return NS_ERROR_NOT_IMPLEMENTED;
-#endif
-}
-
 NS_IMETHODIMP nsCacheService::VisitEntries(nsICacheVisitor *visitor)
 {
     NS_ENSURE_ARG_POINTER(visitor);
@@ -1096,9 +856,7 @@ NS_IMETHODIMP nsCacheService::VisitEntries(nsICacheVisitor *visitor)
         rv = mDiskDevice->Visit(visitor);
         if (NS_FAILED(rv)) return rv;
     }
-#endif // !NECKO_DISK_CACHE
 
-#ifdef NECKO_OFFLINE_CACHE
     if (mEnableOfflineDevice) {
         if (!mOfflineDevice) {
             rv = CreateOfflineDevice();
@@ -1107,7 +865,7 @@ NS_IMETHODIMP nsCacheService::VisitEntries(nsICacheVisitor *visitor)
         rv = mOfflineDevice->Visit(visitor);
         if (NS_FAILED(rv)) return rv;
     }
-#endif // !NECKO_OFFLINE_CACHE
+#endif // !NECKO_DISK_CACHE
 
     // XXX notify any shutdown process that visitation is complete for THIS visitor.
     // XXX keep queue of visitors
@@ -1121,24 +879,6 @@ NS_IMETHODIMP nsCacheService::EvictEntries(nsCacheStoragePolicy storagePolicy)
     return  EvictEntriesForClient(nsnull, storagePolicy);
 }
 
-NS_IMETHODIMP nsCacheService::CreateTemporaryClientID(nsCacheStoragePolicy storagePolicy,
-                                                      nsACString &clientID)
-{
-#ifdef NECKO_OFFLINE_CACHE
-    // Only the offline cache device supports temporary clients
-    if (storagePolicy != nsICache::STORE_OFFLINE)
-        return NS_ERROR_NOT_AVAILABLE;
-
-    if (!gService->mOfflineDevice) {
-        nsresult rv = gService->CreateOfflineDevice();
-        if (NS_FAILED(rv)) return rv;
-    }
-
-    return gService->mOfflineDevice->CreateTemporaryClientID(clientID);
-#else // !NECKO_OFFLINE_CACHE
-    return NS_ERROR_NOT_IMPLEMENTED;
-#endif
-}
 
 /**
  * Internal Methods
@@ -1179,18 +919,19 @@ nsCacheService::CreateDiskDevice()
 nsresult
 nsCacheService::CreateOfflineDevice()
 {
-#ifdef NECKO_OFFLINE_CACHE
+#ifdef NECKO_DISK_CACHE
     CACHE_LOG_ALWAYS(("Creating offline device"));
 
+    // XXX: want a sql-based device
     if (!mEnableOfflineDevice) return NS_ERROR_NOT_AVAILABLE;
     if (mOfflineDevice)        return NS_OK;
 
-    mOfflineDevice = new nsOfflineCacheDevice;
+    mOfflineDevice = new nsDiskCacheDevice;
     if (!mOfflineDevice)       return NS_ERROR_OUT_OF_MEMORY;
 
     // set the preferences
-    mOfflineDevice->SetCacheParentDirectory(
-        mObserver->OfflineCacheParentDirectory());
+    mOfflineDevice->SetCacheParentDirectoryAndName(mObserver->OfflineCacheParentDirectory(),
+                                                   NS_LITERAL_CSTRING("OfflineCache"));
     mOfflineDevice->SetCapacity(mObserver->OfflineCacheCapacity());
 
     nsresult rv = mOfflineDevice->Init();
@@ -1403,9 +1144,6 @@ nsCacheService::OpenCacheEntry(nsCacheSession *           session,
     if (result)
         *result = nsnull;
 
-    if (!gService->mInitialized)
-        return NS_ERROR_NOT_INITIALIZED;
-
     nsCacheRequest * request = nsnull;
 
     nsCacheServiceAutoLock lock;
@@ -1465,10 +1203,8 @@ nsCacheService::ActivateEntry(nsCacheRequest * request,
 
     if (entry &&
         ((request->AccessRequested() == nsICache::ACCESS_WRITE) ||
-         ((request->StoragePolicy() != nsICache::STORE_OFFLINE) &&
-          (entry->mExpirationTime <= SecondsFromPRTime(PR_Now()) &&
-           request->WillDoomEntriesIfExpired()))))
-
+         (entry->mExpirationTime <= SecondsFromPRTime(PR_Now()) &&
+          request->WillDoomEntriesIfExpired())))
     {
         // this is FORCE-WRITE request or the entry has expired
         rv = DoomEntry_Internal(entry);
@@ -1546,7 +1282,7 @@ nsCacheService::SearchCacheDevices(nsCString * key, nsCacheStoragePolicy policy,
                    (policy == nsICache::STORE_ANYWHERE &&
                     gIOService->IsOffline()))) {
 
-#ifdef NECKO_OFFLINE_CACHE
+#ifdef NECKO_DISK_CACHE
         if (mEnableOfflineDevice) {
             if (!mOfflineDevice) {
                 nsresult rv = CreateOfflineDevice();
@@ -1556,7 +1292,7 @@ nsCacheService::SearchCacheDevices(nsCString * key, nsCacheStoragePolicy policy,
 
             entry = mOfflineDevice->FindEntry(key, collision);
         }
-#endif // !NECKO_OFFLINE_CACHE
+#endif
     }
 
     return entry;
@@ -1600,7 +1336,7 @@ nsCacheService::EnsureEntryHasDevice(nsCacheEntry * entry)
         }
     }
 
-#ifdef NECKO_OFFLINE_CACHE
+#ifdef NECKO_DISK_CACHE
     if (!device && entry->IsStreamData() &&
         entry->IsAllowedOffline() && mEnableOfflineDevice) {
         if (!mOfflineDevice) {
@@ -1615,7 +1351,7 @@ nsCacheService::EnsureEntryHasDevice(nsCacheEntry * entry)
                 device = mOfflineDevice;
         }
     }
-#endif // ! NECKO_OFFLINE_CACHE
+#endif // ! NECKO_DISK_CACHE
 
     if (device) 
         entry->SetCacheDevice(device);
@@ -1678,19 +1414,17 @@ nsCacheService::OnProfileShutdown(PRBool cleanse)
             gService->mDiskDevice->EvictEntries(nsnull);
 
         gService->mDiskDevice->Shutdown();
+        gService->mEnableDiskDevice = PR_FALSE;
     }
-    gService->mEnableDiskDevice = PR_FALSE;
-#endif // !NECKO_DISK_CACHE
 
-#ifdef NECKO_OFFLINE_CACHE
     if (gService->mOfflineDevice && gService->mEnableOfflineDevice) {
         if (cleanse)
             gService->mOfflineDevice->EvictEntries(nsnull);
 
         gService->mOfflineDevice->Shutdown();
+        gService->mEnableOfflineDevice = PR_FALSE;
     }
-    gService->mEnableOfflineDevice = PR_FALSE;
-#endif // !NECKO_OFFLINE_CACHE
+#endif // !NECKO_DISK_CACHE
 
     if (gService->mMemoryDevice) {
         // clear memory cache
@@ -1724,9 +1458,7 @@ nsCacheService::OnProfileChanged()
             // XXX delete mDiskDevice?
         }
     }
-#endif // !NECKO_DISK_CACHE
 
-#ifdef NECKO_OFFLINE_CACHE
     if (gService->mOfflineDevice) {
         gService->mOfflineDevice->SetCacheParentDirectory(gService->mObserver->OfflineCacheParentDirectory());
         gService->mOfflineDevice->SetCapacity(gService->mObserver->OfflineCacheCapacity());
@@ -1739,7 +1471,7 @@ nsCacheService::OnProfileChanged()
             // XXX delete mOfflineDevice?
         }
     }
-#endif // !NECKO_OFFLINE_CACHE
+#endif // !NECKO_DISK_CACHE
     
     // If memoryDevice exists, reset its size to the new profile
     if (gService->mMemoryDevice) {
@@ -1793,11 +1525,11 @@ nsCacheService::SetOfflineCacheCapacity(PRInt32  capacity)
     if (!gService)  return;
     nsCacheServiceAutoLock lock;
 
-#ifdef NECKO_OFFLINE_CACHE
+#ifdef NECKO_DISK_CACHE
     if (gService->mOfflineDevice) {
         gService->mOfflineDevice->SetCapacity(capacity);
     }
-#endif // !NECKO_OFFLINE_CACHE
+#endif // !NECKO_DISK_CACHE
 
     gService->mEnableOfflineDevice = gService->mObserver->OfflineCacheEnabled();
 }
@@ -2141,7 +1873,8 @@ nsCacheService::ClearDoomList()
 void
 nsCacheService::ClearActiveEntries()
 {
-    mActiveEntries.VisitEntries(DeactivateAndClearEntry, nsnull);
+    // XXX really we want a different finalize callback for mActiveEntries
+    PL_DHashTableEnumerate(&mActiveEntries.table, DeactivateAndClearEntry, nsnull);
     mActiveEntries.Shutdown();
 }
 
@@ -2169,7 +1902,7 @@ nsCacheService::DoomActiveEntries()
 {
     nsAutoVoidArray array;
 
-    mActiveEntries.VisitEntries(RemoveActiveEntry, &array);
+    PL_DHashTableEnumerate(&mActiveEntries.table, RemoveActiveEntry, &array);
 
     PRUint32 count = array.Count();
     for (PRUint32 i=0; i < count; ++i)

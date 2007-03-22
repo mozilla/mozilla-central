@@ -1,4 +1,4 @@
- # ***** BEGIN LICENSE BLOCK *****
+# ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
 # The contents of this file are subject to the Mozilla Public License Version
@@ -51,7 +51,6 @@ REQUIRES	= content \
 		  dom \
 		  editor \
 		  gfx \
-		  thebes \
 		  intl \
 		  locale \
 		  string \
@@ -64,6 +63,7 @@ REQUIRES	= content \
   
   
 CMMSRCS = nsAccessNodeWrap.mm \
+          nsDocAccessibleWrap.mm \
           nsRootAccessibleWrap.mm \
           nsAccessibleWrap.mm \
           mozAccessible.mm \
@@ -79,13 +79,9 @@ EXPORTS = \
   nsAccessibleWrap.h \
   nsDocAccessibleWrap.h \
   nsRootAccessibleWrap.h \
+  nsHTMLFormControlAccessibleWrap.h \
   nsXULMenuAccessibleWrap.h \
   nsXULTreeAccessibleWrap.h \
-  nsHyperTextAccessibleWrap.h \
-  nsHTMLImageAccessibleWrap.h \
-  nsHTMLTableAccessibleWrap.h \
-  nsAccessibleRelationWrap.h \
-  nsApplicationAccessibleWrap.h \
   mozDocAccessible.h \
   mozAccessible.h \
   mozAccessibleWrapper.h \

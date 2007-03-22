@@ -1,3 +1,4 @@
+<!ENTITY     props.box.label                "About this cookie">
 <!ENTITY     props.name.label               "Name:">
 <!ENTITY     props.value.label              "Content:">
 <!ENTITY     props.domain.label             "Host:">
@@ -16,3 +17,4 @@
 <!ENTITY     dialog.title                   "Confirm setting cookie">
 <!ENTITY     dialog.remember.label          "Use my choice for all cookies from this site">
 <!ENTITY     dialog.remember.accesskey      "U">
+

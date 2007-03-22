@@ -52,8 +52,6 @@
 
 #include "png.h"
 
-#include "lcms.h"
-
 #define NS_PNGDECODER_CID \
 { /* 36fa00c2-1dd2-11b2-be07-d16eeb4c50ed */         \
      0x36fa00c2,                                     \
@@ -72,11 +70,9 @@ public:
   virtual ~nsPNGDecoder();
 
   void CreateFrame(png_uint_32 x_offset, png_uint_32 y_offset, 
-                   PRInt32 width, PRInt32 height, gfx_format format);
+                    PRInt32 width, PRInt32 height, gfx_format format);
   void SetAnimFrameInfo();
   
-  void EndImageFrame();
-
 public:
   nsCOMPtr<imgIContainer> mImage;
   nsCOMPtr<gfxIImageFrame> mFrame;
@@ -85,16 +81,11 @@ public:
 
   png_structp mPNG;
   png_infop mInfo;
-  PRUint8 *mCMSLine;
-  PRUint8 *interlacebuf;
-  cmsHPROFILE mInProfile;
-  cmsHTRANSFORM mTransform;
-
   gfx_format format;
-  PRUint8 mChannels;
+  PRUint8 apngFlags;
+  PRUint8 *interlacebuf;
+  PRUint32 ibpr;
   PRPackedBool mError;
-  PRPackedBool mFrameHasNoAlpha;
-  PRPackedBool mFrameIsHidden;
 };
 
 #endif // nsPNGDecoder_h__

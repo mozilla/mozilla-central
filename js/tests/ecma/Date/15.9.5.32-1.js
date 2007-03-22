@@ -35,9 +35,6 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-gTestfile = '15.9.5.32-1.js';
-
 /**
    File Name:          15.9.5.32-1.js
    ECMA Section:       15.9.5.32 Date.prototype.setDate(date)
@@ -60,6 +57,24 @@ writeHeaderToLog( SECTION + " Date.prototype.setDate(date) ");
 
 addNewTestCase( 0, 1,
 		"TDATE = new Date(0);(TDATE).setDate(1);TDATE" );
+
+/*
+  addNewTestCase( "TDATE = new Date(86400000);(TDATE).setDate(1);TDATE",
+  UTCDateFromTime(SetDate(86400000,1)),
+  LocalDateFromTime(SetDate(86400000,1)) );
+
+  addNewTestCase( "TDATE = new Date(0);(TDATE).setUTCFullYear(1972);TDATE",
+  UTCDateFromTime(SetUTCFullYear(0,1972)),
+  LocalDateFromTime(SetUTCFullYear(0,1972)) );
+
+  addNewTestCase( "TDATE = new Date(0);(TDATE).setUTCFullYear(1968);TDATE",
+  UTCDateFromTime(SetUTCFullYear(0,1968)),
+  LocalDateFromTime(SetUTCFullYear(0,1968)) );
+
+  addNewTestCase( "TDATE = new Date(0);(TDATE).setUTCFullYear(1969);TDATE",
+  UTCDateFromTime(SetUTCFullYear(0,1969)),
+  LocalDateFromTime(SetUTCFullYear(0,1969)) );
+*/
 
 test();
 

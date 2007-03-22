@@ -35,16 +35,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '11.1.4-01.js';
+START("11.1.4 - XML Initializer");
 
-var summary = '11.1.4 - XML Initializer should accept single processing ' +
-    'instruction';
-var BUGNUMBER = 257679;
+var bug = 257679;
+var summary = 'XML Initializer should accept single processing instruction';
 var actual = '';
 var expect = 'processing-instruction';
 
-printBugNumber(BUGNUMBER);
-START(summary);
+printBugNumber (bug);
+printStatus (summary);
 
 XML.ignoreProcessingInstructions = false;
 print("XML.ignoreProcessingInstructions: " + XML.ignoreProcessingInstructions);

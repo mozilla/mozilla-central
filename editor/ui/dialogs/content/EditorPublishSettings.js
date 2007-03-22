@@ -350,6 +350,12 @@ function UpdateSettings()
   return true;
 }
 
+
+function doHelpButton()
+{
+  openHelp("comp-doc-publish-site-settings");
+}
+
 function onAccept()
 {
   // Save any pending changes locally first

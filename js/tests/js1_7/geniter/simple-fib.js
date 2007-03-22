@@ -34,14 +34,12 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'simple-fib.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER     = 326466;  // bug 326466, comment 1
+var bug     = 326466;  // bug 326466, comment 1
 var summary = "Simple Fibonacci iterator";
 var actual, expect;
 
-printBugNumber(BUGNUMBER);
+printBugNumber(bug);
 printStatus(summary);
 
 /**************

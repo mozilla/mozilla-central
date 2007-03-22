@@ -51,7 +51,6 @@ REQUIRES	= xpcom \
 		  exthandler \
 		  mimetype \
 		  gfx \
-		  thebes \
 		  layout \
 		  content \
 		  widget \
@@ -63,7 +62,9 @@ REQUIRES	= xpcom \
 		  locale \
 		  view \
 		  necko \
+		  uriloader \
 		  htmlparser \
+		  lwbrk \
 		  docshell \
 		  pref \
 		  xultmpl \

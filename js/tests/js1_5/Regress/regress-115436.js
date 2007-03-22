@@ -35,24 +35,26 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-115436.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 115436;
+var bug = 115436;
 var summary = 'Do not crash javascript warning duplicate arguments';
 var actual = 'No Crash';
 var expect = 'No Crash';
 
-printBugNumber(BUGNUMBER);
+
+printBugNumber (bug);
 printStatus (summary);
 
-options('strict');
+var jsOptions = new JavaScriptOptions();
+jsOptions.setOption('strict', true);
 
-function x(y,y)
+function x(y,y) 
 {
   return 3;
 }
 
 var z = x(4,5);
+
+jsOptions.reset();
 
 reportCompare(expect, actual, summary);

@@ -35,15 +35,13 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-237461.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 237461;
+var bug = 237461;
 var summary = 'don\'t crash with nested function collides with var';
 var actual = 'Crash';
 var expect = 'No Crash';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
 function g()
@@ -53,7 +51,7 @@ function g()
   core.js.init = function()
     {
       var loader = null;
-       
+        
       function loader() {}
     };
   return core;
@@ -74,7 +72,7 @@ else
   catch(e)
   {
   }
-}
+} 
 actual = 'No Crash';
 
 reportCompare(expect, actual, summary);

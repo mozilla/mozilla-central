@@ -42,13 +42,10 @@
 
 #include "ssl.h"
 
-#ifdef PR_LOGGING
-extern PRLogModuleInfo* gPIPNSSLog;
-#endif
-
 nsSSLThread::nsSSLThread()
 : mBusySocket(nsnull),
-  mSocketScheduledToBeDestroyed(nsnull)
+  mSocketScheduledToBeDestroyed(nsnull),
+  mPendingHTTPRequest(nsnull)
 {
   NS_ASSERTION(!ssl_thread_singleton, "nsSSLThread is a singleton, caller attempts to create another instance!");
   
@@ -306,17 +303,6 @@ PRInt16 nsSSLThread::requestPoll(nsNSSSocketInfo *si, PRInt16 in_flags, PRInt16 
         
         case nsSSLSocketThreadData::ssl_idle:
         {
-          if (si->mThreadData->mOneBytePendingFromEarlierWrite)
-          {
-            if (in_flags & PR_POLL_WRITE)
-            {
-              // In this scenario we always want the caller to immediately
-              // try a write again, because it might not wake up otherwise.
-              *out_flags |= PR_POLL_WRITE;
-              return in_flags;
-            }
-          }
-
           handshake_timeout = si->HandshakeTimeout();
 
           if (si != ssl_thread_singleton->mBusySocket)
@@ -378,7 +364,7 @@ PRStatus nsSSLThread::requestClose(nsNSSSocketInfo *si)
     return PR_FAILURE;
 
   PRBool close_later = PR_FALSE;
-  nsCOMPtr<nsIRequest> requestToCancel;
+  nsIRequest* requestToCancel = nsnull;
 
   {
     nsAutoLock threadLock(ssl_thread_singleton->mMutex);
@@ -394,13 +380,12 @@ PRStatus nsSSLThread::requestClose(nsNSSSocketInfo *si)
       
       if (ssl_thread_singleton->mPendingHTTPRequest)
       {
-        requestToCancel.swap(ssl_thread_singleton->mPendingHTTPRequest);
+        requestToCancel = ssl_thread_singleton->mPendingHTTPRequest;
+        ssl_thread_singleton->mPendingHTTPRequest = nsnull;
       }
       
       close_later = PR_TRUE;
       ssl_thread_singleton->mSocketScheduledToBeDestroyed = si;
-
-      PR_NotifyAllCondVar(ssl_thread_singleton->mCond);
     }
   }
 
@@ -415,7 +400,7 @@ PRStatus nsSSLThread::requestClose(nsNSSSocketInfo *si)
       NS_WARNING("Attempt to close SSL socket from a thread that is not the main thread. Can not cancel pending HTTP request from NSS");
     }
   
-    requestToCancel = nsnull;
+    NS_RELEASE(requestToCancel);
   }
   
   if (!close_later)
@@ -489,7 +474,7 @@ PRInt32 nsSSLThread::requestRead(nsNSSSocketInfo *si, void *buf, PRInt32 amount,
 
   PRBool this_socket_is_busy = PR_FALSE;
   PRBool some_other_socket_is_busy = PR_FALSE;
-  nsSSLSocketThreadData::ssl_state my_ssl_state = nsSSLSocketThreadData::ssl_invalid;
+  nsSSLSocketThreadData::ssl_state my_ssl_state;
   PRFileDesc *blockingFD = nsnull;
 
   {
@@ -716,7 +701,7 @@ PRInt32 nsSSLThread::requestWrite(nsNSSSocketInfo *si, const void *buf, PRInt32 
 
   PRBool this_socket_is_busy = PR_FALSE;
   PRBool some_other_socket_is_busy = PR_FALSE;
-  nsSSLSocketThreadData::ssl_state my_ssl_state = nsSSLSocketThreadData::ssl_invalid;
+  nsSSLSocketThreadData::ssl_state my_ssl_state;
   PRFileDesc *blockingFD = nsnull;
   
   {
@@ -856,23 +841,14 @@ PRInt32 nsSSLThread::requestWrite(nsNSSSocketInfo *si, const void *buf, PRInt32 
   // si is idle and good, and no other socket is currently busy,
   // so it's fine to continue with the request.
 
-  // However, use special handling for the 
-  //   mOneBytePendingFromEarlierWrite
-  // scenario, where we will not change any of our buffers at this point, 
-  // as we are waiting for completion of the earlier write.
-
-  if (!si->mThreadData->mOneBytePendingFromEarlierWrite)
+  if (!si->mThreadData->ensure_buffer_size(amount))
   {
-    if (!si->mThreadData->ensure_buffer_size(amount))
-    {
-      PR_SetError(PR_OUT_OF_MEMORY_ERROR, 0);
-      return -1;
-    }
-  
-    memcpy(si->mThreadData->mSSLDataBuffer, buf, amount);
-    si->mThreadData->mSSLRequestedTransferAmount = amount;
+    PR_SetError(PR_OUT_OF_MEMORY_ERROR, 0);
+    return -1;
   }
 
+  memcpy(si->mThreadData->mSSLDataBuffer, buf, amount);
+  si->mThreadData->mSSLRequestedTransferAmount = amount;
   si->mThreadData->mSSLState = nsSSLSocketThreadData::ssl_pending_write;
 
   {
@@ -961,7 +937,8 @@ void nsSSLThread::Run(void)
         {
           // no work to do ? let's wait a moment
 
-          PR_WaitCondVar(mCond, PR_INTERVAL_NO_TIMEOUT);
+          PRIntervalTime wait_time = PR_TicksPerSecond() / 4;
+          PR_WaitCondVar(mCond, wait_time);
         }
         
       } while (!pending_work && !mExitRequested && !mSocketScheduledToBeDestroyed);
@@ -981,12 +958,10 @@ void nsSSLThread::Run(void)
     {
       // In this scope we need to make sure NSS does not go away
       // while we are busy.
+    
       nsNSSShutDownPreventionLock locker;
 
-      // Reference for shorter code and to avoid multiple dereferencing.
-      nsSSLSocketThreadData &bstd = *mBusySocket->mThreadData;
-
-      PRFileDesc *realFileDesc = bstd.mReplacedSSLFileDesc;
+      PRFileDesc *realFileDesc = mBusySocket->mThreadData->mReplacedSSLFileDesc;
       if (!realFileDesc)
       {
         realFileDesc = mBusySocket->mFd->lower;
@@ -994,83 +969,44 @@ void nsSSLThread::Run(void)
 
       if (nsSSLSocketThreadData::ssl_pending_write == busy_socket_ssl_state)
       {
-        PRInt32 bytesWritten = 0;
+        PRInt32 bytesWritten = realFileDesc->methods
+          ->write(realFileDesc, 
+                  mBusySocket->mThreadData->mSSLDataBuffer, 
+                  mBusySocket->mThreadData->mSSLRequestedTransferAmount);
 
-        if (bstd.mOneBytePendingFromEarlierWrite)
-        {
-          // Let's try to flush the final pending byte (that libSSL might already have 
-          // processed). Let's be correct and send the final byte from our buffer.
-          bytesWritten = realFileDesc->methods
-            ->write(realFileDesc, &bstd.mThePendingByte, 1);
-  
 #ifdef DEBUG_SSL_VERBOSE
-          PR_LOG(gPIPNSSLog, PR_LOG_DEBUG, ("[%p] wrote %d bytes\n", (void*)realFileDesc, bytesWritten));
+        PR_LOG(gPIPNSSLog, PR_LOG_DEBUG, ("[%p] wrote %d bytes\n", (void*)fd, bytesWritten));
 #endif
-          
-          bytesWritten = checkHandshake(bytesWritten, PR_FALSE, realFileDesc, mBusySocket);
-          if (bytesWritten < 0) {
-            // give the error back to caller
-            bstd.mPRErrorCode = PR_GetError();
-          }
-          else if (bytesWritten == 1) {
-            // Cool, all flushed now. We can exit the one-byte-pending mode, 
-            // and report the full amount back to the caller. 
-            bytesWritten = bstd.mOriginalRequestedTransferAmount;
-            bstd.mOriginalRequestedTransferAmount = 0;
-            bstd.mOneBytePendingFromEarlierWrite = PR_FALSE;
-          }
-        }
-        else
-        {
-          // standard code, try to write the buffer we've been given just now 
-          bytesWritten = realFileDesc->methods
-            ->write(realFileDesc, 
-                    bstd.mSSLDataBuffer, 
-                    bstd.mSSLRequestedTransferAmount);
-  
-#ifdef DEBUG_SSL_VERBOSE
-          PR_LOG(gPIPNSSLog, PR_LOG_DEBUG, ("[%p] wrote %d bytes (out of %d)\n", 
-              (void*)realFileDesc, bytesWritten, bstd.mSSLRequestedTransferAmount));
-#endif
-          
-          bytesWritten = checkHandshake(bytesWritten, PR_FALSE, realFileDesc, mBusySocket);
-          if (bytesWritten < 0) {
-            // give the error back to caller
-            bstd.mPRErrorCode = PR_GetError();
-          }
-          else if (bstd.mSSLRequestedTransferAmount > 1 && 
-                   bytesWritten == (bstd.mSSLRequestedTransferAmount - 1)) {
-            // libSSL signaled us a short write.
-            // While libSSL accepted all data, not all bytes were flushed to the OS socket.
-            bstd.mThePendingByte = *(bstd.mSSLDataBuffer + (bstd.mSSLRequestedTransferAmount-1));
-            bytesWritten = -1;
-            bstd.mPRErrorCode = PR_WOULD_BLOCK_ERROR;
-            bstd.mOneBytePendingFromEarlierWrite = PR_TRUE;
-            bstd.mOriginalRequestedTransferAmount = bstd.mSSLRequestedTransferAmount;
-          }
+        
+        bytesWritten = checkHandshake(bytesWritten, PR_FALSE, realFileDesc, mBusySocket);
+        if (bytesWritten < 0) {
+          // give the error back to caller
+          mBusySocket->mThreadData->mPRErrorCode = PR_GetError();
         }
 
-        bstd.mSSLResultRemainingBytes = bytesWritten;
+        mBusySocket->mThreadData->mSSLResultRemainingBytes = bytesWritten;
         busy_socket_ssl_state = nsSSLSocketThreadData::ssl_writing_done;
       }
       else if (nsSSLSocketThreadData::ssl_pending_read == busy_socket_ssl_state)
       {
         PRInt32 bytesRead = realFileDesc->methods
            ->read(realFileDesc, 
-                  bstd.mSSLDataBuffer, 
-                  bstd.mSSLRequestedTransferAmount);
+                  mBusySocket->mThreadData->mSSLDataBuffer, 
+                  mBusySocket->mThreadData->mSSLRequestedTransferAmount);
 
 #ifdef DEBUG_SSL_VERBOSE
-        PR_LOG(gPIPNSSLog, PR_LOG_DEBUG, ("[%p] read %d bytes\n", (void*)realFileDesc, bytesRead));
+        PR_LOG(gPIPNSSLog, PR_LOG_DEBUG, ("[%p] read %d bytes\n", (void*)fd, bytesRead));
+        DEBUG_DUMP_BUFFER((unsigned char*)buf, bytesRead);
 #endif
         bytesRead = checkHandshake(bytesRead, PR_TRUE, realFileDesc, mBusySocket);
         if (bytesRead < 0) {
           // give the error back to caller
-          bstd.mPRErrorCode = PR_GetError();
+          mBusySocket->mThreadData->mPRErrorCode = PR_GetError();
         }
 
-        bstd.mSSLResultRemainingBytes = bytesRead;
-        bstd.mSSLRemainingReadResultData = bstd.mSSLDataBuffer;
+        mBusySocket->mThreadData->mSSLResultRemainingBytes = bytesRead;
+        mBusySocket->mThreadData->mSSLRemainingReadResultData = 
+          mBusySocket->mThreadData->mSSLDataBuffer;
         busy_socket_ssl_state = nsSSLSocketThreadData::ssl_reading_done;
       }
     }
@@ -1120,14 +1056,32 @@ void nsSSLThread::Run(void)
   }
 }
 
-PRBool nsSSLThread::exitRequested()
+void nsSSLThread::rememberPendingHTTPRequest(nsIRequest *aRequest)
 {
   if (!ssl_thread_singleton)
-    return PR_FALSE;
+    return;
 
-  // no lock
+  nsAutoLock threadLock(ssl_thread_singleton->mMutex);
 
-  return ssl_thread_singleton->mExitRequested;
+  NS_IF_ADDREF(aRequest);
+  ssl_thread_singleton->mPendingHTTPRequest = aRequest;
+}
+
+void nsSSLThread::cancelPendingHTTPRequest()
+{
+  if (!ssl_thread_singleton)
+    return;
+
+  nsAutoLock threadLock(ssl_thread_singleton->mMutex);
+
+  if (ssl_thread_singleton->mPendingHTTPRequest)
+  {
+    ssl_thread_singleton->mPendingHTTPRequest->Cancel(NS_ERROR_ABORT);
+
+    NS_RELEASE(ssl_thread_singleton->mPendingHTTPRequest);
+
+    ssl_thread_singleton->mPendingHTTPRequest = nsnull;
+  }
 }
 
 nsSSLThread *nsSSLThread::ssl_thread_singleton = nsnull;

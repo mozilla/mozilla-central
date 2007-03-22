@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -34,9 +33,8 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK ***** */
-
-/*
+ * ***** END LICENSE BLOCK *****
+ *
  *
  * Date:    14 April 2003
  * SUMMARY: Prototype of predefined error objects should be DontDelete
@@ -44,9 +42,8 @@
  *
  */
 //-----------------------------------------------------------------------------
-var gTestfile = '15.11.7.6-002.js';
 var UBound = 0;
-var BUGNUMBER = 201989;
+var bug = 201989;
 var summary = 'Prototype of predefined error objects should be DontDelete';
 var status = '';
 var statusitems = [];
@@ -63,7 +60,7 @@ function testDontDelete(F)
 {
   var e;
   var orig = F.prototype;
-  try
+  try 
   {
     delete F.prototype;
   }
@@ -75,15 +72,15 @@ function testDontDelete(F)
 
 
 var list = [
-  "Error",
-  "ConversionError",
-  "EvalError",
-  "RangeError",
-  "ReferenceError",
-  "SyntaxError",
-  "TypeError",
-  "URIError"
-  ];
+    "Error",
+    "ConversionError",
+    "EvalError",
+    "RangeError",
+    "ReferenceError",
+    "SyntaxError",
+    "TypeError",
+    "URIError"
+];
 
 
 for (i in list)
@@ -120,7 +117,7 @@ function addThis()
 function test()
 {
   enterFunc('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber(bug);
   printStatus(summary);
 
   for (var i=0; i<UBound; i++)

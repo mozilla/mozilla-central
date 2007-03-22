@@ -39,8 +39,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'undefined-007-n.js';
-
 /**
  *  JavaScript to Java type conversion.
  *
@@ -61,7 +59,7 @@ gTestfile = 'undefined-007-n.js';
 var SECTION = "undefined conversion";
 var VERSION = "1_4";
 var TITLE   = "LiveConnect 3.0 JavaScript to Java Data Type Conversion " +
-  SECTION;
+SECTION;
 startTest();
 
 var dt = new DT();
@@ -76,8 +74,8 @@ DESCRIPTION = "dt.setByte( void 0 )";
 EXPECTED = "error";
 
 new TestCase(
-  "dt.setByte( void 0 )",
-  "error",
-  dt.setByte( void 0 ) );
+    "dt.setByte( void 0 )",
+    "error",
+    dt.setByte( void 0 ) );
 
 test();

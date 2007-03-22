@@ -134,7 +134,7 @@ nsCRLManager::ImportCrl (PRUint8 *aData, PRUint32 aLength, nsIURI * aURI, PRUint
     }
   }
   
-  crl = SEC_NewCrl(CERT_GetDefaultCertDB(), const_cast<char*>(url.get()), &derCrl,
+  crl = SEC_NewCrl(CERT_GetDefaultCertDB(), NS_CONST_CAST(char*, url.get()), &derCrl,
                    aType);
   
   if (!crl) {
@@ -188,7 +188,7 @@ done:
       nsCOMPtr<nsIPrompt> prompter;
       if (wwatch){
         wwatch->GetNewPrompter(0, getter_AddRefs(prompter));
-        nssComponent->GetPIPNSSBundleString("CrlImportFailure1x", message);
+        nssComponent->GetPIPNSSBundleString("CrlImportFailure1", message);
         message.Append(NS_LITERAL_STRING("\n").get());
         message.Append(errorMessage);
         nssComponent->GetPIPNSSBundleString("CrlImportFailure2", temp);

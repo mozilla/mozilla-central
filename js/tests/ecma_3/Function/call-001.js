@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -34,9 +33,8 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK ***** */
-
-/*
+ * ***** END LICENSE BLOCK *****
+ *
  * Date: 2001-07-13
  *
  * SUMMARY: Applying Function.prototype.call to the Function object itself
@@ -61,9 +59,8 @@
  */
 
 //-----------------------------------------------------------------------------
-var gTestfile = 'call-001.js';
 var UBound = 0;
-var BUGNUMBER = '(none)';
+var bug = '(none)';
 var summary = 'Applying Function.prototype.call to the Function object itself';
 var status = '';
 var statusitems = [];
@@ -141,7 +138,7 @@ function captureThis()
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
 
   for (var i = 0; i < UBound; i++)

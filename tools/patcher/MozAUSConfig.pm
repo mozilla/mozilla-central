@@ -113,7 +113,7 @@ sub ProcessCommandLineArgs
     Getopt::Long::GetOptions(\%args,
      'help|h|?', 'man', 'version', 'app=s', 'config=s', 'verbose',
      'dry-run', 'tools-dir=s', 'download-dir=s', 'deliverable-dir=s',
-     'tools-revision=s', 'partial-patchlist-file=s', @RUN_MODES)
+     'tools-revision=s', @RUN_MODES)
      or return 0;
 
     $this->{'mConfigFilename'} = defined($args{'config'}) ? $args{'config'} :
@@ -127,7 +127,6 @@ sub ProcessCommandLineArgs
      $args{'mDownloadDir'} : $DEFAULT_DOWNLOAD_DIR;
     $this->{'mDeliverableDir'} = defined($args{'mDeliverableDir'}) ? 
      $args{'mDeliverableDir'} : $DEFAULT_DELIVERABLE_DIR;
-    $this->{'mPartialPatchlistFile'} = defined($args{'partial-patchlist-file'})      ? $args{'partial-patchlist-file'} : undef;
 
     # Is this a dry run, and we'll just print what we *would* do?
     $this->{'dryRun'} = defined($args{'dryRun'}) ? 1 : 0;
@@ -375,7 +374,6 @@ sub CreateUpdateGraph
         my $u_details = $u->{'details'};
         my $u_license = $u->{'license'};
         my $u_updateType = $u->{'updateType'};
-        my $u_rcInfo = exists($u->{'rc'}) ? $u->{'rc'} : undef;
         my $u_force = [];
       
         if (defined($u->{'force'})) {
@@ -418,29 +416,6 @@ sub CreateUpdateGraph
         $u_config->{$u_key}->{'updateType'} = $u_updateType;
         $u_config->{$u_key}->{'force'} = $u_force;
         $u_config->{$u_key}->{'platforms'} = {};
-
-        # Add the keys that specify channel-specific snippet directories
-        foreach my $c (@channels) {
-            my $testKey = $c . '-dir';
-            if (exists($u->{$testKey})) {
-                $u_config->{$u_key}->{$testKey} = $u->{$testKey};
-            }
-        }
-
-        # Creates a hash of channel -> rc number the channel thinks its on
-        $u_config->{$u_key}->{'rc'} = {};
-        if (defined($u_rcInfo)) {
-            foreach my $channel (keys(%{$u_rcInfo})) {
-                # Such a hack... this isn't a channel name at all; it's a config
-                # variable, to control the behavior of sending the complete 
-                # "jump" updates to the RC channels...
-                if ($channel eq 'DisableCompleteJump') {
-                    $u_config->{$u_key}->{'DisableCompleteJump'} = $u_rcInfo->{$channel};
-                    next;
-                }
-                $u_config->{$u_key}->{'rc'}->{$channel} = $u_rcInfo->{$channel};
-            }
-        }
 
         my $r_config = $this->{'mAppConfig'}->{'release'};
         my @releases = keys %$r_config;
@@ -535,7 +510,6 @@ sub CreateUpdateGraph
                      locale => $l,
                      build_id => $rlp_config->{$p}->{'build_id'},
                      version => $rl_config->{'version'},
-                     prettyVersion => $rl_config->{'prettyVersion'},
                      extensionVersion => $rl_config->{'extension-version'},
                      schemaVersion => $rl_config->{'schema'} );
                 }
@@ -557,7 +531,6 @@ sub GatherCompleteData
     my $release = $args{'release'};
     my $build_id = $args{'build_id'};
     my $version = $args{'version'};
-    my $prettyVersion = $args{'prettyVersion'};
     my $extensionVersion = $args{'extensionVersion'};
     my $schemaVersion = $args{'schemaVersion'};
 
@@ -601,12 +574,6 @@ sub GatherCompleteData
     my $numericVersion = $version;
     $numericVersion =~ s/\-.*$//;
     $node->{'appv'} = $numericVersion;
-
-    # appv is used for directory creation and possibly other things.
-    # patcher will use prettyAppv in the snippets it creates, and appv for any
-    # other weird things it chooses to use it for
-    $node->{'prettyAppv'} = defined($prettyVersion) ?
-     $prettyVersion : $numericVersion;
 
     # Most of the time, the extv should be the same as the appv; sometimes,
     # however, this won't be the case. This adds support to allow you to specify
@@ -718,13 +685,11 @@ sub RemoveBrokenUpdates
                 my $gen_partial_path = $partial_path;
                 $gen_partial_path = SubstitutePath(path => $partial_path,
                                                    platform => $p,
-                                                   version => $to->{'appv'},
                                                    locale => $l);
 
                 my $gen_partial_url = $partial_url;
                 $gen_partial_url = SubstitutePath(path => $partial_url,
                                                   platform => $p,
-                                                  version => $to->{'appv'},
                                                   locale => $l);
 
                 my $partial_pathname = "$u/ftp/$gen_partial_path";

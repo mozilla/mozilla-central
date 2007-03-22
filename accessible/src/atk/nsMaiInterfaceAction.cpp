@@ -59,8 +59,7 @@ gboolean
 doActionCB(AtkAction *aAction, gint aActionIndex)
 {
     nsAccessibleWrap *accWrap = GetAccessibleWrap(ATK_OBJECT(aAction));
-    if (!accWrap)
-        return FALSE;
+    NS_ENSURE_TRUE(accWrap, FALSE);
  
     nsresult rv = accWrap->DoAction(aActionIndex);
     return (NS_FAILED(rv)) ? FALSE : TRUE;
@@ -70,20 +69,18 @@ gint
 getActionCountCB(AtkAction *aAction)
 {
     nsAccessibleWrap *accWrap = GetAccessibleWrap(ATK_OBJECT(aAction));
-    if (!accWrap)
-        return 0;
+    NS_ENSURE_TRUE(accWrap, 0);
 
     PRUint8 num = 0;
     nsresult rv = accWrap->GetNumActions(&num);
-    return (NS_FAILED(rv)) ? 0 : static_cast<gint>(num);
+    return (NS_FAILED(rv)) ? 0 : NS_STATIC_CAST(gint, num);
 }
 
 const gchar *
 getActionDescriptionCB(AtkAction *aAction, gint aActionIndex)
 {
     nsAccessibleWrap *accWrap = GetAccessibleWrap(ATK_OBJECT(aAction));
-    if (!accWrap)
-        return nsnull;
+    NS_ENSURE_TRUE(accWrap, nsnull);
 
     nsAutoString description;
     nsresult rv = accWrap->GetActionDescription(aActionIndex, description);
@@ -95,8 +92,7 @@ const gchar *
 getActionNameCB(AtkAction *aAction, gint aActionIndex)
 {
     nsAccessibleWrap *accWrap = GetAccessibleWrap(ATK_OBJECT(aAction));
-    if (!accWrap)
-        return nsnull;
+    NS_ENSURE_TRUE(accWrap, nsnull);
 
     nsAutoString autoStr;
     nsresult rv = accWrap->GetActionName(aActionIndex, autoStr);
@@ -108,8 +104,7 @@ const gchar *
 getKeyBindingCB(AtkAction *aAction, gint aActionIndex)
 {
     nsAccessibleWrap *accWrap = GetAccessibleWrap(ATK_OBJECT(aAction));
-    if (!accWrap)
-        return nsnull;
+    NS_ENSURE_TRUE(accWrap, nsnull);
 
     //return all KeyBindings including accesskey and shortcut
     nsAutoString allKeyBinding;

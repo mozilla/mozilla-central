@@ -47,6 +47,7 @@ class nsITheme;
 #define NS_STATE_IS_ROOT        0x01000000
 #define NS_STATE_SET_TO_DEBUG   0x04000000
 #define NS_STATE_DEBUG_WAS_SET  0x08000000
+#define NS_STATE_STYLE_CHANGE   0x20000000
 
 class nsBox : public nsIFrame {
 
@@ -117,9 +118,9 @@ rollbox.
   static void AddMargin(nsIBox* aChild, nsSize& aSize);
   static void AddMargin(nsSize& aSize, const nsMargin& aMargin);
 
-  static nsSize BoundsCheckMinMax(const nsSize& aMinSize, const nsSize& aMaxSize);
-  static nsSize BoundsCheck(const nsSize& aMinSize, const nsSize& aPrefSize, const nsSize& aMaxSize);
-  static nscoord BoundsCheck(nscoord aMinSize, nscoord aPrefSize, nscoord aMaxSize);
+  static void BoundsCheckMinMax(nsSize& aMinSize, nsSize& aMaxSize);
+  static void BoundsCheck(nsSize& aMinSize, nsSize& aPrefSize, nsSize& aMaxSize);
+  static void BoundsCheck(nscoord& aMinSize, nscoord& aPrefSize, nscoord& aMaxSize);
 
 protected:
 

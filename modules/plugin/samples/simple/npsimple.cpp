@@ -407,8 +407,8 @@ SimplePluginInstance::GetScriptablePeer(void **aScriptablePeer)
    // nsISecurityCheckedComponent to be scriptable from content
    // javascript.
 
-   *aScriptablePeer = static_cast<nsISimplePluginInstance *>(this);
-   NS_ADDREF(static_cast<nsISimplePluginInstance *>(*aScriptablePeer));
+   *aScriptablePeer = NS_STATIC_CAST(nsISimplePluginInstance *, this);
+   NS_ADDREF(NS_STATIC_CAST(nsISimplePluginInstance *, *aScriptablePeer));
    return NS_OK;
 }
 
@@ -456,14 +456,14 @@ SimplePluginInstance::RegisterSelf(nsIComponentManager* aCompMgr,
 
     nsIServiceManager *svcMgr;
     rv = aCompMgr->QueryInterface(NS_GET_IID(nsIServiceManager),
-                                  reinterpret_cast<void**>(&svcMgr));
+                                  NS_REINTERPRET_CAST(void**, &svcMgr));
     if (NS_FAILED(rv))
         return rv;
 
     nsIPluginManager* pm;
     rv = svcMgr->GetService(kPluginManagerCID,
                             NS_GET_IID(nsIPluginManager),
-                            reinterpret_cast<void**>(&pm));
+                            NS_REINTERPRET_CAST(void**, &pm));
     NS_RELEASE(svcMgr);
 
     if (NS_SUCCEEDED(rv)) {
@@ -492,14 +492,14 @@ SimplePluginInstance::UnregisterSelf(nsIComponentManager* aCompMgr,
 
     nsIServiceManager *svcMgr;
     rv = aCompMgr->QueryInterface(NS_GET_IID(nsIServiceManager),
-                                  reinterpret_cast<void**>(&svcMgr));
+                                  NS_REINTERPRET_CAST(void**, &svcMgr));
     if (NS_FAILED(rv))
         return rv;
 
     nsIPluginManager* pm;
     rv = svcMgr->GetService(kPluginManagerCID,
                             NS_GET_IID(nsIPluginManager),
-                            reinterpret_cast<void**>(&pm));
+                            NS_REINTERPRET_CAST(void**, &pm));
     NS_RELEASE(svcMgr);
 
     if (NS_SUCCEEDED(rv)) {

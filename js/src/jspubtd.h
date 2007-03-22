@@ -71,10 +71,8 @@ typedef enum JSVersion {
     JSVERSION_1_5     = 150,
     JSVERSION_1_6     = 160,
     JSVERSION_1_7     = 170,
-    JSVERSION_1_8     = 180,
     JSVERSION_DEFAULT = 0,
-    JSVERSION_UNKNOWN = -1,
-    JSVERSION_LATEST  = JSVERSION_1_8
+    JSVERSION_UNKNOWN = -1
 } JSVersion;
 
 #define JSVERSION_IS_ECMA(version) \
@@ -132,7 +130,6 @@ typedef struct JSContext         JSContext;
 typedef struct JSErrorReport     JSErrorReport;
 typedef struct JSFunction        JSFunction;
 typedef struct JSFunctionSpec    JSFunctionSpec;
-typedef struct JSTracer          JSTracer;
 typedef struct JSIdArray         JSIdArray;
 typedef struct JSProperty        JSProperty;
 typedef struct JSPropertySpec    JSPropertySpec;
@@ -143,7 +140,6 @@ typedef struct JSXMLObjectOps    JSXMLObjectOps;
 typedef struct JSRuntime         JSRuntime;
 typedef struct JSRuntime         JSTaskState;   /* XXX deprecated name */
 typedef struct JSScript          JSScript;
-typedef struct JSStackFrame      JSStackFrame;
 typedef struct JSString          JSString;
 typedef struct JSXDRState        JSXDRState;
 typedef struct JSExceptionState  JSExceptionState;
@@ -332,74 +328,25 @@ typedef JSBool
                                     JSBool *bp);
 
 /*
- * Deprecated function type for JSClass.mark. All new code should define
- * JSTraceOp instead to ensure the traversal of traceable things stored in
- * the native structures.
+ * Function type for JSClass.mark and JSObjectOps.mark, called from the GC to
+ * scan live GC-things reachable from obj's private data structure.  For each
+ * such thing, a mark implementation must call
+ *
+ *    JS_MarkGCThing(cx, thing, name, arg);
+ *
+ * The trailing name and arg parameters are used for GC_MARK_DEBUG-mode heap
+ * dumping and ref-path tracing.  The mark function should pass a (typically
+ * literal) string naming the private data member for name, and it must pass
+ * the opaque arg parameter through from its caller.
+ *
+ * For the JSObjectOps.mark hook, the return value is the number of slots in
+ * obj to scan. For JSClass.mark, the return value is ignored.
+ *
+ * NB: JSMarkOp implementations cannot allocate new GC-things (JS_NewObject
+ * called from a mark function will fail silently, e.g.).
  */
 typedef uint32
 (* JS_DLL_CALLBACK JSMarkOp)(JSContext *cx, JSObject *obj, void *arg);
-
-/*
- * Function type for trace operation of the class called to enumerate all
- * traceable things reachable from obj's private data structure. For each such
- * thing, a trace implementation must call
- *
- *    JS_CallTracer(trc, thing, kind);
- *
- * or one of its convenience macros as described in jsapi.h.
- *
- * JSTraceOp implementation can assume that no other threads mutates object
- * state. It must not change state of the object or corresponding native
- * structures. The only exception for this rule is the case when the embedding
- * needs a tight integration with GC. In that case the embedding can check if
- * the traversal is a part of the marking phase through calling
- * JS_IsGCMarkingTracer and apply a special code like emptying caches or
- * marking its native structures.
- *
- * To define the tracer for a JSClass, the implementation must add
- * JSCLASS_MARK_IS_TRACE to class flags and use JS_CLASS_TRACE(method)
- * macro below to convert JSTraceOp to JSMarkOp when initializing or
- * assigning JSClass.mark field.
- */
-typedef void
-(* JS_DLL_CALLBACK JSTraceOp)(JSTracer *trc, JSObject *obj);
-
-#if defined __GNUC__ && __GNUC__ >= 4 && !defined __cplusplus
-# define JS_CLASS_TRACE(method)                                               \
-    (__builtin_types_compatible_p(JSTraceOp, __typeof(&(method)))             \
-     ? (JSMarkOp)(method)                                                     \
-     : js_WrongTypeForClassTracer)
-
-extern JSMarkOp js_WrongTypeForClassTracer;
-
-#else
-# define JS_CLASS_TRACE(method) ((JSMarkOp)(method))
-#endif
-
-/*
- * Tracer callback, called for each traceable thing directly refrenced by a
- * particular object or runtime structure. It is the callback responsibility
- * to ensure the traversal of the full object graph via calling eventually
- * JS_TraceChildren on the passed thing. In this case the callback must be
- * prepared to deal with cycles in the traversal graph.
- *
- * kind argument is one of JSTRACE_OBJECT, JSTRACE_DOUBLE, JSTRACE_STRING or
- * a tag denoting internal implementation-specific traversal kind. In the
- * latter case the only operations on thing that the callback can do is to call
- * JS_TraceChildren or DEBUG-only JS_PrintTraceThingInfo.
- */
-typedef void
-(* JS_DLL_CALLBACK JSTraceCallback)(JSTracer *trc, void *thing, uint32 kind);
-
-/*
- * DEBUG only callback that JSTraceOp implementation can provide to return
- * a string describing the reference traced with JS_CallTracer.
- */
-#ifdef DEBUG
-typedef void
-(* JS_DLL_CALLBACK JSTraceNamePrinter)(JSTracer *trc, char *buf,
-                                       size_t bufsize);
-#endif
 
 /*
  * The optional JSClass.reserveSlots hook allows a class to make computed
@@ -523,14 +470,6 @@ typedef JSObject *
 (* JS_DLL_CALLBACK JSObjectOp)(JSContext *cx, JSObject *obj);
 
 /*
- * Hook that creates an iterator object for a given object. Returns the
- * iterator object or null if an error or exception was thrown on cx.
- */
-typedef JSObject *
-(* JS_DLL_CALLBACK JSIteratorOp)(JSContext *cx, JSObject *obj,
-                                 JSBool keysonly);
-
-/*
  * A generic type for functions taking a context, object, and property, with
  * no return value.  Used by JSObjectOps.dropProperty currently (see above,
  * JSDefinePropOp and JSLookupPropOp, for the object-locking protocol in which
@@ -541,9 +480,9 @@ typedef void
                                     JSProperty *prop);
 
 /*
- * Function pointer type for JSObjectOps.setProto and JSObjectOps.setParent.
- * These hooks must check for cycles without deadlocking, and otherwise take
- * special steps. See jsobj.c and jsgc.c for details.
+ * Function type for JSObjectOps.setProto and JSObjectOps.setParent.  These
+ * hooks must check for cycles without deadlocking, and otherwise take special
+ * steps.  See jsobj.c, js_SetProtoOrParent, for an example.
  */
 typedef JSBool
 (* JS_DLL_CALLBACK JSSetObjectSlotOp)(JSContext *cx, JSObject *obj,
@@ -597,10 +536,6 @@ typedef JSBool
 (* JS_DLL_CALLBACK JSNative)(JSContext *cx, JSObject *obj, uintN argc,
                              jsval *argv, jsval *rval);
 
-/* See jsapi.h, the JS_CALLEE, JS_THIS, etc. macros. */
-typedef JSBool
-(* JS_DLL_CALLBACK JSFastNative)(JSContext *cx, uintN argc, jsval *vp);
-
 /* Callbacks and their arguments. */
 
 typedef enum JSContextOp {
@@ -634,19 +569,9 @@ typedef enum JSGCStatus {
 typedef JSBool
 (* JS_DLL_CALLBACK JSGCCallback)(JSContext *cx, JSGCStatus status);
 
-/*
- * Generic trace operation that calls JS_CallTracer on each traceable thing
- * stored in data.
- */
 typedef void
-(* JS_DLL_CALLBACK JSTraceDataOp)(JSTracer *trc, void *data);
+(* JS_DLL_CALLBACK JSGCThingCallback)(void *thing, uint8 flags, void *closure);
 
-typedef JSBool
-(* JS_DLL_CALLBACK JSOperationCallback)(JSContext *cx);
-
-/*
- * Deprecated form of JSOperationCallback.
- */
 typedef JSBool
 (* JS_DLL_CALLBACK JSBranchCallback)(JSContext *cx, JSScript *script);
 
@@ -673,7 +598,7 @@ typedef enum JSExnType {
 } JSExnType;
 
 typedef struct JSErrorFormatString {
-    /* The error format string (UTF-8 if js_CStringsAreUTF8). */
+    /* The error format string (UTF-8 if JS_C_STRINGS_ARE_UTF8 is defined). */
     const char *format;
 
     /* The number of arguments to expand in the formatted error message. */

@@ -35,17 +35,15 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-256617.js';
 //-----------------------------------------------------------------------------
 // should fail with syntax error. won't run in browser...
-var BUGNUMBER = 256617;
+var bug = 256617;
 var summary = 'throw statement: eol should not be allowed';
 var actual = '';
 var expect = '';
 
-printBugNumber(BUGNUMBER);
-printStatus (summary);
+  printBugNumber (bug);
+  printStatus (summary);
 
 expect = 'syntax error';
 
@@ -65,5 +63,5 @@ catch(e)
     actual = 'no error';
   }
 }
- 
-reportCompare(expect, actual, summary);
+  
+  reportCompare(expect, actual, summary);

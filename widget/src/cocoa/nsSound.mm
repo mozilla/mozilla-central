@@ -39,12 +39,12 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsSound.h"
-#include "nsObjCExceptions.h"
+
+#import <Cocoa/Cocoa.h>
+
 #include "nsNetUtil.h"
 #include "nsCOMPtr.h"
 #include "nsIURL.h"
-
-#import <Cocoa/Cocoa.h>
 
 NS_IMPL_ISUPPORTS1(nsSound, nsISound)
 
@@ -59,12 +59,8 @@ nsSound::~nsSound()
 NS_IMETHODIMP
 nsSound::Beep()
 {
-  NS_OBJC_BEGIN_TRY_ABORT_BLOCK_NSRESULT;
-
-  NSBeep();
-  return NS_OK;
-
-  NS_OBJC_END_TRY_ABORT_BLOCK_NSRESULT;
+    NSBeep();
+    return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -74,37 +70,33 @@ nsSound::OnStreamComplete(nsIStreamLoader *aLoader,
                           PRUint32 dataLen,
                           const PRUint8 *data)
 {
-  NS_OBJC_BEGIN_TRY_ABORT_BLOCK_NSRESULT;
+    NSData *value = [NSData dataWithBytes:data length:dataLen];
 
-  NSData *value = [NSData dataWithBytes:data length:dataLen];
+    NSSound *sound = [[NSSound alloc] initWithData:value];
 
-  NSSound *sound = [[NSSound alloc] initWithData:value];
+    [sound play];
 
-  [sound play];
+    [sound autorelease];
 
-  [sound autorelease];
-
-  return NS_OK;
-
-  NS_OBJC_END_TRY_ABORT_BLOCK_NSRESULT;
+    return NS_OK;
 }
 
 NS_IMETHODIMP
 nsSound::Play(nsIURL *aURL)
 {
-  nsCOMPtr<nsIURI> uri(do_QueryInterface(aURL));
-  nsCOMPtr<nsIStreamLoader> loader;
-  return NS_NewStreamLoader(getter_AddRefs(loader), uri, this);
+    nsCOMPtr<nsIURI> uri(do_QueryInterface(aURL));
+    nsCOMPtr<nsIStreamLoader> loader;
+    return NS_NewStreamLoader(getter_AddRefs(loader), uri, this);
 }
 
 NS_IMETHODIMP
 nsSound::Init()
 {
-  return NS_OK;
+    return NS_OK;
 }
 
 NS_IMETHODIMP
 nsSound::PlaySystemSound(const nsAString &aSoundAlias)
 {
-  return NS_OK;
+    return NS_OK;
 }

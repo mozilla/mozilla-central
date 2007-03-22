@@ -17,7 +17,7 @@
  *
  * The Initial Developer of the Original Code is
  * Christopher Blizzard.
- *
+ * Portions created by Christopher Blizzard are Copyright (C) Christopher Blizzard.  All Rights Reserved.
  * Portions created by the Initial Developer are Copyright (C) 2001
  * the Initial Developer. All Rights Reserved.
  *
@@ -68,7 +68,6 @@
 #ifdef MOZILLA_INTERNAL_API
 #include "nsXPIDLString.h"
 #include "nsReadableUtils.h"
-#include "nsString.h"
 #else
 #include "nsStringAPI.h"
 #include "nsComponentManagerUtils.h"
@@ -79,6 +78,7 @@
 #include "nsIDOMPluginArray.h"
 #include "nsIDOMPlugin.h"
 #include <plugin/nsIPluginHost.h>
+#include "nsString.h"
 #include "nsIDOMMimeType.h"
 #include "nsIObserverService.h"
 
@@ -89,10 +89,35 @@
 #include "nsICacheService.h"
 #include "nsICache.h"
 
+#ifdef MOZ_WIDGET_GTK2
 #include "gtkmozembedmarshal.h"
 #define NEW_TOOLKIT_STRING(x) g_strdup(NS_ConvertUTF16toUTF8(x).get())
 #define GET_TOOLKIT_STRING(x) NS_ConvertUTF16toUTF8(x).get()
 #define GET_OBJECT_CLASS_TYPE(x) G_OBJECT_CLASS_TYPE(x)
+#endif /* MOZ_WIDGET_GTK2 */
+
+#ifdef MOZ_WIDGET_GTK
+// so we can get callbacks from the mozarea
+#include <gtkmozarea.h>
+// so we get the right marshaler for gtk 1.2
+#define gtkmozembed_VOID__INT_UINT \
+  gtk_marshal_NONE__INT_INT
+#define gtkmozembed_VOID__STRING_INT_INT \
+  gtk_marshal_NONE__POINTER_INT_INT
+#define gtkmozembed_VOID__STRING_INT_UINT \
+  gtk_marshal_NONE__POINTER_INT_INT
+#define gtkmozembed_VOID__POINTER_INT_POINTER \
+  gtk_marshal_NONE__POINTER_INT_POINTER
+#define gtkmozembed_BOOL__STRING \
+  gtk_marshal_BOOL__POINTER
+#define gtkmozembed_VOID__INT_INT_BOOLEAN \
+  gtk_marshal_NONE__INT_INT_BOOLEAN
+
+#define G_SIGNAL_TYPE_STATIC_SCOPE 0
+#define NEW_TOOLKIT_STRING(x) g_strdup(NS_LossyConvertUTF16toASCII(x).get())
+#define GET_TOOLKIT_STRING(x) NS_LossyConvertUTF16toASCII(x).get()
+#define GET_OBJECT_CLASS_TYPE(x) (GTK_OBJECT_CLASS(x)->type)
+#endif /* MOZ_WIDGET_GTK */
 
 #define UNACCEPTABLE_CRASHY_GLIB_ALLOCATION(newed) PR_BEGIN_MACRO \
   /* OOPS this code is using a glib allocation function which     \
@@ -272,6 +297,10 @@ gtk_moz_embed_common_class_init(GtkMozEmbedCommonClass *klass)
                    G_TYPE_INT, G_TYPE_INT,
                    G_TYPE_INT, G_TYPE_INT);
   */
+#ifdef MOZ_WIDGET_GTK
+    gtk_object_class_add_signals(object_class, moz_embed_common_signals,
+                                 COMMON_LAST_SIGNAL);
+#endif /* MOZ_WIDGET_GTK */
 }
 
 static void
@@ -305,7 +334,7 @@ GtkWidget *
 gtk_moz_embed_common_new(void)
 {
   GtkWidget *widget = (GtkWidget*) gtk_type_new(gtk_moz_embed_common_get_type());
-  gtk_widget_set_name(widget, "gtkmozembedcommon");
+  gtk_widget_set_name (widget, "gtkmozembedcommon");
   return (GtkWidget *) widget;
 }
 
@@ -322,19 +351,19 @@ gtk_moz_embed_common_set_pref(GtkType type, gchar *name, gpointer value)
     case GTK_TYPE_BOOL:
       {
         /* I doubt this cast pair is correct */
-        rv = pref->SetBoolPref(name, !!*(int*)value);
+        rv = pref->SetBoolPref (name, !!*(int*)value);
         break;
       }
     case GTK_TYPE_INT:
       {
         /* I doubt this cast pair is correct */
-        rv = pref->SetIntPref(name, *(int*)value);
+        rv = pref->SetIntPref (name, *(int*)value);
         break;
       }
     case GTK_TYPE_STRING:
       {
         g_return_val_if_fail (value, FALSE);
-        rv = pref->SetCharPref(name, (gchar*)value);
+        rv = pref->SetCharPref (name, (gchar*)value);
         break;
       }
     default:
@@ -357,17 +386,17 @@ gtk_moz_embed_common_get_pref(GtkType type, gchar *name, gpointer value)
     switch (type) {
     case GTK_TYPE_BOOL:
       {
-        rv = pref->GetBoolPref(name, (gboolean*)value);
+        rv = pref->GetBoolPref (name, (gboolean*)value);
         break;
       }
     case GTK_TYPE_INT:
       {
-        rv = pref->GetIntPref(name, (gint*)value);
+        rv = pref->GetIntPref (name, (gint*)value);
         break;
       }
     case GTK_TYPE_STRING:
       {
-        rv = pref->GetCharPref(name, (gchar**)value);
+        rv = pref->GetCharPref (name, (gchar**)value);
         break;
       }
     default:
@@ -403,17 +432,17 @@ gtk_moz_embed_common_get_logins(const char* uri, GList **list)
        passwordEnumerator->HasMoreElements(&enumResult))
   {
     nsCOMPtr<nsIPassword> nsPassword;
-    result = passwordEnumerator->GetNext(getter_AddRefs(nsPassword));
+    result = passwordEnumerator->GetNext (getter_AddRefs(nsPassword));
     if (NS_FAILED(result)) {
       /* this almost certainly leaks logins */
       return ret;
     }
     nsCString host;
-    nsPassword->GetHost(host);
+    nsPassword->GetHost (host);
     nsCString nsCURI(uri);
     if (uri) {
-      if (!StringBeginsWith(nsCURI, host)
-          // && !StringBeginsWith(host, nsCURI)
+      if (!StringBeginsWith (nsCURI, host)
+          // && !StringBeginsWith (host, nsCURI)
           )
         continue;
     } else if (!passwordManager->IsEqualToLastHostQuery(host))
@@ -422,8 +451,8 @@ gtk_moz_embed_common_get_logins(const char* uri, GList **list)
     if (list) {
       nsString unicodeName;
       nsString unicodePassword;
-      nsPassword->GetUser(unicodeName);
-      nsPassword->GetPassword(unicodePassword);
+      nsPassword->GetUser (unicodeName);
+      nsPassword->GetPassword (unicodePassword);
       GtkMozLogin * login = g_new0(GtkMozLogin, 1);
       UNACCEPTABLE_CRASHY_GLIB_ALLOCATION(login);
       login->user = ToNewUTF8String(unicodeName);
@@ -456,7 +485,7 @@ gtk_moz_embed_common_remove_passwords(const gchar *host, const gchar *user, gint
 }
 
 gint
-gtk_moz_embed_common_get_history_list(GtkMozHistoryItem **GtkHI)
+gtk_moz_embed_common_get_history_list (GtkMozHistoryItem **GtkHI)
 {
   gint count = 0;
   EmbedGlobalHistory *history = EmbedGlobalHistory::GetInstance();
@@ -465,7 +494,7 @@ gtk_moz_embed_common_get_history_list(GtkMozHistoryItem **GtkHI)
 }
 
 gint
-gtk_moz_embed_common_remove_history(gchar *url, gint time) {
+gtk_moz_embed_common_remove_history (gchar *url, gint time) {
   nsresult rv;
   // The global history service
   nsCOMPtr<nsIGlobalHistory2> globalHistory(do_GetService("@mozilla.org/browser/global-history;2"));
@@ -477,8 +506,8 @@ gtk_moz_embed_common_remove_history(gchar *url, gint time) {
     myHistory->Observe(nsnull, "RemoveEntries", nsnull);
   else {
     EmbedGlobalHistory *history = EmbedGlobalHistory::GetInstance();
-    PRUnichar *uniurl = ToNewUnicode(NS_ConvertUTF8toUTF16(url));
-    rv = history->RemoveEntries(uniurl, time);
+    PRUnichar *uniurl = LocaleToUnicode(url);
+    rv = history->RemoveEntries (uniurl, time);
     NS_Free(uniurl);
   }
   return 1;
@@ -525,7 +554,7 @@ gtk_moz_embed_common_get_cookie_list(void)
 }
 
 gint
-gtk_moz_embed_common_delete_all_cookies(GSList *deletedCookies)
+gtk_moz_embed_common_delete_all_cookies (GSList *deletedCookies)
 {
   nsCOMPtr<nsIPermissionManager> permissionManager =
     do_GetService(NS_PERMISSIONMANAGER_CONTRACTID);
@@ -533,7 +562,7 @@ gtk_moz_embed_common_delete_all_cookies(GSList *deletedCookies)
   if (!permissionManager)
     return 1;
 
-  permissionManager->RemoveAll();
+  permissionManager->RemoveAll ();
 
   if (!deletedCookies)
     return 1;
@@ -545,8 +574,8 @@ gtk_moz_embed_common_delete_all_cookies(GSList *deletedCookies)
     return 1;
   cookieManager->RemoveAll();
 
-  g_slist_free(deletedCookies);
-  return 0;//False in GWebStatus means OK, as opposed to gboolean in C
+  g_slist_free (deletedCookies);
+    return 0;//False in GWebStatus means OK, as opposed to gboolean in C
 }
 
 unsigned char *
@@ -562,7 +591,7 @@ gtk_moz_embed_common_nsx509_to_raw(void *nsIX509Ptr, guint *len)
 }
 
 gint
-gtk_moz_embed_common_get_plugins_list(GList **pluginArray)
+gtk_moz_embed_common_get_plugins_list (GList **pluginArray)
 {
   nsresult rv;
   nsCOMPtr<nsIPluginManager> pluginMan =
@@ -596,39 +625,27 @@ gtk_moz_embed_common_get_plugins_list(GList **pluginArray)
   }
 
   nsString string;
-  for (int plugin_index = 0; plugin_index < (gint) aLength; plugin_index++)
+  for (int aIndex = 0; aIndex < (gint) aLength; aIndex++)
   {
     GtkMozPlugin *list_item = g_new0(GtkMozPlugin, 1);
     UNACCEPTABLE_CRASHY_GLIB_ALLOCATION(list_item);
 
-    rv = aItems[plugin_index]->GetName(string);
+    rv = aItems[aIndex]->GetName(string);
     if (!NS_FAILED(rv))
       list_item->title = g_strdup(NS_ConvertUTF16toUTF8(string).get());
 
-    aItems[plugin_index]->GetFilename(string);
+    aItems[aIndex]->GetFilename(string);
     if (!NS_FAILED(rv))
       list_item->path = g_strdup(NS_ConvertUTF16toUTF8(string).get());
 
     nsCOMPtr<nsIDOMMimeType> mimeType;
-    PRUint32 mime_count = 0;
-    rv = aItems[plugin_index]->GetLength(&mime_count);
+    rv = aItems[aIndex]->Item(aIndex, getter_AddRefs(mimeType));
     if (NS_FAILED(rv))
       continue;
-    
-    nsString single_mime;
-    string.SetLength(0);
-    for (int mime_index = 0; mime_index < mime_count; ++mime_index) {
-      rv = aItems[plugin_index]->Item(mime_index, getter_AddRefs(mimeType));
-      if (NS_FAILED(rv))
-        continue;
-      rv = mimeType->GetDescription(single_mime);
-      if (!NS_FAILED(rv)) {
-        string.Append(single_mime);
-        string.AppendLiteral(";");
-      }
-    }
-    
-    list_item->type = g_strdup(NS_ConvertUTF16toUTF8(string).get());
+
+    rv = mimeType->GetDescription(string);
+    if (!NS_FAILED(rv))
+      list_item->type = g_strdup(NS_ConvertUTF16toUTF8(string).get());
     if (!NS_FAILED(rv))
       *pluginArray = g_list_append(*pluginArray, list_item);
   }
@@ -637,7 +654,7 @@ gtk_moz_embed_common_get_plugins_list(GList **pluginArray)
 }
 
 void
-gtk_moz_embed_common_reload_plugins()
+gtk_moz_embed_common_reload_plugins ()
 {
   nsresult rv;
   nsCOMPtr<nsIPluginManager> pluginMan =
@@ -646,21 +663,11 @@ gtk_moz_embed_common_reload_plugins()
 }
 
 guint
-gtk_moz_embed_common_get_security_mode(guint sec_state)
+gtk_moz_embed_common_get_security_mode (guint sec_state)
 {
   GtkMozEmbedSecurityMode sec_mode;
 
-  const guint wpl_security_bits = nsIWebProgressListener::STATE_IS_SECURE |
-                                  nsIWebProgressListener::STATE_IS_BROKEN |
-                                  nsIWebProgressListener::STATE_IS_INSECURE |
-                                  nsIWebProgressListener::STATE_SECURE_HIGH |
-                                  nsIWebProgressListener::STATE_SECURE_MED |
-                                  nsIWebProgressListener::STATE_SECURE_LOW;
-
-  /* sec_state is defined as a bitmask that may be extended in the future.
-   * We filter out any unknown bits before testing for known values.
-   */
-  switch (sec_state & wpl_security_bits) {
+  switch (sec_state) {
     case nsIWebProgressListener::STATE_IS_INSECURE:
       sec_mode = GTK_MOZ_EMBED_NO_SECURITY;
       //g_print("GTK_MOZ_EMBED_NO_SECURITY\n");
@@ -697,7 +704,7 @@ gtk_moz_embed_common_clear_cache(void)
 {
   nsCacheStoragePolicy storagePolicy;
 
-  nsCOMPtr<nsICacheService> cacheService = do_GetService(NS_CACHESERVICE_CONTRACTID);
+  nsCOMPtr<nsICacheService> cacheService = do_GetService (NS_CACHESERVICE_CONTRACTID);
 
   if (cacheService)
   {

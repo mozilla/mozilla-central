@@ -178,7 +178,8 @@ nsConverterInputStream::ReadString(PRUint32 aCount, nsAString& aString,
   if (readCount > aCount) {
     readCount = aCount;
   }
-  const PRUnichar* buf = reinterpret_cast<const PRUnichar*>(mUnicharData->GetBuffer() +
+  const PRUnichar* buf = NS_REINTERPRET_CAST(const PRUnichar*, 
+                                             mUnicharData->GetBuffer() +
                                              mUnicharDataOffset);
   aString.Assign(buf, readCount);
   mUnicharDataOffset += readCount;

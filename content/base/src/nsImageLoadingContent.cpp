@@ -77,8 +77,6 @@
 #include "nsEventDispatcher.h"
 #include "nsDOMClassInfo.h"
 
-#include "mozAutoDocUpdate.h"
-
 #ifdef DEBUG_chb
 static void PrintReqURL(imgIRequest* req) {
   if (!req) {
@@ -535,15 +533,6 @@ nsImageLoadingContent::LoadImage(nsIURI* aNewURI,
   // sure to notify if it does.
   AutoStateChanger changer(this, aNotify);
 
-  // Use the principal of aDocument to avoid having to QI |this| an extra time.
-  // It should be the same as the principal of this node in any case.
-#ifdef DEBUG
-  nsCOMPtr<nsIContent> thisContent = do_QueryInterface(this);
-  NS_ASSERTION(thisContent &&
-               thisContent->NodePrincipal() == aDocument->NodePrincipal(),
-               "Principal mismatch?");
-#endif
-  
   // If we'll be loading a new image, we want to cancel our existing
   // requests; the question is what reason to pass in.  If everything
   // is going smoothly, that reason should be
@@ -554,7 +543,6 @@ nsImageLoadingContent::LoadImage(nsIURI* aNewURI,
 
   PRInt16 newImageStatus;
   PRBool loadImage = nsContentUtils::CanLoadImage(aNewURI, this, aDocument,
-                                                  aDocument->NodePrincipal(),
                                                   &newImageStatus);
   NS_ASSERTION(loadImage || !NS_CP_ACCEPTED(newImageStatus),
                "CanLoadImage lied");
@@ -581,7 +569,6 @@ nsImageLoadingContent::LoadImage(nsIURI* aNewURI,
   nsCOMPtr<imgIRequest> & req = mCurrentRequest ? mPendingRequest : mCurrentRequest;
 
   rv = nsContentUtils::LoadImage(aNewURI, aDocument,
-                                 aDocument->NodePrincipal(),
                                  aDocument->GetDocumentURI(),
                                  this, aLoadFlags,
                                  getter_AddRefs(req));
@@ -835,7 +822,7 @@ nsImageLoadingContent::FireEvent(const nsAString& aEventType)
   // We should not be getting called from off the UI thread...
   NS_ASSERTION(NS_IsMainThread(), "should be on the main thread");
 
-  nsIPresShell *shell = document->GetPrimaryShell();
+  nsIPresShell *shell = document->GetShellAt(0);
   nsPresContext *presContext = shell ? shell->GetPresContext() : nsnull;
 
   nsCOMPtr<nsIRunnable> evt =

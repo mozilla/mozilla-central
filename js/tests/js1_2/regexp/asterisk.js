@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'asterisk.js';
-
 /**
    Filename:     asterisk.js
    Description:  'Tests regular expressions containing *'

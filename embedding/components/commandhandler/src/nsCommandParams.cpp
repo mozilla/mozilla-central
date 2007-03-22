@@ -47,6 +47,7 @@ PLDHashTableOps nsCommandParams::sHashOps =
 {
     PL_DHashAllocTable,
     PL_DHashFreeTable,
+    HashGetKey,
     HashKey,
     HashMatchEntry,
     HashMoveEntry,
@@ -293,7 +294,7 @@ nsCommandParams::GetNamedEntry(const char * name)
 nsCommandParams::HashEntry*
 nsCommandParams::GetIndexedEntry(PRInt32 index)
 {
-  HashEntry*  entry = reinterpret_cast<HashEntry*>(mValuesHash.entryStore);
+  HashEntry*  entry = NS_REINTERPRET_CAST(HashEntry*, mValuesHash.entryStore);
   HashEntry*  limit = entry + PL_DHASH_TABLE_SIZE(&mValuesHash);
   PRUint32    entryCount = 0;
   
@@ -315,7 +316,7 @@ nsCommandParams::GetIndexedEntry(PRInt32 index)
 PRUint32
 nsCommandParams::GetNumEntries()
 {
-  HashEntry*  entry = reinterpret_cast<HashEntry*>(mValuesHash.entryStore);
+  HashEntry*  entry = NS_REINTERPRET_CAST(HashEntry*, mValuesHash.entryStore);
   HashEntry*  limit = entry + PL_DHASH_TABLE_SIZE(&mValuesHash);
   PRUint32    entryCount = 0;
   
@@ -353,6 +354,14 @@ nsCommandParams::GetOrMakeEntry(const char * name, PRUint8 entryType, HashEntry*
 #pragma mark -
 #endif
 
+const void *
+nsCommandParams::HashGetKey(PLDHashTable *table, PLDHashEntryHdr *entry)
+{
+  HashEntry*    thisEntry = NS_STATIC_CAST(HashEntry*, entry);
+  return (void *)thisEntry->mEntryName.get();
+}
+
+
 PLDHashNumber
 nsCommandParams::HashKey(PLDHashTable *table, const void *key)
 {
@@ -364,7 +373,7 @@ nsCommandParams::HashMatchEntry(PLDHashTable *table,
                                 const PLDHashEntryHdr *entry, const void *key)
 {
   const char*   keyString = (const char*)key;
-  const HashEntry*   thisEntry = static_cast<const HashEntry*>(entry);
+  const HashEntry*   thisEntry = NS_STATIC_CAST(const HashEntry*, entry);
   
   return thisEntry->mEntryName.Equals(keyString);
 }
@@ -373,8 +382,8 @@ void
 nsCommandParams::HashMoveEntry(PLDHashTable *table, const PLDHashEntryHdr *from,
                                 PLDHashEntryHdr *to)
 {
-  const HashEntry*   fromEntry  = static_cast<const HashEntry*>(from);
-  HashEntry*         toEntry    = static_cast<HashEntry*>(to);
+  const HashEntry*   fromEntry  = NS_STATIC_CAST(const HashEntry*, from);
+  HashEntry*         toEntry    = NS_STATIC_CAST(HashEntry*, to);
   
   *toEntry = *fromEntry;
   // we leave from dirty, but that's OK
@@ -383,7 +392,7 @@ nsCommandParams::HashMoveEntry(PLDHashTable *table, const PLDHashEntryHdr *from,
 void
 nsCommandParams::HashClearEntry(PLDHashTable *table, PLDHashEntryHdr *entry)
 {
-  HashEntry*    thisEntry = static_cast<HashEntry*>(entry);
+  HashEntry*    thisEntry = NS_STATIC_CAST(HashEntry*, entry);
   thisEntry->~HashEntry();      // call dtor explicitly
   memset(thisEntry, 0, sizeof(HashEntry));    // and clear out
 }

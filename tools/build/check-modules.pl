@@ -44,7 +44,7 @@
 #
 # Send comments, improvements, bugs to Steve Lamm (slamm@netscape.com).
 
-# $Id: check-modules.pl,v 1.4 2004-04-25 21:07:13 gerv%gerv.net Exp $
+# $Id: check-modules.pl,v 1.4 2004/04/25 21:07:13 gerv%gerv.net Exp $
 
 require 5.004;
 

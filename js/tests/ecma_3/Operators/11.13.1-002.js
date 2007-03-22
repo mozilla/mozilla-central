@@ -34,10 +34,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = '11.13.1-002.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 312354;
+var bug = 312354;
 var summary = '11.13.1 Simple Assignment should return type of RHS';
 var actual = '';
 var expect = '';
@@ -45,13 +43,13 @@ var expect = '';
 // XXX this test should really test each property of the native
 // objects, but I'm too lazy. Patches accepted.
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
 var re = /x/g;
 var y = re.lastIndex = "7"
- 
-  expect = "string";
+  
+expect = "string";
 actual = typeof y;
 
 reportCompare(expect, actual, summary);

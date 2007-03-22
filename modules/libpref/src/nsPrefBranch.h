@@ -44,6 +44,7 @@
 #include "nsIPrefBranchInternal.h"
 #include "nsIPrefLocalizedString.h"
 #include "nsISecurityPref.h"
+#include "nsISupportsArray.h"
 #include "nsXPCOM.h"
 #include "nsISupportsPrimitives.h"
 #include "nsIRelativeFilePref.h"
@@ -71,7 +72,7 @@ public:
 
 protected:
   nsPrefBranch()	/* disallow use of this constructer */
-    { }
+    { };
 
   nsresult   GetDefaultFromPropertiesFile(const char *aPrefName, PRUnichar **return_buf);
   const char *getPrefName(const char *aPrefName);

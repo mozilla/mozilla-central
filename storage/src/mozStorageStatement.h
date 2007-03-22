@@ -68,7 +68,7 @@ protected:
     sqlite3_stmt *mDBStatement;
     PRUint32 mParamCount;
     PRUint32 mResultColumnCount;
-    nsCStringArray mColumnNames;
+    nsStringArray mColumnNames;
     PRBool mExecuting;
 
     // recreate the statement, and transfer bindings

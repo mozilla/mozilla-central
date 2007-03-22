@@ -35,10 +35,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-343765.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 343765;
+var bug = 343765;
 var summary = 'Function defined in a let statement/expression does not work correctly outside the let scope';
 var actual = '';
 var expect = '';
@@ -51,9 +49,9 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
- 
+  
   print("SECTION 1");
   try {
     let (a = 2, b = 3) { function f() { return String([a,b]); } f(); throw 42; }

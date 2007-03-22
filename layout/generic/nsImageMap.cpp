@@ -57,7 +57,7 @@
 #include "nsIDocument.h"
 #include "nsINameSpaceManager.h"
 #include "nsGkAtoms.h"
-#include "nsIDOMEventTarget.h"
+#include "nsIDOMEventReceiver.h"
 #include "nsIPresShell.h"
 #include "nsIFrame.h"
 #include "nsFrameManager.h"
@@ -753,7 +753,10 @@ nsImageMap::FreeAreas()
     nsCOMPtr<nsIContent> areaContent;
     area->GetArea(getter_AddRefs(areaContent));
     if (areaContent) {
-      areaContent->RemoveEventListenerByIID(this, NS_GET_IID(nsIDOMFocusListener));
+      nsCOMPtr<nsIDOMEventReceiver> rec(do_QueryInterface(areaContent));
+      if (rec) {
+        rec->RemoveEventListenerByIID(this, NS_GET_IID(nsIDOMFocusListener));
+      }
     }
     delete area;
   }
@@ -875,7 +878,10 @@ nsImageMap::AddArea(nsIContent* aArea)
     return NS_ERROR_OUT_OF_MEMORY;
 
   //Add focus listener to track area focus changes
-  aArea->AddEventListenerByIID(this, NS_GET_IID(nsIDOMFocusListener));
+  nsCOMPtr<nsIDOMEventReceiver> rec(do_QueryInterface(aArea));
+  if (rec) {
+    rec->AddEventListenerByIID(this, NS_GET_IID(nsIDOMFocusListener));
+  }
 
   mPresShell->FrameManager()->SetPrimaryFrameFor(aArea, mImageFrame);
   aArea->SetMayHaveFrame(PR_TRUE);
@@ -927,8 +933,7 @@ nsImageMap::AttributeChanged(nsIDocument* aDocument,
                              nsIContent*  aContent,
                              PRInt32      aNameSpaceID,
                              nsIAtom*     aAttribute,
-                             PRInt32      aModType,
-                             PRUint32     aStateMask)
+                             PRInt32      aModType)
 {
   // If the parent of the changing content node is our map then update
   // the map.  But only do this if the node is an HTML <area> or <a>
@@ -1002,7 +1007,7 @@ nsImageMap::ChangeFocus(nsIDOMEvent* aEvent, PRBool aFocus) {
             nsCOMPtr<nsIDocument> doc = targetContent->GetDocument();
             //This check is necessary to see if we're still attached to the doc
             if (doc) {
-              nsIPresShell *presShell = doc->GetPrimaryShell();
+              nsIPresShell *presShell = doc->GetShellAt(0);
               if (presShell) {
                 nsIFrame* imgFrame = presShell->GetPrimaryFrameFor(targetContent);
                 if (imgFrame) {

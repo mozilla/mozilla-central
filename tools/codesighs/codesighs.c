@@ -234,7 +234,7 @@ int codesighs(Options* inOptions)
 */
 {
     int retval = 0;
-    char lineBuffer[0x1000];
+    char lineBuffer[0x500];
     int scanRes = 0;
     unsigned long size;
     char segClass[0x10];

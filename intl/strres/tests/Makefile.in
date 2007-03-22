@@ -42,16 +42,33 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE		 = test_intl_strres
+CPPSRCS		= StringBundleTest.cpp
+REQUIRES	= xpcom \
+		  string \
+		  locale \
+		  necko \
+		  intl \
+		  $(NULL)
 
-XPCSHELL_TESTS	 = unit
+SIMPLE_PROGRAMS	= $(CPPSRCS:.cpp=$(BIN_SUFFIX))
 
 EXPORT_RESOURCE	= \
 		$(srcdir)/strres.properties \
-		$(srcdir)/397093.properties \
+		$(srcdir)/strres-test.html \
+		$(srcdir)/strres-test.xul \
+		$(srcdir)/strres-test.dtd \
+		$(srcdir)/strres-test.js \
+		$(NULL)
+
+LIBS		= \
+		$(DIST)/lib/$(LIB_PREFIX)xpcomglue_s.$(LIB_SUFFIX) \
+		$(XPCOM_LIBS) \
+		$(NSPR_LIBS) \
 		$(NULL)
 
 include $(topsrcdir)/config/rules.mk
+
+INCLUDES	+= -I$(srcdir)/../src
 
 libs::
 	$(INSTALL) $(EXPORT_RESOURCE) $(DIST)/bin/res

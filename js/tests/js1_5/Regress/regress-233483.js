@@ -36,19 +36,17 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-233483.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 233483;
+var bug = 233483;
 var summary = 'Don\'t crash with null properties - Browser only';
 var actual = 'Crash';
 var expect = 'No Crash';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
 if (typeof document != 'undefined')
-{ 
+{  
   // delay test driver end
   gDelayTestDriverEnd = true;
   window.onload = onLoad;
@@ -82,5 +80,5 @@ function setform()
   input.setAttribute('value', '1232');
 
   var result = form.toString();
-
+ 
 }

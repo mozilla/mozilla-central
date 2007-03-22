@@ -52,7 +52,6 @@ REQUIRES	= content \
       dom \
       editor \
       gfx \
-      thebes \
       intl \
       layout \
       locale \

@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -43,6 +42,7 @@
 #include "nsCOMPtr.h"
 #include "nsFrame.h"
 #include "nsPresContext.h"
+#include "nsUnitConversion.h"
 #include "nsStyleContext.h"
 #include "nsStyleConsts.h"
 #include "nsINameSpaceManager.h"
@@ -74,7 +74,7 @@ nsMathMLmunderFrame::AttributeChanged(PRInt32         aNameSpaceID,
   if (nsGkAtoms::accentunder_ == aAttribute) {
     // When we have automatic data to update within ourselves, we ask our
     // parent to re-layout its children
-    return ReLayoutChildren(mParent, NS_FRAME_IS_DIRTY);
+    return ReLayoutChildren(mParent);
   }
 
   return nsMathMLContainerFrame::
@@ -82,10 +82,12 @@ nsMathMLmunderFrame::AttributeChanged(PRInt32         aNameSpaceID,
 }
 
 NS_IMETHODIMP
-nsMathMLmunderFrame::UpdatePresentationData(PRUint32        aFlagsValues,
+nsMathMLmunderFrame::UpdatePresentationData(PRInt32         aScriptLevelIncrement,
+                                            PRUint32        aFlagsValues,
                                             PRUint32        aFlagsToUpdate)
 {
-  nsMathMLContainerFrame::UpdatePresentationData(aFlagsValues, aFlagsToUpdate);
+  nsMathMLContainerFrame::UpdatePresentationData(
+    aScriptLevelIncrement, aFlagsValues, aFlagsToUpdate);
   // disable the stretch-all flag if we are going to act like a subscript
   if ( NS_MATHML_EMBELLISH_IS_MOVABLELIMITS(mEmbellishData.flags) &&
       !NS_MATHML_IS_DISPLAYSTYLE(mPresentationData.flags)) {
@@ -100,6 +102,7 @@ nsMathMLmunderFrame::UpdatePresentationData(PRUint32        aFlagsValues,
 NS_IMETHODIMP
 nsMathMLmunderFrame::UpdatePresentationDataFromChildAt(PRInt32         aFirstIndex,
                                                        PRInt32         aLastIndex,
+                                                       PRInt32         aScriptLevelIncrement,
                                                        PRUint32        aFlagsValues,
                                                        PRUint32        aFlagsToUpdate)
 {
@@ -123,7 +126,8 @@ nsMathMLmunderFrame::UpdatePresentationDataFromChildAt(PRInt32         aFirstInd
         aFlagsToUpdate &= ~NS_MATHML_DISPLAYSTYLE;
         aFlagsValues &= ~NS_MATHML_DISPLAYSTYLE;
       }
-      PropagatePresentationDataFor(childFrame, aFlagsValues, aFlagsToUpdate);
+      PropagatePresentationDataFor(childFrame,
+        aScriptLevelIncrement, aFlagsValues, aFlagsToUpdate);
     }
     index++;
     childFrame = childFrame->GetNextSibling();
@@ -213,8 +217,9 @@ XXX The winner is the outermost setting in conflicting settings like these:
      The TeXBook treats 'under' like a subscript, so p.141 or Rule 13a 
      say it should be compressed
   */
-  SetIncrementScriptLevel(1, !NS_MATHML_EMBELLISH_IS_ACCENTUNDER(mEmbellishData.flags));
-  PropagatePresentationDataFor(underscriptFrame,
+  PRInt32 increment = NS_MATHML_EMBELLISH_IS_ACCENTUNDER(mEmbellishData.flags)
+    ? 0 : 1;
+  PropagatePresentationDataFor(underscriptFrame, increment,
     ~NS_MATHML_DISPLAYSTYLE | NS_MATHML_COMPRESSED,
      NS_MATHML_DISPLAYSTYLE | NS_MATHML_COMPRESSED);
 
@@ -240,7 +245,7 @@ i.e.,:
  }
 */
 
-/* virtual */ nsresult
+NS_IMETHODIMP
 nsMathMLmunderFrame::Place(nsIRenderingContext& aRenderingContext,
                            PRBool               aPlaceOrigin,
                            nsHTMLReflowMetrics& aDesiredSize)
@@ -248,11 +253,11 @@ nsMathMLmunderFrame::Place(nsIRenderingContext& aRenderingContext,
   if ( NS_MATHML_EMBELLISH_IS_MOVABLELIMITS(mEmbellishData.flags) &&
       !NS_MATHML_IS_DISPLAYSTYLE(mPresentationData.flags)) {
     // place like subscript
-    return nsMathMLmsubFrame::PlaceSubScript(PresContext(),
+    return nsMathMLmsubFrame::PlaceSubScript(GetPresContext(),
                                              aRenderingContext,
                                              aPlaceOrigin,
                                              aDesiredSize,
-                                             this, 0, PresContext()->PointsToAppUnits(0.5f));
+                                             this, 0, GetPresContext()->PointsToAppUnits(0.5f));
   }
 
   ////////////////////////////////////
@@ -351,10 +356,10 @@ nsMathMLmunderFrame::Place(nsIRenderingContext& aRenderingContext,
   if (aPlaceOrigin) {
     nscoord dy = 0;
     // place base
-    FinishReflowChild(baseFrame, PresContext(), nsnull, baseSize, dxBase, dy, 0);
+    FinishReflowChild(baseFrame, GetPresContext(), nsnull, baseSize, dxBase, dy, 0);
     // place underscript
     dy = aDesiredSize.ascent + mBoundingMetrics.descent - bmUnder.descent - underSize.ascent;
-    FinishReflowChild(underFrame, PresContext(), nsnull, underSize, dxUnder, dy, 0);
+    FinishReflowChild(underFrame, GetPresContext(), nsnull, underSize, dxUnder, dy, 0);
   }
 
   return NS_OK;

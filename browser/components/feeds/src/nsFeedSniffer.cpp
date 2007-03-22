@@ -69,10 +69,7 @@
 
 #define MAX_BYTES 512
 
-NS_IMPL_ISUPPORTS3(nsFeedSniffer,
-                   nsIContentSniffer,
-                   nsIStreamListener,
-                   nsIRequestObserver)
+NS_IMPL_ISUPPORTS2(nsFeedSniffer, nsIContentSniffer, nsIStreamListener)
 
 nsresult
 nsFeedSniffer::ConvertEncodedData(nsIRequest* request,
@@ -365,8 +362,8 @@ nsFeedSniffer::GetMIMETypeFromContent(nsIRequest* request,
   // RSS 1.0
   if (!isFeed) {
     isFeed = ContainsTopLevelSubstring(dataString, "<rdf:RDF") &&
-      dataString.Find(NS_RDF) != -1 &&
-      dataString.Find(NS_RSS) != -1;
+      dataString.Find(NS_RDF) &&
+      dataString.Find(NS_RSS);
   }
 
   // If we sniffed a feed, coerce our internal type
@@ -391,7 +388,7 @@ nsFeedSniffer::AppendSegmentToString(nsIInputStream* inputStream,
                                      PRUint32 count,
                                      PRUint32* writeCount)
 {
-  nsCString* decodedData = static_cast<nsCString*>(closure);
+  nsCString* decodedData = NS_STATIC_CAST(nsCString*, closure);
   decodedData->Append(rawSegment, count);
   *writeCount = count;
   return NS_OK;

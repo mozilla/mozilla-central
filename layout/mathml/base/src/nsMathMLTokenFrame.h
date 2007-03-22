@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -67,7 +66,7 @@ public:
          const nsHTMLReflowState& aReflowState,
          nsReflowStatus&          aStatus);
 
-  virtual nsresult
+  NS_IMETHOD
   Place(nsIRenderingContext& aRenderingContext,
         PRBool               aPlaceOrigin,
         nsHTMLReflowMetrics& aDesiredSize);
@@ -82,7 +81,7 @@ public:
   virtual nsresult
   ChildListChanged(PRInt32 aModType)
   {
-    ProcessTextData();
+    ProcessTextData(PR_TRUE);
     return nsMathMLContainerFrame::ChildListChanged(aModType);
   }
 
@@ -93,7 +92,8 @@ protected:
   virtual PRIntn GetSkipSides() const { return 0; }
 
   // hook to perform MathML-specific actions depending on the tag
-  virtual void ProcessTextData();
+  virtual void
+  ProcessTextData(PRBool aComputeStyleChange);
 
   // helper to set the style of <mi> which has to be italic or normal
   // depending on its textual content

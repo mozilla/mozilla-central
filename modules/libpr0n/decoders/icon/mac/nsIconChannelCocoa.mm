@@ -57,8 +57,7 @@
 #include "nsILocalFileMac.h"
 #include "nsIFileURL.h"
 #include "nsInt64.h"
-#include "nsTArray.h"
-#include "nsObjCExceptions.h"
+#include "nsAutoBuffer.h"
 
 #include <Cocoa/Cocoa.h>
 
@@ -236,8 +235,6 @@ NS_IMETHODIMP nsIconChannel::AsyncOpen(nsIStreamListener *aListener, nsISupports
 
 nsresult nsIconChannel::MakeInputStream(nsIInputStream** _retval, PRBool nonBlocking)
 {
-  NS_OBJC_BEGIN_TRY_ABORT_BLOCK_NSRESULT;
-
   nsXPIDLCString contentType;
   nsCAutoString fileExt;
   nsCOMPtr<nsIFile> fileloc; // file we want an icon for
@@ -316,11 +313,11 @@ nsresult nsIconChannel::MakeInputStream(nsIInputStream** _retval, PRBool nonBloc
   
   // create our buffer
   PRInt32 bufferCapacity = 2 + desiredImageSize * desiredImageSize * 4;
-  nsAutoTArray<PRUint8, 3 + 16 * 16 * 5> iconBuffer; // initial size is for 16x16
-  if (!iconBuffer.SetLength(bufferCapacity))
+  nsAutoBuffer<PRUint8, 3 + 16 * 16 * 5> iconBuffer; // initial size is for 16x16
+  if (!iconBuffer.EnsureElemCapacity(bufferCapacity))
     return NS_ERROR_OUT_OF_MEMORY;
   
-  PRUint8* iconBufferPtr = iconBuffer.Elements();
+  PRUint8* iconBufferPtr = iconBuffer.get();
   
   // write header data into buffer
   *iconBufferPtr++ = desiredImageSize;
@@ -351,7 +348,7 @@ nsresult nsIconChannel::MakeInputStream(nsIInputStream** _retval, PRBool nonBloc
 #endif
   }
 
-  NS_ASSERTION(iconBufferPtr == iconBuffer.Elements() + bufferCapacity,
+  NS_ASSERTION(iconBufferPtr == iconBuffer.get() + bufferCapacity,
                "buffer size miscalculation");
   
   // Now, create a pipe and stuff our data into it
@@ -361,7 +358,7 @@ nsresult nsIconChannel::MakeInputStream(nsIInputStream** _retval, PRBool nonBloc
 
   if (NS_SUCCEEDED(rv)) {
     PRUint32 written;
-    rv = outStream->Write((char*)iconBuffer.Elements(), bufferCapacity, &written);
+    rv = outStream->Write((char*)iconBuffer.get(), bufferCapacity, &written);
     if (NS_SUCCEEDED(rv))
       NS_IF_ADDREF(*_retval = inStream);
   }
@@ -370,8 +367,6 @@ nsresult nsIconChannel::MakeInputStream(nsIInputStream** _retval, PRBool nonBloc
   mCallbacks = nsnull;
 
   return NS_OK;
-
-  NS_OBJC_END_TRY_ABORT_BLOCK_NSRESULT;
 }
 
 NS_IMETHODIMP nsIconChannel::GetLoadFlags(PRUint32 *aLoadAttributes)

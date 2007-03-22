@@ -38,78 +38,68 @@
 
 #include "nsISupports.idl"
 
+%{C++
+#include "nsTArray.h"
+#include "nsCOMArray.h"
+#include "nsString.h"
+%}
+
 interface nsIURI;
 interface nsIVariant;
 
-[scriptable, uuid(63fe98e0-6889-4c2c-ac9f-703e4bc25027)]
+[ptr] native CStringArray(nsTArray<nsCString>);
+[ptr] native URIArray(nsCOMArray<nsIURI>);
+
+[scriptable, uuid(d41c9510-2377-4728-b275-bdad6a0521f8)]
 interface nsIAnnotationObserver : nsISupports
 {
     /**
      * Called when an annotation value is set. It could be a new annotation,
      * or it could be a new value for an existing annotation.
      */
-    void onPageAnnotationSet(in nsIURI aPage, in AUTF8String aName);
-    void onItemAnnotationSet(in long long aItemId, in AUTF8String aName);
+    void onAnnotationSet(in nsIURI aURI, in AUTF8String aName);
 
     /**
      * Called when an annotation is deleted. If aName is empty, then ALL
      * annotations for the given URI have been deleted. This is not called when
      * annotations are expired (normally happens when the app exits).
      */
-    void onPageAnnotationRemoved(in nsIURI aURI, in AUTF8String aName);
-    void onItemAnnotationRemoved(in long long aItemId, in AUTF8String aName);
+    void onAnnotationRemoved(in nsIURI aURI, in AUTF8String aName);
 };
 
-[scriptable, uuid(ba249b58-346f-42a9-a393-203ae34ec6c4)]
+[scriptable, uuid(a857c97f-7705-4376-b374-bd8799f69d51)]
 interface nsIAnnotationService : nsISupports
 {
     /**
      * Valid values for aExpiration, which sets the expiration policy for your
-     * annotation. The times for the days, weeks and months policies are
-     * measured since the last visit date of the page in question. These 
-     * will not expire so long as the user keeps visiting the page from time
-     * to time.
+     * annotation. These times are measured since the last visit date of the
+     * page in question. This means that if you set an annotation with anything
+     * but session expiration, it will not expire so long as the user keeps
+     * visiting the page from time to time.
      */
 
-    // For temporary data that can be discarded when the user exits.
-    // Removed at application exit.
-    const unsigned short EXPIRE_SESSION = 0;
+    /* EXPIRATION IS CURRENTLY UNIMPLEMENTED. This is here as a proposed
+       expiration policy. May be changed. Currently, use 0 for expiration.
+     */
+      // For temporary stuff that can be discarded when the user exists
+    const PRInt32 EXPIRE_SESSION = 0;
 
-    // NOTE: 1 is skipped due to it's temporary use as EXPIRE_NEVER in bug #319455.
+      // for short-lived temporary data that you still want to outlast a session
+    const PRInt32 EXPIRE_DAYS = 1;
 
-    // For general page settings, things the user is interested in seeing
-    // if they come back to this page some time in the near future.
-    // Removed at 30 days. 
-    const unsigned short EXPIRE_WEEKS = 2;
+      // for general page settings, things the user is interested in seeing
+      // if they come back to this page some time in the future.
+    const PRInt32 EXPIRE_WEEKS = 2;
 
-    // Something that the user will be interested in seeing in their
-    // history like favicons. If they haven't visited a page in a couple
-    // of months, they probably aren't interested in many other annotations,
-    // the positions of things, or other stuff you create, so put that in
-    // the weeks policy.
-    // Removed at 180 days.
-    const unsigned short EXPIRE_MONTHS = 3;
+      // Something that the user will be interested in seeing in their
+      // history like favicons. If they haven't visited a page in a couple
+      // of months, they probably aren't interested in much other annotation,
+      // the positions of things, or other stuff you create, so put that in
+      // the weeks policy.
+    const PRInt32 EXPIRE_MONTHS = 3;
 
-    // For annotations that only live as long as the URI is in the database.
-    // A page annotation will expire if the page has no visits
-    // and is not bookmarked.
-    // An item annotation will expire when the item is deleted.
-    const unsigned short EXPIRE_NEVER = 4;
-
-    // For annotations that only live as long as the URI has visits.
-    // Valid only for page annotations.
-    const unsigned short EXPIRE_WITH_HISTORY = 5;
-
-    // For short-lived temporary data that you still want to outlast a session.
-    // Removed at 7 days.
-    const unsigned short EXPIRE_DAYS = 6;
-
-    // type constants
-    const unsigned short TYPE_INT32  = 1;
-    const unsigned short TYPE_DOUBLE = 2;
-    const unsigned short TYPE_STRING = 3;
-    const unsigned short TYPE_BINARY = 4;
-    const unsigned short TYPE_INT64  = 5;
+      // For small, user-entered data like notes that should never expire.
+    const PRInt32 EXPIRE_NEVER = 4;
 
     /**
      * Sets an annotation, overwriting any previous annotation with the same
@@ -124,228 +114,176 @@ interface nsIAnnotationService : nsISupports
      * aExpiration is one of EXPIRE_* above. aFlags should be 0 for now, some
      * flags will be defined in the future.
      *
-     * NOTE: ALL ANNOTATIONS WILL GET DELETED WHEN THE PAGE IS REMOVED FROM HISTORY,
-     * UNLESS YOU USE THE EXPIRE_NEVER FLAG. This means that if you create an
+     * NOTE: ALL ANNOTATIONS WILL GET DELETED WHEN THE PAGE IS REMOVED FROM
+     * HISTORY, regardless of expiration date. This means that if you create an
      * annotation on a random unvisited URI, it will get deleted when the
-     * browser shuts down. Otherwise, things can exist in history as
+     * browser shuts down.  Otherwise, things can exist in history as
      * annotations but the user has no way of knowing it, potentially violating
      * their privacy expectations about actions such as "Clear history." If
      * there is an important annotation that the user wants to keep, you should
-     * make sure that you use EXPIRE_NEVER. This will ensure the item is never
-     * completely deleted from the Places database.
+     * make sure that URL is bookmarked. This will ensure the item is never
+     * completely deleted from the history database.
      *
-     * The annotation "favicon" is special. Favicons are stored in the favicon
+     * The annotation "favicon" is special. favicons are stored in the favicon
      * service, but are special cased in the protocol handler so they look like
      * annotations. Do not set favicons using this service, it will not work.
-     *
-     * Binary annotations should be set using
-     * setItemAnnotationBinary/setPageAnnotationBinary. For other types, only
-     * C++ consumers may use the type-specific methods.
      */
-    void setPageAnnotation(in nsIURI aURI, in AUTF8String aName,
-                           in nsIVariant aValue, in long aFlags,
-                           in unsigned short aExpiration);
-    void setItemAnnotation(in long long aItemId, in AUTF8String aName,
-                           in nsIVariant aValue, in long aFlags,
-                           in unsigned short aExpiration);
-
-    [noscript] void setPageAnnotationString(in nsIURI aURI, in AUTF8String aName,
-                                in AString aValue, in long aFlags,
-                                in unsigned short aExpiration);
-    [noscript] void setItemAnnotationString(in long long aItemId, in AUTF8String aName,
-                                            in AString aValue, in long aFlags,
-                                            in unsigned short aExpiration);
+    void setAnnotationString(in nsIURI aURI, in AUTF8String aName,
+                             in AString aValue, in PRInt32 aFlags,
+                             in PRInt32 aExpiration);
 
     /**
      * Sets an annotation just like setAnnotationString, but takes an Int32 as
      * input.
      */
-    [noscript] void setPageAnnotationInt32(in nsIURI aURI, in AUTF8String aName,
-                                           in long aValue, in long aFlags,
-                                           in unsigned short aExpiration);
-    [noscript] void setItemAnnotationInt32(in long long aItemId, in AUTF8String aName,
-                                           in long aValue, in long aFlags,
-                                           in unsigned short aExpiration);
+    void setAnnotationInt32(in nsIURI aURI, in AUTF8String aName,
+                            in PRInt32 aValue, in PRInt32 aFlags,
+                            in PRInt32 aExpiration);
 
     /**
      * Sets an annotation just like setAnnotationString, but takes an Int64 as
      * input.
      */
-    [noscript] void setPageAnnotationInt64(in nsIURI aURI, in AUTF8String aName,
-                                           in long long aValue, in long aFlags,
-                                           in unsigned short aExpiration);
-    [noscript] void setItemAnnotationInt64(in long long aItemId, in AUTF8String aName,
-                                           in long long aValue, in long aFlags,
-                                           in unsigned short aExpiration);
+    void setAnnotationInt64(in nsIURI aURI, in AUTF8String aName,
+                            in PRInt64 aValue, in PRInt32 aFlags,
+                            in PRInt32 aExpiration);
 
     /**
      * Sets an annotation just like setAnnotationString, but takes a double as
      * input.
      */
-    [noscript] void setPageAnnotationDouble(in nsIURI aURI, in AUTF8String aName,
-                                            in double aValue, in long aFlags,
-                                            in unsigned short aExpiration);
-    [noscript] void setItemAnnotationDouble(in long long aItemId, in AUTF8String aName,
-                                            in double aValue, in long aFlags,
-                                            in unsigned short aExpiration);
+    void setAnnotationDouble(in nsIURI aURI, in AUTF8String aName,
+                             in double aValue, in PRInt32 aFlags,
+                             in PRInt32 aExpiration);
+
     /*
      * Sets an annotation just like setAnnotationString, but takes binary data
      * as input. You MUST supply a valid MIME type.
      */
-    void setPageAnnotationBinary(in nsIURI aURI, in AUTF8String aName,
-                                 [const,array,size_is(aDataLen)] in octet aData,
-                                 in unsigned long aDataLen,
-                                 in AUTF8String aMimeType,
-                                 in long aFlags,
-                                 in unsigned short aExpiration);
-    void setItemAnnotationBinary(in long long aItemId, in AUTF8String aName,
-                                 [const,array,size_is(aDataLen)] in octet aData,
-                                 in unsigned long aDataLen,
-                                 in AUTF8String aMimeType,
-                                 in long aFlags,
-                                 in unsigned short aExpiration);
+    void setAnnotationBinary(in nsIURI aURI, in AUTF8String aName,
+                             [const,array,size_is(aDataLen)] in octet aData,
+                             in PRUint32 aDataLen, in AUTF8String aMimeType,
+                             in PRInt32 aFlags, in PRInt32 aExpiration);
 
     /**
-     * Retrieves the value of a given annotation. Throws an error if the
-     * annotation does not exist. Throws for binary annotations, for which
-     * getPageAnnotationBinary/getItemAnnotationBinary should be used. C++
-     * consumers may use the type-specific methods.
-     *
-     * The type-specific methods throw if the given annotation is set in
-     * a different type.
+     * Retrieves the string value of a given annotation. Throws an error if the
+     * annotation does not exist. If the annotation was set as a different
+     * type than you are retrieving it as, the value will be converted as best
+     * as we can. You aren't always guaranteed a good conversion, however,
+     * and errors will not be thrown in this case. (For example, doubles will
+     * lose precision when stringified.)
      */
-    nsIVariant getPageAnnotation(in nsIURI aURI, in AUTF8String aName);
-    nsIVariant getItemAnnotation(in long long aItemId, in AUTF8String aName);
+    AString getAnnotationString(in nsIURI aURI, in AUTF8String aName);
 
     /**
-     * @see getPageAnnotation
+     * Same as getAnnotationString but for ints. If the value doesn't look like
+     * an int, returns 0. (this is current sqlite behavior when asking for an
+     * int when there is not one, it will possibly change in the future if we
+     * start caching stuff).
      */
-    [noscript] AString getPageAnnotationString(in nsIURI aURI, in AUTF8String aName);
-    [noscript] AString getItemAnnotationString(in long long aItemId, in AUTF8String aName);
+    PRInt32 getAnnotationInt32(in nsIURI aURI, in AUTF8String aName);
 
     /**
-     * @see getPageAnnotation
+     * Same as getAnnotationString for Int64s. If the value doesn't look like
+     * an int, returns 0. (this is current sqlite behavior when asking for an
+     * int when there is not one, it will possibly change in the future if we
+     * start caching stuff).
      */
-    [noscript] long getPageAnnotationInt32(in nsIURI aURI, in AUTF8String aName);
-    [noscript] long getItemAnnotationInt32(in long long aItemId, in AUTF8String aName);
+    PRInt64 getAnnotationInt64(in nsIURI aURI, in AUTF8String aName);
 
     /**
-     * @see getPageAnnotation
+     * Same as getAnnotationString but returns a double-precision float. If the
+     * value doesn't look like an float, returns 0. (this is current sqlite
+     * behavior when asking for an number when there is not one, it will
+     * possibly change in the future if we start caching stuff).
      */
-    [noscript] long long getPageAnnotationInt64(in nsIURI aURI, in AUTF8String aName);
-    [noscript] long long getItemAnnotationInt64(in long long aItemId, in AUTF8String aName);
+    double getAnnotationDouble(in nsIURI aURI, in AUTF8String aName);
 
     /**
-     * @see getPageAnnotation
-     */
-    [noscript] double getPageAnnotationDouble(in nsIURI aURI, in AUTF8String aName);
-    [noscript] double getItemAnnotationDouble(in long long aItemId, in AUTF8String aName);
-
-    /**
-     * @see getPageAnnotation. This also returns the
+     * Same as getAnnotationString but for binary data. This also returns the
      * MIME type.
      */
-    void getPageAnnotationBinary(in nsIURI aURI, in AUTF8String aName,
-                                 [array,size_is(aDataLen)] out octet aData,
-                                 out unsigned long aDataLen,
-                                 out AUTF8String aMimeType);
-    void getItemAnnotationBinary(in long long aItemId, in AUTF8String aName,
-                                 [array,size_is(aDataLen)] out octet aData,
-                                 out unsigned long aDataLen,
-                                 out AUTF8String aMimeType);
+    void getAnnotationBinary(in nsIURI aURI, in AUTF8String aName,
+                             [array,size_is(aDataLen)] out octet aData,
+                             out PRUint32 aDataLen,
+                             out AUTF8String aMimeType);
 
     /**
      * Retrieves info about an existing annotation. aMimeType will be empty
      * if the value was not binary data.
      *
-     * aType will be one of TYPE_* constansts above
+     * aStorageType will be one of mozIStorageValueArray.VALUE_TYPE_* and
+     * indicates how the value is stored (if you want to determine whether
+     * the data is binary, etc.)
      *
      * example JS:
      *   var flags = {}, exp = {}, mimeType = {};
      *   annotator.getAnnotationInfo(myURI, "foo", flags, exp, mimeType);
      *   // now you can use 'exp.value' and 'flags.value'
      */
-    void getPageAnnotationInfo(in nsIURI aURI,
-                               in AUTF8String aName,
-                               out PRInt32 aFlags,
-                               out unsigned short aExpiration,
-                               out AUTF8String aMimeType,
-                               out unsigned short aType);
-    void getItemAnnotationInfo(in long long aItemId, in AUTF8String aName,
-                               out long aFlags, out unsigned short aExpiration,
-                               out AUTF8String aMimeType,
-                               out unsigned short aType);
-
-    /**
-     * Retrieves the type of an existing annotation
-     * Use getAnnotationInfo if you need this along with the mime-type etc.
-     *
-     * @param aURI
-     *        the uri on which the annotation is set
-     * @param aName
-     *        the annotation name
-     * @return one of the TYPE_* constants above
-     * @throws if the annotation is not set
-     */
-    PRUint16 getPageAnnotationType(in nsIURI aURI, in AUTF8String aName);
-    PRUint16 getItemAnnotationType(in long long aItemId, in AUTF8String aName);
+    void getAnnotationInfo(in nsIURI aURI, in AUTF8String aName,
+                           out PRInt32 aFlags, out PRInt32 aExpiration,
+                           out AUTF8String aMimeType, out PRInt32 aStorageType);
 
     /**
      * Returns a list of all URIs having a given annotation.
      */
     void getPagesWithAnnotation(in AUTF8String name,
-      out unsigned long resultCount,
+      out PRUint32 resultCount,
       [retval, array, size_is(resultCount)] out nsIURI results);
-    void getItemsWithAnnotation(in AUTF8String name,
-      out unsigned long resultCount,
-      [retval, array, size_is(resultCount)] out long long results);
+
+    /**
+     * COMArray version of getPagesWithAnnotation for easier memory
+     * management from C++ code;
+     */
+    [noscript] void GetPagesWithAnnotationCOMArray(in AUTF8String aName,
+                                                 in URIArray aResults);
 
     /**
      * Get the names of all annotations for this URI.
      *
      * example JS:
      *   var annotations = annotator.getPageAnnotations(myURI, {});
+     * You probably don't want to use this from C++, use
+     * GetPageAnnotationsTArray instead.
      */
-    void getPageAnnotationNames(in nsIURI aURI, out unsigned long count,
+    void getPageAnnotationNames(in nsIURI aURI, out PRUint32 count,
       [retval, array, size_is(count)] out nsIVariant result);
-    void getItemAnnotationNames(in long long aItemId, out unsigned long count,
-      [retval, array, size_is(count)] out nsIVariant result);
+
+    /**
+     * TArray version of getPageAnnotationNames for ease of use in C++ code.
+     */
+    [noscript] void GetPageAnnotationNamesTArray(in nsIURI aURI, in CStringArray aResult);
 
     /**
      * Test for annotation existance.
      */
-    boolean pageHasAnnotation(in nsIURI aURI, in AUTF8String aName);
-    boolean itemHasAnnotation(in long long aItemId, in AUTF8String aName);
+    boolean hasAnnotation(in nsIURI aURI, in AUTF8String aName);
 
     /**
      * Removes a specific annotation. Succeeds even if the annotation is
      * not found.
      */
-    void removePageAnnotation(in nsIURI aURI, in AUTF8String aName);
-    void removeItemAnnotation(in long long aItemId, in AUTF8String aName);
+    void removeAnnotation(in nsIURI aURI, in AUTF8String aName);
 
     /**
-     * Removes all annotations for the given page/item.
+     * Removes all annotations for the given page.
      * We may want some other similar functions to get annotations with given
      * flags (once we have flags defined).
      */
     void removePageAnnotations(in nsIURI aURI);
-    void removeItemAnnotations(in long long aItemId);
 
     /**
-     * Copies all annotations from the source to the destination URI/item. If
-     * the destination already has an annotation with the same name as one on
-     * the source, it will be overwritten if aOverwriteDest is set. Otherwise,
+     * Copies all annotations from the source to the destination URI. If the
+     * destination already has an annotation with the same name as one on the
+     * source, it will be overwritten if aOverwriteDest is set. Otherwise,
      * the destination URIs will be preferred.
      *
      * All the source annotations will stay as-is. If you don't want them
      * any more, use removePageAnnotations on that URI.
      */
-    void copyPageAnnotations(in nsIURI aSourceURI, in nsIURI aDestURI,
-                             in boolean aOverwriteDest);
-    void copyItemAnnotations(in long long aSourceItemId,
-                             in long long aDestItemId,
-                             in boolean aOverwriteDest);
+    void copyAnnotations(in nsIURI aSourceURI, in nsIURI aDestURI,
+                         in boolean aOverwriteDest);
 
     /**
      * Adds an annotation observer. The annotation service will keep an owning

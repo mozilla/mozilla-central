@@ -220,7 +220,8 @@ nsRDFPropertyTestNode::FilterInstantiations(InstantiationSet& aInstantiations,
             if (hasAssertion) {
                 // it's consistent.
                 Element* element =
-                    nsRDFPropertyTestNode::Element::Create(sourceRes,
+                    nsRDFPropertyTestNode::Element::Create(mProcessor->GetPool(),
+                                                           sourceRes,
                                                            mProperty,
                                                            targetValue);
 
@@ -319,7 +320,8 @@ nsRDFPropertyTestNode::FilterInstantiations(InstantiationSet& aInstantiations,
                 newinst.AddAssignment(variable, value);
 
                 Element* element =
-                    nsRDFPropertyTestNode::Element::Create(sourceRes,
+                    nsRDFPropertyTestNode::Element::Create(mProcessor->GetPool(),
+                                                           sourceRes,
                                                            mProperty,
                                                            targetValue);
 

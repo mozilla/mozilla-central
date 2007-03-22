@@ -4,16 +4,14 @@
 <!ENTITY  window.macWidth               "39em">
 
 <!ENTITY  proxyTitle.label              "Configure Proxies to Access the Internet">
-<!ENTITY  noProxyTypeRadio.label        "No proxy">
-<!ENTITY  noProxyTypeRadio.accesskey    "y">
-<!ENTITY  systemTypeRadio.label         "Use system proxy settings">
-<!ENTITY  systemTypeRadio.accesskey     "u">
+<!ENTITY  directTypeRadio.label         "Direct connection to the Internet">
+<!ENTITY  directTypeRadio.accesskey     "d">
 <!ENTITY  WPADTypeRadio.label           "Auto-detect proxy settings for this network">
 <!ENTITY  WPADTypeRadio.accesskey       "w">
 <!ENTITY  manualTypeRadio.label         "Manual proxy configuration:">
 <!ENTITY  manualTypeRadio.accesskey     "m">
 <!ENTITY  autoTypeRadio.label           "Automatic proxy configuration URL:">
-<!ENTITY  autoTypeRadio.accesskey       "A">
+<!ENTITY  autoTypeRadio.accesskey       "a">
 <!ENTITY  reload.label                  "Reload">
 <!ENTITY  reload.accesskey              "e">
 <!ENTITY  ftp.label                     "FTP Proxy:">
@@ -21,7 +19,7 @@
 <!ENTITY  gopher.label                  "Gopher Proxy:">
 <!ENTITY  gopher.accesskey              "G">
 <!ENTITY  http.label                    "HTTP Proxy:">
-<!ENTITY  http.accesskey                "H">
+<!ENTITY  http.accesskey                "y">
 <!ENTITY  ssl.label                     "SSL Proxy:">
 <!ENTITY  ssl.accesskey                 "S">
 <!ENTITY  socks.label                   "SOCKS Host:">

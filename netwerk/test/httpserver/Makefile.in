@@ -45,10 +45,6 @@ include $(DEPTH)/config/autoconf.mk
 
 MODULE          = test_necko
 
-EXTRA_COMPONENTS = \
-                   httpd.js \
-                   $(NULL)
-
 XPIDLSRCS       = \
                   nsIHttpServer.idl \
                   $(NULL)

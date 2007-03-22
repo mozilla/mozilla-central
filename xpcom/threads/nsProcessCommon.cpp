@@ -229,7 +229,7 @@ nsProcess::Run(PRBool blocking, const char **args, PRUint32 count,
     // copy the args
     PRUint32 i;
     for (i=0; i < count; i++) {
-        my_argv[i+1] = const_cast<char*>(args[i]);
+        my_argv[i+1] = NS_CONST_CAST(char*, args[i]);
     }
     // we need to set argv[0] to the program name.
     my_argv[0] = mTargetPath.BeginWriting();
@@ -250,21 +250,15 @@ nsProcess::Run(PRBool blocking, const char **args, PRUint32 count,
     ZeroMemory(&startupInfo, sizeof(startupInfo));
     startupInfo.cb = sizeof(startupInfo);
 
-    /* The CREATE_NO_WINDOW flag is important to prevent console
-     * windows from appearing.  This makes behavior the same on all
-     * platforms.  This won't work on win9x, however.  The flag will
-     * not have any effect on non-console applications.
-     */
-
     retVal = CreateProcess(NULL,
-                           // const_cast<char*>(mTargetPath.get()),
+                           // NS_CONST_CAST(char*, mTargetPath.get()),
                            cmdLine,
                            NULL,  /* security attributes for the new
                                    * process */
                            NULL,  /* security attributes for the primary
                                    * thread in the new process */
                            FALSE,  /* inherit handles */
-                           CREATE_NO_WINDOW, /* creation flags */
+                           0,     /* creation flags */
                            NULL,  /* env */
                            NULL,  /* current drive and directory */
                            &startupInfo,

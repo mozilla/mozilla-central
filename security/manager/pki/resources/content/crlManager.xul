@@ -37,8 +37,10 @@
 
  ***** END LICENSE BLOCK ***** -->
 
-<?xml-stylesheet href="chrome://global/skin/" type="text/css"?> 
+<!-- CHANGE THIS WHEN MOVING FILES -->
+<?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?> 
 
+<!-- CHANGE THIS WHEN MOVING FILES -->
 <!DOCTYPE dialog [
     <!ENTITY % prefValDTD SYSTEM "chrome://pippki/locale/pref-validation.dtd">
     %prefValDTD;
@@ -49,7 +51,7 @@
 <dialog id="crlviewer"
         title="&validation.crlmanager.label;"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        style="width: 65ch;"
+        style="width: 30em;"
         onload="onLoad();"
         buttons="accept"
         buttonlabelaccept="&certmgr.close.label;"
@@ -59,7 +61,7 @@
   <script type="application/x-javascript" src="chrome://global/content/strres.js"/>
   <script type="application/x-javascript" src="chrome://pippki/content/crlManager.js"/>
 
-  <description value="&validation.crlmanager.description;"/>
+  <description value="&validation.crlmanager.label;"/>
   <separator class="thin"/>
   <tree id="crltree" style="height: 10em;"
    onselect="EnableCrlActions()" flex="1">
@@ -95,8 +97,8 @@
             accesskey="&validation.updatecrl.accesskey;"
             oncommand="UpdateCRL();"/>
     <button id="importCRL" class="push"
-            label="&certmgr.restore2.label;"
-            accesskey="&certmgr.restore2.accesskey;"
+            label="&certmgr.restore.label;"
+            accesskey="&certmgr.restore.accesskey;"
             oncommand="ImportCRL();"/>
     <spacer flex="2"/>
     <button dlgtype="accept"/>

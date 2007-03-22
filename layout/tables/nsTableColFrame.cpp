@@ -52,8 +52,7 @@
 #define COL_CONSTRAINT_BITS           0x07000000 // uses bits 25-27
 #define COL_CONSTRAINT_OFFSET         24
 
-nsTableColFrame::nsTableColFrame(nsStyleContext* aContext) :
-  nsSplittableFrame(aContext)
+nsTableColFrame::nsTableColFrame(nsStyleContext* aContext) : nsFrame(aContext)
 {
   SetColType(eColContent);
   ResetIntrinsics();
@@ -74,11 +73,6 @@ nsTableColFrame::GetColType() const
 void 
 nsTableColFrame::SetColType(nsTableColType aType) 
 {
-  NS_ASSERTION(aType != eColAnonymousCol ||
-               (GetPrevContinuation() &&
-                GetPrevContinuation()->GetNextContinuation() == this &&
-                GetPrevContinuation()->GetNextSibling() == this),
-               "spanned content cols must be continuations");
   PRUint32 type = aType - eColContent;
   mState |= (type << COL_TYPE_OFFSET);
 }
@@ -155,9 +149,9 @@ void nsTableColFrame::Dump(PRInt32 aIndent)
     printf(" anonymous-cell ");
     break;
   }
-  printf("\nm:%d c:%d(%c) p:%f sm:%d sc:%d sp:%f f:%d",
+  printf("\nm:%d c:%d(%c) p:%f sm:%d sc:%d(%c) sp:%f f:%d",
          mMinCoord, mPrefCoord, mHasSpecifiedCoord ? 's' : 'u', mPrefPercent,
-         mSpanMinCoord, mSpanPrefCoord,
+         mSpanMinCoord, mSpanPrefCoord, mSpanHasSpecifiedCoord ? 's' : 'u',
          mSpanPrefPercent,
          GetFinalWidth());
   printf("\n%s**END COL DUMP** ", indent);
@@ -166,7 +160,7 @@ void nsTableColFrame::Dump(PRInt32 aIndent)
 #endif
 /* ----- global methods ----- */
 
-nsTableColFrame* 
+nsIFrame* 
 NS_NewTableColFrame(nsIPresShell* aPresShell, nsStyleContext* aContext)
 {
   return new (aPresShell) nsTableColFrame(aContext);
@@ -178,7 +172,7 @@ nsTableColFrame::Init(nsIContent*      aContent,
                       nsIFrame*        aPrevInFlow)
 {
   // Let the base class do its initialization
-  nsresult rv = nsSplittableFrame::Init(aContent, aParent, aPrevInFlow);
+  nsresult rv = nsFrame::Init(aContent, aParent, aPrevInFlow);
 
   // record that children that are ignorable whitespace should be excluded 
   mState |= NS_FRAME_EXCLUDE_IGNORABLE_WHITESPACE;
@@ -212,10 +206,3 @@ nsTableColFrame::GetFrameName(nsAString& aResult) const
   return MakeFrameName(NS_LITERAL_STRING("TableCol"), aResult);
 }
 #endif
-
-nsSplittableType
-nsTableColFrame::GetSplittableType() const
-{
-  return NS_FRAME_NOT_SPLITTABLE;
-}
-

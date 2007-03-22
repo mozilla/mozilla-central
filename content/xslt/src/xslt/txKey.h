@@ -69,12 +69,13 @@ public:
 struct txKeyValueHashEntry : public PLDHashEntryHdr
 {
     txKeyValueHashEntry(const void* aKey)
-        : mKey(*static_cast<const txKeyValueHashKey*>(aKey)),
+        : mKey(*NS_STATIC_CAST(const txKeyValueHashKey*, aKey)),
           mNodeSet(new txNodeSet(nsnull))
     {
     }
 
     // @see nsDoubleHashtable.h
+    const void* GetKey();
     PRBool MatchEntry(const void* aKey) const;
     static PLDHashNumber HashKey(const void* aKey);
     
@@ -101,12 +102,13 @@ public:
 struct txIndexedKeyHashEntry : public PLDHashEntryHdr
 {
     txIndexedKeyHashEntry(const void* aKey)
-        : mKey(*static_cast<const txIndexedKeyHashKey*>(aKey)),
+        : mKey(*NS_STATIC_CAST(const txIndexedKeyHashKey*, aKey)),
           mIndexed(PR_FALSE)
     {
     }
 
     // @see nsDoubleHashtable.h
+    const void* GetKey();
     PRBool MatchEntry(const void* aKey) const;
     static PLDHashNumber HashKey(const void* aKey);
 

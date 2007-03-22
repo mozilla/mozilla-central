@@ -53,12 +53,10 @@ class nsICSSLoader;
 class nsIContent;
 class nsIDOMHTMLBodyElement;
 class nsIScriptElement;
-class nsIEditor;
 
-// 19d63a6c-cc94-499c-892a-955add772e10
 #define NS_IHTMLDOCUMENT_IID \
-{ 0x19d63a6c, 0xcc94, 0x499c, \
-  { 0x89, 0x2a, 0x95, 0x5a, 0xdd, 0x77, 0x2e, 0x10 } }
+{ 0xcfe72003, 0xcc90, 0x4624, \
+ { 0xb4, 0x1b, 0xc3, 0x14, 0x1d, 0x31, 0x7a, 0x71 } }
 
 
 /**
@@ -129,67 +127,6 @@ public:
    * the document that are of type nsIContent::eHTML_FORM_CONTROL).
    */
   virtual nsContentList* GetFormControls() = 0;
-
-  /**
-   * Should be called when an element's editable changes as a result of
-   * changing its contentEditable attribute/property.
-   *
-   * @param aElement the element for which the contentEditable
-   *                 attribute/property was changed
-   * @param aChange +1 if the contentEditable attribute/property was changed to
-   *                true, -1 if it was changed to false
-   */
-  virtual nsresult ChangeContentEditableCount(nsIContent *aElement,
-                                              PRInt32 aChange) = 0;
-
-  enum EditingState {
-    eTearingDown = -2,
-    eSettingUp = -1,
-    eOff = 0,
-    eDesignMode,
-    eContentEditable
-  };
-
-  /**
-   * Returns whether the document is editable.
-   */
-  PRBool IsEditingOn()
-  {
-    return GetEditingState() == eDesignMode ||
-           GetEditingState() == eContentEditable;
-  }
-
-  /**
-   * Returns the editing state of the document (not editable, contentEditable or
-   * designMode).
-   */
-  virtual EditingState GetEditingState() = 0;
-
-  /**
-   * Set the editing state of the document. Don't use this if you want
-   * to enable/disable editing, call EditingStateChanged() or
-   * SetDesignMode().
-   */
-  virtual nsresult SetEditingState(EditingState aState) = 0;
-
-  /**
-   * Returns the result of document.all[aID] which can either be a node
-   * or a nodelist depending on if there are multiple nodes with the same
-   * id.
-   */
-  virtual nsresult GetDocumentAllResult(const nsAString& aID,
-                                        nsISupports** aResult) = 0;
-
-  /**
-   * Get the first <body> child of the root <html>, but don't do
-   * anything <frameset>-related (like nsIDOMHTMLDocument::GetBody).
-   */
-  virtual nsIContent* GetBodyContentExternal() = 0;
-
-  /**
-   * Called when this nsIHTMLDocument's editor is destroyed.
-   */
-  virtual void TearingDownEditor(nsIEditor *aEditor) = 0;
 };
 
 NS_DEFINE_STATIC_IID_ACCESSOR(nsIHTMLDocument, NS_IHTMLDOCUMENT_IID)

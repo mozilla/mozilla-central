@@ -34,15 +34,13 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-234389.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 234389;
+var bug = 234389;
 var summary = 'Do not Crash when overloaded toString causes infinite recursion';
 var actual = ''
-  var expect = 'Internal Error: too much recursion';
+var expect = 'Internal Error: too much recursion';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
 var foo = {
@@ -52,9 +50,9 @@ var foo = {
     }
     return this.value;
   },
- 
+  
   value: "foo",
- 
+  
   re: /bar/
 };
 

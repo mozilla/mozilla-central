@@ -154,6 +154,15 @@ nsCacheEntry::TouchMetaData()
 }
 
 
+nsresult
+nsCacheEntry::GetSecurityInfo( nsISupports ** result)
+{
+    NS_ENSURE_ARG_POINTER(result);
+    NS_IF_ADDREF(*result = mSecurityInfo);
+    return NS_OK;
+}
+
+
 /**
  *  cache entry states
  *      0 descriptors (new entry)
@@ -298,8 +307,8 @@ nsCacheEntryInfo::GetDeviceID(char ** deviceID)
 {
     NS_ENSURE_ARG_POINTER(deviceID);
     if (!mCacheEntry)  return NS_ERROR_NOT_AVAILABLE;
-
-    *deviceID = NS_strdup(mCacheEntry->GetDeviceID());
+    
+    *deviceID = nsCRT::strdup(mCacheEntry->GetDeviceID());
     return *deviceID ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
 }
 
@@ -388,6 +397,7 @@ nsCacheEntryHashTable::ops =
 {
     PL_DHashAllocTable,
     PL_DHashFreeTable,
+    GetKey,
     HashKey,
     MatchEntry,
     MoveEntry,
@@ -488,17 +498,35 @@ nsCacheEntryHashTable::RemoveEntry( nsCacheEntry *cacheEntry)
 
 
 void
-nsCacheEntryHashTable::VisitEntries( PLDHashEnumerator etor, void *arg)
+nsCacheEntryHashTable::VisitEntries( nsCacheEntryHashTable::Visitor *visitor)
 {
     NS_ASSERTION(initialized, "nsCacheEntryHashTable not initialized");
     if (!initialized)  return; // NS_ERROR_NOT_INITIALIZED
-    PL_DHashTableEnumerate(&table, etor, arg);
+    PL_DHashTableEnumerate(&table, VisitEntry, visitor);
 }
 
+
+PLDHashOperator PR_CALLBACK
+nsCacheEntryHashTable::VisitEntry(PLDHashTable *table,
+                                  PLDHashEntryHdr *hashEntry,
+                                  PRUint32 number,
+                                  void *arg)
+{
+    nsCacheEntry *cacheEntry = ((nsCacheEntryHashTableEntry *)hashEntry)->cacheEntry;
+    nsCacheEntryHashTable::Visitor *visitor = (nsCacheEntryHashTable::Visitor*) arg;
+    return (visitor->VisitEntry(cacheEntry) ? PL_DHASH_NEXT : PL_DHASH_STOP);
+}
 
 /**
  *  hash table operation callback functions
  */
+const void * PR_CALLBACK
+nsCacheEntryHashTable::GetKey( PLDHashTable * /*table*/, PLDHashEntryHdr *hashEntry)
+{
+    nsCacheEntry *cacheEntry = ((nsCacheEntryHashTableEntry *)hashEntry)->cacheEntry;
+    return cacheEntry->mKey;
+}
+
 
 PLDHashNumber PR_CALLBACK
 nsCacheEntryHashTable::HashKey( PLDHashTable *table, const void *key)
@@ -534,3 +562,4 @@ nsCacheEntryHashTable::ClearEntry(PLDHashTable * /* table */,
 {
     ((nsCacheEntryHashTableEntry *)hashEntry)->cacheEntry = 0;
 }
+

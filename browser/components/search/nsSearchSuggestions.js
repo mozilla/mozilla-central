@@ -42,20 +42,26 @@ const SEARCH_RESPONSE_SUGGESTION_JSON = "application/x-suggestions+json";
 const BROWSER_SUGGEST_PREF = "browser.search.suggest.enabled";
 const XPCOM_SHUTDOWN_TOPIC              = "xpcom-shutdown";
 const NS_PREFBRANCH_PREFCHANGE_TOPIC_ID = "nsPref:changed";
+
+/**
+ * Metadata describing the Web Search suggest mode
+ */
+const SEARCH_SUGGEST_CONTRACTID =
+  "@mozilla.org/autocomplete/search;1?name=search-autocomplete";
+const SEARCH_SUGGEST_CLASSNAME = "Remote Search Suggestions";
+const SEARCH_SUGGEST_CLASSID =
+  Components.ID("{aa892eb4-ffbf-477d-9f9a-06c995ae9f27}");
+
 const SEARCH_BUNDLE = "chrome://browser/locale/search.properties";
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cr = Components.results;
-const Cu = Components.utils;
 
 const HTTP_OK                    = 200;
 const HTTP_INTERNAL_SERVER_ERROR = 500;
 const HTTP_BAD_GATEWAY           = 502;
 const HTTP_SERVICE_UNAVAILABLE   = 503;
-
-Cu.import("resource://gre/modules/XPCOMUtils.jsm");
-Cu.import("resource://gre/modules/JSON.jsm");
 
 /**
  * SuggestAutoCompleteResult contains the results returned by the Suggest
@@ -196,15 +202,6 @@ SuggestAutoCompleteResult.prototype = {
   },
 
   /**
-   * Retrieves an image url.
-   * @param  index    the index of the image url requested
-   * @return          the image url at the specified index
-   */
-  getImageAt: function(index) {
-    return "";
-  },
-
-  /**
    * Removes a result from the resultset
    * @param  index    the index of the result to remove
    */
@@ -221,8 +218,18 @@ SuggestAutoCompleteResult.prototype = {
     this._comments.splice(index, 1);
   },
 
-  // nsISupports
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIAutoCompleteResult])
+  /**
+   * Part of nsISupports implementation.
+   * @param   iid     requested interface identifier
+   * @return  this object (XPConnect handles the magic of telling the caller that
+   *                       we're the type it requested)
+   */
+  QueryInterface: function(iid) {
+    if (!iid.equals(Ci.nsIAutoCompleteResult) &&
+        !iid.equals(Ci.nsISupports))
+      throw Cr.NS_ERROR_NO_INTERFACE;
+    return this;
+  }
 };
 
 /**
@@ -342,21 +349,17 @@ SuggestAutoComplete.prototype = {
   _sentSuggestRequest: false,
 
   /**
-   * This is the callback for the suggest timeout timer.
+   * This is the callback for the suggest timeout timer.  If this gets
+   * called, it means that we've given up on receiving a reply from the
+   * search engine's suggestion server in a timely manner.
    */
   notify: function SAC_notify(timer) {
-    // FIXME: bug 387341
-    // Need to break the cycle between us and the timer.
-    this._formHistoryTimer = null;
-
-    // If this._listener is null, we've already sent out suggest results, so
-    // nothing left to do here.
-    if (!this._listener)
+    // make sure we're still waiting for this response before sending
+    if ((timer != this._formHistoryTimer) || !this._listener)
       return;
 
-    // Otherwise, the XMLHTTPRequest for suggest results is taking too long,
-    // so send out the form history results and cancel the request.
     this._listener.onSearchResult(this, this._formHistoryResult);
+    this._formHistoryTimer = null;
     this._reset();
   },
 
@@ -427,7 +430,7 @@ SuggestAutoComplete.prototype = {
   },
 
   /**
-   * Makes a note of the fact that we've received a backoff-triggering
+   * Makes a note of the fact that we've recieved a backoff-triggering
    * response, so that we can adjust the backoff behavior appropriately.
    */
   _noteServerError: function SAC__noteServeError() {
@@ -523,7 +526,21 @@ SuggestAutoComplete.prototype = {
 
     this._clearServerErrors();
 
-    var serverResults = JSON.fromString(responseText);
+    // This is a modified version of Crockford's JSON sanitizer, obtained
+    // from http://www.json.org/js.html.
+    // This should use built-in functions once bug 340987 is fixed.
+    const JSON_STRING = /^("(\\.|[^"\\\n\r])*?"|[,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t])+?$/;
+    var sandbox = new Components.utils.Sandbox(this._suggestURI.prePath);
+    function parseJSON(aString) {
+      try {
+        if (JSON_STRING.test(aString))
+          return Components.utils.evalInSandbox("(" + aString + ")", sandbox);
+      } catch (e) {}
+
+      return [];
+    };
+
+    var serverResults = parseJSON(responseText);
     var searchString = serverResults[0] || "";
     var results = serverResults[1] || [];
 
@@ -647,7 +664,6 @@ SuggestAutoComplete.prototype = {
     this._suggestURI = submission.uri;
     var method = (submission.postData ? "POST" : "GET");
     this._request.open(method, this._suggestURI.spec, true);
-    this._request.channel.notificationCallbacks = new SearchSuggestLoadListener();
 
     var self = this;
     function onReadyStateChange() {
@@ -707,33 +723,19 @@ SuggestAutoComplete.prototype = {
     os.removeObserver(this, XPCOM_SHUTDOWN_TOPIC);
   },
 
-  // nsISupports
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIAutoCompleteSearch,
-                                         Ci.nsIAutoCompleteObserver])
-};
-
-function SearchSuggestLoadListener() {
-}
-SearchSuggestLoadListener.prototype = {
-  // nsIBadCertListener2
-  notifyCertProblem: function SSLL_certProblem(socketInfo, status, targetSite) {
-    return true;
-  },
-
-  // nsISSLErrorListener
-  notifySSLError: function SSLL_SSLError(socketInfo, error, targetSite) {
-    return true;
-  },
-
-  // nsIInterfaceRequestor
-  getInterface: function SSLL_getInterface(iid) {
-    return this.QueryInterface(iid);
-  },
-
-  // nsISupports
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIBadCertListener2,
-                                         Ci.nsISSLErrorListener,
-                                         Ci.nsIInterfaceRequestor])
+  /**
+   * Part of nsISupports implementation.
+   * @param   iid     requested interface identifier
+   * @return  this object (XPConnect handles the magic of telling the caller that
+   *                       we're the type it requested)
+   */
+  QueryInterface: function(iid) {
+    if (!iid.equals(Ci.nsIAutoCompleteSearch) &&
+        !iid.equals(Ci.nsIAutoCompleteObserver) &&
+        !iid.equals(Ci.nsISupports))
+      throw Cr.NS_ERROR_NO_INTERFACE;
+    return this;
+  }
 };
 
 /**
@@ -747,14 +749,92 @@ function SearchSuggestAutoComplete() {
   this._init();
 }
 SearchSuggestAutoComplete.prototype = {
-  classDescription: "Remote Search Suggestions",
-  contractID: "@mozilla.org/autocomplete/search;1?name=search-autocomplete",
-  classID: Components.ID("{aa892eb4-ffbf-477d-9f9a-06c995ae9f27}"),
   __proto__: SuggestAutoComplete.prototype,
   serviceURL: ""
 };
 
-var component = [SearchSuggestAutoComplete];
-function NSGetModule(compMgr, fileSpec) {
-  return XPCOMUtils.generateModule(component);
+var gModule = {
+  /**
+   * Registers all the components supplied by this module. Part of nsIModule
+   * implementation.
+   * @param componentManager  the XPCOM component manager
+   * @param location          the location of the module on disk
+   * @param loaderString      opaque loader specific string
+   * @param type              loader type being used to load this module
+   */
+  registerSelf: function(componentManager, location, loaderString, type) {
+    if (this._firstTime) {
+      this._firstTime = false;
+      throw Cr.NS_ERROR_FACTORY_REGISTER_AGAIN;
+    }
+    componentManager =
+      componentManager.QueryInterface(Ci.nsIComponentRegistrar);
+
+    for (var key in this.objects) {
+      var obj = this.objects[key];
+      componentManager.registerFactoryLocation(obj.CID, obj.className, obj.contractID,
+                                               location, loaderString, type);
+    }
+  },
+
+  /**
+   * Retrieves a Factory for the given ClassID. Part of nsIModule
+   * implementation.
+   * @param componentManager  the XPCOM component manager
+   * @param cid               the ClassID of the object for which a factory
+   *                          has been requested
+   * @param iid               the IID of the interface requested
+   */
+  getClassObject: function(componentManager, cid, iid) {
+    if (!iid.equals(Ci.nsIFactory))
+      throw Cr.NS_ERROR_NOT_IMPLEMENTED;
+
+    for (var key in this.objects) {
+      if (cid.equals(this.objects[key].CID))
+        return this.objects[key].factory;
+    }
+
+    throw Cr.NS_ERROR_NO_INTERFACE;
+  },
+
+  /**
+   * Create a Factory object that can construct an instance of an object.
+   * @param constructor   the constructor used to create the object
+   * @private
+   */
+  _makeFactory: function(constructor) {
+    function createInstance(outer, iid) {
+      if (outer != null)
+        throw Cr.NS_ERROR_NO_AGGREGATION;
+      return (new constructor()).QueryInterface(iid);
+    }
+    return { createInstance: createInstance };
+  },
+
+  /**
+   * Determines whether or not this module can be unloaded.
+   * @return returning true indicates that this module can be unloaded.
+   */
+  canUnload: function(componentManager) {
+    return true;
+  }
+};
+
+/**
+ * Entry point for registering the components supplied by this JavaScript
+ * module.
+ * @param componentManager  the XPCOM component manager
+ * @param location          the location of this module on disk
+ */
+function NSGetModule(componentManager, location) {
+  // Metadata about the objects this module can construct
+  gModule.objects = {
+    search: {
+      CID: SEARCH_SUGGEST_CLASSID,
+      contractID: SEARCH_SUGGEST_CONTRACTID,
+      className: SEARCH_SUGGEST_CLASSNAME,
+      factory: gModule._makeFactory(SearchSuggestAutoComplete)
+    },
+  };
+  return gModule;
 }

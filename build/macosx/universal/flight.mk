@@ -57,11 +57,7 @@ else
 DBGTAG =
 endif
 
-ifdef LIBXUL_SDK # {
-APP_CONTENTS = Contents/Frameworks/XUL.framework
-else # } {
 APP_CONTENTS = Contents/MacOS
-endif # } LIBXUL_SDK
 
 ifeq ($(MOZ_BUILD_APP),camino) # {
 INSTALLER_DIR = camino/installer
@@ -71,13 +67,17 @@ BUILDCONFIG_JAR = Contents/MacOS/chrome/embed.jar
 else # } {
 MOZ_PKG_APPNAME = $(MOZ_APP_NAME)
 APPNAME = $(MOZ_APP_DISPLAYNAME)$(DBGTAG).app
+BUILDCONFIG_JAR = Contents/MacOS/chrome/toolkit.jar
 INSTALLER_DIR = $(MOZ_BUILD_APP)/installer
+ifeq ($(MOZ_BUILD_APP),suite) # {
+INSTALLER_DIR = xpinstall/packager
+endif # } suite
 ifeq ($(MOZ_BUILD_APP),xulrunner) # {
 INSTALLER_DIR = xulrunner/installer/mac
+BUILDCONFIG_JAR = Versions/Current/chrome/toolkit.jar
 APPNAME = XUL.framework
 APP_CONTENTS = Versions/Current
 endif # } xulrunner
-BUILDCONFIG_JAR = $(APP_CONTENTS)/chrome/toolkit.jar
 endif # } !camino
 
 postflight_all:
@@ -86,9 +86,9 @@ postflight_all:
 # a universal binary too early, before the unified bits have been staged.
 # Set SIGN_NSS= to skip shlibsign.
 	$(MAKE) -C $(OBJDIR_PPC)/$(INSTALLER_DIR) \
-          UNIVERSAL_BINARY= SIGN_NSS= PKG_SKIP_STRIP=1 stage-package
+          UNIVERSAL_BINARY= SIGN_NSS= stage-package
 	$(MAKE) -C $(OBJDIR_X86)/$(INSTALLER_DIR) \
-          UNIVERSAL_BINARY= SIGN_NSS= PKG_SKIP_STRIP=1 stage-package
+          UNIVERSAL_BINARY= SIGN_NSS= stage-package
 # Remove .chk files that may have been copied from the NSS build.  These will
 # cause unify to warn or fail if present.  New .chk files that are
 # appropriate for the merged libraries will be generated when the universal

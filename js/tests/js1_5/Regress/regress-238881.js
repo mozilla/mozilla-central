@@ -35,15 +35,13 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-238881.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 238881;
+var bug = 238881;
 var summary = 'const propagation for switch too aggressive';
 var actual = '';
 var expect = '';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
 const C=42;
@@ -60,5 +58,5 @@ function f(C,x)
 
 actual = f(44,42);
 expect = 0;
- 
+  
 reportCompare(expect, actual, summary);

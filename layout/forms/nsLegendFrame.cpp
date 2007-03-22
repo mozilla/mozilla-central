@@ -73,22 +73,23 @@ nsLegendFrame::GetType() const
 void
 nsLegendFrame::Destroy()
 {
-  nsFormControlFrame::RegUnRegAccessKey(static_cast<nsIFrame*>(this), PR_FALSE);
+  nsFormControlFrame::RegUnRegAccessKey(NS_STATIC_CAST(nsIFrame*, this), PR_FALSE);
   nsAreaFrame::Destroy();
 }
 
 // Frames are not refcounted, no need to AddRef
 NS_IMETHODIMP
-nsLegendFrame::QueryInterface(REFNSIID aIID, void** aInstancePtr)
+nsLegendFrame::QueryInterface(REFNSIID aIID, void** aInstancePtrResult)
 {
-  NS_PRECONDITION(aInstancePtr, "null out param");
-
+  NS_PRECONDITION(aInstancePtrResult, "null pointer");
+  if (NS_UNLIKELY(!aInstancePtrResult)) {
+    return NS_ERROR_NULL_POINTER;
+  }
   if (aIID.Equals(kLegendFrameCID)) {
-    *aInstancePtr = this;
+    *aInstancePtrResult = this;
     return NS_OK;
   }
-
-  return nsAreaFrame::QueryInterface(aIID, aInstancePtr);
+  return nsAreaFrame::QueryInterface(aIID, aInstancePtrResult);
 }
 
 NS_IMETHODIMP 
@@ -100,7 +101,7 @@ nsLegendFrame::Reflow(nsPresContext*          aPresContext,
   DO_GLOBAL_REFLOW_COUNT("nsLegendFrame");
   DISPLAY_REFLOW(aPresContext, this, aReflowState, aDesiredSize, aStatus);
   if (mState & NS_FRAME_FIRST_REFLOW) {
-    nsFormControlFrame::RegUnRegAccessKey(static_cast<nsIFrame*>(this), PR_TRUE);
+    nsFormControlFrame::RegUnRegAccessKey(NS_STATIC_CAST(nsIFrame*, this), PR_TRUE);
   }
   return nsAreaFrame::Reflow(aPresContext, aDesiredSize, aReflowState, aStatus);
 }

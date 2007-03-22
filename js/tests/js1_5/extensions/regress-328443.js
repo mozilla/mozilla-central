@@ -34,15 +34,13 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-328443.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 328443;
+var bug = 328443;
 var summary = 'Uncatchable exception with |new (G.call) (F);| when F proto is null';
 var actual = '';
 var expect = 'Exception caught';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
 var F = (function(){});
@@ -53,7 +51,7 @@ var G = (function(){});
 var z;
 
 z = "uncatchable exception!!!";
-try {
+try { 
   new (G.call) (F);
 
   actual = "No exception";
@@ -61,5 +59,5 @@ try {
   actual = "Exception caught";
   printStatus("Exception was caught: " + er);
 }
- 
+  
 reportCompare(expect, actual, summary);

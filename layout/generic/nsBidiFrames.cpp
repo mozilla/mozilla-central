@@ -51,19 +51,37 @@ nsDirectionalFrame::~nsDirectionalFrame()
 {
 }
 
+PRUnichar
+nsDirectionalFrame::GetChar(void) const
+{
+  return mChar;
+}
+
+/**
+ * Get the "type" of the frame
+ *
+ * @see nsGkAtoms::directionalFrame
+ */
 nsIAtom*
 nsDirectionalFrame::GetType() const
 { 
-  return nsGkAtoms::directionalFrame;
+  return nsGkAtoms::directionalFrame; 
 }
   
-#ifdef NS_DEBUG
 NS_IMETHODIMP
-nsDirectionalFrame::GetFrameName(nsAString& aResult) const
+nsDirectionalFrame::QueryInterface(const nsIID& aIID, void** aInstancePtr)
 {
-  return MakeFrameName(NS_LITERAL_STRING("Directional"), aResult);
+  nsresult rv = NS_NOINTERFACE;
+
+  if (!aInstancePtr) {
+    rv = NS_ERROR_NULL_POINTER;
+  }
+  else if (aIID.Equals(NS_GET_IID(nsDirectionalFrame) ) ) {
+    *aInstancePtr = (void*) this;
+    rv = NS_OK;
+  }
+  return rv;
 }
-#endif
 
 nsIFrame*
 NS_NewDirectionalFrame(nsIPresShell* aPresShell, nsStyleContext* aContext, PRUnichar aChar)

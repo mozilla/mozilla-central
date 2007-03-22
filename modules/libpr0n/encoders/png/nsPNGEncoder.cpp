@@ -22,7 +22,6 @@
  * Contributor(s):
  *   Brett Wilson <brettw@gmail.com>
  *   Stuart Parmenter <pavlov@pavlov.net>
- *   Justin Dolske <dolske@mozilla.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -38,22 +37,24 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsCRT.h"
 #include "nsPNGEncoder.h"
 #include "prmem.h"
-#include "prprf.h"
 #include "nsString.h"
 #include "nsStreamUtils.h"
+
+// Bug 308126 - AIX defines jmpbuf in sys/context.h which conflicts with the
+// definition of jmpbuf in the png.h header file.
+#ifdef jmpbuf
+#undef jmpbuf
+#endif
 
 // Input streams that do not implement nsIAsyncInputStream should be threadsafe
 // so that they may be used with nsIInputStreamPump and nsIInputStreamChannel,
 // which read such a stream on a background thread.
 NS_IMPL_THREADSAFE_ISUPPORTS2(nsPNGEncoder, imgIEncoder, nsIInputStream)
 
-nsPNGEncoder::nsPNGEncoder() : mPNG(nsnull), mPNGinfo(nsnull),
-                               mIsAnimation(PR_FALSE),
-                               mImageBuffer(nsnull), mImageBufferSize(0),
-                               mImageBufferUsed(0), mImageBufferReadPoint(0)
+nsPNGEncoder::nsPNGEncoder() : mImageBuffer(nsnull), mImageBufferSize(0),
+                                 mImageBufferUsed(0), mImageBufferReadPoint(0)
 {
 }
 
@@ -63,9 +64,6 @@ nsPNGEncoder::~nsPNGEncoder()
     PR_Free(mImageBuffer);
     mImageBuffer = nsnull;
   }
-  // don't leak if EndImageEncode wasn't called
-  if (mPNG)
-    png_destroy_write_struct(&mPNG, &mPNGinfo);
 }
 
 // nsPNGEncoder::InitFromData
@@ -84,75 +82,49 @@ NS_IMETHODIMP nsPNGEncoder::InitFromData(const PRUint8* aData,
                                           PRUint32 aInputFormat,
                                           const nsAString& aOutputOptions)
 {
-  nsresult rv;
-
-  rv = StartImageEncode(aWidth, aHeight, aInputFormat, aOutputOptions);
-  if (!NS_SUCCEEDED(rv))
-    return rv;
-
-  rv = AddImageFrame(aData, aLength, aWidth, aHeight, aStride, aInputFormat, aOutputOptions);
-  if (!NS_SUCCEEDED(rv))
-    return rv;
-
-  rv = EndImageEncode();
-
-  return rv;
-}
-
-
-// nsPNGEncoder::StartImageEncode
-//
-// 
-// See ::InitFromData for other info.
-NS_IMETHODIMP nsPNGEncoder::StartImageEncode(PRUint32 aWidth,
-                                             PRUint32 aHeight,
-                                             PRUint32 aInputFormat,
-                                             const nsAString& aOutputOptions)
-{
-  PRBool useTransparency = PR_TRUE, skipFirstFrame = PR_FALSE;
-  PRUint32 numFrames = 1;
-  PRUint32 numPlays = 0; // For animations, 0 == forever
-
-  // can't initialize more than once
-  if (mImageBuffer != nsnull)
-    return NS_ERROR_ALREADY_INITIALIZED;
-
   // validate input format
   if (aInputFormat != INPUT_FORMAT_RGB &&
       aInputFormat != INPUT_FORMAT_RGBA &&
       aInputFormat != INPUT_FORMAT_HOSTARGB)
     return NS_ERROR_INVALID_ARG;
 
-  // parse and check any provided output options
-  nsresult rv = ParseOptions(aOutputOptions, &useTransparency, &skipFirstFrame,
-                             &numFrames, &numPlays, nsnull, nsnull,
-                             nsnull, nsnull, nsnull);
-  if (rv != NS_OK) { return rv; }
+  // Stride is the padded width of each row, so it better be longer (I'm afraid
+  // people will not understand what stride means, so check it well)
+  if ((aInputFormat == INPUT_FORMAT_RGB &&
+       aStride < aWidth * 3) ||
+      ((aInputFormat == INPUT_FORMAT_RGBA || aInputFormat == INPUT_FORMAT_HOSTARGB) &&
+       aStride < aWidth * 4)) {
+    NS_WARNING("Invalid stride for InitFromData");
+    return NS_ERROR_INVALID_ARG;
+  }
 
-  if (numFrames > 1) {
-    mIsAnimation = PR_TRUE;
+  // can't initialize more than once
+  if (mImageBuffer != nsnull)
+    return NS_ERROR_ALREADY_INITIALIZED;
+
+  // options: we only have one option so this is easy
+  PRBool useTransparency = PR_TRUE;
+  if (aOutputOptions.Length() >= 17) {
+    if (StringBeginsWith(aOutputOptions,  NS_LITERAL_STRING("transparency=none")))
+      useTransparency = PR_FALSE;
   }
 
   // initialize
-  mPNG = png_create_write_struct(PNG_LIBPNG_VER_STRING,
-                                 png_voidp_NULL,
-                                 ErrorCallback,
-                                 ErrorCallback);
-  if (! mPNG)
+  png_struct* png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING,
+                                                png_voidp_NULL,
+                                                png_error_ptr_NULL,
+                                                png_error_ptr_NULL);
+  if (! png_ptr)
     return NS_ERROR_OUT_OF_MEMORY;
-
-  mPNGinfo = png_create_info_struct(mPNG);
-  if (! mPNGinfo) {
-    png_destroy_write_struct(&mPNG, nsnull);
+  png_info* info_ptr = png_create_info_struct(png_ptr);
+  if (! info_ptr)
+  {
+    png_destroy_write_struct(&png_ptr, nsnull);
     return NS_ERROR_FAILURE;
   }
-
-  // libpng's error handler jumps back here upon an error.
-  // Note: It's important that all png_* callers do this, or errors
-  // will result in a corrupt time-warped stack.
-  if (setjmp(png_jmpbuf(mPNG))) {
-    png_destroy_write_struct(&mPNG, &mPNGinfo);
-    return NS_ERROR_FAILURE;
+  if (setjmp(png_jmpbuf(png_ptr))) {
+    png_destroy_write_struct(&png_ptr, &info_ptr);
+    return NS_ERROR_OUT_OF_MEMORY;
   }
 
   // Set up to read the data into our image buffer, start out with an 8K
@@ -161,13 +133,13 @@ NS_IMETHODIMP nsPNGEncoder::StartImageEncode(PRUint32 aWidth,
   mImageBufferSize = 8192;
   mImageBuffer = (PRUint8*)PR_Malloc(mImageBufferSize);
   if (!mImageBuffer) {
-    png_destroy_write_struct(&mPNG, &mPNGinfo);
+    png_destroy_write_struct(&png_ptr, &info_ptr);
     return NS_ERROR_OUT_OF_MEMORY;
   }
   mImageBufferUsed = 0;
 
   // set our callback for libpng to give us the data
-  png_set_write_fn(mPNG, this, WriteCallback, NULL);
+  png_set_write_fn(png_ptr, this, WriteCallback, NULL);
 
   // include alpha?
   int colorType;
@@ -177,79 +149,11 @@ NS_IMETHODIMP nsPNGEncoder::StartImageEncode(PRUint32 aWidth,
   else
     colorType = PNG_COLOR_TYPE_RGB;
 
-  png_set_IHDR(mPNG, mPNGinfo, aWidth, aHeight, 8, colorType,
+  png_set_IHDR(png_ptr, info_ptr, aWidth, aHeight, 8, colorType,
                PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT,
                PNG_FILTER_TYPE_DEFAULT);
 
-  if (mIsAnimation) {
-    png_set_first_frame_is_hidden(mPNG, mPNGinfo, skipFirstFrame);
-    png_set_acTL(mPNG, mPNGinfo, numFrames, numPlays);
-  }
-
-  // XXX: support PLTE, gAMA, tRNS, bKGD?
-
-  png_write_info(mPNG, mPNGinfo);
-
-  return NS_OK;
-}
-
-
-NS_IMETHODIMP nsPNGEncoder::AddImageFrame(const PRUint8* aData,
-                                          PRUint32 aLength, // (unused, req'd by JS)
-                                          PRUint32 aWidth,
-                                          PRUint32 aHeight,
-                                          PRUint32 aStride,
-                                          PRUint32 aInputFormat,
-                                          const nsAString& aFrameOptions)
-{
-  PRBool useTransparency= PR_TRUE;
-  PRUint32 delay_ms = 500;
-  PRUint32 dispose_op = PNG_DISPOSE_OP_NONE;
-  PRUint32 blend_op = PNG_BLEND_OP_SOURCE;
-  PRUint32 x_offset = 0, y_offset = 0;
-
-  // must be initialized
-  if (mImageBuffer == nsnull)
-    return NS_ERROR_NOT_INITIALIZED;
-
-  // EndImageEncode was done, or some error occurred earlier
-  if (!mPNG)
-    return NS_BASE_STREAM_CLOSED;
-
-  // validate input format
-  if (aInputFormat != INPUT_FORMAT_RGB &&
-      aInputFormat != INPUT_FORMAT_RGBA &&
-      aInputFormat != INPUT_FORMAT_HOSTARGB)
-    return NS_ERROR_INVALID_ARG;
-
-  // libpng's error handler jumps back here upon an error.
-  if (setjmp(png_jmpbuf(mPNG))) {
-    png_destroy_write_struct(&mPNG, &mPNGinfo);
-    return NS_ERROR_FAILURE;
-  }
-
-  // parse and check any provided output options
-  nsresult rv = ParseOptions(aFrameOptions, &useTransparency, nsnull,
-                             nsnull, nsnull, &dispose_op, &blend_op,
-                             &delay_ms, &x_offset, &y_offset);
-  if (rv != NS_OK) { return rv; }
-
-  if (mIsAnimation) {
-    // XXX the row pointers arg (#3) is unused, can it be removed?
-    png_write_frame_head(mPNG, mPNGinfo, nsnull,
-                         aWidth, aHeight, x_offset, y_offset,
-                         delay_ms, 1000, dispose_op, blend_op);
-  }
-
-  // Stride is the padded width of each row, so it better be longer (I'm afraid
-  // people will not understand what stride means, so check it well)
-  if ((aInputFormat == INPUT_FORMAT_RGB &&
-       aStride < aWidth * 3) ||
-      ((aInputFormat == INPUT_FORMAT_RGBA || aInputFormat == INPUT_FORMAT_HOSTARGB) &&
-       aStride < aWidth * 4)) {
-    NS_WARNING("Invalid stride for InitFromData/AddImageFrame");
-    return NS_ERROR_INVALID_ARG;
-  }
+  png_write_info(png_ptr, info_ptr);
 
   // write each row: if we add more input formats, we may want to
   // generalize the conversions
@@ -258,7 +162,7 @@ NS_IMETHODIMP nsPNGEncoder::AddImageFrame(const PRUint8* aData,
     PRUint8* row = new PRUint8[aWidth * 4];
     for (PRUint32 y = 0; y < aHeight; y ++) {
       ConvertHostARGBRow(&aData[y * aStride], row, aWidth, useTransparency);
-      png_write_row(mPNG, row);
+      png_write_row(png_ptr, row);
     }
     delete[] row;
 
@@ -267,7 +171,7 @@ NS_IMETHODIMP nsPNGEncoder::AddImageFrame(const PRUint8* aData,
     PRUint8* row = new PRUint8[aWidth * 4];
     for (PRUint32 y = 0; y < aHeight; y ++) {
       StripAlpha(&aData[y * aStride], row, aWidth);
-      png_write_row(mPNG, row);
+      png_write_row(png_ptr, row);
     }
     delete[] row;
 
@@ -275,165 +179,19 @@ NS_IMETHODIMP nsPNGEncoder::AddImageFrame(const PRUint8* aData,
              aInputFormat == INPUT_FORMAT_RGBA) {
     // simple RBG(A), no conversion needed
     for (PRUint32 y = 0; y < aHeight; y ++) {
-      png_write_row(mPNG, (PRUint8*)&aData[y * aStride]);
+      png_write_row(png_ptr, (PRUint8*)&aData[y * aStride]);
     }
 
   } else {
     NS_NOTREACHED("Bad format type");
-    return NS_ERROR_INVALID_ARG;
   }
 
-  if (mIsAnimation) {
-    png_write_frame_tail(mPNG, mPNGinfo);
-  }
-
-  return NS_OK;
-}
-
-
-NS_IMETHODIMP nsPNGEncoder::EndImageEncode()
-{
-  // must be initialized
-  if (mImageBuffer == nsnull)
-    return NS_ERROR_NOT_INITIALIZED;
-
-  // EndImageEncode has already been called, or some error occurred earlier
-  if (!mPNG)
-    return NS_BASE_STREAM_CLOSED;
-
-  // libpng's error handler jumps back here upon an error.
-  if (setjmp(png_jmpbuf(mPNG))) {
-    png_destroy_write_struct(&mPNG, &mPNGinfo);
-    return NS_ERROR_FAILURE;
-  }
-
-  png_write_end(mPNG, mPNGinfo);
-  png_destroy_write_struct(&mPNG, &mPNGinfo);
+  png_write_end(png_ptr, info_ptr);
+  png_destroy_write_struct(&png_ptr, &info_ptr);
 
   // if output callback can't get enough memory, it will free our buffer
   if (!mImageBuffer)
     return NS_ERROR_OUT_OF_MEMORY;
-
-  return NS_OK;
-}
-
-
-nsresult
-nsPNGEncoder::ParseOptions(const nsAString& aOptions,
-                           PRBool* useTransparency,
-                           PRBool* skipFirstFrame,
-                           PRUint32* numFrames,
-                           PRUint32* numPlays,
-                           PRUint32* frameDispose,
-                           PRUint32* frameBlend,
-                           PRUint32* frameDelay,
-                           PRUint32* offsetX,
-                           PRUint32* offsetY)
-{
-  // Make a copy of aOptions, because strtok() will modify it.
-  nsCAutoString optionsCopy;
-  optionsCopy.Assign(NS_ConvertUTF16toUTF8(aOptions));
-  char* options = optionsCopy.BeginWriting();
-
-  while (char* token = nsCRT::strtok(options, ";", &options)) {
-    // If there's an '=' character, split the token around it.
-    char* equals = token, *value = nsnull;
-    while(*equals != '=' && *equals) { ++equals; }
-    if (*equals == '=') { value = equals + 1; }
-
-    if (value) { *equals = '\0'; } // temporary null
-
-    // transparency=[yes|no|none]
-    if (nsCRT::strcmp(token, "transparency") == 0 && useTransparency) {
-      if (!value) { return NS_ERROR_INVALID_ARG; }
-
-      if (nsCRT::strcmp(value, "none") == 0 || nsCRT::strcmp(value, "no") == 0) {
-        *useTransparency = PR_FALSE;
-      } else if (nsCRT::strcmp(value, "yes") == 0) {
-        *useTransparency = PR_TRUE;
-      } else {
-        return NS_ERROR_INVALID_ARG;
-      }
-
-    // skipfirstframe=[yes|no]
-    } else if (nsCRT::strcmp(token, "skipfirstframe") == 0 && skipFirstFrame) {
-      if (!value) { return NS_ERROR_INVALID_ARG; }
-
-      if (nsCRT::strcmp(value, "no") == 0) {
-        *skipFirstFrame = PR_FALSE;
-      } else if (nsCRT::strcmp(value, "yes") == 0) {
-        *skipFirstFrame = PR_TRUE;
-      } else {
-        return NS_ERROR_INVALID_ARG;
-      }
-
-    // frames=#
-    } else if (nsCRT::strcmp(token, "frames") == 0 && numFrames) {
-      if (!value) { return NS_ERROR_INVALID_ARG; }
-
-      if (PR_sscanf(value, "%u", numFrames) != 1) { return NS_ERROR_INVALID_ARG; }
-
-      // frames=0 is nonsense.
-      if (*numFrames == 0) { return NS_ERROR_INVALID_ARG; }
-
-    // plays=#
-    } else if (nsCRT::strcmp(token, "plays") == 0 && numPlays) {
-      if (!value) { return NS_ERROR_INVALID_ARG; }
-
-      // plays=0 to loop forever, otherwise play sequence specified number of times
-      if (PR_sscanf(value, "%u", numPlays) != 1) { return NS_ERROR_INVALID_ARG; }
-
-    // dispose=[none|background|previous]
-    } else if (nsCRT::strcmp(token, "dispose") == 0 && frameDispose) {
-      if (!value) { return NS_ERROR_INVALID_ARG; }
-
-      if (nsCRT::strcmp(value, "none") == 0) {
-        *frameDispose = PNG_DISPOSE_OP_NONE;
-      } else if (nsCRT::strcmp(value, "background") == 0) {
-        *frameDispose = PNG_DISPOSE_OP_BACKGROUND;
-      } else if (nsCRT::strcmp(value, "previous") == 0) {
-        *frameDispose = PNG_DISPOSE_OP_PREVIOUS;
-      } else {
-        return NS_ERROR_INVALID_ARG;
-      }
-
-    // blend=[source|over]
-    } else if (nsCRT::strcmp(token, "blend") == 0 && frameBlend) {
-      if (!value) { return NS_ERROR_INVALID_ARG; }
-
-      if (nsCRT::strcmp(value, "source") == 0) {
-        *frameBlend = PNG_BLEND_OP_SOURCE;
-      } else if (nsCRT::strcmp(value, "over") == 0) {
-        *frameBlend = PNG_BLEND_OP_OVER;
-      } else {
-        return NS_ERROR_INVALID_ARG;
-      }
-
-    // delay=# (in ms)
-    } else if (nsCRT::strcmp(token, "delay") == 0 && frameDelay) {
-      if (!value) { return NS_ERROR_INVALID_ARG; }
-
-      if (PR_sscanf(value, "%u", frameDelay) != 1) { return NS_ERROR_INVALID_ARG; }
-
-    // xoffset=#
-    } else if (nsCRT::strcmp(token, "xoffset") == 0 && offsetX) {
-      if (!value) { return NS_ERROR_INVALID_ARG; }
-
-      if (PR_sscanf(value, "%u", offsetX) != 1) { return NS_ERROR_INVALID_ARG; }
-
-    // yoffset=#
-    } else if (nsCRT::strcmp(token, "yoffset") == 0 && offsetY) {
-      if (!value) { return NS_ERROR_INVALID_ARG; }
-
-      if (PR_sscanf(value, "%u", offsetY) != 1) { return NS_ERROR_INVALID_ARG; }
-
-    // unknown token name
-    } else {
-      return NS_ERROR_INVALID_ARG;
-    }
-
-    if (value) { *equals = '='; } // restore '=' so strtok doesn't get lost
-  }
 
   return NS_OK;
 }
@@ -483,7 +241,7 @@ NS_IMETHODIMP nsPNGEncoder::ReadSegments(nsWriteSegmentFun aWriter,
   if (aCount > maxCount)
     aCount = maxCount;
   nsresult rv = aWriter(this, aClosure,
-                        reinterpret_cast<const char*>(mImageBuffer+mImageBufferReadPoint),
+                        NS_REINTERPRET_CAST(const char*, mImageBuffer),
                         0, aCount, _retval);
   if (NS_SUCCEEDED(rv)) {
     NS_ASSERTION(*_retval <= aCount, "bad write count");
@@ -550,24 +308,12 @@ nsPNGEncoder::StripAlpha(const PRUint8* aSrc, PRUint8* aDest,
 }
 
 
-// nsPNGEncoder::ErrorCallback
-
-void // static
-nsPNGEncoder::ErrorCallback(png_structp png_ptr, png_const_charp warning_msg)
-{
-#ifdef DEBUG
-	// XXX: these messages are probably useful callers... use nsIConsoleService?
-	PR_fprintf(PR_STDERR, "PNG Encoder: %s\n", warning_msg);;
-#endif
-}
-
-
 // nsPNGEncoder::WriteCallback
 
 void // static
 nsPNGEncoder::WriteCallback(png_structp png, png_bytep data, png_size_t size)
 {
-  nsPNGEncoder* that = static_cast<nsPNGEncoder*>(png_get_io_ptr(png));
+  nsPNGEncoder* that = NS_STATIC_CAST(nsPNGEncoder*, png_get_io_ptr(png));
   if (! that->mImageBuffer)
     return;
 

@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'beginLine.js';
-
 /**
    Filename:     beginLine.js
    Description:  'Tests regular expressions containing ^'

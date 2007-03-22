@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -34,9 +33,8 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK ***** */
-
-/*
+ * ***** END LICENSE BLOCK *****
+ *
  * Date: 28 August 2001
  *
  * SUMMARY: A [DontEnum] prop, if overridden, should appear in toSource().
@@ -46,9 +44,8 @@
  * Sorting properties alphabetically is done for definiteness in comparisons.
  */
 //-----------------------------------------------------------------------------
-var gTestfile = 'regress-90596-001.js';
 var UBound = 0;
-var BUGNUMBER = 90596;
+var bug = 90596;
 var summary = 'A [DontEnum] prop, if overridden, should appear in toSource()';
 var cnCOMMA = ',';
 var cnLBRACE = '{';
@@ -227,17 +224,17 @@ function isWhiteSpace(charCode)
 {
   switch (charCode)
   {
-  case (0x0009):
-  case (0x000B):
-  case (0x000C):
-  case (0x0020):
-  case (0x000A):  // '\n'
-  case (0x000D):  // '\r'
-    return true;
-    break;
+    case (0x0009):
+    case (0x000B):
+    case (0x000C):
+    case (0x0020):
+    case (0x000A):  // '\n'
+    case (0x000D):  // '\r'
+      return true;
+      break;
 
-  default:
-    return false;
+    default:
+      return false;
   }
 }
 
@@ -287,7 +284,7 @@ function addParens(text)
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
 
   for (var i=0; i<UBound; i++)

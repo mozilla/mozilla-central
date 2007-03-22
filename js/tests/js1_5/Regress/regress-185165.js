@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -34,9 +33,8 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK ***** */
-
-/*
+ * ***** END LICENSE BLOCK *****
+ *
  *
  * Date:    13 Dec 2002
  * SUMMARY: Decompilation of "\\" should give "\\"
@@ -44,9 +42,8 @@
  *
  */
 //-----------------------------------------------------------------------------
-var gTestfile = 'regress-185165.js';
 var UBound = 0;
-var BUGNUMBER = 185165;
+var bug = 185165;
 var summary = 'Decompilation of "\\\\" should give "\\\\"';
 var status = '';
 var statusitems = [];
@@ -58,7 +55,7 @@ var expectedvalues = [];
 
 // Check that second decompilation of script gives the same string as first one
 var f1 = function() { return "\\"; }
-  var s1 = f1.toString();
+var s1 = f1.toString();
 
 var f2;
 eval("f2=" + s1);
@@ -89,7 +86,7 @@ function addThis()
 function test()
 {
   enterFunc('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber(bug);
   printStatus(summary);
 
   for (var i=0; i<UBound; i++)

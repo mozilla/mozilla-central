@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '15.2.4.js';
-
 /**
    File Name:          15.2.4.js
    ECMA Section:       15.2.4 Properties of the Object prototype object
@@ -57,7 +55,7 @@ var TITLE   = "Properties of the Object.prototype object";
 
 writeHeaderToLog( SECTION + " "+ TITLE);
 
-new TestCase( SECTION, 
+new TestCase( SECTION,  
 	      "Object.prototype.__proto__",
 	      null,
 	      Object.prototype.__proto__ );

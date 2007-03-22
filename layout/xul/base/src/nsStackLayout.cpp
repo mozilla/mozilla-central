@@ -76,10 +76,11 @@ nsStackLayout::nsStackLayout()
 {
 }
 
-nsSize
-nsStackLayout::GetPrefSize(nsIBox* aBox, nsBoxLayoutState& aState)
+NS_IMETHODIMP
+nsStackLayout::GetPrefSize(nsIBox* aBox, nsBoxLayoutState& aState, nsSize& aSize)
 {
-  nsSize rpref (0, 0);
+  aSize.width = 0;
+  aSize.height = 0;
 
   // we are as wide as the widest child plus its left offset
   // we are tall as the tallest child plus its top offset
@@ -90,22 +91,23 @@ nsStackLayout::GetPrefSize(nsIBox* aBox, nsBoxLayoutState& aState)
 
     AddMargin(child, pref);
     AddOffset(aState, child, pref);
-    AddLargestSize(rpref, pref);
+    AddLargestSize(aSize, pref);
 
     child = child->GetNextBox();
   }
 
   // now add our border and padding
-  AddBorderAndPadding(aBox, rpref);
+  AddBorderAndPadding(aBox, aSize);
 
-  return rpref;
+  return NS_OK;
 }
 
-nsSize
-nsStackLayout::GetMinSize(nsIBox* aBox, nsBoxLayoutState& aState)
+NS_IMETHODIMP
+nsStackLayout::GetMinSize(nsIBox* aBox, nsBoxLayoutState& aState, nsSize& aSize)
 {
-  nsSize minSize (0, 0);
-
+  aSize.width = 0;
+  aSize.height = 0;
+   
   // run through all the children and get their min, max, and preferred sizes
 
   nsIBox* child = aBox->GetChildBox();
@@ -113,47 +115,49 @@ nsStackLayout::GetMinSize(nsIBox* aBox, nsBoxLayoutState& aState)
     nsSize min = child->GetMinSize(aState);
     AddMargin(child, min);
     AddOffset(aState, child, min);
-    AddLargestSize(minSize, min);
+    AddLargestSize(aSize, min);
 
     child = child->GetNextBox();
   }
 
   // now add our border and padding
-  AddBorderAndPadding(aBox, minSize);
+  AddBorderAndPadding(aBox, aSize);
 
-  return minSize;
+  return NS_OK;
 }
 
-nsSize
-nsStackLayout::GetMaxSize(nsIBox* aBox, nsBoxLayoutState& aState)
+NS_IMETHODIMP
+nsStackLayout::GetMaxSize(nsIBox* aBox, nsBoxLayoutState& aState, nsSize& aSize)
 {
-  nsSize maxSize (NS_INTRINSICSIZE, NS_INTRINSICSIZE);
+  aSize.width = NS_INTRINSICSIZE;
+  aSize.height = NS_INTRINSICSIZE;
 
   // run through all the children and get their min, max, and preferred sizes
 
   nsIBox* child = aBox->GetChildBox();
   while (child) {  
+    nsSize max = child->GetMaxSize(aState);
     nsSize min = child->GetMinSize(aState);
-    nsSize max = nsBox::BoundsCheckMinMax(min, child->GetMaxSize(aState));
+    nsBox::BoundsCheckMinMax(min, max);
 
     AddMargin(child, max);
     AddOffset(aState, child, max);
-    AddSmallestSize(maxSize, max);
+    AddSmallestSize(aSize, max);
 
     child = child->GetNextBox();
   }
 
   // now add our border and padding
-  AddBorderAndPadding(aBox, maxSize);
+  AddBorderAndPadding(aBox, aSize);
 
-  return maxSize;
+  return NS_OK;
 }
 
 
-nscoord
-nsStackLayout::GetAscent(nsIBox* aBox, nsBoxLayoutState& aState)
+NS_IMETHODIMP
+nsStackLayout::GetAscent(nsIBox* aBox, nsBoxLayoutState& aState, nscoord& aAscent)
 {
-  nscoord vAscent = 0;
+  aAscent = 0;
 
   nsIBox* child = aBox->GetChildBox();
   while (child) {  
@@ -161,13 +165,13 @@ nsStackLayout::GetAscent(nsIBox* aBox, nsBoxLayoutState& aState)
     nsMargin margin;
     child->GetMargin(margin);
     ascent += margin.top + margin.bottom;
-    if (ascent > vAscent)
-      vAscent = ascent;
+    if (ascent > aAscent)
+      aAscent = ascent;
 
     child = child->GetNextBox();
   }
 
-  return vAscent;
+  return NS_OK;
 }
 
 PRBool
@@ -179,19 +183,22 @@ nsStackLayout::AddOffset(nsBoxLayoutState& aState, nsIBox* aChild, nsSize& aSize
   
   // As an optimization, we cache the fact that we are not positioned to avoid
   // wasting time fetching attributes and checking style data.
-  if (aChild->IsBoxFrame() &&
-      (aChild->GetStateBits() & NS_STATE_STACK_NOT_POSITIONED))
+  if (aChild->GetStateBits() & NS_STATE_STACK_NOT_POSITIONED)
     return PR_FALSE;
   
   PRBool offsetSpecified = PR_FALSE;
   const nsStylePosition* pos = aChild->GetStylePosition();
   if (eStyleUnit_Coord == pos->mOffset.GetLeftUnit()) {
-     offset.width = pos->mOffset.GetLeft().GetCoordValue();
+     nsStyleCoord left = 0;
+     pos->mOffset.GetLeft(left);
+     offset.width = left.GetCoordValue();
      offsetSpecified = PR_TRUE;
   }
 
   if (eStyleUnit_Coord == pos->mOffset.GetTopUnit()) {
-     offset.height = pos->mOffset.GetTop().GetCoordValue();
+     nsStyleCoord top = 0;
+     pos->mOffset.GetTop(top);
+     offset.height = top.GetCoordValue();
      offsetSpecified = PR_TRUE;
   }
 
@@ -220,7 +227,7 @@ nsStackLayout::AddOffset(nsBoxLayoutState& aState, nsIBox* aChild, nsSize& aSize
 
   aSize += offset;
 
-  if (!offsetSpecified && aChild->IsBoxFrame()) {
+  if (!offsetSpecified) {
     // If no offset was specified at all, then we cache this fact to avoid requerying
     // CSS or the content model.
     aChild->AddStateBits(NS_STATE_STACK_NOT_POSITIONED);
@@ -259,7 +266,7 @@ nsStackLayout::Layout(nsIBox* aBox, nsBoxLayoutState& aState)
       PRBool sizeChanged = (oldRect != childRect);
 
       // only lay out dirty children or children whose sizes have changed
-      if (sizeChanged || NS_SUBTREE_DIRTY(child)) {
+      if (sizeChanged || (child->GetStateBits() & (NS_FRAME_IS_DIRTY | NS_FRAME_HAS_DIRTY_CHILDREN))) {
           // add in the child's margin
           nsMargin margin;
           child->GetMargin(margin);

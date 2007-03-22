@@ -45,11 +45,11 @@
  * backend.
  */
 
-#include "cairoint.h"
-
 #include "test-paginated-surface.h"
 
-#include "cairo-paginated-private.h"
+#include "cairoint.h"
+
+#include "cairo-paginated-surface-private.h"
 
 typedef struct _test_paginated_surface {
     cairo_surface_t base;
@@ -61,7 +61,7 @@ static const cairo_surface_backend_t test_paginated_surface_backend;
 static const cairo_paginated_surface_backend_t test_paginated_surface_paginated_backend;
 
 cairo_surface_t *
-_cairo_test_paginated_surface_create_for_data (unsigned char		*data,
+_test_paginated_surface_create_for_data (unsigned char		*data,
 					 cairo_content_t	 content,
 					 int		 	 width,
 					 int		 	 height,
@@ -69,20 +69,21 @@ _cairo_test_paginated_surface_create_for_data (unsigned char		*data,
 {
     cairo_status_t status;
     cairo_surface_t *target;
-    cairo_surface_t *paginated;
     test_paginated_surface_t *surface;
 
     target =  _cairo_image_surface_create_for_data_with_content (data, content,
 								width, height,
 								stride);
     status = cairo_surface_status (target);
-    if (status)
-	return target;
+    if (status) {
+	_cairo_error (status);
+	return (cairo_surface_t *) &_cairo_surface_nil;
+    }
 
     surface = malloc (sizeof (test_paginated_surface_t));
     if (surface == NULL) {
-	cairo_surface_destroy (target);
-	return _cairo_surface_create_in_error (_cairo_error (CAIRO_STATUS_NO_MEMORY));
+	_cairo_error (CAIRO_STATUS_NO_MEMORY);
+	return (cairo_surface_t *) &_cairo_surface_nil;
     }
 
     _cairo_surface_init (&surface->base, &test_paginated_surface_backend,
@@ -90,14 +91,8 @@ _cairo_test_paginated_surface_create_for_data (unsigned char		*data,
 
     surface->target = target;
 
-    paginated =  _cairo_paginated_surface_create (&surface->base,
-	                                          content, width, height,
-						  &test_paginated_surface_paginated_backend);
-    if (paginated->status) {
-	cairo_surface_destroy (target);
-	free (surface);
-    }
-    return paginated;
+    return _cairo_paginated_surface_create (&surface->base, content, width, height,
+					    &test_paginated_surface_paginated_backend);
 }
 
 static cairo_status_t
@@ -112,7 +107,7 @@ _test_paginated_surface_finish (void *abstract_surface)
 
 static cairo_int_status_t
 _test_paginated_surface_set_clip_region (void *abstract_surface,
-					 cairo_region_t *region)
+					 pixman_region16_t *region)
 {
     test_paginated_surface_t *surface = abstract_surface;
 
@@ -154,7 +149,7 @@ _test_paginated_surface_set_clip_region (void *abstract_surface,
 
 static cairo_int_status_t
 _test_paginated_surface_get_extents (void			*abstract_surface,
-				     cairo_rectangle_int_t	*rectangle)
+				     cairo_rectangle_int16_t	*rectangle)
 {
     test_paginated_surface_t *surface = abstract_surface;
 
@@ -238,27 +233,12 @@ _test_paginated_surface_show_glyphs (void			*abstract_surface,
 				     cairo_scaled_font_t	*scaled_font)
 {
     test_paginated_surface_t *surface = abstract_surface;
-    cairo_int_status_t status;
 
     if (surface->paginated_mode == CAIRO_PAGINATED_MODE_ANALYZE)
 	return CAIRO_STATUS_SUCCESS;
 
-    /* Since this is a "wrapping" surface, we're calling back into
-     * _cairo_surface_show_glyphs from within a call to the same.
-     * Since _cairo_surface_show_glyphs acquires a mutex, we release
-     * and re-acquire the mutex around this nested call.
-     *
-     * Yes, this is ugly, but we consider it pragmatic as compared to
-     * adding locking code to all 18 surface-backend-specific
-     * show_glyphs functions, (which would get less testing and likely
-     * lead to bugs).
-     */
-    CAIRO_MUTEX_UNLOCK (scaled_font->mutex);
-    status = _cairo_surface_show_glyphs (surface->target, op, source,
-					 glyphs, num_glyphs, scaled_font);
-    CAIRO_MUTEX_LOCK (scaled_font->mutex);
-
-    return status;
+    return _cairo_surface_show_glyphs (surface->target, op, source,
+				       glyphs, num_glyphs, scaled_font);
 }
 
 static void

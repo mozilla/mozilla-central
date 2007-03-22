@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -34,19 +33,17 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK ***** */
-
-/*
+ * ***** END LICENSE BLOCK *****
+ *
  * Date: 07 May 2001
  *
  * SUMMARY:  Testing the arguments object
  *
  * See http://bugzilla.mozilla.org/show_bug.cgi?id=72884
  */
-//-----------------------------------------------------------------------------
-var gTestfile = 'arguments-001.js';
+//-------------------------------------------------------------------------------------------------
 var UBound = 0;
-var BUGNUMBER = 72884;
+var bug = 72884;
 var summary = 'Testing the arguments object';
 var status = '';
 var statusitems = [ ];
@@ -157,7 +154,7 @@ function addThis()
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
 
   for (var i = 0; i < UBound; i++)

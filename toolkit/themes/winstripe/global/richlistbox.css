@@ -49,8 +49,8 @@ richlistbox[disabled="true"] {
 }
 
 richlistitem[selected="true"] {
-  background-color: -moz-cellhighlight;
-  color: -moz-cellhighlighttext;
+  background-color: -moz-Dialog;
+  color: -moz-DialogText;
 }
 
 richlistbox:focus > richlistitem[selected="true"] {

@@ -179,6 +179,7 @@ nsDOMWindowList::NamedItem(const nsAString& aName, nsIDOMWindow** aReturn)
                                      nsnull, getter_AddRefs(item));
 
     nsCOMPtr<nsIScriptGlobalObject> globalObject(do_GetInterface(item));
+    NS_ASSERTION(globalObject, "Couldn't get to the globalObject");
     if (globalObject) {
       CallQueryInterface(globalObject.get(), aReturn);
     }

@@ -34,14 +34,12 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'nested-yield.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER     = "(none)";
+var bug     = "(none)";
 var summary = "YieldExpression is and contains an AssignmentExpression";
 var actual, expect;
 
-printBugNumber(BUGNUMBER);
+printBugNumber(bug);
 printStatus(summary);
 
 /**************

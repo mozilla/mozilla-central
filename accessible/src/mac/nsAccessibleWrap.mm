@@ -39,7 +39,6 @@
 #include "nsAccessibleWrap.h"
 #include "nsIAccessibleDocument.h"
 #include "nsIAccessibleText.h"
-#include "nsObjCExceptions.h"
 
 #import "nsRoleMap.h"
 
@@ -101,8 +100,6 @@ nsAccessibleWrap::GetNativeWindow (void **aOutNativeWindow)
 objc_class*
 nsAccessibleWrap::GetNativeType () 
 {
-  NS_OBJC_BEGIN_TRY_ABORT_BLOCK_NIL;
-
   PRUint32 role = Role(this);
   switch (role) {
     case nsIAccessibleRole::ROLE_PUSHBUTTON:
@@ -141,8 +138,6 @@ nsAccessibleWrap::GetNativeType ()
   }
   
   return nil;
-
-  NS_OBJC_END_TRY_ABORT_BLOCK_NIL;
 }
 
 // this method is very important. it is fired when an accessible object "dies". after this point
@@ -159,67 +154,21 @@ nsAccessibleWrap::Shutdown ()
   return nsAccessible::Shutdown();
 }
 
-NS_IMETHODIMP
-nsAccessibleWrap::FireAccessibleEvent(nsIAccessibleEvent *aEvent)
-{
-  NS_OBJC_BEGIN_TRY_ABORT_BLOCK_NSRESULT;
-
-  NS_ENSURE_ARG_POINTER(aEvent);
-
-  nsresult rv = nsAccessible::FireAccessibleEvent(aEvent);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  PRUint32 eventType;
-  rv = aEvent->GetEventType(&eventType);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  // ignore everything but focus-changed and value-changed events for now.
-  if (eventType != nsIAccessibleEvent::EVENT_FOCUS &&
-      eventType != nsIAccessibleEvent::EVENT_VALUE_CHANGE)
-    return NS_OK;
-
-  nsCOMPtr<nsIAccessible> accessible;
-  rv = aEvent->GetAccessible(getter_AddRefs(accessible));
-  NS_ENSURE_STATE(accessible);
-
-  mozAccessible *nativeAcc = nil;
-  accessible->GetNativeInterface((void**)&nativeAcc);
-  if (!nativeAcc)
-    return NS_ERROR_FAILURE;
-
-  switch (eventType) {
-    case nsIAccessibleEvent::EVENT_FOCUS:
-      [nativeAcc didReceiveFocus];
-      break;
-    case nsIAccessibleEvent::EVENT_VALUE_CHANGE:
-      [nativeAcc valueDidChange];
-      break;
-  }
-
-  return NS_OK;
-
-  NS_OBJC_END_TRY_ABORT_BLOCK_NSRESULT;
-}
-
 nsresult
 nsAccessibleWrap::InvalidateChildren ()
 {
-  NS_OBJC_BEGIN_TRY_ABORT_BLOCK_NSRESULT;
-
   if (mNativeWrapper) {
     mozAccessible *object = mNativeWrapper->getNativeObject();
     [object invalidateChildren];
   }
   return nsAccessible::InvalidateChildren();
-
-  NS_OBJC_END_TRY_ABORT_BLOCK_NSRESULT;
 }
 
 PRInt32
 nsAccessibleWrap::GetUnignoredChildCount(PRBool aDeepCount)
 {
   // if we're flat, we have no children.
-  if (MustPrune(this))
+  if (IsFlat())
     return 0;
   
   PRInt32 childCount = 0;
@@ -228,14 +177,14 @@ nsAccessibleWrap::GetUnignoredChildCount(PRBool aDeepCount)
   nsCOMPtr<nsIAccessible> curAcc;
   
   while (NextChild(curAcc)) {
-    nsAccessibleWrap *childWrap = static_cast<nsAccessibleWrap*>((nsIAccessible*)curAcc.get());
+    nsAccessibleWrap *childWrap = NS_STATIC_CAST(nsAccessibleWrap*, (nsIAccessible*)curAcc.get());
     
     // if the current child is not ignored, count it.
     if (!childWrap->IsIgnored())
       ++childCount;
       
     // if it's flat, we don't care to inspect its children.
-    if (MustPrune(childWrap))
+    if (childWrap->IsFlat())
       continue;
     
     if (aDeepCount) {
@@ -266,14 +215,14 @@ nsAccessibleWrap::GetUnignoredChildren(nsTArray<nsRefPtr<nsAccessibleWrap> > &aC
   nsCOMPtr<nsIAccessible> curAcc;
   
   // we're flat; there are no children.
-  if (MustPrune(this))
+  if (IsFlat())
     return;
   
   while (NextChild(curAcc)) {
-    nsAccessibleWrap *childWrap = static_cast<nsAccessibleWrap*>((nsIAccessible*)curAcc.get());
+    nsAccessibleWrap *childWrap = NS_STATIC_CAST(nsAccessibleWrap*, (nsIAccessible*)curAcc.get());
     if (childWrap->IsIgnored()) {
       // element is ignored, so try adding its children as substitutes, if it has any.
-      if (!MustPrune(childWrap)) {
+      if (!childWrap->IsFlat()) {
         nsTArray<nsRefPtr<nsAccessibleWrap> > children;
         childWrap->GetUnignoredChildren(children);
         if (!children.IsEmpty()) {
@@ -291,7 +240,7 @@ already_AddRefed<nsIAccessible>
 nsAccessibleWrap::GetUnignoredParent()
 {
   nsCOMPtr<nsIAccessible> parent(GetParent());
-  nsAccessibleWrap *parentWrap = static_cast<nsAccessibleWrap*>((nsIAccessible*)parent.get());
+  nsAccessibleWrap *parentWrap = NS_STATIC_CAST(nsAccessibleWrap*, (nsIAccessible*)parent.get());
   if (!parentWrap)
     return nsnull;
     

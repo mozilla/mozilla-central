@@ -50,16 +50,12 @@
 #include "nsCOMPtr.h"
 #include "nsMemory.h"
 #include "nsCRTGlue.h"
+#include "nsBuildID.h"
 #include "nsStringAPI.h"
 #include "nsServiceManagerUtils.h"
 #include "plstr.h"
 #include "prprf.h"
 #include "prenv.h"
-#include "nsINIParser.h"
-
-#ifdef XP_WIN
-#include "nsWindowsWMain.cpp"
-#endif
 
 /**
  * Output a string to the user.  This method is really only meant to be used to
@@ -82,7 +78,7 @@ static void Output(PRBool isError, const char *fmt, ... )
     UINT flags = MB_OK;
     if (isError)
       flags |= MB_ICONERROR;
-    else
+    else 
       flags |= MB_ICONINFORMATION;
     MessageBox(NULL, msg, "XULRunner", flags);
     PR_smprintf_free(msg);
@@ -114,46 +110,8 @@ static PRBool IsArg(const char* arg, const char* s)
   return PR_FALSE;
 }
 
-static nsresult
-GetGREVersion(const char *argv0,
-              nsACString *aMilestone,
-              nsACString *aVersion)
+static void Usage()
 {
-  if (aMilestone)
-    aMilestone->Assign("<Error>");
-  if (aVersion)
-    aVersion->Assign("<Error>");
-
-  nsCOMPtr<nsILocalFile> iniFile;
-  nsresult rv = XRE_GetBinaryPath(argv0, getter_AddRefs(iniFile));
-  if (NS_FAILED(rv))
-    return rv;
-
-  iniFile->SetNativeLeafName(NS_LITERAL_CSTRING("platform.ini"));
-
-  nsINIParser parser;
-  rv = parser.Init(iniFile);
-  if (NS_FAILED(rv))
-    return rv;
-
-  if (aMilestone) {
-    rv = parser.GetString("Build", "Milestone", *aMilestone);
-    if (NS_FAILED(rv))
-      return rv;
-  }
-  if (aVersion) {
-    rv = parser.GetString("Build", "BuildID", *aVersion);
-    if (NS_FAILED(rv))
-      return rv;
-  }
-  return NS_OK;
-}
-
-static void Usage(const char *argv0)
-{
-    nsCAutoString milestone;
-    GetGREVersion(argv0, &milestone, nsnull);
-
     // display additional information (XXX make localizable?)
     Output(PR_FALSE,
            "Mozilla XULRunner %s\n\n"
@@ -181,7 +139,7 @@ static void Usage(const char *argv0)
            "\n"
            "APP-OPTIONS\n"
            "  Application specific options.\n",
-           milestone.get());
+           GRE_BUILD_ID);
 }
 
 static nsresult
@@ -253,9 +211,6 @@ InstallXULApp(nsIFile* aXULRunnerDir,
 
 static const GREProperty kGREProperties[] = {
   { "xulrunner", "true" }
-#ifdef TARGET_XPCOM_ABI
-  , { "abi", TARGET_XPCOM_ABI }
-#endif
 #ifdef MOZ_JAVAXPCOM
   , { "javaxpcom", "1" }
 #endif
@@ -287,65 +242,54 @@ int main(int argc, char* argv[])
                    IsArg(argv[1], "help") ||
                    IsArg(argv[1], "?")))
   {
-    Usage(argv[0]);
+    Usage();
     return 0;
   }
 
   if (argc == 2 && (IsArg(argv[1], "v") || IsArg(argv[1], "version")))
   {
-    nsCAutoString milestone;
-    nsCAutoString version;
-    GetGREVersion(argv[0], &milestone, &version);
-    Output(PR_FALSE, "Mozilla XULRunner %s - %s\n",
-           milestone.get(), version.get());
+    Output(PR_FALSE, "Mozilla XULRunner %s\n", GRE_BUILD_ID);
     return 0;
   }
 
   if (argc > 1) {
-    nsCAutoString milestone;
-    nsresult rv = GetGREVersion(argv[0], &milestone, nsnull);
-    if (NS_FAILED(rv))
-      return 2;
-
     PRBool registerGlobal = IsArg(argv[1], "register-global");
     PRBool registerUser   = IsArg(argv[1], "register-user");
     if (registerGlobal || registerUser) {
       if (argc != 2) {
-        Usage(argv[0]);
+        Usage();
         return 1;
       }
 
       nsCOMPtr<nsIFile> regDir;
-      rv = GetXULRunnerDir(argv[0], getter_AddRefs(regDir));
+      nsresult rv = GetXULRunnerDir(argv[0], getter_AddRefs(regDir));
       if (NS_FAILED(rv))
         return 2;
 
       return RegisterXULRunner(registerGlobal, regDir,
                                kGREProperties,
-                               NS_ARRAY_LENGTH(kGREProperties),
-                               milestone.get()) ? 0 : 2;
+                               NS_ARRAY_LENGTH(kGREProperties)) ? 0 : 2;
     }
 
     registerGlobal = IsArg(argv[1], "unregister-global");
     registerUser   = IsArg(argv[1], "unregister-user");
     if (registerGlobal || registerUser) {
       if (argc != 2) {
-        Usage(argv[0]);
+        Usage();
         return 1;
       }
 
       nsCOMPtr<nsIFile> regDir;
-      rv = GetXULRunnerDir(argv[0], getter_AddRefs(regDir));
+      nsresult rv = GetXULRunnerDir(argv[0], getter_AddRefs(regDir));
       if (NS_FAILED(rv))
         return 2;
-
-      UnregisterXULRunner(registerGlobal, regDir, milestone.get());
+      UnregisterXULRunner(registerGlobal, regDir);
       return 0;
     }
 
     if (IsArg(argv[1], "find-gre")) {
       if (argc != 3) {
-        Usage(argv[0]);
+        Usage();
         return 1;
       }
 
@@ -358,9 +302,9 @@ int main(int argc, char* argv[])
         { "xulrunner", "true" }
       };
 
-      rv = GRE_GetGREPathWithProperties(&vr, 1, kProperties,
-                                        NS_ARRAY_LENGTH(kProperties),
-                                        path, sizeof(path));
+      nsresult rv = GRE_GetGREPathWithProperties(&vr, 1, kProperties,
+                                                 NS_ARRAY_LENGTH(kProperties),
+                                                 path, sizeof(path));
       if (NS_FAILED(rv))
         return 1;
 
@@ -370,17 +314,17 @@ int main(int argc, char* argv[])
 
     if (IsArg(argv[1], "gre-version")) {
       if (argc != 2) {
-        Usage(argv[0]);
+        Usage();
         return 1;
       }
 
-      printf("%s\n", milestone.get());
+      printf("%s\n", GRE_BUILD_ID);
       return 0;
     }
 
     if (IsArg(argv[1], "install-app")) {
       if (argc < 3 || argc > 5) {
-        Usage(argv[0]);
+        Usage();
         return 1;
       }
 
@@ -401,7 +345,7 @@ int main(int argc, char* argv[])
       }
 
       nsCOMPtr<nsIFile> regDir;
-      rv = GetXULRunnerDir(argv[0], getter_AddRefs(regDir));
+      nsresult rv = GetXULRunnerDir(argv[0], getter_AddRefs(regDir));
       if (NS_FAILED(rv))
         return 2;
 
@@ -413,13 +357,13 @@ int main(int argc, char* argv[])
 
   if (!(appDataFile && *appDataFile)) {
     if (argc < 2) {
-      Usage(argv[0]);
+      Usage();
       return 1;
     }
 
     if (IsArg(argv[1], "app")) {
       if (argc == 2) {
-        Usage(argv[0]);
+        Usage();
         return 1;
       }
       argv[1] = argv[0];
@@ -450,5 +394,26 @@ int main(int argc, char* argv[])
     return 2;
   }
 
+  if (!appData->directory) {
+    nsCOMPtr<nsIFile> appDir;
+    rv = appDataLF->GetParent(getter_AddRefs(appDir));
+    if (NS_FAILED(rv)) {
+      Output(PR_TRUE, "Error: could not get application directory.\n");
+      return 2;
+    }
+
+    CallQueryInterface(appDir, &appData->directory);
+  }
+
   return XRE_main(argc, argv, appData);
 }
+
+#if defined( XP_WIN ) && defined( WIN32 ) && !defined(__GNUC__)
+// We need WinMain in order to not be a console app.  This function is
+// unused if we are a console application.
+int WINAPI WinMain( HINSTANCE, HINSTANCE, LPSTR args, int )
+{
+  // Do the real work.
+  return main( __argc, __argv );
+}
+#endif

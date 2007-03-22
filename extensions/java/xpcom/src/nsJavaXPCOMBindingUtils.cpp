@@ -449,6 +449,18 @@ FreeJavaGlobals(JNIEnv* env)
  *  Java<->XPCOM object mappings
  **************************************/
 
+static PLDHashTableOps hash_ops =
+{
+  PL_DHashAllocTable,
+  PL_DHashFreeTable,
+  PL_DHashGetKeyStub,
+  PL_DHashVoidPtrKeyStub,
+  PL_DHashMatchEntryStub,
+  PL_DHashMoveEntryStub,
+  PL_DHashClearEntryStub,
+  PL_DHashFinalizeStub
+};
+
 // NativeToJavaProxyMap: The common case is that each XPCOM object will have
 // one Java proxy.  But there are instances where there will be multiple Java
 // proxies for a given XPCOM object, each representing a different interface.
@@ -458,8 +470,7 @@ FreeJavaGlobals(JNIEnv* env)
 nsresult
 NativeToJavaProxyMap::Init()
 {
-  mHashTable = PL_NewDHashTable(PL_DHashGetStubOps(), nsnull,
-                                sizeof(Entry), 16);
+  mHashTable = PL_NewDHashTable(&hash_ops, nsnull, sizeof(Entry), 16);
   if (!mHashTable)
     return NS_ERROR_OUT_OF_MEMORY;
   return NS_OK;
@@ -469,9 +480,9 @@ PLDHashOperator
 DestroyJavaProxyMappingEnum(PLDHashTable* aTable, PLDHashEntryHdr* aHeader,
                             PRUint32 aNumber, void* aData)
 {
-  JNIEnv* env = static_cast<JNIEnv*>(aData);
+  JNIEnv* env = NS_STATIC_CAST(JNIEnv*, aData);
   NativeToJavaProxyMap::Entry* entry =
-                          static_cast<NativeToJavaProxyMap::Entry*>(aHeader);
+                          NS_STATIC_CAST(NativeToJavaProxyMap::Entry*, aHeader);
 
   // first, delete XPCOM instances from the Java proxies
   nsresult rv;
@@ -483,7 +494,7 @@ DestroyJavaProxyMappingEnum(PLDHashTable* aTable, PLDHashEntryHdr* aHeader,
     NS_ASSERTION(NS_SUCCEEDED(rv), "Failed to get XPCOM instance from Java proxy");
 
     if (NS_SUCCEEDED(rv)) {
-      JavaXPCOMInstance* inst = static_cast<JavaXPCOMInstance*>(xpcom_obj);
+      JavaXPCOMInstance* inst = NS_STATIC_CAST(JavaXPCOMInstance*, xpcom_obj);
 #ifdef DEBUG_JAVAXPCOM
       char* iid_str = item->iid.ToString();
       LOG(("- NativeToJavaProxyMap (Java=%08x | XPCOM=%08x | IID=%s)\n",
@@ -524,7 +535,7 @@ NativeToJavaProxyMap::Add(JNIEnv* env, nsISupports* aXPCOMObject,
 {
   nsAutoLock lock(gJavaXPCOMLock);
 
-  Entry* e = static_cast<Entry*>(PL_DHashTableOperate(mHashTable,
+  Entry* e = NS_STATIC_CAST(Entry*, PL_DHashTableOperate(mHashTable,
                                                          aXPCOMObject,
                                                          PL_DHASH_ADD));
   if (!e)
@@ -564,7 +575,7 @@ NativeToJavaProxyMap::Find(JNIEnv* env, nsISupports* aNativeObject,
   nsAutoLock lock(gJavaXPCOMLock);
 
   *aResult = nsnull;
-  Entry* e = static_cast<Entry*>(PL_DHashTableOperate(mHashTable,
+  Entry* e = NS_STATIC_CAST(Entry*, PL_DHashTableOperate(mHashTable,
                                                          aNativeObject,
                                                          PL_DHASH_LOOKUP));
 
@@ -601,7 +612,7 @@ NativeToJavaProxyMap::Remove(JNIEnv* env, nsISupports* aNativeObject,
   // This is only called from finalizeProxy(), which already holds the lock.
   //  nsAutoLock lock(gJavaXPCOMLock);
 
-  Entry* e = static_cast<Entry*>(PL_DHashTableOperate(mHashTable,
+  Entry* e = NS_STATIC_CAST(Entry*, PL_DHashTableOperate(mHashTable,
                                                          aNativeObject,
                                                          PL_DHASH_LOOKUP));
 
@@ -648,8 +659,7 @@ NativeToJavaProxyMap::Remove(JNIEnv* env, nsISupports* aNativeObject,
 nsresult
 JavaToXPTCStubMap::Init()
 {
-  mHashTable = PL_NewDHashTable(PL_DHashGetStubOps(), nsnull,
-                                sizeof(Entry), 16);
+  mHashTable = PL_NewDHashTable(&hash_ops, nsnull, sizeof(Entry), 16);
   if (!mHashTable)
     return NS_ERROR_OUT_OF_MEMORY;
   return NS_OK;
@@ -661,7 +671,7 @@ DestroyXPTCMappingEnum(PLDHashTable* aTable, PLDHashEntryHdr* aHeader,
                        PRUint32 aNumber, void* aData)
 {
   JavaToXPTCStubMap::Entry* entry =
-                             static_cast<JavaToXPTCStubMap::Entry*>(aHeader);
+                             NS_STATIC_CAST(JavaToXPTCStubMap::Entry*, aHeader);
 
   // The XPTC stub will be released by the XPCOM side, if it hasn't been
   // already.  We just need to delete the Java global ref held by the XPTC stub,
@@ -689,8 +699,8 @@ JavaToXPTCStubMap::Add(jint aJavaObjectHashCode, nsJavaXPTCStub* aProxy)
 {
   nsAutoLock lock(gJavaXPCOMLock);
 
-  Entry* e = static_cast<Entry*>
-                        (PL_DHashTableOperate(mHashTable,
+  Entry* e = NS_STATIC_CAST(Entry*,
+                            PL_DHashTableOperate(mHashTable,
                                            NS_INT32_TO_PTR(aJavaObjectHashCode),
                                            PL_DHASH_ADD));
   if (!e)
@@ -727,8 +737,8 @@ JavaToXPTCStubMap::Find(jint aJavaObjectHashCode, const nsIID& aIID,
   nsAutoLock lock(gJavaXPCOMLock);
 
   *aResult = nsnull;
-  Entry* e = static_cast<Entry*>
-                        (PL_DHashTableOperate(mHashTable,
+  Entry* e = NS_STATIC_CAST(Entry*,
+                            PL_DHashTableOperate(mHashTable,
                                            NS_INT32_TO_PTR(aJavaObjectHashCode),
                                            PL_DHASH_LOOKUP));
 
@@ -797,32 +807,43 @@ JavaXPCOMInstance::~JavaXPCOMInstance()
  *******************************/
 
 nsresult
-NativeInterfaceToJavaObject(JNIEnv* env, nsISupports* aXPCOMObject,
-                            const nsIID& aIID, jobject aObjectLoader,
-                            jobject* aResult)
+GetNewOrUsedJavaObject(JNIEnv* env, nsISupports* aXPCOMObject,
+                       const nsIID& aIID, jobject aObjectLoader,
+                       jobject* aResult)
 {
   NS_PRECONDITION(aResult != nsnull, "null ptr");
   if (!aResult)
     return NS_ERROR_NULL_POINTER;
 
-  // If the object is an nsJavaXPTCStub, then get the Java object directly
+  nsresult rv;
   nsJavaXPTCStub* stub = nsnull;
   aXPCOMObject->QueryInterface(NS_GET_IID(nsJavaXPTCStub), (void**) &stub);
   if (stub) {
+    // Get Java object directly from nsJavaXPTCStub
     *aResult = stub->GetJavaObject();
     NS_ASSERTION(*aResult != nsnull, "nsJavaXPTCStub w/o matching Java object");
     NS_RELEASE(stub);
     return NS_OK;
   }
 
-  // ... else, get a Java wrapper for the native object
-  return GetNewOrUsedJavaWrapper(env, aXPCOMObject, aIID, aObjectLoader,
-                                 aResult);
+  // Get the root nsISupports of the xpcom object
+  nsCOMPtr<nsISupports> rootObject = do_QueryInterface(aXPCOMObject, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // Get associated Java object from hash table
+  rv = gNativeToJavaProxyMap->Find(env, rootObject, aIID, aResult);
+  NS_ENSURE_SUCCESS(rv, rv);
+  if (*aResult)
+    return NS_OK;
+
+  // No Java object is associated with the given XPCOM object, so we
+  // create a Java proxy.
+  return CreateJavaProxy(env, rootObject, aIID, aObjectLoader, aResult);
 }
 
 nsresult
-JavaObjectToNativeInterface(JNIEnv* env, jobject aJavaObject, const nsIID& aIID,
-                            void** aResult)
+GetNewOrUsedXPCOMObject(JNIEnv* env, jobject aJavaObject, const nsIID& aIID,
+                        nsISupports** aResult)
 {
   NS_PRECONDITION(aResult != nsnull, "null ptr");
   if (!aResult)
@@ -831,8 +852,10 @@ JavaObjectToNativeInterface(JNIEnv* env, jobject aJavaObject, const nsIID& aIID,
   nsresult rv;
   *aResult = nsnull;
 
-  // If the given Java object is one of our Java proxies, then query the
-  // associated XPCOM object directly from the proxy.
+  // Check if the given Java object is actually one of our Java proxies.  If so,
+  // then we query the associated XPCOM object directly from the proxy.
+  // If Java object is not a proxy, then we try to find associated XPCOM object
+  // in the mapping table.
   jboolean isProxy = env->CallStaticBooleanMethod(xpcomJavaProxyClass,
                                                   isXPCOMJavaProxyMID,
                                                   aJavaObject);
@@ -845,15 +868,56 @@ JavaObjectToNativeInterface(JNIEnv* env, jobject aJavaObject, const nsIID& aIID,
     NS_ENSURE_SUCCESS(rv, rv);
 
     nsISupports* rootObject =
-              static_cast<JavaXPCOMInstance*>(inst)->GetInstance();
-    rv = rootObject->QueryInterface(aIID, aResult);
+              NS_STATIC_CAST(JavaXPCOMInstance*, inst)->GetInstance();
+    rv = rootObject->QueryInterface(aIID, (void**) aResult);
     NS_ENSURE_SUCCESS(rv, rv);
 
     return NS_OK;
   }
 
-  // ... else, we get an nsJavaXPTCStub
-  return nsJavaXPTCStub::GetNewOrUsed(env, aJavaObject, aIID, aResult);
+  nsJavaXPTCStub* stub;
+  jint hash = env->CallStaticIntMethod(systemClass, hashCodeMID, aJavaObject);
+  rv = gJavaToXPTCStubMap->Find(hash, aIID, &stub);
+  NS_ENSURE_SUCCESS(rv, rv);
+  if (stub) {
+    // stub is already AddRef'd and QI'd
+    *aResult = stub->GetStub();
+    return NS_OK;
+  }
+
+  // If there is no corresponding XPCOM object, then that means that the
+  // parameter is a non-generated class (that is, it is not one of our
+  // Java stubs that represent an exising XPCOM object).  So we need to
+  // create an XPCOM stub, that can route any method calls to the class.
+
+  // Get interface info for class
+  nsCOMPtr<nsIInterfaceInfoManager>
+    iim(do_GetService(NS_INTERFACEINFOMANAGER_SERVICE_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIInterfaceInfo> iinfo;
+  rv = iim->GetInfoForIID(&aIID, getter_AddRefs(iinfo));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // Create XPCOM stub
+  stub = new nsJavaXPTCStub(aJavaObject, iinfo, &rv);
+  if (!stub)
+    return NS_ERROR_OUT_OF_MEMORY;
+  if (NS_FAILED(rv)) {
+    delete stub;
+    return rv;
+  }
+
+  rv = gJavaToXPTCStubMap->Add(hash, stub);
+  if (NS_FAILED(rv)) {
+    delete stub;
+    return rv;
+  }
+
+  NS_ADDREF(stub);
+  *aResult = stub->GetStub();
+
+  return NS_OK;
 }
 
 nsresult

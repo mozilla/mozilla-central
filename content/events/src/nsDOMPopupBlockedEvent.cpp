@@ -61,11 +61,8 @@ nsDOMPopupBlockedEvent::~nsDOMPopupBlockedEvent()
 {
   if (mEventIsInternal) {
     if (mEvent->eventStructType == NS_POPUPBLOCKED_EVENT) {
-      nsPopupBlockedEvent* event = static_cast<nsPopupBlockedEvent*>(mEvent);
+      nsPopupBlockedEvent* event = NS_STATIC_CAST(nsPopupBlockedEvent*, mEvent);
       NS_IF_RELEASE(event->mPopupWindowURI);
-
-      delete event;
-      mEvent = nsnull;
     }
   }
 }
@@ -93,7 +90,7 @@ nsDOMPopupBlockedEvent::InitPopupBlockedEvent(const nsAString & aTypeArg,
   {
     case NS_POPUPBLOCKED_EVENT:
     {
-       nsPopupBlockedEvent* event = static_cast<nsPopupBlockedEvent*>(mEvent);
+       nsPopupBlockedEvent* event = NS_STATIC_CAST(nsPopupBlockedEvent*, mEvent);
        event->mRequestingWindow = do_GetWeakReference(aRequestingWindow);
        event->mPopupWindowURI = aPopupWindowURI;
        NS_IF_ADDREF(event->mPopupWindowURI);
@@ -112,7 +109,7 @@ NS_IMETHODIMP
 nsDOMPopupBlockedEvent::GetRequestingWindow(nsIDOMWindow **aRequestingWindow)
 {
   if (mEvent->eventStructType == NS_POPUPBLOCKED_EVENT) {
-    nsPopupBlockedEvent* event = static_cast<nsPopupBlockedEvent*>(mEvent);
+    nsPopupBlockedEvent* event = NS_STATIC_CAST(nsPopupBlockedEvent*, mEvent);
     CallQueryReferent(event->mRequestingWindow.get(), aRequestingWindow);
   } else {
     *aRequestingWindow = 0;
@@ -126,7 +123,7 @@ nsDOMPopupBlockedEvent::GetPopupWindowURI(nsIURI **aPopupWindowURI)
 {
   NS_ENSURE_ARG_POINTER(aPopupWindowURI);
   if (mEvent->eventStructType == NS_POPUPBLOCKED_EVENT) {
-    nsPopupBlockedEvent* event = static_cast<nsPopupBlockedEvent*>(mEvent);
+    nsPopupBlockedEvent* event = NS_STATIC_CAST(nsPopupBlockedEvent*, mEvent);
     *aPopupWindowURI = event->mPopupWindowURI;
     NS_IF_ADDREF(*aPopupWindowURI);
     return NS_OK;
@@ -139,7 +136,7 @@ NS_IMETHODIMP
 nsDOMPopupBlockedEvent::GetPopupWindowFeatures(nsAString &aPopupWindowFeatures)
 {
   if (mEvent->eventStructType == NS_POPUPBLOCKED_EVENT) {
-    nsPopupBlockedEvent* event = static_cast<nsPopupBlockedEvent*>(mEvent);
+    nsPopupBlockedEvent* event = NS_STATIC_CAST(nsPopupBlockedEvent*, mEvent);
     aPopupWindowFeatures = event->mPopupWindowFeatures;
     return NS_OK;
   }
@@ -151,7 +148,7 @@ NS_IMETHODIMP
 nsDOMPopupBlockedEvent::GetPopupWindowName(nsAString &aPopupWindowName)
 {
   if (mEvent->eventStructType == NS_POPUPBLOCKED_EVENT) {
-    nsPopupBlockedEvent* event = static_cast<nsPopupBlockedEvent*>(mEvent);
+    nsPopupBlockedEvent* event = NS_STATIC_CAST(nsPopupBlockedEvent*, mEvent);
     aPopupWindowName = event->mPopupWindowName;
     return NS_OK;
   }

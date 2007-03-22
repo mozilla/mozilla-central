@@ -136,15 +136,12 @@ NS_IMPL_RELEASE(nsXTFInterfaceAggregator)
 NS_IMETHODIMP
 nsXTFInterfaceAggregator::QueryInterface(REFNSIID aIID, void** aInstancePtr)
 {
-  NS_PRECONDITION(aInstancePtr, "null out param");
-
-  if (aIID.Equals(mIID)) {
+  if(aIID.Equals(mIID)) {
     *aInstancePtr = mXPTCStub;
     NS_ADDREF_THIS();
     return NS_OK;
   }
-
-  return mOuter->QueryInterface(aIID, aInstancePtr);
+  else return mOuter->QueryInterface(aIID, aInstancePtr);
 }
 
 //----------------------------------------------------------------------

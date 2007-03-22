@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '11.2.1-4-n.js';
-
 /**
    File Name:          11.2.1-4-n.js
    ECMA Section:       11.2.1 Property Accessors
@@ -115,14 +113,14 @@ for ( var i = 0, RESULT; i < PROPERTY.length; i++ ) {
 test();
 
 function MyObject( value ) {
-  this.value = value;
-  this.stringValue = value +"";
-  this.numberValue = Number(value);
-  return this;
+    this.value = value;
+    this.stringValue = value +"";
+    this.numberValue = Number(value);
+    return this;
 }
 function Property( object, value, string, number ) {
-  this.object = object;
-  this.string = String(value);
-  this.number = Number(value);
-  this.value = value;
+    this.object = object;
+    this.string = String(value);
+    this.number = Number(value);
+    this.value = value;
 }

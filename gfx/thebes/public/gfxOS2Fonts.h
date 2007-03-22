@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *  IBM Corp.  (code inherited from nsFontMetricsOS2 and OS2Uni)
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -40,84 +41,144 @@
 
 #include "gfxTypes.h"
 #include "gfxFont.h"
-#include "gfxMatrix.h"
-#include "nsDataHashtable.h"
 
 #define INCL_GPI
 #include <os2.h>
 #include <cairo-os2.h>
-#include "cairo-ft.h" // includes fontconfig.h, too
-#include <freetype/tttables.h>
 
+#include "nsAutoBuffer.h"
 #include "nsICharsetConverterManager.h"
 
 class gfxOS2Font : public gfxFont {
+
 public:
     gfxOS2Font(const nsAString &aName, const gfxFontStyle *aFontStyle);
     virtual ~gfxOS2Font();
 
     virtual const gfxFont::Metrics& GetMetrics();
-    cairo_font_face_t *CairoFontFace();
-    cairo_scaled_font_t *CairoScaledFont();
-
-    virtual nsString GetUniqueName();
-
-    // Get the glyphID of a space
-    virtual PRUint32 GetSpaceGlyph() {
-        if (!mMetrics)
-            GetMetrics();
-        return mSpaceGlyph;
-    }
-
-    static already_AddRefed<gfxOS2Font> GetOrMakeFont(const nsAString& aName,
-                                                      const gfxFontStyle *aStyle);
+    double GetWidth(HPS aPS, const char* aString, PRUint32 aLength);
+    double GetWidth(HPS aPS, const PRUnichar* aString, PRUint32 aLength);
 
 protected:
-    gfxMatrix mCTM;
-    virtual PRBool SetupCairoFont(gfxContext *aContext);
+    //cairo_font_face_t *CairoFontFace();
+    //cairo_scaled_font_t *CairoScaledFont();
 
 private:
-    cairo_font_face_t *mFontFace;
-    cairo_scaled_font_t *mScaledFont;
-    Metrics *mMetrics;
-    gfxFloat mAdjustedSize;
-    PRUint32 mSpaceGlyph;
-    int mHinting;
-    PRBool mAntialias;
+    void ComputeMetrics();
+
+    //cairo_font_face_t *mFontFace;
+    gfxFont::Metrics *mMetrics;
+    //FATTRS mFAttrs;
 };
 
 
 class THEBES_API gfxOS2FontGroup : public gfxFontGroup {
+
 public:
     gfxOS2FontGroup(const nsAString& aFamilies, const gfxFontStyle* aStyle);
     virtual ~gfxOS2FontGroup();
 
-    virtual gfxFontGroup *Copy(const gfxFontStyle *aStyle);
+    virtual gfxFontGroup *Copy(const gfxFontStyle *aStyle) {
+        NS_ERROR("NOT IMPLEMENTED");
+        return nsnull;
+    }
+    virtual gfxTextRun *MakeTextRun(const PRUnichar* aString, PRUint32 aLength, Parameters* aParams);
+    virtual gfxTextRun *MakeTextRun(const PRUint8* aString, PRUint32 aLength, Parameters* aParams);
 
-    // create and initialize the textRun using FreeType font
-    virtual gfxTextRun *MakeTextRun(const PRUnichar* aString, PRUint32 aLength,
-                                    const Parameters* aParams, PRUint32 aFlags);
-    virtual gfxTextRun *MakeTextRun(const PRUint8* aString, PRUint32 aLength,
-                                    const Parameters* aParams, PRUint32 aFlags);
+    const nsACString& GetGenericFamily() const {
+        return mGenericFamily;
+    }
+
+    PRUint32 FontListLength() const {
+        return mFonts.Length();
+    }
 
     gfxOS2Font *GetFontAt(PRInt32 i) {
-#ifdef DEBUG_thebes_2
-        printf("gfxOS2FontGroup[%#x]::GetFontAt(%d), %#x, %#x\n",
-               (unsigned)this, i, (unsigned)&mFonts, (unsigned)&mFonts[i]);
-#endif
-        return static_cast<gfxOS2Font*>(static_cast<gfxFont*>(mFonts[i]));
+        return NS_STATIC_CAST(gfxOS2Font*, NS_STATIC_CAST(gfxFont*, mFonts[i]));
+    }
+
+    void AppendFont(gfxOS2Font *aFont) {
+        mFonts.AppendElement(aFont);
+    }
+
+    PRBool HasFontNamed(const nsAString& aName) const {
+        PRUint32 len = mFonts.Length();
+        for (PRUint32 i = 0; i < len; ++i)
+            if (aName.Equals(mFonts[i]->GetName()))
+                return PR_TRUE;
+        return PR_FALSE;
     }
 
 protected:
-    void InitTextRun(gfxTextRun *aTextRun, const PRUint8 *aUTF8Text,
-                     PRUint32 aUTF8Length, PRUint32 aUTF8HeaderLength);
-    void CreateGlyphRunsFT(gfxTextRun *aTextRun, const PRUint8 *aUTF8,
-                           PRUint32 aUTF8Length);
-    static PRBool FontCallback(const nsAString& aFontName,
-                               const nsACString& aGenericName, void *aClosure);
+    static PRBool MakeFont(const nsAString& fontName,
+                           const nsACString& genericName,
+                           void *closure);
 
 private:
-    PRBool mEnableKerning;
+    friend class gfxOS2TextRun;
+
+    nsCString mGenericFamily;
 };
+
+
+class THEBES_API gfxOS2TextRun {
+
+public:
+    gfxOS2TextRun(const nsAString& aString, gfxOS2FontGroup *aFontGroup);
+    gfxOS2TextRun(const nsACString& aString, gfxOS2FontGroup *aFontGroup);
+    ~gfxOS2TextRun();
+
+    virtual void Draw(gfxContext *aContext, gfxPoint pt);
+    virtual gfxFloat Measure(gfxContext *aContext);
+    virtual void SetSpacing(const nsTArray<gfxFloat>& spacingArray);
+    virtual const nsTArray<gfxFloat> *const GetSpacing() const;
+    void SetRightToLeft(PRBool aIsRTL) { mIsRTL = aIsRTL; }
+    PRBool IsRightToLeft() { return mIsRTL; }
+
+protected:
+private:
+    /* these only return a length measurement if aDraw is PR_FALSE *
+     * we have an easy and a sophisticated variant                 */
+    double MeasureOrDrawFast(gfxContext *aContext, PRBool aDraw, gfxPoint aPt);
+    double MeasureOrDrawSlow(gfxContext *aContext, PRBool aDraw, gfxPoint aPt);
+
+    gfxOS2FontGroup *mGroup;
+
+    nsString mString;
+    nsCString mCString;
+
+    const PRPackedBool mIsASCII;
+    PRPackedBool mIsRTL;
+    nsTArray<gfxFloat> mSpacing;
+    double mLength; /* cached */
+};
+
+// =============================================================================
+// class gfxOS2Uni to handle Unicode on OS/2 (copied from gfx/src/os2)
+enum ConverterRequest {
+    eConv_Encoder,
+    eConv_Decoder
+};
+
+#define CHAR_BUFFER_SIZE 1024
+typedef nsAutoBuffer<char, CHAR_BUFFER_SIZE> nsAutoCharBuffer;
+typedef nsAutoBuffer<PRUnichar, CHAR_BUFFER_SIZE> nsAutoChar16Buffer;
+
+class gfxOS2Uni {
+public:
+    static nsISupports* GetUconvObject(int CodePage, ConverterRequest aReq);
+    static void FreeUconvObjects();
+private:
+    static nsICharsetConverterManager* gCharsetManager;
+};
+
+nsresult WideCharToMultiByte(int aCodePage,
+                             const PRUnichar* aSrc, PRInt32 aSrcLength,
+                             nsAutoCharBuffer& aResult, PRInt32& aResultLength);
+nsresult MultiByteToWideChar(int aCodePage,
+                             const char* aSrc, PRInt32 aSrcLength,
+                             nsAutoChar16Buffer& aResult, PRInt32& aResultLength);
+
+// =============================================================================
 
 #endif /* GFX_OS2_FONTS_H */

@@ -69,6 +69,7 @@
 #include "nsIContent.h"
 #include "nsIEnumerator.h"
 #include "nsISelectionPrivate.h"
+#include "nsISupportsArray.h"
 #include "nsIParserService.h"
 #include "nsIScriptContext.h"
 #include "nsIScriptGlobalObject.h"
@@ -648,11 +649,11 @@ nsDocumentEncoder::SerializeRangeNodes(nsIDOMRange* aRange,
   nsCOMPtr<nsIContent> startNode, endNode;
   PRInt32 start = mStartRootIndex - aDepth;
   if (start >= 0 && start <= mStartNodes.Count())
-    startNode = static_cast<nsIContent *>(mStartNodes[start]);
+    startNode = NS_STATIC_CAST(nsIContent *, mStartNodes[start]);
 
   PRInt32 end = mEndRootIndex - aDepth;
   if (end >= 0 && end <= mEndNodes.Count())
-    endNode = static_cast<nsIContent *>(mEndNodes[end]);
+    endNode = NS_STATIC_CAST(nsIContent *, mEndNodes[end]);
 
   if ((startNode != content) && (endNode != content))
   {
@@ -892,9 +893,7 @@ nsDocumentEncoder::EncodeToString(nsAString& aOutputString)
       NS_ENSURE_SUCCESS(rv, rv);
     }
   }
-  
-  PRBool isWholeDocument = !(mSelection || mRange || mNode);
-  mSerializer->Init(mFlags, mWrapColumn, mCharset.get(), mIsCopying, isWholeDocument);
+  mSerializer->Init(mFlags, mWrapColumn, mCharset.get(), mIsCopying);
 
   if (mSelection) {
     nsCOMPtr<nsIDOMRange> range;
@@ -903,34 +902,10 @@ nsDocumentEncoder::EncodeToString(nsAString& aOutputString)
     rv = mSelection->GetRangeCount(&count);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCOMPtr<nsIDOMNode> node, prevNode;
     for (i = 0; i < count; i++) {
       mSelection->GetRangeAt(i, getter_AddRefs(range));
 
-      // Bug 236546: newlines not added when copying table cells into clipboard
-      // Each selected cell shows up as a range containing a row with a single cell
-      // get the row, compare it to previous row and emit </tr><tr> as needed
-      range->GetStartContainer(getter_AddRefs(node));
-      NS_ENSURE_TRUE(node, NS_ERROR_FAILURE);
-      if (node != prevNode) {
-        if (prevNode) {
-          rv = SerializeNodeEnd(prevNode, aOutputString);
-          NS_ENSURE_SUCCESS(rv, rv);
-          prevNode = nsnull;
-        }
-        nsCOMPtr<nsIContent> content = do_QueryInterface(node);
-        if (content && content->Tag() == nsGkAtoms::tr) {
-          rv = SerializeNodeStart(node, 0, -1, aOutputString);
-          NS_ENSURE_SUCCESS(rv, rv);
-          prevNode = node;
-        }
-      }
-
       rv = SerializeRangeToString(range, aOutputString);
-      NS_ENSURE_SUCCESS(rv, rv);
-    }
-    if (prevNode) {
-      rv = SerializeNodeEnd(prevNode, aOutputString);
       NS_ENSURE_SUCCESS(rv, rv);
     }
 
@@ -1151,7 +1126,7 @@ nsHTMLCopyEncoder::SetSelection(nsISelection* aSelection)
       nsCOMPtr<nsIDOMElement> bodyElem = do_QueryInterface(selContent);
       nsAutoString wsVal;
       rv = bodyElem->GetAttribute(NS_LITERAL_STRING("style"), wsVal);
-      if (NS_SUCCEEDED(rv) && (kNotFound != wsVal.Find(NS_LITERAL_STRING("pre-wrap"))))
+      if (NS_SUCCEEDED(rv) && (kNotFound != wsVal.Find(NS_LITERAL_STRING("-moz-pre-wrap"))))
       {
         mIsTextWidget = PR_TRUE;
         break;
@@ -1237,7 +1212,7 @@ nsHTMLCopyEncoder::EncodeToStringWithContext(nsAString& aContextString,
   PRInt32 i;
   nsCOMPtr<nsIDOMNode> node;
   if (count > 0)
-    node = static_cast<nsIDOMNode *>(mCommonAncestors.ElementAt(0));
+    node = NS_STATIC_CAST(nsIDOMNode *, mCommonAncestors.ElementAt(0));
 
   if (node && IsTextNode(node)) 
   {
@@ -1252,13 +1227,13 @@ nsHTMLCopyEncoder::EncodeToStringWithContext(nsAString& aContextString,
   i = count;
   while (i > 0)
   {
-    node = static_cast<nsIDOMNode *>(mCommonAncestors.ElementAt(--i));
+    node = NS_STATIC_CAST(nsIDOMNode *, mCommonAncestors.ElementAt(--i));
     SerializeNodeStart(node, 0, -1, aContextString);
   }
   //i = 0; guaranteed by above
   while (i < count)
   {
-    node = static_cast<nsIDOMNode *>(mCommonAncestors.ElementAt(i++));
+    node = NS_STATIC_CAST(nsIDOMNode *, mCommonAncestors.ElementAt(i++));
     SerializeNodeEnd(node, aContextString);
   }
 
@@ -1385,7 +1360,7 @@ nsHTMLCopyEncoder::PromoteAncestorChain(nsCOMPtr<nsIDOMNode> *ioNode,
     else
     {
       // passing parent as last param to GetPromotedPoint() allows it to promote only one level
-      // up the hierarchy.
+      // up the heirarchy.
       rv = GetPromotedPoint( kStart, *ioNode, *ioStartOffset, address_of(frontNode), &frontOffset, parent);
       NS_ENSURE_SUCCESS(rv, rv);
       // then we make the same attempt with the endpoint

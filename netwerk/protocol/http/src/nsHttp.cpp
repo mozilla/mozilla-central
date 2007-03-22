@@ -41,7 +41,6 @@
 #include "nsAutoLock.h"
 #include "pldhash.h"
 #include "nsCRT.h"
-#include "prbit.h"
 
 #if defined(PR_LOGGING)
 PRLogModuleInfo *gHttpLog = nsnull;
@@ -78,7 +77,7 @@ NewHeapAtom(const char *value) {
     int len = strlen(value);
 
     HttpHeapAtom *a =
-        reinterpret_cast<HttpHeapAtom *>(malloc(sizeof(*a) + len));
+        NS_REINTERPRET_CAST(HttpHeapAtom *, malloc(sizeof(*a) + len));
     if (!a)
         return nsnull;
     memcpy(a->value, value, len + 1);
@@ -95,8 +94,8 @@ PR_STATIC_CALLBACK(PLDHashNumber)
 StringHash(PLDHashTable *table, const void *key)
 {
     PLDHashNumber h = 0;
-    for (const char *s = reinterpret_cast<const char*>(key); *s; ++s)
-        h = PR_ROTATE_LEFT32(h, 4) ^ nsCRT::ToLower(*s);
+    for (const char *s = NS_REINTERPRET_CAST(const char*, key); *s; ++s)
+        h = (h >> 28) ^ (h << 4) ^ nsCRT::ToLower(*s);
     return h;
 }
 
@@ -105,15 +104,16 @@ StringCompare(PLDHashTable *table, const PLDHashEntryHdr *entry,
               const void *testKey)
 {
     const void *entryKey =
-            reinterpret_cast<const PLDHashEntryStub *>(entry)->key;
+            NS_REINTERPRET_CAST(const PLDHashEntryStub *, entry)->key;
 
-    return PL_strcasecmp(reinterpret_cast<const char *>(entryKey),
-                         reinterpret_cast<const char *>(testKey)) == 0;
+    return PL_strcasecmp(NS_REINTERPRET_CAST(const char *, entryKey),
+                         NS_REINTERPRET_CAST(const char *, testKey)) == 0;
 }
 
 static const PLDHashTableOps ops = {
     PL_DHashAllocTable,
     PL_DHashFreeTable,
+    PL_DHashGetKeyStub,
     StringHash,
     StringCompare,
     PL_DHashMoveEntryStub,
@@ -152,8 +152,8 @@ nsHttp::CreateAtomTable()
     };
 
     for (int i = 0; atoms[i]; ++i) {
-        PLDHashEntryStub *stub = reinterpret_cast<PLDHashEntryStub *>
-                                                 (PL_DHashTableOperate(&sAtomTable, atoms[i], PL_DHASH_ADD));
+        PLDHashEntryStub *stub = NS_REINTERPRET_CAST(PLDHashEntryStub *,
+                PL_DHashTableOperate(&sAtomTable, atoms[i], PL_DHASH_ADD));
         if (!stub)
             return NS_ERROR_OUT_OF_MEMORY;
         
@@ -195,13 +195,13 @@ nsHttp::ResolveAtom(const char *str)
 
     nsAutoLock lock(sLock);
 
-    PLDHashEntryStub *stub = reinterpret_cast<PLDHashEntryStub *>
-                                             (PL_DHashTableOperate(&sAtomTable, str, PL_DHASH_ADD));
+    PLDHashEntryStub *stub = NS_REINTERPRET_CAST(PLDHashEntryStub *,
+            PL_DHashTableOperate(&sAtomTable, str, PL_DHASH_ADD));
     if (!stub)
         return atom;  // out of memory
 
     if (stub->key) {
-        atom._val = reinterpret_cast<const char *>(stub->key);
+        atom._val = NS_REINTERPRET_CAST(const char *, stub->key);
         return atom;
     }
 

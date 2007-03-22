@@ -2,29 +2,23 @@
 use strict;
 
 use Getopt::Long;
-
 use MozBuild::Util qw(Email);
-
 use Bootstrap::Step::Tag;
-use Bootstrap::Step::TinderConfig;
 use Bootstrap::Step::Build;
 use Bootstrap::Step::Source;
 use Bootstrap::Step::Repack;
-use Bootstrap::Step::PatcherConfig;
 use Bootstrap::Step::Updates;
 use Bootstrap::Step::Stage;
 use Bootstrap::Step::Sign;
 
 my @allSteps = (
     'Tag',
-    'TinderConfig',
     'Build',
     'Source',
     'Repack',
-    'Sign',
-    'PatcherConfig',
     'Updates',
     'Stage',
+    'Sign',
 );
 
 my %config;
@@ -81,7 +75,7 @@ sub DetermineSteps() {
             die("ASSERT: $desiredStep is not a valid step name.");
         }
         for (my $i=0; $i < scalar(@allSteps); $i++) {
-            if ($allSteps[$i] eq "$desiredStep") {
+            if ($allSteps[$i] eq $desiredStep) {
                 $currentStep = $i;
             }
         }
@@ -139,12 +133,12 @@ sub PerformStep {
         my $conf = new Bootstrap::Config();
         my $from = $conf->Get(var => 'from');
         my $to = $conf->Get(var => 'to');
-        my @ccList = $conf->Exists(var => 'cc') ? split(/[,\s]+/, 
-          $conf->Get(var => 'cc')) : ();
+        my $cc = $conf->Get(var => 'cc');
         my $blat = $conf->Get(var => 'blat');
         my $sendmail = $conf->Get(var => 'sendmail');
-        my $hostname = $conf->SystemInfo(var => 'hostname');
 
+        my @ccList = split(', ', $cc);
+ 
         eval {
             Email(
               blat => $blat,
@@ -152,8 +146,8 @@ sub PerformStep {
               from => $from,
               to => $to,
               cc => \@ccList,
-              subject => "$hostname - Step $stepName died: $error",
-              message => "$hostname - Step $stepName died: $error",
+              subject => "Step $stepName died: $error",
+              message => "Step $stepName died: $error\nSee the release.log for more information.",
             );
             exit(1);
         };
@@ -164,4 +158,4 @@ sub PerformStep {
     }
 }
 
-main();
+&main();

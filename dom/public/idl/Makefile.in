@@ -57,9 +57,7 @@ DIRS =						\
 	xpath					\
 	ls					\
 	xul                                     \
-	storage                                 \
-	json                                    \
-	offline
+	storage
 
 ifdef MOZ_SVG
 DIRS += svg

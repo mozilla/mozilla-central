@@ -53,28 +53,32 @@ nsGridRowLayout::nsGridRowLayout(nsIPresShell* aPresShell):nsSprocketLayout()
 {
 }
 
-void
+NS_IMETHODIMP
 nsGridRowLayout::ChildrenInserted(nsIBox* aBox, nsBoxLayoutState& aState, nsIBox* aPrevBox, nsIBox* aChildList)
 {
   ChildAddedOrRemoved(aBox, aState);
+  return NS_OK;
 }
 
-void
+NS_IMETHODIMP
 nsGridRowLayout::ChildrenAppended(nsIBox* aBox, nsBoxLayoutState& aState, nsIBox* aChildList)
 {
   ChildAddedOrRemoved(aBox, aState);
+  return NS_OK;
 }
 
-void
+NS_IMETHODIMP
 nsGridRowLayout::ChildrenRemoved(nsIBox* aBox, nsBoxLayoutState& aState, nsIBox* aChildList)
 {
   ChildAddedOrRemoved(aBox, aState);
+  return NS_OK;
 }
 
-void
+NS_IMETHODIMP
 nsGridRowLayout::ChildrenSet(nsIBox* aBox, nsBoxLayoutState& aState, nsIBox* aChildList)
 {
   ChildAddedOrRemoved(aBox, aState);
+  return NS_OK;
 }
 
 void

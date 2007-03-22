@@ -265,7 +265,7 @@ function doEnabling()
 
 function ChangeLinkLocation()
 {
-  SetRelativeCheckbox(gDialog.makeRelativeLink);
+  SetRelativeCheckbox();
   // Set OK button enable state
   doEnabling();
 }
@@ -305,6 +305,12 @@ function ValidateData()
       }
     }
   }
+  return true;
+}
+
+function doHelpButton()
+{
+  openHelp("link_properties");
   return true;
 }
 

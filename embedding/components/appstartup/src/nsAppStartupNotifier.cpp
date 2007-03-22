@@ -20,7 +20,6 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Ben Turner <mozilla@songbirdnest.com
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -89,22 +88,22 @@ NS_IMETHODIMP nsAppStartupNotifier::Observe(nsISupports *aSubject, const char *a
                 // of the contractId then we create it as a service
                 // if not we do a createInstance
 
-                nsCOMPtr<nsISupports> startupInstance;
-                if (Substring(contractId, 0, 8).EqualsLiteral("service,"))
-                    startupInstance = do_GetService(contractId.get() + 8, &rv);
+                const char *pServicePrefix = "service,";
+                
+                nsCAutoString cid(contractId);
+                PRInt32 serviceIdx = cid.Find(pServicePrefix);
+
+                nsCOMPtr<nsIObserver> startupObserver;
+                if (serviceIdx == 0)
+                    startupObserver = do_GetService(cid.get() + strlen(pServicePrefix), &rv);
                 else
-                    startupInstance = do_CreateInstance(contractId, &rv);
+                    startupObserver = do_CreateInstance(contractId, &rv);
 
                 if (NS_SUCCEEDED(rv)) {
-                    // Try to QI to nsIObserver
-                    nsCOMPtr<nsIObserver> startupObserver =
-                        do_QueryInterface(startupInstance, &rv);
-                    if (NS_SUCCEEDED(rv)) {
-                        rv = startupObserver->Observe(nsnull, aTopic, nsnull);
-     
-                        // mainly for debugging if you want to know if your observer worked.
-                        NS_ASSERTION(NS_SUCCEEDED(rv), "Startup Observer failed!\n");
-                    }
+                    rv = startupObserver->Observe(nsnull, aTopic, nsnull);
+ 
+                    // mainly for debugging if you want to know if your observer worked.
+                    NS_ASSERTION(NS_SUCCEEDED(rv), "Startup Observer failed!\n");
                 }
                 else {
                   #ifdef NS_DEBUG

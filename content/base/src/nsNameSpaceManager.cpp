@@ -71,6 +71,9 @@ PRBool NS_SVGEnabled();
 #define kXULNameSpaceURI "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
 #define kSVGNameSpaceURI "http://www.w3.org/2000/svg"
 #define kXMLEventsNameSpaceURI "http://www.w3.org/2001/xml-events"
+#define kXHTML2UnofficialNameSpaceURI "http://www.w3.org/TR/xhtml2" // Will eventually change
+#define kWAIRolesNameSpaceURI "http://www.w3.org/2005/01/wai-rdf/GUIRoleTaxonomy#"
+#define kWAIPropertiesNameSpaceURI "http://www.w3.org/2005/07/aaa"
 
 class nsNameSpaceKey : public PLDHashEntryHdr
 {
@@ -86,6 +89,10 @@ public:
   }
 
   KeyType GetKey() const
+  {
+    return mKey;
+  }
+  KeyTypePointer GetKeyPointer() const
   {
     return mKey;
   }
@@ -134,7 +141,7 @@ private:
   nsStringArray mURIArray;
 };
 
-static NameSpaceManagerImpl* sNameSpaceManager = nsnull;
+static NameSpaceManagerImpl* gNameSpaceManager = nsnull;
 
 NS_IMPL_ISUPPORTS1(NameSpaceManagerImpl, nsINameSpaceManager)
 
@@ -159,6 +166,10 @@ nsresult NameSpaceManagerImpl::Init()
   REGISTER_NAMESPACE(kXULNameSpaceURI, kNameSpaceID_XUL);
   REGISTER_NAMESPACE(kSVGNameSpaceURI, kNameSpaceID_SVG);
   REGISTER_NAMESPACE(kXMLEventsNameSpaceURI, kNameSpaceID_XMLEvents);
+  REGISTER_NAMESPACE(kXHTML2UnofficialNameSpaceURI,
+                     kNameSpaceID_XHTML2_Unofficial);
+  REGISTER_NAMESPACE(kWAIRolesNameSpaceURI, kNameSpaceID_WAIRoles);
+  REGISTER_NAMESPACE(kWAIPropertiesNameSpaceURI, kNameSpaceID_WAIProperties);
 
 #undef REGISTER_NAMESPACE
 
@@ -226,10 +237,10 @@ NameSpaceManagerImpl::GetNameSpaceID(const nsAString& aURI)
 
 nsresult
 NS_NewElement(nsIContent** aResult, PRInt32 aElementType,
-              nsINodeInfo* aNodeInfo, PRBool aFromParser)
+              nsINodeInfo* aNodeInfo)
 {
   if (aElementType == kNameSpaceID_XHTML) {
-    return NS_NewHTMLElement(aResult, aNodeInfo, aFromParser);
+    return NS_NewHTMLElement(aResult, aNodeInfo);
   }
 #ifdef MOZ_XUL
   if (aElementType == kNameSpaceID_XUL) {
@@ -308,18 +319,18 @@ NS_GetNameSpaceManager(nsINameSpaceManager** aInstancePtrResult)
 {
   NS_ENSURE_ARG_POINTER(aInstancePtrResult);
 
-  if (!sNameSpaceManager) {
+  if (!gNameSpaceManager) {
     nsCOMPtr<NameSpaceManagerImpl> manager = new NameSpaceManagerImpl();
     if (manager) {
       nsresult rv = manager->Init();
       if (NS_SUCCEEDED(rv)) {
-        manager.swap(sNameSpaceManager);
+        manager.swap(gNameSpaceManager);
       }
     }
   }
 
-  *aInstancePtrResult = sNameSpaceManager;
-  NS_ENSURE_TRUE(sNameSpaceManager, NS_ERROR_OUT_OF_MEMORY);
+  *aInstancePtrResult = gNameSpaceManager;
+  NS_ENSURE_TRUE(gNameSpaceManager, NS_ERROR_OUT_OF_MEMORY);
 
   NS_ADDREF(*aInstancePtrResult);
 
@@ -329,5 +340,5 @@ NS_GetNameSpaceManager(nsINameSpaceManager** aInstancePtrResult)
 void
 NS_NameSpaceManagerShutdown()
 {
-  NS_IF_RELEASE(sNameSpaceManager);
+  NS_IF_RELEASE(gNameSpaceManager);
 }

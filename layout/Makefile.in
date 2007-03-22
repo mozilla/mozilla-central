@@ -72,8 +72,7 @@ endif
 DIRS           += build
 
 ifdef ENABLE_TESTS
-TOOL_DIRS      += tools/reftest
-DIRS           += tools/pageloader
+DIRS           += tools/reftest
 ifndef MOZ_ENABLE_LIBXUL
 TOOL_DIRS	+= html/tests
 endif

@@ -34,14 +34,12 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'basic-Iterator.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER     = "(none)";
+var bug     = "(none)";
 var summary = "Basic support for accessing iterable objects using Iterator";
 var actual, expect;
 
-printBugNumber(BUGNUMBER);
+printBugNumber(bug);
 printStatus(summary);
 
 /**************
@@ -82,16 +80,16 @@ try
     function(keysOnly)
     {
       var gen =
-      function()
-      {
-	for (var i = 0; i < keys.length; i++)
-	{
-	  if (keysOnly)
-	    yield keys[i];
-	  else
-	    yield [keys[i], vals[i]];
-	}
-      };
+        function()
+        {
+          for (var i = 0; i < keys.length; i++)
+          {
+            if (keysOnly)
+              yield keys[i];
+            else
+              yield [keys[i], vals[i]];
+          }
+        };
       return gen();
     };
 
@@ -106,8 +104,8 @@ try
       var nextVal = it.next();
       if (!Array_equals(nextVal, [keys[index], vals[index]]))
         throw "Iterator(iterable): wrong next result\n" +
-	  "  expected: " + [keys[index], vals[index]] + "\n" +
-	  "  actual:   " + nextVal;
+              "  expected: " + [keys[index], vals[index]] + "\n" +
+              "  actual:   " + nextVal;
       lastSeen = keys[index];
       index++;
     }
@@ -116,8 +114,8 @@ try
   {
     if (lastSeen !== keys[keys.length - 1])
       throw "Iterator(iterable): not everything was iterated!\n" +
-	"  last iterated was: " + lastSeen + "\n" +
-	"  error: " + e;
+            "  last iterated was: " + lastSeen + "\n" +
+            "  error: " + e;
     if (e !== StopIteration)
       throw "Iterator(iterable): missing or invalid StopIteration";
   }
@@ -136,8 +134,8 @@ try
       var nextVal = it.next();
       if (!Array_equals(nextVal, [keys[index], vals[index]]))
         throw "Iterator(iterable, false): wrong next result\n" +
-	  "  expected: " + [keys[index], vals[index]] + "\n" +
-	  "  actual:   " + nextVal;
+              "  expected: " + [keys[index], vals[index]] + "\n" +
+              "  actual:   " + nextVal;
       lastSeen = keys[index];
       index++;
     }
@@ -146,8 +144,8 @@ try
   {
     if (lastSeen !== keys[keys.length - 1])
       throw "Iterator(iterable, false): not everything was iterated!\n" +
-	"  last iterated was: " + lastSeen + "\n" +
-	"  error: " + e;
+            "  last iterated was: " + lastSeen + "\n" +
+            "  error: " + e;
     if (e !== StopIteration)
       throw "Iterator(iterable, false): missing or invalid StopIteration";
   }
@@ -166,8 +164,8 @@ try
       var nextVal = it.next();
       if (nextVal !== keys[index])
         throw "Iterator(iterable, true): wrong next result\n" +
-	  "  expected: " + keys[index] + "\n" +
-	  "  actual:   " + nextVal;
+              "  expected: " + keys[index] + "\n" +
+              "  actual:   " + nextVal;
       lastSeen = keys[index];
       index++;
     }
@@ -176,8 +174,8 @@ try
   {
     if (lastSeen !== keys[keys.length - 1])
       throw "Iterator(iterable, true): not everything was iterated!\n" +
-	"  last iterated was: " + lastSeen + "\n" +
-	"  error: " + e;
+            "  last iterated was: " + lastSeen + "\n" +
+            "  error: " + e;
     if (e !== StopIteration)
       throw "Iterator(iterable, true): missing or invalid StopIteration";
   }

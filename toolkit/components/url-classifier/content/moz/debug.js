@@ -36,8 +36,6 @@
 #
 # ***** END LICENSE BLOCK *****
 
-#ifdef DEBUG
-
 // Generic logging/debugging functionality that:
 //
 // (*) when disabled compiles to no-ops at worst (for calls to the service) 
@@ -90,6 +88,7 @@
 //
 // See classes below for more methods. 
 //
+// TODO add abililty to alert() instead of dump()? Should be easy.
 // TODO add code to set prefs when not found to the default value of a tristate
 // TODO add error level support
 // TODO add ability to turn off console output
@@ -127,12 +126,16 @@ function G_DebugL(who, msg) {
 
     if (zone.zoneIsEnabled()) {
       G_debugService.dump(
-        "\n************************************************************\n");
+        G_File.LINE_END_CHAR +
+        "************************************************************" +
+        G_File.LINE_END_CHAR);
 
       G_Debug(who, msg);
 
       G_debugService.dump(
-        "************************************************************\n\n");
+        "************************************************************" +
+        G_File.LINE_END_CHAR +
+        G_File.LINE_END_CHAR);
     }
   }
 }
@@ -147,7 +150,7 @@ function G_DebugL(who, msg) {
 function G_TraceCall(who, msg) {
   if (G_GDEBUG) {
     if (G_debugService.callTracingEnabled()) {
-      G_debugService.dump(msg + "\n");
+      G_debugService.dump(msg + G_File.LINE_END_CHAR);
     }
   }
 }
@@ -180,6 +183,17 @@ function G_Assert(who, condition, msg) {
 }
 
 /**
+ * Assert two things are equal (as in ==).
+ */
+function G_AssertEqual(who, expected, actual, msg) {
+  if (G_GDEBUG) {
+    G_GetDebugZone(who).assert(
+        expected == actual,
+        msg + " Expected: {%s}, got: {%s}".subs(expected, actual));
+  }
+}
+
+/**
  * Helper function that takes input and returns the DebugZone
  * corresponding to it.
  *
@@ -193,7 +207,7 @@ function G_GetDebugZone(who) {
 
     if (who && who.debugZone) {
       zone = who.debugZone;
-    } else if (typeof who == "string") {
+    } else if (isString(who)) {
       zone = who;
     }
 
@@ -269,7 +283,9 @@ G_DebugZone.prototype.disableZone = function() {
 G_DebugZone.prototype.debug = function(msg) {
   if (G_GDEBUG) {
     if (this.zoneIsEnabled()) {
-      this.debugService_.dump("[" + this.zone_ + "] " + msg + "\n");
+      this.debugService_.dump("[%s] %s%s".subs(this.zone_,
+                                               msg,
+                                               G_File.LINE_END_CHAR));
     }
   }
 }
@@ -281,7 +297,9 @@ G_DebugZone.prototype.debug = function(msg) {
  */
 G_DebugZone.prototype.error = function(msg) {
   if (G_GDEBUG) {
-    this.debugService_.dump("[" + this.zone_ + "] " + msg + "\n");
+    this.debugService_.dump("[%s] %s%s".subs(this.zone_,
+                                             msg,
+                                             G_File.LINE_END_CHAR));
     throw new Error(msg);
     debugger;
   }
@@ -323,6 +341,12 @@ function G_DebugService(opt_prefix) {
 
     this.loggifier = new G_Loggifier();
     this.settings_ = new G_DebugSettings();
+
+    // We observe the console service so that we can echo errors that get 
+    // reported there to the file log.
+    Cc["@mozilla.org/consoleservice;1"]
+      .getService(Ci.nsIConsoleService)
+      .registerListener(this);
   }
 }
 
@@ -538,7 +562,8 @@ G_DebugService.prototype.dump = function(msg) {
                       .getService(Components.interfaces.nsIConsoleService);
         console.logStringMessage(msg);
       } catch(e) {
-        dump("G_DebugZone ERROR: COULD NOT DUMP TO CONSOLE\n");
+        dump("G_DebugZone ERROR: COULD NOT DUMP TO CONSOLE" +
+             G_File.LINE_END_CHAR);
       }
     }
 
@@ -551,25 +576,11 @@ G_DebugService.prototype.dump = function(msg) {
  */
 G_DebugService.prototype.maybeDumpToFile = function(msg) {
   if (this.logFileIsEnabled() && this.logFile_) {
-
-    /* try to get the correct line end character for this platform */
-    if (!this._LINE_END_CHAR)
-      this._LINE_END_CHAR =
-        Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime)
-                                         .OS == "WINNT" ? "\r\n" : "\n";
-    if (this._LINE_END_CHAR != "\n")
-      msg = msg.replace(/\n/g, this._LINE_END_CHAR);
-
-    try {
-      var stream = Cc["@mozilla.org/network/file-output-stream;1"]
-                   .createInstance(Ci.nsIFileOutputStream);
-      stream.init(this.logFile_,
-                  0x02 | 0x08 | 0x10 /* PR_WRONLY | PR_CREATE_FILE | PR_APPEND */
-                  -1 /* default perms */, 0 /* no special behavior */);
-      stream.write(msg, msg.length);
-    } finally {
-      stream.close();
+    if (!this.logWriter_) {
+      this.logWriter_ = new G_FileWriter(this.logFile_, true);
     }
+
+    this.logWriter_.write(msg);
   }
 }
 
@@ -588,7 +599,7 @@ G_DebugService.prototype.observe = function(consoleMessage) {
       // Only report these messages if the error level is INFO.
       if (errorLevel == G_DebugService.ERROR_LEVEL_INFO) {
         this.maybeDumpToFile(G_DebugService.ERROR_LEVEL_INFO + ": " + 
-                             consoleMessage.message + "\n");
+                             consoleMessage.message + G_File.LINE_END_CHAR);
       }
 
       return;
@@ -640,10 +651,13 @@ G_DebugService.prototype.observe = function(consoleMessage) {
  */
 G_DebugService.prototype.reportScriptError_ = function(message, sourceName, 
                                                        lineNumber, label) {
-  var message = "\n------------------------------------------------------------\n" +
-                label + ": " + message +
-                "\nlocation: " + sourceName + ", " + "line: " + lineNumber +
-                "\n------------------------------------------------------------\n\n";
+  var message = ["",
+                 "------------------------------------------------------------",
+                 label + ": " + message,
+                 "location: " + sourceName + ", " + "line: " + lineNumber,
+                 "------------------------------------------------------------",
+                 "",
+                 ""].join(G_File.LINE_END_CHAR);
 
   dump(message);
   this.maybeDumpToFile(message);
@@ -755,7 +769,7 @@ G_Loggifier.prototype.loggify = function(obj) {
           args[i] = arguments[i];
           argsString += (i == 0 ? "" : ", ");
           
-          if (typeof args[i] == "function") {
+          if (isFunction(args[i])) {
             argsString += "[function]";
           } else {
             argsString += args[i];
@@ -863,15 +877,3 @@ var G_debugService = new G_DebugService(); // Instantiate us!
 if (G_GDEBUG) {
   G_debugService.enableAllZones();
 }
-
-#else
-
-// Stubs for the debugging aids scattered through this component.
-// They will be expanded if you compile yourself a debug build.
-
-function G_Debug(who, msg) { }
-function G_Assert(who, condition, msg) { }
-function G_Error(who, msg) { }
-var G_debugService = { __noSuchMethod__: function() { } };
-
-#endif

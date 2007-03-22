@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '15.4.1.3.js';
-
 /**
    File Name:          15.4.1.3.js
    ECMA Section:       15.4.1.3 Array()
@@ -73,7 +71,7 @@ new TestCase(   SECTION,
 
 new TestCase(   SECTION,
 		"(Array()).length",
-		0,         
+		0,          
 		(Array()).length );
 
 new TestCase(   SECTION,

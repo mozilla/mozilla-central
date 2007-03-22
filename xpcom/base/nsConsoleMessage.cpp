@@ -54,7 +54,7 @@ nsConsoleMessage::nsConsoleMessage(const PRUnichar *message)
 }
 
 NS_IMETHODIMP
-nsConsoleMessage::GetMessageMoz(PRUnichar **result) {
+nsConsoleMessage::GetMessage(PRUnichar **result) {
     *result = ToNewUnicode(mMessage);
 
     return NS_OK;

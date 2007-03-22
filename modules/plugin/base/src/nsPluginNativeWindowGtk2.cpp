@@ -48,7 +48,6 @@
 #include <gtk/gtk.h>
 #include <gdk/gdkx.h>
 #include <gdk/gdk.h>
-#include "gtk2xtbin.h"
 #ifdef OJI
 #include "plstr.h"
 #include "nsIPlugin.h"
@@ -64,14 +63,8 @@ public:
 
   virtual nsresult CallSetWindow(nsCOMPtr<nsIPluginInstance> &aPluginInstance);
 private:
-  NPSetWindowCallbackStruct mWsInfo;
-  /**
-   * Either a GtkSocket or a special GtkXtBin widget (derived from GtkSocket)
-   * that encapsulates the Xt toolkit within a Gtk Application.
-   */
-  GtkWidget* mSocketWidget;
+  GtkWidget*  mGtkSocket;
   nsresult  CreateXEmbedWindow();
-  nsresult  CreateXtWindow();
   void      SetAllocation();
   PRBool    CanGetValueFromPlugin(nsCOMPtr<nsIPluginInstance> &aPluginInstance);
 };
@@ -87,20 +80,16 @@ nsPluginNativeWindowGtk2::nsPluginNativeWindowGtk2() : nsPluginNativeWindow()
   width = 0; 
   height = 0; 
   memset(&clipRect, 0, sizeof(clipRect));
-  ws_info = &mWsInfo;
+  ws_info = nsnull;
   type = nsPluginWindowType_Window;
-  mSocketWidget = 0;
-  mWsInfo.type = 0;
-  mWsInfo.display = nsnull;
-  mWsInfo.visual = nsnull;
-  mWsInfo.colormap = 0;
-  mWsInfo.depth = 0;
+  mGtkSocket = 0;
 }
 
 nsPluginNativeWindowGtk2::~nsPluginNativeWindowGtk2() 
 {
-  if(mSocketWidget) {
-    gtk_widget_destroy(mSocketWidget);
+  if(mGtkSocket) {
+    gtk_widget_destroy(mGtkSocket);
+    mGtkSocket = 0;
   }
 }
 
@@ -122,44 +111,28 @@ nsresult PLUG_DeletePluginNativeWindow(nsPluginNativeWindow * aPluginNativeWindo
 nsresult nsPluginNativeWindowGtk2::CallSetWindow(nsCOMPtr<nsIPluginInstance> &aPluginInstance)
 {
   if(aPluginInstance) {
-    if (type == nsPluginWindowType_Window) {
-      nsresult rv;
-      if(!mSocketWidget) {
-        PRBool needXEmbed = PR_FALSE;
-        if (CanGetValueFromPlugin(aPluginInstance)) {
-          rv = aPluginInstance->GetValue
-            ((nsPluginInstanceVariable)NPPVpluginNeedsXEmbed, &needXEmbed);
+    nsresult rv;
+    PRBool val = PR_FALSE;
+    if(!mGtkSocket) {
+      if (CanGetValueFromPlugin(aPluginInstance))
+        rv = aPluginInstance->GetValue
+               ((nsPluginInstanceVariable)NPPVpluginNeedsXEmbed, &val);
+    }
 #ifdef DEBUG
-          printf("nsPluginNativeWindowGtk2: NPPVpluginNeedsXEmbed=%d\n", needXEmbed);
+    printf("nsPluginNativeWindowGtk2: NPPVpluginNeedsXEmbed=%d\n", val);
 #endif
-        }
-        if(needXEmbed) {
-          CreateXEmbedWindow();
-        }
-        else {
-          CreateXtWindow();
-        }
-      }
+    if(val) {
+      CreateXEmbedWindow();
+    }
 
-      if(!mSocketWidget)
-        return NS_ERROR_FAILURE;
-
-      // Make sure to resize and re-place the window if required.
-      // Need to reset "window" each time as nsObjectFrame::DidReflow sets it
-      // to the ancestor window.
-      if(GTK_IS_XTBIN(mSocketWidget)) {
-        gtk_xtbin_resize(mSocketWidget, width, height);
-        // Point the NPWindow structures window to the actual X window
-        window = (nsPluginPort *)GTK_XTBIN(mSocketWidget)->xtwindow;
-      }
-      else { // XEmbed
-        SetAllocation();
-        window = (nsPluginPort *)gtk_socket_get_id(GTK_SOCKET(mSocketWidget));
-      }
+    if(mGtkSocket) {
+      // Make sure to resize and re-place the window if required
+      SetAllocation();
+      window = (nsPluginPort *)gtk_socket_get_id(GTK_SOCKET(mGtkSocket));
+    }
 #ifdef DEBUG
-      printf("nsPluginNativeWindowGtk2: call SetWindow with xid=%p\n", (void *)window);
+    printf("nsPluginNativeWindowGtk2: call SetWindow with xid=%p\n", (void *)window);
 #endif
-    } // nsPluginWindowType_Window
     aPluginInstance->SetWindow(this);
   }
   else if (mPluginInstance)
@@ -170,53 +143,41 @@ nsresult nsPluginNativeWindowGtk2::CallSetWindow(nsCOMPtr<nsIPluginInstance> &aP
 }
 
 nsresult nsPluginNativeWindowGtk2::CreateXEmbedWindow() {
-  NS_ASSERTION(!mSocketWidget,"Already created a socket widget!");
+  if(!mGtkSocket) {
+    GdkWindow *win = gdk_window_lookup((XID)window);
+    mGtkSocket = gtk_socket_new();
 
-  GdkWindow *parent_win = gdk_window_lookup((XID)window);
-  mSocketWidget = gtk_socket_new();
+    //attach the socket to the container widget
+    gtk_widget_set_parent_window(mGtkSocket, win);
 
-  //attach the socket to the container widget
-  gtk_widget_set_parent_window(mSocketWidget, parent_win);
+    // Make sure to handle the plug_removed signal.  If we don't the
+    // socket will automatically be destroyed when the plug is
+    // removed, which means we're destroying it more than once.
+    // SYNTAX ERROR.
+    g_signal_connect(mGtkSocket, "plug_removed",
+                     G_CALLBACK(plug_removed_cb), NULL);
 
-  // Make sure to handle the plug_removed signal.  If we don't the
-  // socket will automatically be destroyed when the plug is
-  // removed, which means we're destroying it more than once.
-  // SYNTAX ERROR.
-  g_signal_connect(mSocketWidget, "plug_removed",
-                   G_CALLBACK(plug_removed_cb), NULL);
+    gpointer user_data = NULL;
+    gdk_window_get_user_data(win, &user_data);
 
-  g_signal_connect(mSocketWidget, "destroy",
-                   GTK_SIGNAL_FUNC(gtk_widget_destroyed), &mSocketWidget);
+    GtkContainer *container = GTK_CONTAINER(user_data);
+    gtk_container_add(container, mGtkSocket);
+    gtk_widget_realize(mGtkSocket);
 
-  gpointer user_data = NULL;
-  gdk_window_get_user_data(parent_win, &user_data);
+    // Resize before we show
+    SetAllocation();
 
-  GtkContainer *container = GTK_CONTAINER(user_data);
-  gtk_container_add(container, mSocketWidget);
-  gtk_widget_realize(mSocketWidget);
+    gtk_widget_show(mGtkSocket);
 
-  // Resize before we show
-  SetAllocation();
-
-  gtk_widget_show(mSocketWidget);
-
-  gdk_flush();
-  window = (nsPluginPort *)gtk_socket_get_id(GTK_SOCKET(mSocketWidget));
-
-  // Fill out the ws_info structure.
-  // (The windowless case is done in nsObjectFrame.cpp.)
-  GdkWindow *gdkWindow = gdk_window_lookup((XID)window);
-  mWsInfo.display = GDK_WINDOW_XDISPLAY(gdkWindow);
-  mWsInfo.colormap = GDK_COLORMAP_XCOLORMAP(gdk_drawable_get_colormap(gdkWindow));
-  GdkVisual* gdkVisual = gdk_drawable_get_visual(gdkWindow);
-  mWsInfo.visual = GDK_VISUAL_XVISUAL(gdkVisual);
-  mWsInfo.depth = gdkVisual->depth;
+    gdk_flush();
+    window = (nsPluginPort *)gtk_socket_get_id(GTK_SOCKET(mGtkSocket));
+  }
 
   return NS_OK;
 }
 
 void nsPluginNativeWindowGtk2::SetAllocation() {
-  if (!mSocketWidget)
+  if (!mGtkSocket)
     return;
 
   GtkAllocation new_allocation;
@@ -224,45 +185,7 @@ void nsPluginNativeWindowGtk2::SetAllocation() {
   new_allocation.y = 0;
   new_allocation.width = width;
   new_allocation.height = height;
-  gtk_widget_size_allocate(mSocketWidget, &new_allocation);
-}
-
-nsresult nsPluginNativeWindowGtk2::CreateXtWindow() {
-  NS_ASSERTION(!mSocketWidget,"Already created a socket widget!");
-
-#ifdef NS_DEBUG      
-  printf("About to create new xtbin of %i X %i from %p...\n",
-         width, height, (void*)window);
-#endif
-  GdkWindow *gdkWindow = gdk_window_lookup((XID)window);
-  mSocketWidget = gtk_xtbin_new(gdkWindow, 0);
-  // Check to see if creating the xtbin failed for some reason.
-  // if it did, we can't go any further.
-  if (!mSocketWidget)
-    return NS_ERROR_FAILURE;
-
-  gtk_widget_set_size_request(mSocketWidget, width, height);
-
-#ifdef NS_DEBUG
-  printf("About to show xtbin(%p)...\n", (void*)mSocketWidget); fflush(NULL);
-#endif
-  gtk_widget_show(mSocketWidget);
-#ifdef NS_DEBUG
-  printf("completed gtk_widget_show(%p)\n", (void*)mSocketWidget); fflush(NULL);
-#endif
-
-  // Fill out the ws_info structure.
-  GtkXtBin* xtbin = GTK_XTBIN(mSocketWidget);
-  // The xtbin has its own Display structure.
-  mWsInfo.display = xtbin->xtdisplay;
-  mWsInfo.colormap = xtbin->xtclient.xtcolormap;
-  mWsInfo.visual = xtbin->xtclient.xtvisual;
-  mWsInfo.depth = xtbin->xtclient.xtdepth;
-  // Leave mWsInfo.type = 0 - Who knows what this is meant to be?
-
-  XFlush(mWsInfo.display);
-
-  return NS_OK;
+  gtk_widget_size_allocate(mGtkSocket, &new_allocation);
 }
 
 PRBool nsPluginNativeWindowGtk2::CanGetValueFromPlugin(nsCOMPtr<nsIPluginInstance> &aPluginInstance)
@@ -286,12 +209,9 @@ PRBool nsPluginNativeWindowGtk2::CanGetValueFromPlugin(nsCOMPtr<nsIPluginInstanc
 
           rv = pluginHost->GetPluginFactory("application/x-java-vm", &pluginFactory);
           if (NS_SUCCEEDED(rv) && pluginFactory) {
-            const char * jpiDescription = NULL;
+            const char * jpiDescription;
 
             pluginFactory->GetValue(nsPluginVariable_DescriptionString, (void*)&jpiDescription);
-            if (!jpiDescription)
-              return PR_FALSE;
-
             /** 
              * "Java(TM) Plug-in" is Sun's Java Plugin Trademark,
              * so we are sure that this is Sun 's Java Plugin if 

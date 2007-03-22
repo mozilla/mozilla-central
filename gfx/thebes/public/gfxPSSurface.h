@@ -43,11 +43,10 @@
 /* for the output stream */
 #include "nsCOMPtr.h"
 #include "nsIOutputStream.h"
-#include "gfxContext.h"
 
 class THEBES_API gfxPSSurface : public gfxASurface {
 public:
-    gfxPSSurface(nsIOutputStream *aStream, const gfxSize& aSizeInPoints);
+    gfxPSSurface(nsIOutputStream *aStream, const gfxSize& aSizeInPonits);
     virtual ~gfxPSSurface();
 
     virtual nsresult BeginPrinting(const nsAString& aTitle, const nsAString& aPrintToFileName);
@@ -62,8 +61,6 @@ public:
 
     // this is in points!
     const gfxSize& GetSize() const { return mSize; }
-
-    virtual PRInt32 GetDefaultContextFlags() const { return gfxContext::FLAG_DISABLE_SNAPPING; }
 
 private:
     nsCOMPtr<nsIOutputStream> mStream;

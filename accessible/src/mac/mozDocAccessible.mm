@@ -37,7 +37,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsRootAccessibleWrap.h"
-#include "nsObjCExceptions.h"
 
 #import "mozDocAccessible.h"
 
@@ -45,7 +44,7 @@
 
 static id <mozAccessible, mozView> getNativeViewFromRootAccessible (nsAccessible *accessible)
 {
-  nsRootAccessibleWrap *root = static_cast<nsRootAccessibleWrap*>(accessible);
+  nsRootAccessibleWrap *root = NS_STATIC_CAST (nsRootAccessibleWrap*, accessible);
   id <mozAccessible, mozView> nativeView = nil;
   root->GetNativeWidget ((void**)&nativeView);
   return nativeView;
@@ -58,8 +57,6 @@ static id <mozAccessible, mozView> getNativeViewFromRootAccessible (nsAccessible
 // return the AXParent that our parallell NSView tells us about.
 - (id)parent
 {
-  NS_OBJC_BEGIN_TRY_ABORT_BLOCK_NIL;
-
   if (!mParallelView)
     mParallelView = (id<mozView, mozAccessible>)[self representedView];
   
@@ -68,8 +65,6 @@ static id <mozAccessible, mozView> getNativeViewFromRootAccessible (nsAccessible
   
   NSAssert(mParallelView, @"we're a root accessible w/o native view?");
   return [super parent];
-
-  NS_OBJC_END_TRY_ABORT_BLOCK_NIL;
 }
 
 - (BOOL)hasRepresentedView
@@ -80,8 +75,6 @@ static id <mozAccessible, mozView> getNativeViewFromRootAccessible (nsAccessible
 // this will return our parallell NSView. see mozDocAccessible.h
 - (id)representedView
 {
-  NS_OBJC_BEGIN_TRY_ABORT_BLOCK_NIL;
-
   if (mParallelView)
     return (id)mParallelView;
   
@@ -89,8 +82,6 @@ static id <mozAccessible, mozView> getNativeViewFromRootAccessible (nsAccessible
   
   NSAssert(mParallelView, @"can't return root accessible's native parallel view.");
   return mParallelView;
-
-  NS_OBJC_END_TRY_ABORT_BLOCK_NIL;
 }
 
 - (BOOL)isRoot

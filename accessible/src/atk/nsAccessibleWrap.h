@@ -53,31 +53,6 @@
 struct _AtkObject;
 typedef struct _AtkObject AtkObject;
 
-enum AtkProperty {
-  PROP_0,           // gobject convention
-  PROP_NAME,
-  PROP_DESCRIPTION,
-  PROP_PARENT,      // ancestry has changed
-  PROP_ROLE,
-  PROP_LAYER,
-  PROP_MDI_ZORDER,
-  PROP_TABLE_CAPTION,
-  PROP_TABLE_COLUMN_DESCRIPTION,
-  PROP_TABLE_COLUMN_HEADER,
-  PROP_TABLE_ROW_DESCRIPTION,
-  PROP_TABLE_ROW_HEADER,
-  PROP_TABLE_SUMMARY,
-  PROP_LAST         // gobject convention
-};
-
-struct AtkPropertyChange {
-  PRInt32 type;     // property type as listed above
-  void *oldvalue;
-  void *newvalue;
-};
-
-class MaiHyperlink;
-
 /**
  * nsAccessibleWrap, and its descendents in atk directory provide the
  * implementation of AtkObject.
@@ -87,8 +62,6 @@ class nsAccessibleWrap: public nsAccessible
 public:
     nsAccessibleWrap(nsIDOMNode*, nsIWeakReference *aShell);
     virtual ~nsAccessibleWrap();
-    void ShutdownAtkObject();
-    NS_IMETHOD Shutdown();
 
 #ifdef MAI_LOGGING
     virtual void DumpnsAccessibleWrapInfo(int aDepth) {}
@@ -96,39 +69,27 @@ public:
     static PRInt32 mAccWrapDeleted;
 #endif
 
+public:
     // return the atk object for this nsAccessibleWrap
     NS_IMETHOD GetNativeInterface(void **aOutAccessible);
-    NS_IMETHOD FireAccessibleEvent(nsIAccessibleEvent *aEvent);
 
     AtkObject * GetAtkObject(void);
-    static AtkObject * GetAtkObject(nsIAccessible * acc);
 
     PRBool IsValidObject();
-    
-    // get/set the MaiHyperlink object for this nsAccessibleWrap
-    MaiHyperlink* GetMaiHyperlink(PRBool aCreate = PR_TRUE);
-    void SetMaiHyperlink(MaiHyperlink* aMaiHyperlink);
 
     static const char * ReturnString(nsAString &aString) {
       static nsCString returnedString;
       returnedString = NS_ConvertUTF16toUTF8(aString);
       return returnedString.get();
     }
-
+    
 protected:
-    nsresult FireAtkStateChangeEvent(nsIAccessibleEvent *aEvent,
-                                     AtkObject *aObject);
-    nsresult FireAtkTextChangedEvent(nsIAccessibleEvent *aEvent,
-                                     AtkObject *aObject);
-    nsresult FireAtkPropChangedEvent(nsIAccessibleEvent *aEvent,
-                                     AtkObject *aObject);
-    nsresult FireAtkShowHideEvent(nsIAccessibleEvent *aEvent,
-                                  AtkObject *aObject, PRBool aIsAdded);
-
     AtkObject *mAtkObject;
 
 private:
     PRUint16 CreateMaiInterfaces(void);
 };
+
+typedef class nsHTMLRadioButtonAccessible nsHTMLRadioButtonAccessibleWrap;
 
 #endif /* __NS_ACCESSIBLE_WRAP_H__ */

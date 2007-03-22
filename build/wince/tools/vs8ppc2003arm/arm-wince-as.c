@@ -1,4 +1,4 @@
-#include "toolspath.h"
+#include "toolpaths.h"
 
 int 
 main(int argc, char **argv)
@@ -13,5 +13,6 @@ main(int argc, char **argv)
 
   dumpargs(args);
 
-  return run(args);
+  run(args);
+  return 0;
 }

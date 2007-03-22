@@ -35,9 +35,6 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-gTestfile = 'function-003.js';
-
 /**
  *  File Name:          function-003.js
  *  Description:
@@ -69,7 +66,7 @@ function StripSpaces( s ) {
         currentChar < s.length; currentChar++ )
   {
     if (!IsWhiteSpace(s.charAt(currentChar))) {
-      strippedString += s.charAt(currentChar);
+	    strippedString += s.charAt(currentChar);
     }
   }
   return strippedString;

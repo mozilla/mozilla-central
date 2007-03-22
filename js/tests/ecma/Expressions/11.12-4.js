@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '11.12-4.js';
-
 /**
    File Name:          11.12-4.js
    ECMA Section:       11.12

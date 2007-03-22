@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '9.4-1.js';
-
 /**
    File Name:          9.4-1.js
    ECMA Section:       9.4 ToInteger

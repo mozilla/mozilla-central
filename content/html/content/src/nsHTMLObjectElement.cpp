@@ -80,7 +80,7 @@ public:
                            nsIAtom *aPrefix, const nsAString &aValue,
                            PRBool aNotify);
 
-  virtual PRBool IsHTMLFocusable(PRBool *aIsFocusable, PRInt32 *aTabIndex);
+  virtual PRBool IsFocusable(PRInt32 *aTabIndex = nsnull);
   virtual PRUint32 GetDesiredIMEState();
 
   // Overriden nsIFormControl methods
@@ -103,7 +103,6 @@ public:
   virtual nsMapRuleToAttributesFunc GetAttributeMappingFunction() const;
   NS_IMETHOD_(PRBool) IsAttributeMapped(const nsIAtom *aAttribute) const;
   virtual PRInt32 IntrinsicState() const;
-  virtual void DestroyContent();
 
   // nsObjectLoadingContent
   virtual PRUint32 GetCapabilities() const;
@@ -166,20 +165,20 @@ NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
 NS_IMPL_ADDREF_INHERITED(nsHTMLObjectElement, nsGenericElement) 
 NS_IMPL_RELEASE_INHERITED(nsHTMLObjectElement, nsGenericElement) 
 
-NS_HTML_CONTENT_CC_INTERFACE_TABLE_HEAD(nsHTMLObjectElement,
-                                        nsGenericHTMLFormElement)
-  NS_INTERFACE_TABLE_INHERITED10(nsHTMLObjectElement,
-                                 nsIDOMHTMLObjectElement,
-                                 imgIDecoderObserver,
-                                 nsIRequestObserver,
-                                 nsIStreamListener,
-                                 nsIFrameLoaderOwner,
-                                 nsIObjectLoadingContent,
-                                 nsIImageLoadingContent,
-                                 imgIContainerObserver,
-                                 nsIInterfaceRequestor,
-                                 nsIChannelEventSink)
-NS_HTML_CONTENT_INTERFACE_TABLE_TAIL_CLASSINFO(HTMLObjectElement)
+NS_HTML_CONTENT_CC_INTERFACE_MAP_BEGIN(nsHTMLObjectElement,
+                                       nsGenericHTMLFormElement)
+  NS_INTERFACE_MAP_ENTRY(nsIDOMHTMLObjectElement)
+  NS_INTERFACE_MAP_ENTRY(imgIDecoderObserver)
+  NS_INTERFACE_MAP_ENTRY(nsIRequestObserver)
+  NS_INTERFACE_MAP_ENTRY(nsIStreamListener)
+  NS_INTERFACE_MAP_ENTRY(nsIFrameLoaderOwner)
+  NS_INTERFACE_MAP_ENTRY(nsIObjectLoadingContent)
+  NS_INTERFACE_MAP_ENTRY(nsIImageLoadingContent)
+  NS_INTERFACE_MAP_ENTRY(nsIInterfaceRequestor)
+  NS_INTERFACE_MAP_ENTRY(nsIChannelEventSink)
+  NS_INTERFACE_MAP_ENTRY(nsISupportsWeakReference)
+  NS_INTERFACE_MAP_ENTRY_CONTENT_CLASSINFO(HTMLObjectElement)
+NS_HTML_CONTENT_INTERFACE_MAP_END
 
 NS_IMPL_ELEMENT_CLONE(nsHTMLObjectElement)
 
@@ -232,11 +231,8 @@ nsHTMLObjectElement::SetAttr(PRInt32 aNameSpaceID, nsIAtom *aName,
   // get bound after all the attributes have been set, so we'll do the
   // object load from BindToTree/DoneAddingChildren.
   // Skip the LoadObject call in that case.
-  // We also don't want to start loading the object when we're not yet in
-  // a document, just in case that the caller wants to set additional
-  // attributes before inserting the node into the document.
-  if (aNotify && IsInDoc() && mIsDoneAddingChildren &&
-      aNameSpaceID == kNameSpaceID_None && aName == nsGkAtoms::data) {
+  if (aNotify && aNameSpaceID == kNameSpaceID_None &&
+      aName == nsGkAtoms::data) {
     nsAutoString type;
     GetAttr(kNameSpaceID_None, nsGkAtoms::type, type);
     LoadObject(aValue, aNotify, NS_ConvertUTF16toUTF8(type), PR_TRUE);
@@ -247,7 +243,7 @@ nsHTMLObjectElement::SetAttr(PRInt32 aNameSpaceID, nsIAtom *aName,
 }
 
 PRBool
-nsHTMLObjectElement::IsHTMLFocusable(PRBool *aIsFocusable, PRInt32 *aTabIndex)
+nsHTMLObjectElement::IsFocusable(PRInt32 *aTabIndex)
 {
   if (Type() == eType_Plugin) {
     // Has plugin content: let the plugin decide what to do in terms of
@@ -256,12 +252,10 @@ nsHTMLObjectElement::IsHTMLFocusable(PRBool *aIsFocusable, PRInt32 *aTabIndex)
       GetTabIndex(aTabIndex);
     }
   
-    *aIsFocusable = PR_TRUE;
-
-    return PR_FALSE;
+    return PR_TRUE;
   }
 
-  return nsGenericHTMLFormElement::IsHTMLFocusable(aIsFocusable, aTabIndex);
+  return nsGenericHTMLFormElement::IsFocusable(aTabIndex);
 }
 
 PRUint32
@@ -439,11 +433,4 @@ PRUint32
 nsHTMLObjectElement::GetCapabilities() const
 {
   return nsObjectLoadingContent::GetCapabilities() | eSupportClassID;
-}
-
-void
-nsHTMLObjectElement::DestroyContent()
-{
-  RemovedFromDocument();
-  nsGenericHTMLFormElement::DestroyContent();
 }

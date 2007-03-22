@@ -45,8 +45,6 @@
 #include "nsServiceManagerUtils.h"
 #include "nsIObserverService.h"
 #include "nsStringAPI.h"
-#include "nsIPrefBranch2.h"
-#include "nsIPrefService.h"
 
 // Define NetworkManager API constants. This avoids a dependency on
 // NetworkManager-devel.
@@ -110,7 +108,7 @@ NetworkStatusNotify(DBusPendingCall *pending, void* user_data) {
   if (!msg)
     return;
   if (dbus_message_get_type(msg) == DBUS_MESSAGE_TYPE_METHOD_RETURN) {
-    static_cast<nsNetworkManagerListener*>(user_data)->UpdateNetworkStatus(msg);
+    NS_STATIC_CAST(nsNetworkManagerListener*, user_data)->UpdateNetworkStatus(msg);
   }
   dbus_message_unref(msg);
 }
@@ -163,7 +161,7 @@ nsNetworkManagerListener::NotifyNetworkStatusObservers() {
     status = NS_LITERAL_STRING(NS_NETWORK_LINK_DATA_UNKNOWN).get();
   }
 
-  observerService->NotifyObservers(static_cast<nsISupports*>(this),
+  observerService->NotifyObservers(NS_STATIC_CAST(nsISupports*, this),
                                    NS_NETWORK_LINK_TOPIC, status);
 }
 
@@ -189,17 +187,7 @@ nsNetworkManagerListener::UpdateNetworkStatus(DBusMessage* msg) {
   if (!dbus_message_get_args(msg, NULL, DBUS_TYPE_UINT32, &result,
                              DBUS_TYPE_INVALID))
     return;
-
-  // Don't update status if disabled by pref
-  nsCOMPtr<nsIPrefBranch2> prefs =
-    do_GetService(NS_PREFSERVICE_CONTRACTID);
-  if (prefs) {
-    PRBool ignore = PR_FALSE;
-    prefs->GetBoolPref("toolkit.networkmanager.disable", &ignore);
-    if (ignore)
-      return;
-  }
-
+  
   mNetworkManagerActive = PR_TRUE;
   
   PRBool wasUp = mLinkUp;

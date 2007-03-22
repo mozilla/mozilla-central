@@ -46,6 +46,7 @@
 #include "nsScriptableRegion.h" 
 #include "nsDeviceContextBeOS.h" 
 #include "nsImageBeOS.h" 
+#include "nsFontList.h"
 #include "gfxImageFrame.h"
 
 // objects that just require generic constructors 
@@ -57,6 +58,7 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsImageBeOS)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsBlender) 
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsRegionBeOS) 
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsFontEnumeratorBeOS) 
+NS_GENERIC_FACTORY_CONSTRUCTOR(nsFontList)
 
 NS_GENERIC_FACTORY_CONSTRUCTOR(gfxImageFrame)
  
@@ -144,6 +146,11 @@ static const nsModuleComponentInfo components[] =
     //    "@mozilla.org/gfx/font_enumerator/beos;1", 
     "@mozilla.org/gfx/fontenumerator;1", 
     nsFontEnumeratorBeOSConstructor }, 
+  { "Font List",  
+    NS_FONTLIST_CID,
+    //    "@mozilla.org/gfx/fontlist;1"
+    NS_FONTLIST_CONTRACTID,
+    nsFontListConstructor },
   { "windows image frame",
     GFX_IMAGEFRAME_CID,
     "@mozilla.org/gfx/image/frame;2",

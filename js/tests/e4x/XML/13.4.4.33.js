@@ -40,8 +40,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '13.4.4.33.js';
-
 START("13.4.4.33 - XML setChildren()");
 
 TEST(1, true, XML.prototype.hasOwnProperty("setChildren"));
@@ -51,7 +49,7 @@ x =
     <bravo>one</bravo>
 </alpha>;
 
-correct =
+correct = 
 <alpha>
     <charlie>two</charlie>
 </alpha>;

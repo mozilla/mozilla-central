@@ -2100,7 +2100,6 @@ js_dtoa(double d, int mode, JSBool biasUp, int ndigits,
     Bigint *b, *b1, *delta, *mlo, *mhi, *S;
     double d2, ds, eps;
     char *s;
-    const char *cs;
 
     if (word0(d) & Sign_bit) {
         /* set sign for everything, including 0's and NaNs */
@@ -2113,13 +2112,13 @@ js_dtoa(double d, int mode, JSBool biasUp, int ndigits,
     if ((word0(d) & Exp_mask) == Exp_mask) {
         /* Infinity or NaN */
         *decpt = 9999;
-        cs = !word1(d) && !(word0(d) & Frac_mask) ? "Infinity" : "NaN";
-        if ((cs[0] == 'I' && bufsize < 9) || (cs[0] == 'N' && bufsize < 4)) {
+        s = !word1(d) && !(word0(d) & Frac_mask) ? "Infinity" : "NaN";
+        if ((s[0] == 'I' && bufsize < 9) || (s[0] == 'N' && bufsize < 4)) {
             JS_ASSERT(JS_FALSE);
 /*          JS_SetError(JS_BUFFER_OVERFLOW_ERROR, 0); */
             return JS_FALSE;
         }
-        strcpy(buf, cs);
+        strcpy(buf, s);
         if (rve) {
             *rve = buf[3] ? buf + 8 : buf + 3;
             JS_ASSERT(**rve == '\0');
@@ -2350,13 +2349,8 @@ js_dtoa(double d, int mode, JSBool biasUp, int ndigits,
                 *s++ = '0' + (char)L;
                 if (d < eps)
                     goto ret1;
-                if (1. - d < eps) {
-#ifdef DEBUG
-                    /* Clear d to avoid precision warning. */
-                    d = 0;
-#endif
+                if (1. - d < eps)
                     goto bump_up;
-                }
                 if (++i >= ilim)
                     break;
                 eps *= 10.;
@@ -2372,13 +2366,8 @@ js_dtoa(double d, int mode, JSBool biasUp, int ndigits,
                 d -= L;
                 *s++ = '0' + (char)L;
                 if (i == ilim) {
-                    if (d > 0.5 + eps) {
-#ifdef DEBUG
-                        /* Clear d to avoid precision warning. */
-                        d = 0;
-#endif
+                    if (d > 0.5 + eps)
                         goto bump_up;
-                    }
                     else if (d < 0.5 - eps) {
                         while(*--s == '0') ;
                         s++;

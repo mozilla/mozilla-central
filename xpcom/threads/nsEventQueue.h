@@ -104,7 +104,7 @@ private:
   };
 
   static Page *NewPage() {
-    return static_cast<Page *>(calloc(1, sizeof(Page)));
+    return NS_STATIC_CAST(Page *, calloc(1, sizeof(Page)));
   }
 
   static void FreePage(Page *p) {

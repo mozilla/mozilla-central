@@ -94,7 +94,7 @@ public:
         }
 
     PRBool IsArray() const
-        {return TagPart() == T_ARRAY;}
+        {return (PRBool) TagPart() == T_ARRAY;}
 
     // 'Dependent' means that params of this type are dependent upon other 
     // params. e.g. an T_INTERFACE_IS is dependent upon some other param at 
@@ -159,7 +159,6 @@ public:
     PRBool IsRetval() const {return 0 != (XPT_PD_IS_RETVAL(flags));}
     PRBool IsShared() const {return 0 != (XPT_PD_IS_SHARED(flags));}
     PRBool IsDipper() const {return 0 != (XPT_PD_IS_DIPPER(flags));}
-    PRBool IsOptional() const {return 0 != (XPT_PD_IS_OPTIONAL(flags));}
     const nsXPTType GetType() const {return type.prefix;}
 
     // NOTE: other activities on types are done via methods on nsIInterfaceInfo

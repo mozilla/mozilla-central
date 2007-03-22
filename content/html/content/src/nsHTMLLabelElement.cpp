@@ -37,7 +37,7 @@
 #include "nsCOMPtr.h"
 #include "nsIDOMHTMLLabelElement.h"
 #include "nsIDOMHTMLFormElement.h"
-#include "nsIDOMEventTarget.h"
+#include "nsIDOMEventReceiver.h"
 #include "nsGenericHTMLElement.h"
 #include "nsGkAtoms.h"
 #include "nsStyleConsts.h"
@@ -111,8 +111,7 @@ protected:
   already_AddRefed<nsIContent> GetFirstFormControl(nsIContent *current);
 
   // XXX It would be nice if we could use an event flag instead.
-  PRPackedBool mHandlingEvent;
-  PRPackedBool mInSetFocus;
+  PRBool mHandlingEvent;
 };
 
 // construction, destruction
@@ -122,9 +121,8 @@ NS_IMPL_NS_NEW_HTML_ELEMENT(Label)
 
 
 nsHTMLLabelElement::nsHTMLLabelElement(nsINodeInfo *aNodeInfo)
-  : nsGenericHTMLFormElement(aNodeInfo)
-  , mHandlingEvent(PR_FALSE)
-  , mInSetFocus(PR_FALSE)
+  : nsGenericHTMLFormElement(aNodeInfo),
+    mHandlingEvent(PR_FALSE)
 {
 }
 
@@ -140,10 +138,11 @@ NS_IMPL_RELEASE_INHERITED(nsHTMLLabelElement, nsGenericElement)
 
 
 // QueryInterface implementation for nsHTMLLabelElement
-NS_HTML_CONTENT_INTERFACE_TABLE_HEAD(nsHTMLLabelElement,
-                                     nsGenericHTMLFormElement)
-  NS_INTERFACE_TABLE_INHERITED1(nsHTMLLabelElement, nsIDOMHTMLLabelElement)
-NS_HTML_CONTENT_INTERFACE_TABLE_TAIL_CLASSINFO(HTMLLabelElement)
+NS_HTML_CONTENT_INTERFACE_MAP_BEGIN(nsHTMLLabelElement,
+                                    nsGenericHTMLFormElement)
+  NS_INTERFACE_MAP_ENTRY(nsIDOMHTMLLabelElement)
+  NS_INTERFACE_MAP_ENTRY_CONTENT_CLASSINFO(HTMLLabelElement)
+NS_HTML_CONTENT_INTERFACE_MAP_END
 
 
 // nsIDOMHTMLLabelElement
@@ -241,7 +240,7 @@ nsHTMLLabelElement::PostHandleEvent(nsEventChainPostVisitor& aVisitor)
           // Ok to use aVisitor.mEvent as parameter because DispatchClickEvent
           // will actually create a new event.
           DispatchClickEvent(aVisitor.mPresContext,
-                             static_cast<nsInputEvent*>(aVisitor.mEvent),
+                             NS_STATIC_CAST(nsInputEvent*, aVisitor.mEvent),
                              content, PR_FALSE, &status);
           // Do we care about the status this returned?  I don't think we do...
         }
@@ -255,7 +254,6 @@ nsHTMLLabelElement::PostHandleEvent(nsEventChainPostVisitor& aVisitor)
         // of redirecting |SetFocus|.
         {
           nsEvent event(NS_IS_TRUSTED_EVENT(aVisitor.mEvent), NS_FOCUS_CONTENT);
-          event.flags |= NS_EVENT_FLAG_CANT_BUBBLE;
           nsEventStatus status = aVisitor.mEventStatus;
           DispatchEvent(aVisitor.mPresContext, &event,
                         content, PR_TRUE, &status);
@@ -271,13 +269,11 @@ nsHTMLLabelElement::PostHandleEvent(nsEventChainPostVisitor& aVisitor)
 void
 nsHTMLLabelElement::SetFocus(nsPresContext* aContext)
 {
-  if (mInSetFocus)
-    return;
-  mInSetFocus = PR_TRUE;
+  // Since we don't have '-moz-user-focus: normal', the only time
+  // |SetFocus| will be called is when the accesskey is activated.
   nsCOMPtr<nsIContent> content = GetForContent();
   if (content)
     content->SetFocus(aContext);
-  mInSetFocus = PR_FALSE;
 }
 
 nsresult
@@ -345,7 +341,7 @@ nsHTMLLabelElement::PerformAccesskey(PRBool aKeyCausesActivation,
     nsAutoPopupStatePusher popupStatePusher(aIsTrustedEvent ?
                                             openAllowed : openAbused);
 
-    nsEventDispatcher::Dispatch(static_cast<nsIContent*>(this), presContext,
+    nsEventDispatcher::Dispatch(NS_STATIC_CAST(nsIContent*, this), presContext,
                                 &event);
   }
 }

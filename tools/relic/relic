@@ -66,7 +66,7 @@
         -A, --add           Add a license to files that do not appear to
                             have one.
         -I, --initial-developers
-                            Display initial developer for each file.
+	                    Display initial developer for each file.
 
     General Options:
         -h, --help          dump this help and exit
@@ -144,6 +144,8 @@ except ImportError:
 
 log = logging.getLogger("relic")
 
+
+
 #---- globals
 
 _version_ = (0, 7, 2)
@@ -166,9 +168,7 @@ _g_skip_file_basenames = [
     # license and readme files
     "license",
     "readme",
-    "copyright",
-    "LICENSE-MPL",
-    "MPL-1.1.txt",
+
 ]
 _g_skip_files = [
     # TODO: update with MPL block - or CVS remove (check history)
@@ -184,6 +184,13 @@ _g_skip_files = [
     "js2/COPYING",
     "security/svrcore/LICENSE",
     "extensions/xmlterm/doc/MPL",
+    "xpinstall/wizard/unix/src2/MPL-1.1.txt",
+    "nsprpub/pkg/solaris/common_files/copyright",
+    "security/nss/pkg/solaris/common_files/copyright",
+    "security/jss/pkg/solaris/common_files/copyright",
+    "security/nss/lib/freebl/mpi/utils/LICENSE-MPL",
+    "security/nss/lib/freebl/mpi/tests/LICENSE-MPL",
+    "security/nss/lib/freebl/mpi/doc/LICENSE-MPL",
     "gfx/cairo/cairo/COPYING-LGPL-2.1",
     "gfx/cairo/cairo/COPYING-MPL-1.1",
     
@@ -201,6 +208,7 @@ _g_skip_files = [
     "intl/uconv/tools/parse-mozilla-encoding-table.pl",
     "intl/uconv/tools/gen-big5hkscs-2001-mozilla.pl",
     "js2/missing",
+    "tools/buildbot",
     
     # Files which the script doesn't handle well. All have been relicensed
     # manually.
@@ -236,7 +244,6 @@ _g_skip_files = [
     "security/svrcore/ltmain.sh",
     "security/svrcore/missing",
     "security/svrcore/depcomp",
-    "security/svrcore/aclocal.m4",
     
     # Public domain or equivalent
     "nsprpub/config/nspr.m4",
@@ -267,11 +274,15 @@ _g_skip_dirs = [
         
     # As per the "New Original Source Files" section of:
     #   http://www.mozilla.org/MPL/license-policy.html
-    #   with obsolete or now-relicensed directories removed
     "apache",             # Obsolete mod_gzip code
     "cck",                # mkaply's baby; not core code anyway.
     "dbm",
+    "directory/java-sdk", # Java LDAP SDK
+    "directory/perldap",  # Perl LDAP SDK
+    "ef",                 # Multi-platform Java JIT
+    "grendel",            # Mail client in Java
     "js/rhino",           # Currently MPL/GPL - may end up BSD
+    "mstone",             # Mail server performance testing tool
     "webtools",           # Various MPLed webtools
     
     # These could be done, but no-one's clamouring for it, and it's a hassle
@@ -290,9 +301,6 @@ _g_skip_dirs = [
     "modules/zlib",
     "gc/boehm",
     "other-licenses",
-    
-    # Copy of GPLed tool
-    "tools/buildbot",
     
     # Other directories we want to exclude
     "embedding/tests",     # Agreed as BSD
@@ -369,7 +377,7 @@ _g_basename_to_comment_info = {
 }
 
 _g_ext_to_comment_info = {
-    ".txt":   (["##", "#", ], ["#"]),
+    ".txt":   (["##", "#", ]),
     ".TXT":   (["##", "#", ]),
 
     ".doc":   (["", ]),
@@ -383,7 +391,6 @@ _g_ext_to_comment_info = {
     ".cpp":    (["/*", " *", "*/"], ),
     ".H":      (["/*", " *", "*/"], ),
     ".h":      (["/*", " *", "*/"], ),
-    ".hxx":    (["/*", " *", "*/"], ),
     ".c":      (["/*", " *", "*/"], ),
     ".css":    (["/*", " *", "*/"], ['#']),
     ".js":     (["/*", " *", "*/"], ['#']),
@@ -454,7 +461,6 @@ _g_ext_to_comment_info = {
     ".MAK":        (["#"], ),
     ".perl":       (["#"], ),
     ".pl":         (["#"], ),
-    ".PL":         (["#"], ),
     ".sh":         (["#"], ),
     ".dsw":        (["#"], ),
     ".cgi":        (["#"], ),
@@ -1288,6 +1294,17 @@ def _get_license_info(filename, show_initial=0, quick=0):
         initial_developer = match.group("developer")
         initial_copyright_date = match.group("date")
     lic_info["initial_developer"] = initial_developer
+    ###########################################################################
+    # XXX GRM - Temporary code to print out Initial Developer list for MPL
+    # section 3.3 compliance in about:licence.
+    # 0) Uncomment the two lines below.
+    # 1) /usr/src/relic/relic -s -f . > init-devs.txt
+    # 2) Edit init-devs.txt to remove the trailing summary text.
+    # 3) /usr/src/relic/make-id-list < init-devs.txt > list.txt
+    ###########################################################################
+    if (show_initial):
+        print initial_developer
+    
     lic_info["initial_copyright_date"] = initial_copyright_date
     log.info("initial developer paragraph: %r", paragraph)
     log.info("initial developer: %r", initial_developer)
@@ -1383,8 +1400,6 @@ def _get_license_info(filename, show_initial=0, quick=0):
 def _report_on_file(path, (results, switch_to_mpl, show_initial, quick, _errors)):
     log.debug("_report_on_file(path='%s', results)", path)
     output = path + "\n"
-    lic_info = {}
-    
     if _is_binary(path):
         output += "... binary, skipping this file\n"
     else:
@@ -1435,12 +1450,8 @@ def _report_on_file(path, (results, switch_to_mpl, show_initial, quick, _errors)
             if lic_info.get("unindented_contributor_lines"):
                 output += "... one or more contributor lines were not indented properly"\
     	              + "\n"
+    print output;
 
-    if show_initial:
-      if "initial_developer" in lic_info:
-        print lic_info["initial_developer"]
-    else:
-      print output;
 
 def _gather_info_on_file(path, (results, _errors)):
     log.debug("_gather_info_on_file(path='%s', results)", path)
@@ -1819,7 +1830,7 @@ def _add_license_to_file(original_path,
             original_path, _errors)
 
     try:
-        lic_info = _get_license_info(original_path, 0)
+        lic_info = _get_license_info(original_path, show_initial)
     except RelicError, ex:
         return _relicensing_error(ex, original_path, _errors)
 

@@ -75,11 +75,9 @@ public:
 
 NS_DEFINE_STATIC_IID_ACCESSOR(nsIGenericFactory, NS_IGENERICFACTORY_IID)
 
-#ifndef XPCOM_GLUE_AVOID_NSPR
 NS_COM_GLUE nsresult
 NS_NewGenericFactory(nsIGenericFactory **result,
                      const nsModuleComponentInfo *info);
-#endif
 
 
 /** Component Callbacks **/
@@ -304,7 +302,6 @@ struct nsModuleInfo {
  */
 #define NS_MODULEINFO_VERSION 0x00015000UL // 1.5
 
-#ifndef XPCOM_GLUE_AVOID_NSPR
 /**
  * Create a new generic module. Use the NS_IMPL_NSGETMODULE macro, or
  * one of its relatives, rather than using this directly.
@@ -321,8 +318,6 @@ NS_NewGenericModule(const char* moduleName,
                     nsModuleComponentInfo* components,
                     nsModuleDestructorProc dtor,
                     nsIModule* *result);
-
-#endif // XPCOM_GLUE_AVOID_NSPR
 
 #if defined(XPCOM_TRANSLATE_NSGM_ENTRY_POINT)
 #  define NSGETMODULE_ENTRY_POINT(_name)  NS_VISIBILITY_HIDDEN nsresult _name##_NSGetModule

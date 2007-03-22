@@ -19,7 +19,7 @@
  * Portions created by the Initial Developer are Copyright (C) 2005
  * the Initial Developer. All Rights Reserved.
  *
- * Contributor(s): Jeff Thompson
+ * Contributor(s): Jeff Thompson 
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -34,15 +34,13 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-314890.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 314890;
+var bug = 314890;
 var summary = 'String == should short circuit for object identify';
 var actual = '';
 var expect = '';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
 var s1 = 'x';
@@ -51,7 +49,7 @@ var count = 0;
 
 var data = {X:[], Y:[]};
 for (var power = 0; power < 20; power++)
-{ 
+{  
   s1 = s1 + s1;
   s2 = s1;
 
@@ -73,7 +71,7 @@ var order = BigO(data);
 
 var msg = '';
 for (var p = 0; p < data.X.length; p++)
-{
+{ 
   msg += '(' + data.X[p] + ', ' + data.Y[p] + '); ';
 }
 printStatus(msg);

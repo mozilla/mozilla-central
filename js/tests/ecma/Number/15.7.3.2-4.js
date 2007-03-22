@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '15.7.3.2-4.js';
-
 /**
    File Name:          15.7.3.2-4.js
    ECMA Section:       15.7.3.2 Number.MAX_VALUE

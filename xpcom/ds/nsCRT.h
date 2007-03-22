@@ -228,20 +228,16 @@ public:
   static PRUint32 HashCode(const char* str,
                            PRUint32* resultingStrLen = nsnull);
 
-  // Computes the hashcode for a length number of bytes of c-string data.
-  static PRUint32 HashCode(const char* start, PRUint32 length);
-
   // Computes the hashcode for a ucs2 string, returns the string length
   // as an added bonus.
   static PRUint32 HashCode(const PRUnichar* str,
                            PRUint32* resultingStrLen = nsnull);
 
-  // Computes a hashcode for a length number of UTF16
-  // characters. Returns the same hash code as the HashCode method
-  // taking a |char*| would if the string were converted to UTF8. This
-  // hash function treats invalid UTF16 data as 0xFFFD (0xEFBFBD in
-  // UTF-8).
-  static PRUint32 HashCodeAsUTF8(const PRUnichar* start, PRUint32 length);
+  // Computes a hashcode for a ucs2 string that returns the same thing
+  // as the HashCode method taking a |char*| would if the string were
+  // converted to UTF8.  Returns the string length as an added bonus.
+  static PRUint32 HashCodeAsUTF8(const PRUnichar* str,
+                                 PRUint32* resultingStrLen = nsnull);
 
   // Computes the hashcode for a buffer with a specified length.
   static PRUint32 BufferHashCode(const PRUnichar* str, PRUint32 strLen);
@@ -272,27 +268,15 @@ public:
 #define CRLF "\015\012"     /* A CR LF equivalent string */
 
 
-#if defined(XP_MACOSX)
-  #define FILE_PATH_SEPARATOR        "/"
-  #define OS_FILE_ILLEGAL_CHARACTERS ":"
-#elif defined(XP_WIN) || defined(XP_OS2)
-  #define FILE_PATH_SEPARATOR        "\\"
-  #define OS_FILE_ILLEGAL_CHARACTERS "/:*?\"<>|"
+#if defined(XP_WIN) || defined(XP_OS2)
+  #define FILE_PATH_SEPARATOR       "\\"
+  #define FILE_ILLEGAL_CHARACTERS   "/:*?\"<>|"
 #elif defined(XP_UNIX) || defined(XP_BEOS)
-  #define FILE_PATH_SEPARATOR        "/"
-  #define OS_FILE_ILLEGAL_CHARACTERS ""
+  #define FILE_PATH_SEPARATOR       "/"
+  #define FILE_ILLEGAL_CHARACTERS   ""
 #else
   #error need_to_define_your_file_path_separator_and_illegal_characters
 #endif
-
-// Not all these control characters are illegal in all OSs, but we don't really
-// want them appearing in filenames
-#define CONTROL_CHARACTERS     "\001\002\003\004\005\006\007" \
-                           "\010\011\012\013\014\015\016\017" \
-                           "\020\021\022\023\024\025\026\027" \
-                           "\030\031\032\033\034\035\036\037"
-
-#define FILE_ILLEGAL_CHARACTERS CONTROL_CHARACTERS OS_FILE_ILLEGAL_CHARACTERS
 
 #define NS_IS_SPACE(VAL) \
   (((((intn)(VAL)) & 0x7f) == ((intn)(VAL))) && isspace((intn)(VAL)) )

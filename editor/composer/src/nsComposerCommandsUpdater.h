@@ -47,8 +47,6 @@
 
 #include "nsCOMPtr.h"
 #include "nsITimer.h"
-#include "nsWeakPtr.h"
-#include "nsPICommandUpdater.h"
 
 #include "nsISelectionListener.h"
 #include "nsIDocumentStateListener.h"
@@ -112,15 +110,13 @@ protected:
   nsresult      UpdateDirtyState(PRBool aNowDirty);  
   nsresult      UpdateOneCommand(const char* aCommand);
   nsresult      UpdateCommandGroup(const nsAString& aCommandGroup);
-
-  already_AddRefed<nsPICommandUpdater> GetCommandUpdater();
   
   nsresult      PrimeUpdateTimer();
   void          TimerCallback();
   nsCOMPtr<nsITimer>  mUpdateTimer;
 
   nsIDOMWindow* mDOMWindow;  // Weak reference
-  nsWeakPtr     mDocShell;
+  nsIDocShell*  mDocShell;   // Weak reference
   PRInt8        mDirtyState;  
   PRInt8        mSelectionCollapsed;  
   PRPackedBool  mFirstDoOfFirstUndo;

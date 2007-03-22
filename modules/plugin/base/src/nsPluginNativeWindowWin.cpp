@@ -79,7 +79,7 @@ public:
   UINT   GetMsg()    { return mMsg; };
   WPARAM GetWParam() { return mWParam; };
   LPARAM GetLParam() { return mLParam; };
-  PRBool InUse()     { return (mWnd!=NULL); };
+  PRBool InUse()     { return (mWnd!=NULL || mMsg!=0); };
 
   NS_DECL_NSIRUNNABLE
 
@@ -89,6 +89,7 @@ protected:
   UINT   mMsg;
   WPARAM mWParam;
   LPARAM mLParam;
+  PRBool mIsAlloced;
 };
 
 PluginWindowEvent::PluginWindowEvent()
@@ -107,8 +108,8 @@ void PluginWindowEvent::Clear()
 void PluginWindowEvent::Init(const PluginWindowWeakRef &ref, HWND aWnd,
                              UINT aMsg, WPARAM aWParam, LPARAM aLParam)
 {
-  NS_ASSERTION(aWnd != NULL, "invalid plugin event value");
-  NS_ASSERTION(mWnd == NULL, "event already in use");
+  NS_ASSERTION(aWnd!=NULL && aMsg!=0, "invalid plugin event value");
+  NS_ASSERTION(mWnd==NULL && mMsg==0 && mWParam==0 && mLParam==0,"event already in use");
   mPluginWindowRef = ref;
   mWnd    = aWnd;
   mMsg    = aMsg;
@@ -144,10 +145,7 @@ public:
   // locals
   WNDPROC GetPrevWindowProc();
   WNDPROC GetWindowProc();
-  PluginWindowEvent * GetPluginWindowEvent(HWND aWnd,
-                                           UINT aMsg,
-                                           WPARAM aWParam,
-                                           LPARAM aLParam);
+  PluginWindowEvent * GetPluginWindowEvent(HWND aWnd, UINT aMsg, WPARAM aWParam, LPARAM aLParam);
 
 private:
   WNDPROC mPrevWinProc;
@@ -207,15 +205,11 @@ static LRESULT CALLBACK PluginWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM
   if (!win)
     return TRUE;
 
-  // The DispatchEvent(NS_PLUGIN_ACTIVATE) below can trigger a reentrant focus
-  // event which might destroy us.  Hold a strong ref on the plugin instance
-  // to prevent that, bug 374229.
-  nsCOMPtr<nsIPluginInstance> inst;
-  win->GetPluginInstance(inst);
-
-  // check plugin mime type and cache whether it is Flash or not
+  // check plugin myme type and cache whether it is Flash or not
   // Flash will need special treatment later
   if (win->mPluginType == nsPluginType_Unknown) {
+    nsCOMPtr<nsIPluginInstance> inst;
+    win->GetPluginInstance(inst);
     if (inst) {
       nsCOMPtr<nsIPluginInstancePeer> pip;
       inst->GetPeer(getter_AddRefs(pip));
@@ -317,9 +311,6 @@ static LRESULT CALLBACK PluginWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM
 
     case WM_SETFOCUS:
     case WM_KILLFOCUS: {
-      // RealPlayer can crash, don't process the message for those, see bug 328675
-      if (win->mPluginType == nsPluginType_Real && msg == sLastMsg)
-        return TRUE;
       // Make sure setfocus and killfocus get through
       // even if they are eaten by the plugin
       WNDPROC prevWndProc = win->GetPrevWindowProc();
@@ -341,6 +332,8 @@ static LRESULT CALLBACK PluginWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM
   LRESULT res = TRUE;
 
   nsCOMPtr<nsIPluginInstanceInternal> instInternal;
+  nsCOMPtr<nsIPluginInstance> inst;
+  win->GetPluginInstance(inst);
 
   if (enablePopups) {
     nsCOMPtr<nsIPluginInstanceInternal> tmp = do_QueryInterface(inst);
@@ -442,7 +435,7 @@ NS_IMETHODIMP PluginWindowEvent::Run()
   return NS_OK;
 }
 
-PluginWindowEvent * 
+PluginWindowEvent*
 nsPluginNativeWindowWin::GetPluginWindowEvent(HWND aWnd, UINT aMsg, WPARAM aWParam, LPARAM aLParam)
 {
   if (!mWeakRef) {
@@ -452,25 +445,20 @@ nsPluginNativeWindowWin::GetPluginWindowEvent(HWND aWnd, UINT aMsg, WPARAM aWPar
   }
 
   PluginWindowEvent *event;
-
-  // We have the ability to alloc if needed in case in the future some plugin
-  // should post multiple PostMessages. However, this could lead to many
-  // alloc's per second which could become a performance issue. See bug 169247.
-  if (!mCachedPluginWindowEvent) 
-  {
+  if (!mCachedPluginWindowEvent || mCachedPluginWindowEvent->InUse()) {
+    // We have the ability to alloc if needed in case in the future some plugin
+    // should post multiple PostMessages. However, this could lead to many
+    // alloc's per second which could become a performance issue. If/when this
+    // is asserting then this needs to be studied. See bug 169247
+    NS_ASSERTION(1, "possible plugin performance issue");
     event = new PluginWindowEvent();
-    if (!event) return nsnull;
-    mCachedPluginWindowEvent = event;
+    if (!event)
+      return nsnull;
   }
-  else if (mCachedPluginWindowEvent->InUse())
-  {
-    event = new PluginWindowEvent();
-    if (!event) return nsnull;
-  }
-  else
-  {
+  else {
     event = mCachedPluginWindowEvent;
   }
+  NS_ADDREF(event);
 
   event->Init(mWeakRef, aWnd, aMsg, aWParam, aLParam);
   return event;

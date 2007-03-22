@@ -50,11 +50,11 @@
 #include "nsCOMPtr.h"
 #include "nsCRT.h"
 #include "nsElementMap.h"
+#include "nsISupportsArray.h"
 #include "nsString.h"
 #include "nsIAtom.h"
 #include "nsReadableUtils.h"
 #include "prlog.h"
-#include "prbit.h"
 
 #ifdef PR_LOGGING
 static PRLogModuleInfo* gMapLog;
@@ -67,19 +67,19 @@ static void* PR_CALLBACK AllocTable(void* aPool, PRSize aSize)
 
 static void PR_CALLBACK FreeTable(void* aPool, void* aItem)
 {
-    delete[] static_cast<char*>(aItem);
+    delete[] NS_STATIC_CAST(char*, aItem);
 }
 
 static PLHashEntry* PR_CALLBACK AllocEntry(void* aPool, const void* aKey)
 {
-    nsFixedSizeAllocator* pool = static_cast<nsFixedSizeAllocator*>(aPool);
-    PLHashEntry* entry = static_cast<PLHashEntry*>(pool->Alloc(sizeof(PLHashEntry)));
+    nsFixedSizeAllocator* pool = NS_STATIC_CAST(nsFixedSizeAllocator*, aPool);
+    PLHashEntry* entry = NS_STATIC_CAST(PLHashEntry*, pool->Alloc(sizeof(PLHashEntry)));
     return entry;
 }
 
 static void PR_CALLBACK FreeEntry(void* aPool, PLHashEntry* aEntry, PRUintn aFlag) 
 {
-    nsFixedSizeAllocator* pool = static_cast<nsFixedSizeAllocator*>(aPool);
+    nsFixedSizeAllocator* pool = NS_STATIC_CAST(nsFixedSizeAllocator*, aPool);
     if (aFlag == HT_FREE_ENTRY)
         pool->Free(aEntry, sizeof(PLHashEntry));
 }
@@ -142,15 +142,15 @@ nsElementMap::~nsElementMap()
 PRIntn
 nsElementMap::ReleaseContentList(PLHashEntry* aHashEntry, PRIntn aIndex, void* aClosure)
 {
-    nsElementMap* self = static_cast<nsElementMap*>(aClosure);
+    nsElementMap* self = NS_STATIC_CAST(nsElementMap*, aClosure);
 
     PRUnichar* id =
-        reinterpret_cast<PRUnichar*>(const_cast<void*>(aHashEntry->key));
+        NS_REINTERPRET_CAST(PRUnichar*, NS_CONST_CAST(void*, aHashEntry->key));
 
     nsMemory::Free(id);
         
     ContentListItem* head =
-        reinterpret_cast<ContentListItem*>(aHashEntry->value);
+        NS_REINTERPRET_CAST(ContentListItem*, aHashEntry->value);
 
     while (head) {
         ContentListItem* doomed = head;
@@ -173,7 +173,7 @@ nsElementMap::Add(const nsAString& aID, nsIContent* aContent)
     const PRUnichar *id = flatID.get();
 
     ContentListItem* head =
-        static_cast<ContentListItem*>(PL_HashTableLookup(mMap, id));
+        NS_STATIC_CAST(ContentListItem*, PL_HashTableLookup(mMap, id));
 
     if (! head) {
         head = ContentListItem::Create(mPool, aContent);
@@ -282,7 +282,7 @@ nsElementMap::Remove(const nsAString& aID, nsIContent* aContent)
     if (!hep || !*hep)
         return NS_OK;
 
-    ContentListItem* head = reinterpret_cast<ContentListItem*>((*hep)->value);
+    ContentListItem* head = NS_REINTERPRET_CAST(ContentListItem*, (*hep)->value);
 
     if (head->mContent.get() == aContent) {
         ContentListItem* next = head->mNext;
@@ -291,7 +291,7 @@ nsElementMap::Remove(const nsAString& aID, nsIContent* aContent)
         }
         else {
             // It was the last reference in the table
-            PRUnichar* key = reinterpret_cast<PRUnichar*>(const_cast<void*>((*hep)->key));
+            PRUnichar* key = NS_REINTERPRET_CAST(PRUnichar*, NS_CONST_CAST(void*, (*hep)->key));
             PL_HashTableRawRemove(mMap, hep, *hep);
             nsMemory::Free(key);
         }
@@ -324,7 +324,7 @@ nsElementMap::Find(const nsAString& aID, nsCOMArray<nsIContent>& aResults)
 
     aResults.Clear();
     ContentListItem* item =
-        reinterpret_cast<ContentListItem*>(PL_HashTableLookup(mMap, (const PRUnichar *)PromiseFlatString(aID).get()));
+        NS_REINTERPRET_CAST(ContentListItem*, PL_HashTableLookup(mMap, (const PRUnichar *)PromiseFlatString(aID).get()));
 
     while (item) {
         aResults.AppendObject(item->mContent);
@@ -342,7 +342,7 @@ nsElementMap::FindFirst(const nsAString& aID, nsIContent** aResult)
         return NS_ERROR_NOT_INITIALIZED;
 
     ContentListItem* item =
-        reinterpret_cast<ContentListItem*>(PL_HashTableLookup(mMap, (const PRUnichar *)PromiseFlatString(aID).get()));
+        NS_REINTERPRET_CAST(ContentListItem*, PL_HashTableLookup(mMap, (const PRUnichar *)PromiseFlatString(aID).get()));
 
     if (item) {
         *aResult = item->mContent;
@@ -371,14 +371,14 @@ nsElementMap::EnumerateImpl(PLHashEntry* aHashEntry, PRIntn aIndex, void* aClosu
     // hashtable. It will in turn call the enumerator that the user
     // has passed in via Enumerate() once for each element that's been
     // mapped to this ID.
-    EnumerateClosure* closure = reinterpret_cast<EnumerateClosure*>(aClosure);
+    EnumerateClosure* closure = NS_REINTERPRET_CAST(EnumerateClosure*, aClosure);
 
     const PRUnichar* id =
-        reinterpret_cast<const PRUnichar*>(aHashEntry->key);
+        NS_REINTERPRET_CAST(const PRUnichar*, aHashEntry->key);
 
     // 'link' holds a pointer to the previous element's link field.
     ContentListItem** link = 
-        reinterpret_cast<ContentListItem**>(&aHashEntry->value);
+        NS_REINTERPRET_CAST(ContentListItem**, &aHashEntry->value);
 
     ContentListItem* item = *link;
 
@@ -393,10 +393,10 @@ nsElementMap::EnumerateImpl(PLHashEntry* aHashEntry, PRIntn aIndex, void* aClosu
             *link = item;
             ContentListItem::Destroy(closure->mSelf->mPool, current);
 
-            if ((! *link) && (link == reinterpret_cast<ContentListItem**>(&aHashEntry->value))) {
+            if ((! *link) && (link == NS_REINTERPRET_CAST(ContentListItem**, &aHashEntry->value))) {
                 // It's the last content node that was mapped to this
                 // ID. Unhash it.
-                PRUnichar* key = const_cast<PRUnichar*>(id);
+                PRUnichar* key = NS_CONST_CAST(PRUnichar*, id);
                 nsMemory::Free(key);
                 return HT_ENUMERATE_REMOVE;
             }
@@ -414,9 +414,9 @@ PLHashNumber
 nsElementMap::Hash(const void* aKey)
 {
     PLHashNumber result = 0;
-    const PRUnichar* s = reinterpret_cast<const PRUnichar*>(aKey);
+    const PRUnichar* s = NS_REINTERPRET_CAST(const PRUnichar*, aKey);
     while (*s != nsnull) {
-        result = PR_ROTATE_LEFT32(result, 4) ^ *s;
+        result = (result >> 28) ^ (result << 4) ^ *s;
         ++s;
     }
     return result;
@@ -426,6 +426,6 @@ nsElementMap::Hash(const void* aKey)
 PRIntn
 nsElementMap::Compare(const void* aLeft, const void* aRight)
 {
-    return 0 == nsCRT::strcmp(reinterpret_cast<const PRUnichar*>(aLeft),
-                              reinterpret_cast<const PRUnichar*>(aRight));
+    return 0 == nsCRT::strcmp(NS_REINTERPRET_CAST(const PRUnichar*, aLeft),
+                              NS_REINTERPRET_CAST(const PRUnichar*, aRight));
 }

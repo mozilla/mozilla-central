@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '15.9.5.23-18.js';
-
 /**
    File Name:          15.9.5.23-1.js
    ECMA Section:       15.9.5.23 Date.prototype.setTime(time)
@@ -76,6 +74,9 @@ function addTestCase( startTime, setTime ) {
   var DateString = "var d = new Date("+startTime+"); d.setTime("+setTime+"); d" ;
   var UTCDate   = UTCDateFromTime ( Number(setTime) );
   var LocalDate = LocalDateFromTime( Number(setTime) );
+
+
+//    fixed_year = ( ExpectDate.year >=1900 || ExpectDate.year < 2000 ) ? ExpectDate.year - 1900 : ExpectDate.year;
 
   new TestCase( SECTION, DateString+".getTime()",             UTCDate.value,      DateCase.getTime() );
   new TestCase( SECTION, DateString+".valueOf()",             UTCDate.value,      DateCase.valueOf() );

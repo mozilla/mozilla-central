@@ -1,9 +1,9 @@
 
 /* pngwrite.c - general routines to write a PNG file
  *
- * Last changed in libpng 1.2.24 December 14, 2007
+ * Last changed in libpng 1.2.9 April 14, 2006
  * For conditions of distribution and use, see copyright notice in png.h
- * Copyright (c) 1998-2007 Glenn Randers-Pehrson
+ * Copyright (c) 1998-2006 Glenn Randers-Pehrson
  * (Version 0.96 Copyright (c) 1996, 1997 Andreas Dilger)
  * (Version 0.88 Copyright (c) 1995, 1996 Guy Eric Schalnat, Group 42, Inc.)
  */
@@ -263,7 +263,7 @@ png_write_info(png_structp png_ptr, png_infop info_ptr)
 #endif
 #if defined(PNG_WRITE_APNG_SUPPORTED)
    if (info_ptr->valid & PNG_INFO_acTL)
-      png_write_acTL(png_ptr, info_ptr->num_frames, info_ptr->num_plays);
+      png_write_acTL(png_ptr, info_ptr->num_frames, info_ptr->num_iterations);
 #endif
 #if defined(PNG_WRITE_UNKNOWN_CHUNKS_SUPPORTED)
    if (info_ptr->unknown_chunks_num)
@@ -399,6 +399,11 @@ png_write_end(png_structp png_ptr, png_infop info_ptr)
 
    /* write end of PNG file */
    png_write_IEND(png_ptr);
+#if 0
+/* This flush, added in libpng-1.0.8,  causes some applications to crash
+   because they do not set png_ptr->output_flush_fn */
+   png_flush(png_ptr);
+#endif
 }
 
 #if defined(PNG_WRITE_tIME_SUPPORTED)
@@ -462,6 +467,12 @@ png_create_write_struct_2(png_const_charp user_png_ver, png_voidp error_ptr,
    if (png_ptr == NULL)
       return (NULL);
 
+#if !defined(PNG_1_0_X)
+#ifdef PNG_ASSEMBLER_CODE_SUPPORTED
+   png_init_mmx_flags(png_ptr);   /* 1.2.0 addition */
+#endif
+#endif /* PNG_1_0_X */
+
    /* added at libpng-1.2.6 */
 #ifdef PNG_SET_USER_LIMITS_SUPPORTED
    png_ptr->user_width_max=PNG_USER_WIDTH_MAX;
@@ -512,13 +523,11 @@ png_create_write_struct_2(png_const_charp user_png_ver, png_voidp error_ptr,
         char msg[80];
         if (user_png_ver)
         {
-          png_snprintf(msg, 80,
-             "Application was compiled with png.h from libpng-%.20s",
+          sprintf(msg, "Application was compiled with png.h from libpng-%.20s",
              user_png_ver);
           png_warning(png_ptr, msg);
         }
-        png_snprintf(msg, 80,
-           "Application  is  running with png.c from libpng-%.20s",
+        sprintf(msg, "Application  is  running with png.c from libpng-%.20s",
            png_libpng_ver);
         png_warning(png_ptr, msg);
 #endif
@@ -575,7 +584,6 @@ png_write_init_2(png_structp png_ptr, png_const_charp user_png_ver,
    png_size_t png_struct_size, png_size_t png_info_size)
 {
    /* We only come here via pre-1.0.12-compiled applications */
-   if(png_ptr == NULL) return;
 #if !defined(PNG_NO_STDIO) && !defined(_WIN32_WCE)
    if(png_sizeof(png_struct) > png_struct_size ||
       png_sizeof(png_info) > png_info_size)
@@ -584,13 +592,11 @@ png_write_init_2(png_structp png_ptr, png_const_charp user_png_ver,
       png_ptr->warning_fn=NULL;
       if (user_png_ver)
       {
-        png_snprintf(msg, 80,
-           "Application was compiled with png.h from libpng-%.20s",
+        sprintf(msg, "Application was compiled with png.h from libpng-%.20s",
            user_png_ver);
         png_warning(png_ptr, msg);
       }
-      png_snprintf(msg, 80,
-         "Application  is  running with png.c from libpng-%.20s",
+      sprintf(msg, "Application  is  running with png.c from libpng-%.20s",
          png_libpng_ver);
       png_warning(png_ptr, msg);
    }
@@ -669,6 +675,12 @@ png_write_init_3(png_structpp ptr_ptr, png_const_charp user_png_ver,
    png_ptr->user_width_max=PNG_USER_WIDTH_MAX;
    png_ptr->user_height_max=PNG_USER_HEIGHT_MAX;
 #endif
+
+#if !defined(PNG_1_0_X)
+#ifdef PNG_ASSEMBLER_CODE_SUPPORTED
+   png_init_mmx_flags(png_ptr);   /* 1.2.0 addition */
+#endif
+#endif /* PNG_1_0_X */
 
 #ifdef PNG_SETJMP_SUPPORTED
    /* restore jump buffer */
@@ -1068,13 +1080,11 @@ png_write_destroy(png_structp png_ptr)
    /* free our memory.  png_free checks NULL for us. */
    png_free(png_ptr, png_ptr->zbuf);
    png_free(png_ptr, png_ptr->row_buf);
-#ifndef PNG_NO_WRITE_FILTERING
    png_free(png_ptr, png_ptr->prev_row);
    png_free(png_ptr, png_ptr->sub_row);
    png_free(png_ptr, png_ptr->up_row);
    png_free(png_ptr, png_ptr->avg_row);
    png_free(png_ptr, png_ptr->paeth_row);
-#endif
 
 #if defined(PNG_TIME_RFC1123_SUPPORTED)
    png_free(png_ptr, png_ptr->time_buffer);
@@ -1130,26 +1140,15 @@ png_set_filter(png_structp png_ptr, int method, int filters)
    {
       switch (filters & (PNG_ALL_FILTERS | 0x07))
       {
-#ifndef PNG_NO_WRITE_FILTER
          case 5:
          case 6:
          case 7: png_warning(png_ptr, "Unknown row filter for method 0");
-#endif /* PNG_NO_WRITE_FILTER */
-         case PNG_FILTER_VALUE_NONE:
-              png_ptr->do_filter=PNG_FILTER_NONE; break;
-#ifndef PNG_NO_WRITE_FILTER
-         case PNG_FILTER_VALUE_SUB:
-              png_ptr->do_filter=PNG_FILTER_SUB; break;
-         case PNG_FILTER_VALUE_UP:
-              png_ptr->do_filter=PNG_FILTER_UP; break;
-         case PNG_FILTER_VALUE_AVG:
-              png_ptr->do_filter=PNG_FILTER_AVG; break;
-         case PNG_FILTER_VALUE_PAETH:
-              png_ptr->do_filter=PNG_FILTER_PAETH; break;
+         case PNG_FILTER_VALUE_NONE:  png_ptr->do_filter=PNG_FILTER_NONE; break;
+         case PNG_FILTER_VALUE_SUB:   png_ptr->do_filter=PNG_FILTER_SUB;  break;
+         case PNG_FILTER_VALUE_UP:    png_ptr->do_filter=PNG_FILTER_UP;   break;
+         case PNG_FILTER_VALUE_AVG:   png_ptr->do_filter=PNG_FILTER_AVG;  break;
+         case PNG_FILTER_VALUE_PAETH: png_ptr->do_filter=PNG_FILTER_PAETH;break;
          default: png_ptr->do_filter = (png_byte)filters; break;
-#else
-         default: png_warning(png_ptr, "Unknown row filter for method 0");
-#endif /* PNG_NO_WRITE_FILTER */
       }
 
       /* If we have allocated the row_buf, this means we have already started
@@ -1163,7 +1162,6 @@ png_set_filter(png_structp png_ptr, int method, int filters)
        */
       if (png_ptr->row_buf != NULL)
       {
-#ifndef PNG_NO_WRITE_FILTER
          if ((png_ptr->do_filter & PNG_FILTER_SUB) && png_ptr->sub_row == NULL)
          {
             png_ptr->sub_row = (png_bytep)png_malloc(png_ptr,
@@ -1218,7 +1216,6 @@ png_set_filter(png_structp png_ptr, int method, int filters)
          }
 
          if (png_ptr->do_filter == PNG_NO_FILTERS)
-#endif /* PNG_NO_WRITE_FILTER */
             png_ptr->do_filter = PNG_FILTER_NONE;
       }
    }
@@ -1517,8 +1514,8 @@ png_write_png(png_structp png_ptr, png_infop info_ptr,
    /* It is REQUIRED to call this to finish writing the rest of the file */
    png_write_end(png_ptr, info_ptr);
 
-   transforms = transforms; /* quiet compiler warnings */
-   params = params;
+   if(transforms == 0 || params == NULL)
+      /* quiet compiler warnings */ return;
 }
 #endif
 
@@ -1527,8 +1524,8 @@ void PNGAPI
 png_write_frame_head(png_structp png_ptr, png_infop info_ptr,
     png_bytepp row_pointers, png_uint_32 width, png_uint_32 height, 
     png_uint_32 x_offset, png_uint_32 y_offset, 
-    png_uint_16 delay_num, png_uint_16 delay_den, png_byte dispose_op,
-    png_byte blend_op)
+    png_uint_16 delay_num, png_uint_16 delay_den, png_byte render_op,
+    png_byte first_frame_hidden)
 {
     png_debug(1, "in png_write_frame_head\n");
     
@@ -1541,10 +1538,9 @@ png_write_frame_head(png_structp png_ptr, png_infop info_ptr,
     
     png_write_reinit(png_ptr, info_ptr, width, height);
     
-    if ( !(png_ptr->num_frames_written == 0 && 
-           (png_ptr->apng_flags & PNG_FIRST_FRAME_HIDDEN) ) )
+    if ( !(png_ptr->num_frames_written == 0 && first_frame_hidden) )
         png_write_fcTL(png_ptr, width, height, x_offset, y_offset, 
-                       delay_num, delay_den, dispose_op, blend_op);
+                       delay_num, delay_den, render_op);
 }
 
 void PNGAPI

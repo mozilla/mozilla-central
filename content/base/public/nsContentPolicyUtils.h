@@ -39,9 +39,6 @@
 /*
  * Utility routines for checking content load/process policy settings,
  * and routines helpful for content policy implementors.
- *
- * XXXbz it would be nice if some of this stuff could be out-of-lined in
- * nsContentUtils.  That would work for almost all the callers...
  */
 
 #ifndef __nsContentPolicyUtils_h__
@@ -53,8 +50,6 @@
 #include "nsIContentPolicy.h"
 #include "nsIServiceManager.h"
 #include "nsIContent.h"
-#include "nsIScriptSecurityManager.h"
-#include "nsIPrincipal.h"
 
 //XXXtw sadly, this makes consumers of nsContentPolicyUtils depend on widget
 #include "nsIDocument.h"
@@ -127,20 +122,15 @@ inline const char *
 NS_CP_ContentTypeName(PRUint32 contentType)
 {
   switch (contentType) {
-    CASE_RETURN( TYPE_OTHER             );
-    CASE_RETURN( TYPE_SCRIPT            );
-    CASE_RETURN( TYPE_IMAGE             );
-    CASE_RETURN( TYPE_STYLESHEET        );
-    CASE_RETURN( TYPE_OBJECT            );
-    CASE_RETURN( TYPE_DOCUMENT          );
-    CASE_RETURN( TYPE_SUBDOCUMENT       );
-    CASE_RETURN( TYPE_REFRESH           );
-    CASE_RETURN( TYPE_XBL               );
-    CASE_RETURN( TYPE_PING              );
-    CASE_RETURN( TYPE_XMLHTTPREQUEST    );
-    CASE_RETURN( TYPE_OBJECT_SUBREQUEST );
-    CASE_RETURN( TYPE_DTD               );
-   default:
+    CASE_RETURN( TYPE_OTHER      );
+    CASE_RETURN( TYPE_SCRIPT     );
+    CASE_RETURN( TYPE_IMAGE      );
+    CASE_RETURN( TYPE_STYLESHEET );
+    CASE_RETURN( TYPE_OBJECT     );
+    CASE_RETURN( TYPE_DOCUMENT   );
+    CASE_RETURN( TYPE_SUBDOCUMENT);
+    CASE_RETURN( TYPE_REFRESH    );
+  default:
     return "<Unknown Type>";
   }
 }
@@ -169,55 +159,21 @@ NS_CP_ContentTypeName(PRUint32 contentType)
   PR_END_MACRO
 
 /**
- * Check whether we can short-circuit this check and bail out.  If not, get the
- * origin URI to use.
- *
- * Note: requestOrigin is scoped outside the PR_BEGIN_MACRO/PR_END_MACRO on
- * purpose */
-#define CHECK_PRINCIPAL                                                       \
-  nsCOMPtr<nsIURI> requestOrigin;                                             \
-  PR_BEGIN_MACRO                                                              \
-  if (originPrincipal) {                                                      \
-      nsCOMPtr<nsIScriptSecurityManager> secMan = aSecMan;                    \
-      if (!secMan) {                                                          \
-          secMan = do_GetService(NS_SCRIPTSECURITYMANAGER_CONTRACTID);        \
-      }                                                                       \
-      if (secMan) {                                                           \
-          PRBool isSystem;                                                    \
-          nsresult rv = secMan->IsSystemPrincipal(originPrincipal,            \
-                                                  &isSystem);                 \
-          NS_ENSURE_SUCCESS(rv, rv);                                          \
-          if (isSystem) {                                                     \
-              *decision = nsIContentPolicy::ACCEPT;                           \
-              return NS_OK;                                                   \
-          }                                                                   \
-      }                                                                       \
-      nsresult rv = originPrincipal->GetURI(getter_AddRefs(requestOrigin));   \
-      NS_ENSURE_SUCCESS(rv, rv);                                              \
-  }                                                                           \
-  PR_END_MACRO
-
-/**
- * Alias for calling ShouldLoad on the content policy service.  Parameters are
- * the same as nsIContentPolicy::shouldLoad, except for the originPrincipal
- * parameter, which should be non-null if possible, and the last two
- * parameters, which can be used to pass in pointer to some useful services if
- * the caller already has them.  The origin URI to pass to shouldLoad will be
- * the URI of originPrincipal, unless originPrincipal is null (in which case a
- * null origin URI will be passed).
+ * Alias for calling ShouldLoad on the content policy service.
+ * Parameters are the same as nsIContentPolicy::shouldLoad, except for
+ * the last parameter, which can be used to pass in a pointer to the
+ * service if the caller already has one.
  */
 inline nsresult
 NS_CheckContentLoadPolicy(PRUint32          contentType,
                           nsIURI           *contentLocation,
-                          nsIPrincipal     *originPrincipal,
+                          nsIURI           *requestOrigin,
                           nsISupports      *context,
                           const nsACString &mimeType,
                           nsISupports      *extra,
                           PRInt16          *decision,
-                          nsIContentPolicy *policyService = nsnull,
-                          nsIScriptSecurityManager* aSecMan = nsnull)
+                          nsIContentPolicy *policyService = nsnull)
 {
-    CHECK_PRINCIPAL;
     if (policyService) {
         CHECK_CONTENT_POLICY_WITH_SERVICE(ShouldLoad, policyService);
     }
@@ -225,26 +181,19 @@ NS_CheckContentLoadPolicy(PRUint32          contentType,
 }
 
 /**
- * Alias for calling ShouldProcess on the content policy service.  Parameters
- * are the same as nsIContentPolicy::shouldLoad, except for the originPrincipal
- * parameter, which should be non-null if possible, and the last two
- * parameters, which can be used to pass in pointer to some useful services if
- * the caller already has them.  The origin URI to pass to shouldLoad will be
- * the URI of originPrincipal, unless originPrincipal is null (in which case a
- * null origin URI will be passed).
+ * Alias for calling ShouldProcess on the content policy service.
+ * Parameters are the same as nsIContentPolicy::shouldProcess.
  */
 inline nsresult
 NS_CheckContentProcessPolicy(PRUint32          contentType,
                              nsIURI           *contentLocation,
-                             nsIPrincipal     *originPrincipal,
+                             nsIURI           *requestOrigin,
                              nsISupports      *context,
                              const nsACString &mimeType,
                              nsISupports      *extra,
                              PRInt16          *decision,
-                             nsIContentPolicy *policyService = nsnull,
-                             nsIScriptSecurityManager* aSecMan = nsnull)
+                             nsIContentPolicy *policyService = nsnull)
 {
-    CHECK_PRINCIPAL;
     if (policyService) {
         CHECK_CONTENT_POLICY_WITH_SERVICE(ShouldProcess, policyService);
     }

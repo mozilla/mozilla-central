@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -34,9 +33,8 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK ***** */
-
-/*
+ * ***** END LICENSE BLOCK *****
+ *
  *
  * Date:    14 Jan 2002
  * SUMMARY: Shouldn't crash on regexps with many nested parentheses
@@ -44,8 +42,7 @@
  *
  */
 //-----------------------------------------------------------------------------
-var gTestfile = 'regress-119909.js';
-var BUGNUMBER = 119909;
+var bug = 119909;
 var summary = "Shouldn't crash on regexps with many nested parentheses";
 var NO_BACKREFS = false;
 var DO_BACKREFS = true;
@@ -59,7 +56,7 @@ test();
 function test()
 {
   enterFunc('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber(bug);
   printStatus(summary);
 
   testThis(500, NO_BACKREFS, 'hello', 'goodbye');
@@ -80,7 +77,7 @@ function testThis(numParens, doBackRefs, strOriginal, strReplace)
   var openParen = doBackRefs? '(' : '(?:';
   var closeParen = ')';
   var pattern = '';
- 
+  
   for (var i=0; i<numParens; i++) {pattern += openParen;}
   pattern += strOriginal;
   for (i=0; i<numParens; i++) {pattern += closeParen;}

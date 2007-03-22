@@ -35,10 +35,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-346642-03.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 346642;
+var bug = 346642;
 var summary = 'decompilation of destructuring assignment';
 var actual = '';
 var expect = '';
@@ -51,7 +49,7 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
 
   expect = 'TypeError: NaN is not a constructor';
@@ -66,45 +64,45 @@ function test()
   }
   reportCompare(expect, actual, summary + ': 1');
 
-  expect = /TypeError: x.t (has no properties|is undefined)/;
+  expect = 'TypeError: x.t has no properties';
   actual = 'No Crash';
   try
   {
-    z = [1];
+    z = [1]; 
     let (x = (undefined ? 3 : z)) { x.t.g }
   }
   catch(ex)
   {
     actual = ex + '';
   }
-  reportMatch(expect, actual, summary + ': 2');
+  reportCompare(expect, actual, summary + ': 2');
 
-  expect = /TypeError: x.t (has no properties|is undefined)/;
+  expect = 'TypeError: x.t has no properties';
   actual = 'No Crash';
   try
   {
-    z = [1];
+    z = [1]; 
     new Function("let (x = (undefined ? 3 : z)) { x.t.g }")()
-      }
+  }
   catch(ex)
   {
     actual = ex + '';
   }
-  reportMatch(expect, actual, summary + ': 3');
+  reportCompare(expect, actual, summary + ': 3');
 
   expect = 'TypeError: b is not a constructor';
   actual = 'No Crash';
   try
   {
     with({x: (new (b = 1))}) (2).x
-      }
+  }
   catch(ex)
   {
     actual = ex + '';
   }
   reportCompare(expect, actual, summary + ': 4');
 
-  expect = /TypeError: this.zzz (has no properties|is undefined)/;
+  expect = 'TypeError: this.zzz has no properties';
   actual = 'No Crash';
   try
   {
@@ -114,7 +112,7 @@ function test()
   {
     actual = ex + '';
   }
-  reportMatch(expect, actual, summary + ': 5');
+  reportCompare(expect, actual, summary + ': 5');
 
   expect = 'TypeError: p.z = <x><y/></x> ? 3 : 4 is not a function';
   actual = 'No Crash';
@@ -145,7 +143,7 @@ function test()
   try
   {
     let (x=3) ((++x)())
-      }
+  }
   catch(ex)
   {
     actual = ex + '';

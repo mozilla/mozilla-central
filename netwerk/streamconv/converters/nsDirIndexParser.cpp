@@ -56,10 +56,10 @@
 #include "nsIPrefBranch.h"
 #include "nsIPrefLocalizedString.h"
 
-NS_IMPL_ISUPPORTS3(nsDirIndexParser,
-                   nsIRequestObserver,
-                   nsIStreamListener,
-                   nsIDirIndexParser)
+NS_IMPL_THREADSAFE_ISUPPORTS3(nsDirIndexParser,
+                              nsIRequestObserver,
+                              nsIStreamListener,
+                              nsIDirIndexParser)
 
 nsDirIndexParser::nsDirIndexParser() {
 }
@@ -302,7 +302,7 @@ nsDirIndexParser::ParseData(nsIDirIndex *aIdx, char* aDataStr) {
               aIdx->SetDescription(result);
             success = PR_TRUE;
           }
-          NS_Free(result);
+          Recycle(result);
         } else {
           NS_WARNING("UnEscapeAndConvert error");
         }

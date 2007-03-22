@@ -56,7 +56,7 @@ nsDOMXULCommandEvent::nsDOMXULCommandEvent(nsPresContext* aPresContext,
 nsDOMXULCommandEvent::~nsDOMXULCommandEvent()
 {
   if (mEventIsInternal) {
-    nsXULCommandEvent* command = static_cast<nsXULCommandEvent*>(mEvent);
+    nsXULCommandEvent* command = NS_STATIC_CAST(nsXULCommandEvent*, mEvent);
     delete command;
     mEvent = nsnull;
   }

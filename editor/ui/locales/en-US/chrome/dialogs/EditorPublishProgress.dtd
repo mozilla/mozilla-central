@@ -41,12 +41,14 @@
 <!ENTITY docSubdir.label       "Page subdirectory:">
 <!ENTITY otherSubdir.label     "Image subdirectory:">
 
-<!ENTITY status.label          "Publishing…">
+<!ENTITY status.label          "Publishing...">
 <!ENTITY fileList.label        "Publishing Status">
 <!ENTITY statusHeader.label    "Status">
 <!ENTITY filenameHeader.label  "Filename">
 <!ENTITY succeeded.label       "Succeeded">
 <!ENTITY failed.label          "Failed">
+<!ENTITY troubleshooting.label "Troubleshooting">
+<!ENTITY troubleshooting.accessKey "T">
 
 <!ENTITY keepOpen              "Keep this window open after publishing is complete.">
 <!ENTITY closeButton.label     "Close">

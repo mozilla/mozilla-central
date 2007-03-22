@@ -335,7 +335,7 @@ DOMViewer.prototype =
    */
   setAccessibleNodes: function setAccessibleNodes(aValue)
   {
-    if (!("@mozilla.org/accessibleRetrieval;1" in Components.classes))
+    if (!("@mozilla.org/accessibilityService;1" in Components.classes))
       aValue = false;
 
     this.mDOMView.showAccessibleNodes = aValue;
@@ -625,9 +625,6 @@ DOMViewer.prototype =
 
   removeClickListeners: function()
   {
-    if (!this.mSelectDocs) // we didn't select an element by click
-      return;
-
     for (var i = 0; i < this.mSelectDocs.length; ++i) {
       this.mSelectDocs[i].removeEventListener("mousedown", MouseDownListener, true);
       this.mSelectDocs[i].removeEventListener("mouseup", EventCanceller, true);
@@ -1365,27 +1362,23 @@ InsertNode.prototype =
   {
     var doc = this.originalNode.ownerDocument;
     if (!this.attr) {
-      this.attr = { type: null, value: null, namespaceURI: null, accepted: false,
-                    enableNamespaces: doc.contentType != "text/html" };
+      this.attr = { type: null, value: null, namespaceURI: null, accepted: false };
 
       window.openDialog("chrome://inspector/content/viewers/dom/insertDialog.xul",
                         "insert", "chrome,modal,centerscreen", doc, this.attr);
-
+	
     }
 
     if (this.attr.accepted) {
-      switch (this.attr.type) {
+     	switch (this.attr.type) {
         case nsIDOMNode.ELEMENT_NODE:
-          if (this.attr.enableNamespaces)
-            this.insertedNode = doc.createElementNS(this.attr.namespaceURI, this.attr.value);
-          else
-            this.insertedNode = doc.createElement(this.attr.value);
-          break;
-        case nsIDOMNode.TEXT_NODE:
-          this.insertedNode = doc.createTextNode(this.attr.value);
-          break;
-      }
-      return true;
+     	    this.insertedNode = doc.createElementNS(this.attr.namespaceURI, this.attr.value);
+     	    break;
+     	  case nsIDOMNode.TEXT_NODE:
+     	    this.insertedNode = doc.createTextNode(this.attr.value);
+     	    break;
+     	}
+     	return true;
     }
     return false;
   },

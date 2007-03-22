@@ -1,25 +1,6 @@
-#xpinstallheader {
-  margin-bottom: 2em;
-}
-
-.alert-icon {
-  width: 48px;
-  height: 48px;
-  list-style-image: url("chrome://global/skin/icons/warning-large.png");
-  margin-top: 0 !important;
-  margin-bottom: 6px !important;
-  -moz-margin-start: 6px !important;
-  -moz-margin-end: 20px !important;
-}
-
 #itemList {
   -moz-appearance: listbox;
-  margin: 3px 4px 10px 4px;
-  height: 14em;
-}
-
-#itemWarningIntro {
-  -moz-margin-start: 8px;
+  margin: 10px 4px 10px 4px;
 }
 
 #dialogContentBox {
@@ -27,21 +8,21 @@
 }
 
 installitem {
-  padding: 5px 0 5px 5px;
+  padding: 5px 0px 5px 5px;
   border-bottom: 1px dotted #C0C0C0;
   margin-bottom: 5px;
 }
 
 .warning {
   font-weight: bold;
-  font-size: 1.25em;
-  margin-bottom: 1em;
 }
 
-.xpinstallIconContainer {
+.xpinstallItemIcon {
   width: 32px;
   height: 32px;
-  -moz-margin-end: 5px;
+  max-width: 32px !important;
+  max-height: 32px !important;
+  margin-right: 5px;
 }
 
 .xpinstallItemName {
@@ -50,22 +31,25 @@ installitem {
 
 .xpinstallItemSigned {
   font-style: italic;
-  font-size: 0.9em;
+}
+
+.xpinstallItemSigned[signed=false] {
+  color: #ED1C24;
+  font-style: normal;
+  font-weight: bold;
+}
+
+.xpinstallItemNameRow {
+  padding-bottom: 3px;
 }
 
 .xpinstallItemURL {
   -moz-appearance: none;
   border: none;
   background-color: Window;
-  margin-top: 2px;
-  margin-bottom: 1px;
-  -moz-margin-start: 6px;
-  -moz-margin-end: 5px;
 }
 
 .xpinstallItemIcon {
-  max-width: 32px;
-  max-height: 32px;
   list-style-image: url("chrome://mozapps/skin/xpinstall/xpinstallItemGeneric.png");
 }
 

@@ -48,7 +48,6 @@
 #include "nsCOMPtr.h"
 #include "nsIURL.h"
 #include "nsReadableUtils.h"
-#include "nsIPrincipal.h"
 
 #include "nsContentUtils.h"
 
@@ -254,11 +253,9 @@ nsDOMCSSDeclaration::ParsePropertyValue(const nsCSSProperty aPropID,
   nsCOMPtr<nsICSSLoader> cssLoader;
   nsCOMPtr<nsICSSParser> cssParser;
   nsCOMPtr<nsIURI> baseURI, sheetURI;
-  nsCOMPtr<nsIPrincipal> sheetPrincipal;
   
   result = GetCSSParsingEnvironment(getter_AddRefs(sheetURI),
                                     getter_AddRefs(baseURI),
-                                    getter_AddRefs(sheetPrincipal),
                                     getter_AddRefs(cssLoader),
                                     getter_AddRefs(cssParser));
   if (NS_FAILED(result)) {
@@ -267,7 +264,7 @@ nsDOMCSSDeclaration::ParsePropertyValue(const nsCSSProperty aPropID,
 
   PRBool changed;
   result = cssParser->ParseProperty(aPropID, aPropValue, sheetURI, baseURI,
-                                    sheetPrincipal, decl, &changed);
+                                    decl, &changed);
   if (NS_SUCCEEDED(result) && changed) {
     result = DeclarationChanged();
   }
@@ -293,11 +290,9 @@ nsDOMCSSDeclaration::ParseDeclaration(const nsAString& aDecl,
   nsCOMPtr<nsICSSLoader> cssLoader;
   nsCOMPtr<nsICSSParser> cssParser;
   nsCOMPtr<nsIURI> baseURI, sheetURI;
-  nsCOMPtr<nsIPrincipal> sheetPrincipal;
 
   result = GetCSSParsingEnvironment(getter_AddRefs(sheetURI),
                                     getter_AddRefs(baseURI),
-                                    getter_AddRefs(sheetPrincipal),
                                     getter_AddRefs(cssLoader),
                                     getter_AddRefs(cssParser));
 
@@ -306,8 +301,7 @@ nsDOMCSSDeclaration::ParseDeclaration(const nsAString& aDecl,
   }
 
   PRBool changed;
-  result = cssParser->ParseAndAppendDeclaration(aDecl, sheetURI, baseURI,
-                                                sheetPrincipal, decl,
+  result = cssParser->ParseAndAppendDeclaration(aDecl, sheetURI, baseURI, decl,
                                                 aParseOnlyOneDecl,
                                                 &changed,
                                                 aClearOldDecl);

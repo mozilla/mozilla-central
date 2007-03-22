@@ -43,12 +43,9 @@
 #include "nsISVGGlyphFragmentLeaf.h"
 #include "nsISVGChildFrame.h"
 #include "gfxContext.h"
-#include "gfxFont.h"
 
 class nsSVGTextFrame;
 class nsSVGGlyphFrame;
-class CharacterIterator;
-struct CharacterPosition;
 
 typedef nsSVGGeometryFrame nsSVGGlyphFrameBase;
 
@@ -56,19 +53,11 @@ class nsSVGGlyphFrame : public nsSVGGlyphFrameBase,
                         public nsISVGGlyphFragmentLeaf, // : nsISVGGlyphFragmentNode
                         public nsISVGChildFrame
 {
+protected:
   friend nsIFrame*
   NS_NewSVGGlyphFrame(nsIPresShell* aPresShell, nsIContent* aContent,
                       nsIFrame* parentFrame, nsStyleContext* aContext);
-protected:
-  nsSVGGlyphFrame(nsStyleContext* aContext)
-    : nsSVGGlyphFrameBase(aContext),
-      mTextRun(nsnull),
-      mWhitespaceHandling(COMPRESS_WHITESPACE)
-      {}
-  ~nsSVGGlyphFrame()
-  {
-    ClearTextRun();
-  }
+  nsSVGGlyphFrame(nsStyleContext* aContext);
 
 public:
    // nsISupports interface:
@@ -113,43 +102,31 @@ public:
 #endif
 
   // nsISVGChildFrame interface:
-  // These four always use the global transform, even if NS_STATE_NONDISPLAY_CHILD
   NS_IMETHOD PaintSVG(nsSVGRenderState *aContext, nsRect *aDirtyRect);
   NS_IMETHOD GetFrameForPointSVG(float x, float y, nsIFrame** hit);
-  NS_IMETHOD UpdateCoveredRegion();
-  NS_IMETHOD GetBBox(nsIDOMSVGRect **_retval);
-
   NS_IMETHOD_(nsRect) GetCoveredRegion();
+  NS_IMETHOD UpdateCoveredRegion();
   NS_IMETHOD InitialUpdate();
-  virtual void NotifySVGChanged(PRUint32 aFlags);
+  NS_IMETHOD NotifyCanvasTMChanged(PRBool suppressInvalidation);
   NS_IMETHOD NotifyRedrawSuspended();
   NS_IMETHOD NotifyRedrawUnsuspended();
   NS_IMETHOD SetMatrixPropagation(PRBool aPropagate) { return NS_OK; }
   NS_IMETHOD SetOverrideCTM(nsIDOMSVGMatrix *aCTM) { return NS_ERROR_FAILURE; }
-  virtual already_AddRefed<nsIDOMSVGMatrix> GetOverrideCTM() { return nsnull; }
+  NS_IMETHOD GetBBox(nsIDOMSVGRect **_retval);
   NS_IMETHOD_(PRBool) IsDisplayContainer() { return PR_FALSE; }
   NS_IMETHOD_(PRBool) HasValidCoveredRect() { return PR_TRUE; }
 
-  // nsSVGGeometryFrame methods
+  // nsISVGGeometrySource interface: 
   NS_IMETHOD GetCanvasTM(nsIDOMSVGMatrix * *aCTM);
+  virtual nsresult UpdateGraphic(PRBool suppressInvalidation = PR_FALSE);
 
   // nsISVGGlyphFragmentLeaf interface:
-  // These do not use the global transform if NS_STATE_NONDISPLAY_CHILD
   NS_IMETHOD GetStartPositionOfChar(PRUint32 charnum, nsIDOMSVGPoint **_retval);
   NS_IMETHOD GetEndPositionOfChar(PRUint32 charnum, nsIDOMSVGPoint **_retval);
   NS_IMETHOD GetExtentOfChar(PRUint32 charnum, nsIDOMSVGRect **_retval);
   NS_IMETHOD GetRotationOfChar(PRUint32 charnum, float *_retval);
-  /**
-   * @param aForceGlobalTransform controls whether to use the
-   * global transform even when NS_STATE_NONDISPLAY_CHILD
-   */
-  NS_IMETHOD_(float) GetBaselineOffset(PRUint16 baselineIdentifier,
-                                       PRBool aForceGlobalTransform);
-  /**
-   * @param aForceGlobalTransform controls whether to use the
-   * global transform even when NS_STATE_NONDISPLAY_CHILD
-   */
-  NS_IMETHOD_(float) GetAdvance(PRBool aForceGlobalTransform);
+  NS_IMETHOD_(float) GetBaselineOffset(PRUint16 baselineIdentifier);
+  NS_IMETHOD_(float) GetAdvance();
 
   NS_IMETHOD_(void) SetGlyphPosition(float x, float y);
   NS_IMETHOD_(nsSVGTextPathFrame*) FindTextPathParent();
@@ -164,7 +141,6 @@ public:
   NS_IMETHOD_(PRBool) IsAbsolutelyPositioned();
 
   // nsISVGGlyphFragmentNode interface:
-  // These do not use the global transform if NS_STATE_NONDISPLAY_CHILD
   NS_IMETHOD_(PRUint32) GetNumberOfChars();
   NS_IMETHOD_(float) GetComputedTextLength();
   NS_IMETHOD_(float) GetSubStringLength(PRUint32 charnum, PRUint32 fragmentChars);
@@ -174,49 +150,66 @@ public:
   NS_IMETHOD_(void) SetWhitespaceHandling(PRUint8 aWhitespaceHandling);
 
 protected:
-  friend class CharacterIterator;
+  struct nsSVGCharacterPosition {
+    PRBool draw;
+    float x, y;
+    float angle;
+  };
 
-  // Use a power of 2 here. It's not so important to match
-  // nsIDeviceContext::AppUnitsPerDevPixel, but since we do a lot of
-  // multiplying by 1/GetTextRunUnitsFactor, it's good for it to be a
-  // power of 2 to avoid accuracy loss.
-  static PRUint32 GetTextRunUnitsFactor() { return 64; }
-  
-  /**
-   * @aParam aDrawScale font drawing must be scaled into user units
-   * by this factor
-   * @param aMetricsScale font metrics must be scaled into user units
-   * by this factor
-   * @param aForceGlobalTransform set to true if we should force use of
-   * the global transform; otherwise we won't use the global transform
-   * if we're a NONDISPLAY_CHILD
-   */
-  PRBool EnsureTextRun(float *aDrawScale, float *aMetricsScale,
-                       PRBool aForceGlobalTransform);
-  void ClearTextRun();
+  // VC6 does not allow the inner class to access protected members
+  // of the outer class
+  class nsSVGAutoGlyphHelperContext;
+  friend class nsSVGAutoGlyphHelperContext;
 
+  // A helper class to deal with temporary cairo contexts.
+  // It destroys the context when it goes out of scope.
+  class nsSVGAutoGlyphHelperContext
+  {
+  public:
+    nsSVGAutoGlyphHelperContext(nsSVGGlyphFrame *aSource)
+    {
+       Init(aSource);
+    }
+
+    nsSVGAutoGlyphHelperContext(nsSVGGlyphFrame *aSource,
+                                const nsAString &aText,
+                                nsSVGCharacterPosition **cp);
+
+    operator gfxContext * ()
+    {
+      return mCT;
+    }
+
+    operator cairo_t * ()
+    {
+      return mCT->GetCairo();
+    }
+
+  private:
+    void Init (nsSVGGlyphFrame *aSource);
+
+    nsRefPtr<gfxContext> mCT;
+  };
+
+  void SelectFont(gfxContext *aContext);
   PRBool GetCharacterData(nsAString & aCharacterData);
-  PRBool GetCharacterPositions(nsTArray<CharacterPosition>* aCharacterPositions,
-                               float aMetricsScale);
+  nsresult GetCharacterPosition(gfxContext *aContext,
+                                const nsAString &aText,
+                                nsSVGCharacterPosition **aCharacterPosition);
+  static void LoopCharacters(cairo_t *aCtx,
+                             const nsAString &aText,
+                             const nsSVGCharacterPosition *aCP,
+                             void (*aFunc)(cairo_t *cr, const char *utf8));
 
-  void AddCharactersToPath(CharacterIterator *aIter,
-                           gfxContext *aContext);
-  void AddBoundingBoxesToPath(CharacterIterator *aIter,
-                              gfxContext *aContext);
-  void FillCharacters(CharacterIterator *aIter,
-                      gfxContext *aContext);
-
-  void NotifyGlyphMetricsChange();
+  void UpdateGeometry(PRBool bRedraw, PRBool suppressInvalidation);
+  void UpdateMetrics();
   PRBool ContainsPoint(float x, float y);
-  PRBool GetGlobalTransform(gfxMatrix *aMatrix);
-  void SetupGlobalTransform(gfxContext *aContext);
+  nsresult GetGlobalTransform(gfxContext *aContext);
   nsresult GetHighlight(PRUint32 *charnum, PRUint32 *nchars,
                         nscolor *foreground, nscolor *background);
 
-  // Owning pointer, must call gfxTextRunWordCache::RemoveTextRun before deleting
-  gfxTextRun *mTextRun;
-  gfxPoint mPosition;
-  PRUint8 mWhitespaceHandling;
+  float mX, mY;
+  PRUint8      mWhitespaceHandling;
 };
 
 #endif

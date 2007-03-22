@@ -389,7 +389,7 @@ nsJAR::GetCertificatePrincipal(const char* aFilename, nsIPrincipal** aPrincipal)
   {
     //-- Find the item
     nsCStringKey key(aFilename);
-    nsJARManifestItem* manItem = static_cast<nsJARManifestItem*>(mManifestData.Get(&key));
+    nsJARManifestItem* manItem = NS_STATIC_CAST(nsJARManifestItem*, mManifestData.Get(&key));
     if (!manItem)
       return NS_OK;
     //-- Verify the item against the manifest
@@ -1127,7 +1127,7 @@ nsZipReaderCache::GetZip(nsIFile* zipFile, nsIZipReader* *result)
   if (NS_FAILED(rv)) return rv;
 
   nsCStringKey key(path);
-  nsJAR* zip = static_cast<nsJAR*>(static_cast<nsIZipReader*>(mZips.Get(&key))); // AddRefs
+  nsJAR* zip = NS_STATIC_CAST(nsJAR*, NS_STATIC_CAST(nsIZipReader*,mZips.Get(&key))); // AddRefs
   if (zip) {
 #ifdef ZIP_CACHE_HIT_RATE
     mZipCacheHits++;
@@ -1147,7 +1147,7 @@ nsZipReaderCache::GetZip(nsIFile* zipFile, nsIZipReader* *result)
       return rv;
     }
 
-    PRBool collision = mZips.Put(&key, static_cast<nsIZipReader*>(zip)); // AddRefs to 2
+    PRBool collision = mZips.Put(&key, NS_STATIC_CAST(nsIZipReader*, zip)); // AddRefs to 2
     NS_ASSERTION(!collision, "horked");
   }
   *result = zip;
@@ -1291,25 +1291,15 @@ nsZipReaderCache::Observe(nsISupports *aSubject,
 
 PRTime GetModTime(PRUint16 aDate, PRUint16 aTime)
 {
-  PRExplodedTime time;
+  char buffer[17];
 
-  time.tm_usec = 0;
-  
-  time.tm_hour = (aTime >> 11) & 0x1F;
-  time.tm_min = (aTime >> 5) & 0x3F;
-  time.tm_sec = (aTime & 0x1F) * 2;
+  PR_snprintf(buffer, sizeof(buffer), "%02d/%02d/%04d %02d:%02d",
+        ((aDate >> 5) & 0x0F), (aDate & 0x1F), (aDate >> 9) + 1980,
+        ((aTime >> 11) & 0x1F), ((aTime >> 5) & 0x3F));
 
-  time.tm_year = (aDate >> 9) + 1980;
-  time.tm_month = ((aDate >> 5) & 0x0F)-1;
-  time.tm_mday = aDate & 0x1F;
-  
-  time.tm_params.tp_gmt_offset = 0;
-  time.tm_params.tp_dst_offset = 0;
-  
-  PR_NormalizeTime(&time, PR_GMTParameters);
-  time.tm_params = PR_LocalTimeParameters(&time);
-  
-  return PR_ImplodeTime(&time);
+  PRTime result;
+  PR_ParseTimeString(buffer, PR_FALSE, &result);
+  return result;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -92,20 +92,20 @@ int main()
 
     /* Test CallQueryInterface */
 
-    nsISupports *mySupportsPtr = reinterpret_cast<nsISupports*>(0x1000);
+    nsISupports *mySupportsPtr = NS_REINTERPRET_CAST(nsISupports*, 0x1000);
 
     nsITestService *myITestService = nsnull;
     CallQueryInterface(mySupportsPtr, &myITestService);
 
     nsTestService *myTestService =
-        reinterpret_cast<nsTestService*>(mySupportsPtr);
+        NS_REINTERPRET_CAST(nsTestService*, mySupportsPtr);
     nsISupportsWeakReference *mySupportsWeakRef;
     CallQueryInterface(myTestService, &mySupportsWeakRef);
 
     /* Test CallQueryReferent */
 
     nsIWeakReference *myWeakRef =
-        static_cast<nsIWeakReference*>(mySupportsPtr);
+        NS_STATIC_CAST(nsIWeakReference*, mySupportsPtr);
     CallQueryReferent(myWeakRef, &myITestService);
 
     /* Test CallCreateInstance */
@@ -122,7 +122,7 @@ int main()
 
     /* Test CallGetInterface */
     nsIInterfaceRequestor *myInterfaceRequestor =
-        static_cast<nsIInterfaceRequestor*>(mySupportsPtr);
+        NS_STATIC_CAST(nsIInterfaceRequestor*, mySupportsPtr);
     CallGetInterface(myInterfaceRequestor, &myITestService);
 
     return 0;

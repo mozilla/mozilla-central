@@ -36,11 +36,18 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsEventDispatcher.h"
+#include "nsIDocument.h"
+#include "nsIAtom.h"
 #include "nsDOMEvent.h"
+#include "nsINode.h"
 #include "nsPIDOMEventTarget.h"
 #include "nsPresContext.h"
 #include "nsIPrivateDOMEvent.h"
+#include "nsIDOMEventReceiver.h"
+#include "nsIDOMEventTarget.h"
 #include "nsIEventListenerManager.h"
+#include "nsPIDOMWindow.h"
+#include "nsIScriptSecurityManager.h"
 #include "nsContentUtils.h"
 #include "nsDOMError.h"
 #include "nsMutationEvent.h"
@@ -104,7 +111,7 @@ public:
     return !!(mFlags & NS_TARGET_CHAIN_FORCE_CONTENT_DISPATCH);
   }
 
-  nsPIDOMEventTarget* CurrentTarget()
+  nsISupports* CurrentTarget()
   {
     return mTarget;
   }
@@ -138,26 +145,20 @@ public:
   nsresult PostHandleEvent(nsEventChainPostVisitor& aVisitor);
 
 
-  nsCOMPtr<nsPIDOMEventTarget>      mTarget;
-  nsEventTargetChainItem*           mChild;
-  nsEventTargetChainItem*           mParent;
-  PRUint16                          mFlags;
-  PRUint16                          mItemFlags;
-  nsCOMPtr<nsISupports>             mItemData;
+  nsCOMPtr<nsPIDOMEventTarget> mTarget;
+  nsEventTargetChainItem*      mChild;
+  nsEventTargetChainItem*      mParent;
+  PRUint16                     mFlags;
+  PRUint16                     mItemFlags;
+  nsCOMPtr<nsISupports>        mItemData;
   // Event retargeting must happen whenever mNewTarget is non-null.
-  nsCOMPtr<nsISupports>             mNewTarget;
-  // Cache mTarget's event listener manager.
-  nsCOMPtr<nsIEventListenerManager> mManager;
+  nsCOMPtr<nsISupports>        mNewTarget;
 };
 
 nsEventTargetChainItem::nsEventTargetChainItem(nsISupports* aTarget,
                                                nsEventTargetChainItem* aChild)
-: mChild(aChild), mParent(nsnull), mFlags(0), mItemFlags(0)
+: mTarget(do_QueryInterface(aTarget)), mChild(aChild), mParent(nsnull), mFlags(0), mItemFlags(0)
 {
-  nsCOMPtr<nsPIDOMEventTarget> t = do_QueryInterface(aTarget);
-  if (t) {
-    mTarget = t->GetTargetForEventTargetChain();
-  }
   if (mChild) {
     mChild->mParent = this;
   }
@@ -194,22 +195,15 @@ nsresult
 nsEventTargetChainItem::HandleEvent(nsEventChainPostVisitor& aVisitor,
                                     PRUint32 aFlags)
 {
-  mTarget->WillHandleEvent(aVisitor);
-  if (aVisitor.mEvent->flags & NS_EVENT_FLAG_STOP_DISPATCH) {
-    return NS_OK;
-  }
-  if (!mManager) {
-    mTarget->GetListenerManager(PR_FALSE, getter_AddRefs(mManager));
-  }
-  if (mManager) {
-    aVisitor.mEvent->currentTarget = CurrentTarget()->GetTargetForDOMEvent();
-    if (aVisitor.mEvent->currentTarget) {
-      mManager->HandleEvent(aVisitor.mPresContext, aVisitor.mEvent,
-                            &aVisitor.mDOMEvent,
-                            aVisitor.mEvent->currentTarget, aFlags,
-                            &aVisitor.mEventStatus);
-      aVisitor.mEvent->currentTarget = nsnull;
-    }
+  nsCOMPtr<nsIEventListenerManager> lm;
+  mTarget->GetListenerManager(PR_FALSE, getter_AddRefs(lm));
+
+  if (lm) {
+    aVisitor.mEvent->currentTarget = CurrentTarget();
+    lm->HandleEvent(aVisitor.mPresContext, aVisitor.mEvent, &aVisitor.mDOMEvent,
+                    aVisitor.mEvent->currentTarget, aFlags,
+                    &aVisitor.mEventStatus);
+    aVisitor.mEvent->currentTarget = nsnull;
   }
   return NS_OK;
 }
@@ -414,20 +408,11 @@ nsEventDispatcher::Dispatch(nsISupports* aTarget,
 
   // Make sure that nsIDOMEvent::target and nsIDOMNSEvent::originalTarget
   // point to the last item in the chain.
+  // XXX But if the target is already set, use that. This is a hack
+  //     for the 'load', 'beforeunload' and 'unload' events,
+  //     which are dispatched to |window| but have document as their target.
   if (!aEvent->target) {
-    // Note, CurrentTarget() points always to the object returned by
-    // GetTargetForEventTargetChain().
-    aEvent->target = targetEtci->CurrentTarget();
-  } else {
-    // XXX But if the target is already set, use that. This is a hack
-    //     for the 'load', 'beforeunload' and 'unload' events,
-    //     which are dispatched to |window| but have document as their target.
-    //
-    // Make sure that the event target points to the right object.
-    nsCOMPtr<nsPIDOMEventTarget> t = do_QueryInterface(aEvent->target);
-    NS_ENSURE_STATE(t);
-    aEvent->target = t->GetTargetForEventTargetChain();
-    NS_ENSURE_STATE(aEvent->target);
+    aEvent->target = aTarget;
   }
   aEvent->originalTarget = aEvent->target;
 
@@ -559,54 +544,54 @@ nsEventDispatcher::CreateEvent(nsPresContext* aPresContext,
     switch(aEvent->eventStructType) {
     case NS_MUTATION_EVENT:
       return NS_NewDOMMutationEvent(aDOMEvent, aPresContext,
-                                    static_cast<nsMutationEvent*>(aEvent));
+                                    NS_STATIC_CAST(nsMutationEvent*,aEvent));
     case NS_GUI_EVENT:
     case NS_COMPOSITION_EVENT:
     case NS_RECONVERSION_EVENT:
     case NS_QUERYCARETRECT_EVENT:
     case NS_SCROLLPORT_EVENT:
       return NS_NewDOMUIEvent(aDOMEvent, aPresContext,
-                              static_cast<nsGUIEvent*>(aEvent));
+                              NS_STATIC_CAST(nsGUIEvent*,aEvent));
     case NS_KEY_EVENT:
       return NS_NewDOMKeyboardEvent(aDOMEvent, aPresContext,
-                                    static_cast<nsKeyEvent*>(aEvent));
+                                    NS_STATIC_CAST(nsKeyEvent*,aEvent));
     case NS_MOUSE_EVENT:
     case NS_MOUSE_SCROLL_EVENT:
     case NS_POPUP_EVENT:
       return NS_NewDOMMouseEvent(aDOMEvent, aPresContext,
-                                 static_cast<nsInputEvent*>(aEvent));
+                                 NS_STATIC_CAST(nsInputEvent*,aEvent));
     case NS_POPUPBLOCKED_EVENT:
       return NS_NewDOMPopupBlockedEvent(aDOMEvent, aPresContext,
-                                        static_cast<nsPopupBlockedEvent*>
-                                                   (aEvent));
+                                        NS_STATIC_CAST(nsPopupBlockedEvent*,
+                                                       aEvent));
     case NS_TEXT_EVENT:
       return NS_NewDOMTextEvent(aDOMEvent, aPresContext,
-                                static_cast<nsTextEvent*>(aEvent));
+                                NS_STATIC_CAST(nsTextEvent*,aEvent));
     case NS_BEFORE_PAGE_UNLOAD_EVENT:
       return
         NS_NewDOMBeforeUnloadEvent(aDOMEvent, aPresContext,
-                                   static_cast<nsBeforePageUnloadEvent*>
-                                              (aEvent));
+                                   NS_STATIC_CAST(nsBeforePageUnloadEvent*,
+                                                  aEvent));
     case NS_PAGETRANSITION_EVENT:
       return NS_NewDOMPageTransitionEvent(aDOMEvent, aPresContext,
-                                          static_cast<nsPageTransitionEvent*>
-                                                     (aEvent));
+                                          NS_STATIC_CAST(nsPageTransitionEvent*,
+                                                         aEvent));
 #ifdef MOZ_SVG
     case NS_SVG_EVENT:
       return NS_NewDOMSVGEvent(aDOMEvent, aPresContext,
                                aEvent);
     case NS_SVGZOOM_EVENT:
       return NS_NewDOMSVGZoomEvent(aDOMEvent, aPresContext,
-                                   static_cast<nsGUIEvent*>(aEvent));
+                                   NS_STATIC_CAST(nsGUIEvent*,aEvent));
 #endif // MOZ_SVG
 
     case NS_XUL_COMMAND_EVENT:
       return NS_NewDOMXULCommandEvent(aDOMEvent, aPresContext,
-                                      static_cast<nsXULCommandEvent*>
-                                                 (aEvent));
+                                      NS_STATIC_CAST(nsXULCommandEvent*,
+                                                     aEvent));
     case NS_COMMAND_EVENT:
       return NS_NewDOMCommandEvent(aDOMEvent, aPresContext,
-                                   static_cast<nsCommandEvent*>(aEvent));
+                                   NS_STATIC_CAST(nsCommandEvent*, aEvent));
     }
 
     // For all other types of events, create a vanilla event object.
@@ -652,11 +637,6 @@ nsEventDispatcher::CreateEvent(nsPresContext* aPresContext,
   if (aEventType.LowerCaseEqualsLiteral("commandevent") ||
       aEventType.LowerCaseEqualsLiteral("commandevents"))
     return NS_NewDOMCommandEvent(aDOMEvent, aPresContext, nsnull);
-  if (aEventType.LowerCaseEqualsLiteral("datacontainerevent") ||
-      aEventType.LowerCaseEqualsLiteral("datacontainerevents"))
-    return NS_NewDOMDataContainerEvent(aDOMEvent, aPresContext, nsnull);
-  if (aEventType.LowerCaseEqualsLiteral("messageevent"))
-    return NS_NewDOMMessageEvent(aDOMEvent, aPresContext, nsnull);
 
   return NS_ERROR_DOM_NOT_SUPPORTED_ERR;
 }

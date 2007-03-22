@@ -35,21 +35,19 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-244619.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 244619;
+var bug = 244619;
 var summary = 'Don\'t Crash';
 var actual = 'Crash';
 var expect = 'No Crash';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
 function f1()
-{
-  var o = new Object();
-  eval.call(o, "var a = 'vodka'"); // <- CRASH !!!
+{	
+	var o = new Object();
+	eval.call(o, "var a = 'vodka'"); // <- CRASH !!!
 }
 
 // Rhino does not allow indirect eval calls
@@ -62,5 +60,5 @@ catch(e)
 }
 
 actual = 'No Crash';
- 
+  
 reportCompare(expect, actual, summary);

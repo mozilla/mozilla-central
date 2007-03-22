@@ -244,7 +244,8 @@ nsRDFConInstanceTestNode::FilterInstantiations(InstantiationSet& aInstantiations
                 ((mContainer == eDontCare) && (mEmpty == empty)))
             {
                 Element* element =
-                    nsRDFConInstanceTestNode::Element::Create(valueres, container, empty);
+                    nsRDFConInstanceTestNode::Element::Create(mProcessor->GetPool(),
+                                                              valueres, container, empty);
 
                 if (! element)
                     return NS_ERROR_OUT_OF_MEMORY;
@@ -274,7 +275,7 @@ nsRDFConInstanceTestNode::CanPropagate(nsIRDFResource* aSource,
         = do_GetService("@mozilla.org/rdf/container-utils;1");
 
     if (! rdfc)
-        return PR_FALSE;
+        return NS_ERROR_FAILURE;
 
     // We can certainly propagate ordinal properties
     rv = rdfc->IsOrdinalProperty(aProperty, &canpropagate);

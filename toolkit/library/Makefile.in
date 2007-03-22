@@ -53,14 +53,12 @@ FORCE_USE_PIC = 1
 FORCE_SHARED_LIB = 1
 MOZILLA_INTERNAL_API = 1
 
-ifeq ($(MOZ_WIDGET_TOOLKIT),cocoa)
+ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 # This is going to be a framework named "XUL", not an ordinary library named
 # "libxul.dylib"
 LIBRARY_NAME=XUL
-# Setting MAKE_FRAMEWORK makes DLL_PREFIX and DLL_SUFFIX be ignored when
-# setting SHARED_LIBRARY; we need to leave DLL_PREFIX and DLL_SUFFIX
-# as-is so that dependencies of the form -ltracemalloc still work.
-MAKE_FRAMEWORK=1
+DLL_PREFIX=
+DLL_SUFFIX=
 endif
 
 REQUIRES = \
@@ -74,19 +72,14 @@ ifeq ($(OS_ARCH)_$(GNU_CC),WINNT_)
 CPPSRCS += dlldeps-xul.cpp
 endif
 
-ifeq ($(OS_ARCH),WINCE)
-CPPSRCS += dlldeps-xul.cpp
-endif
-
 ifeq ($(OS_ARCH),OS2)
 CPPSRCS += dlldeps-xul.cpp
 endif
 
 # dependent libraries
-ifneq (,$(MOZ_ENABLE_GTK2))
+ifneq (,$(MOZ_ENABLE_GTK)$(MOZ_ENABLE_GTK2))
 SHARED_LIBRARY_LIBS += \
   $(DEPTH)/embedding/browser/gtk/src/$(LIB_PREFIX)gtkembedmoz.$(LIB_SUFFIX)
-DEFINES += -DMOZ_ENABLE_GTK2
 endif
 
 SHARED_LIBRARY_LIBS += \
@@ -108,15 +101,10 @@ ifeq ($(OS_ARCH),WINNT)
 CPPSRCS += dlldeps-javaxpcom.cpp
 LOCAL_INCLUDES += -I$(JAVA_INCLUDE_PATH)/win32
 else
-ifeq ($(OS_ARCH),OS2)
-CPPSRCS += dlldeps-javaxpcom.cpp
-LOCAL_INCLUDES += -I$(JAVA_INCLUDE_PATH)/os2
-else
-ifeq ($(MOZ_WIDGET_TOOLKIT),cocoa)
+ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 EXTRA_DSO_LDOPTS += -framework JavaVM
 else
 LOCAL_INCLUDES += -I$(JAVA_INCLUDE_PATH)/linux
-endif
 endif
 endif
 
@@ -148,8 +136,6 @@ GARBAGE	+= \
 	dlldeps-javaxpcom.cpp \
 	$(NULL)
 
-LOCAL_INCLUDES += -I$(topsrcdir)/intl/unicharutil/util
-
 ifdef MOZ_RDF
 EXTRA_DEPS += \
 	$(topsrcdir)/rdf/util/src/objs.mk \
@@ -170,17 +156,8 @@ GARBAGE += \
 endif
 else
 ifdef NS_TRACE_MALLOC
-# In libxul builds, tracemalloc is part of libxul instead.
-ifndef MOZ_ENABLE_LIBXUL
 EXTRA_DSO_LIBS += tracemalloc
 endif
-endif
-endif
-
-ifneq (,$(filter OS2 WINCE WINNT,$(OS_ARCH)))
-SDK_LIBRARY = $(IMPORT_LIBRARY)
-else
-SDK_LIBRARY = $(SHARED_LIBRARY)
 endif
 
 include $(topsrcdir)/config/rules.mk
@@ -188,7 +165,7 @@ include $(topsrcdir)/config/rules.mk
 export:: $(RDF_UTIL_SRC_CPPSRCS) $(INTL_UNICHARUTIL_UTIL_CPPSRCS)
 	$(INSTALL) $^ .
 
-EXTRA_DSO_LDOPTS += $(LIBS_DIR) $(EXTRA_DSO_LIBS)
+EXTRA_DSO_LDOPTS += $(EXTRA_DSO_LIBS)
 
 ifdef MOZ_ENABLE_LIBXUL
 include $(srcdir)/libxul-rules.mk
@@ -197,24 +174,35 @@ EXTRA_DSO_LDOPTS += \
 	$(MOZ_COMPONENT_LIBS) \
 	$(MOZ_JS_LIBS) \
 	$(NULL)
+
+ifdef MOZ_ENABLE_GTK
+EXTRA_DSO_LDOPTS += -L$(DIST)/lib -lgtksuperwin
+endif
 endif
 
 DEFINES += -DIMPL_XREAPI
 
 EXTRA_DSO_LDOPTS += $(NSPR_LIBS)
 
-ifeq ($(MOZ_WIDGET_TOOLKIT),cocoa)
+ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 CXXFLAGS	+= $(TK_CFLAGS)
 EXTRA_DSO_LDOPTS += \
+	-framework Cocoa \
 	-framework QuickTime \
 	-framework IOKit \
-	-lcrypto \
 	$(TK_LIBS) \
 	$(NULL)
 endif
 
-ifeq (gtk2,$(MOZ_WIDGET_TOOLKIT))
-EXTRA_DSO_LDOPTS += $(XLDFLAGS) $(XLIBS) $(MOZ_XFT_LIBS) $(MOZ_GTK2_LIBS) $(XT_LIBS) -lgthread-2.0
+ifdef MOZ_ENABLE_XINERAMA
+EXTRA_DSO_LDOPTS += $(MOZ_XINERAMA_LIBS)
+endif
+
+ifneq (,$(filter gtk gtk2 qt xlib,$(MOZ_WIDGET_TOOLKIT)))
+EXTRA_DSO_LDOPTS += $(XLDFLAGS) $(XLIBS) $(MOZ_GTK_LDFLAGS) $(MOZ_XFT_LIBS) $(MOZ_GTK2_LIBS) $(XT_LIBS)
+endif
+
+ifdef MOZ_ENABLE_XFT
 EXTRA_DSO_LDOPTS += $(FT2_LIBS)
 endif
 
@@ -222,24 +210,20 @@ ifdef MOZ_ENABLE_STARTUP_NOTIFICATION
 EXTRA_DSO_LDOPTS += $(MOZ_STARTUP_NOTIFICATION_LIBS)
 endif
 
+ifdef MOZ_ENABLE_XPRINT
+EXTRA_DSO_LDOPTS += $(MOZ_XPRINT_LDFLAGS)
+endif
+
 ifeq ($(OS_ARCH),BeOS)
 EXTRA_DSO_LDOPTS += -lbe -ltracker
 endif
 
-ifeq ($(OS_ARCH),SunOS)
-EXTRA_DSO_LDOPTS += -lelf -ldemangle -lCstd
-endif
-
 ifeq ($(OS_ARCH),WINNT)
-EXTRA_DSO_LDOPTS += $(call EXPAND_LIBNAME,shell32 ole32 uuid version winspool comdlg32 imm32 winmm wsock32 msimg32)
+EXTRA_DSO_LDOPTS += $(call EXPAND_LIBNAME,shell32 ole32 uuid version winspool comdlg32 imm32 winmm wsock32)
 ifneq (,$(MOZ_DEBUG)$(NS_TRACE_MALLOC))
 EXTRA_DSO_LDOPTS += $(call EXPAND_LIBNAME,imagehlp)
 endif
 endif # WINNT
-ifeq ($(OS_ARCH),WINCE)
-EXTRA_DSO_LDOPTS += $(call EXPAND_LIBNAME, aygshell cellcore uuid ole32 oleaut32 )
-endif
-
 
 ifdef MOZ_JPROF
 EXTRA_DSO_LDOPTS += -ljprof
@@ -248,8 +232,4 @@ endif
 ifdef MOZ_JAVAXPCOM
 dlldeps-javaxpcom.cpp: $(topsrcdir)/extensions/java/xpcom/src/dlldeps-javaxpcom.cpp
 	$(INSTALL) $^ .
-endif
-
-ifneq (,$(filter layout-debug,$(MOZ_EXTENSIONS)))
-DEFINES += -DMOZ_ENABLE_EXTENSION_LAYOUT_DEBUG
 endif

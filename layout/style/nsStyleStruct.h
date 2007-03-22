@@ -65,11 +65,25 @@
 class nsIFrame;
 class imgIRequest;
 
-// Includes nsStyleStructID.
-#include "nsStyleStructFwd.h"
+enum nsStyleStructID {
+
+/*
+ * Define the constants eStyleStruct_Font, etc.
+ *
+ * The C++ standard, section 7.2, guarantees that enums begin with 0 and
+ * increase by 1.
+ */
+
+#define STYLE_STRUCT(name, checkdata_cb, ctor_args) eStyleStruct_##name,
+#include "nsStyleStructList.h"
+#undef STYLE_STRUCT
+
+nsStyleStructID_Length /* one past the end; length of 0-based list */
+
+};
 
 // Bits for each struct.
-// NS_STYLE_INHERIT_BIT defined in nsStyleStructFwd.h
+#define NS_STYLE_INHERIT_BIT(sid_)        (1 << PRInt32(eStyleStruct_##sid_))
 #define NS_STYLE_INHERIT_MASK             0x00ffffff
 
 // Additional bits for nsStyleContext's mBits:
@@ -78,17 +92,19 @@ class imgIRequest;
 
 // Additional bits for nsRuleNode's mDependentBits:
 #define NS_RULE_NODE_GC_MARK              0x02000000
-#define NS_RULE_NODE_IS_IMPORTANT         0x08000000
-#define NS_RULE_NODE_LEVEL_MASK           0xf0000000
-#define NS_RULE_NODE_LEVEL_SHIFT          28
+
+// The actual structs start here
+struct nsStyleStruct {
+};
 
 // The lifetime of these objects is managed by the presshell's arena.
 
-struct nsStyleFont {
-  nsStyleFont(const nsFont& aFont, nsPresContext *aPresContext);
+struct nsStyleFont : public nsStyleStruct {
+  nsStyleFont(void);
+  nsStyleFont(const nsFont& aFont);
   nsStyleFont(const nsStyleFont& aStyleFont);
   nsStyleFont(nsPresContext *aPresContext);
-  ~nsStyleFont(void) {}
+  ~nsStyleFont(void) {};
 
   nsChangeHint CalcDifference(const nsStyleFont& aOther) const;
 #ifdef DEBUG
@@ -98,31 +114,22 @@ struct nsStyleFont {
 
   static nscoord ZoomText(nsPresContext* aPresContext, nscoord aSize);
   static nscoord UnZoomText(nsPresContext* aPresContext, nscoord aSize);
-
+  
   void* operator new(size_t sz, nsPresContext* aContext) CPP_THROW_NEW;
   void Destroy(nsPresContext* aContext);
 
+  PRUint8 mFlags;       // [inherited] See nsStyleConsts.h
   nsFont  mFont;        // [inherited]
   nscoord mSize;        // [inherited] Our "computed size". Can be different from mFont.size
                         // which is our "actual size" and is enforced to be >= the user's
                         // preferred min-size. mFont.size should be used for display purposes
                         // while mSize is the value to return in getComputedStyle() for example.
-  PRUint8 mFlags;       // [inherited] See nsStyleConsts.h
-
-#ifdef MOZ_MATHML
-  // MathML scriptlevel support
-  PRInt8  mScriptLevel;          // [inherited]
-  // The value mSize would have had if scriptminsize had never been applied
-  nscoord mScriptUnconstrainedSize;
-  nscoord mScriptMinSize;        // [inherited] length
-  float   mScriptSizeMultiplier; // [inherited]
-#endif
 };
 
-struct nsStyleColor {
+struct nsStyleColor : public nsStyleStruct {
   nsStyleColor(nsPresContext* aPresContext);
   nsStyleColor(const nsStyleColor& aOther);
-  ~nsStyleColor(void) {}
+  ~nsStyleColor(void) {};
 
   nsChangeHint CalcDifference(const nsStyleColor& aOther) const;
 #ifdef DEBUG
@@ -135,14 +142,14 @@ struct nsStyleColor {
   void Destroy(nsPresContext* aContext) {
     this->~nsStyleColor();
     aContext->FreeToShell(sizeof(nsStyleColor), this);
-  }
+  };
 
   // Don't add ANY members to this struct!  We can achieve caching in the rule
   // tree (rather than the style tree) by letting color stay by itself! -dwh
   nscolor mColor;                 // [inherited]
 };
 
-struct nsStyleBackground {
+struct nsStyleBackground : public nsStyleStruct {
   nsStyleBackground(nsPresContext* aPresContext);
   nsStyleBackground(const nsStyleBackground& aOther);
   ~nsStyleBackground();
@@ -153,7 +160,7 @@ struct nsStyleBackground {
   void Destroy(nsPresContext* aContext) {
     this->~nsStyleBackground();
     aContext->FreeToShell(sizeof(nsStyleBackground), this);
-  }
+  };
 
   nsChangeHint CalcDifference(const nsStyleBackground& aOther) const;
 #ifdef DEBUG
@@ -207,10 +214,10 @@ struct nsStyleBackground {
 #define NS_SPACING_BORDER   2
 
 
-struct nsStyleMargin {
+struct nsStyleMargin: public nsStyleStruct {
   nsStyleMargin(void);
   nsStyleMargin(const nsStyleMargin& aMargin);
-  ~nsStyleMargin(void) {}
+  ~nsStyleMargin(void) {};
 
   void* operator new(size_t sz, nsPresContext* aContext) CPP_THROW_NEW;
   void Destroy(nsPresContext* aContext);
@@ -238,10 +245,10 @@ protected:
 };
 
 
-struct nsStylePadding {
+struct nsStylePadding: public nsStyleStruct {
   nsStylePadding(void);
   nsStylePadding(const nsStylePadding& aPadding);
-  ~nsStylePadding(void) {}
+  ~nsStylePadding(void) {};
 
   void* operator new(size_t sz, nsPresContext* aContext) CPP_THROW_NEW;
   void Destroy(nsPresContext* aContext);
@@ -280,7 +287,7 @@ struct nsBorderColors {
     return new nsBorderColors(mColor, mTransparent, next);
   }
 
-  nsBorderColors() :mNext(nsnull) { mColor = NS_RGB(0,0,0); }
+  nsBorderColors() :mNext(nsnull) { mColor = NS_RGB(0,0,0); };
 
   nsBorderColors(const nscolor& aColor, PRBool aTransparent, nsBorderColors* aNext=nsnull) {
     mColor = aColor;
@@ -306,11 +313,10 @@ struct nsBorderColors {
   }
 };
 
-// Border widths are rounded to the nearest-below integer number of pixels,
-// but values between zero and one device pixels are always rounded up to
-// one device pixel.
+// Border widths are rounded to the nearest integer number of pixels, but values
+// between zero and one device pixels are always rounded up to one device pixel.
 #define NS_ROUND_BORDER_TO_PIXELS(l,tpp) \
-  ((l) == 0) ? 0 : PR_MAX((tpp), (l) / (tpp) * (tpp))
+  ((l) == 0) ? 0 : PR_MAX((tpp), ((l) + ((tpp) / 2)) / (tpp) * (tpp))
 // Outline offset is rounded to the nearest integer number of pixels, but values
 // between zero and one device pixels are always rounded up to one device pixel.
 // Note that the offset can be negative.
@@ -319,7 +325,7 @@ struct nsBorderColors {
     ((l) > 0) ? PR_MAX( (tpp), ((l) + ((tpp) / 2)) / (tpp) * (tpp)) : \
                 PR_MIN(-(tpp), ((l) - ((tpp) / 2)) / (tpp) * (tpp)))
 
-struct nsStyleBorder {
+struct nsStyleBorder: public nsStyleStruct {
   nsStyleBorder(nsPresContext* aContext);
   nsStyleBorder(const nsStyleBorder& aBorder);
   ~nsStyleBorder(void) {
@@ -328,7 +334,7 @@ struct nsStyleBorder {
         delete mBorderColors[i];
       delete []mBorderColors;
     }
-  }
+  };
 
   void* operator new(size_t sz, nsPresContext* aContext) CPP_THROW_NEW;
   void Destroy(nsPresContext* aContext);
@@ -388,6 +394,15 @@ struct nsStyleBorder {
   nscoord GetBorderWidth(PRUint8 aSide) const
   {
     return mActualBorder.side(aSide);
+  }
+
+  // Get the computed border width for a particular side, in twips.  Note that
+  // this is zero if and only if there is no border to be painted for this
+  // side.  That is, this value takes into account the border style and the
+  // value is rounded to the nearest device pixel by NS_ROUND_BORDER_TO_PIXELS.
+  nscoord GetComputedBorderWidth(PRUint8 aSide) const
+  {
+    return mActualBorder.side(aSide) ? mBorder.side(aSide) : 0;
   }
 
   PRUint8 GetBorderStyle(PRUint8 aSide) const
@@ -491,10 +506,10 @@ protected:
 };
 
 
-struct nsStyleOutline {
+struct nsStyleOutline: public nsStyleStruct {
   nsStyleOutline(nsPresContext* aPresContext);
   nsStyleOutline(const nsStyleOutline& aOutline);
-  ~nsStyleOutline(void) {}
+  ~nsStyleOutline(void) {};
 
   void* operator new(size_t sz, nsPresContext* aContext) CPP_THROW_NEW {
     return aContext->AllocateFromShell(sz);
@@ -502,7 +517,7 @@ struct nsStyleOutline {
   void Destroy(nsPresContext* aContext) {
     this->~nsStyleOutline();
     aContext->FreeToShell(sizeof(nsStyleOutline), this);
-  }
+  };
 
   void RecalcData(nsPresContext* aContext);
   nsChangeHint CalcDifference(const nsStyleOutline& aOther) const;
@@ -575,7 +590,7 @@ struct nsStyleOutline {
 
   PRBool GetOutlineInitialColor() const
   {
-    return !!(mOutlineStyle & OUTLINE_COLOR_INITIAL);
+    return (mOutlineStyle & OUTLINE_COLOR_INITIAL);
   }
 
 protected:
@@ -592,7 +607,7 @@ protected:
 };
 
 
-struct nsStyleList {
+struct nsStyleList : public nsStyleStruct {
   nsStyleList(void);
   nsStyleList(const nsStyleList& aStyleList);
   ~nsStyleList(void);
@@ -603,7 +618,7 @@ struct nsStyleList {
   void Destroy(nsPresContext* aContext) {
     this->~nsStyleList();
     aContext->FreeToShell(sizeof(nsStyleList), this);
-  }
+  };
 
   nsChangeHint CalcDifference(const nsStyleList& aOther) const;
 #ifdef DEBUG
@@ -616,7 +631,7 @@ struct nsStyleList {
   nsRect        mImageRegion;           // [inherited] the rect to use within an image  
 };
 
-struct nsStylePosition {
+struct nsStylePosition : public nsStyleStruct {
   nsStylePosition(void);
   nsStylePosition(const nsStylePosition& aOther);
   ~nsStylePosition(void);
@@ -627,7 +642,7 @@ struct nsStylePosition {
   void Destroy(nsPresContext* aContext) {
     this->~nsStylePosition();
     aContext->FreeToShell(sizeof(nsStylePosition), this);
-  }
+  };
 
   nsChangeHint CalcDifference(const nsStylePosition& aOther) const;
 #ifdef DEBUG
@@ -635,9 +650,9 @@ struct nsStylePosition {
 #endif
   
   nsStyleSides  mOffset;                // [reset]
-  nsStyleCoord  mWidth;                 // [reset] coord, percent, auto, enum
-  nsStyleCoord  mMinWidth;              // [reset] coord, percent, enum
-  nsStyleCoord  mMaxWidth;              // [reset] coord, percent, null, enum
+  nsStyleCoord  mWidth;                 // [reset] coord, percent, auto
+  nsStyleCoord  mMinWidth;              // [reset] coord, percent
+  nsStyleCoord  mMaxWidth;              // [reset] coord, percent, null
   nsStyleCoord  mHeight;                // [reset] coord, percent, auto
   nsStyleCoord  mMinHeight;             // [reset] coord, percent
   nsStyleCoord  mMaxHeight;             // [reset] coord, percent, null
@@ -645,7 +660,7 @@ struct nsStylePosition {
   nsStyleCoord  mZIndex;                // [reset] 
 };
 
-struct nsStyleTextReset {
+struct nsStyleTextReset : public nsStyleStruct {
   nsStyleTextReset(void);
   nsStyleTextReset(const nsStyleTextReset& aOther);
   ~nsStyleTextReset(void);
@@ -656,7 +671,7 @@ struct nsStyleTextReset {
   void Destroy(nsPresContext* aContext) {
     this->~nsStyleTextReset();
     aContext->FreeToShell(sizeof(nsStyleTextReset), this);
-  }
+  };
 
   nsChangeHint CalcDifference(const nsStyleTextReset& aOther) const;
 #ifdef DEBUG
@@ -669,7 +684,7 @@ struct nsStyleTextReset {
   nsStyleCoord  mVerticalAlign;         // [reset] see nsStyleConsts.h for enums
 };
 
-struct nsStyleText {
+struct nsStyleText : public nsStyleStruct {
   nsStyleText(void);
   nsStyleText(const nsStyleText& aOther);
   ~nsStyleText(void);
@@ -680,7 +695,7 @@ struct nsStyleText {
   void Destroy(nsPresContext* aContext) {
     this->~nsStyleText();
     aContext->FreeToShell(sizeof(nsStyleText), this);
-  }
+  };
 
   nsChangeHint CalcDifference(const nsStyleText& aOther) const;
 #ifdef DEBUG
@@ -698,19 +713,19 @@ struct nsStyleText {
   
   PRBool WhiteSpaceIsSignificant() const {
     return mWhiteSpace == NS_STYLE_WHITESPACE_PRE ||
-           mWhiteSpace == NS_STYLE_WHITESPACE_PRE_WRAP;
+           mWhiteSpace == NS_STYLE_WHITESPACE_MOZ_PRE_WRAP;
   }
 
   PRBool WhiteSpaceCanWrap() const {
     return mWhiteSpace == NS_STYLE_WHITESPACE_NORMAL ||
-           mWhiteSpace == NS_STYLE_WHITESPACE_PRE_WRAP;
+           mWhiteSpace == NS_STYLE_WHITESPACE_MOZ_PRE_WRAP;
   }
 };
 
-struct nsStyleVisibility {
+struct nsStyleVisibility : public nsStyleStruct {
   nsStyleVisibility(nsPresContext* aPresContext);
   nsStyleVisibility(const nsStyleVisibility& aVisibility);
-  ~nsStyleVisibility() {}
+  ~nsStyleVisibility() {};
 
   void* operator new(size_t sz, nsPresContext* aContext) CPP_THROW_NEW {
     return aContext->AllocateFromShell(sz);
@@ -718,7 +733,7 @@ struct nsStyleVisibility {
   void Destroy(nsPresContext* aContext) {
     this->~nsStyleVisibility();
     aContext->FreeToShell(sizeof(nsStyleVisibility), this);
-  }
+  };
 
   nsChangeHint CalcDifference(const nsStyleVisibility& aOther) const;
 #ifdef DEBUG
@@ -739,10 +754,10 @@ struct nsStyleVisibility {
 	}
 };
 
-struct nsStyleDisplay {
+struct nsStyleDisplay : public nsStyleStruct {
   nsStyleDisplay();
   nsStyleDisplay(const nsStyleDisplay& aOther); 
-  ~nsStyleDisplay() {}
+  ~nsStyleDisplay() {};
 
   void* operator new(size_t sz, nsPresContext* aContext) CPP_THROW_NEW {
     return aContext->AllocateFromShell(sz);
@@ -750,16 +765,14 @@ struct nsStyleDisplay {
   void Destroy(nsPresContext* aContext) {
     this->~nsStyleDisplay();
     aContext->FreeToShell(sizeof(nsStyleDisplay), this);
-  }
+  };
 
   nsChangeHint CalcDifference(const nsStyleDisplay& aOther) const;
 #ifdef DEBUG
   static nsChangeHint MaxDifference();
 #endif
-
-  // We guarantee that if mBinding is non-null, so are mBinding->mURI and
-  // mBinding->mOriginPrincipal.
-  nsRefPtr<nsCSSValue::URL> mBinding;    // [reset]
+  
+  nsCOMPtr<nsIURI> mBinding;    // [reset]
 #if 0
   // XXX This is how it is defined in the CSS2 spec, but the errata
   // changed it to be consistent with the positioning draft and how
@@ -781,6 +794,11 @@ struct nsStyleDisplay {
   PRUint8 mOverflowY;           // [reset] see nsStyleConsts.h
   PRUint8   mClipFlags;         // [reset] see nsStyleConsts.h
   
+  // XXX Deprecated.  Prefer |IsBlockOutside|.
+  PRBool IsBlockLevel() const {
+    return IsBlockOutside();
+  }
+
   PRBool IsBlockInside() const {
     return NS_STYLE_DISPLAY_BLOCK == mDisplay ||
            NS_STYLE_DISPLAY_LIST_ITEM == mDisplay ||
@@ -802,7 +820,11 @@ struct nsStyleDisplay {
            NS_STYLE_DISPLAY_INLINE_TABLE == mDisplay ||
            NS_STYLE_DISPLAY_INLINE_BOX == mDisplay ||
            NS_STYLE_DISPLAY_INLINE_GRID == mDisplay ||
-           NS_STYLE_DISPLAY_INLINE_STACK == mDisplay;
+           NS_STYLE_DISPLAY_INLINE_STACK == mDisplay ||
+           // Are these really inlines? :
+           NS_STYLE_DISPLAY_DECK == mDisplay ||
+           NS_STYLE_DISPLAY_POPUP == mDisplay ||
+           NS_STYLE_DISPLAY_GROUPBOX == mDisplay;
   }
 
   PRBool IsFloating() const {
@@ -831,7 +853,7 @@ struct nsStyleDisplay {
   }
 };
 
-struct nsStyleTable {
+struct nsStyleTable: public nsStyleStruct {
   nsStyleTable(void);
   nsStyleTable(const nsStyleTable& aOther);
   ~nsStyleTable(void);
@@ -842,7 +864,7 @@ struct nsStyleTable {
   void Destroy(nsPresContext* aContext) {
     this->~nsStyleTable();
     aContext->FreeToShell(sizeof(nsStyleTable), this);
-  }
+  };
 
   nsChangeHint CalcDifference(const nsStyleTable& aOther) const;
 #ifdef DEBUG
@@ -856,7 +878,7 @@ struct nsStyleTable {
   PRInt32       mSpan;          // [reset] the number of columns spanned by a colgroup or col
 };
 
-struct nsStyleTableBorder {
+struct nsStyleTableBorder: public nsStyleStruct {
   nsStyleTableBorder(nsPresContext* aContext);
   nsStyleTableBorder(const nsStyleTableBorder& aOther);
   ~nsStyleTableBorder(void);
@@ -867,7 +889,7 @@ struct nsStyleTableBorder {
   void Destroy(nsPresContext* aContext) {
     this->~nsStyleTableBorder();
     aContext->FreeToShell(sizeof(nsStyleTableBorder), this);
-  }
+  };
 
   nsChangeHint CalcDifference(const nsStyleTableBorder& aOther) const;
 #ifdef DEBUG
@@ -922,7 +944,7 @@ struct nsStyleCounterData {
 
 #define DELETE_ARRAY_IF(array)  if (array) { delete[] array; array = nsnull; }
 
-struct nsStyleQuotes {
+struct nsStyleQuotes : public nsStyleStruct {
   nsStyleQuotes();
   nsStyleQuotes(const nsStyleQuotes& aQuotes);
   ~nsStyleQuotes();
@@ -933,7 +955,7 @@ struct nsStyleQuotes {
   void Destroy(nsPresContext* aContext) {
     this->~nsStyleQuotes();
     aContext->FreeToShell(sizeof(nsStyleQuotes), this);
-  }
+  };
 
   nsChangeHint CalcDifference(const nsStyleQuotes& aOther) const;
 #ifdef DEBUG
@@ -992,7 +1014,7 @@ protected:
   nsString*           mQuotes;
 };
 
-struct nsStyleContent {
+struct nsStyleContent: public nsStyleStruct {
   nsStyleContent(void);
   nsStyleContent(const nsStyleContent& aContent);
   ~nsStyleContent(void);
@@ -1003,7 +1025,7 @@ struct nsStyleContent {
   void Destroy(nsPresContext* aContext) {
     this->~nsStyleContent();
     aContext->FreeToShell(sizeof(nsStyleContent), this);
-  }
+  };
 
   nsChangeHint CalcDifference(const nsStyleContent& aOther) const;
 #ifdef DEBUG
@@ -1097,7 +1119,7 @@ protected:
   nsStyleCounterData* mResets;
 };
 
-struct nsStyleUIReset {
+struct nsStyleUIReset: public nsStyleStruct {
   nsStyleUIReset(void);
   nsStyleUIReset(const nsStyleUIReset& aOther);
   ~nsStyleUIReset(void);
@@ -1108,7 +1130,7 @@ struct nsStyleUIReset {
   void Destroy(nsPresContext* aContext) {
     this->~nsStyleUIReset();
     aContext->FreeToShell(sizeof(nsStyleUIReset), this);
-  }
+  };
 
   nsChangeHint CalcDifference(const nsStyleUIReset& aOther) const;
 #ifdef DEBUG
@@ -1117,7 +1139,6 @@ struct nsStyleUIReset {
 
   PRUint8   mUserSelect;      // [reset] (selection-style)
   PRUint8   mForceBrokenImageIcon; // [reset]  (0 if not forcing, otherwise forcing)
-  PRUint8   mIMEMode;         // [reset]
 };
 
 struct nsCursorImage {
@@ -1128,7 +1149,7 @@ struct nsCursorImage {
   nsCursorImage();
 };
 
-struct nsStyleUserInterface {
+struct nsStyleUserInterface: public nsStyleStruct {
   nsStyleUserInterface(void);
   nsStyleUserInterface(const nsStyleUserInterface& aOther);
   ~nsStyleUserInterface(void);
@@ -1139,7 +1160,7 @@ struct nsStyleUserInterface {
   void Destroy(nsPresContext* aContext) {
     this->~nsStyleUserInterface();
     aContext->FreeToShell(sizeof(nsStyleUserInterface), this);
-  }
+  };
 
   nsChangeHint CalcDifference(const nsStyleUserInterface& aOther) const;
 #ifdef DEBUG
@@ -1163,7 +1184,7 @@ struct nsStyleUserInterface {
   void CopyCursorArrayFrom(const nsStyleUserInterface& aSource);
 };
 
-struct nsStyleXUL {
+struct nsStyleXUL : public nsStyleStruct {
   nsStyleXUL();
   nsStyleXUL(const nsStyleXUL& aSource);
   ~nsStyleXUL();
@@ -1174,7 +1195,7 @@ struct nsStyleXUL {
   void Destroy(nsPresContext* aContext) {
     this->~nsStyleXUL();
     aContext->FreeToShell(sizeof(nsStyleXUL), this);
-  }
+  };
 
   nsChangeHint CalcDifference(const nsStyleXUL& aOther) const;
 #ifdef DEBUG
@@ -1189,7 +1210,7 @@ struct nsStyleXUL {
   PRUint8       mBoxPack;               // [reset] see nsStyleConsts.h
 };
 
-struct nsStyleColumn {
+struct nsStyleColumn : public nsStyleStruct {
   nsStyleColumn();
   nsStyleColumn(const nsStyleColumn& aSource);
   ~nsStyleColumn();
@@ -1200,7 +1221,7 @@ struct nsStyleColumn {
   void Destroy(nsPresContext* aContext) {
     this->~nsStyleColumn();
     aContext->FreeToShell(sizeof(nsStyleColumn), this);
-  }
+  };
 
   nsChangeHint CalcDifference(const nsStyleColumn& aOther) const;
 #ifdef DEBUG
@@ -1209,12 +1230,12 @@ struct nsStyleColumn {
 
   PRUint32     mColumnCount; // [reset] see nsStyleConsts.h
   nsStyleCoord mColumnWidth; // [reset]
-  nsStyleCoord mColumnGap;   // [reset] coord
+  nsStyleCoord mColumnGap;   // [reset]
 };
 
 #ifdef MOZ_SVG
 enum nsStyleSVGPaintType {
-  eStyleSVGPaintType_None = 1,
+  eStyleSVGPaintType_None = 0,
   eStyleSVGPaintType_Color,
   eStyleSVGPaintType_Server
 };
@@ -1228,9 +1249,9 @@ struct nsStyleSVGPaint
   } mPaint;
   nscolor mFallbackColor;
 
-  nsStyleSVGPaint() : mType(nsStyleSVGPaintType(0)) { mPaint.mPaintServer = nsnull; }
-  ~nsStyleSVGPaint();
-  void SetType(nsStyleSVGPaintType aType);
+  // empty constructor to keep Sun compiler happy
+  nsStyleSVGPaint() {}
+  ~nsStyleSVGPaint(); 
   nsStyleSVGPaint& operator=(const nsStyleSVGPaint& aOther);
   PRBool operator==(const nsStyleSVGPaint& aOther) const; 
 
@@ -1239,7 +1260,7 @@ struct nsStyleSVGPaint
   }
 };
 
-struct nsStyleSVG {
+struct nsStyleSVG : public nsStyleStruct {
   nsStyleSVG();
   nsStyleSVG(const nsStyleSVG& aSource);
   ~nsStyleSVG();
@@ -1250,7 +1271,7 @@ struct nsStyleSVG {
   void Destroy(nsPresContext* aContext) {
     this->~nsStyleSVG();
     aContext->FreeToShell(sizeof(nsStyleSVG), this);
-  }
+  };
 
   nsChangeHint CalcDifference(const nsStyleSVG& aOther) const;
 #ifdef DEBUG
@@ -1284,7 +1305,7 @@ struct nsStyleSVG {
   PRUint8          mTextRendering;    // [inherited] see nsStyleConsts.h
 };
 
-struct nsStyleSVGReset {
+struct nsStyleSVGReset : public nsStyleStruct {
   nsStyleSVGReset();
   nsStyleSVGReset(const nsStyleSVGReset& aSource);
   ~nsStyleSVGReset();
@@ -1295,7 +1316,7 @@ struct nsStyleSVGReset {
   void Destroy(nsPresContext* aContext) {
     this->~nsStyleSVGReset();
     aContext->FreeToShell(sizeof(nsStyleSVGReset), this);
-  }
+  };
 
   nsChangeHint CalcDifference(const nsStyleSVGReset& aOther) const;
 #ifdef DEBUG
@@ -1304,7 +1325,6 @@ struct nsStyleSVGReset {
 
   nscolor          mStopColor;        // [reset]
   nscolor          mFloodColor;       // [reset]
-  nscolor          mLightingColor;    // [reset]
   nsCOMPtr<nsIURI> mClipPath;         // [reset]
   nsCOMPtr<nsIURI> mFilter;           // [reset]
   nsCOMPtr<nsIURI> mMask;             // [reset]
@@ -1315,5 +1335,57 @@ struct nsStyleSVGReset {
   PRUint8          mDominantBaseline; // [reset] see nsStyleConsts.h
 };
 #endif
+
+
+#define BORDER_PRECEDENT_EQUAL  0
+#define BORDER_PRECEDENT_LOWER  1
+#define BORDER_PRECEDENT_HIGHER 2
+
+struct nsBorderEdges;
+
+/** an encapsulation of border edge info */
+struct nsBorderEdge
+{
+  /** the thickness of the edge */
+  nscoord mWidth;
+  /** the length of the edge */
+  nscoord mLength;
+  nscolor mColor;
+  /** if this edge is an outside edge, the border infor for the adjacent inside object */
+  nsBorderEdges * mInsideNeighbor;
+  PRUint8 mStyle;  
+  /** which side does this edge represent? */
+  PRUint8 mSide;
+
+  nsBorderEdge();
+};
+
+inline nsBorderEdge::nsBorderEdge()
+{
+  mWidth=0;
+  mLength=0;
+  mStyle=NS_STYLE_BORDER_STYLE_NONE;
+  mColor=0;
+  mSide=NS_SIDE_LEFT;
+  mInsideNeighbor = nsnull;
+}
+
+/** an encapsulation of a border defined by its edges 
+  * owner of this struct is responsible for freeing any data stored in mEdges
+  */
+struct nsBorderEdges
+{
+  nsVoidArray  mEdges[4];
+  nsMargin     mMaxBorderWidth;
+  PRPackedBool mOutsideEdge;
+
+  nsBorderEdges();
+};
+
+inline nsBorderEdges::nsBorderEdges()
+{
+  mMaxBorderWidth.SizeTo(0,0,0,0);
+  mOutsideEdge = PR_TRUE;
+}
 
 #endif /* nsStyleStruct_h___ */

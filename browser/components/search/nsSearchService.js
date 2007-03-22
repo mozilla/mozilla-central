@@ -57,12 +57,6 @@ const NS_APP_USER_SEARCH_DIR  = "UsrSrchPlugns";
 const NS_APP_SEARCH_DIR       = "SrchPlugns";
 const NS_APP_USER_PROFILE_50_DIR = "ProfD";
 
-// Search engine "locations". If this list is changed, be sure to update
-// the engine's _isDefault function accordingly.
-const SEARCH_APP_DIR = 1;
-const SEARCH_PROFILE_DIR = 2;
-const SEARCH_IN_EXTENSION = 3;
-
 // See documentation in nsIBrowserSearchService.idl.
 const SEARCH_ENGINE_TOPIC        = "browser-search-engine-modified";
 const QUIT_APPLICATION_TOPIC     = "quit-application";
@@ -201,21 +195,10 @@ function isUsefulLine(aLine) {
 const SEARCH_LOG_PREFIX = "*** Search: ";
 
 /**
- * Outputs aText to the JavaScript console as well as to stdout.
+ * Outputs aText to the JavaScript console as well as to stdout, if the search
+ * logging pref (browser.search.log) is set to true.
  */
-function DO_LOG(aText) {
-  dump(SEARCH_LOG_PREFIX + aText + "\n");
-  var consoleService = Cc["@mozilla.org/consoleservice;1"].
-                       getService(Ci.nsIConsoleService);
-  consoleService.logStringMessage(aText);
-}
-
-#ifdef DEBUG
-/**
- * In debug builds, use a live, pref-based (browser.search.log) LOG function
- * to allow enabling/disabling without a restart.
- */
-function PREF_LOG(aText) {
+function LOG(aText) {
   var prefB = Cc["@mozilla.org/preferences-service;1"].
               getService(Ci.nsIPrefBranch);
   var shouldLog = false;
@@ -224,20 +207,12 @@ function PREF_LOG(aText) {
   } catch (ex) {}
 
   if (shouldLog) {
-    DO_LOG(aText);
+    dump(SEARCH_LOG_PREFIX + aText + "\n");
+    var consoleService = Cc["@mozilla.org/consoleservice;1"].
+                         getService(Ci.nsIConsoleService);
+    consoleService.logStringMessage(aText);
   }
 }
-var LOG = PREF_LOG;
-
-#else
-
-/**
- * Otherwise, don't log at all by default. This can be overridden at startup
- * by the pref, see SearchService's _init method.
- */
-var LOG = function(){};
-
-#endif
 
 function ERROR(message, resultCode) {
   NS_ASSERT(false, SEARCH_LOG_PREFIX + message);
@@ -310,8 +285,7 @@ loadListener.prototype = {
         aIID.equals(Ci.nsIStreamListener)     ||
         aIID.equals(Ci.nsIChannelEventSink)   ||
         aIID.equals(Ci.nsIInterfaceRequestor) ||
-        aIID.equals(Ci.nsIBadCertListener2)   ||
-        aIID.equals(Ci.nsISSLErrorListener)   ||
+        aIID.equals(Ci.nsIBadCertListener)    ||
         // See FIXME comment below
         aIID.equals(Ci.nsIHttpEventSink)      ||
         aIID.equals(Ci.nsIProgressEventSink)  ||
@@ -367,14 +341,22 @@ loadListener.prototype = {
     return this.QueryInterface(aIID);
   },
 
-  // nsIBadCertListener2
-  notifyCertProblem: function SRCH_certProblem(socketInfo, status, targetSite) {
-    return true;
+  // nsIBadCertListener
+  confirmUnknownIssuer: function SRCH_load_CUI(aSocketInfo, aCert,
+                                               aCertAddType) {
+    return false;
   },
 
-  // nsISSLErrorListener
-  notifySSLError: function SRCH_SSLError(socketInfo, error, targetSite) {
-    return true;
+  confirmMismatchDomain: function SRCH_load_CMD(aSocketInfo, aTargetURL,
+                                                aCert) {
+    return false;
+  },
+
+  confirmCertExpired: function SRCH_load_CCE(aSocketInfo, aCert) {
+    return false;
+  },
+
+  notifyCrlNextupdate: function SRCH_load_NCN(aSocketInfo, aTargetURL, aCert) {
   },
 
   // FIXME: bug 253127
@@ -745,9 +727,9 @@ function ParamSubstitution(aParamValue, aSearchTerms, aEngine) {
   }
   catch (ex) { }
 
-  // Custom search parameters. These are only available to default search
+  // Custom search parameters. These are only available to app-shipped search
   // engines.
-  if (aEngine._isDefault) {
+  if (aEngine._isInAppDir) {
     value = value.replace(MOZ_PARAM_LOCALE, getLocale());
     value = value.replace(MOZ_PARAM_DIST_ID, distributionID);
     value = value.replace(MOZ_PARAM_OFFICIAL, MOZ_OFFICIAL);
@@ -992,9 +974,8 @@ Engine.prototype = {
   // Whether to set this as the current engine as soon as it is loaded.  This
   // is only used when the engine is first added to the list.
   _useNow: true,
-  // Where the engine was loaded from. Can be one of: SEARCH_APP_DIR,
-  // SEARCH_PROFILE_DIR, SEARCH_IN_EXTENSION.
-  __installLocation: null,
+  // Whether the search engine file is in the app dir.
+  __isInAppDir: null,
   // The number of days between update checks for new versions
   _updateInterval: null,
   // The url to check at for a new update
@@ -1177,9 +1158,12 @@ Engine.prototype = {
 
     switch (aEngine._dataType) {
       case SEARCH_DATA_XML:
+        var dataString = bytesToString(aBytes, "UTF-8");
+        ENSURE(dataString, "_onLoad: Couldn't convert byte array!",
+               Cr.NS_ERROR_FAILURE);
         var parser = Cc["@mozilla.org/xmlextras/domparser;1"].
                      createInstance(Ci.nsIDOMParser);
-        var doc = parser.parseFromBuffer(aBytes, aBytes.length, "text/xml");
+        var doc = parser.parseFromString(dataString, "text/xml");
         aEngine._data = doc.documentElement;
         break;
       case SEARCH_DATA_TEXT:
@@ -1377,10 +1361,6 @@ Engine.prototype = {
         this._type = SEARCH_TYPE_SHERLOCK;
         this._parseAsSherlock();
     }
-
-    // No need to keep a ref to our data (which in some cases can be a document
-    // element) past this point
-    this._data = null;
   },
 
   /**
@@ -1396,7 +1376,7 @@ Engine.prototype = {
     this._urls.push(new EngineURL("text/html", aMethod, aTemplate));
 
     this._name = aName;
-    this.alias = aAlias;
+    this._alias = aAlias;
     this._description = aDescription;
     this._setIcon(aIconURL, true);
 
@@ -1436,8 +1416,8 @@ Engine.prototype = {
           LOG("_parseURL: Url element has an invalid param");
         }
       } else if (param.localName == "MozParam" &&
-                 // We only support MozParams for default search engines
-                 this._isDefault) {
+                 // We only support MozParams for appdir-shipped search engines
+                 this._isInAppDir) {
         var value;
         switch (param.getAttribute("condition")) {
           case "defaultEngine":
@@ -1526,6 +1506,9 @@ Engine.prototype = {
           break;
 
         // Non-OpenSearch elements
+        case "Alias":
+          this._alias = child.textContent;
+          break;
         case "SearchForm":
           this._searchForm = child.textContent;
           break;
@@ -1902,6 +1885,7 @@ Engine.prototype = {
       }
     }
 
+    appendTextNode(MOZSEARCH_NS_10, "Alias", this.alias);
     appendTextNode(MOZSEARCH_NS_10, "UpdateInterval", this._updateInterval);
     appendTextNode(MOZSEARCH_NS_10, "UpdateUrl", this._updateURL);
     appendTextNode(MOZSEARCH_NS_10, "IconUpdateUrl", this._iconUpdateURL);
@@ -2042,7 +2026,7 @@ Engine.prototype = {
   get _id() {
     ENSURE_WARN(this._file, "No _file for id!", Cr.NS_ERROR_FAILURE);
 
-    if (this._isInProfile)
+    if (this._file.parent.equals(getDir(NS_APP_USER_SEARCH_DIR)))
       return "[profile]/" + this._file.leafName;
 
     if (this._isInAppDir)
@@ -2053,35 +2037,13 @@ Engine.prototype = {
     return this._file.path;
   },
 
-  get _installLocation() {
-    ENSURE_WARN(this._file && this._file.exists(),
-                "_installLocation: engine has no file!",
-                Cr.NS_ERROR_FAILURE);
-
-    if (this.__installLocation === null) {
-      if (this._file.parent.equals(getDir(NS_APP_SEARCH_DIR)))
-        this.__installLocation = SEARCH_APP_DIR;
-      else if (this._file.parent.equals(getDir(NS_APP_USER_SEARCH_DIR)))
-        this.__installLocation = SEARCH_PROFILE_DIR;
-      else
-        this.__installLocation = SEARCH_IN_EXTENSION;
-    }
-
-    return this.__installLocation;
-  },
-
   get _isInAppDir() {
-    return this._installLocation == SEARCH_APP_DIR;
-  },
-  get _isInProfile() {
-    return this._installLocation == SEARCH_PROFILE_DIR;
-  },
-
-  get _isDefault() {
-    // For now, our concept of a "default engine" is "one that is not in the
-    // user's profile directory", which is currently equivalent to "is app- or
-    // extension-shipped".
-    return !this._isInProfile;
+    ENSURE_WARN(this._file && this._file.exists(),
+                "_isInAppDir: engine has no file!",
+                Cr.NS_ERROR_FAILURE);
+    if (this.__isInAppDir === null)
+      this.__isInAppDir = this._file.parent.equals(getDir(NS_APP_SEARCH_DIR));
+    return this.__isInAppDir;
   },
 
   get _hasUpdates() {
@@ -2216,18 +2178,6 @@ SearchService.prototype = {
   _needToSetOrderPrefs: false,
 
   _init: function() {
-    var prefB = Cc["@mozilla.org/preferences-service;1"].
-                getService(Ci.nsIPrefBranch);
-    var shouldLog = false;
-    try {
-      shouldLog = prefB.getBoolPref(BROWSER_SEARCH_PREF + "log");
-    } catch (ex) {}
-
-    if (shouldLog) {
-      // Replace the empty LOG function with the useful one
-      LOG = DO_LOG;
-    }
-
     engineMetadataService.init();
     engineUpdateService.init();
 
@@ -2564,7 +2514,7 @@ SearchService.prototype = {
         bStream.close();
 
         // Convert the byte array to a base64-encoded string
-        var str = btoa(String.fromCharCode.apply(null, bytes));
+        var str = b64(bytes);
 
         aEngine._iconURI = makeURI(ICON_DATAURL_PREFIX + str);
         LOG("_importSherlockEngine: Set sherlock iconURI to: \"" +
@@ -2630,46 +2580,20 @@ SearchService.prototype = {
   },
 
   getDefaultEngines: function SRCH_SVC_getDefault(aCount) {
-    function isDefault(engine) {
-      return engine._isDefault;
+    function isDefault (engine) {
+      return engine._isInAppDir;
     };
     var engines = this._sortedEngines.filter(isDefault);
     var engineOrder = {};
-    var engineName;
     var i = 1;
 
-    // Build a list of engines which we have ordering information for.
-    // We're rebuilding the list here because _sortedEngines contain the
-    // current order, but we want the original order.
-
-    // First, look at the "browser.search.order.extra" branch.
-    try {
-      var prefB = Cc["@mozilla.org/preferences-service;1"].
-                  getService(Ci.nsIPrefBranch);
-      var extras = prefB.getChildList(BROWSER_SEARCH_PREF + "order.extra.",
-                                      {});
-
-      for each (var prefName in extras) {
-        engineName = prefB.getCharPref(prefName);
-
-        if (!(engineName in engineOrder))
-          engineOrder[engineName] = i++;
-      }
-    } catch (e) {
-      LOG("Getting extra order prefs failed: " + e);
-    }
-
-    // Now look through the "browser.search.order" branch.
-    for (var j = 1; ; j++) {
-      engineName = getLocalizedPref(BROWSER_SEARCH_PREF + "order." + j);
-      if (!engineName)
+    while (true) {
+      var name = getLocalizedPref(BROWSER_SEARCH_PREF + "order." + i);
+      if (!name)
         break;
 
-      if (!(engineName in engineOrder))
-        engineOrder[engineName] = i++;
+      engineOrder[name] = i++;
     }
-
-    LOG("getDefaultEngines: engineOrder: " + engineOrder.toSource());
 
     function compareEngines (a, b) {
       var aIdx = engineOrder[a.name];
@@ -2749,17 +2673,9 @@ SearchService.prototype = {
       this._currentEngine = null;
 
     if (engineToRemove._readOnly) {
-      // Just hide it (the "hidden" setter will notify) and remove its alias to
-      // avoid future conflicts with other engines.
+      // Just hide it (the "hidden" setter will notify)
       engineToRemove.hidden = true;
-      engineToRemove.alias = null;
     } else {
-      // Cancel the lazy serialization timer if it's running
-      if (engineToRemove._serializeTimer) {
-        engineToRemove._serializeTimer.cancel();
-        engineToRemove._serializeTimer = null;
-      }
-
       // Remove the engine file from disk (this might throw)
       engineToRemove._remove();
       engineToRemove._file = null;
@@ -2831,8 +2747,8 @@ SearchService.prototype = {
 
   restoreDefaultEngines: function SRCH_SVC_resetDefaultEngines() {
     for each (var e in this._engines) {
-      // Unhide all default engines
-      if (e.hidden && e._isDefault)
+      // Unhide all appdir-installed engines
+      if (e.hidden && e._isInAppDir)
         e.hidden = false;
     }
   },

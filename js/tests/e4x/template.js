@@ -36,15 +36,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'template.js';
+START("section - description");
 
-var summary = 'section - description';
-var BUGNUMBER = 99999;
+var bug = 99999;
+var summary = '';
 var actual = '';
 var expect = '';
 
-printBugNumber(BUGNUMBER);
-START(summary);
+printBugNumber (bug);
+printStatus (summary);
 
 // test here
 

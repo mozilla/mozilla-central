@@ -41,12 +41,6 @@
 #ifndef xptcall_h___
 #define xptcall_h___
 
-#ifdef MOZILLA_INTERNAL_API
-# define NS_GetXPTCallStub     NS_GetXPTCallStub_P
-# define NS_DestroyXPTCallStub NS_DestroyXPTCallStub_P
-# define NS_InvokeByIndex      NS_InvokeByIndex_P
-#endif
-
 #include "prtypes.h"
 #include "nscore.h"
 #include "nsISupports.h"
@@ -128,7 +122,6 @@ struct nsXPTCVariant : public nsXPTCMiniVariant
         else
         {
             ptr = nsnull;
-            val.p = nsnull; // make sure 'val.p' is always initialized
             switch(t.TagPart()) {
               case nsXPTType::T_I8:                val.i8  = mv.val.i8;  break;
               case nsXPTType::T_I16:               val.i16 = mv.val.i16; break;

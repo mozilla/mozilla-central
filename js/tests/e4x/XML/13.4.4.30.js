@@ -40,8 +40,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '13.4.4.30.js';
-
 START("13.4.4.30 - propertyIsEnumerable()");
 
 TEST(1, true, XML.prototype.hasOwnProperty("propertyIsEnumerable"));

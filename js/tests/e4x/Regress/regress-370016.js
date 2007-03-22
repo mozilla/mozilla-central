@@ -36,15 +36,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'regress-370016.js';
-
-var BUGNUMBER = 370016;
+var bug = 370016;
 var summary = 'with (nonxmlobj) function::';
 var actual = 'No Exception';
 var expect = 'No Exception';
 
-printBugNumber(BUGNUMBER);
-START(summary);
+printBugNumber (bug);
+printStatus (summary);
 
 with (Math) print(function::sin(0))
 

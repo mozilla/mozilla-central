@@ -57,14 +57,6 @@ nsDOMKeyboardEvent::nsDOMKeyboardEvent(nsPresContext* aPresContext,
   }
 }
 
-nsDOMKeyboardEvent::~nsDOMKeyboardEvent()
-{
-  if (mEventIsInternal) {
-    delete static_cast<nsKeyEvent*>(mEvent);
-    mEvent = nsnull;
-  }
-}
-
 NS_IMPL_ADDREF_INHERITED(nsDOMKeyboardEvent, nsDOMUIEvent)
 NS_IMPL_RELEASE_INHERITED(nsDOMKeyboardEvent, nsDOMUIEvent)
 
@@ -182,7 +174,7 @@ nsDOMKeyboardEvent::InitKeyEvent(const nsAString& aType, PRBool aCanBubble, PRBo
   nsresult rv = nsDOMUIEvent::InitUIEvent(aType, aCanBubble, aCancelable, aView, 0);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsKeyEvent* keyEvent = static_cast<nsKeyEvent*>(mEvent);
+  nsKeyEvent* keyEvent = NS_STATIC_CAST(nsKeyEvent*, mEvent);
   keyEvent->isControl = aCtrlKey;
   keyEvent->isAlt = aAltKey;
   keyEvent->isShift = aShiftKey;

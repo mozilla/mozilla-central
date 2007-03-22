@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -20,8 +20,6 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Michiel van Leeuwen (mvl@exedo.nl)
- *   Daniel Witte (dwitte@stanford.edu)
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -47,28 +45,24 @@
 #include "nsCOMPtr.h"
 #include "nsIFile.h"
 #include "nsTHashtable.h"
-#include "nsTArray.h"
 #include "nsString.h"
+#include "nsITimer.h"
 
 class nsIPermission;
-class nsIIDNService;
-class mozIStorageConnection;
-class mozIStorageStatement;
 
 ////////////////////////////////////////////////////////////////////////////////
 
-class nsPermissionEntry
-{
-public:
-  nsPermissionEntry(PRUint32 aType, PRUint32 aPermission, PRInt64 aID)
-   : mType(aType)
-   , mPermission(aPermission)
-   , mID(aID) {}
-
-  PRUint32 mType;
-  PRUint32 mPermission;
-  PRInt64  mID;
-};
+// This allow us 8 types of permissions, with 256 values for each
+// permission (some types might want to prompt, block 3rd party etc).
+// Note that nsIPermissionManager.idl only allows 16 values for permission,
+// and that nsPermissionManager::Write() can only deal with 26 values of
+// permission safely. (We allow space for 256 here, since it's faster to
+// deal with bytes than with bits).
+// Note: When changing NUMBER_OF_TYPES, also update PermissionsAreEmpty()
+// and the constructors.
+// This should be a multiple of 4, to make PermissionsAreEmpty() fast
+#define NUMBER_OF_TYPES       (8)
+#define NUMBER_OF_PERMISSIONS (16)
 
 class nsHostEntry : public PLDHashEntryHdr
 {
@@ -85,6 +79,11 @@ public:
   }
 
   KeyType GetKey() const
+  {
+    return mHost;
+  }
+
+  KeyTypePointer GetKeyPointer() const
   {
     return mHost;
   }
@@ -106,9 +105,7 @@ public:
     return PL_DHashStringKey(nsnull, aKey);
   }
 
-  // force the hashtable to use the copy constructor when shuffling entries
-  // around, otherwise the Auto part of our nsAutoTArray won't be happy!
-  enum { ALLOW_MEMMOVE = PR_FALSE };
+  enum { ALLOW_MEMMOVE = PR_TRUE };
 
   // Permissions methods
   inline const nsDependentCString GetHost() const
@@ -116,32 +113,33 @@ public:
     return nsDependentCString(mHost);
   }
 
-  inline nsTArray<nsPermissionEntry> & GetPermissions()
+  // Callers must do boundary checks
+  void SetPermission(PRInt32 aTypeIndex, PRUint32 aPermission)
   {
-    return mPermissions;
+    mPermissions[aTypeIndex] = (PRUint8)aPermission;
   }
 
-  inline PRInt32 GetPermissionIndex(PRUint32 aType) const
+  PRUint32 GetPermission(PRInt32 aTypeIndex) const
   {
-    for (PRUint32 i = 0; i < mPermissions.Length(); ++i)
-      if (mPermissions[i].mType == aType)
-        return i;
-
-    return -1;
+    return (PRUint32)mPermissions[aTypeIndex];
   }
 
-  inline PRUint32 GetPermission(PRUint32 aType) const
+  PRBool PermissionsAreEmpty() const
   {
-    for (PRUint32 i = 0; i < mPermissions.Length(); ++i)
-      if (mPermissions[i].mType == aType)
-        return mPermissions[i].mPermission;
-
-    return nsIPermissionManager::UNKNOWN_ACTION;
+    // Cast to PRUint32, to make this faster. Only 2 checks instead of 8
+    return (*NS_REINTERPRET_CAST(const PRUint32*, &mPermissions[0])==0 && 
+            *NS_REINTERPRET_CAST(const PRUint32*, &mPermissions[4])==0 );
   }
 
 private:
   const char *mHost;
-  nsAutoTArray<nsPermissionEntry, 1> mPermissions;
+
+  // This will contain the permissions for different types, in a bitmasked
+  // form. The type itself defines the position.
+  // One byte per permission. This is a small loss of memory (as 255 types
+  // of action per type is a lot, 16 would be enough), but will improve speed
+  // Bytemasking is around twice as fast (on one arch at least) than bitmasking
+  PRUint8 mPermissions[NUMBER_OF_TYPES];
 };
 
 
@@ -162,31 +160,10 @@ public:
 
 private:
 
-  // enums for AddInternal()
-  enum OperationType {
-    eOperationNone,
-    eOperationAdding,
-    eOperationRemoving,
-    eOperationChanging
-  };
-
-  enum DBOperationType {
-    eNoDBOperation,
-    eWriteToDB
-  };
-
-  enum NotifyOperationType {
-    eDontNotify,
-    eNotify
-  };
-
   nsresult AddInternal(const nsAFlatCString &aHost,
-                       const nsAFlatCString &aType,
+                       PRInt32  aTypeIndex,
                        PRUint32 aPermission,
-                       PRInt64 aID,
-                       NotifyOperationType aNotifyOperation,
-                       DBOperationType aDBOperation);
-
+                       PRBool   aNotify);
   PRInt32 GetTypeIndex(const char *aTypeString,
                        PRBool      aAdd);
 
@@ -199,40 +176,32 @@ private:
                                 PRUint32   *aPermission,
                                 PRBool      aExactHostMatch);
 
-  nsresult InitDB();
-  nsresult CreateTable();
-  nsresult Import();
+  // Use LazyWrite to save the permissions file on a timer. It will write
+  // the file only once if repeatedly hammered quickly.
+  void        LazyWrite();
+  static void DoLazyWrite(nsITimer *aTimer, void *aClosure);
+  nsresult    Write();
+
   nsresult Read();
   void     NotifyObserversWithPermission(const nsACString &aHost,
-                                         const nsCString  &aType,
+                                         const char       *aType,
                                          PRUint32          aPermission,
                                          const PRUnichar  *aData);
   void     NotifyObservers(nsIPermission *aPermission, const PRUnichar *aData);
-  nsresult RemoveAllInternal();
   nsresult RemoveAllFromMemory();
-  nsresult NormalizeToACE(nsCString &aHost);
   nsresult GetHost(nsIURI *aURI, nsACString &aResult);
-  static void UpdateDB(OperationType         aOp,
-                       mozIStorageStatement* aStmt,
-                       PRInt64               aID,
-                       const nsACString     &aHost,
-                       const nsACString     &aType,
-                       PRUint32              aPermission);
+  void     RemoveTypeStrings();
 
   nsCOMPtr<nsIObserverService> mObserverService;
-  nsCOMPtr<nsIIDNService>      mIDNService;
-
-  nsCOMPtr<mozIStorageConnection> mDBConn;
-  nsCOMPtr<mozIStorageStatement> mStmtInsert;
-  nsCOMPtr<mozIStorageStatement> mStmtDelete;
-  nsCOMPtr<mozIStorageStatement> mStmtUpdate;
-
+  nsCOMPtr<nsIFile>            mPermissionsFile;
+  nsCOMPtr<nsITimer>           mWriteTimer;
   nsTHashtable<nsHostEntry>    mHostTable;
-  // a unique, monotonically increasing id used to identify each database entry
-  PRInt64                      mLargestID;
+  PRUint32                     mHostCount;
+  PRPackedBool                 mChangedList;
+  PRPackedBool                 mHasUnknownTypes;
 
   // An array to store the strings identifying the different types.
-  nsTArray<nsCString>          mTypeArray;
+  char                        *mTypeArray[NUMBER_OF_TYPES];
 };
 
 // {4F6B5E00-0C36-11d5-A535-0010A401EB10}

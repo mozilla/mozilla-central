@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -34,9 +33,8 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK ***** */
-
-/*
+ * ***** END LICENSE BLOCK *****
+ *
  *
  * Date:    15 July 2002
  * SUMMARY: Testing for SyntaxError on usage of '\' in identifiers
@@ -44,9 +42,8 @@
  *
  */
 //-----------------------------------------------------------------------------
-var gTestfile = 'regress-157509.js';
 var UBound = 0;
-var BUGNUMBER = 157509;
+var bug = 157509;
 var summary = "Testing for SyntaxError on usage of '\\' in identifiers";
 var TEST_PASSED = 'SyntaxError';
 var TEST_FAILED = 'Generated an error, but NOT a SyntaxError!';
@@ -99,7 +96,7 @@ function addThis()
 function test()
 {
   enterFunc('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber(bug);
   printStatus(summary);
 
   for (var i=0; i<UBound; i++)

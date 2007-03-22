@@ -54,8 +54,7 @@
 #include "nsIURL.h"
 #include "nsNetUtil.h"
 #include "nsIInputStream.h"
-#include "nsIPrefBranch.h"
-#include "nsIPrefService.h"
+#include "nsIPref.h"
 #include "nsRDFCID.h"
 #include "nsVoidArray.h"
 #include "nsXPIDLString.h"
@@ -247,9 +246,9 @@ RelatedLinksStreamListener::Init()
 
 
 // nsISupports interface
-NS_IMPL_ISUPPORTS2(RelatedLinksStreamListener,
-                   nsIStreamListener,
-                   nsIRequestObserver)
+NS_IMPL_ISUPPORTS1(RelatedLinksStreamListener, nsIStreamListener)
+
+
 
 // stream observer methods
 
@@ -632,15 +631,17 @@ RelatedLinksHandlerImpl::Init()
 		gRDFService->GetResource(NS_LITERAL_CSTRING(NC_NAMESPACE_URI "child"),
                              &kNC_Child);
 
-		nsCOMPtr<nsIPrefBranch> prefServ(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+		nsCOMPtr<nsIPref> prefServ(do_GetService(NS_PREF_CONTRACTID, &rv));
 		mRLServerURL = new nsString();
 		if (NS_SUCCEEDED(rv) && (prefServ))
 		{
-			nsXPIDLCString	prefVal;
-			if (NS_SUCCEEDED(rv = prefServ->GetCharPref("browser.related.provider",
-				getter_Copies(prefVal))) && (!prefVal.IsEmpty()))
+			char	*prefVal = nsnull;
+			if (NS_SUCCEEDED(rv = prefServ->CopyCharPref("browser.related.provider",
+				&prefVal)) && (prefVal))
 			{
 				mRLServerURL->AssignWithConversion(prefVal);
+				nsCRT::free(prefVal);
+				prefVal = nsnull;
 			}
 			else
 			{
@@ -657,22 +658,7 @@ RelatedLinksHandlerImpl::Init()
 
 // nsISupports interface
 
-NS_IMPL_CYCLE_COLLECTION_CLASS(RelatedLinksHandlerImpl)
-NS_IMPL_CYCLE_COLLECTION_UNLINK_0(RelatedLinksHandlerImpl)
-NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN(RelatedLinksHandlerImpl)
-    NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mInner)
-NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
-
-NS_IMPL_CYCLE_COLLECTING_ADDREF_AMBIGUOUS(RelatedLinksHandlerImpl,
-                                          nsIRelatedLinksHandler)
-NS_IMPL_CYCLE_COLLECTING_RELEASE_AMBIGUOUS(RelatedLinksHandlerImpl,
-                                           nsIRelatedLinksHandler)
-
-NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION(RelatedLinksHandlerImpl)
-    NS_INTERFACE_MAP_ENTRY(nsIRelatedLinksHandler)
-    NS_INTERFACE_MAP_ENTRY(nsIRDFDataSource)
-    NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIRelatedLinksHandler)
-NS_INTERFACE_MAP_END
+NS_IMPL_ISUPPORTS2(RelatedLinksHandlerImpl, nsIRelatedLinksHandler, nsIRDFDataSource)
 
 // nsIRelatedLinksHandler interface
 

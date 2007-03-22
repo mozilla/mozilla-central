@@ -44,9 +44,7 @@
 #include "nsIDOMNodeList.h"
 #include "nsGkAtoms.h"
 #include "nsIWidget.h"
-#include "nsMenuPopupFrame.h"
 #include "nsPresContext.h"
-#include "nsIDocShellTreeItem.h"
 #include "nsPIDOMWindow.h"
 #include "nsIViewManager.h"
 #include "nsGUIEvent.h"
@@ -79,7 +77,7 @@ nsTitleBarFrame::Init(nsIContent*      aContent,
 {
   nsresult rv = nsBoxFrame::Init(aContent, aParent, asPrevInFlow);
 
-  CreateViewForFrame(PresContext(), this, GetStyleContext(), PR_TRUE);
+  CreateViewForFrame(GetPresContext(), this, GetStyleContext(), PR_TRUE);
 
   return rv;
 }
@@ -111,26 +109,20 @@ nsTitleBarFrame::HandleEvent(nsPresContext* aPresContext,
 
    case NS_MOUSE_BUTTON_DOWN:  {
        if (aEvent->eventStructType == NS_MOUSE_EVENT &&
-           static_cast<nsMouseEvent*>(aEvent)->button ==
+           NS_STATIC_CAST(nsMouseEvent*, aEvent)->button ==
              nsMouseEvent::eLeftButton)
        {
-         // titlebar has no effect in non-chrome shells
-         nsCOMPtr<nsISupports> cont = aPresContext->GetContainer();
-         nsCOMPtr<nsIDocShellTreeItem> dsti = do_QueryInterface(cont);
-         if (dsti) {
-           PRInt32 type = -1;
-           if (NS_SUCCEEDED(dsti->GetItemType(&type)) &&
-               type == nsIDocShellTreeItem::typeChrome) {
-             // we're tracking.
-             mTrackingMouseMove = PR_TRUE;
 
-             // start capture.
-             CaptureMouseEvents(aPresContext,PR_TRUE);
+         // we're tracking.
+         mTrackingMouseMove = PR_TRUE;
 
-             // remember current mouse coordinates.
-             mLastPoint = aEvent->refPoint;
-           }
-         }
+         // start capture.
+         CaptureMouseEvents(aPresContext,PR_TRUE);
+
+
+
+         // remember current mouse coordinates.
+         mLastPoint = aEvent->refPoint;
 
          *aEventStatus = nsEventStatus_eConsumeNoDefault;
          doDefault = PR_FALSE;
@@ -141,7 +133,7 @@ nsTitleBarFrame::HandleEvent(nsPresContext* aPresContext,
 
    case NS_MOUSE_BUTTON_UP: {
        if(mTrackingMouseMove && aEvent->eventStructType == NS_MOUSE_EVENT &&
-          static_cast<nsMouseEvent*>(aEvent)->button ==
+          NS_STATIC_CAST(nsMouseEvent*, aEvent)->button ==
             nsMouseEvent::eLeftButton)
        {
          // we're done tracking.
@@ -159,26 +151,13 @@ nsTitleBarFrame::HandleEvent(nsPresContext* aPresContext,
    case NS_MOUSE_MOVE: {
        if(mTrackingMouseMove)
        {
-         nsPoint nsMoveBy = aEvent->refPoint - mLastPoint;
+         // get the document and the window - should this be cached?
+         nsPIDOMWindow *window =
+           aPresContext->PresShell()->GetDocument()->GetWindow();
 
-         nsIFrame* parent = GetParent();
-         while (parent && parent->GetType() != nsGkAtoms::menuPopupFrame)
-           parent = parent->GetParent();
-
-         // if the titlebar is in a popup, move the popup's widget, otherwise
-         // move the widget associated with the window
-         if (parent) {
-           nsCOMPtr<nsIWidget> widget;
-           (static_cast<nsMenuPopupFrame*>(parent))->
-             GetWidget(getter_AddRefs(widget));
-           nsRect bounds;
-           widget->GetScreenBounds(bounds);
-           widget->Move(bounds.x + nsMoveBy.x, bounds.y + nsMoveBy.y);
-         }
-         else {
-           nsIPresShell* presShell = aPresContext->PresShell();
-           nsPIDOMWindow *window = presShell->GetDocument()->GetWindow();
-           window->MoveBy(nsMoveBy.x, nsMoveBy.y);
+         if (window) {
+           nsPoint nsMoveBy = aEvent->refPoint - mLastPoint;
+           window->MoveBy(nsMoveBy.x,nsMoveBy.y);
          }
 
          *aEventStatus = nsEventStatus_eConsumeNoDefault;

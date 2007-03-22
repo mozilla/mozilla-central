@@ -131,13 +131,6 @@
     NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_NETWORK, 15)
 
 /**
- * Returned from nsIChannel::asyncOpen when trying to open the channel again
- * (reopening is not supported).
- */
-#define NS_ERROR_ALREADY_OPENED \
-    NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_NETWORK, 73)
-
-/**
  * The content encoding of the source document was incorrect, for example
  * returning a plain HTML document advertised as Content-Encoding: gzip
  */
@@ -232,13 +225,6 @@
 #define NS_ERROR_REDIRECT_LOOP \
     NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_NETWORK, 31)
 
-/**
- * The request failed because the content type returned by the server was
- * not a type expected by the channel (for nested channels such as the JAR
- * channel).
- */
-#define NS_ERROR_UNSAFE_CONTENT_TYPE \
-    NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_NETWORK, 74)
 
 /******************************************************************************
  * FTP specific error codes:
@@ -259,7 +245,7 @@
     NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_NETWORK, 24)
 
 #define NS_ERROR_FTP_LIST \
-    NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_NETWORK, 28)
+    NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_NETWORK, 25)
 
 /******************************************************************************
  * DNS specific error codes:
@@ -335,23 +321,6 @@
  */
 #define NS_ERROR_DOCUMENT_NOT_CACHED \
     NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_NETWORK, 70)
-
-
-/******************************************************************************
- * Effective TLD Service specific error codes:
- */
-
-/**
- * The requested number of domain levels exceeds those present in the host string.
- */
-#define NS_ERROR_INSUFFICIENT_DOMAIN_LEVELS \
-    NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_NETWORK, 80)
-
-/**
- * The host string is an IP address.
- */
-#define NS_ERROR_HOST_IS_IP_ADDRESS \
-    NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_NETWORK, 81)
 
 
 #endif // !nsNetError_h__

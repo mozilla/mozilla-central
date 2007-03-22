@@ -70,7 +70,7 @@
 #include "nsPresState.h"
 #include "nsIGlobalHistory3.h"
 #include "nsDocShellCID.h"
-#include "nsIHTMLDocument.h"
+#include "nsIDOMHTMLDocument.h"
 #include "nsEventDispatcher.h"
 #include "nsContentUtils.h"
 #include "nsLayoutUtils.h"
@@ -201,7 +201,7 @@ nsHTMLScrollFrame::RemoveFrame(nsIAtom*  aListName,
                                nsIFrame* aOldFrame)
 {
   NS_ASSERTION(!aListName, "Only main list supported");
-  mFrames.DestroyFrame(aOldFrame);
+  mFrames.RemoveFrame(aOldFrame);
   mInner.ReloadChildFrames();
   return NS_OK;
 }
@@ -227,6 +227,9 @@ nsHTMLScrollFrame::GetType() const
 /**
  HTML scrolling implementation
 
+ We rely on the fact that if height is 'auto', changing the height of
+ the element does not require reflowing the contents.
+
  All other things being equal, we prefer layouts with fewer scrollbars showing.
 */
 
@@ -235,10 +238,6 @@ struct ScrollReflowState {
   nsBoxLayoutState mBoxState;
   nsGfxScrollFrameInner::ScrollbarStyles mStyles;
   nsMargin mComputedBorder;
-
-  // === Filled in by ReflowScrolledFrame ===
-  PRPackedBool mReflowedContentsWithHScrollbar;
-  PRPackedBool mReflowedContentsWithVScrollbar;
 
   // === Filled in when TryLayout succeeds ===
   // The area of the scrollport, in coordinates relative to the scrollframe
@@ -253,9 +252,7 @@ struct ScrollReflowState {
   ScrollReflowState(nsIScrollableFrame* aFrame,
                     const nsHTMLReflowState& aState) :
     mReflowState(aState),
-    // mBoxState is just used for scrollbars so we don't need to
-    // worry about the reflow depth here
-    mBoxState(aState.frame->PresContext(), aState.rendContext, 0),
+    mBoxState(aState.frame->GetPresContext(), aState.rendContext),
     mStyles(aFrame->GetScrollbarStyles()) {
   }
 };
@@ -272,7 +269,7 @@ static nsSize ComputeInsideBorderSize(ScrollReflowState* aState,
     contentWidth = aDesiredInsideBorderSize.width -
       aState->mReflowState.mComputedPadding.LeftRight();
   }
-  nscoord contentHeight = aState->mReflowState.ComputedHeight();
+  nscoord contentHeight = aState->mReflowState.mComputedHeight;
   if (contentHeight == NS_UNCONSTRAINEDSIZE) {
     contentHeight = aDesiredInsideBorderSize.height -
       aState->mReflowState.mComputedPadding.TopBottom();
@@ -325,29 +322,16 @@ GetScrollbarMetrics(nsBoxLayoutState& aState, nsIBox* aBox, nsSize* aMin,
  */
 PRBool
 nsHTMLScrollFrame::TryLayout(ScrollReflowState* aState,
-                             nsHTMLReflowMetrics* aKidMetrics,
-                             PRBool aAssumeHScroll, PRBool aAssumeVScroll,
-                             PRBool aForce, nsresult* aResult)
+                             const nsHTMLReflowMetrics& aKidMetrics,
+                             PRBool aAssumeVScroll, PRBool aAssumeHScroll,
+                             PRBool aForce)
 {
-  *aResult = NS_OK;
-
   if ((aState->mStyles.mVertical == NS_STYLE_OVERFLOW_HIDDEN && aAssumeVScroll) ||
       (aState->mStyles.mHorizontal == NS_STYLE_OVERFLOW_HIDDEN && aAssumeHScroll)) {
     NS_ASSERTION(!aForce, "Shouldn't be forcing a hidden scrollbar to show!");
     return PR_FALSE;
   }
-
-  if (aAssumeVScroll != aState->mReflowedContentsWithVScrollbar ||
-      (aAssumeHScroll != aState->mReflowedContentsWithHScrollbar &&
-       ScrolledContentDependsOnHeight(aState))) {
-    nsresult rv = ReflowScrolledFrame(aState, aAssumeHScroll, aAssumeVScroll,
-                                      aKidMetrics, PR_FALSE);
-    if (NS_FAILED(rv)) {
-      *aResult = rv;
-      return PR_FALSE;
-    }
-  }
-
+  
   nsSize vScrollbarMinSize(0, 0);
   nsSize vScrollbarPrefSize(0, 0);
   if (mInner.mVScrollbarBox) {
@@ -356,7 +340,7 @@ nsHTMLScrollFrame::TryLayout(ScrollReflowState* aState,
                         aAssumeVScroll ? &vScrollbarPrefSize : nsnull, PR_TRUE);
   }
   nscoord vScrollbarDesiredWidth = aAssumeVScroll ? vScrollbarPrefSize.width : 0;
-  nscoord vScrollbarMinHeight = aAssumeVScroll ? vScrollbarMinSize.height : 0;
+  nscoord vScrollbarDesiredHeight = aAssumeVScroll ? vScrollbarPrefSize.height : 0;
 
   nsSize hScrollbarMinSize(0, 0);
   nsSize hScrollbarPrefSize(0, 0);
@@ -366,15 +350,15 @@ nsHTMLScrollFrame::TryLayout(ScrollReflowState* aState,
                         aAssumeHScroll ? &hScrollbarPrefSize : nsnull, PR_FALSE);
   }
   nscoord hScrollbarDesiredHeight = aAssumeHScroll ? hScrollbarPrefSize.height : 0;
-  nscoord hScrollbarMinWidth = aAssumeHScroll ? hScrollbarMinSize.width : 0;
+  nscoord hScrollbarDesiredWidth = aAssumeHScroll ? hScrollbarPrefSize.width : 0;
 
   // First, compute our inside-border size and scrollport size
   // XXXldb Can we depend more on ComputeSize here?
   nsSize desiredInsideBorderSize;
   desiredInsideBorderSize.width = vScrollbarDesiredWidth +
-    PR_MAX(aKidMetrics->width, hScrollbarMinWidth);
+    PR_MAX(aKidMetrics.width, hScrollbarDesiredWidth);
   desiredInsideBorderSize.height = hScrollbarDesiredHeight +
-    PR_MAX(aKidMetrics->height, vScrollbarMinHeight);
+    PR_MAX(aKidMetrics.height, vScrollbarDesiredHeight);
   aState->mInsideBorderSize =
     ComputeInsideBorderSize(aState, desiredInsideBorderSize);
   nsSize scrollPortSize = nsSize(PR_MAX(0, aState->mInsideBorderSize.width - vScrollbarDesiredWidth),
@@ -382,14 +366,13 @@ nsHTMLScrollFrame::TryLayout(ScrollReflowState* aState,
                                                                                 
   if (!aForce) {
     nsRect scrolledRect = mInner.GetScrolledRect(scrollPortSize);
-    nscoord oneDevPixel = aState->mBoxState.PresContext()->DevPixelsToAppUnits(1);
 
     // If the style is HIDDEN then we already know that aAssumeHScroll is PR_FALSE
     if (aState->mStyles.mHorizontal != NS_STYLE_OVERFLOW_HIDDEN) {
       PRBool wantHScrollbar =
         aState->mStyles.mHorizontal == NS_STYLE_OVERFLOW_SCROLL ||
-        scrolledRect.XMost() >= scrollPortSize.width + oneDevPixel ||
-        scrolledRect.x <= -oneDevPixel;
+        scrolledRect.XMost() > scrollPortSize.width ||
+        scrolledRect.x < 0;
       if (aState->mInsideBorderSize.height < hScrollbarMinSize.height ||
           scrollPortSize.width < hScrollbarMinSize.width)
         wantHScrollbar = PR_FALSE;
@@ -401,8 +384,8 @@ nsHTMLScrollFrame::TryLayout(ScrollReflowState* aState,
     if (aState->mStyles.mVertical != NS_STYLE_OVERFLOW_HIDDEN) {
       PRBool wantVScrollbar =
         aState->mStyles.mVertical == NS_STYLE_OVERFLOW_SCROLL ||
-        scrolledRect.YMost() >= scrollPortSize.height + oneDevPixel ||
-        scrolledRect.y <= -oneDevPixel;
+        scrolledRect.YMost() > scrollPortSize.height ||
+        scrolledRect.y < 0;
       if (aState->mInsideBorderSize.width < vScrollbarMinSize.width ||
           scrollPortSize.height < vScrollbarMinSize.height)
         wantVScrollbar = PR_FALSE;
@@ -424,19 +407,8 @@ nsHTMLScrollFrame::TryLayout(ScrollReflowState* aState,
   return PR_TRUE;
 }
 
-PRBool
-nsHTMLScrollFrame::ScrolledContentDependsOnHeight(ScrollReflowState* aState)
-{
-  // Return true if ReflowScrolledFrame is going to do something different
-  // based on the presence of a horizontal scrollbar.
-  return (mInner.mScrolledFrame->GetStateBits() & NS_FRAME_CONTAINS_RELATIVE_HEIGHT) ||
-    aState->mReflowState.ComputedHeight() != NS_UNCONSTRAINEDSIZE ||
-    aState->mReflowState.mComputedMinHeight > 0 ||
-    aState->mReflowState.mComputedMaxHeight != NS_UNCONSTRAINEDSIZE;
-}
-
 nsresult
-nsHTMLScrollFrame::ReflowScrolledFrame(ScrollReflowState* aState,
+nsHTMLScrollFrame::ReflowScrolledFrame(const ScrollReflowState& aState,
                                        PRBool aAssumeHScroll,
                                        PRBool aAssumeVScroll,
                                        nsHTMLReflowMetrics* aMetrics,
@@ -444,54 +416,40 @@ nsHTMLScrollFrame::ReflowScrolledFrame(ScrollReflowState* aState,
 {
   // these could be NS_UNCONSTRAINEDSIZE ... PR_MIN arithmetic should
   // be OK
-  nscoord paddingLR = aState->mReflowState.mComputedPadding.LeftRight();
+  nscoord paddingLR = aState.mReflowState.mComputedPadding.LeftRight();
 
-  nscoord availWidth = aState->mReflowState.ComputedWidth() + paddingLR;
-
-  nscoord computedHeight = aState->mReflowState.ComputedHeight();
-  nscoord computedMinHeight = aState->mReflowState.mComputedMinHeight;
-  nscoord computedMaxHeight = aState->mReflowState.mComputedMaxHeight;
-  if (!ShouldPropagateComputedHeightToScrolledContent()) {
-    computedHeight = NS_UNCONSTRAINEDSIZE;
-    computedMinHeight = 0;
-    computedMaxHeight = NS_UNCONSTRAINEDSIZE;
-  }
-  if (aAssumeHScroll) {
-    nsSize hScrollbarPrefSize = 
-      mInner.mHScrollbarBox->GetPrefSize(const_cast<nsBoxLayoutState&>(aState->mBoxState));
-    if (computedHeight != NS_UNCONSTRAINEDSIZE)
-      computedHeight = PR_MAX(0, computedHeight - hScrollbarPrefSize.height);
-    computedMinHeight = PR_MAX(0, computedMinHeight - hScrollbarPrefSize.height);
-    if (computedMaxHeight != NS_UNCONSTRAINEDSIZE)
-      computedMaxHeight = PR_MAX(0, computedMaxHeight - hScrollbarPrefSize.height);
-  }
+  nscoord availWidth = aState.mReflowState.ComputedWidth() + paddingLR;
 
   if (aAssumeVScroll) {
     nsSize vScrollbarPrefSize = 
-      mInner.mVScrollbarBox->GetPrefSize(const_cast<nsBoxLayoutState&>(aState->mBoxState));
+      mInner.mVScrollbarBox->GetPrefSize(NS_CONST_CAST(nsBoxLayoutState&, 
+                                                       aState.mBoxState));
     availWidth = PR_MAX(0, availWidth - vScrollbarPrefSize.width);
   }
+  // pixel align the content
+  nsPresContext* presContext = GetPresContext();
+  nscoord twp = nsPresContext::CSSPixelsToAppUnits(1);
+  availWidth -=  availWidth % twp;
+
+  if (!aFirstPass)
+    mInner.mScrolledFrame->AddStateBits(NS_FRAME_IS_DIRTY);
 
   // We're forcing the padding on our scrolled frame, so let it know what that
   // padding is.
   mInner.mScrolledFrame->
     SetProperty(nsGkAtoms::usedPaddingProperty,
-                new nsMargin(aState->mReflowState.mComputedPadding),
+                new nsMargin(aState.mReflowState.mComputedPadding),
                 nsCSSOffsetState::DestroyMarginFunc);  
   
-  nsPresContext* presContext = PresContext();
   // Pass PR_FALSE for aInit so we can pass in the correct padding
-  nsHTMLReflowState kidReflowState(presContext, aState->mReflowState,
+  nsHTMLReflowState kidReflowState(presContext, aState.mReflowState,
                                    mInner.mScrolledFrame,
                                    nsSize(availWidth, NS_UNCONSTRAINEDSIZE),
                                    -1, -1, PR_FALSE);
   kidReflowState.Init(presContext, -1, -1, nsnull,
-                      &aState->mReflowState.mComputedPadding);
+                      &aState.mReflowState.mComputedPadding);
   kidReflowState.mFlags.mAssumingHScrollbar = aAssumeHScroll;
   kidReflowState.mFlags.mAssumingVScrollbar = aAssumeVScroll;
-  kidReflowState.SetComputedHeight(computedHeight);
-  kidReflowState.mComputedMinHeight = computedMinHeight;
-  kidReflowState.mComputedMaxHeight = computedMaxHeight;
 
   nsReflowStatus status;
   nsresult rv = ReflowChild(mInner.mScrolledFrame, presContext, *aMetrics,
@@ -516,20 +474,7 @@ nsHTMLScrollFrame::ReflowScrolledFrame(ScrollReflowState* aState,
   aMetrics->mOverflowArea.UnionRect(aMetrics->mOverflowArea,
                                     nsRect(0, 0, aMetrics->width, aMetrics->height));
 
-  aState->mReflowedContentsWithHScrollbar = aAssumeHScroll;
-  aState->mReflowedContentsWithVScrollbar = aAssumeVScroll;
-  
   return rv;
-}
-
-PRBool
-nsHTMLScrollFrame::GuessHScrollbarNeeded(const ScrollReflowState& aState)
-{
-  if (aState.mStyles.mHorizontal != NS_STYLE_OVERFLOW_AUTO)
-    // no guessing required
-    return aState.mStyles.mHorizontal == NS_STYLE_OVERFLOW_SCROLL;
-
-  return mInner.mHasHorizontalScrollbar;
 }
 
 PRBool
@@ -548,7 +493,7 @@ nsHTMLScrollFrame::GuessVScrollbarNeeded(const ScrollReflowState& aState)
 
   // If this is the initial reflow, guess PR_FALSE because usually
   // we have very little content by then.
-  if (InInitialReflow())
+  if (GetStateBits() & NS_FRAME_FIRST_REFLOW)
     return PR_FALSE;
 
   if (mInner.mIsRoot) {
@@ -572,26 +517,17 @@ nsHTMLScrollFrame::GuessVScrollbarNeeded(const ScrollReflowState& aState)
   return PR_FALSE;
 }
 
-PRBool
-nsHTMLScrollFrame::InInitialReflow() const
-{
-  // We're in an initial reflow if NS_FRAME_FIRST_REFLOW is set, unless we're a
-  // root scrollframe.  In that case we want to skip this clause altogether.
-  // The guess here is that there are lots of overflow:auto divs out there that
-  // end up auto-sizing so they don't overflow, and that the root basically
-  // always needs a scrollbar if it did last time we loaded this page (good
-  // assumption, because our initial reflow is no longer synchronous).
-  return !mInner.mIsRoot && (GetStateBits() & NS_FRAME_FIRST_REFLOW);
-}
-
 nsresult
 nsHTMLScrollFrame::ReflowContents(ScrollReflowState* aState,
                                   const nsHTMLReflowMetrics& aDesiredSize)
 {
+  PRBool currentlyUsingVScrollbar = GuessVScrollbarNeeded(*aState);
   nsHTMLReflowMetrics kidDesiredSize(aDesiredSize.mFlags);
-  nsresult rv = ReflowScrolledFrame(aState, GuessHScrollbarNeeded(*aState),
-      GuessVScrollbarNeeded(*aState), &kidDesiredSize, PR_TRUE);
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsresult rv = ReflowScrolledFrame(*aState, PR_FALSE, currentlyUsingVScrollbar,
+                                    &kidDesiredSize, PR_TRUE);
+  if (NS_FAILED(rv))
+    return rv;
+  PRBool didUseScrollbar = currentlyUsingVScrollbar;
 
   // There's an important special case ... if the child appears to fit
   // in the inside-border rect (but overflows the scrollport), we
@@ -609,10 +545,7 @@ nsHTMLScrollFrame::ReflowContents(ScrollReflowState* aState,
   // Detecting when we enter this special case is important for when
   // people design layouts that exactly fit the container "most of the
   // time".
-
-  // XXX Is this check really sufficient to catch all the incremental cases
-  // where the ideal case doesn't have a scrollbar?
-  if ((aState->mReflowedContentsWithHScrollbar || aState->mReflowedContentsWithVScrollbar) &&
+  if (currentlyUsingVScrollbar &&
       aState->mStyles.mVertical != NS_STYLE_OVERFLOW_SCROLL &&
       aState->mStyles.mHorizontal != NS_STYLE_OVERFLOW_SCROLL) {
     nsSize insideBorderSize =
@@ -620,44 +553,58 @@ nsHTMLScrollFrame::ReflowContents(ScrollReflowState* aState,
                               nsSize(kidDesiredSize.width, kidDesiredSize.height));
     nsRect scrolledRect = mInner.GetScrolledRect(insideBorderSize);
     if (nsRect(nsPoint(0, 0), insideBorderSize).Contains(scrolledRect)) {
-      // Let's pretend we had no scrollbars coming in here
-      rv = ReflowScrolledFrame(aState, PR_FALSE, PR_FALSE,
+      // Let's pretend we had no vertical scrollbar coming in here
+      currentlyUsingVScrollbar = PR_FALSE;
+      rv = ReflowScrolledFrame(*aState, PR_FALSE, currentlyUsingVScrollbar,
                                &kidDesiredSize, PR_FALSE);
-      NS_ENSURE_SUCCESS(rv, rv);
+      if (NS_FAILED(rv))
+        return rv;
+      didUseScrollbar = PR_FALSE;
     }
   }
 
-  // Try vertical scrollbar settings that leave the vertical scrollbar unchanged.
-  // Do this first because changing the vertical scrollbar setting is expensive,
-  // forcing a reflow always.
-
-  // Try leaving the horizontal scrollbar unchanged first. This will be more
-  // efficient.
-  if (TryLayout(aState, &kidDesiredSize, aState->mReflowedContentsWithHScrollbar,
-                aState->mReflowedContentsWithVScrollbar, PR_FALSE, &rv))
+  // First try a layout without a horizontal scrollbar, then with.
+  if (TryLayout(aState, kidDesiredSize, didUseScrollbar, PR_FALSE, PR_FALSE))
     return NS_OK;
-  if (TryLayout(aState, &kidDesiredSize, !aState->mReflowedContentsWithHScrollbar,
-                aState->mReflowedContentsWithVScrollbar, PR_FALSE, &rv))
+  // XXX Adding a horizontal scrollbar could cause absolute children positioned
+  // relative to the bottom padding-edge to need to be reflowed. But we don't,
+  // because that would be slow.
+  if (TryLayout(aState, kidDesiredSize, didUseScrollbar, PR_TRUE, PR_FALSE))
     return NS_OK;
 
-  // OK, now try toggling the vertical scrollbar. The performance advantage
-  // of trying the status-quo horizontal scrollbar state
-  // does not exist here (we'll have to reflow due to the vertical scrollbar
-  // change), so always try no horizontal scrollbar first.
-  PRBool newVScrollbarState = !aState->mReflowedContentsWithVScrollbar;
-  if (TryLayout(aState, &kidDesiredSize, PR_FALSE, newVScrollbarState, PR_FALSE, &rv))
-    return NS_OK;
-  if (TryLayout(aState, &kidDesiredSize, PR_TRUE, newVScrollbarState, PR_FALSE, &rv))
-    return NS_OK;
+  PRBool canHaveVerticalScrollbar =
+    aState->mStyles.mVertical != NS_STYLE_OVERFLOW_HIDDEN;
+  // That didn't work. Try the other setting for the vertical scrollbar.
+  // But don't try to show a scrollbar if we know there can't be one.
+  if (currentlyUsingVScrollbar || canHaveVerticalScrollbar) {
+    nsHTMLReflowMetrics kidRetrySize(aDesiredSize.mFlags);
+    rv = ReflowScrolledFrame(*aState, PR_FALSE, !currentlyUsingVScrollbar,
+                             &kidRetrySize, PR_FALSE);
+    if (NS_FAILED(rv))
+      return rv;
+    didUseScrollbar = !currentlyUsingVScrollbar;
+    // XXX Adding a horizontal scrollbar could cause absolute children positioned
+    // relative to the bottom padding-edge to need to be reflowed. But we don't,
+    // because that would be slow.
+    if (TryLayout(aState, kidRetrySize, didUseScrollbar, PR_FALSE, PR_FALSE))
+      return NS_OK;
+    if (TryLayout(aState, kidRetrySize, didUseScrollbar, PR_TRUE, PR_FALSE))
+      return NS_OK;
 
-  // OK, we're out of ideas. Try again enabling whatever scrollbars we can
-  // enable and force the layout to stick even if it's inconsistent.
-  // This just happens sometimes.
-  TryLayout(aState, &kidDesiredSize,
-            aState->mStyles.mHorizontal != NS_STYLE_OVERFLOW_HIDDEN,
-            aState->mStyles.mVertical != NS_STYLE_OVERFLOW_HIDDEN,
-            PR_TRUE, &rv);
-  return rv;
+    NS_WARNING("Strange content ... we can't find logically consistent scrollbar settings");
+  } else {
+    NS_WARNING("Strange content ... we can't find logically consistent scrollbar settings");
+  }
+
+  // Fall back to no scrollbars --- even if NS_STYLE_OVERFLOW_SCROLL is
+  // in effect. They might not fit anyway.
+  if (didUseScrollbar) {
+    rv = ReflowScrolledFrame(*aState, PR_FALSE, PR_FALSE, &kidDesiredSize, PR_FALSE);
+    if (NS_FAILED(rv))
+      return rv;
+  }
+  TryLayout(aState, kidDesiredSize, PR_FALSE, PR_FALSE, PR_TRUE);
+  return NS_OK;
 }
 
 void
@@ -676,9 +623,8 @@ nsHTMLScrollFrame::PlaceScrollArea(const ScrollReflowState& aState)
   scrolledFrame->SetPosition(scrolledView->GetOffsetTo(GetView()));
 
   nsRect scrolledArea;
-  // Preserve the width or height of empty rects
-  scrolledArea.UnionRectIncludeEmpty(mInner.GetScrolledRect(aState.mScrollPortRect.Size()),
-                                     nsRect(nsPoint(0,0), aState.mScrollPortRect.Size()));
+  scrolledArea.UnionRect(mInner.GetScrolledRect(aState.mScrollPortRect.Size()),
+                         nsRect(nsPoint(0,0), aState.mScrollPortRect.Size()));
 
   // Store the new overflow area. Note that this changes where an outline
   // of the scrolled frame would be painted, but scrolled frames can't have
@@ -695,43 +641,43 @@ nsHTMLScrollFrame::PlaceScrollArea(const ScrollReflowState& aState)
   // Note that making the view *exactly* the size of the scrolled area
   // is critical, since the view scrolling code uses the size of the
   // scrolled view to clamp scroll requests.
-  nsContainerFrame::SyncFrameViewAfterReflow(scrolledFrame->PresContext(),
+  nsContainerFrame::SyncFrameViewAfterReflow(scrolledFrame->GetPresContext(),
                                              scrolledFrame,
                                              scrolledView,
                                              &scrolledArea,
                                              NS_FRAME_NO_MOVE_VIEW);
-}
 
-nscoord
-nsHTMLScrollFrame::GetIntrinsicVScrollbarWidth(nsIRenderingContext *aRenderingContext)
-{
-  nsGfxScrollFrameInner::ScrollbarStyles ss = GetScrollbarStyles();
-  if (ss.mVertical != NS_STYLE_OVERFLOW_SCROLL || !mInner.mVScrollbarBox)
-    return 0;
-
-  // Don't need to worry about reflow depth here since it's
-  // just for scrollbars
-  nsBoxLayoutState bls(PresContext(), aRenderingContext, 0);
-  nsSize vScrollbarPrefSize(0, 0);
-  GetScrollbarMetrics(bls, mInner.mVScrollbarBox,
-                      nsnull, &vScrollbarPrefSize, PR_TRUE);
-  return vScrollbarPrefSize.width;
+  mInner.PostOverflowEvent();
 }
 
 /* virtual */ nscoord
 nsHTMLScrollFrame::GetMinWidth(nsIRenderingContext *aRenderingContext)
 {
-  nscoord result = mInner.mScrolledFrame->GetMinWidth(aRenderingContext);
+  nscoord result = 0;
   DISPLAY_MIN_WIDTH(this, result);
-  return result + GetIntrinsicVScrollbarWidth(aRenderingContext);
+  return result;
 }
 
 /* virtual */ nscoord
 nsHTMLScrollFrame::GetPrefWidth(nsIRenderingContext *aRenderingContext)
 {
-  nscoord result = mInner.mScrolledFrame->GetPrefWidth(aRenderingContext);
+  nscoord result;
   DISPLAY_PREF_WIDTH(this, result);
-  return NSCoordSaturatingAdd(result, GetIntrinsicVScrollbarWidth(aRenderingContext));
+  // XXX Might this make us count padding/border/margin twice?
+  result = nsLayoutUtils::IntrinsicForContainer(aRenderingContext,
+                             mInner.mScrolledFrame, nsLayoutUtils::PREF_WIDTH);
+
+  nsGfxScrollFrameInner::ScrollbarStyles ss = GetScrollbarStyles();
+  if (ss.mVertical != NS_STYLE_OVERFLOW_HIDDEN && // ideal?
+      mInner.mVScrollbarBox) {
+    nsBoxLayoutState bls(GetPresContext(), aRenderingContext);
+    nsSize vScrollbarPrefSize(0, 0);
+    GetScrollbarMetrics(bls, mInner.mVScrollbarBox,
+                        nsnull, &vScrollbarPrefSize, PR_TRUE);
+    result += vScrollbarPrefSize.width;
+  }
+
+  return result;
 }
 
 NS_IMETHODIMP
@@ -776,7 +722,9 @@ nsHTMLScrollFrame::Reflow(nsPresContext*           aPresContext,
   PRBool reflowScrollCorner = PR_TRUE;
   if (!aReflowState.ShouldReflowAllKids()) {
     #define NEEDS_REFLOW(frame_) \
-      ((frame_) && NS_SUBTREE_DIRTY(frame_))
+      ((frame_) && \
+       ((frame_)->GetStateBits() & \
+        (NS_FRAME_IS_DIRTY | NS_FRAME_HAS_DIRTY_CHILDREN)) != 0)
 
     reflowContents = NEEDS_REFLOW(mInner.mScrolledFrame);
     reflowHScrollbar = NEEDS_REFLOW(mInner.mHScrollbarBox);
@@ -834,7 +782,8 @@ nsHTMLScrollFrame::Reflow(nsPresContext*           aPresContext,
   aDesiredSize.mOverflowArea = nsRect(0, 0, aDesiredSize.width, aDesiredSize.height);
   FinishAndStoreOverflow(&aDesiredSize);
 
-  if (!InInitialReflow() && !mInner.mHadNonInitialReflow) {
+  if (!(GetStateBits() & NS_FRAME_FIRST_REFLOW) &&
+      !mInner.mHadNonInitialReflow) {
     mInner.mHadNonInitialReflow = PR_TRUE;
     if (mInner.mIsRoot) {
       // For viewports, record whether we needed a vertical scrollbar
@@ -845,7 +794,6 @@ nsHTMLScrollFrame::Reflow(nsPresContext*           aPresContext,
 
   aStatus = NS_FRAME_COMPLETE;
   NS_FRAME_SET_TRUNCATION(aStatus, aReflowState, aDesiredSize);
-  mInner.PostOverflowEvent();
   return rv;
 }
 
@@ -880,7 +828,7 @@ NS_IMETHODIMP nsHTMLScrollFrame::GetAccessible(nsIAccessible** aAccessible)
   nsCOMPtr<nsIAccessibilityService> accService = do_GetService("@mozilla.org/accessibilityService;1");
 
   if (accService) {
-    return accService->CreateHTMLGenericAccessible(static_cast<nsIFrame*>(this), aAccessible);
+    return accService->CreateHTMLGenericAccessible(NS_STATIC_CAST(nsIFrame*, this), aAccessible);
   }
 
   return NS_ERROR_FAILURE;
@@ -892,6 +840,14 @@ nsHTMLScrollFrame::CurPosAttributeChanged(nsIContent* aChild,
                                           PRInt32 aModType)
 {
   mInner.CurPosAttributeChanged(aChild);
+}
+
+nsresult 
+nsHTMLScrollFrame::GetContentOf(nsIContent** aContent)
+{
+  *aContent = GetContent();
+  NS_IF_ADDREF(*aContent);
+  return NS_OK;
 }
 
 NS_INTERFACE_MAP_BEGIN(nsHTMLScrollFrame)
@@ -1165,11 +1121,11 @@ nsXULScrollFrame::GetMaxSize(nsBoxLayoutState& aState)
   PropagateDebug(aState);
 #endif
 
-  nsSize maxSize(NS_INTRINSICSIZE, NS_INTRINSICSIZE);
+  nsSize max(NS_INTRINSICSIZE, NS_INTRINSICSIZE);
 
-  AddBorderAndPadding(maxSize);
-  nsIBox::AddCSSMaxSize(aState, this, maxSize);
-  return maxSize;
+  AddBorderAndPadding(max);
+  nsIBox::AddCSSMaxSize(aState, this, max);
+  return max;
 }
 
 #if 0 // XXXldb I don't think this is even needed
@@ -1231,6 +1187,15 @@ nsXULScrollFrame::DoLayout(nsBoxLayoutState& aState)
   return rv;
 }
 
+
+nsresult 
+nsXULScrollFrame::GetContentOf(nsIContent** aContent)
+{
+  *aContent = GetContent();
+  NS_IF_ADDREF(*aContent);
+  return NS_OK;
+}
+
 NS_INTERFACE_MAP_BEGIN(nsXULScrollFrame)
   NS_INTERFACE_MAP_ENTRY(nsIAnonymousContentCreator)
 #ifdef NS_DEBUG
@@ -1272,8 +1237,7 @@ nsGfxScrollFrameInner::nsGfxScrollFrameInner(nsContainerFrame* aOuter,
     mHadNonInitialReflow(PR_FALSE),
     mHorizontalOverflow(PR_FALSE),
     mVerticalOverflow(PR_FALSE),
-    mPostedReflowCallback(PR_FALSE),
-    mMayHaveDirtyFixedChildren(PR_FALSE)
+    mPostedReflowCallback(PR_FALSE)
 {
 }
 
@@ -1456,7 +1420,7 @@ nsGfxScrollFrameInner::GetScrollbarStylesFromFrame() const
 {
   ScrollbarStyles result;
 
-  nsPresContext* presContext = mOuter->PresContext();
+  nsPresContext* presContext = mOuter->GetPresContext();
   if (!presContext->IsDynamic() &&
       !(mIsRoot && presContext->HasPaginatedScrolling())) {
     return ScrollbarStyles(NS_STYLE_OVERFLOW_HIDDEN, NS_STYLE_OVERFLOW_HIDDEN);
@@ -1550,8 +1514,12 @@ nsresult
 nsGfxScrollFrameInner::FireScrollPortEvent()
 {
   mAsyncScrollPortEvent.Forget();
+  mOuter->GetPresContext()->GetPresShell()->
+    FlushPendingNotifications(Flush_OnlyReflow);
+  if (mAsyncScrollPortEvent.IsPending()) {
+    return NS_OK;
+  }
 
-  // Keep this in sync with PostOverflowEvent().
   nsSize scrollportSize = GetScrollPortSize();
   nsSize childSize = GetScrolledRect(scrollportSize).Size();
 
@@ -1597,7 +1565,7 @@ nsGfxScrollFrameInner::FireScrollPortEvent()
                           nsnull);
   event.orient = orient;
   return nsEventDispatcher::Dispatch(mOuter->GetContent(),
-                                     mOuter->PresContext(), &event);
+                                     mOuter->GetPresContext(), &event);
 }
 
 void
@@ -1640,7 +1608,7 @@ nsGfxScrollFrameInner::ReloadChildFrames()
 nsresult
 nsGfxScrollFrameInner::CreateAnonymousContent(nsTArray<nsIContent*>& aElements)
 {
-  nsPresContext* presContext = mOuter->PresContext();
+  nsPresContext* presContext = mOuter->GetPresContext();
   nsIFrame* parent = mOuter->GetParent();
 
   // Don't create scrollbars if we're printing/print previewing
@@ -1680,8 +1648,7 @@ nsGfxScrollFrameInner::CreateAnonymousContent(nsTArray<nsIContent*>& aElements)
   }
 
   // The anonymous <div> used by <inputs> never gets scrollbars.
-  nsITextControlFrame* textFrame = nsnull;
-  CallQueryInterface(parent, &textFrame);
+  nsCOMPtr<nsITextControlFrame> textFrame(do_QueryInterface(parent));
   if (textFrame) {
     // Make sure we are not a text area.
     nsCOMPtr<nsIDOMHTMLTextAreaElement> textAreaElement(do_QueryInterface(parent->GetContent()));
@@ -1702,7 +1669,7 @@ nsGfxScrollFrameInner::CreateAnonymousContent(nsTArray<nsIContent*>& aElements)
 
   if (canHaveHorizontal) {
     rv = NS_NewElement(getter_AddRefs(mHScrollbarContent),
-                       kNameSpaceID_XUL, nodeInfo, PR_FALSE);
+                       kNameSpaceID_XUL, nodeInfo);
     NS_ENSURE_SUCCESS(rv, rv);
     mHScrollbarContent->SetAttr(kNameSpaceID_None, nsGkAtoms::orient,
                                 NS_LITERAL_STRING("horizontal"), PR_FALSE);
@@ -1712,7 +1679,7 @@ nsGfxScrollFrameInner::CreateAnonymousContent(nsTArray<nsIContent*>& aElements)
 
   if (canHaveVertical) {
     rv = NS_NewElement(getter_AddRefs(mVScrollbarContent),
-                       kNameSpaceID_XUL, nodeInfo, PR_FALSE);
+                       kNameSpaceID_XUL, nodeInfo);
     NS_ENSURE_SUCCESS(rv, rv);
     mVScrollbarContent->SetAttr(kNameSpaceID_None, nsGkAtoms::orient,
                                 NS_LITERAL_STRING("vertical"), PR_FALSE);
@@ -1724,7 +1691,7 @@ nsGfxScrollFrameInner::CreateAnonymousContent(nsTArray<nsIContent*>& aElements)
     nodeInfoManager->GetNodeInfo(nsGkAtoms::scrollcorner, nsnull,
                                  kNameSpaceID_XUL, getter_AddRefs(nodeInfo));
     rv = NS_NewElement(getter_AddRefs(mScrollCornerContent),
-                       kNameSpaceID_XUL, nodeInfo, PR_FALSE);
+                       kNameSpaceID_XUL, nodeInfo);
     NS_ENSURE_SUCCESS(rv, rv);
     if (!aElements.AppendElement(mScrollCornerContent))
       return NS_ERROR_OUT_OF_MEMORY;
@@ -1744,7 +1711,7 @@ nsGfxScrollFrameInner::Destroy()
   mScrollEvent.Revoke();
   mAsyncScrollPortEvent.Revoke();
   if (mPostedReflowCallback) {
-    mOuter->PresContext()->PresShell()->CancelReflowCallback(this);
+    mOuter->GetPresContext()->PresShell()->CancelReflowCallback(this);
     mPostedReflowCallback = PR_FALSE;
   }
   nsIScrollableView *view = GetScrollableView();
@@ -1870,7 +1837,7 @@ void nsGfxScrollFrameInner::CurPosAttributeChanged(nsIContent* aContent)
       InternalScrollPositionDidChange(curPosX, curPosY);
       mFrameInitiatedScroll = PR_FALSE;
     }
-    ScrollbarChanged(mOuter->PresContext(), x, y, isSmooth ? NS_VMREFRESH_SMOOTHSCROLL : 0);
+    ScrollbarChanged(mOuter->GetPresContext(), x, y, isSmooth ? NS_VMREFRESH_SMOOTHSCROLL : 0);
   }
 }
 
@@ -1892,7 +1859,7 @@ nsGfxScrollFrameInner::FireScrollEvent()
   nsScrollbarEvent event(PR_TRUE, NS_SCROLL_EVENT, nsnull);
   nsEventStatus status = nsEventStatus_eIgnore;
   nsIContent* content = mOuter->GetContent();
-  nsPresContext* prescontext = mOuter->PresContext();
+  nsPresContext* prescontext = mOuter->GetPresContext();
   // Fire viewport scroll events at the document (where they
   // will bubble to the window)
   if (mIsRoot) {
@@ -1925,10 +1892,6 @@ nsGfxScrollFrameInner::PostScrollEvent()
 NS_IMETHODIMP
 nsGfxScrollFrameInner::AsyncScrollPortEvent::Run()
 {
-  if (mInner) {
-    mInner->mOuter->PresContext()->GetPresShell()->
-      FlushPendingNotifications(Flush_Layout);
-  }
   return mInner ? mInner->FireScrollPortEvent() : NS_OK;
 }
 
@@ -2083,10 +2046,7 @@ nsXULScrollFrame::LayoutScrollArea(nsBoxLayoutState& aState, const nsRect& aRect
 
     // remove overflow area when we update the bounds,
     // because we've already accounted for it
-    mInner.mScrolledFrame->SetBounds(aState, childRect);
-    PresContext()->PropertyTable()->
-        DeleteProperty(mInner.mScrolledFrame, nsGkAtoms::overflowAreaProperty);
-    mInner.mScrolledFrame->RemoveStateBits(NS_FRAME_OUTSIDE_CHILDREN);
+    mInner.mScrolledFrame->SetBounds(aState, childRect, PR_TRUE);
   }
 
   aState.SetLayoutFlags(oldflags);
@@ -2097,20 +2057,6 @@ void nsGfxScrollFrameInner::PostOverflowEvent()
 {
   if (mAsyncScrollPortEvent.IsPending())
     return;
-
-  // Keep this in sync with FireScrollPortEvent().
-  nsSize scrollportSize = GetScrollPortSize();
-  nsSize childSize = GetScrolledRect(scrollportSize).Size();
-
-  PRBool newVerticalOverflow = childSize.height > scrollportSize.height;
-  PRBool vertChanged = mVerticalOverflow != newVerticalOverflow;
-
-  PRBool newHorizontalOverflow = childSize.width > scrollportSize.width;
-  PRBool horizChanged = mHorizontalOverflow != newHorizontalOverflow;
-
-  if (!vertChanged && !horizChanged) {
-    return;
-  }
 
   nsRefPtr<AsyncScrollPortEvent> ev = new AsyncScrollPortEvent(this);
   if (NS_SUCCEEDED(NS_DispatchToCurrentThread(ev)))
@@ -2126,14 +2072,16 @@ nsGfxScrollFrameInner::IsLTR() const
   // XXX This is a bit on the slow side.
   if (mIsRoot) {
     // If we're the root scrollframe, we need the root element's style data.
-    nsPresContext *presContext = mOuter->PresContext();
+    nsPresContext *presContext = mOuter->GetPresContext();
     nsIDocument *document = presContext->Document();
     nsIContent *root = document->GetRootContent();
 
     // But for HTML we want the body element.
-    nsCOMPtr<nsIHTMLDocument> htmlDoc = do_QueryInterface(document);
-    if (htmlDoc) {
-      nsIContent *bodyContent = htmlDoc->GetBodyContentExternal();
+    nsCOMPtr<nsIDOMHTMLDocument> htmlDoc = do_QueryInterface(document);
+    if (htmlDoc && !document->IsCaseSensitive()) { // HTML, not XHTML
+      nsCOMPtr<nsIDOMHTMLElement> body;
+      htmlDoc->GetBody(getter_AddRefs(body));
+      nsCOMPtr<nsIContent> bodyContent = do_QueryInterface(body);
       if (bodyContent)
         root = bodyContent; // we can trust the document to hold on to it
     }
@@ -2152,7 +2100,7 @@ nsGfxScrollFrameInner::IsLTR() const
 PRBool
 nsGfxScrollFrameInner::IsScrollbarOnRight() const
 {
-  nsPresContext *presContext = mOuter->PresContext();
+  nsPresContext *presContext = mOuter->GetPresContext();
   switch (presContext->GetCachedIntPref(kPresContext_ScrollbarSide)) {
     default:
     case 0: // UI directionality
@@ -2338,6 +2286,7 @@ nsXULScrollFrame::Layout(nsBoxLayoutState& aState)
   // we only need to set the rect. The inner child stays the same size.
   if (needsLayout) {
     nsBoxLayoutState resizeState(aState);
+    mInner.mScrolledFrame->AddStateBits(NS_FRAME_IS_DIRTY);
     LayoutScrollArea(resizeState, scrollAreaRect);
   }
 
@@ -2373,21 +2322,8 @@ nsGfxScrollFrameInner::ReflowFinished()
 {
   mPostedReflowCallback = PR_FALSE;
 
-  if (mMayHaveDirtyFixedChildren) {
-    mMayHaveDirtyFixedChildren = PR_FALSE;
-    nsIFrame* parentFrame = mOuter->GetParent();
-    for (nsIFrame* fixedChild =
-           parentFrame->GetFirstChild(nsGkAtoms::fixedList);
-         fixedChild; fixedChild = fixedChild->GetNextSibling()) {
-      // force a reflow of the fixed child
-      mOuter->PresContext()->PresShell()->
-        FrameNeedsReflow(fixedChild, nsIPresShell::eResize,
-                         NS_FRAME_HAS_DIRTY_CHILDREN);
-    }
-  }
-
   // Update scrollbar attributes.
-  nsPresContext* presContext = mOuter->PresContext();
+  nsPresContext* presContext = mOuter->GetPresContext();
 
   nsIScrollableView* scrollable = GetScrollableView();
   nsRect scrollArea = scrollable->View()->GetBounds();
@@ -2423,16 +2359,8 @@ nsGfxScrollFrameInner::ReflowFinished()
     nscoord curPosX, curPosY;
     scrollable->GetScrollPosition(curPosX, curPosY);
     if (vScroll) {
-      // We normally use (scrollArea.height - fontHeight) for height
-      // of page scrolling.  However, it is too small when
-      // fontHeight is very large. (If fontHeight is larger than
-      // scrollArea.height, direction of scrolling will be opposite).
-      // To avoid it, we use (float(scrollArea.height) * 0.8) as
-      // lower bound value of height of page scrolling. (bug 383267)
-      nscoord pageincrement = nscoord(scrollArea.height - fontHeight);
-      nscoord pageincrementMin = nscoord(float(scrollArea.height) * 0.8);
       FinishReflowForScrollbar(vScroll, minY, maxY, curPosY,
-                               PR_MAX(pageincrement,pageincrementMin),
+                               nscoord(scrollArea.height - fontHeight),
                                fontHeight);
     }
     if (hScroll) {
@@ -2463,26 +2391,6 @@ nsGfxScrollFrameInner::ReflowFinished()
 }
 
 void
-nsGfxScrollFrameInner::ReflowCallbackCanceled()
-{
-  mPostedReflowCallback = PR_FALSE;
-}
-
-static void LayoutAndInvalidate(nsBoxLayoutState& aState,
-                                nsIFrame* aBox, const nsRect& aRect)
-{
-  // When a child box changes shape of position, the parent
-  // is responsible for invalidation; the overflow rect must be invalidated
-  // to make sure to catch any overflow
-  PRBool rectChanged = aBox->GetRect() != aRect;
-  if (rectChanged)
-    aBox->Invalidate(aBox->GetOverflowRect());
-  nsBoxFrame::LayoutChildAt(aState, aBox, aRect);
-  if (rectChanged)
-    aBox->Invalidate(aBox->GetOverflowRect());
-}
-
-void
 nsGfxScrollFrameInner::LayoutScrollbars(nsBoxLayoutState& aState,
                                         const nsRect& aContentArea,
                                         const nsRect& aOldScrollArea,
@@ -2499,7 +2407,7 @@ nsGfxScrollFrameInner::LayoutScrollbars(nsBoxLayoutState& aState,
     nsMargin margin;
     mVScrollbarBox->GetMargin(margin);
     vRect.Deflate(margin);
-    LayoutAndInvalidate(aState, mVScrollbarBox, vRect);
+    nsBoxFrame::LayoutChildAt(aState, mVScrollbarBox, vRect);
   }
 
   if (mHScrollbarBox) {
@@ -2510,7 +2418,7 @@ nsGfxScrollFrameInner::LayoutScrollbars(nsBoxLayoutState& aState,
     nsMargin margin;
     mHScrollbarBox->GetMargin(margin);
     hRect.Deflate(margin);
-    LayoutAndInvalidate(aState, mHScrollbarBox, hRect);
+    nsBoxFrame::LayoutChildAt(aState, mHScrollbarBox, hRect);
   }
 
   // place the scrollcorner
@@ -2539,7 +2447,7 @@ nsGfxScrollFrameInner::LayoutScrollbars(nsBoxLayoutState& aState,
       r.height = aContentArea.YMost() - aScrollArea.YMost();
       NS_ASSERTION(r.height >= 0, "Scroll area should be inside client rect");
     }
-    LayoutAndInvalidate(aState, mScrollCornerBox, r);
+    nsBoxFrame::LayoutChildAt(aState, mScrollCornerBox, r); 
   }
 
   // may need to update fixed position children of the viewport,
@@ -2549,7 +2457,16 @@ nsGfxScrollFrameInner::LayoutScrollbars(nsBoxLayoutState& aState,
   if (aOldScrollArea.Size() != aScrollArea.Size() && 
       !(mOuter->GetStateBits() & NS_FRAME_IS_DIRTY) &&
       mIsRoot) {
-    mMayHaveDirtyFixedChildren = PR_TRUE;
+    nsIFrame* parentFrame = mOuter->GetParent();
+    for (nsIFrame *fixedChild =
+           parentFrame->GetFirstChild(nsGkAtoms::fixedList);
+         fixedChild; fixedChild = fixedChild->GetNextSibling()) {
+      // force a reflow of the fixed child
+      fixedChild->AddStateBits(NS_FRAME_HAS_DIRTY_CHILDREN);
+      // XXX Will this work given where we currently are in reflow?
+      aState.PresContext()->PresShell()->
+        FrameNeedsReflow(fixedChild, nsIPresShell::eResize);
+    }
   }
   
   // post reflow callback to modify scrollbar attributes
@@ -2668,7 +2585,7 @@ nsGfxScrollFrameInner::GetCoordAttribute(nsIBox* aBox, nsIAtom* atom, PRInt32 de
 
 static nsIURI* GetDocURI(nsIFrame* aFrame)
 {
-  nsIPresShell* shell = aFrame->PresContext()->GetPresShell();
+  nsIPresShell* shell = aFrame->GetPresContext()->GetPresShell();
   if (!shell)
     return nsnull;
   nsIDocument* doc = shell->GetDocument();

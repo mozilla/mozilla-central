@@ -87,7 +87,7 @@ NSSCleanupAutoPtrClass(CERTCertificateList, CERT_DestroyCertificateList)
 static NS_DEFINE_CID(kNSSComponentCID, NS_NSSCOMPONENT_CID);
 
 
-NS_IMPL_THREADSAFE_ISUPPORTS2(nsNSSCertificateDB, nsIX509CertDB, nsIX509CertDB2)
+NS_IMPL_ISUPPORTS2(nsNSSCertificateDB, nsIX509CertDB, nsIX509CertDB2)
 
 nsNSSCertificateDB::nsNSSCertificateDB()
 {
@@ -106,7 +106,7 @@ nsNSSCertificateDB::FindCertByNickname(nsISupports *aToken,
   CERTCertificate *cert = NULL;
   char *asciiname = NULL;
   NS_ConvertUTF16toUTF8 aUtf8Nickname(nickname);
-  asciiname = const_cast<char*>(aUtf8Nickname.get());
+  asciiname = NS_CONST_CAST(char*, aUtf8Nickname.get());
   PR_LOG(gPIPNSSLog, PR_LOG_DEBUG, ("Getting \"%s\"\n", asciiname));
 #if 0
   // what it should be, but for now...
@@ -142,17 +142,11 @@ nsNSSCertificateDB::FindCertByDBKey(const char *aDBkey, nsISupports *aToken,
   CERTIssuerAndSN issuerSN;
   unsigned long moduleID,slotID;
   *_cert = nsnull; 
-  if (!aDBkey || !*aDBkey)
-    return NS_ERROR_INVALID_ARG;
-
+  if (!aDBkey) return NS_ERROR_FAILURE;
   dummy = NSSBase64_DecodeBuffer(nsnull, &keyItem, aDBkey,
                                  (PRUint32)PL_strlen(aDBkey)); 
-  if (!dummy || keyItem.len < NS_NSS_LONG*4) {
-    PR_FREEIF(keyItem.data);
-    return NS_ERROR_INVALID_ARG;
-  }
-
   CERTCertificate *cert;
+
   // someday maybe we can speed up the search using the moduleID and slotID
   moduleID = NS_NSS_GET_LONG(keyItem.data);
   slotID = NS_NSS_GET_LONG(&keyItem.data[NS_NSS_LONG]);
@@ -160,12 +154,6 @@ nsNSSCertificateDB::FindCertByDBKey(const char *aDBkey, nsISupports *aToken,
   // build the issuer/SN structure
   issuerSN.serialNumber.len = NS_NSS_GET_LONG(&keyItem.data[NS_NSS_LONG*2]);
   issuerSN.derIssuer.len = NS_NSS_GET_LONG(&keyItem.data[NS_NSS_LONG*3]);
-  if (issuerSN.serialNumber.len == 0 || issuerSN.derIssuer.len == 0
-      || issuerSN.serialNumber.len + issuerSN.derIssuer.len
-         != keyItem.len - NS_NSS_LONG*4) {
-    PR_FREEIF(keyItem.data);
-    return NS_ERROR_INVALID_ARG;
-  }
   issuerSN.serialNumber.data= &keyItem.data[NS_NSS_LONG*4];
   issuerSN.derIssuer.data= &keyItem.data[NS_NSS_LONG*4+
                                               issuerSN.serialNumber.len];
@@ -178,7 +166,7 @@ nsNSSCertificateDB::FindCertByDBKey(const char *aDBkey, nsISupports *aToken,
     if (nssCert == nsnull)
       return NS_ERROR_OUT_OF_MEMORY;
     NS_ADDREF(nssCert);
-    *_cert = static_cast<nsIX509Cert*>(nssCert);
+    *_cert = NS_STATIC_CAST(nsIX509Cert*, nssCert);
   }
   return NS_OK;
 }
@@ -261,7 +249,7 @@ nsNSSCertificateDB::getCertsFromPackage(PRArenaPool *arena, PRUint8 *data,
     return nsnull;
 
   collectArgs->arena = arena;
-  SECStatus sec_rv = CERT_DecodeCertPackage(reinterpret_cast<char *>(data), 
+  SECStatus sec_rv = CERT_DecodeCertPackage(NS_REINTERPRET_CAST(char *, data), 
                                             length, collect_certs, 
                                             (void *)collectArgs);
   if (sec_rv != SECSuccess)
@@ -411,7 +399,7 @@ nsNSSCertificateDB::handleCACertDownload(nsIArray *x509Certs,
                    trustBits & nsIX509CertDB::TRUSTED_OBJSIGN);
 
   SECStatus srv = CERT_AddTempCertToPerm(tmpCert, 
-                                         const_cast<char*>(nickname.get()), 
+                                         NS_CONST_CAST(char*,nickname.get()), 
                                          trust.GetTrust()); 
 
   if (srv != SECSuccess)
@@ -1007,8 +995,6 @@ nsNSSCertificateDB::SetCertTrust(nsIX509Cert *cert,
   SECStatus srv;
   nsNSSCertTrust trust;
   nsCOMPtr<nsIX509Cert2> pipCert = do_QueryInterface(cert);
-  if (!pipCert)
-    return NS_ERROR_FAILURE;
   CERTCertificate *nsscert = pipCert->GetCert();
   CERTCertificateCleaner certCleaner(nsscert);
   if (type == nsIX509Cert::CA_CERT) {
@@ -1101,7 +1087,6 @@ nsNSSCertificateDB::ImportCertsFromFile(nsISupports *aToken,
                                         nsILocalFile *aFile,
                                         PRUint32 aType)
 {
-  NS_ENSURE_ARG(aFile);
   switch (aType) {
     case nsIX509Cert::CA_CERT:
     case nsIX509Cert::EMAIL_CERT:
@@ -1209,7 +1194,7 @@ GetOCSPResponders (CERTCertificate *aCert,
                    SECItem         *aDBKey,
                    void            *aArg)
 {
-  nsIMutableArray *array = static_cast<nsIMutableArray*>(aArg);
+  nsIMutableArray *array = NS_STATIC_CAST(nsIMutableArray*, aArg);
   PRUnichar* nn = nsnull;
   PRUnichar* url = nsnull;
   char *serviceURL = nsnull;
@@ -1384,7 +1369,7 @@ nsNSSCertificateDB::FindEmailEncryptionCert(const nsAString &aNickname, nsIX509C
   nsNSSCertificate *nssCert = nsnull;
   char *asciiname = NULL;
   NS_ConvertUTF16toUTF8 aUtf8Nickname(aNickname);
-  asciiname = const_cast<char*>(aUtf8Nickname.get());
+  asciiname = NS_CONST_CAST(char*, aUtf8Nickname.get());
 
   /* Find a good cert in the user's database */
   cert = CERT_FindUserCertByUsage(CERT_GetDefaultCertDB(), asciiname, 
@@ -1398,7 +1383,7 @@ nsNSSCertificateDB::FindEmailEncryptionCert(const nsAString &aNickname, nsIX509C
   }
   NS_ADDREF(nssCert);
 
-  *_retval = static_cast<nsIX509Cert*>(nssCert);
+  *_retval = NS_STATIC_CAST(nsIX509Cert*, nssCert);
 
 loser:
   if (cert) CERT_DestroyCertificate(cert);
@@ -1424,7 +1409,7 @@ nsNSSCertificateDB::FindEmailSigningCert(const nsAString &aNickname, nsIX509Cert
   nsNSSCertificate *nssCert = nsnull;
   char *asciiname = NULL;
   NS_ConvertUTF16toUTF8 aUtf8Nickname(aNickname);
-  asciiname = const_cast<char*>(aUtf8Nickname.get());
+  asciiname = NS_CONST_CAST(char*, aUtf8Nickname.get());
 
   /* Find a good cert in the user's database */
   cert = CERT_FindUserCertByUsage(CERT_GetDefaultCertDB(), asciiname, 
@@ -1438,7 +1423,7 @@ nsNSSCertificateDB::FindEmailSigningCert(const nsAString &aNickname, nsIX509Cert
   }
   NS_ADDREF(nssCert);
 
-  *_retval = static_cast<nsIX509Cert*>(nssCert);
+  *_retval = NS_STATIC_CAST(nsIX509Cert*, nssCert);
 
 loser:
   if (cert) CERT_DestroyCertificate(cert);
@@ -1474,7 +1459,7 @@ nsNSSCertificateDB::FindCertByEmailAddress(nsISupports *aToken, const char *aEma
     return NS_ERROR_OUT_OF_MEMORY;
 
   NS_ADDREF(nssCert);
-  *_retval = static_cast<nsIX509Cert*>(nssCert);
+  *_retval = NS_STATIC_CAST(nsIX509Cert*, nssCert);
   return NS_OK;
 }
 
@@ -1726,7 +1711,7 @@ NS_IMETHODIMP nsNSSCertificateDB::AddCertFromBase64(const char *aBase64, const c
   PR_LOG(gPIPNSSLog, PR_LOG_DEBUG, ("Created nick \"%s\"\n", nickname.get()));
 
   SECStatus srv = CERT_AddTempCertToPerm(tmpCert, 
-                                         const_cast<char*>(nickname.get()), 
+                                         NS_CONST_CAST(char*,nickname.get()), 
                                          trust.GetTrust()); 
 
 

@@ -101,9 +101,6 @@ public:
                          
   void PaintBullet(nsIRenderingContext& aRenderingContext, nsPoint aPt,
                    const nsRect& aDirtyRect);
-  
-  virtual PRBool IsEmpty();
-  virtual PRBool IsSelfEmpty();
 
 protected:
   void GetDesiredSize(nsPresContext* aPresContext,
@@ -119,7 +116,6 @@ protected:
 
   nsSize mIntrinsicSize;
   nsSize mComputedSize;
-  PRBool mTextIsRTL;
 };
 
 #endif /* nsBulletFrame_h___ */

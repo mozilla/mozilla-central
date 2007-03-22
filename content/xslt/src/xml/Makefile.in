@@ -63,7 +63,6 @@ REQUIRES += \
 		  unicharutil \
 		  necko \
 		  htmlparser \
-		  caps \
 		  $(NULL)
 else
 REQUIRES += expat

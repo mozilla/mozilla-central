@@ -49,6 +49,15 @@
 #include "nsIPresShell.h"
 #include "nsAbsoluteContainingBlock.h"
 
+class nsFixedContainingBlock : public nsAbsoluteContainingBlock {
+public:
+  nsFixedContainingBlock() { }          // useful for debugging
+
+  virtual ~nsFixedContainingBlock() { } // useful for debugging
+
+  virtual nsIAtom* GetChildListName() const { return nsGkAtoms::fixedList; }
+};
+
 /**
   * ViewportFrame is the parent of a single child - the doc root frame or a scroll frame 
   * containing the doc root frame. ViewportFrame stores this child in its primary child 
@@ -59,10 +68,7 @@ class ViewportFrame : public nsContainerFrame {
 public:
   typedef nsContainerFrame Super;
 
-  ViewportFrame(nsStyleContext* aContext)
-    : nsContainerFrame(aContext)
-    , mFixedContainer(nsGkAtoms::fixedList)
-  {}
+  ViewportFrame(nsStyleContext* aContext) : nsContainerFrame(aContext) {}
   virtual ~ViewportFrame() { } // useful for debugging
 
   virtual void Destroy();
@@ -120,9 +126,7 @@ protected:
   nsPoint AdjustReflowStateForScrollbars(nsHTMLReflowState* aReflowState) const;
 
 protected:
-  // position: fixed content is really content which is absolutely positioned with
-  // respect to the viewport.
-  nsAbsoluteContainingBlock mFixedContainer;
+  nsFixedContainingBlock mFixedContainer;
 };
 
 

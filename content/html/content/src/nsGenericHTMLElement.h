@@ -38,19 +38,20 @@
 #ifndef nsGenericHTMLElement_h___
 #define nsGenericHTMLElement_h___
 
-#include "nsMappedAttributeElement.h"
+#include "nsGenericElement.h"
 #include "nsIDOMHTMLElement.h"
 #include "nsINameSpaceManager.h"  // for kNameSpaceID_None
 #include "nsIFormControl.h"
 #include "nsIDOMNSHTMLFrameElement.h"
 #include "nsFrameLoader.h"
-#include "nsGkAtoms.h"
 
 class nsIDOMAttr;
 class nsIDOMEventListener;
 class nsIDOMNodeList;
 class nsIFrame;
+class nsMappedAttributes;
 class nsIStyleRule;
+class nsISupportsArray;
 class nsChildContentList;
 class nsDOMCSSDeclaration;
 class nsIDOMCSSStyleDeclaration;
@@ -63,17 +64,20 @@ class nsILayoutHistoryState;
 class nsIEditor;
 struct nsRect;
 struct nsSize;
+struct nsRuleData;
 
-typedef nsMappedAttributeElement nsGenericHTMLElementBase;
+typedef void (*nsMapRuleToAttributesFunc)(const nsMappedAttributes* aAttributes, 
+                                          nsRuleData* aData);
+
 
 /**
  * A common superclass for HTML elements
  */
-class nsGenericHTMLElement : public nsGenericHTMLElementBase
+class nsGenericHTMLElement : public nsGenericElement
 {
 public:
   nsGenericHTMLElement(nsINodeInfo *aNodeInfo)
-    : nsGenericHTMLElementBase(aNodeInfo)
+    : nsGenericElement(aNodeInfo)
   {
   }
 
@@ -81,7 +85,7 @@ public:
   static nsGenericHTMLElement* FromContent(nsIContent *aContent)
   {
     if (aContent->IsNodeOfType(eHTML))
-      return static_cast<nsGenericHTMLElement*>(aContent);
+      return NS_STATIC_CAST(nsGenericHTMLElement*, aContent);
     return nsnull;
   }
 
@@ -133,11 +137,7 @@ public:
   // nsIDOMNSHTMLElement methods. Note that these are non-virtual
   // methods, implementations are expected to forward calls to these
   // methods.
-  // Forward to GetStyle which is protected in the super-class
-  inline nsresult GetStyle(nsIDOMCSSStyleDeclaration** aStyle)
-  {
-    return nsGenericHTMLElementBase::GetStyle(aStyle);
-  }
+  nsresult GetStyle(nsIDOMCSSStyleDeclaration** aStyle);
   nsresult GetOffsetTop(PRInt32* aOffsetTop);
   nsresult GetOffsetLeft(PRInt32* aOffsetLeft);
   nsresult GetOffsetWidth(PRInt32* aOffsetWidth);
@@ -165,8 +165,6 @@ public:
   NS_IMETHOD SetTabIndex(PRInt32 aTabIndex);
   NS_IMETHOD GetSpellcheck(PRBool* aSpellcheck);
   NS_IMETHOD SetSpellcheck(PRBool aSpellcheck);
-  nsresult GetContentEditable(nsAString &aContentEditable);
-  nsresult SetContentEditable(const nsAString &aContentEditable);
 
   /**
    * Get the frame's offset information for offsetTop/Left/Width/Height.
@@ -187,10 +185,8 @@ public:
                      nsIFrame **aFrame = nsnull);
 
   /**
-   * Get this element's client area dimensions in app units.
-   * The rect x, y, width, height are the clientLeft, clientTop, clientWidth,
-   * clientHeight values.
-   * @return the frame's client dimensions
+   * Get this element's client area rect in app units.
+   * @return the frame's client area
    */
   nsRect GetClientAreaRect();
 
@@ -198,40 +194,14 @@ public:
   virtual nsresult BindToTree(nsIDocument* aDocument, nsIContent* aParent,
                               nsIContent* aBindingParent,
                               PRBool aCompileEventHandlers);
-  virtual void UnbindFromTree(PRBool aDeep = PR_TRUE,
-                              PRBool aNullParent = PR_TRUE);
-  nsresult SetAttr(PRInt32 aNameSpaceID, nsIAtom* aName,
-                   const nsAString& aValue, PRBool aNotify)
-  {
-    return SetAttr(aNameSpaceID, aName, nsnull, aValue, aNotify);
-  }
-  virtual nsresult SetAttr(PRInt32 aNameSpaceID, nsIAtom* aName,
-                           nsIAtom* aPrefix, const nsAString& aValue,
-                           PRBool aNotify);
   virtual nsresult UnsetAttr(PRInt32 aNameSpaceID, nsIAtom* aName,
                              PRBool aNotify);
   virtual PRBool IsNodeOfType(PRUint32 aFlags) const;
   virtual void RemoveFocus(nsPresContext *aPresContext);
-  virtual PRBool IsFocusable(PRInt32 *aTabIndex = nsnull)
-  {
-    PRBool isFocusable = PR_FALSE;
-    IsHTMLFocusable(&isFocusable, aTabIndex);
-    return isFocusable;
-  }
-  /**
-   * Returns PR_TRUE if a subclass is not allowed to override the value returned
-   * in aIsFocusable.
-   */
-  virtual PRBool IsHTMLFocusable(PRBool *aIsFocusable, PRInt32 *aTabIndex);
+  virtual PRBool IsFocusable(PRInt32 *aTabIndex = nsnull);
   virtual void PerformAccesskey(PRBool aKeyCausesActivation,
                                 PRBool aIsTrustedEvent);
 
-  /**
-   * Check if an event for an anchor can be handled
-   * @return PR_TRUE if the event can be handled, PR_FALSE otherwise
-   */
-  PRBool CheckHandleEventForAnchorsPreconditions(nsEventChainVisitor& aVisitor);
-  nsresult PreHandleEventForAnchors(nsEventChainPreVisitor& aVisitor);
   nsresult PostHandleEventForAnchors(nsEventChainPostVisitor& aVisitor);
   PRBool IsHTMLLink(nsIURI** aURI) const;
 
@@ -245,9 +215,14 @@ public:
   {
     return mAttrsAndChildren.GetAttr(aAttr);
   }
+  virtual nsMapRuleToAttributesFunc GetAttributeMappingFunction() const;
 
-  virtual void UpdateEditableState();
-
+  virtual const nsAttrValue* GetClasses() const;
+  virtual nsIAtom *GetIDAttributeName() const;
+  virtual nsIAtom *GetClassAttributeName() const;
+  NS_IMETHOD WalkContentStyleRules(nsRuleWalker* aRuleWalker);
+  virtual nsICSSStyleRule* GetInlineStyleRule();
+  NS_IMETHOD SetInlineStyleRule(nsICSSStyleRule* aStyleRule, PRBool aNotify);
   already_AddRefed<nsIURI> GetBaseURI() const;
 
   virtual PRBool ParseAttribute(PRInt32 aNamespaceID,
@@ -256,7 +231,10 @@ public:
                                 nsAttrValue& aResult);
 
   NS_IMETHOD_(PRBool) IsAttributeMapped(const nsIAtom* aAttribute) const;
-  virtual nsMapRuleToAttributesFunc GetAttributeMappingFunction() const;
+  virtual PRBool SetMappedAttribute(nsIDocument* aDocument,
+                                    nsIAtom* aName,
+                                    nsAttrValue& aValue,
+                                    nsresult* aRetval);
 
   /**
    * Get the base target for any links within this piece
@@ -368,6 +346,24 @@ public:
    */
   static PRBool ParseScrollingValue(const nsAString& aString,
                                     nsAttrValue& aResult);
+
+  /**
+   * Create the style struct from the style attr.  Used when an element is first
+   * put into a document.  Only has an effect if the old value is a string.
+   */
+  nsresult  ReparseStyleAttribute(void);
+  /**
+   * Parse a style attr value into a CSS rulestruct (or, if there is no
+   * document, leave it as a string) and return as nsAttrValue.
+   * Note: this function is used by other classes than nsGenericHTMLElement
+   *
+   * @param aValue the value to parse
+   * @param aResult the resulting HTMLValue [OUT]
+   */
+  static void ParseStyleAttribute(nsIContent* aContent,
+                                  PRBool aCaseSensitive,
+                                  const nsAString& aValue,
+                                  nsAttrValue& aResult);
 
   /*
    * Attribute Mapping Helpers
@@ -508,13 +504,10 @@ public:
    * piece of content.
    *
    * @param aContent the content to generate the key for
-   * @param aRead if true, won't return a layout history state (and won't
-   *              generate a key) if the layout history state is empty.
    * @param aState the history state object (out param)
    * @param aKey the key (out param)
    */
   static nsresult GetLayoutHistoryAndKey(nsGenericHTMLElement* aContent,
-                                         PRBool aRead,
                                          nsILayoutHistoryState** aState,
                                          nsACString& aKey);
   /**
@@ -767,45 +760,6 @@ protected:
    * spellchecking.
    */
   static void SyncEditorsOnSubtree(nsIContent* content);
-
-  enum ContentEditableTristate {
-    eInherit = -1,
-    eFalse = 0,
-    eTrue = 1
-  };
-
-  /**
-   * Returns eTrue if the element has a contentEditable attribute and its value
-   * is "true" or an empty string. Returns eFalse if the element has a
-   * contentEditable attribute and its value is "false". Otherwise returns
-   * eInherit.
-   */
-  NS_HIDDEN_(ContentEditableTristate) GetContentEditableValue() const
-  {
-    static const nsIContent::AttrValuesArray values[] =
-      { &nsGkAtoms::_false, &nsGkAtoms::_true, &nsGkAtoms::_empty, nsnull };
-
-    PRInt32 value = FindAttrValueIn(kNameSpaceID_None,
-                                    nsGkAtoms::contenteditable, values,
-                                    eIgnoreCase);
-
-    return value > 0 ? eTrue : (value == 0 ? eFalse : eInherit);
-  }
-
-private:
-  /**
-   * Returns whether this element is an editable root. There are two types of
-   * editable roots:
-   *   1) the documentElement if the whole document is editable (for example for
-   *      desginMode=on)
-   *   2) an element that is marked editable with contentEditable=true and that
-   *      doesn't have a parent or whose parent is not editable.
-   * Note that this doesn't return input and textarea elements that haven't been
-   * made editable through contentEditable or designMode.
-   */
-  PRBool IsEditableRoot() const;
-
-  void ChangeEditableState(PRInt32 aChange);
 };
 
 
@@ -824,7 +778,6 @@ public:
   NS_IMETHOD QueryInterface(REFNSIID aIID, void** aInstancePtr);
 
   virtual PRBool IsNodeOfType(PRUint32 aFlags) const;
-  virtual void SaveSubtreeState();
 
   // nsIFormControl
   NS_IMETHOD GetForm(nsIDOMHTMLFormElement** aForm);
@@ -836,7 +789,6 @@ public:
   {
     return NS_OK;
   }
-  
   virtual PRBool RestoreState(nsPresState* aState)
   {
     return PR_FALSE;
@@ -854,10 +806,19 @@ public:
                               PRBool aCompileEventHandlers);
   virtual void UnbindFromTree(PRBool aDeep = PR_TRUE,
                               PRBool aNullParent = PR_TRUE);
+  virtual nsresult UnsetAttr(PRInt32 aNameSpaceID, nsIAtom* aName,
+                             PRBool aNotify);
   virtual PRUint32 GetDesiredIMEState();
-  virtual PRInt32 IntrinsicState() const;
 
 protected:
+  /**
+   * Find the form for this element and set aFormControl's form to it
+   * (aFormControl is passed in to avoid QI)
+   *
+   * @param aFormControl the form control to set the form for
+   */
+  void FindAndSetForm();
+
   virtual nsresult BeforeSetAttr(PRInt32 aNameSpaceID, nsIAtom* aName,
                                  const nsAString* aValue, PRBool aNotify);
 
@@ -869,28 +830,13 @@ protected:
    */
   PRBool CanBeDisabled() const;
 
-  void UpdateEditableFormControlState();
+  virtual PRInt32 IntrinsicState() const;
 
   void SetFocusAndScrollIntoView(nsPresContext* aPresContext);
 
   /** The form that contains this control */
   nsIForm* mForm;
 };
-
-// If this flag is set on an nsGenericHTMLFormElement, that means that we have
-// added ourselves to our mForm.  It's possible to have a non-null mForm, but
-// not have this flag set.  That happens when the form is set via the content
-// sink.
-#define ADDED_TO_FORM (1 << NODE_TYPE_SPECIFIC_BITS_OFFSET)
-
-// If this flag is set on an nsGenericHTMLFormElement, that means that its form
-// is in the process of being unbound from the tree, and this form element
-// hasn't re-found its form in nsGenericHTMLFormElement::UnbindFromTree yet.
-#define MAYBE_ORPHAN_FORM_ELEMENT (1 << (NODE_TYPE_SPECIFIC_BITS_OFFSET+1))
-
-// NOTE: I don't think it's possible to have the above two flags set at the
-// same time, so if it becomes an issue we can probably merge them into the
-// same bit.  --bz
 
 //----------------------------------------------------------------------
 
@@ -919,7 +865,7 @@ public:
   NS_DECL_NSIFRAMELOADEROWNER
 
   // nsIContent
-  virtual PRBool IsHTMLFocusable(PRBool *aIsFocusable, PRInt32 *aTabIndex);
+  virtual PRBool IsFocusable(PRInt32 *aTabIndex = nsnull);
   virtual nsresult BindToTree(nsIDocument* aDocument, nsIContent* aParent,
                               nsIContent* aBindingParent,
                               PRBool aCompileEventHandlers);
@@ -933,7 +879,6 @@ public:
   virtual nsresult SetAttr(PRInt32 aNameSpaceID, nsIAtom* aName,
                            nsIAtom* aPrefix, const nsAString& aValue,
                            PRBool aNotify);
-  virtual void DestroyContent();
 
   // nsIDOMNSHTMLElement 
   NS_IMETHOD GetTabIndex(PRInt32 *aTabIndex);
@@ -1078,11 +1023,12 @@ NS_NewHTML##_elementName##Element(nsINodeInfo *aNodeInfo, PRBool aFromParser)\
  * QueryInterface() implementation helper macros
  */
 
-#define NS_HTML_CONTENT_INTERFACE_TABLE_AMBIGOUS_HEAD(_class, _base,          \
-                                                      _base_if)               \
+#define NS_HTML_CONTENT_INTERFACE_MAP_AMBIGOUS_BEGIN(_class, _base, _base_if) \
   NS_IMETHODIMP _class::QueryInterface(REFNSIID aIID, void** aInstancePtr)    \
   {                                                                           \
-    NS_PRECONDITION(aInstancePtr, "null out param");                          \
+    NS_ENSURE_ARG_POINTER(aInstancePtr);                                      \
+                                                                              \
+    *aInstancePtr = nsnull;                                                   \
                                                                               \
     nsresult rv;                                                              \
                                                                               \
@@ -1091,35 +1037,50 @@ NS_NewHTML##_elementName##Element(nsINodeInfo *aNodeInfo, PRBool aFromParser)\
     if (NS_SUCCEEDED(rv))                                                     \
       return rv;                                                              \
                                                                               \
-    rv = DOMQueryInterface(static_cast<_base_if *>(this), aIID,               \
+    rv = DOMQueryInterface(NS_STATIC_CAST(_base_if *, this), aIID,            \
                            aInstancePtr);                                     \
                                                                               \
     if (NS_SUCCEEDED(rv))                                                     \
-      return rv;
+      return rv;                                                              \
+                                                                              \
+    nsISupports *foundInterface = nsnull;
 
 
-#define NS_HTML_CONTENT_INTERFACE_TABLE_HEAD(_class, _base)                   \
-  NS_HTML_CONTENT_INTERFACE_TABLE_AMBIGOUS_HEAD(_class, _base,                \
-                                                nsIDOMHTMLElement)
+#define NS_HTML_CONTENT_INTERFACE_MAP_BEGIN(_class, _base)                    \
+  NS_HTML_CONTENT_INTERFACE_MAP_AMBIGOUS_BEGIN(_class, _base,                 \
+                                               nsIDOMHTMLElement)
 
-#define NS_HTML_CONTENT_CC_INTERFACE_TABLE_AMBIGUOUS_HEAD(_class, _base,      \
-                                                          _base_if)           \
-  NS_INTERFACE_TABLE_HEAD_CYCLE_COLLECTION_INHERITED(_class)                  \
+#define NS_HTML_CONTENT_CC_INTERFACE_MAP_AMBIGUOUS_BEGIN(_class, _base,       \
+                                                        _base_if)             \
+  NS_IMETHODIMP _class::QueryInterface(REFNSIID aIID, void** aInstancePtr)    \
+  {                                                                           \
+    NS_ENSURE_ARG_POINTER(aInstancePtr);                                      \
+                                                                              \
+    if ( aIID.Equals(NS_GET_IID(nsCycleCollectionParticipant)) ) {            \
+      *aInstancePtr = &NS_CYCLE_COLLECTION_NAME(_class);                      \
+      return NS_OK;                                                           \
+    }                                                                         \
+                                                                              \
+    *aInstancePtr = nsnull;                                                   \
+                                                                              \
+    nsresult rv;                                                              \
                                                                               \
     rv = _base::QueryInterface(aIID, aInstancePtr);                           \
                                                                               \
     if (NS_SUCCEEDED(rv))                                                     \
       return rv;                                                              \
                                                                               \
-    rv = DOMQueryInterface(static_cast<_base_if *>(this), aIID,               \
+    rv = DOMQueryInterface(NS_STATIC_CAST(_base_if *, this), aIID,            \
                            aInstancePtr);                                     \
                                                                               \
     if (NS_SUCCEEDED(rv))                                                     \
-      return rv;
+      return rv;                                                              \
+                                                                              \
+    nsISupports *foundInterface = nsnull;
 
-#define NS_HTML_CONTENT_CC_INTERFACE_TABLE_HEAD(_class, _base)                \
-  NS_HTML_CONTENT_CC_INTERFACE_TABLE_AMBIGUOUS_HEAD(_class, _base,            \
-                                                    nsIDOMHTMLElement)
+#define NS_HTML_CONTENT_CC_INTERFACE_MAP_BEGIN(_class, _base)                 \
+  NS_HTML_CONTENT_CC_INTERFACE_MAP_AMBIGUOUS_BEGIN(_class, _base,             \
+                                                   nsIDOMHTMLElement)
 
 #define NS_HTML_CONTENT_INTERFACE_MAP_END                                     \
     {                                                                         \
@@ -1133,10 +1094,6 @@ NS_NewHTML##_elementName##Element(nsINodeInfo *aNodeInfo, PRBool aFromParser)\
     return NS_OK;                                                             \
   }
 
-#define NS_HTML_CONTENT_INTERFACE_TABLE_TAIL_CLASSINFO(_class)                \
-    NS_INTERFACE_TABLE_TO_MAP_SEGUE                                           \
-    NS_INTERFACE_MAP_ENTRY_CONTENT_CLASSINFO(_class)                          \
-  NS_HTML_CONTENT_INTERFACE_MAP_END
 
 #define NS_INTERFACE_MAP_ENTRY_IF_TAG(_interface, _tag)                       \
   NS_INTERFACE_MAP_ENTRY_CONDITIONAL(_interface,                              \

@@ -26,6 +26,27 @@ function getFile(key) {
   return dirSvc.get(key, Components.interfaces.nsILocalFile);
 }
 
+/* read count bytes from stream and return as a String object */
+function read_stream(stream, count) {
+  /* assume stream has non-ASCII data */
+  var wrapper =
+      Cc["@mozilla.org/binaryinputstream;1"].
+      createInstance(Ci.nsIBinaryInputStream);
+  wrapper.setInputStream(stream);
+  /* JS methods can be called with a maximum of 65535 arguments, and input
+     streams don't have to return all the data they make .available() when
+     asked to .read() that number of bytes. */
+  var data = [];
+  while (count > 0) {
+    var bytes = wrapper.readByteArray(Math.min(65535, count));
+    data.push(String.fromCharCode.apply(null, bytes));
+    count -= bytes.length;
+    if (bytes.length == 0)
+      do_throw("Nothing read from input stream!");
+  }
+  return data.join('');
+}
+
 function new_file_input_stream(file, buffered) {
   var stream =
       Cc["@mozilla.org/network/file-input-stream;1"].
@@ -48,15 +69,11 @@ function new_file_channel(file) {
   return ios.newChannelFromURI(ios.newFileURI(file));
 }
 
-/*
- * stream listener
- * this listener has some additional file-specific tests, so we can't just use
- * ChannelListener here.
- */
-function FileStreamListener(closure) {
+/* stream listener */
+function Listener(closure) {
   this._closure = closure;
 }
-FileStreamListener.prototype = {
+Listener.prototype = {
   _closure: null,
   _buffer: "",
   _got_onstartrequest: false,
@@ -143,7 +160,7 @@ function test_read_file() {
   }
 
   chan.contentType = special_type;
-  chan.asyncOpen(new FileStreamListener(on_read_complete), null);
+  chan.asyncOpen(new Listener(on_read_complete), null);
 }
 
 function do_test_read_dir(set_type, expected_type) {
@@ -165,7 +182,7 @@ function do_test_read_dir(set_type, expected_type) {
 
   if (set_type)
     chan.contentType = expected_type;
-  chan.asyncOpen(new FileStreamListener(on_read_complete), null);
+  chan.asyncOpen(new Listener(on_read_complete), null);
 }
 
 function test_read_dir_1() {
@@ -224,7 +241,7 @@ function test_upload_file() {
   }
 
   chan.contentType = special_type;
-  chan.asyncOpen(new FileStreamListener(on_upload_complete), null);
+  chan.asyncOpen(new Listener(on_upload_complete), null);
 }
 
 function run_test() {

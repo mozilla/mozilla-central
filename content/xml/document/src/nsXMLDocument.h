@@ -75,6 +75,8 @@ public:
 
   virtual void EndLoad();
 
+  virtual PRBool IsLoadedAsData();
+
   // nsIDOMNode interface
   NS_IMETHOD CloneNode(PRBool aDeep, nsIDOMNode** aReturn);
 
@@ -95,8 +97,13 @@ public:
 
   virtual nsresult Clone(nsINodeInfo *aNodeInfo, nsINode **aResult) const;
 
-  void SetLoadedAsData(PRBool aLoadedAsData) { mLoadedAsData = aLoadedAsData; }
+  NS_DECL_CYCLE_COLLECTION_CLASS_INHERITED_NO_UNLINK(nsXMLDocument, nsDocument)
+
 protected:
+  virtual nsresult GetLoadGroup(nsILoadGroup **aLoadGroup);
+
+  nsCOMPtr<nsIScriptContext> mScriptContext;
+
   // mChannelIsPending indicates whether we're currently asynchronously loading
   // data from mChannel (via document.load() or normal load).  It's set to true
   // when we first find out about the channel (StartDocumentLoad) and set to
@@ -104,6 +111,8 @@ protected:
   // mChannel is also cancelled.  Note that if this member is true, mChannel
   // cannot be null.
   PRPackedBool mChannelIsPending;
+  PRPackedBool mCrossSiteAccessEnabled;
+  PRPackedBool mLoadedAsData;
   PRPackedBool mLoadedAsInteractiveData;
   PRPackedBool mAsync;
   PRPackedBool mLoopingForSyncLoad;

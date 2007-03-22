@@ -1,4 +1,0 @@
-/pub/mozilla.org/seamonkey/nightly/latest-trunk/seamonkey-2.0a1pre.en-US.linux-i686.tar.bz2
-/pub/mozilla.org/seamonkey/nightly/latest-trunk/seamonkey-2.0a1pre.en-US.mac.dmg
-/pub/mozilla.org/seamonkey/nightly/latest-trunk/seamonkey-2.0a1pre.en-US.win32.installer.exe
-/pub/mozilla.org/seamonkey/nightly/latest-trunk/seamonkey-2.0a1pre.en-US.win32.zip

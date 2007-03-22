@@ -91,21 +91,21 @@ NS_IMPL_CYCLE_COLLECTING_ADDREF_AMBIGUOUS(nsFocusController, nsIFocusController)
 NS_IMPL_CYCLE_COLLECTING_RELEASE_AMBIGUOUS(nsFocusController,
                                            nsIFocusController)
 
-NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION(nsFocusController)
+NS_INTERFACE_MAP_BEGIN(nsFocusController)
   NS_INTERFACE_MAP_ENTRY(nsIFocusController)
   NS_INTERFACE_MAP_ENTRY(nsIDOMFocusListener)
   NS_INTERFACE_MAP_ENTRY(nsIDOMEventListener)
   NS_INTERFACE_MAP_ENTRY(nsSupportsWeakReference)
   NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIFocusController)
+  NS_INTERFACE_MAP_ENTRIES_CYCLE_COLLECTION(nsFocusController)
 NS_INTERFACE_MAP_END
 
 NS_IMPL_CYCLE_COLLECTION_UNLINK_0(nsFocusController)
 NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN(nsFocusController)
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mCurrentElement)
-  NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mPreviousElement)
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mCurrentWindow)
-  NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mPreviousWindow)
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mPopupNode)
+  NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mPopupEvent)
 NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
 
 NS_IMETHODIMP
@@ -143,11 +143,6 @@ nsFocusController::GetFocusedWindow(nsIDOMWindowInternal** aWindow)
 NS_IMETHODIMP
 nsFocusController::SetFocusedElement(nsIDOMElement* aElement)
 {
-  if (mCurrentElement) 
-    mPreviousElement = mCurrentElement;
-  else if (aElement) 
-    mPreviousElement = aElement;
-
   mNeedUpdateCommands = mNeedUpdateCommands || mCurrentElement != aElement;
   mCurrentElement = aElement;
 
@@ -157,15 +152,6 @@ nsFocusController::SetFocusedElement(nsIDOMElement* aElement)
     // before updating.
     UpdateCommands();
   }
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-nsFocusController::RewindFocusState()
-{
-  mCurrentElement = mPreviousElement;
-  mCurrentWindow = mPreviousWindow;
-
   return NS_OK;
 }
 
@@ -185,12 +171,6 @@ nsFocusController::SetFocusedWindow(nsIDOMWindowInternal* aWindow)
     nsCOMPtr<nsIBaseWindow> basewin = do_QueryInterface(win->GetDocShell());
     if (basewin)
       basewin->SetFocus();
-  }
-
-  if (mCurrentWindow) {
-    mPreviousWindow = mCurrentWindow;
-  } else if (win) {
-    mPreviousWindow = win;
   }
 
   mNeedUpdateCommands = mNeedUpdateCommands || mCurrentWindow != win;
@@ -232,7 +212,7 @@ nsFocusController::UpdateCommands()
   }
 
   // If there is no presshell, it's a zombie document which can't handle the command updates
-  if (window && doc && doc->GetPrimaryShell()) {
+  if (window && doc && doc->GetNumberOfShells()) {
     // Not a zombie document, so we can handle the command update
     window->UpdateCommands(NS_LITERAL_STRING("focus"));
     mNeedUpdateCommands = PR_FALSE;
@@ -263,17 +243,6 @@ nsFocusController::GetControllers(nsIControllers** aResult)
       do_QueryInterface(mCurrentElement);
     if (htmlInputElement)
       return htmlInputElement->GetControllers(aResult);
-
-    nsCOMPtr<nsIContent> content = do_QueryInterface(mCurrentElement);
-    if (content && content->IsEditable()) {
-      // Move up to the window.
-      nsCOMPtr<nsIDOMDocument> domDoc;
-      mCurrentElement->GetOwnerDocument(getter_AddRefs(domDoc));
-      nsCOMPtr<nsIDOMWindowInternal> domWindow =
-        do_QueryInterface(GetWindowFromDocument(domDoc));
-      if (domWindow)
-        return domWindow->GetControllers(aResult);
-    }
   }
   else if (mCurrentWindow) {
     nsCOMPtr<nsIDOMWindowInternal> domWindow =
@@ -309,14 +278,19 @@ nsFocusController::MoveFocus(PRBool aForward, nsIDOMElement* aElt)
     }
   }
 
-  if (!doc) {
+  if (!doc)
     // No way to obtain an event state manager.  Give up.
-    return NS_ERROR_FAILURE;
-  }
+    return NS_OK;
 
-  nsIPresShell *shell = doc->GetPrimaryShell();
+
+  // Obtain a presentation context
+  PRInt32 count = doc->GetNumberOfShells();
+  if (count == 0)
+    return NS_OK;
+
+  nsIPresShell *shell = doc->GetShellAt(0);
   if (!shell)
-    return NS_ERROR_FAILURE;
+    return NS_OK;
 
   // Make sure frames have been constructed before shifting focus, bug 273092.
   shell->FlushPendingNotifications(Flush_Frames);
@@ -325,7 +299,9 @@ nsFocusController::MoveFocus(PRBool aForward, nsIDOMElement* aElt)
   nsCOMPtr<nsPresContext> presContext = shell->GetPresContext();
 
   // Make this ESM shift the focus per our instructions.
-  return presContext->EventStateManager()->ShiftFocus(aForward, content);
+  presContext->EventStateManager()->ShiftFocus(aForward, content);
+
+  return NS_OK;
 }
 
 /////
@@ -374,10 +350,8 @@ nsFocusController::Focus(nsIDOMEvent* aEvent)
           nsCOMPtr<nsIDOMDocument> windowDoc;
           mCurrentWindow->GetDocument(getter_AddRefs(windowDoc));
           if (ownerDoc != windowDoc)
-            mCurrentElement = mPreviousElement = nsnull;
+            mCurrentElement = nsnull;
         }
-        else
-          mPreviousElement = nsnull;
 
         if (!mCurrentElement) {
           UpdateCommands();
@@ -456,8 +430,8 @@ nsFocusController::GetControllerForCommand(const char * aCommand,
   }
   else if (mCurrentWindow) {
     nsGlobalWindow *win =
-      static_cast<nsGlobalWindow *>
-                 (static_cast<nsIDOMWindowInternal *>(mCurrentWindow));
+      NS_STATIC_CAST(nsGlobalWindow *,
+                     NS_STATIC_CAST(nsIDOMWindowInternal *, mCurrentWindow));
     currentWindow = win->GetPrivateParent();
   }
   else return NS_OK;
@@ -477,8 +451,8 @@ nsFocusController::GetControllerForCommand(const char * aCommand,
     }
 
     nsGlobalWindow *win =
-      static_cast<nsGlobalWindow *>
-                 (static_cast<nsIDOMWindowInternal *>(currentWindow));
+      NS_STATIC_CAST(nsGlobalWindow *,
+                     NS_STATIC_CAST(nsIDOMWindowInternal *, currentWindow));
     currentWindow = win->GetPrivateParent();
   }
   
@@ -569,7 +543,7 @@ nsFocusController::SetActive(PRBool aActive)
 NS_IMETHODIMP
 nsFocusController::ResetElementFocus()
 {
-  mCurrentElement = mPreviousElement = nsnull;
+  mCurrentElement = nsnull;
   return NS_OK;
 }
 
@@ -615,3 +589,20 @@ nsFocusController::SetPopupNode(nsIDOMNode* aNode)
   mPopupNode = aNode;
   return NS_OK;
 }
+
+NS_IMETHODIMP
+nsFocusController::GetPopupEvent(nsIDOMEvent** aEvent)
+{
+  *aEvent = mPopupEvent;
+  NS_IF_ADDREF(*aEvent);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsFocusController::SetPopupEvent(nsIDOMEvent* aEvent)
+{
+  mPopupEvent = aEvent;
+  return NS_OK;
+}
+
+  

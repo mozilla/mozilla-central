@@ -1,4 +1,4 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -45,8 +45,6 @@
 #include "nsReadableUtils.h"
 #include "nsPrintfCString.h"
 #include "nsCRT.h"
-#include "nsNativeCharsetUtils.h"
-#include "nsUTF8Utils.h"
 
 #ifdef XP_WIN
 #include <string.h>
@@ -79,91 +77,40 @@ nsLocalFile::InitWithFile(nsILocalFile *aFile)
 
 #define kMaxFilenameLength 255
 #define kMaxExtensionLength 100
-#define kMaxSequenceNumberLength 5 // "-9999"
-// requirement: kMaxExtensionLength < kMaxFilenameLength - kMaxSequenceNumberLength
+// requirement: kMaxExtensionLength < kMaxFilenameLength - 4
 
 NS_IMETHODIMP
 nsLocalFile::CreateUnique(PRUint32 type, PRUint32 attributes)
 {
-    nsresult rv;
-    PRBool longName;
-
-#ifdef XP_WIN
-    nsAutoString pathName, leafName, rootName, suffix;
-    rv = GetPath(pathName);
-#else
-    nsCAutoString pathName, leafName, rootName, suffix; 
-    rv = GetNativePath(pathName);
-#endif
-    if (NS_FAILED(rv))
+    nsresult rv = Create(type, attributes);
+    if (rv != NS_ERROR_FILE_ALREADY_EXISTS)
         return rv;
 
-    longName = (pathName.Length() + kMaxSequenceNumberLength >
-                kMaxFilenameLength);
-    if (!longName)
-    {
-        rv = Create(type, attributes);
-        if (rv != NS_ERROR_FILE_ALREADY_EXISTS)
-            return rv;
-    }
-
-#ifdef XP_WIN
-    rv = GetLeafName(leafName);
-    if (NS_FAILED(rv))
-        return rv;
-
-    const PRInt32 lastDot = leafName.RFindChar(PRUnichar('.'));
-#else
+    nsCAutoString leafName; 
     rv = GetNativeLeafName(leafName);
     if (NS_FAILED(rv))
         return rv;
 
-    const PRInt32 lastDot = leafName.RFindChar('.');
-#endif
-
-    if (lastDot == kNotFound)
+    const char* lastDot = strrchr(leafName.get(), '.');
+    char suffix[kMaxExtensionLength] = "";
+    if (lastDot)
     {
-        rootName = leafName;
-    } 
-    else
-    {
-        suffix = Substring(leafName, lastDot);      // include '.'
-        rootName = Substring(leafName, 0, lastDot); // strip suffix and dot
+        PL_strncpyz(suffix, lastDot, sizeof(suffix)); // include '.'
+        leafName.SetLength(lastDot - leafName.get()); // strip suffix and dot.
     }
 
-    if (longName)
-    {
-        PRUint32 maxRootLength = (kMaxFilenameLength -
-                                  (pathName.Length() - leafName.Length()) -
-                                  suffix.Length() - kMaxSequenceNumberLength);
-#ifdef XP_WIN
-        // ensure that we don't cut the name in mid-UTF16-character
-        rootName.SetLength(NS_IS_LOW_SURROGATE(rootName[maxRootLength]) ?
-                           maxRootLength - 1 : maxRootLength);
-        SetLeafName(rootName + suffix);
-#else
-        if (NS_IsNativeUTF8())
-            // ensure that we don't cut the name in mid-UTF8-character
-            while (UTF8traits::isInSeq(rootName[maxRootLength]))
-                --maxRootLength;
-        rootName.SetLength(maxRootLength);
-        SetNativeLeafName(rootName + suffix);
-#endif
-        nsresult rv = Create(type, attributes);
-        if (rv != NS_ERROR_FILE_ALREADY_EXISTS)
-            return rv;
-    }
+    PRUint32 maxRootLength = (kMaxFilenameLength - 4) - strlen(suffix) - 1;
+
+    if (leafName.Length() > maxRootLength)
+        leafName.SetLength(maxRootLength);
 
     for (int indx = 1; indx < 10000; indx++)
     {
         // start with "Picture-1.jpg" after "Picture.jpg" exists
-#ifdef XP_WIN
-        SetLeafName(rootName +
-                    NS_ConvertASCIItoUTF16(nsPrintfCString("-%d", indx)) +
-                    suffix);
-#else
-        SetNativeLeafName(rootName + nsPrintfCString("-%d", indx) + suffix);
-#endif
+        SetNativeLeafName(leafName +
+                          nsPrintfCString("-%d", indx) +
+                          nsDependentCString(suffix));
+
         rv = Create(type, attributes);
         if (NS_SUCCEEDED(rv) || rv != NS_ERROR_FILE_ALREADY_EXISTS) 
             return rv;

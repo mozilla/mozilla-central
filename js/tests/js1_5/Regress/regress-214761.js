@@ -34,38 +34,37 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-214761.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 214761;
+var bug = 214761;
 var summary = 'Crash Regression from bug 208030';
 var actual = 'No Crash';
 var expect = 'No Crash';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
-options('strict');
+var jsOptions = new JavaScriptOptions();
+jsOptions.setOption('strict', true);
 
 var code = "var bar1=new Array();\n" +
-  "bar1[0]='foo';\n" +
-  "var bar2=document.all&&navigator.userAgent.indexOf('Opera')==-1;\n" +
-  "var bar3=document.getElementById&&!document.all;\n" +
-  "var bar4=document.layers;\n" +
-  "function foo1(){\n" +
-  "return false;}\n" +
-  "function foo2(){\n" +
-  "return false;}\n" +
-  "function foo3(){\n" +
-  "return false;}\n" +
-  "function foo4(){\n" +
-  "return false;}\n" +
-  "function foo5(){\n" +
-  "return false;}\n" +
-  "function foo6(){\n" +
-  "return false;}\n" +
-  "function foo7(){\n" +
-  "return false;}";
+"bar1[0]='foo';\n" +
+"var bar2=document.all&&navigator.userAgent.indexOf('Opera')==-1;\n" +
+"var bar3=document.getElementById&&!document.all;\n" +
+"var bar4=document.layers;\n" +
+"function foo1(){\n" +
+"return false;}\n" + 
+"function foo2(){\n" +
+"return false;}\n" + 
+"function foo3(){\n" + 
+"return false;}\n" + 
+"function foo4(){\n" + 
+"return false;}\n" + 
+"function foo5(){\n" + 
+"return false;}\n" + 
+"function foo6(){\n" + 
+"return false;}\n" + 
+"function foo7(){\n" + 
+"return false;}";
 
 try
 {
@@ -74,5 +73,7 @@ try
 catch(e)
 {
 }
+  
+jsOptions.reset();
 
 reportCompare(expect, actual, summary);

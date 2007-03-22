@@ -53,6 +53,7 @@ REQUIRES	= xpcom \
 			content \
 			content_xul \
 			gfx \
+			gfxwin \
 			necko \
 			pref \
 			plugin \
@@ -69,9 +70,11 @@ REQUIRES	= xpcom \
 			uriloader \
 			webbrowserpersist \
 			unicharutil \
-			thebes \
-			cairo \
 			$(NULL)
+
+ifdef MOZ_ENABLE_CAIRO_GFX
+REQUIRES += thebes cairo
+endif
 
 CPPSRCS		= \
 	L_Ienumfe.cpp  \
@@ -87,15 +90,10 @@ CPPSRCS		= \
 	nsFilePicker.cpp     \
 	nsScreenWin.cpp	\
 	nsScreenManagerWin.cpp \
-	$(NULL)
-
-ifdef NS_PRINTING
-CPPSRCS		+= \
 	nsPrintOptionsWin.cpp \
 	nsPrintSettingsWin.cpp \
 	nsDeviceContextSpecWin.cpp \
 	$(NULL)
-endif
 
 ifneq ($(OS_ARCH), WINCE)
 CPPSRCS += \

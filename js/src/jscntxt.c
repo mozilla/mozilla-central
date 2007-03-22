@@ -77,7 +77,7 @@ static PRUintn threadTPIndex;
 static JSBool  tpIndexInited = JS_FALSE;
 
 JSBool
-js_InitThreadPrivateIndex(void (JS_DLL_CALLBACK *ptr)(void *))
+js_InitThreadPrivateIndex(void *ptr)
 {
     PRStatus status;
 
@@ -102,12 +102,12 @@ js_ThreadDestructorCB(void *ptr)
 
     if (!thread)
         return;
+    while (!JS_CLIST_IS_EMPTY(&thread->contextList)) {
+        /* NB: use a temporary, as the macro evaluates its args many times. */
+        JSCList *link = thread->contextList.next;
 
-    /*
-     * Check that this thread properly called either JS_DestroyContext or
-     * JS_ClearContextThread on each JSContext it created or used.
-     */
-    JS_ASSERT(JS_CLIST_IS_EMPTY(&thread->contextList));
+        JS_REMOVE_AND_INIT_LINK(link);
+    }
     GSN_CACHE_CLEAR(&thread->gsnCache);
     free(thread);
 }
@@ -130,12 +130,10 @@ js_GetCurrentThread(JSRuntime *rt)
 
     thread = (JSThread *)PR_GetThreadPrivate(threadTPIndex);
     if (!thread) {
-        thread = (JSThread *) malloc(sizeof(JSThread));
+        thread = (JSThread *) calloc(1, sizeof(JSThread));
         if (!thread)
             return NULL;
-#ifdef DEBUG
-        memset(thread, JS_FREE_PATTERN, sizeof(JSThread));
-#endif
+
         if (PR_FAILURE == PR_SetThreadPrivate(threadTPIndex, thread)) {
             free(thread);
             return NULL;
@@ -143,11 +141,12 @@ js_GetCurrentThread(JSRuntime *rt)
 
         JS_INIT_CLIST(&thread->contextList);
         thread->id = js_CurrentThreadId();
-        thread->gcMallocBytes = 0;
 
-        /*
-         * js_SetContextThread initializes the remaining fields as necessary.
-         */
+        /* js_SetContextThread initialize gcFreeLists as necessary. */
+#ifdef DEBUG
+        memset(thread->gcFreeLists, JS_FREE_PATTERN,
+               sizeof(thread->gcFreeLists));
+#endif
     }
     return thread;
 }
@@ -168,20 +167,15 @@ js_SetContextThread(JSContext *cx)
     }
 
     /*
-     * Clear gcFreeLists and caches on each transition from 0 to 1 context
-     * active on the current thread. See bug 351602 and bug 425828.
+     * Clear gcFreeLists on each transition from 0 to 1 context active on the
+     * current thread. See bug 351602.
      */
-    if (JS_CLIST_IS_EMPTY(&thread->contextList)) {
+    if (JS_CLIST_IS_EMPTY(&thread->contextList))
         memset(thread->gcFreeLists, 0, sizeof(thread->gcFreeLists));
-        memset(&thread->gsnCache, 0, sizeof(thread->gsnCache));
-        memset(&thread->propertyCache, 0, sizeof(thread->propertyCache));
-    }
 
-    /* Assert that the previous cx->thread called JS_ClearContextThread(). */
-    JS_ASSERT(!cx->thread || cx->thread == thread);
-    if (!cx->thread)
-        JS_APPEND_LINK(&cx->threadLinks, &thread->contextList);
     cx->thread = thread;
+    JS_REMOVE_LINK(&cx->threadLinks);
+    JS_APPEND_LINK(&cx->threadLinks, &thread->contextList);
     return JS_TRUE;
 }
 
@@ -189,11 +183,6 @@ js_SetContextThread(JSContext *cx)
 void
 js_ClearContextThread(JSContext *cx)
 {
-    /*
-     * If cx is associated with a thread, this must be called only from that
-     * thread.  If not, this is a harmless no-op.
-     */
-    JS_ASSERT(cx->thread == js_GetCurrentThread(cx->runtime) || !cx->thread);
     JS_REMOVE_AND_INIT_LINK(&cx->threadLinks);
 #ifdef DEBUG
     if (JS_CLIST_IS_EMPTY(&cx->thread->contextList)) {
@@ -236,12 +225,9 @@ js_NewContext(JSRuntime *rt, size_t stackChunkSize)
     memset(cx, 0, sizeof *cx);
 
     cx->runtime = rt;
-    JS_ClearOperationCallback(cx);
-    cx->debugHooks = &rt->globalDebugHooks;
 #if JS_STACK_GROWTH_DIRECTION > 0
     cx->stackLimit = (jsuword)-1;
 #endif
-    cx->scriptStackQuota = JS_DEFAULT_SCRIPT_STACK_QUOTA;
 #ifdef JS_THREADSAFE
     JS_INIT_CLIST(&cx->threadLinks);
     js_SetContextThread(cx);
@@ -272,10 +258,8 @@ js_NewContext(JSRuntime *rt, size_t stackChunkSize)
      * done by js_DestroyContext).
      */
     cx->version = JSVERSION_DEFAULT;
-    JS_INIT_ARENA_POOL(&cx->stackPool, "stack", stackChunkSize, sizeof(jsval),
-                       &cx->scriptStackQuota);
-    JS_INIT_ARENA_POOL(&cx->tempPool, "temp", 1024, sizeof(jsdouble),
-                       &cx->scriptStackQuota);
+    JS_InitArenaPool(&cx->stackPool, "stack", stackChunkSize, sizeof(jsval));
+    JS_InitArenaPool(&cx->tempPool, "temp", 1024, sizeof(jsdouble));
 
     if (!js_InitRegExpStatics(cx, &cx->regExpStatics)) {
         js_DestroyContext(cx, JSDCM_NEW_FAILED);
@@ -294,13 +278,16 @@ js_NewContext(JSRuntime *rt, size_t stackChunkSize)
 #ifdef JS_THREADSAFE
         JS_BeginRequest(cx);
 #endif
-        ok = js_InitCommonAtoms(cx);
-
         /*
-         * scriptFilenameTable may be left over from a previous episode of
-         * non-zero contexts alive in rt, so don't re-init the table if it's
-         * not necessary.
+         * Both atomState and the scriptFilenameTable may be left over from a
+         * previous episode of non-zero contexts alive in rt, so don't re-init
+         * either table if it's not necessary.  Just repopulate atomState with
+         * well-known internal atoms, and with the reserved identifiers added
+         * by the scanner.
          */
+        ok = (rt->atomState.liveAtoms == 0)
+             ? js_InitAtomState(cx, &rt->atomState)
+             : js_InitPinnedAtoms(cx, &rt->atomState);
         if (ok && !rt->scriptFilenameTable)
             ok = js_InitRuntimeScriptState(rt);
         if (ok)
@@ -381,12 +368,12 @@ js_DestroyContext(JSContext *cx, JSDestroyContextMode mode)
             JS_BeginRequest(cx);
 #endif
 
+        /* Unpin all pinned atoms before final GC. */
+        js_UnpinPinnedAtoms(&rt->atomState);
+
         /* Unlock and clear GC things held by runtime pointers. */
         js_FinishRuntimeNumberState(cx);
         js_FinishRuntimeStringState(cx);
-
-        /* Unpin all common atoms before final GC. */
-        js_FinishCommonAtoms(cx);
 
         /* Clear debugging state to remove GC roots. */
         JS_ClearAllTraps(cx);
@@ -420,12 +407,19 @@ js_DestroyContext(JSContext *cx, JSDestroyContextMode mode)
     if (last) {
         js_GC(cx, GC_LAST_CONTEXT);
 
-        /*
-         * Free the script filename table if it exists and is empty. Do this
-         * after the last GC to avoid finalizers tripping on free memory.
-         */
+        /* Try to free atom state, now that no unrooted scripts survive. */
+        if (rt->atomState.liveAtoms == 0)
+            js_FreeAtomState(cx, &rt->atomState);
+
+        /* Also free the script filename table if it exists and is empty. */
         if (rt->scriptFilenameTable && rt->scriptFilenameTable->nentries == 0)
             js_FinishRuntimeScriptState(rt);
+
+        /*
+         * Free the deflated string cache, but only after the last GC has
+         * collected all unleaked strings.
+         */
+        js_FinishDeflatedStringCache(rt);
 
         /* Take the runtime down, now that it has no contexts or atoms. */
         JS_LOCK_GC(rt);
@@ -508,6 +502,14 @@ js_ContextIterator(JSRuntime *rt, JSBool unlocked, JSContext **iterp)
     return cx;
 }
 
+JS_STATIC_DLL_CALLBACK(const void *)
+resolving_GetKey(JSDHashTable *table, JSDHashEntryHdr *hdr)
+{
+    JSResolvingEntry *entry = (JSResolvingEntry *)hdr;
+
+    return &entry->key;
+}
+
 JS_STATIC_DLL_CALLBACK(JSDHashNumber)
 resolving_HashKey(JSDHashTable *table, const void *ptr)
 {
@@ -530,6 +532,7 @@ resolving_MatchEntry(JSDHashTable *table,
 static const JSDHashTableOps resolving_dhash_ops = {
     JS_DHashAllocTable,
     JS_DHashFreeTable,
+    resolving_GetKey,
     resolving_HashKey,
     resolving_MatchEntry,
     JS_DHashMoveEntryStub,
@@ -804,11 +807,10 @@ js_PushLocalRoot(JSContext *cx, JSLocalRootStack *lrs, jsval v)
 }
 
 void
-js_TraceLocalRoots(JSTracer *trc, JSLocalRootStack *lrs)
+js_MarkLocalRoots(JSContext *cx, JSLocalRootStack *lrs)
 {
     uint32 n, m, mark;
     JSLocalRootChunk *lrc;
-    jsval v;
 
     n = lrs->rootCount;
     if (n == 0)
@@ -818,11 +820,13 @@ js_TraceLocalRoots(JSTracer *trc, JSLocalRootStack *lrs)
     lrc = lrs->topChunk;
     do {
         while (--n > mark) {
+#ifdef GC_MARK_DEBUG
+            char name[22];
+            JS_snprintf(name, sizeof name, "<local root %u>", n);
+#endif
             m = n & JSLRS_CHUNK_MASK;
-            v = lrc->roots[m];
-            JS_ASSERT(JSVAL_IS_GCTHING(v) && v != JSVAL_NULL);
-            JS_SET_TRACING_INDEX(trc, "local_root", n);
-            js_CallValueTracerIfGCThing(trc, v);
+            JS_ASSERT(JSVAL_IS_GCTHING(lrc->roots[m]));
+            GC_MARK(cx, JSVAL_TO_GCTHING(lrc->roots[m]), name);
             if (m == 0)
                 lrc = lrc->down;
         }
@@ -857,11 +861,11 @@ ReportError(JSContext *cx, const char *message, JSErrorReport *reportp)
      */
     if (!js_ErrorToException(cx, message, reportp)) {
         js_ReportErrorAgain(cx, message, reportp);
-    } else if (cx->debugHooks->debugErrorHook && cx->errorReporter) {
-        JSDebugErrorHook hook = cx->debugHooks->debugErrorHook;
+    } else if (cx->runtime->debugErrorHook && cx->errorReporter) {
+        JSDebugErrorHook hook = cx->runtime->debugErrorHook;
         /* test local in case debugErrorHook changed on another thread */
         if (hook)
-            hook(cx, message, reportp, cx->debugHooks->debugErrorHookData);
+            hook(cx, message, reportp, cx->runtime->debugErrorHookData);
     }
 }
 
@@ -894,49 +898,27 @@ js_ReportOutOfMemory(JSContext *cx)
      * rather than a native frame.
      */
     for (fp = cx->fp; fp; fp = fp->down) {
-        if (fp->regs) {
+        if (fp->script && fp->pc) {
             report.filename = fp->script->filename;
-            report.lineno = js_PCToLineNumber(cx, fp->script, fp->regs->pc);
+            report.lineno = js_PCToLineNumber(cx, fp->script, fp->pc);
             break;
         }
     }
 
     /*
-     * If debugErrorHook is present then we give it a chance to veto sending
-     * the error on to the regular ErrorReporter. We also clear a pending
-     * exception if any now so the hooks can replace the out-of-memory error
-     * by a script-catchable exception.
+     * If debugErrorHook is present then we give it a chance to veto
+     * sending the error on to the regular ErrorReporter.
      */
-    cx->throwing = JS_FALSE;
     if (onError) {
-        JSDebugErrorHook hook = cx->debugHooks->debugErrorHook;
+        JSDebugErrorHook hook = cx->runtime->debugErrorHook;
         if (hook &&
-            !hook(cx, msg, &report, cx->debugHooks->debugErrorHookData)) {
+            !hook(cx, msg, &report, cx->runtime->debugErrorHookData)) {
             onError = NULL;
         }
     }
 
     if (onError)
         onError(cx, msg, &report);
-}
-
-void
-js_ReportOutOfScriptQuota(JSContext *cx)
-{
-    JS_ReportErrorNumber(cx, js_GetErrorMessage, NULL,
-                         JSMSG_SCRIPT_STACK_QUOTA);
-}
-
-void
-js_ReportOverRecursed(JSContext *cx)
-{
-    JS_ReportErrorNumber(cx, js_GetErrorMessage, NULL, JSMSG_OVER_RECURSED);
-}
-
-void
-js_ReportAllocationOverflow(JSContext *cx)
-{
-    JS_ReportErrorNumber(cx, js_GetErrorMessage, NULL, JSMSG_ALLOC_OVERFLOW);
 }
 
 JSBool
@@ -964,9 +946,9 @@ js_ReportErrorVA(JSContext *cx, uintN flags, const char *format, va_list ap)
 
     /* Find the top-most active script frame, for best line number blame. */
     for (fp = cx->fp; fp; fp = fp->down) {
-        if (fp->regs) {
+        if (fp->script && fp->pc) {
             report.filename = fp->script->filename;
-            report.lineno = js_PCToLineNumber(cx, fp->script, fp->regs->pc);
+            report.lineno = js_PCToLineNumber(cx, fp->script, fp->pc);
             break;
         }
     }
@@ -1176,9 +1158,9 @@ js_ReportErrorNumberVA(JSContext *cx, uintN flags, JSErrorCallback callback,
      * see if the next frame has a script/pc combo we can use.
      */
     for (fp = cx->fp; fp; fp = fp->down) {
-        if (fp->regs) {
+        if (fp->script && fp->pc) {
             report.filename = fp->script->filename;
-            report.lineno = js_PCToLineNumber(cx, fp->script, fp->regs->pc);
+            report.lineno = js_PCToLineNumber(cx, fp->script, fp->pc);
             break;
         }
     }
@@ -1230,10 +1212,10 @@ js_ReportErrorAgain(JSContext *cx, const char *message, JSErrorReport *reportp)
      * sending the error on to the regular ErrorReporter.
      */
     if (onError) {
-        JSDebugErrorHook hook = cx->debugHooks->debugErrorHook;
+        JSDebugErrorHook hook = cx->runtime->debugErrorHook;
         if (hook &&
             !hook(cx, cx->lastMessage, reportp,
-                  cx->debugHooks->debugErrorHookData)) {
+                  cx->runtime->debugErrorHookData)) {
             onError = NULL;
         }
     }
@@ -1245,40 +1227,6 @@ void
 js_ReportIsNotDefined(JSContext *cx, const char *name)
 {
     JS_ReportErrorNumber(cx, js_GetErrorMessage, NULL, JSMSG_NOT_DEFINED, name);
-}
-
-JSBool
-js_ReportIsNullOrUndefined(JSContext *cx, intN spindex, jsval v,
-                           JSString *fallback)
-{
-    char *bytes;
-    JSBool ok;
-
-    bytes = js_DecompileValueGenerator(cx, spindex, v, fallback);
-    if (!bytes)
-        return JS_FALSE;
-
-    if (strcmp(bytes, js_undefined_str) == 0 ||
-        strcmp(bytes, js_null_str) == 0) {
-        ok = JS_ReportErrorFlagsAndNumber(cx, JSREPORT_ERROR,
-                                          js_GetErrorMessage, NULL,
-                                          JSMSG_NO_PROPERTIES, bytes,
-                                          NULL, NULL);
-    } else if (JSVAL_IS_VOID(v)) {
-        ok = JS_ReportErrorFlagsAndNumber(cx, JSREPORT_ERROR,
-                                          js_GetErrorMessage, NULL,
-                                          JSMSG_NULL_OR_UNDEFINED, bytes,
-                                          js_undefined_str, NULL);
-    } else {
-        JS_ASSERT(JSVAL_IS_NULL(v));
-        ok = JS_ReportErrorFlagsAndNumber(cx, JSREPORT_ERROR,
-                                          js_GetErrorMessage, NULL,
-                                          JSMSG_NULL_OR_UNDEFINED, bytes,
-                                          js_null_str, NULL);
-    }
-
-    JS_free(cx, bytes);
-    return ok;
 }
 
 JSBool
@@ -1323,26 +1271,10 @@ js_GetErrorMessage(void *userRef, const char *locale, const uintN errorNumber)
 }
 
 JSBool
-js_ResetOperationCount(JSContext *cx)
+js_ResetOperationCounter(JSContext *cx)
 {
-    JSScript *script;
+    JS_ASSERT(cx->operationCounter & JSOW_BRANCH_CALLBACK);
 
-    JS_ASSERT(cx->operationCount <= 0);
-    JS_ASSERT(cx->operationLimit > 0);
-
-    cx->operationCount = (int32) cx->operationLimit;
-    if (cx->operationCallbackIsSet)
-        return cx->operationCallback(cx);
-
-    if (cx->operationCallback) {
-        /*
-         * Invoke the deprecated branch callback. It may be called only when
-         * the top-most frame is scripted or JSOPTION_NATIVE_BRANCH_CALLBACK
-         * is set.
-         */
-        script = cx->fp ? cx->fp->script : NULL;
-        if (script || JS_HAS_OPTION(cx, JSOPTION_NATIVE_BRANCH_CALLBACK))
-            return ((JSBranchCallback) cx->operationCallback)(cx, script);
-    }
-    return JS_TRUE;
+    cx->operationCounter = 0;
+    return !cx->branchCallback || cx->branchCallback(cx, NULL);
 }

@@ -59,6 +59,7 @@
 #include "nsIDOMDocumentRange.h"
 #include "nsIDOMDocumentTraversal.h"
 #include "nsStubDocumentObserver.h"
+#include "nsIDOMEventReceiver.h"
 #include "nsIDOM3EventTarget.h"
 #include "nsIDOMNSEventTarget.h"
 #include "nsIDOMStyleSheetList.h"
@@ -73,6 +74,7 @@
 #include "nsINodeInfo.h"
 #include "nsIDOMDocumentEvent.h"
 #include "nsIDOM3DocumentEvent.h"
+#include "nsCOMArray.h"
 #include "nsHashtable.h"
 #include "nsInterfaceHashtable.h"
 #include "nsIBoxObject.h"
@@ -100,7 +102,6 @@
 #include "pldhash.h"
 #include "nsAttrAndChildArray.h"
 #include "nsDOMAttributeMap.h"
-#include "nsPresShellIterator.h"
 
 #define XML_DECLARATION_BITS_DECLARATION_EXISTS   (1 << 0)
 #define XML_DECLARATION_BITS_ENCODING_EXISTS      (1 << 1)
@@ -152,12 +153,13 @@ class nsUint32ToContentHashEntry : public PLDHashEntryHdr
       // Pathetic attempt to not die: clear out the other mValOrHash so we're
       // effectively stealing it. If toCopy is destroyed right after this,
       // we'll be OK.
-      const_cast<nsUint32ToContentHashEntry&>(toCopy).mValOrHash = nsnull;
+      NS_CONST_CAST(nsUint32ToContentHashEntry&, toCopy).mValOrHash = nsnull;
       NS_ERROR("Copying not supported. Fasten your seat belt.");
     }
     ~nsUint32ToContentHashEntry() { Destroy(); }
 
     KeyType GetKey() const { return mValue; }
+    KeyTypePointer GetKeyPointer() const { return &mValue; }
 
     PRBool KeyEquals(KeyTypePointer aKey) const { return mValue == *aKey; }
 
@@ -287,7 +289,7 @@ class nsDocument : public nsIDocument,
                    public nsIDOMDocumentXBL,
                    public nsIDOM3Document,
                    public nsSupportsWeakReference,
-                   public nsIDOMEventTarget,
+                   public nsIDOMEventReceiver,
                    public nsIDOM3EventTarget,
                    public nsIDOMNSEventTarget,
                    public nsIScriptObjectPrincipal,
@@ -374,13 +376,14 @@ public:
                                nsStyleSet* aStyleSet,
                                nsIPresShell** aInstancePtrResult);
   virtual PRBool DeleteShell(nsIPresShell* aShell);
-  virtual nsIPresShell *GetPrimaryShell() const;
+  virtual PRUint32 GetNumberOfShells() const;
+  virtual nsIPresShell *GetShellAt(PRUint32 aIndex) const;
+  virtual void SetShellsHidden(PRBool aHide);
 
   virtual nsresult SetSubDocumentFor(nsIContent *aContent,
                                      nsIDocument* aSubDoc);
   virtual nsIDocument* GetSubDocumentFor(nsIContent *aContent) const;
   virtual nsIContent* FindContentForSubDocument(nsIDocument *aDocument) const;
-  virtual nsIContent* GetRootContentInternal() const;
 
   /**
    * Get the style sheets owned by this document.
@@ -434,10 +437,6 @@ public:
   virtual nsIScriptGlobalObject* GetScriptGlobalObject() const;
   virtual void SetScriptGlobalObject(nsIScriptGlobalObject* aGlobalObject);
 
-  virtual nsIScriptGlobalObject*
-    GetScriptHandlingObject(PRBool& aHasHadScriptHandlingObject) const;
-  virtual void SetScriptHandlingObject(nsIScriptGlobalObject* aScriptObject);
-
   virtual nsIScriptGlobalObject* GetScopeObject();
 
   /**
@@ -455,7 +454,10 @@ public:
   /**
    * Get the script loader for this document
    */
-  virtual nsScriptLoader* ScriptLoader();
+  virtual nsScriptLoader* GetScriptLoader();
+
+  virtual void AddMutationObserver(nsIMutationObserver* aObserver);
+  virtual void RemoveMutationObserver(nsIMutationObserver* aMutationObserver);
 
   /**
    * Add a new observer of document change notifications. Whenever
@@ -507,9 +509,6 @@ public:
 
   virtual void OnPageShow(PRBool aPersisted);
   virtual void OnPageHide(PRBool aPersisted);
-  
-  virtual void WillDispatchMutationEvent(nsINode* aTarget);
-  virtual void MutationEventDispatched(nsINode* aTarget);
 
   // nsINode
   virtual PRBool IsNodeOfType(PRUint32 aFlags) const;
@@ -525,13 +524,6 @@ public:
   virtual nsresult DispatchDOMEvent(nsEvent* aEvent, nsIDOMEvent* aDOMEvent,
                                     nsPresContext* aPresContext,
                                     nsEventStatus* aEventStatus);
-  virtual nsresult GetListenerManager(PRBool aCreateIfNotFound,
-                                      nsIEventListenerManager** aResult);
-  virtual nsresult AddEventListenerByIID(nsIDOMEventListener *aListener,
-                                         const nsIID& aIID);
-  virtual nsresult RemoveEventListenerByIID(nsIDOMEventListener *aListener,
-                                            const nsIID& aIID);
-  virtual nsresult GetSystemEventGroup(nsIDOMEventGroup** aGroup);
   virtual nsresult Clone(nsINodeInfo *aNodeInfo, nsINode **aResult) const
   {
     return NS_ERROR_NOT_IMPLEMENTED;
@@ -603,6 +595,16 @@ public:
   // nsIDOMDocumentXBL
   NS_DECL_NSIDOMDOCUMENTXBL
 
+  // nsIDOMEventReceiver interface
+  NS_IMETHOD AddEventListenerByIID(nsIDOMEventListener *aListener,
+                                   const nsIID& aIID);
+  NS_IMETHOD RemoveEventListenerByIID(nsIDOMEventListener *aListener,
+                                      const nsIID& aIID);
+  NS_IMETHOD GetListenerManager(PRBool aCreateIfNotFound,
+                                nsIEventListenerManager** aResult);
+  NS_IMETHOD HandleEvent(nsIDOMEvent *aEvent);
+  NS_IMETHOD GetSystemEventGroup(nsIDOMEventGroup** aGroup);
+
   // nsIDOMEventTarget
   NS_DECL_NSIDOMEVENTTARGET
 
@@ -631,7 +633,6 @@ public:
 
   virtual NS_HIDDEN_(PRBool) CanSavePresentation(nsIRequest *aNewRequest);
   virtual NS_HIDDEN_(void) Destroy();
-  virtual NS_HIDDEN_(void) RemovedFromDocShell();
   virtual NS_HIDDEN_(already_AddRefed<nsILayoutHistoryState>) GetLayoutHistoryState() const;
 
   virtual NS_HIDDEN_(void) BlockOnload();
@@ -649,18 +650,12 @@ public:
                                                  nsIDOMNodeList** aResult);
   virtual NS_HIDDEN_(void) FlushSkinBindings();
 
-  virtual NS_HIDDEN_(nsresult) InitializeFrameLoader(nsFrameLoader* aLoader);
-  virtual NS_HIDDEN_(nsresult) FinalizeFrameLoader(nsFrameLoader* aLoader);
-  virtual NS_HIDDEN_(void) TryCancelFrameLoaderInitialization(nsIDocShell* aShell);
-  virtual NS_HIDDEN_(PRBool) FrameLoaderScheduledToBeFinalized(nsIDocShell* aShell);
-
   NS_DECL_CYCLE_COLLECTION_CLASS_AMBIGUOUS(nsDocument, nsIDocument)
 
   /**
-   * Utility method for getElementsByClassName.  aRootNode is the node (either
-   * document or element), which getElementsByClassName was called on.
+   * Utility method for getElementsByClassName
    */
-  static nsresult GetElementsByClassNameHelper(nsINode* aRootNode,
+  static nsresult GetElementsByClassNameHelper(nsIContent* aContent,
                                                const nsAString& aClasses,
                                                nsIDOMNodeList** aReturn);
 protected:
@@ -673,8 +668,6 @@ protected:
   static PRBool CheckGetElementByIdArg(const nsAString& aId);
 
   void DispatchContentLoadedEvents();
-
-  void InitializeFinalizeFrameLoaders();
 
   void RetrieveRelevantHeaders(nsIChannel *aChannel);
 
@@ -702,7 +695,7 @@ protected:
   virtual PRInt32 GetDefaultNamespaceID() const
   {
     return kNameSpaceID_None;
-  }
+  };
 
   // Dispatch an event to the ScriptGlobalObject for this document
   void DispatchEventToWindow(nsEvent *aEvent);
@@ -724,6 +717,8 @@ protected:
   nsDocument(const char* aContentType);
   virtual ~nsDocument();
 
+  void LastRelease();
+
   nsCString mReferrer;
   nsString mLastModified;
 
@@ -738,29 +733,16 @@ protected:
   // parsed into.
   nsCOMPtr<nsIParser> mParser;
 
-  // Weak reference to our sink for in case we no longer have a parser.  This
-  // will allow us to flush out any pending stuff from the sink even if
-  // EndLoad() has already happened.
-  nsWeakPtr mWeakSink;
-
   nsCOMArray<nsIStyleSheet> mStyleSheets;
   nsCOMArray<nsIStyleSheet> mCatalogSheets;
 
   // Array of observers
-  nsTObserverArray<nsIDocumentObserver*> mObservers;
+  nsTObserverArray<nsIDocumentObserver> mObservers;
 
   // The document's script global object, the object from which the
   // document can get its script context and scope. This is the
   // *inner* window object.
   nsCOMPtr<nsIScriptGlobalObject> mScriptGlobalObject;
-  // Weak reference to mScriptGlobalObject QI:d to nsPIDOMWindow,
-  // updated on every set of mSecriptGlobalObject.
-  nsPIDOMWindow *mWindow;
-
-  // If document is created for example using
-  // document.implementation.createDocument(...), mScriptObject points to
-  // the script global object of the original document.
-  nsWeakPtr mScriptObject;
 
   // Weak reference to the scope object (aka the script global object)
   // that, unlike mScriptGlobalObject, is never unset once set. This
@@ -773,30 +755,22 @@ protected:
   nsRefPtr<nsScriptLoader> mScriptLoader;
   nsDocHeaderData* mHeaderData;
 
-  nsClassHashtable<nsStringHashKey, nsRadioGroupStruct> mRadioGroups;
+  nsHashtable mRadioGroups;
 
   // True if the document has been detached from its content viewer.
   PRPackedBool mIsGoingAway:1;
-  // True if our content viewer has been removed from the docshell
-  // (it may still be displayed, but in zombie state). Form control data
-  // has been saved.
-  PRPackedBool mRemovedFromDocShell:1;
   // True if the document is being destroyed.
   PRPackedBool mInDestructor:1;
   // True if the document "page" is not hidden
   PRPackedBool mVisible:1;
-  // True if document has ever had script handling object.
-  PRPackedBool mHasHadScriptHandlingObject:1;
 
-  PRPackedBool mHasWarnedAboutBoxObjects:1;
-
-  PRPackedBool mDelayFrameLoaderInitialization:1;
+  PRPackedBool mShellsAreHidden:1;
 
   PRUint8 mXMLDeclarationBits;
 
   PRUint8 mDefaultElementType;
 
-  nsInterfaceHashtable<nsVoidPtrHashKey, nsPIBoxObject> *mBoxObjectTable;
+  nsInterfaceHashtable<nsISupportsHashKey, nsPIBoxObject> *mBoxObjectTable;
   nsInterfaceHashtable<nsVoidPtrHashKey, nsISupports> *mContentWrapperHash;
 
   // The channel that got passed to StartDocumentLoad(), if any
@@ -808,9 +782,6 @@ protected:
   nsCOMPtr<nsIScriptEventManager> mScriptEventManager;
 
   nsString mBaseTarget;
-
-  // Our update nesting level
-  PRUint32 mUpdateNestLevel;
 
 private:
   friend class nsUnblockOnloadEvent;
@@ -835,6 +806,8 @@ private:
   nsDocument(const nsDocument& aOther);
   nsDocument& operator=(const nsDocument& aOther);
 
+  nsSmallVoidArray mPresShells;
+
   nsCOMPtr<nsISupports> mXPathEvaluatorTearoff;
 
   // The layout history state that should be used by nodes in this
@@ -854,8 +827,8 @@ private:
   // Member to store out last-selected stylesheet set.
   nsString mLastStyleSheetSet;
 
-  nsTArray<nsRefPtr<nsFrameLoader> > mInitializableFrameLoaders;
-  nsTArray<nsRefPtr<nsFrameLoader> > mFinalizableFrameLoaders;
+  // Our update nesting level
+  PRUint32 mUpdateNestLevel;
 };
 
 

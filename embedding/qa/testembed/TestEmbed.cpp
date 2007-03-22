@@ -577,7 +577,7 @@ nsresult CTestEmbedApp::InitializePrefs()
 nsresult CTestEmbedApp::InitializeWindowCreator()
 {
   // give an nsIWindowCreator to the WindowWatcher service
-  nsCOMPtr<nsIWindowCreator> windowCreator(static_cast<nsIWindowCreator *>(this));
+  nsCOMPtr<nsIWindowCreator> windowCreator(NS_STATIC_CAST(nsIWindowCreator *, this));
   if (windowCreator) {
     nsCOMPtr<nsIWindowWatcher> wwatch(do_GetService(NS_WINDOWWATCHER_CONTRACTID));
     if (wwatch) {
@@ -661,7 +661,7 @@ NS_IMETHODIMP CTestEmbedApp::CreateChromeWindow(nsIWebBrowserChrome *parent,
 
   CBrowserFrame *pBrowserFrame = CreateNewBrowserFrame(chromeFlags);
   if(pBrowserFrame) {
-    *_retval = static_cast<nsIWebBrowserChrome *>(pBrowserFrame->GetBrowserImpl());
+    *_retval = NS_STATIC_CAST(nsIWebBrowserChrome *, pBrowserFrame->GetBrowserImpl());
     NS_ADDREF(*_retval);
   }
   return NS_OK;

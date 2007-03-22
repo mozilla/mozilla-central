@@ -62,7 +62,6 @@
 #include "nsUnicharUtils.h"
 #include "nsILookAndFeel.h"
 #include "nsWidgetsCID.h"
-#include "DeleteTextTxn.h"
 
 // for IBMBIDI
 #include "nsIPresShell.h"
@@ -134,7 +133,7 @@ nsTextEditRules::Init(nsPlaintextEditor *aEditor, PRUint32 aFlags)
   NS_ASSERTION(selection, "editor cannot get selection");
 
   // Cache our body node, if available.
-  nsIDOMNode *body = mEditor->GetRoot();
+  GetBody();
 
   // Put in a magic br if needed. This method handles null selection,
   // which should never happen anyway
@@ -148,15 +147,15 @@ nsTextEditRules::Init(nsPlaintextEditor *aEditor, PRUint32 aFlags)
     if (NS_FAILED(res)) return res;
   }
 
-  if (body)
+  if (mBody)
   {
     // create a range that is the entire body contents
     nsCOMPtr<nsIDOMRange> wholeDoc =
       do_CreateInstance("@mozilla.org/content/range;1");
     if (!wholeDoc) return NS_ERROR_NULL_POINTER;
-    wholeDoc->SetStart(body,0);
+    wholeDoc->SetStart(mBody,0);
     nsCOMPtr<nsIDOMNodeList> list;
-    res = body->GetChildNodes(getter_AddRefs(list));
+    res = mBody->GetChildNodes(getter_AddRefs(list));
     if (NS_FAILED(res)) return res;
     if (!list) return NS_ERROR_FAILURE;
 
@@ -164,7 +163,7 @@ nsTextEditRules::Init(nsPlaintextEditor *aEditor, PRUint32 aFlags)
     res = list->GetLength(&listCount);
     if (NS_FAILED(res)) return res;
 
-    res = wholeDoc->SetEnd(body, listCount);
+    res = wholeDoc->SetEnd(mBody, listCount);
     if (NS_FAILED(res)) return res;
 
     // replace newlines in that range with breaks
@@ -298,7 +297,7 @@ nsTextEditRules::WillDoAction(nsISelection *aSelection,
   *aHandled = PR_FALSE;
 
   // my kingdom for dynamic cast
-  nsTextRulesInfo *info = static_cast<nsTextRulesInfo*>(aInfo);
+  nsTextRulesInfo *info = NS_STATIC_CAST(nsTextRulesInfo*, aInfo);
     
   switch (info->action)
   {
@@ -348,7 +347,7 @@ nsTextEditRules::DidDoAction(nsISelection *aSelection,
     return NS_ERROR_NULL_POINTER;
     
   // my kingdom for dynamic cast
-  nsTextRulesInfo *info = static_cast<nsTextRulesInfo*>(aInfo);
+  nsTextRulesInfo *info = NS_STATIC_CAST(nsTextRulesInfo*, aInfo);
 
   switch (info->action)
   {
@@ -992,11 +991,9 @@ nsTextEditRules::WillDeleteSelection(nsISelection *aSelection,
       // make sure it is not last node in editfield.  If it is, cancel deletion.
       if (nextNode && (aCollapsedAction == nsIEditor::eNext) && nsTextEditUtils::IsBreak(nextNode))
       {
-        nsIDOMNode *body = mEditor->GetRoot();
-        if (!body)
-          return NS_ERROR_NULL_POINTER;
+        if (!GetBody()) return NS_ERROR_NULL_POINTER;
         nsCOMPtr<nsIDOMNode> lastChild;
-        res = body->GetLastChild(getter_AddRefs(lastChild));
+        res = mBody->GetLastChild(getter_AddRefs(lastChild));
         if (lastChild == nextNode)
         {
           *aCancel = PR_TRUE;
@@ -1228,16 +1225,17 @@ nsTextEditRules::ReplaceNewlines(nsIDOMRange *aRange)
       if (offset == -1) break; // done with this node
       
       // delete the newline
-      nsRefPtr<DeleteTextTxn> txn;
+      EditTxn *txn;
       // note 1: we are not telling edit listeners about these because they don't care
       // note 2: we are not wrapping these in a placeholder because we know they already are,
       //         or, failing that, undo is disabled
-      res = mEditor->CreateTxnForDeleteText(textNode, offset, 1,
-                                            getter_AddRefs(txn));
+      res = mEditor->CreateTxnForDeleteText(textNode, offset, 1, (DeleteTextTxn**)&txn);
       if (NS_FAILED(res))  return res; 
       if (!txn)  return NS_ERROR_OUT_OF_MEMORY;
       res = mEditor->DoTransaction(txn); 
       if (NS_FAILED(res))  return res; 
+      // The transaction system (if any) has taken ownership of txn
+      NS_IF_RELEASE(txn);
       
       // insert a break
       res = mEditor->CreateBR(textNode, offset, address_of(brNode));
@@ -1253,11 +1251,9 @@ nsTextEditRules::CreateTrailingBRIfNeeded()
   // but only if we aren't a single line edit field
   if (mFlags & nsIPlaintextEditor::eEditorSingleLineMask)
     return NS_OK;
-  nsIDOMNode *body = mEditor->GetRoot();
-  if (!body)
-    return NS_ERROR_NULL_POINTER;
+  if (!GetBody()) return NS_ERROR_NULL_POINTER;
   nsCOMPtr<nsIDOMNode> lastChild;
-  nsresult res = body->GetLastChild(getter_AddRefs(lastChild));
+  nsresult res = mBody->GetLastChild(getter_AddRefs(lastChild));
   // assuming CreateBogusNodeIfNeeded() has been called first
   if (NS_FAILED(res)) return res;  
   if (!lastChild) return NS_ERROR_NULL_POINTER;
@@ -1266,10 +1262,10 @@ nsTextEditRules::CreateTrailingBRIfNeeded()
   {
     nsAutoTxnsConserveSelection dontSpazMySelection(mEditor);
     PRUint32 rootLen;
-    res = mEditor->GetLengthOfDOMNode(body, rootLen);
+    res = mEditor->GetLengthOfDOMNode(mBody, rootLen);
     if (NS_FAILED(res)) return res; 
     nsCOMPtr<nsIDOMNode> unused;
-    res = CreateMozBR(body, rootLen, address_of(unused));
+    res = CreateMozBR(mBody, rootLen, address_of(unused));
   }
   return res;
 }
@@ -1283,9 +1279,8 @@ nsTextEditRules::CreateBogusNodeIfNeeded(nsISelection *aSelection)
 
   // tell rules system to not do any post-processing
   nsAutoRules beginRulesSniffing(mEditor, nsEditor::kOpIgnore, nsIEditor::eNone);
-
-  nsIDOMNode* body = mEditor->GetRoot();
-  if (!body)
+  
+  if (!GetBody())
   {
     // we don't even have a body yet, don't insert any bogus nodes at
     // this point.
@@ -1298,12 +1293,10 @@ nsTextEditRules::CreateBogusNodeIfNeeded(nsISelection *aSelection)
   // if no editable content is found, insert the bogus node
   PRBool needsBogusContent=PR_TRUE;
   nsCOMPtr<nsIDOMNode> bodyChild;
-  nsresult res = body->GetFirstChild(getter_AddRefs(bodyChild));        
+  nsresult res = mBody->GetFirstChild(getter_AddRefs(bodyChild));        
   while ((NS_SUCCEEDED(res)) && bodyChild)
   { 
-    if (mEditor->IsMozEditorBogusNode(bodyChild) ||
-        !mEditor->IsEditable(body) ||
-        mEditor->IsEditable(bodyChild))
+    if (mEditor->IsMozEditorBogusNode(bodyChild) || mEditor->IsEditable(bodyChild))
     {
       needsBogusContent = PR_FALSE;
       break;
@@ -1329,11 +1322,11 @@ nsTextEditRules::CreateBogusNodeIfNeeded(nsISelection *aSelection)
                              kMOZEditorBogusNodeValue );
     
     // put the node in the document
-    res = mEditor->InsertNode(mBogusNode, body, 0);
+    res = mEditor->InsertNode(mBogusNode, mBody, 0);
     if (NS_FAILED(res)) return res;
 
     // set selection
-    aSelection->Collapse(body, 0);
+    aSelection->Collapse(mBody, 0);
   }
   return res;
 }
@@ -1470,4 +1463,16 @@ nsTextEditRules::CreateMozBR(nsIDOMNode *inParent, PRInt32 inOffset, nsCOMPtr<ns
     if (NS_FAILED(res)) return res;
   }
   return res;
+}
+
+nsIDOMNode *
+nsTextEditRules::GetBody()
+{
+  if (!mBody)
+  {
+    // remember our body node
+    mBody = mEditor->GetRoot();
+  }
+
+  return mBody;
 }

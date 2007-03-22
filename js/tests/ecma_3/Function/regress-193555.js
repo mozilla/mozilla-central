@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -34,9 +33,8 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK ***** */
-
-/*
+ * ***** END LICENSE BLOCK *****
+ *
  *
  * Date:    17 February 2003
  * SUMMARY: Testing access to function name from inside function
@@ -45,9 +43,8 @@
  *
  */
 //-----------------------------------------------------------------------------
-var gTestfile = 'regress-193555.js';
 var UBound = 0;
-var BUGNUMBER = 193555;
+var bug = 193555;
 var summary = 'Testing access to function name from inside function';
 var status = '';
 var statusitems = [];
@@ -124,7 +121,7 @@ function addThis()
 function test()
 {
   enterFunc('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber(bug);
   printStatus(summary);
 
   for (var i=0; i<UBound; i++)

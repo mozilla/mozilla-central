@@ -251,12 +251,7 @@ FileSystemDataSource::Create(nsISupports* aOuter, const nsIID& aIID, void **aRes
     return self->QueryInterface(aIID, aResult);
 }
 
-NS_IMPL_CYCLE_COLLECTION_0(FileSystemDataSource) 
-NS_IMPL_CYCLE_COLLECTING_ADDREF(FileSystemDataSource)
-NS_IMPL_CYCLE_COLLECTING_RELEASE(FileSystemDataSource)
-NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION(FileSystemDataSource)
-    NS_INTERFACE_MAP_ENTRY(nsIRDFDataSource)
-NS_INTERFACE_MAP_END
+NS_IMPL_ISUPPORTS1(FileSystemDataSource, nsIRDFDataSource)
 
 NS_IMETHODIMP
 FileSystemDataSource::GetURI(char **uri)
@@ -828,7 +823,18 @@ FileSystemDataSource::GetAllResources(nsISimpleEnumerator** aCursor)
 NS_IMETHODIMP
 FileSystemDataSource::AddObserver(nsIRDFObserver *n)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+    NS_PRECONDITION(n != nsnull, "null ptr");
+    if (! n)
+        return NS_ERROR_NULL_POINTER;
+
+    if (! mObservers)
+    {
+        nsresult rv;
+        rv = NS_NewISupportsArray(getter_AddRefs(mObservers));
+        if (NS_FAILED(rv)) return rv;
+    }
+    mObservers->AppendElement(n);
+    return NS_OK;
 }
 
 
@@ -836,7 +842,15 @@ FileSystemDataSource::AddObserver(nsIRDFObserver *n)
 NS_IMETHODIMP
 FileSystemDataSource::RemoveObserver(nsIRDFObserver *n)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+    NS_PRECONDITION(n != nsnull, "null ptr");
+    if (! n)
+        return NS_ERROR_NULL_POINTER;
+
+    if (! mObservers)
+        return NS_OK;
+
+    mObservers->RemoveElement(n);
+    return NS_OK;
 }
 
 
@@ -1130,7 +1144,7 @@ FileSystemDataSource::GetFolderList(nsIRDFResource *source, PRBool allowHidden,
             continue;
   
         nsCAutoString           leaf(escLeafStr);
-        NS_Free(escLeafStr);
+        Recycle(escLeafStr);
         escLeafStr = nsnull;
 
         // using nsEscape() [above] doesn't escape slashes, so do that by hand

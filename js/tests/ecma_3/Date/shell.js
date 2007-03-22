@@ -35,9 +35,209 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
+/*
+ * JavaScript shared functions file for running the tests in either
+ * stand-alone JavaScript engine.  To run a test, first load this file,
+ * then load the test script.
+ */
 
-gTestsubsuite = 'Date';
+var completed = false;
+var testcases = new Array();
+var tc = testcases.length; 
 
+var SECTION = "";
+var VERSION = "";
+var BUGNUMBER = "";
+
+/*
+ * constant strings
+ */
+var GLOBAL = "[object global]";
+var PASSED = " PASSED!"
+var FAILED = " FAILED! expected: ";
+
+var DEBUG = false;
+
+/* 
+ * wrapper for test case constructor that doesn't require the SECTION
+ * argument.
+ */
+
+function AddTestCase( description, expect, actual ) {
+  new TestCase( SECTION, description, expect, actual );
+}
+
+/*
+ * TestCase constructor
+ *
+ */
+
+function TestCase( n, d, e, a ) {
+  this.path = (typeof gTestPath == 'undefined') ? '' : gTestPath;
+  this.name        = n;
+  this.description = d;
+  this.expect      = e;
+  this.actual      = a;
+  this.passed      = true;
+  this.reason      = "";
+  this.bugnumber   = BUGNUMBER;
+
+  this.passed = getTestCaseResult( this.expect, this.actual );
+  if ( DEBUG ) {
+    print( "added " + this.description );
+  }
+  /*
+   * testcases are solely maintained in the TestCase
+   * constructor. tc will _always_ point to one past the
+   * last testcase. If an exception occurs during the call
+   * to the constructor, then we are assured that the tc
+   * index has not been incremented.
+   */
+  
+  testcases[tc++] = this;
+}
+
+/*
+ * Set up test environment.
+ *
+ */
+function startTest() {
+  if ( version ) {
+    // JavaScript 1.3 is supposed to be compliant ecma version 1.0
+    if ( VERSION == "ECMA_1" ) {
+      version ( "130" );
+    }
+    if ( VERSION == "JS_1.3" ) {
+      version ( "130" );
+    }
+    if ( VERSION == "JS_1.2" ) {
+      version ( "120" );
+    }
+    if ( VERSION  == "JS_1.1" ) {
+      version ( "110" );
+    }
+    // for ecma version 2.0, we will leave the javascript version to
+    // the default ( for now ).
+  }
+
+  // print out bugnumber
+
+  if ( BUGNUMBER ) {
+    print ("BUGNUMBER: " + BUGNUMBER );
+  }
+}
+
+function test() {
+  for ( tc=0; tc < testcases.length; tc++ ) {
+    try
+    {
+    testcases[tc].passed = writeTestCaseResult(
+      testcases[tc].expect,
+      testcases[tc].actual,
+      testcases[tc].description +" = "+ testcases[tc].actual );
+    testcases[tc].reason += ( testcases[tc].passed ) ? "" : "wrong value ";
+    }
+    catch(e)
+    {
+      print('test(): empty testcase for tc = ' + tc + ' ' + e);
+    }
+  }
+  stopTest();
+  return ( testcases );
+}
+
+/*
+ * Compare expected result to the actual result and figure out whether
+ * the test case passed.
+ */
+function getTestCaseResult( expect, actual ) {
+  // because ( NaN == NaN ) always returns false, need to do
+  // a special compare to see if we got the right result.
+  if ( actual != actual ) {
+    if ( typeof actual == "object" ) {
+      actual = "NaN object";
+    } else {
+      actual = "NaN number";
+    }
+  }
+  if ( expect != expect ) {
+    if ( typeof expect == "object" ) {
+      expect = "NaN object";
+    } else {
+      expect = "NaN number";
+    }
+  }
+
+  var passed = ( expect == actual ) ? true : false;
+
+  // if both objects are numbers
+  // need to replace w/ IEEE standard for rounding
+  if ( !passed
+       && typeof(actual) == "number"
+       && typeof(expect) == "number"
+    ) {
+    if ( Math.abs(actual-expect) < 0.0000001 ) {
+      passed = true;
+    }
+  }
+
+  // verify type is the same
+  if ( typeof(expect) != typeof(actual) ) {
+    passed = false;
+  }
+
+  return passed;
+}
+
+/*
+ * Begin printing functions.  These functions use the shell's
+ * print function.  When running tests in the browser, these
+ * functions, override these functions with functions that use
+ * document.write.
+ */
+
+function writeTestCaseResult( expect, actual, string ) {
+  var passed = getTestCaseResult( expect, actual );
+  writeFormattedResult( expect, actual, string, passed );
+  return passed;
+}
+function writeFormattedResult( expect, actual, string, passed ) {
+  var s = string ;
+  s += ( passed ) ? PASSED : FAILED + expect;
+  print( s);
+  return passed;
+}
+
+function writeHeaderToLog( string ) {
+  print( string );
+}
+/* end of print functions */
+
+
+/*
+ * When running in the shell, run the garbage collector after the
+ * test has completed.
+ */
+
+function stopTest() {
+  var gc;
+  if ( gc != undefined ) {
+    gc();
+  }
+}
+
+/*
+ * Convenience function for displaying failed test cases.  Useful
+ * when running tests manually.
+ *
+ */
+function getFailedCases() {
+  for ( var i = 0; i < testcases.length; i++ ) {
+    if ( ! testcases[i].passed ) {
+      print( testcases[i].description +" = " +testcases[i].actual +" expected: "+ testcases[i].expect );
+    }
+  }
+}
 /*
  * Date functions used by tests in Date suite
  *
@@ -58,14 +258,14 @@ var TIME_2000  = 946684800000;
 var TIME_1900  = -2208988800000;
 var UTC_29_FEB_2000 = TIME_2000 + 31*msPerDay + 28*msPerDay;
 var UTC_1_JAN_2005 = TIME_2000 + TimeInYear(2000) + TimeInYear(2001) +
-  TimeInYear(2002) + TimeInYear(2003) + TimeInYear(2004);
+    TimeInYear(2002) + TimeInYear(2003) + TimeInYear(2004);
 var now = new Date();
 var TIME_NOW = now.valueOf();  //valueOf() is to accurate to the millisecond
                                //Date.parse() is accurate only to the second
 
 /*
- * Originally, the test suite used a hard-coded value TZ_DIFF = -8.
- * But that was only valid for testers in the Pacific Standard Time Zone!
+ * Originally, the test suite used a hard-coded value TZ_DIFF = -8. 
+ * But that was only valid for testers in the Pacific Standard Time Zone! 
  * We calculate the proper number dynamically for any tester. We just
  * have to be careful not to use a date subject to Daylight Savings Time...
  */
@@ -75,16 +275,16 @@ function getTimeZoneDiff()
 }
 
 
-/*
- * Date test "ResultArrays" are hard-coded for Pacific Standard Time.
+/* 
+ * Date test "ResultArrays" are hard-coded for Pacific Standard Time. 
  * We must adjust them for the tester's own timezone -
  */
 function adjustResultArray(ResultArray, msMode)
 {
-  // If the tester's system clock is in PST, no need to continue -
-  if (!PST_DIFF) {return;}
+  // If the tester's system clock is in PST, no need to continue - 
+  if (!PST_DIFF) {return;} 
 
-  /* The date gTestcases instantiate Date objects in two different ways:
+  /* The date testcases instantiate Date objects in two different ways:
    *
    *        millisecond mode: e.g.   dt = new Date(10000000);
    *        year-month-day mode:  dt = new Date(2000, 5, 1, ...);
@@ -94,21 +294,21 @@ function adjustResultArray(ResultArray, msMode)
    *
    * In the first case we must correct those values expected for local measurements,
    * like dt.getHours() etc. No correction is necessary for dt.getUTCHours() etc.
-   *
+   * 
    * In the second case, it is exactly the other way around -
-   */
+   */ 
   if (msMode)
   {
     // The hard-coded UTC milliseconds from Time 0 derives from a UTC date.
     // Shift to the right by the offset between UTC and the tester.
     var t = ResultArray[TIME]  +  TZ_DIFF*msPerHour;
 
-    // Use our date arithmetic functions to determine the local hour, day, etc.
-    ResultArray[HOURS] = HourFromTime(t);
+    // Use our date arithmetic functions to determine the local hour, day, etc. 
+    ResultArray[HOURS] = HourFromTime(t); 
     ResultArray[DAY] = WeekDay(t);
     ResultArray[DATE] = DateFromTime(t);
     ResultArray[MONTH] = MonthFromTime(t);
-    ResultArray[YEAR] = YearFromTime(t); 
+    ResultArray[YEAR] = YearFromTime(t);  
   }
   else
   {
@@ -116,9 +316,9 @@ function adjustResultArray(ResultArray, msMode)
     // Shift to the left by the offset between PST and the tester.
     var t = ResultArray[TIME]  -  PST_DIFF*msPerHour;
 
-    // Use our date arithmetic functions to determine the UTC hour, day, etc.
+    // Use our date arithmetic functions to determine the UTC hour, day, etc. 
     ResultArray[TIME] = t;
-    ResultArray[UTC_HOURS] = HourFromTime(t);
+    ResultArray[UTC_HOURS] = HourFromTime(t); 
     ResultArray[UTC_DAY] = WeekDay(t);
     ResultArray[UTC_DATE] = DateFromTime(t);
     ResultArray[UTC_MONTH] = MonthFromTime(t);
@@ -153,15 +353,11 @@ function DayNumber( t ) {
   return ( Math.floor( t / msPerDay ) );
 }
 function TimeWithinDay( t ) {
-
-  var r = t % msPerDay;
-
-  if (r < 0)
-  {
-    r += msPerDay;
+  if ( t < 0 ) {
+    return ( (t % msPerDay) + msPerDay );
+  } else {
+    return ( t % msPerDay );
   }
-  return r;
-
 }
 function YearNumber( t ) {
 }
@@ -332,31 +528,30 @@ function UTC( t ) {
 function DaylightSavingTA( t ) {
   t = t - LocalTZA();
 
-  var dst_start = GetDSTStart(t);
-  var dst_end   = GetDSTEnd(t);
+  var dst_start = GetFirstSundayInApril(t) + 2*msPerHour;
+  var dst_end   = GetLastSundayInOctober(t)+ 2*msPerHour;
 
-  if ( t >= dst_start && t < dst_end )
+  if ( t >= dst_start && t < dst_end ) {
     return msPerHour;
+  } else {
+    return 0;
+  }
 
-  return 0;
+  // Daylight Savings Time starts on the first Sunday in April at 2:00AM in
+  // PST.  Other time zones will need to override this function.
+
+  print( new Date( UTC(dst_start + LocalTZA())) );
+
+  return UTC(dst_start  + LocalTZA());
 }
-
-function GetFirstSundayInMonth( t, m ) {
+function GetFirstSundayInApril( t ) {
   var year = YearFromTime(t);
   var leap = InLeapYear(t);
 
-// month m 0..11
-// april == 3
-// march == 2
+  var april = TimeFromYear(year) + TimeInMonth(0, leap) + TimeInMonth(1,leap) +
+    TimeInMonth(2,leap);
 
-  // set time to first day of month m
-  var time = TimeFromYear(year);
-  for (var i = 0; i < m; ++i)
-  {
-    time += TimeInMonth(i, leap);
-  }
-
-  for ( var first_sunday = time; WeekDay(first_sunday) > 0;
+  for ( var first_sunday = april; WeekDay(first_sunday) > 0;
         first_sunday += msPerDay )
   {
     ;
@@ -364,84 +559,20 @@ function GetFirstSundayInMonth( t, m ) {
 
   return first_sunday;
 }
-
-function GetLastSundayInMonth( t, m ) {
+function GetLastSundayInOctober( t ) {
   var year = YearFromTime(t);
   var leap = InLeapYear(t);
 
-// month m 0..11
-// april == 3
-// march == 2
-
-  // first day of following month
-  var time = TimeFromYear(year);
-  for (var i = 0; i <= m; ++i)
-  {
-    time += TimeInMonth(i, leap);
+  for ( var oct = TimeFromYear(year), m = 0; m < 9; m++ ) {
+    oct += TimeInMonth(m, leap);
   }
-  // prev day == last day of month
-  time -= msPerDay;
-
-  for ( var last_sunday = time; WeekDay(last_sunday) > 0;
+  for ( var last_sunday = oct + 30*msPerDay; WeekDay(last_sunday) > 0;
         last_sunday -= msPerDay )
   {
     ;
   }
   return last_sunday;
 }
-
-/*
-  15.9.1.9 Daylight Saving Time Adjustment
-
-  The implementation of ECMAScript should not try to determine whether
-  the exact time was subject to daylight saving time, but just whether
-  daylight saving time would have been in effect if the current
-  daylight saving time algorithm had been used at the time. This avoids
-  complications such as taking into account the years that the locale
-  observed daylight saving time year round.
-*/
-
-/*
-  US DST algorithm
-
-  Before 2007, DST starts first Sunday in April at 2 AM and ends last
-  Sunday in October at 2 AM
-
-  Starting in 2007, DST starts second Sunday in March at 2 AM and ends
-  first Sunday in November at 2 AM
-
-  Note that different operating systems behave differently.
-
-  Fully patched Windows XP uses the 2007 algorithm for all dates while
-  fully patched Fedora Core 6 and RHEL 4 Linux use the algorithm in
-  effect at the time.
-
-  Since pre-2007 DST is a subset of 2007 DST rules, this only affects
-  tests that occur in the period Mar-Apr and Oct-Nov where the two
-  algorithms do not agree.
-
-*/
-
-function GetDSTStart( t )
-{
-  return (GetFirstSundayInMonth(t, 2) + 7*msPerDay + 2*msPerHour - LocalTZA());
-}
-
-function GetDSTEnd( t )
-{
-  return (GetFirstSundayInMonth(t, 10) + 2*msPerHour - LocalTZA());
-}
-
-function GetOldDSTStart( t )
-{
-  return (GetFirstSundayInMonth(t, 3) + 2*msPerHour - LocalTZA());
-}
-
-function GetOldDSTEnd( t )
-{
-  return (GetLastSundayInMonth(t, 9) + 2*msPerHour - LocalTZA());
-}
-
 function LocalTime( t ) {
   return ( t + LocalTZA() + DaylightSavingTA(t) );
 }
@@ -561,4 +692,16 @@ function Enumerate ( o ) {
     print( p +": " + o[p] );
   }
 }
+
+/* these functions are useful for running tests manually in Rhino */
+
+function GetContext() {
+  return Packages.com.netscape.javascript.Context.getCurrentContext();
+}
+function OptLevel( i ) {
+  i = Number(i);
+  var cx = GetContext();
+  cx.setOptimizationLevel(i);
+}
+/* end of Rhino functions */
 

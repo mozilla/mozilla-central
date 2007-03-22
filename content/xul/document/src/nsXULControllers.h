@@ -49,6 +49,7 @@
 #include "nsVoidArray.h"
 #include "nsWeakPtr.h"
 #include "nsIControllers.h"
+#include "nsISupportsArray.h"
 #include "nsISecurityCheckedComponent.h"
 #include "nsCycleCollectionParticipant.h"
 

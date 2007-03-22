@@ -35,15 +35,13 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-290592.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 290592;
+var bug = 290592;
 var summary = 'Array extras: forEach, indexOf, filter, map';
 var actual = '';
 var expect = '';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
 // Utility functions
@@ -52,7 +50,7 @@ function identity(v, index, array)
 {
   reportCompare(v, array[index], 'identity: check callback argument consistency');
   return v;
-} 
+}  
 
 function mutate(v, index, array)
 {
@@ -165,9 +163,9 @@ ArrayCallback.prototype.isString = function(v, index, array)
 
 function dumpError(e)
 {
-  var s = e.name + ': ' + e.message +
-    ' File: ' + e.fileName +
-    ', Line: ' + e.lineNumber +
+  var s = e.name + ': ' + e.message + 
+    ' File: ' + e.fileName + 
+    ', Line: ' + e.lineNumber + 
     ', Stack: ' + e.stack;
   return s;
 }
@@ -200,7 +198,7 @@ if ('map' in Array.prototype)
   {
     actual = e.name;
   }
-  reportCompare(expect, actual, 'Array.map(undefined) throws TypeError'); 
+  reportCompare(expect, actual, 'Array.map(undefined) throws TypeError');  
 
   try
   {
@@ -212,7 +210,7 @@ if ('map' in Array.prototype)
   {
     actual = dumpError(e);
   }
-  reportCompare(expect, actual, 'Array.map: identity'); 
+  reportCompare(expect, actual, 'Array.map: identity');  
 
 
   try
@@ -224,7 +222,7 @@ if ('map' in Array.prototype)
   {
     actual = dumpError(e);
   }
-  reportCompare(expect, actual, 'Array.map: mutate'); 
+  reportCompare(expect, actual, 'Array.map: mutate');  
 
   strings = ['hello', 'Array', 'WORLD'];
 
@@ -238,7 +236,7 @@ if ('map' in Array.prototype)
   {
     actual = dumpError(e);
   }
-  reportCompare(expect, actual, 'Array.map: uppercase'); 
+  reportCompare(expect, actual, 'Array.map: uppercase');  
 
   try
   {
@@ -251,7 +249,7 @@ if ('map' in Array.prototype)
   {
     actual = dumpError(e);
   }
-  reportCompare(expect, actual, 'Array.map: uppercase with object callback'); 
+  reportCompare(expect, actual, 'Array.map: uppercase with object callback');  
 
   try
   {
@@ -263,7 +261,7 @@ if ('map' in Array.prototype)
   {
     actual = dumpError(e);
   }
-  reportCompare(expect, actual, 'Array.map: lowercase with object callback'); 
+  reportCompare(expect, actual, 'Array.map: lowercase with object callback');  
 
   try
   {
@@ -275,7 +273,7 @@ if ('map' in Array.prototype)
   {
     actual = dumpError(e);
   }
-  reportCompare(expect, actual, 'Array.map: uppercase on sparse array'); 
+  reportCompare(expect, actual, 'Array.map: uppercase on sparse array');  
 }
 
 if ('forEach' in Array.prototype)
@@ -300,7 +298,7 @@ if ('forEach' in Array.prototype)
   {
     actual = e.name;
   }
-  reportCompare(expect, actual, 'Array.forEach(undefined) throws TypeError'); 
+  reportCompare(expect, actual, 'Array.forEach(undefined) throws TypeError');  
 
   try
   {
@@ -313,7 +311,7 @@ if ('forEach' in Array.prototype)
   {
     actual = dumpError(e);
   }
-  reportCompare(expect, actual, 'Array.forEach'); 
+  reportCompare(expect, actual, 'Array.forEach');  
 
   try
   {
@@ -325,7 +323,7 @@ if ('forEach' in Array.prototype)
   {
     actual = dumpError(e);
   }
-  reportCompare(expect, actual, 'Array.forEach: mutate'); 
+  reportCompare(expect, actual, 'Array.forEach: mutate');  
 
   strings = ['hello', 'Array', 'WORLD'];
 
@@ -343,7 +341,7 @@ if ('forEach' in Array.prototype)
   {
     actual = dumpError(e);
   }
-  reportCompare(expect, actual, 'Array.forEach with object callback 1'); 
+  reportCompare(expect, actual, 'Array.forEach with object callback 1');  
 
   try
   {
@@ -356,7 +354,7 @@ if ('forEach' in Array.prototype)
   {
     actual = dumpError(e);
   }
-  reportCompare(expect, actual, 'Array.forEach with object callback 2'); 
+  reportCompare(expect, actual, 'Array.forEach with object callback 2');  
 
   try
   {
@@ -370,7 +368,7 @@ if ('forEach' in Array.prototype)
   {
     actual = dumpError(e);
   }
-  reportCompare(expect, actual, 'Array.forEach on sparse array'); 
+  reportCompare(expect, actual, 'Array.forEach on sparse array');  
 }
 
 if ('filter' in Array.prototype)
@@ -395,7 +393,7 @@ if ('filter' in Array.prototype)
   {
     actual = e.name;
   }
-  reportCompare(expect, actual, 'Array.filter(undefined) throws TypeError'); 
+  reportCompare(expect, actual, 'Array.filter(undefined) throws TypeError');  
 
   try
   {
@@ -457,7 +455,7 @@ if ('every' in Array.prototype)
   {
     actual = e.name;
   }
-  reportCompare(expect, actual, 'Array.every(undefined) throws TypeError'); 
+  reportCompare(expect, actual, 'Array.every(undefined) throws TypeError');  
 
   // test general every
 
@@ -558,7 +556,7 @@ if ('some' in Array.prototype)
   {
     actual = e.name;
   }
-  reportCompare(expect, actual, 'Array.some(undefined) throws TypeError'); 
+  reportCompare(expect, actual, 'Array.some(undefined) throws TypeError');  
 
   // test general some
 

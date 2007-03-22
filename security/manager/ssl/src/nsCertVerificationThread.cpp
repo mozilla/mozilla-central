@@ -123,8 +123,12 @@ nsresult nsCertVerificationThread::addJob(nsBaseVerificationJob *aJob)
   return NS_OK;
 }
 
+#define CONDITION_WAIT_TIME PR_TicksPerSecond() / 4
+  
 void nsCertVerificationThread::Run(void)
 {
+  const PRIntervalTime wait_time = CONDITION_WAIT_TIME;
+
   while (PR_TRUE) {
 
     nsBaseVerificationJob *job = nsnull;
@@ -135,13 +139,13 @@ void nsCertVerificationThread::Run(void)
       while (!mExitRequested && (0 == verification_thread_singleton->mJobQ.GetSize())) {
         // no work to do ? let's wait a moment
 
-        PR_WaitCondVar(mCond, PR_INTERVAL_NO_TIMEOUT);
+        PR_WaitCondVar(mCond, wait_time);
       }
       
       if (mExitRequested)
         break;
       
-      job = static_cast<nsBaseVerificationJob*>(mJobQ.PopFront());
+      job = NS_STATIC_CAST(nsBaseVerificationJob*, mJobQ.PopFront());
     }
 
     if (job)
@@ -156,7 +160,7 @@ void nsCertVerificationThread::Run(void)
 
     while (verification_thread_singleton->mJobQ.GetSize()) {
       nsCertVerificationJob *job = 
-        static_cast<nsCertVerificationJob*>(mJobQ.PopFront());
+        NS_STATIC_CAST(nsCertVerificationJob*, mJobQ.PopFront());
       delete job;
     }
   }

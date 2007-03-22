@@ -74,16 +74,10 @@ public:
 
   nsAutoVoidArray        mSheets;
   nsCOMPtr<nsIURI>       mSheetURI; // for error reports, etc.
-  nsCOMPtr<nsIURI>       mOriginalSheetURI;  // for GetHref.  Can be null.
   nsCOMPtr<nsIURI>       mBaseURI; // for resolving relative URIs
-  nsCOMPtr<nsIPrincipal> mPrincipal;
   nsCOMArray<nsICSSRule> mOrderedRules;
   nsAutoPtr<nsXMLNameSpaceMap> mNameSpaceMap;
-  PRBool                 mComplete;
-
-#ifdef DEBUG
-  PRBool                 mPrincipalSet;
-#endif
+  PRPackedBool           mComplete;
 };
 
 
@@ -137,10 +131,7 @@ public:
   NS_IMETHOD ReplaceRuleInGroup(nsICSSGroupRule* aGroup, nsICSSRule* aOld, nsICSSRule* aNew);
   NS_IMETHOD StyleSheetCount(PRInt32& aCount) const;
   NS_IMETHOD GetStyleSheetAt(PRInt32 aIndex, nsICSSStyleSheet*& aSheet) const;
-  NS_IMETHOD SetURIs(nsIURI* aSheetURI, nsIURI* aOriginalSheetURI,
-                     nsIURI* aBaseURI);
-  virtual NS_HIDDEN_(void) SetPrincipal(nsIPrincipal* aPrincipal);
-  virtual NS_HIDDEN_(nsIPrincipal*) Principal() const;
+  NS_IMETHOD SetURIs(nsIURI* aSheetURI, nsIURI* aBaseURI);
   NS_IMETHOD SetTitle(const nsAString& aTitle);
   NS_IMETHOD SetMedia(nsMediaList* aMedia);
   NS_IMETHOD SetOwningNode(nsIDOMNode* aOwningNode);
@@ -156,8 +147,6 @@ public:
   NS_IMETHOD SetModified(PRBool aModified);
   NS_IMETHOD AddRuleProcessor(nsCSSRuleProcessor* aProcessor);
   NS_IMETHOD DropRuleProcessor(nsCSSRuleProcessor* aProcessor);
-  NS_IMETHOD InsertRuleInternal(const nsAString& aRule,
-                                PRUint32 aIndex, PRUint32* aReturn);  
 
   // nsICSSLoaderObserver interface
   NS_IMETHOD StyleSheetLoaded(nsICSSStyleSheet* aSheet, PRBool aWasAlternate,
@@ -190,11 +179,6 @@ protected:
   nsresult WillDirty();
   void     DidDirty();
 
-  // Return success if the subject principal subsumes the principal of our
-  // inner, error otherwise.  This will also succeed if the subject has
-  // UniversalBrowserWrite.
-  nsresult SubjectSubsumesInnerPrincipal() const;
-
 protected:
   nsString              mTitle;
   nsCOMPtr<nsMediaList> mMedia;
@@ -216,7 +200,6 @@ protected:
 
   friend class nsMediaList;
   friend PRBool CascadeSheetRulesInto(nsICSSStyleSheet* aSheet, void* aData);
-  friend nsresult NS_NewCSSStyleSheet(nsICSSStyleSheet** aInstancePtrResult);
 };
 
 #endif /* !defined(nsCSSStyleSheet_h_) */

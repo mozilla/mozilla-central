@@ -51,10 +51,12 @@ REQUIRES = \
 	appcomps \
 	toolkitcomps \
 	appshell \
+	appstartup \
 	chrome \
 	content \
 	docshell \
 	dom \
+	layout \
 	embed_base \
 	embedcomponents \
 	extensions \
@@ -66,11 +68,13 @@ REQUIRES = \
 	profile \
 	string \
 	uriloader \
+        layout \
 	widget \
 	windowwatcher \
 	xpcom \
 	xpconnect \
 	xpinstall \
+	xremoteservice \
 	$(NULL)
 
 ifdef MOZ_JPROF
@@ -81,18 +85,19 @@ ifdef NS_TRACE_MALLOC
 REQUIRES += tracemalloc
 endif
 
-ifdef MOZ_CRASHREPORTER
-REQUIRES += crashreporter
+ifdef MOZ_AIRBAG
+REQUIRES += airbag
 endif
 
 FORCE_STATIC_LIB = 1
 
 XPIDLSRCS = \
 	nsINativeAppSupport.idl \
+	nsIXULAppInfo.idl \
 	nsIXULRuntime.idl \
 	$(NULL)
 
-ifneq (,$(filter WINCE WINNT,$(OS_ARCH)))
+ifeq ($(OS_ARCH),WINNT)
 XPIDLSRCS += nsIWinAppHelper.idl
 endif
 
@@ -126,15 +131,11 @@ DEFINES += -DMOZ_UPDATER
 endif
 
 ifeq ($(MOZ_WIDGET_TOOLKIT),windows)
-ifdef WINCE
-CPPSRCS += nsNativeAppSupportDefault.cpp
-else
 CPPSRCS += nsNativeAppSupportWin.cpp
-endif
-DEFINES += -DWIN32_LEAN_AND_MEAN -DUNICODE -D_UNICODE
+DEFINES += -DWIN32_LEAN_AND_MEAN
 else
-ifeq ($(MOZ_WIDGET_TOOLKIT),cocoa)
-CMMSRCS = nsNativeAppSupportCocoa.mm
+ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+CPPSRCS += nsNativeAppSupportMac.cpp
 else
 ifeq ($(MOZ_WIDGET_TOOLKIT),os2)
 CPPSRCS += nsNativeAppSupportOS2.cpp
@@ -142,11 +143,7 @@ else
 ifeq ($(MOZ_WIDGET_TOOLKIT),beos)
 CPPSRCS += nsNativeAppSupportBeOS.cpp
 else
-ifeq ($(MOZ_WIDGET_TOOLKIT),gtk2)
-CPPSRCS += nsNativeAppSupportUnix.cpp
-else
 CPPSRCS += nsNativeAppSupportDefault.cpp
-endif
 endif
 endif
 endif
@@ -160,16 +157,29 @@ OS_CXXFLAGS += -fexceptions
 SHARED_LIBRARY_LIBS += $(DEPTH)/xpfe/bootstrap/appleevents/$(LIB_PREFIX)appleevents_s.$(LIB_SUFFIX)
 endif
 ifeq ($(MOZ_WIDGET_TOOLKIT),cocoa)
-CMMSRCS += MacApplicationDelegate.mm
+CMMSRCS = MacApplicationDelegate.mm
 endif
 
 ifneq (,$(filter-out OS2 WINNT,$(OS_ARCH)))
+STACKWALK_SRC_LCSRCS =               \
+		nsStackFrameUnix.cpp \
+		nsStackFrameUnix.h   \
+		$(NULL)
+
+STACKWALK_CPPSRCS := $(addprefix $(topsrcdir)/xpcom/base/, $(STACKWALK_SRC_LCSRCS))
+ifndef MOZ_ENABLE_LIBXUL
+CPPSRCS           += nsStackFrameUnix.cpp
+endif
 SHAREDCPPSRCS	  += nsSigHandlers.cpp
 endif
 
 GARBAGE += $(SHAREDCPPSRCS) $(wildcard *.$(OBJ_SUFFIX))
-ifneq (,$(filter WINCE WINNT,$(OS_ARCH)))
+ifeq ($(OS_ARCH),WINNT)
 GARBAGE	+= $(addprefix $(srcdir)/,$(SHAREDCPPSRCS))
+endif
+
+ifneq (,$(filter-out OS2 WINNT,$(OS_ARCH)))
+GARBAGE += $(STACKWALK_SRC_LCSRCS)
 endif
 
 SHARED_LIBRARY_LIBS += ../profile/src/$(LIB_PREFIX)profile_s.$(LIB_SUFFIX)
@@ -179,38 +189,12 @@ SHARED_LIBRARY_LIBS += $(DEPTH)/widget/src/xremoteclient/$(LIB_PREFIX)xremote_cl
 LOCAL_INCLUDES += -I$(topsrcdir)/widget/src/xremoteclient
 endif
 
-ifdef MOZ_CRASHREPORTER
-SHARED_LIBRARY_LIBS += $(DEPTH)/toolkit/crashreporter/$(LIB_PREFIX)exception_handler_s.$(LIB_SUFFIX)
+ifdef MOZ_AIRBAG
+SHARED_LIBRARY_LIBS += $(DEPTH)/toolkit/airbag/$(LIB_PREFIX)airbagexception_s.$(LIB_SUFFIX)
 ifeq ($(OS_ARCH),WINNT)
 SHARED_LIBRARY_LIBS += \
-	$(DEPTH)/toolkit/crashreporter/google-breakpad/src/client/windows/handler/$(LIB_PREFIX)exception_handler_s.$(LIB_SUFFIX) \
-	$(DEPTH)/toolkit/crashreporter/google-breakpad/src/common/windows/$(LIB_PREFIX)breakpad_windows_common_s.$(LIB_SUFFIX)
-endif
-
-ifeq ($(OS_ARCH),Darwin)
-SHARED_LIBRARY_LIBS += \
-	$(DEPTH)/toolkit/crashreporter/google-breakpad/src/client/$(LIB_PREFIX)minidump_file_writer_s.$(LIB_SUFFIX) \
-	$(DEPTH)/toolkit/crashreporter/google-breakpad/src/client/mac/handler/$(LIB_PREFIX)exception_handler_s.$(LIB_SUFFIX) \
-	$(DEPTH)/toolkit/crashreporter/google-breakpad/src/common/$(LIB_PREFIX)breakpad_common_s.$(LIB_SUFFIX) \
-	$(DEPTH)/toolkit/crashreporter/google-breakpad/src/common/mac/$(LIB_PREFIX)breakpad_mac_common_s.$(LIB_SUFFIX)
-endif
-
-ifeq ($(OS_ARCH),Linux)
-SHARED_LIBRARY_LIBS += \
-  $(DEPTH)/toolkit/crashreporter/google-breakpad/src/client/linux/handler/$(LIB_PREFIX)exception_handler_s.$(LIB_SUFFIX) \
-  $(DEPTH)/toolkit/crashreporter/google-breakpad/src/client/$(LIB_PREFIX)minidump_file_writer_s.$(LIB_SUFFIX) \
-  $(DEPTH)/toolkit/crashreporter/google-breakpad/src/common/$(LIB_PREFIX)breakpad_common_s.$(LIB_SUFFIX) \
-  $(DEPTH)/toolkit/crashreporter/google-breakpad/src/common/linux/$(LIB_PREFIX)breakpad_linux_common_s.$(LIB_SUFFIX) \
-  $(NULL)
-endif
-
-ifeq ($(OS_ARCH),SunOS)
-SHARED_LIBRARY_LIBS += \
-  $(DEPTH)/toolkit/crashreporter/google-breakpad/src/client/solaris/handler/$(LIB_PREFIX)exception_handler_s.$(LIB_SUFFIX) \
-  $(DEPTH)/toolkit/crashreporter/google-breakpad/src/client/$(LIB_PREFIX)minidump_file_writer_s.$(LIB_SUFFIX) \
-  $(DEPTH)/toolkit/crashreporter/google-breakpad/src/common/$(LIB_PREFIX)breakpad_common_s.$(LIB_SUFFIX) \
-  $(DEPTH)/toolkit/crashreporter/google-breakpad/src/common/solaris/$(LIB_PREFIX)breakpad_solaris_common_s.$(LIB_SUFFIX) \
-  $(NULL)
+	$(DEPTH)/toolkit/airbag/airbag/src/client/windows/handler/$(LIB_PREFIX)exception_handler.$(LIB_SUFFIX) \
+	$(DEPTH)/toolkit/airbag/airbag/src/common/windows/$(LIB_PREFIX)airbag_common_s.$(LIB_SUFFIX)
 endif
 endif
 
@@ -226,6 +210,7 @@ endif
 
 LOCAL_INCLUDES += \
 	-I$(srcdir) \
+	-I$(topsrcdir)/xpfe/bootstrap \
 	-I$(srcdir)/../profile/src \
 	-I$(topsrcdir)/config \
 	$(NULL)
@@ -250,22 +235,5 @@ ifdef WRAP_SYSTEM_INCLUDES
 DEFINES		+= -DWRAP_SYSTEM_INCLUDES
 endif
 
-ifeq ($(OS_ARCH),Linux)
-ifneq (,$(findstring lib64,$(libdir)))
-DEFINES     += -DHAVE_USR_LIB64_DIR
-endif
-endif
-
-export:: $(addprefix $(topsrcdir)/xpfe/bootstrap/, $(SHAREDCPPSRCS))
+export:: $(addprefix $(topsrcdir)/xpfe/bootstrap/, $(SHAREDCPPSRCS) $(SHAREDCMMSRCS)) $(STACKWALK_CPPSRCS)
 	$(INSTALL) $^ .
-
-platform.ini: FORCE
-	$(PYTHON) $(srcdir)/make-platformini.py --buildid=$(shell cat $(DEPTH)/config/buildid) $(topsrcdir)/config/milestone.txt > $@
-
-GARBAGE += platform.ini
-
-libs:: platform.ini
-	$(INSTALL) $^ $(DIST)/bin
-
-install::
-	$(INSTALL) $(IFLAGS1) $^ $(DESTDIR)$(mozappdir)

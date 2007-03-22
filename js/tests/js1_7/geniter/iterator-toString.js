@@ -34,14 +34,12 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'iterator-toString.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER     = "(none)";
+var bug     = "(none)";
 var summary = "gen.toString() omitting 'yield' from value";
 var actual, expect;
 
-printBugNumber(BUGNUMBER);
+printBugNumber(bug);
 printStatus(summary);
 
 /**************

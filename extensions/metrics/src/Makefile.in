@@ -57,17 +57,29 @@ REQUIRES	= xpcom \
 		  docshell \
 		  layout \
 		  widget \
-		  $(BZ2_REQUIRES) \
+		  libbz2 \
 		  xulapp \
 		  extensions \
 		  rdf \
 		  plugin \
 		  content \
 		  autocomplete \
-		  places \
-		  toolkitcomps \
-		  locale \
 		  $(NULL)
+
+# nsIScreenManager has moved to widget on the trunk
+# nsIDOMParser and nsIDOMSerializer have moved to content.
+ifdef MOZILLA_1_8_BRANCH
+REQUIRES	+= gfx xmlextras
+else
+REQUIRES	+= widget
+endif
+
+ifdef MOZ_PLACES
+REQUIRES	+= places toolkitcomps
+endif
+ifndef MOZ_PLACES_BOOKMARKS
+REQUIRES	+= bookmarks
+endif
 
 CSRCS		= \
 		md5.c \
@@ -90,7 +102,7 @@ CPPSRCS		= \
 FORCE_STATIC_LIB = 1
 
 # md5.c requires NSS headers
-LOCAL_INCLUDES = -I$(topsrcdir)/security/nss/lib/freebl
+LOCAL_INCLUDES = -I$(DIST)/public/nss -I$(DIST)/private/nss
 
 # Link against the static CRT
 ifeq ($(OS_ARCH)_$(GNU_CC), WINNT_)

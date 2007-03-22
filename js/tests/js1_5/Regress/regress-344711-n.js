@@ -34,10 +34,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-344711-n.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 344711;
+var bug = 344711;
 var summary = 'Do not crash compiling when peeking over a newline';
 var actual = 'No Crash';
 var expect = 'No Crash';
@@ -50,7 +48,7 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
 
   if (typeof window == 'undefined')

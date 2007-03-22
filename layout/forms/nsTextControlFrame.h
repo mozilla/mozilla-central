@@ -79,10 +79,6 @@ public:
   virtual void Destroy();
 
   virtual nscoord GetMinWidth(nsIRenderingContext* aRenderingContext);
-  virtual nsSize ComputeAutoSize(nsIRenderingContext *aRenderingContext,
-                                 nsSize aCBSize, nscoord aAvailableWidth,
-                                 nsSize aMargin, nsSize aBorder,
-                                 nsSize aPadding, PRBool aShrinkWrap);
 
   NS_IMETHOD Reflow(nsPresContext*          aPresContext,
                     nsHTMLReflowMetrics&     aDesiredSize,
@@ -204,7 +200,7 @@ public: //for methods who access nsTextControlFrame directly
   void SetFireChangeEventState(PRBool aNewState)
   {
     mFireChangeEventState = aNewState;
-  }
+  };
 
   PRBool GetFireChangeEventState() const
   {
@@ -213,11 +209,7 @@ public: //for methods who access nsTextControlFrame directly
 
   /* called to free up native keybinding services */
   static NS_HIDDEN_(void) ShutDown();
-
-  // called by the focus listener
-  nsresult MaybeBeginSecureKeyboardInput();
-  void MaybeEndSecureKeyboardInput();
-
+  
 protected:
   /**
    * Find out whether this control is scrollable (i.e. if it is not a single
@@ -300,7 +292,6 @@ private:
   // Calls to SetValue will be treated as user values (i.e. trigger onChange
   // eventually) when mFireChangeEventState==true, this is used by nsFileControlFrame.
   PRPackedBool mFireChangeEventState;
-  PRPackedBool mInSecureKeyboardInputMode;
 
   nsCOMPtr<nsISelectionController> mSelCon;
   nsCOMPtr<nsFrameSelection> mFrameSel;

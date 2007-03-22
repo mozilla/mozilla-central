@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -34,9 +33,8 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK ***** */
-
-/*
+ * ***** END LICENSE BLOCK *****
+ *
  *
  * Date:    12 Feb 2002
  * SUMMARY: Don't crash on invalid regexp literals /  \\/  /
@@ -52,13 +50,12 @@
  *
  */
 //-----------------------------------------------------------------------------
-var gTestfile = 'regress-122076.js';
-var BUGNUMBER = 122076;
+var bug = 122076;
 var summary = "Don't crash on invalid regexp literals /  \\/  /";
 var STRESS = 10;
 var sEval = '';
 
-printBugNumber(BUGNUMBER);
+printBugNumber(bug);
 printStatus(summary);
 
 

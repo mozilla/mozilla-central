@@ -64,6 +64,7 @@ function canQuitApplication()
   catch (ex) 
   {
   }
+  os.notifyObservers(null, "quit-application-granted", null);
   return true;
 }
 
@@ -94,6 +95,24 @@ function goQuitApplication()
   else
   {
     throw 'goQuitApplication: no AppStartup/appShell';
+  }
+
+  var windowManager = Components.
+    classes['@mozilla.org/appshell/window-mediator;1'].getService();
+
+  var windowManagerInterface = windowManager.
+    QueryInterface(Components.interfaces.nsIWindowMediator);
+
+  var enumerator = windowManagerInterface.getEnumerator(null);
+
+  while (enumerator.hasMoreElements())
+  {
+    var domWindow = enumerator.getNext();
+    if (("tryToClose" in domWindow) && !domWindow.tryToClose())
+    {
+      return false;
+    }
+    domWindow.close();
   }
 
   try

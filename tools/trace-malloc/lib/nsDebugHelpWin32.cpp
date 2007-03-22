@@ -48,6 +48,7 @@
 #include "prlock.h"
 #include "nscore.h"
 #include "nsDebugHelpWin32.h"
+#include "nsStackFrameWin.h"
 #else
 #error "nsDebugHelpWin32.cpp should only be built in Win32 x86 builds"
 #endif
@@ -163,6 +164,7 @@ DHWImportHooker::DHWImportHooker(const char* aModuleName,
         gLock = PR_NewLock();
     PR_Lock(gLock);
 
+    EnsureImageHlpInitialized();
     dhwEnsureImageHlpInitialized(); // for the extra ones we care about.
 
     if(!gRealGetProcAddress)
@@ -186,15 +188,19 @@ DHWImportHooker::~DHWImportHooker()
     mHooking = PR_FALSE;
     PatchAllModules();
 
-    for (DHWImportHooker **cur = &gHooks;
-         (PR_ASSERT(*cur), *cur); /* assert that we find this */
-         cur = &(*cur)->mNext)
+    if(gHooks == this)
+        gHooks = mNext;
+    else
     {
-        if (*cur == this)
+        for(DHWImportHooker* cur = gHooks; cur; cur = cur->mNext)
         {
-            *cur = mNext;
-            break;
+            if(cur->mNext == this)
+            {
+                cur->mNext = mNext;
+                break;
+            }
         }
+        PR_ASSERT(cur); //we were not in the list!       
     }
 
     if(!gHooks)
@@ -208,7 +214,7 @@ DHWImportHooker::~DHWImportHooker()
         PR_Unlock(gLock);
 }    
 
-static BOOL CALLBACK ModuleEnumCallback(PCSTR ModuleName,
+static BOOL CALLBACK ModuleEnumCallback(LPSTR ModuleName,
                                         ULONG ModuleBase,
                                         ULONG ModuleSize,
                                         PVOID UserContext)
@@ -222,12 +228,8 @@ static BOOL CALLBACK ModuleEnumCallback(PCSTR ModuleName,
 PRBool 
 DHWImportHooker::PatchAllModules()
 {
-    // Need to cast to PENUMLOADED_MODULES_CALLBACK because the
-    // constness of the first parameter of PENUMLOADED_MODULES_CALLBACK
-    // varies over SDK versions (from non-const to const over time).
-    // See bug 391848 and bug 415426.
     return dhwEnumerateLoadedModules(::GetCurrentProcess(), 
-               (PENUMLOADED_MODULES_CALLBACK)ModuleEnumCallback, this);
+                                     ModuleEnumCallback, this);
 }    
                                 
 PRBool 

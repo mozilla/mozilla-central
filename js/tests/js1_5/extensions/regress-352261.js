@@ -34,10 +34,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-352261.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 352261;
+var bug = 352261;
 var summary = 'Decompilation should preserve right associativity';
 var actual = '';
 var expect = '';
@@ -50,9 +48,9 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
- 
+  
   var g, h;
 
   g = function(a,b,c) { return a - (b + c) }

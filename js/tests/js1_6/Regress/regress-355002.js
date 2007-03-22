@@ -34,10 +34,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-355002.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 355002;
+var bug = 355002;
 var summary = 'Do not assert on |for each (this in []) { }|';
 var actual = 'No Crash';
 var expect = 'No Crash';
@@ -50,13 +48,13 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
 
   expect = 'SyntaxError: invalid for/in left-hand side';
   actual = '';
   try
-  { 
+  {  
     eval('for each (this in []) { }');
   }
   catch(ex)

@@ -472,13 +472,21 @@ nsMemoryCacheDevice::SetCapacity(PRInt32  capacity)
 
 
 #ifdef DEBUG
-static PLDHashOperator PR_CALLBACK
-CountEntry(PLDHashTable * table, PLDHashEntryHdr * hdr, PRUint32 number, void * arg)
+class nsCacheHashCounter : public nsCacheEntryHashTable::Visitor {
+public:
+    nsCacheHashCounter() : entryCount(0) {}
+
+    PRBool  VisitEntry(nsCacheEntry * entry);
+    PRInt32 entryCount;
+};
+
+
+PRBool nsCacheHashCounter::VisitEntry(nsCacheEntry * entry)
 {
-    PRInt32 *entryCount = (PRInt32 *)arg;
-    ++(*entryCount);
-    return PL_DHASH_NEXT;
+    ++entryCount;
+    return PR_TRUE;
 }
+
 
 void
 nsMemoryCacheDevice::CheckEntryCount()
@@ -495,9 +503,9 @@ nsMemoryCacheDevice::CheckEntryCount()
     }
     NS_ASSERTION(mEntryCount == evictionListCount, "### mem cache badness");
 
-    PRInt32 entryCount = 0;
-    mMemCacheEntries.VisitEntries(CountEntry, &entryCount);
-    NS_ASSERTION(mEntryCount == entryCount, "### mem cache badness");    
+    nsCacheHashCounter hash;
+    mMemCacheEntries.VisitEntries(&hash);
+    NS_ASSERTION(mEntryCount == hash.entryCount, "### mem cache badness");    
 }
 #endif
 
@@ -513,7 +521,7 @@ NS_IMETHODIMP
 nsMemoryCacheDeviceInfo::GetDescription(char ** result)
 {
     NS_ENSURE_ARG_POINTER(result);
-    *result = NS_strdup("Memory cache device");
+    *result = nsCRT::strdup("Memory cache device");
     if (!*result) return NS_ERROR_OUT_OF_MEMORY;
     return NS_OK;
 }

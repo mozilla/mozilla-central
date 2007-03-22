@@ -34,10 +34,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-350650-n.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 350650;
+var bug = 350650;
 var summary = 'js reports "uncaught exception';
 var actual = 'Error';
 var expect = 'Error';
@@ -51,9 +49,9 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
- 
+  
   function exc() { this.toString = function() { return "EXC"; } }
   throw new exc();
 

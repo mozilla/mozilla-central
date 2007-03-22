@@ -50,7 +50,6 @@ REQUIRES	= pref \
 		  string \
 		  widget \
 		  xpcom \
-		  thebes \
 		  $(NULL)
 LIBXUL_LIBRARY = 1
 

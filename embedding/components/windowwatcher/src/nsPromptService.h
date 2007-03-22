@@ -50,7 +50,6 @@
 #include "nsPIPromptService.h"
 #include "nsINonBlockingAlertService.h"
 #include "nsIWindowWatcher.h"
-#include "nsAutoWindowStateHelper.h"
 
 class nsIDOMWindow;
 class nsIDialogParamBlock;

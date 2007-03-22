@@ -50,7 +50,6 @@ include $(DEPTH)/config/autoconf.mk
 
 XPIDLSRCS = \
       nsIAccessibleWin32Object.idl \
-      nsIWinAccessNode.idl \
       $(NULL)
 
 DEFINES		+= -DREGISTER_PROXY_DLL -D_WIN32_WINNT=0x400
@@ -87,6 +86,7 @@ SRCDIR_CSRCS	= $(addprefix $(srcdir)/,$(CSRCS))
 
 OS_LIBS = \
 	kernel32.lib \
+	rpcndr.lib \
 	rpcns4.lib \
 	rpcrt4.lib \
 	oleaut32.lib \

@@ -14,7 +14,7 @@
  * The Original Code is mozilla.org code.
  *
  * The Initial Developer of the Original Code is
- * Christopher Blizzard.
+ * Christopher Blizzard. Portions created by Christopher Blizzard are Copyright (C) Christopher Blizzard.  All Rights Reserved.
  * Portions created by the Initial Developer are Copyright (C) 2001
  * the Initial Developer. All Rights Reserved.
  *
@@ -50,7 +50,7 @@
 #include <nsIWebBrowserChrome.h>
 #include <nsIPrintSettings.h>
 #include <nsIAppShell.h>
-#include <nsPIDOMEventTarget.h>
+#include <nsIDOMEventReceiver.h>
 #include <nsVoidArray.h>
 #include <nsClipboard.h>
 // for profiles
@@ -161,8 +161,8 @@ class EmbedPrivate {
   nsCOMPtr<nsIWebNavigation>     mNavigation;
   nsCOMPtr<nsISHistory>          mSessionHistory;
 
-  // our event target
-  nsCOMPtr<nsPIDOMEventTarget>   mEventTarget;
+  // our event receiver
+  nsCOMPtr<nsIDOMEventReceiver>  mEventReceiver;
 
   // the currently loaded uri
   nsString                       mURI;

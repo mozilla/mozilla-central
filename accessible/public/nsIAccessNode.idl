@@ -37,10 +37,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsISupports.idl"
-
+	
 interface nsIDOMNode;
 interface nsIAccessibleDocument;
-interface nsIDOMCSSPrimitiveValue;
 
 /**
  * An interface used by in-process accessibility clients
@@ -56,7 +55,7 @@ interface nsIDOMCSSPrimitiveValue;
  *
  * @status UNDER_REVIEW
  */
-[scriptable, uuid(71a3b4e7-e83d-45cf-a20e-9ce292bcf19f)]
+[scriptable, uuid(0bd7ccde-486d-483c-a6df-79869cb6647d)]
 interface nsIAccessNode : nsISupports
 {
   /**
@@ -119,22 +118,10 @@ interface nsIAccessNode : nsISupports
   /**
    * Makes an object visible on screen.
    *
-   * @param scrollType - defines where the object should be placed on
-   *                     the screen (see nsIAccessibleScrollType for
-   *                     available constants).
+   * @param topLeft - if false then it will scroll the shortest distance it
+   *                  needs to put the element on-screen.
    */
-  void scrollTo(in unsigned long aScrollType);
-
-  /**
-   * Moves the top left of an object to a specified location.
-   *
-   * @param coordinateType - specifies whether the coordinates are relative to
-   *                         the screen or the parent object (for available
-   *                         constants refer to nsIAccessibleCoordinateType)
-   * @param aX - defines the x coordinate
-   * @param aY - defines the y coordinate
-  */
-  void scrollToPoint(in unsigned long aCoordinateType, in long aX, in long aY);
+  void scrollTo(in boolean aTopLeft);
 
   /**
    * The OS window handle for the window this node
@@ -159,17 +146,4 @@ interface nsIAccessNode : nsISupports
    *                     for example "border-bottom".
    */
   DOMString getComputedStyleValue(in DOMString pseudoElt, in DOMString propertyName);
-
-  /**
-   * The method is similar to getComputedStyleValue() excepting that this one
-   * returns nsIDOMCSSPrimitiveValue.
-   */
-  nsIDOMCSSPrimitiveValue getComputedStyleCSSValue(in DOMString pseudoElt,
-                                                   in DOMString propertyName);
-
-  /**
-   * The language for the current DOM node, e.g. en, de, etc.
-   */
-  readonly attribute DOMString language;
 };
-

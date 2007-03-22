@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '11.8.4.js';
-
 /**
    File Name:          11.8.4.js
    ECMA Section:       11.8.4  The greater-than-or-equal operator ( >= )

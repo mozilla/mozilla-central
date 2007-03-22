@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -24,7 +23,6 @@
  *   David J. Fiddes <D.J.Fiddes@hw.ac.uk>
  *   Vilya Harvey <vilya@nag.co.uk>
  *   Shyjan Mahamud <mahamud@cs.cmu.edu>
- *   Karl Tomlinson <karlt+@karlt.net>, Mozilla Corporation
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -44,6 +42,7 @@
 #include "nsCOMPtr.h"
 #include "nsFrame.h"
 #include "nsPresContext.h"
+#include "nsUnitConversion.h"
 #include "nsStyleContext.h"
 #include "nsStyleConsts.h"
 #include "nsIRenderingContext.h"
@@ -93,7 +92,7 @@ nsMathMLmsqrtFrame::Init(nsIContent*      aContent,
 {
   nsresult rv = nsMathMLContainerFrame::Init(aContent, aParent, aPrevInFlow);
                                              
-  nsPresContext *presContext = PresContext();
+  nsPresContext *presContext = GetPresContext();
 
   // No need to tract the style context given to our MathML char. 
   // The Style System will use Get/SetAdditionalStyleContext() to keep it
@@ -124,7 +123,7 @@ nsMathMLmsqrtFrame::TransmitAutomaticData()
   //    The <msqrt> element leaves both attributes [displaystyle and scriptlevel]
   //    unchanged within all its arguments.
   // 2. The TeXBook (Ch 17. p.141) says that \sqrt is cramped 
-  UpdatePresentationDataFromChildAt(0, -1,
+  UpdatePresentationDataFromChildAt(0, -1, 0,
      NS_MATHML_COMPRESSED,
      NS_MATHML_COMPRESSED);
 
@@ -163,21 +162,19 @@ nsMathMLmsqrtFrame::BuildDisplayList(nsDisplayListBuilder*   aBuilder,
   return rv;
 }
 
-/* virtual */ nsresult
-nsMathMLmsqrtFrame::Place(nsIRenderingContext& aRenderingContext,
-                          PRBool               aPlaceOrigin,
-                          nsHTMLReflowMetrics& aDesiredSize)
+NS_IMETHODIMP
+nsMathMLmsqrtFrame::Reflow(nsPresContext*          aPresContext,
+                           nsHTMLReflowMetrics&     aDesiredSize,
+                           const nsHTMLReflowState& aReflowState,
+                           nsReflowStatus&          aStatus)
 {
   ///////////////
-  // Measure the size of our content using the base class to format like an
-  // inferred mrow.
-  nsHTMLReflowMetrics baseSize;
-  nsresult rv =
-    nsMathMLContainerFrame::Place(aRenderingContext, PR_FALSE, baseSize);
-  if (NS_MATHML_HAS_ERROR(mPresentationData.flags) || NS_FAILED(rv)) {
-    DidReflowChildren(GetFirstChild(nsnull));
-    return rv;
-  }
+  // Let the base class format our content like an inferred mrow
+  nsHTMLReflowMetrics baseSize(aDesiredSize);
+  nsresult rv = nsMathMLContainerFrame::Reflow(aPresContext, baseSize,
+                                               aReflowState, aStatus);
+  //NS_ASSERTION(NS_FRAME_IS_COMPLETE(aStatus), "bad status");
+  if (NS_FAILED(rv)) return rv;
 
   nsBoundingMetrics bmSqr, bmBase;
   bmBase = baseSize.mBoundingMetrics;
@@ -185,22 +182,19 @@ nsMathMLmsqrtFrame::Place(nsIRenderingContext& aRenderingContext,
   ////////////
   // Prepare the radical symbol and the overline bar
 
-  aRenderingContext.SetFont(GetStyleFont()->mFont, nsnull);
+  nsIRenderingContext& renderingContext = *aReflowState.rendContext;
+  renderingContext.SetFont(GetStyleFont()->mFont, nsnull);
   nsCOMPtr<nsIFontMetrics> fm;
-  aRenderingContext.GetFontMetrics(*getter_AddRefs(fm));
+  renderingContext.GetFontMetrics(*getter_AddRefs(fm));
 
-  // For radical glyphs from TeX fonts and some of the radical glyphs from
-  // Mathematica fonts, the thickness of the overline can be obtained from the
-  // ascent of the glyph.  Most fonts however have radical glyphs above the
-  // baseline so no assumption can be made about the meaning of the ascent.
   nscoord ruleThickness, leading, em;
-  GetRuleThickness(aRenderingContext, fm, ruleThickness);
+  GetRuleThickness(renderingContext, fm, ruleThickness);
 
   nsBoundingMetrics bmOne;
-  aRenderingContext.GetBoundingMetrics(NS_LITERAL_STRING("1").get(), 1, bmOne);
+  renderingContext.GetBoundingMetrics(NS_LITERAL_STRING("1").get(), 1, bmOne);
 
   // get the leading to be left at the top of the resulting frame
-  // this seems more reliable than using fm->GetLeading() on suspicious fonts
+  // this seems more reliable than using fm->GetLeading() on suspicious fonts               
   GetEmHeight(fm, em);
   leading = nscoord(0.2f * em); 
 
@@ -217,6 +211,24 @@ nsMathMLmsqrtFrame::Place(nsIRenderingContext& aRenderingContext,
   if (bmOne.ascent > bmBase.ascent)
     psi += bmOne.ascent - bmBase.ascent;
 
+  // Stretch the radical symbol to the appropriate height if it is not big enough.
+  nsBoundingMetrics contSize = bmBase;
+  contSize.ascent = ruleThickness;
+  contSize.descent = bmBase.ascent + bmBase.descent + psi;
+
+  // height(radical) should be >= height(base) + psi + ruleThickness
+  nsBoundingMetrics radicalSize;
+  mSqrChar.Stretch(aPresContext, renderingContext,
+                   NS_STRETCH_DIRECTION_VERTICAL, 
+                   contSize, radicalSize,
+                   NS_STRETCH_LARGER);
+  // radicalSize have changed at this point, and should match with
+  // the bounding metrics of the char
+  mSqrChar.GetBoundingMetrics(bmSqr);
+
+  // According to TeX, the ascent of the returned radical should be
+  // the thickness of the overline
+  ruleThickness = bmSqr.ascent;
   // make sure that the rule appears on the screen
   nscoord onePixel = nsPresContext::CSSPixelsToAppUnits(1);
   if (ruleThickness < onePixel) {
@@ -229,21 +241,6 @@ nsMathMLmsqrtFrame::Place(nsIRenderingContext& aRenderingContext,
   if (delta)
     psi += onePixel - delta; // round up
 
-  // Stretch the radical symbol to the appropriate height if it is not big enough.
-  nsBoundingMetrics contSize = bmBase;
-  contSize.ascent = ruleThickness;
-  contSize.descent = bmBase.ascent + bmBase.descent + psi;
-
-  // height(radical) should be >= height(base) + psi + ruleThickness
-  nsBoundingMetrics radicalSize;
-  mSqrChar.Stretch(PresContext(), aRenderingContext,
-                   NS_STRETCH_DIRECTION_VERTICAL, 
-                   contSize, radicalSize,
-                   NS_STRETCH_LARGER);
-  // radicalSize have changed at this point, and should match with
-  // the bounding metrics of the char
-  mSqrChar.GetBoundingMetrics(bmSqr);
-
   nscoord dx = 0, dy = 0;
   // place the radical symbol and the radical bar
   dy = leading; // leave a leading at the top
@@ -255,8 +252,7 @@ nsMathMLmsqrtFrame::Place(nsIRenderingContext& aRenderingContext,
   // the baseline will be that of the base.
   mBoundingMetrics.ascent = bmBase.ascent + psi + ruleThickness;
   mBoundingMetrics.descent = 
-    PR_MAX(bmBase.descent,
-           (bmSqr.ascent + bmSqr.descent - mBoundingMetrics.ascent));
+    PR_MAX(bmBase.descent, (bmSqr.descent - (bmBase.ascent + psi)));
   mBoundingMetrics.width = bmSqr.width + bmBase.width;
   mBoundingMetrics.leftBearing = bmSqr.leftBearing;
   mBoundingMetrics.rightBearing = bmSqr.width + 
@@ -272,35 +268,22 @@ nsMathMLmsqrtFrame::Place(nsIRenderingContext& aRenderingContext,
   mReference.x = 0;
   mReference.y = aDesiredSize.ascent;
 
-  if (aPlaceOrigin) {
-    //////////////////
-    // Finish reflowing child frames, positioning their origins so as to leave
-    // room for the sqrt char and the overline bar.
-    PositionRowChildFrames(radicalSize.width, aDesiredSize.ascent);
+  //////////////////
+  // Adjust the origins to leave room for the sqrt char and the overline bar
+
+  dx = radicalSize.width;
+  dy = aDesiredSize.ascent - baseSize.ascent;
+  nsIFrame* childFrame = mFrames.FirstChild();
+  while (childFrame) {
+    childFrame->SetPosition(childFrame->GetPosition() + nsPoint(dx, dy));
+    childFrame = childFrame->GetNextSibling();
   }
 
+  aDesiredSize.mBoundingMetrics = mBoundingMetrics;
+  aStatus = NS_FRAME_COMPLETE;
+  NS_FRAME_SET_TRUNCATION(aStatus, aReflowState, aDesiredSize);
   return NS_OK;
 }
-
-/* virtual */ nscoord
-nsMathMLmsqrtFrame::GetIntrinsicWidth(nsIRenderingContext* aRenderingContext)
-{
-  // The child frames form an mrow
-  nscoord width = nsMathMLContainerFrame::GetIntrinsicWidth(aRenderingContext);
-  // Add the width of the radical symbol
-  width += mSqrChar.GetMaxWidth(PresContext(), *aRenderingContext);
-
-  return width;
-}
-
-/* virtual */ nsresult
-nsMathMLmsqrtFrame::MeasureChildFrames(nsIRenderingContext& aRenderingContext,
-                                       nsHTMLReflowMetrics& aDesiredSize)
-{
-  return nsMathMLContainerFrame::Place(aRenderingContext, PR_FALSE,
-                                       aDesiredSize);
-}
-
 
 nscoord
 nsMathMLmsqrtFrame::FixInterFrameSpacing(nsHTMLReflowMetrics& aDesiredSize)

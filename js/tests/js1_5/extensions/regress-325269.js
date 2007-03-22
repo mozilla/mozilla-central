@@ -34,20 +34,18 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-325269.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 325269;
+var bug = 325269;
 var summary = 'GC hazard in js_ConstructObject';
 var actual = 'No Crash';
 var expect = 'No Crash';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
-// only get exit code 3 if out of memory error occurs which
+// only get exit code 3 if out of memory error occurs which 
 // will not happen on machines with enough memory.
 // expectExitCode(3);
- 
+  
 var SavedArray = Array;
 
 function Redirector() { }
@@ -55,39 +53,32 @@ function Redirector() { }
 Redirector.prototype = 1;
 Redirector.__defineGetter__('prototype', function() {
 //        printStatus("REDIRECTOR");
-			      gc();
-			      return SavedArray.prototype;
-			    });
+        gc();
+        return SavedArray.prototype;
+});
 
 //Array = Function('printStatus("Constructor")');
-try {
-    Array = Function('');
-} catch (e) { }
-
-if (Array === SavedArray) {
-  // No test of the hazard possible as the array is read-only
-  actual = expect;
-} else {
-  Array.prototype = 1;
-  Array.__defineGetter__('prototype', function() {
+Array = Function('');
+Array.prototype = 1;
+Array.__defineGetter__('prototype', function() { 
 //        printStatus("**** GETTER ****");
-      Array = Redirector;
-      gc();
-      new Object();
-      new Object();
-      return undefined;
-    });
+        Array = Redirector;
+        gc();
+        new Object();
+        new Object();
+        return undefined;
+});
 
-  new Object();
+new Object();
 
-  try
-  {
-    var y = "test".split('');
-  }
-  catch(ex)
-  {
-    printStatus(ex + '');
-  }
+try
+{
+  var y = "test".split('');
 }
+catch(ex)
+{
+  printStatus(ex + '');
+}
+
 
 reportCompare(expect, actual, summary);

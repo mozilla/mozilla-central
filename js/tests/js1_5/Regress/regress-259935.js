@@ -34,15 +34,13 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-259935.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 259935;
+var bug = 259935;
 var summary = 'document.all can be easily detected';
 var actual = '';
 var expect = 'not detected';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
 if (typeof document == 'undefined')
@@ -51,25 +49,25 @@ if (typeof document == 'undefined')
 }
 
 function foo() {
-  this.ie = document.all;
+    this.ie = document.all;
 }
 
 var f = new foo();
 
 if (f.ie) {
-  actual = 'detected';
+    actual = 'detected';
 } else {
-  actual = 'not detected';
+    actual = 'not detected';
 }
- 
+  
 reportCompare(expect, actual, summary);
 
 f = {ie: document.all};
 
 if (f.ie) {
-  actual = 'detected';
+    actual = 'detected';
 } else {
-  actual = 'not detected';
+    actual = 'not detected';
 }
- 
+  
 reportCompare(expect, actual, summary);

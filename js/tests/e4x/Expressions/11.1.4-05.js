@@ -35,15 +35,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '11.1.4-05.js';
+START("11.1.4 - XML Initializer - Comment hiding parsing/scanning");
 
-var summary = "11.1.4 - XML Initializer - Comment hiding parsing/scanning";
-var BUGNUMBER = 311157;
+var bug = 311157;
+var summary = 'Comment-hiding compromise left E4X parsing/scanning inconsistent';
 var actual;
 var expect;
 
-printBugNumber(BUGNUMBER);
-START(summary);
+printBugNumber (bug);
+printStatus (summary);
 
 XML.ignoreWhitespace = false;
 

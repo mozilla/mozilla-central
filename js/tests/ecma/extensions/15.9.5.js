@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '15.9.5.js';
-
 /**
    File Name:          15.9.5.js
    ECMA Section:       15.9.5 Properties of the Date prototype object

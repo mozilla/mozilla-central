@@ -35,80 +35,67 @@
 # ***** END LICENSE BLOCK *****
 
 
-/**
- * lang.js - Some missing JavaScript language features
- */
+// Firefox-specific additions to lib/js/lang.js.
+
 
 /**
- * Partially applies a function to a particular "this object" and zero or
- * more arguments. The result is a new function with some arguments of the first
- * function pre-filled and the value of |this| "pre-specified".
+ * The always-useful alert. 
+ */
+function alert(msg, opt_title) {
+  opt_title |= "message";
+
+  Cc["@mozilla.org/embedcomp/prompt-service;1"]
+    .getService(Ci.nsIPromptService)
+    .alert(null, opt_title, msg.toString());
+}
+
+
+/**
+ * The instanceof operator cannot be used on a pure js object to determine if 
+ * it implements a certain xpcom interface. The QueryInterface method can, but
+ * it throws an error which makes things more complex.
+ */
+function jsInstanceOf(obj, iid) {
+  try {
+    obj.QueryInterface(iid);
+    return true;
+  } catch (e) {
+    if (e == Components.results.NS_ERROR_NO_INTERFACE) {
+      return false;
+    } else {
+      throw e;
+    }
+  }
+}
+
+
+/**
+ * Unbelievably, Function inheritence is broken in chrome in Firefox
+ * (still as of FFox 1.5b1). Hence if you're working in an extension
+ * and not using the subscriptloader, you can't use the method
+ * above. Instead, use this global function that does roughly the same
+ * thing.
  *
- * Remaining arguments specified at call-time are appended to the pre-
- * specified ones.
+ ***************************************************************************
+ *   NOTE THE REVERSED ORDER OF FUNCTION AND OBJECT REFERENCES AS bind()   *
+ ***************************************************************************
+ * 
+ * // Example to bind foo.bar():
+ * var bound = BindToObject(bar, foo, "arg1", "arg2");
+ * bound("arg3", "arg4");
+ * 
+ * @param func {string} Reference to the function to be bound
  *
- * Usage:
- * var barMethBound = BindToObject(myFunction, myObj, "arg1", "arg2");
- * barMethBound("arg3", "arg4");
- *
- * @param fn {string} Reference to the function to be bound
- *
- * @param self {object} Specifies the object which |this| should point to
+ * @param obj {object} Specifies the object which |this| should point to
  * when the function is run. If the value is null or undefined, it will default
  * to the global object.
  *
+ * @param opt_{...} Dummy optional arguments to make a jscompiler happy
+ *
  * @returns {function} A partially-applied form of the speficied function.
  */
-function BindToObject(fn, self, opt_args) {
-  var boundargs = fn.boundArgs_ || [];
-  boundargs = boundargs.concat(Array.slice(arguments, 2, arguments.length));
-
-  if (fn.boundSelf_)
-    self = fn.boundSelf_;
-  if (fn.boundFn_)
-    fn = fn.boundFn_;
-
-  var newfn = function() {
-    // Combine the static args and the new args into one big array
-    var args = boundargs.concat(Array.slice(arguments));
-    return fn.apply(self, args);
-  }
-
-  newfn.boundArgs_ = boundargs;
-  newfn.boundSelf_ = self;
-  newfn.boundFn_ = fn;
-
-  return newfn;
-}
-
-/**
- * Inherit the prototype methods from one constructor into another.
- *
- * Usage:
- *
- * function ParentClass(a, b) { }
- * ParentClass.prototype.foo = function(a) { }
- *
- * function ChildClass(a, b, c) {
- *   ParentClass.call(this, a, b);
- * }
- *
- * ChildClass.inherits(ParentClass);
- *
- * var child = new ChildClass("a", "b", "see");
- * child.foo(); // works
- *
- * In addition, a superclass' implementation of a method can be invoked
- * as follows:
- *
- * ChildClass.prototype.foo = function(a) {
- *   ChildClass.superClass_.foo.call(this, a);
- *   // other code
- * };
- */
-Function.prototype.inherits = function(parentCtor) {
-  var tempCtor = function(){};
-  tempCtor.prototype = parentCtor.prototype;
-  this.superClass_ = parentCtor.prototype;
-  this.prototype = new tempCtor();
+function BindToObject(func, obj, opt_A, opt_B, opt_C, opt_D, opt_E, opt_F) {
+  // This is the sick product of Aaron's mind. Not for the feint of heart.
+  var args = Array.prototype.splice.call(arguments, 1, arguments.length);
+  return Function.prototype.bind.apply(func, args);
 }

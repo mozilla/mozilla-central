@@ -36,14 +36,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'regress-350442.js';
-
-var BUGNUMBER = 350442;
+var bug = 350442;
 var summary = 'toXMLString with namespace definitions';
 var actual, expect;
 
-printBugNumber(BUGNUMBER);
-START(summary);
+printBugNumber (bug);
+printStatus (summary);
 
 expect = false;
 actual = false;

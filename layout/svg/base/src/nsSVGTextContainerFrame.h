@@ -53,7 +53,7 @@ public:
   nsSVGTextContainerFrame(nsStyleContext* aContext) :
     nsSVGDisplayContainerFrame(aContext) {}
 
-  void NotifyGlyphMetricsChange();
+  void UpdateGraphic();
   NS_IMETHOD_(already_AddRefed<nsIDOMSVGLengthList>) GetX();
   NS_IMETHOD_(already_AddRefed<nsIDOMSVGLengthList>) GetY();
   NS_IMETHOD_(already_AddRefed<nsIDOMSVGLengthList>) GetDx();
@@ -61,15 +61,13 @@ public:
   
    // nsISupports interface:
   NS_IMETHOD QueryInterface(const nsIID& aIID, void** aInstancePtr);
+
 private:
-  NS_IMETHOD_(nsrefcnt) AddRef() { return 1; }
-  NS_IMETHOD_(nsrefcnt) Release() { return 1; }
+  NS_IMETHOD_(nsrefcnt) AddRef() { return NS_OK; }
+  NS_IMETHOD_(nsrefcnt) Release() { return NS_OK; }  
 
 public:
   // nsIFrame
-  NS_IMETHOD InsertFrames(nsIAtom*        aListName,
-                          nsIFrame*       aPrevFrame,
-                          nsIFrame*       aFrameList);
   NS_IMETHOD RemoveFrame(nsIAtom *aListName, nsIFrame *aOldFrame);
 
   // nsISVGTextContentMetrics

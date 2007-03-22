@@ -65,13 +65,14 @@
 #include "nsIPrivateDOMEvent.h"
 #include "nsIDOMEventTarget.h"
 #include "nsIDOMXULElement.h"
-#include "nsPIDOMWindow.h"
+#include "nsIDOMWindowInternal.h"
 #include "nsIDOMScreen.h"
 #include "nsIEmbeddingSiteWindow.h"
 #include "nsIEmbeddingSiteWindow2.h"
 #include "nsIInterfaceRequestor.h"
 #include "nsIInterfaceRequestorUtils.h"
 #include "nsIIOService.h"
+#include "nsNetCID.h"
 #include "nsIJSContextStack.h"
 #include "nsIMarkupDocumentViewer.h"
 #include "nsIObserverService.h"
@@ -107,6 +108,9 @@
 #define HEIGHT_ATTRIBUTE   NS_LITERAL_STRING("height")
 #define MODE_ATTRIBUTE     NS_LITERAL_STRING("sizemode")
 #define ZLEVEL_ATTRIBUTE   NS_LITERAL_STRING("zlevel")
+// CIDs
+static NS_DEFINE_CID(kAppShellCID, NS_APPSHELL_CID);
+static NS_DEFINE_CID(kWindowMediatorCID, NS_WINDOWMEDIATOR_CID);
 
 //*****************************************************************************
 //***    nsXULWindow: Object Management
@@ -152,7 +156,7 @@ NS_INTERFACE_MAP_BEGIN(nsXULWindow)
   NS_INTERFACE_MAP_ENTRY(nsIInterfaceRequestor)
   NS_INTERFACE_MAP_ENTRY(nsISupportsWeakReference)
   if (aIID.Equals(NS_GET_IID(nsXULWindow)))
-    foundInterface = reinterpret_cast<nsISupports*>(this);
+    foundInterface = NS_REINTERPRET_CAST(nsISupports*, this);
   else
 NS_INTERFACE_MAP_END
 
@@ -176,9 +180,6 @@ NS_IMETHODIMP nsXULWindow::GetInterface(const nsIID& aIID, void** aSink)
     if (NS_FAILED(rv)) return rv;
     return mAuthPrompter->QueryInterface(aIID, aSink);
   }
-  if (aIID.Equals(NS_GET_IID(nsIDOMWindowInternal))) {
-    return GetWindowDOMWindow(reinterpret_cast<nsIDOMWindowInternal**>(aSink));
-  }   
   if (aIID.Equals(NS_GET_IID(nsIWebBrowserChrome)) && 
     NS_SUCCEEDED(EnsureContentTreeOwner()) &&
     NS_SUCCEEDED(mContentTreeOwner->QueryInterface(aIID, aSink)))
@@ -211,7 +212,7 @@ NS_IMETHODIMP nsXULWindow::GetDocShell(nsIDocShell** aDocShell)
 
 NS_IMETHODIMP nsXULWindow::GetZLevel(PRUint32 *outLevel)
 {
-  nsCOMPtr<nsIWindowMediator> mediator(do_GetService(NS_WINDOWMEDIATOR_CONTRACTID));
+  nsCOMPtr<nsIWindowMediator> mediator(do_GetService(kWindowMediatorCID));
   if (mediator)
     mediator->GetZLevel(this, outLevel);
   else
@@ -221,7 +222,7 @@ NS_IMETHODIMP nsXULWindow::GetZLevel(PRUint32 *outLevel)
 
 NS_IMETHODIMP nsXULWindow::SetZLevel(PRUint32 aLevel)
 {
-  nsCOMPtr<nsIWindowMediator> mediator(do_GetService(NS_WINDOWMEDIATOR_CONTRACTID));
+  nsCOMPtr<nsIWindowMediator> mediator(do_GetService(kWindowMediatorCID));
   if (!mediator)
     return NS_ERROR_FAILURE;
 
@@ -392,7 +393,7 @@ NS_IMETHODIMP nsXULWindow::ShowModal()
   nsCOMPtr<nsIAppShellService> appShellService(do_GetService(NS_APPSHELLSERVICE_CONTRACTID));
   if (appShellService)
       appShellService->TopLevelWindowIsModal(
-                         static_cast<nsIXULWindow*>(this), PR_TRUE);
+                         NS_STATIC_CAST(nsIXULWindow*, this), PR_TRUE);
 
   nsCOMPtr<nsIJSContextStack> stack(do_GetService("@mozilla.org/js/xpc/ContextStack;1"));
   if (stack && NS_SUCCEEDED(stack->Push(nsnull))) {
@@ -410,7 +411,7 @@ NS_IMETHODIMP nsXULWindow::ShowModal()
   window->SetModal(PR_FALSE);
   if (appShellService)
       appShellService->TopLevelWindowIsModal(
-                         static_cast<nsIXULWindow*>(this), PR_FALSE);
+                         NS_STATIC_CAST(nsIXULWindow*, this), PR_FALSE);
   /*   Note there's no EnableParent(PR_TRUE) here to match the PR_FALSE one
      above. That's done in ExitModalLoop. It's important that the parent
      be re-enabled before this window is made invisible; to do otherwise
@@ -453,7 +454,7 @@ NS_IMETHODIMP nsXULWindow::Destroy()
   nsCOMPtr<nsIAppShellService> appShell(do_GetService(NS_APPSHELLSERVICE_CONTRACTID));
   NS_ASSERTION(appShell, "Couldn't get appShell... xpcom shutdown?");
   if (appShell)
-    appShell->UnregisterTopLevelWindow(static_cast<nsIXULWindow*>(this));
+    appShell->UnregisterTopLevelWindow(NS_STATIC_CAST(nsIXULWindow*, this));
 
   nsCOMPtr<nsIXULWindow> parentWindow(do_QueryReferent(mParentWindow));
   if (parentWindow)
@@ -511,7 +512,7 @@ NS_IMETHODIMP nsXULWindow::Destroy()
   count = mContentShells.Count();
   for (PRInt32 i = 0; i < count; i++) {
     nsContentShellInfo* shellInfo =
-        static_cast<nsContentShellInfo *>(mContentShells.ElementAt(i));
+        NS_STATIC_CAST(nsContentShellInfo *, mContentShells.ElementAt(i));
     delete shellInfo;
   }
   mContentShells.Clear();
@@ -764,9 +765,9 @@ NS_IMETHODIMP nsXULWindow::SetVisibility(PRBool aVisibility)
   shellAsWin->SetVisibility(aVisibility);
   mWindow->Show(aVisibility);
 
-  nsCOMPtr<nsIWindowMediator> windowMediator(do_GetService(NS_WINDOWMEDIATOR_CONTRACTID));
+  nsCOMPtr<nsIWindowMediator> windowMediator(do_GetService(kWindowMediatorCID));
   if (windowMediator)
-     windowMediator->UpdateWindowTimeStamp(static_cast<nsIXULWindow*>(this));
+     windowMediator->UpdateWindowTimeStamp(NS_STATIC_CAST(nsIXULWindow*, this));
 
   // notify observers so that we can hide the splash screen if possible
   nsCOMPtr<nsIObserverService> obssvc
@@ -858,11 +859,11 @@ NS_IMETHODIMP nsXULWindow::SetTitle(const PRUnichar* aTitle)
   NS_ENSURE_SUCCESS(mWindow->SetTitle(mTitle), NS_ERROR_FAILURE);
 
   // Tell the window mediator that a title has changed
-  nsCOMPtr<nsIWindowMediator> windowMediator(do_GetService(NS_WINDOWMEDIATOR_CONTRACTID));
+  nsCOMPtr<nsIWindowMediator> windowMediator(do_GetService(kWindowMediatorCID));
   if(!windowMediator)
     return NS_OK;
 
-  windowMediator->UpdateWindowTitle(static_cast<nsIXULWindow*>(this), aTitle);
+  windowMediator->UpdateWindowTitle(NS_STATIC_CAST(nsIXULWindow*, this), aTitle);
 
   return NS_OK;
 }
@@ -1065,10 +1066,8 @@ PRBool nsXULWindow::LoadPositionFromXUL()
         specX += parentX;
         specY += parentY;
       }
-    }
-    else {
+    } else
       StaggerPosition(specX, specY, currWidth, currHeight);
-    }
   }
   mWindow->ConstrainPosition(PR_FALSE, &specX, &specY);
   if (specX != currX || specY != currY)
@@ -1261,7 +1260,8 @@ void nsXULWindow::StaggerPosition(PRInt32 &aRequestedX, PRInt32 &aRequestedY,
     }
   }
 
-  // One full pass through all windows of this type, repeat until no collisions.
+  // one full pass through all windows of this type. repeat until
+  // no collisions.
   do {
     keepTrying = PR_FALSE;
     nsCOMPtr<nsISimpleEnumerator> windowList;
@@ -1270,9 +1270,11 @@ void nsXULWindow::StaggerPosition(PRInt32 &aRequestedX, PRInt32 &aRequestedY,
     if (!windowList)
       break;
 
-    // One full pass through all windows of this type, offset and stop on collision.
+    // one full pass through all windows of this type. offset and stop
+    // on collision.
     do {
       PRBool more;
+      PRInt32 listX, listY;
       windowList->HasMoreElements(&more);
       if (!more)
         break;
@@ -1281,13 +1283,13 @@ void nsXULWindow::StaggerPosition(PRInt32 &aRequestedX, PRInt32 &aRequestedY,
       windowList->GetNext(getter_AddRefs(supportsWindow));
 
       nsCOMPtr<nsIXULWindow> listXULWindow(do_QueryInterface(supportsWindow));
+      nsCOMPtr<nsIBaseWindow> listBaseWindow(do_QueryInterface(supportsWindow));
+
       if (listXULWindow != ourXULWindow) {
-        PRInt32 listX, listY;
-        nsCOMPtr<nsIBaseWindow> listBaseWindow(do_QueryInterface(supportsWindow));
         listBaseWindow->GetPosition(&listX, &listY);
 
-        if (PR_ABS(listX - aRequestedX) <= kSlop &&
-            PR_ABS(listY - aRequestedY) <= kSlop) {
+        if (PR_ABS(listX-aRequestedX) <= kSlop &&
+            PR_ABS(listY-aRequestedY) <= kSlop) {
           // collision! offset and start over
           if (bouncedX & 0x1)
             aRequestedX -= kOffset;
@@ -1296,19 +1298,16 @@ void nsXULWindow::StaggerPosition(PRInt32 &aRequestedX, PRInt32 &aRequestedY,
           aRequestedY += kOffset;
 
           if (gotScreen) {
-            // if we're moving to the right and we need to bounce...
-            if (!(bouncedX & 0x1) && ((aRequestedX + aSpecWidth) > screenRight)) {
+            // bounce off left and right edges
+            if (!(bouncedX & 0x1) && aRequestedX + aSpecWidth > screenRight) {
               aRequestedX = screenRight - aSpecWidth;
               ++bouncedX;
             }
-
-            // if we're moving to the left and we need to bounce...
             if ((bouncedX & 0x1) && aRequestedX < screenLeft) {
               aRequestedX = screenLeft;
               ++bouncedX;
             }
-
-            // if we hit the bottom then bounce to the top
+            // hit the bottom and start again at the top
             if (aRequestedY + aSpecHeight > screenBottom) {
               aRequestedY = screenTop;
               ++bouncedY;
@@ -1504,7 +1503,7 @@ NS_IMETHODIMP nsXULWindow::SavePersistentAttributes()
     }
     if (persistString.Find("zlevel") >= 0) {
       PRUint32 zLevel;
-      nsCOMPtr<nsIWindowMediator> mediator(do_GetService(NS_WINDOWMEDIATOR_CONTRACTID));
+      nsCOMPtr<nsIWindowMediator> mediator(do_GetService(kWindowMediatorCID));
       if (mediator) {
         mediator->GetZLevel(this, &zLevel);
         PR_snprintf(sizeBuf, sizeof(sizeBuf), "%lu", (unsigned long)zLevel);
@@ -1635,23 +1634,8 @@ nsresult nsXULWindow::ContentShellAdded(nsIDocShellTreeItem* aContentShell,
     }
 #endif
     
-    // put the new shell at the start of the targetable shells list if either
-    // it's the new primary shell or there is no existing primary shell (which
-    // means that chances are this one just stopped being primary).  If we
-    // really cared, we could keep track of the "last no longer primary shell"
-    // explicitly, but it probably doesn't matter enough: the difference would
-    // only be felt in a situation where all shells were non-primary, which
-    // doesn't happen much.  In a situation where there is one and only one
-    // primary shell, and in which shells get unmarked as primary before some
-    // other shell gets marked as primary, this effectively stores the list of
-    // targetable shells in "most recently primary first" order.
-    PRBool inserted;
-    if (aPrimary || !mPrimaryContentShell) {
-      inserted = mTargetableShells.InsertObjectAt(contentShellWeak, 0);
-    } else {
-      inserted = mTargetableShells.AppendObject(contentShellWeak);
-    }
-    NS_ENSURE_TRUE(inserted, NS_ERROR_OUT_OF_MEMORY);
+    NS_ENSURE_TRUE(mTargetableShells.AppendObject(contentShellWeak),
+                   NS_ERROR_OUT_OF_MEMORY);
   }
 
   return NS_OK;
@@ -1810,9 +1794,9 @@ NS_IMETHODIMP nsXULWindow::CreateNewContentWindow(PRInt32 aChromeFlags,
   newWindow->SetChromeFlags(aChromeFlags);
 
   // Specify that we want the window to remain locked until the chrome has loaded.
-  nsXULWindow *xulWin = static_cast<nsXULWindow*>
-                                   (static_cast<nsIXULWindow*>
-                                               (newWindow));
+  nsXULWindow *xulWin = NS_STATIC_CAST(nsXULWindow*,
+                                      NS_STATIC_CAST(nsIXULWindow*,
+                                                     newWindow));
 
   xulWin->LockUntilChromeLoad();
 
@@ -1865,7 +1849,7 @@ PRBool nsXULWindow::ConstrainToZLevel(
     return PR_FALSE;
 #endif
 
-  nsCOMPtr<nsIWindowMediator> mediator(do_GetService(NS_WINDOWMEDIATOR_CONTRACTID));
+  nsCOMPtr<nsIWindowMediator> mediator(do_GetService(kWindowMediatorCID));
   if(!mediator)
     return PR_FALSE;
 
@@ -1911,7 +1895,7 @@ PRBool nsXULWindow::ConstrainToZLevel(
         *aPlacement = nsWindowZRelative;
 
       if (aImmediate) {
-        nsCOMPtr<nsIBaseWindow> ourBase = do_QueryInterface(static_cast<nsIXULWindow *>(this));
+        nsCOMPtr<nsIBaseWindow> ourBase = do_QueryInterface(NS_STATIC_CAST(nsIXULWindow *,this));
         if (ourBase) {
           nsCOMPtr<nsIWidget> ourWidget;
           ourBase->GetMainWidget(getter_AddRefs(ourWidget));
@@ -1931,7 +1915,7 @@ PRBool nsXULWindow::ConstrainToZLevel(
       void *data;
       (*aActualBelow)->GetClientData(data);
       if (data) {
-        windowAbove = reinterpret_cast<nsWebShellWindow*>(data);
+        windowAbove = NS_REINTERPRET_CAST(nsWebShellWindow*, data);
       }
     }
 
@@ -1955,7 +1939,7 @@ void nsXULWindow::PlaceWindowLayersBehind(PRUint32 aLowLevel,
 
   // step through windows in z-order from top to bottommost window
 
-  nsCOMPtr<nsIWindowMediator> mediator(do_GetService(NS_WINDOWMEDIATOR_CONTRACTID));
+  nsCOMPtr<nsIWindowMediator> mediator(do_GetService(kWindowMediatorCID));
   if(!mediator)
     return;
 
@@ -2010,25 +1994,16 @@ void nsXULWindow::SetContentScrollbarVisibility(PRBool aVisible)
 
 PRBool nsXULWindow::GetContentScrollbarVisibility()
 {
-  // This code already exists in dom/src/base/nsBarProp.cpp, but we
-  // can't safely get to that from here as this function is called
-  // while the DOM window is being set up, and we need the DOM window
-  // to get to that code.
-  nsCOMPtr<nsIScrollable> scroller(do_QueryInterface(mPrimaryContentShell));
+  PRBool visible = PR_TRUE;
 
-  if (scroller) {
-    PRInt32 prefValue;
-    scroller->GetDefaultScrollbarPreferences(
-                  nsIScrollable::ScrollOrientation_Y, &prefValue);
-    if (prefValue == nsIScrollable::Scrollbar_Never) // try the other way
-      scroller->GetDefaultScrollbarPreferences(
-                  nsIScrollable::ScrollOrientation_X, &prefValue);
-
-    if (prefValue == nsIScrollable::Scrollbar_Never)
-      return PR_FALSE;
+  nsCOMPtr<nsIDOMWindow> contentWin(do_GetInterface(mPrimaryContentShell));
+  if (contentWin) {
+    nsCOMPtr<nsIDOMBarProp> scrollbars;
+    contentWin->GetScrollbars(getter_AddRefs(scrollbars));
+    if (scrollbars)
+      scrollbars->GetVisible(&visible);
   }
-
-  return PR_TRUE;
+  return visible;
 }
 
 // during spinup, attributes that haven't been loaded yet can't be dirty

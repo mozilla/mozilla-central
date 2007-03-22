@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'octal.js';
-
 /**
    Filename:     octal.js
    Description:  'Tests regular expressions containing \<number> '

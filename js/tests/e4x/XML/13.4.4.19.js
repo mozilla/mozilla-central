@@ -40,12 +40,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '13.4.4.19.js';
-
 START("13.4.4.19 - insertChildBefore()");
 
 TEST(1, true, XML.prototype.hasOwnProperty("insertChildBefore"));
-   
+    
 x =
 <alpha>
     <bravo>one</bravo>

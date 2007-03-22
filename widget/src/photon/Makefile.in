@@ -80,6 +80,11 @@ CPPSRCS		= \
 		nsSound.cpp \
 		$(NULL)
 
+ifdef MOZ_ENABLE_XREMOTE
+REQUIRES += xremoteservice
+CPPSRCS += nsPhMozRemoteHelper.cpp
+endif
+
 # always include the PHOTON_DND in the build - the bookmarks in firefox require it
 PHOTON_DND=1
 ifdef PHOTON_DND
@@ -103,4 +108,4 @@ CXXFLAGS += -DPHOTON_DND
 endif
 
 export::
-	$(INSTALL) $(srcdir)/nsClipboard.h $(DIST)/include/widget
+	$(INSTALL) nsClipboard.h $(DIST)/include/widget

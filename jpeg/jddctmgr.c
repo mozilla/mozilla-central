@@ -19,9 +19,7 @@
 #include "jinclude.h"
 #include "jpeglib.h"
 #include "jdct.h"		/* Private declarations for DCT subsystem */
-#ifdef HAVE_SSE2_INTRINSICS
 extern int SSE2Available;
-#endif
 
 /*
  * The decompressor input side (jdinput.c) saves away the appropriate

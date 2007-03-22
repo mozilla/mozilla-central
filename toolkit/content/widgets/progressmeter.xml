@@ -16,16 +16,15 @@
     </content>
     
     <implementation implements="nsIAccessibleProvider">
+      <property name="label" onset="if (this.label != val) this.setAttribute('label',val); return val;"
+                                      onget="return this.getAttribute('label');"/>
+
       <property name="mode" onset="if (this.mode != val) this.setAttribute('mode', val); return val;"
                             onget="return this.getAttribute('mode');"/>
 
-      <property name="value" onget="return this.getAttribute('value') || '0';">
+      <property name="value" onget="return this.getAttribute('value');">
         <setter><![CDATA[
           var p = Math.round(val);
-          if (p < 0)
-            p = 0;
-          else if (p > 100)
-            p = 100;
           var c = this.value; 
           if (p != c) {
             var delta = p - c;
@@ -40,7 +39,7 @@
             }
           }
           
-          return val;
+          return p;
         ]]></setter>
       </property>
 
@@ -63,12 +62,10 @@
     </content>
 
     <implementation>
-      <field name="_alive">true</field>
-      <method name="_init">
+      <method name="init">
         <body><![CDATA[
           var stack = document.getAnonymousElementByAttribute(this, "anonid", "stack");
           var spacer = document.getAnonymousElementByAttribute(this, "anonid", "spacer");
-          var self = this;
 
           var isLTR = 
            document.defaultView.getComputedStyle(this, null).direction == "ltr";
@@ -76,14 +73,7 @@
           var position = isLTR ? 4 : -1;
           var interval = setInterval(function nextStep() {
             try {
-              var width = stack.boxObject.width;
-              if (!width) {
-                // Maybe we've been removed from the document.
-                if (!self._alive)
-                  clearInterval(interval);
-                return;
-              }
-              width = width >> 2;
+              var width = stack.boxObject.width >> 2;
               spacer.height = stack.boxObject.height;
               spacer.width = width;
               spacer.left = width * position;
@@ -104,42 +94,7 @@
         ]]></body>
       </method>
 
-      <constructor>this._init();</constructor>
-    </implementation>
-  </binding>
-
-  <binding id="progressmeter-periodic-redraw"
-           extends="chrome://global/content/bindings/progressmeter.xml#progressmeter">
-    <content>
-      <xul:spacer anonid="visibility-detector" flex="1"/>
-    </content>
-    <implementation>
-      <field name="_alive">true</field>
-      <method name="_init">
-        <body><![CDATA[
-          var step = 0;
-          var self = this;
-          var spacer = document.getAnonymousElementByAttribute(this, "anonid", "visibility-detector");
-          var interval = setInterval(function nextStep() {
-            try {
-              // Only bother redrawing when we're visible
-              var width = spacer.boxObject.width;
-              if (!width) {
-                // Maybe we've been removed from the document.
-                if (!self._alive)
-                  clearInterval(interval);
-                return;
-              }
-              // Trigger redraw by changing the step attribute
-              step = 1 - step;
-              self.setAttribute('step', step);
-            } catch (e) {
-              clearInterval(interval);
-            }
-          }, 1000/30);
-        ]]></body>
-      </method>
-      <constructor>this._init();</constructor>
+      <constructor>this.init();</constructor>
     </implementation>
   </binding>
 

@@ -177,12 +177,6 @@ NS_IMETHODIMP nsFileResult::GetStyleAt(PRInt32 index, nsAString & aStyle)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsFileResult::GetImageAt(PRInt32 index, nsAString & aImage)
-{
-  aImage.Truncate();
-  return NS_OK;
-}
-
 NS_IMETHODIMP nsFileResult::RemoveValueAt(PRInt32 rowIndex, PRBool removeFromDb)
 {
   return NS_OK;
@@ -286,7 +280,7 @@ nsFileView::~nsFileView()
 {
   PRInt32 count = mCurrentFilters.Count();
   for (PRInt32 i = 0; i < count; ++i)
-    NS_Free(mCurrentFilters[i]);
+    PR_Free(mCurrentFilters[i]);
 }
 
 nsresult
@@ -458,47 +452,28 @@ nsFileView::SetDirectory(nsIFile* aDirectory)
 }
 
 NS_IMETHODIMP
-nsFileView::SetFilter(const nsAString& aFilterString)
+nsFileView::SetFilter(const PRUnichar* aFilterString)
 {
   PRInt32 filterCount = mCurrentFilters.Count();
   for (PRInt32 i = 0; i < filterCount; ++i)
-    NS_Free(mCurrentFilters[i]);
+    PR_Free(mCurrentFilters[i]);
   mCurrentFilters.Clear();
+  
+  const PRUnichar* chr, *aPos = aFilterString;
+  for (chr = aFilterString; *chr; ++chr) {
+    if (*chr == ';') {
+      PRUnichar* aNewString = nsCRT::strndup(aPos, (chr - aPos));
+      mCurrentFilters.AppendElement(aNewString);
 
-  nsAString::const_iterator start, iter, end;
-  aFilterString.BeginReading(iter);
-  aFilterString.EndReading(end);
-
-  while (PR_TRUE) {
-    // skip over delimiters
-    while (iter != end && (*iter == ';' || *iter == ' '))
-      ++iter;
-
-    if (iter == end)
-      break;
-
-    start = iter; // start of a filter
-
-    // we know this is neither ';' nor ' ', skip to next char
-    ++iter;
-
-    // find next delimiter or end of string
-    while (iter != end && (*iter != ';' && *iter != ' '))
-      ++iter;
-
-    PRUnichar* filter = ToNewUnicode(Substring(start, iter));
-    if (!filter)
-      return NS_ERROR_OUT_OF_MEMORY;
-
-    if (!mCurrentFilters.AppendElement(filter)) {
-      NS_Free(filter);
-      return NS_ERROR_OUT_OF_MEMORY;
+      // ; will be followed by a space, and then the next filter
+      chr += 2;
+      aPos = chr;
     }
+  }
 
-    if (iter == end)
-      break;
-
-    ++iter; // we know this is either ';' or ' ', skip to next char
+  if ((aPos < chr) && *aPos) {
+    PRUnichar* aNewString = nsCRT::strndup(aPos, (chr - aPos));
+    mCurrentFilters.AppendElement(aNewString);
   }
 
   if (mTree) {
@@ -897,8 +872,8 @@ nsFileView::ReverseArray(nsISupportsArray* aArray)
 PR_STATIC_CALLBACK(int)
 SortNameCallback(const void* aElement1, const void* aElement2, void* aContext)
 {
-  nsIFile* file1 = *static_cast<nsIFile* const *>(aElement1);
-  nsIFile* file2 = *static_cast<nsIFile* const *>(aElement2);
+  nsIFile* file1 = *NS_STATIC_CAST(nsIFile* const *, aElement1);
+  nsIFile* file2 = *NS_STATIC_CAST(nsIFile* const *, aElement2);
   
   nsAutoString leafName1, leafName2;
   file1->GetLeafName(leafName1);
@@ -910,8 +885,8 @@ SortNameCallback(const void* aElement1, const void* aElement2, void* aContext)
 PR_STATIC_CALLBACK(int)
 SortSizeCallback(const void* aElement1, const void* aElement2, void* aContext)
 {
-  nsIFile* file1 = *static_cast<nsIFile* const *>(aElement1);
-  nsIFile* file2 = *static_cast<nsIFile* const *>(aElement2);
+  nsIFile* file1 = *NS_STATIC_CAST(nsIFile* const *, aElement1);
+  nsIFile* file2 = *NS_STATIC_CAST(nsIFile* const *, aElement2);
 
   PRInt64 size1, size2;
   file1->GetFileSize(&size1);
@@ -926,8 +901,8 @@ SortSizeCallback(const void* aElement1, const void* aElement2, void* aContext)
 PR_STATIC_CALLBACK(int)
 SortDateCallback(const void* aElement1, const void* aElement2, void* aContext)
 {
-  nsIFile* file1 = *static_cast<nsIFile* const *>(aElement1);
-  nsIFile* file2 = *static_cast<nsIFile* const *>(aElement2);
+  nsIFile* file1 = *NS_STATIC_CAST(nsIFile* const *, aElement1);
+  nsIFile* file2 = *NS_STATIC_CAST(nsIFile* const *, aElement2);
 
   PRInt64 time1, time2;
   file1->GetLastModifiedTime(&time1);

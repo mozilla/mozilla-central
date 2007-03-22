@@ -43,9 +43,9 @@ Steps
 2) Build 
 3) Source
 4) Repack
-5) Sign
-6) Updates
-7) Stage
+5) Updates
+6) Stage
+7) Sign
    
 Details
 -----------------
@@ -62,8 +62,6 @@ Repack
   repack l10n, uses en-US build (based on tag)
   push to stage
   announce
-Sign
-  manual
 Updates
   uses patcher
   generate partials and AUS config ("snippets")
@@ -74,3 +72,5 @@ Stage
   create release directory/filename structure
   merge updates
   announce
+Sign
+  manual

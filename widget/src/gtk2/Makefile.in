@@ -15,7 +15,7 @@
 # The Original Code is mozilla.org code.
 #
 # The Initial Developer of the Original Code is
-# Christopher Blizzard.
+# Christopher Blizzard. Portions created by Christopher Blizzard are Copyright (C) Christopher Blizzard.  All Rights Reserved.
 # Portions created by the Initial Developer are Copyright (C) 2001
 # the Initial Developer. All Rights Reserved.
 #
@@ -59,7 +59,6 @@ REQUIRES	= xpcom \
 		  gfx \
 		  pref \
 		  dom \
-		  docshell \
 		  necko \
 		  uconv \
 		  intl \
@@ -70,12 +69,14 @@ REQUIRES	= xpcom \
 		  layout \
 		  util \
 		  locale \
-		  thebes \
-		  cairo \
 		  $(NULL)
+
+ifeq ($(MOZ_ENABLE_CAIRO_GFX),1)
+REQUIRES += thebes cairo
 
 ifeq ($(MOZ_ENABLE_GLITZ),1)
 REQUIRES += glitz glitzglx
+endif
 endif
 
 CSRCS		= \
@@ -109,9 +110,10 @@ CPPSRCS		= \
 		nsPrintOptionsGTK.cpp \
 		nsImageToPixbuf.cpp \
 		nsAccessibilityHelper.cpp \
+		nsPrintJobFactoryGTK.cpp \
+		nsPrintJobGTK.cpp \
+		nsTempfilePS.cpp \
 		nsIdleServiceGTK.cpp \
-		nsPrintDialogGTK.cpp \
-		nsPrintSettingsGTK.cpp \
 		$(NULL)
 
 # build our subdirs, too
@@ -128,12 +130,17 @@ EXTRA_DSO_LDOPTS += \
                 $(MOZ_STARTUP_NOTIFICATION_LIBS) \
 		$(XLDFLAGS) \
 		$(XLIBS) \
-		$(MOZ_GTK2_LIBS) \
-		-lthebes \
-		$(LCMS_LIBS) \
-		$(NULL)
+		$(MOZ_GTK2_LIBS)
+ifdef MOZ_ENABLE_XINERAMA
+EXTRA_DSO_LDOPTS += $(MOZ_XINERAMA_LIBS)
+endif
+
+ifeq ($(MOZ_ENABLE_CAIRO_GFX),1)
+EXTRA_DSO_LDOPTS += -lthebes
+endif
 
 EXPORTS		= \
+		nsIGdkPixbufImage.h \
                 nsGTKToolkit.h \
 		nsIImageToPixbuf.h \
 		mozdrawingarea.h \
@@ -152,7 +159,10 @@ CFLAGS          += $(MOZ_GTK2_CFLAGS) $(MOZ_STARTUP_NOTIFICATION_CFLAGS)
 CXXFLAGS        += $(MOZ_GTK2_CFLAGS) $(MOZ_STARTUP_NOTIFICATION_CFLAGS)
 
 DEFINES         += -DUSE_XIM
+
+ifdef MOZ_ENABLE_CAIRO_GFX
 DEFINES		+= -DCAIRO_GFX
+endif
 
 ifdef MOZ_ENABLE_POSTSCRIPT
 DEFINES         += -DUSE_POSTSCRIPT

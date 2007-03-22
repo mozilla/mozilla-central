@@ -3,18 +3,17 @@ check_updates () {
   update_platform=$1
   source_package=$2
   target_package=$3
-  locale=$4
 
   # cleanup
   rm -rf source/*
   rm -rf target/*
 
-  unpack_build $update_platform source "$source_package" $locale
+  unpack_build $update_platform source "$source_package" 
   if [ "$?" != "0" ]; then
     echo "FAILED: cannot unpack_build $update_platform source $source_package"
     return 1
   fi
-  unpack_build $update_platform target "$target_package" $locale 
+  unpack_build $update_platform target "$target_package" 
   if [ "$?" != "0" ]; then
     echo "FAILED: cannot unpack_build $update_platform target $target_package"
     return 1
@@ -57,29 +56,10 @@ check_updates () {
     return 1
   fi
 
-  diff -r source/$platform_dirname target/$platform_dirname  > results.diff
-  diffErr=$?
-  cat results.diff
-  grep '^Binary files' results.diff > /dev/null
-  grepErr=$?
-  if [ $grepErr == 0 ]
-  then
-    echo "FAIL: binary files found in diff"
-    return 1
-  elif [ $grepErr == 1 ]
-  then
-    if [ -s results.diff ]
-    then
-      echo "WARN: non-binary files found in diff"
-      return 2
-    fi
-  else
-    echo "FAIL: unknown error from grep: $grepErr"
-    return 3
-  fi
-  if [ $diffErr != 0 ]
-  then
-    echo "FAIL: unknown error from diff: $diffErr"
-    return 3
-  fi
+  diff -r \
+    -x chrome/installed-chrome.txt \
+    -x Contents/MacOS/chrome/installed-chrome.txt \
+    -x removed-files \
+    source/$platform_dirname target/$platform_dirname 
+  return $?
 }

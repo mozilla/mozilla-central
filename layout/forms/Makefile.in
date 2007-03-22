@@ -42,12 +42,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-DIRS = $(NULL)
-
-ifdef MOZ_MOCHITEST
-DIRS		+= test
-endif
-
 MODULE		= layout
 LIBRARY_NAME	= gkforms_s
 LIBXUL_LIBRARY	= 1
@@ -64,10 +58,13 @@ REQUIRES	= xpcom \
 		  necko \
 		  webshell \
 		  editor \
+		  txtsvc \
+		  intl \
 		  uconv \
 		  txmgr \
 		  xuldoc \
 		  imglib2 \
+		  accessibility \
 		  unicharutil \
 		  commandhandler \
 		  xpconnect \
@@ -75,10 +72,6 @@ REQUIRES	= xpcom \
 		  pref \
 		  docshell \
 		  $(NULL)
-
-ifdef ACCESSIBILITY
-REQUIRES	+= accessibility
-endif
 
 EXPORTS		= \
 		nsIListControlFrame.h \

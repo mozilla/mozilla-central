@@ -36,12 +36,12 @@
 
 #include "nsIDocument.h"
 #include "nsSVGMaskFrame.h"
+#include "nsIDOMSVGAnimatedEnum.h"
 #include "nsSVGContainerFrame.h"
 #include "nsSVGMaskElement.h"
 #include "nsIDOMSVGMatrix.h"
 #include "gfxContext.h"
 #include "nsIDOMSVGRect.h"
-#include "gfxImageSurface.h"
 
 //----------------------------------------------------------------------
 // Implementation
@@ -49,78 +49,93 @@
 nsIFrame*
 NS_NewSVGMaskFrame(nsIPresShell* aPresShell, nsIContent* aContent, nsStyleContext* aContext)
 {
-  nsCOMPtr<nsIDOMSVGMaskElement> mask = do_QueryInterface(aContent);
-
-  if (!mask) {
-    NS_ERROR("Can't create frame! Content is not an SVG mask");
-    return nsnull;
-  }
-
   return new (aPresShell) nsSVGMaskFrame(aContext);
 }
 
-nsIContent *
-NS_GetSVGMaskElement(nsIURI *aURI, nsIContent *aContent)
+nsresult
+NS_GetSVGMaskFrame(nsSVGMaskFrame **aResult,
+                   nsIURI *aURI, nsIContent *aContent)
 {
-  nsIContent* content = nsContentUtils::GetReferencedElement(aURI, aContent);
+  *aResult = nsnull;
 
-  nsCOMPtr<nsIDOMSVGMaskElement> mask = do_QueryInterface(content);
+  // Get the PresShell
+  nsIDocument *myDoc = aContent->GetCurrentDoc();
+  if (!myDoc) {
+    NS_WARNING("No document for this content!");
+    return NS_ERROR_FAILURE;
+  }
+  nsIPresShell *presShell = myDoc->GetShellAt(0);
+  if (!presShell) {
+    NS_WARNING("no presshell");
+    return NS_ERROR_FAILURE;
+  }
 
-  if (mask)
-    return content;
+  // Find the referenced frame
+  nsIFrame *cpframe;
+  if (!NS_SUCCEEDED(nsSVGUtils::GetReferencedFrame(&cpframe, aURI, aContent, presShell)))
+    return NS_ERROR_FAILURE;
 
-  return nsnull;
+  nsIAtom* frameType = cpframe->GetType();
+  if (frameType != nsGkAtoms::svgMaskFrame)
+    return NS_ERROR_FAILURE;
+
+  *aResult = (nsSVGMaskFrame *)cpframe;
+  return NS_OK;
 }
 
-already_AddRefed<gfxPattern>
+NS_IMETHODIMP
+nsSVGMaskFrame::InitSVG()
+{
+  nsresult rv = nsSVGMaskFrameBase::InitSVG();
+  if (NS_FAILED(rv))
+    return rv;
+
+  mMaskParentMatrix = nsnull;
+
+  nsCOMPtr<nsIDOMSVGMaskElement> mask = do_QueryInterface(mContent);
+  NS_ASSERTION(mask, "wrong content element");
+
+  return NS_OK;
+}
+
+
+cairo_pattern_t *
 nsSVGMaskFrame::ComputeMaskAlpha(nsSVGRenderState *aContext,
                                  nsISVGChildFrame* aParent,
                                  nsIDOMSVGMatrix* aMatrix,
                                  float aOpacity)
 {
-  // If the flag is set when we get here, it means this mask frame
-  // has already been used painting the current mask, and the document
-  // has a mask reference loop.
-  if (mInUse) {
-    NS_WARNING("Mask loop detected!");
-    return nsnull;
-  }
-  AutoMaskReferencer maskRef(this);
-
   gfxContext *gfx = aContext->GetGfxContext();
+  cairo_t *ctx = gfx->GetCairo();
 
-  gfx->PushGroup(gfxASurface::CONTENT_COLOR_ALPHA);
+  cairo_push_group(ctx);
 
   {
     nsIFrame *frame;
     CallQueryInterface(aParent, &frame);
-    nsSVGElement *parent = static_cast<nsSVGElement*>(frame->GetContent());
+    nsSVGElement *parent = NS_STATIC_CAST(nsSVGElement*, frame->GetContent());
 
     float x, y, width, height;
 
-    nsSVGMaskElement *mask = static_cast<nsSVGMaskElement*>(mContent);
+    PRUint16 units = GetMaskUnits();
 
+    nsSVGMaskElement *mask = NS_STATIC_CAST(nsSVGMaskElement*, mContent);
     nsSVGLength2 *tmpX, *tmpY, *tmpWidth, *tmpHeight;
     tmpX = &mask->mLengthAttributes[nsSVGMaskElement::X];
     tmpY = &mask->mLengthAttributes[nsSVGMaskElement::Y];
     tmpWidth = &mask->mLengthAttributes[nsSVGMaskElement::WIDTH];
     tmpHeight = &mask->mLengthAttributes[nsSVGMaskElement::HEIGHT];
 
-    PRUint16 units =
-      mask->mEnumAttributes[nsSVGMaskElement::MASKUNITS].GetAnimValue();
-
-    if (units == nsIDOMSVGUnitTypes::SVG_UNIT_TYPE_OBJECTBOUNDINGBOX) {
+    if (units == nsIDOMSVGMaskElement::SVG_MUNITS_OBJECTBOUNDINGBOX) {
 
       aParent->SetMatrixPropagation(PR_FALSE);
-      aParent->NotifySVGChanged(nsISVGChildFrame::SUPPRESS_INVALIDATION |
-                                nsISVGChildFrame::TRANSFORM_CHANGED);
+      aParent->NotifyCanvasTMChanged(PR_TRUE);
 
       nsCOMPtr<nsIDOMSVGRect> bbox;
       aParent->GetBBox(getter_AddRefs(bbox));
 
       aParent->SetMatrixPropagation(PR_TRUE);
-      aParent->NotifySVGChanged(nsISVGChildFrame::SUPPRESS_INVALIDATION |
-                                nsISVGChildFrame::TRANSFORM_CHANGED);
+      aParent->NotifyCanvasTMChanged(PR_TRUE);
 
       if (!bbox)
         return nsnull;
@@ -155,7 +170,7 @@ nsSVGMaskFrame::ComputeMaskAlpha(nsSVGRenderState *aContext,
     nsSVGUtils::SetClipRect(gfx, aMatrix, x, y, width, height);
   }
 
-  mMaskParent = aParent;
+  mMaskParent = aParent,
   mMaskParentMatrix = aMatrix;
 
   for (nsIFrame* kid = mFrames.FirstChild(); kid;
@@ -165,62 +180,58 @@ nsSVGMaskFrame::ComputeMaskAlpha(nsSVGRenderState *aContext,
 
   gfx->Restore();
 
-  nsRefPtr<gfxPattern> pattern = gfx->PopGroup();
-  if (!pattern || pattern->CairoStatus())
+  cairo_pattern_t *pattern = cairo_pop_group(ctx);
+  if (!pattern)
     return nsnull;
 
-  nsRefPtr<gfxASurface> surface = pattern->GetSurface();
-  if (!surface || surface->CairoStatus())
+  cairo_matrix_t patternMatrix;
+  cairo_pattern_get_matrix(pattern, &patternMatrix);
+
+  cairo_surface_t *surface = nsnull;
+  cairo_pattern_get_surface(pattern, &surface);
+
+  double x1, y1, x2, y2;
+  cairo_clip_extents(ctx, &x1, &y1, &x2, &y2);
+
+  PRUint32 clipWidth = PRUint32(ceil(x2) - floor(x1));
+  PRUint32 clipHeight = PRUint32(ceil(y2) - floor(y1));
+
+  cairo_surface_t *image = cairo_image_surface_create(CAIRO_FORMAT_ARGB32,
+                                                      clipWidth, clipHeight);
+  if (!image)
     return nsnull;
 
-  surface->SetDeviceOffset(gfxPoint(0,0));
-
-  gfxRect clipExtents = gfx->GetClipExtents();
-
-#ifdef DEBUG_tor
-  fprintf(stderr, "clip extent: %f,%f %fx%f\n",
-          clipExtents.X(), clipExtents.Y(),
-          clipExtents.Width(), clipExtents.Height());
-#endif
-
-  PRBool resultOverflows;
-  gfxIntSize surfaceSize =
-    nsSVGUtils::ConvertToSurfaceSize(gfxSize(clipExtents.Width(),
-                                             clipExtents.Height()),
-                                     &resultOverflows);
-
-  // 0 disables mask, < 0 is an error
-  if (surfaceSize.width <= 0 || surfaceSize.height <= 0)
+  cairo_t *transferCtx = cairo_create(image);
+  if (cairo_status(transferCtx) != CAIRO_STATUS_SUCCESS) {
+    cairo_destroy(transferCtx);
+    cairo_surface_destroy(image);
+    cairo_pattern_destroy(pattern);
     return nsnull;
+  }
 
-  if (resultOverflows)
-    return nsnull;
+  cairo_set_source_surface(transferCtx, surface, 0, 0);
+  cairo_paint(transferCtx);
 
-  nsRefPtr<gfxImageSurface> image =
-    new gfxImageSurface(surfaceSize, gfxASurface::ImageFormatARGB32);
-  if (!image || image->CairoStatus())
-    return nsnull;
+  cairo_destroy(transferCtx);
+  cairo_pattern_destroy(pattern);
 
-  gfxContext transferCtx(image);
-  transferCtx.SetOperator(gfxContext::OPERATOR_SOURCE);
-  transferCtx.SetSource(surface);
-  transferCtx.Paint();
+  PRUint32 width  = cairo_image_surface_get_width(image);
+  PRUint32 height = cairo_image_surface_get_height(image);
+  PRUint8 *data   = cairo_image_surface_get_data(image);
+  PRInt32  stride = cairo_image_surface_get_stride(image);
 
-  PRUint8 *data   = image->Data();
-  PRInt32  stride = image->Stride();
-
-  nsRect rect(0, 0, surfaceSize.width, surfaceSize.height);
+  nsRect rect(0, 0, width, height);
   nsSVGUtils::UnPremultiplyImageDataAlpha(data, stride, rect);
   nsSVGUtils::ConvertImageDataToLinearRGB(data, stride, rect);
 
-  for (PRInt32 y = 0; y < surfaceSize.height; y++)
-    for (PRInt32 x = 0; x < surfaceSize.width; x++) {
+  for (PRUint32 y = 0; y < height; y++)
+    for (PRUint32 x = 0; x < width; x++) {
       PRUint8 *pixel = data + stride * y + 4 * x;
 
       /* linearRGB -> intensity */
       PRUint8 alpha =
-        static_cast<PRUint8>
-                   ((pixel[GFX_ARGB32_OFFSET_R] * 0.2125 +
+        NS_STATIC_CAST(PRUint8,
+                       (pixel[GFX_ARGB32_OFFSET_R] * 0.2125 +
                         pixel[GFX_ARGB32_OFFSET_G] * 0.7154 +
                         pixel[GFX_ARGB32_OFFSET_B] * 0.0721) *
                        (pixel[GFX_ARGB32_OFFSET_A] / 255.0) * aOpacity);
@@ -228,11 +239,12 @@ nsSVGMaskFrame::ComputeMaskAlpha(nsSVGRenderState *aContext,
       memset(pixel, alpha, 4);
     }
 
-  gfxPattern *retval = new gfxPattern(image);
-  if (retval) {
-    retval->SetMatrix(gfxMatrix().Translate(-clipExtents.pos));
-    NS_ADDREF(retval);
-  }
+  cairo_pattern_t *retval = cairo_pattern_create_for_surface(image);
+  cairo_surface_destroy(image);
+
+  if (retval)
+    cairo_pattern_set_matrix(retval, &patternMatrix);
+
   return retval;
 }
 
@@ -247,10 +259,60 @@ nsSVGMaskFrame::GetCanvasTM()
 {
   NS_ASSERTION(mMaskParentMatrix, "null parent matrix");
 
-  nsSVGMaskElement *mask = static_cast<nsSVGMaskElement*>(mContent);
+  nsCOMPtr<nsIDOMSVGMatrix> canvasTM = mMaskParentMatrix;
 
-  return nsSVGUtils::AdjustMatrixForUnits(mMaskParentMatrix,
-                                          &mask->mEnumAttributes[nsSVGMaskElement::MASKCONTENTUNITS],
-                                          mMaskParent);
+  /* object bounding box? */
+  PRUint16 units = GetMaskContentUnits();
+
+  if (mMaskParent &&
+      units == nsIDOMSVGMaskElement::SVG_MUNITS_OBJECTBOUNDINGBOX) {
+    nsCOMPtr<nsIDOMSVGRect> rect;
+    nsresult rv = mMaskParent->GetBBox(getter_AddRefs(rect));
+
+    if (NS_SUCCEEDED(rv)) {
+      float minx, miny, width, height;
+      rect->GetX(&minx);
+      rect->GetY(&miny);
+      rect->GetWidth(&width);
+      rect->GetHeight(&height);
+
+      nsCOMPtr<nsIDOMSVGMatrix> tmp, fini;
+      canvasTM->Translate(minx, miny, getter_AddRefs(tmp));
+      tmp->ScaleNonUniform(width, height, getter_AddRefs(fini));
+      canvasTM = fini;
+    }
+  }
+
+  nsIDOMSVGMatrix* retval = canvasTM.get();
+  NS_IF_ADDREF(retval);
+  return retval;
+}
+
+// -------------------------------------------------------------------------
+// Helper functions
+// -------------------------------------------------------------------------
+
+PRUint16
+nsSVGMaskFrame::GetMaskUnits()
+{
+  PRUint16 rv;
+
+  nsSVGMaskElement *maskElement = NS_STATIC_CAST(nsSVGMaskElement*, mContent);
+  nsCOMPtr<nsIDOMSVGAnimatedEnumeration> units;
+  maskElement->GetMaskUnits(getter_AddRefs(units));
+  units->GetAnimVal(&rv);
+  return rv;
+}
+
+PRUint16
+nsSVGMaskFrame::GetMaskContentUnits()
+{
+  PRUint16 rv;
+
+  nsSVGMaskElement *maskElement = NS_STATIC_CAST(nsSVGMaskElement*, mContent);
+  nsCOMPtr<nsIDOMSVGAnimatedEnumeration> units;
+  maskElement->GetMaskContentUnits(getter_AddRefs(units));
+  units->GetAnimVal(&rv);
+  return rv;
 }
 

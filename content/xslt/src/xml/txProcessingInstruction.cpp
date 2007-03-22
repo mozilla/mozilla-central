@@ -59,6 +59,13 @@ ProcessingInstruction::ProcessingInstruction(nsIAtom *theTarget,
 }
 
 //
+//Release the mLocalName
+//
+ProcessingInstruction::~ProcessingInstruction()
+{
+}
+
+//
 //ProcessingInstruction nodes can not have any children, so just return null
 //from all child manipulation functions.
 //

@@ -50,10 +50,7 @@
 #include "nsComponentManagerUtils.h"
 
 // nsISupports implementation
-NS_IMPL_ISUPPORTS3(nsHTTPCompressConv,
-                   nsIStreamConverter,
-                   nsIStreamListener,
-                   nsIRequestObserver)
+NS_IMPL_ISUPPORTS2(nsHTTPCompressConv, nsIStreamConverter, nsIStreamListener)
 
 // nsFTPDirListingConv methods
 nsHTTPCompressConv::nsHTTPCompressConv()
@@ -495,7 +492,7 @@ nsHTTPCompressConv::check_header(nsIInputStream *iStr, PRUint32 streamLen, nsres
                 break;
 
             case GZIP_COMMENT:
-                if (mFlags & COMMENT)
+                if (mFlags & GZIP_COMMENT)
                 {
                     iStr->Read(&c, 1, &rv);
                     streamLen--;

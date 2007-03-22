@@ -19,7 +19,7 @@
  * Portions created by the Initial Developer are Copyright (C) 2005
  * the Initial Developer. All Rights Reserved.
  *
- * Contributor(s): Michael Daumling
+ * Contributor(s): Michael Daumling 
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -34,25 +34,20 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-306633.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 306727;
+var bug = 306727;
 var summary = 'report compile warnings in evald code when strict warnings enabled';
 var actual = '';
 var expect = '';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
-if (!options().match(/strict/))
-{
-  options('strict');
-}
-if (!options().match(/werror/))
-{
-  options('werror');
-}
+var jsOptions = new JavaScriptOptions();
+
+// strict
+jsOptions.setOption('strict', true);
+jsOptions.setOption('werror', true);
 
 expect = 'SyntaxError';
 
@@ -64,5 +59,8 @@ catch(e)
 {
   actual = e.name;
 }
+jsOptions.reset();
 
 reportCompare(expect, actual, summary);
+
+  

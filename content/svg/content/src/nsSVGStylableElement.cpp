@@ -77,7 +77,7 @@ nsSVGStylableElement::Init()
     mClassName = new nsSVGClassValue;
     NS_ENSURE_TRUE(mClassName, NS_ERROR_OUT_OF_MEMORY);
     rv = AddMappedSVGValue(nsGkAtoms::_class,
-			   static_cast<nsIDOMSVGAnimatedString*>(mClassName),
+			   NS_STATIC_CAST(nsIDOMSVGAnimatedString*, mClassName),
 			   kNameSpaceID_None);
     NS_ENSURE_SUCCESS(rv, rv);
   }
@@ -110,7 +110,23 @@ nsSVGStylableElement::GetClassName(nsIDOMSVGAnimatedString** aClassName)
 NS_IMETHODIMP
 nsSVGStylableElement::GetStyle(nsIDOMCSSStyleDeclaration** aStyle)
 {
-  return nsSVGStylableElementBase::GetStyle(aStyle);
+  nsDOMSlots *slots = GetDOMSlots();
+
+  if (!slots->mStyle) {
+    nsICSSOMFactory* cssOMFactory = nsnull;
+    // We could cache the factory here, but lets wait with that until
+    // we share code with html here.
+    nsresult rv = CallGetService(kCSSOMFactoryCID, &cssOMFactory);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    rv = cssOMFactory->
+      CreateDOMCSSAttributeDeclaration(this, getter_AddRefs(slots->mStyle));
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
+
+  NS_ADDREF(*aStyle = slots->mStyle);
+
+  return NS_OK;
 }
 
 /* nsIDOMCSSValue getPresentationAttribute (in DOMString name); */

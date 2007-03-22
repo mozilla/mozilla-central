@@ -103,7 +103,6 @@ nsresult
 nsRange::CompareNodeToRange(nsIContent* aNode, nsIRange* aRange,
                             PRBool *outNodeBefore, PRBool *outNodeAfter)
 {
-  NS_ENSURE_STATE(aNode);
   // create a pair of dom points that expresses location of node:
   //     NODE(start), NODE(end)
   // Let incoming range be:
@@ -143,19 +142,14 @@ nsRange::CompareNodeToRange(nsIContent* aNode, nsIRange* aRange,
   PRInt32 rangeEndOffset = range->EndOffset();
 
   // is RANGE(start) <= NODE(start) ?
-  PRBool disconnected = PR_FALSE;
   *outNodeBefore = nsContentUtils::ComparePoints(rangeStartParent,
                                                  rangeStartOffset,
-                                                 parent, nodeStart,
-                                                 &disconnected) > 0;
-  NS_ENSURE_TRUE(!disconnected, NS_ERROR_DOM_WRONG_DOCUMENT_ERR);
-
+                                                 parent, nodeStart) > 0;
   // is RANGE(end) >= NODE(end) ?
   *outNodeAfter = nsContentUtils::ComparePoints(rangeEndParent,
                                                 rangeEndOffset,
-                                                parent, nodeEnd,
-                                                &disconnected) < 0;
-  NS_ENSURE_TRUE(!disconnected, NS_ERROR_DOM_WRONG_DOCUMENT_ERR);
+                                                parent, nodeEnd) < 0;
+
   return NS_OK;
 }
 
@@ -260,21 +254,21 @@ nsRange::CharacterDataChanged(nsIDocument* aDocument,
 {
   NS_ASSERTION(mIsPositioned, "shouldn't be notified if not positioned");
 
-  // If the changed node contains our start boundary and the change starts
-  // before the boundary we'll need to adjust the offset.
+  // If the changed node contains our start boundry and the change starts
+  // before the boundry we'll need to adjust the offset.
   if (aContent == mStartParent &&
       aInfo->mChangeStart < (PRUint32)mStartOffset) {
-    // If boundary is inside changed text, position it before change
+    // If boundry is inside changed text, position it before change
     // else adjust start offset for the change in length
-    mStartOffset = (PRUint32)mStartOffset <= aInfo->mChangeEnd ?
+    mStartOffset = (PRUint32)mStartOffset < aInfo->mChangeEnd ?
        aInfo->mChangeStart :
        mStartOffset + aInfo->mChangeStart - aInfo->mChangeEnd +
          aInfo->mReplaceLength;
   }
 
-  // Do the same thing for the end boundary.
+  // Do same thing for end boundry.
   if (aContent == mEndParent && aInfo->mChangeStart < (PRUint32)mEndOffset) {
-    mEndOffset = (PRUint32)mEndOffset <= aInfo->mChangeEnd ?
+    mEndOffset = (PRUint32)mEndOffset < aInfo->mChangeEnd ?
        aInfo->mChangeStart :
        mEndOffset + aInfo->mChangeStart - aInfo->mChangeEnd +
          aInfo->mReplaceLength;
@@ -341,17 +335,6 @@ nsRange::NodeWillBeDestroyed(const nsINode* aNode)
   DoSetRange(nsnull, 0, nsnull, 0, nsnull);
 }
 
-void
-nsRange::ParentChainChanged(nsIContent *aContent)
-{
-  NS_ASSERTION(mRoot == aContent, "Wrong ParentChainChanged notification?");
-  nsINode* newRoot = IsValidBoundary(mStartParent);
-  NS_ASSERTION(newRoot, "No valid boundary or root found!");
-  NS_ASSERTION(newRoot == IsValidBoundary(mEndParent),
-               "Start parent and end parent give different root!");
-  DoSetRange(mStartParent, mStartOffset, mEndParent, mEndOffset, newRoot);
-}
-
 /********************************************************
  * Utilities for comparing points: API from nsIDOMNSRange
  ********************************************************/
@@ -360,12 +343,6 @@ nsRange::IsPointInRange(nsIDOMNode* aParent, PRInt32 aOffset, PRBool* aResult)
 {
   PRInt16 compareResult = 0;
   nsresult rv = ComparePoint(aParent, aOffset, &compareResult);
-  // If the node isn't in the range's document, it clearly isn't in the range.
-  if (rv == NS_ERROR_DOM_WRONG_DOCUMENT_ERR) {
-    *aResult = PR_FALSE;
-    return NS_OK;
-  }
-
   *aResult = compareResult == 0;
 
   return rv;
@@ -411,11 +388,13 @@ nsRange::ComparePoint(nsIDOMNode* aParent, PRInt32 aOffset, PRInt16* aResult)
  * Private helper routines
  ******************************************************/
 
+static nsINode* IsValidBoundary(nsINode* aNode);
+
 // Get the length of aNode
 static PRInt32 GetNodeLength(nsINode *aNode)
 {
   if(aNode->IsNodeOfType(nsINode::eDATA_NODE)) {
-    return static_cast<nsIContent*>(aNode)->TextLength();
+    return NS_STATIC_CAST(nsIContent*, aNode)->TextLength();
   }
 
   return aNode->GetChildCount();
@@ -444,15 +423,13 @@ nsRange::DoSetRange(nsINode* aStartN, PRInt32 aStartOffset,
                   (aStartN->IsNodeOfType(nsINode::eCONTENT) &&
                    aEndN->IsNodeOfType(nsINode::eCONTENT) &&
                    aRoot ==
-                    static_cast<nsIContent*>(aStartN)->GetBindingParent() &&
+                    NS_STATIC_CAST(nsIContent*, aStartN)->GetBindingParent() &&
                    aRoot ==
-                    static_cast<nsIContent*>(aEndN)->GetBindingParent()) ||
+                    NS_STATIC_CAST(nsIContent*, aEndN)->GetBindingParent()) ||
                   (!aRoot->GetNodeParent() &&
                    (aRoot->IsNodeOfType(nsINode::eDOCUMENT) ||
                     aRoot->IsNodeOfType(nsINode::eATTRIBUTE) ||
-                    aRoot->IsNodeOfType(nsINode::eDOCUMENT_FRAGMENT) ||
-                     /*For backward compatibility*/
-                    aRoot->IsNodeOfType(nsINode::eCONTENT))),
+                    aRoot->IsNodeOfType(nsINode::eDOCUMENT_FRAGMENT))),
                   "Bad root");
 
   if (mRoot != aRoot) {
@@ -574,25 +551,24 @@ nsresult nsRange::GetCommonAncestorContainer(nsIDOMNode** aCommonParent)
   return NS_ERROR_NOT_INITIALIZED;
 }
 
-nsINode* nsRange::IsValidBoundary(nsINode* aNode)
+static nsINode*
+IsValidBoundary(nsINode* aNode)
 {
   if (!aNode) {
     return nsnull;
   }
 
   if (aNode->IsNodeOfType(nsINode::eCONTENT)) {
-    nsIContent* content = static_cast<nsIContent*>(aNode);
+    nsIContent* content = NS_STATIC_CAST(nsIContent*, aNode);
     if (content->Tag() == nsGkAtoms::documentTypeNodeName) {
       return nsnull;
     }
 
-    if (!mMaySpanAnonymousSubtrees) {
-      // If the node has a binding parent, that should be the root.
-      // XXXbz maybe only for native anonymous content?
-      nsINode* root = content->GetBindingParent();
-      if (root) {
-        return root;
-      }
+    // If the node has a binding parent, that should be the root.
+    // XXXbz maybe only for native anonymous content?
+    nsINode* root = content->GetBindingParent();
+    if (root) {
+      return root;
     }
   }
 
@@ -611,14 +587,22 @@ nsINode* nsRange::IsValidBoundary(nsINode* aNode)
   NS_ASSERTION(!root->IsNodeOfType(nsINode::eDOCUMENT),
                "GetCurrentDoc should have returned a doc");
 
+  if (root->IsNodeOfType(nsINode::eDOCUMENT_FRAGMENT) ||
+      root->IsNodeOfType(nsINode::eATTRIBUTE)) {
+    return root;
+  }
+
 #ifdef DEBUG_smaug
-  NS_WARN_IF_FALSE(root->IsNodeOfType(nsINode::eDOCUMENT_FRAGMENT) ||
-                   root->IsNodeOfType(nsINode::eATTRIBUTE),
-                   "Creating a DOM Range using root which isn't in DOM!");
+  nsCOMPtr<nsIContent> cont = do_QueryInterface(root);
+  if (cont) {
+    nsAutoString name;
+    cont->Tag()->ToString(name);
+    printf("nsRange::IsValidBoundary: node is not a valid boundary point [%s]\n",
+           NS_ConvertUTF16toUTF8(name).get());
+  }
 #endif
 
-  // We allow this because of backward compatibility.
-  return root;
+  return nsnull;
 }
 
 nsresult nsRange::SetStart(nsIDOMNode* aParent, PRInt32 aOffset)
@@ -1103,9 +1087,6 @@ nsresult nsRange::DeleteContents()
   if(IsDetached())
     return NS_ERROR_DOM_INVALID_STATE_ERR;
 
-  // Batch possible DOMSubtreeModified events.
-  mozAutoSubtreeModified subtree(mRoot ? mRoot->GetOwnerDoc(): nsnull, nsnull);
-
   // Save the range end points locally to avoid interference
   // of Range gravity during our edits!
 
@@ -1294,9 +1275,6 @@ nsresult nsRange::ExtractContents(nsIDOMDocumentFragment** aReturn)
 { 
   if(mIsDetached)
     return NS_ERROR_DOM_INVALID_STATE_ERR;
-
-  // Batch possible DOMSubtreeModified events.
-  mozAutoSubtreeModified subtree(mRoot ? mRoot->GetOwnerDoc(): nsnull, nsnull);
 
   // XXX_kin: The spec says that nodes that are completely in the
   // XXX_kin: range should be moved into the document fragment, not
@@ -1537,7 +1515,7 @@ nsresult nsRange::CloneContents(nsIDOMDocumentFragment** aReturn)
       tmpNode = clone;
       res = tmpNode->GetParentNode(getter_AddRefs(clone));
       if (NS_FAILED(res)) return res;
-      if (!clone) return NS_ERROR_FAILURE;
+      if (!node) return NS_ERROR_FAILURE;
     }
 
     commonCloneAncestor = clone;
@@ -1562,8 +1540,6 @@ nsresult nsRange::CloneRange(nsIDOMRange** aReturn)
 
   NS_ADDREF(*aReturn = range);
   
-  range->SetMaySpanAnonymousSubtrees(mMaySpanAnonymousSubtrees);
-
   range->DoSetRange(mStartParent, mStartOffset, mEndParent, mEndOffset, mRoot);
 
   return NS_OK;
@@ -1587,7 +1563,6 @@ nsresult nsRange::InsertNode(nsIDOMNode* aN)
     nsCOMPtr<nsIDOMNode> tSCParentNode;
     res = tStartContainer->GetParentNode(getter_AddRefs(tSCParentNode));
     if(NS_FAILED(res)) return res;
-    NS_ENSURE_STATE(tSCParentNode);
     
     PRBool isCollapsed;
     res = GetCollapsed(&isCollapsed);
@@ -1793,9 +1768,8 @@ nsRange::CreateContextualFragment(const nsAString& aFragment,
                                   nsIDOMDocumentFragment** aReturn)
 {
   nsCOMPtr<nsIDOMNode> start = do_QueryInterface(mStartParent);
-  if (mIsPositioned) {
-    return nsContentUtils::CreateContextualFragment(start, aFragment, PR_TRUE,
-                                                    aReturn);
-  }
-  return NS_ERROR_FAILURE;
+  return
+    mIsPositioned
+    ? nsContentUtils::CreateContextualFragment(start, aFragment, aReturn)
+    : NS_ERROR_FAILURE;
 }

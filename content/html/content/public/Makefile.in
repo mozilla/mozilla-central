@@ -47,7 +47,6 @@ XPIDL_MODULE    = content_html
 
 XPIDLSRCS	= \
 		nsISelectElement.idl \
-		nsIFormSubmitObserver.idl \
 		nsIPhonetic.idl \
 		$(NULL)
 
@@ -55,6 +54,7 @@ EXPORTS		= \
 		nsIFormControl.h \
 		nsIForm.h \
 		nsIFormProcessor.h \
+		nsIFormSubmitObserver.h \
 		nsILink.h \
 		nsIOptionElement.h \
 		nsIRadioControlElement.h \

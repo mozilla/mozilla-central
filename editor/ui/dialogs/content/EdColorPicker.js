@@ -167,21 +167,16 @@ function Startup()
       gColorObj.LastBackgroundColor = gDialog.LastPickedColor.getAttribute("LastBackgroundColor");
     LastPickedColor = gColorObj.LastBackgroundColor;
   }
+  gDialog.LastPickedColor.setAttribute("style","background-color: "+LastPickedColor);
 
   // Set method to detect clicking on OK button
   //  so we don't get fooled by changing "default" behavior
   gDialog.Ok.setAttribute("onclick", "SetDefaultToOk()");
 
-  if (!LastPickedColor) {
-    // Hide the button, as there is no last color available.
-    gDialog.LastPickedButton.hidden = true;
-  } else {
-    gDialog.LastPickedColor.setAttribute("style", "background-color: " + LastPickedColor);
-
-    // Make "Last-picked" the default button, until the user selects a color.
-    gDialog.Ok.removeAttribute("default");
-    gDialog.LastPickedButton.setAttribute("default", "true");
-  }
+  // Make the "Last-picked" the default button
+  //  until the user selects a color
+  gDialog.Ok.removeAttribute("default");
+  gDialog.LastPickedButton.setAttribute("default","true");
 
   // Caller can prevent user from submitting an empty, i.e., default color
   NoDefault = gColorObj.NoDefault;

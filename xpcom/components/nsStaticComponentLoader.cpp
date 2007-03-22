@@ -66,7 +66,7 @@ struct StaticModuleInfo : public PLDHashEntryHdr {
 PR_STATIC_CALLBACK(void)
 info_ClearEntry(PLDHashTable *table, PLDHashEntryHdr *entry)
 {
-    StaticModuleInfo *info = static_cast<StaticModuleInfo *>(entry);
+    StaticModuleInfo *info = NS_STATIC_CAST(StaticModuleInfo *, entry);
     info->module = 0;
     info->~StaticModuleInfo();
 }
@@ -75,19 +75,15 @@ PR_STATIC_CALLBACK(PRBool)
 info_InitEntry(PLDHashTable *table, PLDHashEntryHdr *entry, const void *key)
 {
     // Construct so that our nsCOMPtr is zeroed, etc.
-    new (static_cast<void *>(entry)) StaticModuleInfo();
+    new (NS_STATIC_CAST(void *, entry)) StaticModuleInfo();
     return PR_TRUE;
 }
 
 /* static */ PLDHashTableOps nsStaticModuleLoader::sInfoHashOps = {
-    PL_DHashAllocTable,
-    PL_DHashFreeTable,
-    PL_DHashStringKey,
-    PL_DHashMatchStringKey,
-    PL_DHashMoveEntryStub,
-    info_ClearEntry,
-    PL_DHashFinalizeStub,
-    info_InitEntry
+    PL_DHashAllocTable,    PL_DHashFreeTable,
+    PL_DHashGetKeyStub,    PL_DHashStringKey, PL_DHashMatchStringKey,
+    PL_DHashMoveEntryStub, info_ClearEntry,
+    PL_DHashFinalizeStub,  info_InitEntry
 };
 
 nsresult
@@ -107,8 +103,8 @@ nsStaticModuleLoader::Init(nsStaticModuleInfo const *aStaticModules,
 
     for (PRUint32 i = 0; i < aModuleCount; ++i) {
         StaticModuleInfo *info =
-            static_cast<StaticModuleInfo *>
-                       (PL_DHashTableOperate(&mInfoHash, aStaticModules[i].name,
+            NS_STATIC_CAST(StaticModuleInfo *,
+                           PL_DHashTableOperate(&mInfoHash, aStaticModules[i].name,
                                                 PL_DHASH_ADD));
         if (!info)
             return NS_ERROR_OUT_OF_MEMORY;
@@ -148,8 +144,8 @@ nsStaticModuleLoader::GetModuleFor(const char *aLocation,
 {
     nsresult rv;
     StaticModuleInfo *info = 
-        static_cast<StaticModuleInfo *>
-                   (PL_DHashTableOperate(&mInfoHash, aLocation,
+        NS_STATIC_CAST(StaticModuleInfo *,
+                       PL_DHashTableOperate(&mInfoHash, aLocation,
                                             PL_DHASH_LOOKUP));
 
     if (PL_DHASH_ENTRY_IS_FREE(info))

@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '7.2-6.js';
-
 /**
    File Name:          7.2-6.js
    ECMA Section:       7.2 Line Terminators

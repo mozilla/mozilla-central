@@ -266,7 +266,7 @@ PRBool NS_IsAsciiDigit(PRUnichar aChar)
   return aChar >= '0' && aChar <= '9';
 }
 
-#if defined(XP_WIN) && !defined(WINCE)
+#ifdef XP_WIN
 void
 printf_stderr(const char *fmt, ...)
 {

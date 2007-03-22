@@ -42,6 +42,7 @@
 #include "nsLineLayout.h"
 #include "nsPresContext.h"
 #include "nsGkAtoms.h"
+#include "nsUnitConversion.h"
 #include "nsStyleConsts.h"
 #include "nsINameSpaceManager.h"
 
@@ -108,7 +109,6 @@ SpacerFrame::Reflow(nsPresContext*          aPresContext,
   DISPLAY_REFLOW(aPresContext, this, aReflowState, aMetrics, aStatus);
   aStatus = NS_FRAME_COMPLETE;
 
-  // XXX Bug 379654 Should use containing block size!
   nsSize percentBase(aReflowState.availableWidth, aReflowState.availableHeight);
   if (percentBase.width == NS_UNCONSTRAINEDSIZE)
     percentBase.width = 0;
@@ -130,12 +130,6 @@ SpacerFrame::GetDesiredSize(nsHTMLReflowMetrics& aMetrics, nsSize aPercentBase)
   // By default, we have no area
   aMetrics.width = 0;
   aMetrics.height = 0;
-
-  // XXX Bug 379654 This code doesn't handle some value types for width
-  // and height, doesn't handle min/max-width/height, doesn't handle
-  // border and padding, doesn't handle 'ch' units, doesn't handle the
-  // enumerated values on width, etc.  But it probably doesn't much
-  // matter.
 
   const nsStylePosition* position = GetStylePosition();
 
@@ -170,7 +164,7 @@ SpacerFrame::GetDesiredSize(nsHTMLReflowMetrics& aMetrics, nsSize aPercentBase)
     else if (eStyleUnit_Percent == unit) 
     {
       float factor = position->mHeight.GetPercentValue();
-      aMetrics.height = NSToCoordRound(factor * aPercentBase.height);
+      aMetrics.width = NSToCoordRound(factor * aPercentBase.height);
     }
     break;
   }

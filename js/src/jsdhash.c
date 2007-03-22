@@ -22,7 +22,6 @@
  * Contributor(s):
  *   Brendan Eich <brendan@mozilla.org> (Original Author)
  *   Chris Waterson <waterson@netscape.com>
- *   L. David Baron <dbaron@dbaron.org>, Mozilla Corporation
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -102,9 +101,17 @@ JS_DHashStringKey(JSDHashTable *table, const void *key)
     const unsigned char *s;
 
     h = 0;
-    for (s = (const unsigned char *) key; *s != '\0'; s++)
-        h = JS_ROTATE_LEFT32(h, 4) ^ *s;
+    for (s = key; *s != '\0'; s++)
+        h = (h >> (JS_DHASH_BITS - 4)) ^ (h << 4) ^ *s;
     return h;
+}
+
+JS_PUBLIC_API(const void *)
+JS_DHashGetKeyStub(JSDHashTable *table, JSDHashEntryHdr *entry)
+{
+    JSDHashEntryStub *stub = (JSDHashEntryStub *)entry;
+
+    return stub->key;
 }
 
 JS_PUBLIC_API(JSDHashNumber)
@@ -132,8 +139,7 @@ JS_DHashMatchStringKey(JSDHashTable *table,
 
     /* XXX tolerate null keys on account of sloppy Mozilla callers. */
     return stub->key == key ||
-           (stub->key && key &&
-            strcmp((const char *) stub->key, (const char *) key) == 0);
+           (stub->key && key && strcmp(stub->key, key) == 0);
 }
 
 JS_PUBLIC_API(void)
@@ -167,6 +173,7 @@ JS_DHashFinalizeStub(JSDHashTable *table)
 static const JSDHashTableOps stub_ops = {
     JS_DHashAllocTable,
     JS_DHashFreeTable,
+    JS_DHashGetKeyStub,
     JS_DHashVoidPtrKeyStub,
     JS_DHashMatchEntryStub,
     JS_DHashMoveEntryStub,
@@ -216,7 +223,7 @@ JS_DHashTableInit(JSDHashTable *table, const JSDHashTableOps *ops, void *data,
         fprintf(stderr,
                 "jsdhash: for the table at address %p, the given entrySize"
                 " of %lu %s favors chaining over double hashing.\n",
-                (void *) table,
+                (void *)table,
                 (unsigned long) entrySize,
                 (entrySize > 16 * sizeof(void*)) ? "definitely" : "probably");
     }
@@ -240,8 +247,7 @@ JS_DHashTableInit(JSDHashTable *table, const JSDHashTableOps *ops, void *data,
     table->generation = 0;
     nbytes = capacity * entrySize;
 
-    table->entryStore = (char *) ops->allocTable(table,
-                                                 nbytes + ENTRY_STORE_EXTRA);
+    table->entryStore = ops->allocTable(table, nbytes + ENTRY_STORE_EXTRA);
     if (!table->entryStore)
         return JS_FALSE;
     memset(table->entryStore, 0, nbytes);
@@ -417,17 +423,15 @@ SearchTable(JSDHashTable *table, const void *key, JSDHashNumber keyHash,
     sizeMask = JS_BITMASK(sizeLog2);
 
     /* Save the first removed entry pointer so JS_DHASH_ADD can recycle it. */
-    firstRemoved = NULL;
+    if (ENTRY_IS_REMOVED(entry)) {
+        firstRemoved = entry;
+    } else {
+        firstRemoved = NULL;
+        if (op == JS_DHASH_ADD)
+            entry->keyHash |= COLLISION_FLAG;
+    }
 
     for (;;) {
-        if (JS_UNLIKELY(ENTRY_IS_REMOVED(entry))) {
-            if (!firstRemoved)
-                firstRemoved = entry;
-        } else {
-            if (op == JS_DHASH_ADD)
-                entry->keyHash |= COLLISION_FLAG;
-        }
-
         METER(table->stats.steps++);
         hash1 -= hash2;
         hash1 &= sizeMask;
@@ -443,61 +447,13 @@ SearchTable(JSDHashTable *table, const void *key, JSDHashNumber keyHash,
             METER(table->stats.hits++);
             return entry;
         }
-    }
 
-    /* NOTREACHED */
-    return NULL;
-}
-
-/*
- * This is a copy of SearchTable, used by ChangeTable, hardcoded to
- *   1. assume |op == PL_DHASH_ADD|,
- *   2. assume that |key| will never match an existing entry, and
- *   3. assume that no entries have been removed from the current table
- *      structure.
- * Avoiding the need for |key| means we can avoid needing a way to map
- * entries to keys, which means callers can use complex key types more
- * easily.
- */
-static JSDHashEntryHdr * JS_DHASH_FASTCALL
-FindFreeEntry(JSDHashTable *table, JSDHashNumber keyHash)
-{
-    JSDHashNumber hash1, hash2;
-    int hashShift, sizeLog2;
-    JSDHashEntryHdr *entry;
-    uint32 sizeMask;
-
-    METER(table->stats.searches++);
-    JS_ASSERT(!(keyHash & COLLISION_FLAG));
-
-    /* Compute the primary hash address. */
-    hashShift = table->hashShift;
-    hash1 = HASH1(keyHash, hashShift);
-    entry = ADDRESS_ENTRY(table, hash1);
-
-    /* Miss: return space for a new entry. */
-    if (JS_DHASH_ENTRY_IS_FREE(entry)) {
-        METER(table->stats.misses++);
-        return entry;
-    }
-
-    /* Collision: double hash. */
-    sizeLog2 = JS_DHASH_BITS - table->hashShift;
-    hash2 = HASH2(keyHash, sizeLog2, hashShift);
-    sizeMask = JS_BITMASK(sizeLog2);
-
-    for (;;) {
-        JS_ASSERT(!ENTRY_IS_REMOVED(entry));
-        entry->keyHash |= COLLISION_FLAG;
-
-        METER(table->stats.steps++);
-        hash1 -= hash2;
-        hash1 &= sizeMask;
-
-        entry = ADDRESS_ENTRY(table, hash1);
-        if (JS_DHASH_ENTRY_IS_FREE(entry)) {
-            METER(table->stats.misses++);
-            return entry;
+        if (ENTRY_IS_REMOVED(entry)) {
+            if (!firstRemoved)
+                firstRemoved = entry;
+        } else {
+            if (op == JS_DHASH_ADD)
+                entry->keyHash |= COLLISION_FLAG;
         }
     }
 
@@ -513,6 +469,7 @@ ChangeTable(JSDHashTable *table, int deltaLog2)
     char *newEntryStore, *oldEntryStore, *oldEntryAddr;
     uint32 entrySize, i, nbytes;
     JSDHashEntryHdr *oldEntry, *newEntry;
+    JSDHashGetKey getKey;
     JSDHashMoveEntry moveEntry;
 #ifdef DEBUG
     uint32 recursionLevel;
@@ -528,8 +485,7 @@ ChangeTable(JSDHashTable *table, int deltaLog2)
     entrySize = table->entrySize;
     nbytes = newCapacity * entrySize;
 
-    newEntryStore = (char *) table->ops->allocTable(table,
-                                                    nbytes + ENTRY_STORE_EXTRA);
+    newEntryStore = table->ops->allocTable(table, nbytes + ENTRY_STORE_EXTRA);
     if (!newEntryStore)
         return JS_FALSE;
 
@@ -545,6 +501,7 @@ ChangeTable(JSDHashTable *table, int deltaLog2)
     memset(newEntryStore, 0, nbytes);
     oldEntryAddr = oldEntryStore = table->entryStore;
     table->entryStore = newEntryStore;
+    getKey = table->ops->getKey;
     moveEntry = table->ops->moveEntry;
 #ifdef DEBUG
     RECURSION_LEVEL(table) = recursionLevel;
@@ -555,7 +512,8 @@ ChangeTable(JSDHashTable *table, int deltaLog2)
         oldEntry = (JSDHashEntryHdr *)oldEntryAddr;
         if (ENTRY_IS_LIVE(oldEntry)) {
             oldEntry->keyHash &= ~COLLISION_FLAG;
-            newEntry = FindFreeEntry(table, oldEntry->keyHash);
+            newEntry = SearchTable(table, getKey(table, oldEntry),
+                                   oldEntry->keyHash, JS_DHASH_ADD);
             JS_ASSERT(JS_DHASH_ENTRY_IS_FREE(newEntry));
             moveEntry(table, oldEntry, newEntry);
             newEntry->keyHash = oldEntry->keyHash;

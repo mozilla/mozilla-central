@@ -19,7 +19,6 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Stan Shebs <stanshebs@earthlink.net>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -44,21 +43,16 @@ class nsMIMEInfoMac : public nsMIMEInfoImpl {
   public:
     nsMIMEInfoMac(const char* aMIMEType = "") : nsMIMEInfoImpl(aMIMEType) {}
     nsMIMEInfoMac(const nsACString& aMIMEType) : nsMIMEInfoImpl(aMIMEType) {}
-    nsMIMEInfoMac(const nsACString& aType, HandlerClass aClass) :
-      nsMIMEInfoImpl(aType, aClass) {}
 
     NS_IMETHOD LaunchWithFile(nsIFile* aFile);
-  protected:
-    virtual NS_HIDDEN_(nsresult) LoadUriInternal(nsIURI *aURI);
+
 #ifdef DEBUG
+  protected:
     virtual NS_HIDDEN_(nsresult) LaunchDefaultWithFile(nsIFile* aFile) {
       NS_NOTREACHED("do not call this method, use LaunchWithFile");
       return NS_ERROR_UNEXPECTED;
     }
 #endif
-    static NS_HIDDEN_(nsresult) OpenApplicationWithURI(nsIFile *aApplication, 
-                                                       const nsCString& aURI);
-    
 };
 
 

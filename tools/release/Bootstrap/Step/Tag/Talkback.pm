@@ -2,42 +2,27 @@
 # Tag step. Applies a CVS tag to the appropriate repositories.
 # 
 package Bootstrap::Step::Tag::Talkback;
-
-use strict;
-
-use File::Copy qw(move);
-
-use MozBuild::Util qw(MkdirWithPath);
-
-use Bootstrap::Util qw(CvsCatfile);
 use Bootstrap::Step;
 use Bootstrap::Config;
 use Bootstrap::Step::Tag;
-
-our @ISA = ("Bootstrap::Step::Tag");
+use File::Copy qw(move);
+use MozBuild::Util qw(MkdirWithPath);
+@ISA = ("Bootstrap::Step::Tag");
 
 sub Execute {
     my $this = shift;
 
     my $config = new Bootstrap::Config();
+    my $product = $config->Get(var => 'product');
     my $productTag = $config->Get(var => 'productTag');
     my $branchTag = $config->Get(var => 'branchTag');
-    my $build = int($config->Get(var => 'build'));
     my $pullDate = $config->Get(var => 'pullDate');
-    my $logDir = $config->Get(sysvar => 'logDir');
+    my $logDir = $config->Get(var => 'logDir');
     my $mofoCvsroot = $config->Get(var => 'mofoCvsroot');
     my $tagDir = $config->Get(var => 'tagDir');
 
-    my $releaseTag = $productTag . '_RELEASE';
-    my $buildTag = $productTag . '_BUILD' . $build;
-    my $releaseTagDir = catfile($tagDir, $buildTag);
-
-    # Since talkback so seldom changes, we don't include it in our fancy
-    # respin logic; we only need to tag it for build 1.
-    if ($build > 1) {
-        $this->Log(msg => "Not tagging Talkback repo for build $build.");
-        return;
-    }
+    my $releaseTag = $productTag.'_RELEASE';
+    my $releaseTagDir = catfile($tagDir, $releaseTag);
 
     # Create the mofo tag directory.
     my $mofoDir = catfile($releaseTagDir, 'mofo');
@@ -47,13 +32,12 @@ sub Execute {
     }
 
     # Check out the talkback files from the branch you want to tag.
-    $this->CvsCo(
-      cvsroot => $mofoCvsroot,
-      tag => $branchTag,
-      date => $pullDate,
-      modules => [CvsCatfile('talkback', 'fullsoft')],
-      workDir => catfile($releaseTagDir, 'mofo'),
-      logFile => catfile($logDir, 'tag-talkback_mofo-checkout.log')
+    $this->Shell(
+      cmd => 'cvs',
+      cmdArgs => ['-d', $mofoCvsroot, 'co', '-r', $branchTag, '-D', 
+                  $pullDate, catfile('talkback', 'fullsoft')],
+      dir => catfile($releaseTagDir, 'mofo'),
+      logFile => catfile($logDir, 'tag-talkback_mofo-checkout.log'),
     );
 
     # Create the talkback RELEASE tag.
@@ -69,16 +53,10 @@ sub Verify {
     my $this = shift;
 
     my $config = new Bootstrap::Config();
-    my $logDir = $config->Get(sysvar => 'logDir');
+    my $logDir = $config->Get(var => 'logDir');
     my $productTag = $config->Get(var => 'productTag');
-    my $build = $config->Get(var => 'build');
 
-    if ($build > 1) {
-        $this->Log(msg => "Not verifying Talkback repo for build $build.");
-        return;
-    }
-
-    my $releaseTag = $productTag . '_RELEASE';
+    my $releaseTag = $productTag.'_RELEASE';
 
     $this->CheckLog(
       log => catfile($logDir, 

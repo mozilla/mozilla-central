@@ -34,15 +34,13 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-333728.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 333728;
+var bug = 333728;
 var summary = 'Throw ReferenceErrors for typeof(...undef)';
 var actual = '';
 var expect = 'ReferenceError';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
 try
@@ -53,7 +51,7 @@ catch(ex)
 {
   actual = ex.name;
 }
- 
+  
 reportCompare(expect, actual, summary + ': typeof (0, undef)');
 
 try
@@ -64,7 +62,7 @@ catch(ex)
 {
   actual = ex.name;
 }
- 
+  
 reportCompare(expect, actual, summary + ': typeof (0 || undef)');
 
 try
@@ -75,33 +73,33 @@ catch(ex)
 {
   actual = ex.name;
 }
- 
+  
 reportCompare(expect, actual, summary + ': typeof (1 && undef)');
 
 /*
-  try
-  {
+try
+{
   actual = typeof (0 ? 0 : undef);
-  }
-  catch(ex)
-  {
+}
+catch(ex)
+{
   actual = ex.name;
-  }
- 
-  reportCompare(expect, actual, summary + ': typeof (0 ? 0 : undef)');
+}
+  
+reportCompare(expect, actual, summary + ': typeof (0 ? 0 : undef)');
 */
 
 /*
-  try
-  {
+try
+{
   actual = typeof (1 ? undef : 0);
-  }
-  catch(ex)
-  {
+}
+catch(ex)
+{
   actual = ex.name;
-  }
- 
-  reportCompare(expect, actual, summary + ': typeof (1 ? undef : 0)');
+}
+  
+reportCompare(expect, actual, summary + ': typeof (1 ? undef : 0)');
 */
 
 try
@@ -112,5 +110,5 @@ catch(ex)
 {
   actual = ex.name;
 }
- 
+  
 reportCompare(expect, actual, summary + ': typeof (!this ? 0 : undef)');

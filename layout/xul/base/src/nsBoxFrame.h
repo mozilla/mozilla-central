@@ -50,17 +50,26 @@
 #include "nsContainerFrame.h"
 class nsBoxLayoutState;
 
+class nsHTMLReflowCommand;
+class nsHTMLInfo;
+
+// flags for box info
+#define NS_FRAME_BOX_SIZE_VALID    0x0001
+#define NS_FRAME_BOX_IS_COLLAPSED  0x0002
+#define NS_FRAME_BOX_NEEDS_RECALC  0x0004
+
+
 // flags from box
 #define NS_STATE_BOX_CHILD_RESERVED      0x00100000
 #define NS_STATE_STACK_NOT_POSITIONED    0x00200000
 //#define NS_STATE_IS_HORIZONTAL           0x00400000  moved to nsIFrame.h
 #define NS_STATE_AUTO_STRETCH            0x00800000
-//#define NS_STATE_IS_ROOT                 0x01000000  moved to nsBox.h
+//#define NS_STATE_IS_ROOT                 0x01000000  moved to nsIFrame.h
 #define NS_STATE_CURRENTLY_IN_DEBUG      0x02000000
-//#define NS_STATE_SET_TO_DEBUG            0x04000000  moved to nsBox.h
-//#define NS_STATE_DEBUG_WAS_SET           0x08000000  moved to nsBox.h
+//#define NS_STATE_SET_TO_DEBUG            0x04000000  moved to nsIFrame.h
+//#define NS_STATE_DEBUG_WAS_SET           0x08000000  moved to nsIFrame.h
 #define NS_STATE_IS_COLLAPSED            0x10000000
-#define NS_STATE_BOX_WRAPS_KIDS_IN_BLOCK 0x20000000
+//#define NS_STATE_STYLE_CHANGE            0x20000000  moved to nsIFrame.h
 #define NS_STATE_EQUAL_SIZE              0x40000000
 //#define NS_STATE_IS_DIRECTION_NORMAL     0x80000000  moved to nsIFrame.h
 
@@ -80,6 +89,10 @@ public:
 
   // gets the rect inside our border and debug border. If you wish to paint inside a box
   // call this method to get the rect so you don't draw on the debug border or outer border.
+
+  // Override addref/release to not assert
+  NS_IMETHOD_(nsrefcnt) AddRef(void);
+  NS_IMETHOD_(nsrefcnt) Release(void);
 
   // ------ nsIBox -------------
   NS_IMETHOD SetLayoutManager(nsIBoxLayout* aLayout);
@@ -134,8 +147,6 @@ public:
   NS_IMETHOD  RemoveFrame(nsIAtom*        aListName,
                           nsIFrame*       aOldFrame);
 
-  virtual nsIFrame* GetContentInsertionFrame();
-
   NS_IMETHOD  SetInitialChildList(nsIAtom*        aListName,
                                   nsIFrame*       aChildList);
 
@@ -150,7 +161,7 @@ public:
     // that contains a block so nsHTMLReflowState doesn't tell us to be
     // NS_INTRINSICSIZE wide.)
     return nsContainerFrame::IsFrameOfType(aFlags &
-      ~(nsIFrame::eReplaced | nsIFrame::eReplacedContainsBlock | eXULBox));
+      ~(nsIFrame::eReplaced | nsIFrame::eReplacedContainsBlock));
   }
 
 #ifdef DEBUG
@@ -161,19 +172,16 @@ public:
                        const nsHTMLReflowState*  aReflowState,
                        nsDidReflowStatus         aStatus);
 
-  virtual PRBool HonorPrintBackgroundSettings();
-
   virtual ~nsBoxFrame();
+
+  virtual nsresult GetContentOf(nsIContent** aContent);
   
   nsBoxFrame(nsIPresShell* aPresShell, nsStyleContext* aContext, PRBool aIsRoot = nsnull, nsIBoxLayout* aLayoutManager = nsnull);
-
-  // if aIsPopup is true, then the view is for a popup. In this case,
-  // the view is added a child of the root view, and is initially hidden
+ 
   static nsresult CreateViewForFrame(nsPresContext* aPresContext,
                                      nsIFrame* aChild,
                                      nsStyleContext* aStyleContext,
-                                     PRBool aForce,
-                                     PRBool aIsPopup = PR_FALSE);
+                                     PRBool aForce);
 
   // virtual so nsStackFrame, nsButtonBoxFrame, nsSliderFrame and nsMenuFrame
   // can override it
@@ -184,6 +192,9 @@ public:
   NS_IMETHOD BuildDisplayList(nsDisplayListBuilder*   aBuilder,
                               const nsRect&           aDirtyRect,
                               const nsDisplayListSet& aLists);
+
+  nsIBox* GetBoxAt(PRInt32 aIndex) { return mFrames.FrameAt(aIndex); }
+  PRInt32 GetChildCount() { return mFrames.GetLength(); }
   
 #ifdef DEBUG_LAYOUT
     virtual void SetDebugOnChildList(nsBoxLayoutState& aState, nsIBox* aChild, PRBool aDebug);
@@ -243,6 +254,12 @@ protected:
 
 private: 
 
+    // helper methods
+    static PRBool AdjustTargetToScope(nsIFrame* aParent, nsIFrame*& aTargetFrame);
+
+
+
+
 #ifdef DEBUG_LAYOUT
     nsresult SetDebug(nsPresContext* aPresContext, PRBool aDebug);
     PRBool GetInitialDebug(PRBool& aDebug);
@@ -252,10 +269,13 @@ private:
     void GetDebugPadding(nsMargin& aInset);
     void GetDebugMargin(nsMargin& aInset);
 
+#endif
+
     nsresult GetFrameSizeWithMargin(nsIBox* aBox, nsSize& aSize);
 
     void PixelMarginToTwips(nsPresContext* aPresContext, nsMargin& aMarginPixels);
 
+#ifdef DEBUG_LAYOUT
     void GetValue(nsPresContext* aPresContext, const nsSize& a, const nsSize& b, char* value);
     void GetValue(nsPresContext* aPresContext, PRInt32 a, PRInt32 b, char* value);
     void DrawSpacer(nsPresContext* aPresContext, nsIRenderingContext& aRenderingContext, PRBool aHorizontal, PRInt32 flex, nscoord x, nscoord y, nscoord size, nscoord spacerSize);
@@ -265,6 +285,8 @@ private:
     void UpdateMouseThrough();
 
     void CacheAttributes();
+
+    nsIBox* GetBoxForFrame(nsIFrame* aFrame, PRBool& aIsAdaptor);
 
     // instance variables.
     Halignment mHalign;

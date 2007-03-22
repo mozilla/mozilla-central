@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '9.7.js';
-
 /**
    File Name:          9.7.js
    ECMA Section:       9.7  Type Conversion:  ToInt16

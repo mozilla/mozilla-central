@@ -48,7 +48,6 @@
 #include "nsIReflowCallback.h"
 #include "nsPresContext.h"
 #include "nsBoxLayoutState.h"
-#include "nsThreadUtils.h"
 
 class nsListScrollSmoother;
 nsIFrame* NS_NewListBoxBodyFrame(nsIPresShell* aPresShell,
@@ -88,7 +87,6 @@ public:
 
   // nsIReflowCallback
   virtual PRBool ReflowFinished();
-  virtual void ReflowCallbackCanceled();
 
   // nsIBox
   NS_IMETHOD DoLayout(nsBoxLayoutState& aBoxLayoutState);
@@ -107,13 +105,8 @@ public:
   nscoord ComputeIntrinsicWidth(nsBoxLayoutState& aBoxLayoutState);
 
   // scrolling
-  nsresult InternalPositionChangedCallback();
-  nsresult InternalPositionChanged(PRBool aUp, PRInt32 aDelta);
-  // Process pending position changed events, then do the position change.
-  // This can wipe out the frametree.
-  nsresult DoInternalPositionChangedSync(PRBool aUp, PRInt32 aDelta);
-  // Actually do the internal position change.  This can wipe out the frametree
-  nsresult DoInternalPositionChanged(PRBool aUp, PRInt32 aDelta);
+  NS_IMETHOD InternalPositionChangedCallback();
+  NS_IMETHOD InternalPositionChanged(PRBool aUp, PRInt32 aDelta);
   nsListScrollSmoother* GetSmoother();
   void VerticalScroll(PRInt32 aDelta);
 
@@ -139,37 +132,6 @@ public:
   void PostReflowCallback();
 
 protected:
-  class nsPositionChangedEvent;
-  friend class nsPositionChangedEvent;
-
-  class nsPositionChangedEvent : public nsRunnable
-  {
-  public:
-    nsPositionChangedEvent(nsListBoxBodyFrame* aFrame,
-                           PRBool aUp, PRInt32 aDelta) :
-      mFrame(aFrame), mUp(aUp), mDelta(aDelta)
-    {}
-  
-    NS_IMETHOD Run()
-    {
-      if (!mFrame) {
-        return NS_OK;
-      }
-
-      mFrame->mPendingPositionChangeEvents.RemoveElement(this);
-
-      return mFrame->DoInternalPositionChanged(mUp, mDelta);
-    }
-
-    void Revoke() {
-      mFrame = nsnull;
-    }
-
-    nsListBoxBodyFrame* mFrame;
-    PRBool mUp;
-    PRInt32 mDelta;
-  };
-
   void ComputeTotalRowCount();
   void RemoveChildFrame(nsBoxLayoutState &aState, nsIFrame *aChild);
 
@@ -194,8 +156,6 @@ protected:
   PRInt32 mYPosition;
   nsListScrollSmoother* mScrollSmoother;
   PRInt32 mTimePerRow;
-
-  nsTArray< nsRefPtr<nsPositionChangedEvent> > mPendingPositionChangeEvents;
 
   PRPackedBool mReflowCallbackPosted;
 }; 

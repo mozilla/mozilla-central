@@ -49,33 +49,25 @@
 class nsPresContext;
 class nsIDOMSVGMatrix;
 class nsSVGMarkerFrame;
+class nsISVGFilterFrame;
 class nsSVGMarkerProperty;
 
 typedef nsSVGGeometryFrame nsSVGPathGeometryFrameBase;
 
-#define HITTEST_MASK_FILL        0x01
-#define HITTEST_MASK_STROKE      0x02
-#define HITTEST_MASK_FORCE_TEST  0x04
+#define HITTEST_MASK_FILL 1
+#define HITTEST_MASK_STROKE 2
 
 class nsSVGPathGeometryFrame : public nsSVGPathGeometryFrameBase,
                                public nsISVGChildFrame
 {
-  friend nsIFrame*
-  NS_NewSVGPathGeometryFrame(nsIPresShell* aPresShell, nsIContent* aContent,
-                             nsStyleContext* aContext);
-protected:
-  nsSVGPathGeometryFrame(nsStyleContext* aContext) :
-    nsSVGPathGeometryFrameBase(aContext),
-    mPropagateTransform(PR_TRUE) {}
-
 public:
-  // nsISupports interface:
+  nsSVGPathGeometryFrame(nsStyleContext* aContext);
+
+   // nsISupports interface:
   NS_IMETHOD QueryInterface(const nsIID& aIID, void** aInstancePtr);
-private:
   NS_IMETHOD_(nsrefcnt) AddRef() { return 1; }
   NS_IMETHOD_(nsrefcnt) Release() { return 1; }
 
-public:
   // nsIFrame interface:
   virtual void Destroy();
   NS_IMETHOD  AttributeChanged(PRInt32         aNameSpaceID,
@@ -98,8 +90,9 @@ public:
   }
 #endif
 
-  // nsSVGGeometryFrame methods
+  // nsISVGGeometrySource interface:
   NS_IMETHOD GetCanvasTM(nsIDOMSVGMatrix * *aCTM);
+  virtual nsresult UpdateGraphic(PRBool suppressInvalidation = PR_FALSE);
 
 protected:
   // nsISVGChildFrame interface:
@@ -108,12 +101,11 @@ protected:
   NS_IMETHOD_(nsRect) GetCoveredRegion();
   NS_IMETHOD UpdateCoveredRegion();
   NS_IMETHOD InitialUpdate();
-  virtual void NotifySVGChanged(PRUint32 aFlags);
+  NS_IMETHOD NotifyCanvasTMChanged(PRBool suppressInvalidation);
   NS_IMETHOD NotifyRedrawSuspended();
   NS_IMETHOD NotifyRedrawUnsuspended();
   NS_IMETHOD SetMatrixPropagation(PRBool aPropagate);
   NS_IMETHOD SetOverrideCTM(nsIDOMSVGMatrix *aCTM);
-  virtual already_AddRefed<nsIDOMSVGMatrix> GetOverrideCTM();
   NS_IMETHOD GetBBox(nsIDOMSVGRect **_retval);
   NS_IMETHOD_(PRBool) IsDisplayContainer() { return PR_FALSE; }
   NS_IMETHOD_(PRBool) HasValidCoveredRect() { return PR_TRUE; }

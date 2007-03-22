@@ -54,7 +54,6 @@ REQUIRES	= appshell \
 		  dom \
 		  editor \
 		  gfx \
-		  thebes \
 		  intl \
 		  layout \
 		  locale \
@@ -75,19 +74,15 @@ REQUIRES	= appshell \
 CPPSRCS = \
   nsAccessNode.cpp \
   nsAccessibleEventData.cpp \
-  nsARIAMap.cpp \
   nsDocAccessible.cpp \
   nsOuterDocAccessible.cpp \
   nsAccessibilityAtoms.cpp \
-  nsAccessibilityUtils.cpp \
   nsAccessibilityService.cpp \
   nsAccessible.cpp \
-  nsAccessibleRelation.cpp \
   nsAccessibleTreeWalker.cpp \
   nsBaseWidgetAccessible.cpp \
   nsFormControlAccessible.cpp \
   nsRootAccessible.cpp \
-  nsApplicationAccessible.cpp \
   nsCaretAccessible.cpp \
   nsTextAccessible.cpp \
   $(NULL)

@@ -326,7 +326,7 @@ const int EscapeChars[256] =
 {
         0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,       /* 0x */
         0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  	    /* 1x */
-        0,1023,   0, 512,1023,   0,1023,   0,1023,1023,1023,1023,1023,1023, 953, 784,       /* 2x   !"#$%&'()*+,-./	 */
+        0,1023,   0, 512,1023,   0,1023,1023,1023,1023,1023,1023,1023,1023, 953, 784,       /* 2x   !"#$%&'()*+,-./	 */
      1023,1023,1023,1023,1023,1023,1023,1023,1023,1023,1008, 912,   0,1008,   0, 768,       /* 3x  0123456789:;<=>?	 */
      1008,1023,1023,1023,1023,1023,1023,1023,1023,1023,1023,1023,1023,1023,1023,1023,       /* 4x  @ABCDEFGHIJKLMNO  */
      1023,1023,1023,1023,1023,1023,1023,1023,1023,1023,1023, 896, 896, 896, 896,1023,       /* 5x  PQRSTUVWXYZ[\]^_	 */
@@ -379,11 +379,11 @@ NS_COM PRBool NS_EscapeURL(const char *part,
     static const char hexChars[] = "0123456789ABCDEF";
     if (partLen < 0)
         partLen = strlen(part);
-    PRBool forced = !!(flags & esc_Forced);
-    PRBool ignoreNonAscii = !!(flags & esc_OnlyASCII);
-    PRBool ignoreAscii = !!(flags & esc_OnlyNonASCII);
-    PRBool writing = !!(flags & esc_AlwaysCopy);
-    PRBool colon = !!(flags & esc_Colon);
+    PRBool forced = (flags & esc_Forced);
+    PRBool ignoreNonAscii = (flags & esc_OnlyASCII);
+    PRBool ignoreAscii = (flags & esc_OnlyNonASCII);
+    PRBool writing = (flags & esc_AlwaysCopy);
+    PRBool colon = (flags & esc_Colon);
 
     register const unsigned char* src = (const unsigned char *) part;
 
@@ -408,12 +408,9 @@ NS_COM PRBool NS_EscapeURL(const char *part,
       //
       // And, we should escape the '|' character when it occurs after any
       // non-ASCII character as it may be part of a multi-byte character.
-      //
-      // 0x20..0x7e are the valid ASCII characters. We also escape spaces
-      // (0x20) since they are not legal in URLs.
       if ((NO_NEED_ESC(c) || (c == HEX_ESCAPE && !forced)
                           || (c > 0x7f && ignoreNonAscii)
-                          || (c > 0x20 && c < 0x7f && ignoreAscii))
+                          || (c > 0x1f && c < 0x7f && ignoreAscii))
           && !(c == ':' && colon)
           && !(previousIsNonASCII && c == '|' && !ignoreNonAscii))
       {
@@ -461,10 +458,10 @@ NS_COM PRBool NS_UnescapeURL(const char *str, PRInt32 len, PRUint32 flags, nsACS
     if (len < 0)
         len = strlen(str);
 
-    PRBool ignoreNonAscii = !!(flags & esc_OnlyASCII);
-    PRBool ignoreAscii = !!(flags & esc_OnlyNonASCII);
-    PRBool writing = !!(flags & esc_AlwaysCopy);
-    PRBool skipControl = !!(flags & esc_SkipControl); 
+    PRBool ignoreNonAscii = (flags & esc_OnlyASCII);
+    PRBool ignoreAscii = (flags & esc_OnlyNonASCII);
+    PRBool writing = (flags & esc_AlwaysCopy);
+    PRBool skipControl = (flags & esc_SkipControl); 
 
     static const char hexChars[] = "0123456789ABCDEFabcdef";
 

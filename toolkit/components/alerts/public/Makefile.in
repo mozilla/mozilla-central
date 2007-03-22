@@ -45,11 +45,7 @@ include $(DEPTH)/config/autoconf.mk
 MODULE    = alerts
 XPIDL_MODULE=alerts
 
-XPIDLSRCS = nsIAlertsService.idl
-
-ifneq (,$(filter cocoa, $(MOZ_WIDGET_TOOLKIT)))
-XPIDLSRCS += nsINotificationsList.idl
-endif
+XPIDLSRCS = nsIAlertsService.idl \
 
 include $(topsrcdir)/config/rules.mk
 

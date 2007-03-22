@@ -181,11 +181,10 @@ public:
   NS_HIDDEN_(nsresult) ReParentStyleContext(nsIFrame* aFrame);
 
   /*
-   * Re-resolve the style contexts for a frame tree, building
-   * aChangeList based on the resulting style changes, plus aMinChange
-   * applied to aFrame.
+   * Re-resolve the style contexts for a frame tree.  Returns the top-level
+   * change hint resulting from the style re-resolution.
    */
-  NS_HIDDEN_(void)
+  NS_HIDDEN_(nsChangeHint)
     ComputeStyleChangeFor(nsIFrame* aFrame,
                           nsStyleChangeList* aChangeList,
                           nsChangeHint aMinChange);
@@ -193,8 +192,7 @@ public:
   // Determine whether an attribute affects style
   NS_HIDDEN_(nsReStyleHint) HasAttributeDependentStyle(nsIContent *aContent,
                                                        nsIAtom *aAttribute,
-                                                       PRInt32 aModType,
-                                                       PRUint32 aStateMask);
+                                                       PRInt32 aModType);
 
   /*
    * Capture/restore frame state for the frame subtree rooted at aFrame.

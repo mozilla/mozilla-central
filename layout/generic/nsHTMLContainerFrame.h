@@ -41,7 +41,6 @@
 #define nsHTMLContainerFrame_h___
 
 #include "nsContainerFrame.h"
-#include "gfxPoint.h"
 class nsString;
 class nsAbsoluteFrame;
 class nsPlaceholderFrame;
@@ -171,20 +170,15 @@ protected:
    *                                i.e. negative offsets draws *below*
    *                                the baseline.
    *    @param aSize              the thickness of the line
-   *    @param aDecoration        which line will be painted
-   *                                i.e., NS_STYLE_TEXT_DECORATION_UNDERLINE or
-   *                                      NS_STYLE_TEXT_DECORATION_OVERLINE or
-   *                                      NS_STYLE_TEXT_DECORATION_LINE_THROUGH.
    */
   virtual void PaintTextDecorationLine(nsIRenderingContext& aRenderingContext,
-                                       const nsPoint& aPt,
+                                       nsPoint aPt,
                                        nsLineBox* aLine,
                                        nscolor aColor,
-                                       gfxFloat aOffset,
-                                       gfxFloat aAscent,
-                                       gfxFloat aSize,
-                                       const PRUint8 aDecoration);
-
+                                       nscoord aOffset,
+                                       nscoord aAscent,
+                                       nscoord aSize);
+                                       
   friend class nsDisplayTextDecoration;
 };
 

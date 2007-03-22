@@ -46,8 +46,6 @@
   %brandDTD;
   <!ENTITY % uctDTD SYSTEM "chrome://mozapps/locale/downloads/unknownContentType.dtd" >
   %uctDTD;
-  <!ENTITY % scDTD SYSTEM "chrome://mozapps/locale/downloads/settingsChange.dtd" >
-  %scDTD;
 ]>            
 
 <dialog id="unknownContentType"
@@ -60,7 +58,7 @@
         ondialogaccept="return dialog.onOK()"
         ondialogcancel="return dialog.onCancel()">
 
-  <script type="application/javascript" src="chrome://mozapps/content/downloads/helperApps.js"/>
+  <script type="application/x-javascript" src="chrome://mozapps/content/downloads/helperApps.js"/>
 
   <stringbundle id="strings" src="chrome://mozapps/locale/downloads/unknownContentType.properties"/>
 
@@ -108,7 +106,7 @@
           </deck>
         </hbox>
         
-        <radio id="save" label="&saveFile.label;" accesskey="&saveFile.accesskey;"/>
+        <radio id="save" label="&save.label;" accesskey="&save.accesskey;"/>
       </radiogroup> 
       <separator class="thin"/>
       <hbox class="small-indent">
@@ -119,9 +117,13 @@
       
       <separator/>
 #ifdef XP_UNIX
-      <description id="settingsChange" hidden="true">&settingsChangePreferences.label;</description>
+#ifdef XP_MACOSX
+      <description id="settingsChange" hidden="true">&settingsChangeMac.label;</description>
 #else
-      <description id="settingsChange" hidden="true">&settingsChangeOptions.label;</description>
+      <description id="settingsChange" hidden="true">&settingsChangeUnix.label;</description>
+#endif
+#else
+      <description id="settingsChange" hidden="true">&settingsChange.label;</description>
 #endif
       <separator class="thin"/>
     </groupbox>

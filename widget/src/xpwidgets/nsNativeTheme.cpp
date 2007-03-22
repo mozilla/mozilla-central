@@ -50,6 +50,27 @@
 #include "nsThemeConstants.h"
 #include "nsIComponentManager.h"
 
+nsMargin nsNativeTheme::sButtonBorderSize(2, 2, 2, 2);
+nsMargin nsNativeTheme::sButtonDisabledBorderSize(1, 1, 1, 1);
+PRUint8  nsNativeTheme::sButtonActiveBorderStyle = NS_STYLE_BORDER_STYLE_INSET;
+PRUint8  nsNativeTheme::sButtonInactiveBorderStyle = NS_STYLE_BORDER_STYLE_OUTSET;
+nsILookAndFeel::nsColorID nsNativeTheme::sButtonBorderColorID = nsILookAndFeel::eColor_threedface;
+nsILookAndFeel::nsColorID nsNativeTheme::sButtonDisabledBorderColorID = nsILookAndFeel::eColor_threedshadow;
+nsILookAndFeel::nsColorID nsNativeTheme::sButtonBGColorID = nsILookAndFeel::eColor_threedface;
+nsILookAndFeel::nsColorID nsNativeTheme::sButtonDisabledBGColorID = nsILookAndFeel::eColor_threedface;
+nsMargin nsNativeTheme::sTextfieldBorderSize(2, 2, 2, 2);
+PRUint8  nsNativeTheme::sTextfieldBorderStyle = NS_STYLE_BORDER_STYLE_INSET;
+nsILookAndFeel::nsColorID nsNativeTheme::sTextfieldBorderColorID = nsILookAndFeel::eColor_threedface;
+PRBool   nsNativeTheme::sTextfieldBGTransparent = PR_FALSE;
+nsILookAndFeel::nsColorID nsNativeTheme::sTextfieldBGColorID = nsILookAndFeel::eColor__moz_field;
+nsILookAndFeel::nsColorID nsNativeTheme::sTextfieldDisabledBGColorID = nsILookAndFeel::eColor_threedface;
+nsMargin nsNativeTheme::sListboxBorderSize(2, 2, 2, 2);
+PRUint8  nsNativeTheme::sListboxBorderStyle = NS_STYLE_BORDER_STYLE_INSET;
+nsILookAndFeel::nsColorID nsNativeTheme::sListboxBorderColorID = nsILookAndFeel::eColor_threedface;
+PRBool   nsNativeTheme::sListboxBGTransparent = PR_FALSE;
+nsILookAndFeel::nsColorID nsNativeTheme::sListboxBGColorID = nsILookAndFeel::eColor__moz_field;
+nsILookAndFeel::nsColorID nsNativeTheme::sListboxDisabledBGColorID = nsILookAndFeel::eColor_threedface;
+
 nsNativeTheme::nsNativeTheme()
 {
 }
@@ -73,10 +94,7 @@ nsNativeTheme::GetContentState(nsIFrame* aFrame, PRUint8 aWidgetType)
     return 0;
 
   PRBool isXULCheckboxRadio = 
-    (aWidgetType == NS_THEME_CHECKBOX ||
-     aWidgetType == NS_THEME_CHECKBOX_SMALL ||
-     aWidgetType == NS_THEME_RADIO ||
-     aWidgetType == NS_THEME_RADIO_SMALL) &&
+    (aWidgetType == NS_THEME_CHECKBOX || aWidgetType == NS_THEME_RADIO) &&
     aFrame->GetContent()->IsNodeOfType(nsINode::eXUL);
   if (isXULCheckboxRadio)
     aFrame = aFrame->GetParent();
@@ -88,7 +106,7 @@ nsNativeTheme::GetContentState(nsIFrame* aFrame, PRUint8 aWidgetType)
   PRInt32 flags = 0;
   shell->GetPresContext()->EventStateManager()->GetContentState(aFrame->GetContent(), flags);
   
-  if (isXULCheckboxRadio && (aWidgetType == NS_THEME_RADIO || aWidgetType == NS_THEME_RADIO_SMALL)) {
+  if (isXULCheckboxRadio && aWidgetType == NS_THEME_RADIO) {
     if (IsFocused(aFrame))
       flags |= NS_EVENT_STATE_FOCUS;
   }
@@ -114,16 +132,16 @@ nsNativeTheme::CheckBooleanAttr(nsIFrame* aFrame, nsIAtom* aAtom)
 }
 
 PRInt32
-nsNativeTheme::CheckIntAttr(nsIFrame* aFrame, nsIAtom* aAtom, PRInt32 defaultValue)
+nsNativeTheme::CheckIntAttr(nsIFrame* aFrame, nsIAtom* aAtom)
 {
   if (!aFrame)
-    return defaultValue;
+    return 0;
 
   nsAutoString attr;
   aFrame->GetContent()->GetAttr(kNameSpaceID_None, aAtom, attr);
   PRInt32 err, value = attr.ToInteger(&err);
-  if (attr.IsEmpty() || NS_FAILED(err))
-    return defaultValue;
+  if (NS_FAILED(err))
+    return 0;
 
   return value;
 }
@@ -154,45 +172,128 @@ nsNativeTheme::GetCheckedOrSelected(nsIFrame* aFrame, PRBool aCheckSelected)
                                                  : nsWidgetAtoms::checked);
 }
 
+static void
+ConvertMarginToAppUnits(const nsMargin &aSource, nsMargin &aDest)
+{
+  PRInt32 p2a = nsPresContext::AppUnitsPerCSSPixel();
+  aDest.top = NSIntPixelsToAppUnits(aSource.top, p2a);
+  aDest.left = NSIntPixelsToAppUnits(aSource.left, p2a);
+  aDest.bottom = NSIntPixelsToAppUnits(aSource.bottom, p2a);
+  aDest.right = NSIntPixelsToAppUnits(aSource.right, p2a);
+}
+
 PRBool
 nsNativeTheme::IsWidgetStyled(nsPresContext* aPresContext, nsIFrame* aFrame,
                               PRUint8 aWidgetType)
 {
   // Check for specific widgets to see if HTML has overridden the style.
-  return aFrame &&
-         (aWidgetType == NS_THEME_BUTTON ||
-          aWidgetType == NS_THEME_TEXTFIELD ||
-          aWidgetType == NS_THEME_TEXTFIELD_MULTILINE ||
-          aWidgetType == NS_THEME_LISTBOX ||
-          aWidgetType == NS_THEME_DROPDOWN) &&
-         aFrame->GetContent()->IsNodeOfType(nsINode::eHTML) &&
-         aPresContext->HasAuthorSpecifiedRules(aFrame,
-                                               NS_AUTHOR_SPECIFIED_BORDER |
-                                               NS_AUTHOR_SPECIFIED_BACKGROUND);
-}
+  if (aFrame && (aWidgetType == NS_THEME_BUTTON ||
+                 aWidgetType == NS_THEME_TEXTFIELD ||
+                 aWidgetType == NS_THEME_LISTBOX ||
+                 aWidgetType == NS_THEME_DROPDOWN)) {
 
-// scrollbar button:
-PRInt32
-nsNativeTheme::GetScrollbarButtonType(nsIFrame* aFrame)
-{
-  if (!aFrame)
-    return 0;
+    if (aFrame->GetContent()->IsNodeOfType(nsINode::eHTML)) {
+      nscolor defaultBGColor, defaultBorderColor;
+      PRUint8 defaultBorderStyle;
+      nsMargin defaultBorderSize;
+      PRBool defaultBGTransparent = PR_FALSE;
 
-  static nsIContent::AttrValuesArray strings[] =
-    {&nsWidgetAtoms::scrollbarDownBottom, &nsWidgetAtoms::scrollbarDownTop,
-     &nsWidgetAtoms::scrollbarUpBottom, &nsWidgetAtoms::scrollbarUpTop,
-     nsnull};
+      nsILookAndFeel *lookAndFeel = aPresContext->LookAndFeel();
 
-  switch (aFrame->GetContent()->FindAttrValueIn(kNameSpaceID_None,
-                                                nsWidgetAtoms::sbattr,
-                                                strings, eCaseMatters)) {
-    case 0: return eScrollbarButton_Down | eScrollbarButton_Bottom;
-    case 1: return eScrollbarButton_Down;
-    case 2: return eScrollbarButton_Bottom;
-    case 3: return eScrollbarButton_UpTop;
+      switch (aWidgetType) {
+      case NS_THEME_BUTTON:
+        if (IsDisabled(aFrame)) {
+          ConvertMarginToAppUnits(sButtonDisabledBorderSize, defaultBorderSize);
+          defaultBorderStyle = sButtonInactiveBorderStyle;
+          lookAndFeel->GetColor(sButtonDisabledBorderColorID,
+                                defaultBorderColor);
+          lookAndFeel->GetColor(sButtonDisabledBGColorID,
+                                defaultBGColor);
+        } else {
+          PRInt32 contentState = GetContentState(aFrame, aWidgetType);
+          ConvertMarginToAppUnits(sButtonBorderSize, defaultBorderSize);
+          if (contentState & NS_EVENT_STATE_HOVER &&
+              contentState & NS_EVENT_STATE_ACTIVE)
+            defaultBorderStyle = sButtonActiveBorderStyle;
+          else
+            defaultBorderStyle = sButtonInactiveBorderStyle;
+          lookAndFeel->GetColor(sButtonBorderColorID,
+                                defaultBorderColor);
+          lookAndFeel->GetColor(sButtonBGColorID,
+                                defaultBGColor);
+        }
+        break;
+
+      case NS_THEME_TEXTFIELD:
+        defaultBorderStyle = sTextfieldBorderStyle;
+        ConvertMarginToAppUnits(sTextfieldBorderSize, defaultBorderSize);
+        lookAndFeel->GetColor(sTextfieldBorderColorID,
+                              defaultBorderColor);
+        if (!(defaultBGTransparent = sTextfieldBGTransparent)) {
+          if (IsDisabled(aFrame))
+            lookAndFeel->GetColor(sTextfieldDisabledBGColorID,
+                                  defaultBGColor);
+          else
+            lookAndFeel->GetColor(sTextfieldBGColorID,
+                                  defaultBGColor);
+        }
+        break;
+
+      case NS_THEME_LISTBOX:
+      case NS_THEME_DROPDOWN:
+        defaultBorderStyle = sListboxBorderStyle;
+        ConvertMarginToAppUnits(sListboxBorderSize, defaultBorderSize);
+        lookAndFeel->GetColor(sListboxBorderColorID,
+                              defaultBorderColor);
+        if (!(defaultBGTransparent = sListboxBGTransparent)) {
+          if (IsDisabled(aFrame))
+            lookAndFeel->GetColor(sListboxDisabledBGColorID,
+                                  defaultBGColor);
+          else
+            lookAndFeel->GetColor(sListboxBGColorID,
+                                  defaultBGColor);
+        }
+        break;
+
+      default:
+        NS_ERROR("nsNativeTheme::IsWidgetStyled widget type not handled");
+        return PR_FALSE;
+      }
+
+      // Check whether background differs from default
+      const nsStyleBackground* ourBG = aFrame->GetStyleBackground();
+
+      if (defaultBGTransparent) {
+        if (!(ourBG->mBackgroundFlags & NS_STYLE_BG_COLOR_TRANSPARENT))
+          return PR_TRUE;
+      } else if (ourBG->mBackgroundColor != defaultBGColor ||
+                 ourBG->mBackgroundFlags & NS_STYLE_BG_COLOR_TRANSPARENT)
+        return PR_TRUE;
+
+      if (!(ourBG->mBackgroundFlags & NS_STYLE_BG_IMAGE_NONE))
+        return PR_TRUE;
+
+      // Check whether border style or color differs from default
+      const nsStyleBorder* ourBorder = aFrame->GetStyleBorder();
+
+      for (PRInt32 i = 0; i < 4; ++i) {
+        if (ourBorder->GetBorderStyle(i) != defaultBorderStyle)
+          return PR_TRUE;
+
+        PRBool borderFG, borderClear;
+        nscolor borderColor;
+        ourBorder->GetBorderColor(i, borderColor, borderFG, borderClear);
+        if (borderColor != defaultBorderColor || borderClear)
+          return PR_TRUE;
+      }
+
+      // Check whether border size differs from default
+      if (ourBorder->GetBorder() != defaultBorderSize)
+        return PR_TRUE;
+    }
   }
 
-  return 0;
+  return PR_FALSE;
 }
 
 // treeheadercell:
@@ -242,17 +343,6 @@ nsNativeTheme::IsLastTab(nsIFrame* aFrame)
     return PR_FALSE;
 
   return aFrame->GetContent()->HasAttr(kNameSpaceID_None, nsWidgetAtoms::lasttab);
-}
-
-PRBool
-nsNativeTheme::IsHorizontal(nsIFrame* aFrame)
-{
-  if (!aFrame)
-    return PR_FALSE;
-    
-  return !aFrame->GetContent()->AttrValueIs(kNameSpaceID_None, nsWidgetAtoms::orient,
-                                            nsWidgetAtoms::vertical, 
-                                            eCaseMatters);
 }
 
 // progressbar:

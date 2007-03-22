@@ -87,11 +87,13 @@ public:
   NS_IMETHOD GetPopupNode(nsIDOMNode** aNode);
   NS_IMETHOD SetPopupNode(nsIDOMNode* aNode);
 
+  NS_IMETHOD GetPopupEvent(nsIDOMEvent** aEvent);
+  NS_IMETHOD SetPopupEvent(nsIDOMEvent* aEvent);
+
   NS_IMETHOD GetControllerForCommand(const char *aCommand, nsIController** aResult);
   NS_IMETHOD GetControllers(nsIControllers** aResult);
 
   NS_IMETHOD MoveFocus(PRBool aForward, nsIDOMElement* aElt);
-  NS_IMETHOD RewindFocusState();
 
   NS_IMETHOD ResetElementFocus();
 
@@ -100,7 +102,7 @@ public:
   NS_IMETHOD Blur(nsIDOMEvent* aEvent);
 
   // nsIDOMEventListener
-  NS_IMETHOD HandleEvent(nsIDOMEvent* anEvent) { return NS_OK; }
+  NS_IMETHOD HandleEvent(nsIDOMEvent* anEvent) { return NS_OK; };
 
   NS_DECL_CYCLE_COLLECTION_CLASS_AMBIGUOUS(nsFocusController,
                                            nsIFocusController)
@@ -115,10 +117,9 @@ public:
 // Members
 protected:
   nsCOMPtr<nsIDOMElement> mCurrentElement; // [OWNER]
-  nsCOMPtr<nsIDOMElement> mPreviousElement; // [OWNER]
   nsCOMPtr<nsPIDOMWindow> mCurrentWindow; // [OWNER]
-  nsCOMPtr<nsPIDOMWindow> mPreviousWindow; // [OWNER]
   nsCOMPtr<nsIDOMNode> mPopupNode; // [OWNER]
+  nsCOMPtr<nsIDOMEvent> mPopupEvent;
 
   PRUint32 mSuppressFocus;
   PRPackedBool mSuppressFocusScroll;

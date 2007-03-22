@@ -38,51 +38,33 @@
 #ifndef nsCycleCollector_h__
 #define nsCycleCollector_h__
 
-// NOTE: If you use header files to define DEBUG_CC, you must do so here
-// *and* in nsCycleCollectionParticipant.h
-//#define DEBUG_CC
-
 class nsISupports;
-class nsCycleCollectionParticipant;
-class nsCycleCollectionTraversalCallback;
+class nsDeque;
+struct nsCycleCollectionTraversalCallback;
 
 // An nsCycleCollectionLanguageRuntime is a per-language object that
 // implements language-specific aspects of the cycle collection task.
 
 struct nsCycleCollectionLanguageRuntime
 {
-    virtual nsresult BeginCycleCollection(nsCycleCollectionTraversalCallback &cb) = 0;
+    virtual nsresult BeginCycleCollection() = 0;
+
+    virtual nsresult Traverse(void *p, nsCycleCollectionTraversalCallback &cb) = 0;
+
+    virtual nsresult Root(const nsDeque &nodes) = 0;
+    virtual nsresult Unlink(const nsDeque &nodes) = 0;
+    virtual nsresult Unroot(const nsDeque &nodes) = 0;
+
     virtual nsresult FinishCycleCollection() = 0;
-    virtual nsCycleCollectionParticipant *ToParticipant(void *p) = 0;
-#ifdef DEBUG_CC
-    virtual void PrintAllReferencesTo(void *p) = 0;
-#endif
 };
 
-nsresult nsCycleCollector_startup();
-// Returns the number of collected nodes.
-NS_COM PRUint32 nsCycleCollector_collect();
-NS_COM PRUint32 nsCycleCollector_suspectedCount();
-void nsCycleCollector_shutdown();
 
-// The JS runtime is special, it needs to call cycle collection during its GC.
-// If the JS runtime is registered nsCycleCollector_collect will call
-// nsCycleCollectionJSRuntime::Collect which will call
-// nsCycleCollector_doCollect, else nsCycleCollector_collect will call
-// nsCycleCollector_doCollect directly.
-struct nsCycleCollectionJSRuntime : public nsCycleCollectionLanguageRuntime
-{
-    /**
-     * Runs cycle collection and returns whether cycle collection collected
-     * anything.
-     */
-    virtual PRBool Collect() = 0;
-};
-// Returns PR_TRUE if cycle collection was started.
-NS_COM PRBool nsCycleCollector_beginCollection();
-// Returns PR_TRUE if some nodes were collected. Should only be called after
-// nsCycleCollector_beginCollection() returned PR_TRUE.
-NS_COM PRBool nsCycleCollector_finishCollection();
+NS_COM PRBool nsCycleCollector_isScanSafe(nsISupports *n);
+NS_COM void nsCycleCollector_suspect(nsISupports *n);
+NS_COM void nsCycleCollector_suspectCurrent(nsISupports *n);
+NS_COM void nsCycleCollector_forget(nsISupports *n);
+NS_COM void nsCycleCollector_collect();
+NS_COM void nsCycleCollector_shutdown();
 
 #ifdef DEBUG
 NS_COM void nsCycleCollector_DEBUG_shouldBeFreed(nsISupports *n);

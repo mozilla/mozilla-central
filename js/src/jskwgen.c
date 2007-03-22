@@ -353,7 +353,7 @@ generate_letter_switch(struct gen_opt *opt,
     unsigned *columns;
     unsigned i;
 
-    columns = (unsigned *) malloc(sizeof(columns[0]) * current_length);
+    columns = malloc(sizeof(columns[0]) * current_length);
     if (!columns) {
         perror("malloc");
         exit(EXIT_FAILURE);
@@ -384,7 +384,7 @@ generate_switch(struct gen_opt *opt)
     }
     line(opt, " */");
 
-    indexes = (unsigned *) malloc(sizeof(indexes[0]) * nelem);
+    indexes = malloc(sizeof(indexes[0]) * nelem);
     if (!indexes) {
         perror("malloc");
         exit(EXIT_FAILURE);

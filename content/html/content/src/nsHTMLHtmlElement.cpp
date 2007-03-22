@@ -35,7 +35,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 #include "nsIDOMHTMLHtmlElement.h"
-#include "nsIDOMEventTarget.h"
+#include "nsIDOMEventReceiver.h"
 #include "nsGenericHTMLElement.h"
 #include "nsGkAtoms.h"
 #include "nsStyleConsts.h"
@@ -88,9 +88,10 @@ NS_IMPL_RELEASE_INHERITED(nsHTMLHtmlElement, nsGenericElement)
 
 
 // QueryInterface implementation for nsHTMLHtmlElement
-NS_HTML_CONTENT_INTERFACE_TABLE_HEAD(nsHTMLHtmlElement, nsGenericHTMLElement)
-  NS_INTERFACE_TABLE_INHERITED1(nsHTMLHtmlElement, nsIDOMHTMLHtmlElement)
-NS_HTML_CONTENT_INTERFACE_TABLE_TAIL_CLASSINFO(HTMLHtmlElement)
+NS_HTML_CONTENT_INTERFACE_MAP_BEGIN(nsHTMLHtmlElement, nsGenericHTMLElement)
+  NS_INTERFACE_MAP_ENTRY(nsIDOMHTMLHtmlElement)
+  NS_INTERFACE_MAP_ENTRY_CONTENT_CLASSINFO(HTMLHtmlElement)
+NS_HTML_CONTENT_INTERFACE_MAP_END
 
 
 NS_IMPL_ELEMENT_CLONE(nsHTMLHtmlElement)

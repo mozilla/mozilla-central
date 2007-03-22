@@ -35,20 +35,18 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-99120-02.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 99120;
+var bug = 99120;
 var summary = 'sort() should not be O(N^2) on nearly sorted data';
 var actual = '';
 var expect = '';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
- 
+  
 var data = {X:[], Y:[]};
 for (var size = 5000; size <= 15000; size += 1000)
-{ 
+{  
   data.X.push(size);
   data.Y.push(testSort(size));
   gc();
@@ -58,7 +56,7 @@ var order = BigO(data);
 
 var msg = '';
 for (var p = 0; p < data.X.length; p++)
-{
+{ 
   msg += '(' + data.X[p] + ', ' + data.Y[p] + '); ';
 }
 printStatus(msg);

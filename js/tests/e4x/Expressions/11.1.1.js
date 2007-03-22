@@ -40,8 +40,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '11.1.1.js';
-
 START("11.1.1 - Attribute Identifiers");
 
 x =
@@ -50,7 +48,7 @@ x =
         <charlie attr1="value2" ns:attr1="value4"/>
     </bravo>
 </alpha>
-   
+    
 TEST_XML(1, "value1", x.bravo.@attr1);
 TEST_XML(2, "value2", x.bravo.charlie.@attr1);
 

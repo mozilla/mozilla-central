@@ -121,7 +121,7 @@ typedef struct _cairo_bo_event {
 #define SKIP_ELT_TO_EVENT(elt) SKIP_LIST_ELT_TO_DATA (cairo_bo_event_t, (elt))
 
 typedef struct _cairo_bo_event_queue {
-    cairo_skip_list_t intersection_queue;
+    skip_list_t intersection_queue;
 
     cairo_bo_event_t *startstop_events;
     cairo_bo_event_t **sorted_startstop_event_ptrs;
@@ -129,14 +129,13 @@ typedef struct _cairo_bo_event_queue {
     unsigned num_startstop_events;
 } cairo_bo_event_queue_t;
 
-/* This structure extends #cairo_skip_list_t, which must come first. */
+/* This structure extends skip_list_t, which must come first. */
 typedef struct _cairo_bo_sweep_line {
-    cairo_skip_list_t active_edges;
+    skip_list_t active_edges;
     cairo_bo_edge_t *head;
     cairo_bo_edge_t *tail;
     int32_t current_y;
 } cairo_bo_sweep_line_t;
-
 
 static inline int
 _cairo_bo_point32_compare (cairo_bo_point32_t const *a,
@@ -385,7 +384,7 @@ cairo_bo_event_compare (cairo_bo_event_t const *a,
      * need a different sense for start and stop events based on the
      * shortening rule.
      *
-     * Note: Fortunately, we get to ignore errors in the relative
+     * NOTE: Fortunately, we get to ignore errors in the relative
      * ordering of intersection events. This means we don't even have
      * to look at e2 here, nor worry about which sense of the slope
      * comparison test is used for intersection events.
@@ -507,7 +506,7 @@ det64_128 (cairo_int64_t a,
 /* Compute the intersection of two lines as defined by two edges. The
  * result is provided as a coordinate pair of 128-bit integers.
  *
- * Returns %CAIRO_BO_STATUS_INTERSECTION if there is an intersection or
+ * Returns CAIRO_BO_STATUS_INTERSECTION if there is an intersection or
  * CAIRO_BO_STATUS_PARALLEL if the two lines are exactly parallel.
  */
 static cairo_bo_status_t
@@ -638,10 +637,10 @@ _cairo_bo_edge_contains_intersect_point (cairo_bo_edge_t		*edge,
 /* Compute the intersection of two edges. The result is provided as a
  * coordinate pair of 128-bit integers.
  *
- * Returns %CAIRO_BO_STATUS_INTERSECTION if there is an intersection
- * that is within both edges, %CAIRO_BO_STATUS_NO_INTERSECTION if the
+ * Returns CAIRO_BO_STATUS_INTERSECTION if there is an intersection
+ * that is within both edges, CAIRO_BO_STATUS_NO_INTERSECTION if the
  * intersection of the lines defined by the edges occurs outside of
- * one or both edges, and %CAIRO_BO_STATUS_PARALLEL if the two edges
+ * one or both edges, and CAIRO_BO_STATUS_PARALLEL if the two edges
  * are exactly parallel.
  *
  * Note that when determining if a candidate intersection is "inside"
@@ -693,16 +692,13 @@ _cairo_bo_event_init (cairo_bo_event_t		*event,
     event->point = point;
 }
 
-static cairo_status_t
+static void
 _cairo_bo_event_queue_insert (cairo_bo_event_queue_t *queue,
 			      cairo_bo_event_t	     *event)
 {
-    cairo_status_t status = CAIRO_STATUS_SUCCESS;
     /* Don't insert if there's already an equivalent intersection event in the queue. */
-    if (_cairo_skip_list_insert (&queue->intersection_queue, event,
-		      event->type == CAIRO_BO_EVENT_TYPE_INTERSECTION) == NULL)
-	status = _cairo_error (CAIRO_STATUS_NO_MEMORY);
-    return status;
+    skip_list_insert (&queue->intersection_queue, event,
+		      event->type == CAIRO_BO_EVENT_TYPE_INTERSECTION);
 }
 
 static void
@@ -710,7 +706,7 @@ _cairo_bo_event_queue_delete (cairo_bo_event_queue_t *queue,
 			      cairo_bo_event_t	     *event)
 {
     if (CAIRO_BO_EVENT_TYPE_INTERSECTION == event->type)
-	_cairo_skip_list_delete_given ( &queue->intersection_queue, &event->elt );
+	skip_list_delete_given ( &queue->intersection_queue, &event->elt );
 }
 
 static cairo_bo_event_t *
@@ -744,7 +740,7 @@ _cairo_bo_event_queue_init (cairo_bo_event_queue_t	*event_queue,
 
     memset (event_queue, 0, sizeof(*event_queue));
 
-    _cairo_skip_list_init (&event_queue->intersection_queue,
+    skip_list_init (&event_queue->intersection_queue,
 		    cairo_bo_event_compare_abstract,
 		    sizeof (cairo_bo_event_t));
     if (0 == num_edges)
@@ -754,14 +750,16 @@ _cairo_bo_event_queue_init (cairo_bo_event_queue_t	*event_queue,
      * or stop events, so this allocation is safe.  XXX: make the
      * event type a union so it doesn't always contain the skip
      * elt? */
-    events = _cairo_malloc_ab (num_events, sizeof (cairo_bo_event_t) + sizeof(cairo_bo_event_t*));
-    if (events == NULL)
-	return _cairo_error (CAIRO_STATUS_NO_MEMORY);
-
-    sorted_event_ptrs = (cairo_bo_event_t **) (events + num_events);
+    events = malloc (num_events * sizeof(cairo_bo_event_t));
+    sorted_event_ptrs = malloc (num_events * sizeof(cairo_bo_event_t*));
+    if (!events || !sorted_event_ptrs) {
+	if (events) free(events);
+	if (sorted_event_ptrs) free(sorted_event_ptrs);
+	return CAIRO_STATUS_NO_MEMORY;
+    }
     event_queue->startstop_events = events;
     event_queue->sorted_startstop_event_ptrs = sorted_event_ptrs;
-    event_queue->num_startstop_events = num_events;
+    event_queue->num_startstop_events = (unsigned)(num_events);
     event_queue->next_startstop_event_index = 0;
 
     for (i = 0; i < num_edges; i++) {
@@ -791,12 +789,14 @@ _cairo_bo_event_queue_init (cairo_bo_event_queue_t	*event_queue,
 static void
 _cairo_bo_event_queue_fini (cairo_bo_event_queue_t *event_queue)
 {
-    _cairo_skip_list_fini (&event_queue->intersection_queue);
+    skip_list_fini (&event_queue->intersection_queue);
     if (event_queue->startstop_events)
 	free (event_queue->startstop_events);
+    if (event_queue->sorted_startstop_event_ptrs)
+	free (event_queue->sorted_startstop_event_ptrs);
 }
 
-static cairo_status_t
+static void
 _cairo_bo_event_queue_insert_if_intersect_below_current_y (cairo_bo_event_queue_t	*event_queue,
 							   cairo_bo_edge_t	*left,
 							   cairo_bo_edge_t	*right)
@@ -806,7 +806,7 @@ _cairo_bo_event_queue_insert_if_intersect_below_current_y (cairo_bo_event_queue_
     cairo_bo_event_t event;
 
     if (left == NULL || right == NULL)
-	return CAIRO_STATUS_SUCCESS;
+	return;
 
     /* The names "left" and "right" here are correct descriptions of
      * the order of the two edges within the active edge list. So if a
@@ -814,13 +814,13 @@ _cairo_bo_event_queue_insert_if_intersect_below_current_y (cairo_bo_event_queue_
      * that the intersection of these two segments has oalready
      * occurred before the current sweep line position. */
     if (_slope_compare (left, right) < 0)
-	return CAIRO_STATUS_SUCCESS;
+	return;
 
     status = _cairo_bo_edge_intersect (left, right, &intersection);
     if (status == CAIRO_BO_STATUS_PARALLEL ||
 	status == CAIRO_BO_STATUS_NO_INTERSECTION)
     {
-	return CAIRO_STATUS_SUCCESS;
+	return;
     }
 
     _cairo_bo_event_init (&event,
@@ -828,13 +828,13 @@ _cairo_bo_event_queue_insert_if_intersect_below_current_y (cairo_bo_event_queue_
 			  left, right,
 			  intersection);
 
-    return _cairo_bo_event_queue_insert (event_queue, &event);
+    _cairo_bo_event_queue_insert (event_queue, &event);
 }
 
 static void
 _cairo_bo_sweep_line_init (cairo_bo_sweep_line_t *sweep_line)
 {
-    _cairo_skip_list_init (&sweep_line->active_edges,
+    skip_list_init (&sweep_line->active_edges,
 		    _sweep_line_elt_compare,
 		    sizeof (sweep_line_elt_t));
     sweep_line->head = NULL;
@@ -845,10 +845,10 @@ _cairo_bo_sweep_line_init (cairo_bo_sweep_line_t *sweep_line)
 static void
 _cairo_bo_sweep_line_fini (cairo_bo_sweep_line_t *sweep_line)
 {
-    _cairo_skip_list_fini (&sweep_line->active_edges);
+    skip_list_fini (&sweep_line->active_edges);
 }
 
-static cairo_status_t
+static void
 _cairo_bo_sweep_line_insert (cairo_bo_sweep_line_t	*sweep_line,
 			     cairo_bo_edge_t		*edge)
 {
@@ -856,10 +856,8 @@ _cairo_bo_sweep_line_insert (cairo_bo_sweep_line_t	*sweep_line,
     sweep_line_elt_t *sweep_line_elt;
     cairo_bo_edge_t **prev_of_next, **next_of_prev;
 
-    sweep_line_elt = _cairo_skip_list_insert (&sweep_line->active_edges, &edge,
+    sweep_line_elt = skip_list_insert (&sweep_line->active_edges, &edge,
 				       1 /* unique inserts*/);
-    if (sweep_line_elt == NULL)
-	return _cairo_error (CAIRO_STATUS_NO_MEMORY);
 
     next_elt = sweep_line_elt->elt.next[0];
     if (next_elt)
@@ -878,8 +876,6 @@ _cairo_bo_sweep_line_insert (cairo_bo_sweep_line_t	*sweep_line,
     *next_of_prev = edge;
 
     edge->sweep_line_elt = sweep_line_elt;
-
-    return CAIRO_STATUS_SUCCESS;
 }
 
 static void
@@ -888,7 +884,7 @@ _cairo_bo_sweep_line_delete (cairo_bo_sweep_line_t	*sweep_line,
 {
     cairo_bo_edge_t **left_next, **right_prev;
 
-    _cairo_skip_list_delete_given (&sweep_line->active_edges, &edge->sweep_line_elt->elt);
+    skip_list_delete_given (&sweep_line->active_edges, &edge->sweep_line_elt->elt);
 
     left_next = &sweep_line->head;
     if (edge->prev)
@@ -979,7 +975,7 @@ _cairo_bo_event_queue_print (cairo_bo_event_queue_t *event_queue)
 {
     skip_elt_t *elt;
     /* XXX: fixme to print the start/stop array too. */
-    cairo_skip_list_t *queue = &event_queue->intersection_queue;
+    skip_list_t *queue = &event_queue->intersection_queue;
     cairo_bo_event_t *event;
 
     printf ("Event queue:\n");
@@ -1053,7 +1049,7 @@ print_state (const char			*msg,
 }
 #endif
 
-/* Adds the trapezoid, if any, of the left edge to the #cairo_traps_t
+/* Adds the trapezoid, if any, of the left edge to the cairo_traps_t
  * of bo_traps. */
 static cairo_status_t
 _cairo_bo_edge_end_trap (cairo_bo_edge_t	*left,
@@ -1061,6 +1057,7 @@ _cairo_bo_edge_end_trap (cairo_bo_edge_t	*left,
 			 cairo_bo_traps_t	*bo_traps)
 {
     cairo_fixed_t fixed_top, fixed_bot;
+    cairo_status_t status = CAIRO_STATUS_SUCCESS;
     cairo_bo_trap_t *trap = left->deferred_trap;
     cairo_bo_edge_t *right;
 
@@ -1102,11 +1099,11 @@ _cairo_bo_edge_end_trap (cairo_bo_edge_t	*left,
 	    left_bot.x != right_bot.x ||
 	    left_bot.y != right_bot.y)
 	{
-	    _cairo_traps_add_trap_from_points (bo_traps->traps,
-					       fixed_top,
-					       fixed_bot,
-					       left_top, left_bot,
-					       right_top, right_bot);
+	    status = _cairo_traps_add_trap_from_points (bo_traps->traps,
+							fixed_top,
+							fixed_bot,
+							left_top, left_bot,
+							right_top, right_bot);
 
 #if DEBUG_PRINT_STATE
 	    printf ("Deferred trap: left=(%08x, %08x)-(%08x,%08x) "
@@ -1120,8 +1117,7 @@ _cairo_bo_edge_end_trap (cairo_bo_edge_t	*left,
 
     _cairo_freelist_free (&bo_traps->freelist, trap);
     left->deferred_trap = NULL;
-
-    return _cairo_traps_status (bo_traps->traps);
+    return status;
 }
 
 /* Start a new trapezoid at the given top y coordinate, whose edges
@@ -1147,7 +1143,7 @@ _cairo_bo_edge_start_or_continue_trap (cairo_bo_edge_t	*edge,
     if (edge->next) {
 	trap = edge->deferred_trap = _cairo_freelist_alloc (&bo_traps->freelist);
 	if (!edge->deferred_trap)
-	    return _cairo_error (CAIRO_STATUS_NO_MEMORY);
+	    return CAIRO_STATUS_NO_MEMORY;
 
 	trap->right = edge->next;
 	trap->top = top;
@@ -1258,7 +1254,7 @@ _cairo_bentley_ottmann_tessellate_bo_edges (cairo_bo_edge_t	*edges,
 					    cairo_fixed_t	ymax,
 					    int			*num_intersections)
 {
-    cairo_status_t status;
+    cairo_status_t status = CAIRO_STATUS_SUCCESS;
     int intersection_count = 0;
     cairo_bo_event_queue_t event_queue;
     cairo_bo_sweep_line_t sweep_line;
@@ -1268,10 +1264,7 @@ _cairo_bentley_ottmann_tessellate_bo_edges (cairo_bo_edge_t	*edges,
     cairo_bo_edge_t *left, *right;
     cairo_bo_edge_t *edge1, *edge2;
 
-    status = _cairo_bo_event_queue_init (&event_queue, edges, num_edges);
-    if (status)
-	return status;
-
+    _cairo_bo_event_queue_init (&event_queue, edges, num_edges);
     _cairo_bo_sweep_line_init (&sweep_line);
     _cairo_bo_traps_init (&bo_traps, traps, xmin, ymin, xmax, ymax);
 
@@ -1303,9 +1296,7 @@ _cairo_bentley_ottmann_tessellate_bo_edges (cairo_bo_edge_t	*edges,
 	case CAIRO_BO_EVENT_TYPE_START:
 	    edge = event->e1;
 
-	    status = _cairo_bo_sweep_line_insert (&sweep_line, edge);
-	    if (status)
-		goto unwind;
+	    _cairo_bo_sweep_line_insert (&sweep_line, edge);
 	    /* Cache the insert position for use in pass 2.
 	    event->e2 = Sortlist::prev (sweep_line, edge);
 	    */
@@ -1313,13 +1304,9 @@ _cairo_bentley_ottmann_tessellate_bo_edges (cairo_bo_edge_t	*edges,
 	    left = edge->prev;
 	    right = edge->next;
 
-	    status = _cairo_bo_event_queue_insert_if_intersect_below_current_y (&event_queue, left, edge);
-	    if (status)
-		goto unwind;
+	    _cairo_bo_event_queue_insert_if_intersect_below_current_y (&event_queue, left, edge);
 
-	    status = _cairo_bo_event_queue_insert_if_intersect_below_current_y (&event_queue, edge, right);
-	    if (status)
-		goto unwind;
+	    _cairo_bo_event_queue_insert_if_intersect_below_current_y (&event_queue, edge, right);
 
 #if DEBUG_PRINT_STATE
 	    print_state ("After processing start", &event_queue, &sweep_line);
@@ -1339,9 +1326,7 @@ _cairo_bentley_ottmann_tessellate_bo_edges (cairo_bo_edge_t	*edges,
 	    if (status)
 		goto unwind;
 
-	    status = _cairo_bo_event_queue_insert_if_intersect_below_current_y (&event_queue, left, right);
-	    if (status)
-		goto unwind;
+	    _cairo_bo_event_queue_insert_if_intersect_below_current_y (&event_queue, left, right);
 
 #if DEBUG_PRINT_STATE
 	    print_state ("After processing stop", &event_queue, &sweep_line);
@@ -1369,15 +1354,11 @@ _cairo_bentley_ottmann_tessellate_bo_edges (cairo_bo_edge_t	*edges,
 
 	    /* after the swap e2 is left of e1 */
 
-	    status = _cairo_bo_event_queue_insert_if_intersect_below_current_y (&event_queue,
+	    _cairo_bo_event_queue_insert_if_intersect_below_current_y (&event_queue,
 								       left, edge2);
-	    if (status)
-		goto unwind;
 
-	    status = _cairo_bo_event_queue_insert_if_intersect_below_current_y (&event_queue,
+	    _cairo_bo_event_queue_insert_if_intersect_below_current_y (&event_queue,
 								       edge1, right);
-	    if (status)
-		goto unwind;
 
 #if DEBUG_PRINT_STATE
 	    print_state ("After processing intersection", &event_queue, &sweep_line);
@@ -1421,7 +1402,6 @@ _cairo_bentley_ottmann_tessellate_polygon (cairo_traps_t	*traps,
 {
     int intersections;
     cairo_status_t status;
-    cairo_bo_edge_t stack_edges[CAIRO_STACK_ARRAY_LENGTH (cairo_bo_edge_t)];
     cairo_bo_edge_t *edges;
     cairo_fixed_t xmin = 0x7FFFFFFF;
     cairo_fixed_t ymin = 0x7FFFFFFF;
@@ -1433,13 +1413,9 @@ _cairo_bentley_ottmann_tessellate_polygon (cairo_traps_t	*traps,
     if (0 == polygon->num_edges)
 	return CAIRO_STATUS_SUCCESS;
 
-    if (polygon->num_edges < ARRAY_LENGTH (stack_edges)) {
-	edges = stack_edges;
-    } else {
-	edges = _cairo_malloc_ab (polygon->num_edges, sizeof (cairo_bo_edge_t));
-	if (edges == NULL)
-	    return _cairo_error (CAIRO_STATUS_NO_MEMORY);
-    }
+    edges = malloc (polygon->num_edges * sizeof (cairo_bo_edge_t));
+    if (edges == NULL)
+	return CAIRO_STATUS_NO_MEMORY;
 
     /* Figure out the bounding box of the input coordinates and
      * validate that we're not given invalid polygon edges. */
@@ -1519,8 +1495,7 @@ _cairo_bentley_ottmann_tessellate_polygon (cairo_traps_t	*traps,
 							 xmin, ymin, xmax, ymax,
 							 &intersections);
 
-    if (edges != stack_edges)
-	free (edges);
+    free (edges);
 
     return status;
 }
@@ -1757,7 +1732,7 @@ run_test (const char		*test_name,
     while (intersections) {
 	int num_edges = _cairo_array_num_elements (&intersected_edges);
 	passes++;
-	edges = _cairo_malloc_ab (num_edges, sizeof (cairo_bo_edge_t));
+	edges = malloc (num_edges * sizeof (cairo_bo_edge_t));
 	assert (edges != NULL);
 	memcpy (edges, _cairo_array_index (&intersected_edges, 0), num_edges * sizeof (cairo_bo_edge_t));
 	_cairo_array_fini (&intersected_edges);
@@ -1792,11 +1767,11 @@ int
 main (void)
 {
     char random_name[] = "random-XX";
-    cairo_bo_edge_t random_edges[MAX_RANDOM], *edge;
+    static cairo_bo_edge_t random_edges[MAX_RANDOM], *edge;
     unsigned int i, num_random;
     test_t *test;
 
-    for (i = 0; i < ARRAY_LENGTH (tests); i++) {
+    for (i = 0; i < sizeof (tests) / sizeof (tests[0]); i++) {
 	test = &tests[i];
 	run_test (test->name, test->edges, test->num_edges);
     }

@@ -104,8 +104,8 @@ nsStreamLoader::OnStopRequest(nsIRequest* request, nsISupports *ctxt,
     mRequest = request;
     mObserver->OnStreamComplete(this, mContext, aStatus, 
                                 mData.Length(),
-                                reinterpret_cast<const PRUint8*>
-                                                (mData.get()));
+                                NS_REINTERPRET_CAST(const PRUint8*,
+                                                    mData.get()));
     // done.. cleanup
     mRequest = 0;
     mObserver = 0;

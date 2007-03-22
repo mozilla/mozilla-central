@@ -63,7 +63,9 @@ XRemoteClient::~XRemoteClient()
     Shutdown();
 }
 
-nsresult
+NS_IMPL_ISUPPORTS1(XRemoteClient, nsIXRemoteClient)
+
+NS_IMETHODIMP
 XRemoteClient::Init (void)
 {
 
@@ -78,10 +80,9 @@ XRemoteClient::Init (void)
   return NS_OK;
 }
 
-nsresult
+NS_IMETHODIMP
 XRemoteClient::SendCommand (const char *aProgram, const char *aUsername,
                             const char *aProfile, const char *aCommand,
-							const char* aDesktopStartupID,
                             char **aResponse, PRBool *aWindowFound)
 {
   *aWindowFound = PR_TRUE;
@@ -103,25 +104,15 @@ XRemoteClient::SendCommand (const char *aProgram, const char *aUsername,
   return NS_OK;
 }
 
-nsresult
-XRemoteClient::SendCommandLine (const char *aProgram, const char *aUsername,
-                                const char *aProfile,
-                                PRInt32 argc, char **argv,
-								const char* aDesktopStartupID,
-                                char **aResponse, PRBool *aWindowFound)
-{
-  return NS_ERROR_FAILURE;
-}
-
-void
+NS_IMETHODIMP
 XRemoteClient::Shutdown (void)
 {
 
   if (!mInitialized)
-    return;
+    return NS_OK;
 
   // shut everything down
   mInitialized = PR_FALSE;
 
-  return;
+  return NS_OK;
 }

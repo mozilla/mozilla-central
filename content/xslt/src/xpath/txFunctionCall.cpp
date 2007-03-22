@@ -84,7 +84,7 @@ FunctionCall::evaluateToNodeSet(Expr* aExpr, txIEvalContext* aContext,
     }
 
     *aResult =
-        static_cast<txNodeSet*>(static_cast<txAExprResult*>(exprRes));
+        NS_STATIC_CAST(txNodeSet*, NS_STATIC_CAST(txAExprResult*, exprRes));
     NS_ADDREF(*aResult);
 
     return NS_OK;

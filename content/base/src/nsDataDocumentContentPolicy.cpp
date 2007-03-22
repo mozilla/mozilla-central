@@ -72,7 +72,7 @@ nsDataDocumentContentPolicy::ShouldLoad(PRUint32 aContentType,
       doc = do_QueryInterface(domDoc);
     }
   }
-  if (aContentType != nsIContentPolicy::TYPE_DTD && doc && doc->IsLoadedAsData()) {
+  if (doc && doc->IsLoadedAsData()) {
     *aDecision = nsIContentPolicy::REJECT_TYPE;
   }
 

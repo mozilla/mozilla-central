@@ -47,7 +47,7 @@ LIBRARY_NAME	= gkdebug
 EXPORT_LIBRARY	= 1
 IS_COMPONENT	= 1
 MODULE_NAME	= nsLayoutDebugModule
-LIBXUL_LIBRARY = 1
+MOZILLA_INTERNAL_API = 1
 
 REQUIRES	= xpcom \
 		  string \
@@ -55,7 +55,6 @@ REQUIRES	= xpcom \
 		  docshell \
 		  dom \
 		  gfx \
-		  thebes \
 		  content \
 		  necko \
 		  layout \
@@ -63,12 +62,10 @@ REQUIRES	= xpcom \
 		  locale \
 		  view \
 		  pref \
+		  appshell \
+		  appcomps \
 		  toolkitcomps \
 		  $(NULL)
-
-ifndef MOZ_XUL_APP
-REQUIRES	+= appcomps
-endif
 
 XPIDLSRCS	= \
 		nsILayoutRegressionTester.idl \

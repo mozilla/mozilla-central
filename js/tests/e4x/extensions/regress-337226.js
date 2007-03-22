@@ -36,15 +36,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'regress-337226.js';
-
-var BUGNUMBER = 337226;
+var bug = 337226;
 var summary = 'function::globalfunction';
 var actual = 'No Error';
 var expect = 'No Error';
 
-printBugNumber(BUGNUMBER);
-START(summary);
+printBugNumber (bug);
+printStatus (summary);
 
 var s = function::parseInt;
 

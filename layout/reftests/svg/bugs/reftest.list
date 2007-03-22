@@ -1,6 +1,2 @@
 
-load bug314244.xul # crash test
-load bug327709.svg # assertion test
-load bug337408.xul # crash test
-load bug367368.xhtml # crash test
-
+== 111993.svg 111993-ref.svg

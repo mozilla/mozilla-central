@@ -56,7 +56,6 @@
 #include "nsString.h"
 
 #include "nsVoidArray.h"
-#include "nsTArray.h"
 
 class nsNativeDragTarget;
 class nsIRollupListener;
@@ -66,15 +65,10 @@ class nsIFile;
 
 class imgIContainer;
 
-struct nsAlternativeCharCode;
-struct nsFakeCharMessage;
-
 #ifdef ACCESSIBILITY
 #include "OLEACC.H"
 #include "nsIAccessible.h"
 #endif
-
-#include "gfxWindowsSurface.h"
 
 #define IME_MAX_CHAR_POS       64
 
@@ -82,13 +76,6 @@ struct nsFakeCharMessage;
             RGB(NS_GET_R(color),NS_GET_G(color),NS_GET_B(color))
 #define COLOREF_2_NSRGB(color) \
             NS_RGB(GetRValue(color), GetGValue(color), GetBValue(color))
-
-#define WIN2K_VERSION   0x500
-#define WINXP_VERSION   0x501
-#define WIN2K3_VERSION  0x502
-#define VISTA_VERSION   0x600
-
-PRInt32 GetWindowsVersion();
 
 /*
  * ::: IMPORTANT :::
@@ -122,7 +109,10 @@ public:
   nsWindow();
   virtual ~nsWindow();
 
-  NS_DECL_ISUPPORTS_INHERITED
+  // nsISupports
+  NS_IMETHOD_(nsrefcnt) AddRef(void);
+  NS_IMETHOD_(nsrefcnt) Release(void);
+  NS_IMETHOD QueryInterface(REFNSIID aIID, void** aInstancePtr);
 
   // nsIWidget interface
   NS_IMETHOD              Create(nsIWidget *aParent,
@@ -172,6 +162,8 @@ public:
   NS_IMETHOD              GetClientBounds(nsRect &aRect);
   NS_IMETHOD              GetScreenBounds(nsRect &aRect);
   NS_IMETHOD              SetBackgroundColor(const nscolor &aColor);
+  virtual nsIFontMetrics* GetFont(void);
+  NS_IMETHOD              SetFont(const nsFont &aFont);
   NS_IMETHOD              SetCursor(nsCursor aCursor);
   NS_IMETHOD              SetCursor(imgIContainer* aCursor,
                                     PRUint32 aHotspotX, PRUint32 aHotspotY);
@@ -210,17 +202,22 @@ public:
   NS_IMETHOD              GetLastInputEventTime(PRUint32& aTime);
   nsWindow*               GetTopLevelWindow();
 
+#ifdef MOZ_CAIRO_GFX
   gfxASurface             *GetThebesSurface();
+#endif
 
 #ifdef MOZ_XUL
-  NS_IMETHOD              SetHasTransparentBackground(PRBool aTransparent);
-  NS_IMETHOD              GetHasTransparentBackground(PRBool& aTransparent);
+  NS_IMETHOD              SetWindowTranslucency(PRBool aTransparent);
+  NS_IMETHOD              GetWindowTranslucency(PRBool& aTransparent);
+  NS_IMETHOD              UpdateTranslucentWindowAlpha(const nsRect& aRect, PRUint8* aAlphas);
 private:
   nsresult                SetWindowTranslucencyInner(PRBool aTransparent);
-  PRBool                  GetWindowTranslucencyInner() { return mIsTransparent; }
+  PRBool                  GetWindowTranslucencyInner() { return mIsTranslucent; }
+  void                    UpdateTranslucentWindowAlphaInner(const nsRect& aRect, PRUint8* aAlphas);
   void                    ResizeTranslucentWindow(PRInt32 aNewWidth, PRInt32 aNewHeight, PRBool force = PR_FALSE);
   nsresult                UpdateTranslucentWindow();
-  nsresult                SetupTranslucentWindowMemoryBitmap(PRBool aTransparent);
+  nsresult                SetupTranslucentWindowMemoryBitmap(PRBool aTranslucent);
+  void                    SetWindowRegionToAlphaMask();
 public:
 #endif
 
@@ -229,10 +226,9 @@ public:
   NS_IMETHOD ResetInputState();
   NS_IMETHOD SetIMEOpenState(PRBool aState);
   NS_IMETHOD GetIMEOpenState(PRBool* aState);
-  NS_IMETHOD SetIMEEnabled(PRUint32 aState);
-  NS_IMETHOD GetIMEEnabled(PRUint32* aState);
+  NS_IMETHOD SetIMEEnabled(PRBool aState);
+  NS_IMETHOD GetIMEEnabled(PRBool* aState);
   NS_IMETHOD CancelIMEComposition();
-  NS_IMETHOD GetToggledKeyState(PRUint32 aKeyCode, PRBool* aLEDState);
 
   PRBool IMEMouseHandling(PRInt32 aAction, LPARAM lParam);
   PRBool IMECompositionHitTest(POINT * ptPos);
@@ -309,12 +305,11 @@ protected:
   virtual PRBool          OnMove(PRInt32 aX, PRInt32 aY);
   virtual PRBool          OnPaint(HDC aDC = nsnull);
   virtual PRBool          OnResize(nsRect &aWindowRect);
-  
-  void                    SetupModKeyState();
-  BOOL                    OnChar(UINT charCode, UINT aScanCode, PRUint32 aFlags = 0);
-  BOOL                    OnKeyDown( UINT aVirtualKeyCode, LPARAM aKeyCode,
-                                     nsFakeCharMessage* aFakeCharMessage);
-  BOOL                    OnKeyUp( UINT aVirtualKeyCode, LPARAM aKeyCode);
+
+  BOOL                    OnChar(UINT charCode, LPARAM keyData, PRUint32 aFlags = 0);
+
+  BOOL                    OnKeyDown( UINT aVirtualKeyCode, UINT aScanCode, LPARAM aKeyCode);
+  BOOL                    OnKeyUp( UINT aVirtualKeyCode, UINT aScanCode, LPARAM aKeyCode);
   UINT                    MapFromNativeToDOM(UINT aNativeKeyCode);
 
 
@@ -336,10 +331,8 @@ protected:
                                              nsRect&   aEventResult,
                                              nsRect&   aResult);
 
-  virtual PRBool          DispatchKeyEvent(PRUint32 aEventType, WORD aCharCode,
-                            const nsTArray<nsAlternativeCharCode>* aAlternativeChars,
-                            UINT aVirtualCharCode, LPARAM aKeyCode,
-                            PRUint32 aFlags = 0);
+  virtual PRBool          DispatchKeyEvent(PRUint32 aEventType, WORD aCharCode, UINT aVirtualCharCode,
+                                           LPARAM aKeyCode, PRUint32 aFlags = 0);
 
   virtual PRBool          DispatchFocus(PRUint32 aEventType, PRBool isMozWindowTakingFocus);
   virtual PRBool          OnScroll(UINT scrollCode, int cPos);
@@ -368,12 +361,6 @@ protected:
   LPARAM lParamToClient(LPARAM lParam);
 
   PRBool CanTakeFocus();
-
-  virtual nsresult SynthesizeNativeKeyEvent(PRInt32 aNativeKeyboardLayout,
-                                            PRInt32 aNativeKeyCode,
-                                            PRUint32 aModifierFlags,
-                                            const nsAString& aCharacters,
-                                            const nsAString& aUnmodifiedCharacters);
 
 private:
 
@@ -406,8 +393,6 @@ protected:
   static RECT*      sIMECompCharPos;
   static PRInt32    sIMECaretHeight;
 
-  static PRBool     sIsInEndSession;
-
   nsSize        mLastSize;
   static        nsWindow* gCurrentWindow;
   nsPoint       mLastPoint;
@@ -421,16 +406,13 @@ protected:
 
 #ifdef MOZ_XUL
   // use layered windows to support full 256 level alpha translucency
-  nsRefPtr<gfxWindowsSurface> mTransparentSurface;
-
   HDC           mMemoryDC;
   HBITMAP       mMemoryBitmap;
   PRUint8*      mMemoryBits;
   PRUint8*      mAlphaMask;
-  PRPackedBool  mIsTransparent;
-  PRPackedBool  mIsTopTransparent;     // Topmost window itself or any of it's child windows has tranlucency enabled
+  PRPackedBool  mIsTranslucent;
+  PRPackedBool  mIsTopTranslucent;     // Topmost window itself or any of it's child windows has tranlucency enabled
 #endif
-  PRPackedBool  mHasAeroGlass;
   PRPackedBool  mIsTopWidgetWindow;
   PRPackedBool  mHas3DBorder;
   PRPackedBool  mIsShiftDown;
@@ -448,6 +430,9 @@ protected:
   PRUint32      mBlurEventSuppressionLevel;
   nsContentType mContentType;
 
+  // XXX Temporary, should not be caching the font
+  nsFont *      mFont;
+
   PRInt32       mPreferredWidth;
   PRInt32       mPreferredHeight;
 
@@ -459,7 +444,6 @@ protected:
 
   // To enable/disable IME
   HIMC          mOldIMC;
-  PRUint32      mIMEEnabled;
 
   static HKL    gKeyboardLayout;
   static PRBool gSwitchKeyboardLayout;
@@ -483,7 +467,6 @@ protected:
 
   static BOOL   sIsRegistered;
   static BOOL   sIsPopupClassRegistered;
-  static BOOL   sIsOleInitialized; // OLE is needed for clipboard and drag & drop support
 
   HDWP mDeferredPositioner;
   static UINT   uWM_MSIME_MOUSE;     // mouse message for MSIME
@@ -495,6 +478,58 @@ protected:
   static HCURSOR        gHCursor;
   static imgIContainer* gCursorImgContainer;
 
+  /**
+   * Create a 1 bit mask out of a 8 bit alpha layer.
+   *
+   * @param aAlphaData        8 bit alpha data
+   * @param aAlphaBytesPerRow How many bytes one row of data is
+   * @param aWidth            Width of the alpha data, in pixels
+   * @param aHeight           Height of the alpha data, in pixels
+   *
+   * @return 1 bit mask.  Must be delete[]d. On failure, NULL will be returned.
+   */
+  static PRUint8* Data8BitTo1Bit(PRUint8* aAlphaData, PRUint32 aAlphaBytesPerRow,
+                                 PRUint32 aWidth, PRUint32 aHeight);
+
+  /**
+   * Combine the given image data with a separate alpha channel to image data
+   * with the alpha channel interleaved with the image data (BGRA).
+   *
+   * @return BGRA data. Must be delete[]d. On failure, NULL will be returned.
+   */
+  static PRUint8* DataToAData(PRUint8* aImageData, PRUint32 aImageBytesPerRow,
+                              PRUint8* aAlphaData, PRUint32 aAlphaBytesPerRow,
+                              PRUint32 aWidth, PRUint32 aHeight);
+  /**
+   * Convert the given image data to a HBITMAP. If the requested depth is
+   * 32 bit and the OS supports translucency, a bitmap with an alpha channel
+   * will be returned.
+   *
+   * @param aImageData The image data to convert. Must use the format accepted
+   *                   by CreateDIBitmap.
+   * @param aWidth     With of the bitmap, in pixels.
+   * @param aHeight    Height of the image, in pixels.
+   * @param aDepth     Image depth, in bits. Should be one of 1, 24 and 32.
+   *
+   * @return The HBITMAP representing the image. Caller should call
+   *         DeleteObject when done with the bitmap.
+   *         On failure, NULL will be returned.
+   */
+  static HBITMAP DataToBitmap(PRUint8* aImageData,
+                              PRUint32 aWidth,
+                              PRUint32 aHeight,
+                              PRUint32 aDepth);
+
+  /**
+   * Create a bitmap representing an opaque alpha channel (filled with 0xff).
+   * @param aWidth  Desired with of the bitmap
+   * @param aHeight Desired height of the bitmap
+   * @return        The bitmap. Caller should call DeleteObject when done with
+   *                the bitmap. On failure, NULL will be returned.
+   */
+  static HBITMAP CreateOpaqueAlphaChannel(PRUint32 aWidth, PRUint32 aHeight);
+
+
 #ifdef ACCESSIBILITY
   static BOOL gIsAccessibilityOn;
   static HINSTANCE gmAccLib;
@@ -505,7 +540,6 @@ protected:
   static BOOL CALLBACK BroadcastMsgToChildren(HWND aWnd, LPARAM aMsg);
   static BOOL CALLBACK BroadcastMsg(HWND aTopWindow, LPARAM aMsg);
   static BOOL CALLBACK DispatchStarvedPaints(HWND aTopWindow, LPARAM aMsg);
-  static BOOL CALLBACK InvalidateForeignChildWindows(HWND aWnd, LPARAM aMsg);
 
 public:
   static void GlobalMsgWindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);

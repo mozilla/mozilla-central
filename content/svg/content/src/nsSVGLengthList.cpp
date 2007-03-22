@@ -57,10 +57,9 @@ class nsSVGLengthList : public nsIDOMSVGLengthList,
 {  
 protected:
   friend nsresult NS_NewSVGLengthList(nsIDOMSVGLengthList** result,
-                                      nsSVGElement *aContext,
-                                      PRUint8 aCtxType);
+                                      nsSVGElement *aContext);
 
-  nsSVGLengthList(nsSVGElement *aContext, PRUint8 aCtxType);
+  nsSVGLengthList(nsSVGElement *aContext);
   ~nsSVGLengthList();
 //  void Init();
   
@@ -102,10 +101,10 @@ protected:
 //----------------------------------------------------------------------
 // Implementation
 
-nsSVGLengthList::nsSVGLengthList(nsSVGElement *aContext, PRUint8 aCtxType)
-  : mCtxType(aCtxType)
+nsSVGLengthList::nsSVGLengthList(nsSVGElement *aContext)
+  : mCtxType(0)
 {
-  mContext = do_GetWeakReference(static_cast<nsGenericElement*>(aContext));
+  mContext = do_GetWeakReference(NS_STATIC_CAST(nsGenericElement*, aContext));
 }
 
 nsSVGLengthList::~nsSVGLengthList()
@@ -225,7 +224,7 @@ NS_IMETHODIMP nsSVGLengthList::Initialize(nsIDOMSVGLength *newItem,
 /* nsIDOMSVGLength getItem (in unsigned long index); */
 NS_IMETHODIMP nsSVGLengthList::GetItem(PRUint32 index, nsIDOMSVGLength **_retval)
 {
-  if (index >= static_cast<PRUint32>(mLengths.Count())) {
+  if (index >= NS_STATIC_CAST(PRUint32, mLengths.Count())) {
     *_retval = nsnull;
     return NS_ERROR_DOM_INDEX_SIZE_ERR;
   }
@@ -266,7 +265,7 @@ nsSVGLengthList::ReplaceItem(nsIDOMSVGLength *newItem,
 /* nsIDOMSVGLengthList removeItem (in unsigned long index); */
 NS_IMETHODIMP nsSVGLengthList::RemoveItem(PRUint32 index, nsIDOMSVGLength **_retval)
 {
-  if (index >= static_cast<PRUint32>(mLengths.Count())) {
+  if (index >= NS_STATIC_CAST(PRUint32, mLengths.Count())) {
     *_retval = nsnull;
     return NS_ERROR_DOM_INDEX_SIZE_ERR;
   }
@@ -390,11 +389,11 @@ nsSVGLengthList::InsertElementAt(nsISVGLength* aElement, PRInt32 index)
 // Exported creation functions:
 
 nsresult
-NS_NewSVGLengthList(nsIDOMSVGLengthList** result, nsSVGElement *aContext, PRUint8 aCtxType)
+NS_NewSVGLengthList(nsIDOMSVGLengthList** result, nsSVGElement *aContext)
 {
   *result = nsnull;
   
-  nsSVGLengthList* lengthList = new nsSVGLengthList(aContext, aCtxType);
+  nsSVGLengthList* lengthList = new nsSVGLengthList(aContext);
   if (!lengthList) return NS_ERROR_OUT_OF_MEMORY;
   NS_ADDREF(lengthList);
 

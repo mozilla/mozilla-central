@@ -1,4 +1,4 @@
-/* vim: set sw=4 ts=8 et tw=78: */
+/* vim: set sw=4 ts=8 et tw=80: */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -55,9 +55,6 @@ var opRegExp = new RegExp(opRegExpSrc);
 // A regexp to match floating point literals (but not integer literals).
 var fpRegExp = /^\d+\.\d*(?:[eE][-+]?\d+)?|^\d+(?:\.\d*)?[eE][-+]?\d+|^\.\d+(?:[eE][-+]?\d+)?/;
 
-// A regexp to match regexp literals.
-var reRegExp = /^\/((?:\\.|\[(?:\\.|[^\]])*\]|[^\/])+)\/([gimy]*)/;
-
 function Tokenizer(s, f, l) {
     this.cursor = 0;
     this.source = String(s);
@@ -94,13 +91,9 @@ Tokenizer.prototype = {
     },
 
     peek: function () {
-        var tt, next;
+        var tt;
         if (this.lookahead) {
-            next = this.tokens[(this.tokenIndex + this.lookahead) & 3];
-            if (this.scanNewlines && next.lineno != this.lineno)
-                tt = NEWLINE;
-            else
-                tt = next.type;
+            tt = this.tokens[(this.tokenIndex + this.lookahead) & 3].type;
         } else {
             tt = this.get();
             this.unget();
@@ -160,14 +153,15 @@ Tokenizer.prototype = {
         } else if ((match = /^0[xX][\da-fA-F]+|^0[0-7]*|^\d+/(input))) {
             token.type = NUMBER;
             token.value = parseInt(match[0]);
-        } else if ((match = /^[$_\w]+/(input))) {       // FIXME no ES3 unicode
+        } else if ((match = /^\w+/(input))) {
             var id = match[0];
             token.type = keywords[id] || IDENTIFIER;
             token.value = id;
-        } else if ((match = /^"(?:\\.|[^"])*"|^'(?:\\.|[^'])*'/(input))) { //"){
+        } else if ((match = /^"(?:\\.|[^"])*"|^'(?:[^']|\\.)*'/(input))) { //"){
             token.type = STRING;
             token.value = eval(match[0]);
-        } else if (this.scanOperand && (match = reRegExp(input))) {
+        } else if (this.scanOperand &&
+                   (match = /^\/((?:\\.|[^\/])+)\/([gi]*)/(input))) {
             token.type = REGEXP;
             token.value = new RegExp(match[1], match[2]);
         } else if ((match = opRegExp(input))) {
@@ -185,8 +179,6 @@ Tokenizer.prototype = {
                 token.assignOp = null;
             }
             token.value = op;
-        } else if (this.scanNewlines && (match = /^\n/(input))) {
-            token.type = NEWLINE;
         } else {
             throw this.newSyntaxError("Illegal token");
         }
@@ -233,8 +225,8 @@ function Script(t, x) {
 // Node extends Array, which we extend slightly with a top-of-stack method.
 Array.prototype.__defineProperty__(
     'top',
-    function () {
-        return this.length && this[this.length-1];
+    function () { 
+        return this.length && this[this.length-1]; 
     },
     false, false, true
 );
@@ -280,7 +272,7 @@ function tokenstr(tt) {
 Np.toString = function () {
     var a = [];
     for (var i in this) {
-        if (this.hasOwnProperty(i) && i != 'type' && i != 'target')
+        if (this.hasOwnProperty(i) && i != 'type')
             a.push({id: i, value: this[i]});
     }
     a.sort(function (a,b) { return (a.id < b.id) ? -1 : 1; });
@@ -555,23 +547,18 @@ function Statement(t, x) {
         return n;
 
       default:
-        if (tt == IDENTIFIER) {
-            t.scanOperand = false;
-            tt = t.peek();
-            t.scanOperand = true;
-            if (tt == COLON) {
-                label = t.token.value;
-                ss = x.stmtStack;
-                for (i = ss.length-1; i >= 0; --i) {
-                    if (ss[i].label == label)
-                        throw t.newSyntaxError("Duplicate label");
-                }
-                t.get();
-                n = new Node(t, LABEL);
-                n.label = label;
-                n.statement = nest(t, x, n, Statement);
-                return n;
+        if (tt == IDENTIFIER && t.peek() == COLON) {
+            label = t.token.value;
+            ss = x.stmtStack;
+            for (i = ss.length-1; i >= 0; --i) {
+                if (ss[i].label == label)
+                    throw t.newSyntaxError("Duplicate label");
             }
+            t.get();
+            n = new Node(t, LABEL);
+            n.label = label;
+            n.statement = nest(t, x, n, Statement);
+            return n;
         }
 
         n = new Node(t, SEMICOLON);
@@ -650,7 +637,7 @@ function ParenExpression(t, x) {
 var opPrecedence = {
     SEMICOLON: 0,
     COMMA: 1,
-    ASSIGN: 2, HOOK: 2, COLON: 2,
+    ASSIGN: 2, HOOK: 2, COLON: 2, CONDITIONAL: 2,
     // The above all have to have the same precedence, see bug 330975.
     OR: 4,
     AND: 5,
@@ -676,7 +663,7 @@ for (i in opPrecedence)
 var opArity = {
     COMMA: -2,
     ASSIGN: 2,
-    HOOK: 3,
+    CONDITIONAL: 3,
     OR: 2,
     AND: 2,
     BITWISE_OR: 2,
@@ -759,6 +746,7 @@ loop:
                 n = operators.top();
                 if (n.type != HOOK)
                     throw t.newSyntaxError("Invalid label");
+                n.type = CONDITIONAL;
                 --x.hookLevel;
             } else {
                 operators.push(new Node(t));
@@ -820,12 +808,6 @@ loop:
             if (t.scanOperand) {
                 operators.push(new Node(t));  // prefix increment or decrement
             } else {
-                // Don't cross a line boundary for postfix {in,de}crement.
-                if (t.tokens[(t.tokenIndex + t.lookahead - 1) & 3].lineno !=
-                    t.lineno) {
-                    break loop;
-                }
-
                 // Use >, not >=, so postfix has higher precedence than prefix.
                 while (opPrecedence[operators.top().type] > opPrecedence[tt])
                     reduce();

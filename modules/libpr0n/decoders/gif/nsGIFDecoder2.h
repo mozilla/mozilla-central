@@ -70,38 +70,58 @@ public:
   
   nsresult ProcessData(unsigned char *data, PRUint32 count, PRUint32 *_retval);
 
+  NS_METHOD FlushImageData();
+
+  /* These functions will be called when the decoder has a decoded
+   * rows, frame size information, etc. */
+
+  static int BeginGIF(
+    void* aClientData,
+    PRUint32 aLogicalScreenWidth, 
+    PRUint32 aLogicalScreenHeight,
+    PRUint8  aBackgroundRGBIndex);
+    
+  static int EndGIF(
+    void*    aClientData,
+    int      aAnimationLoopCount);
+  
+  static int BeginImageFrame(
+    void*    aClientData,
+    PRUint32 aFrameNumber,   /* Frame number, 1-n */
+    PRUint32 aFrameXOffset,  /* X offset in logical screen */
+    PRUint32 aFrameYOffset,  /* Y offset in logical screen */
+    PRUint32 aFrameWidth,    
+    PRUint32 aFrameHeight);
+  
+  static int EndImageFrame(
+    void* aClientData,
+    PRUint32 aFrameNumber,
+    PRUint32 aDelayTimeout);
+  
+  static int HaveDecodedRow(
+    void* aClientData,
+    PRUint8* aRowBufPtr,   /* Pointer to single scanline temporary buffer */
+    int aRow,              /* Row number? */
+    int aDuplicateCount,   /* Number of times to duplicate the row? */
+    int aInterlacePass);
+
 private:
-  /* These functions will be called when the decoder has a decoded row,
-   * frame size information, etc. */
-
-  void      BeginGIF();
-  void      EndGIF();
-  void      BeginImageFrame(gfx_depth aDepth);
-  void      EndImageFrame();
-  void      FlushImageData();
-  void      FlushImageData(PRUint32 fromRow, PRUint32 rows);
-
-  nsresult  GifWrite(const PRUint8 * buf, PRUint32 numbytes);
-  PRUint32  OutputRow();
-  PRBool    DoLzw(const PRUint8 *q);
-
-  inline int ClearCode() const { return 1 << mGIFStruct.datasize; }
-
   nsCOMPtr<imgIContainer> mImageContainer;
   nsCOMPtr<gfxIImageFrame> mImageFrame;
   nsCOMPtr<imgIDecoderObserver> mObserver; // this is just qi'd from mRequest for speed
   PRInt32 mCurrentRow;
   PRInt32 mLastFlushedRow;
 
-  PRUint8 *mImageData;       // Pointer to image data in either Cairo or 8bit format
-  PRUint32 *mColormap;       // Current colormap to be used in Cairo format
-  PRUint32 mOldColor;        // The old value of the transparent pixel
+  gif_struct *mGIFStruct;
+
+  PRUint8 *mRGBLine;
+  PRUint32 mRGBLineMaxSize;
+  PRUint8 mBackgroundRGBIndex;
   PRUint8 mCurrentPass;
   PRUint8 mLastFlushedPass;
   PRPackedBool mGIFOpen;
-  PRPackedBool mSawTransparency;
-
-  gif_struct mGIFStruct;
 };
+
+void nsGifShutdown();
 
 #endif

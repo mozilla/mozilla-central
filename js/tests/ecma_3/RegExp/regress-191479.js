@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -34,9 +33,8 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK ***** */
-
-/*
+ * ***** END LICENSE BLOCK *****
+ *
  *
  * Date:    31 January 2003
  * SUMMARY: Testing regular expressions of form /(x|y){n,}/
@@ -45,9 +43,8 @@
  *
  */
 //-----------------------------------------------------------------------------
-var gTestfile = 'regress-191479.js';
 var i = 0;
-var BUGNUMBER = 191479;
+var bug = 191479;
 var summary = 'Testing regular expressions of form /(x|y){n,}/';
 var status = '';
 var statusmessages = new Array();
@@ -191,7 +188,7 @@ function addThis()
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
   testRegExp(statusmessages, patterns, strings, actualmatches, expectedmatches);
   exitFunc ('test');

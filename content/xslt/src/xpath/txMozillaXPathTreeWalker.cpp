@@ -69,6 +69,10 @@ txXPathTreeWalker::txXPathTreeWalker(const txXPathNode& aNode)
 {
 }
 
+txXPathTreeWalker::~txXPathTreeWalker()
+{
+}
+
 void
 txXPathTreeWalker::moveToRoot()
 {
@@ -122,7 +126,7 @@ txXPathTreeWalker::moveToElementById(const nsAString& aID)
                      "root of subtree wasn't an nsIContent");
 
         content = nsContentUtils::MatchElementId(
-            static_cast<nsIContent*>(rootNode), aID);
+            NS_STATIC_CAST(nsIContent*, rootNode), aID);
     }
 
     if (!content) {
@@ -578,8 +582,7 @@ txXPathNodeUtils::appendNodeValue(const txXPathNode& aNode, nsAString& aResult)
     }
 
     if (aNode.isDocument() ||
-        aNode.mNode->IsNodeOfType(nsINode::eELEMENT) ||
-        aNode.mNode->IsNodeOfType(nsINode::eDOCUMENT_FRAGMENT)) {
+        aNode.mNode->IsNodeOfType(nsINode::eELEMENT)) {
         nsContentUtils::AppendNodeTextContent(aNode.mNode, PR_TRUE, aResult);
 
         return;
@@ -735,9 +738,9 @@ txXPathNodeUtils::comparePosition(const txXPathNode& aNode,
     PRInt32 i;
     parent = nsnull;
     for (i = 0; i <= lastIndex; ++i) {
-        node = static_cast<nsINode*>(parents.ElementAt(total - i));
-        otherNode = static_cast<nsINode*>
-                               (otherParents.ElementAt(otherTotal - i));
+        node = NS_STATIC_CAST(nsINode*, parents.ElementAt(total - i));
+        otherNode = NS_STATIC_CAST(nsINode*,
+                                   otherParents.ElementAt(otherTotal - i));
         if (node != otherNode) {
             if (!parent) {
                 // The two nodes are in different orphan subtrees.

@@ -16,7 +16,7 @@
  * The Original Code is IBM code.
  *
  * The Initial Developer of the Original Code is
- * IBM.
+ * IBM. Portions created by IBM are Copyright (C) International Business Machines Corporation, 2000.  All Rights Reserved.
  * Portions created by the Initial Developer are Copyright (C) 2001
  * the Initial Developer. All Rights Reserved.
  *
@@ -39,7 +39,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsBidiKeyboard.h"
-#include "nsObjCExceptions.h"
 
 #import <Carbon/Carbon.h>
 
@@ -55,8 +54,6 @@ nsBidiKeyboard::~nsBidiKeyboard()
 
 NS_IMETHODIMP nsBidiKeyboard::IsLangRTL(PRBool *aIsRTL)
 {
-  NS_OBJC_BEGIN_TRY_ABORT_BLOCK_NSRESULT;
-
   *aIsRTL = PR_FALSE;
   nsresult rv = NS_ERROR_FAILURE;
 
@@ -80,8 +77,6 @@ NS_IMETHODIMP nsBidiKeyboard::IsLangRTL(PRBool *aIsRTL)
   }
 
   return rv;
-
-  NS_OBJC_END_TRY_ABORT_BLOCK_NSRESULT;
 }
 
 NS_IMETHODIMP nsBidiKeyboard::SetLangFromBidiLevel(PRUint8 aLevel)

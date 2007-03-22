@@ -34,10 +34,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-347739.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 347739;
+var bug = 347739;
 var summary = 'generator_instance.close readonly and immune';
 var actual = '';
 var expect = '';
@@ -50,10 +48,10 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
-
-  function gen_test(test_index)
+ 
+  function gen_test(test_index) 
   {
     try {
       yield 1;

@@ -120,26 +120,20 @@ CallPeekFunc(nsIInputStream *aInStream, void *aClosure,
   NS_ASSERTION(aToOffset == 0, "Called more than once?");
   NS_ASSERTION(aCount > 0, "Called without data?");
 
-  PeekData* data = static_cast<PeekData*>(aClosure);
+  PeekData* data = NS_STATIC_CAST(PeekData*, aClosure);
   data->mFunc(data->mClosure,
-              reinterpret_cast<const PRUint8*>(aFromSegment), aCount);
+              NS_REINTERPRET_CAST(const PRUint8*, aFromSegment), aCount);
   return NS_BINDING_ABORTED;
 }
 
-nsresult
+void
 nsInputStreamPump::PeekStream(PeekSegmentFun callback, void* closure)
 {
   NS_ASSERTION(mAsyncStream, "PeekStream called without stream");
-
-  // See if the pipe is closed by checking the return of Available.
-  PRUint32 dummy;
-  nsresult rv = mAsyncStream->Available(&dummy);
-  if (NS_FAILED(rv))
-    return rv;
-
   PeekData data(callback, closure);
-  return mAsyncStream->ReadSegments(CallPeekFunc, &data,
-                                    NET_DEFAULT_SEGMENT_SIZE, &dummy);
+  PRUint32 read;
+  mAsyncStream->ReadSegments(CallPeekFunc, &data, NET_DEFAULT_SEGMENT_SIZE,
+                             &read);
 }
 
 nsresult
@@ -299,7 +293,8 @@ NS_IMETHODIMP
 nsInputStreamPump::AsyncRead(nsIStreamListener *listener, nsISupports *ctxt)
 {
     NS_ENSURE_TRUE(mState == STATE_IDLE, NS_ERROR_IN_PROGRESS);
-    NS_ENSURE_ARG_POINTER(listener);
+
+    nsresult rv;
 
     //
     // OK, we need to use the stream transport service if
@@ -309,7 +304,7 @@ nsInputStreamPump::AsyncRead(nsIStreamListener *listener, nsISupports *ctxt)
     //
 
     PRBool nonBlocking;
-    nsresult rv = mStream->IsNonBlocking(&nonBlocking);
+    rv = mStream->IsNonBlocking(&nonBlocking);
     if (NS_FAILED(rv)) return rv;
 
     if (nonBlocking) {

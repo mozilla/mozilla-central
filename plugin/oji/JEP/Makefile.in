@@ -55,12 +55,10 @@ MRJ_PLUGIN_BUNDLE=MRJPlugin.plugin
 # for objdir builds, copy the project, and symlink the sources
 ABS_topsrcdir   := $(shell cd $(topsrcdir); pwd)
 ifneq ($(ABS_topsrcdir),$(MOZ_BUILD_ROOT))
-ifdef MOZ_PLUGINS
 export::
+ifdef MOZ_PLUGINS
 	rsync -a --exclude CVS/ $(srcdir)/$(JEP_PLUGIN_BUNDLE) .
 	rsync -a --exclude CVS/ $(srcdir)/$(MRJ_PLUGIN_BUNDLE) .
-
-GARBAGE_DIRS += $(JEP_PLUGIN_BUNDLE) $(MRJ_PLUGIN_BUNDLE)
 endif
 endif
 
@@ -71,3 +69,5 @@ ifdef MOZ_PLUGINS
 	$(INSTALL) $(JEP_PLUGIN_BUNDLE) $(DIST)/bin/plugins
 	$(INSTALL) $(MRJ_PLUGIN_BUNDLE) $(DIST)/bin/plugins
 endif
+
+clean clobber distclean::

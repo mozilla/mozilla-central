@@ -126,8 +126,7 @@ NS_IMPL_ISUPPORTS4(mozSanitizingHTMLSerializer,
 
 NS_IMETHODIMP 
 mozSanitizingHTMLSerializer::Init(PRUint32 aFlags, PRUint32 dummy,
-                                  const char* aCharSet, PRBool aIsCopying,
-                                  PRBool aIsWholeDocument)
+                                  const char* aCharSet, PRBool aIsCopying)
 {
   NS_ENSURE_TRUE(nsContentUtils::GetParserService(), NS_ERROR_UNEXPECTED);
 
@@ -139,7 +138,7 @@ mozSanitizingHTMLSerializer::Initialize(nsAString* aOutString,
                                         PRUint32 aFlags,
                                         const nsAString& allowedTags)
 {
-  nsresult rv = Init(aFlags, 0, nsnull, PR_FALSE, PR_FALSE);
+  nsresult rv = Init(aFlags, 0, nsnull, PR_FALSE);
   NS_ENSURE_SUCCESS(rv, rv);
 
   // XXX This is wrong. It violates XPCOM string ownership rules.
@@ -301,7 +300,7 @@ mozSanitizingHTMLSerializer::OpenContainer(const nsIParserNode& aNode)
 {
   PRInt32 type = aNode.GetNodeType();
 
-  mParserNode = const_cast<nsIParserNode *>(&aNode);
+  mParserNode = NS_CONST_CAST(nsIParserNode *, &aNode);
   return DoOpenContainer(type);
 }
 
@@ -317,7 +316,7 @@ mozSanitizingHTMLSerializer::AddLeaf(const nsIParserNode& aNode)
   eHTMLTags type = (eHTMLTags)aNode.GetNodeType();
   const nsAString& text = aNode.GetText();
 
-  mParserNode = const_cast<nsIParserNode*>(&aNode);
+  mParserNode = NS_CONST_CAST(nsIParserNode*, &aNode);
   return DoAddLeaf(type, text);
 }
 

@@ -39,13 +39,15 @@
 #ifndef NSSVGFOREIGNOBJECTFRAME_H__
 #define NSSVGFOREIGNOBJECTFRAME_H__
 
-#include "nsContainerFrame.h"
+#include "nsBlockFrame.h"
 #include "nsISVGChildFrame.h"
 #include "nsIDOMSVGMatrix.h"
+#include "nsIDOMSVGLength.h"
 #include "nsRegion.h"
-#include "nsIPresShell.h"
 
 typedef nsContainerFrame nsSVGForeignObjectFrameBase;
+
+class nsISVGFilterFrame;
 
 class nsSVGForeignObjectFrame : public nsSVGForeignObjectFrameBase,
                                 public nsISVGChildFrame
@@ -58,14 +60,10 @@ protected:
   // nsISupports interface:
   NS_IMETHOD QueryInterface(const nsIID& aIID, void** aInstancePtr);
 private:
-  NS_IMETHOD_(nsrefcnt) AddRef() { return 1; }
-  NS_IMETHOD_(nsrefcnt) Release() { return 1; }
-
+  NS_IMETHOD_(nsrefcnt) AddRef() { return NS_OK; }
+  NS_IMETHOD_(nsrefcnt) Release() { return NS_OK; }  
 public:
   // nsIFrame:  
-  NS_IMETHOD  Init(nsIContent* aContent,
-                   nsIFrame*   aParent,
-                   nsIFrame*   aPrevInFlow);
   virtual void Destroy();
   NS_IMETHOD  AttributeChanged(PRInt32         aNameSpaceID,
                                nsIAtom*        aAttribute,
@@ -76,6 +74,7 @@ public:
   }
 
   NS_IMETHOD DidSetStyleContext();
+  virtual void MarkIntrinsicWidthsDirty();
 
   NS_IMETHOD Reflow(nsPresContext*           aPresContext,
                     nsHTMLReflowMetrics&     aDesiredSize,
@@ -112,12 +111,11 @@ public:
   NS_IMETHOD_(nsRect) GetCoveredRegion();
   NS_IMETHOD UpdateCoveredRegion();
   NS_IMETHOD InitialUpdate();
-  virtual void NotifySVGChanged(PRUint32 aFlags);
+  NS_IMETHOD NotifyCanvasTMChanged(PRBool suppressInvalidation);
   NS_IMETHOD NotifyRedrawSuspended();
   NS_IMETHOD NotifyRedrawUnsuspended();
   NS_IMETHOD SetMatrixPropagation(PRBool aPropagate);
   NS_IMETHOD SetOverrideCTM(nsIDOMSVGMatrix *aCTM);
-  virtual already_AddRefed<nsIDOMSVGMatrix> GetOverrideCTM();
   NS_IMETHOD GetBBox(nsIDOMSVGRect **_retval);
   NS_IMETHOD_(PRBool) IsDisplayContainer() { return PR_TRUE; }
   NS_IMETHOD_(PRBool) HasValidCoveredRect() { return PR_FALSE; }
@@ -130,21 +128,17 @@ public:
   nsPoint TransformPointFromOuter(nsPoint aPt);
 
   already_AddRefed<nsIDOMSVGMatrix> GetCanvasTM();
-
-  // This method allows our nsSVGOuterSVGFrame to reflow us as necessary.
-  void MaybeReflowFromOuterSVGFrame();
-
+  
 protected:
   // implementation helpers:
   void DoReflow();
-  void RequestReflow(nsIPresShell::IntrinsicDirty aType);
+  void PostChildDirty();
   void UpdateGraphic();
+  // Get the bounding box relative to the outer SVG element, in user units
+  void GetBBoxInternal(float* aX, float *aY, float* aWidth, float *aHeight);
   already_AddRefed<nsIDOMSVGMatrix> GetTMIncludingOffset();
   nsresult TransformPointFromOuterPx(float aX, float aY, nsPoint* aOut);
   void FlushDirtyRegion();
-
-  // If width or height is less than or equal to zero we must disable rendering
-  PRBool IsDisabled() const { return mRect.width <= 0 || mRect.height <= 0; }
 
   nsCOMPtr<nsIDOMSVGMatrix> mCanvasTM;
   nsCOMPtr<nsIDOMSVGMatrix> mOverrideCTM;

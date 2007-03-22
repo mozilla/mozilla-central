@@ -19,7 +19,7 @@
  * Portions created by the Initial Developer are Copyright (C) 2005
  * the Initial Developer. All Rights Reserved.
  *
- * Contributor(s): Michael Daumling
+ * Contributor(s): Michael Daumling 
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -34,19 +34,20 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-306727.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 306727;
+var bug = 306727;
 var summary = 'Parsing RegExp of octal expressions in strict mode';
 var actual = '';
 var expect = '';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
-// test with strict off
+var jsOptions = new JavaScriptOptions();
 
+// non strict
+jsOptions.setOption('strict', false);
+jsOptions.setOption('werror', false);
 try
 {
   expect = null;
@@ -55,12 +56,11 @@ try
 catch(e)
 {
 }
-
+jsOptions.reset();
 reportCompare(expect, actual, summary);
 
-// test with strict on
-options('strict');
-
+// strict
+jsOptions.setOption('strict', true);
 expect = null;
 try
 {
@@ -69,5 +69,7 @@ try
 catch(e)
 {
 }
-
+jsOptions.reset();
 reportCompare(expect, actual, summary);
+
+  

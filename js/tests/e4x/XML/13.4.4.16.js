@@ -40,13 +40,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '13.4.4.16.js';
-
 START("13.4.4.16 - XML hasSimpleContent()");
 
 TEST(1, true, XML.prototype.hasOwnProperty("hasSimpleContent"));
-   
-x =
+    
+x = 
 <alpha attr1="value1">
     <bravo>one</bravo>
     <charlie>

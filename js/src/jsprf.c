@@ -706,8 +706,10 @@ static int dosprintf(SprintfState *ss, const char *fmt, va_list ap)
     struct NumArgState nasArray[ NAS_DEFAULT_NUM ];
     char pattern[20];
     const char *dolPt = NULL;  /* in "%4$.2f", dolPt will poiont to . */
-    uint8 utf8buf[6];
+#ifdef JS_C_STRINGS_ARE_UTF8
+    char utf8buf[6];
     int utf8len;
+#endif
 
     /*
     ** build an argument array, IF the fmt is numbered argument
@@ -944,13 +946,13 @@ static int dosprintf(SprintfState *ss, const char *fmt, va_list ap)
             }
             switch (type) {
               case TYPE_INT16:
-                /* Treat %hc as %c unless js_CStringsAreUTF8. */
-                if (js_CStringsAreUTF8) {
-                    u.wch = va_arg(ap, int);
-                    utf8len = js_OneUcs4ToUtf8Char (utf8buf, u.wch);
-                    rv = (*ss->stuff)(ss, (char *)utf8buf, utf8len);
-                    break;
-                }
+                /* Treat %hc as %c if JS_C_STRINGS_ARE_UTF8 is undefined. */
+#ifdef JS_C_STRINGS_ARE_UTF8
+                u.wch = va_arg(ap, int);
+                utf8len = js_OneUcs4ToUtf8Char (utf8buf, u.wch);
+                rv = (*ss->stuff)(ss, utf8buf, utf8len);
+                break;
+#endif
               case TYPE_INTN:
                 u.ch = va_arg(ap, int);
                 rv = (*ss->stuff)(ss, &u.ch, 1);
@@ -997,7 +999,7 @@ static int dosprintf(SprintfState *ss, const char *fmt, va_list ap)
             if(type == TYPE_INT16) {
                 /*
                  * This would do a simple string/byte conversion
-                 * unless js_CStringsAreUTF8.
+                 * if JS_C_STRINGS_ARE_UTF8 is not defined.
                  */
                 u.ws = va_arg(ap, const jschar*);
                 rv = cvt_ws(ss, u.ws, width, prec, flags);

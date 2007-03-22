@@ -23,7 +23,6 @@
  * Contributor(s):
  *   Vladimir Vukicevic <vladimir.vukicevic@oracle.com>
  *   Brett Wilson <brettw@gmail.com>
- *   Shawn Wilsher <me@shawnwilsher.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -46,21 +45,21 @@
 #include "nsIFile.h"
 #include "nsIObserver.h"
 #include "nsIObserverService.h"
-#include "prlock.h"
 
 #include "mozIStorageService.h"
 
 class mozStorageConnection;
 
-class mozStorageService : public mozIStorageService
+class mozStorageService : public mozIStorageService,
+                          public nsIObserver
 {
     friend class mozStorageConnection;
 
 public:
+    mozStorageService();
+
     // two-phase init, must call before using service
     nsresult Init();
-
-    static mozStorageService *GetSingleton();
 
     // nsISupports
     NS_DECL_ISUPPORTS
@@ -68,18 +67,17 @@ public:
     // mozIStorageService
     NS_DECL_MOZISTORAGESERVICE
 
-private:
-    virtual ~mozStorageService();
+    NS_DECL_NSIOBSERVER
 
-    /**
-     * Used for locking around calls when initializing connections so that we
-     * can ensure that the state of sqlite3_enable_shared_cache is sane.
-     */
-    PRLock *mLock;
+private:
+    ~mozStorageService();
 protected:
     nsCOMPtr<nsIFile> mProfileStorageFile;
 
-    static mozStorageService *gStorageService;
+    nsresult InitStorageAsyncIO();
+    nsresult FlushAsyncIO();
+    nsresult FinishAsyncIO();
+    void FreeLocks();
 };
 
 #endif /* _MOZSTORAGESERVICE_H_ */

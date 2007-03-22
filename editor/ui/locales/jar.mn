@@ -1,7 +1,11 @@
 #filter substitution
 
 @AB_CD@.jar:
+#ifdef MOZ_XUL_APP
 % locale editor @AB_CD@ %locale/@AB_CD@/editor/
+#else
+* locale/@AB_CD@/editor/contents.rdf                         (generic/chrome/composer/contents.rdf)
+#endif
   locale/@AB_CD@/editor/editorSmileyOverlay.dtd              (%chrome/composer/editorSmileyOverlay.dtd)
   locale/@AB_CD@/editor/editorOverlay.dtd                    (%chrome/composer/editorOverlay.dtd)
   locale/@AB_CD@/editor/editor.properties                    (%chrome/composer/editor.properties)
@@ -34,13 +38,13 @@
 
 #ifdef MOZ_SUITE
 @AB_CD@.jar:
-% locale editor-region @AB_CD@ %locale/@AB_CD@/editor-region/
   locale/@AB_CD@/editor/editor.dtd                           (%chrome/composer/editor.dtd)
   locale/@AB_CD@/editor/editorPrefsOverlay.dtd               (%chrome/composer/editorPrefsOverlay.dtd)
   locale/@AB_CD@/editor/editorNavigatorOverlay.dtd           (%chrome/composer/editorNavigatorOverlay.dtd)
   locale/@AB_CD@/editor/pref-toolbars.dtd                    (%chrome/composer/pref-toolbars.dtd)
   locale/@AB_CD@/editor/pref-editing.dtd                     (%chrome/composer/pref-editing.dtd)
   locale/@AB_CD@/editor/pref-composer.dtd                    (%chrome/composer/pref-composer.dtd)
+  locale/@AB_CD@/editor/pref-publish.dtd                     (%chrome/composer/pref-publish.dtd)
   locale/@AB_CD@/editor/EdLinkChecker.dtd                    (%chrome/dialogs/EdLinkChecker.dtd)
   locale/@AB_CD@/editor/EditorPageProperties.dtd             (%chrome/dialogs/EditorPageProperties.dtd)
   locale/@AB_CD@/editor/EditorSnapToGrid.dtd                 (%chrome/dialogs/EditorSnapToGrid.dtd)
@@ -50,5 +54,10 @@
   locale/@AB_CD@/editor/EditorSaveAsCharset.dtd              (%chrome/dialogs/EditorSaveAsCharset.dtd)
   locale/@AB_CD@/editor/EditorPublish.dtd                    (%chrome/dialogs/EditorPublish.dtd)
   locale/@AB_CD@/editor/EditorPublishProgress.dtd            (%chrome/dialogs/EditorPublishProgress.dtd)
+#ifdef MOZ_XUL_APP
+% locale editor-region @AB_CD@ %locale/@AB_CD@/editor-region/
+#else
+* locale/@AB_CD@/editor-region/contents.rdf                  (generic/chrome/region/contents.rdf)
+#endif
   locale/@AB_CD@/editor-region/region.properties             (%chrome/region/region.properties)
 #endif

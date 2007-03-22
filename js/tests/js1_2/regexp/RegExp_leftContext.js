@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'RegExp_leftContext.js';
-
 /**
    Filename:     RegExp_leftContext.js
    Description:  'Tests RegExps leftContext property'

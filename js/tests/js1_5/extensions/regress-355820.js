@@ -34,10 +34,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-355820.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 355820;
+var bug = 355820;
 var summary = 'Remove non-standard Script object';
 var actual = '';
 var expect = '';
@@ -50,11 +48,11 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
 
   print('This test will fail in gecko prior to 1.9');
- 
+  
   expect = 'undefined';
   actual = typeof Script;
 

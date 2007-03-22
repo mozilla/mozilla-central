@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'RegExp_rightContext_as_array.js';
-
 /**
    Filename:     RegExp_rightContext_as_array.js
    Description:  'Tests RegExps $\' property (same tests as RegExp_rightContext.js but using $\)'

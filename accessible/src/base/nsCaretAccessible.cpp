@@ -53,156 +53,136 @@
 #include "nsIViewManager.h"
 #include "nsIWidget.h"
 
-NS_IMPL_ISUPPORTS1(nsCaretAccessible, nsISelectionListener)
-  
-nsCaretAccessible::nsCaretAccessible( nsRootAccessible *aRootAccessible):
-mLastCaretOffset(-1), mRootAccessible(aRootAccessible)
+NS_IMPL_ISUPPORTS_INHERITED2(nsCaretAccessible, nsLeafAccessible, nsIAccessibleCaret, nsISelectionListener)
+
+nsCaretAccessible::nsCaretAccessible(nsIDOMNode* aDocumentNode, nsIWeakReference* aShell, nsRootAccessible *aRootAccessible):
+nsLeafAccessible(aDocumentNode, aShell), mVisible(PR_TRUE), mCurrentDOMNode(nsnull), mRootAccessible(aRootAccessible)
 {
 }
 
-nsCaretAccessible::~nsCaretAccessible()
+NS_IMETHODIMP nsCaretAccessible::Shutdown()
 {
+  mDomSelectionWeak = nsnull;
+  mCurrentDOMNode = nsnull;
+  RemoveSelectionListener();
+  return NS_OK;
 }
 
-void nsCaretAccessible::Shutdown()
+NS_IMETHODIMP nsCaretAccessible::RemoveSelectionListener()
 {
-  // The caret accessible isn't shut down until the nsRootAccessible owning it is shut down
-  // Each nsDocAccessible, including the nsRootAccessible, is responsible for clearing the
-  // doc selection listeners they registered in this nsCaretAccessible
-
-  ClearControlSelectionListener(); // Clear the selection listener for the currently focused control
-  mLastTextAccessible = nsnull;
-  mLastUsedSelection = nsnull;
-  mRootAccessible = nsnull;
-}
-
-nsresult nsCaretAccessible::ClearControlSelectionListener()
-{
-  mCurrentControl = nsnull;
-  mCurrentControlSelection = nsnull;
-
-  nsCOMPtr<nsISelectionPrivate> selPrivate(do_QueryReferent(mCurrentControlSelection));
-  if (!selPrivate) {
-    return NS_OK;
+  nsCOMPtr<nsISelection> prevDomSel(do_QueryReferent(mDomSelectionWeak));
+  nsCOMPtr<nsISelectionPrivate> selPrivate(do_QueryInterface(prevDomSel));
+  if (selPrivate) {
+    mDomSelectionWeak = nsnull;
+    return selPrivate->RemoveSelectionListener(this);
   }
-
-  return selPrivate->RemoveSelectionListener(this);
+  return NS_OK;
 }
 
-nsresult nsCaretAccessible::SetControlSelectionListener(nsIDOMNode *aCurrentNode)
+NS_IMETHODIMP nsCaretAccessible::AttachNewSelectionListener(nsIDOMNode *aCurrentNode)
 {
-  NS_ENSURE_TRUE(mRootAccessible, NS_ERROR_FAILURE);
-
-  ClearControlSelectionListener();
-
-  mCurrentControl = aCurrentNode;
-  mLastTextAccessible = nsnull;
+  mCurrentDOMNode = aCurrentNode;
 
   // When focus moves such that the caret is part of a new frame selection
   // this removes the old selection listener and attaches a new one for the current focus
   nsCOMPtr<nsIPresShell> presShell = 
-    mRootAccessible->GetPresShellFor(aCurrentNode);
+    nsRootAccessible::GetPresShellFor(aCurrentNode);
   if (!presShell)
     return NS_ERROR_FAILURE;
 
   nsCOMPtr<nsIDocument> doc = presShell->GetDocument();
-  NS_ENSURE_TRUE(doc, NS_ERROR_FAILURE);
-
+  if (!doc)  // we also should try to QI to document instead (necessary to do when node is a document)
+    doc = do_QueryInterface(aCurrentNode);
   nsCOMPtr<nsIContent> content(do_QueryInterface(aCurrentNode));
-  // The control selection listener is only for form controls, not for the document
-  // When there is no document, the content will be null
-  if (!content) {
-    return NS_OK;
-  }
+  if (!content)
+    content = doc->GetRootContent();  // If node is not content, use root content
 
   nsIFrame *frame = presShell->GetPrimaryFrameFor(content);
-  NS_ENSURE_TRUE(frame, NS_ERROR_FAILURE);
-
   nsPresContext *presContext = presShell->GetPresContext();
-  NS_ENSURE_TRUE(presContext, NS_ERROR_FAILURE);
+  if (!frame || !presContext)
+    return NS_ERROR_FAILURE;
 
   nsCOMPtr<nsISelectionController> selCon;
   frame->GetSelectionController(presContext, getter_AddRefs(selCon));
-  NS_ENSURE_TRUE(selCon, NS_ERROR_FAILURE);
+  if (!selCon)
+    return NS_ERROR_FAILURE;
   
-  nsCOMPtr<nsISelection> domSel;
+  nsCOMPtr<nsISelection> domSel, prevDomSel(do_QueryReferent(mDomSelectionWeak));
   selCon->GetSelection(nsISelectionController::SELECTION_NORMAL, getter_AddRefs(domSel));
-
+  if (domSel == prevDomSel)
+    return NS_OK; // This is already the selection we're listening to
+  RemoveSelectionListener();
   nsCOMPtr<nsISelectionPrivate> selPrivate(do_QueryInterface(domSel));
-  NS_ENSURE_TRUE(selPrivate, NS_ERROR_FAILURE);
 
-  mCurrentControlSelection = do_GetWeakReference(domSel);
+  if (!selPrivate)
+    return NS_ERROR_FAILURE;
+
+  mDomSelectionWeak = do_GetWeakReference(domSel);
   return selPrivate->AddSelectionListener(this);
-}
-
-nsresult
-nsCaretAccessible::AddDocSelectionListener(nsIPresShell *aShell)
-{
-  NS_ENSURE_TRUE(mRootAccessible, NS_ERROR_FAILURE);
-
-  nsCOMPtr<nsISelectionController> selCon = do_QueryInterface(aShell);
-  NS_ENSURE_TRUE(selCon, NS_ERROR_FAILURE);
-
-  nsCOMPtr<nsISelection> domSel;
-  selCon->GetSelection(nsISelectionController::SELECTION_NORMAL, getter_AddRefs(domSel));
-  nsCOMPtr<nsISelectionPrivate> selPrivate = do_QueryInterface(domSel);
-  NS_ENSURE_TRUE(selPrivate, NS_ERROR_FAILURE);
-
-  return selPrivate->AddSelectionListener(this);
-}
-
-nsresult
-nsCaretAccessible::RemoveDocSelectionListener(nsIPresShell *aShell)
-{
-  nsCOMPtr<nsISelectionController> selCon = do_QueryInterface(aShell);
-  NS_ENSURE_TRUE(selCon, NS_ERROR_FAILURE);
-
-  nsCOMPtr<nsISelection> domSel;
-  selCon->GetSelection(nsISelectionController::SELECTION_NORMAL, getter_AddRefs(domSel));
-  nsCOMPtr<nsISelectionPrivate> selPrivate = do_QueryInterface(domSel);
-  NS_ENSURE_TRUE(selPrivate, NS_ERROR_FAILURE);
-
-  return selPrivate->RemoveSelectionListener(this);
 }
 
 NS_IMETHODIMP nsCaretAccessible::NotifySelectionChanged(nsIDOMDocument *aDoc, nsISelection *aSel, PRInt16 aReason)
 {
-  NS_ENSURE_TRUE(mRootAccessible, NS_ERROR_FAILURE);
+  nsCOMPtr<nsIPresShell> presShell = GetPresShellFor(mCurrentDOMNode);
+  nsCOMPtr<nsISelection> domSel(do_QueryReferent(mDomSelectionWeak));
+  if (!presShell || domSel != aSel)
+    return NS_OK;  // Only listening to selection changes in currently focused frame
 
-  mLastUsedSelection = do_GetWeakReference(aSel);
+  nsCOMPtr<nsICaret> caret;
+  presShell->GetCaret(getter_AddRefs(caret));
+  if (!caret)
+    return NS_OK;
 
-  nsCOMPtr<nsIDocument> doc = do_QueryInterface(aDoc);
-  NS_ENSURE_TRUE(doc, NS_OK);
-  nsIPresShell *presShell = doc->GetPrimaryShell();
-  NS_ENSURE_TRUE(presShell, NS_OK);
+  nsRect caretRect;
+  PRBool isCollapsed;
+  caret->GetCaretCoordinates(nsICaret::eTopLevelWindowCoordinates, domSel,
+                             &caretRect, &isCollapsed, nsnull);
+  PRBool visible = !caretRect.IsEmpty();
+  if (visible)  // Make sure it's visible both by looking at coordinates and visible flag
+    caret->GetCaretVisible(&visible);
+  if (visible != mVisible) {
+    mVisible = visible;
+#ifdef XP_WIN
+    mRootAccessible->FireToolkitEvent(mVisible? nsIAccessibleEvent::EVENT_SHOW: 
+                                      nsIAccessibleEvent::EVENT_HIDE, this, nsnull);
+#endif
+  }
 
-  // Get first nsIAccessibleText in parent chain and fire caret-move, selection-change event for it
+#ifdef XP_WIN
+  // Support old style MSAA caret move events, which utilize screen coodinates
+  // rather than position within the text
+  nsPresContext *presContext = presShell->GetPresContext();
+  nsIViewManager* viewManager = presShell->GetViewManager();
+  if (!presContext || !viewManager)
+    return NS_OK;
+  nsIView *view = nsnull;
+  viewManager->GetRootView(view);
+  if (!view)
+    return NS_OK;
+  nsIWidget* widget = view->GetWidget();
+  if (!widget)
+    return NS_OK;
+
+  caretRect.x      = presContext->AppUnitsToDevPixels(caretRect.x);
+  caretRect.y      = presContext->AppUnitsToDevPixels(caretRect.y);
+  caretRect.width  = presContext->AppUnitsToDevPixels(caretRect.width);
+  caretRect.height = presContext->AppUnitsToDevPixels(caretRect.height);
+
+  widget->WidgetToScreen(caretRect, mCaretRect);
+
+  mRootAccessible->FireToolkitEvent(nsIAccessibleEvent::EVENT_LOCATION_CHANGE, this, nsnull);
+#endif
+
+  // Get first nnsIAccessibleText in parent chain and fire caret-move, selection-change event for it
   nsCOMPtr<nsIAccessible> accessible;
-  nsIAccessibilityService *accService = mRootAccessible->GetAccService();
+  nsIAccessibilityService *accService = GetAccService();
   NS_ENSURE_TRUE(accService, NS_ERROR_FAILURE);
   // Get accessible from selection's focus node or its parent
   nsCOMPtr<nsIDOMNode> focusNode;
-  aSel->GetFocusNode(getter_AddRefs(focusNode));
+  domSel->GetFocusNode(getter_AddRefs(focusNode));
   if (!focusNode) {
-    mLastTextAccessible = nsnull;
     return NS_OK; // No selection
   }
-
-  nsCOMPtr<nsIAccessibleDocument> docAccessible =
-    nsAccessNode::GetDocAccessibleFor(focusNode);
-  nsCOMPtr<nsIAccessible> accessibleForDoc =
-    do_QueryInterface(docAccessible);
-  if (!accessibleForDoc) {
-    return NS_OK;
-  }
-  PRUint32 docState;
-  accessibleForDoc->GetFinalState(&docState, nsnull);
-  if (docState & nsIAccessibleStates::STATE_BUSY) {
-    return NS_OK;  // Don't fire caret moves until doc loaded
-  }
-
-  nsCOMPtr<nsIDOMNode> nodeWithCaret = focusNode;
-
   nsCOMPtr<nsIAccessibleText> textAcc;
   while (focusNode) {
     // Make sure to get the correct starting node for selection events inside XBL content trees
@@ -226,94 +206,48 @@ NS_IMETHODIMP nsCaretAccessible::NotifySelectionChanged(nsIDOMDocument *aDoc, ns
   NS_ASSERTION(textAcc, "No nsIAccessibleText for caret move event!"); // No nsIAccessibleText for caret move event!
   NS_ENSURE_TRUE(textAcc, NS_ERROR_FAILURE);
 
-  PRInt32 caretOffset;
-  nsresult rv = textAcc->GetCaretOffset(&caretOffset);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  if (textAcc == mLastTextAccessible && caretOffset == mLastCaretOffset) {
-    PRInt32 selectionCount;
-    textAcc->GetSelectionCount(&selectionCount);   // Don't swallow similar events when selecting text
-    if (!selectionCount) {
-      return NS_OK;  // Swallow duplicate caret event
-    }
-  }
-  mLastCaretOffset = caretOffset;
-  mLastTextAccessible = textAcc;
-
-  nsCOMPtr<nsIAccessibleCaretMoveEvent> event =
-    new nsAccCaretMoveEvent(focusNode);
-  NS_ENSURE_TRUE(event, NS_ERROR_OUT_OF_MEMORY);
-
-  return mRootAccessible->FireDelayedAccessibleEvent(event);
+  return mRootAccessible->FireDelayedToolkitEvent(nsIAccessibleEvent::EVENT_ATK_TEXT_CARET_MOVE, focusNode, nsnull, PR_FALSE);
 }
 
-nsRect
-nsCaretAccessible::GetCaretRect(nsIWidget **aOutWidget)
+/** Return the caret's bounds */
+NS_IMETHODIMP nsCaretAccessible::GetBounds(PRInt32 *x, PRInt32 *y, PRInt32 *width, PRInt32 *height)
 {
-  nsRect caretRect;
-  NS_ENSURE_TRUE(aOutWidget, caretRect);
-  *aOutWidget = nsnull;
-  NS_ENSURE_TRUE(mRootAccessible, caretRect);
-
-  if (!mLastTextAccessible) {
-    return caretRect;    // Return empty rect
+  if (mCaretRect.IsEmpty()) {
+    return NS_ERROR_FAILURE;
   }
+  *x = mCaretRect.x;
+  *y = mCaretRect.y;
+  *width = mCaretRect.width;
+  *height = mCaretRect.height;
+  return NS_OK;
+}
 
-  nsCOMPtr<nsIAccessNode> lastAccessNode(do_QueryInterface(mLastTextAccessible));
-  NS_ENSURE_TRUE(lastAccessNode, caretRect);
+NS_IMETHODIMP nsCaretAccessible::GetRole(PRUint32 *_retval)
+{
+  *_retval = nsIAccessibleRole::ROLE_CARET;
+  return NS_OK;
+}
 
-  nsCOMPtr<nsIDOMNode> lastNodeWithCaret;
-  lastAccessNode->GetDOMNode(getter_AddRefs(lastNodeWithCaret));
-  NS_ENSURE_TRUE(lastNodeWithCaret, caretRect);
+NS_IMETHODIMP nsCaretAccessible::GetState(PRUint32 *_retval)
+{
+  *_retval = mVisible? 0: nsIAccessibleStates::STATE_INVISIBLE;
+  return NS_OK;
+}
 
-  nsCOMPtr<nsIPresShell> presShell = mRootAccessible->GetPresShellFor(lastNodeWithCaret);
-  NS_ENSURE_TRUE(presShell, caretRect);
+NS_IMETHODIMP nsCaretAccessible::GetParent(nsIAccessible **aParent)
+{   
+  NS_ADDREF(*aParent = mRootAccessible);
+  return NS_OK;
+}
+NS_IMETHODIMP nsCaretAccessible::GetPreviousSibling(nsIAccessible **_retval)
+{ 
+  *_retval = nsnull;
+  return NS_OK;
+}
 
-  nsCOMPtr<nsICaret> caret;
-  presShell->GetCaret(getter_AddRefs(caret));
-  NS_ENSURE_TRUE(caret, caretRect);
-
-  PRBool isCollapsed;
-  nsIView *view;
-  nsCOMPtr<nsISelection> caretSelection(do_QueryReferent(mLastUsedSelection));
-  NS_ENSURE_TRUE(caretSelection, caretRect);
-  
-  caret->GetCaretCoordinates(nsICaret::eRenderingViewCoordinates, caretSelection,
-                             &caretRect, &isCollapsed, &view);
-  if (!view || caretRect.IsEmpty()) {
-    return nsRect(); // Return empty rect
-  }
-
-  PRBool isVisible;
-  caret->GetCaretVisible(&isVisible);
-  if (!isVisible) {
-    return nsRect();  // Return empty rect
-  }
-  nsPoint offsetFromWidget;
-  *aOutWidget = view->GetNearestWidget(&offsetFromWidget);
-  NS_ENSURE_TRUE(*aOutWidget, nsRect());
-
-  nsPresContext *presContext = presShell->GetPresContext();
-  NS_ENSURE_TRUE(presContext, nsRect());
-
-  caretRect.x = presContext->AppUnitsToDevPixels(caretRect.x + offsetFromWidget.x);
-  caretRect.y = presContext->AppUnitsToDevPixels(caretRect.y + offsetFromWidget.y);
-  caretRect.width = presContext->AppUnitsToDevPixels(caretRect.width);
-  caretRect.height = presContext->AppUnitsToDevPixels(caretRect.height);
-
-  (*aOutWidget)->WidgetToScreen(caretRect, caretRect);
-
-  // Correct for character size, so that caret always matches the size of the character
-  // This is important for font size transitions, and is necessary because the Gecko caret uses the
-  // previous character's size as the user moves forward in the text by character.
-  PRInt32 charX, charY, charWidth, charHeight;
-  if (NS_SUCCEEDED(mLastTextAccessible->GetCharacterExtents(mLastCaretOffset, &charX, &charY,
-                                                            &charWidth, &charHeight,
-                                                            nsIAccessibleCoordinateType::COORDTYPE_SCREEN_RELATIVE))) {
-    caretRect.height -= charY - caretRect.y;
-    caretRect.y = charY;
-  }
-
-  return caretRect;
+NS_IMETHODIMP nsCaretAccessible::GetNextSibling(nsIAccessible **_retval)
+{
+  *_retval = nsnull;
+  return NS_OK;
 }
 

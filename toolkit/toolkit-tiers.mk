@@ -64,14 +64,8 @@ tier_external_dirs	+= modules/zlib/standalone
 endif
 
 ifdef MOZ_UPDATER
-ifndef MOZ_NATIVE_BZ2
 tier_external_dirs += modules/libbz2
-endif
 tier_external_dirs += modules/libmar
-endif
-
-ifndef MOZ_NATIVE_LCMS
-tier_external_dirs	+= modules/lcms
 endif
 
 #
@@ -86,6 +80,14 @@ tier_gecko_dirs += \
 		js/src/xpconnect \
 		intl/chardet \
 		$(NULL)
+
+ifdef MOZ_ENABLE_XLIB
+tier_gecko_dirs	+= gfx/src/xlibrgb widget/src/xlibxtbin
+endif
+
+ifdef MOZ_ENABLE_GTK
+tier_gecko_dirs	+= widget/src/gtksuperwin widget/src/gtkxtbin
+endif
 
 ifdef MOZ_ENABLE_GTK2
 tier_gecko_dirs     += widget/src/gtkxtbin
@@ -112,7 +114,7 @@ ifdef MOZ_STORAGE
 tier_gecko_dirs += storage
 endif
 
-ifdef MOZ_RDF
+ifdef MOZ_XUL
 tier_gecko_dirs += rdf
 endif
 
@@ -242,7 +244,7 @@ endif
 
 ifndef BUILD_STATIC_LIBS
 ifdef MOZ_XUL_APP
-ifneq (,$(MOZ_ENABLE_GTK2))
+ifneq (,$(MOZ_ENABLE_GTK)$(MOZ_ENABLE_GTK2))
 tier_toolkit_dirs += embedding/browser/gtk
 endif
 endif

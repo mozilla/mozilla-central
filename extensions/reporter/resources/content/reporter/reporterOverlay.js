@@ -79,13 +79,9 @@ function onBrowserLoad() {
 }
 
 function loadReporterWizard() {
-  var browser = getBrowser();
-  var charSet = browser.contentDocument.characterSet;
-  var url = browser.currentURI.spec;
   window.openDialog("chrome://reporter/content/reportWizard.xul", "",
                     "chrome,centerscreen,dialog",
-                    url,
-                    charSet);
+                    getBrowser().currentURI.spec);
   return true;
 }
 

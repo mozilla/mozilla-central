@@ -75,7 +75,7 @@ TraverseCommandObservers(const char* aKey, nsCOMArray<nsIObserver>* aObservers,
                          void* aClosure)
 {
   nsCycleCollectionTraversalCallback *cb = 
-    static_cast<nsCycleCollectionTraversalCallback*>(aClosure);
+    NS_STATIC_CAST(nsCycleCollectionTraversalCallback*, aClosure);
 
   PRInt32 i, numItems = aObservers->Count();
   for (i = 0; i < numItems; ++i) {
@@ -96,11 +96,12 @@ NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
 NS_IMPL_CYCLE_COLLECTING_ADDREF_AMBIGUOUS(nsCommandManager, nsICommandManager)
 NS_IMPL_CYCLE_COLLECTING_RELEASE_AMBIGUOUS(nsCommandManager, nsICommandManager)
 
-NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION(nsCommandManager)
+NS_INTERFACE_MAP_BEGIN(nsCommandManager)
    NS_INTERFACE_MAP_ENTRY(nsICommandManager)
    NS_INTERFACE_MAP_ENTRY(nsPICommandUpdater)
    NS_INTERFACE_MAP_ENTRY(nsISupportsWeakReference)
    NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsICommandManager)
+   NS_INTERFACE_MAP_ENTRIES_CYCLE_COLLECTION(nsCommandManager)
 NS_INTERFACE_MAP_END
 
 #if 0

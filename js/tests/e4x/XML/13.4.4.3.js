@@ -40,8 +40,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '13.4.4.3.js';
-
 START("13.4.4.3 - XML appendChild()");
 
 TEST(1, true, XML.prototype.hasOwnProperty("appendChild"));
@@ -79,6 +77,6 @@ correct =
 </employees>;
 
 emps.employee.(name == "Jim").appendChild(<hobby>snorkeling</hobby>);
-TEST(3, correct, emps);   
+TEST(3, correct, emps);    
 
 END();

@@ -90,10 +90,14 @@ sub create_directories {
   }
   # Call mkdir with the directories sorted by subdir count (how many /'s)
   if (@dirs) {
-    foreach $dir (@dirs) {
-      if (not -d $dir) {
-        print STDERR "Creating directory $dir\n";
-        create_directory($dir);
+    my $mkdir_command = "mkdir -p ". join(' ', @dirs);
+    if (system($mkdir_command)  != 0) {
+      print STDERR "Creating dirs all at once failed; trying one at atime\n";
+      foreach $dir (@dirs) {
+        if (not -d $dir) {
+          print STDERR "Creating directory $dir\n";
+          create_directory($dir);
+        }
       }
     }
   }

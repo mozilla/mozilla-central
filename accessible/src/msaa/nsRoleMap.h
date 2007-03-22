@@ -95,8 +95,8 @@ static const WindowsRoleMapItem gWindowsRoleMap[] = {
   // nsIAccessibleRole::ROLE_WINDOW
   { ROLE_SYSTEM_WINDOW, ROLE_SYSTEM_WINDOW },
 
-  // nsIAccessibleRole::ROLE_INTERNAL_FRAME
-  { USE_ROLE_STRING, IA2_ROLE_INTERNAL_FRAME},
+  // nsIAccessibleRole::ROLE_CLIENT
+  { USE_ROLE_STRING, IA2_ROLE_UNKNOWN},
 
   // nsIAccessibleRole::ROLE_MENUPOPUP
   { ROLE_SYSTEM_MENUPOPUP, ROLE_SYSTEM_MENUPOPUP },
@@ -114,13 +114,7 @@ static const WindowsRoleMapItem gWindowsRoleMap[] = {
   { ROLE_SYSTEM_DOCUMENT, ROLE_SYSTEM_DOCUMENT },
 
   // nsIAccessibleRole::ROLE_PANE
-  // We used to map to ROLE_SYSTEM_PANE, but JAWS would
-  // not read the accessible name for the contaning pane.
-  // However, JAWS will read the accessible name for a groupbox.
-  // By mapping a PANE to a GROUPING, we get no undesirable effects,
-  // but fortunately JAWS will then read the group's label,
-  // when an inner control gets focused.
-  { ROLE_SYSTEM_GROUPING , ROLE_SYSTEM_GROUPING }, 
+  { ROLE_SYSTEM_PANE, ROLE_SYSTEM_PANE },
 
   // nsIAccessibleRole::ROLE_CHART
   { ROLE_SYSTEM_CHART, ROLE_SYSTEM_CHART },
@@ -273,7 +267,7 @@ static const WindowsRoleMapItem gWindowsRoleMap[] = {
   { ROLE_SYSTEM_INDICATOR, ROLE_SYSTEM_INDICATOR },
 
   // nsIAccessibleRole::ROLE_CANVAS
-  { USE_ROLE_STRING, IA2_ROLE_CANVAS },
+  { USE_ROLE_STRING, IA2_ROLE_UNKNOWN },
 
   // nsIAccessibleRole::ROLE_CHECK_MENU_ITEM
   { ROLE_SYSTEM_MENUITEM, IA2_ROLE_CHECK_MENU_ITEM },
@@ -345,16 +339,16 @@ static const WindowsRoleMapItem gWindowsRoleMap[] = {
   { ROLE_SYSTEM_ROWHEADER, ROLE_SYSTEM_ROWHEADER },
 
   // nsIAccessibleRole::ROLE_TEAR_OFF_MENU_ITEM
-  { ROLE_SYSTEM_MENUITEM, IA2_ROLE_TEAR_OFF_MENU },
+  { ROLE_SYSTEM_MENUITEM, ROLE_SYSTEM_MENUITEM },
 
   // nsIAccessibleRole::ROLE_TERMINAL
-  { USE_ROLE_STRING, IA2_ROLE_TERMINAL },
+  { USE_ROLE_STRING, IA2_ROLE_UNKNOWN },
 
   // nsIAccessibleRole::ROLE_TEXT_CONTAINER
   { USE_ROLE_STRING, IA2_ROLE_TEXT_FRAME },
 
   // nsIAccessibleRole::ROLE_TOGGLE_BUTTON
-  { ROLE_SYSTEM_PUSHBUTTON, IA2_ROLE_TOGGLE_BUTTON },
+  { USE_ROLE_STRING, IA2_ROLE_TOGGLE_BUTTON },
 
   // nsIAccessibleRole::ROLE_TREE_TABLE
   { ROLE_SYSTEM_OUTLINE, ROLE_SYSTEM_OUTLINE },
@@ -419,24 +413,9 @@ static const WindowsRoleMapItem gWindowsRoleMap[] = {
   // nsIAccessibleRole::ROLE_COMBOBOX_LIST
   { ROLE_SYSTEM_LIST, ROLE_SYSTEM_LIST },
 
-  // nsIAccessibleRole::ROLE_COMBOBOX_OPTION
+  // nsIAccessibleRole::ROLE_COMBOBOX_LISTITEM
   { ROLE_SYSTEM_LISTITEM, ROLE_SYSTEM_LISTITEM },
 
-  // nsIAccessibleRole::ROLE_IMAGE_MAP
-  { ROLE_SYSTEM_GRAPHIC, ROLE_SYSTEM_GRAPHIC },
-
-  // nsIAccessibleRole::ROLE_OPTION 
-  { ROLE_SYSTEM_LISTITEM, ROLE_SYSTEM_LISTITEM },
-  
-  // nsIAccessibleRole::ROLE_RICH_OPTION
-  { ROLE_SYSTEM_LISTITEM, ROLE_SYSTEM_LISTITEM },
-  
-  // nsIAccessibleRole::ROLE_LISTBOX
-  { ROLE_SYSTEM_LIST, ROLE_SYSTEM_LIST },
-  
-  // nsIAccessibleRole::ROLE_FLAT_EQUATION
-  { ROLE_SYSTEM_EQUATION, ROLE_SYSTEM_EQUATION },
-  
   // nsIAccessibleRole::ROLE_LAST_ENTRY
   { ROLE_WINDOWS_LAST_ENTRY, ROLE_WINDOWS_LAST_ENTRY }
 };

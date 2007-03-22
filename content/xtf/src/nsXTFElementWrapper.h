@@ -65,8 +65,6 @@ public:
 
   // nsISupports interface
   NS_DECL_ISUPPORTS_INHERITED
-  NS_DECL_CYCLE_COLLECTION_CLASS_INHERITED_NO_UNLINK(nsXTFElementWrapper,
-                                                     nsXTFElementWrapperBase)
 
   // nsIXTFElementWrapper
   NS_DECL_NSIXTFELEMENTWRAPPER
@@ -135,7 +133,7 @@ protected:
   virtual nsIXTFElement* GetXTFElement() const
   {
     return mXTFElement;
-  }
+  };
   
   // implementation helpers:  
   PRBool QueryInterfaceInner(REFNSIID aIID, void** result);

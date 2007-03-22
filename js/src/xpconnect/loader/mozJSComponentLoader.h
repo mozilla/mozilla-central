@@ -52,12 +52,12 @@
 #include "nsIObjectOutputStream.h"
 #include "nsITimer.h"
 #include "nsIObserver.h"
-#include "xpcIJSModuleLoader.h"
 #include "nsClassHashtable.h"
-#include "nsDataHashtable.h"
 #ifndef XPCONNECT_STANDALONE
 #include "nsIPrincipal.h"
 #endif
+
+class nsIFastLoadService;
 
 /* 6bd13476-1dd2-11b2-bbef-f0ccb5fa64b6 (thanks, mozbot) */
 
@@ -89,13 +89,11 @@ class nsXPCFastLoadIO : public nsIFastLoadFileIO
 
 
 class mozJSComponentLoader : public nsIModuleLoader,
-                             public xpcIJSModuleLoader,
                              public nsIObserver
 {
  public:
     NS_DECL_ISUPPORTS
     NS_DECL_NSIMODULELOADER
-    NS_DECL_XPCIJSMODULELOADER
     NS_DECL_NSIOBSERVER
 
     mozJSComponentLoader();
@@ -119,8 +117,6 @@ class mozJSComponentLoader : public nsIModuleLoader,
                          nsIURI *uri, JSContext *cx);
     static void CloseFastLoad(nsITimer *timer, void *closure);
     void CloseFastLoad();
-    nsresult ReportOnCaller(nsAXPCNativeCallContext *cc,
-                            const char *format, ...);
 
     nsCOMPtr<nsIComponentManager> mCompMgr;
     nsCOMPtr<nsIJSRuntimeService> mRuntimeService;
@@ -164,8 +160,6 @@ class mozJSComponentLoader : public nsIModuleLoader,
     friend class ModuleEntry;
 
     nsClassHashtable<nsHashableHashKey, ModuleEntry> mModules;
-    nsClassHashtable<nsHashableHashKey, ModuleEntry> mImports;
-    nsDataHashtable<nsHashableHashKey, ModuleEntry*> mInProgressImports;
 
     PRBool mInitialized;
 };

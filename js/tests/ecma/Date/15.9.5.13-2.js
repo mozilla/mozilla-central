@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '15.9.5.13-2.js';
-
 /**
    File Name:          15.9.5.13
    ECMA Section:       15.9.5.13
@@ -58,19 +56,27 @@ var TITLE   = "Date.prototype.getUTCDay()";
 
 writeHeaderToLog( SECTION + " "+ TITLE);
 
-addTestCase( TIME_0000 );
+var TZ_ADJUST = TZ_DIFF * msPerHour;
 
+// calculate time for year 0
+for ( var time = 0, year = 1969; year >= 0; year-- ) {
+  time -= TimeInYear(year);
+}
+
+addTestCase( time );
 test();
 
 function addTestCase( t ) {
-  var start = TimeFromYear(YearFromTime(t));
-  var stop  = TimeFromYear(YearFromTime(t) + 1);
+  for ( var m = 0; m < 12; m++ ) {
+    t += TimeInMonth(m);
 
-  for (var d = start; d < stop; d += msPerDay)
-  {
-    new TestCase( SECTION,
-                  "(new Date("+d+")).getUTCDay()",
-                  WeekDay((d)),
-                  (new Date(d)).getUTCDay() );
+    for ( d = 0; d < TimeInMonth(m); d+= msPerDay*14 ) {
+      t += d;
+
+      new TestCase( SECTION,
+		    "(new Date("+t+")).getUTCDay()",
+		    WeekDay((t)),
+		    (new Date(t)).getUTCDay() );
+    }
   }
 }

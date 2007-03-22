@@ -607,7 +607,7 @@ NS_IMETHODIMP nsImageBeOS::DrawToImage(nsIImage* aDstImage,
 										nscoord aDX, nscoord aDY, 
 										nscoord aDWidth, nscoord aDHeight)
 {
-	nsImageBeOS *dest = static_cast<nsImageBeOS *>(aDstImage);
+	nsImageBeOS *dest = NS_STATIC_CAST(nsImageBeOS *, aDstImage);
 
 	if (!dest)
 		return NS_ERROR_FAILURE;

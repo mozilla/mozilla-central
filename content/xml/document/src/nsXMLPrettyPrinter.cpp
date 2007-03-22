@@ -71,13 +71,10 @@ nsXMLPrettyPrinter::~nsXMLPrettyPrinter()
 }
 
 nsresult
-nsXMLPrettyPrinter::PrettyPrint(nsIDocument* aDocument,
-                                PRBool* aDidPrettyPrint)
+nsXMLPrettyPrinter::PrettyPrint(nsIDocument* aDocument)
 {
-    *aDidPrettyPrint = PR_FALSE;
-    
     // Check for iframe with display:none. Such iframes don't have presshells
-    if (!aDocument->GetPrimaryShell()) {
+    if (!aDocument->GetNumberOfShells()) {
         return NS_OK;
     }
 
@@ -122,7 +119,6 @@ nsXMLPrettyPrinter::PrettyPrint(nsIDocument* aDocument,
     }
 
     // Ok, we should prettyprint. Let's do it!
-    *aDidPrettyPrint = PR_TRUE;
     nsresult rv = NS_OK;
 
     // Load the XSLT
@@ -155,7 +151,9 @@ nsXMLPrettyPrinter::PrettyPrint(nsIDocument* aDocument,
     NS_ASSERTION(xblDoc, "xml document doesn't implement nsIDOMDocumentXBL");
     NS_ENSURE_TRUE(xblDoc, NS_ERROR_FAILURE);
 
-    xblDoc->LoadBindingDocument(NS_LITERAL_STRING("chrome://global/content/xml/XMLPrettyPrint.xml"));
+    nsCOMPtr<nsIDOMDocument> dummy;
+    xblDoc->LoadBindingDocument(NS_LITERAL_STRING("chrome://global/content/xml/XMLPrettyPrint.xml"),
+                                getter_AddRefs(dummy));
 
     nsCOMPtr<nsIDOMElement> rootElem;
     sourceDocument->GetDocumentElement(getter_AddRefs(rootElem));
@@ -238,8 +236,7 @@ nsXMLPrettyPrinter::AttributeChanged(nsIDocument* aDocument,
                                      nsIContent* aContent,
                                      PRInt32 aNameSpaceID,
                                      nsIAtom* aAttribute,
-                                     PRInt32 aModType,
-                                     PRUint32 aStateMask)
+                                     PRInt32 aModType)
 {
     MaybeUnhook(aContent);
 }

@@ -46,7 +46,6 @@
 #include "nsIRDFService.h"
 #include "nsIRDFContainer.h"
 #include "nsHashtable.h"
-#include "nsCycleCollectionParticipant.h"
 
 // {C744CA3D-840B-460a-8D70-7CE63C51C958}
 #define NS_WINDOWDATASOURCE_CID \
@@ -65,9 +64,7 @@ class nsWindowDataSource : public nsIRDFDataSource,
 
     nsresult Init();
     
-    NS_DECL_CYCLE_COLLECTING_ISUPPORTS
-    NS_DECL_CYCLE_COLLECTION_CLASS_AMBIGUOUS(nsWindowDataSource,
-                                             nsIRDFDataSource)
+    NS_DECL_ISUPPORTS
     NS_DECL_NSIOBSERVER
     NS_DECL_NSIWINDOWMEDIATORLISTENER
     NS_DECL_NSIWINDOWDATASOURCE

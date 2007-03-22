@@ -35,7 +35,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsSVGPolyElement.h"
-#include "gfxContext.h"
 
 //----------------------------------------------------------------------
 // nsISupports methods
@@ -159,7 +158,7 @@ nsSVGPolyElement::GetMarkPoints(nsTArray<nsSVGMark> *aMarks)
 }
 
 void
-nsSVGPolyElement::ConstructPath(gfxContext *aCtx)
+nsSVGPolyElement::ConstructPath(cairo_t *aCtx)
 {
   if (!mPoints)
     return;
@@ -178,9 +177,9 @@ nsSVGPolyElement::ConstructPath(gfxContext *aCtx)
     point->GetX(&x);
     point->GetY(&y);
     if (i == 0)
-      aCtx->MoveTo(gfxPoint(x, y));
+      cairo_move_to(aCtx, x, y);
     else
-      aCtx->LineTo(gfxPoint(x, y));
+      cairo_line_to(aCtx, x, y);
   }
 }
 

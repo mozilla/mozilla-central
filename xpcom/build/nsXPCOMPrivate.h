@@ -42,7 +42,6 @@
 #include "nscore.h"
 #include "nsXPCOM.h"
 #include "nsXPCOMStrings.h"
-#include "xptcall.h"
 
 class nsStringContainer;
 class nsCStringContainer;
@@ -83,8 +82,6 @@ typedef PRUnichar* (* StringCloneDataFunc)(const nsAString&);
 typedef nsresult   (* StringSetDataFunc)(nsAString&, const PRUnichar*, PRUint32);
 typedef nsresult   (* StringSetDataRangeFunc)(nsAString&, PRUint32, PRUint32, const PRUnichar*, PRUint32);
 typedef nsresult   (* StringCopyFunc)(nsAString &, const nsAString &);
-typedef void       (* StringSetIsVoidFunc)(nsAString &, const PRBool);
-typedef PRBool     (* StringGetIsVoidFunc)(const nsAString &);
 
 typedef nsresult   (* CStringContainerInitFunc)(nsCStringContainer&);
 typedef nsresult   (* CStringContainerInit2Func)(nsCStringContainer&, const char *, PRUint32, PRUint32);
@@ -95,8 +92,6 @@ typedef char*      (* CStringCloneDataFunc)(const nsACString&);
 typedef nsresult   (* CStringSetDataFunc)(nsACString&, const char*, PRUint32);
 typedef nsresult   (* CStringSetDataRangeFunc)(nsACString&, PRUint32, PRUint32, const char*, PRUint32);
 typedef nsresult   (* CStringCopyFunc)(nsACString &, const nsACString &);
-typedef void       (* CStringSetIsVoidFunc)(nsACString &, const PRBool);
-typedef PRBool     (* CStringGetIsVoidFunc)(const nsACString &);
 
 typedef nsresult   (* CStringToUTF16)(const nsACString &, nsCStringEncoding, nsAString &);
 typedef nsresult   (* UTF16ToCString)(const nsAString &, nsCStringEncoding, nsACString &);
@@ -114,11 +109,6 @@ typedef void       (* LogAddRefFunc)(void*, nsrefcnt, const char*, PRUint32);
 typedef void       (* LogReleaseFunc)(void*, nsrefcnt, const char*);
 typedef void       (* LogCtorFunc)(void*, const char*, PRUint32);
 typedef void       (* LogCOMPtrFunc)(void*, nsISupports*);
-
-typedef nsresult   (* GetXPTCallStubFunc)(REFNSIID, nsIXPTCProxy*, nsISomeInterface**);
-typedef void       (* DestroyXPTCallStubFunc)(nsISomeInterface*);
-typedef nsresult   (* InvokeByIndexFunc)(nsISupports*, PRUint32, PRUint32, nsXPTCVariant*);
-typedef PRBool     (* CycleCollectorFunc)(nsISupports*);
 
 // PRIVATE AND DEPRECATED
 typedef NS_CALLBACK(XPCOMExitRoutine)(void);
@@ -184,15 +174,6 @@ typedef struct XPCOMFunctions{
     LogCtorFunc logDtorFunc;
     LogCOMPtrFunc logCOMPtrAddRefFunc;
     LogCOMPtrFunc logCOMPtrReleaseFunc;
-    GetXPTCallStubFunc getXPTCallStubFunc;
-    DestroyXPTCallStubFunc destroyXPTCallStubFunc;
-    InvokeByIndexFunc invokeByIndexFunc;
-    CycleCollectorFunc cycleSuspectFunc;
-    CycleCollectorFunc cycleForgetFunc;
-    StringSetIsVoidFunc stringSetIsVoid;
-    StringGetIsVoidFunc stringGetIsVoid;
-    CStringSetIsVoidFunc cstringSetIsVoid;
-    CStringGetIsVoidFunc cstringGetIsVoid;
 
 } XPCOMFunctions;
 

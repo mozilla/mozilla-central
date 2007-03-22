@@ -45,6 +45,7 @@
 #include "nsCOMArray.h"
 #include "nsIDOMSVGPathSeg.h"
 #include "nsTArray.h"
+#include <cairo.h>
 
 class nsSVGPathList;
 

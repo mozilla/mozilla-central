@@ -34,15 +34,13 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-330812.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 330812;
+var bug = 330812;
 var summary = 'Making Array(1<<29).sort() less problematic';
 var actual = 'No Crash';
 var expect = 'No Crash';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
 expectExitCode(0);
@@ -51,15 +49,6 @@ expectExitCode(3);
 printStatus('This test passes if the browser does not hang or crash');
 printStatus('This test expects exit code 0 or 3 to indicate out of memory');
 
-try
-{
-  var result = Array(1 << 29).sort();
-}
-catch(ex)
-{
-  // handle changed 1.9 branch behavior. see bug 422348
-  expect = 'InternalError: allocation size overflow';
-  actual = ex + '';
-}
+var result = Array(1 << 29).sort();
 
 reportCompare(expect, actual, summary);

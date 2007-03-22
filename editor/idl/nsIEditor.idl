@@ -59,9 +59,10 @@ class nsIPresShell;
 typedef short EDirection;
 %}
 
+
 [ptr] native nsIPresShellPtr(nsIPresShell);
 
-[scriptable, uuid(2f76d0bb-d90d-4454-905e-9b0cc39a701c)]
+[scriptable, uuid(470e18e4-2e82-48de-8850-7474cdbbd97d)]
 
 interface nsIEditor  : nsISupports
 {
@@ -528,10 +529,7 @@ interface nsIEditor  : nsISupports
                       in unsigned long flags);
 
 
-  /* ------------ Various listeners methods --------------
-   * nsIEditor holds strong references to the editor observers, action listeners
-   * and document state listeners.
-   */
+  /* ------------ Various listeners methods -------------- */
 
   /** add an EditorObserver to the editors list of observers. */
   void addEditorObserver(in nsIEditorObserver observer);
@@ -564,7 +562,4 @@ interface nsIEditor  : nsISupports
 
   /* Run unit tests. Noop in optimized builds */
   void debugUnitTests(out long outNumTests, out long  outNumTestsFailed);
-
-  /* checks if a node is read-only or not */
-  [notxpcom] boolean isModifiableNode(in nsIDOMNode aNode);
 };

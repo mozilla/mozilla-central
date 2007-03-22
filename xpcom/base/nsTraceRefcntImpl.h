@@ -60,6 +60,10 @@ public:
   
   static NS_COM void ResetStatistics(void);
 
+  static NS_COM void LoadLibrarySymbols(const char* aLibraryName,
+                                        void* aLibrayHandle);
+
+
   static NS_COM void DemangleSymbol(const char * aSymbol, 
                                     char * aBuffer,
                                     int aBufLen);

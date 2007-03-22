@@ -36,15 +36,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '12.3-01.js';
+START("12.3 - The for-each-in Statement");
 
-var summary = '12.3 - for-each-in should not affect for-in';
-var BUGNUMBER = 292020;
+var bug = 292020;
+var summary = 'for-each-in should not affect for-in';
 var actual = '';
 var expect = '';
 
-printBugNumber(BUGNUMBER);
-START(summary);
+printBugNumber (bug);
+printStatus (summary);
 
 // test here
 function foreachbug()
@@ -57,7 +57,7 @@ function foreachbug()
         var result = (j in arryOuter);
         if (!result)
         {
-            return ("enumerated property not in object: (" +
+            return ("enumerated property not in object: (" + 
                     j + " in  arryOuter) " + result);
             return result;
         }

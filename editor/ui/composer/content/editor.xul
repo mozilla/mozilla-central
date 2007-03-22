@@ -79,18 +79,18 @@
         persist="screenX screenY width height sizemode">
 
   <script type="application/x-javascript" src="chrome://editor/content/editor.js"/>
+  <script type="application/x-javascript" src="chrome://editor/content/EditorCommandsDebug.js"/>
   <script type="application/x-javascript" src="chrome://editor/content/EditorContextMenu.js"/>
   <script type="application/x-javascript" src="chrome://editor/content/StructBarContextMenu.js"/>
   <script type="application/x-javascript" src="chrome://editor/content/editorApplicationOverlay.js"/>
   <script type="application/x-javascript" src="chrome://editor/content/publishprefs.js"/>
   <script type="application/x-javascript" src="chrome://communicator/content/contentAreaDD.js"/>
   <script type="application/x-javascript" src="chrome://communicator/content/contentAreaClick.js"/>
-  <script type="application/x-javascript" src="chrome://global/content/printUtils.js"/>
+  <script type="application/x-javascript" src="chrome://communicator/content/printing.js"/>
   <script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
 
   <popupset id="editorContentContextSet"/>
   <popup id="sidebarPopup"/>
-  <popup id="popupNotificationMenu"/>
 
   <commandset id="tasksCommands">
     <commandset id="globalEditMenuItems"/>
@@ -108,7 +108,7 @@
     <command id="toggleSidebar"/>
   </commandset>
 
-  <tooltip id="aHTMLTooltip" onpopupshowing="return FillInHTMLTooltipEditor(this);"/>
+  <tooltip id="aHTMLTooltip" onpopupshowing="return FillInHTMLTooltip(this);"/>
 
   <broadcaster id="args" value="about:blank"/>
   <broadcaster id="canPrint"/>
@@ -146,7 +146,7 @@
           <menuitem id="viewComposerToolbar" label="&compositionToolbarCmd.label;" type="checkbox" accesskey="&compositiontb.accesskey;" command="cmd_viewCompToolbar"  />
           <menuitem id="viewFormatToolbar"   label="&formattingToolbarCmd.label;"  type="checkbox" accesskey="&formattingtb.accesskey;"  command="cmd_viewFormatToolbar" />
           <menuitem id="viewEditModeToolbar" label="&editmodeToolbarCmd.label;"    type="checkbox" accesskey="&editmodetb.accesskey;"    command="cmd_viewEditModeToolbar" />
-          <menuitem id="menu_showTaskbar"/>
+          <menuitem id="viewTaskBar"         label="&taskbarCmd.label;"            type="checkbox" accesskey="&taskbarCmd.accesskey;"    command="cmd_viewtaskbar" />
         </menupopup>
       </menu>
       <menuseparator id="viewSep1"/>
@@ -183,6 +183,10 @@
 
     <menu id="windowMenu"/>
 
+    <!-- DEBUG only -->
+    <menu id="debugMenu" /> 
+    <!-- end DEBUG only -->
+  
     <!-- help menu filled from globalOverlay -->
     <menu id="menu_Help"/>
 
@@ -192,7 +196,7 @@
   <!-- toolbar filled out from editorOverlay -->
   <!-- add  class="standard" for dark blue background (icons need rework first) -->
   <toolbar class="chromeclass-toolbar toolbar-primary" id="EditToolbar" persist="collapsed" 
-           grippytooltiptext="&compositionToolbar.tooltip;">
+           tbalign="stretch" grippytooltiptext="&compositionToolbar.tooltip;">
     <toolbarbutton id="newButton"/>
     <toolbarbutton id="openButton"/>
     <toolbarbutton id="saveButton"/>
@@ -217,7 +221,7 @@
       </button>
     </hbox> 
   </toolbar>
-  <toolbar class="chromeclass-toolbar" id="FormatToolbar" persist="collapsed" grippytooltiptext="&formatToolbar.tooltip;">
+  <toolbar class="chromeclass-toolbar" id="FormatToolbar" persist="collapsed" tbalign="center" grippytooltiptext="&formatToolbar.tooltip;">
     <!-- from editorOverlay -->
     <menulist id="ParagraphSelect"/>
     <stack id="ColorButtons"/>

@@ -138,13 +138,14 @@ nsGfxButtonControlFrame::CreateFrameFor(nsIContent*      aContent)
 
   if (aContent == mTextContent) {
     nsIFrame * parentFrame = mFrames.FirstChild();
+    nsStyleContext* styleContext = parentFrame->GetStyleContext();
 
-    nsPresContext* presContext = PresContext();
+    nsPresContext* presContext = GetPresContext();
     nsRefPtr<nsStyleContext> textStyleContext;
     textStyleContext = presContext->StyleSet()->
-      ResolveStyleForNonElement(mStyleContext);
+      ResolveStyleForNonElement(styleContext);
 
-    if (textStyleContext) {
+    if (textStyleContext && styleContext) {
       newFrame = NS_NewTextFrame(presContext->PresShell(), textStyleContext);
       if (newFrame) {
         // initialize the text frame
@@ -165,7 +166,7 @@ nsGfxButtonControlFrame::GetFormProperty(nsIAtom* aName, nsAString& aValue) cons
     // This property is used by accessibility to get
     // the default label of the button.
     nsXPIDLString temp;
-    rv = const_cast<nsGfxButtonControlFrame*>(this)->GetDefaultLabel(temp);
+    rv = NS_CONST_CAST(nsGfxButtonControlFrame*, this)->GetDefaultLabel(temp);
     aValue = temp;
   } else {
     aValue.Truncate();
@@ -179,7 +180,7 @@ NS_IMETHODIMP nsGfxButtonControlFrame::GetAccessible(nsIAccessible** aAccessible
   nsCOMPtr<nsIAccessibilityService> accService = do_GetService("@mozilla.org/accessibilityService;1");
 
   if (accService) {
-    return accService->CreateHTMLButtonAccessible(static_cast<nsIFrame*>(this), aAccessible);
+    return accService->CreateHTMLButtonAccessible(NS_STATIC_CAST(nsIFrame*, this), aAccessible);
   }
 
   return NS_ERROR_FAILURE;
@@ -190,14 +191,16 @@ NS_IMETHODIMP nsGfxButtonControlFrame::GetAccessible(nsIAccessible** aAccessible
 NS_IMETHODIMP
 nsGfxButtonControlFrame::QueryInterface(const nsIID& aIID, void** aInstancePtr)
 {
-  NS_PRECONDITION(aInstancePtr, "null out param");
+  NS_ENSURE_ARG_POINTER(aInstancePtr);
 
   if (aIID.Equals(NS_GET_IID(nsIAnonymousContentCreator))) {
-    *aInstancePtr = static_cast<nsIAnonymousContentCreator*>(this);
-    return NS_OK;
+    *aInstancePtr = NS_STATIC_CAST(nsIAnonymousContentCreator*, this);
+  }
+else {
+    return nsHTMLButtonControlFrame::QueryInterface(aIID, aInstancePtr);
   }
 
-  return nsHTMLButtonControlFrame::QueryInterface(aIID, aInstancePtr);
+  return NS_OK;
 }
 
 // Initially we hardcoded the default strings here.

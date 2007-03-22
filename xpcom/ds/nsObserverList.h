@@ -60,12 +60,12 @@ struct ObserverRef
 
   nsIObserver* asObserver() {
     NS_ASSERTION(!isWeakRef, "Isn't a strong ref.");
-    return static_cast<nsIObserver*>((nsISupports*) ref);
+    return NS_STATIC_CAST(nsIObserver*, (nsISupports*) ref);
   }
 
   nsIWeakReference* asWeak() {
     NS_ASSERTION(isWeakRef, "Isn't a weak ref.");
-    return static_cast<nsIWeakReference*>((nsISupports*) ref);
+    return NS_STATIC_CAST(nsIWeakReference*, (nsISupports*) ref);
   }
 
   PRBool operator==(nsISupports* b) const { return ref == b; }

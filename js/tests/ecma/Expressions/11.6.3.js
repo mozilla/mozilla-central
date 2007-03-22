@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '11.6.3.js';
-
 /**
    File Name:          11.6.3.js
    ECMA Section:       11.6.3 Applying the additive operators

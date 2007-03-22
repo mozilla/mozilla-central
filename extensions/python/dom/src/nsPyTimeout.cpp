@@ -146,5 +146,5 @@ nsresult CreatePyTimeoutHandler(const nsAString &aExpr,
   if (!aRet)
     return NS_ERROR_OUT_OF_MEMORY;
   return (*aRet)->QueryInterface(NS_GET_IID(nsIScriptTimeoutHandler),
-                                 reinterpret_cast<void **>(aRet));
+                                 NS_REINTERPRET_CAST(void **, aRet));
 }

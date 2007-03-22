@@ -275,7 +275,7 @@ nsHTMLEditorMouseListener::MouseDown(nsIDOMEvent* aMouseEvent)
       PRInt32 clientX, clientY;
       mouseEvent->GetClientX(&clientX);
       mouseEvent->GetClientY(&clientY);
-      objectResizer->MouseDown(clientX, clientY, element, aMouseEvent);
+      objectResizer->MouseDown(clientX, clientY, element);
     }
   }
 

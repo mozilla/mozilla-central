@@ -121,8 +121,18 @@ extern "C" {
 #define STUB_ENTRY(n) \
 nsresult nsXPTCStubBase::Stub##n() \
 { \
+  register nsresult result asm("d0"); \
   void *frame = __builtin_frame_address(0); \
-  return PrepareAndDispatch(this, n, (uint32*)frame + 3); \
+  __asm__ __volatile__( \
+    "pea   %2@(12)\n\t"             /* args */ \
+    "pea  "#n"\n\t"                 /* method index */ \
+    "movl  %1, %/sp@-\n\t"          /* this */ \
+    "jbsr  PrepareAndDispatch\n\t" \
+    "addw  #12, %/sp" \
+    : "=&d" (result)     /* %0 */ \
+    : "a" (this), "a" (frame) \
+    : "memory" ); \
+    return result; \
 }
 
 #define SENTINEL_ENTRY(n) \

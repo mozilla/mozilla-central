@@ -34,14 +34,12 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'pi-generator.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER     = "(none)";
+var bug     = "(none)";
 var summary = "A (slow) generator of pi";
 var actual, expect;
 
-printBugNumber(BUGNUMBER);
+printBugNumber(bug);
 printStatus(summary);
 
 /**************

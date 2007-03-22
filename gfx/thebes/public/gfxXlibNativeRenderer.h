@@ -60,8 +60,7 @@ public:
      * @param numClipRects the number of rects in the array, or zero if
      * no clipping is required
      */
-    virtual nsresult NativeDraw(Screen* screen, Drawable drawable,
-                                Visual* visual, Colormap colormap,
+    virtual nsresult NativeDraw(Display* dpy, Drawable drawable, Visual* visual,
                                 short offsetX, short offsetY,
                                 XRectangle* clipRects, PRUint32 numClipRects) = 0;
   
@@ -80,12 +79,11 @@ public:
         // nor CLIP_RECT are set, then numClipRects will be zero
         DRAW_SUPPORTS_CLIP_LIST = 0x08,
         // If set, then the visual passed in can be any visual, otherwise the
-        // visual passed in must be the default visual for 'screen'
-        DRAW_SUPPORTS_NONDEFAULT_VISUAL = 0x10,
-        // If set, then the Screen 'screen' in the callback can be different
-        // from the default Screen of the display passed to 'Draw' and can be
-        // on a different display.
-        DRAW_SUPPORTS_ALTERNATE_SCREEN = 0x20
+        // visual passed in must be the default visual for dpy's default screen
+        DRAW_SUPPORTS_NONDEFAULT_VISUAL = 0x08,
+        // If set, then the display 'dpy' in the callback can be different from
+        // the display passed to 'Draw'
+        DRAW_SUPPORTS_ALTERNATE_DISPLAY = 0x10
     };
 
     struct DrawOutput {

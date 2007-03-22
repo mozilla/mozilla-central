@@ -37,7 +37,6 @@
 /* Implement shared vtbl methods. */
 
 #include "xptcprivate.h"
-#include "xptiprivate.h"
 
 #if defined(AIX)
 
@@ -56,15 +55,19 @@ PrepareAndDispatch(nsXPTCStubBase* self, PRUint64 methodIndex, PRUint64* args, P
 
     nsXPTCMiniVariant paramBuffer[PARAM_BUFFER_COUNT];
     nsXPTCMiniVariant* dispatchParams = NULL;
-    const nsXPTMethodInfo* info = NULL;
+    nsIInterfaceInfo* iface_info = NULL;
+    const nsXPTMethodInfo* info;
     PRUint8 paramCount;
     PRUint8 i;
     nsresult result = NS_ERROR_FAILURE;
 
     NS_ASSERTION(self,"no self");
 
-    self->mEntry->GetMethodInfo(PRUint16(methodIndex), &info);
-    NS_ASSERTION(info,"no method info");
+    self->GetInterfaceInfo(&iface_info);
+    NS_ASSERTION(iface_info,"no interface info");
+
+    iface_info->GetMethodInfo(PRUint16(methodIndex), &info);
+    NS_ASSERTION(info,"no interface info");
 
     paramCount = info->GetParamCount();
 
@@ -182,7 +185,9 @@ PrepareAndDispatch(nsXPTCStubBase* self, PRUint64 methodIndex, PRUint64* args, P
         }
     }
 
-    result = self->mOuter->CallMethod((PRUint16)methodIndex,info,dispatchParams);
+    result = self->CallMethod((PRUint16)methodIndex, info, dispatchParams);
+
+    NS_RELEASE(iface_info);
 
     if(dispatchParams != paramBuffer)
         delete [] dispatchParams;
@@ -190,7 +195,13 @@ PrepareAndDispatch(nsXPTCStubBase* self, PRUint64 methodIndex, PRUint64* args, P
     return result;
 }
 
-#define STUB_ENTRY(n)
+extern "C" int SharedStub(int);
+
+#define STUB_ENTRY(n)                \
+nsresult nsXPTCStubBase::Stub##n()   \
+{                                    \
+    return SharedStub(n);	     \
+}                                    \
 
 #define SENTINEL_ENTRY(n) \
 nsresult nsXPTCStubBase::Sentinel##n() \

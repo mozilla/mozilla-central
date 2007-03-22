@@ -47,11 +47,15 @@
 #include "gfxContext.h"
 #include "gfxFont.h"
 #include "gfxPlatform.h"
-#include "gfxTextRunWordCache.h"
 
 #include "gfxFontTest.h"
 
-#if defined(XP_MACOSX)
+#if defined(XP_WIN)
+#include "gfxWindowsFonts.h"
+#elif defined(MOZ_ENABLE_PANGO)
+#include "gfxPangoFonts.h"
+#elif defined(XP_MACOSX)
+#include "gfxAtsuiFonts.h"
 #include "gfxTestCocoaHelper.h"
 #endif
 
@@ -63,10 +67,6 @@ enum {
     S_UTF8 = 0,
     S_ASCII = 1
 };
-
-class FrameTextRunCache;
-
-static gfxTextRunWordCache *gTextRunCache;
 
 struct LiteralArray {
     LiteralArray (unsigned long l1) {
@@ -184,7 +184,7 @@ struct TestEntry {
 #elif defined(XP_MACOSX)
         if (strcmp(platform, "macosx"))
             return;
-#elif defined(XP_UNIX)
+#elif defined(MOZ_ENABLE_PANGO)
         if (strcmp(platform, "gtk2-pango"))
             return;
 #else
@@ -288,33 +288,40 @@ PRBool
 RunTest (TestEntry *test, gfxContext *ctx) {
     nsRefPtr<gfxFontGroup> fontGroup;
 
-    fontGroup = gfxPlatform::GetPlatform()->CreateFontGroup(NS_ConvertUTF8toUTF16(test->utf8FamilyString), &test->fontStyle);
+#if defined(XP_WIN)
+    fontGroup = new gfxWindowsFontGroup(NS_ConvertUTF8toUTF16(test->utf8FamilyString), &test->fontStyle);
+#elif defined(MOZ_ENABLE_PANGO)
+    fontGroup = new gfxPangoFontGroup(NS_ConvertUTF8toUTF16(test->utf8FamilyString), &test->fontStyle);
+#elif defined(XP_MACOSX)
+    CocoaPoolInit();
+    fontGroup = new gfxAtsuiFontGroup(NS_ConvertUTF8toUTF16(test->utf8FamilyString), &test->fontStyle);
+#else
+    return PR_FALSE;
+#endif
 
     nsAutoPtr<gfxTextRun> textRun;
     gfxTextRunFactory::Parameters params = {
-      ctx, nsnull, nsnull, nsnull, 0, 60
+      ctx, nsnull, nsnull, nsnull, nsnull, 0, 60,
+      gfxTextRunFactory::TEXT_IS_ASCII
     };
-    PRUint32 flags = gfxTextRunFactory::TEXT_IS_PERSISTENT;
     if (test->isRTL) {
-        flags |= gfxTextRunFactory::TEXT_IS_RTL;
+        params.mFlags |= gfxTextRunFactory::TEXT_IS_RTL;
     }
     PRUint32 length;
     if (test->stringType == S_ASCII) {
-        flags |= gfxTextRunFactory::TEXT_IS_ASCII | gfxTextRunFactory::TEXT_IS_8BIT;
+        params.mFlags |= gfxTextRunFactory::TEXT_IS_ASCII;
         length = strlen(test->string);
-        textRun = gfxTextRunWordCache::MakeTextRun(reinterpret_cast<PRUint8*>(test->string), length, fontGroup, &params, flags);
+        textRun = fontGroup->MakeTextRun(NS_REINTERPRET_CAST(PRUint8*, test->string), length, &params);
     } else {
-        flags |= gfxTextRunFactory::TEXT_HAS_SURROGATES; // just in case
+        params.mFlags |= gfxTextRunFactory::TEXT_HAS_SURROGATES; // just in case
         NS_ConvertUTF8toUTF16 str(nsDependentCString(test->string));
         length = str.Length();
-        textRun = gfxTextRunWordCache::MakeTextRun(str.get(), length, fontGroup, &params, flags);
+        textRun = fontGroup->MakeTextRun(str.get(), length, &params);
     }
 
     gfxFontTestStore::NewStore();
     textRun->Draw(ctx, gfxPoint(0,0), 0, length, nsnull, nsnull, nsnull);
     gfxFontTestStore *s = gfxFontTestStore::CurrentStore();
-
-    gTextRunCache->RemoveTextRun(textRun);
 
     if (!test->Check(s)) {
         DumpStore(s);
@@ -334,20 +341,11 @@ main (int argc, char **argv) {
 #ifdef MOZ_WIDGET_GTK2
     gtk_init(&argc, &argv); 
 #endif
-#ifdef XP_MACOSX
-    CocoaPoolInit();
-#endif
 
     // Initialize XPCOM
     nsresult rv = NS_InitXPCOM2(nsnull, nsnull, nsnull);
     if (NS_FAILED(rv))
         return -1;
-
-    rv = gfxPlatform::Init();
-    if (NS_FAILED(rv))
-        return -1;
-
-    gTextRunCache = new gfxTextRunWordCache();
 
     // let's get all the xpcom goop out of the system
     fflush (stderr);
@@ -387,7 +385,6 @@ main (int argc, char **argv) {
         printf ("==== Test %d\n", test);
         PRBool result = RunTest (&testList[test], context);
         if (result) {
-            printf ("Test %d succeeded\n", test);
             passed++;
         } else {
             printf ("Test %d failed\n", test);

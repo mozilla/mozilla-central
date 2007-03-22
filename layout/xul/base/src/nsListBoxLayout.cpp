@@ -56,82 +56,82 @@ nsListBoxLayout::nsListBoxLayout(nsIPresShell* aPresShell)
 
 ////////// nsIBoxLayout //////////////
 
-nsSize
-nsListBoxLayout::GetPrefSize(nsIBox* aBox, nsBoxLayoutState& aBoxLayoutState)
+NS_IMETHODIMP
+nsListBoxLayout::GetPrefSize(nsIBox* aBox, nsBoxLayoutState& aBoxLayoutState, nsSize& aSize)
 {
-  nsSize pref = nsGridRowGroupLayout::GetPrefSize(aBox, aBoxLayoutState);
+  nsresult rv = nsGridRowGroupLayout::GetPrefSize(aBox, aBoxLayoutState, aSize);
 
-  nsListBoxBodyFrame* frame = static_cast<nsListBoxBodyFrame*>(aBox);
+  nsListBoxBodyFrame* frame = NS_STATIC_CAST(nsListBoxBodyFrame*, aBox);
   if (frame) {
     nscoord rowheight = frame->GetRowHeightAppUnits();
-    pref.height = frame->GetRowCount() * rowheight;
+    aSize.height = frame->GetRowCount() * rowheight;
     // Pad the height.
     nscoord y = frame->GetAvailableHeight();
-    if (pref.height > y && y > 0 && rowheight > 0) {
-      nscoord m = (pref.height-y)%rowheight;
+    if (aSize.height > y && y > 0 && rowheight > 0) {
+      nscoord m = (aSize.height-y)%rowheight;
       nscoord remainder = m == 0 ? 0 : rowheight - m;
-      pref.height += remainder;
+      aSize.height += remainder;
     }
     if (nsContentUtils::HasNonEmptyAttr(frame->GetContent(), kNameSpaceID_None,
                                         nsGkAtoms::sizemode)) {
       nscoord width = frame->ComputeIntrinsicWidth(aBoxLayoutState);
-      if (width > pref.width)
-        pref.width = width;
+      if (width > aSize.width)
+        aSize.width = width;
     }
   }
-  return pref;
+  return rv;
 }
 
-nsSize
-nsListBoxLayout::GetMinSize(nsIBox* aBox, nsBoxLayoutState& aBoxLayoutState)
+NS_IMETHODIMP
+nsListBoxLayout::GetMinSize(nsIBox* aBox, nsBoxLayoutState& aBoxLayoutState, nsSize& aSize)
 {
-  nsSize minSize = nsGridRowGroupLayout::GetMinSize(aBox, aBoxLayoutState);
+  nsresult rv = nsGridRowGroupLayout::GetMinSize(aBox, aBoxLayoutState, aSize);
 
-  nsListBoxBodyFrame* frame = static_cast<nsListBoxBodyFrame*>(aBox);
+  nsListBoxBodyFrame* frame = NS_STATIC_CAST(nsListBoxBodyFrame*, aBox);
   if (frame) {
     nscoord rowheight = frame->GetRowHeightAppUnits();
-    minSize.height = frame->GetRowCount() * rowheight;
+    aSize.height = frame->GetRowCount() * rowheight;
     // Pad the height.
     nscoord y = frame->GetAvailableHeight();
-    if (minSize.height > y && y > 0 && rowheight > 0) {
-      nscoord m = (minSize.height-y)%rowheight;
+    if (aSize.height > y && y > 0 && rowheight > 0) {
+      nscoord m = (aSize.height-y)%rowheight;
       nscoord remainder = m == 0 ? 0 : rowheight - m;
-      minSize.height += remainder;
+      aSize.height += remainder;
     }
     if (nsContentUtils::HasNonEmptyAttr(frame->GetContent(), kNameSpaceID_None,
                                         nsGkAtoms::sizemode)) {
       nscoord width = frame->ComputeIntrinsicWidth(aBoxLayoutState);
-      if (width > minSize.width)
-        minSize.width = width;
+      if (width > aSize.width)
+        aSize.width = width;
     }
   }
-  return minSize;
+  return rv;
 }
 
-nsSize
-nsListBoxLayout::GetMaxSize(nsIBox* aBox, nsBoxLayoutState& aBoxLayoutState)
+NS_IMETHODIMP
+nsListBoxLayout::GetMaxSize(nsIBox* aBox, nsBoxLayoutState& aBoxLayoutState, nsSize& aSize)
 {
-  nsSize maxSize = nsGridRowGroupLayout::GetMaxSize(aBox, aBoxLayoutState);
+  nsresult rv = nsGridRowGroupLayout::GetMaxSize(aBox, aBoxLayoutState, aSize);
 
-  nsListBoxBodyFrame* frame = static_cast<nsListBoxBodyFrame*>(aBox);
+  nsListBoxBodyFrame* frame = NS_STATIC_CAST(nsListBoxBodyFrame*, aBox);
   if (frame) {
     nscoord rowheight = frame->GetRowHeightAppUnits();
-    maxSize.height = frame->GetRowCount() * rowheight;
+    aSize.height = frame->GetRowCount() * rowheight;
     // Pad the height.
     nscoord y = frame->GetAvailableHeight();
-    if (maxSize.height > y && y > 0 && rowheight > 0) {
-      nscoord m = (maxSize.height-y)%rowheight;
+    if (aSize.height > y && y > 0 && rowheight > 0) {
+      nscoord m = (aSize.height-y)%rowheight;
       nscoord remainder = m == 0 ? 0 : rowheight - m;
-      maxSize.height += remainder;
+      aSize.height += remainder;
     }
   }
-  return maxSize;
+  return rv;
 }
 
 NS_IMETHODIMP
 nsListBoxLayout::Layout(nsIBox* aBox, nsBoxLayoutState& aState)
 {
-  nsListBoxBodyFrame* frame = static_cast<nsListBoxBodyFrame*>(aBox);
+  nsListBoxBodyFrame* frame = NS_STATIC_CAST(nsListBoxBodyFrame*, aBox);
 
   // Always ensure an accurate scrollview position
   // This is an edge case that was caused by the row height
@@ -165,7 +165,7 @@ nsListBoxLayout::LayoutInternal(nsIBox* aBox, nsBoxLayoutState& aState)
   PRInt32 redrawStart = -1;
 
   // Get the start y position.
-  nsListBoxBodyFrame* body = static_cast<nsListBoxBodyFrame*>(aBox);
+  nsListBoxBodyFrame* body = NS_STATIC_CAST(nsListBoxBodyFrame*, aBox);
   if (!body) {
     NS_ERROR("Frame encountered that isn't a listboxbody!\n");
     return NS_ERROR_FAILURE;
@@ -205,7 +205,7 @@ nsListBoxLayout::LayoutInternal(nsIBox* aBox, nsBoxLayoutState& aState)
     // relayout if we must or we are dirty or some of our children are dirty
     //   or the client area is wider than us
     // XXXldb There should probably be a resize check here too!
-    if (NS_SUBTREE_DIRTY(box) || childRect.width < clientRect.width) {
+    if ((box->GetStateBits() & (NS_FRAME_IS_DIRTY | NS_FRAME_HAS_DIRTY_CHILDREN)) || childRect.width < clientRect.width) {
       childRect.x = 0;
       childRect.y = yOffset;
       childRect.width = clientRect.width;

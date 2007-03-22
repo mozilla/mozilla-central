@@ -122,8 +122,7 @@ AC_DEFUN([MOZ_CHECK_PTHREADS],
 [
 AC_MSG_CHECKING([for pthread_create in -l$1])
 echo "
-    #include <pthread.h>
-    #include <stdlib.h>
+    #include <pthread.h> 
     void *foo(void *v) { int a = 1;  } 
     int main() { 
         pthread_t t;

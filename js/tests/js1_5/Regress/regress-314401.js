@@ -34,26 +34,17 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-314401.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 314401;
+var bug = 314401;
 var summary = 'setTimeout(eval,0,"",null)|setTimeout(Script,0,"",null) should not crash';
 var actual = 'No Crash';
 var expect = 'No Crash';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
-
-if (typeof setTimeout == 'undefined')
+  
+if (typeof setTimeout != 'undefined')
 {
-  reportCompare(expect, actual, 'Test Skipped.');
-}
-else
-{
-  gDelayTestDriverEnd = true;
-  window.onerror = null;
-
   try
   {
     setTimeout(eval, 0, '', null);
@@ -62,22 +53,24 @@ else
   {
     printStatus(ex+'');
   }
+}
+reportCompare(expect, actual, 'setTimeout(eval, 0, "", null)');
 
-  reportCompare(expect, actual, 'setTimeout(eval, 0, "", null)');
-
-  if (typeof Script != 'undefined')
+if (typeof setTimeout != 'undefined' && typeof Script != 'undefined')
+{
+  try
   {
-    try
-    {
-      setTimeout(Script, 0, '', null);
-    }
-    catch(ex)
-    {
-      printStatus(ex+'');
-    }
-    reportCompare(expect, actual, 'setTimeout(Script, 0, "", null)');
+    setTimeout(Script, 0, '', null);
   }
+  catch(ex)
+  {
+    printStatus(ex+'');
+  }
+}
+reportCompare(expect, actual, 'setTimeout(Script, 0, "", null)');
 
+if (typeof setInterval != 'undefined')
+{
   try
   {
     setInterval(eval, 0, '', null);
@@ -86,19 +79,18 @@ else
   {
     printStatus(ex+'');
   }
-  reportCompare(expect, actual, 'setInterval(eval, 0, "", null)');
-
-  if (typeof Script != 'undefined')
-  {
-    try
-    {
-      setInterval(Script, 0, '', null);
-    }
-    catch(ex)
-    {
-      printStatus(ex+'');
-    } 
-    reportCompare(expect, actual, 'setInterval(Script, 0, "", null)');
-  }
-  setTimeout('gDelayTestDriverEnd = false; jsTestDriverEnd();', 0);
 }
+reportCompare(expect, actual, 'setInterval(eval, 0, "", null)');
+
+if (typeof setInterval != 'undefined' && typeof Script != 'undefined')
+{
+  try
+  {
+    setInterval(Script, 0, '', null);
+  }
+  catch(ex)
+  {
+    printStatus(ex+'');
+  }  
+}
+reportCompare(expect, actual, 'setInterval(Script, 0, "", null)');

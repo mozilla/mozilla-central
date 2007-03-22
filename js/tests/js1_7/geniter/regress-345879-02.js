@@ -34,10 +34,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-345879-02.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 345879;
+var bug = 345879;
 var summary = 'Crash when calling a function from a generator with less arguments than its arity ';
 var actual = 'No Crash';
 var expect = 'No Crash';
@@ -50,7 +48,7 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
 
   function gen() {
@@ -60,7 +58,7 @@ function test()
   f = gen();
   f.next();
   f.send(Function());
- 
+  
   reportCompare(expect, actual, summary);
 
   exitFunc ('test');

@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '15.2.3.1-4.js';
-
 /**
    File Name:          15.2.3.1-4.js
    ECMA Section:       15.2.3.1 Object.prototype
@@ -62,7 +60,7 @@ var TITLE   = "Object.prototype";
 
 writeHeaderToLog( SECTION + " "+ TITLE);
 
-new TestCase( SECTION, 
+new TestCase( SECTION,  
 	      "delete( Object.prototype ); Object.prototype",
 	      Object.prototype,
 	      eval("delete(Object.prototype); Object.prototype") );

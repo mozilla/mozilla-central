@@ -60,16 +60,6 @@
 // and we load localstore from somewhere else.
 #define NS_LOCALSTORE_UNSAFE_FILE "LStoreS"
 
-/**
- * A directory service key which provides the update directory.
- * At present this is supported only on Windows.
- * Windows: Documents and Settings\<User>\Local Settings\Application Data\
- *          <Vendor>\<Application>\<relative path to app dir from Program Files>
- * If appDir is not under the Program Files, directory service will fail.
- * Callers should fallback to appDir.
- */
-#define XRE_UPDATE_ROOT_DIR "UpdRootD"
-
 class nsACString;
 struct nsStaticModuleInfo;
 
@@ -80,7 +70,6 @@ class nsIToolkitProfileService;
 class nsILocalFile;
 class nsIProfileLock;
 class nsIProfileUnlocker;
-class nsIFactory;
 
 extern nsXREDirProvider* gDirServiceProvider;
 
@@ -103,9 +92,6 @@ nsresult NS_CreateNativeAppSupport(nsINativeAppSupport* *aResult);
 
 NS_HIDDEN_(nsresult)
 NS_NewToolkitProfileService(nsIToolkitProfileService* *aResult);
-
-NS_HIDDEN_(nsresult)
-NS_NewToolkitProfileFactory(nsIFactory* *aResult);
 
 /**
  * Try to acquire exclusive access to the specified profile directory.
@@ -133,7 +119,7 @@ WriteConsoleLog();
 
 #ifdef XP_WIN
 BOOL
-WinLaunchChild(const PRUnichar *exePath, int argc, char **argv, int needElevation);
+WinLaunchChild(const char *exePath, int argc, char **argv, int needElevation);
 #endif
 
 #define NS_NATIVEAPPSUPPORT_CONTRACTID "@mozilla.org/toolkit/native-app-support;1"

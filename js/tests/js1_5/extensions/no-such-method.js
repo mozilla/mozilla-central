@@ -35,21 +35,19 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'no-such-method.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 196097;
+var bug = 196097;
 var summary = '__noSuchMethod__ handler';
 var actual = '';
 var expect = '';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
- 
+  
 var o = {
-  __noSuchMethod__: function (id, args)
+  __noSuchMethod__: function (id, args) 
   {
-    return(id + '('+args.join(',')+')');
+    return(id + '('+args.join(',')+')'); 
   }
 };
 

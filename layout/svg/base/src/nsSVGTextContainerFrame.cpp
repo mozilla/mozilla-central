@@ -52,7 +52,7 @@ NS_INTERFACE_MAP_BEGIN(nsSVGTextContainerFrame)
 NS_INTERFACE_MAP_END_INHERITING(nsSVGDisplayContainerFrame)
 
 void
-nsSVGTextContainerFrame::NotifyGlyphMetricsChange()
+nsSVGTextContainerFrame::UpdateGraphic()
 {
   nsSVGTextFrame *textFrame = GetTextFrame();
   if (textFrame)
@@ -62,8 +62,8 @@ nsSVGTextContainerFrame::NotifyGlyphMetricsChange()
 NS_IMETHODIMP_(already_AddRefed<nsIDOMSVGLengthList>)
 nsSVGTextContainerFrame::GetX()
 {
-  nsCOMPtr<nsIDOMSVGTextPositioningElement> tpElement =
-    do_QueryInterface(mContent);
+  nsIDOMSVGTextPositioningElement *tpElement = nsnull;
+  CallQueryInterface(mContent, &tpElement);
 
   if (!tpElement)
     return nsnull;
@@ -81,8 +81,8 @@ nsSVGTextContainerFrame::GetX()
 NS_IMETHODIMP_(already_AddRefed<nsIDOMSVGLengthList>)
 nsSVGTextContainerFrame::GetY()
 {
-  nsCOMPtr<nsIDOMSVGTextPositioningElement> tpElement =
-    do_QueryInterface(mContent);
+  nsIDOMSVGTextPositioningElement *tpElement = nsnull;
+  CallQueryInterface(mContent, &tpElement);
 
   if (!tpElement)
     return nsnull;
@@ -100,8 +100,8 @@ nsSVGTextContainerFrame::GetY()
 NS_IMETHODIMP_(already_AddRefed<nsIDOMSVGLengthList>)
 nsSVGTextContainerFrame::GetDx()
 {
-  nsCOMPtr<nsIDOMSVGTextPositioningElement> tpElement =
-    do_QueryInterface(mContent);
+  nsIDOMSVGTextPositioningElement *tpElement = nsnull;
+  CallQueryInterface(mContent, &tpElement);
 
   if (!tpElement)
     return nsnull;
@@ -116,8 +116,8 @@ nsSVGTextContainerFrame::GetDx()
 NS_IMETHODIMP_(already_AddRefed<nsIDOMSVGLengthList>)
 nsSVGTextContainerFrame::GetDy()
 {
-  nsCOMPtr<nsIDOMSVGTextPositioningElement> tpElement =
-    do_QueryInterface(mContent);
+  nsIDOMSVGTextPositioningElement *tpElement = nsnull;
+  CallQueryInterface(mContent, &tpElement);
 
   if (!tpElement)
     return nsnull;
@@ -131,19 +131,6 @@ nsSVGTextContainerFrame::GetDy()
 
 //----------------------------------------------------------------------
 // nsIFrame methods
-
-NS_IMETHODIMP
-nsSVGTextContainerFrame::InsertFrames(nsIAtom* aListName,
-                                      nsIFrame* aPrevFrame,
-                                      nsIFrame* aFrameList)
-{
-  nsresult rv = nsSVGDisplayContainerFrame::InsertFrames(aListName,
-                                                         aPrevFrame,
-                                                         aFrameList);
-
-  NotifyGlyphMetricsChange();
-  return rv;
-}
 
 NS_IMETHODIMP
 nsSVGTextContainerFrame::RemoveFrame(nsIAtom *aListName, nsIFrame *aOldFrame)
@@ -182,15 +169,14 @@ nsSVGTextContainerFrame::GetSubStringLength(PRUint32 charnum,
                                             PRUint32 nchars,
                                             float *_retval)
 {
-  PRUint32 charcount = GetNumberOfChars();
-  if (charcount <= charnum || nchars > charcount - charnum) {
-    *_retval = 0.0f;
-    return NS_ERROR_DOM_INDEX_SIZE_ERR;
-  }
-
   if (nchars == 0) {
     *_retval = 0.0f;
     return NS_OK;
+  }
+
+  if (charnum + nchars > GetNumberOfChars()) {
+    *_retval = 0.0f;
+    return NS_ERROR_DOM_INDEX_SIZE_ERR;
   }
 
   *_retval = GetSubStringLengthNoValidation(charnum, nchars);
@@ -474,7 +460,7 @@ nsSVGTextContainerFrame::GetTextFrame()
 {
   for (nsIFrame *frame = this; frame != nsnull; frame = frame->GetParent()) {
     if (frame->GetType() == nsGkAtoms::svgTextFrame) {
-      return static_cast<nsSVGTextFrame*>(frame);
+      return NS_STATIC_CAST(nsSVGTextFrame*, frame);
     }
   }
   return nsnull;

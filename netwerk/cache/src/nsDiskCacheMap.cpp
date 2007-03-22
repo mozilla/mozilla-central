@@ -49,8 +49,6 @@
 
 #include <string.h>
 
-#include "nsISerializable.h"
-#include "nsSerializationHelper.h"
 
 /******************************************************************************
  *  nsDiskCacheMap
@@ -73,13 +71,13 @@ nsDiskCacheMap::Open(nsILocalFile *  cacheDirectory)
     nsCOMPtr<nsIFile> file;
     rv = cacheDirectory->Clone(getter_AddRefs(file));
     nsCOMPtr<nsILocalFile> localFile(do_QueryInterface(file, &rv));
-    NS_ENSURE_SUCCESS(rv, rv);
+    if (NS_FAILED(rv))  return rv;
     rv = localFile->AppendNative(NS_LITERAL_CSTRING("_CACHE_MAP_"));
-    NS_ENSURE_SUCCESS(rv, rv);
+    if (NS_FAILED(rv))  return rv;
 
     // open the file - restricted to user, the data could be confidential
     rv = localFile->OpenNSPRFileDesc(PR_RDWR | PR_CREATE_FILE, 00600, &mMapFD);
-    NS_ENSURE_SUCCESS(rv, NS_ERROR_FILE_CORRUPTED);
+    if (NS_FAILED(rv))  return NS_ERROR_FILE_CORRUPTED;
 
     PRBool cacheFilesExist = CacheFilesExist();
     rv = NS_ERROR_FILE_CORRUPTED;  // presume the worst
@@ -193,8 +191,6 @@ nsDiskCacheMap::Close(PRBool flush)
         mMapFD = nsnull;
     }
     PR_FREEIF(mRecordArray);
-    PR_FREEIF(mBuffer);
-    mBufferSize = 0;
     return rv;
 }
 
@@ -607,20 +603,20 @@ nsDiskCacheMap::OpenBlockFiles()
 {
     // create nsILocalFile for block file
     nsCOMPtr<nsILocalFile> blockFile;
-    nsresult rv = NS_OK;
+    nsresult rv;
     
     for (int i = 0; i < 3; ++i) {
         rv = GetBlockFileForIndex(i, getter_AddRefs(blockFile));
-        if (NS_FAILED(rv)) break;
+        if (NS_FAILED(rv))  goto error_exit;
     
         PRUint32 blockSize = GetBlockSizeForIndex(i+1); // +1 to match file selectors 1,2,3
         rv = mBlockFile[i].Open(blockFile, blockSize);
-        if (NS_FAILED(rv)) break;
+        if (NS_FAILED(rv)) goto error_exit;
     }
-    // close all files in case of any error
-    if (NS_FAILED(rv)) 
-        (void)CloseBlockFiles(PR_FALSE); // we already have an error to report
+    return NS_OK;
 
+error_exit:
+    (void)CloseBlockFiles(PR_FALSE); // we already have an error to report
     return rv;
 }
 
@@ -656,44 +652,49 @@ nsDiskCacheMap::CacheFilesExist()
 }
 
 
-nsDiskCacheEntry *
-nsDiskCacheMap::ReadDiskCacheEntry(nsDiskCacheRecord * record)
+nsresult
+nsDiskCacheMap::ReadDiskCacheEntry(nsDiskCacheRecord * record, nsDiskCacheEntry ** result)
 {
     CACHE_LOG_DEBUG(("CACHE: ReadDiskCacheEntry [%x]\n", record->HashNumber()));
 
     nsresult            rv         = NS_ERROR_UNEXPECTED;
     nsDiskCacheEntry *  diskEntry  = nsnull;
     PRUint32            metaFile   = record->MetaFile();
+    PRFileDesc *        fd         = nsnull;
     PRInt32             bytesRead  = 0;
+    *result = nsnull;
     
-    if (!record->MetaLocationInitialized())  return nsnull;
+    if (!record->MetaLocationInitialized())  return NS_ERROR_NOT_AVAILABLE;
     
     if (metaFile == 0) {  // entry/metadata stored in separate file
         // open and read the file
         nsCOMPtr<nsILocalFile> file;
         rv = GetLocalFileForDiskCacheRecord(record, nsDiskCache::kMetaData, getter_AddRefs(file));
-        NS_ENSURE_SUCCESS(rv, nsnull);
+        if (NS_FAILED(rv))  return rv;
 
         PRFileDesc * fd = nsnull;
         // open the file - restricted to user, the data could be confidential
         rv = file->OpenNSPRFileDesc(PR_RDONLY, 00600, &fd);
-        NS_ENSURE_SUCCESS(rv, nsnull);
+        if (NS_FAILED(rv))  return rv;
         
         PRInt32 fileSize = PR_Available(fd);
         if (fileSize < 0) {
             // an error occurred. We could call PR_GetError(), but how would that help?
             rv = NS_ERROR_UNEXPECTED;
-        } else {
-            rv = EnsureBuffer(fileSize);
-            if (NS_SUCCEEDED(rv)) {
-                bytesRead = PR_Read(fd, mBuffer, fileSize);
-                if (bytesRead < fileSize) {
-                    rv = NS_ERROR_UNEXPECTED;
-                }
-            }
+            goto exit;
         }
-        PR_Close(fd);
-        NS_ENSURE_SUCCESS(rv, nsnull);
+
+        diskEntry = (nsDiskCacheEntry *) new char[fileSize];
+        if (!diskEntry) {
+            rv = NS_ERROR_OUT_OF_MEMORY;
+            goto exit;
+        }
+        
+        bytesRead = PR_Read(fd, diskEntry, fileSize);
+        if (bytesRead < fileSize) {
+            rv = NS_ERROR_UNEXPECTED;
+            goto exit;
+        }
 
     } else if (metaFile < 4) {  // XXX magic number: use constant
         // entry/metadata stored in cache block file
@@ -701,77 +702,32 @@ nsDiskCacheMap::ReadDiskCacheEntry(nsDiskCacheRecord * record)
         // allocate buffer
         PRUint32 blockCount = record->MetaBlockCount();
         bytesRead = blockCount * GetBlockSizeForIndex(metaFile);
-
-        rv = EnsureBuffer(bytesRead);
-        NS_ENSURE_SUCCESS(rv, nsnull);
+        diskEntry = (nsDiskCacheEntry *) new char[bytesRead];
         
         // read diskEntry, note when the blocks are at the end of file, 
         // bytesRead may be less than blockSize*blockCount.
         // But the bytesRead should at least agree with the real disk entry size.
-        rv = mBlockFile[metaFile - 1].ReadBlocks(mBuffer,
+        rv = mBlockFile[metaFile - 1].ReadBlocks((char *)diskEntry,
                                                  record->MetaStartBlock(),
                                                  blockCount, 
                                                  &bytesRead);
-        NS_ENSURE_SUCCESS(rv, nsnull);
+        if (NS_FAILED(rv))  goto exit;
     }
-    diskEntry = (nsDiskCacheEntry *)mBuffer;
+    
     diskEntry->Unswap();    // disk to memory
     // Check if calculated size agrees with bytesRead
-    if (bytesRead < 0 || (PRUint32)bytesRead < diskEntry->Size())
-        return nsnull;
-
-    // Return the buffer containing the diskEntry structure
-    return diskEntry;
-}
-
-
-/**
- *  CreateDiskCacheEntry(nsCacheEntry * entry)
- *
- *  Prepare an nsCacheEntry for writing to disk
- */
-nsDiskCacheEntry *
-nsDiskCacheMap::CreateDiskCacheEntry(nsDiskCacheBinding *  binding,
-                                     PRUint32 * aSize)
-{
-    nsCacheEntry * entry = binding->mCacheEntry;
-    if (!entry)  return nsnull;
-    
-    // Store security info, if it is serializable
-    nsCOMPtr<nsISerializable> serializable =
-        do_QueryInterface(entry->SecurityInfo());
-    if (serializable) {
-        nsCString info;
-        NS_SerializeToString(serializable, info);
-        entry->SetMetaDataElement("security-info", info.get());
+    if (bytesRead < 0 || (PRUint32)bytesRead < diskEntry->Size()) {
+        rv = NS_ERROR_UNEXPECTED;
+    } else {
+        // pass ownership to caller
+        *result = diskEntry;
+        diskEntry = nsnull;
     }
-
-    PRUint32  keySize  = entry->Key()->Length() + 1;
-    PRUint32  metaSize = entry->MetaDataSize();
-    PRUint32  size     = sizeof(nsDiskCacheEntry) + keySize + metaSize;
-    
-    if (aSize) *aSize = size;
-    
-    nsresult rv = EnsureBuffer(size);
-    if (NS_FAILED(rv)) return nsnull;
-
-    nsDiskCacheEntry *diskEntry = (nsDiskCacheEntry *)mBuffer;
-    diskEntry->mHeaderVersion   = nsDiskCache::kCurrentVersion;
-    diskEntry->mMetaLocation    = binding->mRecord.MetaLocation();
-    diskEntry->mFetchCount      = entry->FetchCount();
-    diskEntry->mLastFetched     = entry->LastFetched();
-    diskEntry->mLastModified    = entry->LastModified();
-    diskEntry->mExpirationTime  = entry->ExpirationTime();
-    diskEntry->mDataSize        = entry->DataSize();
-    diskEntry->mKeySize         = keySize;
-    diskEntry->mMetaDataSize    = metaSize;
-    
-    memcpy(diskEntry->Key(), entry->Key()->get(), keySize);
-    
-    rv = entry->FlattenMetaData(diskEntry->MetaData(), metaSize);
-    if (NS_FAILED(rv)) return nsnull;
-    
-    return diskEntry;
+exit:
+    // XXX auto ptr would be nice
+    if (fd) (void) PR_Close(fd);
+    delete [] (char *)diskEntry;
+    return rv;
 }
 
 
@@ -801,7 +757,7 @@ nsDiskCacheMap::WriteDiskCacheEntry(nsDiskCacheBinding *  binding)
                          "generations out of sync");
         } else {
             rv = DeleteStorage(&binding->mRecord, nsDiskCache::kMetaData);
-            NS_ENSURE_SUCCESS(rv, rv);
+            if (NS_FAILED(rv))  goto exit;
         }
     }
 
@@ -816,18 +772,18 @@ nsDiskCacheMap::WriteDiskCacheEntry(nsDiskCacheBinding *  binding)
         binding->mRecord.SetMetaFileGeneration(binding->mGeneration);
         binding->mRecord.SetMetaFileSize(metaFileSizeK);
         rv = UpdateRecord(&binding->mRecord);
-        NS_ENSURE_SUCCESS(rv, rv);
+        if (NS_FAILED(rv))  goto exit;
 
         rv = GetLocalFileForDiskCacheRecord(&binding->mRecord,
                                             nsDiskCache::kMetaData,
                                             getter_AddRefs(localFile));
-        NS_ENSURE_SUCCESS(rv, rv);
+        if (NS_FAILED(rv))  goto exit;
         
         // open the file
         PRFileDesc * fd;
         // open the file - restricted to user, the data could be confidential
         rv = localFile->OpenNSPRFileDesc(PR_RDWR | PR_TRUNCATE | PR_CREATE_FILE, 00600, &fd);
-        NS_ENSURE_SUCCESS(rv, rv);
+        if (NS_FAILED(rv))  goto exit;  // unable to open or create file
 
         // write the file
         diskEntry->Swap();
@@ -835,7 +791,8 @@ nsDiskCacheMap::WriteDiskCacheEntry(nsDiskCacheBinding *  binding)
         
         PRStatus err = PR_Close(fd);
         if ((bytesWritten != (PRInt32)size) || (err != PR_SUCCESS)) {
-            return NS_ERROR_UNEXPECTED;
+            rv = NS_ERROR_UNEXPECTED;
+            goto exit;
         }
         // XXX handle metaFileSizeK == USHRT_MAX
         IncrementTotalSize(metaFileSizeK);
@@ -848,17 +805,19 @@ nsDiskCacheMap::WriteDiskCacheEntry(nsDiskCacheBinding *  binding)
         diskEntry->Swap();
         PRInt32 startBlock;
         rv = mBlockFile[fileIndex - 1].WriteBlocks(diskEntry, size, blocks, &startBlock);
-        NS_ENSURE_SUCCESS(rv, rv);
+        if (NS_FAILED(rv))  goto exit;
         
         // update binding and cache map record
         binding->mRecord.SetMetaBlocks(fileIndex, startBlock, blocks);
         rv = UpdateRecord(&binding->mRecord);
-        NS_ENSURE_SUCCESS(rv, rv);
+        if (NS_FAILED(rv))  goto exit;
         // XXX we should probably write out bucket ourselves
         
         IncrementTotalSize(blocks, blockSize);
     }
 
+exit:
+    delete [] (char *)diskEntry;
     return rv;
 }
 
@@ -1030,17 +989,3 @@ nsDiskCacheMap::CalculateFileIndex(PRUint32 size)
     return 0;  
 }
 
-nsresult
-nsDiskCacheMap::EnsureBuffer(PRUint32 bufSize)
-{
-    if (mBufferSize < bufSize) {
-        char * buf = (char *)realloc(mBuffer, bufSize);
-        if (!buf) {
-            mBufferSize = 0;
-            return NS_ERROR_OUT_OF_MEMORY;
-        }
-        mBuffer = buf;
-        mBufferSize = bufSize;
-    }
-    return NS_OK;
-}        

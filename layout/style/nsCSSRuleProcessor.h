@@ -71,8 +71,6 @@ public:
 public:
   nsresult ClearRuleCascades();
 
-  static void Shutdown();
-
   // nsIStyleRuleProcessor
   NS_IMETHOD RulesMatching(ElementRuleProcessorData* aData);
 

@@ -48,6 +48,9 @@ GRE_MODULE	= 1
 
 EXPORTS		= \
 		widgetCore.h \
+		nsIMenuBar.h \
+		nsIMenu.h \
+		nsIMenuItem.h \
 		nsStringUtil.h \
 		nsIWidget.h \
 		nsIKBStateControl.h \
@@ -55,16 +58,18 @@ EXPORTS		= \
 		nsEvent.h \
 		nsIMouseListener.h \
 		nsIEventListener.h \
+		nsIMenuListener.h \
 		nsWidgetsCID.h \
 		nsILookAndFeel.h \
 		nsIPluginWidget.h \
 		nsINativeKeyBindings.h \
 		nsIDeviceContextSpec.h \
-		nsIMenuRollup.h \
 		$(NULL)
 
-ifeq ($(MOZ_WIDGET_TOOLKIT),cocoa)
-EXPORTS		+= nsIMenuBar.h
+ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+EXPORTS		+= \
+		nsIDragSessionMac.h \
+		nsIPrintingContext.h
 endif
 
 ifeq ($(MOZ_WIDGET_TOOLKIT),os2)
@@ -75,11 +80,12 @@ ifeq ($(MOZ_WIDGET_TOOLKIT),beos)
 EXPORTS		+= nsIDragSessionBeOS.h
 endif
 
-ifneq (,$(filter gtk2,$(MOZ_WIDGET_TOOLKIT)))
-EXPORTS		+= \
-		nsIDragSessionGTK.h \
-		nsIPrintDialogService.h \
-		$(NULL)
+ifeq ($(MOZ_WIDGET_TOOLKIT),xlib)
+EXPORTS		+= nsIDragSessionXlib.h
+endif
+
+ifneq (,$(filter gtk gtk2,$(MOZ_WIDGET_TOOLKIT)))
+EXPORTS		+= nsIDragSessionGTK.h
 endif
 
 XPIDLSRCS	= \
@@ -97,9 +103,11 @@ XPIDLSRCS	= \
 		nsIClipboardHelper.idl \
 		nsIClipboardOwner.idl \
 		nsIRollupListener.idl \
+		nsIMenuRollup.idl \
 		nsIBaseWindow.idl \
 		nsIBidiKeyboard.idl \
 		nsIFullScreen.idl \
+		nsINativeScrollbar.idl \
 		nsIScreen.idl \
 		nsIScreenManager.idl \
 		nsIPrintSession.idl \
@@ -113,13 +121,10 @@ ifeq ($(MOZ_WIDGET_TOOLKIT),windows)
 XPIDLSRCS	+= nsIPrintSettingsWin.idl
 endif
 
-ifeq ($(MOZ_WIDGET_TOOLKIT),cocoa)
-XPIDLSRCS	+= nsIPrintSettingsX.idl \
+ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+XPIDLSRCS	+= nsIEventSink.idl \
+		nsIPrintSettingsX.idl \
 		nsIPrintSessionX.idl
-endif
-
-ifeq ($(MOZ_WIDGET_TOOLKIT),os2)
-XPIDLSRCS	+= nsIRwsService.idl
 endif
 
 EXPORTS		:= $(addprefix $(srcdir)/, $(EXPORTS))

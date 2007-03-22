@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -34,9 +33,8 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK ***** */
-
-/*
+ * ***** END LICENSE BLOCK *****
+ *
  *
  * Date:    28 Feb 2002
  * SUMMARY: Testing that Error.stack distinguishes between:
@@ -59,9 +57,8 @@
  * ECMA extension, see http://bugzilla.mozilla.org/show_bug.cgi?id=123177
  */
 //-----------------------------------------------------------------------------
-var gTestfile = 'errstack-001.js';
 var UBound = 0;
-var BUGNUMBER = '(none)';
+var bug = '(none)';
 var summary = 'Testing Error.stack';
 var status = '';
 var statusitems = [];
@@ -103,59 +100,59 @@ function D(x,z)
 
 myErr = A(44,13);
 stackFrames = getStackFrames(myErr);
-status = inSection(1);
-actual = stackFrames[0].substring(0,1);
-expect = '@';
-addThis();
+  status = inSection(1);
+  actual = stackFrames[0].substring(0,1);
+  expect = '@';
+  addThis();
 
-status = inSection(2);
-actual = stackFrames[1].substring(0,9);
-expect = 'A(44,13)@';
-addThis();
+  status = inSection(2);
+  actual = stackFrames[1].substring(0,9);
+  expect = 'A(44,13)@';
+  addThis();
 
-status = inSection(3);
-actual = stackFrames[2].substring(0,9);
-expect = 'B(45,14)@';
-addThis();
+  status = inSection(3);
+  actual = stackFrames[2].substring(0,9);
+  expect = 'B(45,14)@';
+  addThis();
 
-status = inSection(4);
-actual = stackFrames[3].substring(0,9);
-expect = 'C(46,15)@';
-addThis();
+  status = inSection(4);
+  actual = stackFrames[3].substring(0,9);
+  expect = 'C(46,15)@';
+  addThis();
 
-status = inSection(5);
-actual = stackFrames[4].substring(0,9);
-expect = 'D(47,16)@';
-addThis();
+  status = inSection(5);
+  actual = stackFrames[4].substring(0,9);
+  expect = 'D(47,16)@';
+  addThis();
 
 
 
 myErr = A('44:foo','13:bar');
 stackFrames = getStackFrames(myErr);
-status = inSection(6);
-actual = stackFrames[0].substring(0,1);
-expect = '@';
-addThis();
+  status = inSection(6);
+  actual = stackFrames[0].substring(0,1);
+  expect = '@';
+  addThis();
 
-status = inSection(7);
-actual = stackFrames[1].substring(0,21);
-expect = 'A("44:foo","13:bar")@';
-addThis();
+  status = inSection(7);
+  actual = stackFrames[1].substring(0,21);
+  expect = 'A("44:foo","13:bar")@';
+  addThis();
 
-status = inSection(8);
-actual = stackFrames[2].substring(0,23);
-expect = 'B("44:foo1","13:bar1")@';
-addThis();
+  status = inSection(8);
+  actual = stackFrames[2].substring(0,23);
+  expect = 'B("44:foo1","13:bar1")@';
+  addThis();
 
-status = inSection(9);
-actual = stackFrames[3].substring(0,25);
-expect = 'C("44:foo11","13:bar11")@';
-addThis();
+  status = inSection(9);
+  actual = stackFrames[3].substring(0,25);
+  expect = 'C("44:foo11","13:bar11")@';
+  addThis();
 
-status = inSection(10);
-actual = stackFrames[4].substring(0,27);
-expect = 'D("44:foo111","13:bar111")@';;
-addThis();
+  status = inSection(10);
+  actual = stackFrames[4].substring(0,27);
+  expect = 'D("44:foo111","13:bar111")@';;
+  addThis();
 
 
 
@@ -164,20 +161,20 @@ addThis();
  */
 myErr = function() { return A(44,13); } ();
 stackFrames = getStackFrames(myErr);
-status = inSection(11);
-actual = stackFrames[0].substring(0,1);
-expect = '@';
-addThis();
+  status = inSection(11);
+  actual = stackFrames[0].substring(0,1);
+  expect = '@';
+  addThis();
 
-status = inSection(12);
-actual = stackFrames[1].substring(0,3);
-expect = '()@';
-addThis();
+  status = inSection(12);
+  actual = stackFrames[1].substring(0,3);
+  expect = '()@';
+  addThis();
 
-status = inSection(13);
-actual = stackFrames[2].substring(0,9);
-expect = 'A(44,13)@';
-addThis();
+  status = inSection(13);
+  actual = stackFrames[2].substring(0,9);
+  expect = 'A(44,13)@';
+  addThis();
 
 // etc. for the rest of the frames as above
 
@@ -189,20 +186,20 @@ addThis();
 var f = Function('return A(44,13);');
 myErr = f();
 stackFrames = getStackFrames(myErr);
-status = inSection(14);
-actual = stackFrames[0].substring(0,1);
-expect = '@';
-addThis();
+  status = inSection(14);
+  actual = stackFrames[0].substring(0,1);
+  expect = '@';
+  addThis();
 
-status = inSection(15);
-actual = stackFrames[1].substring(0,12);
-expect = 'anonymous()@';
-addThis();
+  status = inSection(15);
+  actual = stackFrames[1].substring(0,12);
+  expect = 'anonymous()@';
+  addThis();
 
-status = inSection(16);
-actual = stackFrames[2].substring(0,9);
-expect = 'A(44,13)@';
-addThis();
+  status = inSection(16);
+  actual = stackFrames[2].substring(0,9);
+  expect = 'A(44,13)@';
+  addThis();
 
 // etc. for the rest of the frames as above
 
@@ -214,10 +211,10 @@ addThis();
 var message = 'Hi there!'; var fileName = 'file name'; var lineNumber = 0;
 myErr = Error(message, fileName, lineNumber);
 stackFrames = getStackFrames(myErr);
-status = inSection(17);
-actual = stackFrames[0].substring(0,1);
-expect = '@';
-addThis();
+  status = inSection(17);
+  actual = stackFrames[0].substring(0,1);
+  expect = '@';
+  addThis();
 
 
 /*
@@ -225,10 +222,10 @@ addThis();
  */
 myErr = new Error(message, fileName, lineNumber);
 stackFrames = getStackFrames(myErr);
-status = inSection(18);
-actual = stackFrames[0].substring(0,1);
-expect = '@';
-addThis();
+  status = inSection(18);
+  actual = stackFrames[0].substring(0,1);
+  expect = '@';
+  addThis();
 
 
 
@@ -267,7 +264,7 @@ function addThis()
 function test()
 {
   enterFunc('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber(bug);
   printStatus(summary);
 
   for (var i=0; i<UBound; i++)

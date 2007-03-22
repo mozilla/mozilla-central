@@ -16,6 +16,7 @@ toolkit.jar:
         content/global/charsetOverlay.js            (resources/content/charsetOverlay.js) 
         content/global/selectDialog.js              (resources/content/selectDialog.js) 
         content/global/selectDialog.xul             (resources/content/selectDialog.xul) 
+        content/global/nsWidgetStateManager.js      (resources/content/nsWidgetStateManager.js) 
         content/global/nsTreeController.js          (resources/content/nsTreeController.js) 
         content/global/nsTreeSorting.js             (resources/content/nsTreeSorting.js) 
         content/global/nsClipboard.js               (resources/content/nsClipboard.js) 
@@ -51,9 +52,10 @@ toolkit.jar:
         content/global/bindings/numberbox.xml       (/toolkit/content/widgets/numberbox.xml)
         content/global/bindings/popup.xml           (resources/content/bindings/popup.xml)
         content/global/bindings/progressmeter.xml   (resources/content/bindings/progressmeter.xml)
-        content/global/bindings/radio.xml           (/toolkit/content/widgets/radio.xml)
+        content/global/bindings/radio.xml           (resources/content/bindings/radio.xml)
         content/global/bindings/scrollbar.xml       (resources/content/bindings/scrollbar.xml)
-        content/global/bindings/scale.xml           (/toolkit/content/widgets/scale.xml)
+        content/global/bindings/nativescrollbar.xml (resources/content/bindings/nativescrollbar.xml)
+        content/global/bindings/scale.xml           (resources/content/bindings/scale.xml)
         content/global/bindings/scrollbox.xml       (resources/content/bindings/scrollbox.xml)
         content/global/bindings/splitter.xml        (resources/content/bindings/splitter.xml)
         content/global/bindings/spinbuttons.xml     (/toolkit/content/widgets/spinbuttons.xml)
@@ -79,7 +81,7 @@ toolkit.jar:
         content/global/aboutAbout.html              (resources/content/aboutAbout.html) 
         content/global/hiddenWindow.xul             (resources/content/hiddenWindow.xul) 
         content/global/fullScreen.js                (resources/content/fullScreen.js)
-        content/global/nsWidgetStateManager.js      (resources/content/nsWidgetStateManager.js)
+        content/global/build.dtd                    (build.dtd)
 #endif
 
 en-US.jar:

@@ -62,7 +62,7 @@
         onwizardnext="gUpdates.onWizardNext();"        
         onload="gUpdates.onLoad();">
 
-  <script type="application/javascript" src="chrome://mozapps/content/update/updates.js"/>
+  <script type="application/x-javascript" src="chrome://mozapps/content/update/updates.js"/>
   
   <stringbundleset id="updateSet">
     <stringbundle id="brandStrings" src="chrome://branding/locale/brand.properties"/>
@@ -213,7 +213,7 @@
     <spacer flex="1"/>
     <label>&finishedBackground.more1;</label>
     <separator class="thin"/>
-    <label>&finishedBackground.textNotNow;</label>
+    <label>&finishedBackground.more2;</label>
   </wizardpage>
   
   <wizardpage id="installed" pageid="installed"

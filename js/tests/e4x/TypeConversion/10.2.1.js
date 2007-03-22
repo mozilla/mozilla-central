@@ -39,13 +39,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '10.2.1.js';
-
 START("10.2.1 - XML.toXMLString");
 
-var BUGNUMBER = 297025;
+var bug = 297025;
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 
 var n = 1;
 var actual;
@@ -131,7 +129,7 @@ var link;
 var xlinkNamespace;
 
 printStatus(inSection(n++));
-expect = '<link xlink:type="simple" xmlns:xlink="http://www.w3.org/1999/xlink"/>';
+expect = '<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple"/>';
 
 link = <link type="simple" />;
 xlinkNamespace = new Namespace('xlink', 'http://www.w3.org/1999/xlink');

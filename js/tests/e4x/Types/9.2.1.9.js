@@ -40,8 +40,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '9.2.1.9.js';
-
 START("9.2.1.9 XMLList [[Equals]]");
 
 // Empty list should equal undefined

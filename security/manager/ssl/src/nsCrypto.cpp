@@ -68,7 +68,6 @@
 #include "nsIFilePicker.h"
 #include "nsJSPrincipals.h"
 #include "nsIPrincipal.h"
-#include "nsIScriptSecurityManager.h"
 #include "nsXPIDLString.h"
 #include "nsIGenKeypairInfoDlg.h"
 #include "nsIDOMCryptoDialogs.h"
@@ -306,6 +305,132 @@ nsCrypto::GetEnableSmartCardEvents(PRBool *aEnable)
   return NS_OK;
 }
 
+//These next few functions are based on implementation in
+//the script security manager to get the principals from
+//a JSContext.  We need that to successfully run the 
+//callback parameter passed to crypto.generateCRMFRequest
+static nsresult
+cryptojs_GetScriptPrincipal(JSContext *cx, JSScript *script,
+                            nsIPrincipal **result)
+{
+  if (!script) {
+    *result = nsnull;
+    return NS_OK;
+  }
+  JSPrincipals *jsp = JS_GetScriptPrincipals(cx, script);
+  if (!jsp) {
+    return NS_ERROR_FAILURE;
+  }
+  nsJSPrincipals *nsJSPrin = NS_STATIC_CAST(nsJSPrincipals *, jsp);
+  *result = nsJSPrin->nsIPrincipalPtr;
+  if (!*result) {
+    return NS_ERROR_FAILURE;
+  }
+  NS_ADDREF(*result);
+  return NS_OK;
+}
+
+static nsresult
+cryptojs_GetObjectPrincipal(JSContext *aCx, JSObject *aObj,
+                            nsIPrincipal **result)
+{
+  JSObject *parent = aObj;
+  do
+  {
+    JSClass *jsClass = JS_GetClass(aCx, parent);
+    const uint32 privateNsISupports = JSCLASS_HAS_PRIVATE | 
+                                      JSCLASS_PRIVATE_IS_NSISUPPORTS;
+    if (jsClass && (jsClass->flags & (privateNsISupports)) == 
+                    privateNsISupports)
+    {
+      nsISupports *supports = (nsISupports *) JS_GetPrivate(aCx, parent);
+      nsCOMPtr<nsIScriptObjectPrincipal> objPrin = do_QueryInterface(supports);
+              
+      if (!objPrin)
+      {
+        /*
+         * If it's a wrapped native, check the underlying native
+         * instead.
+         */
+        nsCOMPtr<nsIXPConnectWrappedNative> xpcNative = 
+                                            do_QueryInterface(supports);
+
+        if (xpcNative) {
+          objPrin = do_QueryWrappedNative(xpcNative);
+        }
+      }
+
+      if (objPrin && ((*result = objPrin->GetPrincipal()))) {
+        NS_ADDREF(*result);
+        return NS_OK;
+      }
+    }
+    parent = JS_GetParent(aCx, parent);
+  } while (parent);
+
+  // Couldn't find a principal for this object.
+  return NS_ERROR_FAILURE;
+}
+
+static nsresult
+cryptojs_GetFunctionObjectPrincipal(JSContext *cx, JSObject *obj,
+                                    nsIPrincipal **result)
+{
+  JSFunction *fun = (JSFunction *) JS_GetPrivate(cx, obj);
+
+  JSScript *script = JS_GetFunctionScript(cx, fun);
+  if (script && JS_GetFunctionObject(fun) != obj)
+  {
+    // Scripted function has been cloned; get principals from obj's
+    // parent-linked scope chain.  We do not get object principals for a
+    // cloned *native* function, because the subject in that case is a
+    // script or function further down the stack who is calling us.
+    return cryptojs_GetObjectPrincipal(cx, obj, result);
+  }
+  return cryptojs_GetScriptPrincipal(cx, script, result);
+}
+
+static nsresult
+cryptojs_GetFramePrincipal(JSContext *cx, JSStackFrame *fp,
+                           nsIPrincipal **principal)
+{
+  JSObject *obj = JS_GetFrameFunctionObject(cx, fp);
+  if (!obj) {
+    JSScript *script = JS_GetFrameScript(cx, fp);
+    return cryptojs_GetScriptPrincipal(cx, script, principal);
+  }
+  return cryptojs_GetFunctionObjectPrincipal(cx, obj, principal);
+}
+
+already_AddRefed<nsIPrincipal>
+nsCrypto::GetScriptPrincipal(JSContext *cx)
+{
+  JSStackFrame *fp = nsnull;
+  nsIPrincipal *principal=nsnull;
+
+  for (fp = JS_FrameIterator(cx, &fp); fp; fp = JS_FrameIterator(cx, &fp)) {
+    cryptojs_GetFramePrincipal(cx, fp, &principal);
+    if (principal != nsnull) {
+      break;
+    }
+  }
+
+  if (principal)
+    return principal;
+
+  nsIScriptContext *scriptContext = GetScriptContextFromJSContext(cx);
+
+  if (scriptContext)
+  {
+    nsCOMPtr<nsIScriptObjectPrincipal> globalData =
+      do_QueryInterface(scriptContext->GetGlobalObject());
+    NS_ENSURE_TRUE(globalData, nsnull);
+    NS_IF_ADDREF(principal = globalData->GetPrincipal());
+  }
+
+  return principal;
+}
+
 //A quick function to let us know if the key we're trying to generate
 //can be escrowed.
 static PRBool
@@ -489,8 +614,8 @@ nsConvertToActualKeyGenParams(PRUint32 keyGenMech, char *params,
       return nsnull;
 
     PK11RSAGenParams *rsaParams;
-    rsaParams = static_cast<PK11RSAGenParams*>
-                           (nsMemory::Alloc(sizeof(PK11RSAGenParams)));
+    rsaParams = NS_STATIC_CAST(PK11RSAGenParams*,
+                               nsMemory::Alloc(sizeof(PK11RSAGenParams)));
                               
     if (rsaParams == nsnull) {
       return nsnull;
@@ -668,10 +793,10 @@ nsFreeKeyGenParams(CK_MECHANISM_TYPE keyGenMechanism, void *params)
     nsMemory::Free(params);
     break;
   case CKM_EC_KEY_PAIR_GEN:
-    SECITEM_FreeItem(reinterpret_cast<SECItem*>(params), PR_TRUE);
+    SECITEM_FreeItem(NS_REINTERPRET_CAST(SECItem*, params), PR_TRUE);
     break;
   case CKM_DSA_KEY_PAIR_GEN:
-    PK11_PQG_DestroyParams(static_cast<PQGParams*>(params));
+    PK11_PQG_DestroyParams(NS_STATIC_CAST(PQGParams*,params));
     break;
   }
 }
@@ -886,8 +1011,6 @@ cryptojs_ReadArgsAndGenerateKey(JSContext *cx,
     params = nsnull;
   } else {
     jsString = JS_ValueToString(cx,argv[1]);
-    NS_ENSURE_TRUE(jsString, NS_ERROR_OUT_OF_MEMORY);
-    argv[1] = STRING_TO_JSVAL(jsString);
     params   = JS_GetStringBytes(jsString);
   }
 
@@ -897,8 +1020,6 @@ cryptojs_ReadArgsAndGenerateKey(JSContext *cx,
     return NS_ERROR_FAILURE;
   }
   jsString = JS_ValueToString(cx, argv[2]);
-  NS_ENSURE_TRUE(jsString, NS_ERROR_OUT_OF_MEMORY);
-  argv[2] = STRING_TO_JSVAL(jsString);
   keyGenAlg = JS_GetStringBytes(jsString);
   keyGenType->keyGenType = cryptojs_interpret_key_gen_type(keyGenAlg);
   if (keyGenType->keyGenType == invalidKeyGen) {
@@ -1010,8 +1131,8 @@ nsSetDNForRequest(CRMFCertRequest *certReq, char *reqDN)
     return NS_ERROR_FAILURE;
   }
   SECStatus srv = CRMF_CertRequestSetTemplateField(certReq, crmfSubject,
-                                                   static_cast<void*>
-                                                              (subjectName));
+                                                   NS_STATIC_CAST(void*,
+                                                                  subjectName));
   CERT_DestroyName(subjectName);
   return (srv == SECSuccess) ? NS_OK : NS_ERROR_FAILURE;
 }
@@ -1790,7 +1911,7 @@ static nsISupports *
 GetISupportsFromContext(JSContext *cx)
 {
     if (JS_GetOptions(cx) & JSOPTION_PRIVATE_IS_NSISUPPORTS)
-        return static_cast<nsISupports *>(JS_GetContextPrivate(cx));
+        return NS_STATIC_CAST(nsISupports *, JS_GetContextPrivate(cx));
 
     return nsnull;
 }
@@ -1806,9 +1927,9 @@ nsCrypto::GenerateCRMFRequest(nsIDOMCRMFObject** aReturn)
   nsCOMPtr<nsIXPConnect> xpc(do_GetService(nsIXPConnect::GetCID(), &nrv));
   NS_ENSURE_SUCCESS(nrv, nrv);
 
-  nsAXPCNativeCallContext *ncc = nsnull;
+  nsCOMPtr<nsIXPCNativeCallContext> ncc;
 
-  nrv = xpc->GetCurrentNativeCallContext(&ncc);
+  nrv = xpc->GetCurrentNativeCallContext(getter_AddRefs(ncc));
   NS_ENSURE_SUCCESS(nrv, nrv);
 
   if (!ncc)
@@ -1820,18 +1941,15 @@ nsCrypto::GenerateCRMFRequest(nsIDOMCRMFObject** aReturn)
 
   jsval *argv = nsnull;
 
-  nrv = ncc->GetArgvPtr(&argv);
-  NS_ENSURE_SUCCESS(nrv, nrv);
+  ncc->GetArgvPtr(&argv);
 
   JSContext *cx;
 
-  nrv = ncc->GetJSContext(&cx);
-  NS_ENSURE_SUCCESS(nrv, nrv);
+  ncc->GetJSContext(&cx);
 
   JSObject* script_obj = nsnull;
   nsCOMPtr<nsIXPConnectJSObjectHolder> holder;
 
-  JSAutoRequest ar(cx);
 
   /*
    * Get all of the parameters.
@@ -1848,8 +1966,6 @@ nsCrypto::GenerateCRMFRequest(nsIDOMCRMFObject** aReturn)
   }
   
   JSString *jsString = JS_ValueToString(cx,argv[0]);
-  NS_ENSURE_TRUE(jsString, NS_ERROR_OUT_OF_MEMORY);
-  argv[0] = STRING_TO_JSVAL(jsString);
   
   char * reqDN = JS_GetStringBytes(jsString);
   char *regToken;
@@ -1857,9 +1973,6 @@ nsCrypto::GenerateCRMFRequest(nsIDOMCRMFObject** aReturn)
     regToken           = nsnull;
   } else {
     jsString = JS_ValueToString(cx, argv[1]);
-    NS_ENSURE_TRUE(jsString, NS_ERROR_OUT_OF_MEMORY);
-    argv[1] = STRING_TO_JSVAL(jsString);
-
     regToken = JS_GetStringBytes(jsString);
   }
   char *authenticator;
@@ -1867,9 +1980,6 @@ nsCrypto::GenerateCRMFRequest(nsIDOMCRMFObject** aReturn)
     authenticator           = nsnull;
   } else {
     jsString      = JS_ValueToString(cx, argv[2]);
-    NS_ENSURE_TRUE(jsString, NS_ERROR_OUT_OF_MEMORY);
-    argv[2] = STRING_TO_JSVAL(jsString);
-
     authenticator = JS_GetStringBytes(jsString);
   }
   char *eaCert;
@@ -1877,9 +1987,6 @@ nsCrypto::GenerateCRMFRequest(nsIDOMCRMFObject** aReturn)
     eaCert           = nsnull;
   } else {
     jsString     = JS_ValueToString(cx, argv[3]);
-    NS_ENSURE_TRUE(jsString, NS_ERROR_OUT_OF_MEMORY);
-    argv[3] = STRING_TO_JSVAL(jsString);
-
     eaCert       = JS_GetStringBytes(jsString);
   }
   if (JSVAL_IS_NULL(argv[4])) {
@@ -1888,14 +1995,11 @@ nsCrypto::GenerateCRMFRequest(nsIDOMCRMFObject** aReturn)
     return NS_ERROR_FAILURE;
   }
   jsString = JS_ValueToString(cx, argv[4]);
-  NS_ENSURE_TRUE(jsString, NS_ERROR_OUT_OF_MEMORY);
-  argv[4] = STRING_TO_JSVAL(jsString);
-
   char *jsCallback = JS_GetStringBytes(jsString);
 
 
   nrv = xpc->WrapNative(cx, ::JS_GetGlobalObject(cx),
-                        static_cast<nsIDOMCrypto *>(this),
+                        NS_STATIC_CAST(nsIDOMCrypto *, this),
                         NS_GET_IID(nsIDOMCrypto), getter_AddRefs(holder));
   NS_ENSURE_SUCCESS(nrv, nrv);
 
@@ -2011,14 +2115,9 @@ nsCrypto::GenerateCRMFRequest(nsIDOMCRMFObject** aReturn)
   //
 
 
-  nsCOMPtr<nsIScriptSecurityManager> secMan =
-    do_GetService(NS_SCRIPTSECURITYMANAGER_CONTRACTID);
-  NS_ENSURE_TRUE(secMan, NS_ERROR_UNEXPECTED);
-  
-  nsCOMPtr<nsIPrincipal> principals;
-  secMan->GetSubjectPrincipal(getter_AddRefs(principals));
-  NS_ENSURE_TRUE(principals, NS_ERROR_UNEXPECTED);
-  
+  nsCOMPtr<nsIPrincipal>principals;
+  principals = GetScriptPrincipal(cx);
+  NS_ASSERTION(principals, "Couldn't get the principals");
   nsCryptoRunArgs *args = new nsCryptoRunArgs();
   if (!args)
     return NS_ERROR_OUT_OF_MEMORY;
@@ -2166,12 +2265,7 @@ nsCryptoRunnable::nsCryptoRunnable(nsCryptoRunArgs *args)
 nsCryptoRunnable::~nsCryptoRunnable()
 {
   nsNSSShutDownPreventionLock locker;
-
-  {
-    JSAutoRequest ar(m_args->m_cx);
-    JS_RemoveRoot(m_args->m_cx, &m_args->m_scope);
-  }
-
+  JS_RemoveRoot(m_args->m_cx, &m_args->m_scope);
   NS_IF_RELEASE(m_args);
 }
 
@@ -2193,8 +2287,6 @@ nsCryptoRunnable::Run()
   if (!stack || NS_FAILED(stack->Push(cx))) {
     return NS_ERROR_FAILURE;
   }
-
-  JSAutoRequest ar(cx);
 
   jsval retval;
   if (JS_EvaluateScriptForPrincipals(cx, m_args->m_scope, principals,
@@ -2397,8 +2489,8 @@ nsCrypto::ImportUserCertificates(const nsAString& aNickname,
       CERTCertListNode *node;
       SECItem *derCerts;
 
-      derCerts = static_cast<SECItem*>
-                            (nsMemory::Alloc(sizeof(SECItem)*numCAs));
+      derCerts = NS_STATIC_CAST(SECItem*,
+                                nsMemory::Alloc(sizeof(SECItem)*numCAs));
       if (!derCerts) {
         rv = NS_ERROR_OUT_OF_MEMORY;
         goto loser;
@@ -2510,10 +2602,10 @@ nsCrypto::SignText(const nsAString& aStringToSign, const nsAString& aCaOption,
 
   aResult.Truncate();
 
-  nsAXPCNativeCallContext* ncc = nsnull;
+  nsCOMPtr<nsIXPCNativeCallContext> ncc;
   nsCOMPtr<nsIXPConnect> xpc(do_GetService(nsIXPConnect::GetCID()));
   if (xpc) {
-    xpc->GetCurrentNativeCallContext(&ncc);
+    xpc->GetCurrentNativeCallContext(getter_AddRefs(ncc));
   }
 
   if (!ncc) {
@@ -2571,14 +2663,9 @@ nsCrypto::SignText(const nsAString& aStringToSign, const nsAString& aCaOption,
     jsval *argv = nsnull;
     ncc->GetArgvPtr(&argv);
 
-    JSAutoRequest ar(cx);
-
     PRUint32 i;
     for (i = 2; i < argc; ++i) {
       JSString *caName = JS_ValueToString(cx, argv[i]);
-      NS_ENSURE_TRUE(caName, NS_ERROR_OUT_OF_MEMORY);
-      argv[i] = STRING_TO_JSVAL(caName);
-
       if (!caName) {
         aResult.Append(internalError);
 
@@ -2713,8 +2800,8 @@ nsCrypto::SignText(const nsAString& aStringToSign, const nsAString& aCaOption,
     // of the selected cert.
     PRInt32 selectedIndex = -1;
     rv = proxied_fsd->ConfirmSignText(uiContext, utf16Host, aStringToSign,
-                                      const_cast<const PRUnichar**>(certNicknameList.get()),
-                                      const_cast<const PRUnichar**>(certDetailsList),
+                                      NS_CONST_CAST(const PRUnichar**, certNicknameList.get()),
+                                      NS_CONST_CAST(const PRUnichar**, certDetailsList),
                                       certsToUse, &selectedIndex, password,
                                       &canceled);
     if (NS_FAILED(rv) || canceled) {
@@ -2740,7 +2827,7 @@ nsCrypto::SignText(const nsAString& aStringToSign, const nsAString& aCaOption,
 
     tryAgain =
       PK11_CheckUserPassword(signingCert->slot,
-                             const_cast<char *>(pwUtf8.get())) != SECSuccess;
+                             NS_CONST_CAST(char *, pwUtf8.get())) != SECSuccess;
     // XXX we should show an error dialog before retrying
   } while (tryAgain);
 
@@ -2815,7 +2902,7 @@ nsCrypto::SignText(const nsAString& aStringToSign, const nsAString& aCaOption,
   digest.data = hash;
 
   HASH_Begin(hc);
-  HASH_Update(hc, reinterpret_cast<const unsigned char*>(buffer.get()),
+  HASH_Update(hc, NS_REINTERPRET_CAST(const unsigned char*, buffer.get()),
               buffer.Length());
   HASH_End(hc, digest.data, &digest.len, SHA1_LENGTH);
   HASH_Destroy(hc);
@@ -2847,8 +2934,8 @@ nsCrypto::SignText(const nsAString& aStringToSign, const nsAString& aCaOption,
   }
 
   SECItem binary_item;
-  binary_item.data = reinterpret_cast<unsigned char*>
-                                     (const_cast<char*>(p7.get()));
+  binary_item.data = NS_REINTERPRET_CAST(unsigned char*,
+                                         NS_CONST_CAST(char*, p7.get()));
   binary_item.len = p7.Length();
 
   char *result = NSSBase64_EncodeItem(nsnull, nsnull, 0, &binary_item);

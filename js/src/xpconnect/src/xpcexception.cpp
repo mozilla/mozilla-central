@@ -42,7 +42,6 @@
 /* An implementaion of nsIException. */
 
 #include "xpcprivate.h"
-#include "nsNetError.h"
 
 /***************************************************************************/
 /* Quick and dirty mapping of well known result codes to strings. We only
@@ -122,6 +121,9 @@ nsXPCException::GetNSResultCount()
 NS_INTERFACE_MAP_BEGIN(nsXPCException)
   NS_INTERFACE_MAP_ENTRY(nsIException)
   NS_INTERFACE_MAP_ENTRY(nsIXPCException)
+#ifdef XPC_USE_SECURITY_CHECKED_COMPONENT
+  NS_INTERFACE_MAP_ENTRY(nsISecurityCheckedComponent)
+#endif
   NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIException)
   NS_IMPL_QUERY_CLASSINFO(nsXPCException)
 NS_INTERFACE_MAP_END_THREADSAFE
@@ -177,7 +179,7 @@ nsXPCException::Reset()
 
 /* readonly attribute string message; */
 NS_IMETHODIMP
-nsXPCException::GetMessageMoz(char * *aMessage)
+nsXPCException::GetMessage(char * *aMessage)
 {
     if(!mInitialized)
         return NS_ERROR_NOT_INITIALIZED;
@@ -479,6 +481,46 @@ nsXPCException::NewException(const char *aMessage,
     if(!e)
         return NS_ERROR_FAILURE;
 
-    *exceptn = static_cast<nsIXPCException*>(e);
+    *exceptn = NS_STATIC_CAST(nsIXPCException*, e);
     return NS_OK;
 }
+
+#ifdef XPC_USE_SECURITY_CHECKED_COMPONENT
+
+/* string canCreateWrapper (in nsIIDPtr iid); */
+NS_IMETHODIMP
+nsXPCException::CanCreateWrapper(const nsIID * iid, char **_retval)
+{
+    *_retval = xpc_CloneAllAccess();
+    return NS_OK;
+}
+
+/* string canCallMethod (in nsIIDPtr iid, in wstring methodName); */
+NS_IMETHODIMP
+nsXPCException::CanCallMethod(const nsIID * iid, const PRUnichar *methodName, char **_retval)
+{
+    static const char* allowed[] = { "toString", nsnull};
+
+    *_retval = xpc_CheckAccessList(methodName, allowed);
+    return NS_OK;
+}
+
+/* string canGetProperty (in nsIIDPtr iid, in wstring propertyName); */
+NS_IMETHODIMP
+nsXPCException::CanGetProperty(const nsIID * iid, const PRUnichar *propertyName, char **_retval)
+{
+    static const char* allowed[] = { "message", "result", "name", nsnull};
+
+    *_retval = xpc_CheckAccessList(propertyName, allowed);
+    return NS_OK;
+}
+
+/* string canSetProperty (in nsIIDPtr iid, in wstring propertyName); */
+NS_IMETHODIMP
+nsXPCException::CanSetProperty(const nsIID * iid, const PRUnichar *propertyName, char **_retval)
+{
+    // If you have to ask, then the answer is NO
+    *_retval = nsnull;
+    return NS_OK;
+}
+#endif

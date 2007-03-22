@@ -34,14 +34,12 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'builtin-Iterator-function.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER     = "(none)";
+var bug     = "(none)";
 var summary = "Iterator() test";
 var actual, expect;
 
-printBugNumber(BUGNUMBER);
+printBugNumber(bug);
 printStatus(summary);
 
 /**************

@@ -193,7 +193,7 @@ nsPrintSettingsWin& nsPrintSettingsWin::operator=(const nsPrintSettingsWin& rhs)
 nsresult 
 nsPrintSettingsWin::_Assign(nsIPrintSettings *aPS)
 {
-  nsPrintSettingsWin *psWin = static_cast<nsPrintSettingsWin*>(aPS);
+  nsPrintSettingsWin *psWin = NS_STATIC_CAST(nsPrintSettingsWin*, aPS);
   *this = *psWin;
   return NS_OK;
 }
@@ -243,6 +243,7 @@ Tester::Tester()
     ps->SetPaperSizeUnit(nsIPrintSettings::kPaperSizeMillimeters);
     ps->SetPrintReversed(PR_TRUE);
     ps->SetPrintInColor(PR_TRUE);
+    ps->SetPaperSize(5);
     ps->SetOrientation(nsIPrintSettings::kLandscapeOrientation);
     ps->SetPrintCommand(NS_ConvertUTF8toUTF16("Command").get());
     ps->SetNumCopies(2);

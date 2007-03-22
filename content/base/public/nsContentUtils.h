@@ -43,7 +43,6 @@
 #define nsContentUtils_h___
 
 #include "jspubtd.h"
-#include "jsnum.h"
 #include "nsAString.h"
 #include "nsIStatefulFrame.h"
 #include "nsIPref.h"
@@ -53,13 +52,8 @@
 #include "nsDOMClassInfoID.h"
 #include "nsIClassInfo.h"
 #include "nsIDOM3Node.h"
-#include "nsDataHashtable.h"
 #include "nsIScriptRuntime.h"
 #include "nsIScriptGlobalObject.h"
-#include "nsIDOMEvent.h"
-#include "nsTArray.h"
-
-struct nsNativeKeyEvent; // Don't include nsINativeKeyBindings.h here: it will force strange compilation error!
 
 class nsIDOMScriptObjectFactory;
 class nsIXPConnect;
@@ -92,14 +86,10 @@ class nsIWordBreaker;
 class nsIJSRuntimeService;
 class nsIEventListenerManager;
 class nsIScriptContext;
-class nsIRunnable;
 template<class E> class nsCOMArray;
 class nsIPref;
 class nsVoidArray;
 struct JSRuntime;
-class nsICaseConversion;
-class nsIWidget;
-class nsPIDOMWindow;
 #ifdef MOZ_XTF
 class nsIXTFService;
 #endif
@@ -108,31 +98,6 @@ class nsIBidiKeyboard;
 #endif
 
 extern const char kLoadAsData[];
-
-enum EventNameType {
-  EventNameType_None = 0x0000,
-  EventNameType_HTML = 0x0001,
-  EventNameType_XUL = 0x0002,
-  EventNameType_SVGGraphic = 0x0004, // svg graphic elements
-  EventNameType_SVGSVG = 0x0008, // the svg element
-
-  EventNameType_HTMLXUL = 0x0003,
-  EventNameType_All = 0xFFFF
-};
-
-struct EventNameMapping {
-  PRUint32  mId;
-  PRInt32 mType;
-};
-
-struct nsShortcutCandidate {
-  nsShortcutCandidate(PRUint32 aCharCode, PRBool aIgnoreShift) :
-    mCharCode(aCharCode), mIgnoreShift(aIgnoreShift)
-  {
-  }
-  PRUint32 mCharCode;
-  PRBool   mIgnoreShift;
-};
 
 class nsContentUtils
 {
@@ -178,12 +143,6 @@ public:
   static PRBool   IsCallerTrustedForRead();
 
   static PRBool   IsCallerTrustedForWrite();
-
-  /**
-   * Check whether a caller is trusted to have aCapability.  This also
-   * checks for UniversalXPConnect in addition to aCapability.
-   */
-  static PRBool   IsCallerTrustedForCapability(const char* aCapability);
 
   /**
    * Do not ever pass null pointers to this method.  If one of your
@@ -280,13 +239,11 @@ public:
    *  node/offset pair
    *  Returns -1 if point1 < point2, 1, if point1 > point2,
    *  0 if error or if point1 == point2.
-   *  NOTE! If the two nodes aren't in the same connected subtree,
-   *  the result is undefined, but the optional aDisconnected parameter
-   *  is set to PR_TRUE.
+   *  NOTE! The two nodes MUST be in the same connected subtree!
+   *  if they are not the result is undefined.
    */
   static PRInt32 ComparePoints(nsINode* aParent1, PRInt32 aOffset1,
-                               nsINode* aParent2, PRInt32 aOffset2,
-                               PRBool* aDisconnected = nsnull);
+                               nsINode* aParent2, PRInt32 aOffset2);
 
   /**
    * Find the first child of aParent with a resolved tag matching
@@ -363,12 +320,6 @@ public:
   static const nsDependentSubstring TrimWhitespace(const nsAString& aStr,
                                                    PRBool aTrimTrailing = PR_TRUE);
 
-  /**
-   * Returns true if aChar is of class Ps, Pi, Po, Pf, or Pe. (Does not
-   * currently handle non-BMP characters.)
-   */
-  static PRBool IsPunctuationMark(PRUnichar aChar);
-
   static void Shutdown();
 
   /**
@@ -383,10 +334,6 @@ public:
 
   // Check if the (JS) caller can access aNode.
   static PRBool CanCallerAccess(nsIDOMNode *aNode);
-
-  // Check if the (JS) caller can access aWindow.
-  // aWindow can be either outer or inner window.
-  static PRBool CanCallerAccess(nsPIDOMWindow* aWindow);
 
   /**
    * Get the docshell through the JS context that's currently on the stack.
@@ -492,19 +439,6 @@ public:
                                            nsAString& aOutput);
 
   /**
-   * Determine whether a buffer begins with a BOM for UTF-8, UTF-16LE,
-   * UTF-16BE, UTF-32LE, UTF-32BE.
-   *
-   * @param aBuffer the buffer to check
-   * @param aLength the length of the buffer
-   * @param aCharset empty if not found
-   * @return boolean indicating whether a BOM was detected.
-   */
-  static PRBool CheckForBOM(const unsigned char* aBuffer, PRUint32 aLength,
-                            nsACString& aCharset);
-
-
-  /**
    * Determine whether aContent is in some way associated with aForm.  If the
    * form is a container the only elements that are considered to be associated
    * with a form are the elements that are contained within the form. If the
@@ -546,7 +480,6 @@ public:
   static void UnregisterPrefCallback(const char *aPref,
                                      PrefChangedFunc aCallback,
                                      void * aClosure);
-  static void AddBoolPrefVarCache(const char* aPref, PRBool* aVariable);
   static nsIPrefBranch *GetPrefBranch()
   {
     return sPrefBranch;
@@ -561,11 +494,6 @@ public:
   {
     return sWordBreaker;
   }
-  
-  static nsICaseConversion* GetCaseConv()
-  {
-    return sCaseConv;
-  }
 
   /**
    * @return PR_TRUE if aContent has an attribute aName in namespace aNameSpaceID,
@@ -575,21 +503,11 @@ public:
                                 nsIAtom* aName);
 
   /**
-   * Method that gets the primary presContext for the node.
-   * 
-   * @param aContent The content node.
-   * @return the presContext, or nsnull if the content is not in a document
-   *         (if GetCurrentDoc returns nsnull)
-   */
-  static nsPresContext* GetContextForContent(nsIContent* aContent);
-
-  /**
    * Method to do security and content policy checks on the image URI
    *
    * @param aURI uri of the image to be loaded
    * @param aContext the context the image is loaded in (eg an element)
    * @param aLoadingDocument the document we belong to
-   * @param aLoadingPrincipal the principal doing the load
    * @param aImageBlockingStatus the nsIContentPolicy blocking status for this
    *        image.  This will be set even if a security check fails for the
    *        image, to some reasonable REJECT_* value.  This out param will only
@@ -602,24 +520,18 @@ public:
   static PRBool CanLoadImage(nsIURI* aURI,
                              nsISupports* aContext,
                              nsIDocument* aLoadingDocument,
-                             nsIPrincipal* aLoadingPrincipal,
                              PRInt16* aImageBlockingStatus = nsnull);
   /**
    * Method to start an image load.  This does not do any security checks.
-   * This method will attempt to make aURI immutable; a caller that wants to
-   * keep a mutable version around should pass in a clone.
    *
    * @param aURI uri of the image to be loaded
    * @param aLoadingDocument the document we belong to
-   * @param aLoadingPrincipal the principal doing the load
-   * @param aReferrer the referrer URI
    * @param aObserver the observer for the image load
    * @param aLoadFlags the load flags to use.  See nsIRequest
    * @return the imgIRequest for the image load
    */
   static nsresult LoadImage(nsIURI* aURI,
                             nsIDocument* aLoadingDocument,
-                            nsIPrincipal* aLoadingPrincipal,
                             nsIURI* aReferrer,
                             imgIDecoderObserver* aObserver,
                             PRInt32 aLoadFlags,
@@ -802,21 +714,52 @@ public:
   static nsIContentPolicy *GetContentPolicy();
 
   /**
+   * Make sure that whatever value *aPtr contains at any given moment is
+   * protected from JS GC until we remove the GC root.  A call to this that
+   * succeeds MUST be matched by a call to RemoveJSGCRoot to avoid leaking.
+   */
+  static nsresult AddJSGCRoot(jsval* aPtr, const char* aName) {
+    return AddJSGCRoot((void*)aPtr, aName);
+  }
+
+  /**
+   * Make sure that whatever object *aPtr is pointing to at any given moment is
+   * protected from JS GC until we remove the GC root.  A call to this that
+   * succeeds MUST be matched by a call to RemoveJSGCRoot to avoid leaking.
+   */
+  static nsresult AddJSGCRoot(JSObject** aPtr, const char* aName) {
+    return AddJSGCRoot((void*)aPtr, aName);
+  }
+
+  /**
+   * Make sure that whatever object *aPtr is pointing to at any given moment is
+   * protected from JS GC until we remove the GC root.  A call to this that
+   * succeeds MUST be matched by a call to RemoveJSGCRoot to avoid leaking.
+   */
+  static nsresult AddJSGCRoot(void* aPtr, const char* aName);  
+
+  /**
+   * Remove aPtr as a JS GC root
+   */
+  static nsresult RemoveJSGCRoot(jsval* aPtr) {
+    return RemoveJSGCRoot((void*)aPtr);
+  }
+  static nsresult RemoveJSGCRoot(JSObject** aPtr) {
+    return RemoveJSGCRoot((void*)aPtr);
+  }
+  static nsresult RemoveJSGCRoot(void* aPtr);
+
+  /**
    * Quick helper to determine whether there are any mutation listeners
    * of a given type that apply to this content or any of its ancestors.
-   * The method has the side effect to call document's MayDispatchMutationEvent
-   * using aTargetForSubtreeModified as the parameter.
    *
    * @param aNode  The node to search for listeners
    * @param aType  The type of listener (NS_EVENT_BITS_MUTATION_*)
-   * @param aTargetForSubtreeModified The node which is the target of the
-   *                                  possible DOMSubtreeModified event.
    *
    * @return true if there are mutation listeners of the specified type
    */
   static PRBool HasMutationListeners(nsINode* aNode,
-                                     PRUint32 aType,
-                                     nsINode* aTargetForSubtreeModified);
+                                     PRUint32 aType);
 
   /**
    * This method creates and dispatches a trusted event.
@@ -837,25 +780,6 @@ public:
                                        PRBool aCanBubble,
                                        PRBool aCancelable,
                                        PRBool *aDefaultAction = nsnull);
-
-  /**
-   * Determines if an event attribute name (such as onclick) is valid for
-   * a given element type. Types are from the EventNameType enumeration
-   * defined above.
-   *
-   * @param aName the event name to look up
-   * @param aType the type of content
-   */
-  static PRBool IsEventAttributeName(nsIAtom* aName, PRInt32 aType);
-
-  /**
-   * Return the event id for the event with the given name. The name is the
-   * event name with the 'on' prefix. Returns NS_USER_DEFINED_EVENT if the
-   * event doesn't match a known event name.
-   *
-   * @param aName the event name to look up
-   */
-  static PRUint32 GetEventId(nsIAtom* aName);
 
   /**
    * Used only during traversal of the XPCOM graph by the cycle
@@ -909,22 +833,39 @@ public:
                                 PRInt32 aNamespaceID);
 
   /**
+   * Associate an object aData to aKey on node aNode. If aData is null any
+   * previously registered object and UserDataHandler associated to aKey on
+   * aNode will be removed.
+   * Should only be used to implement the DOM Level 3 UserData API.
+   *
+   * @param aNode canonical nsINode pointer of the node to add aData to
+   * @param aKey the key to associate the object to
+   * @param aData the object to associate to aKey on aNode (may be nulll)
+   * @param aHandler the UserDataHandler to call when the node is
+   *                 cloned/deleted/imported/renamed (may be nulll)
+   * @param aResult [out] the previously registered object for aKey on aNode, if
+   *                      any
+   * @return whether adding the object and UserDataHandler succeeded
+   */
+  static nsresult SetUserData(nsINode *aNode, nsIAtom *aKey, nsIVariant *aData,
+                              nsIDOMUserDataHandler *aHandler,
+                              nsIVariant **aResult);
+
+  /**
    * Creates a DocumentFragment from text using a context node to resolve
    * namespaces.
    *
    * @param aContextNode the node which is used to resolve namespaces
    * @param aFragment the string which is parsed to a DocumentFragment
-   * @param aWillOwnFragment is PR_TRUE if ownership of the fragment should be
-   *                         transferred to the caller.
    * @param aReturn [out] the created DocumentFragment
    */
   static nsresult CreateContextualFragment(nsIDOMNode* aContextNode,
                                            const nsAString& aFragment,
-                                           PRBool aWillOwnFragment,
                                            nsIDOMDocumentFragment** aReturn);
 
   /**
-   * Creates a new XML document, which is marked to be loaded as data.
+   * Creates a new XML document, setting the document's container to be the
+   * docshell of whatever script is on the JSContext stack.
    *
    * @param aNamespaceURI Namespace for the root element to create and insert in
    *                      the document. Only used if aQualifiedName is not
@@ -936,8 +877,6 @@ public:
    * @param aDocumentURI URI of the document. Must not be null.
    * @param aBaseURI Base URI of the document. Must not be null.
    * @param aPrincipal Prinicpal of the document. Must not be null.
-   * @param aScriptObject The object from which the context for event handling
-   *                      can be got.
    * @param aResult [out] The document that was created.
    */
   static nsresult CreateDocument(const nsAString& aNamespaceURI, 
@@ -946,7 +885,6 @@ public:
                                  nsIURI* aDocumentURI,
                                  nsIURI* aBaseURI,
                                  nsIPrincipal* aPrincipal,
-                                 nsIScriptGlobalObject* aScriptObject,
                                  nsIDOMDocument** aResult);
 
   /**
@@ -968,7 +906,7 @@ public:
                                      PRBool aTryReuse);
 
   /**
-   * Get the textual contents of a node. This is a concatenation of all
+   * Get the textual contents of a node. This is a concatination of all
    * textnodes that are direct or (depending on aDeep) indirect children
    * of the node.
    *
@@ -1008,7 +946,7 @@ public:
   static void DestroyMatchString(void* aData)
   {
     if (aData) {
-      nsString* matchString = static_cast<nsString*>(aData);
+      nsString* matchString = NS_STATIC_CAST(nsString*, aData);
       delete matchString;
     }
   }
@@ -1018,269 +956,34 @@ public:
    */
   static void DestroyAnonymousContent(nsCOMPtr<nsIContent>* aContent);
 
-  /**
-   * Keep script object aNewObject, held by aScriptObjectHolder, alive.
-   *
-   * NOTE: This currently only supports objects that hold script objects of one
-   *       scripting language.
-   *
-   * @param aLangID script language ID of aNewObject
-   * @param aScriptObjectHolder the object that holds aNewObject
-   * @param aTracer the tracer for aScriptObject
-   * @param aNewObject the script object to hold
-   * @param aWasHoldingObjects whether aScriptObjectHolder was already holding
-   *                           script objects (ie. HoldScriptObject was called
-   *                           on it before, without a corresponding call to
-   *                           DropScriptObjects)
-   */
-  static nsresult HoldScriptObject(PRUint32 aLangID, void* aScriptObjectHolder,
-                                   nsScriptObjectTracer* aTracer,
-                                   void* aNewObject, PRBool aWasHoldingObjects)
+  static nsresult HoldScriptObject(PRUint32 aLangID, void *aObject);
+  static nsresult DropScriptObject(PRUint32 aLangID, void *aObject);
+
+  class ScriptObjectHolder
   {
-    if (aLangID == nsIProgrammingLanguage::JAVASCRIPT) {
-      return aWasHoldingObjects ? NS_OK :
-                                  HoldJSObjects(aScriptObjectHolder, aTracer);
+  public:
+    ScriptObjectHolder(PRUint32 aLangID) : mLangID(aLangID),
+                                           mObject(nsnull)
+    {
     }
-
-    return HoldScriptObject(aLangID, aNewObject);
-  }
-
-  /**
-   * Drop any script objects that aScriptObjectHolder is holding.
-   *
-   * NOTE: This currently only supports objects that hold script objects of one
-   *       scripting language.
-   *
-   * @param aLangID script language ID of the objects that 
-   * @param aScriptObjectHolder the object that holds script object that we want
-   *                            to drop
-   * @param aTracer the tracer for aScriptObject
-   */
-  static nsresult DropScriptObjects(PRUint32 aLangID, void* aScriptObjectHolder,
-                                    nsScriptObjectTracer* aTracer)
-  {
-    if (aLangID == nsIProgrammingLanguage::JAVASCRIPT) {
-      return DropJSObjects(aScriptObjectHolder);
+    ~ScriptObjectHolder()
+    {
+      if (mObject)
+        DropScriptObject(mLangID, mObject);
     }
-
-    aTracer->Trace(aScriptObjectHolder, DropScriptObject, nsnull);
-
-    return NS_OK;
-  }
-
-  /**
-   * Keep the JS objects held by aScriptObjectHolder alive.
-   *
-   * @param aScriptObjectHolder the object that holds JS objects that we want to
-   *                            keep alive
-   * @param aTracer the tracer for aScriptObject
-   */
-  static nsresult HoldJSObjects(void* aScriptObjectHolder,
-                                nsScriptObjectTracer* aTracer);
-
-  /**
-   * Drop the JS objects held by aScriptObjectHolder.
-   *
-   * @param aScriptObjectHolder the object that holds JS objects that we want to
-   *                            drop
-   */
-  static nsresult DropJSObjects(void* aScriptObjectHolder);
-
-  /**
-   * Convert nsIContent::IME_STATUS_* to nsIKBStateControll::IME_STATUS_*
-   */
-  static PRUint32 GetKBStateControlStatusFromIMEStatus(PRUint32 aState);
-
-  /*
-   * Notify when the first XUL menu is opened and when the all XUL menus are
-   * closed. At opening, aInstalling should be TRUE, otherwise, it should be
-   * FALSE.
-   */
-  static void NotifyInstalledMenuKeyboardListener(PRBool aInstalling);
-
-  /**
-   * Do security checks before loading a resource. Does the following checks:
-   *   nsIScriptSecurityManager::CheckLoadURIWithPrincipal
-   *   NS_CheckContentLoadPolicy
-   *   nsIScriptSecurityManager::CheckSameOriginURI
-   *
-   * You will still need to do at least SameOrigin checks before on redirects.
-   *
-   * @param aURIToLoad         URI that is getting loaded.
-   * @param aLoadingPrincipal  Principal of the resource that is initiating
-   *                           the load
-   * @param aCheckLoadFlags    Flags to be passed to
-   *                           nsIScriptSecurityManager::CheckLoadURIWithPrincipal
-   *                           NOTE: If this contains ALLOW_CHROME the
-   *                                 CheckSameOriginURI check will be skipped if
-   *                                 aURIToLoad is a chrome uri.
-   * @param aAllowData         Set to true to skip CheckSameOriginURI check when
-                               aURIToLoad is a data uri.
-   * @param aContentPolicyType Type     \
-   * @param aContext           Context   |- to be passed to
-   * @param aMimeGuess         Mimetype  |      NS_CheckContentLoadPolicy
-   * @param aExtra             Extra    /
-   */
-  static nsresult CheckSecurityBeforeLoad(nsIURI* aURIToLoad,
-                                          nsIPrincipal* aLoadingPrincipal,
-                                          PRUint32 aCheckLoadFlags,
-                                          PRBool aAllowData,
-                                          PRUint32 aContentPolicyType,
-                                          nsISupports* aContext,
-                                          const nsACString& aMimeGuess = EmptyCString(),
-                                          nsISupports* aExtra = nsnull);
-
-  /**
-   * Trigger a link with uri aLinkURI. If aClick is false, this triggers a
-   * mouseover on the link, otherwise it triggers a load after doing a
-   * security check using aContent's principal.
-   *
-   * @param aContent the node on which a link was triggered.
-   * @param aPresContext the pres context, must be non-null.
-   * @param aLinkURI the URI of the link, must be non-null.
-   * @param aTargetSpec the target (like target=, may be empty).
-   * @param aClick whether this was a click or not (if false, this method
-   *               assumes you just hovered over the link).
-   * @param aIsUserTriggered whether the user triggered the link. This would be
-   *                         false for loads from auto XLinks or from the
-   *                         click() method if we ever implement it.
-   */
-  static void TriggerLink(nsIContent *aContent, nsPresContext *aPresContext,
-                          nsIURI *aLinkURI, const nsString& aTargetSpec,
-                          PRBool aClick, PRBool aIsUserTriggered);
-
-  /**
-   * Return top-level widget in the parent chain.
-   */
-  static nsIWidget* GetTopLevelWidget(nsIWidget* aWidget);
-
-  /**
-   * Return the localized ellipsis for UI.
-   */
-  static const nsDependentString GetLocalizedEllipsis();
-
-  /**
-   * The routine GetNativeEvent is used to fill nsNativeKeyEvent
-   * nsNativeKeyEvent. It's also used in DOMEventToNativeKeyEvent.
-   * See bug 406407 for details.
-   */
-  static nsEvent* GetNativeEvent(nsIDOMEvent* aDOMEvent);
-  static PRBool DOMEventToNativeKeyEvent(nsIDOMEvent* aDOMEvent,
-                                         nsNativeKeyEvent* aNativeEvent,
-                                         PRBool aGetCharCode);
-
-  /**
-   * Get the candidates for accelkeys for aDOMEvent.
-   *
-   * @param aDOMEvent [in] the input event for accelkey handling.
-   * @param aCandidates [out] the candidate shortcut key combination list.
-   *                          the first item is most preferred.
-   */
-  static void GetAccelKeyCandidates(nsIDOMEvent* aDOMEvent,
-                                    nsTArray<nsShortcutCandidate>& aCandidates);
-
-  /**
-   * Get the candidates for accesskeys for aDOMEvent.
-   *
-   * @param aNativeKeyEvent [in] the input event for accesskey handling.
-   * @param aCandidates [out] the candidate access key list.
-   *                          the first item is most preferred.
-   */
-  static void GetAccessKeyCandidates(nsKeyEvent* aNativeKeyEvent,
-                                     nsTArray<PRUint32>& aCandidates);
-
-  /**
-   * Hide any XUL popups associated with aDocument, including any documents
-   * displayed in child frames.
-   */
-  static void HidePopupsInDocument(nsIDocument* aDocument);
-
-  /**
-   * Return true if aURI is a local file URI (i.e. file://).
-   */
-  static PRBool URIIsLocalFile(nsIURI *aURI);
-
-  /**
-   * Get the application manifest URI for this context.  The manifest URI
-   * is specified in the manifest= attribute of the root element of the
-   * toplevel window.
-   *
-   * @param aWindow The context to check.
-   * @param aURI The manifest URI.
-   */
-  static void GetOfflineAppManifest(nsIDOMWindow *aWindow, nsIURI **aURI);
-
-  /**
-   * Check whether an application should be allowed to use offline APIs.
-   */
-  static PRBool OfflineAppAllowed(nsIURI *aURI);
-
-  /**
-   * Increases the count of blockers preventing scripts from running.
-   * NOTE: You might want to use nsAutoScriptBlocker rather than calling
-   * this directly
-   */
-  static void AddScriptBlocker();
-
-  /**
-   * Decreases the count of blockers preventing scripts from running.
-   * NOTE: You might want to use nsAutoScriptBlocker rather than calling
-   * this directly
-   *
-   * WARNING! Calling this function could synchronously execute scripts.
-   */
-  static void RemoveScriptBlocker();
-
-  /**
-   * Add a runnable that is to be executed as soon as it's safe to execute
-   * scripts.
-   * NOTE: If it's currently safe to execute scripts, aRunnable will be run
-   *       synchronously before the function returns.
-   *
-   * @param aRunnable  The nsIRunnable to run as soon as it's safe to execute
-   *                   scripts. Passing null is allowed and results in nothing
-   *                   happening. It is also allowed to pass an object that
-   *                   has not yet been AddRefed.
-   */
-  static PRBool AddScriptRunner(nsIRunnable* aRunnable);
-
-  /**
-   * Returns true if it's safe to execute content script and false otherwise.
-   *
-   * The only known case where this lies is mutation events. They run, and can
-   * run anything else, when this function returns false, but this is ok.
-   */
-  static PRBool IsSafeToRunScript() {
-    return sScriptBlockerCount == 0;
-  }
-
-  /**
-   * Get/Set the current number of removable updates. Currently only
-   * UPDATE_CONTENT_MODEL updates are removable, and only when firing mutation
-   * events. These functions should only be called by mozAutoDocUpdateRemover.
-   * The count is also adjusted by the normal calls to BeginUpdate/EndUpdate.
-   */
-  static void AddRemovableScriptBlocker()
-  {
-    AddScriptBlocker();
-    ++sRemovableScriptBlockerCount;
-  }
-  static void RemoveRemovableScriptBlocker()
-  {
-    NS_ASSERTION(sRemovableScriptBlockerCount != 0,
-                "Number of removable blockers should never go below zero");
-    --sRemovableScriptBlockerCount;
-    RemoveScriptBlocker();
-  }
-  static PRUint32 GetRemovableScriptBlockerLevel()
-  {
-    return sRemovableScriptBlockerCount;
-  }
+    nsresult set(void *aObject)
+    {
+      nsresult rv = HoldScriptObject(mLangID, aObject);
+      if (NS_SUCCEEDED(rv)) {
+        mObject = aObject;
+      }
+      return rv;
+    }
+    PRUint32 mLangID;
+    void *mObject;
+  };
 
 private:
-
-  static PRBool InitializeEventTable();
-
   static nsresult doReparentContentWrapper(nsIContent *aChild,
                                            JSContext *cx,
                                            JSObject *aOldGlobal,
@@ -1291,13 +994,6 @@ private:
   static nsresult EnsureStringBundle(PropertiesFile aFile);
 
   static nsIDOMScriptObjectFactory *GetDOMScriptObjectFactory();
-
-  static nsresult HoldScriptObject(PRUint32 aLangID, void* aObject);
-  PR_STATIC_CALLBACK(void) DropScriptObject(PRUint32 aLangID, void *aObject,
-                                            void *aClosure);
-
-  static PRBool CanCallerAccess(nsIPrincipal* aSubjectPrincipal,
-                                nsIPrincipal* aPrincipal);
 
   static nsIDOMScriptObjectFactory *sDOMScriptObjectFactory;
 
@@ -1325,8 +1021,6 @@ private:
 
   static nsIConsoleService* sConsoleService;
 
-  static nsDataHashtable<nsISupportsHashKey, EventNameMapping>* sEventTable;
-
   static nsIStringBundleService* sStringBundleService;
   static nsIStringBundle* sStringBundles[PropertiesFile_COUNT];
 
@@ -1335,43 +1029,34 @@ private:
 
   static nsILineBreaker* sLineBreaker;
   static nsIWordBreaker* sWordBreaker;
-  static nsICaseConversion* sCaseConv;
 
   // Holds pointers to nsISupports* that should be released at shutdown
   static nsVoidArray* sPtrsToPtrsToRelease;
 
+  // For now, we don't want to automatically clean this up in Shutdown(), since
+  // consumers might unfortunately end up wanting to use it after that
+  static nsIJSRuntimeService* sJSRuntimeService;
+  static JSRuntime* sJSScriptRuntime;
+  static PRInt32 sJSScriptRootCount;
+
   static nsIScriptRuntime* sScriptRuntimes[NS_STID_ARRAY_UBOUND];
   static PRInt32 sScriptRootCount[NS_STID_ARRAY_UBOUND];
-  static PRUint32 sJSGCThingRootCount;
 
 #ifdef IBMBIDI
   static nsIBidiKeyboard* sBidiKeyboard;
 #endif
 
   static PRBool sInitialized;
-  static PRUint32 sScriptBlockerCount;
-  static PRUint32 sRemovableScriptBlockerCount;
-  static nsCOMArray<nsIRunnable>* sBlockedScriptRunners;
-  static PRUint32 sRunnersCountAtFirstBlocker;
 };
-
-#define NS_HOLD_JS_OBJECTS(obj, clazz)                                         \
-  nsContentUtils::HoldJSObjects(NS_CYCLE_COLLECTION_UPCAST(obj, clazz),        \
-                                &NS_CYCLE_COLLECTION_NAME(clazz))
-
-#define NS_DROP_JS_OBJECTS(obj, clazz)                                         \
-  nsContentUtils::DropJSObjects(NS_CYCLE_COLLECTION_UPCAST(obj, clazz))
 
 
 class nsCxPusher
 {
 public:
-  nsCxPusher();
-  ~nsCxPusher(); // Calls Pop();
+  nsCxPusher(nsISupports *aCurrentTarget);
+  ~nsCxPusher();
 
-  // Returns PR_FALSE if something erroneous happened.
-  PRBool Push(nsISupports *aCurrentTarget);
-  PRBool Push(JSContext *cx);
+  void Push(nsISupports *aCurrentTarget);
   void Pop();
 
 private:
@@ -1386,76 +1071,35 @@ public:
   nsAutoGCRoot(jsval* aPtr, nsresult* aResult) :
     mPtr(aPtr)
   {
-    mResult = *aResult = AddJSGCRoot(aPtr, "nsAutoGCRoot");
+    mResult = *aResult =
+      nsContentUtils::AddJSGCRoot(aPtr, "nsAutoGCRoot");
   }
 
   // aPtr should be the pointer to the JSObject* we want to protect
   nsAutoGCRoot(JSObject** aPtr, nsresult* aResult) :
     mPtr(aPtr)
   {
-    mResult = *aResult = AddJSGCRoot(aPtr, "nsAutoGCRoot");
+    mResult = *aResult =
+      nsContentUtils::AddJSGCRoot(aPtr, "nsAutoGCRoot");
   }
 
   // aPtr should be the pointer to the thing we want to protect
   nsAutoGCRoot(void* aPtr, nsresult* aResult) :
     mPtr(aPtr)
   {
-    mResult = *aResult = AddJSGCRoot(aPtr, "nsAutoGCRoot");
+    mResult = *aResult =
+      nsContentUtils::AddJSGCRoot(aPtr, "nsAutoGCRoot");
   }
 
   ~nsAutoGCRoot() {
     if (NS_SUCCEEDED(mResult)) {
-      RemoveJSGCRoot(mPtr);
+      nsContentUtils::RemoveJSGCRoot(mPtr);
     }
   }
 
-  static void Shutdown();
-
 private:
-  static nsresult AddJSGCRoot(void *aPtr, const char* aName);
-  static nsresult RemoveJSGCRoot(void *aPtr);
-
-  static nsIJSRuntimeService* sJSRuntimeService;
-  static JSRuntime* sJSScriptRuntime;
-
   void* mPtr;
   nsresult mResult;
-};
-
-class nsAutoScriptBlocker {
-public:
-  nsAutoScriptBlocker() {
-    nsContentUtils::AddScriptBlocker();
-  }
-  ~nsAutoScriptBlocker() {
-    nsContentUtils::RemoveScriptBlocker();
-  }
-};
-
-class mozAutoRemovableBlockerRemover
-{
-public:
-  mozAutoRemovableBlockerRemover()
-  {
-    mNestingLevel = nsContentUtils::GetRemovableScriptBlockerLevel();
-    for (PRUint32 i = 0; i < mNestingLevel; ++i) {
-      nsContentUtils::RemoveRemovableScriptBlocker();
-    }
-
-    NS_ASSERTION(nsContentUtils::IsSafeToRunScript(), "killing mutation events");
-  }
-
-  ~mozAutoRemovableBlockerRemover()
-  {
-    NS_ASSERTION(nsContentUtils::GetRemovableScriptBlockerLevel() == 0,
-                 "Should have had none");
-    for (PRUint32 i = 0; i < mNestingLevel; ++i) {
-      nsContentUtils::AddRemovableScriptBlocker();
-    }
-  }
-
-private:
-  PRUint32 mNestingLevel;
 };
 
 #define NS_AUTO_GCROOT_PASTE2(tok,line) tok##line
@@ -1470,64 +1114,11 @@ private:
 
 #define NS_INTERFACE_MAP_ENTRY_TEAROFF(_interface, _allocator)                \
   if (aIID.Equals(NS_GET_IID(_interface))) {                                  \
-    foundInterface = static_cast<_interface *>(_allocator);                   \
+    foundInterface = NS_STATIC_CAST(_interface *, _allocator);                \
     if (!foundInterface) {                                                    \
       *aInstancePtr = nsnull;                                                 \
       return NS_ERROR_OUT_OF_MEMORY;                                          \
     }                                                                         \
   } else
-
-/*
- * Check whether a floating point number is finite (not +/-infinity and not a
- * NaN value). We wrap JSDOUBLE_IS_FINITE in a function because it expects to
- * take the address of its argument, and because the argument must be of type
- * jsdouble to have the right size and layout of bits.
- *
- * Note: we could try to exploit the fact that |infinity - infinity == NaN|
- * instead of using JSDOUBLE_IS_FINITE. This would produce more compact code
- * and perform better by avoiding type conversions and bit twiddling.
- * Unfortunately, some architectures don't guarantee that |f == f| evaluates
- * to true (where f is any *finite* floating point number). See
- * https://bugzilla.mozilla.org/show_bug.cgi?id=369418#c63 . To play it safe
- * for gecko 1.9, we just reuse JSDOUBLE_IS_FINITE.
- */
-inline NS_HIDDEN_(PRBool) NS_FloatIsFinite(jsdouble f) {
-  return JSDOUBLE_IS_FINITE(f);
-}
-
-/*
- * In the following helper macros we exploit the fact that the result of a
- * series of additions will not be finite if any one of the operands in the
- * series is not finite.
- */
-#define NS_ENSURE_FINITE(f, rv)                                               \
-  if (!NS_FloatIsFinite(f)) {                                                 \
-    return (rv);                                                              \
-  }
-
-#define NS_ENSURE_FINITE2(f1, f2, rv)                                         \
-  if (!NS_FloatIsFinite((f1)+(f2))) {                                         \
-    return (rv);                                                              \
-  }
-
-#define NS_ENSURE_FINITE3(f1, f2, f3, rv)                                     \
-  if (!NS_FloatIsFinite((f1)+(f2)+(f3))) {                                    \
-    return (rv);                                                              \
-  }
-
-#define NS_ENSURE_FINITE4(f1, f2, f3, f4, rv)                                 \
-  if (!NS_FloatIsFinite((f1)+(f2)+(f3)+(f4))) {                               \
-    return (rv);                                                              \
-  }
-
-#define NS_ENSURE_FINITE5(f1, f2, f3, f4, f5, rv)                             \
-  if (!NS_FloatIsFinite((f1)+(f2)+(f3)+(f4)+(f5))) {                          \
-    return (rv);                                                              \
-  }
-
-#define NS_ENSURE_FINITE6(f1, f2, f3, f4, f5, f6, rv)                         \
-  if (!NS_FloatIsFinite((f1)+(f2)+(f3)+(f4)+(f5)+(f6))) {                     \
-    return (rv);                                                              \
-  }
 
 #endif /* nsContentUtils_h___ */

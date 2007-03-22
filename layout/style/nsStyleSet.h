@@ -48,10 +48,9 @@
 
 #include "nsIStyleRuleProcessor.h"
 #include "nsICSSStyleSheet.h"
+#include "nsVoidArray.h"
 #include "nsBindingManager.h"
 #include "nsRuleNode.h"
-#include "nsTArray.h"
-#include "nsCOMArray.h"
 
 class nsIURI;
 
@@ -73,16 +72,15 @@ class nsStyleSet
   // To be used only by nsRuleNode.
   nsCachedStyleData* DefaultStyleData() { return &mDefaultStyleData; }
 
+  // clear out all of the computed style data
+  void ClearStyleData(nsPresContext *aPresContext);
+
   // enable / disable the Quirk style sheet
   void EnableQuirkStyleSheet(PRBool aEnable);
 
   // get a style context for a non-pseudo frame.
   already_AddRefed<nsStyleContext>
   ResolveStyleFor(nsIContent* aContent, nsStyleContext* aParentContext);
-
-  // get a style context from some rules
-  already_AddRefed<nsStyleContext>
-  ResolveStyleForRules(nsStyleContext* aParentContext, const nsCOMArray<nsIStyleRule> &rules);
 
   // Get a style context for a non-element (which no rules will match),
   // such as text nodes, placeholder frames, and the nsFirstLetterFrame
@@ -138,10 +136,9 @@ class nsStyleSet
 
   // Test if style is dependent on the presence of an attribute.
   nsReStyleHint HasAttributeDependentStyle(nsPresContext* aPresContext,
-                                           nsIContent*    aContent,
-                                           nsIAtom*       aAttribute,
-                                           PRInt32        aModType,
-                                           PRUint32       aStateMask);
+                                           nsIContent*     aContent,
+                                           nsIAtom*        aAttribute,
+                                           PRInt32         aModType);
 
   // APIs for registering objects that can supply additional
   // rules during processing.
@@ -164,9 +161,8 @@ class nsStyleSet
     eStyleAttrSheet,
     eOverrideSheet, // CSS
     eSheetTypeCount
-    // be sure to keep the number of bits in |mDirty| below and in
-    // NS_RULE_NODE_LEVEL_MASK updated when changing the number of sheet
-    // types
+    // be sure to keep the number of bits in |mDirty| below updated when
+    // changing the number of sheet types
   };
 
   // APIs to manipulate the style sheet lists.  The sheets in each
@@ -193,13 +189,6 @@ class nsStyleSet
 
   void     BeginUpdate();
   nsresult EndUpdate();
-
-  // Methods for reconstructing the tree; BeginReconstruct basically moves the
-  // old rule tree root and style context roots out of the way,
-  // and EndReconstruct destroys the old rule tree when we're done
-  nsresult BeginReconstruct();
-  // Note: EndReconstruct should not be called if BeginReconstruct fails
-  void EndReconstruct();
 
  private:
   // Not to be implemented
@@ -270,17 +259,13 @@ class nsStyleSet
                              // be used to navigate through our tree.
 
   PRInt32 mDestroyedCount; // used to batch style context GC
-  nsTArray<nsStyleContext*> mRoots; // style contexts with no parent
+  nsVoidArray mRoots; // style contexts with no parent
 
   PRUint16 mBatching;
-
-  nsRuleNode* mOldRuleTree; // Old rule tree; used during tree reconstruction
-                            // (See BeginReconstruct and EndReconstruct)
 
   unsigned mInShutdown : 1;
   unsigned mAuthorStyleDisabled: 1;
   unsigned mDirty : 7;  // one dirty bit is used per sheet type
-
 };
 
 #endif

@@ -871,9 +871,10 @@ MochiKit.Base.update(MochiKit.DOM, {
         var m = MochiKit.Base;
         if (typeof(document) != "undefined") {
             this._document = document;
-            this._xhtml =
-	        document.createElementNS &&
-		document.createElement("testname").localName == "testname";
+            var kXULNSURI = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
+            this._xhtml = (document.documentElement &&
+                document.createElementNS &&
+                document.documentElement.namespaceURI === kXULNSURI);
         } else if (MochiKit.MockDOM) {
             this._document = MochiKit.MockDOM.document;
         }

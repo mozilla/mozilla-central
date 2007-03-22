@@ -44,7 +44,6 @@
 #include "nscore.h"
 #include "nsString.h"
 #include "nsReadableUtils.h"
-#include "prbit.h"
 
 #define PL_ARENA_CONST_ALIGN_MASK 3
 #include "nsStaticNameTable.h"
@@ -73,19 +72,30 @@ struct NameTableKey
 struct NameTableEntry : public PLDHashEntryHdr
 {
     // no ownership here!
-    const nsAFlatCString* mString;
+    NameTableKey mKey;
     PRInt32 mIndex;
 };
+
+PR_STATIC_CALLBACK(const void *)
+nameTableGetKey(PLDHashTable *, PLDHashEntryHdr *aHdr)
+{
+    NameTableEntry* entry =
+        NS_STATIC_CAST(NameTableEntry *, aHdr);
+    return &(entry->mKey);
+}
 
 PR_STATIC_CALLBACK(PRBool)
 matchNameKeysCaseInsensitive(PLDHashTable*, const PLDHashEntryHdr* aHdr,
                              const void* key)
 {
     const NameTableEntry* entry =
-        static_cast<const NameTableEntry *>(aHdr);
-    const NameTableKey *keyValue = static_cast<const NameTableKey*>(key);
+        NS_STATIC_CAST(const NameTableEntry *, aHdr);
+    const NameTableKey *keyValue = NS_STATIC_CAST(const NameTableKey*, key);
 
-    const nsAFlatCString* entryKey = entry->mString;
+    NS_ASSERTION(!entry->mKey.mIsUnichar,
+                 "Entry shouldn't have a unichar key!");
+
+    const nsAFlatCString* entryKey = entry->mKey.mKeyStr.m1b;
     
     if (keyValue->mIsUnichar) {
         return keyValue->mKeyStr.m2b->
@@ -108,19 +118,19 @@ PR_STATIC_CALLBACK(PLDHashNumber)
 caseInsensitiveStringHashKey(PLDHashTable *table, const void *key)
 {
     PLDHashNumber h = 0;
-    const NameTableKey* tableKey = static_cast<const NameTableKey*>(key);
+    const NameTableKey* tableKey = NS_STATIC_CAST(const NameTableKey*, key);
     if (tableKey->mIsUnichar) {
         for (const PRUnichar* s = tableKey->mKeyStr.m2b->get();
              *s != '\0';
              s++)
-            h = PR_ROTATE_LEFT32(h, 4) ^ (*s & ~0x20);
+            h = (h >> (PL_DHASH_BITS - 4)) ^ (h << 4) ^ (*s & ~0x20);
     } else {
         for (const unsigned char* s =
-                 reinterpret_cast<const unsigned char*>
-                                 (tableKey->mKeyStr.m1b->get());
+                 NS_REINTERPRET_CAST(const unsigned char*,
+                                     tableKey->mKeyStr.m1b->get());
              *s != '\0';
              s++)
-            h = PR_ROTATE_LEFT32(h, 4) ^ (*s & ~0x20);
+            h = (h >> (PL_DHASH_BITS - 4)) ^ (h << 4) ^ (*s & ~0x20);
     }
     return h;
 }
@@ -128,6 +138,7 @@ caseInsensitiveStringHashKey(PLDHashTable *table, const void *key)
 static const struct PLDHashTableOps nametable_CaseInsensitiveHashTableOps = {
     PL_DHashAllocTable,
     PL_DHashFreeTable,
+    nameTableGetKey,
     caseInsensitiveStringHashKey,
     matchNameKeysCaseInsensitive,
     PL_DHashMoveEntryStub,
@@ -198,15 +209,16 @@ nsStaticCaseInsensitiveNameTable::Init(const char* const aNames[], PRInt32 Count
         NameTableKey key(strPtr);
 
         NameTableEntry *entry =
-          static_cast<NameTableEntry*>
-                     (PL_DHashTableOperate(&mNameTable, &key,
+          NS_STATIC_CAST(NameTableEntry*,
+                         PL_DHashTableOperate(&mNameTable, &key,
                                               PL_DHASH_ADD));
 
         if (!entry) continue;
 
-        NS_ASSERTION(entry->mString == 0, "Entry already exists!");
+        NS_ASSERTION(entry->mKey.mKeyStr.m1b == 0, "Entry already exists!");
 
-        entry->mString = strPtr;      // not owned!
+        entry->mKey.mIsUnichar = PR_FALSE;
+        entry->mKey.mKeyStr.m1b = strPtr;      // not owned!
         entry->mIndex = index;
     }
     return PR_TRUE;
@@ -222,8 +234,8 @@ nsStaticCaseInsensitiveNameTable::Lookup(const nsACString& aName)
 
     NameTableKey key(&str);
     NameTableEntry *entry =
-        static_cast<NameTableEntry*>
-                   (PL_DHashTableOperate(&mNameTable, &key,
+        NS_STATIC_CAST(NameTableEntry*,
+                       PL_DHashTableOperate(&mNameTable, &key,
                                             PL_DHASH_LOOKUP));
 
     if (PL_DHASH_ENTRY_IS_FREE(entry))
@@ -242,8 +254,8 @@ nsStaticCaseInsensitiveNameTable::Lookup(const nsAString& aName)
 
     NameTableKey key(&str);
     NameTableEntry *entry =
-        static_cast<NameTableEntry*>
-                   (PL_DHashTableOperate(&mNameTable, &key,
+        NS_STATIC_CAST(NameTableEntry*,
+                       PL_DHashTableOperate(&mNameTable, &key,
                                             PL_DHASH_LOOKUP));
 
     if (PL_DHASH_ENTRY_IS_FREE(entry))

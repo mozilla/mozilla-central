@@ -46,20 +46,20 @@
         </columns>
         <rows>
           <row>
-            <label value="&localName.label;"
-                   control="tx_localName"
+            <label value="&nodeName.label;"
+                   for="tx_nodeName"
                    class="olNodeInfoLabel"/>
-            <textbox id="tx_localName" readonly="true" class="plain"/>
+            <textbox id="tx_nodeName" readonly="true" class="plain"/>
           </row>
           <row>
             <label value="&namespaceURI.label;"
-                   control="tx_namespace"
+                   for="tx_namespace"
                    class="olNodeInfoLabel"/>
             <textbox id="tx_namespace" readonly="true" class="plain"/>
           </row>
           <row>
             <label value="&nodeType.label;"
-                   control="tx_nodeType"
+                   for="tx_nodeType"
                    class="olNodeInfoLabel"/>
             <textbox id="tx_nodeType" readonly="true" class="plain"/>
           </row>

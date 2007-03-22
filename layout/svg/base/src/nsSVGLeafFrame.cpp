@@ -38,12 +38,6 @@
 
 class nsSVGLeafFrame : public nsFrame
 {
-  friend nsIFrame*
-  NS_NewSVGLeafFrame(nsIPresShell* aPresShell, nsStyleContext* aContext);
-protected:
-  nsSVGLeafFrame(nsStyleContext* aContext) : nsFrame(aContext) {}
-
-public:
   virtual PRBool IsFrameOfType(PRUint32 aFlags) const
   {
     return nsFrame::IsFrameOfType(aFlags & ~(nsIFrame::eSVG));
@@ -56,6 +50,8 @@ public:
   }
 #endif
 
+public:
+  nsSVGLeafFrame(nsStyleContext* aContext) : nsFrame(aContext) {}
 };
 
 nsIFrame*

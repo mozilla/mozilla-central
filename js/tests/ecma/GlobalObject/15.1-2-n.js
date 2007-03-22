@@ -35,9 +35,6 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-gTestfile = '15.1-2-n.js';
-
 /**
    File Name:          15.1-2-n.js
    ECMA Section:       The global object

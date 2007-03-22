@@ -79,7 +79,6 @@ endif
 
 EXTRA_DSO_LIBS = \
 	gkgfx \
-	thebes \
 	$(NULL)
 
 EXTRA_DSO_LDOPTS =           \
@@ -91,6 +90,10 @@ EXTRA_DSO_LDOPTS =           \
 
 ifeq ($(MOZ_WIDGET_TOOLKIT),gtk2)
 EXTRA_DSO_LDOPTS += $(MOZ_GTK2_LIBS)
+endif
+
+ifeq ($(MOZ_WIDGET_TOOLKIT),cocoa)
+EXTRA_DSO_LDOPTS += -framework Cocoa
 endif
 
 ifeq ($(OS_ARCH),WINNT)

@@ -51,15 +51,15 @@ txResultRecycler::~txResultRecycler()
 {
     txStackIterator stringIter(&mStringResults);
     while (stringIter.hasNext()) {
-        delete static_cast<StringResult*>(stringIter.next());
+        delete NS_STATIC_CAST(StringResult*, stringIter.next());
     }
     txStackIterator nodesetIter(&mNodeSetResults);
     while (nodesetIter.hasNext()) {
-        delete static_cast<txNodeSet*>(nodesetIter.next());
+        delete NS_STATIC_CAST(txNodeSet*, nodesetIter.next());
     }
     txStackIterator numberIter(&mNumberResults);
     while (numberIter.hasNext()) {
-        delete static_cast<NumberResult*>(numberIter.next());
+        delete NS_STATIC_CAST(NumberResult*, numberIter.next());
     }
 
     NS_IF_RELEASE(mEmptyStringResult);
@@ -103,7 +103,7 @@ txResultRecycler::recycle(txAExprResult* aResult)
     switch (aResult->getResultType()) {
         case txAExprResult::STRING:
         {
-            rv = mStringResults.push(static_cast<StringResult*>(aResult));
+            rv = mStringResults.push(NS_STATIC_CAST(StringResult*, aResult));
             if (NS_FAILED(rv)) {
                 delete aResult;
             }
@@ -111,7 +111,7 @@ txResultRecycler::recycle(txAExprResult* aResult)
         }
         case txAExprResult::NODESET:
         {
-            rv = mNodeSetResults.push(static_cast<txNodeSet*>(aResult));
+            rv = mNodeSetResults.push(NS_STATIC_CAST(txNodeSet*, aResult));
             if (NS_FAILED(rv)) {
                 delete aResult;
             }
@@ -119,7 +119,7 @@ txResultRecycler::recycle(txAExprResult* aResult)
         }
         case txAExprResult::NUMBER:
         {
-            rv = mNumberResults.push(static_cast<NumberResult*>(aResult));
+            rv = mNumberResults.push(NS_STATIC_CAST(NumberResult*, aResult));
             if (NS_FAILED(rv)) {
                 delete aResult;
             }
@@ -140,7 +140,7 @@ txResultRecycler::getStringResult(StringResult** aResult)
         NS_ENSURE_TRUE(*aResult, NS_ERROR_OUT_OF_MEMORY);
     }
     else {
-        *aResult = static_cast<StringResult*>(mStringResults.pop());
+        *aResult = NS_STATIC_CAST(StringResult*, mStringResults.pop());
         (*aResult)->mValue.Truncate();
         (*aResult)->mRecycler = this;
     }
@@ -159,7 +159,7 @@ txResultRecycler::getStringResult(const nsAString& aValue,
     }
     else {
         StringResult* strRes =
-            static_cast<StringResult*>(mStringResults.pop());
+            NS_STATIC_CAST(StringResult*, mStringResults.pop());
         strRes->mValue = aValue;
         strRes->mRecycler = this;
         *aResult = strRes;
@@ -184,7 +184,7 @@ txResultRecycler::getNodeSet(txNodeSet** aResult)
         NS_ENSURE_TRUE(*aResult, NS_ERROR_OUT_OF_MEMORY);
     }
     else {
-        *aResult = static_cast<txNodeSet*>(mNodeSetResults.pop());
+        *aResult = NS_STATIC_CAST(txNodeSet*, mNodeSetResults.pop());
         (*aResult)->clear();
         (*aResult)->mRecycler = this;
     }
@@ -201,7 +201,7 @@ txResultRecycler::getNodeSet(txNodeSet* aNodeSet, txNodeSet** aResult)
         NS_ENSURE_TRUE(*aResult, NS_ERROR_OUT_OF_MEMORY);
     }
     else {
-        *aResult = static_cast<txNodeSet*>(mNodeSetResults.pop());
+        *aResult = NS_STATIC_CAST(txNodeSet*, mNodeSetResults.pop());
         (*aResult)->clear();
         (*aResult)->append(*aNodeSet);
         (*aResult)->mRecycler = this;
@@ -219,7 +219,7 @@ txResultRecycler::getNodeSet(const txXPathNode& aNode, txAExprResult** aResult)
         NS_ENSURE_TRUE(*aResult, NS_ERROR_OUT_OF_MEMORY);
     }
     else {
-        txNodeSet* nodes = static_cast<txNodeSet*>(mNodeSetResults.pop());
+        txNodeSet* nodes = NS_STATIC_CAST(txNodeSet*, mNodeSetResults.pop());
         nodes->clear();
         nodes->append(aNode);
         nodes->mRecycler = this;
@@ -238,7 +238,7 @@ txResultRecycler::getNodeSet(const txXPathNode& aNode, txNodeSet** aResult)
         NS_ENSURE_TRUE(*aResult, NS_ERROR_OUT_OF_MEMORY);
     }
     else {
-        *aResult = static_cast<txNodeSet*>(mNodeSetResults.pop());
+        *aResult = NS_STATIC_CAST(txNodeSet*, mNodeSetResults.pop());
         (*aResult)->clear();
         (*aResult)->append(aNode);
         (*aResult)->mRecycler = this;
@@ -257,7 +257,7 @@ txResultRecycler::getNumberResult(double aValue, txAExprResult** aResult)
     }
     else {
         NumberResult* numRes =
-            static_cast<NumberResult*>(mNumberResults.pop());
+            NS_STATIC_CAST(NumberResult*, mNumberResults.pop());
         numRes->value = aValue;
         numRes->mRecycler = this;
         *aResult = numRes;
@@ -290,9 +290,7 @@ txResultRecycler::getNonSharedNodeSet(txNodeSet* aNodeSet, txNodeSet** aResult)
 void
 txAExprResult::Release()
 {
-    --mRefCnt;
-    NS_LOG_RELEASE(this, mRefCnt, "txAExprResult");
-    if (mRefCnt == 0) {
+    if (--mRefCnt == 0) {
         if (mRecycler) {
             mRecycler->recycle(this);
         }

@@ -47,7 +47,6 @@
 #include "nsISVGValueUtils.h"
 #include "nsSVGUtils.h"
 #include "nsSVGPoint.h"
-#include "gfxContext.h"
 
 nsSVGElement::NumberInfo nsSVGPathElement::sNumberInfo = 
                                                   { &nsGkAtoms::pathLength, 0 };
@@ -104,7 +103,7 @@ nsSVGPathElement::GetTotalLength(float *_retval)
 {
   *_retval = 0;
 
-  nsRefPtr<gfxFlattenedPath> flat = GetFlattenedPath(nsnull);
+  nsAutoPtr<nsSVGFlattenedPath> flat(GetFlattenedPath(nsnull));
 
   if (!flat)
     return NS_ERROR_FAILURE;
@@ -118,9 +117,7 @@ nsSVGPathElement::GetTotalLength(float *_retval)
 NS_IMETHODIMP
 nsSVGPathElement::GetPointAtLength(float distance, nsIDOMSVGPoint **_retval)
 {
-  NS_ENSURE_FINITE(distance, NS_ERROR_ILLEGAL_VALUE);
-
-  nsRefPtr<gfxFlattenedPath> flat = GetFlattenedPath(nsnull);
+  nsAutoPtr<nsSVGFlattenedPath> flat(GetFlattenedPath(nsnull));
   if (!flat)
     return NS_ERROR_FAILURE;
 
@@ -132,15 +129,16 @@ nsSVGPathElement::GetPointAtLength(float distance, nsIDOMSVGPoint **_retval)
   distance = PR_MAX(0,           distance);
   distance = PR_MIN(totalLength, distance);
 
-  return NS_NewSVGPoint(_retval, flat->FindPoint(gfxPoint(distance, 0)));
+  float x, y, angle;
+  flat->FindPoint(0, distance, 0, &x, &y, &angle);
+
+  return NS_NewSVGPoint(_retval, x, y);
 }
 
 /* unsigned long getPathSegAtLength (in float distance); */
 NS_IMETHODIMP
 nsSVGPathElement::GetPathSegAtLength(float distance, PRUint32 *_retval)
 {
-  NS_ENSURE_FINITE(distance, NS_ERROR_ILLEGAL_VALUE);
-
   //Check if mSegments is null
   nsresult rv = CreatePathSegList();
   NS_ENSURE_SUCCESS(rv, rv);
@@ -154,10 +152,10 @@ nsSVGPathElement::GetPathSegAtLength(float distance, PRUint32 *_retval)
   //  There is no need to check to see if distance falls within the last segment
   //  because if distance is longer than the total length of the path we return 
   //  the index of the final segment anyway.
-  while (distCovered < distance && i + 1 < numSegments) {
-    nsCOMPtr<nsIDOMSVGPathSeg> segment;
-    mSegments->GetItem(i, getter_AddRefs(segment));
-    nsSVGPathSeg* curSeg = static_cast<nsSVGPathSeg*>(segment.get());
+  while (distCovered < distance && i < numSegments - 1) {
+    nsIDOMSVGPathSeg *iSeg;
+    mSegments->GetItem(i, &iSeg);
+    nsSVGPathSeg* curSeg = NS_STATIC_CAST(nsSVGPathSeg*, iSeg);
     if (i == 0) {
       curSeg->GetLength(&ts);
     } else {
@@ -188,7 +186,6 @@ nsSVGPathElement::CreateSVGPathSegClosePath(nsIDOMSVGPathSegClosePath **_retval)
 NS_IMETHODIMP
 nsSVGPathElement::CreateSVGPathSegMovetoAbs(float x, float y, nsIDOMSVGPathSegMovetoAbs **_retval)
 {
-  NS_ENSURE_FINITE2(x, y, NS_ERROR_ILLEGAL_VALUE);
   nsIDOMSVGPathSeg* seg = NS_NewSVGPathSegMovetoAbs(x, y);
   NS_ENSURE_TRUE(seg, NS_ERROR_OUT_OF_MEMORY);
   return CallQueryInterface(seg, _retval);
@@ -198,7 +195,6 @@ nsSVGPathElement::CreateSVGPathSegMovetoAbs(float x, float y, nsIDOMSVGPathSegMo
 NS_IMETHODIMP
 nsSVGPathElement::CreateSVGPathSegMovetoRel(float x, float y, nsIDOMSVGPathSegMovetoRel **_retval)
 {
-  NS_ENSURE_FINITE2(x, y, NS_ERROR_ILLEGAL_VALUE);
   nsIDOMSVGPathSeg* seg = NS_NewSVGPathSegMovetoRel(x, y);
   NS_ENSURE_TRUE(seg, NS_ERROR_OUT_OF_MEMORY);
   return CallQueryInterface(seg, _retval);
@@ -208,7 +204,6 @@ nsSVGPathElement::CreateSVGPathSegMovetoRel(float x, float y, nsIDOMSVGPathSegMo
 NS_IMETHODIMP
 nsSVGPathElement::CreateSVGPathSegLinetoAbs(float x, float y, nsIDOMSVGPathSegLinetoAbs **_retval)
 {
-  NS_ENSURE_FINITE2(x, y, NS_ERROR_ILLEGAL_VALUE);
   nsIDOMSVGPathSeg* seg = NS_NewSVGPathSegLinetoAbs(x, y);
   NS_ENSURE_TRUE(seg, NS_ERROR_OUT_OF_MEMORY);
   return CallQueryInterface(seg, _retval);
@@ -218,7 +213,6 @@ nsSVGPathElement::CreateSVGPathSegLinetoAbs(float x, float y, nsIDOMSVGPathSegLi
 NS_IMETHODIMP
 nsSVGPathElement::CreateSVGPathSegLinetoRel(float x, float y, nsIDOMSVGPathSegLinetoRel **_retval)
 {
-  NS_ENSURE_FINITE2(x, y, NS_ERROR_ILLEGAL_VALUE);
   nsIDOMSVGPathSeg* seg = NS_NewSVGPathSegLinetoRel(x, y);
   NS_ENSURE_TRUE(seg, NS_ERROR_OUT_OF_MEMORY);
   return CallQueryInterface(seg, _retval);
@@ -228,7 +222,6 @@ nsSVGPathElement::CreateSVGPathSegLinetoRel(float x, float y, nsIDOMSVGPathSegLi
 NS_IMETHODIMP
 nsSVGPathElement::CreateSVGPathSegCurvetoCubicAbs(float x, float y, float x1, float y1, float x2, float y2, nsIDOMSVGPathSegCurvetoCubicAbs **_retval)
 {
-  NS_ENSURE_FINITE6(x, y, x1, y1, x2, y2, NS_ERROR_ILLEGAL_VALUE);
   nsIDOMSVGPathSeg* seg = NS_NewSVGPathSegCurvetoCubicAbs(x, y, x1, y1, x2, y2);
   NS_ENSURE_TRUE(seg, NS_ERROR_OUT_OF_MEMORY);
   return CallQueryInterface(seg, _retval);
@@ -238,7 +231,6 @@ nsSVGPathElement::CreateSVGPathSegCurvetoCubicAbs(float x, float y, float x1, fl
 NS_IMETHODIMP
 nsSVGPathElement::CreateSVGPathSegCurvetoCubicRel(float x, float y, float x1, float y1, float x2, float y2, nsIDOMSVGPathSegCurvetoCubicRel **_retval)
 {
-  NS_ENSURE_FINITE6(x, y, x1, y1, x2, y2, NS_ERROR_ILLEGAL_VALUE);
   nsIDOMSVGPathSeg* seg = NS_NewSVGPathSegCurvetoCubicRel(x, y, x1, y1, x2, y2);
   NS_ENSURE_TRUE(seg, NS_ERROR_OUT_OF_MEMORY);
   return CallQueryInterface(seg, _retval);
@@ -248,7 +240,6 @@ nsSVGPathElement::CreateSVGPathSegCurvetoCubicRel(float x, float y, float x1, fl
 NS_IMETHODIMP
 nsSVGPathElement::CreateSVGPathSegCurvetoQuadraticAbs(float x, float y, float x1, float y1, nsIDOMSVGPathSegCurvetoQuadraticAbs **_retval)
 {
-  NS_ENSURE_FINITE4(x, y, x1, y1, NS_ERROR_ILLEGAL_VALUE);
   nsIDOMSVGPathSeg* seg = NS_NewSVGPathSegCurvetoQuadraticAbs(x, y, x1, y1);
   NS_ENSURE_TRUE(seg, NS_ERROR_OUT_OF_MEMORY);
   return CallQueryInterface(seg, _retval);
@@ -258,7 +249,6 @@ nsSVGPathElement::CreateSVGPathSegCurvetoQuadraticAbs(float x, float y, float x1
 NS_IMETHODIMP
 nsSVGPathElement::CreateSVGPathSegCurvetoQuadraticRel(float x, float y, float x1, float y1, nsIDOMSVGPathSegCurvetoQuadraticRel **_retval)
 {
-  NS_ENSURE_FINITE4(x, y, x1, y1, NS_ERROR_ILLEGAL_VALUE);
   nsIDOMSVGPathSeg* seg = NS_NewSVGPathSegCurvetoQuadraticRel(x, y, x1, y1);
   NS_ENSURE_TRUE(seg, NS_ERROR_OUT_OF_MEMORY);
   return CallQueryInterface(seg, _retval);
@@ -268,7 +258,6 @@ nsSVGPathElement::CreateSVGPathSegCurvetoQuadraticRel(float x, float y, float x1
 NS_IMETHODIMP
 nsSVGPathElement::CreateSVGPathSegArcAbs(float x, float y, float r1, float r2, float angle, PRBool largeArcFlag, PRBool sweepFlag, nsIDOMSVGPathSegArcAbs **_retval)
 {
-  NS_ENSURE_FINITE5(x, y, r1, r2, angle, NS_ERROR_ILLEGAL_VALUE);
   nsIDOMSVGPathSeg* seg = NS_NewSVGPathSegArcAbs(x, y, r1, r2, angle,
                                                  largeArcFlag, sweepFlag);
   NS_ENSURE_TRUE(seg, NS_ERROR_OUT_OF_MEMORY);
@@ -279,7 +268,6 @@ nsSVGPathElement::CreateSVGPathSegArcAbs(float x, float y, float r1, float r2, f
 NS_IMETHODIMP
 nsSVGPathElement::CreateSVGPathSegArcRel(float x, float y, float r1, float r2, float angle, PRBool largeArcFlag, PRBool sweepFlag, nsIDOMSVGPathSegArcRel **_retval)
 {
-  NS_ENSURE_FINITE5(x, y, r1, r2, angle, NS_ERROR_ILLEGAL_VALUE);
   nsIDOMSVGPathSeg* seg = NS_NewSVGPathSegArcRel(x, y, r1, r2, angle,
                                                  largeArcFlag, sweepFlag);
   NS_ENSURE_TRUE(seg, NS_ERROR_OUT_OF_MEMORY);
@@ -290,7 +278,6 @@ nsSVGPathElement::CreateSVGPathSegArcRel(float x, float y, float r1, float r2, f
 NS_IMETHODIMP
 nsSVGPathElement::CreateSVGPathSegLinetoHorizontalAbs(float x, nsIDOMSVGPathSegLinetoHorizontalAbs **_retval)
 {
-  NS_ENSURE_FINITE(x, NS_ERROR_ILLEGAL_VALUE);
   nsIDOMSVGPathSeg* seg = NS_NewSVGPathSegLinetoHorizontalAbs(x);
   NS_ENSURE_TRUE(seg, NS_ERROR_OUT_OF_MEMORY);
   return CallQueryInterface(seg, _retval);
@@ -300,7 +287,6 @@ nsSVGPathElement::CreateSVGPathSegLinetoHorizontalAbs(float x, nsIDOMSVGPathSegL
 NS_IMETHODIMP
 nsSVGPathElement::CreateSVGPathSegLinetoHorizontalRel(float x, nsIDOMSVGPathSegLinetoHorizontalRel **_retval)
 {
-  NS_ENSURE_FINITE(x, NS_ERROR_ILLEGAL_VALUE);
   nsIDOMSVGPathSeg* seg = NS_NewSVGPathSegLinetoHorizontalRel(x);
   NS_ENSURE_TRUE(seg, NS_ERROR_OUT_OF_MEMORY);
   return CallQueryInterface(seg, _retval);
@@ -310,7 +296,6 @@ nsSVGPathElement::CreateSVGPathSegLinetoHorizontalRel(float x, nsIDOMSVGPathSegL
 NS_IMETHODIMP
 nsSVGPathElement::CreateSVGPathSegLinetoVerticalAbs(float y, nsIDOMSVGPathSegLinetoVerticalAbs **_retval)
 {
-  NS_ENSURE_FINITE(y, NS_ERROR_ILLEGAL_VALUE);
   nsIDOMSVGPathSeg* seg = NS_NewSVGPathSegLinetoVerticalAbs(y);
   NS_ENSURE_TRUE(seg, NS_ERROR_OUT_OF_MEMORY);
   return CallQueryInterface(seg, _retval);
@@ -320,7 +305,6 @@ nsSVGPathElement::CreateSVGPathSegLinetoVerticalAbs(float y, nsIDOMSVGPathSegLin
 NS_IMETHODIMP
 nsSVGPathElement::CreateSVGPathSegLinetoVerticalRel(float y, nsIDOMSVGPathSegLinetoVerticalRel **_retval)
 {
-  NS_ENSURE_FINITE(y, NS_ERROR_ILLEGAL_VALUE);
   nsIDOMSVGPathSeg* seg = NS_NewSVGPathSegLinetoVerticalRel(y);
   NS_ENSURE_TRUE(seg, NS_ERROR_OUT_OF_MEMORY);
   return CallQueryInterface(seg, _retval);
@@ -330,7 +314,6 @@ nsSVGPathElement::CreateSVGPathSegLinetoVerticalRel(float y, nsIDOMSVGPathSegLin
 NS_IMETHODIMP
 nsSVGPathElement::CreateSVGPathSegCurvetoCubicSmoothAbs(float x, float y, float x2, float y2, nsIDOMSVGPathSegCurvetoCubicSmoothAbs **_retval)
 {
-  NS_ENSURE_FINITE4(x, y, x2, y2, NS_ERROR_ILLEGAL_VALUE);
   nsIDOMSVGPathSeg* seg = NS_NewSVGPathSegCurvetoCubicSmoothAbs(x, y, x2, y2);
   NS_ENSURE_TRUE(seg, NS_ERROR_OUT_OF_MEMORY);
   return CallQueryInterface(seg, _retval);
@@ -340,7 +323,6 @@ nsSVGPathElement::CreateSVGPathSegCurvetoCubicSmoothAbs(float x, float y, float 
 NS_IMETHODIMP
 nsSVGPathElement::CreateSVGPathSegCurvetoCubicSmoothRel(float x, float y, float x2, float y2, nsIDOMSVGPathSegCurvetoCubicSmoothRel **_retval)
 {
-  NS_ENSURE_FINITE4(x, y, x2, y2, NS_ERROR_ILLEGAL_VALUE);
   nsIDOMSVGPathSeg* seg = NS_NewSVGPathSegCurvetoCubicSmoothRel(x, y, x2, y2);
   NS_ENSURE_TRUE(seg, NS_ERROR_OUT_OF_MEMORY);
   return CallQueryInterface(seg, _retval);
@@ -350,7 +332,6 @@ nsSVGPathElement::CreateSVGPathSegCurvetoCubicSmoothRel(float x, float y, float 
 NS_IMETHODIMP
 nsSVGPathElement::CreateSVGPathSegCurvetoQuadraticSmoothAbs(float x, float y, nsIDOMSVGPathSegCurvetoQuadraticSmoothAbs **_retval)
 {
-  NS_ENSURE_FINITE2(x, y, NS_ERROR_ILLEGAL_VALUE);
   nsIDOMSVGPathSeg* seg = NS_NewSVGPathSegCurvetoQuadraticSmoothAbs(x, y);
   NS_ENSURE_TRUE(seg, NS_ERROR_OUT_OF_MEMORY);
   return CallQueryInterface(seg, _retval);
@@ -360,7 +341,6 @@ nsSVGPathElement::CreateSVGPathSegCurvetoQuadraticSmoothAbs(float x, float y, ns
 NS_IMETHODIMP
 nsSVGPathElement::CreateSVGPathSegCurvetoQuadraticSmoothRel(float x, float y, nsIDOMSVGPathSegCurvetoQuadraticSmoothRel **_retval)
 {
-  NS_ENSURE_FINITE2(x, y, NS_ERROR_ILLEGAL_VALUE);
   nsIDOMSVGPathSeg* seg = NS_NewSVGPathSegCurvetoQuadraticSmoothRel(x, y);
   NS_ENSURE_TRUE(seg, NS_ERROR_OUT_OF_MEMORY);
   return CallQueryInterface(seg, _retval);
@@ -456,12 +436,8 @@ nsSVGPathElement::BeforeSetAttr(PRInt32 aNamespaceID, nsIAtom* aName,
       mSegments = nsnull;
     }
 
-    if (aValue) {
-      nsSVGPathDataParserToInternal parser(&mPathData);
-      parser.Parse(*aValue);
-    } else {
-      mPathData.Clear();
-    }
+    nsSVGPathDataParserToInternal parser(&mPathData);
+    parser.Parse(*aValue);
   }
 
   return nsSVGPathElementBase::BeforeSetAttr(aNamespaceID, aName,
@@ -495,20 +471,43 @@ nsSVGPathElement::DidModifySVGObservable(nsISVGValue* observable,
   return nsSVGPathElementBase::DidModifySVGObservable(observable, aModType);
 }
 
-already_AddRefed<gfxFlattenedPath>
+nsSVGFlattenedPath *
 nsSVGPathElement::GetFlattenedPath(nsIDOMSVGMatrix *aMatrix)
 {
-  gfxContext ctx(nsSVGUtils::GetThebesComputationalSurface());
+  cairo_surface_t *dummySurface =
+    cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1);
+  if (!dummySurface)
+    return nsnull;
 
-  if (aMatrix) {
-    ctx.SetMatrix(nsSVGUtils::ConvertSVGMatrixToThebes(aMatrix));
+  cairo_t *ctx = cairo_create(dummySurface);
+  if (cairo_status(ctx) != CAIRO_STATUS_SUCCESS) {
+    cairo_destroy(ctx);
+    cairo_surface_destroy(dummySurface);
+    return nsnull;
   }
 
-  mPathData.Playback(&ctx);
+  if (aMatrix) {
+    cairo_matrix_t matrix = nsSVGUtils::ConvertSVGMatrixToCairo(aMatrix);
+    cairo_set_matrix(ctx, &matrix);
+  }
 
-  ctx.IdentityMatrix();
+  mPathData.Playback(ctx);
 
-  return ctx.GetFlattenedPath();
+  cairo_identity_matrix(ctx);
+
+  cairo_path_t *path = cairo_copy_path_flat(ctx);
+
+  cairo_destroy(ctx);
+  cairo_surface_destroy(dummySurface);
+
+  if (!path)
+    return nsnull;
+
+  nsSVGFlattenedPath *retval = new nsSVGFlattenedPath(path);
+  if (!retval)
+    cairo_path_destroy(path);
+
+  return retval;
 }
 
 //----------------------------------------------------------------------
@@ -540,8 +539,7 @@ CalcVectorAngle(double ux, double uy, double vx, double vy)
 }
 
 void
-nsSVGPathElement::GetMarkPoints(nsTArray<nsSVGMark> *aMarks)
-{
+nsSVGPathElement::GetMarkPoints(nsTArray<nsSVGMark> *aMarks) {
   if (NS_FAILED(CreatePathSegList()))
     return;
 
@@ -557,11 +555,11 @@ nsSVGPathElement::GetMarkPoints(nsTArray<nsSVGMark> *aMarks)
 
   PRUint16 lastSegmentType = nsIDOMSVGPathSeg::PATHSEG_UNKNOWN;
 
-  float px = 0, py = 0;    // subpath initial point
-  float pathAngle = 0;
-  PRUint32 pathIndex = 0;
+  float px, py;    // subpath initial point
+  float pathAngle;
+  PRUint32 pathIndex;
 
-  float prevAngle = 0, startAngle = 0, endAngle = 0;
+  float prevAngle = 0, startAngle, endAngle;
 
   PRBool newSegment = PR_FALSE;
 
@@ -996,30 +994,29 @@ nsSVGPathList::Clear()
 }
 
 void
-nsSVGPathList::Playback(gfxContext *aCtx)
+nsSVGPathList::Playback(cairo_t *aCtx)
 {
   float *args = mArguments;
   for (PRUint32 i = 0; i < mNumCommands; i++) {
     PRUint8 command =
-      reinterpret_cast<PRUint8*>(mArguments + mNumArguments)[i / 4];
+      NS_REINTERPRET_CAST(PRUint8*, mArguments + mNumArguments)[i / 4];
     command = (command >> (2 * (i % 4))) & 0x3;
     switch (command) {
     case MOVETO:
-      aCtx->MoveTo(gfxPoint(args[0], args[1]));
+      cairo_move_to(aCtx, args[0], args[1]);
       args += 2;
       break;
     case LINETO:
-      aCtx->LineTo(gfxPoint(args[0], args[1]));
+      cairo_line_to(aCtx, args[0], args[1]);
       args += 2;
       break;
     case CURVETO:
-      aCtx->CurveTo(gfxPoint(args[0], args[1]),
-                    gfxPoint(args[2], args[3]),
-                    gfxPoint(args[4], args[5]));
+      cairo_curve_to(aCtx,
+                     args[0], args[1], args[2], args[3], args[4], args[5]);
       args += 6;
       break;
     case CLOSEPATH:
-      aCtx->ClosePath();
+      cairo_close_path(aCtx);
       break;
     default:
       break;
@@ -1027,8 +1024,97 @@ nsSVGPathList::Playback(gfxContext *aCtx)
   }
 }
 
+//==================================================================
+// nsSVGFlattenedPath
+
+static float
+CalcSubLengthAndAdvance(cairo_path_data_t *aData,
+                        float *aPathStartX, float *aPathStartY,
+                        float *aCurrentX, float *aCurrentY)
+{
+  float sublength = 0;
+
+  switch (aData->header.type) {
+    case CAIRO_PATH_MOVE_TO:
+    {
+      *aCurrentX = *aPathStartX = aData[1].point.x;
+      *aCurrentY = *aPathStartY = aData[1].point.y;
+      break;
+    }
+    case CAIRO_PATH_LINE_TO:
+    {
+      float dx = aData[1].point.x - *aCurrentX;
+      float dy = aData[1].point.y - *aCurrentY;
+      sublength = sqrt(dx * dx + dy * dy);
+      *aCurrentX = aData[1].point.x;
+      *aCurrentY = aData[1].point.y;
+      break;
+    }
+    case CAIRO_PATH_CURVE_TO:
+      /* should never happen with a flattened path */
+      NS_WARNING("curve_to in flattened path");
+      break;
+    case CAIRO_PATH_CLOSE_PATH:
+    {
+      float dx = *aPathStartX - *aCurrentX;
+      float dy = *aPathStartY - *aCurrentY;
+      sublength = sqrt(dx * dx + dy * dy);
+      *aCurrentX = *aPathStartX;
+      *aCurrentY = *aPathStartY;
+      break;
+    }
+  }
+  return sublength;
+}
+
+float
+nsSVGFlattenedPath::GetLength()
+{
+  float length = 0;      // current summed length
+  float sx = 0, sy = 0;  // start of current subpath
+  float x = 0, y = 0;    // current point
+
+  for (PRInt32 i = 0; i < mPath->num_data; i += mPath->data[i].header.length) {
+    length += CalcSubLengthAndAdvance(&mPath->data[i], &sx, &sy, &x, &y);
+  }
+  return length;
+}
+
 void
-nsSVGPathElement::ConstructPath(gfxContext *aCtx)
+nsSVGFlattenedPath::FindPoint(float aAdvance, float aXOffset, float aYOffset,
+                              float *aX, float *aY, float *aAngle)
+{
+  float length = 0;      // current summed length
+  float sx = 0, sy = 0;  // start of current subpath
+  float x = 0, y = 0;    // current point
+  float midpoint = aXOffset + aAdvance/2;
+
+  for (PRInt32 i = 0; i < mPath->num_data; i += mPath->data[i].header.length) {
+    float prevX = x;
+    float prevY = y;
+    float sublength = CalcSubLengthAndAdvance(&mPath->data[i],
+                                              &sx, &sy, &x, &y);
+
+    if (sublength != 0 && length + sublength >= midpoint) {
+      float ratio = (aXOffset - length) / sublength;
+      *aX = prevX * (1.0f - ratio) + x * ratio;
+      *aY = prevY * (1.0f - ratio) + y * ratio;
+
+      float dx = x - prevX;
+      float dy = y - prevY;
+      *aAngle = atan2(dy, dx);
+
+      float normalization = 1.0 / sqrt(dx * dx + dy * dy);
+      *aX += - aYOffset * dy * normalization;
+      *aY +=   aYOffset * dx * normalization;
+      return;
+    }
+    length += sublength;
+  }
+}
+
+void
+nsSVGPathElement::ConstructPath(cairo_t *aCtx)
 {
   mPathData.Playback(aCtx);
 }

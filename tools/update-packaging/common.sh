@@ -93,20 +93,11 @@ append_remove_instructions() {
 
 # List all files in the current directory, stripping leading "./"
 # Skip the channel-prefs.js file as it should not be included in any
-# generated MAR files (see bug 306077). Pass a variable name and it will be
-# filled as an array.
+# generated MAR files (see bug 306077).
 list_files() {
-  count=0
-
   find . -type f \
     ! -name "channel-prefs.js" \
     ! -name "update.manifest" \
-    ! -name "temp-filelist" \
-    | sed 's/\.\/\(.*\)/\1/' \
-    | sort > "temp-filelist"
-  while read file; do
-    eval "${1}[$count]=\"$file\""
-    (( count++ ))
-  done < "temp-filelist"
-  rm "temp-filelist"
+    | sed 's/\.\/\(.*\)/"\1"/' \
+    | sort
 }

@@ -58,7 +58,7 @@ interface nsIDOMWindow;
  *
  * @status UNDER_REVIEW
  */
-[scriptable, uuid(b7ae45bd-21e9-4ed5-a67e-86448b25d56b)]
+[scriptable, uuid(DD22939F-B470-4a56-9B80-8C7BA4031334)]
 interface nsIAccessibleDocument : nsISupports
 {
   /**
@@ -91,6 +91,11 @@ interface nsIAccessibleDocument : nsISupports
    */
   readonly attribute nsIDOMWindow window;
 
+  /*
+   * The accessible for the caret belonging to this window.
+   */
+  readonly attribute nsIAccessible caretAccessible;
+
   /**
    * The namespace for each ID that is handed back.
    */
@@ -115,11 +120,8 @@ interface nsIAccessibleDocument : nsISupports
    * Returns the first accessible parent of a DOM node.
    * Guaranteed not to return nsnull if the DOM node is in a document.
    * @param aDOMNode The DOM node we need an accessible for.
-   * @param aCanCreate Can accessibles be created or must it be the first 
-   *                   cached accessible in the parent chain?
    * @return An first nsIAccessible found by crawling up the DOM node
    *         to the document root.
    */
-  nsIAccessible getAccessibleInParentChain(in nsIDOMNode aDOMNode,
-                                           in boolean aCanCreate);
+  nsIAccessible getAccessibleInParentChain(in nsIDOMNode aDOMNode);
 };

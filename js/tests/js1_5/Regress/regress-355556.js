@@ -34,10 +34,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-355556.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 355556;
+var bug = 355556;
 var summary = 'Do not crash with eval(..., arguments)';
 var actual = '';
 var expect = '';
@@ -50,7 +48,7 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
 
   expect = 'TypeError: "foo".b is not a function';

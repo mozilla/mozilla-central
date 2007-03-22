@@ -5790,7 +5790,7 @@ handleClient(void *inArg)
                  */
                 PR_fprintf(aFD, "HTTP/1.1 200 OK%s", crlf);
                 PR_fprintf(aFD, "Server: %s%s",
-                           "$Id: spacetrace.c,v 1.54 2006-11-01 23:02:17 timeless%mozdev.org Exp $",
+                           "$Id: spacetrace.c,v 1.54 2006/11/01 23:02:17 timeless%mozdev.org Exp $",
                            crlf);
                 PR_fprintf(aFD, "Content-type: ");
                 if (NULL != strstr(start, ".png")) {

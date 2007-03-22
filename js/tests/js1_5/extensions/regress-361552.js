@@ -34,17 +34,15 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-361552.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 361552;
+var bug = 361552;
 var summary = 'Crash with setter, watch, Script';
 var actual = '';
 var expect = '';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
- 
+  
 expect = actual = 'No Crash';
 
 if (typeof Script == 'undefined')
@@ -53,8 +51,8 @@ if (typeof Script == 'undefined')
 }
 else
 {
-  this.__defineSetter__('x', gc);
-  this.watch('x', new Script(''));
+  this.__defineSetter__('x', gc); 
+  this.watch('x', new Script('')); 
   x = 3;
 }
 reportCompare(expect, actual, summary);

@@ -61,7 +61,6 @@ SDK_XPIDLSRCS =                                 \
 
 XPIDLSRCS =					\
 	nsIDOMNSEvent.idl			\
-	nsIDOMDataContainerEvent.idl	\
 	nsIDOMKeyEvent.idl			\
 	nsIDOMMutationEvent.idl			\
 	nsIDOMNSUIEvent.idl			\
@@ -71,7 +70,6 @@ XPIDLSRCS =					\
 	nsIDOMSmartCardEvent.idl                \
 	nsIDOMPageTransitionEvent.idl		\
 	nsIDOMCommandEvent.idl			\
-	nsIDOMMessageEvent.idl			\
 	$(NULL)
 
 include $(topsrcdir)/config/rules.mk

@@ -36,15 +36,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'regress-331558.js';
-
-var BUGNUMBER = 331558;
+var bug = 331558;
 var summary = 'Decompiler: Missing = in default xml namespace statement';
 var actual = '';
 var expect = '';
 
-printBugNumber(BUGNUMBER);
-START(summary);
+printBugNumber (bug);
+printStatus (summary);
 
 actual = (function () { default xml namespace = 'abc' }).toString();
 expect = 'function () {\n    default xml namespace = "abc";\n}';

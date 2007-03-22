@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -34,9 +33,8 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK ***** */
-
-/*
+ * ***** END LICENSE BLOCK *****
+ *
  *
  * Date:    10 Apr 2002
  * Revised: 14 July 2002
@@ -56,9 +54,8 @@
  * See http://bugzilla.mozilla.org/show_bug.cgi?id=136893
  */
 //-----------------------------------------------------------------------------
-var gTestfile = 'regress-131348.js';
 var UBound = 0;
-var BUGNUMBER = 131348;
+var bug = 131348;
 var summary = 'JS should not error on |for(i in undefined)|, |for(i in null)|';
 var TEST_PASSED = 'No error';
 var TEST_FAILED = 'An error was generated!!!';
@@ -172,9 +169,9 @@ function addThis()
 function test()
 {
   enterFunc('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber(bug);
   printStatus(summary);
-
+ 
   for (var i=0; i<UBound; i++)
   {
     reportCompare(expectedvalues[i], actualvalues[i], statusitems[i]);

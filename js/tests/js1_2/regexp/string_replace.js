@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'string_replace.js';
-
 /**
    Filename:     string_replace.js
    Description:  'Tests the replace method on Strings using regular expressions'

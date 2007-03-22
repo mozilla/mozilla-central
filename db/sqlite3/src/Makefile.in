@@ -21,8 +21,6 @@
 #
 # Contributor(s):
 #   Vladimir Vukicevic <vladimir.vukicevic@oracle.com>
-#   Shawn Wilsher <me@shawnwilsher.com>
-#   Ryan VanderMeulen <ryanvm@gmail.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -46,62 +44,62 @@ VPATH		= @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 MODULE           = sqlite3
-LIBRARY_NAME     = sqlite3
-FORCE_SHARED_LIB = 1
-VISIBILITY_FLAGS =
-LIB_IS_C_ONLY    = 1
+LIBRARY_NAME     = sqlite3_s
+MODULE_NAME      = sqlite3
+FORCE_STATIC_LIB = 1
 
-ifeq (,$(filter-out WINNT WINCE,$(OS_ARCH)))
-ifndef GNU_CC
-DEFFILE = $(win_srcdir)/sqlite.def
-RCFILE  = sqlite.rc
-RESFILE = sqlite.res
-
-GARBAGE += sqlite-version.h
-
-sqlite-version.h: sqlite-version.py sqlite3.h
-	$(PYTHON) $^ > $@
-export:: sqlite-version.h
-endif
-endif
-
-# FIXME: bug 419893
-NO_PROFILE_GUIDED_OPTIMIZE = 1
-
-ifdef GNU_CC
-MODULE_OPTIMIZE_FLAGS = -O2
-else
-ifeq ($(OS_ARCH),SunOS)
-MODULE_OPTIMIZE_FLAGS = -xO5
-endif
-ifeq ($(OS_ARCH),WINNT)
-MODULE_OPTIMIZE_FLAGS = -O2
-endif
-endif
-
-EXPORTS = \
-  sqlite3.h \
-  $(NULL)
+EXPORTS = sqlite3.h sqlite3file.h
 
 CSRCS = \
-	sqlite3.c \
+	alter.c \
+	analyze.c \
+	attach.c \
+	auth.c \
+	btree.c \
+	build.c \
+	callback.c \
+	complete.c \
+	date.c \
+	delete.c \
+	experimental.c \
+	expr.c \
+	func.c \
+	hash.c \
+	insert.c \
+	legacy.c \
+	main.c \
+	opcodes.c \
+	os.c \
+	os_unix.c \
+	os_win.c \
+	os_os2.c \
+	os_beos.c \
+	pager.c \
+	parse.c \
+	pragma.c \
+	prepare.c \
+	printf.c \
+	random.c \
+	select.c \
+	table.c \
+	tokenize.c \
+	trigger.c \
+	update.c \
+	utf.c \
+	util.c \
+	vacuum.c \
+	vdbe.c \
+	vdbeapi.c \
+	vdbeaux.c \
+	vdbefifo.c \
+	vdbemem.c \
+	where.c \
 	$(NULL)
 
+# REFEF_IO allows us to override IO functions, which is used in the AsyncIO
 # -DSQLITE_SECURE_DELETE=1 will cause SQLITE to 0-fill delete data so we
 # don't have to vacuum to make sure the data is not visible in the file.
-# -DSQLITE_ENABLE_FTS3=1 enables the full-text index module.
-# -DSQLITE_CORE=1 statically links that module into the SQLite library.
-DEFINES = \
-  -DSQLITE_SECURE_DELETE=1 \
-  -DTHREADSAFE=1 \
-  -DSQLITE_CORE=1 \
-  -DSQLITE_ENABLE_FTS3=1 \
-  $(NULL)
-
-# -DSQLITE_ENABLE_LOCKING_STYLE=1 to help with AFP folders
-ifeq ($(MOZ_WIDGET_TOOLKIT),cocoa)
-DEFINES += -DSQLITE_ENABLE_LOCKING_STYLE=1
-endif
+DEFINES = -DSQLITE_ENABLE_REDEF_IO -DSQLITE_SECURE_DELETE=1 -DTHREADSAFE=1
 
 ifeq ($(OS_ARCH),OS2)
 ifdef MOZ_OS2_HIGH_MEMORY
@@ -109,12 +107,15 @@ DEFINES += -DOS2_HIGH_MEMORY
 endif
 endif
 
+ifdef ENABLE_TESTS
+##LIBS = $(DIST)/lib/$(LIB_PREFIX)sqlite3_s.$(LIB_SUFFIX)
+##SIMPLE_PROGRAMS = sqlite-shell
+endif
+
 include $(topsrcdir)/config/rules.mk
+
+sqlite-shell.$(OBJ_SUFFIX): shell.c
+	$(ELOG) $(CC) $(OUTOPTION)$@ -c $(COMPILE_CFLAGS) $(_VPATH_SRCS)
 
 # next line allows use of MOZ_OBJDIR in .mozconfig with older gcc on BeOS, maybe others
 LOCAL_INCLUDES += -I$(srcdir)
-
-ifeq ($(OS_ARCH),OS2)
-ADD_TO_DEF_FILE = sed -e '1,/^EXPORTS$$/ d' -e 's,sqlite3,_\0,' -e 's,\ DATA.*$$,,' \
-		$(srcdir)/sqlite.def >> $(DEF_FILE)
-endif

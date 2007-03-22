@@ -124,7 +124,7 @@ nsSVGTransformList::GetConsolidationMatrix(nsIDOMSVGTransformList *transforms)
     
     nsCOMPtr<nsIDOMSVGMatrix> temp1, temp2;
     
-    for (PRUint32 i = 0; i < count; ++i) {
+    for (PRInt32 i = 0; i < count; ++i) {
       transforms->GetItem(i, getter_AddRefs(transform));
       transform->GetMatrix(getter_AddRefs(temp1));
       conmatrix->Multiply(temp1, getter_AddRefs(temp2));
@@ -263,7 +263,7 @@ NS_IMETHODIMP nsSVGTransformList::Initialize(nsIDOMSVGTransform *newItem,
 /* nsIDOMSVGTransform getItem (in unsigned long index); */
 NS_IMETHODIMP nsSVGTransformList::GetItem(PRUint32 index, nsIDOMSVGTransform **_retval)
 {
-  if (index >= static_cast<PRUint32>(mTransforms.Count())) {
+  if (index >= NS_STATIC_CAST(PRUint32, mTransforms.Count())) {
     *_retval = nsnull;
     return NS_ERROR_DOM_INDEX_SIZE_ERR;
   }
@@ -341,7 +341,7 @@ NS_IMETHODIMP nsSVGTransformList::RemoveItem(PRUint32 index, nsIDOMSVGTransform 
 {
   nsSVGValueAutoNotifier autonotifier(this);
 
-  if (index >= static_cast<PRUint32>(mTransforms.Count())) {
+  if (index >= NS_STATIC_CAST(PRUint32, mTransforms.Count())) {
     *_retval = nsnull;
     return NS_ERROR_DOM_INDEX_SIZE_ERR;
   }

@@ -1,3 +1,7 @@
+/* generated file - DO NOT EDIT */
+
+/* includes 247 stub entries, and 5 sentinel entries */
+
 STUB_ENTRY(3)
 STUB_ENTRY(4)
 STUB_ENTRY(5)

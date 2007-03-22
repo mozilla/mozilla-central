@@ -515,7 +515,6 @@ class nsTAString_CharT
         , mLength(0)
         , mFlags(0)
         {
-          NS_ASSERTION(mVTable, "mVTable is null! Is this a static string instance?!");
           Assign(tuple);
         }
 
@@ -552,9 +551,7 @@ class nsTAString_CharT
         , mData(data)
         , mLength(length)
         , mFlags(flags)
-        {
-          NS_ASSERTION(mVTable, "mVTable is null! Is this a static string instance?!");
-        }
+        {}
 
         /**
          * optional ctor for use by subclasses.
@@ -565,9 +562,7 @@ class nsTAString_CharT
       nsTAString_CharT(PRUint32 flags)
         : mVTable(obsolete_string_type::sCanonicalVTable)
         , mFlags(flags)
-        {
-          NS_ASSERTION(mVTable, "mVTable is null! Is this a static string instance?!");
-        }
+        {}
 
         /**
          * get pointer to internal string buffer (may not be null terminated).
@@ -593,22 +588,22 @@ class nsTAString_CharT
 
       const obsolete_string_type* AsObsoleteString() const
         {
-          return reinterpret_cast<const obsolete_string_type*>(this);
+          return NS_REINTERPRET_CAST(const obsolete_string_type*, this);
         }
 
       obsolete_string_type* AsObsoleteString()
         {
-          return reinterpret_cast<obsolete_string_type*>(this);
+          return NS_REINTERPRET_CAST(obsolete_string_type*, this);
         }
 
       const substring_type* AsSubstring() const
         {
-          return reinterpret_cast<const substring_type*>(this);
+          return NS_REINTERPRET_CAST(const substring_type*, this);
         }
 
       substring_type* AsSubstring()
         {
-          return reinterpret_cast<substring_type*>(this);
+          return NS_REINTERPRET_CAST(substring_type*, this);
         }
 
     private:

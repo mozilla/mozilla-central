@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '12.6.2-8.js';
-
 /**
    File Name:          12.6.2-8.js
    ECMA Section:       12.6.2 The for Statement

@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -22,7 +21,6 @@
  * Contributor(s):
  *   Roger B. Sidje <rbs@maths.uq.edu.au>
  *   Shyjan Mahamud <mahamud@cs.cmu.edu>
- *   Karl Tomlinson <karlt+@karlt.net>, Mozilla Corporation
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -47,21 +45,11 @@
 class nsGlyphTable;
 
 // Hints for Stretch() to indicate criteria for stretching
-enum {
-  // Don't stretch
-  NS_STRETCH_NONE     = 0x00,
-  // Variable size stretches
-  NS_STRETCH_VARIABLE_MASK = 0x0F,
-  NS_STRETCH_NORMAL   = 0x01, // try to stretch to requested size
-  NS_STRETCH_NEARER   = 0x02, // stretch very close to requested size
-  NS_STRETCH_SMALLER  = 0x04, // don't stretch more than requested size
-  NS_STRETCH_LARGER   = 0x08, // don't stretch less than requested size
-  // A largeop in displaystyle
-  NS_STRETCH_LARGEOP  = 0x10,
-  // Intended for internal use:
-  // Find the widest metrics that might be returned from a vertical stretch
-  NS_STRETCH_MAXWIDTH = 0x20
-};
+#define NS_STRETCH_NORMAL  0x00000001 // try to stretch to requested size - DEFAULT
+#define NS_STRETCH_NEARER  0x00000002 // stretch very close to requested size
+#define NS_STRETCH_SMALLER 0x00000004 // don't stretch more than requested size
+#define NS_STRETCH_LARGER  0x00000008 // don't stretch less than requested size
+#define NS_STRETCH_LARGEOP 0x00000010 // for a largeop in displaystyle
 
 // A single glyph in our internal representation is characterized by a 'code@font' 
 // pair. The 'code' is interpreted as a Unicode point or as the direct glyph index
@@ -71,17 +59,9 @@ struct nsGlyphCode {
   PRUnichar code; 
   PRInt32   font;
 
-  PRBool Exists() const
-  {
-    return (code != 0);
-  }
-  PRBool operator==(const nsGlyphCode& other) const
-  {
-    return other.code == code && other.font == font;
-  }
-  PRBool operator!=(const nsGlyphCode& other) const
-  {
-    return ! operator==(other);
+  // conversion operator to just return the code point that we generally want
+  operator PRUnichar () {
+    return code;
   }
 };
 
@@ -133,12 +113,12 @@ public:
   // @param aContainerSize - IN - suggested size for the stretched char
   // @param aDesiredStretchSize - OUT - the size that the char wants
   nsresult
-  Stretch(nsPresContext*           aPresContext,
-          nsIRenderingContext&     aRenderingContext,
-          nsStretchDirection       aStretchDirection,
-          const nsBoundingMetrics& aContainerSize,
-          nsBoundingMetrics&       aDesiredStretchSize,
-          PRUint32                 aStretchHint = NS_STRETCH_NORMAL);
+  Stretch(nsPresContext*      aPresContext,
+          nsIRenderingContext& aRenderingContext,
+          nsStretchDirection   aStretchDirection,
+          nsBoundingMetrics&   aContainerSize,
+          nsBoundingMetrics&   aDesiredStretchSize,
+          PRUint32             aStretchHint = NS_STRETCH_NORMAL);
 
   void
   SetData(nsPresContext* aPresContext,
@@ -185,24 +165,6 @@ public:
     }
   }
 
-  // Get the maximum width that the character might have after a vertical
-  // Stretch().
-  //
-  // @param aStretchHint can be the value that will be passed to Stretch().
-  // It is used to determine whether the operator is stretchy or a largeop.
-  // @param aMaxSize is the value of the "maxsize" attribute.
-  // @param aMaxSizeIsAbsolute indicates whether the aMaxSize is an absolute
-  // value in app units (PR_TRUE) or a multiplier of the base size (PR_FALSE).
-  nscoord
-  GetMaxWidth(nsPresContext* aPresContext,
-              nsIRenderingContext& aRenderingContext,
-              PRUint32 aStretchHint = NS_STRETCH_NORMAL,
-              float aMaxSize = NS_MATHML_OPERATOR_SIZE_INFINITY,
-              // Perhaps just nsOperatorFlags aFlags.
-              // But need DisplayStyle for largeOp,
-              // or remove the largeop bit from flags.
-              PRBool aMaxSizeIsAbsolute = PR_FALSE);
-
   // Metrics that _exactly_ enclose the char. The char *must* have *already*
   // being stretched before you can call the GetBoundingMetrics() method.
   // IMPORTANT: since chars have their own style contexts, and may be rendered
@@ -242,46 +204,32 @@ private:
   nsStyleContext*    mStyleContext;
   nsGlyphTable*      mGlyphTable;
   nsGlyphCode        mGlyph;
-  // mFamily is non-empty when the family for the current size is different
-  // from the family in the nsStyleContext.
-  nsString           mFamily;
-
-  class StretchEnumContext;
-  friend class StretchEnumContext;
 
   // helper methods
   nsresult
-  StretchInternal(nsPresContext*           aPresContext,
-                  nsIRenderingContext&     aRenderingContext,
-                  nsStretchDirection&      aStretchDirection,
-                  const nsBoundingMetrics& aContainerSize,
-                  nsBoundingMetrics&       aDesiredStretchSize,
-                  PRUint32                 aStretchHint,
-                  float           aMaxSize = NS_MATHML_OPERATOR_SIZE_INFINITY,
-                  PRBool          aMaxSizeIsAbsolute = PR_FALSE);
-
-  nsresult
-  ComposeChildren(nsPresContext*       aPresContext,
+  ComposeChildren(nsPresContext*      aPresContext,
                   nsIRenderingContext& aRenderingContext,
                   nsGlyphTable*        aGlyphTable,
-                  nscoord              aTargetSize,
+                  nsBoundingMetrics&   aContainerSize,
                   nsBoundingMetrics&   aCompositeSize,
                   PRUint32             aStretchHint);
 
-  nsresult
-  PaintVertically(nsPresContext*       aPresContext,
+  static nsresult
+  PaintVertically(nsPresContext*      aPresContext,
                   nsIRenderingContext& aRenderingContext,
                   nsFont&              aFont,
                   nsStyleContext*      aStyleContext,
                   nsGlyphTable*        aGlyphTable,
+                  nsMathMLChar*        aChar,
                   nsRect&              aRect);
 
-  nsresult
-  PaintHorizontally(nsPresContext*       aPresContext,
+  static nsresult
+  PaintHorizontally(nsPresContext*      aPresContext,
                     nsIRenderingContext& aRenderingContext,
                     nsFont&              aFont,
                     nsStyleContext*      aStyleContext,
                     nsGlyphTable*        aGlyphTable,
+                    nsMathMLChar*        aChar,
                     nsRect&              aRect);
 };
 

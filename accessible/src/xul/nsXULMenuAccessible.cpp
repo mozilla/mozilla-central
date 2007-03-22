@@ -40,7 +40,6 @@
 #include "nsIDOMElement.h"
 #include "nsIDOMXULElement.h"
 #include "nsIMutableArray.h"
-#include "nsIDOMXULContainerElement.h"
 #include "nsIDOMXULSelectCntrlItemEl.h"
 #include "nsIDOMXULMultSelectCntrlEl.h"
 #include "nsIDOMKeyEvent.h"
@@ -51,11 +50,7 @@
 #include "nsIContent.h"
 #include "nsGUIEvent.h"
 #include "nsXULFormControlAccessible.h"
-#include "nsILookAndFeel.h"
-#include "nsWidgetsCID.h"
 
-
-static NS_DEFINE_CID(kLookAndFeelCID, NS_LOOKANDFEEL_CID);
 
 /** ------------------------------------------------------ */
 /**  Impl. of nsXULSelectableAccessible                    */
@@ -275,14 +270,9 @@ NS_IMETHODIMP nsXULMenuitemAccessible::Init()
   return rv;
 }
 
-NS_IMETHODIMP
-nsXULMenuitemAccessible::GetState(PRUint32 *aState, PRUint32 *aExtraState)
+NS_IMETHODIMP nsXULMenuitemAccessible::GetState(PRUint32 *_retval)
 {
-  nsresult rv = nsAccessible::GetState(aState, aExtraState);
-  NS_ENSURE_SUCCESS(rv, rv);
-  if (!mDOMNode) {
-    return NS_OK;
-  }
+  nsAccessible::GetState(_retval);
 
   // Focused?
   nsCOMPtr<nsIDOMElement> element(do_QueryInterface(mDOMNode));
@@ -291,21 +281,17 @@ nsXULMenuitemAccessible::GetState(PRUint32 *aState, PRUint32 *aExtraState)
   PRBool isFocused = PR_FALSE;
   element->HasAttribute(NS_LITERAL_STRING("_moz-menuactive"), &isFocused); 
   if (isFocused)
-    *aState |= nsIAccessibleStates::STATE_FOCUSED;
+    *_retval |= nsIAccessibleStates::STATE_FOCUSED;
 
   // Has Popup?
   nsAutoString tagName;
   element->GetLocalName(tagName);
   if (tagName.EqualsLiteral("menu")) {
-    *aState |= nsIAccessibleStates::STATE_HASPOPUP;
+    *_retval |= nsIAccessibleStates::STATE_HASPOPUP;
     PRBool isOpen;
     element->HasAttribute(NS_LITERAL_STRING("open"), &isOpen);
-    if (isOpen) {
-      *aState |= nsIAccessibleStates::STATE_EXPANDED;
-    }
-    else {
-      *aState |= nsIAccessibleStates::STATE_COLLAPSED;
-    }
+    *_retval |= isOpen ? nsIAccessibleStates::STATE_EXPANDED :
+                         nsIAccessibleStates::STATE_COLLAPSED;
   }
 
   nsAutoString menuItemType;
@@ -315,76 +301,24 @@ nsXULMenuitemAccessible::GetState(PRUint32 *aState, PRUint32 *aExtraState)
     // Checkable?
     if (menuItemType.EqualsIgnoreCase("radio") ||
         menuItemType.EqualsIgnoreCase("checkbox"))
-      *aState |= nsIAccessibleStates::STATE_CHECKABLE;
+      *_retval |= nsIAccessibleStates::STATE_CHECKABLE;
 
     // Checked?
     nsAutoString checkValue;
     element->GetAttribute(NS_LITERAL_STRING("checked"), checkValue);
     if (checkValue.EqualsLiteral("true")) {
-      *aState |= nsIAccessibleStates::STATE_CHECKED;
+      *_retval |= nsIAccessibleStates::STATE_CHECKED;
     }
   }
 
-  // Combo box listitem
-  PRBool isComboboxOption =
-    (Role(this) == nsIAccessibleRole::ROLE_COMBOBOX_OPTION);
-  if (isComboboxOption) {
-    // Is selected?
-    PRBool isSelected = PR_FALSE;
-    nsCOMPtr<nsIDOMXULSelectControlItemElement>
-      item(do_QueryInterface(mDOMNode));
-    NS_ENSURE_TRUE(item, NS_ERROR_FAILURE);
-    item->GetSelected(&isSelected);
-
-    // Is collapsed?
-    PRBool isCollapsed = PR_FALSE;
-    nsCOMPtr<nsIAccessible> parentAccessible(GetParent());
-    if (parentAccessible &&
-        State(parentAccessible) & nsIAccessibleStates::STATE_INVISIBLE) {
-      isCollapsed = PR_TRUE;
-    }
-    
-    if (isSelected) {
-      *aState |= nsIAccessibleStates::STATE_SELECTED;
-      
-      // Selected and collapsed?
-      if (isCollapsed) {
-        // Set selected option offscreen/invisible according to combobox state
-        nsCOMPtr<nsIAccessible> grandParentAcc;
-        parentAccessible->GetParent(getter_AddRefs(grandParentAcc));
-        NS_ENSURE_TRUE(grandParentAcc, NS_ERROR_FAILURE);
-        NS_ASSERTION((Role(grandParentAcc) == nsIAccessibleRole::ROLE_COMBOBOX),
-                     "grandparent of combobox listitem is not combobox");
-        PRUint32 grandParentState, grandParentExtState;
-        grandParentAcc->GetFinalState(&grandParentState, &grandParentExtState);
-        *aState &= ~(nsIAccessibleStates::STATE_OFFSCREEN |
-                     nsIAccessibleStates::STATE_INVISIBLE);
-        *aState |= grandParentState & nsIAccessibleStates::STATE_OFFSCREEN |
-                   grandParentState & nsIAccessibleStates::STATE_INVISIBLE;
-        if (aExtraState) {
-          *aExtraState |=
-            grandParentExtState & nsIAccessibleStates::EXT_STATE_OPAQUE;
-        }
-      } // isCollapsed
-    } // isSelected
-  } // ROLE_COMBOBOX_OPTION
-
-  // Set focusable and selectable for items that are available
-  // and whose metric setting does allow disabled items to be focused.
-  if (*aState & nsIAccessibleStates::STATE_UNAVAILABLE) {
-    // Honour the LookAndFeel metric.
-    nsCOMPtr<nsILookAndFeel> lookNFeel(do_GetService(kLookAndFeelCID));
-    PRInt32 skipDisabledMenuItems = 0;
-    lookNFeel->GetMetric(nsILookAndFeel::eMetric_SkipNavigatingDisabledMenuItem,
-                         skipDisabledMenuItems);
-    // We don't want the focusable and selectable states for combobox items,
-    // so exclude them here as well.
-    if (skipDisabledMenuItems || isComboboxOption) {
-      return NS_OK;
-    }
+  // Offscreen?
+  // If parent or grandparent menuitem is offscreen, then we're offscreen too
+  // We get it by replacing the current offscreen bit with the parent's
+  nsCOMPtr<nsIAccessible> parentAccessible(GetParent());
+  if (parentAccessible) {
+    *_retval &= ~nsIAccessibleStates::STATE_OFFSCREEN;  // clear the old OFFSCREEN bit
+    *_retval |= (State(parentAccessible) & nsIAccessibleStates::STATE_OFFSCREEN);  // or it with the parent's offscreen bit
   }
-  *aState|= (nsIAccessibleStates::STATE_FOCUSABLE |
-             nsIAccessibleStates::STATE_SELECTABLE);
 
   return NS_OK;
 }
@@ -412,18 +346,13 @@ NS_IMETHODIMP nsXULMenuitemAccessible::GetDescription(nsAString& aDescription)
 }
 
 //return menu accesskey: N or Alt+F
-NS_IMETHODIMP
-nsXULMenuitemAccessible::GetKeyboardShortcut(nsAString& aAccessKey)
+NS_IMETHODIMP nsXULMenuitemAccessible::GetKeyboardShortcut(nsAString& _retval)
 {
-  aAccessKey.Truncate();
-
   static PRInt32 gMenuAccesskeyModifier = -1;  // magic value of -1 indicates unitialized state
 
   nsCOMPtr<nsIDOMElement> elt(do_QueryInterface(mDOMNode));
   if (elt) {
     nsAutoString accesskey;
-    // We do not use nsAccUtils::GetAccesskeyFor() because accesskeys for
-    // menu are't registered by nsIEventStateManager.
     elt->GetAttribute(NS_LITERAL_STRING("accesskey"), accesskey);
     if (accesskey.IsEmpty())
       return NS_OK;
@@ -449,11 +378,11 @@ nsXULMenuitemAccessible::GetKeyboardShortcut(nsAString& aAccessKey)
           case nsIDOMKeyEvent::DOM_VK_META: propertyKey.AssignLiteral("VK_META"); break;
         }
         if (!propertyKey.IsEmpty())
-          nsAccessible::GetFullKeyName(propertyKey, accesskey, aAccessKey);
+          nsAccessible::GetFullKeyName(propertyKey, accesskey, _retval);
       }
     }
-    if (aAccessKey.IsEmpty())
-      aAccessKey = accesskey;
+    if (_retval.IsEmpty())
+      _retval = accesskey;
     return NS_OK;
   }
   return NS_ERROR_FAILURE;
@@ -480,20 +409,11 @@ nsXULMenuitemAccessible::GetDefaultKeyBinding(nsAString& aKeyBinding)
 
 NS_IMETHODIMP nsXULMenuitemAccessible::GetRole(PRUint32 *aRole)
 {
-  nsCOMPtr<nsIDOMXULContainerElement> xulContainer(do_QueryInterface(mDOMNode));
-  if (xulContainer) {
-    *aRole = nsIAccessibleRole::ROLE_PARENT_MENUITEM;
-    return NS_OK;
-  }
-
-  nsCOMPtr<nsIAccessible> parent;
-  GetParent(getter_AddRefs(parent));
-  if (parent && Role(parent) == nsIAccessibleRole::ROLE_COMBOBOX_LIST) {
-    *aRole = nsIAccessibleRole::ROLE_COMBOBOX_OPTION;
-    return NS_OK;
-  }
-
   *aRole = nsIAccessibleRole::ROLE_MENUITEM;
+  if (mParent && Role(mParent) == nsIAccessibleRole::ROLE_COMBOBOX_LIST) {
+    *aRole = nsIAccessibleRole::ROLE_COMBOBOX_LISTITEM;
+    return NS_OK;
+  }
   nsCOMPtr<nsIDOMElement> element(do_QueryInterface(mDOMNode));
   if (!element)
     return NS_ERROR_FAILURE;
@@ -503,20 +423,14 @@ NS_IMETHODIMP nsXULMenuitemAccessible::GetRole(PRUint32 *aRole)
     *aRole = nsIAccessibleRole::ROLE_RADIO_MENU_ITEM;
   else if (menuItemType.EqualsIgnoreCase("checkbox"))
     *aRole = nsIAccessibleRole::ROLE_CHECK_MENU_ITEM;
+  else { // Fortunately, radio/checkbox menuitems don't typically have children
+    PRInt32 childCount;
+    GetChildCount(&childCount);
+    if (childCount > 0) {
+      *aRole = nsIAccessibleRole::ROLE_PARENT_MENUITEM;
+    }
+  }
 
-  return NS_OK;
-}
-
-nsresult
-nsXULMenuitemAccessible::GetAttributesInternal(nsIPersistentProperties *aAttributes)
-{
-  NS_ENSURE_ARG_POINTER(aAttributes);
-  NS_ENSURE_TRUE(mDOMNode, NS_ERROR_FAILURE);
-
-  nsresult rv = nsAccessible::GetAttributesInternal(aAttributes);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsAccUtils::SetAccAttrsForXULContainerItem(mDOMNode, aAttributes);
   return NS_OK;
 }
 
@@ -562,18 +476,11 @@ nsXULMenuitemAccessible(aDOMNode, aShell)
 { 
 }
 
-NS_IMETHODIMP
-nsXULMenuSeparatorAccessible::GetState(PRUint32 *aState, PRUint32 *aExtraState)
+NS_IMETHODIMP nsXULMenuSeparatorAccessible::GetState(PRUint32 *_retval)
 {
-  // Isn't focusable, but can be offscreen/invisible -- only copy those states
-  nsresult rv = nsXULMenuitemAccessible::GetState(aState, aExtraState);
-  NS_ENSURE_SUCCESS(rv, rv);
-  if (!mDOMNode) {
-    return NS_OK;
-  }
-
-  *aState &= (nsIAccessibleStates::STATE_OFFSCREEN | 
-              nsIAccessibleStates::STATE_INVISIBLE);
+  // Isn't focusable, but can be offscreen
+  nsXULMenuitemAccessible::GetState(_retval);
+  *_retval &= nsIAccessibleStates::STATE_OFFSCREEN;
 
   return NS_OK;
 }
@@ -615,17 +522,10 @@ nsXULMenupopupAccessible::nsXULMenupopupAccessible(nsIDOMNode* aDOMNode, nsIWeak
   mSelectControl = do_QueryInterface(parentNode);
 }
 
-NS_IMETHODIMP
-nsXULMenupopupAccessible::GetState(PRUint32 *aState, PRUint32 *aExtraState)
+NS_IMETHODIMP nsXULMenupopupAccessible::GetState(PRUint32 *_retval)
 {
-  nsresult rv = nsAccessible::GetState(aState, aExtraState);
-  NS_ENSURE_SUCCESS(rv, rv);
-  if (!mDOMNode) {
-    return NS_OK;
-  }
-
-#ifdef DEBUG_A11Y
   // We are onscreen if our parent is active
+  *_retval = 0;
   PRBool isActive = PR_FALSE;
 
   nsCOMPtr<nsIDOMElement> element(do_QueryInterface(mDOMNode));
@@ -640,13 +540,9 @@ nsXULMenupopupAccessible::GetState(PRUint32 *aState, PRUint32 *aExtraState)
     if (element)
       element->HasAttribute(NS_LITERAL_STRING("open"), &isActive);
   }
-  NS_ASSERTION(isActive || *aState & nsIAccessibleStates::STATE_INVISIBLE,
-               "XULMenupopup doesn't have STATE_INVISIBLE when it's inactive");
-#endif
 
-  if (*aState & nsIAccessibleStates::STATE_INVISIBLE)
-    *aState |= (nsIAccessibleStates::STATE_OFFSCREEN |
-                nsIAccessibleStates::STATE_COLLAPSED);
+  if (!isActive)
+    *_retval |= nsIAccessibleStates::STATE_OFFSCREEN;
 
   return NS_OK;
 }
@@ -691,42 +587,33 @@ void nsXULMenupopupAccessible::GenerateMenu(nsIDOMNode *aNode)
   }
 }
 
-NS_IMETHODIMP
-nsXULMenupopupAccessible::GetName(nsAString& aName)
+NS_IMETHODIMP nsXULMenupopupAccessible::GetName(nsAString& _retval)
 {
-  aName.Truncate();
+  nsCOMPtr<nsIDOMElement> element(do_QueryInterface(mDOMNode));
+  NS_ASSERTION(element, "No element for popup node!");
 
-  if (!mDOMNode)
-    return NS_ERROR_FAILURE;
-
-  nsCOMPtr<nsIContent> content(do_QueryInterface(mDOMNode));
-  while (content && aName.IsEmpty()) {
-    content->GetAttr(kNameSpaceID_None, nsAccessibilityAtoms::label, aName);
-    content = content->GetParent();
+  while (element) {
+    element->GetAttribute(NS_LITERAL_STRING("label"), _retval);
+    if (!_retval.IsEmpty())
+      return NS_OK;
+    nsCOMPtr<nsIDOMNode> parentNode, node(do_QueryInterface(element));
+    if (!node)
+      return NS_ERROR_FAILURE;
+    node->GetParentNode(getter_AddRefs(parentNode));
+    element = do_QueryInterface(parentNode);
   }
 
-  return NS_OK;
+  return NS_ERROR_FAILURE;
 }
 
 NS_IMETHODIMP nsXULMenupopupAccessible::GetRole(PRUint32 *aRole)
 {
-  nsCOMPtr<nsIContent> content(do_QueryInterface(mDOMNode));
-  if (!content) {
-    return NS_ERROR_FAILURE;
+  if (mParent && Role(mParent) == nsIAccessibleRole::ROLE_COMBOBOX) {
+    *aRole = nsIAccessibleRole::ROLE_COMBOBOX_LIST;
   }
-  nsCOMPtr<nsIAccessible> parent;
-  GetParent(getter_AddRefs(parent));
-  if (parent) {
-    // Some widgets like the search bar have several popups, owned by buttons
-    PRUint32 role = Role(parent);
-    if (role == nsIAccessibleRole::ROLE_COMBOBOX ||
-        role == nsIAccessibleRole::ROLE_PUSHBUTTON ||
-        role == nsIAccessibleRole::ROLE_AUTOCOMPLETE) {
-      *aRole = nsIAccessibleRole::ROLE_COMBOBOX_LIST;
-      return NS_OK;
-    }
+  else {
+    *aRole = nsIAccessibleRole::ROLE_MENUPOPUP;
   }
-  *aRole = nsIAccessibleRole::ROLE_MENUPOPUP;
   return NS_OK;
 }
 
@@ -737,17 +624,10 @@ nsXULMenubarAccessible::nsXULMenubarAccessible(nsIDOMNode* aDOMNode, nsIWeakRefe
 { 
 }
 
-NS_IMETHODIMP
-nsXULMenubarAccessible::GetState(PRUint32 *aState, PRUint32 *aExtraState)
+NS_IMETHODIMP nsXULMenubarAccessible::GetState(PRUint32 *_retval)
 {
-  nsresult rv = nsAccessible::GetState(aState, aExtraState);
-  NS_ENSURE_SUCCESS(rv, rv);
-  if (!mDOMNode) {
-    return NS_OK;
-  }
-
-  // Menu bar iteself is not actually focusable
-  *aState &= ~nsIAccessibleStates::STATE_FOCUSABLE;
+  nsresult rv = nsAccessible::GetState(_retval);
+  *_retval &= ~nsIAccessibleStates::STATE_FOCUSABLE; // Menu bar iteself is not actually focusable
   return rv;
 }
 

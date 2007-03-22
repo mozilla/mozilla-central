@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -34,9 +33,8 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK ***** */
-
-/*
+ * ***** END LICENSE BLOCK *****
+ *
  * Date: 2001-07-03
  *
  * SUMMARY:  Testing scope with nested functions
@@ -66,9 +64,8 @@
  * This is what we are checking for in this testcase -
  */
 //-----------------------------------------------------------------------------
-var gTestfile = 'scope-003.js';
 var UBound = 0;
-var BUGNUMBER = '(none)';
+var bug = '(none)';
 var summary = 'Testing scope with nested functions';
 var statprefix = 'Section ';
 var statsuffix = ' of test -';
@@ -88,10 +85,10 @@ function a()
   }
 
   this.c = function()
-    {
-      capture(this.toString());
-      b();
-    }
+  {
+    capture(this.toString());
+    b();
+  }
 
   b();
 }
@@ -125,9 +122,9 @@ function capture(val)
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
-
+ 
   for (var i=0; i<UBound; i++)
   {
     reportCompare(expectedvalues[i], actualvalues[i], statusitems[i]);

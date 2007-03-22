@@ -65,23 +65,26 @@ DEFINES += -DAPP_VERSION="$(APP_VERSION)"
 APP_UA_NAME = $(shell echo $(MOZ_APP_DISPLAYNAME) | sed -e's/[^A-Za-z]//g')
 DEFINES += -DAPP_UA_NAME="$(APP_UA_NAME)"
 
+ifdef LIBXUL_SDK
+# Build application.ini for a XULRunner app
+
 DIST_FILES = application.ini
 
-GRE_MILESTONE = $(shell $(PYTHON) $(topsrcdir)/config/printconfigsetting.py $(LIBXUL_DIST)/bin/platform.ini Build Milestone)
-GRE_BUILDID = $(shell $(PYTHON) $(topsrcdir)/config/printconfigsetting.py $(LIBXUL_DIST)/bin/platform.ini Build BuildID)
+# GRE_BUILD_ID is only available in nsBuildID.h in a form that we can't use
+# directly. So munge it. Beware makefile and shell escaping
+AWK_EXPR = '/\#define GRE_BUILD_ID/ { gsub(/"/, "", $$3); print $$3 }'
+AWK_CMD = awk $(AWK_EXPR) < $(LIBXUL_DIST)/include/nsBuildID.h
 
-DEFINES += -DGRE_MILESTONE=$(GRE_MILESTONE) -DGRE_BUILDID=$(GRE_BUILDID)
+GRE_BUILD_ID = $(shell $(AWK_CMD))
 
-ifdef MOZ_MEMORY
-ifneq ($(OS_ARCH),WINNT)
-LIBS += -ljemalloc
-endif
-endif
+DEFINES += -DGRE_BUILD_ID=$(GRE_BUILD_ID)
 
-ifdef LIBXUL_SDK
 include $(topsrcdir)/config/rules.mk
+
 else
 # Build a binary bootstrapping with XRE_main
+
+MOZILLA_INTERNAL_API = 1
 
 ifeq ($(USE_SHORT_LIBNAME), 1)
 PROGRAM = $(MOZ_APP_NAME)$(BIN_SUFFIX)
@@ -91,7 +94,7 @@ endif
 
 REQUIRES = \
 	xpcom \
-	string \
+	xulapp \
 	$(NULL)
 
 CPPSRCS = nsBrowserApp.cpp
@@ -114,28 +117,24 @@ endif
 endif
 
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
-TK_LIBS := $(TK_LIBS)
-endif
-
-ifdef MOZ_ENABLE_LIBXUL
-APP_XPCOM_LIBS = $(XPCOM_GLUE_LDOPTS)
-else
-MOZILLA_INTERNAL_API = 1
-APP_XPCOM_LIBS = $(XPCOM_LIBS)
+TK_LIBS := -framework Cocoa $(TK_LIBS)
 endif
 
 LIBS += \
 	$(STATIC_COMPONENTS_LINKER_PATH) \
 	$(EXTRA_DSO_LIBS) \
 	$(MOZ_JS_LIBS) \
-	$(APP_XPCOM_LIBS) \
+	$(XPCOM_LIBS) \
 	$(NSPR_LIBS) \
 	$(TK_LIBS) \
 	$(NULL)
 
 # Add explicit X11 dependency when building against X11 toolkits
-ifneq (,$(filter gtk2,$(MOZ_WIDGET_TOOLKIT)))
-LIBS += $(XLDFLAGS) $(XLIBS) $(ZLIB_LIBS)
+ifneq (,$(filter gtk gtk2 xlib,$(MOZ_WIDGET_TOOLKIT)))
+LIBS += $(XLDFLAGS) $(XLIBS)
+ifdef MOZ_ENABLE_CAIRO_GFX
+LIBS += $(ZLIB_LIBS)
+endif
 endif
 
 ifdef MOZ_JPROF
@@ -153,20 +152,10 @@ endif
 NSDISTMODE = copy
 
 include $(topsrcdir)/config/config.mk
-
-ifdef _MSC_VER
-# Always enter a Windows program through wmain, whether or not we're
-# a console application.
-WIN32_EXE_LDFLAGS += -ENTRY:wmainCRTStartup
-endif
-
 ifndef BUILD_STATIC_LIBS
 
 ifdef NS_TRACE_MALLOC
-# when libxul is enabled, trace-malloc is part of it
-ifndef MOZ_ENABLE_LIBXUL
 EXTRA_DSO_LIBS += tracemalloc
-endif
 endif
 
 else
@@ -184,9 +173,11 @@ endif
 
 ifeq ($(OS_ARCH),WINNT)
 OS_LIBS += $(call EXPAND_LIBNAME,comctl32 comdlg32 uuid shell32 ole32 oleaut32 version winspool)
-OS_LIBS += $(call EXPAND_LIBNAME,usp10 msimg32)
+ifdef MOZ_ENABLE_CAIRO_GFX
+OS_LIBS += $(call EXPAND_LIBNAME,usp10)
 ifdef MOZ_ENABLE_GLITZ
 OS_LIBS += $(call EXPAND_LIBNAME,opengl32)
+endif
 endif
 
 RCINCLUDE = splash.rc
@@ -227,18 +218,15 @@ include $(topsrcdir)/config/rules.mk
 
 DEFINES += -DFIREFOX_ICO=\"$(DIST)/branding/firefox.ico\" -DDOCUMENT_ICO=\"$(DIST)/branding/document.ico\"
 
-ifdef MOZILLA_OFFICIAL
-DEFINES += -DMOZILLA_OFFICIAL
-endif
-
 ifdef BUILD_STATIC_LIBS
 include $(topsrcdir)/config/static-rules.mk
 
 DEFINES += -DIMPL_XREAPI
 endif
 
-ifeq ($(MOZ_WIDGET_TOOLKIT),cocoa)
+ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 ifdef BUILD_STATIC_LIBS
+LIBS	+= -framework QuickTime -framework IOKit
 ifdef USE_PREBINDING
 BIN_FLAGS += -Wl,-headerpad -Wl,5a0c
 endif
@@ -284,7 +272,9 @@ endif
 ifneq (,$(filter-out OS2 WINNT,$(OS_ARCH)))
 
 $(MOZ_APP_NAME):: mozilla.in Makefile.in Makefile $(DEPTH)/config/autoconf.mk
-	cat $< | sed -e "s|%MOZAPPDIR%|$(installdir)|" > $@
+	cat $< | sed -e "s|%MOZAPPDIR%|$(mozappdir)|" \
+                -e "s|%MOZ_USER_DIR%|.mozilla/firefox|" \
+		-e "s|%MREDIR%|$(mredir)|" > $@
 	chmod +x $@
 
 libs:: $(MOZ_APP_NAME)
@@ -298,9 +288,7 @@ GARBAGE += $(addprefix $(DIST)/bin/defaults/pref/, firefox.js)
 
 endif
 
-endif # LIBXUL_SDK
-
-ifneq (,$(filter gtk2,$(MOZ_WIDGET_TOOLKIT)))
+ifneq (,$(filter gtk gtk2,$(MOZ_WIDGET_TOOLKIT)))
 
 ICON_FILES	= \
 		$(DIST)/branding/mozicon128.png \
@@ -318,9 +306,10 @@ endif
 
 ifeq ($(MOZ_WIDGET_TOOLKIT),gtk2)
 libs::
-	$(INSTALL) $(DIST)/branding/default16.png $(DIST)/bin/chrome/icons/default
-	$(INSTALL) $(DIST)/branding/default32.png $(DIST)/bin/chrome/icons/default
-	$(INSTALL) $(DIST)/branding/default48.png $(DIST)/bin/chrome/icons/default
+	$(INSTALL) $(DIST)/branding/default.xpm $(DIST)/bin/chrome/icons/default
+
+install::
+	$(SYSINSTALL) $(IFLAGS1) $(DIST)/branding/default.xpm $(DESTDIR)$(mozappdir)/chrome/icons/default
 endif
 
 export::
@@ -339,16 +328,14 @@ ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 	cp $(srcdir)/macbuild/disk.icns $(DIST)/branding/disk.icns
 	cp $(srcdir)/macbuild/license.r $(DIST)/branding/license.r
 endif
-ifneq (,$(filter gtk2,$(MOZ_WIDGET_TOOLKIT)))
+ifneq (,$(filter gtk gtk2,$(MOZ_WIDGET_TOOLKIT)))
 	cp $(srcdir)/mozicon128.png $(DIST)/branding/mozicon128.png
 	cp $(srcdir)/mozicon16.xpm $(DIST)/branding/mozicon16.xpm
 	cp $(srcdir)/mozicon50.xpm $(DIST)/branding/mozicon50.xpm
 	cp $(srcdir)/document.png $(DIST)/branding/document.png
 endif
 ifeq ($(MOZ_WIDGET_TOOLKIT),gtk2)
-	cp $(srcdir)/default16.png   $(DIST)/branding/default16.png
-	cp $(srcdir)/default32.png   $(DIST)/branding/default32.png
-	cp $(srcdir)/default48.png   $(DIST)/branding/default48.png
+	cp $(srcdir)/default.xpm   $(DIST)/branding/default.xpm	
 endif
 ifeq ($(OS_ARCH),OS2)
 	cp $(srcdir)/firefox-os2.ico   $(DIST)/branding/firefox.ico
@@ -359,12 +346,6 @@ endif
 
 libs::
 	touch $(DIST)/bin/.autoreg
-
-libs:: $(srcdir)/profile/prefs.js
-	$(INSTALL) $^ $(DIST)/bin/defaults/profile
-
-libs:: $(srcdir)/blocklist.xml
-	$(INSTALL) $^ $(DIST)/bin
 
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 
@@ -381,59 +362,35 @@ AB := $(firstword $(subst -, ,$(AB_CD)))
 clean clobber repackage::
 	rm -rf $(DIST)/$(APP_NAME).app
 
-ifdef LIBXUL_SDK
-APPFILES = Resources
-else
-APPFILES = MacOS
-endif
-
-libs repackage:: $(PROGRAM) application.ini
+libs repackage:: $(PROGRAM)
 	mkdir -p $(DIST)/$(APP_NAME).app/Contents/MacOS
 	rsync -a --exclude CVS --exclude "*.in" $(srcdir)/macbuild/Contents $(DIST)/$(APP_NAME).app --exclude English.lproj
 	mkdir -p $(DIST)/$(APP_NAME).app/Contents/Resources/$(AB).lproj
 	rsync -a --exclude CVS --exclude "*.in" $(srcdir)/macbuild/Contents/Resources/English.lproj/ $(DIST)/$(APP_NAME).app/Contents/Resources/$(AB).lproj
-	sed -e "s/%APP_VERSION%/$(APP_VERSION)/" -e "s/%APP_NAME%/$(APP_NAME)/" $(srcdir)/macbuild/Contents/Info.plist.in > $(DIST)/$(APP_NAME).app/Contents/Info.plist
-	sed -e "s/%APP_VERSION%/$(APP_VERSION)/" -e "s/%APP_NAME%/$(APP_NAME)/" $(srcdir)/macbuild/Contents/Resources/English.lproj/InfoPlist.strings.in | iconv -f UTF-8 -t UTF-16 > $(DIST)/$(APP_NAME).app/Contents/Resources/$(AB).lproj/InfoPlist.strings
-	rsync -a $(DIST)/bin/ $(DIST)/$(APP_NAME).app/Contents/$(APPFILES)
-	$(RM) $(DIST)/$(APP_NAME).app/Contents/$(APPFILES)/mangle $(DIST)/$(APP_NAME).app/Contents/$(APPFILES)/shlibsign
-ifdef LIBXUL_SDK
-	cp $(LIBXUL_DIST)/bin/$(XR_STUB_NAME) $(DIST)/$(APP_NAME).app/Contents/MacOS/firefox-bin
-else
-	rm -f $(DIST)/$(APP_NAME).app/Contents/MacOS/$(PROGRAM)
+	sed -e "s/@APP_VERSION@/$(APP_VERSION)/" -e "s/@APP_NAME@/$(APP_NAME)/" $(srcdir)/macbuild/Contents/Info.plist.in > $(DIST)/$(APP_NAME).app/Contents/Info.plist
+	sed -e "s/@APP_VERSION@/$(APP_VERSION)/" -e "s/@APP_NAME@/$(APP_NAME)/" $(srcdir)/macbuild/Contents/Resources/English.lproj/InfoPlist.strings.in | iconv -f UTF-8 -t UTF-16 > $(DIST)/$(APP_NAME).app/Contents/Resources/$(AB).lproj/InfoPlist.strings
+	rsync -a $(DIST)/bin/ $(DIST)/$(APP_NAME).app/Contents/MacOS
+	rm -f $(DIST)/$(APP_NAME).app/Contents/MacOS/$(PROGRAM) $(DIST)/$(APP_NAME).app/Contents/MacOS/mangle $(DIST)/$(APP_NAME).app/Contents/MacOS/shlibsign
 	rsync -aL $(PROGRAM) $(DIST)/$(APP_NAME).app/Contents/MacOS
-endif
 	mkdir -p $(DIST)/$(APP_NAME).app/Contents/Plug-Ins
-	rsync -a --copy-unsafe-links $(LIBXUL_DIST)/package/PrintPDE.plugin $(DIST)/$(APP_NAME).app/Contents/Plug-Ins
-	-cp -L $(DIST)/bin/mangle $(DIST)/bin/shlibsign $(DIST)/$(APP_NAME).app/Contents/$(APPFILES)
+	rsync -a --copy-unsafe-links $(DIST)/package/PrintPDE.plugin $(DIST)/$(APP_NAME).app/Contents/Plug-Ins
+	-cp -L $(DIST)/bin/mangle $(DIST)/bin/shlibsign $(DIST)/$(APP_NAME).app/Contents/MacOS
 	cp -RL $(DIST)/branding/firefox.icns $(DIST)/$(APP_NAME).app/Contents/Resources/firefox.icns
 	cp -RL $(DIST)/branding/document.icns $(DIST)/$(APP_NAME).app/Contents/Resources/document.icns
-	cp -RL $(LIBXUL_DIST)/package/mozillaSuite.rsrc $(DIST)/$(APP_NAME).app/Contents/Resources/firefox-bin.rsrc
+	cp -RL $(DIST)/package/mozillaSuite.rsrc $(DIST)/$(APP_NAME).app/Contents/Resources/$(PROGRAM).rsrc
 	echo -n APPLMOZB > $(DIST)/$(APP_NAME).app/Contents/PkgInfo
 #       remove CVS dirs from packaged app
 	find $(DIST)/$(APP_NAME).app -type d -name "CVS" -prune -exec rm -rf {} \;
 
-else
-ifdef LIBXUL_SDK
-libs::
-	cp $(LIBXUL_DIST)/bin/xulrunner-stub$(BIN_SUFFIX) $(DIST)/bin/firefox$(BIN_SUFFIX)
-endif
 endif
 
-libs::
-ifeq ($(OS_ARCH),WINNT)
-	$(PERL) -pe 's/(?<!\r)\n/\r\n/g;' < $(topsrcdir)/LICENSE > $(DIST)/bin/LICENSE
-else
-	$(INSTALL) $(topsrcdir)/LICENSE	$(DIST)/bin
-endif
-
-ifdef LIBXUL_SDK
-ifndef SKIP_COPY_XULRUNNER
-libs::
-ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
-	rsync -a --copy-unsafe-links $(LIBXUL_DIST)/XUL.framework $(DIST)/$(APP_NAME).app/Contents/Frameworks
-else
-	$(NSINSTALL) -D $(DIST)/bin/xulrunner
-	(cd $(LIBXUL_SDK)/bin && tar $(TAR_CREATE_FLAGS) - .) | (cd $(DIST)/bin/xulrunner && tar -xf -)
-endif # cocoa
-endif # SKIP_COPY_XULRUNNER
 endif # LIBXUL_SDK
+
+libs::
+	$(INSTALL) $(topsrcdir)/LICENSE	$(DIST)/bin
+
+libs:: $(srcdir)/profile/prefs.js
+	$(INSTALL) $^ $(DIST)/bin/defaults/profile
+
+install:: $(srcdir)/profile/prefs.js
+	$(SYSINSTALL) $(IFLAGS1) $^ $(DESTDIR)$(mozappdir)/defaults/profile

@@ -56,7 +56,6 @@ REQUIRES	= xpcom \
 		  dom \
 		  content \
 		  gfx \
-		  thebes \
 		  widget \
 		  caps \
 		  locale \
@@ -65,6 +64,8 @@ REQUIRES	= xpcom \
 		  necko \
 		  mimetype \
 		  webshell \
+		  docshell \
+		  htmlparser \
 		  uconv \
 		  xuldoc \
 		  xpconnect \
@@ -116,7 +117,6 @@ EXPORTS		= \
 		nsStyleCoord.h \
 		nsStyleSet.h \
 		nsStyleStruct.h \
-		nsStyleStructFwd.h \
 		nsStyleStructList.h \
 		nsStyleUtil.h \
 		$(NULL)
@@ -177,14 +177,12 @@ _FILES	= \
 	viewsource.css \
 	arrow.gif \
 	arrowd.gif \
-	contenteditable.css \
-	designmode.css \
 	$(NULL)
 
 GARBAGE		+= $(addprefix $(DIST)/bin/res/,$(_FILES))
 
 FORMS_CSS_SRC = $(srcdir)/forms.css
-PREPROCESS_FORMS_CSS = $(PYTHON) $(MOZILLA_DIR)/config/Preprocessor.py --marker=% $(DEFINES) $(ACDEFINES) $(FORMS_CSS_SRC)
+PREPROCESS_FORMS_CSS = $(PERL) $(MOZILLA_DIR)/config/preprocessor.pl --marker=% $(DEFINES) $(ACDEFINES) $(FORMS_CSS_SRC)
 
 $(DIST)/bin/res/forms.css $(DESTDIR)$(mozappdir)/res/forms.css: $(FORMS_CSS_SRC) Makefile
 	if test ! -d $(@D); then rm -rf $(@D); $(NSINSTALL) -D $(@D); else true; fi

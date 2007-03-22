@@ -67,7 +67,7 @@ static nsresult
 convertRtfToNode(txIEvalContext *aContext, txResultTreeFragment *aRtf)
 {
     txExecutionState* es = 
-        static_cast<txExecutionState*>(aContext->getPrivateContext());
+        NS_STATIC_CAST(txExecutionState*, aContext->getPrivateContext());
     if (!es) {
         NS_ERROR("Need txExecutionState!");
 
@@ -110,7 +110,7 @@ createTextNode(txIEvalContext *aContext, nsString& aValue,
                txXPathNode* *aResult)
 {
     txExecutionState* es = 
-        static_cast<txExecutionState*>(aContext->getPrivateContext());
+        NS_STATIC_CAST(txExecutionState*, aContext->getPrivateContext());
     if (!es) {
         NS_ERROR("Need txExecutionState!");
 
@@ -139,7 +139,7 @@ static nsresult
 createDocFragment(txIEvalContext *aContext, nsIContent** aResult)
 {
     txExecutionState* es = 
-        static_cast<txExecutionState*>(aContext->getPrivateContext());
+        NS_STATIC_CAST(txExecutionState*, aContext->getPrivateContext());
     if (!es) {
         NS_ERROR("Need txExecutionState!");
 
@@ -244,10 +244,6 @@ static txEXSLTFunctionDescriptor descriptTable[] =
 
 };
 
-#ifdef WINCE // WINCE defines this.
-#undef DIFFERENCE
-#endif
-
 class txEXSLTFunctionCall : public FunctionCall
 {
 public:
@@ -314,8 +310,8 @@ txEXSLTFunctionCall::evaluate(txIEvalContext *aContext,
                 if (exprResult->getResultType() ==
                     txAExprResult::RESULT_TREE_FRAGMENT) {
                     txResultTreeFragment *rtf =
-                        static_cast<txResultTreeFragment*>
-                                   (exprResult.get());
+                        NS_STATIC_CAST(txResultTreeFragment*,
+                                       exprResult.get());
 
                     const txXPathNode *node = rtf->getNode();
                     if (!node) {
@@ -729,7 +725,7 @@ TX_ConstructEXSLTFunction(nsIAtom *aName,
         txEXSLTFunctionDescriptor& desc = descriptTable[i];
         if (aName == *desc.mName && aNamespaceID == desc.mNamespaceID) {
             *aResult = new txEXSLTFunctionCall(
-                static_cast<txEXSLTFunctionCall::eType>(i));
+                NS_STATIC_CAST(txEXSLTFunctionCall::eType, i));
 
             return *aResult ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
         }

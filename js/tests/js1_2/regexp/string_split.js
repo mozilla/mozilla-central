@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'string_split.js';
-
 /**
    Filename:     string_split.js
    Description:  'Tests the split method on Strings using regular expressions'

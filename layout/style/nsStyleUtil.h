@@ -97,12 +97,6 @@ public:
    */
   static float ColorComponentToFloat(PRUint8 aAlpha);
 
-  /*
-   * Does this child count as significant for selector matching?
-   */
-  static PRBool IsSignificantChild(nsIContent* aChild,
-                                   PRBool aTextIsSignificant,
-                                   PRBool aWhitespaceIsSignificant);
 };
 
 

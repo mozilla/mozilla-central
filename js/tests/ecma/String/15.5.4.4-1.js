@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '15.5.4.4-1.js';
-
 /**
    File Name:          15.5.4.4-1.js
    ECMA Section:       15.5.4.4 String.prototype.charAt(pos)

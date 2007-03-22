@@ -35,17 +35,15 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-211590.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 211590;
+var bug = 211590;
 var summary = 'Math.random should be random';
 var actual = '';
-var expect = 'between 48% and 52%';
+var expect = 'between 49% and 51%';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
- 
+  
 var r = Math.random;
 var c = Math.pow( 2, 53 );
 
@@ -53,21 +51,21 @@ var n = 10000;
 var odd1 = 0;
 var odd2 = 0;
 
-for ( var i = 0; i < n; ++i )
+for ( var i = 0; i < n; ++i ) 
 {
   var v= r() * c;
-  if ( v & 1 )
+  if ( v & 1 ) 
     ++odd1;
-  if ( v - c + c & 1 )
+  if ( v - c + c & 1 ) 
     ++odd2;
 }
 
 odd1 *= 100 / n;
 odd2 *= 100 / n;
 
-if (odd1 >= 48 && odd1 <= 52)
+if (odd1 >= 49 && odd1 <= 51)
 {
-  actual = expect;
+  actual = 'between 49% and 51%';
 }
 else
 {
@@ -76,9 +74,9 @@ else
 
 reportCompare(expect, actual, summary);
 
-if (odd2 >= 48 && odd2 <= 52)
+if (odd2 >= 49 && odd2 <= 51)
 {
-  actual = expect;
+  actual = 'between 49% and 51%';
 }
 else
 {

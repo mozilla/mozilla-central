@@ -68,7 +68,7 @@
 
 ////////////////////////////////////////////////////////////
 // nsISupports methods
-NS_IMPL_ISUPPORTS1(nsStreamConverterService, nsIStreamConverterService)
+NS_IMPL_THREADSAFE_ISUPPORTS1(nsStreamConverterService, nsIStreamConverterService)
 
 
 ////////////////////////////////////////////////////////////
@@ -272,7 +272,7 @@ static PRBool PR_CALLBACK InitBFSTable(nsHashKey *aKey, void *aData, void* closu
     state->distance = -1;
     state->predecessor = nsnull;
 
-    SCTableData *data = new SCTableData(static_cast<nsCStringKey*>(aKey));
+    SCTableData *data = new SCTableData(NS_STATIC_CAST(nsCStringKey*, aKey));
     if (!data) {
         delete state;
         return PR_FALSE;

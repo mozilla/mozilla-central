@@ -114,12 +114,12 @@ function init() {
       var brandBundle = document.getElementById("brandBundle");
       var brandShortName = brandBundle.getString("brandShortName");
       params = {
-        message1: extensionsBundle.getFormattedString("blocklistNotifyMsg2",
+        message1: extensionsBundle.getFormattedString("blocklistNotifyMsg",
                                                       [brandShortName]),
-        message2: extensionsBundle.getFormattedString("blocklistRestartMsg2",
+        message2: extensionsBundle.getFormattedString("blocklistRestartMsg",
                                                       [brandShortName]),
         moreInfoURL: url,
-        title: extensionsBundle.getString("blocklistNotifyTitle2")
+        title: extensionsBundle.getString("blocklistNotifyTitle")
       };
       de.buttons = "extra1,cancel";
       button = de.getButton("cancel");
@@ -212,6 +212,18 @@ function restartApp() {
   if (cancelQuit.data)
     return;
 
+  // Notify all windows that an application quit has been granted.
+  os.notifyObservers(null, "quit-application-granted", null);
+
+  // Enumerate all windows and call shutdown handlers
+  var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                     .getService(Components.interfaces.nsIWindowMediator);
+  var windows = wm.getEnumerator(null);
+  while (windows.hasMoreElements()) {
+    var win = windows.getNext();
+    if (("tryToClose" in win) && !win.tryToClose())
+      return;
+  }
   Components.classes["@mozilla.org/toolkit/app-startup;1"].getService(nsIAppStartup)
             .quit(nsIAppStartup.eRestart | nsIAppStartup.eAttemptQuit);
 }

@@ -129,25 +129,44 @@ nsWindowDataSource::Observe(nsISupports *aSubject, const char* aTopic, const PRU
     return NS_OK;
 }
 
-NS_IMPL_CYCLE_COLLECTION_CLASS(nsWindowDataSource)
-NS_IMPL_CYCLE_COLLECTION_UNLINK_0(nsWindowDataSource)
-NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN(nsWindowDataSource)
-    // XXX mContainer?
-    NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mInner)
-NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
+#if 0
+NS_IMETHODIMP_(nsrefcnt)
+nsWindowMediator::Release()
+{
+	// We need a special implementation of Release() due to having
+	// two circular references:  mInner and mContainer
 
-NS_IMPL_CYCLE_COLLECTING_ADDREF_AMBIGUOUS(nsWindowDataSource,
-                                          nsIObserver)
-NS_IMPL_CYCLE_COLLECTING_RELEASE_AMBIGUOUS(nsWindowDataSource,
-                                           nsIObserver)
+	NS_PRECONDITION(PRInt32(mRefCnt) > 0, "duplicate release");
+	--mRefCnt;
+	NS_LOG_RELEASE(this, mRefCnt, "nsWindowMediator");
 
-NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION(nsWindowDataSource)
-    NS_INTERFACE_MAP_ENTRY(nsIObserver)
-    NS_INTERFACE_MAP_ENTRY(nsIWindowMediatorListener)
-    NS_INTERFACE_MAP_ENTRY(nsIWindowDataSource)
-    NS_INTERFACE_MAP_ENTRY(nsIRDFDataSource)
-    NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIObserver)
-NS_INTERFACE_MAP_END
+	if (mInner && mRefCnt == 2)
+	{
+		NS_IF_RELEASE(mContainer);
+		mContainer = nsnull;
+
+		nsIRDFDataSource* tmp = mInner;
+		mInner = nsnull;
+		NS_IF_RELEASE(tmp);
+		return(0);
+	}
+	else if (mRefCnt == 0)
+	{
+		mRefCnt = 1;
+		delete this;
+		return(0);
+	}
+	return(mRefCnt);
+}
+
+#endif
+
+
+NS_IMPL_ISUPPORTS4(nsWindowDataSource,
+                   nsIObserver,
+                   nsIWindowMediatorListener,
+                   nsIWindowDataSource,
+                   nsIRDFDataSource)
 
 // nsIWindowMediatorListener implementation
 // handle notifications from the window mediator and reflect them into
@@ -315,18 +334,18 @@ struct findWindowClosure {
 PR_STATIC_CALLBACK(PRBool)
 findWindow(nsHashKey* aKey, void *aData, void* aClosure)
 {
-    nsVoidKey *thisKey = static_cast<nsVoidKey*>(aKey);
+    nsVoidKey *thisKey = NS_STATIC_CAST(nsVoidKey*, aKey);
 
     nsIRDFResource *resource =
-        static_cast<nsIRDFResource*>(aData);
+        NS_STATIC_CAST(nsIRDFResource*, aData);
     
     findWindowClosure* closure =
-        static_cast<findWindowClosure*>(aClosure);
+        NS_STATIC_CAST(findWindowClosure*, aClosure);
 
     if (resource == closure->targetResource) {
         closure->resultWindow =
-            static_cast<nsIXULWindow*>
-                       (thisKey->GetValue());
+            NS_STATIC_CAST(nsIXULWindow*,
+                           thisKey->GetValue());
         return PR_FALSE;         // stop enumerating
     }
     return PR_TRUE;

@@ -74,9 +74,7 @@
 #include "nsReadableUtils.h"
 #include "nsThreadUtils.h"
 
-#include "nsIPrefService.h"
-#include "nsIPrefBranch.h"
-#include "nsIPrefLocalizedString.h"
+#include "nsIPref.h"
 #include "nsIServiceManager.h"
 #include "nsIURL.h"
 #include "nsIIOService.h"
@@ -633,9 +631,9 @@ NS_IMETHODIMP nsBrowserContentHandler::GetChromeUrlForTask(char **aChromeUrlForT
     return NS_ERROR_NULL_POINTER;
 
   nsresult rv = NS_ERROR_FAILURE;
-  nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID));
+  nsCOMPtr<nsIPref> prefs(do_GetService(NS_PREF_CONTRACTID));
   if (prefs) {
-    rv = prefs->GetCharPref("browser.chromeURL", aChromeUrlForTask);
+    rv = prefs->CopyCharPref("browser.chromeURL", aChromeUrlForTask);
     if (NS_SUCCEEDED(rv) && (*aChromeUrlForTask)[0] == '\0') {
       PL_strfree(*aChromeUrlForTask);
       rv = NS_ERROR_FAILURE;
@@ -647,7 +645,7 @@ NS_IMETHODIMP nsBrowserContentHandler::GetChromeUrlForTask(char **aChromeUrlForT
   return NS_OK;
 }
 
-PRBool nsBrowserContentHandler::NeedHomepageOverride(nsIPrefBranch *aPrefService)
+PRBool nsBrowserContentHandler::NeedHomepageOverride(nsIPref *aPrefService)
 {
   NS_ASSERTION(aPrefService, "Null pointer to prefs service!");
 
@@ -681,14 +679,12 @@ PRBool nsBrowserContentHandler::NeedHomepageOverride(nsIPrefBranch *aPrefService
   return PR_FALSE;
 }
 
-nsresult GetHomePageGroup(nsIPrefBranch* aPref, PRUnichar** aResult)
+nsresult GetHomePageGroup(nsIPref* aPref, PRUnichar** aResult)
 {
   nsresult rv;
 
-  nsCOMPtr<nsIPrefLocalizedString> uri;
-  rv = aPref->GetComplexValue(PREF_BROWSER_STARTUP_HOMEPAGE,
-                              NS_GET_IID(nsIPrefLocalizedString),
-                              getter_AddRefs(uri));
+  nsXPIDLString uri;
+  rv = aPref->GetLocalizedUnicharPref(PREF_BROWSER_STARTUP_HOMEPAGE, getter_Copies(uri));
   if (NS_FAILED(rv))
     return rv;
 
@@ -697,32 +693,23 @@ nsresult GetHomePageGroup(nsIPrefBranch* aPref, PRUnichar** aResult)
 
   // if we couldn't get the pref (unlikely) or only have one homepage
   if (NS_FAILED(rv) || count <= 1) {
-    return uri->ToString(aResult);
+    *aResult = ToNewUnicode(uri);
+    return NS_OK;
   }
 
   // The "homepage" is a group of pages, put them in uriList separated by '\n'
-  nsString uriList;
-  rv = uri->GetData(getter_Copies(uriList));
-  if (NS_FAILED(rv))
-    return rv;
+  nsAutoString uriList(uri);
 
   for (PRInt32 i = 1; i < count; ++i) {
     nsCAutoString pref(NS_LITERAL_CSTRING("browser.startup.homepage."));
     pref.AppendInt(i);
 
-    rv = aPref->GetComplexValue(pref.get(),
-                                NS_GET_IID(nsIPrefLocalizedString),
-                                getter_AddRefs(uri));
-    if (NS_FAILED(rv))
-      return rv;
-
-    nsString uriString;
-    rv = uri->GetData(getter_Copies(uriString));
+    rv = aPref->GetLocalizedUnicharPref(pref.get(), getter_Copies(uri));
     if (NS_FAILED(rv))
       return rv;
 
     uriList.Append(PRUnichar('\n'));
-    uriList.Append(uriString);
+    uriList.Append(uri);
   }
 
   *aResult = ToNewUnicode(uriList);
@@ -736,18 +723,12 @@ NS_IMETHODIMP nsBrowserContentHandler::GetDefaultArgs(PRUnichar **aDefaultArgs)
 
   nsresult rv;
 
-  nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID));
+  nsCOMPtr<nsIPref> prefs(do_GetService(NS_PREF_CONTRACTID));
   if (prefs) {
     if (NeedHomepageOverride(prefs)) {
-      nsCOMPtr<nsIPrefLocalizedString> overrideURL;
-      rv = prefs->GetComplexValue(PREF_HOMEPAGE_OVERRIDE_URL,
-                                  NS_GET_IID(nsIPrefLocalizedString),
-                                  getter_AddRefs(overrideURL));
-      if (NS_SUCCEEDED(rv)) {
-        rv = overrideURL->ToString(aDefaultArgs);
-        if (NS_SUCCEEDED(rv) && *aDefaultArgs)
-          return NS_OK;
-      }
+      rv = prefs->GetLocalizedUnicharPref(PREF_HOMEPAGE_OVERRIDE_URL, aDefaultArgs);
+      if (NS_SUCCEEDED(rv) && *aDefaultArgs)
+        return NS_OK;
     }
 
     PRInt32 choice = 0;

@@ -46,7 +46,7 @@
 #include "nsGkAtoms.h"
 #include "nsIFontMetrics.h"
 #include "nsIRenderingContext.h"
-#include "nsLayoutUtils.h"
+#include "nsTextTransformer.h"
 
 #ifdef ACCESSIBILITY
 #include "nsIServiceManager.h"
@@ -68,7 +68,7 @@ public:
   virtual PRBool PeekOffsetNoAmount(PRBool aForward, PRInt32* aOffset);
   virtual PRBool PeekOffsetCharacter(PRBool aForward, PRInt32* aOffset);
   virtual PRBool PeekOffsetWord(PRBool aForward, PRBool aWordSelectEatSpace, PRBool aIsKeyboardSelect,
-                                PRInt32* aOffset, PeekWordState* aState);
+                                PRInt32* aOffset, PRBool* aSawBeforeType);
 
   NS_IMETHOD Reflow(nsPresContext* aPresContext,
                     nsHTMLReflowMetrics& aDesiredSize,
@@ -84,8 +84,7 @@ public:
 
   virtual PRBool IsFrameOfType(PRUint32 aFlags) const
   {
-    return nsFrame::IsFrameOfType(aFlags & ~(nsIFrame::eReplaced |
-                                             nsIFrame::eLineParticipant));
+    return nsFrame::IsFrameOfType(aFlags & ~(nsIFrame::eReplaced));
   }
 
 #ifdef ACCESSIBILITY  
@@ -128,7 +127,7 @@ BRFrame::Reflow(nsPresContext* aPresContext,
     // Note that the compatibility mode check excludes AlmostStandards
     // mode, since this is the inline box model.  See bug 161691.
     if ( ll->CanPlaceFloatNow() ||
-         aPresContext->CompatibilityMode() == eCompatibility_FullStandards ) {
+         ll->GetCompatMode() == eCompatibility_FullStandards ) {
       // If we can place a float on the line now it means that the
       // line is effectively empty (there may be zero sized compressed
       // white-space frames on the line, but they are to be ignored).
@@ -145,7 +144,7 @@ BRFrame::Reflow(nsPresContext* aPresContext,
       // We also do this in strict mode because BR should act like a
       // normal inline frame.  That line-height is used is important
       // here for cases where the line-height is less that 1.
-      nsLayoutUtils::SetFontFromStyle(aReflowState.rendContext, mStyleContext);
+      SetFontFromStyle(aReflowState.rendContext, mStyleContext);
       nsCOMPtr<nsIFontMetrics> fm;
       aReflowState.rendContext->GetFontMetrics(*getter_AddRefs(fm));
       if (fm) {
@@ -153,7 +152,9 @@ BRFrame::Reflow(nsPresContext* aPresContext,
         fm->GetMaxAscent(ascent);
         fm->GetMaxDescent(descent);
         nscoord logicalHeight =
-          aReflowState.CalcLineHeight(aReflowState.rendContext, this);
+          aReflowState.CalcLineHeight(aPresContext,
+                                       aReflowState.rendContext,
+                                       this);
         nscoord leading = logicalHeight - ascent - descent;
         aMetrics.height = logicalHeight;
         aMetrics.ascent = ascent + (leading/2);
@@ -184,8 +185,6 @@ BRFrame::Reflow(nsPresContext* aPresContext,
   else {
     aStatus = NS_FRAME_COMPLETE;
   }
-  
-  aMetrics.mOverflowArea = nsRect(0, 0, aMetrics.width, aMetrics.height);
 
   NS_FRAME_SET_TRUNCATION(aStatus, aReflowState, aMetrics);
   return NS_OK;
@@ -195,14 +194,14 @@ BRFrame::Reflow(nsPresContext* aPresContext,
 BRFrame::AddInlineMinWidth(nsIRenderingContext *aRenderingContext,
                            nsIFrame::InlineMinWidthData *aData)
 {
-  aData->ForceBreak(aRenderingContext);
+  aData->Break(aRenderingContext);
 }
 
 /* virtual */ void
 BRFrame::AddInlinePrefWidth(nsIRenderingContext *aRenderingContext,
                             nsIFrame::InlinePrefWidthData *aData)
 {
-  aData->ForceBreak(aRenderingContext);
+  aData->Break(aRenderingContext);
 }
 
 /* virtual */ nscoord
@@ -263,7 +262,7 @@ BRFrame::PeekOffsetCharacter(PRBool aForward, PRInt32* aOffset)
 
 PRBool
 BRFrame::PeekOffsetWord(PRBool aForward, PRBool aWordSelectEatSpace, PRBool aIsKeyboardSelect,
-                        PRInt32* aOffset, PeekWordState* aState)
+                        PRInt32* aOffset, PRBool* aSawBeforeType)
 {
   NS_ASSERTION (aOffset && *aOffset <= 1, "aOffset out of range");
   // Keep going. The actual line jumping will stop us.
@@ -273,16 +272,11 @@ BRFrame::PeekOffsetWord(PRBool aForward, PRBool aWordSelectEatSpace, PRBool aIsK
 #ifdef ACCESSIBILITY
 NS_IMETHODIMP BRFrame::GetAccessible(nsIAccessible** aAccessible)
 {
-  NS_ENSURE_TRUE(mContent, NS_ERROR_FAILURE);
   nsCOMPtr<nsIAccessibilityService> accService = do_GetService("@mozilla.org/accessibilityService;1");
-  NS_ENSURE_TRUE(accService, NS_ERROR_FAILURE);
-  nsCOMPtr<nsIContent> parent = mContent->GetBindingParent();
-  if (parent && parent->IsNativeAnonymous() && parent->GetChildCount() == 1) {
-    // This <br> is the only node in a text control, therefore it is the hacky
-    // "bogus node" used when there is no text in the control
-    return NS_ERROR_FAILURE;
+  if (accService) {
+    return accService->CreateHTMLBRAccessible(NS_STATIC_CAST(nsIFrame*, this), aAccessible);
   }
-  return accService->CreateHTMLBRAccessible(static_cast<nsIFrame*>(this), aAccessible);
+  return NS_ERROR_FAILURE;
 }
 #endif
 

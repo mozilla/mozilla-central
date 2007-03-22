@@ -90,8 +90,8 @@ center {
 blockquote[type=cite] {
   display: block;
   margin: 1em 0px;
-  -moz-padding-start: 1em;
-  -moz-border-start: solid;
+  padding-left: 1em;
+  border-left: solid;
   border-color: blue;
   border-width: thin;
 }
@@ -341,6 +341,7 @@ ol {
 
 li {
   display: list-item;
+  -moz-float-edge: margin-box;
 }
 
 /* nested lists have no top/bottom margins */
@@ -489,10 +490,8 @@ noembed, param {
 
 /* emulation of non-standard HTML <marquee> tag */
 marquee {
-  width: -moz-available;
   display: inline-block;
   vertical-align: text-bottom;
-  text-align: start;
   -moz-binding: url('chrome://xbl-marquee/content/xbl-marquee.xml#marquee-horizontal');
 }
 

@@ -61,7 +61,7 @@ public:
    * Class constructor.
    */
   nsUnicodeToGBK(PRUint32 aMaxLengthFactor = 2);
-  virtual ~nsUnicodeToGBK() {}
+  virtual ~nsUnicodeToGBK() {};
 
 protected:
 
@@ -76,7 +76,7 @@ protected:
                                 char * aDest, PRInt32 * aDestLength)
   {
     return NS_OK;
-  }  // just make it not abstract;
+  };  // just make it not abstract;
 
   NS_IMETHOD FillInfo(PRUint32 *aInfo);
 
@@ -96,13 +96,35 @@ protected:
 class nsUnicodeToGB18030: public nsUnicodeToGBK
 {
 public:
-  nsUnicodeToGB18030() : nsUnicodeToGBK(4) {}
-  virtual ~nsUnicodeToGB18030() {}
+  nsUnicodeToGB18030() : nsUnicodeToGBK(4) {};
+  virtual ~nsUnicodeToGB18030() {};
 protected:
   virtual void CreateExtensionEncoder();
   virtual void Create4BytesEncoder();
   virtual PRBool EncodeSurrogate(PRUnichar aSurrogateHigh, PRUnichar aSurrogateLow, char* aDest);
 };
+
+#ifdef MOZ_EXTRA_X11CONVERTERS
+class nsUnicodeToGB18030Font0: public nsUnicodeToGB18030
+{
+public:
+  nsUnicodeToGB18030Font0() {};
+  virtual ~nsUnicodeToGB18030Font0() {};
+protected:
+  virtual void Create4BytesEncoder();
+  NS_IMETHOD GetMaxLength(const PRUnichar * aSrc, PRInt32 aSrcLength, 
+      PRInt32 * aDestLength);
+  NS_IMETHOD FillInfo(PRUint32 *aInfo);
+};
+class nsUnicodeToGB18030Font1 : public nsTableEncoderSupport
+{
+public: 
+  nsUnicodeToGB18030Font1();
+  virtual ~nsUnicodeToGB18030Font1() {};
+protected: 
+  NS_IMETHOD FillInfo(PRUint32 *aInfo);
+};
+#endif 
 
 #endif /* nsUnicodeToGBK_h___ */
 

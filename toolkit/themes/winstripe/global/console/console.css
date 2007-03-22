@@ -49,7 +49,7 @@
 /* ::::: console rows ::::: */
 
 .console-row {
-  border-bottom: 1px solid ThreeDLightShadow;
+  border-bottom: 1px dotted threedshadow;
   padding: 4px 0px;
 }
 
@@ -171,52 +171,52 @@ toolbar#ToolbarMode toolbarbutton {
   padding: 4px !important;
 }
 
-#Console\:modeAll {
+toolbarbutton[observes="Console:modeAll"] {
   -moz-image-region: rect(0px 24px 24px 0px);
 }
 
-#Console\:modeAll {
+toolbarbutton[observes="Console:modeAll"] {
   -moz-image-region: rect(0px 24px 24px 0px);
 }
 
-#Console\:modeAll:hover,
-#Console\:modeAll[checked="true"] {
+toolbarbutton[observes="Console:modeAll"]:hover,
+toolbarbutton[observes="Console:modeAll"][checked="true"] {
   -moz-image-region: rect(24px 24px 48px 0px);
 }
 
-#Console\:modeErrors {
+toolbarbutton[observes="Console:modeErrors"] {
   -moz-image-region: rect(0px 96px 24px 72px);
 }
 
-#Console\:modeErrors:hover,
-#Console\:modeErrors[checked="true"] {
+toolbarbutton[observes="Console:modeErrors"]:hover,
+toolbarbutton[observes="Console:modeErrors"][checked="true"] {
   -moz-image-region: rect(24px 96px 48px 72px);
 }
 
-#Console\:modeWarnings {
+toolbarbutton[observes="Console:modeWarnings"] {
   -moz-image-region: rect(0px 72px 24px 48px);
 }
 
-#Console\:modeWarnings:hover,
-#Console\:modeWarnings[checked="true"] {
+toolbarbutton[observes="Console:modeWarnings"]:hover,
+toolbarbutton[observes="Console:modeWarnings"][checked="true"] {
   -moz-image-region: rect(24px 72px 48px 48px);
 }
 
-#Console\:modeMessages {
+toolbarbutton[observes="Console:modeMessages"] {
   -moz-image-region: rect(0px 48px 24px 24px);
 }
 
-#Console\:modeMessages:hover,
-#Console\:modeMessages[checked="true"] {
+toolbarbutton[observes="Console:modeMessages"]:hover,
+toolbarbutton[observes="Console:modeMessages"][checked="true"] {
   -moz-image-region: rect(24px 48px 48px 24px);
 }
 
-#Console\:clear {
+toolbarbutton[observes="Console:clear"] {
   -moz-image-region: rect(0px 120px 24px 96px);
 }
 
-#Console\:clear:hover,
-#Console\:clear[checked="true"] {
+toolbarbutton[observes="Console:clear"]:hover,
+toolbarbutton[observes="Console:clear"][checked="true"] {
   -moz-image-region: rect(24px 120px 48px 96px);
 }
 

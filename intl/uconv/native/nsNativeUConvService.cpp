@@ -47,7 +47,6 @@
 #include "nsICharRepresentable.h"
 
 #include "nsNativeUConvService.h"
-#include "nsAutoPtr.h"
 
 #include <nl_types.h> // CODESET
 #include <langinfo.h> // nl_langinfo
@@ -251,11 +250,11 @@ IConvAdaptor::SetOutputErrorBehavior(PRInt32 aBehavior,
                                     nsIUnicharEncoder * aEncoder, 
                                     PRUnichar aChar)
 {
-    if (aBehavior == nsIUnicodeEncoder::kOnError_Signal) {
+    if (aBehavior == kOnError_Signal) {
         mReplaceOnError = PR_FALSE;
         return NS_OK;
     }
-    else if (aBehavior == nsIUnicodeEncoder::kOnError_Replace) {
+    else if (aBehavior != kOnError_Replace) {
         mReplaceOnError = PR_TRUE;
         mReplaceChar = aChar;
         return NS_OK;
@@ -376,14 +375,11 @@ NativeUConvService::GetNativeConverter(const char* from,
 {
     *aResult = nsnull;
 
-    //nsRefPtr<IConvAdaptor> ucl = new IConvAdaptor();
-    IConvAdaptor *adaptor=new IConvAdaptor();
-    nsCOMPtr<nsISupports> ucl(static_cast<nsIUnicodeDecoder*>(adaptor));
+    nsRefPtr<IConvAdaptor> ucl = new IConvAdaptor();
     if (!ucl)
         return NS_ERROR_OUT_OF_MEMORY;
 
-    //nsresult rv = ucl->Init(from, to);
-    nsresult rv=adaptor->Init(from,to);   
+    nsresult rv = ucl->Init(from, to);
     if (NS_SUCCEEDED(rv))
         NS_ADDREF(*aResult = ucl);
 

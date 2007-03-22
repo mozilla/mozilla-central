@@ -547,19 +547,10 @@ nsGlobalHistory::~nsGlobalHistory()
 //
 //   nsISupports methods
 
-NS_IMPL_CYCLE_COLLECTION_CLASS(nsGlobalHistory)
-NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN(nsGlobalHistory)
-  NS_IMPL_CYCLE_COLLECTION_UNLINK_NSCOMARRAY(mObservers)
-NS_IMPL_CYCLE_COLLECTION_UNLINK_END
-NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN(nsGlobalHistory)
-  NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMARRAY(mObservers)
-NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
+NS_IMPL_ADDREF(nsGlobalHistory)
+NS_IMPL_RELEASE(nsGlobalHistory)
 
-
-NS_IMPL_CYCLE_COLLECTING_ADDREF_AMBIGUOUS(nsGlobalHistory, nsIBrowserHistory)
-NS_IMPL_CYCLE_COLLECTING_RELEASE_AMBIGUOUS(nsGlobalHistory, nsIBrowserHistory)
-
-NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION(nsGlobalHistory)
+NS_INTERFACE_MAP_BEGIN(nsGlobalHistory)
   NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsIGlobalHistory2, nsIGlobalHistory3)
   NS_INTERFACE_MAP_ENTRY(nsIGlobalHistory3)
   NS_INTERFACE_MAP_ENTRY(nsIBrowserHistory)
@@ -1595,7 +1586,7 @@ nsGlobalHistory::GetSource(nsIRDFResource* aProperty,
     // XXX We could be more forgiving here, and check for literal
     // values as well.
     nsCOMPtr<nsIRDFResource> target = do_QueryInterface(aTarget);
-    if (target && IsURLInHistory(target))
+    if (IsURLInHistory(target))
       return CallQueryInterface(aTarget, aSource);
     
   }
@@ -1840,7 +1831,7 @@ nsGlobalHistory::GetTarget(nsIRDFResource* aSource,
         nsCOMPtr<nsIRDFLiteral> literal; 
 
         for (PRInt32 i = 0; i < tokenList.Count(); ++i) {
-          tokenPair* token = static_cast<tokenPair*>(tokenList[i]);
+          tokenPair* token = NS_STATIC_CAST(tokenPair*, tokenList[i]);
 
           if (!strncmp(token->tokenName, "text", token->tokenNameLength)) {
             rv = gRDFService->GetLiteral(NS_ConvertUTF8toUTF16(Substring(token->tokenValue, token->tokenValue + token->tokenValueLength)).get(),
@@ -2305,7 +2296,12 @@ nsGlobalHistory::AddObserver(nsIRDFObserver* aObserver)
   if (! aObserver)
     return NS_ERROR_NULL_POINTER;
 
-  mObservers.AppendObject(aObserver);
+  if (! mObservers) {
+    nsresult rv;
+    rv = NS_NewISupportsArray(getter_AddRefs(mObservers));
+    if (NS_FAILED(rv)) return rv;
+  }
+  mObservers->AppendElement(aObserver);
   return NS_OK;
 }
 
@@ -2316,7 +2312,10 @@ nsGlobalHistory::RemoveObserver(nsIRDFObserver* aObserver)
   if (! aObserver)
     return NS_ERROR_NULL_POINTER;
 
-  mObservers.RemoveObject(aObserver);
+  if (! mObservers)
+    return NS_OK;
+
+  mObservers->RemoveElement(aObserver);
 
   return NS_OK;
 }
@@ -2488,9 +2487,25 @@ nsGlobalHistory::BeginUpdateBatch()
 
   ++mBatchesInProgress;
   
-  PRUint32 i = mObservers.Count();
-  while (i > 0) {
-    rv = mObservers[--i]->OnBeginUpdateBatch(this);
+  // we could call mObservers->EnumerateForwards() here
+  // to save the addref/release on each observer, but
+  // it's unlikely that anyone but the tree builder
+  // is observing us
+  if (mObservers) {
+    PRUint32 count;
+    rv = mObservers->Count(&count);
+    if (NS_FAILED(rv)) return rv;
+
+    for (PRInt32 i = 0; i < PRInt32(count); ++i) {
+      nsIRDFObserver* observer = NS_STATIC_CAST(nsIRDFObserver*, mObservers->ElementAt(i));
+
+      NS_ASSERTION(observer != nsnull, "null ptr");
+      if (! observer)
+        continue;
+
+      rv = observer->OnBeginUpdateBatch(this);
+      NS_RELEASE(observer);
+    }
   }
   return rv;
 }
@@ -2502,9 +2517,25 @@ nsGlobalHistory::EndUpdateBatch()
 
   --mBatchesInProgress;
 
-  PRUint32 i = mObservers.Count();
-  while (i > 0) {
-    rv = mObservers[--i]->OnEndUpdateBatch(this);
+  // we could call mObservers->EnumerateForwards() here
+  // to save the addref/release on each observer, but
+  // it's unlikely that anyone but the tree builder
+  // is observing us
+  if (mObservers) {
+    PRUint32 count;
+    rv = mObservers->Count(&count);
+    if (NS_FAILED(rv)) return rv;
+
+    for (PRInt32 i = 0; i < PRInt32(count); ++i) {
+      nsIRDFObserver* observer = NS_STATIC_CAST(nsIRDFObserver*, mObservers->ElementAt(i));
+
+      NS_ASSERTION(observer != nsnull, "null ptr");
+      if (! observer)
+        continue;
+
+      rv = observer->OnEndUpdateBatch(this);
+      NS_RELEASE(observer);
+    }
   }
   return rv;
 }
@@ -2640,7 +2671,9 @@ nsGlobalHistory::OpenDB()
   nsCOMPtr <nsIFile> historyFile;
   rv = NS_GetSpecialDirectory(NS_APP_HISTORY_50_FILE, getter_AddRefs(historyFile));
   NS_ENSURE_SUCCESS(rv, rv);
-  nsCOMPtr <nsIMdbFactoryService> factoryfactory = do_GetService(NS_MORK_CONTRACTID, &rv);
+
+  nsCOMPtr<nsIMdbFactoryFactory> factoryfactory =
+      do_CreateInstance(NS_MORK_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
   rv = factoryfactory->GetMdbFactory(&gMdbFactory);
@@ -3176,9 +3209,23 @@ nsGlobalHistory::NotifyAssert(nsIRDFResource* aSource,
                               nsIRDFResource* aProperty,
                               nsIRDFNode* aValue)
 {
-  PRUint32 i = mObservers.Count();
-  while (i > 0) {
-    mObservers[--i]->OnAssert(this, aSource, aProperty, aValue);
+  nsresult rv;
+
+  if (mObservers) {
+    PRUint32 count;
+    rv = mObservers->Count(&count);
+    if (NS_FAILED(rv)) return rv;
+
+    for (PRInt32 i = 0; i < PRInt32(count); ++i) {
+      nsIRDFObserver* observer = NS_STATIC_CAST(nsIRDFObserver*, mObservers->ElementAt(i));
+
+      NS_ASSERTION(observer != nsnull, "null ptr");
+      if (! observer)
+        continue;
+
+      rv = observer->OnAssert(this, aSource, aProperty, aValue);
+      NS_RELEASE(observer);
+    }
   }
 
   return NS_OK;
@@ -3190,9 +3237,23 @@ nsGlobalHistory::NotifyUnassert(nsIRDFResource* aSource,
                                 nsIRDFResource* aProperty,
                                 nsIRDFNode* aValue)
 {
-  PRUint32 i = mObservers.Count();
-  while (i > 0) {
-    mObservers[--i]->OnUnassert(this, aSource, aProperty, aValue);
+  nsresult rv;
+
+  if (mObservers) {
+    PRUint32 count;
+    rv = mObservers->Count(&count);
+    if (NS_FAILED(rv)) return rv;
+
+    for (PRInt32 i = 0; i < PRInt32(count); ++i) {
+      nsIRDFObserver* observer = NS_STATIC_CAST(nsIRDFObserver*, mObservers->ElementAt(i));
+
+      NS_ASSERTION(observer != nsnull, "null ptr");
+      if (! observer)
+        continue;
+
+      rv = observer->OnUnassert(this, aSource, aProperty, aValue);
+      NS_RELEASE(observer);
+    }
   }
 
   return NS_OK;
@@ -3206,9 +3267,23 @@ nsGlobalHistory::NotifyChange(nsIRDFResource* aSource,
                               nsIRDFNode* aOldValue,
                               nsIRDFNode* aNewValue)
 {
-  PRUint32 i = mObservers.Count();
-  while (i > 0) {
-    mObservers[--i]->OnChange(this, aSource, aProperty, aOldValue, aNewValue);
+  nsresult rv;
+
+  if (mObservers) {
+    PRUint32 count;
+    rv = mObservers->Count(&count);
+    if (NS_FAILED(rv)) return rv;
+
+    for (PRInt32 i = 0; i < PRInt32(count); ++i) {
+      nsIRDFObserver* observer = NS_STATIC_CAST(nsIRDFObserver*, mObservers->ElementAt(i));
+
+      NS_ASSERTION(observer != nsnull, "null ptr");
+      if (! observer)
+        continue;
+
+      rv = observer->OnChange(this, aSource, aProperty, aOldValue, aNewValue);
+      NS_RELEASE(observer);
+    }
   }
 
   return NS_OK;
@@ -4213,8 +4288,8 @@ nsGlobalHistory::StartSearch(const nsAString &aSearchString,
     
     // perform the actual search here
     nsresult rv = AutoCompleteSearch(filtered, &exclude,
-                                     static_cast<nsIAutoCompleteMdbResult2 *>
-                                                (aPreviousResult),
+                                     NS_STATIC_CAST(nsIAutoCompleteMdbResult2 *,
+                                                    aPreviousResult),
                                      getter_AddRefs(result));
     NS_ENSURE_SUCCESS(rv, rv);
   }
@@ -4373,7 +4448,7 @@ nsGlobalHistory::AutoCompleteSearch(const nsAString &aSearchString,
     closure.prefixes[5] = &prefixFStr;
 
     // sort it
-    resultArray.Sort(AutoCompleteSortComparison, static_cast<void*>(&closure));
+    resultArray.Sort(AutoCompleteSortComparison, NS_STATIC_CAST(void*, &closure));
 
     // place the sorted array into the autocomplete results
     PRUint32 count = resultArray.Count();
@@ -4507,7 +4582,7 @@ nsGlobalHistory::AutoCompleteSortComparison(nsIMdbRow *row1, nsIMdbRow *row2,
   //
   // cast our function parameters back into their real form
   AutoCompleteSortClosure* closure = 
-      static_cast<AutoCompleteSortClosure*>(closureVoid);
+      NS_STATIC_CAST(AutoCompleteSortClosure*, closureVoid);
 
   // get visit counts - we're ignoring all errors from GetRowValue(), 
   // and relying on default values

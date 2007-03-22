@@ -37,18 +37,29 @@
 #ifndef nsCategoryImp_h__
 #define nsCategoryImp_h__
 
+#include "nscore.h"
+#include "nsISupports.h"
 #include "nsIUGenCategory.h"
 
 class nsCategoryImp : public nsIUGenCategory {
    NS_DECL_ISUPPORTS
    
-public:
-   static nsCategoryImp* GetInstance();
-    
+public: 
+   nsCategoryImp();
+   virtual ~nsCategoryImp();
+
+
    /**
     * Give a Unichar, return a nsUGenCategory
     */
-   virtual nsUGenCategory Get(PRUint32 aChar);
+   NS_IMETHOD Get( PRUnichar aChar, nsUGenCategory* oResult);
+    
+   /**
+    * Give a Unichar, and a nsUGenCategory, 
+    * return PR_TRUE if the Unichar is in that category, 
+    * return PR_FALSE, otherwise
+    */
+   NS_IMETHOD Is( PRUnichar aChar, nsUGenCategory aCategory, PRBool* oResult);
 };
 
 #endif  /* nsCategoryImp_h__ */

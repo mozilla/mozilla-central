@@ -34,25 +34,18 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-323314-1.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 323314;
+var bug = 323314;
 var summary = 'JSMSG_EQUAL_AS_ASSIGN in js.msg should be JSEXN_SYNTAXERR';
 var actual = '';
 var expect = '';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
-if (!options().match(/strict/))
-{
-  options('strict');
-}
-if (!options().match(/werror/))
-{
-  options('werror');
-}
+var jsOptions = new JavaScriptOptions();
+jsOptions.setOption('strict', true);
+jsOptions.setOption('werror', true);
 
 var xyzzy;
 
@@ -69,5 +62,6 @@ catch(ex)
   actual = ex.name;
   printStatus(ex + '');
 }
+jsOptions.reset();
 
 reportCompare(expect, actual, summary);

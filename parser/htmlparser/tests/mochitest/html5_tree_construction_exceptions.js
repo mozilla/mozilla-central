@@ -60,12 +60,11 @@ var html5Exceptions = {
   "<!DoctypE html><!-- XXX - XXX": true,
   "<!DoctypE html><!-- XXX - XXX - XXX -->": true,
   "<isindex test=x name=x>": true,
+  "<!doctype html><body><title>X</title><meta name=z><link rel=foo><style>\nx { content:\"</style\" } </style>": true,
   " \n ": true,
   "<!doctype html>  <html>": true,
   "<!doctype html><!--x--": true,
   "<head></head><!-- --><style></style><!-- --><script></script>": true,
   "<head></head><!-- -->x<style></style><!-- --><script></script>": true,
-  "<body><body><base><link><meta><title><p></title><body><p></body>": true,
-  "<!doctype html><body><title>X</title><meta name=z><link rel=foo><style>\nx { content:\"</style\" } </style>": true,
 }
 

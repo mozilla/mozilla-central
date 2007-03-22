@@ -36,15 +36,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'regress-328249.js';
+START("Crash due to infinite recursion in js_IsXMLName");
 
-var summary = "Crash due to infinite recursion in js_IsXMLName";
-var BUGNUMBER = 327897;
+var bug = 327897;
+var summary = 'Crash due to infinite recursion in js_IsXMLName';
 var actual = 'No Crash';
 var expect = 'No Crash';
 
-printBugNumber(BUGNUMBER);
-START(summary);
+printBugNumber (bug);
+printStatus (summary);
 
 try
 {

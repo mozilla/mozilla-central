@@ -14,7 +14,8 @@
  *
  * The Original Code is Mozilla Spellchecker Component.
  *
- * The Initial Developer of the Original Code is David Einstein.
+ * The Initial Developer of the Original Code is
+ * David Einstein.
  * Portions created by the Initial Developer are Copyright (C) 2001
  * the Initial Developer. All Rights Reserved.
  *
@@ -37,12 +38,12 @@
 
 #include "nsIGenericFactory.h"
 
-#ifdef MOZ_MACBROWSER
+#ifdef MOZ_WIDGET_COCOA
 #include "mozOSXSpell.h"
 #else
-#include "mozHunspell.h"
+#include "mozMySpell.h"
 #ifdef MOZ_XUL_APP
-#include "mozHunspellDirProvider.h"
+#include "mozMySpellDirProvider.h"
 #endif
 #endif
 
@@ -63,17 +64,17 @@
 { 0xa0, 0x1a, 0x66, 0x40, 0x2e, 0xa2, 0x86, 0x57} }
 
 ////////////////////////////////////////////////////////////////////////
-// Define the constructor function for the objects
+// Define the contructor function for the objects
 //
 // NOTE: This creates an instance of objects by using the default constructor
 //
 
-#ifdef MOZ_MACBROWSER
+#ifdef MOZ_WIDGET_COCOA
 NS_GENERIC_FACTORY_CONSTRUCTOR(mozOSXSpell)
 #else
-NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(mozHunspell, Init)
+NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(mozMySpell, Init)
 #ifdef MOZ_XUL_APP
-NS_GENERIC_FACTORY_CONSTRUCTOR(mozHunspellDirProvider)
+NS_GENERIC_FACTORY_CONSTRUCTOR(mozMySpellDirProvider)
 #endif
 #endif
 
@@ -122,7 +123,7 @@ mozInlineSpellCheckerConstructor(nsISupports *aOuter, REFNSIID aIID,
 // class name.
 //
 static nsModuleComponentInfo components[] = {
-#ifdef MOZ_MACBROWSER
+#ifdef MOZ_WIDGET_COCOA
     {
         "OSX Spell check service",
         MOZ_OSXSPELL_CID,
@@ -131,22 +132,22 @@ static nsModuleComponentInfo components[] = {
     },
 #else
     {
-        "mozHunspell",
-        MOZ_HUNSPELL_CID,
-        MOZ_HUNSPELL_CONTRACTID,
-        mozHunspellConstructor
+        "mozMySpell",
+        MOZ_MYSPELL_CID,
+        MOZ_MYSPELL_CONTRACTID,
+        mozMySpellConstructor
     },
 #ifdef MOZ_XUL_APP
     {
-        "mozHunspellDirProvider",
-        HUNSPELLDIRPROVIDER_CID,
-        mozHunspellDirProvider::kContractID,
-        mozHunspellDirProviderConstructor,
-        mozHunspellDirProvider::Register,
-        mozHunspellDirProvider::Unregister
+        "mozMySpellDirProvider",
+        MYSPELLDIRPROVIDER_CID,
+        mozMySpellDirProvider::kContractID,
+        mozMySpellDirProviderConstructor,
+        mozMySpellDirProvider::Register,
+        mozMySpellDirProvider::Unregister
     },
 #endif // MOZ_XUL_APP
-#endif // MOZ_MACBROWSER
+#endif // MOZ_WIDGET_COCOA
   {
       NULL,
       NS_SPELLCHECKER_CID,

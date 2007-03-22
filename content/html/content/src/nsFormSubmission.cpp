@@ -57,7 +57,6 @@
 #include "nsStringStream.h"
 #include "nsIFormProcessor.h"
 #include "nsIURI.h"
-#include "nsIURL.h"
 #include "nsNetUtil.h"
 #include "nsLinebreakConverter.h"
 #include "nsICharsetConverterManager.h"
@@ -100,10 +99,10 @@ public:
       mFormProcessor(aFormProcessor),
       mBidiOptions(aBidiOptions)
   {
-  }
+  };
   virtual ~nsFormSubmission()
   {
-  }
+  };
 
   NS_DECL_ISUPPORTS
 
@@ -272,6 +271,8 @@ public:
   {
   }
 
+  NS_DECL_ISUPPORTS_INHERITED
+
   // nsIFormSubmission
   virtual nsresult AddNameValuePair(nsIDOMHTMLElement* aSource,
                                     const nsAString& aName,
@@ -318,6 +319,10 @@ private:
   /** Whether or not we have warned about a file control not being submitted */
   PRBool mWarnedFileControl;
 };
+
+NS_IMPL_RELEASE_INHERITED(nsFSURLEncoded, nsFormSubmission)
+NS_IMPL_ADDREF_INHERITED(nsFSURLEncoded, nsFormSubmission)
+NS_IMPL_QUERY_INTERFACE_INHERITED0(nsFSURLEncoded, nsFormSubmission)
 
 nsresult
 nsFSURLEncoded::AddNameValuePair(nsIDOMHTMLElement* aSource,
@@ -533,35 +538,29 @@ nsFSURLEncoded::GetEncodedSubmission(nsIURI* aURI,
       return NS_OK;
     }
 
-    nsCOMPtr<nsIURL> url = do_QueryInterface(aURI);
-    if (url) {
-      url->SetQuery(mQueryString);
+    nsCAutoString path;
+    rv = aURI->GetPath(path);
+    NS_ENSURE_SUCCESS(rv, rv);
+    // Bug 42616: Trim off named anchor and save it to add later
+    PRInt32 namedAnchorPos = path.FindChar('#');
+    nsCAutoString namedAnchor;
+    if (kNotFound != namedAnchorPos) {
+      path.Right(namedAnchor, (path.Length() - namedAnchorPos));
+      path.Truncate(namedAnchorPos);
     }
-    else {
-      nsCAutoString path;
-      rv = aURI->GetPath(path);
-      NS_ENSURE_SUCCESS(rv, rv);
-      // Bug 42616: Trim off named anchor and save it to add later
-      PRInt32 namedAnchorPos = path.FindChar('#');
-      nsCAutoString namedAnchor;
-      if (kNotFound != namedAnchorPos) {
-        path.Right(namedAnchor, (path.Length() - namedAnchorPos));
-        path.Truncate(namedAnchorPos);
-      }
 
-      // Chop off old query string (bug 25330, 57333)
-      // Only do this for GET not POST (bug 41585)
-      PRInt32 queryStart = path.FindChar('?');
-      if (kNotFound != queryStart) {
-        path.Truncate(queryStart);
-      }
-
-      path.Append('?');
-      // Bug 42616: Add named anchor to end after query string
-      path.Append(mQueryString + namedAnchor);
-
-      aURI->SetPath(path);
+    // Chop off old query string (bug 25330, 57333)
+    // Only do this for GET not POST (bug 41585)
+    PRInt32 queryStart = path.FindChar('?');
+    if (kNotFound != queryStart) {
+      path.Truncate(queryStart);
     }
+
+    path.Append('?');
+    // Bug 42616: Add named anchor to end after query string
+    path.Append(mQueryString + namedAnchor);
+
+    aURI->SetPath(path);
   }
 
   return rv;
@@ -612,6 +611,8 @@ public:
                         PRInt32 aBidiOptions);
   virtual ~nsFSMultipartFormData() { }
  
+  NS_DECL_ISUPPORTS_INHERITED
+
   // nsIFormSubmission
   virtual nsresult AddNameValuePair(nsIDOMHTMLElement* aSource,
                                     const nsAString& aName,
@@ -690,6 +691,10 @@ private:
    */
   nsCString mBoundary;
 };
+
+NS_IMPL_RELEASE_INHERITED(nsFSMultipartFormData, nsFormSubmission)
+NS_IMPL_ADDREF_INHERITED(nsFSMultipartFormData, nsFormSubmission)
+NS_IMPL_QUERY_INTERFACE_INHERITED0(nsFSMultipartFormData, nsFormSubmission)
 
 //
 // Constructor
@@ -929,6 +934,8 @@ public:
   {
   }
 
+  NS_DECL_ISUPPORTS_INHERITED
+
   // nsIFormSubmission
   virtual nsresult AddNameValuePair(nsIDOMHTMLElement* aSource,
                                     const nsAString& aName,
@@ -954,6 +961,10 @@ protected:
 private:
   nsString mBody;
 };
+
+NS_IMPL_RELEASE_INHERITED(nsFSTextPlain, nsFormSubmission)
+NS_IMPL_ADDREF_INHERITED(nsFSTextPlain, nsFormSubmission)
+NS_IMPL_QUERY_INTERFACE_INHERITED0(nsFSTextPlain, nsFormSubmission)
 
 nsresult
 nsFSTextPlain::AddNameValuePair(nsIDOMHTMLElement* aSource,
@@ -1051,6 +1062,7 @@ nsFSTextPlain::GetEncodedSubmission(nsIURI* aURI,
     mimeStream->SetAddContentLength(PR_TRUE);
     mimeStream->SetData(bodyStream);
     CallQueryInterface(mimeStream, aPostDataStream);
+    NS_ADDREF(*aPostDataStream);
   }
 
   return rv;
@@ -1065,7 +1077,14 @@ nsFSTextPlain::GetEncodedSubmission(nsIURI* aURI,
 // nsISupports stuff
 //
 
-NS_IMPL_ISUPPORTS1(nsFormSubmission, nsIFormSubmission)
+NS_IMPL_ADDREF(nsFormSubmission)
+NS_IMPL_RELEASE(nsFormSubmission)
+
+NS_INTERFACE_MAP_BEGIN(nsFormSubmission)
+  NS_INTERFACE_MAP_ENTRY(nsIFormSubmission)
+  NS_INTERFACE_MAP_ENTRY(nsISupports)
+NS_INTERFACE_MAP_END
+
 
 // JBK moved from nsFormFrame - bug 34297
 // submission
@@ -1178,7 +1197,7 @@ GetSubmissionFromForm(nsGenericHTMLElement* aForm,
 
   // This ASSUMES that all encodings above inherit from nsFormSubmission, which
   // they currently do.  If that changes, change this too.
-  static_cast<nsFormSubmission*>(*aFormSubmission)->Init();
+  NS_STATIC_CAST(nsFormSubmission*, *aFormSubmission)->Init();
 
   return NS_OK;
 }

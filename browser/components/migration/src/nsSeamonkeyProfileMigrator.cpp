@@ -37,10 +37,9 @@
 
 #include "nsBrowserProfileMigratorUtils.h"
 #include "nsDirectoryServiceDefs.h"
+#include "nsICookieManager2.h"
 #include "nsIObserverService.h"
-#include "nsILoginInfo.h"
-#include "nsILoginManager.h"
-#include "nsILoginManagerStorage.h"
+#include "nsIPasswordManagerInternal.h"
 #include "nsIPrefLocalizedString.h"
 #include "nsIPrefService.h"
 #include "nsIServiceManager.h"
@@ -50,7 +49,6 @@
 #include "nsNetUtil.h"
 #include "nsSeamonkeyProfileMigrator.h"
 #include "nsVoidArray.h"
-#include "nsIProfileMigrator.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 // nsSeamonkeyProfileMigrator
@@ -104,15 +102,6 @@ nsSeamonkeyProfileMigrator::Migrate(PRUint16 aItems, nsIProfileStartup* aStartup
   COPY_DATA(CopyHistory,      aReplace, nsIBrowserProfileMigrator::HISTORY);
   COPY_DATA(CopyPasswords,    aReplace, nsIBrowserProfileMigrator::PASSWORDS);
   COPY_DATA(CopyOtherData,    aReplace, nsIBrowserProfileMigrator::OTHERDATA);
-
-  // Need to do startup before trying to copy bookmarks, since bookmarks
-  // import requires a profile. Can't do it earlier because services might
-  // end up creating the files we try to copy above.
-  if (aStartup) {
-    rv = aStartup->DoStartup();
-    NS_ENSURE_SUCCESS(rv, rv);
-  }
-
   COPY_DATA(CopyBookmarks,    aReplace, nsIBrowserProfileMigrator::BOOKMARKS);
 
   if (aReplace && 
@@ -693,39 +682,12 @@ nsSeamonkeyProfileMigrator::CopyPasswords(PRBool aReplace)
   if (aReplace)
     rv = CopyFile(fileName, fileName);
   else {
-    // Get the password manager, which is the destination for the passwords
-    // being migrated. Also create a new instance of the legacy password
-    // storage component, which we'll use to slurp in the signons from
-    // Seamonkey's signons.txt.
-    nsCOMPtr<nsILoginManager> pwmgr(
-        do_GetService("@mozilla.org/login-manager;1"));
-    nsCOMPtr<nsILoginManagerStorage> importer(
-        do_CreateInstance("@mozilla.org/login-manager/storage/legacy;1"));
+    nsCOMPtr<nsIFile> seamonkeyPasswordsFile;
+    mSourceProfile->Clone(getter_AddRefs(seamonkeyPasswordsFile));
+    seamonkeyPasswordsFile->Append(fileName);
 
-    nsCOMPtr<nsIFile> signonsFile(do_QueryInterface(mSourceProfile));
-    signonsFile->SetLeafName(fileName);
-
-    importer->InitWithFile(signonsFile, nsnull);
-
-    nsresult rv;
-    PRUint32 count;
-    nsILoginInfo **logins;
-
-    rv = importer->GetAllLogins(&count, &logins);
-    NS_ENSURE_SUCCESS(rv, rv);
-    for (PRUint32 i = 0; i < count; i++) {
-        pwmgr->AddLogin(logins[i]);
-    }
-    NS_FREE_XPCOM_ISUPPORTS_POINTER_ARRAY(count, logins);
-
-    PRUnichar **hostnames;
-    rv = importer->GetAllDisabledHosts(&count, &hostnames);
-    NS_ENSURE_SUCCESS(rv, rv);
-    for (PRUint32 i = 0; i < count; i++) {
-        pwmgr->SetLoginSavingEnabled(nsDependentString(hostnames[i]),
-                                     PR_FALSE);
-    }
-    NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(count, hostnames);
+    nsCOMPtr<nsIPasswordManagerInternal> pmi(do_GetService("@mozilla.org/passwordmanager;1"));
+    rv = pmi->ReadPasswords(seamonkeyPasswordsFile);
   }
   return rv;
 }
@@ -733,26 +695,8 @@ nsSeamonkeyProfileMigrator::CopyPasswords(PRBool aReplace)
 nsresult
 nsSeamonkeyProfileMigrator::CopyBookmarks(PRBool aReplace)
 {
-  if (aReplace) {
-    // Initialize the default bookmarks
-    nsresult rv = InitializeBookmarks(mTargetProfile);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    // Merge in the bookmarks from the source profile
-    nsCOMPtr<nsIFile> sourceFile;
-    mSourceProfile->Clone(getter_AddRefs(sourceFile));
-    sourceFile->Append(FILE_NAME_BOOKMARKS);
-    rv = ImportBookmarksHTML(sourceFile, PR_TRUE, PR_FALSE, EmptyString().get());
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    // we need to set this pref so that on startup
-    // we don't blow away what we just imported
-    nsCOMPtr<nsIPrefBranch> pref(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    return pref->SetBoolPref("browser.places.importBookmarksHTML", PR_FALSE);
-  }
-
+  if (aReplace)
+    return CopyFile(FILE_NAME_BOOKMARKS, FILE_NAME_BOOKMARKS);
   return ImportNetscapeBookmarks(FILE_NAME_BOOKMARKS, 
                                  NS_LITERAL_STRING("sourceNameSeamonkey").get());
 }

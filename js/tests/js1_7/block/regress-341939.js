@@ -34,19 +34,17 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-341939.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 341939;
+var bug = 341939;
 var summary = 'Let block does not require semicolon';
 var actual = '';
 var expect = 'No Error';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
 try
-{ 
+{  
   eval('let (a) {} print(42);');
   actual = 'No Error';
 }

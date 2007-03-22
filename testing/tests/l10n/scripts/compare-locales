@@ -38,87 +38,79 @@
 
 
 import logging
-from optparse import OptionParser
-from pprint import pprint
+import sys
+from datetime import date
 
-from Mozilla import Paths, CompareLocales
+from Mozilla import Parser, CompareLocales, Paths
+import simplejson
 
-usage = 'usage: %prog [options] language1 [language2 ...]'
-parser = OptionParser(usage=usage)
+testLocales = []
+lvl = logging.WARNING
+date = date.today().strftime('%Y-%m-%d')
+# parse commandline arguments
+argsiter = sys.argv.__iter__()
+# drop command
+argsiter.next()
+for arg in argsiter:
+  if arg == '-V':
+    lvl -= 10
+  elif arg == '-D':
+    testLocales.append(argsiter.next())
+  else:
+    date = arg
 
-parser.add_option('-a', '--application', default='browser',
-                  help='compare localizations for the specified application'+
-                  ' [default: browser]')
-parser.add_option('-v', '--verbose', action='count', dest='v', default=0,
-                  help='Make more noise')
-parser.add_option('-q', '--quiet', action='count', dest='q', default=0,
-                  help='Make more noise')
+logging.basicConfig(level=lvl)
 
-(options, args) = parser.parse_args()
-if len(args) == 0:
-  parser.error('At least one language required')
+res = CompareLocales.compare(testLocales=testLocales)
 
-# log as verbose or quiet as we want, warn by default
-logging.basicConfig(level=(logging.WARNING - (options.v - options.q)*10))
-
-# import Paths loaded all-locales for both browser and mail, we overwrite
-# that with our settings before calling into CompareLocales
-locales = {options.application: args}
-
-# actually compare the localizations
-res = CompareLocales.compare(testLocales=locales)
-
-# helper class to merge all the lists into more consice
-# dicts
 class Separator:
-  def __init__(self, apps):
-    self.components = Paths.Components(apps)
-    pass
+  def __init__(self, date):
+    self.date = date
+    self.baseName = 'results/details-' + date + '-'
   def getDetails(self, res, locale):
     dic = {}
     res[locale]['tested'].sort()
     self.collectList('missing', res[locale], dic)
     self.collectList('obsolete', res[locale], dic)
-    return dic
+    d = open(self.baseName + locale + '.js', 'w')
+    d.write(simplejson.dumps(dic, sort_keys=True))
+    d.close()
   def collectList(self, name, res, dic):
     dic[name] = {}
-    if name not in res:
+    if not res.has_key(name):
       res[name] = []
     counts = dict([(mod,0) for mod in res['tested']])
     counts['total'] = len(res[name])
     for mod, path, key in res[name]:
-      counts[self.components[mod]] +=1
-      if mod not in  dic[name]:
+      counts[Paths.components[mod]] +=1
+      if not dic[name].has_key(mod):
         dic[name][mod] = {path:[key]}
         continue
-      if path not in dic[name][mod]:
+      if not dic[name][mod].has_key(path):
         dic[name][mod][path] = [key]
       else:
         dic[name][mod][path].append(key)
     res[name] = counts
     name += 'Files'
     dic[name] = {}
-    if name not in res:
+    if not res.has_key(name):
       res[name] = []
     counts = dict([(mod,0) for mod in res['tested']])
     counts['total'] = len(res[name])
     for mod, path in res[name]:
-      counts[self.components[mod]] +=1
-      if mod not in dic[name]:
+      counts[Paths.components[mod]] +=1
+      if not dic[name].has_key(mod):
         dic[name][mod] = [path]
       else:
         dic[name][mod].append(path)
     res[name] = counts
 
-s = Separator([options.application])
+s = Separator(date)
+for loc,result in res.iteritems():
+  s.getDetails(res, loc)
 
-# pretty print results for all localizations
-for loc in args:
-  print(loc + ':')
-  pprint(s.getDetails(res, loc))
-  result = res[loc]
-  pprint(result)
-  rate = result['changed']*100/ \
-         (result['changed'] + result['unchanged'] + \
-          result['missing']['total'])
-  print('%d%% of entries changed' % rate)
+overview = open('results/data-' + date + '.js', 'w')
+overview.write(simplejson.dumps(res, sort_keys=True))
+overview.close()
+
+

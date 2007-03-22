@@ -58,8 +58,8 @@ public:
      { 
          mState=0; mData=0; 
          setMapMode();
-     }
- virtual ~nsShiftJISToUnicode() {}
+     };
+ virtual ~nsShiftJISToUnicode() {};
 
  NS_IMETHOD Convert(const char * aSrc, PRInt32 * aSrcLength,
      PRUnichar * aDest, PRInt32 * aDestLength) ;
@@ -68,13 +68,13 @@ public:
      {
         *aDestLength = aSrcLength;
         return NS_OK;
-     }
+     };
  NS_IMETHOD Reset()
      {
         mState = 0;
         setMapMode();
         return NS_OK;
-     }
+     };
 
 private:
 
@@ -91,8 +91,8 @@ public:
      { 
           mState=0; mData=0; 
           setMapMode();
-     }
- virtual ~nsEUCJPToUnicodeV2() {}
+     };
+ virtual ~nsEUCJPToUnicodeV2() {};
 
  NS_IMETHOD Convert(const char * aSrc, PRInt32 * aSrcLength,
      PRUnichar * aDest, PRInt32 * aDestLength) ;
@@ -101,13 +101,13 @@ public:
      {
         *aDestLength = aSrcLength;
         return NS_OK;
-     }
+     };
  NS_IMETHOD Reset()
      {
         mState = 0;
         setMapMode();
         return NS_OK;
-     }
+     };
 
 private:
  PRInt32  mState;
@@ -123,19 +123,18 @@ public:
         mState = mState_ASCII;
         mLastLegalState = mState_ASCII;
         mData = 0;
-        mRunLength = 0;
         G2charset = G2_unknown;
         mGB2312Decoder = nsnull;
         mEUCKRDecoder = nsnull;
         mISO88597Decoder = nsnull;
         setMapMode();
-     }
+     };
  virtual ~nsISO2022JPToUnicodeV2()
      {
         NS_IF_RELEASE(mGB2312Decoder);
         NS_IF_RELEASE(mEUCKRDecoder);
         NS_IF_RELEASE(mISO88597Decoder);
-     }
+     };
 
  NS_IMETHOD Convert(const char * aSrc, PRInt32 * aSrcLength,
      PRUnichar * aDest, PRInt32 * aDestLength) ;
@@ -144,15 +143,14 @@ public:
      {
         *aDestLength = aSrcLength;
         return NS_OK;
-     }
+     };
  NS_IMETHOD Reset()
      {
         mState = mState_ASCII;
         mLastLegalState = mState_ASCII;
-        mRunLength = 0;
         setMapMode();
         return NS_OK;
-     }
+     };
 
 private:
  enum {
@@ -178,7 +176,6 @@ private:
    mState_ERROR
  } mState, mLastLegalState;
  PRInt32 mData;
- PRInt32 mRunLength; // the length of a non-ASCII run
  enum {
    G2_unknown,
    G2_ISO88591,

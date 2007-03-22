@@ -56,7 +56,6 @@ CPPSRCS		= \
 		nsSocketProviderService.cpp \
 		nsSOCKSSocketProvider.cpp \
 		nsSOCKSIOLayer.cpp \
-		nsUDPSocketProvider.cpp \
 		$(NULL)
 
 XPIDLSRCS	= \

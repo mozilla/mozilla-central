@@ -87,10 +87,11 @@ NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN(nsBaseContentList)
 NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
 
 // QueryInterface implementation for nsBaseContentList
-NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION(nsBaseContentList)
+NS_INTERFACE_MAP_BEGIN(nsBaseContentList)
   NS_INTERFACE_MAP_ENTRY(nsIDOMNodeList)
   NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIDOMNodeList)
   NS_INTERFACE_MAP_ENTRY_CONTENT_CLASSINFO(NodeList)
+  NS_INTERFACE_MAP_ENTRIES_CYCLE_COLLECTION(nsBaseContentList)
 NS_INTERFACE_MAP_END
 
 
@@ -185,10 +186,17 @@ struct ContentListHashEntry : public PLDHashEntryHdr
   nsContentList* mContentList;
 };
 
+PR_STATIC_CALLBACK(const void *)
+ContentListHashtableGetKey(PLDHashTable *table, PLDHashEntryHdr *entry)
+{
+  ContentListHashEntry *e = NS_STATIC_CAST(ContentListHashEntry *, entry);
+  return e->mContentList->GetKey();
+}
+
 PR_STATIC_CALLBACK(PLDHashNumber)
 ContentListHashtableHashKey(PLDHashTable *table, const void *key)
 {
-  const nsContentListKey* list = static_cast<const nsContentListKey *>(key);
+  const nsContentListKey* list = NS_STATIC_CAST(const nsContentListKey *, key);
   return list->GetHash();
 }
 
@@ -198,9 +206,9 @@ ContentListHashtableMatchEntry(PLDHashTable *table,
                                const void *key)
 {
   const ContentListHashEntry *e =
-    static_cast<const ContentListHashEntry *>(entry);
+    NS_STATIC_CAST(const ContentListHashEntry *, entry);
   const nsContentListKey* list1 = e->mContentList->GetKey();
-  const nsContentListKey* list2 = static_cast<const nsContentListKey *>(key);
+  const nsContentListKey* list2 = NS_STATIC_CAST(const nsContentListKey *, key);
 
   return list1->Equals(*list2);
 }
@@ -217,6 +225,7 @@ NS_GetContentList(nsINode* aRootNode, nsIAtom* aMatchAtom,
   {
     PL_DHashAllocTable,
     PL_DHashFreeTable,
+    ContentListHashtableGetKey,
     ContentListHashtableHashKey,
     ContentListHashtableMatchEntry,
     PL_DHashMoveEntryStub,
@@ -244,8 +253,8 @@ NS_GetContentList(nsINode* aRootNode, nsIAtom* aMatchAtom,
     
     // A PL_DHASH_ADD is equivalent to a PL_DHASH_LOOKUP for cases
     // when the entry is already in the hashtable.
-    entry = static_cast<ContentListHashEntry *>
-                       (PL_DHashTableOperate(&gContentListHashTable,
+    entry = NS_STATIC_CAST(ContentListHashEntry *,
+                           PL_DHashTableOperate(&gContentListHashTable,
                                                 &hashKey,
                                                 PL_DHASH_ADD));
     if (entry)
@@ -495,7 +504,7 @@ nsContentList::NamedItem(const nsAString& aName, nsIDOMNode** aReturn)
 void
 nsContentList::AttributeChanged(nsIDocument *aDocument, nsIContent* aContent,
                                 PRInt32 aNameSpaceID, nsIAtom* aAttribute,
-                                PRInt32 aModType, PRUint32 aStateMask)
+                                PRInt32 aModType)
 {
   NS_PRECONDITION(aContent, "Must have a content node to work with");
   
@@ -873,10 +882,10 @@ nsContentList::AssertInSync()
   // elements that are outside of the document element.
   nsIContent *root;
   if (mRootNode->IsNodeOfType(nsINode::eDOCUMENT)) {
-    root = static_cast<nsIDocument*>(mRootNode)->GetRootContent();
+    root = NS_STATIC_CAST(nsIDocument*, mRootNode)->GetRootContent();
   }
   else {
-    root = static_cast<nsIContent*>(mRootNode);
+    root = NS_STATIC_CAST(nsIContent*, mRootNode);
   }
 
   nsCOMPtr<nsIContentIterator> iter;

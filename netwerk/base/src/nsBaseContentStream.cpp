@@ -74,7 +74,6 @@ NS_IMPL_THREADSAFE_RELEASE(nsBaseContentStream)
 NS_INTERFACE_MAP_BEGIN(nsBaseContentStream)
   NS_INTERFACE_MAP_ENTRY(nsIInputStream)
   NS_INTERFACE_MAP_ENTRY_CONDITIONAL(nsIAsyncInputStream, mNonBlocking)
-  NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIInputStream)
 NS_INTERFACE_MAP_END_THREADSAFE
 
 //-----------------------------------------------------------------------------

@@ -46,8 +46,8 @@ static GdkFilterReturn
 root_window_event_filter(GdkXEvent *aGdkXEvent, GdkEvent *aGdkEvent,
                          gpointer aClosure)
 {
-  XEvent *xevent = static_cast<XEvent*>(aGdkXEvent);
-  nsScreenGtk *ourScreen = static_cast<nsScreenGtk*>(aClosure);
+  XEvent *xevent = NS_STATIC_CAST(XEvent*, aGdkXEvent);
+  nsScreenGtk *ourScreen = NS_STATIC_CAST(nsScreenGtk*, aClosure);
 
   // See comments in nsScreenGtk::Init below.
   switch (xevent->type) {
@@ -230,6 +230,7 @@ nsScreenGtk :: Init (PRBool aReInit)
   g_free (workareas);
 }
 
+#ifdef MOZ_ENABLE_XINERAMA
 void
 nsScreenGtk :: Init (XineramaScreenInfo *aScreenInfo)
 {
@@ -240,3 +241,4 @@ nsScreenGtk :: Init (XineramaScreenInfo *aScreenInfo)
 
   mAvailRect = mRect = xineRect;
 }
+#endif // MOZ_ENABLE_XINERAMA

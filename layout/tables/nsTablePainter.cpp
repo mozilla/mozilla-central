@@ -223,11 +223,9 @@ TableBackgroundPainter::TableBackgroundPainter(nsTableFrame*        aTableFrame,
                                                Origin               aOrigin,
                                                nsPresContext*       aPresContext,
                                                nsIRenderingContext& aRenderingContext,
-                                               const nsRect&        aDirtyRect,
-                                               const nsPoint&       aRenderPt)
+                                               const nsRect&        aDirtyRect)
   : mPresContext(aPresContext),
     mRenderingContext(aRenderingContext),
-    mRenderPt(aRenderPt),
     mDirtyRect(aDirtyRect),
     mOrigin(aOrigin),
     mCols(nsnull),
@@ -317,7 +315,7 @@ TableBackgroundPainter::PaintTableFrame(nsTableFrame*         aTableFrame,
   if (tableData.IsVisible()) {
     nsCSSRendering::PaintBackgroundWithSC(mPresContext, mRenderingContext,
                                           tableData.mFrame, mDirtyRect,
-                                          tableData.mRect + mRenderPt,
+                                          tableData.mRect,
                                           *tableData.mBackground,
                                           *tableData.mBorder,
                                           mZeroPadding, PR_TRUE);
@@ -330,7 +328,8 @@ void
 TableBackgroundPainter::TranslateContext(nscoord aDX,
                                          nscoord aDY)
 {
-  mRenderPt += nsPoint(aDX, aDY);
+  mRenderingContext.Translate(aDX, aDY);
+  mDirtyRect.MoveBy(-aDX, -aDY);
   if (mCols) {
     TableBackgroundData* lastColGroup = nsnull;
     for (PRUint32 i = 0; i < mNumCols; i++) {
@@ -353,16 +352,19 @@ TableBackgroundPainter::PaintTable(nsTableFrame* aTableFrame,
 {
   NS_PRECONDITION(aTableFrame, "null table frame");
 
-  nsTableFrame::RowGroupArray rowGroups;
-  aTableFrame->OrderRowGroups(rowGroups);
+  nsVoidArray rowGroups;
+  PRUint32 numRowGroups;
+  aTableFrame->OrderRowGroups(rowGroups, numRowGroups);
 
-  if (rowGroups.Length() < 1) { //degenerate case
-    PaintTableFrame(aTableFrame, nsnull, nsnull, nsnull);
+  if (numRowGroups < 1) { //degenerate case
+    PaintTableFrame(aTableFrame,nsnull, nsnull, nsnull);
     /* No cells; nothing else to paint */
     return NS_OK;
   }
 
-  PaintTableFrame(aTableFrame, rowGroups[0], rowGroups[rowGroups.Length() - 1],
+  PaintTableFrame(aTableFrame,
+                  aTableFrame->GetRowGroupFrame(NS_STATIC_CAST(nsIFrame*, rowGroups.ElementAt(0))),
+                  aTableFrame->GetRowGroupFrame(NS_STATIC_CAST(nsIFrame*, rowGroups.ElementAt(numRowGroups - 1))),
                   aDeflate);
 
   /*Set up column background/border data*/
@@ -379,8 +381,8 @@ TableBackgroundPainter::PaintTable(nsTableFrame* aTableFrame,
        right border is the next one's left border.*/
     //Start with table's left border.
     nscoord lastLeftBorder = aTableFrame->GetContinuousLeftBCBorderWidth();
-    for (nsTableColGroupFrame* cgFrame = static_cast<nsTableColGroupFrame*>(colGroupList.FirstChild());
-         cgFrame; cgFrame = static_cast<nsTableColGroupFrame*>(cgFrame->GetNextSibling())) {
+    for (nsTableColGroupFrame* cgFrame = NS_STATIC_CAST(nsTableColGroupFrame*, colGroupList.FirstChild());
+         cgFrame; cgFrame = NS_STATIC_CAST(nsTableColGroupFrame*, cgFrame->GetNextSibling())) {
 
       if (cgFrame->GetColCount() < 1) {
         //No columns, no cells, so no need for data
@@ -407,7 +409,7 @@ TableBackgroundPainter::PaintTable(nsTableFrame* aTableFrame,
       
       /*Loop over columns in this colgroup*/
       for (nsTableColFrame* col = cgFrame->GetFirstColumn(); col;
-           col = static_cast<nsTableColFrame*>(col->GetNextSibling())) {
+           col = NS_STATIC_CAST(nsTableColFrame*, col->GetNextSibling())) {
         /*Create data struct for column*/
         PRUint32 colIndex = col->GetColIndex();
         NS_ASSERTION(colIndex < mNumCols, "prevent array boundary violation");
@@ -436,13 +438,13 @@ TableBackgroundPainter::PaintTable(nsTableFrame* aTableFrame,
     }
   }
 
-  for (PRUint32 i = 0; i < rowGroups.Length(); i++) {
-    nsTableRowGroupFrame* rg = rowGroups[i];
+  for (PRUint32 i = 0; i < numRowGroups; i++) {
+    nsTableRowGroupFrame* rg = nsTableFrame::GetRowGroupFrame(NS_STATIC_CAST(nsIFrame*, rowGroups.ElementAt(i)));
     mRowGroup.SetFrame(rg);
     // Need to compute the right rect via GetOffsetTo, since the row
     // group may not be a child of the table.
     mRowGroup.mRect.MoveTo(rg->GetOffsetTo(aTableFrame));
-    if (mRowGroup.mRect.Intersects(mDirtyRect - mRenderPt)) {
+    if (mRowGroup.mRect.Intersects(mDirtyRect)) {
       nsresult rv = PaintRowGroup(rg, rg->IsPseudoStackingContextFromStyle());
       if (NS_FAILED(rv)) return rv;
     }
@@ -496,10 +498,9 @@ TableBackgroundPainter::PaintRowGroup(nsTableRowGroupFrame* aFrame,
                    // their originating row.  We do care about overflow below,
                    // however, since that can be due to rowspans.
 
-  // Note that mDirtyRect  - mRenderPt is guaranteed to be in the row
-  // group's coordinate system here, so passing its .y to
-  // GetFirstRowContaining is ok.
-  nsIFrame* cursor = aFrame->GetFirstRowContaining(mDirtyRect.y - mRenderPt.y, &ignored);
+  // Note that mDirtyRect is guaranteed to be in the row group's coordinate
+  // system here, so passing its .y to GetFirstRowContaining is ok.
+  nsIFrame* cursor = aFrame->GetFirstRowContaining(mDirtyRect.y, &ignored);
 
   // Sadly, it seems like there may be non-row frames in there... or something?
   // There are certainly null-checks in GetFirstRow() and GetNextRow().  :(
@@ -508,7 +509,7 @@ TableBackgroundPainter::PaintRowGroup(nsTableRowGroupFrame* aFrame,
   }
 
   // It's OK if cursor is null here.
-  nsTableRowFrame* row = static_cast<nsTableRowFrame*>(cursor);  
+  nsTableRowFrame* row = NS_STATIC_CAST(nsTableRowFrame*, cursor);  
   if (!row) {
     // No useful cursor; just start at the top.  Don't bother to set up a
     // cursor; if we've gotten this far then we've already built the display
@@ -520,7 +521,7 @@ TableBackgroundPainter::PaintRowGroup(nsTableRowGroupFrame* aFrame,
   /* Finally paint */
   for (; row; row = row->GetNextRow()) {
     mRow.SetFrame(row);
-    if (mDirtyRect.YMost() - mRenderPt.y < mRow.mRect.y) { // Intersect wouldn't handle
+    if (mDirtyRect.YMost() < mRow.mRect.y) { // Intersect wouldn't handle
                                              // rowspans.
 
       // All done; cells originating in later rows can't intersect mDirtyRect.
@@ -562,7 +563,7 @@ TableBackgroundPainter::PaintRow(nsTableRowFrame* aFrame,
         border.bottom = nextRow->GetOuterTopContBCBorderWidth();
       }
       else { //acquire rg's bottom border
-        nsTableRowGroupFrame* rowGroup = static_cast<nsTableRowGroupFrame*>(aFrame->GetParent());
+        nsTableRowGroupFrame* rowGroup = NS_STATIC_CAST(nsTableRowGroupFrame*, aFrame->GetParent());
         rowGroup->GetContinuousBCBorderWidth(border);
       }
       //get the rest of the borders; will overwrite all but bottom
@@ -584,8 +585,9 @@ TableBackgroundPainter::PaintRow(nsTableRowFrame* aFrame,
   //else: Use row group's coord system -> no translation necessary
 
   for (nsTableCellFrame* cell = aFrame->GetFirstCell(); cell; cell = cell->GetNextCell()) {
+    mCellRect = cell->GetRect();
     //Translate to use the same coord system as mRow.
-    mCellRect = cell->GetRect() + mRow.mRect.TopLeft() + mRenderPt;
+    mCellRect.MoveBy(mRow.mRect.x, mRow.mRect.y);
     if (mCellRect.Intersects(mDirtyRect)) {
       nsresult rv = PaintCell(cell, aPassThrough || cell->IsPseudoStackingContextFromStyle());
       if (NS_FAILED(rv)) return rv;
@@ -613,15 +615,12 @@ TableBackgroundPainter::PaintCell(nsTableCellFrame* aCell,
 
   PRInt32 colIndex;
   aCell->GetColIndex(colIndex);
-  NS_ASSERTION(colIndex < mNumCols, "prevent array boundary violation");
-  if (mNumCols <= colIndex)
-    return NS_OK;
 
   //Paint column group background
   if (mCols && mCols[colIndex].mColGroup && mCols[colIndex].mColGroup->IsVisible()) {
     nsCSSRendering::PaintBackgroundWithSC(mPresContext, mRenderingContext,
                                           mCols[colIndex].mColGroup->mFrame, mDirtyRect,
-                                          mCols[colIndex].mColGroup->mRect + mRenderPt,
+                                          mCols[colIndex].mColGroup->mRect,
                                           *mCols[colIndex].mColGroup->mBackground,
                                           *mCols[colIndex].mColGroup->mBorder,
                                           mZeroPadding, PR_TRUE, &mCellRect);
@@ -631,7 +630,7 @@ TableBackgroundPainter::PaintCell(nsTableCellFrame* aCell,
   if (mCols && mCols[colIndex].mCol.IsVisible()) {
     nsCSSRendering::PaintBackgroundWithSC(mPresContext, mRenderingContext,
                                           mCols[colIndex].mCol.mFrame, mDirtyRect,
-                                          mCols[colIndex].mCol.mRect + mRenderPt,
+                                          mCols[colIndex].mCol.mRect,
                                           *mCols[colIndex].mCol.mBackground,
                                           *mCols[colIndex].mCol.mBorder,
                                           mZeroPadding, PR_TRUE, &mCellRect);
@@ -640,8 +639,7 @@ TableBackgroundPainter::PaintCell(nsTableCellFrame* aCell,
   //Paint row group background
   if (mRowGroup.IsVisible()) {
     nsCSSRendering::PaintBackgroundWithSC(mPresContext, mRenderingContext,
-                                          mRowGroup.mFrame, mDirtyRect,
-                                          mRowGroup.mRect + mRenderPt,
+                                          mRowGroup.mFrame, mDirtyRect, mRowGroup.mRect,
                                           *mRowGroup.mBackground, *mRowGroup.mBorder,
                                           mZeroPadding, PR_TRUE, &mCellRect);
   }
@@ -649,16 +647,14 @@ TableBackgroundPainter::PaintCell(nsTableCellFrame* aCell,
   //Paint row background
   if (mRow.IsVisible()) {
     nsCSSRendering::PaintBackgroundWithSC(mPresContext, mRenderingContext,
-                                          mRow.mFrame, mDirtyRect,
-                                          mRow.mRect + mRenderPt,
+                                          mRow.mFrame, mDirtyRect, mRow.mRect,
                                           *mRow.mBackground, *mRow.mBorder,
                                           mZeroPadding, PR_TRUE, &mCellRect);
   }
 
   //Paint cell background in border-collapse unless we're just passing
   if (mIsBorderCollapse && !aPassSelf) {
-    aCell->PaintCellBackground(mRenderingContext, mDirtyRect,
-                               mCellRect.TopLeft());
+    aCell->PaintCellBackground(mRenderingContext, mDirtyRect, mCellRect.TopLeft());
   }
 
   return NS_OK;

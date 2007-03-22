@@ -60,14 +60,14 @@ class TestObject : public TestObjectBaseA, public TestObjectBaseB {
         TestObject()
         {
             printf("  Creating TestObject %p.\n",
-                   static_cast<void*>(this));
+                   NS_STATIC_CAST(void*, this));
         }
 
         // Virtual dtor for deleting through base class pointer
         virtual ~TestObject()
         {
             printf("  Destroying TestObject %p.\n",
-                   static_cast<void*>(this));
+                   NS_STATIC_CAST(void*, this));
         }
 };
 
@@ -92,20 +92,20 @@ class TestRefObject : public TestRefObjectBaseA, public TestRefObjectBaseB {
             : mRefCount(0)
         {
             printf("  Creating TestRefObject %p.\n",
-                   static_cast<void*>(this));
+                   NS_STATIC_CAST(void*, this));
         }
 
         ~TestRefObject()
         {
             printf("  Destroying TestRefObject %p.\n",
-                   static_cast<void*>(this));
+                   NS_STATIC_CAST(void*, this));
         }
 
         nsrefcnt AddRef()
         {
             ++mRefCount;
             printf("  AddRef to %d on TestRefObject %p.\n",
-                   mRefCount, static_cast<void*>(this));
+                   mRefCount, NS_STATIC_CAST(void*, this));
             return mRefCount;
         }
 
@@ -113,9 +113,9 @@ class TestRefObject : public TestRefObjectBaseA, public TestRefObjectBaseB {
         {
             --mRefCount;
             printf("  Release to %d on TestRefObject %p.\n",
-                   mRefCount, static_cast<void*>(this));
+                   mRefCount, NS_STATIC_CAST(void*, this));
             if (mRefCount == 0) {
-                delete const_cast<TestRefObject*>(this);
+                delete NS_CONST_CAST(TestRefObject*, this);
                 return 0;
             }
             return mRefCount;
@@ -139,49 +139,49 @@ static void CreateTestRefObject(TestRefObject **aResult)
 static void DoSomethingWithTestObject(TestObject *aIn)
 {
     printf("  Doing something with |TestObject| %p.\n",
-           static_cast<void*>(aIn));
+           NS_STATIC_CAST(void*, aIn));
 }
 
 static void DoSomethingWithConstTestObject(const TestObject *aIn)
 {
     printf("  Doing something with |const TestObject| %p.\n",
-           static_cast<const void*>(aIn));
+           NS_STATIC_CAST(const void*, aIn));
 }
 
 static void DoSomethingWithTestRefObject(TestRefObject *aIn)
 {
     printf("  Doing something with |TestRefObject| %p.\n",
-           static_cast<void*>(aIn));
+           NS_STATIC_CAST(void*, aIn));
 }
 
 static void DoSomethingWithConstTestRefObject(const TestRefObject *aIn)
 {
     printf("  Doing something with |const TestRefObject| %p.\n",
-           static_cast<const void*>(aIn));
+           NS_STATIC_CAST(const void*, aIn));
 }
 
 static void DoSomethingWithTestObjectBaseB(TestObjectBaseB *aIn)
 {
     printf("  Doing something with |TestObjectBaseB| %p.\n",
-           static_cast<void*>(aIn));
+           NS_STATIC_CAST(void*, aIn));
 }
 
 static void DoSomethingWithConstTestObjectBaseB(const TestObjectBaseB *aIn)
 {
     printf("  Doing something with |const TestObjectBaseB| %p.\n",
-           static_cast<const void*>(aIn));
+           NS_STATIC_CAST(const void*, aIn));
 }
 
 static void DoSomethingWithTestRefObjectBaseB(TestRefObjectBaseB *aIn)
 {
     printf("  Doing something with |TestRefObjectBaseB| %p.\n",
-           static_cast<void*>(aIn));
+           NS_STATIC_CAST(void*, aIn));
 }
 
 static void DoSomethingWithConstTestRefObjectBaseB(const TestRefObjectBaseB *aIn)
 {
     printf("  Doing something with |const TestRefObjectBaseB| %p.\n",
-           static_cast<const void*>(aIn));
+           NS_STATIC_CAST(const void*, aIn));
 }
 
 int main()
@@ -344,7 +344,7 @@ int main()
         nsAutoPtr<TestObject> p1(new TestObject());
         TestObjectBaseB *p2 = p1;
         printf("equality %s.\n",
-               ((static_cast<void*>(p1) != static_cast<void*>(p2)) &&
+               ((NS_STATIC_CAST(void*, p1) != NS_STATIC_CAST(void*, p2)) &&
                 (p1 == p2) && !(p1 != p2) && (p2 == p1) && !(p2 != p1))
                ? "OK" : "broken");
     }
@@ -353,7 +353,7 @@ int main()
         TestObject *p1 = new TestObject();
         nsAutoPtr<TestObjectBaseB> p2(p1);
         printf("equality %s.\n",
-               ((static_cast<void*>(p1) != static_cast<void*>(p2)) &&
+               ((NS_STATIC_CAST(void*, p1) != NS_STATIC_CAST(void*, p2)) &&
                 (p1 == p2) && !(p1 != p2) && (p2 == p1) && !(p2 != p1))
                ? "OK" : "broken");
     }
@@ -363,7 +363,7 @@ int main()
         // nsCOMPtr requires a |get| for something like this as well
         nsRefPtr<TestRefObjectBaseB> p2 = p1.get();
         printf("equality %s.\n",
-               ((static_cast<void*>(p1) != static_cast<void*>(p2)) &&
+               ((NS_STATIC_CAST(void*, p1) != NS_STATIC_CAST(void*, p2)) &&
                 (p1 == p2) && !(p1 != p2) && (p2 == p1) && !(p2 != p1))
                ? "OK" : "broken");
     }
@@ -372,7 +372,7 @@ int main()
         nsRefPtr<TestRefObject> p1 = new TestRefObject();
         TestRefObjectBaseB *p2 = p1;
         printf("equality %s.\n",
-               ((static_cast<void*>(p1) != static_cast<void*>(p2)) &&
+               ((NS_STATIC_CAST(void*, p1) != NS_STATIC_CAST(void*, p2)) &&
                 (p1 == p2) && !(p1 != p2) && (p2 == p1) && !(p2 != p1))
                ? "OK" : "broken");
     }
@@ -381,7 +381,7 @@ int main()
         TestRefObject *p1 = new TestRefObject();
         nsRefPtr<TestRefObjectBaseB> p2 = p1;
         printf("equality %s.\n",
-               ((static_cast<void*>(p1) != static_cast<void*>(p2)) &&
+               ((NS_STATIC_CAST(void*, p1) != NS_STATIC_CAST(void*, p2)) &&
                 (p1 == p2) && !(p1 != p2) && (p2 == p1) && !(p2 != p1))
                ? "OK" : "broken");
     }
@@ -403,15 +403,6 @@ int main()
         nsAutoArrayPtr<TestObject> pobj2( pobj.forget() );
         printf("Should destroy 3 |TestObject|s:\n");
     }
-
-    {
-        printf("Should create one |TestRefObject|:\n");
-        nsRefPtr<TestRefObject> pobj( new TestRefObject() );
-        printf("Should do nothing:\n");
-        nsRefPtr<TestRefObject> pobj2( pobj.forget() );
-        printf("Should destroy one |TestRefObject|:\n");
-    }
-
 
     printf("\nTesting construction.\n");
 

@@ -34,9 +34,8 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK ***** */
-
-/*
+ * ***** END LICENSE BLOCK *****
+ *
  *
  * Date:    24 Nov 2003
  * SUMMARY: Testing for recursion check in js_EmitTree
@@ -50,14 +49,14 @@
  * Only after -s was changed to 15K, too-deep recursion was detected:
  *
 
- ~/w/js/x> ulimit -s
- 100
- ~/w/js/x> js  fintest.js
- Segmentation fault
- ~/w/js/x> js -S $((20*1024)) fintest.js
- Segmentation fault
- ~/w/js/x> js -S $((15*1024)) fintest.js
- fintest.js:19: InternalError: too much recursion
+  ~/w/js/x> ulimit -s
+  100
+  ~/w/js/x> js  fintest.js
+  Segmentation fault
+  ~/w/js/x> js -S $((20*1024)) fintest.js
+  Segmentation fault
+  ~/w/js/x> js -S $((15*1024)) fintest.js
+  fintest.js:19: InternalError: too much recursion
 
  *
  * After playing with numbers it seems that while processing try/finally the
@@ -73,9 +72,8 @@
  *
  */
 //-----------------------------------------------------------------------------
-var gTestfile = 'regress-226507.js';
 var UBound = 0;
-var BUGNUMBER = 226507;
+var bug = 226507;
 var summary = 'Testing for recursion check in js_EmitTree';
 var status = '';
 var statusitems = [];
@@ -110,11 +108,11 @@ function f()
  *
  */
 var source = "".concat(
-  repeat_str("try { f(); } finally {\n", N),
-  "f(",
-  repeat_str("1,", N),
-  "1);\n",
-  repeat_str("}", N));
+	repeat_str("try { f(); } finally {\n", N),
+	"f(",
+	repeat_str("1,", N),
+	"1);\n",
+	repeat_str("}", N));
 
 // Repeat it for additional stress testing
 source += source;
@@ -130,20 +128,13 @@ if (typeof Script == 'undefined')
 }
 else
 {
-  try
-  {
-    var script = Script(source);
-    script();
+  var script = Script(source);
+  script();
 
 
-    status = inSection(1);
-    actual = counter;
-    expect = (N + 1) * 2;
-  }
-  catch(ex)
-  {
-    actual = ex + '';
-  }
+  status = inSection(1);
+  actual = counter;
+  expect = (N + 1) * 2;
 }
 addThis();
 
@@ -175,7 +166,7 @@ function addThis()
 function test()
 {
   enterFunc('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber(bug);
   printStatus(summary);
 
   for (var i=0; i<UBound; i++)

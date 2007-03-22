@@ -34,15 +34,13 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-310607.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 310607;
+var bug = 310607;
 var summary = 'Do not crash iterating over Object.prototype';
 var actual = 'No Crash';
 var expect = 'No Crash';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
 var f = new Foo();
@@ -58,5 +56,5 @@ function Foo() {
     printStatus("End");
   };
 }
- 
+  
 reportCompare(expect, actual, summary);

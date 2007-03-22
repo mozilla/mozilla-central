@@ -67,7 +67,7 @@ struct nsDiskCacheEntry {
                                     mKeySize + mMetaDataSize;
                               }
 
-    char*           Key()     { return reinterpret_cast<char*const>(this) + 
+    char*           Key()     { return NS_REINTERPRET_CAST(char*const, this) + 
                                     sizeof(nsDiskCacheEntry);
                               }
 
@@ -106,6 +106,10 @@ struct nsDiskCacheEntry {
 #endif
     }
 };
+
+nsDiskCacheEntry *  CreateDiskCacheEntry(nsDiskCacheBinding *  binding,
+                                         PRUint32 * size);
+
 
 
 /******************************************************************************

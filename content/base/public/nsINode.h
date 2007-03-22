@@ -48,9 +48,7 @@
 class nsIContent;
 class nsIDocument;
 class nsIDOMEvent;
-class nsIPresShell;
 class nsPresContext;
-class nsEventChainVisitor;
 class nsEventChainPreVisitor;
 class nsEventChainPostVisitor;
 class nsIEventListenerManager;
@@ -60,106 +58,61 @@ class nsIMutationObserver;
 class nsChildContentList;
 class nsNodeWeakReference;
 class nsNodeSupportsWeakRefTearoff;
-class nsIEditor;
 
-enum {
-  // This bit will be set if the node doesn't have nsSlots
-  NODE_DOESNT_HAVE_SLOTS =       0x00000001U,
+// This bit will be set if the node doesn't have nsSlots
+#define NODE_DOESNT_HAVE_SLOTS       0x00000001U
 
-  // This bit will be set if the node has a listener manager in the listener
-  // manager hash
-  NODE_HAS_LISTENERMANAGER =     0x00000002U,
+// This bit will be set if the node has a listener manager in the listener
+// manager hash
+#define NODE_HAS_LISTENERMANAGER     0x00000002U
 
-  // Whether this node has had any properties set on it
-  NODE_HAS_PROPERTIES =          0x00000004U,
+// Whether this node has had any properties set on it
+#define NODE_HAS_PROPERTIES          0x00000004U
 
-  // Whether this node is anonymous
-  // NOTE: Should only be used on nsIContent nodes
-  NODE_IS_ANONYMOUS =            0x00000008U,
-  
-  NODE_IS_IN_ANONYMOUS_SUBTREE = 0x00000010U,
+// Whether this node is anonymous
+// NOTE: Should only be used on nsIContent nodes
+#define NODE_IS_ANONYMOUS            0x00000008U
 
-  // Whether this node may have a frame
-  // NOTE: Should only be used on nsIContent nodes
-  NODE_MAY_HAVE_FRAME =          0x00000020U,
+// Whether this node is anonymous for events
+// NOTE: Should only be used on nsIContent nodes
+#define NODE_IS_ANONYMOUS_FOR_EVENTS 0x00000010U
 
-  // Forces the XBL code to treat this node as if it were
-  // in the document and therefore should get bindings attached.
-  NODE_FORCE_XBL_BINDINGS =      0x00000040U,
+// Whether this node may have a frame
+// NOTE: Should only be used on nsIContent nodes
+#define NODE_MAY_HAVE_FRAME          0x00000020U
 
-  // Whether a binding manager may have a pointer to this
-  NODE_MAY_BE_IN_BINDING_MNGR =  0x00000080U,
+// Four bits for the script-type ID
+#define NODE_SCRIPT_TYPE_OFFSET                6
 
-  NODE_IS_EDITABLE =             0x00000100U,
+// Remaining bits are node type specific.
+#define NODE_TYPE_SPECIFIC_BITS_OFFSET       0x0a
 
-  // Optimizations to quickly check whether element may have ID, class or style
-  // attributes. Not all element implementations may use these!
-  NODE_MAY_HAVE_ID =             0x00000200U,
-  NODE_MAY_HAVE_CLASS =          0x00000400U,
-  NODE_MAY_HAVE_STYLE =          0x00000800U,
-
-  NODE_IS_INSERTION_PARENT =     0x00001000U,
-
-  // Node has an :empty or :-moz-only-whitespace selector
-  NODE_HAS_EMPTY_SELECTOR =      0x00002000U,
-
-  // A child of the node has a selector such that any insertion,
-  // removal, or appending of children requires restyling the parent.
-  NODE_HAS_SLOW_SELECTOR =       0x00004000U,
-
-  // A child of the node has a :first-child, :-moz-first-node,
-  // :only-child, :last-child or :-moz-last-node selector.
-  NODE_HAS_EDGE_CHILD_SELECTOR = 0x00008000U,
-
-  // A child of the node has a selector such that any insertion or
-  // removal of children requires restyling the parent (but append is
-  // OK).
-  NODE_HAS_SLOW_SELECTOR_NOAPPEND
-                               = 0x00010000U,
-
-  NODE_ALL_SELECTOR_FLAGS =      NODE_HAS_EMPTY_SELECTOR |
-                                 NODE_HAS_SLOW_SELECTOR |
-                                 NODE_HAS_EDGE_CHILD_SELECTOR |
-                                 NODE_HAS_SLOW_SELECTOR_NOAPPEND,
-
-  // Four bits for the script-type ID
-  NODE_SCRIPT_TYPE_OFFSET =               17,
-
-  NODE_SCRIPT_TYPE_SIZE =                  4,
-
-  // Remaining bits are node type specific.
-  NODE_TYPE_SPECIFIC_BITS_OFFSET =
-    NODE_SCRIPT_TYPE_OFFSET + NODE_SCRIPT_TYPE_SIZE
-};
-
-// Useful inline function for getting a node given an nsIContent and an
-// nsIDocument.  Returns the first argument cast to nsINode if it is non-null,
-// otherwise returns the second (which may be null).  We use type variables
-// instead of nsIContent* and nsIDocument* because the actual types must be
-// known for the cast to work.
-template<class C, class D>
-inline nsINode* NODE_FROM(C& aContent, D& aDocument)
-{
-  if (aContent)
-    return static_cast<nsINode*>(aContent);
-  return static_cast<nsINode*>(aDocument);
-}
+// Useful macro for getting a node given an nsIContent and an nsIDocument
+// Returns the first argument cast to nsINode if it is non-null, otherwise
+// returns the second (which may be null)
+#define NODE_FROM(content_, document_)                  \
+  ((content_) ? NS_STATIC_CAST(nsINode*, (content_)) :  \
+                NS_STATIC_CAST(nsINode*, (document_)))
 
 
 // IID for the nsINode interface
 #define NS_INODE_IID \
-{ 0x6f69dd90, 0x318d, 0x40ac, \
-  { 0xb8, 0xb8, 0x99, 0xb8, 0xa7, 0xbb, 0x9a, 0x58 } }
+{ 0x22ab1440, 0xa6ee, 0x4da7, \
+  { 0xbc, 0x3b, 0x94, 0x2e, 0x56, 0x0d, 0xdc, 0xe0 } }
+
+// hack to make egcs / gcc 2.95.2 happy
+class nsINode_base : public nsPIDOMEventTarget {
+public:
+  NS_DECLARE_STATIC_IID_ACCESSOR(NS_INODE_IID)
+};
 
 /**
  * An internal interface that abstracts some DOMNode-related parts that both
  * nsIContent and nsIDocument share.  An instance of this interface has a list
  * of nsIContent children and provides access to them.
  */
-class nsINode : public nsPIDOMEventTarget {
+class nsINode : public nsINode_base {
 public:
-  NS_DECLARE_STATIC_IID_ACCESSOR(NS_INODE_IID)
-
   friend class nsNodeUtils;
   friend class nsNodeWeakReference;
   friend class nsNodeSupportsWeakRefTearoff;
@@ -205,9 +158,7 @@ public:
     eDOCUMENT_FRAGMENT   = 1 << 11,
     /** data nodes (comments, PIs, text). Nodes of this type always
      returns a non-null value for nsIContent::GetText() */
-    eDATA_NODE           = 1 << 12,
-    /** nsMathMLElement */
-    eMATHML              = 1 << 13
+    eDATA_NODE           = 1 << 12
   };
 
   /**
@@ -499,8 +450,8 @@ public:
   nsIContent* GetParent() const
   {
     return NS_LIKELY(mParentPtrBits & PARENT_BIT_PARENT_IS_CONTENT) ?
-           reinterpret_cast<nsIContent*>
-                           (mParentPtrBits & ~kParentBitMask) :
+           NS_REINTERPRET_CAST(nsIContent*,
+                               mParentPtrBits & ~kParentBitMask) :
            nsnull;
   }
 
@@ -511,7 +462,7 @@ public:
    */
   nsINode* GetNodeParent() const
   {
-    return reinterpret_cast<nsINode*>(mParentPtrBits & ~kParentBitMask);
+    return NS_REINTERPRET_CAST(nsINode*, mParentPtrBits & ~kParentBitMask);
   }
 
   /**
@@ -583,7 +534,7 @@ public:
     /**
      * A list of mutation observers
      */
-    nsTObserverArray<nsIMutationObserver*> mMutationObservers;
+    nsTObserverArray<nsIMutationObserver> mMutationObservers;
 
     /**
      * An object implementing nsIDOMNodeList for this content (childNodes)
@@ -637,41 +588,6 @@ public:
     *flags &= ~aFlagsToUnset;
   }
 
-  void SetEditableFlag(PRBool aEditable)
-  {
-    if (aEditable) {
-      SetFlags(NODE_IS_EDITABLE);
-    }
-    else {
-      UnsetFlags(NODE_IS_EDITABLE);
-    }
-  }
-
-  PRBool IsEditable() const
-  {
-#ifdef _IMPL_NS_LAYOUT
-    return IsEditableInternal();
-#else
-    return IsEditableExternal();
-#endif
-  }
-
-  /**
-   * Get the root content of an editor. So, this node must be a descendant of
-   * an editor. Note that this should be only used for getting input or textarea
-   * editor's root content. This method doesn't support HTML editors.
-   */
-  nsIContent* GetTextEditorRootContent(nsIEditor** aEditor = nsnull);
-
-  /**
-   * Get the nearest selection root, ie. the node that will be selected if the
-   * user does "Select All" while the focus is in this node. Note that if this
-   * node is not in an editor, the result comes from the nsFrameSelection that
-   * is related to aPresShell, so the result might not be the ancestor of this
-   * node.
-   */
-  nsIContent* GetSelectionRootContent(nsIPresShell* aPresShell);
-
 protected:
 
   // Override this function to create a custom slots class.
@@ -685,7 +601,7 @@ protected:
   nsSlots* FlagsAsSlots() const
   {
     NS_ASSERTION(HasSlots(), "check HasSlots first");
-    return reinterpret_cast<nsSlots*>(mFlagsOrSlots);
+    return NS_REINTERPRET_CAST(nsSlots*, mFlagsOrSlots);
   }
 
   nsSlots* GetExistingSlots() const
@@ -701,21 +617,10 @@ protected:
 
     nsSlots* slots = CreateSlots();
     if (slots) {
-      mFlagsOrSlots = reinterpret_cast<PtrBits>(slots);
+      mFlagsOrSlots = NS_REINTERPRET_CAST(PtrBits, slots);
     }
 
     return slots;
-  }
-
-  nsTObserverArray<nsIMutationObserver*> *GetMutationObservers()
-  {
-    return HasSlots() ? &FlagsAsSlots()->mMutationObservers : nsnull;
-  }
-
-  PRBool IsEditableInternal() const;
-  virtual PRBool IsEditableExternal() const
-  {
-    return IsEditableInternal();
   }
 
   nsCOMPtr<nsINodeInfo> mNodeInfo;
@@ -734,6 +639,6 @@ protected:
   PtrBits mFlagsOrSlots;
 };
 
-NS_DEFINE_STATIC_IID_ACCESSOR(nsINode, NS_INODE_IID)
+NS_DEFINE_STATIC_IID_ACCESSOR(nsINode_base, NS_INODE_IID)
 
 #endif /* nsINode_h___ */

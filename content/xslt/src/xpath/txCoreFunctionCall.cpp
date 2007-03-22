@@ -41,11 +41,10 @@
 #include "txNodeSet.h"
 #include "txAtoms.h"
 #include "txIXPathContext.h"
-#include "nsWhitespaceTokenizer.h"
+#include "txTokenizer.h"
 #include "txXPathTreeWalker.h"
 #include <math.h>
 #include "txStringUtils.h"
-#include "txXMLUtils.h"
 
 struct txCoreFunctionDescriptor
 {
@@ -135,14 +134,14 @@ txCoreFunctionCall::evaluate(txIEvalContext* aContext, txAExprResult** aResult)
             txXPathTreeWalker walker(aContext->getContextNode());
             
             if (exprResult->getResultType() == txAExprResult::NODESET) {
-                txNodeSet* nodes = static_cast<txNodeSet*>
-                                              (static_cast<txAExprResult*>
-                                                          (exprResult));
+                txNodeSet* nodes = NS_STATIC_CAST(txNodeSet*,
+                                                  NS_STATIC_CAST(txAExprResult*,
+                                                                 exprResult));
                 PRInt32 i;
                 for (i = 0; i < nodes->size(); ++i) {
                     nsAutoString idList;
                     txXPathNodeUtils::appendNodeValue(nodes->get(i), idList);
-                    nsWhitespaceTokenizer tokenizer(idList);
+                    txTokenizer tokenizer(idList);
                     while (tokenizer.hasMoreTokens()) {
                         if (walker.moveToElementById(tokenizer.nextToken())) {
                             resultSet->add(walker.getCurrentPosition());
@@ -153,7 +152,7 @@ txCoreFunctionCall::evaluate(txIEvalContext* aContext, txAExprResult** aResult)
             else {
                 nsAutoString idList;
                 exprResult->stringValue(idList);
-                nsWhitespaceTokenizer tokenizer(idList);
+                txTokenizer tokenizer(idList);
                 while (tokenizer.hasMoreTokens()) {
                     if (walker.moveToElementById(tokenizer.nextToken())) {
                         resultSet->add(walker.getCurrentPosition());
@@ -742,7 +741,7 @@ txCoreFunctionCall::getTypeFromAtom(nsIAtom* aName, eType& aType)
     PRUint32 i;
     for (i = 0; i < NS_ARRAY_LENGTH(descriptTable); ++i) {
         if (aName == *descriptTable[i].mName) {
-            aType = static_cast<eType>(i);
+            aType = NS_STATIC_CAST(eType, i);
 
             return PR_TRUE;
         }

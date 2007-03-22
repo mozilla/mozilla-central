@@ -36,23 +36,23 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'regress-336921.js';
+START("13.4.4.3 - XML.prototype.appendChild");
 
-var summary = '13.4.4.3 - XML.prototype.appendChild creates undesired <br/>';
-var BUGNUMBER = 336921;
+var bug = 336921;
+var summary = 'XML.prototype.appendChild creates undesired <br/>';
 var actual = '';
 var expect = '';
 
-printBugNumber(BUGNUMBER);
-START(summary);
+printBugNumber (bug);
+printStatus (summary);
 
 // test here
 
 var array = ["a","b","c"];
 var myDiv = <div/>;
-for each (a in array) {
-    myDiv.appendChild(a);
-    myDiv.appendChild(<br/>);
+for each (a in array) { 
+    myDiv.appendChild(a); 
+    myDiv.appendChild(<br/>); 
 }
 
 actual = myDiv.toXMLString();

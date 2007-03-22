@@ -1,9 +1,0 @@
-Sparkle is an MIT-like-licensed framework used for Camino's auto-update
-functionality. See http://sparkle.andymatuschak.org/ for more information about
-Sparkle. The Sparkle framework is shipped inside Camino's bundle, and some glue
-code is included in Camino itself.
-
-This is a pull of revision 246 of the lp:sparkle branch from http://code.launchpad.net/sparkle
-with the following changes:
-- Commented out used of [arch=<foo>] notation in ConfigCommon.xcconfig to allow building with our toolchain
-- Removed use of non-ASCII in NSString literals, and update English .strings keys to match 

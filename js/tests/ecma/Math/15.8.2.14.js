@@ -35,9 +35,6 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-gTestfile = '15.8.2.14.js';
-
 /**
    File Name:          15.8.2.14.js
    ECMA Section:       15.8.2.14 Math.random()
@@ -60,9 +57,9 @@ var TITLE   = "Math.random()";
 writeHeaderToLog( SECTION + " "+ TITLE);
 
 for ( var item = 0; item < 100; item++ ) {
-  var testcase = new TestCase( SECTION, 
-			       "Math.random()",   
-			       "pass",   
+  var testcase = new TestCase( SECTION,  
+			       "Math.random()",    
+			       "pass",    
 			       null );
   testcase.reason = Math.random();
   testcase.actual = "pass";

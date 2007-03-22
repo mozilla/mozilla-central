@@ -72,9 +72,6 @@ public:
   // nsIThreadManager::NewThread.
   PRBool ShutdownRequired() { return mShutdownRequired; }
 
-  // The global thread observer
-  static nsIThreadObserver* sGlobalObserver;
-
 private:
   friend class nsThreadShutdownEvent;
 
@@ -95,7 +92,7 @@ private:
   PRBool GetEvent(PRBool mayWait, nsIRunnable **event) {
     return mEvents->GetEvent(mayWait, event);
   }
-  nsresult PutEvent(nsIRunnable *event);
+  PRBool PutEvent(nsIRunnable *event);
 
   // Wrapper for nsEventQueue that supports chaining.
   class nsChainedEventQueue {
@@ -113,10 +110,6 @@ private:
     }
 
     PRBool PutEvent(nsIRunnable *event);
-    
-    PRBool HasPendingEvent() {
-      return mQueue.HasPendingEvent();
-    }
 
     class nsChainedEventQueue *mNext;
   private:
@@ -124,11 +117,11 @@ private:
     nsEventQueue mQueue;
   };
 
-  // This lock protects access to mObserver, mEvents and mEventsAreDoomed.
-  // All of those fields are only modified on the thread itself (never from
-  // another thread).  This means that we can avoid holding the lock while
-  // using mObserver and mEvents on the thread itself.  When calling PutEvent
-  // on mEvents, we have to hold the lock to synchronize with PopEventQueue.
+  // This lock protects access to mObserver and mEvents.  Both of those fields
+  // are only modified on the thread itself (never from another thread).  This
+  // means that we can avoid holding the lock while using mObserver and mEvents
+  // on the thread itself.  When calling PutEvent on mEvents, we have to hold
+  // the lock to synchronize with PopEventQueue.
   PRLock *mLock;
 
   nsCOMPtr<nsIThreadObserver> mObserver;
@@ -144,8 +137,6 @@ private:
 
   PRPackedBool mShutdownRequired;
   PRPackedBool mShutdownPending;
-  // Set to true when events posted to this thread will never run.
-  PRPackedBool mEventsAreDoomed;
 };
 
 //-----------------------------------------------------------------------------

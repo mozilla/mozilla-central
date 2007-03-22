@@ -241,16 +241,6 @@ nsresult nsPluginFile::LoadPlugin(PRLibrary* &outLibrary)
         return NS_ERROR_NULL_POINTER;
 
     nsCAutoString temp;
-    mPlugin->GetNativeLeafName(temp);
-    /*
-     * Don't load the VDP fake plugin, to avoid tripping a bad bug in OS X
-     * 10.5.3 (see bug 436575).
-     */
-    if (!strcmp(temp.get(), "VerifiedDownloadPlugin.plugin")) {
-        NS_WARNING("Preventing load of VerifiedDownloadPlugin.plugin (see bug 436575)");
-        return NS_ERROR_FAILURE;
-    }
-
     mPlugin->GetNativePath(temp);
     path = temp.get();
 
@@ -342,7 +332,7 @@ nsresult nsPluginFile::GetPluginInfo(nsPluginInfo& info)
   if (pLibrary) {
     // First, check for NP_GetMIMEDescription
     NP_GETMIMEDESCRIPTION pfnGetMimeDesc = 
-    (NP_GETMIMEDESCRIPTION)PR_FindFunctionSymbol(pLibrary, NP_GETMIMEDESCRIPTION_NAME); 
+    (NP_GETMIMEDESCRIPTION)PR_FindSymbol(pLibrary, NP_GETMIMEDESCRIPTION_NAME); 
     if (pfnGetMimeDesc) {
       nsresult rv = ParsePluginMimeDescription(pfnGetMimeDesc(), info);
       if (NS_SUCCEEDED(rv)) {    // if we could parse the mime types from NP_GetMIMEDescription,
@@ -353,7 +343,7 @@ nsresult nsPluginFile::GetPluginInfo(nsPluginInfo& info)
     
     // Next check for mime info from BP_GetSupportedMIMETypes
     BP_GETSUPPORTEDMIMETYPES pfnMime = 
-      (BP_GETSUPPORTEDMIMETYPES)PR_FindFunctionSymbol(pLibrary, "BP_GetSupportedMIMETypes");
+      (BP_GETSUPPORTEDMIMETYPES)PR_FindSymbol(pLibrary, "BP_GetSupportedMIMETypes");
     if (pfnMime && noErr == pfnMime(&mi, 0) && mi.typeStrings) {        
       info.fVariantCount = (**(short**)mi.typeStrings) / 2;
       ::HLock(mi.typeStrings);

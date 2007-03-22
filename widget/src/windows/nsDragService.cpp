@@ -66,13 +66,11 @@
 #include "nsNetUtil.h"
 #include "nsIURL.h"
 #include "nsCWebBrowserPersist.h"
+#include "nsIDownload.h"
 #include "nsToolkit.h"
 #include "nsCRT.h"
 #include "nsDirectoryServiceDefs.h"
 #include "nsUnicharUtils.h"
-#include "gfxASurface.h"
-#include "gfxContext.h"
-#include "nsMathUtils.h"
 
 //-------------------------------------------------------------------------
 //
@@ -96,91 +94,6 @@ nsDragService::~nsDragService()
   NS_IF_RELEASE(mDataObject);
 }
 
-PRBool
-nsDragService::CreateDragImage(nsIDOMNode *aDOMNode,
-                               nsIScriptableRegion *aRegion,
-                               SHDRAGIMAGE *psdi)
-{
-  if (!psdi)
-    return PR_FALSE;
-
-  memset(psdi, 0, sizeof(SHDRAGIMAGE));
-  if (!aDOMNode) 
-    return PR_FALSE;
-
-  // Prepare the drag image
-  nsRect dragRect;
-  nsRefPtr<gfxASurface> surface;
-  nsPresContext* pc;
-  DrawDrag(aDOMNode, aRegion,
-           mScreenX, mScreenY,
-           &dragRect, getter_AddRefs(surface), &pc);
-  if (!surface)
-    return PR_FALSE;
-
-  PRUint32 bmWidth = dragRect.width, bmHeight = dragRect.height;
-
-  if (bmWidth == 0 || bmHeight == 0)
-    return PR_FALSE;
-
-  psdi->crColorKey = CLR_NONE;
-
-  nsRefPtr<gfxImageSurface> imgSurface = new gfxImageSurface(
-    gfxIntSize(bmWidth, bmHeight), 
-    gfxImageSurface::ImageFormatARGB32);
-  if (!imgSurface)
-    return PR_FALSE;
-
-  nsRefPtr<gfxContext> context = new gfxContext(imgSurface);
-  if (!context)
-    return PR_FALSE;
-
-  context->SetOperator(gfxContext::OPERATOR_SOURCE);
-  context->SetSource(surface);
-  context->Paint();
-
-  BITMAPV5HEADER bmih;
-  memset((void*)&bmih, 0, sizeof(BITMAPV5HEADER));
-  bmih.bV5Size        = sizeof(BITMAPV5HEADER);
-  bmih.bV5Width       = bmWidth;
-  bmih.bV5Height      = -bmHeight; // flip vertical
-  bmih.bV5Planes      = 1;
-  bmih.bV5BitCount    = 32;
-  bmih.bV5Compression = BI_BITFIELDS;
-  bmih.bV5RedMask     = 0x00FF0000;
-  bmih.bV5GreenMask   = 0x0000FF00;
-  bmih.bV5BlueMask    = 0x000000FF;
-  bmih.bV5AlphaMask   = 0xFF000000;
-
-  HDC hdcSrc = CreateCompatibleDC(NULL);
-  void *lpBits = NULL;
-  if (hdcSrc) {
-    psdi->hbmpDragImage = 
-    ::CreateDIBSection(hdcSrc, (BITMAPINFO*)&bmih, DIB_RGB_COLORS,
-                       (void**)&lpBits, NULL, 0);
-    if (psdi->hbmpDragImage && lpBits) {
-      memcpy(lpBits,imgSurface->Data(),(bmWidth*bmHeight*4));
-    }
-
-    psdi->sizeDragImage.cx = bmWidth;
-    psdi->sizeDragImage.cy = bmHeight;
-
-    // Mouse position in center
-    if (mScreenX == -1 || mScreenY == -1) {
-      psdi->ptOffset.x = (PRUint32)((float)bmWidth/2.0f);
-      psdi->ptOffset.y = (PRUint32)((float)bmHeight/2.0f);
-    } else {
-      PRInt32 sx = mScreenX, sy = mScreenY;
-      ConvertToUnscaledDevPixels(pc, &sx, &sy);
-      psdi->ptOffset.x = sx - dragRect.x;
-      psdi->ptOffset.y = sy - dragRect.y;
-    }
-
-    DeleteDC(hdcSrc);
-  }
-
-  return psdi->hbmpDragImage != NULL;
-}
 
 //-------------------------------------------------------------------------
 NS_IMETHODIMP
@@ -189,11 +102,9 @@ nsDragService::InvokeDragSession(nsIDOMNode *aDOMNode,
                                  nsIScriptableRegion *aRegion,
                                  PRUint32 aActionType)
 {
-  nsresult rv = nsBaseDragService::InvokeDragSession(aDOMNode,
-                                                     anArrayTransferables,
-                                                     aRegion,
-                                                     aActionType);
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsBaseDragService::InvokeDragSession(aDOMNode, anArrayTransferables, aRegion,
+                                       aActionType);
+  nsresult rv;
 
   // Try and get source URI of the items that are being dragged
   nsIURI *uri = nsnull;
@@ -246,18 +157,6 @@ nsDragService::InvokeDragSession(nsIDOMNode *aDOMNode,
       NS_ENSURE_SUCCESS(rv, rv);
     }
   } // else dragging a single object
-
-  // Create a drag image if support is available
-  IDragSourceHelper *pdsh;
-  if (SUCCEEDED(CoCreateInstance(CLSID_DragDropHelper, NULL, CLSCTX_INPROC_SERVER,
-                                 IID_IDragSourceHelper, (void**)&pdsh))) {
-    SHDRAGIMAGE sdi;
-    if (CreateDragImage(aDOMNode, aRegion, &sdi)) {
-      if (FAILED(pdsh->InitializeFromBitmap(&sdi, itemToDrag)))
-        DeleteObject(sdi.hbmpDragImage);
-    }
-    pdsh->Release();
-  }
 
   // Kick off the native drag session
   return StartInvokingDragSession(itemToDrag, aActionType);
@@ -327,7 +226,7 @@ nsDragService::StartInvokingDragSession(IDataObject * aDataObj,
   }
 
   // We're done dragging
-  EndDragSession(PR_TRUE);
+  EndDragSession();
 
   // For some drag/drop interactions, IDataObject::SetData doesn't get
   // called with a CFSTR_PERFORMEDDROPEFFECT format and the
@@ -368,7 +267,7 @@ nsDragService::GetDataObjCollection(IDataObject* aDataObj)
     nsIDataObjCollection* dataObj;
     if (aDataObj->QueryInterface(IID_IDataObjCollection,
                                  (void**)&dataObj) == S_OK) {
-      dataObjCol = static_cast<nsDataObjCollection*>(aDataObj);
+      dataObjCol = NS_STATIC_CAST(nsDataObjCollection*, aDataObj);
       dataObj->Release();
     }
   }
@@ -583,9 +482,9 @@ nsDragService::IsCollectionObject(IDataObject* inDataObj)
 // w/out crashing when we're still holding onto their data
 //
 NS_IMETHODIMP
-nsDragService::EndDragSession(PRBool aDoneDrag)
+nsDragService::EndDragSession()
 {
-  nsBaseDragService::EndDragSession(aDoneDrag);
+  nsBaseDragService::EndDragSession();
   NS_IF_RELEASE(mDataObject);
 
   return NS_OK;

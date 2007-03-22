@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'script-001.js';
-
 /**
    File Name:          script-001.js
    Section:
@@ -150,10 +148,6 @@ writeHeaderToLog( SECTION + " "+ TITLE);
 if (typeof Script == 'undefined')
 {
   print('Test skipped. Script not defined.');
-  new TestCase( SECTION,
-                "var s = new Script(); typeof s",
-                "Script not supported, test skipped.",
-                "Script not supported, test skipped." );
 }
 else
 {

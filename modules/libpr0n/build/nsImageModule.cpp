@@ -58,7 +58,6 @@
 #include "imgLoader.h"
 #include "imgRequest.h"
 #include "imgRequestProxy.h"
-#include "imgTools.h"
 
 #ifdef IMG_BUILD_DECODER_gif
 // gif
@@ -103,7 +102,6 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(imgCache)
 NS_GENERIC_FACTORY_CONSTRUCTOR(imgContainer)
 NS_GENERIC_FACTORY_CONSTRUCTOR(imgLoader)
 NS_GENERIC_FACTORY_CONSTRUCTOR(imgRequestProxy)
-NS_GENERIC_FACTORY_CONSTRUCTOR(imgTools)
 
 #ifdef IMG_BUILD_DECODER_gif
 // gif
@@ -152,7 +150,6 @@ static const char* gImageMimeTypes[] = {
   "image/x-icon",
   "image/vnd.microsoft.icon",
   "image/bmp",
-  "image/x-ms-bmp",
 #endif
 #ifdef IMG_BUILD_DECODER_png
   "image/png",
@@ -220,10 +217,6 @@ static const nsModuleComponentInfo components[] =
     NS_IMGREQUESTPROXY_CID,
     "@mozilla.org/image/request;1",
     imgRequestProxyConstructor, },
-  { "image tools",
-    NS_IMGTOOLS_CID,
-    "@mozilla.org/image/tools;1",
-    imgToolsConstructor, },
 
 #ifdef IMG_BUILD_DECODER_gif
   // gif
@@ -269,10 +262,6 @@ static const nsModuleComponentInfo components[] =
   { "BMP Decoder",
      NS_BMPDECODER_CID,
      "@mozilla.org/image/decoder;2?type=image/bmp",
-     nsBMPDecoderConstructor, },
-  { "BMP Decoder",
-     NS_BMPDECODER_CID,
-     "@mozilla.org/image/decoder;2?type=image/x-ms-bmp",
      nsBMPDecoderConstructor, },
 #endif
 
@@ -323,6 +312,9 @@ PR_STATIC_CALLBACK(void)
 imglib_Shutdown(nsIModule* aSelf)
 {
   imgCache::Shutdown();
+#ifdef IMG_BUILD_DECODER_gif
+  nsGifShutdown();
+#endif
 }
 
 NS_IMPL_NSGETMODULE_WITH_CTOR_DTOR(nsImageLib2Module, components,

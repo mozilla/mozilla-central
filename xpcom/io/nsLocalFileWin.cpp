@@ -1024,12 +1024,13 @@ nsLocalFile::Create(PRUint32 type, PRUint32 attributes)
     if (type == NORMAL_FILE_TYPE)
     {
         PRFileDesc* file;
-        rv = OpenFile(mResolvedPath,
-                      PR_RDONLY | PR_CREATE_FILE | PR_APPEND | PR_EXCL, attributes,
-                      &file);
-        if (file)
-            PR_Close(file);
-        return rv;
+        OpenFile(mResolvedPath,
+                 PR_RDONLY | PR_CREATE_FILE | PR_APPEND | PR_EXCL, attributes,
+                 &file);
+        if (!file) return NS_ERROR_FILE_ALREADY_EXISTS;
+
+        PR_Close(file);
+        return NS_OK;
     }
 
     if (type == DIRECTORY_TYPE)
@@ -1145,24 +1146,6 @@ nsLocalFile::Normalize()
         WCHAR cwd[MAX_PATH];
         WCHAR * pcwd = cwd;
         int drive = TOUPPER(path.First()) - 'A' + 1;
-        /* We need to worry about IPH, for details read bug 419326.
-         * _getdrives - http://msdn2.microsoft.com/en-us/library/xdhk0xd2.aspx 
-         * uses a bitmask, bit 0 is 'a:'
-         * _chdrive - http://msdn2.microsoft.com/en-us/library/0d1409hb.aspx
-         * _getdcwd - http://msdn2.microsoft.com/en-us/library/7t2zk3s4.aspx
-         * take an int, 1 is 'a:'.
-         *
-         * Because of this, we need to do some math. Subtract 1 to convert from
-         * _chdrive/_getdcwd format to _getdrives drive numbering.
-         * Shift left x bits to convert from integer indexing to bitfield indexing.
-         * And of course, we need to find out if the drive is in the bitmask.
-         *
-         * If we're really unlucky, we can still lose, but only if the user
-         * manages to eject the drive between our call to _getdrives() and
-         * our *calls* to _wgetdcwd.
-         */
-        if (!((1 << (drive - 1)) & _getdrives()))
-            return NS_ERROR_FILE_INVALID_PATH;
         if (!_wgetdcwd(drive, pcwd, MAX_PATH))
             pcwd = _wgetdcwd(drive, 0, 0);
         if (!pcwd)
@@ -1341,7 +1324,7 @@ nsLocalFile::GetVersionInfoField(const char* aField, nsAString& _retval)
 
     // Cast away const-ness here because WinAPI functions don't understand it, 
     // the path is used for [in] parameters only however so it's safe. 
-    WCHAR *path = const_cast<WCHAR*>(mFollowSymlinks ? mResolvedPath.get() 
+    WCHAR *path = NS_CONST_CAST(WCHAR*, mFollowSymlinks ? mResolvedPath.get() 
                                                         : mWorkingPath.get());
 
     DWORD dummy;
@@ -1377,7 +1360,7 @@ nsLocalFile::GetVersionInfoField(const char* aField, nsAString& _retval)
                 queryResult = ::VerQueryValueW(ver, subBlock, &value, &size);
                 if (queryResult && value)
                 {
-                    _retval.Assign(static_cast<PRUnichar*>(value));
+                    _retval.Assign(NS_STATIC_CAST(PRUnichar*, value));
                     if (!_retval.IsEmpty()) 
                     {
                         rv = NS_OK;
@@ -1440,12 +1423,67 @@ nsLocalFile::CopySingleFile(nsIFile *sourceFile, nsIFile *destParent,
     if (!move)
         copyOK = ::CopyFileW(filePath.get(), destPath.get(), PR_TRUE);
     else
-        copyOK = ::MoveFileExW(filePath.get(), destPath.get(),
-                               MOVEFILE_REPLACE_EXISTING |
-                               MOVEFILE_COPY_ALLOWED |
-                               MOVEFILE_WRITE_THROUGH);
+    {
+        // What we have to do is check to see if the destPath exists.  If it
+        // does, we have to move it out of the say so that MoveFile will
+        // succeed.  However, we don't want to just remove it since MoveFile
+        // can fail leaving us without a file.
 
-    if (!copyOK)  // CopyFile and MoveFileEx return zero at failure.
+        nsAutoString backup;
+        PRFileInfo64 fileInfo64;
+        if (NS_SUCCEEDED(GetFileInfo(destPath, &fileInfo64)))
+        {
+
+            // the file exists.  Check to make sure it is not a directory,
+            // then move it out of the way.
+            if (fileInfo64.type == PR_FILE_FILE)
+            {
+                backup.Append(destPath);
+                backup.Append(L".moztmp");
+
+                // we are about to remove the .moztmp file,
+                // so attempt to make sure the file is writable
+                // (meaning:  the "read only" attribute is not set)
+                // _wchmod can silently fail (return -1) if 
+                // the file doesn't exist but that's ok, because 
+                // _wremove() will also silently fail if the file
+                // doesn't exist.
+               (void)_wchmod(backup.get(), _S_IREAD | _S_IWRITE);
+
+                // remove any existing backup file that we may already have.
+                // maybe we should be doing some kind of unique naming here,
+                // but why bother.
+               (void)_wremove(backup.get());
+
+                // move destination file to backup file
+                copyOK = ::MoveFileW(destPath.get(), backup.get());
+                if (!copyOK)
+                {
+                    // I guess we can't do the backup copy, so return.
+                    rv = ConvertWinError(GetLastError());
+                    return rv;
+                }
+            }
+        }
+        // move source file to destination file
+        copyOK = ::MoveFileW(filePath.get(), destPath.get());
+
+        if (!backup.IsEmpty())
+        {
+            if (copyOK)
+            {
+                // remove the backup copy.
+                _wremove(backup.get());
+            }
+            else
+            {
+                // restore backup
+                int backupOk = ::MoveFileW(backup.get(), destPath.get());
+                NS_ASSERTION(backupOk, "move backup failed");
+            }
+        }
+    }
+    if (!copyOK)  // CopyFile and MoveFile returns non-zero if succeeds (backward if you ask me).
         rv = ConvertWinError(GetLastError());
 
     return rv;
@@ -2153,13 +2191,9 @@ nsLocalFile::GetParent(nsIFile * *aParent)
 
     NS_ENSURE_ARG_POINTER(aParent);
 
-    // A two-character path must be a drive such as C:, so it has no parent
-    if (mWorkingPath.Length() == 2) {
-        *aParent = nsnull;
-        return NS_OK;
-    }
+    nsAutoString parentPath(mWorkingPath);
 
-    PRInt32 offset = mWorkingPath.RFindChar(PRUnichar('\\'));
+    PRInt32 offset = parentPath.RFindChar(PRUnichar('\\'));
     // adding this offset check that was removed in bug 241708 fixes mail
     // directories that aren't relative to/underneath the profile dir.
     // e.g., on a different drive. Before you remove them, please make
@@ -2167,14 +2201,10 @@ nsLocalFile::GetParent(nsIFile * *aParent)
     if (offset == kNotFound)
       return NS_ERROR_FILE_UNRECOGNIZED_PATH;
 
-    // A path of the form \\NAME is a top-level path and has no parent
-    if (offset == 1 && mWorkingPath[0] == L'\\') {
+    if (offset == 1 && parentPath[0] == L'\\') {
         *aParent = nsnull;
         return NS_OK;
     }
-
-    nsAutoString parentPath(mWorkingPath);
-
     if (offset > 0)
         parentPath.Truncate(offset);
     else
@@ -2296,7 +2326,7 @@ nsLocalFile::IsExecutable(PRBool *_retval)
             *p +=  (*p >= L'A' && *p <= L'Z') ? 'a' - 'A' : 0; 
         
         // Search for any of the set of executable extensions.
-        static const char * const executableExts[] = {
+        const char * const executableExts[] = {
             "ad",
             "ade",         // access project extension
             "adp",
@@ -2368,10 +2398,10 @@ nsLocalFile::IsExecutable(PRBool *_retval)
             "ws",
             "wsc",
             "wsf",
-            "wsh"};
-        nsDependentSubstring ext = Substring(path, dotIdx + 1);
-        for ( int i = 0; i < NS_ARRAY_LENGTH(executableExts); i++ ) {
-            if ( ext.EqualsASCII(executableExts[i])) {
+            "wsh",
+            0 };
+        for ( int i = 0; executableExts[i]; i++ ) {
+            if ( Substring(path, dotIdx + 1).EqualsASCII(executableExts[i])) {
                 // Found a match.  Set result and quit.
                 *_retval = PR_TRUE;
                 break;
@@ -2887,18 +2917,14 @@ nsLocalFile::EnsureShortPath()
 {
     if (!mShortWorkingPath.IsEmpty())
         return;
-#ifdef WINCE
-	 mShortWorkingPath.Assign(mWorkingPath);
-#else
+
     WCHAR thisshort[MAX_PATH];
     DWORD thisr = ::GetShortPathNameW(mWorkingPath.get(), thisshort,
                                       sizeof(thisshort));
-    // If an error occured (thisr == 0) thisshort is uninitialized memory!
-    if (thisr != 0 && thisr < sizeof(thisshort))
+    if (thisr < sizeof(thisshort))
         mShortWorkingPath.Assign(thisshort);
     else
         mShortWorkingPath.Assign(mWorkingPath);
-#endif
 }
 
 // nsIHashable

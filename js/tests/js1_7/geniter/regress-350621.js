@@ -34,10 +34,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-350621.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 350621;
+var bug = 350621;
 var summary = 'for-in loops over generator objects';
 var actual = '';
 var expect = '';
@@ -50,18 +48,18 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
- 
+  
   var LOOPS = 500;
 
   function gen1() {
-    for (var a = 1; a <= LOOPS; ++a)
+    for (var a = 1; a <= LOOPS; ++a) 
       yield;
   }
 
   function gen2() {
-    for (var b in gen1())
+    for (var b in gen1()) 
       yield;
   }
 
@@ -76,12 +74,12 @@ function test()
       }
       if (count != LOOPS) {
         print("Test run " + c + ": test failed, count = " + count +
-	      ", should be " + LOOPS);
+                       ", should be " + LOOPS);
         var failed = true;
       }
     }
     actual = !failed;
-    if (!failed)
+    if (!failed) 
     {
       print("Test passed.");
     }

@@ -400,8 +400,8 @@ nsDownloadManager::AssertProgressInfoFor(const nsACString& aTargetPath)
                                  internalDownload->GetTransferInformation();
 
   // convert from bytes to kbytes for progress display
-  PRInt64 current = (transferInfo.mCurrBytes + 512) / 1024;
-  PRInt64 max = (transferInfo.mMaxBytes + 512) / 1024;
+  PRInt64 current = (PRFloat64)transferInfo.mCurrBytes / 1024 + .5;
+  PRInt64 max = (PRFloat64)transferInfo.mMaxBytes / 1024 + .5;
 
   nsAutoString currBytes; currBytes.AppendInt(current);
   nsAutoString maxBytes; maxBytes.AppendInt(max);
@@ -567,7 +567,7 @@ NS_IMETHODIMP
 nsDownloadManager::PauseDownload(nsIDownload* aDownload)
 {
   NS_ENSURE_ARG_POINTER(aDownload);
-  return static_cast<nsDownload*>(aDownload)->Suspend();
+  return NS_STATIC_CAST(nsDownload*, aDownload)->Suspend();
 }
 
 NS_IMETHODIMP
@@ -732,7 +732,7 @@ nsDownloadManager::OpenProgressDialogFor(nsIDownload* aDownload, nsIDOMWindow* a
 {
   NS_ENSURE_ARG_POINTER(aDownload);
   nsresult rv;
-  nsDownload* internalDownload = static_cast<nsDownload*>(aDownload);
+  nsDownload* internalDownload = NS_STATIC_CAST(nsDownload*, aDownload);
   nsIProgressDialog* oldDialog = internalDownload->GetDialog();
   
   if (oldDialog) {
@@ -906,8 +906,8 @@ nsDownload::nsDownload(nsDownloadManager* aManager,
                          mCurrBytes(LL_ZERO),
                          mMaxBytes(LL_ZERO),
                          mStartTime(LL_ZERO),
-                         mLastUpdate(PR_Now() - (PRUint32)gInterval),
-                         mSpeed(0)
+                         mSpeed(0),
+                         mLastUpdate(PR_Now() - (PRUint32)gInterval)
 {
 }
 
@@ -961,7 +961,7 @@ nsDownload::Cancel()
   // we have to notify it that we're cancelling
   nsCOMPtr<nsIObserver> observer = do_QueryInterface(GetDialog());
   if (observer) {
-    rv = observer->Observe(static_cast<nsIDownload*>(this), "oncancel", nsnull);
+    rv = observer->Observe(NS_STATIC_CAST(nsIDownload*, this), "oncancel", nsnull);
   }
   
   return rv;
@@ -1225,8 +1225,7 @@ void nsDownload::DisplayDownloadFinishedAlert()
   mTarget->GetSpec(url);
   alertsService->ShowAlertNotification(NS_LITERAL_STRING("moz-icon://") + NS_ConvertUTF8toUTF16(url),
                                        finishedTitle, finishedText, PR_TRUE,
-                                       NS_LITERAL_STRING("download"), this,
-                                       EmptyString());
+                                       NS_LITERAL_STRING("download"), this);
 }
 
 NS_IMETHODIMP
@@ -1368,9 +1367,9 @@ nsDownload::Init(nsIURI* aSource,
 }
 
 NS_IMETHODIMP
-nsDownload::GetDisplayName(nsAString &aDisplayName)
+nsDownload::GetDisplayName(PRUnichar** aDisplayName)
 {
-  aDisplayName = mDisplayName;
+  *aDisplayName = ToNewUnicode(mDisplayName);
   return NS_OK;
 }
 
@@ -1453,19 +1452,6 @@ NS_IMETHODIMP
 nsDownload::GetSpeed(double* aSpeed)
 {
   *aSpeed = mSpeed;
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-nsDownload::GetId(PRUint32 *aId)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP
-nsDownload::GetState(PRInt16 *aState)
-{
-  *aState = mDownloadState;
   return NS_OK;
 }
 

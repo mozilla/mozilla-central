@@ -14,7 +14,7 @@
  * The Original Code is mozilla.org code.
  *
  * The Initial Developer of the Original Code is
- * Christopher Blizzard.
+ * Christopher Blizzard. Portions created by Christopher Blizzard are Copyright (C) Christopher Blizzard.  All Rights Reserved.
  * Portions created by the Initial Developer are Copyright (C) 2001
  * the Initial Developer. All Rights Reserved.
  *
@@ -92,7 +92,7 @@ EmbedWindowCreator::CreateChromeWindow(nsIWebBrowserChrome *aParent,
 		if (aChromeFlags & nsIWebBrowserChrome::CHROME_OPENAS_CHROME)
 			newEmbedPrivate->mIsChrome = PR_TRUE;
 
-		*_retval = static_cast<nsIWebBrowserChrome *>((newEmbedPrivate->mWindow));
+		*_retval = NS_STATIC_CAST(nsIWebBrowserChrome *, (newEmbedPrivate->mWindow));
 
 		if (*_retval) 
 		{

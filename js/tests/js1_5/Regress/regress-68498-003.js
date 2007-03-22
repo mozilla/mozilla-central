@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -34,9 +33,8 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK ***** */
-
-/*
+ * ***** END LICENSE BLOCK *****
+ *
  * Date: 15 Feb 2001
  *
  * SUMMARY: calling obj.eval(str)
@@ -49,9 +47,8 @@
  * "Backward compatibility: support calling obj.eval(str), which evaluates
  *   str using obj as the scope chain and variable object."
  */
-//-----------------------------------------------------------------------------
-var gTestfile = 'regress-68498-003.js';
-var BUGNUMBER = 68498;
+//-------------------------------------------------------------------------------------------------
+var bug = 68498;
 var summary = 'Testing calling obj.eval(str)';
 var statprefix = '; currently at expect[';
 var statsuffix = '] within test -';
@@ -84,12 +81,12 @@ test();
 //-------------------------------------------------------------------------------------------------
 
 
-function test()
+function test() 
 {
-  enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  enterFunc ('test'); 
+  printBugNumber (bug);
   printStatus (summary);
- 
+  
   for (var i in expect)
   {
     reportCompare(expect[i], actual[i], getStatus(i));

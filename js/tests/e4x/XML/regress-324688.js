@@ -36,14 +36,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'regress-324688.js';
+START("No Syntax Error when trailing space and XML.ignoreWhitespace true");
 
+var bug = 324688;
 var summary = 'No Syntax Error when trailing space and XML.ignoreWhitespace ' +
     'true';
-var BUGNUMBER = 324688;
 var actual = 'No Error';
 var expect = 'No Error';
-START(summary);
 
 function init()
 {
@@ -58,12 +57,12 @@ function init()
             observe: function () {
                     try
                     {
-                        printBugNumber(BUGNUMBER);
+                        printBugNumber (bug);
                         printStatus (summary);
                         printStatus('Browser only: requires UniversalXPConnect');
 
-                        printStatus("XML.ignoreWhitespace=" +
-                                    XML.ignoreWhitespace);
+                        printStatus("XML.ignoreWhitespace=" + 
+                                    XML.ignoreWhitespace); 
                         var x = new XML("<a></a> ");
                     }
                     catch(ex2)
@@ -74,8 +73,6 @@ function init()
                     print('actual = ' + actual);
                     TEST(1, expect, actual);
                     END();
-                    gDelayTestDriverEnd = false;
-                    jsTestDriverEnd();
                 }
             };
 

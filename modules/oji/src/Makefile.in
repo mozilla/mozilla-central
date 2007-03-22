@@ -64,7 +64,6 @@ REQUIRES	= xpcom \
 		  xpconnect \
 		  windowwatcher \
 		  gfx \
-		  thebes \
 		  content \
 		  layout \
 		  docshell \

@@ -18,7 +18,7 @@
 
   <binding id="tabbox"
            extends="chrome://global/content/bindings/tabbox.xml#tab-base">
-    <implementation implements="nsIDOMEventListener, nsIAccessibleProvider">
+    <implementation implements="nsIAccessibleProvider">
       <property name="accessibleType" readonly="true">
         <getter>
           <![CDATA[
@@ -71,9 +71,10 @@
       <property name="tabs" readonly="true">
         <getter>
         <![CDATA[
-          return this.getElementsByTagNameNS(
+          var tabs = this.getElementsByTagNameNS(
               "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul",
-              "tabs").item(0);
+              "tabs");
+          return tabs.length ? tabs[0] : null;
         ]]>
         </getter>
       </property>
@@ -81,76 +82,52 @@
       <property name="tabpanels" readonly="true">
         <getter>
         <![CDATA[
-          return this.getElementsByTagNameNS(
+          var tabpanels = this.getElementsByTagNameNS(
               "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul",
-              "tabpanels").item(0);
+              "tabpanels");
+          return tabpanels.length ? tabpanels[0] : null;
         ]]>
         </getter>
       </property>
       
-      <property name="selectedIndex">
-        <getter>
-        <![CDATA[
-          var tabs = this.tabs;
-          return tabs ? tabs.selectedIndex : -1;
-        ]]>
-        </getter>
-
+      <property name="selectedIndex"
+                onget="return this.tabs ? this.tabs.selectedIndex : null;">
         <setter>
         <![CDATA[
-          var tabs = this.tabs;
-          if (tabs)
-            tabs.selectedIndex = val;
+          if (this.tabs)
+            this.tabs.selectedIndex = val;
           this.setAttribute("selectedIndex", val);
           return val;
         ]]>
         </setter>
       </property>
 
-      <property name="selectedTab">
-        <getter>
-        <![CDATA[
-          var tabs = this.tabs;
-          return tabs && tabs.selectedItem;
-        ]]>
-        </getter>
-
+      <property name="selectedTab"
+                onget="return this.tabs ? this.tabs.selectedItem : null;">
         <setter>
         <![CDATA[
-          if (val) {
-            var tabs = this.tabs;
-            if (tabs)
-              tabs.selectedItem = val;
-          }
+          if (val && this.tabs)
+            this.tabs.selectedItem = val;
           return val;
         ]]>
         </setter>
       </property>
 
-      <property name="selectedPanel">
-        <getter>
-        <![CDATA[
-          var tabpanels = this.tabpanels;
-          return tabpanels && tabpanels.selectedPanel;
-        ]]>
-        </getter>
-
+      <property name="selectedPanel"
+                onget="return this.tabpanels ? this.tabpanels.selectedPanel : null;">
         <setter>
         <![CDATA[
-          if (val) {
-            var tabpanels = this.tabpanels;
-            if (tabpanels)
-              tabpanels.selectedPanel = val;
-          }
+          if (val && this.tabpanels)
+            this.tabpanels.selectedPanel = val;
           return val;
         ]]>
         </setter>
       </property>
 
-      <method name="handleEvent">
-        <parameter name="event"/>
-        <body>
-        <![CDATA[
+      <field name="_keyEventHandler" readonly="true">
+      <![CDATA[({
+        tabbox: this,
+        handleEvent: function handleEvent(event) {
           if (!event.isTrusted) {
             // Don't let untrusted events mess with tabs.
             return;
@@ -159,52 +136,52 @@
           switch (event.keyCode) {
             case event.DOM_VK_TAB:
               if (event.ctrlKey && !event.altKey && !event.metaKey)
-                if (this.tabs && this.handleCtrlTab) {
-                  this.tabs.advanceSelectedTab(event.shiftKey ? -1 : 1, true);
+                if (this.tabbox.tabs && this.tabbox.handleCtrlTab) {
+                  this.tabbox.tabs.advanceSelectedTab(event.shiftKey ? -1 : 1, true);
                   event.stopPropagation();
                   event.preventDefault();
                 }
               break;
             case event.DOM_VK_PAGE_UP:
               if (event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey)
-                if (this.tabs && this.handleCtrlPageUpDown) {
-                  this.tabs.advanceSelectedTab(-1, true);
+                if (this.tabbox.tabs && this.tabbox.handleCtrlPageUpDown) {
+                  this.tabbox.tabs.advanceSelectedTab(-1, true);
                   event.stopPropagation();
                   event.preventDefault();
                 }
               break;
             case event.DOM_VK_PAGE_DOWN:
               if (event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey)
-                if (this.tabs && this.handleCtrlPageUpDown) {
-                  this.tabs.advanceSelectedTab(1, true);
+                if (this.tabbox.tabs && this.tabbox.handleCtrlPageUpDown) {
+                  this.tabbox.tabs.advanceSelectedTab(1, true);
                   event.stopPropagation();
                   event.preventDefault();
                 }
               break;
             case event.DOM_VK_LEFT:
               if (event.metaKey && event.altKey && !event.shiftKey && !event.ctrlKey)
-                if (this.tabs && this._handleMetaAltArrows) {
-                  var offset = window.getComputedStyle(this, "")
+                if (this.tabbox.tabs && this.tabbox._handleMetaAltArrows) {
+                  var offset = window.getComputedStyle(this.tabbox, "")
                                      .direction == "ltr" ? -1 : 1;
-                  this.tabs.advanceSelectedTab(offset, true);
+                  this.tabbox.tabs.advanceSelectedTab(offset, true);
                   event.stopPropagation();
                   event.preventDefault();
                 }
               break;
             case event.DOM_VK_RIGHT:
               if (event.metaKey && event.altKey && !event.shiftKey && !event.ctrlKey)
-                if (this.tabs && this._handleMetaAltArrows) {
-                  var offset = window.getComputedStyle(this, "")
+                if (this.tabbox.tabs && this.tabbox._handleMetaAltArrows) {
+                  var offset = window.getComputedStyle(this.tabbox, "")
                                      .direction == "ltr" ? 1 : -1;
-                  this.tabs.advanceSelectedTab(offset, true);
+                  this.tabbox.tabs.advanceSelectedTab(offset, true);
                   event.stopPropagation();
                   event.preventDefault();
                 }
               break;
           }
-        ]]>
-        </body>
-      </method>
+        }
+      })]]>
+      </field>
 
       <field name="_eventNode">this</field>
 
@@ -212,8 +189,8 @@
         <setter>
           <![CDATA[
             if (val != this._eventNode) {
-              val.addEventListener("keypress", this, false);
-              this._eventNode.removeEventListener("keypress", this, false);
+              val.addEventListener("keypress", this._keyEventHandler, false);
+              this._eventNode.removeEventListener("keypress", this._keyEventHandler, false);
               this._eventNode = val;
             }
             return val;
@@ -227,11 +204,11 @@
           case "window": this._eventNode = window; break;
           case "document": this._eventNode = document; break;
         }
-        this._eventNode.addEventListener("keypress", this, false);
+        this._eventNode.addEventListener("keypress", this._keyEventHandler, false);
       </constructor>
 
       <destructor>
-        this._eventNode.removeEventListener("keypress", this, false);
+        this._eventNode.removeEventListener("keypress", this._keyEventHandler, false);
       </destructor>
     </implementation>
   </binding>
@@ -328,17 +305,15 @@
         
         <setter>
         <![CDATA[
-          var tab = this.getItemAtIndex(val);
-          if (tab) {
-            var alreadySelected = tab.selected;
+          const tabs = this.childNodes;
+          if (0 <= val && val < tabs.length && !tabs[val].selected) {
 
-            Array.forEach(this.childNodes, function (aTab) {
-              if (aTab.selected && aTab != tab)
-                aTab._selected = false;
-            });
-            tab._selected = true;
+            for (var i = 0; i < tabs.length; i++)
+              if (i != val && tabs[i].selected)
+                tabs[i]._selected = false;
 
-            this.setAttribute("value", tab.value);
+            tabs[val]._selected = true;
+            this.setAttribute("value", tabs[val].value);
 
             for (var parent = this.parentNode; parent; parent = parent.parentNode) {
               if (parent.localName == 'tabbox') {
@@ -347,7 +322,7 @@
                 // This will cause an onselect event to fire for the tabpanel element.
                 if (tabpanels) {
                   // find an id 
-                  var linkedPanelId = tab.linkedPanel;
+                  var linkedPanelId = tabs[val].linkedPanel;
                   var linkedPanel = linkedPanelId ? document.getElementById(linkedPanelId) : null;
                   if (linkedPanel)
                     tabpanels.selectedPanel = linkedPanel;
@@ -358,12 +333,10 @@
               }
             }
 
-            if (!alreadySelected) {
-              // Fire an onselect event for the tabs element.
-              var event = document.createEvent('Events');
-              event.initEvent('select', true, true);
-              this.dispatchEvent(event);
-            }
+            // Fire an onselect event for the tabs element.
+            var event = document.createEvent('Events');
+            event.initEvent('select', true, true);
+            this.dispatchEvent(event);
           }
           return val;
         ]]>
@@ -384,10 +357,12 @@
 
         <setter>
         <![CDATA[
-          if (val && !val.selected)
-            // The selectedIndex setter ignores invalid values
-            // such as -1 if |val| isn't one of our child nodes.
-            this.selectedIndex = this.getIndexOfItem(val);
+          if (val && !val.selected) {
+            const tabs = this.childNodes;
+            for (var i = 0; i < tabs.length; i++)
+              if (tabs[i] == val)
+                this.selectedIndex = i;
+          }
           return val;
         ]]>
         </setter>
@@ -397,7 +372,12 @@
         <parameter name="item"/>
         <body>
         <![CDATA[
-          return Array.indexOf(this.childNodes, item);
+          var children = this.childNodes;
+          var i = children.length;
+          while (i--)
+            if (children[i] == item)
+              return i;
+          return -1;
         ]]>
         </body>
       </method>
@@ -406,7 +386,10 @@
         <parameter name="index"/>
         <body>
         <![CDATA[
-          return this.childNodes.item(index);
+          var children = this.childNodes;
+          if (index >= 0 && index < children.length)
+            return children[index];
+          return null;
         ]]>
         </body>
       </method>
@@ -550,9 +533,16 @@
 
   <binding id="tabpanels"
            extends="chrome://global/content/bindings/tabbox.xml#tab-base">
-    <implementation>
+    <implementation implements="nsIAccessibleProvider">
+      <property name="accessibleType" readonly="true">
+        <getter>
+          <![CDATA[
+            return Components.interfaces.nsIAccessibleProvider.XULTabPanels;
+          ]]>
+        </getter>
+      </property>
 
-      <field name="_selectedPanel">this.childNodes.item(this.selectedIndex)</field>
+      <field name="_selectedPanel">null</field>
 
       <property name="selectedIndex">
         <getter>
@@ -730,8 +720,7 @@
 
       <handler event="keypress" keycode="VK_END">
       <![CDATA[
-        var tabs = this.parentNode.childNodes;
-        this.parentNode._selectNewTab(tabs[tabs.length - 1], -1);
+        this.parentNode._selectNewTab(this.parentNode.childNodes[this.parentNode.childNodes.length - 1], -1);
       ]]>
       </handler>
     </handlers>

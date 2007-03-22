@@ -45,8 +45,7 @@ include $(DEPTH)/config/autoconf.mk
 #
 # Theme Selection
 #
-# Windows                 Winstripe
-# GNOME/Linux             Gnomestripe
+# Windows, GNOME/Linux    Winstripe
 # MacOS X                 Pinstripe
 #
 
@@ -54,9 +53,6 @@ ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 DIRS = pinstripe
 else
 DIRS = winstripe
-endif
-ifneq (,$(filter gtk2,$(MOZ_WIDGET_TOOLKIT)))
-DIRS = gnomestripe
 endif
 
 include $(topsrcdir)/config/rules.mk

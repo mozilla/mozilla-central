@@ -449,7 +449,7 @@ class nsTFixedString_CharT : public nsTString_CharT
          */
 
       nsTFixedString_CharT( char_type* data, size_type storageSize )
-        : string_type(data, PRUint32(char_traits::length(data)), F_TERMINATED | F_FIXED | F_CLASS_FIXED)
+        : string_type(data, char_traits::length(data), F_TERMINATED | F_FIXED | F_CLASS_FIXED)
         , mFixedCapacity(storageSize - 1)
         , mFixedBuf(data)
         {}
@@ -579,11 +579,11 @@ class nsTXPIDLString_CharT : public nsTString_CharT
     public:
 
       nsTXPIDLString_CharT()
-        : string_type(const_cast<char_type*>(char_traits::sEmptyBuffer), 0, F_TERMINATED | F_VOIDED) {}
+        : string_type(NS_CONST_CAST(char_type*, char_traits::sEmptyBuffer), 0, F_TERMINATED | F_VOIDED) {}
 
         // copy-constructor required to avoid default
       nsTXPIDLString_CharT( const self_type& str )
-        : string_type(const_cast<char_type*>(char_traits::sEmptyBuffer), 0, F_TERMINATED | F_VOIDED)
+        : string_type(NS_CONST_CAST(char_type*, char_traits::sEmptyBuffer), 0, F_TERMINATED | F_VOIDED)
         {
           Assign(str);
         }

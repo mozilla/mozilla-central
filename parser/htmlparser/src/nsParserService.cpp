@@ -55,7 +55,7 @@ nsParserService::nsParserService() : mEntries(0)
 nsParserService::~nsParserService()
 {
   nsObserverEntry *entry = nsnull;
-  while( (entry = static_cast<nsObserverEntry*>(mEntries.Pop())) ) {
+  while( (entry = NS_STATIC_CAST(nsObserverEntry*,mEntries.Pop())) ) {
     NS_RELEASE(entry);
   }
 }
@@ -171,7 +171,7 @@ nsParserService::UnregisterObserver(nsIElementObserver* aObserver,
   PRInt32 count = mEntries.GetSize();
 
   for (PRInt32 i=0; i < count; ++i) {
-    nsObserverEntry* entry = static_cast<nsObserverEntry*>(mEntries.ObjectAt(i));
+    nsObserverEntry* entry = NS_STATIC_CAST(nsObserverEntry*,mEntries.ObjectAt(i));
     if (entry && entry->Matches(aTopic)) {
       entry->RemoveObserver(aObserver);
     }
@@ -204,17 +204,17 @@ nsParserService::CheckQName(const nsAString& aQName,
   const PRUnichar *begin, *end;
   begin = aQName.BeginReading();
   end = aQName.EndReading();
-  int result = MOZ_XMLCheckQName(reinterpret_cast<const char*>(begin),
-                                 reinterpret_cast<const char*>(end),
+  int result = MOZ_XMLCheckQName(NS_REINTERPRET_CAST(const char*, begin),
+                                 NS_REINTERPRET_CAST(const char*, end),
                                  aNamespaceAware, &colon);
-  *aColon = reinterpret_cast<const PRUnichar*>(colon);
+  *aColon = NS_REINTERPRET_CAST(const PRUnichar*, colon);
 
   if (result == 0) {
     return NS_OK;
   }
 
   // MOZ_EXPAT_EMPTY_QNAME || MOZ_EXPAT_INVALID_CHARACTER
-  if (result == (1 << 0) || result == (1 << 1)) {
+  if (result & (1 << 0) || result & (1 << 1)) {
     return NS_ERROR_DOM_INVALID_CHARACTER_ERR;
   }
 
@@ -226,12 +226,12 @@ class nsMatchesTopic : public nsDequeFunctor{
 public:
   PRBool matched;
   nsObserverEntry* entry;
-  nsMatchesTopic(const nsAString& aString):mString(aString),matched(PR_FALSE){}
+  nsMatchesTopic(const nsAString& aString):mString(aString),matched(PR_FALSE){};
   virtual void* operator()(void* anObject){
-    entry=static_cast<nsObserverEntry*>(anObject);
+    entry=NS_STATIC_CAST(nsObserverEntry*, anObject);
     matched=mString.Equals(entry->mTopic);
     return matched ? nsnull : anObject;
-  }
+  };
 };
 
 // XXX This may be more efficient as a HashTable instead of linear search
@@ -241,7 +241,7 @@ nsParserService::GetEntry(const nsAString& aTopic)
   if (!mHaveNotifiedCategoryObservers) {
     mHaveNotifiedCategoryObservers = PR_TRUE;
     NS_CreateServicesFromCategory("parser-service-category",
-                                  static_cast<nsISupports*>(static_cast<void*>(this)),
+                                  NS_STATIC_CAST(nsISupports*,NS_STATIC_CAST(void*,this)),
                                   "parser-service-start"); 
   }
 

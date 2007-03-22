@@ -88,7 +88,7 @@ nsHTMLButtonControlFrame::~nsHTMLButtonControlFrame()
 void
 nsHTMLButtonControlFrame::Destroy()
 {
-  nsFormControlFrame::RegUnRegAccessKey(static_cast<nsIFrame*>(this), PR_FALSE);
+  nsFormControlFrame::RegUnRegAccessKey(NS_STATIC_CAST(nsIFrame*, this), PR_FALSE);
   nsHTMLContainerFrame::Destroy();
 }
 
@@ -100,7 +100,7 @@ nsHTMLButtonControlFrame::Init(
 {
   nsresult  rv = nsHTMLContainerFrame::Init(aContent, aParent, aPrevInFlow);
   if (NS_SUCCEEDED(rv)) {
-    mRenderer.SetFrame(this, PresContext());
+    mRenderer.SetFrame(this, GetPresContext());
   }
   return rv;
 }
@@ -121,10 +121,12 @@ nsrefcnt nsHTMLButtonControlFrame::Release(void)
 NS_IMETHODIMP
 nsHTMLButtonControlFrame::QueryInterface(const nsIID& aIID, void** aInstancePtr)
 {
-  NS_PRECONDITION(aInstancePtr, "null out param");
-
+  NS_PRECONDITION(0 != aInstancePtr, "null ptr");
+  if (NULL == aInstancePtr) {
+    return NS_ERROR_NULL_POINTER;
+  }
   if (aIID.Equals(NS_GET_IID(nsIFormControlFrame))) {
-    *aInstancePtr = static_cast<nsIFormControlFrame*>(this);
+    *aInstancePtr = (void*) ((nsIFormControlFrame*) this);
     return NS_OK;
   }
 
@@ -140,10 +142,10 @@ NS_IMETHODIMP nsHTMLButtonControlFrame::GetAccessible(nsIAccessible** aAccessibl
     nsIContent* content = GetContent();
     nsCOMPtr<nsIDOMHTMLButtonElement> buttonElement(do_QueryInterface(content));
     if (buttonElement) //If turned XBL-base form control off, the frame contains HTML 4 button
-      return accService->CreateHTML4ButtonAccessible(static_cast<nsIFrame*>(this), aAccessible);
+      return accService->CreateHTML4ButtonAccessible(NS_STATIC_CAST(nsIFrame*, this), aAccessible);
     nsCOMPtr<nsIDOMHTMLInputElement> inputElement(do_QueryInterface(content));
     if (inputElement) //If turned XBL-base form control on, the frame contains normal HTML button
-      return accService->CreateHTMLButtonAccessible(static_cast<nsIFrame*>(this), aAccessible);
+      return accService->CreateHTMLButtonAccessible(NS_STATIC_CAST(nsIFrame*, this), aAccessible);
   }
 
   return NS_ERROR_FAILURE;
@@ -283,7 +285,7 @@ nsHTMLButtonControlFrame::Reflow(nsPresContext* aPresContext,
                   "Should have real computed width by now");
 
   if (mState & NS_FRAME_FIRST_REFLOW) {
-    nsFormControlFrame::RegUnRegAccessKey(static_cast<nsIFrame*>(this), PR_TRUE);
+    nsFormControlFrame::RegUnRegAccessKey(NS_STATIC_CAST(nsIFrame*, this), PR_TRUE);
   }
 
   // Reflow the child
@@ -291,7 +293,8 @@ nsHTMLButtonControlFrame::Reflow(nsPresContext* aPresContext,
 
   // XXXbz Eventually we may want to check-and-bail if
   // !aReflowState.ShouldReflowAllKids() &&
-  // !NS_SUBTREE_DIRTY(firstKid).
+  // !(firstKid->GetStateBits() &
+  //   (NS_FRAME_IS_DIRTY | NS_FRAME_HAS_DIRTY_CHILDREN)).
   // We'd need to cache our ascent for that, of course.
   
   nsMargin focusPadding = mRenderer.GetAddedButtonBorderAndPadding();
@@ -303,8 +306,8 @@ nsHTMLButtonControlFrame::Reflow(nsPresContext* aPresContext,
   aDesiredSize.width = aReflowState.ComputedWidth();
 
   // If computed use the computed value.
-  if (aReflowState.ComputedHeight() != NS_INTRINSICSIZE) 
-    aDesiredSize.height = aReflowState.ComputedHeight();
+  if (aReflowState.mComputedHeight != NS_INTRINSICSIZE) 
+    aDesiredSize.height = aReflowState.mComputedHeight;
   else
     aDesiredSize.height += focusPadding.TopBottom();
   
@@ -347,6 +350,7 @@ nsHTMLButtonControlFrame::ReflowButtonContents(nsPresContext* aPresContext,
   // Indent the child inside us by the focus border. We must do this separate
   // from the regular border.
   availSize.width -= aFocusPadding.LeftRight();
+  availSize.width = PR_MAX(availSize.width,0);
   
   // See whether out availSize's width is big enough.  If it's smaller than our
   // intrinsic min width, that means that the kid wouldn't really fit; for a
@@ -366,7 +370,6 @@ nsHTMLButtonControlFrame::ReflowButtonContents(nsPresContext* aPresContext,
     xoffset -= extraleft;
     availSize.width += extraleft + extraright;
   }
-  availSize.width = PR_MAX(availSize.width,0);
   
   nsHTMLReflowState reflowState(aPresContext, aReflowState, aFirstKid,
                                 availSize);
@@ -384,8 +387,8 @@ nsHTMLButtonControlFrame::ReflowButtonContents(nsPresContext* aPresContext,
 
   // center child vertically
   nscoord yoff = 0;
-  if (aReflowState.ComputedHeight() != NS_INTRINSICSIZE) {
-    yoff = (aReflowState.ComputedHeight() - aDesiredSize.height)/2;
+  if (aReflowState.mComputedHeight != NS_INTRINSICSIZE) {
+    yoff = (aReflowState.mComputedHeight - aDesiredSize.height)/2;
     if (yoff < 0) {
       yoff = 0;
     }

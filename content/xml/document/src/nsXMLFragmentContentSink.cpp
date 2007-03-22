@@ -60,7 +60,6 @@
 #include "nsTHashtable.h"
 #include "nsHashKeys.h"
 #include "nsTArray.h"
-#include "nsCycleCollectionParticipant.h"
 
 class nsXMLFragmentContentSink : public nsXMLContentSink,
                                  public nsIFragmentContentSink
@@ -73,8 +72,6 @@ public:
 
   // nsISupports
   NS_DECL_ISUPPORTS_INHERITED
-  NS_DECL_CYCLE_COLLECTION_CLASS_INHERITED_NO_UNLINK(nsXMLFragmentContentSink,
-                                                     nsXMLContentSink)
 
   // nsIExpatSink
   NS_IMETHOD HandleDoctypeDecl(const nsAString & aSubset, 
@@ -102,8 +99,7 @@ public:
   // nsIXMLContentSink
 
   // nsIFragmentContentSink
-  NS_IMETHOD GetFragment(PRBool aWillOwnFragment,
-                         nsIDOMDocumentFragment** aFragment);
+  NS_IMETHOD GetFragment(nsIDOMDocumentFragment** aFragment);
   NS_IMETHOD SetTargetDocument(nsIDocument* aDocument);
   NS_IMETHOD WillBuildContent();
   NS_IMETHOD DidBuildContent();
@@ -118,7 +114,7 @@ protected:
                                  nsIContent** aResult, PRBool* aAppendContent);
   virtual nsresult CloseElement(nsIContent* aContent);
 
-  virtual void MaybeStartLayout(PRBool aIgnorePendingSheets);
+  void MaybeStartLayout();
 
   // nsContentSink overrides
   virtual nsresult ProcessStyleLink(nsIContent* aElement,
@@ -173,20 +169,9 @@ nsXMLFragmentContentSink::~nsXMLFragmentContentSink()
 {
 }
 
-NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION_INHERITED(nsXMLFragmentContentSink)
-  NS_INTERFACE_MAP_ENTRY(nsIFragmentContentSink)
-NS_INTERFACE_MAP_END_INHERITING(nsXMLContentSink)
-
-NS_IMPL_ADDREF_INHERITED(nsXMLFragmentContentSink, nsXMLContentSink)
-NS_IMPL_RELEASE_INHERITED(nsXMLFragmentContentSink, nsXMLContentSink)
-
-NS_IMPL_CYCLE_COLLECTION_CLASS(nsXMLFragmentContentSink)
-
-NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN_INHERITED(nsXMLFragmentContentSink,
-                                                  nsXMLContentSink)
-  NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mTargetDocument)
-  NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mRoot)
-NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
+NS_IMPL_ISUPPORTS_INHERITED1(nsXMLFragmentContentSink,
+                             nsXMLContentSink,
+                             nsIFragmentContentSink)
 
 NS_IMETHODIMP 
 nsXMLFragmentContentSink::WillBuildModel(void)
@@ -280,7 +265,7 @@ nsXMLFragmentContentSink::CloseElement(nsIContent* aContent)
 }
 
 void
-nsXMLFragmentContentSink::MaybeStartLayout(PRBool aIgnorePendingSheets)
+nsXMLFragmentContentSink::MaybeStartLayout()
 {
   return;
 }
@@ -401,19 +386,14 @@ nsXMLFragmentContentSink::StartLayout()
 ////////////////////////////////////////////////////////////////////////
 
 NS_IMETHODIMP 
-nsXMLFragmentContentSink::GetFragment(PRBool aWillOwnFragment,
-                                      nsIDOMDocumentFragment** aFragment)
+nsXMLFragmentContentSink::GetFragment(nsIDOMDocumentFragment** aFragment)
 {
   *aFragment = nsnull;
   if (mParseError) {
     //XXX PARSE_ERR from DOM3 Load and Save would be more appropriate
     return NS_ERROR_DOM_SYNTAX_ERR;
   } else if (mRoot) {
-    nsresult rv = CallQueryInterface(mRoot, aFragment);
-    if (NS_SUCCEEDED(rv) && aWillOwnFragment) {
-      mRoot = nsnull;
-    }
-    return rv;
+    return CallQueryInterface(mRoot, aFragment);
   } else {
     return NS_OK;
   }
@@ -533,21 +513,22 @@ nsXHTMLParanoidFragmentSink::Init()
     return NS_OK;
   }
 
+  PRUint32 size = NS_ARRAY_LENGTH(kDefaultAllowedTags);
   sAllowedTags = new nsTHashtable<nsISupportsHashKey>();
   if (sAllowedTags) {
-    rv = sAllowedTags->Init(80);
-    for (PRUint32 i = 0; kDefaultAllowedTags[i] && NS_SUCCEEDED(rv); i++) {
+    rv = sAllowedTags->Init(size);
+    for (PRUint32 i = 0; i < size && NS_SUCCEEDED(rv); i++) {
       if (!sAllowedTags->PutEntry(*kDefaultAllowedTags[i])) {
         rv = NS_ERROR_OUT_OF_MEMORY;
       }
     }
   }
 
+  size = NS_ARRAY_LENGTH(kDefaultAllowedAttributes);
   sAllowedAttributes = new nsTHashtable<nsISupportsHashKey>();
   if (sAllowedAttributes && NS_SUCCEEDED(rv)) {
-    rv = sAllowedAttributes->Init(80);
-    for (PRUint32 i = 0;
-         kDefaultAllowedAttributes[i] && NS_SUCCEEDED(rv); i++) {
+    rv = sAllowedAttributes->Init(size);
+    for (PRUint32 i = 0; i < size && NS_SUCCEEDED(rv); i++) {
       if (!sAllowedAttributes->PutEntry(*kDefaultAllowedAttributes[i])) {
         rv = NS_ERROR_OUT_OF_MEMORY;
       }
@@ -697,10 +678,13 @@ nsXHTMLParanoidFragmentSink::HandleStartElement(const PRUnichar *aName,
     NS_ENSURE_SUCCESS(rv, rv);
     
     name = nodeInfo->NameAtom();
-    // Add if it's xmlns, xml: or on the HTML whitelist
+    // Add if it's xmlns, xml:, aaa:, xhtml2:role, or on the HTML whitelist
     if (nameSpaceID == kNameSpaceID_XMLNS ||
         nameSpaceID == kNameSpaceID_XML ||
-        (sAllowedAttributes && sAllowedAttributes->GetEntry(name))) {
+        nameSpaceID == kNameSpaceID_WAIProperties ||
+        (nameSpaceID == kNameSpaceID_XHTML2_Unofficial &&
+         name == nsGkAtoms::role) ||
+        sAllowedAttributes && sAllowedAttributes->GetEntry(name)) {
       allowedAttrs.AppendElement(aAtts[i]);
       allowedAttrs.AppendElement(aAtts[i + 1]);
     }

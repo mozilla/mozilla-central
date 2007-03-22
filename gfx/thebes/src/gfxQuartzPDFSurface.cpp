@@ -37,7 +37,7 @@
 
 #include "gfxQuartzPDFSurface.h"
 
-#include "cairo-quartz.h"
+#include "cairo-nquartz.h"
 
 gfxQuartzPDFSurface::gfxQuartzPDFSurface(const char *filename, gfxSize aSizeInPoints)
 {
@@ -50,7 +50,7 @@ gfxQuartzPDFSurface::gfxQuartzPDFSurface(const char *filename, gfxSize aSizeInPo
     CFRelease(file);
     CFRelease(fileURL);
 
-    Init(cairo_quartz_surface_create_for_cg_context(mCGContext, aSizeInPoints.width, aSizeInPoints.height));
+    Init(cairo_nquartz_surface_create_for_cg_context(mCGContext, aSizeInPoints.width, aSizeInPoints.height, PR_FALSE));
 }
 
 gfxQuartzPDFSurface::~gfxQuartzPDFSurface()

@@ -34,10 +34,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-365869.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 365869;
+var bug = 365869;
 var summary = 'strict warning for object literal with duplicate propery names';
 var actual = '';
 var expect = '';
@@ -50,18 +48,14 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
 
-  if (!options().match(/strict/))
-  {
-    options('strict');
-  }
-  if (!options().match(/werror/))
-  {
-    options('werror');
-  }
+  var jsOptions = new JavaScriptOptions();
 
+// strict
+  jsOptions.setOption('strict', true);
+  jsOptions.setOption('werror', true);
   try
   {
     expect = 'TypeError: redeclaration of property a';
@@ -74,11 +68,14 @@ function test()
     actual = ex + '';
     print(ex);
   }
- 
+  jsOptions.reset();
+  
   reportCompare(expect, actual, summary);
 
-  print('test crash from bug 371292 Comment 3');
-
+  print('test crash from bug 371292');
+// strict
+  jsOptions.setOption('strict', true);
+  jsOptions.setOption('werror', true);
   try
   {
     expect = 'TypeError: redeclaration of property 1';
@@ -91,25 +88,9 @@ function test()
     actual = ex + '';
     print(ex);
   }
- 
+  jsOptions.reset();
+  
   reportCompare(expect, actual, summary);
-
-
-  print('test crash from bug 371292 Comment 9');
-
-  try
-  {
-    expect = 'TypeError: redeclaration of const 5';
-    "012345".__defineSetter__(5, function(){});
-  }
-  catch(ex)
-  {
-    actual = ex + '';
-    print(ex);
-  }
-
-  reportCompare(expect, actual, summary);
-
 
   exitFunc ('test');
 }

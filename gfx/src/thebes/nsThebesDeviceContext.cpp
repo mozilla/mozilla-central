@@ -43,15 +43,14 @@
 
 #include "nsThebesDeviceContext.h"
 #include "nsThebesRenderingContext.h"
+#include "nsThebesDrawingSurface.h"
 
 #include "nsIView.h"
 #include "nsILookAndFeel.h"
 
 #ifdef MOZ_ENABLE_GTK2
 // for getenv
-#include <cstdlib>
-// for round
-#include <cmath>
+#include <stdlib.h>
 
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
@@ -71,6 +70,7 @@
 #include "gfxPSSurface.h"
 static nsSystemFontsGTK2 *gSystemFonts = nsnull;
 #elif XP_WIN
+#include <cairo-win32.h>
 #include "nsSystemFontsWin.h"
 #include "gfxWindowsSurface.h"
 #include "gfxPDFSurface.h"
@@ -78,7 +78,6 @@ static nsSystemFontsWin *gSystemFonts = nsnull;
 #include <usp10.h>
 #elif defined(XP_OS2)
 #include "nsSystemFontsOS2.h"
-#include "gfxPDFSurface.h"
 static nsSystemFontsOS2 *gSystemFonts = nsnull;
 #elif defined(XP_BEOS)
 #include "nsSystemFontsBeOS.h"
@@ -119,7 +118,8 @@ nsThebesDeviceContext::nsThebesDeviceContext()
     mDepth = 0;
     mWidth = 0;
     mHeight = 0;
-    mPrintingScale = 1.0f;
+
+    mDeviceContextSpec = nsnull;
 
     mWidgetSurfaceCache.Init();
 
@@ -150,7 +150,7 @@ nsThebesDeviceContext::SetDPI()
     if (mPrintingSurface &&
         (mPrintingSurface->GetType() == gfxASurface::SurfaceTypePDF ||
          mPrintingSurface->GetType() == gfxASurface::SurfaceTypePS ||
-         mPrintingSurface->GetType() == gfxASurface::SurfaceTypeQuartz)) {
+         mPrintingSurface->GetType() == gfxASurface::SurfaceTypeQuartz2)) {
         dpi = 72;
         dotsArePixels = PR_FALSE;
     } else {
@@ -172,9 +172,8 @@ nsThebesDeviceContext::SetDPI()
         }
 
 #if defined(MOZ_ENABLE_GTK2)
-        GdkScreen *screen = gdk_screen_get_default();
-        gtk_settings_get_for_screen(screen); // Make sure init is run so we have a resolution
-        PRInt32 OSVal = PRInt32(round(gdk_screen_get_resolution(screen)));
+        float screenWidthIn = float(::gdk_screen_width_mm()) / 25.4f;
+        PRInt32 OSVal = NSToCoordRound(float(::gdk_screen_width()) / screenWidthIn);
 
         if (prefDPI == 0) // Force the use of the OS dpi
             dpi = OSVal;
@@ -184,26 +183,20 @@ nsThebesDeviceContext::SetDPI()
 #elif defined(XP_WIN)
         // XXX we should really look at the widget if !dc but it is currently always null
         HDC dc = GetPrintHDC();
-        if (dc) {
-            PRInt32 OSVal = GetDeviceCaps(dc, LOGPIXELSY);
-
-            dpi = 144;
-            mPrintingScale = float(OSVal)/dpi;
-            dotsArePixels = PR_FALSE;
-        } else {
+        if (!dc)
             dc = GetDC((HWND)nsnull);
 
-            PRInt32 OSVal = GetDeviceCaps(dc, LOGPIXELSY);
+        PRInt32 OSVal = GetDeviceCaps(dc, LOGPIXELSY);
 
+        if (dc != GetPrintHDC())
             ReleaseDC((HWND)nsnull, dc);
 
-            if (OSVal != 0)
-                dpi = OSVal;
-        }
+        if (OSVal != 0)
+            dpi = OSVal;
 
 #elif defined(XP_OS2)
         // get a printer DC if available, otherwise create a new (memory) DC
-        HDC dc = GetPrintHDC();
+        HDC dc = GetPrintDC();
         PRBool doCloseDC = PR_FALSE;
         if (dc <= 0) { // test for NULLHANDLE/DEV_ERROR or HDC_ERROR
             // create DC compatible with the screen
@@ -240,25 +233,18 @@ nsThebesDeviceContext::SetDPI()
         // dev pixels per CSS pixel.  Then, divide that into AppUnitsPerCSSPixel()
         // to get the number of app units per dev pixel.  The PR_MAXes are to
         // make sure we don't end up dividing by zero.
-        PRUint32 roundedDPIScaleFactor = (dpi + 48)/96;
-#ifdef MOZ_WIDGET_GTK2
-        // be more conservative about activating scaling on GTK2, since the dpi
-        // information is more likely to be wrong
-        roundedDPIScaleFactor = dpi/96;
-#endif
-        mAppUnitsPerDevNotScaledPixel =
-          PR_MAX(1, AppUnitsPerCSSPixel() / PR_MAX(1, roundedDPIScaleFactor));
+        mAppUnitsPerDevPixel = PR_MAX(1, AppUnitsPerCSSPixel() /
+                                      PR_MAX(1, (dpi + 48) / 96));
+
     } else {
         /* set mAppUnitsPerDevPixel so we're using exactly 72 dpi, even
          * though that means we have a non-integer number of device "pixels"
          * per CSS pixel
          */
-        mAppUnitsPerDevNotScaledPixel = (AppUnitsPerCSSPixel() * 96) / dpi;
+        mAppUnitsPerDevPixel = (AppUnitsPerCSSPixel() * 96) / dpi;
     }
 
-    mAppUnitsPerInch = NSIntPixelsToAppUnits(dpi, mAppUnitsPerDevNotScaledPixel);
-
-    UpdateScaledAppUnits();
+    mAppUnitsPerInch = NSIntPixelsToAppUnits(dpi, mAppUnitsPerDevPixel);
 
     return NS_OK;
 }
@@ -280,7 +266,10 @@ nsThebesDeviceContext::Init(nsNativeWidget aWidget)
 
 #endif
 
-    mScreenManager = do_GetService("@mozilla.org/gfx/screenmanager;1");
+
+    mDepth = 24;
+
+    mScreenManager = do_GetService("@mozilla.org/gfx/screenmanager;1");   
 
     return NS_OK;
 }
@@ -300,6 +289,26 @@ nsThebesDeviceContext::CreateRenderingContext(nsIView *aView,
 }
 
 NS_IMETHODIMP
+nsThebesDeviceContext::CreateRenderingContext(nsIDrawingSurface *aSurface,
+                                              nsIRenderingContext *&aContext)
+{
+    nsresult rv;
+
+    aContext = nsnull;
+    nsCOMPtr<nsIRenderingContext> pContext;
+    rv = CreateRenderingContextInstance(*getter_AddRefs(pContext));
+    if (NS_SUCCEEDED(rv)) {
+        rv = pContext->Init(this, aSurface);
+        if (NS_SUCCEEDED(rv)) {
+            aContext = pContext;
+            NS_ADDREF(aContext);
+        }
+    }
+
+    return rv;
+}
+
+NS_IMETHODIMP
 nsThebesDeviceContext::CreateRenderingContext(nsIWidget *aWidget,
                                               nsIRenderingContext *&aContext)
 {
@@ -312,9 +321,6 @@ nsThebesDeviceContext::CreateRenderingContext(nsIWidget *aWidget,
         nsRefPtr<gfxASurface> surface(aWidget->GetThebesSurface());
         if (surface)
             rv = pContext->Init(this, surface);
-        else
-            rv = NS_ERROR_FAILURE;
-
         if (NS_SUCCEEDED(rv)) {
             aContext = pContext;
             NS_ADDREF(aContext);
@@ -333,19 +339,24 @@ nsThebesDeviceContext::CreateRenderingContext(nsIRenderingContext *&aContext)
     nsCOMPtr<nsIRenderingContext> pContext;
     rv = CreateRenderingContextInstance(*getter_AddRefs(pContext));
     if (NS_SUCCEEDED(rv)) {
+#ifdef XP_MACOSX
+        mDeviceContextSpec->GetSurfaceForPrinter(getter_AddRefs(mPrintingSurface));
+#endif
         if (mPrintingSurface)
             rv = pContext->Init(this, mPrintingSurface);
         else
             rv = NS_ERROR_FAILURE;
 
         if (NS_SUCCEEDED(rv)) {
-            pContext->Scale(mPrintingScale, mPrintingScale);
             aContext = pContext;
             NS_ADDREF(aContext);
         }
     }
 
     return rv;
+
+
+    return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
@@ -369,17 +380,6 @@ nsThebesDeviceContext::SupportsNativeWidgets(PRBool &aSupportsWidgets)
 }
 
 NS_IMETHODIMP
-nsThebesDeviceContext::ClearCachedSystemFonts()
-{
-    //clear our cache of stored system fonts
-    if (gSystemFonts) {
-        delete gSystemFonts;
-        gSystemFonts = nsnull;
-    }
-    return NS_OK;
-}
-
-NS_IMETHODIMP
 nsThebesDeviceContext::GetSystemFont(nsSystemFontID aID, nsFont *aFont) const
 {
     if (!gSystemFonts) {
@@ -399,18 +399,21 @@ nsThebesDeviceContext::GetSystemFont(nsSystemFontID aID, nsFont *aFont) const
     }
 
     nsString fontName;
-    gfxFontStyle fontStyle;
+    gfxFontStyle fontStyle(NS_FONT_STYLE_NORMAL, NS_FONT_VARIANT_NORMAL,
+                           FONT_WEIGHT_NORMAL, FONT_DECORATION_NONE,
+                           16.0f, NS_LITERAL_CSTRING(""), 0.0f, PR_TRUE,
+                           PR_FALSE);
     nsresult rv = gSystemFonts->GetSystemFont(aID, &fontName, &fontStyle);
     NS_ENSURE_SUCCESS(rv, rv);
 
     aFont->name = fontName;
     aFont->style = fontStyle.style;
     aFont->systemFont = fontStyle.systemFont;
-    aFont->variant = NS_FONT_VARIANT_NORMAL;
+    aFont->variant = fontStyle.variant;
     aFont->familyNameQuirks = fontStyle.familyNameQuirks;
     aFont->weight = fontStyle.weight;
-    aFont->decorations = NS_FONT_DECORATION_NONE;
-    aFont->size = NSFloatPixelsToAppUnits(fontStyle.size, UnscaledAppUnitsPerDevPixel());
+    aFont->decorations = fontStyle.decorations;
+    aFont->size = NSFloatPixelsToAppUnits(fontStyle.size, AppUnitsPerDevPixel());
     //aFont->langGroup = fontStyle.langGroup;
     aFont->sizeAdjust = fontStyle.sizeAdjust;
 
@@ -426,12 +429,6 @@ nsThebesDeviceContext::CheckFontExistence(const nsString& aFaceName)
 NS_IMETHODIMP
 nsThebesDeviceContext::GetDepth(PRUint32& aDepth)
 {
-    nsCOMPtr<nsIScreen> primaryScreen;
-    if (mDepth == 0) {
-        mScreenManager->GetPrimaryScreen(getter_AddRefs(primaryScreen));
-        primaryScreen->GetColorDepth(reinterpret_cast<PRInt32 *>(&mDepth));
-    }
-
     aDepth = mDepth;
     return NS_OK;
 }
@@ -518,7 +515,7 @@ nsThebesDeviceContext::InitForPrinting(nsIDeviceContextSpec *aDevice)
 {
     NS_ENSURE_ARG_POINTER(aDevice);
 
-    mDeviceContextSpec = aDevice;
+    NS_ADDREF(mDeviceContextSpec = aDevice);
 
     nsresult rv = aDevice->GetSurfaceForPrinter(getter_AddRefs(mPrintingSurface));
     if (NS_FAILED(rv))
@@ -547,75 +544,56 @@ nsThebesDeviceContext::BeginDocument(PRUnichar*  aTitle,
                                      PRInt32     aEndPage)
 {
     static const PRUnichar kEmpty[] = { '\0' };
-    nsresult rv;
 
-    rv = mPrintingSurface->BeginPrinting(nsDependentString(aTitle ? aTitle : kEmpty),
-                                         nsDependentString(aPrintToFileName ? aPrintToFileName : kEmpty));
-
-    if (NS_SUCCEEDED(rv) && mDeviceContextSpec)
-        rv = mDeviceContextSpec->BeginDocument(aTitle, aPrintToFileName, aStartPage, aEndPage);
-
-    return rv;
+    mPrintingSurface->BeginPrinting(nsDependentString(aTitle ? aTitle : kEmpty),
+                                    nsDependentString(aPrintToFileName ? aPrintToFileName : kEmpty));
+    if (mDeviceContextSpec)
+        mDeviceContextSpec->BeginDocument(aTitle, aPrintToFileName, aStartPage, aEndPage);
+    return NS_OK;
 }
 
 
 NS_IMETHODIMP
 nsThebesDeviceContext::EndDocument(void)
 {
-    nsresult rv = NS_OK;
-
     if (mPrintingSurface) {
-        rv = mPrintingSurface->EndPrinting();
-        if (NS_SUCCEEDED(rv))
-            mPrintingSurface->Finish();
+        mPrintingSurface->EndPrinting();
+        mPrintingSurface->Finish();
     }
-
     if (mDeviceContextSpec)
         mDeviceContextSpec->EndDocument();
-
-    return rv;
+    return NS_OK;
 }
 
 
 NS_IMETHODIMP
 nsThebesDeviceContext::AbortDocument(void)
 {
-    nsresult rv = mPrintingSurface->AbortPrinting();
+    mPrintingSurface->AbortPrinting();
 
     if (mDeviceContextSpec)
         mDeviceContextSpec->EndDocument();
-
-    return rv;
+    return NS_OK;
 }
 
 
 NS_IMETHODIMP
 nsThebesDeviceContext::BeginPage(void)
 {
-    nsresult rv = NS_OK;
+    mPrintingSurface->BeginPage();
 
     if (mDeviceContextSpec)
-        rv = mDeviceContextSpec->BeginPage();
-
-    if (NS_FAILED(rv)) return rv;
-
-   /* We need to get a new surface for each page on the Mac */
-#ifdef XP_MACOSX
-    mDeviceContextSpec->GetSurfaceForPrinter(getter_AddRefs(mPrintingSurface));
-#endif
-    rv = mPrintingSurface->BeginPage();
-
-    return rv;
+        mDeviceContextSpec->BeginPage();
+    return NS_OK;
 }
 
 NS_IMETHODIMP
 nsThebesDeviceContext::EndPage(void)
 {
-    nsresult rv = mPrintingSurface->EndPage();
+    mPrintingSurface->EndPage();
 
-    /* We need to release the CGContextRef in the surface here, plus it's
-       not something you would want anyway, as these CGContextRefs are only good
-       for one page. */
+    /* uhh. yeah, don't ask.
+     * We need to release this before we call end page for mac.. */
 #ifdef XP_MACOSX
     mPrintingSurface = nsnull;
 #endif
@@ -623,7 +601,7 @@ nsThebesDeviceContext::EndPage(void)
     if (mDeviceContextSpec)
         mDeviceContextSpec->EndPage();
 
-    return rv;
+    return NS_OK;
 }
 
 /** End printing methods **/
@@ -704,7 +682,7 @@ nsThebesDeviceContext::CalcPrintingSize()
         size = reinterpret_cast<gfxImageSurface*>(mPrintingSurface.get())->GetSize();
         break;
 
-#if defined(MOZ_ENABLE_GTK2) || defined(XP_WIN) || defined(XP_OS2)
+#if defined(MOZ_ENABLE_GTK2) || defined(XP_WIN)
     case gfxASurface::SurfaceTypePDF:
         inPoints = PR_TRUE;
         size = reinterpret_cast<gfxPDFSurface*>(mPrintingSurface.get())->GetSize();
@@ -719,7 +697,7 @@ nsThebesDeviceContext::CalcPrintingSize()
 #endif
 
 #ifdef XP_MACOSX
-    case gfxASurface::SurfaceTypeQuartz:
+    case gfxASurface::SurfaceTypeQuartz2:
         inPoints = PR_TRUE; // this is really only true when we're printing
         size = reinterpret_cast<gfxQuartzSurface*>(mPrintingSurface.get())->GetSize();
         break;
@@ -727,38 +705,16 @@ nsThebesDeviceContext::CalcPrintingSize()
 
 #ifdef XP_WIN
     case gfxASurface::SurfaceTypeWin32:
-    case gfxASurface::SurfaceTypeWin32Printing:
     {
         inPoints = PR_FALSE;
         HDC dc =  GetPrintHDC();
         if (!dc)
             dc = GetDC((HWND)mWidget);
-        size.width = NSFloatPixelsToAppUnits(::GetDeviceCaps(dc, HORZRES)/mPrintingScale, AppUnitsPerDevPixel());
-        size.height = NSFloatPixelsToAppUnits(::GetDeviceCaps(dc, VERTRES)/mPrintingScale, AppUnitsPerDevPixel());
+        size.width = NSIntPixelsToAppUnits(::GetDeviceCaps(dc, HORZRES), AppUnitsPerDevPixel());
+        size.height = NSIntPixelsToAppUnits(::GetDeviceCaps(dc, VERTRES), AppUnitsPerDevPixel());
         mDepth = (PRUint32)::GetDeviceCaps(dc, BITSPIXEL);
         if (dc != (HDC)GetPrintHDC())
             ReleaseDC((HWND)mWidget, dc);
-        break;
-    }
-#endif
-
-#ifdef XP_OS2
-    case gfxASurface::SurfaceTypeOS2:
-    {
-        inPoints = PR_FALSE;
-        // we already set the size in the surface constructor we set for
-        // printing, so just get those values here
-        size = reinterpret_cast<gfxOS2Surface*>(mPrintingSurface.get())->GetSize();
-        // as they are in pixels we need to scale them to app units
-        size.width = NSFloatPixelsToAppUnits(size.width, AppUnitsPerDevPixel());
-        size.height = NSFloatPixelsToAppUnits(size.height, AppUnitsPerDevPixel());
-        // still need to get the depth from the device context
-        HDC dc = GetPrintHDC();
-        LONG value;
-        if (DevQueryCaps(dc, CAPS_COLOR_BITCOUNT, 1, &value))
-            mDepth = value;
-        else
-            mDepth = 8; // default to 8bpp, should be enough for printers
         break;
     }
 #endif
@@ -769,6 +725,8 @@ nsThebesDeviceContext::CalcPrintingSize()
     if (inPoints) {
         mWidth = NSToCoordRound(float(size.width) * AppUnitsPerInch() / 72);
         mHeight = NSToCoordRound(float(size.height) * AppUnitsPerInch() / 72);
+        printf("%f %f\n", size.width, size.height);
+        printf("%d %d\n", (PRInt32)mWidth, (PRInt32)mHeight);
     } else {
         mWidth = NSToIntRound(size.width);
         mHeight = NSToIntRound(size.height);
@@ -776,57 +734,11 @@ nsThebesDeviceContext::CalcPrintingSize()
 }
 
 PRBool nsThebesDeviceContext::CheckDPIChange() {
-    PRInt32 oldDevPixels = mAppUnitsPerDevNotScaledPixel;
+    PRInt32 oldDevPixels = mAppUnitsPerDevPixel;
     PRInt32 oldInches = mAppUnitsPerInch;
 
     SetDPI();
 
-    return oldDevPixels != mAppUnitsPerDevNotScaledPixel ||
+    return oldDevPixels != mAppUnitsPerDevPixel ||
            oldInches != mAppUnitsPerInch;
 }
-
-PRBool
-nsThebesDeviceContext::SetPixelScale(float aScale)
-{
-    if (aScale <= 0) {
-        NS_NOTREACHED("Invalid pixel scale value");
-        return PR_FALSE;
-    }
-    PRInt32 oldAppUnitsPerDevPixel = mAppUnitsPerDevPixel;
-    mPixelScale = aScale;
-    UpdateScaledAppUnits();
-    return oldAppUnitsPerDevPixel != mAppUnitsPerDevPixel;
-}
-
-void
-nsThebesDeviceContext::UpdateScaledAppUnits()
-{
-    mAppUnitsPerDevPixel = PR_MAX(1, PRInt32(float(mAppUnitsPerDevNotScaledPixel) / mPixelScale));
-}
-
-#if defined(XP_WIN) || defined(XP_OS2)
-HDC
-nsThebesDeviceContext::GetPrintHDC()
-{
-    if (mPrintingSurface) {
-        switch (mPrintingSurface->GetType()) {
-#ifdef XP_WIN
-            case gfxASurface::SurfaceTypeWin32:
-            case gfxASurface::SurfaceTypeWin32Printing:
-                return reinterpret_cast<gfxWindowsSurface*>(mPrintingSurface.get())->GetDC();
-#endif
-
-#ifdef XP_OS2
-            case gfxASurface::SurfaceTypeOS2:
-                return GpiQueryDevice(reinterpret_cast<gfxOS2Surface*>(mPrintingSurface.get())->GetPS());
-#endif
-
-            default:
-                NS_ASSERTION(0, "invalid surface type in GetPrintHDC");
-                break;
-        }
-    }
-
-    return nsnull;
-}
-#endif

@@ -40,8 +40,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '13.4.4.32.js';
-
 START("13.4.4.32 - XML replace()");
 
 TEST(1, true, XML.prototype.hasOwnProperty("replace"));

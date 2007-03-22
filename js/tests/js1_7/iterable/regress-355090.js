@@ -34,10 +34,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-355090.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 354945;
+var bug = 354945;
 var summary = 'Iterator(8) is a function';
 var actual = '';
 var expect = '';
@@ -50,9 +48,9 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
- 
+  
   expect = 'No Error';
   actual = 'No Error';
   try

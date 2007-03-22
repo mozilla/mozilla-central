@@ -112,7 +112,7 @@ public:
 
 protected:
     // nsXMLContentSink overrides
-    virtual void MaybeStartLayout(PRBool aIgnorePendingSheets);
+    void MaybeStartLayout();
 
     PRBool OnOpenContainer(const PRUnichar **aAtts, 
                            PRUint32 aAttsCount, 
@@ -145,7 +145,8 @@ protected:
   
 
   // nsXMLContentSink overrides
-  nsresult FlushText();
+  nsresult FlushText(PRBool aCreateTextNode=PR_TRUE,
+                     PRBool* aDidFlush=nsnull);
 
   // nsIExpatSink overrides
   NS_IMETHOD ReportError(const PRUnichar* aErrorText,
@@ -157,7 +158,6 @@ protected:
   nsresult ReportUnexpectedElement(nsIAtom* aElementName, PRUint32 aLineNumber);
 
   void AddMember(nsXBLProtoImplMember* aMember);
-  void AddField(nsXBLProtoImplField* aField);
   
   XBLPrimaryState mState;
   XBLSecondaryState mSecondaryState;
@@ -169,7 +169,6 @@ protected:
   nsXBLPrototypeHandler* mHandler; // current handler, owned by its PrototypeBinding
   nsXBLProtoImpl* mImplementation;
   nsXBLProtoImplMember* mImplMember;
-  nsXBLProtoImplField* mImplField;
   nsXBLProtoImplProperty* mProperty;
   nsXBLProtoImplMethod* mMethod;
   nsXBLProtoImplField* mField;

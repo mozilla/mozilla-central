@@ -34,15 +34,13 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-294302.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 294302;
+var bug = 294302;
 var summary = 'JS Shell load should throw catchable exceptions';
 var actual = 'Error not caught';
 var expect = 'Error caught';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
 try

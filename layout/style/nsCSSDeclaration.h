@@ -51,7 +51,7 @@
 #include "nsCoord.h"
 #include "nsCSSValue.h"
 #include "nsCSSProps.h"
-#include "nsTArray.h"
+#include "nsValueArray.h"
 #include "nsCSSDataBlock.h"
 #include "nsCSSStruct.h"
 
@@ -83,9 +83,7 @@ public:
   PRBool GetValueIsImportant(nsCSSProperty aProperty) const;
   PRBool GetValueIsImportant(const nsAString& aProperty) const;
 
-  PRUint32 Count() const {
-    return mOrder.Length(); 
-  }
+  PRUint32 Count() const;
   nsresult GetNthProperty(PRUint32 aIndex, nsAString& aReturn) const;
 
   nsresult ToString(nsAString& aString) const;
@@ -195,7 +193,11 @@ private:
   void  TryBackgroundShorthand(nsAString & aString,
                                PRInt32 & aBgColor, PRInt32 & aBgImage,
                                PRInt32 & aBgRepeat, PRInt32 & aBgAttachment,
-                               PRInt32 & aBgPosition) const;
+                               PRInt32 & aBgPositionX,
+                               PRInt32 & aBgPositionY) const;
+  void  UseBackgroundPosition(nsAString & aString,
+                              PRInt32 & aBgPositionX,
+                              PRInt32 & aBgPositionY) const;
   void  TryOverflowShorthand(nsAString & aString,
                              PRInt32 & aOverflowX, PRInt32 & aOverflowY) const;
 #ifdef MOZ_SVG
@@ -207,7 +209,7 @@ private:
 
   PRBool   AllPropertiesSameImportance(PRInt32 aFirst, PRInt32 aSecond,
                                        PRInt32 aThird, PRInt32 aFourth,
-                                       PRInt32 aFifth,
+                                       PRInt32 aFifth, PRInt32 aSixth,
                                        PRBool & aImportance) const;
   PRBool   AllPropertiesSameValue(PRInt32 aFirst, PRInt32 aSecond,
                                   PRInt32 aThird, PRInt32 aFourth) const;
@@ -249,12 +251,12 @@ private:
   // Block everyone, except us or a derivative, from deleting us.
   ~nsCSSDeclaration(void);
     
-  nsCSSProperty OrderValueAt(PRUint32 aValue) const {
-    return nsCSSProperty(mOrder.ElementAt(aValue));
+  nsCSSProperty OrderValueAt(nsValueArrayIndex aValue) const {
+    return nsCSSProperty(mOrder.ValueAt(aValue));
   }
 
 private:
-    nsAutoTArray<PRUint8, 8> mOrder;
+    nsValueArray mOrder;
     nsAutoRefCnt mRefCnt;
     nsCSSCompressedDataBlock *mData; // never null, except while expanded
     nsCSSCompressedDataBlock *mImportantData; // may be null

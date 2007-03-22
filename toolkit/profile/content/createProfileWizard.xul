@@ -20,21 +20,18 @@
   <stringbundle id="bundle_profileManager"
                 src="chrome://mozapps/locale/profile/profileSelection.properties"/>
 
-  <script type="application/javascript" src="chrome://mozapps/content/profile/createProfileWizard.js"/>
+  <script type="application/x-javascript"
+          src="chrome://mozapps/content/profile/createProfileWizard.js"/>
 
   <wizardpage id="explanation" onpageshow="enableNextButton();">
     <description>&profileCreationExplanation_1.text;</description>
     <description>&profileCreationExplanation_2.text;</description>
     <description>&profileCreationExplanation_3.text;</description>
     <spacer flex="1"/>
-#ifdef XP_MACOSX
-    <description>&profileCreationExplanation_4Mac.text;</description>
-#else
-#ifdef XP_UNIX
-    <description>&profileCreationExplanation_4Gnome.text;</description>
-#else
+#ifndef XP_MACOSX
     <description>&profileCreationExplanation_4.text;</description>
-#endif
+#else
+    <description>&profileCreationExplanation_4Mac.text;</description>
 #endif
   </wizardpage>
 

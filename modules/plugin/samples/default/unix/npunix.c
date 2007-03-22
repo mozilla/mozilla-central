@@ -549,7 +549,7 @@ NP_Initialize(NPNetscapeFuncs* nsTable, NPPluginFuncs* pluginFuncs)
     if (err == NPERR_NO_ERROR) {
         if ((nsTable->version >> 8) > NP_VERSION_MAJOR)
             err = NPERR_INCOMPATIBLE_VERSION_ERROR;
-        if (nsTable->size < ((char *)&nsTable->posturlnotify - (char *)nsTable))
+        if (nsTable->size < ((void *)&nsTable->posturlnotify - (void *)nsTable))
             err = NPERR_INVALID_FUNCTABLE_ERROR;
         if (pluginFuncs->size < sizeof(NPPluginFuncs))      
             err = NPERR_INVALID_FUNCTABLE_ERROR;
@@ -587,7 +587,7 @@ NP_Initialize(NPNetscapeFuncs* nsTable, NPPluginFuncs* pluginFuncs)
         gNetscapeFuncs.setvalue      = nsTable->setvalue;
         gNetscapeFuncs.posturlnotify = nsTable->posturlnotify;
 
-        if (nsTable->size >= ((char *)&nsTable->setexception - (char *)nsTable))
+        if (nsTable->size >= ((void *)&nsTable->setexception - (void *)nsTable))
         {
           gNetscapeFuncs.invalidaterect = nsTable->invalidaterect;
           gNetscapeFuncs.invalidateregion = nsTable->invalidateregion;
@@ -637,7 +637,7 @@ NP_Initialize(NPNetscapeFuncs* nsTable, NPPluginFuncs* pluginFuncs)
           gNetscapeFuncs.setexception = NULL;
         }
         if (nsTable->size >=
-            ((char *)&nsTable->poppopupsenabledstate - (char *)nsTable))
+            ((void *)&nsTable->poppopupsenabledstate - (void *)nsTable))
         {
           gNetscapeFuncs.pushpopupsenabledstate = nsTable->pushpopupsenabledstate;
           gNetscapeFuncs.poppopupsenabledstate  = nsTable->poppopupsenabledstate;

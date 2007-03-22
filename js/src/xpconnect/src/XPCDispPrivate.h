@@ -91,7 +91,7 @@ STDMETHODIMP _class::QueryInterface(REFIID aIID, void** aInstancePtr)         \
 
 #define NS_IMPL_COM_QUERY_BODY(_interface)                                    \
   if(IsEqualIID(aIID, __uuidof(_interface)) )                                 \
-    foundInterface = static_cast<_interface*>(this);                          \
+    foundInterface = NS_STATIC_CAST(_interface*, this);                       \
   else
 
 #define NS_IMPL_COM_QUERY_TAIL_GUTS                                           \
@@ -292,13 +292,11 @@ public:
      * @param array a JS array of ID's
      */
     XPCDispIDArray(XPCCallContext& ccx, JSIdArray* array);
-
     /**
      * Returns the length of the array
      * @return length of the array
      */
     PRUint32 Length() const;
-
     /**
      * Returns an ID within the array
      * @param cx a JS context
@@ -308,19 +306,22 @@ public:
     jsval Item(JSContext* cx, PRUint32 index) const;
 
     /**
-     * Called to trace jsval associated with the ID's
+     * Called to mark the ID's during GC
      */
-    void TraceJS(JSTracer* trc);
-
+    void Mark();
     /**
-     * Called to unmark the ID's marked during GC marking trace
+     * Called to unmark the ID's after GC has been done
      */
     void Unmark();
-
     /**
      * Tests whether the ID is marked
      */
     JSBool IsMarked() const;
+
+    /**
+     * NOP. This is just here to make the AutoMarkingPtr code compile.
+     */
+    inline void MarkBeforeJSFinalize(JSContext*);
 private:
     JSBool mMarked;
     nsVoidArray mIDArray;
@@ -1228,7 +1229,7 @@ public:
      * Returns a DISPPARAMS structure pointer for the parameters
      * @return a DISPPARAMS structure pointer for the parameters
      */
-    DISPPARAMS* GetDispParams() const { return &const_cast<XPCDispParams*>(this)->mDispParams; }
+    DISPPARAMS* GetDispParams() const { return &NS_CONST_CAST(XPCDispParams*,this)->mDispParams; }
     /**
      * Returns the number of parameters
      * @return the number of parameters

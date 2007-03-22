@@ -55,12 +55,11 @@ typedef nsFrame nsSVGGeometryFrameBase;
 class nsSVGGeometryFrame : public nsSVGGeometryFrameBase,
                            public nsISVGValueObserver
 {
-protected:
-  nsSVGGeometryFrame(nsStyleContext *aContext) : nsSVGGeometryFrameBase(aContext) {}
-
 public:
-  // nsIFrame interface:
+  nsSVGGeometryFrame(nsStyleContext *aContext);
   virtual void Destroy();
+
+  // nsIFrame interface:
   NS_IMETHOD Init(nsIContent* aContent,
                   nsIFrame* aParent,
                   nsIFrame* aPrevInFlow);
@@ -94,11 +93,9 @@ public:
   PRBool HasFill();
   PRBool HasStroke();
 
-  /*
-   * Set up a cairo context for filling a path
-   * @return PR_FALSE to skip rendering
-   */
-  PRBool SetupCairoFill(gfxContext *aContext);
+  // Setup/Cleanup a cairo context for filling a path
+  nsresult SetupCairoFill(gfxContext *aContext, void **aClosure);
+  void CleanupCairoFill(gfxContext *aContext, void *aClosure);
 
   // Set up a cairo context for measuring a stroked path
   void SetupCairoStrokeGeometry(gfxContext *aContext);
@@ -106,14 +103,16 @@ public:
   // Set up a cairo context for hit testing a stroked path
   void SetupCairoStrokeHitGeometry(gfxContext *aContext);
 
-  /*
-   * Set up a cairo context for stroking a path
-   * @return PR_FALSE to skip rendering
-   */
-  PRBool SetupCairoStroke(gfxContext *aContext);
+  // Setup/Cleanup a cairo context for stroking path
+  nsresult SetupCairoStroke(gfxContext *aContext, void **aClosure);
+  void CleanupCairoStroke(gfxContext *aContext, void *aClosure);
 
 protected:
+  virtual nsresult UpdateGraphic(PRBool suppressInvalidation = PR_FALSE) = 0;
+
   nsSVGPaintServerFrame *GetPaintServer(const nsStyleSVGPaint *aPaint);
+
+  NS_IMETHOD InitSVG();
 
 private:
   nsresult GetStrokeDashArray(double **arr, PRUint32 *count);

@@ -112,19 +112,15 @@ public:
          return now32;
         }
     void          SetStartTime() {mStartTime = NowInMilliSecs();}
-    PRUint32      SetEndTime()
+    void          SetEndTime()
         {PRUint32 delta = NowInMilliSecs() - mStartTime;
          if(delta < mQuickTime)
             mQuickTime = delta;
          if (delta > mLongTime)
             mLongTime = delta;
-         mSum += delta;
-         return delta;}
+         mSum += delta;}
     PRUint32      GetQuickTime() {return mQuickTime;}
     PRUint32      GetLongTime() {return mLongTime;}
-    
-    void          AddNotSelfTime(PRUint32 delta) {mNotSelfSum += delta;}
-    PRUint32      GetSelf() { return mSum - mNotSelfSum;}
 
     ProfilerFunction(); // not implemented
 
@@ -140,7 +136,6 @@ private:
     PRUint32        mLongTime;      // longest delta in msec
     PRUint32        mStartTime;     // time on enter
     PRUint32        mSum;
-    PRUint32        mNotSelfSum;
 };
 
 struct FunctionID
@@ -168,6 +163,7 @@ public:
     ~FunctionKey() { }
 
     KeyType GetKey() const { return mF; }
+    KeyTypePointer GetKeyPointer() const { return &mF; }
     PRBool KeyEquals(const KeyTypePointer aKey) const
     {
         return mF == *aKey;

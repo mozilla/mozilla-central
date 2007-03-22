@@ -79,7 +79,6 @@
 nsHZToUnicode::nsHZToUnicode() : nsBufferDecoderSupport(1)
 {
   mHZState = HZ_STATE_ASCII;	// per HZ spec, default to ASCII state 
-  mRunLength = 0;
 }
 //Overwriting the ConvertNoBuff() in nsUCvCnSupport.cpp.
 NS_IMETHODIMP nsHZToUnicode::ConvertNoBuff(
@@ -103,13 +102,8 @@ NS_IMETHODIMP nsHZToUnicode::ConvertNoBuff(
     }
     if ( *aSrc & 0x80 ) // if it is a 8-bit byte
     {
-      if (UINT8_IN_RANGE(0x81, aSrc[0], 0xFE) &&
-          UINT8_IN_RANGE(0x40, aSrc[1], 0xFE)) {
-        // The source is a 8-bit GBCode
-        *aDest = mUtil.GBKCharToUnicode(aSrc[0], aSrc[1]);
-      } else {
-        *aDest = UCS2_NO_MAPPING;
-      }
+      // The source is a 8-bit GBCode
+      *aDest = mUtil.GBKCharToUnicode(aSrc[0], aSrc[1]);
       aSrc += 2;
       i++;
       iDestlen++;
@@ -129,7 +123,6 @@ NS_IMETHODIMP nsHZToUnicode::ConvertNoBuff(
           // we got a '~{'
           // we are switching to HZ state
           mHZState = HZ_STATE_GB;
-          mRunLength = 0;
           aSrc += 2;
           i++;
           break;
@@ -139,12 +132,6 @@ NS_IMETHODIMP nsHZToUnicode::ConvertNoBuff(
           mHZState = HZ_STATE_ASCII;
           aSrc += 2;
           i++;
-          if (mRunLength == 0) {
-            *aDest = UCS2_NO_MAPPING;
-            iDestlen++;
-            aDest++;
-          }
-          mRunLength = 0;
           break;
         case HZLEAD1: 
           // we got a '~~', process like an ASCII, but no state change
@@ -154,7 +141,6 @@ NS_IMETHODIMP nsHZToUnicode::ConvertNoBuff(
           i++;
           iDestlen++;
           aDest++;
-          mRunLength++;
           break;
         case HZLEAD4:	
           // we got a "~\n", it means maintain double byte mode cross lines, ignore the '~' itself
@@ -166,9 +152,6 @@ NS_IMETHODIMP nsHZToUnicode::ConvertNoBuff(
         default:
           // undefined ESC sequence '~X' are ignored since this is a illegal combination 
           aSrc += 2;
-          *aDest = UCS2_NO_MAPPING;
-          iDestlen++;
-          aDest++;
           break;
       };
       continue;// go for next loop
@@ -183,7 +166,6 @@ NS_IMETHODIMP nsHZToUnicode::ConvertNoBuff(
         i++;
         iDestlen++;
         aDest++;
-        mRunLength++;
         break;
       case HZ_STATE_ASCII:
       default:

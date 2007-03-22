@@ -70,12 +70,6 @@ var gConnectionsDialog = {
     
     return true;
   },
-
-  checkForSystemProxy: function ()
-  {
-    if ("@mozilla.org/system-proxy-settings;1" in Components.classes)
-      document.getElementById("systemPref").removeAttribute("hidden");
-  },
   
   proxyTypeChanged: function ()
   {

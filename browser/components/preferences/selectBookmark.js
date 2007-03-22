@@ -48,13 +48,10 @@
  */ 
 var SelectBookmarkDialog = {
   init: function SBD_init() {
-    document.getElementById("bookmarks").place =
-      "place:queryType=1&folder=" + PlacesUIUtils.allBookmarksFolderId;
-
     // Initial update of the OK button.
     this.selectionChanged();
   },
-
+  
   /** 
    * Update the disabled state of the OK button as the user changes the 
    * selection within the view. 
@@ -69,11 +66,12 @@ var SelectBookmarkDialog = {
     }
     accept.disabled = disableAcceptButton;
   },
+  
 
   onItemDblClick: function SBD_onItemDblClick() {
     var bookmarks = document.getElementById("bookmarks");
-    var selectedNode = bookmarks.selectedNode;
-    if (selectedNode && PlacesUtils.nodeIsURI(selectedNode)) {
+    if (bookmarks.hasSingleSelection && 
+        PlacesUtils.nodeIsURI(bookmarks.selectedNode)) {
       /**
        * The user has double clicked on a tree row that is a link. Take this to
        * mean that they want that link to be their homepage, and close the dialog.
@@ -81,7 +79,7 @@ var SelectBookmarkDialog = {
       document.documentElement.getButton("accept").click();
     }
   },
-
+  
   /**
    * User accepts their selection. Set all the selected URLs or the contents
    * of the selected folder as the list of homepages.
@@ -93,8 +91,9 @@ var SelectBookmarkDialog = {
     var urls = [];
     var names = [];
     var selectedNode = bookmarks.selectedNode;
-    if (PlacesUtils.nodeIsFolder(selectedNode)) {
-      var contents = PlacesUtils.getFolderContents(selectedNode.itemId).root;
+    if (bookmarks.hasSingleSelection && 
+        PlacesUtils.nodeIsFolder(selectedNode)) {
+      var contents = PlacesUtils.getFolderContents(asFolder(selectedNode).folderId);
       var cc = contents.childCount;
       for (var i = 0; i < cc; ++i) {
         var node = contents.getChild(i);
@@ -105,8 +104,11 @@ var SelectBookmarkDialog = {
       }
     }
     else {
-      urls.push(selectedNode.uri);
-      names.push(selectedNode.title);
+      var nodes = bookmarks.getSelectionNodes();
+      for (i = 0; i < nodes.length; ++i) {
+        urls.push(nodes[i].uri);
+        names.push(nodes[i].title);
+      }
     }
     window.arguments[0].urls = urls;
     window.arguments[0].names = names;

@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'toString.js';
-
 /**
    Filename:     toString.js
    Description:  'Tests RegExp method toString'

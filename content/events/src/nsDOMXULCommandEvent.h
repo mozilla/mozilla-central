@@ -60,7 +60,7 @@ public:
 private:
   // Convenience accessor for the event
   nsXULCommandEvent* Event() {
-    return static_cast<nsXULCommandEvent*>(mEvent);
+    return NS_STATIC_CAST(nsXULCommandEvent*, mEvent);
   }
 };
 

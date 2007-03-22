@@ -35,15 +35,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'regress-311580.js';
+START("Regression - properly root stack in toXMLString");
 
-var summary = "Regression - properly root stack in toXMLString";
-var BUGNUMBER = 311580;
+var bug = 311580;
+var summary = 'properly root stack in toXMLString';
 var actual = 'No Crash';
 var expect = 'No Crash';
 
-printBugNumber(BUGNUMBER);
-START(summary);
+printBugNumber (bug);
+printStatus (summary);
 
 // Not a performance problem.
 var xmlOl = new XML('<ol><li>Item 1<\/li><li>Item 2<\/li><\/ol>');

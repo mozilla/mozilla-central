@@ -54,6 +54,7 @@
  */
 function G_CryptoHasher() {
   this.debugZone = "cryptohasher";
+  this.decoder_ = new G_Base64();
   this.hasher_ = null;
 }
 
@@ -89,7 +90,10 @@ G_CryptoHasher.prototype.init = function(algorithm) {
 
 /**
  * Update the hash's internal state with input given in a string. Can be
- * called multiple times for incrementeal hash updates.
+ * called multiple times for incrementeal hash updates. Note that this function
+ * is slllloooowww since it uses the a javascript implementation to convert the
+ * string to an array. If you need something faster, use updateFromStream() with
+ * an XPCOM stream.
  *
  * @param input String containing data to hash.
  */ 
@@ -97,10 +101,7 @@ G_CryptoHasher.prototype.updateFromString = function(input) {
   if (!this.hasher_)
     throw new Error("You must initialize the hasher first!");
 
-  var stream = Cc['@mozilla.org/io/string-input-stream;1']
-               .createInstance(Ci.nsIStringInputStream);
-  stream.setData(input, input.length);
-  this.updateFromStream(stream);
+  this.hasher_.update(this.decoder_.arrayifyString(input), input.length);
 }
 
 /**
@@ -124,8 +125,7 @@ G_CryptoHasher.prototype.updateFromStream = function(stream) {
   if (!this.hasher_)
     throw new Error("You must initialize the hasher first!");
 
-  if (stream.available())
-    this.hasher_.updateFromStream(stream, stream.available());
+  this.hasher_.updateFromStream(stream, stream.available());
 }
 
 /**

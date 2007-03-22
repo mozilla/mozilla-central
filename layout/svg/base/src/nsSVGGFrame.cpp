@@ -40,6 +40,7 @@
 #include "nsSVGGFrame.h"
 #include "nsIFrame.h"
 #include "nsSVGMatrix.h"
+#include "nsSVGClipPathFrame.h"
 #include "nsGkAtoms.h"
 #include "nsSVGUtils.h"
 #include "nsISVGValueUtils.h"
@@ -53,7 +54,9 @@ NS_NewSVGGFrame(nsIPresShell* aPresShell, nsIContent* aContent, nsStyleContext* 
 {  
   nsCOMPtr<nsIDOMSVGTransformable> transformable = do_QueryInterface(aContent);
   if (!transformable) {
-    NS_ERROR("Can't create frame. The element doesn't support the right interface\n");
+#ifdef DEBUG
+    printf("warning: trying to construct an SVGGFrame for a content element that doesn't support the right interfaces\n");
+#endif
     return nsnull;
   }
 
@@ -69,15 +72,13 @@ nsSVGGFrame::GetType() const
 //----------------------------------------------------------------------
 // nsISVGChildFrame methods
 
-void
-nsSVGGFrame::NotifySVGChanged(PRUint32 aFlags)
+NS_IMETHODIMP
+nsSVGGFrame::NotifyCanvasTMChanged(PRBool suppressInvalidation)
 {
-  if (aFlags & TRANSFORM_CHANGED) {
-    // make sure our cached transform matrix gets (lazily) updated
-    mCanvasTM = nsnull;
-  }
+  // make sure our cached transform matrix gets (lazily) updated
+  mCanvasTM = nsnull;
 
-  nsSVGGFrameBase::NotifySVGChanged(aFlags);
+  return nsSVGGFrameBase::NotifyCanvasTMChanged(suppressInvalidation);
 }
 
 NS_IMETHODIMP
@@ -92,14 +93,6 @@ nsSVGGFrame::SetOverrideCTM(nsIDOMSVGMatrix *aCTM)
 {
   mOverrideCTM = aCTM;
   return NS_OK;
-}
-
-already_AddRefed<nsIDOMSVGMatrix>
-nsSVGGFrame::GetOverrideCTM()
-{
-  nsIDOMSVGMatrix *matrix = mOverrideCTM.get();
-  NS_IF_ADDREF(matrix);
-  return matrix;
 }
 
 already_AddRefed<nsIDOMSVGMatrix>
@@ -119,14 +112,14 @@ nsSVGGFrame::GetCanvasTM()
   if (!mCanvasTM) {
     // get our parent's tm and append local transforms (if any):
     NS_ASSERTION(mParent, "null parent");
-    nsSVGContainerFrame *containerFrame = static_cast<nsSVGContainerFrame*>
-                                                     (mParent);
+    nsSVGContainerFrame *containerFrame = NS_STATIC_CAST(nsSVGContainerFrame*,
+                                                         mParent);
     nsCOMPtr<nsIDOMSVGMatrix> parentTM = containerFrame->GetCanvasTM();
     NS_ASSERTION(parentTM, "null TM");
 
     // got the parent tm, now check for local tm:
     nsSVGGraphicElement *element =
-      static_cast<nsSVGGraphicElement*>(mContent);
+      NS_STATIC_CAST(nsSVGGraphicElement*, mContent);
     nsCOMPtr<nsIDOMSVGMatrix> localTM = element->GetLocalTransformMatrix();
 
     if (localTM)
@@ -157,7 +150,13 @@ nsSVGGFrame::AttributeChanged(PRInt32         aNameSpaceID,
     // make sure our cached transform matrix gets (lazily) updated
     mCanvasTM = nsnull;
 
-    nsSVGUtils::NotifyChildrenOfSVGChange(this, TRANSFORM_CHANGED);
+    for (nsIFrame* kid = mFrames.FirstChild(); kid;
+         kid = kid->GetNextSibling()) {
+      nsISVGChildFrame* SVGFrame = nsnull;
+      CallQueryInterface(kid, &SVGFrame);
+      if (SVGFrame)
+        SVGFrame->NotifyCanvasTMChanged(PR_FALSE);
+    }  
   }
   
   return NS_OK;

@@ -54,20 +54,21 @@ nsAbout::NewChannel(nsIURI *aURI, nsIChannel **result)
 {
     nsresult rv;
     nsCOMPtr<nsIIOService> ioService(do_GetService(NS_IOSERVICE_CONTRACTID, &rv));
-    NS_ENSURE_SUCCESS(rv, rv);
+    if ( NS_FAILED(rv) )
+        return rv;
 
     nsCOMPtr<nsIChannel> tempChannel;
-    rv = ioService->NewChannel(NS_LITERAL_CSTRING(kURI), nsnull, nsnull, 
-                               getter_AddRefs(tempChannel));
-    NS_ENSURE_SUCCESS(rv, rv);
+   	rv = ioService->NewChannel(NS_LITERAL_CSTRING(kURI), nsnull, nsnull, getter_AddRefs(tempChannel));
 
     nsCOMPtr<nsIScriptSecurityManager> securityManager = 
              do_GetService(NS_SCRIPTSECURITYMANAGER_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
+    if (NS_FAILED(rv))
+        return rv;
 
     nsCOMPtr<nsIPrincipal> principal;
     rv = securityManager->GetCodebasePrincipal(aURI, getter_AddRefs(principal));
-    NS_ENSURE_SUCCESS(rv, rv);
+    if (NS_FAILED(rv))
+        return rv;
 
     nsCOMPtr<nsISupports> owner = do_QueryInterface(principal);
     rv = tempChannel->SetOwner(owner);

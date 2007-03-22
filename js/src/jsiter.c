@@ -61,13 +61,14 @@
 #include "jsnum.h"
 #include "jsobj.h"
 #include "jsopcode.h"
-#include "jsscan.h"
 #include "jsscope.h"
 #include "jsscript.h"
 
 #if JS_HAS_XML_SUPPORT
 #include "jsxml.h"
 #endif
+
+extern const char js_throw_str[]; /* from jsscan.h */
 
 #define JSSLOT_ITER_STATE       (JSSLOT_PRIVATE)
 #define JSSLOT_ITER_FLAGS       (JSSLOT_PRIVATE + 1)
@@ -76,24 +77,17 @@
 #error JS_INITIAL_NSLOTS must be greater than JSSLOT_ITER_FLAGS.
 #endif
 
-#if JS_HAS_GENERATORS
-
-static JSBool
-CloseGenerator(JSContext *cx, JSObject *genobj);
-
-#endif
-
 /*
  * Shared code to close iterator's state either through an explicit call or
  * when GC detects that the iterator is no longer reachable.
  */
 void
-js_CloseNativeIterator(JSContext *cx, JSObject *iterobj)
+js_CloseIteratorState(JSContext *cx, JSObject *iterobj)
 {
     jsval state;
     JSObject *iterable;
 
-    JS_ASSERT(STOBJ_GET_CLASS(iterobj) == &js_IteratorClass);
+    JS_ASSERT(JS_InstanceOf(cx, iterobj, &js_IteratorClass, NULL));
 
     /* Avoid double work if js_CloseNativeIterator was called on obj. */
     state = STOBJ_GET_SLOT(iterobj, JSSLOT_ITER_STATE);
@@ -174,7 +168,9 @@ Iterator(JSContext *cx, JSObject *iterobj, uintN argc, jsval *argv, jsval *rval)
     uintN flags;
     JSObject *obj;
 
-    keyonly = js_ValueToBoolean(argv[1]);
+    keyonly = JS_FALSE;
+    if (!js_ValueToBoolean(cx, argv[1], &keyonly))
+        return JS_FALSE;
     flags = keyonly ? 0 : JSITER_FOREACH;
 
     if (cx->fp->flags & JSFRAME_CONSTRUCTING) {
@@ -244,7 +240,7 @@ IteratorNextImpl(JSContext *cx, JSObject *obj, jsval *rval)
     if (!ok)
         return JS_FALSE;
 
-    STOBJ_SET_SLOT(obj, JSSLOT_ITER_STATE, state);
+    OBJ_SET_SLOT(cx, obj, JSSLOT_ITER_STATE, state);
     if (JSVAL_IS_NULL(state))
         goto stop;
 
@@ -268,8 +264,8 @@ IteratorNextImpl(JSContext *cx, JSObject *obj, jsval *rval)
     return JS_TRUE;
 }
 
-JSBool
-js_ThrowStopIteration(JSContext *cx)
+static JSBool
+js_ThrowStopIteration(JSContext *cx, JSObject *obj)
 {
     jsval v;
 
@@ -280,38 +276,35 @@ js_ThrowStopIteration(JSContext *cx)
 }
 
 static JSBool
-iterator_next(JSContext *cx, uintN argc, jsval *vp)
+iterator_next(JSContext *cx, JSObject *obj, uintN argc, jsval *argv,
+              jsval *rval)
 {
-    JSObject *obj;
-
-    obj = JS_THIS_OBJECT(cx, vp);
-    if (!JS_InstanceOf(cx, obj, &js_IteratorClass, vp + 2))
+    if (!JS_InstanceOf(cx, obj, &js_IteratorClass, argv))
         return JS_FALSE;
 
-    if (!IteratorNextImpl(cx, obj, vp))
+    if (!IteratorNextImpl(cx, obj, rval))
         return JS_FALSE;
 
-    if (*vp == JSVAL_HOLE) {
-        *vp = JSVAL_NULL;
-        js_ThrowStopIteration(cx);
+    if (*rval == JSVAL_HOLE) {
+        *rval = JSVAL_NULL;
+        js_ThrowStopIteration(cx, obj);
         return JS_FALSE;
     }
     return JS_TRUE;
 }
 
 static JSBool
-iterator_self(JSContext *cx, uintN argc, jsval *vp)
+iterator_self(JSContext *cx, JSObject *obj, uintN argc, jsval *argv,
+              jsval *rval)
 {
-    *vp = JS_THIS(cx, vp);
-    return !JSVAL_IS_NULL(*vp);
+    *rval = OBJECT_TO_JSVAL(obj);
+    return JS_TRUE;
 }
 
-#define JSPROP_ROPERM   (JSPROP_READONLY | JSPROP_PERMANENT)
-
 static JSFunctionSpec iterator_methods[] = {
-    JS_FN(js_iterator_str,  iterator_self,  0,0,JSPROP_ROPERM),
-    JS_FN(js_next_str,      iterator_next,  0,0,JSPROP_ROPERM),
-    JS_FS_END
+    {js_iterator_str, iterator_self, 0,JSPROP_READONLY|JSPROP_PERMANENT,0},
+    {js_next_str,     iterator_next, 0,JSPROP_READONLY|JSPROP_PERMANENT,0},
+    {0,0,0,0,0}
 };
 
 uintN
@@ -322,18 +315,39 @@ js_GetNativeIteratorFlags(JSContext *cx, JSObject *iterobj)
     return JSVAL_TO_INT(OBJ_GET_SLOT(cx, iterobj, JSSLOT_ITER_FLAGS));
 }
 
+void
+js_CloseNativeIterator(JSContext *cx, JSObject *iterobj)
+{
+    uintN flags;
+
+    /*
+     * If this iterator is not an instance of the native default iterator
+     * class, leave it to be GC'ed.
+     */
+    if (!JS_InstanceOf(cx, iterobj, &js_IteratorClass, NULL))
+        return;
+
+    /*
+     * If this iterator was not created by js_ValueToIterator called from the
+     * for-in loop code in js_Interpret, leave it to be GC'ed.
+     */
+    flags = JSVAL_TO_INT(OBJ_GET_SLOT(cx, iterobj, JSSLOT_ITER_FLAGS));
+    if (!(flags & JSITER_ENUMERATE))
+        return;
+
+    js_CloseIteratorState(cx, iterobj);
+}
+
 /*
  * Call ToObject(v).__iterator__(keyonly) if ToObject(v).__iterator__ exists.
- * Otherwise construct the default iterator.
+ * Otherwise construct the defualt iterator.
  */
-JS_FRIEND_API(JSBool)
+JSBool
 js_ValueToIterator(JSContext *cx, uintN flags, jsval *vp)
 {
     JSObject *obj;
     JSTempValueRooter tvr;
     JSAtom *atom;
-    JSClass *clasp;
-    JSExtendedClass *xclasp;
     JSBool ok;
     JSObject *iterobj;
     jsval arg;
@@ -370,60 +384,47 @@ js_ValueToIterator(JSContext *cx, uintN flags, jsval *vp)
     JS_ASSERT(obj);
     JS_PUSH_TEMP_ROOT_OBJECT(cx, obj, &tvr);
 
-    clasp = OBJ_GET_CLASS(cx, obj);
-    if ((clasp->flags & JSCLASS_IS_EXTENDED) &&
-        (xclasp = (JSExtendedClass *) clasp)->iteratorObject) {
-        iterobj = xclasp->iteratorObject(cx, obj, !(flags & JSITER_FOREACH));
+    atom = cx->runtime->atomState.iteratorAtom;
+#if JS_HAS_XML_SUPPORT
+    if (OBJECT_IS_XML(cx, obj)) {
+        if (!js_GetXMLFunction(cx, obj, ATOM_TO_JSID(atom), vp))
+            goto bad;
+    } else
+#endif
+    {
+        if (!OBJ_GET_PROPERTY(cx, obj, ATOM_TO_JSID(atom), vp))
+            goto bad;
+    }
+
+    if (JSVAL_IS_VOID(*vp)) {
+      default_iter:
+        /*
+         * Fail over to the default enumerating native iterator.
+         *
+         * Create iterobj with a NULL parent to ensure that we use the correct
+         * scope chain to lookup the iterator's constructor. Since we use the
+         * parent slot to keep track of the iterable, we must fix it up after.
+         */
+        iterobj = js_NewObject(cx, &js_IteratorClass, NULL, NULL);
         if (!iterobj)
             goto bad;
+
+        /* Store iterobj in *vp to protect it from GC (callers must root vp). */
         *vp = OBJECT_TO_JSVAL(iterobj);
+
+        if (!InitNativeIterator(cx, iterobj, obj, flags))
+            goto bad;
     } else {
-        atom = cx->runtime->atomState.iteratorAtom;
-#if JS_HAS_XML_SUPPORT
-        if (OBJECT_IS_XML(cx, obj)) {
-            if (!js_GetXMLFunction(cx, obj, ATOM_TO_JSID(atom), vp))
-                goto bad;
-        } else
-#endif
-        {
-            if (!OBJ_GET_PROPERTY(cx, obj, ATOM_TO_JSID(atom), vp))
-                goto bad;
-        }
-
-        if (JSVAL_IS_VOID(*vp)) {
-          default_iter:
-            /*
-             * Fail over to the default enumerating native iterator.
-             *
-             * Create iterobj with a NULL parent to ensure that we use the
-             * correct scope chain to lookup the iterator's constructor. Since
-             * we use the parent slot to keep track of the iterable, we must
-             * fix it up after.
-             */
-            iterobj = js_NewObject(cx, &js_IteratorClass, NULL, NULL, 0);
-            if (!iterobj)
-                goto bad;
-
-            /* Store in *vp to protect it from GC (callers must root vp). */
-            *vp = OBJECT_TO_JSVAL(iterobj);
-
-            if (!InitNativeIterator(cx, iterobj, obj, flags))
-                goto bad;
-        } else {
-            arg = BOOLEAN_TO_JSVAL((flags & JSITER_FOREACH) == 0);
-            if (!js_InternalInvoke(cx, obj, *vp, JSINVOKE_ITERATOR, 1, &arg,
-                                   vp)) {
-                goto bad;
+        arg = BOOLEAN_TO_JSVAL((flags & JSITER_FOREACH) == 0);
+        if (!js_InternalInvoke(cx, obj, *vp, JSINVOKE_ITERATOR, 1, &arg, vp))
+            goto bad;
+        if (JSVAL_IS_PRIMITIVE(*vp)) {
+            const char *printable = js_AtomToPrintableString(cx, atom);
+            if (printable) {
+                js_ReportValueError2(cx, JSMSG_BAD_ITERATOR_RETURN,
+                                     JSDVG_SEARCH_STACK, *vp, NULL, printable);
             }
-            if (JSVAL_IS_PRIMITIVE(*vp)) {
-                const char *printable = js_AtomToPrintableString(cx, atom);
-                if (printable) {
-                    js_ReportValueError2(cx, JSMSG_BAD_ITERATOR_RETURN,
-                                         JSDVG_SEARCH_STACK, *vp, NULL,
-                                         printable);
-                }
-                goto bad;
-            }
+            goto bad;
         }
     }
 
@@ -435,28 +436,6 @@ js_ValueToIterator(JSContext *cx, uintN flags, jsval *vp)
   bad:
     ok = JS_FALSE;
     goto out;
-}
-
-JS_FRIEND_API(JSBool)
-js_CloseIterator(JSContext *cx, jsval v)
-{
-    JSObject *obj;
-    JSClass *clasp;
-
-    JS_ASSERT(!JSVAL_IS_PRIMITIVE(v));
-    obj = JSVAL_TO_OBJECT(v);
-    clasp = OBJ_GET_CLASS(cx, obj);
-
-    if (clasp == &js_IteratorClass) {
-        js_CloseNativeIterator(cx, obj);
-    }
-#if JS_HAS_GENERATORS
-    else if (clasp == &js_GeneratorClass) {
-        if (!CloseGenerator(cx, obj))
-            return JS_FALSE;
-    }
-#endif
-    return JS_TRUE;
 }
 
 static JSBool
@@ -508,7 +487,7 @@ CallEnumeratorNext(JSContext *cx, JSObject *iterobj, uintN flags, jsval *rval)
     {
       restart:
         if (!OBJ_ENUMERATE(cx, obj, JSENUMERATE_NEXT, &state, &id))
-            return JS_FALSE;
+            return JS_TRUE;
 
         STOBJ_SET_SLOT(iterobj, JSSLOT_ITER_STATE, state);
         if (JSVAL_IS_NULL(state)) {
@@ -578,10 +557,23 @@ CallEnumeratorNext(JSContext *cx, JSObject *iterobj, uintN flags, jsval *rval)
         }
     } else {
         /* Make rval a string for uniformity and compatibility. */
-        str = js_ValueToString(cx, ID_TO_VALUE(id));
-        if (!str)
-            return JS_FALSE;
-        *rval = STRING_TO_JSVAL(str);
+        if (JSID_IS_ATOM(id)) {
+            *rval = ATOM_KEY(JSID_TO_ATOM(id));
+        }
+#if JS_HAS_XML_SUPPORT
+        else if (JSID_IS_OBJECT(id)) {
+            str = js_ValueToString(cx, OBJECT_JSID_TO_JSVAL(id));
+            if (!str)
+                return JS_FALSE;
+            *rval = STRING_TO_JSVAL(str);
+        }
+#endif
+        else {
+            str = js_NumberToString(cx, (jsdouble)JSID_TO_INT(id));
+            if (!str)
+                return JS_FALSE;
+            *rval = STRING_TO_JSVAL(str);
+        }
     }
     return JS_TRUE;
 
@@ -591,7 +583,7 @@ CallEnumeratorNext(JSContext *cx, JSObject *iterobj, uintN flags, jsval *rval)
     return JS_TRUE;
 }
 
-JS_FRIEND_API(JSBool)
+JSBool
 js_CallIteratorNext(JSContext *cx, JSObject *iterobj, jsval *rval)
 {
     uintN flags;
@@ -673,39 +665,33 @@ generator_finalize(JSContext *cx, JSObject *obj)
     }
 }
 
-static void
-generator_trace(JSTracer *trc, JSObject *obj)
+static uint32
+generator_mark(JSContext *cx, JSObject *obj, void *arg)
 {
     JSGenerator *gen;
 
-    gen = (JSGenerator *) JS_GetPrivate(trc->context, obj);
-    if (!gen)
-        return;
-
-    /*
-     * js_TraceStackFrame does not recursively trace the down-linked frame
-     * chain, so we insist that gen->frame has no parent to trace when the
-     * generator is not running.
-     */
-    JS_ASSERT_IF(gen->state != JSGEN_RUNNING && gen->state != JSGEN_CLOSING,
-                 !gen->frame.down);
-
-    /*
-     * FIXME be 390950. Generator's frame is a part of the JS stack when the
-     * generator is running or closing. Thus tracing the frame in this case
-     * here duplicates the work done in js_TraceContext.
-     */
-    js_TraceStackFrame(trc, &gen->frame);
+    gen = (JSGenerator *) JS_GetPrivate(cx, obj);
+    if (gen) {
+        /*
+         * We must mark argv[-2], as js_MarkStackFrame will not.  Note that
+         * js_MarkStackFrame will mark thisp (argv[-1]) and actual arguments,
+         * plus any missing formals and local GC roots.
+         */
+        JS_ASSERT(!JSVAL_IS_PRIMITIVE(gen->frame.argv[-2]));
+        GC_MARK(cx, JSVAL_TO_GCTHING(gen->frame.argv[-2]), "generator");
+        js_MarkStackFrame(cx, &gen->frame);
+    }
+    return 0;
 }
 
 JSClass js_GeneratorClass = {
     js_Generator_str,
     JSCLASS_HAS_PRIVATE | JSCLASS_IS_ANONYMOUS |
-    JSCLASS_MARK_IS_TRACE | JSCLASS_HAS_CACHED_PROTO(JSProto_Generator),
+    JSCLASS_HAS_CACHED_PROTO(JSProto_Generator),
     JS_PropertyStub,  JS_PropertyStub, JS_PropertyStub, JS_PropertyStub,
     JS_EnumerateStub, JS_ResolveStub,  JS_ConvertStub,  generator_finalize,
     NULL,             NULL,            NULL,            NULL,
-    NULL,             NULL,            JS_CLASS_TRACE(generator_trace), NULL
+    NULL,             NULL,            generator_mark,  NULL
 };
 
 /*
@@ -720,12 +706,12 @@ JSObject *
 js_NewGenerator(JSContext *cx, JSStackFrame *fp)
 {
     JSObject *obj;
-    uintN argc, nargs, nvars, nslots;
+    uintN argc, nargs, nvars, depth, nslots;
     JSGenerator *gen;
     jsval *newsp;
 
     /* After the following return, failing control flow must goto bad. */
-    obj = js_NewObject(cx, &js_GeneratorClass, NULL, NULL, 0);
+    obj = js_NewObject(cx, &js_GeneratorClass, NULL, NULL);
     if (!obj)
         return NULL;
 
@@ -733,7 +719,8 @@ js_NewGenerator(JSContext *cx, JSStackFrame *fp)
     argc = fp->argc;
     nargs = JS_MAX(argc, fp->fun->nargs);
     nvars = fp->nvars;
-    nslots = 2 + nargs + nvars + fp->script->depth;
+    depth = fp->script->depth;
+    nslots = 2 + nargs + nvars + 2 * depth;
 
     /* Allocate obj's private data struct. */
     gen = (JSGenerator *)
@@ -761,7 +748,6 @@ js_NewGenerator(JSContext *cx, JSStackFrame *fp)
 
     /* Copy call-invariant script and function references. */
     gen->frame.script = fp->script;
-    gen->frame.callee = fp->callee;
     gen->frame.fun = fp->fun;
 
     /* Use newsp to carve space out of gen->stack. */
@@ -791,17 +777,15 @@ js_NewGenerator(JSContext *cx, JSStackFrame *fp)
     gen->frame.down = NULL;
     gen->frame.annotation = NULL;
     gen->frame.scopeChain = fp->scopeChain;
+    gen->frame.pc = fp->pc;
 
-    gen->frame.spbase = newsp;
-    JS_ASSERT(fp->spbase == fp->regs->sp);
-    gen->savedRegs.sp = newsp;
-    gen->savedRegs.pc = fp->regs->pc;
-    gen->frame.regs = &gen->savedRegs;
+    /* Allocate generating pc and operand stack space. */
+    gen->frame.spbase = gen->frame.sp = newsp + depth;
 
     /* Copy remaining state (XXX sharp* and xml* should be local vars). */
     gen->frame.sharpDepth = 0;
     gen->frame.sharpArray = NULL;
-    gen->frame.flags = (fp->flags & ~JSFRAME_ROOTED_ARGV) | JSFRAME_GENERATOR;
+    gen->frame.flags = fp->flags | JSFRAME_GENERATOR;
     gen->frame.dormantNext = NULL;
     gen->frame.xmlNamespace = NULL;
     gen->frame.blockChain = NULL;
@@ -813,6 +797,12 @@ js_NewGenerator(JSContext *cx, JSStackFrame *fp)
         JS_free(cx, gen);
         goto bad;
     }
+
+    /*
+     * Register with GC to ensure that suspended finally blocks will be
+     * executed.
+     */
+    js_RegisterGenerator(cx, gen);
     return obj;
 
   bad:
@@ -833,18 +823,12 @@ typedef enum JSGeneratorOp {
  */
 static JSBool
 SendToGenerator(JSContext *cx, JSGeneratorOp op, JSObject *obj,
-                JSGenerator *gen, jsval arg)
+                JSGenerator *gen, jsval arg, jsval *rval)
 {
     JSStackFrame *fp;
+    jsval junk;
     JSArena *arena;
     JSBool ok;
-
-    if (gen->state == JSGEN_RUNNING || gen->state == JSGEN_CLOSING) {
-        js_ReportValueError(cx, JSMSG_NESTING_GENERATOR,
-                            JSDVG_SEARCH_STACK, OBJECT_TO_JSVAL(obj),
-                            JS_GetFunctionId(gen->frame.fun));
-        return JS_FALSE;
-    }
 
     JS_ASSERT(gen->state ==  JSGEN_NEWBORN || gen->state == JSGEN_OPEN);
     switch (op) {
@@ -855,7 +839,7 @@ SendToGenerator(JSContext *cx, JSGeneratorOp op, JSObject *obj,
              * Store the argument to send as the result of the yield
              * expression.
              */
-            gen->savedRegs.sp[-1] = arg;
+            gen->frame.sp[-1] = arg;
         }
         gen->state = JSGEN_RUNNING;
         break;
@@ -883,7 +867,7 @@ SendToGenerator(JSContext *cx, JSGeneratorOp op, JSObject *obj,
     fp = cx->fp;
     cx->fp = &gen->frame;
     gen->frame.down = fp;
-    ok = js_Interpret(cx);
+    ok = js_Interpret(cx, gen->frame.pc, &junk);
     cx->fp = fp;
     gen->frame.down = NULL;
 
@@ -902,55 +886,48 @@ SendToGenerator(JSContext *cx, JSGeneratorOp op, JSObject *obj,
         JS_ASSERT(op != JSGENOP_CLOSE);
         gen->frame.flags &= ~JSFRAME_YIELDING;
         gen->state = JSGEN_OPEN;
+        *rval = gen->frame.rval;
         return JS_TRUE;
     }
 
-    gen->frame.rval = JSVAL_VOID;
     gen->state = JSGEN_CLOSED;
+
     if (ok) {
         /* Returned, explicitly or by falling off the end. */
         if (op == JSGENOP_CLOSE)
             return JS_TRUE;
-        return js_ThrowStopIteration(cx);
+        return js_ThrowStopIteration(cx, obj);
     }
 
     /*
-     * An error, silent termination by operation callback or an exception.
+     * An error, silent termination by branch callback or an exception.
      * Propagate the condition to the caller.
      */
     return JS_FALSE;
 }
 
-static JSBool
-CloseGenerator(JSContext *cx, JSObject *obj)
+/*
+ * Execute gen's close hook after the GC detects that the object has become
+ * unreachable.
+ */
+JSBool
+js_CloseGeneratorObject(JSContext *cx, JSGenerator *gen)
 {
-    JSGenerator *gen;
-
-    JS_ASSERT(STOBJ_GET_CLASS(obj) == &js_GeneratorClass);
-    gen = (JSGenerator *) JS_GetPrivate(cx, obj);
-    if (!gen) {
-        /* Generator prototype object. */
-        return JS_TRUE;
-    }
-
-    if (gen->state == JSGEN_CLOSED)
-        return JS_TRUE;
-
-    return SendToGenerator(cx, JSGENOP_CLOSE, obj, gen, JSVAL_VOID);
+    /* We pass null as rval since SendToGenerator never uses it with CLOSE. */
+    return SendToGenerator(cx, JSGENOP_CLOSE, gen->obj, gen, JSVAL_VOID, NULL);
 }
 
 /*
  * Common subroutine of generator_(next|send|throw|close) methods.
  */
 static JSBool
-generator_op(JSContext *cx, JSGeneratorOp op, jsval *vp)
+generator_op(JSContext *cx, JSGeneratorOp op,
+             JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-    JSObject *obj;
     JSGenerator *gen;
     jsval arg;
 
-    obj = JS_THIS_OBJECT(cx, vp);
-    if (!JS_InstanceOf(cx, obj, &js_GeneratorClass, vp + 2))
+    if (!JS_InstanceOf(cx, obj, &js_GeneratorClass, argv))
         return JS_FALSE;
 
     gen = (JSGenerator *) JS_GetPrivate(cx, obj);
@@ -959,16 +936,17 @@ generator_op(JSContext *cx, JSGeneratorOp op, jsval *vp)
         goto closed_generator;
     }
 
-    if (gen->state == JSGEN_NEWBORN) {
+    switch (gen->state) {
+      case JSGEN_NEWBORN:
         switch (op) {
           case JSGENOP_NEXT:
           case JSGENOP_THROW:
             break;
 
           case JSGENOP_SEND:
-            if (!JSVAL_IS_VOID(vp[2])) {
+            if (!JSVAL_IS_VOID(argv[0])) {
                 js_ReportValueError(cx, JSMSG_BAD_GENERATOR_SEND,
-                                    JSDVG_SEARCH_STACK, vp[2], NULL);
+                                    JSDVG_SEARCH_STACK, argv[0], NULL);
                 return JS_FALSE;
             }
             break;
@@ -978,14 +956,28 @@ generator_op(JSContext *cx, JSGeneratorOp op, jsval *vp)
             gen->state = JSGEN_CLOSED;
             return JS_TRUE;
         }
-    } else if (gen->state == JSGEN_CLOSED) {
+        break;
+
+      case JSGEN_OPEN:
+        break;
+
+      case JSGEN_RUNNING:
+      case JSGEN_CLOSING:
+        js_ReportValueError(cx, JSMSG_NESTING_GENERATOR,
+                            JSDVG_SEARCH_STACK, argv[-1],
+                            JS_GetFunctionId(gen->frame.fun));
+        return JS_FALSE;
+
+      default:
+        JS_ASSERT(gen->state == JSGEN_CLOSED);
+
       closed_generator:
         switch (op) {
           case JSGENOP_NEXT:
           case JSGENOP_SEND:
-            return js_ThrowStopIteration(cx);
+            return js_ThrowStopIteration(cx, obj);
           case JSGENOP_THROW:
-            JS_SetPendingException(cx, vp[2]);
+            JS_SetPendingException(cx, argv[0]);
             return JS_FALSE;
           default:
             JS_ASSERT(op == JSGENOP_CLOSE);
@@ -994,45 +986,48 @@ generator_op(JSContext *cx, JSGeneratorOp op, jsval *vp)
     }
 
     arg = (op == JSGENOP_SEND || op == JSGENOP_THROW)
-          ? vp[2]
+          ? argv[0]
           : JSVAL_VOID;
-    if (!SendToGenerator(cx, op, obj, gen, arg))
+    if (!SendToGenerator(cx, op, obj, gen, arg, rval))
         return JS_FALSE;
-    *vp = gen->frame.rval;
     return JS_TRUE;
 }
 
 static JSBool
-generator_send(JSContext *cx, uintN argc, jsval *vp)
+generator_send(JSContext *cx, JSObject *obj, uintN argc, jsval *argv,
+               jsval *rval)
 {
-    return generator_op(cx, JSGENOP_SEND, vp);
+    return generator_op(cx, JSGENOP_SEND, obj, argc, argv, rval);
 }
 
 static JSBool
-generator_next(JSContext *cx, uintN argc, jsval *vp)
+generator_next(JSContext *cx, JSObject *obj, uintN argc, jsval *argv,
+               jsval *rval)
 {
-    return generator_op(cx, JSGENOP_NEXT, vp);
+    return generator_op(cx, JSGENOP_NEXT, obj, argc, argv, rval);
 }
 
 static JSBool
-generator_throw(JSContext *cx, uintN argc, jsval *vp)
+generator_throw(JSContext *cx, JSObject *obj, uintN argc, jsval *argv,
+                jsval *rval)
 {
-    return generator_op(cx, JSGENOP_THROW, vp);
+    return generator_op(cx, JSGENOP_THROW, obj, argc, argv, rval);
 }
 
 static JSBool
-generator_close(JSContext *cx, uintN argc, jsval *vp)
+generator_close(JSContext *cx, JSObject *obj, uintN argc, jsval *argv,
+                jsval *rval)
 {
-    return generator_op(cx, JSGENOP_CLOSE, vp);
+    return generator_op(cx, JSGENOP_CLOSE, obj, argc, argv, rval);
 }
 
 static JSFunctionSpec generator_methods[] = {
-    JS_FN(js_iterator_str,  iterator_self,      0,0,JSPROP_ROPERM),
-    JS_FN(js_next_str,      generator_next,     0,0,JSPROP_ROPERM),
-    JS_FN(js_send_str,      generator_send,     1,1,JSPROP_ROPERM),
-    JS_FN(js_throw_str,     generator_throw,    1,1,JSPROP_ROPERM),
-    JS_FN(js_close_str,     generator_close,    0,0,JSPROP_ROPERM),
-    JS_FS_END
+    {js_iterator_str, iterator_self,     0,JSPROP_READONLY|JSPROP_PERMANENT,0},
+    {js_next_str,     generator_next,    0,JSPROP_READONLY|JSPROP_PERMANENT,0},
+    {js_send_str,     generator_send,    1,JSPROP_READONLY|JSPROP_PERMANENT,0},
+    {js_throw_str,    generator_throw,   1,JSPROP_READONLY|JSPROP_PERMANENT,0},
+    {js_close_str,    generator_close,   0,JSPROP_READONLY|JSPROP_PERMANENT,0},
+    {0,0,0,0,0}
 };
 
 #endif /* JS_HAS_GENERATORS */

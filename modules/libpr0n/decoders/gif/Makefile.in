@@ -52,11 +52,11 @@ REQUIRES	= xpcom \
 		  string \
 		  gfx \
 		  thebes \
+		  cairo \
 		  imglib2 \
-		  $(LCMS_REQUIRES) \
 		  $(NULL)
 
-CPPSRCS		= nsGIFDecoder2.cpp
+CPPSRCS		= GIF2.cpp nsGIFDecoder2.cpp
 
 # nsGIFDecoder2.cpp includes imgContainer.h
 LOCAL_INCLUDES += -I$(topsrcdir)/modules/libpr0n/src

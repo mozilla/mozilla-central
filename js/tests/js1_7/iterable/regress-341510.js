@@ -34,16 +34,14 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-341510.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 341510;
+var bug = 341510;
 var summary = 'Iterators: crash in close handler with assignment to ' +
   'non-existing name';
 var actual = 'No Crash';
 var expect = 'No Crash';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
 function gen(i) {

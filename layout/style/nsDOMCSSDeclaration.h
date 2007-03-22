@@ -47,7 +47,6 @@ class nsCSSDeclaration;
 class nsICSSParser;
 class nsICSSLoader;
 class nsIURI;
-class nsIPrincipal;
 
 class CSS2PropertiesTearoff : public nsIDOMNSCSS2Properties
 {
@@ -102,12 +101,10 @@ protected:
                                      PRBool aAllocate) = 0;
   virtual nsresult DeclarationChanged() = 0;
   
-  // This will only fail if it can't get a parser or a principal.
-  // This means it can return NS_OK without aURI or aCSSLoader being
-  // initialized.
+  // This will only fail if it can't get a parser.  This means it can
+  // return NS_OK without aURI or aCSSLoader being initialized.
   virtual nsresult GetCSSParsingEnvironment(nsIURI** aSheetURI,
                                             nsIURI** aBaseURI,
-                                            nsIPrincipal** aSheetPrincipal,
                                             nsICSSLoader** aCSSLoader,
                                             nsICSSParser** aCSSParser) = 0;
 

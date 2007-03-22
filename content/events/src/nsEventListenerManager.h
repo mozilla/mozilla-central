@@ -41,13 +41,15 @@
 #include "nsIEventListenerManager.h"
 #include "jsapi.h"
 #include "nsCOMPtr.h"
-#include "nsIDOMEventTarget.h"
+#include "nsAutoPtr.h"
+#include "nsIDOMEventReceiver.h"
 #include "nsIDOM3EventTarget.h"
 #include "nsHashtable.h"
 #include "nsIScriptContext.h"
 #include "nsCycleCollectionParticipant.h"
 
 class nsIDOMEvent;
+class nsVoidArray;
 class nsIAtom;
 struct EventTypeData;
 
@@ -66,7 +68,7 @@ typedef struct {
  */
 
 class nsEventListenerManager : public nsIEventListenerManager,
-                               public nsIDOMEventTarget,
+                               public nsIDOMEventReceiver,
                                public nsIDOM3EventTarget
 {
 
@@ -127,8 +129,6 @@ public:
 
   virtual PRUint32 MutationListenerBits();
 
-  virtual PRBool HasListenersFor(const nsAString& aEventName);
-
   static PRUint32 GetIdentifierForEvent(nsIAtom* aEvent);
 
   // nsIDOMEventTarget
@@ -136,6 +136,16 @@ public:
 
   // nsIDOM3EventTarget
   NS_DECL_NSIDOM3EVENTTARGET
+
+  // nsIDOMEventReceiver interface
+  NS_IMETHOD AddEventListenerByIID(nsIDOMEventListener *aListener,
+                                   const nsIID& aIID);
+  NS_IMETHOD RemoveEventListenerByIID(nsIDOMEventListener *aListener,
+                                      const nsIID& aIID);
+  NS_IMETHOD GetListenerManager(PRBool aCreateIfNotFound,
+                                nsIEventListenerManager** aResult);
+  NS_IMETHOD HandleEvent(nsIDOMEvent *aEvent);
+  NS_IMETHOD GetSystemEventGroup(nsIDOMEventGroup** aGroup);
 
   static void Shutdown();
 
@@ -187,17 +197,20 @@ protected:
   nsresult GetDOM2EventGroup(nsIDOMEventGroup** aGroup);
   PRBool ListenerCanHandle(nsListenerStruct* aLs, nsEvent* aEvent);
 
-  nsAutoTObserverArray<nsListenerStruct, 2> mListeners;
-  nsISupports*                              mTarget;  //WEAK
-  PRUint32                                  mMayHaveMutationListeners : 1;
+  nsVoidArray       mListeners;
+  nsISupports*      mTarget;  //WEAK
+  PRPackedBool      mListenersRemoved;
+  PRPackedBool      mListenerRemoved;
+  PRPackedBool      mHandlingEvent;
+  PRPackedBool      mMayHaveMutationListeners;
   // These two member variables are used to cache the information
   // about the last event which was handled but for which event listener manager
   // didn't have event listeners.
-  PRUint32                                  mNoListenerForEvent : 31;
-  nsCOMPtr<nsIAtom>                         mNoListenerForEventAtom;
+  PRUint32          mNoListenerForEvent;
+  nsCOMPtr<nsIAtom> mNoListenerForEventAtom;
 
-  static PRUint32                           mInstanceCount;
-  static jsval                              sAddListenerID;
+  static PRUint32   mInstanceCount;
+  static jsval      sAddListenerID;
 };
 
 #endif // nsEventListenerManager_h__

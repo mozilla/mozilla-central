@@ -38,9 +38,12 @@
 
 #include "nsSVGTransformList.h"
 #include "nsSVGAnimatedTransformList.h"
+#include "nsSVGEnum.h"
+#include "nsSVGAnimatedEnumeration.h"
 #include "nsIDOMSVGAnimatedEnum.h"
 #include "nsSVGAnimatedString.h"
 #include "nsCOMPtr.h"
+#include "nsISVGSVGElement.h"
 #include "nsGkAtoms.h"
 #include "nsSVGAnimatedRect.h"
 #include "nsSVGRect.h"
@@ -60,18 +63,6 @@ nsSVGElement::LengthInfo nsSVGPatternElement::sLengthInfo[4] =
   { &nsGkAtoms::height, 100, nsIDOMSVGLength::SVG_LENGTHTYPE_PERCENTAGE, nsSVGUtils::Y },
 };
 
-nsSVGElement::EnumInfo nsSVGPatternElement::sEnumInfo[2] =
-{
-  { &nsGkAtoms::patternUnits,
-    sSVGUnitTypesMap,
-    nsIDOMSVGUnitTypes::SVG_UNIT_TYPE_OBJECTBOUNDINGBOX
-  },
-  { &nsGkAtoms::patternContentUnits,
-    sSVGUnitTypesMap,
-    nsIDOMSVGUnitTypes::SVG_UNIT_TYPE_USERSPACEONUSE
-  }
-};
-
 NS_IMPL_NS_NEW_SVG_ELEMENT(Pattern)
 
 //----------------------------------------------------------------------
@@ -87,7 +78,6 @@ NS_INTERFACE_MAP_BEGIN(nsSVGPatternElement)
   NS_INTERFACE_MAP_ENTRY(nsIDOMSVGFitToViewBox)
   NS_INTERFACE_MAP_ENTRY(nsIDOMSVGURIReference)
   NS_INTERFACE_MAP_ENTRY(nsIDOMSVGPatternElement)
-  NS_INTERFACE_MAP_ENTRY(nsIDOMSVGUnitTypes)
   NS_INTERFACE_MAP_ENTRY(nsIMutationObserver)
   NS_INTERFACE_MAP_ENTRY_CONTENT_CLASSINFO(SVGPatternElement)
 NS_INTERFACE_MAP_END_INHERITING(nsSVGPatternElementBase)
@@ -107,7 +97,38 @@ nsSVGPatternElement::Init()
   nsresult rv = nsSVGPatternElementBase::Init();
   NS_ENSURE_SUCCESS(rv,rv);
 
+  // Define enumeration mappings
+  static struct nsSVGEnumMapping pUnitMap[] = {
+        {&nsGkAtoms::objectBoundingBox, nsIDOMSVGPatternElement::SVG_PUNITS_OBJECTBOUNDINGBOX},
+        {&nsGkAtoms::userSpaceOnUse, nsIDOMSVGPatternElement::SVG_PUNITS_USERSPACEONUSE},
+        {nsnull, 0}
+  };
+
   // Create mapped attributes
+
+  // DOM property: patternUnits ,  #IMPLIED attrib: patternUnits
+  {
+    nsCOMPtr<nsISVGEnum> units;
+    rv = NS_NewSVGEnum(getter_AddRefs(units),
+                       nsIDOMSVGPatternElement::SVG_PUNITS_OBJECTBOUNDINGBOX, pUnitMap);
+    NS_ENSURE_SUCCESS(rv,rv);
+    rv = NS_NewSVGAnimatedEnumeration(getter_AddRefs(mPatternUnits), units);
+    NS_ENSURE_SUCCESS(rv,rv);
+    rv = AddMappedSVGValue(nsGkAtoms::patternUnits, mPatternUnits);
+    NS_ENSURE_SUCCESS(rv,rv);
+  }
+
+  // DOM property: patternContentUnits ,  #IMPLIED attrib: patternContentUnits
+  {
+    nsCOMPtr<nsISVGEnum> units;
+    rv = NS_NewSVGEnum(getter_AddRefs(units),
+                       nsIDOMSVGPatternElement::SVG_PUNITS_USERSPACEONUSE, pUnitMap);
+    NS_ENSURE_SUCCESS(rv,rv);
+    rv = NS_NewSVGAnimatedEnumeration(getter_AddRefs(mPatternContentUnits), units);
+    NS_ENSURE_SUCCESS(rv,rv);
+    rv = AddMappedSVGValue(nsGkAtoms::patternContentUnits, mPatternContentUnits);
+    NS_ENSURE_SUCCESS(rv,rv);
+  }
 
   // DOM property: patternTransform ,  #IMPLIED attrib: patternTransform
   {
@@ -193,13 +214,17 @@ nsSVGPatternElement::GetPreserveAspectRatio(nsIDOMSVGAnimatedPreserveAspectRatio
 /* readonly attribute nsIDOMSVGAnimatedEnumeration patternUnits; */
 NS_IMETHODIMP nsSVGPatternElement::GetPatternUnits(nsIDOMSVGAnimatedEnumeration * *aPatternUnits)
 {
-  return mEnumAttributes[PATTERNUNITS].ToDOMAnimatedEnum(aPatternUnits, this);
+  *aPatternUnits = mPatternUnits;
+  NS_IF_ADDREF(*aPatternUnits);
+  return NS_OK;
 }
 
 /* readonly attribute nsIDOMSVGAnimatedEnumeration patternContentUnits; */
 NS_IMETHODIMP nsSVGPatternElement::GetPatternContentUnits(nsIDOMSVGAnimatedEnumeration * *aPatternUnits)
 {
-  return mEnumAttributes[PATTERNCONTENTUNITS].ToDOMAnimatedEnum(aPatternUnits, this);
+  *aPatternUnits = mPatternContentUnits;
+  NS_IF_ADDREF(*aPatternUnits);
+  return NS_OK;
 }
 
 /* readonly attribute nsIDOMSVGAnimatedTransformList patternTransform; */
@@ -258,7 +283,6 @@ nsSVGPatternElement::IsAttributeMapped(const nsIAtom* name) const
     sFiltersMap,
     sFontSpecificationMap,
     sGradientStopMap,
-    sLightingEffectsMap,
     sMarkersMap,
     sTextContentElementsMap,
     sViewportsMap
@@ -276,13 +300,6 @@ nsSVGPatternElement::GetLengthInfo()
 {
   return LengthAttributesInfo(mLengthAttributes, sLengthInfo,
                               NS_ARRAY_LENGTH(sLengthInfo));
-}
-
-nsSVGElement::EnumAttributesInfo
-nsSVGPatternElement::GetEnumInfo()
-{
-  return EnumAttributesInfo(mEnumAttributes, sEnumInfo,
-                            NS_ARRAY_LENGTH(sEnumInfo));
 }
 
 //----------------------------------------------------------------------
@@ -316,8 +333,7 @@ nsSVGPatternElement::AttributeChanged(nsIDocument *aDocument,
                                       nsIContent *aContent,
                                       PRInt32 aNameSpaceID,
                                       nsIAtom *aAttribute,
-                                      PRInt32 aModType,
-                                      PRUint32 aStateMask)
+                                      PRInt32 aModType)
 {
   PushUpdate();
 }

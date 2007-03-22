@@ -627,15 +627,6 @@ main()
 
 
 		{
-    	printf("\n### setup for Test 24\n");
-			nsCOMPtr<IFoo> fooP( do_QueryInterface(new IFoo) );
-
-			printf("### Test 24: does |forget| avoid an AddRef/Release when assigning to another nsCOMPtr?\n");
-      nsCOMPtr<IFoo> fooP2( fooP.forget() );
-		}
-    printf("### End Test 24\n");
-
-		{
 			nsCOMPtr<IFoo> fooP;
 
 			AnIFooPtrPtrContext( getter_AddRefs(fooP) );
@@ -652,7 +643,7 @@ main()
 		}
 
 
-    printf("\n### Test 25: will a static |nsCOMPtr| |Release| before program termination?\n");
+    printf("\n### Test 24: will a static |nsCOMPtr| |Release| before program termination?\n");
     gFoop = do_QueryInterface(new IFoo);
     
     printf("<<main()\n");

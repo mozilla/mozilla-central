@@ -37,7 +37,7 @@
  * ***** END LICENSE BLOCK ***** */
 #include "nsIDOMHTMLAreaElement.h"
 #include "nsIDOMNSHTMLAreaElement2.h"
-#include "nsIDOMEventTarget.h"
+#include "nsIDOMEventReceiver.h"
 #include "nsGenericHTMLElement.h"
 #include "nsILink.h"
 #include "nsIPresShell.h"
@@ -87,7 +87,6 @@ public:
   NS_IMETHOD LinkAdded() { return NS_OK; }
   NS_IMETHOD LinkRemoved() { return NS_OK; }
 
-  virtual nsresult PreHandleEvent(nsEventChainPreVisitor& aVisitor);
   virtual nsresult PostHandleEvent(nsEventChainPostVisitor& aVisitor);
   virtual PRBool IsLink(nsIURI** aURI) const;
   virtual void GetLinkTarget(nsAString& aTarget);
@@ -136,13 +135,13 @@ NS_IMPL_RELEASE_INHERITED(nsHTMLAreaElement, nsGenericElement)
 
 
 // QueryInterface implementation for nsHTMLAreaElement
-NS_HTML_CONTENT_INTERFACE_TABLE_HEAD(nsHTMLAreaElement, nsGenericHTMLElement)
-  NS_INTERFACE_TABLE_INHERITED4(nsHTMLAreaElement,
-                                nsIDOMHTMLAreaElement,
-                                nsIDOMNSHTMLAreaElement,
-                                nsIDOMNSHTMLAreaElement2,
-                                nsILink)
-NS_HTML_CONTENT_INTERFACE_TABLE_TAIL_CLASSINFO(HTMLAreaElement)
+NS_HTML_CONTENT_INTERFACE_MAP_BEGIN(nsHTMLAreaElement, nsGenericHTMLElement)
+  NS_INTERFACE_MAP_ENTRY(nsIDOMHTMLAreaElement)
+  NS_INTERFACE_MAP_ENTRY(nsIDOMNSHTMLAreaElement)
+  NS_INTERFACE_MAP_ENTRY(nsIDOMNSHTMLAreaElement2)
+  NS_INTERFACE_MAP_ENTRY(nsILink)
+  NS_INTERFACE_MAP_ENTRY_CONTENT_CLASSINFO(HTMLAreaElement)
+NS_HTML_CONTENT_INTERFACE_MAP_END
 
 
 NS_IMPL_ELEMENT_CLONE(nsHTMLAreaElement)
@@ -172,12 +171,6 @@ nsHTMLAreaElement::SetTarget(const nsAString& aValue)
 }
 
 nsresult
-nsHTMLAreaElement::PreHandleEvent(nsEventChainPreVisitor& aVisitor)
-{
-  return PreHandleEventForAnchors(aVisitor);
-}
-
-nsresult
 nsHTMLAreaElement::PostHandleEvent(nsEventChainPostVisitor& aVisitor)
 {
   return PostHandleEventForAnchors(aVisitor);
@@ -192,10 +185,7 @@ nsHTMLAreaElement::IsLink(nsIURI** aURI) const
 void
 nsHTMLAreaElement::GetLinkTarget(nsAString& aTarget)
 {
-  GetAttr(kNameSpaceID_None, nsGkAtoms::target, aTarget);
-  if (aTarget.IsEmpty()) {
-    GetBaseTarget(aTarget);
-  }
+  GetTarget(aTarget);
 }
 
 void

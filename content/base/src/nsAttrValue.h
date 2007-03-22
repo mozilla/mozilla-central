@@ -64,7 +64,7 @@ template<class E> class nsTPtrArray;
 #define NS_ATTRVALUE_BASETYPE_MASK (PtrBits(3))
 #define NS_ATTRVALUE_POINTERVALUE_MASK (~NS_ATTRVALUE_BASETYPE_MASK)
 
-#define NS_ATTRVALUE_INTEGERTYPE_BITS 4
+#define NS_ATTRVALUE_INTEGERTYPE_BITS 5
 #define NS_ATTRVALUE_INTEGERTYPE_MASK (PtrBits((1 << NS_ATTRVALUE_INTEGERTYPE_BITS) - 1))
 #define NS_ATTRVALUE_INTEGERTYPE_MULTIPLIER (1 << NS_ATTRVALUE_INTEGERTYPE_BITS)
 #define NS_ATTRVALUE_INTEGERTYPE_MAXVALUE ((1 << (31 - NS_ATTRVALUE_INTEGERTYPE_BITS)) - 1)
@@ -103,19 +103,20 @@ public:
 
   // This has to be the same as in ValueBaseType
   enum ValueType {
-    eString =       0x00, //   00
-                          //   01  this value indicates an 'misc' struct
-    eAtom =         0x02, //   10
-    eInteger =      0x03, // 0011
-    eColor =        0x07, // 0111
-    eEnum =         0x0B, // 1011  This should eventually die
-    ePercent =      0x0F, // 1111
+    eString =       0x00, //    00
+                          //    01  this value indicates an 'misc' struct
+    eAtom =         0x02, //    10
+    eInteger =      0x03, // 00011
+    eColor =        0x07, // 00111
+    eProportional = 0x0B, // 01011
+    eEnum =         0x0F, // 01111  This should eventually die
+    ePercent =      0x13, // 10011
     // Values below here won't matter, they'll be stored in the 'misc' struct
     // anyway
-    eCSSStyleRule = 0x10,
-    eAtomArray =    0x11 
+    eCSSStyleRule = 0x14,
+    eAtomArray =    0x15 
 #ifdef MOZ_SVG
-    ,eSVGValue =    0x12
+    ,eSVGValue =    0x16
 #endif
   };
 
@@ -142,6 +143,7 @@ public:
   inline nsIAtom* GetAtomValue() const;
   inline PRInt32 GetIntegerValue() const;
   PRBool GetColorValue(nscolor& aColor) const;
+  inline PRInt32 GetProportionalValue() const;
   inline PRInt16 GetEnumValue() const;
   inline float GetPercentValue() const;
   inline nsCOMArray<nsIAtom>* GetAtomArrayValue() const;
@@ -203,16 +205,18 @@ public:
                         PRBool aCaseSensitive = PR_FALSE);
 
   /**
-   * Parse a string into an integer. Can optionally parse percent (n%).
-   * This method explicitly sets a lower bound of zero on the element,
-   * whether it be percent or raw integer.
+   * Parse a string into an integer. Can optionally parse percent (n%) and
+   * proportional (n*). This method explicitly sets a lower bound of zero on
+   * the element, whether it be proportional or percent or raw integer.
    *
    * @param aString the string to parse
    * @param aCanBePercent PR_TRUE if it can be a percent value (%)
+   * @param aCanBeProportional PR_TRUE if it can be a proportional value (*)
    * @return whether the value could be parsed
    */
   PRBool ParseSpecialIntValue(const nsAString& aString,
-                              PRBool aCanBePercent);
+                              PRBool aCanBePercent,
+                              PRBool aCanBeProportional);
 
 
   /**
@@ -294,7 +298,7 @@ inline nsIAtom*
 nsAttrValue::GetAtomValue() const
 {
   NS_PRECONDITION(Type() == eAtom, "wrong type");
-  return reinterpret_cast<nsIAtom*>(GetPtr());
+  return NS_REINTERPRET_CAST(nsIAtom*, GetPtr());
 }
 
 inline PRInt32
@@ -304,21 +308,28 @@ nsAttrValue::GetIntegerValue() const
   return GetIntInternal();
 }
 
+inline PRInt32
+nsAttrValue::GetProportionalValue() const
+{
+  NS_PRECONDITION(Type() == eProportional, "wrong type");
+  return GetIntInternal();
+}
+
 inline PRInt16
 nsAttrValue::GetEnumValue() const
 {
   NS_PRECONDITION(Type() == eEnum, "wrong type");
   // We don't need to worry about sign extension here since we're
   // returning an PRInt16 which will cut away the top bits.
-  return static_cast<PRInt16>
-                    (GetIntInternal() >> NS_ATTRVALUE_ENUMTABLEINDEX_BITS);
+  return NS_STATIC_CAST(PRInt16,
+            GetIntInternal() >> NS_ATTRVALUE_ENUMTABLEINDEX_BITS);
 }
 
 inline float
 nsAttrValue::GetPercentValue() const
 {
   NS_PRECONDITION(Type() == ePercent, "wrong type");
-  return static_cast<float>(GetIntInternal()) /
+  return NS_STATIC_CAST(float, GetIntInternal()) /
          100.0f;
 }
 
@@ -348,7 +359,7 @@ nsAttrValue::GetSVGValue() const
 inline nsAttrValue::ValueBaseType
 nsAttrValue::BaseType() const
 {
-  return static_cast<ValueBaseType>(mBits & NS_ATTRVALUE_BASETYPE_MASK);
+  return NS_STATIC_CAST(ValueBaseType, mBits & NS_ATTRVALUE_BASETYPE_MASK);
 }
 
 inline void
@@ -356,7 +367,7 @@ nsAttrValue::SetPtrValueAndType(void* aValue, ValueBaseType aType)
 {
   NS_ASSERTION(!(NS_PTR_TO_INT32(aValue) & ~NS_ATTRVALUE_POINTERVALUE_MASK),
                "pointer not properly aligned, this will crash");
-  mBits = reinterpret_cast<PtrBits>(aValue) | aType;
+  mBits = NS_REINTERPRET_CAST(PtrBits, aValue) | aType;
 }
 
 inline void
@@ -385,14 +396,14 @@ nsAttrValue::GetPtr() const
 {
   NS_ASSERTION(BaseType() != eIntegerBase,
                "getting pointer from non-pointer");
-  return reinterpret_cast<void*>(mBits & NS_ATTRVALUE_POINTERVALUE_MASK);
+  return NS_REINTERPRET_CAST(void*, mBits & NS_ATTRVALUE_POINTERVALUE_MASK);
 }
 
 inline nsAttrValue::MiscContainer*
 nsAttrValue::GetMiscContainer() const
 {
   NS_ASSERTION(BaseType() == eOtherBase, "wrong type");
-  return static_cast<MiscContainer*>(GetPtr());
+  return NS_STATIC_CAST(MiscContainer*, GetPtr());
 }
 
 inline PRInt32
@@ -403,7 +414,7 @@ nsAttrValue::GetIntInternal() const
   // Make sure we get a signed value.
   // Lets hope the optimizer optimizes this into a shift. Unfortunatly signed
   // bitshift right is implementaion dependant.
-  return static_cast<PRInt32>(mBits & ~NS_ATTRVALUE_INTEGERTYPE_MASK) /
+  return NS_STATIC_CAST(PRInt32, mBits & ~NS_ATTRVALUE_INTEGERTYPE_MASK) /
          NS_ATTRVALUE_INTEGERTYPE_MULTIPLIER;
 }
 

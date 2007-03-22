@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '15.8.2.10.js';
-
 /**
    File Name:          15.8.2.10.js
    ECMA Section:       15.8.2.10  Math.log(x)

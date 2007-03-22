@@ -12,7 +12,7 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is the Places Bookmark Properties dialog.
+ * The Original Code is the Places Bookmark Properties.
  *
  * The Initial Developer of the Original Code is Google Inc.
  * Portions created by the Initial Developer are Copyright (C) 2006
@@ -22,7 +22,6 @@
  *   Joe Hughes <jhughes@google.com>
  *   Dietrich Ayala <dietrich@mozilla.com>
  *   Asaf Romano <mano@mozilla.com>
- *   Marco Bonardo <mak77@supereva.it>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -48,8 +47,9 @@
  *           @ loadBookmarkInSidebar - optional, the default state for the
  *             "Load this bookmark in the sidebar" field.
  *         - "folder"
- *           @ URIList (Array of nsIURI objects) - optional, list of uris to
- *             be bookmarked under the new folder.
+ *         - "folder with items"
+ *           @ URIList (Array of nsIURI objects)- list of uris to be bookmarked
+ *             under the new folder.
  *         - "livemark"
  *       @ uri (nsIURI object) - optional, the default uri for the new item.
  *         The property is not used for the "folder with items" type.
@@ -58,22 +58,19 @@
  *         item.
  *       @ defaultInsertionPoint (InsertionPoint JS object) - optional, the
  *         default insertion point for the new item.
- *       @ keyword (String) - optional, the default keyword for the new item.
- *       @ postData (String) - optional, POST data to accompany the keyword.
  *      Notes:
  *        1) If |uri| is set for a bookmark/livemark item and |title| isn't,
  *           the dialog will query the history tables for the title associated
- *           with the given uri. If the dialog is set to adding a folder with
- *           bookmark items under it (see URIList), a default static title is
- *           used ("[Folder Name]").
+ *           with the given uri. For "folder with items" folder, a default
+ *           static title is used ("[Folder Name]").
  *        2) The index field of the the default insertion point is ignored if
  *           the folder picker is shown.
  *     - "edit" - for editing a bookmark item or a folder.
  *       @ type (String). Possible values:
  *         - "bookmark"
- *           @ itemId (Integer) - the id of the bookmark item.
+ *           @ bookmarkId (Integer) - the id of the bookmark item.
  *         - "folder" (also applies to livemarks)
- *           @ itemId (Integer) - the id of the folder.
+ *           @ folderId (Integer) - the id of the folder.
  *   @ hiddenRows (Strings array) - optional, list of rows to be hidden
  *     regardless of the item edited or added by the dialog.
  *     Possible values:
@@ -81,7 +78,8 @@
  *     - "location"
  *     - "description"
  *     - "keyword"
- *     - "loadInSidebar"
+ *     - "microsummary"
+ *     - "load in sidebar"
  *     - "feedURI"
  *     - "siteURI"
  *     - "folder picker" - hides both the tree and the menu.
@@ -90,18 +88,20 @@
  * been performed by the dialog.
  */
 
-const LAST_USED_ANNO = "bookmarkPropertiesDialog/folderLastUsed";
-const STATIC_TITLE_ANNO = "bookmarks/staticTitle";
-
-// This doesn't include "static" special folders (first two menu items)
-const MAX_FOLDER_ITEM_IN_MENU_LIST = 5;
-
 const BOOKMARK_ITEM = 0;
 const BOOKMARK_FOLDER = 1;
 const LIVEMARK_CONTAINER = 2;
 
 const ACTION_EDIT = 0;
 const ACTION_ADD = 1;
+const ACTION_ADD_WITH_ITEMS = 2;
+
+/**
+ * Supported options:
+ * BOOKMARK_ITEM : ACTION_EDIT, ACTION_ADD
+ * BOOKMARK_FOLDER : ACTION_ADD, ACTION_EDIT, ADD_WITH_ITEMS
+ * LIVEMARK_CONTAINER : ACTION_ADD, ACTION_EDIT
+ */
 
 var BookmarkPropertiesPanel = {
 
@@ -114,37 +114,37 @@ var BookmarkPropertiesPanel = {
     return this.__strings;
   },
 
+  /**
+   * The Microsummary Service for displaying microsummaries.
+   */
+  __mss: null,
+  get _mss() {
+    if (!this.__mss)
+      this.__mss = Cc["@mozilla.org/microsummary/service;1"].
+                  getService(Ci.nsIMicrosummaryService);
+    return this.__mss;
+  },
+
   _action: null,
   _itemType: null,
-  _itemId: -1,
-  _uri: null,
+  _folderId: null,
+  _bookmarkId: null,
+  _bookmarkURI: null,
   _loadBookmarkInSidebar: false,
   _itemTitle: "",
   _itemDescription: "",
   _microsummaries: null,
-  _URIList: null,
-  _postData: null,
-  _charSet: "",
-
-  // sizeToContent is not usable due to bug 90276, so we'll use resizeTo
-  // instead and cache the bookmarks tree view size. See WSucks in the legacy
-  // UI code (addBookmark2.js).
-  //
-  // XXXmano: this doesn't work as expected yet, need to figure out if we're
-  // facing cocoa-widget resizeTo issue here.
-  _folderTreeHeight: null,
 
   /**
    * This method returns the correct label for the dialog's "accept"
    * button based on the variant of the dialog.
    */
   _getAcceptLabel: function BPP__getAcceptLabel() {
-    if (this._action == ACTION_ADD) {
-      if (this._URIList)
-        return this._strings.getString("dialogAcceptLabelAddMulti");
+    if (this._action == ACTION_ADD)
+      return this._strings.getString("dialogAcceptLabelAdd");
+    if (this._action == ACTION_ADD_WITH_ITEMS)
+      return this._strings.getString("dialogAcceptLabelAddMulti");
 
-      return this._strings.getString("dialogAcceptLabelAddItem");
-    }
     return this._strings.getString("dialogAcceptLabelEdit");
   },
 
@@ -161,16 +161,14 @@ var BookmarkPropertiesPanel = {
 
       // folder
       NS_ASSERT(this._itemType == BOOKMARK_FOLDER, "bogus item type");
-      if (this._URIList)
-        return this._strings.getString("dialogTitleAddMulti");
-
       return this._strings.getString("dialogTitleAddFolder");
     }
+    if (this._action == ACTION_ADD_WITH_ITEMS)
+      return this._strings.getString("dialogTitleAddMulti");
     if (this._action == ACTION_EDIT) {
       return this._strings
                  .getFormattedString("dialogTitleEdit", [this._itemTitle]);
     }
-    return "";
   },
 
   /**
@@ -188,11 +186,6 @@ var BookmarkPropertiesPanel = {
         this._itemTitle = dialogInfo.title;
       if ("defaultInsertionPoint" in dialogInfo)
         this._defaultInsertionPoint = dialogInfo.defaultInsertionPoint;
-      else {
-        // default to the bookmarks root
-        this._defaultInsertionPoint =
-          new InsertionPoint(PlacesUtils.bookmarksMenuFolderId, -1);
-      }
 
       switch(dialogInfo.type) {
         case "bookmark":
@@ -201,14 +194,14 @@ var BookmarkPropertiesPanel = {
           if ("uri" in dialogInfo) {
             NS_ASSERT(dialogInfo.uri instanceof Ci.nsIURI,
                       "uri property should be a uri object");
-            this._uri = dialogInfo.uri;
+            this._bookmarkURI = dialogInfo.uri;
           }
-          if (typeof(this._itemTitle) != "string") {
-            if (this._uri) {
+          if (!this._itemTitle) {
+            if (this._bookmarkURI) {
               this._itemTitle =
-                this._getURITitleFromHistory(this._uri);
+                this._getURITitleFromHistory(this._bookmarkURI);
               if (!this._itemTitle)
-                this._itemTitle = this._uri.spec;
+                this._itemTitle = this._bookmarkURI.spec;
             }
             else
               this._itemTitle = this._strings.getString("newBookmarkDefault");
@@ -217,26 +210,22 @@ var BookmarkPropertiesPanel = {
           if ("loadBookmarkInSidebar" in dialogInfo)
             this._loadBookmarkInSidebar = dialogInfo.loadBookmarkInSidebar;
 
-          if ("keyword" in dialogInfo) {
-            this._bookmarkKeyword = dialogInfo.keyword;
-            if ("postData" in dialogInfo)
-              this._postData = dialogInfo.postData;
-            if ("charSet" in dialogInfo)
-              this._charSet = dialogInfo.charSet;
-          }
-
           break;
         case "folder":
           this._action = ACTION_ADD;
           this._itemType = BOOKMARK_FOLDER;
+          if (!this._itemTitle)
+            this._itemTitle = this._strings.getString("newFolderDefault");
+          break;
+        case "folder with items":
+          NS_ASSERT("URIList" in dialogInfo,
+                    "missing URLList property for 'folder with items' action");
+          this._action = ACTION_ADD_WITH_ITEMS
+          this._itemType = BOOKMARK_FOLDER;
+          this._URIList = dialogInfo.URIList;
           if (!this._itemTitle) {
-            if ("URIList" in dialogInfo) {
-              this._itemTitle =
-                this._strings.getString("bookmarkAllTabsDefault");
-              this._URIList = dialogInfo.URIList;
-            }
-            else
-              this._itemTitle = this._strings.getString("newFolderDefault");
+            this._itemTitle =
+              this._strings.getString("bookmarkAllTabsDefault");
           }
           break;
         case "livemark":
@@ -266,48 +255,51 @@ var BookmarkPropertiesPanel = {
       const annos = PlacesUtils.annotations;
       const bookmarks = PlacesUtils.bookmarks;
 
+      var placeURI;
       switch (dialogInfo.type) {
         case "bookmark":
-          NS_ASSERT("itemId" in dialogInfo);
+          NS_ASSERT("bookmarkId" in dialogInfo);
 
           this._action = ACTION_EDIT;
           this._itemType = BOOKMARK_ITEM;
-          this._itemId = dialogInfo.itemId;
+          this._bookmarkId = dialogInfo.bookmarkId;
+          placeURI = bookmarks.getItemURI(this._bookmarkId);
 
-          this._uri = bookmarks.getBookmarkURI(this._itemId);
-          this._itemTitle = bookmarks.getItemTitle(this._itemId);
+          this._bookmarkURI = bookmarks.getBookmarkURI(this._bookmarkId);
+          this._itemTitle = bookmarks.getItemTitle(this._bookmarkId);
 
           // keyword
           this._bookmarkKeyword =
-            bookmarks.getKeywordForBookmark(this._itemId);
+            bookmarks.getKeywordForBookmark(this._bookmarkId);
 
           // Load In Sidebar
           this._loadBookmarkInSidebar =
-            annos.itemHasAnnotation(this._itemId, LOAD_IN_SIDEBAR_ANNO);
+            annos.hasAnnotation(placeURI, LOAD_IN_SIDEBAR_ANNO);
 
           break;
         case "folder":
-          NS_ASSERT("itemId" in dialogInfo);
+          NS_ASSERT("folderId" in dialogInfo);
 
           this._action = ACTION_EDIT;
-          this._itemId = dialogInfo.itemId;
+          this._folderId = dialogInfo.folderId;
+          placeURI = bookmarks.getFolderURI(this._folderId);
 
           const livemarks = PlacesUtils.livemarks;
-          if (livemarks.isLivemark(this._itemId)) {
+          if (livemarks.isLivemark(this._folderId)) {
             this._itemType = LIVEMARK_CONTAINER;
-            this._feedURI = livemarks.getFeedURI(this._itemId);
-            this._siteURI = livemarks.getSiteURI(this._itemId);
+            this._feedURI = livemarks.getFeedURI(this._folderId);
+            this._siteURI = livemarks.getSiteURI(this._folderId);
           }
           else
             this._itemType = BOOKMARK_FOLDER;
-          this._itemTitle = bookmarks.getItemTitle(this._itemId);
+          this._itemTitle = bookmarks.getFolderTitle(this._folderId);
           break;
       }
 
       // Description
-      if (annos.itemHasAnnotation(this._itemId, DESCRIPTION_ANNO)) {
-        this._itemDescription = annos.getItemAnnotation(this._itemId,
-                                                        DESCRIPTION_ANNO);
+      if (annos.hasAnnotation(placeURI, DESCRIPTION_ANNO)) {
+        this._itemDescription =
+          annos.getAnnotationString(placeURI, DESCRIPTION_ANNO);
       }
     }
   },
@@ -323,6 +315,7 @@ var BookmarkPropertiesPanel = {
    *
    * @returns a title string
    */
+
   _getURITitleFromHistory: function BPP__getURITitleFromHistory(aURI) {
     NS_ASSERT(aURI instanceof Ci.nsIURI);
 
@@ -335,114 +328,60 @@ var BookmarkPropertiesPanel = {
    * dialog to initialize the state of the panel.
    */
   onDialogLoad: function BPP_onDialogLoad() {
+    this._tm = window.opener.PlacesUtils.tm;
+
     this._determineItemInfo();
+    
+    // on timeout because of the corresponding setTimeout()
+    // in the places tree binding's constructor
+    var self = this;
+    setTimeout(function() { self._initFolderTree(); }, 0);
+    
     this._populateProperties();
+    this._forceHideRows();
     this.validateChanges();
-
-    this._folderMenuList = this._element("folderMenuList");
-    this._folderTree = this._element("folderTree");
-    if (!this._element("folderRow").hidden)
-      this._initFolderMenuList();
-
-    window.sizeToContent();
-
-    // read the persisted attribute.
-    this._folderTreeHeight = parseInt(this._folderTree.getAttribute("height"));
+    this._updateSize();
   },
-
+  
   /**
-   * Appends a menu-item representing a bookmarks folder to a menu-popup.
-   * @param aMenupopup
-   *        The popup to which the menu-item should be added.
-   * @param aFolderId
-   *        The identifier of the bookmarks folder.
-   * @return the new menu item.
+   * This method initializes the folder tree.
    */
-  _appendFolderItemToMenupopup:
-  function BPP__appendFolderItemToMenupopup(aMenupopup, aFolderId) {
-    try {
-      var folderTitle = PlacesUtils.bookmarks.getItemTitle(aFolderId);
+  _initFolderTree: function BPP__initFolderTree() {
+    this._folderTree = this._element("folderTree");
+    this._folderTree.peerDropTypes = [];
+    this._folderTree.childDropTypes = [];
+    if (isElementVisible(this._folderTree)) {
+      if (this._defaultInsertionPoint)
+        this._folderTree.selectFolders([this._defaultInsertionPoint.folderId]);
+      else
+        this._folderTree.selectFolders([PlacesUtils.bookmarks.bookmarksRoot]);
     }
-    catch (ex) {
-      NS_ASSERT(folderTitle, "no title found for folderId of " + aFolderId);
-      return null;
-    }
-
-    // First make sure the folders-separator is visible
-    this._element("foldersSeparator").hidden = false;
-
-    var folderMenuItem = document.createElement("menuitem");
-    folderMenuItem.folderId = aFolderId;
-    folderMenuItem.setAttribute("label", folderTitle);
-    folderMenuItem.className = "menuitem-iconic folder-icon";
-    aMenupopup.appendChild(folderMenuItem);
-    return folderMenuItem;
   },
 
-  _initFolderMenuList: function BPP__initFolderMenuList() {
-    // Build the static list
-    var bms = PlacesUtils.bookmarks;
-    var bmMenuItem = this._element("bookmarksRootItem");
-    bmMenuItem.label = bms.getItemTitle(PlacesUtils.bookmarksMenuFolderId);
-    bmMenuItem.folderId = PlacesUtils.bookmarksMenuFolderId;
-    var toolbarItem = this._element("toolbarFolderItem");
-    toolbarItem.label = bms.getItemTitle(PlacesUtils.toolbarFolderId);
-    toolbarItem.folderId = PlacesUtils.toolbarFolderId;
-
-    // List of recently used folders:
-    var annos = PlacesUtils.annotations;
-    var folderIds = annos.getItemsWithAnnotation(LAST_USED_ANNO, { });
-
-    // Hide the folders-separator if no folder is annotated as recently-used
-    if (folderIds.length == 0) {
-      this._element("foldersSeparator").hidden = true;
+  _initMicrosummaryPicker: function BPP__initMicrosummaryPicker() {
+    var placeURI = null;
+    if (this._action == ACTION_EDIT) {
+      NS_ASSERT(this._bookmarkId, "No bookmark identifier");
+      placeURI = PlacesUtils.bookmarks.getItemURI(this._bookmarkId);
+    }
+    try {
+      this._microsummaries = this._mss.getMicrosummaries(this._bookmarkURI,
+                                                         placeURI);
+    }
+    catch(ex) {
+      // There was a problem retrieving microsummaries; disable the picker.
+      // The microsummary service will throw an exception in at least
+      // two cases:
+      // 1. the bookmarked URI contains a scheme that the service won't
+      //    download for security reasons (currently it only handles http,
+      //    https, and file);
+      // 2. the page to which the URI refers isn't HTML or XML (the only two
+      //    content types the service knows how to summarize).
+      this._element("microsummaryRow").hidden = true;
       return;
     }
-
-    /**
-     * The value of the LAST_USED_ANNO annotation is the time (in the form of
-     * Date.getTime) at which the folder has been last used.
-     *
-     * First we build the annotated folders array, each item has both the
-     * folder identifier and the time at which it was last-used by this dialog
-     * set. Then we sort it descendingly based on the time field.
-     */
-    var folders = [];
-    for (var i=0; i < folderIds.length; i++) {
-      var lastUsed = annos.getItemAnnotation(folderIds[i], LAST_USED_ANNO);
-      folders.push({ folderId: folderIds[i], lastUsed: lastUsed });
-    }
-    folders.sort(function(a, b) {
-      if (b.lastUsed < a.lastUsed)
-        return -1;
-      if (b.lastUsed > a.lastUsed)
-        return 1;
-      return 0;
-    });
-
-    var numberOfItems = Math.min(MAX_FOLDER_ITEM_IN_MENU_LIST, folders.length);
-    var menupopup = this._folderMenuList.menupopup;
-    for (i=0; i < numberOfItems; i++) {
-      this._appendFolderItemToMenupopup(menupopup, folders[i].folderId);
-    }
-
-    var defaultItem =
-      this._getFolderMenuItem(this._defaultInsertionPoint.itemId);
-
-    // if we fail to get a menuitem for the default insertion point
-    // use the Bookmarks root
-    if (!defaultItem)
-      defaultItem = this._element("bookmarksRootItem");
-
-    this._folderMenuList.selectedItem = defaultItem;
-  },
-
-  QueryInterface: function BPP_QueryInterface(aIID) {
-    if (aIID.equals(Ci.nsIMicrosummaryObserver) ||
-        aIID.equals(Ci.nsISupports))
-      return this;
-
-    throw Cr.NS_ERROR_NO_INTERFACE;
+    this._microsummaries.addObserver(this._microsummaryObserver);
+    this._rebuildMicrosummaryPicker();
   },
 
   _element: function BPP__element(aID) {
@@ -450,34 +389,32 @@ var BookmarkPropertiesPanel = {
   },
 
   /**
-   * Show or hides fields based on item type.
+   * Hides fields which were explicitly set hidden by the the dialog opener
+   * (see documentation at the top of this file).
    */
-  _showHideRows: function BPP__showHideRows() {
-    var hiddenRows = window.arguments[0].hiddenRows || new Array();
+  _forceHideRows: function BPP__forceHideRows() {
+    var hiddenRows = window.arguments[0].hiddenRows;
+    if (!hiddenRows)
+      return;
 
-    var isBookmark = this._itemType == BOOKMARK_ITEM;
-    var isLivemark = this._itemType == LIVEMARK_CONTAINER;
-
-    var isQuery = false;
-    if (this._uri)
-      isQuery = this._uri.schemeIs("place");
-
-    this._element("namePicker").hidden =
-      hiddenRows.indexOf("title") != -1;
-    this._element("locationRow").hidden =
-      hiddenRows.indexOf("location") != -1 || isQuery || !isBookmark;
-    this._element("keywordRow").hidden =
-      hiddenRows.indexOf("keyword") != -1 || isQuery || !isBookmark;
-    this._element("descriptionRow").hidden =
-      hiddenRows.indexOf("description")!= -1
-    this._element("folderRow").hidden =
-      hiddenRows.indexOf("folder picker") != -1 || this._action == ACTION_EDIT;
-    this._element("livemarkFeedLocationRow").hidden =
-      hiddenRows.indexOf("feedURI") != -1 || !isLivemark;
-    this._element("livemarkSiteLocationRow").hidden =
-      hiddenRows.indexOf("siteURI") != -1 || !isLivemark;
-    this._element("loadInSidebarCheckbox").hidden =
-      hiddenRows.indexOf("loadInSidebar") != -1 || isQuery || !isBookmark;
+    if (hiddenRows.indexOf("title") != -1)
+      this._element("titleTextfield").hidden = true;
+    if (hiddenRows.indexOf("location") != -1)
+      this._element("locationRow").hidden = true;
+    if (hiddenRows.indexOf("keyword") != -1)
+      this._element("shortcutRow").hidden = true;
+    if (hiddenRows.indexOf("description")!= -1)
+      this._element("descriptionRow").hidden = true;
+    if (hiddenRows.indexOf("folder picker") != -1)
+      this._element("folderRow").hidden = true;
+    if (hiddenRows.indexOf("feedURI") != -1)
+      this._element("livemarkFeedLocationRow").hidden = true;
+    if (hiddenRows.indexOf("siteURI") != -1)
+      this._element("livemarkSiteLocationRow").hidden = true;
+    if (hiddenRows.indexOf("microsummary") != -1)
+      this._element("microsummaryRow").hidden = true;
+    if (hiddenRows.indexOf("load in sidebar") != -1)
+      this._element("loadInSidebarCheckbox").hidden = true;
   },
 
   /**
@@ -486,19 +423,24 @@ var BookmarkPropertiesPanel = {
   _populateProperties: function BPP__populateProperties() {
     document.title = this._getDialogTitle();
     document.documentElement.getButton("accept").label = this._getAcceptLabel();
-
-    this._initNamePicker();
+    
+    this._element("titleTextfield").value = this._itemTitle;
     this._element("descriptionTextfield").value = this._itemDescription;
 
     if (this._itemType == BOOKMARK_ITEM) {
-      if (this._uri)
-        this._element("editURLBar").value = this._uri.spec;
+      if (this._bookmarkURI)
+        this._element("editURLBar").value = this._bookmarkURI.spec;
 
-      if (typeof(this._bookmarkKeyword) == "string")
+      if (this._bookmarkKeyword)
         this._element("keywordTextfield").value = this._bookmarkKeyword;
 
       if (this._loadBookmarkInSidebar)
         this._element("loadInSidebarCheckbox").checked = true;
+    }
+    else {
+      this._element("locationRow").hidden = true;
+      this._element("shortcutRow").hidden = true;
+      this._element("loadInSidebarCheckbox").hidden = true;
     }
 
     if (this._itemType == LIVEMARK_CONTAINER) {
@@ -507,159 +449,106 @@ var BookmarkPropertiesPanel = {
       if (this._siteURI)
         this._element("feedSiteLocationTextfield").value = this._siteURI.spec;
     }
-
-    this._showHideRows();
-  },
-
-  _createMicrosummaryMenuItem:
-  function BPP__createMicrosummaryMenuItem(aMicrosummary) {
-    var menuItem = document.createElement("menuitem");
-
-    // Store a reference to the microsummary in the menu item, so we know
-    // which microsummary this menu item represents when it's time to
-    // save changes or load its content.
-    menuItem.microsummary = aMicrosummary;
-
-    // Content may have to be generated asynchronously; we don't necessarily
-    // have it now.  If we do, great; otherwise, fall back to the generator
-    // name, then the URI, and we trigger a microsummary content update. Once
-    // the update completes, the microsummary will notify our observer to
-    // update the corresponding menu-item.
-    // XXX Instead of just showing the generator name or (heaven forbid)
-    // its URI when we don't have content, we should tell the user that
-    // we're loading the microsummary, perhaps with some throbbing to let
-    // her know it is in progress.
-    if (aMicrosummary.content)
-      menuItem.setAttribute("label", aMicrosummary.content);
     else {
-      menuItem.setAttribute("label", aMicrosummary.generator.name ||
-                                     aMicrosummary.generator.uri.spec);
-      aMicrosummary.update();
+      this._element("livemarkFeedLocationRow").hidden = true;
+      this._element("livemarkSiteLocationRow").hidden = true;
     }
 
-    return menuItem;
-  },
-
-  _initNamePicker: function BPP_initNamePicker() {
-    var userEnteredNameField = this._element("userEnteredName");
-    var namePicker = this._element("namePicker");
-    const annos = PlacesUtils.annotations;
-
-    if (annos.itemHasAnnotation(this._itemId, STATIC_TITLE_ANNO)) {
-      userEnteredNameField.label = annos.getItemAnnotation(this._itemId,
-                                                           STATIC_TITLE_ANNO);
+    if (this._itemType == BOOKMARK_ITEM && this._bookmarkURI) {
+      // _initMicrosummaryPicker may also hide the row
+      this._initMicrosummaryPicker();
     }
     else
-      userEnteredNameField.label = this._itemTitle;
+      this._element("microsummaryRow").hidden = true;
 
-    // Non-bookmark items always use the item-title itself
-    if (this._itemType != BOOKMARK_ITEM || !this._uri) {
-      namePicker.selectedItem = userEnteredNameField;
-      return;
-    }
-
-    var itemToSelect = userEnteredNameField;
-    try {
-      this._microsummaries =
-        PlacesUIUtils.microsummaries.getMicrosummaries(this._uri,
-                                                       this._itemId);
-    }
-    catch(ex) {
-      // getMicrosummaries will throw an exception if the page to which the URI
-      // refers isn't HTML or XML (the only two content types the service knows
-      // how to summarize).
-      this._microsummaries = null;
-    }
-    if (this._microsummaries) {
-      var enumerator = this._microsummaries.Enumerate();
-
-      if (enumerator.hasMoreElements()) {
-        // Show the drop marker if there are microsummaries
-        namePicker.setAttribute("droppable", "true");
-
-        var menupopup = namePicker.menupopup;
-        while (enumerator.hasMoreElements()) {
-          var microsummary = enumerator.getNext()
-                                       .QueryInterface(Ci.nsIMicrosummary);
-          var menuItem = this._createMicrosummaryMenuItem(microsummary);
-
-          if (this._action == ACTION_EDIT &&
-              PlacesUIUtils.microsummaries
-                           .isMicrosummary(this._itemId, microsummary))
-            itemToSelect = menuItem;
-
-          menupopup.appendChild(menuItem);
-        }
-      }
-
-      this._microsummaries.addObserver(this);
-    }
-
-    namePicker.selectedItem = itemToSelect;
+    if (this._action == ACTION_EDIT)
+      this._element("folderRow").hidden = true;
   },
 
-  // nsIMicrosummaryObserver
-  onContentLoaded: function BPP_onContentLoaded(aMicrosummary) {
-    var namePicker = this._element("namePicker");
-    var childNodes = namePicker.menupopup.childNodes;
+  //XXXDietrich - bug 370215 - update to use bookmark id once 360133 is fixed.
+  _rebuildMicrosummaryPicker: function BPP__rebuildMicrosummaryPicker() {
+    var microsummaryMenuList = this._element("microsummaryMenuList");
+    var microsummaryMenuPopup = this._element("microsummaryMenuPopup");
 
-    // 0: user-entered item; 1: separator
-    for (var i = 2; i < childNodes.length; i++) {
-      if (childNodes[i].microsummary == aMicrosummary) {
-        var newLabel = aMicrosummary.content;
-        // XXXmano: non-editable menulist would do this for us, see bug 360220
-        // We should fix editable-menulsits to set the DOMAttrModified handler
-        // as well.
-        //
-        // Also note the order importance: if the label of the menu-item is
-        // set the something different than the menulist's current value,
-        // the menulist no longer has selectedItem set
-        if (namePicker.selectedItem == childNodes[i])
-          namePicker.value = newLabel;
+    // Remove old items from the menu, except the first item, which represents
+    // "don't show a microsummary; show the page title instead".
+    while (microsummaryMenuPopup.childNodes.length > 1)
+      microsummaryMenuPopup.removeChild(microsummaryMenuPopup.lastChild);
 
-        childNodes[i].label = newLabel;
-        return;
+    var enumerator = this._microsummaries.Enumerate();
+    while (enumerator.hasMoreElements()) {
+      var microsummary = enumerator.getNext().QueryInterface(Ci.nsIMicrosummary);
+
+      var menuItem = document.createElement("menuitem");
+
+      // Store a reference to the microsummary in the menu item, so we know
+      // which microsummary this menu item represents when it's time to save
+      // changes to the datastore.
+      menuItem.microsummary = microsummary;
+
+      // Content may have to be generated asynchronously; we don't necessarily
+      // have it now.  If we do, great; otherwise, fall back to the generator
+      // name, then the URI, and we trigger a microsummary content update.
+      // Once the update completes, the microsummary will notify our observer
+      // to rebuild the menu.
+      // XXX Instead of just showing the generator name or (heaven forbid)
+      // its URI when we don't have content, we should tell the user that we're
+      // loading the microsummary, perhaps with some throbbing to let her know
+      // it's in progress.
+      if (microsummary.content)
+        menuItem.setAttribute("label", microsummary.content);
+      else {
+        menuItem.setAttribute("label", microsummary.generator ?
+                                       microsummary.generator.name :
+                                       microsummary.generatorURI.spec);
+        microsummary.update();
+      }
+
+      microsummaryMenuPopup.appendChild(menuItem);
+
+      if (this._action == ACTION_EDIT) {
+        NS_ASSERT(this._bookmarkId, "No bookmark identifier");
+        var placeURI = PlacesUtils.bookmarks.getItemURI(this._bookmarkId);
+        // Select the item if this is the current microsummary for the bookmark.
+        if (this._mss.isMicrosummary(placeURI, microsummary))
+          microsummaryMenuList.selectedItem = menuItem;
       }
     }
   },
 
-  onElementAppended: function BPP_onElementAppended(aMicrosummary) {
-    var namePicker = this._element("namePicker");
-    namePicker.menupopup
-              .appendChild(this._createMicrosummaryMenuItem(aMicrosummary));
+  _microsummaryObserver: {
+    QueryInterface: function (aIID) {
+      if (!aIID.equals(Ci.nsIMicrosummaryObserver) &&
+          !aIID.equals(Ci.nsISupports))
+        throw Cr.NS_ERROR_NO_INTERFACE;
+      return this;
+    },
 
-    // Make sure the drop-marker is shown
-    namePicker.setAttribute("droppable", "true");
+    onContentLoaded: function(aMicrosummary) {
+      BookmarkPropertiesPanel._rebuildMicrosummaryPicker();
+    },
+
+    onElementAppended: function(aMicrosummary) {
+      BookmarkPropertiesPanel._rebuildMicrosummaryPicker();
+    }
   },
 
-  onError: function BPP_onError(aMicrosummary) {
-    var namePicker = this._element("namePicker");
-    var childNodes = namePicker.menupopup.childNodes;
-
-    // 0: user-entered item; 1: separator
-    for (var i = 2; i < childNodes.length; i++) {
-      if (childNodes[i].microsummary == aMicrosummary &&
-          aMicrosummary.needsRemoval)
-          namePicker.menupopup.removeChild(childNodes[i]);
-    }
+  /**
+   * Size the dialog to fit its contents.
+   */
+  _updateSize: function BPP__updateSize() {
+    var width = window.outerWidth;
+    window.sizeToContent();
+    window.resizeTo(width, window.outerHeight);
   },
 
   onDialogUnload: function BPP_onDialogUnload() {
     if (this._microsummaries)
-      this._microsummaries.removeObserver(this);
-
-    // persist the folder tree height
-    if (!this._folderTree.collapsed) {
-      this._folderTree.setAttribute("height",
-                                    this._folderTree.boxObject.height);
-    }
+      this._microsummaries.removeObserver(this._microsummaryObserver);
   },
 
   onDialogAccept: function BPP_onDialogAccept() {
-    if (this._action == ACTION_ADD)
-      this._createNewItem();
-    else
-      this._saveChanges();
+    this._saveChanges();
   },
 
   /**
@@ -707,7 +596,7 @@ var BookmarkPropertiesPanel = {
     try {
       var value = this._element(aTextboxID).value;
       if (value) {
-        var uri = PlacesUIUtils.createFixedURI(value);
+        var uri = PlacesUtils._uri(value);
         return true;
       }
     } catch (e) { }
@@ -719,406 +608,215 @@ var BookmarkPropertiesPanel = {
    */
   _getEditTitleTransaction:
   function BPP__getEditTitleTransaction(aItemId, aNewTitle) {
-    return PlacesUIUtils.ptm.editItemTitle(aItemId, aNewTitle);
+    // XXXmano: remove this once bug 372508 is fixed
+    if (this._itemType == BOOKMARK_ITEM)
+      return new PlacesEditItemTitleTransaction(aItemId, aNewTitle);
+
+    // folder or livemark container
+    return new PlacesEditFolderTitleTransaction(aItemId, aNewTitle);
   },
 
   /**
-   * XXXmano todo:
-   *  1. Make setAnnotationsForURI unset a given annotation if the value field
-   *     is not set.
-   *  2. Replace PlacesEditItemDescriptionTransaction and
-   *     PlacesSetLoadInSidebarTransaction transaction with a generic
-   *     transaction to set/unset an annotation object.
-   *  3. Use the two helpers below with this new generic transaction in
-   *     _saveChanges.
+   * Get a create-item transaction for the item added in the dialog
    */
+  _getCreateItemTransaction: function() {
+    NS_ASSERT(this._action != ACTION_EDIT,
+              "_getCreateItemTransaction called when editing an item");
 
-  /**
-   * Returns an object which could then be used to set/unset the
-   * description annotation for an item (any type).
-   *
-   * @param aDescription
-   *        The description of the item.
-   * @returns an object representing the annotation which could then be used
-   *          with get/setAnnotationsForURI of PlacesUtils.
-   */
-  _getDescriptionAnnotation:
-  function BPP__getDescriptionAnnotation(aDescription) {
-    var anno = { name: DESCRIPTION_ANNO,
-                 type: Ci.nsIAnnotationService.TYPE_STRING,
-                 flags: 0,
-                 value: aDescription,
-                 expires: Ci.nsIAnnotationService.EXPIRE_NEVER };
+    var containerId, indexInContainer = -1;
+    if (isElementVisible(this._folderTree))
+      containerId =  asFolder(this._folderTree.selectedNode).folderId;
+    else if (this._defaultInsertionPoint) {
+      containerId = this._defaultInsertionPoint.folderId;
+      indexInContainer = this._defaultInsertionPoint.index;
+    }
+    else
+      containerId = PlacesUtils.bookmarks.bookmarksRoot;
 
-    /**
-     * See todo note above
-     * if (aDescription)
-     *   anno.value = aDescription;
-     */
-    return anno;
+    if (this._itemType == BOOKMARK_ITEM) {
+      var uri = PlacesUtils._uri(this._element("editURLBar").value);
+      NS_ASSERT(uri, "cannot create an item without a uri");
+      return new
+        PlacesCreateItemTransaction(uri, containerId, indexInContainer);
+    }
+    else if (this._itemType == LIVEMARK_CONTAINER) {
+      var feedURIString = this._element("feedLocationTextfield").value;
+      var feedURI = PlacesUtils._uri(feedURIString);
+
+      var siteURIString = this._element("feedSiteLocationTextfield").value;
+      var siteURI = null;
+      if (siteURIString)
+        siteURI = PlacesUtils._uri(siteURIString);
+
+      var name = this._element("titleTextfield").value;
+
+      return new PlacesCreateLivemarkTransaction(feedURI, siteURI,
+                                                 name, containerId,
+                                                 indexInContainer);
+    }
+    else if (this._itemType == BOOKMARK_FOLDER) { // folder
+      var name = this._element("titleTextfield").value;
+      return new PlacesCreateFolderTransaction(name, containerId,
+                                               indexInContainer);
+    }
   },
 
   /**
-   * Returns an object which could then be used to set/unset the
-   * load-in-sidebar annotation for a bookmark item.
-   *
-   * @param aLoadInSidebar
-   *        Whether to load the bookmark item in the sidebar in default
-   *        conditions.
-   * @returns an object representing the annotation which could then be used
-   *          with get/setAnnotationsForURI of PlacesUtils.
-   */
-  _getLoadInSidebarAnnotation:
-  function BPP__getLoadInSidebarAnnotation(aLoadInSidebar) {
-    var anno = { name: LOAD_IN_SIDEBAR_ANNO,
-                 type: Ci.nsIAnnotationService.TYPE_INT32,
-                 flags: 0,
-                 value: aLoadInSidebar,
-                 expires: Ci.nsIAnnotationService.EXPIRE_NEVER };
-
-    /**
-     * See todo note above
-     * if (anno)
-     *   anno.value = aLoadInSidebar;
-     */
-    return anno;
-  },
-
-  /**
-   * Dialog-accept code path when editing an item (any type).
-   *
    * Save any changes that might have been made while the properties dialog
    * was open.
    */
   _saveChanges: function BPP__saveChanges() {
-    var itemId = this._itemId;
-
     var transactions = [];
+    var childItemsTransactions = [];
 
-    // title
-    var newTitle = this._element("userEnteredName").label;
-    if (newTitle != this._itemTitle)
+    // -1 is used when creating a new item (for child transactions).
+    var itemId = -1;
+    if (this._action == ACTION_EDIT) {
+      if (this._itemType == BOOKMARK_ITEM)
+        itemId = this._bookmarkId;
+      else
+        itemId = this._folderId;
+    }
+
+    // for ACTION_ADD, the uri is set via insertItem
+    if (this._action == ACTION_EDIT && this._itemType == BOOKMARK_ITEM) {
+      var url = PlacesUtils._uri(this._element("editURLBar").value);
+      if (!this._bookmarkURI.equals(url))
+        transactions.push(new PlacesEditBookmarkURITransaction(itemId, url));
+    }
+
+    // title transaction
+    // XXXmano: this isn't necessary for new folders. We should probably
+    // make insertItem take a title too (like insertFolder)
+    var newTitle = this._element("titleTextfield").value;
+    if (this._action != ACTION_EDIT || newTitle != this._itemTitle)
       transactions.push(this._getEditTitleTransaction(itemId, newTitle));
 
-    // description
-    var description = this._element("descriptionTextfield").value;
-    if (description != this._itemDescription) {
-      transactions.push(PlacesUIUtils.ptm.
-                        editItemDescription(itemId, description,
-                        this._itemType != BOOKMARK_ITEM));
-    }
-
+    // keyword transactions
     if (this._itemType == BOOKMARK_ITEM) {
-      // location
-      var url = PlacesUIUtils.createFixedURI(this._element("editURLBar").value);
-      if (!this._uri.equals(url))
-        transactions.push(PlacesUIUtils.ptm.editBookmarkURI(itemId, url));
-
-      // keyword transactions
       var newKeyword = this._element("keywordTextfield").value;
-      if (newKeyword != this._bookmarkKeyword) {
-        transactions.push(PlacesUIUtils.ptm.
-                          editBookmarkKeyword(itemId, newKeyword));
-      }
-
-      // microsummaries
-      var namePicker = this._element("namePicker");
-      var newMicrosummary = namePicker.selectedItem.microsummary;
-
-      // Only add a microsummary update to the transaction if the
-      // microsummary has actually changed, i.e. the user selected no
-      // microsummary, but the bookmark previously had one, or the user
-      // selected a microsummary which is not the one the bookmark previously
-      // had.
-      if ((newMicrosummary == null &&
-           PlacesUIUtils.microsummaries.hasMicrosummary(itemId)) ||
-          (newMicrosummary != null &&
-           !PlacesUIUtils.microsummaries
-                         .isMicrosummary(itemId, newMicrosummary))) {
+      if (this._action != ACTION_EDIT || newKeyword != this._bookmarkKeyword) {
         transactions.push(
-          PlacesUIUtils.ptm.editBookmarkMicrosummary(itemId, newMicrosummary));
-      }
-
-      // load in sidebar
-      var loadInSidebarChecked = this._element("loadInSidebarCheckbox").checked;
-      if (loadInSidebarChecked != this._loadBookmarkInSidebar) {
-        transactions.push(
-          PlacesUIUtils.ptm.setLoadInSidebar(itemId, loadInSidebarChecked));
+          new PlacesEditBookmarkKeywordTransaction(itemId, newKeyword));
       }
     }
-    else if (this._itemType == LIVEMARK_CONTAINER) {
+
+    // items under a new folder
+    if (this._action == ACTION_ADD_WITH_ITEMS) {
+      for (var i = 0; i < this._URIList.length; ++i) {
+        var uri = this._URIList[i];
+        var title = this._getURITitleFromHistory(uri);
+        var txn = new PlacesCreateItemTransaction(uri, -1, -1);
+        txn.childTransactions.push(
+          new PlacesEditItemTitleTransaction(-1, title));
+        childItemsTransactions.push(txn);
+      }
+    }
+
+    // See _getCreateItemTransaction for the add action case
+    if (this._action == ACTION_EDIT && this._itemType == LIVEMARK_CONTAINER) {
       var feedURIString = this._element("feedLocationTextfield").value;
-      var feedURI = PlacesUIUtils.createFixedURI(feedURIString);
+      var feedURI = PlacesUtils._uri(feedURIString);
       if (!this._feedURI.equals(feedURI)) {
         transactions.push(
-          PlacesUIUtils.ptm.editLivemarkFeedURI(this._itemId, feedURI));
+          new PlacesEditLivemarkFeedURITransaction(this._folderId, feedURI));
       }
 
       // Site Location is empty, we can set its URI to null
-      var newSiteURIString = this._element("feedSiteLocationTextfield").value;
-      var newSiteURI = null;
-      if (newSiteURIString)
-        newSiteURI = PlacesUIUtils.createFixedURI(newSiteURIString);
+      var siteURIString = this._element("feedSiteLocationTextfield").value;
+      var siteURI = null;
+      if (siteURIString)
+        siteURI = PlacesUtils._uri(siteURIString);
 
-      if ((!newSiteURI && this._siteURI)  ||
-          (newSiteURI && (!this._siteURI || !this._siteURI.equals(newSiteURI)))) {
+      if ((!siteURI && this._siteURI)  ||
+          (siteURI && !this._siteURI.equals(siteURI))) {
         transactions.push(
-          PlacesUIUtils.ptm.editLivemarkSiteURI(this._itemId, newSiteURI));
+          new PlacesEditLivemarkSiteURITransaction(this._folderId, siteURI));
       }
+    }
+
+    // microsummaries
+    var menuList = this._element("microsummaryMenuList");
+    if (isElementVisible(menuList)) {
+      // Something should always be selected in the microsummary menu,
+      // but if nothing is selected, then conservatively assume we should
+      // just display the bookmark title.
+      if (menuList.selectedIndex == -1)
+        menuList.selectedIndex = 0;
+
+      // This will set microsummary == undefined if the user selected
+      // the "don't display a microsummary" item.
+      var newMicrosummary = menuList.selectedItem.microsummary;
+
+      if (this._action == ACTION_ADD && newMicrosummary) {
+        transactions.push(
+          new PlacesEditBookmarkMicrosummaryTransaction(itemId,
+                                                        newMicrosummary));
+      }
+      else if (this._action == ACTION_EDIT) {
+        NS_ASSERT(itemId != -1, "should have had a real bookmark id");
+
+        // Only add a microsummary update to the transaction if the
+        // microsummary has actually changed, i.e. the user selected no
+        // microsummary, but the bookmark previously had one, or the user
+        // selected a microsummary which is not the one the bookmark previously
+        // had.
+        var placeURI = PlacesUtils.bookmarks.getItemURI(itemId);
+        if ((newMicrosummary == null && this._mss.hasMicrosummary(placeURI)) ||
+            (newMicrosummary != null &&
+             !this._mss.isMicrosummary(placeURI, newMicrosummary))) {
+          transactions.push(
+            new PlacesEditBookmarkMicrosummaryTransaction(itemId,
+                                                          newMicrosummary));
+        }
+      }
+    }
+
+    // load in sidebar
+    if (this._itemType == BOOKMARK_ITEM) {
+      var checked = this._element("loadInSidebarCheckbox").checked;
+      if (this._action == ACTION_ADD ||
+          checked != this._loadBookmarkInSidebar) {
+        transactions.push(
+          new PlacesSetLoadInSidebarTransaction(itemId, checked));
+      }
+    }
+
+    // description
+    var description = this._element("descriptionTextfield").value;
+    if ((this._action != ACTION_EDIT && description) ||
+        (description != this._itemDescription)) {
+      var isFolder = this._itemType != BOOKMARK_ITEM;
+      transactions.push(new PlacesEditItemDescriptionTransaction(
+        itemId, description, this._itemType != BOOKMARK_ITEM));
     }
 
     // If we have any changes to perform, do them via the
     // transaction manager passed by the opener so they can be undone.
     if (transactions.length > 0) {
       window.arguments[0].performed = true;
-      var aggregate =
-        PlacesUIUtils.ptm.aggregateTransactions(this._getDialogTitle(), transactions);
-      PlacesUIUtils.ptm.doTransaction(aggregate);
-    }
-  },
 
-  /**
-   * [New Item Mode] Get the insertion point details for the new item, given
-   * dialog state and opening arguments.
-   *
-   * The container-identifier and insertion-index are returned separately in
-   * the form of [containerIdentifier, insertionIndex]
-   */
-  _getInsertionPointDetails: function BPP__getInsertionPointDetails() {
-    var containerId, indexInContainer = -1;
-    if (!this._element("folderRow").hidden)
-      containerId = this._getFolderIdFromMenuList();
-    else {
-      containerId = this._defaultInsertionPoint.itemId;
-      indexInContainer = this._defaultInsertionPoint.index;
-    }
+      if (this._action != ACTION_EDIT) {
+        var createTxn = this._getCreateItemTransaction();
+        NS_ASSERT(createTxn, "failed to get a create-item transaction");
 
-    return [containerId, indexInContainer];
-  },
+        // use child transactions if we're creating a new item
+        createTxn.childTransactions =
+          createTxn.childTransactions.concat(transactions);
 
-  /**
-   * Returns a transaction for creating a new bookmark item representing the
-   * various fields and opening arguments of the dialog.
-   */
-  _getCreateNewBookmarkTransaction:
-  function BPP__getCreateNewBookmarkTransaction(aContainer, aIndex) {
-    var uri = PlacesUIUtils.createFixedURI(this._element("editURLBar").value);
-    var title = this._element("userEnteredName").label;
-    var keyword = this._element("keywordTextfield").value;
-    var annotations = [];
-    var description = this._element("descriptionTextfield").value;
-    if (description)
-      annotations.push(this._getDescriptionAnnotation(description));
-
-    var loadInSidebar = this._element("loadInSidebarCheckbox").checked;
-    if (loadInSidebar)
-      annotations.push(this._getLoadInSidebarAnnotation(true));
-
-    var childTransactions = [];
-    var microsummary = this._element("namePicker").selectedItem.microsummary;
-    if (microsummary) {
-      childTransactions.push(
-        PlacesUIUtils.ptm.editBookmarkMicrosummary(-1, microsummary));
-    }
-
-    if (this._postData) {
-      childTransactions.push(
-        PlacesUIUtils.ptm.editBookmarkPostData(-1, this._postData));
-    }
-
-    if (this._charSet)
-      PlacesUtils.history.setCharsetForURI(this._uri, this._charSet);
-
-    var transactions = [PlacesUIUtils.ptm.createItem(uri, aContainer, aIndex,
-                                                     title, keyword,
-                                                     annotations,
-                                                     childTransactions)];
-
-    return PlacesUIUtils.ptm.aggregateTransactions(this._getDialogTitle(), transactions);
-  },
-
-  /**
-   * Returns a childItems-transactions array representing the URIList with
-   * which the dialog has been opened.
-   */
-  _getTransactionsForURIList: function BPP__getTransactionsForURIList() {
-    var transactions = [];
-    for (var i = 0; i < this._URIList.length; ++i) {
-      var uri = this._URIList[i];
-      var title = this._getURITitleFromHistory(uri);
-      transactions.push(PlacesUIUtils.ptm.createItem(uri, -1, -1, title));
-    }
-    return transactions; 
-  },
-
-  /**
-   * Returns a transaction for creating a new folder item representing the
-   * various fields and opening arguments of the dialog.
-   */
-  _getCreateNewFolderTransaction:
-  function BPP__getCreateNewFolderTransaction(aContainer, aIndex) {
-    var folderName = this._element("namePicker").value;
-    var annotations = [];
-    var childItemsTransactions;
-    if (this._URIList)
-      childItemsTransactions = this._getTransactionsForURIList();
-    var description = this._element("descriptionTextfield").value;
-    if (description)
-      annotations.push(this._getDescriptionAnnotation(description));
-
-    return PlacesUIUtils.ptm.createFolder(folderName, aContainer, aIndex,
-                                          annotations, childItemsTransactions);
-  },
-
-  /**
-   * Returns a transaction for creating a new live-bookmark item representing
-   * the various fields and opening arguments of the dialog.
-   */
-  _getCreateNewLivemarkTransaction:
-  function BPP__getCreateNewLivemarkTransaction(aContainer, aIndex) {
-    var feedURIString = this._element("feedLocationTextfield").value;
-    var feedURI = PlacesUIUtils.createFixedURI(feedURIString);
-
-    var siteURIString = this._element("feedSiteLocationTextfield").value;
-    var siteURI = null;
-    if (siteURIString)
-      siteURI = PlacesUIUtils.createFixedURI(siteURIString);
-
-    var name = this._element("namePicker").value;
-    return PlacesUIUtils.ptm.createLivemark(feedURI, siteURI, name,
-                                            aContainer, aIndex);
-  },
-
-  /**
-   * Dialog-accept code-path for creating a new item (any type)
-   */
-  _createNewItem: function BPP__getCreateItemTransaction() {
-    var [container, index] = this._getInsertionPointDetails();
-    var createTxn;
-    if (this._itemType == BOOKMARK_FOLDER)
-      createTxn = this._getCreateNewFolderTransaction(container, index);
-    else if (this._itemType == LIVEMARK_CONTAINER)
-      createTxn = this._getCreateNewLivemarkTransaction(container, index);
-    else // BOOKMARK_ITEM
-      createTxn = this._getCreateNewBookmarkTransaction(container, index);
-
-    // Mark the containing folder as recently-used if it isn't in the static
-    // list
-    if (container != PlacesUtils.toolbarFolderId &&
-        container != PlacesUtils.bookmarksMenuFolderId)
-      this._markFolderAsRecentlyUsed(container);
-
-    // perfrom our transaction do via the transaction manager passed by the
-    // opener so it can be undone.
-    window.arguments[0].performed = true;
-    PlacesUIUtils.ptm.doTransaction(createTxn);
-  },
-
-  onNamePickerInput: function BPP_onNamePickerInput() {
-    this._element("userEnteredName").label = this._element("namePicker").value;
-  },
-
-  toggleTreeVisibility: function BPP_toggleTreeVisibility() {
-    var expander = this._element("expander");
-    if (!this._folderTree.collapsed) { // if (willCollapse)
-      expander.className = "down";
-      expander.setAttribute("tooltiptext",
-                            expander.getAttribute("tooltiptextdown"));
-      document.documentElement.buttons = "accept,cancel";
-
-      this._folderTreeHeight = this._folderTree.boxObject.height;
-      this._folderTree.setAttribute("height", this._folderTreeHeight);
-      this._folderTree.collapsed = true;
-      resizeTo(window.outerWidth, window.outerHeight - this._folderTreeHeight);
-    }
-    else {
-      expander.className = "up";
-      expander.setAttribute("tooltiptext",
-                            expander.getAttribute("tooltiptextup"));
-      document.documentElement.buttons = "accept,cancel,extra2";
-
-      this._folderTree.collapsed = false;
-
-      if (!this._folderTree.place) {
-        const FOLDER_TREE_PLACE_URI =
-          "place:excludeItems=1&excludeQueries=1&excludeReadOnlyFolders=1&folder=" +
-          PlacesUIUtils.allBookmarksFolderId;
-        this._folderTree.place = FOLDER_TREE_PLACE_URI;
+        if (this._action == ACTION_ADD_WITH_ITEMS) {
+          // use child-items transactions for creating items under the root item
+          createTxn.childItemsTransactions =
+            createTxn.childItemsTransactions.concat(childItemsTransactions);
+        }
+        this._tm.doTransaction(createTxn);
       }
-
-      var currentFolder = this._getFolderIdFromMenuList();
-      this._folderTree.selectItems([currentFolder]);
-      this._folderTree.focus();
-
-      resizeTo(window.outerWidth, window.outerHeight + this._folderTreeHeight);
+      else {
+        // just aggregate otherwise
+        var aggregate =
+          new PlacesAggregateTransaction(this._getDialogTitle(), transactions);
+        this._tm.doTransaction(aggregate);
+      }
     }
-  },
-
-  _getFolderIdFromMenuList:
-  function BPP__getFolderIdFromMenuList() {
-    var selectedItem = this._folderMenuList.selectedItem;
-    NS_ASSERT("folderId" in selectedItem,
-              "Invalid menuitem in the folders-menulist");
-    return selectedItem.folderId;
-  },
-
-  /**
-   * Get the corresponding menu-item in the folder-menu-list for a bookmarks
-   * folder if such an item exists. Otherwise, this creates a menu-item for the
-   * folder. If the items-count limit (see MAX_FOLDERS_IN_MENU_LIST) is reached,
-   * the new item replaces the last menu-item.
-   * @param aFolderId
-   *        The identifier of the bookmarks folder.
-   */
-  _getFolderMenuItem:
-  function BPP__getFolderMenuItem(aFolderId) {
-    var menupopup = this._folderMenuList.menupopup;
-
-    for (var i=0; i < menupopup.childNodes.length; i++) {
-      if (menupopup.childNodes[i].folderId == aFolderId)
-        return menupopup.childNodes[i];
-    }
-
-    // 2 special folders + separator + folder-items-count limit
-    if (menupopup.childNodes.length == 3 + MAX_FOLDER_ITEM_IN_MENU_LIST)
-      menupopup.removeChild(menupopup.lastChild);
-
-    return this._appendFolderItemToMenupopup(menupopup, aFolderId);
-  },
-
-  onMenuListFolderSelect: function BPP_onMenuListFolderSelect(aEvent) {
-    if (this._folderTree.hidden)
-      return;
-
-    this._folderTree.selectItems([this._getFolderIdFromMenuList()]);
-  },
-
-  onFolderTreeSelect: function BPP_onFolderTreeSelect() {
-    var selectedNode = this._folderTree.selectedNode;
-    if (!selectedNode)
-      return;
-
-    var folderId = PlacesUtils.getConcreteItemId(selectedNode);
-    if (this._getFolderIdFromMenuList() == folderId)
-      return;
-
-    var folderItem = this._getFolderMenuItem(folderId);
-    this._folderMenuList.selectedItem = folderItem;
-  },
-
-  _markFolderAsRecentlyUsed:
-  function BPP__markFolderAsRecentlyUsed(aFolderId) {
-    // We'll figure out when/if to expire the annotation if it turns out
-    // we keep this recently-used-folders implementation
-    PlacesUtils.annotations
-               .setItemAnnotation(aFolderId, LAST_USED_ANNO,
-                                  new Date().getTime(), 0,
-                                  Ci.nsIAnnotationService.EXPIRE_NEVER);
-  },
-
-  newFolder: function BPP_newFolder() {
-    // The command is disabled when the tree is not focused
-    this._folderTree.focus();
-    goDoCommand("placesCmd_new:folder");
   }
 };

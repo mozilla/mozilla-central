@@ -40,15 +40,14 @@
 #define GFX_QUARTZSURFACE_H
 
 #include "gfxASurface.h"
-#include "gfxImageSurface.h"
 
 #include <Carbon/Carbon.h>
 
 class THEBES_API gfxQuartzSurface : public gfxASurface {
 public:
-    gfxQuartzSurface(const gfxSize& size, gfxImageFormat format, PRBool aForPrinting = PR_FALSE);
-    gfxQuartzSurface(CGContextRef context, const gfxSize& size, PRBool aForPrinting = PR_FALSE);
-    gfxQuartzSurface(cairo_surface_t *csurf, PRBool aForPrinting = PR_FALSE);
+    gfxQuartzSurface(const gfxSize& size, gfxImageFormat format);
+    gfxQuartzSurface(CGContextRef context, PRBool y_grows_down, const gfxSize& size);
+    gfxQuartzSurface(cairo_surface_t *csurf);
 
     virtual ~gfxQuartzSurface();
 
@@ -56,12 +55,9 @@ public:
 
     CGContextRef GetCGContext() { return mCGContext; }
 
-    virtual PRInt32 GetDefaultContextFlags() const;
-
 protected:
     CGContextRef mCGContext;
-    gfxSize      mSize;
-    PRPackedBool mForPrinting;
+    gfxSize mSize;
 };
 
 #endif /* GFX_QUARTZSURFACE_H */

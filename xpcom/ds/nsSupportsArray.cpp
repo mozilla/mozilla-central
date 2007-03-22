@@ -299,7 +299,7 @@ nsSupportsArray::Equals(const nsISupportsArray* aOther)
 {
   if (aOther) {
     PRUint32 countOther;
-    nsISupportsArray* other = const_cast<nsISupportsArray*>(aOther);
+    nsISupportsArray* other = NS_CONST_CAST(nsISupportsArray*, aOther);
     nsresult rv = other->Count(&countOther);
     if (NS_FAILED( rv ))
       return PR_FALSE;

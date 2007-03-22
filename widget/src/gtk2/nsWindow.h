@@ -50,7 +50,6 @@
 
 #include "nsIDragService.h"
 #include "nsITimer.h"
-#include "nsWidgetAtoms.h"
 
 #include <gtk/gtk.h>
 
@@ -115,6 +114,8 @@ public:
     NS_IMETHOD         GetScreenBounds(nsRect &aRect);
     NS_IMETHOD         SetForegroundColor(const nscolor &aColor);
     NS_IMETHOD         SetBackgroundColor(const nscolor &aColor);
+    virtual            nsIFontMetrics* GetFont(void);
+    NS_IMETHOD         SetFont(const nsFont &aFont);
     NS_IMETHOD         SetCursor(nsCursor aCursor);
     NS_IMETHOD         SetCursor(imgIContainer* aCursor,
                                  PRUint32 aHotspotX, PRUint32 aHotspotY);
@@ -267,8 +268,6 @@ public:
     static guint32     mLastButtonPressTime;
     static guint32     mLastButtonReleaseTime;
 
-    NS_IMETHOD         BeginResizeDrag   (nsGUIEvent* aEvent, PRInt32 aHorizontal, PRInt32 aVertical);
-
 #ifdef USE_XIM
     void               IMEInitData       (void);
     void               IMEReleaseData    (void);
@@ -284,14 +283,7 @@ public:
     void               IMEComposeEnd     (void);
     GtkIMContext*      IMEGetContext     (void);
     nsWindow*          IMEGetOwningWindow(void);
-    // "Enabled" means the users can use all IMEs.
-    // I.e., the focus is in the normal editors.
-    PRBool             IMEIsEnabledState (void);
-    // "Editable" means the users can input characters. They may be not able to
-    // use IMEs but they can use dead keys.
-    // I.e., the forcus is in the normal editors or the password editors or
-    // the |ime-mode: disabled;| editors.
-    PRBool             IMEIsEditableState(void);
+    PRBool             IMEIsEnabled      (void);
     nsWindow*          IMEComposingWindow(void);
     void               IMECreateContext  (void);
     PRBool             IMEFilterEvent    (GdkEventKey *aEvent);
@@ -306,11 +298,6 @@ public:
     struct nsIMEData {
         // Actual context. This is used for handling the user's input.
         GtkIMContext       *mContext;
-        // mSimpleContext is used for the password field and
-        // the |ime-mode: disabled;| editors. These editors disable IME.
-        // But dead keys should work. Fortunately, the simple IM context of
-        // GTK2 support only them.
-        GtkIMContext       *mSimpleContext;
         // mDummyContext is a dummy context and will be used in IMESetFocus()
         // when mEnabled is false. This mDummyContext IM state is always
         // "off", so it works to switch conversion mode to OFF on IM status
@@ -331,15 +318,14 @@ public:
         // the decrementer must free the instance.
         PRUint32           mRefCount;
         // IME enabled state in this window.
-        PRUint32           mEnabled;
+        PRPackedBool       mEnabled;
         nsIMEData(nsWindow* aOwner) {
             mContext         = nsnull;
-            mSimpleContext   = nsnull;
             mDummyContext    = nsnull;
             mComposingWindow = nsnull;
             mOwner           = aOwner;
             mRefCount        = 1;
-            mEnabled         = nsIKBStateControl::IME_STATUS_ENABLED;
+            mEnabled         = PR_TRUE;
         }
     };
     nsIMEData          *mIMEData;
@@ -348,21 +334,25 @@ public:
     NS_IMETHOD ResetInputState();
     NS_IMETHOD SetIMEOpenState(PRBool aState);
     NS_IMETHOD GetIMEOpenState(PRBool* aState);
-    NS_IMETHOD SetIMEEnabled(PRUint32 aState);
-    NS_IMETHOD GetIMEEnabled(PRUint32* aState);
+    NS_IMETHOD SetIMEEnabled(PRBool aState);
+    NS_IMETHOD GetIMEEnabled(PRBool* aState);
     NS_IMETHOD CancelIMEComposition();
-    NS_IMETHOD GetToggledKeyState(PRUint32 aKeyCode, PRBool* aLEDState);
 
 #endif
 
    void                ResizeTransparencyBitmap(PRInt32 aNewWidth, PRInt32 aNewHeight);
    void                ApplyTransparencyBitmap();
-   NS_IMETHOD          SetHasTransparentBackground(PRBool aTransparent);
-   NS_IMETHOD          GetHasTransparentBackground(PRBool& aTransparent);
+#ifdef MOZ_XUL
+   NS_IMETHOD          SetWindowTranslucency(PRBool aTransparent);
+   NS_IMETHOD          GetWindowTranslucency(PRBool& aTransparent);
    nsresult            UpdateTranslucentWindowAlphaInternal(const nsRect& aRect,
                                                             PRUint8* aAlphas, PRInt32 aStride);
+   NS_IMETHOD          UpdateTranslucentWindowAlpha(const nsRect& aRect, PRUint8* aAlphas);
+#endif
 
+#ifdef MOZ_CAIRO_GFX
     gfxASurface       *GetThebesSurface();
+#endif
 
 #ifdef ACCESSIBILITY
     static PRBool      sAccessibilityEnabled;
@@ -375,8 +365,6 @@ private:
     void              *SetupPluginPort(void);
     nsresult           SetWindowIconList(const nsCStringArray &aIconList);
     void               SetDefaultIcon(void);
-    void               InitButtonEvent(nsMouseEvent &aEvent, GdkEventButton *aGdkEvent);
-    PRBool             DispatchCommandEvent(nsIAtom* aCommand);
 
     GtkWidget          *mShell;
     MozContainer       *mContainer;
@@ -387,6 +375,7 @@ private:
     PRUint32            mContainerGotFocus : 1,
                         mContainerLostFocus : 1,
                         mContainerBlockFocus : 1,
+                        mInKeyRepeat : 1,
                         mIsVisible : 1,
                         mRetryPointerGrab : 1,
                         mActivatePending : 1,
@@ -395,10 +384,12 @@ private:
     PRInt32             mSizeState;
     PluginType          mPluginType;
 
-    PRInt32             mTransparencyBitmapWidth;
-    PRInt32             mTransparencyBitmapHeight;
+    PRUint32            mTransparencyBitmapWidth;
+    PRUint32            mTransparencyBitmapHeight;
 
+#ifdef MOZ_CAIRO_GFX
     nsRefPtr<gfxASurface> mThebesSurface;
+#endif
 
 #ifdef ACCESSIBILITY
     nsCOMPtr<nsIAccessible> mRootAccessible;
@@ -413,7 +404,7 @@ private:
     static GdkCursor   *gsGtkCursorCache[eCursorCount];
 
     // Transparency
-    PRBool       mIsTransparent;
+    PRBool       mIsTranslucent;
     // This bitmap tracks which pixels are transparent. We don't support
     // full translucency at this time; each pixel is either fully opaque
     // or fully transparent.
@@ -450,38 +441,6 @@ private:
     void         FireDragLeaveTimer       (void);
     static guint DragMotionTimerCallback (gpointer aClosure);
     static void  DragLeaveTimerCallback  (nsITimer *aTimer, void *aClosure);
-
-    /* Key Down event is DOM Virtual Key driven, needs 256 bits. */
-    PRUint32 mKeyDownFlags[8];
-
-    /* Helper methods for DOM Key Down event suppression. */
-    PRUint32* GetFlagWord32(PRUint32 aKeyCode, PRUint32* aMask) {
-        /* Mozilla DOM Virtual Key Code is from 0 to 224. */
-        NS_ASSERTION((aKeyCode <= 0xFF), "Invalid DOM Key Code");
-        aKeyCode &= 0xFF;
-
-        /* 32 = 2^5 = 0x20 */
-        *aMask = PRUint32(1) << (aKeyCode & 0x1F);
-        return &mKeyDownFlags[(aKeyCode >> 5)];
-    }
-
-    PRBool IsKeyDown(PRUint32 aKeyCode) {
-        PRUint32 mask;
-        PRUint32* flag = GetFlagWord32(aKeyCode, &mask);
-        return ((*flag) & mask) != 0;
-    }
-
-    void SetKeyDownFlag(PRUint32 aKeyCode) {
-        PRUint32 mask;
-        PRUint32* flag = GetFlagWord32(aKeyCode, &mask);
-        *flag |= mask;
-    }
-
-    void ClearKeyDownFlag(PRUint32 aKeyCode) {
-        PRUint32 mask;
-        PRUint32* flag = GetFlagWord32(aKeyCode, &mask);
-        *flag &= ~mask;
-    }
 
 };
 

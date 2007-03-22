@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'special_characters.js';
-
 /**
    Filename:     special_characters.js
    Description:  'Tests regular expressions containing special characters'

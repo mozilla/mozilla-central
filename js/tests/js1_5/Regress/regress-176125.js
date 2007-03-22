@@ -19,7 +19,7 @@
  * Portions created by the Initial Developer are Copyright (C) 2005
  * the Initial Developer. All Rights Reserved.
  *
- * Contributor(s): Phil Schwartau 
+ * Contributor(s): Phil Schwartau  
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -34,15 +34,13 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-176125.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 176125;
+var bug = 176125;
 var summary = 'if() should not return a value';
 var actual = '';
 var expect = 'undefined';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
 try
@@ -54,7 +52,7 @@ catch(ex)
 {
   actual = ex + '';
 }
- 
+  
 reportCompare(expect, actual, summary + ': if (test1());');
 
 try
@@ -66,13 +64,13 @@ catch(ex)
 {
   actual = ex + '';
 }
- 
+  
 reportCompare(expect, actual, summary + ': if (test2());');
 
 
-function test1()
-{
-  'Hi there!';
+function test1() 
+{ 
+  'Hi there!'; 
 }
 
 function test2()

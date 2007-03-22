@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '15.6.3.1-4.js';
-
 /**
    File Name:          15.6.3.1-4.js
    ECMA Section:       15.6.3.1 Properties of the Boolean Prototype Object
@@ -58,7 +56,7 @@ var SECTION = "15.6.3.1-4";
 var VERSION = "ECMA_1";
 startTest();
 var TITLE   = "Boolean.prototype"
-  writeHeaderToLog( SECTION + TITLE );
+writeHeaderToLog( SECTION + TITLE );
 
 var BOOL_PROTO = Boolean.prototype;
 

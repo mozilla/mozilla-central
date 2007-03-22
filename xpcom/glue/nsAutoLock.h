@@ -250,24 +250,6 @@ public:
     }
 };
 
-class nsAutoUnlock : nsAutoUnlockBase
-{
-private:
-    PRLock *mLock;
-     
-public:
-    nsAutoUnlock(PRLock *lock) : 
-        nsAutoUnlockBase(lock),
-        mLock(lock)
-    {
-        PR_Unlock(mLock);
-    }
-
-    ~nsAutoUnlock() {
-        PR_Lock(mLock);
-    }
-};
-
 #include "prcmon.h"
 #include "nsError.h"
 #include "nsDebug.h"

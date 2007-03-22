@@ -47,17 +47,14 @@
 #include "imgIDecoderObserver.h"
 
 #include "nsICacheEntryDescriptor.h"
-#include "nsIContentSniffer.h"
 #include "nsIRequest.h"
 #include "nsIProperties.h"
 #include "nsIStreamListener.h"
 #include "nsIURI.h"
-#include "nsIPrincipal.h"
 
-#include "nsCategoryCache.h"
 #include "nsCOMPtr.h"
 #include "nsString.h"
-#include "nsTObserverArray.h"
+#include "nsVoidArray.h"
 #include "nsWeakReference.h"
 
 class imgCacheValidator;
@@ -90,8 +87,9 @@ public:
                 void *aCacheId,
                 void *aLoadId);
 
-  // Callers must call NotifyProxyListener later.
-  nsresult AddProxy(imgRequestProxy *proxy);
+  // Callers that pass aNotify==PR_FALSE must call NotifyProxyListener
+  // later.
+  nsresult AddProxy   (imgRequestProxy *proxy, PRBool aNotify);
 
   // aNotify==PR_FALSE still sends OnStopRequest.
   nsresult RemoveProxy(imgRequestProxy *proxy, nsresult aStatus, PRBool aNotify);
@@ -122,7 +120,6 @@ private:
   inline nsresult GetResultFromImageStatus(PRUint32 aStatus) const;
   void Cancel(nsresult aStatus);
   nsresult GetURI(nsIURI **aURI);
-  nsresult GetPrincipal(nsIPrincipal **aPrincipal);
   void RemoveFromCache();
   inline const char *GetMimeType() const {
     return mContentType.get();
@@ -153,12 +150,11 @@ public:
 private:
   nsCOMPtr<nsIRequest> mRequest;
   nsCOMPtr<nsIURI> mURI;
-  nsCOMPtr<nsIPrincipal> mPrincipal;
   nsCOMPtr<imgIContainer> mImage;
   nsCOMPtr<imgIDecoder> mDecoder;
   nsCOMPtr<nsIProperties> mProperties;
 
-  nsTObserverArray<imgRequestProxy*> mObservers;
+  nsVoidArray mObservers;
 
   PRPackedBool mLoading;
   PRPackedBool mProcessing;
@@ -177,8 +173,6 @@ private:
 
   imgCacheValidator *mValidator;
   PRBool   mIsMultiPartChannel;
-
-  nsCategoryCache<nsIContentSniffer> mImageSniffers;
 };
 
 #endif

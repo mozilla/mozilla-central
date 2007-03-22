@@ -35,10 +35,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-165201.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 165201;
+var bug = 165201;
 var summary = '';
 var actual = '';
 var expect = '';
@@ -46,7 +44,7 @@ var expect = '';
 
 summary = 'RegExp.prototype.toSource should not affect RegExp.prototype.toString';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
 /*
@@ -54,9 +52,9 @@ printStatus (summary);
  * and override RegExp.prototype.toSource
  */
 
-function f()
-{
-  return /abc/;
+function f() 
+{ 
+  return /abc/; 
 }
 
 RegExp.prototype.toSource = function() { return 'Hi there'; };
@@ -71,17 +69,17 @@ reportCompare(expect, actual, summary);
  * and override RegExp.prototype.toSource
  */
 summary = 'Array.prototype.toSource should not affect Array.prototype.toString';
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
-function g()
-{
-  return [1,2,3];
+function g() 
+{ 
+  return [1,2,3]; 
 }
 
 Array.prototype.toSource = function() { return 'Hi there'; }
 
-  expect = -1;
+expect = -1;
 actual = g.toString().indexOf('Hi there');
 
 reportCompare(expect, actual, summary);

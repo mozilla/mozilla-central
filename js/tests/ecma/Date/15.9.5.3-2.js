@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '15.9.5.3-2.js';
-
 /**
    File Name:          15.9.5.3-2.js
    ECMA Section:       15.9.5.3-2 Date.prototype.valueOf
@@ -60,12 +58,18 @@ var TITLE   = "Date.prototype.valueOf";
 
 writeHeaderToLog( SECTION + " "+ TITLE);
 
-addTestCase( TIME_NOW );
+var TZ_ADJUST = TZ_DIFF * msPerHour;
+var now = (new Date()).valueOf();
+var UTC_29_FEB_2000 = TIME_2000 + 31*msPerDay + 28*msPerDay;
+var UTC_1_JAN_2005 = TIME_2000 + TimeInYear(2000) + TimeInYear(2001)+
+TimeInYear(2002)+TimeInYear(2003)+TimeInYear(2004);
+
+addTestCase( now );
 addTestCase( TIME_1970 );
 addTestCase( TIME_1900 );
 addTestCase( TIME_2000 );
-addTestCase( UTC_FEB_29_2000 );
-addTestCase( UTC_JAN_1_2005 );
+addTestCase( UTC_29_FEB_2000 );
+addTestCase( UTC_1_JAN_2005 );
 
 test();
 

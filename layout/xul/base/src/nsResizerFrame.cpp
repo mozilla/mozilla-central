@@ -97,39 +97,19 @@ nsResizerFrame::HandleEvent(nsPresContext* aPresContext,
 
    case NS_MOUSE_BUTTON_DOWN: {
        if (aEvent->eventStructType == NS_MOUSE_EVENT &&
-           static_cast<nsMouseEvent*>(aEvent)->button ==
+           NS_STATIC_CAST(nsMouseEvent*, aEvent)->button ==
              nsMouseEvent::eLeftButton)
        {
+         // we're tracking.
+         mTrackingMouseMove = PR_TRUE;
 
-         nsresult rv = NS_OK;
+         // start capture.
+         aEvent->widget->CaptureMouse(PR_TRUE);
+         CaptureMouseEvents(aPresContext,PR_TRUE);
 
-         // what direction should we go in? 
-         // convert eDirection to horizontal and vertical directions
-         static const PRInt8 directions[][2] = {
-           {-1, -1}, {0, -1}, {1, -1},
-           {-1,  0},          {1,  0},
-           {-1,  1}, {0,  1}, {1,  1}
-         };
-
-         // ask the widget implementation to begin a resize drag if it can
-         rv = aEvent->widget->BeginResizeDrag(aEvent, 
-             directions[mDirection][0], directions[mDirection][1]);
-
-         if (rv == NS_ERROR_NOT_IMPLEMENTED) {
-           // there's no native resize support, 
-           // we need to window resizing ourselves
-
-           // we're tracking.
-           mTrackingMouseMove = PR_TRUE;
-
-           // start capture.
-           aEvent->widget->CaptureMouse(PR_TRUE);
-           CaptureMouseEvents(aPresContext,PR_TRUE);
-
-           // remember current mouse coordinates.
-           mLastPoint = aEvent->refPoint;
-           aEvent->widget->GetScreenBounds(mWidgetRect);
-         }
+         // remember current mouse coordinates.
+         mLastPoint = aEvent->refPoint;
+         aEvent->widget->GetScreenBounds(mWidgetRect);
 
          *aEventStatus = nsEventStatus_eConsumeNoDefault;
          doDefault = PR_FALSE;
@@ -141,7 +121,7 @@ nsResizerFrame::HandleEvent(nsPresContext* aPresContext,
    case NS_MOUSE_BUTTON_UP: {
 
        if(mTrackingMouseMove && aEvent->eventStructType == NS_MOUSE_EVENT &&
-          static_cast<nsMouseEvent*>(aEvent)->button ==
+          NS_STATIC_CAST(nsMouseEvent*, aEvent)->button ==
             nsMouseEvent::eLeftButton)
        {
          // we're done tracking.
@@ -323,10 +303,13 @@ nsResizerFrame::GetInitialDirection(eDirection& aDirection)
  // see what kind of resizer we are.
   nsAutoString value;
 
-  if (!GetContent())
+  nsCOMPtr<nsIContent> content;
+  GetContentOf(getter_AddRefs(content));
+
+  if (!content)
      return PR_FALSE;
 
-  if (GetContent()->GetAttr(kNameSpaceID_None, nsGkAtoms::dir, value)) {
+  if (content->GetAttr(kNameSpaceID_None, nsGkAtoms::dir, value)) {
      return EvalDirection(value,aDirection);
   }
 

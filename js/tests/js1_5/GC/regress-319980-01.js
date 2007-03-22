@@ -35,19 +35,17 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-319980-01.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 319980;
+var bug = 319980;
 var summary = 'GC not called during non-fatal out of memory';
 var actual = '';
 var expect = 'Normal Exit';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 print ('This test should never fail explicitly. ' +
-       'You must view the memory usage during the test. ' +
-       'This test fails if memory usage for each subtest grows');
+             'You must view the memory usage during the test. ' + 
+             'This test fails if memory usage for each subtest grows');
 
 var timeOut  = 45 * 1000;
 var interval = 0.01  * 1000;
@@ -90,11 +88,11 @@ function testFuncWatcher()
     return;
   }
   ++currTest;
- 
+  
   print('Executing test ' + currTest + '\n');
 
   testFuncWatcherId = setTimeout("testFuncWatcher()", timeOut);
-  testFuncTimerId = setTimeout(testFunc, interval);
+  testFuncTimerId = setTimeout(testFunc, interval); 
 }
 
 
@@ -108,27 +106,27 @@ function testFunc()
   {
   case 1:
     a = new Array(100000);
-    for (i = 0; i < 100000; i++ )
-    {
-      a[i] = i;
+    for (i = 0; i < 100000; i++ ) 
+    { 
+      a[i] = i; 
     }
     break;
 
   case 2:
     a = new Array(100000);
-    for (i = 0; i < 100000; i++)
-    {
-      a[i] = new Number();
-      a[i] = i;
+    for (i = 0; i < 100000; i++) 
+    { 
+      a[i] = new Number(); 
+      a[i] = i; 
     }
     break;
 
   case 3:
     a = new String() ;
     a = new Array(100000);
-    for ( i = 0; i < 100000; i++ )
-    {
-      a[i] = i;
+    for ( i = 0; i < 100000; i++ ) 
+    { 
+      a[i] = i; 
     }
 
     break;
@@ -136,17 +134,17 @@ function testFunc()
   case 4:
     a = new Array();
     a[0] = new Array(100000);
-    for (i = 0; i < 100000; i++ )
-    {
-      a[0][i] = i;
+    for (i = 0; i < 100000; i++ ) 
+    { 
+      a[0][i] = i; 
     }
     break;
 
   case 5:
     a = new Array();
-    for (i = 0; i < 100000; i++ )
-    {
-      a[i] = i;
+    for (i = 0; i < 100000; i++ ) 
+    { 
+      a[i] = i; 
     }
     break;
   }

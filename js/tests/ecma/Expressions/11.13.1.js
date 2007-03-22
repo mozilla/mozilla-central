@@ -35,9 +35,6 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-gTestfile = '11.13.1.js';
-
 /**
    File Name:          11.13.1.js
    ECMA Section:       11.13.1 Simple assignment
@@ -63,9 +60,9 @@ startTest();
 
 writeHeaderToLog( SECTION + " Simple Assignment ( = )");
 
-new TestCase( SECTION,   
-              "SOMEVAR = true",    
-              true,  
+new TestCase( SECTION,    
+              "SOMEVAR = true",     
+              true,   
               SOMEVAR = true );
 
 test();

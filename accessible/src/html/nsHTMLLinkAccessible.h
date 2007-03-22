@@ -20,8 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Aaron Leventhal <aleventh@us.ibm.com> (original author)
- *   Alexander Surkov <surkov.alexander@gmail.com>
+ *   Author: Aaron Leventhal (aaronl@netscape.com)
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -40,30 +39,30 @@
 #ifndef _nsHTMLLinkAccessible_H_
 #define _nsHTMLLinkAccessible_H_
 
-#include "nsHyperTextAccessibleWrap.h"
+#include "nsBaseWidgetAccessible.h"
 
-class nsHTMLLinkAccessible : public nsHyperTextAccessibleWrap
+class nsHTMLLinkAccessible : public nsLinkableAccessible
 {
-public:
-  nsHTMLLinkAccessible(nsIDOMNode* aDomNode, nsIWeakReference* aShell);
- 
   NS_DECL_ISUPPORTS_INHERITED
 
+public:
+  nsHTMLLinkAccessible(nsIDOMNode* aDomNode, nsIWeakReference* aShell, nsIFrame *aFrame);
+  
   // nsIAccessible
-  NS_IMETHOD GetName(nsAString& aName);
-  NS_IMETHOD GetRole(PRUint32 *aRole); 
-  NS_IMETHOD GetState(PRUint32 *aState, PRUint32 *aExtraState);
-  NS_IMETHOD GetValue(nsAString& aValue);
+  NS_IMETHOD GetName(nsAString& _retval); 
+  NS_IMETHOD GetRole(PRUint32 *_retval); 
+  NS_IMETHOD GetState(PRUint32 *_retval);
+  NS_IMETHOD Shutdown() { mFrame = nsnull; return nsLinkableAccessible::Shutdown(); }
+  
+  // nsPIAccessNode
+  NS_IMETHOD_(nsIFrame *) GetFrame(void);
 
-  NS_IMETHOD GetNumActions(PRUint8 *aNumActions);
-  NS_IMETHOD GetActionName(PRUint8 aIndex, nsAString& aName);
-  NS_IMETHOD DoAction(PRUint8 aIndex);
+  // nsPIAccessible
+  NS_IMETHOD FireToolkitEvent(PRUint32 aEvent, nsIAccessible *aTarget,
+                              void *aData);
 
-  // nsIAccessibleHyperLink
-  NS_IMETHOD GetURI(PRInt32 aIndex, nsIURI **aURI);
-
-protected:
-  enum { eAction_Jump = 0 };
+private:
+  nsIFrame *mFrame;  // XXX What's special about links that we cache frames for them?
 };
 
 #endif  

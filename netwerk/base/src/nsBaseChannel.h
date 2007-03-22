@@ -184,7 +184,7 @@ public:
 
   // Helper function for calling QueryInterface on this.
   nsQueryInterface do_QueryInterface() {
-    return nsQueryInterface(static_cast<nsIChannel *>(this));
+    return nsQueryInterface(NS_STATIC_CAST(nsIChannel *, this));
   }
   // MSVC needs this:
   nsQueryInterface do_QueryInterface(nsISupports *obj) {
@@ -249,7 +249,6 @@ private:
   nsresult                            mStatus;
   PRPackedBool                        mQueriedProgressSink;
   PRPackedBool                        mSynthProgressEvents;
-  PRPackedBool                        mWasOpened;
 };
 
 #endif // !nsBaseChannel_h__

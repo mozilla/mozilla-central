@@ -59,7 +59,7 @@ LOCAL_INCLUDES	= \
 ifeq (Darwin,$(OS_ARCH))
 LINKSRC = nsGlueLinkingOSX.cpp
 endif
-ifneq (,$(filter WINNT WINCE,$(OS_ARCH)))
+ifeq (WINNT,$(OS_ARCH))
 LINKSRC = nsGlueLinkingWin.cpp
 endif
 ifneq (,$(filter AIX DragonFly FreeBSD Linux NetBSD OpenBSD SunOS,$(OS_ARCH)))
@@ -83,8 +83,8 @@ CSRCS		= \
 
 CPPSRCS		= \
 		$(XPCOM_GLUE_SRC_LCPPSRCS)   \
-		nsStringAPI.cpp              \
 		nsXPCOMGlue.cpp              \
+		nsGREDirServiceProvider.cpp  \
 		$(LINKSRC)                   \
 		$(NULL)
 
@@ -120,14 +120,7 @@ OS_COMPILE_CFLAGS += -Zl
 DEFINES += -D_USE_ANSI_CPP
 endif
 
-export:: $(XPCOM_GLUE_SRC_CSRCS) $(XPCOM_GLUE_SRC_CPPSRCS) $(topsrcdir)/xpcom/glue/nsStringAPI.cpp
+export:: $(XPCOM_GLUE_SRC_CSRCS) $(XPCOM_GLUE_SRC_CPPSRCS)
 	$(INSTALL) $^ .
 
-GARBAGE += nsStringAPI.cpp
-
 DEFINES		+= -DXPCOM_GLUE
-
-ifdef TARGET_XPCOM_ABI
-DEFINES += -DTARGET_XPCOM_ABI=\"$(TARGET_XPCOM_ABI)\"
-endif
-

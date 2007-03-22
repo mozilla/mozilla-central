@@ -58,7 +58,7 @@ void
 nsFormControlFrame::Destroy()
 {
   // Unregister the access key registered in reflow
-  nsFormControlFrame::RegUnRegAccessKey(static_cast<nsIFrame*>(this), PR_FALSE);
+  nsFormControlFrame::RegUnRegAccessKey(NS_STATIC_CAST(nsIFrame*, this), PR_FALSE);
   nsLeafFrame::Destroy();
 }
 
@@ -66,13 +66,14 @@ nsFormControlFrame::Destroy()
 NS_IMETHODIMP
 nsFormControlFrame::QueryInterface(const nsIID& aIID, void** aInstancePtr)
 {
-  NS_PRECONDITION(aInstancePtr, "null out param");
-
+  NS_PRECONDITION(0 != aInstancePtr, "null ptr");
+  if (NULL == aInstancePtr) {
+    return NS_ERROR_NULL_POINTER;
+  }
   if (aIID.Equals(NS_GET_IID(nsIFormControlFrame))) {
-    *aInstancePtr = static_cast<nsIFormControlFrame*>(this);
+    *aInstancePtr = (void*) ((nsIFormControlFrame*) this);
     return NS_OK;
   }
-
   return nsLeafFrame::QueryInterface(aIID, aInstancePtr);
 }
 
@@ -94,17 +95,6 @@ nsFormControlFrame::GetIntrinsicHeight()
   return nsPresContext::CSSPixelsToAppUnits(13 - 2 * 2);
 }
 
-nscoord
-nsFormControlFrame::GetBaseline() const
-{
-  NS_ASSERTION(!NS_SUBTREE_DIRTY(this),
-               "frame must not be dirty");
-  // Treat radio buttons and checkboxes as having an intrinsic baseline
-  // at the bottom of the control (use the bottom content edge rather
-  // than the bottom margin edge).
-  return mRect.height - GetUsedBorderAndPadding().bottom;
-}
-
 NS_METHOD
 nsFormControlFrame::Reflow(nsPresContext*          aPresContext,
                            nsHTMLReflowMetrics&     aDesiredSize,
@@ -115,7 +105,7 @@ nsFormControlFrame::Reflow(nsPresContext*          aPresContext,
   DISPLAY_REFLOW(aPresContext, this, aReflowState, aDesiredSize, aStatus);
 
   if (mState & NS_FRAME_FIRST_REFLOW) {
-    RegUnRegAccessKey(static_cast<nsIFrame*>(this), PR_TRUE);
+    RegUnRegAccessKey(NS_STATIC_CAST(nsIFrame*, this), PR_TRUE);
   }
 
   return nsLeafFrame::Reflow(aPresContext, aDesiredSize, aReflowState,
@@ -127,7 +117,7 @@ nsFormControlFrame::RegUnRegAccessKey(nsIFrame * aFrame, PRBool aDoReg)
 {
   NS_ENSURE_ARG_POINTER(aFrame);
   
-  nsPresContext* presContext = aFrame->PresContext();
+  nsPresContext* presContext = aFrame->GetPresContext();
   
   NS_ASSERTION(presContext, "aPresContext is NULL in RegUnRegAccessKey!");
 

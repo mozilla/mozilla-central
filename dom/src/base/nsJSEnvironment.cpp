@@ -52,6 +52,7 @@
 #include "nsIDOMKeyEvent.h"
 #include "nsIDOMHTMLImageElement.h"
 #include "nsIDOMHTMLOptionElement.h"
+#include "nsIDOMChromeWindow.h"
 #include "nsIScriptSecurityManager.h"
 #include "nsDOMCID.h"
 #include "nsIServiceManager.h"
@@ -72,15 +73,16 @@
 #include "nsIPrompt.h"
 #include "nsIObserverService.h"
 #include "nsGUIEvent.h"
+#include "nsScriptNameSpaceManager.h"
 #include "nsThreadUtils.h"
 #include "nsITimer.h"
+#include "nsDOMClassInfo.h"
 #include "nsIAtom.h"
 #include "nsContentUtils.h"
 #include "jscntxt.h"
 #include "nsEventDispatcher.h"
 #include "nsIContent.h"
 #include "nsCycleCollector.h"
-#include "nsNetUtil.h"
 
 // For locale aware string methods
 #include "plstr.h"
@@ -102,6 +104,7 @@
 #include "prmem.h"
 
 #ifdef NS_DEBUG
+#include "jsgc.h"       // for WAY_TOO_MUCH_GC, if defined for GC debugging
 #include "nsGlobalWindow.h"
 #endif
 
@@ -117,6 +120,11 @@
 #endif
 #include "prlog.h"
 #include "prthread.h"
+
+#ifdef OJI
+#include "nsIJVMManager.h"
+#include "nsILiveConnectManager.h"
+#endif
 
 const size_t gStackSize = 8192;
 
@@ -147,40 +155,8 @@ static PRLogModuleInfo* gJSDiagnostics;
 
 #define JAVASCRIPT nsIProgrammingLanguage::JAVASCRIPT
 
-// The max number of delayed cycle collects..
-#define NS_MAX_DELAYED_CCOLLECT     45
-// The max number of user interaction notifications in inactive state before
-// we try to call cycle collector more aggressively.
-#define NS_CC_SOFT_LIMIT_INACTIVE   6
-// The max number of user interaction notifications in active state before
-// we try to call cycle collector more aggressively.
-#define NS_CC_SOFT_LIMIT_ACTIVE     12
-// When higher probability MaybeCC is used, the number of sDelayedCCollectCount
-// is multiplied with this number.
-#define NS_PROBABILITY_MULTIPLIER   3
-// Cycle collector should never run more often than this value
-#define NS_MIN_CC_INTERVAL          10000 // ms
-// If previous cycle collection collected more than this number of objects,
-// the next collection will happen somewhat soon.
-#define NS_COLLECTED_OBJECTS_LIMIT  5000
-// CC will be called if GC has been called at least this number of times and
-// there are at least NS_MIN_SUSPECT_CHANGES new suspected objects.
-#define NS_MAX_GC_COUNT             5
-#define NS_MIN_SUSPECT_CHANGES      10
-// CC will be called if there are at least NS_MAX_SUSPECT_CHANGES new suspected
-// objects.
-#define NS_MAX_SUSPECT_CHANGES      100
-
 // if you add statics here, add them to the list in nsJSRuntime::Startup
 
-static PRUint32 sDelayedCCollectCount;
-static PRUint32 sCCollectCount;
-static PRBool sUserIsActive;
-static PRTime sPreviousCCTime;
-static PRUint32 sCollectedObjectsCounts;
-static PRUint32 sGCCount;
-static PRUint32 sCCSuspectChanges;
-static PRUint32 sCCSuspectedCount;
 static nsITimer *sGCTimer;
 static PRBool sReadyForGC;
 
@@ -223,139 +199,6 @@ static nsIScriptSecurityManager *sSecurityManager;
 static nsICollation *gCollation;
 
 static nsIUnicodeDecoder *gDecoder;
-
-// nsUserActivityObserver observes user-interaction-active and
-// user-interaction-inactive notifications. It counts the number of
-// notifications and if the number is bigger than NS_CC_SOFT_LIMIT_ACTIVE
-// (in case the current notification is user-interaction-active) or
-// NS_CC_SOFT_LIMIT_INACTIVE (current notification is user-interaction-inactive)
-// MaybeCC is called with aHigherParameter set to PR_TRUE, otherwise PR_FALSE.
-//
-// When moving from active state to inactive, nsJSContext::CC() is called
-// unless the timer related to page load is active.
-
-class nsUserActivityObserver : public nsIObserver
-{
-public:
-  nsUserActivityObserver()
-  : mUserActivityCounter(0), mOldCCollectCount(0) {}
-  NS_DECL_ISUPPORTS
-  NS_DECL_NSIOBSERVER
-private:
-  PRUint32 mUserActivityCounter;
-  PRUint32 mOldCCollectCount;
-};
-
-NS_IMPL_ISUPPORTS1(nsUserActivityObserver, nsIObserver)
-
-NS_IMETHODIMP
-nsUserActivityObserver::Observe(nsISupports* aSubject, const char* aTopic,
-                                const PRUnichar* aData)
-{
-  if (mOldCCollectCount != sCCollectCount) {
-    mOldCCollectCount = sCCollectCount;
-    // Cycle collector was called between user interaction notifications, so
-    // we can reset the counter.
-    mUserActivityCounter = 0;
-  }
-  PRBool higherProbability = PR_FALSE;
-  ++mUserActivityCounter;
-  if (!strcmp(aTopic, "user-interaction-inactive")) {
-#ifdef DEBUG_smaug
-    printf("user-interaction-inactive\n");
-#endif
-    if (sUserIsActive) {
-      sUserIsActive = PR_FALSE;
-      if (!sGCTimer) {
-        nsJSContext::CC();
-        return NS_OK;
-      }
-    }
-    higherProbability = (mUserActivityCounter > NS_CC_SOFT_LIMIT_INACTIVE);
-  } else if (!strcmp(aTopic, "user-interaction-active")) {
-#ifdef DEBUG_smaug
-    printf("user-interaction-active\n");
-#endif
-    sUserIsActive = PR_TRUE;
-    higherProbability = (mUserActivityCounter > NS_CC_SOFT_LIMIT_ACTIVE);
-  } else if (!strcmp(aTopic, "xpcom-shutdown")) {
-    nsCOMPtr<nsIObserverService> obs =
-      do_GetService("@mozilla.org/observer-service;1");
-    if (obs) {
-      obs->RemoveObserver(this, "user-interaction-active");
-      obs->RemoveObserver(this, "user-interaction-inactive");
-      obs->RemoveObserver(this, "xpcom-shutdown");
-    }
-    return NS_OK;
-  }
-  nsJSContext::MaybeCC(higherProbability);
-  return NS_OK;
-}
-
-// nsCCMemoryPressureObserver observes the memory-pressure notifications
-// and forces a cycle collection when it happens.
-
-class nsCCMemoryPressureObserver : public nsIObserver
-{
-public:
-  NS_DECL_ISUPPORTS
-  NS_DECL_NSIOBSERVER
-};
-
-NS_IMPL_ISUPPORTS1(nsCCMemoryPressureObserver, nsIObserver)
-
-NS_IMETHODIMP
-nsCCMemoryPressureObserver::Observe(nsISupports* aSubject, const char* aTopic,
-                                    const PRUnichar* aData)
-{
-  nsJSContext::CC();
-  return NS_OK;
-}
-
-class nsJSVersionSetter {
-public:
-  nsJSVersionSetter(JSContext *aContext, PRUint32 aVersion);
-  ~nsJSVersionSetter();
-
-private:
-  JSContext* mContext;
-  uint32 mOldOptions;
-  JSVersion mOldVersion;
-  JSBool mOptionsChanged;
-};
-
-nsJSVersionSetter::nsJSVersionSetter(JSContext *aContext, PRUint32 aVersion)
-  : mContext(aContext)
-{
-  // JSVERSION_HAS_XML may be set in our version mask - however, we can't
-  // simply pass this directly to JS_SetOptions as it masks out that bit -
-  // the only way to make this happen is via JS_SetOptions.
-  JSBool hasxml = (aVersion & JSVERSION_HAS_XML) != 0;
-  mOldOptions = ::JS_GetOptions(mContext);
-  mOptionsChanged = ((hasxml) ^ !!(mOldOptions & JSOPTION_XML));
-
-  if (mOptionsChanged) {
-    ::JS_SetOptions(mContext,
-                    hasxml
-                    ? mOldOptions | JSOPTION_XML
-                    : mOldOptions & ~JSOPTION_XML);
-  }
-
-  // Change the version - this is cheap when the versions match, so no need
-  // to optimize here...
-  JSVersion newVer = (JSVersion)(aVersion & JSVERSION_MASK);
-  mOldVersion = ::JS_SetVersion(mContext, newVer);
-}
-
-nsJSVersionSetter::~nsJSVersionSetter()
-{
-  ::JS_SetVersion(mContext, mOldVersion);
-
-  if (mOptionsChanged) {
-      ::JS_SetOptions(mContext, mOldOptions);
-  }
-}
-
 
 /****************************************************************
  ************************** AutoFree ****************************
@@ -429,6 +272,10 @@ NS_ScriptErrorReporter(JSContext *cx,
                        const char *message,
                        JSErrorReport *report)
 {
+  NS_ASSERTION(message || report,
+               "Must have a message or a report; otherwise what are we "
+               "reporting?");
+  
   // XXX this means we are not going to get error reports on non DOM contexts
   nsIScriptContext *context = nsJSUtils::GetDynamicScriptContext(cx);
 
@@ -443,14 +290,16 @@ NS_ScriptErrorReporter(JSContext *cx,
 
     if (globalObject) {
       nsAutoString fileName, msg;
-      NS_NAMED_LITERAL_STRING(xoriginMsg, "Script error.");
 
-      fileName.AssignWithConversion(report->filename);
+      if (report) {
+        fileName.AssignWithConversion(report->filename);
 
-      const PRUnichar *m = reinterpret_cast<const PRUnichar*>
-                                             (report->ucmessage);
-      if (m) {
-        msg.Assign(m);
+        const PRUnichar *m = NS_REINTERPRET_CAST(const PRUnichar*,
+                                                 report->ucmessage);
+
+        if (m) {
+          msg.Assign(m);
+        }
       }
 
       if (msg.IsEmpty() && message) {
@@ -471,8 +320,9 @@ NS_ScriptErrorReporter(JSContext *cx,
         nsCOMPtr<nsPIDOMWindow> win(do_QueryInterface(globalObject));
         nsIDocShell *docShell = win ? win->GetDocShell() : nsnull;
         if (docShell &&
-            (report->errorNumber != JSMSG_OUT_OF_MEMORY &&
-              !JSREPORT_IS_WARNING(report->flags))) {
+            (!report ||
+             (report->errorNumber != JSMSG_OUT_OF_MEMORY &&
+              !JSREPORT_IS_WARNING(report->flags)))) {
           static PRInt32 errorDepth; // Recursion prevention
           ++errorDepth;
 
@@ -483,38 +333,8 @@ NS_ScriptErrorReporter(JSContext *cx,
             nsScriptErrorEvent errorevent(PR_TRUE, NS_LOAD_ERROR);
 
             errorevent.fileName = fileName.get();
-
-            nsCOMPtr<nsIScriptObjectPrincipal> sop(do_QueryInterface(win));
-            nsIPrincipal *p = sop->GetPrincipal();
-
-            PRBool sameOrigin = (report->filename == nsnull);
-
-            if (p && !sameOrigin) {
-              nsCOMPtr<nsIURI> errorURI;
-              NS_NewURI(getter_AddRefs(errorURI), report->filename);
-
-              nsCOMPtr<nsIURI> codebase;
-              p->GetURI(getter_AddRefs(codebase));
-
-              if (errorURI && codebase) {
-                // FIXME: Once error reports contain the origin of the
-                // error (principals) we should change this to do the
-                // security check based on the principals and not
-                // URIs. See bug 387476.
-                sameOrigin =
-                  NS_SUCCEEDED(sSecurityManager->
-                               CheckSameOriginURI(errorURI, codebase,
-                                                  PR_FALSE));
-              }
-            }
-
-            if (sameOrigin) {
-              errorevent.errorMsg = msg.get();
-              errorevent.lineNr = report->lineno;
-            } else {
-              errorevent.errorMsg = xoriginMsg.get();
-              errorevent.lineNr = 0;
-            }
+            errorevent.errorMsg = msg.get();
+            errorevent.lineNr = report ? report->lineno : 0;
 
             // Dispatch() must be synchronous for the recursion block
             // (errorDepth) to work.
@@ -547,13 +367,18 @@ NS_ScriptErrorReporter(JSContext *cx,
             ? "chrome javascript"
             : "content javascript";
 
-          PRUint32 column = report->uctokenptr - report->uclinebuf;
+          if (report) {
+            PRUint32 column = report->uctokenptr - report->uclinebuf;
 
-          rv = errorObject->Init(msg.get(), fileName.get(),
-                                 reinterpret_cast<const PRUnichar*>
-                                                 (report->uclinebuf),
-                                 report->lineno, column, report->flags,
-                                 category);
+            rv = errorObject->Init(msg.get(), fileName.get(),
+                                   NS_REINTERPRET_CAST(const PRUnichar*,
+                                                       report->uclinebuf),
+                                   report->lineno, column, report->flags,
+                                   category);
+          } else if (message) {
+            rv = errorObject->Init(msg.get(), nsnull, nsnull, 0, 0, 0,
+                                   category);
+          }
 
           if (NS_SUCCEEDED(rv)) {
             nsCOMPtr<nsIConsoleService> consoleService =
@@ -572,42 +397,49 @@ NS_ScriptErrorReporter(JSContext *cx,
   // mozilla with -console.
   nsCAutoString error;
   error.Assign("JavaScript ");
-  if (JSREPORT_IS_STRICT(report->flags))
-    error.Append("strict ");
-  if (JSREPORT_IS_WARNING(report->flags))
-    error.Append("warning: ");
-  else
-    error.Append("error: ");
-  error.Append(report->filename);
-  error.Append(", line ");
-  error.AppendInt(report->lineno, 10);
-  error.Append(": ");
-  if (report->ucmessage) {
-    AppendUTF16toUTF8(reinterpret_cast<const PRUnichar*>(report->ucmessage),
-                      error);
-  } else {
+  if (!report) {
+    error.Append("[no report]: ");
     error.Append(message);
+  } else {
+    if (JSREPORT_IS_STRICT(report->flags))
+      error.Append("strict ");
+    if (JSREPORT_IS_WARNING(report->flags))
+      error.Append("warning: ");
+    else
+      error.Append("error: ");
+    error.Append(report->filename);
+    error.Append(", line ");
+    error.AppendInt(report->lineno, 10);
+    error.Append(": ");
+    if (report->ucmessage) {
+      AppendUTF16toUTF8(NS_REINTERPRET_CAST(const PRUnichar*, report->ucmessage),
+                        error);
+    } else {
+      error.Append(message);
+    }
+    if (status != nsEventStatus_eIgnore && !JSREPORT_IS_WARNING(report->flags))
+      error.Append(" Error was suppressed by event handler\n");
   }
-  if (status != nsEventStatus_eIgnore && !JSREPORT_IS_WARNING(report->flags))
-    error.Append(" Error was suppressed by event handler\n");
   fprintf(stderr, "%s\n", error.get());
   fflush(stderr);
 #endif
 
 #ifdef PR_LOGGING
-  if (!gJSDiagnostics)
-    gJSDiagnostics = PR_NewLogModule("JSDiagnostics");
+  if (report) {
+    if (!gJSDiagnostics)
+      gJSDiagnostics = PR_NewLogModule("JSDiagnostics");
 
-  if (gJSDiagnostics) {
-    PR_LOG(gJSDiagnostics,
-           JSREPORT_IS_WARNING(report->flags) ? PR_LOG_WARNING : PR_LOG_ERROR,
-           ("file %s, line %u: %s\n%s%s",
-            report->filename, report->lineno, message,
-            report->linebuf ? report->linebuf : "",
-            (report->linebuf &&
-             report->linebuf[strlen(report->linebuf)-1] != '\n')
-            ? "\n"
-            : ""));
+    if (gJSDiagnostics) {
+      PR_LOG(gJSDiagnostics,
+             JSREPORT_IS_WARNING(report->flags) ? PR_LOG_WARNING : PR_LOG_ERROR,
+             ("file %s, line %u: %s\n%s%s",
+              report->filename, report->lineno, message,
+              report->linebuf ? report->linebuf : "",
+              (report->linebuf &&
+               report->linebuf[strlen(report->linebuf)-1] != '\n')
+              ? "\n"
+              : ""));
+    }
   }
 #endif
 }
@@ -670,7 +502,7 @@ LocaleToUnicode(JSContext *cx, char *src, jsval *rval)
             unichars = shrunkUnichars;
         }
         str = JS_NewUCString(cx,
-                             reinterpret_cast<jschar*>(unichars),
+                             NS_REINTERPRET_CAST(jschar*, unichars),
                              unicharLength);
       }
       if (!str)
@@ -779,8 +611,8 @@ JSObject2Win(JSContext *cx, JSObject *obj)
   if (wrapper) {
     nsCOMPtr<nsPIDOMWindow> win = do_QueryWrappedNative(wrapper);
     if (win) {
-      return static_cast<nsGlobalWindow *>
-                        (static_cast<nsPIDOMWindow *>(win));
+      return NS_STATIC_CAST(nsGlobalWindow *,
+                            NS_STATIC_CAST(nsPIDOMWindow *, win));
     }
   }
 
@@ -839,64 +671,71 @@ PrintWinCodebase(nsGlobalWindow *win)
 }
 #endif
 
-// The accumulated operation weight before we call MaybeGC
-const PRUint32 MAYBE_GC_OPERATION_WEIGHT = 5000 * JS_OPERATION_WEIGHT_BASE;
+// The number of branch callbacks between calls to JS_MaybeGC
+#define MAYBE_GC_BRANCH_COUNT_MASK 0x00000fff // 4095
 
-static void
-MaybeGC(JSContext *cx)
-{
-  size_t bytes = cx->runtime->gcBytes;
-  size_t lastBytes = cx->runtime->gcLastBytes;
+// The number of branch callbacks before we even check if our start
+// timestamp is initialized. This is a fairly low number as we want to
+// initialize the timestamp early enough to not waste much time before
+// we get there, but we don't want to bother doing this too early as
+// it's not generally necessary.
+#define INITIALIZE_TIME_BRANCH_COUNT_MASK 0x000000ff // 255
 
-  if ((bytes > 8192 && bytes / 16 > lastBytes)
-#ifdef DEBUG
-      || cx->runtime->gcZeal > 0
-#endif
-      ) {
-    ++sGCCount;
-    JS_GC(cx);
-  }
-}
-
+// This function is called after each JS branch execution
 JSBool JS_DLL_CALLBACK
-nsJSContext::DOMOperationCallback(JSContext *cx)
+nsJSContext::DOMBranchCallback(JSContext *cx, JSScript *script)
 {
   // Get the native context
-  nsJSContext *ctx = static_cast<nsJSContext *>(::JS_GetContextPrivate(cx));
+  nsJSContext *ctx = NS_STATIC_CAST(nsJSContext *, ::JS_GetContextPrivate(cx));
 
   if (!ctx) {
     // Can happen; see bug 355811
     return JS_TRUE;
   }
 
-  // XXX Save the operation callback time so we can restore it after the GC,
-  // because GCing can cause JS to run on our context, causing our
-  // ScriptEvaluated to be called, and clearing our operation callback time.
-  // See bug 302333.
-  PRTime callbackTime = ctx->mOperationCallbackTime;
+  PRUint32 callbackCount = ++ctx->mBranchCallbackCount;
 
-  MaybeGC(cx);
-
-  // Now restore the callback time and count, in case they got reset.
-  ctx->mOperationCallbackTime = callbackTime;
-
-  PRTime now = PR_Now();
-
-  if (LL_IS_ZERO(callbackTime)) {
-    // Initialize mOperationCallbackTime to start timing how long the
-    // script has run
-    ctx->mOperationCallbackTime = now;
+  if (callbackCount & INITIALIZE_TIME_BRANCH_COUNT_MASK) {
     return JS_TRUE;
   }
+
+  if (callbackCount == INITIALIZE_TIME_BRANCH_COUNT_MASK + 1 &&
+      LL_IS_ZERO(ctx->mBranchCallbackTime)) {
+    // Initialize mBranchCallbackTime to start timing how long the
+    // script has run
+    ctx->mBranchCallbackTime = PR_Now();
+
+    ctx->mIsTrackingChromeCodeTime =
+      ::JS_IsSystemObject(cx, ::JS_GetGlobalObject(cx));
+
+    return JS_TRUE;
+  }
+
+  if (callbackCount & MAYBE_GC_BRANCH_COUNT_MASK) {
+    return JS_TRUE;
+  }
+
+  // XXX Save the branch callback time so we can restore it after the GC,
+  // because GCing can cause JS to run on our context, causing our
+  // ScriptEvaluated to be called, and clearing our branch callback time and
+  // count. See bug 302333.
+  PRTime callbackTime = ctx->mBranchCallbackTime;
+
+  // Run the GC if we get this far.
+  JS_MaybeGC(cx);
+
+  // Now restore the callback time and count, in case they got reset.
+  ctx->mBranchCallbackTime = callbackTime;
+  ctx->mBranchCallbackCount = callbackCount;
+
+  PRTime now = PR_Now();
 
   PRTime duration;
   LL_SUB(duration, now, callbackTime);
 
   // Check the amount of time this script has been running, or if the
   // dialog is disabled.
-  PRBool isTrackingChromeCodeTime =
-    ::JS_IsSystemObject(cx, ::JS_GetGlobalObject(cx));
-  if (duration < (isTrackingChromeCodeTime ?
+  if (duration < (ctx->mIsTrackingChromeCodeTime ?
                   sMaxChromeScriptRunTime : sMaxScriptRunTime)) {
     return JS_TRUE;
   }
@@ -921,9 +760,7 @@ nsJSContext::DOMOperationCallback(JSContext *cx)
   nsresult rv;
 
   // Check if we should offer the option to debug
-  JSStackFrame* fp = ::JS_GetScriptedCaller(cx, NULL);
-  PRBool debugPossible = (fp != nsnull &&
-                          cx->debugHooks->debuggerHandler != nsnull);
+  PRBool debugPossible = (cx->runtime && cx->runtime->debuggerHandler);
 #ifdef MOZ_JSDEBUGGER
   // Get the debugger service if necessary.
   if (debugPossible) {
@@ -990,36 +827,6 @@ nsJSContext::DOMOperationCallback(JSContext *cx)
     return JS_TRUE;
   }
 
-  // Append file and line number information, if available
-  JSScript *script = fp ? ::JS_GetFrameScript(cx, fp) : nsnull;
-  if (script) {
-    const char *filename = ::JS_GetScriptFilename(cx, script);
-    if (filename) {
-      nsXPIDLString scriptLocation;
-      NS_ConvertUTF8toUTF16 filenameUTF16(filename);
-      const PRUnichar *formatParams[] = { filenameUTF16.get() };
-      rv = bundle->FormatStringFromName(NS_LITERAL_STRING("KillScriptLocation").get(),
-                                        formatParams, 1,
-                                        getter_Copies(scriptLocation));
-
-      if (NS_SUCCEEDED(rv) && scriptLocation) {
-        msg.AppendLiteral("\n\n");
-        msg.Append(scriptLocation);
-
-        JSStackFrame *fp, *iterator = nsnull;
-        fp = ::JS_FrameIterator(cx, &iterator);
-        if (fp) {
-          jsbytecode *pc = ::JS_GetFramePC(cx, fp);
-          if (pc) {
-            PRUint32 lineno = ::JS_PCToLineNumber(cx, script, pc);
-            msg.Append(':');
-            msg.AppendInt(lineno);
-          }
-        }
-      }
-    }
-  }
-
   PRInt32 buttonPressed = 1; //In case user exits dialog by clicking X
   PRBool neverShowDlgChk = PR_FALSE;
   PRUint32 buttonFlags = (nsIPrompt::BUTTON_TITLE_IS_STRING *
@@ -1041,24 +848,22 @@ nsJSContext::DOMOperationCallback(JSContext *cx)
       nsIPrefBranch *prefBranch = nsContentUtils::GetPrefBranch();
 
       if (prefBranch) {
-        prefBranch->SetIntPref(isTrackingChromeCodeTime ?
+        prefBranch->SetIntPref(ctx->mIsTrackingChromeCodeTime ?
                                "dom.max_chrome_script_run_time" :
                                "dom.max_script_run_time", 0);
       }
     }
 
-    ctx->mOperationCallbackTime = PR_Now();
+    ctx->mBranchCallbackTime = PR_Now();
     return JS_TRUE;
   }
   else if ((buttonPressed == 2) && debugPossible) {
     // Debug the script
     jsval rval;
-    switch(cx->debugHooks->debuggerHandler(cx, script, ::JS_GetFramePC(cx, fp),
-                                           &rval,
-                                           cx->debugHooks->
-                                           debuggerHandlerData)) {
+    switch(cx->runtime->debuggerHandler(cx, script, cx->fp->pc, &rval, 
+                                        cx->runtime->debuggerHandlerData)) {
       case JSTRAP_RETURN:
-        fp->rval = rval;
+        cx->fp->rval = rval;
         return JS_TRUE;
       case JSTRAP_ERROR:
         cx->throwing = JS_FALSE;
@@ -1080,15 +885,11 @@ nsJSContext::DOMOperationCallback(JSContext *cx)
 static const char js_options_dot_str[]   = JS_OPTIONS_DOT_STR;
 static const char js_strict_option_str[] = JS_OPTIONS_DOT_STR "strict";
 static const char js_werror_option_str[] = JS_OPTIONS_DOT_STR "werror";
-static const char js_relimit_option_str[]= JS_OPTIONS_DOT_STR "relimit";
-#ifdef JS_GC_ZEAL
-static const char js_zeal_option_str[]   = JS_OPTIONS_DOT_STR "gczeal";
-#endif
 
 int PR_CALLBACK
 nsJSContext::JSOptionChangedCallback(const char *pref, void *data)
 {
-  nsJSContext *context = reinterpret_cast<nsJSContext *>(data);
+  nsJSContext *context = NS_REINTERPRET_CAST(nsJSContext *, data);
   PRUint32 oldDefaultJSOptions = context->mDefaultJSOptions;
   PRUint32 newDefaultJSOptions = oldDefaultJSOptions;
 
@@ -1098,29 +899,11 @@ nsJSContext::JSOptionChangedCallback(const char *pref, void *data)
   else
     newDefaultJSOptions &= ~JSOPTION_STRICT;
 
-#ifdef DEBUG
-  // In debug builds, warnings are always enabled in chrome context
-  // Note this callback is also called from context's InitClasses thus we don't
-  // need to enable this directly from InitContext
-  if ((newDefaultJSOptions & JSOPTION_STRICT) == 0) {
-    nsIScriptGlobalObject *global = context->GetGlobalObject();
-    nsCOMPtr<nsIDOMChromeWindow> chromeWindow(do_QueryInterface(global));
-    if (chromeWindow)
-      newDefaultJSOptions |= JSOPTION_STRICT;
-  }
-#endif
-
   PRBool werror = nsContentUtils::GetBoolPref(js_werror_option_str);
   if (werror)
     newDefaultJSOptions |= JSOPTION_WERROR;
   else
     newDefaultJSOptions &= ~JSOPTION_WERROR;
-
-  PRBool relimit = nsContentUtils::GetBoolPref(js_relimit_option_str);
-  if (relimit)
-    newDefaultJSOptions |= JSOPTION_RELIMIT;
-  else
-    newDefaultJSOptions &= ~JSOPTION_RELIMIT;
 
   if (newDefaultJSOptions != oldDefaultJSOptions) {
     // Set options only if we used the old defaults; otherwise the page has
@@ -1131,13 +914,6 @@ nsJSContext::JSOptionChangedCallback(const char *pref, void *data)
     // Save the new defaults for the next page load (InitContext).
     context->mDefaultJSOptions = newDefaultJSOptions;
   }
-
-#ifdef JS_GC_ZEAL
-  PRInt32 zeal = nsContentUtils::GetIntPref(js_zeal_option_str, -1);
-  if (zeal >= 0)
-    ::JS_SetGCZeal(context->mContext, (PRUint8)zeal);
-#endif
-
   return 0;
 }
 
@@ -1146,7 +922,12 @@ nsJSContext::nsJSContext(JSRuntime *aRuntime) : mGCOnDestruction(PR_TRUE)
 
   ++sContextCount;
 
-  mDefaultJSOptions = JSOPTION_PRIVATE_IS_NSISUPPORTS | JSOPTION_ANONFUNFIX;
+  mDefaultJSOptions = JSOPTION_PRIVATE_IS_NSISUPPORTS
+                    | JSOPTION_NATIVE_BRANCH_CALLBACK
+#ifdef DEBUG
+                    | JSOPTION_STRICT   // lint catching for development
+#endif
+    ;
 
   // Let xpconnect resync its JSContext tracker. We do this before creating
   // a new JSContext just in case the heap manager recycles the JSContext
@@ -1155,18 +936,18 @@ nsJSContext::nsJSContext(JSRuntime *aRuntime) : mGCOnDestruction(PR_TRUE)
 
   mContext = ::JS_NewContext(aRuntime, gStackSize);
   if (mContext) {
-    ::JS_SetContextPrivate(mContext, static_cast<nsIScriptContext *>(this));
+    ::JS_SetContextPrivate(mContext, NS_STATIC_CAST(nsIScriptContext *, this));
 
     // Make sure the new context gets the default context options
     ::JS_SetOptions(mContext, mDefaultJSOptions);
 
-    // Watch for the JS boolean options
+    // Check for the JS strict option, which enables extra error checks
     nsContentUtils::RegisterPrefCallback(js_options_dot_str,
                                          JSOptionChangedCallback,
                                          this);
+    JSOptionChangedCallback(js_options_dot_str, this);
 
-    ::JS_SetOperationCallback(mContext, DOMOperationCallback,
-                              MAYBE_GC_OPERATION_WEIGHT);
+    ::JS_SetBranchCallback(mContext, DOMBranchCallback);
 
     static JSLocaleCallbacks localeCallbacks =
       {
@@ -1182,44 +963,27 @@ nsJSContext::nsJSContext(JSRuntime *aRuntime) : mGCOnDestruction(PR_TRUE)
   mNumEvaluations = 0;
   mTerminations = nsnull;
   mScriptsEnabled = PR_TRUE;
-  mOperationCallbackTime = LL_ZERO;
+  mBranchCallbackCount = 0;
+  mBranchCallbackTime = LL_ZERO;
   mProcessingScriptTag = PR_FALSE;
+  mIsTrackingChromeCodeTime = PR_FALSE;
+
+  InvalidateContextAndWrapperCache();
 }
 
 nsJSContext::~nsJSContext()
 {
-#ifdef DEBUG
-  nsCycleCollector_DEBUG_wasFreed(static_cast<nsIScriptContext*>(this));
-#endif
   NS_PRECONDITION(!mTerminations, "Shouldn't have termination funcs by now");
-
-  Unlink();
-
-  --sContextCount;
-
-  if (!sContextCount && sDidShutdown) {
-    // The last context is being deleted, and we're already in the
-    // process of shutting down, release the JS runtime service, and
-    // the security manager.
-
-    NS_IF_RELEASE(sRuntimeService);
-    NS_IF_RELEASE(sSecurityManager);
-    NS_IF_RELEASE(gCollation);
-    NS_IF_RELEASE(gDecoder);
-  }
-}
-
-void
-nsJSContext::Unlink()
-{
+                  
+  // Cope with JS_NewContext failure in ctor (XXXbe move NewContext to Init?)
   if (!mContext)
     return;
 
   // Clear our entry in the JSContext, bugzilla bug 66413
   ::JS_SetContextPrivate(mContext, nsnull);
 
-  // Clear the operation callback, bugzilla bug 238218
-  ::JS_ClearOperationCallback(mContext);
+  // Clear the branch callback, bugzilla bug 238218
+  ::JS_SetBranchCallback(mContext, nsnull);
 
   // Unregister our "javascript.options.*" pref-changed callback.
   nsContentUtils::UnregisterPrefCallback(js_options_dot_str,
@@ -1238,26 +1002,36 @@ nsJSContext::Unlink()
   } else {
     ::JS_DestroyContext(mContext);
   }
-  mContext = nsnull;
+
+  --sContextCount;
+
+  if (!sContextCount && sDidShutdown) {
+    // The last context is being deleted, and we're already in the
+    // process of shutting down, release the JS runtime service, and
+    // the security manager.
+
+    NS_IF_RELEASE(sRuntimeService);
+    NS_IF_RELEASE(sSecurityManager);
+    NS_IF_RELEASE(gCollation);
+    NS_IF_RELEASE(gDecoder);
+  }
 }
 
 // QueryInterface implementation for nsJSContext
 NS_IMPL_CYCLE_COLLECTION_CLASS(nsJSContext)
-NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN(nsJSContext)
-  NS_IMPL_CYCLE_COLLECTION_UNLINK_NSCOMPTR(mGlobalWrapperRef)
-  tmp->Unlink();
-  tmp->mIsInitialized = PR_FALSE;
-NS_IMPL_CYCLE_COLLECTION_UNLINK_END
+// XXX Should we call ClearScope here?
+NS_IMPL_CYCLE_COLLECTION_UNLINK_0(nsJSContext)
 NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN(nsJSContext)
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mGlobalWrapperRef)
-  nsContentUtils::XPConnect()->NoteJSContext(tmp->mContext, cb);
+  cb.NoteScriptChild(JAVASCRIPT, ::JS_GetGlobalObject(tmp->mContext));
 NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
 
-NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION(nsJSContext)
+NS_INTERFACE_MAP_BEGIN(nsJSContext)
   NS_INTERFACE_MAP_ENTRY(nsIScriptContext)
   NS_INTERFACE_MAP_ENTRY(nsIXPCScriptNotify)
   NS_INTERFACE_MAP_ENTRY(nsITimerCallback)
   NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIScriptContext)
+  NS_INTERFACE_MAP_ENTRIES_CYCLE_COLLECTION(nsJSContext)
 NS_INTERFACE_MAP_END
 
 
@@ -1334,12 +1108,29 @@ nsJSContext::EvaluateStringWithValue(const nsAString& aScript,
   nsJSContext::TerminationFuncHolder holder(this);
 
   // SecurityManager said "ok", but don't compile if aVersion is unknown.
-  // Since the caller is responsible for parsing the version strings, we just
+  // Do compile with the default version (and avoid thrashing the context's
+  // version) if aVersion is the default.
+  // As the caller is responsible for parsing the version strings, we just
   // check it isn't JSVERSION_UNKNOWN.
   if (ok && ((JSVersion)aVersion) != JSVERSION_UNKNOWN) {
+    // JSVERSION_HAS_XML may be set in our version mask - however, we can't
+    // simply pass this directly to JS_SetOptions as it masks out that bit -
+    // the only way to make this happen is via JS_SetOptions.
+    JSBool hasxml = (aVersion & JSVERSION_HAS_XML) != 0;
+    uint32 jsoptions = ::JS_GetOptions(mContext);
+    JSBool optionsChanged = ((hasxml) ^ !!(jsoptions & JSOPTION_XML));
 
+    if (optionsChanged) {
+      ::JS_SetOptions(mContext,
+                      hasxml
+                      ? jsoptions | JSOPTION_XML
+                      : jsoptions & ~JSOPTION_XML);
+    }
+    // Change the version - this is cheap when the versions match, so no need
+    // to optimize here...
+    JSVersion newVer = (JSVersion)(aVersion & JSVERSION_MASK);
+    JSVersion oldVer = ::JS_SetVersion(mContext, newVer);
     JSAutoRequest ar(mContext);
-    nsJSVersionSetter setVersion(mContext, aVersion);
 
     ok = ::JS_EvaluateUCScriptForPrincipals(mContext,
                                             (JSObject *)aScopeObject,
@@ -1349,6 +1140,12 @@ nsJSContext::EvaluateStringWithValue(const nsAString& aScript,
                                             aURL,
                                             aLineNo,
                                             &val);
+
+    ::JS_SetVersion(mContext, oldVer);
+
+    if (optionsChanged) {
+      ::JS_SetOptions(mContext, jsoptions);
+    }
 
     if (!ok) {
         // Tell XPConnect about any pending exceptions. This is needed
@@ -1368,7 +1165,7 @@ nsJSContext::EvaluateStringWithValue(const nsAString& aScript,
       *aIsUndefined = JSVAL_IS_VOID(val);
     }
 
-    *static_cast<jsval*>(aRetValue) = val;
+    *NS_STATIC_CAST(jsval*, aRetValue) = val;
     // XXX - nsScriptObjectHolder should be used once this method moves to
     // the new world order. However, use of 'jsval' appears to make this
     // tricky...
@@ -1406,8 +1203,8 @@ JSValueToAString(JSContext *cx, jsval val, nsAString *result,
 
   JSString* jsstring = ::JS_ValueToString(cx, val);
   if (jsstring) {
-    result->Assign(reinterpret_cast<const PRUnichar*>
-                                   (::JS_GetStringChars(jsstring)),
+    result->Assign(NS_REINTERPRET_CAST(const PRUnichar*,
+                                       ::JS_GetStringChars(jsstring)),
                    ::JS_GetStringLength(jsstring));
   } else {
     result->Truncate();
@@ -1504,21 +1301,37 @@ nsJSContext::EvaluateString(const nsAString& aScript,
   }
 
   // The result of evaluation, used only if there were no errors.  This need
-  // not be a GC root currently, provided we run the GC only from the
-  // operation callback or from ScriptEvaluated.
-  //
-  // TODO: use JS_Begin/EndRequest to keep the GC from racing with JS
-  // execution on any thread.
+  // not be a GC root currently, provided we run the GC only from the branch
+  // callback or from ScriptEvaluated.  TODO: use JS_Begin/EndRequest to keep
+  // the GC from racing with JS execution on any thread.
   jsval val;
 
   nsJSContext::TerminationFuncHolder holder(this);
 
   // SecurityManager said "ok", but don't compile if aVersion is unknown.
-  // Since the caller is responsible for parsing the version strings, we just
+  // Do compile with the default version (and avoid thrashing the context's
+  // version) if aVersion is the default.
+  // As the caller is responsible for parsing the version strings, we just
   // check it isn't JSVERSION_UNKNOWN.
   if (ok && ((JSVersion)aVersion) != JSVERSION_UNKNOWN) {
     JSAutoRequest ar(mContext);
-    nsJSVersionSetter setVersion(mContext, aVersion);
+    // JSVERSION_HAS_XML may be set in our version mask - however, we can't
+    // simply pass this directly to JS_SetOptions as it masks out that bit -
+    // the only way to make this happen is via JS_SetOptions.
+    JSBool hasxml = (aVersion & JSVERSION_HAS_XML) != 0;
+    uint32 jsoptions = ::JS_GetOptions(mContext);
+    JSBool optionsChanged = ((hasxml) ^ !!(jsoptions & JSOPTION_XML));
+
+    if (optionsChanged) {
+      ::JS_SetOptions(mContext,
+                      hasxml
+                      ? jsoptions | JSOPTION_XML
+                      : jsoptions & ~JSOPTION_XML);
+    }
+    // Change the version - this is cheap when the versions match, so no need
+    // to optimize here...
+    JSVersion newVer = (JSVersion)(aVersion & JSVERSION_MASK);
+    JSVersion oldVer = ::JS_SetVersion(mContext, newVer);
 
     ok = ::JS_EvaluateUCScriptForPrincipals(mContext,
                                               (JSObject *)aScopeObject,
@@ -1529,12 +1342,18 @@ nsJSContext::EvaluateString(const nsAString& aScript,
                                               aLineNo,
                                               &val);
 
-    if (!ok) {
-      // Tell XPConnect about any pending exceptions. This is needed
-      // to avoid dropping JS exceptions in case we got here through
-      // nested calls through XPConnect.
+    ::JS_SetVersion(mContext, oldVer);
 
-      JS_ReportPendingException(mContext);
+    if (optionsChanged) {
+      ::JS_SetOptions(mContext, jsoptions);
+    }
+
+    if (!ok) {
+        // Tell XPConnect about any pending exceptions. This is needed
+        // to avoid dropping JS exceptions in case we got here through
+        // nested calls through XPConnect.
+
+        nsContentUtils::NotifyXPCIfExceptionPending(mContext);
     }
   }
 
@@ -1599,11 +1418,29 @@ nsJSContext::CompileScript(const PRUnichar* aText,
   aScriptObject.drop(); // ensure old object not used on failure...
 
   // SecurityManager said "ok", but don't compile if aVersion is unknown.
-  // Since the caller is responsible for parsing the version strings, we just
+  // Do compile with the default version (and avoid thrashing the context's
+  // version) if aVersion is the default.
+  // As the caller is responsible for parsing the version strings, we just
   // check it isn't JSVERSION_UNKNOWN.
   if (ok && ((JSVersion)aVersion) != JSVERSION_UNKNOWN) {
+    // JSVERSION_HAS_XML may be set in our version mask - however, we can't
+    // simply pass this directly to JS_SetOptions as it masks out that bit -
+    // the only way to make this happen is via JS_SetOptions.
     JSAutoRequest ar(mContext);
-    nsJSVersionSetter setVersion(mContext, aVersion);
+    JSBool hasxml = (aVersion & JSVERSION_HAS_XML) != 0;
+    uint32 jsoptions = ::JS_GetOptions(mContext);
+    JSBool optionsChanged = ((hasxml) ^ !!(jsoptions & JSOPTION_XML));
+
+    if (optionsChanged) {
+      ::JS_SetOptions(mContext,
+                      hasxml
+                      ? jsoptions | JSOPTION_XML
+                      : jsoptions & ~JSOPTION_XML);
+    }
+    // Change the version - this is cheap when the versions match, so no need
+    // to optimize here...
+    JSVersion newVer = (JSVersion)(aVersion & JSVERSION_MASK);
+    JSVersion oldVer = ::JS_SetVersion(mContext, newVer);
 
     JSScript* script =
         ::JS_CompileUCScriptForPrincipals(mContext,
@@ -1623,8 +1460,13 @@ nsJSContext::CompileScript(const PRUnichar* aText,
         ::JS_DestroyScript(mContext, script);
         script = nsnull;
       }
-    } else {
+    } else
       rv = NS_ERROR_OUT_OF_MEMORY;
+
+    ::JS_SetVersion(mContext, oldVer);
+
+    if (optionsChanged) {
+      ::JS_SetOptions(mContext, jsoptions);
     }
   }
 
@@ -1667,8 +1509,9 @@ nsJSContext::ExecuteScript(void *aScriptObject,
   }
 
   // The result of evaluation, used only if there were no errors.  This need
-  // not be a GC root currently, provided we run the GC only from the
-  // operation callback or from ScriptEvaluated.
+  // not be a GC root currently, provided we run the GC only from the branch
+  // callback or from ScriptEvaluated.  TODO: use JS_Begin/EndRequest to keep
+  // the GC from racing with JS execution on any thread.
   jsval val;
   JSBool ok;
 
@@ -1676,7 +1519,7 @@ nsJSContext::ExecuteScript(void *aScriptObject,
   JSAutoRequest ar(mContext);
   ok = ::JS_ExecuteScript(mContext,
                           (JSObject *)aScopeObject,
-                          (JSScript*)::JS_GetPrivate(mContext,
+                          (JSScript*) ::JS_GetPrivate(mContext,
                           (JSObject*)aScriptObject),
                           &val);
 
@@ -1764,7 +1607,6 @@ nsJSContext::CompileEventHandler(nsIAtom *aName,
                                  const char** aArgNames,
                                  const nsAString& aBody,
                                  const char *aURL, PRUint32 aLineNo,
-                                 PRUint32 aVersion,
                                  nsScriptObjectHolder &aHandler)
 {
   NS_ENSURE_TRUE(mIsInitialized, NS_ERROR_NOT_INITIALIZED);
@@ -1776,20 +1618,12 @@ nsJSContext::CompileEventHandler(nsIAtom *aName,
     return NS_ERROR_UNEXPECTED;
   }
 
-  // Don't compile if aVersion is unknown.  Since the caller is responsible for
-  // parsing the version strings, we just check it isn't JSVERSION_UNKNOWN.
-  if ((JSVersion)aVersion == JSVERSION_UNKNOWN) {
-    return NS_ERROR_ILLEGAL_VALUE;
-  }
-
   const char *charName = AtomToEventHandlerName(aName);
 
   // Event handlers are always shared, and must be bound before use.
   // Therefore we never bother compiling with principals.
   // (that probably means we should avoid JS_CompileUCFunctionForPrincipals!)
   JSAutoRequest ar(mContext);
-  nsJSVersionSetter setVersion(mContext, aVersion);
-
   JSFunction* fun =
       ::JS_CompileUCFunctionForPrincipals(mContext,
                                           nsnull, nsnull,
@@ -1799,7 +1633,7 @@ nsJSContext::CompileEventHandler(nsIAtom *aName,
                                           aURL, aLineNo);
 
   if (!fun) {
-    return NS_ERROR_ILLEGAL_VALUE;
+    return NS_ERROR_FAILURE;
   }
 
   JSObject *handler = ::JS_GetFunctionObject(fun);
@@ -1818,17 +1652,10 @@ nsJSContext::CompileFunction(void* aTarget,
                              const nsAString& aBody,
                              const char* aURL,
                              PRUint32 aLineNo,
-                             PRUint32 aVersion,
                              PRBool aShared,
                              void** aFunctionObject)
 {
   NS_ENSURE_TRUE(mIsInitialized, NS_ERROR_NOT_INITIALIZED);
-
-  // Don't compile if aVersion is unknown.  Since the caller is responsible for
-  // parsing the version strings, we just check it isn't JSVERSION_UNKNOWN.
-  if ((JSVersion)aVersion == JSVERSION_UNKNOWN) {
-    return NS_ERROR_ILLEGAL_VALUE;
-  }
 
   JSPrincipals *jsprin = nsnull;
 
@@ -1847,7 +1674,6 @@ nsJSContext::CompileFunction(void* aTarget,
   JSObject *target = (JSObject*)aTarget;
 
   JSAutoRequest ar(mContext);
-  nsJSVersionSetter setVersion(mContext, aVersion);
 
   JSFunction* fun =
       ::JS_CompileUCFunctionForPrincipals(mContext,
@@ -1878,7 +1704,6 @@ nsJSContext::CallEventHandler(nsISupports* aTarget, void *aScope, void *aHandler
   if (!mScriptsEnabled) {
     return NS_OK;
   }
-
   nsresult rv;
   JSObject* target = nsnull;
   nsAutoGCRoot root(&target, &rv);
@@ -1915,7 +1740,7 @@ nsJSContext::CallEventHandler(nsISupports* aTarget, void *aScope, void *aHandler
             global->GetScriptContext(JAVASCRIPT);
           if (context && context != this) {
             JSContext* cx =
-              static_cast<JSContext*>(context->GetNativeContext());
+              NS_STATIC_CAST(JSContext*, context->GetNativeContext());
             rv = stack->Push(cx);
             if (NS_SUCCEEDED(rv)) {
               rv = sSecurityManager->CheckFunctionAccess(cx, aHandler,
@@ -1948,7 +1773,7 @@ nsJSContext::CallEventHandler(nsISupports* aTarget, void *aScope, void *aHandler
     // right scope anyway, and we want to make sure that the arguments end up
     // in the same scope as aTarget.
     rv = ConvertSupportsTojsvals(aargv, target, &argc,
-                                 reinterpret_cast<void **>(&argv), &mark);
+                                 NS_REINTERPRET_CAST(void **, &argv), &mark);
     if (NS_FAILED(rv)) {
       stack->Pop(nsnull);
       return rv;
@@ -1966,9 +1791,7 @@ nsJSContext::CallEventHandler(nsISupports* aTarget, void *aScope, void *aHandler
       // to avoid dropping JS exceptions in case we got here through
       // nested calls through XPConnect.
 
-      if (JS_IsExceptionPending(mContext)) {
-        JS_ReportPendingException(mContext);
-      }
+      nsContentUtils::NotifyXPCIfExceptionPending(mContext);
 
       // Don't pass back results from failed calls.
       rval = JSVAL_VOID;
@@ -1985,10 +1808,7 @@ nsJSContext::CallEventHandler(nsISupports* aTarget, void *aScope, void *aHandler
   // we would need to root rval.
   JSAutoRequest ar(mContext);
   if (NS_SUCCEEDED(rv)) {
-    if (rval == JSVAL_NULL)
-      *arv = nsnull;
-    else
-      rv = nsContentUtils::XPConnect()->JSToVariant(mContext, rval, arv);
+    rv = nsContentUtils::XPConnect()->JSToVariant(mContext, rval, arv);
   }
 
   // ScriptEvaluated needs to come after we pop the stack
@@ -2016,8 +1836,6 @@ nsJSContext::BindCompiledEventHandler(nsISupports* aTarget, void *aScope,
   NS_ENSURE_SUCCESS(rv, rv);
 
   JSObject *funobj = (JSObject*) aHandler;
-  
-  JSAutoRequest ar(mContext);
 
   NS_ASSERTION(JS_TypeOfValue(mContext, OBJECT_TO_JSVAL(funobj)) == JSTYPE_FUNCTION,
                "Event handler object not a function");
@@ -2029,6 +1847,8 @@ nsJSContext::BindCompiledEventHandler(nsISupports* aTarget, void *aScope,
   if (NS_FAILED(rv) || NS_FAILED(stack->Push(mContext))) {
     return NS_ERROR_FAILURE;
   }
+
+  JSAutoRequest ar(mContext);
 
   // Make sure the handler function is parented by its event target object
   if (funobj) { // && ::JS_GetParent(mContext, funobj) != target) {
@@ -2072,9 +1892,9 @@ nsJSContext::GetBoundEventHandler(nsISupports* aTarget, void *aScope,
 
     jsval funval;
     if (!JS_LookupProperty(mContext, obj, 
-                           charName, &funval))
+                             charName, &funval))
         return NS_ERROR_FAILURE;
-    
+
     if (JS_TypeOfValue(mContext, funval) != JSTYPE_FUNCTION) {
         NS_WARNING("Event handler object not a function");
         aHandler.drop();
@@ -2102,8 +1922,8 @@ nsJSContext::Serialize(nsIObjectOutputStream* aStream, void *aScriptObject)
     xdr->userdata = (void*) aStream;
 
     JSAutoRequest ar(cx);
-    JSScript *script = reinterpret_cast<JSScript*>
-                                       (::JS_GetPrivate(cx, mJSObject));
+    JSScript *script = NS_REINTERPRET_CAST(JSScript*,
+                                           ::JS_GetPrivate(cx, mJSObject));
     if (! ::JS_XDRScript(xdr, &script)) {
         rv = NS_ERROR_FAILURE;  // likely to be a principals serialization error
     } else {
@@ -2122,8 +1942,8 @@ nsJSContext::Serialize(nsIObjectOutputStream* aStream, void *aScriptObject)
         // one last buffer of data to write to aStream.
 
         uint32 size;
-        const char* data = reinterpret_cast<const char*>
-                                           (::JS_XDRMemGetData(xdr, &size));
+        const char* data = NS_REINTERPRET_CAST(const char*,
+                                               ::JS_XDRMemGetData(xdr, &size));
         NS_ASSERTION(data, "no decoded JSXDRState data!");
 
         rv = aStream->Write32(size);
@@ -2208,11 +2028,6 @@ nsJSContext::Deserialize(nsIObjectInputStream* aStream,
         nsMemory::Free(data);
     NS_ASSERTION(aResult.getScriptTypeID()==JAVASCRIPT,
                  "Expecting JS script object holder");
-
-    // Now that we've cleaned up, handle the case when rv is a failure
-    // code, which could happen for all sorts of reasons above.
-    NS_ENSURE_SUCCESS(rv, rv);
-    
     return aResult.set(result);
 }
 
@@ -2283,7 +2098,7 @@ nsJSContext::CreateNativeGlobalForInner(
                                           getter_AddRefs(jsholder));
   if (NS_FAILED(rv))
     return rv;
-  jsholder->GetJSObject(reinterpret_cast<JSObject **>(aNativeGlobal));
+  jsholder->GetJSObject(NS_REINTERPRET_CAST(JSObject **, aNativeGlobal));
   *aHolder = jsholder.get();
   NS_ADDREF(*aHolder);
   return NS_OK;
@@ -2347,6 +2162,18 @@ nsJSContext::InitContext(nsIScriptGlobalObject *aGlobalObject)
   if (!mContext)
     return NS_ERROR_OUT_OF_MEMORY;
 
+  InvalidateContextAndWrapperCache();
+
+  nsresult rv;
+
+  if (!gNameSpaceManager) {
+    gNameSpaceManager = new nsScriptNameSpaceManager;
+    NS_ENSURE_TRUE(gNameSpaceManager, NS_ERROR_OUT_OF_MEMORY);
+
+    rv = gNameSpaceManager->Init();
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
+
   ::JS_SetErrorReporter(mContext, NS_ScriptErrorReporter);
 
   if (!aGlobalObject) {
@@ -2364,16 +2191,14 @@ nsJSContext::InitContext(nsIScriptGlobalObject *aGlobalObject)
   // If there's already a global object in mContext we won't tell
   // XPConnect to wrap aGlobalObject since it's already wrapped.
 
-  nsresult rv;
-
   if (!global) {
     nsCOMPtr<nsIDOMChromeWindow> chromeWindow(do_QueryInterface(aGlobalObject));
     PRUint32 flags = 0;
     
     if (chromeWindow) {
-      // Flag this window's global object and objects under it as "system",
-      // for optional automated XPCNativeWrapper construction when chrome JS
-      // views a content DOM.
+      // Flag this object and scripts compiled against it as "system", for
+      // optional automated XPCNativeWrapper construction when chrome views
+      // a content DOM.
       flags = nsIXPConnect::FLAG_SYSTEM_GLOBAL_OBJECT;
 
       // Always enable E4X for XUL and other chrome content -- there is no
@@ -2437,10 +2262,39 @@ nsJSContext::InitContext(nsIScriptGlobalObject *aGlobalObject)
 nsresult
 nsJSContext::InitializeExternalClasses()
 {
-  nsScriptNameSpaceManager *nameSpaceManager = nsJSRuntime::GetNameSpaceManager();
-  NS_ENSURE_TRUE(nameSpaceManager, NS_ERROR_NOT_INITIALIZED);
+  NS_ENSURE_TRUE(gNameSpaceManager, NS_ERROR_NOT_INITIALIZED);
 
-  return nameSpaceManager->InitForContext(this);
+  return gNameSpaceManager->InitForContext(this);
+}
+
+nsresult
+nsJSContext::InitializeLiveConnectClasses(JSObject *aGlobalObj)
+{
+  nsresult rv = NS_OK;
+
+#ifdef OJI
+  nsCOMPtr<nsIJVMManager> jvmManager =
+    do_GetService(nsIJVMManager::GetCID(), &rv);
+
+  if (NS_SUCCEEDED(rv) && jvmManager) {
+    PRBool javaEnabled = PR_FALSE;
+
+    rv = jvmManager->GetJavaEnabled(&javaEnabled);
+
+    if (NS_SUCCEEDED(rv) && javaEnabled) {
+      nsCOMPtr<nsILiveConnectManager> liveConnectManager =
+        do_QueryInterface(jvmManager);
+
+      if (liveConnectManager) {
+        JSAutoRequest ar(mContext);
+        rv = liveConnectManager->InitLiveConnectClasses(mContext, aGlobalObj);
+      }
+    }
+  }
+#endif /* OJI */
+
+  // return all is well until things are stable.
+  return NS_OK;
 }
 
 nsresult
@@ -2451,31 +2305,20 @@ nsJSContext::SetProperty(void *aTarget, const char *aPropName, nsISupports *aArg
   void *mark;
 
   JSAutoRequest ar(mContext);
-
+  
   nsresult rv;
   rv = ConvertSupportsTojsvals(aArgs, GetNativeGlobal(), &argc,
-                               reinterpret_cast<void **>(&argv), &mark);
+                               NS_REINTERPRET_CAST(void **, &argv), &mark);
   NS_ENSURE_SUCCESS(rv, rv);
   AutoFreeJSStack stackGuard(mContext, mark); // ensure always freed.
 
-  jsval vargs;
+  // got the array, now attach it.
+  JSObject *args = ::JS_NewArrayObject(mContext, argc, argv);
+  jsval vargs = OBJECT_TO_JSVAL(args);
 
-  // got the arguments, now attach them.
-
-  // window.dialogArguments is supposed to be an array if a JS array
-  // was passed to showModalDialog(), deal with that here.
-  if (strcmp(aPropName, "dialogArguments") == 0 && argc <= 1) {
-    vargs = argc ? argv[0] : JSVAL_VOID;
-  } else {
-    JSObject *args = ::JS_NewArrayObject(mContext, argc, argv);
-    vargs = OBJECT_TO_JSVAL(args);
-  }
-
-  // Make sure to use JS_DefineProperty here so that we can override
-  // readonly XPConnect properties here as well (read dialogArguments).
-  rv = ::JS_DefineProperty(mContext, reinterpret_cast<JSObject *>(aTarget),
-                           aPropName, vargs, nsnull, nsnull, 0) ?
+  rv = ::JS_SetProperty(mContext, NS_REINTERPRET_CAST(JSObject *, aTarget), aPropName, &vargs) ?
        NS_OK : NS_ERROR_FAILURE;
+  // free 'args'???
 
   return rv;
 }
@@ -2544,7 +2387,7 @@ nsJSContext::ConvertSupportsTojsvals(nsISupports *aArgs,
         // as we have code for handling all, we may as well use it.
         rv = AddSupportsPrimitiveTojsvals(arg, thisval);
         if (rv == NS_ERROR_NO_INTERFACE) {
-          // something else - probably an event object or similar -
+          // something else - probably an event object or similar - just
           // just wrap it.
 #ifdef NS_DEBUG
           // but first, check its not another nsISupportsPrimitive, as
@@ -2628,7 +2471,7 @@ nsJSContext::AddSupportsPrimitiveTojsvals(nsISupports *aArg, jsval *aArgv)
       // to be equivalent; both unsigned 16-bit entities
       JSString *str =
         ::JS_NewUCStringCopyN(cx,
-                              reinterpret_cast<const jschar *>(data.get()),
+                              NS_REINTERPRET_CAST(const jschar *,data.get()),
                               data.Length());
       NS_ENSURE_TRUE(str, NS_ERROR_OUT_OF_MEMORY);
 
@@ -2839,14 +2682,13 @@ nsJSContext::FindXPCNativeWrapperClass(nsIXPConnectJSObjectHolder *aHolder)
   NS_ASSERTION(JSVAL_IS_OBJECT(wrapper), "This should be an object!");
 
   NS_DOMClassInfo_SetXPCNativeWrapperClass(
-    ::JS_GET_CLASS(mContext, JSVAL_TO_OBJECT(wrapper)));
+    ::JS_GetClass(mContext, JSVAL_TO_OBJECT(wrapper)));
   return NS_OK;
 }
 
 static JSPropertySpec OptionsProperties[] = {
-  {"strict",    (int8)JSOPTION_STRICT,   JSPROP_ENUMERATE | JSPROP_PERMANENT},
-  {"werror",    (int8)JSOPTION_WERROR,   JSPROP_ENUMERATE | JSPROP_PERMANENT},
-  {"relimit",   (int8)JSOPTION_RELIMIT,  JSPROP_ENUMERATE | JSPROP_PERMANENT},
+  {"strict",    JSOPTION_STRICT,    JSPROP_ENUMERATE | JSPROP_PERMANENT},
+  {"werror",    JSOPTION_WERROR,    JSPROP_ENUMERATE | JSPROP_PERMANENT},
   {0}
 };
 
@@ -2867,11 +2709,9 @@ SetOptionsProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
   if (JSVAL_IS_INT(id)) {
     uint32 optbit = (uint32) JSVAL_TO_INT(id);
 
-    // Don't let options other than strict, werror, or relimit be set -- it
-    // would be bad if web page script could clear
-    // JSOPTION_PRIVATE_IS_NSISUPPORTS!
-    if (((optbit & (optbit - 1)) == 0 && optbit <= JSOPTION_WERROR) ||
-        optbit == JSOPTION_RELIMIT) {
+    // Don't let options other than strict and werror be set -- it would be
+    // bad if web page script could clear JSOPTION_PRIVATE_IS_NSISUPPORTS!
+    if ((optbit & (optbit - 1)) == 0 && optbit <= JSOPTION_WERROR) {
       JSBool optval;
       if (! ::JS_ValueToBoolean(cx, *vp, &optval))
         return JS_FALSE;
@@ -3097,24 +2937,17 @@ static JSFunctionSpec JProfFunctions[] = {
 
 #endif /* defined(MOZ_JPROF) */
 
-#ifdef MOZ_SHARK
-static JSFunctionSpec SharkFunctions[] = {
-    {"startShark",                 js_StartShark,              0, 0, 0},
-    {"stopShark",                  js_StopShark,               0, 0, 0},
-    {"connectShark",               js_ConnectShark,            0, 0, 0},
-    {"disconnectShark",            js_DisconnectShark,         0, 0, 0},
-    {nsnull,                       nsnull,                     0, 0, 0}
-};
-#endif
-
 nsresult
 nsJSContext::InitClasses(void *aGlobalObj)
 {
   nsresult rv = NS_OK;
 
-  JSObject *globalObj = static_cast<JSObject *>(aGlobalObj);
+  JSObject *globalObj = NS_STATIC_CAST(JSObject *, aGlobalObj);
 
   rv = InitializeExternalClasses();
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = InitializeLiveConnectClasses(globalObj);
   NS_ENSURE_SUCCESS(rv, rv);
 
   JSAutoRequest ar(mContext);
@@ -3139,26 +2972,12 @@ nsJSContext::InitClasses(void *aGlobalObj)
   ::JS_DefineFunctions(mContext, globalObj, JProfFunctions);
 #endif
 
-#ifdef MOZ_SHARK
-  // Attempt to initialize Shark functions
-  ::JS_DefineFunctions(mContext, globalObj, SharkFunctions);
-#endif
-
-  JSOptionChangedCallback(js_options_dot_str, this);
-    
   return rv;
 }
 
 void
 nsJSContext::ClearScope(void *aGlobalObj, PRBool aClearFromProtoChain)
 {
-  // Push our JSContext on our thread's context stack.
-  nsCOMPtr<nsIJSContextStack> stack =
-    do_GetService("@mozilla.org/js/xpc/ContextStack;1");
-  if (stack && NS_FAILED(stack->Push(mContext))) {
-    stack = nsnull;
-  }
-
   if (aGlobalObj) {
     JSObject *obj = (JSObject *)aGlobalObj;
     JSAutoRequest ar(mContext);
@@ -3189,12 +3008,8 @@ nsJSContext::ClearScope(void *aGlobalObj, PRBool aClearFromProtoChain)
         ::JS_ClearScope(mContext, o);
     }
   }
-
   ::JS_ClearRegExpStatics(mContext);
 
-  if (stack) {
-    stack->Pop(nsnull);
-  }
 }
 
 void
@@ -3246,17 +3061,17 @@ nsJSContext::ScriptEvaluated(PRBool aTerminated)
 
   mNumEvaluations++;
 
-#ifdef JS_GC_ZEAL
-  if (mContext->runtime->gcZeal >= 2) {
-    MaybeGC(mContext);
-  } else
-#endif
+#ifdef WAY_TOO_MUCH_GC
+  ::JS_MaybeGC(mContext);
+#else
   if (mNumEvaluations > 20) {
     mNumEvaluations = 0;
-    MaybeGC(mContext);
+    ::JS_MaybeGC(mContext);
   }
+#endif
 
-  mOperationCallbackTime = LL_ZERO;
+  mBranchCallbackCount = 0;
+  mBranchCallbackTime = LL_ZERO;
 }
 
 nsresult
@@ -3317,7 +3132,7 @@ nsJSContext::SetGCOnDestruction(PRBool aGCOnDestruction)
 NS_IMETHODIMP
 nsJSContext::ScriptExecuted()
 {
-  ScriptEvaluated(!::JS_IsRunning(mContext));
+  ScriptEvaluated(PR_FALSE);
 
   return NS_OK;
 }
@@ -3326,95 +3141,6 @@ NS_IMETHODIMP
 nsJSContext::PreserveWrapper(nsIXPConnectWrappedNative *aWrapper)
 {
   return nsDOMClassInfo::PreserveNodeWrapper(aWrapper);
-}
-
-//static
-void
-nsJSContext::CC()
-{
-  ++sCCollectCount;
-#ifdef DEBUG_smaug
-  printf("Will run cycle collector (%i), %lldms since previous.\n",
-         sCCollectCount, (PR_Now() - sPreviousCCTime) / PR_USEC_PER_MSEC);
-#endif
-  sPreviousCCTime = PR_Now();
-  sDelayedCCollectCount = 0;
-  sGCCount = 0;
-  sCCSuspectChanges = 0;
-  // nsCycleCollector_collect() will run a ::JS_GC() indirectly, so
-  // we do not explicitly call ::JS_GC() here.
-  sCollectedObjectsCounts = nsCycleCollector_collect();
-  sCCSuspectedCount = nsCycleCollector_suspectedCount();
-#ifdef DEBUG_smaug
-  printf("Collected %u objects, %u suspected objects\n",
-         sCollectedObjectsCounts, sCCSuspectedCount);
-#endif
-}
-
-//static
-PRBool
-nsJSContext::MaybeCC(PRBool aHigherProbability)
-{
-  ++sDelayedCCollectCount;
-
-  // Don't check suspected count if CC will be called anyway.
-  if (sCCSuspectChanges <= NS_MIN_SUSPECT_CHANGES ||
-      sGCCount <= NS_MAX_GC_COUNT) {
-#ifdef DEBUG_smaug
-    PRTime now = PR_Now();
-#endif
-    PRUint32 suspected = nsCycleCollector_suspectedCount();
-#ifdef DEBUG_smaug
-    printf("%u suspected objects (%lldms), sCCSuspectedCount %u\n",
-            suspected, (PR_Now() - now) / PR_USEC_PER_MSEC,
-            sCCSuspectedCount);
-#endif
-    // Update only when suspected count has increased.
-    if (suspected > sCCSuspectedCount) {
-      sCCSuspectChanges += (suspected - sCCSuspectedCount);
-      sCCSuspectedCount = suspected;
-    }
-  }
-#ifdef DEBUG_smaug
-  printf("sCCSuspectChanges %u, sGCCount %u\n",
-         sCCSuspectChanges, sGCCount);
-#endif
-
-  // Increase the probability also if the previous call to cycle collector
-  // collected something.
-  if (aHigherProbability ||
-      sCollectedObjectsCounts > NS_COLLECTED_OBJECTS_LIMIT) {
-    sDelayedCCollectCount *= NS_PROBABILITY_MULTIPLIER;
-  }
-
-  if (!sGCTimer &&
-      (sDelayedCCollectCount > NS_MAX_DELAYED_CCOLLECT) &&
-      ((sCCSuspectChanges > NS_MIN_SUSPECT_CHANGES &&
-        sGCCount > NS_MAX_GC_COUNT) ||
-       (sCCSuspectChanges > NS_MAX_SUSPECT_CHANGES))) {
-    if ((PR_Now() - sPreviousCCTime) >=
-        PRTime(NS_MIN_CC_INTERVAL * PR_USEC_PER_MSEC)) {
-      nsJSContext::CC();
-      return PR_TRUE;
-    }
-#ifdef DEBUG_smaug
-    else {
-      printf("Running CC was delayed because of NS_MIN_CC_INTERVAL.\n");
-    }
-#endif
-  }
-  return PR_FALSE;
-}
-
-//static
-void
-nsJSContext::CCIfUserInactive()
-{
-  if (sUserIsActive) {
-    MaybeCC(PR_TRUE);
-  } else {
-    CC();
-  }
 }
 
 NS_IMETHODIMP
@@ -3435,7 +3161,9 @@ nsJSContext::Notify(nsITimer *timer)
     // loading and move on as if they weren't.
     sPendingLoadCount = 0;
 
-    CCIfUserInactive();
+    // nsCycleCollector_collect() will run a ::JS_GC() indirectly,
+    // so we do not explicitly call ::JS_GC() here. 
+    nsCycleCollector_collect();
   } else {
     FireGCTimer(PR_TRUE);
   }
@@ -3464,10 +3192,13 @@ nsJSContext::LoadEnd()
 
   if (!sPendingLoadCount && sLoadInProgressGCTimer) {
     sGCTimer->Cancel();
+
     NS_RELEASE(sGCTimer);
     sLoadInProgressGCTimer = PR_FALSE;
 
-    CCIfUserInactive();
+    // nsCycleCollector_collect() will run a ::JS_GC() indirectly, so
+    // we do not explicitly call ::JS_GC() here.
+    nsCycleCollector_collect();
   }
 }
 
@@ -3494,7 +3225,10 @@ nsJSContext::FireGCTimer(PRBool aLoadInProgress)
     // timer.
     sLoadInProgressGCTimer = PR_FALSE;
 
-    CCIfUserInactive();
+    // nsCycleCollector_collect() will run a ::JS_GC() indirectly, so
+    // we do not explicitly call ::JS_GC() here.
+    nsCycleCollector_collect();
+
     return;
   }
 
@@ -3550,14 +3284,6 @@ nsJSContext::DropScriptObject(void* aScriptObject)
   return NS_OK;
 }
 
-void
-nsJSContext::ReportPendingException()
-{
-  if (mIsInitialized && ::JS_IsExceptionPending(mContext)) {
-    ::JS_ReportPendingException(mContext);
-  }
-}
-
 /**********************************************************************
  * nsJSRuntime implementation
  *********************************************************************/
@@ -3598,7 +3324,6 @@ nsJSRuntime::ParseVersion(const nsString &aVersionStr, PRUint32 *flags)
         case '5': jsVersion = JSVERSION_1_5; break;
         case '6': jsVersion = JSVERSION_1_6; break;
         case '7': jsVersion = JSVERSION_1_7; break;
-        case '8': jsVersion = JSVERSION_1_8; break;
         default:  jsVersion = JSVERSION_UNKNOWN;
     }
     *flags = (PRUint32)jsVersion;
@@ -3610,14 +3335,6 @@ void
 nsJSRuntime::Startup()
 {
   // initialize all our statics, so that we can restart XPCOM
-  sDelayedCCollectCount = 0;
-  sCCollectCount = 0;
-  sUserIsActive = PR_FALSE;
-  sPreviousCCTime = 0;
-  sCollectedObjectsCounts = 0;
-  sGCCount = 0;
-  sCCSuspectChanges = 0;
-  sCCSuspectedCount = 0;
   sGCTimer = nsnull;
   sReadyForGC = PR_FALSE;
   sLoadInProgressGCTimer = PR_FALSE;
@@ -3656,14 +3373,6 @@ MaxScriptRunTimePrefChangedCallback(const char *aPrefName, void *aClosure)
     sMaxScriptRunTime = t;
   }
 
-  return 0;
-}
-
-static int PR_CALLBACK
-ReportAllJSExceptionsPrefChangedCallback(const char* aPrefName, void* aClosure)
-{
-  PRBool reportAll = nsContentUtils::GetBoolPref(aPrefName, PR_FALSE);
-  nsContentUtils::XPConnect()->SetReportAllJSExceptions(reportAll);
   return 0;
 }
 
@@ -3729,6 +3438,26 @@ nsJSRuntime::Init()
   NS_ASSERTION(!oldfop, " fighting over the findObjectPrincipals callback!");
 
   // Set these global xpconnect options...
+  nsIXPConnect *xpc = nsContentUtils::XPConnect();
+  xpc->SetCollectGarbageOnMainThreadOnly(PR_TRUE);
+  xpc->SetDeferReleasesUntilAfterGarbageCollection(PR_TRUE);
+
+#ifdef OJI
+  // Initialize LiveConnect.  XXXbe use contractid rather than GetCID
+  // NOTE: LiveConnect is optional so initialisation will still succeed
+  //       even if the service is not present.
+  nsCOMPtr<nsILiveConnectManager> manager =
+           do_GetService(nsIJVMManager::GetCID());
+
+  // Should the JVM manager perhaps define methods for starting up
+  // LiveConnect?
+  if (manager) {
+    PRBool started = PR_FALSE;
+    rv = manager->StartupLiveConnect(sRuntime, started);
+    // XXX Did somebody mean to check |rv| ?
+  }
+#endif /* OJI */
+
   nsContentUtils::RegisterPrefCallback("dom.max_script_run_time",
                                        MaxScriptRunTimePrefChangedCallback,
                                        nsnull);
@@ -3740,48 +3469,11 @@ nsJSRuntime::Init()
   MaxScriptRunTimePrefChangedCallback("dom.max_chrome_script_run_time",
                                       nsnull);
 
-  nsContentUtils::RegisterPrefCallback("dom.report_all_js_exceptions",
-                                       ReportAllJSExceptionsPrefChangedCallback,
-                                       nsnull);
-  ReportAllJSExceptionsPrefChangedCallback("dom.report_all_js_exceptions",
-                                           nsnull);
-
-  nsCOMPtr<nsIObserverService> obs =
-    do_GetService("@mozilla.org/observer-service;1", &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-  nsIObserver* activityObserver = new nsUserActivityObserver();
-  NS_ENSURE_TRUE(activityObserver, NS_ERROR_OUT_OF_MEMORY);
-  obs->AddObserver(activityObserver, "user-interaction-inactive", PR_FALSE);
-  obs->AddObserver(activityObserver, "user-interaction-active", PR_FALSE);
-  obs->AddObserver(activityObserver, "xpcom-shutdown", PR_FALSE);
-
-  nsIObserver* ccMemPressureObserver = new nsCCMemoryPressureObserver();
-  NS_ENSURE_TRUE(ccMemPressureObserver, NS_ERROR_OUT_OF_MEMORY);
-  obs->AddObserver(ccMemPressureObserver, "memory-pressure", PR_FALSE);
-
   rv = CallGetService(NS_SCRIPTSECURITYMANAGER_CONTRACTID, &sSecurityManager);
 
   sIsInitialized = NS_SUCCEEDED(rv);
 
   return rv;
-}
-
-//static
-nsScriptNameSpaceManager*
-nsJSRuntime::GetNameSpaceManager()
-{
-  if (sDidShutdown)
-    return nsnull;
-
-  if (!gNameSpaceManager) {
-    gNameSpaceManager = new nsScriptNameSpaceManager;
-    NS_ENSURE_TRUE(gNameSpaceManager, nsnull);
-
-    nsresult rv = gNameSpaceManager->Init();
-    NS_ENSURE_SUCCESS(rv, nsnull);
-  }
-
-  return gNameSpaceManager;
 }
 
 void nsJSRuntime::ShutDown()
@@ -3874,8 +3566,7 @@ public:
   ~nsJSArgArray();
   // nsISupports
   NS_DECL_CYCLE_COLLECTING_ISUPPORTS
-  NS_DECL_CYCLE_COLLECTION_SCRIPT_HOLDER_CLASS_AMBIGUOUS(nsJSArgArray,
-                                                         nsIJSArgArray)
+  NS_DECL_CYCLE_COLLECTION_CLASS_AMBIGUOUS(nsJSArgArray, nsIJSArgArray)
 
   // nsIArray
   NS_DECL_NSIARRAY
@@ -3904,15 +3595,15 @@ nsJSArgArray::nsJSArgArray(JSContext *aContext, PRUint32 argc, jsval *argv,
     *prv = NS_ERROR_OUT_OF_MEMORY;
     return;
   }
-
-  // Callers are allowed to pass in a null argv even for argc > 0. They can
-  // then use GetArgs to initialize the values.
-  if (argv) {
-    for (PRUint32 i = 0; i < argc; ++i)
+  for (PRUint32 i = 0; i < argc; ++i) {
+    if (argv)
       mArgv[i] = argv[i];
+    if (!::JS_AddNamedRoot(aContext, &mArgv[i], "nsJSArgArray.mArgv[i]")) {
+      *prv = NS_ERROR_UNEXPECTED;
+      return;
+    }
   }
-
-  *prv = argc > 0 ? NS_HOLD_JS_OBJECTS(this, nsJSArgArray) : NS_OK;
+  *prv = NS_OK;
 }
 
 nsJSArgArray::~nsJSArgArray()
@@ -3923,9 +3614,13 @@ nsJSArgArray::~nsJSArgArray()
 void
 nsJSArgArray::ReleaseJSObjects()
 {
-  if (mArgc > 0)
-    NS_DROP_JS_OBJECTS(this, nsJSArgArray);
   if (mArgv) {
+    NS_ASSERTION(nsJSRuntime::sRuntime, "Where's the runtime gone?");
+    if (nsJSRuntime::sRuntime) {
+      for (PRUint32 i = 0; i < mArgc; ++i) {
+        ::JS_RemoveRootRT(nsJSRuntime::sRuntime, &mArgv[i]);
+      }
+    }
     PR_DELETE(mArgv);
   }
   mArgc = 0;
@@ -3933,30 +3628,27 @@ nsJSArgArray::ReleaseJSObjects()
 
 // QueryInterface implementation for nsJSArgArray
 NS_IMPL_CYCLE_COLLECTION_CLASS(nsJSArgArray)
-NS_IMPL_CYCLE_COLLECTION_ROOT_BEGIN(nsJSArgArray)
+NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN(nsJSArgArray)
   tmp->ReleaseJSObjects();
-NS_IMPL_CYCLE_COLLECTION_ROOT_END
-NS_IMPL_CYCLE_COLLECTION_UNLINK_0(nsJSArgArray)
+NS_IMPL_CYCLE_COLLECTION_UNLINK_END
 NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN(nsJSArgArray)
-  NS_IMPL_CYCLE_COLLECTION_TRAVERSE_SCRIPT_OBJECTS
-NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
-
-NS_IMPL_CYCLE_COLLECTION_TRACE_BEGIN(nsJSArgArray)
-  jsval *argv = tmp->mArgv;
-  if (argv) {
-    jsval *end;
-    for (end = argv + tmp->mArgc; argv < end; ++argv) {
-      if (JSVAL_IS_GCTHING(*argv))
-        NS_IMPL_CYCLE_COLLECTION_TRACE_CALLBACK(JAVASCRIPT,
-                                                JSVAL_TO_GCTHING(*argv))
+  {
+    jsval *argv = tmp->mArgv;
+    if (argv) {
+      jsval *end;
+      for (end = argv + tmp->mArgc; argv < end; ++argv) {
+        if (JSVAL_IS_OBJECT(*argv))
+          cb.NoteScriptChild(JAVASCRIPT, JSVAL_TO_OBJECT(*argv));
+      }
     }
   }
-NS_IMPL_CYCLE_COLLECTION_TRACE_END
+NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
 
-NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION(nsJSArgArray)
+NS_INTERFACE_MAP_BEGIN(nsJSArgArray)
   NS_INTERFACE_MAP_ENTRY(nsIArray)
   NS_INTERFACE_MAP_ENTRY(nsIJSArgArray)
   NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIJSArgArray)
+  NS_INTERFACE_MAP_ENTRIES_CYCLE_COLLECTION(nsJSArgArray)
 NS_INTERFACE_MAP_END
 
 NS_IMPL_CYCLE_COLLECTING_ADDREF_AMBIGUOUS(nsJSArgArray, nsIJSArgArray)
@@ -4014,7 +3706,7 @@ nsresult NS_CreateJSArgv(JSContext *aContext, PRUint32 argc, void *argv,
 {
   nsresult rv;
   nsJSArgArray *ret = new nsJSArgArray(aContext, argc,
-                                       static_cast<jsval *>(argv), &rv);
+                                       NS_STATIC_CAST(jsval *, argv), &rv);
   if (ret == nsnull)
     return NS_ERROR_OUT_OF_MEMORY;
   if (NS_FAILED(rv)) {

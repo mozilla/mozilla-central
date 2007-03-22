@@ -47,9 +47,6 @@
 #include "nsRect.h"
 #include "nsComponentManagerUtils.h"
 
-#include "nsIImage.h"
-#include "nsIInterfaceRequestorUtils.h"
-
 NS_IMPL_THREADSAFE_ADDREF(nsIconDecoder)
 NS_IMPL_THREADSAFE_RELEASE(nsIconDecoder)
 
@@ -84,8 +81,6 @@ NS_IMETHODIMP nsIconDecoder::Init(imgILoad *aLoad)
 
 NS_IMETHODIMP nsIconDecoder::Close()
 {
-  mImage->DecodingComplete();
-
   if (mObserver) 
   {
     mObserver->OnStopFrame(nsnull, mFrame);
@@ -98,53 +93,64 @@ NS_IMETHODIMP nsIconDecoder::Close()
 
 NS_IMETHODIMP nsIconDecoder::Flush()
 {
-  return NS_OK;
+  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP nsIconDecoder::WriteFrom(nsIInputStream *inStr, PRUint32 count, PRUint32 *_retval)
 {
-  // read the header from the input stram...
-  PRUint32 readLen;
-  PRUint8 header[2];
-  nsresult rv = inStr->Read((char*)header, 2, &readLen);
-  NS_ENSURE_TRUE(readLen == 2, NS_ERROR_UNEXPECTED); // w, h
-  count -= 2;
+  nsresult rv;
 
-  PRInt32 w = header[0];
-  PRInt32 h = header[1];
+  PRUint8 * const buf = (PRUint8 *)PR_Malloc(count);
+  if (!buf) return NS_ERROR_OUT_OF_MEMORY; /* we couldn't allocate the object */
+ 
+  // read the data from the input stram...
+  PRUint32 readLen;
+  rv = inStr->Read((char*)buf, count, &readLen);
+  NS_ENSURE_SUCCESS(rv, rv);
+  NS_ENSURE_TRUE(readLen >= 2, NS_ERROR_UNEXPECTED); // w, h
+
+  PRUint8 * const buf_end = buf + readLen;
+  PRUint8 *data = buf;
+
+  // since WriteFrom is only called once, go ahead and fire the on start notifications..
+
+  mObserver->OnStartDecode(nsnull);
+  // Read size
+  PRInt32 w = *(data++);
+  PRInt32 h = *(data++);
   NS_ENSURE_TRUE(w > 0 && h > 0, NS_ERROR_UNEXPECTED);
 
-  if (mObserver)
-    mObserver->OnStartDecode(nsnull);
   mImage->Init(w, h, mObserver);
   if (mObserver)
     mObserver->OnStartContainer(nsnull, mImage);
 
-  rv = mFrame->Init(0, 0, w, h, gfxIFormats::BGRA, 24);
+  gfx_format format = gfxIFormats::BGRA; // XXX not really
+  rv = mFrame->Init(0, 0, w, h, format, 24);
   if (NS_FAILED(rv))
     return rv;
 
   mImage->AppendFrame(mFrame);
   if (mObserver)
     mObserver->OnStartFrame(nsnull, mFrame);
+  
+  PRUint32 bpr, abpr;
+  PRInt32 width, height;
+  mFrame->GetImageBytesPerRow(&bpr);
+  mFrame->GetAlphaBytesPerRow(&abpr);
+  mFrame->GetWidth(&width);
+  mFrame->GetHeight(&height);
 
-  PRUint32 imageLen;
-  PRUint8 *imageData;
-  mFrame->GetImageData(&imageData, &imageLen);
+  PRInt32 rownum;
+  NS_ENSURE_TRUE(buf_end - data >= PRInt32(bpr) * height,
+                 NS_ERROR_UNEXPECTED);
 
-  // Ensure that there enough in the inputStream
-  NS_ENSURE_TRUE(count >= imageLen, NS_ERROR_UNEXPECTED);
+  for (rownum = 0; rownum < height; ++rownum, data += bpr)
+    mFrame->SetImageData(data, bpr, rownum * bpr);
 
-  // Read the image data direct into the frame data
-  rv = inStr->Read((char*)imageData, imageLen, &readLen);
-  NS_ENSURE_SUCCESS(rv, rv);
-  NS_ENSURE_TRUE(readLen == imageLen, NS_ERROR_UNEXPECTED);
-
-  // Notify the image...
-  nsIntRect r(0, 0, w, h);
-  nsCOMPtr<nsIImage> img(do_GetInterface(mFrame));
-  img->ImageUpdated(nsnull, nsImageUpdateFlags_kBitsChanged, &r);
+  nsIntRect r(0, 0, width, height);
   mObserver->OnDataAvailable(nsnull, mFrame, &r);
+
+  PR_Free(buf);
 
   return NS_OK;
 }

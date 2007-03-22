@@ -40,8 +40,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '9.1.1.6.js';
-
 START("9.1.1.6 - XML [[HasProperty]]");
 
 x = <alpha attr1="value1">one<bravo>two<charlie>three</charlie></bravo></alpha>;

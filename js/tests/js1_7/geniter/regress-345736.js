@@ -20,7 +20,6 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s): David Finch
- *                 Jesse Ruderman
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,10 +34,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-345736.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 345736;
+var bug = 345736;
 var summary = 'for each in array comprehensions';
 var actual = '';
 var expect = '';
@@ -51,7 +48,7 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
 
   var arr;
@@ -67,14 +64,6 @@ function test()
   expect = 'aa,bb,cc';
   actual = arr.toString();
   reportCompare(expect, actual, summary);
-
-  arr=[x+x for ([,x] in ["a","b","c"])];
-  expect = 'aa,bb,cc';
-  actual = arr.toString();
-
-  arr=[x+y for ([x,y] in ["a","b","c"])];
-  expect = '0a,1b,2c';
-  actual = arr.toString();
 
   exitFunc ('test');
 }

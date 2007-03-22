@@ -36,7 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 #include "nsIDOMHTMLLinkElement.h"
 #include "nsIDOMLinkStyle.h"
-#include "nsIDOMEventTarget.h"
+#include "nsIDOMEventReceiver.h"
 #include "nsGenericHTMLElement.h"
 #include "nsILink.h"
 #include "nsGkAtoms.h"
@@ -58,7 +58,6 @@
 #include "nsParserUtils.h"
 #include "nsContentUtils.h"
 #include "nsPIDOMWindow.h"
-#include "nsPLDOMEvent.h"
 
 class nsHTMLLinkElement : public nsGenericHTMLElement,
                           public nsIDOMHTMLLinkElement,
@@ -108,7 +107,6 @@ public:
   virtual nsresult UnsetAttr(PRInt32 aNameSpaceID, nsIAtom* aAttribute,
                              PRBool aNotify);
 
-  virtual nsresult PreHandleEvent(nsEventChainPreVisitor& aVisitor);
   virtual nsresult PostHandleEvent(nsEventChainPostVisitor& aVisitor);
   virtual PRBool IsLink(nsIURI** aURI) const;
   virtual void GetLinkTarget(nsAString& aTarget);
@@ -147,13 +145,13 @@ NS_IMPL_RELEASE_INHERITED(nsHTMLLinkElement, nsGenericElement)
 
 
 // QueryInterface implementation for nsHTMLLinkElement
-NS_HTML_CONTENT_INTERFACE_TABLE_HEAD(nsHTMLLinkElement, nsGenericHTMLElement)
-  NS_INTERFACE_TABLE_INHERITED4(nsHTMLLinkElement,
-                                nsIDOMHTMLLinkElement,
-                                nsIDOMLinkStyle,
-                                nsILink,
-                                nsIStyleSheetLinkingElement)
-NS_HTML_CONTENT_INTERFACE_TABLE_TAIL_CLASSINFO(HTMLLinkElement)
+NS_HTML_CONTENT_INTERFACE_MAP_BEGIN(nsHTMLLinkElement, nsGenericHTMLElement)
+  NS_INTERFACE_MAP_ENTRY(nsIDOMHTMLLinkElement)
+  NS_INTERFACE_MAP_ENTRY(nsIDOMLinkStyle)
+  NS_INTERFACE_MAP_ENTRY(nsILink)
+  NS_INTERFACE_MAP_ENTRY(nsIStyleSheetLinkingElement)
+  NS_INTERFACE_MAP_ENTRY_CONTENT_CLASSINFO(HTMLLinkElement)
+NS_HTML_CONTENT_INTERFACE_MAP_END
 
 
 NS_IMPL_ELEMENT_CLONE(nsHTMLLinkElement)
@@ -207,8 +205,12 @@ nsHTMLLinkElement::BindToTree(nsIDocument* aDocument, nsIContent* aParent,
                                                  aCompileEventHandlers);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  UpdateStyleSheetInternal(nsnull);
+  UpdateStyleSheet(nsnull);
 
+  // XXXbz we really shouldn't fire the event until after we've finished with
+  // the outermost BindToTree...  In particular, this can effectively cause us
+  // to reenter this code, or for some part of the document to become unbound
+  // inside the event!
   CreateAndDispatchEvent(aDocument, NS_LITERAL_STRING("DOMLinkAdded"));
 
   return rv;  
@@ -239,11 +241,13 @@ nsHTMLLinkElement::UnbindFromTree(PRBool aDeep, PRBool aNullParent)
     mLinkState = eLinkState_Unknown;
   }
 
-  // Once we have XPCOMGC we shouldn't need to call UnbindFromTree during Unlink
-  // and so this messy event dispatch can go away.
+  // XXXbz we really shouldn't fire the event until after we've finished with
+  // the outermost UnbindFromTree...  In particular, this can effectively cause
+  // us to reenter this code, or to be bound to a different tree inside the
+  // event!
   CreateAndDispatchEvent(oldDoc, NS_LITERAL_STRING("DOMLinkRemoved"));
   nsGenericHTMLElement::UnbindFromTree(aDeep, aNullParent);
-  UpdateStyleSheetInternal(oldDoc);
+  UpdateStyleSheet(oldDoc);
 }
 
 void
@@ -268,16 +272,9 @@ nsHTMLLinkElement::CreateAndDispatchEvent(nsIDocument* aDoc,
                       strings, eIgnoreCase) != ATTR_VALUE_NO_MATCH)
     return;
 
-  nsRefPtr<nsPLDOMEvent> event = new nsPLDOMEvent(this, aEventName);
-  if (event) {
-    // If we have script blockers on the stack then we want to run as soon as
-    // they are removed. Otherwise punt the runable to the event loop as we
-    // don't know when it will be safe to run script.
-    if (nsContentUtils::IsSafeToRunScript())
-      event->PostDOMEvent();
-    else
-      event->RunDOMEventWhenSafe();
-  }
+  nsContentUtils::DispatchTrustedEvent(aDoc,
+                                       NS_STATIC_CAST(nsIContent*, this),
+                                       aEventName, PR_TRUE, PR_TRUE);
 }
 
 nsresult
@@ -299,20 +296,12 @@ nsHTMLLinkElement::SetAttr(PRInt32 aNameSpaceID, nsIAtom* aName,
   nsresult rv = nsGenericHTMLElement::SetAttr(aNameSpaceID, aName, aPrefix,
                                               aValue, aNotify);
   if (NS_SUCCEEDED(rv)) {
-    PRBool dropSheet = PR_FALSE;
-    if (aNameSpaceID == kNameSpaceID_None && aName == nsGkAtoms::rel &&
-        mStyleSheet) {
-      nsStringArray linkTypes(4);
-      nsStyleLinkElement::ParseLinkTypes(aValue, linkTypes);
-      dropSheet = linkTypes.IndexOf(NS_LITERAL_STRING("stylesheet")) < 0;
-    }
-    
-    UpdateStyleSheetInternal(nsnull,
-                             dropSheet ||
-                             (aNameSpaceID == kNameSpaceID_None &&
-                              (aName == nsGkAtoms::title ||
-                               aName == nsGkAtoms::media ||
-                               aName == nsGkAtoms::type)));
+    UpdateStyleSheet(nsnull, nsnull,
+                     aNameSpaceID == kNameSpaceID_None &&
+                     (aName == nsGkAtoms::rel ||
+                      aName == nsGkAtoms::title ||
+                      aName == nsGkAtoms::media ||
+                      aName == nsGkAtoms::type));
   }
 
   return rv;
@@ -325,21 +314,15 @@ nsHTMLLinkElement::UnsetAttr(PRInt32 aNameSpaceID, nsIAtom* aAttribute,
   nsresult rv = nsGenericHTMLElement::UnsetAttr(aNameSpaceID, aAttribute,
                                                 aNotify);
   if (NS_SUCCEEDED(rv)) {
-    UpdateStyleSheetInternal(nsnull,
-                             aNameSpaceID == kNameSpaceID_None &&
-                             (aAttribute == nsGkAtoms::rel ||
-                              aAttribute == nsGkAtoms::title ||
-                              aAttribute == nsGkAtoms::media ||
-                              aAttribute == nsGkAtoms::type));
+    UpdateStyleSheet(nsnull, nsnull,
+                     aNameSpaceID == kNameSpaceID_None &&
+                     (aAttribute == nsGkAtoms::rel ||
+                      aAttribute == nsGkAtoms::title ||
+                      aAttribute == nsGkAtoms::media ||
+                      aAttribute == nsGkAtoms::type));
   }
 
   return rv;
-}
-
-nsresult
-nsHTMLLinkElement::PreHandleEvent(nsEventChainPreVisitor& aVisitor)
-{
-  return PreHandleEventForAnchors(aVisitor);
 }
 
 nsresult
@@ -357,8 +340,7 @@ nsHTMLLinkElement::IsLink(nsIURI** aURI) const
 void
 nsHTMLLinkElement::GetLinkTarget(nsAString& aTarget)
 {
-  GetAttr(kNameSpaceID_None, nsGkAtoms::target, aTarget);
-  if (aTarget.IsEmpty()) {
+  if (!GetAttr(kNameSpaceID_None, nsGkAtoms::target, aTarget)) {
     GetBaseTarget(aTarget);
   }
 }

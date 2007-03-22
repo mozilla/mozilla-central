@@ -71,7 +71,7 @@
 #include "nsIDOMKeyEvent.h"
 #include "nsIFormControlFrame.h"
 #include "nsINodeInfo.h"
-#include "nsIDOMEventTarget.h"
+#include "nsIDOMEventReceiver.h"
 #include "nsContentCID.h"
 #include "nsNodeInfoManager.h"
 #include "nsContentCreatorFunctions.h"
@@ -98,7 +98,8 @@ nsIsIndexFrame::Destroy()
 {
   // remove ourself as a listener of the text control (bug 40533)
   if (mInputContent) {
-    mInputContent->RemoveEventListenerByIID(this, NS_GET_IID(nsIDOMKeyListener));
+    nsCOMPtr<nsIDOMEventReceiver> receiver(do_QueryInterface(mInputContent));
+    receiver->RemoveEventListenerByIID(this, NS_GET_IID(nsIDOMKeyListener));
     nsContentUtils::DestroyAnonymousContent(&mInputContent);
   }
   nsContentUtils::DestroyAnonymousContent(&mTextContent);
@@ -141,7 +142,7 @@ nsIsIndexFrame::UpdatePromptLabel()
 nsresult
 nsIsIndexFrame::GetInputFrame(nsIFormControlFrame** oFrame)
 {
-  nsIPresShell *presShell = PresContext()->GetPresShell();
+  nsIPresShell *presShell = GetPresContext()->GetPresShell();
   if (!mInputContent) NS_WARNING("null content - cannot restore state");
   if (presShell && mInputContent) {
     nsIFrame *frame = presShell->GetPrimaryFrameFor(mInputContent);
@@ -194,7 +195,7 @@ nsIsIndexFrame::CreateAnonymousContent(nsTArray<nsIContent*>& aElements)
   nimgr->GetNodeInfo(nsGkAtoms::hr, nsnull, kNameSpaceID_None,
                      getter_AddRefs(hrInfo));
 
-  NS_NewHTMLElement(getter_AddRefs(mPreHr), hrInfo, PR_FALSE);
+  NS_NewHTMLElement(getter_AddRefs(mPreHr), hrInfo);
   if (!mPreHr || !aElements.AppendElement(mPreHr))
     return NS_ERROR_OUT_OF_MEMORY;
 
@@ -213,7 +214,7 @@ nsIsIndexFrame::CreateAnonymousContent(nsTArray<nsIContent*>& aElements)
   nimgr->GetNodeInfo(nsGkAtoms::input, nsnull, kNameSpaceID_None,
                      getter_AddRefs(inputInfo));
 
-  NS_NewHTMLElement(getter_AddRefs(mInputContent), inputInfo, PR_FALSE);
+  NS_NewHTMLElement(getter_AddRefs(mInputContent), inputInfo);
   if (!mInputContent)
     return NS_ERROR_OUT_OF_MEMORY;
 
@@ -224,10 +225,11 @@ nsIsIndexFrame::CreateAnonymousContent(nsTArray<nsIContent*>& aElements)
     return NS_ERROR_OUT_OF_MEMORY;
 
   // Register as an event listener to submit on Enter press
-  mInputContent->AddEventListenerByIID(this, NS_GET_IID(nsIDOMKeyListener));
+  nsCOMPtr<nsIDOMEventReceiver> receiver(do_QueryInterface(mInputContent));
+  receiver->AddEventListenerByIID(this, NS_GET_IID(nsIDOMKeyListener));
 
   // Create an hr
-  NS_NewHTMLElement(getter_AddRefs(mPostHr), hrInfo, PR_FALSE);
+  NS_NewHTMLElement(getter_AddRefs(mPostHr), hrInfo);
   if (!mPostHr || !aElements.AppendElement(mPostHr))
     return NS_ERROR_OUT_OF_MEMORY;
 
@@ -238,25 +240,22 @@ nsIsIndexFrame::CreateAnonymousContent(nsTArray<nsIContent*>& aElements)
 NS_IMETHODIMP
 nsIsIndexFrame::QueryInterface(const nsIID& aIID, void** aInstancePtr)
 {
-  NS_PRECONDITION(aInstancePtr, "null out param");
-
+  NS_PRECONDITION(aInstancePtr, "null ptr");
+  if (NS_UNLIKELY(!aInstancePtr)) {
+    return NS_ERROR_NULL_POINTER;
+  }
   if (aIID.Equals(NS_GET_IID(nsIAnonymousContentCreator))) {
-    *aInstancePtr = static_cast<nsIAnonymousContentCreator*>(this);
+    *aInstancePtr = NS_STATIC_CAST(nsIAnonymousContentCreator*, this);
     return NS_OK;
   }
   if (aIID.Equals(NS_GET_IID(nsIStatefulFrame))) {
-    *aInstancePtr = static_cast<nsIStatefulFrame*>(this);
+    *aInstancePtr = NS_STATIC_CAST(nsIStatefulFrame*, this);
     return NS_OK;
   }
   if (aIID.Equals(NS_GET_IID(nsIDOMKeyListener))) {
-    *aInstancePtr = static_cast<nsIDOMKeyListener*>(this);
+    *aInstancePtr = NS_STATIC_CAST(nsIDOMKeyListener*, this);
     return NS_OK;
   }
-  if (aIID.Equals(NS_GET_IID(nsIDOMEventListener))) {
-    *aInstancePtr = static_cast<nsIDOMEventListener*>(this);
-    return NS_OK;
-  }
-
   return nsAreaFrame::QueryInterface(aIID, aInstancePtr);
 }
 
@@ -304,7 +303,7 @@ nsIsIndexFrame::KeyPress(nsIDOMEvent* aEvent)
       keyEvent->GetCharCode(&code);
     }
     if (nsIDOMKeyEvent::DOM_VK_RETURN == code) {
-      OnSubmit(PresContext());
+      OnSubmit(GetPresContext());
       aEvent->PreventDefault(); // XXX Needed?
     }
   }
@@ -327,10 +326,6 @@ nsIsIndexFrame::OnSubmit(nsPresContext* aPresContext)
 {
   if (!mContent || !mInputContent) {
     return NS_ERROR_UNEXPECTED;
-  }
-
-  if (mContent->IsEditable()) {
-    return NS_OK;
   }
 
   nsresult result = NS_OK;

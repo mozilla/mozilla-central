@@ -43,14 +43,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-DIRS = public
-
-ifdef MOZ_PLACES
-DIRS += src
-
-ifdef ENABLE_TESTS
-	DIRS += tests
-endif
-endif
+DIRS = public src
 
 include $(topsrcdir)/config/rules.mk

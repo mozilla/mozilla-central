@@ -34,10 +34,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-357754.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 357754;
+var bug = 357754;
 var summary = 'top level closures with let-bound varibles';
 var actual = '';
 var expect = '';
@@ -50,9 +48,9 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
- 
+  
   expect = 'No Error';
   actual = 'No Error';
   try

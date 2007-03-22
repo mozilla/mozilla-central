@@ -67,7 +67,8 @@ nsXMLElement::nsXMLElement(nsINodeInfo *aNodeInfo)
 NS_IMETHODIMP 
 nsXMLElement::QueryInterface(REFNSIID aIID, void** aInstancePtr)
 {
-  NS_PRECONDITION(aInstancePtr, "null out param");
+  NS_ENSURE_ARG_POINTER(aInstancePtr);
+  *aInstancePtr = nsnull;
 
   nsresult rv = nsGenericElement::QueryInterface(aIID, aInstancePtr);
 
@@ -77,9 +78,9 @@ nsXMLElement::QueryInterface(REFNSIID aIID, void** aInstancePtr)
   nsISupports *inst = nsnull;
 
   if (aIID.Equals(NS_GET_IID(nsIDOMNode))) {
-    inst = static_cast<nsIDOMNode *>(this);
+    inst = NS_STATIC_CAST(nsIDOMNode *, this);
   } else if (aIID.Equals(NS_GET_IID(nsIDOMElement))) {
-    inst = static_cast<nsIDOMElement *>(this);
+    inst = NS_STATIC_CAST(nsIDOMElement *, this);
   } else if (aIID.Equals(NS_GET_IID(nsIClassInfo))) {
     inst = NS_GetDOMClassInfoInstance(eDOMClassInfo_Element_id);
     NS_ENSURE_TRUE(inst, NS_ERROR_OUT_OF_MEMORY);
@@ -110,15 +111,6 @@ DocShellToPresContext(nsIDocShell *aShell, nsPresContext **aPresContext)
     return rv;
 
   return ds->GetPresContext(aPresContext);
-}
-
-nsresult
-nsXMLElement::PreHandleEvent(nsEventChainPreVisitor& aVisitor)
-{
-  nsresult rv = nsGenericElement::PreHandleEvent(aVisitor);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  return PreHandleEventForLinks(aVisitor);
 }
 
 nsresult
@@ -188,7 +180,8 @@ nsXMLElement::MaybeTriggerAutoLink(nsIDocShell *aShell)
   nsresult rv = DocShellToPresContext(aShell, getter_AddRefs(pc));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsContentUtils::TriggerLink(this, pc, absURI, target, PR_TRUE, PR_FALSE);
+  rv = TriggerLink(pc, absURI, target, PR_TRUE, PR_FALSE);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   return special_rv; // return GetLinkTargetAndAutoType's special rv!
 }

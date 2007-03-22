@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'Number.js';
-
 /**
    Filename:     Number.js
    Description:  'This tests the function Number(Object)'

@@ -35,21 +35,21 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'regress-313952-01.js';
+START("13.3.5.2 - QName.uri");
 
-var summary = "13.3.5.2 - root QName.uri";
-var BUGNUMBER = 313952;
+var bug = 313952;
+var summary = 'Root QName.uri';
 var actual = '';
 var expect = '';
 
-printBugNumber(BUGNUMBER);
-START(summary);
+printBugNumber (bug);
+printStatus (summary);
 printStatus("This test requires TOO_MUCH_GC");
 
 var str = " foo:bar".substring(1);
 expect = new QName("  foo:bar".substring(2), "a").uri;
 
-var likeString = {
+var likeString = { 
         toString: function() {
                 var tmp = str;
                 str = null;
@@ -57,7 +57,7 @@ var likeString = {
         }
 };
 
-actual = new QName(likeString, "a").uri;
+actual = new QName(likeString, "a").uri; 
 
 printStatus(actual.length);
 

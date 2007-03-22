@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -34,9 +33,8 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK ***** */
-
-/*
+ * ***** END LICENSE BLOCK *****
+ *
  *
  * Date:    14 April 2003
  * SUMMARY: |delete x.y| should return |true| if |x| has no property |y|
@@ -44,9 +42,8 @@
  *
  */
 //-----------------------------------------------------------------------------
-var gTestfile = '11.4.1-001.js';
 var UBound = 0;
-var BUGNUMBER = 201987;
+var bug = 201987;
 var summary = '|delete x.y| should return |true| if |x| has no property |y|';
 var status = '';
 var statusitems = [];
@@ -108,7 +105,7 @@ function addThis()
 function test()
 {
   enterFunc('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber(bug);
   printStatus(summary);
 
   for (var i=0; i<UBound; i++)

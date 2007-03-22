@@ -47,8 +47,6 @@
 #include "nsIXSLTProcessorPrivate.h"
 #include "txExpandedNameMap.h"
 #include "txNamespaceMap.h"
-#include "nsIJSNativeInitializer.h"
-#include "nsCycleCollectionParticipant.h"
 
 class nsIDOMNode;
 class nsIPrincipal;
@@ -74,8 +72,7 @@ class txMozillaXSLTProcessor : public nsIXSLTProcessor,
                                public nsIXSLTProcessorObsolete,
                                public nsIXSLTProcessorPrivate,
                                public nsIDocumentTransformer,
-                               public nsStubMutationObserver,
-                               public nsIJSNativeInitializer
+                               public nsStubMutationObserver
 {
 public:
     /**
@@ -86,12 +83,10 @@ public:
     /**
      * Default destructor for txMozillaXSLTProcessor
      */
-    ~txMozillaXSLTProcessor();
+    virtual ~txMozillaXSLTProcessor();
 
     // nsISupports interface
-    NS_DECL_CYCLE_COLLECTING_ISUPPORTS
-    NS_DECL_CYCLE_COLLECTION_CLASS_AMBIGUOUS(txMozillaXSLTProcessor,
-                                             nsIXSLTProcessor)
+    NS_DECL_ISUPPORTS
 
     // nsIXSLTProcessor interface
     NS_DECL_NSIXSLTPROCESSOR
@@ -103,11 +98,11 @@ public:
     NS_DECL_NSIXSLTPROCESSORPRIVATE
 
     // nsIDocumentTransformer interface
-    NS_IMETHOD Init(nsIPrincipal* aPrincipal);
     NS_IMETHOD SetTransformObserver(nsITransformObserver* aObserver);
-    NS_IMETHOD LoadStyleSheet(nsIURI* aUri, nsILoadGroup* aLoadGroup);
+    NS_IMETHOD LoadStyleSheet(nsIURI* aUri, nsILoadGroup* aLoadGroup,
+                              nsIPrincipal* aCallerPrincipal);
     NS_IMETHOD SetSourceContentModel(nsIDOMNode* aSource);
-    NS_IMETHOD CancelLoads() {return NS_OK;}
+    NS_IMETHOD CancelLoads() {return NS_OK;};
     NS_IMETHOD AddXSLTParamNamespace(const nsString& aPrefix,
                                      const nsString& aNamespace);
     NS_IMETHOD AddXSLTParam(const nsString& aName,
@@ -141,11 +136,7 @@ public:
         return (mFlags & DISABLE_ALL_LOADS) != 0;
     }
 
-    // nsIJSNativeInitializer
-    NS_IMETHODIMP Initialize(nsISupports* aOwner, JSContext *cx, JSObject *obj,
-                             PRUint32 argc, jsval *argv);
-
-    static nsresult Startup();
+    static nsresult Init();
     static void Shutdown();
 
 private:
@@ -161,7 +152,6 @@ private:
     nsresult mTransformResult;
     nsresult mCompileResult;
     nsString mErrorText, mSourceText;
-    nsCOMPtr<nsIPrincipal> mPrincipal;
     nsCOMPtr<nsITransformObserver> mObserver;
     txOwningExpandedNameMap<txIGlobalParameter> mVariables;
     txNamespaceMap mParamNamespaceMap;
@@ -174,9 +164,8 @@ extern nsresult TX_LoadSheet(nsIURI* aUri, txMozillaXSLTProcessor* aProcessor,
                              nsILoadGroup* aLoadGroup,
                              nsIPrincipal* aCallerPrincipal);
 
-extern nsresult TX_CompileStylesheet(nsINode* aNode,
+extern nsresult TX_CompileStylesheet(nsIDOMNode* aNode,
                                      txMozillaXSLTProcessor* aProcessor,
-                                     nsIPrincipal* aCallerPrincipal,
                                      txStylesheet** aStylesheet);
 
 #endif

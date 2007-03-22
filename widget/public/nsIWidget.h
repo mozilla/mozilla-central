@@ -40,6 +40,8 @@
 
 #include "nsISupports.h"
 #include "nsColor.h"
+#include "nsIMouseListener.h"
+#include "nsIMenuListener.h"
 #include "nsCoord.h"
 
 #include "prthread.h"
@@ -61,9 +63,10 @@ class   nsIRollupListener;
 class   nsGUIEvent;
 struct  nsColorMap;
 class   imgIContainer;
+
+#ifdef MOZ_CAIRO_GFX
 class   gfxASurface;
-class   nsIMouseListener;
-class   nsIContent;
+#endif
 
 /**
  * Callback function that processes events.
@@ -90,18 +93,15 @@ typedef nsEventStatus (*PR_CALLBACK EVENT_CALLBACK)(nsGUIEvent *event);
 #define NS_NATIVE_PLUGIN_PORT 8
 #define NS_NATIVE_SCREEN      9
 #define NS_NATIVE_SHELLWIDGET 10      // Get the shell GtkWidget
-#ifdef XP_MACOSX
-#define NS_NATIVE_PLUGIN_PORT_QD    100
-#define NS_NATIVE_PLUGIN_PORT_CG    101
-#endif
 
-// 517a0eef-cd1c-48b3-96f0-e341a50f120d
+// ebdf8ccf-ada9-457c-ad6c-88e1cb9d4498
 #define NS_IWIDGET_IID \
-{ 0x517a0eef, 0xcd1c, 0x48b3, \
-  { 0x96, 0xf0, 0xe3, 0x41, 0xa5, 0x0f, 0x12, 0x0d } }
+{ 0xebdf8ccf, 0xada9, 0x457c, \
+  { 0xad, 0x6c, 0x88, 0xe1, 0xcb, 0x9d, 0x44, 0x98 } }
+
 
 // Hide the native window systems real window type so as to avoid
-// including native window system types and APIs. This is necessary
+// including native window system types and api's. This is necessary
 // to ensure cross-platform code.
 typedef void* nsNativeWidget;
 
@@ -126,13 +126,6 @@ enum nsWindowType {     // Don't alter previously encoded enum values - 3rd part
   eWindowType_java,
   // MacOSX sheet (special dialog class)
   eWindowType_sheet
-};
-
-enum nsPopupType {
-  ePopupTypePanel,
-  ePopupTypeMenu,
-  ePopupTypeTooltip,
-  ePopupTypeAny = 0xF000 // used only to pass to nsXULPopupManager::GetTopPopup
 };
 
 enum nsBorderStyle
@@ -213,7 +206,6 @@ enum nsCursor {   ///(normal cursor,       usually rendered as an arrow)
                 eCursor_nwse_resize,
                 eCursor_ns_resize,
                 eCursor_ew_resize,
-                eCursor_none,
                 // This one better be the last one in this list.
                 eCursorCount
                 }; 
@@ -245,8 +237,7 @@ struct nsWidgetInitData {
       mWindowType(eWindowType_child),
       mBorderStyle(eBorderStyle_default),
       mContentType(eContentTypeInherit),
-      mUnicode(PR_TRUE),
-      mPopupHint(ePopupTypePanel)
+      mUnicode(PR_TRUE)
   {
   }
 
@@ -257,7 +248,6 @@ struct nsWidgetInitData {
   nsBorderStyle mBorderStyle;
   nsContentType mContentType;  // Exposed so screen readers know what's UI
   PRPackedBool mUnicode;
-  nsPopupType mPopupHint;
 };
 
 /**
@@ -378,16 +368,6 @@ class nsIWidget : public nsISupports {
      *
      */
     virtual nsIWidget* GetParent(void) = 0;
-
-    /**
-     * Return the top (non-sheet) parent of this Widget if it's a sheet,
-     * or nsnull if this isn't a sheet (or some other error occurred).
-     * Sheets are only supported on some platforms (currently only OS X).
-     *
-     * @return the top (non-sheet) parent widget or nsnull
-     *
-     */
-    virtual nsIWidget* GetSheetWindowParent(void) = 0;
 
     /**
      * Return the first child of this widget.  Will return null if
@@ -577,8 +557,7 @@ class nsIWidget : public nsISupports {
      * Get this widget's outside dimensions in global coordinates. (One might think this
      * could be accomplished by stringing together other methods in this interface, but
      * then one would bloody one's nose on different coordinate system handling by different
-     * platforms.) This includes any title bar on the window.
-     *
+     * platforms.)
      *
      * @param aRect on return it holds the  x, y, width and height of this widget
      *
@@ -639,6 +618,22 @@ class nsIWidget : public nsISupports {
     NS_IMETHOD SetBackgroundColor(const nscolor &aColor) = 0;
 
     /**
+     * Get the font for this widget
+     *
+     * @return the font metrics 
+     */
+
+    virtual nsIFontMetrics* GetFont(void) = 0;
+
+    /**
+     * Set the font for this widget 
+     *
+     * @param aFont font to display. See nsFont for allowable fonts
+     */
+
+    NS_IMETHOD SetFont(const nsFont &aFont) = 0;
+
+    /**
      * Get the cursor for this widget.
      *
      * @return this widget's cursor.
@@ -689,18 +684,29 @@ class nsIWidget : public nsISupports {
      * If the window is resized then the alpha channel values for
      * all pixels are reset to 1.
      * Pixel RGB color values are already premultiplied with alpha channel values.
-     * @param aTransparent true if the window may have translucent
+     * @param aTranslucent true if the window may have translucent
      *   or transparent pixels
      */
-    NS_IMETHOD SetHasTransparentBackground(PRBool aTransparent) = 0;
+    NS_IMETHOD SetWindowTranslucency(PRBool aTranslucent) = 0;
 
     /**
      * Get the translucency of the top-level window that contains this
      * widget.
-     * @param aTransparent true if the window may have translucent or
+     * @param aTranslucent true if the window may have translucent or
      *   transparent pixels
      */
-    NS_IMETHOD GetHasTransparentBackground(PRBool& aTransparent) = 0;
+    NS_IMETHOD GetWindowTranslucency(PRBool& aTranslucent) = 0;
+
+    /**
+     * Update the alpha channel for some pixels of the top-level window
+     * that contains this widget.
+     * The window must have been made translucent using SetWindowTranslucency.
+     * Pixel RGB color values are already premultiplied with alpha channel values.
+     * @param aRect the rect to update
+     * @param aAlphas the alpha values, in w x h array, row-major order,
+     * in units of 1/255. nsBlender::GetAlphas is a good way to compute this array.
+     */
+    NS_IMETHOD UpdateTranslucentWindowAlpha(const nsRect& aRect, PRUint8* aAlphas) = 0;
 
     /** 
      * Hide window chrome (borders, buttons) for this widget.
@@ -774,9 +780,16 @@ class nsIWidget : public nsISupports {
     NS_IMETHOD AddEventListener(nsIEventListener * aListener) = 0;
 
     /**
-     * Return the widget's toolkit
+     * Adds a menu listener to this widget
+     * Any existing menu listener is replaced
      *
-     * An AddRef has NOT been done for the caller.
+     * @param aListener menu listener to add to this widget.
+     */
+
+    NS_IMETHOD AddMenuListener(nsIMenuListener * aListener) = 0;
+    
+    /**
+     * Return the widget's toolkit
      *
      * @return the toolkit this widget was created in. See nsToolkit.
      */
@@ -1011,99 +1024,12 @@ class nsIWidget : public nsISupports {
      */
     NS_IMETHOD GetLastInputEventTime(PRUint32& aTime) = 0;
 
-    /**
-     * Called when when we need to begin secure keyboard input, such as when a password field
-     * gets focus.
-     *
-     * NOTE: Calls to this method may not be nested and you can only enable secure keyboard input
-     * for one widget at a time.
-     */
-    NS_IMETHOD BeginSecureKeyboardInput() = 0;
-
-    /**
-     * Called when when we need to end secure keyboard input, such as when a password field
-     * loses focus.
-     *
-     * NOTE: Calls to this method may not be nested and you can only enable secure keyboard input
-     * for one widget at a time.
-     */
-    NS_IMETHOD EndSecureKeyboardInput() = 0;
-
-    /**
-     * Set the background color of the window titlebar for this widget. On Mac,
-     * for example, this will remove the grey gradient and bottom border and
-     * instead show a single, solid color.
-     *
-     * Ignored on any platform that does not support it. Ignored by widgets that
-     * do not represent windows.
-     *
-     * @param aColor  The color to set the title bar background to. Alpha values 
-     *                other than fully transparent (0) are respected if possible  
-     *                on the platform. An alpha of 0 will cause the window to 
-     *                draw with the default style for the platform.
-     *
-     * @param aActive Whether the color should be applied to active or inactive
-     *                windows.
-     */
-    NS_IMETHOD SetWindowTitlebarColor(nscolor aColor, PRBool aActive) = 0;
-
+#ifdef MOZ_CAIRO_GFX
     /**
      * Get the Thebes surface associated with this widget.
      */
     virtual gfxASurface *GetThebesSurface() = 0;
-
-    /**
-     * Return the popup that was last rolled up, or null if there isn't one.
-     */
-    virtual nsIContent* GetLastRollup() = 0;
-
-    /**
-     * Begin a window resizing drag, based on the event passed in.
-     */
-    NS_IMETHOD BeginResizeDrag(nsGUIEvent* aEvent, PRInt32 aHorizontal, PRInt32 aVertical) = 0;
-
-    enum Modifiers {
-        CAPS_LOCK = 0x01, // when CapsLock is active
-        NUM_LOCK = 0x02, // when NumLock is active
-        SHIFT_L = 0x0100,
-        SHIFT_R = 0x0200,
-        CTRL_L = 0x0400,
-        CTRL_R = 0x0800,
-        ALT_L = 0x1000, // includes Option
-        ALT_R = 0x2000,
-        COMMAND = 0x4000,
-        HELP = 0x8000,
-        FUNCTION = 0x10000,
-        NUMERIC_KEY_PAD = 0x01000000 // when the key is coming from the keypad
-    };
-    /**
-     * Utility method intended for testing. Dispatches native key events
-     * to this widget to simulate the press and release of a key.
-     * @param aNativeKeyboardLayout a *platform-specific* constant.
-     * On Mac, this is the resource ID for a 'uchr' or 'kchr' resource.
-     * On Windows, it is converted to a hex string and passed to
-     * LoadKeyboardLayout, see
-     * http://msdn.microsoft.com/en-us/library/ms646305(VS.85).aspx
-     * @param aNativeKeyCode a *platform-specific* keycode.
-     * On Windows, this is the virtual key code.
-     * @param aModifiers some combination of the above 'Modifiers' flags;
-     * not all flags will apply to all platforms. Mac ignores the _R
-     * modifiers. Windows ignores COMMAND, NUMERIC_KEY_PAD, HELP and
-     * FUNCTION.
-     * @param aCharacters characters that the OS would decide to generate
-     * from the event. On Windows, this is the charCode passed by
-     * WM_CHAR.
-     * @param aUnmodifiedCharacters characters that the OS would decide
-     * to generate from the event if modifier keys (other than shift)
-     * were assumed inactive. Needed on Mac, ignored on Windows.
-     * @return NS_ERROR_NOT_AVAILABLE to indicate that the keyboard
-     * layout is not supported and the event was not fired
-     */
-    virtual nsresult SynthesizeNativeKeyEvent(PRInt32 aNativeKeyboardLayout,
-                                              PRInt32 aNativeKeyCode,
-                                              PRUint32 aModifierFlags,
-                                              const nsAString& aCharacters,
-                                              const nsAString& aUnmodifiedCharacters) = 0;
+#endif
 
 protected:
     // keep the list of children.  We also keep track of our siblings.

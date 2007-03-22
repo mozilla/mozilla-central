@@ -48,8 +48,4 @@ ifdef ENABLE_TESTS
 DIRS += tests/buster
 endif
 
-ifdef MOZ_MOCHITEST
-DIRS += tests/mochitest
-endif
-
 include $(topsrcdir)/config/rules.mk

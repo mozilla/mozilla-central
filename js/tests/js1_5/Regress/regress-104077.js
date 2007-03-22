@@ -35,9 +35,8 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK ***** */
-
-/*
+ * ***** END LICENSE BLOCK *****
+ *
  *
  * Date: 10 October 2001
  * SUMMARY: Regression test for Bugzilla bug 104077
@@ -60,9 +59,8 @@
  *
  */
 //-----------------------------------------------------------------------------
-var gTestfile = 'regress-104077.js';
 var UBound = 0;
-var BUGNUMBER = 104077;
+var bug = 104077;
 var summary = "Just testing that we don't crash on with/finally/return -";
 var status = '';
 var statusitems = [];
@@ -107,12 +105,12 @@ function tryThis()
   {
     try
     {
-      sum += 1;
-      i += 1;
+     sum += 1;
+     i += 1;
     }
     finally
     {
-      print("In finally case of tryThis() function");
+     print("In finally case of tryThis() function");
     }
   }
   return i;
@@ -167,7 +165,7 @@ function addValues_2(obj)
       {
         while (sum < 10)
         {
-          try
+          try 
           {
             if (sum > 5)
               return sum;
@@ -275,12 +273,12 @@ function testfunc(mode)
 
 status = inSection(6);
 actual = testfunc(0);
-expect = 100;
+expect = 100; 
 captureThis();
 
 status = inSection(7);
 actual = testfunc();
-expect = 100; 
+expect = 100;  
 captureThis();
 
 
@@ -331,11 +329,11 @@ function addValues_5(obj)
       {
         while (sum < 10)
         {
-          try
+          try 
           {
-	    if (sum > 5)
-	      return sum;
-	    sum += 1;
+           if (sum > 5)
+             return sum;
+           sum += 1;
           }
           catch (e)
           {
@@ -497,7 +495,7 @@ function captureThis()
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
 
   for (var i=0; i<UBound; i++)

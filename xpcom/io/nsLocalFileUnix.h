@@ -52,7 +52,6 @@
 #include "nsString.h"
 #include "nsReadableUtils.h"
 #include "nsIHashable.h"
-#include "nsIClassInfoImpl.h"
 
 /** 
  *  we need these for statfs()

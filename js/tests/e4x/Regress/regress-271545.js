@@ -39,10 +39,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'regress-271545.js';
-
 START('XML("") should create empty text node');
-printBugNumber(271545);
+BUG(271545);
 
 // Check that text node should ignore any attempt to add a child to it
 

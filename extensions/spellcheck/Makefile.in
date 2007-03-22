@@ -44,10 +44,10 @@ include $(DEPTH)/config/autoconf.mk
 MODULE		= spellchecker
 DIRS		= idl locales
 
-ifeq (camino,$(MOZ_BUILD_APP))
+ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 DIRS		+= osxspell
 else
-DIRS		+= hunspell
+DIRS		+= myspell
 endif
 
 DIRS += src

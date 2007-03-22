@@ -40,13 +40,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '13.4.4.29.js';
-
 START("13.4.4.29 - XML prependChild()");
 
 TEST(1, true, XML.prototype.hasOwnProperty("prependChild"));
 
-x =
+x = 
 <alpha>
     <bravo>
         <charlie>one</charlie>
@@ -73,7 +71,7 @@ emps =
     <employee>
         <name>Sue</name>
     </employee>
-</employees>   
+</employees>    
 
 correct =
 <employees>
@@ -84,7 +82,7 @@ correct =
     <employee>
         <name>Sue</name>
     </employee>
-</employees>   
+</employees>    
 
 emps.employee.(name == "John").prependChild(<prefix>Mr.</prefix>);
 

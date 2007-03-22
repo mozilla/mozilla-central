@@ -19,7 +19,6 @@
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#   Ehsan Akhgari <ehsan.akhgari@gmail.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -41,36 +40,11 @@ function init(aEvent)
 {
   if (aEvent.target != document)
     return;
-
-  var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                        .getService(Components.interfaces.nsIPrefBranch);
-
-  try {
-    var distroId = prefs.getCharPref("distribution.id");
-    if (distroId) {
-      var distroVersion = prefs.getCharPref("distribution.version");
-      var distroAbout = prefs.getComplexValue("distribution.about",
-        Components.interfaces.nsISupportsString);
-  
-      var distroField = document.getElementById("distribution");
-      distroField.value = distroAbout;
-      distroField.style.display = "block";
-    
-      var distroIdField = document.getElementById("distributionId");
-      distroIdField.value = distroId + " - " + distroVersion;
-      distroIdField.style.display = "block";
-    }
-  }
-  catch (e) {
-    // Pref is unset
-  }
-
   var userAgentField = document.getElementById("userAgent");
   userAgentField.value = navigator.userAgent;
 
   var button = document.documentElement.getButton("extra2");
   button.setAttribute("label", document.documentElement.getAttribute("creditslabel"));
-  button.setAttribute("accesskey", document.documentElement.getAttribute("creditsaccesskey"));
   button.addEventListener("command", switchPage, false);
 
   document.documentElement.getButton("accept").focus();
@@ -99,13 +73,11 @@ function switchPage(aEvent)
   if (gSelectedPage == 0) { 
     iframe.setAttribute("src", "chrome://browser/content/credits.xhtml");
     button.setAttribute("label", document.documentElement.getAttribute("aboutlabel"));
-    button.setAttribute("accesskey", document.documentElement.getAttribute("aboutaccesskey"));
     gSelectedPage = 1;
   }
   else {
     iframe.setAttribute("src", ""); 
     button.setAttribute("label", document.documentElement.getAttribute("creditslabel"));
-    button.setAttribute("accesskey", document.documentElement.getAttribute("creditsaccesskey"));
     gSelectedPage = 0;
   }
   var modes = document.getElementById("modes");

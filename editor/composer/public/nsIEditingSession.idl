@@ -43,7 +43,7 @@
 
 interface nsIEditor;
 
-[scriptable, uuid(274cd32e-3675-47e1-9d8a-fc6504ded9ce)]
+[scriptable, uuid(d39fd2b4-3978-45d2-a4be-ba448171b61b)]
 
 interface nsIEditingSession : nsISupports
 {
@@ -68,16 +68,8 @@ interface nsIEditingSession : nsISupports
    *  Make this window editable
    *  @param aWindow nsIDOMWindow, the window the embedder needs to make editable
    *  @param aEditorType string, "html" "htmlsimple" "text" "textsimple"
-   *  @param aMakeWholeDocumentEditable if PR_TRUE make the whole document in
-   *                                    aWindow editable, otherwise it's the
-   *                                    embedder who should make the document
-   *                                    (or part of it) editable.
-   *  @param aInteractive if PR_FALSE turn off scripting and plugins
    */
-  void makeWindowEditable(in nsIDOMWindow window, in string aEditorType,
-                          in boolean doAfterUriLoad,
-                          in boolean aMakeWholeDocumentEditable,
-                          in boolean aInteractive);
+  void makeWindowEditable(in nsIDOMWindow window, in string aEditorType, in boolean doAfterUriLoad);
   
   /**
    *  Test whether a specific window has had its editable flag set; it may have an editor
@@ -106,27 +98,5 @@ interface nsIEditingSession : nsISupports
   void setEditorOnControllers(in nsIDOMWindow aWindow,
                               in nsIEditor aEditor);
 
-  /**
-   * Disable scripts and plugins in aWindow.
-   */
-  void disableJSAndPlugins(in nsIDOMWindow aWindow);
-
-  /**
-   * Restore JS and plugins (enable/disable them) according to the state they
-   * were before the last call to disableJSAndPlugins.
-   */
-  void restoreJSAndPlugins(in nsIDOMWindow aWindow);
-
-  /**
-   * Removes all the editor's controllers/listeners etc and makes the window
-   * uneditable.
-   */
-  void detachFromWindow(in nsIDOMWindow aWindow);
-
-  /**
-   * Undos detachFromWindow(), reattaches this editing session/editor
-   * to the window.
-   */
-  void reattachToWindow(in nsIDOMWindow aWindow);
 };
 

@@ -109,8 +109,8 @@ txLiteralExpr::toString(nsAString& aStr)
         case txAExprResult::STRING:
         {
             StringResult* strRes =
-                static_cast<StringResult*>(static_cast<txAExprResult*>
-                                       (mValue));
+                NS_STATIC_CAST(StringResult*, NS_STATIC_CAST(txAExprResult*,
+                                                             mValue));
             PRUnichar ch = '\'';
             if (strRes->mValue.FindChar(ch) != kNotFound) {
                 ch = '\"';

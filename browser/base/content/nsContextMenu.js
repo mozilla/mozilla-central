@@ -39,9 +39,6 @@
 #   Pamela Greene <pamg.bugs@gmail.com>
 #   Michael Ventnor <ventnors_dogs234@yahoo.com.au>
 #   Simon Bünzli <zeniko@gmail.com>
-#   Gijs Kruitbosch <gijskruitbosch@gmail.com>
-#   Ehsan Akhgari <ehsan.akhgari@gmail.com>
-#   Dan Mosedale <dmose@mozilla.org>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -61,13 +58,10 @@ function nsContextMenu(aXulMenu, aBrowser) {
   this.target            = null;
   this.browser           = null;
   this.menu              = null;
-  this.isFrameImage      = false;
   this.onTextInput       = false;
   this.onKeywordField    = false;
   this.onImage           = false;
   this.onLoadedImage     = false;
-  this.onCompletedImage  = false;
-  this.onCanvas          = false;
   this.onLink            = false;
   this.onMailtoLink      = false;
   this.onSaveableLink    = false;
@@ -85,11 +79,6 @@ function nsContextMenu(aXulMenu, aBrowser) {
   this.shouldDisplay     = true;
   this.isDesignMode      = false;
   this.possibleSpellChecking = false;
-  this.ellipsis = "\u2026";
-  try {
-    this.ellipsis = gPrefService.getComplexValue("intl.ellipsis",
-                                                 Ci.nsIPrefLocalizedString).data;
-  } catch (e) { }
 
   // Initialize new menu.
   this.initMenu(aXulMenu, aBrowser);
@@ -102,11 +91,9 @@ nsContextMenu.prototype = {
   },
 
   // Initialize context menu.
-  initMenu: function CM_initMenu(aPopup, aBrowser) {
+  initMenu: function (aPopup, aBrowser) {
     this.menu = aPopup;
     this.browser = aBrowser;
-
-    this.isFrameImage = document.getElementById("isFrameImage");
 
     // Get contextual info.
     this.setTarget(document.popupNode, document.popupRangeParent,
@@ -119,7 +106,7 @@ nsContextMenu.prototype = {
     this.initItems();
   },
 
-  initItems: function CM_initItems() {
+  initItems: function () {
     this.initOpenItems();
     this.initNavigationItems();
     this.initViewItems();
@@ -130,7 +117,7 @@ nsContextMenu.prototype = {
     this.initMetadataItems();
   },
 
-  initOpenItems: function CM_initOpenItems() {
+  initOpenItems: function () {
     var shouldShow = this.onSaveableLink ||
                      (this.inDirList && this.onLink);
     this.showItem("context-openlink", shouldShow);
@@ -138,9 +125,9 @@ nsContextMenu.prototype = {
     this.showItem("context-sep-open", shouldShow);
   },
 
-  initNavigationItems: function CM_initNavigationItems() {
+  initNavigationItems: function() {
     var shouldShow = !(this.isContentSelected || this.onLink || this.onImage ||
-                       this.onCanvas || this.onTextInput);
+                       this.onTextInput);
     this.showItem("context-back", shouldShow);
     this.showItem("context-forward", shouldShow);
     this.showItem("context-reload", shouldShow);
@@ -151,9 +138,9 @@ nsContextMenu.prototype = {
     //this.setItemAttrFromNode( "context-stop", "disabled", "canStop" );
   },
 
-  initSaveItems: function CM_initSaveItems() {
-    var shouldShow = !(this.inDirList || this.onTextInput || this.onLink ||
-                       this.isContentSelected || this.onImage || this.onCanvas);
+  initSaveItems: function() {
+    var shouldShow = !(this.inDirList || this.isContentSelected ||
+                       this.onTextInput || this.onLink || this.onImage);
     this.showItem("context-savepage", shouldShow);
     this.showItem("context-sendpage", shouldShow);
 
@@ -161,13 +148,12 @@ nsContextMenu.prototype = {
     this.showItem("context-savelink", this.onSaveableLink);
     this.showItem("context-sendlink", this.onSaveableLink);
 
-    // Save image depends on whether we're on a loaded image, or a canvas.
-    this.showItem("context-saveimage", this.onLoadedImage || this.onCanvas);
-    // We can send an image (even unloaded), but not a canvas:
+    // Save+Send image depends on whether we're on an image.
+    this.showItem("context-saveimage", this.onLoadedImage);
     this.showItem("context-sendimage", this.onImage);
   },
 
-  initViewItems: function CM_initViewItems() {
+  initViewItems: function () {
     // View source is always OK, unless in directory listing.
     this.showItem("context-viewpartialsource-selection",
                   this.isContentSelected);
@@ -200,13 +186,9 @@ nsContextMenu.prototype = {
               .disabled = this.disableSetDesktopBackground();
     }
 
-    // Show image depends on an image that's not fully loaded
-    this.showItem("context-showimage", (this.onImage && !this.onCompletedImage));
-
-    // View image depends on having an image that's not standalone
-    // (or is in a frame), or a canvas.
-    this.showItem("context-viewimage", (this.onImage &&
-                  (!this.onStandaloneImage || this.inFrame)) || this.onCanvas);
+    // View Image depends on whether an image was clicked on.
+    this.showItem("context-viewimage",
+                  this.onImage && (!this.onStandaloneImage || this.inFrame));
 
     // View background image depends on whether there is one.
     this.showItem("context-viewbgimage", shouldShow);
@@ -215,7 +197,7 @@ nsContextMenu.prototype = {
             .disabled = !this.hasBGImage;
   },
 
-  initMiscItems: function CM_initMiscItems() {
+  initMiscItems: function() {
     // Use "Bookmark This Link" if on a link.
     this.showItem("context-bookmarkpage",
                   !(this.isContentSelected || this.onTextInput ||
@@ -227,20 +209,12 @@ nsContextMenu.prototype = {
     this.showItem("frame", this.inFrame);
     this.showItem("frame-sep", this.inFrame);
 
-    // Hide menu entries for images, show otherwise
-    if (this.inFrame) {
-      if (mimeTypeIsTextBased(this.target.ownerDocument.contentType))
-        this.isFrameImage.removeAttribute('hidden');
-      else
-        this.isFrameImage.setAttribute('hidden', 'true');
-    }
-
     // BiDi UI
-    this.showItem("context-sep-bidi", top.gBidiUI);
+    this.showItem("context-sep-bidi", gBidiUI);
     this.showItem("context-bidi-text-direction-toggle",
-                  this.onTextInput && top.gBidiUI);
+                  this.onTextInput && gBidiUI);
     this.showItem("context-bidi-page-direction-toggle",
-                  !this.onTextInput && top.gBidiUI);
+                  !this.onTextInput && gBidiUI);
 
     if (this.onImage) {
       var blockImage = document.getElementById("context-blockimage");
@@ -259,7 +233,7 @@ nsContextMenu.prototype = {
       if (hostLabel) {
         var shortenedUriHost = hostLabel.replace(/^www\./i,"");
         if (shortenedUriHost.length > 15)
-          shortenedUriHost = shortenedUriHost.substr(0,15) + this.ellipsis;
+          shortenedUriHost = shortenedUriHost.substr(0,15) + "...";
         blockImage.label = gNavigatorBundle.getFormattedString("blockImages", [shortenedUriHost]);
 
         if (this.isImageBlocked())
@@ -342,8 +316,8 @@ nsContextMenu.prototype = {
     // Copy email link depends on whether we're on an email link.
     this.showItem("context-copyemail", this.onMailtoLink);
 
-    // Copy link location depends on whether we're on a non-mailto link.
-    this.showItem("context-copylink", this.onLink && !this.onMailtoLink);
+    // Copy link location depends on whether we're on a link.
+    this.showItem("context-copylink", this.onLink);
     this.showItem("context-sep-copylink", this.onLink && this.onImage);
 
 #ifdef CONTEXT_COPY_IMAGE_CONTENTS
@@ -363,17 +337,15 @@ nsContextMenu.prototype = {
   // Set various context menu attributes based on the state of the world.
   setTarget: function (aNode, aRangeParent, aRangeOffset) {
     const xulNS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
-    if (aNode.namespaceURI == xulNS ||
-        this.isTargetAFormControl(aNode)) {
+    if (aNode.namespaceURI == xulNS) {
       this.shouldDisplay = false;
+      return;
     }
 
     // Initialize contextual info.
     this.onImage           = false;
     this.onLoadedImage     = false;
-    this.onCompletedImage  = false;
     this.onStandaloneImage = false;
-    this.onCanvas          = false;
     this.onMetaDataItem    = false;
     this.onTextInput       = false;
     this.onKeywordField    = false;
@@ -413,15 +385,10 @@ nsContextMenu.prototype = {
           this.target.getRequest(Ci.nsIImageLoadingContent.CURRENT_REQUEST);
         if (request && (request.imageStatus & request.STATUS_SIZE_AVAILABLE))
           this.onLoadedImage = true;
-        if (request && (request.imageStatus & request.STATUS_LOAD_COMPLETE))
-          this.onCompletedImage = true;
 
         this.imageURL = this.target.currentURI.spec;
         if (this.target.ownerDocument instanceof ImageDocument)
           this.onStandaloneImage = true;
-      }
-      else if (this.target instanceof HTMLCanvasElement) {
-        this.onCanvas = true;
       }
       else if (this.target instanceof HTMLInputElement ) {
         this.onTextInput = this.isTargetATextBox(this.target);
@@ -498,7 +465,7 @@ nsContextMenu.prototype = {
         // Link?
         if (!this.onLink &&
              ((elem instanceof HTMLAnchorElement && elem.href) ||
-              (elem instanceof HTMLAreaElement && elem.href) ||
+              elem instanceof HTMLAreaElement ||
               elem instanceof HTMLLinkElement ||
               elem.getAttributeNS("http://www.w3.org/1999/xlink", "type") == "simple")) {
             
@@ -510,16 +477,16 @@ nsContextMenu.prototype = {
           // we're going to walk up the DOM looking for a parent link node,
           // this shouldn't be necessary, but we're matching the existing behaviour for left click
           var realLink = elem;
-          var parent = elem;
-          while ((parent = parent.parentNode) &&
-                 (parent.nodeType == Node.ELEMENT_NODE)) {
+          var parent = elem.parentNode;
+          while (parent) {
             try {
-              if ((parent instanceof HTMLAnchorElement && parent.href) ||
-                  (parent instanceof HTMLAreaElement && parent.href) ||
+              if ((parent instanceof HTMLAnchorElement && elem.href) ||
+                  parent instanceof HTMLAreaElement ||
                   parent instanceof HTMLLinkElement ||
                   parent.getAttributeNS("http://www.w3.org/1999/xlink", "type") == "simple")
                 realLink = parent;
             } catch (e) { }
+            parent = parent.parentNode;
           }
           
           // Remember corresponding element.
@@ -584,10 +551,7 @@ nsContextMenu.prototype = {
                                 .getInterface(Ci.nsIWebNavigation)
                                 .QueryInterface(Ci.nsIInterfaceRequestor)
                                 .getInterface(Ci.nsIEditingSession);
-        if (editingSession.windowIsEditable(win) &&
-            this.getComputedStyle(this.target, "-moz-user-modify") == "read-write") {
-          isEditable = true;
-        }
+        isEditable = editingSession.windowIsEditable(win);
       }
       catch(ex) {
         // If someone built with composer disabled, we can't get an editing session.
@@ -598,7 +562,6 @@ nsContextMenu.prototype = {
         this.onKeywordField    = false;
         this.onImage           = false;
         this.onLoadedImage     = false;
-        this.onCompletedImage  = false;
         this.onMetaDataItem    = false;
         this.onMathML          = false;
         this.inFrame           = false;
@@ -616,9 +579,9 @@ nsContextMenu.prototype = {
 
   // Returns the computed style attribute for the given element.
   getComputedStyle: function(aElem, aProp) {
-    return aElem.ownerDocument
-                .defaultView
-                .getComputedStyle(aElem, "").getPropertyValue(aProp);
+    return elem.ownerDocument
+               .defaultView
+               .getComputedStyle(aElem, "").getPropertyValue(prop);
   },
 
   // Returns a "url"-type computed style attribute value, with the url() stripped.
@@ -653,12 +616,8 @@ nsContextMenu.prototype = {
 
   // Open frame in a new tab.
   openFrameInTab: function() {
-    var doc = this.target.ownerDocument;
-    var frameURL = doc.location.href;
-    var referrer = doc.referrer;
-
-    return openNewTabWith(frameURL, null, null, null, false,
-                          referrer ? makeURI(referrer) : null);
+    openNewTabWith(this.target.ownerDocument.location.href,
+                   null, null, null, false);
   },
 
   // Reload clicked-in frame.
@@ -668,23 +627,19 @@ nsContextMenu.prototype = {
 
   // Open clicked-in frame in its own window.
   openFrame: function() {
-    var doc = this.target.ownerDocument;
-    var frameURL = doc.location.href;
-    var referrer = doc.referrer;
-
-    return openNewWindowWith(frameURL, null, null, false,
-                             referrer ? makeURI(referrer) : null);
+    openNewWindowWith(this.target.ownerDocument.location.href,
+                      null, null, false);
   },
 
   // Open clicked-in frame in the same window.
   showOnlyThisFrame: function() {
-    var doc = this.target.ownerDocument;
-    var frameURL = doc.location.href;
+    var frameURL = this.target.ownerDocument.location.href;
 
-    urlSecurityCheck(frameURL, this.browser.contentPrincipal,
-                     Ci.nsIScriptSecurityManager.DISALLOW_SCRIPT);
-    var referrer = doc.referrer;
-    this.browser.loadURI(frameURL, referrer ? makeURI(referrer) : null);
+    try {
+      urlSecurityCheck(frameURL, this.browser.contentPrincipal,
+                       Ci.nsIScriptSecurityManager.DISALLOW_SCRIPT);
+      this.browser.loadURI(frameURL);
+    } catch(e) {}
   },
 
   // View Partial Source
@@ -728,30 +683,13 @@ nsContextMenu.prototype = {
     BrowserPageInfo(this.target.ownerDocument);
   },
 
-  showImage: function(e) {
+  // Change current window to the URL of the image.
+  viewImage: function(e) {
     urlSecurityCheck(this.imageURL,
                      this.browser.contentPrincipal,
                      Ci.nsIScriptSecurityManager.DISALLOW_SCRIPT);
-
-    if (this.target instanceof Ci.nsIImageLoadingContent)
-      this.target.forceReload();
-  },
-
-  // Change current window to the URL of the image.
-  viewImage: function(e) {
-    var viewURL;
-
-    if (this.onCanvas)
-      viewURL = this.target.toDataURL();
-    else {
-      viewURL = this.imageURL;
-      urlSecurityCheck(viewURL,
-                       this.browser.contentPrincipal,
-                       Ci.nsIScriptSecurityManager.DISALLOW_SCRIPT);
-    }
-
     var doc = this.target.ownerDocument;
-    openUILink(viewURL, e, null, null, null, null, doc.documentURIObject );
+    openUILink( this.imageURL, e, null, null, null, null, doc.documentURIObject );
   },
 
   // Change current window to the URL of the background image.
@@ -826,123 +764,10 @@ nsContextMenu.prototype = {
 
   // Save URL of clicked-on link.
   saveLink: function() {
-    // canonical def in nsURILoader.h
-    const NS_ERROR_SAVE_LINK_AS_TIMEOUT = 0x805d0020;
-    
     var doc =  this.target.ownerDocument;
     urlSecurityCheck(this.linkURL, doc.nodePrincipal);
-    var linkText = this.linkText();
-    var linkURL = this.linkURL;
-
-
-    // an object to proxy the data through to
-    // nsIExternalHelperAppService.doContent, which will wait for the
-    // appropriate MIME-type headers and then prompt the user with a
-    // file picker
-    function saveAsListener() {}
-    saveAsListener.prototype = {
-      extListener: null, 
-
-      onStartRequest: function saveLinkAs_onStartRequest(aRequest, aContext) {
-
-        // if the timer fired, the error status will have been caused by that,
-        // and we'll be restarting in onStopRequest, so no reason to notify
-        // the user
-        if (aRequest.status == NS_ERROR_SAVE_LINK_AS_TIMEOUT)
-          return;
-
-        timer.cancel();
-
-        // some other error occured; notify the user...
-        if (!Components.isSuccessCode(aRequest.status)) {
-          try {
-            const sbs = Cc["@mozilla.org/intl/stringbundle;1"].
-                        getService(Ci.nsIStringBundleService);
-            const bundle = sbs.createBundle(
-                    "chrome://mozapps/locale/downloads/downloads.properties");
-            
-            const title = bundle.GetStringFromName("downloadErrorAlertTitle");
-            const msg = bundle.GetStringFromName("downloadErrorGeneric");
-            
-            const promptSvc = Cc["@mozilla.org/embedcomp/prompt-service;1"].
-                              getService(Ci.nsIPromptService);
-            promptSvc.alert(doc.defaultView, title, msg);
-          } catch (ex) {}
-          return;
-        }
-
-        var extHelperAppSvc = 
-          Cc["@mozilla.org/uriloader/external-helper-app-service;1"].
-          getService(Ci.nsIExternalHelperAppService);
-        var channel = aRequest.QueryInterface(Ci.nsIChannel);
-        this.extListener = 
-          extHelperAppSvc.doContent(channel.contentType, aRequest, 
-                                    doc.defaultView, true);
-        this.extListener.onStartRequest(aRequest, aContext);
-      }, 
-
-      onStopRequest: function saveLinkAs_onStopRequest(aRequest, aContext, 
-                                                       aStatusCode) {
-        if (aStatusCode == NS_ERROR_SAVE_LINK_AS_TIMEOUT) {
-          // do it the old fashioned way, which will pick the best filename
-          // it can without waiting.
-          saveURL(linkURL, linkText, null, true, false, doc.documentURIObject);
-        }
-        if (this.extListener)
-          this.extListener.onStopRequest(aRequest, aContext, aStatusCode);
-      },
-       
-      onDataAvailable: function saveLinkAs_onDataAvailable(aRequest, aContext,
-                                                           aInputStream,
-                                                           aOffset, aCount) {
-        this.extListener.onDataAvailable(aRequest, aContext, aInputStream,
-                                         aOffset, aCount);
-      }
-    }
-
-    // in case we need to prompt the user for authentication
-    function callbacks() {}
-    callbacks.prototype = {
-      getInterface: function sLA_callbacks_getInterface(aIID) {
-        if (aIID.equals(Ci.nsIAuthPrompt) || aIID.equals(Ci.nsIAuthPrompt2)) {
-          var ww = Cc["@mozilla.org/embedcomp/window-watcher;1"].
-                   getService(Ci.nsIPromptFactory);
-          return ww.getPrompt(doc.defaultView, aIID);
-        }
-        throw Cr.NS_ERROR_NO_INTERFACE;
-      } 
-    }
-
-    // if it we don't have the headers after a short time, the user 
-    // won't have received any feedback from their click.  that's bad.  so
-    // we give up waiting for the filename. 
-    function timerCallback() {}
-    timerCallback.prototype = {
-      notify: function sLA_timer_notify(aTimer) {
-        channel.cancel(NS_ERROR_SAVE_LINK_AS_TIMEOUT);
-        return;
-      }
-    }
-
-    // set up a channel to do the saving
-    var ioService = Cc["@mozilla.org/network/io-service;1"].
-                    getService(Ci.nsIIOService);
-    var channel = ioService.newChannelFromURI(this.getLinkURI());
-    channel.notificationCallbacks = new callbacks();
-    channel.loadFlags |= Ci.nsIRequest.LOAD_BYPASS_CACHE |
-                         Ci.nsIChannel.LOAD_CALL_CONTENT_SNIFFERS;
-    if (channel instanceof Ci.nsIHttpChannel)
-      channel.referrer = doc.documentURIObject;
-
-    // fallback to the old way if we don't see the headers quickly 
-    var timeToWait = 
-      gPrefService.getIntPref("browser.download.saveLinkAsFilenameTimeout");
-    var timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
-    timer.initWithCallback(new timerCallback(), timeToWait,
-                           timer.TYPE_ONE_SHOT);
-
-    // kick off the channel with our proxy object as the listener
-    channel.asyncOpen(new saveAsListener(), null);
+    saveURL(this.linkURL, this.linkText(), null, true, false,
+            doc.documentURIObject);
   },
 
   sendLink: function() {
@@ -953,16 +778,9 @@ nsContextMenu.prototype = {
   // Save URL of clicked-on image.
   saveImage: function() {
     var doc =  this.target.ownerDocument;
-    if (this.onCanvas) {
-      // Bypass cache, since it's a data: URL.
-      saveImageURL(this.target.toDataURL(), "canvas.png", "SaveImageTitle",
-                   true, false, doc.documentURIObject);
-    }
-    else {
-      urlSecurityCheck(this.imageURL, doc.nodePrincipal);
-      saveImageURL(this.imageURL, null, "SaveImageTitle", false,
-                   false, doc.documentURIObject);
-    }
+    urlSecurityCheck(this.imageURL, doc.nodePrincipal);
+    saveImageURL(this.imageURL, null, "SaveImageTitle", false,
+                 false, doc.documentURIObject);
   },
 
   sendImage: function() {
@@ -975,10 +793,9 @@ nsContextMenu.prototype = {
 
     var uri = this.target.QueryInterface(Ci.nsIImageLoadingContent).currentURI;
 
-    if (aBlock)
-      permissionmanager.add(uri, "image", Ci.nsIPermissionManager.DENY_ACTION);
-    else
-      permissionmanager.remove(uri.host, "image");
+    permissionmanager.add(uri, "image",
+                          aBlock ? Ci.nsIPermissionManager.DENY_ACTION :
+                                   Ci.nsIPermissionManager.ALLOW_ACTION);
 
     var brandBundle = document.getElementById("bundle_brand");
     var app = brandBundle.getString("brandShortName");
@@ -1172,14 +989,14 @@ nsContextMenu.prototype = {
       return false;
 
     if (selectedText.length > 15)
-      selectedText = selectedText.substr(0,15) + this.ellipsis;
+      selectedText = selectedText.substr(0,15) + "...";
 
     // Use the current engine if the search bar is visible, the default
     // engine otherwise.
     var engineName = "";
     var ss = Cc["@mozilla.org/browser/search-service;1"].
              getService(Ci.nsIBrowserSearchService);
-    if (isElementVisible(BrowserSearch.searchBar))
+    if (BrowserSearch.getSearchBar())
       engineName = ss.currentEngine.name;
     else
       engineName = ss.defaultEngine.name;
@@ -1205,18 +1022,6 @@ nsContextMenu.prototype = {
            "contextMenu.link       = " + this.link + "\n" +
            "contextMenu.inFrame    = " + this.inFrame + "\n" +
            "contextMenu.hasBGImage = " + this.hasBGImage + "\n";
-  },
-
-  // Returns true if aNode is a from control (except text boxes).
-  // This is used to disable the context menu for form controls.
-  isTargetAFormControl: function(aNode) {
-    if (aNode instanceof HTMLInputElement)
-      return (aNode.type != "text" && aNode.type != "password");
-
-    return (aNode instanceof HTMLButtonElement) ||
-           (aNode instanceof HTMLSelectElement) ||
-           (aNode instanceof HTMLOptionElement) ||
-           (aNode instanceof HTMLOptGroupElement);
   },
 
   isTargetATextBox: function(node) {
@@ -1288,35 +1093,40 @@ nsContextMenu.prototype = {
     openUILinkIn(uri, where);
   },
 
+#ifdef MOZ_PLACES_BOOKMARKS
   bookmarkThisPage: function CM_bookmarkThisPage() {
-    window.top.PlacesCommandHook.bookmarkPage(this.browser, PlacesUtils.bookmarksMenuFolderId, true);
+    PlacesCommandHook.bookmarkPage(this.browser);
   },
 
   bookmarkLink: function CM_bookmarkLink() {
-    window.top.PlacesCommandHook.bookmarkLink(PlacesUtils.bookmarksMenuFolderId, this.linkURL,
-                                              this.linkText());
+    PlacesCommandHook.bookmarkLink(this.linkURL, this.linkText());
   },
 
   addBookmarkForFrame: function CM_addBookmarkForFrame() {
     var doc = this.target.ownerDocument;
-    var uri = doc.documentURIObject;
-
-    var itemId = PlacesUtils.getMostRecentBookmarkForURI(uri);
-    if (itemId == -1) {
-      var title = doc.title;
-      var description = PlacesUIUtils.getDescriptionFromDocument(doc);
-
-      var descAnno = { name: DESCRIPTION_ANNO, value: description };
-      var txn = PlacesUIUtils.ptm.createItem(uri, 
-                                           PlacesUtils.bookmarksMenuFolderId,
-                                           -1, title, null, [descAnno]);
-      PlacesUIUtils.ptm.doTransaction(txn);
-      itemId = PlacesUtils.getMostRecentBookmarkForURI(uri);
-      StarUI.beginBatch();
-    }
-
-    window.top.StarUI.showEditBookmarkPopup(itemId, this.browser, "overlap");
+    var uri = this.target.ownerDocument.documentURIObject;
+    var description = PlacesUtils.getDescriptionFromDocument(doc);
+    PlacesUtils.showAddBookmarkUI(uri, doc.title, description);
   },
+#else
+  bookmarkThisPage: function CM_bookmarkThisPage() {
+    addBookmarkAs(this.browser);
+  },
+
+  bookmarkLink: function CM_bookmarkLink() {
+    BookmarksUtils.addBookmark(this.linkURL, this.linkText());
+  },
+
+  addBookmarkForFrame: function CM_addBookmarkForFrame() {
+    var doc = this.target.ownerDocument;
+    var uri = doc.location.href;
+    var title = doc.title;
+    var description = BookmarksUtils.getDescriptionFromDocument(doc);
+    if (!title)
+      title = uri;
+    BookmarksUtils.addBookmark(uri, title, doc.charset, description);
+  },
+#endif
 
   savePageAs: function CM_savePageAs() {
     saveDocument(this.browser.contentDocument);
@@ -1328,9 +1138,5 @@ nsContextMenu.prototype = {
 
   printFrame: function CM_printFrame() {
     PrintUtils.print(this.target.ownerDocument.defaultView);
-  },
-
-  switchPageDirection: function CM_switchPageDirection() {
-    SwitchDocumentDirection(this.browser.contentWindow);
   }
 };

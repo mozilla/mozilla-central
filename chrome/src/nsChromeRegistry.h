@@ -94,9 +94,7 @@ public:
   NS_DECL_NSIOBSERVER
 
   // nsChromeRegistry methods:
-  nsChromeRegistry() : mInitialized(PR_FALSE) {
-    mPackagesHash.ops = nsnull;
-  }
+  nsChromeRegistry() : mInitialized(PR_FALSE) { }
   ~nsChromeRegistry();
 
   nsresult Init();
@@ -187,10 +185,7 @@ public:
       // This package should use the new XPCNativeWrappers to separate
       // content from chrome. This flag is currently unused (because we call
       // into xpconnect at registration time).
-      XPCNATIVEWRAPPERS = 1 << 1,
-
-      // Content script may access files in this package
-      CONTENT_ACCESSIBLE = 1 << 2
+      XPCNATIVEWRAPPERS = 1 << 1
     };
 
     nsCString        package;
@@ -201,6 +196,7 @@ public:
   };
 
 private:
+  static const void*   GetKey(PLDHashTable *table, PLDHashEntryHdr *entry);
   static PLDHashNumber HashKey(PLDHashTable *table, const void *key);
   static PRBool        MatchKey(PLDHashTable *table, const PLDHashEntryHdr *entry,
                                 const void *key);

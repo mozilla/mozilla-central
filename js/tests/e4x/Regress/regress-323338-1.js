@@ -36,28 +36,28 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'regress-323338-1.js';
+START("Do not crash when qn->uri is null");
 
-var summary = "Do not crash when qn->uri is null";
-var BUGNUMBER = 323338;
+var bug = 323338;
+var summary = 'Do not crash when qn->uri is null';
 var actual = 'No Crash';
 var expect = 'No Crash';
 
-printBugNumber(BUGNUMBER);
-START(summary);
+printBugNumber (bug);
+printStatus (summary);
 
 testFunc();
 testFunc();
 
 function testFunc()
 {
-  var htmlXML =
+  var htmlXML = 
    <html>
     <body>
      <div>
       <div id="summary" />
       <div id="desc" />
-     </div>
+     </div> 
     </body>
    </html>;
   var childs = htmlXML.children();

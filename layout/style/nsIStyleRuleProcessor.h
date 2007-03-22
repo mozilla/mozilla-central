@@ -78,7 +78,7 @@ struct RuleProcessorData {
   void Destroy(nsPresContext* aContext) {
     this->~RuleProcessorData();
     aContext->FreeToShell(sizeof(RuleProcessorData), this);
-  }
+  };
 
   const nsString* GetLang();
 
@@ -152,20 +152,17 @@ struct StateRuleProcessorData : public RuleProcessorData {
 
 struct AttributeRuleProcessorData : public RuleProcessorData {
   AttributeRuleProcessorData(nsPresContext* aPresContext,
-                             nsIContent* aContent,
-                             nsIAtom* aAttribute,
-                             PRInt32 aModType,
-                             PRUint32 aStateMask)
+                         nsIContent* aContent,
+                         nsIAtom* aAttribute,
+                         PRInt32 aModType)
     : RuleProcessorData(aPresContext, aContent, nsnull),
       mAttribute(aAttribute),
-      mModType(aModType),
-      mStateMask(aStateMask)
+      mModType(aModType)
   {
     NS_PRECONDITION(aContent, "null pointer");
   }
   nsIAtom* mAttribute; // |HasAttributeDependentStyle| for which attribute?
   PRInt32 mModType;    // The type of modification (see nsIDOMMutationEvent).
-  PRUint32 mStateMask; // The states that changed with the attr change.
 };
 
 

@@ -52,37 +52,35 @@ nsOuterDocAccessible::nsOuterDocAccessible(nsIDOMNode* aNode,
 {
 }
 
+  /* attribute wstring accName; */
+NS_IMETHODIMP nsOuterDocAccessible::GetName(nsAString& aName) 
+{ 
+  nsCOMPtr<nsIAccessibleDocument> accDoc(do_QueryInterface(mFirstChild));
+  if (!accDoc) {
+    return NS_ERROR_FAILURE;
+  }
+  nsresult rv = accDoc->GetTitle(aName);
+  if (NS_FAILED(rv) || aName.IsEmpty()) {
+    rv = nsAccessible::GetName(aName);
+    if (aName.IsEmpty()) {
+      rv = accDoc->GetURL(aName);
+    }
+  }
+  return rv;
+}
+
 /* unsigned long getRole (); */
 NS_IMETHODIMP nsOuterDocAccessible::GetRole(PRUint32 *aRole)
 {
-  *aRole = nsIAccessibleRole::ROLE_INTERNAL_FRAME;
+  *aRole = nsIAccessibleRole::ROLE_CLIENT;
   return NS_OK;
 }
 
-NS_IMETHODIMP
-nsOuterDocAccessible::GetState(PRUint32 *aState, PRUint32 *aExtraState)
+NS_IMETHODIMP nsOuterDocAccessible::GetState(PRUint32 *aState)
 {
-  nsAccessible::GetState(aState, aExtraState);
+  nsAccessible::GetState(aState);
   *aState &= ~nsIAccessibleStates::STATE_FOCUSABLE;
   return NS_OK;
-}
-
-NS_IMETHODIMP
-nsOuterDocAccessible::GetChildAtPoint(PRInt32 aX, PRInt32 aY,
-                                      nsIAccessible **aAccessible)
-{
-  NS_ENSURE_ARG_POINTER(aAccessible);
-  *aAccessible = nsnull;
-  if (!mDOMNode) {
-    return NS_ERROR_FAILURE;
-  }
-  PRInt32 docX, docY, docWidth, docHeight;
-  GetBounds(&docX, &docY, &docWidth, &docHeight);
-  if (aX < docX || aX >= docX + docWidth || aY < docY || aY >= docY + docHeight) {
-    return NS_ERROR_FAILURE;
-  }
-
-  return GetFirstChild(aAccessible);  // Always return the inner doc unless bounds outside of it
 }
 
 void nsOuterDocAccessible::CacheChildren()
@@ -97,8 +95,7 @@ void nsOuterDocAccessible::CacheChildren()
     return;
   }
 
-  InvalidateChildren();
-  mAccChildCount = 0;
+  SetFirstChild(nsnull);
 
   // In these variable names, "outer" relates to the nsOuterDocAccessible
   // as opposed to the nsDocAccessibleWrap which is "inner".
@@ -110,12 +107,14 @@ void nsOuterDocAccessible::CacheChildren()
 
   nsCOMPtr<nsIDocument> outerDoc = content->GetDocument();
   if (!outerDoc) {
+    mAccChildCount = 0;
     return;
   }
 
   nsIDocument *innerDoc = outerDoc->GetSubDocumentFor(content);
   nsCOMPtr<nsIDOMNode> innerNode(do_QueryInterface(innerDoc));
   if (!innerNode) {
+    mAccChildCount = 0;
     return;
   }
 
@@ -126,6 +125,7 @@ void nsOuterDocAccessible::CacheChildren()
   nsCOMPtr<nsPIAccessible> privateInnerAccessible = 
     do_QueryInterface(innerAccessible);
   if (!privateInnerAccessible) {
+    mAccChildCount = 0;
     return;
   }
 
@@ -136,46 +136,3 @@ void nsOuterDocAccessible::CacheChildren()
   privateInnerAccessible->SetNextSibling(nsnull);
 }
 
-nsresult
-nsOuterDocAccessible::GetAttributesInternal(nsIPersistentProperties *aAttributes)
-{
-  nsAutoString tag;
-  aAttributes->GetStringProperty(NS_LITERAL_CSTRING("tag"), tag);
-  if (!tag.IsEmpty()) {
-    // We're overriding the ARIA attributes on an sub document, but we don't want to
-    // override the other attributes
-    return NS_OK;
-  }
-  return nsAccessible::GetAttributesInternal(aAttributes);
-}
-
-// Internal frame, which is the doc's parent, should not have a click action
-NS_IMETHODIMP
-nsOuterDocAccessible::GetNumActions(PRUint8 *aNumActions)
-{
-  NS_ENSURE_ARG_POINTER(aNumActions);
-  *aNumActions = 0;
-
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-nsOuterDocAccessible::GetActionName(PRUint8 aIndex, nsAString& aName)
-{
-  aName.Truncate();
-
-  return NS_ERROR_INVALID_ARG;
-}
-
-NS_IMETHODIMP
-nsOuterDocAccessible::GetActionDescription(PRUint8 aIndex, nsAString& aDescription)
-{
-  // default to same as action name.
-  return GetActionName(aIndex, aDescription);
-}
-
-NS_IMETHODIMP
-nsOuterDocAccessible::DoAction(PRUint8 aIndex)
-{
-  return NS_ERROR_INVALID_ARG;
-}

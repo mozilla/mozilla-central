@@ -45,8 +45,7 @@
 
 class nsIAtom;
 class nsIDOMElement;
-class nsIDOMEventTarget;
-class nsPIDOMEventTarget;
+class nsIDOMEventReceiver;
 class nsIXBLDocumentInfo;
 class nsXBLSpecialDocInfo;
 class nsXBLPrototypeHandler;
@@ -54,14 +53,14 @@ class nsXBLPrototypeHandler;
 class nsXBLWindowKeyHandler : public nsIDOMKeyListener
 {
 public:
-  nsXBLWindowKeyHandler(nsIDOMElement* aElement, nsPIDOMEventTarget* aTarget);
+  nsXBLWindowKeyHandler(nsIDOMElement* aElement, nsIDOMEventReceiver* aReceiver);
   virtual ~nsXBLWindowKeyHandler();
   
   // nsIDOMetc.
   NS_IMETHOD HandleEvent(nsIDOMEvent* aEvent)
   {
     return NS_OK;
-  }
+  };
 
   NS_IMETHOD KeyUp(nsIDOMEvent* aKeyEvent);
   NS_IMETHOD KeyDown(nsIDOMEvent* aKeyEvent);
@@ -80,19 +79,13 @@ protected:
                                 nsIAtom* aEventType, 
                                 nsXBLPrototypeHandler* aHandler);
 
-  // walk the handlers for aEvent, aCharCode and aIgnoreShiftKey
-  PRBool WalkHandlersAndExecute(nsIDOMEvent* aEvent, nsIAtom* aEventType,
-                                nsXBLPrototypeHandler* aHandler,
-                                PRUint32 aCharCode, PRBool aIgnoreShiftKey);
-
   // lazily load the handlers. Overridden to handle being attached
   // to a particular element rather than the document
   nsresult EnsureHandlers(PRBool *aIsEditor);
 
   // check if the given handler cares about the given key event
   PRBool EventMatched(nsXBLPrototypeHandler* inHandler, nsIAtom* inEventType,
-                      nsIDOMEvent* inEvent, PRUint32 aCharCode,
-                      PRBool aIgnoreShiftKey);
+                      nsIDOMEvent* inEvent);
 
   // are we working with editor or browser?
   PRBool IsEditor() ;
@@ -102,7 +95,7 @@ protected:
   already_AddRefed<nsIDOMElement> GetElement();
   // Using weak pointer to the DOM Element.
   nsWeakPtr              mWeakPtrForElement;
-  nsPIDOMEventTarget*    mTarget; // weak ref
+  nsIDOMEventReceiver*   mReceiver; // weak ref
 
   // these are not owning references; the prototype handlers are owned
   // by the prototype bindings which are owned by the docinfo.
@@ -116,7 +109,7 @@ protected:
 
 nsresult
 NS_NewXBLWindowKeyHandler(nsIDOMElement* aElement,
-                          nsPIDOMEventTarget* aTarget,
+                          nsIDOMEventReceiver* aReceiver,
                           nsXBLWindowKeyHandler** aResult);
 
 #endif

@@ -96,7 +96,7 @@ nsAreaFrame::RegUnregAccessKey(PRBool aDoReg)
 
   // With a valid PresContext we can get the ESM 
   // and register the access key
-  nsIEventStateManager *esm = PresContext()->EventStateManager();
+  nsIEventStateManager *esm = GetPresContext()->EventStateManager();
   nsresult rv;
 
   PRUint32 key = accessKey.First();

@@ -52,10 +52,15 @@ IS_COMPONENT      = 1
 REQUIRES	= xpcom \
 		  string \
 		  uconv \
+		  unicharutil \
 		  locale \
+		  intl \
 		  rdf \
 		  pref \
 		  necko \
+		  dom \
+		  windowwatcher \
+		  appshell \
 		  $(NULL)
 
 CPPSRCS= \

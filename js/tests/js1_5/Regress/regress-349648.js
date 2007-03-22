@@ -36,10 +36,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-349648.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 349648;
+var bug = 349648;
 var summary = 'Extra "[" in decomilation of nested array comprehensions';
 var actual = '';
 var expect = '';
@@ -52,9 +50,9 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
- 
+  
   var f;
 
   f = function(){ [[0 for (x in [])] for (y in []) ]; };
@@ -77,7 +75,7 @@ function test()
   actual = f + '';
   reportCompare(expect, actual, summary + ':4');
 
-  f = function(){ [[[0 for (x in [])] for (yyyyyyyyyyy in []) ]
+  f = function(){ [[[0 for (x in [])] for (yyyyyyyyyyy in []) ] 
                    for (zzz in [])]; }
   expect = 'function () {\n    [[[0 for (x in [])] for (yyyyyyyyyyy in [])]' +
     ' for (zzz in [])];\n}';

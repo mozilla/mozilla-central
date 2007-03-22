@@ -35,22 +35,20 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-249211.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 249211;
+var bug = 249211;
 var summary = 'support export and import for 4xp';
 var actual = '';
 var expect = 'no error';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
- 
+  
 try
 {
-  var o = {};
-  var f = function(){};
-  export *;
+  var o = {}; 
+  var f = function(){}; 
+  export *; 
   import o.*;
   actual = 'no error';
 }

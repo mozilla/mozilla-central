@@ -1,5 +1,5 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
-/* vim:set ts=4 sw=4 sts=4 et: */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* vim:set ts=2 sw=2 sts=2 et: */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -21,7 +21,6 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Dan Mosedale <dmose@mozilla.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -43,7 +42,6 @@
 #include "nsIAtom.h"
 #include "nsString.h"
 #include "nsVoidArray.h"
-#include "nsIMutableArray.h"
 #include "nsIFile.h"
 #include "nsCOMPtr.h"
 #include "nsIURI.h"
@@ -75,7 +73,6 @@ class nsMIMEInfoBase : public nsIMIMEInfo {
     NS_IMETHOD AppendExtension(const nsACString & aExtension);
     NS_IMETHOD GetPrimaryExtension(nsACString & aPrimaryExtension);
     NS_IMETHOD SetPrimaryExtension(const nsACString & aPrimaryExtension);
-    NS_IMETHOD GetType(nsACString & aType);
     NS_IMETHOD GetMIMEType(nsACString & aMIMEType);
     NS_IMETHOD GetDescription(nsAString & aDescription);
     NS_IMETHOD SetDescription(const nsAString & aDescription);
@@ -84,31 +81,23 @@ class nsMIMEInfoBase : public nsIMIMEInfo {
     NS_IMETHOD GetMacCreator(PRUint32 *aMacCreator);
     NS_IMETHOD SetMacCreator(PRUint32 aMacCreator);
     NS_IMETHOD Equals(nsIMIMEInfo *aMIMEInfo, PRBool *_retval);
-    NS_IMETHOD GetPreferredApplicationHandler(nsIHandlerApp * *aPreferredAppHandler);
-    NS_IMETHOD SetPreferredApplicationHandler(nsIHandlerApp * aPreferredAppHandler);
-    NS_IMETHOD GetPossibleApplicationHandlers(nsIMutableArray * *aPossibleAppHandlers);
+    NS_IMETHOD GetPreferredApplicationHandler(nsIFile * *aPreferredApplicationHandler);
+    NS_IMETHOD SetPreferredApplicationHandler(nsIFile * aPreferredApplicationHandler);
+    NS_IMETHOD GetApplicationDescription(nsAString & aApplicationDescription);
+    NS_IMETHOD SetApplicationDescription(const nsAString & aApplicationDescription);
     NS_IMETHOD GetDefaultDescription(nsAString & aDefaultDescription);
     NS_IMETHOD LaunchWithFile(nsIFile *aFile);
-    NS_IMETHOD LaunchWithURI(nsIURI *aURI,
-                             nsIInterfaceRequestor *aWindowContext);
-    NS_IMETHOD GetPreferredAction(nsHandlerInfoAction *aPreferredAction);
-    NS_IMETHOD SetPreferredAction(nsHandlerInfoAction aPreferredAction);
+    NS_IMETHOD GetPreferredAction(nsMIMEInfoHandleAction *aPreferredAction);
+    NS_IMETHOD SetPreferredAction(nsMIMEInfoHandleAction aPreferredAction);
     NS_IMETHOD GetAlwaysAskBeforeHandling(PRBool *aAlwaysAskBeforeHandling);
     NS_IMETHOD SetAlwaysAskBeforeHandling(PRBool aAlwaysAskBeforeHandling); 
-    NS_IMETHOD GetPossibleLocalHandlers(nsIArray **_retval); 
-
-    enum HandlerClass {
-      eMIMEInfo,
-      eProtocolInfo
-    };
 
     // nsMIMEInfoBase methods
     nsMIMEInfoBase(const char *aMIMEType = "") NS_HIDDEN;
     nsMIMEInfoBase(const nsACString& aMIMEType) NS_HIDDEN;
-    nsMIMEInfoBase(const nsACString& aType, HandlerClass aClass) NS_HIDDEN;
     virtual ~nsMIMEInfoBase();        // must be virtual, as the the base class's Release should call the subclass's destructor
 
-    void SetMIMEType(const nsACString & aMIMEType) { mType = aMIMEType; }
+    void SetMIMEType(const nsACString & aMIMEType) { mMIMEType = aMIMEType; }
 
     void SetDefaultDescription(const nsString& aDesc) { mDefaultAppDescription = aDesc; }
 
@@ -122,11 +111,6 @@ class nsMIMEInfoBase : public nsIMIMEInfo {
      */
     void CopyBasicDataTo(nsMIMEInfoBase* aOther);
 
-    /**
-     * Return whether this MIMEInfo has any extensions
-     */
-    PRBool HasExtensions() const { return mExtensions.Count() != 0; }
-
   protected:
     /**
      * Launch the default application for the given file.
@@ -138,42 +122,24 @@ class nsMIMEInfoBase : public nsIMIMEInfo {
     virtual NS_HIDDEN_(nsresult) LaunchDefaultWithFile(nsIFile* aFile) = 0;
 
     /**
-     * Loads the URI with the OS default app.
-     *
-     * @param aURI The URI to pass off to the OS.
-     */
-    virtual NS_HIDDEN_(nsresult) LoadUriInternal(nsIURI *aURI) = 0;
-
-    /**
-     * This method can be used to launch the file or URI with a single 
-     * argument (typically either a file path or a URI spec).  This is 
+     * This method can be used to launch the file using nsIProcess, with the
+     * path of the file being the first parameter to the executable. This is
      * meant as a helper method for implementations of
-     * LaunchWithURI/LaunchDefaultWithFile.
+     * LaunchWithFile/LaunchDefaultWithFile.
+     * Neither aApp nor aFile may be null.
      *
-     * @param aApp The application to launch (may not be null)
-     * @param aArg The argument to pass on the command line
+     * @param aApp The application to launch
+     * @param aFile The file to open in the application
      */
-    static NS_HIDDEN_(nsresult) LaunchWithIProcess(nsIFile* aApp,
-                                                   const nsCString &aArg);
-
-    /**
-     * Given a file: nsIURI, return the associated nsILocalFile
-     *
-     * @param  aURI      the file: URI in question
-     * @param  aFile     the associated nsILocalFile (out param)
-     */
-    static NS_HIDDEN_(nsresult) GetLocalFileFromURI(nsIURI *aURI,
-                                                    nsILocalFile **aFile);
+    static NS_HIDDEN_(nsresult) LaunchWithIProcess(nsIFile* aApp, nsIFile* aFile);
 
     // member variables
     nsCStringArray         mExtensions; ///< array of file extensions associated w/ this MIME obj
     nsString               mDescription; ///< human readable description
     PRUint32               mMacType, mMacCreator; ///< Mac file type and creator
-    nsCString              mType;
-    HandlerClass           mClass;
-    nsCOMPtr<nsIHandlerApp> mPreferredApplication;
-    nsCOMPtr<nsIMutableArray> mPossibleApplications;
-    nsHandlerInfoAction    mPreferredAction; ///< preferred action to associate with this type
+    nsCString              mMIMEType;
+    nsCOMPtr<nsIFile>      mPreferredApplication; ///< preferred application associated with this type.
+    nsMIMEInfoHandleAction mPreferredAction; ///< preferred action to associate with this type
     nsString               mPreferredAppDescription;
     nsString               mDefaultAppDescription;
     PRBool                 mAlwaysAskBeforeHandling;
@@ -184,16 +150,13 @@ class nsMIMEInfoBase : public nsIMIMEInfo {
  * This is a complete implementation of nsIMIMEInfo, and contains all necessary
  * methods. However, depending on your platform you may want to use a different
  * way of launching applications. This class stores the default application in a
- * member variable and provides a function for setting it. For local
- * applications, launching is done using nsIProcess, native path of the file to
- * open as first argument.
+ * member variable and provides a function for setting it. Launching is done
+ * using nsIProcess, native path of the file to open as first argument.
  */
 class nsMIMEInfoImpl : public nsMIMEInfoBase {
   public:
     nsMIMEInfoImpl(const char *aMIMEType = "") : nsMIMEInfoBase(aMIMEType) {}
     nsMIMEInfoImpl(const nsACString& aMIMEType) : nsMIMEInfoBase(aMIMEType) {}
-    nsMIMEInfoImpl(const nsACString& aType, HandlerClass aClass) :
-      nsMIMEInfoBase(aType, aClass) {}
     virtual ~nsMIMEInfoImpl() {}
 
     // nsIMIMEInfo methods
@@ -206,7 +169,6 @@ class nsMIMEInfoImpl : public nsMIMEInfoBase {
      * App Services; the default application is immutable after it is first set.
      */
     void SetDefaultApplication(nsIFile* aApp) { if (!mDefaultApplication) mDefaultApplication = aApp; }
-
   protected:
     // nsMIMEInfoBase methods
     /**
@@ -215,11 +177,6 @@ class nsMIMEInfoImpl : public nsMIMEInfoBase {
      */
     virtual NS_HIDDEN_(nsresult) LaunchDefaultWithFile(nsIFile* aFile);
 
-    /**
-     * Loads the URI with the OS default app.  This should be overridden by each
-     * OS's implementation.
-     */
-    virtual NS_HIDDEN_(nsresult) LoadUriInternal(nsIURI *aURI) = 0;
 
     nsCOMPtr<nsIFile>      mDefaultApplication; ///< default application associated with this type.
 };

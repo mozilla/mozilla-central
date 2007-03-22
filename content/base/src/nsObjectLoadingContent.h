@@ -47,12 +47,13 @@
 
 #include "nsImageLoadingContent.h"
 #include "nsIStreamListener.h"
-#include "nsFrameLoader.h"
+#include "nsIFrameLoader.h"
 #include "nsIInterfaceRequestor.h"
 #include "nsIChannelEventSink.h"
 #include "nsIObjectLoadingContent.h"
 #include "nsIRunnable.h"
-#include "nsIChannelClassifier.h"
+
+#include "nsWeakReference.h"
 
 struct nsAsyncInstantiateEvent;
 class  AutoNotifier;
@@ -83,6 +84,9 @@ class nsObjectLoadingContent : public nsImageLoadingContent
                              , public nsIObjectLoadingContent
                              , public nsIInterfaceRequestor
                              , public nsIChannelEventSink
+                             // Plugins code wants a weak reference to
+                             // notification callbacks
+                             , public nsSupportsWeakReference
 {
   friend class AutoNotifier;
   friend class AutoFallback;
@@ -252,7 +256,7 @@ class nsObjectLoadingContent : public nsImageLoadingContent
      * Fires the "Plugin not found" event. This function doesn't do any checks
      * whether it should be fired, the caller should do that.
      */
-    static void FirePluginError(nsIContent* thisContent, PRBool blocklisted);
+    static void FirePluginNotFound(nsIContent* thisContent);
 
     ObjectType GetTypeOfContent(const nsCString& aMIMEType);
 
@@ -271,58 +275,18 @@ class nsObjectLoadingContent : public nsImageLoadingContent
      */
     void GetObjectBaseURI(nsIContent* thisContent, nsIURI** aURI);
 
-
     /**
      * Gets the frame that's associated with this content node in
-     * presentation 0. Always returns null if the node doesn't currently
-     * have a frame.
-     *
-     * @param aFlush When eFlushContent will flush content notifications
-     *               before returning a non-null value.
-     *               When eFlushLayout will flush layout and content
-     *               notifications before returning a non-null value.
-     *               When eDontFlush will never flush.
-     *         
-     *   eFlushLayout is needed in some cases by plug-ins to ensure
-     *   that NPP_SetWindow() gets called (from nsObjectFrame::DidReflow).
+     * presentation 0.
      */
-    enum FlushType {
-      eFlushContent,
-      eFlushLayout,
-      eDontFlush
-    };
-    nsIObjectFrame* GetExistingFrame(FlushType aFlushType);
+    nsIObjectFrame* GetFrame();
 
     /**
-     * Handle being blocked by a content policy.  aStatus is the nsresult
-     * return value of the Should* call, while aRetval is what it returned in
-     * its out parameter.
+     * Instantiates the plugin. This differs from GetFrame()->Instantiate() in
+     * that it ensures that the URI will be non-null, and that a MIME type
+     * will be passed.
      */
-    void HandleBeingBlockedByContentPolicy(nsresult aStatus,
-                                           PRInt16 aRetval);
-
-    /**
-     * Checks if we have a frame that's ready for instantiation, and
-     * if so, calls Instantiate(). Note that this can cause the frame
-     * to be deleted while we're instantiating the plugin.
-     */
-    nsresult TryInstantiate(const nsACString& aMIMEType, nsIURI* aURI);
-
-    /**
-     * Instantiates the plugin. This differs from
-     * GetFrame()->Instantiate() in that it ensures that the URI will
-     * be non-null, and that a MIME type will be passed. Note that
-     * this can cause the frame to be deleted while we're
-     * instantiating the plugin.
-     */
-    nsresult Instantiate(nsIObjectFrame* aFrame, const nsACString& aMIMEType, nsIURI* aURI);
-
-    /**
-     * Check the channel load against the URI classifier service (if it
-     * exists).  The channel will be suspended until the classification is
-     * complete.
-     */
-    nsresult CheckClassifier(nsIChannel *aChannel);
+    nsresult Instantiate(const nsACString& aMIMEType, nsIURI* aURI);
 
     /**
      * Whether to treat this content as a plugin, even though we can't handle
@@ -336,7 +300,6 @@ class nsObjectLoadingContent : public nsImageLoadingContent
       ePluginUnsupported,  // The plugin is not supported (not installed, say)
       ePluginDisabled,     // The plugin has been explicitly disabled by the
                            // user.
-      ePluginBlocklisted,  // The plugin is blocklisted and disabled
       ePluginOtherState    // Something else (e.g. not a plugin at all as far
                            // as we can tell).
     };
@@ -363,15 +326,6 @@ class nsObjectLoadingContent : public nsImageLoadingContent
       GetPluginDisabledState(const nsCString& aContentType);
 
     /**
-     * When there is no usable plugin available this will send UI events and
-     * update the AutoFallback object appropriate to the reason for there being
-     * no plugin available.
-     */
-    static void
-      UpdateFallbackState(nsIContent* aContent, AutoFallback& fallback,
-                          const nsCString& aTypeHint);
-
-    /**
      * The final listener to ship the data to (imagelib, uriloader, etc)
      */
     nsCOMPtr<nsIStreamListener> mFinalListener;
@@ -379,7 +333,7 @@ class nsObjectLoadingContent : public nsImageLoadingContent
     /**
      * Frame loader, for content documents we load.
      */
-    nsRefPtr<nsFrameLoader>     mFrameLoader;
+    nsCOMPtr<nsIFrameLoader>    mFrameLoader;
 
     /**
      * A pending nsAsyncInstantiateEvent (may be null).  This is a weak ref.
@@ -401,11 +355,6 @@ class nsObjectLoadingContent : public nsImageLoadingContent
     nsCOMPtr<nsIURI>            mURI;
 
     /**
-     * Suspends/resumes channels based on the URI classifier.
-     */
-    nsCOMPtr<nsIChannelClassifier> mClassifier;
-
-    /**
      * Type of the currently-loaded content.
      */
     ObjectType                  mType          : 16;
@@ -421,7 +370,7 @@ class nsObjectLoadingContent : public nsImageLoadingContent
     // Whether we fell back because of an unsupported type
     PRBool                      mTypeUnsupported:1;
 
-    friend class nsAsyncInstantiateEvent;
+    friend struct nsAsyncInstantiateEvent;
 };
 
 

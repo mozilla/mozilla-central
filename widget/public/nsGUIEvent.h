@@ -55,12 +55,10 @@
 #include "nsIAtom.h"
 #include "nsIDOMKeyEvent.h"
 #include "nsWeakPtr.h"
-#include "nsIWidget.h"
-#include "nsTArray.h"
-#include "nsTraceRefcnt.h"
 
 class nsIRenderingContext;
 class nsIRegion;
+class nsIWidget;
 class nsIMenuItem;
 class nsIAccessible;
 class nsIContent;
@@ -104,7 +102,6 @@ class nsHashKey;
 #define NS_SVGZOOM_EVENT                  31
 #endif // MOZ_SVG
 #define NS_XUL_COMMAND_EVENT              32
-#define NS_QUERY_CONTENT_EVENT            33
 
 // These flags are sort of a mess. They're sort of shared between event
 // listener flags and event flags, but only some of them. You've been
@@ -201,9 +198,6 @@ class nsHashKey;
 
 #define NS_PLUGIN_ACTIVATE               (NS_WINDOW_START + 62)
 
-#define NS_OFFLINE                       (NS_WINDOW_START + 63)
-#define NS_ONLINE                        (NS_WINDOW_START + 64)
-
 #define NS_MOUSE_MESSAGE_START          300
 #define NS_MOUSE_MOVE                   (NS_MOUSE_MESSAGE_START)
 #define NS_MOUSE_BUTTON_UP              (NS_MOUSE_MESSAGE_START + 1)
@@ -253,8 +247,6 @@ class nsHashKey;
 #define NS_DRAGDROP_EXIT                (NS_DRAGDROP_EVENT_START + 2)
 #define NS_DRAGDROP_DROP                (NS_DRAGDROP_EVENT_START + 3)
 #define NS_DRAGDROP_GESTURE             (NS_DRAGDROP_EVENT_START + 4)
-#define NS_DRAGDROP_DRAG                (NS_DRAGDROP_EVENT_START + 5)
-#define NS_DRAGDROP_END                 (NS_DRAGDROP_EVENT_START + 6)
 #define NS_DRAGDROP_OVER_SYNTH          (NS_DRAGDROP_EVENT_START + 1)
 #define NS_DRAGDROP_EXIT_SYNTH          (NS_DRAGDROP_EVENT_START + 2)
 
@@ -335,28 +327,6 @@ class nsHashKey;
 #define NS_XULCOMMAND_EVENT_START       3000
 #define NS_XUL_COMMAND                  (NS_XULCOMMAND_EVENT_START)
 
-// Cut, copy, paste events
-#define NS_CUTCOPYPASTE_EVENT_START     3100
-#define NS_COPY             (NS_CUTCOPYPASTE_EVENT_START)
-#define NS_CUT              (NS_CUTCOPYPASTE_EVENT_START + 1)
-#define NS_PASTE            (NS_CUTCOPYPASTE_EVENT_START + 2)
-
-// Query the content information
-#define NS_QUERY_CONTENT_EVENT_START    3200
-// Query for the selected text information, it return the selection offset,
-// selection length and selected text.
-#define NS_QUERY_SELECTED_TEXT          (NS_QUERY_CONTENT_EVENT_START)
-// Query for the text content of specified range, it returns actual lengh (if
-// the specified range is too long) and the text of the specified range.
-#define NS_QUERY_TEXT_CONTENT           (NS_QUERY_CONTENT_EVENT_START + 1)
-// Query for the character rect of nth character. If there is no character at
-// the offset, the query will be failed. The offset of the result is relative
-// position from the top level widget.
-#define NS_QUERY_CHARACTER_RECT         (NS_QUERY_CONTENT_EVENT_START + 2)
-// Query for the caret rect of nth insertion point. The offset of the result is
-// relative position from the top level widget.
-#define NS_QUERY_CARET_RECT             (NS_QUERY_CONTENT_EVENT_START + 3)
-
 /**
  * Return status for event processors, nsEventStatus, is defined in
  * nsEvent.h.
@@ -395,7 +365,6 @@ protected:
       flags(isTrusted ? NS_EVENT_FLAG_TRUSTED : NS_EVENT_FLAG_NONE),
       userType(0)
   {
-    MOZ_COUNT_CTOR(nsEvent);
   }
 
 public:
@@ -407,12 +376,6 @@ public:
       flags(isTrusted ? NS_EVENT_FLAG_TRUSTED : NS_EVENT_FLAG_NONE),
       userType(0)
   {
-    MOZ_COUNT_CTOR(nsEvent);
-  }
-
-  ~nsEvent()
-  {
-    MOZ_COUNT_DTOR(nsEvent);
   }
 
   // See event struct types
@@ -458,9 +421,9 @@ public:
   }
 
   /// Originator of the event
-  nsCOMPtr<nsIWidget> widget;           
+  nsIWidget*  widget;           
   /// Internal platform specific message.
-  void* nativeMsg;        
+  void*     nativeMsg;        
 };
 
 /**
@@ -655,25 +618,22 @@ public:
   enum buttonType  { eLeftButton = 0, eMiddleButton = 1, eRightButton = 2 };
   enum reasonType  { eReal, eSynthesized };
   enum contextType { eNormal, eContextMenuKey };
-  enum exitType    { eChild, eTopLevel };
 
   nsMouseEvent(PRBool isTrusted, PRUint32 msg, nsIWidget *w,
                reasonType aReason, contextType aContext = eNormal)
     : nsMouseEvent_base(isTrusted, msg, w, NS_MOUSE_EVENT),
       acceptActivation(PR_FALSE), reason(aReason), context(aContext),
-      exit(eChild), clickCount(0)
+      clickCount(0)
   {
     if (msg == NS_MOUSE_MOVE) {
       flags |= NS_EVENT_FLAG_CANT_CANCEL;
     } else if (msg == NS_CONTEXTMENU) {
-      button = (context == eNormal) ? eRightButton : eLeftButton;
+      button = eRightButton;
     }
   }
 #ifdef NS_DEBUG
   ~nsMouseEvent() {
-    NS_WARN_IF_FALSE(message != NS_CONTEXTMENU ||
-                     button ==
-                       ((context == eNormal) ? eRightButton : eLeftButton),
+    NS_WARN_IF_FALSE(message != NS_CONTEXTMENU || button == eRightButton,
                      "Wrong button set to NS_CONTEXTMENU event?");
   }
 #endif
@@ -683,7 +643,6 @@ public:
   PRPackedBool acceptActivation;
   reasonType   reason : 4;
   contextType  context : 4;
-  exitType     exit;
 
   /// The number of mouse clicks
   PRUint32     clickCount;
@@ -709,16 +668,6 @@ public:
  * Keyboard event
  */
 
-struct nsAlternativeCharCode {
-  nsAlternativeCharCode(PRUint32 aUnshiftedCharCode,
-                        PRUint32 aShiftedCharCode) :
-    mUnshiftedCharCode(aUnshiftedCharCode), mShiftedCharCode(aShiftedCharCode)
-  {
-  }
-  PRUint32 mUnshiftedCharCode;
-  PRUint32 mShiftedCharCode;
-};
-
 class nsKeyEvent : public nsInputEvent
 {
 public:
@@ -732,9 +681,6 @@ public:
   PRUint32        keyCode;   
   /// OS translated Unicode char
   PRUint32        charCode;
-  // OS translated Unicode chars which are used for accesskey and accelkey
-  // handling. The handlers will try from first character to last character.
-  nsTArray<nsAlternativeCharCode> alternativeCharCodes;
   // indicates whether the event signifies a printable character
   PRBool          isChar;
 };
@@ -856,50 +802,6 @@ public:
   }
 
   nsQueryCaretRectEventReply theReply;
-};
-
-class nsQueryContentEvent : public nsGUIEvent
-{
-public:
-  nsQueryContentEvent(PRBool aIsTrusted, PRUint32 aMsg, nsIWidget *aWidget) :
-    nsGUIEvent(aIsTrusted, aMsg, aWidget, NS_QUERY_CONTENT_EVENT),
-    mSucceeded(PR_FALSE)
-  {
-  }
-
-  void InitForQueryTextContent(PRUint32 aOffset, PRUint32 aLength)
-  {
-    NS_ASSERTION(message == NS_QUERY_TEXT_CONTENT,
-                 "wrong initializer is called");
-    mInput.mOffset = aOffset;
-    mInput.mLength = aLength;
-  }
-
-  void InitForQueryCharacterRect(PRUint32 aOffset)
-  {
-    NS_ASSERTION(message == NS_QUERY_CHARACTER_RECT,
-                 "wrong initializer is called");
-    mInput.mOffset = aOffset;
-  }
-
-  void InitForQueryCaretRect(PRUint32 aOffset)
-  {
-    NS_ASSERTION(message == NS_QUERY_CARET_RECT,
-                 "wrong initializer is called");
-    mInput.mOffset = aOffset;
-  }
-
-  PRBool mSucceeded;
-  struct {
-    PRUint32 mOffset;
-    PRUint32 mLength;
-  } mInput;
-  struct {
-    void* mContentsRoot;
-    PRUint32 mOffset;
-    nsString mString;
-    nsRect mRect; // Finally, the coordinates is system coordinates.
-  } mReply;
 };
 
 /**
@@ -1066,12 +968,12 @@ enum nsDragDropEventStatus {
 #define NS_IS_MOUSE_LEFT_CLICK(evnt) \
        ((evnt)->eventStructType == NS_MOUSE_EVENT && \
         (evnt)->message == NS_MOUSE_CLICK && \
-        static_cast<nsMouseEvent*>((evnt))->button == nsMouseEvent::eLeftButton)
+        NS_STATIC_CAST(nsMouseEvent*, (evnt))->button == nsMouseEvent::eLeftButton)
 
 #define NS_IS_CONTEXT_MENU_KEY(evnt) \
        ((evnt)->eventStructType == NS_MOUSE_EVENT && \
         (evnt)->message == NS_CONTEXTMENU && \
-        static_cast<nsMouseEvent*>((evnt))->context == nsMouseEvent::eContextMenuKey)
+        NS_STATIC_CAST(nsMouseEvent*, (evnt))->context == nsMouseEvent::eContextMenuKey)
 
 #define NS_IS_DRAG_EVENT(evnt) \
        (((evnt)->message == NS_DRAGDROP_ENTER) || \
@@ -1102,12 +1004,6 @@ enum nsDragDropEventStatus {
         ((evnt)->message == NS_DEACTIVATE) || \
         ((evnt)->message == NS_PLUGIN_ACTIVATE))
 
-#define NS_IS_QUERY_CONTENT_EVENT(evnt) \
-       (((evnt)->message == NS_QUERY_SELECTED_TEXT) || \
-        ((evnt)->message == NS_QUERY_TEXT_CONTENT) || \
-        ((evnt)->message == NS_QUERY_CHARACTER_RECT) || \
-        ((evnt)->message == NS_QUERY_CARET_RECT))
-
 #define NS_IS_TRUSTED_EVENT(event) \
   (((event)->flags & NS_EVENT_FLAG_TRUSTED) != 0)
 
@@ -1133,7 +1029,6 @@ enum nsDragDropEventStatus {
  */
 
 #define NS_VK_CANCEL         nsIDOMKeyEvent::DOM_VK_CANCEL
-#define NS_VK_HELP           nsIDOMKeyEvent::DOM_VK_HELP
 #define NS_VK_BACK           nsIDOMKeyEvent::DOM_VK_BACK_SPACE
 #define NS_VK_TAB            nsIDOMKeyEvent::DOM_VK_TAB
 #define NS_VK_CLEAR          nsIDOMKeyEvent::DOM_VK_CLEAR
@@ -1264,34 +1159,5 @@ enum nsDragDropEventStatus {
 #define NS_TEXTRANGE_SELECTEDRAWTEXT			0x03
 #define NS_TEXTRANGE_CONVERTEDTEXT				0x04
 #define NS_TEXTRANGE_SELECTEDCONVERTEDTEXT		0x05
-
-inline PRBool NS_TargetUnfocusedEventToLastFocusedContent(nsEvent* aEvent)
-{
-#if defined(MOZ_X11) || defined(XP_MACOSX)
-  // bug 52416 (MOZ_X11)
-  // Lookup region (candidate window) of UNIX IME grabs
-  // input focus from Mozilla but wants to send IME event
-  // to redraw pre-edit (composed) string
-  // If Mozilla does not have input focus and event is IME,
-  // sends IME event to pre-focused element
-
-  // bug 417315 (XP_MACOSX)
-  // The commit event when the window is deactivating is sent after
-  // the next focused widget getting the focus.
-  // We need to send the commit event to last focused content.
-
-  return NS_IS_IME_EVENT(aEvent);
-#elif defined(XP_WIN)
-  // bug 292263 (XP_WIN)
-  // If software keyboard has focus, it may send the key messages and
-  // the IME messages to pre-focused window. Therefore, if Mozilla
-  // doesn't have focus and event is key event or IME event, we should
-  // send the events to pre-focused element.
-
-  return NS_IS_KEY_EVENT(aEvent) || NS_IS_IME_EVENT(aEvent);
-#else
-  return PR_FALSE;
-#endif
-}
 
 #endif // nsGUIEvent_h__

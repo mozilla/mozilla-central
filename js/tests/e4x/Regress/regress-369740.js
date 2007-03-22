@@ -36,15 +36,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'regress-369740.js';
-
-var BUGNUMBER = 369740;
+var bug = 369740;
 var summary = 'generic code for function::';
 var actual = 'No Exception';
 var expect = 'No Exception';
 
-printBugNumber(BUGNUMBER);
-START(summary);
+printBugNumber (bug);
+printStatus (summary);
 
 actual = expect = Math.function::sin + '';
 TEST(1, expect, actual);

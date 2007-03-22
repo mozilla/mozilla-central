@@ -239,20 +239,15 @@ NS_IMETHODIMP nsWidget::GetIMEOpenState(PRBool* aState) {
   return NS_ERROR_NOT_IMPLEMENTED;
 	}
 
-NS_IMETHODIMP nsWidget::SetIMEEnabled(PRUint32 aState) {
+NS_IMETHODIMP nsWidget::SetIMEEnabled(PRBool aState) {
   return NS_ERROR_NOT_IMPLEMENTED;
 	}
 
-NS_IMETHODIMP nsWidget::GetIMEEnabled(PRUint32* aState) {
+NS_IMETHODIMP nsWidget::GetIMEEnabled(PRBool* aState) {
   return NS_ERROR_NOT_IMPLEMENTED;
 	}
 
 NS_IMETHODIMP nsWidget::CancelIMEComposition() {
-  return NS_ERROR_NOT_IMPLEMENTED;
-	}
-
-NS_IMETHODIMP nsWidget::GetToggledKeyState(PRUint32 aKeyCode,
-                                           PRBool* aLEDState) {
   return NS_ERROR_NOT_IMPLEMENTED;
 	}
 
@@ -576,10 +571,6 @@ NS_METHOD nsWidget::SetCursor( nsCursor aCursor ) {
 		  curs = Ph_CURSOR_DRAG_HORIZONTAL;
 		  break;
 
-		case eCursor_none:
-		  // XXX: No suitable cursor, needs implementing
-		  break;
-
 		default:
 		  NS_ASSERTION(0, "Invalid cursor type");
 		  break;
@@ -707,7 +698,7 @@ NS_IMETHODIMP nsWidget::DispatchEvent( nsGUIEvent *aEvent, nsEventStatus &aStatu
 
   if( nsnull != mMenuListener ) {
     if( NS_MENU_EVENT == aEvent->eventStructType )
-      aStatus = mMenuListener->MenuSelected(static_cast<nsMenuEvent&>(*aEvent));
+      aStatus = mMenuListener->MenuSelected(NS_STATIC_CAST(nsMenuEvent&, *aEvent));
   	}
 
   aStatus = nsEventStatus_eIgnore;
@@ -1322,7 +1313,6 @@ int nsWidget::DndCallback( PtWidget_t *widget, void *data, PtCallbackInfo_t *cbi
 			break;
 
 		case Ph_EV_DND_MOTION: {
-			sDragService->FireDragEventAtSource(NS_DRAGDROP_DRAG);
 			pWidget->ProcessDrag( cbinfo->event, NS_DRAGDROP_OVER, &ptrev->pos );
 			}
 			break;
@@ -1331,18 +1321,18 @@ int nsWidget::DndCallback( PtWidget_t *widget, void *data, PtCallbackInfo_t *cbi
 			d = ( nsDragService * )sDragService;
 			if( d->SetDropData( (char*)cbdnd->data ) != NS_OK ) break;
 			pWidget->ProcessDrag( cbinfo->event, NS_DRAGDROP_DROP, &ptrev->pos );
-			sDragService->EndDragSession(PR_TRUE);
+			sDragService->EndDragSession();
 			((nsDragService*) sDragService)->SourceEndDrag();
 			break;
 
 		case Ph_EV_DND_LEAVE:
 			pWidget->ProcessDrag( cbinfo->event, NS_DRAGDROP_EXIT, &ptrev->pos );
-			sDragService->EndDragSession(PR_FALSE);
+			sDragService->EndDragSession();
 			break;
 
 		case Ph_EV_DND_CANCEL:
 			pWidget->ProcessDrag( cbinfo->event, NS_DRAGDROP_EXIT, &ptrev->pos );
-			sDragService->EndDragSession(PR_TRUE);
+			sDragService->EndDragSession();
 			((nsDragService*) sDragService)->SourceEndDrag();
 			break;
 		}

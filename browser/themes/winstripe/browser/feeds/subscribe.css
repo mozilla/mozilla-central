@@ -8,7 +8,7 @@ html {
   font: 3mm tahoma,arial,helvetica,sans-serif;
 }
 
-#feedBody {
+#feedBody, #feedError {
   border: 1px solid THreeDShadow;
   padding: 3em;
   -moz-padding-start: 30px;
@@ -30,19 +30,8 @@ html {
   -moz-margin-end: 1em;
   -moz-padding-start: 2.9em;
   font-size: 110%;
-  color: InfoText;
-}
-
-.feedBackground {
   background: url("chrome://browser/skin/feeds/feedIcon.png") 0% 10% no-repeat InfoBackground;
-}
-
-.videoPodcastBackground {
-  background: url("chrome://browser/skin/feeds/videoFeedIcon.png") 0% 10% no-repeat InfoBackground;
-}
-
-.audioPodcastBackground {
-  background: url("chrome://browser/skin/feeds/audioFeedIcon.png") 0% 10% no-repeat InfoBackground;
+  color: InfoText;
 }
 
 #feedHeader[dir="rtl"] {
@@ -162,22 +151,4 @@ a[href] img {
 .lastUpdated {
   font-size: 85%;
   font-weight: normal;
-}
-
-.type-icon {
-  vertical-align: bottom;
-  height: 16px;
-  width: 16px;
-}
-
-.enclosures {
-  border: 1px solid THreeDShadow;
-  padding: 1em;
-  margin: 1em auto;
-  background: -moz-Dialog;
-}
-
-.enclosure {
-  vertical-align: middle;
-  margin-left: 2px;
 }

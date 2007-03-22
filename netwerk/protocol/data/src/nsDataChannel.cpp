@@ -38,7 +38,6 @@
 // data implementation
 
 #include "nsDataChannel.h"
-#include "nsDataHandler.h"
 #include "nsNetUtil.h"
 #include "nsIPipe.h"
 #include "nsIInputStream.h"
@@ -56,23 +55,79 @@ nsDataChannel::OpenContentStream(PRBool async, nsIInputStream **result)
     NS_ENSURE_TRUE(URI(), NS_ERROR_NOT_INITIALIZED);
 
     nsresult rv;
+    PRBool lBase64 = PR_FALSE;
 
     nsCAutoString spec;
     rv = URI()->GetAsciiSpec(spec);
     if (NS_FAILED(rv)) return rv;
 
-    nsCString contentType, contentCharset, dataBuffer;
-    PRBool lBase64;
-    rv = nsDataHandler::ParseURI(spec, contentType, contentCharset,
-                                 lBase64, dataBuffer);
+    // move past "data:"
+    char *buffer = (char *) strstr(spec.BeginWriting(), "data:");
+    if (!buffer) {
+        // malformed uri
+        return NS_ERROR_MALFORMED_URI;
+    }
+    buffer += 5;
 
-    NS_UnescapeURL(dataBuffer);
+    // First, find the start of the data
+    char *comma = strchr(buffer, ',');
+    if (!comma)
+        return NS_ERROR_MALFORMED_URI;
 
-    if (lBase64) {
-        // Don't allow spaces in base64-encoded content. This is only
-        // relevant for escaped spaces; other spaces are stripped in
-        // NewURI.
-        dataBuffer.StripWhitespace();
+    *comma = '\0';
+
+    // determine if the data is base64 encoded.
+    char *base64 = strstr(buffer, ";base64");
+    if (base64) {
+        lBase64 = PR_TRUE;
+        *base64 = '\0';
+    }
+
+    nsCString contentType, contentCharset;
+
+    if (comma == buffer) {
+        // nothing but data
+        contentType.AssignLiteral("text/plain");
+        contentCharset.AssignLiteral("US-ASCII");
+    } else {
+        // everything else is content type
+        char *semiColon = (char *) strchr(buffer, ';');
+        if (semiColon)
+            *semiColon = '\0';
+        
+        if (semiColon == buffer || base64 == buffer) {
+            // there is no content type, but there are other parameters
+            contentType.AssignLiteral("text/plain");
+        } else {
+            contentType = buffer;
+            ToLowerCase(contentType);
+        }
+
+        if (semiColon) {
+            char *charset = PL_strcasestr(semiColon + 1, "charset=");
+            if (charset)
+                contentCharset = charset + sizeof("charset=") - 1;
+
+            *semiColon = ';';
+        }
+    }
+    contentType.StripWhitespace();
+    contentCharset.StripWhitespace();
+
+    char *dataBuffer = nsnull;
+    PRBool cleanup = PR_FALSE;
+    if (!lBase64 && ((strncmp(contentType.get(),"text/",5) == 0) ||
+                     contentType.Find("xml") != kNotFound)) {
+        // it's text, don't compress spaces
+        dataBuffer = comma+1;
+    } else {
+        // it's ascii encoded binary, don't let any spaces in
+        nsCAutoString dataBuf(comma+1);
+        dataBuf.StripWhitespace();
+        dataBuffer = ToNewCString(dataBuf);
+        if (!dataBuffer)
+            return NS_ERROR_OUT_OF_MEMORY;
+        cleanup = PR_TRUE;
     }
     
     nsCOMPtr<nsIInputStream> bufInStream;
@@ -84,11 +139,12 @@ nsDataChannel::OpenContentStream(PRBool async, nsIInputStream **result)
                     NET_DEFAULT_SEGMENT_SIZE, PR_UINT32_MAX,
                     async, PR_TRUE);
     if (NS_FAILED(rv))
-        return rv;
+        goto cleanup;
 
-    PRUint32 contentLen;
+    PRUint32 dataLen, contentLen;
+    dataLen = nsUnescapeCount(dataBuffer);
     if (lBase64) {
-        const PRUint32 dataLen = dataBuffer.Length();
+        *base64 = ';';
         PRInt32 resultLen = 0;
         if (dataLen >= 1 && dataBuffer[dataLen-1] == '=') {
             if (dataLen >= 2 && dataBuffer[dataLen-2] == '=')
@@ -103,19 +159,22 @@ nsDataChannel::OpenContentStream(PRBool async, nsIInputStream **result)
         // XXX PL_Base64Decode will return a null pointer for decoding
         // errors.  Since those are more likely than out-of-memory,
         // should we return NS_ERROR_MALFORMED_URI instead?
-        char * decodedData = PL_Base64Decode(dataBuffer.get(), dataLen, nsnull);
+        char * decodedData = PL_Base64Decode(dataBuffer, dataLen, nsnull);
         if (!decodedData) {
-            return NS_ERROR_OUT_OF_MEMORY;
+            rv = NS_ERROR_OUT_OF_MEMORY;
+            goto cleanup;
         }
 
         rv = bufOutStream->Write(decodedData, resultLen, &contentLen);
 
         PR_Free(decodedData);
     } else {
-        rv = bufOutStream->Write(dataBuffer.get(), dataBuffer.Length(), &contentLen);
+        rv = bufOutStream->Write(dataBuffer, dataLen, &contentLen);
     }
     if (NS_FAILED(rv))
-        return rv;
+        goto cleanup;
+
+    *comma = ',';
 
     SetContentType(contentType);
     SetContentCharset(contentCharset);
@@ -123,5 +182,8 @@ nsDataChannel::OpenContentStream(PRBool async, nsIInputStream **result)
 
     NS_ADDREF(*result = bufInStream);
 
-    return NS_OK;
+cleanup:
+    if (cleanup)
+        nsMemory::Free(dataBuffer);
+    return rv;
 }

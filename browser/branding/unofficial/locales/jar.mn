@@ -2,6 +2,5 @@
 
 @AB_CD@.jar:
 % locale branding @AB_CD@ %locale/branding/
-# Gran Paradiso branding only exists in en-US
-  locale/branding/brand.dtd        (en-US/brand.dtd)
-* locale/branding/brand.properties (en-US/brand.properties)
+  locale/branding/brand.dtd        (%brand.dtd)
+* locale/branding/brand.properties (%brand.properties)

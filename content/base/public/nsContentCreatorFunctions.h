@@ -58,7 +58,7 @@ class nsGenericHTMLElement;
 
 nsresult
 NS_NewElement(nsIContent** aResult, PRInt32 aElementType,
-              nsINodeInfo* aNodeInfo, PRBool aFromParser);
+              nsINodeInfo* aNodeInfo);
 
 nsresult
 NS_NewXMLElement(nsIContent** aResult, nsINodeInfo* aNodeInfo);
@@ -100,8 +100,7 @@ NS_NewXMLCDATASection(nsIContent** aInstancePtrResult,
                       nsNodeInfoManager *aNodeInfoManager);
 
 nsresult
-NS_NewHTMLElement(nsIContent** aResult, nsINodeInfo *aNodeInfo,
-                  PRBool aFromParser);
+NS_NewHTMLElement(nsIContent** aResult, nsINodeInfo *aNodeInfo);
 
 // First argument should be nsHTMLTag, but that adds dependency to parser
 // for a bunch of files.

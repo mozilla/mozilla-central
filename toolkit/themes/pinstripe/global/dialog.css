@@ -45,11 +45,11 @@
 /* ::::: dialog ::::: */
 
 #commonDialog > image {
-  -moz-margin-end: 14px !important;
+	margin-right: 14px !important;
 }
 
 #commonDialog > .dialog-button-box {
-  -moz-margin-start: 80px;
+	margin-left: 80px;
 }
 
 dialog { 
@@ -67,7 +67,14 @@ dialog {
 
 dialogheader {
   margin: 0px 5px 5px 5px;
+  border: 2px solid;
+  -moz-border-top-colors: ThreeDShadow ThreeDDarkShadow;
+  -moz-border-right-colors: ThreeDHighlight ThreeDDarkShadow;
+  -moz-border-bottom-colors: ThreeDHighlight ThreeDDarkShadow;
+  -moz-border-left-colors: ThreeDShadow ThreeDDarkShadow;
   padding: 5px 8px;
+  background-color: Highlight;
+  color: HighlightText;
 }
 
 .dialogheader-title {
@@ -81,8 +88,15 @@ dialogheader {
 
 .header-large {
   -moz-box-orient: vertical;
-  margin: -14px -14px 0;
+  margin: 0;
+  border-left: none;
+  border-right: none;
+  border-top: 1px solid;
+  -moz-border-top-colors: #FFFFFF;
+  -moz-border-bottom-colors: #9999FF #777777;
   padding: 12px 5px 12px 25px;
+  background-color: #CCCCFF;
+  color: #000000;
 }
 
 .header-large > .dialogheader-title {
@@ -96,10 +110,12 @@ dialogheader {
 
 .dialogheader-description {
 	font-weight: bold !important;
+	border: 1px solid blue;
 }
 
 .dialogheader-title {
 	font-weight: bold !important;
+	border: 1px solid red;
 }
 
 #loginContainer {

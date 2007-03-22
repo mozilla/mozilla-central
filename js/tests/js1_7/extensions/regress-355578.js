@@ -34,10 +34,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-355578.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 355578;
+var bug = 355578;
 var summary = 'block object access to dead JSStackFrame';
 var actual = '';
 var expect = '';
@@ -50,19 +48,19 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
- 
+  
   var filler = "", rooter = {};
-  for(var i = 0; i < 0x70/2; i++)
-  {
-    filler += "\u5050";
+  for(var i = 0; i < 0x70/2; i++) 
+  { 
+    filler += "\u5050"; 
   }
   var blkobj = function() { let x; yield function(){}.__parent__; }().next();
   gc();
-  for(var i = 0; i < 1024; i++)
-  {
-    rooter[i] = filler + i;
+  for(var i = 0; i < 1024; i++) 
+  { 
+    rooter[i] = filler + i; 
   }
   try
   {

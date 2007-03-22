@@ -14,11 +14,13 @@
     </resources>
 
     <content>
-      <xul:hbox class="textbox-input-box numberbox-input-box" flex="1" xbl:inherits="context,disabled,focused">
+      <xul:hbox class="textbox-input-box numberbox-input-box" flex="1" xbl:inherits="context">
         <html:input class="numberbox-input textbox-input" flex="1" anonid="input"
                     xbl:inherits="onfocus,onblur,value,type,maxlength,disabled,size,readonly,tabindex,accesskey"/>
       </xul:hbox>
-      <xul:spinbuttons anonid="buttons" xbl:inherits="disabled,hidden=hidespinbuttons"/>
+      <xul:spinbuttons anonid="buttons" xbl:inherits="disabled,hidden=hidespinbuttons"
+                       onup="this.parentNode._modifyUp();"
+                       ondown="this.parentNode._modifyDown();"/>
     </content>
 
     <implementation>
@@ -37,10 +39,7 @@
         </getter>
       </property>
 
-      <property name="value" onget="return '' + this.valueNumber"
-                             onset="return this.valueNumber = val;"/>
-
-      <property name="valueNumber">
+      <property name="value">
         <getter>
           if (this._valueEntered) {
             var newval = this.inputField.value;
@@ -50,8 +49,7 @@
           return this._value;
         </getter>
         <setter>
-          this._validateValue(val, false);
-          return val;
+          return this._validateValue(val, false);
         </setter>
       </property>
 
@@ -82,7 +80,7 @@
         <![CDATA[
           if (typeof val == "number") {
             this.setAttribute("min", val);
-            if (this.valueNumber < val)
+            if (this.value < val)
               this._validateValue(val, false);
           }
           return val;
@@ -103,7 +101,7 @@
           if (val < min)
             val = min;
           this.setAttribute("max", val);
-          if (this.valueNumber > val)
+          if (this.value > val)
             this._validateValue(val, false);
           return val;
         ]]>
@@ -118,7 +116,7 @@
         <setter>
           if (typeof val == "number") {
             this.setAttribute("decimalplaces", val);
-            this._validateValue(this.valueNumber, false);
+            this._validateValue(this.value, false);
           }
           return val;
         </setter>
@@ -133,20 +131,20 @@
         <![CDATA[
           if (typeof val == "number")
             this.setAttribute("increment", val);
-          return val;
+          return increment;
         ]]>
         </setter>
       </property>
 
       <method name="decrease">
         <body>
-          return this._validateValue(this.valueNumber - this.increment, true);
+          return this._validateValue(this.value - this.increment, true);
         </body>
       </method>
 
       <method name="increase">
         <body>
-          return this._validateValue(this.valueNumber + this.increment, true);
+          return this._validateValue(this.value + this.increment, true);
         </body>
       </method>
 
@@ -155,7 +153,7 @@
           <![CDATA[
             if (this.disabled || this.readOnly)
               return;
-            var oldval = this.valueNumber;
+            var oldval = this.value;
             var newval = this.increase();
             this.inputField.select();
             if (oldval != newval)
@@ -168,7 +166,7 @@
           <![CDATA[
             if (this.disabled || this.readOnly)
               return;
-            var oldval = this.valueNumber;
+            var oldval = this.value;
             var newval = this.decrease();
             this.inputField.select();
             if (oldval != newval)
@@ -181,15 +179,12 @@
         <body>
           <![CDATA[
             var buttons = this.spinButtons;
-            if (this.wrapAround) {
-              buttons.decreaseDisabled = buttons.increaseDisabled = false;
-            }
-            else if (this.disabled || this.readOnly) {
-              buttons.decreaseDisabled = buttons.increaseDisabled = true;
+            if (this.disabled || this.readOnly) {
+              buttons.disabled = true;
             }
             else {
-              buttons.decreaseDisabled = (this.valueNumber <= this.min);
-              buttons.increaseDisabled = (this.valueNumber >= this.max);
+              buttons.decreaseDisabled = (this.value <= this.min);
+              buttons.increaseDisabled = (this.value >= this.max);
             }
           ]]>
         </body>
@@ -212,7 +207,8 @@
               aValue = (aIsIncDec && wrapAround ? min : max);
 
             var places = this.decimalPlaces;
-            aValue = (places == Infinity) ? "" + aValue : aValue.toFixed(places);
+            if (places != Infinity)
+              aValue = aValue.toFixed(places);
 
             this._valueEntered = false;
             this._value = Number(aValue);

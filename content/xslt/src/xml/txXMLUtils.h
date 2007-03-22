@@ -77,6 +77,10 @@ public:
     {
     }
 
+    ~txExpandedName()
+    {
+    }
+    
     nsresult init(const nsAString& aQName, txNamespaceMap* aResolver,
                   MBool aUseDefault);
 
@@ -162,12 +166,12 @@ public:
         aQName.EndReading(end);
 
         const char *colonPtr;
-        int result = MOZ_XMLCheckQName(reinterpret_cast<const char*>
-                                                       (aQName.get()),
-                                       reinterpret_cast<const char*>
-                                                       (end),
+        int result = MOZ_XMLCheckQName(NS_REINTERPRET_CAST(const char*,
+                                                           aQName.get()),
+                                       NS_REINTERPRET_CAST(const char*,
+                                                           end),
                                        PR_TRUE, &colonPtr);
-        *aColon = reinterpret_cast<const PRUnichar*>(colonPtr);
+        *aColon = NS_REINTERPRET_CAST(const PRUnichar*, colonPtr);
         return result == 0;
 #else
         nsIParserService* ps = nsContentUtils::GetParserService();
@@ -181,7 +185,7 @@ public:
     static PRBool isLetter(PRUnichar aChar)
     {
 #ifdef TX_EXE
-        return MOZ_XMLIsLetter(reinterpret_cast<const char*>(&aChar));
+        return MOZ_XMLIsLetter(NS_REINTERPRET_CAST(const char*, &aChar));
 #else
         nsIParserService* ps = nsContentUtils::GetParserService();
         return ps && ps->IsXMLLetter(aChar);
@@ -194,7 +198,7 @@ public:
     static PRBool isNCNameChar(PRUnichar aChar)
     {
 #ifdef TX_EXE
-        return MOZ_XMLIsNCNameChar(reinterpret_cast<const char*>(&aChar));
+        return MOZ_XMLIsNCNameChar(NS_REINTERPRET_CAST(const char*, &aChar));
 #else
         nsIParserService* ps = nsContentUtils::GetParserService();
         return ps && ps->IsXMLNCNameChar(aChar);

@@ -37,15 +37,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'regress-327564.js';
+START("Hang due to cycle in XML object");
 
-var summary = "Hang due to cycle in XML object";
-var BUGNUMBER = 327564;
+var bug = 327564;
+var summary = 'Hang due to cycle in XML object';
 var actual = 'No Cycle Detected';
 var expect = 'Error: cyclic XML value';
 
-printBugNumber(BUGNUMBER);
-START(summary);
+printBugNumber (bug);
+printStatus (summary);
 
 var p = <p/>;
 

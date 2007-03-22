@@ -212,10 +212,9 @@ nsDOMScriptObjectFactory::GetIDForScriptType(const nsAString &aLanguageName,
 
 NS_IMETHODIMP
 nsDOMScriptObjectFactory::NewScriptGlobalObject(PRBool aIsChrome,
-                                                PRBool aIsModalContentWindow,
                                                 nsIScriptGlobalObject **aGlobal)
 {
-  return NS_NewScriptGlobalObject(aIsChrome, aIsModalContentWindow, aGlobal);
+  return NS_NewScriptGlobalObject(aIsChrome, aGlobal);
 }
 
 NS_IMETHODIMP_(nsISupports *)
@@ -227,11 +226,12 @@ nsDOMScriptObjectFactory::GetClassInfoInstance(nsDOMClassInfoID aID)
 NS_IMETHODIMP_(nsISupports *)
 nsDOMScriptObjectFactory::GetExternalClassInfoInstance(const nsAString& aName)
 {
-  nsScriptNameSpaceManager *nameSpaceManager = nsJSRuntime::GetNameSpaceManager();
-  NS_ENSURE_TRUE(nameSpaceManager, nsnull);
+  extern nsScriptNameSpaceManager *gNameSpaceManager;
+
+  NS_ENSURE_TRUE(gNameSpaceManager, nsnull);
 
   const nsGlobalNameStruct *globalStruct;
-  nameSpaceManager->LookupName(aName, &globalStruct);
+  gNameSpaceManager->LookupName(aName, &globalStruct);
   if (globalStruct) {
     if (globalStruct->mType == nsGlobalNameStruct::eTypeExternalClassInfoCreator) {
       nsresult rv;
@@ -241,7 +241,7 @@ nsDOMScriptObjectFactory::GetExternalClassInfoInstance(const nsAString& aName)
       rv = creator->RegisterDOMCI(NS_ConvertUTF16toUTF8(aName).get(), this);
       NS_ENSURE_SUCCESS(rv, nsnull);
 
-      rv = nameSpaceManager->LookupName(aName, &globalStruct);
+      rv = gNameSpaceManager->LookupName(aName, &globalStruct);
       NS_ENSURE_TRUE(NS_SUCCEEDED(rv) && globalStruct, nsnull);
 
       NS_ASSERTION(globalStruct->mType == nsGlobalNameStruct::eTypeExternalClassInfo,
@@ -316,18 +316,13 @@ static nsresult
 CreateXPConnectException(nsresult aResult, nsIException *aDefaultException,
                          nsIException **_retval)
 {
-  // See whether we already have a useful XPConnect exception.  If we
-  // do, let's not create one with _less_ information!
-  nsCOMPtr<nsIXPCException> exception(do_QueryInterface(aDefaultException));
-  if (!exception) {
-    nsresult rv = NS_OK;
-    exception = do_CreateInstance("@mozilla.org/js/xpc/Exception;1", &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
+  nsresult rv = NS_OK;
+  nsCOMPtr<nsIXPCException> exception(
+      do_CreateInstance("@mozilla.org/js/xpc/Exception;1", &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    rv = exception->Initialize(nsnull, aResult, nsnull, nsnull, nsnull,
-                               nsnull);
-    NS_ENSURE_SUCCESS(rv, rv);
-  }
+  rv = exception->Initialize(nsnull, aResult, nsnull, nsnull, nsnull, nsnull);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   NS_ADDREF(*_retval = exception);
   return NS_OK;
@@ -350,8 +345,6 @@ nsDOMScriptObjectFactory::GetException(nsresult result,
       return NS_NewXPathException(result, aDefaultException, _retval);
     case NS_ERROR_MODULE_XPCONNECT:
       return CreateXPConnectException(result, aDefaultException, _retval);
-    case NS_ERROR_MODULE_DOM_FILE:
-      return NS_NewFileException(result, aDefaultException, _retval);
     default:
       return NS_NewDOMException(result, aDefaultException, _retval);
   }
@@ -366,16 +359,17 @@ nsDOMScriptObjectFactory::RegisterDOMClassInfo(const char *aName,
 					       PRBool aHasClassInterface,
 					       const nsCID *aConstructorCID)
 {
-  nsScriptNameSpaceManager *nameSpaceManager = nsJSRuntime::GetNameSpaceManager();
-  NS_ENSURE_TRUE(nameSpaceManager, NS_ERROR_NOT_INITIALIZED);
+  extern nsScriptNameSpaceManager *gNameSpaceManager;
 
-  return nameSpaceManager->RegisterDOMCIData(aName,
-                                             aConstructorFptr,
-                                             aProtoChainInterface,
-                                             aInterfaces,
-                                             aScriptableFlags,
-                                             aHasClassInterface,
-                                             aConstructorCID);
+  NS_ENSURE_TRUE(gNameSpaceManager, NS_ERROR_NOT_INITIALIZED);
+
+  return gNameSpaceManager->RegisterDOMCIData(aName,
+                                              aConstructorFptr,
+                                              aProtoChainInterface,
+                                              aInterfaces,
+                                              aScriptableFlags,
+                                              aHasClassInterface,
+                                              aConstructorCID);
 }
 
 /* static */ nsresult

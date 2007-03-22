@@ -839,7 +839,7 @@ nsWindowMediator::RemoveListener(nsIWindowMediatorListener* aListener)
 PRBool notifyOpenWindow(nsISupports *aElement, void* aData)
 {
   nsIWindowMediatorListener* listener =
-    reinterpret_cast<nsIWindowMediatorListener*>(aElement);
+    NS_REINTERPRET_CAST(nsIWindowMediatorListener*, aElement);
   windowData* winData = (windowData*) aData;
 
   listener->OnOpenWindow(winData->mWindow);
@@ -849,7 +849,7 @@ PRBool notifyOpenWindow(nsISupports *aElement, void* aData)
 PRBool notifyCloseWindow(nsISupports *aElement, void* aData)
 {
   nsIWindowMediatorListener* listener =
-    reinterpret_cast<nsIWindowMediatorListener*>(aElement);
+    NS_REINTERPRET_CAST(nsIWindowMediatorListener*, aElement);
   windowData* winData = (windowData*) aData;
   
   listener->OnCloseWindow(winData->mWindow);
@@ -859,10 +859,10 @@ PRBool notifyCloseWindow(nsISupports *aElement, void* aData)
 PRBool notifyWindowTitleChange(nsISupports *aElement, void* aData)
 {
   nsIWindowMediatorListener* listener =
-    reinterpret_cast<nsIWindowMediatorListener*>(aElement);
+    NS_REINTERPRET_CAST(nsIWindowMediatorListener*, aElement);
 
   windowData* titleData =
-    reinterpret_cast<windowData*>(aData);
+    NS_REINTERPRET_CAST(windowData*, aData);
   listener->OnWindowTitleChange(titleData->mWindow,
                                 titleData->mTitle);
 

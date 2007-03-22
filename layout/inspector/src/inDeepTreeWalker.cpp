@@ -75,13 +75,11 @@ inDeepTreeWalker::inDeepTreeWalker()
 inDeepTreeWalker::~inDeepTreeWalker() 
 { 
   for (PRInt32 i = mStack.Count() - 1; i >= 0; --i) {
-    delete static_cast<DeepTreeStackItem*>(mStack[i]);
+    delete NS_STATIC_CAST(DeepTreeStackItem*, mStack[i]);
   }
 }
 
-NS_IMPL_ISUPPORTS2(inDeepTreeWalker,
-                   inIDeepTreeWalker,
-                   nsIDOMTreeWalker)
+NS_IMPL_ISUPPORTS1(inDeepTreeWalker, inIDeepTreeWalker)
 
 ////////////////////////////////////////////////////
 // inIDeepTreeWalker

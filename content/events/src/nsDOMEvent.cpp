@@ -63,15 +63,13 @@ static const char* const sEventNames[] = {
   "submit", "reset", "change", "select", "input", "paint" ,"text",
   "compositionstart", "compositionend", "popupshowing", "popupshown",
   "popuphiding", "popuphidden", "close", "command", "broadcast", "commandupdate",
-  "dragenter", "dragover", "dragexit", "dragdrop", "draggesture",
-  "drag", "dragend", "resize",
-  "scroll", "overflow", "underflow", "overflowchanged",
+  "dragenter", "dragover", "dragexit", "dragdrop", "draggesture", "resize",
+  "scroll","overflow", "underflow", "overflowchanged",
   "DOMSubtreeModified", "DOMNodeInserted", "DOMNodeRemoved", 
   "DOMNodeRemovedFromDocument", "DOMNodeInsertedIntoDocument",
   "DOMAttrModified", "DOMCharacterDataModified",
   "DOMActivate", "DOMFocusIn", "DOMFocusOut",
-  "pageshow", "pagehide", "DOMMouseScroll", "offline", "online",
-  "copy", "cut", "paste"
+  "pageshow", "pagehide", "DOMMouseScroll"
 #ifdef MOZ_SVG
  ,
   "SVGLoad", "SVGUnload", "SVGAbort", "SVGError", "SVGResize", "SVGScroll",
@@ -85,7 +83,6 @@ static char *sPopupAllowedEvents;
 nsDOMEvent::nsDOMEvent(nsPresContext* aPresContext, nsEvent* aEvent)
 {
   mPresContext = aPresContext;
-  mPrivateDataDuplicated = PR_FALSE;
 
   if (aEvent) {
     mEvent = aEvent;
@@ -143,71 +140,16 @@ nsDOMEvent::~nsDOMEvent()
   }
 }
 
-NS_IMPL_CYCLE_COLLECTION_CLASS(nsDOMEvent)
+NS_IMPL_ADDREF(nsDOMEvent)
+NS_IMPL_RELEASE(nsDOMEvent)
 
-NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION(nsDOMEvent)
+NS_INTERFACE_MAP_BEGIN(nsDOMEvent)
   NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIDOMEvent)
   NS_INTERFACE_MAP_ENTRY(nsIDOMEvent)
   NS_INTERFACE_MAP_ENTRY(nsIDOMNSEvent)
   NS_INTERFACE_MAP_ENTRY(nsIPrivateDOMEvent)
   NS_INTERFACE_MAP_ENTRY_CONTENT_CLASSINFO(Event)
 NS_INTERFACE_MAP_END
-
-NS_IMPL_CYCLE_COLLECTING_ADDREF(nsDOMEvent)
-NS_IMPL_CYCLE_COLLECTING_RELEASE(nsDOMEvent)
-
-NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN(nsDOMEvent)
-  if (tmp->mEventIsInternal) {
-    tmp->mEvent->target = nsnull;
-    tmp->mEvent->currentTarget = nsnull;
-    tmp->mEvent->originalTarget = nsnull;
-    switch (tmp->mEvent->eventStructType) {
-      case NS_MOUSE_EVENT:
-      case NS_MOUSE_SCROLL_EVENT:
-        static_cast<nsMouseEvent_base*>(tmp->mEvent)->relatedTarget = nsnull;
-        break;
-      case NS_XUL_COMMAND_EVENT:
-        static_cast<nsXULCommandEvent*>(tmp->mEvent)->sourceEvent = nsnull;
-        break;
-      case NS_MUTATION_EVENT:
-        static_cast<nsMutationEvent*>(tmp->mEvent)->mRelatedNode = nsnull;
-        break;
-      default:
-        break;
-    }
-  }
-  NS_IMPL_CYCLE_COLLECTION_UNLINK_NSCOMPTR(mPresContext);
-  NS_IMPL_CYCLE_COLLECTION_UNLINK_NSCOMPTR(mTmpRealOriginalTarget)
-  NS_IMPL_CYCLE_COLLECTION_UNLINK_NSCOMPTR(mExplicitOriginalTarget)
-NS_IMPL_CYCLE_COLLECTION_UNLINK_END
-
-NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN(nsDOMEvent)
-  if (tmp->mEventIsInternal) {
-    cb.NoteXPCOMChild(tmp->mEvent->target);
-    cb.NoteXPCOMChild(tmp->mEvent->currentTarget);
-    cb.NoteXPCOMChild(tmp->mEvent->originalTarget);
-    switch (tmp->mEvent->eventStructType) {
-      case NS_MOUSE_EVENT:
-      case NS_MOUSE_SCROLL_EVENT:
-        cb.NoteXPCOMChild(
-          static_cast<nsMouseEvent_base*>(tmp->mEvent)->relatedTarget);
-        break;
-      case NS_XUL_COMMAND_EVENT:
-        cb.NoteXPCOMChild(
-          static_cast<nsXULCommandEvent*>(tmp->mEvent)->sourceEvent);
-        break;
-      case NS_MUTATION_EVENT:
-        cb.NoteXPCOMChild(
-          static_cast<nsMutationEvent*>(tmp->mEvent)->mRelatedNode);
-        break;
-      default:
-        break;
-    }
-  }
-  NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mPresContext)
-  NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mTmpRealOriginalTarget)
-  NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mExplicitOriginalTarget)
-NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
 
 // nsIDOMEventInterface
 NS_METHOD nsDOMEvent::GetType(nsAString& aType)
@@ -227,31 +169,23 @@ NS_METHOD nsDOMEvent::GetType(nsAString& aType)
   return NS_ERROR_FAILURE;
 }
 
-static nsresult
-GetDOMEventTarget(nsISupports* aTarget,
-                  nsIDOMEventTarget** aDOMTarget)
+NS_METHOD nsDOMEvent::GetTarget(nsIDOMEventTarget** aTarget)
 {
-  nsCOMPtr<nsPIDOMEventTarget> piTarget = do_QueryInterface(aTarget);
-  nsISupports* realTarget =
-    piTarget ? piTarget->GetTargetForDOMEvent() : aTarget;
-  if (realTarget) {
-    return CallQueryInterface(realTarget, aDOMTarget);
+  if (mEvent->target) {
+    return CallQueryInterface(mEvent->target, aTarget);
   }
-
-  *aDOMTarget = nsnull;
+  *aTarget = nsnull;
   return NS_OK;
-}
-
-NS_METHOD
-nsDOMEvent::GetTarget(nsIDOMEventTarget** aTarget)
-{
-  return GetDOMEventTarget(mEvent->target, aTarget);
 }
 
 NS_IMETHODIMP
 nsDOMEvent::GetCurrentTarget(nsIDOMEventTarget** aCurrentTarget)
 {
-  return GetDOMEventTarget(mEvent->currentTarget, aCurrentTarget);
+  if (mEvent->currentTarget) {
+    return CallQueryInterface(mEvent->currentTarget, aCurrentTarget);
+  }
+  *aCurrentTarget = nsnull;
+  return NS_OK;
 }
 
 //
@@ -306,7 +240,7 @@ NS_IMETHODIMP
 nsDOMEvent::GetOriginalTarget(nsIDOMEventTarget** aOriginalTarget)
 {
   if (mEvent->originalTarget) {
-    return GetDOMEventTarget(mEvent->originalTarget, aOriginalTarget);
+    return CallQueryInterface(mEvent->originalTarget, aOriginalTarget);
   }
 
   return GetTarget(aOriginalTarget);
@@ -495,16 +429,6 @@ nsDOMEvent::SetEventType(const nsAString& aEventTypeArg)
       mEvent->message = NS_IMAGE_ABORT;
     else if (atom == nsGkAtoms::onerror)
       mEvent->message = NS_LOAD_ERROR;
-    else if (atom == nsGkAtoms::onoffline)
-      mEvent->message = NS_OFFLINE;
-    else if (atom == nsGkAtoms::ononline)
-      mEvent->message = NS_ONLINE;
-    else if (atom == nsGkAtoms::oncopy)
-      mEvent->message = NS_COPY;
-    else if (atom == nsGkAtoms::oncut)
-      mEvent->message = NS_CUT;
-    else if (atom == nsGkAtoms::onpaste)
-      mEvent->message = NS_PASTE;
   } else if (mEvent->eventStructType == NS_MUTATION_EVENT) {
     if (atom == nsGkAtoms::onDOMAttrModified)
       mEvent->message = NS_MUTATION_ATTRMODIFIED;
@@ -639,8 +563,8 @@ NS_METHOD nsDOMEvent::DuplicatePrivateData()
     {
       nsSizeEvent* sizeEvent = new nsSizeEvent(PR_FALSE, msg, nsnull);
       NS_ENSURE_TRUE(sizeEvent, NS_ERROR_OUT_OF_MEMORY);
-      sizeEvent->mWinWidth = static_cast<nsSizeEvent*>(mEvent)->mWinWidth;
-      sizeEvent->mWinHeight = static_cast<nsSizeEvent*>(mEvent)->mWinHeight;
+      sizeEvent->mWinWidth = NS_STATIC_CAST(nsSizeEvent*, mEvent)->mWinWidth;
+      sizeEvent->mWinHeight = NS_STATIC_CAST(nsSizeEvent*, mEvent)->mWinHeight;
       newEvent = sizeEvent;
       break;
     }
@@ -648,15 +572,15 @@ NS_METHOD nsDOMEvent::DuplicatePrivateData()
     {
       newEvent = new nsSizeModeEvent(PR_FALSE, msg, nsnull);
       NS_ENSURE_TRUE(newEvent, NS_ERROR_OUT_OF_MEMORY);
-      static_cast<nsSizeModeEvent*>(newEvent)->mSizeMode =
-        static_cast<nsSizeModeEvent*>(mEvent)->mSizeMode;
+      NS_STATIC_CAST(nsSizeModeEvent*, newEvent)->mSizeMode =
+        NS_STATIC_CAST(nsSizeModeEvent*, mEvent)->mSizeMode;
       break;
     }
     case NS_ZLEVEL_EVENT:
     {
       nsZLevelEvent* zLevelEvent = new nsZLevelEvent(PR_FALSE, msg, nsnull);
       NS_ENSURE_TRUE(zLevelEvent, NS_ERROR_OUT_OF_MEMORY);
-      nsZLevelEvent* oldZLevelEvent = static_cast<nsZLevelEvent*>(mEvent);
+      nsZLevelEvent* oldZLevelEvent = NS_STATIC_CAST(nsZLevelEvent*, mEvent);
       zLevelEvent->mPlacement = oldZLevelEvent->mPlacement;
       zLevelEvent->mImmediate = oldZLevelEvent->mImmediate;
       zLevelEvent->mAdjusted = oldZLevelEvent->mAdjusted;
@@ -672,8 +596,8 @@ NS_METHOD nsDOMEvent::DuplicatePrivateData()
     {
       newEvent = new nsScrollbarEvent(PR_FALSE, msg, nsnull);
       NS_ENSURE_TRUE(newEvent, NS_ERROR_OUT_OF_MEMORY);
-      static_cast<nsScrollbarEvent*>(newEvent)->position =
-        static_cast<nsScrollbarEvent*>(mEvent)->position;
+      NS_STATIC_CAST(nsScrollbarEvent*, newEvent)->position =
+        NS_STATIC_CAST(nsScrollbarEvent*, mEvent)->position;
       break;
     }
     case NS_INPUT_EVENT:
@@ -686,7 +610,7 @@ NS_METHOD nsDOMEvent::DuplicatePrivateData()
     {
       nsKeyEvent* keyEvent = new nsKeyEvent(PR_FALSE, msg, nsnull);
       NS_ENSURE_TRUE(keyEvent, NS_ERROR_OUT_OF_MEMORY);
-      nsKeyEvent* oldKeyEvent = static_cast<nsKeyEvent*>(mEvent);
+      nsKeyEvent* oldKeyEvent = NS_STATIC_CAST(nsKeyEvent*, mEvent);
       isInputEvent = PR_TRUE;
       keyEvent->keyCode = oldKeyEvent->keyCode;
       keyEvent->charCode = oldKeyEvent->charCode;
@@ -696,14 +620,13 @@ NS_METHOD nsDOMEvent::DuplicatePrivateData()
     }
     case NS_MOUSE_EVENT:
     {
-      nsMouseEvent* oldMouseEvent = static_cast<nsMouseEvent*>(mEvent);
+      nsMouseEvent* oldMouseEvent = NS_STATIC_CAST(nsMouseEvent*, mEvent);
       nsMouseEvent* mouseEvent =
         new nsMouseEvent(PR_FALSE, msg, nsnull, oldMouseEvent->reason);
       NS_ENSURE_TRUE(mouseEvent, NS_ERROR_OUT_OF_MEMORY);
       isInputEvent = PR_TRUE;
       mouseEvent->clickCount = oldMouseEvent->clickCount;
       mouseEvent->acceptActivation = oldMouseEvent->acceptActivation;
-      mouseEvent->context = oldMouseEvent->context;
       mouseEvent->relatedTarget = oldMouseEvent->relatedTarget;
       mouseEvent->button = oldMouseEvent->button;
       newEvent = mouseEvent;
@@ -713,16 +636,16 @@ NS_METHOD nsDOMEvent::DuplicatePrivateData()
     {
       newEvent = new nsMenuEvent(PR_FALSE, msg, nsnull);
       NS_ENSURE_TRUE(newEvent, NS_ERROR_OUT_OF_MEMORY);
-      static_cast<nsMenuEvent*>(newEvent)->mCommand =
-        static_cast<nsMenuEvent*>(mEvent)->mCommand;
+      NS_STATIC_CAST(nsMenuEvent*, newEvent)->mCommand =
+        NS_STATIC_CAST(nsMenuEvent*, mEvent)->mCommand;
       break;
     }
     case NS_SCRIPT_ERROR_EVENT:
     {
       newEvent = new nsScriptErrorEvent(PR_FALSE, msg);
       NS_ENSURE_TRUE(newEvent, NS_ERROR_OUT_OF_MEMORY);
-      static_cast<nsScriptErrorEvent*>(newEvent)->lineNr =
-        static_cast<nsScriptErrorEvent*>(mEvent)->lineNr;
+      NS_STATIC_CAST(nsScriptErrorEvent*, newEvent)->lineNr =
+        NS_STATIC_CAST(nsScriptErrorEvent*, mEvent)->lineNr;
       break;
     }
     case NS_TEXT_EVENT:
@@ -750,7 +673,7 @@ NS_METHOD nsDOMEvent::DuplicatePrivateData()
       NS_ENSURE_TRUE(mouseScrollEvent, NS_ERROR_OUT_OF_MEMORY);
       isInputEvent = PR_TRUE;
       nsMouseScrollEvent* oldMouseScrollEvent =
-        static_cast<nsMouseScrollEvent*>(mEvent);
+        NS_STATIC_CAST(nsMouseScrollEvent*, mEvent);
       mouseScrollEvent->scrollFlags = oldMouseScrollEvent->scrollFlags;
       mouseScrollEvent->delta = oldMouseScrollEvent->delta;
       mouseScrollEvent->relatedTarget = oldMouseScrollEvent->relatedTarget;
@@ -762,8 +685,8 @@ NS_METHOD nsDOMEvent::DuplicatePrivateData()
     {
       newEvent = new nsScrollPortEvent(PR_FALSE, msg, nsnull);
       NS_ENSURE_TRUE(newEvent, NS_ERROR_OUT_OF_MEMORY);
-      static_cast<nsScrollPortEvent*>(newEvent)->orient =
-        static_cast<nsScrollPortEvent*>(mEvent)->orient;
+      NS_STATIC_CAST(nsScrollPortEvent*, newEvent)->orient =
+        NS_STATIC_CAST(nsScrollPortEvent*, mEvent)->orient;
       break;
     }
     case NS_MUTATION_EVENT:
@@ -771,7 +694,7 @@ NS_METHOD nsDOMEvent::DuplicatePrivateData()
       nsMutationEvent* mutationEvent = new nsMutationEvent(PR_FALSE, msg);
       NS_ENSURE_TRUE(mutationEvent, NS_ERROR_OUT_OF_MEMORY);
       nsMutationEvent* oldMutationEvent =
-        static_cast<nsMutationEvent*>(mEvent);
+        NS_STATIC_CAST(nsMutationEvent*, mEvent);
       mutationEvent->mRelatedNode = oldMutationEvent->mRelatedNode;
       mutationEvent->mAttrName = oldMutationEvent->mAttrName;
       mutationEvent->mPrevAttrValue = oldMutationEvent->mPrevAttrValue;
@@ -795,8 +718,8 @@ NS_METHOD nsDOMEvent::DuplicatePrivateData()
     {
       newEvent = new nsFocusEvent(PR_FALSE, msg, nsnull);
       NS_ENSURE_TRUE(newEvent, NS_ERROR_OUT_OF_MEMORY);
-      static_cast<nsFocusEvent*>(newEvent)->isMozWindowTakingFocus =
-        static_cast<nsFocusEvent*>(mEvent)->isMozWindowTakingFocus;
+      NS_STATIC_CAST(nsFocusEvent*, newEvent)->isMozWindowTakingFocus =
+        NS_STATIC_CAST(nsFocusEvent*, mEvent)->isMozWindowTakingFocus;
       break;
     }
     case NS_POPUP_EVENT:
@@ -810,7 +733,7 @@ NS_METHOD nsDOMEvent::DuplicatePrivateData()
     case NS_COMMAND_EVENT:
     {
       newEvent = new nsCommandEvent(PR_FALSE, mEvent->userType,
-        static_cast<nsCommandEvent*>(mEvent)->command, nsnull);
+        NS_STATIC_CAST(nsCommandEvent*, mEvent)->command, nsnull);
       NS_ENSURE_TRUE(newEvent, NS_ERROR_OUT_OF_MEMORY);
       break;
     }
@@ -824,14 +747,14 @@ NS_METHOD nsDOMEvent::DuplicatePrivateData()
     {
       newEvent = new nsBeforePageUnloadEvent(PR_FALSE, msg);
       NS_ENSURE_TRUE(newEvent, NS_ERROR_OUT_OF_MEMORY);
-      static_cast<nsBeforePageUnloadEvent*>(newEvent)->text =
-        static_cast<nsBeforePageUnloadEvent*>(mEvent)->text;
+      NS_STATIC_CAST(nsBeforePageUnloadEvent*, newEvent)->text =
+        NS_STATIC_CAST(nsBeforePageUnloadEvent*, mEvent)->text;
       break;
     }
     case NS_UI_EVENT:
     {
       newEvent = new nsUIEvent(PR_FALSE, msg,
-                               static_cast<nsUIEvent*>(mEvent)->detail);
+                               NS_STATIC_CAST(nsUIEvent*, mEvent)->detail);
       break;
     }
     case NS_QUERYCARETRECT_EVENT:
@@ -869,8 +792,8 @@ NS_METHOD nsDOMEvent::DuplicatePrivateData()
       NS_ENSURE_TRUE(newEvent, NS_ERROR_OUT_OF_MEMORY);
       isInputEvent = PR_TRUE;
       newEvent->eventStructType = NS_XUL_COMMAND_EVENT;
-       static_cast<nsXULCommandEvent*>(newEvent)->sourceEvent =
-         static_cast<nsXULCommandEvent*>(mEvent)->sourceEvent;
+       NS_STATIC_CAST(nsXULCommandEvent*, newEvent)->sourceEvent =
+         NS_STATIC_CAST(nsXULCommandEvent*, mEvent)->sourceEvent;
       break;
     }
     default:
@@ -883,8 +806,8 @@ NS_METHOD nsDOMEvent::DuplicatePrivateData()
   NS_ENSURE_TRUE(newEvent, NS_ERROR_OUT_OF_MEMORY);
 
   if (isInputEvent) {
-    nsInputEvent* oldInputEvent = static_cast<nsInputEvent*>(mEvent);
-    nsInputEvent* newInputEvent = static_cast<nsInputEvent*>(newEvent);
+    nsInputEvent* oldInputEvent = NS_STATIC_CAST(nsInputEvent*, mEvent);
+    nsInputEvent* newInputEvent = NS_STATIC_CAST(nsInputEvent*, newEvent);
     newInputEvent->isShift = oldInputEvent->isShift;
     newInputEvent->isControl = oldInputEvent->isControl;
     newInputEvent->isAlt = oldInputEvent->isAlt;
@@ -902,7 +825,6 @@ NS_METHOD nsDOMEvent::DuplicatePrivateData()
   mEvent = newEvent;
   mPresContext = nsnull;
   mEventIsInternal = PR_TRUE;
-  mPrivateDataDuplicated = PR_TRUE;
 
   return NS_OK;
 }
@@ -1065,7 +987,7 @@ nsDOMEvent::GetEventPopupControlState(nsEvent *aEvent)
     break;
   case NS_KEY_EVENT :
     if (NS_IS_TRUSTED_EVENT(aEvent)) {
-      PRUint32 key = static_cast<nsKeyEvent *>(aEvent)->keyCode;
+      PRUint32 key = NS_STATIC_CAST(nsKeyEvent *, aEvent)->keyCode;
       switch(aEvent->message) {
       case NS_KEY_PRESS :
         // return key on focused button. see note at NS_MOUSE_CLICK.
@@ -1090,7 +1012,7 @@ nsDOMEvent::GetEventPopupControlState(nsEvent *aEvent)
     break;
   case NS_MOUSE_EVENT :
     if (NS_IS_TRUSTED_EVENT(aEvent) &&
-        static_cast<nsMouseEvent*>(aEvent)->button == nsMouseEvent::eLeftButton) {
+        NS_STATIC_CAST(nsMouseEvent*, aEvent)->button == nsMouseEvent::eLeftButton) {
       switch(aEvent->message) {
       case NS_MOUSE_BUTTON_UP :
         if (::PopupAllowedForEvent("mouseup"))
@@ -1141,10 +1063,6 @@ nsDOMEvent::GetEventPopupControlState(nsEvent *aEvent)
       }
     }
     break;
-  case NS_XUL_COMMAND_EVENT :
-    if (nsEventStateManager::IsHandlingUserInput()) {
-      abuse = openControlled;
-    }
   }
 
   return abuse;
@@ -1263,10 +1181,6 @@ const char* nsDOMEvent::GetEventName(PRUint32 aEventType)
     return sEventNames[eDOMEvents_dragdrop];
   case NS_DRAGDROP_GESTURE:
     return sEventNames[eDOMEvents_draggesture];
-  case NS_DRAGDROP_DRAG:
-    return sEventNames[eDOMEvents_drag];
-  case NS_DRAGDROP_END:
-    return sEventNames[eDOMEvents_dragend];
   case NS_SCROLLPORT_OVERFLOW:
     return sEventNames[eDOMEvents_overflow];
   case NS_SCROLLPORT_UNDERFLOW:
@@ -1301,16 +1215,6 @@ const char* nsDOMEvent::GetEventName(PRUint32 aEventType)
     return sEventNames[eDOMEvents_pagehide];
   case NS_MOUSE_SCROLL:
     return sEventNames[eDOMEvents_DOMMouseScroll];
-  case NS_OFFLINE:
-    return sEventNames[eDOMEvents_offline];
-  case NS_ONLINE:
-    return sEventNames[eDOMEvents_online];
-  case NS_COPY:
-    return sEventNames[eDOMEvents_copy];
-  case NS_CUT:
-    return sEventNames[eDOMEvents_cut];
-  case NS_PASTE:
-    return sEventNames[eDOMEvents_paste];
 #ifdef MOZ_SVG
   case NS_SVG_LOAD:
     return sEventNames[eDOMEvents_SVGLoad];

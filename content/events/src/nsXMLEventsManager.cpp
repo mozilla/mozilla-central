@@ -41,7 +41,7 @@
 #include "nsGkAtoms.h"
 #include "nsIDOMElement.h"
 #include "nsIDOMDocument.h"
-#include "nsIDOMEventTarget.h"
+#include "nsIDOMEventReceiver.h"
 #include "nsNetUtil.h"
 #include "nsIURL.h"
 #include "nsIDOMEventListener.h"
@@ -265,7 +265,7 @@ PR_STATIC_CALLBACK(PLDHashOperator) EnumAndSetIncomplete(nsISupports * aContent,
                                                          void * aData)
 {
   if (aListener && aData) {
-    nsCOMPtr<nsIContent> content = static_cast<nsIContent *>(aData);
+    nsCOMPtr<nsIContent> content = NS_STATIC_CAST(nsIContent *, aData);
     if (content) { 
       if (aListener->ObserverEquals(content) || aListener->HandlerEquals(content)) {
         aListener->SetIncomplete();
@@ -347,10 +347,6 @@ nsXMLEventsManager::EndLoad(nsIDocument* aDocument)
   AddListeners(aDocument);
 }
 NS_IMPL_NSIDOCUMENTOBSERVER_STATE_STUB(nsXMLEventsManager)
-void
-nsXMLEventsManager::CharacterDataWillChange(nsIDocument* aDocument,
-                                            nsIContent* aContent,
-                                            CharacterDataChangeInfo* aInfo) {}
 void 
 nsXMLEventsManager::CharacterDataChanged(nsIDocument* aDocument,
                                          nsIContent* aContent,
@@ -360,8 +356,7 @@ nsXMLEventsManager::AttributeChanged(nsIDocument* aDocument,
                                      nsIContent* aContent,
                                      PRInt32 aNameSpaceID,
                                      nsIAtom* aAttribute,
-                                     PRInt32 aModType,
-                                     PRUint32 aStateMask)
+                                     PRInt32 aModType)
 {
   if (aNameSpaceID == kNameSpaceID_XMLEvents &&
       (aAttribute == nsGkAtoms::event ||

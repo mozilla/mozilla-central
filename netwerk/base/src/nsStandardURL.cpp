@@ -65,6 +65,8 @@ PRBool nsStandardURL::gInitialized = PR_FALSE;
 PRBool nsStandardURL::gEscapeUTF8 = PR_TRUE;
 PRBool nsStandardURL::gAlwaysEncodeInUTF8 = PR_TRUE;
 PRBool nsStandardURL::gEncodeQueryInUTF8 = PR_TRUE;
+PRBool nsStandardURL::gShowPunycode = PR_FALSE;
+nsIPrefBranch *nsStandardURL::gIDNWhitelistPrefBranch = nsnull;
 
 #if defined(PR_LOGGING)
 //
@@ -138,6 +140,8 @@ end:
 #define NS_NET_PREF_ENABLEIDN          "network.enableIDN"
 #define NS_NET_PREF_ALWAYSENCODEINUTF8 "network.standard-url.encode-utf8"
 #define NS_NET_PREF_ENCODEQUERYINUTF8  "network.standard-url.encode-query-utf8"
+#define NS_NET_PREF_SHOWPUNYCODE       "network.IDN_show_punycode"
+#define NS_NET_PREF_IDNWHITELIST       "network.IDN.whitelist."
 
 NS_IMPL_ISUPPORTS1(nsStandardURL::nsPrefObserver, nsIObserver)
 
@@ -311,8 +315,17 @@ nsStandardURL::InitGlobalObjects()
         prefBranch->AddObserver(NS_NET_PREF_ALWAYSENCODEINUTF8, obs.get(), PR_FALSE);
         prefBranch->AddObserver(NS_NET_PREF_ENCODEQUERYINUTF8, obs.get(), PR_FALSE);
         prefBranch->AddObserver(NS_NET_PREF_ENABLEIDN, obs.get(), PR_FALSE);
+        prefBranch->AddObserver(NS_NET_PREF_SHOWPUNYCODE, obs.get(), PR_FALSE);
 
         PrefsChanged(prefBranch, nsnull);
+
+        nsCOMPtr<nsIPrefService> prefs = do_QueryInterface(prefBranch); 
+        if (prefs) {
+            nsCOMPtr<nsIPrefBranch> branch;
+           if (NS_SUCCEEDED(prefs->GetBranch( NS_NET_PREF_IDNWHITELIST,
+                                              getter_AddRefs(branch) )))
+               NS_ADDREF(gIDNWhitelistPrefBranch = branch);
+        }
     }
 }
 
@@ -321,6 +334,7 @@ nsStandardURL::ShutdownGlobalObjects()
 {
     NS_IF_RELEASE(gIDN);
     NS_IF_RELEASE(gCharsetMgr);
+    NS_IF_RELEASE(gIDNWhitelistPrefBranch);
 }
 
 //----------------------------------------------------------------------------
@@ -381,7 +395,7 @@ nsStandardURL::NormalizeIDN(const nsCSubstring &host, nsCString &result)
     // If host is ACE, then convert to UTF-8.  Else, if host is already UTF-8,
     // then make sure it is normalized per IDN.
 
-    // this function returns PR_TRUE if normalization succeeds.
+    // this function returns PR_TRUE iff it writes something to |result|.
 
     // NOTE: As a side-effect this function sets mHostEncoding.  While it would
     // be nice to avoid side-effects in this function, the implementation of
@@ -391,13 +405,23 @@ nsStandardURL::NormalizeIDN(const nsCSubstring &host, nsCString &result)
 
     NS_ASSERTION(mHostEncoding == eEncoding_ASCII, "unexpected default encoding");
 
-    PRBool isASCII;
-    if (gIDN &&
-        NS_SUCCEEDED(gIDN->ConvertToDisplayIDN(host, &isASCII, result))) {
-        if (!isASCII)
-          mHostEncoding = eEncoding_UTF8;
-
-        return PR_TRUE;
+    if (IsASCII(host)) {
+        PRBool isACE;
+        if (gIDN &&
+            NS_SUCCEEDED(gIDN->IsACE(host, &isACE)) && isACE &&
+            NS_SUCCEEDED(ACEtoDisplayIDN(host, result))) {
+            mHostEncoding = eEncoding_UTF8;
+            return PR_TRUE;
+        }
+    }
+    else {
+        mHostEncoding = eEncoding_UTF8;
+        if (gIDN && NS_SUCCEEDED(UTF8toDisplayIDN(host, result))) {
+            // normalization could result in an ASCII only hostname
+            if (IsASCII(result))
+                mHostEncoding = eEncoding_ASCII;
+            return PR_TRUE;
+        }
     }
 
     result.Truncate();
@@ -837,8 +861,66 @@ nsStandardURL::PrefsChanged(nsIPrefBranch *prefs, const char *pref)
             gEncodeQueryInUTF8 = val;
         LOG(("encode query in UTF-8 %s\n", gEncodeQueryInUTF8 ? "enabled" : "disabled"));
     }
+
+    if (PREF_CHANGED(NS_NET_PREF_SHOWPUNYCODE)) {
+        if (GOT_PREF(NS_NET_PREF_SHOWPUNYCODE, val))
+            gShowPunycode = val;
+        LOG(("show punycode %s\n", gShowPunycode ? "enabled" : "disabled"));
+    }
 #undef PREF_CHANGED
 #undef GOT_PREF
+}
+
+/* static */ nsresult
+nsStandardURL::ACEtoDisplayIDN(const nsCSubstring &host, nsCString &result)
+{
+    if (gShowPunycode || !IsInWhitelist(host)) {
+        result = host;
+        return NS_OK;
+    }
+
+    return gIDN->ConvertACEtoUTF8(host, result);
+}
+
+/* static */ nsresult
+nsStandardURL::UTF8toDisplayIDN(const nsCSubstring &host, nsCString &result)
+{
+    // We have to normalize the hostname before testing against the domain
+    // whitelist.  See bug 315411.
+
+    nsCAutoString temp;
+    if (gShowPunycode || NS_FAILED(gIDN->Normalize(host, temp)))
+        return gIDN->ConvertUTF8toACE(host, result);
+
+    PRBool isACE = PR_FALSE;
+    gIDN->IsACE(temp, &isACE);
+
+    // If host is converted to ACE by the normalizer, then the host may contain
+    // unsafe characters.  See bug 283016, bug 301694, and bug 309311.
+ 
+    if (!isACE && !IsInWhitelist(temp))
+        return gIDN->ConvertUTF8toACE(temp, result);
+
+    result = temp;
+    return NS_OK;
+}
+
+/* static */ PRBool
+nsStandardURL::IsInWhitelist(const nsCSubstring &host)
+{
+    PRInt32 pos; 
+    PRBool safe;
+
+    // XXX This code uses strings inefficiently.
+
+    if (gIDNWhitelistPrefBranch && 
+        (pos = nsCAutoString(host).RFind(".")) != kNotFound &&
+        NS_SUCCEEDED(gIDNWhitelistPrefBranch->
+                     GetBoolPref(nsCAutoString(Substring(host, pos + 1)).get(),
+                                 &safe)))
+        return safe;
+
+    return PR_FALSE;
 }
 
 //----------------------------------------------------------------------------
@@ -859,7 +941,7 @@ NS_INTERFACE_MAP_BEGIN(nsStandardURL)
     NS_INTERFACE_MAP_ENTRY(nsIMutable)
     // see nsStandardURL::Equals
     if (aIID.Equals(kThisImplCID))
-        foundInterface = static_cast<nsIURI *>(this);
+        foundInterface = NS_STATIC_CAST(nsIURI *, this);
     else
 NS_INTERFACE_MAP_END
 
@@ -1141,7 +1223,7 @@ nsStandardURL::SetUserPass(const nsACString &input)
 
     if (userpass.IsEmpty()) {
         // remove user:pass
-        if (mUsername.mLen > 0) {
+        if (mUsername.mLen >= 0) {
             if (mPassword.mLen > 0)
                 mUsername.mLen += (mPassword.mLen + 1);
             mUsername.mLen++;
@@ -1278,7 +1360,7 @@ nsStandardURL::SetPassword(const nsACString &input)
         NS_ERROR("cannot set password on no-auth url");
         return NS_ERROR_UNEXPECTED;
     }
-    if (mUsername.mLen <= 0) {
+    if (mUsername.mLen < 0) {
         NS_ERROR("cannot set password without existing username");
         return NS_ERROR_FAILURE;
     }
@@ -1343,7 +1425,7 @@ nsStandardURL::SetHost(const nsACString &input)
     if (mURLType == URLTYPE_NO_AUTHORITY) {
         if (flat.IsEmpty())
             return NS_OK;
-        NS_WARNING("cannot set host on no-auth url");
+        NS_ERROR("cannot set host on no-auth url");
         return NS_ERROR_UNEXPECTED;
     }
 
@@ -1417,7 +1499,7 @@ nsStandardURL::SetPort(PRInt32 port)
         return NS_OK;
 
     if (mURLType == URLTYPE_NO_AUTHORITY) {
-        NS_WARNING("cannot set port on no-auth url");
+        NS_ERROR("cannot set port on no-auth url");
         return NS_ERROR_UNEXPECTED;
     }
 
@@ -1429,19 +1511,13 @@ nsStandardURL::SetPort(PRInt32 port)
         buf.Assign(':');
         buf.AppendInt(port);
         mSpec.Insert(buf, mHost.mPos + mHost.mLen);
-        mAuthority.mLen += buf.Length();
         ShiftFromPath(buf.Length());
     }
-    else if (port == -1 || port == mDefaultPort) {
-        // Don't allow mPort == mDefaultPort
-        port = -1;
-
+    else if (port == -1) {
         // need to remove the port number from the URL spec
         PRUint32 start = mHost.mPos + mHost.mLen;
-        PRUint32 lengthToCut = mPath.mPos - start;
-        mSpec.Cut(start, lengthToCut);
-        mAuthority.mLen -= lengthToCut;
-        ShiftFromPath(-lengthToCut);
+        mSpec.Cut(start, mPath.mPos - start);
+        ShiftFromPath(start - mPath.mPos);
     }
     else {
         // need to replace the existing port
@@ -1450,10 +1526,8 @@ nsStandardURL::SetPort(PRInt32 port)
         PRUint32 start = mHost.mPos + mHost.mLen + 1;
         PRUint32 length = mPath.mPos - start;
         mSpec.Replace(start, length, buf);
-        if (buf.Length() != length) {
-            mAuthority.mLen += buf.Length() - length;
+        if (buf.Length() != length)
             ShiftFromPath(buf.Length() - length);
-        }
     }
 
     mPort = port;
@@ -1481,7 +1555,7 @@ nsStandardURL::SetPath(const nsACString &input)
 
         return SetSpec(spec);
     }
-    else if (mPath.mLen >= 1) {
+    else if (mPath.mLen > 1) {
         mSpec.Cut(mPath.mPos + 1, mPath.mLen - 1);
         // these contain only a '/'
         mPath.mLen = 1;
@@ -2163,7 +2237,7 @@ nsStandardURL::SetQuery(const nsACString &input)
     if (shift) {
         mQuery.mLen = queryLen;
         mPath.mLen += shift;
-        ShiftFromRef(shift);
+        ShiftFromRef(queryLen - mQuery.mLen);
     }
     return NS_OK;
 }
@@ -2203,7 +2277,6 @@ nsStandardURL::SetRef(const nsACString &input)
     
     if (mRef.mLen < 0) {
         mSpec.Append('#');
-        ++mPath.mLen;  // Include the # in the path.
         mRef.mPos = mSpec.Length();
         mRef.mLen = 0;
     }
@@ -2419,7 +2492,7 @@ nsStandardURL::SetFile(nsIFile *file)
 {
     ENSURE_MUTABLE();
 
-    NS_ENSURE_ARG_POINTER(file);
+    NS_PRECONDITION(file, "null pointer");
 
     nsresult rv;
     nsCAutoString url;
@@ -2553,10 +2626,6 @@ nsStandardURL::SetMutable(PRBool value)
 NS_IMETHODIMP
 nsStandardURL::Read(nsIObjectInputStream *stream)
 {
-    NS_PRECONDITION(!mHostA, "Shouldn't have cached ASCII host");
-    NS_PRECONDITION(mSpecEncoding == eEncoding_Unknown,
-                    "Shouldn't have spec encoding here");
-    
     nsresult rv;
     
     PRUint32 urlType;
@@ -2632,30 +2701,9 @@ nsStandardURL::Read(nsIObjectInputStream *stream)
     PRBool isMutable;
     rv = stream->ReadBoolean(&isMutable);
     if (NS_FAILED(rv)) return rv;
-    if (isMutable != PR_TRUE && isMutable != PR_FALSE) {
-        NS_WARNING("Unexpected boolean value");
-        return NS_ERROR_UNEXPECTED;
-    }
+
     mMutable = isMutable;
 
-    PRBool supportsFileURL;
-    rv = stream->ReadBoolean(&supportsFileURL);
-    if (NS_FAILED(rv)) return rv;
-    if (supportsFileURL != PR_TRUE && supportsFileURL != PR_FALSE) {
-        NS_WARNING("Unexpected boolean value");
-        return NS_ERROR_UNEXPECTED;
-    }
-    mSupportsFileURL = supportsFileURL;
-
-    PRUint32 hostEncoding;
-    rv = stream->Read32(&hostEncoding);
-    if (NS_FAILED(rv)) return rv;
-    if (hostEncoding != eEncoding_ASCII && hostEncoding != eEncoding_UTF8) {
-        NS_WARNING("Unexpected host encoding");
-        return NS_ERROR_UNEXPECTED;
-    }
-    mHostEncoding = hostEncoding;
-    
     return NS_OK;
 }
 
@@ -2720,14 +2768,6 @@ nsStandardURL::Write(nsIObjectOutputStream *stream)
 
     rv = stream->WriteBoolean(mMutable);
     if (NS_FAILED(rv)) return rv;
-
-    rv = stream->WriteBoolean(mSupportsFileURL);
-    if (NS_FAILED(rv)) return rv;
-
-    rv = stream->Write32(mHostEncoding);
-    if (NS_FAILED(rv)) return rv;
-
-    // mSpecEncoding and mHostA are just caches that can be recovered as needed.
 
     return NS_OK;
 }

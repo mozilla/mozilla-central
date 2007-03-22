@@ -55,7 +55,6 @@ REQUIRES	= content \
 		  editor \
 		  find \
 		  gfx \
-		  thebes \
 		  layout \
 		  locale \
 		  necko \

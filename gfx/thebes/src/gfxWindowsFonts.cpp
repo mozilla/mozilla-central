@@ -21,7 +21,6 @@
  * Contributor(s):
  *   Stuart Parmenter <stuart@mozilla.com>
  *   Masayuki Nakano <masayuki@d-toybox.com>
- *   Mats Palmgren <mats.palmgren@bredband.net>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -36,8 +35,11 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
+#ifdef DEBUG_smontagu
+#define DEBUG_pavlov
+#endif
 
-//#define FORCE_UNISCRIBE 1
+// #define FORCE_UNISCRIBE 1
 #define FORCE_PR_LOG
 
 #include "prtypes.h"
@@ -59,13 +61,11 @@
 
 #include <windows.h>
 
-#include "nsTArray.h"
 #include "nsUnicodeRange.h"
 #include "nsUnicharUtils.h"
 
 #include "nsIPrefBranch.h"
 #include "nsIPrefService.h"
-#include "nsIPrefLocalizedString.h"
 #include "nsServiceManagerUtils.h"
 
 #include "nsCRT.h"
@@ -73,367 +73,17 @@
 #include <math.h>
 
 #include "prlog.h"
-#include "prinit.h"
 static PRLogModuleInfo *gFontLog = PR_NewLogModule("winfonts");
 
 #define ROUND(x) floor((x) + 0.5)
 
-BYTE 
-FontTypeToOutPrecision(PRUint8 fontType)
-{
-#ifdef WINCE
-    return OUT_DEFAULT_PRECIS;
-#else
-    BYTE ret;
-    switch (fontType) {
-    case GFX_FONT_TYPE_TT_OPENTYPE:
-    case GFX_FONT_TYPE_TRUETYPE:
-        ret = OUT_TT_ONLY_PRECIS;
-        break;
-    case GFX_FONT_TYPE_PS_OPENTYPE:
-        ret = OUT_PS_ONLY_PRECIS;
-        break;
-    case GFX_FONT_TYPE_TYPE1:
-        ret = OUT_OUTLINE_PRECIS;
-        break;
-    case GFX_FONT_TYPE_RASTER:
-        ret = OUT_RASTER_PRECIS;
-        break;
-    case GFX_FONT_TYPE_DEVICE:
-        ret = OUT_DEVICE_PRECIS;
-        break;
-    default:
-        ret = OUT_DEFAULT_PRECIS;
+inline HDC GetDCFromSurface(gfxASurface *aSurface) {
+    if (aSurface->GetType() != gfxASurface::SurfaceTypeWin32) {
+        NS_ERROR("GetDCFromSurface: Context target is not win32!");
+        return nsnull;
     }
-    return ret;
-#endif
+    return NS_STATIC_CAST(gfxWindowsSurface*, aSurface)->GetDC();
 }
-
-struct DCFromContext {
-    DCFromContext(gfxContext *aContext) {
-        dc = NULL;
-        nsRefPtr<gfxASurface> aSurface = aContext->CurrentSurface();
-        NS_ASSERTION(aSurface, "DCFromContext: null surface");
-        if (aSurface &&
-            (aSurface->GetType() == gfxASurface::SurfaceTypeWin32 ||
-             aSurface->GetType() == gfxASurface::SurfaceTypeWin32Printing))
-        {
-            dc = static_cast<gfxWindowsSurface*>(aSurface.get())->GetDC();
-            needsRelease = PR_FALSE;
-        }
-        if (!dc) {
-            dc = GetDC(NULL);
-            SetGraphicsMode(dc, GM_ADVANCED);
-            needsRelease = PR_TRUE;
-        }
-    }
-
-    ~DCFromContext() {
-        if (needsRelease)
-            ReleaseDC(NULL, dc);
-    }
-
-    operator HDC () {
-        return dc;
-    }
-
-    HDC dc;
-    PRBool needsRelease;
-};
-
-
-/**********************************************************************
- *
- * class FontFamily
- *
- **********************************************************************/
-static nsresult
-ReadCMAP(HDC hdc, FontEntry *aFontEntry)
-{
-    const PRUint32 kCMAP = (('c') | ('m' << 8) | ('a' << 16) | ('p' << 24));
-
-    DWORD len = GetFontData(hdc, kCMAP, 0, nsnull, 0);
-    if (len == GDI_ERROR || len == 0) // not a truetype font --
-        return NS_ERROR_FAILURE;      // we'll treat it as a symbol font
-
-    nsAutoTArray<PRUint8,16384> buffer;
-    if (!buffer.AppendElements(len))
-        return NS_ERROR_OUT_OF_MEMORY;
-    PRUint8 *buf = buffer.Elements();
-
-    DWORD newLen = GetFontData(hdc, kCMAP, 0, buf, len);
-    NS_ENSURE_TRUE(newLen == len, NS_ERROR_FAILURE);
-
-    // can't pass bits as references...
-    PRPackedBool unicodeFont = aFontEntry->mUnicodeFont;
-    PRPackedBool symbolFont = aFontEntry->mSymbolFont;
-    nsresult rv = gfxFontUtils::ReadCMAP(buf, len, aFontEntry->mCharacterMap,
-                                         unicodeFont, symbolFont);
-    aFontEntry->mUnicodeFont = unicodeFont;
-    aFontEntry->mSymbolFont = symbolFont;
-
-    return rv;
-}
-
-struct FamilyAddStyleProcData {
-    HDC dc;
-    FontFamily *ff;
-};
-
-int CALLBACK 
-FontFamily::FamilyAddStylesProc(const ENUMLOGFONTEXW *lpelfe,
-                                const NEWTEXTMETRICEXW *nmetrics,
-                                DWORD fontType, LPARAM data)
-{
-    const NEWTEXTMETRICW& metrics = nmetrics->ntmTm;
-    LOGFONTW logFont = lpelfe->elfLogFont;
-
-    FamilyAddStyleProcData *faspd = reinterpret_cast<FamilyAddStyleProcData*>(data);
-    FontFamily *ff = faspd->ff;
-    HDC hdc = faspd->dc;
-
-    // Some fonts claim to support things > 900, but we don't so clamp the sizes
-    logFont.lfWeight = PR_MAX(PR_MIN(logFont.lfWeight, 900), 100);
-
-    gfxWindowsFontType feType;
-    if (metrics.ntmFlags & NTM_TYPE1)
-        feType = GFX_FONT_TYPE_TYPE1;
-    else if (metrics.ntmFlags & (NTM_PS_OPENTYPE))
-        feType = GFX_FONT_TYPE_PS_OPENTYPE;
-    else if (metrics.ntmFlags & (NTM_TT_OPENTYPE))
-        feType = GFX_FONT_TYPE_TT_OPENTYPE;
-    else if (fontType == TRUETYPE_FONTTYPE)
-        feType = GFX_FONT_TYPE_TRUETYPE;
-    else if (fontType == RASTER_FONTTYPE)
-        feType = GFX_FONT_TYPE_RASTER;
-    else if (fontType == DEVICE_FONTTYPE)
-        feType = GFX_FONT_TYPE_DEVICE;
-    else
-        feType = GFX_FONT_TYPE_UNKNOWN;
-
-    FontEntry *fe = nsnull;
-    for (PRUint32 i = 0; i < ff->mVariations.Length(); ++i) {
-        fe = ff->mVariations[i];
-        if (feType > fe->mFontType) {
-            // if the new type is better than the old one, remove the old entries
-            ff->mVariations.RemoveElementAt(i);
-            --i;
-        } else if (feType < fe->mFontType) {
-            // otherwise if the new type is worse, skip it
-            return 1;
-        }
-    }
-
-    for (PRUint32 i = 0; i < ff->mVariations.Length(); ++i) {
-        fe = ff->mVariations[i];
-        // check if we already know about this face
-        if (fe->mWeight == logFont.lfWeight &&
-            fe->mItalic == (logFont.lfItalic == 0xFF)) {
-            // update the charset bit here since this could be different
-            fe->mCharset[metrics.tmCharSet] = 1;
-            return 1; 
-        }
-    }
-
-    fe = new FontEntry(ff->mName);
-    ff->mVariations.AppendElement(fe);
-    fe->mFontType = feType;
-
-    fe->mItalic = (logFont.lfItalic == 0xFF);
-    fe->mWeight = logFont.lfWeight;
-
-    if (fe->IsType1())
-        fe->mForceGDI = PR_TRUE;
-
-    // mark the charset bit
-    fe->mCharset[metrics.tmCharSet] = 1;
-
-    fe->mWindowsFamily = logFont.lfPitchAndFamily & 0xF0;
-    fe->mWindowsPitch = logFont.lfPitchAndFamily & 0x0F;
-
-    if (nmetrics->ntmFontSig.fsUsb[0] != 0x00000000 &&
-        nmetrics->ntmFontSig.fsUsb[1] != 0x00000000 &&
-        nmetrics->ntmFontSig.fsUsb[2] != 0x00000000 &&
-        nmetrics->ntmFontSig.fsUsb[3] != 0x00000000) {
-
-        // set the unicode ranges
-        PRUint32 x = 0;
-        for (PRUint32 i = 0; i < 4; ++i) {
-            DWORD range = nmetrics->ntmFontSig.fsUsb[i];
-            for (PRUint32 k = 0; k < 32; ++k) {
-                fe->mUnicodeRanges[x++] = (range & (1 << k)) != 0;
-            }
-        }
-    }
-
-    fe->mIsBadUnderlineFont = ff->mIsBadUnderlineFont;
-
-    // read in the character map
-    logFont.lfCharSet = DEFAULT_CHARSET;
-    logFont.lfOutPrecision = FontTypeToOutPrecision(fe->mFontType);
-
-    HFONT font = CreateFontIndirectW(&logFont);
-
-    NS_ASSERTION(font, "This font creation should never ever ever fail");
-    if (font) {
-        HFONT oldFont = (HFONT)SelectObject(hdc, font);
-
-        // ReadCMAP may change the values of mUnicodeFont and mSymbolFont
-        if (NS_FAILED(ReadCMAP(hdc, fe))) {
-            // Type1 fonts aren't necessarily Unicode but
-            // this is the best guess we can make here
-            if (fe->IsType1())
-                fe->mUnicodeFont = PR_TRUE;
-            else
-                fe->mUnicodeFont = PR_FALSE;
-
-            // For fonts where we failed to read the character map,
-            // we can take a slow path to look up glyphs character by character
-            fe->mUnknownCMAP = PR_TRUE;
-
-            //printf("(fontinit-cmap) %s failed to get cmap, type1:%d \n", NS_ConvertUTF16toUTF8(fe->mFaceName).get(), (PRUint32)(fe->mIsType1));
-        } else {
-            //printf("(fontinit-cmap) %s cmap loaded, italic:%d, weight:%d\n", NS_ConvertUTF16toUTF8(fe->mFaceName).get(), (PRUint32)(fe->mItalic), (PRUint32)(fe->mWeight));
-        }
-
-        SelectObject(hdc, oldFont);
-        DeleteObject(font);
-    }
-
-    return 1;
-}
-
-// general cmap reading routines moved to gfxFontUtils.cpp
-void
-FontFamily::FindStyleVariations()
-{
-    if (mHasStyles)
-        return;
-    mHasStyles = PR_TRUE;
-
-    HDC hdc = GetDC(nsnull);
-    SetGraphicsMode(hdc, GM_ADVANCED);
-
-    LOGFONTW logFont;
-    memset(&logFont, 0, sizeof(LOGFONTW));
-    logFont.lfCharSet = DEFAULT_CHARSET;
-    logFont.lfPitchAndFamily = 0;
-    PRUint32 l = PR_MIN(mName.Length(), LF_FACESIZE - 1);
-    memcpy(logFont.lfFaceName,
-           nsPromiseFlatString(mName).get(),
-           l * sizeof(PRUnichar));
-    logFont.lfFaceName[l] = 0;
-
-    FamilyAddStyleProcData faspd;
-    faspd.dc = hdc;
-    faspd.ff = this;
-
-    EnumFontFamiliesExW(hdc, &logFont, (FONTENUMPROCW)FontFamily::FamilyAddStylesProc, (LPARAM)&faspd, 0);
-
-    ReleaseDC(nsnull, hdc);
-
-    // Look for font families without bold variations and add a FontEntry
-    // with synthetic bold (weight 600) for them.
-    FontEntry *darkestItalic = nsnull;
-    FontEntry *darkestNonItalic = nsnull;
-    PRUint8 highestItalic = 0, highestNonItalic = 0;
-    for (PRUint32 i = 0; i < mVariations.Length(); i++) {
-        FontEntry *fe = mVariations[i];
-        if (fe->mItalic) {
-            if (!darkestItalic || fe->mWeight > darkestItalic->mWeight)
-                darkestItalic = fe;
-        } else {
-            if (!darkestNonItalic || fe->mWeight > darkestNonItalic->mWeight)
-                darkestNonItalic = fe;
-        }
-    }
-
-    if (darkestItalic && darkestItalic->mWeight < 600) {
-        FontEntry *newEntry = new FontEntry(*darkestItalic);
-        newEntry->mWeight = 600;
-        mVariations.AppendElement(newEntry);
-    }
-    if (darkestNonItalic && darkestNonItalic->mWeight < 600) {
-        FontEntry *newEntry = new FontEntry(*darkestNonItalic);
-        newEntry->mWeight = 600;
-        mVariations.AppendElement(newEntry);
-    }
-}
-
-
-FontEntry *
-FontFamily::FindFontEntry(const gfxFontStyle& aFontStyle)
-{
-    if (!mHasStyles)
-        FindStyleVariations();
-
-    PRUint8 bestMatch = 0;
-    PRBool italic = (aFontStyle.style & (FONT_STYLE_ITALIC | FONT_STYLE_OBLIQUE)) != 0;
-
-    FontEntry *weightList[10] = { 0 };
-    for (PRUint32 j = 0; j < 2; j++) {
-        PRBool matchesSomething = PR_FALSE;
-        // build up an array of weights that match the italicness we're looking for
-        for (PRUint32 i = 0; i < mVariations.Length(); i++) {
-            FontEntry *fe = mVariations[i];
-            const PRUint8 weight = (fe->mWeight / 100);
-            if (fe->mItalic == italic) {
-                weightList[weight] = fe;
-                matchesSomething = PR_TRUE;
-            }
-        }
-        if (matchesSomething)
-            break;
-        italic = !italic;
-    }
-
-    PRInt8 baseWeight, weightDistance;
-    aFontStyle.ComputeWeightAndOffset(&baseWeight, &weightDistance);
-
-    // 500 isn't quite bold so we want to treat it as 400 if we don't
-    // have a 500 weight
-    if (baseWeight == 5 && weightDistance == 0) {
-        // If we have a 500 weight then use it
-        if (weightList[5])
-            return weightList[5];
-
-        // Otherwise treat as 400
-        baseWeight = 4;
-    }
-
-    PRInt8 matchBaseWeight = 0;
-    PRInt8 direction = (baseWeight > 5) ? 1 : -1;
-    for (PRInt8 i = baseWeight; ; i += direction) {
-        if (weightList[i]) {
-            matchBaseWeight = i;
-            break;
-        }
-
-        // if we've reached one side without finding a font,
-        // go the other direction until we find a match
-        if (i == 1 || i == 9)
-            direction = -direction;
-    }
-
-    FontEntry *matchFE;
-    const PRInt8 absDistance = abs(weightDistance);
-    direction = (weightDistance >= 0) ? 1 : -1;
-    for (PRInt8 i = matchBaseWeight, k = 0; i < 10 && i > 0; i += direction) {
-        if (weightList[i]) {
-            matchFE = weightList[i];
-            k++;
-        }
-        if (k > absDistance)
-            break;
-    }
-
-    if (!matchFE)
-        matchFE = weightList[matchBaseWeight];
-
-    NS_ASSERTION(matchFE, "we should always be able to return something here");
-    return matchFE;
-}
-
 
 /**********************************************************************
  *
@@ -441,19 +91,21 @@ FontFamily::FindFontEntry(const gfxFontStyle& aFontStyle)
  *
  **********************************************************************/
 
-gfxWindowsFont::gfxWindowsFont(const nsAString& aName, const gfxFontStyle *aFontStyle, FontEntry *aFontEntry)
+gfxWindowsFont::gfxWindowsFont(const nsAString& aName, const gfxFontStyle *aFontStyle)
     : gfxFont(aName, aFontStyle),
-      mFont(nsnull), mAdjustedSize(0.0), mScriptCache(nsnull),
+      mFont(nsnull), mAdjustedSize(0), mScriptCache(nsnull),
       mFontFace(nsnull), mScaledFont(nsnull),
-      mMetrics(nsnull), mFontEntry(aFontEntry), mIsValid(PR_TRUE)
+      mMetrics(nsnull)
 {
-    NS_ASSERTION(mFontEntry, "Unable to find font entry for font.  Something is whack.");
-
-    mFont = MakeHFONT(); // create the HFONT, compute metrics, etc
-    NS_ASSERTION(mFont, "Failed to make HFONT");
 }
 
 gfxWindowsFont::~gfxWindowsFont()
+{
+    Destroy();
+}
+
+void
+gfxWindowsFont::Destroy()
 {
     if (mFontFace)
         cairo_font_face_destroy(mFontFace);
@@ -467,6 +119,12 @@ gfxWindowsFont::~gfxWindowsFont()
     ScriptFreeCache(&mScriptCache);
 
     delete mMetrics;
+
+    mFont = nsnull;
+    mScriptCache = nsnull;
+    mFontFace = nsnull;
+    mScaledFont = nsnull;
+    mMetrics = nsnull;
 }
 
 const gfxFont::Metrics&
@@ -478,11 +136,22 @@ gfxWindowsFont::GetMetrics()
     return *mMetrics;
 }
 
+HFONT
+gfxWindowsFont::GetHFONT()
+{
+    if (!mFont)
+        mFont = MakeHFONT();
+
+    NS_ASSERTION(mFont, "Failed to make HFONT");
+
+    return mFont;
+}
+
 cairo_font_face_t *
 gfxWindowsFont::CairoFontFace()
 {
     if (!mFontFace)
-        mFontFace = cairo_win32_font_face_create_for_logfontw_hfont(&mLogFont, mFont);
+        mFontFace = MakeCairoFontFace();
 
     NS_ASSERTION(mFontFace, "Failed to make font face");
 
@@ -492,24 +161,26 @@ gfxWindowsFont::CairoFontFace()
 cairo_scaled_font_t *
 gfxWindowsFont::CairoScaledFont()
 {
-    if (!mScaledFont) {
-        cairo_matrix_t sizeMatrix;
-        cairo_matrix_t identityMatrix;
+    if (!mScaledFont)
+        mScaledFont = MakeCairoScaledFont();
 
-        cairo_matrix_init_scale(&sizeMatrix, mAdjustedSize, mAdjustedSize);
-        cairo_matrix_init_identity(&identityMatrix);
-
-        cairo_font_options_t *fontOptions = cairo_font_options_create();
-        mScaledFont = cairo_scaled_font_create(CairoFontFace(), &sizeMatrix,
-                                               &identityMatrix, fontOptions);
-        cairo_font_options_destroy(fontOptions);
-    }
-
-    NS_ASSERTION(mAdjustedSize == 0.0 ||
-                 cairo_scaled_font_status(mScaledFont) == CAIRO_STATUS_SUCCESS,
-                 "Failed to make scaled font");
+    NS_ASSERTION(mScaledFont, "Failed to make scaled font");
 
     return mScaledFont;
+}
+
+void
+gfxWindowsFont::UpdateCTM(const gfxMatrix& aMatrix)
+{
+    if (aMatrix.yy == mCTM.yy &&
+        aMatrix.xx == mCTM.xx &&
+        aMatrix.xy == mCTM.xy &&
+        aMatrix.yx == mCTM.yx)
+        return;
+
+    Destroy();
+
+    mCTM = aMatrix;
 }
 
 HFONT
@@ -518,17 +189,85 @@ gfxWindowsFont::MakeHFONT()
     if (mFont)
         return mFont;
 
-    mAdjustedSize = GetStyle()->size;
-    if (GetStyle()->sizeAdjust > 0.0) {
+    if (!mWeightTable) {
+        nsString name(mName);
+        ToLowerCase(name);
+
+        gfxWindowsPlatform *platform = gfxWindowsPlatform::GetPlatform();
+
+        mWeightTable = platform->GetFontWeightTable(name);
+        if (!mWeightTable) {
+            mWeightTable = new WeightTable();
+            platform->PutFontWeightTable(name, mWeightTable);
+        }
+    }
+
+    PRInt8 baseWeight, weightDistance;
+    mStyle->ComputeWeightAndOffset(&baseWeight, &weightDistance);
+
+    HDC dc = nsnull;
+
+    PRUint32 chosenWeight = 0;
+
+    if (weightDistance >= 0) {
+
+        for (PRUint8 i = baseWeight, k = 0; i < 10; i++) {
+            if (mWeightTable->HasWeight(i)) {
+                k++;
+                chosenWeight = i * 100;
+            } else if (mWeightTable->TriedWeight(i)) {
+                continue;
+            } else {
+                const PRUint32 tryWeight = i * 100;
+
+                if (!dc)
+                    dc = GetDC((HWND)nsnull);
+
+                FillLogFont(mStyle->size, tryWeight);
+                mFont = CreateFontIndirectW(&mLogFont);
+                HGDIOBJ oldFont = SelectObject(dc, mFont);
+                TEXTMETRIC metrics;
+                GetTextMetrics(dc, &metrics);
+
+                PRBool hasWeight = (metrics.tmWeight == tryWeight);
+                mWeightTable->SetWeight(i, hasWeight);
+                if (hasWeight) {
+                    chosenWeight = i * 100;
+                    k++;
+                }
+
+                SelectObject(dc, oldFont);
+                if (k <= weightDistance) {
+                    DeleteObject(mFont);
+                    mFont = nsnull;
+                }
+            }
+
+            if (k > weightDistance) {
+                chosenWeight = i * 100;
+                break;
+            }
+        }
+
+    } else if (weightDistance < 0) {
+#ifdef DEBUG_pavlov
+        printf("dont' support light/lighter yet\n");
+#endif
+        chosenWeight = baseWeight * 100;
+    }
+
+    mAdjustedSize = mStyle->size;
+    if (mStyle->sizeAdjust > 0) {
         if (!mFont) {
-            FillLogFont(mAdjustedSize);
+            FillLogFont(mAdjustedSize, chosenWeight);
             mFont = CreateFontIndirectW(&mLogFont);
         }
 
         Metrics *oldMetrics = mMetrics;
         ComputeMetrics();
         gfxFloat aspect = mMetrics->xHeight / mMetrics->emHeight;
-        mAdjustedSize = GetStyle()->GetAdjustedSize(aspect);
+        mAdjustedSize =
+            PR_MAX(ROUND(mStyle->size * (mStyle->sizeAdjust / aspect)), 1.0f);
 
         if (mMetrics != oldMetrics) {
             delete mMetrics;
@@ -539,11 +278,42 @@ gfxWindowsFont::MakeHFONT()
     }
 
     if (!mFont) {
-        FillLogFont(mAdjustedSize);
+        FillLogFont(mAdjustedSize, chosenWeight);
         mFont = CreateFontIndirectW(&mLogFont);
     }
 
+    if (dc)
+        ReleaseDC((HWND)nsnull, dc);
+
     return mFont;
+}
+
+cairo_font_face_t *
+gfxWindowsFont::MakeCairoFontFace()
+{
+    // ensure mFont is around
+    MakeHFONT();
+
+    return cairo_win32_font_face_create_for_hfont(mFont);
+}
+
+cairo_scaled_font_t *
+gfxWindowsFont::MakeCairoScaledFont()
+{
+    cairo_scaled_font_t *font = nsnull;
+
+    cairo_matrix_t sizeMatrix;
+
+    MakeHFONT(); // Ensure mAdjustedSize being initialized.
+    cairo_matrix_init_scale(&sizeMatrix, mAdjustedSize, mAdjustedSize);
+
+    cairo_font_options_t *fontOptions = cairo_font_options_create();
+    font = cairo_scaled_font_create(CairoFontFace(), &sizeMatrix,
+                                    reinterpret_cast<cairo_matrix_t*>(&mCTM),
+                                    fontOptions);
+    cairo_font_options_destroy(fontOptions);
+
+    return font;
 }
 
 void
@@ -551,13 +321,12 @@ gfxWindowsFont::ComputeMetrics()
 {
     if (!mMetrics)
         mMetrics = new gfxFont::Metrics;
-    else
-        NS_WARNING("Calling ComputeMetrics multiple times");
 
     HDC dc = GetDC((HWND)nsnull);
-    SetGraphicsMode(dc, GM_ADVANCED);
 
-    HGDIOBJ oldFont = SelectObject(dc, mFont);
+    HFONT font = GetHFONT();
+
+    HGDIOBJ oldFont = SelectObject(dc, font);
 
     // Get font metrics
     OUTLINETEXTMETRIC oMetrics;
@@ -565,13 +334,12 @@ gfxWindowsFont::ComputeMetrics()
 
     if (0 < GetOutlineTextMetrics(dc, sizeof(oMetrics), &oMetrics)) {
         mMetrics->superscriptOffset = (double)oMetrics.otmptSuperscriptOffset.y;
-        // Some fonts have wrong sign on their subscript offset, bug 410917.
-        mMetrics->subscriptOffset = fabs((double)oMetrics.otmptSubscriptOffset.y);
-        mMetrics->strikeoutSize = (double)oMetrics.otmsStrikeoutSize;
+        mMetrics->subscriptOffset = (double)oMetrics.otmptSubscriptOffset.y;
+        mMetrics->strikeoutSize = PR_MAX(1, (double)oMetrics.otmsStrikeoutSize);
         mMetrics->strikeoutOffset = (double)oMetrics.otmsStrikeoutPosition;
-        mMetrics->underlineSize = (double)oMetrics.otmsUnderscoreSize;
+        mMetrics->underlineSize = PR_MAX(1, (double)oMetrics.otmsUnderscoreSize);
         mMetrics->underlineOffset = (double)oMetrics.otmsUnderscorePosition;
-
+        
         const MAT2 kIdentityMatrix = { {0, 1}, {0, 0}, {0, 0}, {0, 1} };
         GLYPHMETRICS gm;
         DWORD len = GetGlyphOutlineW(dc, PRUnichar('x'), GGO_METRICS, &gm, 0, nsnull, &kIdentityMatrix);
@@ -581,25 +349,24 @@ gfxWindowsFont::ComputeMetrics()
         } else {
             mMetrics->xHeight = gm.gmptGlyphOrigin.y;
         }
-        mMetrics->emHeight = metrics.tmHeight - metrics.tmInternalLeading;
-        gfxFloat typEmHeight = (double)oMetrics.otmAscent - (double)oMetrics.otmDescent;
-        mMetrics->emAscent = ROUND(mMetrics->emHeight * (double)oMetrics.otmAscent / typEmHeight);
-        mMetrics->emDescent = mMetrics->emHeight - mMetrics->emAscent;
+        // The MS (P)Gothic and MS (P)Mincho are not having suitable values
+        // in them super script offset. If the values are not suitable,
+        // we should use x-height instead of them.
+        // See https://bugzilla.mozilla.org/show_bug.cgi?id=353632
+        if (mMetrics->superscriptOffset == 0 ||
+            mMetrics->superscriptOffset >= metrics.tmAscent) {
+            mMetrics->superscriptOffset = mMetrics->xHeight;
+        }
+        // And also checking the case of sub script offset.
+        // The old gfx has checked this too.
+        if (mMetrics->subscriptOffset == 0 ||
+            mMetrics->subscriptOffset >= metrics.tmAscent) {
+            mMetrics->subscriptOffset = mMetrics->xHeight;
+        }
     } else {
         // Make a best-effort guess at extended metrics
         // this is based on general typographic guidelines
-        
-        // GetTextMetrics can fail if the font file has been removed
-        // or corrupted recently.
-        BOOL result = GetTextMetrics(dc, &metrics);
-        if (!result) {
-            NS_WARNING("Missing or corrupt font data, fasten your seatbelt");
-            mIsValid = PR_FALSE;
-            memset(mMetrics, 0, sizeof(*mMetrics));
-            SelectObject(dc, oldFont);
-            ReleaseDC((HWND)nsnull, dc);
-            return;
-        }
+        GetTextMetrics(dc, &metrics);
 
         mMetrics->xHeight = ROUND((float)metrics.tmAscent * 0.56f); // 56% of ascent, best guess for non-true type
         mMetrics->superscriptOffset = mMetrics->xHeight;
@@ -608,73 +375,58 @@ gfxWindowsFont::ComputeMetrics()
         mMetrics->strikeoutOffset = ROUND(mMetrics->xHeight / 2.0f); // 50% of xHeight
         mMetrics->underlineSize = 1;
         mMetrics->underlineOffset = -ROUND((float)metrics.tmDescent * 0.30f); // 30% of descent
-        mMetrics->emHeight = metrics.tmHeight - metrics.tmInternalLeading;
-        mMetrics->emAscent = metrics.tmAscent - metrics.tmInternalLeading;
-        mMetrics->emDescent = metrics.tmDescent;
     }
 
     mMetrics->internalLeading = metrics.tmInternalLeading;
     mMetrics->externalLeading = metrics.tmExternalLeading;
+    mMetrics->emHeight = (metrics.tmHeight - metrics.tmInternalLeading);
+    mMetrics->emAscent = (metrics.tmAscent - metrics.tmInternalLeading);
+    mMetrics->emDescent = metrics.tmDescent;
     mMetrics->maxHeight = metrics.tmHeight;
     mMetrics->maxAscent = metrics.tmAscent;
     mMetrics->maxDescent = metrics.tmDescent;
     mMetrics->maxAdvance = metrics.tmMaxCharWidth;
     mMetrics->aveCharWidth = PR_MAX(1, metrics.tmAveCharWidth);
-    // The font is monospace when TMPF_FIXED_PITCH is *not* set!
-    // See http://msdn2.microsoft.com/en-us/library/ms534202(VS.85).aspx
-    if (!(metrics.tmPitchAndFamily & TMPF_FIXED_PITCH)) {
-      mMetrics->maxAdvance = mMetrics->aveCharWidth;
-    }
 
     // Cache the width of a single space.
     SIZE size;
     GetTextExtentPoint32(dc, " ", 1, &size);
     mMetrics->spaceWidth = ROUND(size.cx);
 
-    mSpaceGlyph = 0;
-    if (metrics.tmPitchAndFamily & TMPF_TRUETYPE) {
-        WORD glyph;
-        DWORD ret = GetGlyphIndicesA(dc, " ", 1, &glyph,
-                                     GGI_MARK_NONEXISTING_GLYPHS);
-        if (ret != GDI_ERROR && glyph != 0xFFFF) {
-            mSpaceGlyph = glyph;
-        }
-    }
-
     SelectObject(dc, oldFont);
 
     ReleaseDC((HWND)nsnull, dc);
-
-    SanitizeMetrics(mMetrics, mFontEntry->IsBadUnderlineFont());
 }
 
 void
-gfxWindowsFont::FillLogFont(gfxFloat aSize)
+gfxWindowsFont::FillLogFont(gfxFloat aSize, PRInt16 aWeight)
 {
 #define CLIP_TURNOFF_FONTASSOCIATION 0x40
     
-    mLogFont.lfHeight = (LONG)-ROUND(aSize);
+    const double yScale = mCTM.yy;
+
+    mLogFont.lfHeight = (LONG)-ROUND(aSize * yScale);
 
     if (mLogFont.lfHeight == 0)
         mLogFont.lfHeight = -1;
 
     // Fill in logFont structure
-    mLogFont.lfWidth          = 0;
+    mLogFont.lfWidth          = 0; 
     mLogFont.lfEscapement     = 0;
     mLogFont.lfOrientation    = 0;
-    mLogFont.lfUnderline      = FALSE;
-    mLogFont.lfStrikeOut      = FALSE;
+    mLogFont.lfUnderline      = (mStyle->decorations & FONT_DECORATION_UNDERLINE) ? TRUE : FALSE;
+    mLogFont.lfStrikeOut      = (mStyle->decorations & FONT_DECORATION_STRIKEOUT) ? TRUE : FALSE;
     mLogFont.lfCharSet        = DEFAULT_CHARSET;
-    mLogFont.lfOutPrecision   = FontTypeToOutPrecision(mFontEntry->mFontType);
+#ifndef WINCE
+    mLogFont.lfOutPrecision   = OUT_TT_PRECIS;
+#else
+    mLogFont.lfOutPrecision   = OUT_DEFAULT_PRECIS;
+#endif
     mLogFont.lfClipPrecision  = CLIP_TURNOFF_FONTASSOCIATION;
     mLogFont.lfQuality        = DEFAULT_QUALITY;
     mLogFont.lfPitchAndFamily = DEFAULT_PITCH | FF_DONTCARE;
-    // always force lfItalic if we want it.  Font selection code will
-    // do its best to give us an italic font entry, but if no face exists
-    // it may give us a regular one based on weight.  Windows should
-    // do fake italic for us in that case.
-    mLogFont.lfItalic         = (GetStyle()->style & (FONT_STYLE_ITALIC | FONT_STYLE_OBLIQUE)) ? TRUE : FALSE;
-    mLogFont.lfWeight         = mFontEntry->mWeight;
+    mLogFont.lfItalic         = (mStyle->style & (FONT_STYLE_ITALIC | FONT_STYLE_OBLIQUE)) ? TRUE : FALSE;
+    mLogFont.lfWeight         = aWeight;
 
     int len = PR_MIN(mName.Length(), LF_FACESIZE - 1);
     memcpy(mLogFont.lfFaceName, nsPromiseFlatString(mName).get(), len * 2);
@@ -686,6 +438,9 @@ nsString
 gfxWindowsFont::GetUniqueName()
 {
     nsString uniqueName;
+
+    // make sure this exists, because we're going to read its fields
+    MakeHFONT();
 
     // start with the family name
     uniqueName.Assign(mName);
@@ -719,17 +474,10 @@ gfxWindowsFont::Draw(gfxTextRun *aTextRun, PRUint32 aStart, PRUint32 aEnd,
                   aSpacing);
 }
 
-PRBool
-gfxWindowsFont::SetupCairoFont(gfxContext *aContext)
+void
+gfxWindowsFont::SetupCairoFont(cairo_t *aCR)
 {
-    cairo_scaled_font_t *scaledFont = CairoScaledFont();
-    if (cairo_scaled_font_status(scaledFont) != CAIRO_STATUS_SUCCESS) {
-        // Don't cairo_set_scaled_font as that would propagate the error to
-        // the cairo_t, precluding any further drawing.
-        return PR_FALSE;
-    }
-    cairo_set_scaled_font(aContext->GetCairo(), scaledFont);
-    return PR_TRUE;
+    cairo_set_scaled_font(aCR, CairoScaledFont());
 }
 
 /**********************************************************************
@@ -738,142 +486,49 @@ gfxWindowsFont::SetupCairoFont(gfxContext *aContext)
  *
  **********************************************************************/
 
-/**
- * Look up the font in the gfxFont cache. If we don't find it, create one.
- * In either case, add a ref, append it to the aFonts array, and return it ---
- * except for OOM in which case we do nothing and return null.
- */
-already_AddRefed<gfxWindowsFont>
-gfxWindowsFont::GetOrMakeFont(FontEntry *aFontEntry, const gfxFontStyle *aStyle)
-{
-    // because we know the FontEntry has the weight we really want, use it for matching
-    // things in the cache so we don't end up with things like 402 in there.
-    gfxFontStyle style(*aStyle);
-    style.weight = aFontEntry->mWeight;
-    // also pre-round the size if there is no size adjust
-    if (style.sizeAdjust == 0.0)
-        style.size = ROUND(style.size);
-
-    nsRefPtr<gfxFont> font = gfxFontCache::GetCache()->Lookup(aFontEntry->GetName(), &style);
-    if (!font) {
-        font = new gfxWindowsFont(aFontEntry->GetName(), &style, aFontEntry);
-        if (!font)
-            return nsnull;
-        gfxFontCache::GetCache()->AddNew(font);
-    }
-    gfxFont *f = nsnull;
-    font.swap(f);
-    return static_cast<gfxWindowsFont *>(f);
-}
-
-static PRBool
-AddFontNameToArray(const nsAString& aName,
-                   const nsACString& aGenericName,
-                   void *closure)
+PRBool
+gfxWindowsFontGroup::MakeFont(const nsAString& aName,
+                              const nsACString& aGenericName,
+                              void *closure)
 {
     if (!aName.IsEmpty()) {
-        nsTArray<nsString> *list = static_cast<nsTArray<nsString> *>(closure);
+        gfxWindowsFontGroup *fg = NS_STATIC_CAST(gfxWindowsFontGroup*, closure);
 
-        if (list->IndexOf(aName) == list->NoIndex)
-            list->AppendElement(aName);
+        if (fg->HasFontNamed(aName))
+            return PR_TRUE;
+
+        gfxWindowsFont *font = new gfxWindowsFont(aName, fg->GetStyle());
+        fg->AppendFont(font);
+
+        if (!aGenericName.IsEmpty() && fg->GetGenericFamily().IsEmpty())
+            fg->mGenericFamily = aGenericName;
     }
 
     return PR_TRUE;
 }
 
-void
-gfxWindowsFontGroup::GroupFamilyListToArrayList(nsTArray<nsRefPtr<FontEntry> > *list)
-{
-    nsAutoTArray<nsString, 15> fonts;
-    ForEachFont(AddFontNameToArray, &fonts);
-
-    PRUint32 len = fonts.Length();
-    for (PRUint32 i = 0; i < len; ++i) {
-        nsRefPtr<FontEntry> fe = gfxWindowsPlatform::GetPlatform()->FindFontEntry(fonts[i], mStyle);
-        list->AppendElement(fe);
-    }
-}
-
-void
-gfxWindowsFontGroup::FamilyListToArrayList(const nsString& aFamilies,
-                                           const nsCString& aLangGroup,
-                                           nsTArray<nsRefPtr<FontEntry> > *list)
-{
-    nsAutoTArray<nsString, 15> fonts;
-    ForEachFont(aFamilies, aLangGroup, AddFontNameToArray, &fonts);
-
-    PRUint32 len = fonts.Length();
-    for (PRUint32 i = 0; i < len; ++i) {
-        const nsString& str = fonts[i];
-        nsRefPtr<FontEntry> fe = gfxWindowsPlatform::GetPlatform()->FindFontEntry(str, mStyle);
-        list->AppendElement(fe);
-    }
-}
 
 gfxWindowsFontGroup::gfxWindowsFontGroup(const nsAString& aFamilies, const gfxFontStyle *aStyle)
     : gfxFontGroup(aFamilies, aStyle)
 {
-    GroupFamilyListToArrayList(&mFontEntries);
+    mFontCache.Init(25);
 
-    mFonts.AppendElements(mFontEntries.Length());
+    ForEachFont(MakeFont, this);
 
-    // Ensure that the first font is usable. Precompute its metrics since
-    // we'll surely need them anyway.
-    while (mFontEntries.Length() > 0) {
-        nsRefPtr<gfxWindowsFont> font =
-            gfxWindowsFont::GetOrMakeFont(mFontEntries[0], &mStyle);
-        if (!font->IsValid()) {
-            mFontEntries.RemoveElementAt(0);
-            mFonts.RemoveElementAt(0);
-            continue;
-        }
-        mFonts[0] = font;
-        break;
-    }
+    if (mGenericFamily.IsEmpty())
+        FindGenericFontFromStyle(MakeFont, this);
 
-    if (mFontEntries.Length() == 0) {
-        // It is pretty important that we have at least one font, so
-        // try a few system fonts that should be there.
-        nsAutoString str;
+    if (mFonts.Length() == 0) {
+        // Should append default GUI font if there are no available fonts.
         HGDIOBJ hGDI = ::GetStockObject(DEFAULT_GUI_FONT);
         LOGFONTW logFont;
-        if (hGDI && ::GetObjectW(hGDI, sizeof(logFont), &logFont)) {
-            str.AppendLiteral("\"");
-            str.Append(nsDependentString(logFont.lfFaceName));
-            str.AppendLiteral("\"");
+        if (!hGDI ||
+            !::GetObjectW(hGDI, sizeof(logFont), &logFont)) {
+            NS_ERROR("Failed to create font group");
+            return;
         }
-
-        NONCLIENTMETRICSW ncm;
-        ncm.cbSize = sizeof(ncm);
-        BOOL status = ::SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, 
-                                              sizeof(ncm), &ncm, 0);
-        if (status) {
-            str.AppendLiteral(",\"");
-            str.Append(nsDependentString(ncm.lfMessageFont.lfFaceName));
-            str.AppendLiteral("\"");
-        }
-
-        FamilyListToArrayList(str, mStyle.langGroup, &mFontEntries);
-
-        // Keep length of mFonts in sync with length of mFontEntries.
-        // Maybe we should eagerly set up mFonts[0] like we do above,
-        // but if the resulting gfxWindowsFont is invalid then we can't
-        // do much anyway. In that case the font will return zero metrics,
-        // its mUnknownCMAP will be set to true, and HasCharacter will
-        // just report false for all characters, so the fact that the font
-        // is bogus should not cause problems.
-        mFonts.AppendElements(mFontEntries.Length());
-    }
-
-    if (!mStyle.systemFont) {
-        for (PRUint32 i = 0; i < mFontEntries.Length(); ++i) {
-            if (mFontEntries[i]->IsBadUnderlineFont()) {
-                gfxFloat first = GetFontAt(0)->GetMetrics().underlineOffset;
-                gfxFloat bad = GetFontAt(i)->GetMetrics().underlineOffset;
-                mUnderlineOffset = PR_MIN(first, bad);
-                break;
-            }
-        }
+        nsAutoString defaultFont(logFont.lfFaceName);
+        MakeFont(defaultFont, mGenericFamily, this);
     }
 }
 
@@ -881,232 +536,215 @@ gfxWindowsFontGroup::~gfxWindowsFontGroup()
 {
 }
 
-gfxWindowsFont *
-gfxWindowsFontGroup::GetFontAt(PRInt32 i)
-{
-    if (!mFonts[i]) {
-        nsRefPtr<gfxWindowsFont> font =
-            gfxWindowsFont::GetOrMakeFont(mFontEntries[i], &mStyle);
-        mFonts[i] = font;
-    }
-
-    return static_cast<gfxWindowsFont*>(mFonts[i].get());
-}
-
-gfxFontGroup *
-gfxWindowsFontGroup::Copy(const gfxFontStyle *aStyle)
-{
-    return new gfxWindowsFontGroup(mFamilies, aStyle);
-}
-
-static PRBool
-CanTakeFastPath(PRUint32 aFlags)
-{
-    // Can take fast path only if OPTIMIZE_SPEED is set and IS_RTL isn't
-    // We need to always use Uniscribe for RTL text, in case glyph mirroring is required
-    return (aFlags &
-            (gfxTextRunFactory::TEXT_OPTIMIZE_SPEED | gfxTextRunFactory::TEXT_IS_RTL)) ==
-        gfxTextRunFactory::TEXT_OPTIMIZE_SPEED;
-}
-
 gfxTextRun *
 gfxWindowsFontGroup::MakeTextRun(const PRUnichar *aString, PRUint32 aLength,
-                                 const Parameters *aParams, PRUint32 aFlags)
+                                 Parameters *aParams)
 {
-    // XXX comment out the assertion for now since it fires too much
-    //    NS_ASSERTION(!(mFlags & TEXT_NEED_BOUNDING_BOX),
-    //                 "Glyph extents not yet supported");
+    NS_ASSERTION(!(aParams->mFlags & TEXT_NEED_BOUNDING_BOX),
+                 "Glyph extents not yet supported");
 
-    gfxTextRun *textRun = gfxTextRun::Create(aParams, aString, aLength, this, aFlags);
+    gfxTextRun *textRun = new gfxTextRun(aParams, aLength);
     if (!textRun)
         return nsnull;
-    NS_ASSERTION(aParams->mContext, "MakeTextRun called without a gfxContext");
 
     textRun->RecordSurrogates(aString);
     
 #ifdef FORCE_UNISCRIBE
     const PRBool isComplex = PR_TRUE;
 #else
-    const PRBool isComplex = !CanTakeFastPath(aFlags) ||
-                             ScriptIsComplex(aString, aLength, SIC_COMPLEX) == S_OK;
+    const PRBool isComplex = ScriptIsComplex(aString, aLength, SIC_COMPLEX) == S_OK ||
+                             textRun->IsRightToLeft();
 #endif
     if (isComplex)
         InitTextRunUniscribe(aParams->mContext, textRun, aString, aLength);
     else
         InitTextRunGDI(aParams->mContext, textRun, aString, aLength);
 
-    textRun->FetchGlyphExtents(aParams->mContext);
-
     return textRun;
 }
 
 gfxTextRun *
 gfxWindowsFontGroup::MakeTextRun(const PRUint8 *aString, PRUint32 aLength,
-                                 const Parameters *aParams, PRUint32 aFlags)
+                                 Parameters *aParams)
 {
-    NS_ASSERTION(aFlags & TEXT_IS_8BIT, "should be marked 8bit");
- 
-    gfxTextRun *textRun = gfxTextRun::Create(aParams, aString, aLength, this, aFlags);
+    NS_ASSERTION((aParams->mFlags & TEXT_IS_ASCII || aParams->mFlags & TEXT_IS_8BIT),
+                 "unknown text type");
+    gfxTextRun *textRun = new gfxTextRun(aParams, aLength);
     if (!textRun)
         return nsnull;
-    NS_ASSERTION(aParams->mContext, "MakeTextRun called without a gfxContext");
 
 #ifdef FORCE_UNISCRIBE
     const PRBool isComplex = PR_TRUE;
 #else
-    const PRBool isComplex = !CanTakeFastPath(aFlags);
+    const PRBool isComplex = textRun->IsRightToLeft();
 #endif
 
-    /* We can only call GDI "A" functions if this is a true 7bit ASCII string,
-       because they interpret code points from 0x80-0xFF as if they were
-       in the system code page. */
-    if (!isComplex && (aFlags & TEXT_IS_ASCII)) {
-        InitTextRunGDI(aParams->mContext, textRun,
-                       reinterpret_cast<const char*>(aString), aLength);
-    }
-    else {
+    if (isComplex) {
         nsDependentCSubstring cString(reinterpret_cast<const char*>(aString),
                                   reinterpret_cast<const char*>(aString + aLength));
         nsAutoString utf16;
         AppendASCIItoUTF16(cString, utf16);
-        if (isComplex) {
-            InitTextRunUniscribe(aParams->mContext, textRun, utf16.get(), aLength);
-        } else {
-            InitTextRunGDI(aParams->mContext, textRun, utf16.get(), aLength);
-        }
+        InitTextRunUniscribe(aParams->mContext, textRun, utf16.get(), aLength);
+    } else {
+        InitTextRunGDI(aParams->mContext, textRun,
+                       reinterpret_cast<const char*>(aString), aLength);
     }
-
-    textRun->FetchGlyphExtents(aParams->mContext);
 
     return textRun;
 }
 
-/**
- * Set the font in the given DC.  If something goes wrong or if the
- * font is not a Truetype font (hence GetGlyphIndices may be buggy)
- * then we're not successful and return PR_FALSE, otherwise PR_TRUE.
- */
-static PRBool
-SetupDCFont(HDC dc, gfxWindowsFont *aFont)
+static HDC
+SetupContextFont(gfxContext *aContext, gfxWindowsFont *aFont,
+                 double *aCairoToPixels)
 {
-    HFONT hfont = aFont->GetHFONT();
-    if (!hfont)
-        return PR_FALSE;
-    SelectObject(dc, hfont);
+    nsRefPtr<gfxASurface> surf = aContext->CurrentSurface();
+    HDC dc = GetDCFromSurface(surf);
+    NS_ASSERTION(dc, "No DC");
 
-    // GetGlyphIndices is buggy for bitmap and vector fonts, so send them to uniscribe
-    // Also sent Symbol fonts through Uniscribe as it has special code to deal with them
-    if (!aFont->GetFontEntry()->IsTrueType() || aFont->GetFontEntry()->mSymbolFont)
-        return PR_FALSE;
+    // Set the font to have the identity matrix
+    aFont->UpdateCTM(gfxMatrix());
+    cairo_scaled_font_t *scaledFont = aFont->CairoScaledFont();
+    cairo_win32_scaled_font_select_font(scaledFont, dc);
 
-    return PR_TRUE;
+    double cairofontfactor = cairo_win32_scaled_font_get_metrics_factor(scaledFont);
+    *aCairoToPixels = cairofontfactor * aFont->GetAdjustedSize();
+    return dc;
 }
 
-static PRBool
-IsAnyGlyphMissing(WCHAR *aGlyphs, PRUint32 aLength)
+static void
+SetupTextRunFromCharacterPlacement(gfxTextRun *aRun, double aCairoToAppUnits,
+                                   int *aDXs, WCHAR *aGlyphs, gfxFont *aFont)
 {
-    PRUint32 i;
-    for (i = 0; i < aLength; ++i) {
-        if (aGlyphs[i] == 0xFFFF)
-            return PR_TRUE;
-    }
-    return PR_FALSE;
-}
-
-static PRBool
-SetupTextRunFromGlyphs(gfxTextRun *aRun, WCHAR *aGlyphs, HDC aDC,
-                       gfxWindowsFont *aFont)
-{
-    PRUint32 length = aRun->GetLength();
-    if (IsAnyGlyphMissing(aGlyphs, length))
-        return PR_FALSE;
-
-    SIZE size;
-    nsAutoTArray<int,500> partialWidthArray;
-    if (!partialWidthArray.SetLength(length))
-        return PR_FALSE;
-    BOOL success = GetTextExtentExPointI(aDC,
-                                         (WORD*) aGlyphs,
-                                         length,
-                                         INT_MAX,
-                                         NULL,
-                                         partialWidthArray.Elements(),
-                                         &size);
-    if (!success)
-        return PR_FALSE;
-
-    aRun->AddGlyphRun(aFont, 0);
-
     gfxTextRun::CompressedGlyph g;
     PRUint32 i;
-    PRInt32 lastWidth = 0;
-    PRUint32 appUnitsPerDevPixel = aRun->GetAppUnitsPerDevUnit();
+    PRUint32 length = aRun->GetLength();
     for (i = 0; i < length; ++i) {
-        PRInt32 advancePixels = partialWidthArray[i] - lastWidth;
-        lastWidth = partialWidthArray[i];
-        PRInt32 advanceAppUnits = advancePixels*appUnitsPerDevPixel;
+        double advance = aDXs[i]*aCairoToAppUnits;
+        PRInt32 advanceAppUnits = PRInt32(advance);
         WCHAR glyph = aGlyphs[i];
-        NS_ASSERTION(!gfxFontGroup::IsInvalidChar(aRun->GetChar(i)),
-                     "Invalid character detected!");
         if (advanceAppUnits >= 0 &&
             gfxTextRun::CompressedGlyph::IsSimpleAdvance(advanceAppUnits) &&
             gfxTextRun::CompressedGlyph::IsSimpleGlyphID(glyph)) {
-            aRun->SetSimpleGlyph(i, g.SetSimpleGlyph(advanceAppUnits, glyph));
+            aRun->SetCharacterGlyph(i, g.SetSimpleGlyph(advanceAppUnits, glyph));
         } else {
             gfxTextRun::DetailedGlyph details;
+            details.mIsLastGlyph = PR_TRUE;
             details.mGlyphID = glyph;
             details.mAdvance = advanceAppUnits;
             details.mXOffset = 0;
             details.mYOffset = 0;
-            aRun->SetGlyphs(i, g.SetComplex(PR_TRUE, PR_TRUE, 1), &details);
+            aRun->SetDetailedGlyphs(i, &details, 1);
         }
     }
-    return PR_TRUE;
+    
+    aRun->AddGlyphRun(aFont, 0);
+}
+
+static inline PRBool
+IsMissingGlyphsGDI(HDC aDC, const char *aString, PRUint32 aLength, WCHAR *glyphBuffer)
+{
+    DWORD ret;
+    ret = GetGlyphIndicesA(aDC, aString, aLength, (WORD*) glyphBuffer, GGI_MARK_NONEXISTING_GLYPHS);
+    if (ret == GDI_ERROR) {
+        NS_WARNING("GetGlyphIndicies failed\n");
+        return PR_TRUE;
+    }
+    for (DWORD i = 0; i < ret; ++i) {
+        if (glyphBuffer[i] == 0xffff)
+            return PR_TRUE;
+    }
+
+    return PR_FALSE;
+}
+
+static inline PRBool
+IsMissingGlyphsGDI(HDC aDC, const PRUnichar *aString, PRUint32 aLength, WCHAR *glyphBuffer)
+{
+    DWORD ret;
+    ret = GetGlyphIndicesW(aDC, aString, aLength, (WORD*) glyphBuffer, GGI_MARK_NONEXISTING_GLYPHS);
+    if (ret == GDI_ERROR) {
+        NS_WARNING("GetGlyphIndicies failed\n");
+        return PR_TRUE;
+    }
+    for (DWORD i = 0; i < ret; ++i) {
+        if (glyphBuffer[i] == 0xffff)
+            return PR_TRUE;
+    }
+
+    return PR_FALSE;
 }
 
 void
 gfxWindowsFontGroup::InitTextRunGDI(gfxContext *aContext, gfxTextRun *aRun,
                                     const char *aString, PRUint32 aLength)
 {
-    nsRefPtr<gfxWindowsFont> font = GetFontAt(0);
-    DCFromContext dc(aContext);
-    if (SetupDCFont(dc, font)) {
-        nsAutoTArray<WCHAR,500> glyphArray;
-        if (!glyphArray.SetLength(aLength))
-            return;
+    double cairoToPixels;
+    gfxWindowsFont *font = GetFontAt(0);
+    HDC dc = SetupContextFont(aContext, font, &cairoToPixels);
 
-        DWORD ret = GetGlyphIndicesA(dc, aString, aLength, (WORD*) glyphArray.Elements(),
-                                     GGI_MARK_NONEXISTING_GLYPHS);
-        if (ret != GDI_ERROR &&
-            SetupTextRunFromGlyphs(aRun, glyphArray.Elements(), dc, font))
-            return;
+    nsAutoTArray<WCHAR,500> glyphArray;
+    if (!glyphArray.AppendElements(aLength))
+        return;
+
+    /* our GDI path doesn't handle font missing glyphs so
+     * punt this off to uniscribe */
+    if (IsMissingGlyphsGDI(dc, aString, aLength, glyphArray.Elements())) {
+        nsDependentCSubstring cString(aString, aString + aLength);
+        nsAutoString utf16;
+        AppendASCIItoUTF16(cString, utf16);
+        InitTextRunUniscribe(aContext, aRun, utf16.get(), aLength);
+        return;
     }
 
-    nsDependentCSubstring cString(aString, aString + aLength);
-    nsAutoString utf16;
-    AppendASCIItoUTF16(cString, utf16);
-    InitTextRunUniscribe(aContext, aRun, utf16.get(), aLength);
+    nsAutoTArray<int,500> dxArray;
+    if (!dxArray.AppendElements(aLength))
+        return;
+
+    GCP_RESULTSA results;
+    memset(&results, 0, sizeof(GCP_RESULTSA));
+    results.lStructSize = sizeof(GCP_RESULTSA);
+    results.nGlyphs = aLength;
+    results.lpDx = dxArray.Elements();
+    results.lpGlyphs = glyphArray.Elements();
+    GetCharacterPlacementA(dc, aString, aLength, 0, &results, GCP_USEKERNING);
+
+    SetupTextRunFromCharacterPlacement(aRun, cairoToPixels*aRun->GetAppUnitsPerDevUnit(),
+                                       dxArray.Elements(),
+                                       glyphArray.Elements(), font);
 }
 
 void
 gfxWindowsFontGroup::InitTextRunGDI(gfxContext *aContext, gfxTextRun *aRun,
                                     const PRUnichar *aString, PRUint32 aLength)
 {
-    nsRefPtr<gfxWindowsFont> font = GetFontAt(0);
-    DCFromContext dc(aContext);
-    if (SetupDCFont(dc, font)) {
-        nsAutoTArray<WCHAR,500> glyphArray;
-        if (!glyphArray.SetLength(aLength))
-            return;
+    double cairoToPixels;
+    gfxWindowsFont *font = GetFontAt(0);
+    HDC dc = SetupContextFont(aContext, font, &cairoToPixels);
 
-        DWORD ret = GetGlyphIndicesW(dc, aString, aLength, (WORD*) glyphArray.Elements(),
-                                     GGI_MARK_NONEXISTING_GLYPHS);
-        if (ret != GDI_ERROR &&
-            SetupTextRunFromGlyphs(aRun, glyphArray.Elements(), dc, font))
-            return;
+    nsAutoTArray<WCHAR,500> glyphArray;
+    if (!glyphArray.AppendElements(aLength))
+        return;
+
+    if (IsMissingGlyphsGDI(dc, aString, aLength, glyphArray.Elements())) {
+        InitTextRunUniscribe(aContext, aRun, aString, aLength);
+        return;
     }
 
-    InitTextRunUniscribe(aContext, aRun, aString, aLength);
+    nsAutoTArray<int,500> dxArray;
+    if (!dxArray.AppendElements(aLength))
+        return;
+
+    GCP_RESULTSW results;
+    memset(&results, 0, sizeof(GCP_RESULTSW));
+    results.lStructSize = sizeof(GCP_RESULTSW);
+    results.nGlyphs = aLength;
+    results.lpDx = dxArray.Elements();
+    results.lpGlyphs = glyphArray.Elements();
+    GetCharacterPlacementW(dc, aString, aLength, 0, &results, GCP_USEKERNING);
+
+    SetupTextRunFromCharacterPlacement(aRun, cairoToPixels*aRun->GetAppUnitsPerDevUnit(),
+                                       dxArray.Elements(),
+                                       glyphArray.Elements(), font);
 }
 
 /*******************
@@ -1122,7 +760,7 @@ struct ScriptPropertyEntry {
 static const struct ScriptPropertyEntry gScriptToText[] =
 {
     { nsnull, nsnull },
-    { "LANG_ARABIC",     "ar" }, // ara
+    { "LANG_ARABIC",     "ara" },
     { "LANG_BULGARIAN",  "bul" },
     { "LANG_CATALAN",    "cat" },
     { "LANG_CHINESE",    "zh-CN" }, //XXX right lang code?
@@ -1193,14 +831,14 @@ static const struct ScriptPropertyEntry gScriptToText[] =
     { "LANG_BENGALI",    "x-beng" }, // ben
     { "LANG_PUNJABI",    "x-guru" }, // pan -- XXX x-guru is for Gurmukhi which isn't just Punjabi
     { "LANG_GUJARATI",   "x-gujr" }, // guj
-    { "LANG_ORIYA",      "x-orya" }, // ori
+    { "LANG_ORIYA",      "ori" },
     { "LANG_TAMIL",      "x-tamil" }, // tam
-    { "LANG_TELUGU",     "x-telu" },  //tel
-    { "LANG_KANNADA",    "x-knda" },  // kan
+    { "LANG_TELUGU",     "tel" },
+    { "LANG_KANNADA",    "kan" },
     { "LANG_MALAYALAM",  "x-mlym" }, // mal
-    { "LANG_ASSAMESE",   "x-beng" },    // asm
-    { "LANG_MARATHI",    "x-devanagari" }, // mar
-    { "LANG_SANSKRIT",   "x-devanagari" }, // san
+    { "LANG_ASSAMESE",   "asm" },
+    { "LANG_MARATHI",    "mar" },
+    { "LANG_SANSKRIT",   "san" },
     { "LANG_MONGOLIAN",  "mon" },
     { "TIBETAN",         "tib" }, // tib/bod
     { nsnull, nsnull },
@@ -1210,14 +848,14 @@ static const struct ScriptPropertyEntry gScriptToText[] =
     { "LANG_GALICIAN",   "glg" },
     { "LANG_KONKANI",    "kok" },
     { "LANG_MANIPURI",   "mni" },
-    { "LANG_SINDHI",     "snd" },
+    { "LANG_SINDHI",     "x-devanagari" }, // snd
     { "LANG_SYRIAC",     "syr" },
-    { "SINHALESE",       "x-sinh" }, // sin
+    { "SINHALESE",       "sin" },
     { "CHEROKEE",        "chr" },
     { "INUKTITUT",       "x-cans" }, // iku
     { "ETHIOPIC",        "x-ethi" }, // amh -- this is both Amharic and Tigrinya
     { nsnull, nsnull },
-    { "LANG_KASHMIRI",   "kas" },
+    { "LANG_KASHMIRI",   "x-devanagari" }, // kas
     { "LANG_NEPALI",     "x-devanagari" }, // nep
     { nsnull, nsnull },
     { nsnull, nsnull },
@@ -1242,8 +880,10 @@ static const char *sCJKLangGroup[] = {
 
 #define STATIC_STRING_LENGTH 100
 
-#define ESTIMATE_MAX_GLYPHS(L) (((3 * (L)) >> 1) + 16)
-
+/**
+ * XXX We could use a bunch of nsAutoTArrays to avoid memory allocation
+ * for non-huge strings.
+ */
 class UniscribeItem
 {
 public:
@@ -1251,100 +891,128 @@ public:
                   const PRUnichar *aString, PRUint32 aLength,
                   SCRIPT_ITEM *aItem,
                   gfxWindowsFontGroup *aGroup) :
-        mContext(aContext), mDC(aDC), mRangeString(nsnull), mRangeLength(0),
-        mItemString(aString), mItemLength(aLength), 
-        mAlternativeString(nsnull), mScriptItem(aItem),
+        mContext(aContext), mDC(aDC), mString(aString),
+        mLength(aLength), mAlternativeString(nsnull), mScriptItem(aItem),
         mScript(aItem->a.eScript), mGroup(aGroup),
-        mNumGlyphs(0), mMaxGlyphs(ESTIMATE_MAX_GLYPHS(aLength)),
+        mGlyphs(nsnull), mClusters(nsnull), mAttr(nsnull),
+        mNumGlyphs(0), mMaxGlyphs((int)(1.5 * aLength) + 16),
+        mOffsets(nsnull), mAdvances(nsnull),
+        mFontIndex(0), mTriedPrefFonts(PR_FALSE),
+        mTriedOtherFonts(PR_FALSE), mAppendedCJKFonts(PR_FALSE),
         mFontSelected(PR_FALSE)
     {
-        NS_ASSERTION(mMaxGlyphs < 65535, "UniscribeItem is too big, ScriptShape() will fail!");
-        mGlyphs.SetLength(mMaxGlyphs);
-        mClusters.SetLength(mItemLength + 1);
-        mAttr.SetLength(mMaxGlyphs);
+        mGlyphs = (WORD *)malloc(mMaxGlyphs * sizeof(WORD));
+        mClusters = (WORD *)malloc((mLength + 1) * sizeof(WORD));
+        mAttr = (SCRIPT_VISATTR *)malloc(mMaxGlyphs * sizeof(SCRIPT_VISATTR));
+
+        /* copy in the fonts from the group in to the item */
+        for (PRUint32 i = 0; i < mGroup->FontListLength(); ++i)
+            mFonts.AppendElement(mGroup->GetFontAt(i));
     }
 
     ~UniscribeItem() {
+        free(mGlyphs);
+        free(mClusters);
+        free(mAttr);
+        free(mOffsets);
+        free(mAdvances);
         free(mAlternativeString);
     }
 
-    /* possible return values:
-     * S_OK - things succeeded
-     * GDI_ERROR - things failed to shape.  Might want to try again after calling DisableShaping()
-     */
+    const PRUnichar *GetString() const { return mString; }
+    const PRUint32 GetStringLength() const { return mLength; }
 
-    HRESULT ShapeUniscribe() {
+
+
+    static PRBool AddFontCallback(const nsAString& aName,
+                                  const nsACString& aGenericName,
+                                  void *closure) {
+        if (aName.IsEmpty())
+            return PR_TRUE;
+
+        UniscribeItem *item = NS_STATIC_CAST(UniscribeItem*, closure);
+
+        // XXX do something better than this to remove dups
+        PRUint32 len = item->mFonts.Length();
+        for (PRUint32 i = 0; i < len; ++i)
+            if (aName.Equals(item->mFonts[i]->GetName()))
+                return PR_TRUE;
+
+
+        nsRefPtr<gfxWindowsFont> font = item->mGroup->GetCachedFont(aName);
+        if (!font) {
+            font = new gfxWindowsFont(aName, item->mGroup->GetStyle());
+            item->mGroup->PutCachedFont(aName, font);
+        }
+        item->mFonts.AppendElement(font);
+
+        return PR_TRUE;
+    }
+
+#ifdef DEBUG_pavlov
+    HRESULT Break() {
         HRESULT rv;
+
+        SCRIPT_LOGATTR *logAttrs = (SCRIPT_LOGATTR*)malloc(sizeof(SCRIPT_LOGATTR) * mLength);
+
+        rv = ScriptBreak(mString, mLength, &mScriptItem->a, logAttrs);
+
+        for (PRUint32 i = 0; i < mLength; ++i) {
+            PR_LOG(gFontLog, PR_LOG_DEBUG, ("0x%04x - %d %d %d %d %d",
+                                            mString[i],
+                                            logAttrs[i].fSoftBreak,
+                                            logAttrs[i].fWhiteSpace,
+                                            logAttrs[i].fCharStop,
+                                            logAttrs[i].fWordStop,
+                                            logAttrs[i].fInvalid));
+        }
+
+        free(logAttrs);
+        return rv;
+    }
+#endif
+
+    /* possible return values:
+       E_PENDING -- means script cache lookup failed, DC needs to be set and font selected in to it.
+       USP_E_SCRIPT_NOT_IN_FONT -- this font doesn't support this text. keep trying new fonts.
+       if you try all possible fonts, then go back to font 0 after calling DisableShaping and try again
+       through all the fonts
+    */
+    HRESULT Shape() {
+        HRESULT rv;
+
         HDC shapeDC = nsnull;
 
-        const PRUnichar *str = mAlternativeString ? mAlternativeString : mRangeString;
-
-        mScriptItem->a.fLogicalOrder = PR_TRUE; 
-        SCRIPT_ANALYSIS sa = mScriptItem->a;
-        /*
-          fLinkBefore and fLinkAfter in the SCRIPT_ANALYSIS structure refer to
-          the whole item, so if the current range begins after the beginning
-          of the item or ends before the end of the item, we need to override
-          them here.
-          This assumes that we won't split an item into ranges between two
-          characters that need to be shaped together.
-        */
-        if (mRangeString > mItemString)
-            sa.fLinkBefore = PR_FALSE;
-        if (mRangeString + mRangeLength < mItemString + mItemLength)
-            sa.fLinkAfter = PR_FALSE;
-
         while (PR_TRUE) {
-
+            const PRUnichar *str =
+                mAlternativeString ? mAlternativeString : mString;
+            mScriptItem->a.fLogicalOrder = PR_TRUE;
             rv = ScriptShape(shapeDC, mCurrentFont->ScriptCache(),
-                             str, mRangeLength,
-                             mMaxGlyphs, &sa,
-                             mGlyphs.Elements(), mClusters.Elements(),
-                             mAttr.Elements(), &mNumGlyphs);
+                             str, mLength,
+                             mMaxGlyphs, &mScriptItem->a,
+                             mGlyphs, mClusters,
+                             mAttr, &mNumGlyphs);
 
             if (rv == E_OUTOFMEMORY) {
-                mGlyphs.SetLength(mMaxGlyphs);
-                mAttr.SetLength(mMaxGlyphs);
                 mMaxGlyphs *= 2;
+                mGlyphs = (WORD *)realloc(mGlyphs, mMaxGlyphs * sizeof(WORD));
+                mAttr = (SCRIPT_VISATTR *)realloc(mAttr, mMaxGlyphs * sizeof(SCRIPT_VISATTR));
                 continue;
             }
 
             if (rv == E_PENDING) {
-                if (shapeDC == mDC) {
-                    // we already tried this once, something failed, give up
-                    return E_PENDING;
-                }
-
                 SelectFont();
 
                 shapeDC = mDC;
                 continue;
             }
 
+#if 0 // debugging only
+            if (rv != USP_E_SCRIPT_NOT_IN_FONT && !shapeDC)
+                printf("skipped select-shape %d\n", rv);
+#endif
             return rv;
         }
-    }
-
-    HRESULT ShapeGDI() {
-        SelectFont();
-
-        mNumGlyphs = mRangeLength;
-        GetGlyphIndicesW(mDC, mRangeString, mRangeLength,
-                         (WORD*) mGlyphs.Elements(),
-                         GGI_MARK_NONEXISTING_GLYPHS);
-
-        for (PRUint32 i = 0; i < mRangeLength; ++i)
-            mClusters[i] = i;
-
-        return S_OK;
-    }
-
-    HRESULT Shape() {
-        // Skip Uniscribe for fonts that need GDI
-        if (mCurrentFont->GetFontEntry()->mForceGDI)
-            return ShapeGDI();
-
-        return ShapeUniscribe();
     }
 
     PRBool ShapingEnabled() {
@@ -1358,36 +1026,63 @@ public:
         // pair to U+FFFD. See bug 341500.
         GenerateAlternativeString();
     }
-    void EnableShaping() {
-        mScriptItem->a.eScript = mScript;
-        if (mAlternativeString) {
-            free(mAlternativeString);
-            mAlternativeString = nsnull;
+
+    PRBool IsGlyphMissing(SCRIPT_FONTPROPERTIES *aSFP, PRUint32 aIndex) {
+        WORD glyph = mGlyphs[aIndex];
+        if (glyph == aSFP->wgDefault ||
+            (glyph == aSFP->wgInvalid && glyph != aSFP->wgBlank))
+            return PR_TRUE;
+        // I'm not sure that claiming glyphs are missing if they're zero width is valid
+        // but we're seeing cases where some fonts return glyphs such as 0x03 and 0x04
+        // which are zero width and non-invalidGlyph.
+        // At any rate, only make this check for non-complex scripts.
+        if (mAttr[aIndex].fZeroWidth && !ScriptProperties()->fComplex) {
+            PR_LOG(gFontLog, PR_LOG_WARNING, ("crappy font? glyph %04x is zero-width"));
+            return PR_TRUE;
         }
+        return PR_FALSE;
     }
 
-    PRBool IsGlyphMissing(SCRIPT_FONTPROPERTIES *aSFP, PRUint32 aGlyphIndex) {
-        PRBool missing = PR_FALSE;
-        if (GetCurrentFont()->GetFontEntry()->mForceGDI) {
-            // Our GDI path marks missing glyphs as 0xFFFF. So just look for that.
-            if (mGlyphs[aGlyphIndex] == 0xFFFF)
-                missing = PR_TRUE;
-        } else if (mGlyphs[aGlyphIndex] == aSFP->wgDefault) {
-            missing = PR_TRUE;
+    /* 
+     * Fonts are hopelessly inconsistent about how they handle characters that
+     * they don't have glyphs for.
+     * Some will return the glyph which ScriptFontProperties() lists as
+     * wgDefault; some will return the glyph listed as wgInvalid.
+     * Some list the same glyph as both wgInvalid and wgBlank, and use this
+     * glyph for valid whitespace characters.
+     * In some cases wgBlank with zero width represents a missing glyph,
+     * but in other cases, especially in complex scripts, wgBlank with zero
+     * width represents a valid zero width character such a zero width joiner
+     * or non-joiner.
+     */
+    PRBool IsMissingGlyphs() {
+        SCRIPT_FONTPROPERTIES sfp;
+        ScriptFontProperties(&sfp);
+        for (int i = 0; i < mNumGlyphs; ++i) {
+            if (IsGlyphMissing(&sfp, i))
+                return PR_TRUE;
+#ifdef DEBUG_pavlov // excess debugging code
+            PR_LOG(gFontLog, PR_LOG_DEBUG, ("%04x %04x %04x", sfp.wgBlank, sfp.wgDefault, sfp.wgInvalid));
+            PR_LOG(gFontLog, PR_LOG_DEBUG, ("glyph%d - 0x%04x", i, mGlyphs[i]));
+            PR_LOG(gFontLog, PR_LOG_DEBUG, ("%04x  --  %04x -- %04x", ScriptProperties()->fInvalidGlyph, mScriptItem->a.fNoGlyphIndex, mAttr[i].fZeroWidth));
+#endif
         }
-        return missing;
+        return PR_FALSE;
     }
 
-
-    HRESULT PlaceUniscribe() {
+    HRESULT Place() {
         HRESULT rv;
+
+        mOffsets = (GOFFSET *)malloc(mNumGlyphs * sizeof(GOFFSET));
+        mAdvances = (int *)malloc(mNumGlyphs * sizeof(int));
+
         HDC placeDC = nsnull;
 
         while (PR_TRUE) {
             rv = ScriptPlace(placeDC, mCurrentFont->ScriptCache(),
-                             mGlyphs.Elements(), mNumGlyphs,
-                             mAttr.Elements(), &mScriptItem->a,
-                             mAdvances.Elements(), mOffsets.Elements(), NULL);
+                             mGlyphs, mNumGlyphs,
+                             mAttr, &mScriptItem->a,
+                             mAdvances, mOffsets, NULL);
 
             if (rv == E_PENDING) {
                 SelectFont();
@@ -1399,59 +1094,6 @@ public:
         }
 
         return rv;
-    }
-
-    HRESULT PlaceGDI() {
-        SelectFont();
-
-        nsAutoTArray<int,500> partialWidthArray;
-        // Callers incorrectly assume this code is infallible,
-        // so we must abort on this OOM condition.
-        if (!partialWidthArray.SetLength(mNumGlyphs))
-            PR_Abort();
-        SIZE size;
-
-        GetTextExtentExPointI(mDC,
-                              (WORD*) mGlyphs.Elements(),
-                              mNumGlyphs,
-                              INT_MAX,
-                              NULL,
-                              partialWidthArray.Elements(),
-                              &size);
-
-        PRInt32 lastWidth = 0;
-
-        for (PRUint32 i = 0; i < mNumGlyphs; i++) {
-            mAdvances[i] = partialWidthArray[i] - lastWidth;
-            lastWidth = partialWidthArray[i];
-            mOffsets[i].du = mOffsets[i].dv = 0;
-        }
-        return 0;
-    }
-
-    HRESULT Place() {
-        mOffsets.SetLength(mNumGlyphs);
-        mAdvances.SetLength(mNumGlyphs);
-
-        PRBool allCJK = PR_TRUE;
-
-        // Some fonts don't get along with Uniscribe so we'll use GDI to
-        // render them.
-        if (!mCurrentFont->GetFontEntry()->mForceGDI) {
-            for (PRUint32 i = 0; i < mRangeLength; i++) {
-                const PRUnichar ch = mRangeString[i];
-                if (ch == ' ' || FindCharUnicodeRange(ch) == kRangeSetCJK)
-                    continue;
-
-                allCJK = PR_FALSE;
-                break;
-            }
-        }
-
-        if (allCJK)
-            return PlaceGDI();
-
-        return PlaceUniscribe();
     }
 
     const SCRIPT_PROPERTIES *ScriptProperties() {
@@ -1484,28 +1126,22 @@ public:
             return;
 
         nsAutoTArray<SCRIPT_LOGATTR,STATIC_STRING_LENGTH> logAttr;
-        if (!logAttr.AppendElements(mRangeLength))
+        if (!logAttr.AppendElements(mLength))
             return;
-        HRESULT rv = ScriptBreak(mRangeString, mRangeLength,
-                                 &mScriptItem->a, logAttr.Elements());
+        HRESULT rv = ScriptBreak(mString, mLength, &mScriptItem->a, logAttr.Elements());
         if (FAILED(rv))
             return;
         gfxTextRun::CompressedGlyph g;
-        // The first character is never inside a cluster. Windows might tell us
-        // that it should be, but we have no before-character to cluster
-        // it with so we just can't cluster it. So skip it here.
-        for (PRUint32 i = 1; i < mRangeLength; ++i) {
+        for (PRUint32 i = 0; i < mLength; ++i) {
             if (!logAttr[i].fCharStop) {
-                aRun->SetGlyphs(i + aOffsetInRun, g.SetComplex(PR_FALSE, PR_TRUE, 0), nsnull);
+                aRun->SetCharacterGlyph(i + aOffsetInRun, g.SetClusterContinuation());
             }
         }
     }
 
     void SaveGlyphs(gfxTextRun *aRun) {
-        PRUint32 offsetInRun = mScriptItem->iCharPos + (mRangeString - mItemString);
+        PRUint32 offsetInRun = mScriptItem->iCharPos;
         SetupClusterBoundaries(aRun, offsetInRun);
-
-        aRun->AddGlyphRun(GetCurrentFont(), offsetInRun);
 
         // XXX We should store this in the item and only fetch it once
         SCRIPT_FONTPROPERTIES sfp;
@@ -1515,18 +1151,20 @@ public:
         nsAutoTArray<gfxTextRun::DetailedGlyph,1> detailedGlyphs;
         gfxTextRun::CompressedGlyph g;
         const PRUint32 appUnitsPerDevUnit = aRun->GetAppUnitsPerDevUnit();
-        while (offset < mRangeLength) {
+        while (offset < mLength) {
             PRUint32 runOffset = offsetInRun + offset;
             if (offset > 0 && mClusters[offset] == mClusters[offset - 1]) {
-                g.SetComplex(aRun->IsClusterStart(runOffset), PR_FALSE, 0);
-                aRun->SetGlyphs(runOffset, g, nsnull);
+                if (!aRun->GetCharacterGlyphs()[runOffset].IsClusterContinuation()) {
+                    // No glyphs for character 'index', it must be a ligature continuation
+                    aRun->SetCharacterGlyph(runOffset, g.SetLigatureContinuation());
+                }
             } else {
                 // Count glyphs for this character
                 PRUint32 k = mClusters[offset];
                 PRUint32 glyphCount = mNumGlyphs - k;
                 PRUint32 nextClusterOffset;
                 PRBool missing = IsGlyphMissing(&sfp, k);
-                for (nextClusterOffset = offset + 1; nextClusterOffset < mRangeLength; ++nextClusterOffset) {
+                for (nextClusterOffset = offset + 1; nextClusterOffset < mLength; ++nextClusterOffset) {
                     if (mClusters[nextClusterOffset] > k) {
                         glyphCount = mClusters[nextClusterOffset] - k;
                         break;
@@ -1540,23 +1178,13 @@ public:
                 }
                 PRInt32 advance = mAdvances[k]*appUnitsPerDevUnit;
                 WORD glyph = mGlyphs[k];
-                NS_ASSERTION(!gfxFontGroup::IsInvalidChar(mRangeString[offset]),
-                             "invalid character detected");
                 if (missing) {
-                    if (NS_IS_HIGH_SURROGATE(mRangeString[offset]) &&
-                        offset + 1 < mRangeLength &&
-                        NS_IS_LOW_SURROGATE(mRangeString[offset + 1])) {
-                        aRun->SetMissingGlyph(runOffset,
-                                              SURROGATE_TO_UCS4(mRangeString[offset],
-                                                                mRangeString[offset + 1]));
-                    } else {
-                        aRun->SetMissingGlyph(runOffset, mRangeString[offset]);
-                    }
+                    aRun->SetCharacterGlyph(runOffset, g.SetMissing());
                 } else if (glyphCount == 1 && advance >= 0 &&
                     mOffsets[k].dv == 0 && mOffsets[k].du == 0 &&
                     gfxTextRun::CompressedGlyph::IsSimpleAdvance(advance) &&
                     gfxTextRun::CompressedGlyph::IsSimpleGlyphID(glyph)) {
-                    aRun->SetSimpleGlyph(runOffset, g.SetSimpleGlyph(advance, glyph));
+                    aRun->SetCharacterGlyph(runOffset, g.SetSimpleGlyph(advance, glyph));
                 } else {
                     if (detailedGlyphs.Length() < glyphCount) {
                         if (!detailedGlyphs.AppendElements(glyphCount - detailedGlyphs.Length()))
@@ -1565,24 +1193,118 @@ public:
                     PRUint32 i;
                     for (i = 0; i < glyphCount; ++i) {
                         gfxTextRun::DetailedGlyph *details = &detailedGlyphs[i];
+                        details->mIsLastGlyph = i == glyphCount - 1;
                         details->mGlyphID = mGlyphs[k + i];
                         details->mAdvance = mAdvances[k + i]*appUnitsPerDevUnit;
-                        details->mXOffset = float(mOffsets[k + i].du)*appUnitsPerDevUnit*aRun->GetDirection();
+                        details->mXOffset = float(mOffsets[k + i].du)*appUnitsPerDevUnit;
                         details->mYOffset = float(mOffsets[k + i].dv)*appUnitsPerDevUnit;
                     }
-                    aRun->SetGlyphs(runOffset,
-                        g.SetComplex(PR_TRUE, PR_TRUE, glyphCount), detailedGlyphs.Elements());
+                    aRun->SetDetailedGlyphs(runOffset, detailedGlyphs.Elements(), glyphCount);
                 }
             }
             ++offset;
         }
+        
+        aRun->AddGlyphRun(GetCurrentFont(), offsetInRun);
+    }
+
+    gfxWindowsFont *GetNextFont() {
+        // for legacy reasons, we must keep this goto label.
+TRY_AGAIN_HOPE_FOR_THE_BEST_2:
+        if (mFontIndex < mFonts.Length()) {
+            nsRefPtr<gfxWindowsFont> font = mFonts[mFontIndex];
+            mFontIndex++;
+            return font;
+        } else if (!mTriedPrefFonts) {
+            mTriedPrefFonts = PR_TRUE;
+
+            /* first check with the script properties to see what they think */
+            const SCRIPT_PROPERTIES *sp = ScriptProperties();
+            if (!sp->fAmbiguousCharSet) {
+                WORD primaryId = PRIMARYLANGID(sp->langid);
+                const char *langGroup = gScriptToText[primaryId].langCode;
+                if (langGroup) {
+                    if (PR_LOG_TEST(gFontLog, PR_LOG_DEBUG))
+                        PR_LOG(gFontLog, PR_LOG_DEBUG, ("Trying to find fonts for: %s (%s)", langGroup, gScriptToText[primaryId].value));
+                    AppendPrefFonts(langGroup);
+                } else if (primaryId != 0) {
+#ifdef DEBUG_pavlov
+                    printf("Couldn't find anything about %d\n", primaryId);
+#endif
+                }
+            } else {
+                for (PRUint32 i = 0; i < mLength; ++i) {
+                    const PRUnichar ch = mString[i];
+                    PRUint32 unicodeRange = FindCharUnicodeRange(ch);
+
+                    /* special case CJK */
+                    if (unicodeRange == kRangeSetCJK) {
+                        if (!mAppendedCJKFonts) {
+                            mAppendedCJKFonts = PR_TRUE;
+
+                            if (PR_LOG_TEST(gFontLog, PR_LOG_DEBUG))
+                                PR_LOG(gFontLog, PR_LOG_DEBUG, ("Trying to find fonts for: CJK"));
+
+                            AppendCJKPrefFonts();
+                        }
+                    } else {
+                        const char *langGroup = LangGroupFromUnicodeRange(unicodeRange);
+                        if (langGroup) {
+                            if (PR_LOG_TEST(gFontLog, PR_LOG_DEBUG))
+                                PR_LOG(gFontLog, PR_LOG_DEBUG, ("Trying to find fonts for: %s", langGroup));
+                            AppendPrefFonts(langGroup);
+                        }
+                    }
+                }
+            }
+            goto TRY_AGAIN_HOPE_FOR_THE_BEST_2;
+        } else if (!mTriedOtherFonts) {
+            mTriedOtherFonts = PR_TRUE;
+            nsString fonts;
+            gfxWindowsPlatform *platform = gfxWindowsPlatform::GetPlatform();
+
+            if (PR_LOG_TEST(gFontLog, PR_LOG_DEBUG)) {
+                PR_LOG(gFontLog, PR_LOG_DEBUG, ("Looking for other fonts to support the string:"));
+                for (PRUint32 la = 0; la < mLength; la++) {
+                    PRUint32 ch = mString[la];
+
+                    if ((la+1 < mLength) && NS_IS_HIGH_SURROGATE(ch) && NS_IS_LOW_SURROGATE(mString[la+1])) {
+                        la++;
+                        ch = SURROGATE_TO_UCS4(ch, mString[la]);
+                    }
+
+                    PR_LOG(gFontLog, PR_LOG_DEBUG, (" - 0x%04x", ch));
+                }
+            }
+            
+            platform->FindOtherFonts(mString, mLength,
+                                     nsPromiseFlatCString(mGroup->GetStyle()->langGroup).get(),
+                                     nsPromiseFlatCString(mGroup->GetGenericFamily()).get(),
+                                     fonts);
+            if (!fonts.IsEmpty()) {
+                if (PR_LOG_TEST(gFontLog, PR_LOG_DEBUG))
+                    PR_LOG(gFontLog, PR_LOG_DEBUG, ("Got back: %s", NS_LossyConvertUTF16toASCII(fonts).get()));
+                gfxFontGroup::ForEachFont(fonts, EmptyCString(), UniscribeItem::AddFontCallback, this);
+            }
+            goto TRY_AGAIN_HOPE_FOR_THE_BEST_2;
+        } else {
+            // const SCRIPT_PROPERTIES *sp = item->ScriptProperties();
+            // We should try to look up the font based on sp.langgroup
+            // if it isn't ambiguious.  Would save us time over doing
+            // character by character lookups at least for pref fonts
+        }
+
+        return nsnull;
+    }
+
+    void ResetFontIndex() {
+        mFontIndex = 0;
     }
 
     void SetCurrentFont(gfxWindowsFont *aFont) {
         if (mCurrentFont != aFont) {
             mCurrentFont = aFont;
-            cairo_scaled_font_t *scaledFont = mCurrentFont->CairoScaledFont();
-            cairo_win32_scaled_font_done_font(scaledFont);
+            cairo_win32_scaled_font_done_font(mCurrentFont->CairoScaledFont());
             mFontSelected = PR_FALSE;
         }
     }
@@ -1599,243 +1321,12 @@ public:
 
         cairo_set_font_face(cr, mCurrentFont->CairoFontFace());
         cairo_set_font_size(cr, mCurrentFont->GetAdjustedSize());
-        cairo_scaled_font_t *scaledFont = mCurrentFont->CairoScaledFont();
-        cairo_win32_scaled_font_select_font(scaledFont, mDC);
+
+        cairo_win32_scaled_font_select_font(mCurrentFont->CairoScaledFont(), mDC);
 
         mFontSelected = PR_TRUE;
     }
 
-    struct TextRange {
-        TextRange(PRUint32 aStart,  PRUint32 aEnd) : start(aStart), end(aEnd) { }
-        PRUint32 Length() const { return end - start; }
-        nsRefPtr<gfxWindowsFont> font;
-        PRUint32 start, end;
-    };
-
-    void SetRange(PRUint32 i) {
-        nsRefPtr<gfxWindowsFont> font;
-        if (mRanges[i].font)
-            font = mRanges[i].font;
-        else
-            font = mGroup->GetFontAt(0);
-
-        SetCurrentFont(font);
-
-        mRangeString = mItemString + mRanges[i].start;
-        mRangeLength = mRanges[i].Length();
-    }
-
-    PRBool HasCharacter(FontEntry *aFontEntry, PRUint32 ch) {
-        if (aFontEntry->mCharacterMap.test(ch))
-            return PR_TRUE;
-
-        if (aFontEntry->mUnknownCMAP) {
-            if (ch > 0xFFFF)
-                return PR_FALSE;
-
-            nsRefPtr<gfxWindowsFont> font =
-                gfxWindowsFont::GetOrMakeFont(aFontEntry, mGroup->GetStyle());
-            if (!font->IsValid())
-                return PR_FALSE;
-
-            HDC dc = GetDC((HWND)nsnull);
-            SetGraphicsMode(dc, GM_ADVANCED);
-            HFONT hfont = font->GetHFONT();
-            HFONT oldFont = (HFONT)SelectObject(dc, hfont);
-
-            PRUnichar str[1] = { (PRUnichar)ch };
-            WORD glyph[1];
-
-            PRBool hasGlyph = PR_FALSE;
-            if (aFontEntry->IsType1()) {
-                // Type1 fonts and uniscribe APIs don't get along.  ScriptGetCMap will return E_HANDLE
-                DWORD ret = GetGlyphIndicesW(dc, str, 1, glyph, GGI_MARK_NONEXISTING_GLYPHS);
-                if (ret != GDI_ERROR && glyph[0] != 0xFFFF)
-                    hasGlyph = PR_TRUE;
-            } else {
-                // ScriptGetCMap works better than GetGlyphIndicesW for things like bitmap/vector fonts
-                HRESULT rv = ScriptGetCMap(dc, font->ScriptCache(), str, 1, 0, glyph);
-                if (rv == S_OK)
-                    hasGlyph = PR_TRUE;
-            }
-
-            if (hasGlyph) {
-                aFontEntry->mCharacterMap.set(ch);
-                return PR_TRUE;
-            }
-
-            SelectObject(dc, oldFont);
-            ReleaseDC(NULL, dc);
-        }
-
-        return PR_FALSE;
-    }
-
-    inline already_AddRefed<gfxWindowsFont>
-    WhichFontSupportsChar(const nsTArray<nsRefPtr<FontEntry> >& fonts, PRUint32 ch) {
-        for (PRUint32 i = 0; i < fonts.Length(); i++) {
-            nsRefPtr<FontEntry> fe = fonts[i];
-            if (fe->mSymbolFont && !mGroup->GetStyle()->familyNameQuirks)
-                continue;
-            if (HasCharacter(fe, ch)) {
-                nsRefPtr<gfxWindowsFont> font =
-                    gfxWindowsFont::GetOrMakeFont(fe, mGroup->GetStyle());
-                // Check that the font is still usable.
-                if (!font->IsValid())
-                    continue;
-                return font.forget();
-            }
-        }
-        return nsnull;
-    }
-
-    static inline bool IsJoiner(PRUint32 ch) {
-        return (ch == 0x200C ||
-                ch == 0x200D ||
-                ch == 0x2060);
-    }
-
-    inline already_AddRefed<gfxWindowsFont>
-    FindFontForChar(PRUint32 ch, PRUint32 prevCh, PRUint32 nextCh,
-                    gfxWindowsFont *aFont) {
-        nsRefPtr<gfxWindowsFont> selectedFont;
-
-        // if this character or the next one is a joiner use the
-        // same font as the previous range if we can
-        if (IsJoiner(ch) || IsJoiner(prevCh) || IsJoiner(nextCh)) {
-            if (aFont && HasCharacter(aFont->GetFontEntry(), ch)) {
-                NS_ADDREF(aFont);
-                return aFont;
-            }
-        }
-
-        // check the list of fonts
-        selectedFont = WhichFontSupportsChar(mGroup->GetFontList(), ch);
-
-        // don't look in other fonts if the character is in a Private Use Area
-        if ((ch >= 0xE000  && ch <= 0xF8FF) || 
-            (ch >= 0xF0000 && ch <= 0x10FFFD))
-            return selectedFont.forget();
-
-        // check out the style's language group
-        if (!selectedFont) {
-            nsAutoTArray<nsRefPtr<FontEntry>, 5> fonts;
-            this->GetPrefFonts(mGroup->GetStyle()->langGroup.get(), fonts);
-            selectedFont = WhichFontSupportsChar(fonts, ch);
-        }
-
-        // otherwise search prefs
-        if (!selectedFont) {
-            /* first check with the script properties to see what they think */
-            const SCRIPT_PROPERTIES *sp = ScriptProperties();
-            if (!sp->fAmbiguousCharSet) {
-                WORD primaryId = PRIMARYLANGID(sp->langid);
-                const char *langGroup = gScriptToText[primaryId].langCode;
-                if (langGroup) {
-                    PR_LOG(gFontLog, PR_LOG_DEBUG, (" - Trying to find fonts for: %s (%s)", langGroup, gScriptToText[primaryId].value));
-
-                    nsAutoTArray<nsRefPtr<FontEntry>, 5> fonts;
-                    this->GetPrefFonts(langGroup, fonts);
-                    selectedFont = WhichFontSupportsChar(fonts, ch);
-                }
-            } else if (ch <= 0xFFFF) {
-                PRUint32 unicodeRange = FindCharUnicodeRange(ch);
-
-                /* special case CJK */
-                if (unicodeRange == kRangeSetCJK) {
-                    if (PR_LOG_TEST(gFontLog, PR_LOG_DEBUG))
-                        PR_LOG(gFontLog, PR_LOG_DEBUG, (" - Trying to find fonts for: CJK"));
-
-                    nsAutoTArray<nsRefPtr<FontEntry>, 15> fonts;
-                    this->GetCJKPrefFonts(fonts);
-                    selectedFont = WhichFontSupportsChar(fonts, ch);
-                } else {
-                    const char *langGroup = LangGroupFromUnicodeRange(unicodeRange);
-                    if (langGroup) {
-                        PR_LOG(gFontLog, PR_LOG_DEBUG, (" - Trying to find fonts for: %s", langGroup));
-
-                        nsAutoTArray<nsRefPtr<FontEntry>, 5> fonts;
-                        this->GetPrefFonts(langGroup, fonts);
-                        selectedFont = WhichFontSupportsChar(fonts, ch);
-                    }
-                }
-            }
-        }
-
-        // before searching for something else check the font used for the previous character
-        if (!selectedFont && aFont && HasCharacter(aFont->GetFontEntry(), ch))
-            selectedFont = aFont;
-
-        // otherwise look for other stuff
-        if (!selectedFont) {
-            PR_LOG(gFontLog, PR_LOG_DEBUG, (" - Looking for best match"));
-
-            nsRefPtr<gfxWindowsFont> refFont = mGroup->GetFontAt(0);
-            gfxWindowsPlatform *platform = gfxWindowsPlatform::GetPlatform();
-            selectedFont = platform->FindFontForChar(ch, refFont);
-        }
-
-        return selectedFont.forget();
-    }
-
-    PRUint32 ComputeRanges() {
-        if (mItemLength == 0)
-            return 0;
-
-        PR_LOG(gFontLog, PR_LOG_DEBUG, ("Computing ranges for string: (len = %d)", mItemLength));
-
-        PRUint32 prevCh = 0;
-        for (PRUint32 i = 0; i < mItemLength; i++) {
-            const PRUint32 origI = i; // save off incase we increase for surrogate
-            PRUint32 ch = mItemString[i];
-            if ((i+1 < mItemLength) && NS_IS_HIGH_SURROGATE(ch) && NS_IS_LOW_SURROGATE(mItemString[i+1])) {
-                i++;
-                ch = SURROGATE_TO_UCS4(ch, mItemString[i]);
-            }
-
-            PR_LOG(gFontLog, PR_LOG_DEBUG, (" 0x%04x - ", ch));
-            PRUint32 nextCh = 0;
-            if (i+1 < mItemLength) {
-                nextCh = mItemString[i+1];
-                if ((i+2 < mItemLength) && NS_IS_HIGH_SURROGATE(nextCh) && NS_IS_LOW_SURROGATE(mItemString[i+2]))
-                    nextCh = SURROGATE_TO_UCS4(nextCh, mItemString[i+2]);
-            }
-            nsRefPtr<gfxWindowsFont> font =
-                FindFontForChar(ch,
-                                prevCh,
-                                nextCh,
-                                (mRanges.Length() == 0) ? nsnull : mRanges[mRanges.Length() - 1].font);
-
-            prevCh = ch;
-
-            if (mRanges.Length() == 0) {
-                TextRange r(0,1);
-                r.font = font;
-                mRanges.AppendElement(r);
-            } else {
-                TextRange& prevRange = mRanges[mRanges.Length() - 1];
-                if (prevRange.font != font) {
-                    // close out the previous range
-                    prevRange.end = origI;
-
-                    TextRange r(origI, i+1);
-                    r.font = font;
-                    mRanges.AppendElement(r);
-                }
-            }
-            if (PR_LOG_TEST(gFontLog, PR_LOG_DEBUG)) {
-                if (font)
-                    PR_LOG(gFontLog, PR_LOG_DEBUG, (" - Using %s", NS_LossyConvertUTF16toASCII(font->GetUniqueName()).get()));
-                else
-                    PR_LOG(gFontLog, PR_LOG_DEBUG, (" - Unable to find font"));
-            }
-        }
-        mRanges[mRanges.Length()-1].end = mItemLength;
-
-        PRUint32 nranges = mRanges.Length();
-        PR_LOG(gFontLog, PR_LOG_DEBUG, (" Found %d ranges", nranges));
-        return nranges;
-    }
 
 private:
     static PRInt32 GetCJKLangGroupIndex(const char *aLangGroup) {
@@ -1847,118 +1338,83 @@ private:
         return -1;
     }
 
-    // this function appends to the array passed in.
-    void GetPrefFonts(const char *aLangGroup, nsTArray<nsRefPtr<FontEntry> >& array) {
+    void AppendPrefFonts(const char *aLangGroup) {
         NS_ASSERTION(aLangGroup, "aLangGroup is null");
-        gfxWindowsPlatform *platform = gfxWindowsPlatform::GetPlatform();
-        nsAutoTArray<nsRefPtr<FontEntry>, 5> fonts;
-        /* this lookup has to depend on weight and style */
-        nsCAutoString key(aLangGroup);
-        key.Append("-");
-        key.AppendInt(mGroup->GetStyle()->style);
-        key.Append("-");
-        key.AppendInt(mGroup->GetStyle()->weight);
-        if (!platform->GetPrefFontEntries(key, &fonts)) {
-            nsString fontString;
-            platform->GetPrefFonts(aLangGroup, fontString);
-            if (fontString.IsEmpty())
-                return;
+        gfxPlatform *platform = gfxPlatform::GetPlatform();
+        nsString fonts;
+        platform->GetPrefFonts(aLangGroup, fonts);
+        if (fonts.IsEmpty())
+            return;
+        gfxFontGroup::ForEachFont(fonts, nsDependentCString(aLangGroup),
+                                  UniscribeItem::AddFontCallback, this);
+        return;
+   }
 
-            mGroup->FamilyListToArrayList(fontString, nsDependentCString(aLangGroup),
-                                          &fonts);
+   void AppendCJKPrefFonts() {
+       nsCOMPtr<nsIPrefService> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID);
+       if (!prefs)
+           return;
 
-            platform->SetPrefFontEntries(key, fonts);
-        }
-        array.AppendElements(fonts);
-    }
+       nsCOMPtr<nsIPrefBranch> prefBranch;
+       prefs->GetBranch(0, getter_AddRefs(prefBranch));
+       if (!prefBranch)
+           return;
 
-    // this function assigns to the array passed in.
-    void GetCJKPrefFonts(nsTArray<nsRefPtr<FontEntry> >& array) {
-        gfxWindowsPlatform *platform = gfxWindowsPlatform::GetPlatform();
+       // Add by the order of accept languages.
+       nsXPIDLCString list;
+       nsresult rv = prefBranch->GetCharPref("intl.accept_languages", getter_Copies(list));
+       if (NS_SUCCEEDED(rv) && !list.IsEmpty()) {
+           const char kComma = ',';
+           const char *p, *p_end;
+           list.BeginReading(p);
+           list.EndReading(p_end);
+           while (p < p_end) {
+               while (nsCRT::IsAsciiSpace(*p)) {
+                   if (++p == p_end)
+                       break;
+               }
+               if (p == p_end)
+                   break;
+               const char *start = p;
+               while (++p != p_end && *p != kComma)
+                   /* nothing */ ;
+               nsCAutoString lang(Substring(start, p));
+               lang.CompressWhitespace(PR_FALSE, PR_TRUE);
+               PRInt32 index = GetCJKLangGroupIndex(lang.get());
+               if (index >= 0)
+                   AppendPrefFonts(sCJKLangGroup[index]);
+               p++;
+           }
+       }
 
-        nsCAutoString key("x-internal-cjk-");
-        key.AppendInt(mGroup->GetStyle()->style);
-        key.Append("-");
-        key.AppendInt(mGroup->GetStyle()->weight);
+       // Add the system locale
+       switch (::GetACP()) {
+           case 932: AppendPrefFonts(CJK_LANG_JA);    break;
+           case 936: AppendPrefFonts(CJK_LANG_ZH_CN); break;
+           case 949: AppendPrefFonts(CJK_LANG_KO);    break;
+           // XXX Don't we need to append CJK_LANG_ZH_HK if the codepage is 950?
+           case 950: AppendPrefFonts(CJK_LANG_ZH_TW); break;
+       }
 
-        if (!platform->GetPrefFontEntries(key, &array)) {
-            nsCOMPtr<nsIPrefService> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID);
-            if (!prefs)
-                return;
-
-            nsCOMPtr<nsIPrefBranch> prefBranch;
-            prefs->GetBranch(0, getter_AddRefs(prefBranch));
-            if (!prefBranch)
-                return;
-
-            // Add the CJK pref fonts from accept languages, the order should be same order
-            nsCAutoString list;
-            nsCOMPtr<nsIPrefLocalizedString> val;
-            nsresult rv = prefBranch->GetComplexValue("intl.accept_languages", NS_GET_IID(nsIPrefLocalizedString),
-                                                      getter_AddRefs(val));
-            if (NS_SUCCEEDED(rv) && val) {
-                nsAutoString temp;
-                val->ToString(getter_Copies(temp));
-                LossyCopyUTF16toASCII(temp, list);
-            }
-            if (!list.IsEmpty()) {
-                const char kComma = ',';
-                const char *p, *p_end;
-                list.BeginReading(p);
-                list.EndReading(p_end);
-                while (p < p_end) {
-                    while (nsCRT::IsAsciiSpace(*p)) {
-                        if (++p == p_end)
-                            break;
-                    }
-                    if (p == p_end)
-                        break;
-                    const char *start = p;
-                    while (++p != p_end && *p != kComma)
-                        /* nothing */ ;
-                    nsCAutoString lang(Substring(start, p));
-                    lang.CompressWhitespace(PR_FALSE, PR_TRUE);
-                    PRInt32 index = GetCJKLangGroupIndex(lang.get());
-                    if (index >= 0)
-                        GetPrefFonts(sCJKLangGroup[index], array);
-                    p++;
-                }
-            }
-
-            // Add the system locale
-            switch (::GetACP()) {
-                case 932: GetPrefFonts(CJK_LANG_JA, array); break;
-                case 936: GetPrefFonts(CJK_LANG_ZH_CN, array); break;
-                case 949: GetPrefFonts(CJK_LANG_KO, array); break;
-                // XXX Don't we need to append CJK_LANG_ZH_HK if the codepage is 950?
-                case 950: GetPrefFonts(CJK_LANG_ZH_TW, array); break;
-            }
-
-            // last resort...
-            GetPrefFonts(CJK_LANG_JA, array);
-            GetPrefFonts(CJK_LANG_KO, array);
-            GetPrefFonts(CJK_LANG_ZH_CN, array);
-            GetPrefFonts(CJK_LANG_ZH_HK, array);
-            GetPrefFonts(CJK_LANG_ZH_TW, array);
-
-            platform->SetPrefFontEntries(key, array);
-        }
+       // last resort...
+       AppendPrefFonts(CJK_LANG_JA);
+       AppendPrefFonts(CJK_LANG_KO);
+       AppendPrefFonts(CJK_LANG_ZH_CN);
+       AppendPrefFonts(CJK_LANG_ZH_HK);
+       AppendPrefFonts(CJK_LANG_ZH_TW);
     }
 
     void GenerateAlternativeString() {
         if (mAlternativeString)
             free(mAlternativeString);
-        mAlternativeString = (PRUnichar *)malloc(mRangeLength * sizeof(PRUnichar));
-        if (!mAlternativeString)
-            return;
-        memcpy((void *)mAlternativeString, (const void *)mRangeString,
-               mRangeLength * sizeof(PRUnichar));
-        for (PRUint32 i = 0; i < mRangeLength; i++) {
-            if (NS_IS_HIGH_SURROGATE(mRangeString[i]) || NS_IS_LOW_SURROGATE(mRangeString[i]))
+        mAlternativeString = (PRUnichar *)malloc(mLength * sizeof(PRUnichar));
+        memcpy((void *)mAlternativeString, (const void *)mString,
+               mLength * sizeof(PRUnichar));
+        for (PRUint32 i = 0; i < mLength; i++) {
+            if (NS_IS_HIGH_SURROGATE(mString[i]) || NS_IS_LOW_SURROGATE(mString[i]))
                 mAlternativeString[i] = PRUnichar(0xFFFD);
         }
     }
-
 private:
     nsRefPtr<gfxContext> mContext;
     HDC mDC;
@@ -1966,87 +1422,41 @@ private:
     SCRIPT_ITEM *mScriptItem;
     WORD mScript;
 
-    // these point to the current range
-    const PRUnichar *mRangeString;
-    PRUint32 mRangeLength;
-
-    // these point to the full string/length of the item
-    const PRUnichar *mItemString;
-    const PRUint32 mItemLength;
+    const PRUnichar *mString;
+    const PRUint32 mLength;
 
     PRUnichar *mAlternativeString;
 
     gfxWindowsFontGroup *mGroup;
 
-#define AVERAGE_ITEM_LENGTH 40
-
-    nsAutoTArray<WORD, PRUint32(ESTIMATE_MAX_GLYPHS(AVERAGE_ITEM_LENGTH))> mGlyphs;
-    nsAutoTArray<WORD, AVERAGE_ITEM_LENGTH + 1> mClusters;
-    nsAutoTArray<SCRIPT_VISATTR, PRUint32(ESTIMATE_MAX_GLYPHS(AVERAGE_ITEM_LENGTH))> mAttr;
- 
-    nsAutoTArray<GOFFSET, 2 * AVERAGE_ITEM_LENGTH> mOffsets;
-    nsAutoTArray<int, 2 * AVERAGE_ITEM_LENGTH> mAdvances;
-
-#undef AVERAGE_ITEM_LENGTH
+    WORD *mGlyphs;
+    WORD *mClusters;
+    SCRIPT_VISATTR *mAttr;
 
     int mMaxGlyphs;
     int mNumGlyphs;
 
+    GOFFSET *mOffsets;
+    int *mAdvances;
+
+    nsTArray< nsRefPtr<gfxWindowsFont> > mFonts;
+
     nsRefPtr<gfxWindowsFont> mCurrentFont;
 
+    PRUint32 mFontIndex;
+    PRPackedBool mTriedPrefFonts;
+    PRPackedBool mTriedOtherFonts;
+    PRPackedBool mAppendedCJKFonts;
     PRPackedBool mFontSelected;
-
-    nsTArray<TextRange> mRanges;
 };
-
-
-#define MAX_ITEM_LENGTH 32768
-
-
-
-static PRUint32 FindNextItemStart(int aOffset, int aLimit,
-                                  nsTArray<SCRIPT_LOGATTR> &aLogAttr,
-                                  const PRUnichar *aString)
-{
-    if (aOffset + MAX_ITEM_LENGTH >= aLimit) {
-        // The item starting at aOffset can't be longer than the max length,
-        // so starting the next item at aLimit won't cause ScriptShape() to fail.
-        return aLimit;
-    }
-
-    // Try to start the next item before or after a space, since spaces
-    // don't kern or ligate.
-    PRUint32 off;
-    int boundary = -1;
-    for (off = MAX_ITEM_LENGTH; off > 1; --off) {
-      if (aLogAttr[off].fCharStop) {
-          if (off > boundary) {
-              boundary = off;
-          }
-          if (aString[aOffset+off] == ' ' || aString[aOffset+off - 1] == ' ')
-            return aOffset+off;
-      }
-    }
-
-    // Try to start the next item at the last cluster boundary in the range.
-    if (boundary > 0) {
-      return aOffset+boundary;
-    }
-
-    // No nice cluster boundaries inside MAX_ITEM_LENGTH characters, break
-    // on the size limit. It won't be visually plesaing, but at least it
-    // won't cause ScriptShape() to fail.
-    return aOffset + MAX_ITEM_LENGTH;
-}
 
 class Uniscribe
 {
 public:
     Uniscribe(gfxContext *aContext, HDC aDC, const PRUnichar *aString, PRUint32 aLength, PRBool aIsRTL) :
         mContext(aContext), mDC(aDC), mString(aString), mLength(aLength), mIsRTL(aIsRTL),
+        mIsComplex(ScriptIsComplex(aString, aLength, SIC_COMPLEX) == S_OK),
         mItems(nsnull) {
-    }
-    ~Uniscribe() {
     }
 
     void Init() {
@@ -2058,78 +1468,20 @@ public:
         mState.fOverrideDirection = PR_TRUE;
     }
 
-private:
-
-    // Append mItems[aIndex] to aDest, adding extra items to aDest to ensure
-    // that no item is too long for ScriptShape() to handle. See bug 366643.
-    nsresult CopyItemSplitOversize(int aIndex, nsTArray<SCRIPT_ITEM> &aDest) {
-        aDest.AppendElement(mItems[aIndex]);
-        const int itemLength = mItems[aIndex+1].iCharPos - mItems[aIndex].iCharPos;
-        if (ESTIMATE_MAX_GLYPHS(itemLength) > 65535) {
-            // This items length would cause ScriptShape() to fail. We need to
-            // add extra items here so that no item's length could cause the fail.
-
-            // Get cluster boundaries, so we can break cleanly if possible.
-            nsTArray<SCRIPT_LOGATTR> logAttr;
-            if (!logAttr.SetLength(itemLength))
-                return NS_ERROR_FAILURE;
-            HRESULT rv= ScriptBreak(mString+mItems[aIndex].iCharPos, itemLength,
-                                    &mItems[aIndex].a, logAttr.Elements());
-            if (FAILED(rv))
-                return NS_ERROR_FAILURE;
-
-            const int nextItemStart = mItems[aIndex+1].iCharPos;
-            int start = FindNextItemStart(mItems[aIndex].iCharPos,
-                                          nextItemStart, logAttr, mString);
-
-            while (start < nextItemStart) {
-                SCRIPT_ITEM item = mItems[aIndex];
-                item.iCharPos = start;
-                aDest.AppendElement(item);
-                start = FindNextItemStart(start, nextItemStart, logAttr, mString);
-            }
-        } 
-        return NS_OK;
-    }
-
-public:
-
     int Itemize() {
         HRESULT rv;
 
         int maxItems = 5;
 
         Init();
-
-        // Allocate space for one more item than expected, to handle a rare
-        // overflow in ScriptItemize (pre XP SP2). See bug 366643.
-        if (!mItems.SetLength(maxItems + 1)) {
-            return 0;
-        }
+        mItems = (SCRIPT_ITEM *)malloc(maxItems * sizeof(SCRIPT_ITEM));
         while ((rv = ScriptItemize(mString, mLength, maxItems, &mControl, &mState,
-                                   mItems.Elements(), &mNumItems)) == E_OUTOFMEMORY) {
+                                   mItems, &mNumItems)) == E_OUTOFMEMORY) {
             maxItems *= 2;
-            if (!mItems.SetLength(maxItems + 1)) {
-                return 0;
-            }
+            mItems = (SCRIPT_ITEM *)realloc(mItems, maxItems * sizeof(SCRIPT_ITEM));
             Init();
         }
 
-        if (ESTIMATE_MAX_GLYPHS(mLength) > 65535) {
-            // Any item of length > 43680 will cause ScriptShape() to fail, as its
-            // mMaxGlyphs value will be greater than 65535 (43680*1.5+16>65535). So we
-            // need to break up items which are longer than that upon cluster boundaries.
-            // See bug 394751 for details.
-            nsTArray<SCRIPT_ITEM> items;
-            for (int i=0; i<mNumItems; i++) {
-                nsresult nrs = CopyItemSplitOversize(i, items);
-                NS_ASSERTION(NS_SUCCEEDED(nrs), "CopyItemSplitOversize() failed");
-            }
-            items.AppendElement(mItems[mNumItems]); // copy terminator.
-
-            mItems = items;
-            mNumItems = items.Length() - 1; // Don't count the terminator.
-        }
         return mNumItems;
     }
 
@@ -2157,18 +1509,23 @@ private:
     const PRUnichar *mString;
     const PRUint32 mLength;
     const PRBool mIsRTL;
+    // XXX not used
+    const PRBool mIsComplex;
 
     SCRIPT_CONTROL mControl;
     SCRIPT_STATE   mState;
-    nsTArray<SCRIPT_ITEM> mItems;
+    SCRIPT_ITEM   *mItems;
     int mNumItems;
 };
 
+
 void
 gfxWindowsFontGroup::InitTextRunUniscribe(gfxContext *aContext, gfxTextRun *aRun, const PRUnichar *aString,
-                                          PRUint32 aLength)
+                                         PRUint32 aLength)
 {
-    DCFromContext aDC(aContext);
+    nsRefPtr<gfxASurface> surf = aContext->CurrentSurface();
+    HDC aDC = GetDCFromSurface(surf);
+    NS_ASSERTION(aDC, "No DC");
  
     const PRBool isRTL = aRun->IsRightToLeft();
 
@@ -2179,52 +1536,77 @@ gfxWindowsFontGroup::InitTextRunUniscribe(gfxContext *aContext, gfxTextRun *aRun
     /* itemize the string */
     int numItems = us.Itemize();
 
-    for (int i = 0; i < numItems; ++i) {
+    for (int i=0; i < numItems; ++i) {
+        PRUint32 fontIndex = 0;
+
         SaveDC(aDC);
 
-        nsAutoPtr<UniscribeItem> item(us.GetItem(i, this));
+        UniscribeItem *item = us.GetItem(i, this);
 
-        PRUint32 nranges = item->ComputeRanges();
+        int giveUp = PR_FALSE;
 
-        for (PRUint32 j = 0; j < nranges; ++j) {
+        // Perform font substitution
+        while (PR_TRUE) {
+            nsRefPtr<gfxWindowsFont> font = item->GetNextFont();
 
-            item->SetRange(j);
+            if (font) {
+                /* make sure the font is set for the current matrix */
+                font->UpdateCTM(aContext->CurrentMatrix());
 
-            if (!item->ShapingEnabled())
-                item->EnableShaping();
+                /* set the curret font on the item */
+                item->SetCurrentFont(font);
 
-            rv = item->Shape();
-            if (FAILED(rv)) {
-                PR_LOG(gFontLog, PR_LOG_DEBUG, ("shaping failed"));
-                // we know we have the glyphs to display this font already
-                // so Uniscribe just doesn't know how to shape the script.
-                // Render the glyphs without shaping.
-                item->DisableShaping();
+                if (PR_LOG_TEST(gFontLog, PR_LOG_DEBUG))
+                    PR_LOG(gFontLog, PR_LOG_DEBUG, ("trying: %s", NS_LossyConvertUTF16toASCII(font->GetName()).get()));
+
                 rv = item->Shape();
+
+                if (giveUp) {
+                    if (PR_LOG_TEST(gFontLog, PR_LOG_DEBUG))
+                        PR_LOG(gFontLog, PR_LOG_DEBUG, ("%s - gave up", NS_LossyConvertUTF16toASCII(font->GetName()).get()));
+                    goto SCRIPT_PLACE;
+                }
+                if (FAILED(rv) || item->IsMissingGlyphs())
+                    continue;
+            } else {
+#if 0
+                /* code to try all the fonts again without shaping on.
+                   in general, if we couldn't shape we should probably just give up */
+                if (item->ShapingEnabled()) {
+                    item->DisableShaping();
+                    item->ResetFontIndex();
+                    continue;
+                }
+#endif
+                giveUp = PR_TRUE;
+                item->DisableShaping();
+                item->ResetFontIndex();
+                continue;
             }
 
-            NS_ASSERTION(SUCCEEDED(rv), "Failed to shape, twice -- we should never hit this");
+            if (PR_LOG_TEST(gFontLog, PR_LOG_DEBUG))
+                PR_LOG(gFontLog, PR_LOG_DEBUG, ("%s - worked", NS_LossyConvertUTF16toASCII(font->GetName()).get()));
 
-            if (SUCCEEDED(rv)) {
-                rv = item->Place();
-                NS_ASSERTION(SUCCEEDED(rv), "Failed to place -- this is pretty bad.");
-            }
+SCRIPT_PLACE:
+            NS_ASSERTION(SUCCEEDED(rv), "Failed to shape -- we should never hit this");
 
+#ifdef DEBUG_pavlov
+            item->Break();
+#endif
+
+            rv = item->Place();
             if (FAILED(rv)) {
-                aRun->ResetGlyphRuns();
-
-                /* Uniscribe doesn't like this font, use GDI instead */
-                item->GetCurrentFont()->GetFontEntry()->mForceGDI = PR_TRUE;
-                break;
+                if (PR_LOG_TEST(gFontLog, PR_LOG_WARNING))
+                    PR_LOG(gFontLog, PR_LOG_WARNING, ("Failed to place with %s", NS_LossyConvertUTF16toASCII(font->GetName()).get()));
+                continue;
             }
 
-            item->SaveGlyphs(aRun);
+            break;
         }
+
+        item->SaveGlyphs(aRun);
+        delete item;
 
         RestoreDC(aDC, -1);
-
-        if (FAILED(rv)) {
-            i = -1;
-        }
     }
 }

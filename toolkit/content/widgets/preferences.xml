@@ -52,7 +52,7 @@
             aPreference.dispatchEvent(event);
           }
           catch (e) {
-            Components.utils.reportError(e);
+            dump(e);
           }
         ]]>
         </body>
@@ -80,11 +80,6 @@
     <implementation>
       <constructor>
       <![CDATA[
-        // if the element has been inserted without the name attribute set,
-        // we have nothing to do here
-        if (!this.name)
-          return;
-
         this.preferences.rootBranchInternal
             .addObserver(this.name, this.preferences, false);
         // In non-instant apply mode, we must try and use the last saved state
@@ -237,8 +232,7 @@
       
       <method name="reset">
         <body>
-          // defer reset until preference update
-          this.value = undefined;
+          this.preferences.rootBranch.clearUserPref(this.name);
         </body>
       </method>
 
@@ -294,13 +288,6 @@
               return this._branch
                          .getComplexValue(this.name, Components.interfaces.nsISupportsString)
                          .data;
-            case "fontname":
-              var family = this._branch
-                               .getComplexValue(this.name, Components.interfaces.nsISupportsString)
-                               .data;
-              var fontEnumerator = Components.classes["@mozilla.org/gfx/fontenumerator;1"]
-                                             .createInstance(Components.interfaces.nsIFontEnumerator);
-              return fontEnumerator.getStandardFamilyName(family);
             case "file":
               var f = this._branch
                           .getComplexValue(this.name, Components.interfaces.nsILocalFile);
@@ -315,16 +302,9 @@
         </getter>
         <setter>
         <![CDATA[
-          // Exit early if nothing to do.
           if (this.readonly || this.valueFromPreferences == val)
             return val;
-
-          // The special value undefined means 'reset preference to default'.
-          if (val === undefined) {
-            this.preferences.rootBranch.clearUserPref(this.name);
-            return val;
-          }
-
+            
           // Force a resync of preferences with value.
           switch (this.type) {
           case "int":
@@ -342,7 +322,6 @@
             break;
           case "string":
           case "unichar":
-          case "fontname":
             var iss = Components.classes["@mozilla.org/supports-string;1"]
                                 .createInstance(Components.interfaces.nsISupportsString);
             iss.data = val;
@@ -382,7 +361,7 @@
 
           if (!this.isElementEditable(aElement))
             return;
-
+          
           var rv = undefined;
           if (aElement.hasAttribute("onsyncfrompreference")) {
             // Value changed, synthesize an event
@@ -391,17 +370,14 @@
               event.initEvent("syncfrompreference", true, true);
               var f = new Function ("event", 
                                     aElement.getAttribute("onsyncfrompreference"));
-              rv = f.call(aElement, event);
+              rv = f(event);
             }
             catch (e) {
-              Components.utils.reportError(e);
+              dump(e);
             }
           }
           var val = rv !== undefined ? rv : (this.instantApply ? this.valueFromPreferences : this.value);
-          // if the preference is marked for reset, show default value in UI
-          if (val === undefined)
-            val = this.defaultValue;
-
+          
           /**
            * Initialize a UI element property with a value. Handles the case 
            * where an element has not yet had a XBL binding attached for it and
@@ -415,8 +391,7 @@
             else
               element.setAttribute(attribute, value);
           }
-          if (aElement.localName == "checkbox" ||
-              aElement.localName == "listitem")
+          if (aElement.localName == "checkbox")
             setValue(aElement, "checked", val);
           else if (aElement.localName == "colorpicker")
             setValue(aElement, "color", val);
@@ -444,12 +419,12 @@
               event.initEvent("synctopreference", true, true);
               var f = new Function ("event", 
                                     aElement.getAttribute("onsynctopreference"));
-              var rv = f.call(aElement, event);
+              var rv = f(event);
               if (rv !== undefined) 
                 return rv;
             }
             catch (e) {
-              Components.utils.reportError(e);
+              dump(e);
             }
           }
           
@@ -464,8 +439,7 @@
               return element[attribute];
             return element.getAttribute(attribute);
           }
-          if (aElement.localName == "checkbox" ||
-              aElement.localName == "listitem")
+          if (aElement.localName == "checkbox")
             var value = getValue(aElement, "checked");
           else if (aElement.localName == "colorpicker")
             value = getValue(aElement, "color");
@@ -534,14 +508,16 @@
     <content dlgbuttons="accept,cancel" persist="lastSelected screenX screenY"
              closebuttonlabel="&preferencesCloseButton.label;"
              closebuttonaccesskey="&preferencesCloseButton.accesskey;"
-             role="dialog"
+             xmlns:xhtml2="http://www.w3.org/TR/xhtml2"
+             xmlns:wairole="http://www.w3.org/2005/01/wai-rdf/GUIRoleTaxonomy#"
+             xhtml2:role="wairole:dialog"
 #ifdef XP_WIN
              title="&preferencesDefaultTitleWin.title;">
 #else
              title="&preferencesDefaultTitleMac.title;">
 #endif
       <xul:radiogroup anonid="selector" orient="horizontal" class="paneSelector chromeclass-toolbar"
-                      role="listbox"/> <!-- Expose to accessibility APIs as a listbox -->
+                      xhtml2:role="wairole:list"/> <!-- Expose to accessibility APIs as a list -->
       <xul:hbox flex="1" class="paneDeckContainer">
         <xul:deck anonid="paneDeck" flex="1">
           <children includes="prefpane"/>
@@ -597,7 +573,6 @@
 #endif
           }
         }
-        this.setAttribute("animated", this._shouldAnimate ? "true" : "false");
         var panes = this.preferencePanes;
 
         var lastPane = null;
@@ -654,8 +629,6 @@
       <property name="type" onget="return this.getAttribute('type');"/>
       <property name="_paneDeck"
                 onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'paneDeck');"/>
-      <property name="_paneDeckContainer"
-                onget="return document.getAnonymousElementByAttribute(this, 'class', 'paneDeckContainer');"/>
       <property name="_selector"
                 onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'selector');"/>
       <property name="lastSelected" 
@@ -666,17 +639,7 @@
           return val;
         </setter>          
       </property>
-      <property name="currentPane"
-                onset="return this._currentPane = val;">
-        <getter>
-          if (!this._currentPane)
-            this._currentPane = this.preferencePanes[0];
-          
-          return this._currentPane;
-        </getter> 
-      </property>
-      <field name="_currentPane">null</field>
-      
+      <field name="currentPane">null</field>
       
       <method name="_makePaneButton">
         <parameter name="aPaneElement"/>
@@ -700,9 +663,6 @@
         <parameter name="aPaneElement"/>
         <body>
         <![CDATA[
-          if (!aPaneElement)
-            return;
-
           this._selector.selectedItem = document.getAnonymousElementByAttribute(this, "pane", aPaneElement.id);
           if (!aPaneElement.loaded) {
             function OverlayLoadObserver(aPane)
@@ -764,32 +724,15 @@
           if (paneTitle != "")
             document.title = paneTitle;
 #endif
-          var helpButton = document.documentElement.getButton("help");
-          if (aPaneElement.helpTopic)
-            helpButton.hidden = false;
-          else
-            helpButton.hidden = true;
 
           // Find this pane's index in the deck and set the deck's 
           // selectedIndex to that value to switch to it.
           var prefpanes = this.preferencePanes;
           for (var i = 0; i < prefpanes.length; ++i) {
             if (prefpanes[i] == aPaneElement) {
-              this._paneDeck.selectedIndex = i;
+              this._paneDeck.setAttribute("selectedIndex", i);
               
               if (this.type != "child") {
-                if (aPaneElement.hasAttribute("flex") && this._shouldAnimate &&
-                    prefpanes.length > 1)
-                  aPaneElement.removeAttribute("flex");
-                // Calling sizeToContent after the first prefpane is loaded
-                // will size the windows contents so style information is
-                // available to calculate correct sizing.
-                if (!this._initialized && prefpanes.length > 1) {
-                  if (this._shouldAnimate)
-                    this.style.minHeight = 0;
-                  window.sizeToContent();
-                }
-
                 var oldPane = this.lastSelected ? document.getElementById(this.lastSelected) : this.preferencePanes[0];
                 oldPane.selected = !(aPaneElement.selected = true);
                 this.lastSelected = aPaneElement.id;
@@ -798,34 +741,23 @@
 
                 // Only animate if we've switched between prefpanes
                 if (this._shouldAnimate && oldPane.id != aPaneElement.id) {
+                  // Don't let the new pane content flex to the current window
+                  // height if we're animating 
+                  aPaneElement.removeAttribute("flex");
+
                   aPaneElement.style.opacity = 0.0;
                   this.animate(oldPane, aPaneElement);
-                }
-                else if (!this._shouldAnimate && prefpanes.length > 1) {
-                  var targetHeight = parseInt(window.getComputedStyle(this._paneDeckContainer, "").height);
-                  var verticalPadding = parseInt(window.getComputedStyle(aPaneElement, "").paddingTop);
-                  verticalPadding += parseInt(window.getComputedStyle(aPaneElement, "").paddingBottom);
-                  if (aPaneElement.contentHeight > targetHeight - verticalPadding) {
-                    // To workaround the bottom border of a groupbox from being
-                    // cutoff an hbox with a class of bottomBox may enclose it.
-                    // This needs to include its padding to resize properly.
-                    // See bug 394433
-                    var bottomPadding = 0;
-                    var bottomBox = aPaneElement.getElementsByAttribute("class", "bottomBox")[0];
-                    if (bottomBox)
-                      bottomPadding = parseInt(window.getComputedStyle(bottomBox, "").paddingBottom);
-                    window.innerHeight += bottomPadding + verticalPadding + aPaneElement.contentHeight - targetHeight;
-                  }
-
-                  // XXX rstrong - extend the contents of the prefpane to
-                  // prevent elements from being cutoff (see bug 349098).
-                  if (aPaneElement.contentHeight + verticalPadding < targetHeight)
-                    aPaneElement._content.style.height = targetHeight - verticalPadding + "px";
                 }
               }
               break;
             }
           }
+
+          var helpButton = document.documentElement.getButton("help");
+          if (aPaneElement.hasAttribute("helpURI"))
+            helpButton.hidden = false;
+          else
+            helpButton.hidden = true;
         ]]>
         </body>
       </method>
@@ -1002,8 +934,67 @@
         ]]>
         </body>
       </method>
+      
+      // copied from contextHelp.js
+      // Locate existing help window for this helpFileURI.
+      <method name="locateHelpWindow">
+        <parameter name="helpFileURI"/>
+        <body>
+        <![CDATA[
+          const wm = Components.classes['@mozilla.org/appshell/window-mediator;1']
+                               .getService(Components.interfaces.nsIWindowMediator);
+          const iterator = wm.getEnumerator("mozilla:help");
+          var topWindow = null;
+          var aWindow;
+
+          // Loop through help windows looking for one with selected helpFileURI
+          while (iterator.hasMoreElements()) {
+            aWindow = iterator.getNext();
+            if (aWindow.getHelpFileURI() == helpFileURI)
+              topWindow = aWindow;
+          }
+          return topWindow;
+        ]]>
+        </body>
+      </method>
+      
+      // copied from contextHelp.js
+      // Opens up the Help Viewer with the specified topic and helpFileURI.
+      <method name="openHelp">
+        <parameter name="topic"/>
+        <parameter name="helpFileURI"/>
+        <body>
+        <![CDATA[
+          // Try to find previously opened help.
+          var topWindow = this.locateHelpWindow(helpFileURI);
+
+          if (topWindow) {
+          // Open topic in existing window.
+            topWindow.focus();
+            topWindow.displayTopic(topic);
+          }
+          else {
+          // Open topic in new window.
+            const params = Components.classes["@mozilla.org/embedcomp/dialogparam;1"]
+                                     .createInstance(Components.interfaces.nsIDialogParamBlock);
+            params.SetNumberStrings(2);
+            params.SetString(0, helpFileURI);
+            params.SetString(1, topic);
+            const ww = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
+                                 .getService(Components.interfaces.nsIWindowWatcher);
+            ww.openWindow(null, "chrome://help/content/help.xul", "_blank", "chrome,all,alwaysRaised,dialog=no", params);
+          }
+        ]]>
+        </body>
+      </method>
     </implementation>
     <handlers>
+      <handler event="dialoghelp">
+        // currentPane is set in _selectPane for prefwindows which aren't childs.
+        // So if there's no currentPane, just use the first pane.
+        var pane = this.currentPane ? this.currentPane : this.preferencePanes[0];
+        this.openHelp(pane.helpTopic, pane.getAttribute("helpURI"));
+      </handler>
       <handler event="dialogaccept">
       <![CDATA[
         if (!this._fireEvent("beforeaccept", this)) 

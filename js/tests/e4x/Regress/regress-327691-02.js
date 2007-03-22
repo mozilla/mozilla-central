@@ -36,15 +36,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'regress-327691-02.js';
+START("Do not crash during gc()");
 
-var summary = "Do not crash during gc()";
-var BUGNUMBER = 327691;
+var bug = 327691;
+var summary = 'Do not crash during gc()';
 var actual = 'No Crash';
 var expect = 'No Crash';
 
-printBugNumber(BUGNUMBER);
-START(summary);
+printBugNumber (bug);
+printStatus (summary);
 
 var A=<y/>;
 var B=A.h;

@@ -787,6 +787,8 @@ PRIVATE PRBool uCheckAndScan4BytesGB18030(
     (in[2] - 0x81)) * 10 ) + (in[3] - 0x30);
   
   *inscanlen = 4;
-  *out = (data < 0x00010000) ? data : 0xFFFD;
+  if(data >= 0x00010000)  
+    return PR_FALSE;
+  *out = (PRUint16) data;
   return PR_TRUE;
 }

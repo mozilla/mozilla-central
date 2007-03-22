@@ -35,9 +35,6 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-gTestfile = 'byte-002.js';
-
 /**
  *  java array objects "inherit" JS string methods.  verify that byte arrays
  *  can inherit JavaScript Array object methods
@@ -53,8 +50,8 @@ startTest();
 var b = new java.lang.String("abcdefghijklmnopqrstuvwxyz").getBytes();
 
 new TestCase(
-  "var b = new java.lang.String(\"abcdefghijklmnopqrstuvwxyz\").getBytes(); b.valueOf()",
-  b,
-  b.valueOf() );
+    "var b = new java.lang.String(\"abcdefghijklmnopqrstuvwxyz\").getBytes(); b.valueOf()",
+    b,
+    b.valueOf() );
 
 test();

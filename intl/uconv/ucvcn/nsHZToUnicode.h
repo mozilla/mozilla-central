@@ -70,7 +70,6 @@ protected:
 
 private:
   PRInt16 mHZState;
-  PRUint32 mRunLength; // length of a run of 8-bit GB-encoded characters
 
 };
 

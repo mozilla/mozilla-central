@@ -44,12 +44,13 @@
  * JS symbol tables.
  */
 #include "jstypes.h"
-#include "jslock.h"
 #include "jsobj.h"
 #include "jsprvtd.h"
 #include "jspubtd.h"
 
-JS_BEGIN_EXTERN_C
+#ifdef JS_THREADSAFE
+# include "jslock.h"
+#endif
 
 /*
  * Given P independent, non-unique properties each of size S words mapped by
@@ -118,7 +119,10 @@ JS_BEGIN_EXTERN_C
  * are find-node and insert-node, then the only hazard is duplicate insertion.
  * This is harmless except for minor bloat.  When all requests have ended or
  * been suspended, the GC is free to sweep the tree after marking all nodes
- * reachable from scopes, performing remove-node operations as needed.
+ * reachable from scopes, performing remove-node operations as needed.  Note
+ * also that the stable storage of the property nodes during active requests
+ * permits the property cache (see jsinterp.h) to dereference JSScopeProperty
+ * weak references safely.
  *
  * Is the property tree worth it compared to property storage in each table's
  * entries?  To decide, we must find the relation <> between the words used
@@ -197,11 +201,7 @@ JS_BEGIN_EXTERN_C
 
 struct JSScope {
     JSObjectMap     map;                /* base class state */
-#ifdef JS_THREADSAFE
-    JSTitle         title;              /* lock state */
-#endif
     JSObject        *object;            /* object that owns this scope */
-    uint32          shape;              /* property cache shape identifier */
     uint8           flags;              /* flags, see below */
     int8            hashShift;          /* multiplicative hash shift */
     uint16          spare;              /* reserved */
@@ -209,28 +209,21 @@ struct JSScope {
     uint32          removedCount;       /* removed entry sentinels in table */
     JSScopeProperty **table;            /* table of ptrs to shared tree nodes */
     JSScopeProperty *lastProp;          /* pointer to last property added */
+#ifdef JS_THREADSAFE
+    JSContext       *ownercx;           /* creating context, NULL if shared */
+    JSThinLock      lock;               /* binary semaphore protecting scope */
+    union {                             /* union lockful and lock-free state: */
+        jsrefcount  count;              /* lock entry count for reentrancy */
+        JSScope     *link;              /* next link in rt->scopeSharingTodo */
+    } u;
+#ifdef DEBUG
+    const char      *file[4];           /* file where lock was (re-)taken */
+    unsigned int    line[4];            /* line where lock was (re-)taken */
+#endif
+#endif
 };
 
-#ifdef JS_THREADSAFE
-JS_STATIC_ASSERT(offsetof(JSScope, title) == sizeof(JSObjectMap));
-#endif
-
-#define JS_IS_SCOPE_LOCKED(cx, scope)   JS_IS_TITLE_LOCKED(cx, &(scope)->title)
-
 #define OBJ_SCOPE(obj)                  ((JSScope *)(obj)->map)
-
-#define SCOPE_MAKE_UNIQUE_SHAPE(cx,scope)                                     \
-    ((scope)->shape = js_GenerateShape((cx), JS_FALSE))
-
-#define SCOPE_EXTEND_SHAPE(cx,scope,sprop)                                    \
-    JS_BEGIN_MACRO                                                            \
-        if (!(scope)->lastProp ||                                             \
-            (scope)->shape == (scope)->lastProp->shape) {                     \
-            (scope)->shape = (sprop)->shape;                                  \
-        } else {                                                              \
-            (scope)->shape = js_GenerateShape((cx), JS_FALSE);                \
-        }                                                                     \
-    JS_END_MACRO
 
 /* By definition, hashShift = JS_DHASH_BITS - log2(capacity). */
 #define SCOPE_CAPACITY(scope)           JS_BIT(JS_DHASH_BITS-(scope)->hashShift)
@@ -238,7 +231,6 @@ JS_STATIC_ASSERT(offsetof(JSScope, title) == sizeof(JSObjectMap));
 /* Scope flags and some macros to hide them from other files than jsscope.c. */
 #define SCOPE_MIDDLE_DELETE             0x0001
 #define SCOPE_SEALED                    0x0002
-#define SCOPE_BRANDED                   0x0004
 
 #define SCOPE_HAD_MIDDLE_DELETE(scope)  ((scope)->flags & SCOPE_MIDDLE_DELETE)
 #define SCOPE_SET_MIDDLE_DELETE(scope)  ((scope)->flags |= SCOPE_MIDDLE_DELETE)
@@ -251,17 +243,8 @@ JS_STATIC_ASSERT(offsetof(JSScope, title) == sizeof(JSObjectMap));
  * Don't define this, it can't be done safely because JS_LOCK_OBJ will avoid
  * taking the lock if the object owns its scope and the scope is sealed.
  */
-#undef  SCOPE_CLR_SEALED(scope)         ((scope)->flags &= ~SCOPE_SEALED)
+#define SCOPE_CLR_SEALED(scope)         ((scope)->flags &= ~SCOPE_SEALED)
 #endif
-
-/*
- * A branded scope's object contains plain old methods (function-valued
- * properties without magic getters and setters), and its scope->shape
- * evolves whenever a function value changes.
- */
-#define SCOPE_IS_BRANDED(scope)         ((scope)->flags & SCOPE_BRANDED)
-#define SCOPE_SET_BRANDED(scope)        ((scope)->flags |= SCOPE_BRANDED)
-#define SCOPE_CLR_BRANDED(scope)        ((scope)->flags &= ~SCOPE_BRANDED)
 
 /*
  * A little information hiding for scope->lastProp, in case it ever becomes
@@ -282,7 +265,6 @@ struct JSScopeProperty {
     JSScopeProperty *parent;            /* parent node, reverse for..in order */
     JSScopeProperty *kids;              /* null, single child, or a tagged ptr
                                            to many-kids data structure */
-    uint32          shape;              /* property cache shape identifier */
 };
 
 /* JSScopeProperty pointer tag bit indicating a collision. */
@@ -307,9 +289,11 @@ struct JSScopeProperty {
 
 /* Bits stored in sprop->flags. */
 #define SPROP_MARK                      0x01
-#define SPROP_IS_ALIAS                  0x02
-#define SPROP_HAS_SHORTID               0x04
-#define SPROP_FLAG_SHAPE_REGEN          0x08
+#define SPROP_IS_DUPLICATE              0x02
+#define SPROP_IS_ALIAS                  0x04
+#define SPROP_HAS_SHORTID               0x08
+#define SPROP_IS_HIDDEN                 0x10    /* a normally-hidden property,
+                                                   e.g., function arg or var */
 
 /*
  * If SPROP_HAS_SHORTID is set in sprop->flags, we use sprop->shortid rather
@@ -365,6 +349,13 @@ js_NewScope(JSContext *cx, jsrefcount nrefs, JSObjectOps *ops, JSClass *clasp,
 extern void
 js_DestroyScope(JSContext *cx, JSScope *scope);
 
+#define ID_TO_VALUE(id) (JSID_IS_ATOM(id) ? ATOM_JSID_TO_JSVAL(id) :          \
+                         JSID_IS_OBJECT(id) ? OBJECT_JSID_TO_JSVAL(id) :      \
+                         (jsval)(id))
+#define HASH_ID(id)     (JSID_IS_ATOM(id) ? JSID_TO_ATOM(id)->number :        \
+                         JSID_IS_OBJECT(id) ? (jsatomid) JSID_CLRTAG(id) :    \
+                         (jsatomid) JSID_TO_INT(id))
+
 extern JS_FRIEND_API(JSScopeProperty **)
 js_SearchScope(JSScope *scope, jsid id, JSBool adding);
 
@@ -395,14 +386,14 @@ js_ClearScope(JSContext *cx, JSScope *scope);
  * We retain them for internal backward compatibility, and in case one or both
  * ever shrink to inline-able size.
  */
-#define TRACE_ID(trc, id)                js_TraceId(trc, id)
-#define TRACE_SCOPE_PROPERTY(trc, sprop) js_TraceScopeProperty(trc, sprop)
+#define MARK_ID(cx,id)                js_MarkId(cx, id)
+#define MARK_SCOPE_PROPERTY(cx,sprop) js_MarkScopeProperty(cx, sprop)
 
 extern void
-js_TraceId(JSTracer *trc, jsid id);
+js_MarkId(JSContext *cx, jsid id);
 
 extern void
-js_TraceScopeProperty(JSTracer *trc, JSScopeProperty *sprop);
+js_MarkScopeProperty(JSContext *cx, JSScopeProperty *sprop);
 
 extern void
 js_SweepScopeProperties(JSContext *cx);
@@ -412,7 +403,5 @@ js_InitPropertyTree(JSRuntime *rt);
 
 extern void
 js_FinishPropertyTree(JSRuntime *rt);
-
-JS_END_EXTERN_C
 
 #endif /* jsscope_h___ */

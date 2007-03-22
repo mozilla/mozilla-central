@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -35,9 +34,6 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-gTestfile = 'constructor.js';
-
 /**
  * Tests constructing some Java classes from JS.
  * Tests constructor matching algorithm.
@@ -86,19 +82,19 @@ test();
 
 
 function test_typeof( eType, someObject ) {
-  new TestCase( SECTION,
-		"typeof( " +someObject+")",
-		eType,
-		typeof someObject );
+    new TestCase( SECTION,
+		  "typeof( " +someObject+")",
+		  eType,
+		  typeof someObject );
 }
 
 /**
  * Implements Java instanceof keyword.
  */
 function test_class( eClass, javaObject ) {
-  new TestCase( SECTION,
-		javaObject +".getClass().equals( java.lang.Class.forName( " +
-		eClass +")",
-		true,
-		(javaObject.getClass()).equals( java.lang.Class.forName(eClass)) );
+    new TestCase( SECTION,
+		  javaObject +".getClass().equals( java.lang.Class.forName( " +
+		  eClass +")",
+		  true,
+		  (javaObject.getClass()).equals( java.lang.Class.forName(eClass)) );
 }

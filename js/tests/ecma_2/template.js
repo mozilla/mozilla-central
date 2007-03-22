@@ -35,8 +35,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'template.js';
-
 /**
  *  File Name:          template.js
  *  Reference:          ** replace with bugzilla URL or document reference **

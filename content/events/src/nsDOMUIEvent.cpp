@@ -45,17 +45,19 @@
 #include "nsIDOMNode.h"
 #include "nsIContent.h"
 #include "nsContentUtils.h"
+#include "nsIWidget.h"
 #include "nsIPresShell.h"
 #include "nsIEventStateManager.h"
 #include "nsIFrame.h"
 #include "nsLayoutUtils.h"
 #include "nsIScrollableFrame.h"
+#include "nsIViewManager.h"
 
 nsDOMUIEvent::nsDOMUIEvent(nsPresContext* aPresContext, nsGUIEvent* aEvent)
   : nsDOMEvent(aPresContext, aEvent ?
-               static_cast<nsEvent *>(aEvent) :
-               static_cast<nsEvent *>(new nsUIEvent(PR_FALSE, 0, 0)))
-  , mClientPoint(0, 0), mLayerPoint(0, 0), mPagePoint(0, 0)
+               NS_STATIC_CAST(nsEvent *, aEvent) :
+               NS_STATIC_CAST(nsEvent *, new nsUIEvent(PR_FALSE, 0, 0)))
+  , mClientPoint(0,0)
 {
   if (aEvent) {
     mEventIsInternal = PR_FALSE;
@@ -71,14 +73,14 @@ nsDOMUIEvent::nsDOMUIEvent(nsPresContext* aPresContext, nsGUIEvent* aEvent)
   {
     case NS_UI_EVENT:
     {
-      nsUIEvent *event = static_cast<nsUIEvent*>(mEvent);
+      nsUIEvent *event = NS_STATIC_CAST(nsUIEvent*, mEvent);
       mDetail = event->detail;
       break;
     }
 
     case NS_SCROLLPORT_EVENT:
     {
-      nsScrollPortEvent* scrollEvent = static_cast<nsScrollPortEvent*>(mEvent);
+      nsScrollPortEvent* scrollEvent = NS_STATIC_CAST(nsScrollPortEvent*, mEvent);
       mDetail = (PRInt32)scrollEvent->orient;
       break;
     }
@@ -101,20 +103,10 @@ nsDOMUIEvent::nsDOMUIEvent(nsPresContext* aPresContext, nsGUIEvent* aEvent)
   }
 }
 
-NS_IMPL_CYCLE_COLLECTION_CLASS(nsDOMUIEvent)
-
-NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN_INHERITED(nsDOMUIEvent, nsDOMEvent)
-  NS_IMPL_CYCLE_COLLECTION_UNLINK_NSCOMPTR(mView)
-NS_IMPL_CYCLE_COLLECTION_UNLINK_END
-
-NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN_INHERITED(nsDOMUIEvent, nsDOMEvent)
-  NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mView)
-NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
-
 NS_IMPL_ADDREF_INHERITED(nsDOMUIEvent, nsDOMEvent)
 NS_IMPL_RELEASE_INHERITED(nsDOMUIEvent, nsDOMEvent)
 
-NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION_INHERITED(nsDOMUIEvent)
+NS_INTERFACE_MAP_BEGIN(nsDOMUIEvent)
   NS_INTERFACE_MAP_ENTRY(nsIDOMUIEvent)
   NS_INTERFACE_MAP_ENTRY(nsIDOMNSUIEvent)
   NS_INTERFACE_MAP_ENTRY(nsIPrivateCompositionEvent)
@@ -133,13 +125,12 @@ nsPoint nsDOMUIEvent::GetScreenPoint() {
   if (!((nsGUIEvent*)mEvent)->widget ) {
     return mEvent->refPoint;
   }
-
+    
   nsRect bounds(mEvent->refPoint, nsSize(1, 1));
   nsRect offset;
   ((nsGUIEvent*)mEvent)->widget->WidgetToScreen ( bounds, offset );
-  PRInt32 factor = mPresContext->DeviceContext()->UnscaledAppUnitsPerDevPixel();
-  return nsPoint(nsPresContext::AppUnitsToIntCSSPixels(offset.x * factor),
-                 nsPresContext::AppUnitsToIntCSSPixels(offset.y * factor));
+  return nsPoint(nsPresContext::AppUnitsToIntCSSPixels(mPresContext->DevPixelsToAppUnits(offset.x)),
+                 nsPresContext::AppUnitsToIntCSSPixels(mPresContext->DevPixelsToAppUnits(offset.y)));
 }
 
 nsPoint nsDOMUIEvent::GetClientPoint() {
@@ -148,22 +139,93 @@ nsPoint nsDOMUIEvent::GetClientPoint() {
        mEvent->eventStructType != NS_POPUP_EVENT &&
        mEvent->eventStructType != NS_MOUSE_SCROLL_EVENT &&
        !NS_IS_DRAG_EVENT(mEvent)) ||
-      !mPresContext ||
-      !((nsGUIEvent*)mEvent)->widget) {
+      !mPresContext) {
+    return nsPoint(0, 0);
+  }
+
+  //My god, man, there *must* be a better way to do this.
+  nsCOMPtr<nsIWidget> docWidget;
+  nsIPresShell *presShell = mPresContext->GetPresShell();
+  if (presShell) {
+    nsIViewManager* vm = presShell->GetViewManager();
+    if (vm) {
+      vm->GetWidget(getter_AddRefs(docWidget));
+    }
+  }
+
+  nsCOMPtr<nsIWidget> eventWidget = ((nsGUIEvent*)mEvent)->widget;
+  if (!eventWidget || !docWidget)
     return mClientPoint;
+
+  nsPoint pt = mEvent->refPoint;
+
+  // BUG 296004 (see also BUG 242833)
+  //
+  // For document events we want to return a point relative to the local view manager,
+  // (docWidget) not to the generating widget (eventWidget). However, for global events
+  // we want to leave them relative to the generating widget.
+  //
+  // To determine which we are, we use the fact that currently for the latter case our
+  // docWidget and eventWidget won't be linked together in the widget hierarchy. That
+  // means that the coordinate space transform which follows wouldn't have worked
+  // anyway... actually what we want is for all users of this and refPoint to agree
+  // gracefully on what coordinate system to use, but that's a more involved change.
+  
+  nsIWidget* eventParent = eventWidget;
+  for (;;) {
+    nsIWidget* t = eventParent->GetParent();
+    if (!t)
+      break;
+    eventParent = t;
   }
 
-  nsPoint pt(0, 0);
-  nsIPresShell* shell = mPresContext->GetPresShell();
-  if (!shell) {
+  nsIWidget* docParent = docWidget;
+  for (;;) {
+    nsIWidget* t = docParent->GetParent();
+    if (!t)
+      break;
+    docParent = t;
+  }
+
+  if (docParent != eventParent)
     return pt;
-  }
-  nsIFrame* rootFrame = shell->GetRootFrame();
-  if (rootFrame)
-    pt = nsLayoutUtils::GetEventCoordinatesRelativeTo(mEvent, rootFrame);
+  
+  while (eventWidget && docWidget != eventWidget) {
+    nsWindowType windowType;
+    eventWidget->GetWindowType(windowType);
+    if (windowType == eWindowType_popup)
+      break;
 
-  return nsPoint(nsPresContext::AppUnitsToIntCSSPixels(pt.x),
-                 nsPresContext::AppUnitsToIntCSSPixels(pt.y));
+    nsRect bounds;
+    eventWidget->GetBounds(bounds);
+    pt += bounds.TopLeft();
+    eventWidget = eventWidget->GetParent();
+  }
+  
+  if (eventWidget != docWidget) {
+    // docWidget wasn't on the chain from the event widget to the root
+    // of the widget tree (or the nearest popup). OK, so now pt is
+    // relative to eventWidget; to get it relative to docWidget, we
+    // need to subtract docWidget's offset from eventWidget.
+    while (docWidget && docWidget != eventWidget) {
+      nsWindowType windowType;
+      docWidget->GetWindowType(windowType);
+      if (windowType == eWindowType_popup) {
+        // oh dear. the doc and the event were in different popups?
+        // That shouldn't happen.
+        NS_NOTREACHED("doc widget and event widget are in different popups. That's dumb.");
+        break;
+      }
+      
+      nsRect bounds;
+      docWidget->GetBounds(bounds);
+      pt -= bounds.TopLeft();
+      docWidget = docWidget->GetParent();
+    }
+  }
+  
+  return nsPoint(nsPresContext::AppUnitsToIntCSSPixels(mPresContext->DevPixelsToAppUnits(pt.x)),
+                 nsPresContext::AppUnitsToIntCSSPixels(mPresContext->DevPixelsToAppUnits(pt.y)));
 }
 
 NS_IMETHODIMP
@@ -200,24 +262,18 @@ nsDOMUIEvent::GetPagePoint()
   if (((nsGUIEvent*)mEvent)->widget) {
     // Native event; calculate using presentation
     nsPoint pt(0, 0);
-    nsIPresShell* shell = mPresContext->GetPresShell();
-    if (!shell) {
-      return pt;
-    }
-    nsIScrollableFrame* scrollframe = shell->GetRootScrollFrameAsScrollable();
-
+    nsIScrollableFrame* scrollframe =
+            mPresContext->PresShell()->GetRootScrollFrameAsScrollable();
     if (scrollframe)
       pt += scrollframe->GetScrollPosition();
-    nsIFrame* rootFrame = shell->GetRootFrame();
+    nsIFrame* rootFrame = mPresContext->PresShell()->GetRootFrame();
     if (rootFrame)
       pt += nsLayoutUtils::GetEventCoordinatesRelativeTo(mEvent, rootFrame);
     return nsPoint(nsPresContext::AppUnitsToIntCSSPixels(pt.x),
                    nsPresContext::AppUnitsToIntCSSPixels(pt.y));
   }
 
-  // If event was initialized manually using InitMouseEvent(...),
-  // page coordinates must be the same as client coordinates. See bug 405632.
-  return mPrivateDataDuplicated ? mPagePoint : GetClientPoint();
+  return GetClientPoint();
 }
 
 
@@ -315,15 +371,14 @@ nsPoint nsDOMUIEvent::GetLayerPoint() {
   if (!mEvent ||
       (mEvent->eventStructType != NS_MOUSE_EVENT &&
        mEvent->eventStructType != NS_MOUSE_SCROLL_EVENT) ||
-      !mPresContext ||
-      mEventIsInternal) {
-    return mLayerPoint;
+      !mPresContext) {
+    return nsPoint(0,0);
   }
   // XXX I'm not really sure this is correct; it's my best shot, though
   nsIFrame* targetFrame;
   mPresContext->EventStateManager()->GetEventTarget(&targetFrame);
   if (!targetFrame)
-    return mLayerPoint;
+    return nsPoint(0,0);
   nsIFrame* layer = nsLayoutUtils::GetClosestLayer(targetFrame);
   nsPoint pt(nsLayoutUtils::GetEventCoordinatesRelativeTo(mEvent, layer));
   pt.x =  nsPresContext::AppUnitsToIntCSSPixels(pt.x);
@@ -379,7 +434,7 @@ NS_METHOD nsDOMUIEvent::GetCompositionReply(nsTextEventReply** aReply)
      (mEvent->message == NS_COMPOSITION_START) ||
      (mEvent->message == NS_COMPOSITION_QUERY))
   {
-    *aReply = &(static_cast<nsCompositionEvent*>(mEvent)->theReply);
+    *aReply = &(NS_STATIC_CAST(nsCompositionEvent*, mEvent)->theReply);
     return NS_OK;
   }
   *aReply = nsnull;
@@ -391,7 +446,7 @@ nsDOMUIEvent::GetReconversionReply(nsReconversionEventReply** aReply)
 {
   if (mEvent->eventStructType == NS_RECONVERSION_EVENT)
   {
-    *aReply = &(static_cast<nsReconversionEvent*>(mEvent)->theReply);
+    *aReply = &(NS_STATIC_CAST(nsReconversionEvent*, mEvent)->theReply);
     return NS_OK;
   }
   *aReply = nsnull;
@@ -403,26 +458,11 @@ nsDOMUIEvent::GetQueryCaretRectReply(nsQueryCaretRectEventReply** aReply)
 {
   if (mEvent->eventStructType == NS_QUERYCARETRECT_EVENT)
   {
-    *aReply = &(static_cast<nsQueryCaretRectEvent*>(mEvent)->theReply);
+    *aReply = &(NS_STATIC_CAST(nsQueryCaretRectEvent*, mEvent)->theReply);
     return NS_OK;
   }
   *aReply = nsnull;
   return NS_ERROR_FAILURE;
-}
-
-NS_METHOD
-nsDOMUIEvent::DuplicatePrivateData()
-{
-  mClientPoint = GetClientPoint();
-  mLayerPoint = GetLayerPoint();
-  mPagePoint = GetPagePoint();
-  // GetScreenPoint converts mEvent->refPoint to right coordinates.
-  nsPoint screenPoint = GetScreenPoint();
-  nsresult rv = nsDOMEvent::DuplicatePrivateData();
-  if (NS_SUCCEEDED(rv)) {
-    mEvent->refPoint = screenPoint;
-  }
-  return rv;
 }
 
 nsresult NS_NewDOMUIEvent(nsIDOMEvent** aInstancePtrResult,

@@ -50,13 +50,13 @@ typedef nsTArray< nsRefPtr<nsThread> > nsThreadArray;
 PR_STATIC_CALLBACK(void)
 ReleaseObject(void *data)
 {
-  static_cast<nsISupports *>(data)->Release();
+  NS_STATIC_CAST(nsISupports *, data)->Release();
 }
 
 PR_STATIC_CALLBACK(PLDHashOperator)
 AppendAndRemoveThread(const void *key, nsRefPtr<nsThread> &thread, void *arg)
 {
-  nsThreadArray *threads = static_cast<nsThreadArray *>(arg);
+  nsThreadArray *threads = NS_STATIC_CAST(nsThreadArray *, arg);
   threads->AppendElement(thread);
   return PL_DHASH_REMOVE;
 }
@@ -198,11 +198,7 @@ nsThreadManager::GetCurrentThread()
   // read thread local storage
   void *data = PR_GetThreadPrivate(mCurThreadIndex);
   if (data)
-    return static_cast<nsThread *>(data);
-
-  if (!mInitialized) {
-    return nsnull;
-  }
+    return NS_STATIC_CAST(nsThread *, data);
 
   // OK, that's fine.  We'll dynamically create one :-)
   nsRefPtr<nsThread> thread = new nsThread();

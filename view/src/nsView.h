@@ -44,13 +44,38 @@
 #include "nsRect.h"
 #include "nsCRT.h"
 #include "nsIFactory.h"
+#include "nsIViewObserver.h"
 #include "nsEvent.h"
 #include <stdio.h>
 
 //mmptemp
 
+class nsIRegion;
+class nsIRenderingContext;
 class nsIViewManager;
 class nsViewManager;
+class nsZPlaceholderView;
+
+// View flags private to the view module
+
+// indicates that the view is or contains a placeholder view
+#define NS_VIEW_FLAG_CONTAINS_PLACEHOLDER 0x0100
+
+// Flag to determine whether the view will check if events can be handled
+// by its children or just handle the events itself
+#define NS_VIEW_FLAG_DONT_CHECK_CHILDREN  0x0200
+
+// set if this view is clipping its normal descendants
+// to its bounds. When this flag is set, child views
+// bounds need not be inside this view's bounds.
+#define NS_VIEW_FLAG_CLIP_CHILDREN_TO_BOUNDS      0x0800
+
+// set if this view is clipping its descendants (including
+// placeholders) to its bounds
+#define NS_VIEW_FLAG_CLIP_PLACEHOLDERS_TO_BOUNDS  0x1000
+
+// set if this view has positioned its widget at least once
+#define NS_VIEW_FLAG_HAS_POSITIONED_WIDGET 0x2000
 
 class nsView : public nsIView
 {
@@ -80,6 +105,12 @@ public:
   void GetDimensions(nsSize &aSize) const { aSize.width = mDimBounds.width; aSize.height = mDimBounds.height; }
 
   /**
+   * This checks whether the view is a placeholder for some view that has
+   * been reparented to a different geometric parent.
+   */
+  virtual PRBool IsZPlaceholderView() const { return PR_FALSE; }
+
+  /**
    * Called to indicate that the visibility of a view has been
    * changed.
    * @param visibility new visibility state
@@ -106,10 +137,20 @@ public:
    * @result PR_TRUE if the view floats, PR_FALSE otherwise.
    */
   NS_IMETHOD  SetFloating(PRBool aFloatingView);
+  /**
+   * Set the widget associated with this view.
+   * @param aWidget widget to associate with view. It is an error
+   *        to associate a widget with more than one view. To disassociate
+   *        a widget from a view, use nsnull. If there are no more references
+   *        to the widget that may have been associated with the view, it will
+   *        be destroyed.
+   * @return error status
+   */
+  NS_IMETHOD  SetWidget(nsIWidget *aWidget);
 
   // Helper function to get the view that's associated with a widget
   static nsView* GetViewFor(nsIWidget* aWidget) {
-    return static_cast<nsView*>(nsIView::GetViewFor(aWidget));
+    return NS_STATIC_CAST(nsView*, nsIView::GetViewFor(aWidget));
   }
 
   // Helper function to get mouse grabbing off this view (by moving it to the
@@ -118,6 +159,7 @@ public:
 
 public:
   // NOT in nsIView, so only available in view module
+  nsZPlaceholderView* GetZParent() const { return mZParent; }
   // These are also present in nsIView, but these versions return nsView and nsViewManager
   // instead of nsIView and nsIViewManager.
   nsView* GetFirstChild() const { return mFirstChild; }
@@ -147,6 +189,7 @@ public:
   void RemoveChild(nsView *aChild);
 
   void SetParent(nsView *aParent) { mParent = aParent; }
+  void SetZParent(nsZPlaceholderView *aZParent) { mZParent = aZParent; }
   void SetNextSibling(nsView *aSibling) { mNextSibling = aSibling; }
 
   PRUint32 GetViewFlags() const { return mVFlags; }
@@ -175,29 +218,17 @@ public:
 
   virtual ~nsView();
 
-  nsPoint ViewToWidgetOffset() const {
-    if (mParent && mParent->GetViewManager() != GetViewManager()) {
-      // The document root view's mViewToWidgetOffset is always (0,0).
-      // If it has a parent view, the parent view must be the inner view
-      // for an nsSubdocumentFrame; its top-left position in appunits
-      // is always positioned at that inner view's top-left, and its
-      // widget top-left is always positioned at that inner view's widget's
-      // top-left, so its ViewToWidgetOffset is actually the same as
-      // its parent's.
-      return mParent->ViewToWidgetOffset();
-    }
-    return mViewToWidgetOffset;
-  }
-
-  nsRect CalcWidgetBounds(nsWindowType aType);
-
 protected:
   // Do the actual work of ResetWidgetBounds, unconditionally.  Don't
   // call this method if we have no widget.
   void DoResetWidgetBounds(PRBool aMoveOnly, PRBool aInvalidateChangedSize);
+  
+  nsZPlaceholderView* mZParent;
 
+  // mClipRect is relative to the view's origin.
+  nsRect*      mClipRect;
   nsRegion*    mDirtyRegion;
-  nsPoint      mViewToWidgetOffset;
+  PRPackedBool mChildRemoved;
 };
 
 #endif

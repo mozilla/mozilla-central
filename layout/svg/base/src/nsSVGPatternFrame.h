@@ -44,14 +44,12 @@
 #include "nsIDOMSVGAnimatedString.h"
 #include "nsIDOMSVGMatrix.h"
 #include "nsSVGPaintServerFrame.h"
-#include "gfxMatrix.h"
 
 class nsIDOMSVGAnimatedPreserveAspectRatio;
 class nsIFrame;
 class nsSVGLength2;
 class nsSVGElement;
 class gfxContext;
-class gfxASurface;
 
 typedef nsSVGPaintServerFrame  nsSVGPatternFrameBase;
 
@@ -65,23 +63,22 @@ public:
 
   nsSVGPatternFrame(nsStyleContext* aContext) : nsSVGPatternFrameBase(aContext) {}
 
-  nsresult PaintPattern(gfxASurface **surface,
-                        gfxMatrix *patternMatrix,
-                        nsSVGGeometryFrame *aSource,
-                        float aGraphicOpacity);
+  nsresult PaintPattern(cairo_surface_t **surface,
+                        nsIDOMSVGMatrix **patternMatrix,
+                        nsSVGGeometryFrame *aSource);
 
   // nsSVGPaintServerFrame methods:
-  virtual PRBool SetupPaintServer(gfxContext *aContext,
-                                  nsSVGGeometryFrame *aSource,
-                                  float aGraphicOpacity);
+  virtual nsresult SetupPaintServer(gfxContext *aContext,
+                                    nsSVGGeometryFrame *aSource,
+                                    float aOpacity,
+                                    void **aClosure);
+  virtual void CleanupPaintServer(gfxContext *aContext, void *aClosure);
 
   // nsISupports interface:
   NS_IMETHOD QueryInterface(const nsIID& aIID, void** aInstancePtr);
-private:
-  NS_IMETHOD_(nsrefcnt) AddRef() { return 1; }
-  NS_IMETHOD_(nsrefcnt) Release() { return 1; }
+  NS_IMETHOD_(nsrefcnt) AddRef() { return NS_OK; }
+  NS_IMETHOD_(nsrefcnt) Release() { return NS_OK; }
 
-public:
   // nsISVGValueObserver interface:
   NS_IMETHOD WillModifySVGObservable(nsISVGValue* observable, 
                                      nsISVGValue::modificationType aModType);
@@ -130,22 +127,18 @@ protected:
 
   PRUint16 GetPatternUnits();
   PRUint16 GetPatternContentUnits();
-  gfxMatrix GetPatternTransform();
+  nsresult GetPatternTransform(nsIDOMSVGMatrix **retval);
 
   NS_IMETHOD GetPreserveAspectRatio(nsIDOMSVGAnimatedPreserveAspectRatio 
                                                      **aPreserveAspectRatio);
   NS_IMETHOD GetPatternFirstChild(nsIFrame **kid);
   NS_IMETHOD GetViewBox(nsIDOMSVGRect * *aMatrix);
-  nsresult   GetPatternRect(nsIDOMSVGRect **patternRect,
-                            nsIDOMSVGRect *bbox,
-                            nsIDOMSVGMatrix *callerCTM,
+  nsresult   GetPatternRect(nsIDOMSVGRect **patternRect, nsIDOMSVGRect *bbox, 
                             nsSVGElement *content);
-  gfxMatrix  GetPatternMatrix(nsIDOMSVGRect *bbox,
-                              nsIDOMSVGRect *callerBBox,
+  nsresult   GetPatternMatrix(nsIDOMSVGMatrix **aCTM, 
+                              nsIDOMSVGRect *bbox,
                               nsIDOMSVGMatrix *callerCTM);
-  nsresult   ConstructCTM(nsIDOMSVGMatrix **ctm,
-                          nsIDOMSVGRect *callerBBox,
-                          nsIDOMSVGMatrix *callerCTM);
+  nsresult   ConstructCTM(nsIDOMSVGMatrix **ctm, nsIDOMSVGRect *callerBBox);
   nsresult   GetCallerGeometry(nsIDOMSVGMatrix **aCTM, 
                                nsIDOMSVGRect **aBBox,
                                nsSVGElement **aContent, 

@@ -60,10 +60,9 @@ ServerIsNES3x(nsIHttpChannel *httpChannel)
 
 //-----------------------------------------------------------------------------
 
-NS_IMPL_ISUPPORTS6(nsURIChecker,
+NS_IMPL_ISUPPORTS5(nsURIChecker,
                    nsIURIChecker,
                    nsIRequest,
-                   nsIRequestObserver,
                    nsIStreamListener,
                    nsIChannelEventSink,
                    nsIInterfaceRequestor)
@@ -304,7 +303,7 @@ nsURIChecker::SetLoadFlags(nsLoadFlags aLoadFlags)
 }
 
 //-----------------------------------------------------------------------------
-// nsIRequestObserver methods:
+// nsIStreamListener methods:
 //-----------------------------------------------------------------------------
 
 NS_IMETHODIMP
@@ -333,10 +332,6 @@ nsURIChecker::OnStopRequest(nsIRequest *request, nsISupports *ctxt,
     }
     return NS_OK;
 }
-
-//-----------------------------------------------------------------------------
-// nsIStreamListener methods:
-//-----------------------------------------------------------------------------
 
 NS_IMETHODIMP
 nsURIChecker::OnDataAvailable(nsIRequest *aRequest, nsISupports *aCtxt,

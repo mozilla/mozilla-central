@@ -138,11 +138,16 @@ nsresult nsMacCommandLine::Initialize(int& argc, char**& argv)
   mArgs[0] = nsnull;
   mArgsAllocated = kArgsGrowSize;
   mArgsUsed = 0;
-
+  
+#if defined(XP_MACOSX)
   // Here, we may actually get useful args.
   // Copy them first to mArgv.
   for (int arg = 0; arg < argc; arg++)
     AddToCommandLine(argv[arg]);
+#else
+  // init the args buffer with the program name
+  AddToCommandLine("mozilla");
+#endif
 
   // Set up AppleEvent handling.
   OSErr err = CreateAEHandlerClasses(false);
@@ -170,8 +175,8 @@ nsresult nsMacCommandLine::Initialize(int& argc, char**& argv)
       err = ::AEProcessAppleEvent(&anEvent);
     }
   }
-
-  if (::GetCurrentEventKeyModifiers() & optionKey)
+  
+  if (GetCurrentKeyModifiers() & optionKey)
     AddToCommandLine("-p");
 
   // we've started up now

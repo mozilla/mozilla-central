@@ -119,7 +119,7 @@ nsHelperAppDialog.prototype = {
     },
 
     // promptForSaveToFile:  Display file picker dialog and return selected file.
-    promptForSaveToFile: function(aLauncher, aContext, aDefaultFile, aSuggestedFileExtension, aForcePrompt) {
+    promptForSaveToFile: function(aLauncher, aContext, aDefaultFile, aSuggestedFileExtension) {
         var result = "";
 
         const prefSvcContractID = "@mozilla.org/preferences-service;1";
@@ -142,7 +142,7 @@ nsHelperAppDialog.prototype = {
 
         var autoDownload = branch.getBoolPref("autoDownload");
         // If the autoDownload pref is set then just download to default download directory
-        if (!aForcePrompt && autoDownload && dir && dir.exists()) {
+        if (autoDownload && dir && dir.exists()) {
             if (aDefaultFile == "")
                 aDefaultFile = bundle.GetStringFromName("noDefaultFile") + (aSuggestedFileExtension || "");
             dir.append(aDefaultFile);
@@ -461,21 +461,13 @@ nsHelperAppDialog.prototype = {
     // initAppAndSaveToDiskValues:
     initAppAndSaveToDiskValues: function() {
         // Fill in helper app info, if there is any.
-        try {
-            this.chosenApp =
-              this.mLauncher.MIMEInfo.preferredApplicationHandler
-                  .QueryInterface(Components.interfaces.nsILocalHandlerApp);
-        } catch (e) {
-            this.chosenApp = null;
-        }
+        this.chosenApp = this.mLauncher.MIMEInfo.preferredApplicationHandler;
         // Initialize "default application" field.
         this.initDefaultApp();
 
         // Fill application name textbox.
-        if (this.chosenApp && this.chosenApp.executable &&
-            this.chosenApp.executable.path) {
-            this.dialogElement( "appPath" ).value = 
-              this.getPath(this.chosenApp.executable);
+        if (this.chosenApp && this.chosenApp.path) {
+            this.dialogElement( "appPath" ).value = this.getPath(this.chosenApp);
         }
 
         var useDefault = this.dialogElement( "useSystemDefault" );;
@@ -525,10 +517,10 @@ nsHelperAppDialog.prototype = {
             // First, see if one was chosen via the Choose... button.
             if ( result ) {
                 // Verify that the user didn't type in something different later.
-                if ( typed != result.executable.path ) {
+                if ( typed != result.path ) {
                     // Use what was typed in.
                     try {
-                        result.executable.QueryInterface( Components.interfaces.nsILocalFile ).initWithPath( typed );
+                        result.QueryInterface( Components.interfaces.nsILocalFile ).initWithPath( typed );
                     } catch( e ) {
                         // Invalid path was typed.
                         result = null;
@@ -536,15 +528,10 @@ nsHelperAppDialog.prototype = {
                 }
             } else {
                 // The user didn't use the Choose... button, try using what they typed in.
-                var localFile = Components.classes[ "@mozilla.org/file/local;1" ]
+                result = Components.classes[ "@mozilla.org/file/local;1" ]
                     .createInstance( Components.interfaces.nsILocalFile );
                 try {
-                    localFile.initWithPath( typed );
-                    result = Components.classes[
-                      "@mozilla.org/uriloader/local-handler-app;1"].
-                      createInstance(Components.interfaces.nsILocalHandlerApp);
-                    result.executable = localFile;
-
+                    result.initWithPath( typed );
                 } catch( e ) {
                     result = null;
                 }
@@ -604,9 +591,10 @@ nsHelperAppDialog.prototype = {
             needUpdate = this.mLauncher.MIMEInfo.preferredAction != this.nsIMIMEInfo.useHelperApp || this.appChanged();
             if ( needUpdate ) {
                 this.mLauncher.MIMEInfo.preferredAction = this.nsIMIMEInfo.useHelperApp;
-                // App may have changed - Update application
+                // App may have changed - Update application and description
                 var app = this.helperAppChoice();
                 this.mLauncher.MIMEInfo.preferredApplicationHandler = app;
+                this.mLauncher.MIMEInfo.applicationDescription = "";
             }
         }
         // Only care about the state of "always ask" if this dialog wasn't forced
@@ -647,8 +635,7 @@ nsHelperAppDialog.prototype = {
         // Verify typed app path, if necessary.
         if ( this.dialogElement( "openUsing" ).selected ) {
             var helperApp = this.helperAppChoice();
-            if ( !helperApp || !helperApp.executable ||
-                 !helperApp.executable.exists() ) {
+            if ( !helperApp || !helperApp.exists() ) {
                 // Show alert and try again.
                 var msg = this.replaceInsert( this.getString( "badApp" ), 1, this.dialogElement( "appPath" ).value );
                 var svc = Components.classes[ "@mozilla.org/embedcomp/prompt-service;1" ]
@@ -744,15 +731,9 @@ nsHelperAppDialog.prototype = {
 
         if ( fp.show() == nsIFilePicker.returnOK && fp.file ) {
             // Remember the file they chose to run.
-
-            var localHandler = Components.classes[
-              "@mozilla.org/uriloader/local-handler-app;1"].
-                createInstance(Components.interfaces.nsILocalHandlerApp);
-            localHandler.executable = fp.file;
-            this.chosenApp = localHandler;
+            this.chosenApp = fp.file;
             // Update dialog.
-            this.dialogElement( "appPath" ).value = 
-              this.getPath(this.chosenApp.executable);
+            this.dialogElement( "appPath" ).value = this.getPath(this.chosenApp);
         }
     },
 

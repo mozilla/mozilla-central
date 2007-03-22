@@ -117,6 +117,7 @@ public:
   float                       mOrigDCScale;
 
   nsCOMPtr<nsIPrintSettings>  mPrintSettings;
+  nsCOMPtr<nsIPrintOptions>   mPrintOptions;
   nsPrintPreviewListener*     mPPEventListeners;
 
   PRUnichar*            mBrandName; //  needed as a substitute name for a document

@@ -44,8 +44,6 @@
 #include "nsRect.h"
 #include "nsIWidget.h"
 #include "nsIRenderingContext.h"
-// XXX we need only gfxTypes.h, but we cannot include it directly.
-#include "gfxPoint.h"
 
 class nsIView;
 class nsIFontMetrics;
@@ -126,36 +124,42 @@ typedef void * nsNativeDeviceContext;
 /* driver configuration error */
 #define NS_ERROR_GFX_PRINTER_DRIVER_CONFIGURATION_ERROR \
   NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_GFX,NS_ERROR_GFX_PRINTER_BASE+23)
+/* Xprint module specific: Xprt server broken */
+#define NS_ERROR_GFX_PRINTER_XPRINT_BROKEN_XPRT \
+  NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_GFX,NS_ERROR_GFX_PRINTER_BASE+24)
 /* The document is still being loaded, can't Print Preview */
 #define NS_ERROR_GFX_PRINTER_DOC_IS_BUSY_PP \
-  NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_GFX,NS_ERROR_GFX_PRINTER_BASE+24)
+  NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_GFX,NS_ERROR_GFX_PRINTER_BASE+25)
 /* The document was asked to be destroyed while we were preparing printing */
 #define NS_ERROR_GFX_PRINTER_DOC_WAS_DESTORYED \
-  NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_GFX,NS_ERROR_GFX_PRINTER_BASE+25)
+  NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_GFX,NS_ERROR_GFX_PRINTER_BASE+26)
 /* Cannot Print or Print Preview XUL Documents */
 #define NS_ERROR_GFX_PRINTER_NO_XUL \
-  NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_GFX,NS_ERROR_GFX_PRINTER_BASE+26)
+  NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_GFX,NS_ERROR_GFX_PRINTER_BASE+27)
 /* The toolkit no longer supports the Print Dialog (for embedders) */
 #define NS_ERROR_GFX_NO_PRINTDIALOG_IN_TOOLKIT \
-  NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_GFX,NS_ERROR_GFX_PRINTER_BASE+27)
+  NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_GFX,NS_ERROR_GFX_PRINTER_BASE+28)
 /* The was wasn't any Print Prompt service registered (this shouldn't happen) */
 #define NS_ERROR_GFX_NO_PRINTROMPTSERVICE \
-  NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_GFX,NS_ERROR_GFX_PRINTER_BASE+28)
+  NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_GFX,NS_ERROR_GFX_PRINTER_BASE+29)
+/* Xprint module specific: No Xprint servers found */
+#define NS_ERROR_GFX_PRINTER_XPRINT_NO_XPRINT_SERVERS_FOUND \
+  NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_GFX,NS_ERROR_GFX_PRINTER_BASE+30)
 /* requested plex mode not supported by printer */
 #define NS_ERROR_GFX_PRINTER_PLEX_NOT_SUPPORTED \
-  NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_GFX,NS_ERROR_GFX_PRINTER_BASE+29)
+  NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_GFX,NS_ERROR_GFX_PRINTER_BASE+31)
 /* The document is still being loaded */
 #define NS_ERROR_GFX_PRINTER_DOC_IS_BUSY \
-  NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_GFX,NS_ERROR_GFX_PRINTER_BASE+30)
+  NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_GFX,NS_ERROR_GFX_PRINTER_BASE+32)
 /* Printing is not implemented */
 #define NS_ERROR_GFX_PRINTING_NOT_IMPLEMENTED \
-  NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_GFX,NS_ERROR_GFX_PRINTER_BASE+31)
+  NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_GFX,NS_ERROR_GFX_PRINTER_BASE+33)
 /* Cannot load the matching print module */
 #define NS_ERROR_GFX_COULD_NOT_LOAD_PRINT_MODULE \
-  NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_GFX,NS_ERROR_GFX_PRINTER_BASE+32)   
+  NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_GFX,NS_ERROR_GFX_PRINTER_BASE+34)   
 /* requested resolution/quality mode not supported by printer */
 #define NS_ERROR_GFX_PRINTER_RESOLUTION_NOT_SUPPORTED \
-  NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_GFX,NS_ERROR_GFX_PRINTER_BASE+33)
+  NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_GFX,NS_ERROR_GFX_PRINTER_BASE+35)
       
 /**
  * Conts need for Print Preview
@@ -168,10 +172,9 @@ const PRUint8 kUseAltDCFor_CREATERC_PAINT  = 0x04; // Use when creating Renderin
 const PRUint8 kUseAltDCFor_SURFACE_DIM     = 0x08; // Use it for getting the Surface Dimensions
 #endif
 
-// 92a1e76c-adbd-441e-aae6-243d6004e0ee
 #define NS_IDEVICE_CONTEXT_IID   \
-{ 0x92a1e76c, 0xadbd, 0x441e, \
- { 0xaa, 0xe6, 0x24, 0x3d, 0x60, 0x4, 0xe0, 0xee } }
+{ 0xb05ae6b9, 0x280c, 0x4b16, \
+ { 0xb1, 0x36, 0x86, 0x7c, 0x48, 0xd2, 0x15, 0x54 } }
 
 //a cross platform way of specifying a native palette handle
 typedef void * nsPalette;
@@ -235,6 +238,14 @@ public:
   NS_IMETHOD  CreateRenderingContext(nsIView *aView, nsIRenderingContext *&aContext) = 0;
 
   /**
+   * Create a rendering context and initialize it from an nsIDrawingSurface*
+   * @param nsIDrawingSurface* widget to initialize context from
+   * @param aContext out parameter for new rendering context
+   * @return error status
+   */
+  NS_IMETHOD  CreateRenderingContext(nsIDrawingSurface* aSurface, nsIRenderingContext *&aContext) = 0;
+
+  /**
    * Create a rendering context and initialize it from an nsIWidget
    * @param aWidget widget to initialize context from
    * @param aContext out parameter for new rendering context
@@ -283,29 +294,10 @@ public:
   static PRInt32 AppUnitsPerCSSPixel() { return 60; }
 
   /**
-   * Convert app units to CSS pixels which is used in gfx/thebes.
-   */
-  static gfxFloat AppUnitsToGfxCSSPixels(nscoord aAppUnits)
-  { return gfxFloat(aAppUnits) / AppUnitsPerCSSPixel(); }
-
-  /**
    * Gets the number of app units in one device pixel; this number is usually
    * a factor of AppUnitsPerCSSPixel(), although that is not guaranteed.
    */
   PRInt32 AppUnitsPerDevPixel() const { return mAppUnitsPerDevPixel; }
-
-  /**
-   * Convert device pixels which is used for gfx/thebes to nearest (rounded)
-   * app units
-   */
-  nscoord GfxUnitsToAppUnits(gfxFloat aGfxUnits) const
-  { return nscoord(NS_round(aGfxUnits * AppUnitsPerDevPixel())); }
-
-  /**
-   * Convert app units to device pixels which is used for gfx/thebes.
-   */
-  gfxFloat AppUnitsToGfxUnits(nscoord aAppUnits) const
-  { return gfxFloat(aAppUnits) / AppUnitsPerDevPixel(); }
 
   /**
    * Gets the number of app units in one inch; this is the device's DPI
@@ -486,30 +478,9 @@ public:
   */
   virtual PRBool CheckDPIChange() = 0;
 
-  /**
-   * Set the pixel scaling factor: all lengths are multiplied by this factor
-   * when we convert them to device pixels. Returns whether the ratio of 
-   * app units to dev pixels changed because of the scale factor.
-   */
-  virtual PRBool SetPixelScale(float aScale) = 0;
-
-  /**
-   * Get the pixel scaling factor; defaults to 1.0, but can be changed with
-   * SetPixelScale.
-   */
-  float GetPixelScale() const { return mPixelScale; }
-
-  /**
-   * Get the unscaled ratio of app units to dev pixels; useful if something
-   * needs to be converted from to unscaled pixels
-   */
-  PRInt32 UnscaledAppUnitsPerDevPixel() const { return mAppUnitsPerDevNotScaledPixel; }
-
 protected:
   PRInt32 mAppUnitsPerDevPixel;
   PRInt32 mAppUnitsPerInch;
-  PRInt32 mAppUnitsPerDevNotScaledPixel;
-  float  mPixelScale;
 };
 
 NS_DEFINE_STATIC_IID_ACCESSOR(nsIDeviceContext, NS_IDEVICE_CONTEXT_IID)

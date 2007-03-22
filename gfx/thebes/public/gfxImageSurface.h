@@ -81,9 +81,6 @@ public:
      */
     unsigned char* Data() { return mData; } // delete this data under us and die.
 
-    /* Fast copy from another image surface; returns TRUE if successful, FALSE otherwise */
-    PRBool CopyFrom (gfxImageSurface *other);
-
 private:
     long ComputeStride() const;
 

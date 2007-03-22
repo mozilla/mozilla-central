@@ -34,10 +34,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-349592.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 349592;
+var bug = 349592;
 var summary = 'Do not assert with try/finally inside finally';
 var actual = 'No Crash';
 var expect = 'No Crash';
@@ -50,10 +48,10 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
- 
-  (function() { try { } finally { try { } finally { } } });
+  
+  function() { try { } finally { try { } finally { } } }
 
   reportCompare(expect, actual, summary);
 

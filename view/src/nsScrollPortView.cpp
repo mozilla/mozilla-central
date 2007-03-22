@@ -38,6 +38,7 @@
 
 #include "nsScrollPortView.h"
 #include "nsIWidget.h"
+#include "nsUnitConversion.h"
 #include "nsIDeviceContext.h"
 #include "nsGUIEvent.h"
 #include "nsWidgetsCID.h"
@@ -80,6 +81,7 @@ nsScrollPortView::nsScrollPortView(nsViewManager* aViewManager)
   : nsView(aViewManager)
 {
   mOffsetX = mOffsetY = 0;
+  mOffsetXpx = mOffsetYpx = 0;
   nsCOMPtr<nsIDeviceContext> dev;
   mViewManager->GetDeviceContext(*getter_AddRefs(dev));
   mLineHeight = dev->AppUnitsPerInch() / 6; // 12 pt
@@ -152,6 +154,15 @@ NS_IMETHODIMP nsScrollPortView::CreateScrollControls(nsNativeWidget aNative)
   CreateWidget(kWidgetCID, &initData,
                mWindow ? nsnull : aNative);
   
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsScrollPortView::SetWidget(nsIWidget *aWidget)
+{
+  if (nsnull != aWidget) {
+    NS_ASSERTION(PR_FALSE, "please don't try and set a widget here");
+    return NS_ERROR_FAILURE;
+  }
   return NS_OK;
 }
 
@@ -567,34 +578,9 @@ void nsScrollPortView::Scroll(nsView *aScrolledView, nsPoint aTwipsDelta, nsPoin
       // consistent with the view hierarchy.
       mViewManager->UpdateView(this, 0);
     } else { // if we can blit and have a scrollwidget then scroll.
-      nsRect* toScrollPtr = nsnull;
-
-#ifdef XP_WIN
-      nsRect toScroll;
-      if (!updateRegion.IsEmpty()) {
-        nsRegion regionToScroll;
-        regionToScroll.Sub(nsRect(nsPoint(0,0), GetBounds().Size()),
-                           updateRegion);
-        nsRegionRectIterator iter(regionToScroll);
-        nsRect biggestRect(0,0,0,0);
-        const nsRect* r;
-        for (r = iter.Next(); r; r = iter.Next()) {
-          if (r->width*r->height > biggestRect.width*biggestRect.height) {
-            biggestRect = *r;
-          }
-        }
-        toScrollPtr = &toScroll;
-        biggestRect.ScaleRoundIn(1.0/aP2A);
-        toScroll = biggestRect;
-        biggestRect *= aP2A;
-        regionToScroll.Sub(regionToScroll, biggestRect);
-        updateRegion.Or(updateRegion, regionToScroll);
-      }
-#endif
-
       // Scroll the contents of the widget by the specified amount, and scroll
       // the child widgets
-      scrollWidget->Scroll(aPixDelta.x, aPixDelta.y, toScrollPtr);
+      scrollWidget->Scroll(aPixDelta.x, aPixDelta.y, nsnull);
       mViewManager->UpdateViewAfterScroll(this, updateRegion);
     }
   }
@@ -615,11 +601,12 @@ NS_IMETHODIMP nsScrollPortView::ScrollToImpl(nscoord aX, nscoord aY, PRUint32 aU
     return rv;
   }
   
-  PRInt32 xPixels = NSAppUnitsToIntPixels(aX, p2a);
-  PRInt32 yPixels = NSAppUnitsToIntPixels(aY, p2a);
+  // convert aX and aY in pixels
+  nscoord aXpx = NSAppUnitsToIntPixels(aX, p2a);
+  nscoord aYpx = NSAppUnitsToIntPixels(aY, p2a);
   
-  aX = NSIntPixelsToAppUnits(xPixels, p2a);
-  aY = NSIntPixelsToAppUnits(yPixels, p2a);
+  aX = NSIntPixelsToAppUnits(aXpx, p2a);
+  aY = NSIntPixelsToAppUnits(aYpx, p2a);
   
   // do nothing if the we aren't scrolling.
   // this needs to be rechecked because of the clamping and
@@ -629,8 +616,8 @@ NS_IMETHODIMP nsScrollPortView::ScrollToImpl(nscoord aX, nscoord aY, PRUint32 aU
   }
 
   // figure out the diff by comparing old pos to new
-  dxPx = NSAppUnitsToIntPixels(mOffsetX, p2a) - xPixels;
-  dyPx = NSAppUnitsToIntPixels(mOffsetY, p2a) - yPixels;
+  dxPx = mOffsetXpx - aXpx;
+  dyPx = mOffsetYpx - aYpx;
 
   // notify the listeners.
   PRUint32 listenerCount;
@@ -654,6 +641,11 @@ NS_IMETHODIMP nsScrollPortView::ScrollToImpl(nscoord aX, nscoord aY, PRUint32 aU
   // Note that child widgets may be scrolled by the native widget scrolling,
   // so don't update their positions
   scrolledView->SetPositionIgnoringChildWidgets(-aX, -aY);
+      
+  // store old position in pixels. We need to do this to make sure there is no
+  // round off errors. This could cause weird scrolling.
+  mOffsetXpx = aXpx;
+  mOffsetYpx = aYpx;
       
   nsPoint twipsDelta(aX - mOffsetX, aY - mOffsetY);
 
@@ -706,7 +698,7 @@ PRBool nsScrollPortView::IsSmoothScrollingEnabled() {
 void
 nsScrollPortView::SmoothScrollAnimationCallback (nsITimer *aTimer, void* anInstance) 
 {
-  nsScrollPortView* self = static_cast<nsScrollPortView*>(anInstance);
+  nsScrollPortView* self = NS_STATIC_CAST(nsScrollPortView*, anInstance);
   if (self) {
     self->IncrementalScroll();
   }

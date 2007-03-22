@@ -123,16 +123,16 @@ function doLoadForSSLCert()
   var cacert = getCaCertForEntityCert(cert);
   if(cacert == null)
   {
-     setText("explanations", bundle.GetStringFromName("issuerNotKnown"));
+     setText("explainations",bundle.GetStringFromName("issuerNotKnown"));
   }
   else if(certdb.isCertTrusted(cacert, nsIX509Cert.CA_CERT,
                                                 nsIX509CertDB.TRUSTED_SSL))
   {
-     setText("explanations", bundle.GetStringFromName("issuerTrusted"));
+     setText("explainations",bundle.GetStringFromName("issuerTrusted"));
   }
   else
   {
-     setText("explanations", bundle.GetStringFromName("issuerNotTrusted"));
+     setText("explainations",bundle.GetStringFromName("issuerNotTrusted"));
   }
 /*
   if(cacert == null)
@@ -184,16 +184,16 @@ function doLoadForEmailCert()
   var cacert = getCaCertForEntityCert(cert);
   if(cacert == null)
   {
-     setText("explanations", bundle.GetStringFromName("issuerNotKnown"));
+     setText("explainations",bundle.GetStringFromName("issuerNotKnown"));
   }
   else if(certdb.isCertTrusted(cacert, nsIX509Cert.CA_CERT,
                                                 nsIX509CertDB.TRUSTED_EMAIL))
   {
-     setText("explanations", bundle.GetStringFromName("issuerTrusted"));
+     setText("explainations",bundle.GetStringFromName("issuerTrusted"));
   }
   else
   {
-     setText("explanations", bundle.GetStringFromName("issuerNotTrusted"));
+     setText("explainations",bundle.GetStringFromName("issuerNotTrusted"));
   }
 /*
   if(cacert == null)

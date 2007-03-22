@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '15.9.5.24-8.js';
-
 /**
    File Name:          15.9.5.24-1.js
    ECMA Section:       15.9.5.24 Date.prototype.setTime(time)
@@ -52,7 +50,7 @@ gTestfile = '15.9.5.24-8.js';
 
 */
 var TITLE = "Date.prototype.setTime"
-  var SECTION = "15.9.5.24-1";
+var SECTION = "15.9.5.24-1";
 var VERSION = "ECMA_1";
 startTest();
 
@@ -70,13 +68,16 @@ function addTestCase( startms, newms ) {
   var UTCDate = UTCDateFromTime( Number(newms) );
   var LocalDate = LocalDateFromTime( Number(newms) );
 
+
+//    fixed_year = ( ExpectDate.year >=1900 || ExpectDate.year < 2000 ) ? ExpectDate.year - 1900 : ExpectDate.year;
+
   new TestCase( SECTION, DateString+".getTime()",             UTCDate.value,       DateCase.getTime() );
   new TestCase( SECTION, DateString+".valueOf()",             UTCDate.value,       DateCase.valueOf() );
 
   new TestCase( SECTION, DateString+".getUTCFullYear()",      UTCDate.year,    DateCase.getUTCFullYear() );
   new TestCase( SECTION, DateString+".getUTCMonth()",         UTCDate.month,  DateCase.getUTCMonth() );
   new TestCase( SECTION, DateString+".getUTCDate()",          UTCDate.date,   DateCase.getUTCDate() );
-
+//    new TestCase( SECTION, DateString+".getUTCDay()",           UTCDate.day,    DateCase.getUTCDay() );
   new TestCase( SECTION, DateString+".getUTCHours()",         UTCDate.hours,  DateCase.getUTCHours() );
   new TestCase( SECTION, DateString+".getUTCMinutes()",       UTCDate.minutes,DateCase.getUTCMinutes() );
   new TestCase( SECTION, DateString+".getUTCSeconds()",       UTCDate.seconds,DateCase.getUTCSeconds() );
@@ -85,7 +86,7 @@ function addTestCase( startms, newms ) {
   new TestCase( SECTION, DateString+".getFullYear()",         LocalDate.year,       DateCase.getFullYear() );
   new TestCase( SECTION, DateString+".getMonth()",            LocalDate.month,      DateCase.getMonth() );
   new TestCase( SECTION, DateString+".getDate()",             LocalDate.date,       DateCase.getDate() );
-
+//    new TestCase( SECTION, DateString+".getDay()",              LocalDate.day,        DateCase.getDay() );
   new TestCase( SECTION, DateString+".getHours()",            LocalDate.hours,      DateCase.getHours() );
   new TestCase( SECTION, DateString+".getMinutes()",          LocalDate.minutes,    DateCase.getMinutes() );
   new TestCase( SECTION, DateString+".getSeconds()",          LocalDate.seconds,    DateCase.getSeconds() );

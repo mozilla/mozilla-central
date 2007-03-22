@@ -260,24 +260,14 @@ function checkForImage(elem, htmllocalname)
 
     var imageRequest = img.QueryInterface(nsIImageLoadingContent)
                           .getRequest(nsIImageLoadingContent.CURRENT_REQUEST);
-    var image = imageRequest && imageRequest.image;
-    var imageType = "";
-    if (imageRequest) {
-      imageType = imageRequest.mimeType;
-      var imageMimeType = /^image\/(.*)/.exec(imageType);
-      if (imageMimeType) {
-        imageType = imageMimeType[1].toUpperCase();
-        if (image && image.numFrames > 1)
-          imageType = gMetadataBundle.getFormattedString("animatedImageType",
-                                                         [imageType, image.numFrames]);
-        else
-          imageType = gMetadataBundle.getFormattedString("imageType", [imageType]);
-      }
-    }
-    setInfo("image-type", imageType);
+    if (imageRequest)
+      setInfo("image-type", imageRequest.mimeType);
+    else
+      setInfo("image-type", "");
 
     var imageSize = "";
     if (img.width) {
+      var image = imageRequest && imageRequest.image;
       if (image && (image.width != img.width || image.height != img.height))
         imageSize = gMetadataBundle.getFormattedString("imageDimensionsScaled",
                                                        [image.width, image.height,
@@ -327,6 +317,7 @@ function checkForLink(elem, htmllocalname)
       setInfo("link-target", gMetadataBundle.getString("parentFrameText"));
       break;
     case "_blank":
+    case "_new":
       var where = "Window";
       var newWindowPref = prefs.getIntPref("browser.link.open_newwindow");
       if (newWindowPref == 3)

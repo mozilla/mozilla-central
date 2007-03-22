@@ -41,10 +41,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-ifdef MOZ_MOCHITEST
-DIRS		+= test
-endif
-
 MODULE		= layout
 LIBRARY_NAME	= gkgeneric_s
 LIBXUL_LIBRARY	= 1
@@ -54,6 +50,7 @@ REQUIRES	= xpcom \
 		  dom \
 		  content \
 		  thebes \
+		  cairo \
 		  gfx \
 		  widget \
 		  locale \
@@ -66,25 +63,28 @@ REQUIRES	= xpcom \
 		  webshell \
 		  plugin \
 		  docshell \
+		  uriloader \
+		  mimetype \
 		  webbrwsr \
 		  oji \
 		  unicharutil \
 		  lwbrk \
 		  imglib2 \
+		  accessibility \
 		  xpconnect \
 		  java \
+		  exthandler \
 		  intl \
-		  thebes \
-		  cairo \
+		  uconv \
 		  $(NULL)
-
-ifdef ACCESSIBILITY
-REQUIRES	+= accessibility
-endif
 
 # Sun's Complex Text Layout support
 ifdef SUNCTL
 REQUIRES	+= ctl
+endif
+
+ifdef MOZ_ENABLE_CAIRO_GFX
+REQUIRES	+= thebes cairo
 endif
 
 EXPORTS		= \
@@ -110,6 +110,7 @@ EXPORTS		= \
 
 ifdef IBMBIDI
 EXPORTS		+= \
+		nsTextTransformer.h \
 		nsBidiFrames.h      \
 		$(NULL)
 endif
@@ -153,9 +154,7 @@ CPPSRCS		= \
 		nsSpaceManager.cpp \
 		nsSpacerFrame.cpp \
 		nsSplittableFrame.cpp \
-		nsTextFrameThebes.cpp \
-		nsTextFrameUtils.cpp \
-		nsTextRunTransformations.cpp \
+		nsTextTransformer.cpp \
 		nsViewportFrame.cpp \
 		$(NULL)
 
@@ -165,8 +164,32 @@ CPPSRCS		+= \
 		$(NULL)
 endif
 
+# set this to 1 to enable the new text frame
+MOZ_ENABLE_NEW_TEXT_FRAME =
+
+ifdef MOZ_ENABLE_NEW_TEXT_FRAME
+CPPSRCS   += \
+          nsTextFrameThebes.cpp \
+          nsTextRunTransformations.cpp \
+          nsTextFrameUtils.cpp \
+    $(NULL)
+else
+CPPSRCS   += \
+          nsTextFrame.cpp \
+    $(NULL)
+endif
+
 RESOURCES_HTML = \
-		$(srcdir)/folder.png \
+		$(srcdir)/gopher-audio.gif \
+		$(srcdir)/gopher-binary.gif \
+		$(srcdir)/gopher-find.gif \
+		$(srcdir)/gopher-image.gif \
+		$(srcdir)/gopher-menu.gif \
+		$(srcdir)/gopher-movie.gif \
+		$(srcdir)/gopher-sound.gif \
+		$(srcdir)/gopher-telnet.gif \
+		$(srcdir)/gopher-text.gif \
+		$(srcdir)/gopher-unknown.gif \
 		$(NULL)
 
 RESOURCES = \
@@ -181,19 +204,13 @@ include $(topsrcdir)/config/rules.mk
 LOCAL_INCLUDES += \
 		-I$(srcdir) \
 		-I$(srcdir)/../base \
-		-I$(srcdir)/../forms \
 		-I$(srcdir)/../tables \
 		-I$(srcdir)/../xul/base/src \
 		-I$(srcdir)/../../content/xul/content/src \
 		-I$(srcdir)/../../content/base/src \
 		-I$(srcdir)/../../content/html/content/src \
-		-I$(srcdir)/../../dom/src/base \
 		$(MOZ_CAIRO_CFLAGS) \
 		$(NULL)
-
-ifdef MOZ_ENABLE_GTK2
-CXXFLAGS += $(MOZ_GTK2_CFLAGS)
-endif
 
 libs::
 	$(INSTALL) $(RESOURCES_HTML) $(DIST)/bin/res/html

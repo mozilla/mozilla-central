@@ -40,19 +40,9 @@
 
 #include "gfxFont.h"
 #include "gfxSkipChars.h"
-#include "gfxTextRunCache.h"
 #include "nsTextFragment.h"
 
 #define BIG_TEXT_NODE_SIZE 4096
-
-#define CH_NBSP   160
-#define CH_SHY    173
-#define CH_CJKSP  12288 // U+3000 IDEOGRAPHIC SPACE (CJK Full-Width Space)
-
-#define CH_LRM  8206  //<!ENTITY lrm     CDATA "&#8206;" -- left-to-right mark, U+200E NEW RFC 2070 -->
-#define CH_RLM  8207  //<!ENTITY rlm     CDATA "&#8207;" -- right-to-left mark, U+200F NEW RFC 2070 -->
-#define CH_LRE  8234  //<!CDATA "&#8234;" -- left-to-right embedding, U+202A -->
-#define CH_RLO  8238  //<!CDATA "&#8238;" -- right-to-left override, U+202E -->
 
 class nsTextFrameUtils {
 public:
@@ -64,22 +54,17 @@ public:
     TEXT_HAS_TAB             = 0x010000,
     // the original text has at least one soft hyphen character
     TEXT_HAS_SHY             = 0x020000,
-    TEXT_WAS_TRANSFORMED     = 0x040000,
+    TEXT_HAS_NON_ASCII       = 0x040000,
+    TEXT_WAS_TRANSFORMED     = 0x080000,
 
     // The following flags are set by nsTextFrame
 
     TEXT_IS_SIMPLE_FLOW      = 0x100000,
-    TEXT_INCOMING_WHITESPACE = 0x200000,
-    TEXT_TRAILING_WHITESPACE = 0x400000,
-    TEXT_COMPRESSED_LEADING_WHITESPACE = 0x800000,
-    TEXT_NO_BREAKS           = 0x1000000,
-    TEXT_IS_TRANSFORMED      = 0x2000000,
-    // This gets set if there's a break opportunity at the end of the textrun.
-    // We normally don't use this break opportunity because the following text
-    // will have a break opportunity at the start, but it's useful for line
-    // layout to know about it in case the following content is not text
-    TEXT_HAS_TRAILING_BREAK  = 0x4000000
+    TEXT_INCOMING_WHITESPACE = 0x200000
   };
+
+  static PRBool
+  IsPunctuationMark(PRUnichar aChar);
 
   /**
    * Returns PR_TRUE if aChars/aLength are something that make a space
@@ -101,9 +86,6 @@ public:
    * @param aCompressWhitespace runs of consecutive whitespace (spaces not
    * followed by a diacritical mark, tabs, and newlines) are compressed to a
    * single space character.
-   * @param aIncomingWhitespace a flag indicating whether there was whitespace
-   * preceding this text. We set it to indicate if there's whitespace
-   * preceding the end of this text.
    */
   static PRUnichar* TransformText(const PRUnichar* aText, PRUint32 aLength,
                                   PRUnichar* aOutput,
@@ -119,14 +101,41 @@ public:
                                 gfxSkipCharsBuilder* aSkipChars,
                                 PRUint32* aAnalysisFlags);
 
-  static void
-  AppendLineBreakOffset(nsTArray<PRUint32>* aArray, PRUint32 aOffset)
-  {
-    if (aArray->Length() > 0 && (*aArray)[aArray->Length() - 1] == aOffset)
-      return;
-    aArray->AppendElement(aOffset);
-  }
-
+  /**
+   * Find a word boundary starting from a given position and proceeding either
+   * forwards (aDirection == 1) or backwards (aDirection == -1). The search
+   * is limited to a substring of an nsTextFragment. We return the index
+   * of the character that is the first character of the next/prev word; the
+   * result can be aOffset <= result <= aLength (result == aLength means
+   * that there's definitely a word boundary at the end of the text), or -1 to
+   * indicate that no boundary was found.
+   * 
+   * @param aTextRun a text run which we will use to ensure that we don't
+   * return a boundary inside a cluster
+   * @param aPosition a character in the substring aOffset/aLength
+   * @param aBreakBeforePunctuation if true, then we allow a word break
+   * when transitioning from regular word text to punctuation (in content order)
+   * @param aBreakAfterPunctuation if true, then we allow a word break
+   * when transitioning from punctuation to regular word text (in content order)
+   * @param aWordIsWhitespace we set this to true if the word-part we skipped
+   * over is whitespace
+   * 
+   * For the above properties, "punctuation" is defined as any ASCII character
+   * which is not a letter or a digit. Regular word text is any non-whitespace
+   * (here "whitespace" includes non-breaking whitespace).
+   * Word break points are the punctuation breaks defined above, plus
+   * for Unicode text, whatever intl's wordbreaker identifies, and for
+   * ASCII text, boundaries between whitespace and non-whitespace.
+   */
+  static PRInt32
+  FindWordBoundary(const nsTextFragment* aText,
+                   gfxTextRun* aTextRun,
+                   gfxSkipCharsIterator* aIterator,
+                   PRInt32 aOffset, PRInt32 aLength,
+                   PRInt32 aPosition, PRInt32 aDirection,
+                   PRBool aBreakBeforePunctuation,
+                   PRBool aBreakAfterPunctuation,
+                   PRBool* aWordIsWhitespace);                
 };
 
 class nsSkipCharsRunIterator {

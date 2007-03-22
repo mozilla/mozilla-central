@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '15.7.4.3-2.js';
-
 /**
    File Name:          15.7.4.3-2.js
    ECMA Section:       15.7.4.3.1 Number.prototype.valueOf()
@@ -57,9 +55,9 @@ startTest();
 
 writeHeaderToLog( SECTION + " Number.prototype.valueOf()");
 
-new TestCase(SECTION,
-	     "v = Number.prototype.valueOf; num = 3; num.valueOf = v; num.valueOf()",
-	     3, 
+new TestCase(SECTION, 
+	     "v = Number.prototype.valueOf; num = 3; num.valueOf = v; num.valueOf()", 
+	     3,  
 	     eval("v = Number.prototype.valueOf; num = 3; num.valueOf = v; num.valueOf()") );
 
 test();

@@ -24,7 +24,6 @@
  *   Brian Ryner <bryner@brianryner.com>
  *   Terry Hayes <thayes@netscape.com>
  *   Kai Engert <kengert@redhat.com>
- *   Petr Kostka <petr.kostka@st.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -42,8 +41,7 @@
 #include "nsNSSComponent.h" // for PIPNSS string bundle calls.
 #include "nsNSSCallbacks.h"
 #include "nsNSSCertificate.h"
-#include "nsNSSCleaner.h"
-#include "nsSSLStatus.h"
+#include "nsISSLStatus.h"
 #include "nsNSSIOLayer.h" // for nsNSSSocketInfo
 #include "nsIWebProgressListener.h"
 #include "nsIStringBundle.h"
@@ -56,8 +54,6 @@
 #include "nsProxiedService.h"
 #include "nsIInterfaceRequestor.h"
 #include "nsIInterfaceRequestorUtils.h"
-#include "nsProtectedAuthThread.h"
-#include "nsITokenDialogs.h"
 #include "nsCRT.h"
 #include "nsNSSShutDown.h"
 #include "nsIUploadChannel.h"
@@ -67,27 +63,24 @@
 #include "nsIThread.h"
 #include "nsIWindowWatcher.h"
 #include "nsIPrompt.h"
-#include "nsProxyRelease.h"
 
 #include "ssl.h"
 #include "cert.h"
 #include "ocsp.h"
 
 static NS_DEFINE_CID(kNSSComponentCID, NS_NSSCOMPONENT_CID);
-NSSCleanupAutoPtrClass(CERTCertificate, CERT_DestroyCertificate)
 
 #ifdef PR_LOGGING
 extern PRLogModuleInfo* gPIPNSSLog;
 #endif
 
-class nsHTTPDownloadEvent : public nsRunnable {
-public:
+struct nsHTTPDownloadEvent : nsRunnable {
   nsHTTPDownloadEvent();
   ~nsHTTPDownloadEvent();
 
   NS_IMETHOD Run();
-
-  nsNSSHttpRequestSession *mRequestSession;
+  
+  nsNSSHttpRequestSession *mRequestSession; // no ownership
   
   nsCOMPtr<nsHTTPListener> mListener;
   PRBool mResponsibleForDoneSignal;
@@ -102,8 +95,6 @@ nsHTTPDownloadEvent::~nsHTTPDownloadEvent()
 {
   if (mResponsibleForDoneSignal && mListener)
     mListener->send_done_signal();
-
-  mRequestSession->Release();
 }
 
 NS_IMETHODIMP
@@ -123,8 +114,9 @@ nsHTTPDownloadEvent::Run()
 
   // Create a loadgroup for this new channel.  This way if the channel
   // is redirected, we'll have a way to cancel the resulting channel.
-  nsCOMPtr<nsILoadGroup> lg = do_CreateInstance(NS_LOADGROUP_CONTRACTID);
-  chan->SetLoadGroup(lg);
+  nsCOMPtr<nsILoadGroup> loadGroup =
+    do_CreateInstance(NS_LOADGROUP_CONTRACTID);
+  chan->SetLoadGroup(loadGroup);
 
   if (mRequestSession->mHasPostData)
   {
@@ -150,12 +142,10 @@ nsHTTPDownloadEvent::Run()
   rv = hchan->SetRequestMethod(mRequestSession->mRequestMethod);
   NS_ENSURE_SUCCESS(rv, rv);
 
+  nsSSLThread::rememberPendingHTTPRequest(loadGroup);
+
   mResponsibleForDoneSignal = PR_FALSE;
   mListener->mResponsibleForDoneSignal = PR_TRUE;
-
-  mListener->mLoadGroup = lg.get();
-  NS_ADDREF(mListener->mLoadGroup);
-  mListener->mLoadGroupOwnerThread = PR_GetCurrentThread();
 
   rv = NS_NewStreamLoader(getter_AddRefs(mListener->mLoader), 
                           mListener);
@@ -166,21 +156,16 @@ nsHTTPDownloadEvent::Run()
   if (NS_FAILED(rv)) {
     mListener->mResponsibleForDoneSignal = PR_FALSE;
     mResponsibleForDoneSignal = PR_TRUE;
-
-    NS_RELEASE(mListener->mLoadGroup);
-    mListener->mLoadGroup = nsnull;
-    mListener->mLoadGroupOwnerThread = nsnull;
+    
+    nsSSLThread::rememberPendingHTTPRequest(nsnull);
   }
 
   return NS_OK;
 }
 
 struct nsCancelHTTPDownloadEvent : nsRunnable {
-  nsCOMPtr<nsHTTPListener> mListener;
-
   NS_IMETHOD Run() {
-    mListener->FreeLoadGroup(PR_TRUE);
-    mListener = nsnull;
+    nsSSLThread::cancelPendingHTTPRequest();
     return NS_OK;
   }
 };
@@ -214,7 +199,7 @@ SECStatus nsNSSHttpRequestSession::createFcn(SEC_HTTP_SERVER_SESSION session,
       !http_request_method || !pRequest)
     return SECFailure;
 
-  nsNSSHttpServerSession* hss = static_cast<nsNSSHttpServerSession*>(session);
+  nsNSSHttpServerSession* hss = NS_STATIC_CAST(nsNSSHttpServerSession*, session);
   if (!hss)
     return SECFailure;
 
@@ -223,13 +208,6 @@ SECStatus nsNSSHttpRequestSession::createFcn(SEC_HTTP_SERVER_SESSION session,
     return SECFailure;
 
   rs->mTimeoutInterval = timeout;
-
-  // Use a maximum timeout value of 10 seconds because of bug 404059.
-  // FIXME: Use a better approach once 406120 is ready.
-  PRUint32 maxBug404059Timeout = PR_TicksPerSecond() * 10;
-  if (timeout > maxBug404059Timeout) {
-    rs->mTimeoutInterval = maxBug404059Timeout;
-  }
 
   rs->mURL.Append(nsDependentCString(http_protocol_variant));
   rs->mURL.AppendLiteral("://");
@@ -281,7 +259,7 @@ SECStatus nsNSSHttpRequestSession::trySendAndReceiveFcn(PRPollDesc **pPollDesc,
   PR_LOG(gPIPNSSLog, PR_LOG_DEBUG,
          ("nsNSSHttpRequestSession::trySendAndReceiveFcn to %s\n", mURL.get()));
 
-  const int max_retries = 2;
+  const int max_retries = 5;
   int retry_count = 0;
   PRBool retryable_error = PR_FALSE;
   SECStatus result_sec_status = SECFailure;
@@ -327,21 +305,6 @@ SECStatus nsNSSHttpRequestSession::trySendAndReceiveFcn(PRPollDesc **pPollDesc,
   return result_sec_status;
 }
 
-void
-nsNSSHttpRequestSession::AddRef()
-{
-  PR_AtomicIncrement(&mRefCount);
-}
-
-void
-nsNSSHttpRequestSession::Release()
-{
-  PRInt32 newRefCount = PR_AtomicDecrement(&mRefCount);
-  if (!newRefCount) {
-    delete this;
-  }
-}
-
 SECStatus
 nsNSSHttpRequestSession::internal_send_receive_attempt(PRBool &retryable_error,
                                                        PRPollDesc **pPollDesc,
@@ -381,7 +344,6 @@ nsNSSHttpRequestSession::internal_send_receive_attempt(PRBool &retryable_error,
     return SECFailure;
 
   event->mListener = mListener;
-  this->AddRef();
   event->mRequestSession = this;
 
   nsresult rv = NS_DispatchToMainThread(event);
@@ -392,6 +354,7 @@ nsNSSHttpRequestSession::internal_send_receive_attempt(PRBool &retryable_error,
   }
 
   PRBool request_canceled = PR_FALSE;
+  PRBool aborted_wait = PR_FALSE;
 
   {
     nsAutoLock locker(waitLock);
@@ -434,24 +397,28 @@ nsNSSHttpRequestSession::internal_send_receive_attempt(PRBool &retryable_error,
 
       if (!request_canceled)
       {
-        PRBool wantExit = nsSSLThread::exitRequested();
-        PRBool timeout = 
-          (PRIntervalTime)(PR_IntervalNow() - start_time) > mTimeoutInterval;
-
-        if (wantExit || timeout)
+        if ((PRIntervalTime)(PR_IntervalNow() - start_time) > mTimeoutInterval)
         {
           request_canceled = PR_TRUE;
-
-          nsRefPtr<nsCancelHTTPDownloadEvent> cancelevent = new nsCancelHTTPDownloadEvent;
-          cancelevent->mListener = mListener;
+          // but we'll to continue to wait for waitFlag
+          
+          nsCOMPtr<nsIRunnable> cancelevent = new nsCancelHTTPDownloadEvent;
           rv = NS_DispatchToMainThread(cancelevent);
-          if (NS_FAILED(rv)) {
+          if (NS_FAILED(rv))
+          {
             NS_WARNING("cannot post cancel event");
+            aborted_wait = PR_TRUE;
+            break;
           }
-          break;
         }
       }
     }
+  }
+
+  if (aborted_wait)
+  {
+    // we couldn't cancel it, let's no longer reference it
+    nsSSLThread::rememberPendingHTTPRequest(nsnull);
   }
 
   if (request_canceled)
@@ -507,13 +474,12 @@ SECStatus nsNSSHttpRequestSession::cancelFcn()
 
 SECStatus nsNSSHttpRequestSession::freeFcn()
 {
-  Release();
+  delete this;
   return SECSuccess;
 }
 
 nsNSSHttpRequestSession::nsNSSHttpRequestSession()
-: mRefCount(1),
-  mHasPostData(PR_FALSE),
+: mHasPostData(PR_FALSE),
   mTimeoutInterval(0),
   mListener(new nsHTTPListener)
 {
@@ -556,9 +522,7 @@ nsHTTPListener::nsHTTPListener()
   mLock(nsnull),
   mCondition(nsnull),
   mWaitFlag(PR_TRUE),
-  mResponsibleForDoneSignal(PR_FALSE),
-  mLoadGroup(nsnull),
-  mLoadGroupOwnerThread(nsnull)
+  mResponsibleForDoneSignal(PR_FALSE)
 {
 }
 
@@ -589,42 +553,9 @@ nsHTTPListener::~nsHTTPListener()
   
   if (mLock)
     PR_DestroyLock(mLock);
-
-  if (mLoader) {
-    nsCOMPtr<nsIThread> mainThread(do_GetMainThread());
-    NS_ProxyRelease(mainThread, mLoader);
-  }
 }
 
 NS_IMPL_THREADSAFE_ISUPPORTS1(nsHTTPListener, nsIStreamLoaderObserver)
-
-void
-nsHTTPListener::FreeLoadGroup(PRBool aCancelLoad)
-{
-  nsILoadGroup *lg = nsnull;
-
-  if (mLock) {
-    nsAutoLock locker(mLock);
-
-    if (mLoadGroup) {
-      if (mLoadGroupOwnerThread != PR_GetCurrentThread()) {
-        NS_ASSERTION(PR_FALSE,
-          "attempt to access nsHTTPDownloadEvent::mLoadGroup on multiple threads, leaking it!");
-      }
-      else {
-        lg = mLoadGroup;
-        mLoadGroup = nsnull;
-      }
-    }
-  }
-
-  if (lg) {
-    if (aCancelLoad) {
-      lg->Cancel(NS_ERROR_ABORT);
-    }
-    NS_RELEASE(lg);
-  }
-}
 
 NS_IMETHODIMP
 nsHTTPListener::OnStreamComplete(nsIStreamLoader* aLoader,
@@ -634,8 +565,6 @@ nsHTTPListener::OnStreamComplete(nsIStreamLoader* aLoader,
                                  const PRUint8* string)
 {
   mResultCode = aStatus;
-
-  FreeLoadGroup(PR_FALSE);
 
   nsCOMPtr<nsIRequest> req;
   nsCOMPtr<nsIHttpChannel> hchan;
@@ -681,6 +610,8 @@ nsHTTPListener::OnStreamComplete(nsIStreamLoader* aLoader,
 
 void nsHTTPListener::send_done_signal()
 {
+  nsSSLThread::rememberPendingHTTPRequest(nsnull);
+  
   mResponsibleForDoneSignal = PR_FALSE;
 
   {
@@ -690,69 +621,84 @@ void nsHTTPListener::send_done_signal()
   }
 }
 
-static char*
-ShowProtectedAuthPrompt(PK11SlotInfo* slot, nsIInterfaceRequestor *ir)
+/* Implementation of nsISSLStatus */
+class nsSSLStatus
+  : public nsISSLStatus
 {
-  char* protAuthRetVal = nsnull;
+public:
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSISSLSTATUS
 
-  // Get protected auth dialogs
-  nsITokenDialogs* dialogs = 0;
-  nsresult nsrv = getNSSDialogs((void**)&dialogs, 
-                                NS_GET_IID(nsITokenDialogs), 
-                                NS_TOKENDIALOGS_CONTRACTID);
-  if (NS_SUCCEEDED(nsrv))
-  {
-    nsProtectedAuthThread* protectedAuthRunnable = new nsProtectedAuthThread();
-    if (protectedAuthRunnable)
-    {
-      NS_ADDREF(protectedAuthRunnable);
+  nsSSLStatus();
+  virtual ~nsSSLStatus();
 
-      protectedAuthRunnable->SetParams(slot);
-      
-      nsCOMPtr<nsIProtectedAuthThread> runnable = do_QueryInterface(protectedAuthRunnable);
-      if (runnable)
-      {
-        nsrv = dialogs->DisplayProtectedAuth(ir, runnable);
-              
-        // We call join on the thread,
-        // so we can be sure that no simultaneous access will happen.
-        protectedAuthRunnable->Join();
-              
-        if (NS_SUCCEEDED(nsrv))
-        {
-          SECStatus rv = protectedAuthRunnable->GetResult();
-          switch (rv)
-          {
-              case SECSuccess:
-                  protAuthRetVal = PK11_PW_AUTHENTICATED;
-                  break;
-              case SECWouldBlock:
-                  protAuthRetVal = PK11_PW_RETRY;
-                  break;
-              default:
-                  protAuthRetVal = nsnull;
-                  break;
-              
-          }
-        }
-      }
+  /* public for initilization in this file */
+  nsCOMPtr<nsIX509Cert> mServerCert;
+  PRUint32 mKeyLength;
+  PRUint32 mSecretKeyLength;
+  nsXPIDLCString mCipherName;
+};
 
-      NS_RELEASE(protectedAuthRunnable);
-    }
+NS_IMETHODIMP
+nsSSLStatus::GetServerCert(nsIX509Cert** _result)
+{
+  NS_ASSERTION(_result, "non-NULL destination required");
 
-    NS_RELEASE(dialogs);
-  }
+  *_result = mServerCert;
+  NS_IF_ADDREF(*_result);
 
-  return protAuthRetVal;
+  return NS_OK;
 }
-  
+
+NS_IMETHODIMP
+nsSSLStatus::GetKeyLength(PRUint32* _result)
+{
+  NS_ASSERTION(_result, "non-NULL destination required");
+
+  *_result = mKeyLength;
+
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsSSLStatus::GetSecretKeyLength(PRUint32* _result)
+{
+  NS_ASSERTION(_result, "non-NULL destination required");
+
+  *_result = mSecretKeyLength;
+
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsSSLStatus::GetCipherName(char** _result)
+{
+  NS_ASSERTION(_result, "non-NULL destination required");
+
+  *_result = PL_strdup(mCipherName.get());
+
+  return NS_OK;
+}
+
+nsSSLStatus::nsSSLStatus()
+: mKeyLength(0), mSecretKeyLength(0)
+{
+}
+
+NS_IMPL_THREADSAFE_ISUPPORTS1(nsSSLStatus, nsISSLStatus)
+
+nsSSLStatus::~nsSSLStatus()
+{
+}
+
+
 char* PR_CALLBACK
 PK11PasswordPrompt(PK11SlotInfo* slot, PRBool retry, void* arg) {
   nsNSSShutDownPreventionLock locker;
   nsresult rv = NS_OK;
   PRUnichar *password = nsnull;
   PRBool value = PR_FALSE;
-  nsIInterfaceRequestor *ir = static_cast<nsIInterfaceRequestor*>(arg);
+  nsIInterfaceRequestor *ir = NS_STATIC_CAST(nsIInterfaceRequestor*, arg);
   nsCOMPtr<nsIPrompt> proxyPrompt;
 
   /* TODO: Retry should generate a different dialog message */
@@ -806,9 +752,6 @@ PK11PasswordPrompt(PK11SlotInfo* slot, PRBool retry, void* arg) {
                          getter_AddRefs(proxyPrompt));
   }
 
-  if (PK11_ProtectedAuthenticationPath(slot))
-    return ShowProtectedAuthPrompt(slot, ir);
-
   nsAutoString promptString;
   nsCOMPtr<nsINSSComponent> nssComponent(do_GetService(kNSSComponentCID, &rv));
 
@@ -819,7 +762,7 @@ PK11PasswordPrompt(PK11SlotInfo* slot, PRBool retry, void* arg) {
   rv = nssComponent->PIPBundleFormatStringFromName("CertPassPrompt",
                                       formatStrings, 1,
                                       promptString);
-  nsMemory::Free(const_cast<PRUnichar*>(formatStrings[0]));
+  nsMemory::Free(NS_CONST_CAST(PRUnichar*, formatStrings[0]));
 
   if (NS_FAILED(rv))
     return nsnull;
@@ -837,7 +780,7 @@ PK11PasswordPrompt(PK11SlotInfo* slot, PRBool retry, void* arg) {
   
   if (NS_SUCCEEDED(rv) && value) {
     char* str = ToNewUTF8String(nsDependentString(password));
-    NS_Free(password);
+    Recycle(password);
     return str;
   }
 
@@ -869,16 +812,22 @@ void PR_CALLBACK HandshakeCallback(PRFileDesc* fd, void* client_data) {
                  nsIWebProgressListener::STATE_SECURE_LOW);
 
   CERTCertificate *peerCert = SSL_PeerCertificate(fd);
-  const char* caName = nsnull; // caName is a pointer only, no ownership
-  char* certOrgName = CERT_GetOrgName(&peerCert->issuer);
+  char* caName = CERT_GetOrgName(&peerCert->issuer);
   CERT_DestroyCertificate(peerCert);
-  caName = certOrgName ? certOrgName : signer;
+  if (!caName) {
+    caName = signer;
+  }
 
-  const char* verisignName = "Verisign, Inc.";
   // If the CA name is RSA Data Security, then change the name to the real
   // name of the company i.e. VeriSign, Inc.
   if (nsCRT::strcmp((const char*)caName, "RSA Data Security, Inc.") == 0) {
-    caName = verisignName;
+    // In this case, caName != signer since the logic implies signer
+    // would be at minimal "O=RSA Data Security, Inc" because caName
+    // is what comes after to O=.  So we're OK just freeing this memory
+    // without checking to see if it's equal to signer;
+    NS_ASSERTION(caName != signer, "caName was equal to caName when it shouldn't be");
+    PR_Free(caName);
+    caName = PL_strdup("Verisign, Inc.");
   }
 
   nsAutoString shortDesc;
@@ -889,64 +838,31 @@ void PR_CALLBACK HandshakeCallback(PRFileDesc* fd, void* client_data) {
                                                    formatStrings, 1,
                                                    shortDesc);
 
-    nsMemory::Free(const_cast<PRUnichar*>(formatStrings[0]));
+    nsMemory::Free(NS_CONST_CAST(PRUnichar*, formatStrings[0]));
 
     nsNSSSocketInfo* infoObject = (nsNSSSocketInfo*) fd->higher->secret;
     infoObject->SetSecurityState(secStatus);
     infoObject->SetShortSecurityDescription(shortDesc.get());
 
     /* Set the SSL Status information */
-    nsRefPtr<nsSSLStatus> status = infoObject->SSLStatus();
-    if (!status) {
-      status = new nsSSLStatus();
-      infoObject->SetSSLStatus(status);
-    }
+    nsCOMPtr<nsSSLStatus> status = new nsSSLStatus();
 
     CERTCertificate *serverCert = SSL_PeerCertificate(fd);
     if (serverCert) {
-      nsRefPtr<nsNSSCertificate> nssc = new nsNSSCertificate(serverCert);
+      status->mServerCert = new nsNSSCertificate(serverCert);
       CERT_DestroyCertificate(serverCert);
-      serverCert = nsnull;
-
-      nsCOMPtr<nsIX509Cert> prevcert;
-      infoObject->GetPreviousCert(getter_AddRefs(prevcert));
-
-      PRBool equals_previous = PR_FALSE;
-      if (prevcert) {
-        nsresult rv = nssc->Equals(prevcert, &equals_previous);
-        if (NS_FAILED(rv)) {
-          equals_previous = PR_FALSE;
-        }
-      }
-
-      if (equals_previous) {
-        PR_LOG(gPIPNSSLog, PR_LOG_DEBUG,
-               ("HandshakeCallback using PREV cert %p\n", prevcert.get()));
-        infoObject->SetCert(prevcert);
-        status->mServerCert = prevcert;
-      }
-      else {
-        if (status->mServerCert) {
-          PR_LOG(gPIPNSSLog, PR_LOG_DEBUG,
-                 ("HandshakeCallback KEEPING cert %p\n", status->mServerCert.get()));
-          infoObject->SetCert(status->mServerCert);
-        }
-        else {
-          PR_LOG(gPIPNSSLog, PR_LOG_DEBUG,
-                 ("HandshakeCallback using NEW cert %p\n", nssc.get()));
-          infoObject->SetCert(nssc);
-          status->mServerCert = nssc;
-        }
-      }
     }
 
-    status->mHaveKeyLengthAndCipher = PR_TRUE;
     status->mKeyLength = keyLength;
     status->mSecretKeyLength = encryptBits;
     status->mCipherName.Adopt(cipherName);
+
+    infoObject->SetSSLStatus(status);
   }
 
-  PR_FREEIF(certOrgName);
+  if (caName != signer) {
+    PR_Free(caName);
+  }
   PR_Free(signer);
 }
 
@@ -961,24 +877,9 @@ SECStatus PR_CALLBACK AuthCertificateCallback(void* client_data, PRFileDesc* fd,
   // complete chain at any time it might need it.
   // But we keep only those CA certs in the temp db, that we didn't already know.
   
-  CERTCertificate *serverCert = SSL_PeerCertificate(fd);
-  CERTCertificateCleaner serverCertCleaner(serverCert);
-
-  if (serverCert) {
-    nsNSSSocketInfo* infoObject = (nsNSSSocketInfo*) fd->higher->secret;
-    nsRefPtr<nsSSLStatus> status = infoObject->SSLStatus();
-    nsRefPtr<nsNSSCertificate> nsc;
-
-    if (!status || !status->mServerCert) {
-      nsc = new nsNSSCertificate(serverCert);
-    }
-
-    if (SECSuccess == rv) {
-      if (nsc) {
-        PRBool dummyIsEV;
-        nsc->GetIsExtendedValidation(&dummyIsEV); // the nsc object will cache the status
-      }
-    
+  if (SECSuccess == rv) {
+    CERTCertificate *serverCert = SSL_PeerCertificate(fd);
+    if (serverCert) {
       CERTCertList *certList = CERT_GetCertChainFromCert(serverCert, PR_Now(), certUsageSSLCA);
 
       nsCOMPtr<nsINSSComponent> nssComponent;
@@ -1002,34 +903,22 @@ SECStatus PR_CALLBACK AuthCertificateCallback(void* client_data, PRFileDesc* fd,
           // the code that cares for displaying page info does this already.
           continue;
         }
-
+        
         // We have found a signer cert that we want to remember.
-        nsCAutoString nickname;
-        nickname = nsNSSCertificate::defaultServerNickname(node->cert);
-        if (!nickname.IsEmpty()) {
-          PK11SlotInfo *slot = PK11_GetInternalKeySlot();
-          if (slot) {
-            PK11_ImportCert(slot, node->cert, CK_INVALID_HANDLE, 
-                            const_cast<char*>(nickname.get()), PR_FALSE);
-            PK11_FreeSlot(slot);
-          }
+
+        if (!nssComponent) {
+          // delay getting the service until we really need it
+          nsresult rv;
+          nssComponent = do_GetService(kNSSComponentCID, &rv);
+        }
+        
+        if (nssComponent) {
+          nssComponent->RememberCert(node->cert);
         }
       }
 
       CERT_DestroyCertList(certList);
-    }
-
-    // The connection may get terminated, for example, if the server requires
-    // a client cert. Let's provide a minimal SSLStatus
-    // to the caller that contains at least the cert and its status.
-    if (!status) {
-      status = new nsSSLStatus();
-      infoObject->SetSSLStatus(status);
-    }
-    if (status && !status->mServerCert) {
-      status->mServerCert = nsc;
-      PR_LOG(gPIPNSSLog, PR_LOG_DEBUG,
-             ("AuthCertificateCallback setting NEW cert %p\n", status->mServerCert.get()));
+      CERT_DestroyCertificate(serverCert);
     }
   }
 

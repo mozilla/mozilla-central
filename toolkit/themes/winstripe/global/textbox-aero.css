@@ -1,5 +1,0 @@
-%include textbox.css
-
-textbox[empty="true"]:-moz-system-metric(windows-default-theme) {
-  font-style: italic;
-}

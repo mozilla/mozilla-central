@@ -52,7 +52,7 @@ CallGetInterface( T* aSource, DestinationType** aDestination )
     NS_PRECONDITION(aDestination, "null parameter");
 
     return aSource->GetInterface(NS_GET_TEMPLATE_IID(DestinationType),
-                                 reinterpret_cast<void**>(aDestination));
+                                 NS_REINTERPRET_CAST(void**, aDestination));
   }
 
 class NS_COM_GLUE nsGetInterface : public nsCOMPtr_helper

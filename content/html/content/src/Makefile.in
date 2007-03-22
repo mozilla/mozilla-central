@@ -49,7 +49,6 @@ LIBXUL_LIBRARY	= 1
 REQUIRES	= xpcom \
 		  string \
 		  gfx \
-		  thebes \
 		  layout \
 		  widget \
 		  dom \
@@ -70,7 +69,6 @@ REQUIRES	= xpcom \
 		  imglib2 \
 		  mimetype \
 		  exthandler \
-		  chardet \
 		  uconv \
 		  intl \
 		  plugin \
@@ -81,7 +79,6 @@ EXPORTS		= \
 		$(NULL)
 
 CPPSRCS		= \
-		nsClientRect.cpp \
 		nsGenericHTMLElement.cpp \
 		nsFormSubmission.cpp \
 		nsImageMapUtils.cpp \
@@ -143,7 +140,6 @@ INCLUDES	+= \
 		-I$(srcdir)/../../../events/src \
 		-I$(srcdir)/../../../xbl/src \
 		-I$(srcdir)/../../../../layout/style \
-		-I$(srcdir)/../../../../layout/tables \
 		-I$(srcdir) \
 		$(NULL)
 

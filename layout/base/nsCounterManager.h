@@ -167,13 +167,13 @@ struct nsCounterChangeNode : public nsCounterNode {
 inline nsCounterUseNode* nsCounterNode::UseNode()
 {
     NS_ASSERTION(mType == USE, "wrong type");
-    return static_cast<nsCounterUseNode*>(this);
+    return NS_STATIC_CAST(nsCounterUseNode*, this);
 }
 
 inline nsCounterChangeNode* nsCounterNode::ChangeNode()
 {
     NS_ASSERTION(mType == INCREMENT || mType == RESET, "wrong type");
-    return static_cast<nsCounterChangeNode*>(this);
+    return NS_STATIC_CAST(nsCounterChangeNode*, this);
 }
 
 inline void nsCounterNode::Calc(nsCounterList* aList)
@@ -200,14 +200,14 @@ public:
     }
 
     nsCounterNode* First() {
-        return static_cast<nsCounterNode*>(mFirstNode);
+        return NS_STATIC_CAST(nsCounterNode*, mFirstNode);
     }
 
     static nsCounterNode* Next(nsCounterNode* aNode) {
-        return static_cast<nsCounterNode*>(nsGenConList::Next(aNode));
+        return NS_STATIC_CAST(nsCounterNode*, nsGenConList::Next(aNode));
     }
     static nsCounterNode* Prev(nsCounterNode* aNode) {
-        return static_cast<nsCounterNode*>(nsGenConList::Prev(aNode));
+        return NS_STATIC_CAST(nsCounterNode*, nsGenConList::Prev(aNode));
     }
 
     static PRInt32 ValueBefore(nsCounterNode* aNode) {

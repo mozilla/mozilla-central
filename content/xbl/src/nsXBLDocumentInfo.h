@@ -35,7 +35,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsCOMPtr.h"
-#include "nsAutoPtr.h"
 #include "nsIXBLDocumentInfo.h"
 #include "nsIScriptGlobalObjectOwner.h"
 #include "nsWeakReference.h"
@@ -44,7 +43,6 @@
 
 class nsXBLPrototypeBinding;
 class nsObjectHashtable;
-class nsXBLDocGlobalObject;
 
 class nsXBLDocumentInfo : public nsIXBLDocumentInfo, public nsIScriptGlobalObjectOwner, public nsSupportsWeakReference
 {
@@ -54,11 +52,11 @@ public:
   nsXBLDocumentInfo(nsIDocument* aDocument);
   virtual ~nsXBLDocumentInfo();
 
-  NS_IMETHOD GetDocument(nsIDocument** aResult) { NS_ADDREF(*aResult = mDocument); return NS_OK; }
+  NS_IMETHOD GetDocument(nsIDocument** aResult) { NS_ADDREF(*aResult = mDocument); return NS_OK; };
 
-  NS_IMETHOD GetScriptAccess(PRBool* aResult) { *aResult = mScriptAccess; return NS_OK; }
+  NS_IMETHOD GetScriptAccess(PRBool* aResult) { *aResult = mScriptAccess; return NS_OK; };
 
-  NS_IMETHOD_(nsIURI*) DocumentURI() { return mDocument->GetDocumentURI(); }
+  NS_IMETHOD_(nsIURI*) DocumentURI() { return mDocument->GetDocumentURI(); };
 
   NS_IMETHOD GetPrototypeBinding(const nsACString& aRef, nsXBLPrototypeBinding** aResult);
   NS_IMETHOD SetPrototypeBinding(const nsACString& aRef, nsXBLPrototypeBinding* aBinding);
@@ -72,8 +70,8 @@ public:
   // nsIScriptGlobalObjectOwner methods
   virtual nsIScriptGlobalObject* GetScriptGlobalObject();
 
-  NS_DECL_CYCLE_COLLECTION_SCRIPT_HOLDER_CLASS_AMBIGUOUS(nsXBLDocumentInfo,
-                                                         nsIXBLDocumentInfo)
+  NS_DECL_CYCLE_COLLECTION_CLASS_AMBIGUOUS(nsXBLDocumentInfo,
+                                           nsIXBLDocumentInfo)
 
 private:
   nsCOMPtr<nsIDocument> mDocument;
@@ -84,5 +82,5 @@ private:
   // non-owning pointer to the first binding in the table
   nsXBLPrototypeBinding* mFirstBinding;
 
-  nsRefPtr<nsXBLDocGlobalObject> mGlobalObject;
+  nsCOMPtr<nsIScriptGlobalObject> mGlobalObject;
 };

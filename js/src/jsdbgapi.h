@@ -1,5 +1,4 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 4 -*-
- * vim: set ts=8 sw=4 et tw=78:
  *
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -49,13 +48,8 @@
 
 JS_BEGIN_EXTERN_C
 
-/*
- * Unexported library-private helper used to unpatch all traps in a script.
- * Returns script->code if script has no traps, else a JS_malloc'ed copy of
- * script->code which the caller must JS_free, or null on JS_malloc OOM.
- */
-extern jsbytecode *
-js_UntrapScriptCode(JSContext *cx, JSScript *script);
+extern void
+js_PatchOpcode(JSContext *cx, JSScript *script, jsbytecode *pc, JSOp op);
 
 extern JS_PUBLIC_API(JSBool)
 JS_SetTrap(JSContext *cx, JSScript *script, jsbytecode *pc,
@@ -105,10 +99,7 @@ JS_ClearAllWatchPoints(JSContext *cx);
  * header file "jsconfig.h" has been included.
  */
 extern void
-js_TraceWatchPoints(JSTracer *trc, JSObject *obj);
-
-extern void
-js_SweepWatchPoints(JSContext *cx);
+js_MarkWatchPoints(JSContext *cx);
 
 extern JSScopeProperty *
 js_FindWatchPoint(JSRuntime *rt, JSScope *scope, jsid id);
@@ -145,9 +136,6 @@ JS_GetFunctionScript(JSContext *cx, JSFunction *fun);
 
 extern JS_PUBLIC_API(JSNative)
 JS_GetFunctionNative(JSContext *cx, JSFunction *fun);
-
-extern JS_PUBLIC_API(JSFastNative)
-JS_GetFunctionFastNative(JSContext *cx, JSFunction *fun);
 
 extern JS_PUBLIC_API(JSPrincipals *)
 JS_GetScriptPrincipals(JSContext *cx, JSScript *script);
@@ -241,7 +229,7 @@ extern JS_PUBLIC_API(void)
 JS_SetFrameReturnValue(JSContext *cx, JSStackFrame *fp, jsval rval);
 
 /**
- * Return fp's callee function object (fp->callee) if it has one.
+ * Return fp's callee function object (fp->argv[-2]) if it has one.
  */
 extern JS_PUBLIC_API(JSObject *)
 JS_GetFrameCalleeObject(JSContext *cx, JSStackFrame *fp);
@@ -397,67 +385,24 @@ JS_FlagScriptFilenamePrefix(JSRuntime *rt, const char *prefix, uint32 flags);
 
 #define JSFILENAME_NULL         0xffffffff      /* null script filename */
 #define JSFILENAME_SYSTEM       0x00000001      /* "system" script, see below */
-#define JSFILENAME_PROTECTED    0x00000002      /* scripts need protection */
 
 /*
- * Return true if obj is a "system" object, that is, one created by
- * JS_NewSystemObject with the system flag set and not JS_NewObject.
- *
- * What "system" means is up to the API client, but it can be used to implement
- * access control policies based on script filenames and their prefixes, using
- * JS_FlagScriptFilenamePrefix and JS_GetTopScriptFilenameFlags.
+ * Return true if obj is a "system" object, that is, one flagged by a prior
+ * call to JS_FlagSystemObject(cx, obj).  What "system" means is up to the API
+ * client, but it can be used to coordinate access control policies based on
+ * script filenames and their prefixes, using JS_FlagScriptFilenamePrefix and
+ * JS_GetTopScriptFilenameFlags.
  */
 extern JS_PUBLIC_API(JSBool)
 JS_IsSystemObject(JSContext *cx, JSObject *obj);
 
 /*
- * Call JS_NewObject(cx, clasp, proto, parent) and, if system is true, mark the
- * result as a system object, that is an object for which JS_IsSystemObject
- * returns true.
+ * Flag obj as a "system" object.  The API client can flag system objects to
+ * optimize access control checks.  The engine stores but does not interpret
+ * the per-object flag set by this call.
  */
-extern JS_PUBLIC_API(JSObject *)
-JS_NewSystemObject(JSContext *cx, JSClass *clasp, JSObject *proto,
-                   JSObject *parent, JSBool system);
-
-/************************************************************************/
-
-extern JS_PUBLIC_API(JSDebugHooks *)
-JS_GetGlobalDebugHooks(JSRuntime *rt);
-
-extern JS_PUBLIC_API(JSDebugHooks *)
-JS_SetContextDebugHooks(JSContext *cx, JSDebugHooks *hooks);
-
-#ifdef MOZ_SHARK
-
-extern JS_PUBLIC_API(JSBool)
-JS_StartChudRemote();
-
-extern JS_PUBLIC_API(JSBool)
-JS_StopChudRemote();
-
-extern JS_PUBLIC_API(JSBool)
-JS_ConnectShark();
-
-extern JS_PUBLIC_API(JSBool)
-JS_DisconnectShark();
-
-extern JS_FRIEND_API(JSBool)
-js_StopShark(JSContext *cx, JSObject *obj, uintN argc, jsval *argv,
-             jsval *rval);
-
-extern JS_FRIEND_API(JSBool)
-js_StartShark(JSContext *cx, JSObject *obj, uintN argc, jsval *argv,
-              jsval *rval);
-
-extern JS_FRIEND_API(JSBool)
-js_ConnectShark(JSContext *cx, JSObject *obj, uintN argc, jsval *argv,
-                jsval *rval);
-
-extern JS_FRIEND_API(JSBool)
-js_DisconnectShark(JSContext *cx, JSObject *obj, uintN argc, jsval *argv,
-                   jsval *rval);
-
-#endif /* MOZ_SHARK */
+extern JS_PUBLIC_API(void)
+JS_FlagSystemObject(JSContext *cx, JSObject *obj);
 
 JS_END_EXTERN_C
 

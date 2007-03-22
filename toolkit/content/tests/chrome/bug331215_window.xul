@@ -69,11 +69,7 @@
         gBrowser.addEventListener("pageshow", onPageShow, false);
         gBrowser.loadURI("data:text/plain,latest");
       }
-      let tm = Cc["@mozilla.org/thread-manager;1"].
-               getService(Ci.nsIThreadManager);
-      tm.mainThread.dispatch({
-        run: function() _delayedOnLoad()
-      }, Ci.nsIThread.DISPATCH_NORMAL);
+      setTimeout(_delayedOnLoad, 1000);
     }
 
     function onPageShow() {

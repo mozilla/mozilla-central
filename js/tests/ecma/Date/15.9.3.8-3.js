@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '15.9.3.8-3.js';
-
 /**
    File Name:          15.9.3.8.js
    ECMA Section:       15.9.3.8 The Date Constructor
@@ -93,8 +91,8 @@ var SECONDS     = 15;
 var MS          = 16;
 
 
-//  for TCMS, the gTestcases array must be global.
-var gTc= 0;
+//  for TCMS, the testcases array must be global.
+var tc= 0;
 var TITLE = "Date constructor:  new Date( value )";
 var SECTION = "15.9.3.8";
 var VERSION = "ECMA_1";
@@ -132,12 +130,101 @@ addNewTestCase(  new Date( (new Date(TIME_2000+TZ_ADJUST)).toUTCString()),
 addNewTestCase( new Date( (new Date(TIME_2000)).toUTCString()),
 		"new Date(\"" +(new Date(TIME_2000)).toUTCString()+"\")",
 		[TIME_2000,2000,0,1,6,0,0,0,0,1999,11,31,5,16,0,0,0] );
+/*
+// Dates around Feb 29, 2000
+
+var UTC_FEB_29_2000 = TIME_2000 + 31*msPerDay + 28*msPerDay;
+var PST_FEB_29_2000 = UTC_FEB_29_2000 + TZ_ADJUST;
+
+addNewTestCase( new Date(UTC_FEB_29_2000),
+"new Date("+UTC_FEB_29_2000+")",
+[UTC_FEB_29_2000,2000,1,29,2,0,0,0,0,2000,1,28,1,16,0,0,0] );
+
+addNewTestCase( new Date(PST_FEB_29_2000),
+"new Date("+PST_FEB_29_2000+")",
+[PST_FEB_29_2000,2000,1,29,2,8,0,0,0,2000,1,29,2,0,0,0,0] );
+
+addNewTestCase( new Date( (new Date(UTC_FEB_29_2000)).toString() ),
+"new Date(\""+(new Date(UTC_FEB_29_2000)).toString()+"\")",
+[UTC_FEB_29_2000,2000,1,29,2,0,0,0,0,2000,1,28,1,16,0,0,0] );
+
+addNewTestCase( new Date( (new Date(PST_FEB_29_2000)).toString() ),
+"new Date(\""+(new Date(PST_FEB_29_2000)).toString()+"\")",
+[PST_FEB_29_2000,2000,1,29,2,8,0,0,0,2000,1,29,2,0,0,0,0] );
+
+//  Parsing toLocaleString() is not guaranteed by ECMA.
+//    addNewTestCase( "new Date(\""+(new Date(UTC_FEB_29_2000)).toLocaleString()+"\")",  [UTC_FEB_29_2000,2000,1,29,2,0,0,0,0,2000,1,28,1,16,0,0,0] );
+//    addNewTestCase( "new Date(\""+(new Date(PST_FEB_29_2000)).toLocaleString()+"\")",  [PST_FEB_29_2000,2000,1,29,2,8,0,0,0,2000,1,29,2,0,0,0,0] );
+
+addNewTestCase( new Date( (new Date(UTC_FEB_29_2000)).toGMTString() ),
+"new Date(\""+(new Date(UTC_FEB_29_2000)).toGMTString()+"\")",
+[UTC_FEB_29_2000,2000,1,29,2,0,0,0,0,2000,1,28,1,16,0,0,0] );
+
+addNewTestCase( new Date( (new Date(PST_FEB_29_2000)).toGMTString() ),
+"new Date(\""+(new Date(PST_FEB_29_2000)).toGMTString()+"\")",
+[PST_FEB_29_2000,2000,1,29,2,8,0,0,0,2000,1,29,2,0,0,0,0] );
+
+// Dates around 1900
+
+var PST_1900 = TIME_1900 + 8*msPerHour;
+
+addNewTestCase( new Date( TIME_1900 ),
+"new Date("+TIME_1900+")",
+[TIME_1900,1900,0,1,1,0,0,0,0,1899,11,31,0,16,0,0,0] );
+
+addNewTestCase( new Date(PST_1900),
+"new Date("+PST_1900+")",
+[ PST_1900,1900,0,1,1,8,0,0,0,1900,0,1,1,0,0,0,0] );
+
+addNewTestCase( new Date( (new Date(TIME_1900)).toString() ),
+"new Date(\""+(new Date(TIME_1900)).toString()+"\")",
+[TIME_1900,1900,0,1,1,0,0,0,0,1899,11,31,0,16,0,0,0] );
+
+addNewTestCase( new Date( (new Date(PST_1900)).toString() ),
+"new Date(\""+(new Date(PST_1900 )).toString()+"\")",
+[ PST_1900,1900,0,1,1,8,0,0,0,1900,0,1,1,0,0,0,0] );
+
+addNewTestCase( new Date( (new Date(TIME_1900)).toUTCString() ),
+"new Date(\""+(new Date(TIME_1900)).toUTCString()+"\")",
+[TIME_1900,1900,0,1,1,0,0,0,0,1899,11,31,0,16,0,0,0] );
+
+addNewTestCase( new Date( (new Date(PST_1900)).toUTCString() ),
+"new Date(\""+(new Date(PST_1900 )).toUTCString()+"\")",
+[ PST_1900,1900,0,1,1,8,0,0,0,1900,0,1,1,0,0,0,0] );
+
+//    addNewTestCase( "new Date(\""+(new Date(TIME_1900)).toLocaleString()+"\")",   [TIME_1900,1900,0,1,1,0,0,0,0,1899,11,31,0,16,0,0,0] );
+//    addNewTestCase( "new Date(\""+(new Date(PST_1900 )).toLocaleString()+"\")",   [ PST_1900,1900,0,1,1,8,0,0,0,1900,0,1,1,0,0,0,0] );
+*/
+/*
+  This test case is incorrect.  Need to fix the DaylightSavings functions in
+  shell.js for this to work properly.
+
+  var DST_START_1998 = UTC( GetFirstSundayInApril(TimeFromYear(1998)) + 2*msPerHour )
+
+  addNewTestCase( new Date(DST_START_1998-1),
+  "new Date("+(DST_START_1998-1)+")",
+  [DST_START_1998-1,1998,3,5,0,9,59,59,999,1998,3,5,0,1,59,59,999] );
+
+  addNewTestCase( new Date(DST_START_1998),
+  "new Date("+DST_START_1998+")",
+  [DST_START_1998,1998,3,5,0,10,0,0,0,1998,3,5,0,3,0,0,0]);
+
+  var DST_END_1998 = UTC( GetLastSundayInOctober(TimeFromYear(1998)) + 2*msPerHour );
+
+  addNewTestCase ( new Date(DST_END_1998-1),
+  "new Date("+(DST_END_1998-1)+")",
+  [DST_END_1998-1,1998,9,25,0,8,59,59,999,1998,9,25,0,1,59,59,999] );
+
+  addNewTestCase ( new Date(DST_END_1998),
+  "new Date("+DST_END_1998+")",
+  [DST_END_1998,1998,9,25,0,9,0,0,0,1998,9,25,0,1,0,0,0] );
+*/
 
 test();
 
 function addNewTestCase( DateCase, DateString, ResultArray ) {
   //adjust hard-coded ResultArray for tester's timezone instead of PST
-  adjustResultArray(ResultArray, 'msMode');
+  adjustResultArray(ResultArray, 'msMode'); 
 
   new TestCase( SECTION, DateString+".getTime()", ResultArray[TIME],       DateCase.getTime() );
   new TestCase( SECTION, DateString+".valueOf()", ResultArray[TIME],       DateCase.valueOf() );

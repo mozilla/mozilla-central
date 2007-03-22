@@ -41,6 +41,7 @@
 #include "nsIServiceManager.h"
 #include "nsUnicharUtilCIID.h"
 #include "nsCRT.h"
+#include "cattable.h"
 
 NS_IMPL_ISUPPORTS1(mozEnglishWordUtils, mozISpellI18NUtil)
 
@@ -50,8 +51,6 @@ mozEnglishWordUtils::mozEnglishWordUtils()
 
   nsresult rv;
   mURLDetector = do_CreateInstance(MOZ_TXTTOHTMLCONV_CONTRACTID, &rv);
-  mCaseConv = do_GetService(NS_UNICHARUTIL_CONTRACTID);
-  mCategories = do_GetService(NS_UNICHARCATEGORY_CONTRACTID);
 }
 
 mozEnglishWordUtils::~mozEnglishWordUtils()
@@ -78,6 +77,12 @@ NS_IMETHODIMP mozEnglishWordUtils::GetRootForm(const PRUnichar *aWord, PRUint32 
   PRInt32 length = word.Length();
 
   *count = 0;
+
+  if (!mCaseConv) {
+    mCaseConv = do_GetService(NS_UNICHARUTIL_CONTRACTID);
+    if (!mCaseConv)
+      return NS_ERROR_FAILURE;
+  }
 
   mozEnglishWordUtils::myspCapitalization ct = captype(word);
   switch (ct)
@@ -154,10 +159,10 @@ NS_IMETHODIMP mozEnglishWordUtils::GetRootForm(const PRUnichar *aWord, PRUint32 
 }
 
 // This needs vast improvement
-PRBool mozEnglishWordUtils::ucIsAlpha(PRUnichar aChar)
+static PRBool ucIsAlpha(PRUnichar c)
 {
   // XXX we have to fix callers to handle the full Unicode range
-  return nsIUGenCategory::kLetter == mCategories->Get(PRUint32(aChar));
+  return (5 == GetCat(PRUint32(c)));
 }
 
 /* void FindNextWord (in wstring word, in PRUint32 length, in PRUint32 offset, out PRUint32 begin, out PRUint32 end); */

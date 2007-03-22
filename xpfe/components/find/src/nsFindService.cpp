@@ -48,7 +48,7 @@
 
 nsFindService::nsFindService()
 : mFindBackwards(PR_FALSE)
-, mWrapFind(PR_TRUE)
+, mWrapFind(PR_FALSE)
 , mEntireWord(PR_FALSE)
 , mMatchCase(PR_FALSE)
 {

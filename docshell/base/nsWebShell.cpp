@@ -85,7 +85,6 @@
 #include "nsIDocShellTreeNode.h"
 #include "nsIDocShellTreeOwner.h"
 #include "nsCURILoader.h"
-#include "nsURILoader.h"
 #include "nsIDOMWindowInternal.h"
 #include "nsEscape.h"
 #include "nsIPlatformCharset.h"
@@ -124,8 +123,6 @@
 #include "nsITimer.h"
 #include "nsIScriptSecurityManager.h"
 #include "nsContentPolicyUtils.h"
-
-#include "nsIURIClassifier.h"
 
 #ifdef NS_DEBUG
 /**
@@ -223,9 +220,14 @@ CheckPingURI(nsIURI* uri, nsIContent* content)
 
   // Check with contentpolicy
   PRInt16 shouldLoad = nsIContentPolicy::ACCEPT;
-  rv = NS_CheckContentLoadPolicy(nsIContentPolicy::TYPE_PING,
+  nsIURI* docURI = nsnull;
+  nsIDocument* doc = content->GetOwnerDoc();
+  if (doc) {
+    docURI = doc->GetDocumentURI();
+  }
+  rv = NS_CheckContentLoadPolicy(nsIContentPolicy::TYPE_OTHER,
                                  uri,
-                                 content->NodePrincipal(),
+                                 docURI,
                                  content,
                                  EmptyCString(), // mime hint
                                  nsnull, //extra
@@ -304,7 +306,7 @@ ForEachPing(nsIContent *content, ForEachPingCallback callback, void *closure)
 static void
 OnPingTimeout(nsITimer *timer, void *closure)
 {
-  nsILoadGroup *loadGroup = static_cast<nsILoadGroup *>(closure);
+  nsILoadGroup *loadGroup = NS_STATIC_CAST(nsILoadGroup *, closure);
   loadGroup->Cancel(NS_ERROR_ABORT);
   loadGroup->Release();
 }
@@ -410,7 +412,7 @@ struct SendPingInfo {
 static void
 SendPing(void *closure, nsIContent *content, nsIURI *uri, nsIIOService *ios)
 {
-  SendPingInfo *info = static_cast<SendPingInfo *>(closure);
+  SendPingInfo *info = NS_STATIC_CAST(SendPingInfo *, closure);
   if (info->numPings >= info->maxPings)
     return;
 
@@ -511,7 +513,7 @@ SendPing(void *closure, nsIContent *content, nsIURI *uri, nsIIOService *ios)
     if (NS_SUCCEEDED(rv)) {
       // When the timer expires, the callback function will release this
       // reference to the loadgroup.
-      static_cast<nsILoadGroup *>(loadGroup.get())->AddRef();
+      NS_STATIC_CAST(nsILoadGroup *, loadGroup.get())->AddRef();
       loadGroup = 0;
     }
   }
@@ -565,6 +567,7 @@ nsWebShell::~nsWebShell()
              // recursively if the refcount is allowed to remain 0
 
   mContentViewer=nsnull;
+  mDeviceContext=nsnull;
 
   InitFrameData();
 
@@ -594,7 +597,7 @@ nsWebShell::EnsureCommandHandler()
     nsCOMPtr<nsPICommandUpdater>       commandUpdater = do_QueryInterface(mCommandManager);
     if (!commandUpdater) return NS_ERROR_FAILURE;
     
-    nsCOMPtr<nsIDOMWindow> domWindow = do_GetInterface(static_cast<nsIInterfaceRequestor *>(this));
+    nsCOMPtr<nsIDOMWindow> domWindow = do_GetInterface(NS_STATIC_CAST(nsIInterfaceRequestor *, this));
 #ifdef DEBUG
     nsresult rv =
 #endif
@@ -765,15 +768,6 @@ nsWebShell::OnLinkClick(nsIContent* aContent,
                         nsIInputStream* aHeadersDataStream)
 {
   NS_ASSERTION(NS_IsMainThread(), "wrong thread");
-
-  if (!IsOKToLoadURI(aURI)) {
-    return NS_OK;
-  }
-
-  if (aContent->IsEditable()) {
-    return NS_OK;
-  }
-
   nsCOMPtr<nsIRunnable> ev =
       new OnLinkClickEvent(this, aContent, aURI, aTargetSpec,
                            aPostDataStream, aHeadersDataStream);
@@ -797,14 +791,6 @@ nsWebShell::OnLinkClickSync(nsIContent *aContent,
     *aRequest = nsnull;
   }
 
-  if (!IsOKToLoadURI(aURI)) {
-    return NS_OK;
-  }
-
-  if (aContent->IsEditable()) {
-    return NS_OK;
-  }
-
   {
     // defer to an external protocol handler if necessary...
     nsCOMPtr<nsIExternalProtocolService> extProtService = do_GetService(NS_EXTERNALPROTOCOLSERVICE_CONTRACTID);
@@ -817,7 +803,7 @@ nsWebShell::OnLinkClickSync(nsIContent *aContent,
         PRBool isExposed;
         nsresult rv = extProtService->IsExposedProtocol(scheme.get(), &isExposed);
         if (NS_SUCCEEDED(rv) && !isExposed) {
-          return extProtService->LoadURI(aURI, this); 
+          return extProtService->LoadUrl(aURI);
         }
       }
     }
@@ -862,7 +848,7 @@ nsWebShell::OnLinkClickSync(nsIContent *aContent,
   nsCOMPtr<nsIDocument> refererDoc(do_QueryInterface(refererOwnerDoc));
   NS_ENSURE_TRUE(refererDoc, NS_ERROR_UNEXPECTED);
 
-  nsCOMPtr<nsIURI> referer = refererDoc->GetDocumentURI();
+  nsIURI *referer = refererDoc->GetDocumentURI();
 
   // referer could be null here in some odd cases, but that's ok,
   // we'll just load the link w/o sending a referer in those cases.
@@ -900,10 +886,6 @@ nsWebShell::OnOverLink(nsIContent* aContent,
                        nsIURI* aURI,
                        const PRUnichar* aTargetSpec)
 {
-  if (aContent->IsEditable()) {
-    return NS_OK;
-  }
-
   nsCOMPtr<nsIWebBrowserChrome2> browserChrome2 = do_GetInterface(mTreeOwner);
   nsresult rv = NS_ERROR_FAILURE;
 
@@ -1161,6 +1143,10 @@ nsresult nsWebShell::EndPageLoad(nsIWebProgress *aProgress,
           newURI->GetSpec(newSpec);
           NS_ConvertUTF8toUTF16 newSpecW(newSpec);
 
+          // This seems evil, since it is modifying the original URL
+          rv = url->SetSpec(newSpec);
+          if (NS_FAILED(rv)) return rv;
+
           return LoadURI(newSpecW.get(),      // URI string
                          LOAD_FLAGS_NONE, // Load flags
                          nsnull,          // Referring URI
@@ -1189,9 +1175,6 @@ nsresult nsWebShell::EndPageLoad(nsIWebProgress *aProgress,
              aStatus == NS_ERROR_UNKNOWN_SOCKET_TYPE ||
              aStatus == NS_ERROR_NET_INTERRUPT ||
              aStatus == NS_ERROR_NET_RESET ||
-             aStatus == NS_ERROR_MALWARE_URI ||
-             aStatus == NS_ERROR_PHISHING_URI ||
-             aStatus == NS_ERROR_UNSAFE_CONTENT_TYPE ||
              NS_ERROR_GET_MODULE(aStatus) == NS_ERROR_MODULE_SECURITY) {
       DisplayLoadError(aStatus, url, nsnull, channel);
     }

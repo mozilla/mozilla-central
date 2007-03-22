@@ -575,8 +575,6 @@ nsTypeAheadFind::FindItNow(nsIPresShell *aPresShell, PRBool aIsLinksOnly,
       // ATTENTION, or when we MoveFocusToCaret() and the selection is not on a
       // link, we'll blur, which will lose the ATTENTION.
       if (selectionController) {
-        // Beware! This may flush notifications via synchronous
-        // ScrollSelectionIntoView.
         SetSelectionModeAndRepaint(nsISelectionController::SELECTION_ATTENTION);
         selectionController->ScrollSelectionIntoView(
           nsISelectionController::SELECTION_NORMAL, 
@@ -903,8 +901,6 @@ nsTypeAheadFind::FindAgain(PRBool aFindBackwards, PRBool aLinksOnly,
 
   mLinksOnly = aLinksOnly;
   if (!mTypeAheadBuffer.IsEmpty())
-    // Beware! This may flush notifications via synchronous
-    // ScrollSelectionIntoView.
     FindItNow(nsnull, mLinksOnly, PR_FALSE, aFindBackwards, aResult);
 
   return NS_OK;
@@ -1028,8 +1024,6 @@ nsTypeAheadFind::Find(const nsAString& aSearchString, PRBool aLinksOnly,
   }
 
   // ----------- Find the text! ---------------------
-  // Beware! This may flush notifications via synchronous
-  // ScrollSelectionIntoView.
   nsresult rv = FindItNow(nsnull, mLinksOnly, isFirstVisiblePreferred,
                           PR_FALSE, aResult);
 
@@ -1196,7 +1190,7 @@ nsTypeAheadFind::IsRangeVisible(nsIPresShell *aPresShell,
     frameTraversal->Next();
     nsISupports* currentItem;
     frameTraversal->CurrentItem(&currentItem);
-    frame = static_cast<nsIFrame*>(currentItem);
+    frame = NS_STATIC_CAST(nsIFrame*, currentItem);
     if (!frame)
       return PR_FALSE;
 

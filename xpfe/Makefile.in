@@ -50,9 +50,18 @@ ifndef MOZ_SUNBIRD
 DIRS += browser
 endif
 
-ifndef MOZ_XUL_APP
-DIRS += global communicator
+ifdef MOZ_THUNDERBIRD
+DIRS += communicator
 endif
+
+ifndef MOZ_XUL_APP
+DIRS += global
+
+# XXX Clean this up once SeaMonkey becomes a full xul app
+ifndef MOZ_SUITE
+DIRS += communicator
+endif
+endif # MOZ_XUL_APP
 
 # Because of our great use of encapsulation, there are
 # some header file in xpfe/components that are required

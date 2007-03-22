@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -42,6 +41,7 @@
 #include "nsCOMPtr.h"
 #include "nsFrame.h"
 #include "nsPresContext.h"
+#include "nsUnitConversion.h"
 #include "nsStyleContext.h"
 #include "nsStyleConsts.h"
 #include "nsIRenderingContext.h"
@@ -76,17 +76,17 @@ nsMathMLmsubsupFrame::TransmitAutomaticData()
   //    unchanged within base.
   // 2. The TeXbook (Ch 17. p.141) says the superscript inherits the compression
   //    while the subscript is compressed
-  UpdatePresentationDataFromChildAt(1, -1,
+  UpdatePresentationDataFromChildAt(1, -1, 1,
     ~NS_MATHML_DISPLAYSTYLE,
      NS_MATHML_DISPLAYSTYLE);
-  UpdatePresentationDataFromChildAt(1,  1,
+  UpdatePresentationDataFromChildAt(1,  1, 0,
      NS_MATHML_COMPRESSED,
      NS_MATHML_COMPRESSED);
 
   return NS_OK;
 }
 
-/* virtual */ nsresult
+NS_IMETHODIMP
 nsMathMLmsubsupFrame::Place(nsIRenderingContext& aRenderingContext,
                             PRBool               aPlaceOrigin,
                             nsHTMLReflowMetrics& aDesiredSize)
@@ -102,7 +102,7 @@ nsMathMLmsubsupFrame::Place(nsIRenderingContext& aRenderingContext,
   if (!value.IsEmpty()) {
     nsCSSValue cssValue;
     if (ParseNumericValue(value, cssValue) && cssValue.IsLengthUnit()) {
-      subScriptShift = CalcLength(PresContext(), mStyleContext, cssValue);
+      subScriptShift = CalcLength(GetPresContext(), mStyleContext, cssValue);
     }
   }
   // check if the superscriptshift attribute is there
@@ -112,11 +112,11 @@ nsMathMLmsubsupFrame::Place(nsIRenderingContext& aRenderingContext,
   if (!value.IsEmpty()) {
     nsCSSValue cssValue;
     if (ParseNumericValue(value, cssValue) && cssValue.IsLengthUnit()) {
-      supScriptShift = CalcLength(PresContext(), mStyleContext, cssValue);
+      supScriptShift = CalcLength(GetPresContext(), mStyleContext, cssValue);
     }
   }
 
-  return nsMathMLmsubsupFrame::PlaceSubSupScript(PresContext(),
+  return nsMathMLmsubsupFrame::PlaceSubSupScript(GetPresContext(),
                                                  aRenderingContext,
                                                  aPlaceOrigin,
                                                  aDesiredSize,
@@ -160,8 +160,8 @@ nsMathMLmsubsupFrame::PlaceSubSupScript(nsPresContext*      aPresContext,
       supScriptFrame->GetNextSibling()) {
     // report an error, encourage people to get their markups in order
     NS_WARNING("invalid markup");
-    return static_cast<nsMathMLContainerFrame*>
-                      (aFrame)->ReflowError(aRenderingContext,
+    return NS_STATIC_CAST(nsMathMLContainerFrame*,
+                          aFrame)->ReflowError(aRenderingContext,
                                                aDesiredSize);
   }
   GetReflowAndBoundingMetricsFor(baseFrame, baseSize, bmBase);
@@ -254,7 +254,7 @@ nsMathMLmsubsupFrame::PlaceSubSupScript(nsPresContext*      aPresContext,
   nscoord supScriptShift;
   nsPresentationData presentationData;
   aFrame->GetPresentationData(presentationData);
-  if ( aFrame->GetStyleFont()->mScriptLevel == 0 &&
+  if ( presentationData.scriptLevel == 0 &&
        NS_MATHML_IS_DISPLAYSTYLE(presentationData.flags) &&
       !NS_MATHML_IS_COMPRESSED(presentationData.flags)) {
     // Style D in TeXbook

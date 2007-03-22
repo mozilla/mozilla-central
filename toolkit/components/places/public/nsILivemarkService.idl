@@ -38,20 +38,14 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsISupports.idl"
+#include "nsIRemoteContainer.idl"
 
 interface nsIURI;
 interface nsINavBookmarksService;
 
-[scriptable, uuid(0b0985c7-f34b-447a-8d52-ebfb7da94a6a)]
-interface nsILivemarkService : nsISupports
+[scriptable, uuid(86f0be08-7b7f-4ec6-97ff-ecace917b852)]
+interface nsILivemarkService : nsIRemoteContainer
 {
-  /**
-   * Starts the livemark refresh timer.
-   * Being able to manually control this allows activity such
-   * as bookmarks import to occur without kicking off HTTP traffic.
-   */
-  void start();
-
   /**
    * Creates a new livemark
    * @param folder      The id of the parent folder
@@ -61,20 +55,21 @@ interface nsILivemarkService : nsISupports
    * @param index       The index to insert at, or -1 to append
    * @returns the ID of the folder for the livemark
    */
-  long long createLivemark(in long long folder,
-                           in AString name,
-                           in nsIURI siteURI,
-                           in nsIURI feedURI,
-                           in long index);
+  PRInt64 createLivemark(in PRInt64 folder,
+                         in AString name,
+                         in nsIURI siteURI,
+                         in nsIURI feedURI,
+                         in PRInt32 index);
 
   /**
    * Same as above, use during startup to avoid HTTP traffic
    */
-  long long createLivemarkFolderOnly(in long long folder,
-                                     in AString name,
-                                     in nsIURI siteURI,
-                                     in nsIURI feedURI,
-                                     in long index);
+  PRInt64 createLivemarkFolderOnly(in nsINavBookmarksService bms,
+                                   in PRInt64 folder,
+                                   in AString name,
+                                   in nsIURI siteURI,
+                                   in nsIURI feedURI,
+                                   in PRInt32 index);
 
   /**
    * Determines whether the folder with the given folder ID identifies
@@ -87,7 +82,7 @@ interface nsILivemarkService : nsISupports
    *
    * @throws NS_ERROR_INVALID_ARG if the folder ID isn't known
    */
-  boolean isLivemark(in long long folder);
+  boolean isLivemark(in PRInt64 folder);
 
   /**
    * Gets the URI of the website associated with a livemark container.
@@ -102,7 +97,7 @@ interface nsILivemarkService : nsISupports
    * @throws NS_ERROR_MALFORMED_URI if the site URI annotation has
    *         somehow been corrupted (and can't be turned into an nsIURI)
    */
-  nsIURI getSiteURI(in long long container);
+  nsIURI getSiteURI(in PRInt64 container);
 
   /**
    * Sets the URI of the website associated with a livemark container.
@@ -115,7 +110,7 @@ interface nsILivemarkService : nsISupports
    *         a folder that isn't a livemark container; also if the siteURI
    *         argument isn't a valid nsIURI object (or null)
    */
-  void setSiteURI(in long long container, in nsIURI siteURI);
+  void setSiteURI(in PRInt64 container, in nsIURI siteURI);
 
   /**
    * Gets the URI of the syndication feed associated with a livemark container.
@@ -131,7 +126,7 @@ interface nsILivemarkService : nsISupports
    * @throws NS_ERROR_MALFORMED_URI if the site URI annotation has
    *         somehow been corrupted (and can't be turned into an nsIURI)
    */
-  nsIURI getFeedURI(in long long container);
+  nsIURI getFeedURI(in PRInt64 container);
 
   /**
    * Sets the URI of the feed associated with a livemark container.
@@ -147,7 +142,7 @@ interface nsILivemarkService : nsISupports
    *         a folder that isn't a livemark container; also if the feedURI
    *         argument isn't a valid nsIURI object
    */
-  void setFeedURI(in long long container, in nsIURI feedURI);
+  void setFeedURI(in PRInt64 container, in nsIURI feedURI);
 
 	/**
 	 * Reloads all livemark subscriptions, whether or not they've expired.
@@ -158,9 +153,5 @@ interface nsILivemarkService : nsISupports
 	 * Reloads the livemark with this folder ID, whether or not it's expired.
 	 * @param folderID		The ID of the folder to be reloaded
 	 */
-  void reloadLivemarkFolder(in long long folderID);
+  void reloadLivemarkFolder(in PRInt64 folderID);
 };
-
-%{C++
-#define LMANNO_FEEDURI "livemark/feedURI"
-%}

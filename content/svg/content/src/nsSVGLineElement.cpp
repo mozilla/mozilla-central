@@ -41,7 +41,6 @@
 #include "nsIDOMSVGLineElement.h"
 #include "nsSVGLength2.h"
 #include "nsGkAtoms.h"
-#include "gfxContext.h"
 
 typedef nsSVGPathGeometryElement nsSVGLineElementBase;
 
@@ -69,7 +68,7 @@ public:
   // nsSVGPathGeometryElement methods:
   virtual PRBool IsMarkable() { return PR_TRUE; }
   virtual void GetMarkPoints(nsTArray<nsSVGMark> *aMarks);
-  virtual void ConstructPath(gfxContext *aCtx);
+  virtual void ConstructPath(cairo_t *aCtx);
 
   virtual nsresult Clone(nsINodeInfo *aNodeInfo, nsINode **aResult) const;
 
@@ -186,12 +185,12 @@ nsSVGLineElement::GetMarkPoints(nsTArray<nsSVGMark> *aMarks) {
 }
 
 void
-nsSVGLineElement::ConstructPath(gfxContext *aCtx)
+nsSVGLineElement::ConstructPath(cairo_t *aCtx)
 {
   float x1, y1, x2, y2;
 
   GetAnimatedLengthValues(&x1, &y1, &x2, &y2, nsnull);
 
-  aCtx->MoveTo(gfxPoint(x1, y1));
-  aCtx->LineTo(gfxPoint(x2, y2));
+  cairo_move_to(aCtx, x1, y1);
+  cairo_line_to(aCtx, x2, y2);
 }

@@ -68,12 +68,9 @@ getImagePositionCB(AtkImage *aImage, gint *aAccX, gint *aAccY,
     if (!image)
       return;
 
-    PRUint32 geckoCoordType = (aCoordType == ATK_XY_WINDOW) ?
-      nsIAccessibleCoordinateType::COORDTYPE_WINDOW_RELATIVE :
-      nsIAccessibleCoordinateType::COORDTYPE_SCREEN_RELATIVE;
-
-    // Returned in screen coordinates
-    image->GetImagePosition(geckoCoordType, aAccX, aAccY);
+    PRInt32 width, height; // dummy
+    image->GetImageBounds(aAccX, aAccY, &width, &height);
+    // TODO: translate (x,y) accroding aCoordType. see bug 369821
 }
 
 const gchar *
@@ -95,5 +92,6 @@ getImageSizeCB(AtkImage *aImage, gint *aAccWidth, gint *aAccHeight)
     if (!image)
       return;
 
-    image->GetImageSize(aAccWidth, aAccHeight);
+    PRInt32 x,y; // dummy
+    image->GetImageBounds(&x, &y, aAccWidth, aAccHeight);
 }

@@ -50,6 +50,7 @@ NS_IMPL_ISUPPORTS_INHERITED1(nsXULTreeAccessibleWrap, nsXULTreeAccessible, nsIAc
 nsXULTreeAccessibleWrap::nsXULTreeAccessibleWrap(nsIDOMNode *aDOMNode, nsIWeakReference *aShell):
 nsXULTreeAccessible(aDOMNode, aShell)
 {
+  mCaption = nsnull;
 }
 
 // tree's children count is row count * col count + treecols count
@@ -63,12 +64,12 @@ NS_IMETHODIMP nsXULTreeAccessibleWrap::GetChildCount(PRInt32 *aAccChildCount)
   // by going through DOM structure of XUL tree
   nsAccessible::GetChildCount(aAccChildCount);
 
-  if (*aAccChildCount != 0 && *aAccChildCount != eChildCountUninitialized) {
+  if (*aAccChildCount != eChildCountUninitialized) {
     // add the count of table cell (or tree item) accessibles, which are
     // created and appended by XUL tree accessible implementation
     PRInt32 rowCount, colCount = 1;
     mTreeView->GetRowCount(&rowCount);
-    GetColumns(&colCount);
+    mFirstChild->GetChildCount(&colCount);
 
     *aAccChildCount += rowCount * colCount;
   }
@@ -77,31 +78,38 @@ NS_IMETHODIMP nsXULTreeAccessibleWrap::GetChildCount(PRInt32 *aAccChildCount)
 
 NS_IMETHODIMP nsXULTreeAccessibleWrap::GetCaption(nsIAccessible **aCaption)
 {
-  *aCaption = nsnull;
+  *aCaption = mCaption;
+  NS_IF_ADDREF(*aCaption);
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsXULTreeAccessibleWrap::SetCaption(nsIAccessible *aCaption)
+{
+  mCaption = aCaption;
   return NS_OK;
 }
 
 NS_IMETHODIMP nsXULTreeAccessibleWrap::GetSummary(nsAString &aSummary)
 {
-  aSummary.Truncate();
+  aSummary = mSummary;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsXULTreeAccessibleWrap::GetColumns(PRInt32 *aColumnCount)
+NS_IMETHODIMP nsXULTreeAccessibleWrap::SetSummary(const nsAString &aSummary)
 {
-  NS_ENSURE_ARG_POINTER(aColumnCount);
-  *aColumnCount = 0;
-
-  nsCOMPtr<nsITreeColumn> column;
-  column = GetFirstVisibleColumn(mTree);
-  if (!column)
-    return NS_ERROR_FAILURE;
-
-  do {
-    (*aColumnCount)++;
-  } while ((column = GetNextVisibleColumn(column)));
-
+  mSummary = aSummary;
   return NS_OK;
+}
+
+NS_IMETHODIMP nsXULTreeAccessibleWrap::GetColumns(PRInt32 *aColumns)
+{
+  nsresult rv = NS_OK;
+
+  nsCOMPtr<nsIAccessible> acc;
+  rv = nsAccessible::GetFirstChild(getter_AddRefs(acc));
+  NS_ENSURE_TRUE(acc, NS_ERROR_FAILURE);
+
+  return acc->GetChildCount(aColumns);
 }
 
 NS_IMETHODIMP nsXULTreeAccessibleWrap::GetColumnHeader(nsIAccessibleTable **aColumnHeader)
@@ -131,31 +139,6 @@ NS_IMETHODIMP nsXULTreeAccessibleWrap::GetRows(PRInt32 *aRows)
 NS_IMETHODIMP nsXULTreeAccessibleWrap::GetRowHeader(nsIAccessibleTable **aRowHeader)
 {
   // Row header not supported
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP
-nsXULTreeAccessibleWrap::GetSelectedCellsCount(PRUint32* aCount)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP
-nsXULTreeAccessibleWrap::GetSelectedColumnsCount(PRUint32* aCount)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP
-nsXULTreeAccessibleWrap::GetSelectedRowsCount(PRUint32* aCount)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP
-nsXULTreeAccessibleWrap::GetSelectedCells(PRUint32 *aNumCells,
-                                          PRInt32 **aCells)
-{
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -266,11 +249,10 @@ NS_IMETHODIMP nsXULTreeAccessibleWrap::GetIndexAt(PRInt32 aRow, PRInt32 aColumn,
   return NS_OK;
 }
 
-NS_IMETHODIMP nsXULTreeAccessibleWrap::GetColumnAtIndex(PRInt32 aIndex, PRInt32 *aColumn)
+NS_IMETHODIMP nsXULTreeAccessibleWrap::GetColumnAtIndex(PRInt32 aIndex, PRInt32 *_retval)
 {
-  NS_ENSURE_ARG_POINTER(aColumn);
+  NS_ENSURE_ARG_POINTER(_retval);
 
-  *aColumn = -1;
   nsresult rv = NS_OK;
 
   PRInt32 columns;
@@ -280,18 +262,15 @@ NS_IMETHODIMP nsXULTreeAccessibleWrap::GetColumnAtIndex(PRInt32 aIndex, PRInt32 
   PRInt32 treeCols;
   nsAccessible::GetChildCount(&treeCols);
 
-  if (aIndex >= treeCols) {
-    *aColumn = (aIndex - treeCols) % columns;
-  }
+  *_retval = (aIndex - treeCols) % columns;
   
   return NS_OK;
 }
 
-NS_IMETHODIMP nsXULTreeAccessibleWrap::GetRowAtIndex(PRInt32 aIndex, PRInt32 *aRow)
+NS_IMETHODIMP nsXULTreeAccessibleWrap::GetRowAtIndex(PRInt32 aIndex, PRInt32 *_retval)
 {
-  NS_ENSURE_ARG_POINTER(aRow);
+  NS_ENSURE_ARG_POINTER(_retval);
 
-  *aRow = -1;
   nsresult rv = NS_OK;
 
   PRInt32 columns;
@@ -301,9 +280,7 @@ NS_IMETHODIMP nsXULTreeAccessibleWrap::GetRowAtIndex(PRInt32 aIndex, PRInt32 *aR
   PRInt32 treeCols;
   nsAccessible::GetChildCount(&treeCols);
 
-  if (aIndex >= treeCols) {
-    *aRow = (aIndex - treeCols) / columns;
-  }
+  *_retval = (aIndex - treeCols) / columns;
 
   return NS_OK;
 }
@@ -382,30 +359,6 @@ NS_IMETHODIMP nsXULTreeAccessibleWrap::IsCellSelected(PRInt32 aRow, PRInt32 aCol
   return IsRowSelected(aRow, _retval);
 }
 
-NS_IMETHODIMP
-nsXULTreeAccessibleWrap::SelectRow(PRInt32 aRow)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP
-nsXULTreeAccessibleWrap::SelectColumn(PRInt32 aColumn)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP
-nsXULTreeAccessibleWrap::UnselectRow(PRInt32 aRow)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP
-nsXULTreeAccessibleWrap::UnselectColumn(PRInt32 aColumn)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
 NS_IMETHODIMP nsXULTreeAccessibleWrap::ChangeSelection(PRInt32 aIndex, PRUint8 aMethod, PRBool *aSelState)
 {
   NS_ENSURE_TRUE(mTree && mTreeView, NS_ERROR_FAILURE);
@@ -441,31 +394,45 @@ NS_IMETHODIMP nsXULTreeAccessibleWrap::IsProbablyForLayout(PRBool *aIsProbablyFo
 }
 
 // --------------------------------------------------------
-// nsXULTreeColumnsAccessibleWrap Accessible
+// nsXULTreeAccessibleWrap Accessible
 // --------------------------------------------------------
 NS_IMPL_ISUPPORTS_INHERITED1(nsXULTreeColumnsAccessibleWrap, nsXULTreeColumnsAccessible, nsIAccessibleTable)
 
 nsXULTreeColumnsAccessibleWrap::nsXULTreeColumnsAccessibleWrap(nsIDOMNode *aDOMNode, nsIWeakReference *aShell):
 nsXULTreeColumnsAccessible(aDOMNode, aShell)
 {
+  mCaption = nsnull;
 }
 
 NS_IMETHODIMP nsXULTreeColumnsAccessibleWrap::GetCaption(nsIAccessible **aCaption)
 {
-  *aCaption = nsnull;
+  *aCaption = mCaption;
+  NS_IF_ADDREF(*aCaption);
+
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsXULTreeColumnsAccessibleWrap::SetCaption(nsIAccessible *aCaption)
+{
+  mCaption = aCaption;
   return NS_OK;
 }
 
 NS_IMETHODIMP nsXULTreeColumnsAccessibleWrap::GetSummary(nsAString &aSummary)
 {
-  aSummary.Truncate();
+  aSummary = mSummary;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsXULTreeColumnsAccessibleWrap::SetSummary(const nsAString &aSummary)
+{
+  mSummary = aSummary;
   return NS_OK;
 }
 
 NS_IMETHODIMP nsXULTreeColumnsAccessibleWrap::GetColumns(PRInt32 *aColumns)
 {
-  nsresult rv = GetChildCount(aColumns);
-  return *aColumns > 0 ? rv : NS_ERROR_FAILURE;
+  return GetChildCount(aColumns);
 }
 
 NS_IMETHODIMP nsXULTreeColumnsAccessibleWrap::GetColumnHeader(nsIAccessibleTable * *aColumnHeader)
@@ -485,31 +452,6 @@ NS_IMETHODIMP nsXULTreeColumnsAccessibleWrap::GetRows(PRInt32 *aRows)
 NS_IMETHODIMP nsXULTreeColumnsAccessibleWrap::GetRowHeader(nsIAccessibleTable * *aRowHeader)
 {
   // Row header not supported.
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP
-nsXULTreeColumnsAccessibleWrap::GetSelectedCellsCount(PRUint32* aCount)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP
-nsXULTreeColumnsAccessibleWrap::GetSelectedColumnsCount(PRUint32* aCount)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP
-nsXULTreeColumnsAccessibleWrap::GetSelectedRowsCount(PRUint32* aCount)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP
-nsXULTreeColumnsAccessibleWrap::GetSelectedCells(PRUint32 *aNumCells,
-                                                 PRInt32 **aCells)
-{
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -614,30 +556,6 @@ NS_IMETHODIMP nsXULTreeColumnsAccessibleWrap::IsRowSelected(PRInt32 aRow, PRBool
 NS_IMETHODIMP nsXULTreeColumnsAccessibleWrap::IsCellSelected(PRInt32 aRow, PRInt32 aColumn, PRBool *_retval)
 {
   // Header can not be selected.
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP
-nsXULTreeColumnsAccessibleWrap::SelectRow(PRInt32 aRow)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP
-nsXULTreeColumnsAccessibleWrap::SelectColumn(PRInt32 aColumn)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP
-nsXULTreeColumnsAccessibleWrap::UnselectRow(PRInt32 aRow)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP
-nsXULTreeColumnsAccessibleWrap::UnselectColumn(PRInt32 aColumn)
-{
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 

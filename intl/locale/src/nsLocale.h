@@ -59,6 +59,7 @@
 class nsStringArray;
 
 class nsLocale : public nsILocale {
+	friend class nsLocaleDefinition;
 	friend class nsLocaleService;
 	NS_DECL_ISUPPORTS
 

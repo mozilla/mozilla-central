@@ -14,10 +14,11 @@
   <binding id="tabbox"
            extends="chrome://global/content/bindings/tabbox.xml#tab-base">
     <implementation implements="nsIDOMEventListener, nsIAccessibleProvider">
-      <property name="accessibleType" readonly="true">
+      <property name="accessible">
         <getter>
           <![CDATA[
-            return Components.interfaces.nsIAccessibleProvider.XULTabBox;
+            var accService = Components.classes["@mozilla.org/accessibilityService;1"].getService(Components.interfaces.nsIAccessibilityService);
+            return accService.createXULTabBoxAccessible(this);
           ]]>
         </getter>
       </property>

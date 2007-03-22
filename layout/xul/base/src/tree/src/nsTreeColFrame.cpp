@@ -45,7 +45,6 @@
 #include "nsIDOMNSDocument.h"
 #include "nsIDocument.h"
 #include "nsIBoxObject.h"
-#include "nsTreeBoxObject.h"
 #include "nsIDOMElement.h"
 #include "nsITreeBoxObject.h"
 #include "nsITreeColumns.h"
@@ -100,7 +99,7 @@ nsTreeColFrame::Init(nsIContent*      aContent,
 void                                                                
 nsTreeColFrame::Destroy()                          
 {
-  InvalidateColumns(PR_FALSE);
+  InvalidateColumns();
   nsBoxFrame::Destroy();
 }
 
@@ -115,23 +114,22 @@ public:
   }
 #endif
 
-  virtual nsIFrame* HitTest(nsDisplayListBuilder* aBuilder, nsPoint aPt,
-                            HitTestState* aState);
+  virtual nsIFrame* HitTest(nsDisplayListBuilder* aBuilder, nsPoint aPt);
   NS_DISPLAY_DECL_NAME("XULTreeColSplitterTarget")
 };
 
 nsIFrame* 
 nsDisplayXULTreeColSplitterTarget::HitTest(nsDisplayListBuilder* aBuilder,
-                                           nsPoint aPt, HitTestState* aState)
+                                           nsPoint aPt)
 {
   nsPoint pt = aPt - aBuilder->ToReferenceFrame(mFrame);
-  // If we are in either the first 4 pixels or the last 4 pixels, we're going to
+  // If we are in either the first 2 pixels or the last 2 pixels, we're going to
   // do something really strange.  Check for an adjacent splitter.
   PRBool left = PR_FALSE;
   PRBool right = PR_FALSE;
-  if (mFrame->GetSize().width - nsPresContext::CSSPixelsToAppUnits(4) <= pt.x)
+  if (mFrame->GetSize().width - 60 < pt.x)
     right = PR_TRUE;
-  else if (nsPresContext::CSSPixelsToAppUnits(4) > pt.x)
+  else if (60 > pt.x)
     left = PR_TRUE;
 
   if (left || right) {
@@ -222,21 +220,12 @@ nsTreeColFrame::GetTreeBoxObject()
 }
 
 void
-nsTreeColFrame::InvalidateColumns(PRBool aCanWalkFrameTree)
+nsTreeColFrame::InvalidateColumns()
 {
   nsITreeBoxObject* treeBoxObject = GetTreeBoxObject();
   if (treeBoxObject) {
     nsCOMPtr<nsITreeColumns> columns;
-
-    if (aCanWalkFrameTree) {
-      treeBoxObject->GetColumns(getter_AddRefs(columns));
-    } else {
-      nsITreeBoxObject* body =
-        static_cast<nsTreeBoxObject*>(treeBoxObject)->GetCachedTreeBody();
-      if (body) {
-        body->GetColumns(getter_AddRefs(columns));
-      }
-    }
+    treeBoxObject->GetColumns(getter_AddRefs(columns));
 
     if (columns)
       columns->InvalidateColumns();

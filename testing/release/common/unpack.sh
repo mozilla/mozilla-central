@@ -3,7 +3,6 @@ unpack_build () {
     unpack_platform="$1"
     dir_name="$2"
     pkg_file="$3"
-    locale=$4
 
     mkdir -p $dir_name
     pushd $dir_name > /dev/null
@@ -22,31 +21,16 @@ unpack_build () {
             if [ -d localized ]
             then
               mkdir bin/
-              cp -rp nonlocalized/* bin/
-              cp -rp localized/*    bin/
-              if [ $(find optional/ | wc -l) -gt 1 ]
-              then 
-                cp -rp optional/*     bin/
-              fi
+              cp -rp localized/* nonlocalized/* optional/* bin/
             else
               for file in *.xpi
               do
                 unzip -o $file > /dev/null
               done
-              unzip -o ${locale}.xpi > /dev/null
             fi
             ;;
         linux-i686|linux|Linux_x86-gcc|Linux_x86-gcc3)
-            if `echo $pkg_file | grep -q "tar.gz"`
-            then
-                tar xfz ../"$pkg_file" > /dev/null
-            elif `echo $pkg_file | grep -q "tar.bz2"`
-            then
-                tar xfj ../"$pkg_file" > /dev/null
-            else
-                echo "Unknown package type for file: $pkg_file"
-                exit 1
-            fi
+            tar xfz ../"$pkg_file" > /dev/null
             ;;
     esac
 

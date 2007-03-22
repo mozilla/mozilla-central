@@ -65,16 +65,11 @@ NS_IMETHODIMP nsXULColorPickerTileAccessible::GetRole(PRUint32 *_retval)
 /**
   * Possible states: focused, focusable, selected
   */
-NS_IMETHODIMP
-nsXULColorPickerTileAccessible::GetState(PRUint32 *aState, PRUint32 *aExtraState)
+NS_IMETHODIMP nsXULColorPickerTileAccessible::GetState(PRUint32 *_retval)
 {
   // get focus and disable status from base class
-  nsresult rv = nsFormControlAccessible::GetState(aState, aExtraState);
-  NS_ENSURE_SUCCESS(rv, rv);
-  if (!mDOMNode)
-    return NS_OK;
-
-  *aState |= nsIAccessibleStates::STATE_FOCUSABLE;
+  nsFormControlAccessible::GetState(_retval);
+  *_retval |= nsIAccessibleStates::STATE_FOCUSABLE;
 
   // Focused?
   nsCOMPtr<nsIDOMElement> element(do_QueryInterface(mDOMNode));
@@ -82,12 +77,12 @@ nsXULColorPickerTileAccessible::GetState(PRUint32 *aState, PRUint32 *aExtraState
   PRBool isFocused = PR_FALSE;
   element->HasAttribute(NS_LITERAL_STRING("hover"), &isFocused);
   if (isFocused)
-    *aState |= nsIAccessibleStates::STATE_FOCUSED;
+    *_retval |= nsIAccessibleStates::STATE_FOCUSED;
 
   PRBool isSelected = PR_FALSE;
   element->HasAttribute(NS_LITERAL_STRING("selected"), &isSelected);
   if (isFocused)
-    *aState |= nsIAccessibleStates::STATE_SELECTED;
+    *_retval |= nsIAccessibleStates::STATE_SELECTED;
 
   return NS_OK;
 }
@@ -99,9 +94,6 @@ NS_IMETHODIMP nsXULColorPickerTileAccessible::GetName(nsAString& _retval)
 
 NS_IMETHODIMP nsXULColorPickerTileAccessible::GetValue(nsAString& _retval)
 {
-  if (!mDOMNode)
-    return NS_ERROR_FAILURE;
-
   nsCOMPtr<nsIDOMElement> element(do_QueryInterface(mDOMNode));
   NS_ASSERTION(element, "No XUL Element for colorpicker");
   return element->GetAttribute(NS_LITERAL_STRING("color"), _retval);
@@ -122,17 +114,12 @@ nsXULColorPickerTileAccessible(aNode, aShell)
 /**
   * Possible states: focused, focusable, unavailable(disabled)
   */
-NS_IMETHODIMP
-nsXULColorPickerAccessible::GetState(PRUint32 *aState, PRUint32 *aExtraState)
+NS_IMETHODIMP nsXULColorPickerAccessible::GetState(PRUint32 *_retval)
 {
   // get focus and disable status from base class
-  nsresult rv = nsFormControlAccessible::GetState(aState, aExtraState);
-  NS_ENSURE_SUCCESS(rv, rv);
-  if (!mDOMNode)
-    return NS_OK;
-
-  *aState |= nsIAccessibleStates::STATE_FOCUSABLE |
-             nsIAccessibleStates::STATE_HASPOPUP;
+  nsFormControlAccessible::GetState(_retval);
+  *_retval |= nsIAccessibleStates::STATE_FOCUSABLE |
+              nsIAccessibleStates::STATE_HASPOPUP;
 
   return NS_OK;
 }

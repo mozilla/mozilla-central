@@ -146,6 +146,11 @@ EXPORTS	= \
 		nsXPCOMCIDInternal.h \
 		$(NULL)
 
+# pull in MoreFiles for MacOSX
+ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+SHARED_LIBRARY_LIBS += ../MoreFiles/$(LIB_PREFIX)macmorefiles_s.$(LIB_SUFFIX)
+endif
+
 # Force use of PIC
 FORCE_USE_PIC	= 1 
 
@@ -174,24 +179,13 @@ ifdef GC_LEAK_DETECTOR
 DEFINES += -DGC_LEAK_DETECTOR
 endif
 
-ifdef TARGET_XPCOM_ABI
-DEFINES += -DTARGET_XPCOM_ABI=\"$(TARGET_XPCOM_ABI)\"
-endif
-
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 CXXFLAGS	+= $(TK_CFLAGS)
-EXTRA_DSO_LDOPTS += \
-  ../MoreFiles/$(LIB_PREFIX)macmorefiles_s.$(LIB_SUFFIX) \
-  $(TK_LIBS) \
-  $(NULL)
+EXTRA_DSO_LDOPTS += $(TK_LIBS)
 endif
 
 ifeq ($(OS_ARCH),BeOS)
 EXTRA_DSO_LDOPTS += -lbe
-endif
-
-ifneq (,$(filter gtk2,$(MOZ_WIDGET_TOOLKIT)))
-EXTRA_DSO_LDOPTS += $(MOZ_GTK2_LIBS)
 endif
 
 ifeq ($(OS_ARCH),WINNT)

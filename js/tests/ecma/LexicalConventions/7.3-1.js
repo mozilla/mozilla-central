@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '7.3-1.js';
-
 /**
    File Name:          7.3-1.js
    ECMA Section:       7.3 Comments
@@ -70,7 +68,7 @@ testcase = new TestCase( SECTION,
 			 "pass",
 			 "" );
 
-var x = "// test \n testcase.actual = 'pass'";
+var x = "// test \n testcase.actual = 'pass'"
 
 testcase.actual = eval(x);
 
@@ -78,15 +76,15 @@ test();
 
 // XXX bc replace test()
 function test() {
-  for ( gTc=0; gTc < gTestcases.length; gTc++ ) {
-    gTestcases[gTc].passed = writeTestCaseResult(
-      gTestcases[gTc].expect,
-      gTestcases[gTc].actual,
-      gTestcases[gTc].description +":  "+
-      gTestcases[gTc].actual );
+  for ( tc=0; tc < testcases.length; tc++ ) {
+    testcases[tc].passed = writeTestCaseResult(
+      testcases[tc].expect,
+      testcases[tc].actual,
+      testcases[tc].description +":  "+
+      testcases[tc].actual );
 
-    gTestcases[gTc].reason += ( gTestcases[gTc].passed ) ? "" : " ignored chars after line terminator of single-line comment";
+    testcases[tc].reason += ( testcases[tc].passed ) ? "" : " ignored chars after line terminator of single-line comment";
   }
   stopTest();
-  return ( gTestcases );
+  return ( testcases );
 }

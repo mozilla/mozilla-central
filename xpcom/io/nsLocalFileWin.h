@@ -49,7 +49,6 @@
 #include "nsIFactory.h"
 #include "nsILocalFileWin.h"
 #include "nsIHashable.h"
-#include "nsIClassInfoImpl.h"
 
 #include "windows.h"
 

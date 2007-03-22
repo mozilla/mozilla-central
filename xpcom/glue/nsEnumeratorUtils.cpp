@@ -63,7 +63,7 @@ public:
     NS_IMETHOD GetNext(nsAString& aResult);
 
     static EmptyEnumeratorImpl* GetInstance() {
-        return const_cast<EmptyEnumeratorImpl*>(&kInstance);
+        return NS_CONST_CAST(EmptyEnumeratorImpl*, &kInstance);
     }
 
 private:

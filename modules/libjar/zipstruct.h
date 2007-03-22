@@ -132,7 +132,6 @@ typedef struct ZipEnd_
 #define IMPLODED          6
 #define TOKENIZED         7
 #define DEFLATED          8
-#define UNSUPPORTED       0xFF
 
 
 #endif /* _zipstruct_h */

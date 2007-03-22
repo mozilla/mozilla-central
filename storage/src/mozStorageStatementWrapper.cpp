@@ -1,6 +1,5 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
- * vim: sw=4 ts=4 sts=4
- * ***** BEGIN LICENSE BLOCK *****
+/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -22,7 +21,6 @@
  *
  * Contributor(s):
  *   Vladimir Vukicevic <vladimir.vukicevic@oracle.com>
- *   Shawn Wilsher <me@shawnwilsher.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -99,22 +97,34 @@ protected:
 static PRBool
 JSValStorageStatementBinder (JSContext *cx,
                              mozIStorageStatement *aStatement,
-                             int aIdx,
+                             int *aParamIndexes,
+                             int aNumIndexes,
                              jsval val)
 {
+    int i;
     if (JSVAL_IS_INT(val)) {
         int v = JSVAL_TO_INT(val);
-        (void)aStatement->BindInt32Parameter(aIdx, v);
+        for (i = 0; i < aNumIndexes; i++)
+            aStatement->BindInt32Parameter(aParamIndexes[i], v);
     } else if (JSVAL_IS_DOUBLE(val)) {
         double d = *JSVAL_TO_DOUBLE(val);
-        (void)aStatement->BindDoubleParameter(aIdx, d);
+        for (i = 0; i < aNumIndexes; i++)
+            aStatement->BindDoubleParameter(aParamIndexes[i], d);
     } else if (JSVAL_IS_STRING(val)) {
         JSString *str = JSVAL_TO_STRING(val);
-        (void)aStatement->BindStringParameter(aIdx, nsDependentString(reinterpret_cast<PRUnichar*>(JS_GetStringChars(str)), JS_GetStringLength(str)));
+        for (i = 0; i < aNumIndexes; i++)
+            aStatement->BindStringParameter(aParamIndexes[i], nsDependentString(NS_REINTERPRET_CAST(PRUnichar*, JS_GetStringChars(str)), JS_GetStringLength(str)));
     } else if (JSVAL_IS_BOOLEAN(val)) {
-        (void)aStatement->BindInt32Parameter(aIdx, (val == JSVAL_TRUE) ? 1 : 0);
+        if (val == JSVAL_TRUE) {
+            for (i = 0; i < aNumIndexes; i++)
+                aStatement->BindInt32Parameter(aParamIndexes[i], 1);
+        } else {
+            for (i = 0; i < aNumIndexes; i++)
+                aStatement->BindInt32Parameter(aParamIndexes[i], 0);
+        }
     } else if (JSVAL_IS_NULL(val)) {
-        (void)aStatement->BindNullParameter(aIdx);
+        for (i = 0; i < aNumIndexes; i++)
+            aStatement->BindNullParameter(aParamIndexes[i]);
     } else if (JSVAL_IS_OBJECT(val)) {
         JSObject *obj = JSVAL_TO_OBJECT(val);
         // some special things
@@ -124,7 +134,8 @@ JSValStorageStatementBinder (JSContext *cx,
             PRInt64 msec;
             LL_D2L(msec, msecd);
 
-            (void)aStatement->BindInt64Parameter(aIdx, msec);
+            for (i = 0; i < aNumIndexes; i++)
+                aStatement->BindInt64Parameter(aParamIndexes[i], msec);
         } else {
             return PR_FALSE;
         }
@@ -168,7 +179,7 @@ mozStorageStatementWrapper::Initialize(mozIStorageStatement *aStatement)
 
     for (unsigned int i = 0; i < mResultColumnCount; i++) {
         const void *name = sqlite3_column_name16 (NativeStatement(), i);
-        mColumnNames.AppendString(nsDependentString(static_cast<const PRUnichar*>(name)));
+        mColumnNames.AppendString(nsDependentString(NS_STATIC_CAST(const PRUnichar*, name)));
     }
 
     return NS_OK;
@@ -302,7 +313,7 @@ mozStorageStatementWrapper::Call(nsIXPConnectWrappedNative *wrapper, JSContext *
 
     // bind parameters
     for (int i = 0; i < (int) argc; i++) {
-        if (!JSValStorageStatementBinder(cx, mStatement, i, argv[i])) {
+        if (!JSValStorageStatementBinder(cx, mStatement, &i, 1, argv[i])) {
             *_retval = PR_FALSE;
             return NS_ERROR_INVALID_ARG;
         }
@@ -439,10 +450,10 @@ mozStorageStatementWrapper::HasInstance(nsIXPConnectWrappedNative *wrapper, JSCo
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-/* void trace (in nsIXPConnectWrappedNative wrapper, in JSTracerPtr trc, in JSObjectPtr obj); */
+/* PRUint32 mark (in nsIXPConnectWrappedNative wrapper, in JSContextPtr cx, in JSObjectPtr obj, in voidPtr arg); */
 NS_IMETHODIMP
-mozStorageStatementWrapper::Trace(nsIXPConnectWrappedNative *wrapper,
-                                  JSTracer *trc, JSObject *obj)
+mozStorageStatementWrapper::Mark(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
+                          JSObject * obj, void * arg, PRUint32 *_retval)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -707,10 +718,10 @@ mozStorageStatementRow::HasInstance(nsIXPConnectWrappedNative *wrapper, JSContex
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-/* void trace (in nsIXPConnectWrappedNative wrapper, in JSTracerPtr trc, in JSObjectPtr obj); */
+/* PRUint32 mark (in nsIXPConnectWrappedNative wrapper, in JSContextPtr cx, in JSObjectPtr obj, in voidPtr arg); */
 NS_IMETHODIMP
-mozStorageStatementRow::Trace(nsIXPConnectWrappedNative *wrapper,
-                              JSTracer * trc, JSObject * obj)
+mozStorageStatementRow::Mark(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
+                             JSObject * obj, void * arg, PRUint32 *_retval)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -800,9 +811,9 @@ mozStorageStatementParams::SetProperty(nsIXPConnectWrappedNative *wrapper, JSCon
     if (JSVAL_IS_INT(id)) {
         int idx = JSVAL_TO_INT(id);
 
-        *_retval = JSValStorageStatementBinder (cx, mStatement, idx, *vp);
+        *_retval = JSValStorageStatementBinder (cx, mStatement, &idx, 1, *vp);
     } else if (JSVAL_IS_STRING(id)) {
-        sqlite3_stmt *stmt = mStatement->GetNativeStatementPointer();
+        int indexCount = 0, *indexes;
 
         JSString *str = JSVAL_TO_STRING(id);
         nsCAutoString name(":");
@@ -810,25 +821,28 @@ mozStorageStatementParams::SetProperty(nsIXPConnectWrappedNative *wrapper, JSCon
                                                             ::JS_GetStringLength(str))));
 
         // check to see if there's a parameter with this name
-        if (sqlite3_bind_parameter_index(stmt, name.get()) == 0) {
+        indexCount = sqlite3_bind_parameter_indexes(mStatement->GetNativeStatementPointer(), name.get(), &indexes);
+        if (indexCount == 0) {
+            // er, not found? How'd we get past NewResolve?
+            fprintf (stderr, "********** mozStorageStatementWrapper: Couldn't find parameter %s\n", name.get());
             *_retval = PR_FALSE;
-            return NS_ERROR_INVALID_ARG;
-        }
-        
-        *_retval = PR_TRUE;
-        // You can use a named parameter more than once in a statement...
-        int count = sqlite3_bind_parameter_count(stmt);
-        for (int i = 0; (i < count) && (*_retval); i++) {
-            // sqlite indices start at 1
-            const char *pName = sqlite3_bind_parameter_name(stmt, i + 1);
-            if (name.Equals(pName))
-                *_retval = JSValStorageStatementBinder(cx, mStatement, i, *vp);
+            return NS_ERROR_FAILURE;
+        } else {
+            // drop this by 1, to account for sqlite's indexes being 1-based
+            for (int i = 0; i < indexCount; i++)
+                indexes[i]--;
+
+            *_retval = JSValStorageStatementBinder (cx, mStatement, indexes, indexCount, *vp);
+            sqlite3_free_parameter_indexes(indexes);
         }
     } else {
         *_retval = PR_FALSE;
     }
 
-    return (*_retval) ? NS_OK : NS_ERROR_INVALID_ARG;
+    if (*_retval)
+        return NS_OK;
+    else
+        return NS_ERROR_INVALID_ARG;
 }
 
 /* void preCreate (in nsISupports nativeObj, in JSContextPtr cx, in JSObjectPtr globalObj, out JSObjectPtr parentObj); */
@@ -987,10 +1001,10 @@ mozStorageStatementParams::HasInstance(nsIXPConnectWrappedNative *wrapper, JSCon
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-/* void trace (in nsIXPConnectWrappedNative wrapper, in JSTracerPtr trc, in JSObjectPtr obj); */
+/* PRUint32 mark (in nsIXPConnectWrappedNative wrapper, in JSContextPtr cx, in JSObjectPtr obj, in voidPtr arg); */
 NS_IMETHODIMP
-mozStorageStatementParams::Trace(nsIXPConnectWrappedNative *wrapper,
-                                JSTracer *trc, JSObject * obj)
+mozStorageStatementParams::Mark(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
+                             JSObject * obj, void * arg, PRUint32 *_retval)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }

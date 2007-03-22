@@ -1,4 +1,3 @@
-/* -*- Mode: c; tab-width: 8; c-basic-offset: 4; indent-tabs-mode: t; -*- */
 /* cairo - a vector graphics library with display and print output
  *
  * Copyright © 2002 University of Southern California
@@ -100,7 +99,7 @@ cairo_private cairo_status_t
 _cairo_surface_fallback_fill_rectangles (cairo_surface_t         *surface,
 					 cairo_operator_t	 op,
 					 const cairo_color_t	 *color,
-					 cairo_rectangle_int_t   *rects,
+					 cairo_rectangle_int16_t *rects,
 					 int			 num_rects);
 
 cairo_private cairo_status_t
@@ -116,14 +115,5 @@ _cairo_surface_fallback_composite_trapezoids (cairo_operator_t		op,
 					      unsigned int		height,
 					      cairo_trapezoid_t	       *traps,
 					      int			num_traps);
-
-cairo_private cairo_status_t
-_cairo_surface_fallback_clone_similar (cairo_surface_t  *surface,
-				       cairo_surface_t  *src,
-				       int               src_x,
-				       int               src_y,
-				       int               width,
-				       int               height,
-				       cairo_surface_t **clone_out);
 
 #endif

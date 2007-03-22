@@ -14,7 +14,7 @@
  * The Original Code is mozilla.org code.
  *
  * The Initial Developer of the Original Code is
- * Christopher Blizzard.
+ * Christopher Blizzard. Portions created by Christopher Blizzard are Copyright (C) Christopher Blizzard.  All Rights Reserved.
  * Portions created by the Initial Developer are Copyright (C) 2001
  * the Initial Developer. All Rights Reserved.
  *
@@ -154,15 +154,15 @@ EmbedPrivate::Init(PtWidget_t *aOwningWidget)
 	// initialize it.  It is assumed that this window will be destroyed
 	// when we go out of scope.
 	mWindow = new EmbedWindow();
-	mWindowGuard = static_cast<nsIWebBrowserChrome *>(mWindow);
+	mWindowGuard = NS_STATIC_CAST(nsIWebBrowserChrome *, mWindow);
 	mWindow->Init(this);
 
 	// Create our progress listener object, make an owning reference,
 	// and initialize it.  It is assumed that this progress listener
 	// will be destroyed when we go out of scope.
 	mProgress = new EmbedProgress();
-	mProgressGuard = static_cast<nsIWebProgressListener *>
-                             (mProgress);
+	mProgressGuard = NS_STATIC_CAST(nsIWebProgressListener *,
+					   mProgress);
 	mProgress->Init(this);
 
 	// Create our content listener object, initialize it and attach it.
@@ -176,15 +176,15 @@ EmbedPrivate::Init(PtWidget_t *aOwningWidget)
 	// that this will be destroyed before we go out of scope.
 	mEventListener = new EmbedEventListener();
 	mEventListenerGuard =
-	static_cast<nsISupports *>(static_cast<nsIDOMKeyListener *>
-                        (mEventListener));
+	NS_STATIC_CAST(nsISupports *, NS_STATIC_CAST(nsIDOMKeyListener *,
+						 mEventListener));
 	mEventListener->Init(this);
 
 	// Create our print listener object, make an owning reference,
 	// and initialize it.  It is assumed that this print listener
 	// will be destroyed when we go out of scope.
 	mPrint = new EmbedPrintListener();
-	mPrintGuard = static_cast<nsIWebProgressListener *>(mPrint);
+	mPrintGuard = NS_STATIC_CAST(nsIWebProgressListener *, mPrint);
 	mPrint->Init(this);
 
 	// has the window creator service been set up?
@@ -199,7 +199,7 @@ EmbedPrivate::Init(PtWidget_t *aOwningWidget)
 		// create our local object
 		EmbedWindowCreator *creator = new EmbedWindowCreator();
 		nsCOMPtr<nsIWindowCreator> windowCreator;
-		windowCreator = static_cast<nsIWindowCreator *>(creator);
+		windowCreator = NS_STATIC_CAST(nsIWindowCreator *, creator);
 
 		// Attach it via the watcher service
 		nsCOMPtr<nsIWindowWatcher> watcher = do_GetService(sWatcherContractID);
@@ -339,10 +339,10 @@ EmbedPrivate::Destroy(void)
   mProgressGuard = nsnull;
   mProgress = nsnull;
 
-  // detach our event listeners and release the event target
+  // detach our event listeners and release the event receiver
   DetachListeners();
-  if (mEventTarget)
-    mEventTarget = nsnull;
+  if (mEventReceiver)
+    mEventReceiver = nsnull;
 
 	// remove this from the window list
   sWindowList->RemoveElement(this);
@@ -714,11 +714,11 @@ EmbedPrivate::FindPrivateForBrowser(nsIWebBrowserChrome *aBrowser)
 	// windows.
 	for (int i = 0; i < count; i++) 
 	{
-	  EmbedPrivate *tmpPrivate = static_cast<EmbedPrivate *>
-                                         (sWindowList->ElementAt(i));
+	  EmbedPrivate *tmpPrivate = NS_STATIC_CAST(EmbedPrivate *,
+							sWindowList->ElementAt(i));
 	  // get the browser object for that window
-	  nsIWebBrowserChrome *chrome = static_cast<nsIWebBrowserChrome *>
-                                            (tmpPrivate->mWindow);
+	  nsIWebBrowserChrome *chrome = NS_STATIC_CAST(nsIWebBrowserChrome *,
+						   tmpPrivate->mWindow);
 	  if (chrome == aBrowser)
 		return tmpPrivate;
 	}
@@ -736,7 +736,7 @@ EmbedPrivate::ContentStateChange(void)
 
   GetListener();
 
-  if (!mEventTarget)
+  if (!mEventReceiver)
     return;
   
   AttachListeners();
@@ -853,7 +853,7 @@ EmbedPrivate::ChildFocusOut(void)
 void
 EmbedPrivate::GetListener(void)
 {
-  if (mEventTarget)
+  if (mEventReceiver)
     return;
 
   nsCOMPtr<nsPIDOMWindow> piWin;
@@ -862,7 +862,7 @@ EmbedPrivate::GetListener(void)
   if (!piWin)
     return;
 
-  mEventTarget = do_QueryInterface(piWin->GetChromeEventHandler());
+  mEventReceiver = do_QueryInterface(piWin->GetChromeEventHandler());
 }
 
 // attach key and mouse event listeners
@@ -870,24 +870,24 @@ EmbedPrivate::GetListener(void)
 void
 EmbedPrivate::AttachListeners(void)
 {
-  if (!mEventTarget || mListenersAttached)
+  if (!mEventReceiver || mListenersAttached)
     return;
 
   nsIDOMEventListener *eventListener =
-    static_cast<nsIDOMEventListener *>
-               (static_cast<nsIDOMKeyListener *>(mEventListener));
+    NS_STATIC_CAST(nsIDOMEventListener *,
+		   NS_STATIC_CAST(nsIDOMKeyListener *, mEventListener));
 
   // add the key listener
   nsresult rv;
-  rv = mEventTarget->AddEventListenerByIID(eventListener,
-                                           NS_GET_IID(nsIDOMKeyListener));
+  rv = mEventReceiver->AddEventListenerByIID(eventListener,
+					     NS_GET_IID(nsIDOMKeyListener));
   if (NS_FAILED(rv)) {
     NS_WARNING("Failed to add key listener\n");
     return;
   }
 
-  rv = mEventTarget->AddEventListenerByIID(eventListener,
-                                           NS_GET_IID(nsIDOMMouseListener));
+  rv = mEventReceiver->AddEventListenerByIID(eventListener,
+					     NS_GET_IID(nsIDOMMouseListener));
   if (NS_FAILED(rv)) {
     NS_WARNING("Failed to add mouse listener\n");
     return;
@@ -900,24 +900,24 @@ EmbedPrivate::AttachListeners(void)
 void
 EmbedPrivate::DetachListeners(void)
 {
-  if (!mListenersAttached || !mEventTarget)
+  if (!mListenersAttached || !mEventReceiver)
     return;
 
   nsIDOMEventListener *eventListener =
-    static_cast<nsIDOMEventListener *>
-               (static_cast<nsIDOMKeyListener *>(mEventListener));
+    NS_STATIC_CAST(nsIDOMEventListener *,
+		   NS_STATIC_CAST(nsIDOMKeyListener *, mEventListener));
 
   nsresult rv;
-  rv = mEventTarget->RemoveEventListenerByIID(eventListener,
-                                              NS_GET_IID(nsIDOMKeyListener));
+  rv = mEventReceiver->RemoveEventListenerByIID(eventListener,
+						NS_GET_IID(nsIDOMKeyListener));
   if (NS_FAILED(rv)) {
     NS_WARNING("Failed to remove key listener\n");
     return;
   }
 
   rv =
-    mEventTarget->RemoveEventListenerByIID(eventListener,
-                                           NS_GET_IID(nsIDOMMouseListener));
+    mEventReceiver->RemoveEventListenerByIID(eventListener,
+					     NS_GET_IID(nsIDOMMouseListener));
   if (NS_FAILED(rv)) {
     NS_WARNING("Failed to remove mouse listener\n");
     return;

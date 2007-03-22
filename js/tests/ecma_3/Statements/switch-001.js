@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -34,19 +33,17 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK ***** */
-
-/*
+ * ***** END LICENSE BLOCK *****
+ *
  * Date: 07 May 2001
  *
  * SUMMARY: Testing the switch statement
  *
  * See ECMA3  Section 12.11,  "The switch Statement"
  */
-//-----------------------------------------------------------------------------
-var gTestfile = 'switch-001.js';
+//-------------------------------------------------------------------------------------------------
 var UBound = 0;
-var BUGNUMBER = '(none)';
+var bug = '(none)';
 var summary = 'Testing the switch statement';
 var cnMatch = 'Match';
 var cnNoMatch = 'NoMatch';
@@ -98,11 +95,11 @@ function match(x, y, F, G)
 {
   switch (x)
   {
-  case F(G(y)):
-    return cnMatch;
+    case F(G(y)):
+      return cnMatch;
 
-  default:
-    return cnNoMatch;
+    default:
+      return cnNoMatch;
   }
 }
 
@@ -119,9 +116,9 @@ function addThis()
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
-
+ 
   for (var i = 0; i < UBound; i++)
   {
     reportCompare(expectedvalues[i], actualvalues[i], statusitems[i]);

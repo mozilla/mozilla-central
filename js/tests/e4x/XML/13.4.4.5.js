@@ -40,8 +40,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '13.4.4.5.js';
-
 START("13.4.4.5 - XML attributes()");
 
 TEST(1, true, XML.prototype.hasOwnProperty("attributes"));

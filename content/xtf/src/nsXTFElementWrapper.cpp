@@ -62,7 +62,6 @@
 #include "nsIProgrammingLanguage.h"
 #include "nsIXPConnect.h"
 #include "nsXTFWeakTearoff.h"
-#include "mozAutoDocUpdate.h"
 
 nsXTFElementWrapper::nsXTFElementWrapper(nsINodeInfo* aNodeInfo,
                                          nsIXTFElement* aXTFElement)
@@ -92,7 +91,7 @@ nsXTFElementWrapper::Init()
                                      &weakWrapper);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  mXTFElement->OnCreated(static_cast<nsIXTFElementWrapper*>(weakWrapper));
+  mXTFElement->OnCreated(NS_STATIC_CAST(nsIXTFElementWrapper*, weakWrapper));
   weakWrapper->Release();
 
   PRBool innerHandlesAttribs = PR_FALSE;
@@ -105,47 +104,39 @@ nsXTFElementWrapper::Init()
 //----------------------------------------------------------------------
 // nsISupports implementation
 
-NS_IMPL_ADDREF_INHERITED(nsXTFElementWrapper, nsXTFElementWrapperBase)
-NS_IMPL_RELEASE_INHERITED(nsXTFElementWrapper, nsXTFElementWrapperBase)
-
-NS_IMPL_CYCLE_COLLECTION_CLASS(nsXTFElementWrapper)
-NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN_INHERITED(nsXTFElementWrapper,
-                                                  nsXTFElementWrapperBase)
-  NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mXTFElement)
-  NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mAttributeHandler)
-NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
+NS_IMPL_ADDREF_INHERITED(nsXTFElementWrapper,nsXTFElementWrapperBase)
+NS_IMPL_RELEASE_INHERITED(nsXTFElementWrapper,nsXTFElementWrapperBase)
 
 NS_IMETHODIMP
 nsXTFElementWrapper::QueryInterface(REFNSIID aIID, void** aInstancePtr)
 {
-  NS_PRECONDITION(aInstancePtr, "null out param");
-
-  if (aIID.Equals(NS_GET_IID(nsIClassInfo))) {
-    *aInstancePtr = static_cast<nsIClassInfo*>(this);
+  nsresult rv;
+  
+  if(aIID.Equals(NS_GET_IID(nsIClassInfo))) {
+    *aInstancePtr = NS_STATIC_CAST(nsIClassInfo*, this);
     NS_ADDREF_THIS();
     return NS_OK;
   }
-  if (aIID.Equals(NS_GET_IID(nsIXTFElementWrapper))) {
-    *aInstancePtr = static_cast<nsIXTFElementWrapper*>(this);
+  else if(aIID.Equals(NS_GET_IID(nsIXTFElementWrapper))) {
+    *aInstancePtr = NS_STATIC_CAST(nsIXTFElementWrapper*, this);
     NS_ADDREF_THIS();
     return NS_OK;
   }
-
-  nsresult rv = nsXTFElementWrapperBase::QueryInterface(aIID, aInstancePtr);
-  if (NS_SUCCEEDED(rv)) {
+  else if (NS_SUCCEEDED(rv = nsXTFElementWrapperBase::QueryInterface(aIID, aInstancePtr))) {
     return rv;
   }
+  else {
+    // try to get get the interface from our wrapped element:
+    nsCOMPtr<nsISupports> inner;
+    QueryInterfaceInner(aIID, getter_AddRefs(inner));
 
-  // try to get get the interface from our wrapped element:
-  nsCOMPtr<nsISupports> inner;
-  QueryInterfaceInner(aIID, getter_AddRefs(inner));
+    if (inner) {
+      rv = NS_NewXTFInterfaceAggregator(aIID, inner,
+                                        NS_STATIC_CAST(nsIContent*, this),
+                                        aInstancePtr);
 
-  if (inner) {
-    rv = NS_NewXTFInterfaceAggregator(aIID, inner,
-                                      static_cast<nsIContent*>(this),
-                                      aInstancePtr);
-
-    return rv;
+      return rv;
+    }
   }
 
   return NS_ERROR_NO_INTERFACE;
@@ -482,7 +473,7 @@ nsXTFElementWrapper::GetAttrNameAt(PRUint32 aIndex) const
     nsresult rv = mAttributeHandler->GetAttributeNameAt(aIndex, getter_AddRefs(localName));
     NS_ENSURE_SUCCESS(rv, nsnull);
 
-    const_cast<nsXTFElementWrapper*>(this)->mTmpAttrName.SetTo(localName);
+    NS_CONST_CAST(nsXTFElementWrapper*, this)->mTmpAttrName.SetTo(localName);
     return &mTmpAttrName;
   }
   else { // wrapper handles attrib
@@ -535,41 +526,15 @@ nsXTFElementWrapper::GetExistingAttrNameFromQName(const nsAString& aStr) const
 PRInt32
 nsXTFElementWrapper::IntrinsicState() const
 {
-  PRInt32 retState = nsXTFElementWrapperBase::IntrinsicState();
-  if (mIntrinsicState & NS_EVENT_STATE_MOZ_READONLY) {
-    retState &= ~NS_EVENT_STATE_MOZ_READWRITE;
-  } else if (mIntrinsicState & NS_EVENT_STATE_MOZ_READWRITE) {
-    retState &= ~NS_EVENT_STATE_MOZ_READONLY;
-  }
-
-  return  retState | mIntrinsicState;
+  return nsXTFElementWrapperBase::IntrinsicState() | mIntrinsicState;
 }
 
 void
 nsXTFElementWrapper::PerformAccesskey(PRBool aKeyCausesActivation,
                                       PRBool aIsTrustedEvent)
 {
-  if (mNotificationMask & nsIXTFElement::NOTIFY_PERFORM_ACCESSKEY) {
-    nsIDocument* doc = GetCurrentDoc();
-    if (!doc)
-      return;
-
-    // Get presentation shell 0
-    nsIPresShell *presShell = doc->GetPrimaryShell();
-    if (!presShell)
-      return;
-
-    nsPresContext *presContext = presShell->GetPresContext();
-    if (!presContext)
-      return;
-
-    nsIEventStateManager *esm = presContext->EventStateManager();
-    if (esm)
-      esm->ChangeFocusWith(this, nsIEventStateManager::eEventFocusedByKey);
-
-    if (aKeyCausesActivation)
-      GetXTFElement()->PerformAccesskey();
-  }
+  if (mNotificationMask & nsIXTFElement::NOTIFY_PERFORM_ACCESSKEY)
+    GetXTFElement()->PerformAccesskey();
 }
 
 nsresult
@@ -583,7 +548,7 @@ nsXTFElementWrapper::Clone(nsINodeInfo *aNodeInfo, nsINode **aResult) const
     return NS_ERROR_OUT_OF_MEMORY;
 
   nsXTFElementWrapper* wrapper =
-    static_cast<nsXTFElementWrapper*>(it.get());
+    NS_STATIC_CAST(nsXTFElementWrapper*, it.get());
   nsresult rv = CopyInnerTo(wrapper);
 
   if (NS_SUCCEEDED(rv)) {
@@ -604,7 +569,7 @@ nsXTFElementWrapper::Clone(nsINodeInfo *aNodeInfo, nsINode **aResult) const
   }
 
   // XXX CloneState should take |const nIDOMElement*|
-  wrapper->CloneState(const_cast<nsXTFElementWrapper*>(this));
+  wrapper->CloneState(NS_CONST_CAST(nsXTFElementWrapper*, this));
   return rv;
 }
 
@@ -707,14 +672,14 @@ nsXTFElementWrapper::GetInterfaces(PRUint32* aCount, nsIID*** aArray)
   }
 
   PRUint32 count = baseCount + xtfCount;
-  nsIID** iids = static_cast<nsIID**>
-                            (nsMemory::Alloc(count * sizeof(nsIID*)));
+  nsIID** iids = NS_STATIC_CAST(nsIID**,
+                                nsMemory::Alloc(count * sizeof(nsIID*)));
   NS_ENSURE_TRUE(iids, NS_ERROR_OUT_OF_MEMORY);
 
   PRUint32 i = 0;
   for (; i < baseCount; ++i) {
-    iids[i] = static_cast<nsIID*>
-                         (nsMemory::Clone(baseArray[i], sizeof(nsIID)));
+    iids[i] = NS_STATIC_CAST(nsIID*,
+                             nsMemory::Clone(baseArray[i], sizeof(nsIID)));
     if (!iids[i]) {
       NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(baseCount, baseArray);
       NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(xtfCount, xtfArray);
@@ -724,8 +689,8 @@ nsXTFElementWrapper::GetInterfaces(PRUint32* aCount, nsIID*** aArray)
   }
 
   for (; i < count; ++i) {
-    iids[i] = static_cast<nsIID*>
-                         (nsMemory::Clone(xtfArray[i - baseCount], sizeof(nsIID)));
+    iids[i] = NS_STATIC_CAST(nsIID*,
+                             nsMemory::Clone(xtfArray[i - baseCount], sizeof(nsIID)));
     if (!iids[i]) {
       NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(baseCount, baseArray);
       NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(xtfCount, xtfArray);
@@ -879,8 +844,7 @@ nsresult
 nsXTFElementWrapper::PostHandleEvent(nsEventChainPostVisitor& aVisitor)
 {
   nsresult rv = NS_OK;
-  if (aVisitor.mEventStatus == nsEventStatus_eConsumeNoDefault ||
-      !(mNotificationMask & nsIXTFElement::NOTIFY_HANDLE_DEFAULT)) {
+  if (aVisitor.mEventStatus == nsEventStatus_eConsumeNoDefault) {
     return rv;
   }
 
@@ -913,10 +877,6 @@ nsXTFElementWrapper::SetIntrinsicState(PRInt32 aNewState)
   if (!doc || !bits)
     return NS_OK;
 
-  NS_WARN_IF_FALSE(!((aNewState & NS_EVENT_STATE_MOZ_READONLY) &&
-                   (aNewState & NS_EVENT_STATE_MOZ_READWRITE)),
-                   "Both READONLY and READWRITE are being set.  Yikes!!!");
-
   mIntrinsicState = aNewState;
   mozAutoDocUpdate upd(doc, UPDATE_CONTENT_STATE, PR_TRUE);
   doc->ContentStatesChanged(this, nsnull, bits);
@@ -943,7 +903,7 @@ nsXTFElementWrapper::GetClasses() const
       val->ToString(value);
       nsAttrValue newValue;
       newValue.ParseAtomArray(value);
-      const_cast<nsAttrAndChildArray*>(&mAttrsAndChildren)->
+      NS_CONST_CAST(nsAttrAndChildArray*, &mAttrsAndChildren)->
         SetAndTakeAttr(clazzAttr, newValue);
     }
   }
@@ -969,7 +929,7 @@ nsXTFElementWrapper::RegUnregAccessKey(PRBool aDoReg)
     return;
 
   // Get presentation shell 0
-  nsIPresShell *presShell = doc->GetPrimaryShell();
+  nsIPresShell *presShell = doc->GetShellAt(0);
   if (!presShell)
     return;
 

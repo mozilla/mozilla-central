@@ -41,8 +41,6 @@
 #include "nsIImageToPixbuf.h"
 
 class gfxASurface;
-class gfxPattern;
-class gfxImageSurface;
 
 class nsImageToPixbuf : public nsIImageToPixbuf {
     public:
@@ -52,13 +50,11 @@ class nsImageToPixbuf : public nsIImageToPixbuf {
         // Friendlier version of ConvertImageToPixbuf for callers inside of
         // widget
         static GdkPixbuf* ImageToPixbuf(nsIImage* aImage);
+#ifdef MOZ_CAIRO_GFX
         static GdkPixbuf* SurfaceToPixbuf(gfxASurface* aSurface,
                                           PRInt32 aWidth, PRInt32 aHeight);
-        static GdkPixbuf* PatternToPixbuf(gfxPattern* aPattern,
-                                          PRInt32 aWidth, PRInt32 aHeight);
+#endif
     private:
-        static GdkPixbuf* ImgSurfaceToPixbuf(gfxImageSurface* aImgSurface,
-                                             PRInt32 aWidth, PRInt32 aHeight);
         ~nsImageToPixbuf() {}
 };
 

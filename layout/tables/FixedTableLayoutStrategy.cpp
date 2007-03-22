@@ -98,16 +98,12 @@ FixedTableLayoutStrategy::GetMinWidth(nsIRenderingContext* aRenderingContext)
         }
         const nsStyleCoord *styleWidth =
             &colFrame->GetStylePosition()->mWidth;
-        if (styleWidth->GetUnit() == eStyleUnit_Coord ||
-            styleWidth->GetUnit() == eStyleUnit_Chars) {
-            result += nsLayoutUtils::ComputeWidthValue(aRenderingContext,
-                        colFrame, 0, 0, 0, *styleWidth);
+        if (styleWidth->GetUnit() == eStyleUnit_Coord) {
+            result += styleWidth->GetCoordValue();
         } else if (styleWidth->GetUnit() == eStyleUnit_Percent) {
             // do nothing
         } else {
-            NS_ASSERTION(styleWidth->GetUnit() == eStyleUnit_Auto ||
-                         styleWidth->GetUnit() == eStyleUnit_Enumerated,
-                         "bad width");
+            NS_ASSERTION(styleWidth->GetUnit() == eStyleUnit_Auto, "bad width");
 
             // The 'table-layout: fixed' algorithm considers only cells
             // in the first row.
@@ -117,11 +113,7 @@ FixedTableLayoutStrategy::GetMinWidth(nsIRenderingContext* aRenderingContext)
                 cellMap->GetCellInfoAt(0, col, &originates, &colSpan);
             if (cellFrame) {
                 styleWidth = &cellFrame->GetStylePosition()->mWidth;
-                if (styleWidth->GetUnit() == eStyleUnit_Coord ||
-                    styleWidth->GetUnit() == eStyleUnit_Chars ||
-                    (styleWidth->GetUnit() == eStyleUnit_Enumerated &&
-                     (styleWidth->GetIntValue() == NS_STYLE_WIDTH_MAX_CONTENT ||
-                      styleWidth->GetIntValue() == NS_STYLE_WIDTH_MIN_CONTENT))) {
+                if (styleWidth->GetUnit() == eStyleUnit_Coord) {
                     nscoord cellWidth = nsLayoutUtils::IntrinsicForContainer(
                         aRenderingContext, cellFrame, nsLayoutUtils::MIN_WIDTH);
                     if (colSpan > 1) {
@@ -139,8 +131,6 @@ FixedTableLayoutStrategy::GetMinWidth(nsIRenderingContext* aRenderingContext)
                         result -= spacing * (colSpan - 1);
                     }
                 }
-                // else, for 'auto', '-moz-available', and '-moz-fit-content'
-                // do nothing
             }
         }
     }
@@ -216,20 +206,15 @@ FixedTableLayoutStrategy::ComputeColumnWidths(const nsHTMLReflowState& aReflowSt
         const nsStyleCoord *styleWidth =
             &colFrame->GetStylePosition()->mWidth;
         nscoord colWidth;
-        if (styleWidth->GetUnit() == eStyleUnit_Coord ||
-            styleWidth->GetUnit() == eStyleUnit_Chars) {
-            colWidth = nsLayoutUtils::ComputeWidthValue(
-                         aReflowState.rendContext,
-                         colFrame, 0, 0, 0, *styleWidth);
+        if (styleWidth->GetUnit() == eStyleUnit_Coord) {
+            colWidth = styleWidth->GetCoordValue();
         } else if (styleWidth->GetUnit() == eStyleUnit_Percent) {
             float pct = styleWidth->GetPercentValue();
             colWidth = NSToCoordFloor(pct * float(tableWidth));
             colFrame->AddPrefPercent(pct);
             pctTotal += pct;
         } else {
-            NS_ASSERTION(styleWidth->GetUnit() == eStyleUnit_Auto ||
-                         styleWidth->GetUnit() == eStyleUnit_Enumerated,
-                         "bad width");
+            NS_ASSERTION(styleWidth->GetUnit() == eStyleUnit_Auto, "bad width");
 
             // The 'table-layout: fixed' algorithm considers only cells
             // in the first row.
@@ -239,35 +224,24 @@ FixedTableLayoutStrategy::ComputeColumnWidths(const nsHTMLReflowState& aReflowSt
                 cellMap->GetCellInfoAt(0, col, &originates, &colSpan);
             if (cellFrame) {
                 styleWidth = &cellFrame->GetStylePosition()->mWidth;
-                if (styleWidth->GetUnit() == eStyleUnit_Coord ||
-                    styleWidth->GetUnit() == eStyleUnit_Chars ||
-                    (styleWidth->GetUnit() == eStyleUnit_Enumerated &&
-                     (styleWidth->GetIntValue() == NS_STYLE_WIDTH_MAX_CONTENT ||
-                      styleWidth->GetIntValue() == NS_STYLE_WIDTH_MIN_CONTENT))) {
-                    // XXX This should use real percentage padding
-                    // Note that the difference between MIN_WIDTH and
-                    // PREF_WIDTH shouldn't matter for any of these
-                    // values of styleWidth; use MIN_WIDTH for symmetry
-                    // with GetMinWidth above, just in case there is a
-                    // difference.
-                    colWidth = nsLayoutUtils::IntrinsicForContainer(
-                                 aReflowState.rendContext,
-                                 cellFrame, nsLayoutUtils::MIN_WIDTH);
+                if (styleWidth->GetUnit() == eStyleUnit_Coord) {
+                    colWidth = styleWidth->GetCoordValue();
                 } else if (styleWidth->GetUnit() == eStyleUnit_Percent) {
-                    // XXX This should use real percentage padding
-                    nsIFrame::IntrinsicWidthOffsetData offsets =
-                        cellFrame->IntrinsicWidthOffsets(aReflowState.rendContext);
                     float pct = styleWidth->GetPercentValue();
-                    colWidth = NSToCoordFloor(pct * float(tableWidth)) +
-                               offsets.hPadding + offsets.hBorder;
+                    colWidth = NSToCoordFloor(pct * float(tableWidth));
                     pct /= float(colSpan);
                     colFrame->AddPrefPercent(pct);
                     pctTotal += pct;
                 } else {
-                    // 'auto', '-moz-available', and '-moz-fit-content'
                     colWidth = unassignedMarker;
                 }
                 if (colWidth != unassignedMarker) {
+                    // Add in cell's padding and border.
+                    // XXX This should use real percentage padding
+                    nsIFrame::IntrinsicWidthOffsetData offsets =
+                        cellFrame->IntrinsicWidthOffsets(aReflowState.rendContext);
+                    colWidth += offsets.hPadding + offsets.hBorder;
+
                     if (colSpan > 1) {
                         // If a column-spanning cell is in the first
                         // row, split up the space evenly.  (XXX This

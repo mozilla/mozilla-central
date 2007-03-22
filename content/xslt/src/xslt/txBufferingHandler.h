@@ -74,6 +74,7 @@ class txBufferingHandler : public txAXMLEventHandler
 {
 public:
     txBufferingHandler();
+    ~txBufferingHandler();
 
     TX_DECL_TXAXMLEVENTHANDLER
 

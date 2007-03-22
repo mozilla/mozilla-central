@@ -35,29 +35,27 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-245795.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 245795;
+var bug = 245795;
 var summary = 'eval(uneval(function)) should be round-trippable';
 var actual = '';
 var expect = '';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
 if (typeof uneval != 'undefined')
 {
   function a()
-  {
-    b=function() {};
-  }
+    {
+      b=function() {};
+    }
 
   var r = /function a\(\) \{ b = \(?function \(\) \{\s*\}\)?; \}/;
   eval(uneval(a));
 
   var v = a.toString().replace(/[ \n]+/g, ' ');
- 
+  
   printStatus("[" + v + "]");
 
   expect = true;

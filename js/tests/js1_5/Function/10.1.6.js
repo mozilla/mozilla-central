@@ -34,15 +34,13 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = '10.1.6.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 293782;
+var bug = 293782;
 var summary = 'Local variables can cause predefined function object properties to be undefined';
 var actual = '';
 var expect = '';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
 function f()
@@ -52,5 +50,5 @@ function f()
 
 expect = 'f';
 actual = f.name;
- 
+  
 reportCompare(expect, actual, summary);

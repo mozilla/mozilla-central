@@ -77,8 +77,6 @@
   z-index: inherit;
   page-break-before: inherit;
   page-break-after: inherit;
-  vertical-align: inherit; /* needed for inline-table */
-  line-height: inherit; /* needed for vertical-align on inline-table */
 }
 
 *|*::-moz-table-row {
@@ -128,12 +126,6 @@
 *|*::-moz-anonymous-block, *|*::-moz-cell-content {
   display: block !important;
   position: static !important;
-}
-
-*|*::-moz-xul-anonymous-block {
-  display: block ! important;
-  position: static ! important;
-  float: none ! important;
 }
 
 *|*::-moz-scrolled-content, *|*::-moz-scrolled-canvas,

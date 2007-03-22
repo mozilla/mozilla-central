@@ -35,21 +35,19 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-338653.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 338653;
+var bug = 338652;
 var summary = 'Force GC when JSRuntime.gcMallocBytes hits ' +
   'JSRuntime.gcMaxMallocBytes';
 var actual = 'No Crash';
 var expect = 'No Crash';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
-print('This test should never fail explicitly. ' +
-      'You must view the memory usage during the test. ' +
-      'This test fails if the memory usage repeatedly spikes ' +
-      'by several hundred megabytes.');
+print('This test should never fail explicitly. ' + 
+               'You must view the memory usage during the test. ' + 
+               'This test fails if the memory usage repeatedly spikes ' +
+               'by several hundred megabytes.');
 
 function dosubst()
 {
@@ -69,6 +67,6 @@ function dosubst()
 
 }
 
-dosubst(); 
+dosubst();  
 
 reportCompare(expect, actual, summary);

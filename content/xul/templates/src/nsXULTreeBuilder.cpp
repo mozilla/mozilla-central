@@ -757,6 +757,8 @@ nsXULTreeBuilder::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsAString& aRes
 NS_IMETHODIMP
 nsXULTreeBuilder::SetTree(nsITreeBoxObject* aTree)
 {
+    NS_PRECONDITION(mRoot, "not initialized");
+
     mBoxObject = aTree;
 
     // If this is teardown time, then we're done.
@@ -764,7 +766,6 @@ nsXULTreeBuilder::SetTree(nsITreeBoxObject* aTree)
         Uninit(PR_FALSE);
         return NS_OK;
     }
-    NS_ENSURE_TRUE(mRoot, NS_ERROR_NOT_INITIALIZED);
 
     // Is our root's principal trusted?
     PRBool isTrusted = PR_FALSE;
@@ -1338,7 +1339,9 @@ nsXULTreeBuilder::EnsureSortVariables()
 nsresult
 nsXULTreeBuilder::RebuildAll()
 {
-    NS_ENSURE_TRUE(mRoot, NS_ERROR_NOT_INITIALIZED);
+    NS_PRECONDITION(mRoot != nsnull, "not initialized");
+    if (! mRoot)
+        return NS_ERROR_NOT_INITIALIZED;
 
     nsCOMPtr<nsIDocument> doc = mRoot->GetDocument();
 
@@ -1371,8 +1374,7 @@ nsXULTreeBuilder::RebuildAll()
     mRoot->GetAttr(kNameSpaceID_None, nsGkAtoms::ref, ref);
 
     if (! ref.IsEmpty()) {
-        rv = mQueryProcessor->TranslateRef(mDataSource, ref,
-                                           getter_AddRefs(mRootResult));
+        rv = mQueryProcessor->TranslateRef(mDB, ref, getter_AddRefs(mRootResult));
         if (NS_FAILED(rv))
             return rv;
 
@@ -1575,7 +1577,7 @@ nsXULTreeBuilder::OpenSubtreeForQuerySet(nsTreeRows::Subtree* aSubtree,
     PRInt32 count = *aDelta;
     
     nsCOMPtr<nsISimpleEnumerator> results;
-    nsresult rv = mQueryProcessor->GenerateResults(mDataSource, aResult,
+    nsresult rv = mQueryProcessor->GenerateResults(mDB, aResult,
                                                    aQuerySet->mCompiledQuery,
                                                    getter_AddRefs(results));
     if (NS_FAILED(rv))
@@ -1636,7 +1638,7 @@ nsXULTreeBuilder::OpenSubtreeForQuerySet(nsTreeRows::Subtree* aSubtree,
                     nsCOMPtr<nsIRDFResource> parentid;
                     rv = GetResultResource(iter->mMatch->mResult, getter_AddRefs(parentid));
                     if (NS_FAILED(rv)) {
-                        nsTemplateMatch::Destroy(mPool, newmatch, PR_FALSE);
+                        nsTemplateMatch::Destroy(mPool, newmatch);
                         return rv;
                     }
 
@@ -1649,7 +1651,7 @@ nsXULTreeBuilder::OpenSubtreeForQuerySet(nsTreeRows::Subtree* aSubtree,
 
             if (cyclic) {
                 NS_WARNING("tree cannot handle cyclic graphs");
-                nsTemplateMatch::Destroy(mPool, newmatch, PR_FALSE);
+                nsTemplateMatch::Destroy(mPool, newmatch);
                 continue;
             }
 
@@ -1658,7 +1660,7 @@ nsXULTreeBuilder::OpenSubtreeForQuerySet(nsTreeRows::Subtree* aSubtree,
             rv = DetermineMatchedRule(nsnull, nextresult, aQuerySet,
                                       &matchedrule, &ruleindex);
             if (NS_FAILED(rv)) {
-                nsTemplateMatch::Destroy(mPool, newmatch, PR_FALSE);
+                nsTemplateMatch::Destroy(mPool, newmatch);
                 return rv;
             }
 
@@ -1666,7 +1668,7 @@ nsXULTreeBuilder::OpenSubtreeForQuerySet(nsTreeRows::Subtree* aSubtree,
                 rv = newmatch->RuleMatched(aQuerySet, matchedrule, ruleindex,
                                            nextresult);
                 if (NS_FAILED(rv)) {
-                    nsTemplateMatch::Destroy(mPool, newmatch, PR_FALSE);
+                    nsTemplateMatch::Destroy(mPool, newmatch);
                     return rv;
                 }
 
@@ -1690,7 +1692,7 @@ nsXULTreeBuilder::OpenSubtreeForQuerySet(nsTreeRows::Subtree* aSubtree,
             prevmatch->mNext = newmatch;
         }
         else if (!mMatchMap.Put(resultid, newmatch)) {
-            nsTemplateMatch::Destroy(mPool, newmatch, PR_TRUE);
+            nsTemplateMatch::Destroy(mPool, newmatch);
             return NS_ERROR_OUT_OF_MEMORY;
         }
     }
@@ -1746,8 +1748,11 @@ nsXULTreeBuilder::RemoveMatchesFor(nsTreeRows::Subtree& subtree)
         nsTemplateMatch* existingmatch;
         if (mMatchMap.Get(id, &existingmatch)) {
             while (existingmatch) {
+                if (existingmatch->mResult)
+                    existingmatch->mResult->HasBeenRemoved();
+
                 nsTemplateMatch* nextmatch = existingmatch->mNext;
-                nsTemplateMatch::Destroy(mPool, existingmatch, PR_TRUE);
+                nsTemplateMatch::Destroy(mPool, existingmatch);
                 existingmatch = nextmatch;
             }
 
@@ -1796,13 +1801,13 @@ nsXULTreeBuilder::IsContainerOpen(nsIRDFResource* aResource, PRBool* aOpen)
 int
 nsXULTreeBuilder::Compare(const void* aLeft, const void* aRight, void* aClosure)
 {
-    nsXULTreeBuilder* self = static_cast<nsXULTreeBuilder*>(aClosure);
+    nsXULTreeBuilder* self = NS_STATIC_CAST(nsXULTreeBuilder*, aClosure);
 
-    nsTreeRows::Row* left = static_cast<nsTreeRows::Row*>
-                                       (const_cast<void*>(aLeft));
+    nsTreeRows::Row* left = NS_STATIC_CAST(nsTreeRows::Row*,
+                                               NS_CONST_CAST(void*, aLeft));
 
-    nsTreeRows::Row* right = static_cast<nsTreeRows::Row*>
-                                        (const_cast<void*>(aRight));
+    nsTreeRows::Row* right = NS_STATIC_CAST(nsTreeRows::Row*,
+                                                NS_CONST_CAST(void*, aRight));
 
     return self->CompareResults(left->mMatch->mResult, right->mMatch->mResult);
 }
@@ -1810,9 +1815,7 @@ nsXULTreeBuilder::Compare(const void* aLeft, const void* aRight, void* aClosure)
 PRInt32
 nsXULTreeBuilder::CompareResults(nsIXULTemplateResult* aLeft, nsIXULTemplateResult* aRight)
 {
-    // this is an extra check done for RDF queries such that results appear in
-    // the order they appear in their containing Seq
-    if (mSortDirection == eDirection_Natural && mDB) {
+    if (mSortDirection == eDirection_Natural) {
         // If the sort order is ``natural'', then see if the container
         // is an RDF sequence. If so, we'll try to use the ordinal
         // properties to determine order.

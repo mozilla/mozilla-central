@@ -44,7 +44,7 @@
  * access of cookie objects
  */
 
-[scriptable, uuid(736619fe-8d09-4e59-8223-32f176c22977)]
+[scriptable, uuid(1f5b06e1-8d52-46a0-a26d-762bd6a1Cf75)]
 
 interface nsICookie2 : nsICookie
 {
@@ -57,26 +57,24 @@ interface nsICookie2 : nsICookie
     readonly attribute AUTF8String rawHost;
 
     /**
-     * true if the cookie is a session cookie.
-     * note that expiry time will also be honored
-     * for session cookies (see below); thus, whichever is
-     * the more restrictive of the two will take effect.
+     * true if the cookie is a session cookie
+     * (note: if true, the expiry time is undefined).
      */
     readonly attribute boolean isSession;
 
     /**
-     * the actual expiry time of the cookie, in seconds
-     * since midnight (00:00:00), January 1, 1970 UTC.
+     * the actual expiry time of the cookie
+     * (where 0 does not represent a session cookie).
      *
-     * this is distinct from nsICookie::expires, which
-     * has different and obsolete semantics.
+     * not to be confused with |expires|, an
+     * attribute on nsICookie.
      */
     readonly attribute PRInt64 expiry;
 
     /**
      * true if the cookie is an http only cookie
      */
-    readonly attribute boolean isHttpOnly;
+    readonly attribute boolean httpOnly;
 
 
 };

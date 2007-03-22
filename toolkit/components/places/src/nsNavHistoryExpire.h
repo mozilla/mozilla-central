@@ -44,7 +44,7 @@
 
 class mozIStorageConnection;
 class nsNavHistory;
-struct nsNavHistoryExpireRecord;
+class nsNavHistoryExpireRecord;
 
 class nsNavHistoryExpire
 {
@@ -53,15 +53,16 @@ public:
   ~nsNavHistoryExpire();
 
   void OnAddURI(PRTime aNow);
-  void OnDeleteURI();
   void OnQuit();
   nsresult ClearHistory();
   void OnExpirationChanged();
-  nsresult ExpireItems(PRUint32 aNumToExpire, PRBool* aKeepGoing);
 
 protected:
 
   nsNavHistory* mHistory;
+
+  // Number of partial expirations since last AddURI call.
+  PRUint32 mSequentialRuns;
 
   nsCOMPtr<nsITimer> mTimer;
   PRBool mTimerSet;
@@ -80,11 +81,11 @@ protected:
   // global statistics
   PRUint32 mAddCount;
   PRUint32 mExpiredItems;
+  PRUint32 mExpireRuns;
 
   nsresult DoPartialExpiration();
 
-  nsresult ExpireAnnotations(mozIStorageConnection* aConnection);
-  nsresult ExpireEmbeddedLinks(mozIStorageConnection* aConnection);
+  nsresult ExpireItems(PRUint32 aNumToExpire, PRBool* aKeepGoing);
 
   // parts of ExpireItems
   nsresult FindVisits(PRTime aExpireThreshold, PRUint32 aNumToExpire,
@@ -100,15 +101,14 @@ protected:
                             const nsTArray<nsNavHistoryExpireRecord>& aRecords);
 
   // paranoid checks
-  nsresult ExpireHistoryParanoid(mozIStorageConnection* aConnection, PRInt32 aMaxRecords);
+  nsresult ExpireHistoryParanoid(mozIStorageConnection* aConnection);
   nsresult ExpireFaviconsParanoid(mozIStorageConnection* aConnection);
   nsresult ExpireAnnotationsParanoid(mozIStorageConnection* aConnection);
-  nsresult ExpireInputHistoryParanoid(mozIStorageConnection* aConnection);
 
   PRBool ExpireForDegenerateRuns();
 
   nsresult StartTimer(PRUint32 aMilleseconds);
   static void TimerCallback(nsITimer* aTimer, void* aClosure);
 
-  PRTime GetExpirationTimeAgo(PRInt32 aExpireDays);
+  PRTime GetExpirationTimeAgo();
 };

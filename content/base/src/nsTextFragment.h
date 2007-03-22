@@ -88,7 +88,6 @@ public:
   nsTextFragment()
     : m1b(nsnull), mAllBits(0)
   {
-    NS_ASSERTION(sizeof(FragmentBits) == 4, "Bad field packing!");
   }
 
   ~nsTextFragment();
@@ -182,7 +181,7 @@ public:
   PRUnichar CharAt(PRInt32 aIndex) const
   {
     NS_ASSERTION(PRUint32(aIndex) < mState.mLength, "bad index");
-    return mState.mIs2b ? m2b[aIndex] : static_cast<unsigned char>(m1b[aIndex]);
+    return mState.mIs2b ? m2b[aIndex] : NS_STATIC_CAST(unsigned char, m1b[aIndex]);
   }
 
   /**
@@ -192,14 +191,9 @@ public:
   void SetBidiFlag();
 
   struct FragmentBits {
-    // PRUint32 to ensure that the values are unsigned, because we
-    // want 0/1, not 0/-1!
-    // Making these PRPackedBool causes Windows to not actually pack them,
-    // which causes crashes because we assume this structure is no more than
-    // 32 bits!
-    PRUint32 mInHeap : 1;
-    PRUint32 mIs2b : 1;
-    PRUint32 mIsBidi : 1;
+    PRBool mInHeap : 1;
+    PRBool mIs2b : 1;
+    PRBool mIsBidi : 1;
     PRUint32 mLength : 29;
   };
 

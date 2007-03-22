@@ -34,7 +34,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: nsPKCS12Blob.h,v 1.16 2006-04-12 15:43:32 benjamin%smedbergs.us Exp $ */
+/* $Id: nsPKCS12Blob.h,v 1.16 2006/04/12 15:43:32 benjamin%smedbergs.us Exp $ */
 
 #ifndef _NS_PKCS12BLOB_H_
 #define _NS_PKCS12BLOB_H_

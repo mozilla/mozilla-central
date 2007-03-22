@@ -40,8 +40,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '11.1.3.js';
-
 START("11.1.3 - Wildcard Identifiers");
 
 x =

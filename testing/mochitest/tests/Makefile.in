@@ -44,7 +44,6 @@ relativesrcdir  = testing/mochitest/tests
 include $(DEPTH)/config/autoconf.mk
 
 DIRS =	 SimpleTest \
-	 browser \
 	 $(NULL)
 
 include $(topsrcdir)/config/rules.mk
@@ -78,4 +77,4 @@ _TEST_FILES = test_MochiKit-Async.html \
 # in the test screen. We leave them in tests/ in the src tree to mirror
 # the upstream MochiKit repository
 libs:: $(_TEST_FILES)
-	$(INSTALL) $(foreach f,$^,"$f") $(DEPTH)/_tests/$(relativesrcdir)/MochiKit_Unit_Tests
+	$(INSTALL) $^ $(DEPTH)/_tests/$(relativesrcdir)/MochiKit_Unit_Tests

@@ -88,7 +88,7 @@ NS_StringContainerInit2(nsStringContainer &aContainer,
       if (aFlags & NS_STRING_CONTAINER_INIT_ADOPT)
         flags |= nsSubstring::F_OWNED;
 
-      new (&aContainer) nsSubstring(const_cast<PRUnichar *>(aData),
+      new (&aContainer) nsSubstring(NS_CONST_CAST(PRUnichar *, aData),
                                     aDataLength, flags);
     }
     else
@@ -104,7 +104,7 @@ XPCOM_API(void)
 NS_StringContainerFinish(nsStringContainer &aContainer)
 {
   // call the nsString dtor
-  reinterpret_cast<nsString *>(&aContainer)->~nsString();
+  NS_REINTERPRET_CAST(nsString *, &aContainer)->~nsString();
 }
 
 /* ------------------------------------------------------------------------- */
@@ -189,18 +189,6 @@ NS_StringCopy(nsAString &aDest, const nsAString &aSrc)
   return NS_OK; // XXX report errors
 }
 
-XPCOM_API(void)
-NS_StringSetIsVoid(nsAString &aStr, const PRBool aIsVoid)
-{
-  aStr.SetIsVoid(aIsVoid);
-}
-
-XPCOM_API(PRBool)
-NS_StringGetIsVoid(const nsAString &aStr)
-{
-  return aStr.IsVoid();
-}
-
 /* ------------------------------------------------------------------------- */
 
 XPCOM_API(nsresult)
@@ -248,7 +236,7 @@ NS_CStringContainerInit2(nsCStringContainer &aContainer,
       if (aFlags & NS_CSTRING_CONTAINER_INIT_ADOPT)
         flags |= nsCSubstring::F_OWNED;
 
-      new (&aContainer) nsCSubstring(const_cast<char *>(aData),
+      new (&aContainer) nsCSubstring(NS_CONST_CAST(char *, aData),
                                      aDataLength, flags);
     }
     else
@@ -264,7 +252,7 @@ XPCOM_API(void)
 NS_CStringContainerFinish(nsCStringContainer &aContainer)
 {
   // call the nsCString dtor
-  reinterpret_cast<nsCString *>(&aContainer)->~nsCString();
+  NS_REINTERPRET_CAST(nsCString *, &aContainer)->~nsCString();
 }
 
 /* ------------------------------------------------------------------------- */
@@ -346,18 +334,6 @@ NS_CStringCopy(nsACString &aDest, const nsACString &aSrc)
 {
   aDest.Assign(aSrc);
   return NS_OK; // XXX report errors
-}
-
-XPCOM_API(void)
-NS_CStringSetIsVoid(nsACString &aStr, const PRBool aIsVoid)
-{
-  aStr.SetIsVoid(aIsVoid);
-}
-
-XPCOM_API(PRBool)
-NS_CStringGetIsVoid(const nsACString &aStr)
-{
-  return aStr.IsVoid();
 }
 
 /* ------------------------------------------------------------------------- */

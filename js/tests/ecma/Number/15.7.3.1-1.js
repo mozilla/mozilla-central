@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '15.7.3.1-1.js';
-
 /**
    File Name:          15.7.3.1-2.js
    ECMA Section:       15.7.3.1 Number.prototype
@@ -58,14 +56,14 @@ var TITLE   = "Number.prototype";
 
 writeHeaderToLog( SECTION +" "+ TITLE);
 
-new TestCase(SECTION,
-	     "var NUM_PROT = Number.prototype; delete( Number.prototype ); NUM_PROT == Number.prototype",   
-	     true, 
+new TestCase(SECTION, 
+	     "var NUM_PROT = Number.prototype; delete( Number.prototype ); NUM_PROT == Number.prototype",    
+	     true,  
 	     eval("var NUM_PROT = Number.prototype; delete( Number.prototype ); NUM_PROT == Number.prototype") );
 
-new TestCase(SECTION,
-	     "delete( Number.prototype )",         
-	     false,      
+new TestCase(SECTION, 
+	     "delete( Number.prototype )",          
+	     false,       
 	     eval("delete( Number.prototype )") );
 
 test();

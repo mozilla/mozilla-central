@@ -34,11 +34,9 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-355339.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 355339;
-var summary = 'Do not assert: sprop->setter != js_watch_set';
+var bug = 355339;
+var summary = 'Assertion: sprop->setter != js_watch_set';
 var actual = '';
 var expect = '';
 
@@ -50,9 +48,9 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
- 
+  
   expect = actual = 'No Crash';
   o = {};
   o.watch("j", function(a,b,c) { print("*",a,b,c) });

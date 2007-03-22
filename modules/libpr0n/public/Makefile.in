@@ -52,12 +52,11 @@ XPIDLSRCS	= \
 		imgIContainer.idl         \
 		imgIContainerObserver.idl \
 		imgIDecoder.idl           \
-		imgIDecoderObserver.idl   \
+		imgIDecoderObserver.idl	  \
 		imgIEncoder.idl           \
 		imgILoad.idl              \
 		imgILoader.idl            \
-		imgIRequest.idl           \
-		imgITools.idl             \
+		imgIRequest.idl		  \
 		$(NULL)
 
 include $(topsrcdir)/config/rules.mk

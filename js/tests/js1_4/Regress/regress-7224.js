@@ -35,8 +35,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'regress-7224.js';
-
 /**
  *  File Name:          regress-7224.js
  *  Reference:          js1_2
@@ -77,14 +75,14 @@ o.foo("a", "b", "c");
 
 
 AddTestCase(
-  "var f = new Function( 'return arguments.caller' ); f()",
-  undefined,
-  f() );
+    "var f = new Function( 'return arguments.caller' ); f()",
+    undefined,
+    f() );
 
 AddTestCase(
-  "var o = {}; o.foo = f; o.foo('a')",
-  undefined,
-  o.foo('a') );
+    "var o = {}; o.foo = f; o.foo('a')",
+    undefined,
+    o.foo('a') );
 
 test();       // leave this alone.  this executes the test cases and
 // displays results.

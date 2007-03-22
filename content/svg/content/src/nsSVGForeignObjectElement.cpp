@@ -38,6 +38,7 @@
 
 #include "nsSVGLength.h"
 #include "nsCOMPtr.h"
+#include "nsISVGSVGElement.h"
 #include "nsSVGForeignObjectElement.h"
 
 nsSVGElement::LengthInfo nsSVGForeignObjectElement::sLengthInfo[4] =
@@ -115,7 +116,6 @@ nsSVGForeignObjectElement::IsAttributeMapped(const nsIAtom* name) const
     sFiltersMap,
     sFontSpecificationMap,
     sGradientStopMap,
-    sLightingEffectsMap,
     sMarkersMap,
     sTextContentElementsMap,
     sViewportsMap

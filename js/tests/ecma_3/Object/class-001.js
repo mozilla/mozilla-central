@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -34,9 +33,8 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK ***** */
-
-/*
+ * ***** END LICENSE BLOCK *****
+ *
  * Date: 14 Mar 2001
  *
  * SUMMARY: Testing the internal [[Class]] property of objects
@@ -44,11 +42,10 @@
  *
  * The getJSClass() function we use is in a utility file, e.g. "shell.js".
  */
-//-----------------------------------------------------------------------------
-var gTestfile = 'class-001.js';
+//-------------------------------------------------------------------------------------------------
 var i = 0;
 var UBound = 0;
-var BUGNUMBER = '(none)';
+var bug = '(none)';
 var summary = 'Testing the internal [[Class]] property of objects';
 var statprefix = 'Current object is: ';
 var status = ''; var statusList = [ ];
@@ -59,14 +56,7 @@ var expect= ''; var expectedvalue = [ ];
 status = 'the global object';
 actual = getJSClass(this);
 expect = GLOBAL;
-if (expect == 'Window' && actual == 'XPCCrossOriginWrapper')
-{
-  print('Skipping global object due to XPCCrossOriginWrapper. See bug 390946');
-}
-else
-{
-  addThis();
-}
+addThis();
 
 status = 'new Object()';
 actual = getJSClass(new Object());
@@ -138,9 +128,9 @@ function addThis()
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
-
+ 
   for (i = 0; i < UBound; i++)
   {
     reportCompare(expectedvalue[i], actualvalue[i], getStatus(i));

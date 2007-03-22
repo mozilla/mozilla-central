@@ -51,6 +51,8 @@ public:
     {
         NS_ASSERTION(aContext, "txIMatchContext must be given");
     }
+    ~txSingleNodeContext()
+    {}
 
     nsresult getVariable(PRInt32 aNamespace, nsIAtom* aLName,
                          txAExprResult*& aResult)

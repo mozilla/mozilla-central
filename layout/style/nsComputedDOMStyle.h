@@ -79,10 +79,14 @@ private:
   
 #define STYLE_STRUCT(name_, checkdata_cb_, ctor_args_)                  \
   const nsStyle##name_ * GetStyle##name_() {                            \
-    return mStyleContextHolder->GetStyle##name_();                      \
+    return NS_STATIC_CAST(const nsStyle##name_ *,                       \
+                          GetStyleData(eStyleStruct_##name_));          \
   }
 #include "nsStyleStructList.h"
 #undef STYLE_STRUCT
+
+  // This never returns null
+  const nsStyleStruct* GetStyleData(nsStyleStructID aSID);
 
   nsresult GetOffsetWidthFor(PRUint8 aSide, nsIDOMCSSValue** aValue);
 
@@ -147,7 +151,6 @@ private:
   nsresult GetBackgroundAttachment(nsIDOMCSSValue** aValue);
   nsresult GetBackgroundColor(nsIDOMCSSValue** aValue);
   nsresult GetBackgroundImage(nsIDOMCSSValue** aValue);
-  nsresult GetBackgroundPosition(nsIDOMCSSValue** aValue);
   nsresult GetBackgroundRepeat(nsIDOMCSSValue** aValue);
   nsresult GetBackgroundClip(nsIDOMCSSValue** aValue);
   nsresult GetBackgroundInlinePolicy(nsIDOMCSSValue** aValue);
@@ -212,13 +215,9 @@ private:
   nsresult GetOutlineRadiusTopRight(nsIDOMCSSValue** aValue);
 
   /* Content Properties */
-  nsresult GetContent(nsIDOMCSSValue** aValue);
   nsresult GetCounterIncrement(nsIDOMCSSValue** aValue);
   nsresult GetCounterReset(nsIDOMCSSValue** aValue);
   nsresult GetMarkerOffset(nsIDOMCSSValue** aValue);
-
-  /* Quotes Properties */
-  nsresult GetQuotes(nsIDOMCSSValue** aValue);
 
   /* z-index */
   nsresult GetZIndex(nsIDOMCSSValue** aValue);
@@ -257,13 +256,9 @@ private:
   nsresult GetOverflow(nsIDOMCSSValue** aValue);
   nsresult GetOverflowX(nsIDOMCSSValue** aValue);
   nsresult GetOverflowY(nsIDOMCSSValue** aValue);
-  nsresult GetPageBreakAfter(nsIDOMCSSValue** aValue);
-  nsresult GetPageBreakBefore(nsIDOMCSSValue** aValue);
 
   /* User interface properties */
   nsresult GetCursor(nsIDOMCSSValue** aValue);
-  nsresult GetForceBrokenImageIcon(nsIDOMCSSValue** aValue);
-  nsresult GetIMEMode(nsIDOMCSSValue** aValue);
   nsresult GetUserFocus(nsIDOMCSSValue** aValue);
   nsresult GetUserInput(nsIDOMCSSValue** aValue);
   nsresult GetUserModify(nsIDOMCSSValue** aValue);
@@ -273,48 +268,6 @@ private:
   nsresult GetColumnCount(nsIDOMCSSValue** aValue);
   nsresult GetColumnWidth(nsIDOMCSSValue** aValue);
   nsresult GetColumnGap(nsIDOMCSSValue** aValue);
-
-#ifdef MOZ_SVG
-  /* SVG properties */
-  nsresult GetSVGPaintFor(PRBool aFill, nsIDOMCSSValue** aValue);
-
-  nsresult GetFill(nsIDOMCSSValue** aValue);
-  nsresult GetStroke(nsIDOMCSSValue** aValue);
-  nsresult GetMarkerEnd(nsIDOMCSSValue** aValue);
-  nsresult GetMarkerMid(nsIDOMCSSValue** aValue);
-  nsresult GetMarkerStart(nsIDOMCSSValue** aValue);
-  nsresult GetStrokeDasharray(nsIDOMCSSValue** aValue);
-
-  nsresult GetStrokeDashoffset(nsIDOMCSSValue** aValue);
-  nsresult GetStrokeWidth(nsIDOMCSSValue** aValue);
-
-  nsresult GetFillOpacity(nsIDOMCSSValue** aValue);
-  nsresult GetFloodOpacity(nsIDOMCSSValue** aValue);
-  nsresult GetStopOpacity(nsIDOMCSSValue** aValue);
-  nsresult GetStrokeMiterlimit(nsIDOMCSSValue** aValue);
-  nsresult GetStrokeOpacity(nsIDOMCSSValue** aValue);
-
-  nsresult GetClipRule(nsIDOMCSSValue** aValue);
-  nsresult GetFillRule(nsIDOMCSSValue** aValue);
-  nsresult GetStrokeLinecap(nsIDOMCSSValue** aValue);
-  nsresult GetStrokeLinejoin(nsIDOMCSSValue** aValue);
-  nsresult GetTextAnchor(nsIDOMCSSValue** aValue);
-
-  nsresult GetColorInterpolation(nsIDOMCSSValue** aValue);
-  nsresult GetColorInterpolationFilters(nsIDOMCSSValue** aValue);
-  nsresult GetDominantBaseline(nsIDOMCSSValue** aValue);
-  nsresult GetPointerEvents(nsIDOMCSSValue** aValue);
-  nsresult GetShapeRendering(nsIDOMCSSValue** aValue);
-  nsresult GetTextRendering(nsIDOMCSSValue** aValue);
-
-  nsresult GetFloodColor(nsIDOMCSSValue** aValue);
-  nsresult GetLightingColor(nsIDOMCSSValue** aValue);
-  nsresult GetStopColor(nsIDOMCSSValue** aValue);
-
-  nsresult GetClipPath(nsIDOMCSSValue** aValue);
-  nsresult GetFilter(nsIDOMCSSValue** aValue);
-  nsresult GetMask(nsIDOMCSSValue** aValue);
-#endif // MOZ_SVG
 
   nsROCSSPrimitiveValue* GetROCSSPrimitiveValue();
   nsDOMCSSValueList* GetROCSSValueList(PRBool aCommaDelimited);
@@ -334,29 +287,27 @@ private:
    * the percent value of aCoord is set as a percent value on aValue.  aTable,
    * if not null, is the keyword table to handle eStyleUnit_Enumerated.  When
    * calling SetAppUnits on aValue (for coord or percent values), the value
-   * passed in will be PR_MAX of the value in aMinAppUnits and the PR_MIN of
-   * the actual value in aCoord and the value in aMaxAppUnits.
+   * passed in will be PR_MAX of the actual value in aCoord and the value in
+   * aMinAppUnits.
    *
    * XXXbz should caller pass in some sort of bitfield indicating which units
    * can be expected or something?
    */
-  void SetValueToCoord(nsROCSSPrimitiveValue* aValue,
-                       const nsStyleCoord& aCoord,
+  void SetValueToCoord(nsROCSSPrimitiveValue* aValue, nsStyleCoord aCoord,
                        PercentageBaseGetter aPercentageBaseGetter = nsnull,
                        const PRInt32 aTable[] = nsnull,
-                       nscoord aMinAppUnits = nscoord_MIN,
-                       nscoord aMaxAppUnits = nscoord_MAX);
+                       nscoord aMinAppUnits = nscoord_MIN);
 
   /**
    * If aCoord is a eStyleUnit_Coord returns the nscoord.  If it's
-   * eStyleUnit_Percent, attempts to resolve the percentage base and returns
-   * the resulting nscoord.  If it's some other unit or a percentge base can't
-   * be determined, returns aDefaultValue.
+   * eStyleUnit_Percent, attempts to resolve the percentage base and returns the
+   * resulting nscoord.  If it's some other unit or a percentge base can't be
+   * determined, returns 0.
    */
-  nscoord StyleCoordToNSCoord(const nsStyleCoord& aCoord,
-                              PercentageBaseGetter aPercentageBaseGetter,
-                              nscoord aDefaultValue);
+  nscoord StyleCoordToNSCoord(nsStyleCoord aCoord,
+                              PercentageBaseGetter aPercentageBaseGetter);
 
+  PRBool GetFrameContentWidth(nscoord& aWidth);
   PRBool GetCBContentWidth(nscoord& aWidth);
   PRBool GetCBContentHeight(nscoord& aWidth);
   PRBool GetFrameBorderRectWidth(nscoord& aWidth);
@@ -381,30 +332,17 @@ private:
   nsCOMPtr<nsIContent> mContent;
 
   /*
-   * Strong reference to the style context while we're accessing the data from
-   * it.  This can be either a style context we resolved ourselves or a style
-   * context we got from our frame.
+   * When a frame is unavailable, strong reference to the
+   * style context while we're accessing the data from it.
    */
   nsRefPtr<nsStyleContext> mStyleContextHolder;
   nsCOMPtr<nsIAtom> mPseudo;
 
   /*
-   * While computing style data, the primary frame for mContent --- named "outer"
-   * because we should use it to compute positioning data.  Null
+   * While computing style data, the primary frame for mContent.  Null
    * otherwise.
    */
-  nsIFrame* mOuterFrame;
-  /*
-   * While computing style data, the "inner frame" for mContent --- the frame
-   * which we should use to compute margin, border, padding and content data.  Null
-   * otherwise.
-   */
-  nsIFrame* mInnerFrame;
-  /*
-   * While computing style data, the presshell we're working with.  Null
-   * otherwise.
-   */
-  nsIPresShell* mPresShell;
+  nsIFrame* mFrame;
 
   PRInt32 mAppUnitsPerInch; /* For unit conversions */
 };

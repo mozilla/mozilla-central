@@ -42,6 +42,7 @@
 #include "nsIPermissionManager.h"
 #include "nsIObserver.h"
 #include "nsCOMPtr.h"
+#include "nsInt64.h"
 #include "prlong.h"
 
 class nsIPrefBranch;
@@ -70,7 +71,7 @@ public:
 private:
   nsCOMPtr<nsIPermissionManager> mPermMgr;
 
-  PRInt64      mCookiesLifetimeSec;            // lifetime limit specified in seconds
+  nsInt64      mCookiesLifetimeSec;            // lifetime limit specified in seconds
   PRUint8      mCookiesLifetimePolicy;         // pref for how long cookies are stored
   PRPackedBool mCookiesAlwaysAcceptSession;    // don't prompt for session cookies
 #ifdef MOZ_MAIL_NEWS
@@ -79,7 +80,7 @@ private:
 
 };
 
-// {EF565D0A-AB9A-4A13-9160-0644CDFD859A}
+// {CE002B28-92B7-4701-8621-CC925866FB87}
 #define NS_COOKIEPERMISSION_CID \
  {0xEF565D0A, 0xAB9A, 0x4A13, {0x91, 0x60, 0x06, 0x44, 0xcd, 0xfd, 0x85, 0x9a }}
 

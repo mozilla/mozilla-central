@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -34,9 +33,8 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK ***** */
-
-/*
+ * ***** END LICENSE BLOCK *****
+ *
  *
  * Date:    20 Feb 2002
  * SUMMARY: Testing the comparison |undefined === null|
@@ -44,9 +42,8 @@
  *
  */
 //-----------------------------------------------------------------------------
-var gTestfile = '11.9.6-1.js';
 var UBound = 0;
-var BUGNUMBER = 126722;
+var bug = 126722;
 var summary = 'Testing the comparison |undefined === null|';
 var status = '';
 var statusitems = [];
@@ -69,12 +66,12 @@ addThis();
 status = inSection(2);
 switch(true)
 {
-case (undefined === null) :
-  actual = true;
-  break;
+  case (undefined === null) :
+    actual = true;
+    break;
 
-default:
-  actual = false;
+  default:
+    actual = false;
 }
 expect = false;
 addThis();
@@ -88,12 +85,12 @@ function f3(x)
 
   switch(true)
   {
-  case (x === null) :
-    res = true;
-    break;
+    case (x === null) :
+      res = true;
+      break;
 
-  default:
-    // do nothing
+    default:
+      // do nothing
   }
 
   return res;
@@ -117,12 +114,12 @@ function f4(arr)
 
     switch(true)
     {
-    case (elt === null) :
-      res = true;
-      break;
+      case (elt === null) :
+        res = true;
+        break;
 
-    default:
-      // do nothing
+      default:
+        // do nothing
     }
   }
 
@@ -143,7 +140,7 @@ function f5(arr)
 
   for(var i=0; (arr[i]===undefined) && (i<len); i++)
     ; //do nothing
- 
+  
   return i;
 }
 
@@ -201,7 +198,7 @@ function addThis()
 function test()
 {
   enterFunc('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber(bug);
   printStatus(summary);
 
   for (var i=0; i<UBound; i++)

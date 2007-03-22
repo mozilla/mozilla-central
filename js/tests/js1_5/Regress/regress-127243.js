@@ -35,18 +35,16 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-127243.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 127243;
+var bug = 127243;
 var summary = 'Do not crash on watch';
 var actual = 'No Crash';
 var expect = 'No Crash';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
-if (typeof window != 'undefined' && typeof document != 'undefined') 
+if (typeof window != 'undefined' && typeof document != 'undefined')  
 {
   // delay test driver end
   gDelayTestDriverEnd = true;

@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'null-001.js';
-
 /**
    File Name:      null-001.js
    Description:
@@ -62,19 +60,19 @@ startTest();
 writeHeaderToLog( SECTION + " "+ TITLE);
 //  display test information
 
-var hashMap = new java.util.HashMap();
+var choice = new java.awt.Choice();
 
-new TestCase(
-  SECTION,
-  "var hashMap = new java.util.HashMap(); hashMap.get('unknown');",
-  null,
-  hashMap.get("unknown") );
+testcases[testcases.length] = new TestCase(
+    SECTION,
+    "var choice = new java.awt.Choice(); choice.getSelectedObjects()",
+    null,
+    choice.getSelectedObjects() );
 
-new TestCase(
-  SECTION,
-  "typeof hashMap.get('unknown')",
-  "object",
-  typeof hashMap.get('unknown') );
+testcases[testcases.length] = new TestCase(
+    SECTION,
+    "typeof choice.getSelectedObjects()",
+    "object",
+    typeof choice.getSelectedObjects() );
 
 
 

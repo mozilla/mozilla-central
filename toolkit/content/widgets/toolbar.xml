@@ -9,9 +9,21 @@
     <resources>
       <stylesheet src="chrome://global/skin/toolbar.css"/>
     </resources>
+    <implementation implements="nsIAccessibleProvider">
+      <property name="accessibleType" readonly="true">
+        <getter>
+          <![CDATA[
+            if (this.localName == "toolbarseparator")
+              return Components.interfaces.nsIAccessibleProvider.XULToolbarSeparator;
+            else
+              return Components.interfaces.nsIAccessibleProvider.XULToolbar;
+          ]]>
+        </getter>
+      </property>
+    </implementation>
   </binding>
   
-  <binding id="toolbox" extends="chrome://global/content/bindings/toolbar.xml#toolbar-base">
+  <binding id="toolbox" extends="chrome://global/content/bindings/toolbar.xml#toolbar-base">  
     <implementation>
       <field name="palette">
         null
@@ -70,12 +82,7 @@
   </binding>
   
   <binding id="toolbar" extends="chrome://global/content/bindings/toolbar.xml#toolbar-base">
-    <implementation implements="nsIAccessibleProvider">
-      <property name="accessibleType" readonly="true">
-        <getter>
-          return Components.interfaces.nsIAccessibleProvider.XULToolbar;
-        </getter>
-      </property>
+    <implementation>
       <field name="firstPermanentChild">
         null
       </field>
@@ -176,20 +183,19 @@
             var firstChildID = this.firstPermanentChild ? this.firstPermanentChild.id : "";
             var lastChildID = this.lastPermanentChild ? this.lastPermanentChild.id : "";
 
-            if (val && val != "__empty") {
+            if (val == "__empty")
+              return;
+
+            if (val) {
               var itemIds = val.split(",");
               var before = true;
-              this._trackInserted = {};
               for (var i = 0; i < itemIds.length; i++) {
                 if (itemIds[i] == firstChildID || itemIds[i] == lastChildID)
                   before = false;
                 else
                   this.insertItem(itemIds[i], null, null, before);
               }
-              delete this._trackInserted;
             }
-
-            return val;
           ]]>
         </setter>
       </property>
@@ -210,27 +216,18 @@
                                                  "toolbarseparator");
               uniqueId = (new Date()).getTime()+this.childNodes.length;
               newItem.id = "separator" + uniqueId;
-              newItem.className = "chromeclass-toolbar-additional";
             } else if (aId == "spring") {
               newItem = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul",
                                                  "toolbarspring");
               uniqueId = (new Date()).getTime()+this.childNodes.length;
               newItem.flex = 1;
               newItem.id = "spring" + uniqueId;
-              newItem.className = "chromeclass-toolbar-additional";
             } else if (aId == "spacer") {
               newItem = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul",
                                                  "toolbarspacer");
               uniqueId = (new Date()).getTime()+this.childNodes.length;
               newItem.id = "spacer" + uniqueId;
-              newItem.className = "chromeclass-toolbar-additional";
-            } else if (this.parentNode.localName == "toolbox") {
-              if (this._trackInserted) {
-                // Protect against creating an item with the given id more than once.
-                if (aId in this._trackInserted)
-                  return false;
-                this._trackInserted[aId] = null;
-              }
+            } else {
               // Attempt to locate an item with a matching id within palette.
               var paletteItem = this.parentNode.palette.firstChild;
               while (paletteItem) {
@@ -282,8 +279,8 @@
        <field name="_statusbar">null</field>
        <field name="_originalStatusText">null</field>
        <property name="statusbar" onget="return this.getAttribute('statusbar');"
-                                  onset="this.setAttribute('statusbar', val); return val;"/>
-       <method name="_updateStatusText">
+                                  onset="return this.setAttribute('statusbar', val)"/>
+       <method name="updateStatusText">
           <parameter name="itemText"/>
           <body>
            <![CDATA[
@@ -315,20 +312,12 @@
             this._statusbar.label = this._originalStatusText;
           ]]>
         </handler>
-        <handler event="DOMMenuItemActive">this._updateStatusText(event.target.statusText);</handler>
-        <handler event="DOMMenuItemInactive">this._updateStatusText("");</handler>
+        <handler event="DOMMenuItemActive">this.updateStatusText(event.target.statusText);</handler>
+        <handler event="DOMMenuItemInactive">this.updateStatusText("");</handler>
     </handlers>
   </binding>
 
-  <binding id="toolbardecoration" extends="chrome://global/content/bindings/toolbar.xml#toolbar-base">
-    <implementation implements="nsIAccessibleProvider">
-      <property name="accessibleType" readonly="true">
-        <getter>
-          return Components.interfaces.nsIAccessibleProvider.XULToolbarSeparator;
-        </getter>
-      </property>
-    </implementation>
-  </binding>
+  <binding id="toolbardecoration" extends="chrome://global/content/bindings/toolbar.xml#toolbar-base"/>
 
   <binding id="toolbarpaletteitem" extends="chrome://global/content/bindings/toolbar.xml#toolbar-base" display="xul:button">
     <content>

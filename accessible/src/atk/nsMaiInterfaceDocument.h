@@ -49,7 +49,6 @@ G_BEGIN_DECLS
 /* document interface callbacks */
 void documentInterfaceInitCB(AtkDocumentIface *aIface);
 AtkAttributeSet* getDocumentAttributesCB(AtkDocument *aDocument);
-const gchar* getDocumentLocaleCB(AtkDocument *aDocument);
 const gchar* getDocumentAttributeValueCB(AtkDocument *aDocument,
                                          const gchar *aAttrName);
 

@@ -36,15 +36,13 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-174709.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 174709;
+var bug = 174709;
 var summary = 'Don\'t Crash';
 var actual = 'FAIL';
 var expect = 'PASS';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
 /* code removed until replacement can be created. */
@@ -93,12 +91,12 @@ l8q.push("z");
 var e2k=eval(l8q.join(""));
 for (Qp3[5][kh1] in this)
   for (Qp3[5][kh1+1] in this)
-    if (Qp3[5][kh1] > Qp3[5][kh1+1] &&
-        Qp3[5][kh1][e2k[4]] == Qp3[5][kh1+1][e2k[4]] &&
-        Qp3[5][kh1].substr(kh1,kh1+1) == Qp3[5][kh1+1].substr(kh1,kh1+1))
+    if (Qp3[5][kh1] > Qp3[5][kh1+1] && 
+        Qp3[5][kh1][e2k[4]] == Qp3[5][kh1+1][e2k[4]] && 
+        Qp3[5][kh1].substr(kh1,kh1+1) == Qp3[5][kh1+1].substr(kh1,kh1+1)) 
       Qp3[5][kh1 + 2] = Qp3[5][kh1];
 
-               
+                
 actual = 'PASS';
 
 reportCompare(expect, actual, summary);

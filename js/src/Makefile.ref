@@ -82,17 +82,9 @@ endif
 #
 # XCFLAGS may be set in the environment or on the gmake command line
 #
-#CFLAGS += -DDEBUG -DDEBUG_brendan -DJS_ARENAMETER -DJS_HASHMETER -DJS_DUMP_PROPTREE_STATS -DJS_DUMP_SCOPE_METERS -DJS_SCOPE_DEPTH_METER -DJS_BASIC_STATS
 CFLAGS          += $(OPTIMIZER) $(OS_CFLAGS) $(DEFINES) $(INCLUDES) $(XCFLAGS)
-INTERP_CFLAGS   += $(INTERP_OPTIMIZER) $(OS_CFLAGS) $(DEFINES) $(INCLUDES) $(XCFLAGS) $(INTERP_XCFLAGS)
 
 LDFLAGS		= $(XLDFLAGS)
-
-ifdef MOZ_SHARK
-DEFINES += -DMOZ_SHARK
-CFLAGS += -F/System/Library/PrivateFrameworks
-LDFLAGS += -F/System/Library/PrivateFrameworks -framework CHUD
-endif
 
 ifndef NO_LIBM
 LDFLAGS += -lm
@@ -107,6 +99,25 @@ else
 CFLAGS += -fp:precise
 endif
 endif # WINNT
+
+#
+# Ask perl what flags it was built with, so we can build js with similar flags
+# and link properly.  Viva gmake.
+#
+ifdef JS_PERLCONNECT
+DEFINES += -DPERLCONNECT -D_GNU_SOURCE
+
+PERLCFLAGS := $(shell perl -MExtUtils::Embed -e ccopts)
+PERLLDFLAGS := $(shell perl -MExtUtils::Embed -e ldopts)
+
+# perl erroneously reports compiler flag -rdynamic (interpreted by ld
+# as -r) when it really meant -export-dynamic.
+PERLLDFLAGS := $(subst -rdynamic,-export-dynamic,$(PERLLDFLAGS))
+
+CFLAGS += $(PERLCFLAGS)
+#LDFLAGS += $(PERLLDFLAGS) #PH removed this assgnment
+INCLUDES += -I. #needed for perlconnect/jsperl.c
+endif
 
 #
 #	Server-related changes :
@@ -166,6 +177,7 @@ JS_HFILES =		\
 	jsdtoa.h	\
 	jshash.h	\
 	jslong.h	\
+	jsosdep.h	\
 	jstypes.h	\
 	jsprvtd.h	\
 	jspubtd.h	\
@@ -222,7 +234,6 @@ JS_CFILES =		\
 	jsgc.c		\
 	jshash.c	\
 	jsinterp.c	\
-	jsinvoke.c	\
 	jsiter.c	\
 	jslock.c	\
 	jslog2.c	\
@@ -248,6 +259,10 @@ ifdef JS_LIVECONNECT
 DIRS      += liveconnect
 endif
 
+ifdef JS_PERLCONNECT
+JS_CFILES += perlconnect/jsperl.c
+endif
+
 ifdef JS_HAS_FILE_OBJECT
 JS_CFILES += jsfile.c
 JS_HFILES += jsfile.h
@@ -265,6 +280,9 @@ else
 LIBRARY = $(OBJDIR)/libjs.a
 SHARED_LIBRARY = $(OBJDIR)/libjs.$(SO_SUFFIX)
 PROGRAM = $(OBJDIR)/js
+ifdef JS_PERLCONNECT
+PROG_LIBS += $(PERLLDFLAGS)
+endif
 endif
 
 include rules.mk
@@ -342,17 +360,10 @@ TARGETS += $(OBJDIR)/jsautocfg.h $(OBJDIR)/jscpucfg \
 	$(OBJDIR)/jscpucfg.o
 endif
 
-# Automatic make dependencies files
-DEPENDENCIES    = $(CFILES:%.c=$(OBJDIR)/%.d)
-
 #
-# Hardwire dependencies for jsinvoke.c
+# Hardwire dependencies on jsopcode.tbl
 #
-ifdef USE_MSVC
-$(OBJDIR)/jsinvoke.obj : jsinterp.h jsinterp.c
-else
-$(OBJDIR)/jsinvoke.o : jsinterp.h jsinterp.c
-endif
+jsopcode.h jsopcode.c: jsopcode.tbl
 
 -include $(DEPENDENCIES)
 

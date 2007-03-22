@@ -72,7 +72,7 @@ nsCOMArray_base::IndexOfObject(nsISupports* aObject) const {
     count = mArray.Count();
     for (i = 0; i < count; ++i) {
         nsCOMPtr<nsISupports> arrayItem =
-            do_QueryInterface(reinterpret_cast<nsISupports*>(mArray.ElementAt(i)));
+            do_QueryInterface(NS_REINTERPRET_CAST(nsISupports*,mArray.ElementAt(i)));
         if (arrayItem == supports) {
             retval = i;
             break;
@@ -107,7 +107,7 @@ nsCOMArray_base::ReplaceObjectAt(nsISupports* aObject, PRInt32 aIndex)
 {
     // its ok if oldObject is null here
     nsISupports *oldObject =
-        reinterpret_cast<nsISupports*>(mArray.SafeElementAt(aIndex));
+        NS_REINTERPRET_CAST(nsISupports*, mArray.SafeElementAt(aIndex));
 
     PRBool result = mArray.ReplaceElementAt(aObject, aIndex);
 
@@ -147,7 +147,7 @@ nsCOMArray_base::RemoveObjectAt(PRInt32 aIndex)
 PRBool
 ReleaseObjects(void* aElement, void*)
 {
-    nsISupports* element = static_cast<nsISupports*>(aElement);
+    nsISupports* element = NS_STATIC_CAST(nsISupports*, aElement);
     NS_IF_RELEASE(element);
     return PR_TRUE;
 }

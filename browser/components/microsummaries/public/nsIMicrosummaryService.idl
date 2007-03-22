@@ -7,7 +7,7 @@ interface nsIURI;
 interface nsISimpleEnumerator;
 interface nsIMicrosummary;
 
-[scriptable, uuid(560b0980-be95-47e9-81cc-4428c073127c)]
+[scriptable, uuid(cb284a83-1ca5-4000-9841-ce345ce84915)]
 interface nsIMicrosummaryObserver : nsISupports
 {
     /**
@@ -24,15 +24,6 @@ interface nsIMicrosummaryObserver : nsISupports
     void onContentLoaded(in nsIMicrosummary microsummary);
 
     /**
-     * Called when an observed microsummary encounters an error during an update.
-     * 
-     * @param microsummary
-     *        the microsumary which could not be updated
-     *
-     */
-    void onError(in nsIMicrosummary microsummary);
-
-    /**
      * Called when an element is appended to a microsummary set.
      * XXX Should this be in a separate nsICollectionObserver interface?
      *
@@ -44,7 +35,7 @@ interface nsIMicrosummaryObserver : nsISupports
 };
 
 
-[scriptable, uuid(05b48344-d0a7-427e-934e-9a6e0d5ecced)]
+[scriptable, uuid(71c469b4-6e31-427e-922d-48aafbd17344)]
 interface nsIMicrosummaryGenerator : nsISupports
 {
     // Has the generator itself, which may be a remote resource, been loaded.
@@ -70,12 +61,6 @@ interface nsIMicrosummaryGenerator : nsISupports
     // extensions incorporate UUIDs created by nsUUIDGenerator into the URNs
     // of the generators they create.
     readonly attribute nsIURI uri;
-
-    /**
-     * microsummary-generator equivalence test
-     * generators equal if their canonical locations equal, see uri attribute.
-     */
-    boolean equals(in nsIMicrosummaryGenerator aOther);
 
     // For generators installed by the user or bundled with the browser, the
     // local URI points to the location of the local file containing the
@@ -118,7 +103,7 @@ interface nsIMicrosummaryGenerator : nsISupports
 };
 
 
-[scriptable, uuid(6867dc21-077f-4462-937d-cd8b7c680e0c)]
+[scriptable, uuid(1b1f232d-e65f-446a-9984-786578526072)]
 interface nsIMicrosummary : nsISupports
 {
     // the URI of the page being summarized
@@ -135,10 +120,6 @@ interface nsIMicrosummary : nsISupports
     // The minimum interval after which this microsummary would like to be refreshed
     // (or null if it doesn't care).
     readonly attribute long updateInterval;
-
-    // Used when a site author has indicated that a microsummary (or an
-    // associated generator) will no longer be available.
-    readonly attribute boolean needsRemoval;
 
     /**
      * Add a microsummary observer to this microsummary.
@@ -157,15 +138,6 @@ interface nsIMicrosummary : nsISupports
      *
      */
     void removeObserver(in nsIMicrosummaryObserver observer);
-
-    /**
-     * Microsummary equivalence test
-     * Microsummaries equal if they summarize the same page with the same
-     * microsummary-generator (see also nsIMicrosummaryGenerator::equals).
-     *
-     * Note: this method returns false if either objects don't have a generator
-     */
-    boolean equals(in nsIMicrosummary aOther);
 
     /**
      * Update the microsummary, first loading its generator and page content
@@ -208,20 +180,9 @@ interface nsIMicrosummarySet : nsISupports
 };
 
 
-[scriptable, uuid(D58143A2-74FA-4B13-94ED-113AF8936D80)]
+[scriptable, uuid(edec7c28-4b06-4692-842f-8bf238e61ac1)]
 interface nsIMicrosummaryService : nsISupports
 {
-    /**
-     * Return a microsummary generator for the given URI.
-     *
-     * @param   generatorURI
-     *          the URI of the generator
-     *
-     * @returns an nsIMicrosummaryGenerator for the given URI.
-     *
-     */
-    nsIMicrosummaryGenerator getGenerator(in nsIURI generatorURI);
-
     /**
      * Install the microsummary generator from the resource at the supplied URI.
      * Callable by content via the addMicrosummaryGenerator() sidebar method.
@@ -277,7 +238,7 @@ interface nsIMicrosummaryService : nsISupports
      *
      */
     nsIMicrosummarySet getMicrosummaries(in nsIURI pageURI,
-                                         in long long bookmarkID);
+                                         in nsISupports bookmarkID);
 
     /**
      * Get the current microsummary for the given bookmark.
@@ -289,21 +250,7 @@ interface nsIMicrosummaryService : nsISupports
      *          if the bookmark does not have a current microsummary
      *
      */
-    nsIMicrosummary getMicrosummary(in long long bookmarkID);
-
-    /**
-     * Create a microsummary for a given page URI and generator URI.
-     *
-     * @param   pageURI
-     *          the URI of the page to be summarized
-     *
-     * @param   generatorURI
-     *          the URI of the microsummary generator
-     *
-     * @returns an nsIMicrosummary for the given page and generator URIs.
-     *
-     */
-    nsIMicrosummary createMicrosummary(in nsIURI pageURI, in nsIURI generatorURI);
+    nsIMicrosummary getMicrosummary(in nsISupports bookmarkID);
 
     /**
      * Set the current microsummary for the given bookmark.
@@ -315,7 +262,7 @@ interface nsIMicrosummaryService : nsISupports
      *          the microsummary to set as the current one
      *
      */
-    void setMicrosummary(in long long bookmarkID,
+    void setMicrosummary(in nsISupports bookmarkID,
                          in nsIMicrosummary microsummary);
 
     /**
@@ -325,7 +272,7 @@ interface nsIMicrosummaryService : nsISupports
      *          the bookmark for which to remove the current microsummary
      *
      */
-    void removeMicrosummary(in long long bookmarkID);
+    void removeMicrosummary(in nsISupports bookmarkID);
 
     /**
      * Whether or not the given bookmark has a current microsummary.
@@ -337,7 +284,7 @@ interface nsIMicrosummaryService : nsISupports
      *          has a current microsummary
      *
      */
-    boolean hasMicrosummary(in long long bookmarkID);
+    boolean hasMicrosummary(in nsISupports bookmarkID);
 
     /**
      * Whether or not the given microsummary is the current microsummary
@@ -353,7 +300,7 @@ interface nsIMicrosummaryService : nsISupports
      *          for the bookmark
      *
      */
-    boolean isMicrosummary(in long long bookmarkID,
+    boolean isMicrosummary(in nsISupports bookmarkID,
                            in nsIMicrosummary microsummary);
 
     /**
@@ -374,20 +321,5 @@ interface nsIMicrosummaryService : nsISupports
      * @returns the microsummary being refreshed
      *
      */
-    nsIMicrosummary refreshMicrosummary(in long long bookmarkID);
-};
-
-[scriptable, uuid(f9e577a8-19d9-4ca0-a140-b9e43f014470)]
-interface nsILiveTitleNotificationSubject : nsISupports
-{
-    // The ID of the bookmark displaying this title.
-    // Note: in the old bookmarks code, this is an RDF resource.  In Places
-    // it is currently a URI, but after the fix for bug 360133 lands it will
-    // become an integer.
-    readonly attribute long long bookmarkID;
-
-    // The microsummary being displayed as the live title for the bookmark.
-    // The actual value of the microsummary (i.e. the string that gets displayed
-    // to the user) is stored in the content property of this object.
-    readonly attribute nsIMicrosummary microsummary;
+    nsIMicrosummary refreshMicrosummary(in nsISupports bookmarkID);
 };

@@ -21,7 +21,6 @@
  *
  * Contributor(s):
  *   John Gaunt (jgaunt@netscape.com)
- *   Alexander Surkov <surkov.alexander@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -42,10 +41,8 @@
 #include "nsIAccessibilityService.h"
 #include "nsIAccessibleDocument.h"
 #include "nsAccessibleWrap.h"
-#include "nsAccessibilityUtils.h"
-#include "nsIDOMNSHTMLElement.h"
 #include "nsGUIEvent.h"
-#include "nsHyperTextAccessibleWrap.h"
+#include "nsHyperTextAccessible.h"
 #include "nsILink.h"
 #include "nsIFrame.h"
 #include "nsINameSpaceManager.h"
@@ -94,83 +91,101 @@ nsLeafAccessible::GetAllowsAnonChildAccessibles(PRBool *aAllowsAnonChildren)
   return NS_OK;
 }
 
-////////////////////////////////////////////////////////////////////////////////
+//----------------
 // nsLinkableAccessible
+//----------------
 
-nsLinkableAccessible::
-  nsLinkableAccessible(nsIDOMNode* aNode, nsIWeakReference* aShell) :
-  nsHyperTextAccessibleWrap(aNode, aShell),
+nsLinkableAccessible::nsLinkableAccessible(nsIDOMNode* aNode, nsIWeakReference* aShell) :
+  nsHyperTextAccessible(aNode, aShell),
   mActionContent(nsnull),
   mIsLink(PR_FALSE),
   mIsOnclick(PR_FALSE)
 {
 }
 
-NS_IMPL_ISUPPORTS_INHERITED0(nsLinkableAccessible, nsHyperTextAccessibleWrap)
+NS_IMPL_ISUPPORTS_INHERITED0(nsLinkableAccessible, nsHyperTextAccessible)
 
-////////////////////////////////////////////////////////////////////////////////
-// nsLinkableAccessible. nsIAccessible
-
-NS_IMETHODIMP
-nsLinkableAccessible::TakeFocus()
-{
-  nsCOMPtr<nsIAccessible> actionAcc = GetActionAccessible();
-  if (actionAcc)
-    return actionAcc->TakeFocus();
-
+NS_IMETHODIMP nsLinkableAccessible::TakeFocus()
+{ 
+  if (mActionContent && mActionContent->IsFocusable()) {
+    mActionContent->SetFocus(nsCOMPtr<nsPresContext>(GetPresContext()));
+  }
+  
   return NS_OK;
 }
 
-NS_IMETHODIMP
-nsLinkableAccessible::GetState(PRUint32 *aState, PRUint32 *aExtraState)
+/* long GetState (); */
+NS_IMETHODIMP nsLinkableAccessible::GetState(PRUint32 *aState)
 {
-  nsresult rv = nsHyperTextAccessibleWrap::GetState(aState, aExtraState);
-  NS_ENSURE_SUCCESS(rv, rv);
-
+  nsHyperTextAccessible::GetState(aState);
   if (mIsLink) {
     *aState |= nsIAccessibleStates::STATE_LINKED;
-    nsCOMPtr<nsIAccessible> actionAcc = GetActionAccessible();
-    if (actionAcc && (State(actionAcc) & nsIAccessibleStates::STATE_TRAVERSED))
-      *aState |= nsIAccessibleStates::STATE_TRAVERSED;
+    nsCOMPtr<nsILink> link = do_QueryInterface(mActionContent);
+    if (link) {
+      nsLinkState linkState;
+      link->GetLinkState(linkState);
+      if (linkState == eLinkState_Visited) {
+        *aState |= nsIAccessibleStates::STATE_TRAVERSED;
+      }
+    }
+    // Make sure we also include all the states of the parent link, such as focusable, focused, etc.
+    PRUint32 role;
+    GetRole(&role);
+    if (role != nsIAccessibleRole::ROLE_LINK) {
+      nsCOMPtr<nsIAccessible> parentAccessible(GetParent());
+      if (parentAccessible) {
+        PRUint32 orState = 0;
+        parentAccessible->GetFinalState(&orState);
+        *aState |= orState;
+      }
+    }
+  }
+  if (mActionContent && !mActionContent->IsFocusable()) {
+    // Links must have href or tabindex
+    *aState &= ~nsIAccessibleStates::STATE_FOCUSABLE;
   }
 
+  // XXX What if we're in a contenteditable container?
+  //     We may need to go up the parent chain unless a better API is found
+  nsCOMPtr<nsIAccessible> docAccessible = 
+    do_QueryInterface(nsCOMPtr<nsIAccessibleDocument>(GetDocAccessible()));
+  if (docAccessible) {
+    PRBool isEditable;
+    docAccessible->GetIsEditable(&isEditable);
+    if (isEditable) {
+      // Links not focusable in editor
+      *aState &= ~(nsIAccessibleStates::STATE_FOCUSED |
+                   nsIAccessibleStates::STATE_FOCUSABLE);
+    }
+  }
   return NS_OK;
 }
 
-NS_IMETHODIMP
-nsLinkableAccessible::GetValue(nsAString& aValue)
+
+NS_IMETHODIMP nsLinkableAccessible::GetValue(nsAString& _retval)
 {
-  aValue.Truncate();
-
-  nsHyperTextAccessible::GetValue(aValue);
-  if (!aValue.IsEmpty())
-    return NS_OK;
-
   if (mIsLink) {
-    nsCOMPtr<nsIAccessible> actionAcc = GetActionAccessible();
-    if (actionAcc)
-      return actionAcc->GetValue(aValue);
+    nsCOMPtr<nsIDOMNode> linkNode(do_QueryInterface(mActionContent));
+    nsCOMPtr<nsIPresShell> presShell(do_QueryReferent(mWeakShell));
+    if (linkNode && presShell)
+      return presShell->GetLinkLocation(linkNode, _retval);
   }
-
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 
-NS_IMETHODIMP
-nsLinkableAccessible::GetNumActions(PRUint8 *aNumActions)
+/* PRUint8 getAccNumActions (); */
+NS_IMETHODIMP nsLinkableAccessible::GetNumActions(PRUint8 *aNumActions)
 {
-  NS_ENSURE_ARG_POINTER(aNumActions);
-
   *aNumActions = mActionContent ? 1 : 0;
   return NS_OK;
 }
 
-NS_IMETHODIMP
-nsLinkableAccessible::GetActionName(PRUint8 aIndex, nsAString& aName)
+/* nsAString GetActionName (in PRUint8 Aindex); */
+NS_IMETHODIMP nsLinkableAccessible::GetActionName(PRUint8 aIndex, nsAString& aName)
 {
-  aName.Truncate();
-
   // Action 0 (default action): Jump to link
+  aName.Truncate();
   if (aIndex == eAction_Jump) {   
     if (mIsLink) {
       aName.AssignLiteral("jump");
@@ -185,123 +200,93 @@ nsLinkableAccessible::GetActionName(PRUint8 aIndex, nsAString& aName)
   return NS_ERROR_INVALID_ARG;
 }
 
-NS_IMETHODIMP
-nsLinkableAccessible::DoAction(PRUint8 aIndex)
+/* void accDoAction (in PRUint8 index); */
+NS_IMETHODIMP nsLinkableAccessible::DoAction(PRUint8 index)
 {
-  nsCOMPtr<nsIAccessible> actionAcc = GetActionAccessible();
-  if (actionAcc)
-    return actionAcc->DoAction(aIndex);
-
+  // Action 0 (default action): Jump to link
+  if (index == eAction_Jump) {
+    if (mActionContent) {
+      return DoCommand(mActionContent);
+    }
+  }
   return NS_ERROR_INVALID_ARG;
 }
 
-NS_IMETHODIMP
-nsLinkableAccessible::GetKeyboardShortcut(nsAString& aKeyboardShortcut)
+NS_IMETHODIMP nsLinkableAccessible::GetKeyboardShortcut(nsAString& aKeyboardShortcut)
 {
-  aKeyboardShortcut.Truncate();
-
-  nsCOMPtr<nsIAccessible> actionAcc = GetActionAccessible();
-  if (actionAcc)
-    return actionAcc->GetKeyboardShortcut(aKeyboardShortcut);
-
+  if (mActionContent) {
+    nsCOMPtr<nsIDOMNode> actionNode(do_QueryInterface(mActionContent));
+    if (actionNode && mDOMNode != actionNode) {
+      nsCOMPtr<nsIAccessible> accessible;
+      nsCOMPtr<nsIAccessibilityService> accService = 
+        do_GetService("@mozilla.org/accessibilityService;1");
+      accService->GetAccessibleInWeakShell(actionNode, mWeakShell,
+                                           getter_AddRefs(accessible));
+      if (accessible) {
+        accessible->GetKeyboardShortcut(aKeyboardShortcut);
+      }
+      return NS_OK;
+    }
+  }
   return nsAccessible::GetKeyboardShortcut(aKeyboardShortcut);
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// nsLinkableAccessible. nsIAccessibleHyperLink
-
-NS_IMETHODIMP
-nsLinkableAccessible::GetURI(PRInt32 aIndex, nsIURI **aURI)
+void nsLinkableAccessible::CacheActionContent()
 {
-  if (mIsLink) {
-    nsCOMPtr<nsIAccessible> actionAcc = GetActionAccessible();
-    if (actionAcc) {
-      nsCOMPtr<nsIAccessibleHyperLink> hyperLinkAcc =
-        do_QueryInterface(actionAcc);
-      NS_ASSERTION(hyperLinkAcc,
-                   "nsIAccessibleHyperLink isn't implemented.");
-
-      if (hyperLinkAcc)
-        return hyperLinkAcc->GetURI(aIndex, aURI);
+  for (nsCOMPtr<nsIContent> walkUpContent(do_QueryInterface(mDOMNode));
+       walkUpContent;
+       walkUpContent = walkUpContent->GetParent()) {
+    nsIAtom *tag = walkUpContent->Tag();
+    if ((tag == nsAccessibilityAtoms::a || tag == nsAccessibilityAtoms::area)) {
+      // Currently we do not expose <link> tags, because they are not typically
+      // in <body> and rendered.
+      // We do not yet support xlinks
+      nsCOMPtr<nsILink> link = do_QueryInterface(walkUpContent);
+      NS_ASSERTION(link, "No nsILink for area or a");
+      nsCOMPtr<nsIURI> uri;
+      link->GetHrefURI(getter_AddRefs(uri));
+      if (uri) {
+        mActionContent = walkUpContent;
+        mIsLink = PR_TRUE;
+        break;
+      }
     }
-  }
-  
-  return NS_ERROR_INVALID_ARG;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// nsLinkableAccessible. nsPIAccessNode
-
-NS_IMETHODIMP
-nsLinkableAccessible::Init()
-{
-  CacheActionContent();
-  return nsHyperTextAccessibleWrap::Init();
-}
-
-NS_IMETHODIMP
-nsLinkableAccessible::Shutdown()
-{
-  mActionContent = nsnull;
-  return nsHyperTextAccessibleWrap::Shutdown();
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// nsLinkableAccessible
-
-void
-nsLinkableAccessible::CacheActionContent()
-{
-  nsCOMPtr<nsIContent> walkUpContent(do_QueryInterface(mDOMNode));
-  PRBool isOnclick = nsAccUtils::HasListener(walkUpContent,
-                                             NS_LITERAL_STRING("click"));
-
-  if (isOnclick) {
-    mActionContent = walkUpContent;
-    mIsOnclick = PR_TRUE;
-    return;
-  }
-
-  while ((walkUpContent = walkUpContent->GetParent())) {
-    isOnclick = nsAccUtils::HasListener(walkUpContent,
-                                        NS_LITERAL_STRING("click"));
-  
-    nsCOMPtr<nsIDOMNode> walkUpNode(do_QueryInterface(walkUpContent));
-
-    nsCOMPtr<nsIAccessible> walkUpAcc;
-    GetAccService()->GetAccessibleInWeakShell(walkUpNode, mWeakShell,
-                                              getter_AddRefs(walkUpAcc));
-
-    if (walkUpAcc && Role(walkUpAcc) == nsIAccessibleRole::ROLE_LINK &&
-        (State(walkUpAcc) & nsIAccessibleStates::STATE_LINKED)) {
-      mIsLink = PR_TRUE;
-      mActionContent = walkUpContent;
-      return;
-    }
-
-    if (isOnclick) {
+    if (walkUpContent->HasAttr(kNameSpaceID_None,
+                            nsAccessibilityAtoms::onclick)) {
       mActionContent = walkUpContent;
       mIsOnclick = PR_TRUE;
-      return;
+      break;
     }
   }
 }
 
-already_AddRefed<nsIAccessible>
-nsLinkableAccessible::GetActionAccessible()
+// nsIAccessibleHyperLink::GetURI()
+NS_IMETHODIMP nsLinkableAccessible::GetURI(PRInt32 aIndex, nsIURI **aURI)
 {
-  // Return accessible for the action content if it's different from node of
-  // this accessible. If the action accessible is not null then it is used to
-  // redirect methods calls otherwise we use method implementation from the
-  // base class.
-  nsCOMPtr<nsIDOMNode> actionNode(do_QueryInterface(mActionContent));
-  if (!actionNode || mDOMNode == actionNode)
-    return nsnull;
+  // XXX Also implement this for nsHTMLImageAccessible file names
+  *aURI = nsnull;
+  if (aIndex != 0 || !mIsLink || !SameCOMIdentity(mDOMNode, mActionContent)) {
+    return NS_ERROR_FAILURE;
+  }
 
-  nsIAccessible *accessible = nsnull;
-  GetAccService()->GetAccessibleInWeakShell(actionNode, mWeakShell,
-                                            &accessible);
-  return accessible;
+  nsCOMPtr<nsILink> link(do_QueryInterface(mActionContent));
+  if (link) {
+    return link->GetHrefURI(aURI);
+  }
+
+  return NS_ERROR_FAILURE;
+}
+
+NS_IMETHODIMP nsLinkableAccessible::Init()
+{
+  CacheActionContent();
+  return nsHyperTextAccessible::Init();
+}
+
+NS_IMETHODIMP nsLinkableAccessible::Shutdown()
+{
+  mActionContent = nsnull;
+  return nsHyperTextAccessible::Shutdown();
 }
 
 //---------------------

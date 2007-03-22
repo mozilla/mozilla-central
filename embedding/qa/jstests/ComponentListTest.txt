@@ -154,7 +154,8 @@ function getComponentList()
                                 "nsIHelperAppLauncherDialog",
                                 "nsILocalFile",
                                 "nsIObserver",
-                                "nsIPrefBranch");
+                                "nsIPrefBranch",
+                                "nsIFontList");
 
   for (var m=0; m<serviceinterfacelist.length; m++)
     checkservice(servicecontractidlist[m], serviceinterfacelist[m]);

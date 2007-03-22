@@ -34,10 +34,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-353454.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 353454;
+var bug = 353454;
 var summary = 'Do not assert with regexp iterator';
 var actual = 'No Crash';
 var expect = 'No Crash';
@@ -50,9 +48,9 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
- 
+  
   try
   {
     expect = 'TypeError: y.__iterator__ returned a primitive value';

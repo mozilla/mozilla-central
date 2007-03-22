@@ -34,27 +34,16 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-342359.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 342359;
+var bug = 342359;
 var summary = 'Overriding ReferenceError should stick';
 var actual = '';
 var expect = '';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
-// work around bug 376957
-var SavedReferenceError = ReferenceError;
-
-try
-{
-  ReferenceError = 5;
-}
-catch(ex)
-{
-}
+ReferenceError = 5;
 
 try
 {
@@ -65,13 +54,7 @@ catch(ex)
   print(ex + '');
 }
 
-if (SavedReferenceError == ReferenceError)
-{
-  actual = expect = 'Test ignored due to bug 376957';
-}
-else
-{
-  expect = 5;
-  actual = ReferenceError;
-} 
+expect = 5;
+actual = ReferenceError
+  
 reportCompare(expect, actual, summary);

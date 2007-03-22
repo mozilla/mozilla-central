@@ -101,8 +101,8 @@ function makeTagFunc(tagName)
 
 function makeTags() {
   // map our global HTML generation functions
-  for each (var tag in tags) {
-      this[tag] = makeTagFunc(tag.toLowerCase());
+  for each(var tag in tags) {
+      this[tag] = makeTagFunc(tag);
   }
 }
 
@@ -113,9 +113,9 @@ if (this["nsHttpServer"]) {
   //
   runServer();
 
-  // We can only have gotten here if the /server/shutdown path was requested,
-  // and we can shut down the xpcshell now that all testing requests have been
-  // served.
+  // We can only have gotten here if CLOSE_WHEN_DONE was specified and the
+  // /server/shutdown path was requested.  We can shut down the xpcshell now
+  // that all testing requests have been served.
   quit(0);
 }
 
@@ -137,13 +137,12 @@ function runServer()
   server = new nsHttpServer();
   server.registerDirectory("/", serverBasePath);
 
-  server.registerPathHandler("/server/shutdown", serverShutdown);
-
-  server.registerContentType("sjs", "sjs"); // .sjs == CGI-like functionality
+  if (environment["CLOSE_WHEN_DONE"])
+    server.registerPathHandler("/server/shutdown", serverShutdown);
 
   server.setIndexHandler(defaultDirHandler);
   server.start(SERVER_PORT);
-
+  
   // touch a file in the profile directory to indicate we're alive
   var foStream = Cc["@mozilla.org/network/file-output-stream;1"]
                    .createInstance(Ci.nsIFileOutputStream);
@@ -189,7 +188,7 @@ function runServer()
 function serverShutdown(metadata, response)
 {
   response.setStatusLine("1.1", 200, "OK");
-  response.setHeader("Content-type", "text/plain", false);
+  response.setHeader("Content-type", "text/plain");
 
   var body = "Server shut down.";
   response.bodyOutputStream.write(body, body.length);
@@ -208,9 +207,9 @@ function serverShutdown(metadata, response)
  */
 function dirIter(dir)
 {
-  var en = dir.directoryEntries;
-  while (en.hasMoreElements()) {
-    var file = en.getNext();
+  var enum = dir.directoryEntries;
+  while (enum.hasMoreElements()) {
+    var file = enum.getNext();
     yield file.QueryInterface(Ci.nsILocalFile);
   }
 }
@@ -232,22 +231,11 @@ function list(requestPath, directory, recurse)
   
   // The SimpleTest directory is hidden
   var files = [file for (file in dirIter(dir))
-               if (file.exists() && file.path.indexOf("SimpleTest") == -1)];
-  
-  // Sort files by name, so that tests can be run in a pre-defined order inside
-  // a given directory (see bug 384823)
-  function leafNameComparator(first, second) {
-    if (first.leafName < second.leafName)
-      return -1;
-    if (first.leafName > second.leafName)
-      return 1;
-    return 0;
-  }
-  files.sort(leafNameComparator);
+               if (file.path.indexOf("SimpleTest") == -1)];
   
   count = files.length;
   for each (var file in files) {
-    var key = path + file.leafName;
+    var key = requestPath + file.leafName;
     var childCount = 0;
     if (file.isDirectory()) {
       key += "/";
@@ -256,9 +244,7 @@ function list(requestPath, directory, recurse)
       [links[key], childCount] = list(key, file, recurse);
       count += childCount;
     } else {
-      if (file.leafName.charAt(0) != '.') {
-        links[key] = true;
-      }
+      links[key] = true;
     }
   }
 
@@ -270,15 +256,11 @@ function list(requestPath, directory, recurse)
  * is a test case to be executed in the harness, or just
  * a supporting file.
  */
-function isTest(filename, pattern)
+function isTest(filename)
 {
-  if (pattern)
-    return pattern.test(filename);
-
-  return filename.indexOf("test_") > -1 &&
-         filename.indexOf(".js") == -1 &&
-         filename.indexOf(".css") == -1 &&
-         !/\^headers\^$/.test(filename);
+  return  (filename.indexOf("test_") > -1 &&
+           filename.indexOf(".js") == -1 &&
+           filename.indexOf(".css") == -1);
 }
 
 /**
@@ -297,19 +279,7 @@ function linksToListItems(links)
     } else {
       children = "";
     }
-
-    var bug_title = link.match(/test_bug\S+/);
-    var bug_num = null;
-    if (bug_title != null) {
-        bug_num = bug_title[0].match(/\d+/);
-    }
-
-    if ((bug_title == null) || (bug_num == null)) {
-      response += LI({class: classVal}, A({href: link}, link), children);
-    } else {
-      var bug_url = "https://bugzilla.mozilla.org/show_bug.cgi?id="+bug_num;
-      response += LI({class: classVal}, A({href: link}, link), " - ", A({href: bug_url}, "Bug "+bug_num), children);
-    }
+    response += LI({class: classVal}, A({href: link}, link), children);
 
   }
   return response;
@@ -337,23 +307,24 @@ function linksToTableRows(links)
   return response;
 }
 
-function arrayOfTestFiles(linkArray, fileArray, testPattern) {
-  for (var [link, value] in linkArray) {
-    if (value instanceof Object) {
-      arrayOfTestFiles(value, fileArray, testPattern);
-    } else if (isTest(link, testPattern)) {
-      fileArray.push(link)
-    }
-  }
-}
 /**
  * Produce a flat array of test file paths to be executed in the harness.
  */
 function jsonArrayOfTestFiles(links)
 {
   var testFiles = [];
-  arrayOfTestFiles(links, testFiles);
-  testFiles = ['"' + file + '"' for each(file in testFiles)];
+  function arrayOfTestFiles(linkArray) {
+    for (var [link, value] in linkArray) {
+      if (value instanceof Object) {
+        arrayOfTestFiles(value);
+      } else {
+        testFiles.push(link)
+      }
+    }
+  }
+  arrayOfTestFiles(links);
+  var testFiles = ['"' + file + '"' for each(file in testFiles)
+                   if (isTest(file))];
   return "[" + testFiles.join(",\n") + "]";
 }
 
@@ -434,7 +405,7 @@ function testListing(metadata, response)
           ),
           DIV({class: "clear"}),
           DIV({class: "frameholder"},
-            IFRAME({scrolling: "no", id: "testframe", width: "500", height: "300"})
+            IFRAME({scrolling: "no", id: "testframe", width: "500"})
           ),
           DIV({class: "clear"}),
           DIV({class: "toggle"},
@@ -467,7 +438,7 @@ function testListing(metadata, response)
 function defaultDirHandler(metadata, response)
 {
   response.setStatusLine("1.1", 200, "OK");
-  response.setHeader("Content-type", "text/html", false);
+  response.setHeader("Content-type", "text/html");
   try {
     if (metadata.path.indexOf("/tests") != 0) {
       regularListing(metadata, response);

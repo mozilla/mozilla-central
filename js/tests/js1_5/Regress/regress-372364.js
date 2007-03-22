@@ -34,10 +34,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-372364.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 372364;
+var bug = 372364;
 var summary = 'Incorrect error message "() has no properties"';
 var actual = '';
 var expect = '';
@@ -50,11 +48,11 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
-
+ 
   print('See Also bug 365891');
-  expect = /TypeError: a\(1\) (has no properties|is null)/;
+  expect = 'TypeError: a(1) has no properties';
   try
   {
     function a(){return null;} a(1)[0];
@@ -63,9 +61,9 @@ function test()
   {
     actual = ex + '';
   }
-  reportMatch(expect, actual, summary);
+  reportCompare(expect, actual, summary);
 
-  expect = /TypeError: \/a\/\.exec\("b"\) (has no properties|is null)/;
+  expect = 'TypeError: /a/.exec("b") has no properties';
   try
   {
     /a/.exec("b")[0];
@@ -74,7 +72,7 @@ function test()
   {
     actual = ex + '';
   }
-  reportMatch(expect, actual, summary);
+  reportCompare(expect, actual, summary);
 
   exitFunc ('test');
 }

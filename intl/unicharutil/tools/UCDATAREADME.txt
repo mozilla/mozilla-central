@@ -1,5 +1,5 @@
 #
-# $Id: UCDATAREADME.txt,v 1.1 1999-01-08 00:19:20 ftang%netscape.com Exp $
+# $Id: UCDATAREADME.txt,v 1.1 1999/01/08 00:19:20 ftang%netscape.com Exp $
 #
 
                            MUTT UCData Package 1.9

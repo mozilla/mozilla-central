@@ -35,9 +35,6 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-gTestfile = '15.9.3.1-1.js';
-
 /**
    File Name:          15.9.3.1.js
    ECMA Section:       15.9.3.1 new Date (year, month, date, hours, minutes, seconds, ms)
@@ -97,6 +94,7 @@ var SECONDS     = 15;
 var MS          = 16;
 
 writeHeaderToLog( SECTION + " "+ TITLE);
+var TZ_ADJUST =  TZ_PST * msPerHour;
 
 // Dates around 1970
 
@@ -106,11 +104,11 @@ addNewTestCase( new Date( 1969,11,31,15,59,59,999),
 
 addNewTestCase( new Date( 1969,11,31,23,59,59,999),
 		"new Date( 1969,11,31,23,59,59,999)",
-		[TIME_1970-PST_ADJUST-1,1970,0,1,4,7,59,59,999,1969,11,31,3,23,59,59,999] );
+		[TIME_1970-TZ_ADJUST-1,1970,0,1,4,7,59,59,999,1969,11,31,3,23,59,59,999] );
 
 addNewTestCase( new Date( 1970,0,1,0,0,0,0),
 		"new Date( 1970,0,1,0,0,0,0)",
-		[TIME_1970-PST_ADJUST,1970,0,1,4,8,0,0,0,1970,0,1,4,0,0,0,0] );
+		[TIME_1970-TZ_ADJUST,1970,0,1,4,8,0,0,0,1970,0,1,4,0,0,0,0] );
 
 addNewTestCase( new Date( 1969,11,31,16,0,0,0),
 		"new Date( 1969,11,31,16,0,0,0)",
@@ -118,27 +116,27 @@ addNewTestCase( new Date( 1969,11,31,16,0,0,0),
 
 addNewTestCase( new Date(1969,12,1,0,0,0,0),
 		"new Date(1969,12,1,0,0,0,0)",
-		[TIME_1970-PST_ADJUST,1970,0,1,4,8,0,0,0,1970,0,1,4,0,0,0,0] );
+		[TIME_1970-TZ_ADJUST,1970,0,1,4,8,0,0,0,1970,0,1,4,0,0,0,0] );
 
 addNewTestCase( new Date(1969,11,32,0,0,0,0),
 		"new Date(1969,11,32,0,0,0,0)",
-		[TIME_1970-PST_ADJUST,1970,0,1,4,8,0,0,0,1970,0,1,4,0,0,0,0] );
+		[TIME_1970-TZ_ADJUST,1970,0,1,4,8,0,0,0,1970,0,1,4,0,0,0,0] );
 
 addNewTestCase( new Date(1969,11,31,24,0,0,0),
 		"new Date(1969,11,31,24,0,0,0)",
-		[TIME_1970-PST_ADJUST,1970,0,1,4,8,0,0,0,1970,0,1,4,0,0,0,0] );
+		[TIME_1970-TZ_ADJUST,1970,0,1,4,8,0,0,0,1970,0,1,4,0,0,0,0] );
 
 addNewTestCase( new Date(1969,11,31,23,60,0,0),
 		"new Date(1969,11,31,23,60,0,0)",
-		[TIME_1970-PST_ADJUST,1970,0,1,4,8,0,0,0,1970,0,1,4,0,0,0,0] );
+		[TIME_1970-TZ_ADJUST,1970,0,1,4,8,0,0,0,1970,0,1,4,0,0,0,0] );
 
 addNewTestCase( new Date(1969,11,31,23,59,60,0),
 		"new Date(1969,11,31,23,59,60,0)",
-		[TIME_1970-PST_ADJUST,1970,0,1,4,8,0,0,0,1970,0,1,4,0,0,0,0] );
+		[TIME_1970-TZ_ADJUST,1970,0,1,4,8,0,0,0,1970,0,1,4,0,0,0,0] );
 
 addNewTestCase( new Date(1969,11,31,23,59,59,1000),
 		"new Date(1969,11,31,23,59,59,1000)",
-		[TIME_1970-PST_ADJUST,1970,0,1,4,8,0,0,0,1970,0,1,4,0,0,0,0] );
+		[TIME_1970-TZ_ADJUST,1970,0,1,4,8,0,0,0,1970,0,1,4,0,0,0,0] );
 
 // Dates around 2000
 
@@ -152,17 +150,19 @@ addNewTestCase( new Date( 1999,11,31,16,0,0,0),
 
 addNewTestCase( new Date( 1999,11,31,23,59,59,999),
 		"new Date( 1999,11,31,23,59,59,999)",
-		[TIME_2000-PST_ADJUST-1,2000,0,1,6,7,59,59,999,1999,11,31,5,23,59,59,999] );
+		[TIME_2000-TZ_ADJUST-1,2000,0,1,6,7,59,59,999,1999,11,31,5,23,59,59,999] );
 
 addNewTestCase( new Date( 2000,0,1,0,0,0,0),
 		"new Date( 2000,0,1,0,0,0,0)",
-		[TIME_2000-PST_ADJUST,2000,0,1,6,8,0,0,0,2000,0,1,6,0,0,0,0] );
+		[TIME_2000-TZ_ADJUST,2000,0,1,6,8,0,0,0,2000,0,1,6,0,0,0,0] );
 
 addNewTestCase( new Date( 2000,0,1,0,0,0,1),
 		"new Date( 2000,0,1,0,0,0,1)",
-		[TIME_2000-PST_ADJUST+1,2000,0,1,6,8,0,0,1,2000,0,1,6,0,0,0,1] );
+		[TIME_2000-TZ_ADJUST+1,2000,0,1,6,8,0,0,1,2000,0,1,6,0,0,0,1] );
 
 // Dates around 29 Feb 2000
+
+var UTC_FEB_29_2000 = TIME_2000 + ( 30 * msPerDay ) + ( 29 * msPerDay );
 
 addNewTestCase( new Date(2000,1,28,16,0,0,0),
 		"new Date(2000,1,28,16,0,0,0)",
@@ -170,11 +170,11 @@ addNewTestCase( new Date(2000,1,28,16,0,0,0),
 
 addNewTestCase( new Date(2000,1,29,0,0,0,0),
 		"new Date(2000,1,29,0,0,0,0)",
-		[UTC_FEB_29_2000-PST_ADJUST,2000,1,29,2,8,0,0,0,2000,1,29,2,0,0,0,0] );
+		[UTC_FEB_29_2000-TZ_ADJUST,2000,1,29,2,8,0,0,0,2000,1,29,2,0,0,0,0] );
 
 addNewTestCase( new Date(2000,1,28,24,0,0,0),
 		"new Date(2000,1,28,24,0,0,0)",
-		[UTC_FEB_29_2000-PST_ADJUST,2000,1,29,2,8,0,0,0,2000,1,29,2,0,0,0,0] );
+		[UTC_FEB_29_2000-TZ_ADJUST,2000,1,29,2,8,0,0,0,2000,1,29,2,0,0,0,0] );
 
 // Dates around 1900
 
@@ -188,32 +188,62 @@ addNewTestCase( new Date(1899,11,31,15,59,59,999),
 
 addNewTestCase( new Date(1899,11,31,23,59,59,999),
 		"new Date(1899,11,31,23,59,59,999)",
-		[TIME_1900-PST_ADJUST-1,1900,0,1,1,7,59,59,999,1899,11,31,0,23,59,59,999] );
+		[TIME_1900-TZ_ADJUST-1,1900,0,1,1,7,59,59,999,1899,11,31,0,23,59,59,999] );
 
 addNewTestCase( new Date(1900,0,1,0,0,0,0),
 		"new Date(1900,0,1,0,0,0,0)",
-		[TIME_1900-PST_ADJUST,1900,0,1,1,8,0,0,0,1900,0,1,1,0,0,0,0] );
+		[TIME_1900-TZ_ADJUST,1900,0,1,1,8,0,0,0,1900,0,1,1,0,0,0,0] );
 
 addNewTestCase( new Date(1900,0,1,0,0,0,1),
 		"new Date(1900,0,1,0,0,0,1)",
-		[TIME_1900-PST_ADJUST+1,1900,0,1,1,8,0,0,1,1900,0,1,1,0,0,0,1] );
+		[TIME_1900-TZ_ADJUST+1,1900,0,1,1,8,0,0,1,1900,0,1,1,0,0,0,1] );
 
 // Dates around 2005
 
+var UTC_YEAR_2005 = TIME_2000 + TimeInYear(2000) + TimeInYear(2001) +
+TimeInYear(2002) + TimeInYear(2003) + TimeInYear(2004);
+
 addNewTestCase( new Date(2005,0,1,0,0,0,0),
 		"new Date(2005,0,1,0,0,0,0)",
-		[UTC_JAN_1_2005-PST_ADJUST,2005,0,1,6,8,0,0,0,2005,0,1,6,0,0,0,0] );
+		[UTC_YEAR_2005-TZ_ADJUST,2005,0,1,6,8,0,0,0,2005,0,1,6,0,0,0,0] );
 
 addNewTestCase( new Date(2004,11,31,16,0,0,0),
 		"new Date(2004,11,31,16,0,0,0)",
-		[UTC_JAN_1_2005,2005,0,1,6,0,0,0,0,2004,11,31,5,16,0,0,0] );
+		[UTC_YEAR_2005,2005,0,1,6,0,0,0,0,2004,11,31,5,16,0,0,0] );
+
+/*
+  This test case is incorrect.  Need to fix the DaylightSavings functions in
+  shell.js for this to work properly.
+
+  // Daylight Savings test case
+
+  var DST_START_1998 = UTC( GetFirstSundayInApril(TimeFromYear(1998)) + 2*msPerHour )
+
+  addNewTestCase( new Date(1998,3,5,1,59,59,999),
+  "new Date(1998,3,5,1,59,59,999)",
+  [DST_START_1998-1,1998,3,5,0,9,59,59,999,1998,3,5,0,1,59,59,999] );
+
+  addNewTestCase( new Date(1998,3,5,2,0,0,0),
+  "new Date(1998,3,5,2,0,0,0)",
+  [DST_START_1998,1998,3,5,0,10,0,0,0,1998,3,5,0,3,0,0,0]);
+
+  var DST_END_1998 = UTC( GetLastSundayInOctober(TimeFromYear(1998)) + 2*msPerHour );
+
+  addNewTestCase ( new Date(1998,9,25,1,59,59,999),
+  "new Date(1998,9,25,1,59,59,999)",
+  [DST_END_1998-1,1998,9,25,0,8,59,59,999,1998,9,25,0,1,59,59,999] );
+
+  addNewTestCase ( new Date(1998,9,25,2,0,0,0),
+  "new Date(1998,9,25,2,0,0,0)",
+  [DST_END_1998,1998,9,25,0,9,0,0,0,1998,9,25,0,1,0,0,0] );
+*/
 
 test();
 
 
 function addNewTestCase( DateCase, DateString, ResultArray ) {
   //adjust hard-coded ResultArray for tester's timezone instead of PST
-  adjustResultArray(ResultArray);
+  adjustResultArray(ResultArray); 
 
   new TestCase( SECTION, DateString+".getTime()", ResultArray[TIME],       DateCase.getTime() );
   new TestCase( SECTION, DateString+".valueOf()", ResultArray[TIME],       DateCase.valueOf() );

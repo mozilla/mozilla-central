@@ -54,7 +54,7 @@ class nsSplitterFrame : public nsBoxFrame
 {
 public:
   nsSplitterFrame(nsIPresShell* aPresShell, nsStyleContext* aContext);
-  virtual void Destroy();
+  virtual ~nsSplitterFrame();
 
 #ifdef DEBUG
   NS_IMETHOD GetFrameName(nsAString& aResult) const {

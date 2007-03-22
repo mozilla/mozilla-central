@@ -36,15 +36,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'regress-353165.js';
-
-var BUGNUMBER = 353165;
+var bug = 353165;
 var summary = 'Do not crash with xml_getMethod';
 var actual = 'No Crash';
 var expect = 'No Crash';
 
-printBugNumber(BUGNUMBER);
-START(summary);
+printBugNumber (bug);
+printStatus (summary);
 
 crash1();
 crash2();
@@ -60,7 +58,7 @@ function crash1()
             ++counter;
             if (counter == 5) {
                 set[0] = new XML('<c/>');
-                if (typeof gc == "function") {
+                if (typeof gc == "function") { 
                     gc();
                     var tmp = Math.sqrt(2), tmp2;
                     for (i = 0; i != 50000; ++i)
@@ -96,7 +94,7 @@ function crash2() {
             return unrooter_impl;
             if (counter == 5) {
                 set[0] = new XML('<c/>');
-                if (typeof gc == "function") {
+                if (typeof gc == "function") { 
                     gc();
                     var tmp = 1e500, tmp2;
                     for (i = 0; i != 50000; ++i)
@@ -106,10 +104,12 @@ function crash2() {
             return undefined;
         }
 
-        set.unrooter();
+        var actual = set.unrooter();
+        print('actual:   ' + actual);
+        print('expected: ' + expected);
     }
     catch(ex) {
         print('2: ' + ex);
     }
-    TEST(2, expect, actual);
+    TEST(2, true, actual === expected);
 }

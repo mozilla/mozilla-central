@@ -125,7 +125,7 @@ struct WindowOpenClosure
 /* static */ void
 nsWindowCollector::WindowOpenCallback(nsITimer *timer, void *closure)
 {
-  WindowOpenClosure *wc = static_cast<WindowOpenClosure *>(closure);
+  WindowOpenClosure *wc = NS_STATIC_CAST(WindowOpenClosure *, closure);
   wc->collector->LogWindowOpen(timer, wc->subject);
 
   delete wc;

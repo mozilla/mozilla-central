@@ -22,7 +22,6 @@
  *   Darin Fisher <darin@meer.net>
  *   Benjamin Smedberg <benjamin@smedbergs.us>
  *   Ben Turner <mozilla@songbirdnest.com>
- *   Prasad Sunkari <prasad@medhas.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -52,7 +51,6 @@
 
 #include "nsXPCOMStrings.h"
 #include "nsISupportsImpl.h"
-#include "prlog.h"
 
 class nsAString
 {
@@ -111,15 +109,6 @@ public:
   NS_HIDDEN_(PRBool) IsEmpty() const
   {
     return Length() == 0;
-  }
-
-  NS_HIDDEN_(void) SetIsVoid(PRBool val)
-  {
-    NS_StringSetIsVoid(*this, val);
-  }
-  NS_HIDDEN_(PRBool) IsVoid() const
-  {
-    return NS_StringGetIsVoid(*this);
   }
 
   NS_HIDDEN_(void) Assign(const self_type& aString)
@@ -271,7 +260,7 @@ public:
   NS_HIDDEN_(PRBool) LowerCaseEqualsLiteral(const char *aASCIIString) const;
 
   /**
-   * Find the first occurrence of aStr in this string.
+   * Find the first occurence of aStr in this string.
    *
    * @return the offset of aStr, or -1 if not found
    */
@@ -280,7 +269,7 @@ public:
   { return Find(aStr, 0, c); }
 
   /**
-   * Find the first occurrence of aStr in this string, beginning at aOffset.
+   * Find the first occurence of aStr in this string, beginning at aOffset.
    *
    * @return the offset of aStr, or -1 if not found
    */
@@ -296,46 +285,6 @@ public:
   { return Find(aStr, 0, aIgnoreCase); }
 
   NS_HIDDEN_(PRInt32) Find(const char *aStr, PRUint32 aOffset, PRBool aIgnoreCase = PR_FALSE) const;
-
-  /**
-   * Find the last occurrence of aStr in this string.
-   *
-   * @return The offset of aStr from the beginning of the string,
-   *         or -1 if not found.
-   */
-  NS_HIDDEN_(PRInt32) RFind(const self_type& aStr,
-                            ComparatorFunc c = DefaultComparator) const
-  { return RFind(aStr, -1, c); }
-
-  /**
-   * Find the last occurrence of aStr in this string, beginning at aOffset.
-   *
-   * @param aOffset the offset from the beginning of the string to begin
-   *        searching. If aOffset < 0, search from end of this string.
-   * @return The offset of aStr from the beginning of the string,
-   *         or -1 if not found.
-   */
-  NS_HIDDEN_(PRInt32) RFind(const self_type& aStr, PRInt32 aOffset,
-                            ComparatorFunc c = DefaultComparator) const;
-
-  /**
-   * Find the last occurrence of an ASCII string within this string.
-   *
-   * @return The offset of aStr from the beginning of the string,
-   *         or -1 if not found.
-   */
-  NS_HIDDEN_(PRInt32) RFind(const char *aStr, PRBool aIgnoreCase = PR_FALSE) const
-  { return RFind(aStr, -1, aIgnoreCase); }
-
-  /**
-   * Find the last occurrence of an ASCII string beginning at aOffset.
-   *
-   * @param aOffset the offset from the beginning of the string to begin
-   *        searching. If aOffset < 0, search from end of this string.
-   * @return The offset of aStr from the beginning of the string,
-   *         or -1 if not found.
-   */
-  NS_HIDDEN_(PRInt32) RFind(const char *aStr, PRInt32 aOffset, PRBool aIgnoreCase) const;
 
   /**
    * Search for the offset of the first occurrence of a character in a
@@ -435,15 +384,6 @@ public:
   NS_HIDDEN_(PRBool) IsEmpty() const
   {
     return Length() == 0;
-  }
-
-  NS_HIDDEN_(void) SetIsVoid(PRBool val)
-  {
-    NS_CStringSetIsVoid(*this, val);
-  }
-  NS_HIDDEN_(PRBool) IsVoid() const
-  {
-    return NS_CStringGetIsVoid(*this);
   }
 
   NS_HIDDEN_(void) Assign(const self_type& aString)
@@ -595,7 +535,7 @@ public:
   }
 
   /**
-   * Find the first occurrence of aStr in this string.
+   * Find the first occurence of aStr in this string.
    *
    * @return the offset of aStr, or -1 if not found
    */
@@ -604,7 +544,7 @@ public:
   { return Find(aStr, 0, c); }
 
   /**
-   * Find the first occurrence of aStr in this string, beginning at aOffset.
+   * Find the first occurence of aStr in this string, beginning at aOffset.
    *
    * @return the offset of aStr, or -1 if not found
    */
@@ -612,7 +552,7 @@ public:
                            ComparatorFunc c = DefaultComparator) const;
 
   /**
-   * Find the first occurrence of aStr in this string.
+   * Find the first occurence of aStr in this string.
    *
    * @return the offset of aStr, or -1 if not found
    */
@@ -621,47 +561,6 @@ public:
 
   NS_HIDDEN_(PRInt32) Find(const char_type *aStr, PRUint32 aLen,
                            ComparatorFunc c = DefaultComparator) const;
-
-  /**
-   * Find the last occurrence of aStr in this string.
-   *
-   * @return The offset of the character from the beginning of the string,
-   *         or -1 if not found.
-   */
-  NS_HIDDEN_(PRInt32) RFind(const self_type& aStr,
-                            ComparatorFunc c = DefaultComparator) const
-  { return RFind(aStr, -1, c); }
-
-  /**
-   * Find the last occurrence of aStr in this string, beginning at aOffset.
-   *
-   * @param aOffset the offset from the beginning of the string to begin
-   *        searching. If aOffset < 0, search from end of this string.
-   * @return The offset of aStr from the beginning of the string,
-   *         or -1 if not found.
-   */
-  NS_HIDDEN_(PRInt32) RFind(const self_type& aStr, PRInt32 aOffset,
-                            ComparatorFunc c = DefaultComparator) const;
-
-  /**
-   * Find the last occurrence of aStr in this string.
-   *
-   * @return The offset of aStr from the beginning of the string,
-   *         or -1 if not found.
-   */
-  NS_HIDDEN_(PRInt32) RFind(const char_type *aStr,
-                            ComparatorFunc c = DefaultComparator) const;
-
-  /**
-   * Find the last occurrence of an ASCII string in this string, 
-   * beginning at aOffset.
-   *
-   * @param aLen is the length of aStr
-   * @return The offset of aStr from the beginning of the string,
-   *         or -1 if not found.
-   */
-  NS_HIDDEN_(PRInt32) RFind(const char_type *aStr, PRInt32 aLen,
-                            ComparatorFunc c = DefaultComparator) const;
 
   /**
    * Search for the offset of the first occurrence of a character in a
@@ -1050,11 +949,10 @@ private:
  */
 
 #ifdef HAVE_CPP_2BYTE_WCHAR_T
-  PR_STATIC_ASSERT(sizeof(wchar_t) == 2);
   #define NS_LL(s)                                L##s
-  #define NS_MULTILINE_LITERAL_STRING(s)          nsDependentString(reinterpret_cast<const nsAString::char_type*>(s), PRUint32((sizeof(s)/sizeof(wchar_t))-1))
-  #define NS_MULTILINE_LITERAL_STRING_INIT(n,s)   n(reinterpret_cast<const nsAString::char_type*>(s), PRUint32((sizeof(s)/sizeof(wchar_t))-1))
-  #define NS_NAMED_MULTILINE_LITERAL_STRING(n,s)  const nsDependentString n(reinterpret_cast<const nsAString::char_type*>(s), PRUint32((sizeof(s)/sizeof(wchar_t))-1))
+  #define NS_MULTILINE_LITERAL_STRING(s)          nsDependentString(NS_REINTERPRET_CAST(const nsAString::char_type*, s), PRUint32((sizeof(s)/sizeof(wchar_t))-1))
+  #define NS_MULTILINE_LITERAL_STRING_INIT(n,s)   n(NS_REINTERPRET_CAST(const nsAString::char_type*, s), PRUint32((sizeof(s)/sizeof(wchar_t))-1))
+  #define NS_NAMED_MULTILINE_LITERAL_STRING(n,s)  const nsDependentString n(NS_REINTERPRET_CAST(const nsAString::char_type*, s), PRUint32((sizeof(s)/sizeof(wchar_t))-1))
   typedef nsDependentString nsLiteralString;
 #else
   #define NS_LL(s)                                s
@@ -1063,9 +961,6 @@ private:
   #define NS_NAMED_MULTILINE_LITERAL_STRING(n,s)  const NS_ConvertASCIItoUTF16 n(s, PRUint32(sizeof(s)-1))
   typedef NS_ConvertASCIItoUTF16 nsLiteralString;
 #endif
-
-/* Check that PRUnichar is unsigned */
-PR_STATIC_ASSERT(PRUnichar(-1) > PRUnichar(0));
 
 /*
  * Macro arguments used in concatenation or stringification won't be expanded.
@@ -1078,11 +973,11 @@ PR_STATIC_ASSERT(PRUnichar(-1) > PRUnichar(0));
 
 #define NS_L(s)                                   NS_LL(s)
 
-#define NS_LITERAL_STRING(s)                      static_cast<const nsString&>(NS_MULTILINE_LITERAL_STRING(NS_LL(s)))
+#define NS_LITERAL_STRING(s)                      NS_STATIC_CAST(const nsString&, NS_MULTILINE_LITERAL_STRING(NS_LL(s)))
 #define NS_LITERAL_STRING_INIT(n,s)               NS_MULTILINE_LITERAL_STRING_INIT(n, NS_LL(s))
 #define NS_NAMED_LITERAL_STRING(n,s)              NS_NAMED_MULTILINE_LITERAL_STRING(n, NS_LL(s))
 
-#define NS_LITERAL_CSTRING(s)                     static_cast<const nsDependentCString&>(nsDependentCString(s, PRUint32(sizeof(s)-1)))
+#define NS_LITERAL_CSTRING(s)                     NS_STATIC_CAST(const nsDependentCString&, nsDependentCString(s, PRUint32(sizeof(s)-1)))
 #define NS_LITERAL_CSTRING_INIT(n,s)              n(s, PRUint32(sizeof(s)-1))
 #define NS_NAMED_LITERAL_CSTRING(n,s)             const nsDependentCString n(s, PRUint32(sizeof(s)-1))
 
@@ -1333,32 +1228,32 @@ inline PRBool
 StringBeginsWith(const nsAString& aSource, const nsAString& aSubstring,
                  nsAString::ComparatorFunc aComparator = nsAString::DefaultComparator)
 {
-  return aSubstring.Length() <= aSource.Length() &&
-      StringHead(aSource, aSubstring.Length()).Equals(aSubstring, aComparator);
+  return StringHead(aSource, aSubstring.Length()).
+    Equals(aSubstring, aComparator);
 }
 
 inline PRBool
 StringEndsWith(const nsAString& aSource, const nsAString& aSubstring,
                nsAString::ComparatorFunc aComparator = nsAString::DefaultComparator)
 {
-  return aSubstring.Length() <= aSource.Length() &&
-      StringTail(aSource, aSubstring.Length()).Equals(aSubstring, aComparator);
+  return StringTail(aSource, aSubstring.Length()).
+    Equals(aSubstring, aComparator);
 }
 
 inline PRBool
 StringBeginsWith(const nsACString& aSource, const nsACString& aSubstring,
                  nsACString::ComparatorFunc aComparator = nsACString::DefaultComparator)
 {
-  return aSubstring.Length() <= aSource.Length() &&
-      StringHead(aSource, aSubstring.Length()).Equals(aSubstring, aComparator);
+  return StringHead(aSource, aSubstring.Length()).
+    Equals(aSubstring, aComparator);
 }
 
 inline PRBool
 StringEndsWith(const nsACString& aSource, const nsACString& aSubstring,
                nsACString::ComparatorFunc aComparator = nsACString::DefaultComparator)
 {
-  return aSubstring.Length() <= aSource.Length() &&
-      StringTail(aSource, aSubstring.Length()).Equals(aSubstring, aComparator);
+  return StringTail(aSource, aSubstring.Length()).
+    Equals(aSubstring, aComparator);
 }
 
 /**

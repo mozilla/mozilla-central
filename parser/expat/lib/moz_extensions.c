@@ -70,26 +70,32 @@ int MOZ_XMLCheckQName(const char* ptr, const char* end, int ns_aware,
   do {
     switch (BYTE_TYPE(ptr)) {
     case BT_COLON:
-       /* We're namespace-aware and either first or last character is a colon
-          or we've already seen a colon. */
-      if (ns_aware && (nmstrt || *colon || ptr + 2 == end)) {
-        return MOZ_EXPAT_MALFORMED;
+      if (ns_aware) {
+        if (*colon != 0 || nmstrt || ptr + 2 == end) {
+          /* We already encountered a colon or this is the first or the last
+             character so the QName is malformed. */
+          result |= MOZ_EXPAT_MALFORMED;
+        }
+        *colon = ptr;
+        nmstrt = 1;
       }
-      *colon = ptr;
-      nmstrt = ns_aware; /* e.g. "a:0" should be valid if !ns_aware */
+      else if (nmstrt) {
+        /* This is the first character so the QName is malformed. */
+        result |= MOZ_EXPAT_MALFORMED;
+        nmstrt = 0;
+      }
       break;
     case BT_NONASCII:
-      if (nmstrt && !IS_NMSTRT_CHAR_MINBPC(ptr)) {
-        /* If this is a valid name character and we're namespace-aware, the
-           QName is malformed.  Otherwise, this character's invalid at the
-           start of a name (or, if we're namespace-aware, at the start of a
-           localpart). */
-        return (IS_NAME_CHAR_MINBPC(ptr) && ns_aware) ?
-               MOZ_EXPAT_MALFORMED :
-               MOZ_EXPAT_INVALID_CHARACTER;
+      if (nmstrt) {
+        if (!IS_NMSTRT_CHAR_MINBPC(ptr)) {
+          /* If this is a valid name character the QName is malformed, 
+             otherwise it contains an invalid character. */
+          result |= IS_NAME_CHAR_MINBPC(ptr) ? MOZ_EXPAT_MALFORMED :
+                                               MOZ_EXPAT_INVALID_CHARACTER;
+        }
       }
-      if (!IS_NAME_CHAR_MINBPC(ptr)) {
-        return MOZ_EXPAT_INVALID_CHARACTER;
+      else if (!IS_NAME_CHAR_MINBPC(ptr)) {
+        result |= MOZ_EXPAT_INVALID_CHARACTER;
       }
       nmstrt = 0;
       break;
@@ -101,11 +107,13 @@ int MOZ_XMLCheckQName(const char* ptr, const char* end, int ns_aware,
     case BT_NAME:
     case BT_MINUS:
       if (nmstrt) {
-        return MOZ_EXPAT_INVALID_CHARACTER;
+        result |= MOZ_EXPAT_MALFORMED;
+        nmstrt = 0;
       }
       break;
     default:
-      return MOZ_EXPAT_INVALID_CHARACTER;
+      result |= MOZ_EXPAT_INVALID_CHARACTER;
+      nmstrt = 0;
     }
     ptr += 2;
   } while (ptr != end);

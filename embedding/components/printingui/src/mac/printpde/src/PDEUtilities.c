@@ -2,7 +2,7 @@
 ********************************************************************************
     
     $Log: PDEUtilities.c,v $
-    Revision 1.3  2005-08-08 03:08:43  smfr%smfr.org
+    Revision 1.3  2005/08/08 03:08:43  smfr%smfr.org
     Fix bug 202014: add UI to the Mac Print Dialog Extension (PDE) that allows the user to select which headers and footers to print. Patch by Conrad Carlen, r=pinkerton, sr=me, a=asa.
 
     Revision 1.2  2003/04/03 19:20:05  ccarlen%netscape.com

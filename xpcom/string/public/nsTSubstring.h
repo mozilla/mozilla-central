@@ -183,12 +183,12 @@ class nsTSubstring_CharT : public nsTAString_CharT
 
       PRBool IsVoid() const
         {
-          return (mFlags & F_VOIDED) != 0;
+          return mFlags & F_VOIDED;
         }
 
       PRBool IsTerminated() const
         {
-          return (mFlags & F_TERMINATED) != 0;
+          return mFlags & F_TERMINATED;
         }
 
       char_type CharAt( index_type i ) const
@@ -522,9 +522,9 @@ class nsTSubstring_CharT : public nsTAString_CharT
       nsTSubstring_CharT()
 #ifdef MOZ_V1_STRING_ABI
         : abstract_string_type(
-              const_cast<char_type*>(char_traits::sEmptyBuffer), 0, F_TERMINATED) {}
+              NS_CONST_CAST(char_type*, char_traits::sEmptyBuffer), 0, F_TERMINATED) {}
 #else
-        : mData(const_cast<char_type*>(char_traits::sEmptyBuffer)),
+        : mData(NS_CONST_CAST(char_type*, char_traits::sEmptyBuffer)),
           mLength(0),
           mFlags(F_TERMINATED) {}
 #endif

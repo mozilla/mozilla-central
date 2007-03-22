@@ -109,7 +109,11 @@ public:
   virtual void UnbindFromTree(PRBool aDeep = PR_TRUE,
                               PRBool aNullParent = PR_TRUE);
 
-  NS_DECL_NSIMUTATIONOBSERVER_ATTRIBUTECHANGED
+  virtual void AttributeChanged(nsIDocument* aDocument,
+                                nsIContent* aContent,
+                                PRInt32 aNameSpaceID,
+                                nsIAtom* aAttribute,
+                                PRInt32 aModType);
 
   virtual nsGenericDOMDataNode *CloneDataNode(nsINodeInfo *aNodeInfo,
                                               PRBool aCloneText) const
@@ -235,9 +239,7 @@ nsTextNode::List(FILE* out, PRInt32 aIndent) const
   PRInt32 index;
   for (index = aIndent; --index >= 0; ) fputs("  ", out);
 
-  fprintf(out, "Text@%p", this);
-  fprintf(out, " intrinsicstate=[%08x]", IntrinsicState());
-  fprintf(out, " refcount=%d<", mRefCnt.get());
+  fprintf(out, "Text@%p refcount=%d<", this, mRefCnt.get());
 
   nsAutoString tmp;
   ToCString(tmp, 0, mText.GetLength());
@@ -332,8 +334,7 @@ nsAttributeTextNode::AttributeChanged(nsIDocument* aDocument,
                                       nsIContent* aContent,
                                       PRInt32 aNameSpaceID,
                                       nsIAtom* aAttribute,
-                                      PRInt32 aModType,
-                                      PRUint32 aStateMask)
+                                      PRInt32 aModType)
 {
   if (aNameSpaceID == mNameSpaceID && aAttribute == mAttrName &&
       aContent == GetNodeParent()) {

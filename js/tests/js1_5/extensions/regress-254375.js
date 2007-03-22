@@ -35,17 +35,15 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-254375.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 254375;
+var bug = 254375;
 var summary = 'Object.toSource for negative number property names';
 var actual = '';
 var expect = '';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
- 
+  
 if (typeof uneval != 'undefined')
 {
   try

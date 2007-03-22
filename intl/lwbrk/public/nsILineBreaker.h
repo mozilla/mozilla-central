@@ -43,15 +43,19 @@
 
 #define NS_LINEBREAKER_NEED_MORE_TEXT -1
 
-// {5ae68851-d9a3-49fd-9388-58586dad8044}
+// {c3d9f25f-7cea-4a76-a08f-05c431353448}
 #define NS_ILINEBREAKER_IID \
-{ 0x5ae68851, 0xd9a3, 0x49fd, \
-    { 0x93, 0x88, 0x58, 0x58, 0x6d, 0xad, 0x80, 0x44 } }
+{ 0xc3d9f25f, 0x7cea, 0x4a76, \
+    { 0xa0, 0x8f, 0x05, 0xc4, 0x31, 0x35, 0x34, 0x48 } }
 
 class nsILineBreaker : public nsISupports
 {
 public:
   NS_DECLARE_STATIC_IID_ACCESSOR(NS_ILINEBREAKER_IID)
+  virtual PRBool BreakInBetween( const PRUnichar* aText1 , PRUint32 aTextLen1,
+                                 const PRUnichar* aText2 , 
+                                 PRUint32 aTextLen2) = 0;
+
   virtual PRInt32 Next( const PRUnichar* aText, PRUint32 aLen, 
                         PRUint32 aPos) = 0;
 
@@ -66,30 +70,8 @@ public:
   // output array.
   virtual void GetJISx4051Breaks(const PRUnichar* aText, PRUint32 aLength,
                                  PRPackedBool* aBreakBefore) = 0;
-  virtual void GetJISx4051Breaks(const PRUint8* aText, PRUint32 aLength,
-                                 PRPackedBool* aBreakBefore) = 0;
 };
 
 NS_DEFINE_STATIC_IID_ACCESSOR(nsILineBreaker, NS_ILINEBREAKER_IID)
-
-static inline PRBool
-NS_IsSpace(PRUnichar u)
-{
-  return u == 0x0020 ||                  // SPACE
-         u == 0x0009 ||                  // CHARACTER TABULATION
-         u == 0x000D ||                  // CARRIAGE RETURN
-         (0x2000 <= u && u <= 0x2006) || // EN QUAD, EM QUAD, EN SPACE,
-                                         // EM SPACE, THREE-PER-EM SPACE,
-                                         // FOUR-PER-SPACE, SIX-PER-EM SPACE,
-         (0x2008 <= u && u <= 0x200B) || // PUNCTUATION SPACE, THIN SPACE,
-                                         // HAIR SPACE, ZERO WIDTH SPACE
-         u == 0x3000;                    // IDEOGRAPHIC SPACE
-}
-
-static inline PRBool
-NS_NeedsPlatformNativeHandling(PRUnichar aChar)
-{
-  return (0x0e01 <= aChar && aChar <= 0x0fff); // Thai, Lao, Tibetan
-}
 
 #endif  /* nsILineBreaker_h__ */

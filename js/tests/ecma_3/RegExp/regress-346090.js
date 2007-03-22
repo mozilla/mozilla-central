@@ -35,10 +35,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-346090.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 346090;
+var bug = 346090;
 var summary = 'Do not crash with this regexp';
 var actual = 'No Crash';
 var expect = 'No Crash';
@@ -51,9 +49,9 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
- 
+  
   var r = /%((h[^l]+)|(l[^h]+)){0,2}?a/g;
   r.exec('%lld %d');
 

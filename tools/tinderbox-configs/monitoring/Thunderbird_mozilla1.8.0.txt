@@ -1,2 +1,0 @@
-/pub/mozilla.org/thunderbird/nightly/latest-mozilla1.8.0/thunderbird-1.5.0.14eol.en-US.linux-i686.tar.gz
-

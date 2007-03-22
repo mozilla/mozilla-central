@@ -49,13 +49,8 @@ ifdef MOZ_BRANDING_DIRECTORY
 tier_app_dirs += $(MOZ_BRANDING_DIRECTORY)
 endif
 
+ifndef MOZ_PLACES_BOOKMARKS
+tier_app_dirs += xpfe/components/search
+endif
+
 tier_app_dirs += browser
-
-installer:
-	@$(MAKE) -C browser/installer installer
-
-package:
-	@$(MAKE) -C browser/installer
-
-install::
-	@$(MAKE) -C browser/installer install

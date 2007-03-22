@@ -61,8 +61,7 @@ static JSArenaStats *arena_stats_list;
 #define JS_ARENA_DEFAULT_ALIGN  sizeof(double)
 
 JS_PUBLIC_API(void)
-JS_INIT_NAMED_ARENA_POOL(JSArenaPool *pool, const char *name, size_t size,
-                         size_t align, size_t *quotap)
+JS_InitArenaPool(JSArenaPool *pool, const char *name, size_t size, size_t align)
 {
     if (align == 0)
         align = JS_ARENA_DEFAULT_ALIGN;
@@ -72,7 +71,6 @@ JS_INIT_NAMED_ARENA_POOL(JSArenaPool *pool, const char *name, size_t size,
         JS_ARENA_ALIGN(pool, &pool->first + 1);
     pool->current = &pool->first;
     pool->arenasize = size;
-    pool->quotap = quotap;
 #ifdef JS_ARENAMETER
     memset(&pool->stats, 0, sizeof pool->stats);
     pool->stats.name = strdup(name);
@@ -157,19 +155,9 @@ JS_ArenaAllocate(JSArenaPool *pool, size_t nb)
             gross = hdrsz + JS_MAX(nb, pool->arenasize);
             if (gross < nb)
                 return NULL;
-            if (pool->quotap) {
-                if (gross > *pool->quotap)
-                    return NULL;
-                b = (JSArena *) malloc(gross);
-                if (!b)
-                    return NULL;
-                *pool->quotap -= gross;
-            } else {
-                b = (JSArena *) malloc(gross);
-                if (!b)
-                    return NULL;
-            }
-
+            b = (JSArena *) malloc(gross);
+            if (!b)
+                return NULL;
             b->next = NULL;
             b->limit = (jsuword)b + gross;
             JS_COUNT_ARENA(pool,++);
@@ -200,7 +188,7 @@ JS_PUBLIC_API(void *)
 JS_ArenaRealloc(JSArenaPool *pool, void *p, size_t size, size_t incr)
 {
     JSArena **ap, *a, *b;
-    jsuword boff, aoff, extra, hdrsz, gross, growth;
+    jsuword boff, aoff, extra, hdrsz, gross;
 
     /*
      * Use the oversized-single-allocation header to avoid searching for ap.
@@ -223,19 +211,9 @@ JS_ArenaRealloc(JSArenaPool *pool, void *p, size_t size, size_t incr)
     hdrsz = sizeof *a + extra + pool->mask;     /* header and alignment slop */
     gross = hdrsz + aoff;
     JS_ASSERT(gross > aoff);
-    if (pool->quotap) {
-        growth = gross - (a->limit - (jsuword) a);
-        if (growth > *pool->quotap)
-            return NULL;
-        a = (JSArena *) realloc(a, gross);
-        if (!a)
-            return NULL;
-        *pool->quotap -= growth;
-    } else {
-        a = (JSArena *) realloc(a, gross);
-        if (!a)
-            return NULL;
-    }
+    a = (JSArena *) realloc(a, gross);
+    if (!a)
+        return NULL;
 #ifdef JS_ARENAMETER
     pool->stats.nreallocs++;
 #endif
@@ -311,8 +289,6 @@ FreeArenaList(JSArenaPool *pool, JSArena *head)
 
     do {
         *ap = a->next;
-        if (pool->quotap)
-            *pool->quotap += a->limit - (jsuword) a;
         JS_CLEAR_ARENA(a);
         JS_COUNT_ARENA(pool,--);
         free(a);
@@ -329,13 +305,77 @@ JS_ArenaRelease(JSArenaPool *pool, char *mark)
     for (a = &pool->first; a; a = a->next) {
         JS_ASSERT(a->base <= a->avail && a->avail <= a->limit);
 
-        if (JS_ARENA_MARK_MATCH(a, mark)) {
+        if (JS_UPTRDIFF(mark, a->base) <= JS_UPTRDIFF(a->avail, a->base)) {
             a->avail = JS_ARENA_ALIGN(pool, mark);
             JS_ASSERT(a->avail <= a->limit);
             FreeArenaList(pool, a);
             return;
         }
     }
+}
+
+JS_PUBLIC_API(void)
+JS_ArenaFreeAllocation(JSArenaPool *pool, void *p, size_t size)
+{
+    JSArena **ap, *a, *b;
+    jsuword q;
+
+    /*
+     * If the allocation is oversized, it consumes an entire arena, and it has
+     * a header just before the allocation pointing back to its predecessor's
+     * next member.  Otherwise, we have to search pool for a.
+     */
+    if (size > pool->arenasize) {
+        ap = *PTR_TO_HEADER(pool, p);
+        a = *ap;
+    } else {
+        q = (jsuword)p + size;
+        q = JS_ARENA_ALIGN(pool, q);
+        ap = &pool->first.next;
+        while ((a = *ap) != NULL) {
+            JS_ASSERT(a->base <= a->avail && a->avail <= a->limit);
+
+            if (a->avail == q) {
+                /*
+                 * If a is consumed by the allocation at p, we can free it to
+                 * the malloc heap.
+                 */
+                if (a->base == (jsuword)p)
+                    break;
+
+                /*
+                 * We can't free a, but we can "retract" its avail cursor --
+                 * whether there are others after it in pool.
+                 */
+                a->avail = (jsuword)p;
+                return;
+            }
+            ap = &a->next;
+        }
+    }
+
+    /*
+     * At this point, a is doomed, so ensure that pool->current doesn't point
+     * at it.  We must preserve LIFO order of mark/release cursors, so we use
+     * the oversized-allocation arena's back pointer (or if not oversized, we
+     * use the result of searching the entire pool) to compute the address of
+     * the arena that precedes a.
+     */
+    if (pool->current == a)
+        pool->current = (JSArena *) ((char *)ap - offsetof(JSArena, next));
+
+    /*
+     * This is a non-LIFO deallocation, so take care to fix up a->next's back
+     * pointer in its header, if a->next is oversized.
+     */
+    *ap = b = a->next;
+    if (b && b->avail - b->base > pool->arenasize) {
+        JS_ASSERT(GET_HEADER(pool, b) == &a->next);
+        SET_HEADER(pool, b, ap);
+    }
+    JS_CLEAR_ARENA(a);
+    JS_COUNT_ARENA(pool,--);
+    free(a);
 }
 
 JS_PUBLIC_API(void)
@@ -353,10 +393,8 @@ JS_FinishArenaPool(JSArenaPool *pool)
     {
         JSArenaStats *stats, **statsp;
 
-        if (pool->stats.name) {
+        if (pool->stats.name)
             free(pool->stats.name);
-            pool->stats.name = NULL;
-        }
         for (statsp = &arena_stats_list; (stats = *statsp) != 0;
              statsp = &stats->next) {
             if (stats == &pool->stats) {
@@ -419,21 +457,35 @@ JS_ArenaCountRetract(JSArenaPool *pool, char *mark)
     pool->stats.nfastrels++;
 }
 
+#include <math.h>
 #include <stdio.h>
 
 JS_PUBLIC_API(void)
 JS_DumpArenaStats(FILE *fp)
 {
     JSArenaStats *stats;
-    double mean, sigma;
+    uint32 nallocs, nbytes;
+    double mean, variance, sigma;
 
     for (stats = arena_stats_list; stats; stats = stats->next) {
-        mean = JS_MeanAndStdDev(stats->nallocs, stats->nbytes, stats->variance,
-                                &sigma);
+        nallocs = stats->nallocs;
+        if (nallocs != 0) {
+            nbytes = stats->nbytes;
+            mean = (double)nbytes / nallocs;
+            variance = stats->variance * nallocs - nbytes * nbytes;
+            if (variance < 0 || nallocs == 1)
+                variance = 0;
+            else
+                variance /= nallocs * (nallocs - 1);
+            sigma = sqrt(variance);
+        } else {
+            mean = variance = sigma = 0;
+        }
 
         fprintf(fp, "\n%s allocation statistics:\n", stats->name);
         fprintf(fp, "              number of arenas: %u\n", stats->narenas);
         fprintf(fp, "         number of allocations: %u\n", stats->nallocs);
+        fprintf(fp, " number of free arena reclaims: %u\n", stats->nreclaims);
         fprintf(fp, "        number of malloc calls: %u\n", stats->nmallocs);
         fprintf(fp, "       number of deallocations: %u\n", stats->ndeallocs);
         fprintf(fp, "  number of allocation growths: %u\n", stats->ngrows);

@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '10.1.4-9.js';
-
 /**
    File Name:          10.1.4-9.js
    ECMA Section:       10.1.4 Scope Chain and Identifier Resolution
@@ -83,7 +81,7 @@ new TestCase( SECTION, "NEW_PROPERTY =  " );
 test();
 
 function test() {
-  for ( gTc=0; gTc < gTestcases.length; gTc++ ) {
+  for ( tc=0; tc < testcases.length; tc++ ) {
 
     var MYOBJECT = new MyObject();
     var RESULT   = "hello";
@@ -91,19 +89,19 @@ function test() {
     with ( MYOBJECT ) {
       NEW_PROPERTY = RESULT;
     }
-    gTestcases[gTc].actual = NEW_PROPERTY;
-    gTestcases[gTc].expect = RESULT;
+    testcases[tc].actual = NEW_PROPERTY;
+    testcases[tc].expect = RESULT;
 
-    gTestcases[gTc].passed = writeTestCaseResult(
-      gTestcases[gTc].expect,
-      gTestcases[gTc].actual,
-      gTestcases[gTc].description +" = "+
-      gTestcases[gTc].actual );
+    testcases[tc].passed = writeTestCaseResult(
+      testcases[tc].expect,
+      testcases[tc].actual,
+      testcases[tc].description +" = "+
+      testcases[tc].actual );
 
-    gTestcases[gTc].reason += ( gTestcases[gTc].passed ) ? "" : "wrong value ";
+    testcases[tc].reason += ( testcases[tc].passed ) ? "" : "wrong value ";
   }
   stopTest();
-  return ( gTestcases );
+  return ( testcases );
 }
 function MyObject( n ) {
   this.__proto__ = Number.prototype;

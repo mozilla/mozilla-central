@@ -352,13 +352,9 @@ int main(int argc, char** argv) {
     sz = read(0, buf, bs); 
     if(sz > 0) {
       if(! done) {
-#ifdef DEBUG_DetectCharset
-        printf("call DoIt %d\n",sz);
-#endif
+printf("call DoIt %d\n",sz);
         rev = det->DoIt( buf, sz, &done);
-#ifdef DEBUG_DetectCharset
-        printf("DoIt return Done = %d\n",done);
-#endif
+printf("DoIt return Done = %d\n",done);
         if(NS_FAILED(rev))
         {
           printf("XPCOM ERROR CODE = %x\n", rev);
@@ -372,10 +368,8 @@ int main(int argc, char** argv) {
   } while(sz > 0);
   if(!done)
   {
-#ifdef DEBUG_DetectCharset
-    printf("Done = %d\n",done);
-    printf("call Done %d\n",sz);
-#endif
+printf("Done = %d\n",done);
+printf("call Done %d\n",sz);
     rev = det->Done();
     if(NS_FAILED(rev))
     {
@@ -387,13 +381,9 @@ int main(int argc, char** argv) {
     stat[i]->DataEnd();
     stat[i]->Report();
   }
-#ifdef DEBUG_DetectCharset
-  printf( "Done\n");
-#endif
+printf( "Done\n");
   
   NS_IF_RELEASE(det);
-#ifdef DEBUG_DetectCharset
-  printf( "Done 2\n");
-#endif
+printf( "Done 2\n");
   return (0);
 }

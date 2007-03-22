@@ -204,7 +204,7 @@ KeyboardLayout::KeyboardLayout ()
   mDeadKeyTableListHead = nsnull;
 #endif
 
-  LoadLayout (::GetKeyboardLayout(0));
+  LoadLayout ();
 }
 
 KeyboardLayout::~KeyboardLayout ()
@@ -324,36 +324,11 @@ PRUint32 KeyboardLayout::GetUniChars (PRUint16* aUniChars, PRUint8* aShiftStates
 #endif
 }
 
-PRUint32
-KeyboardLayout::GetUniCharsWithShiftState(PRUint8 aVirtualKey,
-                                          PRUint8 aShiftStates,
-                                          PRUint16* aUniChars,
-                                          PRUint32 aMaxChars) const
-{
-#ifndef WINCE
-  PRInt32 key = GetKeyIndex(aVirtualKey);
-  if (key < 0)
-    return 0;
-  PRUint8 finalShiftState;
-  PRUint16 uniChars[5];
-  PRUint32 numOfBaseChars =
-    mVirtualKeys[key].GetUniChars(aShiftStates, uniChars, &finalShiftState);
-  PRUint32 chars = PR_MIN(numOfBaseChars, aMaxChars);
-
-  memcpy(aUniChars, uniChars, chars * sizeof (PRUint16));
-
-  return chars;
-#else
-  return 0;
-#endif
-}
-
-void KeyboardLayout::LoadLayout (HKL aLayout)
+void KeyboardLayout::LoadLayout ()
 {
 #ifndef WINCE
   PRUint32 shiftState;
   BYTE kbdState [256];
-  BYTE originalKbdState [256];
   PRUint16 shiftStatesWithDeadKeys = 0;     // Bitfield with all shift states that have at least one dead-key.
   PRUint16 shiftStatesWithBaseChars = 0;    // Bitfield with all shift states that produce any possible dead-key base characters.
 
@@ -361,11 +336,13 @@ void KeyboardLayout::LoadLayout (HKL aLayout)
 
   mActiveDeadKey = -1;
   mNumOfChars = 0;
-  mKeyboardLayout = aLayout;
+  mKeyboardLayout = ::GetKeyboardLayout (0);
 
   ReleaseDeadKeyTables ();
 
-  ::GetKeyboardState (originalKbdState);
+#ifndef DEBUG
+  PRBool keyboardInputAlreadyBlocked = !::BlockInput (PR_TRUE);
+#endif
 
   // For each shift state gather all printable characters that are produced
   // for normal case when no any dead-key is active.
@@ -385,7 +362,7 @@ void KeyboardLayout::LoadLayout (HKL aLayout)
       PRUint16 uniChars [5];
       PRInt32 rv;
 
-      rv = ::ToUnicodeEx (virtualKey, 0, kbdState, (LPWSTR)uniChars, NS_ARRAY_LENGTH (uniChars), 0, mKeyboardLayout);
+      rv = ::ToUnicode (virtualKey, 0, kbdState, (LPWSTR)uniChars, NS_ARRAY_LENGTH (uniChars), 0);
 
       if (rv < 0)   // dead-key
       {      
@@ -394,7 +371,7 @@ void KeyboardLayout::LoadLayout (HKL aLayout)
         // Repeat dead-key to deactivate it and get its character representation.
         PRUint16 deadChar [2];
 
-        rv = ::ToUnicodeEx (virtualKey, 0, kbdState, (LPWSTR)deadChar, NS_ARRAY_LENGTH (deadChar), 0, mKeyboardLayout);
+        rv = ::ToUnicode (virtualKey, 0, kbdState, (LPWSTR)deadChar, NS_ARRAY_LENGTH (deadChar), 0);
 
         NS_ASSERTION (rv == 2, "Expecting twice repeated dead-key character");
 
@@ -440,7 +417,10 @@ void KeyboardLayout::LoadLayout (HKL aLayout)
     }
   }
 
-  ::SetKeyboardState (originalKbdState);
+#ifndef DEBUG
+  if (!keyboardInputAlreadyBlocked)
+    ::BlockInput (PR_FALSE);
+#endif
 #endif
 }
 
@@ -449,7 +429,7 @@ void KeyboardLayout::LoadLayout (HKL aLayout)
 PRUint8 KeyboardLayout::GetShiftState (const PBYTE aKbdState)
 {
   PRBool isShift = (aKbdState [VK_SHIFT] & 0x80) != 0;
-  PRBool isCtrl  = (aKbdState [VK_CONTROL] & 0x80) != 0;
+  PRBool isCtrl  = (aKbdState [VK_CONTROL] & 0x80) || (aKbdState [VK_RMENU] & 0x80);  // Right Alt (AltGr) = Alt + Ctrl
   PRBool isAlt   = (aKbdState [VK_MENU] & 0x80) != 0;
   PRBool isCaps  = (aKbdState [VK_CAPITAL] & 0x01) != 0;
 
@@ -541,8 +521,8 @@ inline PRInt32 KeyboardLayout::GetKeyIndex (PRUint8 aVirtualKey)
 
 int PR_CALLBACK KeyboardLayout::CompareDeadKeyEntries (const void* aArg1, const void* aArg2, void*)
 {
-  const DeadKeyEntry* arg1 = static_cast<const DeadKeyEntry*>(aArg1);
-  const DeadKeyEntry* arg2 = static_cast<const DeadKeyEntry*>(aArg2);
+  const DeadKeyEntry* arg1 = NS_STATIC_CAST (const DeadKeyEntry*, aArg1);
+  const DeadKeyEntry* arg2 = NS_STATIC_CAST (const DeadKeyEntry*, aArg2);
 
   return arg1->BaseChar - arg2->BaseChar;
 }
@@ -554,10 +534,10 @@ const DeadKeyTable* KeyboardLayout::AddDeadKeyTable (const DeadKeyEntry* aDeadKe
   const size_t bytes = offsetof (DeadKeyTableListEntry, data) + DeadKeyTable::SizeInBytes (aEntries);
   PRUint8* p = new PRUint8 [bytes];
 
-  mDeadKeyTableListHead = reinterpret_cast<DeadKeyTableListEntry*>(p);
+  mDeadKeyTableListHead = NS_REINTERPRET_CAST (DeadKeyTableListEntry*, p);
   mDeadKeyTableListHead->next = next;
 
-  DeadKeyTable* dkt = reinterpret_cast<DeadKeyTable*>(mDeadKeyTableListHead->data);
+  DeadKeyTable* dkt = NS_REINTERPRET_CAST (DeadKeyTable*, mDeadKeyTableListHead->data);
   
   dkt->Init (aDeadKeyArray, aEntries);
 
@@ -568,7 +548,7 @@ void KeyboardLayout::ReleaseDeadKeyTables ()
 {
   while (mDeadKeyTableListHead)
   {
-    PRUint8* p = reinterpret_cast<PRUint8*>(mDeadKeyTableListHead);
+    PRUint8* p = NS_REINTERPRET_CAST (PRUint8*, mDeadKeyTableListHead);
     mDeadKeyTableListHead = mDeadKeyTableListHead->next;
 
     delete [] p;
@@ -583,7 +563,7 @@ PRBool KeyboardLayout::EnsureDeadKeyActive (PRBool aIsActive, PRUint8 aDeadKey, 
   {
     PRUint16 dummyChars [5];
 
-    rv = ::ToUnicodeEx (aDeadKey, 0, (PBYTE)aDeadKeyKbdState, (LPWSTR)dummyChars, NS_ARRAY_LENGTH (dummyChars), 0, mKeyboardLayout);
+    rv = ::ToUnicode (aDeadKey, 0, (PBYTE)aDeadKeyKbdState, (LPWSTR)dummyChars, NS_ARRAY_LENGTH (dummyChars), 0);
     // returned values:
     // <0 - Dead key state is active. The keyboard driver will wait for next character.
     //  1 - Previous pressed key was a valid base character that produced exactly one composite character.
@@ -654,7 +634,7 @@ PRUint32 KeyboardLayout::GetDeadKeyCombinations (PRUint8 aDeadKey, const PBYTE a
         PRUint16 compositeChars [5];
         PRInt32 rv;
 
-        rv = ::ToUnicodeEx (virtualKey, 0, kbdState, (LPWSTR)compositeChars, NS_ARRAY_LENGTH (compositeChars), 0, mKeyboardLayout);
+        rv = ::ToUnicode (virtualKey, 0, kbdState, (LPWSTR)compositeChars, NS_ARRAY_LENGTH (compositeChars), 0);
 
         switch (rv)
         {
@@ -668,7 +648,7 @@ PRUint32 KeyboardLayout::GetDeadKeyCombinations (PRUint8 aDeadKey, const PBYTE a
             // character one more time to determine the base character.
             PRUint16 baseChars [5];
 
-            rv = ::ToUnicodeEx (virtualKey, 0, kbdState, (LPWSTR)baseChars, NS_ARRAY_LENGTH (baseChars), 0, mKeyboardLayout);
+            rv = ::ToUnicode (virtualKey, 0, kbdState, (LPWSTR)baseChars, NS_ARRAY_LENGTH (baseChars), 0);
 
             NS_ASSERTION (rv == 1, "One base character expected");
 

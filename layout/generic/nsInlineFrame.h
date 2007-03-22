@@ -89,6 +89,8 @@ public:
                               const nsRect&           aDirtyRect,
                               const nsDisplayListSet& aLists);
 
+  virtual void Destroy();
+
 #ifdef ACCESSIBILITY
   NS_IMETHODIMP GetAccessible(nsIAccessible** aAccessible);
 #endif
@@ -101,7 +103,7 @@ public:
   virtual PRBool IsFrameOfType(PRUint32 aFlags) const
   {
     return nsInlineFrameSuper::IsFrameOfType(aFlags &
-      ~(nsIFrame::eBidiInlineContainer | nsIFrame::eLineParticipant));
+      ~(nsIFrame::eBidiInlineContainer));
   }
 
   virtual PRBool IsEmpty();
@@ -118,7 +120,6 @@ public:
                              nsSize aCBSize, nscoord aAvailableWidth,
                              nsSize aMargin, nsSize aBorder, nsSize aPadding,
                              PRBool aShrinkWrap);
-  virtual nsRect ComputeTightBounds(gfxContext* aContext) const;
   NS_IMETHOD Reflow(nsPresContext* aPresContext,
                     nsHTMLReflowMetrics& aDesiredSize,
                     const nsHTMLReflowState& aReflowState,
@@ -139,7 +140,7 @@ public:
     // If the frame's bidi visual state is set, return is-leftmost state
     // else return true if it's the first continuation.
     return (GetStateBits() & NS_INLINE_FRAME_BIDI_VISUAL_STATE_IS_SET)
-             ? !!(GetStateBits() & NS_INLINE_FRAME_BIDI_VISUAL_IS_LEFT_MOST)
+             ? (GetStateBits() & NS_INLINE_FRAME_BIDI_VISUAL_IS_LEFT_MOST)
              : (!GetPrevInFlow());
   }
 
@@ -150,7 +151,7 @@ public:
     // If the frame's bidi visual state is set, return is-rightmost state
     // else return true if it's the last continuation.
     return (GetStateBits() & NS_INLINE_FRAME_BIDI_VISUAL_STATE_IS_SET)
-             ? !!(GetStateBits() & NS_INLINE_FRAME_BIDI_VISUAL_IS_RIGHT_MOST)
+             ? (GetStateBits() & NS_INLINE_FRAME_BIDI_VISUAL_IS_RIGHT_MOST)
              : (!GetNextInFlow());
   }
 
@@ -159,16 +160,14 @@ protected:
   struct InlineReflowState {
     nsIFrame* mPrevFrame;
     nsInlineFrame* mNextInFlow;
-    nsIFrame*      mLineContainer;
     PRPackedBool mSetParentPointer;  // when reflowing child frame first set its
                                      // parent frame pointer
 
     InlineReflowState()  {
       mPrevFrame = nsnull;
       mNextInFlow = nsnull;
-      mLineContainer = nsnull;
       mSetParentPointer = PR_FALSE;
-    }
+    };
   };
 
   nsInlineFrame(nsStyleContext* aContext) : nsInlineFrameSuper(aContext) {}
@@ -186,15 +185,6 @@ protected:
                              InlineReflowState& rs,
                              nsIFrame* aFrame,
                              nsReflowStatus& aStatus);
-
-  /**
-   * Reparent floats whose placeholders are inline descendants of aFrame from
-   * whatever block they're currently parented by to aOurBlock.
-   * @param aReparentSiblings if this is true, we follow aFrame's
-   * GetNextSibling chain reparenting them all
-   */
-  void ReparentFloatsForInlineChild(nsIFrame* aOurBlock, nsIFrame* aFrame,
-                                    PRBool aReparentSiblings);
 
   virtual nsIFrame* PullOneFrame(nsPresContext* aPresContext,
                                  InlineReflowState& rs,
@@ -246,10 +236,7 @@ protected:
 class nsPositionedInlineFrame : public nsInlineFrame
 {
 public:
-  nsPositionedInlineFrame(nsStyleContext* aContext)
-    : nsInlineFrame(aContext)
-    , mAbsoluteContainer(nsGkAtoms::absoluteList)
-  {}
+  nsPositionedInlineFrame(nsStyleContext* aContext) : nsInlineFrame(aContext) {}
 
   virtual ~nsPositionedInlineFrame() { } // useful for debugging
 
@@ -279,8 +266,6 @@ public:
                     nsReflowStatus&          aStatus);
   
   virtual nsIAtom* GetType() const;
-
-  virtual PRBool NeedsView() { return PR_TRUE; }
 
 protected:
   nsAbsoluteContainingBlock mAbsoluteContainer;

@@ -52,13 +52,6 @@
 #endif // IBMBIDI
 
 void
-nsFrameList::Destroy()
-{
-  DestroyFrames();
-  delete this;
-}
-
-void
 nsFrameList::DestroyFrames()
 {
   nsIFrame* next;
@@ -255,6 +248,37 @@ nsFrameList::Split(nsIFrame* aAfterFrame, nsIFrame** aNextFrameResult)
 }
 
 nsIFrame*
+nsFrameList::PullFrame(nsIFrame* aParent,
+                       nsIFrame* aLastChild,
+                       nsFrameList& aFromList)
+{
+  NS_PRECONDITION(nsnull != aParent, "null ptr");
+
+  nsIFrame* pulledFrame = nsnull;
+  if (nsnull != aParent) {
+    pulledFrame = aFromList.FirstChild();
+    if (nsnull != pulledFrame) {
+      // Take frame off old list
+      aFromList.RemoveFirstChild();
+
+      // Put it on the end of this list
+      if (nsnull == aLastChild) {
+        NS_ASSERTION(nsnull == mFirstChild, "bad aLastChild");
+        mFirstChild = pulledFrame;
+      }
+      else {
+        aLastChild->SetNextSibling(pulledFrame);
+      }
+      pulledFrame->SetParent(aParent);
+    }
+  }
+#ifdef DEBUG
+  CheckForLoops();
+#endif
+  return pulledFrame;
+}
+
+nsIFrame*
 nsFrameList::LastChild() const
 {
   nsIFrame* frame = mFirstChild;
@@ -296,23 +320,6 @@ nsFrameList::ContainsFrame(const nsIFrame* aFrame) const
   return PR_FALSE;
 }
 
-PRBool
-nsFrameList::ContainsFrameBefore(const nsIFrame* aFrame, const nsIFrame* aEnd) const
-{
-  NS_PRECONDITION(nsnull != aFrame, "null ptr");
-  nsIFrame* frame = mFirstChild;
-  while (frame) {
-    if (frame == aEnd) {
-      return PR_FALSE;
-    }
-    if (frame == aFrame) {
-      return PR_TRUE;
-    }
-    frame = frame->GetNextSibling();
-  }
-  return PR_FALSE;
-}
-
 PRInt32
 nsFrameList::GetLength() const
 {
@@ -328,8 +335,8 @@ nsFrameList::GetLength() const
 static int PR_CALLBACK CompareByContentOrder(const void* aF1, const void* aF2,
                                              void* aDummy)
 {
-  const nsIFrame* f1 = static_cast<const nsIFrame*>(aF1);
-  const nsIFrame* f2 = static_cast<const nsIFrame*>(aF2);
+  const nsIFrame* f1 = NS_STATIC_CAST(const nsIFrame*, aF1);
+  const nsIFrame* f2 = NS_STATIC_CAST(const nsIFrame*, aF2);
   if (f1->GetContent() != f2->GetContent()) {
     return nsLayoutUtils::CompareTreePosition(f1->GetContent(), f2->GetContent());
   }
@@ -368,9 +375,9 @@ nsFrameList::SortByContentOrder()
     array.AppendElement(f);
   }
   array.Sort(CompareByContentOrder, nsnull);
-  f = mFirstChild = static_cast<nsIFrame*>(array.FastElementAt(0));
+  f = mFirstChild = NS_STATIC_CAST(nsIFrame*, array.FastElementAt(0));
   for (PRInt32 i = 1; i < array.Count(); ++i) {
-    nsIFrame* ff = static_cast<nsIFrame*>(array.FastElementAt(i));
+    nsIFrame* ff = NS_STATIC_CAST(nsIFrame*, array.FastElementAt(i));
     f->SetNextSibling(ff);
     f = ff;
   }
@@ -426,7 +433,7 @@ nsFrameList::List(FILE* out) const
 nsIFrame*
 nsFrameList::GetPrevVisualFor(nsIFrame* aFrame) const
 {
-  nsCOMPtr<nsILineIterator> iter;
+  nsILineIterator* iter;
 
   if (!mFirstChild)
     return nsnull;
@@ -436,9 +443,9 @@ nsFrameList::GetPrevVisualFor(nsIFrame* aFrame) const
     return aFrame ? GetPrevSiblingFor(aFrame) : LastChild();
 
   nsBidiLevel baseLevel = nsBidiPresUtils::GetFrameBaseLevel(mFirstChild);  
-  nsBidiPresUtils* bidiUtils = mFirstChild->PresContext()->GetBidiUtils();
+  nsBidiPresUtils* bidiUtils = mFirstChild->GetPresContext()->GetBidiUtils();
 
-  nsresult result = parent->QueryInterface(NS_GET_IID(nsILineIterator), getter_AddRefs(iter));
+  nsresult result = parent->QueryInterface(NS_GET_IID(nsILineIterator), (void**)&iter);
   if (NS_FAILED(result) || !iter) { 
     // Parent is not a block Frame
     if (parent->GetType() == nsGkAtoms::lineFrame) {
@@ -503,7 +510,7 @@ nsFrameList::GetPrevVisualFor(nsIFrame* aFrame) const
 nsIFrame*
 nsFrameList::GetNextVisualFor(nsIFrame* aFrame) const
 {
-  nsCOMPtr<nsILineIterator> iter;
+  nsILineIterator* iter;
 
   if (!mFirstChild)
     return nsnull;
@@ -513,9 +520,9 @@ nsFrameList::GetNextVisualFor(nsIFrame* aFrame) const
     return aFrame ? GetPrevSiblingFor(aFrame) : mFirstChild;
 
   nsBidiLevel baseLevel = nsBidiPresUtils::GetFrameBaseLevel(mFirstChild);
-  nsBidiPresUtils* bidiUtils = mFirstChild->PresContext()->GetBidiUtils();
+  nsBidiPresUtils* bidiUtils = mFirstChild->GetPresContext()->GetBidiUtils();
   
-  nsresult result = parent->QueryInterface(NS_GET_IID(nsILineIterator), getter_AddRefs(iter));
+  nsresult result = parent->QueryInterface(NS_GET_IID(nsILineIterator), (void**)&iter);
   if (NS_FAILED(result) || !iter) { 
     // Parent is not a block Frame
     if (parent->GetType() == nsGkAtoms::lineFrame) {

@@ -42,10 +42,8 @@
 
 #include "nsDOMAttributeMap.h"
 #include "nsDOMAttribute.h"
-#include "nsIDOM3Document.h"
 #include "nsGenericElement.h"
 #include "nsIContent.h"
-#include "nsIDocument.h"
 #include "nsINameSpaceManager.h"
 #include "nsDOMError.h"
 #include "nsContentUtils.h"
@@ -103,7 +101,7 @@ PLDHashOperator
 TraverseMapEntry(nsAttrHashKey::KeyType aKey, nsCOMPtr<nsIDOMNode>& aData, void* aUserArg)
 {
   nsCycleCollectionTraversalCallback *cb = 
-    static_cast<nsCycleCollectionTraversalCallback*>(aUserArg);
+    NS_STATIC_CAST(nsCycleCollectionTraversalCallback*, aUserArg);
 
   cb->NoteXPCOMChild(aData.get());
 
@@ -116,10 +114,11 @@ NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
 
 
 // QueryInterface implementation for nsDOMAttributeMap
-NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION(nsDOMAttributeMap)
+NS_INTERFACE_MAP_BEGIN(nsDOMAttributeMap)
   NS_INTERFACE_MAP_ENTRY(nsISupports)
   NS_INTERFACE_MAP_ENTRY(nsIDOMNamedNodeMap)
   NS_INTERFACE_MAP_ENTRY_CONTENT_CLASSINFO(NamedNodeMap)
+  NS_INTERFACE_MAP_ENTRIES_CYCLE_COLLECTION(nsDOMAttributeMap)
 NS_INTERFACE_MAP_END
 
 NS_IMPL_CYCLE_COLLECTING_ADDREF(nsDOMAttributeMap)
@@ -131,7 +130,7 @@ SetOwnerDocumentFunc(nsAttrHashKey::KeyType aKey, nsCOMPtr<nsIDOMNode>& aData,
 {
   nsCOMPtr<nsIAttribute> attr(do_QueryInterface(aData));
   NS_ASSERTION(attr, "non-nsIAttribute somehow made it into the hashmap?!");
-  nsresult rv = attr->SetOwnerDocument(static_cast<nsIDocument*>(aUserArg));
+  nsresult rv = attr->SetOwnerDocument(NS_STATIC_CAST(nsIDocument*, aUserArg));
 
   return NS_FAILED(rv) ? PL_DHASH_STOP : PL_DHASH_NEXT;
 }
@@ -273,15 +272,7 @@ nsDOMAttributeMap::SetNamedItemInternal(nsIDOMNode *aNode,
     }
 
     if (!mContent->HasSameOwnerDoc(iAttribute)) {
-      nsCOMPtr<nsIDOM3Document> domDoc =
-        do_QueryInterface(mContent->GetOwnerDoc(), &rv);
-      NS_ENSURE_SUCCESS(rv, rv);
-
-      nsCOMPtr<nsIDOMNode> adoptedNode;
-      rv = domDoc->AdoptNode(aNode, getter_AddRefs(adoptedNode));
-      NS_ENSURE_SUCCESS(rv, rv);
-
-      NS_ASSERTION(adoptedNode == aNode, "Uh, adopt node changed nodes?");
+      return NS_ERROR_DOM_WRONG_DOCUMENT_ERR;
     }
 
     // Get nodeinfo and preexisting attribute (if it exists)
@@ -481,7 +472,7 @@ nsDOMAttributeMap::RemoveNamedItemNS(const nsAString& aNamespaceURI,
   NS_ENSURE_SUCCESS(rv, rv);
 
   if (!*aReturn) {
-    return NS_ERROR_DOM_NOT_FOUND_ERR;
+    return NS_OK;
   }
 
   nsCOMPtr<nsIAttribute> attr = do_QueryInterface(*aReturn);

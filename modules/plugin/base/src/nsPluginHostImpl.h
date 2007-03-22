@@ -46,12 +46,8 @@
 #include "nsCRT.h"
 #include "nsCOMPtr.h"
 #include "prlink.h"
-#include "prclist.h"
-#include "npapi.h"
-#include "ns4xPluginInstance.h"
 
 #include "nsIPlugin.h"
-#include "nsIPluginTag.h"
 #include "nsIPluginTagInfo2.h"
 #include "nsIPluginInstancePeer2.h"
 
@@ -67,8 +63,6 @@
 #include "nsPluginNativeWindow.h"
 #include "nsIPrefBranch.h"
 #include "nsWeakReference.h"
-#include "nsThreadUtils.h"
-#include "nsTArray.h"
 
 // XXX this file really doesn't think this is possible, but ...
 #include "nsIFactory.h"
@@ -80,23 +74,19 @@ class nsIChannel;
 class nsIRegistry;
 class nsPluginHostImpl;
 
-#define NS_PLUGIN_FLAG_ENABLED      0x0001    // is this plugin enabled?
-#define NS_PLUGIN_FLAG_OLDSCHOOL    0x0002    // is this a pre-xpcom plugin?
-#define NS_PLUGIN_FLAG_FROMCACHE    0x0004    // this plugintag info was loaded from cache
-#define NS_PLUGIN_FLAG_UNWANTED     0x0008    // this is an unwanted plugin
-#define NS_PLUGIN_FLAG_BLOCKLISTED  0x0010    // this is a blocklisted plugin
+#define NS_PLUGIN_FLAG_ENABLED    0x0001    // is this plugin enabled?
+#define NS_PLUGIN_FLAG_OLDSCHOOL  0x0002    // is this a pre-xpcom plugin?
+#define NS_PLUGIN_FLAG_FROMCACHE  0x0004    // this plugintag info was loaded from cache
+#define NS_PLUGIN_FLAG_UNWANTED   0x0008    // this is an unwanted plugin
 
 /**
  * A linked-list of plugin information that is used for
  * instantiating plugins and reflecting plugin information
  * into JavaScript.
  */
-class nsPluginTag : public nsIPluginTag
+class nsPluginTag
 {
 public:
-  NS_DECL_ISUPPORTS
-  NS_DECL_NSIPLUGINTAG
-
   nsPluginTag(nsPluginTag* aPluginTag);
   nsPluginTag(nsPluginInfo* aPluginInfo);
 
@@ -109,39 +99,31 @@ public:
               const char* const* aExtensions,
               PRInt32 aVariants,
               PRInt64 aLastModifiedTime = 0,
-              PRBool aCanUnload = PR_TRUE,
-              PRBool aArgsAreUTF8 = PR_FALSE);
+              PRBool aCanUnload = PR_TRUE);
 
   ~nsPluginTag();
 
   void SetHost(nsPluginHostImpl * aHost);
   void TryUnloadPlugin(PRBool aForceShutdown = PR_FALSE);
   void Mark(PRUint32 mask) {
-    PRBool wasEnabled = IsEnabled();
     mFlags |= mask;
-    // Update entries in the category manager if necessary.
-    if (mPluginHost && wasEnabled != IsEnabled()) {
-      if (wasEnabled)
-        RegisterWithCategoryManager(PR_FALSE, nsPluginTag::ePluginUnregister);
-      else
-        RegisterWithCategoryManager(PR_FALSE, nsPluginTag::ePluginRegister);
+    // Add mime types to the category manager only if we were made
+    // 'active' by setting the host
+    if ((mask & NS_PLUGIN_FLAG_ENABLED) && mPluginHost) {
+      RegisterWithCategoryManager(PR_FALSE, nsPluginTag::ePluginRegister);
     }
   }
   void UnMark(PRUint32 mask) {
-    PRBool wasEnabled = IsEnabled();
     mFlags &= ~mask;
-    // Update entries in the category manager if necessary.
-    if (mPluginHost && wasEnabled != IsEnabled()) {
-      if (wasEnabled)
-        RegisterWithCategoryManager(PR_FALSE, nsPluginTag::ePluginUnregister);
-      else
-        RegisterWithCategoryManager(PR_FALSE, nsPluginTag::ePluginRegister);
+    // Remove mime types added to the category manager only if we were
+    // made 'active' by setting the host
+    if ((mask & NS_PLUGIN_FLAG_ENABLED) && mPluginHost) {
+      RegisterWithCategoryManager(PR_FALSE, nsPluginTag::ePluginUnregister);
     }
   }
   PRBool HasFlag(PRUint32 flag) { return (mFlags & flag) != 0; }
   PRUint32 Flags() { return mFlags; }
   PRBool Equals(nsPluginTag* aPluginTag);
-  PRBool IsEnabled() { return HasFlag(NS_PLUGIN_FLAG_ENABLED) && !HasFlag(NS_PLUGIN_FLAG_BLOCKLISTED); }
 
   enum nsRegisterType {
     ePluginRegister,
@@ -150,27 +132,23 @@ public:
   void RegisterWithCategoryManager(PRBool aOverrideInternalTypes,
                                    nsRegisterType aType = ePluginRegister);
 
-  nsRefPtr<nsPluginTag>   mNext;
+  nsPluginTag   *mNext;
   nsPluginHostImpl *mPluginHost;
-  nsCString     mName; // UTF-8
-  nsCString     mDescription; // UTF-8
+  char          *mName;
+  char          *mDescription;
   PRInt32       mVariants;
   char          **mMimeTypeArray;
-  nsTArray<nsCString> mMimeDescriptionArray; // UTF-8
+  char          **mMimeDescriptionArray;
   char          **mExtensionsArray;
   PRLibrary     *mLibrary;
   nsIPlugin     *mEntryPoint;
   PRPackedBool  mCanUnloadLibrary;
   PRPackedBool  mXPConnected;
-  PRPackedBool  mIsJavaPlugin;
-  PRPackedBool  mIsNPRuntimeEnabledJavaPlugin;
-  nsCString     mFileName; // UTF-8
-  nsCString     mFullPath; // UTF-8
+  char          *mFileName;
+  char          *mFullPath;
   PRInt64       mLastModifiedTime;
 private:
   PRUint32      mFlags;
-
-  nsresult EnsureMembersAreUTF8();
 };
 
 struct nsActivePlugin
@@ -178,7 +156,7 @@ struct nsActivePlugin
   nsActivePlugin*        mNext;
   char*                  mURL;
   nsIPluginInstancePeer* mPeer;
-  nsRefPtr<nsPluginTag>  mPluginTag;
+  nsPluginTag*           mPluginTag;
   nsIPluginInstance*     mInstance;
   PRTime                 mllStopTime;
   PRPackedBool           mStopped;
@@ -216,7 +194,7 @@ public:
   PRUint32 getStoppedCount();
   nsActivePlugin * findOldestStopped();
   void removeAllStopped();
-  void stopRunning(nsISupportsArray* aReloadDocs, nsPluginTag* aPluginTag);
+  void stopRunning(nsISupportsArray* aReloadDocs);
   PRBool IsLastInstance(nsActivePlugin * plugin);
 };
 
@@ -337,14 +315,6 @@ public:
 
   static nsresult GetPluginTempDir(nsIFile **aDir);
 
-  // Writes updated plugins settings to disk and unloads the plugin
-  // if it is now disabled
-  nsresult UpdatePluginInfo(nsPluginTag* aPluginTag);
-
-  // checks whether aTag is a "java" plugin tag (a tag for a plugin
-  // that does Java)
-  static PRBool IsJavaMIMEType(const char *aType);
-
 private:
   NS_IMETHOD
   TrySetUpPluginInstance(const char *aMimeType, nsIURI *aURL, nsIPluginInstanceOwner *aOwner);
@@ -410,8 +380,7 @@ private:
 
   // Given a filename, returns the plugins info from our cache
   // and removes it from the cache.
-  void RemoveCachedPluginsInfo(const char *filename,
-                               nsPluginTag **result);
+  nsPluginTag* RemoveCachedPluginsInfo(const char *filename);
 
   //checks if the list already have the same plugin as given
   nsPluginTag* HaveSamePlugin(nsPluginTag * aPluginTag);
@@ -421,9 +390,20 @@ private:
   PRBool IsDuplicatePlugin(nsPluginTag * aPluginTag);
 
   // checks whether the given plugin is an unwanted Java plugin
-  // (e.g. no OJI support is compiled in)
+  // (e.g. Java is disabled, or no OJI support is compiled in)
   PRBool IsUnwantedJavaPlugin(nsPluginTag * aPluginTag);
 
+  // checks whether aTag is a "java" plugin tag (a tag for a plugin
+  // that does Java)
+  PRBool IsJavaPluginTag(nsPluginTag * aPluginTag);
+
+  // checks whether aTag is a "java" plugin tag (a tag for a plugin
+  // that does Java)
+  PRBool IsJavaMIMEType(const char *aType);
+
+  // destroys plugin info list
+  void ClearCachedPluginInfoList();
+  
   nsresult EnsurePrivateDirServiceProvider();
 
   nsresult GetPrompt(nsIPluginInstanceOwner *aOwner, nsIPrompt **aPrompt);
@@ -438,8 +418,8 @@ private:
   nsresult AddPrefObserver();
   
   char        *mPluginPath;
-  nsRefPtr<nsPluginTag> mPlugins;
-  nsRefPtr<nsPluginTag> mCachedPlugins;
+  nsPluginTag *mPlugins;
+  nsPluginTag *mCachedPlugins;
   PRPackedBool mPluginsLoaded;
   PRPackedBool mDontShowBadPluginMessage;
   PRPackedBool mIsDestroyed;
@@ -461,9 +441,7 @@ private:
 
   nsCOMPtr<nsIFile>                    mPluginRegFile;
   nsCOMPtr<nsIPrefBranch>              mPrefService;
-#ifdef XP_WIN
   nsRefPtr<nsPluginDirServiceProvider> mPrivateDirServiceProvider;
-#endif /* XP_WIN */
 
   nsWeakPtr mCurrentDocument; // weak reference, we use it to id document only
 
@@ -472,42 +450,6 @@ private:
   // We need to hold a global ptr to ourselves because we register for
   // two different CIDs for some reason...
   static nsPluginHostImpl* sInst;
-};
-
-class PluginDestructionGuard : protected PRCList
-{
-public:
-  PluginDestructionGuard(nsIPluginInstance *aInstance)
-    : mInstance(aInstance)
-  {
-    Init();
-  }
-
-  PluginDestructionGuard(NPP npp)
-    : mInstance(npp ? static_cast<ns4xPluginInstance*>(npp->ndata) : nsnull)
-  {
-    Init();
-  }
-
-  ~PluginDestructionGuard();
-
-  static PRBool DelayDestroy(nsIPluginInstance *aInstance);
-
-protected:
-  void Init()
-  {
-    NS_ASSERTION(NS_IsMainThread(), "Should be on the main thread");
-
-    mDelayedDestroy = PR_FALSE;
-
-    PR_INIT_CLIST(this);
-    PR_INSERT_BEFORE(this, &sListHead);
-  }
-
-  nsCOMPtr<nsIPluginInstance> mInstance;
-  PRBool mDelayedDestroy;
-
-  static PRCList sListHead;
 };
 
 #endif

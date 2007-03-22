@@ -39,10 +39,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'regress-264369.js';
-
 START("toXMLString() should escape '>'");
-printBugNumber(264369);
+BUG(264369);
 
 var x = <a/>;
 var chars = "<>&";

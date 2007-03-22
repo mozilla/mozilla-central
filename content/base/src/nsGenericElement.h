@@ -49,7 +49,7 @@
 #include "nsIContent.h"
 #include "nsIDOMElement.h"
 #include "nsIDOMDocumentFragment.h"
-#include "nsIDOMEventTarget.h"
+#include "nsIDOMEventReceiver.h"
 #include "nsIDOM3EventTarget.h"
 #include "nsIDOM3Node.h"
 #include "nsIDOMNSEventTarget.h"
@@ -63,7 +63,6 @@
 #include "nsDOMAttributeMap.h"
 #include "nsIWeakReference.h"
 #include "nsCycleCollectionParticipant.h"
-#include "nsIDocument.h"
 
 class nsIDOMAttr;
 class nsIDOMEventListener;
@@ -137,11 +136,31 @@ public:
                               nsIContent* aContent2);
 
 protected:
-  virtual ~nsNode3Tearoff() {}
+  virtual ~nsNode3Tearoff() {};
 
 private:
   nsCOMPtr<nsIContent> mContent;
 };
+
+/**
+ * Yet another tearoff class for nsGenericElement
+ * to implement additional interfaces
+ */
+class nsNSElementTearoff : public nsIDOMNSElement
+{
+public:
+  NS_DECL_ISUPPORTS
+
+  NS_DECL_NSIDOMNSELEMENT
+
+  nsNSElementTearoff(nsIContent *aContent) : mContent(aContent)
+  {
+  }
+  
+private:
+  nsCOMPtr<nsIContent> mContent;
+};
+
 
 /**
  * A class that implements nsIWeakReference
@@ -200,13 +219,13 @@ private:
 /**
  * nsDOMEventRTTearoff is a tearoff class used by nsGenericElement and
  * nsGenericDOMDataNode classes for implementing the interfaces
- * nsIDOMEventTarget, nsIDOM3EventTarget and nsIDOMNSEventTarget.
+ * nsIDOMEventReceiver and nsIDOMEventTarget
  *
  * Use the method nsDOMEventRTTearoff::Create() to create one of these babies.
  * @see nsDOMEventRTTearoff::Create
  */
 
-class nsDOMEventRTTearoff : public nsIDOMEventTarget,
+class nsDOMEventRTTearoff : public nsIDOMEventReceiver,
                             public nsIDOM3EventTarget,
                             public nsIDOMNSEventTarget
 {
@@ -229,6 +248,7 @@ private:
    */
   void LastRelease();
 
+  nsresult GetEventReceiver(nsIDOMEventReceiver **aReceiver);
   nsresult GetDOM3EventTarget(nsIDOM3EventTarget **aTarget);
 
 public:
@@ -253,6 +273,16 @@ public:
 
   // nsIDOM3EventTarget
   NS_DECL_NSIDOM3EVENTTARGET
+
+  // nsIDOMEventReceiver
+  NS_IMETHOD AddEventListenerByIID(nsIDOMEventListener *aListener,
+                                   const nsIID& aIID);
+  NS_IMETHOD RemoveEventListenerByIID(nsIDOMEventListener *aListener,
+                                      const nsIID& aIID);
+  NS_IMETHOD GetListenerManager(PRBool aCreateIfNotFound,
+                                nsIEventListenerManager** aResult);
+  NS_IMETHOD HandleEvent(nsIDOMEvent *aEvent);
+  NS_IMETHOD GetSystemEventGroup(nsIDOMEventGroup** aGroup);
 
   // nsIDOMNSEventTarget
   NS_DECL_NSIDOMNSEVENTTARGET
@@ -310,7 +340,7 @@ public:
    */
   PRBool Mutated(PRUint8 aIgnoreCount)
   {
-    return sMutationCount < static_cast<PRUint32>(eMaxMutations - aIgnoreCount);
+    return sMutationCount < NS_STATIC_CAST(PRUint32, eMaxMutations - aIgnoreCount);
   }
 
   // This function should be called whenever a mutation that we want to keep
@@ -370,13 +400,8 @@ public:
   virtual nsresult DispatchDOMEvent(nsEvent* aEvent, nsIDOMEvent* aDOMEvent,
                                     nsPresContext* aPresContext,
                                     nsEventStatus* aEventStatus);
-  virtual nsresult GetListenerManager(PRBool aCreateIfNotFound,
-                                      nsIEventListenerManager** aResult);
-  virtual nsresult AddEventListenerByIID(nsIDOMEventListener *aListener,
-                                         const nsIID& aIID);
-  virtual nsresult RemoveEventListenerByIID(nsIDOMEventListener *aListener,
-                                            const nsIID& aIID);
-  virtual nsresult GetSystemEventGroup(nsIDOMEventGroup** aGroup);
+  NS_IMETHOD GetListenerManager(PRBool aCreateIfNotFound,
+                                nsIEventListenerManager** aResult);
 
   // nsIContent interface methods
   virtual nsresult BindToTree(nsIDocument* aDocument, nsIContent* aParent,
@@ -434,9 +459,6 @@ public:
 
   virtual PRUint32 GetScriptTypeID() const;
   virtual nsresult SetScriptTypeID(PRUint32 aLang);
-
-  virtual void DestroyContent();
-  virtual void SaveSubtreeState();
 
 #ifdef DEBUG
   virtual void List(FILE* out, PRInt32 aIndent) const
@@ -557,6 +579,26 @@ public:
                                   const nsAString& aValue,
                                   PRBool aDefer = PR_TRUE);
 
+  /**
+   * Trigger a link with uri aLinkURI.  If aClick is false, this triggers a
+   * mouseover on the link, otherwise it triggers a load, after doing a
+   * security check.  The node principal of |this| is used for the security
+   * check.
+   *
+   * @param aPresContext the pres context.
+   * @param aLinkURI the URI of the link
+   * @param aTargetSpec the target (like target=, may be empty)
+   * @param aClick whether this was a click or not (if false, it assumes you
+   *        just hovered over the link)
+   * @param aIsUserTriggered whether the user triggered the link.
+   *        This would be false for loads from auto XLinks or from the
+   *        click() method if we ever implement it.
+   */
+  nsresult TriggerLink(nsPresContext* aPresContext,
+                       nsIURI* aLinkURI,
+                       const nsAFlatString& aTargetSpec,
+                       PRBool aClick,
+                       PRBool aIsUserTriggered);
   /**
    * Do whatever needs to be done when the mouse leaves a link
    */
@@ -827,6 +869,8 @@ protected:
    * @param aName the localname of the attribute being set
    * @param aValue the value it's being set to.  If null, the attr is being
    *        removed.
+   * // XXXbz we don't actually call this method when we're removing attrs yet.
+   *          But we will eventually.
    * @param aNotify Whether we plan to notify document observers.
    */
   // Note that this is inlined so that when subclasses call it it gets
@@ -846,6 +890,8 @@ protected:
    * @param aName the localname of the attribute being set
    * @param aValue the value it's being set to.  If null, the attr is being
    *        removed.
+   * // XXXbz we don't actually call this method when we're removing attrs yet.
+   *          But we will eventually.
    * @param aNotify Whether we plan to notify document observers.
    */
   // Note that this is inlined so that when subclasses call it it gets
@@ -940,12 +986,12 @@ protected:
 
   nsDOMSlots *GetDOMSlots()
   {
-    return static_cast<nsDOMSlots*>(GetSlots());
+    return NS_STATIC_CAST(nsDOMSlots*, GetSlots());
   }
 
   nsDOMSlots *GetExistingDOMSlots() const
   {
-    return static_cast<nsDOMSlots*>(GetExistingSlots());
+    return NS_STATIC_CAST(nsDOMSlots*, GetExistingSlots());
   }
 
   /**
@@ -960,28 +1006,8 @@ protected:
   void GetContentsAsText(nsAString& aText);
 
   /**
-   * Functions to carry out event default actions for links of all types
+   * Unified function to carry out event default actions for links of all types
    * (HTML links, XLinks, SVG "XLinks", etc.)
-   */
-
-  /**
-   * Check that we meet the conditions to handle a link event
-   * and that we are actually on a link.
-   *
-   * @param aVisitor event visitor
-   * @param aURI the uri of the link, set only if the return value is PR_TRUE [OUT]
-   * @return PR_TRUE if we can handle the link event, PR_FALSE otherwise
-   */
-  PRBool CheckHandleEventForLinksPrecondition(nsEventChainVisitor& aVisitor,
-                                              nsIURI** aURI) const;
-
-  /**
-   * Handle status bar updates before they can be cancelled.
-   */
-  nsresult PreHandleEventForLinks(nsEventChainPreVisitor& aVisitor);
-
-  /**
-   * Handle default actions for link event if the event isn't consumed yet.
    */
   nsresult PostHandleEventForLinks(nsEventChainPostVisitor& aVisitor);
 
@@ -1047,26 +1073,5 @@ _elementName::Clone(nsINodeInfo *aNodeInfo, nsINode **aResult) const        \
                                                                             \
   return rv;                                                                \
 }
-
-/**
- * Yet another tearoff class for nsGenericElement
- * to implement additional interfaces
- */
-class nsNSElementTearoff : public nsIDOMNSElement
-{
-public:
-  NS_DECL_CYCLE_COLLECTING_ISUPPORTS
-
-  NS_DECL_NSIDOMNSELEMENT
-
-  NS_DECL_CYCLE_COLLECTION_CLASS(nsNSElementTearoff)
-
-  nsNSElementTearoff(nsGenericElement *aContent) : mContent(aContent)
-  {
-  }
-  
-private:
-  nsRefPtr<nsGenericElement> mContent;
-};
 
 #endif /* nsGenericElement_h___ */

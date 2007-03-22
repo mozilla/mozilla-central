@@ -63,13 +63,11 @@
 #include "nsSelectionState.h"
 #include "nsIEditorSpellCheck.h"
 #include "nsIInlineSpellChecker.h"
-#include "nsPIDOMEventTarget.h"
-#include "nsStubMutationObserver.h"
-#include "nsIViewManager.h"
 
 class nsIDOMCharacterData;
 class nsIDOMRange;
 class nsIPresShell;
+class nsIViewManager;
 class ChangeAttributeTxn;
 class CreateElementTxn;
 class InsertElementTxn;
@@ -85,7 +83,7 @@ class AddStyleSheetTxn;
 class RemoveStyleSheetTxn;
 class nsIFile;
 class nsISelectionController;
-class nsIDOMEventTarget;
+class nsIDOMEventReceiver;
 
 #define kMOZEditorBogusNodeAttr NS_LITERAL_STRING("_moz_editor_bogus_node")
 #define kMOZEditorBogusNodeValue NS_LITERAL_STRING("TRUE")
@@ -98,8 +96,7 @@ class nsIDOMEventTarget;
 class nsEditor : public nsIEditor,
                  public nsIEditorIMESupport,
                  public nsSupportsWeakReference,
-                 public nsIPhonetic,
-                 public nsStubMutationObserver
+                 public nsIPhonetic
 {
 public:
 
@@ -153,9 +150,6 @@ public:
   // nsIPhonetic
   NS_DECL_NSIPHONETIC
 
-  NS_DECL_NSIMUTATIONOBSERVER_CONTENTAPPENDED
-  NS_DECL_NSIMUTATIONOBSERVER_CONTENTINSERTED
-  NS_DECL_NSIMUTATIONOBSERVER_CONTENTREMOVED
 
 public:
 
@@ -373,6 +367,10 @@ public:
   nsresult RestorePreservedSelection(nsISelection *aSel);
   void     StopPreservingSelection();
 
+
+  /** return the string that represents text nodes in the content tree */
+  static nsresult GetTextNodeTag(nsAString& aOutString);
+
   /** 
    * SplitNode() creates a new node identical to an existing node, and split the contents between the two nodes
    * @param aExistingRightNode   the node to split.  It will become the new node's next sibling.
@@ -576,10 +574,17 @@ public:
                                     nsIDOMNode *aEndNode,
                                     PRInt32 aEndOffset);
 
-  already_AddRefed<nsPIDOMEventTarget> GetPIDOMEventTarget();
+  already_AddRefed<nsIDOMEventReceiver> GetDOMEventReceiver();
 
   // Fast non-refcounting editor root element accessor
   nsIDOMElement *GetRoot();
+
+public:
+  // Argh!  These transaction names are used by PlaceholderTxn and
+  // nsPlaintextEditor.  They should be localized to those classes.
+  static nsIAtom *gTypingTxnName;
+  static nsIAtom *gIMETxnName;
+  static nsIAtom *gDeleteTxnName;
 
 protected:
 
@@ -590,7 +595,6 @@ protected:
   nsWeakPtr       mSelConWeak;   // weak reference to the nsISelectionController
   nsIViewManager *mViewManager;
   PRInt32         mUpdateCount;
-  nsIViewManager::UpdateViewBatch mBatch;
 
   // Spellchecking
   enum Tristate {
@@ -630,7 +634,7 @@ protected:
   PRInt8                        mDocDirtyState;		// -1 = not initialized
   nsWeakPtr        mDocWeak;  // weak reference to the nsIDOMDocument
   // The form field as an event receiver
-  nsCOMPtr<nsPIDOMEventTarget> mEventTarget;
+  nsCOMPtr<nsIDOMEventReceiver> mDOMEventReceiver;
 
   nsString* mPhonetic;
 

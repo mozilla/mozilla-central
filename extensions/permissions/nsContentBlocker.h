@@ -47,7 +47,7 @@ class nsIPrefBranch;
 ////////////////////////////////////////////////////////////////////////////////
 
 // number of permission types in nsIContentPolicy
-#define NUMBER_OF_TYPES 13
+#define NUMBER_OF_TYPES 8
 
 class nsContentBlocker : public nsIContentPolicy,
                          public nsIObserver,

@@ -445,11 +445,8 @@ nsProgressDialog.prototype = {
             this.setValue( "sourceLabel", this.getString( "openingSource" ) );
 
             // Target is the "preferred" application.  Hide if empty.
-            if ( this.MIMEInfo && 
-                 this.MIMEInfo.preferredApplicationHandler &&
-                 this.MIMEInfo.preferredApplicationHandler.executable ) {
-                var appName = 
-                  this.MIMEInfo.preferredApplicationHandler.executable.leafName;
+            if ( this.MIMEInfo && this.MIMEInfo.preferredApplicationHandler ) {
+                var appName = this.MIMEInfo.preferredApplicationHandler.leafName;
                 if ( appName == null || appName.length == 0 ) {
                     this.hide( "targetRow" );
                 } else {
@@ -843,8 +840,7 @@ nsProgressDialog.prototype = {
                              .getService( Components.interfaces.nsIStringBundleService )
                                .createBundle( "chrome://global/locale/nsProgressDialog.properties");
         }
-        return len ? this.mBundle.formatStringFromName( propertyId, strings, len )
-                   : this.mBundle.getStringFromName( propertyId );
+        return this.mBundle.formatStringFromName( propertyId, strings, len );
     },
 
     // Get localizable string (from dialog <data> elements).

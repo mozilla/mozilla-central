@@ -22,9 +22,6 @@
  * Contributor(s):
  *   Blake Ross <blaker@netscape.com>
  *   Ben Goodger <ben@netscape.com>
- *   Shawn Wilsher <me@shawnwilsher.com>
- *   Srirang G Doddihal <brahmana@doddihal.com>
- *   Edward Lee <edward.lee@engineering.uiuc.edu>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -39,222 +36,161 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
+ 
 #ifndef downloadmanager___h___
 #define downloadmanager___h___
 
 #include "nsIDownloadManager.h"
+#include "nsIXPInstallManagerUI.h"
 #include "nsIDownloadProgressListener.h"
 #include "nsIDownload.h"
+#include "nsIRDFDataSource.h"
+#include "nsIRDFRemoteDataSource.h"
+#include "nsIRDFService.h"
 #include "nsIDOMDocument.h"
 #include "nsIDOMEventListener.h"
+#include "nsIRDFContainerUtils.h"
 #include "nsIWebProgressListener.h"
 #include "nsIWebProgressListener2.h"
+#include "nsIXPIProgressDialog.h"
 #include "nsIURI.h"
 #include "nsIWebBrowserPersist.h"
 #include "nsILocalFile.h"
+#include "nsHashtable.h"
 #include "nsIRequest.h"
 #include "nsIObserver.h"
-#include "nsString.h"
 #include "nsIStringBundle.h"
 #include "nsISupportsPrimitives.h"
+#include "nsIProgressDialog.h"
 #include "nsIMIMEInfo.h"
-#include "mozIStorageConnection.h"
-#include "mozIStorageStatement.h"
-#include "mozStorageHelper.h"
-#include "nsCOMArray.h"
-#include "nsArrayEnumerator.h"
-#include "nsAutoPtr.h"
-#include "nsINavHistoryService.h"
-#include "nsIObserverService.h"
 #include "nsITimer.h"
+#include "nsIAlertsService.h"
 
 typedef PRInt16 DownloadState;
 typedef PRInt16 DownloadType;
 
+class nsXPIProgressListener;
 class nsDownload;
 
-#if defined(XP_WIN) && !defined(__MINGW32__)
-class nsDownloadScanner;
-#endif
-
 class nsDownloadManager : public nsIDownloadManager,
-                          public nsINavHistoryObserver,
+                          public nsIXPInstallManagerUI,
                           public nsIObserver
 {
 public:
   NS_DECL_ISUPPORTS
   NS_DECL_NSIDOWNLOADMANAGER
-  NS_DECL_NSINAVHISTORYOBSERVER
+  NS_DECL_NSIXPINSTALLMANAGERUI
   NS_DECL_NSIOBSERVER
 
   nsresult Init();
 
-  static nsDownloadManager *GetSingleton();
-
+  nsDownloadManager();
   virtual ~nsDownloadManager();
-#if defined(XP_WIN) && !defined(__MINGW32__)
-  nsDownloadManager() : mScanner(nsnull) { };
-private:
-  nsDownloadScanner *mScanner;
-#endif
+
+  static PRInt32 PR_CALLBACK CancelAllDownloads(nsHashKey* aKey, void* aData, void* aClosure);
+  static PRInt32 PR_CALLBACK BuildActiveDownloadsList(nsHashKey* aKey, void* aData, void* aClosure);
+  nsresult DownloadEnded(const PRUnichar* aPersistentDescriptor, const PRUnichar* aMessage); 
+
+public:
+  nsresult AssertProgressInfoFor(const PRUnichar* aPersistentDescriptor);
 
 protected:
-  nsresult InitDB(PRBool *aDoImport);
-  nsresult CreateTable();
-  nsresult ImportDownloadHistory();
+  nsresult GetDownloadsContainer(nsIRDFContainer** aResult);
+  nsresult GetProfileDownloadsFileURL(nsCString& aDownloadsFileURL);
+  nsresult GetDataSource(nsIRDFDataSource** aDataSource);
+  nsresult DownloadStarted(const PRUnichar* aPersistentDescriptor);
+  nsresult GetInternalListener(nsIDownloadProgressListener** aListener);
+  nsresult PauseResumeDownload(const PRUnichar* aPath, PRBool aPause);
+  nsresult RemoveDownload(nsIRDFResource* aDownload);
+  nsresult ValidateDownloadsContainer();
 
-  /**
-   * Fix up the database after a crash such as dealing with previously-active
-   * downloads. Call this before RestoreActiveDownloads to get the downloads
-   * fixed here to be auto-resumed.
-   */
-  nsresult RestoreDatabaseState();
+  void     ConfirmCancelDownloads(PRInt32 aCount, nsISupportsPRBool* aCancelDownloads,
+                                  const PRUnichar* aTitle, 
+                                  const PRUnichar* aCancelMessageMultiple, 
+                                  const PRUnichar* aCancelMessageSingle,
+                                  const PRUnichar* aDontCancelButton);
 
-  /**
-   * Paused downloads that survive across sessions are considered active, so
-   * rebuild the list of these downloads.
-   */
-  nsresult RestoreActiveDownloads();
+  static void     OpenTimerCallback(nsITimer* aTimer, void* aClosure);
+  static nsresult OpenDownloadManager(PRBool aShouldFocus, PRInt32 aFlashCount, nsIDownload* aDownload, nsIDOMWindow* aParent);
 
-  nsresult GetDownloadFromDB(PRUint32 aID, nsDownload **retVal);
+  PRBool   NeedsUIUpdate() { return mListener != nsnull; }
+  PRInt32  GetRetentionBehavior();
 
-  /**
-   * Specially track the active downloads so that we don't need to check
-   * every download to see if they're in progress.
-   */
-  nsresult AddToCurrentDownloads(nsDownload *aDl);
-
-  void SendEvent(nsDownload *aDownload, const char *aTopic);
-
-  /**
-   * Adds a download with the specified information to the DB.
-   *
-   * @return The id of the download, or 0 if there was an error.
-   */
-  PRInt64 AddDownloadToDB(const nsAString &aName,
-                          const nsACString &aSource,
-                          const nsACString &aTarget,
-                          const nsAString &aTempPath,
-                          PRInt64 aStartTime,
-                          PRInt64 aEndTime,
-                          PRInt32 aState,
-                          const nsACString &aMimeType,
-                          const nsACString &aPreferredApp,
-                          nsHandlerInfoAction aPreferredAction);
-
-  void NotifyListenersOnDownloadStateChange(PRInt16 aOldState,
-                                            nsIDownload *aDownload);
-  void NotifyListenersOnProgressChange(nsIWebProgress *aProgress,
-                                       nsIRequest *aRequest,
-                                       PRInt64 aCurSelfProgress,
-                                       PRInt64 aMaxSelfProgress,
-                                       PRInt64 aCurTotalProgress,
-                                       PRInt64 aMaxTotalProgress,
-                                       nsIDownload *aDownload);
-  void NotifyListenersOnStateChange(nsIWebProgress *aProgress,
-                                    nsIRequest *aRequest,
-                                    PRUint32 aStateFlags,
-                                    nsresult aStatus,
-                                    nsIDownload *aDownload);
-
-  nsDownload *FindDownload(PRUint32 aID);
-
-  /**
-   * First try to resume the download, and if that fails, retry it.
-   *
-   * @param aDl The download to resume and/or retry.
-   */
-  nsresult ResumeRetry(nsDownload *aDl);
-
-  /**
-   * Pause all active downloads and remember if they should try to auto-resume
-   * when the download manager starts again.
-   *
-   * @param aSetResume Indicate if the downloads that get paused should be set
-   *                   as auto-resume.
-   */
-  nsresult PauseAllDownloads(PRBool aSetResume);
-
-  /**
-   * Resume all paused downloads unless we're only supposed to do the automatic
-   * ones; in that case, try to retry them as well if resuming doesn't work.
-   *
-   * @param aResumeAll If true, all downloads will be resumed; otherwise, only
-   *                   those that are marked as auto-resume will resume.
-   */
-  nsresult ResumeAllDownloads(PRBool aResumeAll);
-
-  /**
-   * Stop tracking the active downloads. Only use this when we're about to quit
-   * the download manager because we destroy our list of active downloads to
-   * break the dlmgr<->dl cycle. Active downloads that aren't real-paused will
-   * be canceled.
-   */
-  nsresult RemoveAllDownloads();
-
-  /**
-   * Find all downloads from a source URI and delete them.
-   *
-   * @param aURI
-   *        The source URI to remove downloads
-   */
-  nsresult RemoveDownloadsForURI(nsIURI *aURI);
-
-  /**
-   * Callback used for resuming downloads after getting a wake notification.
-   *
-   * @param aTimer
-   *        Timer object fired after some delay after a wake notification
-   * @param aClosure
-   *        nsDownloadManager object used to resume downloads
-   */
-  static void ResumeOnWakeCallback(nsITimer *aTimer, void *aClosure);
-  nsCOMPtr<nsITimer> mResumeOnWakeTimer;
-
-  void ConfirmCancelDownloads(PRInt32 aCount,
-                              nsISupportsPRBool *aCancelDownloads,
-                              const PRUnichar *aTitle,
-                              const PRUnichar *aCancelMessageMultiple,
-                              const PRUnichar *aCancelMessageSingle,
-                              const PRUnichar *aDontCancelButton);
-
-  PRInt32 GetRetentionBehavior();
-
-  /**
-   * Type to indicate possible behaviors for active downloads across sessions.
-   *
-   * Possible values are:
-   *  QUIT_AND_RESUME  - downloads should be auto-resumed
-   *  QUIT_AND_PAUSE   - downloads should be paused
-   *  QUIT_AND_CANCEL  - downloads should be cancelled
-   */
-  enum QuitBehavior {
-    QUIT_AND_RESUME = 0, 
-    QUIT_AND_PAUSE = 1, 
-    QUIT_AND_CANCEL = 2
+  static PRBool IsInFinalStage(DownloadState aState)
+  {
+    return aState == nsIDownloadManager::DOWNLOAD_NOTSTARTED ||
+           aState == nsIDownloadManager::DOWNLOAD_DOWNLOADING ||
+           aState == nsIXPInstallManagerUI::INSTALL_INSTALLING;
   };
 
-  /**
-   * Indicates user-set behavior for active downloads across sessions,
-   *
-   * @return value of user-set pref for active download behavior
-   */
-  enum QuitBehavior GetQuitBehavior();
+  static PRBool IsInProgress(DownloadState aState) 
+  {
+    return aState == nsIDownloadManager::DOWNLOAD_NOTSTARTED || 
+           aState == nsIDownloadManager::DOWNLOAD_DOWNLOADING || 
+           aState == nsIDownloadManager::DOWNLOAD_PAUSED || 
+           aState == nsIXPInstallManagerUI::INSTALL_DOWNLOADING ||
+           aState == nsIXPInstallManagerUI::INSTALL_INSTALLING;
+  };
+
+  static PRBool CompletedSuccessfully(DownloadState aState)
+  {
+    return aState == nsIDownloadManager::DOWNLOAD_FINISHED || 
+           aState == nsIXPInstallManagerUI::INSTALL_FINISHED;
+  };
 
 private:
-  nsCOMArray<nsIDownloadProgressListener> mListeners;
+  nsCOMPtr<nsIDownloadProgressListener> mListener;
+  nsCOMPtr<nsIRDFDataSource> mDataSource;
+  nsCOMPtr<nsIXPIProgressDialog> mXPIProgress;
+  nsCOMPtr<nsIRDFContainer> mDownloadsContainer;
+  nsCOMPtr<nsIRDFContainerUtils> mRDFContainerUtils;
   nsCOMPtr<nsIStringBundle> mBundle;
-  nsCOMPtr<mozIStorageConnection> mDBConn;
-  nsCOMArray<nsDownload> mCurrentDownloads;
-  nsCOMPtr<nsIObserverService> mObserverService;
-  nsCOMPtr<mozIStorageStatement> mUpdateDownloadStatement;
-  nsCOMPtr<mozIStorageStatement> mGetIdsForURIStatement;
-  nsAutoPtr<mozStorageTransaction> mHistoryTransaction;
-
-  static nsDownloadManager *gDownloadManagerService;
-
+  nsCOMPtr<nsITimer> mDMOpenTimer;
+  PRInt32 mBatches;
+  nsHashtable mCurrDownloads;
+  
   friend class nsDownload;
+};
+
+class nsXPIProgressListener : public nsIXPIProgressDialog
+{
+public:
+  NS_DECL_NSIXPIPROGRESSDIALOG
+  NS_DECL_ISUPPORTS
+
+  nsXPIProgressListener() { };
+  nsXPIProgressListener(nsDownloadManager* aManager);
+  virtual ~nsXPIProgressListener();
+
+  void AddDownload(nsIDownload* aDownload);
+
+  PRBool HasActiveXPIOperations();
+
+protected:
+  void RemoveDownloadAtIndex(PRUint32 aIndex);
+
+  inline void AssertProgressInfoForDownload(nsDownload* aDownload);
+
+private:
+  nsDownloadManager* mDownloadManager;
+  nsCOMPtr<nsISupportsArray> mDownloads;
+};
+
+class nsDownloadsDataSource : public nsIRDFDataSource, 
+                              public nsIRDFRemoteDataSource
+{
+public:
+  NS_DECL_NSIRDFDATASOURCE
+  NS_DECL_NSIRDFREMOTEDATASOURCE
+  NS_DECL_ISUPPORTS
+
+  nsDownloadsDataSource() { };
+  virtual ~nsDownloadsDataSource() { };
+
+  nsresult LoadDataSource();
+
+private:
+  nsCOMPtr<nsIRDFDataSource> mInner;
 };
 
 class nsDownload : public nsIDownload
@@ -269,163 +205,63 @@ public:
   nsDownload();
   virtual ~nsDownload();
 
-  /**
-   * This method MUST be called when changing states on a download.  It will
-   * notify the download listener when a change happens.  This also updates the
-   * database, by calling UpdateDB().
-   */
-  nsresult SetState(DownloadState aState);
+public:
+  DownloadState GetDownloadState();
+  void SetDownloadState(DownloadState aState);
+  DownloadType GetDownloadType();
+  void SetDownloadType(DownloadType aType);
 
 protected:
-  /**
-   * Finish up the download by breaking reference cycles and clearing unneeded
-   * data. Additionally, the download removes itself from the download
-   * manager's list of current downloads.
-   *
-   * NOTE: This method removes the cycle created when starting the download, so
-   * make sure to use kungFuDeathGrip if you want to access member variables.
-   */
-  void Finalize();
+  nsresult SetDownloadManager(nsDownloadManager* aDownloadManager);
+  nsresult SetDialogListener(nsIWebProgressListener* aInternalListener);
+  nsresult GetDialogListener(nsIWebProgressListener** aInternalListener);
+  nsresult SetDialog(nsIProgressDialog* aDialog);
+  nsresult GetDialog(nsIProgressDialog** aDialog);
+  nsresult SetTempFile(nsILocalFile* aTempFile);
+  nsresult GetTempFile(nsILocalFile** aTempFile);
+  nsresult SetCancelable(nsICancelable* aCancelable);
+  nsresult SetTarget(nsIURI* aTarget);
+  nsresult SetDisplayName(const PRUnichar* aDisplayName);
+  nsresult SetSource(nsIURI* aSource);
+  nsresult SetMIMEInfo(nsIMIMEInfo* aMIMEInfo);
+  nsresult SetStartTime(PRInt64 aStartTime);
 
-  /**
-   * For finished resumed downloads that came in from exthandler, perform the
-   * action that would have been done if the download wasn't resumed.
-   */
-  nsresult ExecuteDesiredAction();
-
-  /**
-   * Move the temporary file to the final destination by removing the existing
-   * dummy target and renaming the temporary.
-   */
-  nsresult MoveTempToTarget();
-
-  /**
-   * Update the start time which also implies the last update time is the same.
-   */
-  void SetStartTime(PRInt64 aStartTime);
-
-  /**
-   * Update the amount of bytes transferred and max bytes; and recalculate the
-   * download percent.
-   */
-  void SetProgressBytes(PRInt64 aCurrBytes, PRInt64 aMaxBytes);
-
-  /**
-   * Pause the download, but in certain cases it might get fake-paused instead
-   * of real-paused.
-   */
-  nsresult Pause();
-
-  /**
-   * All this does is cancel the connection that the download is using. It does
-   * not remove it from the download manager.
-   */
-  nsresult Cancel();
-
-  /**
-   * Resume the download.
-   */
-  nsresult Resume();
-
-  /**
-   * Download is not transferring?
-   */
+  void Pause(PRBool aPaused);
   PRBool IsPaused();
 
-  /**
-   * Download can continue from the middle of a transfer?
-   */
-  PRBool IsResumable();
+  struct TransferInformation {
+    PRInt64 mCurrBytes, mMaxBytes;
+    TransferInformation(PRInt64 aCurr, PRInt64 aMax) :
+      mCurrBytes(aCurr),
+      mMaxBytes(aMax)
+      {}
+  };
+  TransferInformation GetTransferInformation();
 
-  /**
-   * Download was resumed?
-   */
-  PRBool WasResumed();
-
-  /**
-   * Indicates if the download should try to automatically resume or not.
-   */
-  PRBool ShouldAutoResume();
-
-  /**
-   * Download is in a state to stop and complete the download?
-   */
-  PRBool IsFinishable();
-
-  /**
-   * Download is totally done transferring and all?
-   */
-  PRBool IsFinished();
-
-  /**
-   * Update the DB with the current state of the download including time,
-   * download state and other values not known when first creating the
-   * download DB entry.
-   */
-  nsresult UpdateDB();
-
-  /**
-   * Fail a download because of a failure status and prompt the provided
-   * message or use a generic download failure message if nsnull.
-   */
-  nsresult FailDownload(nsresult aStatus, const PRUnichar *aMessage);
-
-  /**
-   * Opens the downloaded file with the appropriate application, which is
-   * either the OS default, MIME type default, or the one selected by the user.
-   *
-   * This also adds the temporary file to the "To be deleted on Exit" list, if
-   * the corresponding user preference is set (except on OS X).
-   *
-   * This function was adopted from nsExternalAppHandler::OpenWithApplication
-   * (uriloader/exthandler/nsExternalHelperAppService.cpp).
-   */
-  nsresult OpenWithApplication();
-
-  nsDownloadManager *mDownloadManager;
+  nsDownloadManager* mDownloadManager;
   nsCOMPtr<nsIURI> mTarget;
 
 private:
   nsString mDisplayName;
-  nsCString mEntityID;
 
   nsCOMPtr<nsIURI> mSource;
-  nsCOMPtr<nsIURI> mReferrer;
+  nsCOMPtr<nsIWebProgressListener> mDialogListener;
   nsCOMPtr<nsICancelable> mCancelable;
   nsCOMPtr<nsIRequest> mRequest;
+  nsCOMPtr<nsIProgressDialog> mDialog;
   nsCOMPtr<nsILocalFile> mTempFile;
   nsCOMPtr<nsIMIMEInfo> mMIMEInfo;
-
+  
   DownloadState mDownloadState;
-  DownloadType mDownloadType;
+  DownloadType  mDownloadType;
 
-  PRUint32 mID;
+  PRBool  mPaused;
   PRInt32 mPercentComplete;
-
-  /**
-   * These bytes are based on the position of where the request started, so 0
-   * doesn't necessarily mean we have nothing. Use GetAmountTransferred and
-   * GetSize for the real transferred amount and size.
-   */
-  PRInt64 mCurrBytes;
-  PRInt64 mMaxBytes;
-
+  PRUint64 mCurrBytes;
+  PRUint64 mMaxBytes;
   PRTime mStartTime;
   PRTime mLastUpdate;
-  PRInt64 mResumedAt;
   double mSpeed;
-
-  PRBool mHasMultipleFiles;
-
-  /**
-   * Track various states of the download trying to auto-resume when starting
-   * the download manager or restoring from a crash.
-   *
-   * DONT_RESUME: Don't automatically resume the download
-   * AUTO_RESUME: Automaically resume the download
-   */
-  enum AutoResume { DONT_RESUME, AUTO_RESUME };
-  AutoResume mAutoResume;
 
   friend class nsDownloadManager;
 };

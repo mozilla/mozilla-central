@@ -40,11 +40,12 @@
 #include "nsISupports.idl"
 #include "nsIObserver.idl"
 
-[scriptable, uuid(e177399e-2e31-4019-aed3-cba63ce9fa99)]
+[scriptable, uuid(647248FD-F925-4e30-93DD-CDE26D7E3A90)]
 interface nsIAlertsService : nsISupports
 {
    /**
-    * Displays a sliding notification window.
+    * Displays a sliding notification window. Currently works under 
+    * Windows and Linux only.
     *    
     * @param imageUrl       A URL identifying the image to put in the alert.
     * @param title          The title for the alert.
@@ -56,11 +57,6 @@ interface nsIAlertsService : nsISupports
     *                       consumer during the alert listener callbacks.
     * @param alertListener  Used for callbacks. May be null if the caller 
     *                       doesn't care about callbacks.
-    * @param name           The name of the notification.  This is currently
-    *                       only used on OS X with Growl.  On OS X with Growl,
-    *                       users can disable notifications with a given name.
-    *
-    * @throws NS_ERROR_NOT_AVAILABLE If the notification cannot be displayed.
     *
     * The following arguments will be passed to the alertListener's observe() 
     * method:
@@ -72,8 +68,7 @@ interface nsIAlertsService : nsISupports
    void showAlertNotification(in AString  imageUrl, 
                               in AString  title, 
                               in AString  text, 
-                              [optional] in boolean textClickable,
-                              [optional] in AString cookie,
-                              [optional] in nsIObserver alertListener,
-                              [optional] in AString name);
+                              in boolean  textClickable,
+                              in AString  cookie,
+                              in nsIObserver alertListener);
 };

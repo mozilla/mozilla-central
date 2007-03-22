@@ -126,9 +126,6 @@ NS_IMETHODIMP nsJPEGEncoder::InitFromData(const PRUint8* aData,
         NS_WARNING("Quality value invalid, should be integer 0-100, using default");
       }
     }
-    else {
-      return NS_ERROR_INVALID_ARG;
-    }
   }
 
   jpeg_compress_struct cinfo;
@@ -169,7 +166,7 @@ NS_IMETHODIMP nsJPEGEncoder::InitFromData(const PRUint8* aData,
   if (aInputFormat == INPUT_FORMAT_RGB) {
     while (cinfo.next_scanline < cinfo.image_height) {
       const PRUint8* row = &aData[cinfo.next_scanline * aStride];
-      jpeg_write_scanlines(&cinfo, const_cast<PRUint8**>(&row), 1);
+      jpeg_write_scanlines(&cinfo, NS_CONST_CAST(PRUint8**, &row), 1);
     }
   } else if (aInputFormat == INPUT_FORMAT_RGBA) {
     PRUint8* row = new PRUint8[aWidth * 3];
@@ -195,31 +192,6 @@ NS_IMETHODIMP nsJPEGEncoder::InitFromData(const PRUint8* aData,
     return NS_ERROR_OUT_OF_MEMORY;
 
   return NS_OK;
-}
-
-
-NS_IMETHODIMP nsJPEGEncoder::StartImageEncode(PRUint32 aWidth,
-                                              PRUint32 aHeight,
-                                              PRUint32 aInputFormat,
-                                              const nsAString& aOutputOptions)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP nsJPEGEncoder::AddImageFrame(const PRUint8* aData,
-                                           PRUint32 aLength,
-                                           PRUint32 aWidth,
-                                           PRUint32 aHeight,
-                                           PRUint32 aStride,
-                                           PRUint32 aFrameFormat,
-                                           const nsAString& aFrameOptions)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP nsJPEGEncoder::EndImageEncode()
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 
@@ -265,7 +237,7 @@ NS_IMETHODIMP nsJPEGEncoder::ReadSegments(nsWriteSegmentFun aWriter, void *aClos
   if (aCount > maxCount)
     aCount = maxCount;
   nsresult rv = aWriter(this, aClosure,
-                        reinterpret_cast<const char*>(mImageBuffer+mImageBufferReadPoint),
+                        NS_REINTERPRET_CAST(const char*, mImageBuffer),
                         0, aCount, _retval);
   if (NS_SUCCEEDED(rv)) {
     NS_ASSERTION(*_retval <= aCount, "bad write count");
@@ -338,7 +310,7 @@ nsJPEGEncoder::StripAlpha(const PRUint8* aSrc, PRUint8* aDest,
 void // static
 nsJPEGEncoder::initDestination(jpeg_compress_struct* cinfo)
 {
-  nsJPEGEncoder* that = static_cast<nsJPEGEncoder*>(cinfo->client_data);
+  nsJPEGEncoder* that = NS_STATIC_CAST(nsJPEGEncoder*, cinfo->client_data);
   NS_ASSERTION(! that->mImageBuffer, "Image buffer already initialized");
 
   that->mImageBufferSize = 8192;
@@ -364,7 +336,7 @@ nsJPEGEncoder::initDestination(jpeg_compress_struct* cinfo)
 boolean // static
 nsJPEGEncoder::emptyOutputBuffer(jpeg_compress_struct* cinfo)
 {
-  nsJPEGEncoder* that = static_cast<nsJPEGEncoder*>(cinfo->client_data);
+  nsJPEGEncoder* that = NS_STATIC_CAST(nsJPEGEncoder*, cinfo->client_data);
   NS_ASSERTION(that->mImageBuffer, "No buffer to empty!");
 
   that->mImageBufferUsed = that->mImageBufferSize;
@@ -403,7 +375,7 @@ nsJPEGEncoder::emptyOutputBuffer(jpeg_compress_struct* cinfo)
 void // static
 nsJPEGEncoder::termDestination(jpeg_compress_struct* cinfo)
 {
-  nsJPEGEncoder* that = static_cast<nsJPEGEncoder*>(cinfo->client_data);
+  nsJPEGEncoder* that = NS_STATIC_CAST(nsJPEGEncoder*, cinfo->client_data);
   if (! that->mImageBuffer)
     return;
   that->mImageBufferUsed = cinfo->dest->next_output_byte - that->mImageBuffer;

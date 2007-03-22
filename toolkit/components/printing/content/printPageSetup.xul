@@ -56,7 +56,7 @@
   persist="screenX screenY"
   screenX="24" screenY="24">
 
-  <script type="application/javascript" src="chrome://global/content/printPageSetup.js"/>
+  <script type="application/x-javascript" src="chrome://global/content/printPageSetup.js"/>
 
   <!-- Localizable strings manipulated at run-time. -->
   <data id="marginUnits.inches">&marginUnits.inches;</data>
@@ -64,13 +64,13 @@
   <data id="customPrompt.title">&customPrompt.title;</data>
   <data id="customPrompt.prompt">&customPrompt.prompt;</data>
 
-  <tabbox flex="1">
+  <tabbox>
     <tabs>
       <tab label="&basic.tab;"/>
       <tab label="&advanced.tab;"/>
     </tabs>
-    <tabpanels flex="1">
-      <vbox>
+    <tabpanels>
+      <tabpanel orient="vertical">
         <groupbox>
           <caption label="&formatGroup.label;"/>
           <vbox>
@@ -98,8 +98,8 @@
           <caption label="&optionsGroup.label;"/>
           <checkbox id="printBG" label="&printBG.label;"/>
         </groupbox>
-      </vbox>
-      <vbox>
+      </tabpanel>
+      <tabpanel orient="vertical">
         <groupbox>
           <caption id="marginGroup" label="&marginGroup.label;"/>
           <vbox>
@@ -246,7 +246,7 @@
             </rows>
           </grid>
         </groupbox>
-      </vbox>
+      </tabpanel>
     </tabpanels>
   </tabbox>
 </dialog>

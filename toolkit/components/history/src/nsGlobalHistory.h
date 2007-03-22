@@ -61,8 +61,6 @@
 #include "nsIAutoCompleteResult.h"
 #include "nsIAutoCompleteResultTypes.h"
 #include "nsHashSets.h"
-#include "nsCOMArray.h"
-#include "nsCycleCollectionParticipant.h"
 
 //----------------------------------------------------------------------
 //
@@ -139,9 +137,7 @@ class nsGlobalHistory : nsSupportsWeakReference,
 {
 public:
   // nsISupports methods 
-  NS_DECL_CYCLE_COLLECTING_ISUPPORTS
-  NS_DECL_CYCLE_COLLECTION_CLASS_AMBIGUOUS(nsGlobalHistory,
-                                           nsIBrowserHistory)
+  NS_DECL_ISUPPORTS
 
   NS_DECL_NSIGLOBALHISTORY2
   NS_DECL_NSIGLOBALHISTORY3
@@ -270,7 +266,7 @@ protected:
   //
   // RDF stuff
   //
-  nsCOMArray<nsIRDFObserver> mObservers;
+  nsCOMPtr<nsISupportsArray> mObservers;
   
   PRBool IsURLInHistory(nsIRDFResource* aResource);
   

@@ -50,7 +50,6 @@
 #include "nsNetCID.h"
 #include "netCore.h"
 #include "prprf.h"
-#include "prnetdb.h"
 
 //----------------------------------------------------------------------------
 // Init/Shutdown
@@ -360,6 +359,12 @@ net_CoalesceDirs(netCoalesceFlags flags, char* path)
             *urlPtr++ = *fwdPtr;
         }
     }
+    // Copy remaining stuff past the #?;
+    for (; *fwdPtr != '\0'; ++fwdPtr)
+    {
+        *urlPtr++ = *fwdPtr;
+    }
+    *urlPtr = '\0';  // terminate the url 
 
     /* 
      *  Now lets remove trailing . case
@@ -367,14 +372,7 @@ net_CoalesceDirs(netCoalesceFlags flags, char* path)
      */
 
     if ((urlPtr > (path+1)) && (*(urlPtr-1) == '.') && (*(urlPtr-2) == '/'))
-        urlPtr--;
-
-    // Copy remaining stuff past the #?;
-    for (; *fwdPtr != '\0'; ++fwdPtr)
-    {
-        *urlPtr++ = *fwdPtr;
-    }
-    *urlPtr = '\0';  // terminate the url 
+        *(urlPtr-1) = '\0';
 }
 
 nsresult
@@ -744,16 +742,11 @@ net_FindMediaDelimiter(const nsCString& flatStr,
     return flatStr.Length();
 }
 
-// aOffset should be added to aCharsetStart and aCharsetEnd if this
-// function sets them.
 static void
 net_ParseMediaType(const nsACString &aMediaTypeStr,
                    nsACString       &aContentType,
                    nsACString       &aContentCharset,
-                   PRInt32          aOffset,
-                   PRBool           *aHadCharset,
-                   PRInt32          *aCharsetStart,
-                   PRInt32          *aCharsetEnd)
+                   PRBool           *aHadCharset)
 {
     const nsCString& flatStr = PromiseFlatCString(aMediaTypeStr);
     const char* start = flatStr.get();
@@ -767,8 +760,6 @@ net_ParseMediaType(const nsACString &aMediaTypeStr,
 
     const char* charset = "";
     const char* charsetEnd = charset;
-    PRInt32 charsetParamStart;
-    PRInt32 charsetParamEnd;
 
     // Iterate over parameters
     PRBool typeHasCharset = PR_FALSE;
@@ -789,8 +780,6 @@ net_ParseMediaType(const nsACString &aMediaTypeStr,
                 charset = paramName + sizeof(charsetStr) - 1;
                 charsetEnd = start + curParamEnd;
                 typeHasCharset = PR_TRUE;
-                charsetParamStart = curParamStart - 1;
-                charsetParamEnd = curParamEnd;
             }
 
             curParamStart = curParamEnd + 1;
@@ -830,25 +819,9 @@ net_ParseMediaType(const nsACString &aMediaTypeStr,
             aContentType.Assign(type, typeEnd - type);
             ToLowerCase(aContentType);
         }
-
         if ((!eq && *aHadCharset) || typeHasCharset) {
             *aHadCharset = PR_TRUE;
             aContentCharset.Assign(charset, charsetEnd - charset);
-            if (typeHasCharset) {
-                *aCharsetStart = charsetParamStart + aOffset;
-                *aCharsetEnd = charsetParamEnd + aOffset;
-            }
-        }
-        // Only set a new charset position if this is a different type
-        // from the last one we had and it doesn't already have a
-        // charset param.  If this is the same type, we probably want
-        // to leave the charset position on its first occurrence.
-        if (!eq && !typeHasCharset) {
-            PRInt32 charsetStart = PRInt32(paramStart);
-            if (charsetStart == kNotFound)
-                charsetStart =  flatStr.Length();
-
-            *aCharsetEnd = *aCharsetStart = charsetStart + aOffset;
         }
     }
 }
@@ -860,19 +833,6 @@ net_ParseContentType(const nsACString &aHeaderStr,
                      nsACString       &aContentType,
                      nsACString       &aContentCharset,
                      PRBool           *aHadCharset)
-{
-    PRInt32 dummy1, dummy2;
-    net_ParseContentType(aHeaderStr, aContentType, aContentCharset,
-                         aHadCharset, &dummy1, &dummy2);
-}
-
-void
-net_ParseContentType(const nsACString &aHeaderStr,
-                     nsACString       &aContentType,
-                     nsACString       &aContentCharset,
-                     PRBool           *aHadCharset,
-                     PRInt32          *aCharsetStart,
-                     PRInt32          *aCharsetEnd)
 {
     //
     // Augmented BNF (from RFC 2616 section 3.7):
@@ -913,8 +873,7 @@ net_ParseContentType(const nsACString &aHeaderStr,
         // starting at curTypeEnd ends.  Time to parse that!
         net_ParseMediaType(Substring(flatStr, curTypeStart,
                                      curTypeEnd - curTypeStart),
-                           aContentType, aContentCharset, curTypeStart,
-                           aHadCharset, aCharsetStart, aCharsetEnd);
+                           aContentType, aContentCharset, aHadCharset);
 
         // And let's move on to the next media-type
         curTypeStart = curTypeEnd + 1;
@@ -925,24 +884,14 @@ PRBool
 net_IsValidHostName(const nsCSubstring &host)
 {
     const char *end = host.EndReading();
-    // Use explicit whitelists to select which characters we are
-    // willing to send to lower-level DNS logic. This is more
-    // self-documenting, and can also be slightly faster than the
-    // blacklist approach, since DNS names are the common case, and
-    // the commonest characters will tend to be near the start of
-    // the list.
-
-    // Whitelist for DNS names (RFC 1035) with extra characters added 
-    // for pragmatic reasons "$+_"
-    // see https://bugzilla.mozilla.org/show_bug.cgi?id=355181#c2
-    if (net_FindCharNotInSet(host.BeginReading(), end,
-                             "abcdefghijklmnopqrstuvwxyz"
-                             ".-0123456789"
-                             "ABCDEFGHIJKLMNOPQRSTUVWXYZ$+_") == end)
-        return PR_TRUE;
-
-    // Might be a valid IPv6 link-local address containing a percent sign
-    nsCAutoString strhost(host);
-    PRNetAddr addr;
-    return PR_StringToNetAddr(strhost.get(), &addr) == PR_SUCCESS;
+    // ctrl-chars and  !\"#%&'()*,/;<=>?@\\^{|}\x7f
+    // if one of these chars is found return false
+    return net_FindCharInSet(host.BeginReading(), end, 
+                             "\x01\x02\x03\x04\x05\x06\x07\x08"
+                             "\x09\x0a\x0b\x0c\x0d\x0e\x0f\x10"
+                             "\x11\x12\x13\x14\x15\x16\x17\x18"
+                             "\x19\x1a\x1b\x1c\x1d\x1e\x1f\x20"
+                             "\x21\x22\x23\x25\x26\x27\x28\x29"
+                             "\x2a\x2c\x2f\x3b\x3c\x3d\x3e"
+                             "\x3f\x40\x5c\x5e\x7b\x7c\x7e\x7f") == end;
 }

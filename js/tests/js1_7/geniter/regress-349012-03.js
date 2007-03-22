@@ -34,10 +34,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-349012-03.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 349012;
+var bug = 349012;
 var summary = 'generator recursively calling itself via send is a TypeError';
 var actual = '';
 var expect = '';
@@ -50,7 +48,7 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
 
   function gen() {

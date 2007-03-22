@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -34,9 +33,8 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK ***** */
-
-/*
+ * ***** END LICENSE BLOCK *****
+ *
  *
  * Date:    08 May 2003
  * SUMMARY: JS should evaluate RHS before binding LHS implicit variable
@@ -45,9 +43,8 @@
  *
  */
 //-----------------------------------------------------------------------------
-var gTestfile = '11.13.1-001.js';
 var UBound = 0;
-var BUGNUMBER = 204919;
+var bug = 204919;
 var summary = 'JS should evaluate RHS before binding LHS implicit variable';
 var TEST_PASSED = 'ReferenceError';
 var TEST_FAILED = 'Generated an error, but NOT a ReferenceError!';
@@ -140,7 +137,7 @@ function addThis()
 function test()
 {
   enterFunc('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber(bug);
   printStatus(summary);
 
   for (var i=0; i<UBound; i++)

@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -38,14 +37,30 @@
 
 #include "nsScriptElement.h"
 #include "nsIContent.h"
-#include "nsContentUtils.h"
+#include "nsIPresShell.h"
+#include "nsIDocument.h"
 #include "nsGUIEvent.h"
 #include "nsEventDispatcher.h"
 #include "nsPresContext.h"
 #include "nsScriptLoader.h"
+#include "nsGkAtoms.h"
 #include "nsIParser.h"
 #include "nsAutoPtr.h"
 #include "nsGkAtoms.h"
+
+static nsPresContext*
+GetContextForContent(nsIContent* aContent)
+{
+  nsIDocument* doc = aContent->GetCurrentDoc();
+  if (doc) {
+    nsIPresShell *presShell = doc->GetShellAt(0);
+    if (presShell) {
+      return presShell->GetPresContext();
+    }
+  }
+  
+  return nsnull;
+}
 
 NS_IMETHODIMP
 nsScriptElement::ScriptAvailable(nsresult aResult,
@@ -58,8 +73,7 @@ nsScriptElement::ScriptAvailable(nsresult aResult,
     nsCOMPtr<nsIContent> cont =
       do_QueryInterface((nsIScriptElement*) this);
 
-    nsCOMPtr<nsPresContext> presContext =
-      nsContentUtils::GetContextForContent(cont);
+    nsCOMPtr<nsPresContext> presContext = GetContextForContent(cont);
 
     nsEventStatus status = nsEventStatus_eIgnore;
     nsScriptErrorEvent event(PR_TRUE, NS_LOAD_ERROR);
@@ -91,8 +105,7 @@ nsScriptElement::ScriptEvaluated(nsresult aResult,
     nsCOMPtr<nsIContent> cont =
       do_QueryInterface((nsIScriptElement*) this);
 
-    nsCOMPtr<nsPresContext> presContext =
-      nsContentUtils::GetContextForContent(cont);
+    nsCOMPtr<nsPresContext> presContext = GetContextForContent(cont);
 
     nsEventStatus status = nsEventStatus_eIgnore;
     PRUint32 type = NS_SUCCEEDED(aResult) ? NS_LOAD : NS_LOAD_ERROR;
@@ -121,8 +134,7 @@ nsScriptElement::AttributeChanged(nsIDocument* aDocument,
                                   nsIContent* aContent,
                                   PRInt32 aNameSpaceID,
                                   nsIAtom* aAttribute,
-                                  PRInt32 aModType,
-                                  PRUint32 aStateMask)
+                                  PRInt32 aModType)
 {
   MaybeProcessScript();
 }
@@ -154,7 +166,7 @@ InNonScriptingContainer(nsINode* aNode)
     // prefs or per-document container settings for not allowing
     // frames or plugins.
     if (aNode->IsNodeOfType(nsINode::eHTML)) {
-      nsIAtom *localName = static_cast<nsIContent*>(aNode)->Tag();
+      nsIAtom *localName = NS_STATIC_CAST(nsIContent*, aNode)->Tag();
       if (localName == nsGkAtoms::iframe ||
           localName == nsGkAtoms::noframes ||
           localName == nsGkAtoms::noembed) {
@@ -183,16 +195,18 @@ nsScriptElement::MaybeProcessScript()
   }
 
   nsresult scriptresult = NS_OK;
-  nsRefPtr<nsScriptLoader> loader = cont->GetOwnerDoc()->ScriptLoader();
-  mIsEvaluated = PR_TRUE;
-  scriptresult = loader->ProcessScriptElement(this);
+  nsRefPtr<nsScriptLoader> loader = cont->GetOwnerDoc()->GetScriptLoader();
+  if (loader) {
+    mIsEvaluated = PR_TRUE;
+    scriptresult = loader->ProcessScriptElement(this);
 
-  // The only error we don't ignore is NS_ERROR_HTMLPARSER_BLOCK
-  // However we don't want to override other success values
-  // (such as NS_CONTENT_SCRIPT_IS_EVENTHANDLER)
-  if (NS_FAILED(scriptresult) &&
-      scriptresult != NS_ERROR_HTMLPARSER_BLOCK) {
-    scriptresult = NS_OK;
+    // The only error we don't ignore is NS_ERROR_HTMLPARSER_BLOCK
+    // However we don't want to override other success values
+    // (such as NS_CONTENT_SCRIPT_IS_EVENTHANDLER)
+    if (NS_FAILED(scriptresult) &&
+        scriptresult != NS_ERROR_HTMLPARSER_BLOCK) {
+      scriptresult = NS_OK;
+    }
   }
 
   return scriptresult;

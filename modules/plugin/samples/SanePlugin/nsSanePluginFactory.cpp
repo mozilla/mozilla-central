@@ -94,19 +94,19 @@ nsSanePluginFactoryImpl::QueryInterface(const nsIID &aIID,
         return NS_ERROR_NULL_POINTER;
 
     if (aIID.Equals(kISupportsIID)) {
-        *aInstancePtr = static_cast<nsISupports*>(this);
+        *aInstancePtr = NS_STATIC_CAST(nsISupports*,this);
     } else if (aIID.Equals(kIFactoryIID)) {
-        *aInstancePtr = static_cast<nsISupports*>
-                                   (static_cast<nsIFactory*>(this));
+        *aInstancePtr = NS_STATIC_CAST(nsISupports*,
+                                       NS_STATIC_CAST(nsIFactory*,this));
     } else if (aIID.Equals(kIPluginIID)) {
-        *aInstancePtr = static_cast<nsISupports*>
-                                   (static_cast<nsIPlugin*>(this));
+        *aInstancePtr = NS_STATIC_CAST(nsISupports*,
+                                       NS_STATIC_CAST(nsIPlugin*,this));
     } else {
         *aInstancePtr = nsnull;
         return NS_ERROR_NO_INTERFACE;
     }
 
-    NS_ADDREF(reinterpret_cast<nsISupports*>(*aInstancePtr));
+    NS_ADDREF(NS_REINTERPRET_CAST(nsISupports*,*aInstancePtr));
 
     return NS_OK;
 }

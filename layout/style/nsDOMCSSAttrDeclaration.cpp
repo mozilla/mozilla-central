@@ -49,7 +49,6 @@
 #include "nsStyleConsts.h"
 #include "nsContentUtils.h"
 #include "nsIContent.h"
-#include "nsIPrincipal.h"
 
 nsDOMCSSAttributeDeclaration::nsDOMCSSAttributeDeclaration(nsIContent *aContent)
 {
@@ -137,7 +136,6 @@ nsDOMCSSAttributeDeclaration::GetCSSDeclaration(nsCSSDeclaration **aDecl,
 nsresult
 nsDOMCSSAttributeDeclaration::GetCSSParsingEnvironment(nsIURI** aSheetURI,
                                                        nsIURI** aBaseURI,
-                                                       nsIPrincipal** aSheetPrincipal,
                                                        nsICSSLoader** aCSSLoader,
                                                        nsICSSParser** aCSSParser)
 {
@@ -145,7 +143,6 @@ nsDOMCSSAttributeDeclaration::GetCSSParsingEnvironment(nsIURI** aSheetURI,
   // null out the out params since some of them may not get initialized below
   *aSheetURI = nsnull;
   *aBaseURI = nsnull;
-  *aSheetPrincipal = nsnull;
   *aCSSLoader = nsnull;
   *aCSSParser = nsnull;
 
@@ -171,7 +168,6 @@ nsDOMCSSAttributeDeclaration::GetCSSParsingEnvironment(nsIURI** aSheetURI,
   
   baseURI.swap(*aBaseURI);
   sheetURI.swap(*aSheetURI);
-  NS_ADDREF(*aSheetPrincipal = mContent->NodePrincipal());
 
   return NS_OK;
 }

@@ -95,15 +95,15 @@ public:
         virtual ~Element() { MOZ_COUNT_DTOR(nsRDFConInstanceTestNode::Element); }
 
         static Element*
-        Create(nsIRDFResource* aContainer,
+        Create(nsFixedSizeAllocator& aPool, nsIRDFResource* aContainer,
                Test aContainerTest, Test aEmptyTest) {
-            void* place = MemoryElement::gPool.Alloc(sizeof(Element));
+            void* place = aPool.Alloc(sizeof(Element));
             return place ? ::new (place) Element(aContainer, aContainerTest, aEmptyTest) : nsnull; }
 
-        void Destroy() {
-            this->~Element();
-            MemoryElement::gPool.Free(this, sizeof(Element));
-        }
+        static void
+        Destroy(nsFixedSizeAllocator& aPool, Element* aElement) {
+            aElement->~Element();
+            aPool.Free(aElement, sizeof(*aElement)); }
 
         virtual const char* Type() const {
             return "nsRDFConInstanceTestNode::Element"; }
@@ -115,12 +115,16 @@ public:
 
         virtual PRBool Equals(const MemoryElement& aElement) const {
             if (aElement.Type() == Type()) {
-                const Element& element = static_cast<const Element&>(aElement);
+                const Element& element = NS_STATIC_CAST(const Element&, aElement);
                 return mContainer == element.mContainer
                     && mContainerTest == element.mContainerTest
                     && mEmptyTest == element.mEmptyTest;
             }
             return PR_FALSE; }
+
+        virtual MemoryElement* Clone(void* aPool) const {
+            return Create(*NS_STATIC_CAST(nsFixedSizeAllocator*, aPool),
+                          mContainer, mContainerTest, mEmptyTest); }
 
     protected:
         nsCOMPtr<nsIRDFResource> mContainer;

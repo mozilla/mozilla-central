@@ -36,17 +36,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'regress-324422-1.js';
+START("Do not crash creating XML object with long initialiser");
 
-var summary = "Do not crash creating XML object with long initialiser";
-
-var BUGNUMBER = 324422;
+var bug = 324422;
+var summary = 'Do not crash creating XML object with long initialiser';
 var actual = 'No Crash';
 var expect = 'No Crash';
 
-printBugNumber(BUGNUMBER);
-START(summary);
-
+printBugNumber (bug);
+printStatus (summary);
 if (typeof document == 'undefined')
 {
     printStatus ("Expect possible out of memory error");
@@ -62,16 +60,7 @@ for (var icount = 0; icount < 20; icount++)
 
 printStatus(str.length);
 
-try
-{
-    var x = new XML('<root>' + str + '</root>');
-}
-catch(ex)
-{
-    expect = 'InternalError: script stack space quota is exhausted';
-    actual = ex + '';
-    print('Caught ' + ex);
-}
+var x = new XML('<root>' + str + '</root>');
 
 TEST(1, expect, actual);
 

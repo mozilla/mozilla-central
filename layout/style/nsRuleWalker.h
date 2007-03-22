@@ -49,29 +49,25 @@ public:
   void SetCurrentNode(nsRuleNode* aNode) { mCurrent = aNode; }
 
   void Forward(nsIStyleRule* aRule) { 
-    if (mCurrent) { // check for OOM from previous step
-      mCurrent = mCurrent->Transition(aRule, mLevel, mImportance);
-    }
+    nsRuleNode* next;
+    mCurrent->Transition(aRule, &next);
+    mCurrent = next;
+  }
+
+  void Back() {
+    if (mCurrent != mRoot)
+      mCurrent = mCurrent->GetParent();
   }
 
   void Reset() { mCurrent = mRoot; }
 
   PRBool AtRoot() { return mCurrent == mRoot; }
 
-  void SetLevel(PRUint8 aLevel, PRBool aImportance) {
-    mLevel = aLevel;
-    mImportance = aImportance;
-  }
-  PRUint8 GetLevel() const { return mLevel; }
-  PRBool GetImportance() const { return mImportance; }
-
 private:
   nsRuleNode* mCurrent; // Our current position.
   nsRuleNode* mRoot; // The root of the tree we're walking.
-  PRUint8 mLevel; // an nsStyleSet::sheetType
-  PRPackedBool mImportance;
 
 public:
-  nsRuleWalker(nsRuleNode* aRoot) :mCurrent(aRoot), mRoot(aRoot) { MOZ_COUNT_CTOR(nsRuleWalker); }
-  ~nsRuleWalker() { MOZ_COUNT_DTOR(nsRuleWalker); }
+  nsRuleWalker(nsRuleNode* aRoot) :mCurrent(aRoot), mRoot(aRoot) { MOZ_COUNT_CTOR(nsRuleWalker); };
+  ~nsRuleWalker() { MOZ_COUNT_DTOR(nsRuleWalker); };
 };

@@ -52,12 +52,40 @@ const nsISupports        = Components.interfaces.nsISupports;
 const nsIProxyAutoConfig = Components.interfaces.nsIProxyAutoConfig;
 const nsIDNSService      = Components.interfaces.nsIDNSService;
 
+// Loaded once per PAC script, this is a safe way for the supplied functions
+// that require chrome privileges to turn a random untrusted object into a
+// string.
+var safeToString = null;
+function myToString(thisp) {
+    return thisp + '';
+}
+
+// This is like safeToString, except that it calls a given function with a
+// given this and arguments.
+var callFunction = null;
+function myCall(fun) {
+    var args = [];
+    for (var i = 1; i < arguments.length; i++)
+        args.push(arguments[i]);
+    return fun.apply(this, args);
+}
+
+// Like the above, except that this gets a property off of an untrusted
+// object.
+var safeGetProperty = null;
+function myGet(thisp, id) {
+    return thisp[id];
+}
+
 // implementor of nsIProxyAutoConfig
 function nsProxyAutoConfig() {};
 
 nsProxyAutoConfig.prototype = {
     // sandbox in which we eval loaded autoconfig js file
     _sandBox: null, 
+
+    // ptr to eval'ed FindProxyForURL function
+    _findProxyForURL: null,
 
     QueryInterface: function(iid) {
         if (iid.Equals(nsIProxyAutoConfig) ||
@@ -69,6 +97,7 @@ nsProxyAutoConfig.prototype = {
     init: function(pacURI, pacText) {
         // remove PAC configuration if requested
         if (pacURI == "" || pacText == "") {
+            this._findProxyForURL = null;
             this._sandBox = null;
             return;
         }
@@ -77,6 +106,21 @@ nsProxyAutoConfig.prototype = {
         this._sandBox = new Components.utils.Sandbox(pacURI);
         Components.utils.evalInSandbox(pacUtils, this._sandBox);
 
+        safeToString =
+            Components.utils.evalInSandbox("(" + myToString.toSource() + ")",
+                                           this._sandBox);
+        callFunction =
+            Components.utils.evalInSandbox("(" + myCall.toSource() + ")",
+                                           this._sandBox);
+
+        // Clone callFunction.call onto our callFunction so that the PAC
+        // script can't monkey with Function.prototype.call and confuse us.
+        callFunction.call = Function.prototype.call;
+
+        safeGetProperty =
+            Components.utils.evalInSandbox("(" + myGet.toSource() + ")",
+                                           this._sandBox);
+
         // add predefined functions to pac
         this._sandBox.importFunction(myIpAddress);
         this._sandBox.importFunction(dnsResolve);
@@ -84,29 +128,24 @@ nsProxyAutoConfig.prototype = {
 
         // evaluate loaded js file
         Components.utils.evalInSandbox(pacText, this._sandBox);
-
-        // We can no longer trust this._sandBox. Touching it directly can
-        // cause all sorts of pain, so wrap it in an XPCSafeJSObjectWrapper
-        // and do all of our work through there.
-        this._sandBox = new XPCSafeJSObjectWrapper(this._sandBox);
+        this._findProxyForURL =
+            safeGetProperty(this._sandBox, "FindProxyForURL");
     },
 
     getProxyForURI: function(testURI, testHost) {
-        if (!("FindProxyForURL" in this._sandBox))
+        if (!this._findProxyForURL)
             return null;
 
         // Call the original function
-        try {
-            var rval = this._sandBox.FindProxyForURL(testURI, testHost);
-        } catch (e) {
-            throw XPCSafeJSObjectWrapper(e);
-        }
-        return rval;
+        return callFunction.call(this._sandBox, this._findProxyForURL,
+                                 testURI, testHost);
     }
 }
 
 function proxyAlert(msg) {
-    msg = XPCSafeJSObjectWrapper(msg);
+    // Ensure that we have a string.
+    msg = safeToString(msg);
+
     try {
         // It would appear that the console service is threadsafe.
         var cns = Components.classes["@mozilla.org/consoleservice;1"]
@@ -128,7 +167,8 @@ function myIpAddress() {
 
 // wrapper for resolving hostnames called by PAC file
 function dnsResolve(host) {
-    host = XPCSafeJSObjectWrapper(host);
+    host = safeToString(host);
+
     try {
         return dns.resolve(host, 0).getNextAddrAsString();
     } catch (e) {
@@ -243,14 +283,15 @@ var pacUtils =
 "   return newRe.test(url);\n" +
 "}\n" +
 
-"var wdays = {SUN: 0, MON: 1, TUE: 2, WED: 3, THU: 4, FRI: 5, SAT: 6};\n" +
+"var wdays = new Array('SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT');\n" +
 
-"var months = {JAN: 0, FEB: 1, MAR: 2, APR: 3, MAY: 4, JUN: 5, JUL: 6, AUG: 7, SEP: 8, OCT: 9, NOV: 10, DEC: 11};\n"+
+"var monthes = new Array('JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC');\n"+
 
 "function weekdayRange() {\n" +
 "    function getDay(weekday) {\n" +
-"        if (weekday in wdays) {\n" +
-"            return wdays[weekday];\n" +
+"        for (var i = 0; i < 6; i++) {\n" +
+"            if (weekday == wdays[i]) \n" +
+"                return i;\n" +
 "        }\n" +
 "        return -1;\n" +
 "    }\n" +
@@ -273,8 +314,9 @@ var pacUtils =
 
 "function dateRange() {\n" +
 "    function getMonth(name) {\n" +
-"        if (name in months) {\n" +
-"            return months[name];\n" +
+"        for (var i = 0; i < 6; i++) {\n" +
+"            if (name == monthes[i])\n" +
+"                return i;\n" +
 "        }\n" +
 "        return -1;\n" +
 "    }\n" +

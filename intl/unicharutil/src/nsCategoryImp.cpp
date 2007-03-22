@@ -42,26 +42,36 @@
 #include "nsCategoryImp.h"
 #include "cattable.h"
 
-static nsCategoryImp gCategoryImp;
+NS_IMPL_ISUPPORTS1(nsCategoryImp, nsIUGenCategory)
 
-NS_IMPL_THREADSAFE_QUERY_INTERFACE1(nsCategoryImp, nsIUGenCategory)
 
-NS_IMETHODIMP_(nsrefcnt) nsCategoryImp::AddRef(void)
+nsCategoryImp::nsCategoryImp()
 {
-  return nsrefcnt(1);
 }
 
-NS_IMETHODIMP_(nsrefcnt) nsCategoryImp::Release(void)
+nsCategoryImp::~nsCategoryImp()
 {
-  return nsrefcnt(1);
 }
 
-nsCategoryImp* nsCategoryImp::GetInstance()
+nsresult nsCategoryImp::Get( PRUnichar aChar, nsUGenCategory* oResult)
 {
-  return &gCategoryImp;
+   PRUint8 ret = GetCat(aChar);
+   if( 0 == ret)
+      *oResult = kUGenCategory_Other; // treat it as Cn - Other, Not Assigned
+   else 
+      *oResult = (nsUGenCategory)ret;
+   return NS_OK;
 }
+    
+nsresult nsCategoryImp::Is( PRUnichar aChar, nsUGenCategory aCategory, PRBool* oResult)
 
-nsIUGenCategory::nsUGenCategory nsCategoryImp::Get(PRUint32 aChar)
 {
-  return nsUGenCategory(GetCat(aChar));
+   nsUGenCategory cat ;
+   PRUint8 ret = GetCat(aChar);
+   if( 0 == ret)
+      cat = kUGenCategory_Other; // treat it as Cn - Other, Not Assigned
+   else 
+      cat = (nsUGenCategory)ret;
+   *oResult = (aCategory == cat );
+   return NS_OK;
 }

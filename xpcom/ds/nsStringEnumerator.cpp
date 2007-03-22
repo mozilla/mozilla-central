@@ -85,9 +85,9 @@ private:
             // constructors make sure mOwnsArray is consistent with
             // the constness of the objects
             if (mIsUnicode)
-                delete const_cast<nsStringArray*>(mArray);
+                delete NS_CONST_CAST(nsStringArray*,mArray);
             else
-                delete const_cast<nsCStringArray*>(mCArray);
+                delete NS_CONST_CAST(nsCStringArray*,mCArray);
         }
     }
 

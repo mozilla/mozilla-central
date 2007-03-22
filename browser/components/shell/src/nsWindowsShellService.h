@@ -40,7 +40,6 @@
 #define nswindowsshellservice_h____
 
 #include "nscore.h"
-#include "nsStringAPI.h"
 #include "nsIWindowsShellService.h"
 
 #include <windows.h>
@@ -57,9 +56,14 @@ public:
   NS_DECL_NSIWINDOWSSHELLSERVICE
 
 protected:
-  PRBool    IsDefaultBrowserVista(PRBool* aIsDefaultBrowser);
+  PRBool    IsDefaultBrowserVista(PRBool aStartupCheck, PRBool* aIsDefaultBrowser);
+  PRBool    SetDefaultBrowserVista();
 
   PRBool    GetMailAccountKey(HKEY* aResult);
+  void      SetRegKey(const char* aKeyName, const char* aValueName, 
+                      const char* aValue, PRBool aHKLMOnly);
+  DWORD     DeleteRegKey(HKEY baseKey, const char *keyName);
+  DWORD     DeleteRegKeyDefaultValue(HKEY baseKey, const char *keyName);
 
 private:
   PRBool    mCheckedThisSession;

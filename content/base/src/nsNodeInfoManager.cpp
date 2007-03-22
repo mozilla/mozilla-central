@@ -51,18 +51,8 @@
 #include "nsReadableUtils.h"
 #include "nsGkAtoms.h"
 #include "nsComponentManagerUtils.h"
-#include "nsLayoutStatics.h"
-#include "nsBindingManager.h"
 
-#ifdef MOZ_LOGGING
-// so we can get logging even in release builds
-#define FORCE_PR_LOG 1
-#endif
-#include "prlog.h"
-
-#ifdef PR_LOGGING
-static PRLogModuleInfo* gNodeInfoManagerLeakPRLog;
-#endif
+PRUint32 nsNodeInfoManager::gNodeManagerCount;
 
 PLHashNumber
 nsNodeInfoManager::GetNodeInfoInnerHashValue(const void *key)
@@ -70,7 +60,7 @@ nsNodeInfoManager::GetNodeInfoInnerHashValue(const void *key)
   NS_ASSERTION(key, "Null key passed to nsNodeInfo::GetHashValue!");
 
   const nsINodeInfo::nsNodeInfoInner *node =
-    reinterpret_cast<const nsINodeInfo::nsNodeInfoInner *>(key);
+    NS_REINTERPRET_CAST(const nsINodeInfo::nsNodeInfoInner *, key);
 
   // Is this an acceptable hash value?
   return (PLHashNumber(NS_PTR_TO_INT32(node->mName)) & 0xffff) >> 8;
@@ -83,9 +73,9 @@ nsNodeInfoManager::NodeInfoInnerKeyCompare(const void *key1, const void *key2)
   NS_ASSERTION(key1 && key2, "Null key passed to NodeInfoInnerKeyCompare!");
 
   const nsINodeInfo::nsNodeInfoInner *node1 =
-    reinterpret_cast<const nsINodeInfo::nsNodeInfoInner *>(key1);
+    NS_REINTERPRET_CAST(const nsINodeInfo::nsNodeInfoInner *, key1);
   const nsINodeInfo::nsNodeInfoInner *node2 =
-    reinterpret_cast<const nsINodeInfo::nsNodeInfoInner *>(key2);
+    NS_REINTERPRET_CAST(const nsINodeInfo::nsNodeInfoInner *, key2);
 
   return (node1->mName == node2->mName &&
           node1->mPrefix == node2->mPrefix &&
@@ -98,43 +88,38 @@ nsNodeInfoManager::nsNodeInfoManager()
     mPrincipal(nsnull),
     mTextNodeInfo(nsnull),
     mCommentNodeInfo(nsnull),
-    mDocumentNodeInfo(nsnull),
-    mBindingManager(nsnull)
+    mDocumentNodeInfo(nsnull)
 {
-  nsLayoutStatics::AddRef();
-
-#ifdef PR_LOGGING
-  if (!gNodeInfoManagerLeakPRLog)
-    gNodeInfoManagerLeakPRLog = PR_NewLogModule("NodeInfoManagerLeak");
-
-  if (gNodeInfoManagerLeakPRLog)
-    PR_LOG(gNodeInfoManagerLeakPRLog, PR_LOG_DEBUG,
-           ("NODEINFOMANAGER %p created", this));
-#endif
+  ++gNodeManagerCount;
 
   mNodeInfoHash = PL_NewHashTable(32, GetNodeInfoInnerHashValue,
                                   NodeInfoInnerKeyCompare,
                                   PL_CompareValues, nsnull, nsnull);
+
+#ifdef DEBUG_jst
+  printf ("Creating NodeInfoManager, gcount = %d\n", gNodeManagerCount);
+#endif
 }
 
 
 nsNodeInfoManager::~nsNodeInfoManager()
 {
+  --gNodeManagerCount;
+
   if (mNodeInfoHash)
     PL_HashTableDestroy(mNodeInfoHash);
+
+
+  if (gNodeManagerCount == 0) {
+    nsNodeInfo::ClearCache();
+  }
 
   // Note: mPrincipal may be null here if we never got inited correctly
   NS_IF_RELEASE(mPrincipal);
 
-  NS_IF_RELEASE(mBindingManager);
-
-#ifdef PR_LOGGING
-  if (gNodeInfoManagerLeakPRLog)
-    PR_LOG(gNodeInfoManagerLeakPRLog, PR_LOG_DEBUG,
-           ("NODEINFOMANAGER %p destroyed", this));
+#ifdef DEBUG_jst
+  printf ("Removing NodeInfoManager, gcount = %d\n", gNodeManagerCount);
 #endif
-
-  nsLayoutStatics::Release();
 }
 
 
@@ -164,14 +149,6 @@ nsNodeInfoManager::Release()
   return count;
 }
 
-NS_IMPL_CYCLE_COLLECTION_CLASS(nsNodeInfoManager)
-NS_IMPL_CYCLE_COLLECTION_ROOT_NATIVE(nsNodeInfoManager, AddRef)
-NS_IMPL_CYCLE_COLLECTION_UNROOT_NATIVE(nsNodeInfoManager, Release)
-NS_IMPL_CYCLE_COLLECTION_UNLINK_NATIVE_0(nsNodeInfoManager)
-NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NATIVE_BEGIN(nsNodeInfoManager)
-  NS_IMPL_CYCLE_COLLECTION_TRAVERSE_RAWPTR(mBindingManager)
-NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
-
 nsresult
 nsNodeInfoManager::Init(nsIDocument *aDocument)
 {
@@ -183,22 +160,9 @@ nsNodeInfoManager::Init(nsIDocument *aDocument)
                                    &mPrincipal);
   NS_ENSURE_TRUE(mPrincipal, rv);
 
-  if (aDocument) {
-    mBindingManager = new nsBindingManager(aDocument);
-    NS_ENSURE_TRUE(mBindingManager, NS_ERROR_OUT_OF_MEMORY);
-
-    NS_ADDREF(mBindingManager);
-  }
-
   mDefaultPrincipal = mPrincipal;
 
   mDocument = aDocument;
-
-#ifdef PR_LOGGING
-  if (gNodeInfoManagerLeakPRLog)
-    PR_LOG(gNodeInfoManagerLeakPRLog, PR_LOG_DEBUG,
-           ("NODEINFOMANAGER %p Init document=%p", this, aDocument));
-#endif
 
   return NS_OK;
 }
@@ -206,10 +170,6 @@ nsNodeInfoManager::Init(nsIDocument *aDocument)
 void
 nsNodeInfoManager::DropDocumentReference()
 {
-  if (mBindingManager) {
-    mBindingManager->DropDocumentReference();
-  }
-
   mDocument = nsnull;
 }
 
@@ -227,7 +187,7 @@ nsNodeInfoManager::GetNodeInfo(nsIAtom *aName, nsIAtom *aPrefix,
   void *node = PL_HashTableLookup(mNodeInfoHash, &tmpKey);
 
   if (node) {
-    *aNodeInfo = static_cast<nsINodeInfo *>(node);
+    *aNodeInfo = NS_STATIC_CAST(nsINodeInfo *, node);
 
     NS_ADDREF(*aNodeInfo);
 

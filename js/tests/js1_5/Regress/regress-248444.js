@@ -35,15 +35,13 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-248444.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 248444;
+var bug = 248444;
 var summary = 'toString/toSource of RegExp should escape slashes';
 var actual = '';
 var expect = '';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
 var re;

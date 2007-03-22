@@ -39,9 +39,10 @@
 #
 # ***** END LICENSE BLOCK *****
 
+var  XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
+
 var gPrintSettingsAreGlobal = false;
 var gSavePrintSettings = false;
-var gFocusedElement = null;
 
 var PrintUtils = {
 
@@ -87,12 +88,6 @@ var PrintUtils = {
     }
   },
 
-  // calling PrintUtils.printPreview() requires that you have three functions
-  // in the global scope: getPPBrowser(), which returns the browser element in
-  // the window print preview uses, getNavToolbox(), which returns the element
-  // (usually the main toolbox element) before which the print preview toolbar
-  // should be inserted, and getWebNavigation(), which returns the document's
-  // nsIWebNavigation object
   printPreview: function (aEnterPPCallback, aExitPPCallback, aWindow)
   {
     // if we're already in PP mode, don't set the callbacks; chances
@@ -103,12 +98,10 @@ var PrintUtils = {
       this._onEnterPP = aEnterPPCallback;
       this._onExitPP  = aExitPPCallback;
     } else {
-      // collapse the browser here -- it will be shown in
+      // hide the toolbar here -- it will be shown in
       // onEnterPrintPreview; this forces a reflow which fixes display
       // issues in bug 267422.
-      var browser = getPPBrowser();
-      if (browser)
-        browser.collapsed = true;
+      pptoolbar.hidden = true;
     }
 
     this._webProgressPP = {};
@@ -129,7 +122,7 @@ var PrintUtils = {
       PPROMPTSVC.showProgress(this, webBrowserPrint, printSettings, this._obsPP, false,
                               this._webProgressPP, ppParams, notifyOnOpen);
       if (ppParams.value) {
-        var webNav = getWebNavigation();
+        var webNav = getBrowser().webNavigation;
         ppParams.value.docTitle = webNav.document.title;
         ppParams.value.docURL   = webNav.currentURI.spec;
       }
@@ -190,6 +183,7 @@ var PrintUtils = {
     return printSettings;
   },
 
+  _chromeState: {},
   _closeHandlerPP: null,
   _webProgressPP: null,
   _onEnterPP: null,
@@ -206,9 +200,7 @@ var PrintUtils = {
 
     QueryInterface : function(iid)
     {
-      if (iid.equals(Components.interfaces.nsIObserver) ||
-          iid.equals(Components.interfaces.nsISupportsWeakReference) ||
-          iid.equals(Components.interfaces.nsISupports))
+      if (iid.equals(Components.interfaces.nsIObserver) || iid.equals(Components.interfaces.nsISupportsWeakReference))
         return this;   
       throw Components.results.NS_NOINTERFACE;
     }
@@ -216,8 +208,6 @@ var PrintUtils = {
 
   enterPrintPreview: function (aWindow)
   {
-    gFocusedElement = document.commandDispatcher.focusedElement;
-
     var webBrowserPrint = this.getWebBrowserPrint(aWindow);
     var printSettings   = this.getPrintSettings();
     try {
@@ -233,22 +223,25 @@ var PrintUtils = {
     var printPreviewTB = document.getElementById("print-preview-toolbar");
     if (printPreviewTB) {
       printPreviewTB.updateToolbar();
-      var browser = getPPBrowser();
-      if (browser)
-        browser.collapsed = false;
+      printPreviewTB.hidden = false;
       return;
     }
 
     // show the toolbar after we go into print preview mode so
     // that we can initialize the toolbar with total num pages
-    var XUL_NS =
-      "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
     printPreviewTB = document.createElementNS(XUL_NS, "toolbar");
     printPreviewTB.setAttribute("printpreview", true);
     printPreviewTB.setAttribute("id", "print-preview-toolbar");
 
-    var navToolbox = getNavToolbox();
-    navToolbox.parentNode.insertBefore(printPreviewTB, navToolbox);
+#ifdef MOZ_PHOENIX
+    getBrowser().parentNode.insertBefore(printPreviewTB, getBrowser());
+
+    // Tab browser...
+    if ("getStripVisibility" in getBrowser()) {
+      this._chromeState.hadTabStrip = getBrowser().getStripVisibility();
+      getBrowser().setStripVisibilityTo(false);
+    }
+#endif
 
     // copy the window close handler
     if (document.documentElement.hasAttribute("onclose"))
@@ -274,34 +267,27 @@ var PrintUtils = {
   {
     window.removeEventListener("keypress", this.onKeyPressPP, true);
 
+#ifdef MOZ_THUNDERBIRD
+    BrowserExitPrintPreview(); // make the traditional call..don't do any of the inline toolbar browser stuff
+    return;
+#endif
+
     // restore the old close handler
     document.documentElement.setAttribute("onclose", this._closeHandlerPP);
     this._closeHandlerPP = null;
+
+    if ("getStripVisibility" in getBrowser())
+      getBrowser().setStripVisibilityTo(this._chromeState.hadTabStrip);
 
     var webBrowserPrint = this.getWebBrowserPrint(aWindow);
     webBrowserPrint.exitPrintPreview(); 
 
     // remove the print preview toolbar
     var printPreviewTB = document.getElementById("print-preview-toolbar");
-    getNavToolbox().parentNode.removeChild(printPreviewTB);
+    getBrowser().parentNode.removeChild(printPreviewTB);
 
     var contentWindow = aWindow || window.content;
     contentWindow.focus();
-
-    var cmdDispatcher = document.commandDispatcher;
-    cmdDispatcher.suppressFocusScroll = true;
-    if (gFocusedElement instanceof HTMLElement ||
-        gFocusedElement instanceof XULElement ||
-        gFocusedElement instanceof Window) {
-      gFocusedElement.focus();
-    }
-    else if (gFocusedElement instanceof Node) {
-      var content = window.content;
-      if (content instanceof Components.interfaces.nsIInterfaceRequestor)
-        content.getInterface(Components.interfaces.nsIDOMWindowUtils).focus(gFocusedElement);
-      }
-    gFocusedElement = null;
-    cmdDispatcher.suppressFocusScroll = false;
 
     // on Exit PP Call back
     if (this._onExitPP) {

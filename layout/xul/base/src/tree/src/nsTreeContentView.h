@@ -72,11 +72,19 @@ class nsTreeContentView : public nsINativeTreeView,
                                       nsIContent* aContent1,
                                       nsIContent* aContent2,
                                       PRInt32 aStateMask);
-    NS_DECL_NSIMUTATIONOBSERVER_ATTRIBUTECHANGED
-    NS_DECL_NSIMUTATIONOBSERVER_CONTENTAPPENDED
-    NS_DECL_NSIMUTATIONOBSERVER_CONTENTINSERTED
-    NS_DECL_NSIMUTATIONOBSERVER_CONTENTREMOVED
-    NS_DECL_NSIMUTATIONOBSERVER_NODEWILLBEDESTROYED
+    virtual void AttributeChanged(nsIDocument *aDocument, nsIContent* aContent,
+                                  PRInt32 aNameSpaceID, nsIAtom* aAttribute,
+                                  PRInt32 aModType);
+    virtual void ContentAppended(nsIDocument *aDocument,
+                                 nsIContent* aContainer,
+                                 PRInt32 aNewIndexInContainer);
+    virtual void ContentInserted(nsIDocument *aDocument,
+                                 nsIContent* aContainer,
+                                 nsIContent* aChild,
+                                 PRInt32 aIndexInContainer);
+    virtual void ContentRemoved(nsIDocument *aDocument, nsIContent* aContainer,
+                                nsIContent* aChild, PRInt32 aIndexInContainer);
+    virtual void NodeWillBeDestroyed(const nsINode* aNode);
 
   protected:
     // Recursive methods which deal with serializing of nested content.
@@ -124,7 +132,6 @@ class nsTreeContentView : public nsINativeTreeView,
     nsCOMPtr<nsITreeBoxObject>          mBoxObject;
     nsCOMPtr<nsITreeSelection>          mSelection;
     nsCOMPtr<nsIContent>                mRoot;
-    nsCOMPtr<nsIContent>                mBody;
     nsIDocument*                        mDocument;      // WEAK
     nsFixedSizeAllocator                mAllocator;
     nsVoidArray                         mRows;

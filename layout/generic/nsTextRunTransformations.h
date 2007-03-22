@@ -40,24 +40,32 @@
 
 #include "gfxFont.h"
 
-class nsTransformedTextRun;
+class nsCaseTransformingTextRun;
 class nsStyleContext;
 
-class nsTransformingTextRunFactory {
+class nsTransformingTextRunFactory : public gfxTextRunFactory {
 public:
-  virtual ~nsTransformingTextRunFactory() {}
+  nsTransformingTextRunFactory(gfxTextRunFactory* aInnerTextRunFactory,
+                               nsTransformingTextRunFactory* aInnerTransformingTextRunFactory)
+    : mInnerTextRunFactory(aInnerTextRunFactory),
+      mInnerTransformingTextRunFactory(aInnerTransformingTextRunFactory),
+      mStyles(nsnull) {}
 
+  // Assign style contexts to each character in the string. Call this before
+  // calling MakeTextRun. The array needs to have a lifetime covering the
+  // call to MakeTextRun.
+  virtual void SetStyles(nsStyleContext** aStyles) { mStyles = aStyles; }
   // Default 8-bit path just transforms to Unicode and takes that path
-  gfxTextRun* MakeTextRun(const PRUint8* aString, PRUint32 aLength,
-                          const gfxFontGroup::Parameters* aParams,
-                          gfxFontGroup* aFontGroup, PRUint32 aFlags,
-                          nsStyleContext** aStyles, PRBool aOwnsFactory = PR_TRUE);
-  gfxTextRun* MakeTextRun(const PRUnichar* aString, PRUint32 aLength,
-                          const gfxFontGroup::Parameters* aParams,
-                          gfxFontGroup* aFontGroup, PRUint32 aFlags,
-                          nsStyleContext** aStyles, PRBool aOwnsFactory = PR_TRUE);
+  virtual gfxTextRun* MakeTextRun(const PRUint8* aString, PRUint32 aLength,
+                                  Parameters* aParams);
+  // Redeclare this to make C++ compiler shut up
+  virtual gfxTextRun* MakeTextRun(const PRUnichar* aString, PRUint32 aLength,
+                                  Parameters* aParams) = 0;
 
-  virtual void RebuildTextRun(nsTransformedTextRun* aTextRun, gfxContext* aRefContext) = 0;
+protected:
+  nsRefPtr<gfxTextRunFactory>            mInnerTextRunFactory;
+  nsRefPtr<nsTransformingTextRunFactory> mInnerTransformingTextRunFactory;
+  nsStyleContext**                       mStyles;
 };
 
 /**
@@ -66,7 +74,19 @@ public:
  */
 class nsFontVariantTextRunFactory : public nsTransformingTextRunFactory {
 public:
-  virtual void RebuildTextRun(nsTransformedTextRun* aTextRun, gfxContext* aRefContext);
+  nsFontVariantTextRunFactory(gfxFontGroup* aFontGroup)
+    : nsTransformingTextRunFactory(aFontGroup, nsnull), mFontGroup(aFontGroup) {}
+    
+  // Redeclare this to make C++ compiler shut up
+  virtual gfxTextRun* MakeTextRun(const PRUint8* aString, PRUint32 aLength,
+                                  Parameters* aParams) {
+    return nsTransformingTextRunFactory::MakeTextRun(aString, aLength, aParams);
+  }
+  virtual gfxTextRun* MakeTextRun(const PRUnichar* aString, PRUint32 aLength,
+                                  Parameters* aParams);
+
+private:
+  nsRefPtr<gfxFontGroup> mFontGroup;
 };
 
 /**
@@ -75,79 +95,30 @@ public:
  */
 class nsCaseTransformTextRunFactory : public nsTransformingTextRunFactory {
 public:
-  // We could add an optimization here so that when there is no inner
-  // factory, no title-case conversion, and no upper-casing of SZLIG, we override
-  // MakeTextRun (after making it virtual in the superclass) and have it
-  // just convert the string to uppercase or lowercase and create the textrun
-  // via the fontgroup.
-  
-  // Takes ownership of aInnerTransformTextRunFactory
-  nsCaseTransformTextRunFactory(nsTransformingTextRunFactory* aInnerTransformingTextRunFactory,
+  nsCaseTransformTextRunFactory(gfxTextRunFactory* aInnerTextRunFactory,
+                                nsTransformingTextRunFactory* aInnerTransformingTextRunFactory,
                                 PRBool aAllUppercase = PR_FALSE)
-    : mInnerTransformingTextRunFactory(aInnerTransformingTextRunFactory),
+    : nsTransformingTextRunFactory(aInnerTextRunFactory, aInnerTransformingTextRunFactory),
       mAllUppercase(aAllUppercase) {}
 
-  virtual void RebuildTextRun(nsTransformedTextRun* aTextRun, gfxContext* aRefContext);
-
-protected:
-  nsAutoPtr<nsTransformingTextRunFactory> mInnerTransformingTextRunFactory;
-  PRPackedBool                            mAllUppercase;
-};
-
-/**
- * So that we can reshape as necessary, we store enough information
- * to fully rebuild the textrun contents.
- */
-class nsTransformedTextRun : public gfxTextRun {
-public:
-  static nsTransformedTextRun *Create(const gfxTextRunFactory::Parameters* aParams,
-                                      nsTransformingTextRunFactory* aFactory,
-                                      gfxFontGroup* aFontGroup,
-                                      const PRUnichar* aString, PRUint32 aLength,
-                                      const PRUint32 aFlags, nsStyleContext** aStyles,
-                                      PRBool aOwnsFactory);
-
-  ~nsTransformedTextRun() {
-    if (mOwnsFactory) {
-      delete mFactory;
-    }
+  // Redeclare this to make C++ compiler shut up
+  virtual gfxTextRun* MakeTextRun(const PRUint8* aString, PRUint32 aLength,
+                                  Parameters* aParams) {
+    return nsTransformingTextRunFactory::MakeTextRun(aString, aLength, aParams);
   }
-  
-  virtual void SetCapitalization(PRUint32 aStart, PRUint32 aLength,
-                                 PRPackedBool* aCapitalization,
-                                 gfxContext* aRefContext);
-  virtual PRBool SetPotentialLineBreaks(PRUint32 aStart, PRUint32 aLength,
-                                        PRPackedBool* aBreakBefore,
-                                        gfxContext* aRefContext);
-  virtual PRBool SetLineBreaks(PRUint32 aStart, PRUint32 aLength,
-                               PRBool aLineBreakBefore, PRBool aLineBreakAfter,
-                               gfxFloat* aAdvanceWidthDelta,
-                               gfxContext* aRefContext);
+  virtual gfxTextRun* MakeTextRun(const PRUnichar* aString, PRUint32 aLength,
+                                  Parameters* aParams);
 
-  nsTransformingTextRunFactory       *mFactory;
-  nsTArray<PRUint32>                  mLineBreaks;
-  nsTArray<nsRefPtr<nsStyleContext> > mStyles;
-  nsTArray<PRPackedBool>              mCapitalize;
-  PRPackedBool                        mOwnsFactory;
+  // We need these for the implementation of case-transforming text runs
+  gfxTextRunFactory* GetInnerTextRunFactory() { return mInnerTextRunFactory; }
+  nsTransformingTextRunFactory* GetInnerTransformingTextRunFactory() {
+    return mInnerTransformingTextRunFactory;
+  }
+  nsStyleContext** GetStyles() { return mStyles; }
+  PRBool IsAllUppercase() { return mAllUppercase; }
 
 private:
-  nsTransformedTextRun(const gfxTextRunFactory::Parameters* aParams,
-                       nsTransformingTextRunFactory* aFactory,
-                       gfxFontGroup* aFontGroup,
-                       const PRUnichar* aString, PRUint32 aLength,
-                       const PRUint32 aFlags, nsStyleContext** aStyles,
-                       PRBool aOwnsFactory)
-    : gfxTextRun(aParams, aString, aLength, aFontGroup, aFlags, sizeof(nsTransformedTextRun)),
-      mFactory(aFactory), mOwnsFactory(aOwnsFactory)
-  {
-    PRUint32 i;
-    for (i = 0; i < aLength; ++i) {
-      mStyles.AppendElement(aStyles[i]);
-    }
-    for (i = 0; i < aParams->mInitialBreakCount; ++i) {
-      mLineBreaks.AppendElement(aParams->mInitialBreaks[i]);
-    }
-  }  
+  PRPackedBool mAllUppercase;
 };
 
 #endif /*NSTEXTRUNTRANSFORMATIONS_H_*/

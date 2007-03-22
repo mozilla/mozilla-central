@@ -40,7 +40,6 @@
 
 #include "nsString.h"
 #include "nsTArray.h"
-#include "nsILineBreaker.h"
 
 class nsIAtom;
 
@@ -57,12 +56,6 @@ public:
    * @param aBreakBefore the break-before states for the characters in the substring.
    */
   virtual void SetBreaks(PRUint32 aStart, PRUint32 aLength, PRPackedBool* aBreakBefore) = 0;
-  
-  /**
-   * Indicates which characters should be capitalized. Only called if
-   * BREAK_NEED_CAPITALIZATION was requested.
-   */
-  virtual void SetCapitalization(PRUint32 aStart, PRUint32 aLength, PRPackedBool* aCapitalize) = 0;
 };
 
 /**
@@ -79,101 +72,57 @@ public:
  * into AppendText calls.
  * 
  * The current strategy is that we break the overall text into
- * whitespace-delimited "words". Then those words are passed to the nsILineBreaker
- * service for deeper analysis if they contain a "complex" character as described
- * below.
- * 
- * This class also handles detection of which characters should be capitalized
- * for text-transform:capitalize. This is a good place to handle that because
- * we have all the context we need.
+ * whitespace-delimited "words". Then for words that contain a CJK character,
+ * we break within the word using JISx4051 rules.
+ * XXX This approach is not very good and we should replace it with something
+ * better, such as some variant of UAX#14.
  */
 class nsLineBreaker {
 public:
   nsLineBreaker();
   ~nsLineBreaker();
-  
-  static inline PRBool IsSpace(PRUnichar u) { return NS_IsSpace(u); }
 
-  static inline PRBool IsComplexASCIIChar(PRUnichar u)
-  {
-    return !((0x0030 <= u && u <= 0x0039) ||
-             (0x0041 <= u && u <= 0x005A) ||
-             (0x0061 <= u && u <= 0x007A));
-  }
-
-  static inline PRBool IsComplexChar(PRUnichar u)
-  {
-    return IsComplexASCIIChar(u) ||
-           NS_NeedsPlatformNativeHandling(u) ||
-           (0x1100 <= u && u <= 0x11ff) || // Hangul Jamo
-           (0x2000 <= u && u <= 0x21ff) || // Punctuations and Symbols
-           (0x2e80 <= u && u <= 0xd7ff) || // several CJK blocks
-           (0xf900 <= u && u <= 0xfaff) || // CJK Compatibility Idographs
-           (0xff00 <= u && u <= 0xffef);   // Halfwidth and Fullwidth Forms
-  }
-
-  // Break opportunities exist at the end of each run of breakable whitespace
-  // (see IsSpace above). Break opportunities can also exist between pairs of
-  // non-whitespace characters, as determined by nsILineBreaker. We pass a whitespace-
-  // delimited word to nsILineBreaker if it contains at least one character
-  // matching IsComplexChar.
-  // We provide flags to control on a per-chunk basis where breaks are allowed.
-  // At any character boundary, exactly one text chunk governs whether a
-  // break is allowed at that boundary.
-  //
-  // We operate on text after whitespace processing has been applied, so
-  // other characters (e.g. tabs and newlines) may have been converted to
-  // spaces.
-
-  /**
-   * Flags passed with each chunk of text.
-   */
+  // We need finegrained control of the line breaking behaviour to ensure
+  // that we get tricky CSS semantics right (in particular, the way we currently
+  // interpret and implement them; there's some ambiguity in the spec). The
+  // rules for CSS 'white-space' are slightly different for breaks induced by
+  // whitespace and space induced by nonwhitespace. Breaks induced by
+  // whitespace are always controlled by the
+  // 'white-space' property of the text node containing the
+  // whitespace. Breaks induced by non-whitespace where the break is between
+  // two nodes are controled by the 'white-space' property on the nearest
+  // common ancestor node. Therefore we provide separate control over
+  // a) whether whitespace in this text induces breaks b) whether we can
+  // break between nonwhitespace inside this text and c) whether we can break
+  // between nonwhitespace between the last text and this text.
   enum {
-    /*
-     * Do not introduce a break opportunity at the start of this chunk of text.
-     */
-    BREAK_SUPPRESS_INITIAL = 0x01,
     /**
-     * Do not introduce a break opportunity in the interior of this chunk of text.
-     * Also, whitespace in this chunk is treated as non-breakable.
+     * Allow breaks before and after whitespace in this block of text
      */
-    BREAK_SUPPRESS_INSIDE = 0x02,
+    BREAK_WHITESPACE           = 0x01,
     /**
-     * The sink currently is already set up to have no breaks in it;
-     * if no breaks are possible, nsLineBreaker does not need to call
-     * SetBreaks on it. This is useful when handling large quantities of
-     * preformatted text; the textruns will never have any breaks set on them,
-     * and there is no need to ever actually scan the text for breaks, except
-     * at the end of textruns in case context is needed for following breakable
-     * text.
+     * Allow breaks between eligible nonwhitespace characters when the break
+     * is in the interior of this block of text.
      */
-    BREAK_SKIP_SETTING_NO_BREAKS = 0x04,
+    BREAK_NONWHITESPACE_INSIDE = 0x02,
     /**
-     * We need to be notified of characters that should be capitalized
-     * (as in text-transform:capitalize) in this chunk of text.
+     * Allow break between eligible nonwhitespace characters when the break
+     * is at the beginning of this block of text.
      */
-    BREAK_NEED_CAPITALIZATION = 0x08
+    BREAK_NONWHITESPACE_BEFORE = 0x04
   };
 
   /**
-   * Append "invisible whitespace". This acts like whitespace, but there is
-   * no actual text associated with it. Only the BREAK_SUPPRESS_INSIDE flag
-   * is relevant here.
-   */
-  nsresult AppendInvisibleWhitespace(PRUint32 aFlags);
-
-  /**
-   * Feed Unicode text into the linebreaker for analysis. aLength must be
-   * nonzero.
-   * @param aSink can be null if the breaks are not actually needed (we may
-   * still be setting up state for later breaks)
+   * Feed Unicode text into the linebreaker for analysis.
+   * If aLength is zero, then we assume the string is "invisible whitespace"
+   * which can induce breaks.
    */
   nsresult AppendText(nsIAtom* aLangGroup, const PRUnichar* aText, PRUint32 aLength,
                       PRUint32 aFlags, nsILineBreakSink* aSink);
   /**
-   * Feed 8-bit text into the linebreaker for analysis. aLength must be nonzero.
-   * @param aSink can be null if the breaks are not actually needed (we may
-   * still be setting up state for later breaks)
+   * Feed 8-bit text into the linebreaker for analysis.
+   * If aLength is zero, then we assume the string is "invisible whitespace"
+   * which can induce breaks.
    */
   nsresult AppendText(nsIAtom* aLangGroup, const PRUint8* aText, PRUint32 aLength,
                       PRUint32 aFlags, nsILineBreakSink* aSink);
@@ -184,16 +133,10 @@ public:
    * After this call, this linebreaker can be reused.
    * This must be called at least once between any call to AppendText() and
    * destroying the object.
-   * @param aTrailingBreak this is set to true when there is a break opportunity
-   * at the end of the text. This will normally only be declared true when there
-   * is breakable whitespace at the end.
    */
-  nsresult Reset(PRBool* aTrailingBreak);
+  nsresult Reset() { return FlushCurrentWord(); }
 
 private:
-  // This is a list of text sources that make up the "current word" (i.e.,
-  // run of text which does not contain any whitespace). All the mLengths
-  // are are nonzero, these cannot overlap.
   struct TextItem {
     TextItem(nsILineBreakSink* aSink, PRUint32 aSinkOffset, PRUint32 aLength,
              PRUint32 aFlags)
@@ -216,13 +159,11 @@ private:
   nsAutoTArray<PRUnichar,100> mCurrentWord;
   // All the items that contribute to mCurrentWord
   nsAutoTArray<TextItem,2>    mTextItems;
-  PRPackedBool                mCurrentWordContainsComplexChar;
+  PRPackedBool                mCurrentWordContainsCJK;
 
-  // True if the previous character was breakable whitespace
-  PRPackedBool                mAfterBreakableSpace;
-  // True if a break must be allowed at the current position because
-  // a run of breakable whitespace ends here
-  PRPackedBool                mBreakHere;
+  // When mCurrentWord is empty, this indicates whether we should allow a break
+  // before the next text.
+  PRPackedBool             mBreakBeforeNextWord;
 };
 
 #endif /*NSLINEBREAKER_H_*/

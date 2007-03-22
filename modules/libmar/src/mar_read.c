@@ -179,13 +179,13 @@ static int mar_read_index(MarFile *mar) {
   return (bufptr == bufend) ? 0 : -1;
 }
 
-/**
- * Internal shared code for mar_open and mar_wopen.
- * On failure, will fclose(fp).
- */
-static MarFile *mar_fpopen(FILE *fp)
-{
+MarFile *mar_open(const char *path) {
   MarFile *mar;
+  FILE *fp;
+
+  fp = fopen(path, "rb");
+  if (!fp)
+    return NULL;
 
   mar = (MarFile *) malloc(sizeof(*mar));
   if (!mar) {
@@ -202,28 +202,6 @@ static MarFile *mar_fpopen(FILE *fp)
 
   return mar;
 }
-
-MarFile *mar_open(const char *path) {
-  FILE *fp;
-
-  fp = fopen(path, "rb");
-  if (!fp)
-    return NULL;
-
-  return mar_fpopen(fp);
-}
-
-#ifdef XP_WIN
-MarFile *mar_wopen(const PRUnichar *path) {
-  FILE *fp;
-
-  fp = _wfopen(path, L"rb");
-  if (!fp)
-    return NULL;
-
-  return mar_fpopen(fp);
-}
-#endif
 
 void mar_close(MarFile *mar) {
   MarItem *item;

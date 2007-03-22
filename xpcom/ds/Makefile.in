@@ -58,6 +58,7 @@ CPPSRCS		= \
 		nsByteBuffer.cpp \
 		nsCheapSets.cpp \
 		nsCRT.cpp \
+		nsDeque.cpp \
 		nsFixedSizeAllocator.cpp \
 		nsHashSets.cpp \
 		nsHashtable.cpp \
@@ -74,7 +75,9 @@ CPPSRCS		= \
 		nsSupportsPrimitives.cpp \
 		nsUnicharBuffer.cpp \
 		nsVariant.cpp \
+		nsTextFormatter.cpp \
 		nsTimelineService.cpp \
+		nsValueArray.cpp \
 		nsArray.cpp \
 		nsHashPropertyBag.cpp \
 		$(NULL)
@@ -84,8 +87,8 @@ EXPORTS		= \
 		nsCheapSets.h \
 		nsCppSharedAllocator.h \
 		nsCRT.h \
+		nsDeque.h \
 		nsDoubleHashtable.h \
-		nsExpirationTracker.h \
 		nsFixedSizeAllocator.h \
 		nsHashSets.h \
 		nsHashtable.h \
@@ -100,10 +103,13 @@ EXPORTS		= \
 		nsSupportsArray.h \
 		nsSupportsPrimitives.h \
 		nsTime.h \
+		nsUnitConversion.h \
 		nsVariant.h \
+		nsTextFormatter.h \
+		nsValueArray.h \
 		nsStringEnumerator.h \
+		nsAutoBuffer.h \
 		nsHashPropertyBag.h \
-		nsWhitespaceTokenizer.h \
 		$(NULL)			
 
 XPIDLSRCS	= \
@@ -111,6 +117,7 @@ XPIDLSRCS	= \
 		nsIAtomService.idl \
 		nsICollection.idl \
 		nsIEnumerator.idl \
+		nsIHashable.idl \
 		nsIINIParser.idl \
 		nsIPersistentProperties2.idl \
 		nsIProperty.idl \
@@ -129,7 +136,6 @@ XPIDLSRCS	= \
 
 SDK_XPIDLSRCS   = \
 		nsIArray.idl               \
-		nsIHashable.idl            \
 		nsIMutableArray.idl        \
 		nsIObserverService.idl	   \
 		nsIObserver.idl		   \

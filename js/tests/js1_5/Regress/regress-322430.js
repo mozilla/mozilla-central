@@ -34,27 +34,26 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-322430.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 322430;
+var bug = 322430;
 var summary = 'Remove deprecated with statement warning';
 var actual = '';
 var expect = '';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
-options('strict');
-options('werrror');
+var jsOptions = new JavaScriptOptions();
+jsOptions.setOption('strict', true);
+jsOptions.setOption('werror', true);
 
 expect = 'No Warning';
 
 try
 {
   var obj = {foo: 'baz'};
- 
-  // this must either be top level or must be
+  
+  // this must either be top level or must be 
   // evald since there is a bug in older versions
   // that suppresses the |with| warning inside of a
   // try catch block. doh!
@@ -66,5 +65,6 @@ catch(ex)
 {
   actual = ex + '';
 }
+jsOptions.reset();
 
 reportCompare(expect, actual, summary);

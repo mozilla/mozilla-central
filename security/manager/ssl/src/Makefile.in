@@ -57,20 +57,14 @@ LIBXUL_LIBRARY	= 1
 PACKAGE_FILE = pipnss.pkg
 
 CPPSRCS = 				\
-	nsNSSCleaner.cpp                \
-	nsCertOverrideService.cpp   \
-	nsRecentBadCerts.cpp \
-        nsClientAuthRemember.cpp        \
 	nsPSMBackgroundThread.cpp       \
 	nsSSLThread.cpp                 \
 	nsCertVerificationThread.cpp    \
 	nsCipherInfo.cpp \
-	nsProtectedAuthThread.cpp \
 	nsNSSCallbacks.cpp		\
 	nsNSSComponent.cpp		\
 	nsNSSErrors.cpp			\
 	nsNSSIOLayer.cpp		\
-	nsSSLStatus.cpp		\
 	nsNSSModule.cpp			\
 	nsSSLSocketProvider.cpp		\
 	nsTLSSocketProvider.cpp		\
@@ -101,10 +95,7 @@ CPPSRCS = 				\
   nsSmartCardEvent.cpp \
   nsStreamCipher.cpp \
   nsKeyModule.cpp \
-  nsIdentityChecking.cpp \
-  nsDataSignatureVerifier.cpp \
-  nsRandomGenerator.cpp \
-  $(NULL)
+	$(NULL)
 
 ifdef MOZ_XUL
 CPPSRCS += nsCertTree.cpp

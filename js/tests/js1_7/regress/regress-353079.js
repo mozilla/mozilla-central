@@ -34,10 +34,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-353079.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 353079;
+var bug = 353079;
 var summary = 'Do not Assert op == JSOP_LEAVEBLOCKEXPR... with WAY_TOO_MUCH_GC';
 var actual = '';
 var expect = '';
@@ -50,10 +48,10 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
- 
-  for (let a in [1]) let (x) {
+  
+  for (let a in [1]) let (x) { 
     for (let y in ((function(id2) { return id2; })( '' ))) { } }
 
   reportCompare(expect, actual, summary);

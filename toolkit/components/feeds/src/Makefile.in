@@ -53,6 +53,7 @@ REQUIRES	= \
 		necko \
 		string \
 		widget \
+		js \
 		dom \
 		htmlparser \
 		content \

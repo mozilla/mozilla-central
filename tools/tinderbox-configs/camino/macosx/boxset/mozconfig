@@ -1,9 +1,0 @@
-#
-## hostname: boxset
-## uname: Darwin boxset 8.10.0 Darwin Kernel Version 8.10.0: Wed May 23 16:50:59 PDT 2007; root:xnu-792.21.3~1/RELEASE_PPC Power Macintosh powerpc
-#
-
-. $topsrcdir/camino/config/mozconfig
-ac_add_options --enable-optimize="-O2"
-mk_add_options MOZ_MAKE_FLAGS=-j2
-mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/../build

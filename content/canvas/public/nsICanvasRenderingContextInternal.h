@@ -42,12 +42,13 @@
 #include "nsICanvasElement.h"
 #include "nsIInputStream.h"
 
-// {eab854fd-aa5e-44bb-8cc5-8d02f84b0216}
+// {05150761-22A3-4e8d-A03E-EC53CB731C70}
 #define NS_ICANVASRENDERINGCONTEXTINTERNAL_IID \
-  { 0xeab854fd, 0xaa5e, 0x44bb, { 0x8c, 0xc5, 0x8d, 0x02, 0xf8, 0x4b, 0x02, 0x16 } }
+  { 0x5150761, 0x22a3, 0x4e8d, { 0xa0, 0x3e, 0xec, 0x53, 0xcb, 0x73, 0x1c, 0x70 } }
 
-class gfxContext;
-class gfxASurface;
+class nsIRenderingContext;
+
+struct _cairo_surface;
 
 class nsICanvasRenderingContextInternal : public nsISupports {
 public:
@@ -61,8 +62,11 @@ public:
   // whenever the size of the element changes.
   NS_IMETHOD SetDimensions(PRInt32 width, PRInt32 height) = 0;
 
-  // Render the canvas at the origin of the given gfxContext
-  NS_IMETHOD Render(gfxContext *ctx) = 0;
+  // Render the canvas at the origin of the given nsIRenderingContext
+  NS_IMETHOD Render(nsIRenderingContext *rc) = 0;
+
+  // Render the canvas at the origin of the given cairo surface
+  NS_IMETHOD RenderToSurface(struct _cairo_surface *surf) = 0;
 
   // Gives you a stream containing the image represented by this context.
   // The format is given in aMimeTime, for example "image/png".
@@ -70,13 +74,9 @@ public:
   // If the image format does not support transparency or aIncludeTransparency
   // is false, alpha will be discarded and the result will be the image
   // composited on black.
-  NS_IMETHOD GetInputStream(const char *aMimeType,
-                            const PRUnichar *aEncoderOptions,
+  NS_IMETHOD GetInputStream(const nsACString& aMimeType,
+                            const nsAString& aEncoderOptions,
                             nsIInputStream **aStream) = 0;
-
-  // If this canvas context can be represented with a simple Thebes surface,
-  // return the surface.  Otherwise returns an error.
-  NS_IMETHOD GetThebesSurface(gfxASurface **surface) = 0;
 };
 
 NS_DEFINE_STATIC_IID_ACCESSOR(nsICanvasRenderingContextInternal,

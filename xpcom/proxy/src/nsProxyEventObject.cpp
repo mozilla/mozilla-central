@@ -57,9 +57,9 @@ nsProxyEventObject::nsProxyEventObject(nsProxyObject *aParent,
                             nsProxyEventClass* aClass,
                             already_AddRefed<nsISomeInterface> aRealInterface,
                             nsresult *rv)
-    : mClass(aClass),
+    : mRealInterface(aRealInterface),
+      mClass(aClass),
       mProxyObject(aParent),
-      mRealInterface(aRealInterface),
       mNext(nsnull)
 {
     *rv = InitStub(aClass->GetProxiedIID());
@@ -67,54 +67,40 @@ nsProxyEventObject::nsProxyEventObject(nsProxyObject *aParent,
 
 nsProxyEventObject::~nsProxyEventObject()
 {
-    // This destructor must *not* be called within the POM lock
+    // This destructor is always called within the POM monitor.
     // XXX assert this!
 
-    // mRealInterface must be released before mProxyObject so that the last
-    // release of the proxied object is proxied to the correct thread.
-    // See bug 337492.
-    mRealInterface = nsnull;
+    mProxyObject->LockedRemove(this);
 }
 
 //
 // nsISupports implementation...
 //
 
-NS_IMETHODIMP_(nsrefcnt)
-nsProxyEventObject::AddRef()
-{
-    nsAutoLock lock(nsProxyObjectManager::GetInstance()->GetLock());
-    return LockedAddRef();
-}
-
-nsrefcnt
-nsProxyEventObject::LockedAddRef()
-{
-    ++mRefCnt;
-    NS_LOG_ADDREF(this, mRefCnt, "nsProxyEventObject", sizeof(nsProxyEventObject));
-    return mRefCnt;
-}
+NS_IMPL_THREADSAFE_ADDREF(nsProxyEventObject)
 
 NS_IMETHODIMP_(nsrefcnt)
 nsProxyEventObject::Release(void)
 {
-    {
-        nsAutoLock lock(nsProxyObjectManager::GetInstance()->GetLock());
-        NS_PRECONDITION(0 != mRefCnt, "dup release");
+    nsAutoMonitor mon(nsProxyObjectManager::GetInstance()->GetMonitor());
 
-        --mRefCnt;
-        NS_LOG_RELEASE(this, mRefCnt, "nsProxyEventObject");
-
-        if (mRefCnt)
-            return mRefCnt;
-
-        mProxyObject->LockedRemove(this);
+    nsrefcnt count;
+    NS_PRECONDITION(0 != mRefCnt, "dup release");
+    // Decrement atomically - in case the Proxy Object Manager has already
+    // been deleted and the monitor is unavailable...
+    count = PR_AtomicDecrement((PRInt32 *)&mRefCnt);
+    NS_LOG_RELEASE(this, count, "nsProxyEventObject");
+    if (0 == count) {
+        mRefCnt = 1; /* stabilize */
+        //
+        // Remove the proxy from the hashtable (if necessary) or its
+        // proxy chain.  This must be done inside of the proxy lock to
+        // prevent GetNewOrUsedProxy(...) from ressurecting it...
+        //
+        NS_DELETEXPCOM(this);
+        return 0;
     }
-
-    // call the destructor outside of the lock so that we aren't holding the
-    // lock when we release the object
-    NS_DELETEXPCOM(this);
-    return 0;
+    return count;
 }
 
 NS_IMETHODIMP
@@ -122,7 +108,7 @@ nsProxyEventObject::QueryInterface(REFNSIID aIID, void** aInstancePtr)
 {
     if( aIID.Equals(GetClass()->GetProxiedIID()) )
     {
-        *aInstancePtr = static_cast<nsISupports*>(mXPTCStub);
+        *aInstancePtr = NS_STATIC_CAST(nsISupports*, mXPTCStub);
         NS_ADDREF_THIS();
         return NS_OK;
     }
@@ -154,8 +140,7 @@ nsProxyEventObject::convertMiniVariantToVariant(const XPTMethodDescriptor *metho
     for (int i = 0; i < paramCount; i++)
     {
         const nsXPTParamInfo& paramInfo = methodInfo->params[i];
-        if ((GetProxyType() & NS_PROXY_ASYNC) &&
-            (paramInfo.IsOut() || paramInfo.IsDipper()))
+        if ((GetProxyType() & NS_PROXY_ASYNC) && paramInfo.IsDipper())
         {
             NS_WARNING("Async proxying of out parameters is not supported"); 
             free(*fullParam);

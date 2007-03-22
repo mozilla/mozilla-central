@@ -112,7 +112,6 @@
 
     <hbox align="center" pack="end">
       <button label="&saveChanges.label;"
-              id="donebutton"
               oncommand="finishToolbarCustomization();"
               default="true"
               icon="close"/>

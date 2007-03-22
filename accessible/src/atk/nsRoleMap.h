@@ -56,7 +56,7 @@ static const PRUint32 atkRoleMap[] = {
     ATK_ROLE_UNKNOWN,             // nsIAccessibleRole::ROLE_CARET                7
     ATK_ROLE_ALERT,               // nsIAccessibleRole::ROLE_ALERT                8
     ATK_ROLE_WINDOW,              // nsIAccessibleRole::ROLE_WINDOW               9
-    ATK_ROLE_INTERNAL_FRAME,      // nsIAccessibleRole::ROLE_INTERNAL_FRAME       10
+    ATK_ROLE_PANEL,               // nsIAccessibleRole::ROLE_CLIENT               10
     ATK_ROLE_MENU,                // nsIAccessibleRole::ROLE_MENUPOPUP            11
     ATK_ROLE_MENU_ITEM,           // nsIAccessibleRole::ROLE_MENUITEM             12
     ATK_ROLE_TOOL_TIP,            // nsIAccessibleRole::ROLE_TOOLTIP              13
@@ -74,7 +74,7 @@ static const PRUint32 atkRoleMap[] = {
     ATK_ROLE_COLUMN_HEADER,       // nsIAccessibleRole::ROLE_COLUMNHEADER         25
     ATK_ROLE_ROW_HEADER,          // nsIAccessibleRole::ROLE_ROWHEADER            26
     ATK_ROLE_UNKNOWN,             // nsIAccessibleRole::ROLE_COLUMN               27
-    ATK_ROLE_LIST_ITEM,           // nsIAccessibleRole::ROLE_ROW                  28
+    ATK_ROLE_UNKNOWN,             // nsIAccessibleRole::ROLE_ROW                  28
     ATK_ROLE_TABLE_CELL,          // nsIAccessibleRole::ROLE_CELL                 29
     ATK_ROLE_LINK,                // nsIAccessibleRole::ROLE_LINK                 30
     ATK_ROLE_UNKNOWN,             // nsIAccessibleRole::ROLE_HELPBALLOON          31
@@ -161,12 +161,7 @@ static const PRUint32 atkRoleMap[] = {
     ATK_ROLE_MENU,                // nsIAccessibleRole::ROLE_PARENT_MENUITEM      112
     ATK_ROLE_CALENDAR,            // nsIAccessibleRole::ROLE_CALENDAR             113
     ATK_ROLE_MENU,                // nsIAccessibleRole::ROLE_COMBOBOX_LIST        114
-    ATK_ROLE_MENU_ITEM,           // nsIAccessibleRole::ROLE_COMBOBOX_OPTION      115
-    ATK_ROLE_IMAGE,               // nsIAccessibleRole::ROLE_IMAGE_MAP            116
-    ATK_ROLE_LIST_ITEM,           // nsIAccessibleRole::ROLE_OPTION               117
-    ATK_ROLE_LIST_ITEM,           // nsIAccessibleRole::ROLE_RICH_OPTION          118
-    ATK_ROLE_LIST,                // nsIAccessibleRole::ROLE_LISTBOX              119
-    ATK_ROLE_UNKNOWN,             // nsIAccessibleRole::ROLE_FLAT_EQUATION        120
+    ATK_ROLE_MENU_ITEM,           // nsIAccessibleRole::ROLE_COMBOBOX_LISTITEM    115
     kROLE_ATK_LAST_ENTRY          // nsIAccessibleRole::ROLE_LAST_ENTRY
 };
 

@@ -63,6 +63,12 @@
 #endif
 #include "prlink.h"  // for PRLibrary
 
+#if defined (MOZ_WIDGET_GTK) || defined (MOZ_WIDGET_GTK2)
+#include <gtk/gtk.h>
+#elif defined (MOZ_WIDGET_XLIB)
+#include "xlibxtbin.h"
+#endif
+
 ////////////////////////////////////////////////////////////////////////
 
 class ns4xPluginStreamListener;
@@ -99,8 +105,6 @@ public:
 
     virtual PRUint16 GetPluginAPIVersion();
 
-    virtual void DefineJavaProperties();
-
     ////////////////////////////////////////////////////////////////////////
     // ns4xPluginInstance-specific methods
 
@@ -117,11 +121,6 @@ public:
     NPError SetWindowless(PRBool aWindowless);
 
     NPError SetTransparent(PRBool aTransparent);
-
-#ifdef XP_MACOSX
-    void SetDrawingModel(NPDrawingModel aModel);
-    NPDrawingModel GetDrawingModel();
-#endif
 
     nsresult NewNotifyStream(nsIPluginStreamListener** listener, 
                              void* notifyData, 
@@ -141,7 +140,7 @@ public:
     PRBool IsStarted(void);
 
     // cache this 4.x plugin like an XPCOM plugin
-    nsresult SetCached(PRBool aCache) { mCached = aCache; return NS_OK; }
+    nsresult SetCached(PRBool aCache) { mCached = aCache; return NS_OK; };
 
     // Non-refcounting accessor for faster access to the peer.
     nsIPluginInstancePeer *Peer()
@@ -172,15 +171,21 @@ protected:
      */
     NPPluginFuncs* fCallbacks;
 
+#if defined (MOZ_WIDGET_GTK) || defined (MOZ_WIDGET_GTK2)
+   /**
+    * Special GtkXtBin widget that encapsulates the Xt toolkit
+    * within a Gtk Application
+    */
+   GtkWidget *mXtBin;
+#elif defined (MOZ_WIDGET_XLIB)
+   xtbin *mXlibXtBin;
+#endif
+
     /**
      * The 4.x-style structure used to communicate between the plugin
      * instance and the browser.
      */
     NPP_t fNPP;
-
-#ifdef XP_MACOSX
-    NPDrawingModel mDrawingModel;
-#endif
 
     //these are used to store the windowless properties
     //which the browser will later query
@@ -189,12 +194,8 @@ protected:
     PRPackedBool  mTransparent;
     PRPackedBool  mStarted;
     PRPackedBool  mCached;
-    PRPackedBool  mIsJavaPlugin;
 
 public:
-    // True while creating the plugin, or calling NPP_SetWindow() on
-    // it.
-    PRPackedBool  mInPluginInitCall;
     PRLibrary* fLibrary;
     nsInstanceStream *mStreams;
 

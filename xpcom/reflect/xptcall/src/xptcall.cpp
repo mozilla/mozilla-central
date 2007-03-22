@@ -46,7 +46,7 @@ nsXPTCStubBase::QueryInterface(REFNSIID aIID,
 {
     if (aIID.Equals(mEntry->mIID)) {
         NS_ADDREF_THIS();
-        *aInstancePtr = static_cast<nsISupports*>(this);
+        *aInstancePtr = NS_STATIC_CAST(nsISupports*, this);
         return NS_OK;
     }
 
@@ -90,6 +90,6 @@ NS_GetXPTCallStub(REFNSIID aIID, nsIXPTCProxy* aOuter,
 EXPORT_XPCOM_API(void)
 NS_DestroyXPTCallStub(nsISomeInterface* aStub)
 {
-    nsXPTCStubBase* stub = static_cast<nsXPTCStubBase*>(aStub);
+    nsXPTCStubBase* stub = NS_STATIC_CAST(nsXPTCStubBase*, aStub);
     delete(stub);
 }

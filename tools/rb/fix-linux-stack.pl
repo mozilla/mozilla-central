@@ -36,8 +36,6 @@
 #
 # ***** END LICENSE BLOCK *****
 
-# $Id: fix-linux-stack.pl,v 1.16 2008-05-05 21:51:11 dbaron%dbaron.org Exp $
-#
 # This script uses addr2line (part of binutils) to process the output of
 # nsTraceRefcnt's Linux stack walking code.  This is useful for two
 # things:
@@ -99,21 +97,18 @@ sub address_adjustment($) {
 }
 
 # Files sometimes contain a link to a separate object file that contains
-# the debug sections of the binary, removed so that a smaller file can
-# be shipped, but kept separately so that it can be obtained by those
-# who want it.
+# the debug sections of the binary.
 # See http://sources.redhat.com/gdb/current/onlinedocs/gdb_16.html#SEC154
-# for documentation of debugging information in separate files.
+# for documentation of external debuginfo.
 # On Fedora distributions, these files can be obtained by installing
 # *-debuginfo RPM packages.
-sub separate_debug_file_for($) {
+sub debuginfo_file_for($) {
     my ($file) = @_;
     # We can read the .gnu_debuglink section using either of:
     #   objdump -s --section=.gnu_debuglink $file
     #   readelf -x .gnu_debuglink $file
-    # Since readelf prints things backwards on little-endian platforms
-    # for some versions only (backwards on Fedora Core 6, forwards on
-    # Fedora 7), use objdump.
+    # Since we already depend on readelf in |address_adjustment|, use it
+    # again here.
 
     # See if there's a .gnu_debuglink section
     my $have_debuglink = 0;
@@ -142,13 +137,19 @@ sub separate_debug_file_for($) {
         return '';
     }
 
-
-    # Read the debuglink section as an array of words, in hexidecimal.
-    open(DEBUGLINK, '-|', 'objdump', '-s', '--section=.gnu_debuglink', $file);
+    # Read the debuglink section as an array of words, in hexidecimal,
+    # library endianness.  (I'm guessing that readelf's big-endian
+    # output is sensible; I've only tested little-endian, where it's a
+    # bit odd.)
+    open(DEBUGLINK, '-|', 'readelf', '-x', '.gnu_debuglink', $file);
     my @words;
     while (<DEBUGLINK>) {
-        if ($_ =~ /^ [0-9a-f]* ([0-9a-f ]{8}) ([0-9a-f ]{8}) ([0-9a-f ]{8}) ([0-9a-f ]{8}).*/) {
-            push @words, $1, $2, $3, $4;
+        if ($_ =~ /^  0x[0-9a-f]{8} ([0-9a-f ]{8}) ([0-9a-f ]{8}) ([0-9a-f ]{8}) ([0-9a-f ]{8}).*/) {
+            if ($endian eq 'little') {
+                push @words, $4, $3, $2, $1;
+            } else {
+                push @words, $1, $2, $3, $4;
+            }
         }
     }
     close(DEBUGLINK);
@@ -166,9 +167,13 @@ sub separate_debug_file_for($) {
     while ($#words >= 0) {
         my $w = shift @words;
         if ($w =~ /^([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/) {
-            push @chars, $1, $2, $3, $4;
+            if ($endian eq 'little') {
+                push @chars, $4, $3, $2, $1;
+            } else {
+                push @chars, $1, $2, $3, $4;
+            }
         } else {
-            print STDERR "Warning: malformed objdump output for $file.\n";
+            print STDERR "Warning: malformed readelf output for $file.\n";
             return '';
         }
     }
@@ -183,24 +188,14 @@ sub separate_debug_file_for($) {
         $hash = ($hash_bytes[0] << 24) | ($hash_bytes[1] << 16) | ($hash_bytes[2] << 8) | $hash_bytes[3];
     }
 
-    # The string ends with a null-terminator and then 0 to three bytes
-    # of padding to fill the current 32-bit unit.  (This padding is
-    # usually null bytes, but I've seen null-null-H, on Ubuntu x86_64.)
-    my $terminator = 1;
-    while ($chars[$terminator] ne '00') {
-        if ($terminator == $#chars) {
-            print STDERR "Warning: missing null terminator in " .
-                         ".gnu_debuglink section of $file.\n";
-            return '';
-        }
-        ++$terminator;
+    my $old_num = $#chars;
+    while ($chars[$#chars] eq '00') {
+        pop @chars;
     }
-    if ($#chars - $terminator > 3) {
-        print STDERR "Warning: Excess padding in .gnu_debuglink section " .
-                     "of $file.\n";
+    if ($old_num == $#chars || $old_num - 4 > $#chars) {
+        print STDERR "Warning: malformed .gnu_debuglink section in $file.\n";
         return '';
     }
-    $#chars = $terminator - 1;
 
     my $basename = join('', map { chr(hex($_)) } @chars);
 
@@ -231,11 +226,14 @@ sub addr2line_pipe($) {
     my ($file) = @_;
     my $pipe;
     unless (exists $pipes{$file}) {
-        my $debug_file = separate_debug_file_for($file);
-        $debug_file = $file if ($debug_file eq '');
+        # If it's a system library, see if we have separate debuginfo.
+        if ($file =~ /^\//) {
+            my $debuginfo_file = debuginfo_file_for($file);
+            $file = $debuginfo_file if ($debuginfo_file ne '');
+        }
 
         my $pid = open2($pipe->{read}, $pipe->{write},
-                        '/usr/bin/addr2line', '-C', '-f', '-e', $debug_file);
+                        '/usr/bin/addr2line', '-C', '-f', '-e', $file);
         $pipes{$file} = $pipe;
     } else {
         $pipe = $pipes{$file};
@@ -252,23 +250,17 @@ while (<>) {
         my $address = hex($4);
         my $after = $5; # allow preservation of counts
 
-        if (-f $file) {
-            my $pipe = addr2line_pipe($file);
-            $address += address_adjustment($file);
+        my $pipe = addr2line_pipe($file);
+        $address += address_adjustment($file);
 
-            my $out = $pipe->{write};
-            my $in = $pipe->{read};
-            printf {$out} "0x%X\n", $address;
-            chomp(my $symbol = <$in>);
-            chomp(my $fileandline = <$in>);
-            if ($symbol eq '??') { $symbol = $badsymbol; }
-            if ($fileandline eq '??:0') { $fileandline = $file; }
-            print "$before$symbol ($fileandline)$after\n";
-        } else {
-            print STDERR "Warning: File \"$file\" does not exist.\n";
-            print $line;
-        }
-
+        my $out = $pipe->{write};
+        my $in = $pipe->{read};
+        printf {$out} "0x%X\n", $address;
+        chomp(my $symbol = <$in>);
+        chomp(my $fileandline = <$in>);
+        if ($symbol eq '??') { $symbol = $badsymbol; }
+        if ($fileandline eq '??:0') { $fileandline = $file; }
+        print "$before$symbol ($fileandline)$after\n";
     } else {
         print $line;
     }

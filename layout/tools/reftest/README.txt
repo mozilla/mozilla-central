@@ -33,10 +33,9 @@ running tests at any time to see whether they still pass.
 Manifest Format
 ===============
 
-The test manifest format is a plain text file.  A line starting with a
-"#" is a comment.  Lines may be commented using whitespace followed by
-a "#" and the comment.  Each non-blank line (after removal of comments)
-must be one of the following:
+The test manifest format is a plain text file.  The "#" makes the
+remainder of a line a comment.  Each non-blank line (after removal of
+comments) must be one of the following:
 
 1. Inclusion of another manifest
 
@@ -44,7 +43,7 @@ must be one of the following:
 
 2. A test item
 
-   <failure-type>* [<http>] <type> <url> <url_ref>
+   <failure-type>* <type> <url> <url_ref>
 
    where
 
@@ -64,92 +63,22 @@ must be one of the following:
       random-if(condition) The results of the test are random if a given
                            condition is met.
 
-      skip  This test should not be run. This is useful when a test fails in a
-            catastrophic way, such as crashing or hanging the browser. Using
-            'skip' is preferred to simply commenting out the test because we
-            want to report the test failure at the end of the test run.
+      Examples of random-if:
+          random-if(MOZ_WIDGET_TOOLKIT=="windows")
+          random-if(MOZ_WIDGET_TOOLKIT=="cocoa")
+          random-if(MOZ_WIDGET_TOOLKIT=="gtk2") ...
 
-      skip-if(condition) If the condition is met, the test is not run. This is
-                         useful if, for example, the test crashes only on a
-                         particular platform (i.e. it allows us to get test
-                         coverage on the other platforms).
+   b. <type> is one of the following:
 
-      Examples of using conditions:
-          fails-if(MOZ_WIDGET_TOOLKIT=="windows") ...
-          fails-if(MOZ_WIDGET_TOOLKIT=="cocoa") ...
-          fails-if(MOZ_WIDGET_TOOLKIT=="gtk2") ...
+      ==  The test passes if the images of the two renderings are the
+          SAME.
+      !=  The test passes if the images of the two renderings are 
+          DIFFERENT.
 
-   b. <http>, if present, is the string "HTTP" (sans quotes), indicating that
-      the test should be run over an HTTP server because it requires certain
-      HTTP headers or a particular HTTP status.  (Don't use this if your test
-      doesn't require this functionality, because it unnecessarily slows down
-      the test.)
-
-      HTTP tests have the restriction that any resource an HTTP test accesses
-      must be accessed using a relative URL, and the test and the resource must
-      be within the directory containing the reftest manifest that describes
-      the test (or within a descendant directory).
-
-      To modify the HTTP status or headers of a resource named FOO, create a
-      sibling file named FOO^headers^ with the following contents:
-
-      [<http-status>]
-      <http-header>*
-
-      <http-status> A line of the form "HTTP ###[ <description>]", where
-                    ### indicates the desired HTTP status and <description>
-                    indicates a desired HTTP status description, if any.
-                    If this line is omitted, the default is "HTTP 200 OK".
-      <http-header> A line in standard HTTP header line format, i.e.
-                    "Field-Name: field-value".  You may not repeat the use
-                    of a Field-Name and must coalesce such headers together,
-                    and each header must be specified on a single line, but
-                    otherwise the format exactly matches that from HTTP
-                    itself.
-
-      HTTP tests may also incorporate SJS files.  SJS files provide similar
-      functionality to CGI scripts, in that the response they produce can be
-      dependent on properties of the incoming request.  Currently these
-      properties are restricted to method type and headers, but eventually
-      it should be possible to examine data in the body of the request as
-      well when computing the generated response.  An SJS file is a JavaScript
-      file with a .sjs extension which defines a global |handleRequest|
-      function (called every time that file is loaded during reftests) in this
-      format:
-
-      function handleRequest(request, response)
-      {
-        response.setStatusLine(request.httpVersion, 200, "OK");
-
-        // You *probably* want this, or else you'll get bitten if you run
-        // reftest multiple times with the same profile.
-        response.setHeader("Cache-Control", "no-cache");
-
-        response.write("any ASCII data you want");
-
-        var outputStream = response.bodyOutputStream;
-        // ...anything else you want to do, synchronously...
-      }
-
-      For more details on exactly which functions and properties are available
-      on request/response in handleRequest, see the nsIHttpRe(quest|sponse)
-      definitions in <netwerk/test/httpserver/nsIHttpServer.idl>.
-
-   c. <type> is one of the following:
-
-      ==    The test passes if the images of the two renderings are the
-            SAME.
-      !=    The test passes if the images of the two renderings are 
-            DIFFERENT.
-      load  The test passes unconditionally if the page loads.  url_ref
-            must be omitted, and the test cannot be marked as fails or
-            random.  (Used to test for crashes, hangs, assertions, and
-            leaks.)
-
-   d. <url> is either a relative file path or an absolute URL for the
+   c. <url> is either a relative file path or an absolute URL for the
       test page
 
-   e. <url_ref> is either a relative file path or an absolute URL for
+   d. <url_ref> is either a relative file path or an absolute URL for
       the reference page
 
    The only difference between <url> and <url_ref> is that results of
@@ -168,12 +97,9 @@ MOZ_NO_REMOTE=1 or the -profile <directory> option)
 ./firefox -reftest /path/to/srcdir/mozilla/layout/reftests/reftest.list > reftest.out
 
 and then search/grep reftest.out for "UNEXPECTED".
-
-There are two scripts provided to convert the reftest.out to HTML.
-clean-reftest-output.pl converts reftest.out into simple HTML, stripping
-lines from the log that aren't relevant.  reftest-to-html.pl converts
-the output into html that makes it easier to visually check for
-failures.
+ 
+You can also run clean-reftest-output.pl over reftest.out to convert the
+output to simple HTML.
 
 Testable Areas
 ==============
@@ -258,31 +184,3 @@ Note that in layout tests it is often enough to trigger layout using
 
 When possible, you should use this technique instead of making your
 test async.
-
-Printing Tests
-==============
-Now that the patch for bug 374050 has landed
-(https://bugzilla.mozilla.org/show_bug.cgi?id=374050), it is possible to
-create reftests that run in a paginated context.
-
-The page size used is 5in wide and 3in tall (with the default half-inch
-margins).  This is to allow tests to have less text and to make the
-entire test fit on the screen.
-
-There is a layout/reftests/printing directory for printing reftests; however,
-there is nothing special about this directory.  You can put printing reftests
-anywhere that is appropriate.
-
-The suggested first lines for any printing test is
-<!DOCTYPE html><html class="reftest-print">
-<style>html{font-size:12pt}</style>
-
-The reftest-print class on the root element triggers the reftest to
-switch into page mode on load. Fixing the font size is suggested,
-although not required, because the pages are a fixed size in inches.
-
-The underlying layout support for this mode isn't really complete; it
-doesn't use exactly the same codepath as real print preview/print. In
-particular, scripting and frames are likely to cause problems; it is untested,
-though.  That said, it should be sufficient for testing layout issues related
-to pagination.

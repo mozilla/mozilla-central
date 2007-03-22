@@ -53,7 +53,6 @@
 #include "nsIDOMNamedNodeMap.h"
 #include "nsIDOMMutationEvent.h"
 #include "nsBindingManager.h"
-#include "nsINameSpaceManager.h"
 #include "nsIDocument.h"
 #include "nsIServiceManager.h"
 #include "nsITreeColumns.h"
@@ -69,7 +68,7 @@
 class inDOMViewNode
 {
 public:
-  inDOMViewNode() {}
+  inDOMViewNode() {};
   inDOMViewNode(nsIDOMNode* aNode);
   ~inDOMViewNode();
 
@@ -702,7 +701,7 @@ inDOMView::NodeWillBeDestroyed(const nsINode* aNode)
 void
 inDOMView::AttributeChanged(nsIDocument *aDocument, nsIContent* aContent,
                             PRInt32 aNameSpaceID, nsIAtom* aAttribute,
-                            PRInt32 aModType, PRUint32 aStateMask)
+                            PRInt32 aModType)
 {
   if (!mTree) {
     return;
@@ -718,35 +717,14 @@ inDOMView::AttributeChanged(nsIDocument *aDocument, nsIContent* aContent,
   nsCOMPtr<nsIDOMAttr> domAttr;
   nsAutoString attrStr;
   aAttribute->ToString(attrStr);
-  if (aNameSpaceID) {
-    nsCOMPtr<nsINameSpaceManager> nsm =
-      do_GetService(NS_NAMESPACEMANAGER_CONTRACTID);
-    if (!nsm) {
-      // we can't find out which attribute we want :(
-      return;
-    }
-    nsString attrNS;
-    nsresult rv = nsm->GetNameSpaceURI(aNameSpaceID, attrNS);
-    if (NS_FAILED(rv)) {
-      return;
-    }
-    (void)el->GetAttributeNodeNS(attrNS, attrStr, getter_AddRefs(domAttr));
-  } else {
-    (void)el->GetAttributeNode(attrStr, getter_AddRefs(domAttr));
-  }
+  el->GetAttributeNode(attrStr, getter_AddRefs(domAttr));
 
   if (aModType == nsIDOMMutationEvent::MODIFICATION) {
     // No fancy stuff here, just invalidate the changed row
-    if (!domAttr) {
-      return;
-    }
     PRInt32 row = 0;
     NodeToRow(domAttr, &row);
     mTree->InvalidateRange(row, row);
   } else if (aModType == nsIDOMMutationEvent::ADDITION) {
-    if (!domAttr) {
-      return;
-    }
     // get the number of attributes on this content node
     nsCOMPtr<nsIDOMNamedNodeMap> attrs;
     content->GetAttributes(getter_AddRefs(attrs));
@@ -1239,7 +1217,6 @@ inDOMView::GetLastDescendantOf(inDOMViewNode* aNode, PRInt32 aRow, PRInt32* aRes
 nsresult
 inDOMView::GetChildNodesFor(nsIDOMNode* aNode, nsCOMArray<nsIDOMNode>& aResult)
 {
-  NS_ENSURE_ARG(aNode);
   // Need to do this test to prevent unfortunate NYI assertion
   // on nsXULAttribute::GetChildNodes
   nsCOMPtr<nsIDOMAttr> attr = do_QueryInterface(aNode);

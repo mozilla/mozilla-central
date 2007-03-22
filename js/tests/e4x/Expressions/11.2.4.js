@@ -40,8 +40,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '11.2.4.js';
-
 START("11.2.4 - XML Filtering Predicate Operator");
 
 e = <employees>
@@ -53,12 +51,12 @@ e = <employees>
 correct = <employee id="0"><name>John</name><age>20</age></employee>;
 
 john = e.employee.(name == "John");
-TEST(1, correct, john);   
+TEST(1, correct, john);    
 
 john = e.employee.(name == "John");
-TEST(2, correct, john);   
+TEST(2, correct, john);    
 
-correct =
+correct = 
 <employee id="0"><name>John</name><age>20</age></employee> +
 <employee id="1"><name>Sue</name><age>30</age></employee>;
 
@@ -96,7 +94,7 @@ e = <employees>
     <employee id="1"><name>Sue</name><age>30</age></employee>
     </employees>;
 
-correct =
+correct = 
 <employee id="0"><name>John</name><age>20</age></employee> +
 <employee id="1"><name>Sue</name><age>30</age></employee>;
 

@@ -34,22 +34,17 @@
 #
 # ***** END LICENSE BLOCK *****
 
-# NSIS branding defines for official release builds.
+# NSIS defines for release builds.
 # The nightly build branding.nsi is located in browser/installer/windows/nsis/
-# The unofficial build branding.nsi is located in browser/branding/unofficial/
 !define BrandShortName        "Firefox"
-# BrandFullNameInternal is used for some registry and file system values
-# instead of BrandFullName and typically should not be modified.
+!define BrandFullName         "Mozilla Firefox"
+# BrandFullNameInternal is used for some registry and file system values that
+# should not contain release that may be in the BrandFullName (e.g. Beta 1, etc.)
 !define BrandFullNameInternal "Mozilla Firefox"
 !define CompanyName           "Mozilla Corporation"
 !define URLInfoAbout          "http://${AB_CD}.www.mozilla.com/${AB_CD}/"
 !define URLUpdateInfo         "http://${AB_CD}.www.mozilla.com/${AB_CD}/firefox/"
 !define SurveyURL             "https://survey.mozilla.com/1/Mozilla%20Firefox/${AppVersion}/${AB_CD}/exit.html"
 
-# Everything below this line may be modified for Alpha / Beta releases.
-!define BrandFullName         "Mozilla Firefox"
-
-# Add !define NO_INSTDIR_FROM_REG to prevent finding a non-default installation
-# directory in the registry and using that as the default. This prevents
-# Beta releases built with official branding from finding an existing install
-# of an official release and defaulting to its installation directory.
+# Percentage of new "Standard" installs to enable talkback for
+!define RandomPercent         "10"

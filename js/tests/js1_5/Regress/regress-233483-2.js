@@ -36,15 +36,13 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-233483-2.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 233483;
+var bug = 233483;
 var summary = 'Don\'t crash with null properties - Browser only';
 var actual = 'No Crash';
 var expect = 'No Crash';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
 if (typeof document == 'undefined')
@@ -52,7 +50,7 @@ if (typeof document == 'undefined')
   reportCompare(expect, actual, summary);
 }
 else
-{ 
+{  
   // delay test driver end
   gDelayTestDriverEnd = true;
 
@@ -60,7 +58,7 @@ else
   window.onload = onLoad;
 }
 
-function onLoad()
+function onLoad() 
 {
   var a = new Array();
   var pe;
@@ -69,7 +67,7 @@ function onLoad()
 
   setform();
 
-  for (pe=document.getElementById("test"); pe; pe=pe.parentNode)
+  for (pe=document.getElementById("test"); pe; pe=pe.parentNode) 
   {
     a[a.length] = pe;
   }
@@ -92,7 +90,7 @@ function setform()
   var tbody = table.appendChild(document.createElement('tbody'));
   var tr    = tbody.appendChild(document.createElement('tr'));
   var td    = tr.appendChild(document.createElement('td'))
-    var input = td.appendChild(document.createElement('input'));
+  var input = td.appendChild(document.createElement('input'));
 
   input.setAttribute('id', 'test');
   input.setAttribute('value', '1232');

@@ -34,11 +34,9 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-352797-01.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 352797;
-var summary = 'Do not assert: OBJ_GET_CLASS(cx, obj) == &js_BlockClass';
+var bug = 352797;
+var summary = 'Assertion: OBJ_GET_CLASS(cx, obj) == &js_BlockClass';
 var actual = 'No Crash';
 var expect = 'No Crash';
 
@@ -50,9 +48,9 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
- 
+  
   if (typeof Script == 'undefined')
   {
     print('Test skipped. Script not defined.');

@@ -22,32 +22,23 @@
 <!ENTITY printButton.tooltip            "Print this page">
 <!ENTITY closeWindow.commandkey         "W">
 
-<!ENTITY searchtab.label                "Search">
+<!ENTITY searchtab.label    	  	"Search">
 <!ENTITY searchtab.accesskey            "S">
 <!ENTITY searchClose.tooltip            "Close search results">
-<!ENTITY toctab.label                   "Contents">
+<!ENTITY toctab.label       	  	"Contents">
 <!ENTITY toctab.accesskey               "C">
 
-<!-- LOCALIZATION NOTE :
-fullZoomEnlargeCmd.commandkey3, fullZoomReduceCmd.commandkey2 and
-fullZoomResetCmd.commandkey2 are alternative acceleration keys for zoom.
-If shift key is needed with your locale popular keyboard for them,
-you can use these alternative items. Otherwise, their values should be empty.  -->
-
-<!ENTITY fullZoomReduceCmd.commandkey   "-">
-<!ENTITY fullZoomReduceCmd.commandkey2  "">
-<!ENTITY fullZoomEnlargeCmd.commandkey  "+">
-<!ENTITY fullZoomEnlargeCmd.commandkey2 "="> <!-- + is above this key on many keyboards -->
-<!ENTITY fullZoomEnlargeCmd.commandkey3 "">
-<!ENTITY fullZoomResetCmd.commandkey    "0">
-<!ENTITY fullZoomResetCmd.commandkey2   "">
+<!ENTITY textZoomReduceCmd.commandkey	"-">
+<!ENTITY textZoomEnlargeCmd.commandkey	"+">
+<!ENTITY textZoomEnlargeCmd.commandkey2 "="> <!-- + is above this key on many keyboards -->
+<!ENTITY textZoomResetCmd.commandkey    "0">
 
 <!ENTITY helpSearch.commandkey          "k">
 
 <!ENTITY zLevel.label                   "Always on Top">
 <!ENTITY zLevel.accesskey               "T">
 
-<!ENTITY fullZoomReduceBtn.label        "Zoom Out">
-<!ENTITY fullZoomReduceBtn.accesskey    "O">
-<!ENTITY fullZoomEnlargeBtn.label       "Zoom In">
-<!ENTITY fullZoomEnlargeBtn.accesskey   "I">
+<!ENTITY textZoomReduceBtn.label        "Decrease Text Size">
+<!ENTITY textZoomReduceBtn.accesskey    "D">
+<!ENTITY textZoomEnlargeBtn.label       "Increase Text Size">
+<!ENTITY textZoomEnlargeBtn.accesskey   "I">

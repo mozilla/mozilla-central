@@ -85,10 +85,10 @@ public:
   NS_DECL_NSIDOMNODELIST
   NS_DECL_CYCLE_COLLECTION_CLASS(nsBaseContentList)
 
-  void AppendElement(nsIContent *aContent);
-  void RemoveElement(nsIContent *aContent);
+  virtual void AppendElement(nsIContent *aContent);
+  virtual void RemoveElement(nsIContent *aContent);
   virtual PRInt32 IndexOf(nsIContent *aContent, PRBool aDoFlush);
-  void Reset();
+  virtual void Reset();
 
   static void Shutdown();
 
@@ -240,17 +240,22 @@ public:
   NS_HIDDEN_(nsIContent*) NamedItem(const nsAString& aName, PRBool aDoFlush);
 
   nsContentListKey* GetKey() {
-    return static_cast<nsContentListKey*>(this);
+    return NS_STATIC_CAST(nsContentListKey*, this);
   }
   
 
   // nsIMutationObserver
-  NS_DECL_NSIMUTATIONOBSERVER_ATTRIBUTECHANGED
-  NS_DECL_NSIMUTATIONOBSERVER_CONTENTAPPENDED
-  NS_DECL_NSIMUTATIONOBSERVER_CONTENTINSERTED
-  NS_DECL_NSIMUTATIONOBSERVER_CONTENTREMOVED
-  NS_DECL_NSIMUTATIONOBSERVER_NODEWILLBEDESTROYED
-  
+  virtual void AttributeChanged(nsIDocument *aDocument, nsIContent* aContent,
+                                PRInt32 aNameSpaceID, nsIAtom* aAttribute,
+                                PRInt32 aModType);
+  virtual void ContentAppended(nsIDocument *aDocument, nsIContent* aContainer,
+                               PRInt32 aNewIndexInContainer);
+  virtual void ContentInserted(nsIDocument *aDocument, nsIContent* aContainer,
+                               nsIContent* aChild, PRInt32 aIndexInContainer);
+  virtual void ContentRemoved(nsIDocument *aDocument, nsIContent* aContainer,
+                              nsIContent* aChild, PRInt32 aIndexInContainer);
+  virtual void NodeWillBeDestroyed(const nsINode *aNode);
+
   static void OnDocumentDestroy(nsIDocument *aDocument);
 
 protected:

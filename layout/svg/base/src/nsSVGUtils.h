@@ -45,6 +45,7 @@
 #include "nsCOMPtr.h"
 #include "nsISVGValue.h"
 #include "nsRect.h"
+#include "cairo.h"
 
 class nsIDocument;
 class nsPresContext;
@@ -54,7 +55,6 @@ class nsIDOMSVGRect;
 class nsFrameList;
 class nsIFrame;
 struct nsStyleSVGPaint;
-class nsIDOMSVGElement;
 class nsIDOMSVGLength;
 class nsIDOMSVGMatrix;
 class nsIURI;
@@ -69,16 +69,9 @@ class nsSVGSVGElement;
 class nsAttrValue;
 class gfxContext;
 class gfxASurface;
-class gfxPattern;
 class nsIRenderingContext;
-class gfxImageSurface;
 struct gfxRect;
 struct gfxMatrix;
-struct gfxSize;
-struct gfxIntSize;
-struct nsStyleFont;
-class nsSVGEnum;
-class nsISVGChildFrame;
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -87,23 +80,23 @@ class nsISVGChildFrame;
 // SVG Frame state bits
 #define NS_STATE_IS_OUTER_SVG         0x00100000
 
-#define NS_STATE_SVG_CLIPPED          0x00200000
-#define NS_STATE_SVG_FILTERED         0x00400000
-#define NS_STATE_SVG_MASKED           0x00800000
+#define NS_STATE_SVG_CLIPPED_TRIVIAL  0x00200000
+#define NS_STATE_SVG_CLIPPED_COMPLEX  0x00400000
+#define NS_STATE_SVG_CLIPPED_MASK     0x00600000
 
-#define NS_STATE_SVG_HAS_MARKERS      0x01000000
+#define NS_STATE_SVG_FILTERED         0x00800000
+#define NS_STATE_SVG_MASKED           0x01000000
 
-#define NS_STATE_SVG_DIRTY            0x02000000
+#define NS_STATE_SVG_HAS_MARKERS      0x02000000
 
-/* Do we have a paint server for fill with a valid URL? */
-#define NS_STATE_SVG_FILL_PSERVER     0x04000000
-/* Do we have a paint server for stroke with a valid URL? */
-#define NS_STATE_SVG_STROKE_PSERVER   0x08000000
-/* Do we have any paint servers with valid URLs? */
-#define NS_STATE_SVG_PSERVER_MASK     0x0c000000
+#define NS_STATE_SVG_DIRTY            0x04000000
+
+#define NS_STATE_SVG_FILL_PSERVER     0x08000000
+#define NS_STATE_SVG_STROKE_PSERVER   0x10000000
+#define NS_STATE_SVG_PSERVER_MASK     0x18000000
 
 /* are we the child of a non-display container? */
-#define NS_STATE_SVG_NONDISPLAY_CHILD 0x10000000
+#define NS_STATE_SVG_NONDISPLAY_CHILD 0x20000000
 
 /**
  * Byte offsets of channels in a native packed gfxColor or cairo image surface.
@@ -119,11 +112,6 @@ class nsISVGChildFrame;
 #define GFX_ARGB32_OFFSET_G 1
 #define GFX_ARGB32_OFFSET_B 0
 #endif
-
-// maximum dimension of an offscreen surface - choose so that
-// the surface size doesn't overflow a 32-bit signed int using
-// 4 bytes per pixel; in line with gfxASurface::CheckSurfaceSize
-#define NS_SVG_OFFSCREEN_MAX_DIMENSION 16384
 
 /*
  * Checks the svg enable preference and if a renderer could
@@ -168,32 +156,9 @@ private:
   nsSVGRenderState::RenderMode mOriginalMode;
 };
 
-#define NS_ISVGFILTERPROPERTY_IID \
-{ 0x9744ee20, 0x1bcf, 0x4c62, \
- { 0x86, 0x7d, 0xd3, 0x7a, 0x91, 0x60, 0x3e, 0xef } }
-
-class nsISVGFilterProperty : public nsISupports
-{
-public:
-  NS_DECLARE_STATIC_IID_ACCESSOR(NS_ISVGFILTERPROPERTY_IID)
-  virtual void Invalidate() = 0;
-};
-
-NS_DEFINE_STATIC_IID_ACCESSOR(nsISVGFilterProperty, NS_ISVGFILTERPROPERTY_IID)
-
 class nsSVGUtils
 {
 public:
-  /*
-   * Get a font-size (em) of an nsIContent
-   */
-  static float GetFontSize(nsIContent *aContent);
-
-  /*
-   * Get an x-height of of an nsIContent
-   */
-  static float GetFontXHeight(nsIContent *aContent);
-
   /*
    * Converts image data from premultipled to unpremultiplied alpha
    */
@@ -243,42 +208,15 @@ public:
                                      nsIContent *aContent, nsIPresShell *aPresShell);
 
   /*
-   * Return the nearest viewport element
-   */
-  static nsresult GetNearestViewportElement(nsIContent *aContent,
-                                            nsIDOMSVGElement * *aNearestViewportElement);
-
-  /*
-   * Get the farthest viewport element
-   */
-  static nsresult GetFarthestViewportElement(nsIContent *aContent,
-                                             nsIDOMSVGElement * *aFarthestViewportElement);
-
-  /*
    * Creates a bounding box by walking the children and doing union.
    */
   static nsresult GetBBox(nsFrameList *aFrames, nsIDOMSVGRect **_retval);
 
   /*
    * Figures out the worst case invalidation area for a frame, taking
-   * filters into account.
+   * into account filters.  Empty return if no filter in the hierarchy.
    */
   static nsRect FindFilterInvalidation(nsIFrame *aFrame);
-
-  /*
-   * Update the filter invalidation region for this frame, if relevant.
-   */
-  static void UpdateFilterRegion(nsIFrame *aFrame);
-
-  /*
-   * Update the area covered by the frame
-   */
-  static void UpdateGraphic(nsISVGChildFrame *aSVGFrame);
-
-  /*
-   * Update the filter invalidation region for ancestor frames, if relevant.
-   */
-  static void NotifyAncestorsOfFilterRegionChange(nsIFrame *aFrame);
 
   /* enum for specifying coordinate direction for ObjectSpace/UserSpace */
   enum ctxDirection { X, Y, XY };
@@ -308,14 +246,6 @@ public:
   static nsSVGOuterSVGFrame *
   GetOuterSVGFrame(nsIFrame *aFrame);
 
-  /**
-   * Get the covered region for a frame. Return null if it's not an SVG frame.
-   * @param aRect gets a rectangle in *pixels*
-   * @return the outer SVG frame which aRect is relative to
-   */
-  static nsIFrame*
-  GetOuterSVGFrameAndCoveredRegion(nsIFrame* aFrame, nsRect* aRect);
-
   /* Generate a viewbox to viewport tranformation matrix */
   
   static already_AddRefed<nsIDOMSVGMatrix>
@@ -339,9 +269,8 @@ public:
   StyleEffects(nsIFrame *aFrame);
 
   /* Hit testing - check if point hits the clipPath of indicated
-   * frame.  (x,y) are specified in device pixels relative to the
-   * origin of the outer svg frame.  Returns true if no clipPath
-   * set. */
+   * frame.  Returns true of no clipPath set. */
+
   static PRBool
   HitTestClip(nsIFrame *aFrame, float x, float y);
 
@@ -365,12 +294,6 @@ public:
   static already_AddRefed<nsIDOMSVGMatrix> GetCanvasTM(nsIFrame *aFrame);
 
   /*
-   * Tells child frames that something that might affect them has changed
-   */
-  static void
-  NotifyChildrenOfSVGChange(nsIFrame *aFrame, PRUint32 aFlags);
-
-  /*
    * Get frame's covered region by walking the children and doing union.
    */
   static nsRect
@@ -385,22 +308,25 @@ public:
   ToBoundingPixelRect(const gfxRect& rect);
 
   /*
-   * Convert a surface size to an integer for use by thebes
-   * possibly making it smaller in the process so the surface does not
-   * use excessive memory.
-   * @param aSize the desired surface size
-   * @param aResultOverflows true if the desired surface size is too big
-   * @return the surface size to use
-   */
-  static gfxIntSize
-  ConvertToSurfaceSize(const gfxSize& aSize, PRBool *aResultOverflows);
-
-  /*
-   * Get a pointer to a surface that can be used to create thebes
+   * Get a pointer to a surface that can be used to create cairo
    * contexts for various measurement purposes.
    */
+  static cairo_surface_t *
+  GetCairoComputationalSurface();
   static gfxASurface *
   GetThebesComputationalSurface();
+
+  /*
+   * A singular matrix is a non invertible square matrix.
+   */
+  static PRBool
+  IsSingular(const cairo_matrix_t *aMatrix);
+
+  /*
+   * Convert a nsIDOMSVGMatrix to a cairo_matrix_t.
+   */
+  static cairo_matrix_t
+  ConvertSVGMatrixToCairo(nsIDOMSVGMatrix *aMatrix);
 
   /*
    * Convert a nsIDOMSVGMatrix to a gfxMatrix.
@@ -416,14 +342,17 @@ public:
               float aRX, float aRY, float aRWidth, float aRHeight,
               float aX, float aY);
 
+  /*
+   * Convert a rectangle from cairo user space to device space.
+   */
+  static void
+  UserToDeviceBBox(cairo_t *ctx,
+                   double *xmin, double *ymin,
+                   double *xmax, double *ymax);
 
   static void CompositeSurfaceMatrix(gfxContext *aContext,
                                      gfxASurface *aSurface,
                                      nsIDOMSVGMatrix *aCTM, float aOpacity);
-
-  static void CompositePatternMatrix(gfxContext *aContext,
-                                     gfxPattern *aPattern,
-                                     nsIDOMSVGMatrix *aCTM, float aWidth, float aHeight, float aOpacity);
 
   static void SetClipRect(gfxContext *aContext,
                           nsIDOMSVGMatrix *aCTM, float aX, float aY,
@@ -437,23 +366,9 @@ public:
   static PRBool
   CanOptimizeOpacity(nsIFrame *aFrame);
 
-  /* Calculate the maximum expansion of a matrix */
-  static float
-  MaxExpansion(nsIDOMSVGMatrix *aMatrix);
-
-  /* Take a CTM and adjust for object bounding box coordinates, if needed */
-  static already_AddRefed<nsIDOMSVGMatrix>
-  AdjustMatrixForUnits(nsIDOMSVGMatrix *aMatrix,
-                       nsSVGEnum *aUnits,
-                       nsISVGChildFrame *aFrame);
-
-#ifdef DEBUG
-  static void
-  WritePPM(const char *fname, gfxImageSurface *aSurface);
-#endif
-
 private:
   /* Computational (nil) surfaces */
+  static cairo_surface_t *mCairoComputationalSurface;
   static gfxASurface *mThebesComputationalSurface;
 };
 

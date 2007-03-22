@@ -46,7 +46,6 @@
 #include "nsITimer.h"
 #include "prtime.h"
 #include "nsCycleCollectionParticipant.h"
-#include "nsScriptNameSpaceManager.h"
 
 class nsIXPConnectJSObjectHolder;
 
@@ -99,7 +98,6 @@ public:
                                        const char** aArgNames,
                                        const nsAString& aBody,
                                        const char *aURL, PRUint32 aLineNo,
-                                       PRUint32 aVersion,
                                        nsScriptObjectHolder &aHandler);
   virtual nsresult CallEventHandler(nsISupports* aTarget, void *aScope,
                                     void* aHandler,
@@ -118,7 +116,6 @@ public:
                                    const nsAString& aBody,
                                    const char* aURL,
                                    PRUint32 aLineNo,
-                                   PRUint32 aVersion,
                                    PRBool aShared,
                                    void** aFunctionObject);
 
@@ -166,8 +163,6 @@ public:
   virtual nsresult DropScriptObject(void *object);
   virtual nsresult HoldScriptObject(void *object);
 
-  virtual void ReportPendingException();
-
   NS_DECL_NSIXPCSCRIPTNOTIFY
 
   NS_DECL_NSITIMERCALLBACK
@@ -175,29 +170,9 @@ public:
   static void LoadStart();
   static void LoadEnd();
 
-  // CC does always call cycle collector and it also updates the counters
-  // that MaybeCC uses.
-  static void CC();
-
-  // MaybeCC calls cycle collector if certain conditions are fulfilled.
-  // The conditions are:
-  // - The timer related to page load (sGCTimer) must not be active.
-  // - At least NS_MIN_CC_INTERVAL milliseconds must have elapsed since the
-  //   previous cycle collector call.
-  // - Certain number of MaybeCC calls have occurred.
-  //   The number of needed MaybeCC calls depends on the aHigherProbability
-  //   parameter. If the parameter is true, probability for calling cycle
-  //   collector rises increasingly. If the parameter is all the time false,
-  //   at least NS_MAX_DELAYED_CCOLLECT MaybeCC calls are needed.
-  //   If the previous call to cycle collector did collect something,
-  //   MaybeCC works effectively as if aHigherProbability was true.
-  // @return PR_TRUE if cycle collector was called.
-  static PRBool MaybeCC(PRBool aHigherProbability);
-
-  // Calls CC() if user is currently inactive, otherwise MaybeCC(PR_TRUE)
-  static void CCIfUserInactive();
 protected:
   nsresult InitializeExternalClasses();
+  nsresult InitializeLiveConnectClasses(JSObject *aGlobalObj);
   // aHolder should be holding our global object
   nsresult FindXPCNativeWrapperClass(nsIXPConnectJSObjectHolder *aHolder);
 
@@ -217,8 +192,6 @@ protected:
                                  JSObject **aRet);
 
 private:
-  void Unlink();
-
   JSContext *mContext;
   PRUint32 mNumEvaluations;
 
@@ -281,9 +254,11 @@ private:
   PRPackedBool mScriptsEnabled;
   PRPackedBool mGCOnDestruction;
   PRPackedBool mProcessingScriptTag;
+  PRPackedBool mIsTrackingChromeCodeTime;
 
+  PRUint32 mBranchCallbackCount;
+  PRTime mBranchCallbackTime;
   PRUint32 mDefaultJSOptions;
-  PRTime mOperationCallbackTime;
 
   // mGlobalWrapperRef is used only to hold a strong reference to the
   // global object wrapper while the nsJSContext is alive. This cuts
@@ -294,7 +269,8 @@ private:
 
   static int PR_CALLBACK JSOptionChangedCallback(const char *pref, void *data);
 
-  static JSBool JS_DLL_CALLBACK DOMOperationCallback(JSContext *cx);
+  static JSBool JS_DLL_CALLBACK DOMBranchCallback(JSContext *cx,
+                                                  JSScript *script);
 };
 
 class nsIJSRuntimeService;
@@ -328,8 +304,6 @@ public:
   static void Startup();
   // Setup all the statics etc - safe to call multiple times after Startup()
   static nsresult Init();
-  // Get the NameSpaceManager, creating if necessary
-  static nsScriptNameSpaceManager* GetNameSpaceManager();
 };
 
 // An interface for fast and native conversion to/from nsIArray. If an object

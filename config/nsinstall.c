@@ -111,7 +111,8 @@ mkdirs(char *path, mode_t mode)
 
     while (*path == '/' && path[1] == '/')
 	path++;
-    for (cp = strrchr(path, '/'); cp && cp != path && *(cp - 1) == '/'; cp--);
+    while ((cp = strrchr(path, '/')) && cp[1] == '\0')
+	*cp = '\0';
     if (cp && cp != path) {
 	*cp = '\0';
 	if ((lstat(path, &sb) < 0 || !S_ISDIR(sb.st_mode)) &&

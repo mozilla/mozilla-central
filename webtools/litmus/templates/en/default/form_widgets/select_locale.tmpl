@@ -1,9 +1,0 @@
-<select id="[% name %]" name="[% name %]"[% IF size %] size="[% size %]"[% END %][% IF disabled %] disabled[% END %][% IF onchange %] onchange="[% onchange %]"[% END %]>
-    [% IF placeholder %]<option value="">-Locale-</option>[% END %]
-[% IF locales %]
-[% FOREACH locale=locales %]
-    <option[% IF defaults.locale==locale.locale_abbrev %] selected[% END %] 
-        value="[% locale.locale_abbrev | html %]">[% locale.locale_abbrev | html %]</option>
-[% END %]
-[% END %]
-</select>

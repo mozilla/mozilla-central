@@ -55,7 +55,7 @@ NS_GetSpecialDirectory(const char* specialDirName, nsIFile* *result)
         return rv;
 
     return serv->Get(specialDirName, NS_GET_IID(nsIFile),
-                     reinterpret_cast<void**>(result));
+                     NS_REINTERPRET_CAST(void**, result));
 }
 
 #endif

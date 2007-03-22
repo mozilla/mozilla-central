@@ -34,10 +34,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-350312-03.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 350312;
+var bug = 350312;
 var summary = 'Accessing wrong stack slot with nested catch/finally';
 var actual = '';
 var expect = '';
@@ -50,7 +48,7 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
 
   var pfx  = "(function (x) {try {if (x > 41) throw x}",

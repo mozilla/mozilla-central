@@ -56,8 +56,7 @@ enum nsDOMClassInfoID {
   eDOMClassInfo_BarProp_id,
   eDOMClassInfo_History_id,
   eDOMClassInfo_Screen_id,
-  eDOMClassInfo_DOMPrototype_id,
-  eDOMClassInfo_DOMConstructor_id,
+  eDOMClassInfo_Constructor_id,
 
   // Core classes
   eDOMClassInfo_XMLDocument_id,
@@ -178,8 +177,8 @@ enum nsDOMClassInfoID {
   eDOMClassInfo_XULCommandDispatcher_id,
 #endif
   eDOMClassInfo_XULControllers_id,
-  eDOMClassInfo_BoxObject_id,
 #ifdef MOZ_XUL
+  eDOMClassInfo_BoxObject_id,
   eDOMClassInfo_TreeSelection_id,
   eDOMClassInfo_TreeContentView_id,
 #endif
@@ -250,26 +249,18 @@ enum nsDOMClassInfoID {
   eDOMClassInfo_SVGFEColorMatrixElement_id,
   eDOMClassInfo_SVGFEComponentTransferElement_id,
   eDOMClassInfo_SVGFECompositeElement_id,
-  eDOMClassInfo_SVGFEConvolveMatrixElement_id,
-  eDOMClassInfo_SVGFEDiffuseLightingElement_id,
-  eDOMClassInfo_SVGFEDisplacementMapElement_id,
-  eDOMClassInfo_SVGFEDistantLightElement_id,
   eDOMClassInfo_SVGFEFloodElement_id,
   eDOMClassInfo_SVGFEFuncAElement_id,
   eDOMClassInfo_SVGFEFuncBElement_id,
   eDOMClassInfo_SVGFEFuncGElement_id,
   eDOMClassInfo_SVGFEFuncRElement_id,
   eDOMClassInfo_SVGFEGaussianBlurElement_id,
-  eDOMClassInfo_SVGFEImageElement_id,
   eDOMClassInfo_SVGFEMergeElement_id,
   eDOMClassInfo_SVGFEMergeNodeElement_id,
   eDOMClassInfo_SVGFEMorphologyElement_id,
   eDOMClassInfo_SVGFEOffsetElement_id,
-  eDOMClassInfo_SVGFEPointLightElement_id,
-  eDOMClassInfo_SVGFESpecularLightingElement_id,
-  eDOMClassInfo_SVGFESpotLightElement_id,
-  eDOMClassInfo_SVGFETileElement_id,
   eDOMClassInfo_SVGFETurbulenceElement_id,
+  eDOMClassInfo_SVGFEUnimplementedMOZElement_id,
   eDOMClassInfo_SVGFilterElement_id,
   eDOMClassInfo_SVGGElement_id,
   eDOMClassInfo_SVGImageElement_id,
@@ -299,7 +290,6 @@ enum nsDOMClassInfoID {
   // other SVG classes
   eDOMClassInfo_SVGAngle_id,
   eDOMClassInfo_SVGAnimatedAngle_id,
-  eDOMClassInfo_SVGAnimatedBoolean_id,
   eDOMClassInfo_SVGAnimatedEnumeration_id,
   eDOMClassInfo_SVGAnimatedInteger_id,
   eDOMClassInfo_SVGAnimatedLength_id,
@@ -343,7 +333,6 @@ enum nsDOMClassInfoID {
   eDOMClassInfo_SVGRect_id,
   eDOMClassInfo_SVGTransform_id,
   eDOMClassInfo_SVGTransformList_id,
-  eDOMClassInfo_SVGUnitTypes_id,
   eDOMClassInfo_SVGZoomEvent_id,
 #endif // MOZ_SVG
 
@@ -354,7 +343,7 @@ enum nsDOMClassInfoID {
   eDOMClassInfo_CanvasGradient_id,
   eDOMClassInfo_CanvasPattern_id,
 #endif
-
+  
   // SmartCard Events
   eDOMClassInfo_SmartCardEvent_id,
   
@@ -390,9 +379,6 @@ enum nsDOMClassInfoID {
   eDOMClassInfo_XMLHttpProgressEvent_id,
   eDOMClassInfo_XMLHttpRequest_id,
 
-  eDOMClassInfo_ClientRect_id,
-  eDOMClassInfo_ClientRectList_id,
-
   // We are now trying to preserve binary compat in classinfo.  No more
   // putting things in those categories up there.  New entries are to be
   // added here, which is the end of the things that are currently on by
@@ -405,25 +391,6 @@ enum nsDOMClassInfoID {
   eDOMClassInfo_XULCommandEvent_id,
   eDOMClassInfo_CommandEvent_id,
 
-  eDOMClassInfo_OfflineResourceList_id,
-  eDOMClassInfo_LoadStatusList_id,
-  eDOMClassInfo_LoadStatus_id,
-  eDOMClassInfo_LoadStatusEvent_id,
-
-  eDOMClassInfo_FileList_id,
-  eDOMClassInfo_File_id,
-  eDOMClassInfo_FileException_id,
-
-  // DOM modal content window class, almost identical to Window
-  eDOMClassInfo_ModalContentWindow_id,
-
-  // Data Events
-  eDOMClassInfo_DataContainerEvent_id,
-
-  // event used for cross-domain message-passing and for server-sent events in
-  // HTML5
-  eDOMClassInfo_MessageEvent_id,
-
   // This one better be the last one in this list
   eDOMClassInfoIDCount
 };
@@ -431,8 +398,6 @@ enum nsDOMClassInfoID {
 /**
  * nsIClassInfo helper macros
  */
-
-class nsIClassInfo;
 
 extern nsIClassInfo*
 NS_GetDOMClassInfoInstance(nsDOMClassInfoID aID);

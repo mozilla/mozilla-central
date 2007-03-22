@@ -51,6 +51,7 @@ class nsPresContext;
 class nsVoidArray;
 class nsIDOMEvent;
 class nsIContent;
+class nsISupportsArray;
 class nsIEventListenerManager;
 class nsIURI;
 class nsICSSStyleRule;
@@ -62,28 +63,43 @@ class nsIDocShell;
 
 // IID for the nsIContent interface
 #define NS_ICONTENT_IID       \
-{ 0x0acd0482, 0x09a2, 0x42fd, \
-  { 0xb6, 0x1b, 0x95, 0xa2, 0x01, 0x6a, 0x55, 0xd3 } }
+{ 0xb6408b0, 0x20c6, 0x4d60, \
+  { 0xb7, 0x2f, 0x90, 0xb7, 0x7a, 0x9d, 0xb9, 0xb6 } }
+
+
+// hack to make egcs / gcc 2.95.2 happy
+class nsIContent_base : public nsINode {
+public:
+#ifdef MOZILLA_INTERNAL_API
+  // If you're using the external API, the only thing you can know about
+  // nsIContent is that it exists with an IID
+
+  nsIContent_base(nsINodeInfo *aNodeInfo)
+    : nsINode(aNodeInfo)
+  {
+  }
+#endif
+
+  NS_DECLARE_STATIC_IID_ACCESSOR(NS_ICONTENT_IID)
+};
 
 /**
  * A node of content in a document's content model. This interface
  * is supported by all content objects.
  */
-class nsIContent : public nsINode {
+class nsIContent : public nsIContent_base {
 public:
 #ifdef MOZILLA_INTERNAL_API
   // If you're using the external API, the only thing you can know about
   // nsIContent is that it exists with an IID
 
   nsIContent(nsINodeInfo *aNodeInfo)
-    : nsINode(aNodeInfo)
+    : nsIContent_base(aNodeInfo)
   {
     NS_ASSERTION(aNodeInfo,
                  "No nsINodeInfo passed to nsIContent, PREPARE TO CRASH!!!");
   }
 #endif // MOZILLA_INTERNAL_API
-
-  NS_DECLARE_STATIC_IID_ACCESSOR(NS_ICONTENT_IID)
 
   /**
    * Bind this content node to a tree.  If this method throws, the caller must
@@ -152,42 +168,20 @@ public:
   }
 
   /**
-   * Makes this content anonymous
+   * Returns PR_TRUE if this content is anonymous for event handling.
+   */
+  PRBool IsAnonymousForEvents() const
+  {
+    return HasFlag(NODE_IS_ANONYMOUS_FOR_EVENTS);
+  }
+
+  /**
+   * Set whether this content is anonymous
+   * This is virtual and non-inlined due to nsXULElement::SetNativeAnonymous
    * @see nsIAnonymousContentCreator
+   * @param aAnonymous whether this content is anonymous
    */
-  void SetNativeAnonymous()
-  {
-    SetFlags(NODE_IS_ANONYMOUS);
-  }
-
-  /**
-   * Returns |this| if it is not native anonymous, otherwise
-   * first non native anonymous ancestor.
-   */
-  virtual nsIContent* FindFirstNonNativeAnonymous() const;
-
-  /**
-   * Returns PR_TRUE if |this| or any of its ancestors is native anonymous.
-   */
-  PRBool IsInNativeAnonymousSubtree() const
-  {
-#ifdef DEBUG
-    if (HasFlag(NODE_IS_IN_ANONYMOUS_SUBTREE)) {
-      return PR_TRUE;
-    }
-    nsIContent* content = GetBindingParent();
-    while (content) {
-      if (content->IsNativeAnonymous()) {
-        NS_ERROR("Element not marked to be in native anonymous subtree!");
-        break;
-      }
-      content = content->GetBindingParent();
-    }
-    return PR_FALSE;
-#else
-    return HasFlag(NODE_IS_IN_ANONYMOUS_SUBTREE);
-#endif
-  }
+  virtual void SetNativeAnonymous(PRBool aAnonymous);
 
   /**
    * Get the namespace that this element's tag is defined in
@@ -530,36 +524,21 @@ public:
    *         the previous OPEN/CLOSE state will be restored (unless the newly
    *         focused content specifies the OPEN/CLOSE state by setting the OPEN
    *         or CLOSE flag with the ENABLE flag).
-   *         IME_STATUS_PASSWORD should be returned only from password editor,
-   *         this value has a special meaning. It is used as alternative of
-   *         IME_STATUS_DISABLED.
    */
   enum {
-    IME_STATUS_NONE     = 0x0000,
-    IME_STATUS_ENABLE   = 0x0001,
-    IME_STATUS_DISABLE  = 0x0002,
-    IME_STATUS_PASSWORD = 0x0004,
-    IME_STATUS_OPEN     = 0x0008,
-    IME_STATUS_CLOSE    = 0x0010
+    IME_STATUS_NONE    = 0x0000,
+    IME_STATUS_ENABLE  = 0x0001,
+    IME_STATUS_DISABLE = 0x0002,
+    IME_STATUS_OPEN    = 0x0004,
+    IME_STATUS_CLOSE   = 0x0008
   };
   enum {
-    IME_STATUS_MASK_ENABLED = IME_STATUS_ENABLE | IME_STATUS_DISABLE |
-                              IME_STATUS_PASSWORD,
+    IME_STATUS_MASK_ENABLED = IME_STATUS_ENABLE | IME_STATUS_DISABLE,
     IME_STATUS_MASK_OPENED  = IME_STATUS_OPEN | IME_STATUS_CLOSE
   };
   virtual PRUint32 GetDesiredIMEState()
   {
-    if (!IsEditableInternal())
-      return IME_STATUS_DISABLE;
-    nsIContent *editableAncestor = nsnull;
-    for (nsIContent* parent = GetParent();
-         parent && parent->HasFlag(NODE_IS_EDITABLE);
-         parent = parent->GetParent())
-      editableAncestor = parent;
-    // This is in another editable content, use the result of it.
-    if (editableAncestor)
-      return editableAncestor->GetDesiredIMEState();
-    return IME_STATUS_ENABLE;
+    return IME_STATUS_DISABLE;
   }
 
   /**
@@ -731,8 +710,11 @@ public:
    */
   // XXXbz this is PRInt32 because all the ESM content state APIs use
   // PRInt32.  We should really use PRUint32 instead.
-  virtual PRInt32 IntrinsicState() const;
-
+  virtual PRInt32 IntrinsicState() const
+  {
+    return 0;
+  }
+    
   /* The default script type (language) ID for this content.
      All content must support fetching the default script language.
    */
@@ -803,23 +785,6 @@ public:
    */
   virtual nsIAtom *GetClassAttributeName() const = 0;
 
-  /**
-   * Should be called when the node can become editable or when it can stop
-   * being editable (for example when its contentEditable attribute changes,
-   * when it is moved into an editable parent, ...).
-   */
-  virtual void UpdateEditableState();
-
-  /**
-   * Destroy this node and its children. Ideally this shouldn't be needed
-   * but for now we need to do it to break cycles.
-   */
-  virtual void DestroyContent() = 0;
-
-  /**
-   * Saves the form state of this node and its children.
-   */
-  virtual void SaveSubtreeState() = 0;
 
 #ifdef DEBUG
   /**
@@ -866,13 +831,7 @@ NS_DEFINE_STATIC_IID_ACCESSOR(nsIContent, NS_ICONTENT_IID)
     nsISupports *preservedWrapper = nsnull;                      \
     if (tmp->GetOwnerDoc())                                      \
       preservedWrapper = tmp->GetOwnerDoc()->GetReference(tmp);  \
-    NS_CYCLE_COLLECTION_NOTE_EDGE_NAME(cb, "[preserved wrapper]");\
     cb.NoteXPCOMChild(preservedWrapper);                         \
-  }
-
-#define NS_IMPL_CYCLE_COLLECTION_TRAVERSE_USERDATA \
-  if (tmp->HasProperties()) {                      \
-    nsNodeUtils::TraverseUserData(tmp, cb);        \
   }
 
 #define NS_IMPL_CYCLE_COLLECTION_UNLINK_LISTENERMANAGER \
@@ -884,11 +843,6 @@ NS_DEFINE_STATIC_IID_ACCESSOR(nsIContent, NS_ICONTENT_IID)
 #define NS_IMPL_CYCLE_COLLECTION_UNLINK_PRESERVED_WRAPPER \
   if (tmp->GetOwnerDoc())                                 \
     tmp->GetOwnerDoc()->RemoveReference(tmp);
-
-#define NS_IMPL_CYCLE_COLLECTION_UNLINK_USERDATA \
-  if (tmp->HasProperties()) {                    \
-    nsNodeUtils::UnlinkUserData(tmp);            \
-  }
 
 
 #endif /* nsIContent_h___ */

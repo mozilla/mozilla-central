@@ -55,13 +55,6 @@ legend {
   border: none;
   position: static ! important;
   float: none ! important;
-  width: -moz-fit-content ! important;
-  min-width: 0 ! important;
-  max-width: none ! important;
-  height: auto ! important;
-  min-height: 0 ! important;
-  max-height: none ! important;
-  white-space: nowrap;
 }
 
 fieldset {
@@ -91,7 +84,6 @@ input {
   background-color: -moz-Field;
   color: -moz-FieldText;
   font: -moz-field;
-  text-rendering: optimizeLegibility;
   line-height: normal !important;
   text-align: start;
   text-transform: none;
@@ -104,7 +96,7 @@ input {
 }
 
 input > .anonymous-div {
-  white-space: pre;
+  white-space : nowrap;
 }
 
 textarea {
@@ -113,7 +105,6 @@ textarea {
   background-color: -moz-Field;
   color: -moz-FieldText;
   font: medium -moz-fixed;
-  text-rendering: optimizeLegibility;
   text-align: start;
   text-transform: none;
   word-spacing: normal;
@@ -121,7 +112,7 @@ textarea {
   vertical-align: text-bottom;
   cursor: text;
   -moz-binding: url("chrome://global/content/platformHTMLBindings.xml#textAreas");
-  -moz-appearance: textfield-multiline;
+  -moz-appearance: textfield;
   text-indent: 0;
   -moz-user-select: text;
 }
@@ -140,12 +131,6 @@ input > .anonymous-div {
   /* XXXldb I'm not sure if we really want the 'text-decoration: inherit',
      but it's needed to make 'text-decoration' "work" on text inputs. */
   text-decoration: inherit;
-  ime-mode: inherit;
-}
-
-input:-moz-read-write,
-textarea:-moz-read-write {
-  -moz-user-modify: read-write !important;
 }
 
 select {
@@ -214,7 +199,7 @@ select > input[type="button"]:active {
 }
 
 select:empty {
-  width: 2.5em;
+  min-width: 2.5em;
 }
 
 *|*::-moz-display-comboboxcontrol-frame {
@@ -247,7 +232,6 @@ option {
   line-height: normal !important;
   -moz-user-select: none;
   text-indent: 0;
-  white-space: nowrap !important;
 }
 
 select > option {
@@ -258,12 +242,6 @@ select > option {
 }
 
 option:checked {
-  background-color: -moz-html-cellhighlight !important;
-  color: -moz-html-cellhighlighttext !important;
-}
-
-select:focus > option:checked,
-select:focus > optgroup > option:checked {
   background-color: Highlight ! important;
   color: HighlightText ! important;
 }
@@ -279,7 +257,6 @@ optgroup {
   font-size: inherit;
   -moz-user-select: none;
   text-indent: 0;
-  white-space: nowrap !important;
 }
 
 optgroup > option {
@@ -349,6 +326,7 @@ input[type="image"] {
   font-size: small;
   cursor: pointer;
   -moz-binding: none;
+  -moz-appearance: none;
 }
 
 input[type="image"][disabled] {
@@ -371,11 +349,16 @@ input[type="file"] {
   border-style: none !important;
 }
 
-input[type="file"] > input[type="text"] {
+input[type="file"] > input[type="text"][disabled] {
   border-color: inherit;
   background-color: inherit;
+  -moz-user-focus: ignore !important;
+  /* enable user input so that clicking on the control can bring up the
+     file dialog. It's still read-only. */
+  -moz-user-input: enabled;
   color: inherit;
   font-size: inherit;
+  height: inherit;
   letter-spacing: inherit;
 }
 
@@ -388,7 +371,7 @@ input[type="file"] > input[type="button"] {
 
 /* radio buttons */
 input[type="radio"] {
-  -moz-appearance: radio-small;
+  -moz-appearance: radio;
   width: 13px;
   height: 13px;
   margin: 3px 3px 0px 5px;
@@ -401,11 +384,12 @@ input[type="radio"] {
 
 /* check boxes */
 input[type="checkbox"] {
-  -moz-appearance: checkbox-small;
+  -moz-appearance: checkbox;
   width: 13px;
   height: 13px;
   margin: 3px 3px 3px 4px;
   padding: 0 !important;
+  vertical-align: text-bottom;
   cursor: default;
   -moz-binding: none;
 
@@ -486,20 +470,12 @@ input[type="submit"] {
 
 button {
   /* Buttons should lay out like "normal" html, mostly */
-  white-space: inherit;
+  white-space: normal;  
   text-indent: 0;
 }
 
 *|*::-moz-button-content {
   display: block;
-}
-
-button:hover,
-input[type="reset"]:hover,
-input[type="button"]:hover,
-input[type="submit"]:hover {
-  background-color: -moz-buttonhoverface;
-  color: -moz-buttonhovertext;
 }
 
 button:active:hover,
@@ -508,8 +484,6 @@ input[type="button"]:active:hover,
 input[type="submit"]:active:hover {
   padding: 0px 5px 0px 7px;
   border-style: inset;
-  background-color: ButtonFace;
-  color: ButtonText;
 }
 
 button::-moz-focus-inner,
@@ -540,8 +514,8 @@ input[type="submit"][disabled]:active,
 input[type="submit"][disabled] {
   /* The sum of border-top, border-bottom, padding-top, padding-bottom
      must be the same here and for text inputs */
-  padding: 0px 6px 0px 6px;
-  border: 2px outset ButtonFace;
+  padding: 1px 7px 1px 7px;
+  border: 1px outset ButtonShadow;
   color: GrayText;
   cursor: inherit; 
 }
@@ -590,7 +564,7 @@ input[type="file"] > input[type="text"] {
   input[type="file"] { height: 2em; }
 }
 
-%if OSARCH==OS2
+%if OSARCH=="OS2"
 input {
   font: medium serif; font-family: inherit
 }
@@ -607,6 +581,99 @@ input[type="reset"],
 input[type="button"],
 input[type="submit"] { 
   font: medium serif; font-family: inherit
+}
+
+%endif
+
+%ifdef MOZ_MACBROWSER
+/* makes sure enabled and disabled input and text area fields are drawn */
+input,
+input[disabled] {
+  padding: 0px 1px 0px 1px;
+  font-size: 11px;
+  margin: 1px 1px 1px 1px;
+  background-color: -moz-field;
+}
+
+select {
+  margin: 1px 1px 1px 1px;
+  background-color: transparent !important;
+  color: -moz-FieldText !important;
+  font-size: 11px;
+  direction: ltr;
+}
+
+/* Need the "select[size][multiple]" selector to override the settings on
+  'select[size="1"]', eg if one has <select size="1" multiple> */
+select[size],
+select[multiple],
+select[size][multiple] {
+  -moz-appearance: none; /* we'll draw by hand, thanks */
+  background-color: -moz-Field !important;
+  border-style: solid;
+  border-color: #737373 #999999 #999999 #999999;
+  border-width: 1px;
+  /* still need to get rid of 1-pixel gab above the first and below the last option */
+  /* get rid of the dotted focus outline? */
+}
+
+select[size="0"],
+select[size="1"] {
+  -moz-appearance: menulist;
+  border-width: 2px;
+  background-color: transparent !important;
+}
+
+/* make sure nothing paints for the menulist button, since the button is
+  painted as part of the menulist. */
+select > input[type="button"],
+select > input[type="button"]:active {
+  background: transparent !important;
+  -moz-appearance: none !important;
+  border: none !important;
+}
+
+option[disabled],
+optgroup[disabled],
+select[disabled] {
+  color: GrayText !important;
+}
+
+input[type="image"] {
+  margin: 0;
+}
+
+/* margins makes sure they are aligned with the text baseline */
+input[type="checkbox"] {
+  -moz-appearance: checkbox-small;
+  width: 15px;
+  height: 15px;
+  margin: 1px 2px 0px 3px;
+}
+
+input[type="radio"] {
+  -moz-appearance: radio-small;
+  width: 15px;
+  height: 16px;
+  margin: 1px 2px -3px 3px;
+}
+
+/* this draws the square button */
+button,
+button[disabled],
+button:active:hover,
+button[disabled]:active {
+  -moz-appearance: none;
+}
+
+/* make sure disabled images have transparent background */
+input[type="image"][disabled] {
+  background-color: transparent;
+}
+
+/* avoid flickering size when file selector buttons with large text are activated */
+input[type="file"] > input[type="button"]:active:hover {
+  font-size: inherit;
 }
 
 %endif

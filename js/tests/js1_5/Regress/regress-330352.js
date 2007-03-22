@@ -34,15 +34,13 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-330352.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 330352;
+var bug = 330352;
 var summary = 'Very non-greedy regexp causes crash in jsregexp.c';
 var actual = 'No Crash';
 var expect = 'No Crash';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
 expectExitCode(0);

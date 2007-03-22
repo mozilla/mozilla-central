@@ -50,13 +50,11 @@ class nsCSSRuleProcessor;
 class nsMediaList;
 class nsICSSGroupRule;
 class nsICSSImportRule;
-class nsIPrincipal;
 
 // IID for the nsICSSStyleSheet interface
-// 363c1c5f-81ec-4d83-ad8a-b48d48f1398d
+// 446df065-af5e-46b8-b32f-289bf5906876
 #define NS_ICSS_STYLE_SHEET_IID     \
-{ 0x363c1c5f, 0x81ec, 0x4d83, \
- { 0xad, 0x8a, 0xb4, 0x8d, 0x48, 0xf1, 0x39, 0x8d } }
+{0x446df065, 0xaf5e, 0x46b8, {0xb3, 0x2f, 0x28, 0x9b, 0xf5, 0x90, 0x68, 0x76}}
 
 class nsICSSStyleSheet : public nsIStyleSheet {
 public:
@@ -87,19 +85,7 @@ public:
    * SetURIs may only be called while the sheet is 1) incomplete and 2)
    * has no rules in it
    */
-  NS_IMETHOD  SetURIs(nsIURI* aSheetURI, nsIURI* aOriginalSheetURI,
-                      nsIURI* aBaseURI) = 0;
-
-  /**
-   * SetPrincipal should be called on all sheets before parsing into them.
-   * This can only be called once with a non-null principal.  Calling this with
-   * a null pointer is allowed and is treated as a no-op.
-   */
-  virtual NS_HIDDEN_(void) SetPrincipal(nsIPrincipal* aPrincipal) = 0;
-
-  // Principal() never returns a null pointer.
-  virtual NS_HIDDEN_(nsIPrincipal*) Principal() const = 0;
-  
+  NS_IMETHOD  SetURIs(nsIURI* aSheetURI, nsIURI* aBaseURI) = 0;
   NS_IMETHOD  SetTitle(const nsAString& aTitle) = 0;
   NS_IMETHOD  SetMedia(nsMediaList* aMedia) = 0;
   NS_IMETHOD  SetOwningNode(nsIDOMNode* aOwningNode) = 0;
@@ -121,12 +107,6 @@ public:
 
   NS_IMETHOD  AddRuleProcessor(nsCSSRuleProcessor* aProcessor) = 0;
   NS_IMETHOD  DropRuleProcessor(nsCSSRuleProcessor* aProcessor) = 0;
-
-  /**
-   * Like the DOM insertRule() method, but doesn't do any security checks
-   */
-  NS_IMETHOD InsertRuleInternal(const nsAString& aRule,
-                                PRUint32 aIndex, PRUint32* aReturn) = 0;
 };
 
 NS_DEFINE_STATIC_IID_ACCESSOR(nsICSSStyleSheet, NS_ICSS_STYLE_SHEET_IID)

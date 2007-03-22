@@ -65,6 +65,7 @@
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
 #include "nsIStringBundle.h"
+#include "nsCPasswordManager.h"
 #include "nsAuthInformationHolder.h"
 
 #if defined(PR_LOGGING)
@@ -95,8 +96,7 @@ nsFtpState::nsFtpState()
     , mRetryPass(PR_FALSE)
     , mInternalError(NS_OK)
     , mPort(21)
-    , mAddressChecked(PR_FALSE)
-    , mServerIsIPv6(PR_FALSE)
+    , mIPv6Checked(PR_FALSE)
     , mControlStatus(NS_OK)
 {
     LOG_ALWAYS(("FTP:(%x) nsFtpState created", this));
@@ -661,7 +661,7 @@ nsFtpState::S_user() {
     } else {
         if (mUsername.IsEmpty()) {
             nsCOMPtr<nsIAuthPrompt2> prompter;
-            NS_QueryAuthPrompt2(static_cast<nsIChannel*>(mChannel),
+            NS_QueryAuthPrompt2(NS_STATIC_CAST(nsIChannel*, mChannel),
                                 getter_AddRefs(prompter));
             if (!prompter)
                 return NS_ERROR_NOT_INITIALIZED;
@@ -751,7 +751,7 @@ nsFtpState::S_pass() {
     } else {
         if (mPassword.IsEmpty() || mRetryPass) {
             nsCOMPtr<nsIAuthPrompt2> prompter;
-            NS_QueryAuthPrompt2(static_cast<nsIChannel*>(mChannel),
+            NS_QueryAuthPrompt2(NS_STATIC_CAST(nsIChannel*, mChannel),
                                 getter_AddRefs(prompter));
             if (!prompter)
                 return NS_ERROR_NOT_INITIALIZED;
@@ -802,6 +802,21 @@ nsFtpState::R_pass() {
     if (mResponseCode/100 == 5 || mResponseCode==421) {
         // There is no difference between a too-many-users error,
         // a wrong-password error, or any other sort of error
+        // So we need to tell wallet to forget the password if we had one,
+        // and error out. That will then show the error message, and the
+        // user can retry if they want to
+
+        if (!mPassword.IsEmpty()) {
+            nsCOMPtr<nsIPasswordManager> pm =
+                    do_GetService(NS_PASSWORDMANAGER_CONTRACTID);
+            if (pm) {
+                nsCAutoString prePath;
+                nsresult rv = mChannel->URI()->GetPrePath(prePath);
+                NS_ASSERTION(NS_SUCCEEDED(rv), "Failed to get prepath");
+                if (NS_SUCCEEDED(rv))
+                    pm->RemoveUser(prePath, EmptyString());
+            }
+        }
 
         // If the login was anonymous, and it failed, try again with a username
         if (mAnonymous) {
@@ -856,8 +871,7 @@ nsFtpState::R_syst() {
             ( mResponseMsg.Find("MACOS Peter's Server") > -1) ||
             ( mResponseMsg.Find("MACOS WebSTAR FTP") > -1) ||
             ( mResponseMsg.Find("MVS") > -1) ||
-            ( mResponseMsg.Find("OS/390") > -1) ||
-            ( mResponseMsg.Find("OS/400") > -1)) {
+            ( mResponseMsg.Find("OS/390") > -1)) {
             mServerType = FTP_UNIX_TYPE;
         } else if (( mResponseMsg.Find("WIN32", PR_TRUE) > -1) ||
                    ( mResponseMsg.Find("windows", PR_TRUE) > -1)) {
@@ -1044,20 +1058,6 @@ nsFtpState::R_mdtm() {
 nsresult 
 nsFtpState::SetContentType()
 {
-    // FTP directory URLs don't always end in a slash.  Make sure they do.
-    // This check needs to be here rather than a more obvious place
-    // (e.g. LIST command processing) so that it ensures the terminating
-    // slash is appended for the new request case, as well as the case
-    // where the URL is being loaded from the cache.
-
-    if (!mPath.IsEmpty() && mPath.Last() != '/') {
-        nsCOMPtr<nsIURL> url = (do_QueryInterface(mChannel->URI()));
-        nsCAutoString filePath;
-        if(NS_SUCCEEDED(url->GetFilePath(filePath))) {
-            filePath.Append('/');
-            url->SetFilePath(filePath);
-        }
-    }
     return mChannel->SetContentType(
         NS_LITERAL_CSTRING(APPLICATION_HTTP_INDEX_FORMAT));
 }
@@ -1243,9 +1243,11 @@ nsresult
 nsFtpState::S_pasv() {
     nsresult rv;
 
-    if (!mAddressChecked) {
-        // Find socket address
-        mAddressChecked = PR_TRUE;
+    if (mIPv6Checked == PR_FALSE) {
+        NS_ASSERTION(mIPv6ServerAddress.get() == nsnull, "already initialized");
+
+        // Find IPv6 socket address, if server is IPv6
+        mIPv6Checked = PR_TRUE;
         nsITransport *controlSocket = mControlConnection->Transport();
         if (!controlSocket)
             return FTP_ERROR;
@@ -1254,16 +1256,20 @@ nsFtpState::S_pasv() {
         if (sTrans) {
             PRNetAddr addr;
             rv = sTrans->GetPeerAddr(&addr);
-            if (NS_SUCCEEDED(rv)) {
-                mServerIsIPv6 = addr.raw.family == PR_AF_INET6 &&
-                                !PR_IsNetAddrType(&addr, PR_IpAddrV4Mapped);
-                PR_NetAddrToString(&addr, mServerAddress, sizeof(mServerAddress));
+            if (NS_SUCCEEDED(rv) && addr.raw.family == PR_AF_INET6 &&
+                        !PR_IsNetAddrType(&addr, PR_IpAddrV4Mapped)) {
+                const size_t size = 100;
+                mIPv6ServerAddress = new char[size];
+                if (mIPv6ServerAddress &&
+                            PR_NetAddrToString(&addr, mIPv6ServerAddress,
+                                               size) != PR_SUCCESS)
+                    mIPv6ServerAddress = nsnull;
             }
         }
     }
 
     const char *string;
-    if (mServerIsIPv6) {
+    if (mIPv6ServerAddress) {
         string = "EPSV" CRLF;
     } else {
         string = "PASV" CRLF;
@@ -1287,8 +1293,12 @@ nsFtpState::R_pasv() {
     char *ptr = response;
 
     // Make sure to ignore the address in the PASV response (bug 370559)
+    nsCAutoString host;
+    rv = mChannel->URI()->GetAsciiHost(host);
+    if (NS_FAILED(rv))
+        return FTP_ERROR;
 
-    if (mServerIsIPv6) {
+    if (mIPv6ServerAddress) {
         // The returned string is of the form
         // text (|||ppp|)
         // Where '|' can be any single character
@@ -1348,6 +1358,9 @@ nsFtpState::R_pasv() {
         port = ((PRInt32) (p0<<8)) + p1;
     }
 
+    const char* hostStr =
+            mIPv6ServerAddress ? mIPv6ServerAddress : host.get();
+
     PRBool newDataConn = PR_TRUE;
     if (mDataTransport) {
         // Reuse this connection only if its still alive, and the port
@@ -1378,14 +1391,14 @@ nsFtpState::R_pasv() {
             do_GetService(NS_SOCKETTRANSPORTSERVICE_CONTRACTID, &rv);
         
         nsCOMPtr<nsISocketTransport> strans;
-        rv =  sts->CreateTransport(nsnull, 0, nsDependentCString(mServerAddress),
+        rv =  sts->CreateTransport(nsnull, 0, nsDependentCString(hostStr),
                                    port, mChannel->ProxyInfo(),
                                    getter_AddRefs(strans)); // the data socket
         if (NS_FAILED(rv))
             return FTP_ERROR;
         mDataTransport = strans;
         
-        LOG(("FTP:(%x) created DT (%s:%x)\n", this, mServerAddress, port));
+        LOG(("FTP:(%x) created DT (%s:%x)\n", this, hostStr, port));
         
         // hook ourself up as a proxy for status notifications
         rv = mDataTransport->SetEventSink(this, NS_GetCurrentThread());
@@ -1680,8 +1693,8 @@ nsFtpState::KillControlConnection()
 {
     mControlReadCarryOverBuf.Truncate(0);
 
-    mAddressChecked = PR_FALSE;
-    mServerIsIPv6 = PR_FALSE;
+    mIPv6Checked = PR_FALSE;
+    mIPv6ServerAddress = nsnull;
 
     // if everything went okay, save the connection. 
     // FIX: need a better way to determine if we can cache the connections.
@@ -1921,10 +1934,8 @@ nsFtpState::OnTransportStatus(nsITransport *transport, nsresult status,
     }
 
     // Ignore the progressMax value from the socket.  We know the true size of
-    // the file based on the response from our SIZE request. Additionally, only
-    // report the max progress based on where we started/resumed.
-    mChannel->OnTransportStatus(nsnull, status, progress,
-                                mFileSize - mChannel->StartPos());
+    // the file based on the response from our SIZE request.
+    mChannel->OnTransportStatus(nsnull, status, progress, mFileSize);
     return NS_OK;
 }
 

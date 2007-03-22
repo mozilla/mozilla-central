@@ -34,10 +34,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-348685.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 348685;
+var bug = 348685;
 var summary = 'Let scoped variables should not be referenced outside blocks';
 var actual = '';
 var expect = '';
@@ -50,13 +48,13 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
- 
+  
   function f() {
-    for (let i = 0; i < 2; i++) {
-      let j = 42;
-      function g() {}
+    for (let i = 0; i < 2; i++) { 
+      let j = 42; 
+      function g() {} 
     }
     var a = i;
     print(a);
@@ -64,7 +62,7 @@ function test()
     return i;
   }
 
-  expect = /ReferenceError: (i|"i") is not defined/;
+  expect = 'ReferenceError: i is not defined';
 
   try
   {
@@ -74,7 +72,7 @@ function test()
   {
     actual = ex + '';
   }
-  reportMatch(expect, actual, summary);
+  reportCompare(expect, actual, summary);
 
   exitFunc ('test');
 }

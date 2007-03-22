@@ -53,7 +53,6 @@
 
 nsTAString_CharT::~nsTAString_CharT()
   {
-    NS_ASSERTION(mVTable, "mVTable is null! Is this a static string instance?!");
     if (mVTable == obsolete_string_type::sCanonicalVTable)
       AsSubstring()->Finalize();
     else
@@ -520,5 +519,5 @@ nsTAString_CharT::ToSubstring() const
   {
     const char_type* data;
     size_type length = GetReadableBuffer(&data);
-    return substring_type(const_cast<char_type*>(data), length, 0);
+    return substring_type(NS_CONST_CAST(char_type*, data), length, 0);
   }

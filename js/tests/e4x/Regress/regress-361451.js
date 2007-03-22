@@ -36,15 +36,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'regress-361451.js';
-
-var BUGNUMBER = 361451;
+var bug = 361451;
 var summary = 'Do not crash with E4X, watch, import';
 var actual = 'No Crash';
 var expect = 'No Crash';
 
-printBugNumber(BUGNUMBER);
-START(summary);
+printBugNumber (bug);
+printStatus (summary);
 
 var obj = <z><yyy/></z>;
 obj.watch('x', print);

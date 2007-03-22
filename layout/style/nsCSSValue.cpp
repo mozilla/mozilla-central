@@ -44,7 +44,6 @@
 #include "imgIRequest.h"
 #include "nsIDocument.h"
 #include "nsContentUtils.h"
-#include "nsIPrincipal.h"
 
 // Paint forcing
 #include "prenv.h"
@@ -52,10 +51,10 @@
 nsCSSValue::nsCSSValue(PRInt32 aValue, nsCSSUnit aUnit)
   : mUnit(aUnit)
 {
-  NS_ASSERTION(aUnit == eCSSUnit_Integer || aUnit == eCSSUnit_Enumerated ||
-               aUnit == eCSSUnit_EnumColor, "not an int value");
-  if (aUnit == eCSSUnit_Integer || aUnit == eCSSUnit_Enumerated ||
-      aUnit == eCSSUnit_EnumColor) {
+  NS_ASSERTION((eCSSUnit_Integer == aUnit) ||
+               (eCSSUnit_Enumerated == aUnit), "not an int value");
+  if ((eCSSUnit_Integer == aUnit) ||
+      (eCSSUnit_Enumerated == aUnit)) {
     mValue.mInt = aValue;
   }
   else {
@@ -127,37 +126,36 @@ nsCSSValue::nsCSSValue(nsCSSValue::Image* aValue)
 nsCSSValue::nsCSSValue(const nsCSSValue& aCopy)
   : mUnit(aCopy.mUnit)
 {
-  if (mUnit <= eCSSUnit_Dummy) {
-    // nothing to do, but put this important case first
-  }
-  else if (eCSSUnit_Percent <= mUnit) {
-    mValue.mFloat = aCopy.mValue.mFloat;
-  }
-  else if (eCSSUnit_String <= mUnit && mUnit <= eCSSUnit_Attr) {
+  if ((eCSSUnit_String <= mUnit) && (mUnit <= eCSSUnit_Attr)) {
     mValue.mString = aCopy.mValue.mString;
     mValue.mString->AddRef();
   }
-  else if (eCSSUnit_Integer <= mUnit && mUnit <= eCSSUnit_EnumColor) {
+  else if ((eCSSUnit_Integer <= mUnit) && (mUnit <= eCSSUnit_Enumerated)) {
     mValue.mInt = aCopy.mValue.mInt;
   }
-  else if (eCSSUnit_Color == mUnit) {
+  else if (eCSSUnit_Color == mUnit){
     mValue.mColor = aCopy.mValue.mColor;
   }
   else if (eCSSUnit_Array <= mUnit && mUnit <= eCSSUnit_Counters) {
     mValue.mArray = aCopy.mValue.mArray;
     mValue.mArray->AddRef();
   }
-  else if (eCSSUnit_URL == mUnit) {
+  else if (eCSSUnit_URL == mUnit){
     mValue.mURL = aCopy.mValue.mURL;
     mValue.mURL->AddRef();
   }
-  else if (eCSSUnit_Image == mUnit) {
+  else if (eCSSUnit_Image == mUnit){
     mValue.mImage = aCopy.mValue.mImage;
     mValue.mImage->AddRef();
   }
   else {
-    NS_NOTREACHED("unknown unit");
+    mValue.mFloat = aCopy.mValue.mFloat;
   }
+}
+
+nsCSSValue::~nsCSSValue()
+{
+  Reset();
 }
 
 nsCSSValue& nsCSSValue::operator=(const nsCSSValue& aCopy)
@@ -172,14 +170,11 @@ nsCSSValue& nsCSSValue::operator=(const nsCSSValue& aCopy)
 PRBool nsCSSValue::operator==(const nsCSSValue& aOther) const
 {
   if (mUnit == aOther.mUnit) {
-    if (mUnit <= eCSSUnit_Dummy) {
-      return PR_TRUE;
-    }
-    else if ((eCSSUnit_String <= mUnit) && (mUnit <= eCSSUnit_Attr)) {
+    if ((eCSSUnit_String <= mUnit) && (mUnit <= eCSSUnit_Attr)) {
       return (NS_strcmp(GetBufferValue(mValue.mString),
                         GetBufferValue(aOther.mValue.mString)) == 0);
     }
-    else if ((eCSSUnit_Integer <= mUnit) && (mUnit <= eCSSUnit_EnumColor)) {
+    else if ((eCSSUnit_Integer <= mUnit) && (mUnit <= eCSSUnit_Enumerated)) {
       return mValue.mInt == aOther.mValue.mInt;
     }
     else if (eCSSUnit_Color == mUnit) {
@@ -245,27 +240,13 @@ nscoord nsCSSValue::GetLengthTwips() const
   return 0;
 }
 
-void nsCSSValue::DoReset()
-{
-  if (eCSSUnit_String <= mUnit && mUnit <= eCSSUnit_Attr) {
-    mValue.mString->Release();
-  } else if (eCSSUnit_Array <= mUnit && mUnit <= eCSSUnit_Counters) {
-    mValue.mArray->Release();
-  } else if (eCSSUnit_URL == mUnit) {
-    mValue.mURL->Release();
-  } else if (eCSSUnit_Image == mUnit) {
-    mValue.mImage->Release();
-  }
-  mUnit = eCSSUnit_Null;
-}
-
 void nsCSSValue::SetIntValue(PRInt32 aValue, nsCSSUnit aUnit)
 {
-  NS_ASSERTION(aUnit == eCSSUnit_Integer || aUnit == eCSSUnit_Enumerated ||
-               aUnit == eCSSUnit_EnumColor, "not an int value");
+  NS_ASSERTION((eCSSUnit_Integer == aUnit) ||
+               (eCSSUnit_Enumerated == aUnit), "not an int value");
   Reset();
-  if (aUnit == eCSSUnit_Integer || aUnit == eCSSUnit_Enumerated ||
-      aUnit == eCSSUnit_EnumColor) {
+  if ((eCSSUnit_Integer == aUnit) ||
+      (eCSSUnit_Enumerated == aUnit)) {
     mUnit = aUnit;
     mValue.mInt = aValue;
   }
@@ -367,29 +348,16 @@ void nsCSSValue::SetNormalValue()
   mUnit = eCSSUnit_Normal;
 }
 
-void nsCSSValue::SetSystemFontValue()
-{
-  Reset();
-  mUnit = eCSSUnit_System_Font;
-}
-
-void nsCSSValue::SetDummyValue()
-{
-  Reset();
-  mUnit = eCSSUnit_Dummy;
-}
-
-void nsCSSValue::StartImageLoad(nsIDocument* aDocument) const
+void nsCSSValue::StartImageLoad(nsIDocument* aDocument, PRBool aIsBGImage) const
 {
   NS_PRECONDITION(eCSSUnit_URL == mUnit, "Not a URL value!");
   nsCSSValue::Image* image =
     new nsCSSValue::Image(mValue.mURL->mURI,
                           mValue.mURL->mString,
                           mValue.mURL->mReferrer,
-                          mValue.mURL->mOriginPrincipal,
-                          aDocument);
+                          aDocument, aIsBGImage);
   if (image) {
-    nsCSSValue* writable = const_cast<nsCSSValue*>(this);
+    nsCSSValue* writable = NS_CONST_CAST(nsCSSValue*, this);
     writable->SetImageValue(image);
   }
 }
@@ -407,7 +375,7 @@ nsCSSValue::BufferFromString(const nsString& aValue)
   PRUnichar length = aValue.Length();
   buffer = nsStringBuffer::Alloc((length + 1) * sizeof(PRUnichar));
   if (NS_LIKELY(buffer != 0)) {
-    PRUnichar* data = static_cast<PRUnichar*>(buffer->Data());
+    PRUnichar* data = NS_STATIC_CAST(PRUnichar*, buffer->Data());
     nsCharTraits<PRUnichar>::copy(data, aValue.get(), length);
     // Null-terminate.
     data[length] = 0;
@@ -416,68 +384,30 @@ nsCSSValue::BufferFromString(const nsString& aValue)
   return buffer;
 }
 
-nsCSSValue::URL::URL(nsIURI* aURI, nsStringBuffer* aString, nsIURI* aReferrer,
-                     nsIPrincipal* aOriginPrincipal)
-  : mURI(aURI),
-    mString(aString),
-    mReferrer(aReferrer),
-    mOriginPrincipal(aOriginPrincipal),
-    mRefCnt(0)
-{
-  NS_PRECONDITION(aOriginPrincipal, "Must have an origin principal");
-  
-  mString->AddRef();
-  MOZ_COUNT_CTOR(nsCSSValue::URL);
-}
-
-nsCSSValue::URL::~URL()
-{
-  mString->Release();
-  MOZ_COUNT_DTOR(nsCSSValue::URL);
-}
-
-PRBool
-nsCSSValue::URL::operator==(const URL& aOther) const
-{
-  PRBool eq;
-  return NS_strcmp(GetBufferValue(mString),
-                   GetBufferValue(aOther.mString)) == 0 &&
-          (mURI == aOther.mURI || // handles null == null
-           (mURI && aOther.mURI &&
-            NS_SUCCEEDED(mURI->Equals(aOther.mURI, &eq)) &&
-            eq)) &&
-          (mOriginPrincipal == aOther.mOriginPrincipal ||
-           (NS_SUCCEEDED(mOriginPrincipal->Equals(aOther.mOriginPrincipal,
-                                                  &eq)) && eq));
-}
-
-PRBool
-nsCSSValue::URL::URIEquals(const URL& aOther) const
-{
-  PRBool eq;
-  // Worth comparing mURI to aOther.mURI and mOriginPrincipal to
-  // aOther.mOriginPrincipal, because in the (probably common) case when this
-  // value was one of the ones that in fact did not change this will be our
-  // fast path to equality
-  return (mURI == aOther.mURI ||
-          (NS_SUCCEEDED(mURI->Equals(aOther.mURI, &eq)) && eq)) &&
-         (mOriginPrincipal == aOther.mOriginPrincipal ||
-          (NS_SUCCEEDED(mOriginPrincipal->Equals(aOther.mOriginPrincipal,
-                                                 &eq)) && eq));
-}
-
 nsCSSValue::Image::Image(nsIURI* aURI, nsStringBuffer* aString,
-                         nsIURI* aReferrer, nsIPrincipal* aOriginPrincipal,
-                         nsIDocument* aDocument)
-  : URL(aURI, aString, aReferrer, aOriginPrincipal)
+                         nsIURI* aReferrer, nsIDocument* aDocument,
+                         PRBool aIsBGImage)
+  : URL(aURI, aString, aReferrer)
 {
   MOZ_COUNT_CTOR(nsCSSValue::Image);
 
+  // If the pref is enabled, force all background image loads to
+  // complete before firing onload for the document.  Otherwise, background
+  // image loads are special and don't block onload.
+  PRInt32 loadFlag = (PRInt32)nsIRequest::LOAD_NORMAL;
+  if (aIsBGImage) {
+    static PRBool onloadAfterImageBackgroundLoads =
+      nsContentUtils::GetBoolPref
+        ("layout.fire_onload_after_image_background_loads");
+    if (!onloadAfterImageBackgroundLoads) {
+      loadFlag = (PRInt32)nsIRequest::LOAD_BACKGROUND;
+    }
+  }
+
   if (mURI &&
-      nsContentUtils::CanLoadImage(mURI, aDocument, aDocument,
-                                   aOriginPrincipal)) {
-    nsContentUtils::LoadImage(mURI, aDocument, aOriginPrincipal, aReferrer,
-                              nsnull, nsIRequest::LOAD_NORMAL,
+      nsContentUtils::CanLoadImage(mURI, aDocument, aDocument)) {
+    nsContentUtils::LoadImage(mURI, aDocument, aReferrer, nsnull,
+                              loadFlag,
                               getter_AddRefs(mRequest));
   }
 }

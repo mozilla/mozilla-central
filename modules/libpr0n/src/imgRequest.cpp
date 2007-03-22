@@ -40,6 +40,7 @@
 #include "imgRequest.h"
 
 #include "imgLoader.h"
+#include "imgCache.h"
 #include "imgRequestProxy.h"
 
 #include "imgILoader.h"
@@ -61,7 +62,6 @@
 #include "nsIProxyObjectManager.h"
 #include "nsIServiceManager.h"
 #include "nsISupportsPrimitives.h"
-#include "nsIScriptSecurityManager.h"
 
 #include "nsString.h"
 #include "nsXPIDLString.h"
@@ -77,10 +77,10 @@ NS_IMPL_ISUPPORTS6(imgRequest, imgILoad,
                    nsISupportsWeakReference)
 
 imgRequest::imgRequest() : 
+  mObservers(0),
   mLoading(PR_FALSE), mProcessing(PR_FALSE), mHadLastPart(PR_FALSE),
   mNetworkStatus(0), mImageStatus(imgIRequest::STATUS_NONE), mState(0),
-  mCacheId(0), mValidator(nsnull), mIsMultiPartChannel(PR_FALSE),
-  mImageSniffers("image-sniffing-services") 
+  mCacheId(0), mValidator(nsnull), mIsMultiPartChannel(PR_FALSE)
 {
   /* member initializers and constructor code */
 }
@@ -125,20 +125,23 @@ nsresult imgRequest::Init(nsIURI *aURI,
   return NS_OK;
 }
 
-nsresult imgRequest::AddProxy(imgRequestProxy *proxy)
+nsresult imgRequest::AddProxy(imgRequestProxy *proxy, PRBool aNotify)
 {
-  NS_PRECONDITION(proxy, "null imgRequestProxy passed in");
   LOG_SCOPE_WITH_PARAM(gImgLog, "imgRequest::AddProxy", "proxy", proxy);
 
-  return mObservers.AppendElementUnlessExists(proxy) ?
-    NS_OK : NS_ERROR_OUT_OF_MEMORY;
+  mObservers.AppendElement(NS_STATIC_CAST(void*, proxy));
+
+  if (aNotify)
+    NotifyProxyListener(proxy);
+
+  return NS_OK;
 }
 
 nsresult imgRequest::RemoveProxy(imgRequestProxy *proxy, nsresult aStatus, PRBool aNotify)
 {
   LOG_SCOPE_WITH_PARAM(gImgLog, "imgRequest::RemoveProxy", "proxy", proxy);
 
-  mObservers.RemoveElement(proxy);
+  mObservers.RemoveElement(NS_STATIC_CAST(void*, proxy));
 
   /* Check mState below before we potentially call Cancel() below. Since
      Cancel() may result in OnStopRequest being called back before Cancel()
@@ -165,7 +168,7 @@ nsresult imgRequest::RemoveProxy(imgRequestProxy *proxy, nsresult aStatus, PRBoo
     mImage->StopAnimation();
   }
 
-  if (mObservers.IsEmpty()) {
+  if (mObservers.Count() == 0) {
     /* If |aStatus| is a failure code, then cancel the load if it is still in progress.
        Otherwise, let the load continue, keeping 'this' in the cache with no observers.
        This way, if a proxy is destroyed without calling cancel on it, it won't leak
@@ -309,18 +312,6 @@ nsresult imgRequest::GetURI(nsIURI **aURI)
   return NS_ERROR_FAILURE;
 }
 
-nsresult imgRequest::GetPrincipal(nsIPrincipal **aPrincipal)
-{
-  LOG_FUNC(gImgLog, "imgRequest::GetPrincipal");
-
-  if (mPrincipal) {
-    NS_ADDREF(*aPrincipal = mPrincipal);
-    return NS_OK;
-  }
-
-  return NS_ERROR_FAILURE;
-}
-
 void imgRequest::RemoveFromCache()
 {
   LOG_SCOPE(gImgLog, "imgRequest::RemoveFromCache");
@@ -333,10 +324,8 @@ void imgRequest::RemoveFromCache()
 
 PRBool imgRequest::HaveProxyWithObserver(imgRequestProxy* aProxyToIgnore) const
 {
-  nsTObserverArray<imgRequestProxy*>::ForwardIterator iter(mObservers);
-  imgRequestProxy* proxy;
-  while (iter.HasMore()) {
-    proxy = iter.GetNext();
+  for (PRInt32 i = 0; i < mObservers.Count(); ++i) {
+    imgRequestProxy *proxy = NS_STATIC_CAST(imgRequestProxy*, mObservers[i]);
     if (proxy == aProxyToIgnore) {
       continue;
     }
@@ -367,7 +356,7 @@ void imgRequest::AdjustPriority(imgRequestProxy *proxy, PRInt32 delta)
   // concern though is that image loads remain lower priority than other pieces
   // of content such as link clicks, CSS, and JS.
   //
-  if (mObservers.SafeElementAt(0, nsnull) != proxy)
+  if (mObservers[0] != proxy)
     return;
 
   nsCOMPtr<nsISupportsPriority> p = do_QueryInterface(mRequest);
@@ -413,9 +402,15 @@ NS_IMETHODIMP imgRequest::FrameChanged(imgIContainer *container,
 {
   LOG_SCOPE(gImgLog, "imgRequest::FrameChanged");
 
-  nsTObserverArray<imgRequestProxy*>::ForwardIterator iter(mObservers);
-  while (iter.HasMore()) {
-    iter.GetNext()->FrameChanged(container, newframe, dirtyRect);
+  PRInt32 count = mObservers.Count();
+  for (PRInt32 i = 0; i < count; i++) {
+    imgRequestProxy *proxy = NS_STATIC_CAST(imgRequestProxy*, mObservers[i]);
+    if (proxy) proxy->FrameChanged(container, newframe, dirtyRect);
+
+    // If this assertion fires, it means that imgRequest notifications could
+    // be dropped!
+    NS_ASSERTION(count == mObservers.Count(),
+                 "The observer list changed while being iterated over!");
   }
 
   return NS_OK;
@@ -430,9 +425,15 @@ NS_IMETHODIMP imgRequest::OnStartDecode(imgIRequest *request)
 
   mState |= onStartDecode;
 
-  nsTObserverArray<imgRequestProxy*>::ForwardIterator iter(mObservers);
-  while (iter.HasMore()) {
-    iter.GetNext()->OnStartDecode();
+  PRInt32 count = mObservers.Count();
+  for (PRInt32 i = 0; i < count; i++) {
+    imgRequestProxy *proxy = NS_STATIC_CAST(imgRequestProxy*, mObservers[i]);
+    if (proxy) proxy->OnStartDecode();
+
+    // If this assertion fires, it means that imgRequest notifications could
+    // be dropped!
+    NS_ASSERTION(count == mObservers.Count(), 
+                 "The observer list changed while being iterated over!");
   }
 
   /* In the case of streaming jpegs, it is possible to get multiple OnStartDecodes which
@@ -464,9 +465,16 @@ NS_IMETHODIMP imgRequest::OnStartContainer(imgIRequest *request, imgIContainer *
 
   mImageStatus |= imgIRequest::STATUS_SIZE_AVAILABLE;
 
-  nsTObserverArray<imgRequestProxy*>::ForwardIterator iter(mObservers);
-  while (iter.HasMore()) {
-    iter.GetNext()->OnStartContainer(image);
+  PRInt32 count = mObservers.Count();
+  for (PRInt32 i = 0; i < count; i++) {
+    imgRequestProxy *proxy = NS_STATIC_CAST(imgRequestProxy*, mObservers[i]);
+    if (proxy) proxy->OnStartContainer(image);
+
+    // If this assertion fires, it means that imgRequest notifications could
+    // be dropped!
+    NS_ASSERTION(count == mObservers.Count(), 
+                 "The observer list changed while being iterated over!");
+
   }
 
   return NS_OK;
@@ -478,9 +486,15 @@ NS_IMETHODIMP imgRequest::OnStartFrame(imgIRequest *request,
 {
   LOG_SCOPE(gImgLog, "imgRequest::OnStartFrame");
 
-  nsTObserverArray<imgRequestProxy*>::ForwardIterator iter(mObservers);
-  while (iter.HasMore()) {
-    iter.GetNext()->OnStartFrame(frame);
+  PRInt32 count = mObservers.Count();
+  for (PRInt32 i = 0; i < count; i++) {
+    imgRequestProxy *proxy = NS_STATIC_CAST(imgRequestProxy*, mObservers[i]);
+    if (proxy) proxy->OnStartFrame(frame);
+
+    // If this assertion fires, it means that imgRequest notifications could
+    // be dropped!
+    NS_ASSERTION(count == mObservers.Count(), 
+                 "The observer list changed while being iterated over!");
   }
 
   return NS_OK;
@@ -493,9 +507,15 @@ NS_IMETHODIMP imgRequest::OnDataAvailable(imgIRequest *request,
 {
   LOG_SCOPE(gImgLog, "imgRequest::OnDataAvailable");
 
-  nsTObserverArray<imgRequestProxy*>::ForwardIterator iter(mObservers);
-  while (iter.HasMore()) {
-    iter.GetNext()->OnDataAvailable(frame, rect);
+  PRInt32 count = mObservers.Count();
+  for (PRInt32 i = 0; i < count; i++) {
+    imgRequestProxy *proxy = NS_STATIC_CAST(imgRequestProxy*, mObservers[i]);
+    if (proxy) proxy->OnDataAvailable(frame, rect);
+
+    // If this assertion fires, it means that imgRequest notifications could
+    // be dropped!
+    NS_ASSERTION(count == mObservers.Count(), 
+                 "The observer list changed while being iterated over!");
   }
 
   return NS_OK;
@@ -514,17 +534,27 @@ NS_IMETHODIMP imgRequest::OnStopFrame(imgIRequest *request,
 
   if (mCacheEntry) {
     PRUint32 cacheSize = 0;
+
     mCacheEntry->GetDataSize(&cacheSize);
 
     PRUint32 imageSize = 0;
-    frame->GetImageDataLength(&imageSize);
+    PRUint32 alphaSize = 0;
 
-    mCacheEntry->SetDataSize(cacheSize + imageSize);
+    frame->GetImageDataLength(&imageSize);
+    frame->GetAlphaDataLength(&alphaSize);
+
+    mCacheEntry->SetDataSize(cacheSize + imageSize + alphaSize);
   }
 
-  nsTObserverArray<imgRequestProxy*>::ForwardIterator iter(mObservers);
-  while (iter.HasMore()) {
-    iter.GetNext()->OnStopFrame(frame);
+  PRInt32 count = mObservers.Count();
+  for (PRInt32 i = 0; i < count; i++) {
+    imgRequestProxy *proxy = NS_STATIC_CAST(imgRequestProxy*, mObservers[i]);
+    if (proxy) proxy->OnStopFrame(frame);
+
+    // If this assertion fires, it means that imgRequest notifications could
+    // be dropped!
+    NS_ASSERTION(count == mObservers.Count(), 
+                 "The observer list changed while being iterated over!");
   }
 
   return NS_OK;
@@ -538,9 +568,15 @@ NS_IMETHODIMP imgRequest::OnStopContainer(imgIRequest *request,
 
   mState |= onStopContainer;
 
-  nsTObserverArray<imgRequestProxy*>::ForwardIterator iter(mObservers);
-  while (iter.HasMore()) {
-    iter.GetNext()->OnStopContainer(image);
+  PRInt32 count = mObservers.Count();
+  for (PRInt32 i = 0; i < count; i++) {
+    imgRequestProxy *proxy = NS_STATIC_CAST(imgRequestProxy*, mObservers[i]);
+    if (proxy) proxy->OnStopContainer(image);
+
+    // If this assertion fires, it means that imgRequest notifications could
+    // be dropped!
+    NS_ASSERTION(count == mObservers.Count(), 
+                 "The observer list changed while being iterated over!");
   }
 
   return NS_OK;
@@ -561,9 +597,15 @@ NS_IMETHODIMP imgRequest::OnStopDecode(imgIRequest *aRequest,
     mImageStatus |= imgIRequest::STATUS_ERROR;
   }
 
-  nsTObserverArray<imgRequestProxy*>::ForwardIterator iter(mObservers);
-  while (iter.HasMore()) {
-    iter.GetNext()->OnStopDecode(GetResultFromImageStatus(mImageStatus), aStatusArg);
+  PRInt32 count = mObservers.Count();
+  for (PRInt32 i = 0; i < count; i++) {
+    imgRequestProxy *proxy = NS_STATIC_CAST(imgRequestProxy*, mObservers[i]);
+    if (proxy) proxy->OnStopDecode(GetResultFromImageStatus(mImageStatus), aStatusArg);
+
+    // If this assertion fires, it means that imgRequest notifications could
+    // be dropped!
+    NS_ASSERTION(count == mObservers.Count(), 
+                 "The observer list changed while being iterated over!");
   }
 
   return NS_OK;
@@ -600,24 +642,18 @@ NS_IMETHODIMP imgRequest::OnStartRequest(nsIRequest *aRequest, nsISupports *ctxt
   mLoading = PR_TRUE;
 
   /* notify our kids */
-  nsTObserverArray<imgRequestProxy*>::ForwardIterator iter(mObservers);
-  while (iter.HasMore()) {
-    iter.GetNext()->OnStartRequest(aRequest, ctxt);
+  PRInt32 count = mObservers.Count();
+  for (PRInt32 i = 0; i < count; i++) {
+    imgRequestProxy *proxy = NS_STATIC_CAST(imgRequestProxy*, mObservers[i]);
+    if (proxy) proxy->OnStartRequest(aRequest, ctxt);
+
+    // If this assertion fires, it means that imgRequest notifications could
+    // be dropped!
+    NS_ASSERTION(count == mObservers.Count(), 
+                 "The observer list changed while being iterated over!");
   }
 
-  /* Get our principal */
   nsCOMPtr<nsIChannel> chan(do_QueryInterface(aRequest));
-  if (chan) {
-    nsCOMPtr<nsIScriptSecurityManager> secMan =
-      do_GetService("@mozilla.org/scriptsecuritymanager;1");
-    if (secMan) {
-      nsresult rv = secMan->GetChannelPrincipal(chan,
-                                                getter_AddRefs(mPrincipal));
-      if (NS_FAILED(rv)) {
-        return rv;
-      }
-    }
-  }
 
   /* get the expires info */
   if (mCacheEntry) {
@@ -672,7 +708,7 @@ NS_IMETHODIMP imgRequest::OnStartRequest(nsIRequest *aRequest, nsISupports *ctxt
 
 
   // Shouldn't we be dead already if this gets hit?  Probably multipart/x-mixed-replace...
-  if (mObservers.IsEmpty()) {
+  if (mObservers.Count() == 0) {
     this->Cancel(NS_IMAGELIB_ERROR_FAILURE);
   }
 
@@ -731,9 +767,13 @@ NS_IMETHODIMP imgRequest::OnStopRequest(nsIRequest *aRequest, nsISupports *ctxt,
   }
 
   /* notify the kids */
-  nsTObserverArray<imgRequestProxy*>::ForwardIterator iter(mObservers);
-  while (iter.HasMore()) {
-    iter.GetNext()->OnStopRequest(aRequest, ctxt, status, mHadLastPart);
+  PRInt32 count = mObservers.Count();
+  for (PRInt32 i = count-1; i>=0; i--) {
+    imgRequestProxy *proxy = NS_STATIC_CAST(imgRequestProxy*, mObservers[i]);
+    /* calling OnStopRequest may result in the death of |proxy| so don't use the
+       pointer after this call.
+     */
+    if (proxy) proxy->OnStopRequest(aRequest, ctxt, status, mHadLastPart);
   }
 
   return NS_OK;
@@ -837,7 +877,7 @@ NS_IMETHODIMP imgRequest::OnDataAvailable(nsIRequest *aRequest, nsISupports *ctx
       return NS_IMAGELIB_ERROR_NO_DECODER;
     }
 
-    nsresult rv = mDecoder->Init(static_cast<imgILoad*>(this));
+    nsresult rv = mDecoder->Init(NS_STATIC_CAST(imgILoad*, this));
     if (NS_FAILED(rv)) {
       PR_LOG(gImgLog, PR_LOG_WARNING,
              ("[this=%p] imgRequest::OnDataAvailable -- mDecoder->Init failed\n", this));
@@ -879,7 +919,7 @@ static NS_METHOD sniff_mimetype_callback(nsIInputStream* in,
                                          PRUint32 count,
                                          PRUint32 *writeCount)
 {
-  imgRequest *request = static_cast<imgRequest*>(closure);
+  imgRequest *request = NS_STATIC_CAST(imgRequest*, closure);
 
   NS_ASSERTION(request, "request is null!");
 
@@ -894,24 +934,6 @@ void
 imgRequest::SniffMimeType(const char *buf, PRUint32 len)
 {
   imgLoader::GetMimeTypeFromContent(buf, len, mContentType);
-
-  // The vast majority of the time, imgLoader will find a gif/jpeg/png image
-  // and fill mContentType with the sniffed MIME type.
-  if (!mContentType.IsEmpty())
-    return;
-
-  // When our sniffing fails, we want to query registered image decoders
-  // to see if they can identify the image. If we always trusted the server
-  // to send the right MIME, images sent as text/plain would not be rendered.
-  const nsCOMArray<nsIContentSniffer>& sniffers = mImageSniffers.GetEntries();
-  PRUint32 length = sniffers.Count();
-  for (PRUint32 i = 0; i < length; ++i) {
-    nsresult rv =
-      sniffers[i]->GetMIMETypeFromContent(nsnull, (const PRUint8 *) buf, len, mContentType);
-    if (NS_SUCCEEDED(rv) && !mContentType.IsEmpty()) {
-      return;
-    }
-  }
 }
 
 nsresult 

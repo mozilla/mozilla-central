@@ -36,25 +36,19 @@
  * ***** END LICENSE BLOCK ***** */
 
 
-#include "nsRemoteClient.h"
+#include "nsIXRemoteClient.h"
 
-class XRemoteClient : public nsRemoteClient
+class XRemoteClient : public nsIXRemoteClient
 {
  public:
   XRemoteClient();
-  ~XRemoteClient();
+  virtual ~XRemoteClient();
 
-  virtual nsresult Init();
-  virtual nsresult SendCommand(const char *aProgram, const char *aUsername,
-                               const char *aProfile, const char *aCommand,
-							   const char* aDesktopStartupID,
-                               char **aResponse, PRBool *aSucceeded);
-  virtual nsresult SendCommandLine(const char *aProgram, const char *aUsername,
-                                   const char *aProfile,
-                                   PRInt32 argc, char **argv,
-								   const char* aDesktopStartupID,
-                                   char **aResponse, PRBool *aSucceeded);
-  void Shutdown();
+  // nsISupports
+  NS_DECL_ISUPPORTS
+
+  // nsIXRemoteClient
+  NS_DECL_NSIXREMOTECLIENT
 
  private:
 	PRBool mInitialized;

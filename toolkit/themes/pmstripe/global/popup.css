@@ -45,9 +45,19 @@
 
 /* ::::: menupopup ::::: */
 
-menupopup,
-popup,
-panel {
+menupopup {
+  -moz-appearance: menupopup;
+  border: 2px solid;
+  border-top: 1px solid;
+  -moz-border-top-colors: ThreeDHighlight;
+  -moz-border-left-colors: grey ThreeDHighlight;
+  -moz-border-right-colors: black ThreeDShadow;
+  -moz-border-bottom-colors: black ThreeDShadow;
+  padding: 1px;
+  background-color: Menu;
+  min-width: 1px;
+}
+popup {
   -moz-appearance: menupopup;
   border: 2px solid;
   -moz-border-top-colors: grey ThreeDHighlight;
@@ -57,10 +67,6 @@ panel {
   padding: 1px;
   background-color: Menu;
   min-width: 1px;
-}
-menupopup {
-  border-top: 1px solid;
-  -moz-border-top-colors: ThreeDHighlight;
 }
 
 menupopup > menu > menupopup,

@@ -34,10 +34,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-349331.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 349331;
+var bug = 349331;
 var summary = 'generator.close without GeneratorExit';
 var actual = '';
 var expect = '';
@@ -50,9 +48,9 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
- 
+  
   var catch1, catch2, catch3, finally1, finally2, finally3;
   var iter;
 
@@ -87,15 +85,15 @@ function test()
   iter.next();
   iter.close();
 
-  var passed = !catch1 && !catch2 && !catch3 && finally1 && finally2 &&
+  var passed = !catch1 && !catch2 && !catch3 && finally1 && finally2 && 
     finally3;
 
   if (!passed) {
     print("Failed!");
-    print("catch1=" + catch1 + " catch2=" + catch2 + " catch3=" +
-	  catch3);
-    print("finally1=" + finally1 + " finally2=" + finally2 +
-	  " finally3=" + finally3);
+    print("catch1=" + catch1 + " catch2=" + catch2 + " catch3=" + 
+                   catch3);
+    print("finally1=" + finally1 + " finally2=" + finally2 + 
+                   " finally3=" + finally3);
   }
 
   reportCompare(true, passed, 'test explicit close call');
@@ -109,15 +107,15 @@ function test()
   gc();
   gc();
 
-  var passed = !catch1 && !catch2 && !catch3 && finally1 && finally2 &&
+  var passed = !catch1 && !catch2 && !catch3 && finally1 && finally2 && 
     finally3;
 
   if (!passed) {
     print("Failed!");
-    print("catch1=" + catch1 + " catch2=" + catch2 + " catch3=" +
-	  catch3);
-    print("finally1=" + finally1 + " finally2=" + finally2 +
-	  " finally3="+finally3);
+    print("catch1=" + catch1 + " catch2=" + catch2 + " catch3=" + 
+                   catch3);
+    print("finally1=" + finally1 + " finally2=" + finally2 + 
+                   " finally3="+finally3);
   }
   reportCompare(true, passed, 'test GC-invoke close');
 

@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'enum-001.js';
-
 /**
    File Name:          enum-001.js
    Section:            LiveConnect
@@ -67,14 +65,14 @@ v.addElement("PASSED!");
 for (e = v.elements(), result = new Array(), i = 0 ; e.hasMoreElements();
      i++ )
 {
-  result[i] = String( e.nextElement() );
+    result[i] = String( e.nextElement() );
 }
 
 for ( i = 0; i < result.length; i++ ) {
-  new TestCase( SECTION,
-		"test enumeration of a java object:  element at " + i,
-		"PASSED!",
-		result[i] );
+    new TestCase( SECTION,
+		  "test enumeration of a java object:  element at " + i,
+		  "PASSED!",
+		  result[i] );
 }
 
 test();

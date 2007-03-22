@@ -1,5 +1,5 @@
 #
-# $Id: MUTTUCData.txt,v 1.1 1999-01-08 00:19:19 ftang%netscape.com Exp $
+# $Id: MUTTUCData.txt,v 1.1 1999/01/08 00:19:19 ftang%netscape.com Exp $
 #
 # Copyright 1996, 1997, 1998 Computing Research Labs,
 # New Mexico State University

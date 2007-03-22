@@ -21,7 +21,6 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Ryan Jones <sciguyryan@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -93,7 +92,6 @@ nsHTMLContentSerializer::nsHTMLContentSerializer()
   mInBody(PR_FALSE),
   mAddSpace(PR_FALSE),
   mMayIgnoreLineBreakSequence(PR_FALSE),
-  mIsWholeDocument(PR_FALSE),
   mInCDATA(PR_FALSE),
   mNeedLineBreaker(PR_TRUE)
 {
@@ -113,8 +111,7 @@ nsHTMLContentSerializer::~nsHTMLContentSerializer()
 
 NS_IMETHODIMP 
 nsHTMLContentSerializer::Init(PRUint32 aFlags, PRUint32 aWrapColumn,
-                              const char* aCharSet, PRBool aIsCopying,
-                              PRBool aIsWholeDocument)
+                              const char* aCharSet, PRBool aIsCopying)
 {
   mFlags = aFlags;
   if (!aWrapColumn) {
@@ -124,7 +121,6 @@ nsHTMLContentSerializer::Init(PRUint32 aFlags, PRUint32 aWrapColumn,
     mMaxColumn = aWrapColumn;
   }
 
-  mIsWholeDocument = aIsWholeDocument;
   mIsCopying = aIsCopying;
   mIsFirstChildOfOL = PR_FALSE;
   mDoFormat = (mFlags & nsIDocumentEncoder::OutputFormatted) ? PR_TRUE
@@ -458,8 +454,26 @@ nsHTMLContentSerializer::IsJavaScript(nsIAtom* aAttrNameAtom, const nsAString& a
       return PR_FALSE;  
   }
 
-  return nsContentUtils::IsEventAttributeName(aAttrNameAtom,
-                                              EventNameType_HTML);
+  PRBool result = 
+                 (aAttrNameAtom == nsGkAtoms::onblur)      || (aAttrNameAtom == nsGkAtoms::onchange)
+              || (aAttrNameAtom == nsGkAtoms::onclick)     || (aAttrNameAtom == nsGkAtoms::ondblclick)
+              || (aAttrNameAtom == nsGkAtoms::onfocus)     || (aAttrNameAtom == nsGkAtoms::onkeydown)
+              || (aAttrNameAtom == nsGkAtoms::onkeypress)  || (aAttrNameAtom == nsGkAtoms::onkeyup)
+              || (aAttrNameAtom == nsGkAtoms::onload)      || (aAttrNameAtom == nsGkAtoms::onmousedown)
+              || (aAttrNameAtom == nsGkAtoms::onpageshow)  || (aAttrNameAtom == nsGkAtoms::onpagehide)
+              || (aAttrNameAtom == nsGkAtoms::onmousemove) || (aAttrNameAtom == nsGkAtoms::onmouseout)
+              || (aAttrNameAtom == nsGkAtoms::onmouseover) || (aAttrNameAtom == nsGkAtoms::onmouseup)
+              || (aAttrNameAtom == nsGkAtoms::onreset)     || (aAttrNameAtom == nsGkAtoms::onselect)
+              || (aAttrNameAtom == nsGkAtoms::onsubmit)    || (aAttrNameAtom == nsGkAtoms::onunload)
+              || (aAttrNameAtom == nsGkAtoms::onabort)     || (aAttrNameAtom == nsGkAtoms::onerror)
+              || (aAttrNameAtom == nsGkAtoms::onpaint)     || (aAttrNameAtom == nsGkAtoms::onresize)
+              || (aAttrNameAtom == nsGkAtoms::onscroll)    || (aAttrNameAtom == nsGkAtoms::onbroadcast)
+              || (aAttrNameAtom == nsGkAtoms::onclose)     || (aAttrNameAtom == nsGkAtoms::oncontextmenu)
+              || (aAttrNameAtom == nsGkAtoms::oncommand)   || (aAttrNameAtom == nsGkAtoms::oncommandupdate)
+              || (aAttrNameAtom == nsGkAtoms::ondragdrop)  || (aAttrNameAtom == nsGkAtoms::ondragenter)
+              || (aAttrNameAtom == nsGkAtoms::ondragexit)  || (aAttrNameAtom == nsGkAtoms::ondraggesture)
+              || (aAttrNameAtom == nsGkAtoms::ondragover)  || (aAttrNameAtom == nsGkAtoms::oninput);
+  return result;
 }
 
 nsresult 
@@ -594,18 +608,6 @@ nsHTMLContentSerializer::SerializeAttributes(nsIContent* aContent,
       nsAutoString tempURI(valueStr);
       if (!isJS && NS_FAILED(EscapeURI(tempURI, valueStr)))
         valueStr = tempURI;
-    }
-
-    if (mIsWholeDocument && aTagName == nsGkAtoms::meta &&
-        attrName == nsGkAtoms::content) {
-      // If we're serializing a <meta http-equiv="content-type">,
-      // use the proper value, rather than what's in the document.
-      nsAutoString header;
-      aContent->GetAttr(kNameSpaceID_None, nsGkAtoms::httpEquiv, header);
-      if (header.LowerCaseEqualsLiteral("content-type")) {
-        valueStr = NS_LITERAL_STRING("text/html; charset=") +
-          NS_ConvertASCIItoUTF16(mCharset);
-      }
     }
 
     attrName->ToString(nameStr);
@@ -743,37 +745,6 @@ nsHTMLContentSerializer::AppendElementStart(nsIDOMElement *aElement,
     mInCDATA = PR_TRUE;
   }
 
-  if (mIsWholeDocument && name == nsGkAtoms::head) {
-    // Check if there already are any content-type meta children.
-    // If there are, they will be modified to use the correct charset.
-    // If there aren't, we'll insert one here.
-    PRBool hasMeta = PR_FALSE;
-    PRUint32 i, childCount = content->GetChildCount();
-    for (i = 0; i < childCount; ++i) {
-      nsIContent* child = content->GetChildAt(i);
-      if (child->IsNodeOfType(nsINode::eHTML) &&
-          child->Tag() == nsGkAtoms::meta &&
-          child->HasAttr(kNameSpaceID_None, nsGkAtoms::content)) {
-        nsAutoString header;
-        child->GetAttr(kNameSpaceID_None, nsGkAtoms::httpEquiv, header);
-
-        if (header.LowerCaseEqualsLiteral("content-type")) {
-          hasMeta = PR_TRUE;
-          break;
-        }
-      }
-    }
-
-    if (!hasMeta) {
-      AppendToString(mLineBreak, aStr);
-      AppendToString(NS_LITERAL_STRING("<meta http-equiv=\"content-type\""),
-                     aStr);
-      AppendToString(NS_LITERAL_STRING(" content=\"text/html; charset="), aStr);
-      AppendToString(NS_ConvertASCIItoUTF16(mCharset), aStr);
-      AppendToString(NS_LITERAL_STRING("\">"), aStr);
-    }
-  }
-
   return NS_OK;
 }
   
@@ -793,8 +764,9 @@ nsHTMLContentSerializer::AppendElementEnd(nsIDOMElement *aElement,
 
   if (name == nsGkAtoms::script) {
     nsCOMPtr<nsIScriptElement> script = do_QueryInterface(aElement);
+    NS_ASSERTION(script, "What kind of weird script element is this?");
 
-    if (script && script->IsMalformed()) {
+    if (script->IsMalformed()) {
       // We're looking at a malformed script tag. This means that the end tag
       // was missing in the source. Imitate that here by not serializing the end
       // tag.
@@ -1279,8 +1251,9 @@ nsHTMLContentSerializer::SerializeLIValueAttribute(nsIDOMElement* aElement,
   // We are copying and we are at the "first" LI node of OL in selected range.
   // It may not be the first LI child of OL but it's first in the selected range.
   // Note that we get into this condition only once per a OL.
+  nsCOMPtr<nsIDOMNode> node = do_QueryInterface(aElement);
   PRBool found = PR_FALSE;
-  nsCOMPtr<nsIDOMNode> currNode = do_QueryInterface(aElement);
+  nsIDOMNode* currNode = node;
   nsAutoString valueStr;
   PRInt32 offset = 0;
   olState defaultOLState(0, PR_FALSE);
@@ -1313,9 +1286,7 @@ nsHTMLContentSerializer::SerializeLIValueAttribute(nsIDOMElement* aElement,
         }
       }
     }
-    nsCOMPtr<nsIDOMNode> tmp;
-    currNode->GetPreviousSibling(getter_AddRefs(tmp));
-    currNode.swap(tmp);
+    currNode->GetPreviousSibling(&currNode);
   }
   // If LI was not having "value", Set the "value" attribute for it.
   // Note that We are at the first LI in the selected range of OL.

@@ -122,7 +122,7 @@ nsXMLStylesheetPI::BindToTree(nsIDocument* aDocument, nsIContent* aParent,
                                                        aCompileEventHandlers);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  UpdateStyleSheetInternal(nsnull);
+  UpdateStyleSheet(nsnull);
 
   return rv;  
 }
@@ -133,7 +133,7 @@ nsXMLStylesheetPI::UnbindFromTree(PRBool aDeep, PRBool aNullParent)
   nsCOMPtr<nsIDocument> oldDoc = GetCurrentDoc();
 
   nsXMLProcessingInstruction::UnbindFromTree(aDeep, aNullParent);
-  UpdateStyleSheetInternal(oldDoc);
+  UpdateStyleSheet(oldDoc);
 }
 
 // nsIDOMNode
@@ -143,7 +143,7 @@ nsXMLStylesheetPI::SetNodeValue(const nsAString& aNodeValue)
 {
   nsresult rv = nsGenericDOMDataNode::SetNodeValue(aNodeValue);
   if (NS_SUCCEEDED(rv)) {
-    UpdateStyleSheetInternal(nsnull, PR_TRUE);
+    UpdateStyleSheet(nsnull, nsnull, PR_TRUE);
   }
   return rv;
 }

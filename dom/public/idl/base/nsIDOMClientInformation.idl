@@ -37,10 +37,7 @@
 
 #include "domstubs.idl"
 
-interface nsIDOMOfflineResourceList;
-interface nsIDOMLoadStatusList;
-
-[scriptable, uuid(f8bbf8c3-c47b-465a-a221-22824449f689)]
+[scriptable, uuid(abbb51a4-be75-4d7f-bd4c-373fd7b52f85)]
 interface nsIDOMClientInformation : nsISupports
 {
   /**
@@ -51,8 +48,6 @@ interface nsIDOMClientInformation : nsISupports
    */
   void registerContentHandler(in DOMString mimeType, in DOMString uri, in DOMString title);
   void registerProtocolHandler(in DOMString protocol, in DOMString uri, in DOMString title);
-
-  boolean mozIsLocallyAvailable(in DOMString uri, in boolean whenOffline);
 };
 
 

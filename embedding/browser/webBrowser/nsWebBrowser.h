@@ -51,7 +51,6 @@
 #include "nsIBaseWindow.h"
 #include "nsIDocShell.h"
 #include "nsIDocShellTreeItem.h"
-#include "nsIDocShellTreeNode.h"
 #include "nsIInterfaceRequestor.h"
 #include "nsIInterfaceRequestorUtils.h"
 #include "nsIScrollable.h"
@@ -94,7 +93,7 @@ public:
     PRBool Equals(nsIWeakReference *aListener, const nsIID& aID) {
         if (mWeakPtr.get() == aListener && mID.Equals(aID)) return PR_TRUE;
         return PR_FALSE;
-    }
+    };
 
     nsWeakPtr mWeakPtr;
     nsIID mID;
@@ -127,7 +126,6 @@ public:
 
     NS_DECL_NSIBASEWINDOW
     NS_DECL_NSIDOCSHELLTREEITEM
-    NS_DECL_NSIDOCSHELLTREENODE
     NS_DECL_NSIINTERFACEREQUESTOR
     NS_DECL_NSISCROLLABLE   
     NS_DECL_NSITEXTSCROLL
@@ -190,6 +188,13 @@ protected:
    //Weak Reference interfaces...
    nsIWidget*                 mParentWidget;
    nsVoidArray *              mListenerArray;
+   
+#if (defined(XP_MAC) || defined(XP_MACOSX)) && !defined(MOZ_WIDGET_COCOA)
+   NS_IMETHOD EnsureTopLevelWidget(nativeWindow aWindow);
+
+   nsIWidget*                 mTopLevelWidget;
+#endif
+
 };
 
 #endif /* nsWebBrowser_h__ */

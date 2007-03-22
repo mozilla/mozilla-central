@@ -42,6 +42,10 @@
 #include "nsIComponentManager.h"
 #include <stdio.h>
 
+NS_DEFINE_IID(kLocaleServiceIID,NS_ILOCALESERVICE_IID);
+NS_DEFINE_CID(kLocaleServiceCID,NS_LOCALESERVICE_CID);
+NS_DEFINE_IID(kPlatformCharsetIID,NS_IPLATFORMCHARSET_IID);
+
 int
 main(int argc, const char** argv)
 {
@@ -51,7 +55,7 @@ main(int argc, const char** argv)
     if (!platform_charset) return -1;
 
     nsCOMPtr<nsILocaleService>      locale_service = 
-        do_CreateInstance(NS_LOCALESERVICE_CONTRACTID);
+        do_CreateInstance(kLocaleServiceCID);
     if (!locale_service) return -1;
 
     nsCOMPtr<nsILocale>             locale;

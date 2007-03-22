@@ -45,15 +45,12 @@
 #define FORCE_PR_LOG
 #endif
 
-#include <stdarg.h>
-
 #include "prlog.h"
 
 #include "nsCOMPtr.h"
 #include "nsAutoPtr.h"
 #include "nsICategoryManager.h"
 #include "nsIComponentManager.h"
-#include "nsIComponentManagerObsolete.h"
 #include "nsIGenericFactory.h"
 #include "nsILocalFile.h"
 #include "nsIModule.h"
@@ -71,21 +68,15 @@
 #ifndef XPCONNECT_STANDALONE
 #include "nsIScriptSecurityManager.h"
 #include "nsIURI.h"
-#include "nsIFileURL.h"
 #include "nsNetUtil.h"
 #endif
 #include "jsxdrapi.h"
-#include "jsprf.h"
 #include "nsIFastLoadFileControl.h"
 // For reporting errors with the console service
 #include "nsIScriptError.h"
 #include "nsIConsoleService.h"
 #include "prmem.h"
 #include "plbase64.h"
-
-#ifdef MOZ_SHARK
-#include "jsdbgapi.h"
-#endif
 
 static const char kJSRuntimeServiceContractID[] = "@mozilla.org/js/xpc/RuntimeService;1";
 static const char kXPConnectServiceContractID[] = "@mozilla.org/js/xpc/XPConnect;1";
@@ -99,13 +90,13 @@ static const char kObserverServiceContractID[] = "@mozilla.org/observer-service;
 
 /**
  * Buffer sizes for serialization and deserialization of scripts.
- * FIXME: bug #411579 (tune this macro!) Last updated: Jan 2008
+ * These should be tuned at some point.
  */
 #define XPC_SERIALIZATION_BUFFER_SIZE   (64 * 1024)
-#define XPC_DESERIALIZATION_BUFFER_SIZE (12 * 8192)
+#define XPC_DESERIALIZATION_BUFFER_SIZE (8 * 1024)
 
 // Inactivity delay before closing our fastload file stream.
-static const int kFastLoadWriteDelay = 10000;   // 10 seconds
+static const int kFastLoadWriteDelay = 5000;   // 5 seconds
 
 #ifdef PR_LOGGING
 // NSPR_LOG_MODULES=JSComponentLoader:5
@@ -113,15 +104,6 @@ static PRLogModuleInfo *gJSCLLog;
 #endif
 
 #define LOG(args) PR_LOG(gJSCLLog, PR_LOG_DEBUG, args)
-
-// Components.utils.import error messages
-#define ERROR_SCOPE_OBJ "%s - Second argument must be an object."
-#define ERROR_NOT_PRESENT "%s - EXPORTED_SYMBOLS is not present."
-#define ERROR_NOT_AN_ARRAY "%s - EXPORTED_SYMBOLS is not an array."
-#define ERROR_GETTING_ARRAY_LENGTH "%s - Error getting array length of EXPORTED_SYMBOLS."
-#define ERROR_ARRAY_ELEMENT "%s - EXPORTED_SYMBOLS[%d] is not a string."
-#define ERROR_GETTING_SYMBOL "%s - Could not get symbol '%s'."
-#define ERROR_SETTING_SYMBOL "%s - Could not set symbol '%s' on target object."
 
 void JS_DLL_CALLBACK
 mozJSLoaderErrorReporter(JSContext *cx, const char *message, JSErrorReport *rep)
@@ -150,11 +132,11 @@ mozJSLoaderErrorReporter(JSContext *cx, const char *message, JSErrorReport *rep)
 
         PRUint32 column = rep->uctokenptr - rep->uclinebuf;
 
-        rv = errorObject->Init(reinterpret_cast<const PRUnichar*>
-                                               (rep->ucmessage),
+        rv = errorObject->Init(NS_REINTERPRET_CAST(const PRUnichar*,
+                                                   rep->ucmessage),
                                fileUni.get(),
-                               reinterpret_cast<const PRUnichar*>
-                                               (rep->uclinebuf),
+                               NS_REINTERPRET_CAST(const PRUnichar*,
+                                                   rep->uclinebuf),
                                rep->lineno, column, rep->flags,
                                "component javascript");
         if (NS_SUCCEEDED(rv)) {
@@ -276,12 +258,7 @@ static JSFunctionSpec gGlobalFun[] = {
     {"debug",   Debug,  1,0,0},
     {"atob",    Atob,   1,0,0},
     {"btoa",    Btoa,   1,0,0},
-#ifdef MOZ_SHARK
-    {"startShark",      js_StartShark,     0,0,0},
-    {"stopShark",       js_StopShark,      0,0,0},
-    {"connectShark",    js_ConnectShark,   0,0,0},
-    {"disconnectShark", js_DisconnectShark,0,0,0},
-#endif
+
     {nsnull,nsnull,0,0,0}
 };
 
@@ -378,36 +355,36 @@ ReadScriptFromStream(JSContext *cx, nsIObjectInputStream *stream,
     xdr->userdata = stream;
     JS_XDRMemSetData(xdr, data, size);
 
-    if (!JS_XDRScript(xdr, script)) {
+    if (JS_XDRScript(xdr, script)) {
+        // Update data in case ::JS_XDRScript called back into C++ code to
+        // read an XPCOM object.
+        //
+        // In that case, the serialization process must have flushed a run
+        // of counted bytes containing JS data at the point where the XPCOM
+        // object starts, after which an encoding C++ callback from the JS
+        // XDR code must have written the XPCOM object directly into the
+        // nsIObjectOutputStream.
+        //
+        // The deserialization process will XDR-decode counted bytes up to
+        // but not including the XPCOM object, then call back into C++ to
+        // read the object, then read more counted bytes and hand them off
+        // to the JSXDRState, so more JS data can be decoded.
+        //
+        // This interleaving of JS XDR data and XPCOM object data may occur
+        // several times beneath the call to ::JS_XDRScript, above.  At the
+        // end of the day, we need to free (via nsMemory) the data owned by
+        // the JSXDRState.  So we steal it back, nulling xdr's buffer so it
+        // doesn't get passed to ::JS_free by ::JS_XDRDestroy.
+
+        uint32 length;
+        data = NS_STATIC_CAST(char*, JS_XDRMemGetData(xdr, &length));
+        if (data) {
+            JS_XDRMemSetData(xdr, nsnull, 0);
+        }
+        JS_XDRDestroy(xdr);
+    } else {
         rv = NS_ERROR_FAILURE;
     }
-
-    // Update data in case ::JS_XDRScript called back into C++ code to
-    // read an XPCOM object.
-    //
-    // In that case, the serialization process must have flushed a run
-    // of counted bytes containing JS data at the point where the XPCOM
-    // object starts, after which an encoding C++ callback from the JS
-    // XDR code must have written the XPCOM object directly into the
-    // nsIObjectOutputStream.
-    //
-    // The deserialization process will XDR-decode counted bytes up to
-    // but not including the XPCOM object, then call back into C++ to
-    // read the object, then read more counted bytes and hand them off
-    // to the JSXDRState, so more JS data can be decoded.
-    //
-    // This interleaving of JS XDR data and XPCOM object data may occur
-    // several times beneath the call to ::JS_XDRScript, above.  At the
-    // end of the day, we need to free (via nsMemory) the data owned by
-    // the JSXDRState.  So we steal it back, nulling xdr's buffer so it
-    // doesn't get passed to ::JS_free by ::JS_XDRDestroy.
-
-    uint32 length;
-    data = static_cast<char*>(JS_XDRMemGetData(xdr, &length));
-    if (data) {
-        JS_XDRMemSetData(xdr, nsnull, 0);
-    }
-    JS_XDRDestroy(xdr);
 
     // If data is null now, it must have been freed while deserializing an
     // XPCOM object (e.g., a principal) beneath ::JS_XDRScript.
@@ -444,8 +421,8 @@ WriteScriptToStream(JSContext *cx, JSScript *script,
         // one last buffer of data to write to aStream.
 
         uint32 size;
-        const char* data = reinterpret_cast<const char*>
-                                           (JS_XDRMemGetData(xdr, &size));
+        const char* data = NS_REINTERPRET_CAST(const char*,
+                                               JS_XDRMemGetData(xdr, &size));
         NS_ASSERTION(data, "no decoded JSXDRState data!");
 
         rv = stream->Write32(size);
@@ -492,11 +469,8 @@ mozJSComponentLoader::~mozJSComponentLoader()
 mozJSComponentLoader*
 mozJSComponentLoader::sSelf;
 
-NS_IMPL_ISUPPORTS3(mozJSComponentLoader,
-                   nsIModuleLoader,
-                   xpcIJSModuleLoader,
-                   nsIObserver)
- 
+NS_IMPL_ISUPPORTS2(mozJSComponentLoader, nsIModuleLoader, nsIObserver)
+
 nsresult
 mozJSComponentLoader::ReallyInit()
 {
@@ -521,26 +495,9 @@ mozJSComponentLoader::ReallyInit()
     uint32 options = JS_GetOptions(mContext);
     JS_SetOptions(mContext, options | JSOPTION_XML);
 
-    // Always use the latest js version
-    JS_SetVersion(mContext, JSVERSION_LATEST);
-
-    // Limit C stack consumption to a reasonable 512K
-    int stackDummy;
-    const jsuword kStackSize = 0x80000;
-    jsuword stackLimit, currentStackAddr = (jsuword)&stackDummy;
-
-#if JS_STACK_GROWTH_DIRECTION < 0
-    stackLimit = (currentStackAddr > kStackSize)
-                 ? currentStackAddr - kStackSize
-                 : 0;
-#else
-    stackLimit = (currentStackAddr + kStackSize > currentStackAddr)
-                 ? currentStackAddr + kStackSize
-                 : (jsuword) -1;
-#endif
+    // enable Javascript 1.7 features (let, yield, etc. - see bug#351515)
+    JS_SetVersion(mContext, JSVERSION_1_7);
     
-    JS_SetThreadStackLimit(mContext, stackLimit);
-
 #ifndef XPCONNECT_STANDALONE
     nsCOMPtr<nsIScriptSecurityManager> secman = 
         do_GetService(NS_SCRIPTSECURITYMANAGER_CONTRACTID);
@@ -553,10 +510,6 @@ mozJSComponentLoader::ReallyInit()
 #endif
 
     if (!mModules.Init(32))
-        return NS_ERROR_OUT_OF_MEMORY;
-    if (!mImports.Init(32))
-        return NS_ERROR_OUT_OF_MEMORY;
-    if (!mInProgressImports.Init(32))
         return NS_ERROR_OUT_OF_MEMORY;
 
     // Set up our fastload file
@@ -823,7 +776,7 @@ FastLoadStateHolder::pop()
 void
 mozJSComponentLoader::CloseFastLoad(nsITimer *timer, void *closure)
 {
-    static_cast<mozJSComponentLoader*>(closure)->CloseFastLoad();
+    NS_STATIC_CAST(mozJSComponentLoader*, closure)->CloseFastLoad();
 }
 
 void
@@ -1207,7 +1160,7 @@ mozJSComponentLoader::GlobalForLocation(nsILocalFile *aComponent,
         PRUint32 fileSize32;
         LL_L2UI(fileSize32, fileSize);
 
-        char *buf = static_cast<char*>(PR_MemMap(map, 0, fileSize32));
+        char *buf = NS_STATIC_CAST(char*, PR_MemMap(map, 0, fileSize32));
         if (!buf) {
             NS_WARNING("Failed to map file");
             return NS_ERROR_FAILURE;
@@ -1216,7 +1169,7 @@ mozJSComponentLoader::GlobalForLocation(nsILocalFile *aComponent,
         script = JS_CompileScriptForPrincipals(cx, global,
                                                jsPrincipals,
                                                buf, fileSize32,
-                                               nativePath.get(), 1);
+                                               nativePath.get(), 0);
         PR_MemUnmap(buf, fileSize32);
 
 #else  /* HAVE_PR_MEMMAP */
@@ -1256,7 +1209,7 @@ mozJSComponentLoader::GlobalForLocation(nsILocalFile *aComponent,
     // that?  On the other hand, the fact that this is in our components dir
     // means that if someone snuck a malicious file into this dir we're screwed
     // anyway...  So maybe flagging as a prefix is fine.
-    xpc->FlagSystemFilenamePrefix(nativePath.get(), PR_TRUE);
+    xpc->FlagSystemFilenamePrefix(nativePath.get());
 
 #ifdef DEBUG_shaver_off
     fprintf(stderr, "mJCL: compiled JS component %s\n",
@@ -1279,16 +1232,11 @@ mozJSComponentLoader::GlobalForLocation(nsILocalFile *aComponent,
     // Restore the old state of the fastload service.
     flState.pop();
 
-    // Assign aGlobal here so that it's available to recursive imports.
-    // See bug 384168.
-    *aGlobal = global;
-
     jsval retval;
     if (!JS_ExecuteScript(cx, global, script, &retval)) {
 #ifdef DEBUG_shaver_off
         fprintf(stderr, "mJCL: failed to execute %s\n", nativePath.get());
 #endif
-        *aGlobal = nsnull;
         return NS_ERROR_FAILURE;
     }
 
@@ -1296,11 +1244,10 @@ mozJSComponentLoader::GlobalForLocation(nsILocalFile *aComponent,
     nsCAutoString path;
     aComponent->GetNativePath(path);
     *aLocation = ToNewCString(path);
-    if (!*aLocation) {
-        *aGlobal = nsnull;
+    if (!*aLocation)
         return NS_ERROR_OUT_OF_MEMORY;
-    }
 
+    *aGlobal = global;
     JS_AddNamedRoot(cx, aGlobal, *aLocation);
     return NS_OK;
 }
@@ -1310,8 +1257,6 @@ mozJSComponentLoader::UnloadModules()
 {
     mInitialized = PR_FALSE;
 
-    mInProgressImports.Clear();
-    mImports.Clear();
     mModules.Clear();
 
     // Destroying our context will force a GC.
@@ -1319,256 +1264,10 @@ mozJSComponentLoader::UnloadModules()
     mContext = nsnull;
 
     mRuntimeService = nsnull;
+
 #ifdef DEBUG_shaver_off
     fprintf(stderr, "mJCL: UnloadAll(%d)\n", aWhen);
 #endif
-}
-
-/* [JSObject] import (in AUTF8String registryLocation,
-                      [optional] in JSObject targetObj ); */
-NS_IMETHODIMP
-mozJSComponentLoader::Import(const nsACString & registryLocation)
-{
-    // This function should only be called from JS.
-    nsresult rv;
-
-    nsCOMPtr<nsIXPConnect> xpc =
-        do_GetService(kXPConnectServiceContractID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
-    
-    nsAXPCNativeCallContext *cc = nsnull;
-    rv = xpc->GetCurrentNativeCallContext(&cc);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-#ifdef DEBUG
-    {
-    // ensure that we are being call from JS, from this method
-    nsCOMPtr<nsIInterfaceInfo> info;
-    rv = cc->GetCalleeInterface(getter_AddRefs(info));
-    NS_ENSURE_SUCCESS(rv, rv);
-    nsXPIDLCString name;
-    info->GetName(getter_Copies(name));
-    NS_ASSERTION(nsCRT::strcmp("nsIXPCComponents_Utils", name.get()) == 0,
-                 "Components.utils.import must only be called from JS.");
-    PRUint16 methodIndex;
-    const nsXPTMethodInfo *methodInfo;
-    rv = info->GetMethodInfoForName("import", &methodIndex, &methodInfo);
-    NS_ENSURE_SUCCESS(rv, rv);
-    PRUint16 calleeIndex;
-    rv = cc->GetCalleeMethodIndex(&calleeIndex);
-    NS_ASSERTION(calleeIndex == methodIndex,
-                 "Components.utils.import called from another utils method.");
-    }
-#endif
-
-    JSContext *cx = nsnull;
-    rv = cc->GetJSContext(&cx);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    JSAutoRequest ar(cx);
-
-    JSObject *targetObject = nsnull;
-
-    PRUint32 argc = 0;
-    rv = cc->GetArgc(&argc);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    if (argc > 1) {
-        // The caller passed in the optional second argument. Get it.
-        jsval *argv = nsnull;
-        rv = cc->GetArgvPtr(&argv);
-        NS_ENSURE_SUCCESS(rv, rv);
-        if (!JSVAL_IS_OBJECT(argv[1])) {
-            return ReportOnCaller(cc, ERROR_SCOPE_OBJ,
-                                  PromiseFlatCString(registryLocation).get());
-        }
-        targetObject = JSVAL_TO_OBJECT(argv[1]);
-    } else {
-        // Our targetObject is the caller's global object. Find it by
-        // walking the calling object's parent chain.
-
-        nsCOMPtr<nsIXPConnectWrappedNative> wn;
-        rv = cc->GetCalleeWrapper(getter_AddRefs(wn));
-        NS_ENSURE_SUCCESS(rv, rv);
-        
-        wn->GetJSObject(&targetObject);
-        if (!targetObject) {
-            NS_ERROR("null calling object");
-            return NS_ERROR_FAILURE;
-        }
-
-        targetObject = JS_GetGlobalForObject(cx, targetObject);
-    }
- 
-    JSObject *globalObj = nsnull;
-    rv = ImportInto(registryLocation, targetObject, cc, &globalObj);
-
-    jsval *retval = nsnull;
-    cc->GetRetValPtr(&retval);
-    if (*retval)
-        *retval = OBJECT_TO_JSVAL(globalObj);
-
-    return rv;
-}
-
-/* [noscript] JSObjectPtr importInto(in AUTF8String registryLocation,
-                                     in JSObjectPtr targetObj); */
-NS_IMETHODIMP
-mozJSComponentLoader::ImportInto(const nsACString & aLocation,
-                                 JSObject * targetObj,
-                                 nsAXPCNativeCallContext * cc,
-                                 JSObject * *_retval)
-{
-    nsresult rv;
-    *_retval = nsnull;
-
-    if (!mInitialized) {
-        rv = ReallyInit();
-        NS_ENSURE_SUCCESS(rv, rv);
-    }
-    
-    nsCOMPtr<nsIIOService> ioService = do_GetIOService(&rv);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    // Get the URI.
-    nsCOMPtr<nsIURI> resURI;
-    rv = ioService->NewURI(aLocation, nsnull, nsnull, getter_AddRefs(resURI));
-    nsCOMPtr<nsIFileURL> fileURL = do_QueryInterface(resURI, &rv);
-    // If we don't have a file URL, then the location passed in is invalid.
-    NS_ENSURE_SUCCESS(rv, NS_ERROR_INVALID_ARG);
-
-    // Get the file belonging to it.
-    nsCOMPtr<nsIFile> file;
-    rv = fileURL->GetFile(getter_AddRefs(file));
-    NS_ENSURE_SUCCESS(rv, rv);
-    nsCOMPtr<nsILocalFile> componentFile = do_QueryInterface(file, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    nsCOMPtr<nsIHashable> lfhash(do_QueryInterface(componentFile));
-    if (!lfhash) {
-        NS_ERROR("nsLocalFile not implementing nsIHashable");
-        return NS_NOINTERFACE;
-    }
-
-    ModuleEntry* mod;
-    nsAutoPtr<ModuleEntry> newEntry;
-    if (!mImports.Get(lfhash, &mod) && !mInProgressImports.Get(lfhash, &mod)) {
-        newEntry = new ModuleEntry;
-        if (!newEntry || !mInProgressImports.Put(lfhash, newEntry))
-            return NS_ERROR_OUT_OF_MEMORY;
-
-        rv = GlobalForLocation(componentFile, &newEntry->global,
-                               &newEntry->location);
-
-        mInProgressImports.Remove(lfhash);
-
-        if (NS_FAILED(rv)) {
-            *_retval = nsnull;
-            return NS_ERROR_FILE_NOT_FOUND;
-        }
-
-        mod = newEntry;
-    }
-
-    NS_ASSERTION(mod->global, "Import table contains entry with no global");
-    *_retval = mod->global;
-
-    jsval symbols;
-    if (targetObj) {
-        JSAutoRequest ar(mContext);
-
-        if (!JS_GetProperty(mContext, mod->global,
-                            "EXPORTED_SYMBOLS", &symbols)) {
-            return ReportOnCaller(cc, ERROR_NOT_PRESENT,
-                                  PromiseFlatCString(aLocation).get());
-        }
-
-        JSObject *symbolsObj = nsnull;
-        if (!JSVAL_IS_OBJECT(symbols) ||
-            !(symbolsObj = JSVAL_TO_OBJECT(symbols)) ||
-            !JS_IsArrayObject(mContext, symbolsObj)) {
-            return ReportOnCaller(cc, ERROR_NOT_AN_ARRAY,
-                                  PromiseFlatCString(aLocation).get());
-        }
-
-        // Iterate over symbols array, installing symbols on targetObj:
-
-        jsuint symbolCount = 0;
-        if (!JS_GetArrayLength(mContext, symbolsObj, &symbolCount)) {
-            return ReportOnCaller(cc, ERROR_GETTING_ARRAY_LENGTH,
-                                  PromiseFlatCString(aLocation).get());
-        }
-
-#ifdef DEBUG
-        nsCAutoString logBuffer;
-#endif
-
-        for (jsuint i = 0; i < symbolCount; ++i) {
-            jsval val;
-            JSString *symbolName;
-
-            if (!JS_GetElement(mContext, symbolsObj, i, &val) ||
-                !JSVAL_IS_STRING(val)) {
-                return ReportOnCaller(cc, ERROR_ARRAY_ELEMENT,
-                                      PromiseFlatCString(aLocation).get(), i);
-            }
-
-            symbolName = JSVAL_TO_STRING(val);
-            if (!JS_GetProperty(mContext, mod->global,
-                                JS_GetStringBytes(symbolName), &val)) {
-                return ReportOnCaller(cc, ERROR_GETTING_SYMBOL,
-                                      PromiseFlatCString(aLocation).get(),
-                                      JS_GetStringBytes(symbolName));
-            }
-
-            if (!JS_SetProperty(mContext, targetObj,
-                                JS_GetStringBytes(symbolName), &val)) {
-                return ReportOnCaller(cc, ERROR_SETTING_SYMBOL,
-                                      PromiseFlatCString(aLocation).get(),
-                                      JS_GetStringBytes(symbolName));
-            }
-#ifdef DEBUG
-            if (i == 0) {
-                logBuffer.AssignLiteral("Installing symbols [ ");
-            }
-            logBuffer.Append(JS_GetStringBytes(symbolName));
-            logBuffer.AppendLiteral(" ");
-            if (i == symbolCount - 1) {
-                LOG(("%s] from %s\n", PromiseFlatCString(logBuffer).get(),
-                                      PromiseFlatCString(aLocation).get()));
-            }
-#endif
-        }
-    }
-
-    // Cache this module for later
-    if (newEntry) {
-        if (!mImports.Put(lfhash, newEntry))
-            return NS_ERROR_OUT_OF_MEMORY;
-        newEntry.forget();
-    }
-    
-    return NS_OK;
-}
-
-nsresult
-mozJSComponentLoader::ReportOnCaller(nsAXPCNativeCallContext *cc,
-                                     const char *format, ...) {
-    if (!cc) {
-        return NS_ERROR_FAILURE;
-    }
-    
-    va_list ap;
-    va_start(ap, format);
-
-    nsresult rv;
-    JSContext *callerContext;
-    rv = cc->GetJSContext(&callerContext);
-    NS_ENSURE_SUCCESS(rv, rv);
-    char* buf = JS_vsmprintf(format, ap);
-    JS_ReportError(callerContext, buf);
-    JS_smprintf_free(buf);
-    return cc->SetExceptionWasThrown(PR_TRUE);
 }
 
 NS_IMETHODIMP

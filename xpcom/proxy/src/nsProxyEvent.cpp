@@ -293,7 +293,7 @@ nsProxyObjectCallInfo::CopyStrings(PRBool copy)
 PRBool                
 nsProxyObjectCallInfo::GetCompleted()
 {
-    return !!mCompleted;
+    return (PRBool)mCompleted;
 }
 
 void
@@ -342,12 +342,6 @@ nsProxyObject::nsProxyObject(nsIEventTarget *target, PRInt32 proxyType,
 {
     MOZ_COUNT_CTOR(nsProxyObject);
 
-#ifdef DEBUG
-    nsCOMPtr<nsISupports> canonicalTarget = do_QueryInterface(target);
-    NS_ASSERTION(target == canonicalTarget,
-                 "Non-canonical nsISupports passed to nsProxyObject constructor");
-#endif
-
     nsProxyObjectManager *pom = nsProxyObjectManager::GetInstance();
     NS_ASSERTION(pom, "Creating a proxy without a global proxy-object-manager.");
     pom->AddRef();
@@ -364,43 +358,24 @@ nsProxyObject::~nsProxyObject()
     MOZ_COUNT_DTOR(nsProxyObject);
 }
 
-NS_IMETHODIMP_(nsrefcnt)
-nsProxyObject::AddRef()
-{
-    nsAutoLock lock(nsProxyObjectManager::GetInstance()->GetLock());
-    return LockedAddRef();
-}
+NS_IMPL_THREADSAFE_ADDREF(nsProxyObject)
 
 NS_IMETHODIMP_(nsrefcnt)
 nsProxyObject::Release()
 {
-    nsAutoLock lock(nsProxyObjectManager::GetInstance()->GetLock());
-    return LockedRelease();
-}
-
-nsrefcnt
-nsProxyObject::LockedAddRef()
-{
-    ++mRefCnt;
-    NS_LOG_ADDREF(this, mRefCnt, "nsProxyObject", sizeof(nsProxyObject));
-    return mRefCnt;
-}
-
-nsrefcnt
-nsProxyObject::LockedRelease()
-{
+    nsrefcnt count;
     NS_PRECONDITION(0 != mRefCnt, "dup release");
-    --mRefCnt;
-    NS_LOG_RELEASE(this, mRefCnt, "nsProxyObject");
-    if (mRefCnt)
-        return mRefCnt;
+    count = PR_AtomicDecrement((PRInt32*) &mRefCnt);
+    NS_LOG_RELEASE(this, count, "nsProxyObject");
+    if (count)
+        return count;
 
     nsProxyObjectManager *pom = nsProxyObjectManager::GetInstance();
-    pom->LockedRemove(this);
+    NS_ASSERTION(pom, "Deleting a proxy without a global proxy-object-manager.");
 
-    nsAutoUnlock unlock(pom->GetLock());
-    delete this;
+    pom->Remove(this);
     pom->Release();
+    delete this;
 
     return 0;
 }
@@ -415,7 +390,7 @@ nsProxyObject::QueryInterface(REFNSIID aIID, void **aResult)
     }
 
     if (aIID.Equals(NS_GET_IID(nsISupports))) {
-        *aResult = static_cast<nsISupports*>(this);
+        *aResult = NS_STATIC_CAST(nsISupports*, this);
         AddRef();
         return NS_OK;
     }
@@ -423,73 +398,55 @@ nsProxyObject::QueryInterface(REFNSIID aIID, void **aResult)
     nsProxyObjectManager *pom = nsProxyObjectManager::GetInstance();
     NS_ASSERTION(pom, "Deleting a proxy without a global proxy-object-manager.");
 
-    nsAutoLock lock(pom->GetLock());
+    nsAutoMonitor mon(pom->GetMonitor());
+
     return LockedFind(aIID, aResult);
 }
 
 nsresult
 nsProxyObject::LockedFind(REFNSIID aIID, void **aResult)
 {
-    // This method is only called when the global lock is held.
+    // This method is only called when the global monitor is held.
     // XXX assert this
 
     nsProxyEventObject *peo;
 
     for (peo = mFirst; peo; peo = peo->mNext) {
         if (peo->GetClass()->GetProxiedIID().Equals(aIID)) {
-            *aResult = static_cast<nsISupports*>(peo->mXPTCStub);
-            peo->LockedAddRef();
+            *aResult = NS_STATIC_CAST(nsISupports*, peo->mXPTCStub);
+            peo->AddRef();
             return NS_OK;
         }
     }
 
-    nsProxyEventObject *newpeo;
+    nsProxyEventClass *pec;
+    nsresult rv = nsProxyObjectManager::GetInstance()->GetClass(aIID, &pec);
+    if (NS_FAILED(rv))
+        return rv;
 
-    // Both GetClass and QueryInterface call out to XPCOM, so we unlock for them
-    {
-        nsProxyObjectManager* pom = nsProxyObjectManager::GetInstance();
-        nsAutoUnlock unlock(pom->GetLock());
+    nsISomeInterface* newInterface;
+    rv = mRealObject->QueryInterface(aIID, (void**) &newInterface);
+    if (NS_FAILED(rv))
+        return rv;
 
-        nsProxyEventClass *pec;
-        nsresult rv = pom->GetClass(aIID, &pec);
-        if (NS_FAILED(rv))
-            return rv;
-
-        nsISomeInterface* newInterface;
-        rv = mRealObject->QueryInterface(aIID, (void**) &newInterface);
-        if (NS_FAILED(rv))
-            return rv;
-
-        newpeo = new nsProxyEventObject(this, pec, 
-                       already_AddRefed<nsISomeInterface>(newInterface), &rv);
-        if (!newpeo) {
-            NS_RELEASE(newInterface);
-            return NS_ERROR_OUT_OF_MEMORY;
-        }
-
-        if (NS_FAILED(rv)) {
-            delete newpeo;
-            return rv;
-        }
+    peo = new nsProxyEventObject(this, pec, 
+                already_AddRefed<nsISomeInterface>(newInterface), &rv);
+    if (!peo) {
+        NS_RELEASE(newInterface);
+        return NS_ERROR_OUT_OF_MEMORY;
     }
 
-    // Now that we're locked again, check for races by repeating the
-    // linked-list check.
-    for (peo = mFirst; peo; peo = peo->mNext) {
-        if (peo->GetClass()->GetProxiedIID().Equals(aIID)) {
-            delete newpeo;
-            *aResult = static_cast<nsISupports*>(peo->mXPTCStub);
-            peo->LockedAddRef();
-            return NS_OK;
-        }
+    if (NS_FAILED(rv)) {
+        delete peo;
+        return rv;
     }
 
-    newpeo->mNext = mFirst;
-    mFirst = newpeo;
+    peo->mNext = mFirst;
+    mFirst = peo;
 
-    newpeo->LockedAddRef();
+    NS_ADDREF(peo);
 
-    *aResult = static_cast<nsISupports*>(newpeo->mXPTCStub);
+    *aResult = NS_STATIC_CAST(nsISupports*, peo->mXPTCStub);
     return NS_OK;
 }
 
@@ -500,8 +457,8 @@ nsProxyObject::LockedRemove(nsProxyEventObject *peo)
     for (i = &mFirst; *i; i = &((*i)->mNext)) {
         if (*i == peo) {
             *i = peo->mNext;
-            return;
+            break;
         }
     }
-    NS_ERROR("Didn't find nsProxyEventObject in nsProxyObject chain!");
 }
+

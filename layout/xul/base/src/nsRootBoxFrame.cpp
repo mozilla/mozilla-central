@@ -85,8 +85,8 @@ public:
 
   NS_DECL_ISUPPORTS_INHERITED
 
-  virtual nsPopupSetFrame* GetPopupSetFrame();
-  virtual void SetPopupSetFrame(nsPopupSetFrame* aPopupSet);
+  virtual nsIFrame* GetPopupSetFrame();
+  virtual void SetPopupSetFrame(nsIFrame* aPopupSet);
   virtual nsIContent* GetDefaultTooltip();
   virtual void SetDefaultTooltip(nsIContent* aTooltip);
   virtual nsresult AddTooltipSupport(nsIContent* aNode);
@@ -131,7 +131,7 @@ public:
   NS_IMETHOD GetFrameName(nsAString& aResult) const;
 #endif
 
-  nsPopupSetFrame* mPopupSetFrame;
+  nsIFrame* mPopupSetFrame;
 
 protected:
   nsIContent* mDefaultTooltip;
@@ -275,14 +275,14 @@ nsRootBoxFrame::GetType() const
   return nsGkAtoms::rootFrame;
 }
 
-nsPopupSetFrame*
+nsIFrame*
 nsRootBoxFrame::GetPopupSetFrame()
 {
   return mPopupSetFrame;
 }
 
 void
-nsRootBoxFrame::SetPopupSetFrame(nsPopupSetFrame* aPopupSet)
+nsRootBoxFrame::SetPopupSetFrame(nsIFrame* aPopupSet)
 {
   // Under normal conditions this should only be called once.  However,
   // if something triggers ReconstructDocElementHierarchy, we will
@@ -311,16 +311,42 @@ nsRootBoxFrame::SetDefaultTooltip(nsIContent* aTooltip)
   mDefaultTooltip = aTooltip;
 }
 
+static void
+TooltipListenerPropertyDtor(void *aObject, nsIAtom *aPropertyName,
+                            void *aPropertyValue, void *aData)
+{
+  nsXULTooltipListener* listener =
+    NS_STATIC_CAST(nsXULTooltipListener*, aPropertyValue);
+  if (listener) {
+    listener->RemoveTooltipSupport(NS_STATIC_CAST(nsIContent*, aObject));
+    NS_RELEASE(listener);
+  }
+}
+
 nsresult
 nsRootBoxFrame::AddTooltipSupport(nsIContent* aNode)
 {
   NS_ENSURE_TRUE(aNode, NS_ERROR_NULL_POINTER);
+  nsRefPtr<nsXULTooltipListener> listener =
+    NS_STATIC_CAST(nsXULTooltipListener*,
+                   aNode->GetProperty(nsGkAtoms::tooltiplistener));
+  if (listener) {
+    // Tooltip listener is already installed.
+    return NS_OK;
+  }
 
-  nsXULTooltipListener *listener = nsXULTooltipListener::GetInstance();
+  listener = new nsXULTooltipListener();
   if (!listener)
     return NS_ERROR_OUT_OF_MEMORY;
 
-  return listener->AddTooltipSupport(aNode);
+  if (NS_SUCCEEDED(listener->Init(aNode))) {
+    nsresult rv = aNode->SetProperty(nsGkAtoms::tooltiplistener, listener,
+                                     TooltipListenerPropertyDtor, PR_TRUE);
+    NS_ENSURE_SUCCESS(rv, rv);
+    nsXULTooltipListener* listenerRef = listener;
+    NS_ADDREF(listenerRef);
+  }
+  return NS_OK;
 }
 
 nsresult

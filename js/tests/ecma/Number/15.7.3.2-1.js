@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '15.7.3.2-1.js';
-
 /**
    File Name:          15.7.3.2-1.js
    ECMA Section:       15.7.3.2 Number.MAX_VALUE
@@ -57,9 +55,9 @@ var TITLE =  "Number.MAX_VALUE";
 
 writeHeaderToLog( SECTION + " "+ TITLE);
 
-new TestCase( SECTION,
-	      "Number.MAX_VALUE",     
-	      1.7976931348623157e308,    
+new TestCase( SECTION, 
+	      "Number.MAX_VALUE",      
+	      1.7976931348623157e308,     
 	      Number.MAX_VALUE );
 
 test();

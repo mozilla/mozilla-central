@@ -51,6 +51,7 @@
 #include "nsFilePicker.h"
 #include "nsILocalFile.h"
 #include "nsIURL.h"
+#include "nsIFileURL.h"
 #include "nsIStringBundle.h"
 #include "nsEnumeratorUtils.h"
 #include "nsCRT.h"
@@ -200,7 +201,7 @@ NS_IMETHODIMP nsFilePicker::Show(PRInt16 *retval)
       PRInt32 bufLength;
       WideCharToMultiByte(0, typeWide.get(), typeWide.Length(),
                           buffer, bufLength);
-      apszTypeList[i] = ToNewCString(nsDependentCString(buffer.Elements()));
+      apszTypeList[i] = ToNewCString(nsDependentCString(buffer.get()));
     }
     apszTypeList[i] = 0;
     filedlg.papszITypeList = (PAPSZ)apszTypeList;
@@ -399,15 +400,20 @@ NS_IMETHODIMP nsFilePicker::GetFile(nsILocalFile **aFile)
 }
 
 //-------------------------------------------------------------------------
-NS_IMETHODIMP nsFilePicker::GetFileURL(nsIURI **aFileURL)
+NS_IMETHODIMP nsFilePicker::GetFileURL(nsIFileURL **aFileURL)
 {
-  *aFileURL = nsnull;
-  nsCOMPtr<nsILocalFile> file;
-  nsresult rv = GetFile(getter_AddRefs(file));
-  if (!file)
-    return rv;
+  nsCOMPtr<nsILocalFile> file(do_CreateInstance("@mozilla.org/file/local;1"));
+  NS_ENSURE_TRUE(file, NS_ERROR_FAILURE);
+  file->InitWithNativePath(mFile);
 
-  return NS_NewFileURI(aFileURL, file);
+  nsCOMPtr<nsIURI> uri;
+  NS_NewFileURI(getter_AddRefs(uri), file);
+  nsCOMPtr<nsIFileURL> fileURL(do_QueryInterface(uri));
+  NS_ENSURE_TRUE(fileURL, NS_ERROR_FAILURE);
+  
+  NS_ADDREF(*aFileURL = fileURL);
+
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsFilePicker::GetFiles(nsISimpleEnumerator **aFiles)
@@ -557,7 +563,7 @@ char * nsFilePicker::ConvertToFileSystemCharset(const nsAString& inString)
     rv = mUnicodeEncoder->GetMaxLength(flatInString.get(), inLength,
                                        &outLength);
     if (NS_SUCCEEDED(rv)) {
-      outString = static_cast<char*>(nsMemory::Alloc( outLength+1 ));
+      outString = NS_STATIC_CAST( char*, nsMemory::Alloc( outLength+1 ) );
       if (nsnull == outString) {
         return nsnull;
       }
@@ -596,7 +602,7 @@ PRUnichar * nsFilePicker::ConvertFromFileSystemCharset(const char *inString)
     PRInt32 outLength;
     rv = mUnicodeDecoder->GetMaxLength(inString, inLength, &outLength);
     if (NS_SUCCEEDED(rv)) {
-      outString = static_cast<PRUnichar*>(nsMemory::Alloc( (outLength+1) * sizeof( PRUnichar ) ));
+      outString = NS_STATIC_CAST( PRUnichar*, nsMemory::Alloc( (outLength+1) * sizeof( PRUnichar ) ) );
       if (nsnull == outString) {
         return nsnull;
       }
@@ -615,12 +621,9 @@ PRUnichar * nsFilePicker::ConvertFromFileSystemCharset(const char *inString)
 NS_IMETHODIMP
 nsFilePicker::AppendFilter(const nsAString& aTitle, const nsAString& aFilter)
 {
-  if (aFilter.EqualsLiteral("..apps"))
-    mFilters.AppendString(NS_LITERAL_STRING("*.exe;*.cmd;*.com;*.bat"));
-  else
-    mFilters.AppendString(aFilter);
+  mFilters.AppendString(aFilter);
   mTitles.AppendString(aTitle);
-
+  
   return NS_OK;
 }
 

@@ -59,17 +59,12 @@ struct nsStylePadding;
 struct nsStyleText;
 struct nsHypotheticalBox;
 
-template <class NumericType>
-NumericType
-NS_CSS_MINMAX(NumericType aValue, NumericType aMinValue, NumericType aMaxValue)
-{
-  NumericType result = aValue;
-  if (aMaxValue < result)
-    result = aMaxValue;
-  if (aMinValue > result)
-    result = aMinValue;
-  return result;
-}
+#define NS_CSS_MINMAX(_value,_min,_max) \
+    ((_value) < (_min)           \
+     ? (_min)                    \
+     : ((_value) > (_max)        \
+        ? (_max)                 \
+        : (_value)))
 
 /**
  * Constant used to indicate an unconstrained size.
@@ -173,6 +168,10 @@ public:
     InitOffsets(aContainingBlockWidth);
   }
 
+  void InitOffsets(nscoord aContainingBlockWidth,
+                   const nsMargin *aBorder = nsnull,
+                   const nsMargin *aPadding = nsnull);
+
   // Destructor for usedPaddingProperty
   static void DestroyMarginFunc(void*    aFrame,
                                 nsIAtom* aPropertyName,
@@ -189,40 +188,9 @@ private:
   void ComputePadding(nscoord aContainingBlockWidth);
 
 protected:
-
-  void InitOffsets(nscoord aContainingBlockWidth,
-                   const nsMargin *aBorder = nsnull,
-                   const nsMargin *aPadding = nsnull);
-
-  /*
-   * Convert nsStyleCoord to nscoord when percentages depend on the
-   * containing block width.
-   */
-  // XXX Make aResult a return value
   inline void ComputeWidthDependentValue(nscoord aContainingBlockWidth,
                                          const nsStyleCoord& aCoord,
                                          nscoord& aResult);
-
-  /*
-   * Convert nsStyleCoord to nscoord when percentages depend on the
-   * containing block width, and enumerated values are for width,
-   * min-width, or max-width.  Does not handle auto widths.
-   */
-  inline nscoord ComputeWidthValue(nscoord aContainingBlockWidth,
-                                   nscoord aContentEdgeToBoxSizing,
-                                   nscoord aBoxSizingToMarginEdge,
-                                   const nsStyleCoord& aCoord);
-  // same as previous, but using mComputedBorderPadding, mComputedPadding,
-  // and mComputedMargin
-  nscoord ComputeWidthValue(nscoord aContainingBlockWidth,
-                            PRUint8 aBoxSizing,
-                            const nsStyleCoord& aCoord);
-
-  /*
-   * Convert nsStyleCoord to nscoord when percentages depend on the
-   * containing block height.
-   */
-  // XXX Make aResult a return value
   inline void ComputeHeightDependentValue(nscoord aContainingBlockHeight,
                                           const nsStyleCoord& aCoord,
                                           nscoord& aResult);
@@ -265,16 +233,6 @@ struct nsHTMLReflowState : public nsCSSOffsetState {
   // pointer to the space manager associated with this area
   nsSpaceManager* mSpaceManager;
 
-  // The amount the in-flow position of the block is moving vertically relative
-  // to its previous in-flow position (i.e. the amount the line containing the
-  // block is moving).
-  // This should be zero for anything which is not a block outside, and it
-  // should be zero for anything which has a non-block parent.
-  // The intended use of this value is to allow the accurate determination
-  // of the potential impact of a float
-  // This takes on an arbitrary value the first time a block is reflowed
-  nscoord mBlockDelta;
-
   // LineLayout object (only for inline reflow; set to NULL otherwise)
   nsLineLayout*    mLineLayout;
 
@@ -293,6 +251,7 @@ private:
   // containing block, the margin/border/padding areas, and the min/max width.
   nscoord          mComputedWidth; 
 
+public:
   // The computed height specifies the frame's content height, and it does
   // not apply to inline non-replaced elements
   //
@@ -308,7 +267,6 @@ private:
   // means you use your intrinsic height as the computed height
   nscoord          mComputedHeight;
 
-public:
   // Computed values for 'left/top/right/bottom' offsets. Only applies to
   // 'positioned' elements
   nsMargin         mComputedOffsets;
@@ -369,10 +327,11 @@ public:
                                      // basis?
     PRUint16 mTableIsSplittable:1;   // tables are splittable, this should happen only inside a page
                                      // and never insider a column frame
-    PRUint16 mHeightDependsOnAncestorCell:1;   // Does frame height depend on
-                                               // an ancestor table-cell?
-    
   } mFlags;
+
+#ifdef IBMBIDI
+  nscoord mRightEdge;
+#endif
 
   // Note: The copy constructor is written by the compiler automatically. You
   // can use that and then override specific values if you want, or you can
@@ -420,25 +379,22 @@ public:
 
   /**
    * Calculate the raw line-height property for the given frame. The return
-   * value will be >= 0.
+   * value, if line-height was applied and is valid will be >= 0. Otherwise,
+   * the return value will be <0 which is illegal (CSS2 spec: section 10.8.1).
    */
-  static nscoord CalcLineHeight(nsIRenderingContext* aRenderingContext,
-                                nsIFrame* aFrame)
-  {
-    return CalcLineHeight(aRenderingContext, aFrame->GetStyleContext());
-  }
-  
-  /**
-   * Same as above, but doesn't need a frame.
-   */
-  static nscoord CalcLineHeight(nsIRenderingContext* aRenderingContext,
-                                nsStyleContext* aStyleContext);
+  static nscoord CalcLineHeight(nsPresContext* aPresContext,
+                                nsIRenderingContext* aRenderingContext,
+                                nsIFrame* aFrame);
 
+  void InitFrameType();
 
   void ComputeContainingBlockRectangle(nsPresContext*          aPresContext,
                                        const nsHTMLReflowState* aContainingBlockRS,
                                        nscoord&                 aContainingBlockWidth,
                                        nscoord&                 aContainingBlockHeight);
+
+  void CalculateBlockSideMargins(nscoord aAvailWidth,
+                                 nscoord aComputedWidth);
 
   /**
    * Apply the mComputed(Min/Max)(Width/Height) values to the content
@@ -461,21 +417,12 @@ public:
   }
 
   nscoord ComputedWidth() const { return mComputedWidth; }
-  // This method doesn't apply min/max computed widths to the value passed in.
   void SetComputedWidth(nscoord aComputedWidth);
-
-  nscoord ComputedHeight() const { return mComputedHeight; }
-  // This method doesn't apply min/max computed heights to the value passed in.
-  void SetComputedHeight(nscoord aComputedHeight);
 
   void SetTruncated(const nsHTMLReflowMetrics& aMetrics, nsReflowStatus* aStatus) const;
 
-  PRBool WillReflowAgainForClearance() const {
-    return mDiscoveredClearance && *mDiscoveredClearance;
-  }
-  
 protected:
-  void InitFrameType();
+
   void InitCBReflowState();
   void InitResizeFlags(nsPresContext* aPresContext);
 
@@ -506,8 +453,7 @@ protected:
 
   void ComputeRelativeOffsets(const nsHTMLReflowState* cbrs,
                               nscoord aContainingBlockWidth,
-                              nscoord aContainingBlockHeight,
-                              nsPresContext* aPresContext);
+                              nscoord aContainingBlockHeight);
 
   // Calculates the computed values for the 'min-Width', 'max-Width',
   // 'min-Height', and 'max-Height' properties, and stores them in the assorted
@@ -516,12 +462,8 @@ protected:
                            nscoord                  aContainingBlockHeight,
                            const nsHTMLReflowState* aContainingBlockRS);
 
-  void CalculateHorizBorderPaddingMargin(nscoord aContainingBlockWidth,
-                                         nscoord* aInsideBoxSizing,
-                                         nscoord* aOutsideBoxSizing);
+  nscoord CalculateHorizBorderPaddingMargin(nscoord aContainingBlockWidth);
 
-  void CalculateBlockSideMargins(nscoord aAvailWidth,
-                                 nscoord aComputedWidth);
 };
 
 #endif /* nsHTMLReflowState_h___ */

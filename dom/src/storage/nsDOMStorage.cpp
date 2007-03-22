@@ -37,14 +37,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "prnetdb.h"
 #include "nsCOMPtr.h"
 #include "nsDOMError.h"
 #include "nsDOMClassInfo.h"
 #include "nsUnicharUtils.h"
 #include "nsIDocument.h"
 #include "nsDOMStorage.h"
-#include "nsEscape.h"
 #include "nsContentUtils.h"
 #include "nsIScriptSecurityManager.h"
 #include "nsIPrincipal.h"
@@ -54,29 +52,19 @@
 #include "nsNetUtil.h"
 #include "nsIPrefBranch.h"
 #include "nsICookiePermission.h"
-#include "nsIPermission.h"
 #include "nsIPermissionManager.h"
-#include "nsCycleCollectionParticipant.h"
-#include "nsIOfflineCacheUpdate.h"
-#include "nsIJSContextStack.h"
 
 static const PRUint32 ASK_BEFORE_ACCEPT = 1;
 static const PRUint32 ACCEPT_SESSION = 2;
 static const PRUint32 BEHAVIOR_REJECT = 2;
 
 static const PRUint32 DEFAULT_QUOTA = 5 * 1024;
-// Be generous with offline apps by default...
-static const PRUint32 DEFAULT_OFFLINE_APP_QUOTA = 200 * 1024;
-// ... but warn if it goes over this amount
-static const PRUint32 DEFAULT_OFFLINE_WARN_QUOTA = 50 * 1024;
 
 static const char kPermissionType[] = "cookie";
 static const char kStorageEnabled[] = "dom.storage.enabled";
 static const char kDefaultQuota[] = "dom.storage.default_quota";
 static const char kCookiesBehavior[] = "network.cookie.cookieBehavior";
 static const char kCookiesLifetimePolicy[] = "network.cookie.lifetimePolicy";
-static const char kOfflineAppWarnQuota[] = "offline-apps.quota.warn";
-static const char kOfflineAppQuota[] = "offline-apps.quota.max";
 
 //
 // Helper that tells us whether the caller is secure or not.
@@ -115,44 +103,11 @@ IsCallerSecure()
   return NS_SUCCEEDED(rv) && isHttps;
 }
 
-
-// Returns two quotas - A hard limit for which adding data will be an error,
-// and a limit after which a warning event will be sent to the observer
-// service.  The warn limit may be -1, in which case there will be no warning.
-static void
-GetQuota(const nsAString &aDomain, PRInt32 *aQuota, PRInt32 *aWarnQuota)
+static PRInt32
+GetQuota(const nsAString &domain)
 {
-  // Fake a URI for the permission manager
-  nsCOMPtr<nsIURI> uri;
-  NS_NewURI(getter_AddRefs(uri), NS_LITERAL_STRING("http://") + aDomain);
-
-  if (uri) {
-    nsCOMPtr<nsIPermissionManager> permissionManager =
-      do_GetService(NS_PERMISSIONMANAGER_CONTRACTID);
-
-    PRUint32 perm;
-    if (permissionManager &&
-        NS_SUCCEEDED(permissionManager->TestExactPermission(uri, "offline-app", &perm)) &&
-        perm != nsIPermissionManager::UNKNOWN_ACTION &&
-        perm != nsIPermissionManager::DENY_ACTION) {
-      // This is an offline app, give more space by default.
-      *aQuota = ((PRInt32)nsContentUtils::GetIntPref(kOfflineAppQuota,
-                                                     DEFAULT_OFFLINE_APP_QUOTA) * 1024);
-
-      if (perm == nsIOfflineCacheUpdateService::ALLOW_NO_WARN) {
-        *aWarnQuota = -1;
-      } else {
-        *aWarnQuota = ((PRInt32)nsContentUtils::GetIntPref(kOfflineAppWarnQuota,
-                                                           DEFAULT_OFFLINE_WARN_QUOTA) * 1024);
-      }
-      return;
-    }
-  }
-
   // FIXME: per-domain quotas?
-  *aQuota = ((PRInt32)nsContentUtils::GetIntPref(kDefaultQuota,
-                                                 DEFAULT_QUOTA) * 1024);
-  *aWarnQuota = -1;
+  return ((PRInt32)nsContentUtils::GetIntPref(kDefaultQuota, DEFAULT_QUOTA) * 1024);
 }
 
 nsSessionStorageEntry::nsSessionStorageEntry(KeyTypePointer aStr)
@@ -176,9 +131,7 @@ nsSessionStorageEntry::~nsSessionStorageEntry()
 
 nsDOMStorageManager* nsDOMStorageManager::gStorageManager;
 
-NS_IMPL_ISUPPORTS2(nsDOMStorageManager,
-                   nsIDOMStorageManager,
-                   nsIObserver)
+NS_IMPL_ISUPPORTS1(nsDOMStorageManager, nsIObserver)
 
 //static
 nsresult
@@ -197,22 +150,10 @@ nsDOMStorageManager::Initialize()
   NS_ADDREF(gStorageManager);
 
   nsCOMPtr<nsIObserverService> os = do_GetService("@mozilla.org/observer-service;1");
-  if (os) {
+  if (os)
     os->AddObserver(gStorageManager, "cookie-changed", PR_FALSE);
-    os->AddObserver(gStorageManager, "offline-app-removed", PR_FALSE);
-  }
 
   return NS_OK;
-}
-
-//static
-nsDOMStorageManager*
-nsDOMStorageManager::GetInstance()
-{
-  NS_ASSERTION(gStorageManager,
-               "nsDOMStorageManager::GetInstance() called before Initialize()");
-  NS_IF_ADDREF(gStorageManager);
-  return gStorageManager;
 }
 
 //static
@@ -221,11 +162,6 @@ nsDOMStorageManager::Shutdown()
 {
   NS_IF_RELEASE(gStorageManager);
   gStorageManager = nsnull;
-
-#ifdef MOZ_STORAGE
-  delete nsDOMStorage::gStorageDB;
-  nsDOMStorage::gStorageDB = nsnull;
-#endif
 }
 
 PR_STATIC_CALLBACK(PLDHashOperator)
@@ -235,94 +171,22 @@ ClearStorage(nsDOMStorageEntry* aEntry, void* userArg)
   return PL_DHASH_REMOVE;
 }
 
-static nsresult
-GetOfflineDomains(nsStringArray& aDomains)
-{
-  nsCOMPtr<nsIPermissionManager> permissionManager =
-    do_GetService(NS_PERMISSIONMANAGER_CONTRACTID);
-  if (permissionManager) {
-    nsCOMPtr<nsISimpleEnumerator> enumerator;
-    nsresult rv = permissionManager->GetEnumerator(getter_AddRefs(enumerator));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    PRBool hasMore;
-    while (NS_SUCCEEDED(enumerator->HasMoreElements(&hasMore)) && hasMore) {
-      nsCOMPtr<nsIPermission> perm;
-      rv = enumerator->GetNext(getter_AddRefs(perm));
-      NS_ENSURE_SUCCESS(rv, rv);
-
-      PRUint32 capability;
-      rv = perm->GetCapability(&capability);
-      NS_ENSURE_SUCCESS(rv, rv);
-      if (capability != nsIPermissionManager::DENY_ACTION) {
-        nsCAutoString type;
-        rv = perm->GetType(type);
-        NS_ENSURE_SUCCESS(rv, rv);
-
-        if (type.EqualsLiteral("offline-app")) {
-          nsCAutoString host;
-          rv = perm->GetHost(host);
-          NS_ENSURE_SUCCESS(rv, rv);
-
-          aDomains.AppendString(NS_ConvertUTF8toUTF16(host));
-        }
-      }
-    }
-  }
-
-  return NS_OK;
-}
-
 nsresult
 nsDOMStorageManager::Observe(nsISupports *aSubject,
                              const char *aTopic,
                              const PRUnichar *aData)
 {
-  if (!strcmp(aTopic, "offline-app-removed")) {
-#ifdef MOZ_STORAGE
-    nsresult rv = nsDOMStorage::InitDB();
-    NS_ENSURE_SUCCESS(rv, rv);
-    return nsDOMStorage::gStorageDB->RemoveOwner(nsDependentString(aData));
-#endif
-  } else if (!strcmp(aTopic, "cookie-changed") &&
-             !nsCRT::strcmp(aData, NS_LITERAL_STRING("cleared").get())) {
+  if (!nsCRT::strcmp(aData, NS_LITERAL_STRING("cleared").get())) {
     mStorages.EnumerateEntries(ClearStorage, nsnull);
 
 #ifdef MOZ_STORAGE
     nsresult rv = nsDOMStorage::InitDB();
     NS_ENSURE_SUCCESS(rv, rv);
-
-    // Remove global storage for domains that aren't marked for offline use.
-    nsStringArray domains;
-    rv = GetOfflineDomains(domains);
-    NS_ENSURE_SUCCESS(rv, rv);
-    return nsDOMStorage::gStorageDB->RemoveOwners(domains, PR_FALSE);
+    return nsDOMStorage::gStorageDB->RemoveAll();
 #endif
   }
 
   return NS_OK;
-}
-
-NS_IMETHODIMP
-nsDOMStorageManager::GetUsage(const nsAString& aDomain,
-                              PRInt32 *aUsage)
-{
-  nsresult rv = nsDOMStorage::InitDB();
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  return nsDOMStorage::gStorageDB->GetUsage(aDomain, aUsage);
-}
-
-NS_IMETHODIMP
-nsDOMStorageManager::ClearOfflineApps()
-{
-    nsresult rv = nsDOMStorage::InitDB();
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    nsStringArray domains;
-    rv = GetOfflineDomains(domains);
-    NS_ENSURE_SUCCESS(rv, rv);
-    return nsDOMStorage::gStorageDB->RemoveOwners(domains, PR_TRUE);
 }
 
 void
@@ -364,37 +228,15 @@ nsDOMStorageEntry::~nsDOMStorageEntry()
 {
 }
 
-PLDHashOperator PR_CALLBACK
-SessionStorageTraverser(nsSessionStorageEntry* aEntry, void* userArg) {
-  nsCycleCollectionTraversalCallback *cb = 
-    static_cast<nsCycleCollectionTraversalCallback*>(userArg);
-
-  cb->NoteXPCOMChild((nsIDOMStorageItem *) aEntry->mItem);
-
-  return PL_DHASH_NEXT;
-}
-
-NS_IMPL_CYCLE_COLLECTION_CLASS(nsDOMStorage)
-NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN(nsDOMStorage)
-  NS_IMPL_CYCLE_COLLECTION_UNLINK_NSCOMPTR(mURI)
-NS_IMPL_CYCLE_COLLECTION_UNLINK_END
-NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN(nsDOMStorage)
-  NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mURI)
-  {
-    if (tmp->mItems.IsInitialized()) {
-      tmp->mItems.EnumerateEntries(SessionStorageTraverser, &cb);
-    }
-  }
-NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
-
-NS_IMPL_CYCLE_COLLECTING_ADDREF_AMBIGUOUS(nsDOMStorage, nsIDOMStorage)
-NS_IMPL_CYCLE_COLLECTING_RELEASE_AMBIGUOUS(nsDOMStorage, nsIDOMStorage)
-NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION(nsDOMStorage)
+NS_INTERFACE_MAP_BEGIN(nsDOMStorage)
   NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIDOMStorage)
   NS_INTERFACE_MAP_ENTRY(nsIDOMStorage)
   NS_INTERFACE_MAP_ENTRY(nsPIDOMStorage)
   NS_DOM_INTERFACE_MAP_ENTRY_CLASSINFO(Storage)
 NS_INTERFACE_MAP_END
+
+NS_IMPL_ADDREF(nsDOMStorage)
+NS_IMPL_RELEASE(nsDOMStorage)
 
 NS_IMETHODIMP
 NS_NewDOMStorage(nsISupports* aOuter, REFNSIID aIID, void** aResult)
@@ -457,20 +299,17 @@ nsDOMStorage::CanUseStorage(nsIURI* aURI, PRPackedBool* aSessionOnly)
 {
   // check if the domain can use storage. Downgrade to session only if only
   // session storage may be used.
-  NS_ASSERTION(aSessionOnly, "null session flag");
-  *aSessionOnly = PR_FALSE;
+  NS_ASSERTION(aURI && aSessionOnly, "null URI or session flag");
 
   if (!nsContentUtils::GetBoolPref(kStorageEnabled))
     return PR_FALSE;
-
-  // chrome can always use storage regardless of permission preferences
-  if (nsContentUtils::IsCallerChrome())
-    return PR_TRUE;
 
   nsCOMPtr<nsIPermissionManager> permissionManager =
     do_GetService(NS_PERMISSIONMANAGER_CONTRACTID);
   if (!permissionManager)
     return PR_FALSE;
+
+  *aSessionOnly = PR_FALSE;
 
   PRUint32 perm;
   permissionManager->TestPermission(aURI, kPermissionType, &perm);
@@ -835,12 +674,9 @@ nsDOMStorage::SetDBValue(const nsAString& aKey,
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Get the current domain for quota enforcement
-  nsIScriptSecurityManager* ssm = nsContentUtils::GetSecurityManager();
-  if (!ssm)
-    return NS_ERROR_FAILURE;
-
   nsCOMPtr<nsIPrincipal> subjectPrincipal;
-  ssm->GetSubjectPrincipal(getter_AddRefs(subjectPrincipal));
+  nsContentUtils::GetSecurityManager()->
+    GetSubjectPrincipal(getter_AddRefs(subjectPrincipal));
 
   nsAutoString currentDomain;
 
@@ -849,57 +685,23 @@ nsDOMStorage::SetDBValue(const nsAString& aKey,
     rv = subjectPrincipal->GetURI(getter_AddRefs(uri));
 
     if (NS_SUCCEEDED(rv) && uri) {
-      nsCOMPtr<nsIURI> innerUri = NS_GetInnermostURI(uri);
-      if (!innerUri)
-        return NS_ERROR_UNEXPECTED;
-
-      nsCAutoString currentDomainAscii;
-      innerUri->GetAsciiHost(currentDomainAscii);
-      currentDomain = NS_ConvertUTF8toUTF16(currentDomainAscii);
+        nsCAutoString currentDomainAscii;
+        uri->GetAsciiHost(currentDomainAscii);
+        currentDomain = NS_ConvertUTF8toUTF16(currentDomainAscii);
     }
-
+    
     if (currentDomain.IsEmpty()) {
-      // allow chrome urls and trusted file urls to write using
-      // the storage's domain
-      if (nsContentUtils::IsCallerTrustedForWrite())
-        currentDomain = mDomain;
-      else
         return NS_ERROR_DOM_SECURITY_ERR;
     }
   } else {
-    currentDomain = mDomain;
+      currentDomain = mDomain;
   }
-
-  PRInt32 quota;
-  PRInt32 warnQuota;
-  GetQuota(currentDomain, &quota, &warnQuota);
-
-  PRInt32 usage;
+  
   rv = gStorageDB->SetKey(mDomain, aKey, aValue, aSecure,
-                          currentDomain, quota, &usage);
+                          currentDomain, GetQuota(currentDomain));
   NS_ENSURE_SUCCESS(rv, rv);
 
   mItemsCached = PR_FALSE;
-
-  if (warnQuota >= 0 && usage > warnQuota) {
-    // try to include the window that exceeded the warn quota
-    nsCOMPtr<nsIDOMWindow> window;
-    JSContext *cx;
-    nsCOMPtr<nsIJSContextStack> stack =
-      do_GetService("@mozilla.org/js/xpc/ContextStack;1");
-    if (stack && NS_SUCCEEDED(stack->Peek(&cx)) && cx) {
-      nsCOMPtr<nsIScriptContext> scriptContext;
-      scriptContext = GetScriptContextFromJSContext(cx);
-      if (scriptContext) {
-        window = do_QueryInterface(scriptContext->GetGlobalObject());
-      }
-    }
-
-    nsCOMPtr<nsIObserverService> os =
-      do_GetService("@mozilla.org/observer-service;1");
-    os->NotifyObservers(window, "dom-storage-warn-quota-exceeded",
-                        currentDomain.get());
-  }
 
   BroadcastChangeNotification();
 #endif
@@ -947,7 +749,7 @@ nsDOMStorage::ClearAll()
 PR_STATIC_CALLBACK(PLDHashOperator)
 CopyStorageItems(nsSessionStorageEntry* aEntry, void* userArg)
 {
-  nsDOMStorage* newstorage = static_cast<nsDOMStorage*>(userArg);
+  nsDOMStorage* newstorage = NS_STATIC_CAST(nsDOMStorage*, userArg);
 
   newstorage->SetItem(aEntry->GetKey(), aEntry->mItem->GetValueInternal());
 
@@ -1047,52 +849,23 @@ nsDOMStorageList::NamedItem(const nsAString& aDomain,
 {
   *aStorage = nsnull;
 
-  nsCAutoString requestedDomain;
-
-  nsresult rv;
-  // Normalize the requested domain
-  nsCOMPtr<nsIIDNService> idn = do_GetService(NS_IDNSERVICE_CONTRACTID);
-  if (idn) {
-    rv = idn->ConvertUTF8toACE(NS_ConvertUTF16toUTF8(aDomain),
-                               requestedDomain);
-    NS_ENSURE_SUCCESS(rv, rv);
-  } else {
-    // Don't have the IDN service, best we can do is URL escape.
-    NS_EscapeURL(NS_ConvertUTF16toUTF8(aDomain),
-                 esc_OnlyNonASCII | esc_AlwaysCopy,
-                 requestedDomain);
-  }
-  ToLowerCase(requestedDomain);
-
   nsIScriptSecurityManager* ssm = nsContentUtils::GetSecurityManager();
   if (!ssm)
     return NS_ERROR_FAILURE;
 
   nsCOMPtr<nsIPrincipal> subjectPrincipal;
-  rv = ssm->GetSubjectPrincipal(getter_AddRefs(subjectPrincipal));
+  nsresult rv = ssm->GetSubjectPrincipal(getter_AddRefs(subjectPrincipal));
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIURI> uri;
   nsCAutoString currentDomain;
   if (subjectPrincipal) {
-    rv = subjectPrincipal->GetDomain(getter_AddRefs(uri));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    if (!uri) {
-      rv = subjectPrincipal->GetURI(getter_AddRefs(uri));
-      NS_ENSURE_SUCCESS(rv, rv);
-    }
-
-    if (uri) {
+    rv = subjectPrincipal->GetURI(getter_AddRefs(uri));
+    if (NS_SUCCEEDED(rv) && uri) {
       PRPackedBool sessionOnly;
       if (!nsDOMStorage::CanUseStorage(uri, &sessionOnly))
         return NS_ERROR_DOM_SECURITY_ERR;
-
-      nsCOMPtr<nsIURI> innerUri = NS_GetInnermostURI(uri);
-      if (!innerUri)
-        return NS_ERROR_UNEXPECTED;
-
-      uri = innerUri;
+      
       rv = uri->GetAsciiHost(currentDomain);
       NS_ENSURE_SUCCESS(rv, NS_ERROR_DOM_SECURITY_ERR);
     }
@@ -1102,13 +875,8 @@ nsDOMStorageList::NamedItem(const nsAString& aDomain,
   rv = ssm->SubjectPrincipalIsSystem(&isSystem);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  // allow code that has read privileges to get the storage for any domain
-  if (!isSystem && nsContentUtils::IsCallerTrustedForRead())
-    isSystem = PR_TRUE;
-
   if (isSystem || !currentDomain.IsEmpty()) {
-    return GetStorageForDomain(uri, NS_ConvertUTF8toUTF16(requestedDomain),
-                               NS_ConvertUTF8toUTF16(currentDomain),
+    return GetStorageForDomain(uri, aDomain, NS_ConvertUTF8toUTF16(currentDomain),
                                isSystem, aStorage);
   }
 
@@ -1120,7 +888,35 @@ PRBool
 nsDOMStorageList::CanAccessDomain(const nsAString& aRequestedDomain,
                                   const nsAString& aCurrentDomain)
 {
-  return aRequestedDomain.Equals(aCurrentDomain);
+  nsStringArray requestedDomainArray, currentDomainArray;
+  PRBool ok = ConvertDomainToArray(aRequestedDomain, &requestedDomainArray);
+  if (!ok)
+    return PR_FALSE;
+
+  ok = ConvertDomainToArray(aCurrentDomain, &currentDomainArray);
+  if (!ok)
+    return PR_FALSE;
+
+  if (currentDomainArray.Count() == 1)
+    currentDomainArray.AppendString(NS_LITERAL_STRING("localdomain"));
+
+  // need to use the shorter of the two arrays
+  PRInt32 currentPos = 0;
+  PRInt32 requestedPos = 0;
+  PRInt32 length = requestedDomainArray.Count();
+  if (currentDomainArray.Count() > length)
+    currentPos = currentDomainArray.Count() - length;
+  else if (currentDomainArray.Count() < length)
+    requestedPos = length - currentDomainArray.Count();
+
+  // If the current domain is different in any of the parts from the
+  // requested domain, a security exception is raised
+  for (; requestedPos < length; requestedPos++, currentPos++) {
+    if (*requestedDomainArray[requestedPos] != *currentDomainArray[currentPos])
+      return PR_FALSE;
+  }
+
+  return PR_TRUE;
 }
 
 nsresult
@@ -1130,6 +926,14 @@ nsDOMStorageList::GetStorageForDomain(nsIURI* aURI,
                                       PRBool aNoCurrentDomainCheck,
                                       nsIDOMStorage** aStorage)
 {
+  // fail if the domain contains no periods.
+  // XXXndeakin update this when bug 342314 is fixed so that we can check
+  // for top-level domain names properly
+  nsAutoString trimmedDomain(aRequestedDomain);
+  trimmedDomain.Trim(".");
+  if (trimmedDomain.FindChar('.') == kNotFound)
+    return NS_ERROR_DOM_SECURITY_ERR;
+
   if (!aNoCurrentDomainCheck && !CanAccessDomain(aRequestedDomain,
                                                  aCurrentDomain)) {
     return NS_ERROR_DOM_SECURITY_ERR;
@@ -1211,26 +1015,15 @@ NS_NewDOMStorageList(nsIDOMStorageList** aResult)
 // nsDOMStorageItem
 //
 
-NS_IMPL_CYCLE_COLLECTION_CLASS(nsDOMStorageItem)
-NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN(nsDOMStorageItem)
-  {
-    tmp->mStorage = nsnull;
-  }
-NS_IMPL_CYCLE_COLLECTION_UNLINK_END
-NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN(nsDOMStorageItem)
-  {
-    cb.NoteXPCOMChild((nsIDOMStorage*) tmp->mStorage);
-  }
-NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
-
-NS_IMPL_CYCLE_COLLECTING_ADDREF_AMBIGUOUS(nsDOMStorageItem, nsIDOMStorageItem)
-NS_IMPL_CYCLE_COLLECTING_RELEASE_AMBIGUOUS(nsDOMStorageItem, nsIDOMStorageItem)
-NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION(nsDOMStorageItem)
+NS_INTERFACE_MAP_BEGIN(nsDOMStorageItem)
   NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIDOMStorageItem)
   NS_INTERFACE_MAP_ENTRY(nsIDOMStorageItem)
   NS_INTERFACE_MAP_ENTRY(nsIDOMToString)
   NS_DOM_INTERFACE_MAP_ENTRY_CLASSINFO(StorageItem)
 NS_INTERFACE_MAP_END
+
+NS_IMPL_ADDREF(nsDOMStorageItem)
+NS_IMPL_RELEASE(nsDOMStorageItem)
 
 nsDOMStorageItem::nsDOMStorageItem(nsDOMStorage* aStorage,
                                    const nsAString& aKey,

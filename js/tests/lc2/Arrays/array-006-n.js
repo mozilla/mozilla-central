@@ -35,12 +35,9 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-gTestfile = 'array-006-n.js';
-
-/**
-   File Name:      array-005.js
-   Description:
+ /**
+        File Name:      array-005.js
+        Description:
 
    Put and Get JavaArray Elements
 
@@ -66,10 +63,10 @@ DESCRIPTION = "byte_array[\"foo\"]";
 EXPECTED = "error";
 
 new TestCase(
-  SECTION,
-  "byte_array[\"foo\"]",
-  void 0,
-  byte_array["foo"] );
+    SECTION,
+    "byte_array[\"foo\"]",
+    void 0,
+    byte_array["foo"] );
 
 test();
 

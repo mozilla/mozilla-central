@@ -37,21 +37,13 @@
 
 
 #include "nsEscCharsetProber.h"
-#include "nsUniversalDetector.h"
 
-nsEscCharSetProber::nsEscCharSetProber(PRUint32 aLanguageFilter)
+nsEscCharSetProber::nsEscCharSetProber(void)
 {
-  for (PRUint32 i = 0; i < NUM_OF_ESC_CHARSETS; i++)
-    mCodingSM[i] = nsnull;
-  if (aLanguageFilter & NS_FILTER_CHINESE_SIMPLIFIED) 
-  {
-    mCodingSM[0] = new nsCodingStateMachine(&HZSMModel);
-    mCodingSM[1] = new nsCodingStateMachine(&ISO2022CNSMModel);
-  }
-  if (aLanguageFilter & NS_FILTER_JAPANESE)
-    mCodingSM[2] = new nsCodingStateMachine(&ISO2022JPSMModel);
-  if (aLanguageFilter & NS_FILTER_KOREAN)
-    mCodingSM[3] = new nsCodingStateMachine(&ISO2022KRSMModel);
+  mCodingSM[0] = new nsCodingStateMachine(&HZSMModel);
+  mCodingSM[1] = new nsCodingStateMachine(&ISO2022CNSMModel);
+  mCodingSM[2] = new nsCodingStateMachine(&ISO2022JPSMModel);
+  mCodingSM[3] = new nsCodingStateMachine(&ISO2022KRSMModel);
   mActiveSM = NUM_OF_ESC_CHARSETS;
   mState = eDetecting;
   mDetectedCharset = nsnull;
@@ -67,8 +59,7 @@ void nsEscCharSetProber::Reset(void)
 {
   mState = eDetecting;
   for (PRUint32 i = 0; i < NUM_OF_ESC_CHARSETS; i++)
-    if (mCodingSM[i])
-      mCodingSM[i]->Reset();
+    mCodingSM[i]->Reset();
   mActiveSM = NUM_OF_ESC_CHARSETS;
   mDetectedCharset = nsnull;
 }
@@ -83,15 +74,30 @@ nsProbingState nsEscCharSetProber::HandleData(const char* aBuf, PRUint32 aLen)
   {
     for (j = mActiveSM-1; j>= 0; j--)
     {
-      if (mCodingSM[j])
+      //byte is feed to all active state machine 
+      codingState = mCodingSM[j]->NextState(aBuf[i]);
+      if (codingState == eError)
       {
-        codingState = mCodingSM[j]->NextState(aBuf[i]);
-        if (codingState == eItsMe)
+        //got negative answer for this state machine, make it inactive
+        mActiveSM--;
+        if (mActiveSM == 0)
         {
-          mState = eFoundIt;
-          mDetectedCharset = mCodingSM[j]->GetCodingStateMachine();
+          mState = eNotMe;
           return mState;
         }
+        else if (j != (PRInt32)mActiveSM)
+        {
+          nsCodingStateMachine* t;
+          t = mCodingSM[mActiveSM];
+          mCodingSM[mActiveSM] = mCodingSM[j];
+          mCodingSM[j] = t;
+        }
+      }
+      else if (codingState == eItsMe)
+      {
+        mState = eFoundIt;
+        mDetectedCharset = mCodingSM[j]->GetCodingStateMachine();
+        return mState;
       }
     }
   }

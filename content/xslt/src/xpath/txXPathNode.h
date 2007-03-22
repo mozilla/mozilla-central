@@ -118,25 +118,25 @@ private:
     PRBool isDocument() const
     {
         return mIndex == eDocument;
-    }
+    };
     PRBool isContent() const
     {
         return mIndex == eContent;
-    }
+    };
     PRBool isAttribute() const
     {
         return mIndex != eDocument && mIndex != eContent;
-    }
+    };
 
     nsIContent* Content() const
     {
         NS_ASSERTION(isContent() || isAttribute(), "wrong type");
-        return static_cast<nsIContent*>(mNode);
+        return NS_STATIC_CAST(nsIContent*, mNode);
     }
     nsIDocument* Document() const
     {
         NS_ASSERTION(isDocument(), "wrong type");
-        return static_cast<nsIDocument*>(mNode);
+        return NS_STATIC_CAST(nsIDocument*, mNode);
     }
 
     enum PositionType

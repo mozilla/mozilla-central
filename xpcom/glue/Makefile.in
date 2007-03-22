@@ -66,7 +66,6 @@ CSRCS		= \
 CPPSRCS		= \
 		$(XPCOM_GLUE_SRC_LCPPSRCS) \
 		$(XPCOM_GLUENS_SRC_LCPPSRCS) \
-		nsStringAPI.cpp \
 		$(NULL)
 
 SDK_HEADERS = \
@@ -75,7 +74,6 @@ SDK_HEADERS = \
 		nsArrayUtils.h \
 		nsAutoLock.h \
 		nsBaseHashtable.h \
-		nsCategoryCache.h \
 		nsCOMArray.h \
 		nsCRTGlue.h \
 		nsClassHashtable.h \
@@ -88,7 +86,6 @@ SDK_HEADERS = \
 		nsStringGlue.h \
 		nsRefPtrHashtable.h \
 		nsStringAPI.h \
-		nsTextFormatter.h \
 		nsTHashtable.h \
 		nsVoidArray.h \
 		nsTArray.h \
@@ -111,9 +108,6 @@ SDK_HEADERS = \
 		nsServiceManagerUtils.h \
 		nsVersionComparator.h \
 		nsIClassInfoImpl.h \
-		nsTObserverArray.h \
-		nsCycleCollectionParticipant.h \
-		nsDeque.h \
 		$(NULL)
 
 EXPORTS = \
@@ -144,8 +138,4 @@ ifdef _MSC_VER
 OS_COMPILE_CXXFLAGS += -Zl
 OS_COMPILE_CFLAGS += -Zl
 DEFINES += -D_USE_ANSI_CPP
-endif
-
-ifdef TARGET_XPCOM_ABI
-DEFINES += -DTARGET_XPCOM_ABI=\"$(TARGET_XPCOM_ABI)\"
 endif

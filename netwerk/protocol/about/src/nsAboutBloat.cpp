@@ -35,11 +35,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsTraceRefcntImpl.h"
-
-// if NS_BUILD_REFCNT_LOGGING isn't defined, don't try to build
-#ifdef NS_BUILD_REFCNT_LOGGING
-
 #include "nsAboutBloat.h"
 #include "nsIIOService.h"
 #include "nsIServiceManager.h"
@@ -52,6 +47,7 @@
 #include "nsNetUtil.h"
 #include "nsDirectoryServiceDefs.h"
 #include "nsILocalFile.h"
+#include "nsTraceRefcntImpl.h"
 
 #ifdef XP_MAC
 extern "C" void GC_gcollect(void);
@@ -181,4 +177,3 @@ nsAboutBloat::Create(nsISupports *aOuter, REFNSIID aIID, void **aResult)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-#endif /* NS_BUILD_REFCNT_LOGGING */

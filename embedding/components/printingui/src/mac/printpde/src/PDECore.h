@@ -2,7 +2,7 @@
 ********************************************************************************
     
     $Log: PDECore.h,v $
-    Revision 1.2  2003-04-03 19:20:05  ccarlen%netscape.com
+    Revision 1.2  2003/04/03 19:20:05  ccarlen%netscape.com
     Bug 188508 - Upgrade print dialog PDE. r=pinkerton/sr=sfraser
 
 

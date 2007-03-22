@@ -225,7 +225,7 @@ PRBool imgCache::Put(nsIURI *aKey, imgRequest *request, nsICacheEntryDescriptor 
   if (NS_FAILED(rv) || !entry)
     return PR_FALSE;
 
-  nsCOMPtr<nsISupports> sup = reinterpret_cast<nsISupports*>(request);
+  nsCOMPtr<nsISupports> sup = NS_REINTERPRET_CAST(nsISupports*, request);
   entry->SetCacheElement(sup);
 
   entry->MarkValid();
@@ -307,7 +307,7 @@ PRBool imgCache::Get(nsIURI *aKey, PRBool *aHasExpired, imgRequest **aRequest, n
   nsCOMPtr<nsISupports> sup;
   entry->GetCacheElement(getter_AddRefs(sup));
 
-  *aRequest = reinterpret_cast<imgRequest*>(sup.get());
+  *aRequest = NS_REINTERPRET_CAST(imgRequest*, sup.get());
   NS_IF_ADDREF(*aRequest);
 
   *aEntry = entry;
@@ -346,12 +346,10 @@ PRBool imgCache::Remove(nsIURI *aKey)
 NS_IMETHODIMP
 imgCache::Observe(nsISupports* aSubject, const char* aTopic, const PRUnichar* aSomeData)
 {
-  if (strcmp(aTopic, "memory-pressure") == 0) {
-    ClearCache(PR_FALSE);
+  if (strcmp(aTopic, "memory-pressure") == 0 ||
+      strcmp(aTopic, "chrome-flush-skin-caches") == 0 ||
+      strcmp(aTopic, "chrome-flush-caches") == 0)
     ClearCache(PR_TRUE);
-  } else if (strcmp(aTopic, "chrome-flush-skin-caches") == 0 ||
-             strcmp(aTopic, "chrome-flush-caches") == 0) {
-    ClearCache(PR_TRUE);
-  }
+
   return NS_OK;
 }

@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -34,31 +33,30 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK ***** */
-
-/*
+ * ***** END LICENSE BLOCK *****
+ *
  * Date: 06 Mar 2001
  *
  * SUMMARY: Propagate heavyweightness back up the function-nesting
  * chain. See http://bugzilla.mozilla.org/show_bug.cgi?id=71107
  *
  */
-//-----------------------------------------------------------------------------
-var gTestfile = 'regress-71107.js';
-var BUGNUMBER = 71107;
-var summary = 'Propagate heavyweightness back up the function-nesting chain.';
-
-//-----------------------------------------------------------------------------
-test();
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+var bug = 71107;
+var summary = 'Propagate heavyweightness back up the function-nesting chain...';
 
 
-function test()
+//-------------------------------------------------------------------------------------------------
+test(); 
+//-------------------------------------------------------------------------------------------------
+
+
+function test() 
 {
-  enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  enterFunc ('test'); 
+  printBugNumber (bug);
   printStatus (summary);
- 
+  
   var actual = outer()()();  //call the return of calling the return of outer()
   var expect = 5;
   reportCompare(expect, actual, summary);

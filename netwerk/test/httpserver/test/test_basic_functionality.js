@@ -190,7 +190,7 @@ var objHandler =
 function functionHandler(metadata, response)
 {
   response.setStatusLine("1.1", 404, "Page Not Found");
-  response.setHeader("foopy", "quux-baz", false);
+  response.setHeader("foopy", "quux-baz");
 
   do_check_eq(metadata.port, 4444);
   do_check_eq(metadata.host, "localhost");

@@ -130,6 +130,7 @@ NS_IMPL_RELEASE(nsChromeTreeOwner)
 NS_INTERFACE_MAP_BEGIN(nsChromeTreeOwner)
    NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIDocShellTreeOwner)
    NS_INTERFACE_MAP_ENTRY(nsIDocShellTreeOwner)
+   NS_INTERFACE_MAP_ENTRY(nsIDocShellTreeOwner_MOZILLA_1_8_BRANCH)
    NS_INTERFACE_MAP_ENTRY(nsIBaseWindow)
    NS_INTERFACE_MAP_ENTRY(nsIWebProgressListener)
    NS_INTERFACE_MAP_ENTRY(nsIInterfaceRequestor)
@@ -262,21 +263,17 @@ NS_IMETHODIMP nsChromeTreeOwner::FindItemWithName(const PRUnichar* aName,
    return NS_OK;      
 }
 
-NS_IMETHODIMP
-nsChromeTreeOwner::ContentShellAdded(nsIDocShellTreeItem* aContentShell,
-                                     PRBool aPrimary, PRBool aTargetable,
-                                     const nsAString& aID)
+NS_IMETHODIMP nsChromeTreeOwner::ContentShellAdded(nsIDocShellTreeItem* aContentShell,
+   PRBool aPrimary, const PRUnichar* aID)
 {
-  NS_ENSURE_STATE(mXULWindow);
-  return mXULWindow->ContentShellAdded(aContentShell, aPrimary, aTargetable,
-                                       aID);
-}
+   NS_ENSURE_STATE(mXULWindow);
+   if (aID) {
+     return mXULWindow->ContentShellAdded(aContentShell, aPrimary, PR_FALSE,
+                                          nsDependentString(aID));
+   }
 
-NS_IMETHODIMP
-nsChromeTreeOwner::ContentShellRemoved(nsIDocShellTreeItem* aContentShell)
-{
-  NS_ENSURE_STATE(mXULWindow);
-  return mXULWindow->ContentShellRemoved(aContentShell);
+   return mXULWindow->ContentShellAdded(aContentShell, aPrimary, PR_FALSE,
+                                        EmptyString());
 }
 
 NS_IMETHODIMP nsChromeTreeOwner::GetPrimaryContentShell(nsIDocShellTreeItem** aShell)
@@ -584,6 +581,26 @@ nsChromeTreeOwner::OnSecurityChange(nsIWebProgress *aWebProgress,
                                     PRUint32 state)
 {
     return NS_OK;
+}
+
+//*****************************************************************************
+// nsChromeTreeOwner::nsIDocShellTreeOwner_MOZILLA_1_8_BRANCH
+//*****************************************************************************   
+NS_IMETHODIMP
+nsChromeTreeOwner::ContentShellAdded2(nsIDocShellTreeItem* aContentShell,
+                                      PRBool aPrimary, PRBool aTargetable,
+                                      const nsAString& aID)
+{
+  NS_ENSURE_STATE(mXULWindow);
+  return mXULWindow->ContentShellAdded(aContentShell, aPrimary, aTargetable,
+                                       aID);
+}
+
+NS_IMETHODIMP
+nsChromeTreeOwner::ContentShellRemoved(nsIDocShellTreeItem* aContentShell)
+{
+  NS_ENSURE_STATE(mXULWindow);
+  return mXULWindow->ContentShellRemoved(aContentShell);
 }
 
 //*****************************************************************************

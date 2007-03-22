@@ -272,9 +272,9 @@ NS_IMETHODIMP nsClipboard::SetNativeClipboardData(PRInt32 aWhichClipboard)
 					!strcmp(cliphdr[index].type, Ph_CLIPBOARD_TYPE_HTML) ||
 					!strcmp(cliphdr[index].type, Ph_CLIPBOARD_TYPE_MOZ_BOOKMARK) )
 			{
-				PRUnichar* castedUnicode = reinterpret_cast<PRUnichar*>(data);
+				PRUnichar* castedUnicode = NS_REINTERPRET_CAST(PRUnichar*, data);
 				char *utf8String = ToNewUTF8String(nsDependentString(castedUnicode, dataLen/2));
-				nsMemory::Free(reinterpret_cast<char*>(data));
+				nsMemory::Free(NS_REINTERPRET_CAST(char*, data));
 
 				if( !strcmp(cliphdr[index].type, Ph_CLIPBOARD_TYPE_TEXT) )
 				{
@@ -286,7 +286,7 @@ NS_IMETHODIMP nsClipboard::SetNativeClipboardData(PRInt32 aWhichClipboard)
 					char *temp = ( char * ) nsMemory::Alloc( len + 1 );
 					memcpy( temp, utf8String, len );
 					temp[len] = 0;
-					nsMemory::Free(reinterpret_cast<char*>(utf8String));
+					nsMemory::Free(NS_REINTERPRET_CAST(char*, utf8String));
 
         	cliphdr[index].length = len+1;
         	cliphdr[index].data = temp;
@@ -302,7 +302,7 @@ NS_IMETHODIMP nsClipboard::SetNativeClipboardData(PRInt32 aWhichClipboard)
 
 	PhClipboardCopy( mInputGroup, index, cliphdr );
 	for( PRUint32 k=0; k<index; k++)
-		nsMemory::Free(reinterpret_cast<char*>(cliphdr[k].data));
+		nsMemory::Free(NS_REINTERPRET_CAST(char*, cliphdr[k].data));
 
 	free( cliphdr );
 
@@ -443,7 +443,7 @@ nsClipboard::GetNativeClipboardData(nsITransferable * aTransferable,
 
     					decoder->GetMaxLength(data, dataLen, &outUnicodeLen);   // |outUnicodeLen| is number of chars
     					if (outUnicodeLen) {
-      					unicodeData = reinterpret_cast<PRUnichar*>(nsMemory::Alloc((outUnicodeLen + 1) * sizeof(PRUnichar)));
+      					unicodeData = NS_REINTERPRET_CAST(PRUnichar*, nsMemory::Alloc((outUnicodeLen + 1) * sizeof(PRUnichar)));
       					if ( unicodeData ) {
         					PRInt32 numberTmp = dataLen;
         					rv = decoder->Convert(data, &numberTmp, unicodeData, &outUnicodeLen);
@@ -457,7 +457,7 @@ nsClipboard::GetNativeClipboardData(nsITransferable * aTransferable,
 								} // if valid length
 
 
-    					data = reinterpret_cast<char*>(unicodeData);
+    					data = NS_REINTERPRET_CAST(char*,unicodeData);
     					dataLen = outUnicodeLen * 2;
 
 							nsCOMPtr<nsISupports> genericDataWrapper;
@@ -482,9 +482,8 @@ nsClipboard::GetNativeClipboardData(nsITransferable * aTransferable,
 }
 
 NS_IMETHODIMP
-nsClipboard::HasDataMatchingFlavors(const char** aFlavorList,
-                                    PRUint32 aLength,
-                                    PRInt32 aWhichClipboard,
+nsClipboard::HasDataMatchingFlavors(nsISupportsArray* aFlavorList, 
+                                    PRInt32 aWhichClipboard, 
                                     PRBool * outResult)
 {
 	if (aWhichClipboard == kSelectionClipboard)
@@ -505,8 +504,11 @@ nsClipboard::HasDataMatchingFlavors(const char** aFlavorList,
   * outResult = PR_FALSE;
 
  // Walk through flavors and see which flavor matches the one being pasted:
+  PRUint32 cnt;
+
+  aFlavorList->Count(&cnt);
   nsCAutoString foundFlavor;
-  if (aLength > 0) {
+  if (cnt > 0) {
     void         *clipPtr;
 		char					type[8];
     PhClipHeader *cliphdr;
@@ -515,18 +517,30 @@ nsClipboard::HasDataMatchingFlavors(const char** aFlavorList,
     if(nsnull == clipPtr)
         return res;
 
-    for ( PRUint32 i = 0; i < aLength; ++i ) {
-      nsresult err = GetFormat( aFlavorList[i], type );
-      if (err != NS_OK) continue;
+    for ( PRUint32 i = 0; i < cnt; ++i ) {
+      nsCOMPtr<nsISupports> genericFlavor;
+      aFlavorList->GetElementAt ( i, getter_AddRefs(genericFlavor) );
+      nsCOMPtr<nsISupportsCString> currentFlavor ( do_QueryInterface(genericFlavor) );
 
-      cliphdr = PhClipboardPasteType( clipPtr, type );
-      if (cliphdr)
-      {
-        res = NS_OK;
-        *outResult = PR_TRUE;
-        break;
+      if ( currentFlavor ) {
+
+        nsXPIDLCString flavorStr;
+        currentFlavor->ToString ( getter_Copies(flavorStr) );
+
+        nsresult err = GetFormat( flavorStr, type );
+        if (err != NS_OK) continue;
+
+        cliphdr = PhClipboardPasteType( clipPtr, type );
+        if (cliphdr)
+        {
+
+            res = NS_OK;
+            *outResult = PR_TRUE;
+                    break;
+        }
       }
     }
+
     PhClipboardPasteFinish( clipPtr );
   }
 

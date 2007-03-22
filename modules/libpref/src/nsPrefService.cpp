@@ -50,7 +50,6 @@
 #include "nsCRT.h"
 #include "nsCOMArray.h"
 #include "nsXPCOMCID.h"
-#include "nsAutoPtr.h"
 
 #include "nsQuickSort.h"
 #include "prmem.h"
@@ -69,6 +68,7 @@
 
 // Definitions
 #define INITIAL_PREF_FILES 10
+#define PREF_READ_BUFFER_SIZE 4096
 
 // Prototypes
 #ifdef MOZ_PROFILESHARING
@@ -152,7 +152,7 @@ nsresult nsPrefService::Init()
   rv = mRootBranch->GetCharPref("general.config.filename", getter_Copies(lockFileName));
   if (NS_SUCCEEDED(rv))
     NS_CreateServicesFromCategory("pref-config-startup",
-                                  static_cast<nsISupports *>(static_cast<void *>(this)),
+                                  NS_STATIC_CAST(nsISupports *, NS_STATIC_CAST(void *, this)),
                                   "pref-config-startup");    
 
   nsCOMPtr<nsIObserverService> observerService = 
@@ -199,9 +199,6 @@ NS_IMETHODIMP nsPrefService::Observe(nsISupports *aSubject, const char *aTopic, 
       ResetUserPrefs();
       rv = ReadUserPrefs(nsnull);
     }
-  } else if (!nsCRT::strcmp(aTopic, "reload-default-prefs")) {
-    // Reload the default prefs from file.
-    pref_InitInitialObjects();
   }
   return rv;
 }
@@ -352,13 +349,7 @@ nsresult nsPrefService::UseUserPrefFile()
   if (NS_SUCCEEDED(rv) && aFile) {
     rv = aFile->AppendNative(NS_LITERAL_CSTRING("user.js"));
     if (NS_SUCCEEDED(rv)) {
-      PRBool exists = PR_FALSE;
-      aFile->Exists(&exists);
-      if (exists) {
-        rv = openPrefFile(aFile);
-      } else {
-        rv = NS_ERROR_FILE_NOT_FOUND;
-      }
+      rv = openPrefFile(aFile);
     }
   }
   return rv;
@@ -389,16 +380,9 @@ nsresult nsPrefService::ReadAndOwnUserPrefFile(nsIFile *aFile)
   gSharedPrefHandler->ReadingUserPrefs(PR_TRUE);
 #endif
 
-  nsresult rv = NS_OK;
-  PRBool exists = PR_FALSE;
-  mCurrentFile->Exists(&exists);
-  if (exists) {
-    rv = openPrefFile(mCurrentFile);
-    if (NS_FAILED(rv)) {
-      mDontWriteUserPrefs = NS_FAILED(MakeBackupPrefFile(mCurrentFile));
-    }
-  } else {
-    rv = NS_ERROR_FILE_NOT_FOUND;
+  nsresult rv = openPrefFile(mCurrentFile);
+  if (NS_FAILED(rv) && rv != NS_ERROR_FILE_NOT_FOUND) {
+    mDontWriteUserPrefs = NS_FAILED(MakeBackupPrefFile(mCurrentFile));
   }
 
 #ifdef MOZ_PROFILESHARING
@@ -586,6 +570,7 @@ static PRBool isSharingEnabled()
 static nsresult openPrefFile(nsIFile* aFile)
 {
   nsCOMPtr<nsIInputStream> inStr;
+  char      readBuf[PREF_READ_BUFFER_SIZE];
 
 #if MOZ_TIMELINE
   {
@@ -599,33 +584,21 @@ static nsresult openPrefFile(nsIFile* aFile)
   if (NS_FAILED(rv)) 
     return rv;        
 
-  PRInt64 fileSize;
-  rv = aFile->GetFileSize(&fileSize);
-  if (NS_FAILED(rv))
-    return rv;
-
-  nsAutoArrayPtr<char> fileBuffer(new char[fileSize]);
-  if (fileBuffer == nsnull)
-    return NS_ERROR_OUT_OF_MEMORY;
-
   PrefParseState ps;
   PREF_InitParseState(&ps, PREF_ReaderCallback, NULL);
-
-  // Read is not guaranteed to return a buf the size of fileSize,
-  // but usually will.
   nsresult rv2 = NS_OK;
   for (;;) {
     PRUint32 amtRead = 0;
-    rv = inStr->Read((char*)fileBuffer, fileSize, &amtRead);
+    rv = inStr->Read(readBuf, sizeof(readBuf), &amtRead);
     if (NS_FAILED(rv) || amtRead == 0)
       break;
-    if (!PREF_ParseBuf(&ps, fileBuffer, amtRead))
+
+    if (!PREF_ParseBuf(&ps, readBuf, amtRead)) {
       rv2 = NS_ERROR_FILE_CORRUPTED;
+    }
   }
-
   PREF_FinalizeParseState(&ps);
-
-  return NS_FAILED(rv) ? rv : rv2;
+  return NS_FAILED(rv) ? rv : rv2;        
 }
 
 /*
@@ -741,32 +714,6 @@ pref_LoadPrefsInDir(nsIFile* aDir, char const *const *aSpecialFiles, PRUint32 aS
   return rv;
 }
 
-static nsresult pref_LoadPrefsInDirList(const char *listId)
-{
-  nsresult rv;
-  nsCOMPtr<nsIProperties> dirSvc(do_GetService(NS_DIRECTORY_SERVICE_CONTRACTID, &rv));
-  if (NS_FAILED(rv)) return rv;
-
-  nsCOMPtr<nsISimpleEnumerator> dirList;
-  dirSvc->Get(listId,
-              NS_GET_IID(nsISimpleEnumerator),
-              getter_AddRefs(dirList));
-  if (dirList) {
-    PRBool hasMore;
-    while (NS_SUCCEEDED(dirList->HasMoreElements(&hasMore)) && hasMore) {
-      nsCOMPtr<nsISupports> elem;
-      dirList->GetNext(getter_AddRefs(elem));
-      if (elem) {
-        nsCOMPtr<nsIFile> dir = do_QueryInterface(elem);
-        if (dir) {
-          // Do we care if a file provided by this process fails to load?
-          pref_LoadPrefsInDir(dir, nsnull, 0); 
-        }
-      }
-    }
-  }
-  return NS_OK;
-}
 
 //----------------------------------------------------------------------------------------
 // Initialize default preference JavaScript buffers from
@@ -823,19 +770,30 @@ static nsresult pref_InitInitialObjects()
     NS_WARNING("Error parsing application default preferences.");
   }
 
-  rv = pref_LoadPrefsInDirList(NS_APP_PREFS_DEFAULTS_DIR_LIST);
-  NS_ENSURE_SUCCESS(rv, rv);
+  // xxxbsmedberg: TODO load default prefs from a category
+  // but the architecture is not quite there yet
 
-  NS_CreateServicesFromCategory(NS_PREFSERVICE_APPDEFAULTS_TOPIC_ID,
-                                nsnull, NS_PREFSERVICE_APPDEFAULTS_TOPIC_ID);
+  nsCOMPtr<nsIProperties> dirSvc(do_GetService(NS_DIRECTORY_SERVICE_CONTRACTID, &rv));
+  if (NS_FAILED(rv)) return rv;
 
-  nsCOMPtr<nsIObserverService> observerService = 
-    do_GetService("@mozilla.org/observer-service;1", &rv);
-  
-  if (NS_FAILED(rv) || !observerService)
-    return rv;
+  nsCOMPtr<nsISimpleEnumerator> dirList;
+  dirSvc->Get(NS_APP_PREFS_DEFAULTS_DIR_LIST,
+              NS_GET_IID(nsISimpleEnumerator),
+              getter_AddRefs(dirList));
+  if (dirList) {
+    PRBool hasMore;
+    while (NS_SUCCEEDED(dirList->HasMoreElements(&hasMore)) && hasMore) {
+      nsCOMPtr<nsISupports> elem;
+      dirList->GetNext(getter_AddRefs(elem));
+      if (elem) {
+        nsCOMPtr<nsIFile> dir = do_QueryInterface(elem);
+        if (dir) {
+          // Do we care if a file provided by this process fails to load?
+          pref_LoadPrefsInDir(dir, nsnull, 0); 
+        }
+      }
+    }
+  }
 
-  observerService->NotifyObservers(nsnull, NS_PREFSERVICE_APPDEFAULTS_TOPIC_ID, nsnull);
-
-  return pref_LoadPrefsInDirList(NS_EXT_PREFS_DEFAULTS_DIR_LIST);
+  return NS_OK;
 }

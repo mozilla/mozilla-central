@@ -36,15 +36,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'regress-321547.js';
+START("Operator .. should not implicitly quote its right operand");
 
-var summary = "Operator .. should not implicitly quote its right operand";
-var BUGNUMBER = 321547;
+var bug = 321547;
+var summary = 'Operator .. should not implicitly quote its right operand';
 var actual = '';
 var expect = '';
 
-printBugNumber(BUGNUMBER);
-START(summary);
+printBugNumber (bug);
+printStatus (summary);
 
 function a(){
   var x=<a><b><c>value c</c></b></a>;
@@ -52,7 +52,7 @@ function a(){
 }
 
 actual = a.toString();
-expect = 'function a() {\n' +
+expect = 'function a() {\n' + 
          '    var x = <a><b><c>value c</c></b></a>;\n' +
          '    return x..c;\n' +
          '}';
@@ -62,7 +62,7 @@ expect = expect.replace(/[\n ]+/mg, ' ');
 TEST(1, expect, actual);
 
 actual = String(a.valueOf());
-expect = 'function a() {\n' +
+expect = 'function a() {\n' + 
          '    var x = <a><b><c>value c</c></b></a>;\n' +
          '    return x..c;\n' +
          '}';
@@ -72,7 +72,7 @@ expect = expect.replace(/[\n ]+/mg, ' ');
 TEST(3, expect, actual);
 
 actual = String(a);
-expect = 'function a() {\n' +
+expect = 'function a() {\n' + 
          '    var x = <a><b><c>value c</c></b></a>;\n' +
          '    return x..c;\n' +
          '}';

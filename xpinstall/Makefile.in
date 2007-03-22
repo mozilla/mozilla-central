@@ -24,7 +24,6 @@
 #   Daniel Veditz <dveditz@netscape.com>
 #   Douglas Turner <dougt@netscape.com>
 #   Samir Gehani <sgehani@netscape.com>
-#   Dave Townsend <dtownsend@oxymoronical.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -48,6 +47,43 @@ VPATH		= @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 MODULE		= xpinstall
-DIRS		= public src
+DIRS		= public src cleanup
+
+ifndef MOZ_ENABLE_LIBXUL
+DIRS		+= stub
+endif
+
+ifndef MOZ_XUL_APP
+DIRS		+= res
+endif
+
+ifdef MOZ_INSTALLER
+DIRS		+= wizard/libxpnet
+ifdef MOZ_ENABLE_GTK
+DIRS		+= wizard/unix/src2
+endif
+ifdef MOZ_ENABLE_GTK2
+DIRS		+= wizard/unix/src2
+endif
+ifeq ($(OS_ARCH),WINNT)
+DIRS		+= wizard/windows
+endif
+ifeq ($(OS_ARCH),OS2)
+DIRS		+= wizard/os2
+endif
+endif
 
 include $(topsrcdir)/config/rules.mk
+
+packages:
+	$(MAKE) -C packager
+
+installer: packages
+ifeq ($(OS_ARCH),Linux)
+	$(MAKE) -C packager/unix
+endif
+ifeq ($(OS_ARCH),WINNT)
+	$(MAKE) -C wizard/windows/builder
+endif
+
+

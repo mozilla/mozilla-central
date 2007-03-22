@@ -112,12 +112,6 @@ nsScrollbarFrame::IsContainingBlock() const
   return PR_TRUE;
 }
 
-nsIAtom*
-nsScrollbarFrame::GetType() const
-{
-  return nsGkAtoms::scrollbarFrame;
-}
-
 NS_IMETHODIMP
 nsScrollbarFrame::AttributeChanged(PRInt32 aNameSpaceID,
                                    nsIAtom* aAttribute,
@@ -188,7 +182,7 @@ nsScrollbarFrame::GetScrollbarMediator()
   if (!mScrollbarMediator)
     return nsnull;
   nsIFrame* f =
-    PresContext()->PresShell()->GetPrimaryFrameFor(mScrollbarMediator);
+    GetPresContext()->PresShell()->GetPrimaryFrameFor(mScrollbarMediator);
   if (!f)
     return nsnull;
 

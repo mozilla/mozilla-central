@@ -53,23 +53,23 @@
 .set CR0_EQ,2
 
         .rename H.10.NO_SYMBOL{PR},""
-        .rename H.18.NS_InvokeByIndex_P{TC},"NS_InvokeByIndex_P"
+        .rename H.18.XPTC_InvokeByIndex{TC},"XPTC_InvokeByIndex"
 
 
 # .text section
 
         .csect  H.10.NO_SYMBOL{PR}
-        .globl  .NS_InvokeByIndex_P
-        .globl  NS_InvokeByIndex_P{DS}
+        .globl  .XPTC_InvokeByIndex
+        .globl  XPTC_InvokeByIndex{DS}
         .extern .invoke_copy_to_stack
         .extern ._ptrgl{PR}
 
 #
-#   NS_InvokeByIndex_P(nsISupports* that, PRUint32 methodIndex,
+#   XPTC_InvokeByIndex(nsISupports* that, PRUint32 methodIndex,
 #                      PRUint32 paramCount, nsXPTCVariant* params)
 #
 
-.NS_InvokeByIndex_P:
+.XPTC_InvokeByIndex:
         mflr    r0
         std     r31,-8(sp)
 #
@@ -149,13 +149,13 @@
 # .data section
 
         .toc                            # 0x00000038
-T.18.NS_InvokeByIndex_P:
-        .tc     H.18.NS_InvokeByIndex_P{TC},NS_InvokeByIndex_P{DS}
+T.18.XPTC_InvokeByIndex:
+        .tc     H.18.XPTC_InvokeByIndex{TC},XPTC_InvokeByIndex{DS}
 
-        .csect  NS_InvokeByIndex_P{DS}
-        .llong  .NS_InvokeByIndex_P     # "\0\0\0\0"
+        .csect  XPTC_InvokeByIndex{DS}
+        .llong  .XPTC_InvokeByIndex     # "\0\0\0\0"
         .llong  TOC{TC0}                # "\0\0\0008"
         .llong  0x00000000              # "\0\0\0\0"
-# End   csect   NS_InvokeByIndex_P{DS}
+# End   csect   XPTC_InvokeByIndex{DS}
 
 # .bss section

@@ -41,7 +41,6 @@ interface nsIInputStream;
 interface nsIDOMDocument;
 interface nsIURI;
 interface nsIPrincipal;
-interface nsIScriptGlobalObject;
 
 /**
  * The nsIDOMParser interface is a non-SAX interface that can be used
@@ -51,7 +50,7 @@ interface nsIScriptGlobalObject;
  * parsing with the XMLHttpRequest interface, which can be used for
  * asynchronous (callback-based) loading.
  */
-[scriptable, uuid(5677f36e-1842-4c6f-a39c-2e5576ab8b40)]
+[scriptable, uuid(5db52912-cdee-46d2-9166-01436c3f9e73)]
 interface nsIDOMParser : nsISupports
 {
   /**
@@ -115,13 +114,10 @@ interface nsIDOMParser : nsISupports
    *                    URI must be non-null.
    * @param baseURI The baseURI to use for the documents we create.
    *                If null, the documentURI will be used.
-   * @param scriptObject The object from which the context for event handling
-   *                     can be got.
    */
   [noscript] void init(in nsIPrincipal principal,
                        in nsIURI documentURI,
-                       in nsIURI baseURI,
-                       in nsIScriptGlobalObject scriptObject);
+                       in nsIURI baseURI);
 };
 
 /**

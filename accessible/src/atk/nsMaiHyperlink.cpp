@@ -69,6 +69,7 @@ struct MaiAtkHyperlink
      * hyperlink instance.
      */
     MaiHyperlink *maiHyperlink;
+    gchar *uri;
 };
 
 struct MaiAtkHyperlinkClass
@@ -130,10 +131,17 @@ MaiHyperlink::MaiHyperlink(nsIAccessibleHyperLink *aAcc):
 
 MaiHyperlink::~MaiHyperlink()
 {
-    if (mMaiAtkHyperlink) {
-        MAI_ATK_HYPERLINK(mMaiAtkHyperlink)->maiHyperlink = nsnull;
+    if (mMaiAtkHyperlink)
         g_object_unref(mMaiAtkHyperlink);
-    }
+}
+
+// MaiHyperlink use its nsIAccessibleHyperlink raw pointer as ID
+NS_IMETHODIMP MaiHyperlink::GetUniqueID(void **aUniqueID)
+{
+    if (!mHyperlink)
+        return NS_ERROR_FAILURE;
+    *aUniqueID = NS_STATIC_CAST(void*, mHyperlink.get());
+    return NS_OK;
 }
 
 AtkHyperlink *
@@ -149,8 +157,8 @@ MaiHyperlink::GetAtkHyperlink(void)
         return nsnull;
 
     mMaiAtkHyperlink =
-        reinterpret_cast<AtkHyperlink *>
-                        (g_object_new(mai_atk_hyperlink_get_type(), NULL));
+        NS_REINTERPRET_CAST(AtkHyperlink *,
+                            g_object_new(mai_atk_hyperlink_get_type(), NULL));
     NS_ASSERTION(mMaiAtkHyperlink, "OUT OF MEMORY");
     NS_ENSURE_TRUE(mMaiAtkHyperlink, nsnull);
 
@@ -174,6 +182,7 @@ MaiHyperlink::Initialize(AtkHyperlink *aObj, MaiHyperlink *aHyperlink)
 
     /* initialize hyperlink */
     MAI_ATK_HYPERLINK(aObj)->maiHyperlink = aHyperlink;
+    MAI_ATK_HYPERLINK(aObj)->uri = nsnull;
     return NS_OK;
 }
 
@@ -203,8 +212,10 @@ finalizeCB(GObject *aObj)
     if (!MAI_IS_ATK_HYPERLINK(aObj))
         return;
 
-    MaiAtkHyperlink *maiAtkHyperlink = MAI_ATK_HYPERLINK(aObj);
-    maiAtkHyperlink->maiHyperlink = nsnull;
+    MaiAtkHyperlink *maiHyperlink = MAI_ATK_HYPERLINK(aObj);
+    if (maiHyperlink->uri)
+        g_free(maiHyperlink->uri);
+    maiHyperlink->maiHyperlink = nsnull;
 
     /* call parent finalize function */
     if (G_OBJECT_CLASS (parent_class)->finalize)
@@ -217,7 +228,9 @@ getUriCB(AtkHyperlink *aLink, gint aLinkIndex)
     nsIAccessibleHyperLink *accHyperlink = get_accessible_hyperlink(aLink);
     NS_ENSURE_TRUE(accHyperlink, nsnull);
 
-    MaiAtkHyperlink *maiAtkHyperlink = MAI_ATK_HYPERLINK(aLink);
+    MaiAtkHyperlink *maiHyperlink = MAI_ATK_HYPERLINK(aLink);
+    if (maiHyperlink->uri)
+        return g_strdup(maiHyperlink->uri);
 
     nsCOMPtr<nsIURI> uri;
     nsresult rv = accHyperlink->GetURI(aLinkIndex,getter_AddRefs(uri));
@@ -226,7 +239,8 @@ getUriCB(AtkHyperlink *aLink, gint aLinkIndex)
     nsCAutoString cautoStr;
     rv = uri->GetSpec(cautoStr);
 
-    return g_strdup(cautoStr.get());
+    maiHyperlink->uri = ToNewCString(cautoStr);
+    return g_strdup(maiHyperlink->uri);
 }
 
 AtkObject *
@@ -236,11 +250,15 @@ getObjectCB(AtkHyperlink *aLink, gint aLinkIndex)
     NS_ENSURE_TRUE(accHyperlink, nsnull);
 
     nsCOMPtr<nsIAccessible> accObj;
-    accHyperlink->GetAnchor(aLinkIndex, getter_AddRefs(accObj));
-    NS_ENSURE_TRUE(accObj, nsnull);
-
-    AtkObject *atkObj = nsAccessibleWrap::GetAtkObject(accObj);
-    //no need to add ref it, because it is "get" not "ref"
+    nsresult rv = accHyperlink->GetObject(aLinkIndex, getter_AddRefs(accObj));
+    NS_ENSURE_SUCCESS(rv, nsnull);
+    AtkObject *atkObj = nsnull;
+    if (accObj) {
+        nsIAccessible *tmpObj = accObj;
+        nsAccessibleWrap *accWrap = NS_STATIC_CAST(nsAccessibleWrap *, tmpObj);
+        atkObj = accWrap->GetAtkObject();
+    }
+    //no need to add ref it, because it is "get" not "ref" ???
     return atkObj;
 }
 
@@ -253,7 +271,7 @@ getEndIndexCB(AtkHyperlink *aLink)
     PRInt32 endIndex = -1;
     nsresult rv = accHyperlink->GetEndIndex(&endIndex);
 
-    return (NS_FAILED(rv)) ? -1 : static_cast<gint>(endIndex);
+    return (NS_FAILED(rv)) ? -1 : NS_STATIC_CAST(gint, endIndex);
 }
 
 gint
@@ -265,7 +283,7 @@ getStartIndexCB(AtkHyperlink *aLink)
     PRInt32 startIndex = -1;
     nsresult rv = accHyperlink->GetStartIndex(&startIndex);
 
-    return (NS_FAILED(rv)) ? -1 : static_cast<gint>(startIndex);
+    return (NS_FAILED(rv)) ? -1 : NS_STATIC_CAST(gint, startIndex);
 }
 
 gboolean
@@ -275,8 +293,8 @@ isValidCB(AtkHyperlink *aLink)
     NS_ENSURE_TRUE(accHyperlink, FALSE);
 
     PRBool isValid = PR_FALSE;
-    nsresult rv = accHyperlink->GetValid(&isValid);
-    return (NS_FAILED(rv)) ? FALSE : static_cast<gboolean>(isValid);
+    nsresult rv = accHyperlink->IsValid(&isValid);
+    return (NS_FAILED(rv)) ? FALSE : NS_STATIC_CAST(gboolean, isValid);
 }
 
 gint
@@ -286,8 +304,8 @@ getAnchorCountCB(AtkHyperlink *aLink)
     NS_ENSURE_TRUE(accHyperlink, -1);
 
     PRInt32 count = -1;
-    nsresult rv = accHyperlink->GetAnchorCount(&count);
-    return (NS_FAILED(rv)) ? -1 : static_cast<gint>(count);
+    nsresult rv = accHyperlink->GetAnchors(&count);
+    return (NS_FAILED(rv)) ? -1 : NS_STATIC_CAST(gint, count);
 }
 
 // Check if aHyperlink is a valid MaiHyperlink, and return the

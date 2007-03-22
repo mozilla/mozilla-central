@@ -35,10 +35,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-354541-02.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 354541;
+var bug = 354541;
 var summary = 'Regression to standard class constructors in case labels';
 var actual = '';
 var expect = '';
@@ -51,7 +49,7 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary + ': in function');
 
   String.prototype.trim = function() { print('hallo'); };

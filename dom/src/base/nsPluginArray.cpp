@@ -245,9 +245,9 @@ nsPluginArray::Refresh(PRBool aReloadDocuments)
 NS_IMETHODIMP
 nsPluginArray::Refresh()
 {
-  nsAXPCNativeCallContext *ncc = nsnull;
+  nsCOMPtr<nsIXPCNativeCallContext> ncc;
   nsresult rv = nsContentUtils::XPConnect()->
-    GetCurrentNativeCallContext(&ncc);
+    GetCurrentNativeCallContext(getter_AddRefs(ncc));
   NS_ENSURE_SUCCESS(rv, rv);
 
   if (!ncc)

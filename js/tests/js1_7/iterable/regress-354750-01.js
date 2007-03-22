@@ -34,10 +34,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-354750-01.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 354750;
+var bug = 354750;
 var summary = 'Changing Iterator.prototype.next should not affect default iterator';
 var actual = '';
 var expect = '';
@@ -50,11 +48,11 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
- 
-  Iterator.prototype.next = function() {
-    throw "This should not be thrown";
+  
+  Iterator.prototype.next = function() { 
+    throw "This should not be thrown"; 
   }
 
   expect = 'No exception';

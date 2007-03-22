@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -34,9 +33,8 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK ***** */
-
-/*
+ * ***** END LICENSE BLOCK *****
+ *
  *
  * Date:    19 Mar 2002
  * SUMMARY: Function declarations in global or function scope are {DontDelete}.
@@ -46,9 +44,8 @@
  *
  */
 //-----------------------------------------------------------------------------
-var gTestfile = 'regress-131964.js';
 var UBound = 0;
-var BUGNUMBER =   131964;
+var bug =   131964;
 var summary = 'Functions defined in global or function scope are {DontDelete}';
 var status = '';
 var statusitems = [];
@@ -184,7 +181,7 @@ function addThis()
 function test()
 {
   enterFunc('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber(bug);
   printStatus(summary);
 
   for (var i=0; i<UBound; i++)

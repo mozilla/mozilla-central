@@ -48,6 +48,12 @@
 
 /***************************************************************************/
 
+PR_STATIC_CALLBACK(const void*)
+IIDGetKey(PLDHashTable *table, PLDHashEntryHdr *entry)
+{
+    return ((xptiHashEntry*)entry)->value->GetTheIID();
+}
+
 PR_STATIC_CALLBACK(PLDHashNumber)
 IIDHash(PLDHashTable *table, const void *key)
 {
@@ -69,6 +75,7 @@ const static struct PLDHashTableOps IIDTableOps =
 {
     PL_DHashAllocTable,
     PL_DHashFreeTable,
+    IIDGetKey,
     IIDHash,
     IIDMatch,
     PL_DHashMoveEntryStub,
@@ -77,6 +84,12 @@ const static struct PLDHashTableOps IIDTableOps =
 };
 
 /***************************************************************************/
+
+PR_STATIC_CALLBACK(const void*)
+NameGetKey(PLDHashTable *table, PLDHashEntryHdr *entry)
+{
+    return ((xptiHashEntry*)entry)->value->GetTheName();
+}
 
 PR_STATIC_CALLBACK(PRBool)
 NameMatch(PLDHashTable *table,
@@ -92,6 +105,7 @@ static const struct PLDHashTableOps NameTableOps =
 {
     PL_DHashAllocTable,
     PL_DHashFreeTable,
+    NameGetKey,
     PL_DHashStringKey,
     NameMatch,
     PL_DHashMoveEntryStub,

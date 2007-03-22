@@ -66,7 +66,6 @@ components/dom_core.xpt
 components/dom_css.xpt
 components/dom_events.xpt
 components/dom_html.xpt
-components/dom_offline.xpt
 components/dom_range.xpt
 components/dom_stylesheets.xpt
 components/dom_traversal.xpt
@@ -162,7 +161,6 @@ components/pipnss.xpt
 chrome/pipnss.jar
 defaults/pref/security-prefs.js
 libnss3.dylib
-libnssutil3.dylib
 libsmime3.dylib
 libsoftokn3.chk
 libsoftokn3.dylib
@@ -239,8 +237,6 @@ res/viewsource.css
 res/hiddenWindow.html
 res/ua.css
 res/forms.css
-res/contenteditable.css
-res/designmode.css
 res/arrow.gif
 res/arrowd.gif
 res/loading-image.gif
@@ -268,6 +264,13 @@ res/fonts/mathfontPUA.properties
 res/fonts/mathfontSymbol.properties
 components/libucvmath.dylib
 
+; p3p
+components/libp3p.dylib
+components/p3p.xpt
+
 ; svg
 components/dom_svg.xpt
 res/svg.css
+
+; Effective TLD
+res/effective_tld_names.dat

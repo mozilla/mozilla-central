@@ -35,17 +35,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'regress-290056.js';
+START("bug 290056");
 
-var summary = 'Dont crash when serializing an XML object where the name ' +
-    'of an attribute was changed with setName';
-
-var BUGNUMBER = 290056;
+var bug = 290056;
+var summary = 'Dont crash when serializing an XML object where the name of an attribute was changed with setName';
 var actual = 'No Crash';
 var expect = 'No Crash';
 
-printBugNumber(BUGNUMBER);
-START(summary);
+printBugNumber (bug);
+printStatus (summary);
 
 var link = <link type="simple" />;
 var xlinkNamespace = new Namespace('xlink', 'http://www.w3.org/1999/xlink');

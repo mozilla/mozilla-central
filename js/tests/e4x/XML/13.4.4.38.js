@@ -40,15 +40,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '13.4.4.38.js';
-
 START("13.4.4.38 - XML toString()");
 
 TEST(1, true, XML.prototype.hasOwnProperty("toString"));
 
 XML.prettyPrinting = false;
 
-x =
+x = 
 <alpha>
     <bravo>one</bravo>
     <charlie>
@@ -59,7 +57,7 @@ x =
 TEST(2, "one", x.bravo.toString());
 TEST(3, "<bravo>one</bravo><bravo>two</bravo>", x..bravo.toString());
 
-x =
+x = 
 <alpha>
     <bravo>one</bravo>
     <charlie/>
@@ -67,7 +65,7 @@ x =
 
 TEST(4, "", x.charlie.toString());
 
-x =
+x = 
 <alpha>
     <bravo>one</bravo>
     <charlie>
@@ -77,7 +75,7 @@ x =
 
 TEST(5, "<charlie><bravo>two</bravo></charlie>", x.charlie.toString());
 
-x =
+x = 
 <alpha>
     <bravo>one</bravo>
     <charlie>
@@ -88,7 +86,7 @@ x =
 
 TEST(5, "<charlie>two<bravo/></charlie>", x.charlie.toString());
 
-x =
+x = 
 <alpha>
     <bravo></bravo>
     <bravo/>
@@ -96,7 +94,7 @@ x =
 
 TEST(6, "<bravo/><bravo/>", x.bravo.toString());
 
-x =
+x = 
 <alpha>
     <bravo>one<charlie/></bravo>
     <bravo>two<charlie/></bravo>

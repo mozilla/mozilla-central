@@ -71,7 +71,6 @@ mSel(nsnull)
 
 nsAutoSelectionReset::~nsAutoSelectionReset()
 {
-  NS_ASSERTION(!mSel || mEd, "mEd should be non-null when mSel is");
   if (mSel && mEd->ArePreservingSelection())   // mSel will be null if this was nested call
   {
     mEd->RestorePreservedSelection(mSel);
@@ -81,9 +80,7 @@ nsAutoSelectionReset::~nsAutoSelectionReset()
 void
 nsAutoSelectionReset::Abort()
 {
-  NS_ASSERTION(!mSel || mEd, "mEd should be non-null when mSel is");
-  if (mSel)
-    mEd->StopPreservingSelection();
+  mEd->StopPreservingSelection();
 }
 
 

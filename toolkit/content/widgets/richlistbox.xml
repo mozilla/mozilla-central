@@ -50,10 +50,9 @@
     </resources>
 
     <content>
-      <children includes="listheader"/>
       <xul:scrollbox allowevents="true" orient="vertical" anonid="main-box"
                      flex="1" style="overflow: auto;">
-        <children/>
+        <children />
       </xul:scrollbox>
     </content>
 
@@ -265,20 +264,19 @@
             // (including the currently selected one), and determine
             // the index of the first one lying (partially) outside
             var height = this.scrollBoxObject.height;
-            var startBorder = this.currentItem.boxObject.y;
+            var border = this.currentItem.boxObject.y;
             if (aDirection == -1)
-              startBorder += this.currentItem.boxObject.height;
-
+              border += this.currentItem.boxObject.height;
             var index = this.currentIndex;
-            for (var ix = index; 0 <= ix && ix < children.length; ix += aDirection) {
-              var boxObject = children[ix].boxObject;
-              if (boxObject.height == 0)
-                continue; // hidden children have a y of 0
-              var endBorder = boxObject.y + (aDirection == -1 ? boxObject.height : 0);
-              if ((endBorder - startBorder) * aDirection > height)
-                break; // we've reached the desired distance
-              index = ix;
+            while (0 <= index && index < children.length) {
+              var border2 = children[index].boxObject.y;
+              if (aDirection == -1)
+                border2 += children[index].boxObject.height;
+              if ((border2 - border) * aDirection > height)
+                break;
+              index += aDirection;
             }
+            index -= aDirection;
 
             return index != this.currentIndex ? index - this.currentIndex : aDirection;
           ]]>
@@ -378,15 +376,18 @@
 
               // cf. listbox constructor:
               // select items according to their attributes
-              var children = this.children;
-              for (var i = 0; i < children.length; ++i) {
-                if (children[i].getAttribute("selected") == "true")
-                  this.selectedItems.push(children[i]);
-              }
+              var els = this.getElementsByAttribute("selected", "true");
+              for (i = 0; i < els.length; i++)
+                this.selectedItems.push(els[i]);
             }
 
             if (this.selType != "multiple" && this.selectedCount == 0)
               this.selectedItem = this.currentItem;
+
+            // XXX hack for the Downloads manager (better to focus the list than
+            // the individual items - these usually aren't tabbable anyway, and
+            // we need the keyboard focus for navigation), see bug 363271:
+            this.focus();
           ]]>
         </body>
       </method>
@@ -458,12 +459,49 @@
     </implementation>
 
     <handlers>
+      <!-- handle keyboard navigation also when a child element has got the focus -->
+      <handler event="keypress" keycode="VK_UP"
+               modifiers="control shift any"
+               action="this.moveByOffset(-1, !event.ctrlKey, event.shiftKey);"
+               preventdefault="true"/>
+      <handler event="keypress" keycode="VK_DOWN"
+               modifiers="control shift any"
+               action="this.moveByOffset(1, !event.ctrlKey, event.shiftKey);"
+               preventdefault="true"/>
+      <handler event="keypress" keycode="VK_HOME"
+               modifiers="control shift any"
+               action="this.moveByOffset(-this.currentIndex, !event.ctrlKey, event.shiftKey);"
+               preventdefault="true"/>
+      <handler event="keypress" keycode="VK_END"
+               modifiers="control shift any"
+               action="this.moveByOffset(this.getRowCount(), !event.ctrlKey, event.shiftKey);"
+               preventdefault="true"/>
+      <handler event="keypress" keycode="VK_PAGE_UP"
+               modifiers="control shift any"
+               action="this.moveByOffset(this.scrollOnePage(-1), !event.ctrlKey, event.shiftKey);"
+               preventdefault="true"/>
+      <handler event="keypress" keycode="VK_PAGE_DOWN"
+               modifiers="control shift any"
+               action="this.moveByOffset(this.scrollOnePage(1), !event.ctrlKey, event.shiftKey);"
+               preventdefault="true"/>
+
       <handler event="click">
         <![CDATA[
           // clicking into nothing should unselect
           if (event.originalTarget.getAttribute("anonid") == "main-box") {
             this.clearSelection();
             this.currentItem = null;
+          }
+        ]]>
+      </handler>
+      <handler event="contextmenu">
+        <![CDATA[
+          // if the context menu was opened via the keyboard, display it in the
+          // right location.
+          if (event.button != 2) {
+            var popup = document.getElementById(this.getAttribute("context"));
+            if (popup)
+              popup.showPopup(this.currentItem, -1, -1, "context", "bottomleft", "topleft");
           }
         ]]>
       </handler>
@@ -519,26 +557,17 @@
           ]]>
         </getter>
       </property>
-
-      <property name="searchLabel">
-        <getter>
-          <![CDATA[
-            return this.hasAttribute("searchlabel") ?
-                   this.getAttribute("searchlabel") : this.label;
-          ]]>
-        </getter>
-        <setter>
-          <![CDATA[
-            if (val !== null)
-              this.setAttribute("searchlabel", val);
-            else
-              // fall back to the label property (default value)
-              this.removeAttribute("searchlabel");
-            return val;
-          ]]>
-        </setter>
-      </property>
     </implementation>
+
+    <handlers>
+      <handler event="contextmenu" phase="capturing">
+        <![CDATA[
+          // handle someone right-clicking on an item other than the current one
+          if (event.target == this && this.control)
+            this.control.currentItem = this;
+        ]]>
+      </handler>
+    </handlers>
   </binding>
 </bindings>
 

@@ -151,6 +151,8 @@ protected:
   
 protected:
 
+  static const void * PR_CALLBACK  HashGetKey(PLDHashTable *table, PLDHashEntryHdr *entry);
+
   static PLDHashNumber PR_CALLBACK HashKey(PLDHashTable *table, const void *key);
 
   static PRBool PR_CALLBACK        HashMatchEntry(PLDHashTable *table,

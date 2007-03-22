@@ -52,14 +52,37 @@ LIBXUL_LIBRARY	= 1
 PACKAGE_FILE = appcomps.pkg
 PACKAGE_VARS += MOZ_PHOENIX
 
+ifndef MOZ_XUL_APP
+ifneq (,$(filter $(MOZ_WIDGET_TOOLKIT),windows gtk gtk2))
+ALERTS_SERVICE=1
+DEFINES += -DALERTS_SERVICE
+endif
+endif
+
 REQUIRES	= xpcom \
 		  string \
+		  content \
 		  rdf \
 		  necko \
+		  nkcache \
+		  intl \
+		  locale \
+		  mork \
+		  widget \
+		  dom \
 		  uriloader \
+		  mimetype \
+		  embed_base \
+		  webbrowserpersist \
+		  progressDlg \
+		  pref \
 		  docshell \
 		  webshell \
+		  appshell \
 		  browser \
+		  txmgr \
+		  chardet \
+		  autocomplete \
 		  $(NULL)
 
 CPPSRCS		= nsModule.cpp
@@ -78,44 +101,48 @@ SHARED_LIBRARY_LIBS += ../../browser/src/$(LIB_PREFIX)mozbrwsr_s.$(LIB_SUFFIX)
 LOCAL_INCLUDES += -I$(srcdir)/../../browser/src
 endif
 
+ifdef ALERTS_SERVICE
+SHARED_LIBRARY_LIBS += ../alerts/src/$(LIB_PREFIX)alerts_s.$(LIB_SUFFIX)
+LOCAL_INCLUDES += -I$(srcdir)/../alerts/src
+endif # ALERTS_SERVICE
+
 # Suite specific includes
 ifdef MOZ_SUITE
-REQUIRES	+= \
-		downloadmanager \
-		intl \
-		mork \
-		widget \
-		mimetype \
-		autocomplete \
-		$(NULL)
+REQUIRES += history downloadmanager
 
 SHARED_LIBRARY_LIBS += \
 	../download-manager/src/$(LIB_PREFIX)downloadmanager_s.$(LIB_SUFFIX) \
+	../history/src/$(LIB_PREFIX)history_s.$(LIB_SUFFIX) \
 	../related/src/$(LIB_PREFIX)related_s.$(LIB_SUFFIX) \
 	$(NULL)
 LOCAL_INCLUDES += \
 	-I$(srcdir)/../download-manager/src \
+	-I$(srcdir)/../history/src       \
 	-I$(srcdir)/../related/src       \
 	$(NULL)
 
-ifndef MOZ_PLACES
-REQUIRES += history
-SHARED_LIBRARY_LIBS += \
-	../history/src/$(LIB_PREFIX)history_s.$(LIB_SUFFIX) \
-	$(NULL)
-LOCAL_INCLUDES += \
-	-I$(srcdir)/../history/src       \
-	$(NULL)
-endif
-
 ifeq ($(OS_ARCH),WINNT)
 SHARED_LIBRARY_LIBS += \
+	../urlwidget/$(LIB_PREFIX)urlwidgt_s.$(LIB_SUFFIX) \
 	../winhooks/$(LIB_PREFIX)winhooks_s.$(LIB_SUFFIX) \
 	$(NULL)
 LOCAL_INCLUDES += \
+	-I$(srcdir)/../urlwidget \
 	-I$(srcdir)/../winhooks \
 	$(NULL)
 endif # WINNT
+
+# XXX When Suite becomes a full XUL App this section can be removed.
+ifndef MOZ_XUL_APP
+SHARED_LIBRARY_LIBS += ../startup/src/$(LIB_PREFIX)appstartup_s.$(LIB_SUFFIX)
+LOCAL_INCLUDES += -I$(srcdir)/../startup/src
+
+ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+SHARED_LIBRARY_LIBS += ../../bootstrap/appleevents/$(LIB_PREFIX)appleevents_s.$(LIB_SUFFIX)
+EXTRA_DSO_LDOPTS += $(TK_LIBS)
+endif
+
+endif # MOZ_XUL_APP
 
 endif # MOZ_SUITE
 

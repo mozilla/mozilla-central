@@ -35,17 +35,15 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-155081.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 155081;
+var bug = 155081;
 var summary = 'Limit of 64k literals';
 var actual = 'No Crash';
 var expect = 'No Crash, No Error';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
- 
+  
 function f(A,B,C,D) {}
 
 try

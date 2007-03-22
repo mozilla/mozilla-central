@@ -1,9 +1,0 @@
-product=thunderbird
-branch=1.8.0
-profilename=thunderbird-1.8.0-test-profile
-profiledirectory=/tmp/thunderbird-1.8.0-test-profile
-executablepath=${BUILDDIR}/1.8.0-test/mozilla/thunderbird-debug/dist
-userpreferences=${TEST_DIR}/prefs/test-user.js
-extensiondir=${TEST_DIR}/xpi
-profiletemplate=${TEST_DIR}/profiles/imap
-buildtype=debug

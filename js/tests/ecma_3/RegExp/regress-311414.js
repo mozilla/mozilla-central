@@ -34,41 +34,39 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-311414.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 311414;
+var bug = 311414;
 var summary = 'RegExp captured tail match should be O(N)';
 var actual = '';
 var expect = '';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
- 
+  
 function q1(n) {
-  var c = [];
-  c[n] = 1;
-  c = c.join(" ");
-  var d = Date.now();
-  var e = c.match(/(.*)foo$/);
-  var f = Date.now();
-  return (f - d);
+    var c = [];
+    c[Math.pow(10, n)] = 1;
+    c = c.join(" ");
+    var d = Date.now();
+    var e = c.match(/(.*)foo$/);
+    var f = Date.now();
+    return (f - d);
 }
 
 function q2(n) {
-  var c = [];
-  c[n] = 1;
-  c = c.join(" ");
-  var d = Date.now();
-  var e = /foo$/.test(c) && c.match(/(.*)foo$/);
-  var f = Date.now();
-  return (f - d);
+    var c = [];
+    c[Math.pow(10, n)] = 1;
+    c = c.join(" ");
+    var d = Date.now();
+    var e = /foo$/.test(c) && c.match(/(.*)foo$/);
+    var f = Date.now();
+    return (f - d);
 }
 
 var data1 = {X:[], Y:[]};
 var data2 = {X:[], Y:[]};
 
-for (var x = 500; x < 5000; x += 500)
+for (var x = 0; x < 5; x++)
 {
   var y1 = q1(x);
   var y2 = q2(x);
@@ -84,7 +82,7 @@ var order2 = BigO(data2);
 
 var msg = '';
 for (var p = 0; p < data1.X.length; p++)
-{
+{ 
   msg += '(' + data1.X[p] + ', ' + data1.Y[p] + '); ';
 }
 printStatus(msg);
@@ -93,7 +91,7 @@ reportCompare(true, order1 < 2 , summary + ' BigO ' + order1 + ' < 2');
 
 msg = '';
 for (var p = 0; p < data2.X.length; p++)
-{
+{ 
   msg += '(' + data2.X[p] + ', ' + data2.Y[p] + '); ';
 }
 printStatus(msg);

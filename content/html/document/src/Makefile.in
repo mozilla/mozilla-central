@@ -49,7 +49,6 @@ LIBXUL_LIBRARY	= 1
 REQUIRES	= xpcom \
 		  string \
 		  gfx \
-		  thebes \
 		  layout \
 		  widget \
 		  dom \
@@ -65,8 +64,11 @@ REQUIRES	= xpcom \
 		  util \
 		  uconv \
 		  pref \
+		  uriloader \
+		  rdf \
 		  chardet \
 		  nkcache \
+		  lwbrk \
 		  imglib2 \
 		  xpconnect \
 		  unicharutil \
@@ -74,7 +76,6 @@ REQUIRES	= xpcom \
 		  composer \
 		  editor \
 		  plugin \
-		  txtsvc \
 		  $(NULL)
 
 CPPSRCS		= \

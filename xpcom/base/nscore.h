@@ -245,26 +245,6 @@
 #endif
 
 /**
- * Deprecated declarations.
- */
-#if (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1))
-# define NS_DEPRECATED __attribute__((deprecated))
-#elif defined(_MSC_VER) && (_MSC_VER >= 1300)
-# define NS_DEPRECATED __declspec(deprecated)
-#else
-# define NS_DEPRECATED
-#endif
-
-/**
- * Attributes defined to help Dehydra GCC analysis.	
- */
-#ifdef DEHYDRA_GCC
-# define NS_SCRIPTABLE __attribute__((user("script")))
-#else
-# define NS_SCRIPTABLE
-#endif
-
-/**
  * Generic API modifiers which return the standard XPCOM nsresult type
  */
 #define NS_IMETHOD          NS_IMETHOD_(nsresult)
@@ -416,7 +396,7 @@ typedef PRUint32 nsrefcnt;
 #define __PRUNICHAR__
   /* For now, don't use wchar_t on Unix because it breaks the Netscape
    * commercial build.  When this is fixed there will be no need for the
-   * |reinterpret_cast| in nsLiteralString.h either.
+   * |NS_REINTERPRET_CAST| in nsLiteralString.h either.
    */
   #if defined(HAVE_CPP_2BYTE_WCHAR_T) && defined(NS_WIN32)
     typedef wchar_t PRUnichar;
@@ -442,6 +422,13 @@ typedef PRUint32 nsrefcnt;
 #else
   #define NS_SPECIALIZE_TEMPLATE
 #endif
+
+#define NS_STATIC_CAST(__type, __ptr)      static_cast< __type >(__ptr)
+#define NS_CONST_CAST(__type, __ptr)       const_cast< __type >(__ptr)
+
+#define NS_REINTERPRET_POINTER_CAST(__type, __ptr)    reinterpret_cast< __type >(__ptr)
+#define NS_REINTERPRET_NONPOINTER_CAST(__type, __obj) reinterpret_cast< __type >(__obj)
+#define NS_REINTERPRET_CAST(__type, __expr)           reinterpret_cast< __type >(__expr)
 
 /* 
  * Use these macros to do 64bit safe pointer conversions.
@@ -480,15 +467,6 @@ typedef PRUint32 nsrefcnt;
 #else
 #define NS_LIKELY(x)    (!!(x))
 #define NS_UNLIKELY(x)  (!!(x))
-#endif
-
- /*
-  * If we're being linked as standalone glue, we don't want a dynamic dependency
-  * on NSPR libs, so we skip the debug thread-safety checks, and we cannot use
-  * the THREADSAFE_ISUPPORTS macros.
-  */
-#if defined(XPCOM_GLUE) && !defined(XPCOM_GLUE_USE_NSPR)
-#define XPCOM_GLUE_AVOID_NSPR
 #endif
 
 #endif /* nscore_h___ */

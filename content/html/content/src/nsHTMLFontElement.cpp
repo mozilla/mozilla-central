@@ -36,7 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 #include "nsCOMPtr.h"
 #include "nsIDOMHTMLFontElement.h"
-#include "nsIDOMEventTarget.h"
+#include "nsIDOMEventReceiver.h"
 #include "nsGenericHTMLElement.h"
 #include "nsGkAtoms.h"
 #include "nsIDeviceContext.h"
@@ -96,9 +96,10 @@ NS_IMPL_RELEASE_INHERITED(nsHTMLFontElement, nsGenericElement)
 
 
 // QueryInterface implementation for nsHTMLFontElement
-NS_HTML_CONTENT_INTERFACE_TABLE_HEAD(nsHTMLFontElement, nsGenericHTMLElement)
-  NS_INTERFACE_TABLE_INHERITED1(nsHTMLFontElement, nsIDOMHTMLFontElement)
-NS_HTML_CONTENT_INTERFACE_TABLE_TAIL_CLASSINFO(HTMLFontElement)
+NS_HTML_CONTENT_INTERFACE_MAP_BEGIN(nsHTMLFontElement, nsGenericHTMLElement)
+  NS_INTERFACE_MAP_ENTRY(nsIDOMHTMLFontElement)
+  NS_INTERFACE_MAP_ENTRY_CONTENT_CLASSINFO(HTMLFontElement)
+NS_HTML_CONTENT_INTERFACE_MAP_END
 
 
 NS_IMPL_ELEMENT_CLONE(nsHTMLFontElement)
@@ -170,7 +171,7 @@ static void
 MapAttributesIntoRule(const nsMappedAttributes* aAttributes,
                       nsRuleData* aData)
 {
-  if (aData->mSIDs & NS_STYLE_INHERIT_BIT(Font)) {
+  if (aData->mSID == eStyleStruct_Font) {
     nsRuleDataFont& font = *(aData->mFontData);
     
     // face: string list
@@ -214,9 +215,8 @@ MapAttributesIntoRule(const nsMappedAttributes* aAttributes,
         font.mWeight.SetIntValue(value->GetIntegerValue(), eCSSUnit_Integer);
     }
   }
-  if (aData->mSIDs & NS_STYLE_INHERIT_BIT(Color)) {
-    if (aData->mColorData->mColor.GetUnit() == eCSSUnit_Null &&
-        aData->mPresContext->UseDocumentColors()) {
+  else if (aData->mSID == eStyleStruct_Color) {
+    if (aData->mColorData->mColor.GetUnit() == eCSSUnit_Null) {
       // color: color
       const nsAttrValue* value = aAttributes->GetAttr(nsGkAtoms::color);
       nscolor color;
@@ -225,7 +225,7 @@ MapAttributesIntoRule(const nsMappedAttributes* aAttributes,
       }
     }
   }
-  if (aData->mSIDs & NS_STYLE_INHERIT_BIT(TextReset)) {
+  else if (aData->mSID == eStyleStruct_TextReset) {
     // Make <a><font color="red">text</font></a> give the text a red underline
     // in quirks mode.  The NS_STYLE_TEXT_DECORATION_OVERRIDE_ALL flag only
     // affects quirks mode rendering.

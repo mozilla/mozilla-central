@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'strictEquality.js';
-
 /**
    Filename:     strictEquality.js
    Description:  'This tests the operator ==='
@@ -53,6 +51,10 @@ var TITLE = 'operator "==="';
 
 writeHeaderToLog('Executing script: strictEquality.js');
 writeHeaderToLog( SECTION + " "+ TITLE);
+
+var count = 0;
+var testcases = new Array();
+
 
 new TestCase( SECTION, "('8' === 8)                              ",
 	      false,  ('8' === 8));

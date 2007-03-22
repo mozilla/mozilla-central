@@ -1,7 +1,7 @@
-<!ENTITY caption.label "Blocked Pop-ups">
+<!ENTITY caption.label "Blocked Popups">
 
 <!ENTITY intro.label "The following pages were prevented from displaying 
-unrequested pop-up windows:">
+unrequested popup windows:">
 
 <!ENTITY done.label "Done">
 <!ENTITY done.accesskey "D">

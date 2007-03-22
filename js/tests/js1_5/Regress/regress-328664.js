@@ -34,17 +34,15 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-328664.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 328664;
+var bug = 328664;
 var summary = 'Correct error message for funccall(undefined, undefined.prop)';
 var actual = '';
-var expect = /TypeError: value.parameters (has no properties|is undefined)/;
+var expect = 'TypeError: value.parameters has no properties';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
- 
+  
 var value = {};
 
 function funccall(a,b)
@@ -61,4 +59,4 @@ catch(ex)
   actual = ex + '';
 }
 
-reportMatch(expect, actual, summary);
+reportCompare(expect, actual, summary);

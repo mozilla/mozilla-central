@@ -64,7 +64,7 @@ void
 IntPointDtorFunc(void *aObject, nsIAtom *aPropertyName,
                  void *aPropertyValue, void *aData)
 {
-  nsIntPoint *propertyValue = static_cast<nsIntPoint*>(aPropertyValue);
+  nsIntPoint *propertyValue = NS_STATIC_CAST(nsIntPoint*, aPropertyValue);
   delete propertyValue;
 }
 
@@ -129,9 +129,7 @@ nsImageControlFrame::~nsImageControlFrame()
 void
 nsImageControlFrame::Destroy()
 {
-  if (!GetPrevInFlow()) {
-    nsFormControlFrame::RegUnRegAccessKey(this, PR_FALSE);
-  }
+  nsFormControlFrame::RegUnRegAccessKey(NS_STATIC_CAST(nsIFrame*, this), PR_FALSE);
   nsImageControlFrameSuper::Destroy();
 }
 
@@ -151,10 +149,6 @@ nsImageControlFrame::Init(nsIContent*      aContent,
 
   // nsIntPoint allocation can fail, in which case we just set the property 
   // to null, which is safe
-  if (aPrevInFlow) {
-    return NS_OK;
-  }
-  
   return  mContent->SetProperty(nsGkAtoms::imageClickedPoint,
                                  new nsIntPoint(0, 0),
                                  IntPointDtorFunc);
@@ -164,10 +158,12 @@ nsImageControlFrame::Init(nsIContent*      aContent,
 NS_IMETHODIMP
 nsImageControlFrame::QueryInterface(const nsIID& aIID, void** aInstancePtr)
 {
-  NS_PRECONDITION(aInstancePtr, "null out param");
-
+  NS_PRECONDITION(0 != aInstancePtr, "null ptr");
+  if (NULL == aInstancePtr) {
+    return NS_ERROR_NULL_POINTER;
+  }
   if (aIID.Equals(NS_GET_IID(nsIFormControlFrame))) {
-    *aInstancePtr = static_cast<nsIFormControlFrame*>(this);
+    *aInstancePtr = (void*) ((nsIFormControlFrame*) this);
     return NS_OK;
   } 
 
@@ -181,10 +177,10 @@ NS_IMETHODIMP nsImageControlFrame::GetAccessible(nsIAccessible** aAccessible)
 
   if (accService) {
     if (mContent->Tag() == nsGkAtoms::button) {
-      return accService->CreateHTML4ButtonAccessible(static_cast<nsIFrame*>(this), aAccessible);
+      return accService->CreateHTML4ButtonAccessible(NS_STATIC_CAST(nsIFrame*, this), aAccessible);
     }
     else if (mContent->Tag() == nsGkAtoms::input) {
-      return accService->CreateHTMLButtonAccessible(static_cast<nsIFrame*>(this), aAccessible);
+      return accService->CreateHTMLButtonAccessible(NS_STATIC_CAST(nsIFrame*, this), aAccessible);
     }
   }
 
@@ -218,8 +214,8 @@ nsImageControlFrame::Reflow(nsPresContext*         aPresContext,
 {
   DO_GLOBAL_REFLOW_COUNT("nsImageControlFrame");
   DISPLAY_REFLOW(aPresContext, this, aReflowState, aDesiredSize, aStatus);
-  if (!GetPrevInFlow() && (mState & NS_FRAME_FIRST_REFLOW)) {
-    nsFormControlFrame::RegUnRegAccessKey(this, PR_TRUE);
+  if (mState & NS_FRAME_FIRST_REFLOW) {
+    nsFormControlFrame::RegUnRegAccessKey(NS_STATIC_CAST(nsIFrame*, this), PR_TRUE);
   }
   return nsImageControlFrameSuper::Reflow(aPresContext, aDesiredSize, aReflowState, aStatus);
 }
@@ -249,12 +245,12 @@ nsImageControlFrame::HandleEvent(nsPresContext* aPresContext,
 
   if (aEvent->eventStructType == NS_MOUSE_EVENT &&
       aEvent->message == NS_MOUSE_BUTTON_UP &&
-      static_cast<nsMouseEvent*>(aEvent)->button == nsMouseEvent::eLeftButton) {
+      NS_STATIC_CAST(nsMouseEvent*, aEvent)->button == nsMouseEvent::eLeftButton) {
     // Store click point for nsHTMLInputElement::SubmitNamesValues
     // Do this on MouseUp because the specs don't say and that's what IE does
     nsIntPoint* lastClickPoint =
-      static_cast<nsIntPoint*>
-                 (mContent->GetProperty(nsGkAtoms::imageClickedPoint));
+      NS_STATIC_CAST(nsIntPoint*,
+                     mContent->GetProperty(nsGkAtoms::imageClickedPoint));
     if (lastClickPoint) {
       // normally lastClickedPoint is not null, as it's allocated in Init()
       nsPoint pt = nsLayoutUtils::GetEventCoordinatesRelativeTo(aEvent, this);

@@ -45,15 +45,13 @@
 #include "nsGlobalWindow.h"
 #include "nsIDocument.h"
 #include "nsIFocusController.h"
-#include "nsIEventStateManager.h"
 
 #include "nsContentUtils.h"
 
 #include "nsIFrame.h"
 #include "nsIWidget.h"
+#include "nsIView.h"
 #include "nsGUIEvent.h"
-#include "nsIParser.h"
-#include "nsJSEnvironment.h"
 
 #ifdef MOZ_ENABLE_GTK2
 #include <gdk/gdkx.h>
@@ -112,23 +110,6 @@ nsDOMWindowUtils::SetImageAnimationMode(PRUint16 aMode)
     }
   }
   return NS_ERROR_NOT_AVAILABLE;
-}
-
-NS_IMETHODIMP
-nsDOMWindowUtils::GetDocCharsetIsForced(PRBool *aIsForced)
-{
-  *aIsForced = PR_FALSE;
-
-  PRBool hasCap = PR_FALSE;
-  if (NS_FAILED(nsContentUtils::GetSecurityManager()->IsCapabilityEnabled("UniversalXPConnect", &hasCap)) || !hasCap)
-    return NS_ERROR_DOM_SECURITY_ERR;
-
-  if (mWindow) {
-    nsCOMPtr<nsIDocument> doc(do_QueryInterface(mWindow->GetExtantDocument()));
-    *aIsForced = doc &&
-      doc->GetDocumentCharacterSetSource() >= kCharsetFromParentForced;
-  }
-  return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -194,12 +175,11 @@ nsDOMWindowUtils::SendMouseEvent(const nsAString& aType,
     return NS_ERROR_DOM_SECURITY_ERR;
 
   // get the widget to send the event to
-  nsCOMPtr<nsIWidget> widget = GetWidget();
+  nsIWidget* widget = GetWidget();
   if (!widget)
     return NS_ERROR_FAILURE;
 
   PRInt32 msg;
-  PRBool contextMenuKey = PR_FALSE;
   if (aType.EqualsLiteral("mousedown"))
     msg = NS_MOUSE_BUTTON_DOWN;
   else if (aType.EqualsLiteral("mouseup"))
@@ -210,15 +190,12 @@ nsDOMWindowUtils::SendMouseEvent(const nsAString& aType,
     msg = NS_MOUSE_ENTER;
   else if (aType.EqualsLiteral("mouseout"))
     msg = NS_MOUSE_EXIT;
-  else if (aType.EqualsLiteral("contextmenu")) {
+  else if (aType.EqualsLiteral("contextmenu"))
     msg = NS_CONTEXTMENU;
-    contextMenuKey = (aButton == 0);
-  } else
+  else
     return NS_ERROR_FAILURE;
 
-  nsMouseEvent event(PR_TRUE, msg, widget, nsMouseEvent::eReal,
-                     contextMenuKey ?
-                       nsMouseEvent::eContextMenuKey : nsMouseEvent::eNormal);
+  nsMouseEvent event(PR_TRUE, msg, widget, nsMouseEvent::eReal);
   event.isShift = (aModifiers & nsIDOMNSEvent::SHIFT_MASK) ? PR_TRUE : PR_FALSE;
   event.isControl = (aModifiers & nsIDOMNSEvent::CONTROL_MASK) ? PR_TRUE : PR_FALSE;
   event.isAlt = (aModifiers & nsIDOMNSEvent::ALT_MASK) ? PR_TRUE : PR_FALSE;
@@ -247,7 +224,7 @@ nsDOMWindowUtils::SendKeyEvent(const nsAString& aType,
     return NS_ERROR_DOM_SECURITY_ERR;
 
   // get the widget to send the event to
-  nsCOMPtr<nsIWidget> widget = GetWidget();
+  nsIWidget* widget = GetWidget();
   if (!widget)
     return NS_ERROR_FAILURE;
 
@@ -276,27 +253,6 @@ nsDOMWindowUtils::SendKeyEvent(const nsAString& aType,
   return widget->DispatchEvent(&event, status);
 }
 
-NS_IMETHODIMP
-nsDOMWindowUtils::SendNativeKeyEvent(PRInt32 aNativeKeyboardLayout,
-                                     PRInt32 aNativeKeyCode,
-                                     PRInt32 aModifiers,
-                                     const nsAString& aCharacters,
-                                     const nsAString& aUnmodifiedCharacters)
-{
-  PRBool hasCap = PR_FALSE;
-  if (NS_FAILED(nsContentUtils::GetSecurityManager()->IsCapabilityEnabled("UniversalXPConnect", &hasCap))
-      || !hasCap)
-    return NS_ERROR_DOM_SECURITY_ERR;
-
-  // get the widget to send the event to
-  nsCOMPtr<nsIWidget> widget = GetWidget();
-  if (!widget)
-    return NS_ERROR_FAILURE;
-
-  return widget->SynthesizeNativeKeyEvent(aNativeKeyboardLayout, aNativeKeyCode,
-                                          aModifiers, aCharacters, aUnmodifiedCharacters);
-}
-
 nsIWidget*
 nsDOMWindowUtils::GetWidget()
 {
@@ -314,56 +270,4 @@ nsDOMWindowUtils::GetWidget()
   }
 
   return nsnull;
-}
-
-NS_IMETHODIMP
-nsDOMWindowUtils::Focus(nsIDOMElement* aElement)
-{
-  PRBool hasCap = PR_FALSE;
-  if (NS_FAILED(nsContentUtils::GetSecurityManager()->IsCapabilityEnabled(
-    "UniversalXPConnect", &hasCap)) || !hasCap)
-    return NS_ERROR_DOM_SECURITY_ERR;
-
-  if (mWindow) {
-    nsCOMPtr<nsIContent> content = do_QueryInterface(aElement);
-    if (content) {
-      nsCOMPtr<nsIDocument> doc(do_QueryInterface(mWindow->GetExtantDocument()));
-      if (!doc || content->GetCurrentDoc() != doc)
-        return NS_ERROR_FAILURE;
-    }
-
-    nsIDocShell *docShell = mWindow->GetDocShell();
-    if (docShell) {
-      nsCOMPtr<nsIPresShell> presShell;
-      docShell->GetPresShell(getter_AddRefs(presShell));
-      if (presShell) {
-        nsPresContext *pc = presShell->GetPresContext();
-        if (pc) {
-          pc->EventStateManager()->ChangeFocusWith(content,
-              nsIEventStateManager::eEventFocusedByApplication);
-        }
-      }
-    }
-  }
-
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-nsDOMWindowUtils::GarbageCollect()
-{
-  // NOTE: Only do this in NON debug builds, as this function can useful
-  // during debugging.
-#ifndef DEBUG
-  PRBool hasCap = PR_FALSE;
-  if (NS_FAILED(nsContentUtils::GetSecurityManager()->
-                  IsCapabilityEnabled("UniversalXPConnect", &hasCap))
-      || !hasCap)
-    return NS_ERROR_DOM_SECURITY_ERR;
-#endif
-
-  nsJSContext::CC();
-  nsJSContext::CC();
-
-  return NS_OK;
 }

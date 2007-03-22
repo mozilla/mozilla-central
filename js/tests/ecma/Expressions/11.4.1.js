@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '11.4.1.js';
-
 /**
    File Name:          11.4.1.js
    ECMA Section:       11.4.1 the Delete Operator

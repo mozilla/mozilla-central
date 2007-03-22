@@ -81,7 +81,7 @@ public:
   }
 #endif
   // nsISVGChildFrame interface:
-  virtual void NotifySVGChanged(PRUint32 aFlags);
+  NS_IMETHOD NotifyCanvasTMChanged(PRBool suppressInvalidation);
   
   // nsSVGContainerFrame methods:
   virtual already_AddRefed<nsIDOMSVGMatrix> GetCanvasTM();
@@ -123,7 +123,14 @@ nsSVGAFrame::AttributeChanged(PRInt32         aNameSpaceID,
     // make sure our cached transform matrix gets (lazily) updated
     mCanvasTM = nsnull;
     
-    nsSVGUtils::NotifyChildrenOfSVGChange(this, TRANSFORM_CHANGED);
+    nsIFrame* kid = mFrames.FirstChild();
+    while (kid) {
+      nsISVGChildFrame* SVGFrame = nsnull;
+      CallQueryInterface(kid, &SVGFrame);
+      if (SVGFrame)
+        SVGFrame->NotifyCanvasTMChanged(PR_FALSE);
+      kid = kid->GetNextSibling();
+    }
   }
 
  return NS_OK;
@@ -146,15 +153,13 @@ nsSVGAFrame::GetType() const
 //----------------------------------------------------------------------
 // nsISVGChildFrame methods
 
-void
-nsSVGAFrame::NotifySVGChanged(PRUint32 aFlags)
+NS_IMETHODIMP
+nsSVGAFrame::NotifyCanvasTMChanged(PRBool suppressInvalidation)
 {
-  if (aFlags & TRANSFORM_CHANGED) {
-    // make sure our cached transform matrix gets (lazily) updated
-    mCanvasTM = nsnull;
-  }
+  // make sure our cached transform matrix gets (lazily) updated
+  mCanvasTM = nsnull;
 
-  nsSVGAFrameBase::NotifySVGChanged(aFlags);
+  return nsSVGAFrameBase::NotifyCanvasTMChanged(suppressInvalidation);
 }
 
 //----------------------------------------------------------------------
@@ -177,14 +182,14 @@ nsSVGAFrame::GetCanvasTM()
   if (!mCanvasTM) {
     // get our parent's tm and append local transforms (if any):
     NS_ASSERTION(mParent, "null parent");
-    nsSVGContainerFrame *containerFrame = static_cast<nsSVGContainerFrame*>
-                                                     (mParent);
+    nsSVGContainerFrame *containerFrame = NS_STATIC_CAST(nsSVGContainerFrame*,
+                                                         mParent);
     nsCOMPtr<nsIDOMSVGMatrix> parentTM = containerFrame->GetCanvasTM();
     NS_ASSERTION(parentTM, "null TM");
 
     // got the parent tm, now check for local tm:
     nsSVGGraphicElement *element =
-      static_cast<nsSVGGraphicElement*>(mContent);
+      NS_STATIC_CAST(nsSVGGraphicElement*, mContent);
     nsCOMPtr<nsIDOMSVGMatrix> localTM = element->GetLocalTransformMatrix();
 
     if (localTM)

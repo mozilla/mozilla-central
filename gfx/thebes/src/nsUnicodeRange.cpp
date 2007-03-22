@@ -63,11 +63,7 @@ static const char *gUnicodeRangeToLangGroupTable[] =
   "x-gujr",
   "x-guru",
   "x-khmr",
-  "x-mlym",
-  "x-orya",
-  "x-telu",
-  "x-knda",
-  "x-sinh"
+  "x-mlym"
 };
 
 /**********************************************************************

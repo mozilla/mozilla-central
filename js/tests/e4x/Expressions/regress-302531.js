@@ -35,15 +35,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'regress-302531.js';
+START("E4X QuoteString should deal with empty string");
 
-var summary = "E4X QuoteString should deal with empty string";
-var BUGNUMBER = 302531;
+var bug = 302531;
+var summary = 'E4X QuoteString should deal with empty string';
 var actual = '';
 var expect = '';
 
-printBugNumber(BUGNUMBER);
-START(summary);
+printBugNumber (bug);
+printStatus (summary);
 
 function f(e) {
   return <e {e}="" />;

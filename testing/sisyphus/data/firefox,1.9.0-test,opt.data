@@ -1,8 +1,0 @@
-product=firefox
-branch=1.9.0
-profilename=firefox-1.9.0-test-profile
-profiledirectory=/tmp/firefox-1.9.0-test-profile
-executablepath=${BUILDDIR}/1.9.0-test/mozilla/firefox-opt/dist
-userpreferences=${TEST_DIR}/prefs/test-user.js
-extensiondir=${TEST_DIR}/xpi
-buildtype=opt

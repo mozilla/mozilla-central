@@ -38,8 +38,6 @@
 #include "nsISupports.idl"
 #include "nsIAutoCompleteResult.idl"
 
-interface nsIAutoCompleteSimpleResultListener;
-
 /**
  * This class implements nsIAutoCompleteResult and provides simple methods
  * for setting the value and result items. It can be used whenever some basic
@@ -47,7 +45,7 @@ interface nsIAutoCompleteSimpleResultListener;
  * an array.
  */
 
-[scriptable, uuid(f9841787-ad26-49e6-a2dd-ba9020ee1c64)]
+[scriptable, uuid(cc79f293-7114-4287-870b-d28aa61aa7df)]
 interface nsIAutoCompleteSimpleResult : nsIAutoCompleteResult
 {
   /**
@@ -75,31 +73,8 @@ interface nsIAutoCompleteSimpleResult : nsIAutoCompleteResult
   void setSearchResult(in unsigned short aSearchResult);
 
   /**
-   * Appends a result item consisting of the given value, comment, image and style.
-   * This is how you add results.  Note:  image and style are optional. 
+   * Appends a result item consisting of the given value and comment. This is
+   * how you add results.
    */
-  void appendMatch(in AString aValue, in AString aComment, 
-                   [optional] in AString aImage, 
-                   [optional] in AString aStyle);
-
-  /**
-   * Sets a listener for changes in the result.
-   */
-  void setListener(in nsIAutoCompleteSimpleResultListener aListener);
-};
-
-[scriptable, uuid(004efdc5-1989-4874-8a7a-345bf2fa33af)]
-interface nsIAutoCompleteSimpleResultListener : nsISupports
-{
-  /**
-   * Dispatched after a value is removed from the result.
-   * @param aResult
-   *        The result from which aValue has been removed.
-   * @param aValue
-   *        The removed value.
-   * @param aRemoveFromDb
-   *        Whether the value should be removed from persistent storage as well.
-   */
-  void onValueRemoved(in nsIAutoCompleteSimpleResult aResult, in AString aValue,
-                      in boolean aRemoveFromDb);
+  void appendMatch(in AString aValue, in AString aComment);
 };

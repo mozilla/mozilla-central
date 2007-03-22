@@ -38,7 +38,7 @@
 /* rendering object for CSS :first-letter pseudo-element */
 
 #include "nsCOMPtr.h"
-#include "nsFirstLetterFrame.h"
+#include "nsHTMLContainerFrame.h"
 #include "nsPresContext.h"
 #include "nsStyleContext.h"
 #include "nsIContent.h"
@@ -47,6 +47,55 @@
 #include "nsAutoPtr.h"
 #include "nsStyleSet.h"
 #include "nsFrameManager.h"
+
+#define nsFirstLetterFrameSuper nsHTMLContainerFrame
+
+class nsFirstLetterFrame : public nsFirstLetterFrameSuper {
+public:
+  nsFirstLetterFrame(nsStyleContext* aContext) : nsHTMLContainerFrame(aContext) {}
+
+  NS_IMETHOD Init(nsIContent*      aContent,
+                  nsIFrame*        aParent,
+                  nsIFrame*        aPrevInFlow);
+  NS_IMETHOD SetInitialChildList(nsIAtom*        aListName,
+                                 nsIFrame*       aChildList);
+#ifdef NS_DEBUG
+  NS_IMETHOD GetFrameName(nsAString& aResult) const;
+#endif
+  virtual nsIAtom* GetType() const;
+
+  virtual PRBool IsFrameOfType(PRUint32 aFlags) const
+  {
+    return nsFirstLetterFrameSuper::IsFrameOfType(aFlags &
+      ~(nsIFrame::eBidiInlineContainer));
+  }
+
+  virtual nscoord GetMinWidth(nsIRenderingContext *aRenderingContext);
+  virtual nscoord GetPrefWidth(nsIRenderingContext *aRenderingContext);
+  virtual void AddInlineMinWidth(nsIRenderingContext *aRenderingContext,
+                                 InlineMinWidthData *aData);
+  virtual void AddInlinePrefWidth(nsIRenderingContext *aRenderingContext,
+                                  InlinePrefWidthData *aData);
+  NS_IMETHOD Reflow(nsPresContext*          aPresContext,
+                    nsHTMLReflowMetrics&     aDesiredSize,
+                    const nsHTMLReflowState& aReflowState,
+                    nsReflowStatus&          aStatus);
+
+  virtual PRBool CanContinueTextRun() const;
+
+  NS_IMETHOD SetSelected(nsPresContext* aPresContext, nsIDOMRange *aRange,PRBool aSelected, nsSpread aSpread);
+
+//override of nsFrame method
+  NS_IMETHOD GetChildFrameContainingOffset(PRInt32 inContentOffset,
+                                           PRBool inHint,
+                                           PRInt32* outFrameContentOffset,
+                                           nsIFrame **outChildFrame);
+
+protected:
+  virtual PRIntn GetSkipSides() const;
+
+  void DrainOverflowFrames(nsPresContext* aPresContext);
+};
 
 nsIFrame*
 NS_NewFirstLetterFrame(nsIPresShell* aPresShell, nsStyleContext* aContext)
@@ -101,7 +150,7 @@ nsFirstLetterFrame::SetInitialChildList(nsIAtom*  aListName,
                                         nsIFrame* aChildList)
 {
   mFrames.SetFrames(aChildList);
-  nsFrameManager *frameManager = PresContext()->FrameManager();
+  nsFrameManager *frameManager = GetPresContext()->FrameManager();
 
   for (nsIFrame* frame = aChildList; frame; frame = frame->GetNextSibling()) {
     NS_ASSERTION(frame->GetParent() == this, "Unexpected parent");
@@ -172,21 +221,6 @@ nsFirstLetterFrame::GetPrefWidth(nsIRenderingContext *aRenderingContext)
   return nsLayoutUtils::PrefWidthFromInline(this, aRenderingContext);
 }
 
-/* virtual */ nsSize
-nsFirstLetterFrame::ComputeSize(nsIRenderingContext *aRenderingContext,
-                                nsSize aCBSize, nscoord aAvailableWidth,
-                                nsSize aMargin, nsSize aBorder, nsSize aPadding,
-                                PRBool aShrinkWrap)
-{
-  if (GetPrevInFlow()) {
-    // We're wrapping the text *after* the first letter, so behave like an
-    // inline frame.
-    return nsSize(NS_UNCONSTRAINEDSIZE, NS_UNCONSTRAINEDSIZE);
-  }
-  return nsFirstLetterFrameSuper::ComputeSize(aRenderingContext,
-      aCBSize, aAvailableWidth, aMargin, aBorder, aPadding, aShrinkWrap);
-}
-
 NS_IMETHODIMP
 nsFirstLetterFrame::Reflow(nsPresContext*          aPresContext,
                            nsHTMLReflowMetrics&     aMetrics,
@@ -207,9 +241,9 @@ nsFirstLetterFrame::Reflow(nsPresContext*          aPresContext,
   const nsMargin& bp = aReflowState.mComputedBorderPadding;
   nscoord lr = bp.left + bp.right;
   nscoord tb = bp.top + bp.bottom;
-  NS_ASSERTION(availSize.width != NS_UNCONSTRAINEDSIZE,
-               "should no longer use unconstrained widths");
-  availSize.width -= lr;
+  if (NS_UNCONSTRAINEDSIZE != availSize.width) {
+    availSize.width -= lr;
+  }
   if (NS_UNCONSTRAINEDSIZE != availSize.height) {
     availSize.height -= tb;
   }
@@ -221,7 +255,7 @@ nsFirstLetterFrame::Reflow(nsPresContext*          aPresContext,
     // line context is when its floating.
     nsHTMLReflowState rs(aPresContext, aReflowState, kid, availSize);
     nsLineLayout ll(aPresContext, nsnull, &aReflowState, nsnull);
-    ll.BeginLineReflow(bp.left, bp.top, availSize.width, NS_UNCONSTRAINEDSIZE,
+    ll.BeginLineReflow(0, 0, NS_UNCONSTRAINEDSIZE, NS_UNCONSTRAINEDSIZE,
                        PR_FALSE, PR_TRUE);
     rs.mLineLayout = &ll;
     ll.SetFirstLetterStyleOK(PR_TRUE);
@@ -238,36 +272,24 @@ nsFirstLetterFrame::Reflow(nsPresContext*          aPresContext,
 
     ll->BeginSpan(this, &aReflowState, bp.left, availSize.width);
     ll->ReflowFrame(kid, aReflowStatus, &aMetrics, pushedFrame);
-    ll->EndSpan(this);
+    nsSize size;
+    ll->EndSpan(this, size);
   }
 
   // Place and size the child and update the output metrics
   kid->SetRect(nsRect(bp.left, bp.top, aMetrics.width, aMetrics.height));
-  kid->FinishAndStoreOverflow(&aMetrics);
   kid->DidReflow(aPresContext, nsnull, NS_FRAME_REFLOW_FINISHED);
-
   aMetrics.width += lr;
   aMetrics.height += tb;
   aMetrics.ascent += bp.top;
-  mBaseline = aMetrics.ascent;
-
-  // Ensure that the overflow rect contains the child textframe's overflow rect.
-  // Note that if this is floating, the overline/underline drawable area is in
-  // the overflow rect of the child textframe.
-  aMetrics.mOverflowArea.UnionRect(aMetrics.mOverflowArea,
-                           nsRect(0, 0, aMetrics.width, aMetrics.height));
-  ConsiderChildOverflow(aMetrics.mOverflowArea, kid);
 
   // Create a continuation or remove existing continuations based on
   // the reflow completion status.
   if (NS_FRAME_IS_COMPLETE(aReflowStatus)) {
-    if (aReflowState.mLineLayout) {
-      aReflowState.mLineLayout->SetFirstLetterStyleOK(PR_FALSE);
-    }
     nsIFrame* kidNextInFlow = kid->GetNextInFlow();
     if (kidNextInFlow) {
       // Remove all of the childs next-in-flows
-      static_cast<nsContainerFrame*>(kidNextInFlow->GetParent())
+      NS_STATIC_CAST(nsContainerFrame*, kidNextInFlow->GetParent())
         ->DeleteNextInFlowChild(aPresContext, kidNextInFlow);
     }
   }
@@ -293,8 +315,6 @@ nsFirstLetterFrame::Reflow(nsPresContext*          aPresContext,
       }
     }
   }
-
-  FinishAndStoreOverflow(&aMetrics);
 
   NS_FRAME_SET_TRUNCATION(aReflowStatus, aReflowState, aMetrics);
   return rv;

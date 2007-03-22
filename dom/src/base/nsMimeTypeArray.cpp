@@ -137,13 +137,13 @@ nsMimeTypeArray::NamedItem(const nsAString& aName, nsIDOMMimeType** aReturn)
                                      getter_AddRefs(mimeInfo));
     if (mimeInfo) {
       // Now we check whether we can really claim to support this type
-      nsHandlerInfoAction action = nsIHandlerInfo::saveToDisk;
+      nsMIMEInfoHandleAction action = nsIMIMEInfo::saveToDisk;
       mimeInfo->GetPreferredAction(&action);
       if (action != nsIMIMEInfo::handleInternally) {
         PRBool hasHelper = PR_FALSE;
         mimeInfo->GetHasDefaultHandler(&hasHelper);
         if (!hasHelper) {
-          nsCOMPtr<nsIHandlerApp> helper;
+          nsCOMPtr<nsIFile> helper;
           mimeInfo->GetPreferredApplicationHandler(getter_AddRefs(helper));
           if (!helper) {
             // mime info from the OS may not have a PreferredApplicationHandler

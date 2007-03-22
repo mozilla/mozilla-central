@@ -34,14 +34,12 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-304828.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 304828;
+var bug = 304828;
 var summary = 'Array Generic Methods';
 var actual = '';
 var expect = '';
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
 var value;
@@ -213,9 +211,9 @@ expect = 'ABC';
 actual = '';
 try
 {
-  Array.prototype.forEach.call(value,
-                               function (v, index, array)
-			       {actual += array[index].toUpperCase();});
+  Array.prototype.forEach.call(value, 
+                               function (v, index, array) 
+  {actual += array[index].toUpperCase();});
 }
 catch(e)
 {
@@ -228,9 +226,9 @@ value  = 'abc';
 expect = 'A,B,C';
 try
 {
-  actual = Array.prototype.map.call(value,
-                                    function (v, index, array)
-				    {return v.toUpperCase();}) + '';
+  actual = Array.prototype.map.call(value, 
+                                    function (v, index, array) 
+    {return v.toUpperCase();}) + '';
 }
 catch(e)
 {
@@ -243,9 +241,9 @@ value  = '1234567890';
 expect = '2,4,6,8,0';
 try
 {
-  actual = Array.prototype.filter.call(value,
-				       function (v, index, array)
-				       {return array[index] % 2 == 0;}) + '';
+  actual = Array.prototype.filter.call(value, 
+                                        function (v, index, array) 
+    {return array[index] % 2 == 0;}) + '';
 }
 catch(e)
 {
@@ -258,9 +256,9 @@ value  = '1234567890';
 expect = false;
 try
 {
-  actual = Array.prototype.every.call(value,
-				      function (v, index, array)
-				      {return array[index] % 2 == 0;});
+  actual = Array.prototype.every.call(value, 
+                                        function (v, index, array) 
+    {return array[index] % 2 == 0;});
 }
 catch(e)
 {

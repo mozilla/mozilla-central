@@ -66,7 +66,7 @@ public:
         if (!hdr)
             return NS_ERROR_OUT_OF_MEMORY;
 
-        Entry* entry = reinterpret_cast<Entry*>(hdr);
+        Entry* entry = NS_REINTERPRET_CAST(Entry*, hdr);
         NS_ASSERTION(entry->mMatch == nsnull, "over-writing entry");
         entry->mContent = aElement;
         entry->mMatch   = aMatch;
@@ -80,7 +80,7 @@ public:
         if (PL_DHASH_ENTRY_IS_FREE(hdr))
             return PR_FALSE;
 
-        Entry* entry = reinterpret_cast<Entry*>(hdr);
+        Entry* entry = NS_REINTERPRET_CAST(Entry*, hdr);
         *aMatch = entry->mMatch;
         return PR_TRUE; }
 
@@ -99,6 +99,11 @@ protected:
         nsIContent*      mContent;
         nsTemplateMatch* mMatch;
     };
+
+    static PLDHashTableOps gOps;
+
+    static void PR_CALLBACK
+    ClearEntry(PLDHashTable* aTable, PLDHashEntryHdr* aHdr);
 };
 
 #endif

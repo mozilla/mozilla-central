@@ -55,7 +55,6 @@
 
 #include "prtypes.h"
 #include "prthread.h"
-#include "prbit.h"
 
 #include "private/pprio.h"
 
@@ -124,16 +123,19 @@ nsDiskCacheEvictor::VisitRecord(nsDiskCacheRecord *  mapRecord)
     
     if (mClientID) {
         // we're just evicting records for a specific client
-        nsDiskCacheEntry * diskEntry = mCacheMap->ReadDiskCacheEntry(mapRecord);
-        if (!diskEntry)
+        nsDiskCacheEntry *   diskEntry = nsnull;
+        nsresult  rv = mCacheMap->ReadDiskCacheEntry(mapRecord, &diskEntry);
+        if (NS_FAILED(rv))  
             return kVisitNextRecord;  // XXX or delete record?
     
         // Compare clientID's without malloc
         if ((diskEntry->mKeySize <= mClientIDSize) ||
             (diskEntry->Key()[mClientIDSize] != ':') ||
             (memcmp(diskEntry->Key(), mClientID, mClientIDSize) != 0)) {
+            delete [] (char *)diskEntry;
             return kVisitNextRecord;  // clientID doesn't match, skip it
         }
+        delete [] (char *)diskEntry;
     }
     
     nsDiskCacheBinding * binding = mBindery->FindActiveBinding(mapRecord->HashNumber());
@@ -178,7 +180,7 @@ NS_IMPL_ISUPPORTS1(nsDiskCacheDeviceInfo, nsICacheDeviceInfo)
 NS_IMETHODIMP nsDiskCacheDeviceInfo::GetDescription(char ** aDescription)
 {
     NS_ENSURE_ARG_POINTER(aDescription);
-    *aDescription = NS_strdup("Disk cache device");
+    *aDescription = nsCRT::strdup("Disk cache device");
     return *aDescription ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
 }
 
@@ -250,7 +252,7 @@ nsDiskCache::Hash(const char * key)
 {
     PLDHashNumber h = 0;
     for (const PRUint8* s = (PRUint8*) key; *s != '\0'; ++s)
-        h = PR_ROTATE_LEFT32(h, 4) ^ *s;
+        h = (h >> (PL_DHASH_BITS - 4)) ^ (h << 4) ^ *s;
     return (h == 0 ? ULONG_MAX : h);
 }
 
@@ -397,33 +399,37 @@ nsCacheEntry *
 nsDiskCacheDevice::FindEntry(nsCString * key, PRBool *collision)
 {
     if (!Initialized())  return nsnull;  // NS_ERROR_NOT_INITIALIZED
+    nsresult                rv;
     nsDiskCacheRecord       record;
+    nsCacheEntry *          entry   = nsnull;
     nsDiskCacheBinding *    binding = nsnull;
     PLDHashNumber           hashNumber = nsDiskCache::Hash(key->get());
 
     *collision = PR_FALSE;
 
-#if DEBUG  /* because we shouldn't be called for active entries */
+#if DEBUG  /*because we shouldn't be called for active entries */
     binding = mBindery.FindActiveBinding(hashNumber);
-    NS_ASSERTION(!binding || strcmp(binding->mCacheEntry->Key()->get(), key->get()) != 0,
-                 "FindEntry() called for a bound entry.");
+    NS_ASSERTION(!binding, "FindEntry() called for a bound entry.");
     binding = nsnull;
 #endif
     
     // lookup hash number in cache map
-    nsresult rv = mCacheMap.FindRecord(hashNumber, &record);
+    rv = mCacheMap.FindRecord(hashNumber, &record);
     if (NS_FAILED(rv))  return nsnull;  // XXX log error?
     
-    nsDiskCacheEntry * diskEntry = mCacheMap.ReadDiskCacheEntry(&record);
-    if (!diskEntry) return nsnull;
+    nsDiskCacheEntry * diskEntry;
+    rv = mCacheMap.ReadDiskCacheEntry(&record, &diskEntry);
+    if (NS_FAILED(rv))  return nsnull;
     
     // compare key to be sure
-    if (strcmp(diskEntry->Key(), key->get()) != 0) {
+    if (strcmp(diskEntry->Key(), key->get()) == 0) {
+        entry = diskEntry->CreateCacheEntry(this);
+    } else {
         *collision = PR_TRUE;
-        return nsnull;
     }
+    delete [] (char *)diskEntry;
     
-    nsCacheEntry * entry = diskEntry->CreateCacheEntry(this);
+    // If we had a hash collision or CreateCacheEntry failed, return nsnull
     if (!entry)  return nsnull;
     
     binding = mBindery.CreateBinding(entry, &record);
@@ -722,8 +728,9 @@ public:
         // XXX optimization: do we have this record in memory?
         
         // read in the entry (metadata)
-        nsDiskCacheEntry * diskEntry = mCacheMap->ReadDiskCacheEntry(mapRecord);
-        if (!diskEntry) {
+        nsDiskCacheEntry * diskEntry;
+        nsresult rv = mCacheMap->ReadDiskCacheEntry(mapRecord, &diskEntry);
+        if (NS_FAILED(rv)) {
             return kVisitNextRecord;
         }
 
@@ -735,7 +742,8 @@ public:
         nsCOMPtr<nsICacheEntryInfo> ref(entryInfo);
         
         PRBool  keepGoing;
-        (void)mVisitor->VisitEntry(DISK_CACHE_DEVICE_ID, entryInfo, &keepGoing);
+        rv = mVisitor->VisitEntry(DISK_CACHE_DEVICE_ID, entryInfo, &keepGoing);
+        delete [] (char *)diskEntry;
         return keepGoing ? kVisitNextRecord : kStopVisitingRecords;
     }
  
@@ -920,6 +928,43 @@ nsDiskCacheDevice::SetCacheParentDirectory(nsILocalFile * parentDir)
     
     mCacheDirectory = do_QueryInterface(directory);
 }
+
+// XXX: This is here to support the offline cache, and can be removed
+// XXX: once it has its own cache implementation
+void
+nsDiskCacheDevice::SetCacheParentDirectoryAndName(nsILocalFile * parentDir,
+                                                  const nsACString & str)
+{
+    nsresult rv;
+    PRBool  exists;
+
+    if (Initialized()) {
+        NS_ASSERTION(PR_FALSE, "Cannot switch cache directory when initialized");
+        return;
+    }
+
+    if (!parentDir) {
+        mCacheDirectory = nsnull;
+        return;
+    }
+
+    // ensure parent directory exists
+    rv = parentDir->Exists(&exists);
+    if (NS_SUCCEEDED(rv) && !exists)
+        rv = parentDir->Create(nsIFile::DIRECTORY_TYPE, 0700);
+    if (NS_FAILED(rv))  return;
+
+    // ensure cache directory exists
+    nsCOMPtr<nsIFile> directory;
+
+    rv = parentDir->Clone(getter_AddRefs(directory));
+    if (NS_FAILED(rv))  return;
+    rv = directory->AppendNative(str);
+    if (NS_FAILED(rv))  return;
+
+    mCacheDirectory = do_QueryInterface(directory);
+}
+
 
 
 void

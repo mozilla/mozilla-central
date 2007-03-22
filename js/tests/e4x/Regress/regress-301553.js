@@ -36,15 +36,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'regress-301553.js';
+START("E4X - Should not repress exceptions");
 
-var summary = "E4X - Should not repress exceptions";
-var BUGNUMBER = 301553;
+var bug = 301553;
+var summary = 'Throw exceptions';
 var actual = 'No exception';
 var expect = 'exception';
 
-printBugNumber(BUGNUMBER);
-START(summary);
+printBugNumber (bug);
+printStatus (summary);
 
 try
 {

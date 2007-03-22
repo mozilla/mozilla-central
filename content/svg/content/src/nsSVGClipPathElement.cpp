@@ -34,18 +34,49 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsSVGClipPathElement.h"
+#include "nsSVGGraphicElement.h"
+#include "nsIDOMSVGClipPathElement.h"
 #include "nsGkAtoms.h"
+#include "nsSVGAnimatedEnumeration.h"
+#include "nsSVGEnum.h"
 
-nsSVGElement::EnumInfo nsSVGClipPathElement::sEnumInfo[1] =
+typedef nsSVGGraphicElement nsSVGClipPathElementBase;
+
+class nsSVGClipPathElement : public nsSVGClipPathElementBase,
+                             public nsIDOMSVGClipPathElement
 {
-  { &nsGkAtoms::clipPathUnits,
-    sSVGUnitTypesMap,
-    nsIDOMSVGUnitTypes::SVG_UNIT_TYPE_USERSPACEONUSE
-  }
+protected:
+  friend nsresult NS_NewSVGClipPathElement(nsIContent **aResult,
+                                           nsINodeInfo *aNodeInfo);
+  nsSVGClipPathElement(nsINodeInfo *aNodeInfo);
+  nsresult Init();
+
+public:
+  // interfaces:
+  
+  NS_DECL_ISUPPORTS_INHERITED
+  NS_DECL_NSIDOMSVGCLIPPATHELEMENT
+
+  // xxx I wish we could use virtual inheritance
+  NS_FORWARD_NSIDOMNODE(nsSVGClipPathElementBase::)
+  NS_FORWARD_NSIDOMELEMENT(nsSVGClipPathElementBase::)
+  NS_FORWARD_NSIDOMSVGELEMENT(nsSVGClipPathElementBase::)
+
+  virtual nsresult Clone(nsINodeInfo *aNodeInfo, nsINode **aResult) const;
+
+protected:
+
+  // nsIDOMSVGClipPathElement values
+  nsCOMPtr<nsIDOMSVGAnimatedEnumeration> mClipPathUnits;
+
 };
 
+////////////////////////////////////////////////////////////////////////
+// implementation
+
+
 NS_IMPL_NS_NEW_SVG_ELEMENT(ClipPath)
+
 
 //----------------------------------------------------------------------
 // nsISupports methods
@@ -58,7 +89,6 @@ NS_INTERFACE_MAP_BEGIN(nsSVGClipPathElement)
   NS_INTERFACE_MAP_ENTRY(nsIDOMElement)
   NS_INTERFACE_MAP_ENTRY(nsIDOMSVGElement)
   NS_INTERFACE_MAP_ENTRY(nsIDOMSVGClipPathElement)
-  NS_INTERFACE_MAP_ENTRY(nsIDOMSVGUnitTypes)
   NS_INTERFACE_MAP_ENTRY_CONTENT_CLASSINFO(SVGClipPathElement)
 NS_INTERFACE_MAP_END_INHERITING(nsSVGClipPathElementBase)
 
@@ -70,18 +100,44 @@ nsSVGClipPathElement::nsSVGClipPathElement(nsINodeInfo *aNodeInfo)
 {
 }
 
+
+nsresult
+nsSVGClipPathElement::Init()
+{
+  nsresult rv = nsSVGClipPathElementBase::Init();
+  NS_ENSURE_SUCCESS(rv,rv);
+
+  // Define enumeration mappings
+  static struct nsSVGEnumMapping gUnitMap[] = {
+    {&nsGkAtoms::objectBoundingBox, nsIDOMSVGClipPathElement::SVG_CPUNITS_OBJECTBOUNDINGBOX},
+    {&nsGkAtoms::userSpaceOnUse, nsIDOMSVGClipPathElement::SVG_CPUNITS_USERSPACEONUSE},
+    {nsnull, 0}
+  };
+
+  // DOM property: clipPathUnits ,  #IMPLIED attrib: clipPathUnits
+  {
+    nsCOMPtr<nsISVGEnum> units;
+    rv = NS_NewSVGEnum(getter_AddRefs(units),
+                       nsIDOMSVGClipPathElement::SVG_CPUNITS_USERSPACEONUSE,
+                       gUnitMap);
+    NS_ENSURE_SUCCESS(rv,rv);
+    rv = NS_NewSVGAnimatedEnumeration(getter_AddRefs(mClipPathUnits), units);
+    NS_ENSURE_SUCCESS(rv,rv);
+    rv = AddMappedSVGValue(nsGkAtoms::clipPathUnits, mClipPathUnits);
+    NS_ENSURE_SUCCESS(rv,rv);
+  }
+
+  return NS_OK;
+}
+
 /* readonly attribute nsIDOMSVGAnimatedEnumeration clipPathUnits; */
 NS_IMETHODIMP nsSVGClipPathElement::GetClipPathUnits(nsIDOMSVGAnimatedEnumeration * *aClipPathUnits)
 {
-  return mEnumAttributes[CLIPPATHUNITS].ToDOMAnimatedEnum(aClipPathUnits, this);
+  *aClipPathUnits = mClipPathUnits;
+  NS_IF_ADDREF(*aClipPathUnits);
+  return NS_OK;
 }
 
-nsSVGElement::EnumAttributesInfo
-nsSVGClipPathElement::GetEnumInfo()
-{
-  return EnumAttributesInfo(mEnumAttributes, sEnumInfo,
-                            NS_ARRAY_LENGTH(sEnumInfo));
-}
 
 //----------------------------------------------------------------------
 // nsIDOMNode methods

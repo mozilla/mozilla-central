@@ -40,8 +40,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '11.2.2.js';
-
 START("11.2.2 - Function Calls");
 
 
@@ -50,7 +48,7 @@ rectangle = <rectangle>
             <y>75</y>
             <length>20</length>
             <width>30</width>
-            </rectangle>;   
+            </rectangle>;    
 
 
 TEST(1, 1, rectangle.length());
@@ -86,7 +84,7 @@ TEST(9, "98008", zip);
 
 // Test method name/element name conflicts
 
-x =
+x = 
 <alpha>
     <name>Foo</name>
     <length>Bar</length>

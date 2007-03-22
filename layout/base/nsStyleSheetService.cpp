@@ -38,7 +38,6 @@
 
 /* implementation of interface for managing user and user-agent style sheets */
 
-#include "prlog.h"
 #include "nsStyleSheetService.h"
 #include "nsIStyleSheet.h"
 #include "nsICSSLoader.h"
@@ -58,7 +57,7 @@ nsStyleSheetService *nsStyleSheetService::gInstance = nsnull;
 
 nsStyleSheetService::nsStyleSheetService()
 {
-  PR_STATIC_ASSERT(0 == AGENT_SHEET && 1 == USER_SHEET);
+  NS_ASSERTION(0 == AGENT_SHEET && 1 == USER_SHEET, "Invalid value for USER_SHEET or AGENT_SHEET");
   NS_ASSERTION(!gInstance, "Someone is using CreateInstance instead of GetService");
   gInstance = this;
 }

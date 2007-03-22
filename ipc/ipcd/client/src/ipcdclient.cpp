@@ -449,7 +449,7 @@ private:
 static void
 RunEvent(void *arg)
 {
-  nsIRunnable *ev = static_cast<nsIRunnable *>(arg);
+  nsIRunnable *ev = NS_STATIC_CAST(nsIRunnable *, arg);
   ev->Run();
   NS_RELEASE(ev);
 }

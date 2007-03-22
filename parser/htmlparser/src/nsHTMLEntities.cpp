@@ -54,12 +54,26 @@ struct EntityNodeEntry : public PLDHashEntryHdr
   const EntityNode* node;
 }; 
 
+PR_STATIC_CALLBACK(const void*)
+  getStringKey(PLDHashTable*, PLDHashEntryHdr* aHdr)
+{
+  const EntityNodeEntry* entry = NS_STATIC_CAST(const EntityNodeEntry*, aHdr);
+  return entry->node->mStr;
+}
+
+PR_STATIC_CALLBACK(const void*)
+  getUnicodeKey(PLDHashTable*, PLDHashEntryHdr* aHdr)
+{
+  const EntityNodeEntry* entry = NS_STATIC_CAST(const EntityNodeEntry*, aHdr);
+  return NS_INT32_TO_PTR(entry->node->mUnicode);
+}
+
 PR_STATIC_CALLBACK(PRBool)
   matchNodeString(PLDHashTable*, const PLDHashEntryHdr* aHdr,
                   const void* key)
 {
-  const EntityNodeEntry* entry = static_cast<const EntityNodeEntry*>(aHdr);
-  const char* str = static_cast<const char*>(key);
+  const EntityNodeEntry* entry = NS_STATIC_CAST(const EntityNodeEntry*, aHdr);
+  const char* str = NS_STATIC_CAST(const char*, key);
   return (nsCRT::strcmp(entry->node->mStr, str) == 0);
 }
 
@@ -67,7 +81,7 @@ PR_STATIC_CALLBACK(PRBool)
   matchNodeUnicode(PLDHashTable*, const PLDHashEntryHdr* aHdr,
                    const void* key)
 {
-  const EntityNodeEntry* entry = static_cast<const EntityNodeEntry*>(aHdr);
+  const EntityNodeEntry* entry = NS_STATIC_CAST(const EntityNodeEntry*, aHdr);
   const PRInt32 ucode = NS_PTR_TO_INT32(key);
   return (entry->node->mUnicode == ucode);
 }
@@ -83,6 +97,7 @@ PR_STATIC_CALLBACK(PLDHashNumber)
 static const PLDHashTableOps EntityToUnicodeOps = {
   PL_DHashAllocTable,
   PL_DHashFreeTable,
+  getStringKey,
   PL_DHashStringKey,
   matchNodeString,
   PL_DHashMoveEntryStub,
@@ -94,6 +109,7 @@ static const PLDHashTableOps EntityToUnicodeOps = {
 static const PLDHashTableOps UnicodeToEntityOps = {
   PL_DHashAllocTable,
   PL_DHashFreeTable,
+  getUnicodeKey,
   hashUnicodeValue,
   matchNodeUnicode,
   PL_DHashMoveEntryStub,
@@ -137,8 +153,8 @@ nsHTMLEntities::AddRefTable(void)
 
       // add to Entity->Unicode table
       EntityNodeEntry* entry =
-        static_cast<EntityNodeEntry*>
-                   (PL_DHashTableOperate(&gEntityToUnicode,
+        NS_STATIC_CAST(EntityNodeEntry*,
+                       PL_DHashTableOperate(&gEntityToUnicode,
                                             node->mStr,
                                             PL_DHASH_ADD));
       NS_ASSERTION(entry, "Error adding an entry");
@@ -147,8 +163,8 @@ nsHTMLEntities::AddRefTable(void)
         entry->node = node;
 
       // add to Unicode->Entity table
-      entry = static_cast<EntityNodeEntry*>
-                         (PL_DHashTableOperate(&gUnicodeToEntity,
+      entry = NS_STATIC_CAST(EntityNodeEntry*,
+                             PL_DHashTableOperate(&gUnicodeToEntity,
                                                   NS_INT32_TO_PTR(node->mUnicode),
                                                   PL_DHASH_ADD));
       NS_ASSERTION(entry, "Error adding an entry");
@@ -195,8 +211,8 @@ nsHTMLEntities::EntityToUnicode(const nsCString& aEntity)
     }
       
   EntityNodeEntry* entry = 
-    static_cast<EntityNodeEntry*>
-               (PL_DHashTableOperate(&gEntityToUnicode, aEntity.get(), PL_DHASH_LOOKUP));
+    NS_STATIC_CAST(EntityNodeEntry*,
+                   PL_DHashTableOperate(&gEntityToUnicode, aEntity.get(), PL_DHASH_LOOKUP));
 
   if (!entry || PL_DHASH_ENTRY_IS_FREE(entry))
   return -1;
@@ -221,8 +237,8 @@ nsHTMLEntities::UnicodeToEntity(PRInt32 aUnicode)
 {
   NS_ASSERTION(gUnicodeToEntity.ops, "no lookup table, needs addref");
   EntityNodeEntry* entry =
-    static_cast<EntityNodeEntry*>
-               (PL_DHashTableOperate(&gUnicodeToEntity, NS_INT32_TO_PTR(aUnicode), PL_DHASH_LOOKUP));
+    NS_STATIC_CAST(EntityNodeEntry*,
+                   PL_DHashTableOperate(&gUnicodeToEntity, NS_INT32_TO_PTR(aUnicode), PL_DHASH_LOOKUP));
                    
   if (!entry || PL_DHASH_ENTRY_IS_FREE(entry))
   return nsnull;

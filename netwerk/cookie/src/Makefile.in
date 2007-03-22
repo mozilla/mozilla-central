@@ -50,7 +50,6 @@ REQUIRES	= \
 		xpcom \
 		string \
 		pref \
-		storage \
 		$(NULL)
 
 CPPSRCS		= \
@@ -60,5 +59,4 @@ CPPSRCS		= \
 
 include $(topsrcdir)/config/rules.mk
 
-CXXFLAGS += $(WARNINGS_AS_ERRORS)
 DEFINES += -DIMPL_NS_NET

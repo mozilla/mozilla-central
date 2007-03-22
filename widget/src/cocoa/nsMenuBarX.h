@@ -40,8 +40,10 @@
 #define nsMenuBarX_h_
 
 #include "nsIMenuBar.h"
-#include "nsObjCExceptions.h"
+#include "nsIMenuListener.h"
 #include "nsIMutationObserver.h"
+#include "nsIChangeManager.h"
+#include "nsIMenuCommandDispatcher.h"
 #include "nsCOMArray.h"
 #include "nsHashtable.h"
 #include "nsWeakReference.h"
@@ -53,7 +55,6 @@
 class nsIWidget;
 class nsIDocument;
 class nsIDOMNode;
-class nsChangeObserver;
 
 extern "C" MenuRef _NSGetCarbonMenu(NSMenu* aMenu);
 
@@ -61,25 +62,12 @@ PRBool NodeIsHiddenOrCollapsed(nsIContent* inContent);
 
 namespace MenuHelpersX
 {
-  nsEventStatus DispatchCommandTo(nsIContent* aTargetContent);
-  NSString* CreateTruncatedCocoaLabel(const nsString& itemLabel);
-  PRUint8 GeckoModifiersForNodeAttribute(const nsString& modifiersAttribute);
+  nsEventStatus DispatchCommandTo(nsIWeakReference* aDocShellWeakRef,
+                                  nsIContent* aTargetContent);
+  NSString* CreateTruncatedCocoaLabel(nsString itemLabel);
+  PRUint8 GeckoModifiersForNodeAttribute(char* modifiersAttribute);
   unsigned int MacModifiersForGeckoModifiers(PRUint8 geckoModifiers);
-  nsIMenuBar* GetHiddenWindowMenuBar();
-  NSMenuItem* GetStandardEditMenuItem();
 }
-
-
-// Objective-C class used to allow us to have keyboard commands
-// look like they are doing something but actually do nothing.
-// We allow mouse actions to work normally.
-@interface GeckoNSMenu : NSMenu
-{
-}
-- (BOOL)performKeyEquivalent:(NSEvent *)theEvent;
-- (void)actOnKeyEquivalent:(NSEvent *)theEvent;
-- (void)performMenuUserInterfaceEffectsForEvent:(NSEvent*)theEvent;
-@end
 
 
 // Objective-C class used as action target for menu items
@@ -89,31 +77,48 @@ namespace MenuHelpersX
 -(IBAction)menuItemHit:(id)sender;
 @end
 
-
 //
-// Native menu bar wrapper
+// Native Mac menu bar wrapper
 //
 
 class nsMenuBarX : public nsIMenuBar,
+                   public nsIMenuListener,
                    public nsIMutationObserver,
+                   public nsIChangeManager,
+                   public nsIMenuCommandDispatcher,
                    public nsSupportsWeakReference
 {
 public:
     nsMenuBarX();
     virtual ~nsMenuBarX();
-
+    
+    enum {kApplicationMenuID = 1};
+    
     // |NSMenuItem|s target Objective-C objects
     static NativeMenuItemTarget* sNativeEventTarget;
     
-    static nsMenuBarX* sLastGeckoMenuBarPainted;
+    static NSWindow* sEventTargetWindow;
     
     NS_DECL_ISUPPORTS
+    NS_DECL_NSICHANGEMANAGER
+    NS_DECL_NSIMENUCOMMANDDISPATCHER
+
+    // nsIMenuListener interface
+    nsEventStatus MenuItemSelected(const nsMenuEvent & aMenuEvent);
+    nsEventStatus MenuSelected(const nsMenuEvent & aMenuEvent);
+    nsEventStatus MenuDeselected(const nsMenuEvent & aMenuEvent);
+    nsEventStatus MenuConstruct(const nsMenuEvent & aMenuEvent, nsIWidget * aParentWindow, 
+                                void * menuNode, void * aDocShell);
+    nsEventStatus MenuDestruct(const nsMenuEvent & aMenuEvent);
+    nsEventStatus CheckRebuild(PRBool & aMenuEvent);
+    nsEventStatus SetRebuild(PRBool aMenuEvent);
 
     // nsIMutationObserver
     NS_DECL_NSIMUTATIONOBSERVER
 
-    // nsIMenuBar Methods
     NS_IMETHOD Create(nsIWidget * aParent);
+
+    // nsIMenuBar Methods
     NS_IMETHOD GetParent(nsIWidget *&aParent);
     NS_IMETHOD SetParent(nsIWidget * aParent);
     NS_IMETHOD AddMenu(nsIMenu * aMenu);
@@ -125,38 +130,45 @@ public:
     NS_IMETHOD GetNativeData(void*& aData);
     NS_IMETHOD Paint();
     NS_IMETHOD SetNativeData(void* aData);
-    NS_IMETHOD MenuConstruct(const nsMenuEvent & aMenuEvent, nsIWidget * aParentWindow, void * aMenuNode);
-
-    PRUint32 RegisterForCommand(nsIMenuItem* aItem);
-    void UnregisterCommand(PRUint32 aCommandID);
-    nsIMenuItem* GetMenuItemForCommandID(PRUint32 inCommandID);
-
-    void RegisterForContentChanges(nsIContent* aContent, nsChangeObserver* aMenuObject);
-    void UnregisterForContentChanges(nsIContent* aContent);
-    nsChangeObserver* LookupContentChangeObserver(nsIContent* aContent);
-
-    nsCOMPtr<nsIContent>    mAboutItemContent;    // holds the content node for the about item that has
-                                                  //   been removed from the menubar
-    nsCOMPtr<nsIContent>    mPrefItemContent;     // as above, but for prefs
-    nsCOMPtr<nsIContent>    mQuitItemContent;     // as above, but for quit
+    
 protected:
+
+    void GetDocument(nsIDocShell* inDocShell, nsIDocument** outDocument) ;
+    void RegisterAsDocumentObserver(nsIDocShell* inDocShell);
+    
     // Make our menubar conform to Aqua UI guidelines
     void AquifyMenuBar();
     void HideItem(nsIDOMDocument* inDoc, const nsAString & inID, nsIContent** outHiddenNode);
+    OSStatus InstallCommandEventHandler();
 
+    // command handler for some special menu items (prefs/quit/etc)
+    pascal static OSStatus CommandEventHandler(EventHandlerCallRef inHandlerChain, 
+                                               EventRef inEvent, void* userData);
+    nsEventStatus ExecuteCommand(nsIContent* inDispatchTo);
+    
     // build the Application menu shared by all menu bars.
-    NSMenuItem* CreateNativeAppMenuItem(nsIMenu* inMenu, const nsAString& nodeID, SEL action,
+    NSMenuItem* nsMenuBarX::CreateNativeAppMenuItem(nsIMenu* inMenu, const nsAString& nodeID, SEL action,
                                                     int tag, NativeMenuItemTarget* target);
     nsresult CreateApplicationMenu(nsIMenu* inMenu);
 
+    nsHashtable             mObserverTable;       // stores observers for content change notification
+
     nsCOMArray<nsIMenu>     mMenusArray;          // holds refs
     nsCOMPtr<nsIContent>    mMenuBarContent;      // menubar content node, strong ref
+    nsCOMPtr<nsIContent>    mPrefItemContent;     // on X, holds the content node for the prefs item that has
+                                                  // been removed from the menubar
+    nsCOMPtr<nsIContent>    mQuitItemContent;     // as above, but for quit
     nsIWidget*              mParent;              // weak ref
     PRBool                  mIsMenuBarAdded;
     PRUint32                mCurrentCommandID;    // unique command id (per menu-bar) to give to next item that asks
+
+
+    nsWeakPtr               mDocShellWeakRef;     // weak ref to docshell
     nsIDocument*            mDocument;            // pointer to document
-    GeckoNSMenu*            mRootMenu;            // root menu, representing entire menu bar
-    nsHashtable             mObserverTable;       // stores observers for content change notification
+
+    NSMenu*                 mRootMenu;            // root menu, representing entire menu bar
+ 
+    static EventHandlerUPP  sCommandEventHandler; // carbon event handler for commands, shared
 };
 
 #endif // nsMenuBarX_h_

@@ -38,6 +38,6 @@
 
 <!ENTITY boxPosition.label "Posisjon">
 <!ENTITY boxDimension.label "Dimensjon">
-<!ENTITY boxMargin.label "Marg">
+<!ENTITY boxMargin.label "Margin">
 <!ENTITY boxBorder.label "Ramme">
 <!ENTITY boxPadding.label "Kantfyll">

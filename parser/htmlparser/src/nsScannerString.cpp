@@ -94,7 +94,7 @@ nsScannerBufferList::ReleaseAll()
         PRCList* node = PR_LIST_HEAD(&mBuffers);
         PR_REMOVE_LINK(node);
         //printf(">>> freeing buffer @%p\n", node);
-        free(static_cast<Buffer*>(node));
+        free(NS_STATIC_CAST(Buffer*, node));
       }
   }
 
@@ -240,7 +240,7 @@ nsScannerSubstring::AsString() const
   {
     if (mIsDirty)
       {
-        nsScannerSubstring* mutable_this = const_cast<nsScannerSubstring*>(this);
+        nsScannerSubstring* mutable_this = NS_CONST_CAST(nsScannerSubstring*, this);
 
         if (mStart.mBuffer == mEnd.mBuffer) {
           // We only have a single fragment to deal with, so just return it
@@ -299,7 +299,7 @@ nsScannerSubstring::GetNextFragment( nsScannerFragment& frag ) const
     if (frag.mBuffer == mEnd.mBuffer)
       return PR_FALSE;
 
-    frag.mBuffer = static_cast<const Buffer*>(PR_NEXT_LINK(frag.mBuffer));
+    frag.mBuffer = NS_STATIC_CAST(const Buffer*, PR_NEXT_LINK(frag.mBuffer));
 
     if (frag.mBuffer == mStart.mBuffer)
       frag.mFragmentStart = mStart.mPosition;
@@ -321,7 +321,7 @@ nsScannerSubstring::GetPrevFragment( nsScannerFragment& frag ) const
     if (frag.mBuffer == mStart.mBuffer)
       return PR_FALSE;
 
-    frag.mBuffer = static_cast<const Buffer*>(PR_PREV_LINK(frag.mBuffer));
+    frag.mBuffer = NS_STATIC_CAST(const Buffer*, PR_PREV_LINK(frag.mBuffer));
 
     if (frag.mBuffer == mStart.mBuffer)
       frag.mFragmentStart = mStart.mPosition;
@@ -414,7 +414,7 @@ nsScannerString::ReplaceCharacter(nsScannerIterator& aPosition, PRUnichar aChar)
     // XXX Casting a const to non-const. Unless the base class
     // provides support for writing iterators, this is the best
     // that can be done.
-    PRUnichar* pos = const_cast<PRUnichar*>(aPosition.get());
+    PRUnichar* pos = NS_CONST_CAST(PRUnichar*, aPosition.get());
     *pos = aChar;
 
     mIsDirty = PR_TRUE;
@@ -433,7 +433,7 @@ nsScannerSharedSubstring::Rebind(const nsScannerIterator &aStart,
   // acquire ownership of the buffer.  If not, we can optimize by not holding
   // onto it.
 
-  Buffer *buffer = const_cast<Buffer*>(aStart.buffer());
+  Buffer *buffer = NS_CONST_CAST(Buffer*, aStart.buffer());
   PRBool sameBuffer = buffer == aEnd.buffer();
 
   nsScannerBufferList *bufferList;
@@ -483,25 +483,6 @@ nsScannerSharedSubstring::MakeMutable()
    * utils -- based on code from nsReadableUtils.cpp
    */
 
-// private helper function
-static inline
-nsAString::iterator&
-copy_multifragment_string( nsScannerIterator& first, const nsScannerIterator& last, nsAString::iterator& result )
-  {
-    typedef nsCharSourceTraits<nsScannerIterator> source_traits;
-    typedef nsCharSinkTraits<nsAString::iterator> sink_traits;
-
-    while ( first != last )
-      {
-        PRUint32 distance = source_traits::readable_distance(first, last);
-        sink_traits::write(result, source_traits::read(first), distance);
-        NS_ASSERTION(distance > 0, "|copy_multifragment_string| will never terminate");
-        source_traits::advance(first, distance);
-      }
-
-    return result;
-  }
-
 void
 CopyUnicodeTo( const nsScannerIterator& aSrcStart,
                const nsScannerIterator& aSrcEnd,
@@ -515,7 +496,7 @@ CopyUnicodeTo( const nsScannerIterator& aSrcStart,
     aDest.BeginWriting(writer);
     nsScannerIterator fromBegin(aSrcStart);
     
-    copy_multifragment_string(fromBegin, aSrcEnd, writer);
+    copy_string(fromBegin, aSrcEnd, writer);
   }
 
 void
@@ -546,7 +527,7 @@ AppendUnicodeTo( const nsScannerIterator& aSrcStart,
     aDest.BeginWriting(writer).advance(oldLength);
     nsScannerIterator fromBegin(aSrcStart);
     
-    copy_multifragment_string(fromBegin, aSrcEnd, writer);
+    copy_string(fromBegin, aSrcEnd, writer);
   }
 
 PRBool

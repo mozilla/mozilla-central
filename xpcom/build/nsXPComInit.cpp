@@ -136,7 +136,6 @@ NS_DECL_CLASSINFO(nsStringInputStream)
 #endif
 
 #include "nsSystemInfo.h"
-#include "nsMemoryReporterManager.h"
 
 #include <locale.h>
 
@@ -229,8 +228,6 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsMacUtilsImpl)
 #endif
 
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsSystemInfo, Init)
-
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsMemoryReporterManager)
 
 static NS_METHOD
 nsThreadManagerGetSingleton(nsISupports* outer,
@@ -447,8 +444,6 @@ static const nsModuleComponentInfo components[] = {
 #endif
 
     COMPONENT(SYSTEMINFO, nsSystemInfoConstructor),
-#define NS_MEMORY_REPORTER_MANAGER_CLASSNAME "Memory Reporter Manager"
-    COMPONENT(MEMORY_REPORTER_MANAGER, nsMemoryReporterManagerConstructor),
 };
 
 #undef COMPONENT
@@ -583,7 +578,7 @@ NS_InitXPCOM3(nsIServiceManager* *result,
 
     if (result) {
         nsIServiceManager *serviceManager =
-            static_cast<nsIServiceManager*>(compMgr);
+            NS_STATIC_CAST(nsIServiceManager*, compMgr);
 
         NS_ADDREF(*result = serviceManager);
     }
@@ -593,16 +588,13 @@ NS_InitXPCOM3(nsIServiceManager* *result,
     rv = compMgr->RegisterService(kMemoryCID, memory);
     if (NS_FAILED(rv)) return rv;
 
-    rv = compMgr->RegisterService(kComponentManagerCID, static_cast<nsIComponentManager*>(compMgr));
+    rv = compMgr->RegisterService(kComponentManagerCID, NS_STATIC_CAST(nsIComponentManager*, compMgr));
     if (NS_FAILED(rv)) return rv;
 
 #ifdef GC_LEAK_DETECTOR
-    rv = NS_InitLeakDetector();
+  rv = NS_InitLeakDetector();
     if (NS_FAILED(rv)) return rv;
 #endif
-
-    rv = nsCycleCollector_startup();
-    if (NS_FAILED(rv)) return rv;
 
     // 2. Register the global services with the component manager so that
     //    clients can create new objects.
@@ -624,7 +616,7 @@ NS_InitXPCOM3(nsIServiceManager* *result,
     }
 
     nsCOMPtr<nsIComponentRegistrar> registrar = do_QueryInterface(
-        static_cast<nsIComponentManager*>(compMgr), &rv);
+        NS_STATIC_CAST(nsIComponentManager*,compMgr), &rv);
     if (registrar) {
         for (int i = 0; i < components_length; i++)
             RegisterGenericFactory(registrar, &components[i]);
@@ -664,7 +656,7 @@ NS_InitXPCOM3(nsIServiceManager* *result,
     nsMemoryImpl::InitFlusher();
 
     // Notify observers of xpcom autoregistration start
-    NS_CreateServicesFromCategory(NS_XPCOM_STARTUP_CATEGORY, 
+    NS_CreateServicesFromCategory(NS_XPCOM_STARTUP_OBSERVER_ID, 
                                   nsnull,
                                   NS_XPCOM_STARTUP_OBSERVER_ID);
     

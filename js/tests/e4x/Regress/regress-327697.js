@@ -36,15 +36,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'regress-327697.js';
+START("Make XPConnect refuse to wrap e4x");
 
-var summary = "Make XPConnect refuse to wrap e4x";
-var BUGNUMBER = 327697;
+var bug = 327697;
+var summary = 'Make XPConnect refuse to wrap e4x';
 var actual = 'No Hang';
 var expect = 'No Hang';
 
-printBugNumber(BUGNUMBER);
-START(summary);
+printBugNumber (bug);
+printStatus (summary);
 printStatus('This test runs in the browser only');
 
 function init()

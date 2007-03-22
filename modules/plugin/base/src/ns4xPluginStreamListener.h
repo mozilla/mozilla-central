@@ -61,7 +61,7 @@ public:
   NS_DECL_NSIHTTPHEADERLISTENER
 
   // ns4xPluginStreamListener specific methods:
-  ns4xPluginStreamListener(ns4xPluginInstance* inst, void* notifyData,
+  ns4xPluginStreamListener(nsIPluginInstance* inst, void* notifyData,
                            const char* aURL);
   virtual ~ns4xPluginStreamListener();
   PRBool IsStarted();
@@ -76,8 +76,6 @@ public:
   nsresult StartDataPump();
   void StopDataPump();
 
-  PRBool PluginInitJSLoadInProgress();
-
 protected:
   void* mNotifyData;
   char* mStreamBuffer;
@@ -91,7 +89,6 @@ protected:
   PRPackedBool mStreamCleanedUp;
   PRPackedBool mCallNotify;
   PRPackedBool mIsSuspended;
-  PRPackedBool mIsPluginInitJSStream;
   nsCString mResponseHeaders;
   char* mResponseHeaderBuf;
 

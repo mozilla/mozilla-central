@@ -103,8 +103,7 @@ public:
   }
 #endif  
   
-  virtual nsIFrame* HitTest(nsDisplayListBuilder* aBuilder, nsPoint aPt,
-                            HitTestState* aState) {
+  virtual nsIFrame* HitTest(nsDisplayListBuilder* aBuilder, nsPoint aPt) {
     return mFrame;
   }
   virtual void Paint(nsDisplayListBuilder* aBuilder, nsIRenderingContext* aCtx,
@@ -138,7 +137,7 @@ void nsDisplayButtonBorderBackground::Paint(nsDisplayListBuilder* aBuilder,
                                             const nsRect& aDirtyRect)
 {
   NS_ASSERTION(mFrame, "No frame?");
-  nsPresContext* pc = mFrame->PresContext();
+  nsPresContext* pc = mFrame->GetPresContext();
   nsRect r = nsRect(aBuilder->ToReferenceFrame(mFrame), mFrame->GetSize());
   
   // draw the border and background inside the focus and outline borders
@@ -149,7 +148,7 @@ void nsDisplayButtonForeground::Paint(nsDisplayListBuilder* aBuilder,
                                       nsIRenderingContext* aCtx,
                                       const nsRect& aDirtyRect)
 {
-  nsPresContext *presContext = mFrame->PresContext();
+  nsPresContext *presContext = mFrame->GetPresContext();
   const nsStyleDisplay *disp = mFrame->GetStyleDisplay();
   if (!mFrame->IsThemed(disp) ||
       !presContext->GetTheme()->ThemeDrawsFocusForWidget(presContext, mFrame, disp->mAppearance)) {
@@ -232,6 +231,14 @@ nsButtonFrameRenderer::PaintBorderAndBackground(nsPresContext* aPresContext,
 
 
 void
+nsButtonFrameRenderer::GetButtonOutlineRect(const nsRect& aRect, nsRect& outlineRect)
+{
+  outlineRect = aRect;
+  outlineRect.Inflate(GetButtonOutlineBorderAndPadding());
+}
+
+
+void
 nsButtonFrameRenderer::GetButtonOuterFocusRect(const nsRect& aRect, nsRect& focusRect)
 {
   focusRect = aRect;
@@ -251,6 +258,13 @@ nsButtonFrameRenderer::GetButtonInnerFocusRect(const nsRect& aRect, nsRect& focu
   GetButtonRect(aRect, focusRect);
   focusRect.Deflate(GetButtonBorderAndPadding());
   focusRect.Deflate(GetButtonInnerFocusMargin());
+}
+
+void
+nsButtonFrameRenderer::GetButtonContentRect(const nsRect& aRect, nsRect& r)
+{
+  GetButtonInnerFocusRect(aRect, r);
+  r.Deflate(GetButtonInnerFocusBorderAndPadding());
 }
 
 
@@ -332,7 +346,7 @@ nsButtonFrameRenderer::GetAddedButtonBorderAndPadding()
 /**
  * Call this when styles change
  */
-void
+void 
 nsButtonFrameRenderer::ReResolveStyles(nsPresContext* aPresContext)
 {
   // get all the styles

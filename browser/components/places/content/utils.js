@@ -22,8 +22,6 @@
  *   Ben Goodger <beng@google.com>
  *   Myk Melez <myk@mozilla.org>
  *   Asaf Romano <mano@mozilla.com>
- *   Sungjoon Steve Won <stevewon@gmail.com>
- *   Dietrich Ayala <dietrich@mozilla.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -43,97 +41,101 @@ function LOG(str) {
   dump("*** " + str + "\n");
 }
 
-var Ci = Components.interfaces;
-var Cc = Components.classes;
-var Cr = Components.results;
-
-__defineGetter__("PlacesUtils", function() {
-  delete this.PlacesUtils
-  var tmpScope = {};
-  Components.utils.import("resource://gre/modules/utils.js", tmpScope);
-  return this.PlacesUtils = tmpScope.PlacesUtils;
-});
+const Ci = Components.interfaces;
+const Cc = Components.classes;
+const Cr = Components.results;
 
 const LOAD_IN_SIDEBAR_ANNO = "bookmarkProperties/loadInSidebar";
 const DESCRIPTION_ANNO = "bookmarkProperties/description";
-const LMANNO_FEEDURI = "livemark/feedURI";
-const LMANNO_SITEURI = "livemark/siteURI";
-const ORGANIZER_FOLDER_ANNO = "PlacesOrganizer/OrganizerFolder";
-const ORGANIZER_QUERY_ANNO = "PlacesOrganizer/OrganizerQuery";
-const ORGANIZER_LEFTPANE_VERSION = 4;
-
-#ifdef XP_MACOSX
-// On Mac OSX, the transferable system converts "\r\n" to "\n\n", where we
-// really just want "\n".
-const NEWLINE= "\n";
-#else
-// On other platforms, the transferable system converts "\r\n" to "\n".
-const NEWLINE = "\r\n";
-#endif
 
 function QI_node(aNode, aIID) {
-  return aNode.QueryInterface(aIID);
+  var result = null;
+  try {
+    result = aNode.QueryInterface(aIID);
+  }
+  catch (e) {
+  }
+  NS_ASSERT(result, "Node QI Failed");
+  return result;
 }
+function asFolder(aNode)   { return QI_node(aNode, Ci.nsINavHistoryFolderResultNode);   }
 function asVisit(aNode)    { return QI_node(aNode, Ci.nsINavHistoryVisitResultNode);    }
 function asFullVisit(aNode){ return QI_node(aNode, Ci.nsINavHistoryFullVisitResultNode);}
 function asContainer(aNode){ return QI_node(aNode, Ci.nsINavHistoryContainerResultNode);}
 function asQuery(aNode)    { return QI_node(aNode, Ci.nsINavHistoryQueryResultNode);    }
 
-var PlacesUIUtils = {
+var PlacesUtils = {
   /**
-   * The Microsummary Service
+   * The Bookmarks Service.
    */
-  get microsummaries() {
-    delete this.microsummaries;
-    return this.microsummaries = Cc["@mozilla.org/microsummary/service;1"].
-                                 getService(Ci.nsIMicrosummaryService);
-  },
-
-  get RDF() {
-    delete this.RDF;
-    return this.RDF = Cc["@mozilla.org/rdf/rdf-service;1"].
-                      getService(Ci.nsIRDFService);
-  },
-
-  get localStore() {
-    delete this.localStore;
-    return this.localStore = this.RDF.GetDataSource("rdf:local-store");
-  },
-
-  get ptm() {
-    delete this.ptm;
-    return this.ptm = Cc["@mozilla.org/browser/placesTransactionsService;1"].
-                      getService(Ci.nsIPlacesTransactionsService);
-  },
-
-  get clipboard() {
-    delete this.clipboard;
-    return this.clipboard = Cc["@mozilla.org/widget/clipboard;1"].
-                            getService(Ci.nsIClipboard);
-  },
-
-  get URIFixup() {
-    delete this.URIFixup;
-    return this.URIFixup = Cc["@mozilla.org/docshell/urifixup;1"].
-                           getService(Ci.nsIURIFixup);
-  },
-
-  get ellipsis() {
-    delete this.ellipsis;
-    var pref = Cc["@mozilla.org/preferences-service;1"].
-               getService(Ci.nsIPrefBranch);
-    return this.ellipsis = pref.getComplexValue("intl.ellipsis",
-                                                Ci.nsIPrefLocalizedString).data;
+  _bookmarks: null,
+  get bookmarks() {
+    if (!this._bookmarks) {
+      this._bookmarks = Cc["@mozilla.org/browser/nav-bookmarks-service;1"].
+                        getService(Ci.nsINavBookmarksService);
+    }
+    return this._bookmarks;
   },
 
   /**
-   * Makes a URI from a spec, and do fixup
+   * The Nav History Service.
+   */
+  _history: null,
+  get history() {
+    if (!this._history) {
+      this._history = Cc["@mozilla.org/browser/nav-history-service;1"].
+                      getService(Ci.nsINavHistoryService);
+    }
+    return this._history;
+  },
+
+  /**
+   * The Live Bookmark Service.
+   */
+  _livemarks: null,
+  get livemarks() {
+    if (!this._livemarks) {
+      this._livemarks = Cc["@mozilla.org/browser/livemark-service;2"].
+                        getService(Ci.nsILivemarkService);
+    }
+    return this._livemarks;
+  },
+
+  /**
+   * The Annotations Service.
+   */
+  _annotations: null,
+  get annotations() {
+    if (!this._annotations) {
+      this._annotations = Cc["@mozilla.org/browser/annotation-service;1"].
+                          getService(Ci.nsIAnnotationService);
+    }
+    return this._annotations;
+  },
+
+  /**
+   * The Transaction Manager for this window.
+   */
+  _tm: null,
+  get tm() {
+    if (!this._tm) {
+      this._tm = Cc["@mozilla.org/transactionmanager;1"].
+                 createInstance(Ci.nsITransactionManager);
+    }
+    return this._tm;
+  },
+
+  /**
+   * Makes a URI from a spec.
    * @param   aSpec
    *          The string spec of the URI
    * @returns A URI object for the spec.
    */
-  createFixedURI: function PU_createFixedURI(aSpec) {
-    return this.URIFixup.createFixupURI(aSpec, 0);
+  _uri: function PU__uri(aSpec) {
+    NS_ASSERT(aSpec, "empty URL spec");
+    var ios = Cc["@mozilla.org/network/io-service;1"].
+              getService(Ci.nsIIOService);
+    return ios.newURI(aSpec, null, null);
   },
 
   /**
@@ -152,92 +154,317 @@ var PlacesUIUtils = {
   /**
    * String bundle helpers
    */
+  __bundle: null,
   get _bundle() {
-    const PLACES_STRING_BUNDLE_URI =
+    if (!this.__bundle) {
+      const PLACES_STRING_BUNDLE_URI =
         "chrome://browser/locale/places/places.properties";
-    delete this._bundle;
-    return this._bundle = Cc["@mozilla.org/intl/stringbundle;1"].
-                          getService(Ci.nsIStringBundleService).
-                          createBundle(PLACES_STRING_BUNDLE_URI);
+      this.__bundle = Cc["@mozilla.org/intl/stringbundle;1"].
+                      getService(Ci.nsIStringBundleService).
+                      createBundle(PLACES_STRING_BUNDLE_URI);
+    }
+    return this.__bundle;
   },
 
   getFormattedString: function PU_getFormattedString(key, params) {
     return this._bundle.formatStringFromName(key, params, params.length);
   },
-
+  
   getString: function PU_getString(key) {
     return this._bundle.GetStringFromName(key);
   },
 
   /**
+   * Determines whether or not a ResultNode is a Bookmark folder or not.
+   * @param   aNode
+   *          A NavHistoryResultNode
+   * @returns true if the node is a Bookmark folder, false otherwise
+   */
+  nodeIsFolder: function PU_nodeIsFolder(aNode) {
+    NS_ASSERT(aNode, "null node");
+    return (aNode.type == Ci.nsINavHistoryResultNode.RESULT_TYPE_FOLDER);
+  },
+
+  /**
+   * Determines whether or not a ResultNode represents a bookmarked URI.
+   * @param   aNode
+   *          A NavHistoryResultNode
+   * @returns true if the node represents a bookmarked URI, false otherwise
+   */
+  nodeIsBookmark: function PU_nodeIsBookmark(aNode) {
+    NS_ASSERT(aNode, "null node");
+    return aNode.bookmarkId > 0;
+  },
+
+  /**
+   * Determines whether or not a ResultNode is a Bookmark separator.
+   * @param   aNode
+   *          A NavHistoryResultNode
+   * @returns true if the node is a Bookmark separator, false otherwise
+   */
+  nodeIsSeparator: function PU_nodeIsSeparator(aNode) {
+    NS_ASSERT(aNode, "null node");
+
+    return (aNode.type == Ci.nsINavHistoryResultNode.RESULT_TYPE_SEPARATOR);
+  },
+
+  /**
+   * Determines whether or not a ResultNode is a URL item or not
+   * @param   aNode
+   *          A NavHistoryResultNode
+   * @returns true if the node is a URL item, false otherwise
+   */
+  nodeIsURI: function PU_nodeIsURI(aNode) {
+    NS_ASSERT(aNode, "null node");
+
+    const NHRN = Ci.nsINavHistoryResultNode;
+    return aNode.type == NHRN.RESULT_TYPE_URI ||
+           aNode.type == NHRN.RESULT_TYPE_VISIT ||
+           aNode.type == NHRN.RESULT_TYPE_FULL_VISIT;
+  },
+
+  /**
+   * Determines whether or not a ResultNode is a Query item or not
+   * @param   aNode
+   *          A NavHistoryResultNode
+   * @returns true if the node is a Query item, false otherwise
+   */
+  nodeIsQuery: function PU_nodeIsQuery(aNode) {
+    NS_ASSERT(aNode, "null node");
+
+    return aNode.type == Ci.nsINavHistoryResultNode.RESULT_TYPE_QUERY;
+  },
+
+  /**
+   * Determines if a node is read only (children cannot be inserted, sometimes
+   * they cannot be removed depending on the circumstance)
+   * @param   aNode
+   *          A NavHistoryResultNode
+   * @returns true if the node is readonly, false otherwise
+   */
+  nodeIsReadOnly: function PU_nodeIsReadOnly(aNode) {
+    NS_ASSERT(aNode, "null node");
+
+    if (this.nodeIsFolder(aNode))
+      return this.bookmarks.getFolderReadonly(asFolder(aNode).folderId);
+    if (this.nodeIsQuery(aNode))
+      return asQuery(aNode).childrenReadOnly;
+    return false;
+  },
+
+  /**
+   * Determines whether or not a ResultNode is a host folder or not
+   * @param   aNode
+   *          A NavHistoryResultNode
+   * @returns true if the node is a host item, false otherwise
+   */
+  nodeIsHost: function PU_nodeIsHost(aNode) {
+    NS_ASSERT(aNode, "null node");
+
+    return aNode.type == Ci.nsINavHistoryResultNode.RESULT_TYPE_HOST;
+  },
+
+  /**
+   * Determines whether or not a ResultNode is a container item or not
+   * @param   aNode
+   *          A NavHistoryResultNode
+   * @returns true if the node is a container item, false otherwise
+   */
+  nodeIsContainer: function PU_nodeIsContainer(aNode) {
+    NS_ASSERT(aNode, "null node");
+
+    const NHRN = Ci.nsINavHistoryResultNode;
+    return aNode.type == NHRN.RESULT_TYPE_HOST ||
+           aNode.type == NHRN.RESULT_TYPE_QUERY ||
+           aNode.type == NHRN.RESULT_TYPE_FOLDER ||
+           aNode.type == NHRN.RESULT_TYPE_REMOTE_CONTAINER;
+  },
+
+  /**
+   * Determines whether or not a ResultNode is a remotecontainer item.
+   * ResultNote may be either a remote container result type or a bookmark folder
+   * with a nonempty remoteContainerType.  The remote container result node
+   * type is for dynamically created remote containers (i.e., for the file
+   * browser service where you get your folders in bookmark menus).  Bookmark
+   * folders are marked as remote containers when some other component is
+   * registered as interested in them and providing some operations, in which
+   * case their remoteContainerType indicates which component is thus registered.
+   * For exmaple, the livemark service uses this mechanism.
+   * @param   aNode
+   *          A NavHistoryResultNode
+   * @returns true if the node is a container item, false otherwise
+   */
+  nodeIsRemoteContainer: function PU_nodeIsRemoteContainer(aNode) {
+    NS_ASSERT(aNode, "null node");
+
+    const NHRN = Ci.nsINavHistoryResultNode;
+    if (aNode.type == NHRN.RESULT_TYPE_REMOTE_CONTAINER)
+      return true;
+    if (this.nodeIsFolder(aNode))
+      return asContainer(aNode).remoteContainerType != "";
+    return false;
+  },
+
+ /**
+  * Determines whether a ResultNode is a remote container registered by the
+  * livemark service.
+  * @param aNode
+  *        A NavHistory Result Node
+  * @returns true if the node is a livemark container item
+  */
+  nodeIsLivemarkContainer: function PU_nodeIsLivemarkContainer(aNode) {
+    return (this.nodeIsRemoteContainer(aNode) &&
+            asContainer(aNode).remoteContainerType ==
+               "@mozilla.org/browser/livemark-service;2");
+  },
+
+ /**
+  * Determines whether a ResultNode is a live-bookmark item
+  * @param aNode
+  *        A NavHistory Result Node
+  * @returns true if the node is a livemark container item
+  */
+  nodeIsLivemarkItem: function PU_nodeIsLivemarkItem(aNode) {
+    if (this.nodeIsBookmark(aNode)) {
+      var placeURI = this.bookmarks.getItemURI(aNode.bookmarkId);
+      if (this.annotations.hasAnnotation(placeURI, "livemark/bookmarkFeedURI"))
+        return true;
+    }
+
+    return false;
+  },
+
+  /**
+   * Determines whether or not a node is a readonly folder. 
+   * @param   aNode
+   *          The node to test.
+   * @returns true if the node is a readonly folder.
+  */
+  isReadonlyFolder: function(aNode) {
+    NS_ASSERT(aNode, "null node");
+
+    return this.nodeIsFolder(aNode) &&
+           this.bookmarks.getFolderReadonly(asFolder(aNode).folderId);
+  },
+
+  /**
+   * Gets the index of a node within its parent container
+   * @param   aNode
+   *          The node to look up
+   * @returns The index of the node within its parent container, or -1 if the
+   *          node was not found or the node specified has no parent.
+   */
+  getIndexOfNode: function PU_getIndexOfNode(aNode) {
+    NS_ASSERT(aNode, "null node");
+
+    var parent = aNode.parent;
+    if (!parent || !PlacesUtils.nodeIsContainer(parent))
+      return -1;
+    var wasOpen = parent.containerOpen;
+    parent.containerOpen = true;
+    var cc = parent.childCount;
+    for (var i = 0; i < cc && asContainer(parent).getChild(i) != aNode; ++i);
+    parent.containerOpen = wasOpen;
+    return i < cc ? i : -1;
+  },
+
+  /**
+   * String-wraps a NavHistoryResultNode according to the rules of the specified
+   * content type.
+   * @param   aNode
+   *          The Result node to wrap (serialize)
+   * @param   aType
+   *          The content type to serialize as
+   * @param   [optional] aOverrideURI
+   *          Used instead of the node's URI if provided.
+   *          This is useful for wrapping a container as TYPE_X_MOZ_URL,
+   *          TYPE_HTML or TYPE_UNICODE.
+   * @returns A string serialization of the node
+   */
+  wrapNode: function PU_wrapNode(aNode, aType, aOverrideURI) {
+    switch (aType) {
+    case TYPE_X_MOZ_PLACE_CONTAINER:
+    case TYPE_X_MOZ_PLACE:
+    case TYPE_X_MOZ_PLACE_SEPARATOR:
+      // Data is encoded like this:
+      // bookmarks folder: <folderId>\n<>\n<parentId>\n<indexInParent>
+      // uri:              0\n<uri>\n<parentId>\n<indexInParent>
+      // bookmark:         <bookmarkId>\n<uri>\n<parentId>\n<indexInParent>
+      // separator:        0\n<>\n<parentId>\n<indexInParent>
+      var wrapped = "";
+      if (this.nodeIsFolder(aNode))
+        wrapped += asFolder(aNode).folderId + NEWLINE;
+      else if (this.nodeIsBookmark(aNode))
+        wrapped += aNode.bookmarkId + NEWLINE;
+      else
+        wrapped += "0" + NEWLINE;
+
+      if (this.nodeIsURI(aNode) || this.nodeIsQuery(aNode))
+        wrapped += aNode.uri + NEWLINE;
+      else
+        wrapped += NEWLINE;
+
+      if (this.nodeIsFolder(aNode.parent))
+        wrapped += asFolder(aNode.parent).folderId + NEWLINE;
+      else
+        wrapped += "0" + NEWLINE;
+
+      wrapped += this.getIndexOfNode(aNode);
+      return wrapped;
+    case TYPE_X_MOZ_URL:
+      return (aOverrideURI || aNode.uri) + NEWLINE + aNode.title;
+    case TYPE_HTML:
+      return "<A HREF=\"" + (aOverrideURI || aNode.uri) + "\">" +
+             aNode.title + "</A>";
+    }
+    // case TYPE_UNICODE:
+    return (aOverrideURI || aNode.uri);
+  },
+
+  /**
    * Get a transaction for copying a uri item from one container to another
    * as a bookmark.
-   * @param   aData
-   *          JSON object of dropped or pasted item properties
+   * @param   aURI
+   *          The URI of the item being copied
    * @param   aContainer
    *          The container being copied into
    * @param   aIndex
    *          The index within the container the item is copied to
    * @returns A nsITransaction object that performs the copy.
    */
-  _getURIItemCopyTransaction: function (aData, aContainer, aIndex) {
-    return this.ptm.createItem(PlacesUtils._uri(aData.uri), aContainer, aIndex,
-                               aData.title, "");
+  _getURIItemCopyTransaction: function (aURI, aContainer, aIndex) {
+    var itemTitle = this.history.getPageTitle(aURI);
+    var createTxn = new PlacesCreateItemTransaction(aURI, aContainer, aIndex);
+    createTxn.childTransactions.push(
+      new PlacesEditItemTitleTransaction(-1, itemTitle));
+    return new PlacesAggregateTransaction("ItemCopy", [createTxn]);
   },
 
   /**
    * Get a transaction for copying a bookmark item from one container to
    * another.
-   * @param   aData
-   *          JSON object of dropped or pasted item properties
+   * @param   aID
+   *          The identifier of the bookmark item being copied
    * @param   aContainer
    *          The container being copied into
    * @param   aIndex
    *          The index within the container the item is copied to
-   * @param   [optional] aExcludeAnnotations
-   *          Optional, array of annotations (listed by their names) to exclude
-   *          when copying the item.
    * @returns A nsITransaction object that performs the copy.
    */
-  _getBookmarkItemCopyTransaction:
-  function PU__getBookmarkItemCopyTransaction(aData, aContainer, aIndex,
-                                              aExcludeAnnotations) {
-    var itemURL = PlacesUtils._uri(aData.uri);
-    var itemTitle = aData.title;
-    var keyword = aData.keyword || null;
-    var annos = aData.annos || [];
-    if (aExcludeAnnotations) {
-      annos = annos.filter(function(aValue, aIndex, aArray) {
-        return aExcludeAnnotations.indexOf(aValue.name) == -1;
-      });
-    }
-    var childTxns = [];
-    if (aData.dateAdded)
-      childTxns.push(this.ptm.editItemDateAdded(null, aData.dateAdded));
-    if (aData.lastModified)
-      childTxns.push(this.ptm.editItemLastModified(null, aData.lastModified));
-    if (aData.tags) {
-      var tags = aData.tags.split(", ");
-      // filter out tags already present, so that undo doesn't remove them
-      // from pre-existing bookmarks
-      var storedTags = PlacesUtils.tagging.getTagsForURI(itemURL, {});
-      tags = tags.filter(function (aTag) {
-        return (storedTags.indexOf(aTag) == -1);
-      }, this);
-      if (tags.length)
-        childTxns.push(this.ptm.tagURI(itemURL, tags));
-    }
-
-    return this.ptm.createItem(itemURL, aContainer, aIndex, itemTitle, keyword,
-                               annos, childTxns);
+  _getBookmarkItemCopyTransaction: function (aID, aContainer, aIndex) {
+    var itemURL = this.bookmarks.getBookmarkURI(aID);
+    var itemTitle = this.bookmarks.getItemTitle(aID);
+    var createTxn = new PlacesCreateItemTransaction(itemURL, aContainer, aIndex);
+    createTxn.childTransactions.push(
+      new PlacesEditItemTitleTransaction(-1, itemTitle));
+    return new PlacesAggregateTransaction("ItemCopy", [createTxn]);
   },
 
   /**
    * Gets a transaction for copying (recursively nesting to include children)
-   * a folder (or container) and its contents from one folder to another.
-   *
+   * a folder and its contents from one folder to another.
    * @param   aData
-   *          Unwrapped dropped folder data - Obj containing folder and children
+   *          Unwrapped dropped folder data
    * @param   aContainer
    *          The container we are copying into
    * @param   aIndex
@@ -247,83 +474,90 @@ var PlacesUIUtils = {
   _getFolderCopyTransaction:
   function PU__getFolderCopyTransaction(aData, aContainer, aIndex) {
     var self = this;
-    function getChildItemsTransactions(aChildren) {
-      var childItemsTransactions = [];
-      var cc = aChildren.length;
-      var index = aIndex;
+    function getChildTransactions(folderId) {
+      var childTransactions = [];
+      var children = self.getFolderContents(folderId, false, false);
+      var cc = children.childCount;
+      var txn = null;
       for (var i = 0; i < cc; ++i) {
-        var txn = null;
-        var node = aChildren[i];
-
-        // Make sure that items are given the correct index, this will be
-        // passed by the transaction manager to the backend for the insertion.
-        // Insertion behaves differently if index == DEFAULT_INDEX (append)
-        if (aIndex != PlacesUtils.bookmarks.DEFAULT_INDEX)
-          index = i;
-
-        if (node.type == PlacesUtils.TYPE_X_MOZ_PLACE_CONTAINER) {
-          if (node.livemark && node.annos) // node is a livemark
-            txn = self._getLivemarkCopyTransaction(node, aContainer, index);
-          else
-            txn = self._getFolderCopyTransaction(node, aContainer, index);
+        var node = children.getChild(i);
+        if (self.nodeIsFolder(node)) {
+          var nodeFolderId = asFolder(node).folderId;
+          var title = self.bookmarks.getFolderTitle(nodeFolderId);
+          txn = new PlacesCreateFolderTransaction(title, -1, aIndex);
+          txn.childTransactions = getChildTransactions(nodeFolderId);
         }
-        else if (node.type == PlacesUtils.TYPE_X_MOZ_PLACE_SEPARATOR)
-          txn = self.ptm.createSeparator(-1, index);
-        else if (node.type == PlacesUtils.TYPE_X_MOZ_PLACE)
-          txn = self._getBookmarkItemCopyTransaction(node, -1, index);
-
-        NS_ASSERT(txn, "Unexpected item under a bookmarks folder");
-        if (txn)
-          childItemsTransactions.push(txn);
+        else if (self.nodeIsBookmark(node)) {
+          txn = self._getBookmarkItemCopyTransaction(self._uri(node.uri), -1,
+                                                     aIndex);
+        }
+        else if (self.nodeIsURI(node) || self.nodeIsQuery(node)) {
+          txn = self._getURIItemCopyTransaction(self._uri(node.uri), -1,
+                                                aIndex);
+        }
+        else if (self.nodeIsSeparator(node)) {
+          txn = new PlacesCreateSeparatorTransaction(-1, aIndex);
+        }
+        childTransactions.push(txn);
       }
-      return childItemsTransactions;
+      return childTransactions;
     }
 
-    // tag folders use tag transactions
-    if (aContainer == PlacesUtils.bookmarks.tagsFolder) {
-      var txns = [];
-      if (aData.children) {
-        aData.children.forEach(function(aChild) {
-          txns.push(this.ptm.tagURI(PlacesUtils._uri(aChild.uri), [aData.title]));
-        }, this);
-      }
-      return this.ptm.aggregateTransactions("addTags", txns);
-    }
-    else if (aData.livemark && aData.annos) {
-      // Place is a Livemark Container
-      return this._getLivemarkCopyTransaction(aData, aContainer, aIndex);
-    }
-    else {
-      var childItems = getChildItemsTransactions(aData.children);
-      if (aData.dateAdded)
-        childItems.push(this.ptm.editItemDateAdded(null, aData.dateAdded));
-      if (aData.lastModified)
-        childItems.push(this.ptm.editItemLastModified(null, aData.lastModified));
-
-      var annos = aData.annos || [];
-      return this.ptm.createFolder(aData.title, aContainer, aIndex, annos, childItems);
-    }
+    var title = this.bookmarks.getFolderTitle(aData.id);
+    var createTxn =
+      new PlacesCreateFolderTransaction(title, aContainer, aIndex);
+    createTxn.childTransactions =
+      getChildTransactions(aData.id, createTxn);
+    return createTxn;
   },
 
-  _getLivemarkCopyTransaction:
-  function PU__getLivemarkCopyTransaction(aData, aContainer, aIndex) {
-    NS_ASSERT(aData.livemark && aData.annos, "node is not a livemark");
-    // Place is a Livemark Container
-    var feedURI = null;
-    var siteURI = null;
-    aData.annos = aData.annos.filter(function(aAnno) {
-      if (aAnno.name == LMANNO_FEEDURI) {
-        feedURI = PlacesUtils._uri(aAnno.value);
-        return false;
+  /**
+   * Unwraps data from the Clipboard or the current Drag Session.
+   * @param   blob
+   *          A blob (string) of data, in some format we potentially know how
+   *          to parse.
+   * @param   type
+   *          The content type of the blob.
+   * @returns An array of objects representing each item contained by the source.
+   */
+  unwrapNodes: function PU_unwrapNodes(blob, type) {
+    // We use \n here because the transferable system converts \r\n to \n
+    var parts = blob.split("\n");
+    var nodes = [];
+    for (var i = 0; i < parts.length; ++i) {
+      var data = { };
+      switch (type) {
+      case TYPE_X_MOZ_PLACE_CONTAINER:
+      case TYPE_X_MOZ_PLACE:
+      case TYPE_X_MOZ_PLACE_SEPARATOR:
+        // Data in these types has 4 parts, so if there are less than 4 parts
+        // remaining, the data blob is malformed and we should stop.
+        if (i > (parts.length - 4))
+          break;
+        nodes.push({  id: parseInt(parts[i++]),
+                      uri: parts[i] ? this._uri(parts[i]) : null,
+                      parent: parseInt(parts[++i]),
+                      index: parseInt(parts[++i]) });
+        break;
+      case TYPE_X_MOZ_URL:
+        // See above.
+        if (i > (parts.length - 2))
+          break;
+        nodes.push({  uri: this._uri(parts[i++]),
+                      title: parts[i] });
+        break;
+      case TYPE_UNICODE:
+        // See above.
+        if (i > (parts.length - 1))
+          break;
+        nodes.push({  uri: this._uri(parts[i]) });
+        break;
+      default:
+        LOG("Cannot unwrap data of type " + type);
+        throw Cr.NS_ERROR_INVALID_ARG;
       }
-      else if (aAnno.name == LMANNO_SITEURI) {
-        siteURI = PlacesUtils._uri(aAnno.value);
-        return false;
-      }
-      return true;
-    }, this);
-    return this.ptm.createLivemark(feedURI, siteURI, aData.title, aContainer,
-                                   aIndex, aData.annos);
+    }
+    return nodes;
   },
 
   /**
@@ -344,56 +578,79 @@ var PlacesUIUtils = {
    */
   makeTransaction: function PU_makeTransaction(data, type, container,
                                                index, copy) {
-    switch (data.type) {
-      case PlacesUtils.TYPE_X_MOZ_PLACE_CONTAINER:
+    switch (type) {
+    case TYPE_X_MOZ_PLACE_CONTAINER:
+      if (data.id > 0 && data.uri == null) {
+        // Place is a folder.
         if (copy)
           return this._getFolderCopyTransaction(data, container, index);
-        else { // Move the item
-          var id = data.folder ? data.folder.id : data.id;
-          return this.ptm.moveItem(id, container, index);
-        }
-        break;
-      case PlacesUtils.TYPE_X_MOZ_PLACE:
-        if (data.id <= 0) // non-bookmark item
-          return this._getURIItemCopyTransaction(data, container, index);
-  
-        if (copy) {
-          // Copying a child of a live-bookmark by itself should result
-          // as a new normal bookmark item (bug 376731)
-          var copyBookmarkAnno =
-            this._getBookmarkItemCopyTransaction(data, container, index,
-                                                 ["livemark/bookmarkFeedURI"]);
-          return copyBookmarkAnno;
-        }
-        else
-          return this.ptm.moveItem(data.id, container, index);
-        break;
-      case PlacesUtils.TYPE_X_MOZ_PLACE_SEPARATOR:
+        return new PlacesMoveFolderTransaction(data.id, data.parent,
+                                               data.index, container,
+                                               index);
+      }
+    case TYPE_X_MOZ_PLACE:
+      if (data.id > 0) {
+        if (copy)
+          return this._getBookmarkItemCopyTransaction(data.id, container, index);
+
+        return new PlacesMoveItemTransaction(data.id, data.uri, data.parent,
+                                             data.index, container,
+                                             index);
+      }
+      return this._getURIItemCopyTransaction(data.uri, container, index);
+    case TYPE_X_MOZ_PLACE_SEPARATOR:
+      if (copy) {
         // There is no data in a separator, so copying it just amounts to
         // inserting a new separator.
-        if (copy)
-          return this.ptm.createSeparator(container, index);
-        // Move the separator otherwise
-        return this.ptm.moveItem(data.id, container, index);
-        break;
-      default:
-        if (type == PlacesUtils.TYPE_X_MOZ_URL || type == PlacesUtils.TYPE_UNICODE) {
-          var title = (type == PlacesUtils.TYPE_X_MOZ_URL) ? data.title : data.uri;
-          return this.ptm.createItem(PlacesUtils._uri(data.uri), container, index,
-                                     title);
-        }
+        return new PlacesCreateSeparatorTransaction(container, index);
+      }
+      // Similarly, moving a separator is just removing the old one and
+      // then creating a new one.
+      var removeTxn =
+        new PlacesRemoveSeparatorTransaction(data.parent, data.index);
+      var createTxn =
+        new PlacesCreateSeparatorTransaction(container, index);
+      return new PlacesAggregateTransaction("SeparatorMove", [removeTxn, createTxn]);
+    case TYPE_X_MOZ_URL:
+    case TYPE_UNICODE:
+      // Creating and Setting the title is a two step process
+      var createTxn =
+        new PlacesCreateItemTransaction(data.uri, container, index);
+      var title = type == TYPE_X_MOZ_URL ? data.title : data.uri;
+      createTxn.childTransactions.push(
+          new PlacesEditItemTitleTransaction(-1, title));
+      return createTxn;
     }
     return null;
   },
 
   /**
-   * Methods to show the bookmarkProperties dialog in its various modes.
-   *
-   * The showMinimalAdd* methods open the dialog by its alternative URI. Thus
-   * they persist the dialog dimensions separately from the showAdd* methods.
-   * Note these variants also do not return the dialog "performed" state since
-   * they may not open the dialog modally.
+   * Generates a HistoryResultNode for the contents of a folder.
+   * @param   folderId
+   *          The folder to open
+   * @param   [optional] excludeItems
+   *          True to hide all items (individual bookmarks). This is used on
+   *          the left places pane so you just get a folder hierarchy.
+   * @param   [optional] expandQueries
+   *          True to make query items expand as new containers. For managing,
+   *          you want this to be false, for menus and such, you want this to
+   *          be true.
+   * @returns A HistoryContainerResultNode containing the contents of the
+   *          folder. This container is guaranteed to be open.
    */
+  getFolderContents:
+  function PU_getFolderContents(aFolderId, aExcludeItems, aExpandQueries) {
+    var query = this.history.getNewQuery();
+    query.setFolders([aFolderId], 1);
+    var options = this.history.getNewQueryOptions();
+    options.setGroupingMode([Ci.nsINavHistoryQueryOptions.GROUP_BY_FOLDER], 1);
+    options.excludeItems = aExcludeItems;
+    options.expandQueries = aExpandQueries;
+
+    var result = this.history.executeQuery(query, options);
+    result.root.containerOpen = true;
+    return asContainer(result.root);
+  },
 
   /**
    * Shows the "Add Bookmark" dialog.
@@ -415,17 +672,10 @@ var PlacesUIUtils = {
    * @param [optional] aLoadInSidebar
    *        If true, the dialog will default to load the new item in the
    *        sidebar (as a web panel).
-   * @param [optional] aKeyword
-   *        The default keyword for the new bookmark. The keyword field
-   *        will be shown in the dialog if this is used.
-   * @param [optional] aPostData
-   *        POST data for POST-style keywords.
-   * @param [optional] aCharSet
-   *        The character set for the bookmarked page.
    * @return true if any transaction has been performed.
    *
    * Notes:
-   *  - the location, description and "loadInSidebar" fields are
+   *  - the location, description, keyword and "load in sidebar" fields are
    *    visible only if there is no initial URI (aURI is null).
    *  - When aDefaultInsertionPoint is not set, the dialog defaults to the
    *    bookmarks root folder.
@@ -435,68 +685,18 @@ var PlacesUIUtils = {
                                                    aDescription,
                                                    aDefaultInsertionPoint,
                                                    aShowPicker,
-                                                   aLoadInSidebar,
-                                                   aKeyword,
-                                                   aPostData,
-                                                   aCharSet) {
-    var info = {
-      action: "add",
-      type: "bookmark"
-    };
-
-    if (aURI)
-      info.uri = aURI;
-
-    // allow default empty title
-    if (typeof(aTitle) == "string")
-      info.title = aTitle;
-
-    if (aDescription)
-      info.description = aDescription;
-
-    if (aDefaultInsertionPoint) {
-      info.defaultInsertionPoint = aDefaultInsertionPoint;
-      if (!aShowPicker)
-        info.hiddenRows = ["folder picker"];
-    }
-
-    if (aLoadInSidebar)
-      info.loadBookmarkInSidebar = true;
-
-    if (typeof(aKeyword) == "string") {
-      info.keyword = aKeyword;
-      if (typeof(aPostData) == "string")
-        info.postData = aPostData;
-      if (typeof(aCharSet) == "string")
-        info.charSet = aCharSet;
-    }
-
-    return this._showBookmarkDialog(info);
-  },
-
-  /**
-   * @see showAddBookmarkUI
-   * This opens the dialog with only the name and folder pickers visible by
-   * default.
-   *
-   * You can still pass in the various paramaters as the default properties
-   * for the new bookmark.
-   *
-   * The keyword field will be visible only if the aKeyword parameter
-   * was used.
-   */
-  showMinimalAddBookmarkUI:
-  function PU_showMinimalAddBookmarkUI(aURI, aTitle, aDescription,
-                                       aDefaultInsertionPoint, aShowPicker,
-                                       aLoadInSidebar, aKeyword, aPostData,
-                                       aCharSet) {
+                                                   aLoadInSidebar) {
     var info = {
       action: "add",
       type: "bookmark",
-      hiddenRows: ["location", "description", "loadInSidebar"]
+      hiddenRows: []
     };
-    if (aURI)
+
+    if (aURI) {
       info.uri = aURI;
+      info.hiddenRows = ["location", "keyword", "description",
+                         "load in sidebar"];
+    }
 
     // allow default empty title
     if (typeof(aTitle) == "string")
@@ -514,17 +714,7 @@ var PlacesUIUtils = {
     if (aLoadInSidebar)
       info.loadBookmarkInSidebar = true;
 
-    if (typeof(aKeyword) == "string") {
-      info.keyword = aKeyword;
-      if (typeof(aPostData) == "string")
-        info.postData = aPostData;
-      if (typeof(aCharSet) == "string")
-        info.charSet = aCharSet;
-    }
-    else
-      info.hiddenRows.push("keyword");
-
-    this._showBookmarkDialog(info, true);
+    return this._showBookmarkDialog(info);
   },
 
   /**
@@ -542,7 +732,7 @@ var PlacesUIUtils = {
    * @param [optional] aShowPicker
    *        see above
    * @return true if any transaction has been performed.
-   *
+   * 
    * Notes:
    *  - the feedURI and description fields are visible only if there is no
    *    initial feed URI (aFeedURI is null).
@@ -557,49 +747,14 @@ var PlacesUIUtils = {
                                                     aShowPicker) {
     var info = {
       action: "add",
-      type: "livemark"
-    };
-
-    if (aFeedURI)
-      info.feedURI = aFeedURI;
-    if (aSiteURI)
-      info.siteURI = aSiteURI;
-
-    // allow default empty title
-    if (typeof(aTitle) == "string")
-      info.title = aTitle;
-
-    if (aDescription)
-      info.description = aDescription;
-
-    if (aDefaultInsertionPoint) {
-      info.defaultInsertionPoint = aDefaultInsertionPoint;
-      if (!aShowPicker)
-        info.hiddenRows = ["folder picker"];
-    }
-    return this._showBookmarkDialog(info);
-  },
-
-  /**
-   * @see showAddLivemarkUI
-   * This opens the dialog with only the name and folder pickers visible by
-   * default.
-   *
-   * You can still pass in the various paramaters as the default properties
-   * for the new live-bookmark.
-   */
-  showMinimalAddLivemarkUI:
-  function PU_showMinimalAddLivemarkURI(aFeedURI, aSiteURI, aTitle,
-                                        aDescription, aDefaultInsertionPoint,
-                                        aShowPicker) {
-    var info = {
-      action: "add",
       type: "livemark",
-      hiddenRows: ["feedURI", "siteURI", "description"]
+      hiddenRows: []
     };
 
-    if (aFeedURI)
+    if (aFeedURI) {
       info.feedURI = aFeedURI;
+      info.hiddenRows = ["description"];
+    }
     if (aSiteURI)
       info.siteURI = aSiteURI;
 
@@ -615,7 +770,7 @@ var PlacesUIUtils = {
       if (!aShowPicker)
         info.hiddenRows.push("folder picker");
     }
-    this._showBookmarkDialog(info, true);
+    return this._showBookmarkDialog(info);
   },
 
   /**
@@ -627,32 +782,46 @@ var PlacesUIUtils = {
    *                  to be bookmarked.
    * @return true if any transaction has been performed.
    */
-  showMinimalAddMultiBookmarkUI: function PU_showAddMultiBookmarkUI(aURIList) {
+  showAddMultiBookmarkUI: function PU_showAddMultiBookmarkUI(aURIList) {
     NS_ASSERT(aURIList.length,
               "showAddMultiBookmarkUI expects a list of nsIURI objects");
     var info = {
       action: "add",
-      type: "folder",
+      type: "folder with items",
       hiddenRows: ["description"],
       URIList: aURIList
     };
-    this._showBookmarkDialog(info, true);
+    return this._showBookmarkDialog(info);
   },
 
   /**
-   * Opens the properties dialog for a given item identifier.
+   * Opens the bookmark properties panel for a given bookmark idnetifier.
    *
-   * @param aItemId
-   *        item identifier for which the properties are to be shown
-   * @param aType
-   *        item type, either "bookmark" or "folder"
+   * @param aId
+   *        bookmark identifier for which the properties are to be shown
    * @return true if any transaction has been performed.
    */
-  showItemProperties: function PU_showItemProperties(aItemId, aType) {
+  showBookmarkProperties: function PU_showBookmarkProperties(aId) {
     var info = {
       action: "edit",
-      type: aType,
-      itemId: aItemId
+      type: "bookmark",
+      bookmarkId: aId
+    };
+    return this._showBookmarkDialog(info);
+  },
+
+  /**
+   * Opens the folder properties panel for a given folder ID.
+   *
+   * @param aId
+   *        an integer representing the ID of the folder to edit
+   * @return true if any transaction has been performed.
+   */
+  showFolderProperties: function PU_showFolderProperties(aId) {
+    var info = {
+      action: "edit",
+      type: "folder",
+      folderId: aId
     };
     return this._showBookmarkDialog(info);
   },
@@ -670,7 +839,7 @@ var PlacesUIUtils = {
    * @param [optional] aShowPicker
    *        see above
    * @return true if any transaction has been performed.
-   */
+   */        
   showAddFolderUI:
   function PU_showAddFolderUI(aTitle, aDefaultInsertionPoint, aShowPicker) {
     var info = {
@@ -697,31 +866,12 @@ var PlacesUIUtils = {
    * @param aInfo
    *        Describes the item to be edited/added in the dialog.
    *        See documentation at the top of bookmarkProperties.js
-   * @param aMinimalUI
-   *        [optional] if true, the dialog is opened by its alternative
-   *        chrome: uri.
-   *
-   * Note: In minimal UI mode, we open the dialog non-modal on any system but
-   *       Mac OS X.
-   * @return true if any transaction has been performed, false otherwise.
-   * Note: the return value of this method is not reliable in minimal UI mode
-   * since the dialog may not be opened modally.
+   * @return true if any transaction has been performed.
    */
-  _showBookmarkDialog: function PU__showBookmarkDialog(aInfo, aMinimalUI) {
-    var dialogURL = aMinimalUI ?
-                    "chrome://browser/content/places/bookmarkProperties2.xul" :
-                    "chrome://browser/content/places/bookmarkProperties.xul";
-
-    var features;
-    if (aMinimalUI)
-#ifdef XP_MACOSX
-      features = "centerscreen,chrome,dialog,resizable,modal";
-#else
-      features = "centerscreen,chrome,dialog,resizable,dependent";
-#endif
-    else
-      features = "centerscreen,chrome,modal,resizable=no";
-    window.openDialog(dialogURL, "",  features, aInfo);
+  _showBookmarkDialog: function PU__showBookmarkDialog(aInfo) {
+    window.openDialog("chrome://browser/content/places/bookmarkProperties.xul",
+                      "", "width=600,height=400,chrome,dependent,modal,resizable",
+                      aInfo);
     return ("performed" in aInfo && aInfo.performed);
   },
 
@@ -731,15 +881,8 @@ var PlacesUIUtils = {
    *        a DOM node
    * @return the closet ancestor places view if exists, null otherwsie.
    */
-  getViewForNode: function PU_getViewForNode(aNode) {
+  getViewForNode: function(aNode) {
     var node = aNode;
-
-    // the view for a <menu> of which its associated menupopup is a places view,
-    // is the menupopup
-    if (node.localName == "menu" && !node.node &&
-        node.firstChild.getAttribute("type") == "places")
-      return node.firstChild;
-
     while (node) {
       // XXXmano: Use QueryInterface(nsIPlacesView) once we implement it...
       if (node.getAttribute("type") == "places")
@@ -752,40 +895,16 @@ var PlacesUIUtils = {
   },
 
   /**
-   * By calling this before we visit a URL, we will use TRANSITION_TYPED
-   * as the transition for the visit to that URL (if we don't have a referrer).
-   * This is used when visiting pages from the history menu, history sidebar,
-   * url bar, url autocomplete results, and history searches from the places
-   * organizer.  If we don't call this, we'll treat those visits as
-   * TRANSITION_LINK.
-   */
-  markPageAsTyped: function PU_markPageAsTyped(aURL) {
-    PlacesUtils.history.QueryInterface(Ci.nsIBrowserHistory)
-               .markPageAsTyped(this.createFixedURI(aURL));
-  },
-
-  /**
-   * By calling this before we visit a URL, we will use TRANSITION_BOOKMARK
-   * as the transition for the visit to that URL (if we don't have a referrer).
-   * This is used when visiting pages from the bookmarks menu, 
-   * personal toolbar, and bookmarks from within the places organizer.
-   * If we don't call this, we'll treat those visits as TRANSITION_LINK.
-   */
-  markPageAsFollowedBookmark: function PU_markPageAsFollowedBookmark(aURL) {
-    PlacesUtils.history.markPageAsFollowedBookmark(this.createFixedURI(aURL));
-  },
-
-  /**
    * Allows opening of javascript/data URI only if the given node is
    * bookmarked (see bug 224521).
    * @param aURINode
    *        a URI node
    * @return true if it's safe to open the node in the browser, false otherwise.
-   *
+   * 
    */
   checkURLSecurity: function PU_checkURLSecurity(aURINode) {
-    if (!PlacesUtils.nodeIsBookmark(aURINode)) {
-      var uri = PlacesUtils._uri(aURINode.uri);
+    if (!this.nodeIsBookmark(aURINode)) {
+      var uri = this._uri(aURINode.uri);
       if (uri.schemeIs("javascript") || uri.schemeIs("data")) {
         const BRANDING_BUNDLE_URI = "chrome://branding/locale/brand.properties";
         var brandShortName = Cc["@mozilla.org/intl/stringbundle;1"].
@@ -796,7 +915,7 @@ var PlacesUIUtils = {
                             getService(Ci.nsIPromptService);
 
         var errorStr = this.getString("load-js-data-url-error");
-        promptService.alert(window, brandShortName, errorStr);
+        promptService.alert(window, brandStr, errorStr);
         return false;
       }
     }
@@ -804,441 +923,109 @@ var PlacesUIUtils = {
   },
 
   /**
-   * Get the description associated with a document, as specified in a <META>
+   * Fetch all annotations for a URI, including all properties of each
+   * annotation which would be required to recreate it.
+   * @param aURI
+   *        The URI for which annotations are to be retrieved.
+   * @return Array of objects, each containing the following properties:
+   *         name, flags, expires, mimeType, type, value
+   */
+  getAnnotationsForURI: function PU_getAnnotationsForURI(aURI) {
+    var annosvc = this.annotations;
+    var sv = Ci.mozIStorageValueArray;
+    var annos = [], val = null;
+    var annoNames = annosvc.getPageAnnotationNames(aURI, {});
+    for (var i = 0; i < annoNames.length; i++) {
+      var flags = {}, exp = {}, mimeType = {}, storageType = {};
+      annosvc.getAnnotationInfo(aURI, annoNames[i], flags, exp, mimeType, storageType);
+      switch (storageType.value) {
+        case sv.VALUE_TYPE_INTEGER:
+          val = annosvc.getAnnotationInt64(aURI, annoNames[i]);
+          break;
+        case sv.VALUE_TYPE_FLOAT:
+          val = annosvc.getAnnotationDouble(aURI, annoNames[i]);
+          break;
+        case sv.VALUE_TYPE_TEXT:
+          val = annosvc.getAnnotationString(aURI, annoNames[i]);
+          break;
+        case sv.VALUE_TYPE_BLOB:
+          val = annosvc.getAnnotationBinary(aURI, annoNames[i]);
+          break;
+      }
+      annos.push({name: annoNames[i],
+                  flags: flags.value,
+                  expires: exp.value,
+                  mimeType: mimeType.value,
+                  type: storageType.value,
+                  value: val});
+    }
+    return annos;
+  },
+
+  /**
+   * Annotate a URI with a batch of annotations.
+   * @param aURI
+   *        The URI for which annotations are to be retrieved.
+   * @param aAnnotations
+   *        Array of objects, each containing the following properties:
+   *        name, flags, expires, type, mimeType (only used for binary
+   *        annotations) value.
+   */
+  setAnnotationsForURI: function PU_setAnnotationsForURI(aURI, aAnnos) {
+    var annosvc = this.annotations;
+    var sv = Ci["mozIStorageValueArray"];
+    aAnnos.forEach(function(anno) {
+      switch (anno.type) {
+        case sv.VALUE_TYPE_INTEGER:
+          annosvc.setAnnotationInt64(aURI, anno.name, anno.value,
+                                                     anno.flags, anno.expires);
+          break;
+        case sv.VALUE_TYPE_FLOAT:
+          annosvc.setAnnotationDouble(aURI, anno.name, anno.value,
+                                                      anno.flags, anno.expires);
+          break;
+        case sv.VALUE_TYPE_TEXT:
+          annosvc.setAnnotationString(aURI, anno.name, anno.value,
+                                                      anno.flags, anno.expires);
+          break;
+        case sv.VALUE_TYPE_BLOB:
+          annosvc.setAnnotationBinary(aURI, anno.name, anno.value,
+                                                      anno.value.length, anno.mimeType,
+                                                      anno.flags, anno.expires);
+          break;
+      }
+    });
+  },
+
+  /**
+   * Helper for getting a serialized Places query for a particular folder.
+   * @param aFolderId The folder id to get a query for.
+   * @return string serialized place URI
+   */
+  getQueryStringForFolder: function PU_getQueryStringForFolder(aFolderId) {
+    var options = this.history.getNewQueryOptions();
+    options.setGroupingMode([Ci.nsINavHistoryQueryOptions.GROUP_BY_FOLDER], 1);
+    var query = this.history.getNewQuery();
+    query.setFolders([aFolderId], 1);
+    return this.history.queriesToQueryString([query], 1, options);
+  },
+
+  /**
+   * Get the description associated with a document, as specified in a <META> 
    * element.
    * @param   doc
    *          A DOM Document to get a description for
-   * @returns A description string if a META element was discovered with a
+   * @returns A description string if a META element was discovered with a 
    *          "description" or "httpequiv" attribute, empty string otherwise.
    */
   getDescriptionFromDocument: function PU_getDescriptionFromDocument(doc) {
     var metaElements = doc.getElementsByTagName("META");
     for (var i = 0; i < metaElements.length; ++i) {
-      if (metaElements[i].name.toLowerCase() == "description" ||
+      if (metaElements[i].localName.toLowerCase() == "description" || 
           metaElements[i].httpEquiv.toLowerCase() == "description") {
         return metaElements[i].content;
       }
     }
     return "";
-  },
-
-  /**
-   * Retrieve the description of an item
-   * @param aItemId
-   *        item identifier
-   * @returns the description of the given item, or an empty string if it is
-   * not set.
-   */
-  getItemDescription: function PU_getItemDescription(aItemId) {
-    if (PlacesUtils.annotations.itemHasAnnotation(aItemId, DESCRIPTION_ANNO))
-      return PlacesUtils.annotations.getItemAnnotation(aItemId, DESCRIPTION_ANNO);
-    return "";
-  },
-
-  /**
-   * Gives the user a chance to cancel loading lots of tabs at once
-   */
-  _confirmOpenInTabs: function PU__confirmOpenInTabs(numTabsToOpen) {
-    var pref = Cc["@mozilla.org/preferences-service;1"].
-               getService(Ci.nsIPrefBranch);
-
-    const kWarnOnOpenPref = "browser.tabs.warnOnOpen";
-    var reallyOpen = true;
-    if (pref.getBoolPref(kWarnOnOpenPref)) {
-      if (numTabsToOpen >= pref.getIntPref("browser.tabs.maxOpenBeforeWarn")) {
-        var promptService = Cc["@mozilla.org/embedcomp/prompt-service;1"].
-                            getService(Ci.nsIPromptService);
-
-        // default to true: if it were false, we wouldn't get this far
-        var warnOnOpen = { value: true };
-
-        var messageKey = "tabs.openWarningMultipleBranded";
-        var openKey = "tabs.openButtonMultiple";
-        const BRANDING_BUNDLE_URI = "chrome://branding/locale/brand.properties";
-        var brandShortName = Cc["@mozilla.org/intl/stringbundle;1"].
-                             getService(Ci.nsIStringBundleService).
-                             createBundle(BRANDING_BUNDLE_URI).
-                             GetStringFromName("brandShortName");
-
-        var buttonPressed = promptService.confirmEx(window,
-          this.getString("tabs.openWarningTitle"),
-          this.getFormattedString(messageKey, [numTabsToOpen, brandShortName]),
-          (promptService.BUTTON_TITLE_IS_STRING * promptService.BUTTON_POS_0)
-           + (promptService.BUTTON_TITLE_CANCEL * promptService.BUTTON_POS_1),
-          this.getString(openKey), null, null,
-          this.getFormattedString("tabs.openWarningPromptMeBranded",
-                                  [brandShortName]), warnOnOpen);
-
-        reallyOpen = (buttonPressed == 0);
-        // don't set the pref unless they press OK and it's false
-        if (reallyOpen && !warnOnOpen.value)
-          pref.setBoolPref(kWarnOnOpenPref, false);
-      }
-    }
-    return reallyOpen;
-  },
-
-  /** aItemsToOpen needs to be an array of objects of the form:
-    * {uri: string, isBookmark: boolean}
-    */
-  _openTabset: function PU__openTabset(aItemsToOpen, aEvent) {
-    var urls = [];
-    for (var i = 0; i < aItemsToOpen.length; i++) {
-      var item = aItemsToOpen[i];
-      if (item.isBookmark)
-        this.markPageAsFollowedBookmark(item.uri);
-      else
-        this.markPageAsTyped(item.uri);
-
-      urls.push(item.uri);
-    }
-
-    var browserWindow = getTopWin();
-    var where = browserWindow ?
-                whereToOpenLink(aEvent, false, true) : "window";
-    if (where == "window") {
-      window.openDialog(getBrowserURL(), "_blank",
-                        "chrome,all,dialog=no", urls.join("|"));
-      return;
-    }
-
-    var loadInBackground = where == "tabshifted" ? true : false;
-    var replaceCurrentTab = where == "tab" ? false : true;
-    browserWindow.getBrowser().loadTabs(urls, loadInBackground,
-                                        replaceCurrentTab);
-  },
-
-  openContainerNodeInTabs: function PU_openContainerInTabs(aNode, aEvent) {
-    var urlsToOpen = PlacesUtils.getURLsForContainerNode(aNode);
-    if (!this._confirmOpenInTabs(urlsToOpen.length))
-      return;
-
-    this._openTabset(urlsToOpen, aEvent);
-  },
-
-  openURINodesInTabs: function PU_openURINodesInTabs(aNodes, aEvent) {
-    var urlsToOpen = [];
-    for (var i=0; i < aNodes.length; i++) {
-      // skip over separators and folders
-      if (PlacesUtils.nodeIsURI(aNodes[i]))
-        urlsToOpen.push({uri: aNodes[i].uri, isBookmark: PlacesUtils.nodeIsBookmark(aNodes[i])});
-    }
-    this._openTabset(urlsToOpen, aEvent);
-  },
-
-  /**
-   * Loads the node's URL in the appropriate tab or window or as a web
-   * panel given the user's preference specified by modifier keys tracked by a
-   * DOM mouse/key event.
-   * @param   aNode
-   *          An uri result node.
-   * @param   aEvent
-   *          The DOM mouse/key event with modifier keys set that track the
-   *          user's preferred destination window or tab.
-   */
-  openNodeWithEvent: function PU_openNodeWithEvent(aNode, aEvent) {
-    this.openNodeIn(aNode, whereToOpenLink(aEvent));
-  },
-  
-  /**
-   * Loads the node's URL in the appropriate tab or window or as a
-   * web panel.
-   * see also openUILinkIn
-   */
-  openNodeIn: function PU_openNodeIn(aNode, aWhere) {
-    if (aNode && PlacesUtils.nodeIsURI(aNode) &&
-        this.checkURLSecurity(aNode)) {
-      var isBookmark = PlacesUtils.nodeIsBookmark(aNode);
-
-      if (isBookmark)
-        this.markPageAsFollowedBookmark(aNode.uri);
-      else
-        this.markPageAsTyped(aNode.uri);
-
-      // Check whether the node is a bookmark which should be opened as
-      // a web panel
-      if (aWhere == "current" && isBookmark) {
-        if (PlacesUtils.annotations
-                       .itemHasAnnotation(aNode.itemId, LOAD_IN_SIDEBAR_ANNO)) {
-          var w = getTopWin();
-          if (w) {
-            w.openWebPanel(aNode.title, aNode.uri);
-            return;
-          }
-        }
-      }
-      openUILinkIn(aNode.uri, aWhere);
-    }
-  },
-
-  /**
-   * Helper for the toolbar and menu views
-   */
-  createMenuItemForNode:
-  function PUU_createMenuItemForNode(aNode, aContainersMap) {
-    var element;
-    var type = aNode.type;
-    if (type == Ci.nsINavHistoryResultNode.RESULT_TYPE_SEPARATOR)
-      element = document.createElement("menuseparator");
-    else {
-      var iconURI = aNode.icon;
-      var iconURISpec = "";
-      if (iconURI)
-        iconURISpec = iconURI.spec;
-
-      if (PlacesUtils.uriTypes.indexOf(type) != -1) {
-        element = document.createElement("menuitem");
-        element.className = "menuitem-iconic bookmark-item";
-      }
-      else if (PlacesUtils.containerTypes.indexOf(type) != -1) {
-        element = document.createElement("menu");
-        element.setAttribute("container", "true");
-
-        if (aNode.type == Ci.nsINavHistoryResultNode.RESULT_TYPE_QUERY) {
-          element.setAttribute("query", "true");
-          if (PlacesUtils.nodeIsTagQuery(aNode))
-            element.setAttribute("tagContainer", "true");
-          else if (PlacesUtils.nodeIsDay(aNode))
-            element.setAttribute("dayContainer", "true");
-          else if (PlacesUtils.nodeIsHost(aNode))
-            element.setAttribute("hostContainer", "true");
-        }
-        else if (aNode.itemId != -1) {
-          if (PlacesUtils.nodeIsLivemarkContainer(aNode))
-            element.setAttribute("livemark", "true");
-        }
-
-        var popup = document.createElement("menupopup");
-        popup.setAttribute("placespopup", "true");
-        popup._resultNode = asContainer(aNode);
-#ifndef XP_MACOSX
-        // no context menu on mac
-        popup.setAttribute("context", "placesContext");
-#endif
-        element.appendChild(popup);
-        if (aContainersMap)
-          aContainersMap.push({ resultNode: aNode, domNode: popup });
-        element.className = "menu-iconic bookmark-item";
-      }
-      else
-        throw "Unexpected node";
-
-      element.setAttribute("label", this.getBestTitle(aNode));
-
-      if (iconURISpec)
-        element.setAttribute("image", iconURISpec);
-    }
-    element.node = aNode;
-    element.node.viewIndex = 0;
-
-    return element;
-  },
-
-  cleanPlacesPopup: function PU_cleanPlacesPopup(aPopup) {
-    // Find static menuitems at the start and at the end of the menupopup,
-    // marked by builder="start" and builder="end" attributes, and set
-    // markers to keep track of their indices.
-    var items = [];
-    aPopup._startMarker = -1;
-    aPopup._endMarker = -1;
-    for (var i = 0; i < aPopup.childNodes.length; ++i) {
-      var item = aPopup.childNodes[i];
-      if (item.getAttribute("builder") == "start") {
-        aPopup._startMarker = i;
-        continue;
-      }
-      if (item.getAttribute("builder") == "end") {
-        aPopup._endMarker = i;
-        continue;
-      }
-      if ((aPopup._startMarker != -1) && (aPopup._endMarker == -1))
-        items.push(item);
-    }
-
-    // If static items at the beginning were found, remove all items between
-    // them and the static content at the end.
-    for (var i = 0; i < items.length; ++i) {
-      // skip the empty menu item
-      if (aPopup._emptyMenuItem != items[i]) {
-        aPopup.removeChild(items[i]);
-        if (aPopup._endMarker > 0)
-          --aPopup._endMarker;
-      }
-    }
-
-    // If no static items were found at the beginning, remove all items before
-    // the static items at the end.
-    if (aPopup._startMarker == -1) {
-      var end = aPopup._endMarker == -1 ?
-                aPopup.childNodes.length - 1 : aPopup._endMarker - 1;
-      for (var i = end; i >= 0; i--) {
-        // skip the empty menu item
-        if (aPopup._emptyMenuItem != aPopup.childNodes[i]) {
-          aPopup.removeChild(aPopup.childNodes[i]);
-          if (aPopup._endMarker > 0)
-            --aPopup._endMarker;
-        }
-      }
-    }
-  },
-
-  getBestTitle: function PU_getBestTitle(aNode) {
-    var title;
-    if (!aNode.title && PlacesUtils.uriTypes.indexOf(aNode.type) != -1) {
-      // if node title is empty, try to set the label using host and filename
-      // PlacesUtils._uri() will throw if aNode.uri is not a valid URI
-      try {
-        var uri = PlacesUtils._uri(aNode.uri);
-        var host = uri.host;
-        var fileName = uri.QueryInterface(Ci.nsIURL).fileName;
-        // if fileName is empty, use path to distinguish labels
-        title = host + (fileName ?
-                        (host ? "/" + this.ellipsis + "/" : "") + fileName :
-                        uri.path);
-      }
-      catch (e) {
-        // Use (no title) for non-standard URIs (data:, javascript:, ...)
-        title = "";
-      }
-    }
-    else
-      title = aNode.title;
-
-    return title || this.getString("noTitle");
-  },
-
-  get leftPaneQueries() {    
-    // build the map
-    this.leftPaneFolderId;
-    return this.leftPaneQueries;
-  },
-
-  // get the folder id for the organizer left-pane folder
-  get leftPaneFolderId() {
-    var leftPaneRoot = -1;
-    var allBookmarksId;
-    var items = PlacesUtils.annotations
-                           .getItemsWithAnnotation(ORGANIZER_FOLDER_ANNO, {});
-    if (items.length != 0 && items[0] != -1) {
-      leftPaneRoot = items[0];
-      // check organizer left pane version
-      var version = PlacesUtils.annotations
-                               .getItemAnnotation(leftPaneRoot, ORGANIZER_FOLDER_ANNO);
-      if (version != ORGANIZER_LEFTPANE_VERSION) {
-        // If version is not valid we must rebuild the left pane.
-        PlacesUtils.bookmarks.removeFolder(leftPaneRoot);
-        leftPaneRoot = -1;
-      }
-    }
-
-    if (leftPaneRoot != -1) {
-      // Build the leftPaneQueries Map
-      delete this.leftPaneQueries;
-      this.leftPaneQueries = {};
-      var items = PlacesUtils.annotations
-                             .getItemsWithAnnotation(ORGANIZER_QUERY_ANNO, {});
-      for (var i=0; i < items.length; i++) {
-        var queryName = PlacesUtils.annotations
-                                   .getItemAnnotation(items[i], ORGANIZER_QUERY_ANNO);
-        this.leftPaneQueries[queryName] = items[i];
-      }
-      delete this.leftPaneFolderId;
-      return this.leftPaneFolderId = leftPaneRoot;
-    }
-
-    var self = this;
-    const EXPIRE_NEVER = PlacesUtils.annotations.EXPIRE_NEVER;
-    var callback = {
-      runBatched: function(aUserData) {
-        delete self.leftPaneQueries;
-        self.leftPaneQueries = { };
-
-        // Left Pane Root Folder
-        leftPaneRoot = PlacesUtils.bookmarks.createFolder(PlacesUtils.placesRootId, "", -1);
-        // ensure immediate children can't be removed
-        PlacesUtils.bookmarks.setFolderReadonly(leftPaneRoot, true);
-
-        // History Query
-        let uri = PlacesUtils._uri("place:sort=4&");
-        let title = self.getString("OrganizerQueryHistory");
-        let itemId = PlacesUtils.bookmarks.insertBookmark(leftPaneRoot, uri, -1, title);
-        PlacesUtils.annotations.setItemAnnotation(itemId, ORGANIZER_QUERY_ANNO,
-                                                  "History", 0, EXPIRE_NEVER);
-        self.leftPaneQueries["History"] = itemId;
-
-        // XXX: Downloads
-
-        // Tags Query
-        uri = PlacesUtils._uri("place:type=" +
-                          Ci.nsINavHistoryQueryOptions.RESULTS_AS_TAG_QUERY +
-                          "&sort=" +
-                          Ci.nsINavHistoryQueryOptions.SORT_BY_TITLE_ASCENDING);
-        title = PlacesUtils.bookmarks.getItemTitle(PlacesUtils.tagsFolderId);
-        itemId = PlacesUtils.bookmarks.insertBookmark(leftPaneRoot, uri, -1, title);
-        PlacesUtils.annotations.setItemAnnotation(itemId, ORGANIZER_QUERY_ANNO,
-                                                  "Tags", 0, EXPIRE_NEVER);
-        self.leftPaneQueries["Tags"] = itemId;
-
-        // All Bookmarks Folder
-        title = self.getString("OrganizerQueryAllBookmarks");
-        itemId = PlacesUtils.bookmarks.createFolder(leftPaneRoot, title, -1);
-        allBookmarksId = itemId;
-        PlacesUtils.annotations.setItemAnnotation(itemId, ORGANIZER_QUERY_ANNO,
-                                                  "AllBookmarks", 0, EXPIRE_NEVER);
-        self.leftPaneQueries["AllBookmarks"] = itemId;
-
-        // disallow manipulating this folder within the organizer UI
-        PlacesUtils.bookmarks.setFolderReadonly(allBookmarksId, true);
-
-        // All Bookmarks->Bookmarks Toolbar Query
-        uri = PlacesUtils._uri("place:folder=TOOLBAR");
-        itemId = PlacesUtils.bookmarks.insertBookmark(allBookmarksId, uri, -1, null);
-        PlacesUtils.annotations.setItemAnnotation(itemId, ORGANIZER_QUERY_ANNO,
-                                                  "BookmarksToolbar", 0, EXPIRE_NEVER);
-        self.leftPaneQueries["BookmarksToolbar"] = itemId;
-
-        // All Bookmarks->Bookmarks Menu Query
-        uri = PlacesUtils._uri("place:folder=BOOKMARKS_MENU");
-        itemId = PlacesUtils.bookmarks.insertBookmark(allBookmarksId, uri, -1, null);
-        PlacesUtils.annotations.setItemAnnotation(itemId, ORGANIZER_QUERY_ANNO,
-                                                  "BookmarksMenu", 0, EXPIRE_NEVER);
-        self.leftPaneQueries["BookmarksMenu"] = itemId;
-
-        // All Bookmarks->Unfiled bookmarks
-        uri = PlacesUtils._uri("place:folder=UNFILED_BOOKMARKS");
-        itemId = PlacesUtils.bookmarks.insertBookmark(allBookmarksId, uri, -1, null);
-        PlacesUtils.annotations.setItemAnnotation(itemId, ORGANIZER_QUERY_ANNO,
-                                                  "UnfiledBookmarks", 0,
-                                                  EXPIRE_NEVER);
-        self.leftPaneQueries["UnfiledBookmarks"] = itemId;
-
-        // disallow manipulating this folder within the organizer UI
-        PlacesUtils.bookmarks.setFolderReadonly(leftPaneRoot, true);
-      }
-    };
-    PlacesUtils.bookmarks.runInBatchMode(callback, null);
-    PlacesUtils.annotations.setItemAnnotation(leftPaneRoot,
-                                              ORGANIZER_FOLDER_ANNO,
-                                              ORGANIZER_LEFTPANE_VERSION,
-                                              0, EXPIRE_NEVER);
-    delete this.leftPaneFolderId;
-    return this.leftPaneFolderId = leftPaneRoot;
-  },
-
-  get allBookmarksFolderId() {
-    // ensure the left-pane root is initialized;
-    this.leftPaneFolderId;
-    delete this.allBookmarksFolderId;
-    return this.allBookmarksFolderId = this.leftPaneQueries["AllBookmarks"];
   }
 };
-
-PlacesUIUtils.placesFlavors = [PlacesUtils.TYPE_X_MOZ_PLACE_CONTAINER,
-                             PlacesUtils.TYPE_X_MOZ_PLACE_SEPARATOR,
-                             PlacesUtils.TYPE_X_MOZ_PLACE];
-
-PlacesUIUtils.GENERIC_VIEW_DROP_TYPES = [PlacesUtils.TYPE_X_MOZ_PLACE_CONTAINER,
-                                       PlacesUtils.TYPE_X_MOZ_PLACE_SEPARATOR,
-                                       PlacesUtils.TYPE_X_MOZ_PLACE,
-                                       PlacesUtils.TYPE_X_MOZ_URL,
-                                       PlacesUtils.TYPE_UNICODE];

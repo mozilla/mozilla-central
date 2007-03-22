@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'source.js';
-
 /**
    Filename:     source.js
    Description:  'Tests RegExp attribute source'

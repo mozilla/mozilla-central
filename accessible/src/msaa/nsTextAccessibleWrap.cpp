@@ -39,14 +39,20 @@
 // NOTE: alphabetically ordered
 #include "nsTextAccessibleWrap.h"
 #include "ISimpleDOMText_i.c"
+#include "nsContentCID.h"
 #include "nsIAccessibleDocument.h"
+#include "nsIDOMRange.h"
 #include "nsIFontMetrics.h"
 #include "nsIFrame.h"
 #include "nsPresContext.h"
 #include "nsIPresShell.h"
 #include "nsIRenderingContext.h"
+#include "nsISelection.h"
+#include "nsISelectionController.h"
 #include "nsIWidget.h"
 #include "nsIComponentManager.h"
+
+static NS_DEFINE_IID(kRangeCID, NS_RANGE_CID);
 
 // --------------------------------------------------------
 // nsTextAccessibleWrap Accessible
@@ -72,35 +78,25 @@ STDMETHODIMP nsTextAccessibleWrap::QueryInterface(REFIID iid, void** ppv)
   *ppv = nsnull;
 
   if (IID_IUnknown == iid || IID_ISimpleDOMText == iid)
-    *ppv = static_cast<ISimpleDOMText*>(this);
+    *ppv = NS_STATIC_CAST(ISimpleDOMText*, this);
 
   if (nsnull == *ppv)
     return nsAccessibleWrap::QueryInterface(iid, ppv);
    
-  (reinterpret_cast<IUnknown*>(*ppv))->AddRef(); 
+  (NS_REINTERPRET_CAST(IUnknown*, *ppv))->AddRef(); 
   return S_OK;
 }
 
 STDMETHODIMP nsTextAccessibleWrap::get_domText( 
     /* [retval][out] */ BSTR __RPC_FAR *aDomText)
 {
-__try {
-  *aDomText = NULL;
-
   if (!mDOMNode) {
     return E_FAIL; // Node already shut down
   }
   nsAutoString nodeValue;
 
   mDOMNode->GetNodeValue(nodeValue);
-  if (nodeValue.IsEmpty())
-    return S_FALSE;
-
-  *aDomText = ::SysAllocStringLen(nodeValue.get(), nodeValue.Length());
-  if (!*aDomText)
-    return E_OUTOFMEMORY;
-
-} __except(FilterA11yExceptions(::GetExceptionCode(), GetExceptionInformation())) { }
+  *aDomText = ::SysAllocString(nodeValue.get());
 
   return S_OK;
 }
@@ -113,8 +109,6 @@ STDMETHODIMP nsTextAccessibleWrap::get_clippedSubstringBounds(
     /* [out] */ int __RPC_FAR *aWidth,
     /* [out] */ int __RPC_FAR *aHeight)
 {
-__try {
-  *aX = *aY = *aWidth = *aHeight = 0;
   nscoord x, y, width, height, docX, docY, docWidth, docHeight;
   HRESULT rv = get_unclippedSubstringBounds(aStartIndex, aEndIndex, &x, &y, &width, &height);
   if (FAILED(rv)) {
@@ -137,7 +131,6 @@ __try {
   *aY = clippedRect.y;
   *aWidth = clippedRect.width;
   *aHeight = clippedRect.height;
-} __except(FilterA11yExceptions(::GetExceptionCode(), GetExceptionInformation())) { }
 
   return S_OK;
 }
@@ -150,9 +143,6 @@ STDMETHODIMP nsTextAccessibleWrap::get_unclippedSubstringBounds(
     /* [out] */ int __RPC_FAR *aWidth,
     /* [out] */ int __RPC_FAR *aHeight)
 {
-__try {
-  *aX = *aY = *aWidth = *aHeight = 0;
-
   if (!mDOMNode) {
     return E_FAIL; // Node already shut down
   }
@@ -161,27 +151,51 @@ __try {
                                     aX, aY, aWidth, aHeight))) {
     return NS_ERROR_FAILURE;
   }
-} __except(FilterA11yExceptions(::GetExceptionCode(), GetExceptionInformation())) { }
 
   return S_OK;
 }
 
 
-STDMETHODIMP nsTextAccessibleWrap::scrollToSubstring(
+STDMETHODIMP nsTextAccessibleWrap::scrollToSubstring( 
     /* [in] */ unsigned int aStartIndex,
     /* [in] */ unsigned int aEndIndex)
 {
-__try {
-  nsresult rv = nsAccUtils::ScrollSubstringTo(GetFrame(), mDOMNode, aStartIndex,
-                                              mDOMNode, aEndIndex,
-                                              nsIAccessibleScrollType::SCROLL_TYPE_ANYWHERE);
-  if (NS_FAILED(rv))
+  nsCOMPtr<nsIPresShell> presShell(GetPresShell());
+  nsIFrame *frame = GetFrame();
+
+  if (!frame || !presShell) {
+    return E_FAIL;  // This accessible has been shut down
+  }
+
+  nsPresContext *presContext = presShell->GetPresContext();
+  nsCOMPtr<nsIDOMRange> scrollToRange = do_CreateInstance(kRangeCID);
+  nsCOMPtr<nsISelectionController> selCon;
+  frame->GetSelectionController(presContext, getter_AddRefs(selCon));
+  if (!presContext || !scrollToRange || !selCon) {
     return E_FAIL;
-} __except(FilterA11yExceptions(::GetExceptionCode(), GetExceptionInformation())) { }
+  }
+
+  scrollToRange->SetStart(mDOMNode, aStartIndex);
+  scrollToRange->SetEnd(mDOMNode, aEndIndex);
+  nsCOMPtr<nsISelection> domSel;
+  selCon->GetSelection(nsISelectionController::SELECTION_ACCESSIBILITY, 
+                       getter_AddRefs(domSel));
+  if (domSel) {
+    domSel->RemoveAllRanges();
+    domSel->AddRange(scrollToRange);
+
+    selCon->ScrollSelectionIntoView(nsISelectionController::SELECTION_ACCESSIBILITY, 
+      nsISelectionController::SELECTION_ANCHOR_REGION, PR_TRUE);
+
+    domSel->CollapseToStart();
+  }
+
   return S_OK;
 }
 
 nsIFrame* nsTextAccessibleWrap::GetPointFromOffset(nsIFrame *aContainingFrame, 
+                                                   nsPresContext *aPresContext,
+                                                   nsIRenderingContext *aRendContext,
                                                    PRInt32 aOffset, 
                                                    PRBool aPreferNext, 
                                                    nsPoint& aOutPoint)
@@ -193,7 +207,8 @@ nsIFrame* nsTextAccessibleWrap::GetPointFromOffset(nsIFrame *aContainingFrame,
     return nsnull;
   }
 
-  textFrame->GetPointFromOffset(aOffset, &aOutPoint);
+  textFrame->GetPointFromOffset(aPresContext, aRendContext, aOffset, &aOutPoint);
+
   return textFrame;
 }
 
@@ -204,7 +219,6 @@ nsresult nsTextAccessibleWrap::GetCharacterExtents(PRInt32 aStartOffset, PRInt32
                                                    PRInt32* aX, PRInt32* aY, 
                                                    PRInt32* aWidth, PRInt32* aHeight) 
 {
-  *aX = *aY = *aWidth = *aHeight = 0;
   nsPresContext *presContext = GetPresContext();
   NS_ENSURE_TRUE(presContext, NS_ERROR_FAILURE);
 
@@ -213,10 +227,14 @@ nsresult nsTextAccessibleWrap::GetCharacterExtents(PRInt32 aStartOffset, PRInt32
 
   nsIWidget *widget = frame->GetWindow();
   NS_ENSURE_TRUE(widget, NS_ERROR_FAILURE);
+
+  nsCOMPtr<nsIRenderingContext> rendContext(getter_AddRefs(widget->GetRenderingContext()));
   
   nsPoint startPoint, endPoint;
-  nsIFrame *startFrame = GetPointFromOffset(frame, aStartOffset, PR_TRUE, startPoint);
-  nsIFrame *endFrame = GetPointFromOffset(frame, aEndOffset, PR_FALSE, endPoint);
+  nsIFrame *startFrame = GetPointFromOffset(frame, presContext, rendContext, 
+                                            aStartOffset, PR_TRUE, startPoint);
+  nsIFrame *endFrame = GetPointFromOffset(frame, presContext, rendContext, 
+                                          aEndOffset, PR_FALSE, endPoint);
   if (!startFrame || !endFrame) {
     return E_FAIL;
   }
@@ -245,9 +263,6 @@ nsresult nsTextAccessibleWrap::GetCharacterExtents(PRInt32 aStartOffset, PRInt32
 STDMETHODIMP nsTextAccessibleWrap::get_fontFamily(
     /* [retval][out] */ BSTR __RPC_FAR *aFontFamily)
 {
-__try {
-  *aFontFamily = NULL;
-
   nsIFrame *frame = GetFrame();
   nsCOMPtr<nsIPresShell> presShell = GetPresShell();
   if (!frame || !presShell) {
@@ -282,14 +297,7 @@ __try {
 
   nsAutoString fontFamily;
   deviceContext->FirstExistingFont(fm->Font(), fontFamily);
-  if (fontFamily.IsEmpty())
-    return S_FALSE;
-
-  *aFontFamily = ::SysAllocStringLen(fontFamily.get(), fontFamily.Length());
-  if (!*aFontFamily)
-    return E_OUTOFMEMORY;
-
-} __except(FilterA11yExceptions(::GetExceptionCode(), GetExceptionInformation())) { }
-
+  
+  *aFontFamily = ::SysAllocString(fontFamily.get());
   return S_OK;
 }

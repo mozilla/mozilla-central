@@ -83,6 +83,7 @@ static const ProtocolAssociation appProtocols[] = {
   { "http",   PR_TRUE  },
   { "https",  PR_TRUE  },
   { "ftp",    PR_FALSE },
+  { "gopher", PR_FALSE },
   { "chrome", PR_FALSE }
 };
 
@@ -365,6 +366,7 @@ WriteImage(const nsCString& aPath, gfxIImageFrame* aImage)
 
   gboolean res = gdk_pixbuf_save(pixbuf, aPath.get(), "png", NULL, NULL);
 
+  aImage->UnlockImageData();
   g_object_unref(pixbuf);
   return res ? NS_OK : NS_ERROR_FAILURE;
 #endif

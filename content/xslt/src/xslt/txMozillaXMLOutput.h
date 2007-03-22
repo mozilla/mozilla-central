@@ -64,6 +64,7 @@ class txTransformNotifier : public nsIScriptLoaderObserver,
 {
 public:
     txTransformNotifier();
+    virtual ~txTransformNotifier();
 
     NS_DECL_ISUPPORTS
     NS_DECL_NSISCRIPTLOADEROBSERVER
@@ -75,7 +76,7 @@ public:
 
     void Init(nsITransformObserver* aObserver);
     nsresult AddScriptElement(nsIScriptElement* aElement);
-    void AddPendingStylesheet();
+    nsresult AddStyleSheet(nsIStyleSheet* aStyleSheet);
     void OnTransformEnd(nsresult aResult = NS_OK);
     void OnTransformStart();
     nsresult SetOutputDocument(nsIDocument* aDocument);
@@ -86,7 +87,7 @@ private:
     nsCOMPtr<nsIDocument> mDocument;
     nsCOMPtr<nsITransformObserver> mObserver;
     nsCOMArray<nsIScriptElement> mScriptElements;
-    PRUint32 mPendingStylesheetCount;
+    nsCOMArray<nsIStyleSheet> mStylesheets;
     PRPackedBool mInTransform;
 };
 
@@ -102,6 +103,7 @@ public:
     txMozillaXMLOutput(txOutputFormat* aFormat,
                        nsIDOMDocumentFragment* aFragment,
                        PRBool aNoFixup);
+    virtual ~txMozillaXMLOutput();
 
     TX_DECL_TXAXMLEVENTHANDLER
     TX_DECL_TXAOUTPUTXMLEVENTHANDLER

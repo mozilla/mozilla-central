@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'match.js';
-
 /**
    Filename:     match.js
    Description:  'This tests the new String object method: match'

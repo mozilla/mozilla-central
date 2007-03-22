@@ -39,6 +39,7 @@
 #include "nsICharsetConverterManager.h"
 #include "nsILanguageAtomService.h"
 #include "nsIStringBundle.h"
+#include "nsISupportsArray.h"
 #include "nsCRT.h"
 #include "nsInterfaceHashtable.h"
 #include "nsIAtom.h"

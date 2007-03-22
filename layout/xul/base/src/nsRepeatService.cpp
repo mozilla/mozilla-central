@@ -45,7 +45,7 @@
 #include "nsRepeatService.h"
 #include "nsIServiceManager.h"
 
-#ifdef XP_MACOSX
+#if defined(XP_MAC) || defined(XP_MACOSX)
 #define INITAL_REPEAT_DELAY 250
 #define REPEAT_DELAY        25
 #else
@@ -56,13 +56,13 @@
 nsRepeatService* nsRepeatService::gInstance = nsnull;
 
 nsRepeatService::nsRepeatService()
-: mCallback(nsnull), mCallbackData(nsnull)
+: mFirstCall(PR_FALSE)
 {
 }
 
 nsRepeatService::~nsRepeatService()
 {
-  NS_ASSERTION(!mCallback && !mCallbackData, "Callback was not removed before shutdown");
+  Stop();
 }
 
 nsRepeatService* 
@@ -81,45 +81,50 @@ nsRepeatService::Shutdown()
   NS_IF_RELEASE(gInstance);
 }
 
-void nsRepeatService::Start(Callback aCallback, void* aCallbackData)
+void nsRepeatService::Start(nsITimerCallback* aCallback)
 {
   NS_PRECONDITION(aCallback != nsnull, "null ptr");
+  if (! aCallback)
+    return;
 
   mCallback = aCallback;
-  mCallbackData = aCallbackData;
   nsresult rv;
   mRepeatTimer = do_CreateInstance("@mozilla.org/timer;1", &rv);
 
-  if (NS_SUCCEEDED(rv))  {
+  if (NS_OK == rv)  {
     mRepeatTimer->InitWithCallback(this, INITAL_REPEAT_DELAY, nsITimer::TYPE_ONE_SHOT);
   }
+
 }
 
-void nsRepeatService::Stop(Callback aCallback, void* aCallbackData)
+void nsRepeatService::Stop()
 {
-  if (mCallback != aCallback || mCallbackData != aCallbackData)
-    return;
-
   //printf("Stopping repeat timer\n");
   if (mRepeatTimer) {
      mRepeatTimer->Cancel();
      mRepeatTimer = nsnull;
+     mCallback = nsnull;
   }
-  mCallback = nsnull;
-  mCallbackData = nsnull;
 }
 
 NS_IMETHODIMP nsRepeatService::Notify(nsITimer *timer)
 {
+   // if the repeat delay is the initial one reset it.
+  if (mRepeatTimer) {
+     mRepeatTimer->Cancel();
+  }
+
   // do callback
   if (mCallback)
-    mCallback(mCallbackData);
+    mCallback->Notify(timer);
 
   // start timer again.
   if (mRepeatTimer) {
-    mRepeatTimer->InitWithCallback(this, REPEAT_DELAY, nsITimer::TYPE_ONE_SHOT);
+     mRepeatTimer = do_CreateInstance("@mozilla.org/timer;1");
+     mRepeatTimer->InitWithCallback(this, REPEAT_DELAY, nsITimer::TYPE_ONE_SHOT);
   }
   return NS_OK;
 }
 
 NS_IMPL_ISUPPORTS1(nsRepeatService, nsITimerCallback)
+

@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '15.7.3.4-2.js';
-
 /**
    File Name:          15.7.3.4-2.js
    ECMA Section:       15.7.3.4 Number.NaN
@@ -58,14 +56,14 @@ var TITLE   = "Number.NaN";
 
 writeHeaderToLog( SECTION + " "+ TITLE );
 
-new TestCase(SECTION,
-	     "delete( Number.NaN ); Number.NaN",      
-	     NaN,       
+new TestCase(SECTION, 
+	     "delete( Number.NaN ); Number.NaN",       
+	     NaN,        
 	     eval("delete( Number.NaN );Number.NaN" ));
 
-new TestCase( SECTION,
-	      "delete( Number.NaN )",  
-	      false, 
+new TestCase( SECTION, 
+	      "delete( Number.NaN )",   
+	      false,  
 	      eval("delete( Number.NaN )") );
 
 test();

@@ -56,21 +56,26 @@ REQUIRES = xpcom \
 		  string \
 		  uconv \
 		  dom \
+		  webshell \
+		  docshell \
 		  plugin \
 		  content \
 		  layout \
 		  view \
+		  xul \
 		  necko \
+		  nkcache \
 		  locale \
 		  pref \
 		  intl \
+		  mimetype \
+		  unicharutil \
 		  exthandler \
 		  appshell \
-                  lcms \
 		  thebes \
+		  cairo \
 		  js \
 		  xpconnect \
-		  imglib2 \
 		  $(NULL)
 
 ifdef MOZ_ENABLE_GLITZ
@@ -83,9 +88,6 @@ endif
 
 EXPORTS = \
 		mozView.h \
-		nsChangeObserver.h \
-		nsIMenu.h \
-		nsIMenuItem.h \
 		$(NULL)
 
 CMMSRCS = \
@@ -94,7 +96,6 @@ CMMSRCS = \
 		nsMenuX.mm \
 		nsMenuBarX.mm \
 		nsMenuItemX.mm \
-		nsMenuItemIconX.mm \
 		nsFilePicker.mm \
 		nsDragService.mm \
 		nsToolkit.mm \
@@ -104,6 +105,7 @@ CMMSRCS = \
 		nsChildView.mm \
 		nsWindowMap.mm \
 		nsWidgetFactory.mm \
+		nsNativeScrollbar.mm \
 		nsCursorManager.mm \
 		nsMacCursor.mm \
 		nsScreenCocoa.mm \
@@ -115,12 +117,15 @@ CMMSRCS = \
 		nsPrintOptionsX.mm \
 		nsPrintSettingsX.mm \
 		nsPrintSessionX.mm \
-		nsIdleServiceX.mm \
 		$(NULL)
 
 XPIDLSRCS	+= \
+		nsIChangeManager.idl \
+		nsIMenuCommandDispatcher.idl \
 		nsPIWidgetCocoa.idl \
 		$(NULL)
+
+GFX_CPPSRCS     := $(addprefix $(topsrcdir)/gfx/src/mac/,$(GFX_LCPPSRCS))
 
 SHARED_LIBRARY_LIBS = ../xpwidgets/libxpwidgets_s.a
 
@@ -130,8 +135,10 @@ EXTRA_DSO_LDOPTS += \
 		$(call EXPAND_LIBNAME_PATH,gkgfx,$(DEPTH)/gfx/src) \
 		$(MOZ_COMPONENT_LIBS) \
 		-lthebes \
-		$(LCMS_LIBS) \
+		$(MOZ_FIX_LINK_PATHS) \
 		$(NULL)
+
+GARBAGE		+= $(GFX_LCPPSRCS)
 
 include $(topsrcdir)/config/rules.mk
 
@@ -151,6 +158,10 @@ $(NIB_DEST)/%: $(srcdir)/resources/MainMenu.nib/% $(NIB_DEST)
 	$(INSTALL) $< $(NIB_DEST)
 
 RESOURCE = libwidget.rsrc
+RES_SRC = nsMacWidget.r
+
+export:: $(GFX_CPPSRCS) $(srcdir)/../mac/$(RES_SRC)
+	$(INSTALL) $^ .
 
 # for objdir builds, symlink the cursors dir
 ABS_topsrcdir   := $(shell cd $(topsrcdir); pwd)
@@ -159,13 +170,8 @@ export::
 	ln -fs $(srcdir)/cursors
 endif
 
-export::
-	$(INSTALL) $(srcdir)/cursors $(DIST)/bin/res
-
-$(RESOURCE): nsMacWidget.r
+$(RESOURCE): $(RES_SRC)
 	/Developer/Tools/Rez -i /Developer/Headers/FlatCarbon -useDF $< -o $@
-
-GARBAGE += $(RESOURCE)
 
 libs:: $(RESOURCE)
 	$(INSTALL) $(IFLAGS1) $^ $(DIST)/bin
@@ -178,4 +184,10 @@ LOCAL_INCLUDES	= \
 LDFLAGS	+= \
 	-framework QuickTime \
 	-framework IOKit \
+	-framework Cocoa \
 	$(NULL)
+
+CXXFLAGS += \
+  -DUSE_COCOA \
+  $(NULL)
+

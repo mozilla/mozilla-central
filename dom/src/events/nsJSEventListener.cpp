@@ -53,8 +53,6 @@
 
 
 #ifdef NS_DEBUG
-#include "nsIJSContextStack.h"
-#include "nsDOMJSUtils.h"
 
 #include "nspr.h" // PR_fprintf
 
@@ -81,52 +79,29 @@ nsJSEventListener::nsJSEventListener(nsIScriptContext *aContext,
   // until we are done with it.
   NS_ASSERTION(aScopeObject && aContext,
                "EventListener with no context or scope?");
-  nsContentUtils::HoldScriptObject(aContext->GetScriptTypeID(), this,
-                                   &NS_CYCLE_COLLECTION_NAME(nsJSEventListener),
-                                   aScopeObject, PR_FALSE);
+  aContext->HoldScriptObject(aScopeObject);
 }
 
 nsJSEventListener::~nsJSEventListener() 
 {
-  if (mContext)
-    nsContentUtils::DropScriptObjects(mContext->GetScriptTypeID(), this,
-                                &NS_CYCLE_COLLECTION_NAME(nsJSEventListener));
+  mContext->DropScriptObject(mScopeObject);
 }
 
 NS_IMPL_CYCLE_COLLECTION_CLASS(nsJSEventListener)
-NS_IMPL_CYCLE_COLLECTION_ROOT_BEGIN(nsJSEventListener)
-  if (tmp->mContext &&
-      tmp->mContext->GetScriptTypeID() == nsIProgrammingLanguage::JAVASCRIPT) {
-    NS_DROP_JS_OBJECTS(tmp, nsJSEventListener);
-    tmp->mScopeObject = nsnull;
-  }
-NS_IMPL_CYCLE_COLLECTION_ROOT_END
 NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN(nsJSEventListener)
   NS_IMPL_CYCLE_COLLECTION_UNLINK_NSCOMPTR(mTarget)
-  if (tmp->mContext) {
-    if (tmp->mScopeObject) {
-      nsContentUtils::DropScriptObjects(tmp->mContext->GetScriptTypeID(), tmp,
-                                  &NS_CYCLE_COLLECTION_NAME(nsJSEventListener));
-      tmp->mScopeObject = nsnull;
-    }
-    NS_IMPL_CYCLE_COLLECTION_UNLINK_NSCOMPTR(mContext)
-  }
 NS_IMPL_CYCLE_COLLECTION_UNLINK_END
 NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN(nsJSEventListener)
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mTarget)
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mContext)
-  NS_IMPL_CYCLE_COLLECTION_TRAVERSE_SCRIPT_OBJECTS
+  cb.NoteScriptChild(nsIProgrammingLanguage::JAVASCRIPT, tmp->mScopeObject);
 NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
 
-NS_IMPL_CYCLE_COLLECTION_TRACE_BEGIN(nsJSEventListener)
-  NS_IMPL_CYCLE_COLLECTION_TRACE_MEMBER_CALLBACK(tmp->mContext->GetScriptTypeID(),
-                                                 mScopeObject)
-NS_IMPL_CYCLE_COLLECTION_TRACE_END
-
-NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION(nsJSEventListener)
+NS_INTERFACE_MAP_BEGIN(nsJSEventListener)
   NS_INTERFACE_MAP_ENTRY(nsIDOMEventListener)
   NS_INTERFACE_MAP_ENTRY(nsIJSEventListener)
   NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIDOMEventListener)
+  NS_INTERFACE_MAP_ENTRIES_CYCLE_COLLECTION(nsJSEventListener)
 NS_INTERFACE_MAP_END
 
 NS_IMPL_CYCLE_COLLECTING_ADDREF_AMBIGUOUS(nsJSEventListener, nsIDOMEventListener)
@@ -188,7 +163,7 @@ nsJSEventListener::HandleEvent(nsIDOMEvent* aEvent)
     if (event->message == NS_LOAD_ERROR &&
         event->eventStructType == NS_SCRIPT_ERROR_EVENT) {
       nsScriptErrorEvent *scriptEvent =
-        static_cast<nsScriptErrorEvent*>(event);
+        NS_STATIC_CAST(nsScriptErrorEvent*, event);
       // Create a temp argv for the error event.
       nsCOMPtr<nsIMutableArray> tempargv = 
         do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
@@ -233,16 +208,9 @@ nsJSEventListener::HandleEvent(nsIDOMEvent* aEvent)
     iargv = do_QueryInterface(tempargv);
   }
 
-  // mContext is the same context which event listener manager pushes
-  // to JS context stack.
-#ifdef NS_DEBUG
-  JSContext* cx = nsnull;
-  nsCOMPtr<nsIJSContextStack> stack =
-    do_GetService("@mozilla.org/js/xpc/ContextStack;1");
-  NS_ASSERTION(stack && NS_SUCCEEDED(stack->Peek(&cx)) && cx &&
-               GetScriptContextFromJSContext(cx) == mContext,
-               "JSEventListener has wrong script context?");
-#endif
+  // FIXME: bug 347480 - [The JSContext inside mContext] doesn't seem like
+  // the correct context on which to execute the event handler. Might need to
+  // get one from the JS thread context stack.
   nsCOMPtr<nsIVariant> vrv;
   rv = mContext->CallEventHandler(mTarget, mScopeObject, funcval, iargv,
                                   getter_AddRefs(vrv));
@@ -261,7 +229,7 @@ nsJSEventListener::HandleEvent(nsIDOMEvent* aEvent)
                      NS_ERROR_UNEXPECTED);
 
       nsBeforePageUnloadEvent *beforeUnload =
-        static_cast<nsBeforePageUnloadEvent *>(event);
+        NS_STATIC_CAST(nsBeforePageUnloadEvent *, event);
 
       if (dataType != nsIDataType::VTYPE_VOID) {
         aEvent->PreventDefault();

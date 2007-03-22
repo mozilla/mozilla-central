@@ -69,7 +69,6 @@ public:
   NS_FORWARD_NSIDOMSVGELEMENT(nsSVGAElementBase::)
 
   // nsINode interface methods
-  virtual nsresult PreHandleEvent(nsEventChainPreVisitor& aVisitor);
   virtual nsresult PostHandleEvent(nsEventChainPostVisitor& aVisitor);
   virtual nsresult Clone(nsINodeInfo *aNodeInfo, nsINode **aResult) const;
 
@@ -83,7 +82,6 @@ public:
   // nsIContent
   virtual PRBool IsFocusable(PRInt32 *aTabIndex = nsnull);
   virtual PRBool IsLink(nsIURI** aURI) const;
-  virtual void GetLinkTarget(nsAString& aTarget);
 
 protected:
 
@@ -168,15 +166,6 @@ nsSVGAElement::GetHref(nsIDOMSVGAnimatedString * *aHref)
 
 //----------------------------------------------------------------------
 // nsINode methods
-
-nsresult
-nsSVGAElement::PreHandleEvent(nsEventChainPreVisitor& aVisitor)
-{
-  nsresult rv = nsGenericElement::PreHandleEvent(aVisitor);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  return PreHandleEventForLinks(aVisitor);
-}
 
 nsresult
 nsSVGAElement::PostHandleEvent(nsEventChainPostVisitor& aVisitor)
@@ -298,14 +287,3 @@ nsSVGAElement::IsLink(nsIURI** aURI) const
   return PR_FALSE;
 }
 
-void
-nsSVGAElement::GetLinkTarget(nsAString& aTarget)
-{
-  GetAttr(kNameSpaceID_None, nsGkAtoms::target, aTarget);
-  if (aTarget.IsEmpty()) {
-    nsIDocument* ownerDoc = GetOwnerDoc();
-    if (ownerDoc) {
-      ownerDoc->GetBaseTarget(aTarget);
-    }
-  }
-}

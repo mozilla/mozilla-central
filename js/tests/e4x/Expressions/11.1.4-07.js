@@ -35,15 +35,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '11.1.4-07.js';
+START("11.1.4 - XML Initializer - <p:{b}b>x</p:bb>");
 
-var summary = "11.1.4 - XML Initializer - <p:{b}b>x</p:bb>";
-var BUGNUMBER = 321549;
+var bug = 321549;
+var summary = '<p:{b}b>x</p:bb>';
 var actual = 'No error';
 var expect = 'No error';
 
-printBugNumber(BUGNUMBER);
-START(summary);
+printBugNumber (bug);
+printStatus (summary);
 
 var b = 'b';
 

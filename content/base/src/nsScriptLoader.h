@@ -47,8 +47,6 @@
 #include "nsIScriptElement.h"
 #include "nsIURI.h"
 #include "nsCOMArray.h"
-#include "nsTArray.h"
-#include "nsAutoPtr.h"
 #include "nsIDocument.h"
 #include "nsIStreamLoader.h"
 
@@ -147,15 +145,31 @@ public:
   /**
    * Add/remove blocker. Blockers will stop scripts from executing, but not
    * from loading.
+   * NOTE! Calling RemoveExecuteBlocker could potentially execute pending
+   * scripts synchronously. In other words, it should not be done at 'unsafe'
+   * times
    */
   void AddExecuteBlocker()
   {
-    ++mBlockerCount;
+    if (!mBlockerCount++) {
+      mHadPendingScripts = mPendingRequests.Count() != 0;
+    }
   }
   void RemoveExecuteBlocker()
   {
     if (!--mBlockerCount) {
-      ProcessPendingRequestsAsync();
+      // If there were pending scripts then the newly added scripts will
+      // execute once whatever event triggers the pending scripts fires.
+      // However, due to synchronous loads and pushed event queues it's
+      // possible that the requests that were there have already been processed
+      // if so we need to process any new requests asynchronously.
+      // Ideally that should be fixed such that it can't happen.
+      if (mHadPendingScripts) {
+        ProcessPendingRequestsAsync();
+      }
+      else {
+        ProcessPendingRequests();
+      }
     }
   }
 
@@ -180,13 +194,6 @@ public:
    */
   void ProcessPendingRequests();
 
-  /**
-   * Check whether it's OK to execute a script loaded via aChannel in
-   * aDocument.
-   */
-  static PRBool ShouldExecuteScript(nsIDocument* aDocument,
-                                    nsIChannel* aChannel);
-
 protected:
   /**
    * Process any pending requests asyncronously (i.e. off an event) if there
@@ -195,26 +202,11 @@ protected:
    */
   virtual void ProcessPendingRequestsAsync();
 
-  /**
-   * If true, the loader is ready to execute scripts, and so are all its
-   * ancestors.  If the loader itself is ready but some ancestor is not, this
-   * function will add an execute blocker and ask the ancestor to remove it
-   * once it becomes ready.
-   */
-  PRBool ReadyToExecuteScripts();
-
-  /**
-   * Return whether just this loader is ready to execute scripts.
-   */
-  PRBool SelfReadyToExecuteScripts()
+  PRBool ReadyToExecuteScripts()
   {
     return mEnabled && !mBlockerCount;
   }
 
-  PRBool AddPendingChildLoader(nsScriptLoader* aChild) {
-    return mPendingChildLoaders.AppendElement(aChild) != nsnull;
-  }
-  
   nsresult ProcessRequest(nsScriptLoadRequest* aRequest);
   void FireScriptAvailable(nsresult aResult,
                            nsScriptLoadRequest* aRequest);
@@ -233,10 +225,9 @@ protected:
   nsCOMArray<nsIScriptLoaderObserver> mObservers;
   nsCOMArray<nsScriptLoadRequest> mPendingRequests;
   nsCOMPtr<nsIScriptElement> mCurrentScript;
-  // XXXbz do we want to cycle-collect these or something?  Not sure.
-  nsTArray< nsRefPtr<nsScriptLoader> > mPendingChildLoaders;
   PRUint32 mBlockerCount;
   PRPackedBool mEnabled;
+  PRPackedBool mHadPendingScripts;
 };
 
 #endif //__nsScriptLoader_h__

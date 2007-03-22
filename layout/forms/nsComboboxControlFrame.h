@@ -78,7 +78,7 @@ class nsComboboxDisplayFrame;
  * Child list name indices
  * @see #GetAdditionalChildListName()
  */
-#define NS_COMBO_LIST_COUNT   (NS_BLOCK_LIST_COUNT + 1)
+#define NS_COMBO_FRAME_POPUP_LIST_INDEX   (NS_BLOCK_FRAME_ABSOLUTE_LIST_INDEX + 1)
 
 class nsComboboxControlFrame : public nsAreaFrame,
                                public nsIFormControlFrame,
@@ -151,27 +151,13 @@ public:
   // nsIFormControlFrame
   virtual nsresult SetFormProperty(nsIAtom* aName, const nsAString& aValue);
   virtual nsresult GetFormProperty(nsIAtom* aName, nsAString& aValue) const; 
-  /**
-   * Inform the control that it got (or lost) focus.
-   * If it lost focus, the dropdown menu will be rolled up if needed,
-   * and FireOnChange() will be called.
-   * @param aOn PR_TRUE if got focus, PR_FALSE if lost focus.
-   * @param aRepaint if PR_TRUE then force repaint (NOTE: we always force repaint currently)
-   * @note This method might destroy |this|.
-   */
   virtual void SetFocus(PRBool aOn, PRBool aRepaint);
 
   //nsIComboboxControlFrame
   virtual PRBool IsDroppedDown() { return mDroppedDown; }
-  /**
-   * @note This method might destroy |this|.
-   */
   virtual void ShowDropDown(PRBool aDoDropDown);
   virtual nsIFrame* GetDropDown();
   virtual void SetDropDown(nsIFrame* aDropDownFrame);
-  /**
-   * @note This method might destroy |this|.
-   */
   virtual void RollupFromList();
   virtual void AbsolutelyPositionDropDown();
   virtual PRInt32 GetIndexOfDisplayArea();
@@ -190,22 +176,16 @@ public:
   NS_IMETHOD OnSetSelectedIndex(PRInt32 aOldIndex, PRInt32 aNewIndex);
 
   //nsIRollupListener
-  /**
-   * Hide the dropdown menu and stop capturing mouse events.
-   * @note This method might destroy |this|.
-   */
-  NS_IMETHOD Rollup(nsIContent** aLastRolledUp);
-  /**
-   * A combobox should roll up if a mousewheel event happens outside of
-   * the popup area.
-   */
+  // NS_DECL_NSIROLLUPLISTENER
+  NS_IMETHOD Rollup();
+   // a combobox should roll up if a mousewheel event happens outside of
+   // the popup area
   NS_IMETHOD ShouldRollupOnMouseWheelEvent(PRBool *aShouldRollup)
     { *aShouldRollup = PR_TRUE; return NS_OK;}
+  //NS_IMETHOD ShouldRollupOnMouseWheelEvent(nsIWidget *aWidget, PRBool *aShouldRollup) 
+  //{ *aShouldRollup = PR_FALSE; return NS_OK;}
 
-  /**
-   * A combobox should not roll up if activated by a mouse activate message
-   * (eg. X-mouse).
-   */
+  // a combobox should not roll up if activated by a mouse activate message (eg. X-mouse)
   NS_IMETHOD ShouldRollupOnMouseActivate(PRBool *aShouldRollup)
     { *aShouldRollup = PR_FALSE; return NS_OK;}
 
@@ -224,9 +204,6 @@ protected:
   nsresult ReflowDropdown(nsPresContext*          aPresContext, 
                           const nsHTMLReflowState& aReflowState);
 
-  // Helper for GetMinWidth/GetPrefWidth
-  nscoord GetIntrinsicWidth(nsIRenderingContext* aRenderingContext,
-                            nsLayoutUtils::IntrinsicWidthType aType);
 protected:
   class RedisplayTextEvent;
   friend class RedisplayTextEvent;
@@ -240,24 +217,14 @@ protected:
     nsComboboxControlFrame *mControlFrame;
   };
   
-  /**
-   * Show or hide the dropdown list.
-   * @note This method might destroy |this|.
-   */
   void ShowPopup(PRBool aShowPopup);
-
-  /**
-   * Show or hide the dropdown list.
-   * @param aShowList PR_TRUE to show, PR_FALSE to hide the dropdown.
-   * @note This method might destroy |this|.
-   * @return PR_FALSE if this frame is destroyed, PR_TRUE if still alive.
-   */
-  PRBool ShowList(nsPresContext* aPresContext, PRBool aShowList);
+  void ShowList(nsPresContext* aPresContext, PRBool aShowList);
   void CheckFireOnChange();
   void FireValueChangeEvent();
   nsresult RedisplayText(PRInt32 aIndex);
   void HandleRedisplayTextEvent();
   void ActuallyDisplayText(PRBool aNotify);
+  NS_IMETHOD ToggleList(nsPresContext* aPresContext);
 
   nsFrameList              mPopupFrames;             // additional named child list
   nsCOMPtr<nsIContent>     mDisplayContent;          // Anonymous content used to display the current selection

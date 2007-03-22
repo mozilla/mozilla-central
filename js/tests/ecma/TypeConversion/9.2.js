@@ -20,8 +20,7 @@
  * Portions created by the Initial Developer are Copyright (C) 1998
  * the Initial Developer. All Rights Reserved.
  *
- * Contributor(s): christine@netscape.com
- *                 Jesse Ruderman
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -36,8 +35,6 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-gTestfile = '9.2.js';
 
 /**
    File Name:          9.2.js
@@ -112,27 +109,5 @@ new TestCase( SECTION,    "Boolean(new Date())",         true,       Boolean(new
 new TestCase( SECTION,    "Boolean(new Date(0))",         true,       Boolean(new Date(0)) );
 new TestCase( SECTION,    "Boolean(Math)",         true,       Boolean(Math) );
 
-// bug 375793
-new TestCase( SECTION,
-              "NaN ? true : false",
-              false,
-              (NaN ? true : false) );
-new TestCase( SECTION,
-              "1000 % 0 ? true : false",
-              false,
-              (1000 % 0 ? true : false) );
-new TestCase( SECTION,
-              "(function(a,b){ return a % b ? true : false })(1000, 0)",
-              false,
-              ((function(a,b){ return a % b ? true : false })(1000, 0)) );
-
-new TestCase( SECTION,
-              "(function(x) { return !(x) })(0/0)",
-              true,
-              ((function(x) { return !(x) })(0/0)) );
-new TestCase( SECTION,
-              "!(0/0)",
-              true,
-              (!(0/0)) );
 test();
 

@@ -78,17 +78,6 @@ public:
     void SetExtend(GraphicsExtend extend);
     GraphicsExtend Extend() const;
 
-    enum GraphicsPatternType {
-        PATTERN_SOLID,
-        PATTERN_SURFACE,
-        PATTERN_LINEAR,
-        PATTERN_RADIAL
-    };
-
-    GraphicsPatternType GetType() const;
-
-    int CairoStatus();
-
     void SetFilter(int filter);
     int Filter() const;
 

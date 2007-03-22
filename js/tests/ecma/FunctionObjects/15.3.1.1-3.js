@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '15.3.1.1-3.js';
-
 /**
    File Name:          15.3.1.1-3.js
    ECMA Section:       15.3.1.1 The Function Constructor Called as a Function

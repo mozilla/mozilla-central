@@ -58,7 +58,7 @@
 #include "nsIDOMDocument.h"
 #include "nsIDOMAttr.h"
 #include "nsIDocument.h"
-#include "nsIDOMEventTarget.h" 
+#include "nsIDOMEventReceiver.h" 
 #include "nsIDOM3EventTarget.h" 
 #include "nsIDOMKeyEvent.h"
 #include "nsIDOMKeyListener.h" 
@@ -125,13 +125,11 @@
 #include "nsEditorUtils.h"
 #include "nsWSRunObject.h"
 #include "nsHTMLObjectResizer.h"
-#include "nsGkAtoms.h"
 
 #include "nsIFrame.h"
 #include "nsIView.h"
 #include "nsIWidget.h"
 #include "nsIParserService.h"
-#include "nsIEventStateManager.h"
 
 // Some utilities to handle annoying overloading of "A" tag for link and named anchor
 static char hrefText[] = "href";
@@ -162,8 +160,6 @@ nsHTMLEditor::nsHTMLEditor()
 , mIsMoving(PR_FALSE)
 , mSnapToGridEnabled(PR_FALSE)
 , mIsInlineTableEditingEnabled(PR_TRUE)
-, mInfoXIncrement(20)
-, mInfoYIncrement(20)
 , mGridSize(0)
 {
 } 
@@ -280,13 +276,14 @@ nsHTMLEditor::Init(nsIDOMDocument *aDoc, nsIPresShell *aPresShell,
   if (1)
   {
     // block to scope nsAutoEditInitRulesTrigger
-    nsAutoEditInitRulesTrigger rulesTrigger(static_cast<nsPlaintextEditor*>(this), rulesRes);
+    nsAutoEditInitRulesTrigger rulesTrigger(NS_STATIC_CAST(nsPlaintextEditor*,this), rulesRes);
 
     // Init the plaintext editor
     result = nsPlaintextEditor::Init(aDoc, aPresShell, aRoot, aSelCon, aFlags);
     if (NS_FAILED(result)) { return result; }
 
-    UpdateForFlags(aFlags);
+    // the HTML Editor is CSS-aware only in the case of Composer
+    mCSSAware = (0 == aFlags);
 
     // disable Composer-only features
     if (aFlags & eEditorMailMask)
@@ -305,7 +302,7 @@ nsHTMLEditor::Init(nsIDOMDocument *aDoc, nsIPresShell *aPresShell,
     // disable links
     nsPresContext *context = aPresShell->GetPresContext();
     if (!context) return NS_ERROR_NULL_POINTER;
-    if (!(mFlags & (eEditorPlaintextMask | eEditorAllowInteraction))) {
+    if (!(mFlags & eEditorPlaintextMask)) {
       mLinkHandler = context->GetLinkHandler();
 
       context->SetLinkHandler(nsnull);
@@ -320,10 +317,8 @@ nsHTMLEditor::Init(nsIDOMDocument *aDoc, nsIPresShell *aPresShell,
     mSelectionListenerP = new ResizerSelectionListener(this);
     if (!mSelectionListenerP) {return NS_ERROR_NULL_POINTER;}
 
-    if (!(mFlags & eEditorAllowInteraction)) {
-      // ignore any errors from this in case the file is missing
-      AddOverrideStyleSheet(NS_LITERAL_STRING("resource://gre/res/EditorOverride.css"));
-    }
+    // ignore any errors from this in case the file is missing
+    AddOverrideStyleSheet(NS_LITERAL_STRING("resource:/res/EditorOverride.css"));
 
     nsCOMPtr<nsISelection>selection;
     result = GetSelection(getter_AddRefs(selection));
@@ -374,10 +369,9 @@ nsHTMLEditor::RemoveEventListeners()
     return;
   }
 
-  nsCOMPtr<nsPIDOMEventTarget> piTarget = GetPIDOMEventTarget();
-  nsCOMPtr<nsIDOMEventTarget> target = do_QueryInterface(piTarget);
+  nsCOMPtr<nsIDOMEventReceiver> erP = GetDOMEventReceiver();
 
-  if (piTarget && target)
+  if (erP)
   {
     // Both mMouseMotionListenerP and mResizeEventListenerP can be
     // registerd with other targets than the DOM event receiver that
@@ -390,17 +384,17 @@ nsHTMLEditor::RemoveEventListeners()
     {
       // mMouseMotionListenerP might be registerd either by IID or
       // name, unregister by both.
-      piTarget->RemoveEventListenerByIID(mMouseMotionListenerP,
-                                         NS_GET_IID(nsIDOMMouseMotionListener));
+      erP->RemoveEventListenerByIID(mMouseMotionListenerP,
+                                    NS_GET_IID(nsIDOMMouseMotionListener));
 
-      target->RemoveEventListener(NS_LITERAL_STRING("mousemove"),
-                                  mMouseMotionListenerP, PR_TRUE);
+      erP->RemoveEventListener(NS_LITERAL_STRING("mousemove"),
+                               mMouseMotionListenerP, PR_TRUE);
     }
 
     if (mResizeEventListenerP)
     {
-      target->RemoveEventListener(NS_LITERAL_STRING("resize"),
-                                  mResizeEventListenerP, PR_FALSE);
+      erP->RemoveEventListener(NS_LITERAL_STRING("resize"),
+                               mResizeEventListenerP, PR_FALSE);
     }
   }
 
@@ -417,12 +411,12 @@ nsHTMLEditor::GetFlags(PRUint32 *aFlags)
   return mRules->GetFlags(aFlags);
 }
 
+
 NS_IMETHODIMP 
 nsHTMLEditor::SetFlags(PRUint32 aFlags)
 {
   if (!mRules) { return NS_ERROR_NULL_POINTER; }
-
-  UpdateForFlags(aFlags);
+  mCSSAware = ((aFlags & (eEditorNoCSSMask | eEditorMailMask)) == 0);
 
   return mRules->SetFlags(aFlags);
 }
@@ -434,7 +428,7 @@ nsHTMLEditor::InitRules()
   nsresult res = NS_NewHTMLEditRules(getter_AddRefs(mRules));
   if (NS_FAILED(res)) return res;
   if (!mRules) return NS_ERROR_UNEXPECTED;
-  res = mRules->Init(static_cast<nsPlaintextEditor*>(this), mFlags);
+  res = mRules->Init(NS_STATIC_CAST(nsPlaintextEditor*,this), mFlags);
   
   return res;
 }
@@ -619,7 +613,7 @@ nsHTMLEditor::NodeIsBlockStatic(nsIDOMNode *aNode, PRBool *aIsBlock)
       assertmsg.Append(tagName);
       char* assertstr = ToNewCString(assertmsg);
       NS_ASSERTION(*aIsBlock, assertstr);
-      NS_Free(assertstr);
+      Recycle(assertstr);
     }
   }
 #endif /* DEBUG */
@@ -710,11 +704,11 @@ nsHTMLEditor::IsBlockNode(nsIDOMNode *aNode)
 NS_IMETHODIMP 
 nsHTMLEditor::SetDocumentTitle(const nsAString &aTitle)
 {
-  nsRefPtr<EditTxn> txn;
-  nsresult result = TransactionFactory::GetNewTransaction(SetDocTitleTxn::GetCID(), getter_AddRefs(txn));
+  SetDocTitleTxn *txn;
+  nsresult result = TransactionFactory::GetNewTransaction(SetDocTitleTxn::GetCID(), (EditTxn **)&txn);
   if (NS_SUCCEEDED(result))  
   {
-    result = static_cast<SetDocTitleTxn*>(txn.get())->Init(this, &aTitle);
+    result = txn->Init(this, &aTitle);
 
     if (NS_SUCCEEDED(result)) 
     {
@@ -723,6 +717,8 @@ nsHTMLEditor::SetDocumentTitle(const nsAString &aTitle)
 
       result = nsEditor::DoTransaction(txn);  
     }
+    // The transaction system (if any) has taken ownership of txn
+    NS_IF_RELEASE(txn);
   }
   return result;
 }
@@ -1346,7 +1342,7 @@ NS_IMETHODIMP nsHTMLEditor::HandleKeyPress(nsIDOMKeyEvent* aKeyEvent)
 NS_IMETHODIMP nsHTMLEditor::TypedText(const nsAString& aString,
                                       PRInt32 aAction)
 {
-  nsAutoPlaceHolderBatch batch(this, nsGkAtoms::TypingTxnName);
+  nsAutoPlaceHolderBatch batch(this, gTypingTxnName);
 
   switch (aAction)
   {
@@ -3554,7 +3550,7 @@ nsHTMLEditor::ReplaceStyleSheet(const nsAString& aURL)
   rv = NS_NewURI(getter_AddRefs(uaURI), aURL);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = cssLoader->LoadSheet(uaURI, nsnull, this);
+  rv = cssLoader->LoadSheet(uaURI, this);
   NS_ENSURE_SUCCESS(rv, rv);
 
   return NS_OK;
@@ -3569,8 +3565,8 @@ nsHTMLEditor::RemoveStyleSheet(const nsAString &aURL)
   if (!sheet)
     return NS_ERROR_UNEXPECTED;
 
-  nsRefPtr<RemoveStyleSheetTxn> txn;
-  rv = CreateTxnForRemoveStyleSheet(sheet, getter_AddRefs(txn));
+  RemoveStyleSheetTxn* txn;
+  rv = CreateTxnForRemoveStyleSheet(sheet, &txn);
   if (!txn) rv = NS_ERROR_NULL_POINTER;
   if (NS_SUCCEEDED(rv))
   {
@@ -3581,6 +3577,8 @@ nsHTMLEditor::RemoveStyleSheet(const nsAString &aURL)
     // Remove it from our internal list
     rv = RemoveStyleSheetFromList(aURL);
   }
+  // The transaction system (if any) has taken ownership of txns
+  NS_IF_RELEASE(txn);
   
   return rv;
 }
@@ -3885,11 +3883,6 @@ nsHTMLEditor::GetEmbeddedObjects(nsISupportsArray** aNodeList)
 
 NS_IMETHODIMP nsHTMLEditor::DeleteNode(nsIDOMNode * aNode)
 {
-  // do nothing if the node is read-only
-  if (!IsModifiableNode(aNode)) {
-    return NS_ERROR_FAILURE;
-  }
-
   nsCOMPtr<nsIDOMNode> selectAllNode = FindUserSelectAllNode(aNode);
   
   if (selectAllNode)
@@ -3903,11 +3896,6 @@ NS_IMETHODIMP nsHTMLEditor::DeleteText(nsIDOMCharacterData *aTextNode,
                                        PRUint32             aOffset,
                                        PRUint32             aLength)
 {
-  // do nothing if the node is read-only
-  if (!IsModifiableNode(aTextNode)) {
-    return NS_ERROR_FAILURE;
-  }
-
   nsCOMPtr<nsIDOMNode> selectAllNode = FindUserSelectAllNode(aTextNode);
   
   if (selectAllNode)
@@ -3917,18 +3905,6 @@ NS_IMETHODIMP nsHTMLEditor::DeleteText(nsIDOMCharacterData *aTextNode,
   return nsEditor::DeleteText(aTextNode, aOffset, aLength);
 }
 
-NS_IMETHODIMP nsHTMLEditor::InsertTextImpl(const nsAString& aStringToInsert, 
-                                           nsCOMPtr<nsIDOMNode> *aInOutNode, 
-                                           PRInt32 *aInOutOffset,
-                                           nsIDOMDocument *aDoc)
-{
-  // do nothing if the node is read-only
-  if (!IsModifiableNode(*aInOutNode)) {
-    return NS_ERROR_FAILURE;
-  }
-
-  return nsEditor::InsertTextImpl(aStringToInsert, aInOutNode, aInOutOffset, aDoc);
-}
 
 #ifdef XP_MAC
 #pragma mark -
@@ -3968,14 +3944,6 @@ nsCOMPtr<nsIDOMNode> nsHTMLEditor::FindUserSelectAllNode(nsIDOMNode *aNode)
   } 
 
   return resultNode;
-}
-
-NS_IMETHODIMP_(PRBool)
-nsHTMLEditor::IsModifiableNode(nsIDOMNode *aNode)
-{
-  nsCOMPtr<nsIContent> content = do_QueryInterface(aNode);
-
-  return !content || !(content->IntrinsicState() & NS_EVENT_STATE_MOZ_READONLY);
 }
 
 static nsresult SetSelectionAroundHeadChildren(nsCOMPtr<nsISelection> aSelection, nsWeakPtr aDocWeak)
@@ -4098,8 +4066,8 @@ nsHTMLEditor::StyleSheetLoaded(nsICSSStyleSheet* aSheet, PRBool aWasAlternate,
   if (!mLastStyleSheetURL.IsEmpty())
     RemoveStyleSheet(mLastStyleSheetURL);
 
-  nsRefPtr<AddStyleSheetTxn> txn;
-  rv = CreateTxnForAddStyleSheet(aSheet, getter_AddRefs(txn));
+  AddStyleSheetTxn* txn;
+  rv = CreateTxnForAddStyleSheet(aSheet, &txn);
   if (!txn) rv = NS_ERROR_NULL_POINTER;
   if (NS_SUCCEEDED(rv))
   {
@@ -4127,6 +4095,8 @@ nsHTMLEditor::StyleSheetLoaded(nsICSSStyleSheet* aSheet, PRBool aWasAlternate,
       }
     }
   }
+  // The transaction system (if any) has taken ownership of txns
+  NS_IF_RELEASE(txn);
 
   return NS_OK;
 }
@@ -4233,36 +4203,6 @@ nsHTMLEditor::SelectEntireDocument(nsISelection *aSelection)
   return nsEditor::SelectEntireDocument(aSelection);
 }
 
-NS_IMETHODIMP
-nsHTMLEditor::SelectAll()
-{
-  ForceCompositionEnd();
-
-  nsresult rv;
-  nsCOMPtr<nsISelectionController> selCon = do_QueryReferent(mSelConWeak, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsISelection> selection;
-  rv = selCon->GetSelection(nsISelectionController::SELECTION_NORMAL,
-                            getter_AddRefs(selection));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsIDOMNode> anchorNode;
-  rv = selection->GetAnchorNode(getter_AddRefs(anchorNode));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsIContent> anchorContent = do_QueryInterface(anchorNode, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsIPresShell> ps = do_QueryReferent(mPresShellWeak);
-  nsIContent *rootContent = anchorContent->GetSelectionRootContent(ps);
-  NS_ASSERTION(rootContent, "GetSelectionRootContent failed");
-
-  nsCOMPtr<nsIDOMNode> rootElement = do_QueryInterface(rootContent, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  return selection->SelectAllChildren(rootElement);
-}
 
 
 #ifdef XP_MAC
@@ -4600,8 +4540,7 @@ nsHTMLEditor::CollapseAdjacentTextNodes(nsIDOMRange *aInRange)
 
     // get the prev sibling of the right node, and see if it's leftTextNode
     nsCOMPtr<nsIDOMNode> prevSibOfRightNode;
-    result =
-      rightTextNode->GetPreviousSibling(getter_AddRefs(prevSibOfRightNode));
+    result = GetPriorHTMLSibling(rightTextNode, address_of(prevSibOfRightNode));
     if (NS_FAILED(result)) return result;
     if (prevSibOfRightNode && (prevSibOfRightNode == leftTextNode))
     {
@@ -5427,25 +5366,6 @@ nsHTMLEditor::SetIsCSSEnabled(PRBool aIsCSSPrefChecked)
   {
     err = mHTMLCSSUtils->SetCSSEnabled(aIsCSSPrefChecked);
   }
-  // Disable the eEditorNoCSSMask flag if we're enabling StyleWithCSS.
-  if (NS_SUCCEEDED(err)) {
-    PRUint32 flags = 0;
-    err = GetFlags(&flags);
-    NS_ENSURE_SUCCESS(err, err);
-
-    if (aIsCSSPrefChecked) {
-      // Turn off NoCSS as we're enabling CSS
-      if (flags & eEditorNoCSSMask) {
-        flags -= eEditorNoCSSMask;
-      }
-    } else if (!(flags & eEditorNoCSSMask)) {
-      // Turn on NoCSS, as we're disabling CSS.
-      flags += eEditorNoCSSMask;
-    }
-
-    err = SetFlags(flags);
-    NS_ENSURE_SUCCESS(err, err);
-  }
   return err;
 }
 
@@ -5784,21 +5704,34 @@ nsHTMLEditor::CopyLastEditableChildStyles(nsIDOMNode * aPreviousBlock, nsIDOMNod
 nsresult
 nsHTMLEditor::GetElementOrigin(nsIDOMElement * aElement, PRInt32 & aX, PRInt32 & aY)
 {
-  aX = 0;
-  aY = 0;
-
+  // we are going to need the PresShell
   if (!mPresShellWeak) return NS_ERROR_NOT_INITIALIZED;
   nsCOMPtr<nsIPresShell> ps = do_QueryReferent(mPresShellWeak);
   if (!ps) return NS_ERROR_NOT_INITIALIZED;
 
   nsCOMPtr<nsIContent> content = do_QueryInterface(aElement);
-  nsIFrame *frame = ps->GetPrimaryFrameFor(content);
+  nsIFrame *frame = ps->GetPrimaryFrameFor(content); // not ref-counted
 
-  nsIFrame *container = ps->GetAbsoluteContainingBlock(frame);
-  if (!frame) return NS_OK;
-  nsPoint off = frame->GetOffsetTo(container);
-  aX = nsPresContext::AppUnitsToIntCSSPixels(off.x);
-  aY = nsPresContext::AppUnitsToIntCSSPixels(off.y);
+  if (nsHTMLEditUtils::IsHR(aElement) && frame) {
+    frame = frame->GetNextSibling();
+  }
+  PRInt32 offsetX = 0, offsetY = 0;
+  while (frame) {
+    // Look for a widget so we can get screen coordinates
+    nsIView* view = frame->GetViewExternal();
+    if (view && view->HasWidget())
+      break;
+    
+    // No widget yet, so count up the coordinates of the frame 
+    nsPoint origin = frame->GetPosition();
+    offsetX += origin.x;
+    offsetY += origin.y;
+
+    frame = frame->GetParent();
+  }
+
+  aX = nsPresContext::AppUnitsToIntCSSPixels(offsetX);
+  aY = nsPresContext::AppUnitsToIntCSSPixels(offsetY);
 
   return NS_OK;
 }

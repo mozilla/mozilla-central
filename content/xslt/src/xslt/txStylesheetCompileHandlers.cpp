@@ -38,7 +38,7 @@
 
 #include "txStylesheetCompiler.h"
 #include "txStylesheetCompileHandlers.h"
-#include "nsWhitespaceTokenizer.h"
+#include "txTokenizer.h"
 #include "txInstructions.h"
 #include "txAtoms.h"
 #include "txCore.h"
@@ -132,7 +132,7 @@ parseUseAttrSets(txStylesheetAttr* aAttributes,
         return rv;
     }
 
-    nsWhitespaceTokenizer tok(attr->mValue);
+    txTokenizer tok(attr->mValue);
     while (tok.hasMoreTokens()) {
         txExpandedName name;
         rv = name.init(tok.nextToken(), aState.mElementContext->mMappings,
@@ -996,7 +996,7 @@ txFnStartOutput(PRInt32 aNamespaceID,
     getStyleAttr(aAttributes, aAttrCount, kNameSpaceID_None,
                  txXSLTAtoms::cdataSectionElements, PR_FALSE, &attr);
     if (attr) {
-        nsWhitespaceTokenizer tokens(attr->mValue);
+        txTokenizer tokens(attr->mValue);
         while (tokens.hasMoreTokens()) {
             txExpandedName* qname = new txExpandedName();
             NS_ENSURE_TRUE(qname, NS_ERROR_OUT_OF_MEMORY);
@@ -1056,7 +1056,7 @@ txFnStartStripSpace(PRInt32 aNamespaceID,
     nsAutoPtr<txStripSpaceItem> stripItem(new txStripSpaceItem);
     NS_ENSURE_TRUE(stripItem, NS_ERROR_OUT_OF_MEMORY);
 
-    nsWhitespaceTokenizer tokenizer(attr->mValue);
+    txTokenizer tokenizer(attr->mValue);
     while (tokenizer.hasMoreTokens()) {
         const nsASingleFragmentString& name = tokenizer.nextToken();
         PRInt32 ns = kNameSpaceID_None;
@@ -1229,7 +1229,7 @@ txFnEndTopVariable(txStylesheetCompilerState& aState)
 {
     txHandlerTable* prev = aState.mHandlerTable;
     aState.popHandlerTable();
-    txVariableItem* var = static_cast<txVariableItem*>(aState.popPtr());
+    txVariableItem* var = NS_STATIC_CAST(txVariableItem*, aState.popPtr());
 
     if (prev == gTxTopVariableHandler) {
         // No children were found.
@@ -1481,14 +1481,14 @@ txFnEndApplyTemplates(txStylesheetCompilerState& aState)
     aState.popHandlerTable();
 
     txPushNewContext* pushcontext =
-        static_cast<txPushNewContext*>(aState.popObject());
+        NS_STATIC_CAST(txPushNewContext*, aState.popObject());
     nsAutoPtr<txInstruction> instr(pushcontext); // txPushNewContext
     nsresult rv = aState.addInstruction(instr);
     NS_ENSURE_SUCCESS(rv, rv);
 
     aState.popSorter();
 
-    instr = static_cast<txInstruction*>(aState.popObject()); // txApplyTemplates
+    instr = NS_STATIC_CAST(txInstruction*, aState.popObject()); // txApplyTemplates
     nsAutoPtr<txLoopNodeSet> loop(new txLoopNodeSet(instr));
     NS_ENSURE_TRUE(loop, NS_ERROR_OUT_OF_MEMORY);
 
@@ -1559,8 +1559,8 @@ nsresult
 txFnEndAttribute(txStylesheetCompilerState& aState)
 {
     aState.popHandlerTable();
-    nsAutoPtr<txInstruction> instr(static_cast<txInstruction*>
-                                              (aState.popObject()));
+    nsAutoPtr<txInstruction> instr(NS_STATIC_CAST(txInstruction*,
+                                                  aState.popObject()));
     nsresult rv = aState.addInstruction(instr);
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -1613,7 +1613,8 @@ txFnEndCallTemplate(txStylesheetCompilerState& aState)
     aState.popHandlerTable();
 
     // txCallTemplate
-    nsAutoPtr<txInstruction> instr(static_cast<txInstruction*>(aState.popObject()));
+    nsAutoPtr<txInstruction> instr(NS_STATIC_CAST(txInstruction*, 
+                                                  aState.popObject()));
     nsresult rv = aState.addInstruction(instr);
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -1661,7 +1662,7 @@ txFnEndChoose(txStylesheetCompilerState& aState)
     aState.popHandlerTable();
     txListIterator iter(aState.mChooseGotoList);
     txGoTo* gotoinstr;
-    while ((gotoinstr = static_cast<txGoTo*>(iter.next()))) {
+    while ((gotoinstr = NS_STATIC_CAST(txGoTo*, iter.next()))) {
         rv = aState.addGotoTarget(&gotoinstr->mTarget);
         NS_ENSURE_SUCCESS(rv, rv);
     }
@@ -1749,7 +1750,7 @@ txFnEndCopy(txStylesheetCompilerState& aState)
     nsresult rv = aState.addInstruction(instr);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    txCopy* copy = static_cast<txCopy*>(aState.popPtr());
+    txCopy* copy = NS_STATIC_CAST(txCopy*, aState.popPtr());
     rv = aState.addGotoTarget(&copy->mBailTarget);
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -1929,7 +1930,7 @@ txFnEndForEach(txStylesheetCompilerState& aState)
 
     // This is a txPushNullTemplateRule
     txInstruction* pnullrule =
-        static_cast<txInstruction*>(aState.popPtr());
+        NS_STATIC_CAST(txInstruction*, aState.popPtr());
 
     nsAutoPtr<txInstruction> instr(new txLoopNodeSet(pnullrule));
     nsresult rv = aState.addInstruction(instr);
@@ -1937,7 +1938,7 @@ txFnEndForEach(txStylesheetCompilerState& aState)
 
     aState.popSorter();
     txPushNewContext* pushcontext =
-        static_cast<txPushNewContext*>(aState.popPtr());
+        NS_STATIC_CAST(txPushNewContext*, aState.popPtr());
     aState.addGotoTarget(&pushcontext->mBailTarget);
 
     return NS_OK;
@@ -2006,7 +2007,7 @@ nsresult
 txFnEndIf(txStylesheetCompilerState& aState)
 {
     txConditionalGoto* condGoto =
-        static_cast<txConditionalGoto*>(aState.popPtr());
+        NS_STATIC_CAST(txConditionalGoto*, aState.popPtr());
     return aState.addGotoTarget(&condGoto->mTarget);
 }
 
@@ -2050,7 +2051,8 @@ txFnStartMessage(PRInt32 aNamespaceID,
 nsresult
 txFnEndMessage(txStylesheetCompilerState& aState)
 {
-    nsAutoPtr<txInstruction> instr(static_cast<txInstruction*>(aState.popObject()));
+    nsAutoPtr<txInstruction> instr(NS_STATIC_CAST(txInstruction*, 
+                                                  aState.popObject()));
     nsresult rv = aState.addInstruction(instr);
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -2235,8 +2237,8 @@ txFnStartParam(PRInt32 aNamespaceID,
 nsresult
 txFnEndParam(txStylesheetCompilerState& aState)
 {
-    nsAutoPtr<txSetVariable> var(static_cast<txSetVariable*>
-                                            (aState.popObject()));
+    nsAutoPtr<txSetVariable> var(NS_STATIC_CAST(txSetVariable*,
+                                                aState.popObject()));
     txHandlerTable* prev = aState.mHandlerTable;
     aState.popHandlerTable();
 
@@ -2255,7 +2257,7 @@ txFnEndParam(txStylesheetCompilerState& aState)
     rv = aState.addInstruction(instr);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    txCheckParam* checkParam = static_cast<txCheckParam*>(aState.popPtr());
+    txCheckParam* checkParam = NS_STATIC_CAST(txCheckParam*, aState.popPtr());
     aState.addGotoTarget(&checkParam->mBailTarget);
 
     return NS_OK;
@@ -2301,8 +2303,8 @@ txFnStartPI(PRInt32 aNamespaceID,
 nsresult
 txFnEndPI(txStylesheetCompilerState& aState)
 {
-    nsAutoPtr<txInstruction> instr(static_cast<txInstruction*>
-                                              (aState.popObject()));
+    nsAutoPtr<txInstruction> instr(NS_STATIC_CAST(txInstruction*,
+                                                  aState.popObject()));
     nsresult rv = aState.addInstruction(instr);
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -2514,8 +2516,8 @@ txFnStartVariable(PRInt32 aNamespaceID,
 nsresult
 txFnEndVariable(txStylesheetCompilerState& aState)
 {
-    nsAutoPtr<txSetVariable> var(static_cast<txSetVariable*>
-                                            (aState.popObject()));
+    nsAutoPtr<txSetVariable> var(NS_STATIC_CAST(txSetVariable*,
+                                                aState.popObject()));
 
     txHandlerTable* prev = aState.mHandlerTable;
     aState.popHandlerTable();
@@ -2621,7 +2623,7 @@ txFnEndWhen(txStylesheetCompilerState& aState)
     NS_ENSURE_SUCCESS(rv, rv);
 
     txConditionalGoto* condGoto =
-        static_cast<txConditionalGoto*>(aState.popPtr());
+        NS_STATIC_CAST(txConditionalGoto*, aState.popPtr());
     rv = aState.addGotoTarget(&condGoto->mTarget);
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -2679,7 +2681,7 @@ txFnStartWithParam(PRInt32 aNamespaceID,
 nsresult
 txFnEndWithParam(txStylesheetCompilerState& aState)
 {
-    nsAutoPtr<txSetParam> var(static_cast<txSetParam*>(aState.popObject()));
+    nsAutoPtr<txSetParam> var(NS_STATIC_CAST(txSetParam*, aState.popObject()));
     txHandlerTable* prev = aState.mHandlerTable;
     aState.popHandlerTable();
 
@@ -3065,7 +3067,6 @@ void
 txHandlerTable::shutdown()
 {
     SHUTDOWN_HANDLER(Root);
-    SHUTDOWN_HANDLER(Embed);
     SHUTDOWN_HANDLER(Top);
     SHUTDOWN_HANDLER(Ignore);
     SHUTDOWN_HANDLER(Template);

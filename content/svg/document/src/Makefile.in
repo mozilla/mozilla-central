@@ -45,21 +45,23 @@ include $(DEPTH)/config/autoconf.mk
 MODULE		= content
 LIBRARY_NAME	= gkconsvgdoc_s
 LIBXUL_LIBRARY	= 1
-REQUIRES	= \
+REQUIRES	= content \
 		  layout \
 		  widget \
 		  xpcom \
 		  string \
 		  gfx \
-		  thebes \
 		  dom \
 		  webshell \
 		  htmlparser \
+		  lwbrk \
 		  necko \
 		  pref \
 		  js \
 		  caps \
 		  locale \
+		  view \
+		  xpconnect \
 		  $(NULL)
 
 CPPSRCS		= \

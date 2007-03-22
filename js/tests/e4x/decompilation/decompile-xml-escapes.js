@@ -34,16 +34,13 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-gTestfile = 'decompile-xml-escapes.js';
-
 //-----------------------------------------------------------------------------
-var BUGNUMBER     = "352285";
+var bug     = "352285";
 var summary = "Decompiler escapes line breaks/backslashes in E4X literals";
 var actual, expect;
 
-printBugNumber(BUGNUMBER);
-START(summary);
+printBugNumber(bug);
+printStatus(summary);
 
 /**************
  * BEGIN TEST *

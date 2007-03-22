@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -34,9 +33,8 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK ***** */
-
-/*
+ * ***** END LICENSE BLOCK *****
+ *
  *
  * Date:    31 August 2002
  * SUMMARY: RegExp conformance test
@@ -44,9 +42,8 @@
  *
  */
 //-----------------------------------------------------------------------------
-var gTestfile = 'regress-165353.js';
 var i = 0;
-var BUGNUMBER = 165353;
+var bug = 165353;
 var summary = 'RegExp conformance test';
 var status = '';
 var statusmessages = new Array();
@@ -61,38 +58,38 @@ var expectedmatches = new Array();
 
 
 pattern = /^([a-z]+)*[a-z]$/;
-status = inSection(1);
-string = 'a';
-actualmatch = string.match(pattern);
-expectedmatch = Array('a', undefined);
-addThis();
+  status = inSection(1);
+  string = 'a';
+  actualmatch = string.match(pattern);
+  expectedmatch = Array('a', undefined);
+  addThis();
 
-status = inSection(2);
-string = 'ab';
-actualmatch = string.match(pattern);
-expectedmatch = Array('ab', 'a');
-addThis();
+  status = inSection(2);
+  string = 'ab';
+  actualmatch = string.match(pattern);
+  expectedmatch = Array('ab', 'a');
+  addThis();
 
-status = inSection(3);
-string = 'abc';
-actualmatch = string.match(pattern);
-expectedmatch = Array('abc', 'ab');
-addThis();
+  status = inSection(3);
+  string = 'abc';
+  actualmatch = string.match(pattern);
+  expectedmatch = Array('abc', 'ab');
+  addThis();
 
 
 string = 'www.netscape.com';
-status = inSection(4);
-pattern = /^(([a-z]+)*[a-z]\.)+[a-z]{2,}$/;
-actualmatch = string.match(pattern);
-expectedmatch = Array('www.netscape.com', 'netscape.', 'netscap');
-addThis();
+  status = inSection(4);
+  pattern = /^(([a-z]+)*[a-z]\.)+[a-z]{2,}$/;
+  actualmatch = string.match(pattern);
+  expectedmatch = Array('www.netscape.com', 'netscape.', 'netscap');
+  addThis();
 
-// add one more capturing parens to the previous regexp -
-status = inSection(5);
-pattern = /^(([a-z]+)*([a-z])\.)+[a-z]{2,}$/;
-actualmatch = string.match(pattern);
-expectedmatch = Array('www.netscape.com', 'netscape.', 'netscap', 'e');
-addThis();
+  // add one more capturing parens to the previous regexp -
+  status = inSection(5);
+  pattern = /^(([a-z]+)*([a-z])\.)+[a-z]{2,}$/;
+  actualmatch = string.match(pattern);
+  expectedmatch = Array('www.netscape.com', 'netscape.', 'netscap', 'e');
+  addThis();
 
 
 
@@ -115,7 +112,7 @@ function addThis()
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
   testRegExp(statusmessages, patterns, strings, actualmatches, expectedmatches);
   exitFunc ('test');

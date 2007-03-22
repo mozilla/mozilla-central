@@ -140,8 +140,8 @@ NS_IMETHODIMP nsAccessProxy::HandleEvent(nsIDOMEvent* aEvent)
   domNode->GetOwnerDocument(getter_AddRefs(domDoc));
   if (domDoc) {
     doc = do_QueryInterface(domDoc);
-    if (doc) {
-      presShell = doc->GetPrimaryShell();
+    if (doc && doc->GetNumberOfShells()>0) {
+      presShell = doc->GetShellAt(0);
     }
   }
   //return  NS_OK;
@@ -189,7 +189,7 @@ NS_IMETHODIMP nsAccessProxy::Observe(nsISupports *aSubject, const char *aTopic, 
     nsCOMPtr<nsIWebProgress> progress(do_GetService(NS_DOCUMENTLOADER_SERVICE_CONTRACTID));
     rv = NS_ERROR_FAILURE;
     if (progress) {
-      rv = progress->AddProgressListener(static_cast<nsIWebProgressListener*>(this),
+      rv = progress->AddProgressListener(NS_STATIC_CAST(nsIWebProgressListener*,this),
                                          nsIWebProgress::NOTIFY_STATE_DOCUMENT);
       if (NS_SUCCEEDED(rv))
         AddRef();

@@ -13,7 +13,7 @@
 #
 # The Original Code is FUEL.
 #
-# The Initial Developer of the Original Code is Mozilla Corporation.
+# The Initial Developer of the Original Code is Mozilla.
 # Portions created by the Initial Developer are Copyright (C) 2006
 # the Initial Developer. All Rights Reserved.
 #
@@ -35,18 +35,13 @@
 #
 # ***** END LICENSE BLOCK *****
 
-DEPTH     = ../..
-topsrcdir = @top_srcdir@
-srcdir    = @srcdir@
-VPATH     = @srcdir@
+DEPTH		= ../..
+topsrcdir	= @top_srcdir@
+srcdir	= @srcdir@
+VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
 DIRS = public src
 
-ifdef MOZ_MOCHITEST
-DIRS += test
-endif
-
 include $(topsrcdir)/config/rules.mk
-

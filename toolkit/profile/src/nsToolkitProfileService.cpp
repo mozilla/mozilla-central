@@ -118,22 +118,20 @@ private:
     nsProfileLock mLock;
 };
 
-class nsToolkitProfileFactory : public nsIFactory
-{
-public:
-    NS_DECL_ISUPPORTS
-    NS_DECL_NSIFACTORY
-};
-
-class nsToolkitProfileService : public nsIToolkitProfileService
+class nsToolkitProfileService : public nsIToolkitProfileService,
+                                public nsIFactory
 {
 public:
     NS_DECL_ISUPPORTS
     NS_DECL_NSITOOLKITPROFILESERVICE
 
+    // we implement nsIFactory because we can't be registered by location,
+    // like most ordinary components are. Instead, during startup we register
+    // our factory. Then we return our singleton-self when asked.
+    NS_DECL_NSIFACTORY
+
 private:
     friend class nsToolkitProfile;
-    friend class nsToolkitProfileFactory;
     friend nsresult NS_NewToolkitProfileService(nsIToolkitProfileService**);
 
     nsToolkitProfileService() :
@@ -150,11 +148,11 @@ private:
 
     NS_HIDDEN_(nsresult) Init();
 
-    nsRefPtr<nsToolkitProfile>  mFirst;
-    nsCOMPtr<nsIToolkitProfile> mChosen;
-    nsCOMPtr<nsILocalFile>      mAppData;
-    nsCOMPtr<nsILocalFile>      mTempData;
-    nsCOMPtr<nsILocalFile>      mListFile;
+    nsCOMPtr<nsToolkitProfile> mFirst;
+    nsCOMPtr<nsToolkitProfile> mChosen;
+    nsCOMPtr<nsILocalFile>     mAppData;
+    nsCOMPtr<nsILocalFile>     mTempData;
+    nsCOMPtr<nsILocalFile>     mListFile;
     PRBool mDirty;
     PRBool mStartWithLast;
     PRBool mStartOffline;
@@ -371,8 +369,9 @@ nsToolkitProfileLock::~nsToolkitProfileLock()
 nsToolkitProfileService*
 nsToolkitProfileService::gService = nsnull;
 
-NS_IMPL_ISUPPORTS1(nsToolkitProfileService,
-                   nsIToolkitProfileService)
+NS_IMPL_ISUPPORTS2(nsToolkitProfileService,
+                   nsIToolkitProfileService,
+                   nsIFactory)
 
 nsresult
 nsToolkitProfileService::Init()
@@ -399,12 +398,6 @@ nsToolkitProfileService::Init()
     PRBool exists;
     rv = mListFile->IsFile(&exists);
     if (NS_FAILED(rv) || !exists) {
-        return NS_OK;
-    }
-
-    PRInt64 size;
-    rv = listFile->GetFileSize(&size);
-    if (NS_FAILED(rv) || !size) {
         return NS_OK;
     }
 
@@ -561,7 +554,8 @@ NS_IMETHODIMP
 nsToolkitProfileService::SetSelectedProfile(nsIToolkitProfile* aProfile)
 {
     if (mChosen != aProfile) {
-        mChosen = aProfile;
+        // XXXbz Why is this cast OK?
+        mChosen = NS_STATIC_CAST(nsToolkitProfile*, aProfile);
         mDirty = PR_TRUE;
     }
     return NS_OK;
@@ -769,8 +763,8 @@ nsToolkitProfileService::Flush()
         ++pCount;
 
     PRUint32 length;
-    nsAutoArrayPtr<char> buffer (new char[100+MAXPATHLEN*pCount]);
 
+    char* buffer = (char*) malloc(100 + MAXPATHLEN * pCount);
     NS_ENSURE_TRUE(buffer, NS_ERROR_OUT_OF_MEMORY);
 
     char *end = buffer;
@@ -832,39 +826,20 @@ nsToolkitProfileService::Flush()
     return NS_OK;
 }
 
-NS_IMPL_ISUPPORTS1(nsToolkitProfileFactory, nsIFactory)
-
 NS_IMETHODIMP
-nsToolkitProfileFactory::CreateInstance(nsISupports* aOuter, const nsID& aIID,
+nsToolkitProfileService::CreateInstance(nsISupports* aOuter, const nsID& aIID,
                                         void** aResult)
 {
     if (aOuter)
         return NS_ERROR_NO_AGGREGATION;
 
-    nsCOMPtr<nsIToolkitProfileService> profileService = 
-        nsToolkitProfileService::gService;
-    if (!profileService) {
-        nsresult rv = NS_NewToolkitProfileService(getter_AddRefs(profileService));
-        if (NS_FAILED(rv))
-            return rv;
-    }
-    return profileService->QueryInterface(aIID, aResult);
+    // return this object
+    return QueryInterface(aIID, aResult);
 }
 
 NS_IMETHODIMP
-nsToolkitProfileFactory::LockFactory(PRBool aVal)
+nsToolkitProfileService::LockFactory(PRBool aVal)
 {
-    return NS_OK;
-}
-
-nsresult
-NS_NewToolkitProfileFactory(nsIFactory* *aResult)
-{
-    *aResult = new nsToolkitProfileFactory();
-    if (!*aResult)
-        return NS_ERROR_OUT_OF_MEMORY;
-
-    NS_ADDREF(*aResult);
     return NS_OK;
 }
 
@@ -935,13 +910,13 @@ XRE_GetFileFromPath(const char *aPath, nsILocalFile* *aResult)
                                  aResult);
 
 #elif defined(XP_WIN)
-    WCHAR fullPath[MAXPATHLEN];
+    char fullPath[MAXPATHLEN];
 
-    if (!_wfullpath(fullPath, NS_ConvertUTF8toUTF16(aPath).get(), MAXPATHLEN))
+    if (!_fullpath(fullPath, aPath, MAXPATHLEN))
         return NS_ERROR_FAILURE;
 
-    return NS_NewLocalFile(nsDependentString(fullPath), PR_TRUE,
-                           aResult);
+    return NS_NewNativeLocalFile(nsDependentCString(fullPath), PR_TRUE,
+                                 aResult);
 
 #elif defined(XP_BEOS)
     BPath fullPath;

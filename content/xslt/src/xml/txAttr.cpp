@@ -55,6 +55,10 @@ Attr::Attr(nsIAtom *aPrefix, nsIAtom *aLocalName, PRInt32 aNamespaceID,
 {
 }
 
+Attr::~Attr()
+{
+}
+
 //
 //Not implemented anymore, return null as an error.
 //

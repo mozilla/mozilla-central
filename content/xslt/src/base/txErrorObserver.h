@@ -94,6 +94,8 @@ public:
     **/
     SimpleErrorObserver(ostream& errStream);
 
+    virtual ~SimpleErrorObserver() {};
+
     /**
      *  Notifies this Error observer of a new error aRes
     **/

@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '15.8.2.8.js';
-
 /**
    File Name:          15.8.2.8.js
    ECMA Section:       15.8.2.8  Math.exp(x)
@@ -127,7 +125,7 @@ new TestCase( SECTION,
 	      Math.exp(Number.POSITIVE_INFINITY) );
 
 new TestCase( SECTION,
-	      "Math.exp(-Infinity)", 
+	      "Math.exp(-Infinity)",  
 	      0,
 	      Math.exp(Number.NEGATIVE_INFINITY) );
 

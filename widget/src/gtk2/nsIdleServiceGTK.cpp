@@ -57,7 +57,7 @@ typedef XScreenSaverInfo* (*_XScreenSaverAllocInfo_fn)(void);
 typedef void (*_XScreenSaverQueryInfo_fn)(Display* dpy, Drawable drw,
                                           XScreenSaverInfo *info);
 
-static PRBool sInitialized = PR_FALSE;
+static PRLibrary* xsslib = nsnull;
 static _XScreenSaverQueryExtension_fn _XSSQueryExtension = nsnull;
 static _XScreenSaverAllocInfo_fn _XSSAllocInfo = nsnull;
 static _XScreenSaverQueryInfo_fn _XSSQueryInfo = nsnull;
@@ -68,17 +68,12 @@ NS_IMPL_ISUPPORTS1(nsIdleServiceGTK, nsIIdleService)
 nsIdleServiceGTK::nsIdleServiceGTK()
     : mXssInfo(nsnull)
 {
-}
-
-static void Initialize()
-{
-    sInitialized = PR_TRUE;
 #ifdef PR_LOGGING
-    sIdleLog = PR_NewLogModule("nsIIdleService");
+    if (!sIdleLog)
+        sIdleLog = PR_NewLogModule("nsIIdleService");
 #endif
 
-    // This will leak - See comments in ~nsIdleServiceGTK().
-    PRLibrary* xsslib = PR_LoadLibrary("libXss.so.1");
+    xsslib = PR_LoadLibrary("libXss.so.1");
     if (!xsslib) // ouch.
     {
 #ifdef PR_LOGGING
@@ -101,47 +96,37 @@ static void Initialize()
     if (!_XSSQueryInfo)
         PR_LOG(sIdleLog, PR_LOG_WARNING, ("Failed to get XSSQueryInfo!\n"));
 #endif
+ 
 }
 
 nsIdleServiceGTK::~nsIdleServiceGTK()
 {
     if (mXssInfo)
         XFree(mXssInfo);
-
-// It is not safe to unload libXScrnSaver until each display is closed because
-// the library registers callbacks through XESetCloseDisplay (Bug 397607).
-// (Also the library and its functions are scoped for the file not the object.)
-#if 0
-    if (xsslib) {
+    if (xsslib)
         PR_UnloadLibrary(xsslib);
-        xsslib = nsnull;
-    }
-#endif
 }
 
 NS_IMETHODIMP
 nsIdleServiceGTK::GetIdleTime(PRUint32 *aTimeDiff)
 {
     // Ask xscreensaver about idle time:
+    int event_base, error_base;
     *aTimeDiff = 0;
 
     // We might not have a display (cf. in xpcshell)
     Display *dplay = GDK_DISPLAY();
-    if (!dplay) {
+    if (!dplay || !_XSSQueryExtension || !_XSSAllocInfo || !_XSSQueryInfo)
+    {
 #ifdef PR_LOGGING
-        PR_LOG(sIdleLog, PR_LOG_WARNING, ("No display found!\n"));
+        if (!dplay)
+            PR_LOG(sIdleLog, PR_LOG_WARNING, ("No display found!\n"));
+        else
+            PR_LOG(sIdleLog, PR_LOG_WARNING, ("One of the Xss functions is missing!\n"));
 #endif
         return NS_ERROR_FAILURE;
     }
 
-    if (!sInitialized) {
-        Initialize();
-    }
-    if (!_XSSQueryExtension || !_XSSAllocInfo || !_XSSQueryInfo) {
-        return NS_ERROR_FAILURE;
-    }
-
-    int event_base, error_base;
     if (_XSSQueryExtension(dplay, &event_base, &error_base))
     {
         if (!mXssInfo)

@@ -24,7 +24,7 @@
 #define _h_ucdata
 
 /*
- * $Id: ucdata.h,v 1.1 1999-01-08 00:19:12 ftang%netscape.com Exp $
+ * $Id: ucdata.h,v 1.1 1999/01/08 00:19:12 ftang%netscape.com Exp $
  */
 
 #ifdef __cplusplus

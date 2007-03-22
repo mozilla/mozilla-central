@@ -81,13 +81,13 @@ nsSimpleURI::AggregatedQueryInterface(const nsIID& aIID, void** aInstancePtr)
         *aInstancePtr = InnerObject();
     } else if (aIID.Equals(kThisSimpleURIImplementationCID) || // used by Equals
                aIID.Equals(NS_GET_IID(nsIURI))) {
-        *aInstancePtr = static_cast<nsIURI*>(this);
+        *aInstancePtr = NS_STATIC_CAST(nsIURI*, this);
     } else if (aIID.Equals(NS_GET_IID(nsISerializable))) {
-        *aInstancePtr = static_cast<nsISerializable*>(this);
+        *aInstancePtr = NS_STATIC_CAST(nsISerializable*, this);
     } else if (aIID.Equals(NS_GET_IID(nsIClassInfo))) {
-        *aInstancePtr = static_cast<nsIClassInfo*>(this);
+        *aInstancePtr = NS_STATIC_CAST(nsIClassInfo*, this);
     } else if (aIID.Equals(NS_GET_IID(nsIMutable))) {
-        *aInstancePtr = static_cast<nsIMutable*>(this);
+        *aInstancePtr = NS_STATIC_CAST(nsIMutable*, this);
     } else {
         *aInstancePtr = nsnull;
         return NS_NOINTERFACE;

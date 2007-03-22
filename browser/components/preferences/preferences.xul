@@ -43,14 +43,6 @@
 <?xml-stylesheet href="chrome://mozapps/content/preferences/preferences.css"?>
 <?xml-stylesheet href="chrome://browser/skin/preferences/preferences.css"?>
 
-<!-- XXX This should be in applications.xul, but bug 393953 means putting it
-   - there causes the Applications pane not to work the first time you open
-   - the Preferences dialog in a browsing session, so we work around the problem
-   - by putting it here instead.
-   -->
-<?xml-stylesheet href="chrome://browser/content/preferences/handlers.css"?>
-<?xml-stylesheet href="chrome://browser/skin/preferences/applications.css"?>
-
 <!DOCTYPE prefwindow [
 <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
 <!ENTITY % preferencesDTD SYSTEM "chrome://browser/locale/preferences/preferences.dtd">
@@ -72,7 +64,6 @@
 <prefwindow type="prefwindow"
             id="BrowserPreferences"
             windowtype="Browser:Preferences"
-            ondialoghelp="openPrefsHelp()"
 #ifdef USE_WIN_TITLE_STYLE
             title="&prefWindow.titleWin;"
 #else
@@ -84,18 +75,15 @@
 #endif
             xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
 #ifdef USE_WIN_TITLE_STYLE
-            style="&prefWin.styleWin2;">
+            style="&prefWindow.styleWin;">
 #else
 #ifdef XP_MACOSX
-            style="&prefWin.styleMac2;">
+            style="&prefWindow.styleMac;">
 #else
-            style="&prefWin.styleGNOME2;">
+            style="&prefWindow.styleGNOME;">
 #endif
 #endif
-
-    <script type="application/javascript" src="chrome://browser/content/utilityOverlay.js"/>
-
-    <stringbundle id="bundleBrand" src="chrome://branding/locale/brand.properties"/>
+  
     <stringbundle id="bundlePreferences"
                   src="chrome://browser/locale/preferences/preferences.properties"/>
 
@@ -105,8 +93,8 @@
               src="chrome://browser/content/preferences/tabs.xul"/>
     <prefpane id="paneContent" label="&paneContent.title;"
               src="chrome://browser/content/preferences/content.xul"/>
-    <prefpane id="paneApplications" label="&paneApplications.title;"
-              src="chrome://browser/content/preferences/applications.xul"/>
+    <prefpane id="paneFeeds" label="&paneFeeds.title;"
+              src="chrome://browser/content/preferences/feeds.xul"/>
     <prefpane id="panePrivacy" label="&panePrivacy.title;"
               src="chrome://browser/content/preferences/privacy.xul"/>
     <prefpane id="paneSecurity" label="&paneSecurity.title;"

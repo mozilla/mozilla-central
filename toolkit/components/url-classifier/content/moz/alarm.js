@@ -45,7 +45,7 @@
 //
 // Example:
 //
-//  function foo() { dump('hi'); };
+//  function foo() { alert('hi'); };
 //  new G_Alarm(foo, 10*1000);                   // Fire foo in 10 seconds
 //  new G_Alarm(foo, 10*1000, true /*repeat*/);  // Fire foo every 10 seconds
 //  new G_Alarm(foo, 10*1000, true, 7);          // Fire foo every 10 seconds
@@ -132,10 +132,6 @@ G_Alarm.prototype.notify = function(timer) {
   // xpcom-shutdown occurs or cancel() is called explicitly.
 
   return ret;
-}
-
-G_Alarm.prototype.setDelay = function(delay) {
-  this.timer_.delay = delay;
 }
 
 /**

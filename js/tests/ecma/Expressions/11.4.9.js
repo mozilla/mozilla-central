@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '11.4.9.js';
-
 /**
    File Name:          11.4.9.js
    ECMA Section:       11.4.9 Logical NOT Operator (!)

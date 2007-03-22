@@ -147,7 +147,7 @@ xpctools_JSNewScriptHook(JSContext  *cx,
     PR_Lock(self->mLock);
 
     ProfilerFile* file;
-    if (!self->mFileTable.Get(filename, &file))
+    if (self->mFileTable.Get(filename, &file))
     {
         file = new ProfilerFile(filename);
         if (file)
@@ -212,19 +212,7 @@ xpctools_InterpreterHook(JSContext *cx, JSStackFrame *fp, JSBool before,
             }
             else
             {
-                PRUint32 delta = fun->SetEndTime();
-
-                JSStackFrame* down = fp->down;
-                if (down) {
-                    JSScript* caller = down->script;
-                    if (caller) {
-                        ProfilerFunction* callfun;
-                        if (self->mScriptTable.Get(caller, &callfun))
-                        {
-                            callfun->AddNotSelfTime(delta);
-                        }
-                    }
-                }
+                fun->SetEndTime();
             }
         }
 
@@ -272,7 +260,6 @@ NS_IMETHODIMP nsXPCToolsProfiler::Stop()
     JS_SetExecuteHook(mRuntime, nsnull, this);
     JS_SetCallHook(mRuntime, nsnull, this);
     
-    PR_Unlock(mLock);
     return NS_OK;
 }
 
@@ -308,12 +295,10 @@ xpctools_FunctionNamePrinter(const FunctionID &aKey,
         (unsigned long) fun->GetTotalSize());
     if(count != 0)
         fprintf(out,
-            "{min %lu, max %lu, avg %lu, sum %lu, self %lu}\n",
+            "{min %lu, max %lu avg %lu}\n",
             (unsigned long) fun->GetQuickTime(),
             (unsigned long) fun->GetLongTime(),
-            (unsigned long) average,
-            (unsigned long) fun->GetSum(),
-            (unsigned long) fun->GetSelf());
+            (unsigned long) average);
     else
         fprintf(out, "\n" );
     return PL_DHASH_NEXT;
@@ -337,8 +322,6 @@ NS_IMETHODIMP nsXPCToolsProfiler::WriteResults(nsILocalFile *aFile)
     FILE* out;
     if(NS_FAILED(aFile->OpenANSIFileDesc("w", &out)) || ! out)
         return NS_ERROR_FAILURE;
-
-    fprintf(out, "[CompileCount, CallCount] Name {StartLine, EndLine} TotalSize {MinTime, MaxTime, Average, Total, Self}\n\n");
 
     PR_Lock(mLock);
     mFileTable.EnumerateRead(xpctools_FilenamePrinter, out);

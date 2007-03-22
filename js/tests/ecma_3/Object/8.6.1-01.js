@@ -34,41 +34,35 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = '8.6.1-01.js';
 //-----------------------------------------------------------------------------
 
-var BUGNUMBER = 315436;
+var bug = 315436;
 var summary = 'In strict mode, setting a read-only property should generate a warning';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
-enterFunc (String (BUGNUMBER));
+enterFunc (String (bug));
 
 // should throw an error in strict mode
 var actual = '';
 var expect = 's.length is read-only';
 var status = summary + ': Throw if STRICT and WERROR is enabled';
 
-if (!options().match(/strict/))
-{
-  options('strict');
-}
-if (!options().match(/werror/))
-{
-  options('werror');
-}
+var jsOptions = new JavaScriptOptions();
 
-try
-{
+jsOptions.setOption('strict', true);
+jsOptions.setOption('werror', true);
+try 
+{ 
   var s = new String ('abc');
   s.length = 0;
-}
-catch (e)
-{
+} 
+catch (e) 
+{ 
   actual = e.message;
 }
+jsOptions.reset();
 
 reportCompare(expect, actual, status);
 
@@ -78,18 +72,17 @@ actual = 'did not throw';
 expect = 'did not throw';
 var status = summary + ': Do not throw if STRICT is enabled and WERROR is disabled';
 
-// toggle werror off
-options('werror');
-
-try
-{
+jsOptions.setOption('strict', true);
+jsOptions.setOption('werror', false);
+try 
+{ 
   s.length = 0;
-}
-catch (e)
-{
+} 
+catch (e) 
+{ 
   actual = e.message;
 }
-
+jsOptions.reset();
 reportCompare(expect, actual, status);
 
 // should not throw an error if not in strict mode
@@ -98,16 +91,18 @@ actual = 'did not throw';
 expect = 'did not throw';
 var status = summary + ': Do not throw if not in strict mode';
 
-// toggle strict off
-options('strict');
-
-try
-{
+jsOptions.setOption('strict', false);
+jsOptions.setOption('werror', false);
+try 
+{ 
   s.length = 0;
-}
-catch (e)
-{
+} 
+catch (e) 
+{ 
   actual = e.message;
 }
-
+jsOptions.reset();
 reportCompare(expect, actual, status);
+
+exitFunc (String (bug));
+

@@ -164,6 +164,50 @@ static void GetIDString(const nsID& aCID, char buf[UID_STRING_LENGTH])
 }
 
 nsresult
+nsCreateInstanceFromCategory::operator()(const nsIID& aIID, void** aInstancePtr) const
+{
+    /*
+     * If I were a real man, I would consolidate this with
+     * nsGetServiceFromContractID::operator().
+     */
+    nsresult rv;
+    nsXPIDLCString value;
+    nsCOMPtr<nsIComponentManager> compMgr;
+    nsCOMPtr<nsICategoryManager> catman =
+        do_GetService(kCategoryManagerCID, &rv);
+
+    if (NS_FAILED(rv)) goto error;
+
+    if (!mCategory || !mEntry) {
+        // when categories have defaults, use that for null mEntry
+        rv = NS_ERROR_NULL_POINTER;
+        goto error;
+    }
+
+    /* find the contractID for category.entry */
+    rv = catman->GetCategoryEntry(mCategory, mEntry,
+                                  getter_Copies(value));
+    if (NS_FAILED(rv)) goto error;
+    if (!value) {
+        rv = NS_ERROR_SERVICE_NOT_AVAILABLE;
+        goto error;
+    }
+    NS_GetComponentManager(getter_AddRefs(compMgr));
+    if (!compMgr)
+        return NS_ERROR_FAILURE;
+    rv = compMgr->CreateInstanceByContractID(value, mOuter, aIID, aInstancePtr);
+    if (NS_FAILED(rv)) {
+    error:
+        *aInstancePtr = 0;
+    }
+
+    if (mErrorPtr)
+        *mErrorPtr = rv;
+    return rv;
+}
+
+
+nsresult
 nsGetServiceFromCategory::operator()(const nsIID& aIID, void** aInstancePtr) const
 {
     nsresult rv;
@@ -218,7 +262,7 @@ ArenaStrndup(const char *s, PRUint32 len, PLArenaPool *arena)
     PL_ARENA_ALLOCATE(mem, arena, len+1);
     if (mem)
         memcpy(mem, s, len+1);
-    return static_cast<char *>(mem);
+    return NS_STATIC_CAST(char *, mem);
 }
 
 char*
@@ -234,10 +278,18 @@ ArenaStrdup(const char *s, PLArenaPool *arena)
 PRBool PR_CALLBACK
 nsFactoryEntry_Destroy(nsHashKey *aKey, void *aData, void* closure);
 
+PR_STATIC_CALLBACK(const void *)
+factory_GetKey(PLDHashTable *aTable, PLDHashEntryHdr *aHdr)
+{
+    nsFactoryTableEntry* entry = NS_STATIC_CAST(nsFactoryTableEntry*, aHdr);
+
+    return &entry->mFactoryEntry->mCid;
+}
+
 PR_STATIC_CALLBACK(PLDHashNumber)
 factory_HashKey(PLDHashTable *aTable, const void *aKey)
 {
-    const nsCID *cidp = reinterpret_cast<const nsCID*>(aKey);
+    const nsCID *cidp = NS_REINTERPRET_CAST(const nsCID*, aKey);
 
     return cidp->m0;
 }
@@ -247,8 +299,8 @@ factory_MatchEntry(PLDHashTable *aTable, const PLDHashEntryHdr *aHdr,
                    const void *aKey)
 {
     const nsFactoryTableEntry* entry =
-        static_cast<const nsFactoryTableEntry*>(aHdr);
-    const nsCID *cidp = reinterpret_cast<const nsCID*>(aKey);
+        NS_STATIC_CAST(const nsFactoryTableEntry*, aHdr);
+    const nsCID *cidp = NS_REINTERPRET_CAST(const nsCID*, aKey);
 
     return (entry->mFactoryEntry->mCid).Equals(*cidp);
 }
@@ -256,7 +308,7 @@ factory_MatchEntry(PLDHashTable *aTable, const PLDHashEntryHdr *aHdr,
 PR_STATIC_CALLBACK(void)
 factory_ClearEntry(PLDHashTable *aTable, PLDHashEntryHdr *aHdr)
 {
-    nsFactoryTableEntry* entry = static_cast<nsFactoryTableEntry*>(aHdr);
+    nsFactoryTableEntry* entry = NS_STATIC_CAST(nsFactoryTableEntry*, aHdr);
     // nsFactoryEntry is arena allocated. So we don't delete it.
     // We call the destructor by hand.
     entry->mFactoryEntry->~nsFactoryEntry();
@@ -266,6 +318,7 @@ factory_ClearEntry(PLDHashTable *aTable, PLDHashEntryHdr *aHdr)
 static const PLDHashTableOps factory_DHashTableOps = {
     PL_DHashAllocTable,
     PL_DHashFreeTable,
+    factory_GetKey,
     factory_HashKey,
     factory_MatchEntry,
     PL_DHashMoveEntryStub,
@@ -276,7 +329,7 @@ static const PLDHashTableOps factory_DHashTableOps = {
 PR_STATIC_CALLBACK(void)
 contractID_ClearEntry(PLDHashTable *aTable, PLDHashEntryHdr *aHdr)
 {
-    nsContractIDTableEntry* entry = static_cast<nsContractIDTableEntry*>(aHdr);
+    nsContractIDTableEntry* entry = NS_STATIC_CAST(nsContractIDTableEntry*, aHdr);
     if (entry->mFactoryEntry->mLoaderType == NS_LOADER_TYPE_INVALID &&
         entry->mFactoryEntry->mCid.Equals(kEmptyCID)) {
         // this object is owned by the hash.
@@ -293,6 +346,7 @@ contractID_ClearEntry(PLDHashTable *aTable, PLDHashEntryHdr *aHdr)
 static const PLDHashTableOps contractID_DHashTableOps = {
     PL_DHashAllocTable,
     PL_DHashFreeTable,
+    PL_DHashGetKeyStub,
     PL_DHashStringKey,
     PL_DHashMatchStringKey,
     PL_DHashMoveEntryStub,
@@ -351,7 +405,7 @@ PLDHashTableEnumeratorImpl::Enumerator(PLDHashTable *table,
                                        PRUint32 number,
                                        void *data)
 {
-    Closure *c = reinterpret_cast<Closure *>(data);
+    Closure *c = NS_REINTERPRET_CAST(Closure *, data);
     nsISupports *converted;
     if (NS_FAILED(c->converter(table, hdr, c->data, &converted)) ||
         !c->impl->mElements.AppendElement(converted)) {
@@ -399,8 +453,8 @@ void
 PLDHashTableEnumeratorImpl::ReleaseElements()
 {
     for (PRInt32 i = 0; i < mCount; i++) {
-        nsISupports *supports = reinterpret_cast<nsISupports *>
-                                                (mElements[i]);
+        nsISupports *supports = NS_REINTERPRET_CAST(nsISupports *,
+                                                    mElements[i]);
         NS_IF_RELEASE(supports);
     }
 }
@@ -474,7 +528,7 @@ PLDHashTableEnumeratorImpl::CurrentItem(nsISupports **retval)
     if (!mCount || mCurrent == mCount)
         return NS_ERROR_FAILURE;
 
-    *retval = reinterpret_cast<nsISupports *>(mElements[mCurrent]);
+    *retval = NS_REINTERPRET_CAST(nsISupports *, mElements[mCurrent]);
     if (*retval)
         NS_ADDREF(*retval);
 
@@ -518,7 +572,7 @@ ConvertFactoryEntryToCID(PLDHashTable *table,
     nsresult rv;
     nsCOMPtr<nsISupportsID> wrapper;
 
-    nsComponentManagerImpl *cm = static_cast<nsComponentManagerImpl *>(data);
+    nsComponentManagerImpl *cm = NS_STATIC_CAST(nsComponentManagerImpl *, data);
 
     rv = cm->CreateInstanceByContractID(NS_SUPPORTS_ID_CONTRACTID, nsnull,
            NS_GET_IID(nsISupportsID), getter_AddRefs(wrapper));
@@ -526,7 +580,7 @@ ConvertFactoryEntryToCID(PLDHashTable *table,
     NS_ENSURE_SUCCESS(rv, rv);
 
     const nsFactoryTableEntry *entry =
-        reinterpret_cast<const nsFactoryTableEntry *>(hdr);
+        NS_REINTERPRET_CAST(const nsFactoryTableEntry *, hdr);
     if (entry) {
         nsFactoryEntry *fe = entry->mFactoryEntry;
 
@@ -548,7 +602,7 @@ ConvertContractIDKeyToString(PLDHashTable *table,
     nsresult rv;
     nsCOMPtr<nsISupportsCString> wrapper;
 
-    nsComponentManagerImpl *cm = static_cast<nsComponentManagerImpl *>(data);
+    nsComponentManagerImpl *cm = NS_STATIC_CAST(nsComponentManagerImpl *, data);
 
     rv = cm->CreateInstanceByContractID(NS_SUPPORTS_CSTRING_CONTRACTID, nsnull,
                 NS_GET_IID(nsISupportsCString), getter_AddRefs(wrapper));
@@ -556,7 +610,7 @@ ConvertContractIDKeyToString(PLDHashTable *table,
     NS_ENSURE_SUCCESS(rv, rv);
 
     const nsContractIDTableEntry *entry =
-        reinterpret_cast<const nsContractIDTableEntry *>(hdr);
+        NS_REINTERPRET_CAST(const nsContractIDTableEntry *, hdr);
 
     wrapper->SetData(nsDependentCString(entry->mContractID,
                                         entry->mContractIDLen));
@@ -981,8 +1035,8 @@ nsComponentManagerImpl::ReadPersistentRegistry()
         }
 
         nsFactoryTableEntry* factoryTableEntry =
-            static_cast<nsFactoryTableEntry*>
-                       (PL_DHashTableOperate(&mFactories,
+            NS_STATIC_CAST(nsFactoryTableEntry*,
+                           PL_DHashTableOperate(&mFactories,
                                                 &aClass,
                                                 PL_DHASH_ADD));
 
@@ -1017,8 +1071,8 @@ nsComponentManagerImpl::ReadPersistentRegistry()
             continue; //what should we really do?
 
         nsContractIDTableEntry* contractIDTableEntry =
-                static_cast<nsContractIDTableEntry*>
-                           (PL_DHashTableOperate(&mContractIDs,
+                NS_STATIC_CAST(nsContractIDTableEntry*,
+                               PL_DHashTableOperate(&mContractIDs,
                                                     values[0],
                                                     PL_DHASH_ADD));
         if (!contractIDTableEntry) {
@@ -1066,8 +1120,8 @@ nsComponentManagerImpl::ReadPersistentRegistry()
         for (int i=0; abusedContracts[i] && *abusedContracts[i]; i++) {
             nsFactoryEntry *entry = nsnull;
             nsContractIDTableEntry* contractIDTableEntry =
-                static_cast<nsContractIDTableEntry*>
-                           (PL_DHashTableOperate(&mContractIDs, abusedContracts[i],
+                NS_STATIC_CAST(nsContractIDTableEntry*,
+                               PL_DHashTableOperate(&mContractIDs, abusedContracts[i],
                                                     PL_DHASH_LOOKUP));
 
             if (PL_DHASH_ENTRY_IS_BUSY(contractIDTableEntry)) {
@@ -1337,8 +1391,8 @@ nsComponentManagerImpl::HashContractID(const char *aContractID,
     nsAutoMonitor mon(mMon);
 
     nsContractIDTableEntry* contractIDTableEntry =
-        static_cast<nsContractIDTableEntry*>
-                   (PL_DHashTableOperate(&mContractIDs, aContractID,
+        NS_STATIC_CAST(nsContractIDTableEntry*,
+                       PL_DHashTableOperate(&mContractIDs, aContractID,
                                             PL_DHASH_ADD));
     if (!contractIDTableEntry)
         return NS_ERROR_OUT_OF_MEMORY;
@@ -1368,8 +1422,8 @@ nsComponentManagerImpl::GetFactoryEntry(const char *aContractID,
         nsAutoMonitor mon(mMon);
 
         nsContractIDTableEntry* contractIDTableEntry =
-            static_cast<nsContractIDTableEntry*>
-                       (PL_DHashTableOperate(&mContractIDs, aContractID,
+            NS_STATIC_CAST(nsContractIDTableEntry*,
+                           PL_DHashTableOperate(&mContractIDs, aContractID,
                                                 PL_DHASH_LOOKUP));
 
 
@@ -1390,8 +1444,8 @@ nsComponentManagerImpl::GetFactoryEntry(const nsCID &aClass)
         nsAutoMonitor mon(mMon);
 
         nsFactoryTableEntry* factoryTableEntry =
-            static_cast<nsFactoryTableEntry*>
-                       (PL_DHashTableOperate(&mFactories, &aClass,
+            NS_STATIC_CAST(nsFactoryTableEntry*,
+                           PL_DHashTableOperate(&mFactories, &aClass,
                                                 PL_DHASH_LOOKUP));
 
         if (PL_DHASH_ENTRY_IS_BUSY(factoryTableEntry)) {
@@ -1781,7 +1835,7 @@ FreeServiceFactoryEntryEnumerate(PLDHashTable *aTable,
                                  PRUint32 aNumber,
                                  void *aData)
 {
-    nsFactoryTableEntry* entry = static_cast<nsFactoryTableEntry*>(aHdr);
+    nsFactoryTableEntry* entry = NS_STATIC_CAST(nsFactoryTableEntry*, aHdr);
 
     if (!entry->mFactoryEntry)
         return PL_DHASH_NEXT;
@@ -1798,7 +1852,7 @@ FreeServiceContractIDEntryEnumerate(PLDHashTable *aTable,
                                     PRUint32 aNumber,
                                     void *aData)
 {
-    nsContractIDTableEntry* entry = static_cast<nsContractIDTableEntry*>(aHdr);
+    nsContractIDTableEntry* entry = NS_STATIC_CAST(nsContractIDTableEntry*, aHdr);
 
     if (!entry->mFactoryEntry)
         return PL_DHASH_NEXT;
@@ -1854,8 +1908,8 @@ nsComponentManagerImpl::GetService(const nsCID& aClass,
     nsIDKey key(aClass);
     nsFactoryEntry* entry = nsnull;
     nsFactoryTableEntry* factoryTableEntry =
-        static_cast<nsFactoryTableEntry*>
-                   (PL_DHashTableOperate(&mFactories, &aClass,
+        NS_STATIC_CAST(nsFactoryTableEntry*,
+                       PL_DHashTableOperate(&mFactories, &aClass,
                                             PL_DHASH_LOOKUP));
 
     if (PL_DHASH_ENTRY_IS_BUSY(factoryTableEntry)) {
@@ -1892,8 +1946,8 @@ nsComponentManagerImpl::GetService(const nsCID& aClass,
 
     if (!entry) { // second hash lookup for GetService
         nsFactoryTableEntry* factoryTableEntry =
-            static_cast<nsFactoryTableEntry*>
-                       (PL_DHashTableOperate(&mFactories, &aClass,
+            NS_STATIC_CAST(nsFactoryTableEntry*,
+                           PL_DHashTableOperate(&mFactories, &aClass,
                                                 PL_DHASH_LOOKUP));
         if (PL_DHASH_ENTRY_IS_BUSY(factoryTableEntry)) {
             entry = factoryTableEntry->mFactoryEntry;
@@ -1908,7 +1962,7 @@ nsComponentManagerImpl::GetService(const nsCID& aClass,
         NS_ERROR("Factory did not return an object but returned success!");
         return NS_ERROR_SERVICE_NOT_FOUND;
     }
-    NS_ADDREF(static_cast<nsISupports*>((*result)));
+    NS_ADDREF(NS_STATIC_CAST(nsISupports*, (*result)));
     return rv;
 }
 
@@ -1928,8 +1982,8 @@ nsComponentManagerImpl::RegisterService(const nsCID& aClass, nsISupports* aServi
         entry = new (mem) nsFactoryEntry(aClass, (nsIFactory*) nsnull);
 
         nsFactoryTableEntry* factoryTableEntry =
-            static_cast<nsFactoryTableEntry*>
-                       (PL_DHashTableOperate(&mFactories, &aClass,
+            NS_STATIC_CAST(nsFactoryTableEntry*,
+                           PL_DHashTableOperate(&mFactories, &aClass,
                                                 PL_DHASH_ADD));
         if (!factoryTableEntry)
             return NS_ERROR_OUT_OF_MEMORY;
@@ -1955,8 +2009,8 @@ nsComponentManagerImpl::UnregisterService(const nsCID& aClass)
     nsAutoMonitor mon(mMon);
 
     nsFactoryTableEntry* factoryTableEntry =
-        static_cast<nsFactoryTableEntry*>
-                   (PL_DHashTableOperate(&mFactories, &aClass,
+        NS_STATIC_CAST(nsFactoryTableEntry*,
+                       PL_DHashTableOperate(&mFactories, &aClass,
                                             PL_DHASH_LOOKUP));
 
     if (PL_DHASH_ENTRY_IS_BUSY(factoryTableEntry)) {
@@ -1989,8 +2043,8 @@ nsComponentManagerImpl::RegisterService(const char* aContractID,
         entry = new (mem) nsFactoryEntry(kEmptyCID, (nsIFactory*) nsnull);
 
         nsContractIDTableEntry* contractIDTableEntry =
-            static_cast<nsContractIDTableEntry*>
-                       (PL_DHashTableOperate(&mContractIDs, aContractID,
+            NS_STATIC_CAST(nsContractIDTableEntry*,
+                           PL_DHashTableOperate(&mContractIDs, aContractID,
                                                 PL_DHASH_ADD));
         if (!contractIDTableEntry) {
             delete entry;
@@ -2044,8 +2098,8 @@ nsComponentManagerImpl::IsServiceInstantiated(const nsCID & aClass,
     nsresult rv = NS_ERROR_SERVICE_NOT_AVAILABLE;
     nsFactoryEntry* entry = nsnull;
     nsFactoryTableEntry* factoryTableEntry =
-        static_cast<nsFactoryTableEntry*>
-                   (PL_DHashTableOperate(&mFactories, &aClass,
+        NS_STATIC_CAST(nsFactoryTableEntry*,
+                       PL_DHashTableOperate(&mFactories, &aClass,
                                             PL_DHASH_LOOKUP));
 
     if (PL_DHASH_ENTRY_IS_BUSY(factoryTableEntry)) {
@@ -2088,8 +2142,8 @@ NS_IMETHODIMP nsComponentManagerImpl::IsServiceInstantiatedByContractID(const ch
         nsAutoMonitor mon(mMon);
 
         nsContractIDTableEntry* contractIDTableEntry =
-            static_cast<nsContractIDTableEntry*>
-                       (PL_DHashTableOperate(&mContractIDs, aContractID,
+            NS_STATIC_CAST(nsContractIDTableEntry*,
+                           PL_DHashTableOperate(&mContractIDs, aContractID,
                                                 PL_DHASH_LOOKUP));
 
         if (PL_DHASH_ENTRY_IS_BUSY(contractIDTableEntry)) {
@@ -2115,8 +2169,8 @@ nsComponentManagerImpl::UnregisterService(const char* aContractID)
 
     nsFactoryEntry *entry = nsnull;
     nsContractIDTableEntry* contractIDTableEntry =
-       static_cast<nsContractIDTableEntry*>
-                  (PL_DHashTableOperate(&mContractIDs, aContractID,
+       NS_STATIC_CAST(nsContractIDTableEntry*,
+                      PL_DHashTableOperate(&mContractIDs, aContractID,
                                            PL_DHASH_LOOKUP));
 
    if (PL_DHASH_ENTRY_IS_BUSY(contractIDTableEntry)) {
@@ -2154,8 +2208,8 @@ nsComponentManagerImpl::GetServiceByContractID(const char* aContractID,
     nsresult rv = NS_OK;
     nsFactoryEntry *entry = nsnull;
     nsContractIDTableEntry* contractIDTableEntry =
-        static_cast<nsContractIDTableEntry*>
-                   (PL_DHashTableOperate(&mContractIDs, aContractID,
+        NS_STATIC_CAST(nsContractIDTableEntry*,
+                       PL_DHashTableOperate(&mContractIDs, aContractID,
                                             PL_DHASH_LOOKUP));
 
     if (PL_DHASH_ENTRY_IS_BUSY(contractIDTableEntry)) {
@@ -2200,8 +2254,8 @@ nsComponentManagerImpl::GetServiceByContractID(const char* aContractID,
 
     if (!entry) { // second hash lookup for GetService
         nsContractIDTableEntry* contractIDTableEntry =
-            static_cast<nsContractIDTableEntry*>
-                       (PL_DHashTableOperate(&mContractIDs, aContractID,
+            NS_STATIC_CAST(nsContractIDTableEntry*,
+                           PL_DHashTableOperate(&mContractIDs, aContractID,
                                                 PL_DHASH_LOOKUP));
 
         if (PL_DHASH_ENTRY_IS_BUSY(contractIDTableEntry)) {
@@ -2213,7 +2267,7 @@ nsComponentManagerImpl::GetServiceByContractID(const char* aContractID,
 
     entry->mServiceObject = service;
     *result = service.get();
-    NS_ADDREF(static_cast<nsISupports*>(*result));
+    NS_ADDREF(NS_STATIC_CAST(nsISupports*, *result));
     return rv;
 }
 
@@ -2415,8 +2469,8 @@ nsComponentManagerImpl::RegisterFactory(const nsCID &aClass,
     }
 #endif
     nsFactoryEntry *entry = nsnull;
-    nsFactoryTableEntry* factoryTableEntry = static_cast<nsFactoryTableEntry*>
-                                                        (PL_DHashTableOperate(&mFactories,
+    nsFactoryTableEntry* factoryTableEntry = NS_STATIC_CAST(nsFactoryTableEntry*,
+                                                            PL_DHashTableOperate(&mFactories,
                                                                                  &aClass,
                                                                                  PL_DHASH_ADD));
 
@@ -2609,8 +2663,8 @@ nsComponentManagerImpl::RegisterComponentCommon(const nsCID &aClass,
             return NS_ERROR_OUT_OF_MEMORY;
 
         nsFactoryTableEntry* factoryTableEntry =
-            static_cast<nsFactoryTableEntry*>
-                       (PL_DHashTableOperate(&mFactories, &aClass,
+            NS_STATIC_CAST(nsFactoryTableEntry*,
+                           PL_DHashTableOperate(&mFactories, &aClass,
                                                 PL_DHASH_ADD));
 
         if (!factoryTableEntry)
@@ -2702,7 +2756,7 @@ nsComponentManagerImpl::GetLoaderType(const char *typeStr)
 
     const nsDependentCString type(typeStr);
 
-    for (unsigned int i = 0; i < mLoaderData.Length(); ++i) {
+    for (int i=0; i < mLoaderData.Length(); ++i) {
         if (mLoaderData[i].type == type)
             return i;
     }
@@ -2740,7 +2794,7 @@ DeleteFoundCIDs(PLDHashTable *aTable,
                 PRUint32 aNumber,
                 void *aData)
 {
-    nsContractIDTableEntry* entry = static_cast<nsContractIDTableEntry*>(aHdr);
+    nsContractIDTableEntry* entry = NS_STATIC_CAST(nsContractIDTableEntry*, aHdr);
 
     if (!entry->mFactoryEntry)
         return PL_DHASH_NEXT;
@@ -3038,15 +3092,11 @@ nsComponentManagerImpl::LoadLeftoverComponents(
 
     LoaderType curLoader = GetLoaderCount();
 
-    for (PRInt32 i = 0; i < aLeftovers.Count(); ) {
+    for (PRInt32 i = aLeftovers.Count() - 1; i >= 0; --i) {
         nsresult rv = AutoRegisterComponent(aLeftovers[i], aDeferred,
                                             minLoader);
-        if (NS_SUCCEEDED(rv)) {
+        if (NS_SUCCEEDED(rv))
             aLeftovers.RemoveObjectAt(i);
-        }
-        else {
-            ++i;
-        }
     }
     if (aLeftovers.Count())
         // recursively try this again until there are no new loaders found
@@ -3060,13 +3110,13 @@ nsComponentManagerImpl::LoadDeferredModules(nsTArray<DeferredModule> &aDeferred)
     // 1) they're all gone
     // 2) we loop through and none of them succeed
 
-    PRUint32 lastCount = PR_UINT32_MAX;
+    PRInt32 lastCount = PR_INT32_MAX;
     while (aDeferred.Length() > 0 &&
            lastCount > aDeferred.Length()) {
 
         lastCount = aDeferred.Length();
 
-        for (PRInt32 i = 0; i < aDeferred.Length(); ) {
+        for (PRInt32 i = aDeferred.Length() - 1; i >= 0; --i) {
             DeferredModule &d = aDeferred[i];
             nsresult rv = d.module->RegisterSelf(this,
                                                  d.file,
@@ -3080,9 +3130,6 @@ nsComponentManagerImpl::LoadDeferredModules(nsTArray<DeferredModule> &aDeferred)
 
             if (rv != NS_ERROR_FACTORY_REGISTER_AGAIN) {
                 aDeferred.RemoveElementAt(i);
-            }
-            else {
-                ++i;
             }
         }
     }
@@ -3164,7 +3211,7 @@ nsComponentManagerImpl::EnumerateCLSIDs(nsIEnumerator** aEnumerator)
     if (NS_FAILED(rv))
         return rv;
 
-    *aEnumerator = static_cast<nsIEnumerator*>(aEnum);
+    *aEnumerator = NS_STATIC_CAST(nsIEnumerator*, aEnum);
     return NS_OK;
 }
 
@@ -3188,7 +3235,7 @@ nsComponentManagerImpl::EnumerateContractIDs(nsIEnumerator** aEnumerator)
     if (NS_FAILED(rv))
         return rv;
 
-    *aEnumerator = static_cast<nsIEnumerator*>(aEnum);
+    *aEnumerator = NS_STATIC_CAST(nsIEnumerator*, aEnum);
     return NS_OK;
 }
 
@@ -3241,15 +3288,9 @@ nsComponentManagerImpl::AutoRegister(nsIFile *aSpec)
     nsCOMArray<nsILocalFile> leftovers;
     nsTArray<DeferredModule> deferred;
 
-    if (!aSpec) {
+    if (!aSpec)
         mStaticModuleLoader.EnumerateModules(RegisterStaticModule,
                                              deferred);
-
-        // Builtin component loaders (xpconnect!) can be static modules.
-        // Set them up now, so that JS components don't go into
-        // the leftovers list.
-        GetAllLoaders();
-    }
 
     LoaderType curLoader = GetLoaderCount();
 
@@ -3432,7 +3473,7 @@ nsComponentManagerImpl::EnumerateCIDs(nsISimpleEnumerator **aEnumerator)
     if (NS_FAILED(rv))
         return rv;
 
-    *aEnumerator = static_cast<nsISimpleEnumerator*>(aEnum);
+    *aEnumerator = NS_STATIC_CAST(nsISimpleEnumerator*, aEnum);
     return NS_OK;
 }
 
@@ -3454,7 +3495,7 @@ nsComponentManagerImpl::EnumerateContractIDs(nsISimpleEnumerator **aEnumerator)
     if (NS_FAILED(rv))
         return rv;
 
-    *aEnumerator = static_cast<nsISimpleEnumerator*>(aEnum);
+    *aEnumerator = NS_STATIC_CAST(nsISimpleEnumerator*, aEnum);
     return NS_OK;
 }
 
@@ -3597,8 +3638,8 @@ NS_GetComponentManager(nsIComponentManager* *result)
             return rv;
     }
 
-    *result = static_cast<nsIComponentManager*>
-                         (nsComponentManagerImpl::gComponentManager);
+    *result = NS_STATIC_CAST(nsIComponentManager*,
+                             nsComponentManagerImpl::gComponentManager);
     NS_IF_ADDREF(*result);
     return NS_OK;
 }
@@ -3617,8 +3658,8 @@ NS_GetServiceManager(nsIServiceManager* *result)
     if (NS_FAILED(rv))
         return rv;
 
-    *result = static_cast<nsIServiceManager*>
-                         (nsComponentManagerImpl::gComponentManager);
+    *result = NS_STATIC_CAST(nsIServiceManager*,
+                             nsComponentManagerImpl::gComponentManager);
     NS_IF_ADDREF(*result);
     return NS_OK;
 }
@@ -3638,8 +3679,8 @@ NS_GetComponentRegistrar(nsIComponentRegistrar* *result)
     if (NS_FAILED(rv))
         return rv;
 
-    *result = static_cast<nsIComponentRegistrar*>
-                         (nsComponentManagerImpl::gComponentManager);
+    *result = NS_STATIC_CAST(nsIComponentRegistrar*,
+                             nsComponentManagerImpl::gComponentManager);
     NS_IF_ADDREF(*result);
     return NS_OK;
 }

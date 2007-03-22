@@ -109,8 +109,8 @@ NS_IMETHODIMP XPC_MAP_CLASSNAME::GetScriptableFlags(PRUint32 *aFlags)
 #ifdef XPC_MAP_WANT_HASINSTANCE
     nsIXPCScriptable::WANT_HASINSTANCE |
 #endif
-#ifdef XPC_MAP_WANT_TRACE
-    nsIXPCScriptable::WANT_TRACE |
+#ifdef XPC_MAP_WANT_MARK
+    nsIXPCScriptable::WANT_MARK |
 #endif
 #ifdef XPC_MAP_WANT_EQUALITY
     nsIXPCScriptable::WANT_EQUALITY |
@@ -159,12 +159,12 @@ NS_IMETHODIMP XPC_MAP_CLASSNAME::DelProperty(nsIXPConnectWrappedNative *wrapper,
 
 #ifndef XPC_MAP_WANT_GETPROPERTY
 NS_IMETHODIMP XPC_MAP_CLASSNAME::GetProperty(nsIXPConnectWrappedNative *wrapper, JSContext * cx, JSObject * obj, jsval id, jsval * vp, PRBool *_retval)
-    {NS_WARNING("never called"); return NS_ERROR_NOT_IMPLEMENTED;}
+    {NS_ERROR("never called"); return NS_ERROR_NOT_IMPLEMENTED;}
 #endif
 
 #ifndef XPC_MAP_WANT_SETPROPERTY
 NS_IMETHODIMP XPC_MAP_CLASSNAME::SetProperty(nsIXPConnectWrappedNative *wrapper, JSContext * cx, JSObject * obj, jsval id, jsval * vp, PRBool *_retval)
-    {NS_WARNING("never called"); return NS_ERROR_NOT_IMPLEMENTED;}
+    {NS_ERROR("never called"); return NS_ERROR_NOT_IMPLEMENTED;}
 #endif
 
 #ifndef XPC_MAP_WANT_NEWENUMERATE
@@ -212,8 +212,8 @@ NS_IMETHODIMP XPC_MAP_CLASSNAME::HasInstance(nsIXPConnectWrappedNative *wrapper,
     {NS_ERROR("never called"); return NS_ERROR_NOT_IMPLEMENTED;}
 #endif
 
-#ifndef XPC_MAP_WANT_TRACE
-NS_IMETHODIMP XPC_MAP_CLASSNAME::Trace(nsIXPConnectWrappedNative *wrapper, JSTracer *trc, JSObject * obj)
+#ifndef XPC_MAP_WANT_MARK
+NS_IMETHODIMP XPC_MAP_CLASSNAME::Mark(nsIXPConnectWrappedNative *wrapper, JSContext * cx, JSObject * obj, void * arg, PRUint32 *_retval)
     {NS_ERROR("never called"); return NS_ERROR_NOT_IMPLEMENTED;}
 #endif
 
@@ -301,8 +301,8 @@ NS_IMETHODIMP XPC_MAP_CLASSNAME::InnerObject(nsIXPConnectWrappedNative *wrapper,
 #undef XPC_MAP_WANT_HASINSTANCE
 #endif
 
-#ifdef XPC_MAP_WANT_TRACE
-#undef XPC_MAP_WANT_TRACE
+#ifdef XPC_MAP_WANT_MARK
+#undef XPC_MAP_WANT_MARK
 #endif
 
 #ifdef XPC_MAP_WANT_EQUALITY

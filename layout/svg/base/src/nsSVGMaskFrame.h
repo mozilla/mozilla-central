@@ -38,7 +38,7 @@
 #define __NS_SVGMASKFRAME_H__
 
 #include "nsSVGContainerFrame.h"
-#include "gfxPattern.h"
+#include "cairo.h"
 
 class gfxContext;
 
@@ -48,18 +48,17 @@ class nsSVGMaskFrame : public nsSVGMaskFrameBase
 {
   friend nsIFrame*
   NS_NewSVGMaskFrame(nsIPresShell* aPresShell, nsIContent* aContent, nsStyleContext* aContext);
-protected:
-  nsSVGMaskFrame(nsStyleContext* aContext) :
-    nsSVGMaskFrameBase(aContext),
-    mMaskParentMatrix(nsnull),
-    mInUse(PR_FALSE) {}
 
-public:
+  NS_IMETHOD InitSVG();
+
+ public:
+  nsSVGMaskFrame(nsStyleContext* aContext) : nsSVGMaskFrameBase(aContext) {}
+
   // nsSVGMaskFrame method:
-  already_AddRefed<gfxPattern> ComputeMaskAlpha(nsSVGRenderState *aContext,
-                                                nsISVGChildFrame* aParent,
-                                                nsIDOMSVGMatrix* aMatrix,
-                                                float aOpacity = 1.0f);
+  cairo_pattern_t *ComputeMaskAlpha(nsSVGRenderState *aContext,
+                                    nsISVGChildFrame* aParent,
+                                    nsIDOMSVGMatrix* aMatrix,
+                                    float aOpacity = 1.0f);
 
   /**
    * Get the "type" of the frame
@@ -75,36 +74,19 @@ public:
   }
 #endif
 
-private:
-  // A helper class to allow us to paint masks safely. The helper
-  // automatically sets and clears the mInUse flag on the mask frame
-  // (to prevent nasty reference loops). It's easy to mess this up
-  // and break things, so this helper makes the code far more robust.
-  class AutoMaskReferencer
-  {
-  public:
-    AutoMaskReferencer(nsSVGMaskFrame *aFrame)
-       : mFrame(aFrame) {
-      NS_ASSERTION(mFrame->mInUse == PR_FALSE, "reference loop!");
-      mFrame->mInUse = PR_TRUE;
-    }
-    ~AutoMaskReferencer() {
-      mFrame->mInUse = PR_FALSE;
-    }
-  private:
-    nsSVGMaskFrame *mFrame;
-  };
+ private:
+  PRUint16 GetMaskUnits();
+  PRUint16 GetMaskContentUnits();
 
   nsISVGChildFrame *mMaskParent;
   nsCOMPtr<nsIDOMSVGMatrix> mMaskParentMatrix;
-  // recursion prevention flag
-  PRPackedBool mInUse;
 
   // nsSVGContainerFrame methods:
   virtual already_AddRefed<nsIDOMSVGMatrix> GetCanvasTM();
 };
 
-nsIContent *
-NS_GetSVGMaskElement(nsIURI *aURI, nsIContent *aContent);
+nsresult
+NS_GetSVGMaskFrame(nsSVGMaskFrame **aResult,
+                   nsIURI *aURI, nsIContent *aContent);
 
 #endif

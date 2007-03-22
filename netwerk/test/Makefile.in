@@ -83,7 +83,6 @@ CPPSRCS += \
 		TestStreamPump.cpp \
 		TestProtocols.cpp \
 		TestIOThreads.cpp \
-		TestUDPSocketProvider.cpp \
 		$(NULL)
 endif
 

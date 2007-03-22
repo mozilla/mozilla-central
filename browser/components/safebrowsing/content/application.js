@@ -1,45 +1,45 @@
-# ***** BEGIN LICENSE BLOCK *****
-# Version: MPL 1.1/GPL 2.0/LGPL 2.1
-#
-# The contents of this file are subject to the Mozilla Public License Version
-# 1.1 (the "License"); you may not use this file except in compliance with
-# the License. You may obtain a copy of the License at
-# http://www.mozilla.org/MPL/
-#
-# Software distributed under the License is distributed on an "AS IS" basis,
-# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
-# for the specific language governing rights and limitations under the
-# License.
-#
-# The Original Code is Google Safe Browsing.
-#
-# The Initial Developer of the Original Code is Google Inc.
-# Portions created by the Initial Developer are Copyright (C) 2006
-# the Initial Developer. All Rights Reserved.
-#
-# Contributor(s):
-#   Fritz Schneider <fritz@google.com> (original author)
-#
-# Alternatively, the contents of this file may be used under the terms of
-# either the GNU General Public License Version 2 or later (the "GPL"), or
-# the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
-# in which case the provisions of the GPL or the LGPL are applicable instead
-# of those above. If you wish to allow use of your version of this file only
-# under the terms of either the GPL or the LGPL, and not to allow others to
-# use your version of this file under the terms of the MPL, indicate your
-# decision by deleting the provisions above and replace them with the notice
-# and other provisions required by the GPL or the LGPL. If you do not delete
-# the provisions above, a recipient may use your version of this file under
-# the terms of any one of the MPL, the GPL or the LGPL.
-#
-# **** END LICENSE BLOCK ****
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Google Safe Browsing.
+ *
+ * The Initial Developer of the Original Code is Google Inc.
+ * Portions created by the Initial Developer are Copyright (C) 2006
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Fritz Schneider <fritz@google.com> (original author)
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
 
 // We instantiate this variable when we create the application.
 var gDataProvider = null;
 
 // An instance of our application is a PROT_Application object. It
-// basically just populates a few globals and instantiates wardens,
-// the listmanager, and the about:blocked error page.
+// basically just populates a few globals and instantiates wardens and
+// the listmanager.
 
 /**
  * An instance of our application. There should be exactly one of these.
@@ -61,19 +61,24 @@ function PROT_Application() {
 
       G_DebugL("UNITTESTS", "STARTING UNITTESTS");
       TEST_G_Protocol4Parser();
+      TEST_G_Base64();
       TEST_G_CryptoHasher();
       TEST_PROT_EnchashDecrypter();
       TEST_PROT_TRTable();
       TEST_PROT_ListManager();
       TEST_PROT_PhishingWarden();
       TEST_PROT_TRFetcher();
+      TEST_G_ObjectSafeMap();
       TEST_PROT_URLCanonicalizer();
       TEST_G_Preferences();
       TEST_G_Observer();
+      TEST_G_File();
       TEST_PROT_WireFormat();
       // UrlCrypto's test should come before the key manager's
       TEST_PROT_UrlCrypto();
       TEST_PROT_UrlCryptoKeyManager();
+      TEST_G_MozVersionNumber();
+      TEST_G_ThisFirefoxVersion();
       G_DebugL("UNITTESTS", "END UNITTESTS");
     }
   };
@@ -82,8 +87,9 @@ function PROT_Application() {
 #endif
   
   // expose some classes
+  this.G_TabbedBrowserWatcher = G_TabbedBrowserWatcher;
+  this.PROT_Controller = PROT_Controller;
   this.PROT_PhishingWarden = PROT_PhishingWarden;
-  this.PROT_MalwareWarden = PROT_MalwareWarden;
 
   // Load data provider pref values
   gDataProvider = new PROT_DataProvider();
@@ -92,81 +98,10 @@ function PROT_Application() {
   this.wrappedJSObject = this;
 }
 
-var gInitialized = false;
-PROT_Application.prototype.initialize = function() {
-  if (gInitialized)
-    return;
-  gInitialized = true;
-
-  var obs = Cc["@mozilla.org/observer-service;1"].
-            getService(Ci.nsIObserverService);
-  obs.addObserver(this, "xpcom-shutdown", true);
-
-  // XXX: move table names to a pref that we originally will download
-  // from the provider (need to workout protocol details)
-  this.malwareWarden = new PROT_MalwareWarden();
-  this.malwareWarden.registerBlackTable("goog-malware-shavar");
-  this.malwareWarden.maybeToggleUpdateChecking();
-
-  this.phishWarden = new PROT_PhishingWarden();
-  this.phishWarden.registerBlackTable("goog-phish-shavar");
-  this.phishWarden.maybeToggleUpdateChecking();
-}
-
-PROT_Application.prototype.observe = function(subject, topic, data) {
-  switch (topic) {
-    case "xpcom-shutdown":
-      this.malwareWarden.shutdown();
-      this.phishWarden.shutdown();
-      break;
-  }
-}
-
 /**
  * @param name String The type of url to get (either Phish or Error).
  * @return String the report phishing URL (localized).
  */
 PROT_Application.prototype.getReportURL = function(name) {
   return gDataProvider["getReport" + name + "URL"]();
-}
-
-/**
- * about:blocked implementation
- */
-PROT_Application.prototype.newChannel = function(uri) {
-  var ioService = Cc["@mozilla.org/network/io-service;1"]
-                 .getService(Ci.nsIIOService);
-  var secMan = Cc["@mozilla.org/scriptsecuritymanager;1"]
-              .getService(Ci.nsIScriptSecurityManager);
-
-  var childURI = ioService.newURI("chrome://browser/content/safebrowsing/blockedSite.xhtml",
-                                  null, null);
-  var channel = ioService.newChannelFromURI(childURI);
-  channel.originalURI = uri;
-  
-  // Drop chrome privilege
-  var principal = secMan.getCodebasePrincipal(uri);
-  channel.owner = principal;
-
-  return channel;
-}
-
-PROT_Application.prototype.getURIFlags = function(uri) {
-  // We don't particularly *want* people linking to this from
-  // untrusted content, but given that bad sites can cause this page
-  // to appear (e.g. by having an iframe pointing to known malware),
-  // we should code as though this is explicitly possible.
-  return Ci.nsIAboutModule.ALLOW_SCRIPT |
-         Ci.nsIAboutModule.URI_SAFE_FOR_UNTRUSTED_CONTENT;
-}
-
-PROT_Application.prototype.QueryInterface = function(iid) {
-  if (iid.equals(Ci.nsISupports) ||
-      iid.equals(Ci.nsISupportsWeakReference) ||
-      iid.equals(Ci.nsIObserver) ||
-      iid.equals(Ci.nsIAboutModule))
-    return this;
-
-  Components.returnCode = Components.results.NS_ERROR_NO_INTERFACE;
-  return null;
 }

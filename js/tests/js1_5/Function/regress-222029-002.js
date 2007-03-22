@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -34,9 +33,8 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK ***** */
-
-/*
+ * ***** END LICENSE BLOCK *****
+ *
  *
  * Date:    13 Oct 2003
  * SUMMARY: Make our f.caller property match IE's wrt f.apply and f.call
@@ -55,9 +53,8 @@
  *
  */
 //-----------------------------------------------------------------------------
-var gTestfile = 'regress-222029-002.js';
 var UBound = 0;
-var BUGNUMBER = 222029;
+var bug = 222029;
 var summary = "Make our f.caller property match IE's wrt f.apply and f.call";
 var status = '';
 var statusitems = [];
@@ -157,7 +154,7 @@ function addThis()
 function test()
 {
   enterFunc('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber(bug);
   printStatus(summary);
 
   for (var i=0; i<UBound; i++)

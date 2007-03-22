@@ -65,7 +65,7 @@ HRESULT IEBrowser::Init(PluginInstanceData *pData)
     mData = pData;
     // Get the location URL
     NPN_GetValue(mData->pPluginInstance, NPNVDOMWindow, 
-        static_cast<nsIDOMWindow **>(getter_AddRefs(mDOMWindow)));
+        NS_STATIC_CAST(nsIDOMWindow **,getter_AddRefs(mDOMWindow)));
     if (mDOMWindow)
     {
         mWebNavigation  = do_GetInterface(mDOMWindow);

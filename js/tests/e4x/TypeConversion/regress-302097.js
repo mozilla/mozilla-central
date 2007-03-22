@@ -36,16 +36,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'regress-302097.js';
+START("section - description");
 
-var summary = 'E4X - Function.prototype.toString should not quote {} ' +
-    'attribute values';
-var BUGNUMBER = 302097;
+var bug = 302097;
+var summary = 'E4X - Function.prototype.toString should not quote {} attribute values';
 var actual = '';
 var expect = '';
 
-printBugNumber(BUGNUMBER);
-START(summary);
+printBugNumber (bug);
+printStatus (summary);
 
 function f(k) {
   return <xml k={k}/>;

@@ -45,25 +45,46 @@
 #include "nsStubMutationObserver.h"
 #include "nsCOMPtr.h"
 #include "nsCOMArray.h"
-#include "nsWeakPtr.h"
-#include "nsCycleCollectionParticipant.h"
 
-// {662f2c9a-c7cd-4cab-9349-e733df5a838c}
+// {15b9b301-2012-11d6-a7f2-e6d0a678995c}
 #define NS_IXPATHRESULT_IID \
-{ 0x662f2c9a, 0xc7cd, 0x4cab, {0x93, 0x49, 0xe7, 0x33, 0xdf, 0x5a, 0x83, 0x8c }}
+{ 0x15b9b301, 0x2012, 0x11d6, {0xa7, 0xf2, 0xe6, 0xd0, 0xa6, 0x78, 0x99, 0x5c }}
 
 class nsIXPathResult : public nsISupports
 {
 public:
     NS_DECLARE_STATIC_IID_ACCESSOR(NS_IXPATHRESULT_IID)
     virtual nsresult SetExprResult(txAExprResult *aExprResult,
-                                   PRUint16 aResultType,
-                                   nsINode* aContextNode) = 0;
+                                   PRUint16 aResultType) = 0;
     virtual nsresult GetExprResult(txAExprResult **aExprResult) = 0;
     virtual nsresult Clone(nsIXPathResult **aResult) = 0;
 };
 
 NS_DEFINE_STATIC_IID_ACCESSOR(nsIXPathResult, NS_IXPATHRESULT_IID)
+
+/**
+ * Helper class to keep Mozilla node objects alive as long as the nodeset is
+ * alive.
+ */
+class txResultHolder
+{
+public:
+    ~txResultHolder()
+    {
+      releaseNodeSet();
+    }
+
+    txAExprResult *get()
+    {
+        return mResult;
+    }
+    void set(txAExprResult *aResult);
+
+private:
+    void releaseNodeSet();
+
+    nsRefPtr<txAExprResult> mResult;
+};
 
 /**
  * A class for evaluating an XPath expression string
@@ -74,12 +95,10 @@ class nsXPathResult : public nsIDOMXPathResult,
 {
 public:
     nsXPathResult();
-    nsXPathResult(const nsXPathResult &aResult);
-    ~nsXPathResult();
+    virtual ~nsXPathResult();
 
     // nsISupports interface
-    NS_DECL_CYCLE_COLLECTING_ISUPPORTS
-    NS_DECL_CYCLE_COLLECTION_CLASS_AMBIGUOUS(nsXPathResult, nsIDOMXPathResult)
+    NS_DECL_ISUPPORTS
 
     // nsIDOMXPathResult interface
     NS_DECL_NSIDOMXPATHRESULT
@@ -93,52 +112,34 @@ public:
     NS_DECL_NSIMUTATIONOBSERVER_NODEWILLBEDESTROYED
 
     // nsIXPathResult interface
-    nsresult SetExprResult(txAExprResult *aExprResult, PRUint16 aResultType,
-                           nsINode* aContextNode);
+    nsresult SetExprResult(txAExprResult *aExprResult, PRUint16 aResultType);
     nsresult GetExprResult(txAExprResult **aExprResult);
     nsresult Clone(nsIXPathResult **aResult);
-    void RemoveObserver();
+
 private:
-    static PRBool isSnapshot(PRUint16 aResultType)
-    {
-        return aResultType == UNORDERED_NODE_SNAPSHOT_TYPE ||
-               aResultType == ORDERED_NODE_SNAPSHOT_TYPE;
-    }
-    static PRBool isIterator(PRUint16 aResultType)
-    {
-        return aResultType == UNORDERED_NODE_ITERATOR_TYPE ||
-               aResultType == ORDERED_NODE_ITERATOR_TYPE;
-    }
-    static PRBool isNode(PRUint16 aResultType)
-    {
-        return aResultType == FIRST_ORDERED_NODE_TYPE ||
-               aResultType == ANY_UNORDERED_NODE_TYPE;
-    }
     PRBool isSnapshot() const
     {
-        return isSnapshot(mResultType);
+        return mResultType == UNORDERED_NODE_SNAPSHOT_TYPE ||
+               mResultType == ORDERED_NODE_SNAPSHOT_TYPE;
     }
     PRBool isIterator() const
     {
-        return isIterator(mResultType);
+        return mResultType == UNORDERED_NODE_ITERATOR_TYPE ||
+               mResultType == ORDERED_NODE_ITERATOR_TYPE;
     }
     PRBool isNode() const
     {
-        return isNode(mResultType);
+        return mResultType == FIRST_ORDERED_NODE_TYPE ||
+               mResultType == ANY_UNORDERED_NODE_TYPE;
     }
 
-    void Invalidate(const nsIContent* aChangeRoot);
+    void Invalidate();
 
-    nsRefPtr<txAExprResult> mResult;
-    nsCOMArray<nsIDOMNode> mResultNodes;
+    txResultHolder mResult;
     nsCOMPtr<nsIDocument> mDocument;
     PRUint32 mCurrentPos;
     PRUint16 mResultType;
-    nsWeakPtr mContextNode;
     PRPackedBool mInvalidIteratorState;
-    PRBool mBooleanResult;
-    double mNumberResult;
-    nsString mStringResult;
 };
 
 #endif

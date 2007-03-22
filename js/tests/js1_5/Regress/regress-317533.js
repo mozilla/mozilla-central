@@ -34,54 +34,48 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-317533.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 317533;
+var bug = 317533;
 var summary = 'improve function does not always return a value warnings';
 var actual = '';
 var expect = 'TypeError: anonymous function does not always return a value';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
- 
+  
 var code;
+var jsOptions = new JavaScriptOptions();
 
-if (!options().match(/strict/))
-{
-  options('strict');
-}
-if (!options().match(/werror/))
-{
-  options('werror');
-}
-
+jsOptions.setOption('strict', true);
+jsOptions.setOption('werror', true);
 try
 {
-  actual = '';
-  code = "(function(x){ if(x) return x; })";
-  print(code);
+  actual = ''; 
+  code = "function(x){ if(x) return x; }";
+  printStatus(code);
   eval(code);
 }
 catch(ex)
 {
   actual = ex + '';
-  print(ex);
+  printStatus(ex);
 }
-
+jsOptions.reset();
 reportCompare(expect, actual, summary);
 
+jsOptions.setOption('strict', true);
+jsOptions.setOption('werror', true);
 try
 {
   actual = '';
-  code = "(function(x){ if(x) return x; ;})";
-  print(code);
+  code = "function(x){ if(x) return x; ;}";
+  printStatus(code);
   eval(code);
 }
 catch(ex)
 {
   actual = ex + '';
-  print(ex);
+  printStatus(ex);
 }
-
+jsOptions.reset();
 reportCompare(expect, actual, summary);

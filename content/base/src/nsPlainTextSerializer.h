@@ -69,8 +69,7 @@ public:
 
   // nsIContentSerializer
   NS_IMETHOD Init(PRUint32 flags, PRUint32 aWrapColumn,
-                  const char* aCharSet, PRBool aIsCopying,
-                  PRBool aIsWholeDocument);
+                  const char* aCharSet, PRBool aIsCopying);
 
   NS_IMETHOD AppendText(nsIDOMText* aText, PRInt32 aStartOffset,
                         PRInt32 aEndOffset, nsAString& aStr);
@@ -160,7 +159,7 @@ protected:
 
   inline PRBool DoOutput()
   {
-    return mHeadLevel == 0;
+    return !mInHead;
   }
 
   // Stack handling functions
@@ -171,7 +170,8 @@ protected:
   
 protected:
   nsString         mCurrentLine;
-  PRUint32         mHeadLevel;
+
+  PRPackedBool     mInHead;
   PRPackedBool     mAtFirstColumn;
 
   // Handling of quoted text (for mail):

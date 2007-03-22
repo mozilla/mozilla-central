@@ -34,10 +34,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-343966.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 343966;
+var bug = 343966;
 var summary = 'ClearScope foo regressed due to bug 343417';
 var actual = 'failed';
 var expect = 'passed';
@@ -50,9 +48,9 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
- 
+  
   Function["prototype"].inherits=function(a){};
   function foo(){};
   function bar(){};

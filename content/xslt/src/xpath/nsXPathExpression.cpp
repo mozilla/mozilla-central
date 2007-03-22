@@ -49,13 +49,9 @@
 #include "txURIUtils.h"
 #include "txXPathTreeWalker.h"
 
-NS_IMPL_CYCLE_COLLECTION_1(nsXPathExpression, mDocument)
-
-NS_IMPL_CYCLE_COLLECTING_ADDREF_AMBIGUOUS(nsXPathExpression,
-                                          nsIDOMXPathExpression)
-NS_IMPL_CYCLE_COLLECTING_RELEASE_AMBIGUOUS(nsXPathExpression,
-                                           nsIDOMXPathExpression)
-NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION(nsXPathExpression)
+NS_IMPL_ADDREF(nsXPathExpression)
+NS_IMPL_RELEASE(nsXPathExpression)
+NS_INTERFACE_MAP_BEGIN(nsXPathExpression)
   NS_INTERFACE_MAP_ENTRY(nsIDOMXPathExpression)
   NS_INTERFACE_MAP_ENTRY(nsIDOMNSXPathExpression)
   NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIDOMXPathExpression)
@@ -68,6 +64,10 @@ nsXPathExpression::nsXPathExpression(nsAutoPtr<Expr>& aExpression,
     : mExpression(aExpression),
       mRecycler(aRecycler),
       mDocument(aDocument)
+{
+}
+
+nsXPathExpression::~nsXPathExpression()
 {
 }
 
@@ -88,8 +88,7 @@ nsXPathExpression::EvaluateWithContext(nsIDOMNode *aContextNode,
                                        nsISupports *aInResult,
                                        nsISupports **aResult)
 {
-    nsCOMPtr<nsINode> context = do_QueryInterface(aContextNode);
-    NS_ENSURE_ARG(context);
+    NS_ENSURE_ARG(aContextNode);
 
     if (aContextPosition > aContextSize)
         return NS_ERROR_FAILURE;
@@ -178,7 +177,7 @@ nsXPathExpression::EvaluateWithContext(nsIDOMNode *aContextNode,
         xpathResult = new nsXPathResult();
         NS_ENSURE_TRUE(xpathResult, NS_ERROR_OUT_OF_MEMORY);
     }
-    rv = xpathResult->SetExprResult(exprResult, resultType, context);
+    rv = xpathResult->SetExprResult(exprResult, resultType);
     NS_ENSURE_SUCCESS(rv, rv);
 
     return CallQueryInterface(xpathResult, aResult);

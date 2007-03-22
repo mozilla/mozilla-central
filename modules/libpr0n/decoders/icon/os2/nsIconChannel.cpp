@@ -1,6 +1,6 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
-/* vim: set sw=2 sts=2 et cin: */
-/* ***** BEGIN LICENSE BLOCK *****
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+ *
+ * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -48,10 +48,9 @@
 #include "nsMemory.h"
 #include "nsNetUtil.h"
 #include "nsInt64.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsIFileURL.h"
 #include "nsDirectoryServiceDefs.h"
-#include "nsIRwsService.h"
 
 #define INCL_PM
 #include <os2.h>
@@ -69,24 +68,12 @@
 #define UNALIGNEDBPR(cx,bits) (( ((cx)*(bits)) + 7) / 8)
 
 // native icon functions
-static  HPOINTER GetIcon(nsCString& file, PRBool fExists,
-                         PRBool fMini, PRBool *fWpsIcon);
-static  void DestroyIcon(HPOINTER hIcon, PRBool fWpsIcon);
+HPOINTER GetFileIcon(nsCString& file, PRBool fExists);
 
-void    ConvertColorBitMap(PRUint8 *inBuf, PBITMAPINFO2 pBMInfo,
-                           PRUint8 *outBuf, PRBool fShrink);
-void    ConvertMaskBitMap(PRUint8 *inBuf, PBITMAPINFO2 pBMInfo,
-                          PRUint8 *outBuf, PRBool fShrink);
-
-//------------------------------------------------------------------------
-
-// reduces overhead by preventing calls to nsRws when it isn't present
-#ifdef MOZ_PHOENIX  // should work fine in Firefox
-static PRBool sUseRws = PR_TRUE;
-#else // XXX causes duplicate attachment icons and crashes in apps that
-      //     use mailnews, so off now for other apps
-static PRBool sUseRws = PR_FALSE;
-#endif
+void    ConvertColorBitMap(PRUint8* inBuf, PBITMAPINFO2 pBMInfo, PRUint8* outBuf);
+void    ShrinkColorBitMap(PRUint8* inBuf, PBITMAPINFO2 pBMInfo, PRUint8* outBuf);
+void    ConvertMaskBitMap(PRUint8* inBuf, PBITMAPINFO2 pBMInfo, PRUint8* outBuf);
+void    ShrinkMaskBitMap(PRUint8* inBuf, PBITMAPINFO2 pBMInfo, PRUint8* outBuf);
 
 //------------------------------------------------------------------------
 // nsIconChannel methods
@@ -250,23 +237,26 @@ nsresult nsIconChannel::ExtractIconInfoFromUrl(nsIFile ** aLocalFile, PRUint32 *
 
 //------------------------------------------------------------------------
 
-// retrieves a native icon with 16, 256, or 16M colors and converts it to cairo
-// format;  Note: this implementation ignores the file's MIME-type because
-// using it virtually guarantees we'll end up with an inappropriate icon (i.e.
-// an .exe icon)
+// retrieves a native icon with 16, 256, or 16M colors and converts it
+// to 24-bit BGR with 1-bit alpha data (BGR_A1 format);  Note:  this
+// implementation ignores the file's MIME-type because using it virtually
+// guarantees we'll end up with an inappropriate icon (i.e. an .exe icon)
 
-nsresult nsIconChannel::MakeInputStream(nsIInputStream **_retval,
-                                        PRBool nonBlocking)
+nsresult nsIconChannel::MakeInputStream(nsIInputStream** _retval, PRBool nonBlocking)
 {
+#ifdef MOZ_CAIRO_GFX
+  // This needs to be changed to match the format changes described in
+  // nsIconDecoder.h.  For cairo, the icon format is ARGB (A in highest
+  // bits, B in lowest bits, based on platform endianness).
+  return NS_ERROR_NOT_IMPLEMENTED;
+#endif
 
   // get some details about this icon
   nsCOMPtr<nsIFile> localFile;
   PRUint32 desiredImageSize;
   nsXPIDLCString contentType;
   nsCAutoString filePath;
-  nsresult rv = ExtractIconInfoFromUrl(getter_AddRefs(localFile),
-                                       &desiredImageSize, contentType,
-                                       filePath);
+  nsresult rv = ExtractIconInfoFromUrl(getter_AddRefs(localFile), &desiredImageSize, contentType, filePath);
   NS_ENSURE_SUCCESS(rv, rv);
 
   // if the file exists, get its path
@@ -276,17 +266,15 @@ nsresult nsIconChannel::MakeInputStream(nsIInputStream **_retval,
     localFile->Exists(&fileExists);
   }
 
-  // get the file's icon from either the WPS or PM
-  PRBool fWpsIcon = PR_FALSE;
-  HPOINTER hIcon = GetIcon(filePath, fileExists,
-                           desiredImageSize <= 16, &fWpsIcon);
+  // get the icon from the file
+  HPOINTER hIcon = GetFileIcon(filePath, fileExists);
   if (hIcon == NULLHANDLE)
     return NS_ERROR_FAILURE;
 
   // get the color & mask bitmaps used by the icon
   POINTERINFO IconInfo;
   if (!WinQueryPointerInfo(hIcon, &IconInfo)) {
-    DestroyIcon(hIcon, fWpsIcon);
+    WinFreeFileIcon( hIcon);
     return NS_ERROR_FAILURE;
   }
 
@@ -297,9 +285,9 @@ nsresult nsIconChannel::MakeInputStream(nsIInputStream **_retval,
     if (IconInfo.hbmMiniPointer) {
       IconInfo.hbmColor = IconInfo.hbmMiniColor;
       IconInfo.hbmPointer = IconInfo.hbmMiniPointer;
-    } else {
-      fShrink = TRUE;
     }
+    else
+      fShrink = TRUE;
   }
 
   // various resources to be allocated
@@ -309,12 +297,12 @@ nsresult nsIconChannel::MakeInputStream(nsIInputStream **_retval,
   HDC           hdc     = 0;
   HPS           hps     = 0;
 
-  // using this dummy do{...}while(0) "loop" guarantees that resources will
-  // be deallocated, but eliminates the need for nesting, and generally makes
+  // using this dummy do{...}while(0) "loop" guarantees resources will
+  // be deallocated, eliminates the need for nesting, and generally makes
   // testing for & dealing with errors pretty painless (just 'break')
   do {
     rv = NS_ERROR_FAILURE;
-
+  
     // get the details for the color bitmap;  if there isn't one
     // or this is 1-bit color, exit
     BITMAPINFOHEADER2  BMHeader;
@@ -323,90 +311,98 @@ nsresult nsIconChannel::MakeInputStream(nsIInputStream **_retval,
         !GpiQueryBitmapInfoHeader(IconInfo.hbmColor, &BMHeader) ||
         BMHeader.cBitCount == 1)
       break;
-
+  
     // alloc space for the color bitmap's info, including its color table
     PRUint32 cbBMInfo = sizeof(BITMAPINFO2) + (sizeof(RGB2) * 255);
     pBMInfo = (PBITMAPINFO2)nsMemory::Alloc(cbBMInfo);
     if (!pBMInfo)
       break;
-
+  
     // alloc space for the color bitmap data
-    PRUint32 cbInRow = ALIGNEDBPR(BMHeader.cx, BMHeader.cBitCount);
+    PRUint32 cbInRow = ALIGNEDBPR( BMHeader.cx, BMHeader.cBitCount);
     PRUint32 cbInBuf = cbInRow * BMHeader.cy;
     pInBuf = (PRUint8*)nsMemory::Alloc(cbInBuf);
     if (!pInBuf)
       break;
-    memset(pInBuf, 0, cbInBuf);
-
-    // alloc space for the BGRA32 bitmap we're creating
-    PRUint32 cxOut    = fShrink ? BMHeader.cx / 2 : BMHeader.cx;
-    PRUint32 cyOut    = fShrink ? BMHeader.cy / 2 : BMHeader.cy;
-    PRUint32 cbOutBuf = 2 + ALIGNEDBPR(cxOut, 32) * cyOut;
+    memset( pInBuf, 0, cbInBuf);
+  
+    // alloc space for the 24-bit BGR_A1 bitmap we're creating
+    PRUint32 cxOut    = (fShrink ? BMHeader.cx / 2 : BMHeader.cx);
+    PRUint32 cyOut    = (fShrink ? BMHeader.cy / 2 : BMHeader.cy);
+    PRUint32 cbColor  = ALIGNEDBPR( cxOut, 24) * cyOut;
+    PRUint32 cbMask   = ALIGNEDBPR( cxOut,  1) * cyOut;
+    PRUint32 cbOutBuf = 3 + cbColor + cbMask;
     pOutBuf = (PRUint8*)nsMemory::Alloc(cbOutBuf);
     if (!pOutBuf)
       break;
-    memset(pOutBuf, 0, cbOutBuf);
-
+    memset( pOutBuf, 0, cbOutBuf);
+  
     // create a DC and PS
-    DEVOPENSTRUC dop = {NULL, "DISPLAY", NULL, NULL, NULL, NULL, NULL, NULL, NULL};
-    hdc = DevOpenDC((HAB)0, OD_MEMORY, "*", 5L, (PDEVOPENDATA)&dop, NULLHANDLE);
+    DEVOPENSTRUC  dop = {NULL, "DISPLAY", NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+    hdc = DevOpenDC( (HAB)0, OD_MEMORY, "*", 5L, (PDEVOPENDATA)&dop, NULLHANDLE);
     if (!hdc)
       break;
-
+  
     SIZEL sizel = {0,0};
     hps = GpiCreatePS((HAB)0, hdc, &sizel, GPIA_ASSOC | PU_PELS | GPIT_MICRO);
     if (!hps)
       break;
-
+  
     // get the color bits
-    memset(pBMInfo, 0, cbBMInfo);
-    *((PBITMAPINFOHEADER2)pBMInfo) = BMHeader;
+    memset( pBMInfo, 0, cbBMInfo);
+    *((PBITMAPINFOHEADER2)pBMInfo ) = BMHeader;
     GpiSetBitmap(hps, IconInfo.hbmColor);
-    if (GpiQueryBitmapBits(hps, 0L, (LONG)BMHeader.cy,
-                           (BYTE*)pInBuf, pBMInfo) <= 0)
+    if (GpiQueryBitmapBits( hps, 0L, (LONG)BMHeader.cy,
+                            (BYTE*)pInBuf, pBMInfo) <= 0)
       break;
-
-    // The first 2 bytes are the width & height of the icon in pixels,
-    // the remaining bytes are BGRA32 (B in first byte, A in last)
+  
+    // The first 2 bytes are the width & height of the icon in pixels
     PRUint8* outPtr = pOutBuf;
     *outPtr++ = (PRUint8)cxOut;
     *outPtr++ = (PRUint8)cyOut;
-
+    // then the number of bits of alpha per pixel
+    *outPtr++ = (PRUint8)1;
+  
     // convert the color bitmap
     pBMInfo->cbImage = cbInBuf;
-    ConvertColorBitMap(pInBuf, pBMInfo, outPtr, fShrink);
-
-    // now we need to tack on the alpha data, so jump back to the first
-    // pixel in the output buffer
-    outPtr = pOutBuf+2;
-
+    if (fShrink)
+      ShrinkColorBitMap( pInBuf, pBMInfo, outPtr);
+    else
+      ConvertColorBitMap( pInBuf, pBMInfo, outPtr);
+    outPtr += cbColor;
+  
+    // now we need to tack on the alpha data
+  
     // Get the mask info
     BMHeader.cbFix = sizeof(BMHeader);
     if (!GpiQueryBitmapInfoHeader(IconInfo.hbmPointer, &BMHeader))
       break;
-
+  
     // if the existing input buffer isn't large enough, reallocate it
-    cbInRow = ALIGNEDBPR(BMHeader.cx, BMHeader.cBitCount);
+    cbInRow  = ALIGNEDBPR( BMHeader.cx, BMHeader.cBitCount);
     if ((cbInRow * BMHeader.cy) > cbInBuf)  // Need more for mask
     {
       cbInBuf = cbInRow * BMHeader.cy;
       nsMemory::Free(pInBuf);
-      pInBuf = (PRUint8*)nsMemory::Alloc(cbInBuf);
-      memset(pInBuf, 0, cbInBuf);
+      pInBuf  = (PRUint8*)nsMemory::Alloc(cbInBuf);
+      memset( pInBuf, 0, cbInBuf);
     }
-
+  
     // get the mask/alpha bits
-    memset(pBMInfo, 0, cbBMInfo);
-    *((PBITMAPINFOHEADER2)pBMInfo) = BMHeader;
+    memset( pBMInfo, 0, cbBMInfo);
+    *((PBITMAPINFOHEADER2)pBMInfo ) = BMHeader;
     GpiSetBitmap(hps, IconInfo.hbmPointer);
-    if (GpiQueryBitmapBits(hps, 0L, (LONG)BMHeader.cy,
-                           (BYTE*)pInBuf, pBMInfo) <= 0)
+    if (GpiQueryBitmapBits( hps, 0L, (LONG)BMHeader.cy,
+                            (BYTE*)pInBuf, pBMInfo) <= 0)
       break;
 
     // convert the mask/alpha bitmap
     pBMInfo->cbImage = cbInBuf;
-    ConvertMaskBitMap(pInBuf, pBMInfo, outPtr, fShrink);
-
+    if (fShrink)
+      ShrinkMaskBitMap( pInBuf, pBMInfo, outPtr);
+    else
+      ConvertMaskBitMap( pInBuf, pBMInfo, outPtr);
+  
     // create a pipe
     nsCOMPtr<nsIInputStream> inStream;
     nsCOMPtr<nsIOutputStream> outStream;
@@ -414,25 +410,26 @@ nsresult nsIconChannel::MakeInputStream(nsIInputStream **_retval,
                     cbOutBuf, cbOutBuf, nonBlocking);
     if (NS_FAILED(rv))
       break;
-
+  
     // put our data into the pipe
     PRUint32 written;
-    rv = outStream->Write(reinterpret_cast<const char*>(pOutBuf),
-                          cbOutBuf, &written);
+    rv = outStream->Write( NS_REINTERPRET_CAST(const char*, pOutBuf),
+                           cbOutBuf, &written);
     if (NS_FAILED(rv))
       break;
-
+  
     // success! so addref the pipe
     NS_ADDREF(*_retval = inStream);
+  
   } while (0);
 
   // free all the resources we allocated
   if (pOutBuf)
-    nsMemory::Free(pOutBuf);
+    nsMemory::Free( pOutBuf);
   if (pInBuf)
-    nsMemory::Free(pInBuf);
+    nsMemory::Free( pInBuf);
   if (pBMInfo)
-    nsMemory::Free(pBMInfo);
+    nsMemory::Free( pBMInfo);
   if (hps) {
     GpiAssociate(hps, NULLHANDLE);
     GpiDestroyPS(hps);
@@ -440,70 +437,42 @@ nsresult nsIconChannel::MakeInputStream(nsIInputStream **_retval,
   if (hdc)
     DevCloseDC(hdc);
   if (hIcon)
-    DestroyIcon(hIcon, fWpsIcon);
+    WinFreeFileIcon( hIcon);
 
   return rv;
 }
 
 //------------------------------------------------------------------------
 
-// get the file's icon from either the WPS or PM
+// if the file exists, get its icon;  if it doesn't, create a dummy file
+// with the same extension, then use whatever icon the system assigns it
 
-static HPOINTER GetIcon(nsCString& file, PRBool fExists,
-                        PRBool fMini, PRBool *fWpsIcon)
+HPOINTER    GetFileIcon(nsCString& file, PRBool fExists)
 {
-  HPOINTER hRtn = 0;
-  *fWpsIcon = PR_FALSE;
 
-  if (file.IsEmpty()) {
-    // append something so that we get at least the generic icon
-    file.Append("pmwrlw");
-  }
-
-  // if RWS is enabled, try to get the icon from the WPS
-  if (sUseRws) {
-    nsCOMPtr<nsIRwsService> rwsSvc(do_GetService("@mozilla.org/rwsos2;1"));
-    if (!rwsSvc)
-      sUseRws = PR_FALSE;
-    else {
-      if (fExists) {
-        rwsSvc->IconFromPath(file.get(), PR_FALSE, fMini, (PRUint32*)&hRtn);
-      } else {
-        const char *ptr = file.get();
-        if (*ptr == '.')
-          ptr++;
-        rwsSvc->IconFromExtension(ptr, fMini, (PRUint32*)&hRtn);
-      }
-    }
-  }
-
-  // if we got an icon from the WPS, set the flag & exit
-  if (hRtn) {
-    *fWpsIcon = PR_TRUE;
-    return hRtn;
-  }
-
-  // if the file exists already, get its icon
   if (fExists)
-    return WinLoadFileIcon(file.get(), FALSE);
+    return WinLoadFileIcon( file.get(), FALSE);
 
-  // otherwise, create a temporary file with the correct extension,
-  // then retrieve whatever icon PM assigns it
+  nsCOMPtr<nsIFile> dummyPath;
+  if (NS_FAILED(NS_GetSpecialDirectory(NS_OS_TEMP_DIR,
+                                       getter_AddRefs(dummyPath))))
+    return 0;
+
   if (file.First() == '.')
     file.Insert("moztmp", 0);
 
-  nsCOMPtr<nsIFile> tempPath;
-  if (NS_FAILED(NS_GetSpecialDirectory(NS_OS_TEMP_DIR, getter_AddRefs(tempPath))) ||
-      NS_FAILED(tempPath->AppendNative(file)))
+  if (NS_FAILED(dummyPath->AppendNative(file)))
     return 0;
 
-  nsCAutoString pathStr;
-  tempPath->GetNativePath(pathStr);
-  FILE* fp = fopen(pathStr.get(), "wb+");
+  nsCAutoString dummyFile;
+  dummyPath->GetNativePath(dummyFile);
+
+  HPOINTER  hRtn = 0;
+  FILE*     fp = fopen( dummyFile.get(), "wb+");
   if (fp) {
-    fclose(fp);
-    hRtn = WinLoadFileIcon(pathStr.get(), FALSE);
-    remove(pathStr.get());
+    fclose( fp);
+    hRtn = WinLoadFileIcon(dummyFile.get(), FALSE);
+    remove(dummyFile.get());
   }
 
   return hRtn;
@@ -511,103 +480,177 @@ static HPOINTER GetIcon(nsCString& file, PRBool fExists,
 
 //------------------------------------------------------------------------
 
-static void DestroyIcon(HPOINTER hIcon, PRBool fWpsIcon)
+// converts 16, 256, & 16M color bitmaps to 24-bit BGR format;  since the
+// scanlines in OS/2 bitmaps run bottom-to-top, it starts at the end of the
+// input buffer & works its way back;  Note:  no output padding is needed
+// for any expected color-depth or size;  only 4-bit, 20x20 icons contain
+// input padding that has to be ignored
+
+void    ConvertColorBitMap(PRUint8* inBuf, PBITMAPINFO2 pBMInfo, PRUint8* outBuf)
 {
-  if (fWpsIcon)
-    WinDestroyPointer(hIcon);
+
+  PRUint32  bprIn = ALIGNEDBPR(pBMInfo->cx, pBMInfo->cBitCount);
+  PRUint8*  pIn   = inBuf + (pBMInfo->cy - 1) * bprIn;
+  PRUint8*  pOut  = outBuf;
+  PRGB2 	pColorTable = &pBMInfo->argbColor[0];
+
+  if (pBMInfo->cBitCount == 4) {
+    PRUint32  ubprIn = UNALIGNEDBPR(pBMInfo->cx, pBMInfo->cBitCount);
+    PRUint32  padIn  = bprIn - ubprIn;
+
+    for (PRUint32 row = pBMInfo->cy; row > 0; row--) {
+      for (PRUint32 ndx = 0; ndx < ubprIn; ndx++, pIn++) {
+        pOut = 3 + (PRUint8*)memcpy( pOut, &pColorTable[FIRSTPEL(*pIn)], 3);
+        pOut = 3 + (PRUint8*)memcpy( pOut, &pColorTable[SECONDPEL(*pIn)], 3);
+      }
+      pIn -= (2 * bprIn) - padIn;
+    }
+  }
   else
-    WinFreeFileIcon(hIcon);
+  if (pBMInfo->cBitCount == 8) {
+    for (PRUint32 row = pBMInfo->cy; row > 0; row--) {
+      for (PRUint32 ndx = 0; ndx < bprIn; ndx++, pIn++) {
+        pOut = 3 + (PRUint8*)memcpy( pOut, &pColorTable[*pIn], 3);
+      }
+      pIn -= 2 * bprIn;
+    }
+  }
+  else
+  if (pBMInfo->cBitCount == 24) {
+    for (PRUint32 row = pBMInfo->cy; row > 0; row--) {
+      pOut = bprIn + (PRUint8*)memcpy( pOut, pIn, bprIn);
+      pIn -= bprIn;
+    }
+  }
 
   return;
 }
 
 //------------------------------------------------------------------------
 
-// converts 16, 256, & 16M color bitmaps to BGRA32 format;  the alpha
-// channel byte is left open & will be filled in by ConvertMaskBitMap();
-// since the scanlines in OS/2 bitmaps run bottom-to-top, it starts at the
-// end of the input buffer & works its way back;  Note: only 4-bit, 20x20
-// icons contain input padding that has to be ignored
+// similar to ConvertColorBitMap() except that it skips every other pixel
+// horizontally, & every other line vertically;  this is the exact reverse
+// of what GPI does when it expands a mini-icon to full-size
 
-void ConvertColorBitMap(PRUint8 *inBuf, PBITMAPINFO2 pBMInfo,
-                        PRUint8 *outBuf, PRBool fShrink)
+void    ShrinkColorBitMap(PRUint8* inBuf, PBITMAPINFO2 pBMInfo, PRUint8* outBuf)
 {
-  PRUint32 next  = fShrink ? 2 : 1;
-  PRUint32 bprIn = ALIGNEDBPR(pBMInfo->cx, pBMInfo->cBitCount);
-  PRUint8 *pIn   = inBuf + (pBMInfo->cy - 1) * bprIn;
-  PRUint8 *pOut  = outBuf;
-  PRGB2    pColorTable = &pBMInfo->argbColor[0];
+
+  PRUint32  bprIn = ALIGNEDBPR(pBMInfo->cx, pBMInfo->cBitCount);
+  PRUint8*  pIn   = inBuf + (pBMInfo->cy - 1) * bprIn;
+  PRUint8*  pOut  = outBuf;
+  PRGB2 	pColorTable = &pBMInfo->argbColor[0];
 
   if (pBMInfo->cBitCount == 4) {
     PRUint32  ubprIn = UNALIGNEDBPR(pBMInfo->cx, pBMInfo->cBitCount);
     PRUint32  padIn  = bprIn - ubprIn;
 
-    for (PRUint32 row = pBMInfo->cy; row > 0; row -= next) {
+    for (PRUint32 row = pBMInfo->cy; row > 0; row -= 2) {
       for (PRUint32 ndx = 0; ndx < ubprIn; ndx++, pIn++) {
-        pOut = 4 + (PRUint8*)memcpy(pOut, &pColorTable[FIRSTPEL(*pIn)], 3);
-        if (!fShrink) {
-          pOut = 4 + (PRUint8*)memcpy(pOut, &pColorTable[SECONDPEL(*pIn)], 3);
-        }
+        pOut = 3 + (PRUint8*)memcpy( pOut, &pColorTable[FIRSTPEL(*pIn)], 3);
       }
-      pIn -= ((next + 1) * bprIn) - padIn;
-    }
-  } else if (pBMInfo->cBitCount == 8) {
-    for (PRUint32 row = pBMInfo->cy; row > 0; row -= next) {
-      for (PRUint32 ndx = 0; ndx < bprIn; ndx += next, pIn += next) {
-        pOut = 4 + (PRUint8*)memcpy(pOut, &pColorTable[*pIn], 3);
-      }
-      pIn -= (next + 1) * bprIn;
-    }
-  } else if (pBMInfo->cBitCount == 24) {
-    PRUint32 next3 = next * 3;
-    for (PRUint32 row = pBMInfo->cy; row > 0; row -= next) {
-      for (PRUint32 ndx = 0; ndx < bprIn; ndx += next3, pIn += next3) {
-        pOut = 4 + (PRUint8*)memcpy(pOut, pIn, 3);
-      }
-      pIn -= (next + 1) * bprIn;
+      pIn -= (3 * bprIn) - padIn;
     }
   }
+  else
+  if (pBMInfo->cBitCount == 8) {
+    for (PRUint32 row = pBMInfo->cy; row > 0; row -= 2) {
+      for (PRUint32 ndx = 0; ndx < bprIn; ndx += 2, pIn += 2) {
+        pOut = 3 + (PRUint8*)memcpy( pOut, &pColorTable[*pIn], 3);
+      }
+      pIn -= 3 * bprIn;
+    }
+  }
+  else
+  if (pBMInfo->cBitCount == 24) {
+    for (PRUint32 row = pBMInfo->cy; row > 0; row -= 2) {
+      for (PRUint32 ndx = 0; ndx < bprIn; ndx += 6, pIn += 3) {
+        pOut = 3 + (PRUint8*)memcpy( pOut, pIn, 3);
+        pIn += 3;
+      }
+      pIn -= 3 * bprIn;
+    }
+  }
+
+  return;
 }
 
 //------------------------------------------------------------------------
 
-// converts an icon's AND mask into 8-bit alpha data and stores it in the
-// high-order bytes of the BGRA32 bitmap created by ConvertColorBitMap();
-// the AND mask is the 2nd half of a pair of bitmaps & the scanlines run
-// bottom-to-top - starting at the end and working back to the midpoint
-// converts the entire bitmap;  since each row is dword-aligned, 16, 20,
-// and 40-pixel icons all have padding bits at the end of every row that
-// must be skipped over
+// converts an icon's AND mask into 1-bit alpha data;  since the AND mask
+// is the 2nd half of a pair of bitmaps & the scanlines run bottom-to-top,
+// starting at the end & working back to the midpoint converts the entire
+// bitmap;  Note: because the input is already padded to a dword boundary,
+// the output will be padded automatically
 
-void ConvertMaskBitMap(PRUint8 *inBuf, PBITMAPINFO2 pBMInfo,
-                       PRUint8 *outBuf, PRBool fShrink)
+void    ConvertMaskBitMap(PRUint8* inBuf, PBITMAPINFO2 pBMInfo, PRUint8* outBuf)
 {
-  PRUint32 next   = (fShrink ? 2 : 1);
-  PRUint32 bprIn  = ALIGNEDBPR(pBMInfo->cx, pBMInfo->cBitCount);
-  PRUint32 padIn  = bprIn - UNALIGNEDBPR(pBMInfo->cx, pBMInfo->cBitCount);
-  PRUint8 *pIn    = inBuf + (pBMInfo->cy - 1) * bprIn;
-  PRUint8 *pOut   = outBuf + 3;
 
-  // for each row or every other row
-  for (PRUint32 row = pBMInfo->cy/2; row > 0; row -= next) {
+  PRUint32  bprIn  = ALIGNEDBPR(pBMInfo->cx, pBMInfo->cBitCount);
+  PRUint32  lprIn  = bprIn / 4;
+  PRUint32* pOut32 = (PRUint32*)outBuf;
+  PRUint32* pIn32  = (PRUint32*)(inBuf + (pBMInfo->cy - 1) * bprIn);
 
-    // for all of the non-padding bits in the row
-    for (PRUint32 bits = pBMInfo->cx; bits; pIn++) {
-      PRUint8 src = ~(*pIn);
+  for (PRUint32 row = pBMInfo->cy/2; row > 0; row--) {
+    for (PRUint32 ndx = 0; ndx < lprIn; ndx++) {
+        *pOut32++ = ~(*pIn32++);
+    }
+    pIn32 -= 2 * lprIn;
+  }
+
+  return;
+}
+
+//------------------------------------------------------------------------
+
+// similar to ConvertMaskBitMap() except that it skips every other pixel
+// horizontally, & every other line vertically;  Note:  this is the only
+// one of these functions that may have to add padding to its output
+
+void    ShrinkMaskBitMap(PRUint8* inBuf, PBITMAPINFO2 pBMInfo, PRUint8* outBuf)
+{
+
+  PRUint32  bprIn  = ALIGNEDBPR(pBMInfo->cx, pBMInfo->cBitCount);
+  PRUint32  padOut = (bprIn / 2) & 3;
+  PRUint8*  pOut   = outBuf;
+  PRUint8*  pIn    = inBuf + (pBMInfo->cy - 1) * bprIn;
+
+  // for every other row
+  for (PRUint32 row = pBMInfo->cy/2; row > 0; row -= 2) {
+    PRUint8 dest = 0;
+    PRUint8 destMask = 0x80;
+
+    // for every byte in the row
+    for (PRUint32 ndx = 0; ndx < bprIn; ndx++) {
+      PRUint8 src = ~(*pIn++);
       PRUint8 srcMask = 0x80;
 
-      // for each bit or every other bit in the current byte
-      for ( ; srcMask && bits; srcMask >>= next, bits -= next, pOut += 4) {
-        if (src & srcMask) {
-          *pOut = 0xff;
-        }
+      // for every other bit in the current byte
+      for (PRUint32 bitNdx = 0; bitNdx < 8; bitNdx += 2) {
+        if (src & srcMask)
+          dest |= destMask;
+        srcMask >>= 2;
+        destMask >>= 1;
+      }
+
+      // if we've filled an output byte from two input bytes, save it
+      if (!destMask) {
+        *pOut++ = dest;
+        dest = 0;
+        destMask = 0x80;
       }
     }
 
-    // if the row just completed had padding, pIn won't be pointing
-    // at the first byte in the next row;  padIn compensates for this
-    pIn -= ((next + 1) * bprIn) - padIn;
+    // after we've processed every input byte in the row, 
+    // does the output row need padding?
+    if (padOut) {
+      memset( pOut, 0, padOut);
+      pOut += padOut;
+    }
+
+    pIn -= 3 * bprIn;
   }
+
+  return;
 }
 
 //------------------------------------------------------------------------

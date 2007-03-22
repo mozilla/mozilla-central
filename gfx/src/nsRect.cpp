@@ -37,7 +37,21 @@
 
 #include "nsRect.h"
 #include "nsString.h"
+#include "nsUnitConversion.h"
 #include "nsIDeviceContext.h"
+
+#ifdef MIN
+#undef MIN
+#endif
+
+#ifdef MAX
+#undef MAX
+#endif
+
+#define MIN(a,b)\
+  ((a) < (b) ? (a) : (b))
+#define MAX(a,b)\
+  ((a) > (b) ? (a) : (b))
 
 // Containment
 PRBool nsRect::Contains(nscoord aX, nscoord aY) const
@@ -46,12 +60,10 @@ PRBool nsRect::Contains(nscoord aX, nscoord aY) const
                    (aX < XMost()) && (aY < YMost()));
 }
 
-//Also Returns true if aRect is Empty
 PRBool nsRect::Contains(const nsRect &aRect) const
 {
-  return aRect.IsEmpty() || 
-          ((PRBool) ((aRect.x >= x) && (aRect.y >= y) &&
-                    (aRect.XMost() <= XMost()) && (aRect.YMost() <= YMost())));
+  return (PRBool) ((aRect.x >= x) && (aRect.y >= y) &&
+                   (aRect.XMost() <= XMost()) && (aRect.YMost() <= YMost()));
 }
 
 // Intersection. Returns TRUE if the receiver overlaps aRect and
@@ -72,11 +84,11 @@ PRBool nsRect::IntersectRect(const nsRect &aRect1, const nsRect &aRect2)
   nscoord  ymost2 = aRect2.YMost();
   nscoord  temp;
 
-  x = PR_MAX(aRect1.x, aRect2.x);
-  y = PR_MAX(aRect1.y, aRect2.y);
+  x = MAX(aRect1.x, aRect2.x);
+  y = MAX(aRect1.y, aRect2.y);
 
   // Compute the destination width
-  temp = PR_MIN(xmost1, xmost2);
+  temp = MIN(xmost1, xmost2);
   if (temp <= x) {
     Empty();
     return PR_FALSE;
@@ -84,7 +96,7 @@ PRBool nsRect::IntersectRect(const nsRect &aRect1, const nsRect &aRect2)
   width = temp - x;
 
   // Compute the destination height
-  temp = PR_MIN(ymost1, ymost2);
+  temp = MIN(ymost1, ymost2);
   if (temp <= y) {
     Empty();
     return PR_FALSE;
@@ -115,26 +127,21 @@ PRBool nsRect::UnionRect(const nsRect &aRect1, const nsRect &aRect2)
     // aRect2 is empty so set the result to aRect1
     *this = aRect1;
   } else {
-    UnionRectIncludeEmpty(aRect1, aRect2);
+    nscoord xmost1 = aRect1.XMost();
+    nscoord xmost2 = aRect2.XMost();
+    nscoord ymost1 = aRect1.YMost();
+    nscoord ymost2 = aRect2.YMost();
+
+    // Compute the origin
+    x = MIN(aRect1.x, aRect2.x);
+    y = MIN(aRect1.y, aRect2.y);
+
+    // Compute the size
+    width = MAX(xmost1, xmost2) - x;
+    height = MAX(ymost1, ymost2) - y;
   }
 
   return result;
-}
-
-void nsRect::UnionRectIncludeEmpty(const nsRect &aRect1, const nsRect &aRect2)
-{
-  nscoord xmost1 = aRect1.XMost();
-  nscoord xmost2 = aRect2.XMost();
-  nscoord ymost1 = aRect1.YMost();
-  nscoord ymost2 = aRect2.YMost();
-
-  // Compute the origin
-  x = PR_MIN(aRect1.x, aRect2.x);
-  y = PR_MIN(aRect1.y, aRect2.y);
-
-  // Compute the size
-  width = PR_MAX(xmost1, xmost2) - x;
-  height = PR_MAX(ymost1, ymost2) - y;
 }
 
 // Inflate the rect by the specified width and height
@@ -160,8 +167,8 @@ void nsRect::Deflate(nscoord aDx, nscoord aDy)
 {
   x += aDx;
   y += aDy;
-  width = PR_MAX(0, width - 2 * aDx);
-  height = PR_MAX(0, height - 2 * aDy);
+  width -= 2 * aDx;
+  height -= 2 * aDy;
 }
 
 // Deflate the rect by the specified margin
@@ -169,15 +176,15 @@ void nsRect::Deflate(const nsMargin &aMargin)
 {
   x += aMargin.left;
   y += aMargin.top;
-  width = PR_MAX(0, width - aMargin.LeftRight());
-  height = PR_MAX(0, height - aMargin.TopBottom());
+  width -= aMargin.left + aMargin.right;
+  height -= aMargin.top + aMargin.bottom;
 }
 
 // scale the rect but round to smallest containing rect
-nsRect& nsRect::ScaleRoundOut(float aScale) 
+nsRect& nsRect::ScaleRoundOut(const float aScale) 
 {
-  nscoord right = NSToCoordCeil(float(XMost()) * aScale);
-  nscoord bottom = NSToCoordCeil(float(YMost()) * aScale);
+  nscoord right = NSToCoordCeil(float(x + width) * aScale);
+  nscoord bottom = NSToCoordCeil(float(y + height) * aScale);
   x = NSToCoordFloor(float(x) * aScale);
   y = NSToCoordFloor(float(y) * aScale);
   width = (right - x);
@@ -185,35 +192,13 @@ nsRect& nsRect::ScaleRoundOut(float aScale)
   return *this;
 }
 
-nsRect& nsRect::ScaleRoundOutInverse(float aScale) 
-{
-  nscoord right = NSToCoordCeil(float(XMost()) / aScale);
-  nscoord bottom = NSToCoordCeil(float(YMost()) / aScale);
-  x = NSToCoordFloor(float(x) / aScale);
-  y = NSToCoordFloor(float(y) / aScale);
-  width = (right - x);
-  height = (bottom - y);
-  return *this;
-}
-
 // scale the rect but round to largest contained rect
-nsRect& nsRect::ScaleRoundIn(float aScale) 
+nsRect& nsRect::ScaleRoundIn(const float aScale) 
 {
-  nscoord right = NSToCoordFloor(float(XMost()) * aScale);
-  nscoord bottom = NSToCoordFloor(float(YMost()) * aScale);
+  nscoord right = NSToCoordFloor(float(x + width) * aScale);
+  nscoord bottom = NSToCoordFloor(float(y + height) * aScale);
   x = NSToCoordCeil(float(x) * aScale);
   y = NSToCoordCeil(float(y) * aScale);
-  width = (right - x);
-  height = (bottom - y);
-  return *this;
-}
-
-nsRect& nsRect::ScaleRoundPreservingCentersInverse(float aScale)
-{
-  nscoord right = NSToCoordRound(float(XMost()) / aScale);
-  nscoord bottom = NSToCoordRound(float(YMost()) / aScale);
-  x = NSToCoordRound(float(x) / aScale);
-  y = NSToCoordRound(float(y) / aScale);
   width = (right - x);
   height = (bottom - y);
   return *this;
@@ -255,11 +240,11 @@ PRBool nsIntRect::IntersectRect(const nsIntRect &aRect1, const nsIntRect &aRect2
   PRInt32  ymost2 = aRect2.YMost();
   PRInt32  temp;
 
-  x = PR_MAX(aRect1.x, aRect2.x);
-  y = PR_MAX(aRect1.y, aRect2.y);
+  x = MAX(aRect1.x, aRect2.x);
+  y = MAX(aRect1.y, aRect2.y);
 
   // Compute the destination width
-  temp = PR_MIN(xmost1, xmost2);
+  temp = MIN(xmost1, xmost2);
   if (temp <= x) {
     Empty();
     return PR_FALSE;
@@ -267,7 +252,7 @@ PRBool nsIntRect::IntersectRect(const nsIntRect &aRect1, const nsIntRect &aRect2
   width = temp - x;
 
   // Compute the destination height
-  temp = PR_MIN(ymost1, ymost2);
+  temp = MIN(ymost1, ymost2);
   if (temp <= y) {
     Empty();
     return PR_FALSE;
@@ -304,12 +289,12 @@ PRBool nsIntRect::UnionRect(const nsIntRect &aRect1, const nsIntRect &aRect2)
     PRInt32 ymost2 = aRect2.YMost();
 
     // Compute the origin
-    x = PR_MIN(aRect1.x, aRect2.x);
-    y = PR_MIN(aRect1.y, aRect2.y);
+    x = MIN(aRect1.x, aRect2.x);
+    y = MIN(aRect1.y, aRect2.y);
 
     // Compute the size
-    width = PR_MAX(xmost1, xmost2) - x;
-    height = PR_MAX(ymost1, ymost2) - y;
+    width = MAX(xmost1, xmost2) - x;
+    height = MAX(ymost1, ymost2) - y;
   }
 
   return result;

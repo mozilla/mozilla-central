@@ -49,17 +49,16 @@
 
 class nsIContent;
 class nsIDocument;
-class nsPIDOMEventTarget;
+class nsIDOMEventReceiver;
 class nsIDOMNodeList;
 class nsXBLBinding;
 class nsIXBLDocumentInfo;
 class nsIURI;
 class nsIAtom;
-class nsIPrincipal;
 
 #define NS_IXBLSERVICE_IID      \
-{ 0x98b28f4e, 0x698f, 0x4f77,   \
- { 0xa8, 0x9e, 0x65, 0xf5, 0xd0, 0xde, 0x6a, 0xbf } }
+  { 0x7157b300, 0xf49b, 0x4e7d, \
+    { 0xac, 0x3a, 0xef, 0x8f, 0x20, 0x69, 0x6e, 0xb1 } }
 
 class nsIXBLService : public nsISupports
 {
@@ -67,9 +66,8 @@ public:
   NS_DECLARE_STATIC_IID_ACCESSOR(NS_IXBLSERVICE_IID)
 
   // This function loads a particular XBL file and installs all of the bindings
-  // onto the element.  aOriginPrincipal must not be null here.
-  NS_IMETHOD LoadBindings(nsIContent* aContent, nsIURI* aURL,
-                          nsIPrincipal* aOriginPrincipal, PRBool aAugmentFlag,
+  // onto the element.
+  NS_IMETHOD LoadBindings(nsIContent* aContent, nsIURI* aURL, PRBool aAugmentFlag,
                           nsXBLBinding** aBinding, PRBool* aResolveStyle) = 0;
 
   // Indicates whether or not a binding is fully loaded.
@@ -78,18 +76,13 @@ public:
   // Retrieves our base class (e.g., tells us what type of frame and content node to build)
   NS_IMETHOD ResolveTag(nsIContent* aContent, PRInt32* aNameSpaceID, nsIAtom** aResult) = 0;
 
-  // This method checks the hashtable and then calls FetchBindingDocument on a
-  // miss.  aOriginPrincipal or aBoundDocument may be null to bypass security
-  // checks.
-  NS_IMETHOD LoadBindingDocumentInfo(nsIContent* aBoundElement,
-                                     nsIDocument* aBoundDocument,
+  // This method checks the hashtable and then calls FetchBindingDocument on a miss.
+  NS_IMETHOD LoadBindingDocumentInfo(nsIContent* aBoundElement, nsIDocument* aBoundDocument,
                                      nsIURI* aBindingURI,
-                                     nsIPrincipal* aOriginPrincipal,
-                                     PRBool aForceSyncLoad,
-                                     nsIXBLDocumentInfo** aResult) = 0;
+                                     PRBool aForceSyncLoad, nsIXBLDocumentInfo** aResult) = 0;
 
   // Hooks up the global key event handlers to the document root.
-  NS_IMETHOD AttachGlobalKeyHandler(nsPIDOMEventTarget* aTarget)=0;
+  NS_IMETHOD AttachGlobalKeyHandler(nsIDOMEventReceiver* aElement)=0;
   
 };
 

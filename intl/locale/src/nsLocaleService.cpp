@@ -44,7 +44,7 @@
 #include "nsReadableUtils.h"
 #include "nsCRT.h"
 #include "prprf.h"
-#include "nsTArray.h"
+#include "nsAutoBuffer.h"
 
 #include <ctype.h>
 
@@ -125,6 +125,35 @@ protected:
 	nsCOMPtr<nsILocale>				mApplicationLocale;
 
 };
+
+//
+// nsILocaleDefinition implementation
+//
+class nsLocaleDefinition: public nsILocaleDefinition {
+	friend class nsLocaleService;
+
+public:
+
+	//
+	// nsISupports
+	//
+	NS_DECL_ISUPPORTS
+
+	//
+	// nsILocaleDefintion
+	//
+	NS_IMETHOD SetLocaleCategory(const nsAString &category, const nsAString &value);
+
+protected:
+
+	nsLocaleDefinition();
+	virtual ~nsLocaleDefinition();
+
+	nsLocale*	mLocaleDefinition;
+};
+
+
+
 
 //
 // nsLocaleService methods
@@ -265,16 +294,16 @@ nsLocaleService::nsLocaleService(void)
     CFStringRef userLocaleStr = ::CFLocaleGetIdentifier(userLocaleRef);
     ::CFRetain(userLocaleStr);
 
-    nsAutoTArray<UniChar, 32> buffer;
+    nsAutoBuffer<UniChar, 32> buffer;
     int size = ::CFStringGetLength(userLocaleStr);
-    if (buffer.SetLength(size + 1))
+    if (buffer.EnsureElemCapacity(size))
     {
         CFRange range = ::CFRangeMake(0, size);
-        ::CFStringGetCharacters(userLocaleStr, range, buffer.Elements());
-        buffer[size] = 0;
+        ::CFStringGetCharacters(userLocaleStr, range, buffer.get());
+        buffer.get()[size] = 0;
 
         // Convert the locale string to the format that Mozilla expects
-        nsAutoString xpLocale(buffer.Elements());
+        nsAutoString xpLocale(buffer.get());
         xpLocale.ReplaceChar('_', '-');
 
         nsresult rv = NewLocale(xpLocale, getter_AddRefs(mSystemLocale));
@@ -299,26 +328,33 @@ NS_IMPL_THREADSAFE_ISUPPORTS1(nsLocaleService, nsILocaleService)
 NS_IMETHODIMP
 nsLocaleService::NewLocale(const nsAString &aLocale, nsILocale **_retval)
 {
-    nsresult result;
+	int		i;
+	nsresult result;
 
-    *_retval = nsnull;
+	*_retval = (nsILocale*)nsnull;
+	
+	nsLocale* resultLocale = new nsLocale();
+	if (!resultLocale) return NS_ERROR_OUT_OF_MEMORY;
 
-    nsLocale* resultLocale = new nsLocale();
-    if (!resultLocale) return NS_ERROR_OUT_OF_MEMORY;
+	for(i=0;i<LocaleListLength;i++) {
+		nsString category; category.AssignWithConversion(LocaleList[i]);
+		result = resultLocale->AddCategory(category, aLocale);
+		if (NS_FAILED(result)) { delete resultLocale; return result;}
+	}
 
-    for (PRInt32 i = 0; i < LocaleListLength; i++) {
-      nsString category; category.AssignWithConversion(LocaleList[i]);
-      result = resultLocale->AddCategory(category, aLocale);
-      if (NS_FAILED(result)) { delete resultLocale; return result;}
-#if (defined(XP_UNIX) && !defined(XP_MACOSX)) || defined(XP_BEOS)
-      category.AppendLiteral("##PLATFORM");
-      result = resultLocale->AddCategory(category, aLocale);
-      if (NS_FAILED(result)) { delete resultLocale; return result;}
-#endif
-    }
+	return resultLocale->QueryInterface(NS_GET_IID(nsILocale),(void**)_retval);
+}
 
-    NS_ADDREF(*_retval = resultLocale);
-    return NS_OK;
+
+NS_IMETHODIMP
+nsLocaleService::NewLocaleObject(nsILocaleDefinition *localeDefinition, nsILocale **_retval)
+{
+	if (!localeDefinition || !_retval) return NS_ERROR_INVALID_ARG;
+
+	nsLocale* new_locale = new nsLocale(NS_STATIC_CAST(nsLocaleDefinition*,localeDefinition)->mLocaleDefinition);
+	if (!new_locale) return NS_ERROR_OUT_OF_MEMORY;
+
+	return new_locale->QueryInterface(NS_GET_IID(nsILocale),(void**)_retval);
 }
 
 
@@ -480,4 +516,33 @@ NS_NewLocaleService(nsILocaleService** result)
     return NS_ERROR_OUT_OF_MEMORY;
   NS_ADDREF(*result);
   return NS_OK;
+}
+
+
+//
+// nsLocaleDefinition methods
+//
+
+NS_IMPL_ISUPPORTS1(nsLocaleDefinition,nsILocaleDefinition)
+
+nsLocaleDefinition::nsLocaleDefinition(void)
+{
+	mLocaleDefinition = new nsLocale;
+	if (mLocaleDefinition)
+		mLocaleDefinition->AddRef();
+}
+
+nsLocaleDefinition::~nsLocaleDefinition(void)
+{
+	if (mLocaleDefinition)
+		mLocaleDefinition->Release();
+}
+
+NS_IMETHODIMP
+nsLocaleDefinition::SetLocaleCategory(const nsAString &category, const nsAString &value)
+{
+	if (mLocaleDefinition)
+		return mLocaleDefinition->AddCategory(category,value);
+	
+	return NS_ERROR_FAILURE;
 }

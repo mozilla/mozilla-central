@@ -35,9 +35,6 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-gTestfile = '7.7.4.js';
-
 /**
    File Name:          7.7.4.js
    ECMA Section:       7.7.4 String Literals

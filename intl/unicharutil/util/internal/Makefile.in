@@ -57,8 +57,6 @@ include $(srcdir)/../objs.mk
 
 EXTRA_DEPS += $(srcdir)/../objs.mk
 
-LOCAL_INCLUDES	+= -I$(srcdir)/.. \
-
 REQUIRES=xpcom \
 		string \
 		uconv \
@@ -73,5 +71,3 @@ include $(topsrcdir)/config/rules.mk
 
 $(INTL_UNICHARUTIL_UTIL_LCPPSRCS): %: $(srcdir)/../%
 	$(INSTALL) $^ .
-
-GARBAGE += $(INTL_UNICHARUTIL_UTIL_LCPPSRCS)

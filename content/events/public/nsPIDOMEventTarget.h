@@ -46,34 +46,16 @@ class nsPresContext;
 class nsEventChainPreVisitor;
 class nsEventChainPostVisitor;
 class nsIEventListenerManager;
-class nsIDOMEventListener;
-class nsIDOMEventGroup;
 
-// f35ffc3b-c8c0-43fd-b0b0-f339e95f574a
+// 764756cd-8af2-4a25-919d-ca95759a1be1
 #define NS_PIDOMEVENTTARGET_IID \
-  { 0xf35ffc3b, 0xc8c0, 0x43fd, \
-    { 0xb0, 0xb0, 0xf3, 0x39, 0xe9, 0x5f, 0x57, 0x4a } }
+{ 0x764756cd, 0x8af2, 0x4a25,   \
+  { 0x91, 0x9d, 0xca, 0x95, 0x75, 0x9a, 0x1b, 0xe1 } }
 
 class nsPIDOMEventTarget : public nsISupports
 {
 public:
   NS_DECLARE_STATIC_IID_ACCESSOR(NS_PIDOMEVENTTARGET_IID)
-
-  /**
-   * Returns the nsPIDOMEventTarget object which should be used as the target
-   * of DOMEvents.
-   * Usually |this| is returned, but for example global object returns
-   * the outer object.
-   */
-   virtual nsPIDOMEventTarget* GetTargetForDOMEvent() { return this; }
-
-  /**
-   * Returns the nsPIDOMEventTarget object which should be used as the target
-   * of the event and when constructing event target chain.
-   * Usually |this| is returned, but for example global object returns
-   * the inner object.
-   */
-   virtual nsPIDOMEventTarget* GetTargetForEventTargetChain() { return this; }
 
   /**
    * Called before the capture phase of the event flow.
@@ -91,14 +73,6 @@ public:
    * @note Only nsEventDispatcher should call this method.
    */
   virtual nsresult PreHandleEvent(nsEventChainPreVisitor& aVisitor) = 0;
-
-  /**
-   * Called just before possible event handlers on this object will be called.
-   */
-  virtual nsresult WillHandleEvent(nsEventChainPostVisitor& aVisitor)
-  {
-    return NS_OK;
-  }
 
   /**
    * Called after the bubble phase of the system event group.
@@ -139,24 +113,8 @@ public:
    *                          one already exists. [IN]
    * @param aResult           The event listener manager [OUT]
    */
-  virtual nsresult GetListenerManager(PRBool aCreateIfNotFound,
-                                      nsIEventListenerManager** aResult) = 0;
-
-  /**
-   * Add an event listener for nsIID.
-   */
-  virtual nsresult AddEventListenerByIID(nsIDOMEventListener *aListener,
-                                         const nsIID& aIID) = 0;
-  /**
-   * Remove event listener for nsIID.
-   */
-  virtual nsresult RemoveEventListenerByIID(nsIDOMEventListener *aListener,
-                                            const nsIID& aIID) = 0;
-  
-  /**
-   * Get the system event group.
-   */
-  virtual nsresult GetSystemEventGroup(nsIDOMEventGroup** aGroup) = 0;
+  NS_IMETHOD GetListenerManager(PRBool aCreateIfNotFound,
+                                nsIEventListenerManager** aResult) = 0;
 };
 
 NS_DEFINE_STATIC_IID_ACCESSOR(nsPIDOMEventTarget, NS_PIDOMEVENTTARGET_IID)

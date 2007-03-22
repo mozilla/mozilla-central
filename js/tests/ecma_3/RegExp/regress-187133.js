@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -34,9 +33,8 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK ***** */
-
-/*
+ * ***** END LICENSE BLOCK *****
+ *
  *
  * Date:    06 January 2003
  * SUMMARY: RegExp conformance test
@@ -58,9 +56,8 @@
  *
  */
 //-----------------------------------------------------------------------------
-var gTestfile = 'regress-187133.js';
 var i = 0;
-var BUGNUMBER = 187133;
+var bug = 187133;
 var summary = 'RegExp conformance test';
 var status = '';
 var statusmessages = new Array();
@@ -75,43 +72,43 @@ var expectedmatches = new Array();
 
 
 pattern = /(\.(?!com|org)|\/)/;
-status = inSection(1);
-string = 'ah.info';
-actualmatch = string.match(pattern);
-expectedmatch = ['.', '.'];
-addThis();
+  status = inSection(1);
+  string = 'ah.info';
+  actualmatch = string.match(pattern);
+  expectedmatch = ['.', '.'];
+  addThis();
 
-status = inSection(2);
-string = 'ah/info';
-actualmatch = string.match(pattern);
-expectedmatch = ['/', '/'];
-addThis();
+  status = inSection(2);
+  string = 'ah/info';
+  actualmatch = string.match(pattern);
+  expectedmatch = ['/', '/'];
+  addThis();
 
-status = inSection(3);
-string = 'ah.com';
-actualmatch = string.match(pattern);
-expectedmatch = null;
-addThis();
+  status = inSection(3);
+  string = 'ah.com';
+  actualmatch = string.match(pattern);
+  expectedmatch = null;
+  addThis();
 
 
 pattern = /(?!a|b)|c/;
-status = inSection(4);
-string = '';
-actualmatch = string.match(pattern);
-expectedmatch = [''];
-addThis();
+  status = inSection(4);
+  string = '';
+  actualmatch = string.match(pattern);
+  expectedmatch = [''];
+  addThis();
 
-status = inSection(5);
-string = 'bc';
-actualmatch = string.match(pattern);
-expectedmatch = [''];
-addThis();
+  status = inSection(5);
+  string = 'bc';
+  actualmatch = string.match(pattern);
+  expectedmatch = [''];
+  addThis();
 
-status = inSection(6);
-string = 'd';
-actualmatch = string.match(pattern);
-expectedmatch = [''];
-addThis();
+  status = inSection(6);
+  string = 'd';
+  actualmatch = string.match(pattern);
+  expectedmatch = [''];
+  addThis();
 
 
 
@@ -135,7 +132,7 @@ function addThis()
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
   testRegExp(statusmessages, patterns, strings, actualmatches, expectedmatches);
   exitFunc ('test');

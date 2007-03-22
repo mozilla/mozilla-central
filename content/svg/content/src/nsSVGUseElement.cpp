@@ -38,6 +38,7 @@
 #include "nsIDOMSVGGElement.h"
 #include "nsGkAtoms.h"
 #include "nsIDOMSVGAnimatedLength.h"
+#include "nsISVGSVGElement.h"
 #include "nsIDOMSVGAnimatedString.h"
 #include "nsSVGAnimatedString.h"
 #include "nsIDOMDocument.h"
@@ -62,25 +63,10 @@ NS_IMPL_NS_NEW_SVG_ELEMENT(Use)
 //----------------------------------------------------------------------
 // nsISupports methods
 
-NS_IMPL_CYCLE_COLLECTION_CLASS(nsSVGUseElement)
-NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN_INHERITED(nsSVGUseElement,
-                                                nsSVGUseElementBase)
-  nsAutoScriptBlocker scriptBlocker;
-  NS_IMPL_CYCLE_COLLECTION_UNLINK_NSCOMPTR(mOriginal)
-  tmp->DestroyAnonymousContent();
-  tmp->RemoveListener();
-NS_IMPL_CYCLE_COLLECTION_UNLINK_END
-NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN_INHERITED(nsSVGUseElement,
-                                                  nsSVGUseElementBase)
-  NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mOriginal)
-  NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mClone)
-  NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mSourceContent)
-NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
-
 NS_IMPL_ADDREF_INHERITED(nsSVGUseElement,nsSVGUseElementBase)
 NS_IMPL_RELEASE_INHERITED(nsSVGUseElement,nsSVGUseElementBase)
 
-NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION_INHERITED(nsSVGUseElement)
+NS_INTERFACE_MAP_BEGIN(nsSVGUseElement)
   NS_INTERFACE_MAP_ENTRY(nsIDOMNode)
   NS_INTERFACE_MAP_ENTRY(nsIDOMElement)
   NS_INTERFACE_MAP_ENTRY(nsIDOMSVGElement)
@@ -89,7 +75,7 @@ NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION_INHERITED(nsSVGUseElement)
   NS_INTERFACE_MAP_ENTRY(nsIMutationObserver)
   NS_INTERFACE_MAP_ENTRY_CONTENT_CLASSINFO(SVGUseElement)
   if (aIID.Equals(NS_GET_IID(nsSVGUseElement)))
-    foundInterface = reinterpret_cast<nsISupports*>(this);
+    foundInterface = NS_REINTERPRET_CAST(nsISupports*, this);
   else
 NS_INTERFACE_MAP_END_INHERITING(nsSVGUseElementBase)
 
@@ -144,7 +130,7 @@ nsSVGUseElement::Clone(nsINodeInfo *aNodeInfo, nsINode **aResult) const
   rv |= CopyInnerTo(it);
 
   // nsSVGUseElement specific portion - record who we cloned from
-  it->mOriginal = const_cast<nsSVGUseElement*>(this);
+  it->mOriginal = NS_CONST_CAST(nsSVGUseElement*, this);
 
   if (NS_SUCCEEDED(rv)) {
     kungFuDeathGrip.swap(*aResult);
@@ -218,9 +204,7 @@ nsSVGUseElement::CharacterDataChanged(nsIDocument *aDocument,
                                       nsIContent *aContent,
                                       CharacterDataChangeInfo* aInfo)
 {
-  if (nsContentUtils::IsInSameAnonymousTree(this, aContent)) {
-    TriggerReclone();
-  }
+  TriggerReclone();
 }
 
 void
@@ -228,12 +212,9 @@ nsSVGUseElement::AttributeChanged(nsIDocument *aDocument,
                                   nsIContent *aContent,
                                   PRInt32 aNameSpaceID,
                                   nsIAtom *aAttribute,
-                                  PRInt32 aModType,
-                                  PRUint32 aStateMask)
+                                  PRInt32 aModType)
 {
-  if (nsContentUtils::IsInSameAnonymousTree(this, aContent)) {
-    TriggerReclone();
-  }
+  TriggerReclone();
 }
 
 void
@@ -241,9 +222,7 @@ nsSVGUseElement::ContentAppended(nsIDocument *aDocument,
                                  nsIContent *aContainer,
                                  PRInt32 aNewIndexInContainer)
 {
-  if (nsContentUtils::IsInSameAnonymousTree(this, aContainer)) {
-    TriggerReclone();
-  }
+  TriggerReclone();
 }
 
 void
@@ -252,9 +231,7 @@ nsSVGUseElement::ContentInserted(nsIDocument *aDocument,
                                  nsIContent *aChild,
                                  PRInt32 aIndexInContainer)
 {
-  if (nsContentUtils::IsInSameAnonymousTree(this, aChild)) {
-    TriggerReclone();
-  }
+  TriggerReclone();
 }
 
 void
@@ -263,9 +240,7 @@ nsSVGUseElement::ContentRemoved(nsIDocument *aDocument,
                                 nsIContent *aChild,
                                 PRInt32 aIndexInContainer)
 {
-  if (nsContentUtils::IsInSameAnonymousTree(this, aChild)) {
-    TriggerReclone();
-  }
+  TriggerReclone();
 }
 
 void
@@ -292,11 +267,11 @@ nsSVGUseElement::CreateAnonymousContent()
   if (!targetContent)
     return nsnull;
 
-  PRBool needAddObserver = PR_FALSE;
   if (mSourceContent != targetContent) {
     RemoveListener();
-    needAddObserver = PR_TRUE;
+    targetContent->AddMutationObserver(this);
   }
+  mSourceContent = targetContent;
 
   // make sure target is valid type for <use>
   // QIable nsSVGGraphicsElement would eliminate enumerating all elements
@@ -417,10 +392,6 @@ nsSVGUseElement::CreateAnonymousContent()
     }
   }
 
-  if (needAddObserver) {
-    targetContent->AddMutationObserver(this);
-  }
-  mSourceContent = targetContent;
   mClone = newcontent;
   return mClone;
 }
@@ -475,7 +446,7 @@ nsSVGUseElement::TriggerReclone()
 {
   nsIDocument *doc = GetCurrentDoc();
   if (!doc) return;
-  nsIPresShell *presShell = doc->GetPrimaryShell();
+  nsIPresShell *presShell = doc->GetShellAt(0);
   if (!presShell) return;
   presShell->RecreateFramesFor(this);
 }
@@ -518,7 +489,6 @@ nsSVGUseElement::IsAttributeMapped(const nsIAtom* name) const
     sFiltersMap,
     sFontSpecificationMap,
     sGradientStopMap,
-    sLightingEffectsMap,
     sMarkersMap,
     sTextContentElementsMap,
     sViewportsMap

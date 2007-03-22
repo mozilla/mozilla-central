@@ -47,7 +47,6 @@ class nsDOMCommandEvent : public nsDOMEvent,
 public:
   nsDOMCommandEvent(nsPresContext* aPresContext,
                     nsCommandEvent* aEvent);
-  virtual ~nsDOMCommandEvent();
 
   NS_DECL_ISUPPORTS_INHERITED
 

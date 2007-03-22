@@ -57,7 +57,6 @@
 #include "nsHTMLCSSUtils.h"
 #include "nsColor.h"
 #include "nsAttrName.h"
-#include "nsAutoPtr.h"
 
 static
 void ProcessBValue(const nsAString * aInputString, nsAString & aOutputString,
@@ -311,7 +310,7 @@ nsresult
 nsHTMLCSSUtils::Init(nsHTMLEditor *aEditor)
 {
   nsresult result = NS_OK;
-  mHTMLEditor = static_cast<nsHTMLEditor*>(aEditor);
+  mHTMLEditor = NS_STATIC_CAST(nsHTMLEditor*, aEditor);
 
   // let's retrieve the value of the "CSS editing" pref
   nsCOMPtr<nsIPrefBranch> prefBranch =
@@ -466,9 +465,8 @@ nsresult
 nsHTMLCSSUtils::SetCSSProperty(nsIDOMElement *aElement, nsIAtom * aProperty, const nsAString & aValue,
                                PRBool aSuppressTransaction)
 {
-  nsRefPtr<ChangeCSSInlineStyleTxn> txn;
-  nsresult result = CreateCSSPropertyTxn(aElement, aProperty, aValue,
-                                         getter_AddRefs(txn), PR_FALSE);
+  ChangeCSSInlineStyleTxn *txn;
+  nsresult result = CreateCSSPropertyTxn(aElement, aProperty, aValue, &txn, PR_FALSE);
   if (NS_SUCCEEDED(result))  {
     if (aSuppressTransaction) {
       result = txn->DoTransaction();
@@ -477,6 +475,8 @@ nsHTMLCSSUtils::SetCSSProperty(nsIDOMElement *aElement, nsIAtom * aProperty, con
       result = mHTMLEditor->DoTransaction(txn);
     }
   }
+  // The transaction system (if any) has taken ownership of txn
+  NS_IF_RELEASE(txn);
   return result;
 }
 
@@ -499,9 +499,8 @@ nsresult
 nsHTMLCSSUtils::RemoveCSSProperty(nsIDOMElement *aElement, nsIAtom * aProperty, const nsAString & aValue,
                                   PRBool aSuppressTransaction)
 {
-  nsRefPtr<ChangeCSSInlineStyleTxn> txn;
-  nsresult result = CreateCSSPropertyTxn(aElement, aProperty, aValue,
-                                         getter_AddRefs(txn), PR_TRUE);
+  ChangeCSSInlineStyleTxn *txn;
+  nsresult result = CreateCSSPropertyTxn(aElement, aProperty, aValue, &txn, PR_TRUE);
   if (NS_SUCCEEDED(result))  {
     if (aSuppressTransaction) {
       result = txn->DoTransaction();
@@ -510,6 +509,8 @@ nsHTMLCSSUtils::RemoveCSSProperty(nsIDOMElement *aElement, nsIAtom * aProperty, 
       result = mHTMLEditor->DoTransaction(txn);
     }
   }
+  // The transaction system (if any) has taken ownership of txn
+  NS_IF_RELEASE(txn);
   return result;
 }
 

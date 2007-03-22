@@ -50,7 +50,7 @@ IS_COMPONENT = 1
 MODULE_NAME = nsToolkitCompsModule
 LIBXUL_LIBRARY = 1
 
-ifneq (,$(filter $(MOZ_WIDGET_TOOLKIT),windows gtk2))
+ifneq (,$(filter $(MOZ_WIDGET_TOOLKIT),windows gtk gtk2))
 ALERTS_SERVICE=1
 DEFINES += -DALERTS_SERVICE
 endif
@@ -61,33 +61,33 @@ REQUIRES = 	\
 		widget \
 		layout \
 		dom \
+		pref \
+		rdf \
 		intl \
 		docshell \
+		autocomplete \
 		appcomps \
 		downloads \
 		fastfind \
 		mimetype \
 		webbrowserpersist \
+		progressDlg \
 		necko \
+		windowwatcher \
 		uriloader \
+		xpinstall \
 		xulapp \
 		embed_base \
 		content \
 		find \
 		gfx \
-		thebes \
 		locale \
 		unicharutil \
 		xuldoc \
+		alerts \
+		url-classifier \
 		feeds \
-		storage \
-		pipnss \
-		places \
 		$(NULL)
-
-ifdef ALERTS_SERVICE
-REQUIRES	+= alerts
-endif
 
 EXPORTS = nsToolkitCompsCID.h
 
@@ -97,49 +97,30 @@ LOCAL_INCLUDES = \
 	-I$(srcdir)/../downloads/src \
 	-I$(srcdir)/../startup/src \
 	-I$(srcdir)/../typeaheadfind/src \
+	-I$(srcdir)/../alerts/src \
 	-I$(srcdir)/../url-classifier/src \
 	-I$(srcdir)/../feeds/src \
 	$(NULL)
-
-ifdef ALERTS_SERVICE
-LOCAL_INCLUDES += \
-	-I$(srcdir)/../alerts/src \
-	$(NULL)
-endif
 
 SHARED_LIBRARY_LIBS = \
 	../startup/src/$(LIB_PREFIX)appstartup_s.$(LIB_SUFFIX) \
 	$(NULL)
 
-ifndef MOZ_DISABLE_PARENTAL_CONTROLS
-ifeq ($(MOZ_WIDGET_TOOLKIT),windows)
-SHARED_LIBRARY_LIBS += ../parentalcontrols/src/$(LIB_PREFIX)parentalcontrols_s.$(LIB_SUFFIX)
-LOCAL_INCLUDES += \
-	-I$(srcdir)/../parentalcontrols/src \
-	$(NULL)
-REQUIRES += parentalcontrols
-endif
-endif
-
 ifndef MOZ_SUITE
 # XXX Suite isn't ready to build this just yet
+ifdef MOZ_XPINSTALL
 ifdef MOZ_RDF
 SHARED_LIBRARY_LIBS += ../downloads/src/$(LIB_PREFIX)download_s.$(LIB_SUFFIX)
+endif
 endif
 endif
 
 ifdef ALERTS_SERVICE
 SHARED_LIBRARY_LIBS += ../alerts/src/$(LIB_PREFIX)alerts_s.$(LIB_SUFFIX)
 endif
-ifdef ALERTS_SERVICE_MAC
-SHARED_LIBRARY_LIBS += ../alerts/src/mac/$(LIB_PREFIX)alerts_s.$(LIB_SUFFIX)
-SHARED_LIBRARY_LIBS += ../alerts/src/mac/growl/$(LIB_PREFIX)growl_s.$(LIB_SUFFIX)
-endif
 
 ifdef MOZ_URL_CLASSIFIER
 SHARED_LIBRARY_LIBS += ../url-classifier/src/$(LIB_PREFIX)urlclassifier_s.$(LIB_SUFFIX)
-EXTRA_DSO_LDOPTS += $(ZLIB_LIBS)
-REQUIRES += url-classifier
 endif
 
 ifdef MOZ_FEEDS

@@ -1,8 +1,0 @@
-product=firefox
-branch=1.8.1
-profilename=firefox-1.8.1-profile
-profiledirectory=/tmp/firefox-1.8.1-profile
-executablepath=${BUILDDIR}/1.8.1/mozilla/firefox-debug/dist
-userpreferences=${TEST_DIR}/prefs/test-user.js
-extensiondir=${TEST_DIR}/xpi
-buildtype=debug

@@ -34,9 +34,8 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK ***** */
-
-/*
+ * ***** END LICENSE BLOCK *****
+ *
  *
  * Date:    08 November 2003
  * SUMMARY: |expr()| should cause a TypeError if |typeof expr| != 'function'
@@ -45,9 +44,8 @@
  *
  */
 //-----------------------------------------------------------------------------
-var gTestfile = 'regress-224956.js';
 var UBound = 0;
-var BUGNUMBER = 224956;
+var bug = 224956;
 var summary = "|expr()| should cause TypeError if |typeof expr| != 'function'";
 var TEST_PASSED = 'TypeError';
 var TEST_FAILED = 'Generated an error, but NOT a TypeError! ';
@@ -275,7 +273,7 @@ function checkThis(sValidSyntax)
 function test()
 {
   enterFunc('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber(bug);
   printStatus(summary);
 
   for (var i=0; i<UBound; i++)

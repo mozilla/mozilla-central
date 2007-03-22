@@ -37,10 +37,9 @@
 
 #include "nsISupports.idl"
 
-interface nsIDOMElement;
 interface nsIAutoCompleteInput;
 
-[scriptable, uuid(1b9d7d8a-6dd0-11dc-8314-0800200c9a66)]
+[scriptable, uuid(65F6CD46-22EC-4329-BB3B-BCD1103F2204)]
 interface nsIAutoCompletePopup : nsISupports
 {
   /*
@@ -68,10 +67,12 @@ interface nsIAutoCompletePopup : nsISupports
    * Bind the popup to an input object and display it with the given coordinates
    *
    * @param input - The input object that the popup will be bound to
-   * @param element - The element that the popup will be aligned with
+   * @param x - The x coordinate to display the popup at
+   * @param y - The y coordinate to display the popup at
+   * @param width - The width that the popup should size itself to
    */
-  void openAutocompletePopup(in nsIAutoCompleteInput input, in nsIDOMElement element);
-
+  void openPopup(in nsIAutoCompleteInput input, in long x, in long y, in long width);
+  
   /* 
    * Close the popup and detach from the bound input
    */

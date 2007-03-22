@@ -111,8 +111,7 @@ public:
   }
 #endif
 
-  virtual nsIFrame* HitTest(nsDisplayListBuilder* aBuilder, nsPoint aPt,
-                            HitTestState* aState) { return mFrame; }
+  virtual nsIFrame* HitTest(nsDisplayListBuilder* aBuilder, nsPoint aPt) { return mFrame; }
   virtual void Paint(nsDisplayListBuilder* aBuilder, nsIRenderingContext* aCtx,
      const nsRect& aDirtyRect);
   NS_DISPLAY_DECL_NAME("XULGroupBackground")
@@ -122,7 +121,7 @@ void
 nsDisplayXULGroupBackground::Paint(nsDisplayListBuilder* aBuilder,
      nsIRenderingContext* aCtx, const nsRect& aDirtyRect)
 {
-  static_cast<nsGroupBoxFrame*>(mFrame)->
+  NS_STATIC_CAST(nsGroupBoxFrame*, mFrame)->
     PaintBorderBackground(*aCtx, aBuilder->ToReferenceFrame(mFrame), aDirtyRect);
 }
 
@@ -153,7 +152,7 @@ nsGroupBoxFrame::PaintBorderBackground(nsIRenderingContext& aRenderingContext,
   const nsStylePadding* paddingStyleData = GetStylePadding();
   const nsMargin& border = borderStyleData->GetBorder();
   nscoord yoff = 0;
-  nsPresContext* presContext = PresContext();
+  nsPresContext* presContext = GetPresContext();
 
   nsRect groupRect;
   nsIBox* groupBox = GetCaptionBox(presContext, groupRect);

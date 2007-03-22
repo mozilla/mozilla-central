@@ -52,8 +52,8 @@ const nsIComponentRegistrar          = Components.interfaces.nsIComponentRegistr
 const nsISupportsString              = Components.interfaces.nsISupportsString;
 const nsIWindowWatcher               = Components.interfaces.nsIWindowWatcher;
 
-function RefTestCmdLineHandler() {}
-RefTestCmdLineHandler.prototype =
+function LayoutATestCmdLineHandler() {}
+LayoutATestCmdLineHandler.prototype =
 {
   /* nsISupports */
   QueryInterface : function handler_QI(iid) {
@@ -108,7 +108,7 @@ RefTestCmdLineHandler.prototype =
 };
 
 
-var RefTestCmdLineFactory =
+var LayoutATestCmdLineFactory =
 {
   createInstance : function(outer, iid)
   {
@@ -116,19 +116,19 @@ var RefTestCmdLineFactory =
       throw Components.results.NS_ERROR_NO_AGGREGATION;
     }
 
-    return new RefTestCmdLineHandler().QueryInterface(iid);
+    return new LayoutATestCmdLineHandler().QueryInterface(iid);
   }
 };
 
 
-var RefTestCmdLineModule =
+var LayoutATestCmdLineModule =
 {
   registerSelf : function(compMgr, fileSpec, location, type)
   {
     compMgr = compMgr.QueryInterface(nsIComponentRegistrar);
 
     compMgr.registerFactoryLocation(REFTEST_CMDLINE_CLSID,
-                                    "RefTest CommandLine Service",
+                                    "LayoutATest CommandLine Service",
                                     REFTEST_CMDLINE_CONTRACTID,
                                     fileSpec,
                                     location,
@@ -158,7 +158,7 @@ var RefTestCmdLineModule =
   getClassObject : function(compMgr, cid, iid)
   {
     if (cid.equals(REFTEST_CMDLINE_CLSID)) {
-      return RefTestCmdLineFactory;
+      return LayoutATestCmdLineFactory;
     }
 
     if (!iid.equals(Components.interfaces.nsIFactory)) {
@@ -176,5 +176,5 @@ var RefTestCmdLineModule =
 
 
 function NSGetModule(compMgr, fileSpec) {
-  return RefTestCmdLineModule;
+  return LayoutATestCmdLineModule;
 }

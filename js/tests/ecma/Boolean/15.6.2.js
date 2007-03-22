@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '15.6.2.js';
-
 /**
    File Name:          15.6.2.js
    ECMA Section:       15.6.2 The Boolean Constructor

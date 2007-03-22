@@ -36,101 +36,303 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "gfxTextRunCache.h"
-#include "gfxTextRunWordCache.h"
 
-#include "nsExpirationTracker.h"
-
-/*
- * Cache textruns and expire them after 3*10 seconds of no use
- */
-class TextRunExpiringCache : public nsExpirationTracker<gfxTextRun,3> {
-public:
-    TextRunExpiringCache()
-        : nsExpirationTracker<gfxTextRun,3>(10*1000) {}
-    ~TextRunExpiringCache() {
-        AgeAllGenerations();
-    }
-
-    // This gets called when the timeout has expired on a gfxTextRun
-    virtual void NotifyExpired(gfxTextRun *aTextRun) {
-        RemoveObject(aTextRun);
-        gfxTextRunWordCache::RemoveTextRun(aTextRun);
-        delete aTextRun;
-    }
-};
-
-static TextRunExpiringCache *gTextRunCache = nsnull;
-
-gfxTextRun *
-gfxTextRunCache::MakeTextRun(const PRUnichar *aText, PRUint32 aLength,
-                             gfxFontGroup *aFontGroup,
-                             const gfxTextRunFactory::Parameters* aParams,
-                             PRUint32 aFlags)
+static inline PRBool
+IsAscii(const char *aString, PRUint32 aLength)
 {
-    if (!gTextRunCache)
-        return nsnull;
-    return gfxTextRunWordCache::MakeTextRun(aText, aLength, aFontGroup,
-        aParams, aFlags);
+    const char *end = aString + aLength;
+    while (aString < end) {
+        if (0x80 & *aString)
+            return PR_FALSE;
+        ++aString;
+    }
+    return PR_TRUE;
 }
 
-gfxTextRun *
-gfxTextRunCache::MakeTextRun(const PRUnichar *aText, PRUint32 aLength,
-                             gfxFontGroup *aFontGroup,
-                             gfxContext *aRefContext,
-                             PRUint32 aAppUnitsPerDevUnit,
-                             PRUint32 aFlags)
+static inline PRBool
+IsAscii(const PRUnichar *aString, PRUint32 aLength)
 {
-    if (!gTextRunCache)
-        return nsnull;
-    gfxTextRunFactory::Parameters params = {
-        aRefContext, nsnull, nsnull, nsnull, 0, aAppUnitsPerDevUnit
-    };
-    return gfxTextRunWordCache::MakeTextRun(aText, aLength, aFontGroup,
-        &params, aFlags);
-}
-
-gfxTextRun *
-gfxTextRunCache::MakeTextRun(const PRUint8 *aText, PRUint32 aLength,
-                             gfxFontGroup *aFontGroup,
-                             gfxContext *aRefContext,
-                             PRUint32 aAppUnitsPerDevUnit,
-                             PRUint32 aFlags)
-{
-    if (!gTextRunCache)
-        return nsnull;
-    gfxTextRunFactory::Parameters params = {
-        aRefContext, nsnull, nsnull, nsnull, 0, aAppUnitsPerDevUnit
-    };
-    return gfxTextRunWordCache::MakeTextRun(aText, aLength, aFontGroup,
-        &params, aFlags);
-}
-
-void
-gfxTextRunCache::ReleaseTextRun(gfxTextRun *aTextRun)
-{
-    if (!aTextRun)
-        return;
-    if (!(aTextRun->GetFlags() & gfxTextRunWordCache::TEXT_IN_CACHE)) {
-        delete aTextRun;
-        return;
+    const PRUnichar *end = aString + aLength;
+    while (aString < end) {
+        if (0x0080 <= *aString)
+            return PR_FALSE;
+        ++aString;
     }
-    nsresult rv = gTextRunCache->AddObject(aTextRun);
-    if (NS_FAILED(rv)) {
-        delete aTextRun;
-        return;
-    }
+    return PR_TRUE;
 }
 
+static inline PRBool
+Is8Bit(const PRUnichar *aString, PRUint32 aLength)
+{
+    const PRUnichar *end = aString + aLength;
+    while (aString < end) {
+        if (0x0100 <= *aString)
+            return PR_FALSE;
+        ++aString;
+    }
+    return PR_TRUE;
+}
+
+gfxTextRunCache* gfxTextRunCache::mGlobalCache = nsnull;
+PRInt32 gfxTextRunCache::mGlobalCacheRefCount = 0;
+
+static int gDisableCache = -1;
+
+gfxTextRunCache::gfxTextRunCache()
+{
+    if (getenv("MOZ_GFX_NO_TEXT_CACHE"))
+        gDisableCache = 1;
+    else
+        gDisableCache = 0;
+        
+    mHashTableUTF16.Init();
+    mHashTableASCII.Init();
+
+    mLastUTF16Eviction = mLastASCIIEviction = PR_Now();
+}
+
+// static
 nsresult
 gfxTextRunCache::Init()
 {
-    gTextRunCache = new TextRunExpiringCache();
-    return gTextRunCache ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
+    // We only live on the UI thread, right?  ;)
+    ++mGlobalCacheRefCount;
+
+    if (mGlobalCacheRefCount == 1) {
+        NS_ASSERTION(!mGlobalCache, "Why do we have an mGlobalCache?");
+        mGlobalCache = new gfxTextRunCache();
+
+        if (!mGlobalCache) {
+            return NS_ERROR_OUT_OF_MEMORY;
+        }
+    }
+
+    return NS_OK;
 }
 
+// static
 void
 gfxTextRunCache::Shutdown()
 {
-    delete gTextRunCache;
-    gTextRunCache = nsnull;
+    --mGlobalCacheRefCount;
+    if (mGlobalCacheRefCount == 0) {
+        delete mGlobalCache;
+        mGlobalCache = nsnull;
+    }
+}    
+
+static PRUint32
+ComputeFlags(PRBool aIsRTL, PRBool aEnableSpacing)
+{
+    PRUint32 flags = gfxTextRunFactory::TEXT_HAS_SURROGATES;
+    if (aIsRTL) {
+        flags |= gfxTextRunFactory::TEXT_IS_RTL;
+    }
+    if (aEnableSpacing) {
+        flags |= gfxTextRunFactory::TEXT_ENABLE_SPACING |
+                 gfxTextRunFactory::TEXT_ABSOLUTE_SPACING |
+                 gfxTextRunFactory::TEXT_ENABLE_NEGATIVE_SPACING;
+    }
+    return flags;
+}
+
+gfxTextRun*
+gfxTextRunCache::GetOrMakeTextRun(gfxContext *aContext, gfxFontGroup *aFontGroup,
+                                  const PRUnichar *aString, PRUint32 aLength,
+                                  PRUint32 aAppUnitsPerDevUnit, PRBool aIsRTL,
+                                  PRBool aEnableSpacing, PRBool *aCallerOwns)
+{
+    gfxSkipChars skipChars;
+    // Choose pessimistic flags since we don't want to bother analyzing the string
+    gfxTextRunFactory::Parameters params = {
+        aContext, nsnull, nsnull, &skipChars, nsnull, 0, aAppUnitsPerDevUnit,
+        ComputeFlags(aIsRTL, aEnableSpacing)
+    };
+    if (IsAscii(aString, aLength))
+        params.mFlags |= gfxTextRunFactory::TEXT_IS_ASCII;
+    //    else if (Is8Bit(aString, aLength))
+    //        params.mFlags |= gfxTextRunFactory::TEXT_IS_8BIT;
+
+    gfxTextRun *tr = nsnull;
+    // Don't cache textruns that use spacing
+    if (!gDisableCache && !aEnableSpacing) {
+        // Evict first, to make sure that the textrun we return is live.
+        EvictUTF16();
+    
+        TextRunEntry *entry;
+        nsDependentSubstring keyStr(aString, aString + aLength);
+        FontGroupAndString key(aFontGroup, &keyStr);
+
+        if (mHashTableUTF16.Get(key, &entry)) {
+            gfxTextRun *cachedTR = entry->textRun;
+            // Check that this matches what we wanted. If it doesn't, we leave
+            // this cache entry alone and return a fresh, caller-owned textrun
+            // below.
+            if (cachedTR->GetAppUnitsPerDevUnit() == aAppUnitsPerDevUnit &&
+                cachedTR->IsRightToLeft() == aIsRTL) {
+                entry->Used();
+                tr = cachedTR;
+                tr->SetContext(aContext);
+            }
+        } else {
+            tr = aFontGroup->MakeTextRun(aString, aLength, &params);
+            entry = new TextRunEntry(tr);
+            key.Realize();
+            mHashTableUTF16.Put(key, entry);
+        }
+    }
+
+    if (tr) {
+        *aCallerOwns = PR_FALSE;
+    } else {
+        // Textrun is not in the cache for some reason.
+        *aCallerOwns = PR_TRUE;
+        tr = aFontGroup->MakeTextRun(aString, aLength, &params);
+    }
+    if (tr) {
+        // We don't want to have to reconstruct the string
+        tr->RememberText(aString, aLength);
+    }
+
+    return tr;
+}
+
+gfxTextRun*
+gfxTextRunCache::GetOrMakeTextRun(gfxContext *aContext, gfxFontGroup *aFontGroup,
+                                  const char *aString, PRUint32 aLength,
+                                  PRUint32 aAppUnitsPerDevUnit, PRBool aIsRTL,
+                                  PRBool aEnableSpacing, PRBool *aCallerOwns)
+{
+    gfxSkipChars skipChars;
+    // Choose pessimistic flags since we don't want to bother analyzing the string
+    gfxTextRunFactory::Parameters params = { 
+        aContext, nsnull, nsnull, &skipChars, nsnull, 0, aAppUnitsPerDevUnit,
+        ComputeFlags(aIsRTL, aEnableSpacing)
+    };
+    if (IsAscii(aString, aLength))
+        params.mFlags |= gfxTextRunFactory::TEXT_IS_ASCII;
+    else
+        params.mFlags |= gfxTextRunFactory::TEXT_IS_8BIT;
+
+    const PRUint8 *str = reinterpret_cast<const PRUint8*>(aString);
+
+    gfxTextRun *tr = nsnull;
+    // Don't cache textruns that use spacing
+    if (!gDisableCache && !aEnableSpacing) {
+        // Evict first, to make sure that the textrun we return is live.
+        EvictASCII();
+    
+        TextRunEntry *entry;
+        nsDependentCSubstring keyStr(aString, aString + aLength);
+        FontGroupAndCString key(aFontGroup, &keyStr);
+
+        if (mHashTableASCII.Get(key, &entry)) {
+            gfxTextRun *cachedTR = entry->textRun;
+            // Check that this matches what we wanted. If it doesn't, we leave
+            // this cache entry alone and return a fresh, caller-owned textrun
+            // below.
+            if (cachedTR->GetAppUnitsPerDevUnit() == aAppUnitsPerDevUnit &&
+                cachedTR->IsRightToLeft() == aIsRTL) {
+                entry->Used();
+                tr = cachedTR;
+                tr->SetContext(aContext);
+            }
+        } else {
+            tr = aFontGroup->MakeTextRun(str, aLength, &params);
+            entry = new TextRunEntry(tr);
+            key.Realize();
+            mHashTableASCII.Put(key, entry);
+        }
+    }
+
+    if (tr) {
+        *aCallerOwns = PR_FALSE;
+    } else {
+        // Textrun is not in the cache for some reason.
+        *aCallerOwns = PR_TRUE;
+        tr = aFontGroup->MakeTextRun(str, aLength, &params);
+    }
+    if (tr) {
+        // We don't want to have to reconstruct the string
+        tr->RememberText(str, aLength);
+    }
+
+    return tr;
+}
+
+/*
+ * Stupid eviction algorithm: every 3*EVICT_AGE (3*1s),
+ * evict every run that hasn't been used for more than a second.
+ *
+ * Don't evict anything if we have less than EVICT_MIN_COUNT (1000)
+ * entries in the cache.
+ *
+ * XXX todo Don't use PR_Now(); use RDTSC or something for the timing.
+ * XXX todo Use a less-stupid eviction algorithm
+ * XXX todo Tweak EVICT_MIN_COUNT based on actual browsing
+ */
+
+#define EVICT_MIN_COUNT 1000
+
+// 1s, in PRTime units (microseconds)
+#define EVICT_AGE 1000000
+
+void
+gfxTextRunCache::EvictUTF16()
+{
+    PRTime evictBarrier = PR_Now();
+
+    if (mLastUTF16Eviction > (evictBarrier - (3*EVICT_AGE)))
+        return;
+
+    if (mHashTableUTF16.Count() < EVICT_MIN_COUNT)
+        return;
+
+    //fprintf (stderr, "Evicting UTF16\n");
+    mLastUTF16Eviction = evictBarrier;
+    evictBarrier -= EVICT_AGE;
+    mHashTableUTF16.Enumerate(UTF16EvictEnumerator, &evictBarrier);
+}
+
+void
+gfxTextRunCache::EvictASCII()
+{
+    PRTime evictBarrier = PR_Now();
+
+    if (mLastASCIIEviction > (evictBarrier - (3*EVICT_AGE)))
+        return;
+
+    if (mHashTableASCII.Count() < EVICT_MIN_COUNT)
+        return;
+
+    //fprintf (stderr, "Evicting ASCII\n");
+    mLastASCIIEviction = evictBarrier;
+    evictBarrier -= EVICT_AGE;
+    mHashTableASCII.Enumerate(ASCIIEvictEnumerator, &evictBarrier);
+}
+
+PLDHashOperator
+gfxTextRunCache::UTF16EvictEnumerator(const FontGroupAndString& key,
+                                      nsAutoPtr<TextRunEntry> &value,
+                                      void *closure)
+{
+    PRTime t = *(PRTime *)closure;
+
+    if (value->lastUse < t)
+        return PL_DHASH_REMOVE;
+
+    return PL_DHASH_NEXT;
+}
+
+PLDHashOperator
+gfxTextRunCache::ASCIIEvictEnumerator(const FontGroupAndCString& key,
+                                      nsAutoPtr<TextRunEntry> &value,
+                                      void *closure)
+{
+    PRTime t = *(PRTime *)closure;
+
+    if (value->lastUse < t)
+        return PL_DHASH_REMOVE;
+
+    return PL_DHASH_NEXT;
 }

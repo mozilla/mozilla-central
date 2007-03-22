@@ -42,6 +42,7 @@
 #include "nsSVGAnimatedTransformList.h"
 #include "nsGkAtoms.h"
 #include "nsSVGMatrix.h"
+#include "nsISVGSVGElement.h"
 #include "nsIDOMEventTarget.h"
 #include "nsBindingManager.h"
 #include "nsIFrame.h"
@@ -75,13 +76,15 @@ nsSVGGraphicElement::nsSVGGraphicElement(nsINodeInfo *aNodeInfo)
 /* readonly attribute nsIDOMSVGElement nearestViewportElement; */
 NS_IMETHODIMP nsSVGGraphicElement::GetNearestViewportElement(nsIDOMSVGElement * *aNearestViewportElement)
 {
-  return nsSVGUtils::GetNearestViewportElement(this, aNearestViewportElement);
+  NS_NOTYETIMPLEMENTED("nsSVGGraphicElement::GetNearestViewportElement");
+  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 /* readonly attribute nsIDOMSVGElement farthestViewportElement; */
 NS_IMETHODIMP nsSVGGraphicElement::GetFarthestViewportElement(nsIDOMSVGElement * *aFarthestViewportElement)
 {
-  return nsSVGUtils::GetFarthestViewportElement(this, aFarthestViewportElement);
+  NS_NOTYETIMPLEMENTED("nsSVGGraphicElement::GetFarthestViewportElement");
+  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 /* nsIDOMSVGRect getBBox (); */
@@ -99,12 +102,10 @@ NS_IMETHODIMP nsSVGGraphicElement::GetBBox(nsIDOMSVGRect **_retval)
   NS_ASSERTION(svgframe, "wrong frame type");
   if (svgframe) {
     svgframe->SetMatrixPropagation(PR_FALSE);
-    svgframe->NotifySVGChanged(nsISVGChildFrame::SUPPRESS_INVALIDATION |
-                               nsISVGChildFrame::TRANSFORM_CHANGED);
+    svgframe->NotifyCanvasTMChanged(PR_TRUE);
     nsresult rv = svgframe->GetBBox(_retval);
     svgframe->SetMatrixPropagation(PR_TRUE);
-    svgframe->NotifySVGChanged(nsISVGChildFrame::SUPPRESS_INVALIDATION |
-                               nsISVGChildFrame::TRANSFORM_CHANGED);
+    svgframe->NotifyCanvasTMChanged(PR_TRUE);
     return rv;
   }
   return NS_ERROR_FAILURE;
@@ -140,12 +141,6 @@ NS_IMETHODIMP nsSVGGraphicElement::GetCTM(nsIDOMSVGMatrix **_retval)
 {
   nsresult rv;
   *_retval = nsnull;
-
-  nsIDocument* currentDoc = GetCurrentDoc();
-  if (currentDoc) {
-    // Flush all pending notifications so that our frames are uptodate
-    currentDoc->FlushPendingNotifications(Flush_Layout);
-  }
 
   nsBindingManager *bindingManager = nsnull;
   // XXXbz I _think_ this is right.  We want to be using the binding manager
@@ -188,12 +183,6 @@ NS_IMETHODIMP nsSVGGraphicElement::GetScreenCTM(nsIDOMSVGMatrix **_retval)
 {
   nsresult rv;
   *_retval = nsnull;
-
-  nsIDocument* currentDoc = GetCurrentDoc();
-  if (currentDoc) {
-    // Flush all pending notifications so that our frames are uptodate
-    currentDoc->FlushPendingNotifications(Flush_Layout);
-  }
 
   nsBindingManager *bindingManager = nsnull;
   // XXXbz I _think_ this is right.  We want to be using the binding manager
@@ -291,7 +280,7 @@ nsSVGGraphicElement::IsAttributeMapped(const nsIAtom* name) const
 PRBool
 nsSVGGraphicElement::IsEventName(nsIAtom* aName)
 {
-  return nsContentUtils::IsEventAttributeName(aName, EventNameType_SVGGraphic);
+  return IsGraphicElementEventName(aName);
 }
 
 already_AddRefed<nsIDOMSVGMatrix>

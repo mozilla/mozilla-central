@@ -34,10 +34,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-351120.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 351120;
+var bug = 351120;
 var summary = 'Incorrect error messages with yield expressions';
 var actual = '';
 var expect = '';
@@ -50,10 +48,10 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
- 
-  expect = /TypeError:.*(is not a function|Cannot find function).*/;
+  
+  expect = 'TypeError: [].z is not a function';
   actual = '';
   try
   {
@@ -63,7 +61,7 @@ function test()
   {
     actual = ex + '';
   }
-  reportMatch(expect, actual, summary);
+  reportCompare(expect, actual, summary);
 
   exitFunc ('test');
 }

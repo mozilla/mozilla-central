@@ -68,7 +68,7 @@ public:
   NS_IMETHOD GetData(nsITransferable * aTransferable, PRUint32 anItem);
   NS_IMETHOD GetNumDropItems(PRUint32 * aNumItems);
   NS_IMETHOD IsDataFlavorSupported(const char *aDataFlavor, PRBool *_retval);
-  NS_IMETHOD EndDragSession(PRBool aDoneDrag);
+  NS_IMETHOD EndDragSession();
 
   // native impl.
   NS_IMETHOD SetIDataObject(IDataObject * aDataObj);
@@ -84,11 +84,6 @@ protected:
 
   // gets shell version
   PRUint64 GetShellVersion();
-
-  // Create a bitmap for drag operations
-  PRBool CreateDragImage(nsIDOMNode *aDOMNode,
-                         nsIScriptableRegion *aRegion,
-                         SHDRAGIMAGE *psdi);
 
   IDropSource * mNativeDragSrc;
   nsNativeDragTarget * mNativeDragTarget;

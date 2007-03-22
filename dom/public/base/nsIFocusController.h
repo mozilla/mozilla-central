@@ -52,10 +52,9 @@ class nsIController;
 class nsIControllers;
 class nsAString;
 
-// 58be9aa6-edec-46be-a9f5-6d8b572418d5
+// {da47ea2a-5e9a-4281-9b5b-a08c0e6b1fa5}
 #define NS_IFOCUSCONTROLLER_IID \
-{ 0x58be9aa6, 0xedec, 0x46be, \
-  { 0xa9, 0xf5, 0x6d, 0x8b, 0x57, 0x24, 0x18, 0xd5 } }
+{ 0xda47ea2a, 0x5e9a, 0x4281, { 0x9b, 0x5b, 0xa0, 0x8c, 0x0e, 0x6b, 0x1f, 0xa5 } }
 
 class nsIFocusController : public nsISupports {
 public:
@@ -79,11 +78,13 @@ public:
   NS_IMETHOD GetPopupNode(nsIDOMNode** aNode)=0;
   NS_IMETHOD SetPopupNode(nsIDOMNode* aNode)=0;
 
+  NS_IMETHOD GetPopupEvent(nsIDOMEvent** aEvent)=0;
+  NS_IMETHOD SetPopupEvent(nsIDOMEvent* aEvent)=0;
+
   NS_IMETHOD GetControllerForCommand(const char * aCommand, nsIController** aResult)=0;
   NS_IMETHOD GetControllers(nsIControllers** aResult)=0;
 
   NS_IMETHOD MoveFocus(PRBool aForward, nsIDOMElement* aElt)=0;
-  NS_IMETHOD RewindFocusState()=0;
 
   NS_IMETHOD ResetElementFocus() = 0;
 };
@@ -126,39 +127,6 @@ public:
 private:
   nsCOMPtr<nsIFocusController> mController;
   const char *mReason;
-};
-
-class nsFocusScrollSuppressor
-{
-public:
-  nsFocusScrollSuppressor(nsIFocusController* aController = nsnull)
-  : mWasSuppressed(PR_FALSE)
-  {
-    Init(aController);
-  }
-
-  ~nsFocusScrollSuppressor()
-  {
-    Init(nsnull);
-  }
-
-  void Init(nsIFocusController* aController)
-  {
-    if (mController) {
-      mController->SetSuppressFocusScroll(mWasSuppressed);
-    }
-
-    mController = aController;
-    if (mController) {
-      mController->GetSuppressFocusScroll(&mWasSuppressed);
-      if (!mWasSuppressed) {
-        mController->SetSuppressFocusScroll(PR_TRUE);
-      }
-    }
-  }
-private:
-  nsCOMPtr<nsIFocusController> mController;
-  PRBool                       mWasSuppressed;
 };
 
 #endif // nsIFocusController_h__

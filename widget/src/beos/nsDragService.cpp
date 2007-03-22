@@ -48,6 +48,7 @@
 #include "nsVoidArray.h"
 #include "nsXPIDLString.h"
 #include "nsPrimitiveHelpers.h"
+#include "nsUnitConversion.h"
 #include "nsWidgetsCID.h"
 #include "nsCRT.h"
 
@@ -90,7 +91,7 @@ GetPrimaryFrameFor(nsIDOMNode *aDOMNode)
     nsIDocument* doc = aContent->GetCurrentDoc();
     if (nsnull == doc)
         return nsnull;
-    nsIPresShell* presShell = doc->GetPrimaryShell();
+    nsIPresShell* presShell = doc->GetShellAt(0);
     if ( nsnull == presShell) 
         return nsnull;
     return presShell->GetPrimaryFrameFor(aContent);
@@ -151,11 +152,8 @@ nsDragService::InvokeDragSession (nsIDOMNode *aDOMNode,
                                   PRUint32 aActionType)
 {
     PR_LOG(sDragLm, PR_LOG_DEBUG, ("nsDragService::InvokeDragSession"));
-    nsresult rv = nsBaseDragService::InvokeDragSession(aDOMNode,
-                                                       aArrayTransferables,
-                                                       aRegion, aActionType);
-    NS_ENSURE_SUCCESS(rv, rv);
-
+    nsBaseDragService::InvokeDragSession (aDOMNode, aArrayTransferables,
+                                         aRegion, aActionType);
     ResetDragInfo();       
     // make sure that we have an array of transferables to use
     if (nsnull == aArrayTransferables)
@@ -340,7 +338,7 @@ nsDragService::StartDragSession()
 //
 //-------------------------------------------------------------------------
 NS_IMETHODIMP
-nsDragService::EndDragSession(PRBool aDoneDrag)
+nsDragService::EndDragSession()
 {
     PR_LOG(sDragLm, PR_LOG_DEBUG, ("nsDragService::EndDragSession()"));
     //Don't reset drag info, keep it until there is a new drag, in case a negotiated drag'n'drop wants the info.
@@ -349,7 +347,7 @@ nsDragService::EndDragSession(PRBool aDoneDrag)
     //That way the dragsession is always ended when we go outside mozilla windows, but we do throw away the 
     // mSourceDocument and mSourceNode. We do hold on to the nsTransferable if it was a internal drag. 
     //ResetDragInfo();
-    return nsBaseDragService::EndDragSession(aDoneDrag);
+    return nsBaseDragService::EndDragSession();
 }
 
 //-------------------------------------------------------------------------

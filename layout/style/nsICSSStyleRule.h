@@ -191,13 +191,12 @@ struct nsCSSSelectorList {
   ~nsCSSSelectorList(void);
 
   /**
-   * Push the selector pointed to by |aSelector| on to the beginning of
-   * |mSelectors|, setting its |mNext| to the current value of |mSelectors|.
-   * This nulls out aSelector.
+   * Push a copy of |aSelector| on to the beginning of |mSelectors|,
+   * setting its |mNext| to the current value of |mSelectors|.
    *
    * The caller is responsible for updating |mWeight|.
    */
-  void AddSelector(nsAutoPtr<nsCSSSelector>& aSelector);
+  void AddSelector(const nsCSSSelector& aSelector);
 
   /**
    * Should be used only on the first in the list

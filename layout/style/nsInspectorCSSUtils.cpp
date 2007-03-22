@@ -122,7 +122,7 @@ nsInspectorCSSUtils::GetStyleContextForContent(nsIContent* aContent,
                                                nsIPresShell* aPresShell)
 {
     if (!aPseudo) {
-        aPresShell->FlushPendingNotifications(Flush_Style);
+        aPresShell->FlushPendingNotifications(Flush_StyleReresolves);
         nsIFrame* frame = aPresShell->GetPrimaryFrameFor(aContent);
         if (frame) {
             nsStyleContext* result = GetStyleContextForFrame(frame);
@@ -167,7 +167,7 @@ nsInspectorCSSUtils::GetRuleNodeForContent(nsIContent* aContent,
     nsIDocument* doc = aContent->GetDocument();
     NS_ENSURE_TRUE(doc, NS_ERROR_UNEXPECTED);
 
-    nsIPresShell *presShell = doc->GetPrimaryShell();
+    nsIPresShell *presShell = doc->GetShellAt(0);
     NS_ENSURE_TRUE(presShell, NS_ERROR_UNEXPECTED);
 
     nsRefPtr<nsStyleContext> sContext =

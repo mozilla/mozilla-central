@@ -39,71 +39,97 @@
 #include "nsIMenuBoxObject.h"
 #include "nsBoxObject.h"
 #include "nsIPresShell.h"
+#include "nsIMenuFrame.h"
 #include "nsIFrame.h"
 #include "nsGUIEvent.h"
 #include "nsIDOMNSUIEvent.h"
 #include "nsMenuBarListener.h"
-#include "nsMenuFrame.h"
-#include "nsMenuPopupFrame.h"
+#include "nsPopupSetFrame.h"
 
 class nsMenuBoxObject : public nsIMenuBoxObject, public nsBoxObject
 {
 public:
-  NS_DECL_ISUPPORTS_INHERITED
+  NS_DECL_ISUPPORTS
   NS_DECL_NSIMENUBOXOBJECT
 
   nsMenuBoxObject();
   virtual ~nsMenuBoxObject();
+  
+protected:
 };
 
+/* Implementation file */
+NS_IMPL_ADDREF(nsMenuBoxObject)
+NS_IMPL_RELEASE(nsMenuBoxObject)
+
+NS_IMETHODIMP 
+nsMenuBoxObject::QueryInterface(REFNSIID iid, void** aResult)
+{
+  if (!aResult)
+    return NS_ERROR_NULL_POINTER;
+  
+  if (iid.Equals(NS_GET_IID(nsIMenuBoxObject))) {
+    *aResult = (nsIMenuBoxObject*)this;
+    NS_ADDREF(this);
+    return NS_OK;
+  }
+
+  return nsBoxObject::QueryInterface(iid, aResult);
+}
+  
 nsMenuBoxObject::nsMenuBoxObject()
 {
 }
 
 nsMenuBoxObject::~nsMenuBoxObject()
 {
+  /* destructor code */
 }
-
-NS_IMPL_ISUPPORTS_INHERITED1(nsMenuBoxObject, nsBoxObject, nsIMenuBoxObject)
 
 /* void openMenu (in boolean openFlag); */
 NS_IMETHODIMP nsMenuBoxObject::OpenMenu(PRBool aOpenFlag)
 {
-  nsXULPopupManager* pm = nsXULPopupManager::GetInstance();
-  if (pm) {
-    nsIFrame* frame = GetFrame(PR_FALSE);
-    if (frame) {
-      if (aOpenFlag) {
-        nsCOMPtr<nsIContent> content = mContent;
-        pm->ShowMenu(content, PR_FALSE, PR_FALSE);
-      }
-      else {
-        if (frame->GetType() == nsGkAtoms::menuFrame) {
-          nsMenuPopupFrame* popupFrame = (static_cast<nsMenuFrame *>(frame))->GetPopup();
-          if (popupFrame)
-            pm->HidePopup(popupFrame->GetContent(), PR_FALSE, PR_TRUE, PR_FALSE);
-        }
-      }
-    }
-  }
+  nsIFrame* frame = GetFrame(PR_FALSE);
+  if (!frame)
+    return NS_OK;
 
-  return NS_OK;
+  if (!nsPopupSetFrame::MayOpenPopup(frame))
+    return NS_OK;
+
+  nsIMenuFrame* menuFrame;
+  CallQueryInterface(frame, &menuFrame);
+  if (!menuFrame)
+    return NS_OK;
+
+  return menuFrame->OpenMenu(aOpenFlag);
 }
 
 NS_IMETHODIMP nsMenuBoxObject::GetActiveChild(nsIDOMElement** aResult)
 {
   *aResult = nsnull;
   nsIFrame* frame = GetFrame(PR_FALSE);
-  if (frame && frame->GetType() == nsGkAtoms::menuFrame)
-    return static_cast<nsMenuFrame *>(frame)->GetActiveChild(aResult);
+  if (!frame)
+    return NS_OK;
+
+  nsIMenuFrame* menuFrame;
+  CallQueryInterface(frame, &menuFrame);
+  if (menuFrame)
+    menuFrame->GetActiveChild(aResult);
   return NS_OK;
 }
 
 NS_IMETHODIMP nsMenuBoxObject::SetActiveChild(nsIDOMElement* aResult)
 {
   nsIFrame* frame = GetFrame(PR_FALSE);
-  if (frame && frame->GetType() == nsGkAtoms::menuFrame)
-    return static_cast<nsMenuFrame *>(frame)->SetActiveChild(aResult);
+  if (!frame)
+    return NS_OK;
+
+  nsIMenuFrame* menuFrame;
+  CallQueryInterface(frame, &menuFrame);
+  if (menuFrame) {
+    menuFrame->MarkAsGenerated();
+    menuFrame->SetActiveChild(aResult);
+  }
   return NS_OK;
 }
 
@@ -112,10 +138,6 @@ NS_IMETHODIMP nsMenuBoxObject::HandleKeyPress(nsIDOMKeyEvent* aKeyEvent, PRBool*
 {
   *aHandledFlag = PR_FALSE;
   NS_ENSURE_ARG(aKeyEvent);
-
-  nsXULPopupManager* pm = nsXULPopupManager::GetInstance();
-  if (!pm)
-    return NS_OK;
 
   // if event has already been handled, bail
   nsCOMPtr<nsIDOMNSUIEvent> uiEvent(do_QueryInterface(aKeyEvent));
@@ -131,11 +153,12 @@ NS_IMETHODIMP nsMenuBoxObject::HandleKeyPress(nsIDOMKeyEvent* aKeyEvent, PRBool*
     return NS_OK;
 
   nsIFrame* frame = GetFrame(PR_FALSE);
-  if (!frame || frame->GetType() != nsGkAtoms::menuFrame)
+  if (!frame)
     return NS_OK;
 
-  nsMenuPopupFrame* popupFrame = static_cast<nsMenuFrame *>(frame)->GetPopup();
-  if (!popupFrame)
+  nsIMenuFrame* menuFrame;
+  CallQueryInterface(frame, &menuFrame);
+  if (!menuFrame)
     return NS_OK;
 
   PRUint32 keyCode;
@@ -145,16 +168,9 @@ NS_IMETHODIMP nsMenuBoxObject::HandleKeyPress(nsIDOMKeyEvent* aKeyEvent, PRBool*
     case NS_VK_DOWN:
     case NS_VK_HOME:
     case NS_VK_END:
-    {
-      nsNavigationDirection theDirection;
-      NS_DIRECTION_FROM_KEY_CODE(popupFrame, theDirection, keyCode);
-      *aHandledFlag =
-        pm->HandleKeyboardNavigationInPopup(popupFrame, theDirection);
-      return NS_OK;
-    }
+      return menuFrame->KeyboardNavigation(keyCode, *aHandledFlag);
     default:
-      *aHandledFlag = pm->HandleShortcutNavigation(aKeyEvent, popupFrame);
-      return NS_OK;
+      return menuFrame->ShortcutNavigation(aKeyEvent, *aHandledFlag);
   }
 }
 

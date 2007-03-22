@@ -250,7 +250,7 @@ nsJavaXPTCStub::QueryInterface(const nsID &aIID, void **aInstancePtr)
   // All Java objects support weak references
   if (aIID.Equals(NS_GET_IID(nsISupportsWeakReference)))
   {
-    *aInstancePtr = static_cast<nsISupportsWeakReference*>(master);
+    *aInstancePtr = NS_STATIC_CAST(nsISupportsWeakReference*, master);
     NS_ADDREF(master);
     return NS_OK;
   }
@@ -816,7 +816,7 @@ nsJavaXPTCStub::SetupJavaParams(const nsXPTParamInfo &aParamInfo,
       if (!aParamInfo.IsOut()) {  // 'in'
         ptr = aVariant.val.p;
       } else if (aVariant.val.p) {  // 'inout' & 'out'
-        void** variant = static_cast<void**>(aVariant.val.p);
+        void** variant = NS_STATIC_CAST(void**, aVariant.val.p);
         ptr = *variant;
       }
 
@@ -858,21 +858,23 @@ nsJavaXPTCStub::SetupJavaParams(const nsXPTParamInfo &aParamInfo,
     {
       nsID* iid = nsnull;
       if (!aParamInfo.IsOut()) {  // 'in'
-        iid = static_cast<nsID*>(aVariant.val.p);
+        iid = NS_STATIC_CAST(nsID*, aVariant.val.p);
       } else if (aVariant.val.p) {  // 'inout' & 'out'
-        nsID** variant = static_cast<nsID**>(aVariant.val.p);
+        nsID** variant = NS_STATIC_CAST(nsID**, aVariant.val.p);
         iid = *variant;
       }
 
       jobject str = nsnull;
       if (iid) {
-        char iid_str[NSID_LENGTH];
-        iid->ToProvidedString(iid_str);
-        str = env->NewStringUTF(iid_str);
-        if (!str) {
+        char* iid_str = iid->ToString();
+        if (iid_str) {
+          str = env->NewStringUTF(iid_str);
+        }
+        if (!iid_str || !str) {
           rv = NS_ERROR_OUT_OF_MEMORY;
           break;
         }
+        PR_Free(iid_str);
       }
 
       if (!aParamInfo.IsOut()) {  // 'in'
@@ -898,9 +900,9 @@ nsJavaXPTCStub::SetupJavaParams(const nsXPTParamInfo &aParamInfo,
     {
       nsISupports* xpcom_obj = nsnull;
       if (!aParamInfo.IsOut()) {  // 'in'
-        xpcom_obj = static_cast<nsISupports*>(aVariant.val.p);
+        xpcom_obj = NS_STATIC_CAST(nsISupports*, aVariant.val.p);
       } else if (aVariant.val.p) {  // 'inout' & 'out'
-        nsISupports** variant = static_cast<nsISupports**>(aVariant.val.p);
+        nsISupports** variant = NS_STATIC_CAST(nsISupports**, aVariant.val.p);
         xpcom_obj = *variant;
       }
 
@@ -926,8 +928,7 @@ nsJavaXPTCStub::SetupJavaParams(const nsXPTParamInfo &aParamInfo,
       if (xpcom_obj) {
         // Get matching Java object for given xpcom object
         jobject objLoader = env->CallObjectMethod(mJavaWeakRef, getReferentMID);
-        rv = NativeInterfaceToJavaObject(env, xpcom_obj, iid, objLoader,
-                                         &java_stub);
+        rv = GetNewOrUsedJavaObject(env, xpcom_obj, iid, objLoader, &java_stub);
         if (NS_FAILED(rv))
           break;
       }
@@ -970,7 +971,7 @@ nsJavaXPTCStub::SetupJavaParams(const nsXPTParamInfo &aParamInfo,
         break;
       }
 
-      nsString* str = static_cast<nsString*>(aVariant.val.p);
+      nsString* str = NS_STATIC_CAST(nsString*, aVariant.val.p);
       if (!str) {
         rv = NS_ERROR_FAILURE;
         break;
@@ -1001,7 +1002,7 @@ nsJavaXPTCStub::SetupJavaParams(const nsXPTParamInfo &aParamInfo,
         break;
       }
 
-      nsCString* str = static_cast<nsCString*>(aVariant.val.p);
+      nsCString* str = NS_STATIC_CAST(nsCString*, aVariant.val.p);
       if (!str) {
         rv = NS_ERROR_FAILURE;
         break;
@@ -1025,7 +1026,7 @@ nsJavaXPTCStub::SetupJavaParams(const nsXPTParamInfo &aParamInfo,
     case nsXPTType::T_VOID:
     {
       if (!aParamInfo.IsOut()) {  // 'in'
-        aJValue.j = reinterpret_cast<jlong>(aVariant.val.p);
+        aJValue.j = NS_REINTERPRET_CAST(jlong, aVariant.val.p);
         aMethodSig.Append('J');
       } else {  // 'inout' & 'out'
         if (aVariant.val.p) {
@@ -1280,7 +1281,7 @@ nsJavaXPTCStub::FinalizeJavaParams(const nsXPTParamInfo &aParamInfo,
         if (tag == nsXPTType::T_DOUBLE)
           *((double *) aVariant.val.p) = value;
         else
-          *((PRUint64 *) aVariant.val.p) = static_cast<PRUint64>(value);
+          *((PRUint64 *) aVariant.val.p) = NS_STATIC_CAST(PRUint64, value);
       }
     }
     break;
@@ -1331,7 +1332,7 @@ nsJavaXPTCStub::FinalizeJavaParams(const nsXPTParamInfo &aParamInfo,
         str = (jstring) env->GetObjectArrayElement((jobjectArray) aJValue.l, 0);
       }
 
-      char** variant = static_cast<char**>(aVariant.val.p);
+      char** variant = NS_STATIC_CAST(char**, aVariant.val.p);
       if (str) {
         // Get string buffer
         const char* char_ptr = env->GetStringUTFChars(str, nsnull);
@@ -1377,7 +1378,7 @@ nsJavaXPTCStub::FinalizeJavaParams(const nsXPTParamInfo &aParamInfo,
         str = (jstring) env->GetObjectArrayElement((jobjectArray) aJValue.l, 0);
       }
 
-      PRUnichar** variant = static_cast<PRUnichar**>(aVariant.val.p);
+      PRUnichar** variant = NS_STATIC_CAST(PRUnichar**, aVariant.val.p);
       if (str) {
         // Get string buffer
         const jchar* wchar_ptr = env->GetStringChars(str, nsnull);
@@ -1427,7 +1428,7 @@ nsJavaXPTCStub::FinalizeJavaParams(const nsXPTParamInfo &aParamInfo,
         str = (jstring) env->GetObjectArrayElement((jobjectArray) aJValue.l, 0);
       }
 
-      nsID** variant = static_cast<nsID**>(aVariant.val.p);
+      nsID** variant = NS_STATIC_CAST(nsID**, aVariant.val.p);
       if (str) {
         // Get string buffer
         const char* char_ptr = env->GetStringUTFChars(str, nsnull);
@@ -1476,7 +1477,7 @@ nsJavaXPTCStub::FinalizeJavaParams(const nsXPTParamInfo &aParamInfo,
         java_obj = env->GetObjectArrayElement((jobjectArray) aJValue.l, 0);
       }
 
-      void* xpcom_obj = nsnull;
+      nsISupports* xpcom_obj = nsnull;
       if (java_obj) {
         // Get IID for this param
         nsID iid;
@@ -1497,25 +1498,21 @@ nsJavaXPTCStub::FinalizeJavaParams(const nsXPTParamInfo &aParamInfo,
           isWeakRef = PR_FALSE;
         }
 
-        rv = JavaObjectToNativeInterface(env, java_obj, iid, &xpcom_obj);
-        if (NS_FAILED(rv))
-          break;
-        rv = ((nsISupports*) xpcom_obj)->QueryInterface(iid, &xpcom_obj);
+        rv = GetNewOrUsedXPCOMObject(env, java_obj, iid, &xpcom_obj);
         if (NS_FAILED(rv))
           break;
 
         // If the function expects a weak reference, then we need to
         // create it here.
         if (isWeakRef) {
-          nsISupports* isupports = (nsISupports*) xpcom_obj;
           nsCOMPtr<nsISupportsWeakReference> supportsweak =
-                  do_QueryInterface(isupports);
+                                                 do_QueryInterface(xpcom_obj);
           if (supportsweak) {
             nsWeakPtr weakref;
             supportsweak->GetWeakReference(getter_AddRefs(weakref));
-            NS_RELEASE(isupports);
+            NS_RELEASE(xpcom_obj);
             xpcom_obj = weakref;
-            NS_ADDREF((nsISupports*) xpcom_obj);
+            NS_ADDREF(xpcom_obj);
           } else {
             xpcom_obj = nsnull;
           }
@@ -1524,16 +1521,16 @@ nsJavaXPTCStub::FinalizeJavaParams(const nsXPTParamInfo &aParamInfo,
 
       // For 'inout' params, if the resulting xpcom value is different than the
       // one passed in, then we must release the incoming xpcom value.
-      nsISupports** variant = static_cast<nsISupports**>(aVariant.val.p);
+      nsISupports** variant = NS_STATIC_CAST(nsISupports**, aVariant.val.p);
       if (aParamInfo.IsIn() && *variant) {
         nsCOMPtr<nsISupports> in = do_QueryInterface(*variant);
-        nsCOMPtr<nsISupports> out = do_QueryInterface((nsISupports*) xpcom_obj);
+        nsCOMPtr<nsISupports> out = do_QueryInterface(xpcom_obj);
         if (in != out) {
           NS_RELEASE(*variant);
         }
       }
 
-      *(static_cast<void**>(aVariant.val.p)) = xpcom_obj;
+      *variant = xpcom_obj;
     }
     break;
 
@@ -1547,7 +1544,7 @@ nsJavaXPTCStub::FinalizeJavaParams(const nsXPTParamInfo &aParamInfo,
       }
 
       jstring jstr = (jstring) aJValue.l;
-      nsString* variant = static_cast<nsString*>(aVariant.val.p);
+      nsString* variant = NS_STATIC_CAST(nsString*, aVariant.val.p);
       
       if (jstr) {
         // Get string buffer
@@ -1577,7 +1574,7 @@ nsJavaXPTCStub::FinalizeJavaParams(const nsXPTParamInfo &aParamInfo,
       }
 
       jstring jstr = (jstring) aJValue.l;
-      nsCString* variant = static_cast<nsCString*>(aVariant.val.p);
+      nsCString* variant = NS_STATIC_CAST(nsCString*, aVariant.val.p);
       
       if (jstr) {
         // Get string buffer
@@ -1600,7 +1597,7 @@ nsJavaXPTCStub::FinalizeJavaParams(const nsXPTParamInfo &aParamInfo,
     case nsXPTType::T_VOID:
     {
       if (aParamInfo.IsRetval()) {  // 'retval'
-        aVariant.val.p = reinterpret_cast<void*>(aJValue.j);
+        aVariant.val.p = NS_REINTERPRET_CAST(void*, aJValue.j);
       } else if (aJValue.l) {  // 'inout' & 'out'
         env->GetLongArrayRegion((jlongArray) aJValue.l, 0, 1,
                                 (jlong*) aVariant.val.p);
@@ -1658,54 +1655,4 @@ nsJavaXPTCStub::GetJavaObject()
 #endif
 
   return javaObject;
-}
-
-
-/*static*/ nsresult
-nsJavaXPTCStub::GetNewOrUsed(JNIEnv* env, jobject aJavaObject,
-                             const nsIID& aIID, void** aResult)
-{
-  nsJavaXPTCStub* stub;
-  jint hash = env->CallStaticIntMethod(systemClass, hashCodeMID, aJavaObject);
-  nsresult rv = gJavaToXPTCStubMap->Find(hash, aIID, &stub);
-  NS_ENSURE_SUCCESS(rv, rv);
-  if (stub) {
-    // stub is already AddRef'd and QI'd
-    *aResult = stub;
-    return NS_OK;
-  }
-
-  // If there is no corresponding XPCOM object, then that means that the
-  // parameter is a non-generated class (that is, it is not one of our
-  // Java stubs that represent an exising XPCOM object).  So we need to
-  // create an XPCOM stub, that can route any method calls to the class.
-
-  // Get interface info for class
-  nsCOMPtr<nsIInterfaceInfoManager>
-    iim(do_GetService(NS_INTERFACEINFOMANAGER_SERVICE_CONTRACTID, &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsIInterfaceInfo> iinfo;
-  rv = iim->GetInfoForIID(&aIID, getter_AddRefs(iinfo));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  // Create XPCOM stub
-  stub = new nsJavaXPTCStub(aJavaObject, iinfo, &rv);
-  if (!stub)
-    return NS_ERROR_OUT_OF_MEMORY;
-  if (NS_FAILED(rv)) {
-    delete stub;
-    return rv;
-  }
-
-  rv = gJavaToXPTCStubMap->Add(hash, stub);
-  if (NS_FAILED(rv)) {
-    delete stub;
-    return rv;
-  }
-
-  NS_ADDREF(stub);
-  *aResult = stub;
-
-  return NS_OK;
 }

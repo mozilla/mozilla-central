@@ -37,56 +37,45 @@
 # ***** END LICENSE BLOCK *****
 
 
-DEPTH = ../..
-topsrcdir = @top_srcdir@
-srcdir = @srcdir@
-VPATH = @srcdir@
+DEPTH=../..
+topsrcdir=@top_srcdir@
+srcdir=@srcdir@
+VPATH=@srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE = inspector
-DOMi_VERSION = 2.0.0
+MODULE	= inspector
 
-DIRS = \
-  base \
-  resources \
-  $(NULL)
+DIRS=base resources
 
+ifdef MOZ_XUL_APP
 XPI_NAME               = inspector
 USE_EXTENSION_MANIFEST = 1
 NO_JAR_AUTO_REG        = 1
 INSTALL_EXTENSION_ID   = inspector@mozilla.org
-XPI_PKGNAME            = inspector-$(DOMi_VERSION)
+XPI_PKGNAME            = inspector-$(MOZ_APP_VERSION)
+endif
 
 PREF_JS_EXPORTS = $(srcdir)/resources/content/prefs/inspector.js
 
 DIST_FILES = install.rdf
 
+# We should really pull FIREFOX_VERSION and THUNDERBIRD_VERSION from
+# browser/config/version.txt mail/config/version.txt but we can't be assured
+# that we've even pulled those files. So we hardcode them.
+
 XULAPP_DEFINES = \
-  -DDOMi_VERSION=$(DOMi_VERSION) \
-  $(NULL)
+    -DFIREFOX_VERSION=$(FIREFOX_VERSION) \
+    -DTHUNDERBIRD_VERSION=$(THUNDERBIRD_VERSION) \
+    -DSUNBIRD_VERSION=$(SUNBIRD_VERSION) \
+    -DSEAMONKEY_VERSION=$(SEAMONKEY_VERSION) \
+    -DEXTENSION_VERSION=$(MOZILLA_VERSION) \
+    $(NULL)
 
 include $(topsrcdir)/config/rules.mk
 
 export::
-ifdef MOZ_XUL_APP
-	$(NSINSTALL) -D $(FINAL_TARGET)/platform/Linux/chrome/icons/default
-	$(INSTALL) $(srcdir)/resources/content/res/winInspectorMain.xpm $(FINAL_TARGET)/platform/Linux/chrome/icons/default
-	$(INSTALL) $(srcdir)/resources/content/res/winInspectorMain16.xpm $(FINAL_TARGET)/platform/Linux/chrome/icons/default
-	$(NSINSTALL) -D $(FINAL_TARGET)/platform/WINNT/chrome/icons/default
-	$(INSTALL) $(srcdir)/resources/content/res/winInspectorMain.ico $(FINAL_TARGET)/platform/WINNT/chrome/icons/default
-	$(NSINSTALL) -D $(FINAL_TARGET)/platform/OS2/chrome/icons/default
-	cp $(srcdir)/resources/content/res/winInspectorMainOS2.ico $(FINAL_TARGET)/platform/OS2/chrome/icons/default/winInspectorMain.ico
-else
-	$(NSINSTALL) -D $(FINAL_TARGET)/chrome/icons/default
 ifeq ($(OS_ARCH),WINNT)
+	$(NSINSTALL) -D $(FINAL_TARGET)/chrome/icons/default
 	$(INSTALL) $(srcdir)/resources/content/res/winInspectorMain.ico $(FINAL_TARGET)/chrome/icons/default
-endif
-ifeq ($(MOZ_WIDGET_TOOLKIT),gtk2)
-	$(INSTALL) $(srcdir)/resources/content/res/winInspectorMain.xpm $(FINAL_TARGET)/chrome/icons/default
-	$(INSTALL) $(srcdir)/resources/content/res/winInspectorMain16.xpm $(FINAL_TARGET)/chrome/icons/default
-endif
-ifeq ($(MOZ_WIDGET_TOOLKIT),os2)
-	cp $(srcdir)/resources/content/res/winInspectorMainOS2.ico $(FINAL_TARGET)/chrome/icons/default/winInspectorMain.ico
-endif
 endif

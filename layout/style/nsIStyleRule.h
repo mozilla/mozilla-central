@@ -94,8 +94,7 @@ public:
   /**
    * |nsIStyleRule::MapRuleInfoInto| is a request to copy all stylistic
    * data represented by the rule that:
-   *   + are relevant for any structs in |aRuleData->mSIDs| (style
-   *     struct ID bits)
+   *   + are relevant for |aRuleData->mSID| (the style struct ID)
    *   + are not already filled into the data struct
    * into the appropriate data struct in |aRuleData|.  It is important
    * that only empty data are filled in, since the rule tree is walked

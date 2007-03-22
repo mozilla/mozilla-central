@@ -47,7 +47,10 @@ components/xpconnect.xpt
 ; 
 
 libgkgfx.so 
+libxlibrgb.so
 libgfxpsshar.so
+components/libgfxps.so
+components/libgfxxprint.so
 components/gfx.xpt 
 components/widget.xpt
 
@@ -145,7 +148,6 @@ components/dom_core.xpt
 components/dom_css.xpt
 components/dom_events.xpt
 components/dom_html.xpt
-components/dom_offline.xpt
 components/dom_range.xpt
 components/dom_stylesheets.xpt
 components/dom_traversal.xpt
@@ -201,7 +203,6 @@ components/libpipnss.so
 components/pipnss.xpt
 chrome/pipnss.jar
 defaults/pref/security-prefs.js
-libnssutil3.so
 libnss3.so
 libsmime3.so
 libsoftokn3.chk
@@ -238,8 +239,6 @@ res/viewsource.css
 res/hiddenWindow.html
 res/ua.css
 res/forms.css
-res/contenteditable.css
-res/designmode.css
 res/arrow.gif
 res/arrowd.gif
 res/loading-image.gif
@@ -266,3 +265,11 @@ res/entityTables/transliterate.properties
 ;res/fonts/mathfontPUA.properties
 ;res/fonts/mathfontSymbol.properties
 ;components/libucvmath.so
+
+; p3p
+components/libp3p.so
+components/p3p.xpt
+
+; Effective TLD
+res/effective_tld_names.dat
+

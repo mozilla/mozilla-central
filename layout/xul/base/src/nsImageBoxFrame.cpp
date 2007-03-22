@@ -59,6 +59,7 @@
 #include "nsIRenderingContext.h"
 #include "nsIPresShell.h"
 #include "nsIImage.h"
+#include "nsIWidget.h"
 #include "nsIDocument.h"
 #include "nsIHTMLDocument.h"
 #include "nsStyleConsts.h"
@@ -113,7 +114,7 @@ nsImageBoxFrameEvent::Run()
     return NS_OK;
   }
 
-  nsIPresShell *pres_shell = doc->GetPrimaryShell();
+  nsIPresShell *pres_shell = doc->GetShellAt(0);
   if (!pres_shell) {
     return NS_OK;
   }
@@ -171,8 +172,9 @@ nsImageBoxFrame::AttributeChanged(PRInt32 aNameSpaceID,
 
   if (aAttribute == nsGkAtoms::src) {
     UpdateImage();
-    PresContext()->PresShell()->
-      FrameNeedsReflow(this, nsIPresShell::eStyleChange, NS_FRAME_IS_DIRTY);
+    AddStateBits(NS_FRAME_IS_DIRTY);
+    GetPresContext()->PresShell()->
+      FrameNeedsReflow(this, nsIPresShell::eStyleChange);
   }
   else if (aAttribute == nsGkAtoms::validate)
     UpdateLoadFlags();
@@ -210,7 +212,7 @@ nsImageBoxFrame::Destroy()
     mImageRequest->Cancel(NS_ERROR_FAILURE);
 
   if (mListener)
-    reinterpret_cast<nsImageBoxListener*>(mListener.get())->SetFrame(nsnull); // set the frame to null so we don't send messages to a dead object.
+    NS_REINTERPRET_CAST(nsImageBoxListener*, mListener.get())->SetFrame(nsnull); // set the frame to null so we don't send messages to a dead object.
 
   nsLeafBoxFrame::Destroy();
 }
@@ -265,10 +267,9 @@ nsImageBoxFrame::UpdateImage()
                                               doc,
                                               baseURI);
 
-    if (uri && nsContentUtils::CanLoadImage(uri, mContent, doc,
-                                            mContent->NodePrincipal())) {
-      nsContentUtils::LoadImage(uri, doc, mContent->NodePrincipal(),
-                                doc->GetDocumentURI(), mListener, mLoadFlags,
+    if (uri && nsContentUtils::CanLoadImage(uri, mContent, doc)) {
+      nsContentUtils::LoadImage(uri, doc, doc->GetDocumentURI(),
+                                mListener, mLoadFlags,
                                 getter_AddRefs(mImageRequest));
     }
   } else {
@@ -331,7 +332,7 @@ public:
 void nsDisplayXULImage::Paint(nsDisplayListBuilder* aBuilder,
      nsIRenderingContext* aCtx, const nsRect& aDirtyRect)
 {
-  static_cast<nsImageBoxFrame*>(mFrame)->
+  NS_STATIC_CAST(nsImageBoxFrame*, mFrame)->
     PaintImage(*aCtx, aDirtyRect, aBuilder->ToReferenceFrame(mFrame));
 }
 
@@ -453,9 +454,10 @@ nsImageBoxFrame::GetPrefSize(nsBoxLayoutState& aState)
   nsIBox::AddCSSPrefSize(aState, this, size);
 
   nsSize minSize = GetMinSize(aState);
-  nsSize maxSize = GetMaxSize(aState);  
+  nsSize maxSize = GetMaxSize(aState);
+  BoundsCheck(minSize, size, maxSize);
 
-  return BoundsCheck(minSize, size, maxSize);
+  return size;
 }
 
 nsSize
@@ -505,10 +507,9 @@ NS_IMETHODIMP nsImageBoxFrame::OnStartContainer(imgIRequest *request,
   mIntrinsicSize.SizeTo(nsPresContext::CSSPixelsToAppUnits(w),
                         nsPresContext::CSSPixelsToAppUnits(h));
 
-  if (!(GetStateBits() & NS_FRAME_FIRST_REFLOW)) {
-    PresContext()->PresShell()->
-      FrameNeedsReflow(this, nsIPresShell::eStyleChange, NS_FRAME_IS_DIRTY);
-  }
+  AddStateBits(NS_FRAME_IS_DIRTY);
+  GetPresContext()->PresShell()->
+    FrameNeedsReflow(this, nsIPresShell::eStyleChange);
 
   return NS_OK;
 }
@@ -516,7 +517,7 @@ NS_IMETHODIMP nsImageBoxFrame::OnStartContainer(imgIRequest *request,
 NS_IMETHODIMP nsImageBoxFrame::OnStopContainer(imgIRequest *request,
                                                imgIContainer *image)
 {
-  nsBoxLayoutState state(PresContext());
+  nsBoxLayoutState state(GetPresContext());
   this->Redraw(state);
 
   return NS_OK;
@@ -532,8 +533,9 @@ NS_IMETHODIMP nsImageBoxFrame::OnStopDecode(imgIRequest *request,
   else {
     // Fire an onerror DOM event.
     mIntrinsicSize.SizeTo(0, 0);
-    PresContext()->PresShell()->
-      FrameNeedsReflow(this, nsIPresShell::eStyleChange, NS_FRAME_IS_DIRTY);
+    AddStateBits(NS_FRAME_IS_DIRTY);
+    GetPresContext()->PresShell()->
+      FrameNeedsReflow(this, nsIPresShell::eStyleChange);
     FireImageDOMEvent(mContent, NS_LOAD_ERROR);
   }
 
@@ -544,7 +546,7 @@ NS_IMETHODIMP nsImageBoxFrame::FrameChanged(imgIContainer *container,
                                             gfxIImageFrame *newframe,
                                             nsRect * dirtyRect)
 {
-  nsBoxLayoutState state(PresContext());
+  nsBoxLayoutState state(GetPresContext());
   this->Redraw(state);
 
   return NS_OK;

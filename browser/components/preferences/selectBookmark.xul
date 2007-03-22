@@ -20,11 +20,12 @@
           src="chrome://browser/content/preferences/selectBookmark.js"/>
   
   <description>&selectBookmark.label;</description>
-
+  
   <separator class="thin"/>
-
+  
   <tree id="bookmarks" flex="1" type="places" 
         style="height: 15em;" 
+        place="place:&amp;folder=1&amp;group=3&amp;excludeQueries=1"
         hidecolumnpicker="true"
         seltype="single"
         ondblclick="SelectBookmarkDialog.onItemDblClick();"

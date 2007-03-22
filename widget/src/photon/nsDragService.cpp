@@ -47,11 +47,20 @@
 
 #include "nsWidgetsCID.h"
 
+NS_IMPL_ADDREF_INHERITED(nsDragService, nsBaseDragService)
+NS_IMPL_RELEASE_INHERITED(nsDragService, nsBaseDragService)
+NS_IMPL_QUERY_INTERFACE2(nsDragService, nsIDragService, nsIDragSession)
+
 char *nsDragService::mDndEvent = NULL;
 int nsDragService::mDndEventLen;
 
 #define kMimeCustom			"text/_moz_htmlcontext"
 
+//-------------------------------------------------------------------------
+//
+// DragService constructor
+//
+//-------------------------------------------------------------------------
 nsDragService::nsDragService()
 {
   mDndWidget = nsnull;
@@ -62,6 +71,11 @@ nsDragService::nsDragService()
 	mTransportFile = nsnull;
 }
 
+//-------------------------------------------------------------------------
+//
+// DragService destructor
+//
+//-------------------------------------------------------------------------
 nsDragService::~nsDragService()
 {
 	if( mNativeCtrl ) PtReleaseTransportCtrl( mNativeCtrl );
@@ -130,10 +144,7 @@ nsDragService::InvokeDragSession (nsIDOMNode *aDOMNode,
 #ifdef DEBUG
 	printf( "nsDragService::InvokeDragSession\n" );
 #endif
-  nsresult rv = nsBaseDragService::InvokeDragSession(aDOMNode,
-                                                     aArrayTransferables,
-                                                     aRegion, aActionType);
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsBaseDragService::InvokeDragSession (aDOMNode, aArrayTransferables, aRegion, aActionType);
 
   if(!aArrayTransferables) return NS_ERROR_INVALID_ARG;
 
@@ -175,7 +186,7 @@ nsDragService::InvokeDragSession (nsIDOMNode *aDOMNode,
 						const char *FlavourStr = ( const char * ) flavorStr;
 						nsCOMPtr<nsISupports> data;
 						PRUint32 tmpDataLen = 0;
-						rv = currItem->GetTransferData( FlavourStr, getter_AddRefs(data), &tmpDataLen );
+						nsresult rv = currItem->GetTransferData( FlavourStr, getter_AddRefs(data), &tmpDataLen );
 						if( NS_SUCCEEDED( rv ) ) {
 							/* insert FlavourStr, data into the PtTransportCtrl_t */
 							int len = sizeof( PRUint32 ) + sizeof( PRUint32 ) + strlen( FlavourStr ) + 1 + tmpDataLen;

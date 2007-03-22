@@ -64,7 +64,7 @@
 #define INT64   long
 #endif
 #else
-#if defined(HPUX) || defined(__QNX__)
+#if defined(HPUX) || defined(__QNX__) || defined(_SCO_DS) || defined(UNIXWARE)
 #define INT64   long
 #else
 #define INT64   long long
@@ -77,11 +77,6 @@
 #define NS_NEVER_INLINE __attribute__((noinline))
 #else
 #define NS_NEVER_INLINE
-#endif
-
-#ifdef __SUNPRO_C
-static int StackGrowthDirection(int *dummy1addr);
-#pragma no_inline(StackGrowthDirection)
 #endif
 
 typedef void *prword;
@@ -371,9 +366,6 @@ int main(int argc, char **argv)
     printf("\n");
 
     printf("#define JS_STACK_GROWTH_DIRECTION (%d)\n", StackGrowthDirection(&dummy1));
-    printf("\n");
-
-    printf("#define JS_HAVE_LONG_LONG\n");
     printf("\n");
 
     printf("#endif /* js_cpucfg___ */\n");

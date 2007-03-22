@@ -110,14 +110,11 @@ public:
                               nsIContent* aChild,
                               PRInt32 aIndexInContainer);
   virtual void NodeWillBeDestroyed(const nsINode* aNode);
-  virtual void ParentChainChanged(nsIContent *aContent);
 
 private:
   // no copy's or assigns
   nsRange(const nsRange&);
   nsRange& operator=(const nsRange&);
-
-  nsINode* IsValidBoundary(nsINode* aNode);
  
 public:
 /******************************************************************************

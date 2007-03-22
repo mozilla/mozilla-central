@@ -36,15 +36,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'regress-322499.js';
+START("Do not define AnyName");
 
-var summary = "Do not define AnyName";
-var BUGNUMBER = 322499;
+var bug = 322499;
+var summary = 'Do not define AnyName';
 var actual = '';
 var expect = '';
 
-printBugNumber(BUGNUMBER);
-START(summary);
+printBugNumber (bug);
+printStatus (summary);
 
 expect = 'ReferenceError';
 

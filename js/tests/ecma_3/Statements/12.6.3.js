@@ -34,47 +34,45 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = '12.6.3.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 292731;
+var bug = 292731;
 var summary = 'for-in should not call valueOf method';
 var actual = '';
 var expect = '';
 var i;
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
-function MyObject()
+function MyObject() 
 {
 }
 
-MyObject.prototype.valueOf = function()
+MyObject.prototype.valueOf = function() 
 {
-  actual += 'MyObject.prototype.valueOf called. ';
+	actual += 'MyObject.prototype.valueOf called. ';
 }
 
-  var myobject = new MyObject();
+var myobject = new MyObject();
 
-var myfunction = new function()
+var myfunction = new function() 
 {
-  this.valueOf = function()
+  this.valueOf = function() 
   {
-    actual += 'this.valueOf called. ';
-  }
+		actual += 'this.valueOf called. ';
+	}
 }
 
-  actual = '';
+actual = '';
 for (i in myobject)
 {
-  //calls valueOf
+	//calls valueOf
 }
 reportCompare(expect, actual, 'for-in custom object');
 
 actual = '';
 for (i in myfunction)
 {
-  //calls valueOf
+	//calls valueOf
 }
 reportCompare(expect, actual, 'for-in function expression');

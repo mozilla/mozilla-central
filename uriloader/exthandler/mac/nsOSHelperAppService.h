@@ -23,7 +23,6 @@
  * Contributor(s):
  *   Scott MacGregor <mscott@netscape.com>
  *   Asaf Romano <mozilla.mano@sent.com>
- *   Dan Mosedale <dmose@mozilla.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -57,27 +56,24 @@ public:
   virtual ~nsOSHelperAppService();
 
   // override nsIExternalProtocolService methods
+  NS_IMETHOD ExternalProtocolHandlerExists(const char * aProtocolScheme, PRBool * aHandlerExists);
   NS_IMETHOD GetApplicationDescription(const nsACString& aScheme, nsAString& _retval);
+  nsresult LoadUriInternal(nsIURI * aURL);
   
   // method overrides --> used to hook the mime service into internet config....
   NS_IMETHOD GetFromTypeAndExtension(const nsACString& aType, const nsACString& aFileExt, nsIMIMEInfo ** aMIMEInfo);
   already_AddRefed<nsIMIMEInfo> GetMIMEInfoFromOS(const nsACString& aMIMEType, const nsACString& aFileExt, PRBool * aFound);
-  NS_IMETHOD GetProtocolHandlerInfoFromOS(const nsACString &aScheme,
-                                          PRBool *found,
-                                          nsIHandlerInfo **_retval);
 
   // GetFileTokenForPath must be implemented by each platform. 
   // platformAppPath --> a platform specific path to an application that we got out of the 
   //                     rdf data source. This can be a mac file spec, a unix path or a windows path depending on the platform
   // aFile --> an nsIFile representation of that platform application path.
   virtual nsresult GetFileTokenForPath(const PRUnichar * platformAppPath, nsIFile ** aFile);
-
-  nsresult OSProtocolHandlerExists(const char * aScheme,
-                                   PRBool * aHandlerExists);
-
+  
 protected:
   // add any mac specific service state here
   void UpdateCreatorInfo(nsIMIMEInfo * aMIMEInfo);
+
 };
 
 #endif // nsOSHelperAppService_h__

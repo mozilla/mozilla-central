@@ -1,8 +1,0 @@
-copied files from carbon to cocoa widgets, this always messes up tinderboxes. clobbering. b=366732
-2007-03-02 16:56 UTC - Respin to pick up fix for bug 372366
-2007-03-20 11:40 UTC - Respin to use new pserver cvs read-only access (bug 374042)
-2007-03-28 14:40 UTC - Respinning to pick up tinder-config changes
-2008-01-14 17:40 UTC - Respin just to make sure universal builds work
-2008-01-18 00:00 UTC - Respinning to pick up bustage fix from bug 386432
-2008-01-18 10:00 UTC - Clobber just to make sure universal static builds work
-2008-07-17 08:16 UTC - Clobbering to force pick up of configure.sh change from bug 443398

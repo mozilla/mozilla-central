@@ -26,7 +26,6 @@
  *   Pierre Phaneuf <pp@ludusdesign.com>
  *   Joe Hewitt <hewitt@netscape.com>
  *   Neil Deakin <enndeakin@sympatico.ca>
- *   Laurent Jouanneau <laurent.jouanneau@disruptive-innovations.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -47,7 +46,6 @@
 #include "nsIRDFNode.h"
 #include "nsIRDFObserver.h"
 #include "nsIRDFRemoteDataSource.h"
-#include "nsIRDFInferDataSource.h"
 #include "nsIRDFService.h"
 #include "nsRDFCID.h"
 #include "nsIServiceManager.h"
@@ -58,7 +56,6 @@
 #include "nsUnicharUtils.h"
 #include "nsAttrName.h"
 #include "rdf.h"
-#include "nsArrayUtils.h"
 
 #include "nsContentTestNode.h"
 #include "nsRDFConInstanceTestNode.h"
@@ -94,7 +91,7 @@ BindingDependenciesTraverser(nsISupports* key,
                              void* userArg)
 {
     nsCycleCollectionTraversalCallback *cb = 
-        static_cast<nsCycleCollectionTraversalCallback*>(userArg);
+        NS_STATIC_CAST(nsCycleCollectionTraversalCallback*, userArg);
 
     PRInt32 i, count = array->Count();
     for (i = 0; i < count; ++i) {
@@ -110,7 +107,7 @@ MemoryElementTraverser(const PRUint32& key,
                        void* userArg)
 {
     nsCycleCollectionTraversalCallback *cb = 
-        static_cast<nsCycleCollectionTraversalCallback*>(userArg);
+        NS_STATIC_CAST(nsCycleCollectionTraversalCallback*, userArg);
 
     PRInt32 i, count = array->Count();
     for (i = 0; i < count; ++i) {
@@ -124,7 +121,7 @@ PR_STATIC_CALLBACK(PLDHashOperator)
 RuleToBindingTraverser(nsISupports* key, RDFBindingSet* binding, void* userArg)
 {
     nsCycleCollectionTraversalCallback *cb = 
-        static_cast<nsCycleCollectionTraversalCallback*>(userArg);
+        NS_STATIC_CAST(nsCycleCollectionTraversalCallback*, userArg);
 
     cb->NoteXPCOMChild(key);
 
@@ -132,7 +129,6 @@ RuleToBindingTraverser(nsISupports* key, RDFBindingSet* binding, void* userArg)
 }
 
 NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN(nsXULTemplateQueryProcessorRDF)
-    NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mDB)
     NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mLastRef)
     if (tmp->mBindingDependencies.IsInitialized()) {
         tmp->mBindingDependencies.EnumerateRead(BindingDependenciesTraverser,
@@ -152,10 +148,11 @@ NS_IMPL_CYCLE_COLLECTING_ADDREF_AMBIGUOUS(nsXULTemplateQueryProcessorRDF,
                                           nsIXULTemplateQueryProcessor)
 NS_IMPL_CYCLE_COLLECTING_RELEASE_AMBIGUOUS(nsXULTemplateQueryProcessorRDF,
                                            nsIXULTemplateQueryProcessor)
-NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION(nsXULTemplateQueryProcessorRDF)
+NS_INTERFACE_MAP_BEGIN(nsXULTemplateQueryProcessorRDF)
     NS_INTERFACE_MAP_ENTRY(nsIXULTemplateQueryProcessor)
     NS_INTERFACE_MAP_ENTRY(nsIRDFObserver)
     NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIXULTemplateQueryProcessor)
+    NS_INTERFACE_MAP_ENTRIES_CYCLE_COLLECTION(nsXULTemplateQueryProcessorRDF)
 NS_INTERFACE_MAP_END
 
 nsXULTemplateQueryProcessorRDF::nsXULTemplateQueryProcessorRDF(void)
@@ -210,7 +207,7 @@ nsXULTemplateQueryProcessorRDF::InitGlobals()
                              &kRDF_type);
     }
 
-    return MemoryElement::Init() ? NS_OK : NS_ERROR_FAILURE;
+    return NS_OK;
 }
 
 //----------------------------------------------------------------------
@@ -218,119 +215,6 @@ nsXULTemplateQueryProcessorRDF::InitGlobals()
 // nsIXULTemplateQueryProcessor interface
 //
 
-NS_IMETHODIMP
-nsXULTemplateQueryProcessorRDF::GetDatasource(nsIArray* aDataSources,
-                                              nsIDOMNode* aRootNode,
-                                              PRBool aIsTrusted,
-                                              nsIXULTemplateBuilder* aBuilder,
-                                              PRBool* aShouldDelayBuilding,
-                                              nsISupports** aResult)
-{
-    nsCOMPtr<nsIRDFCompositeDataSource> compDB;
-    nsCOMPtr<nsIContent> root = do_QueryInterface(aRootNode);
-    nsresult rv;
-
-    *aResult = nsnull;
-    *aShouldDelayBuilding = PR_FALSE;
-
-    NS_ENSURE_TRUE(root, NS_ERROR_UNEXPECTED);
-
-    // make sure the RDF service is set up
-    rv = InitGlobals();
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    // create a database for the builder
-    compDB = do_CreateInstance(NS_RDF_DATASOURCE_CONTRACTID_PREFIX 
-                               "composite-datasource");
-    if (!compDB) {
-        NS_ERROR("unable to construct new composite data source");
-        return NS_ERROR_UNEXPECTED;
-    }
-
-    // check for magical attributes. XXX move to ``flags''?
-    if (root->AttrValueIs(kNameSpaceID_None,
-                          nsGkAtoms::coalesceduplicatearcs,
-                          nsGkAtoms::_false, eCaseMatters))
-        compDB->SetCoalesceDuplicateArcs(PR_FALSE);
-
-    if (root->AttrValueIs(kNameSpaceID_None,
-                          nsGkAtoms::allownegativeassertions,
-                          nsGkAtoms::_false, eCaseMatters))
-        compDB->SetAllowNegativeAssertions(PR_FALSE);
-
-    if (aIsTrusted) {
-        // If we're a privileged (e.g., chrome) document, then add the
-        // local store as the first data source in the db. Note that
-        // we _might_ not be able to get a local store if we haven't
-        // got a profile to read from yet.
-        nsCOMPtr<nsIRDFDataSource> localstore;
-        rv = gRDFService->GetDataSource("rdf:local-store",
-                                        getter_AddRefs(localstore));
-        NS_ENSURE_SUCCESS(rv, rv);
-
-        rv = compDB->AddDataSource(localstore);
-        NS_ASSERTION(NS_SUCCEEDED(rv), "unable to add local store to db");
-        NS_ENSURE_SUCCESS(rv, rv);
-    }
-
-    PRUint32 length, index;
-    rv = aDataSources->GetLength(&length);
-    NS_ENSURE_SUCCESS(rv,rv);
-
-    for (index = 0; index < length; index++) {
-
-        nsCOMPtr<nsIURI> uri = do_QueryElementAt(aDataSources, index);
-        if (!uri) // we ignore other datasources than uri
-            continue;
-
-        nsCOMPtr<nsIRDFDataSource> ds;
-        nsCAutoString uristrC;
-        uri->GetSpec(uristrC);
-
-        rv = gRDFService->GetDataSource(uristrC.get(), getter_AddRefs(ds));
-
-        if (NS_FAILED(rv)) {
-            // This is only a warning because the data source may not
-            // be accessible for any number of reasons, including
-            // security, a bad URL, etc.
-  #ifdef DEBUG
-            nsCAutoString msg;
-            msg.Append("unable to load datasource '");
-            msg.Append(uristrC);
-            msg.Append('\'');
-            NS_WARNING(msg.get());
-  #endif
-            continue;
-        }
-
-        compDB->AddDataSource(ds);
-    }
-
-
-    // check if we were given an inference engine type
-    nsAutoString infer;
-    nsCOMPtr<nsIRDFDataSource> db;
-    root->GetAttr(kNameSpaceID_None, nsGkAtoms::infer, infer);
-    if (!infer.IsEmpty()) {
-        nsCString inferCID(NS_RDF_INFER_DATASOURCE_CONTRACTID_PREFIX);
-        AppendUTF16toUTF8(infer, inferCID);
-        nsCOMPtr<nsIRDFInferDataSource> inferDB =
-            do_CreateInstance(inferCID.get());
-
-        if (inferDB) {
-            inferDB->SetBaseDataSource(compDB);
-            db = do_QueryInterface(inferDB);
-        }
-        else {
-            NS_WARNING("failed to construct inference engine specified on template");
-        }
-    }
-
-    if (!db)
-        db = compDB;
-
-    return CallQueryInterface(db, aResult);
-}
 
 NS_IMETHODIMP
 nsXULTemplateQueryProcessorRDF::InitializeForBuilding(nsISupports* aDatasource,
@@ -351,6 +235,15 @@ nsXULTemplateQueryProcessorRDF::InitializeForBuilding(nsISupports* aDatasource,
         if (!mRuleToBindingsMap.IsInitialized() &&
             !mRuleToBindingsMap.Init())
             return NS_ERROR_OUT_OF_MEMORY;
+
+        const size_t bucketsizes[] = {
+            sizeof (nsRDFConMemberTestNode::Element),
+            sizeof (nsRDFPropertyTestNode::Element)
+        };
+
+        rv = mPool.Init("nsXULTemplateQueryProcessorRDF", bucketsizes, 2, 256);
+        if (NS_FAILED(rv))
+            return rv;
 
         mQueryProcessorRDFInited = PR_TRUE;
     }
@@ -441,7 +334,7 @@ nsXULTemplateQueryProcessorRDF::CompileQuery(nsIXULTemplateBuilder* aBuilder,
         NS_ASSERTION(!mSimpleRuleMemberTest,
                      "CompileQuery called twice with the same template");
         if (!mSimpleRuleMemberTest)
-            rv = CompileSimpleQuery(query, content, &lastnode);
+            rv = AddDefaultSimpleRules(query, &lastnode);
         else
             rv = NS_ERROR_FAILURE;
     }
@@ -500,7 +393,7 @@ nsXULTemplateQueryProcessorRDF::GenerateResults(nsISupports* aDatasource,
 
     // should be safe to cast here since the query is a
     // non-scriptable nsITemplateRDFQuery
-    nsRDFQuery* query = static_cast<nsRDFQuery *>(aQuery);
+    nsRDFQuery* query = NS_STATIC_CAST(nsRDFQuery *, aQuery);
 
     *aResults = nsnull;
 
@@ -945,7 +838,7 @@ nsXULTemplateQueryProcessorRDF::Propagate(nsIRDFResource* aSource,
     {
         ReteNodeSet::Iterator last = mRDFTests.Last();
         for (ReteNodeSet::Iterator i = mRDFTests.First(); i != last; ++i) {
-            nsRDFTestNode* rdftestnode = static_cast<nsRDFTestNode*>(*i);
+            nsRDFTestNode* rdftestnode = NS_STATIC_CAST(nsRDFTestNode*, *i);
 
             Instantiation seed;
             if (rdftestnode->CanPropagate(aSource, aProperty, aTarget, seed)) {
@@ -962,7 +855,7 @@ nsXULTemplateQueryProcessorRDF::Propagate(nsIRDFResource* aSource,
     {
         ReteNodeSet::Iterator last = livenodes.Last();
         for (ReteNodeSet::Iterator i = livenodes.First(); i != last; ++i) {
-            nsRDFTestNode* rdftestnode = static_cast<nsRDFTestNode*>(*i);
+            nsRDFTestNode* rdftestnode = NS_STATIC_CAST(nsRDFTestNode*, *i);
 
             // What happens here is we create an instantiation as if we were
             // at the found test in the rule network. For example, if the
@@ -1006,7 +899,7 @@ nsXULTemplateQueryProcessorRDF::Propagate(nsIRDFResource* aSource,
         }
     }
 
-    return NS_OK;
+    return rv;
 }
 
 
@@ -1034,7 +927,7 @@ nsXULTemplateQueryProcessorRDF::Retract(nsIRDFResource* aSource,
     // Retract any currently active rules that will no longer be matched.
     ReteNodeSet::ConstIterator lastnode = mRDFTests.Last();
     for (ReteNodeSet::ConstIterator node = mRDFTests.First(); node != lastnode; ++node) {
-        const nsRDFTestNode* rdftestnode = static_cast<const nsRDFTestNode*>(*node);
+        const nsRDFTestNode* rdftestnode = NS_STATIC_CAST(const nsRDFTestNode*, *node);
 
         rdftestnode->Retract(aSource, aProperty, aTarget);
 
@@ -1400,13 +1293,7 @@ nsXULTemplateQueryProcessorRDF::CompileTripleCondition(nsRDFQuery* aQuery,
 
     nsCOMPtr<nsIAtom> svar;
     nsCOMPtr<nsIRDFResource> sres;
-    if (subject.IsEmpty()) {
-        PR_LOG(gXULTemplateLog, PR_LOG_ALWAYS,
-               ("xultemplate[%p] has empty <triple> 'subject'", this));
-        return NS_OK;
-    }
-
-    if (subject[0] == PRUnichar('?'))
+    if (!subject.IsEmpty() && subject[0] == PRUnichar('?'))
         svar = do_GetAtom(subject);
     else
         gRDFService->GetUnicodeResource(subject, getter_AddRefs(sres));
@@ -1416,21 +1303,15 @@ nsXULTemplateQueryProcessorRDF::CompileTripleCondition(nsRDFQuery* aQuery,
     aCondition->GetAttr(kNameSpaceID_None, nsGkAtoms::predicate, predicate);
 
     nsCOMPtr<nsIRDFResource> pres;
-    if (predicate.IsEmpty()) {
-        PR_LOG(gXULTemplateLog, PR_LOG_ALWAYS,
-               ("xultemplate[%p] has empty <triple> 'predicate'", this));
-
-        return NS_OK;
-    }
-
-    if (predicate[0] == PRUnichar('?')) {
+    if (!predicate.IsEmpty() && predicate[0] == PRUnichar('?')) {
         PR_LOG(gXULTemplateLog, PR_LOG_ALWAYS,
                ("xultemplate[%p] cannot handle variables in <triple> 'predicate'", this));
 
         return NS_OK;
     }
-
-    gRDFService->GetUnicodeResource(predicate, getter_AddRefs(pres));
+    else {
+        gRDFService->GetUnicodeResource(predicate, getter_AddRefs(pres));
+    }
 
     // object
     nsAutoString object;
@@ -1438,13 +1319,7 @@ nsXULTemplateQueryProcessorRDF::CompileTripleCondition(nsRDFQuery* aQuery,
 
     nsCOMPtr<nsIAtom> ovar;
     nsCOMPtr<nsIRDFNode> onode;
-    if (object.IsEmpty()) {
-        PR_LOG(gXULTemplateLog, PR_LOG_ALWAYS,
-               ("xultemplate[%p] has empty <triple> 'object'", this));
-        return NS_OK;
-    }
-
-    if (object[0] == PRUnichar('?')) {
+    if (!object.IsEmpty() && object[0] == PRUnichar('?')) {
         ovar = do_GetAtom(object);
     }
     else if (object.FindChar(':') != -1) { // XXXwaterson evil.
@@ -1646,8 +1521,6 @@ nsXULTemplateQueryProcessorRDF::CompileSimpleQuery(nsRDFQuery* aQuery,
         }
 
         PRInt32 attrNameSpaceID = name->NamespaceID();
-        if (attrNameSpaceID == kNameSpaceID_XMLNS)
-          continue;
         nsIAtom* attr = name->LocalName();
 
         nsAutoString value;

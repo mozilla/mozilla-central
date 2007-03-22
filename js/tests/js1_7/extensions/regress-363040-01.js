@@ -34,10 +34,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-363040-01.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 363040;
+var bug = 363040;
 var summary = 'Array.prototype.reduce application in continued fraction';
 var actual = '';
 var expect = '';
@@ -50,9 +48,9 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
- 
+  
 // Print x as a continued fraction in compact abbreviated notation and return
 // the convergent [n, d] such that x - (n / d) <= epsilon.
   function contfrac(x, epsilon) {

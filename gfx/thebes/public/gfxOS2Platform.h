@@ -42,10 +42,6 @@
 #include <os2.h>
 
 #include "gfxPlatform.h"
-#include "gfxOS2Fonts.h"
-#include "gfxFontUtils.h"
-
-class gfxFontconfigUtils;
 
 class THEBES_API gfxOS2Platform : public gfxPlatform {
 
@@ -64,32 +60,15 @@ public:
     nsresult GetFontList(const nsACString& aLangGroup,
                          const nsACString& aGenericFamily,
                          nsStringArray& aListOfFonts);
-    nsresult UpdateFontList();
+
     nsresult ResolveFontName(const nsAString& aFontName,
                              FontResolverCallback aCallback,
                              void *aClosure, PRBool& aAborted);
-    nsresult GetStandardFamilyName(const nsAString& aFontName, nsAString& aFamilyName);
-
-    gfxFontGroup *CreateFontGroup(const nsAString &aFamilies,
-                                  const gfxFontStyle *aStyle);
-
-    // Given a string and a font we already have, find the font that
-    // supports the most code points and most closely resembles aFont.
-    // This simple version involves looking at the fonts on the machine to see
-    // which code points they support.
-    already_AddRefed<gfxOS2Font> FindFontForChar(PRUint32 aCh, gfxOS2Font *aFont);
-
-    // return true if it's already known that we don't have a font for this char
-    PRBool noFontWithChar(PRUint32 aCh) {
-        return mCodepointsWithNoFonts.test(aCh);
-    }
-
-protected:
-    static gfxFontconfigUtils *sFontconfigUtils;
 
 private:
-    // when font lookup fails for a character, cache it to skip future searches
-    gfxSparseBitSet mCodepointsWithNoFonts;
+    HDC mDC;
+    HPS mPS;
+    HBITMAP mBitmap;
 };
 
 #endif /* GFX_OS2_PLATFORM_H */

@@ -157,7 +157,7 @@ inCSSValueSearch::SearchAsync(inISearchObserver *aObserver)
 NS_IMETHODIMP
 inCSSValueSearch::SearchStop()
 {
-  KillSearch(inISearchObserver::IN_INTERRUPTED);
+  KillSearch(inISearchObserver::INTERRUPTED);
   return NS_OK;
 }
 

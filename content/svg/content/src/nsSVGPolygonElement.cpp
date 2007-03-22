@@ -38,7 +38,6 @@
 
 #include "nsSVGPolyElement.h"
 #include "nsIDOMSVGPolygonElement.h"
-#include "gfxContext.h"
 
 typedef nsSVGPolyElement nsSVGPolygonElementBase;
 
@@ -63,7 +62,7 @@ public:
 
   // nsSVGPathGeometryElement methods:
   virtual void GetMarkPoints(nsTArray<nsSVGMark> *aMarks);
-  virtual void ConstructPath(gfxContext *aCtx);
+  virtual void ConstructPath(cairo_t *aCtx);
 
   virtual nsresult Clone(nsINodeInfo *aNodeInfo, nsINode **aResult) const;
 };
@@ -116,12 +115,12 @@ nsSVGPolygonElement::GetMarkPoints(nsTArray<nsSVGMark> *aMarks)
 }
 
 void
-nsSVGPolygonElement::ConstructPath(gfxContext *aCtx)
+nsSVGPolygonElement::ConstructPath(cairo_t *aCtx)
 {
   nsSVGPolygonElementBase::ConstructPath(aCtx);
   // the difference between a polyline and a polygon is that the
   // polygon is closed:
-  aCtx->ClosePath();
+  cairo_close_path(aCtx);
 }
 
 

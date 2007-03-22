@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -34,9 +33,8 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK ***** */
-
-/*
+ * ***** END LICENSE BLOCK *****
+ *
  * Date: 2001-07-10
  *
  * SUMMARY:  Invoking try...catch through Function.call
@@ -47,10 +45,9 @@
  * 3) Pass bad syntax to the try...catch block
  * 4) We should catch the error!
  */
-//-----------------------------------------------------------------------------
-var gTestfile = 'regress-49286.js';
+//-------------------------------------------------------------------------------------------------
 var UBound = 0;
-var BUGNUMBER = 49286;
+var bug = 49286;
 var summary = 'Invoking try...catch through Function.call';
 var cnErrorCaught = 'Error caught';
 var cnErrorNotCaught = 'Error NOT caught';
@@ -86,7 +83,7 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
 
   for (var i=0; i<UBound; i++)

@@ -39,7 +39,7 @@
 #ifndef _nsXFormsAccessible_H_
 #define _nsXFormsAccessible_H_
 
-#include "nsHyperTextAccessibleWrap.h"
+#include "nsHyperTextAccessible.h"
 #include "nsIXFormsUtilityService.h"
 
 #define NS_NAMESPACE_XFORMS "http://www.w3.org/2002/xforms"
@@ -66,7 +66,7 @@ protected:
  * XForms hint and XForms label elements should have accessible object. This
  * class is base class for accessible objects for these XForms elements.
  */
-class nsXFormsAccessible : public nsHyperTextAccessibleWrap,
+class nsXFormsAccessible : public nsHyperTextAccessible,
                            public nsXFormsAccessibleBase
 {
 public:
@@ -77,7 +77,7 @@ public:
 
   // Returns state of xforms element taking into account state of instance node
   // that it is bound to.
-  NS_IMETHOD GetState(PRUint32 *aState, PRUint32 *aExtraState);
+  NS_IMETHOD GetState(PRUint32 *aState);
 
   // Returns value of child xforms 'label' element.
   NS_IMETHOD GetName(nsAString& aName);
@@ -87,7 +87,7 @@ public:
 
   // Appends ARIA 'datatype' property based on datatype of instance node that
   // element is bound to.
-  virtual nsresult GetAttributesInternal(nsIPersistentProperties *aAttributes);
+  NS_IMETHOD GetAttributes(nsIPersistentProperties **aAttributes);
 
   // Denies accessible nodes in anonymous content of xforms element by
   // always returning PR_FALSE value.
@@ -145,10 +145,17 @@ class nsXFormsEditableAccessible : public nsXFormsAccessible
 public:
   nsXFormsEditableAccessible(nsIDOMNode *aNode, nsIWeakReference *aShell);
 
-  NS_IMETHOD GetState(PRUint32 *aState, PRUint32 *aExtraState);
+  NS_IMETHOD GetExtState(PRUint32 *aState);
 
-  // nsIAccessibleEditableText
-  NS_IMETHOD GetAssociatedEditor(nsIEditor **aEditor);
+  NS_IMETHOD Init();
+  NS_IMETHOD Shutdown();
+
+protected:
+  virtual void SetEditor(nsIEditor *aEditor);
+  virtual already_AddRefed<nsIEditor> GetEditor();
+
+private:
+  nsCOMPtr<nsIEditor> mEditor;
 };
 
 

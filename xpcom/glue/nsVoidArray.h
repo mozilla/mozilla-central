@@ -190,7 +190,7 @@ public:
 
   void ResetToAutoBuffer()
   {
-    SetArray(reinterpret_cast<Impl*>(mAutoBuf), kAutoBufSize, 0, PR_FALSE,
+    SetArray(NS_REINTERPRET_CAST(Impl*, mAutoBuf), kAutoBufSize, 0, PR_FALSE,
              PR_TRUE);
   }
   
@@ -275,7 +275,7 @@ public:
   // to array. For example, array.ParseString("a,b,c", ","); will add strings
   // "a", "b" and "c" to the array. Parsing process has the same tokenizing 
   // behavior as strtok().  
-  PRBool ParseString(const char* string, const char* delimiter);
+  void ParseString(const char* string, const char* delimiter);
 
   PRInt32 Count(void) const {
     return nsVoidArray::Count();
@@ -406,19 +406,19 @@ private:
 
   PRBool HasSingle() const
   {
-    return !!(reinterpret_cast<PRWord>(mImpl) & 0x1);
+    return NS_REINTERPRET_CAST(PRWord, mImpl) & 0x1;
   }
   void* GetSingle() const
   {
     NS_ASSERTION(HasSingle(), "wrong type");
-    return reinterpret_cast<void*>
-                           (reinterpret_cast<PRWord>(mImpl) & ~0x1);
+    return NS_REINTERPRET_CAST(void*,
+                               NS_REINTERPRET_CAST(PRWord, mImpl) & ~0x1);
   }
   void SetSingle(void *aChild)
   {
     NS_ASSERTION(HasSingle() || !mImpl, "overwriting array");
-    mImpl = reinterpret_cast<Impl*>
-                            (reinterpret_cast<PRWord>(aChild) | 0x1);
+    mImpl = NS_REINTERPRET_CAST(Impl*,
+                                NS_REINTERPRET_CAST(PRWord, aChild) | 0x1);
   }
   PRBool IsEmpty() const
   {

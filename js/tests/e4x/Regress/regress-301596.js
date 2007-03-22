@@ -36,15 +36,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'regress-301596.js';
+START("E4X - Do not crash with XMLList filters");
 
-var summary = "E4X - Do not crash with XMLList filters";
-var BUGNUMBER = 301596;
+var bug = 301596;
+var summary = 'E4X - Do not crash with XMLList filters';
 var actual = 'No Crash';
 var expect = 'No Crash';
 
-printBugNumber(BUGNUMBER);
-START(summary);
+printBugNumber (bug);
+printStatus (summary);
 
 try
 {

@@ -2,21 +2,12 @@
 # Tag step. Applies a CVS tag to the appropriate repositories.
 # 
 package Bootstrap::Step::Tag::l10n;
-
-use Cwd;
-use File::Copy qw(move);
-use File::Spec::Functions;
-
-use MozBuild::Util qw(MkdirWithPath);
-
 use Bootstrap::Step;
 use Bootstrap::Config;
 use Bootstrap::Step::Tag;
-use Bootstrap::Util qw(CvsCatfile GetDiffFileList);
-
-use strict;
-
-our @ISA = ("Bootstrap::Step::Tag");
+use File::Copy qw(move);
+use MozBuild::Util qw(MkdirWithPath);
+@ISA = ("Bootstrap::Step::Tag");
 
 sub Execute {
     my $this = shift;
@@ -26,109 +17,56 @@ sub Execute {
     my $productTag = $config->Get(var => 'productTag');
     my $branchTag = $config->Get(var => 'branchTag');
     my $l10n_pullDate = $config->Get(var => 'l10n_pullDate');
-    my $build = int($config->Get(var => 'build'));
+    my $rc = $config->Get(var => 'rc');
     my $appName = $config->Get(var => 'appName');
-    my $logDir = $config->Get(sysvar => 'logDir');
+    my $logDir = $config->Get(var => 'logDir');
     my $l10nCvsroot = $config->Get(var => 'l10nCvsroot');
     my $tagDir = $config->Get(var => 'tagDir');
 
-    my $releaseTag = $productTag . '_RELEASE';
-    my $buildTag = $productTag . '_BUILD' . $build;
-    my $releaseTagDir = catfile($tagDir, $buildTag);
+    my $releaseTag = $productTag.'_RELEASE';
+    my $rcTag = $productTag.'_RC'.$rc;
+    my $releaseTagDir = catfile($tagDir, $releaseTag);
 
     # Create the l10n tag directory.
-    my $l10nTagDir = catfile($releaseTagDir, 'l10n');
-
-    if (not -d $l10nTagDir) {
-        MkdirWithPath(dir => $l10nTagDir) or
-         die("Cannot mkdir $l10nTagDir: $!");
+    my $l10nDir = catfile($releaseTagDir, 'l10n');
+    if (not -d $l10nDir) {
+        MkdirWithPath(dir => $l10nDir) or die("Cannot mkdir $l10nDir: $!");
     }
 
     # Grab list of shipped locales
-    #
-    # Note: GetLocaleInfo() has a dependency on the $releaseTag above already
-    # being set; it should be by when the l10n tagging step gets run, though.
+    my $shippedLocales = catfile($releaseTagDir, 'cvsroot', 'mozilla', 
+                                 $appName, 'locales', 'shipped-locales');
+    open (FILE, "< $shippedLocales") 
+      or die("Cannot open file $shippedLocales: $!");
+    my @locales = <FILE>;
+    close FILE or die("Cannot close file $shippedLocales: $!");
 
-    my $localeInfo = $config->GetLocaleInfo();
-
-    # Config::Set() for us by Step::Tag::Execute() 
-    my $geckoTag = $config->Get(var => 'geckoBranchTag');
-
-    for my $locale (sort(keys(%{$localeInfo}))) {
-        # skip en-US; it's kept in the main repo
-        next if ($locale eq 'en-US');
-
-        # Make sure to pull from the right tag and/or date for buildN.
-        $this->CvsCo(cvsroot => $l10nCvsroot,
-                     tag => (1 == $build) ? $branchTag : $geckoTag,
-                     date => (1 == $build) ? $l10n_pullDate : 0,
-                     modules => [CvsCatfile('l10n', $locale)],
-                     workDir => $l10nTagDir,
-                     logFile => catfile($logDir, 'tag-l10n_checkout.log'));
-    }
-
-    my $cwd = getcwd();
-    chdir(catfile($l10nTagDir, 'l10n')) or
-     die "chdir() to $l10nTagDir/l10n failed: $!\n";
-    my @topLevelFiles = grep(!/^CVS$/, glob('*'));
-    chdir($cwd) or die "Couldn't chdir() home: $!\n";
-
-    if (1 == $build) {
-        $this->CvsTag(tagName => $geckoTag,
-                      branch => 1,
-                      files => \@topLevelFiles,
-                      coDir => catfile($l10nTagDir, 'l10n'),
-                      logFile => catfile($logDir, 'tag-l10n_relbranch_tag_' . 
-                                         $geckoTag));
-
-    
-        $this->Shell(cmd => 'cvs',
-                     cmdArgs => ['up',
-                                 '-r', $geckoTag],
-                     dir => catfile($l10nTagDir, 'l10n'),
-                     logFile => catfile($logDir, 'tag-l10n_relbranch_update_' .
-                                        $geckoTag));
-    }
-
-    # Create the l10n BUILD tag
-    $this->CvsTag(
-      tagName => $buildTag,
-      coDir => catfile($l10nTagDir, 'l10n'),
-      logFile => catfile($logDir, 'tag-l10n_tag_' . $buildTag. '.log'),
-    );
-
-    # Create the l10n RELEASE tag
-    my %releaseTagArgs = (tagName => $releaseTag,
-                          coDir => catfile($l10nTagDir, 'l10n'),
-                          logFile => catfile($logDir, 'tag-l10n_tag_' . 
-                           $releaseTag. '.log'));
-
-    # This is for the Verify() method; we assume that we actually set (or reset,
-    # in the case of build > 1) the _RELEASE tag; if that's not the case, we reset
-    # this value below.
-    $config->Set(var => 'tagModifyl10nReleaseTag', value => 1);
-
-    # If we're retagging build(N > 1), we need to tag -F
-    if ($build > 1) {
-        my $previousBuildTag = $productTag . '_BUILD' . ($build - 1);
-        my $diffFileList = GetDiffFileList(cvsDir => catfile($l10nTagDir,
-                                                             'l10n'),
-                                           prevTag => $previousBuildTag,
-                                           newTag => $buildTag);
-
-        if (scalar(@{$diffFileList}) > 0) {
-            $releaseTagArgs{'force'} = 1;
-            $releaseTagArgs{'files'} = $diffFileList;
-            $this->CvsTag(%releaseTagArgs); 
-        } else {
-            $this->Log(msg => "No diffs found in l10n for build $build; NOT " .
-             "modifying $releaseTag");
-            $config->Set(var => 'tagModifyl10nReleaseTag', value => 0,
-              force => 1);
+    # Check out the l10n files from the branch you want to tag.
+    for my $locale (@locales) {
+        # only keep first column
+        $locale =~ s/(\s+).*//;
+        # remove line endings
+        $locale =~ s/(\n)//;
+        # skip en-US, this is the default locale
+        if ($locale eq 'en-US') {
+            next;
         }
-    } else {
-        # If we're build 1, we obviously need to apply the _RELEASE tag...
-        $this->CvsTag(%releaseTagArgs); 
+        $this->Shell(
+            cmd => 'cvs',
+            cmdArgs => ['-d', $l10nCvsroot, 'co', '-r', $branchTag, '-D',
+                        $l10n_pullDate, catfile('l10n', $locale)],
+            dir => catfile($releaseTagDir, 'l10n'),
+            logFile => catfile($logDir, 'tag-l10n_checkout.log'),
+        );
+    }
+
+    # Create the l10n RELEASE and RC tags.
+    foreach my $tag ($releaseTag, $rcTag) {
+        $this->CvsTag(
+          tagName => $tag,
+          coDir => catfile($releaseTagDir, 'l10n', 'l10n'),
+          logFile => catfile($logDir, 'tag-l10n_tag_' . $tag. '.log'),
+        );
     }
 }
 
@@ -136,22 +74,14 @@ sub Verify {
     my $this = shift;
 
     my $config = new Bootstrap::Config();
-    my $logDir = $config->Get(sysvar => 'logDir');
+    my $logDir = $config->Get(var => 'logDir');
     my $productTag = $config->Get(var => 'productTag');
-    my $build = $config->Get(var => 'build');
+    my $rc = $config->Get(var => 'rc');
 
-    my $releaseTag = $productTag . '_RELEASE';
-    my $buildTag = $productTag . '_BUILD' . $build;
+    my $releaseTag = $productTag.'_RELEASE';
+    my $rcTag = $productTag.'_RC'.$rc;
 
-    my @checkTags = ($buildTag);
-
-    # If build > 1 and we took no changes in cvsroot for that build, the _RELEASE
-    # tag won't have changed, so we shouldn't attempt to check it.
-    if ($config->Get(var => 'tagModifyl10nReleaseTag')) {
-        push(@checkTags, $releaseTag);
-    }
-
-    foreach my $tag (@checkTags) {
+    foreach my $tag ($releaseTag, $rcTag) {
         $this->CheckLog(
           log => catfile($logDir, 'tag-l10n_tag_' . $tag . '.log'),
           checkFor => '^T',

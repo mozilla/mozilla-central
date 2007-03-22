@@ -1,4 +1,4 @@
-#include "toolspath.h"
+#include "toolpaths.h"
 
 
 int 
@@ -9,8 +9,12 @@ main(int argc, char **argv)
 
   args[i++] = LIB_PATH;
 
+  //  args[i++] = "/SUBSYSTEM:WINDOWSCE,4.20";
+  //  args[i++] = "/MACHINE:ARM";
+
   argpath_conv(&argv[1], &args[i]);
 
-  return run(args);
+  run(args);
 
+  return 0;
 }

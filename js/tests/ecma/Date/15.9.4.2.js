@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '15.9.4.2.js';
-
 /**
    File Name:          15.9.4.2.js
    ECMA Section:       15.9.4.2 Date.parse()
@@ -102,7 +100,7 @@ var SECONDS     = 15;
 var MS          = 16;
 var TYPEOF  = "object";
 
-//  for TCMS, the gTestcases array must be global.
+//  for TCMS, the testcases array must be global.
 writeHeaderToLog("15.9.4.2 Date.parse()" );
 
 // Dates around 1970
@@ -158,8 +156,8 @@ addNewTestCase( new Date(-2208959999999),
 
 // Dates around Feb 29, 2000
 
+var UTC_FEB_29_2000 = TIME_2000 + 31*msPerDay + 28*msPerDay;
 var PST_FEB_29_2000 = UTC_FEB_29_2000 + 8*msPerHour;
-
 addNewTestCase( new Date(UTC_FEB_29_2000),
 		"new Date(" + UTC_FEB_29_2000 +")",
 		[UTC_FEB_29_2000,2000,0,1,6,0,0,0,0,1999,11,31,5,16,0,0,0] );
@@ -169,6 +167,8 @@ addNewTestCase( new Date(PST_FEB_29_2000),
 
 // Dates around Jan 1 2005
 
+var UTC_JAN_1_2005 = TIME_2000 + TimeInYear(2000) + TimeInYear(2001) +
+TimeInYear(2002) + TimeInYear(2003) + TimeInYear(2004);
 var PST_JAN_1_2005 = UTC_JAN_1_2005 + 8*msPerHour;
 
 addNewTestCase( new Date(UTC_JAN_1_2005),
@@ -184,8 +184,26 @@ test();
 function addNewTestCase( DateCase, DateString, ResultArray ) {
   DateCase = DateCase;
 
+
   new TestCase( SECTION, DateString+".getTime()", ResultArray[TIME],       DateCase.getTime() );
   new TestCase( SECTION, DateString+".valueOf()", ResultArray[TIME],       DateCase.valueOf() );
   new TestCase( SECTION, "Date.parse(" + DateCase.toString() +")",    Math.floor(ResultArray[TIME]/1000)*1000,  Date.parse(DateCase.toString()) );
   new TestCase( SECTION, "Date.parse(" + DateCase.toGMTString() +")", Math.floor(ResultArray[TIME]/1000)*1000,  Date.parse(DateCase.toGMTString()) );
+/*
+  new TestCase( SECTION, DateString+".getUTCFullYear()",        ResultArray[UTC_YEAR],   DateCase.getUTCFullYear() );
+  new TestCase( SECTION, DateString+".getUTCMonth()",         ResultArray[UTC_MONTH],  DateCase.getUTCMonth() );
+  new TestCase( SECTION, DateString+".getUTCDate()",          ResultArray[UTC_DATE],   DateCase.getUTCDate() );
+  new TestCase( SECTION, DateString+".getUTCDay()",           ResultArray[UTC_DAY],    DateCase.getUTCDay() z inutes() );
+  new TestCase( SECTION, DateString+".getUTCSeconds()",       ResultArray[UTC_SECONDS],DateCase.getUTCSeconds() );
+//    new TestCase( SECTION, DateString+".getUTCMilliseconds()",  ResultArray[UTC_MS],     DateCase.getUTCMilliseconds() );
+
+new TestCase( SECTION, DateString+".getFullYear()",         ResultArray[YEAR],       DateCase.getFullYear() );
+new TestCase( SECTION, DateString+".getMonth()",            ResultArray[MONTH],      DateCase.getMonth() );
+new TestCase( SECTION, DateString+".getDate()",             ResultArray[DATE],       DateCase.getDate() );
+new TestCase( SECTION, DateString+".getDay()",              ResultArray[DAY],        DateCase.getDay() );
+new TestCase( SECTION, DateString+".getHours()",            ResultArray[HOURS],      DateCase.getHours() );
+new TestCase( SECTION, DateString+".getMinutes()",          ResultArray[MINUTES],    DateCase.getMinutes() );
+new TestCase( SECTION, DateString+".getSeconds()",          ResultArray[SECONDS],    DateCase.getSeconds() );
+//    new TestCase( SECTION, DateString+".getMilliseconds()",     ResultArray[MS],         DateCase.getMilliseconds() );
+*/
 }

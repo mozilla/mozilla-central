@@ -3,7 +3,6 @@
 
 <!ENTITY thDOMNodes.label "DOM Nodes">
 <!ENTITY btnInspect.label "Inspect">
-<!ENTITY btnInspect.accesskey "I">
 <!ENTITY bxDocPanel.title "Document">
 <!ENTITY bxObjectPanel.title "Object">
 <!ENTITY btnSelecting.tooltip "Find a node to inspect by clicking on it">
@@ -17,10 +16,8 @@
   <!ENTITY mnInspectContentDocument.accesskey "O">
   <!ENTITY mnInspectChromeDocument.label "Inspect Chrome Document">
   <!ENTITY mnInspectChromeDocument.accesskey "H">
-  <!ENTITY cmdShowOpenURLDialog.label "Inspect a URL…">
+  <!ENTITY cmdShowOpenURLDialog.label "Inspect a URL...">
   <!ENTITY cmdShowOpenURLDialog.accesskey "U">
-  <!ENTITY cmdSave.label "Save DOM As…">
-  <!ENTITY cmdSave.accesskey "S">
   <!ENTITY cmdClose.label "Close">
   <!ENTITY cmdClose.accesskey "C">
   <!ENTITY cmdExit.label "Exit">
@@ -43,16 +40,26 @@
 
 <!ENTITY mnSearch.label "Search">
 <!ENTITY mnSearch.accesskey "S">
+  <!ENTITY mnSearchPlugins.label "Extensions">
+  <!ENTITY mnSearchPlugins.accesskey "E">
+    <!ENTITY cmdRunSearch.label "Run...">
+    <!ENTITY cmdRunSearch.accesskey "R">
 
 <!ENTITY mnView.label "View">
 <!ENTITY mnView.accesskey "v">
   <!ENTITY cmdToggleBrowser.label "Browser">
-  <!ENTITY cmdToggleBrowser.accesskey "B">
   <!ENTITY cmdToggleSearch.label "Search Results">
+
+<!ENTITY cmdViewSearchItem.label "View...">
+<!ENTITY cmdEditSearchItem.label "Edit...">
+<!ENTITY cmdCopySearchItemLine.label "Copy Line">
+<!ENTITY cmdCopySearchItemAll.label "Copy All">
+<!ENTITY cmdSaveSearchItemText.label "Save...">
+<!ENTITY cmdClearSearch.label "Clear">
+<!ENTITY cmdHideSearchItems.label "Hide">
 
 <!ENTITY browserPanel.label "Browser">
 
 <!ENTITY inspectNewWindow.label "Inspect in New Window">
 
-<!ENTITY saveCmd.key "S">
 <!ENTITY closeCmd.key "W">

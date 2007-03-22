@@ -34,10 +34,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-352609.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 352609;
+var bug = 352609;
 var summary = 'decompilation of |let| expression for |is not a function| error';
 var actual = '';
 var expect = '';
@@ -50,10 +48,10 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
-
-  expect = /TypeError: 0 is not a function/;
+  
+  expect = 'TypeError: 0 is not a function';
   try
   {
     [let (x = 3, y = 4) x].map(0);
@@ -62,9 +60,9 @@ function test()
   {
     actual = ex + '';
   }
-  reportMatch(expect, actual, '[let (x = 3, y = 4) x].map(0)');
+  reportCompare(expect, actual, '[let (x = 3, y = 4) x].map(0)');
 
-  expect = /TypeError: (p.z = \[let \(x = 3, y = 4\) x\]|.*Array.*) is not a function/;
+  expect = 'TypeError: p.z = [(let (x = 3, y = 4) x)] is not a function';
   try
   {
     var p = {}; (p.z = [let (x = 3, y = 4) x])();
@@ -73,9 +71,9 @@ function test()
   {
     actual = ex + '';
   }
-  reportMatch(expect, actual, 'p = {}; (p.z = [let (x = 3, y = 4) x])()');
+  reportCompare(expect, actual, 'p = {}; (p.z = [let (x = 3, y = 4) x])()');
 
-  expect = /TypeError: (p.z = \(let \(x\) x\)|.*Undefined.*) is not a function/;
+  expect = 'TypeError: p.z = (let (x) x) is not a function';
   try
   {
     var p = {}; (p.z = let(x) x)()
@@ -84,7 +82,7 @@ function test()
   {
     actual = ex + '';
   }
-  reportMatch(expect, actual, 'p = {}; (p.z = let(x) x)()');
+  reportCompare(expect, actual, 'p = {}; (p.z = let(x) x)()');
 
   exitFunc ('test');
 }

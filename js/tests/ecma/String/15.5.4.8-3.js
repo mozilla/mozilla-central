@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '15.5.4.8-3.js';
-
 /**
    File Name:          15.5.4.8-3.js
    ECMA Section:       15.5.4.8 String.prototype.split( separator )

@@ -61,8 +61,6 @@
 #include "nsCOMArray.h"
 #include "nsNodeUtils.h"
 #include "nsBindingManager.h"
-#include "nsCCUncollectableMarker.h"
-#include "mozAutoDocUpdate.h"
 
 #include "pldhash.h"
 #include "prprf.h"
@@ -81,34 +79,21 @@ nsGenericDOMDataNode::~nsGenericDOMDataNode()
 NS_IMPL_CYCLE_COLLECTION_CLASS(nsGenericDOMDataNode)
 
 NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN(nsGenericDOMDataNode)
-  nsIDocument* currentDoc = tmp->GetCurrentDoc();
-  if (currentDoc && nsCCUncollectableMarker::InGeneration(
-                      currentDoc->GetMarkedCCGeneration())) {
-    return NS_OK;
-  }
-
-  NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mNodeInfo)
-
-  nsIDocument* ownerDoc = tmp->GetOwnerDoc();
-  if (ownerDoc) {
-    ownerDoc->BindingManager()->Traverse(tmp, cb);
-  }
-
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE_LISTENERMANAGER
-  NS_IMPL_CYCLE_COLLECTION_TRAVERSE_USERDATA
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE_PRESERVED_WRAPPER
 NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
 
 NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN(nsGenericDOMDataNode)
   NS_IMPL_CYCLE_COLLECTION_UNLINK_LISTENERMANAGER
-  NS_IMPL_CYCLE_COLLECTION_UNLINK_USERDATA
   NS_IMPL_CYCLE_COLLECTION_UNLINK_PRESERVED_WRAPPER
 NS_IMPL_CYCLE_COLLECTION_UNLINK_END
 
-NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION(nsGenericDOMDataNode)
+NS_INTERFACE_MAP_BEGIN(nsGenericDOMDataNode)
   NS_INTERFACE_MAP_ENTRY(nsIContent)
   NS_INTERFACE_MAP_ENTRY(nsINode)
   NS_INTERFACE_MAP_ENTRY(nsPIDOMEventTarget)
+  NS_INTERFACE_MAP_ENTRY_TEAROFF(nsIDOMEventReceiver,
+                                 nsDOMEventRTTearoff::Create(this))
   NS_INTERFACE_MAP_ENTRY_TEAROFF(nsIDOMEventTarget,
                                  nsDOMEventRTTearoff::Create(this))
   NS_INTERFACE_MAP_ENTRY_TEAROFF(nsIDOM3EventTarget,
@@ -118,16 +103,13 @@ NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION(nsGenericDOMDataNode)
   NS_INTERFACE_MAP_ENTRY_TEAROFF(nsISupportsWeakReference,
                                  new nsNodeSupportsWeakRefTearoff(this))
   NS_INTERFACE_MAP_ENTRY_TEAROFF(nsIDOM3Node, new nsNode3Tearoff(this))
-  // nsNodeSH::PreCreate() depends on the identity pointer being the
-  // same as nsINode (which nsIContent inherits), so if you change the
-  // below line, make sure nsNodeSH::PreCreate() still does the right
-  // thing!
   NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIContent)
+  NS_INTERFACE_MAP_ENTRIES_CYCLE_COLLECTION(nsGenericDOMDataNode)
 NS_INTERFACE_MAP_END
 
 NS_IMPL_CYCLE_COLLECTING_ADDREF_AMBIGUOUS(nsGenericDOMDataNode, nsIContent)
 NS_IMPL_CYCLE_COLLECTING_RELEASE_FULL(nsGenericDOMDataNode, nsIContent,
-                                      nsNodeUtils::LastRelease(this))
+                                      nsNodeUtils::LastRelease(this, PR_TRUE))
 
 
 nsresult
@@ -255,7 +237,7 @@ nsGenericDOMDataNode::IsSupported(const nsAString& aFeature,
                                   const nsAString& aVersion,
                                   PRBool* aReturn)
 {
-  return nsGenericElement::InternalIsSupported(static_cast<nsIContent*>(this),
+  return nsGenericElement::InternalIsSupported(NS_STATIC_CAST(nsIContent*, this),
                                                aFeature, aVersion, aReturn);
 }
 
@@ -428,8 +410,7 @@ nsGenericDOMDataNode::SetTextInternal(PRUint32 aOffset, PRUint32 aCount,
 
   PRBool haveMutationListeners = aNotify &&
     nsContentUtils::HasMutationListeners(this,
-      NS_EVENT_BITS_MUTATION_CHARACTERDATAMODIFIED,
-      this);
+      NS_EVENT_BITS_MUTATION_CHARACTERDATAMODIFIED);
 
   nsCOMPtr<nsIAtom> oldValue;
   if (haveMutationListeners) {
@@ -440,16 +421,6 @@ nsGenericDOMDataNode::SetTextInternal(PRUint32 aOffset, PRUint32 aCount,
   if (endOffset > textLength) {
     aCount = textLength - aOffset;
     endOffset = textLength;
-  }
-
-  if (aNotify) {
-    CharacterDataChangeInfo info = {
-      aOffset == textLength,
-      aOffset,
-      endOffset,
-      aLength
-    };
-    nsNodeUtils::CharacterDataWillChange(this, &info);
   }
 
   if (aOffset == 0 && endOffset == textLength) {
@@ -489,17 +460,7 @@ nsGenericDOMDataNode::SetTextInternal(PRUint32 aOffset, PRUint32 aCount,
 
   // Notify observers
   if (aNotify) {
-    CharacterDataChangeInfo info = {
-      aOffset == textLength,
-      aOffset,
-      endOffset,
-      aLength
-    };
-    nsNodeUtils::CharacterDataChanged(this, &info);
-
     if (haveMutationListeners) {
-      mozAutoRemovableBlockerRemover blockerRemover;
-
       nsMutationEvent mutation(PR_TRUE, NS_MUTATION_CHARACTERDATAMODIFIED);
 
       mutation.mPrevAttrValue = oldValue;
@@ -509,9 +470,16 @@ nsGenericDOMDataNode::SetTextInternal(PRUint32 aOffset, PRUint32 aCount,
         mutation.mNewAttrValue = do_GetAtom(val);
       }
 
-      mozAutoSubtreeModified subtree(GetOwnerDoc(), this);
       nsEventDispatcher::Dispatch(this, nsnull, &mutation);
     }
+
+    CharacterDataChangeInfo info = {
+      aOffset == textLength,
+      aOffset,
+      endOffset,
+      aLength
+    };
+    nsNodeUtils::CharacterDataChanged(this, &info);
   }
 
   return NS_OK;
@@ -579,7 +547,14 @@ nsGenericDOMDataNode::BindToTree(nsIDocument* aDocument, nsIContent* aParent,
   NS_PRECONDITION(aParent || aDocument, "Must have document if no parent!");
   NS_PRECONDITION(HasSameOwnerDoc(NODE_FROM(aParent, aDocument)),
                   "Must have the same owner document");
-  NS_PRECONDITION(!aParent || aDocument == aParent->GetCurrentDoc(),
+  // XXXbz XUL elements are confused about their current doc when they're
+  // cloned, so we don't assert if aParent is a XUL element and aDocument is
+  // null, even if aParent->GetCurrentDoc() is non-null
+  //  NS_PRECONDITION(!aParent || aDocument == aParent->GetCurrentDoc(),
+  //                  "aDocument must be current doc of aParent");
+  NS_PRECONDITION(!aParent ||
+                  (aParent->IsNodeOfType(eXUL) && aDocument == nsnull) ||
+                  aDocument == aParent->GetCurrentDoc(),
                   "aDocument must be current doc of aParent");
   NS_PRECONDITION(!GetCurrentDoc() && !IsInDoc(),
                   "Already have a document.  Unbind first!");
@@ -592,9 +567,6 @@ nsGenericDOMDataNode::BindToTree(nsIDocument* aDocument, nsIContent* aParent,
                   (!aBindingParent && aParent &&
                    aParent->GetBindingParent() == GetBindingParent()),
                   "Already have a binding parent.  Unbind first!");
-  NS_PRECONDITION(aBindingParent != this || IsNativeAnonymous(),
-                  "Only native anonymous content should have itself as its "
-                  "own binding parent");
 
   if (!aBindingParent && aParent) {
     aBindingParent = aParent->GetBindingParent();
@@ -605,24 +577,16 @@ nsGenericDOMDataNode::BindToTree(nsIDocument* aDocument, nsIContent* aParent,
     nsDataSlots *slots = GetDataSlots();
     NS_ENSURE_TRUE(slots, NS_ERROR_OUT_OF_MEMORY);
 
-    NS_ASSERTION(IsNativeAnonymous() || !HasFlag(NODE_IS_IN_ANONYMOUS_SUBTREE) ||
-                 aBindingParent->IsInNativeAnonymousSubtree(),
-                 "Trying to re-bind content from native anonymous subtree to"
-                 "non-native anonymous parent!");
     slots->mBindingParent = aBindingParent; // Weak, so no addref happens.
-    if (IsNativeAnonymous() ||
-        aBindingParent->IsInNativeAnonymousSubtree()) {
-      SetFlags(NODE_IS_IN_ANONYMOUS_SUBTREE);
-    }
   }
 
   // Set parent
   if (aParent) {
     mParentPtrBits =
-      reinterpret_cast<PtrBits>(aParent) | PARENT_BIT_PARENT_IS_CONTENT;
+      NS_REINTERPRET_CAST(PtrBits, aParent) | PARENT_BIT_PARENT_IS_CONTENT;
   }
   else {
-    mParentPtrBits = reinterpret_cast<PtrBits>(aDocument);
+    mParentPtrBits = NS_REINTERPRET_CAST(PtrBits, aDocument);
   }
 
   // XXXbz sXBL/XBL2 issue!
@@ -632,13 +596,11 @@ nsGenericDOMDataNode::BindToTree(nsIDocument* aDocument, nsIContent* aParent,
     // XXX See the comment in nsGenericElement::BindToTree
     mParentPtrBits |= PARENT_BIT_INDOCUMENT;
     if (mText.IsBidi()) {
-      aDocument->SetBidiEnabled();
+      aDocument->SetBidiEnabled(PR_TRUE);
     }
   }
 
   nsNodeUtils::ParentChainChanged(this);
-
-  UpdateEditableState();
 
   NS_POSTCONDITION(aDocument == GetCurrentDoc(), "Bound to wrong document");
   NS_POSTCONDITION(aParent == GetParent(), "Bound to wrong parent");
@@ -741,51 +703,16 @@ nsGenericDOMDataNode::DispatchDOMEvent(nsEvent* aEvent,
                                        nsPresContext* aPresContext,
                                        nsEventStatus* aEventStatus)
 {
-  return nsEventDispatcher::DispatchDOMEvent(static_cast<nsINode*>(this),
+  return nsEventDispatcher::DispatchDOMEvent(NS_STATIC_CAST(nsINode*, this),
                                              aEvent, aDOMEvent,
                                              aPresContext, aEventStatus);
 }
 
-nsresult
+NS_IMETHODIMP
 nsGenericDOMDataNode::GetListenerManager(PRBool aCreateIfNotFound,
                                          nsIEventListenerManager** aResult)
 {
   return nsContentUtils::GetListenerManager(this, aCreateIfNotFound, aResult);
-}
-
-nsresult
-nsGenericDOMDataNode::AddEventListenerByIID(nsIDOMEventListener *aListener,
-                                            const nsIID& aIID)
-{
-  nsCOMPtr<nsIEventListenerManager> elm;
-  nsresult rv = GetListenerManager(PR_TRUE, getter_AddRefs(elm));
-  if (elm) {
-    return elm->AddEventListenerByIID(aListener, aIID, NS_EVENT_FLAG_BUBBLE);
-  }
-  return rv;
-}
-
-nsresult
-nsGenericDOMDataNode::RemoveEventListenerByIID(nsIDOMEventListener *aListener,
-                                               const nsIID& aIID)
-{
-  nsCOMPtr<nsIEventListenerManager> elm;
-  GetListenerManager(PR_FALSE, getter_AddRefs(elm));
-  if (elm) {
-    return elm->RemoveEventListenerByIID(aListener, aIID, NS_EVENT_FLAG_BUBBLE);
-  }
-  return NS_OK;
-}
-
-nsresult
-nsGenericDOMDataNode::GetSystemEventGroup(nsIDOMEventGroup** aGroup)
-{
-  nsCOMPtr<nsIEventListenerManager> elm;
-  nsresult rv = GetListenerManager(PR_TRUE, getter_AddRefs(elm));
-  if (elm) {
-    return elm->GetSystemEventGroupLM(aGroup);
-  }
-  return rv;
 }
 
 PRUint32
@@ -840,15 +767,6 @@ nsGenericDOMDataNode::IsNodeOfType(PRUint32 aFlags) const
   return !(aFlags & ~(eCONTENT | eDATA_NODE));
 }
 
-void
-nsGenericDOMDataNode::SaveSubtreeState()
-{
-}
-
-void
-nsGenericDOMDataNode::DestroyContent()
-{
-}
 
 #ifdef DEBUG
 void
@@ -1024,7 +942,7 @@ void nsGenericDOMDataNode::SetBidiStatus()
   mText.SetBidiFlag();
 
   if (document && mText.IsBidi()) {
-    document->SetBidiEnabled();
+    document->SetBidiEnabled(PR_TRUE);
   }
 }
 

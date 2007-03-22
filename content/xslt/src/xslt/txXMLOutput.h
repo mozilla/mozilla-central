@@ -94,6 +94,7 @@ class txXMLOutput : public txAOutputXMLEventHandler
 {
 public:
     txXMLOutput(txOutputFormat* aFormat, ostream* aOut);
+    virtual ~txXMLOutput();
 
     static const int DEFAULT_INDENT;
 

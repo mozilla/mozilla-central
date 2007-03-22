@@ -367,7 +367,7 @@ function viewPartialSourceForFragment(node, context)
   ; // end
 
   // display
-  var doc = getBrowser().contentDocument.wrappedJSObject;
+  var doc = getBrowser().contentDocument;
   doc.open("text/html", "replace");
   doc.write(source);
   doc.close();

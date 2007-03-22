@@ -40,8 +40,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '13.5.4.4.js';
-
 START("13.5.4.4 - XMLList child()");
 
 TEST(1, true, XMLList.prototype.hasOwnProperty("child"));
@@ -52,7 +50,7 @@ TEST(2, "xml", typeof(x.child("bravo")));
 TEST_XML(3, "", x.child("bravo"));
 
 // Test with XMLList of size 1
-x += <alpha>one<bravo>two</bravo></alpha>;   
+x += <alpha>one<bravo>two</bravo></alpha>;    
 TEST(4, "xml", typeof(x.child("bravo")));
 TEST_XML(5, "<bravo>two</bravo>", x.child("bravo"));
 
@@ -74,7 +72,7 @@ try {
 }
 
 // Test numeric inputs
-x =
+x = 
 <alpha>
     <bravo>one</bravo>
     <charlie>two</charlie>

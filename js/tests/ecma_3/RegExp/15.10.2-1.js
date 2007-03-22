@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -34,21 +33,19 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK ***** */
-
-/*
+ * ***** END LICENSE BLOCK *****
+ *
  *
  * Date:    09 July 2002
  * SUMMARY: RegExp conformance test
  *
- *   These gTestcases are derived from the examples in the ECMA-262 Ed.3 spec
+ *   These testcases are derived from the examples in the ECMA-262 Ed.3 spec
  *   scattered through section 15.10.2.
  *
  */
 //-----------------------------------------------------------------------------
-var gTestfile = '15.10.2-1.js';
 var i = 0;
-var BUGNUMBER = '(none)';
+var bug = '(none)';
 var summary = 'RegExp conformance test';
 var status = '';
 var statusmessages = new Array();
@@ -174,7 +171,7 @@ function addThis()
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
   testRegExp(statusmessages, patterns, strings, actualmatches, expectedmatches);
   exitFunc ('test');

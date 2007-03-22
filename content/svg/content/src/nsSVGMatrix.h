@@ -40,6 +40,7 @@
 #define __NS_SVGMATRIX_H__
 
 #include "nsIDOMSVGMatrix.h"
+#include "cairo.h"
 
 nsresult
 NS_NewSVGMatrix(nsIDOMSVGMatrix** result,

@@ -35,6 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsString.h"
+#include "nsISupportsArray.h"
 #include "nsIComponentManager.h"
 #include "nsCOMPtr.h"
 #include "nsXPCOM.h"
@@ -137,8 +138,10 @@ nsScriptableUnescapeHTML::ParseFragment(const nsAString &aFragment,
   nsRefPtr<nsScriptLoader> loader;
   PRBool scripts_enabled = PR_FALSE;
   if (document) {
-    loader = document->ScriptLoader();
-    scripts_enabled = loader->GetEnabled();
+    loader = document->GetScriptLoader();
+    if (loader) {
+      scripts_enabled = loader->GetEnabled();
+    }
   }
   if (scripts_enabled) {
     loader->SetEnabled(PR_FALSE);
@@ -146,7 +149,7 @@ nsScriptableUnescapeHTML::ParseFragment(const nsAString &aFragment,
 
   // Wrap things in a div or body for parsing, but it won't show up in
   // the fragment.
-  nsAutoTArray<nsString, 2> tagStack;
+  nsVoidArray tagStack;
   nsCAutoString base, spec;
   if (aIsXML) {
     // XHTML
@@ -161,20 +164,20 @@ nsScriptableUnescapeHTML::ParseFragment(const nsAString &aFragment,
         base += escapedSpec;
       NS_Free(escapedSpec);
       base.Append(NS_LITERAL_CSTRING("\""));
-      tagStack.AppendElement(NS_ConvertUTF8toUTF16(base));
+      tagStack.AppendElement(ToNewUnicode(base));
     }  else {
-      tagStack.AppendElement(NS_LITERAL_STRING(XHTML_DIV_TAG));
+      tagStack.AppendElement(ToNewUnicode(NS_LITERAL_CSTRING(XHTML_DIV_TAG)));
     }
   } else {
     // HTML
-    tagStack.AppendElement(NS_LITERAL_STRING(HTML_BODY_TAG));
+    tagStack.AppendElement(ToNewUnicode(NS_LITERAL_CSTRING(HTML_BODY_TAG)));
     if (aBaseURI) {
       base.Append(NS_LITERAL_CSTRING((HTML_BASE_TAG)));
       base.Append(NS_LITERAL_CSTRING(" href=\""));
       aBaseURI->GetSpec(spec);
       base = base + spec;
       base.Append(NS_LITERAL_CSTRING("\""));
-      tagStack.AppendElement(NS_ConvertUTF8toUTF16(base));
+      tagStack.AppendElement(ToNewUnicode(base));
     }
   }
 
@@ -198,11 +201,19 @@ nsScriptableUnescapeHTML::ParseFragment(const nsAString &aFragment,
       rv = parser->ParseFragment(aFragment, nsnull, tagStack,
                                  aIsXML, contentType, mode);
       if (NS_SUCCEEDED(rv))
-        rv = sink->GetFragment(PR_TRUE, aReturn);
+        rv = sink->GetFragment(aReturn);
 
     } else {
       rv = NS_ERROR_FAILURE;
     }
+  }
+
+  // from nsContentUtils XXX Ick! Delete strings we allocated above.
+  PRInt32 count = tagStack.Count();
+  for (PRInt32 i = 0; i < count; i++) {
+    PRUnichar* str = (PRUnichar*)tagStack.ElementAt(i);
+    if (str)
+      NS_Free(str);
   }
 
   if (scripts_enabled)

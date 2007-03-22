@@ -41,123 +41,32 @@
 #include <windows.h>
 #include <stdlib.h>
 #endif
+#include "nsBuildID.h"
 
-#include <stdio.h>
-#include <stdarg.h>
-
-#include "plstr.h"
-#include "prprf.h"
-#include "prenv.h"
-
-#include "nsCOMPtr.h"
-#include "nsILocalFile.h"
-#include "nsStringGlue.h"
-
-#ifdef XP_WIN
-// we want a wmain entry point
-#include "nsWindowsWMain.cpp"
-#endif
-
-static void Output(const char *fmt, ... )
-{
-  va_list ap;
-  va_start(ap, fmt);
-
-#if defined(XP_WIN) && !MOZ_WINCONSOLE
-  char msg[2048];
-
-  _vsnprintf(msg, sizeof(msg), fmt, ap);
-
-  MessageBox(NULL, msg, "XULRunner", MB_OK | MB_ICONERROR);
-#else
-  vfprintf(stderr, fmt, ap);
-#endif
-
-  va_end(ap);
-}
-
-/**
- * Return true if |arg| matches the given argument name.
- */
-static PRBool IsArg(const char* arg, const char* s)
-{
-  if (*arg == '-')
-  {
-    if (*++arg == '-')
-      ++arg;
-    return !PL_strcasecmp(arg, s);
-  }
-
-#if defined(XP_WIN) || defined(XP_OS2)
-  if (*arg == '/')
-    return !PL_strcasecmp(++arg, s);
-#endif
-
-  return PR_FALSE;
-}
-
-/**
- * A helper class which calls NS_LogInit/NS_LogTerm in its scope.
- */
-class ScopedLogging
-{
-public:
-  ScopedLogging() { NS_LogInit(); }
-  ~ScopedLogging() { NS_LogTerm(); }
+static const nsXREAppData kAppData = {
+  offsetof(nsXREAppData, xreDirectory),
+  nsnull,
+  "Mozilla",
+  "Firefox",
+  NS_STRINGIFY(APP_VERSION),
+  NS_STRINGIFY(BUILD_ID),
+  "{ec8030f7-c20a-464f-9b0e-13a3a9e97384}",
+  "Copyright (c) 1998 - 2007 mozilla.org",
+  NS_XRE_ENABLE_PROFILE_MIGRATOR |
+  NS_XRE_ENABLE_EXTENSION_MANAGER
 };
 
 int main(int argc, char* argv[])
 {
-  ScopedLogging log;
-
-  nsCOMPtr<nsILocalFile> appini;
-  nsresult rv = XRE_GetBinaryPath(argv[0], getter_AddRefs(appini));
-  if (NS_FAILED(rv)) {
-    Output("Couldn't calculate the application directory.");
-    return 255;
-  }
-  appini->SetNativeLeafName(NS_LITERAL_CSTRING("application.ini"));
-
-  // Allow firefox.exe to launch XULRunner apps via -app <application.ini>
-  // Note that -app must be the *first* argument.
-  char *appEnv = nsnull;
-  const char *appDataFile = PR_GetEnv("XUL_APP_FILE");
-  if (appDataFile && *appDataFile) {
-    rv = XRE_GetFileFromPath(appDataFile, getter_AddRefs(appini));
-    if (NS_FAILED(rv)) {
-      Output("Invalid path found: '%s'", appDataFile);
-      return 255;
-    }
-  }
-  else if (argc > 1 && IsArg(argv[1], "app")) {
-    if (argc == 2) {
-      Output("Incorrect number of arguments passed to -app");
-      return 255;
-    }
-
-    rv = XRE_GetFileFromPath(argv[2], getter_AddRefs(appini));
-    if (NS_FAILED(rv)) {
-      Output("application.ini path not recognized: '%s'", argv[2]);
-      return 255;
-    }
-
-    appEnv = PR_smprintf("XUL_APP_FILE=%s", argv[2]);
-    PR_SetEnv(appEnv);
-    argv[2] = argv[0];
-    argv += 2;
-    argc -= 2;
-  }
-
-  nsXREAppData *appData;
-  rv = XRE_CreateAppData(appini, &appData);
-  if (NS_FAILED(rv)) {
-    Output("Couldn't read application.ini");
-    return 255;
-  }
-
-  int result = XRE_main(argc, argv, appData);
-  XRE_FreeAppData(appData);
-  if (appEnv)
-    PR_smprintf_free(appEnv);
-  return result;
+  return XRE_main(argc, argv, &kAppData);
 }
+
+#if defined( XP_WIN ) && defined( WIN32 ) && !defined(__GNUC__)
+// We need WinMain in order to not be a console app.  This function is
+// unused if we are a console application.
+int WINAPI WinMain( HINSTANCE, HINSTANCE, LPSTR args, int )
+{
+    // Do the real work.
+    return main( __argc, __argv );
+}
+#endif

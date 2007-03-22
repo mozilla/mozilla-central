@@ -72,9 +72,7 @@ txEXSLTRegExFunctions.prototype = {
         var re = new RegExp(regex, flags);
         var matches = str.match(re);
         if (matches != null && matches.length > 0) {
-            var contextNode = context.contextNode;
-            var doc = contextNode.nodeType == Ci.nsIDOMNode.DOCUMENT_NODE ?
-                      contextNode : contextNode.ownerDocument;
+            var doc = context.contextNode.ownerDocument;
             var docFrag = doc.createDocumentFragment();
 
             for (var i = 0; i < matches.length; ++i) {

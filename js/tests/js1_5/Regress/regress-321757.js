@@ -35,109 +35,107 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-321757.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 321757;
+var bug = 321757;
 var summary = 'Compound assignment operators should not bind LHS';
 var actual = '';
 var expect = 'pass';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
-try
-{
-  foo += 1;
+try 
+{ 
+  foo += 1; 
   actual = "fail";
-}
-catch (e)
-{
+} 
+catch (e) 
+{ 
   actual = "pass";
 }
- 
+  
 reportCompare(expect, actual, summary + ': +=');
 
-try
-{
-  foo -= 1;
+try 
+{ 
+  foo -= 1; 
   actual = "fail";
-}
-catch (e)
-{
+} 
+catch (e) 
+{ 
   actual = "pass";
 }
- 
+  
 reportCompare(expect, actual, summary + ': -=');
 
-try
-{
-  foo *= 1;
+try 
+{ 
+  foo *= 1; 
   actual = "fail";
-}
-catch (e)
-{
+} 
+catch (e) 
+{ 
   actual = "pass";
 }
- 
+  
 reportCompare(expect, actual, summary + ': *=');
 
-try
-{
-  foo /= 1;
+try 
+{ 
+  foo /= 1; 
   actual = "fail";
-}
-catch (e)
-{
+} 
+catch (e) 
+{ 
   actual = "pass";
 }
- 
+  
 reportCompare(expect, actual, summary + ': /=');
 
-try
-{
-  foo %= 1;
+try 
+{ 
+  foo %= 1; 
   actual = "fail";
-}
-catch (e)
-{
+} 
+catch (e) 
+{ 
   actual = "pass";
 }
- 
+  
 reportCompare(expect, actual, summary + ': %=');
 
-try
-{
-  foo <<= 1;
+try 
+{ 
+  foo <<= 1; 
   actual = "fail";
-}
-catch (e)
-{
+} 
+catch (e) 
+{ 
   actual = "pass";
 }
- 
+  
 reportCompare(expect, actual, summary + ': <<=');
 
-try
-{
-  foo >>= 1;
+try 
+{ 
+  foo >>= 1; 
   actual = "fail";
-}
-catch (e)
-{
+} 
+catch (e) 
+{ 
   actual = "pass";
 }
- 
+  
 reportCompare(expect, actual, summary + ': >>=');
 
-try
-{
-  foo >>>= 1;
+try 
+{ 
+  foo >>>= 1; 
   actual = "fail";
-}
-catch (e)
-{
+} 
+catch (e) 
+{ 
   actual = "pass";
 }
- 
+  
 reportCompare(expect, actual, summary + ': >>>=');

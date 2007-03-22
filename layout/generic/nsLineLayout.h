@@ -77,6 +77,14 @@ public:
     mLineNumber = aLineNumber;
   }
 
+  PRInt32 GetColumn() {
+    return mColumn;
+  }
+
+  void SetColumn(PRInt32 aNewColumn) {
+    mColumn = aNewColumn;
+  }
+  
   PRInt32 GetLineNumber() const {
     return mLineNumber;
   }
@@ -97,8 +105,7 @@ public:
                      nscoord aLeftEdge,
                      nscoord aRightEdge);
 
-  // Returns the width of the span
-  nscoord EndSpan(nsIFrame* aFrame);
+  void EndSpan(nsIFrame* aFrame, nsSize& aSizeResult);
 
   PRInt32 GetCurrentSpanCount() const;
 
@@ -133,16 +140,13 @@ public:
    */
   void RelativePositionFrames(nsRect& aCombinedArea);
 
-  static void CombineTextDecorations(nsPresContext* aPresContext,
-                                     PRUint8 aDecorations,
-                                     nsIFrame* aFrame,
-                                     nsRect& aCombinedArea,
-                                     nscoord aAscentOverride = 0,
-                                     float aUnderlineSizeRatio = 1.0f);
   //----------------------------------------
 
   // Supporting methods and data for flags
 protected:
+#define LL_ENDSINWHITESPACE            0x00000001
+#define LL_UNDERSTANDSNWHITESPACE      0x00000002
+#define LL_INWORD                      0x00000004
 #define LL_FIRSTLETTERSTYLEOK          0x00000008
 #define LL_ISTOPOFPAGE                 0x00000010
 #define LL_UPDATEDBAND                 0x00000020
@@ -150,9 +154,16 @@ protected:
 #define LL_LASTFLOATWASLETTERFRAME     0x00000080
 #define LL_CANPLACEFLOAT               0x00000100
 #define LL_LINEENDSINBR                0x00000200
-#define LL_NEEDBACKUP                  0x00000400
-#define LL_INFIRSTLINE                 0x00000800
-#define LL_GOTLINEBOX                  0x00001000
+// The "soft-break" flag differs from the "hard-break" flag of <br>. The
+// "soft-break" means that a whitespace has been trimmed at the end of the line,
+// and therefore its width has not been accounted for (this width can actually be
+// large, e.g., if a large word-spacing is set). LL should not be misled into 
+// placing something where the whitespace was trimmed. See bug 329987.
+#define LL_LINEENDSINSOFTBR            0x00000400
+#define LL_NEEDBACKUP                  0x00000800
+#define LL_LASTTEXTFRAME_WRAPPINGENABLED 0x00001000
+#define LL_INFIRSTLINE                 0x00002000
+#define LL_GOTLINEBOX                  0x00004000
 #define LL_LASTFLAG                    LL_GOTLINEBOX
 
   PRUint16 mFlags;
@@ -172,12 +183,27 @@ protected:
   PRBool GetFlag(PRUint32 aFlag) const
   {
     NS_ASSERTION(aFlag<=LL_LASTFLAG, "bad flag");
-    return !!(mFlags & aFlag);
+    PRBool result = (mFlags & aFlag);
+    if (result) return PR_TRUE;
+    return PR_FALSE;
   }
 
 public:
 
-  // Support methods for word-wrapping during line reflow
+  // Support methods for white-space compression and word-wrapping
+  // during line reflow
+
+  void SetEndsInWhiteSpace(PRBool aState) {
+    SetFlag(LL_ENDSINWHITESPACE, aState);
+  }
+
+  PRBool GetEndsInWhiteSpace() const {
+    return GetFlag(LL_ENDSINWHITESPACE);
+  }
+
+  void SetUnderstandsWhiteSpace(PRBool aSetting) {
+    SetFlag(LL_UNDERSTANDSNWHITESPACE, aSetting);
+  }
 
   void SetTextJustificationWeights(PRInt32 aNumSpaces, PRInt32 aNumLetters) {
     mTextJustificationNumSpaces = aNumSpaces;
@@ -198,6 +224,26 @@ public:
     SetFlag(LL_LINEENDSINBR, aOn); 
   }
 
+  PRBool GetLineEndsInSoftBR() const 
+  { 
+    return GetFlag(LL_LINEENDSINSOFTBR); 
+  }
+
+  void SetLineEndsInSoftBR(PRBool aOn) 
+  { 
+    SetFlag(LL_LINEENDSINSOFTBR, aOn); 
+  }
+
+  PRBool InStrictMode() const
+  {
+    return mCompatMode != eCompatibility_NavQuirks;
+  }
+
+  nsCompatibility GetCompatMode() const
+  {
+    return mCompatMode;
+  }
+
   //----------------------------------------
   // Inform the line-layout about the presence of a floating frame
   // XXX get rid of this: use get-frame-type?
@@ -209,8 +255,36 @@ public:
     return mBlockRS->AddFloat(*this, aFrame, PR_FALSE, aReflowStatus);
   }
 
-  void SetTrimmableWidth(nscoord aTrimmableWidth) {
-    mTrimmableWidth = aTrimmableWidth;
+  /**
+   * InWord is true when the last text frame reflowed ended in non-whitespace
+   * (so it has content that might form a word with subsequent text).
+   * 
+   * If GetTrailingTextFrame is null then InWord will be false.
+   */
+  PRBool InWord() {
+    return GetFlag(LL_INWORD);
+  }
+  void SetInWord(PRBool aInWord) {
+    SetFlag(LL_INWORD, aInWord);
+  }
+  
+  /**
+   * If the last content placed on the line (not counting inline containers)
+   * was text, and can form a contiguous text flow with the next content to be
+   * placed, and is not just a frame of all-skipped whitespace, this is the
+   * frame for that last content ... otherwise it's null.
+   *
+   * @param aWrappingEnabled whether that text had word-wrapping enabled
+   * (white-space:normal or -moz-pre-wrap)
+   */
+  nsIFrame* GetTrailingTextFrame(PRBool* aWrappingEnabled) const {
+    *aWrappingEnabled = GetFlag(LL_LASTTEXTFRAME_WRAPPINGENABLED);
+    return mTrailingTextFrame;
+  }
+  void SetTrailingTextFrame(nsIFrame* aFrame, PRBool aWrappingEnabled)
+  { 
+    mTrailingTextFrame = aFrame;
+    SetFlag(LL_LASTTEXTFRAME_WRAPPINGENABLED, aWrappingEnabled);
   }
 
   //----------------------------------------
@@ -223,6 +297,10 @@ public:
     SetFlag(LL_FIRSTLETTERSTYLEOK, aSetting);
   }
 
+  void SetFirstLetterFrame(nsIFrame* aFrame) {
+    mFirstLetterFrame = aFrame;
+  }
+
   PRBool GetInFirstLine() const {
     return GetFlag(LL_INFIRSTLINE);
   }
@@ -230,6 +308,10 @@ public:
   void SetInFirstLine(PRBool aSetting) {
     SetFlag(LL_INFIRSTLINE, aSetting);
   }
+
+  //----------------------------------------
+
+  static PRBool TreatFrameAsBlock(nsIFrame* aFrame);
 
   //----------------------------------------
 
@@ -257,8 +339,8 @@ public:
    */
   PRBool NotifyOptionalBreakPosition(nsIContent* aContent, PRInt32 aOffset,
                                      PRBool aFits) {
-    NS_ASSERTION(!aFits || !GetFlag(LL_NEEDBACKUP),
-                  "Shouldn't be updating the break position with a break that fits after we've already flagged an overrun");
+    NS_ASSERTION(!GetFlag(LL_NEEDBACKUP),
+                  "Shouldn't be updating the break position after we've already flagged an overrun");
     // Remember the last break position that fits; if there was no break that fit,
     // just remember the first break
     if (aFits || !mLastOptionalBreakContent) {
@@ -325,13 +407,6 @@ public:
   const nsLineList::iterator* GetLine() const {
     return GetFlag(LL_GOTLINEBOX) ? &mLineBox : nsnull;
   }
-  
-  /**
-   * Return the horizontal offset of the current reflowed-frame from the 
-   * edge of the line container. This is always positive, measured from
-   * the right edge for RTL blocks and from the left edge for LTR blocks.
-   */
-  nscoord GetCurrentFrameXDistanceFromBlock();
 
 protected:
   // This state is constant for a given block frame doing line layout
@@ -344,10 +419,13 @@ protected:
   PRInt32     mLastOptionalBreakContentOffset;
   PRInt32     mForceBreakContentOffset;
   
+  nsIFrame* mTrailingTextFrame;
+
   // XXX remove this when landing bug 154892 (splitting absolute positioned frames)
   friend class nsInlineFrame;
 
   nsBlockReflowState* mBlockRS;/* XXX hack! */
+  nsCompatibility mCompatMode;
   nscoord mMinLineHeight;
   PRUint8 mTextAlign;
 
@@ -359,7 +437,9 @@ protected:
 
   // This state varies during the reflow of a line but is line
   // "global" state not span "local" state.
+  nsIFrame* mFirstLetterFrame;
   PRInt32 mLineNumber;
+  PRInt32 mColumn;
   PRInt32 mTextJustificationNumSpaces;
   PRInt32 mTextJustificationNumLetters;
 
@@ -374,9 +454,6 @@ protected:
   // Final computed line-height value after VerticalAlignFrames for
   // the block has been called.
   nscoord mFinalLineHeight;
-  
-  // Amount of trimmable whitespace width for the trailing text frame, if any
-  nscoord mTrimmableWidth;
 
   // Per-frame data recorded by the line-layout reflow logic. This
   // state is the state needed to post-process the line after reflow
@@ -422,7 +499,6 @@ protected:
 #define PFD_ISNONEMPTYTEXTFRAME         0x00000004
 #define PFD_ISNONWHITESPACETEXTFRAME    0x00000008
 #define PFD_ISLETTERFRAME               0x00000010
-#define PFD_RECOMPUTEOVERFLOW           0x00000020
 #define PFD_ISBULLET                    0x00000040
 #define PFD_SKIPWHENTRIMMINGWHITESPACE  0x00000080
 #define PFD_LASTFLAG                    PFD_SKIPWHENTRIMMINGWHITESPACE
@@ -445,7 +521,9 @@ protected:
     PRBool GetFlag(PRUint32 aFlag) const
     {
       NS_ASSERTION(aFlag<=PFD_LASTFLAG, "bad flag");
-      return !!(mFlags & aFlag);
+      PRBool result = (mFlags & aFlag);
+      if (result) return PR_TRUE;
+      return PR_FALSE;
     }
 
 
@@ -474,7 +552,6 @@ protected:
     PRPackedBool mChangedFrameDirection;
     PRPackedBool mZeroEffectiveSpanBox;
     PRPackedBool mContainsFloat;
-    PRPackedBool mHasNonemptyContent;
 
     nscoord mLeftEdge;
     nscoord mX;
@@ -524,10 +601,8 @@ protected:
                        const nsHTMLReflowState& aReflowState,
                        PRBool aNotSafeToBreak,
                        PRBool aFrameCanContinueTextRun,
-                       PRBool aCanRollBackBeforeFrame,
                        nsHTMLReflowMetrics& aMetrics,
-                       nsReflowStatus& aStatus,
-                       PRBool* aOptionalBreakAfterFits);
+                       nsReflowStatus& aStatus);
 
   void PlaceFrame(PerFrameData* pfd,
                   nsHTMLReflowMetrics& aMetrics);
@@ -543,6 +618,7 @@ protected:
   void RelativePositionFrames(PerSpanData* psd, nsRect& aCombinedArea);
 
   PRBool TrimTrailingWhiteSpaceIn(PerSpanData* psd, nscoord* aDeltaWidth);
+
 
   void ComputeJustificationWeights(PerSpanData* psd, PRInt32* numSpaces, PRInt32* numLetters);
 

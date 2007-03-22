@@ -40,6 +40,7 @@
 #define nsDeviceContextSpecX_h_
 
 #include "nsIDeviceContextSpec.h"
+#include "nsIPrintingContext.h"
 
 #include <PMApplication.h>
 
@@ -53,6 +54,7 @@ public:
     nsDeviceContextSpecX();
 
     NS_DECL_ISUPPORTS
+#ifdef MOZ_CAIRO_GFX
     NS_IMETHOD GetSurfaceForPrinter(gfxASurface **surface);
     NS_IMETHOD BeginDocument(PRUnichar*  aTitle, 
                              PRUnichar*  aPrintToFileName,
@@ -61,6 +63,7 @@ public:
     NS_IMETHOD EndDocument();
     NS_IMETHOD BeginPage();
     NS_IMETHOD EndPage();
+#endif
 
     /**
      * Initialize the nsDeviceContextSpecX for use.  This will allocate a printrecord for use
@@ -69,11 +72,31 @@ public:
      * @param aPS               Settings for this print job
      * @param aIsPrintPreview   TRUE if doing print preview, FALSE if normal printing.
      * @return error status
+     *
+     * The three-argument form of this function is defined by
+     * nsIDeviceContextSpec. The two-argument form is from nsIPrintingContext.
      */
     NS_IMETHOD Init(nsIWidget *aWidget, nsIPrintSettings* aPS, PRBool aIsPrintPreview);
-    
-    void GetPaperRect(double* aTop, double* aLeft, double* aBottom, double* aRight);
+    NS_IMETHOD Init(nsIPrintSettings* aPS, PRBool aIsPrintPreview);
 
+    /**
+     * This will tell if the printmanager is currently open
+     * @update   dc 12/03/98
+     * @param aIsOpen True or False depending if the printmanager is open
+     * @return error status
+     */
+    NS_IMETHOD PrintManagerOpen(PRBool* aIsOpen);
+
+    /**
+     * Closes the printmanager if it is open.
+     * @update   dc 12/03/98
+     * @return error status
+     */
+    NS_IMETHOD ClosePrintManager();
+
+    NS_IMETHOD GetPrinterResolution(double* aResolution);
+    
+    NS_IMETHOD GetPageRect(double* aTop, double* aLeft, double* aBottom, double* aRight);
 protected:
 /**
  * Destructor for nsDeviceContextSpecX, this will release the printrecord
@@ -86,6 +109,7 @@ protected:
     PMPrintSession    mPrintSession;              // printing context.
     PMPageFormat      mPageFormat;                // page format.
     PMPrintSettings   mPrintSettings;             // print settings.
+    PRBool            mBeganPrinting;
 };
 
 #endif //nsDeviceContextSpecX_h_

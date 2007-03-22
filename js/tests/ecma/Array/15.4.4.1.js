@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '15.4.4.1.js';
-
 /**
    File Name:          15.4.4.1.js
    ECMA Section:       15.4.4.1 Array.prototype.constructor
@@ -55,9 +53,9 @@ var TITLE   = "Array.prototype.constructor";
 writeHeaderToLog( SECTION + " "+ TITLE);
 
 
-new TestCase( SECTION,
-	      "Array.prototype.constructor == Array",
-	      true,  
+new TestCase( SECTION,	
+	      "Array.prototype.constructor == Array", 
+	      true,   
 	      Array.prototype.constructor == Array);
 
 test();

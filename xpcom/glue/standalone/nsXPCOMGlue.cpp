@@ -42,6 +42,7 @@
 #include "nspr.h"
 #include "nsDebug.h"
 #include "nsIServiceManager.h"
+#include "nsGREDirServiceProvider.h"
 #include "nsXPCOMPrivate.h"
 #include "nsCOMPtr.h"
 #include <stdlib.h>
@@ -305,20 +306,6 @@ NS_StringCopy(nsAString &aDest, const nsAString &aSrc)
     return xpcomFunctions.stringCopy(aDest, aSrc);
 }
 
-XPCOM_API(void)
-NS_StringSetIsVoid(nsAString &aStr, const PRBool aIsVoid)
-{
-    if (xpcomFunctions.stringSetIsVoid)
-        xpcomFunctions.stringSetIsVoid(aStr, aIsVoid);
-}
-
-XPCOM_API(PRBool)
-NS_StringGetIsVoid(const nsAString &aStr)
-{
-    if (!xpcomFunctions.stringGetIsVoid)
-        return PR_FALSE;
-    return xpcomFunctions.stringGetIsVoid(aStr);
-}
 
 XPCOM_API(nsresult)
 NS_CStringContainerInit(nsCStringContainer &aStr)
@@ -397,21 +384,6 @@ NS_CStringCopy(nsACString &aDest, const nsACString &aSrc)
     if (!xpcomFunctions.cstringCopy)
         return NS_ERROR_NOT_INITIALIZED;
     return xpcomFunctions.cstringCopy(aDest, aSrc);
-}
-
-XPCOM_API(void)
-NS_CStringSetIsVoid(nsACString &aStr, const PRBool aIsVoid)
-{
-    if (xpcomFunctions.cstringSetIsVoid)
-        xpcomFunctions.cstringSetIsVoid(aStr, aIsVoid);
-}
-
-XPCOM_API(PRBool)
-NS_CStringGetIsVoid(const nsACString &aStr)
-{
-    if (!xpcomFunctions.cstringGetIsVoid)
-        return PR_FALSE;
-    return xpcomFunctions.cstringGetIsVoid(aStr);
 }
 
 XPCOM_API(nsresult)
@@ -519,48 +491,68 @@ NS_LogCOMPtrRelease(void *aCOMPtr, nsISupports *aObject)
         xpcomFunctions.logCOMPtrReleaseFunc(aCOMPtr, aObject);
 }
 
-XPCOM_API(nsresult)
-NS_GetXPTCallStub(REFNSIID aIID, nsIXPTCProxy* aOuter,
-                  nsISomeInterface* *aStub)
-{
-    if (!xpcomFunctions.getXPTCallStubFunc)
-        return NS_ERROR_NOT_INITIALIZED;
 
-    return xpcomFunctions.getXPTCallStubFunc(aIID, aOuter, aStub);
+// Default GRE startup/shutdown code
+
+extern "C"
+nsresult GRE_Startup()
+{
+    const char* xpcomLocation = GRE_GetXPCOMPath();
+
+    // Startup the XPCOM Glue that links us up with XPCOM.
+    nsresult rv = XPCOMGlueStartup(xpcomLocation);
+    
+    if (NS_FAILED(rv)) {
+        NS_WARNING("gre: XPCOMGlueStartup failed");
+        return rv;
+    }
+
+#ifdef XP_WIN
+    // On windows we have legacy GRE code that does not load the GRE dependent
+    // libs (seamonkey GRE, not libxul)... add the GRE to the PATH.
+    // See bug 301043.
+
+    const char *lastSlash = strrchr(xpcomLocation, '\\');
+    if (lastSlash) {
+        int xpcomPathLen = lastSlash - xpcomLocation;
+        DWORD pathLen = GetEnvironmentVariable("PATH", nsnull, 0);
+
+        char *newPath = (char*) _alloca(xpcomPathLen + pathLen + 1);
+        strncpy(newPath, xpcomLocation, xpcomPathLen);
+        // in case GetEnvironmentVariable fails
+        newPath[xpcomPathLen] = ';';
+        newPath[xpcomPathLen + 1] = '\0';
+
+        GetEnvironmentVariable("PATH", newPath + xpcomPathLen + 1, pathLen);
+        SetEnvironmentVariable("PATH", newPath);
+    }
+#endif
+
+    nsGREDirServiceProvider *provider = new nsGREDirServiceProvider();
+    if ( !provider ) {
+        NS_WARNING("GRE_Startup failed");
+        XPCOMGlueShutdown();
+        return NS_ERROR_OUT_OF_MEMORY;
+    }
+
+    nsCOMPtr<nsIServiceManager> servMan;
+    NS_ADDREF( provider );
+    rv = NS_InitXPCOM2(getter_AddRefs(servMan), nsnull, provider);
+    NS_RELEASE(provider);
+
+    if ( NS_FAILED(rv) || !servMan) {
+        NS_WARNING("gre: NS_InitXPCOM failed");
+        XPCOMGlueShutdown();
+        return rv;
+    }
+
+    return NS_OK;
 }
 
-XPCOM_API(void)
-NS_DestroyXPTCallStub(nsISomeInterface* aStub)
+extern "C"
+nsresult GRE_Shutdown()
 {
-    if (xpcomFunctions.destroyXPTCallStubFunc)
-        xpcomFunctions.destroyXPTCallStubFunc(aStub);
-}
-
-XPCOM_API(nsresult)
-NS_InvokeByIndex(nsISupports* that, PRUint32 methodIndex,
-                 PRUint32 paramCount, nsXPTCVariant* params)
-{
-    if (!xpcomFunctions.invokeByIndexFunc)
-        return NS_ERROR_NOT_INITIALIZED;
-
-    return xpcomFunctions.invokeByIndexFunc(that, methodIndex,
-                                            paramCount, params);
-}
-
-XPCOM_API(PRBool)
-NS_CycleCollectorSuspect(nsISupports* obj)
-{
-    if (!xpcomFunctions.cycleSuspectFunc)
-        return PR_FALSE;
-
-    return xpcomFunctions.cycleSuspectFunc(obj);
-}
-
-XPCOM_API(PRBool)
-NS_CycleCollectorForget(nsISupports* obj)
-{
-    if (!xpcomFunctions.cycleForgetFunc)
-        return PR_FALSE;
-
-    return xpcomFunctions.cycleForgetFunc(obj);
+    NS_ShutdownXPCOM(nsnull);
+    XPCOMGlueShutdown();
+    return NS_OK;
 }

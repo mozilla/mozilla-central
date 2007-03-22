@@ -35,8 +35,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '15.9.4.2-1.js';
-
 /**
  *  File Name:
  *  Reference:          http://bugzilla.mozilla.org/show_bug.cgi?id=4088

@@ -46,6 +46,7 @@
 
 class nsSound : public nsISound,
                 public nsIStreamLoaderObserver
+
 {
 public: 
     nsSound();

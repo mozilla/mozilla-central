@@ -72,7 +72,7 @@ public:
 
   // nsIContentSerializer
   NS_IMETHOD Init(PRUint32 flags, PRUint32 dummy, const char* aCharSet, 
-                  PRBool aIsCopying, PRBool aIsWholeDocument);
+                  PRBool aIsCopying);
 
   NS_IMETHOD AppendText(nsIDOMText* aText, PRInt32 aStartOffset,
                         PRInt32 aEndOffset, nsAString& aStr);

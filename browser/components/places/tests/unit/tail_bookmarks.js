@@ -37,5 +37,5 @@
 
 // put cleanup of the bookmarks test here.
 
-// remove bookmarks files
-cleanUp();
+// remove bookmarks file
+clearDB();

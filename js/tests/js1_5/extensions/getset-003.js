@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -34,18 +33,16 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK ***** */
-
-/*
+ * ***** END LICENSE BLOCK *****
+ *
  * Date: 14 April 2001
  *
  * SUMMARY: Testing obj.prop getter/setter
  * Note: this is a non-ECMA extension to the language.
  */
-//-----------------------------------------------------------------------------
-var gTestfile = 'getset-003.js';
+//-------------------------------------------------------------------------------------------------
 var UBound = 0;
-var BUGNUMBER = '(none)';
+var bug = '(none)';
 var summary = 'Testing obj.prop getter/setter';
 var statprefix = 'Status: ';
 var status = '';
@@ -66,9 +63,9 @@ obj = new Object();
 obj.nameSETS = 0;
 obj.nameGETS = 0;
 obj.name setter = function(newValue) {this._name=newValue; this.nameSETS++;}
-  obj.name getter = function() {this.nameGETS++; return this._name;}
+obj.name getter = function() {this.nameGETS++; return this._name;}
 
-    status = 'In SECTION1 of test after 0 sets, 0 gets';
+status = 'In SECTION1 of test after 0 sets, 0 gets';
 actual = [obj.nameSETS,obj.nameGETS];
 expect = [0,0];
 addThis();
@@ -96,9 +93,9 @@ addThis();
 Object.prototype.nameSETS = 0;
 Object.prototype.nameGETS = 0;
 Object.prototype.name setter = function(newValue) {this._name=newValue; this.nameSETS++;}
-  Object.prototype.name getter = function() {this.nameGETS++; return this._name;}
+Object.prototype.name getter = function() {this.nameGETS++; return this._name;}
 
-    obj = new Object();
+obj = new Object();
 status = 'In SECTION2 of test after 0 sets, 0 gets';
 actual = [obj.nameSETS,obj.nameGETS];
 expect = [0,0];
@@ -130,8 +127,8 @@ function TestObject()
 TestObject.prototype.nameSETS = 0;
 TestObject.prototype.nameGETS = 0;
 TestObject.prototype.name setter = function(newValue) {this._name=newValue; this.nameSETS++;}
-  TestObject.prototype.name getter = function() {this.nameGETS++; return this._name;}
-    TestObject.prototype.name = cnDEFAULT;
+TestObject.prototype.name getter = function() {this.nameGETS++; return this._name;}
+TestObject.prototype.name = cnDEFAULT;
 
 obj = new TestObject();
 status = 'In SECTION3 of test after 1 set, 0 gets'; // (we set a default value in the prototype)
@@ -165,15 +162,15 @@ addThis();
 
 // Use both obj and obj2  -
 obj2.name = obj.name +  obj2.name;
-status = 'obj2 = new TestObject() after 2 sets, 1 get';
-actual = [obj2.nameSETS,obj2.nameGETS];
-expect = [2,1];
-addThis();
+  status = 'obj2 = new TestObject() after 2 sets, 1 get';
+  actual = [obj2.nameSETS,obj2.nameGETS];
+  expect = [2,1];
+  addThis();
 
-status = 'In SECTION3 of test after 3 sets, 3 gets';
-actual = [obj.nameSETS,obj.nameGETS];
-expect = [3,3];  // we left off at [3,2] above -
-addThis();
+  status = 'In SECTION3 of test after 3 sets, 3 gets';
+  actual = [obj.nameSETS,obj.nameGETS];
+  expect = [3,3];  // we left off at [3,2] above -
+  addThis();
 
 
 //---------------------------------------------------------------------------------
@@ -193,9 +190,9 @@ function addThis()
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
-
+ 
   for (var i = 0; i < UBound; i++)
   {
     reportCompare(expectedvalues[i], actualvalues[i], getStatus(i));

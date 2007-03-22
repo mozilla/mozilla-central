@@ -66,7 +66,6 @@ public:
                                      PRBool aAllocate);
   virtual nsresult GetCSSParsingEnvironment(nsIURI** aSheetURI,
                                             nsIURI** aBaseURI,
-                                            nsIPrincipal** aSheetPrincipal,
                                             nsICSSLoader** aCSSLoader,
                                             nsICSSParser** aCSSParser);
   NS_IMETHOD GetParentRule(nsIDOMCSSRule **aParent);

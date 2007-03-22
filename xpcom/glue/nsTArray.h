@@ -85,8 +85,14 @@ class NS_COM_GLUE nsTArray_base {
 #endif
 
   protected:
+#ifndef NS_BUILD_REFCNT_LOGGING
+    nsTArray_base()
+      : mHdr(&sEmptyHdr) {
+    }
+#else
     nsTArray_base();
     ~nsTArray_base();  
+#endif // NS_BUILD_REFCNT_LOGGING
 
     // Resize the storage if necessary to achieve the requested capacity.
     // @param capacity     The requested number of array elements.
@@ -152,7 +158,7 @@ class NS_COM_GLUE nsTArray_base {
     Header* GetAutoArrayBuffer() {
       NS_ASSERTION(IsAutoArray(), "Should be an auto array to call this");
 
-      return reinterpret_cast<Header*>(&mHdr + 1);
+      return NS_REINTERPRET_CAST(Header*, &mHdr + 1);
     }
 
     // Returns true if this is an nsAutoTArray and it currently uses the
@@ -180,17 +186,12 @@ class nsTArrayElementTraits {
   public:
     // Invoke the default constructor in place.
     static inline void Construct(E *e) {
-      // Do NOT call "E()"! That triggers C++ "default initialization"
-      // which zeroes out POD ("plain old data") types such as regular ints.
-      // We don't want that because it can be a performance issue and people
-      // don't expect it; nsTArray should work like a regular C/C++ array in
-      // this respect.
-      new (static_cast<void *>(e)) E;
+      new (NS_STATIC_CAST(void *, e)) E();
     }
     // Invoke the copy-constructor in place.
     template<class A>
     static inline void Construct(E *e, const A &arg) {
-      new (static_cast<void *>(e)) E(arg);
+      new (NS_STATIC_CAST(void *, e)) E(arg);
     }
     // Invoke the destructor in place.
     static inline void Destruct(E *e) {
@@ -208,9 +209,9 @@ class nsQuickSortComparator {
     // maps the callback API expected by NS_QuickSort to the Comparator API
     // used by nsTArray.  See nsTArray::Sort.
     static int Compare(const void* e1, const void* e2, void *data) {
-      const Comparator* c = reinterpret_cast<const Comparator*>(data);
-      const elem_type* a = static_cast<const elem_type*>(e1);
-      const elem_type* b = static_cast<const elem_type*>(e2);
+      const Comparator* c = NS_REINTERPRET_CAST(const Comparator*, data);
+      const elem_type* a = NS_STATIC_CAST(const elem_type*, e1);
+      const elem_type* b = NS_STATIC_CAST(const elem_type*, e2);
       return c->LessThan(*a, *b) ? -1 : (c->Equals(*a, *b) ? 0 : 1);
     }
 };
@@ -299,14 +300,14 @@ class nsTArray : public nsTArray_base {
     // @return A pointer to the first element of the array.  If the array is
     // empty, then this pointer must not be dereferenced.
     elem_type* Elements() {
-      return reinterpret_cast<elem_type *>(mHdr + 1);
+      return NS_REINTERPRET_CAST(elem_type *, mHdr + 1);
     }
 
     // This method provides direct, readonly access to the array elements.
     // @return A pointer to the first element of the array.  If the array is
     // empty, then this pointer must not be dereferenced.
     const elem_type* Elements() const {
-      return reinterpret_cast<const elem_type *>(mHdr + 1);
+      return NS_REINTERPRET_CAST(const elem_type *, mHdr + 1);
     }
     
     // This method provides direct access to the i'th element of the array.
@@ -358,26 +359,6 @@ class nsTArray : public nsTArray_base {
     //
     // Search methods
     //
-
-    // This method searches for the first element in this array that is equal
-    // to the given element.
-    // @param item   The item to search for.
-    // @param comp   The Comparator used to determine element equality.
-    // @return       PR_TRUE if the element was found.
-    template<class Item, class Comparator>
-    PRBool Contains(const Item& item, const Comparator& comp) const {
-      return IndexOf(item, 0, comp) != NoIndex;
-    }
-
-    // This method searches for the first element in this array that is equal
-    // to the given element.  This method assumes that 'operator==' is defined
-    // for elem_type.
-    // @param item   The item to search for.
-    // @return       PR_TRUE if the element was found.
-    template<class Item>
-    PRBool Contains(const Item& item) const {
-      return IndexOf(item) != NoIndex;
-    }
 
     // This method searches for the offset of the first element in this
     // array that is equal to the given element.
@@ -438,36 +419,6 @@ class nsTArray : public nsTArray_base {
     index_type LastIndexOf(const Item& item,
                            index_type start = NoIndex) const {
       return LastIndexOf(item, start, nsDefaultComparator<elem_type, Item>());
-    }
-
-    // This method searches for the offset for the element in this array
-    // that is equal to the given element. The array is assumed to be sorted.
-    // @param item   The item to search for.
-    // @param comp   The Comparator used.
-    // @return       The index of the found element or NoIndex if not found.
-    template<class Item, class Comparator>
-    index_type BinaryIndexOf(const Item& item, const Comparator& comp) const {
-      index_type low = 0, high = Length();
-      while (high > low) {
-        index_type mid = (high + low) >> 1;
-        if (comp.Equals(ElementAt(mid), item))
-          return mid;
-        if (comp.LessThan(ElementAt(mid), item))
-          low = mid + 1;
-        else
-          high = mid;
-      }
-      return NoIndex;
-    }
-
-    // This method searches for the offset for the element in this array
-    // that is equal to the given element. The array is assumed to be sorted.
-    // This method assumes that 'operator==' and 'operator<' are defined.
-    // @param item   The item to search for.
-    // @return       The index of the found element or NoIndex if not found.
-    template<class Item>
-    index_type BinaryIndexOf(const Item& item) const {
-      return BinaryIndexOf(item, nsDefaultComparator<elem_type, Item>());
     }
 
     //
@@ -728,7 +679,7 @@ class nsTArray : public nsTArray_base {
     void Sort(const Comparator& comp) {
       NS_QuickSort(Elements(), Length(), sizeof(elem_type),
                    nsQuickSortComparator<elem_type, Comparator>::Compare,
-                   const_cast<Comparator*>(&comp));
+                   NS_CONST_CAST(Comparator*, &comp));
     }
 
     // A variation on the Sort method defined above that assumes that
@@ -771,26 +722,18 @@ class nsAutoTArray : public nsTArray<E> {
     typedef typename base_type::elem_type elem_type;
 
     nsAutoTArray() {
-      base_type::mHdr = reinterpret_cast<Header*>(&mAutoBuf);
+      base_type::mHdr = NS_REINTERPRET_CAST(Header*, &mAutoBuf);
       base_type::mHdr->mLength = 0;
       base_type::mHdr->mCapacity = N;
       base_type::mHdr->mIsAutoArray = 1;
 
       NS_ASSERTION(base_type::GetAutoArrayBuffer() ==
-                   reinterpret_cast<Header*>(&mAutoBuf),
+                   NS_REINTERPRET_CAST(Header*, &mAutoBuf),
                    "GetAutoArrayBuffer needs to be fixed");
     }
 
   protected:
     char mAutoBuf[sizeof(Header) + N * sizeof(elem_type)];
-};
-
-// specialization for N = 0. this makes the inheritance model easier for
-// templated users of nsAutoTArray.
-template<class E>
-class nsAutoTArray<E, 0> : public nsTArray<E> {
-  public:
-    nsAutoTArray() {}
 };
 
 #endif  // nsTArray_h__

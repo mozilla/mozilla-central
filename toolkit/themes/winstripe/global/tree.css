@@ -76,7 +76,7 @@ treechildren::-moz-tree-row {
 }
 
 treechildren::-moz-tree-row(selected) {
-  background-color: -moz-cellhighlight;
+  background-color: -moz-Dialog;
 }
 
 treechildren::-moz-tree-row(selected, focus) {
@@ -110,7 +110,7 @@ treechildren::-moz-tree-cell-text {
 }
 
 treechildren::-moz-tree-cell-text(selected) {
-  color: -moz-cellhighlighttext;
+  color: -moz-DialogText;
 }
 
 tree[seltype="cell"] > treechildren::-moz-tree-cell {
@@ -124,15 +124,15 @@ tree[seltype="text"] > treechildren::-moz-tree-cell-text {
 }
 
 tree[seltype="cell"] > treechildren::-moz-tree-cell(active, selected) {
-  background-color: -moz-cellhighlight;
+  background-color: -moz-Dialog;
 }
 tree[seltype="cell"] > treechildren::-moz-tree-cell-text(active, selected) {
-  color: -moz-cellhighlighttext;
+  color: -moz-DialogText;
 }
 
 tree[seltype="text"] > treechildren::-moz-tree-cell-text(active, selected) {
-  background-color: -moz-cellhighlight;
-  color: -moz-cellhighlighttext;
+  background-color: -moz-Dialog;
+  color: -moz-DialogText;
 }
 
 treechildren::-moz-tree-cell-text(selected, focus) {
@@ -172,10 +172,18 @@ tree[seltype="text"] > treechildren::-moz-tree-cell-text(active, selected, curre
 }
 
 /* ::::: lines connecting cells ::::: */
-/* Windows hasn't used dotted lines for this since XP */
+
+tree[seltype="cell"] > treechildren::-moz-tree-line,
+tree[seltype="text"] > treechildren::-moz-tree-line,
 treechildren::-moz-tree-line {
-  visibility: hidden;
+  border: 1px dotted ThreeDShadow;
 }
+
+tree[seltype="cell"] > treechildren::-moz-tree-line(active, selected, focus),
+treechildren::-moz-tree-line(selected, focus) {
+  border: 1px dotted HighlightText;
+}
+
 
 /* ::::: tree separator ::::: */
 
@@ -198,7 +206,7 @@ treechildren::-moz-tree-drop-feedback {
   background-color: Highlight;
   width: 50px;
   height: 2px;
-  -moz-margin-start: 5px;
+  margin-left: 5px;
 }
 
 /* ::::: tree progress meter ::::: */
@@ -265,17 +273,11 @@ treecolpicker:hover:active {
   -moz-border-right-colors: ThreeDShadow;
   -moz-border-bottom-colors: ThreeDShadow;
   -moz-border-left-colors: ThreeDShadow -moz-Dialog;
-  padding-top: 1px;
-  padding-bottom: 0px;
-  -moz-padding-start: 5px;
-  -moz-padding-end: 4px;
+  padding: 1px 4px 0px 5px;
 }
 
 .treecol-image:hover:active {
-  padding-top: 1px;
-  padding-bottom: 0px;
-  -moz-padding-start: 2px;
-  -moz-padding-end: 1px;
+  padding: 1px 1px 0px 2px;
 }
 
 /* ::::: column drag and drop styles ::::: */
@@ -328,7 +330,7 @@ treecol:not([hideheader="true"]) > .treecol-sortdirection[sortDirection="descend
 /* ::::: twisty :::::  */
 
 treechildren::-moz-tree-twisty {
-  -moz-padding-end: 4px;
+  padding-right: 4px;
   padding-top: 1px;
   width: 9px; /* The image's width is 9 pixels */
   list-style-image: url("chrome://global/skin/tree/twisty-clsd.png");
@@ -355,7 +357,7 @@ treechildren.gridlines::-moz-tree-row {
 }
 
 treechildren::-moz-tree-image(Name) {
-  -moz-padding-end: 2px;
+  padding-right: 2px;
 }
 
 treechildren::-moz-tree-image(Name) {
@@ -406,7 +408,6 @@ treechildren::-moz-tree-cell-text(selected, editing) {
   -moz-border-bottom-colors: Highlight;
   -moz-border-left-colors: Highlight;
   -moz-border-right-colors: Highlight;
-  margin: 0;
-  -moz-margin-start: -4px;
+  margin: 0 0 0 -4px;
   padding: 1px;
 }

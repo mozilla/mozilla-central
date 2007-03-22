@@ -119,13 +119,6 @@ GetCurrentWorkingDir(char *buf, size_t size)
 #if defined(XP_OS2)
   if (DosQueryPathInfo( ".", FIL_QUERYFULLNAME, buf, size))
     return NS_ERROR_FAILURE;
-#elif defined(XP_WIN)
-  wchar_t *wpath = _wgetcwd(NULL, size);
-  if (!wpath)
-    return NS_ERROR_FAILURE;
-  NS_ConvertUTF16toUTF8 path(wpath);
-  strncpy(buf, path.get(), size);
-  free(wpath);
 #else
   if(!getcwd(buf, size))
     return NS_ERROR_FAILURE;
@@ -335,8 +328,6 @@ static void
 ApplyUpdate(nsIFile *greDir, nsIFile *updateDir, nsILocalFile *statusFile,
             nsIFile *appDir, int appArgc, char **appArgv)
 {
-  nsresult rv;
-
   // Steps:
   //  - mark update as 'applying'
   //  - copy updater into update dir
@@ -362,24 +353,8 @@ ApplyUpdate(nsIFile *greDir, nsIFile *updateDir, nsILocalFile *statusFile,
 
   if (!appFile)
     return;
-
-#ifdef XP_WIN
-  nsAutoString appFilePathW;
-  rv = appFile->GetPath(appFilePathW);
-  if (NS_FAILED(rv))
-    return;
-  NS_ConvertUTF16toUTF8 appFilePath(appFilePathW);
-
-  nsAutoString updaterPathW;
-  rv = updater->GetPath(updaterPathW);
-  if (NS_FAILED(rv))
-    return;
-
-  NS_ConvertUTF16toUTF8 updaterPath(updaterPathW);
-
-#else
   nsCAutoString appFilePath;
-  rv = appFile->GetNativePath(appFilePath);
+  nsresult rv = appFile->GetNativePath(appFilePath);
   if (NS_FAILED(rv))
     return;
   
@@ -388,13 +363,11 @@ ApplyUpdate(nsIFile *greDir, nsIFile *updateDir, nsILocalFile *statusFile,
   if (NS_FAILED(rv))
     return;
 
-#endif
-
   // Get the directory to which the update will be applied. On Mac OSX we need
   // to apply the update to the Foo.app directory which is the parent of the
   // parent of the appDir. On other platforms we will just apply to the appDir.
-#if defined(XP_MACOSX)
   nsCAutoString applyToDir;
+#if defined(XP_MACOSX)
   {
     nsCOMPtr<nsIFile> parentDir1, parentDir2;
     rv = appDir->GetParent(getter_AddRefs(parentDir1));
@@ -405,26 +378,14 @@ ApplyUpdate(nsIFile *greDir, nsIFile *updateDir, nsILocalFile *statusFile,
       return;
     rv = parentDir2->GetNativePath(applyToDir);
   }
-#elif defined(XP_WIN)
-  nsAutoString applyToDir;
-  rv = appDir->GetPath(applyToDir);
 #else
-  nsCAutoString applyToDir;
   rv = appDir->GetNativePath(applyToDir);
 #endif
   if (NS_FAILED(rv))
     return;
 
-#if defined(XP_WIN)
-  nsAutoString updateDirPathW;
-  rv = updateDir->GetPath(updateDirPathW);
-
-  NS_ConvertUTF16toUTF8 updateDirPath(updateDirPathW);
-#else
   nsCAutoString updateDirPath;
   rv = updateDir->GetNativePath(updateDirPath);
-#endif
-
   if (NS_FAILED(rv))
     return;
 
@@ -472,9 +433,9 @@ ApplyUpdate(nsIFile *greDir, nsIFile *updateDir, nsILocalFile *statusFile,
   chdir(applyToDir.get());
   execv(updaterPath.get(), argv);
 #elif defined(XP_WIN)
-  _wchdir(applyToDir.get());
+  _chdir(applyToDir.get());
 
-  if (!WinLaunchChild(updaterPathW.get(), appArgc + 4, argv, 0))
+  if (!WinLaunchChild(updaterPath.get(), appArgc + 4, argv, 1))
     return;
   _exit(0);
 #else

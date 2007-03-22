@@ -19,7 +19,7 @@
  * Portions created by the Initial Developer are Copyright (C) 2005
  * the Initial Developer. All Rights Reserved.
  *
- * Contributor(s): Andrew Schultz
+ * Contributor(s): Andrew Schultz 
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -34,10 +34,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-317714-01.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 317714;
+var bug = 317714;
 var summary = 'Regression test for regression from bug 316885';
 var actual = 'No Crash';
 var expect = 'No Crash';
@@ -46,7 +44,7 @@ var d5="-1";
 var r3=d5.split(":");
 r3[0]++;
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
 reportCompare(expect, actual, summary);

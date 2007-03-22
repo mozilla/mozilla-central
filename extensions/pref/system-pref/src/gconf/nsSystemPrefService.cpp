@@ -212,7 +212,7 @@ struct SysPrefCallbackData {
 PRBool PR_CALLBACK
 sysPrefDeleteObserver(void *aElement, void *aData) {
     SysPrefCallbackData *pElement =
-        static_cast<SysPrefCallbackData *>(aElement);
+        NS_STATIC_CAST(SysPrefCallbackData *, aElement);
     NS_RELEASE(pElement->observer);
     nsMemory::Free(pElement);
     return PR_TRUE;
@@ -520,7 +520,7 @@ nsSystemPrefService::OnPrefChange(PRUint32 aPrefAtom, void *aData)
         observer = do_QueryInterface(pData->observer);
 
     if (observer)
-        observer->Observe(static_cast<nsIPrefBranch *>(this),
+        observer->Observe(NS_STATIC_CAST(nsIPrefBranch *, this),
                           NS_SYSTEMPREF_PREFCHANGE_TOPIC_ID,
                           NS_ConvertUTF8toUTF16(mGConf->GetMozKey(aPrefAtom)).
                           get());
@@ -610,9 +610,6 @@ GConfProxy::~GConfProxy()
         (void)mObservers->EnumerateForwards(gconfDeleteObserver, nsnull);
         delete mObservers;
     }
-
-    // bug 379666: can't unload GConf-2 since it registers atexit handlers
-    //PR_UnloadLibrary(mGConfLib);
 }
 
 PRBool
@@ -908,7 +905,7 @@ void gconf_key_listener (void* client, guint cnxn_id,
     SYSPREF_LOG(("...SYSPREF_LOG...key listener get called \n"));
     if (!user_data)
         return;
-    GConfCallbackData *pData = reinterpret_cast<GConfCallbackData *>
-                                               (user_data);
+    GConfCallbackData *pData = NS_REINTERPRET_CAST(GConfCallbackData *,
+                                                   user_data);
     pData->proxy->OnNotify(client, entry, cnxn_id, pData);
 }

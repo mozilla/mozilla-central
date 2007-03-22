@@ -38,35 +38,28 @@
 
 #include "nsHTMLTableAccessible.h"
 #include "nsAccessibilityAtoms.h"
-#include "nsAccessibleTreeWalker.h"
 #include "nsIDOMElement.h"
-#include "nsIDOMDocument.h"
-#include "nsIDOMDocumentRange.h"
-#include "nsIDOMRange.h"
-#include "nsISelection2.h"
-#include "nsISelectionPrivate.h"
 #include "nsINameSpaceManager.h"
 #include "nsIAccessibilityService.h"
 #include "nsIDOMCSSStyleDeclaration.h"
 #include "nsIDOMHTMLCollection.h"
+#include "nsIDOMHTMLTableCaptionElem.h"
 #include "nsIDOMHTMLTableCellElement.h"
 #include "nsIDOMHTMLTableElement.h"
 #include "nsIDOMHTMLTableRowElement.h"
 #include "nsIDOMHTMLTableSectionElem.h"
 #include "nsIDocument.h"
+#include "nsIDOMDocument.h"
+#include "nsIPersistentProperties2.h"
 #include "nsIPresShell.h"
 #include "nsIServiceManager.h"
 #include "nsITableLayout.h"
-#include "nsITableCellLayout.h"
-#include "nsLayoutErrors.h"
 
-////////////////////////////////////////////////////////////////////////////////
-// nsHTMLTableCellAccessible
 
 NS_IMPL_ISUPPORTS_INHERITED0(nsHTMLTableCellAccessible, nsHyperTextAccessible)
 
 nsHTMLTableCellAccessible::nsHTMLTableCellAccessible(nsIDOMNode* aDomNode, nsIWeakReference* aShell):
-nsHyperTextAccessibleWrap(aDomNode, aShell)
+nsHyperTextAccessible(aDomNode, aShell)
 { 
 }
 
@@ -77,115 +70,18 @@ NS_IMETHODIMP nsHTMLTableCellAccessible::GetRole(PRUint32 *aResult)
   return NS_OK;
 }
 
-nsresult
-nsHTMLTableCellAccessible::GetAttributesInternal(nsIPersistentProperties *aAttributes)
+NS_IMETHODIMP nsHTMLTableCellAccessible::GetState(PRUint32 *aResult)
 {
-  if (IsDefunct())
-    return NS_ERROR_FAILURE;
-
-  nsresult rv = nsHyperTextAccessibleWrap::GetAttributesInternal(aAttributes);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsIContent> content(do_QueryInterface(mDOMNode));
-
-  nsCOMPtr<nsIPresShell> shell = GetPresShell();
-  NS_ENSURE_STATE(shell);
-  
-  nsIFrame *frame = shell->GetPrimaryFrameFor(content);
-  NS_ASSERTION(frame, "The frame cannot be obtaied for HTML table cell.");
-  NS_ENSURE_STATE(frame);
-
-  nsITableCellLayout *cellLayout = nsnull;
-  CallQueryInterface(frame, &cellLayout);
-  NS_ENSURE_STATE(cellLayout);
-
-  PRInt32 rowIdx = -1, cellIdx = -1;
-  rv = cellLayout->GetCellIndexes(rowIdx, cellIdx);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsIAccessible> childAcc(this);
-
-  nsCOMPtr<nsIAccessible> parentAcc;
-  rv = childAcc->GetParent(getter_AddRefs(parentAcc));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  while (parentAcc) {
-    if (Role(parentAcc) == nsIAccessibleRole::ROLE_TABLE) {
-      // Table accessible must implement nsIAccessibleTable interface but if
-      // it isn't happen (for example because of ARIA usage) we shouldn't fail
-      // on getting other attributes.
-      nsCOMPtr<nsIAccessibleTable> tableAcc(do_QueryInterface(parentAcc));
-      if (!tableAcc)
-        return NS_OK;
-
-      PRInt32 idx = -1;
-      rv = tableAcc->GetIndexAt(rowIdx, cellIdx, &idx);
-      NS_ENSURE_SUCCESS(rv, rv);
-
-      nsAutoString stringIdx;
-      stringIdx.AppendInt(idx);
-      nsAccUtils::SetAccAttr(aAttributes, nsAccessibilityAtoms::tableCellIndex,
-                             stringIdx);
-      return NS_OK;
-    }
-
-    parentAcc.swap(childAcc);
-    rv = childAcc->GetParent(getter_AddRefs(parentAcc));
-    NS_ENSURE_SUCCESS(rv, rv);
-  }
-
+  nsAccessible::GetState(aResult);
+  *aResult &= ~nsIAccessibleStates::STATE_FOCUSABLE;   // Inherit all states except focusable state since table cells cannot be focused
   return NS_OK;
 }
-
-////////////////////////////////////////////////////////////////////////////////
-// nsHTMLTableAccessible
 
 NS_IMPL_ISUPPORTS_INHERITED1(nsHTMLTableAccessible, nsAccessible, nsIAccessibleTable)
 
 nsHTMLTableAccessible::nsHTMLTableAccessible(nsIDOMNode* aDomNode, nsIWeakReference* aShell):
 nsAccessibleWrap(aDomNode, aShell)
 { 
-}
-
-void nsHTMLTableAccessible::CacheChildren()
-{
-  if (!mWeakShell) {
-    // This node has been shut down
-    mAccChildCount = eChildCountUninitialized;
-    return;
-  }
-  
-  if (mAccChildCount == eChildCountUninitialized) {
-    nsAccessible::CacheChildren();
-    nsCOMPtr<nsIAccessible> captionAccessible;
-    while (NextChild(captionAccessible)) {
-      if (Role(captionAccessible) == nsIAccessibleRole::ROLE_CAPTION) {
-        nsCOMPtr<nsIAccessible> captionParentAccessible;
-        captionAccessible->GetParent(getter_AddRefs(captionParentAccessible));
-        if (captionParentAccessible != this) {
-          NS_WARNING("Should not happen: parser ensures caption is the table's child, not the tbody's");
-          return;
-        }
-        nsCOMPtr<nsIAccessible> beforeCaptionAccessible;
-        captionAccessible->GetPreviousSibling(getter_AddRefs(beforeCaptionAccessible));
-        if (beforeCaptionAccessible) {
-          // Move caption accessible so that it's the first child
-          nsCOMPtr<nsIAccessible> afterCaptionAccessible;
-          captionAccessible->GetNextSibling(getter_AddRefs(afterCaptionAccessible));
-          nsCOMPtr<nsPIAccessible> privateAcc = do_QueryInterface(beforeCaptionAccessible);
-          privateAcc->SetNextSibling(afterCaptionAccessible);
-          GetFirstChild(getter_AddRefs(afterCaptionAccessible));
-          SetFirstChild(captionAccessible);
-          privateAcc = do_QueryInterface(captionAccessible);
-          privateAcc->SetNextSibling(afterCaptionAccessible);        
-        }
-        // Don't check for more captions, because nsAccessibilityService ensures
-        // we don't create accessibles for the other captions, since only the
-        // first is actually visible
-        break;
-      }
-    }
-  }
 }
 
 /* unsigned long getRole (); */
@@ -195,12 +91,11 @@ NS_IMETHODIMP nsHTMLTableAccessible::GetRole(PRUint32 *aResult)
   return NS_OK;
 }
 
-NS_IMETHODIMP
-nsHTMLTableAccessible::GetState(PRUint32 *aState, PRUint32 *aExtraState)
+NS_IMETHODIMP nsHTMLTableAccessible::GetState(PRUint32 *aResult)
 {
-  nsresult rv= nsAccessible::GetState(aState, aExtraState);
-  NS_ENSURE_SUCCESS(rv, rv);
-  *aState |= nsIAccessibleStates::STATE_READONLY;
+  nsAccessible::GetState(aResult);
+  *aResult |= nsIAccessibleStates::STATE_READONLY;
+  *aResult &= ~nsIAccessibleStates::STATE_FOCUSABLE;   // Inherit all states except focusable state since tables cannot be focused
   return NS_OK;
 }
 
@@ -208,72 +103,108 @@ NS_IMETHODIMP nsHTMLTableAccessible::GetName(nsAString& aName)
 {
   aName.Truncate();  // Default name is blank
 
-  nsAccessible::GetName(aName);
-  if (aName.IsEmpty()) {
-    nsCOMPtr<nsIContent> content(do_QueryInterface(mDOMNode));
-    if (content) { 
-      content->GetAttr(kNameSpaceID_None, nsAccessibilityAtoms::summary, aName);
+  if (mRoleMapEntry) {
+    nsAccessible::GetName(aName);
+    if (!aName.IsEmpty()) {
+      return NS_OK;
     }
   }
 
+  nsCOMPtr<nsIDOMElement> element(do_QueryInterface(mDOMNode));
+  if (element) {
+    nsCOMPtr<nsIDOMNodeList> captions;
+    nsAutoString nameSpaceURI;
+    element->GetNamespaceURI(nameSpaceURI);
+    element->GetElementsByTagNameNS(nameSpaceURI, NS_LITERAL_STRING("caption"), 
+                                    getter_AddRefs(captions));
+    if (captions) {
+      nsCOMPtr<nsIDOMNode> captionNode;
+      captions->Item(0, getter_AddRefs(captionNode));
+      if (captionNode) {
+        nsCOMPtr<nsIContent> captionContent(do_QueryInterface(captionNode));
+        AppendFlatStringFromSubtree(captionContent, &aName);
+      }
+    }
+    if (aName.IsEmpty()) {
+      nsCOMPtr<nsIContent> content(do_QueryInterface(element));
+      NS_ASSERTION(content, "No content for DOM element");
+      content->GetAttr(kNameSpaceID_None, nsAccessibilityAtoms::summary, aName);
+    }
+  }
   return NS_OK;
 }
 
-nsresult
-nsHTMLTableAccessible::GetAttributesInternal(nsIPersistentProperties *aAttributes)
+NS_IMETHODIMP nsHTMLTableAccessible::GetAttributes(nsIPersistentProperties **aAttributes)
 {
   if (!mDOMNode) {
     return NS_ERROR_FAILURE;  // Node already shut down
   }
 
-  nsresult rv = nsAccessibleWrap::GetAttributesInternal(aAttributes);
+  nsresult rv = nsAccessibleWrap::GetAttributes(aAttributes);
   NS_ENSURE_SUCCESS(rv, rv);
   
   PRBool isProbablyForLayout;
   IsProbablyForLayout(&isProbablyForLayout);
   if (isProbablyForLayout) {
     nsAutoString oldValueUnused;
-    aAttributes->SetStringProperty(NS_LITERAL_CSTRING("layout-guess"),
-                                   NS_LITERAL_STRING("true"), oldValueUnused);
+    (*aAttributes)->SetStringProperty(NS_LITERAL_CSTRING("layout-guess"), NS_LITERAL_STRING("true"), oldValueUnused);
   }
   
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsHTMLTableAccessible::GetAccessibleRelated(PRUint32 aRelationType,
-                                            nsIAccessible **aRelated)
-{
-  NS_ENSURE_ARG_POINTER(aRelated);
-  *aRelated = nsnull;
-
-  if (!mDOMNode) {
-    return NS_ERROR_FAILURE;
-  }
-
-  nsresult rv = nsAccessibleWrap::GetAccessibleRelated(aRelationType, aRelated);
-  if (NS_FAILED(rv) || *aRelated) {
-    // Either the node is shut down, or another relation mechanism has been used
-    return rv;
-  }
-
-  if (aRelationType == nsIAccessibleRelation::RELATION_DESCRIBED_BY) {
-    return GetCaption(aRelated);
-  }
-
-  return NS_OK;
-}
-
-
-NS_IMETHODIMP
 nsHTMLTableAccessible::GetCaption(nsIAccessible **aCaption)
 {
-  nsCOMPtr<nsIAccessible> firstChild;
-  GetFirstChild(getter_AddRefs(firstChild));
-  if (firstChild && Role(firstChild) == nsIAccessibleRole::ROLE_CAPTION) {
-    NS_ADDREF(*aCaption = firstChild);
-  }
-  return NS_OK;
+  *aCaption = nsnull;
+  nsresult rv = NS_OK;
+
+  nsCOMPtr<nsIDOMHTMLTableElement> table(do_QueryInterface(mDOMNode));
+  NS_ENSURE_TRUE(table, NS_ERROR_FAILURE);
+
+  nsCOMPtr<nsIDOMHTMLTableCaptionElement> caption;
+  rv = table->GetCaption(getter_AddRefs(caption));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIDOMNode> captionNode(do_QueryInterface(caption));
+  NS_ENSURE_TRUE(captionNode, NS_ERROR_FAILURE);
+
+  nsCOMPtr<nsIAccessibilityService>
+    accService(do_GetService("@mozilla.org/accessibilityService;1"));
+  NS_ENSURE_TRUE(accService, NS_ERROR_FAILURE);
+
+  accService->GetCachedAccessible(captionNode, mWeakShell, aCaption);
+  if (*aCaption)
+    return NS_OK;
+
+  accService->CreateHyperTextAccessible(captionNode, aCaption);
+  nsCOMPtr<nsPIAccessNode> accessNode(do_QueryInterface(*aCaption));
+  return accessNode ? accessNode->Init() : NS_ERROR_FAILURE;
+}
+
+NS_IMETHODIMP
+nsHTMLTableAccessible::SetCaption(nsIAccessible *aCaption)
+{
+  nsresult rv = NS_OK;
+
+  nsCOMPtr<nsIDOMHTMLTableElement> table(do_QueryInterface(mDOMNode));
+  NS_ENSURE_TRUE(table, NS_ERROR_FAILURE);
+
+  nsCOMPtr<nsIAccessNode> accessNode(do_QueryInterface(aCaption));
+  NS_ASSERTION(accessNode, "Unable to QI to nsIAccessNode");
+  nsCOMPtr<nsIDOMNode> domNode;
+  rv = accessNode->GetDOMNode(getter_AddRefs(domNode));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIDOMNode> newDOMNode;
+  rv = domNode->CloneNode(PR_TRUE, getter_AddRefs(newDOMNode));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIDOMHTMLTableCaptionElement>
+    captionElement(do_QueryInterface(newDOMNode));
+  NS_ENSURE_TRUE(captionElement, NS_ERROR_FAILURE);
+
+  return table->SetCaption(captionElement);
 }
 
 NS_IMETHODIMP
@@ -283,6 +214,15 @@ nsHTMLTableAccessible::GetSummary(nsAString &aSummary)
   NS_ENSURE_TRUE(table, NS_ERROR_FAILURE);
 
   return table->GetSummary(aSummary);
+}
+
+NS_IMETHODIMP
+nsHTMLTableAccessible::SetSummary(const nsAString &aSummary)
+{
+  nsCOMPtr<nsIDOMHTMLTableElement> table(do_QueryInterface(mDOMNode));
+  NS_ENSURE_TRUE(table, NS_ERROR_FAILURE);
+
+  return table->SetSummary(aSummary);
 }
 
 NS_IMETHODIMP
@@ -355,135 +295,6 @@ nsHTMLTableAccessible::GetRowHeader(nsIAccessibleTable **aRowHeader)
 {
   // Can not implement because there is no row header in html table
   return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP
-nsHTMLTableAccessible::GetSelectedCellsCount(PRUint32* aCount)
-{
-  NS_ENSURE_ARG_POINTER(aCount);
-  *aCount = 0;
-
-  PRInt32 rowsCount = 0;
-  nsresult rv = GetRows(&rowsCount);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  PRInt32 columnsCount = 0;
-  rv = GetColumns(&columnsCount);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  PRInt32 rowIndex;
-  for (rowIndex = 0; rowIndex < rowsCount; rowIndex++) {
-    PRInt32 columnIndex;
-    for (columnIndex = 0; columnIndex < columnsCount; columnIndex++) {
-      PRBool state = PR_FALSE;
-      rv = IsCellSelected(rowIndex, columnIndex, &state);
-      NS_ENSURE_SUCCESS(rv, rv);
-
-      if (state)
-        (*aCount)++;
-    }
-  }
-
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-nsHTMLTableAccessible::GetSelectedColumnsCount(PRUint32* aCount)
-{
-  NS_ENSURE_ARG_POINTER(aCount);
-  *aCount = 0;
-
-  PRInt32 count = 0;
-  nsresult rv = GetColumns(&count);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  PRInt32 index;
-  for (index = 0; index < count; index++) {
-    PRBool state = PR_FALSE;
-    rv = IsColumnSelected(index, &state);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    if (state)
-      (*aCount)++;
-  }
-
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-nsHTMLTableAccessible::GetSelectedRowsCount(PRUint32* aCount)
-{
-  NS_ENSURE_ARG_POINTER(aCount);
-  *aCount = 0;
-
-  PRInt32 count = 0;
-  nsresult rv = GetRows(&count);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  PRInt32 index;
-  for (index = 0; index < count; index++) {
-    PRBool state = PR_FALSE;
-    rv = IsRowSelected(index, &state);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    if (state)
-      (*aCount)++;
-  }
-
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-nsHTMLTableAccessible::GetSelectedCells(PRUint32 *aNumCells,
-                                        PRInt32 **aCells)
-{
-  NS_ENSURE_ARG_POINTER(aNumCells);
-  *aNumCells = 0;
-  NS_ENSURE_ARG_POINTER(aCells);
-  *aCells = nsnull;
-
-  PRInt32 rowsCount = 0;
-  nsresult rv = GetRows(&rowsCount);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  PRInt32 columnsCount = 0;
-  rv = GetColumns(&columnsCount);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  PRInt32 cellsCount = columnsCount * rowsCount;
-  nsAutoArrayPtr<PRBool> states(new PRBool[cellsCount]);
-  NS_ENSURE_TRUE(states, NS_ERROR_OUT_OF_MEMORY);
-
-  PRInt32 rowIndex, index;
-  for (rowIndex = 0, index = 0; rowIndex < rowsCount; rowIndex++) {
-    PRInt32 columnIndex;
-    for (columnIndex = 0; columnIndex < columnsCount; columnIndex++, index++) {
-      rv = IsCellSelected(rowIndex, columnIndex, &states[index]);
-      NS_ENSURE_SUCCESS(rv, rv);
-
-      if (states[index])
-        (*aNumCells)++;
-    }
-  }
-
-  PRInt32 *cellsArray =
-    (PRInt32 *)nsMemory::Alloc((*aNumCells) * sizeof(PRInt32));
-  NS_ENSURE_TRUE(cellsArray, NS_ERROR_OUT_OF_MEMORY);
-
-  PRInt32 curr = 0;
-  for (rowIndex = 0, index = 0; rowIndex < rowsCount; rowIndex++) {
-    PRInt32 columnIndex;
-    for (columnIndex = 0; columnIndex < columnsCount; columnIndex++, index++) {
-      if (states[index]) {
-        PRInt32 cellIndex = -1;
-        GetIndexAt(rowIndex, columnIndex, &cellIndex);
-        cellsArray[curr++] = cellIndex;
-      }
-    }
-  }
-
-  *aCells = cellsArray;
-  return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -573,8 +384,6 @@ NS_IMETHODIMP
 nsHTMLTableAccessible::CellRefAt(PRInt32 aRow, PRInt32 aColumn,
                                  nsIAccessible **aTableCellAccessible)
 {
-  NS_ENSURE_TRUE(IsValidRow(aRow) && IsValidColumn(aColumn), NS_ERROR_INVALID_ARG);
-
   nsresult rv = NS_OK;
 
   nsCOMPtr<nsIDOMElement> cellElement;
@@ -591,51 +400,57 @@ nsHTMLTableAccessible::CellRefAt(PRInt32 aRow, PRInt32 aColumn,
 
 NS_IMETHODIMP
 nsHTMLTableAccessible::GetIndexAt(PRInt32 aRow, PRInt32 aColumn,
-                                  PRInt32 *aIndex)
+                                  PRInt32 *_retval)
 {
-  NS_ENSURE_ARG_POINTER(aIndex);
+  NS_ENSURE_ARG_POINTER(_retval);
 
-  NS_ENSURE_TRUE(IsValidRow(aRow) && IsValidColumn(aColumn), NS_ERROR_INVALID_ARG);
+  nsresult rv = NS_OK;
 
-  nsITableLayout *tableLayout = nsnull;
-  nsresult rv = GetTableLayout(&tableLayout);
+  PRInt32 columns;
+  rv = GetColumns(&columns);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  return tableLayout->GetIndexByRowAndColumn(aRow, aColumn, aIndex);
+  *_retval = aRow * columns + aColumn;
+
+  return NS_OK;
 }
 
 NS_IMETHODIMP
-nsHTMLTableAccessible::GetColumnAtIndex(PRInt32 aIndex, PRInt32 *aColumn)
+nsHTMLTableAccessible::GetColumnAtIndex(PRInt32 aIndex, PRInt32 *_retval)
 {
-  NS_ENSURE_ARG_POINTER(aColumn);
+  NS_ENSURE_ARG_POINTER(_retval);
 
-  nsITableLayout *tableLayout = nsnull;
-  nsresult rv = GetTableLayout(&tableLayout);
+  nsresult rv = NS_OK;
+
+  PRInt32 columns;
+  rv = GetColumns(&columns);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRInt32 row;
-  return tableLayout->GetRowAndColumnByIndex(aIndex, &row, aColumn);
+  *_retval = aIndex % columns;
+
+  return NS_OK;
 }
 
 NS_IMETHODIMP
-nsHTMLTableAccessible::GetRowAtIndex(PRInt32 aIndex, PRInt32 *aRow)
+nsHTMLTableAccessible::GetRowAtIndex(PRInt32 aIndex, PRInt32 *_retval)
 {
-  NS_ENSURE_ARG_POINTER(aRow);
+  NS_ENSURE_ARG_POINTER(_retval);
 
-  nsITableLayout *tableLayout = nsnull;
-  nsresult rv = GetTableLayout(&tableLayout);
+  nsresult rv = NS_OK;
+
+  PRInt32 columns;
+  rv = GetColumns(&columns);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRInt32 column;
-  return tableLayout->GetRowAndColumnByIndex(aIndex, aRow, &column);
+  *_retval = aIndex / columns;
+
+  return NS_OK;
 }
 
 NS_IMETHODIMP
 nsHTMLTableAccessible::GetColumnExtentAt(PRInt32 aRow, PRInt32 aColumn,
                                          PRInt32 *_retval)
 {
-  NS_ENSURE_TRUE(IsValidRow(aRow) && IsValidColumn(aColumn), NS_ERROR_INVALID_ARG);
-
   nsresult rv = NS_OK;
 
   nsCOMPtr<nsIDOMElement> domElement;
@@ -652,8 +467,6 @@ NS_IMETHODIMP
 nsHTMLTableAccessible::GetRowExtentAt(PRInt32 aRow, PRInt32 aColumn,
                                       PRInt32 *_retval)
 {
-  NS_ENSURE_TRUE(IsValidRow(aRow) && IsValidColumn(aColumn), NS_ERROR_INVALID_ARG);
-
   nsresult rv = NS_OK;
 
   nsCOMPtr<nsIDOMElement> domElement;
@@ -683,8 +496,6 @@ nsHTMLTableAccessible::IsColumnSelected(PRInt32 aColumn, PRBool *_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
 
-  NS_ENSURE_TRUE(IsValidColumn(aColumn), NS_ERROR_INVALID_ARG);
-
   nsresult rv = NS_OK;
 
   PRInt32 rows;
@@ -707,8 +518,6 @@ nsHTMLTableAccessible::IsRowSelected(PRInt32 aRow, PRBool *_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
 
-  NS_ENSURE_TRUE(IsValidRow(aRow), NS_ERROR_INVALID_ARG);
-
   nsresult rv = NS_OK;
 
   PRInt32 columns;
@@ -728,15 +537,9 @@ nsHTMLTableAccessible::IsRowSelected(PRInt32 aRow, PRBool *_retval)
 
 NS_IMETHODIMP
 nsHTMLTableAccessible::IsCellSelected(PRInt32 aRow, PRInt32 aColumn,
-                                      PRBool *aIsSelected)
+                                      PRBool *_retval)
 {
-  NS_ENSURE_ARG_POINTER(aIsSelected);
-  *aIsSelected = PR_FALSE;
-
-  NS_ENSURE_TRUE(IsValidRow(aRow) && IsValidColumn(aColumn),
-                 NS_ERROR_INVALID_ARG);
-
-  nsITableLayout *tableLayout = nsnull;
+  nsITableLayout *tableLayout;
   nsresult rv = GetTableLayout(&tableLayout);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -744,146 +547,11 @@ nsHTMLTableAccessible::IsCellSelected(PRInt32 aRow, PRInt32 aColumn,
   PRInt32 startRowIndex = 0, startColIndex = 0,
           rowSpan, colSpan, actualRowSpan, actualColSpan;
 
-  rv = tableLayout->GetCellDataAt(aRow, aColumn, *getter_AddRefs(domElement),
-                                  startRowIndex, startColIndex,
-                                  rowSpan, colSpan,
-                                  actualRowSpan, actualColSpan, *aIsSelected);
-
-  if (rv == NS_TABLELAYOUT_CELL_NOT_FOUND)
-    return NS_ERROR_INVALID_ARG;
-  return rv;
-}
-
-PRBool
-nsHTMLTableAccessible::IsValidColumn(PRInt32 aColumn)
-{
-  PRInt32 colCount = 0;
-  nsresult rv = GetColumns(&colCount);
-  return NS_SUCCEEDED(rv) && (aColumn >= 0) && (aColumn < colCount);
-}
-
-PRBool
-nsHTMLTableAccessible::IsValidRow(PRInt32 aRow)
-{
-  PRInt32 rowCount = 0;
-  nsresult rv = GetRows(&rowCount);
-  return NS_SUCCEEDED(rv) && (aRow >= 0) && (aRow < rowCount);
-}
-
-NS_IMETHODIMP
-nsHTMLTableAccessible::SelectRow(PRInt32 aRow)
-{
-  return SelectRowOrColumn(aRow, nsISelectionPrivate::TABLESELECTION_ROW,
-                           PR_TRUE);
-}
-
-NS_IMETHODIMP
-nsHTMLTableAccessible::SelectColumn(PRInt32 aColumn)
-{
-  return SelectRowOrColumn(aColumn, nsISelectionPrivate::TABLESELECTION_COLUMN,
-                           PR_TRUE);
-}
-
-NS_IMETHODIMP
-nsHTMLTableAccessible::UnselectRow(PRInt32 aRow)
-{
-  return SelectRowOrColumn(aRow, nsISelectionPrivate::TABLESELECTION_ROW,
-                           PR_FALSE);
-}
-
-NS_IMETHODIMP
-nsHTMLTableAccessible::UnselectColumn(PRInt32 aColumn)
-{
-  return SelectRowOrColumn(aColumn, nsISelectionPrivate::TABLESELECTION_COLUMN,
-                           PR_FALSE);
-}
-
-nsresult
-nsHTMLTableAccessible::SelectRowOrColumn(PRInt32 aIndex, PRUint32 aTarget,
-                                         PRBool aDoSelect)
-{
-  PRBool doSelectRow = (aTarget == nsISelectionPrivate::TABLESELECTION_ROW);
-
-  nsCOMPtr<nsIContent> content(do_QueryInterface(mDOMNode));
-  if (!content)
-    return NS_OK;
-
-  nsCOMPtr<nsIDocument> document = content->GetCurrentDoc();
-  NS_ENSURE_STATE(document);
-
-  nsCOMPtr<nsISelectionController> selController(
-    do_QueryInterface(document->GetPrimaryShell()));
-  NS_ENSURE_STATE(selController);
-
-  nsCOMPtr<nsISelection> selection;
-  selController->GetSelection(nsISelectionController::SELECTION_NORMAL,
-                              getter_AddRefs(selection));
-  NS_ENSURE_STATE(selection);
-
-  PRInt32 count = 0;
-  nsresult rv = doSelectRow ? GetColumns(&count) : GetRows(&count);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  for (PRInt32 index = 0; index < count; index++) {
-    nsCOMPtr<nsIDOMElement> cellElm;
-    PRInt32 column = doSelectRow ? index : aIndex;
-    PRInt32 row = doSelectRow ? aIndex : index;
-
-    rv = GetCellAt(row, column, *getter_AddRefs(cellElm));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    rv = SelectCell(selection, document, cellElm, aDoSelect);
-    NS_ENSURE_SUCCESS(rv, rv);
-  }
-  
-  return NS_OK;
-}
-
-nsresult
-nsHTMLTableAccessible::SelectCell(nsISelection *aSelection,
-                                  nsIDocument *aDocument,
-                                  nsIDOMElement *aCellElement,
-                                  PRBool aDoSelect)
-{
-  if (aDoSelect) {
-    nsCOMPtr<nsIDOMDocumentRange> documentRange(do_QueryInterface(aDocument));
-    NS_ENSURE_STATE(documentRange);
-
-    nsCOMPtr<nsIDOMRange> range;
-    documentRange->CreateRange(getter_AddRefs(range));
-
-    nsCOMPtr<nsIDOMNode> cellNode(do_QueryInterface(aCellElement));
-    NS_ENSURE_STATE(cellNode);
-
-    range->SelectNode(cellNode);
-    return aSelection->AddRange(range);
-  }
-
-  nsCOMPtr<nsIContent> cell(do_QueryInterface(aCellElement));
-  NS_ENSURE_STATE(cell);
-
-  nsCOMPtr<nsIContent> cellParent = cell->GetParent();
-  NS_ENSURE_STATE(cellParent);
-
-  PRInt32 offset = cellParent->IndexOf(cell);
-  NS_ENSURE_STATE(offset != -1);
-
-  nsCOMPtr<nsIDOMNode> parent(do_QueryInterface(cellParent));
-  NS_ENSURE_STATE(parent);
-
-  nsCOMPtr<nsISelection2> selection2(do_QueryInterface(aSelection));
-  NS_ENSURE_STATE(selection2);
-
-  nsCOMArray<nsIDOMRange> ranges;
-  nsresult rv = selection2->GetRangesForIntervalCOMArray(parent, offset,
-                                                         parent, offset,
-                                                         PR_TRUE, &ranges);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  for (PRInt32 i = 0; i < ranges.Count(); i ++)
-    aSelection->RemoveRange(ranges[i]);
-
-  return NS_OK;
+  return tableLayout->GetCellDataAt(aRow, aColumn,
+                                    *getter_AddRefs(domElement),
+                                    startRowIndex, startColIndex, rowSpan,
+                                    colSpan, actualRowSpan, actualColSpan,
+                                    *_retval);
 }
 
 nsresult
@@ -913,22 +581,26 @@ nsHTMLTableAccessible::GetTableNode(nsIDOMNode **_retval)
 }
 
 nsresult
-nsHTMLTableAccessible::GetTableLayout(nsITableLayout **aTableLayout)
+nsHTMLTableAccessible::GetTableLayout(nsITableLayout **aLayoutObject)
 {
-  *aTableLayout = nsnull;
+  *aLayoutObject = nsnull;
+
+  nsresult rv = NS_OK;
 
   nsCOMPtr<nsIDOMNode> tableNode;
-  GetTableNode(getter_AddRefs(tableNode));
-  nsCOMPtr<nsIContent> tableContent(do_QueryInterface(tableNode));
-  if (!tableContent) {
-    return NS_ERROR_FAILURE; // Table shut down
-  }
+  rv = GetTableNode(getter_AddRefs(tableNode));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIPresShell> shell = GetPresShell();
-  NS_ENSURE_TRUE(shell, NS_ERROR_FAILURE);
+  nsCOMPtr<nsIContent> content(do_QueryInterface(tableNode));
+  NS_ENSURE_TRUE(content, NS_ERROR_FAILURE);
 
-  nsIFrame *frame = shell->GetPrimaryFrameFor(tableContent);
-  return frame ? CallQueryInterface(frame, aTableLayout) : NS_ERROR_FAILURE;
+  nsIPresShell *presShell = content->GetDocument()->GetShellAt(0);
+
+  nsCOMPtr<nsISupports> layoutObject;
+  rv = presShell->GetLayoutObjectFor(content, getter_AddRefs(layoutObject));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return CallQueryInterface(layoutObject, aLayoutObject);
 }
 
 nsresult
@@ -940,55 +612,33 @@ nsHTMLTableAccessible::GetCellAt(PRInt32        aRowIndex,
           rowSpan, colSpan, actualRowSpan, actualColSpan;
   PRBool isSelected;
 
-  nsITableLayout *tableLayout = nsnull;
+  nsITableLayout *tableLayout;
   nsresult rv = GetTableLayout(&tableLayout);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = tableLayout->GetCellDataAt(aRowIndex, aColIndex, aCell,
-                                  startRowIndex, startColIndex,
-                                  rowSpan, colSpan,
-                                  actualRowSpan, actualColSpan, isSelected);
-
-  if (rv == NS_TABLELAYOUT_CELL_NOT_FOUND)
-    return NS_ERROR_INVALID_ARG;
-  return rv;
+  return tableLayout->GetCellDataAt(aRowIndex, aColIndex, aCell,
+                                    startRowIndex, startColIndex,
+                                    rowSpan, colSpan,
+                                    actualRowSpan, actualColSpan,
+                                    isSelected);
 }
 
+#ifdef SHOW_LAYOUT_HEURISTIC
 NS_IMETHODIMP nsHTMLTableAccessible::GetDescription(nsAString& aDescription)
 {
   // Helpful for debugging layout vs. data tables
   aDescription.Truncate();
-  nsAccessible::GetDescription(aDescription);
-  if (!aDescription.IsEmpty()) {
-    return NS_OK;
-  }
-
-  nsCOMPtr<nsIAccessible> captionAccessible;
-  GetCaption(getter_AddRefs(captionAccessible));
-  nsCOMPtr<nsIAccessNode> captionAccessNode = do_QueryInterface(captionAccessible);
-  if (captionAccessNode) {
-    nsCOMPtr<nsIDOMNode> captionNode;
-    captionAccessNode->GetDOMNode(getter_AddRefs(captionNode));
-    nsCOMPtr<nsIContent> captionContent = do_QueryInterface(captionNode);
-    if (captionContent) {
-      AppendFlatStringFromSubtree(captionContent, &aDescription);
-    }
-  }
-#ifdef SHOW_LAYOUT_HEURISTIC
-  if (aDescription.IsEmpty()) {
-    PRBool isProbablyForLayout;
-    IsProbablyForLayout(&isProbablyForLayout);
-    aDescription = mLayoutHeuristic;
-  }
+  PRBool isProbablyForLayout;
+  IsProbablyForLayout(&isProbablyForLayout);
+  aDescription = mLayoutHeuristic;
 #ifdef DEBUG_A11Y
   printf("\nTABLE: %s\n", NS_ConvertUTF16toUTF8(mLayoutHeuristic).get());
 #endif
-#endif
-
   return NS_OK;
 }
+#endif
 
-PRBool nsHTMLTableAccessible::HasDescendant(char *aTagName, PRBool aAllowEmpty)
+PRBool nsHTMLTableAccessible::HasDescendant(char *aTagName)
 {
   nsCOMPtr<nsIDOMElement> tableElt(do_QueryInterface(mDOMNode));
   NS_ENSURE_TRUE(tableElt, PR_FALSE);
@@ -997,34 +647,15 @@ PRBool nsHTMLTableAccessible::HasDescendant(char *aTagName, PRBool aAllowEmpty)
   nsAutoString tagName;
   tagName.AssignWithConversion(aTagName);
   tableElt->GetElementsByTagName(tagName, getter_AddRefs(nodeList));
-  NS_ENSURE_TRUE(nodeList, PR_FALSE);
+  NS_ENSURE_TRUE(nodeList, NS_ERROR_FAILURE);
   PRUint32 length;
   nodeList->GetLength(&length);
   
   if (length == 1) {
     // Make sure it's not the table itself
-    nsCOMPtr<nsIDOMNode> foundItem;
-    nodeList->Item(0, getter_AddRefs(foundItem));
-    if (foundItem == mDOMNode) {
-      return PR_FALSE;
-    }
-    if (!aAllowEmpty) {
-      // Make sure that the item we found has contents
-      // and either has multiple children or the
-      // found item is not a whitespace-only text node
-      nsCOMPtr<nsIContent> foundItemContent = do_QueryInterface(foundItem);
-      if (!foundItemContent) {
-        return PR_FALSE;
-      }
-      if (foundItemContent->GetChildCount() > 1) {
-        return PR_TRUE; // Treat multiple child nodes as non-empty
-      }
-      nsIContent *innerItemContent = foundItemContent->GetChildAt(0);
-      if (!innerItemContent || innerItemContent->TextIsOnlyWhitespace()) {
-        return PR_FALSE;
-      }
-    }
-    return PR_TRUE;
+    nsCOMPtr<nsIDOMNode> firstItem;
+    nodeList->Item(0, getter_AddRefs(firstItem));
+    return firstItem != mDOMNode;
   }
 
   return length > 0;
@@ -1056,30 +687,19 @@ NS_IMETHODIMP nsHTMLTableAccessible::IsProbablyForLayout(PRBool *aIsProbablyForL
     return NS_ERROR_FAILURE; // Table shut down
   }
 
-  nsCOMPtr<nsIAccessible> docAccessible = do_QueryInterface(nsCOMPtr<nsIAccessibleDocument>(GetDocAccessible()));
-  if (docAccessible) {
-    PRUint32 state, extState;
-    docAccessible->GetFinalState(&state, &extState);
-    if (extState & nsIAccessibleStates::EXT_STATE_EDITABLE) {  // Need to see all elements while document is being edited
-      RETURN_LAYOUT_ANSWER(PR_FALSE, "In editable document");
-    }
-  }
-
   // Check role and role attribute
   PRBool hasNonTableRole = (Role(this) != nsIAccessibleRole::ROLE_TABLE);
   if (hasNonTableRole) {
     RETURN_LAYOUT_ANSWER(PR_FALSE, "Has role attribute");
   }
 
-  if (content->HasAttr(kNameSpaceID_None, nsAccessibilityAtoms::role)) {
+  if (HasRoleAttribute(content)) {
     RETURN_LAYOUT_ANSWER(PR_TRUE, "Has role attribute, and role is table");
   }
   
   // Check for legitimate data table elements or attributes
-  nsAutoString summary;
-  if ((content->GetAttr(kNameSpaceID_None, nsAccessibilityAtoms::summary, summary) && !summary.IsEmpty()) || 
-      HasDescendant("caption", PR_FALSE) || HasDescendant("th") || HasDescendant("thead") ||
-      HasDescendant("tfoot")   || HasDescendant("colgroup")) {
+  if (content->HasAttr(kNameSpaceID_None, nsAccessibilityAtoms::summary) || HasDescendant("caption") || 
+      HasDescendant("th") || HasDescendant("thead") || HasDescendant("tfoot") || HasDescendant("colgroup")) {
     RETURN_LAYOUT_ANSWER(PR_FALSE, "Has caption, summary, th, thead, tfoot or colgroup -- legitimate table structures");
   }
   if (HasDescendant("table")) {
@@ -1106,16 +726,12 @@ NS_IMETHODIMP nsHTMLTableAccessible::IsProbablyForLayout(PRBool *aIsProbablyForL
   // Check to see if there are visible borders on the cells
   // XXX currently, we just check the first cell -- do we really need to do more?
   nsCOMPtr<nsIDOMElement> cellElement;
-  nsresult rv = GetCellAt(0, 0, *getter_AddRefs(cellElement));
-  NS_ENSURE_SUCCESS(rv, NS_ERROR_FAILURE);
-
+  GetCellAt(0, 0, *getter_AddRefs(cellElement));
   nsCOMPtr<nsIContent> cellContent(do_QueryInterface(cellElement));
   NS_ENSURE_TRUE(cellContent, NS_ERROR_FAILURE);
   nsCOMPtr<nsIPresShell> shell(GetPresShell());
   nsIFrame *cellFrame = shell->GetPrimaryFrameFor(cellContent);
-  if (!cellFrame) {
-    return NS_OK;
-  }
+  NS_ENSURE_TRUE(cellFrame, NS_ERROR_FAILURE);
   nsMargin border;
   cellFrame->GetBorder(border);
   if (border.top && border.bottom && border.left && border.right) {
@@ -1171,13 +787,11 @@ NS_IMETHODIMP nsHTMLTableAccessible::IsProbablyForLayout(PRBool *aIsProbablyForL
     nsIFrame *docFrame = docAccessNode->GetFrame();
     NS_ENSURE_TRUE(docFrame , NS_ERROR_FAILURE);
     nsSize docSize = docFrame->GetSize();
-    if (docSize.width > 0) {
-      PRInt32 percentageOfDocWidth = (100 * tableSize.width) / docSize.width;
-      if (percentageOfDocWidth > 95) {
-        // 3-4 columns, no borders, not a lot of rows, and 95% of the doc's width
-        // Probably for layout
-        RETURN_LAYOUT_ANSWER(PR_TRUE, "<=4 columns, width hardcoded in pixels and 95% of document width");
-      }
+    PRInt32 percentageOfDocWidth = (100 * tableSize.width) / docSize.width;
+    if (percentageOfDocWidth > 95) {
+      // 3-4 columns, no borders, not a lot of rows, and 95% of the doc's width
+      // Probably for layout
+      RETURN_LAYOUT_ANSWER(PR_TRUE, "<=4 columns, width hardcoded in pixels and 95% of document width");
     }
   }
 
@@ -1217,7 +831,19 @@ nsHTMLTableHeadAccessible::GetCaption(nsIAccessible **aCaption)
 }
 
 NS_IMETHODIMP
+nsHTMLTableHeadAccessible::SetCaption(nsIAccessible *aCaption)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP
 nsHTMLTableHeadAccessible::GetSummary(nsAString &aSummary)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP
+nsHTMLTableHeadAccessible::SetSummary(const nsAString &aSummary)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -1242,30 +868,4 @@ nsHTMLTableHeadAccessible::GetRows(PRInt32 *aRows)
 
   return rows->GetLength((PRUint32 *)aRows);
 }
-
-NS_IMETHODIMP
-nsHTMLCaptionAccessible::GetAccessibleRelated(PRUint32 aRelationType,
-                                              nsIAccessible **aRelated)
-{
-  NS_ENSURE_ARG_POINTER(aRelated);
-  *aRelated = nsnull;
-
-  if (!mDOMNode) {
-    return NS_ERROR_FAILURE;
-  }
-
-  nsresult rv = nsHyperTextAccessible::GetAccessibleRelated(aRelationType, aRelated);
-  if (NS_FAILED(rv) || *aRelated) {
-    // Either the node is shut down, or another relation mechanism has been used
-    return rv;
-  }
-
-  if (aRelationType == nsIAccessibleRelation::RELATION_DESCRIPTION_FOR) {
-    return GetParent(aRelated);
-  }
-
-  return NS_OK;
-}
-
-
 

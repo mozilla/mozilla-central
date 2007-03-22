@@ -22,9 +22,12 @@
 #ifndef CAIRO_FREELIST_H
 #define CAIRO_FREELIST_H
 
-#include "cairo-types-private.h"
+#include "cairoint.h"
+#include <stddef.h>
 
 /* Opaque implementation types. */
+struct _cairo_freelist;
+struct _cairo_freelist_node;
 typedef struct _cairo_freelist cairo_freelist_t;
 typedef struct _cairo_freelist_node cairo_freelist_node_t;
 
@@ -50,14 +53,14 @@ _cairo_freelist_fini (cairo_freelist_t *freelist);
 /* Allocate a new node from the freelist.  If the freelist contains no
  * nodes, a new one will be allocated using malloc().  The caller is
  * responsible for calling _cairo_freelist_free() or free() on the
- * returned node.  Returns %NULL on memory allocation error. */
+ * returned node.  Returns NULL on memory allocation error. */
 cairo_private void *
 _cairo_freelist_alloc (cairo_freelist_t *freelist);
 
 /* Allocate a new node from the freelist.  If the freelist contains no
  * nodes, a new one will be allocated using calloc().  The caller is
  * responsible for calling _cairo_freelist_free() or free() on the
- * returned node.  Returns %NULL on memory allocation error. */
+ * returned node.  Returns NULL on memory allocation error. */
 cairo_private void *
 _cairo_freelist_calloc (cairo_freelist_t *freelist);
 

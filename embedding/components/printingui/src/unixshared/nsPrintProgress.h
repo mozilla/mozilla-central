@@ -41,7 +41,6 @@
 #define __nsPrintProgress_h
 
 #include "nsIPrintProgress.h"
-#include "nsIPrintingPromptService.h"
 
 #include "nsCOMPtr.h"
 #include "nsISupportsArray.h"
@@ -58,7 +57,7 @@ public:
   NS_DECL_NSIWEBPROGRESSLISTENER
   NS_DECL_NSIPRINTSTATUSFEEDBACK
 
-	nsPrintProgress(nsIPrintSettings* aPrintSettings);
+	nsPrintProgress();
 	virtual ~nsPrintProgress();
 
 private:
@@ -72,7 +71,6 @@ private:
   nsCOMPtr<nsIDOMWindowInternal>    m_dialog;
   nsCOMPtr<nsISupportsArray>        m_listenerList;
   nsCOMPtr<nsIObserver>             m_observer;
-  nsCOMPtr<nsIPrintSettings>        m_PrintSetting;
 };
 
 #endif

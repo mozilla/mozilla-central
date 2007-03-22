@@ -273,6 +273,17 @@ function forceInteger(elementID)
   }
 }
 
+function LimitStringLength(elementID, length)
+{
+  var editField = document.getElementById( elementID );
+  if ( !editField )
+    return;
+
+  var stringIn = editField.value;
+  if (stringIn && stringIn.length > length)
+    editField.value = stringIn.slice(0,length);
+}
+
 function InitPixelOrPercentMenulist(elementForAtt, elementInDoc, attribute, menulistID, defaultIndex)
 {
   if (!defaultIndex) defaultIndex = gPixel;

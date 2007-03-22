@@ -177,7 +177,7 @@ nsNotifyAddrListener::Observe(nsISupports *subject,
                               const char *topic,
                               const PRUnichar *data)
 {
-    if (!strcmp("xpcom-shutdown-threads", topic))
+    if (!strcmp(NS_XPCOM_SHUTDOWN_OBSERVER_ID, topic))
         Shutdown();
 
     return NS_OK;
@@ -203,7 +203,7 @@ nsNotifyAddrListener::Init(void)
         do_GetService("@mozilla.org/observer-service;1", &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    rv = observerService->AddObserver(this, "xpcom-shutdown-threads",
+    rv = observerService->AddObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID,
                                       PR_FALSE);
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -223,7 +223,7 @@ nsNotifyAddrListener::Shutdown(void)
     nsCOMPtr<nsIObserverService> observerService =
         do_GetService("@mozilla.org/observer-service;1");
     if (observerService)
-        observerService->RemoveObserver(this, "xpcom-shutdown-threads");
+        observerService->RemoveObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID);
 
     if (!mShutdownEvent)
         return NS_OK;

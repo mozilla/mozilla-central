@@ -1,3 +1,0 @@
-Apparently *this* file controls clobbering cb-xserve01, whereas all the other boxen have their CLOBBER files in their respective directories.
-
-Clobbering AGAIN to get rid of existing feedhandlers unify doesn't like (bug 355748)

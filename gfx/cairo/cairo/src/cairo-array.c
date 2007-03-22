@@ -40,7 +40,7 @@
 /**
  * _cairo_array_init:
  *
- * Initialize a new #cairo_array_t object to store objects each of size
+ * Initialize a new cairo_array object to store objects each of size
  * @element_size.
  *
  * The #cairo_array_t object provides grow-by-doubling storage. It
@@ -110,18 +110,14 @@ _cairo_array_fini (cairo_array_t *array)
  * is always increased by doubling as many times as necessary.
  **/
 cairo_status_t
-_cairo_array_grow_by (cairo_array_t *array, unsigned int additional)
+_cairo_array_grow_by (cairo_array_t *array, int additional)
 {
     char *new_elements;
-    unsigned int old_size = array->size;
-    unsigned int required_size = array->num_elements + additional;
-    unsigned int new_size;
+    int old_size = array->size;
+    int required_size = array->num_elements + additional;
+    int new_size;
 
     assert (! array->is_snapshot);
-
-    /* check for integer overflow */
-    if (required_size > INT_MAX || required_size < array->num_elements)
-	return _cairo_error (CAIRO_STATUS_NO_MEMORY);
 
     if (required_size <= old_size)
 	return CAIRO_STATUS_SUCCESS;
@@ -137,18 +133,17 @@ _cairo_array_grow_by (cairo_array_t *array, unsigned int additional)
     if (array->elements == NULL) {
 	array->elements = malloc (sizeof (char *));
 	if (array->elements == NULL)
-	    return _cairo_error (CAIRO_STATUS_NO_MEMORY);
-
+	    return CAIRO_STATUS_NO_MEMORY;
 	*array->elements = NULL;
     }
 
     array->size = new_size;
-    new_elements = _cairo_realloc_ab (*array->elements,
-			              array->size, array->element_size);
+    new_elements = realloc (*array->elements,
+			    array->size * array->element_size);
 
     if (new_elements == NULL) {
 	array->size = old_size;
-	return _cairo_error (CAIRO_STATUS_NO_MEMORY);
+	return CAIRO_STATUS_NO_MEMORY;
     }
 
     *array->elements = new_elements;
@@ -181,7 +176,7 @@ _cairo_array_truncate (cairo_array_t *array, unsigned int num_elements)
  * pointer may be used for further direct indexing with []. For
  * example:
  *
- * 	#cairo_array_t array;
+ * 	cairo_array_t array;
  *	double *values;
  *
  *	_cairo_array_init (&array, sizeof(double));
@@ -235,7 +230,7 @@ _cairo_array_copy_element (cairo_array_t *array, int index, void *dst)
  *
  * _cairo_array_index (array, _cairo_array_num_elements (array) - 1);
  *
- * Return value: %CAIRO_STATUS_SUCCESS if successful or
+ * Return value: CAIRO_STATUS_SUCCESS if successful or
  * CAIRO_STATUS_NO_MEMORY if insufficient memory is available for the
  * operation.
  **/
@@ -255,7 +250,7 @@ _cairo_array_append (cairo_array_t	*array,
  * @num_elements, then copying @num_elements * element_size bytes from
  * @elements into the array.
  *
- * Return value: %CAIRO_STATUS_SUCCESS if successful or
+ * Return value: CAIRO_STATUS_SUCCESS if successful or
  * CAIRO_STATUS_NO_MEMORY if insufficient memory is available for the
  * operation.
  **/
@@ -286,7 +281,7 @@ _cairo_array_append_multiple (cairo_array_t	*array,
  * @elements. This memory will be unitialized, but will be accounted
  * for in the return value of _cairo_array_num_elements().
  *
- * Return value: %CAIRO_STATUS_SUCCESS if successful or
+ * Return value: CAIRO_STATUS_SUCCESS if successful or
  * CAIRO_STATUS_NO_MEMORY if insufficient memory is available for the
  * operation.
  **/
@@ -335,7 +330,7 @@ _cairo_array_size (cairo_array_t *array)
     return array->size;
 }
 
-/* #cairo_user_data_array_t */
+/* cairo_user_data_array_t */
 
 typedef struct {
     const cairo_user_data_key_t *key;
@@ -400,7 +395,8 @@ _cairo_user_data_array_get_data (cairo_user_data_array_t     *array,
     int i, num_slots;
     cairo_user_data_slot_t *slots;
 
-    /* We allow this to support degenerate objects such as cairo_surface_nil. */
+    /* We allow this to support degenerate objects such as
+     * cairo_image_surface_nil. */
     if (array == NULL)
 	return NULL;
 

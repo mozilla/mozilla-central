@@ -42,7 +42,7 @@
 #include "nsIDOMMouseListener.h"
 #include "nsIDOMKeyListener.h"
 #include "nsIDOMFocusListener.h"
-#include "nsIDOMEventTarget.h"
+#include "nsIDOMEventReceiver.h"
 
 class nsMenuBarFrame;
 class nsPresContext;
@@ -86,10 +86,6 @@ protected:
   static void InitAccessKey();
 
   static PRUint32 GetModifiers(nsIDOMKeyEvent* event);
-
-  // This should only be called by the nsMenuBarListener during event dispatch,
-  // thus ensuring that this doesn't get destroyed during the process.
-  void ToggleMenuActiveState();
 
   nsMenuBarFrame* mMenuBarFrame; // The menu bar object.
   PRBool mAccessKeyDown;         // Whether or not the ALT key is currently down.

@@ -99,6 +99,7 @@
 #include "nsITextControlFrame.h"
 #include "nsINameSpaceManager.h"
 #include "nsIPercentHeightObserver.h"
+#include "nsTextTransformer.h"
 
 #ifdef IBMBIDI
 #include "nsBidiPresUtils.h"
@@ -106,6 +107,9 @@
 
 // For triple-click pref
 #include "nsIServiceManager.h"
+#ifndef MOZ_CAIRO_GFX
+#include "nsISelectionImageService.h"
+#endif
 #include "imgIContainer.h"
 #include "imgIRequest.h"
 #include "gfxIImageFrame.h"
@@ -114,14 +118,16 @@
 #include "nsWidgetsCID.h"     // for NS_LOOKANDFEEL_CID
 #include "nsUnicharUtils.h"
 #include "nsLayoutErrors.h"
-#include "nsContentErrors.h"
 #include "nsHTMLContainerFrame.h"
 #include "nsBoxLayoutState.h"
 #include "nsBlockFrame.h"
 #include "nsDisplayList.h"
 
+#ifdef MOZ_CAIRO_GFX
 #include "gfxContext.h"
+#endif
 
+static NS_DEFINE_CID(kSelectionImageService, NS_SELECTIONIMAGESERVICE_CID);
 static NS_DEFINE_CID(kLookAndFeelCID,  NS_LOOKANDFEEL_CID);
 static NS_DEFINE_CID(kWidgetCID, NS_CHILD_CID);
 
@@ -210,6 +216,8 @@ nsIFrameDebug::GetVerifyTreeEnable()
     if (nsnull == gFrameVerifyTreeLogModuleInfo) {
       gFrameVerifyTreeLogModuleInfo = PR_NewLogModule("frameverifytree");
       gFrameVerifyTreeEnable = 0 != gFrameVerifyTreeLogModuleInfo->level;
+      printf("Note: frameverifytree is %sabled\n",
+             gFrameVerifyTreeEnable ? "en" : "dis");
     }
   }
   return gFrameVerifyTreeEnable;
@@ -232,6 +240,8 @@ nsIFrameDebug::GetVerifyStyleTreeEnable()
     if (nsnull == gStyleVerifyTreeLogModuleInfo) {
       gStyleVerifyTreeLogModuleInfo = PR_NewLogModule("styleverifytree");
       gStyleVerifyTreeEnable = 0 != gStyleVerifyTreeLogModuleInfo->level;
+      printf("Note: styleverifytree is %sabled\n",
+             gStyleVerifyTreeEnable ? "en" : "dis");
     }
   }
   return gStyleVerifyTreeEnable;
@@ -255,7 +265,7 @@ nsIFrameDebug::GetLogModuleInfo()
 void
 nsIFrameDebug::DumpFrameTree(nsIFrame* aFrame)
 {
-    RootFrameList(aFrame->PresContext(), stdout, 0);
+    RootFrameList(aFrame->GetPresContext(), stdout, 0);
 }
 
 void
@@ -279,24 +289,169 @@ nsIFrameDebug::RootFrameList(nsPresContext* aPresContext, FILE* out, PRInt32 aIn
 #endif
 // end nsIFrameDebug
 
-void
-NS_MergeReflowStatusInto(nsReflowStatus* aPrimary, nsReflowStatus aSecondary)
+#ifndef MOZ_CAIRO_GFX
+// frame image selection drawing service implementation
+class SelectionImageService : public nsISelectionImageService
 {
-  *aPrimary |= aSecondary &
-    (NS_FRAME_NOT_COMPLETE | NS_FRAME_OVERFLOW_INCOMPLETE |
-     NS_FRAME_TRUNCATED | NS_FRAME_REFLOW_NEXTINFLOW);
-  if (*aPrimary & NS_FRAME_NOT_COMPLETE) {
-    *aPrimary &= ~NS_FRAME_OVERFLOW_INCOMPLETE;
+public:
+  SelectionImageService();
+  virtual ~SelectionImageService();
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSISELECTIONIMAGESERVICE
+private:
+  nsresult CreateImage(nscolor aImageColor, imgIContainer *aContainer);
+  nsCOMPtr<imgIContainer> mContainer;
+  nsCOMPtr<imgIContainer> mDisabledContainer;
+};
+
+NS_IMPL_ISUPPORTS1(SelectionImageService, nsISelectionImageService)
+
+SelectionImageService::SelectionImageService()
+{
+}
+
+SelectionImageService::~SelectionImageService()
+{
+}
+
+NS_IMETHODIMP
+SelectionImageService::GetImage(PRInt16 aSelectionValue, imgIContainer **aContainer)
+{
+  *aContainer = nsnull;
+
+  nsCOMPtr<imgIContainer>* container = &mContainer;
+  nsILookAndFeel::nsColorID colorID;
+  if (aSelectionValue == nsISelectionController::SELECTION_ON) {
+    colorID = nsILookAndFeel::eColor_TextSelectBackground;
+  } else if (aSelectionValue == nsISelectionController::SELECTION_ATTENTION) {
+    colorID = nsILookAndFeel::eColor_TextSelectBackgroundAttention;
+  } else {
+    container = &mDisabledContainer;
+    colorID = nsILookAndFeel::eColor_TextSelectBackgroundDisabled;
   }
+
+  if (!*container) {
+    nsresult result;
+    *container = do_CreateInstance("@mozilla.org/image/container;1", &result);
+    if (NS_FAILED(result))
+      return result;
+
+    nscolor color = NS_RGB(255, 255, 255);
+    nsCOMPtr<nsILookAndFeel> look = do_GetService(kLookAndFeelCID);
+    if (look)
+      look->GetColor(colorID, color);
+    CreateImage(color, *container);
+  }
+
+  *aContainer = *container; 
+  NS_ADDREF(*aContainer);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+SelectionImageService::Reset()
+{
+  mContainer = 0;
+  mDisabledContainer = 0;
+  return NS_OK;
+}
+
+#define SEL_IMAGE_WIDTH 32
+#define SEL_IMAGE_HEIGHT 32
+#define SEL_ALPHA_AMOUNT 128
+
+nsresult
+SelectionImageService::CreateImage(nscolor aImageColor, imgIContainer *aContainer)
+{
+  if (aContainer)
+  {
+    nsresult result = aContainer->Init(SEL_IMAGE_WIDTH,SEL_IMAGE_HEIGHT,nsnull);
+    if (NS_SUCCEEDED(result))
+    {
+      nsCOMPtr<gfxIImageFrame> image = do_CreateInstance("@mozilla.org/gfx/image/frame;2",&result);
+      if (NS_SUCCEEDED(result) && image)
+      {
+        image->Init(0, 0, SEL_IMAGE_WIDTH, SEL_IMAGE_HEIGHT, gfxIFormats::RGB_A8, 24);
+        aContainer->AppendFrame(image);
+
+        PRUint32 bpr, abpr;
+        image->GetImageBytesPerRow(&bpr);
+        image->GetAlphaBytesPerRow(&abpr);
+
+        //it's better to temporarily go after heap than put big data on stack
+        unsigned char *row_data = (unsigned char *)malloc(bpr);
+        if (!row_data)
+          return NS_ERROR_OUT_OF_MEMORY;
+        unsigned char *alpha = (unsigned char *)malloc(abpr);
+        if (!alpha)
+        {
+          free (row_data);
+          return NS_ERROR_OUT_OF_MEMORY;
+        }
+        unsigned char *data = row_data;
+
+        PRInt16 i;
+        for (i = 0; i < SEL_IMAGE_WIDTH; i++)
+        {
+#if defined(XP_WIN) || defined(XP_OS2)
+          *data++ = NS_GET_B(aImageColor);
+          *data++ = NS_GET_G(aImageColor);
+          *data++ = NS_GET_R(aImageColor);
+#else
+#if defined(XP_MAC) || defined(XP_MACOSX)
+          *data++ = 0;
+#endif
+          *data++ = NS_GET_R(aImageColor);
+          *data++ = NS_GET_G(aImageColor);
+          *data++ = NS_GET_B(aImageColor);
+#endif
+        }
+
+        memset((void *)alpha, SEL_ALPHA_AMOUNT, abpr);
+
+        for (i = 0; i < SEL_IMAGE_HEIGHT; i++)
+        {
+          image->SetAlphaData(alpha, abpr, i*abpr);
+          image->SetImageData(row_data,  bpr, i*bpr);
+        }
+        free(row_data);
+        free(alpha);
+        return NS_OK;
+      }
+    } 
+  }
+  return NS_ERROR_FAILURE;
+}
+
+
+nsresult NS_NewSelectionImageService(nsISelectionImageService** aResult)
+{
+  *aResult = new SelectionImageService;
+  if (!*aResult)
+    return NS_ERROR_OUT_OF_MEMORY;
+  NS_ADDREF(*aResult);
+  return NS_OK;
+}
+#endif /* MOZ_CAIRO_GFX */
+
+//end selection service
+
+// a handy utility to set font
+void SetFontFromStyle(nsIRenderingContext* aRC, nsStyleContext* aSC) 
+{
+  const nsStyleFont* font = aSC->GetStyleFont();
+  const nsStyleVisibility* visibility = aSC->GetStyleVisibility();
+
+  aRC->SetFont(font->mFont, visibility->mLangGroup);
 }
 
 void
 nsWeakFrame::Init(nsIFrame* aFrame)
 {
-  Clear(mFrame ? mFrame->PresContext()->GetPresShell() : nsnull);
+  Clear(mFrame ? mFrame->GetPresContext()->GetPresShell() : nsnull);
   mFrame = aFrame;
   if (mFrame) {
-    nsIPresShell* shell = mFrame->PresContext()->GetPresShell();
+    nsIPresShell* shell = mFrame->GetPresContext()->GetPresShell();
     NS_WARN_IF_FALSE(shell, "Null PresShell in nsWeakFrame!");
     if (shell) {
       shell->AddWeakFrame(this);
@@ -364,26 +519,25 @@ nsFrame::~nsFrame()
 /////////////////////////////////////////////////////////////////////////////
 // nsISupports
 
-NS_IMETHODIMP
-nsFrame::QueryInterface(const nsIID& aIID, void** aInstancePtr)
+nsresult nsFrame::QueryInterface(const nsIID& aIID, void** aInstancePtr)
 {
   NS_PRECONDITION(aInstancePtr, "null out param");
 
 #ifdef DEBUG
   if (aIID.Equals(NS_GET_IID(nsIFrameDebug))) {
-    *aInstancePtr = static_cast<nsIFrameDebug*>(this);
+    *aInstancePtr = NS_STATIC_CAST(void*,NS_STATIC_CAST(nsIFrameDebug*,this));
     return NS_OK;
   }
 #endif
 
   if (aIID.Equals(NS_GET_IID(nsIFrame)) ||
       aIID.Equals(NS_GET_IID(nsISupports))) {
-    *aInstancePtr = static_cast<nsIFrame*>(this);
+    *aInstancePtr = NS_STATIC_CAST(void*,NS_STATIC_CAST(nsIFrame*,this));
     return NS_OK;
   }
 
   *aInstancePtr = nsnull;
-  return NS_ERROR_NO_INTERFACE;
+  return NS_NOINTERFACE;
 }
 
 nsrefcnt nsFrame::AddRef(void)
@@ -406,7 +560,6 @@ nsFrame::Init(nsIContent*      aContent,
               nsIFrame*        aParent,
               nsIFrame*        aPrevInFlow)
 {
-  NS_PRECONDITION(!mContent, "Double-initing a frame?");
   NS_ASSERTION(IsFrameOfType(eDEBUGAllFrames) &&
                !IsFrameOfType(eDEBUGNoFrames),
                "IsFrameOfType implementation that doesn't call base class");
@@ -489,7 +642,7 @@ nsFrame::Destroy()
   // Get the view pointer now before the frame properties disappear
   // when we call NotifyDestroyingFrame()
   nsIView* view = GetView();
-  nsPresContext* presContext = PresContext();
+  nsPresContext* presContext = GetPresContext();
 
   nsIPresShell *shell = presContext->GetPresShell();
   NS_ASSERTION(!(mState & NS_FRAME_OUT_OF_FLOW) ||
@@ -543,16 +696,15 @@ NS_IMETHODIMP nsFrame::DidSetStyleContext()
 /* virtual */ nsMargin
 nsIFrame::GetUsedMargin() const
 {
-  NS_ASSERTION(nsLayoutUtils::sDisableGetUsedXAssertions ||
-               !NS_SUBTREE_DIRTY(this) ||
+  NS_ASSERTION(!(GetStateBits() &
+                 (NS_FRAME_IS_DIRTY | NS_FRAME_HAS_DIRTY_CHILDREN)) ||
                (GetStateBits() & NS_FRAME_IN_REFLOW),
-               "cannot call GetUsedMargin on a dirty frame not currently "
-               "being reflowed");
+               "cannot call on a dirty frame not currently being reflowed");
 
   nsMargin margin(0, 0, 0, 0);
   if (!GetStyleMargin()->GetMargin(margin)) {
-    nsMargin *m = static_cast<nsMargin*>
-                             (GetProperty(nsGkAtoms::usedMarginProperty));
+    nsMargin *m = NS_STATIC_CAST(nsMargin*,
+                    GetProperty(nsGkAtoms::usedMarginProperty));
     NS_ASSERTION(m, "used margin property missing (out of memory?)");
     if (m) {
       margin = *m;
@@ -564,19 +716,18 @@ nsIFrame::GetUsedMargin() const
 /* virtual */ nsMargin
 nsIFrame::GetUsedBorder() const
 {
-  NS_ASSERTION(nsLayoutUtils::sDisableGetUsedXAssertions ||
-               !NS_SUBTREE_DIRTY(this) ||
+  NS_ASSERTION(!(GetStateBits() &
+                 (NS_FRAME_IS_DIRTY | NS_FRAME_HAS_DIRTY_CHILDREN)) ||
                (GetStateBits() & NS_FRAME_IN_REFLOW),
-               "cannot call GetUsedBorder on a dirty frame not currently "
-               "being reflowed");
+               "cannot call on a dirty frame not currently being reflowed");
 
   // Theme methods don't use const-ness.
-  nsIFrame *mutable_this = const_cast<nsIFrame*>(this);
+  nsIFrame *mutable_this = NS_CONST_CAST(nsIFrame*, this);
 
   const nsStyleDisplay *disp = GetStyleDisplay();
   if (mutable_this->IsThemed(disp)) {
     nsMargin result;
-    nsPresContext *presContext = PresContext();
+    nsPresContext *presContext = GetPresContext();
     presContext->GetTheme()->GetWidgetBorder(presContext->DeviceContext(),
                                              mutable_this, disp->mAppearance,
                                              &result);
@@ -593,20 +744,19 @@ nsIFrame::GetUsedBorder() const
 /* virtual */ nsMargin
 nsIFrame::GetUsedPadding() const
 {
-  NS_ASSERTION(nsLayoutUtils::sDisableGetUsedXAssertions ||
-               !NS_SUBTREE_DIRTY(this) ||
+  NS_ASSERTION(!(GetStateBits() &
+                 (NS_FRAME_IS_DIRTY | NS_FRAME_HAS_DIRTY_CHILDREN)) ||
                (GetStateBits() & NS_FRAME_IN_REFLOW),
-               "cannot call GetUsedPadding on a dirty frame not currently "
-               "being reflowed");
+               "cannot call on a dirty frame not currently being reflowed");
 
   nsMargin padding(0, 0, 0, 0);
 
   // Theme methods don't use const-ness.
-  nsIFrame *mutable_this = const_cast<nsIFrame*>(this);
+  nsIFrame *mutable_this = NS_CONST_CAST(nsIFrame*, this);
 
   const nsStyleDisplay *disp = GetStyleDisplay();
   if (mutable_this->IsThemed(disp)) {
-    nsPresContext *presContext = PresContext();
+    nsPresContext *presContext = GetPresContext();
     if (presContext->GetTheme()->GetWidgetPadding(presContext->DeviceContext(),
                                                   mutable_this,
                                                   disp->mAppearance,
@@ -619,8 +769,8 @@ nsIFrame::GetUsedPadding() const
     }
   }
   if (!GetStylePadding()->GetPadding(padding)) {
-    nsMargin *p = static_cast<nsMargin*>
-                             (GetProperty(nsGkAtoms::usedPaddingProperty));
+    nsMargin *p = NS_STATIC_CAST(nsMargin*,
+                    GetProperty(nsGkAtoms::usedPaddingProperty));
     NS_ASSERTION(p, "used padding property missing (out of memory?)");
     if (p) {
       padding = *p;
@@ -690,7 +840,8 @@ nsFrame::SetAdditionalStyleContext(PRInt32 aIndex,
 nscoord
 nsFrame::GetBaseline() const
 {
-  NS_ASSERTION(!NS_SUBTREE_DIRTY(this),
+  NS_ASSERTION(!(GetStateBits() & (NS_FRAME_IS_DIRTY |
+                                   NS_FRAME_HAS_DIRTY_CHILDREN)),
                "frame must not be dirty");
   // Default to the bottom margin edge, per CSS2.1's definition of the
   // 'baseline' value of 'vertical-align'.
@@ -716,7 +867,7 @@ static nsIFrame*
 GetActiveSelectionFrame(nsIFrame* aFrame)
 {
   nsIView* mouseGrabber;
-  aFrame->PresContext()->GetViewManager()->GetMouseEventGrabber(mouseGrabber);
+  aFrame->GetPresContext()->GetViewManager()->GetMouseEventGrabber(mouseGrabber);
   if (mouseGrabber) {
     nsIFrame* activeFrame = nsLayoutUtils::GetFrameFor(mouseGrabber);
     if (activeFrame) {
@@ -775,6 +926,22 @@ private:
 void nsDisplaySelectionOverlay::Paint(nsDisplayListBuilder* aBuilder,
      nsIRenderingContext* aCtx, const nsRect& aDirtyRect)
 {
+#ifndef MOZ_CAIRO_GFX
+  nsCOMPtr<nsISelectionImageService> imageService
+      = do_GetService(kSelectionImageService);
+  if (!imageService)
+    return;
+
+
+  nsCOMPtr<imgIContainer> container;
+  imageService->GetImage(mSelectionValue, getter_AddRefs(container));
+  if (!container)
+    return;
+  
+  nsRect rect(aBuilder->ToReferenceFrame(mFrame), mFrame->GetSize());
+  rect.IntersectRect(rect, aDirtyRect);
+  aCtx->DrawTile(container, 0, 0, &rect);
+#else
   nscolor color = NS_RGB(255, 255, 255);
   
   nsILookAndFeel::nsColorID colorID;
@@ -795,15 +962,15 @@ void nsDisplaySelectionOverlay::Paint(nsDisplayListBuilder* aBuilder,
   gfxRGBA c(color);
   c.a = .5;
 
-  nsRefPtr<gfxContext> ctx = aCtx->ThebesContext();
+  nsRefPtr<gfxContext> ctx = (gfxContext*)aCtx->GetNativeGraphicData(nsIRenderingContext::NATIVE_THEBES_CONTEXT);
   ctx->SetColor(c);
 
   nsRect rect(aBuilder->ToReferenceFrame(mFrame), mFrame->GetSize());
   rect.IntersectRect(rect, aDirtyRect);
-  rect.ScaleRoundOut(1.0f / mFrame->PresContext()->AppUnitsPerDevPixel());
-  ctx->NewPath();
+  rect.ScaleRoundOut(1.0f / mFrame->GetPresContext()->AppUnitsPerDevPixel());
   ctx->Rectangle(gfxRect(rect.x, rect.y, rect.width, rect.height), PR_TRUE);
   ctx->Fill();
+#endif
 }
 
 /********************************************************
@@ -821,7 +988,7 @@ nsFrame::DisplaySelectionOverlay(nsDisplayListBuilder*   aBuilder,
   if (!IsVisibleForPainting(aBuilder))
     return NS_OK;
     
-  nsPresContext* presContext = PresContext();
+  nsPresContext* presContext = GetPresContext();
   nsIPresShell *shell = presContext->PresShell();
   if (!shell)
     return NS_OK;
@@ -833,7 +1000,7 @@ nsFrame::DisplaySelectionOverlay(nsDisplayListBuilder*   aBuilder,
   if (!(displaySelection & aContentType))
     return NS_OK;
 
-  const nsFrameSelection* frameSelection = GetConstFrameSelection();
+  nsFrameSelection* frameSelection = GetFrameSelection();
   PRInt16 selectionValue = frameSelection->GetDisplaySelection();
 
   if (selectionValue <= nsISelectionController::SELECTION_HIDDEN)
@@ -898,9 +1065,9 @@ nsIFrame::DisplayCaret(nsDisplayListBuilder* aBuilder,
 }
 
 PRBool
-nsFrame::HasBorder() const
+nsFrame::HasBorder()
 {
-  return GetUsedBorder() != nsMargin(0,0,0,0);
+  return GetStyleBorder()->GetBorder() != nsMargin(0,0,0,0);
 }
 
 nsresult
@@ -934,8 +1101,7 @@ nsFrame::DisplayBorderBackgroundOutline(nsDisplayListBuilder*   aBuilder,
 }
 
 PRBool
-nsIFrame::GetAbsPosClipRect(const nsStyleDisplay* aDisp, nsRect* aRect,
-                            const nsSize& aSize)
+nsIFrame::GetAbsPosClipRect(const nsStyleDisplay* aDisp, nsRect* aRect)
 {
   NS_PRECONDITION(aRect, "Must have aRect out parameter");
 
@@ -943,12 +1109,19 @@ nsIFrame::GetAbsPosClipRect(const nsStyleDisplay* aDisp, nsRect* aRect,
       !(aDisp->mClipFlags & NS_STYLE_CLIP_RECT))
     return PR_FALSE;
 
-  *aRect = aDisp->mClip;
-  if (NS_STYLE_CLIP_RIGHT_AUTO & aDisp->mClipFlags) {
-    aRect->width = aSize.width - aRect->x;
+  // Start with the 'auto' values and then factor in user specified values
+  aRect->SetRect(nsPoint(0, 0), GetSize());
+  if (0 == (NS_STYLE_CLIP_TOP_AUTO & aDisp->mClipFlags)) {
+    aRect->y += aDisp->mClip.y;
   }
-  if (NS_STYLE_CLIP_BOTTOM_AUTO & aDisp->mClipFlags) {
-    aRect->height = aSize.height - aRect->y;
+  if (0 == (NS_STYLE_CLIP_LEFT_AUTO & aDisp->mClipFlags)) {
+    aRect->x += aDisp->mClip.x;
+  }
+  if (0 == (NS_STYLE_CLIP_RIGHT_AUTO & aDisp->mClipFlags)) {
+    aRect->width = aDisp->mClip.width;
+  }
+  if (0 == (NS_STYLE_CLIP_BOTTOM_AUTO & aDisp->mClipFlags)) {
+    aRect->height = aDisp->mClip.height;
   }
   return PR_TRUE;
 }
@@ -956,9 +1129,9 @@ nsIFrame::GetAbsPosClipRect(const nsStyleDisplay* aDisp, nsRect* aRect,
 static PRBool ApplyAbsPosClipping(nsDisplayListBuilder* aBuilder,
                                   const nsStyleDisplay* aDisp, nsIFrame* aFrame,
                                   nsRect* aRect) {
-  if (!aFrame->GetAbsPosClipRect(aDisp, aRect, aFrame->GetSize()))
+  if (!aFrame->GetAbsPosClipRect(aDisp, aRect))
     return PR_FALSE;
-
+  
   // A moving frame should not be allowed to clip a non-moving frame.
   // Abs-pos clipping always clips frames below it in the frame tree, except
   // for when an abs-pos frame clips a fixed-pos frame. So when fixed-pos
@@ -969,7 +1142,7 @@ static PRBool ApplyAbsPosClipping(nsDisplayListBuilder* aBuilder,
   // for nsLayoutUtils::ComputeRepaintRegionForCopy ... but this is a rare
   // situation.
   if (aBuilder->HasMovingFrames() &&
-      aFrame->PresContext()->FrameManager()->GetRootFrame()->
+      aFrame->GetPresContext()->FrameManager()->GetRootFrame()->
           GetFirstChild(nsGkAtoms::fixedList) &&
       aBuilder->IsMovingFrame(aFrame))
     return PR_FALSE;
@@ -1020,8 +1193,9 @@ static PRBool ApplyOverflowClipping(nsDisplayListBuilder* aBuilder,
     // have clipping.
   }
   
-  *aRect = aFrame->GetPaddingRect() - aFrame->GetPosition() +
-    aBuilder->ToReferenceFrame(aFrame);
+  aRect->SetRect(aBuilder->ToReferenceFrame(aFrame), aFrame->GetSize());
+  const nsStyleBorder* borderStyle = aFrame->GetStyleContext()->GetStyleBorder();
+  aRect->Deflate(borderStyle->GetBorder());
   return PR_TRUE;
 }
 
@@ -1045,13 +1219,13 @@ public:
     // We are not a stacking context root. There is no valid underlying
     // frame for the whole list. These items are all in-flow descendants so
     // we can safely just clip them.
-    return new (aBuilder) nsDisplayClip(nsnull, mContainer, aList, mRect);
+    return new (aBuilder) nsDisplayClip(nsnull, aList, mRect);
   }
   virtual nsDisplayItem* WrapItem(nsDisplayListBuilder* aBuilder,
                                   nsDisplayItem* aItem) {
     nsIFrame* f = aItem->GetUnderlyingFrame();
     if (mClipAll || nsLayoutUtils::IsProperAncestorFrame(mContainer, f, nsnull))
-      return new (aBuilder) nsDisplayClip(f, mContainer, aItem, mRect);
+      return new (aBuilder) nsDisplayClip(f, aItem, mRect);
     return aItem;
   }
 protected:
@@ -1064,22 +1238,20 @@ protected:
 class nsAbsPosClipWrapper : public nsDisplayWrapper
 {
 public:
-  nsAbsPosClipWrapper(nsIFrame* aContainer, const nsRect& aRect)
-    : mContainer(aContainer), mRect(aRect) {}
+  nsAbsPosClipWrapper(const nsRect& aRect)
+    : mRect(aRect) {}
   virtual nsDisplayItem* WrapList(nsDisplayListBuilder* aBuilder,
                                   nsIFrame* aFrame, nsDisplayList* aList) {
     // We are not a stacking context root. There is no valid underlying
     // frame for the whole list.
-    return new (aBuilder) nsDisplayClip(nsnull, mContainer, aList, mRect);
+    return new (aBuilder) nsDisplayClip(nsnull, aList, mRect);
   }
   virtual nsDisplayItem* WrapItem(nsDisplayListBuilder* aBuilder,
                                   nsDisplayItem* aItem) {
-    return new (aBuilder) nsDisplayClip(aItem->GetUnderlyingFrame(),
-            mContainer, aItem, mRect);
+    return new (aBuilder) nsDisplayClip(aItem->GetUnderlyingFrame(), aItem, mRect);
   }
 protected:
-  nsIFrame* mContainer;
-  nsRect    mRect;
+  nsRect mRect;
 };
 
 nsresult
@@ -1100,7 +1272,7 @@ nsIFrame::Clip(nsDisplayListBuilder*   aBuilder,
                const nsDisplayListSet& aToSet,
                const nsRect&           aClipRect)
 {
-  nsAbsPosClipWrapper wrapper(this, aClipRect);
+  nsAbsPosClipWrapper wrapper(aClipRect);
   return wrapper.WrapLists(aBuilder, this, aFromSet, aToSet);
 }
 
@@ -1148,7 +1320,7 @@ DisplayDebugBorders(nsDisplayListBuilder* aBuilder, nsIFrame* aFrame,
   }
   // Draw a border around the current event target
   if (nsIFrameDebug::GetShowEventTargetFrameBorder() &&
-      aFrame->PresContext()->PresShell()->GetDrawEventTargetFrame() == aFrame) {
+      aFrame->GetPresContext()->PresShell()->GetDrawEventTargetFrame() == aFrame) {
     aLists.Outlines()->AppendNewToTop(new (aBuilder)
         nsDisplayGeneric(aFrame, PaintEventTargetBorder, "EventTargetBorder"));
   }
@@ -1159,7 +1331,7 @@ nsresult
 nsIFrame::BuildDisplayListForStackingContext(nsDisplayListBuilder* aBuilder,
                                              const nsRect&         aDirtyRect,
                                              nsDisplayList*        aList) {
-  if (GetStateBits() & NS_FRAME_TOO_DEEP_IN_FRAME_TREE)
+  if (GetStateBits() & NS_FRAME_IS_UNFLOWABLE)
     return NS_OK;
 
   // Replaced elements have their visibility handled here, because
@@ -1233,23 +1405,24 @@ nsIFrame::BuildDisplayListForStackingContext(nsDisplayListBuilder* aBuilder,
   resultList.AppendToTop(set.BlockBorderBackgrounds());
   // 5: floats
   resultList.AppendToTop(set.Floats());
-  // 7: general content
+  // 6: general content
   resultList.AppendToTop(set.Content());
-  // 7.5: outlines, in content tree order. We need to sort by content order
+  // 7, 8: non-negative z-index children
+  resultList.AppendToTop(set.PositionedDescendants());
+  // 9: outlines, in content tree order. We need to sort by content order
   // because an element with outline that breaks and has children with outline
   // might have placed child outline items between its own outline items.
   // The element's outline items need to all come before any child outline
   // items.
   set.Outlines()->SortByContentOrder(aBuilder, GetContent());
+  resultList.AppendToTop(set.Outlines());
+
 #ifdef NS_DEBUG
   DisplayDebugBorders(aBuilder, this, set);
 #endif
-  resultList.AppendToTop(set.Outlines());
-  // 8, 9: non-negative z-index children
-  resultList.AppendToTop(set.PositionedDescendants());
 
   if (applyAbsPosClipping) {
-    nsAbsPosClipWrapper wrapper(this, absPosClip);
+    nsAbsPosClipWrapper wrapper(absPosClip);
     nsDisplayItem* item = wrapper.WrapList(aBuilder, this, &resultList);
     if (!item)
       return NS_ERROR_OUT_OF_MEMORY;
@@ -1266,34 +1439,6 @@ nsIFrame::BuildDisplayListForStackingContext(nsDisplayListBuilder* aBuilder,
   return rv;
 }
 
-class nsDisplaySummary : public nsDisplayItem
-{
-public:
-  nsDisplaySummary(nsIFrame* aFrame) : nsDisplayItem(aFrame) {
-    MOZ_COUNT_CTOR(nsDisplaySummary);
-  }
-#ifdef NS_BUILD_REFCNT_LOGGING
-  virtual ~nsDisplaySummary() {
-    MOZ_COUNT_DTOR(nsDisplaySummary);
-  }
-#endif
-
-  virtual nsRect GetBounds(nsDisplayListBuilder* aBuilder);
-  NS_DISPLAY_DECL_NAME("Summary")
-};
-
-nsRect
-nsDisplaySummary::GetBounds(nsDisplayListBuilder* aBuilder) {
-  return mFrame->GetOverflowRect() + aBuilder->ToReferenceFrame(mFrame);
-}
-
-static void
-AddSummaryFrameToList(nsDisplayListBuilder* aBuilder,
-                      nsIFrame* aFrame, nsDisplayList* aList)
-{
-  aList->AppendNewToTop(new (aBuilder) nsDisplaySummary(aFrame));
-}
-
 nsresult
 nsIFrame::BuildDisplayListForChild(nsDisplayListBuilder*   aBuilder,
                                    nsIFrame*               aChild,
@@ -1305,7 +1450,7 @@ nsIFrame::BuildDisplayListForChild(nsDisplayListBuilder*   aBuilder,
   if (aBuilder->IsBackgroundOnly())
     return NS_OK;
 
-  if (aChild->GetStateBits() & NS_FRAME_TOO_DEEP_IN_FRAME_TREE)
+  if (aChild->GetStateBits() & NS_FRAME_IS_UNFLOWABLE)
     return NS_OK;
   
   const nsStyleDisplay* disp = aChild->GetStyleDisplay();
@@ -1328,7 +1473,7 @@ nsIFrame::BuildDisplayListForChild(nsDisplayListBuilder*   aBuilder,
 
   nsIAtom* childType = aChild->GetType();
   if (childType == nsGkAtoms::placeholderFrame) {
-    nsPlaceholderFrame* placeholder = static_cast<nsPlaceholderFrame*>(aChild);
+    nsPlaceholderFrame* placeholder = NS_STATIC_CAST(nsPlaceholderFrame*, aChild);
     aChild = placeholder->GetOutOfFlowFrame();
     NS_ASSERTION(aChild, "No out of flow frame?");
     if (!aChild)
@@ -1339,11 +1484,11 @@ nsIFrame::BuildDisplayListForChild(nsDisplayListBuilder*   aBuilder,
     // could call GetType again but since we don't currently need it, let's
     // avoid the virtual call.
     childType = nsnull;
-    // Recheck NS_FRAME_TOO_DEEP_IN_FRAME_TREE
-    if (aChild->GetStateBits() & NS_FRAME_TOO_DEEP_IN_FRAME_TREE)
+    // Recheck NS_FRAME_IS_FLOWABLE
+    if (aChild->GetStateBits() & NS_FRAME_IS_UNFLOWABLE)
       return NS_OK;
-    nsRect* savedDirty = static_cast<nsRect*>
-                                    (aChild->GetProperty(nsGkAtoms::outOfFlowDirtyRectProperty));
+    nsRect* savedDirty = NS_STATIC_CAST(nsRect*,
+        aChild->GetProperty(nsGkAtoms::outOfFlowDirtyRectProperty));
     if (savedDirty) {
       dirty = *savedDirty;
     } else {
@@ -1373,21 +1518,11 @@ nsIFrame::BuildDisplayListForChild(nsDisplayListBuilder*   aBuilder,
     // Note that aBuilder->GetRootMovingFrame() is non-null only if we're doing
     // ComputeRepaintRegionForCopy.
     if (aBuilder->GetRootMovingFrame() == this &&
-        !PresContext()->GetRenderedPositionVaryingContent()) {
+        !GetPresContext()->GetRenderedPositionVaryingContent()) {
       // No position-varying content has been rendered in this prescontext.
       // Therefore there is no need to descend into analyzing the moving frame's
       // descendants looking for such content, because any bitblit will
-      // not be copying position-varying graphics. However, to keep things
-      // sane we still need display items representing the frame subtree.
-      // We need to add these summaries to every list that the child could
-      // contribute to. This avoids display list optimizations optimizing
-      // away entire lists because they appear to be empty.
-      AddSummaryFrameToList(aBuilder, aChild, aLists.BlockBorderBackgrounds());
-      AddSummaryFrameToList(aBuilder, aChild, aLists.BorderBackground());
-      AddSummaryFrameToList(aBuilder, aChild, aLists.Content());
-      AddSummaryFrameToList(aBuilder, aChild, aLists.Floats());
-      AddSummaryFrameToList(aBuilder, aChild, aLists.PositionedDescendants());      
-      AddSummaryFrameToList(aBuilder, aChild, aLists.Outlines());
+      // not be copying position-varying graphics.
       return NS_OK;
     }
   }
@@ -1398,7 +1533,7 @@ nsIFrame::BuildDisplayListForChild(nsDisplayListBuilder*   aBuilder,
   // REVIEW: Taken from nsBoxFrame::Paint
   // Don't paint our children if the theme object is a leaf.
   if (IsThemed(ourDisp) &&
-      !PresContext()->GetTheme()->WidgetIsContainer(ourDisp->mAppearance))
+      !GetPresContext()->GetTheme()->WidgetIsContainer(ourDisp->mAppearance))
     return NS_OK;
 
   PRBool isComposited = disp->mOpacity != 1.0f;
@@ -1453,7 +1588,7 @@ nsIFrame::BuildDisplayListForChild(nsDisplayListBuilder*   aBuilder,
     nsRect clipRect;
     PRBool applyAbsPosClipping =
         ApplyAbsPosClipping(aBuilder, disp, aChild, &clipRect);
-    // A pseudo-stacking context (e.g., a positioned element with z-index auto).
+    // A psuedo-stacking context (e.g., a positioned element with z-index auto).
     // we allow positioned descendants of this element to escape to our
     // container's positioned descendant list, because they might be
     // z-index:non-auto
@@ -1478,7 +1613,7 @@ nsIFrame::BuildDisplayListForChild(nsDisplayListBuilder*   aBuilder,
     
     if (NS_SUCCEEDED(rv)) {
       if (isPositioned && applyAbsPosClipping) {
-        nsAbsPosClipWrapper wrapper(aChild, clipRect);
+        nsAbsPosClipWrapper wrapper(clipRect);
         rv = wrapper.WrapListsInPlace(aBuilder, aChild, pseudoStack);
       }
     }
@@ -1486,8 +1621,8 @@ nsIFrame::BuildDisplayListForChild(nsDisplayListBuilder*   aBuilder,
     list.AppendToTop(pseudoStack.BlockBorderBackgrounds());
     list.AppendToTop(pseudoStack.Floats());
     list.AppendToTop(pseudoStack.Content());
-    list.AppendToTop(pseudoStack.Outlines());
     extraPositionedDescendants.AppendToTop(pseudoStack.PositionedDescendants());
+    aLists.Outlines()->AppendToTop(pseudoStack.Outlines());
 #ifdef NS_DEBUG
     DisplayDebugBorders(aBuilder, aChild, aLists);
 #endif
@@ -1562,7 +1697,7 @@ nsFrame::HandleEvent(nsPresContext* aPresContext,
   }
 
   if (aEvent->eventStructType == NS_MOUSE_EVENT &&
-      static_cast<nsMouseEvent*>(aEvent)->button == nsMouseEvent::eLeftButton) {
+      NS_STATIC_CAST(nsMouseEvent*, aEvent)->button == nsMouseEvent::eLeftButton) {
     if (aEvent->message == NS_MOUSE_BUTTON_DOWN) {
       HandlePress(aPresContext, aEvent, aEventStatus);
     } else if (aEvent->message == NS_MOUSE_BUTTON_UP) {
@@ -1573,7 +1708,7 @@ nsFrame::HandleEvent(nsPresContext* aPresContext,
 }
 
 NS_IMETHODIMP
-nsFrame::GetDataForTableSelection(const nsFrameSelection *aFrameSelection,
+nsFrame::GetDataForTableSelection(nsFrameSelection *aFrameSelection,
                                   nsIPresShell *aPresShell, nsMouseEvent *aMouseEvent, 
                                   nsIContent **aParentContent, PRInt32 *aContentOffset, PRInt32 *aTarget)
 {
@@ -1607,7 +1742,7 @@ nsFrame::GetDataForTableSelection(const nsFrameSelection *aFrameSelection,
   {  
     // In Browser, special 'table selection' key must be pressed for table selection
     // or when just Shift is pressed and we're already in table/cell selection mode
-#ifdef XP_MACOSX
+#if defined(XP_MAC) || defined(XP_MACOSX)
     doTableSelection = aMouseEvent->isMeta || (aMouseEvent->isShift && selectingTableCells);
 #else
     doTableSelection = aMouseEvent->isControl || (aMouseEvent->isShift && selectingTableCells);
@@ -1799,19 +1934,18 @@ nsFrame::HandlePress(nsPresContext* aPresContext,
   isEditor = isEditor == nsISelectionDisplay::DISPLAY_ALL;
 
   nsInputEvent* keyEvent = (nsInputEvent*)aEvent;
-  if (!keyEvent->isAlt) {
+  if (!isEditor && !keyEvent->isAlt) {
     
     for (nsIContent* content = mContent; content;
          content = content->GetParent()) {
-      if (nsContentUtils::ContentIsDraggable(content) &&
-          !content->IsEditable()) {
+      if ( nsContentUtils::ContentIsDraggable(content) ) {
         // coordinate stuff is the fix for bug #55921
         if ((mRect - GetPosition()).Contains(
                nsLayoutUtils::GetEventCoordinatesRelativeTo(aEvent, this)))
           return NS_OK;
       }
     }
-  }
+  } // if browser, not editor
 
   // check whether style allows selection
   // if not, don't tell selection the mouse event even occurred.  
@@ -1833,28 +1967,26 @@ nsFrame::HandlePress(nsPresContext* aPresContext,
 
   // XXX This is screwy; it really should use the selection frame, not the
   // event frame
-  const nsFrameSelection* frameselection = nsnull;
+  nsFrameSelection* frameselection;
   if (useFrameSelection)
-    frameselection = GetConstFrameSelection();
+    frameselection = GetFrameSelection();
   else
-    frameselection = shell->ConstFrameSelection();
+    frameselection = shell->FrameSelection();
 
   if (frameselection->GetDisplaySelection() == nsISelectionController::SELECTION_OFF)
     return NS_OK;//nothing to do we cannot affect selection from here
 
   nsMouseEvent *me = (nsMouseEvent *)aEvent;
 
-#ifdef XP_MACOSX
+#if defined(XP_MAC) || defined(XP_MACOSX)
   if (me->isControl)
     return NS_OK;//short ciruit. hard coded for mac due to time restraints.
 #endif
-  nsCOMPtr<nsFrameSelection> fc = const_cast<nsFrameSelection*>(frameselection);
+    
   if (me->clickCount >1 )
   {
-    // These methods aren't const but can't actually delete anything,
-    // so no need for nsWeakFrame.
-    fc->SetMouseDownState(PR_TRUE);
-    fc->SetMouseDoubleDown(PR_TRUE);
+    frameselection->SetMouseDownState(PR_TRUE);
+    frameselection->SetMouseDoubleDown(PR_TRUE);
     return HandleMultiplePress(aPresContext, aEvent, aEventStatus);
   }
 
@@ -1871,11 +2003,11 @@ nsFrame::HandlePress(nsPresContext* aPresContext,
   rv = GetDataForTableSelection(frameselection, shell, me, getter_AddRefs(parentContent), &contentOffset, &target);
   if (NS_SUCCEEDED(rv) && parentContent)
   {
-    fc->SetMouseDownState(PR_TRUE);
-    return fc->HandleTableSelection(parentContent, contentOffset, target, me);
+    frameselection->SetMouseDownState(PR_TRUE);
+    return frameselection->HandleTableSelection(parentContent, contentOffset, target, me);
   }
 
-  fc->SetDelayedCaretData(0);
+  frameselection->SetDelayedCaretData(0);
 
   // Check if any part of this frame is selected, and if the
   // user clicked inside the selected region. If so, we delay
@@ -1912,8 +2044,8 @@ nsFrame::HandlePress(nsPresContext* aPresContext,
             offsets.EndOffset() <= curDetail->mEnd)
         {
           delete details;
-          fc->SetMouseDownState(PR_FALSE);
-          fc->SetDelayedCaretData(me);
+          frameselection->SetMouseDownState(PR_FALSE);
+          frameselection->SetDelayedCaretData(me);
           return NS_OK;
         }
 
@@ -1924,25 +2056,23 @@ nsFrame::HandlePress(nsPresContext* aPresContext,
     }
   }
 
-  fc->SetMouseDownState(PR_TRUE);
+  frameselection->SetMouseDownState(PR_TRUE);
 
-#ifdef XP_MACOSX
+#if defined(XP_MAC) || defined(XP_MACOSX)
   PRBool control = me->isMeta;
 #else
   PRBool control = me->isControl;
 #endif
 
-  // Do not touch any nsFrame members after this point without adding
-  // weakFrame checks.
-  rv = fc->HandleClick(offsets.content, offsets.StartOffset(),
-                       offsets.EndOffset(), me->isShift, control,
-                       offsets.associateWithNext);
+  rv = frameselection->HandleClick(offsets.content, offsets.StartOffset(),
+                                   offsets.EndOffset(), me->isShift, control,
+                                   offsets.associateWithNext);
 
   if (NS_FAILED(rv))
     return rv;
 
   if (offsets.offset != offsets.secondaryOffset)
-    fc->MaintainSelection();
+    frameselection->MaintainSelection();
 
   if (isEditor && !me->isShift &&
       (offsets.EndOffset() - offsets.StartOffset()) == 1)
@@ -1952,7 +2082,7 @@ nsFrame::HandlePress(nsPresContext* aPresContext,
     // -moz-user-select: all or a non-text node without children).
     // Therefore, disable selection extension during mouse moves.
     // XXX This is a bit hacky; shouldn't editor be able to deal with this?
-    fc->SetMouseDownState(PR_FALSE);
+    frameselection->SetMouseDownState(PR_FALSE);
   }
 
   return rv;
@@ -2007,16 +2137,14 @@ nsFrame::HandleMultiplePress(nsPresContext* aPresContext,
   nsIFrame* theFrame;
   PRInt32 offset;
   // Maybe make this a static helper?
-  const nsFrameSelection* frameSelection =
-    PresContext()->GetPresShell()->ConstFrameSelection();
-  theFrame = frameSelection->
+  theFrame = GetPresContext()->GetPresShell()->FrameSelection()->
     GetFrameForNodeOffset(offsets.content, offsets.offset,
                           nsFrameSelection::HINT(offsets.associateWithNext),
                           &offset);
   if (!theFrame)
     return NS_ERROR_FAILURE;
 
-  nsFrame* frame = static_cast<nsFrame*>(theFrame);
+  nsFrame* frame = NS_STATIC_CAST(nsFrame*, theFrame);
 
   return frame->PeekBackwardAndForward(beginAmount, endAmount,
                                        offsets.offset, aPresContext,
@@ -2096,8 +2224,6 @@ nsFrame::PeekBackwardAndForward(nsSelectionAmount aAmountBack,
   if (NS_FAILED(rv))
     return rv;
 
-  // Keep frameSelection alive.
-  nsRefPtr<nsFrameSelection> frameSelection = GetFrameSelection();
   nsCOMPtr<nsISelection> selection;
   if (NS_SUCCEEDED(selcon->GetSelection(nsISelectionController::SELECTION_NORMAL,
                                         getter_AddRefs(selection)))){
@@ -2111,7 +2237,7 @@ nsFrame::PeekBackwardAndForward(nsSelectionAmount aAmountBack,
   //no release 
 
   // maintain selection
-  return frameSelection->MaintainSelection(aAmountBack);
+  return GetFrameSelection()->MaintainSelection(aAmountBack);
 }
 
 // Figure out which view we should point capturing at, given that drag started
@@ -2304,7 +2430,7 @@ NS_IMETHODIMP nsFrame::HandleRelease(nsPresContext* aPresContext,
         offsets = GetContentOffsetsFromPoint(pt);
         handleTableSelection = PR_FALSE;
       } else {
-        GetDataForTableSelection(frameselection, PresContext()->PresShell(),
+        GetDataForTableSelection(frameselection, GetPresContext()->PresShell(),
                                  (nsMouseEvent *)aEvent,
                                  getter_AddRefs(parentContent),
                                  &contentOffsetForTableSel,
@@ -2317,7 +2443,7 @@ NS_IMETHODIMP nsFrame::HandleRelease(nsPresContext* aPresContext,
   // trickle down here. Make sure that document's frame selection is notified.
   // Note, this may cause the current nsFrame object to be deleted, bug 336592.
   if (activeFrame != this &&
-      static_cast<nsFrame*>(activeFrame)->DisplaySelection(activeFrame->PresContext())
+      NS_STATIC_CAST(nsFrame*, activeFrame)->DisplaySelection(activeFrame->GetPresContext())
         != nsISelectionController::SELECTION_OFF) {
     nsRefPtr<nsFrameSelection> frameSelection =
       activeFrame->GetFrameSelection();
@@ -2765,7 +2891,7 @@ nsIFrame::ContentOffsets nsIFrame::GetContentOffsetsFromPoint(nsPoint aPoint,
     return offsets;
   }
   nsPoint pt = aPoint - closest.frame->GetOffsetTo(this);
-  return static_cast<nsFrame*>(closest.frame)->CalcContentOffsetsFromFramePoint(pt);
+  return NS_STATIC_CAST(nsFrame*, closest.frame)->CalcContentOffsetsFromFramePoint(pt);
 
   // XXX should I add some kind of offset standardization?
   // consider <b>xxxxx</b><i>zzzzz</i>; should any click between the last
@@ -2836,15 +2962,14 @@ nsFrame::AddInlineMinWidth(nsIRenderingContext *aRenderingContext,
     GetParent()->GetStyleText()->WhiteSpaceCanWrap();
   
   if (canBreak)
-    aData->OptionallyBreak(aRenderingContext);
+    aData->Break(aRenderingContext);
   aData->trailingWhitespace = 0;
   aData->skipWhitespace = PR_FALSE;
   aData->trailingTextFrame = nsnull;
   aData->currentLine += nsLayoutUtils::IntrinsicForContainer(aRenderingContext,
                             this, nsLayoutUtils::MIN_WIDTH);
-  aData->atStartOfLine = PR_FALSE;
   if (canBreak)
-    aData->OptionallyBreak(aRenderingContext);
+    aData->Break(aRenderingContext);
 }
 
 /* virtual */ void
@@ -2853,20 +2978,19 @@ nsFrame::AddInlinePrefWidth(nsIRenderingContext *aRenderingContext,
 {
   aData->trailingWhitespace = 0;
   aData->skipWhitespace = PR_FALSE;
-  nscoord myPref = nsLayoutUtils::IntrinsicForContainer(aRenderingContext, 
-                       this, nsLayoutUtils::PREF_WIDTH);
-  aData->currentLine = NSCoordSaturatingAdd(aData->currentLine, myPref);
+  aData->currentLine += nsLayoutUtils::IntrinsicForContainer(aRenderingContext,
+                            this, nsLayoutUtils::PREF_WIDTH);
 }
 
 void
-nsIFrame::InlineMinWidthData::ForceBreak(nsIRenderingContext *aRenderingContext)
+nsIFrame::InlineMinWidthData::Break(nsIRenderingContext *aRenderingContext)
 {
   currentLine -= trailingWhitespace;
   prevLines = PR_MAX(prevLines, currentLine);
   currentLine = trailingWhitespace = 0;
 
   for (PRInt32 i = 0, i_end = floats.Count(); i != i_end; ++i) {
-    nsIFrame *floatFrame = static_cast<nsIFrame*>(floats[i]);
+    nsIFrame *floatFrame = NS_STATIC_CAST(nsIFrame*, floats[i]);
     nscoord float_min =
       nsLayoutUtils::IntrinsicForContainer(aRenderingContext, floatFrame,
                                            nsLayoutUtils::MIN_WIDTH);
@@ -2875,26 +2999,10 @@ nsIFrame::InlineMinWidthData::ForceBreak(nsIRenderingContext *aRenderingContext)
   }
   floats.Clear();
   trailingTextFrame = nsnull;
-  skipWhitespace = PR_TRUE;
 }
 
 void
-nsIFrame::InlineMinWidthData::OptionallyBreak(nsIRenderingContext *aRenderingContext)
-{
-  trailingTextFrame = nsnull;
-
-  // If we can fit more content into a smaller width by staying on this
-  // line (because we're still at a negative offset due to negative
-  // text-indent or negative margin), don't break.  Otherwise, do the
-  // same as ForceBreak.  it doesn't really matter when we accumulate
-  // floats.
-  if (currentLine < 0 || atStartOfLine)
-    return;
-  ForceBreak(aRenderingContext);
-}
-
-void
-nsIFrame::InlinePrefWidthData::ForceBreak(nsIRenderingContext *aRenderingContext)
+nsIFrame::InlinePrefWidthData::Break(nsIRenderingContext *aRenderingContext)
 {
   if (floats.Count() != 0) {
             // preferred widths accumulated for floats that have already
@@ -2906,13 +3014,12 @@ nsIFrame::InlinePrefWidthData::ForceBreak(nsIRenderingContext *aRenderingContext
             floats_cur_right = 0;
 
     for (PRInt32 i = 0, i_end = floats.Count(); i != i_end; ++i) {
-      nsIFrame *floatFrame = static_cast<nsIFrame*>(floats[i]);
+      nsIFrame *floatFrame = NS_STATIC_CAST(nsIFrame*, floats[i]);
       const nsStyleDisplay *floatDisp = floatFrame->GetStyleDisplay();
       if (floatDisp->mBreakType == NS_STYLE_CLEAR_LEFT ||
           floatDisp->mBreakType == NS_STYLE_CLEAR_RIGHT ||
           floatDisp->mBreakType == NS_STYLE_CLEAR_LEFT_AND_RIGHT) {
-        nscoord floats_cur = NSCoordSaturatingAdd(floats_cur_left,
-                                                  floats_cur_right);
+        nscoord floats_cur = floats_cur_left + floats_cur_right;
         if (floats_cur > floats_done)
           floats_done = floats_cur;
         if (floatDisp->mBreakType != NS_STYLE_CLEAR_RIGHT)
@@ -2923,31 +3030,23 @@ nsIFrame::InlinePrefWidthData::ForceBreak(nsIRenderingContext *aRenderingContext
 
       nscoord &floats_cur = floatDisp->mFloats == NS_STYLE_FLOAT_LEFT
                               ? floats_cur_left : floats_cur_right;
-      nscoord floatWidth =
-          nsLayoutUtils::IntrinsicForContainer(aRenderingContext,
-                                               floatFrame,
-                                               nsLayoutUtils::PREF_WIDTH);
-      // Negative-width floats don't change the available space so they
-      // shouldn't change our intrinsic line width either.
-      floats_cur =
-        NSCoordSaturatingAdd(floats_cur, PR_MAX(0, floatWidth));
+      floats_cur +=
+        nsLayoutUtils::IntrinsicForContainer(aRenderingContext,
+                      floatFrame, nsLayoutUtils::PREF_WIDTH);
     }
 
-    nscoord floats_cur =
-      NSCoordSaturatingAdd(floats_cur_left, floats_cur_right);
+    nscoord floats_cur = floats_cur_left + floats_cur_right;
     if (floats_cur > floats_done)
       floats_done = floats_cur;
 
-    currentLine = NSCoordSaturatingAdd(currentLine, floats_done);
+    currentLine += floats_done;
 
     floats.Clear();
   }
 
-  currentLine =
-    NSCoordSaturatingSubtract(currentLine, trailingWhitespace, nscoord_MAX);
+  currentLine -= trailingWhitespace;
   prevLines = PR_MAX(prevLines, currentLine);
   currentLine = trailingWhitespace = 0;
-  skipWhitespace = PR_TRUE;
 }
 
 static void
@@ -2964,8 +3063,11 @@ AddCoord(const nsStyleCoord& aStyle,
       *aPercent += aStyle.GetPercentValue();
       break;
     case eStyleUnit_Chars: {
-      *aCoord += nsLayoutUtils::CharsToCoord(aStyle, aRenderingContext,
-                                             aFrame->GetStyleContext());
+      SetFontFromStyle(aRenderingContext, aFrame->GetStyleContext());
+      nscoord fontWidth;
+      aRenderingContext->SetTextRunRTL(PR_FALSE);
+      aRenderingContext->GetWidth('M', fontWidth);
+      *aCoord += aStyle.GetIntValue() * fontWidth;
       break;
     }
     default:
@@ -2977,17 +3079,18 @@ AddCoord(const nsStyleCoord& aStyle,
 nsFrame::IntrinsicWidthOffsets(nsIRenderingContext* aRenderingContext)
 {
   IntrinsicWidthOffsetData result;
+  nsStyleCoord tmp;
 
   const nsStyleMargin *styleMargin = GetStyleMargin();
-  AddCoord(styleMargin->mMargin.GetLeft(), aRenderingContext, this,
+  AddCoord(styleMargin->mMargin.GetLeft(tmp), aRenderingContext, this,
            &result.hMargin, &result.hPctMargin);
-  AddCoord(styleMargin->mMargin.GetRight(), aRenderingContext, this,
+  AddCoord(styleMargin->mMargin.GetRight(tmp), aRenderingContext, this,
            &result.hMargin, &result.hPctMargin);
 
   const nsStylePadding *stylePadding = GetStylePadding();
-  AddCoord(stylePadding->mPadding.GetLeft(), aRenderingContext, this,
+  AddCoord(stylePadding->mPadding.GetLeft(tmp), aRenderingContext, this,
            &result.hPadding, &result.hPctPadding);
-  AddCoord(stylePadding->mPadding.GetRight(), aRenderingContext, this,
+  AddCoord(stylePadding->mPadding.GetRight(tmp), aRenderingContext, this,
            &result.hPadding, &result.hPctPadding);
 
   const nsStyleBorder *styleBorder = GetStyleBorder();
@@ -2996,7 +3099,7 @@ nsFrame::IntrinsicWidthOffsets(nsIRenderingContext* aRenderingContext)
 
   const nsStyleDisplay *disp = GetStyleDisplay();
   if (IsThemed(disp)) {
-    nsPresContext *presContext = PresContext();
+    nsPresContext *presContext = GetPresContext();
 
     nsMargin border;
     presContext->GetTheme()->GetWidgetBorder(presContext->DeviceContext(),
@@ -3016,24 +3119,12 @@ nsFrame::IntrinsicWidthOffsets(nsIRenderingContext* aRenderingContext)
   return result;
 }
 
-/* virtual */ nsIFrame::IntrinsicSize
-nsFrame::GetIntrinsicSize()
-{
-  return IntrinsicSize(); // default is width/height set to eStyleUnit_None
-}
-
-/* virtual */ nsSize
-nsFrame::GetIntrinsicRatio()
-{
-  return nsSize(0, 0);
-}
-
 inline PRBool
 IsAutoHeight(const nsStyleCoord &aCoord, nscoord aCBHeight)
 {
   nsStyleUnit unit = aCoord.GetUnit();
   return unit == eStyleUnit_Auto ||  // only for 'height'
-         unit == eStyleUnit_None ||  // only for 'max-height'
+         unit == eStyleUnit_Null ||  // only for 'max-height'
          (unit == eStyleUnit_Percent && 
           aCBHeight == NS_AUTOHEIGHT);
 }
@@ -3056,31 +3147,29 @@ nsFrame::ComputeSize(nsIRenderingContext *aRenderingContext,
     case NS_STYLE_BOX_SIZING_PADDING:
       boxSizingAdjust += aPadding;
   }
-  nscoord boxSizingToMarginEdgeWidth =
-    aMargin.width + aBorder.width + aPadding.width - boxSizingAdjust.width;
 
   // Compute width
 
   if (stylePos->mWidth.GetUnit() != eStyleUnit_Auto) {
     result.width =
-      nsLayoutUtils::ComputeWidthValue(aRenderingContext, this,
-        aCBSize.width, boxSizingAdjust.width, boxSizingToMarginEdgeWidth,
-        stylePos->mWidth);
+      nsLayoutUtils::ComputeWidthDependentValue(aRenderingContext, this,
+        aCBSize.width, stylePos->mWidth) -
+      boxSizingAdjust.width;
   }
 
-  if (stylePos->mMaxWidth.GetUnit() != eStyleUnit_None) {
+  if (stylePos->mMaxWidth.GetUnit() != eStyleUnit_Null) {
     nscoord maxWidth =
-      nsLayoutUtils::ComputeWidthValue(aRenderingContext, this,
-        aCBSize.width, boxSizingAdjust.width, boxSizingToMarginEdgeWidth,
-        stylePos->mMaxWidth);
+      nsLayoutUtils::ComputeWidthDependentValue(aRenderingContext, this,
+        aCBSize.width, stylePos->mMaxWidth) -
+      boxSizingAdjust.width;
     if (maxWidth < result.width)
       result.width = maxWidth;
   }
 
   nscoord minWidth =
-    nsLayoutUtils::ComputeWidthValue(aRenderingContext, this,
-      aCBSize.width, boxSizingAdjust.width, boxSizingToMarginEdgeWidth,
-      stylePos->mMinWidth);
+    nsLayoutUtils::ComputeWidthDependentValue(aRenderingContext, this,
+      aCBSize.width, stylePos->mMinWidth) -
+    boxSizingAdjust.width;
   if (minWidth > result.width)
     result.width = minWidth;
 
@@ -3117,7 +3206,7 @@ nsFrame::ComputeSize(nsIRenderingContext *aRenderingContext,
   if (IsThemed(disp)) {
     nsSize size(0, 0);
     PRBool canOverride = PR_TRUE;
-    nsPresContext *presContext = PresContext();
+    nsPresContext *presContext = GetPresContext();
     presContext->GetTheme()->
       GetMinimumWidgetSize(aRenderingContext, this, disp->mAppearance,
                            &size, &canOverride);
@@ -3142,37 +3231,6 @@ nsFrame::ComputeSize(nsIRenderingContext *aRenderingContext,
     result.height = 0;
 
   return result;
-}
-
-nsRect
-nsIFrame::ComputeTightBounds(gfxContext* aContext) const
-{
-  return GetOverflowRect();
-}
-
-nsRect
-nsFrame::ComputeSimpleTightBounds(gfxContext* aContext) const
-{
-  if (GetStyleOutline()->GetOutlineStyle() != NS_STYLE_BORDER_STYLE_NONE ||
-      HasBorder() || !GetStyleBackground()->IsTransparent() ||
-      GetStyleDisplay()->mAppearance) {
-    // Not necessarily tight, due to clipping, negative
-    // outline-offset, and lots of other issues, but that's OK
-    return GetOverflowRect();
-  }
-
-  nsRect r(0, 0, 0, 0);
-  PRInt32 listIndex = 0;
-  nsIAtom* childList = nsnull;
-  do {
-    nsIFrame* child = GetFirstChild(childList);
-    while (child) {
-       r.UnionRect(r, child->ComputeTightBounds(aContext) + child->GetPosition());
-       child = child->GetNextSibling();
-    }
-    childList = GetAdditionalChildListName(listIndex++);
-  } while (childList);
-  return r;
 }
 
 /* virtual */ nsSize
@@ -3239,11 +3297,14 @@ nsFrame::DidReflow(nsPresContext*           aPresContext,
                 NS_FRAME_HAS_DIRTY_CHILDREN);
   }
 
-  // Notify the percent height observer if there is a percent height.
-  // The observer may be able to initiate another reflow with a computed
-  // height. This happens in the case where a table cell has no computed
-  // height but can fabricate one when the cell height is known.
+  // Notify the percent height observer if there is a percent height
+  // but no computed height. The observer may be able to initiate
+  // another reflow with a computed height. This happens in the case
+  // where a table cell has no computed height but can fabricate one
+  // when the cell height is known.
   if (aReflowState && aReflowState->mPercentHeightObserver &&
+      ((NS_UNCONSTRAINEDSIZE == aReflowState->mComputedHeight) ||         // no computed height 
+       (0                    == aReflowState->mComputedHeight))        && 
       (eStyleUnit_Percent == aReflowState->mStylePosition->mHeight.GetUnit())) {
 
     nsIFrame* prevInFlow = GetPrevInFlow();
@@ -3274,6 +3335,17 @@ nsFrame::Reflow(nsPresContext*          aPresContext,
   aDesiredSize.height = 0;
   aStatus = NS_FRAME_COMPLETE;
   NS_FRAME_SET_TRUNCATION(aStatus, aReflowState, aDesiredSize);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsFrame::TrimTrailingWhiteSpace(nsPresContext* aPresContext,
+                                nsIRenderingContext& aRC,
+                                nscoord& aDeltaWidth,
+                                PRBool& aLastCharIsJustifiable)
+{
+  aDeltaWidth = 0;
+  aLastCharIsJustifiable = PR_FALSE;
   return NS_OK;
 }
 
@@ -3356,22 +3428,6 @@ NS_IMETHODIMP nsFrame::SetNextInFlow(nsIFrame*)
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-nsIFrame* nsIFrame::GetTailContinuation()
-{
-  nsIFrame* frame = this;
-  while (frame->GetStateBits() & NS_FRAME_IS_OVERFLOW_CONTAINER) {
-    frame = frame->GetPrevContinuation();
-    NS_ASSERTION(frame, "first continuation can't be overflow container");
-  }
-  for (nsIFrame* next = frame->GetNextContinuation();
-       next && !(next->GetStateBits() & NS_FRAME_IS_OVERFLOW_CONTAINER);
-       next = frame->GetNextContinuation())  {
-    frame = next;
-  }
-  NS_POSTCONDITION(frame, "illegal state in continuation chain.");
-  return frame;
-}
-
 nsIView*
 nsIFrame::GetParentViewForChildFrame(nsIFrame* aFrame) const
 {
@@ -3392,7 +3448,7 @@ nsIFrame::GetView() const
 
   NS_ENSURE_SUCCESS(rv, nsnull);
   NS_ASSERTION(value, "frame state bit was set but frame has no view");
-  return static_cast<nsIView*>(value);
+  return NS_STATIC_CAST(nsIView*, value);
 }
 
 /* virtual */ nsIView*
@@ -3488,7 +3544,7 @@ nsIntRect nsIFrame::GetScreenRect() const
     if (widget) {
       nsRect ourRect = mRect;
       ourRect.MoveTo(toViewOffset + toWidgetOffset);
-      ourRect.ScaleRoundOut(1.0f / PresContext()->AppUnitsPerDevPixel());
+      ourRect.ScaleRoundOut(1.0f / GetPresContext()->AppUnitsPerDevPixel());
       // Is it safe to pass the same rect for both args of WidgetToScreen?
       // It's not clear, so let's not...
       nsIntRect ourPxRect(ourRect.x, ourRect.y, ourRect.width, ourRect.height);
@@ -3640,7 +3696,7 @@ nsIFrame::Invalidate(const nsRect& aDamageRect,
 
   // Don't allow invalidates to do anything when
   // painting is suppressed.
-  nsIPresShell *shell = PresContext()->GetPresShell();
+  nsIPresShell *shell = GetPresContext()->GetPresShell();
   if (shell) {
     PRBool suppressed = PR_FALSE;
     shell->IsPaintingSuppressed(&suppressed);
@@ -3657,21 +3713,6 @@ nsIFrame::InvalidateInternal(const nsRect& aDamageRect, nscoord aX, nscoord aY,
 {
   GetParent()->
     InvalidateInternal(aDamageRect, aX + mRect.x, aY + mRect.y, this, aImmediate);
-}
-
-void
-nsIFrame::InvalidateRectDifference(const nsRect& aR1, const nsRect& aR2)
-{
-  nsRect sizeHStrip, sizeVStrip;
-  nsLayoutUtils::GetRectDifferenceStrips(aR1, aR2, &sizeHStrip, &sizeVStrip);
-  Invalidate(sizeVStrip);
-  Invalidate(sizeHStrip);
-}
-
-void
-nsIFrame::InvalidateOverflowRect()
-{
-  Invalidate(GetOverflowRect());
 }
 
 void
@@ -3708,19 +3749,6 @@ static nsRect ComputeOutlineRect(const nsIFrame* aFrame, PRBool* aAnyOutline,
   return r;
 }
 
-nsPoint
-nsIFrame::GetRelativeOffset(const nsStyleDisplay* aDisplay) const
-{
-  if (!aDisplay || NS_STYLE_POSITION_RELATIVE == aDisplay->mPosition) {
-    nsPoint *offsets = static_cast<nsPoint*>
-                         (GetProperty(nsGkAtoms::computedOffsetProperty));
-    if (offsets) {
-      return *offsets;
-    }
-  }
-  return nsPoint(0,0);
-}
-
 nsRect
 nsIFrame::GetOverflowRect() const
 {
@@ -3729,12 +3757,13 @@ nsIFrame::GetOverflowRect() const
   // of child frames. That's OK because any reflow that updates these
   // areas will invalidate the appropriate area, so any (mis)uses of
   // this method will be fixed up.
-
-  if (GetStateBits() & NS_FRAME_OUTSIDE_CHILDREN)
-    return *const_cast<nsIFrame*>(this)->GetOverflowAreaProperty(PR_FALSE);
-  // NOTE this won't return accurate info if the overflow rect was updated
-  // but the mRect hasn't been set yet!
-  return nsRect(nsPoint(0, 0), GetSize());
+  nsRect* storedOA = NS_CONST_CAST(nsIFrame*, this)
+    ->GetOverflowAreaProperty(PR_FALSE);
+  if (storedOA) {
+    return *storedOA;
+  } else {
+    return nsRect(nsPoint(0, 0), GetSize());
+  }
 }
   
 void
@@ -3761,7 +3790,6 @@ nsFrame::CheckInvalidateSizeChange(nsPresContext* aPresContext,
   nsRect r = ComputeOutlineRect(this, &anyOutline,
                                 aDesiredSize.mOverflowArea);
   if (anyOutline) {
-    r.UnionRect(GetOverflowRect(), r);
     Invalidate(r);
     return;
   }
@@ -3796,7 +3824,7 @@ nsFrame::IsFrameTreeTooDeep(const nsHTMLReflowState& aReflowState,
                             nsHTMLReflowMetrics& aMetrics)
 {
   if (aReflowState.mReflowDepth >  MAX_FRAME_DEPTH) {
-    mState |= NS_FRAME_TOO_DEEP_IN_FRAME_TREE;
+    mState |= NS_FRAME_IS_UNFLOWABLE;
     mState &= ~NS_FRAME_OUTSIDE_CHILDREN;
     aMetrics.width = 0;
     aMetrics.height = 0;
@@ -3808,7 +3836,7 @@ nsFrame::IsFrameTreeTooDeep(const nsHTMLReflowState& aReflowState,
     aMetrics.mOverflowArea.height = 0;
     return PR_TRUE;
   }
-  mState &= ~NS_FRAME_TOO_DEEP_IN_FRAME_TREE;
+  mState &= ~NS_FRAME_IS_UNFLOWABLE;
   return PR_FALSE;
 }
 
@@ -3858,10 +3886,10 @@ nsFrame::List(FILE* out, PRInt32 aIndent) const
   IndentBy(out, aIndent);
   ListTag(out);
 #ifdef DEBUG_waterson
-  fprintf(out, " [parent=%p]", static_cast<void*>(mParent));
+  fprintf(out, " [parent=%p]", NS_STATIC_CAST(void*, mParent));
 #endif
   if (HasView()) {
-    fprintf(out, " [view=%p]", static_cast<void*>(GetView()));
+    fprintf(out, " [view=%p]", NS_STATIC_CAST(void*, GetView()));
   }
   fprintf(out, " {%d,%d,%d,%d}", mRect.x, mRect.y, mRect.width, mRect.height);
   if (0 != mState) {
@@ -3870,17 +3898,17 @@ nsFrame::List(FILE* out, PRInt32 aIndent) const
   nsIFrame* prevInFlow = GetPrevInFlow();
   nsIFrame* nextInFlow = GetNextInFlow();
   if (nsnull != prevInFlow) {
-    fprintf(out, " prev-in-flow=%p", static_cast<void*>(prevInFlow));
+    fprintf(out, " prev-in-flow=%p", NS_STATIC_CAST(void*, prevInFlow));
   }
   if (nsnull != nextInFlow) {
-    fprintf(out, " next-in-flow=%p", static_cast<void*>(nextInFlow));
+    fprintf(out, " next-in-flow=%p", NS_STATIC_CAST(void*, nextInFlow));
   }
-  fprintf(out, " [content=%p]", static_cast<void*>(mContent));
-  nsFrame* f = const_cast<nsFrame*>(this);
-  if (f->GetStateBits() & NS_FRAME_OUTSIDE_CHILDREN) {
-    nsRect overflowArea = f->GetOverflowRect();
-    fprintf(out, " [overflow=%d,%d,%d,%d]", overflowArea.x, overflowArea.y,
-            overflowArea.width, overflowArea.height);
+  fprintf(out, " [content=%p]", NS_STATIC_CAST(void*, mContent));
+  nsFrame* f = NS_CONST_CAST(nsFrame*, this);
+  nsRect* overflowArea = f->GetOverflowAreaProperty(PR_FALSE);
+  if (overflowArea) {
+    fprintf(out, " [overflow=%d,%d,%d,%d]", overflowArea->x, overflowArea->y,
+            overflowArea->width, overflowArea->height);
   }
   fputs("\n", out);
   return NS_OK;
@@ -3997,7 +4025,7 @@ nsIFrame::IsVisibleForPainting() {
   if (!GetStyleVisibility()->IsVisible())
     return PR_FALSE;
 
-  nsPresContext* pc = PresContext();
+  nsPresContext* pc = GetPresContext();
   if (!pc->IsRenderingOnlySelection())
     return PR_TRUE;
 
@@ -4077,17 +4105,7 @@ nsFrame::GetSelectionController(nsPresContext *aPresContext, nsISelectionControl
   return CallQueryInterface(aPresContext->GetPresShell(), aSelCon);
 }
 
-already_AddRefed<nsFrameSelection>
-nsIFrame::GetFrameSelection()
-{
-  nsFrameSelection* fs =
-    const_cast<nsFrameSelection*>(GetConstFrameSelection());
-  NS_IF_ADDREF(fs);
-  return fs;
-}
-
-const nsFrameSelection*
-nsIFrame::GetConstFrameSelection()
+nsFrameSelection* nsIFrame::GetFrameSelection()
 {
   nsIFrame *frame = this;
   while (frame && (frame->GetStateBits() & NS_FRAME_INDEPENDENT_SELECTION)) {
@@ -4098,7 +4116,7 @@ nsIFrame::GetConstFrameSelection()
     frame = frame->GetParent();
   }
 
-  return PresContext()->PresShell()->ConstFrameSelection();
+  return GetPresContext()->PresShell()->FrameSelection();
 }
 
 #ifdef NS_DEBUG
@@ -4257,12 +4275,12 @@ nsFrame::GetSelected(PRBool *aSelected) const
 {
   if (!aSelected )
     return NS_ERROR_NULL_POINTER;
-  *aSelected = !!(mState & NS_FRAME_SELECTED_CONTENT);
+  *aSelected = (PRBool)(mState & NS_FRAME_SELECTED_CONTENT);
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsFrame::GetPointFromOffset(PRInt32 inOffset, nsPoint* outPoint)
+nsFrame::GetPointFromOffset(nsPresContext* inPresContext, nsIRenderingContext* inRendContext, PRInt32 inOffset, nsPoint* outPoint)
 {
   NS_PRECONDITION(outPoint != nsnull, "Null parameter");
   nsPoint bottomLeft(0, 0);
@@ -4591,7 +4609,6 @@ FindBlockFrameOrBR(nsIFrame* aFrame, nsDirection aDirection)
 {
   nsContentAndOffset result;
   result.mContent =  nsnull;
-  result.mOffset = 0;
 
   if (aFrame->IsGeneratedContentFrame())
     return result;
@@ -4613,13 +4630,8 @@ FindBlockFrameOrBR(nsIFrame* aFrame, nsDirection aDirection)
       aFrame->GetType() == nsGkAtoms::brFrame) {
     nsIContent* content = aFrame->GetContent();
     result.mContent = content->GetParent();
-    // In some cases (bug 310589, bug 370174) we end up here with a null content.
-    // This probably shouldn't ever happen, but since it sometimes does, we want
-    // to avoid crashing here.
-    NS_ASSERTION(result.mContent, "Unexpected orphan content");
-    if (result.mContent)
-      result.mOffset = result.mContent->IndexOf(content) + 
-        (aDirection == eDirPrevious ? 1 : 0);
+    result.mOffset = result.mContent->IndexOf(content) + 
+      (aDirection == eDirPrevious ? 1 : 0);
     return result;
   }
 
@@ -4668,8 +4680,7 @@ nsIFrame::PeekOffsetParagraph(nsPeekOffsetStruct *aPos)
   if (aPos->mDirection == eDirPrevious) {
     while (!reachedBlockAncestor) {
       nsIFrame* parent = frame->GetParent();
-      // Treat a frame associated with the root content as if it were a block frame.
-      if (!frame->mContent || !frame->mContent->GetParent()) {
+      if (!parent) { // Treat the root frame as if it were a block frame.
         reachedBlockAncestor = PR_TRUE;
         break;
       }
@@ -4694,8 +4705,7 @@ nsIFrame::PeekOffsetParagraph(nsPeekOffsetStruct *aPos)
   } else { // eDirNext
     while (!reachedBlockAncestor) {
       nsIFrame* parent = frame->GetParent();
-      // Treat a frame associated with the root content as if it were a block frame.
-      if (!frame->mContent || !frame->mContent->GetParent()) {
+      if (!parent) { // Treat the root frame as if it were a block frame.
         reachedBlockAncestor = PR_TRUE;
         break;
       }
@@ -4801,11 +4811,11 @@ nsIFrame::PeekOffset(nsPeekOffsetStruct* aPos)
         // Use the hidden preference which is based on operating system behavior.
         // This pref only affects whether moving forward by word should go to the end of this word or start of the next word.
         // When going backwards, the start of the word is always used, on every operating system.
-        wordSelectEatSpace = aPos->mDirection == eDirNext &&
-          nsContentUtils::GetBoolPref("layout.word_select.eat_space_to_next_word");
-      }
+        nsTextTransformer::Initialize();
+        wordSelectEatSpace = aPos->mDirection == eDirNext && nsTextTransformer::GetWordSelectEatSpaceAfter();
+      }      
       
-      // mSawBeforeType means "we already saw characters of the type
+      // sawBeforeType means "we already saw characters of the type
       // before the boundary we're looking for". Examples:
       // 1. If we're moving forward, looking for a word beginning (i.e. a boundary
       //    between whitespace and non-whitespace), then eatingWS==PR_TRUE means
@@ -4813,14 +4823,15 @@ nsIFrame::PeekOffset(nsPeekOffsetStruct* aPos)
       // 2. If we're moving backward, looking for a word beginning (i.e. a boundary
       //    between non-whitespace and whitespace), then eatingWS==PR_TRUE means
       //    "we already saw some non-whitespace".
-      PeekWordState state;
+      PRBool sawBeforeType = PR_FALSE;
+
       PRBool done = PR_FALSE;
       while (!done) {
         PRBool movingInFrameDirection =
           IsMovingInFrameDirection(current, aPos->mDirection, aPos->mVisual);
         
-        done = current->PeekOffsetWord(movingInFrameDirection, wordSelectEatSpace,
-                                       aPos->mIsKeyboardSelect, &offset, &state);
+        done = current->PeekOffsetWord(movingInFrameDirection, wordSelectEatSpace, aPos->mIsKeyboardSelect,
+                                       &offset, &sawBeforeType);
         
         if (!done) {
           nsIFrame* nextFrame;
@@ -4833,17 +4844,14 @@ nsIFrame::PeekOffset(nsPeekOffsetStruct* aPos)
           // We can't jump lines if we're looking for whitespace following
           // non-whitespace, and we already encountered non-whitespace.
           if (NS_FAILED(result) ||
-              jumpedLine && !wordSelectEatSpace && state.mSawBeforeType) {
+              jumpedLine && !wordSelectEatSpace && sawBeforeType) {
             done = PR_TRUE;
           } else {
-            if (jumpedLine) {
-              state.mContext.Truncate();
-            }
             current = nextFrame;
             offset = nextFrameOffset;
             // Jumping a line is equivalent to encountering whitespace
             if (wordSelectEatSpace && jumpedLine)
-              state.SetSawBeforeType();
+              sawBeforeType = PR_TRUE;
           }
         }
       }
@@ -4875,7 +4883,7 @@ nsIFrame::PeekOffset(nsPeekOffsetStruct* aPos)
         //it will "drill down" to find a viable frame or it will return an error.
         nsIFrame *lastFrame = this;
         do {
-          result = nsFrame::GetNextPrevLineFromeBlockFrame(PresContext(),
+          result = nsFrame::GetNextPrevLineFromeBlockFrame(GetPresContext(),
                                                            aPos, 
                                                            blockFrame, 
                                                            thisLine, 
@@ -4970,20 +4978,18 @@ nsIFrame::PeekOffset(nsPeekOffsetStruct* aPos)
       PRBool endOfLine = (eSelectEndLine == aPos->mAmount);
       
 #ifdef IBMBIDI
-      if (aPos->mVisual && PresContext()->BidiEnabled()) {
+      if (aPos->mVisual && GetPresContext()->BidiEnabled()) {
         PRBool lineIsRTL;
         it->GetDirection(&lineIsRTL);
         PRBool isReordered;
         nsIFrame *lastFrame;
         result = it->CheckLineOrder(thisLine, &isReordered, &firstFrame, &lastFrame);
         baseFrame = endOfLine ? lastFrame : firstFrame;
-        if (baseFrame) {
-          nsBidiLevel embeddingLevel = nsBidiPresUtils::GetFrameEmbeddingLevel(baseFrame);
-          // If the direction of the frame on the edge is opposite to that of the line,
-          // we'll need to drill down to its opposite end, so reverse endOfLine.
-          if ((embeddingLevel & 1) == !lineIsRTL)
-            endOfLine = !endOfLine;
-        }
+        nsBidiLevel embeddingLevel = nsBidiPresUtils::GetFrameEmbeddingLevel(baseFrame);
+        // If the direction of the frame on the edge is opposite to that of the line,
+        // we'll need to drill down to its opposite end, so reverse endOfLine.
+        if ((embeddingLevel & 1) == !lineIsRTL)
+          endOfLine = !endOfLine;
       } else
 #endif
       {
@@ -5049,68 +5055,23 @@ nsFrame::PeekOffsetCharacter(PRBool aForward, PRInt32* aOffset)
 
 PRBool
 nsFrame::PeekOffsetWord(PRBool aForward, PRBool aWordSelectEatSpace, PRBool aIsKeyboardSelect,
-                        PRInt32* aOffset, PeekWordState* aState)
+                        PRInt32* aOffset, PRBool* aSawBeforeType)
 {
   NS_ASSERTION (aOffset && *aOffset <= 1, "aOffset out of range");
   PRInt32 startOffset = *aOffset;
-  // This isn't text, so truncate the context
-  aState->mContext.Truncate();
   if (startOffset < 0)
     startOffset = 1;
   if (aForward == (startOffset == 0)) {
     // We're before the frame and moving forward, or after it and moving backwards.
     // If we're looking for non-whitespace, we found it (without skipping this frame).
-    if (!aState->mAtStart) {
-      if (aState->mLastCharWasPunctuation) {
-        // We're not punctuation, so this is a punctuation boundary.
-        if (BreakWordBetweenPunctuation(aState, aForward, PR_FALSE, PR_FALSE, aIsKeyboardSelect))
-          return PR_TRUE;
-      } else {
-        // This is not a punctuation boundary.
-        if (aWordSelectEatSpace && aState->mSawBeforeType)
-          return PR_TRUE;
-      }
-    }
+    if (aWordSelectEatSpace && *aSawBeforeType)
+      return PR_TRUE;
     // Otherwise skip to the other side and note that we encountered non-whitespace.
     *aOffset = 1 - startOffset;
-    aState->Update(PR_FALSE, // not punctuation
-                   PR_FALSE  // not whitespace
-                   );
     if (!aWordSelectEatSpace)
-      aState->SetSawBeforeType();
+      *aSawBeforeType = PR_TRUE;
   }
   return PR_FALSE;
-}
-
-PRBool
-nsFrame::BreakWordBetweenPunctuation(const PeekWordState* aState,
-                                     PRBool aForward,
-                                     PRBool aPunctAfter, PRBool aWhitespaceAfter,
-                                     PRBool aIsKeyboardSelect)
-{
-  NS_ASSERTION(aPunctAfter != aState->mLastCharWasPunctuation,
-               "Call this only at punctuation boundaries");
-  if (aState->mLastCharWasWhitespace) {
-    // We always stop between whitespace and punctuation
-    return PR_TRUE;
-  }
-  if (!nsContentUtils::GetBoolPref("layout.word_select.stop_at_punctuation")) {
-    // When this pref is false, we never stop at a punctuation boundary unless
-    // it's after whitespace
-    return PR_FALSE;
-  }
-  if (!aIsKeyboardSelect) {
-    // mouse caret movement (e.g. word selection) always stops at every punctuation boundary
-    return PR_TRUE;
-  }
-  PRBool afterPunct = aForward ? aState->mLastCharWasPunctuation : aPunctAfter;
-  if (!afterPunct) {
-    // keyboard caret movement only stops after punctuation (in content order)
-    return PR_FALSE;
-  }
-  // Stop only if we've seen some non-punctuation since the last whitespace;
-  // don't stop after punctuation that follows whitespace.
-  return aState->mSeenNonPunctuationSinceWhitespace;
 }
 
 NS_IMETHODIMP
@@ -5124,7 +5085,7 @@ PRInt32
 nsFrame::GetLineNumber(nsIFrame *aFrame, nsIFrame** aContainingBlock)
 {
   NS_ASSERTION(aFrame, "null aFrame");
-  nsFrameManager* frameManager = aFrame->PresContext()->FrameManager();
+  nsFrameManager* frameManager = aFrame->GetPresContext()->FrameManager();
   nsIFrame *blockFrame = aFrame;
   nsIFrame *thisBlock;
   PRInt32   thisLine;
@@ -5136,10 +5097,6 @@ nsFrame::GetLineNumber(nsIFrame *aFrame, nsIFrame** aContainingBlock)
     if (thisBlock->GetStateBits() & NS_FRAME_OUT_OF_FLOW) {
       //if we are searching for a frame that is not in flow we will not find it. 
       //we must instead look for its placeholder
-      if (thisBlock->GetStateBits() & NS_FRAME_IS_OVERFLOW_CONTAINER) {
-        // abspos continuations don't have placeholders, get the fif
-        thisBlock = thisBlock->GetFirstInFlow();
-      }
       thisBlock = frameManager->GetPlaceholderFrameFor(thisBlock);
       if (!thisBlock)
         return -1;
@@ -5169,7 +5126,7 @@ nsIFrame::GetFrameFromDirection(nsDirection aDirection, PRBool aVisual,
   if (!aOutFrame || !aOutOffset || !aOutJumpedLine)
     return NS_ERROR_NULL_POINTER;
   
-  nsPresContext* presContext = PresContext();
+  nsPresContext* presContext = GetPresContext();
   *aOutFrame = nsnull;
   *aOutOffset = 0;
   *aOutJumpedLine = PR_FALSE;
@@ -5327,14 +5284,9 @@ DestroyRectFunc(void*    aFrame,
                 void*    aPropertyValue,
                 void*    aDtorData)
 {
-  delete static_cast<nsRect*>(aPropertyValue);
+  delete NS_STATIC_CAST(nsRect*, aPropertyValue);
 }
 
-/** Create or retrieve the previously stored overflow area, if the frame does 
- * not overflow and no creation is required return nsnull.
- * @param aCreateIfNecessary  create a new nsRect for the overflow area
- * @return pointer to the overflow area rectangle 
- */
 nsRect*
 nsIFrame::GetOverflowAreaProperty(PRBool aCreateIfNecessary) 
 {
@@ -5342,7 +5294,7 @@ nsIFrame::GetOverflowAreaProperty(PRBool aCreateIfNecessary)
     return nsnull;
   }
 
-  nsPropertyTable *propTable = PresContext()->PropertyTable();
+  nsPropertyTable *propTable = GetPresContext()->PropertyTable();
   void *value = propTable->GetProperty(this,
                                        nsGkAtoms::overflowAreaProperty);
 
@@ -5361,14 +5313,6 @@ nsIFrame::GetOverflowAreaProperty(PRBool aCreateIfNecessary)
   return nsnull;
 }
 
-inline PRBool
-IsInlineFrame(nsIFrame *aFrame)
-{
-  nsIAtom *type = aFrame->GetType();
-  return type == nsGkAtoms::inlineFrame ||
-         type == nsGkAtoms::positionedInlineFrame;
-}
-
 void 
 nsIFrame::FinishAndStoreOverflow(nsRect* aOverflowArea, nsSize aNewSize)
 {
@@ -5382,33 +5326,25 @@ nsIFrame::FinishAndStoreOverflow(nsRect* aOverflowArea, nsSize aNewSize)
                "Computed overflow area must contain frame bounds");
 
   const nsStyleDisplay *disp = GetStyleDisplay();
-  if (!IsBoxWrapped() && IsThemed(disp)) {
-    nsRect r(nsPoint(0, 0), aNewSize);
-    nsPresContext *presContext = PresContext();
+  if (IsThemed(disp)) {
+    nsRect r;
+    nsPresContext *presContext = GetPresContext();
     if (presContext->GetTheme()->
           GetWidgetOverflow(presContext->DeviceContext(), this,
                             disp->mAppearance, &r)) {
       aOverflowArea->UnionRect(*aOverflowArea, r);
     }
   }
-  
-  // Overflow area must always include the frame's top-left and bottom-right,
-  // even if the frame rect is empty.
-  // Pending a real fix for bug 426879, don't do this for inline frames
-  // with zero width.
-  if (aNewSize.width != 0 || !IsInlineFrame(this))
-    aOverflowArea->UnionRectIncludeEmpty(*aOverflowArea,
-                                         nsRect(nsPoint(0, 0), aNewSize));
 
   PRBool geometricOverflow =
     aOverflowArea->x < 0 || aOverflowArea->y < 0 ||
     aOverflowArea->XMost() > aNewSize.width || aOverflowArea->YMost() > aNewSize.height;
   // Clear geometric overflow area if we clip our children
-  NS_ASSERTION((disp->mOverflowY == NS_STYLE_OVERFLOW_CLIP) ==
-               (disp->mOverflowX == NS_STYLE_OVERFLOW_CLIP),
+  NS_ASSERTION((GetStyleDisplay()->mOverflowY == NS_STYLE_OVERFLOW_CLIP) ==
+               (GetStyleDisplay()->mOverflowX == NS_STYLE_OVERFLOW_CLIP),
                "If one overflow is clip, the other should be too");
   if (geometricOverflow &&
-      disp->mOverflowX == NS_STYLE_OVERFLOW_CLIP) {
+      GetStyleDisplay()->mOverflowX == NS_STYLE_OVERFLOW_CLIP) {
     *aOverflowArea = nsRect(nsPoint(0, 0), aNewSize);
     geometricOverflow = PR_FALSE;
   }
@@ -5416,14 +5352,8 @@ nsIFrame::FinishAndStoreOverflow(nsRect* aOverflowArea, nsSize aNewSize)
   PRBool hasOutline;
   nsRect outlineRect(ComputeOutlineRect(this, &hasOutline, *aOverflowArea));
 
-  PRBool hasAbsPosClip;
-  nsRect absPosClipRect;
-  hasAbsPosClip = GetAbsPosClipRect(disp, &absPosClipRect, aNewSize);
-  if (hasAbsPosClip) {
-    outlineRect.IntersectRect(outlineRect, absPosClipRect);
-  }
-
-  if (outlineRect != nsRect(nsPoint(0, 0), aNewSize)) {
+  if (hasOutline || geometricOverflow) {
+    // Throw out any overflow if we're -moz-hidden-unscrollable
     mState |= NS_FRAME_OUTSIDE_CHILDREN;
     nsRect* overflowArea = GetOverflowAreaProperty(PR_TRUE); 
     NS_ASSERTION(overflowArea, "should have created rect");
@@ -5446,9 +5376,15 @@ nsFrame::ConsiderChildOverflow(nsRect&   aOverflowArea,
   // check here also for hidden as table frames (table, tr and td) currently 
   // don't wrap their content into a scrollable frame if overflow is specified
   if (!disp->IsTableClip()) {
-    nsRect childOverflow = aChildFrame->GetOverflowRect();
-    childOverflow.MoveBy(aChildFrame->GetPosition());
-    aOverflowArea.UnionRect(aOverflowArea, childOverflow);
+    nsRect* overflowArea = aChildFrame->GetOverflowAreaProperty();
+    if (overflowArea) {
+      nsRect childOverflow(*overflowArea);
+      childOverflow.MoveBy(aChildFrame->GetPosition());
+      aOverflowArea.UnionRect(aOverflowArea, childOverflow);
+    }
+    else {
+      aOverflowArea.UnionRect(aOverflowArea, aChildFrame->GetRect());
+    }
   }
 }
 
@@ -5489,19 +5425,29 @@ GetIBSpecialSibling(nsPresContext* aPresContext,
    * interested in.
    */
   nsresult rv;
-  nsIFrame *specialSibling = static_cast<nsIFrame*>
-                                        (aPresContext->PropertyTable()->GetProperty(aFrame,
+  nsIFrame *specialSibling = NS_STATIC_CAST(nsIFrame*,
+                             aPresContext->PropertyTable()->GetProperty(aFrame,
                                nsGkAtoms::IBSplitSpecialPrevSibling, &rv));
 
-  if (NS_PROPTABLE_PROP_NOT_THERE == rv) {
-    *aSpecialSibling = nsnull;
-    rv = NS_OK;
-  } else if (NS_SUCCEEDED(rv)) {
+  if (NS_OK == rv) {
     NS_ASSERTION(specialSibling, "null special sibling");
     *aSpecialSibling = specialSibling;
   }
 
-  return rv;
+  return NS_OK;
+}
+
+static PRBool
+IsTablePseudo(nsIAtom* aPseudo)
+{
+  return
+    aPseudo == nsCSSAnonBoxes::tableOuter ||
+    aPseudo == nsCSSAnonBoxes::table ||
+    aPseudo == nsCSSAnonBoxes::tableRowGroup ||
+    aPseudo == nsCSSAnonBoxes::tableRow ||
+    aPseudo == nsCSSAnonBoxes::tableCell ||
+    aPseudo == nsCSSAnonBoxes::tableColGroup ||
+    aPseudo == nsCSSAnonBoxes::tableCol;
 }
 
 /**
@@ -5519,84 +5465,35 @@ GetCorrectedParent(nsPresContext* aPresContext, nsIFrame* aFrame,
                    nsIFrame** aSpecialParent)
 {
   nsIFrame *parent = aFrame->GetParent();
-  if (!parent) {
-    *aSpecialParent = nsnull;
-  } else {
+  *aSpecialParent = parent;
+  if (parent) {
     nsIAtom* pseudo = aFrame->GetStyleContext()->GetPseudoType();
-    // Outer tables are always anon boxes; if we're in here for an outer
-    // table, that actually means its the _inner_ table that wants to
-    // know its parent.  So get the pseudo of the inner in that case.
-    if (pseudo == nsCSSAnonBoxes::tableOuter) {
-      pseudo =
-        aFrame->GetFirstChild(nsnull)->GetStyleContext()->GetPseudoType();
+
+    // if this frame itself is not scrolled-content, then skip any scrolled-content
+    // parents since they're basically anonymous as far as the style system goes
+    if (pseudo != nsCSSAnonBoxes::scrolledContent) {
+      while (parent->GetStyleContext()->GetPseudoType() ==
+             nsCSSAnonBoxes::scrolledContent) {
+        parent = parent->GetParent();
+      }
     }
-    *aSpecialParent = nsFrame::CorrectStyleParentFrame(parent, pseudo);
+
+    // If the frame is not a table pseudo frame, we want to move up
+    // the tree till we get to a non-table-pseudo frame.
+    if (!IsTablePseudo(pseudo)) {
+      while (IsTablePseudo(parent->GetStyleContext()->GetPseudoType())) {
+        parent = parent->GetParent();
+      }
+    }
+
+    if (parent->GetStateBits() & NS_FRAME_IS_SPECIAL) {
+      GetIBSpecialSibling(aPresContext, parent, aSpecialParent);
+    } else {
+      *aSpecialParent = parent;
+    }
   }
 
   return NS_OK;
-}
-
-/* static */
-nsIFrame*
-nsFrame::CorrectStyleParentFrame(nsIFrame* aProspectiveParent,
-                                 nsIAtom* aChildPseudo)
-{
-  NS_PRECONDITION(aProspectiveParent, "Must have a prospective parent");
-
-  // Anon boxes are parented to their actual parent already, except
-  // for non-elements.  Those should not be treated as an anon box.
-  if (aChildPseudo && aChildPseudo != nsCSSAnonBoxes::mozNonElement &&
-      nsCSSAnonBoxes::IsAnonBox(aChildPseudo)) {
-    NS_ASSERTION(aChildPseudo != nsCSSAnonBoxes::mozAnonymousBlock &&
-                 aChildPseudo != nsCSSAnonBoxes::mozAnonymousPositionedBlock,
-                 "Should have dealt with kids that have NS_FRAME_IS_SPECIAL "
-                 "elsewhere");
-    return aProspectiveParent;
-  }
-
-  // Otherwise, walk up out of all anon boxes.  For placeholder frames, walk out
-  // of all pseudo-elements as well.  Otherwise ReParentStyleContext could cause
-  // style data to be out of sync with the frame tree.
-  nsIFrame* parent = aProspectiveParent;
-  do {
-    if (parent->GetStateBits() & NS_FRAME_IS_SPECIAL) {
-      nsIFrame* sibling;
-      nsresult rv =
-        GetIBSpecialSibling(parent->PresContext(), parent, &sibling);
-      if (NS_FAILED(rv)) {
-        // If GetIBSpecialSibling fails, then what?  we used to return what is
-        // now |aProspectiveParent|, but maybe |parent| would make more sense?
-        NS_NOTREACHED("Shouldn't get here");
-        return aProspectiveParent;
-      }
-
-      if (sibling) {
-        // |parent| was the block in an {ib} split; use the inline as
-        // |the style parent.
-        parent = sibling;
-      }
-    }
-      
-    nsIAtom* parentPseudo = parent->GetStyleContext()->GetPseudoType();
-    if (!parentPseudo ||
-        (!nsCSSAnonBoxes::IsAnonBox(parentPseudo) &&
-         // nsPlaceholderFrame pases in nsGkAtoms::placeholderFrame for
-         // aChildPseudo (even though that's not a valid pseudo-type) just to
-         // trigger this behavior of walking up to the nearest non-pseudo
-         // ancestor.
-         aChildPseudo != nsGkAtoms::placeholderFrame)) {
-      return parent;
-    }
-
-    parent = parent->GetParent();
-  } while (parent);
-
-  // We can get here if aProspectiveParent is the scrollframe for a viewport
-  // and the kids are the anonymous scrollbars.
-  NS_ASSERTION(aProspectiveParent->GetStyleContext()->GetPseudoType() ==
-                 nsCSSAnonBoxes::viewportScroll,
-               "Should have found a parent before this");
-  return aProspectiveParent;
 }
 
 nsresult
@@ -5620,16 +5517,9 @@ nsFrame::DoGetParentStyleContextFrame(nsPresContext* aPresContext,
      * using GetIBSpecialSibling
      */
     if (mState & NS_FRAME_IS_SPECIAL) {
-      nsresult rv = GetIBSpecialSibling(aPresContext, this, aProviderFrame);
-      if (NS_FAILED(rv)) {
-        NS_NOTREACHED("Shouldn't get here");
-        *aProviderFrame = nsnull;
-        return rv;
-      }
-
-      if (*aProviderFrame) {
+      GetIBSpecialSibling(aPresContext, this, aProviderFrame);
+      if (*aProviderFrame)
         return NS_OK;
-      }
     }
 
     // If this frame is one of the blocks that split an inline, we must
@@ -5640,21 +5530,14 @@ nsFrame::DoGetParentStyleContextFrame(nsPresContext* aPresContext,
 
   // For out-of-flow frames, we must resolve underneath the
   // placeholder's parent.
-  nsIFrame* oofFrame = this;
-  if ((oofFrame->GetStateBits() & NS_FRAME_IS_OVERFLOW_CONTAINER)
-      && (oofFrame->GetStateBits() & NS_FRAME_OUT_OF_FLOW)) {
-    // Out of flows that are overflow containers do not
-    // have placeholders. Use their first-in-flow's placeholder.
-    oofFrame = oofFrame->GetFirstInFlow();
-  }
   nsIFrame *placeholder =
-    aPresContext->FrameManager()->GetPlaceholderFrameFor(oofFrame);
+    aPresContext->FrameManager()->GetPlaceholderFrameFor(this);
   if (!placeholder) {
     NS_NOTREACHED("no placeholder frame for out-of-flow frame");
     GetCorrectedParent(aPresContext, this, aProviderFrame);
     return NS_ERROR_FAILURE;
   }
-  return static_cast<nsFrame*>(placeholder)->
+  return NS_STATIC_CAST(nsFrame*, placeholder)->
     GetParentStyleContextFrame(aPresContext, aProviderFrame, aIsChild);
 }
 
@@ -5751,14 +5634,14 @@ nsIFrame::SetProperty(nsIAtom*           aPropName,
                       NSPropertyDtorFunc aPropDtorFunc,
                       void*              aDtorData)
 {
-  return PresContext()->PropertyTable()->
+  return GetPresContext()->PropertyTable()->
     SetProperty(this, aPropName, aPropValue, aPropDtorFunc, aDtorData);
 }
 
 void* 
 nsIFrame::GetProperty(nsIAtom* aPropName, nsresult* aStatus) const
 {
-  return PresContext()->PropertyTable()->GetProperty(this, aPropName,
+  return GetPresContext()->PropertyTable()->GetProperty(this, aPropName,
                                                         aStatus);
 }
 
@@ -5771,17 +5654,17 @@ nsIFrame::GetPropertyExternal(nsIAtom* aPropName, nsresult* aStatus) const
 nsresult
 nsIFrame::DeleteProperty(nsIAtom* aPropName) const
 {
-  return PresContext()->PropertyTable()->DeleteProperty(this, aPropName);
+  return GetPresContext()->PropertyTable()->DeleteProperty(this, aPropName);
 }
 
 void*
 nsIFrame::UnsetProperty(nsIAtom* aPropName, nsresult* aStatus) const
 {
-  return PresContext()->PropertyTable()->UnsetProperty(this, aPropName,
+  return GetPresContext()->PropertyTable()->UnsetProperty(this, aPropName,
                                                           aStatus);
 }
 
-/* virtual */ const void*
+/* virtual */ const nsStyleStruct*
 nsFrame::GetStyleDataExternal(nsStyleStructID aSID) const
 {
   NS_ASSERTION(mStyleContext, "unexpected null pointer");
@@ -5802,6 +5685,17 @@ nsIFrame::IsFocusable(PRInt32 *aTabIndex, PRBool aWithMouse)
     const nsStyleVisibility* vis = GetStyleVisibility();
     if (vis->mVisible != NS_STYLE_VISIBILITY_COLLAPSE &&
         vis->mVisible != NS_STYLE_VISIBILITY_HIDDEN) {
+      if (mContent->IsNodeOfType(nsINode::eHTML)) {
+        nsCOMPtr<nsISupports> container(GetPresContext()->GetContainer());
+        nsCOMPtr<nsIEditorDocShell> editorDocShell(do_QueryInterface(container));
+        if (editorDocShell) {
+          PRBool isEditable;
+          editorDocShell->GetEditable(&isEditable);
+          if (isEditable) {
+            return NS_OK;  // Editor content is not focusable
+          }
+        }
+      }
       const nsStyleUserInterface* ui = GetStyleUserInterface();
       if (ui->mUserFocus != NS_STYLE_USER_FOCUS_IGNORE &&
           ui->mUserFocus != NS_STYLE_USER_FOCUS_NONE) {
@@ -5823,8 +5717,12 @@ nsIFrame::IsFocusable(PRInt32 *aTabIndex, PRBool aWithMouse)
         // will be enough to make them keyboard scrollable.
         nsCOMPtr<nsIScrollableFrame> scrollFrame = do_QueryInterface(this);
         if (scrollFrame) {
-          nsMargin margin = scrollFrame->GetActualScrollbarSizes();
-          if (margin.top || margin.right || margin.bottom || margin.left) {
+          nsIScrollableFrame::ScrollbarStyles styles =
+            scrollFrame->GetScrollbarStyles();
+          if (styles.mVertical == NS_STYLE_OVERFLOW_SCROLL ||
+              styles.mVertical == NS_STYLE_OVERFLOW_AUTO ||
+              styles.mHorizontal == NS_STYLE_OVERFLOW_SCROLL ||
+              styles.mHorizontal == NS_STYLE_OVERFLOW_AUTO) {
             // Scroll bars will be used for overflow
             isFocusable = PR_TRUE;
             tabIndex = 0;
@@ -5877,9 +5775,7 @@ void nsFrame::FillCursorInformationFromStyle(const nsStyleUserInterface* ui,
 NS_IMETHODIMP
 nsFrame::RefreshSizeCache(nsBoxLayoutState& aState)
 {
-  // XXXbz this comment needs some rewriting to make sense in the
-  // post-reflow-branch world.
-  
+
   // Ok we need to compute our minimum, preferred, and maximum sizes.
   // 1) Maximum size. This is easy. Its infinite unless it is overloaded by CSS.
   // 2) Preferred size. This is a little harder. This is the size the block would be 
@@ -5936,7 +5832,7 @@ nsFrame::RefreshSizeCache(nsBoxLayoutState& aState)
     metrics->mBlockMinSize.height = 0;
     // ok we need the max ascent of the items on the line. So to do this
     // ask the block for its line iterator. Get the max ascent.
-    nsCOMPtr<nsILineIterator> lines = do_QueryInterface(static_cast<nsIFrame*>(this));
+    nsCOMPtr<nsILineIterator> lines = do_QueryInterface(NS_STATIC_CAST(nsIFrame*, this));
     if (lines) 
     {
       metrics->mBlockMinSize.height = 0;
@@ -5954,8 +5850,6 @@ nsFrame::RefreshSizeCache(nsBoxLayoutState& aState)
 
          count++;
       } while(firstFrame);
-    } else {
-      metrics->mBlockMinSize.height = desiredSize.height;
     }
 
     metrics->mBlockPrefSize.height = metrics->mBlockMinSize.height;
@@ -6178,7 +6072,8 @@ nsFrame::BoxReflow(nsBoxLayoutState&        aState,
   PRBool redrawAfterReflow = PR_FALSE;
   PRBool redrawNow = PR_FALSE;
 
-  PRBool needsReflow = NS_SUBTREE_DIRTY(this);
+  PRBool needsReflow =
+    (GetStateBits() & (NS_FRAME_IS_DIRTY | NS_FRAME_HAS_DIRTY_CHILDREN)) != 0;
 
   if (redrawNow)
      Redraw(aState);
@@ -6245,7 +6140,7 @@ nsFrame::BoxReflow(nsBoxLayoutState&        aState,
     if (parentSize.width != NS_INTRINSICSIZE)
       parentReflowState.SetComputedWidth(parentSize.width);
     if (parentSize.height != NS_INTRINSICSIZE)
-      parentReflowState.SetComputedHeight(parentSize.height);
+      parentReflowState.mComputedHeight = parentSize.height;
     parentReflowState.mComputedMargin.SizeTo(0, 0, 0, 0);
     // XXX use box methods
     parentFrame->GetPadding(parentReflowState.mComputedPadding);
@@ -6255,15 +6150,13 @@ nsFrame::BoxReflow(nsBoxLayoutState&        aState,
 
     // XXX Is it OK that this reflow state has no parent reflow state?
     // (It used to have a bogus parent, skipping all the boxes).
-    nsSize availSize(aWidth, NS_INTRINSICSIZE);
     nsHTMLReflowState reflowState(aPresContext, this, aRenderingContext,
-                                  availSize);
+                                  nsSize(aWidth, NS_INTRINSICSIZE));
 
     // Construct the parent chain manually since constructing it normally
     // messes up dimensions.
     reflowState.parentReflowState = &parentReflowState;
     reflowState.mCBReflowState = &parentReflowState;
-    reflowState.mReflowDepth = aState.GetReflowDepth();
 
     // mComputedWidth and mComputedHeight are content-box, not
     // border-box
@@ -6274,23 +6167,10 @@ nsFrame::BoxReflow(nsBoxLayoutState&        aState,
       reflowState.SetComputedWidth(computedWidth);
     }
     if (aHeight != NS_INTRINSICSIZE) {
-      nscoord computedHeight =
+      reflowState.mComputedHeight =
         aHeight - reflowState.mComputedBorderPadding.TopBottom();
-      computedHeight = PR_MAX(computedHeight, 0);
-      reflowState.SetComputedHeight(computedHeight);
-    } else {
-      reflowState.SetComputedHeight(
-        ComputeSize(aRenderingContext, availSize, availSize.width,
-                    nsSize(reflowState.mComputedMargin.LeftRight(),
-                           reflowState.mComputedMargin.TopBottom()),
-                    nsSize(reflowState.mComputedBorderPadding.LeftRight() -
-                             reflowState.mComputedPadding.LeftRight(),
-                           reflowState.mComputedBorderPadding.TopBottom() -
-                             reflowState.mComputedPadding.TopBottom()),
-                    nsSize(reflowState.mComputedPadding.LeftRight(),
-                           reflowState.mComputedPadding.TopBottom()),
-                    PR_FALSE).height
-        );
+      if (reflowState.mComputedHeight < 0)
+        reflowState.mComputedHeight = 0;
     }
 
     // Box layout calls SetRect before Layout, whereas non-box layout
@@ -6306,8 +6186,7 @@ nsFrame::BoxReflow(nsBoxLayoutState&        aState,
 
     #ifdef DEBUG_REFLOW
       nsAdaptorAddIndents();
-      printf("Size=(%d,%d)\n",reflowState.ComputedWidth(),
-             reflowState.ComputedHeight());
+      printf("Size=(%d,%d)\n",reflowState.ComputedWidth(), reflowState.mComputedHeight);
       nsAdaptorAddIndents();
       nsAdaptorPrintReason(reflowState);
       printf("\n");
@@ -6325,44 +6204,37 @@ nsFrame::BoxReflow(nsBoxLayoutState&        aState,
     // see if the overflow option is set. If it is then if our child's bounds overflow then
     // we will set the child's rect to include the overflow size.
     if (GetStateBits() & NS_FRAME_OUTSIDE_CHILDREN) {
+      // make sure we store the overflow size
+      
       // This kinda sucks. We should be able to handle the case
       // where there's overflow above or to the left of the
       // origin. But for now just chop that stuff off.
-      // (note: For RTL mode, replace "to the left of the origin" 
-      // with "to the right of the range [0, aDesiredSize.width]")
 
       //printf("OutsideChildren width=%d, height=%d\n", aDesiredSize.mOverflowArea.width, aDesiredSize.mOverflowArea.height);
-
-      if (NS_STYLE_DIRECTION_LTR == GetStyleVisibility()->mDirection) {
-        // LTR mode -- extend for overflow on right side.
-        aDesiredSize.width = PR_MAX(aDesiredSize.width, 
-                                    aDesiredSize.mOverflowArea.XMost());
-      } else {
-        // RTL mode -- extend for overflow on left side.
-        nscoord leftmostValue = PR_MIN(0, aDesiredSize.mOverflowArea.x);
-        // Note: If anything, this increases aDesiredSize.width, because
-        // leftmostValue is non-positive.
-        aDesiredSize.width = aDesiredSize.width - leftmostValue;
-      }
-      if (aDesiredSize.width <= aWidth) {
+      aDesiredSize.width = aDesiredSize.mOverflowArea.XMost();
+      if (aDesiredSize.width <= aWidth)
         aDesiredSize.height = aDesiredSize.mOverflowArea.YMost();
-      } else {
-        nscoord computedWidth = aDesiredSize.width -
-          reflowState.mComputedBorderPadding.LeftRight();
-        computedWidth = PR_MAX(computedWidth, 0);
-        reflowState.SetComputedWidth(computedWidth);
-        reflowState.availableWidth = aDesiredSize.width;
-        DidReflow(aPresContext, &reflowState, NS_FRAME_REFLOW_FINISHED);
-        #ifdef DEBUG_REFLOW
-        nsAdaptorAddIndents();
-        nsAdaptorPrintReason(reflowState);
-        printf("\n");
-        #endif
-        AddStateBits(NS_FRAME_IS_DIRTY);
-        WillReflow(aPresContext);
-        Reflow(aPresContext, aDesiredSize, reflowState, status);
-        if (GetStateBits() & NS_FRAME_OUTSIDE_CHILDREN)
-          aDesiredSize.height = aDesiredSize.mOverflowArea.YMost();
+      else {
+        if (aDesiredSize.width > aWidth)
+        {
+          nscoord computedWidth = aDesiredSize.width -
+            reflowState.mComputedBorderPadding.LeftRight();
+          computedWidth = PR_MAX(computedWidth, 0);
+          reflowState.SetComputedWidth(computedWidth);
+          reflowState.availableWidth = aDesiredSize.width;
+          DidReflow(aPresContext, &reflowState, NS_FRAME_REFLOW_FINISHED);
+          #ifdef DEBUG_REFLOW
+           nsAdaptorAddIndents();
+           nsAdaptorPrintReason(reflowState);
+           printf("\n");
+          #endif
+          AddStateBits(NS_FRAME_IS_DIRTY);
+          WillReflow(aPresContext);
+          Reflow(aPresContext, aDesiredSize, reflowState, status);
+          if (GetStateBits() & NS_FRAME_OUTSIDE_CHILDREN)
+            aDesiredSize.height = aDesiredSize.mOverflowArea.YMost();
+
+        }
       }
     }
 
@@ -6373,6 +6245,11 @@ nsFrame::BoxReflow(nsBoxLayoutState&        aState,
        Redraw(aState, &r);
     }
 
+    PRBool changedSize = PR_FALSE;
+
+    if (metrics->mLastSize.width != aDesiredSize.width || metrics->mLastSize.height != aDesiredSize.height)
+       changedSize = PR_TRUE;
+  
     PRUint32 layoutFlags = aState.LayoutFlags();
     nsContainerFrame::FinishReflowChild(this, aPresContext, &reflowState,
                                         aDesiredSize, aX, aY, layoutFlags | NS_FRAME_NO_MOVE_FRAME);
@@ -6439,7 +6316,7 @@ nsBoxLayoutMetrics*
 nsFrame::BoxMetrics() const
 {
   nsBoxLayoutMetrics* metrics =
-    static_cast<nsBoxLayoutMetrics*>(GetProperty(nsGkAtoms::boxMetricsProperty));
+    NS_STATIC_CAST(nsBoxLayoutMetrics*, GetProperty(nsGkAtoms::boxMetricsProperty));
   NS_ASSERTION(metrics, "A box layout method was called but InitBoxMetrics was never called");
   return metrics;
 }
@@ -6472,7 +6349,7 @@ DeleteBoxMetrics(void    *aObject,
                  void    *aPropertyValue,
                  void    *aData)
 {
-  delete static_cast<nsBoxLayoutMetrics*>(aPropertyValue);
+  delete NS_STATIC_CAST(nsBoxLayoutMetrics*, aPropertyValue);
 }
 
 void
@@ -6955,7 +6832,7 @@ DR_Rule* DR_State::ParseRule(FILE* aFile)
   while (GetToken(aFile, buf)) {
     if (GetNumber(buf, doDisplay)) {
       if (rule) { 
-        rule->mDisplay = !!doDisplay;
+        rule->mDisplay = (PRBool)doDisplay;
         break;
       }
       else {
@@ -7274,7 +7151,7 @@ static void DisplayReflowEnterPrint(nsPresContext*          aPresContext,
     printf("Reflow a=%s,%s ", width, height);
 
     DR_state->PrettyUC(aReflowState.ComputedWidth(), width);
-    DR_state->PrettyUC(aReflowState.ComputedHeight(), height);
+    DR_state->PrettyUC(aReflowState.mComputedHeight, height);
     printf("c=%s,%s ", width, height);
 
     if (aFrame->GetStateBits() & NS_FRAME_IS_DIRTY)
@@ -7309,7 +7186,7 @@ static void DisplayReflowEnterPrint(nsPresContext*          aPresContext,
       CheckPixelError(aReflowState.availableWidth, p2t);
       CheckPixelError(aReflowState.availableHeight, p2t);
       CheckPixelError(aReflowState.ComputedWidth(), p2t);
-      CheckPixelError(aReflowState.ComputedHeight(), p2t);
+      CheckPixelError(aReflowState.mComputedHeight, p2t);
     }
   }
 }
@@ -7400,23 +7277,25 @@ void nsFrame::DisplayReflowExit(nsPresContext*      aPresContext,
     DR_state->PrettyUC(aMetrics.height, height);
     printf("Reflow d=%s,%s ", width, height);
 
-    if (!NS_FRAME_IS_FULLY_COMPLETE(aStatus)) {
+    if (NS_FRAME_IS_NOT_COMPLETE(aStatus)) {
       printf("status=0x%x", aStatus);
     }
     if (aFrame->GetStateBits() & NS_FRAME_OUTSIDE_CHILDREN) {
-      DR_state->PrettyUC(aMetrics.mOverflowArea.x, x);
-      DR_state->PrettyUC(aMetrics.mOverflowArea.y, y);
-      DR_state->PrettyUC(aMetrics.mOverflowArea.width, width);
-      DR_state->PrettyUC(aMetrics.mOverflowArea.height, height);
-      printf("o=(%s,%s) %s x %s", x, y, width, height);
-      if (aFrame->GetStateBits() & NS_FRAME_OUTSIDE_CHILDREN) {
-        nsRect storedOverflow = aFrame->GetOverflowRect();
-        DR_state->PrettyUC(storedOverflow.x, x);
-        DR_state->PrettyUC(storedOverflow.y, y);
-        DR_state->PrettyUC(storedOverflow.width, width);
-        DR_state->PrettyUC(storedOverflow.height, height);
-        printf("sto=(%s,%s) %s x %s", x, y, width, height);
-      }
+       DR_state->PrettyUC(aMetrics.mOverflowArea.x, x);
+       DR_state->PrettyUC(aMetrics.mOverflowArea.y, y);
+       DR_state->PrettyUC(aMetrics.mOverflowArea.width, width);
+       DR_state->PrettyUC(aMetrics.mOverflowArea.height, height);
+       printf("o=(%s,%s) %s x %s", x, y, width, height);
+       nsRect* storedOverflow = aFrame->GetOverflowAreaProperty();
+       if (storedOverflow) {
+         if (aMetrics.mOverflowArea != *storedOverflow) {
+           DR_state->PrettyUC(storedOverflow->x, x);
+           DR_state->PrettyUC(storedOverflow->y, y);
+           DR_state->PrettyUC(storedOverflow->width, width);
+           DR_state->PrettyUC(storedOverflow->height, height);
+           printf("sto=(%s,%s) %s x %s", x, y, width, height);
+         }
+       }
     }
     printf("\n");
     if (DR_state->mDisplayPixelErrors) {

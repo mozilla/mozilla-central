@@ -34,15 +34,13 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-164697.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 164697;
+var bug = 164697;
 var summary = '(instance.__parent__ == constructor.__parent__)';
 var actual = '';
 var expect = '';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
 expect = 'true';
@@ -53,7 +51,7 @@ runtest('new Object()', 'Object');
 // see https://bugzilla.mozilla.org/show_bug.cgi?id=321669
 // for why this test is not contained in a function.
 actual = (function (){}).__proto__ == Function.prototype;
-reportCompare('true', actual+'',
+reportCompare('true', actual+'', 
               '(function (){}).__proto__ == Function.prototype');
 
 runtest('new Function(";")', 'Function');
@@ -84,7 +82,7 @@ function runtest(myinstance, myconstructor)
 
   try
   {
-    expr =  '(' + myinstance + ').__parent__ == ' +
+    expr =  '(' + myinstance + ').__parent__ == ' + 
       myconstructor + '.__parent__';
     printStatus(expr);
     actual = eval(expr).toString();
@@ -98,7 +96,7 @@ function runtest(myinstance, myconstructor)
 
   try
   {
-    expr =  '(' + myinstance + ').__proto__ == ' +
+    expr =  '(' + myinstance + ').__proto__ == ' + 
       myconstructor + '.prototype';
     printStatus(expr);
     actual = eval(expr).toString();

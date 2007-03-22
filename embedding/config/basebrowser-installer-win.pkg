@@ -61,6 +61,7 @@ components\xpconnect.xpt
 ; XP widgets/graphics
 ; 
 gkgfx.dll
+components\gkgfxwin.dll      
 components\gkwidget.dll   
 components\widget.xpt
 components\gfx.xpt                      
@@ -171,7 +172,6 @@ components\dom_css.xpt
 components\dom_events.xpt
 components\dom_html.xpt
 components\dom_loadsave.xpt
-components\dom_offline.xpt
 components\dom_range.xpt
 components\dom_sidebar.xpt
 components\dom_storage.xpt
@@ -221,7 +221,6 @@ components\pipboot.dll
 components\pipboot.xpt
 components\pipnss.dll
 components\pipnss.xpt
-nssutil3.dll
 nss3.dll
 smime3.dll
 softokn3.chk
@@ -243,8 +242,6 @@ res\viewsource.css
 res\hiddenWindow.html
 res\ua.css
 res\forms.css
-res\contenteditable.css
-res\designmode.css
 res\arrow.gif
 res\arrowd.gif
 res\loading-image.gif
@@ -257,7 +254,16 @@ res\entityTables\transliterate.properties
 res\fonts\fontEncoding.properties
 
 ; needed for ftp:// dir listings etc
-res\html\folder.png
+res\html\gopher-audio.gif
+res\html\gopher-binary.gif
+res\html\gopher-find.gif
+res\html\gopher-image.gif
+res\html\gopher-menu.gif
+res\html\gopher-movie.gif
+res\html\gopher-sound.gif
+res\html\gopher-telnet.gif
+res\html\gopher-text.gif
+res\html\gopher-unknown.gif
 
 ;
 ; MathML, optional for MathML charset conversion
@@ -277,9 +283,16 @@ res\fonts\mathfontPUA.properties
 res\fonts\mathfontSymbol.properties
 
 
+; p3p
+components\p3p.dll
+components\p3p.xpt
+
 ; XPInstall
 res\cmessage.txt
 
 ; storage
 components\storage.xpt
 components\strgcmps.dll
+
+; Effective TLD
+res\effective_tld_names.dat

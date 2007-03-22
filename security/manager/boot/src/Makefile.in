@@ -75,7 +75,6 @@ REQUIRES	= nspr \
 		  content \
 		  caps \
 		  pref \
-		  pipnss \
 		  $(NULL)
 
 include $(topsrcdir)/config/rules.mk

@@ -37,7 +37,6 @@
 
 #include "gfxBeOSPlatform.h"
 #include "gfxFontconfigUtils.h"
-#include "gfxPangoFonts.h"
 
 #include "gfxImageSurface.h"
 #include "gfxBeOSSurface.h"
@@ -54,8 +53,6 @@ gfxBeOSPlatform::~gfxBeOSPlatform()
 {
     gfxFontconfigUtils::Shutdown();
     sFontconfigUtils = nsnull;
-
-    gfxPangoFont::Shutdown();
 
 #if 0
     // It would be nice to do this (although it might need to be after
@@ -108,10 +105,4 @@ gfxBeOSPlatform::ResolveFontName(const nsAString& aFontName,
 {
     return sFontconfigUtils->ResolveFontName(aFontName, aCallback,
                                              aClosure, aAborted);
-}
-
-nsresult
-gfxBeOSPlatform::GetStandardFamilyName(const nsAString& aFontName, nsAString& aFamilyName)
-{
-    return sFontconfigUtils->GetStandardFamilyName(aFontName, aFamilyName);
 }

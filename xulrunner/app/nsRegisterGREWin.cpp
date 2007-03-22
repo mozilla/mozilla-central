@@ -41,6 +41,7 @@
 #include "nsIFile.h"
 #include "nsILocalFile.h"
 
+#include "nsBuildID.h"
 #include "nsAppRunner.h" // for MAXPATHLEN
 #include "nsStringAPI.h"
 #include "nsXPCOMGlue.h"
@@ -56,8 +57,7 @@ static const char kRegFileUser[] = "user.reginfo";
 
 static nsresult
 MakeVersionKey(HKEY root, const char* keyname, const nsCString &grehome,
-               const GREProperty *aProperties, PRUint32 aPropertiesLen,
-               const char *aGREMilestone)
+               const GREProperty *aProperties, PRUint32 aPropertiesLen)
 {
   HKEY  subkey;
   DWORD disp;
@@ -72,8 +72,8 @@ MakeVersionKey(HKEY root, const char* keyname, const nsCString &grehome,
 
   PRBool failed = PR_FALSE;
   failed |= ::RegSetValueEx(subkey, "Version", NULL, REG_SZ,
-                            (BYTE*) aGREMilestone,
-                            strlen(aGREMilestone)) != ERROR_SUCCESS;
+                            (BYTE*) GRE_BUILD_ID,
+                            sizeof(GRE_BUILD_ID) - 1) != ERROR_SUCCESS;
   failed |= ::RegSetValueEx(subkey, "GreHome", NULL, REG_SZ,
                             (BYTE*) grehome.get(),
                             grehome.Length()) != ERROR_SUCCESS;
@@ -97,8 +97,7 @@ MakeVersionKey(HKEY root, const char* keyname, const nsCString &grehome,
 
 int
 RegisterXULRunner(PRBool aRegisterGlobally, nsIFile* aLocation,
-                  const GREProperty *aProperties, PRUint32 aPropertiesLen,
-                  const char *aGREMilestone)
+                  const GREProperty *aProperties, PRUint32 aPropertiesLen)
 {
   // Register ourself in the windows registry, and record what key we created
   // for future unregistration.
@@ -172,9 +171,8 @@ RegisterXULRunner(PRBool aRegisterGlobally, nsIFile* aLocation,
     }
   }
 
-  strcpy(keyName, aGREMilestone);
-  rv = MakeVersionKey(rootKey, keyName, greHome, aProperties, aPropertiesLen,
-                      aGREMilestone);
+  strcpy(keyName, GRE_BUILD_ID);
+  rv = MakeVersionKey(rootKey, keyName, greHome, aProperties, aPropertiesLen);
   if (NS_SUCCEEDED(rv)) {
     PR_Write(fd, keyName, strlen(keyName));
     irv = PR_TRUE;
@@ -182,10 +180,9 @@ RegisterXULRunner(PRBool aRegisterGlobally, nsIFile* aLocation,
   }
   
   for (i = 0; i < 1000; ++i) {
-    sprintf(keyName, "%s_%i", aGREMilestone,  i);
+    sprintf(keyName, GRE_BUILD_ID "_%i", i);
     rv = MakeVersionKey(rootKey, keyName, greHome,
-                        aProperties, aPropertiesLen,
-                        aGREMilestone);
+                        aProperties, aPropertiesLen);
     if (NS_SUCCEEDED(rv)) {
       PR_Write(fd, keyName, strlen(keyName));
       irv = PR_TRUE;
@@ -206,8 +203,7 @@ reg_end:
 }
 
 void
-UnregisterXULRunner(PRBool aGlobal, nsIFile* aLocation,
-                    const char *aGREMilestone)
+UnregisterXULRunner(PRBool aGlobal, nsIFile* aLocation)
 {
   nsCOMPtr<nsIFile> savedInfoFile;
   aLocation->Clone(getter_AddRefs(savedInfoFile));

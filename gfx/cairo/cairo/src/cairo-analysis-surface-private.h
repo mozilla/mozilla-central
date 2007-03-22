@@ -1,4 +1,5 @@
-/*
+/* $Id: cairo-analysis-surface-private.h,v 1.3 2006/09/26 22:21:55 vladimir%pobox.com Exp $
+ *
  * Copyright © 2005 Keith Packard
  *
  * This library is free software; you can redistribute it and/or
@@ -42,20 +43,13 @@ _cairo_analysis_surface_create (cairo_surface_t		*target,
 				int			 width,
 				int			 height);
 
-cairo_private cairo_region_t *
+cairo_private pixman_region16_t *
 _cairo_analysis_surface_get_supported (cairo_surface_t *surface);
 
-cairo_private cairo_region_t *
-_cairo_analysis_surface_get_unsupported (cairo_surface_t *surface);
+cairo_private pixman_region16_t *
+_cairo_analysis_surface_get_unsupported (cairo_surface_t *unsupported);
 
 cairo_private cairo_bool_t
-_cairo_analysis_surface_has_supported (cairo_surface_t *surface);
-
-cairo_private cairo_bool_t
-_cairo_analysis_surface_has_unsupported (cairo_surface_t *surface);
-
-cairo_private void
-_cairo_analysis_surface_get_bounding_box (cairo_surface_t *surface,
-					  cairo_box_t     *bbox);
+_cairo_analysis_surface_has_unsupported (cairo_surface_t *unsupported);
 
 #endif /* CAIRO_ANALYSIS_SURFACE_H */

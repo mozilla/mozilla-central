@@ -54,23 +54,21 @@ REQUIRES	= xpcom \
 		  widget \
 		  gfx \
 		  docshell \
+		  appshell \
 		  appcomps \
 		  dom \
 		  content \
+		  layout \
+		  js \
 		  uriloader \
 		  pref \
 		  webbrwsr \
 		  windowwatcher \
+		  history \
 		  $(NULL)
 
-ifdef MOZ_PLACES
-REQUIRES +=	  places
-else
-REQUIRES +=	  history
-endif
-
 ifneq (,$(MOZ_PHOENIX)$(MOZ_XULRUNNER))
-REQUIRES += toolkitcomps
+REQUIRES += toolkitcomps history
 endif
 
 CPPSRCS		= \

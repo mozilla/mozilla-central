@@ -87,9 +87,6 @@ public:
   nsresult GetFaviconLinkForIconString(const nsCString& aIcon, nsIURI** aOutput);
   void GetFaviconSpecForIconString(const nsCString& aIcon, nsACString& aOutput);
 
-  static nsresult OptimizeFaviconImage(const PRUint8* aData, PRUint32 aDataLen,
-                                       const nsACString& aMimeType,
-                                       nsACString& aNewData, nsACString& aNewMimeType);
   NS_DECL_ISUPPORTS
   NS_DECL_NSIFAVICONSERVICE
 
@@ -128,6 +125,9 @@ private:
   friend class FaviconLoadListener;
 };
 
-#define FAVICON_DEFAULT_URL "chrome://mozapps/skin/places/defaultFavicon.png"
-#define FAVICON_ERRORPAGE_URL "chrome://global/skin/icons/warning-16.png"
+#ifdef XP_MACOSX
+#define FAVICON_DEFAULT_URL "chrome://browser/skin/bookmarks/bookmark-item.png"
+#else
+#define FAVICON_DEFAULT_URL "chrome://browser/skin/places/defaultFavicon.png"
+#endif
 #define FAVICON_ANNOTATION_NAME "favicon"

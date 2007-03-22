@@ -57,7 +57,7 @@
     buttons="disclosure"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <script src="cookieAcceptDialog.js" type="application/javascript"/>
+  <script src="cookieAcceptDialog.js" type="application/x-javascript"/>
   <stringbundle id="cookieBundle"
                 src="chrome://cookie/locale/cookieAcceptDialog.properties"/>
  
@@ -139,6 +139,13 @@
               <label value="&props.expires.label;"/>
             </hbox>
             <textbox id="ifl_expires" readonly="true" class="plain"/>
+          </row>
+
+          <row align="center" id="policyField" hidden="true">
+            <hbox align="center" pack="end">
+              <label value="&props.policy.label;"/>
+            </hbox>
+            <textbox id="ifl_policy" readonly="true" class="plain"/>
           </row>
 
         </rows>

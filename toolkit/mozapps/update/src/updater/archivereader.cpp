@@ -49,20 +49,12 @@
 #endif
 
 int
-#ifdef XP_WIN
-ArchiveReader::Open(const WCHAR *path)
-#else
 ArchiveReader::Open(const char *path)
-#endif
 {
   if (mArchive)
     Close();
 
-#ifdef XP_WIN
-  mArchive = mar_wopen(path);
-#else
   mArchive = mar_open(path);
-#endif
   if (!mArchive)
     return READ_ERROR;
 
@@ -104,16 +96,6 @@ ArchiveReader::ExtractFile(const char *name, const char *dest)
 }
 
 int
-ArchiveReader::ExtractFileToStream(const char *name, FILE *fp)
-{
-  const MarItem *item = mar_find_item(mArchive, name);
-  if (!item)
-    return READ_ERROR;
-
-  return ExtractItemToStream(item, fp);
-}
-
-int
 ArchiveReader::ExtractItemToStream(const MarItem *item, FILE *fp)
 {
   /* decompress the data chunk by chunk */
@@ -128,11 +110,6 @@ ArchiveReader::ExtractItemToStream(const MarItem *item, FILE *fp)
 
   offset = 0;
   for (;;) {
-    if (!item->length) {
-      ret = UNEXPECTED_ERROR;
-      break;
-    }
-
     if (offset < (int) item->length && strm.avail_in == 0) {
       inlen = mar_read(mArchive, item, offset, inbuf, BUFSIZ);
       if (inlen <= 0)

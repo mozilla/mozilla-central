@@ -55,8 +55,7 @@ class nsFixedSizeAllocator;
 class nsNodeInfo : public nsINodeInfo
 {
 public:
-  NS_DECL_CYCLE_COLLECTING_ISUPPORTS
-  NS_DECL_CYCLE_COLLECTION_CLASS(nsNodeInfo)
+  NS_DECL_ISUPPORTS
 
   // nsINodeInfo
   virtual void GetQualifiedName(nsAString &aQualifiedName) const;

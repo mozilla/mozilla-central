@@ -35,20 +35,18 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-304376.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 304376;
+var bug = 304376;
 var summary = 'String.prototype should be readonly and permanent';
 var actual = '';
 var expect = '';
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
 expect = 'TypeError';
 
 var saveString = String;
- 
+  
 String = Array;
 
 try

@@ -102,6 +102,7 @@ protected:
     nsHTMLSelectableAccessible *mParentSelect;
 
   public:
+    void Shutdown();
     iterator(nsHTMLSelectableAccessible *aParent, nsIWeakReference *aWeakShell);
 
     void CalcSelectionCount(PRInt32 *aSelectionCount);
@@ -129,7 +130,7 @@ public:
 
   /* ----- nsIAccessible ----- */
   NS_IMETHOD GetRole(PRUint32 *aRole);
-  NS_IMETHOD GetState(PRUint32 *aState, PRUint32 *aExtraState);
+  NS_IMETHOD GetState(PRUint32 *_retval);
   void CacheChildren();
 
 protected:
@@ -148,7 +149,7 @@ protected:
 /*
  * Options inside the select, contained within the list
  */
-class nsHTMLSelectOptionAccessible : public nsHyperTextAccessibleWrap
+class nsHTMLSelectOptionAccessible : public nsHyperTextAccessible
 {
 public:
   enum { eAction_Select = 0 };  
@@ -160,24 +161,12 @@ public:
   NS_IMETHOD DoAction(PRUint8 index);
   NS_IMETHOD GetActionName(PRUint8 aIndex, nsAString& aName);
   NS_IMETHOD GetNumActions(PRUint8 *_retval);
-  NS_IMETHOD GetState(PRUint32 *aState, PRUint32 *aExtraState);
+  NS_IMETHOD GetState(PRUint32 *_retval);
   NS_IMETHOD GetRole(PRUint32 *aRole);
   NS_IMETHOD GetName(nsAString& aName);
-  virtual nsresult GetAttributesInternal(nsIPersistentProperties *aAttributes);
-
   nsIFrame*  GetBoundsFrame();
   static nsresult GetFocusedOptionNode(nsIDOMNode *aListNode, nsIDOMNode **aFocusedOptionNode);
   static void SelectionChangedIfOption(nsIContent *aPossibleOption);
-
-private:
-  
-  /**
-   * Get Select element's accessible state
-   * @param aState, Select element state
-   * @param aExtraState, Select element extra state
-   * @return Select element content, returns null if not avaliable
-   */ 
-  nsIContent* GetSelectState(PRUint32* aState, PRUint32* aExtraState = nsnull);
 };
 
 /*
@@ -191,19 +180,15 @@ public:
   virtual ~nsHTMLSelectOptGroupAccessible() {}
 
   /* ----- nsIAccessible ----- */
-  NS_IMETHOD GetRole(PRUint32 *aRole);
-  NS_IMETHOD GetState(PRUint32 *aState, PRUint32 *aExtraState);
+  NS_IMETHOD GetState(PRUint32 *_retval);
   NS_IMETHOD DoAction(PRUint8 index);  
   NS_IMETHOD GetActionName(PRUint8 aIndex, nsAString& aName);
   NS_IMETHOD GetNumActions(PRUint8 *_retval);
-  void CacheChildren();
 };
 
 /** ------------------------------------------------------ */
 /**  Finally, the Combobox widgets                         */
 /** ------------------------------------------------------ */
-
-class nsHTMLComboboxListAccessible;
 
 /*
  * A class the represents the HTML Combobox widget.
@@ -218,7 +203,7 @@ public:
 
   /* ----- nsIAccessible ----- */
   NS_IMETHOD GetRole(PRUint32 *_retval);
-  NS_IMETHOD GetState(PRUint32 *aState, PRUint32 *aExtraState);
+  NS_IMETHOD GetState(PRUint32 *_retval);
   NS_IMETHOD GetValue(nsAString& _retval);
   NS_IMETHOD GetDescription(nsAString& aDescription);
   NS_IMETHOD DoAction(PRUint8 index);
@@ -226,13 +211,9 @@ public:
   NS_IMETHOD GetActionName(PRUint8 aIndex, nsAString& aName);
 
   void CacheChildren();
-  NS_IMETHOD Shutdown();
 
 protected:
   already_AddRefed<nsIAccessible> GetFocusedOptionAccessible();
-
-private:
-  nsRefPtr<nsHTMLComboboxListAccessible> mListAccessible;
 };
 
 #ifdef COMBO_BOX_WITH_THREE_CHILDREN
@@ -275,7 +256,7 @@ public:
   NS_IMETHOD GetParent(nsIAccessible **_retval);
   NS_IMETHOD GetName(nsAString& _retval);
   NS_IMETHOD GetRole(PRUint32 *_retval);
-  NS_IMETHOD GetState(PRUint32 *aState, PRUint32 *aExtraState);
+  NS_IMETHOD GetState(PRUint32 *_retval);
   NS_IMETHOD GetUniqueID(void **aUniqueID);
 
   virtual void GetBoundsRect(nsRect& aBounds, nsIFrame** aBoundingFrame);
@@ -293,11 +274,12 @@ public:
 
   nsHTMLComboboxListAccessible(nsIAccessible *aParent, 
                                nsIDOMNode* aDOMNode, 
+                               nsIFrame *aListFrame,
                                nsIWeakReference* aShell);
   virtual ~nsHTMLComboboxListAccessible() {}
 
   /* ----- nsIAccessible ----- */
-  NS_IMETHOD GetState(PRUint32 *aState, PRUint32 *aExtraState);
+  NS_IMETHOD GetState(PRUint32 *aState);
   NS_IMETHOD GetParent(nsIAccessible **aParent);
   NS_IMETHOD GetUniqueID(void **aUniqueID);
 
@@ -305,6 +287,9 @@ public:
   NS_IMETHOD_(nsIFrame *) GetFrame(void);
 
   virtual void GetBoundsRect(nsRect& aBounds, nsIFrame** aBoundingFrame);
+
+protected:
+  nsIFrame *mListFrame;
 };
 
 #endif

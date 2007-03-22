@@ -42,7 +42,6 @@
 #include "nsCOMArray.h"
 #include "nsIContent.h"
 #include "nsCOMPtr.h"
-#include "nsCycleCollectionParticipant.h"
 
 class nsXBLInsertionPoint
 {
@@ -60,11 +59,7 @@ public:
 
   nsrefcnt Release();
 
-  NS_DECL_CYCLE_COLLECTION_NATIVE_CLASS(nsXBLInsertionPoint)
-
   already_AddRefed<nsIContent> GetInsertionParent();
-  void ClearInsertionParent() { mParentElement = nsnull; }
-
   PRInt32 GetInsertionIndex() { return mIndex; }
 
   void SetDefaultContent(nsIContent* aDefaultContent) { mDefaultContent = aDefaultContent; }
@@ -82,10 +77,6 @@ public:
   already_AddRefed<nsIContent> ChildAt(PRUint32 aIndex);
 
   PRBool Matches(nsIContent* aContent, PRUint32 aIndex);
-
-  // Unbind all the default content in this insertion point.  Used
-  // when the insertion parent is going away.
-  void UnbindDefaultContent();
 
 protected:
   nsAutoRefCnt mRefCnt;

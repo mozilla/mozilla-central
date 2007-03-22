@@ -116,12 +116,6 @@ nsSystemPrincipal::Subsumes(nsIPrincipal *other, PRBool *result)
 }
 
 NS_IMETHODIMP
-nsSystemPrincipal::CheckMayLoad(nsIURI* uri, PRBool aReport)
-{
-    return NS_OK;
-}
-
-NS_IMETHODIMP
 nsSystemPrincipal::GetHashValue(PRUint32 *result)
 {
     *result = NS_PTR_TO_INT32(this);
@@ -286,20 +280,10 @@ nsSystemPrincipal::nsSystemPrincipal()
 {
 }
 
-#define SYSTEM_PRINCIPAL_SPEC "[System Principal]"
-
 nsresult
 nsSystemPrincipal::Init()
 {
-    // Use an nsCString so we only do the allocation once here and then
-    // share with nsJSPrincipals
-    nsCString str(SYSTEM_PRINCIPAL_SPEC);
-    if (!str.EqualsLiteral(SYSTEM_PRINCIPAL_SPEC)) {
-        NS_WARNING("Out of memory initializing system principal");
-        return NS_ERROR_OUT_OF_MEMORY;
-    }
-    
-    return mJSPrincipals.Init(this, str);
+    return mJSPrincipals.Init(this, "[System Principal]"); 
 }
 
 nsSystemPrincipal::~nsSystemPrincipal(void)

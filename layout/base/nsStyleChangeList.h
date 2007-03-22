@@ -58,27 +58,18 @@ struct nsStyleChangeData {
 
 static const PRUint32 kStyleChangeBufferSize = 10;
 
-// Note:  nsStyleChangeList owns a reference to
-//  nsIContent pointers in its list.
 class nsStyleChangeList {
 public:
-  nsStyleChangeList();
-  ~nsStyleChangeList();
+  nsStyleChangeList(void);
+  ~nsStyleChangeList(void);
 
   PRInt32 Count(void) const {
     return mCount;
   }
 
-  /**
-   * Fills in pointers without reference counting.  
-   */
   nsresult ChangeAt(PRInt32 aIndex, nsIFrame*& aFrame, nsIContent*& aContent,
                     nsChangeHint& aHint) const;
 
-  /**
-   * Fills in a pointer to the list entry storage (no reference counting
-   * involved).
-   */
   nsresult ChangeAt(PRInt32 aIndex, const nsStyleChangeData** aChangeData) const;
 
   nsresult AppendChange(nsIFrame* aFrame, nsIContent* aContent, nsChangeHint aHint);
@@ -93,9 +84,6 @@ protected:
   PRInt32             mArraySize;
   PRInt32             mCount;
   nsStyleChangeData   mBuffer[kStyleChangeBufferSize];
-
-private:
-  nsStyleChangeList(const nsStyleChangeList&); // not implemented
 };
 
 

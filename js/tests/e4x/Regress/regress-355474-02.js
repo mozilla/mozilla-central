@@ -36,18 +36,16 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'regress-355474-02.js';
-
-var BUGNUMBER = 355474;
+var bug = 355474;
 var summary = 'Iterating over XML with WAY_TOO_MUCH_GC';
 var actual = '';
 var expect = '';
 
-printBugNumber(BUGNUMBER);
-START(summary);
+printBugNumber (bug);
+printStatus (summary);
 
 expect = '<a>text</a>';
-for each (var i in <><a>text</a></>)
+for each (var i in <><a>text</a></>) 
 {
     printStatus(i.toXMLString());
     actual = i.toXMLString();

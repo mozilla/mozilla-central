@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '15.6.3.1-5.js';
-
 /**
    File Name:          15.6.3.1-5.js
    ECMA Section:       15.6.3.1 Boolean.prototype
@@ -51,7 +49,7 @@ startTest();
 var SECTION = "15.6.3.1-5";
 var TITLE   = "Boolean.prototype"
 
-  writeHeaderToLog( SECTION + " " + TITLE );
+writeHeaderToLog( SECTION + " " + TITLE );
 
 new TestCase( SECTION,  "Function.prototype == Boolean.__proto__",   true,   Function.prototype == Boolean.__proto__ );
 

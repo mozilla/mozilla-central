@@ -56,61 +56,64 @@
   </xsl:template>
 
   <xsl:template match="*">
-    <div>
-      <xsl:text>&lt;</xsl:text>
+    <div class="indent">
+      <span class="markup">&lt;</span>
       <span class="start-tag"><xsl:value-of select="name(.)"/></span>
       <xsl:apply-templates select="@*"/>
-      <xsl:text>/&gt;</xsl:text>
+      <span class="markup">/&gt;</span>
     </div>
   </xsl:template>
 
   <xsl:template match="*[node()]">
-    <div>
-      <xsl:text>&lt;</xsl:text>
+    <div class="indent">
+      <span class="markup">&lt;</span>
       <span class="start-tag"><xsl:value-of select="name(.)"/></span>
       <xsl:apply-templates select="@*"/>
-      <xsl:text>&gt;</xsl:text>
+      <span class="markup">&gt;</span>
 
       <span class="text"><xsl:value-of select="."/></span>
 
-      <xsl:text>&lt;/</xsl:text>
+      <span class="markup">&lt;/</span>
       <span class="end-tag"><xsl:value-of select="name(.)"/></span>
-      <xsl:text>&gt;</xsl:text>
+      <span class="markup">&gt;</span>
     </div>
   </xsl:template>
 
   <xsl:template match="*[* or processing-instruction() or comment() or string-length(.) &gt; 50]">
-    <div class="expander-open">
-      <xsl:call-template name="expander"/>
+    <table>
+      <tr>
+        <xsl:call-template name="expander"/>
+        <td>
+          <span class="markup">&lt;</span>
+          <span class="start-tag"><xsl:value-of select="name(.)"/></span>
+          <xsl:apply-templates select="@*"/>
+          <span class="markup">&gt;</span>
 
-      <xsl:text>&lt;</xsl:text>
-      <span class="start-tag"><xsl:value-of select="name(.)"/></span>
-      <xsl:apply-templates select="@*"/>
-      <xsl:text>&gt;</xsl:text>
+          <div class="expander-content"><xsl:apply-templates/></div>
 
-      <div class="expander-content"><xsl:apply-templates/></div>
-
-      <xsl:text>&lt;/</xsl:text>
-      <span class="end-tag"><xsl:value-of select="name(.)"/></span>
-      <xsl:text>&gt;</xsl:text>
-    </div>
+          <span class="markup">&lt;/</span>
+          <span class="end-tag"><xsl:value-of select="name(.)"/></span>
+          <span class="markup">&gt;</span>
+        </td>
+      </tr>
+    </table>
   </xsl:template>
 
   <xsl:template match="@*">
     <xsl:text> </xsl:text>
     <span class="attribute-name"><xsl:value-of select="name(.)"/></span>
-    <xsl:text>=</xsl:text>
+    <span class="markup">=</span>
     <span class="attribute-value">"<xsl:value-of select="."/>"</span>
   </xsl:template>
 
   <xsl:template match="text()">
     <xsl:if test="normalize-space(.)">
-      <xsl:value-of select="."/>
+      <div class="indent text"><xsl:value-of select="."/></div>
     </xsl:if>
   </xsl:template>
 
   <xsl:template match="processing-instruction()">
-    <div class="pi">
+    <div class="indent pi">
       <xsl:text>&lt;?</xsl:text>
       <xsl:value-of select="name(.)"/>
       <xsl:text> </xsl:text>
@@ -120,22 +123,20 @@
   </xsl:template>
 
   <xsl:template match="processing-instruction()[string-length(.) &gt; 50]">
-    <div class="expander-open">
-      <xsl:call-template name="expander"/>
-
-      <span class="pi">
-        <xsl:text> &lt;?</xsl:text>
-        <xsl:value-of select="name(.)"/>
-      </span>
-      <div class="expander-content pi"><xsl:value-of select="."/></div>
-      <span class="pi">
-        <xsl:text>?&gt;</xsl:text>
-      </span>
-    </div>
+    <table>
+      <tr>
+        <xsl:call-template name="expander"/>
+        <td class="pi">
+          &lt;?<xsl:value-of select="name(.)"/>
+          <div class="indent expander-content"><xsl:value-of select="."/></div>
+          <xsl:text>?&gt;</xsl:text>
+        </td>
+      </tr>
+    </table>
   </xsl:template>
 
   <xsl:template match="comment()">
-    <div class="comment">
+    <div class="comment indent">
       <xsl:text>&lt;!--</xsl:text>
       <xsl:value-of select="."/>
       <xsl:text>--&gt;</xsl:text>
@@ -143,23 +144,20 @@
   </xsl:template>
 
   <xsl:template match="comment()[string-length(.) &gt; 50]">
-    <div class="expander-open">
-      <xsl:call-template name="expander"/>
-
-      <span class="comment">
-        <xsl:text>&lt;!--</xsl:text>
-      </span>
-      <div class="expander-content comment">
-        <xsl:value-of select="."/>
-      </div>
-      <span class="comment">
-        <xsl:text>--&gt;</xsl:text>
-      </span> 
-    </div>
+    <table>
+      <tr>
+        <xsl:call-template name="expander"/>
+        <td class="comment">
+          <xsl:text>&lt;!--</xsl:text>
+          <div class="indent expander-content"><xsl:value-of select="."/></div>
+          <xsl:text>--&gt;</xsl:text>
+        </td>
+      </tr>
+    </table>
   </xsl:template>
   
   <xsl:template name="expander">
-    <div class="expander">&#x2212;</div>
+    <td class="expander">&#x2212;<div class="spacer"/></td>
   </xsl:template>
 
 </xsl:stylesheet>

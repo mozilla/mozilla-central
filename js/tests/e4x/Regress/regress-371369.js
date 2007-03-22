@@ -36,15 +36,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'regress-371369.js';
-
-var BUGNUMBER = 371369;
+var bug = 371369;
 var summary = 'delete xml.function::name does not work';
 var actual = 'No Exception';
 var expect = 'No Exception';
 
-printBugNumber(BUGNUMBER);
-START(summary);
+printBugNumber (bug);
+printStatus (summary);
 
 var xml = <a/>;
 xml.function::something = function() { };

@@ -34,17 +34,15 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'yield-undefined.js';
 //-----------------------------------------------------------------------------
 // Note that this syntax isn't in the most recently posted ES4 TG1 wiki export,
 // either in the specification parts or in the grammar, so this test might be
 // Spidermonkey-specific.
-var BUGNUMBER     = "(none)";
+var bug     = "(none)";
 var summary = "|yield;| is equivalent to |yield undefined;| ";
 var actual, expect;
 
-printBugNumber(BUGNUMBER);
+printBugNumber(bug);
 printStatus(summary);
 
 /**************

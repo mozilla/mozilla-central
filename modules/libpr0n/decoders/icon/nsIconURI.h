@@ -43,6 +43,9 @@
 #include "nsIIconURI.h"
 #include "nsCOMPtr.h"
 #include "nsStringGlue.h"
+struct nsStaticAtom;
+
+class nsIAtom;
 
 #define NS_MOZICONURI_CID                            \
 {                                                    \
@@ -59,6 +62,8 @@ public:
   NS_DECL_NSIURI
   NS_DECL_NSIMOZICONURI
 
+  static void InitAtoms();
+
   // nsMozIconURI
   nsMozIconURI();
   virtual ~nsMozIconURI();
@@ -69,8 +74,10 @@ protected:
   nsCString mContentType; // optional field explicitly specifying the content type
   nsCString mDummyFilePath; // if we don't have a valid file url, the file path is stored here....i.e if mFileIcon is null.....
   nsCString mStockIcon;
-  PRInt32 mIconSize;     // -1 if not specified, otherwise index into kSizeStrings
-  PRInt32 mIconState;    // -1 if not specified, otherwise index into kStateStrings
+  nsCOMPtr<nsIAtom> mIconSize;
+  nsCOMPtr<nsIAtom> mIconState;
+
+  nsresult FormatSpec(nsACString &result);
 };
 
 #endif // nsMozIconURI_h__

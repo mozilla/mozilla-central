@@ -10,59 +10,50 @@
 <overlay id="editorPrefsOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <preferences id="appearance_preferences">
-    <preference id="general.startup.editor"
-                name="general.startup.editor"
-                type="bool"/>
-  </preferences>
+  <script type="application/x-javascript">
+  <![CDATA[
+    var panel;
+    if (panel != undefined) {
+      switch(panel) 
+      {
+      case "chrome://communicator/content/pref/pref-appearance.xul":
+        _elementIDs.push("generalStartupEditor");
+        break;
+      }
+    }
+  ]]>
+  </script>         
 
   <!-- editor startup toggle -->
-  <groupbox id="generalStartupPreferences">
-    <checkbox id="generalStartupEditor"
-              insertafter="generalStartupMail,generalStartupBrowser"
-              label="&editorCheck.label;"
-              accesskey="&editorCheck.accesskey;"
-              preference="general.startup.editor"/>
+  <groupbox id="generalStartupPreferences">           
+    <checkbox id="generalStartupEditor" wsm_persist="true" position="3"
+              label="&editorCheck.label;" accesskey="&editorCheck.accesskey;"
+              pref="true" preftype="bool" prefstring="general.startup.editor"
+              prefattribute="checked"/>         
   </groupbox>
-  <!-- category tree entries for editor -->
-  <treechildren id="prefsPanelChildren">
-    <treeitem container="true"
-              id="composerItem"
-              insertafter="mailnews,navigator"
-              label="&compose.label;"
-              prefpane="composer_pane"
-              url="chrome://editor/content/pref-composer.xul"
-              helpTopic="composer_prefs_general">
-      <treechildren id="composerChildren">
-        <treeitem id="editingItem"
-                  label="&editing.label;"
-                  prefpane="editing_pane"
-                  url="chrome://editor/content/pref-editing.xul"
-                  helpTopic="composer_prefs_newpage"/>
-        <treeitem id="toolbarsItem"
-                  label="&toolbars.label;"
-                  prefpane="toolbars_pane"
-                  url="chrome://editor/content/pref-toolbars.xul"
-                  helpTopic="composer_prefs_toolbars"/>
-      </treechildren>
-    </treeitem>
-  </treechildren>
 
   <!-- category tree entries for editor -->
   <treechildren id="panelChildren">
-    <treeitem container="true" id="editor" insertafter="mailnews,navigator">
+    <treeitem container="true" id="editor" position="3">
       <treerow>       
-        <treecell label="Migrated: &compose.label;"/> 
+        <treecell url="chrome://editor/content/pref-composer.xul" label="&compose.label;" /> 
       </treerow>
       <treechildren>
         <treeitem>
           <treerow>
-            <treecell label="Migrated: &editing.label;"/> 
+            <treecell url="chrome://editor/content/pref-editing.xul" label="&editing.label;"/> 
           </treerow>
         </treeitem>
+        <!--     
         <treeitem>
           <treerow>
-            <treecell label="Migrated: &toolbars.label;"/> 
+            <treecell url="chrome://editor/content/pref-publish.xul" label="&publish.label;"/> 
+          </treerow>
+        </treeitem>  
+        -->
+        <treeitem>
+          <treerow>
+            <treecell url="chrome://editor/content/pref-toolbars.xul" label="&toolbars.label;"/> 
           </treerow>
         </treeitem>  
       </treechildren>

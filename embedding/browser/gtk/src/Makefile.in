@@ -1,4 +1,4 @@
-# 
+#
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -47,24 +47,63 @@ MODULE		= gtkembedmoz
 LIBRARY_NAME	= gtkembedmoz
 LIBXUL_LIBRARY	= 1
 FORCE_STATIC_LIB = 1
+
+LOCAL_INCLUDES += \
+                  -I. \
+                  $(NULL)
+
+#ifdef MOZ_GNOMEVFS_CFLAGS
+#DEFINES += -DMOZ_ENABLE_GNOMEVFS
+#endif
+
 DEFINES += -DIMPL_XREAPI
 
+# New Stuff in GtkMozEmbed
+ifdef MOZ_MICROBEMBED
+DEFINES += -DBAD_CERT_LISTENER2
+#Probably scrolling can be fixed without this hack
+DEFINES += -DMOZ_SCROLL_TOP_LEFT_HACK
+
+MOZ_NO_GECKO_UI_FALLBACK_1_8_COMPAT = 1
+DEFINES += -DMOZ_NO_GECKO_UI_FALLBACK_1_8_COMPAT
+
+MOZ_GTKPASSWORD_INTERFACE = 1
+DEFINES += -DMOZ_GTKPASSWORD_INTERFACE
+endif
+
 REQUIRES	= xpcom \
-		  content \
 		  string \
+		  content \
 		  docshell \
 		  necko \
 		  widget \
 		  dom \
 		  gfx \
+		  intl \
+		  imglib2 \
 		  layout \
+		  locale \
+		  unicharutil \
 		  uriloader \
 		  webbrwsr \
 		  shistory \
+		  composer \
+		  editor \
 		  embed_base \
 		  windowwatcher \
-		  profdirserviceprovider \
+		  webshell \
+		  pipnss \
+		  history \
+		  pref \
+		  nspr \
 		  xulapp \
+		  exthandler \
+		  mimetype \
+		  chardet \
+		  find \
+		  webbrowserpersist \
+		  cookie \
+		  nkcache \
 		  $(NULL)
 
 ifdef ACCESSIBILITY
@@ -79,26 +118,59 @@ CPPSRCS		= \
 		EmbedContentListener.cpp \
 		EmbedEventListener.cpp \
 		EmbedWindowCreator.cpp \
+		EmbedGtkTools.cpp \
 		$(NULL)
 
 ifdef MOZ_ENABLE_GTK2
-CSRCS           = \
-		gtkmozembedmarshal.c
-CPPSRCS         += \
-		EmbedPrompter.cpp \
-		GtkPromptService.cpp
+CPPSRCS		+= \
+		gtkmozembed_common.cpp \
+		gtkmozembed_download.cpp \
+		EmbedContextMenuInfo.cpp \
+		EmbedCertificates.cpp \
+		EmbedDownloadMgr.cpp \
+		EmbedGlobalHistory.cpp \
+		EmbedFilePicker.cpp \
+		$(NULL)
+
+ifdef MOZ_GTKPASSWORD_INTERFACE
+CPPSRCS		+= \
+		EmbedPasswordMgr.cpp \
+		$(NULL)
+
+XPIDLSRCS       += \
+	        nsIPassword.idl \
+		nsIPasswordInternal.idl \
+		$(NULL)
 endif
 
-LOCAL_INCLUDES += \
-		  -I. \
-		  $(NULL)
+CSRCS           = \
+		gtkmozembedmarshal.c
+
+CPPSRCS         += \
+		GtkPromptService.cpp \
+		$(NULL)
+
+ifndef MOZ_NO_GECKO_UI_FALLBACK_1_8_COMPAT
+CPPSRCS         += \
+		EmbedPrompter.cpp \
+		$(NULL)
+endif
+endif
 
 include $(topsrcdir)/config/config.mk
 
 EXPORTS		= \
 		gtkmozembed.h \
 		gtkmozembed_glue.cpp \
-		gtkmozembed_internal.h
+		gtkmozembed_internal.h \
+		$(NULL)
+
+ifdef MOZ_ENABLE_GTK2
+EXPORTS		+= \
+		gtkmozembed_common.h \
+		gtkmozembed_download.h \
+		$(NULL)
+endif
 
 include $(topsrcdir)/config/rules.mk
 
@@ -115,16 +187,20 @@ endif
 
 CXXFLAGS        += $(MOZ_GTK_CFLAGS) $(MOZ_GTK2_CFLAGS)
 CFLAGS          += $(MOZ_GTK_CFLAGS) $(MOZ_GTK2_CFLAGS)
+ifdef MOZ_GNOMEVFS_CFLAGS
+CXXFLAGS        += $(MOZ_GNOMEVFS_CFLAGS)
+CFLAGS          += $(MOZ_GNOMEVFS_CFLAGS)
+endif
 DEFINES         += -D_IMPL_GTKMOZEMBED
+
 
 MARSHAL_FILE = gtkmozembedmarshal
 MARSHAL_PREFIX = gtkmozembed
 
 $(MARSHAL_FILE).h: $(MARSHAL_FILE).list
-	glib-genmarshal --prefix=$(MARSHAL_PREFIX) $(srcdir)/$(MARSHAL_FILE).list --skip-source --header > $@
+	glib-genmarshal --prefix=$(MARSHAL_PREFIX) $(srcdir)/$(MARSHAL_FILE).list --skip-source --header > $(MARSHAL_FILE).h
 
 $(MARSHAL_FILE).c: $(MARSHAL_FILE).list $(MARSHAL_FILE).h
-	glib-genmarshal --prefix=$(MARSHAL_PREFIX) $(srcdir)/$(MARSHAL_FILE).list --skip-source --body > $@
+	glib-genmarshal --prefix=$(MARSHAL_PREFIX) $(srcdir)/$(MARSHAL_FILE).list --skip-source --body > $(MARSHAL_FILE).c
 
-GARBAGE += $(MARSHAL_FILE).h $(MARSHAL_FILE).c
 

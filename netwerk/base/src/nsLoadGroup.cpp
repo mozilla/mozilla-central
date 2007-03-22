@@ -81,13 +81,21 @@ public:
     nsCOMPtr<nsIRequest> mKey;
 };
 
+PR_STATIC_CALLBACK(const void *)
+RequestHashGetKey(PLDHashTable *table, PLDHashEntryHdr *entry)
+{
+    RequestMapEntry *e = NS_STATIC_CAST(RequestMapEntry *, entry);
+
+    return e->mKey.get();
+}
+
 PR_STATIC_CALLBACK(PRBool)
 RequestHashMatchEntry(PLDHashTable *table, const PLDHashEntryHdr *entry,
                       const void *key)
 {
     const RequestMapEntry *e =
-        static_cast<const RequestMapEntry *>(entry);
-    const nsIRequest *request = static_cast<const nsIRequest *>(key);
+        NS_STATIC_CAST(const RequestMapEntry *, entry);
+    const nsIRequest *request = NS_STATIC_CAST(const nsIRequest *, key);
 
     return e->mKey == request;
 }
@@ -95,7 +103,7 @@ RequestHashMatchEntry(PLDHashTable *table, const PLDHashEntryHdr *entry,
 PR_STATIC_CALLBACK(void)
 RequestHashClearEntry(PLDHashTable *table, PLDHashEntryHdr *entry)
 {
-    RequestMapEntry *e = static_cast<RequestMapEntry *>(entry);
+    RequestMapEntry *e = NS_STATIC_CAST(RequestMapEntry *, entry);
 
     // An entry is being cleared, let the entry do its own cleanup.
     e->~RequestMapEntry();
@@ -105,8 +113,8 @@ PR_STATIC_CALLBACK(PRBool)
 RequestHashInitEntry(PLDHashTable *table, PLDHashEntryHdr *entry,
                      const void *key)
 {
-    const nsIRequest *const_request = static_cast<const nsIRequest *>(key);
-    nsIRequest *request = const_cast<nsIRequest *>(const_request);
+    const nsIRequest *const_request = NS_STATIC_CAST(const nsIRequest *, key);
+    nsIRequest *request = NS_CONST_CAST(nsIRequest *, const_request);
 
     // Initialize the entry with placement new
     new (entry) RequestMapEntry(request);
@@ -126,8 +134,8 @@ PR_STATIC_CALLBACK(PLDHashOperator)
 RescheduleRequests(PLDHashTable *table, PLDHashEntryHdr *hdr,
                    PRUint32 number, void *arg)
 {
-    RequestMapEntry *e = static_cast<RequestMapEntry *>(hdr);
-    PRInt32 *delta = static_cast<PRInt32 *>(arg);
+    RequestMapEntry *e = NS_STATIC_CAST(RequestMapEntry *, hdr);
+    PRInt32 *delta = NS_STATIC_CAST(PRInt32 *, arg);
 
     RescheduleRequest(e->mKey, *delta);
     return PL_DHASH_NEXT;
@@ -180,6 +188,7 @@ nsresult nsLoadGroup::Init()
     {
         PL_DHashAllocTable,
         PL_DHashFreeTable,
+        RequestHashGetKey,
         PL_DHashVoidPtrKeyStub,
         RequestHashMatchEntry,
         PL_DHashMoveEntryStub,
@@ -248,8 +257,8 @@ PR_STATIC_CALLBACK(PLDHashOperator)
 AppendRequestsToVoidArray(PLDHashTable *table, PLDHashEntryHdr *hdr,
                           PRUint32 number, void *arg)
 {
-    RequestMapEntry *e = static_cast<RequestMapEntry *>(hdr);
-    nsVoidArray *array = static_cast<nsVoidArray *>(arg);
+    RequestMapEntry *e = NS_STATIC_CAST(RequestMapEntry *, hdr);
+    nsVoidArray *array = NS_STATIC_CAST(nsVoidArray *, arg);
 
     nsIRequest *request = e->mKey;
     NS_ASSERTION(request, "What? Null key in pldhash entry?");
@@ -270,7 +279,7 @@ AppendRequestsToVoidArray(PLDHashTable *table, PLDHashEntryHdr *hdr,
 PR_STATIC_CALLBACK(PRBool)
 ReleaseVoidArrayItems(void *aElement, void *aData)
 {
-    nsISupports *s = static_cast<nsISupports *>(aElement);
+    nsISupports *s = NS_STATIC_CAST(nsISupports *, aElement);
 
     NS_RELEASE(s);
 
@@ -287,7 +296,7 @@ nsLoadGroup::Cancel(nsresult status)
     nsAutoVoidArray requests;
 
     PL_DHashTableEnumerate(&mRequests, AppendRequestsToVoidArray,
-                           static_cast<nsVoidArray *>(&requests));
+                           NS_STATIC_CAST(nsVoidArray *, &requests));
 
     if (requests.Count() != (PRInt32)count) {
         requests.EnumerateForwards(ReleaseVoidArrayItems, nsnull);
@@ -308,13 +317,13 @@ nsLoadGroup::Cancel(nsresult status)
     nsresult firstError = NS_OK;
 
     while (count > 0) {
-        nsIRequest* request = static_cast<nsIRequest*>(requests.ElementAt(--count));
+        nsIRequest* request = NS_STATIC_CAST(nsIRequest*, requests.ElementAt(--count));
 
         NS_ASSERTION(request, "NULL request found in list.");
 
         RequestMapEntry *entry =
-            static_cast<RequestMapEntry *>
-                       (PL_DHashTableOperate(&mRequests, request,
+            NS_STATIC_CAST(RequestMapEntry *,
+                           PL_DHashTableOperate(&mRequests, request,
                                                 PL_DHASH_LOOKUP));
 
         if (PL_DHASH_ENTRY_IS_FREE(entry)) {
@@ -371,7 +380,7 @@ nsLoadGroup::Suspend()
     nsAutoVoidArray requests;
 
     PL_DHashTableEnumerate(&mRequests, AppendRequestsToVoidArray,
-                           static_cast<nsVoidArray *>(&requests));
+                           NS_STATIC_CAST(nsVoidArray *, &requests));
 
     if (requests.Count() != (PRInt32)count) {
         requests.EnumerateForwards(ReleaseVoidArrayItems, nsnull);
@@ -386,7 +395,7 @@ nsLoadGroup::Suspend()
     //
     while (count > 0) {
         nsIRequest* request =
-            static_cast<nsIRequest*>(requests.ElementAt(--count));
+            NS_STATIC_CAST(nsIRequest*, requests.ElementAt(--count));
 
         NS_ASSERTION(request, "NULL request found in list.");
         if (!request)
@@ -422,7 +431,7 @@ nsLoadGroup::Resume()
     nsAutoVoidArray requests;
 
     PL_DHashTableEnumerate(&mRequests, AppendRequestsToVoidArray,
-                           static_cast<nsVoidArray *>(&requests));
+                           NS_STATIC_CAST(nsVoidArray *, &requests));
 
     if (requests.Count() != (PRInt32)count) {
         requests.EnumerateForwards(ReleaseVoidArrayItems, nsnull);
@@ -437,7 +446,7 @@ nsLoadGroup::Resume()
     //
     while (count > 0) {
         nsIRequest* request =
-            static_cast<nsIRequest*>(requests.ElementAt(--count));
+            NS_STATIC_CAST(nsIRequest*, requests.ElementAt(--count));
 
         NS_ASSERTION(request, "NULL request found in list.");
         if (!request)
@@ -534,18 +543,6 @@ nsLoadGroup::AddRequest(nsIRequest *request, nsISupports* ctxt)
     }
 #endif /* PR_LOGGING */
 
-#ifdef DEBUG
-    {
-      RequestMapEntry *entry =
-          static_cast<RequestMapEntry *>
-                     (PL_DHashTableOperate(&mRequests, request,
-                                          PL_DHASH_LOOKUP));
-
-      NS_ASSERTION(PL_DHASH_ENTRY_IS_FREE(entry),
-                   "Entry added to loadgroup twice, don't do that");
-    }
-#endif
-
     //
     // Do not add the channel, if the loadgroup is being canceled...
     //
@@ -574,8 +571,8 @@ nsLoadGroup::AddRequest(nsIRequest *request, nsISupports* ctxt)
     //
 
     RequestMapEntry *entry =
-        static_cast<RequestMapEntry *>
-                   (PL_DHashTableOperate(&mRequests, request,
+        NS_STATIC_CAST(RequestMapEntry *,
+                       PL_DHashTableOperate(&mRequests, request,
                                         PL_DHASH_ADD));
 
     if (!entry) {
@@ -654,8 +651,8 @@ nsLoadGroup::RemoveRequest(nsIRequest *request, nsISupports* ctxt,
     // count or it will get messed up...
     //
     RequestMapEntry *entry =
-        static_cast<RequestMapEntry *>
-                   (PL_DHashTableOperate(&mRequests, request,
+        NS_STATIC_CAST(RequestMapEntry *,
+                       PL_DHashTableOperate(&mRequests, request,
                                         PL_DHASH_LOOKUP));
 
     if (PL_DHASH_ENTRY_IS_FREE(entry)) {
@@ -710,8 +707,8 @@ PR_STATIC_CALLBACK(PLDHashOperator)
 AppendRequestsToISupportsArray(PLDHashTable *table, PLDHashEntryHdr *hdr,
                                PRUint32 number, void *arg)
 {
-    RequestMapEntry *e = static_cast<RequestMapEntry *>(hdr);
-    nsISupportsArray *array = static_cast<nsISupportsArray *>(arg);
+    RequestMapEntry *e = NS_STATIC_CAST(RequestMapEntry *, hdr);
+    nsISupportsArray *array = NS_STATIC_CAST(nsISupportsArray *, arg);
 
     PRBool ok = array->AppendElement(e->mKey);
 

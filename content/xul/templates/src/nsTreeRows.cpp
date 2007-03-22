@@ -117,7 +117,7 @@ nsTreeRows::Last()
     } while (current && ((count = current->Count()) != 0));
 
     // Now, at the bottom rightmost leaf, advance us one off the end.
-    result.GetTop().mChildIndex++;
+    result.mLink[result.mTop].mChildIndex++;
 
     // Our row index will be the size of the root subree, plus one.
     result.SetRowIndex(mRoot.GetSubtreeSize() + 1);
@@ -362,64 +362,71 @@ nsTreeRows::Subtree::RemoveRowAt(PRInt32 aIndex)
 //
 
 nsTreeRows::iterator::iterator(const iterator& aIterator)
-    : mRowIndex(aIterator.mRowIndex),
-      mLink(aIterator.mLink)
+    : mTop(aIterator.mTop),
+      mRowIndex(aIterator.mRowIndex)
 {
+    for (PRInt32 i = mTop; i >= 0; --i)
+        mLink[i] = aIterator.mLink[i];
 }
 
 nsTreeRows::iterator&
 nsTreeRows::iterator::operator=(const iterator& aIterator)
 {
+    mTop = aIterator.mTop;
     mRowIndex = aIterator.mRowIndex;
-    mLink = aIterator.mLink;
+    for (PRInt32 i = mTop; i >= 0; --i)
+        mLink[i] = aIterator.mLink[i];
     return *this;
 }
 
 void
 nsTreeRows::iterator::Append(Subtree* aParent, PRInt32 aChildIndex)
 {
-    Link *link = mLink.AppendElement();
-    if (link) {
-        link->mParent     = aParent;
-        link->mChildIndex = aChildIndex;
+    if (mTop < kMaxDepth - 1) {
+        ++mTop;
+        mLink[mTop].mParent     = aParent;
+        mLink[mTop].mChildIndex = aChildIndex;
     }
     else
-        NS_ERROR("out of memory");
+        NS_ERROR("overflow");
 }
 
 void
 nsTreeRows::iterator::Push(Subtree *aParent, PRInt32 aChildIndex)
 {
-    Link *link = mLink.InsertElementAt(0);
-    if (link) {
-        link->mParent     = aParent;
-        link->mChildIndex = aChildIndex;
+    if (mTop < kMaxDepth - 1) {
+        for (PRInt32 i = mTop; i >= 0; --i)
+            mLink[i + 1] = mLink[i];
+
+        mLink[0].mParent     = aParent;
+        mLink[0].mChildIndex = aChildIndex;
+        ++mTop;
     }
     else
-        NS_ERROR("out of memory");
+        NS_ERROR("overflow");
 }
 
 PRBool
 nsTreeRows::iterator::operator==(const iterator& aIterator) const
 {
-    if (GetDepth() != aIterator.GetDepth())
+    if (mTop != aIterator.mTop)
         return PR_FALSE;
 
-    if (GetDepth() == 0)
+    if (mTop == -1)
         return PR_TRUE;
 
-    return GetTop() == aIterator.GetTop();
+    return PRBool(mLink[mTop] == aIterator.mLink[mTop]);
 }
 
 void
 nsTreeRows::iterator::Next()
 {
-    NS_PRECONDITION(GetDepth() > 0, "cannot increment an uninitialized iterator");
+    NS_PRECONDITION(mTop >= 0, "cannot increment an uninitialized iterator");
 
     // Increment the absolute row index
     ++mRowIndex;
 
-    Link& top = GetTop();
+    Link& top = mLink[mTop];
 
     // Is there a child subtree? If so, descend into the child
     // subtree.
@@ -436,7 +443,7 @@ nsTreeRows::iterator::Next()
         // the tree, period. Walk back up the stack, looking for any
         // unfinished subtrees.
         PRInt32 unfinished;
-        for (unfinished = GetDepth() - 2; unfinished >= 0; --unfinished) {
+        for (unfinished = mTop - 1; unfinished >= 0; --unfinished) {
             const Link& link = mLink[unfinished];
             if (link.mChildIndex < link.mParent->Count() - 1)
                 break;
@@ -452,31 +459,31 @@ nsTreeRows::iterator::Next()
 
         // Otherwise, we ran off the end of one of the inner
         // subtrees. Pop up to the next unfinished level in the stack.
-        mLink.SetLength(unfinished + 1);
+        mTop = unfinished;
     }
 
     // Advance to the next child in this subtree
-    ++(GetTop().mChildIndex);
+    ++(mLink[mTop].mChildIndex);
 }
 
 void
 nsTreeRows::iterator::Prev()
 {
-    NS_PRECONDITION(GetDepth() > 0, "cannot increment an uninitialized iterator");
+    NS_PRECONDITION(mTop >= 0, "cannot increment an uninitialized iterator");
 
     // Decrement the absolute row index
     --mRowIndex;
 
     // Move to the previous child in this subtree
-    --(GetTop().mChildIndex);
+    --(mLink[mTop].mChildIndex);
 
     // Have we exhausted the current subtree?
-    if (GetTop().mChildIndex < 0) {
+    if (mLink[mTop].mChildIndex < 0) {
         // Yep. See if we've just iterated back to the first element
         // in the tree, period. Walk back up the stack, looking for
         // any unfinished subtrees.
         PRInt32 unfinished;
-        for (unfinished = GetDepth() - 2; unfinished >= 0; --unfinished) {
+        for (unfinished = mTop - 1; unfinished >= 0; --unfinished) {
             const Link& link = mLink[unfinished];
             if (link.mChildIndex >= 0)
                 break;
@@ -490,15 +497,15 @@ nsTreeRows::iterator::Prev()
 
         // Otherwise, we ran off the end of one of the inner
         // subtrees. Pop up to the next unfinished level in the stack.
-        mLink.SetLength(unfinished + 1);
+        mTop = unfinished;
         return;
     }
 
     // Is there a child subtree immediately prior to our current
     // position? If so, descend into it, grovelling down to the
     // deepest, rightmost left edge.
-    Subtree* parent = GetTop().GetParent();
-    PRInt32 index = GetTop().GetChildIndex();
+    Subtree* parent = mLink[mTop].GetParent();
+    PRInt32 index = mLink[mTop].GetChildIndex();
 
     Subtree* subtree = (*parent)[index].mSubtree;
 

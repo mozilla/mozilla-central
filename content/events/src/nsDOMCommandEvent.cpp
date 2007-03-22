@@ -51,14 +51,6 @@ nsDOMCommandEvent::nsDOMCommandEvent(nsPresContext* aPresContext,
   }
 }
 
-nsDOMCommandEvent::~nsDOMCommandEvent()
-{
-  if (mEventIsInternal && mEvent->eventStructType == NS_COMMAND_EVENT) {
-    delete static_cast<nsCommandEvent*>(mEvent);
-    mEvent = nsnull;
-  }
-}
-
 NS_INTERFACE_MAP_BEGIN(nsDOMCommandEvent)
   NS_INTERFACE_MAP_ENTRY(nsIDOMCommandEvent)
   NS_INTERFACE_MAP_ENTRY_CONTENT_CLASSINFO(CommandEvent)
@@ -70,7 +62,7 @@ NS_IMPL_RELEASE_INHERITED(nsDOMCommandEvent, nsDOMEvent)
 NS_IMETHODIMP
 nsDOMCommandEvent::GetCommand(nsAString& aCommand)
 {
-  nsIAtom* command = static_cast<nsCommandEvent*>(mEvent)->command;
+  nsIAtom* command = NS_STATIC_CAST(nsCommandEvent*, mEvent)->command;
   if (command) {
     command->ToString(aCommand);
   } else {
@@ -88,7 +80,7 @@ nsDOMCommandEvent::InitCommandEvent(const nsAString& aTypeArg,
   nsresult rv = nsDOMEvent::InitEvent(aTypeArg, aCanBubbleArg, aCancelableArg);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  static_cast<nsCommandEvent*>(mEvent)->command = do_GetAtom(aCommand);
+  NS_STATIC_CAST(nsCommandEvent*, mEvent)->command = do_GetAtom(aCommand);
   return NS_OK;
 }
 

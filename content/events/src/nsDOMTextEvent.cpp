@@ -59,7 +59,7 @@ nsDOMTextEvent::nsDOMTextEvent(nsPresContext* aPresContext,
   //
   // extract the IME composition string
   //
-  nsTextEvent *te = static_cast<nsTextEvent*>(mEvent);
+  nsTextEvent *te = NS_STATIC_CAST(nsTextEvent*, mEvent);
   mText = te->theText;
 
   //
@@ -113,7 +113,7 @@ NS_METHOD nsDOMTextEvent::GetEventReply(nsTextEventReply** aReply)
 {
   if (mEvent->message == NS_TEXT_TEXT)
   {
-     *aReply = &(static_cast<nsTextEvent*>(mEvent)->theReply);
+     *aReply = &(NS_STATIC_CAST(nsTextEvent*, mEvent)->theReply);
      return NS_OK;
   }
   aReply = 0;

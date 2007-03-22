@@ -35,15 +35,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'regress-308111.js';
+START("Regression - Do not crash when searching large e4x tree");
 
-var summary = "Regression - Do not crash when searching large e4x tree";
-var BUGNUMBER = 308111;
+var bug = 308111;
+var summary = 'Do not crash when searching large e4x tree';
 var actual = 'No Crash';
 var expect = 'No Crash';
 
-printBugNumber(BUGNUMBER);
-START(summary);
+printBugNumber (bug);
+printStatus (summary);
 
 var xml = <prefs>
 <pref><name>sessionsaver.settings.shutdown</name></pref>
@@ -952,7 +952,7 @@ var xml = <prefs>
 </prefs>;
 
 var i = 0;
-for each (var pref in xml.pref) {
+for each (var pref in xml.pref) { 
     printStatus(pref.name + ": " + xml.pref.(name == pref.name).length());
 }
 

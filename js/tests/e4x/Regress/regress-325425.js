@@ -36,19 +36,17 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'regress-325425.js';
-
-var BUGNUMBER = 325425;
+var bug = 325425;
 var summary = 'jsxml.c: Bad assumptions about js_ConstructObject';
 var actual = 'No Crash';
 var expect = 'No Crash';
 
-printBugNumber(BUGNUMBER);
-START(summary);
+printBugNumber (bug);
+printStatus (summary);
 
 try
 {
-    QName = function() { };
+    QName = function() { }; 
     <xml/>.elements("");
 }
 catch(ex)

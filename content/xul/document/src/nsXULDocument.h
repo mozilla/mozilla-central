@@ -49,9 +49,10 @@
 #include "nsElementMap.h"
 #include "nsForwardReference.h"
 #include "nsIContent.h"
-#include "nsIDOMEventTarget.h"
+#include "nsIDOMEventReceiver.h"
 #include "nsIDOMXULCommandDispatcher.h"
 #include "nsIDOMXULDocument.h"
+#include "nsISupportsArray.h"
 #include "nsCOMArray.h"
 #include "nsIURI.h"
 #include "nsIXULDocument.h"
@@ -77,6 +78,8 @@ class nsIXULPrototypeScript;
  
 struct JSObject;
 struct PRLogModuleInfo;
+
+#include "nsIFastLoadService.h"         // XXXbe temporary?
 
 /**
  * The XUL document class
@@ -113,17 +116,28 @@ public:
     virtual void EndLoad();
 
     // nsIMutationObserver interface
-    NS_DECL_NSIMUTATIONOBSERVER_CONTENTAPPENDED
-    NS_DECL_NSIMUTATIONOBSERVER_CONTENTINSERTED
-    NS_DECL_NSIMUTATIONOBSERVER_CONTENTREMOVED
-    NS_DECL_NSIMUTATIONOBSERVER_ATTRIBUTECHANGED
+    virtual void ContentAppended(nsIDocument* aDocument,
+                                 nsIContent* aContainer,
+                                 PRInt32 aNewIndexInContainer);
+    virtual void ContentInserted(nsIDocument* aDocument,
+                                 nsIContent* aContainer,
+                                 nsIContent* aChild,
+                                 PRInt32 aIndexInContainer);
+    virtual void ContentRemoved(nsIDocument* aDocument,
+                                nsIContent* aContainer,
+                                nsIContent* aChild,
+                                PRInt32 aIndexInContainer);
+    virtual void AttributeChanged(nsIDocument* aDocument, nsIContent* aElement,
+                                  PRInt32 aNameSpaceID, nsIAtom* aAttribute,
+                                  PRInt32 aModType);
 
     // nsIXULDocument interface
     NS_IMETHOD AddElementForID(const nsAString& aID, nsIContent* aElement);
     NS_IMETHOD RemoveElementForID(const nsAString& aID, nsIContent* aElement);
     NS_IMETHOD GetElementsForID(const nsAString& aID,
                                 nsCOMArray<nsIContent>& aElements);
-
+    NS_IMETHOD AddForwardReference(nsForwardReference* aRef);
+    NS_IMETHOD ResolveForwardReferences();
     NS_IMETHOD GetScriptGlobalObjectOwner(nsIScriptGlobalObjectOwner** aGlobalOwner);
     NS_IMETHOD AddSubtreeToDocument(nsIContent* aElement);
     NS_IMETHOD RemoveSubtreeFromDocument(nsIContent* aElement);
@@ -175,14 +189,15 @@ protected:
     nsresult
     RemoveElementFromMap(nsIContent* aElement);
 
-    nsresult GetViewportSize(PRInt32* aWidth, PRInt32* aHeight);
+    nsresult GetPixelDimensions(nsIPresShell* aShell, PRInt32* aWidth,
+                                PRInt32* aHeight);
 
     static PRIntn
     RemoveElementsFromMapByContent(const PRUnichar* aID,
                                    nsIContent* aElement,
                                    void* aClosure);
 
-    void SetIsPopup(PRBool isPopup) { mIsPopup = isPopup; }
+    void SetIsPopup(PRBool isPopup) { mIsPopup = isPopup; };
 
     nsresult PrepareToLoad(nsISupports* aContainer,
                            const char* aCommand,
@@ -220,7 +235,7 @@ protected:
     PRInt32 GetDefaultNamespaceID() const
     {
         return kNameSpaceID_XUL;
-    }
+    };
 
 protected:
     // pseudo constants
@@ -239,6 +254,9 @@ protected:
 
     nsresult
     Persist(nsIContent* aElement, PRInt32 aNameSpaceID, nsIAtom* aAttribute);
+
+    nsresult
+    DestroyForwardReferences();
 
     // IMPORTANT: The ownership implicit in the following member
     // variables has been explicitly checked and set using nsCOMPtr
@@ -278,6 +296,9 @@ protected:
     typedef nsInterfaceHashtable<nsISupportsHashKey, nsIXULTemplateBuilder>
         BuilderTable;
     BuilderTable* mTemplateBuilderTable;
+
+    nsVoidArray mForwardReferences;
+    nsForwardReference::Phase mResolutionPhase;
 
     PRUint32 mPendingSheets;
 
@@ -412,35 +433,6 @@ protected:
      * style overlays from the chrome registry) to the document.
      */
     nsresult AddPrototypeSheets();
-
-
-protected:
-    /* Declarations related to forward references. 
-     *
-     * Forward references are declarations which are added to the temporary
-     * list (mForwardReferences) during the document (or overlay) load and
-     * are resolved later, when the document loading is almost complete.
-     */
-
-    /**
-     * The list of different types of forward references to resolve. After
-     * a reference is resolved, it is removed from this array (and
-     * automatically deleted)
-     */
-    nsTArray<nsAutoPtr<nsForwardReference> > mForwardReferences;
-
-    /** Indicates what kind of forward references are still to be processed. */
-    nsForwardReference::Phase mResolutionPhase;
-
-    /**
-     * Adds aRef to the mForwardReferences array. Takes the ownership of aRef.
-     */
-    nsresult AddForwardReference(nsForwardReference* aRef);
-
-    /**
-     * Resolve all of the document's forward references.
-     */
-    nsresult ResolveForwardReferences();
 
     /**
      * Used to resolve broadcaster references
@@ -645,13 +637,11 @@ protected:
 
     class ParserObserver : public nsIRequestObserver {
     protected:
-        nsRefPtr<nsXULDocument> mDocument;
-        nsRefPtr<nsXULPrototypeDocument> mPrototype;
+        nsXULDocument* mDocument;
         virtual ~ParserObserver();
 
     public:
-        ParserObserver(nsXULDocument* aDocument,
-                       nsXULPrototypeDocument* aPrototype);
+        ParserObserver(nsXULDocument* aDocument);
 
         NS_DECL_ISUPPORTS
         NS_DECL_NSIREQUESTOBSERVER

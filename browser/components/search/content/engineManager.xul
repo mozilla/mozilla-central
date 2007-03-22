@@ -71,18 +71,14 @@
     <command id="cmd_movedown"
              oncommand="gEngineManagerDialog.bump(-1);"
              disabled="true"/>
-    <command id="cmd_editkeyword"
-             oncommand="gEngineManagerDialog.editKeyword();"
+    <command id="cmd_editalias"
+             oncommand="gEngineManagerDialog.editAlias();"
              disabled="true"/>
   </commandset>
 
   <keyset id="engineManagerKeyset">
     <key id="delete" keycode="VK_DELETE" command="cmd_remove"/>
   </keyset>
-
-  <stringbundleset id="engineManagerBundleset">
-    <stringbundle id="engineManagerBundle" src="chrome://browser/locale/engineManager.properties"/>
-  </stringbundleset>
 
   <description>&engineManager.intro;</description>
   <separator class="thin"/>
@@ -92,16 +88,11 @@
       <treechildren id="engineChildren" flex="1"
                     ondraggesture="nsDragAndDrop.startDrag(event, gDragObserver);"/>
       <treecols>
-        <treecol id="engineName" flex="4" label="&columnLabel.name;"/>
-        <treecol id="engineKeyword" flex="1" label="&columnLabel.keyword;"/>
+        <treecol id="engineName" flex="1" hideheader="true"/>
       </treecols>
     </tree>
     <vbox>
       <spacer flex="1"/>
-      <button id="edit"
-              label="&edit.label;"
-              accesskey="&edit.accesskey;"
-              command="cmd_editkeyword"/>
       <button id="up"
               label="&up.label;"
               accesskey="&up.accesskey;"

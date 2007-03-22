@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'RegExp_leftContext_as_array.js';
-
 /**
    Filename:     RegExp_leftContext_as_array.js
    Description:  'Tests RegExps leftContext property (same tests as RegExp_leftContext.js but using $`)'

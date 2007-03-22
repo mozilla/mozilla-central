@@ -64,7 +64,6 @@ REQUIRES	= \
 		  widget \
 		  imglib2 \
 		  gfx \
-		  thebes \
 		  locale \
 		  xulapp \
 		  embed_base \

@@ -34,11 +34,9 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-350730.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 350730;
-var summary = 'Do not assert: pn2->pn_slot >= 0 || varOrConst [@ EmitVariables]';
+var bug = 350730;
+var summary = 'Assertion: pn2->pn_slot >= 0 || varOrConst [@ EmitVariables]';
 var actual = 'No Crash';
 var expect = 'No Crash';
 
@@ -50,20 +48,10 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
-
-  try
-  {
-    eval('with({}) let y;');
-  }
-  catch(ex)
-  {
-    // See https://bugzilla.mozilla.org/show_bug.cgi?id=408957
-    summary = 'let declaration must be direct child of block or top-level implicit block';
-    expect = 'SyntaxError';
-    actual = ex.name;
-  }
+  
+  with({}) let y;
 
   reportCompare(expect, actual, summary);
 

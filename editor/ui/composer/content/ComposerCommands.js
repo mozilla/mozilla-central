@@ -1657,23 +1657,23 @@ function SaveDocument(aSaveAs, aSaveCopy, aMimeType)
 {
   var editor = GetCurrentEditor();
   if (!aMimeType || aMimeType == "" || !editor)
-    throw Components.results.NS_ERROR_NOT_INITIALIZED;
+    throw NS_ERROR_NOT_INITIALIZED;
 
   var editorDoc = editor.document;
   if (!editorDoc)
-    throw Components.results.NS_ERROR_NOT_INITIALIZED;
+    throw NS_ERROR_NOT_INITIALIZED;
 
   // if we don't have the right editor type bail (we handle text and html)
   var editorType = GetCurrentEditorType();
   if (editorType != "text" && editorType != "html" 
       && editorType != "htmlmail" && editorType != "textmail")
-    throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
+    throw NS_ERROR_NOT_IMPLEMENTED;
 
   var saveAsTextFile = IsSupportedTextMimeType(aMimeType);
 
   // check if the file is to be saved is a format we don't understand; if so, bail
   if (aMimeType != "text/html" && !saveAsTextFile)
-    throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
+    throw NS_ERROR_NOT_IMPLEMENTED;
 
   if (saveAsTextFile)
     aMimeType = "text/plain";
@@ -2307,7 +2307,7 @@ var nsPrintCommand =
     // In editor.js
     FinishHTMLSource();
     try {
-      PrintUtils.print();
+      NSPrint();
     } catch (e) {}
   }
 };
@@ -2327,7 +2327,7 @@ var nsPrintSetupCommand =
   {
     // In editor.js
     FinishHTMLSource();
-    PrintUtils.showPageSetup();
+    NSPrintSetup();
   }
 };
 
@@ -3861,7 +3861,7 @@ var nsPreferencesCommand =
 
   doCommand: function(aCommand)
   {
-    goPreferences('composer_pane');
+    goPreferences('editor', 'chrome://editor/content/pref-composer.xul','editor');
     window.content.focus();
   }
 };

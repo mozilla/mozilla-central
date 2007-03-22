@@ -79,7 +79,29 @@
 #define IPC_MODULE
 #endif
 
-#define GFX_MODULES MODULE(nsGfxModule)
+#ifdef MOZ_CAIRO_GFX
+#  define GFX_MODULES MODULE(nsGfxModule)
+#else
+#  if defined(MOZ_WIDGET_GTK) || defined(MOZ_WIDGET_GTK2)
+#    define GFX_MODULES MODULE(nsGfxGTKModule)
+#  elif defined(MOZ_WIDGET_QT)
+#    define GFX_MODULES MODULE(nsGfxQtModule)
+#  elif defined(MOZ_WIDGET_XLIB)
+#    define GFX_MODULES MODULE(nsGfxXlibModule)
+#  elif defined(MOZ_WIDGET_PHOTON)
+#    define GFX_MODULES MODULE(nsGfxPhModule)
+#  elif defined(XP_WIN)
+#    define GFX_MODULES MODULE(nsGfxModule)
+#  elif defined(XP_MACOSX)
+#    define GFX_MODULES MODULE(nsGfxMacModule)
+#  elif defined(XP_BEOS)
+#    define GFX_MODULES MODULE(nsGfxBeOSModule)
+#  elif defined(XP_OS2)
+#    define GFX_MODULES MODULE(nsGfxOS2Module)
+#  else
+#    error Unknown GFX module.
+#  endif
+#endif
 
 #ifdef XP_WIN
 #  define WIDGET_MODULES MODULE(nsWidgetModule)
@@ -89,10 +111,16 @@
 #  define WIDGET_MODULES MODULE(nsWidgetBeOSModule)
 #elif defined(XP_OS2)
 #  define WIDGET_MODULES MODULE(nsWidgetOS2Module)
+#elif defined(MOZ_WIDGET_GTK)
+#  define WIDGET_MODULES MODULE(nsWidgetGTKModule)
 #elif defined(MOZ_WIDGET_GTK2)
 #  define WIDGET_MODULES MODULE(nsWidgetGtk2Module)
+#elif defined(MOZ_WIDGET_XLIB)
+#  define WIDGET_MODULES MODULE(nsWidgetXLIBModule)
 #elif defined(MOZ_WIDGET_PHOTON)
 #  define WIDGET_MODULES MODULE(nsWidgetPhModule)
+#elif defined(MOZ_WIDGET_QT)
+#  define WIDGET_MODULES MODULE(nsWidgetQtModule)
 #else
 #  error Unknown widget module.
 #endif
@@ -101,6 +129,12 @@
 #define ICON_MODULE MODULE(nsIconDecoderModule)
 #else
 #define ICON_MODULE
+#endif
+
+#ifdef MOZ_ENABLE_XPRINT
+#define XPRINT_MODULES MODULE(nsGfxXprintModule)
+#else
+#define XPRINT_MODULES
 #endif
 
 #ifdef MOZ_RDF
@@ -135,18 +169,13 @@
 
 #ifdef MOZ_ENABLE_GTK2
 #ifdef MOZ_PREF_EXTENSIONS
-#define SYSTEMPREF_MODULES MODULE(nsSystemPrefModule)
+#define SYSTEMPREF_MODULES MODULE(system-pref) \
+    MODULE(nsAutoConfigModule)
 #else
 #define SYSTEMPREF_MODULES
 #endif
 #else
 #define SYSTEMPREF_MODULES
-#endif
-
-#ifdef MOZ_ENABLE_EXTENSION_LAYOUT_DEBUG
-#define LAYOUT_DEBUG_MODULE MODULE(nsLayoutDebugModule)
-#else
-#define LAYOUT_DEBUG_MODULE
 #endif
 
 #ifdef MOZ_PLUGINS
@@ -193,7 +222,7 @@
 #define JSDEBUGGER_MODULES
 #endif
 
-#if defined(MOZ_FILEVIEW) && defined(MOZ_XPFE_COMPONENTS) && defined(MOZ_XUL)
+#if defined(MOZ_FILEVIEW) && defined(MOZ_XPFE_COMPONENTS)
 #define FILEVIEW_MODULE MODULE(nsFileViewModule)
 #else
 #define FILEVIEW_MODULE
@@ -203,12 +232,6 @@
 #define STORAGE_MODULE MODULE(mozStorageModule)
 #else
 #define STORAGE_MODULE
-#endif
-
-#ifdef MOZ_ZIPWRITER
-#define ZIPWRITER_MODULE MODULE(ZipWriterModule)
-#else
-#define ZIPWRITER_MODULE
 #endif
 
 #ifdef MOZ_PLACES
@@ -239,21 +262,6 @@
 #define SPELLCHECK_MODULE
 #endif
 
-#ifdef MOZ_XMLEXTRAS
-#define XMLEXTRAS_MODULE MODULE(nsXMLExtrasModule)
-#else
-#define XMLEXTRAS_MODULE
-#endif
-
-#ifdef MOZ_XUL
-#ifdef MOZ_ENABLE_GTK2
-#define UNIXPROXY_MODULE MODULE(nsUnixProxyModule)
-#endif
-#endif
-#ifndef UNIXPROXY_MODULE
-#define UNIXPROXY_MODULE
-#endif
-
 #define XUL_MODULES                          \
     MODULE(xpconnect)                        \
     MATHML_MODULES                           \
@@ -266,7 +274,6 @@
     AUTH_MODULE                              \
     IPC_MODULE                               \
     MODULE(nsJarModule)                      \
-    ZIPWRITER_MODULE                         \
     MODULE(nsPrefModule)                     \
     MODULE(nsSecurityManagerModule)          \
     RDF_MODULE                               \
@@ -278,6 +285,7 @@
     ICON_MODULE                              \
     PLUGINS_MODULES                          \
     MODULE(nsLayoutModule)                   \
+    MODULE(nsXMLExtrasModule)                \
     WEBSERVICES_MODULES                      \
     MODULE(docshell_provider)                \
     MODULE(embedcomponents)                  \
@@ -301,12 +309,8 @@
     JSDEBUGGER_MODULES                       \
     MODULE(BOOT)                             \
     MODULE(NSS)                              \
-    MODULE(nsAutoConfigModule)               \
     SYSTEMPREF_MODULES                       \
     SPELLCHECK_MODULE                        \
-    XMLEXTRAS_MODULE                         \
-    LAYOUT_DEBUG_MODULE                      \
-    UNIXPROXY_MODULE                         \
     /* end of list */
 
 #define MODULE(_name) \

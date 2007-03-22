@@ -53,7 +53,6 @@ XPIDLSRCS	= \
 		nsIDOMSVGAElement.idl \
 		nsIDOMSVGAngle.idl \
 		nsIDOMSVGAnimatedAngle.idl \
-		nsIDOMSVGAnimatedBoolean.idl \
 		nsIDOMSVGAnimatedEnum.idl \
 		nsIDOMSVGAnimatedInteger.idl \
 		nsIDOMSVGAnimatedLength.idl \
@@ -120,7 +119,6 @@ XPIDLSRCS	= \
 		nsIDOMSVGTransformable.idl \
 		nsIDOMSVGTSpanElement.idl \
 		nsIDOMSVGURIReference.idl \
-		nsIDOMSVGUnitTypes.idl \
 		nsIDOMSVGUseElement.idl \
 		nsIDOMSVGViewSpec.idl \
 		nsIDOMSVGZoomAndPan.idl \

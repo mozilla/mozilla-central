@@ -202,9 +202,6 @@ enum nsPluginInstanceVariable {
     nsPluginInstanceVariable_ScriptableInstance      = 10,
     nsPluginInstanceVariable_ScriptableIID           = 11,
     nsPluginInstanceVariable_NeedsXEmbed             = 14
-#ifdef XP_MACOSX
-    , nsPluginInstanceVariable_DrawingModel          = 20
-#endif
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -233,33 +230,13 @@ enum nsPluginWindowType {
 
 #ifdef XP_MACOSX
 
-typedef WindowRef       nsPluginPlatformWindowRef;
-
-#ifndef NP_NO_QUICKDRAW
-struct nsPluginPortQD {
+struct nsPluginPort {
     CGrafPtr     port;   /* Grafport */
     PRInt32     portx;  /* position inside the topmost window */
     PRInt32     porty;
 };
-
-typedef RgnHandle       nsPluginRegionQD;
-#endif
-
-struct nsPluginPortCG {
-    CGContextRef context;
-    WindowRef window;
-};
-
-typedef CGPathRef       nsPluginRegionCG;
-
-typedef union nsPluginPort {
-#ifndef NP_NO_QUICKDRAW
-  nsPluginPortQD qdPort;
-#endif
-  nsPluginPortCG cgPort;
-} nsPluginPort;
-
-typedef void* nsPluginRegion;
+typedef RgnHandle       nsPluginRegion;
+typedef WindowRef       nsPluginPlatformWindowRef;
 
 #elif defined(XP_WIN) || defined(XP_OS2)
 
@@ -290,7 +267,7 @@ struct nsPluginWindow {
     PRUint32      width;        /* Maximum window size */
     PRUint32      height;
     nsPluginRect  clipRect;     /* Clipping rectangle in port coordinates */
-                                /* Used by Mac OS X only.			  */
+                                /* Used by MAC only.			  */
 #if defined(XP_UNIX) && !defined(XP_MACOSX)
     void*         ws_info;      /* Platform-dependent additonal data */
 #endif /* XP_UNIX */

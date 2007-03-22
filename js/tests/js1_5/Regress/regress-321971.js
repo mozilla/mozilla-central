@@ -34,17 +34,15 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-321971.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 321971;
+var bug = 321971;
 var summary = 'JSOP_FINDNAME replaces JSOP_BINDNAME';
 var actual = 'no error';
 var expect = 'no error';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
- 
+  
 var s='';
 for (i=0; i < 1<<16; i++)
   s += 'x' + i + '=' + i + ';\n';

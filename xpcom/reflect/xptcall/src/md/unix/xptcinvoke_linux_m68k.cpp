@@ -137,28 +137,32 @@ XPTC_InvokeByIndex(nsISupports* that, PRUint32 methodIndex,
     n = invoke_count_words(paramCount, params) * 4;
 
  __asm__ __volatile__(
-    "subl  %5, %%sp\n\t"      /* make room for params */
-    "movel %4, %%sp@-\n\t"
-    "movel %3, %%sp@-\n\t"
-    "pea   %%sp@(8)\n\t"
+    "subl  %5, %/sp\n\t"      /* make room for params */
+    "movl  %/sp, %/a0\n\t"
+    "movl  %4, %/sp@-\n\t"
+    "movl  %3, %/sp@-\n\t"
+    "movl  %/a0, %/sp@-\n\t"
     "jbsr  invoke_copy_to_stack\n\t"   /* copy params */
-    "addw  #12, %%sp\n\t"
-    "movel %1, %%sp@-\n\t"
-    "movel %1@, %%a0\n\t"
+    "addl  #12, %/sp\n\t"
+    "movl  %1, %/a0\n\t"
+    "movl  %/a0, %/sp@-\n\t"
+    "movl  %/a0@, %/a0\n\t"
+    "movl  %2, %/d0\n\t"      /* function index */
 #if defined(__GXX_ABI_VERSION) && __GXX_ABI_VERSION >= 100 /* G++ V3 ABI */
-    "movel %%a0@(%2:l:4), %%a0\n\t"
+    "movl  %/a0@(%/d0:l:4), %/a0\n\t"
 #else /* not V3 */
-    "movel %%a0@(8,%2:l:4), %%a0\n\t"
+    "movl  %/a0@(8,%/d0:l:4), %/a0\n\t"		      
 #endif
-    "jbsr  %%a0@\n\t"         /* safe to not cleanup sp */
-    "lea   %%sp@(4,%5:l), %%sp\n\t"
-    "movel %%d0, %0"
-    : "=d" (result)         /* %0 */
-    : "a" (that),           /* %1 */
-      "d" (methodIndex),    /* %2 */
+    "jbsr  %/a0@\n\t"         /* safe to not cleanup sp */
+    "movl  %/d0, %0\n\t"
+    "addql #4, %/sp\n\t"
+    "addl  %5, %/sp"
+    : "=g" (result)         /* %0 */
+    : "g" (that),           /* %1 */
+      "g" (methodIndex),    /* %2 */
       "g" (paramCount),     /* %3 */
       "g" (params),         /* %4 */
-      "d" (n)               /* %5 */
+      "g" (n)               /* %5 */
     : "a0", "a1", "d0", "d1", "memory"
     );
   

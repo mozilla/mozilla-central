@@ -35,9 +35,6 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-gTestfile = 'null-004-n.js';
-
 /**
  *  Preferred Argument Conversion.
  *
@@ -48,11 +45,11 @@ gTestfile = 'null-004-n.js';
 var SECTION = "Preferred argument conversion:  null";
 var VERSION = "1_4";
 var TITLE   = "LiveConnect 3.0 JavaScript to Java Data Type Conversion " +
-  SECTION;
+SECTION;
 startTest();
 
 TEST_CLASS = new
-  Packages.com.netscape.javascript.qa.lc3.jsnull.Null_001;
+Packages.com.netscape.javascript.qa.lc3.jsnull.Null_001;
 
 // Call an ambiguous static method without using the explicit method
 // syntax should be an error.
@@ -61,8 +58,8 @@ DESCRIPTION = "Packages.com.netscape.javascript.qa.lc3.jsnull.Null_001.staticAmb
 EXPECTED = "error";
 
 new TestCase(
-  "Packages.com.netscape.javascript.qa.lc3.jsnull.Null_001.staticAmbiguous(null)",
-  "error",
-  Packages.com.netscape.javascript.qa.lc3.jsnull.Null_001.staticAmbiguous(null) );
+    "Packages.com.netscape.javascript.qa.lc3.jsnull.Null_001.staticAmbiguous(null)",
+    "error",
+    Packages.com.netscape.javascript.qa.lc3.jsnull.Null_001.staticAmbiguous(null) );
 
 test();

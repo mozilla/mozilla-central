@@ -77,10 +77,7 @@ XPInstallConfirm.init = function ()
     if (icon != "")
       installItem.icon = icon;
     var cert = this._param.GetString(++i);
-    if (cert)
-      installItem.cert = bundle.getFormattedString("signed", [cert]);
-    else
-      installItem.cert = bundle.getString("unverified");
+    installItem.cert = cert || bundle.getString("Unsigned");
     installItem.signed = cert ? "true" : "false";
   }
   

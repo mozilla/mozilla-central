@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'character_class.js';
-
 /**
    Filename:     character_class.js
    Description:  'Tests regular expressions containing []'

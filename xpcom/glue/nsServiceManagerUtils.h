@@ -113,7 +113,7 @@ CallGetService( const nsCID &aClass,
     
     return CallGetService(aClass,
                           NS_GET_TEMPLATE_IID(DestinationType),
-                          reinterpret_cast<void**>(aDestination));
+                          NS_REINTERPRET_CAST(void**, aDestination));
 }
 
 template <class DestinationType>
@@ -127,7 +127,7 @@ CallGetService( const char *aContractID,
     
     return CallGetService(aContractID,
                           NS_GET_TEMPLATE_IID(DestinationType),
-                          reinterpret_cast<void**>(aDestination));
+                          NS_REINTERPRET_CAST(void**, aDestination));
 }
 
 #endif

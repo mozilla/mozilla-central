@@ -62,7 +62,6 @@
 #include "prlog.h"
 #include "nsIRequest.h"
 #include "nsTimer.h"
-#include "nsCycleCollectionParticipant.h"
 
 class nsIDocument;
 class nsIURI;
@@ -75,7 +74,6 @@ class nsIChannel;
 class nsIContent;
 class nsIViewManager;
 class nsNodeInfoManager;
-class nsScriptLoader;
 
 #ifdef NS_DEBUG
 
@@ -115,9 +113,7 @@ class nsContentSink : public nsICSSLoaderObserver,
                       public nsStubDocumentObserver,
                       public nsITimerCallback
 {
-  NS_DECL_CYCLE_COLLECTING_ISUPPORTS
-  NS_DECL_CYCLE_COLLECTION_CLASS_AMBIGUOUS(nsContentSink,
-                                           nsIScriptLoaderObserver)
+  NS_DECL_ISUPPORTS
   NS_DECL_NSISCRIPTLOADEROBSERVER
 
     // nsITimerCallback
@@ -169,19 +165,11 @@ protected:
                                     const nsSubstring& aType,
                                     const nsSubstring& aMedia);
 
-  void PrefetchHref(const nsAString &aHref, nsIContent *aSource,
-                    PRBool aExplicit);
-  void ProcessOfflineManifest(nsIContent *aElement);
+  void PrefetchHref(const nsAString &aHref, PRBool aExplicit, PRBool aOffline);
 
-  // Tries to scroll to the URI's named anchor. Once we've successfully
-  // done that, further calls to this method will be ignored.
   void ScrollToRef();
   nsresult RefreshIfEnabled(nsIViewManager* vm);
-
-  // Start layout.  If aIgnorePendingSheets is true, this will happen even if
-  // we still have stylesheet loads pending.  Otherwise, we'll wait until the
-  // stylesheets are all done loading.
-  void StartLayout(PRBool aIgnorePendingSheets);
+  void StartLayout(PRBool aIsFrameset);
 
   PRBool IsTimeToNotify();
 
@@ -212,9 +200,7 @@ protected:
 
   virtual nsresult FlushTags() = 0;
 
-  // Later on we might want to make this more involved somehow
-  // (e.g. stop waiting after some timeout or whatnot).
-  PRBool WaitForPendingSheets() { return mPendingSheetCount > 0; }
+  void TryToScrollToRef();
 
 private:
   // People shouldn't be allocating this class directly.  All subclasses should
@@ -224,7 +210,6 @@ private:
 protected:
 
   void ContinueInterruptedParsingAsync();
-  void ContinueInterruptedParsingIfEnabled();
   void ContinueInterruptedParsing();
 
   nsCOMPtr<nsIDocument>         mDocument;
@@ -234,7 +219,6 @@ protected:
   nsCOMPtr<nsIDocShell>         mDocShell;
   nsCOMPtr<nsICSSLoader>        mCSSLoader;
   nsRefPtr<nsNodeInfoManager>   mNodeInfoManager;
-  nsRefPtr<nsScriptLoader>      mScriptLoader;
 
   nsCOMArray<nsIScriptElement> mScriptElements;
 
@@ -247,7 +231,6 @@ protected:
   PRInt32 mNotificationInterval;
 
   // Time of last notification
-  // Note: mLastNotificationTime is only valid once mLayoutStarted is true.
   PRTime mLastNotificationTime;
 
   // Timer used for notification
@@ -272,10 +255,6 @@ protected:
   PRUint8 mDroppedTimer : 1;
   PRUint8 mInTitle : 1;
   PRUint8 mChangeScrollPosWhenScrollingToRef : 1;
-  // If true, we deferred starting layout until sheets load
-  PRUint8 mDeferredLayoutStart : 1;
-  // If true, we deferred notifications until sheets load
-  PRUint8 mDeferredFlushTags : 1;
   
   // -- Can interrupt parsing members --
   PRUint32 mDelayTimerStart;
@@ -295,17 +274,182 @@ protected:
   PRInt32 mInMonolithicContainer;
 
   PRInt32 mInNotification;
-  PRUint32 mUpdatesInNotification;
-
-  PRUint32 mPendingSheetCount;
 
   // Measures content model creation time for current document
   MOZ_TIMER_DECLARE(mWatch)
 };
 
-// sanitizing content sink whitelists
-extern PRBool IsAttrURI(nsIAtom *aName);
-extern nsIAtom** const kDefaultAllowedTags [];
-extern nsIAtom** const kDefaultAllowedAttributes [];
 
+//
+// these two lists are used by the sanitizing fragment serializers
+// Thanks to Mark Pilgrim and Sam Ruby for the initial whitelist
+//
+static nsIAtom** const kDefaultAllowedTags [] = {
+  &nsGkAtoms::a,
+  &nsGkAtoms::abbr,
+  &nsGkAtoms::acronym,
+  &nsGkAtoms::address,
+  &nsGkAtoms::area,
+  &nsGkAtoms::b,
+  &nsGkAtoms::bdo,
+  &nsGkAtoms::big,
+  &nsGkAtoms::blockquote,
+  &nsGkAtoms::br,
+  &nsGkAtoms::button,
+  &nsGkAtoms::caption,
+  &nsGkAtoms::center,
+  &nsGkAtoms::cite,
+  &nsGkAtoms::code,
+  &nsGkAtoms::col,
+  &nsGkAtoms::colgroup,
+  &nsGkAtoms::dd,
+  &nsGkAtoms::del,
+  &nsGkAtoms::dfn,
+  &nsGkAtoms::dir,
+  &nsGkAtoms::div,
+  &nsGkAtoms::dl,
+  &nsGkAtoms::dt,
+  &nsGkAtoms::em,
+  &nsGkAtoms::fieldset,
+  &nsGkAtoms::font,
+  &nsGkAtoms::form,
+  &nsGkAtoms::h1,
+  &nsGkAtoms::h2,
+  &nsGkAtoms::h3,
+  &nsGkAtoms::h4,
+  &nsGkAtoms::h5,
+  &nsGkAtoms::h6,
+  &nsGkAtoms::hr,
+  &nsGkAtoms::i,
+  &nsGkAtoms::img,
+  &nsGkAtoms::input,
+  &nsGkAtoms::ins,
+  &nsGkAtoms::kbd,
+  &nsGkAtoms::label,
+  &nsGkAtoms::legend,
+  &nsGkAtoms::li,
+  &nsGkAtoms::listing,
+  &nsGkAtoms::map,
+  &nsGkAtoms::menu,
+  &nsGkAtoms::nobr,
+  &nsGkAtoms::ol,
+  &nsGkAtoms::optgroup,
+  &nsGkAtoms::option,
+  &nsGkAtoms::p,
+  &nsGkAtoms::pre,
+  &nsGkAtoms::q,
+  &nsGkAtoms::s,
+  &nsGkAtoms::samp,
+  &nsGkAtoms::select,
+  &nsGkAtoms::small,
+  &nsGkAtoms::span,
+  &nsGkAtoms::strike,
+  &nsGkAtoms::strong,
+  &nsGkAtoms::sub,
+  &nsGkAtoms::sup,
+  &nsGkAtoms::table,
+  &nsGkAtoms::tbody,
+  &nsGkAtoms::td,
+  &nsGkAtoms::textarea,
+  &nsGkAtoms::tfoot,
+  &nsGkAtoms::th,
+  &nsGkAtoms::thead,
+  &nsGkAtoms::tr,
+  &nsGkAtoms::tt,
+  &nsGkAtoms::u,
+  &nsGkAtoms::ul,
+  &nsGkAtoms::var
+};
+
+static nsIAtom** const kDefaultAllowedAttributes [] = {
+  &nsGkAtoms::abbr,
+  &nsGkAtoms::accept,
+  &nsGkAtoms::acceptcharset,
+  &nsGkAtoms::accesskey,
+  &nsGkAtoms::action,
+  &nsGkAtoms::align,
+  &nsGkAtoms::alt,
+  &nsGkAtoms::autocomplete,
+  &nsGkAtoms::axis,
+  &nsGkAtoms::background,
+  &nsGkAtoms::bgcolor,
+  &nsGkAtoms::border,
+  &nsGkAtoms::cellpadding,
+  &nsGkAtoms::cellspacing,
+  &nsGkAtoms::_char,
+  &nsGkAtoms::charoff,
+  &nsGkAtoms::charset,
+  &nsGkAtoms::checked,
+  &nsGkAtoms::cite,
+  &nsGkAtoms::_class,
+  &nsGkAtoms::clear,
+  &nsGkAtoms::cols,
+  &nsGkAtoms::colspan,
+  &nsGkAtoms::color,
+  &nsGkAtoms::compact,
+  &nsGkAtoms::coords,
+  &nsGkAtoms::datetime,
+  &nsGkAtoms::dir,
+  &nsGkAtoms::disabled,
+  &nsGkAtoms::enctype,
+  &nsGkAtoms::_for,
+  &nsGkAtoms::frame,
+  &nsGkAtoms::headers,
+  &nsGkAtoms::height,
+  &nsGkAtoms::href,
+  &nsGkAtoms::hreflang,
+  &nsGkAtoms::hspace,
+  &nsGkAtoms::id,
+  &nsGkAtoms::ismap,
+  &nsGkAtoms::label,
+  &nsGkAtoms::lang,
+  &nsGkAtoms::longdesc,
+  &nsGkAtoms::maxlength,
+  &nsGkAtoms::media,
+  &nsGkAtoms::method,
+  &nsGkAtoms::multiple,
+  &nsGkAtoms::name,
+  &nsGkAtoms::nohref,
+  &nsGkAtoms::noshade,
+  &nsGkAtoms::nowrap,
+  &nsGkAtoms::pointSize,
+  &nsGkAtoms::prompt,
+  &nsGkAtoms::readonly,
+  &nsGkAtoms::rel,
+  &nsGkAtoms::rev,
+  &nsGkAtoms::role,
+  &nsGkAtoms::rows,
+  &nsGkAtoms::rowspan,
+  &nsGkAtoms::rules,
+  &nsGkAtoms::scope,
+  &nsGkAtoms::selected,
+  &nsGkAtoms::shape,
+  &nsGkAtoms::size,
+  &nsGkAtoms::span,
+  &nsGkAtoms::src,
+  &nsGkAtoms::start,
+  &nsGkAtoms::summary,
+  &nsGkAtoms::tabindex,
+  &nsGkAtoms::target,
+  &nsGkAtoms::title,
+  &nsGkAtoms::type,
+  &nsGkAtoms::usemap,
+  &nsGkAtoms::valign,
+  &nsGkAtoms::value,
+  &nsGkAtoms::vspace,
+  &nsGkAtoms::width
+};
+
+// URIs action, href, src, longdesc, usemap, cite
+static
+PRBool IsAttrURI(nsIAtom *aName)
+{
+  return (aName == nsGkAtoms::action ||
+          aName == nsGkAtoms::href ||
+          aName == nsGkAtoms::src ||
+          aName == nsGkAtoms::longdesc ||
+          aName == nsGkAtoms::usemap ||
+          aName == nsGkAtoms::cite ||
+          aName == nsGkAtoms::background);
+}
 #endif // _nsContentSink_h_

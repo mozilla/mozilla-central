@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -59,11 +58,19 @@ public:
   NS_IMETHOD
   UpdatePresentationDataFromChildAt(PRInt32         aFirstIndex,
                                     PRInt32         aLastIndex,
+                                    PRInt32         aScriptLevelIncrement,
                                     PRUint32        aFlagsValues,
                                     PRUint32        aFlagsToUpdate)
   {
     nsMathMLContainerFrame::PropagatePresentationDataFromChildAt(this,
-      aFirstIndex, aLastIndex, aFlagsValues, aFlagsToUpdate);
+      aFirstIndex, aLastIndex, aScriptLevelIncrement, aFlagsValues, aFlagsToUpdate);
+    return NS_OK;
+  }
+
+  NS_IMETHOD
+  ReResolveScriptStyle(PRInt32 aParentScriptLevel)
+  {
+    nsMathMLContainerFrame::PropagateScriptStyleFor(this, aParentScriptLevel);
     return NS_OK;
   }
 

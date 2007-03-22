@@ -44,7 +44,6 @@
 
 #include "nsGridLayout2.h"
 #include "nsGridRowGroupLayout.h"
-#include "nsGridRow.h"
 #include "nsBox.h"
 #include "nsIScrollableFrame.h"
 #include "nsSprocketLayout.h"
@@ -83,14 +82,15 @@ nsGridLayout2::Layout(nsIBox* aBox, nsBoxLayoutState& aBoxLayoutState)
   return rv;
 }
 
-void
+NS_IMETHODIMP
 nsGridLayout2::IntrinsicWidthsDirty(nsIBox* aBox, nsBoxLayoutState& aBoxLayoutState)
 {
-  nsStackLayout::IntrinsicWidthsDirty(aBox, aBoxLayoutState);
+  nsresult rv = nsStackLayout::IntrinsicWidthsDirty(aBox, aBoxLayoutState);
   // XXXldb We really don't need to do all the work that NeedsRebuild
   // does; we just need to mark intrinsic widths dirty on the
   // (row/column)(s/-groups).
   mGrid.NeedsRebuild(aBoxLayoutState);
+  return rv;
 }
 
 nsGrid*
@@ -122,10 +122,12 @@ nsGridLayout2::AddWidth(nsSize& aSize, nscoord aSize2, PRBool aIsHorizontal)
   }
 }
 
-nsSize
-nsGridLayout2::GetMinSize(nsIBox* aBox, nsBoxLayoutState& aState)
+NS_IMETHODIMP
+nsGridLayout2::GetMinSize(nsIBox* aBox, nsBoxLayoutState& aState, nsSize& aSize)
 {
-  nsSize minSize = nsStackLayout::GetMinSize(aBox, aState); 
+  nsresult rv = nsStackLayout::GetMinSize(aBox, aState, aSize); 
+  if (NS_FAILED(rv))
+    return rv;
 
   // if there are no <rows> tags that will sum up our columns,
   // sum up our columns here.
@@ -155,16 +157,18 @@ nsGridLayout2::GetMinSize(nsIBox* aBox, nsBoxLayoutState& aState)
 
     AddMargin(aBox, total);
     AddOffset(aState, aBox, total);
-    AddLargestSize(minSize, total);
+    AddLargestSize(aSize, total);
   }
   
-  return minSize;
+  return rv;
 }
 
-nsSize
-nsGridLayout2::GetPrefSize(nsIBox* aBox, nsBoxLayoutState& aState)
+NS_IMETHODIMP
+nsGridLayout2::GetPrefSize(nsIBox* aBox, nsBoxLayoutState& aState, nsSize& aSize)
 {
-  nsSize pref = nsStackLayout::GetPrefSize(aBox, aState); 
+  nsresult rv = nsStackLayout::GetPrefSize(aBox, aState, aSize); 
+  if (NS_FAILED(rv))
+    return rv;
 
   // if there are no <rows> tags that will sum up our columns,
   // sum up our columns here.
@@ -194,16 +198,18 @@ nsGridLayout2::GetPrefSize(nsIBox* aBox, nsBoxLayoutState& aState)
 
     AddMargin(aBox, total);
     AddOffset(aState, aBox, total);
-    AddLargestSize(pref, total);
+    AddLargestSize(aSize, total);
   }
 
-  return pref;
+  return rv;
 }
 
-nsSize
-nsGridLayout2::GetMaxSize(nsIBox* aBox, nsBoxLayoutState& aState)
+NS_IMETHODIMP
+nsGridLayout2::GetMaxSize(nsIBox* aBox, nsBoxLayoutState& aState, nsSize& aSize)
 {
-  nsSize maxSize = nsStackLayout::GetMaxSize(aBox, aState); 
+  nsresult rv = nsStackLayout::GetMaxSize(aBox, aState, aSize); 
+   if (NS_FAILED(rv))
+    return rv;
 
   // if there are no <rows> tags that will sum up our columns,
   // sum up our columns here.
@@ -235,20 +241,10 @@ nsGridLayout2::GetMaxSize(nsIBox* aBox, nsBoxLayoutState& aState)
 
     AddMargin(aBox, total);
     AddOffset(aState, aBox, total);
-    AddSmallestSize(maxSize, total);
+    AddSmallestSize(aSize, total);
   }
 
-  return maxSize;
-}
-
-PRInt32
-nsGridLayout2::BuildRows(nsIBox* aBox, nsGridRow* aRows)
-{
-  if (aBox) {
-    aRows[0].Init(aBox, PR_TRUE);
-    return 1;
-  }
-  return 0;
+  return rv;
 }
 
 nsMargin
@@ -258,32 +254,36 @@ nsGridLayout2::GetTotalMargin(nsIBox* aBox, PRBool aIsHorizontal)
   return margin;
 }
 
-void
+NS_IMETHODIMP
 nsGridLayout2::ChildrenInserted(nsIBox* aBox, nsBoxLayoutState& aState,
                                 nsIBox* aPrevBox, nsIBox* aChildList)
 {
   mGrid.NeedsRebuild(aState);
+  return NS_OK;
 }
 
-void
+NS_IMETHODIMP
 nsGridLayout2::ChildrenAppended(nsIBox* aBox, nsBoxLayoutState& aState,
                                 nsIBox* aChildList)
 {
   mGrid.NeedsRebuild(aState);
+  return NS_OK;
 }
 
-void
+NS_IMETHODIMP
 nsGridLayout2::ChildrenRemoved(nsIBox* aBox, nsBoxLayoutState& aState,
                                nsIBox* aChildList)
 {
   mGrid.NeedsRebuild(aState);
+  return NS_OK;
 }
 
-void
+NS_IMETHODIMP
 nsGridLayout2::ChildrenSet(nsIBox* aBox, nsBoxLayoutState& aState,
                            nsIBox* aChildList)
 {
   mGrid.NeedsRebuild(aState);
+  return NS_OK;
 }
 
 NS_IMPL_ADDREF_INHERITED(nsGridLayout2, nsStackLayout)

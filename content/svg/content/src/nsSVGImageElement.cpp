@@ -40,6 +40,7 @@
 #include "nsSVGLength.h"
 #include "nsSVGAnimatedString.h"
 #include "nsCOMPtr.h"
+#include "nsISVGSVGElement.h"
 #include "nsIURI.h"
 #include "nsNetUtil.h"
 #include "nsSVGAnimatedPreserveAspectRatio.h"
@@ -51,7 +52,6 @@
 #include "nsIDOMSVGURIReference.h"
 #include "nsImageLoadingContent.h"
 #include "nsSVGLength2.h"
-#include "gfxContext.h"
 
 class nsIDOMSVGAnimatedString;
 class nsIDOMSVGAnimatedPreserveAspectRatio;
@@ -96,7 +96,7 @@ public:
   NS_IMETHODIMP_(PRBool) IsAttributeMapped(const nsIAtom* name) const;
 
   // nsSVGPathGeometryElement methods:
-  virtual void ConstructPath(gfxContext *aCtx);
+  virtual void ConstructPath(cairo_t *aCtx);
 
   virtual nsresult Clone(nsINodeInfo *aNodeInfo, nsINode **aResult) const;
 
@@ -353,14 +353,14 @@ nsSVGImageElement::IsAttributeMapped(const nsIAtom* name) const
 /* For the purposes of the update/invalidation logic pretend to
    be a rectangle. */
 void
-nsSVGImageElement::ConstructPath(gfxContext *aCtx)
+nsSVGImageElement::ConstructPath(cairo_t *aCtx)
 {
   float x, y, width, height;
 
   GetAnimatedLengthValues(&x, &y, &width, &height, nsnull);
 
-  if (width <= 0 || height <= 0)
+  if (width == 0 || height == 0)
     return;
 
-  aCtx->Rectangle(gfxRect(x, y, width, height));
+  cairo_rectangle(aCtx, x, y, width, height);
 }

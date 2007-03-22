@@ -84,7 +84,7 @@ sub compareDTD
         $failure = 1;
         print "Entities in $path don't match:\n";
         if (@extra1) {
-            print "  In $gSource1: (add these keys to your localization)\n";
+            print "  In $gSource1: (add these keys to you localization)\n";
             map { print "    $_\n"; } @extra1;
         }
 
@@ -124,23 +124,19 @@ sub compareProperties
         if (exists $entities2{$entity}) {
             delete $entities2{$entity};
         } else {
-# hack to ignore non-fatal region.properties differences
+# hack around region.properties#browser.search.order.[1-9]
             if ($path !~ /chrome\/browser-region\/region\.properties$/ or
                 ($entity !~ /browser\.search\.order\.[1-9]/ and
-                 $entity !~ /browser\.contentHandlers\.types\.[0-5]/ and
-                 $entity !~ /gecko\.handlerService\.schemes\./ and
-                 $entity !~ /gecko\.handlerService\.defaultHandlersVersion/)) {
+                 $entity !~ /browser\.contentHandlers\.types\.[0-5]/)) {
                 push @extra1, $entity;
             }
         }
     }
-# hack to ignore non-fatal region.properties differences
+# hack around region.properties#browser.search.order.[1-9]
     if ($path =~ /chrome\/browser-region\/region\.properties$/) {
         foreach $entity (keys(%entities2)) {
             if ($entity =~ /browser\.search\.order\.[1-9]/ ||
-                $entity =~ /browser\.contentHandlers\.types\.[0-5]/ ||
-                $entity =~ /gecko\.handlerService\.schemes\./ ||
-                $entity =~ /gecko\.handlerService\.defaultHandlersVersion/) {
+                $entity =~ /browser\.contentHandlers\.types\.[0-5]/) {
                 delete $entities2{$entity};
             }
         }

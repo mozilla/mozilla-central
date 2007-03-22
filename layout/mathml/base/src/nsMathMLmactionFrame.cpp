@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -39,6 +38,7 @@
 #include "nsCOMPtr.h"
 #include "nsFrame.h"
 #include "nsPresContext.h"
+#include "nsUnitConversion.h"
 #include "nsStyleContext.h"
 #include "nsStyleConsts.h"
 #include "nsINameSpaceManager.h"
@@ -55,7 +55,7 @@
 #include "nsIInterfaceRequestorUtils.h"
 #include "nsIDOMElement.h"
 
-#include "nsIDOMEventTarget.h"
+#include "nsIDOMEventReceiver.h"
 #include "nsIDOMMouseListener.h"
 
 #include "nsMathMLmactionFrame.h"
@@ -76,10 +76,7 @@
 
 NS_IMPL_ADDREF_INHERITED(nsMathMLmactionFrame, nsMathMLContainerFrame)
 NS_IMPL_RELEASE_INHERITED(nsMathMLmactionFrame, nsMathMLContainerFrame)
-NS_IMPL_QUERY_INTERFACE_INHERITED2(nsMathMLmactionFrame,
-                                   nsMathMLContainerFrame,
-                                   nsIDOMMouseListener,
-                                   nsIDOMEventListener)
+NS_IMPL_QUERY_INTERFACE_INHERITED1(nsMathMLmactionFrame, nsMathMLContainerFrame, nsIDOMMouseListener)
 
 nsIFrame*
 NS_NewMathMLmactionFrame(nsIPresShell* aPresShell, nsStyleContext* aContext)
@@ -90,8 +87,9 @@ NS_NewMathMLmactionFrame(nsIPresShell* aPresShell, nsStyleContext* aContext)
 nsMathMLmactionFrame::~nsMathMLmactionFrame()
 {
   // unregister us as a mouse event listener ...
-  //  printf("maction:%p unregistering as mouse event listener ...\n", this);
-  mContent->RemoveEventListenerByIID(this, NS_GET_IID(nsIDOMMouseListener));
+//  printf("maction:%p unregistering as mouse event listener ...\n", this);
+  nsCOMPtr<nsIDOMEventReceiver> receiver(do_QueryInterface(mContent));
+  receiver->RemoveEventListenerByIID(this, NS_GET_IID(nsIDOMMouseListener));
 }
 
 NS_IMETHODIMP
@@ -139,14 +137,12 @@ nsMathMLmactionFrame::Init(nsIContent*      aContent,
         // given us the associated style. But we want to start with our default style.
 
         // So... first, remove the attribute actiontype="restyle#id"
-        // XXXbz this is pretty messed up, since this can change whether we
-        // should have a frame at all.  This really needs a better solution.
         PRBool notify = PR_FALSE; // don't trigger a reflow yet!
         aContent->UnsetAttr(kNameSpaceID_None, nsGkAtoms::actiontype_, notify);
 
         // then, re-resolve our style
-        nsStyleContext* parentStyleContext = GetStyleContext()->GetParent();
-        newStyleContext = PresContext()->StyleSet()->
+        nsStyleContext* parentStyleContext = aParent->GetStyleContext();
+        newStyleContext = GetPresContext()->StyleSet()->
           ResolveStyleFor(aContent, parentStyleContext);
 
         if (!newStyleContext) 
@@ -242,7 +238,8 @@ nsMathMLmactionFrame::SetInitialChildList(nsIAtom*        aListName,
   else {
     // register us as a mouse event listener ...
     // printf("maction:%p registering as mouse event listener ...\n", this);
-    mContent->AddEventListenerByIID(this, NS_GET_IID(nsIDOMMouseListener));
+    nsCOMPtr<nsIDOMEventReceiver> receiver(do_QueryInterface(mContent));
+    receiver->AddEventListenerByIID(this, NS_GET_IID(nsIDOMMouseListener));
   }
   return rv;
 }
@@ -286,13 +283,14 @@ nsMathMLmactionFrame::Reflow(nsPresContext*          aPresContext,
   mBoundingMetrics.Clear();
   nsIFrame* childFrame = GetSelectedFrame();
   if (childFrame) {
-    nsSize availSize(aReflowState.ComputedWidth(), NS_UNCONSTRAINEDSIZE);
+    nsSize availSize(aReflowState.ComputedWidth(),
+                     aReflowState.mComputedHeight);
     nsHTMLReflowState childReflowState(aPresContext, aReflowState,
                                        childFrame, availSize);
     rv = ReflowChild(childFrame, aPresContext, aDesiredSize,
                      childReflowState, aStatus);
-    SaveReflowAndBoundingMetricsFor(childFrame, aDesiredSize,
-                                    aDesiredSize.mBoundingMetrics);
+    childFrame->SetRect(nsRect(0,aDesiredSize.ascent,
+                        aDesiredSize.width,aDesiredSize.height));
     mBoundingMetrics = aDesiredSize.mBoundingMetrics;
   }
   FinalizeReflow(*aReflowState.rendContext, aDesiredSize);
@@ -301,7 +299,7 @@ nsMathMLmactionFrame::Reflow(nsPresContext*          aPresContext,
 }
 
 // Only place the selected child ...
-/* virtual */ nsresult
+NS_IMETHODIMP
 nsMathMLmactionFrame::Place(nsIRenderingContext& aRenderingContext,
                             PRBool               aPlaceOrigin,
                             nsHTMLReflowMetrics& aDesiredSize)
@@ -313,7 +311,7 @@ nsMathMLmactionFrame::Place(nsIRenderingContext& aRenderingContext,
   if (childFrame) {
     GetReflowAndBoundingMetricsFor(childFrame, aDesiredSize, mBoundingMetrics);
     if (aPlaceOrigin) {
-      FinishReflowChild(childFrame, PresContext(), nsnull, aDesiredSize, 0, 0, 0);
+      FinishReflowChild(childFrame, GetPresContext(), nsnull, aDesiredSize, 0, 0, 0);
     }
     mReference.x = 0;
     mReference.y = aDesiredSize.ascent;
@@ -359,7 +357,7 @@ nsMathMLmactionFrame::MouseOver(nsIDOMEvent* aMouseEvent)
     // expected statusline prefix (11ch)...
     if (11 < value.Length() && 0 == value.Find("statusline#")) {
       value.Cut(0, 11);
-      ShowStatus(PresContext(), value);
+      ShowStatus(GetPresContext(), value);
     }
   }
   return NS_OK;
@@ -372,7 +370,7 @@ nsMathMLmactionFrame::MouseOut(nsIDOMEvent* aMouseEvent)
   if (NS_MATHML_ACTION_TYPE_STATUSLINE == mActionType) {
     nsAutoString value;
     value.SetLength(0);
-    ShowStatus(PresContext(), value);
+    ShowStatus(GetPresContext(), value);
   }
   return NS_OK;
 }
@@ -391,9 +389,9 @@ nsMathMLmactionFrame::MouseClick(nsIDOMEvent* aMouseEvent)
       mContent->SetAttr(kNameSpaceID_None, nsGkAtoms::selection_, value, notify);
 
       // Now trigger a content-changed reflow...
-      PresContext()->PresShell()->
-        FrameNeedsReflow(mSelectedFrame, nsIPresShell::eTreeChange,
-                         NS_FRAME_IS_DIRTY);
+      mSelectedFrame->AddStateBits(NS_FRAME_IS_DIRTY);
+      GetPresContext()->PresShell()->
+        FrameNeedsReflow(mSelectedFrame, nsIPresShell::eTreeChange);
     }
   }
   else if (NS_MATHML_ACTION_TYPE_RESTYLE == mActionType) {
@@ -407,9 +405,9 @@ nsMathMLmactionFrame::MouseClick(nsIDOMEvent* aMouseEvent)
           node->SetAttribute(NS_LITERAL_STRING("actiontype"), mRestyle);
 
         // Trigger a style change reflow
-        PresContext()->PresShell()->
-          FrameNeedsReflow(mSelectedFrame, nsIPresShell::eStyleChange,
-                           NS_FRAME_IS_DIRTY);
+        mSelectedFrame->AddStateBits(NS_FRAME_IS_DIRTY);
+        GetPresContext()->PresShell()->
+          FrameNeedsReflow(mSelectedFrame, nsIPresShell::eStyleChange);
       }
     }
   }

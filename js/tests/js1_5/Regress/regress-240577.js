@@ -34,23 +34,21 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-240577.js';
 //-----------------------------------------------------------------------------
-// originally reported by Jens Thiele <karme@unforgettable.com> in
-var BUGNUMBER = 240577;
+// originally reported by Jens Thiele <karme@unforgettable.com> in 
+var bug = 240577;
 var summary = 'object.watch execution context';
 var actual = '';
 var expect = '';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
-var createWatcher = function ( watchlabel )
-{
-  var watcher = function (property, oldvalue, newvalue)
-  {
-    actual += watchlabel; return newvalue;
+var createWatcher = function ( watchlabel ) 
+{ 
+  var watcher = function (property, oldvalue, newvalue) 
+  { 
+    actual += watchlabel; return newvalue; 
   };
   return watcher;
 };

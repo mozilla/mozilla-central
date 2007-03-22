@@ -102,7 +102,7 @@ public:
                                PRUint32 flags);
 
     // Gets the array of registered content sniffers
-    const nsCOMArray<nsIContentSniffer>& GetContentSniffers() {
+    const nsCOMArray<nsIContentSniffer>& GetContentSniffers() const {
       return mContentSniffers.GetEntries();
     }
 

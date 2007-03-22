@@ -50,7 +50,7 @@
 #include "nsIFormControl.h"
 #include "nsIForm.h"
 #include "nsIFormSubmission.h"
-#include "nsIDOMEventTarget.h"
+#include "nsIDOMEventReceiver.h"
 #include "nsGenericHTMLElement.h"
 #include "nsGkAtoms.h"
 #include "nsStyleConsts.h"
@@ -74,8 +74,6 @@
 #include "nsLayoutUtils.h"
 #include "nsLayoutErrors.h"
 #include "nsStubMutationObserver.h"
-#include "nsDOMError.h"
-#include "mozAutoDocUpdate.h"
 
 static NS_DEFINE_CID(kXULControllersCID,  NS_XULCONTROLLERS_CID);
 
@@ -111,11 +109,7 @@ public:
   NS_DECL_NSIDOMNSHTMLTEXTAREAELEMENT
 
   // nsIDOMNSEditableElement
-  NS_IMETHOD GetEditor(nsIEditor** aEditor)
-  {
-    return nsGenericHTMLElement::GetEditor(aEditor);
-  }
-  NS_IMETHOD SetUserInput(const nsAString& aInput);
+  NS_FORWARD_NSIDOMNSEDITABLEELEMENT(nsGenericHTMLElement::)
 
   // nsIFormControl
   NS_IMETHOD_(PRInt32) GetType() const { return NS_FORM_TEXTAREA; }
@@ -171,11 +165,6 @@ public:
                               nsIContent* aChild,
                               PRInt32 aIndexInContainer);
 
-  virtual void UpdateEditableState()
-  {
-    return UpdateEditableFormControlState();
-  }
-
   NS_DECL_CYCLE_COLLECTION_CLASS_INHERITED(nsHTMLTextAreaElement,
                                            nsGenericHTMLFormElement)
 
@@ -204,8 +193,7 @@ protected:
   void GetValueInternal(nsAString& aValue, PRBool aIgnoreWrap);
 
   nsresult SetValueInternal(const nsAString& aValue,
-                            nsITextControlFrame* aFrame,
-                            PRBool aUserInput);
+                            nsITextControlFrame* aFrame);
   nsresult GetSelectionRange(PRInt32* aSelectionStart, PRInt32* aSelectionEnd);
 
   /**
@@ -214,9 +202,6 @@ protected:
    * parent; we should only respond to the change if aContent is non-anonymous.
    */
   void ContentChanged(nsIContent* aContent);
-
-  virtual nsresult AfterSetAttr(PRInt32 aNamespaceID, nsIAtom *aName,
-                                const nsAString* aValue, PRBool aNotify);
 };
 
 
@@ -258,15 +243,15 @@ NS_IMPL_RELEASE_INHERITED(nsHTMLTextAreaElement, nsGenericElement)
 
 
 // QueryInterface implementation for nsHTMLTextAreaElement
-NS_HTML_CONTENT_CC_INTERFACE_TABLE_HEAD(nsHTMLTextAreaElement,
-                                        nsGenericHTMLFormElement)
-  NS_INTERFACE_TABLE_INHERITED5(nsHTMLTextAreaElement,
-                                nsIDOMHTMLTextAreaElement,
-                                nsIDOMNSHTMLTextAreaElement,
-                                nsITextControlElement,
-                                nsIDOMNSEditableElement,
-                                nsIMutationObserver)
-NS_HTML_CONTENT_INTERFACE_TABLE_TAIL_CLASSINFO(HTMLTextAreaElement)
+NS_HTML_CONTENT_CC_INTERFACE_MAP_BEGIN(nsHTMLTextAreaElement,
+                                       nsGenericHTMLFormElement)
+  NS_INTERFACE_MAP_ENTRY(nsIDOMHTMLTextAreaElement)
+  NS_INTERFACE_MAP_ENTRY(nsIDOMNSHTMLTextAreaElement)
+  NS_INTERFACE_MAP_ENTRY(nsITextControlElement)
+  NS_INTERFACE_MAP_ENTRY(nsIDOMNSEditableElement)
+  NS_INTERFACE_MAP_ENTRY(nsIMutationObserver)
+  NS_INTERFACE_MAP_ENTRY_CONTENT_CLASSINFO(HTMLTextAreaElement)
+NS_HTML_CONTENT_INTERFACE_MAP_END
 
 
 // nsIDOMHTMLTextAreaElement
@@ -378,7 +363,7 @@ nsHTMLTextAreaElement::Select()
 
   nsEventStatus status = nsEventStatus_eIgnore;
   nsGUIEvent event(PR_TRUE, NS_FORM_SELECTED, nsnull);
-  nsEventDispatcher::Dispatch(static_cast<nsIContent*>(this), presContext,
+  nsEventDispatcher::Dispatch(NS_STATIC_CAST(nsIContent*, this), presContext,
                               &event, nsnull, &status);
 
   // If the DOM event was not canceled (e.g. by a JS event handler
@@ -486,8 +471,7 @@ nsHTMLTextAreaElement::TakeTextFrameValue(const nsAString& aValue)
 
 nsresult
 nsHTMLTextAreaElement::SetValueInternal(const nsAString& aValue,
-                                        nsITextControlFrame* aFrame,
-                                        PRBool aUserInput)
+                                        nsITextControlFrame* aFrame)
 {
   nsITextControlFrame* textControlFrame = aFrame;
   nsIFormControlFrame* formControlFrame = textControlFrame;
@@ -506,8 +490,7 @@ nsHTMLTextAreaElement::SetValueInternal(const nsAString& aValue,
     textControlFrame->OwnsValue(&frameOwnsValue);
   }
   if (frameOwnsValue) {
-    formControlFrame->SetFormProperty(
-      aUserInput ? nsGkAtoms::userInput : nsGkAtoms::value, aValue);
+    formControlFrame->SetFormProperty(nsGkAtoms::value, aValue);
   }
   else {
     if (mValue) {
@@ -525,18 +508,9 @@ nsHTMLTextAreaElement::SetValueInternal(const nsAString& aValue,
 NS_IMETHODIMP 
 nsHTMLTextAreaElement::SetValue(const nsAString& aValue)
 {
-  return SetValueInternal(aValue, nsnull, PR_FALSE);
+  return SetValueInternal(aValue, nsnull);
 }
 
-NS_IMETHODIMP 
-nsHTMLTextAreaElement::SetUserInput(const nsAString& aValue)
-{
-  if (!nsContentUtils::IsCallerTrustedForWrite()) {
-    return NS_ERROR_DOM_SECURITY_ERR;
-  }
-  SetValueInternal(aValue, nsnull, PR_TRUE);
-  return NS_OK;
-}
 
 NS_IMETHODIMP
 nsHTMLTextAreaElement::SetValueChanged(PRBool aValueChanged)
@@ -663,7 +637,7 @@ nsHTMLTextAreaElement::PreHandleEvent(nsEventChainPreVisitor& aVisitor)
     aVisitor.mItemFlags |= NS_NO_CONTENT_DISPATCH;
   if (aVisitor.mEvent->message == NS_MOUSE_CLICK &&
       aVisitor.mEvent->eventStructType == NS_MOUSE_EVENT &&
-      static_cast<nsMouseEvent*>(aVisitor.mEvent)->button ==
+      NS_STATIC_CAST(nsMouseEvent*, aVisitor.mEvent)->button ==
         nsMouseEvent::eMiddleButton) {
     aVisitor.mEvent->flags &= ~NS_EVENT_FLAG_NO_CONTENT_DISPATCH;
   }
@@ -1015,24 +989,4 @@ nsHTMLTextAreaElement::ContentChanged(nsIContent* aContent)
       nsContentUtils::IsInSameAnonymousTree(this, aContent)) {
     Reset();
   }
-}
-
-nsresult
-nsHTMLTextAreaElement::AfterSetAttr(PRInt32 aNameSpaceID, nsIAtom* aName,
-                                    const nsAString* aValue, PRBool aNotify)
-{
-  if (aNotify && aNameSpaceID == kNameSpaceID_None &&
-      aName == nsGkAtoms::readonly) {
-    UpdateEditableState();
-
-    nsIDocument* document = GetCurrentDoc();
-    if (document) {
-      mozAutoDocUpdate upd(document, UPDATE_CONTENT_STATE, PR_TRUE);
-      document->ContentStatesChanged(this, nsnull,
-                                     NS_EVENT_STATE_MOZ_READONLY |
-                                     NS_EVENT_STATE_MOZ_READWRITE);
-    }
-  }
-  return nsGenericHTMLFormElement::AfterSetAttr(aNameSpaceID, aName, aValue,
-                                                aNotify);
 }

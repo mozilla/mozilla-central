@@ -53,6 +53,10 @@ txXPathTreeWalker::txXPathTreeWalker(const txXPathNode& aNode)
 {
 }
 
+txXPathTreeWalker::~txXPathTreeWalker()
+{
+}
+
 #define INNER mPosition.mInner
 
 void
@@ -68,7 +72,7 @@ txXPathTreeWalker::moveToElementById(const nsAString& aID)
 {
     Document* document;
     if (INNER->nodeType == Node::DOCUMENT_NODE) {
-        document = static_cast<Document*>(INNER);
+        document = NS_STATIC_CAST(Document*, INNER);
     }
     else {
         document = INNER->ownerDocument;
@@ -92,7 +96,7 @@ txXPathTreeWalker::moveToFirstAttribute()
         return PR_FALSE;
     }
 
-    Element* element = static_cast<Element*>(INNER);
+    Element* element = NS_STATIC_CAST(Element*, INNER);
     Attr *attribute = element->getFirstAttribute();
     while (attribute) {
         if (attribute->getNamespaceID() != kNameSpaceID_XMLNS) {
@@ -115,7 +119,7 @@ txXPathTreeWalker::moveToNextAttribute()
         return PR_FALSE;
     }
 
-    Element* element = static_cast<Element*>(INNER->getXPathParent());
+    Element* element = NS_STATIC_CAST(Element*, INNER->getXPathParent());
     Attr *attribute = element->getFirstAttribute();
     while (attribute != INNER) {
         attribute = attribute->getNextAttribute();
@@ -144,7 +148,7 @@ txXPathTreeWalker::moveToNamedAttribute(nsIAtom* aLocalName, PRInt32 aNSID)
         return PR_FALSE;
     }
 
-    Element* element = static_cast<Element*>(INNER);
+    Element* element = NS_STATIC_CAST(Element*, INNER);
     NamedNodeMap* attrs = element->getAttributes();
     NodeListDefinition::ListItem* item = attrs->firstItem;
     // find requested attribute
@@ -158,7 +162,7 @@ txXPathTreeWalker::moveToNamedAttribute(nsIAtom* aLocalName, PRInt32 aNSID)
         return PR_FALSE;
     }
 
-    INNER = static_cast<NodeDefinition*>(item->node);
+    INNER = NS_STATIC_CAST(NodeDefinition*, item->node);
     return PR_TRUE;
 }
 
@@ -214,7 +218,7 @@ PRBool
 txXPathTreeWalker::moveToParent()
 {
     if (INNER->nodeType == Node::ATTRIBUTE_NODE) {
-        INNER = static_cast<NodeDefinition*>(INNER->getXPathParent());
+        INNER = NS_STATIC_CAST(NodeDefinition*, INNER->getXPathParent());
         return PR_TRUE;
     }
 
@@ -249,7 +253,7 @@ txXPathNodeUtils::getAttr(const txXPathNode& aNode, nsIAtom* aLocalName,
         return PR_FALSE;
     }
 
-    Element* elem = static_cast<Element*>(aNode.mInner);
+    Element* elem = NS_STATIC_CAST(Element*, aNode.mInner);
     return elem->getAttr(aLocalName, aNSID, aValue);
 }
 
@@ -306,8 +310,8 @@ txXPathNodeUtils::appendNodeValueHelper(NodeDefinition* aNode,
                                         nsAString& aResult)
 {
 
-    NodeDefinition* child = static_cast<NodeDefinition*>
-                                       (aNode->getFirstChild());
+    NodeDefinition* child = NS_STATIC_CAST(NodeDefinition*,
+                                           aNode->getFirstChild());
     while (child) {
         switch (child->getNodeType()) {
             case Node::TEXT_NODE:
@@ -319,7 +323,7 @@ txXPathNodeUtils::appendNodeValueHelper(NodeDefinition* aNode,
                 appendNodeValueHelper(child, aResult);
             }
         }
-        child = static_cast<NodeDefinition*>(child->getNextSibling());
+        child = NS_STATIC_CAST(NodeDefinition*, child->getNextSibling());
     }
 }
 
@@ -413,7 +417,7 @@ txXPathNode*
 txXPathNativeNode::createXPathNode(Node* aNode)
 {
     if (aNode != nsnull) {
-        return new txXPathNode(static_cast<NodeDefinition*>(aNode));
+        return new txXPathNode(NS_STATIC_CAST(NodeDefinition*, aNode));
     }
     return nsnull;
 }
@@ -426,7 +430,7 @@ txXPathNativeNode::getElement(const txXPathNode& aNode, Element** aResult)
         return NS_ERROR_FAILURE;
     }
 
-    *aResult = static_cast<Element*>(aNode.mInner);
+    *aResult = NS_STATIC_CAST(Element*, aNode.mInner);
 
     return NS_OK;
 
@@ -440,7 +444,7 @@ txXPathNativeNode::getDocument(const txXPathNode& aNode, Document** aResult)
         return NS_ERROR_FAILURE;
     }
 
-    *aResult = static_cast<Document*>(aNode.mInner);
+    *aResult = NS_STATIC_CAST(Document*, aNode.mInner);
 
     return NS_OK;
 }

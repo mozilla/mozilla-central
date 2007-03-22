@@ -37,7 +37,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsDragService.h"
-#include "nsObjCExceptions.h"
 #include "nsITransferable.h"
 #include "nsString.h"
 #include "nsClipboard.h"
@@ -66,50 +65,32 @@
 
 #import <Cocoa/Cocoa.h>
 
-#ifdef MOZ_LOGGING
-#define FORCE_PR_LOG
-#endif
-#include "prlog.h"
-
-#ifdef PR_LOGGING
-extern PRLogModuleInfo* sCocoaLog;
-#endif
-
 extern NSPasteboard* globalDragPboard;
-extern NSView* gLastDragView;
-extern NSEvent* gLastDragEvent;
+extern NSView* globalDragView;
+extern NSEvent* globalDragEvent;
 
-// This global makes the transferable array available to Cocoa's promised
-// file destination callback.
-nsISupportsArray *gDraggedTransferables = nsnull;
-
-NSString* const kWildcardPboardType = @"MozillaWildcard";
-NSString* const kCorePboardType_url  = @"CorePasteboardFlavorType 0x75726C20"; // 'url '  url
-NSString* const kCorePboardType_urld = @"CorePasteboardFlavorType 0x75726C64"; // 'urld'  desc
-NSString* const kCorePboardType_urln = @"CorePasteboardFlavorType 0x75726C6E"; // 'urln'  title
+NS_IMPL_ADDREF_INHERITED(nsDragService, nsBaseDragService)
+NS_IMPL_RELEASE_INHERITED(nsDragService, nsBaseDragService)
+NS_IMPL_QUERY_INTERFACE2(nsDragService, nsIDragService, nsIDragSession)
 
 nsDragService::nsDragService()
 {
-  mNativeDragView = nil;
-  mNativeDragEvent = nil;
+
 }
 
 
 nsDragService::~nsDragService()
 {
+
 }
 
 static nsresult SetUpDragClipboard(nsISupportsArray* aTransferableArray)
 {
-  NS_OBJC_BEGIN_TRY_ABORT_BLOCK_NSRESULT;
-
   if (!aTransferableArray)
     return NS_ERROR_FAILURE;
 
   PRUint32 count = 0;
   aTransferableArray->Count(&count);
-
-  NSPasteboard* dragPBoard = [NSPasteboard pasteboardWithName:NSDragPboard];
 
   for (PRUint32 i = 0; i < count; i++) {
     nsCOMPtr<nsISupports> currentTransferableSupports;
@@ -121,40 +102,134 @@ static nsresult SetUpDragClipboard(nsISupportsArray* aTransferableArray)
     if (!currentTransferable)
       return NS_ERROR_FAILURE;
 
-    // Transform the transferable to an NSDictionary
-    NSDictionary* pasteboardOutputDict = nsClipboard::PasteboardDictFromTransferable(currentTransferable);
-    if (!pasteboardOutputDict)
+    NSMutableDictionary* pasteboardOutputDict = [NSMutableDictionary dictionaryWithCapacity:1];
+    
+    nsCOMPtr<nsISupportsArray> flavorList;
+    nsresult rv = currentTransferable->FlavorsTransferableCanExport(getter_AddRefs(flavorList));
+    if (NS_FAILED(rv))
       return NS_ERROR_FAILURE;
 
+    PRUint32 flavorCount;
+    flavorList->Count(&flavorCount);
+    for (PRUint32 i = 0; i < flavorCount; i++) {
+      nsCOMPtr<nsISupports> genericFlavor;
+      flavorList->GetElementAt(i, getter_AddRefs(genericFlavor));
+      nsCOMPtr<nsISupportsCString> currentFlavor(do_QueryInterface(genericFlavor));
+      if (!currentFlavor)
+        continue;
+
+      nsXPIDLCString flavorStr;
+      currentFlavor->ToString(getter_Copies(flavorStr));
+
+      // printf("writing out clipboard data of type %s\n", flavorStr.get());
+
+      if (strcmp(flavorStr, kPNGImageMime) == 0 || strcmp(flavorStr, kJPEGImageMime) == 0 ||
+          strcmp(flavorStr, kGIFImageMime) == 0 || strcmp(flavorStr, kNativeImageMime) == 0) {
+        PRUint32 dataSize = 0;
+        nsCOMPtr<nsISupports> transferSupports;
+        currentTransferable->GetTransferData(flavorStr, getter_AddRefs(transferSupports), &dataSize);
+        nsCOMPtr<nsISupportsInterfacePointer> ptrPrimitive(do_QueryInterface(transferSupports));
+        if (!ptrPrimitive)
+          continue;
+        
+        nsCOMPtr<nsISupports> primitiveData;
+        ptrPrimitive->GetData(getter_AddRefs(primitiveData));
+
+        nsCOMPtr<nsIImage> image(do_QueryInterface(primitiveData));
+        if (!image) {
+          NS_WARNING("Image isn't an nsIImage in transferable");
+          continue;
+        }
+        
+        if (NS_FAILED(image->LockImagePixels(PR_FALSE)))
+          continue;
+        
+        PRInt32 height = image->GetHeight();
+        PRInt32 stride = image->GetLineStride();
+        PRInt32 width = image->GetWidth();
+        if ((stride % 4 != 0) || (height < 1) || (width < 1))
+          continue;
+        
+        PRUint32* imageData = (PRUint32*)image->GetBits();
+        
+        PRUint32* reorderedData = (PRUint32*)malloc(height * stride);
+        if (!reorderedData)
+          continue;
+        
+        // We have to reorder data to have alpha last because only Tiger can handle
+        // alpha being first.
+        PRUint32 imageLength = ((stride * height) / 4);
+        for (PRUint32 i = 0; i < imageLength; i++) {
+          PRUint32 pixel = imageData[i];
+          reorderedData[i] = CFSwapInt32HostToBig((pixel << 8) | (pixel >> 24));
+        }
+        
+        PRUint8* planes[2];
+        planes[0] = (PRUint8*)reorderedData;
+        planes[1] = nsnull;
+        NSBitmapImageRep* imageRep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:planes
+                                                                             pixelsWide:width
+                                                                             pixelsHigh:height
+                                                                          bitsPerSample:8
+                                                                        samplesPerPixel:4
+                                                                               hasAlpha:YES
+                                                                               isPlanar:NO
+                                                                         colorSpaceName:NSDeviceRGBColorSpace
+                                                                            bytesPerRow:stride
+                                                                           bitsPerPixel:32];
+        NSData* tiffData = [imageRep TIFFRepresentationUsingCompression:NSTIFFCompressionNone factor:1.0];
+        [imageRep release];
+        free(reorderedData);
+        
+        if (NS_FAILED(image->UnlockImagePixels(PR_FALSE)))
+          continue;
+        
+        [pasteboardOutputDict setObject:tiffData forKey:NSTIFFPboardType];
+      }
+      else {
+        /* If it isn't an image, we just throw the data on the clipboard with the mime string
+        * as its key. If we recognize the data as something we want to export in standard
+        * terms, then we do that too.
+        */
+        void* data = nsnull;
+        PRUint32 dataSize = 0;
+        nsCOMPtr<nsISupports> genericDataWrapper;
+        rv = currentTransferable->GetTransferData(flavorStr, getter_AddRefs(genericDataWrapper), &dataSize);
+        nsPrimitiveHelpers::CreateDataFromPrimitive(flavorStr, genericDataWrapper, &data, dataSize);
+        
+        // if it is kUnicodeMime, it is text we want to export as standard NSStringPboardType
+        if (strcmp(flavorStr, kUnicodeMime) == 0) {
+          NSString* nativeString = [NSString stringWithCharacters:(const unichar*)data length:(dataSize / sizeof(PRUnichar))];
+          // be nice to Carbon apps, normalize the receiver’s contents using Form C.
+          nativeString = [nativeString precomposedStringWithCanonicalMapping];
+          [pasteboardOutputDict setObject:nativeString forKey:NSStringPboardType];
+        }
+        else {
+          NSString* key = [NSString stringWithUTF8String:flavorStr];
+          NSData* value = [NSData dataWithBytes:data length:dataSize];
+          [pasteboardOutputDict setObject:value forKey:key];
+        }
+        
+        nsMemory::Free(data);
+      }
+    }
+    
     // write everything out to the general pasteboard
-    unsigned int typeCount = [pasteboardOutputDict count];
-    NSMutableArray* types = [NSMutableArray arrayWithCapacity:typeCount + 1];
-    [types addObjectsFromArray:[pasteboardOutputDict allKeys]];
-    // Gecko is initiating this drag so we always want its own views to consider
-    // it. Add our wildcard type to the pasteboard to accomplish this.
-    [types addObject:kWildcardPboardType]; // we don't increase the count for the loop below on purpose
-    [dragPBoard declareTypes:types owner:nil];
-    for (unsigned int i = 0; i < typeCount; i++) {
-      NSString* currentKey = [types objectAtIndex:i];
+    unsigned int outputCount = [pasteboardOutputDict count];
+    NSArray* outputKeys = [pasteboardOutputDict allKeys];
+    NSPasteboard* generalPBoard = [NSPasteboard pasteboardWithName:NSDragPboard];
+    [generalPBoard declareTypes:outputKeys owner:nil];
+    for (unsigned int i = 0; i < outputCount; i++) {
+      NSString* currentKey = [outputKeys objectAtIndex:i];
       id currentValue = [pasteboardOutputDict valueForKey:currentKey];
-      if (currentKey == NSStringPboardType ||
-          currentKey == kCorePboardType_url ||
-          currentKey == kCorePboardType_urld ||
-          currentKey == kCorePboardType_urln) {
-        [dragPBoard setString:currentValue forType:currentKey];
-      }
-      else if (currentKey == NSTIFFPboardType) {
-        [dragPBoard setData:currentValue forType:currentKey];
-      }
-      else if (currentKey == NSFilesPromisePboardType) {
-        [dragPBoard setPropertyList:currentValue forType:currentKey];        
-      }
+      if (currentKey == NSStringPboardType)
+        [generalPBoard setString:currentValue forType:currentKey];
+      else
+        [generalPBoard setData:currentValue forType:currentKey];
     }
   }
 
-  return NS_OK;
-
-  NS_OBJC_END_TRY_ABORT_BLOCK_NSRESULT;
+  return NS_OK;  
 }
 
 
@@ -163,25 +238,17 @@ nsDragService::ConstructDragImage(nsIDOMNode* aDOMNode,
                                   nsRect* aDragRect,
                                   nsIScriptableRegion* aRegion)
 {
-  NS_OBJC_BEGIN_TRY_ABORT_BLOCK_NIL;
-
-  NSPoint screenPoint = [[gLastDragView window] convertBaseToScreen:[gLastDragEvent locationInWindow]];
+  NSPoint screenPoint = [[globalDragView window] convertBaseToScreen:[globalDragEvent locationInWindow]];
   // Y coordinates are bottom to top, so reverse this
   if ([[NSScreen screens] count] > 0)
     screenPoint.y = NSMaxY([[[NSScreen screens] objectAtIndex:0] frame]) - screenPoint.y;
 
   nsRefPtr<gfxASurface> surface;
-  nsPresContext* pc;
   nsresult rv = DrawDrag(aDOMNode, aRegion,
                          NSToIntRound(screenPoint.x), NSToIntRound(screenPoint.y),
-                         aDragRect, getter_AddRefs(surface), &pc);
-  if (!aDragRect->width || !aDragRect->height) {
-    // just use some suitable defaults
-    aDragRect->SetRect(NSToIntRound(screenPoint.x), NSToIntRound(screenPoint.y), 20, 20);
-  }
-
+                         aDragRect, getter_AddRefs(surface));
   if (NS_FAILED(rv) || !surface)
-    return nil;
+    return nsnull;
 
   PRUint32 width = aDragRect->width;
   PRUint32 height = aDragRect->height;
@@ -189,11 +256,11 @@ nsDragService::ConstructDragImage(nsIDOMNode* aDOMNode,
   nsRefPtr<gfxImageSurface> imgSurface = new gfxImageSurface(
     gfxIntSize(width, height), gfxImageSurface::ImageFormatARGB32);
   if (!imgSurface)
-    return nil;
+    return nsnull;
 
   nsRefPtr<gfxContext> context = new gfxContext(imgSurface);
   if (!context)
-    return nil;
+    return nsnull;
 
   context->SetOperator(gfxContext::OPERATOR_SOURCE);
   context->SetSource(surface);
@@ -217,31 +284,26 @@ nsDragService::ConstructDragImage(nsIDOMNode* aDOMNode,
   for (PRUint32 i = 0; i < height; ++i) {
     PRUint8* src = (PRUint8 *)imageData + i * stride;
     for (PRUint32 j = 0; j < width; ++j) {
-      // Reduce transparency overall by multipying by a factor. Remember, Alpha
-      // is premultipled here. Also, Quartz likes RGBA, so do that translation as well.
 #ifdef IS_BIG_ENDIAN
-      dest[0] = PRUint8(src[1] * DRAG_TRANSLUCENCY);
-      dest[1] = PRUint8(src[2] * DRAG_TRANSLUCENCY);
-      dest[2] = PRUint8(src[3] * DRAG_TRANSLUCENCY);
-      dest[3] = PRUint8(src[0] * DRAG_TRANSLUCENCY);
+      dest[0] = src[1];
+      dest[1] = src[2];
+      dest[2] = src[3];
+      dest[3] = PRUint8(src[0] * 0.8); // reduce transparency overall
 #else
-      dest[0] = PRUint8(src[2] * DRAG_TRANSLUCENCY);
-      dest[1] = PRUint8(src[1] * DRAG_TRANSLUCENCY);
-      dest[2] = PRUint8(src[0] * DRAG_TRANSLUCENCY);
-      dest[3] = PRUint8(src[3] * DRAG_TRANSLUCENCY);
+      dest[0] = src[2];
+      dest[1] = src[1];
+      dest[2] = src[0];
+      dest[3] = PRUint8(src[3] * 0.8); // reduce transparency overall
 #endif
       src += 4;
       dest += 4;
     }
   }
 
-  NSImage* image = [[NSImage alloc] initWithSize:NSMakeSize((float)width, (float)height)];
+  NSImage* image = [NSImage alloc];
   [image addRepresentation:imageRep];
-  [imageRep release];
 
   return [image autorelease];
-
-  NS_OBJC_END_TRY_ABORT_BLOCK_NIL;
 }
 
 // We can only invoke NSView's 'dragImage:at:offset:event:pasteboard:source:slideBack:' from
@@ -251,14 +313,7 @@ NS_IMETHODIMP
 nsDragService::InvokeDragSession(nsIDOMNode* aDOMNode, nsISupportsArray* aTransferableArray,
                                  nsIScriptableRegion* aDragRgn, PRUint32 aActionType)
 {
-  NS_OBJC_BEGIN_TRY_ABORT_BLOCK_NSRESULT;
-
-  nsresult rv = nsBaseDragService::InvokeDragSession(aDOMNode,
-                                                     aTransferableArray,
-                                                     aDragRgn, aActionType);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  mDataItems = aTransferableArray;
+  nsBaseDragService::InvokeDragSession(aDOMNode, aTransferableArray, aDragRgn, aActionType);
 
   // put data on the clipboard
   if (NS_FAILED(SetUpDragClipboard(aTransferableArray)))
@@ -292,93 +347,51 @@ nsDragService::InvokeDragSession(nsIDOMNode* aDOMNode, nsISupportsArray* aTransf
   else
     point.y = dragRect.y;
 
-  point = [[gLastDragView window] convertScreenToBase: point];
-  NSPoint localPoint = [gLastDragView convertPoint:point fromView:nil];
+  point = [[globalDragView window] convertScreenToBase: point];
+  NSPoint localPoint = [globalDragView convertPoint:point fromView:nil];
  
-  // Save the transferables away in case a promised file callback is invoked.
-  gDraggedTransferables = aTransferableArray;
-
   nsBaseDragService::StartDragSession();
-
-  // We need to retain the view and the event during the drag in case either gets destroyed.
-  mNativeDragView = [gLastDragView retain];
-  mNativeDragEvent = [gLastDragEvent retain];
-
-  [mNativeDragView dragImage:image
-                          at:localPoint
-                      offset:NSMakeSize(0,0)
-                       event:mNativeDragEvent
-                  pasteboard:[NSPasteboard pasteboardWithName:NSDragPboard]
-                      source:mNativeDragView
-                   slideBack:YES];
+  [globalDragView dragImage:image
+                         at:localPoint
+                     offset:NSMakeSize(0,0)
+                      event:globalDragEvent
+                 pasteboard:[NSPasteboard pasteboardWithName:NSDragPboard]
+                     source:globalDragView
+                  slideBack:YES];
+  nsBaseDragService::EndDragSession();
 
   return NS_OK;
-
-  NS_OBJC_END_TRY_ABORT_BLOCK_NSRESULT;
 }
 
 
 NS_IMETHODIMP
 nsDragService::GetData(nsITransferable* aTransferable, PRUint32 aItemIndex)
 {
-  NS_OBJC_BEGIN_TRY_ABORT_BLOCK_NSRESULT;
-
   if (!aTransferable)
     return NS_ERROR_FAILURE;
-
+  
   // get flavor list that includes all acceptable flavors (including ones obtained through conversion)
   nsCOMPtr<nsISupportsArray> flavorList;
   nsresult rv = aTransferable->FlavorsTransferableCanImport(getter_AddRefs(flavorList));
   if (NS_FAILED(rv))
-    return NS_ERROR_FAILURE;
+    return NS_ERROR_FAILURE;  
 
-  PRUint32 acceptableFlavorCount;
-  flavorList->Count(&acceptableFlavorCount);
-
-  // if this drag originated within Mozilla we should just use the cached data from
-  // when the drag started if possible
-  if (mDataItems) {
-    nsCOMPtr<nsISupports> currentTransferableSupports;
-    mDataItems->GetElementAt(aItemIndex, getter_AddRefs(currentTransferableSupports));
-    if (currentTransferableSupports) {
-      nsCOMPtr<nsITransferable> currentTransferable(do_QueryInterface(currentTransferableSupports));
-      if (currentTransferable) {
-        for (PRUint32 i = 0; i < acceptableFlavorCount; i++) {
-          nsCOMPtr<nsISupports> genericFlavor;
-          flavorList->GetElementAt(i, getter_AddRefs(genericFlavor));
-          nsCOMPtr<nsISupportsCString> currentFlavor(do_QueryInterface(genericFlavor));
-          if (!currentFlavor)
-            continue;
-          nsXPIDLCString flavorStr;
-          currentFlavor->ToString(getter_Copies(flavorStr));
-
-          nsCOMPtr<nsISupports> dataSupports;
-          PRUint32 dataSize = 0;
-          rv = currentTransferable->GetTransferData(flavorStr, getter_AddRefs(dataSupports), &dataSize);
-          if (NS_SUCCEEDED(rv)) {
-            aTransferable->SetTransferData(flavorStr, dataSupports, dataSize);
-            return NS_OK; // maybe try to fill in more types? Is there a point?
-          }
-        }
-      }
-    }
-  }
-
-  // now check the actual clipboard for data
-  for (PRUint32 i = 0; i < acceptableFlavorCount; i++) {
+  PRUint32 flavorCount;
+  flavorList->Count(&flavorCount);
+  for (PRUint32 i = 0; i < flavorCount; i++) {
     nsCOMPtr<nsISupports> genericFlavor;
     flavorList->GetElementAt(i, getter_AddRefs(genericFlavor));
     nsCOMPtr<nsISupportsCString> currentFlavor(do_QueryInterface(genericFlavor));
-
+    
     if (!currentFlavor)
       continue;
 
     nsXPIDLCString flavorStr;
     currentFlavor->ToString(getter_Copies(flavorStr));
 
-    PR_LOG(sCocoaLog, PR_LOG_ALWAYS, ("nsDragService::GetData: looking for clipboard data of type %s\n", flavorStr.get()));
+    // printf("looking for clipboard data of type %s\n", flavorStr.get());
 
-    if (flavorStr.EqualsLiteral(kFileMime)) {
+    if (strcmp(flavorStr, kFileMime) == 0) {
       NSArray* pFiles = [globalDragPboard propertyListForType:NSFilenamesPboardType];
       if (!pFiles || [pFiles count] < (aItemIndex + 1))
         continue;
@@ -390,8 +403,6 @@ nsDragService::GetData(nsITransferable* aTransferable, PRUint32 aItemIndex)
       unsigned int stringLength = [filePath length];
       unsigned int dataLength = (stringLength + 1) * sizeof(PRUnichar); // in bytes
       PRUnichar* clipboardDataPtr = (PRUnichar*)malloc(dataLength);
-      if (!clipboardDataPtr)
-        return NS_ERROR_OUT_OF_MEMORY;
       [filePath getCharacters:clipboardDataPtr];
       clipboardDataPtr[stringLength] = 0; // null terminate
 
@@ -404,37 +415,29 @@ nsDragService::GetData(nsITransferable* aTransferable, PRUint32 aItemIndex)
       nsCOMPtr<nsISupports> genericDataWrapper;
       genericDataWrapper = do_QueryInterface(file);
       aTransferable->SetTransferData(flavorStr, genericDataWrapper, dataLength);
-      
+
       break;
     }
-
-    if (flavorStr.EqualsLiteral(kUnicodeMime) ||
-        flavorStr.EqualsLiteral(kURLMime) ||
-        flavorStr.EqualsLiteral(kURLDataMime) ||
-        flavorStr.EqualsLiteral(kURLDescriptionMime)) {
+    else if (strcmp(flavorStr, kUnicodeMime) == 0) {
       NSString* pString = [globalDragPboard stringForType:NSStringPboardType];
       if (!pString)
         continue;
 
       NSData* stringData = [pString dataUsingEncoding:NSUnicodeStringEncoding];
       unsigned int dataLength = [stringData length];
-      void* clipboardDataPtr = malloc(dataLength);
-      if (!clipboardDataPtr)
-        return NS_ERROR_OUT_OF_MEMORY;
-      [stringData getBytes:clipboardDataPtr];
+      unsigned char* clipboardDataPtr = (unsigned char*)malloc(dataLength);
+      [stringData getBytes:(void*)clipboardDataPtr];
 
       // The DOM only wants LF, so convert from MacOS line endings to DOM line endings.
-      PRInt32 signedDataLength = dataLength;
-      nsLinebreakHelpers::ConvertPlatformToDOMLinebreaks(flavorStr, &clipboardDataPtr, &signedDataLength);
-      dataLength = signedDataLength;
+      nsLinebreakHelpers::ConvertPlatformToDOMLinebreaks(flavorStr, (void**)&clipboardDataPtr, (PRInt32*)&dataLength);
 
       // skip BOM (Byte Order Mark to distinguish little or big endian)      
-      PRUnichar* clipboardDataPtrNoBOM = (PRUnichar*)clipboardDataPtr;
+      unsigned char* clipboardDataPtrNoBOM = clipboardDataPtr;
       if ((dataLength > 2) &&
-          ((clipboardDataPtrNoBOM[0] == 0xFEFF) ||
-           (clipboardDataPtrNoBOM[0] == 0xFFFE))) {
+          ((clipboardDataPtr[0] == 0xFE && clipboardDataPtr[1] == 0xFF) ||
+           (clipboardDataPtr[0] == 0xFF && clipboardDataPtr[1] == 0xFE))) {
         dataLength -= sizeof(PRUnichar);
-        clipboardDataPtrNoBOM += 1;
+        clipboardDataPtrNoBOM += sizeof(PRUnichar);
       }
 
       nsCOMPtr<nsISupports> genericDataWrapper;
@@ -444,101 +447,68 @@ nsDragService::GetData(nsITransferable* aTransferable, PRUint32 aItemIndex)
       free(clipboardDataPtr);
       break;
     }
-
-    // We have never supported this on Mac OS X, we should someday. Normally dragging images
-    // in is accomplished with a file path drag instead of the image data itself.
-    /*
-    if (flavorStr.EqualsLiteral(kPNGImageMime) || flavorStr.EqualsLiteral(kJPEGImageMime) ||
-        flavorStr.EqualsLiteral(kGIFImageMime)) {
-
+    else if (strcmp(flavorStr, kPNGImageMime) == 0 || strcmp(flavorStr, kJPEGImageMime) == 0 ||
+             strcmp(flavorStr, kGIFImageMime) == 0) {
+      // We have never supported this on Mac, we could someday but nobody does this. We want this
+      // test here so that we don't try to get this as a custom type.
     }
-    */
-  }
-  return NS_OK;
+    else {
+      // this is some sort of data that mozilla put on the clipboard itself if it exists
+      NSData* pData = [globalDragPboard dataForType:[NSString stringWithUTF8String:flavorStr]];
+      if (!pData)
+        continue;
 
-  NS_OBJC_END_TRY_ABORT_BLOCK_NSRESULT;
+      unsigned int dataLength = [pData length];
+      unsigned char* clipboardDataPtr = (unsigned char*)malloc(dataLength);
+      [pData getBytes:(void*)clipboardDataPtr];
+
+      nsCOMPtr<nsISupports> genericDataWrapper;
+      nsPrimitiveHelpers::CreatePrimitiveForData(flavorStr, clipboardDataPtr, dataLength,
+                                                 getter_AddRefs(genericDataWrapper));
+      aTransferable->SetTransferData(flavorStr, genericDataWrapper, dataLength);
+      free(clipboardDataPtr);
+      break;
+    }
+  }
+
+  return NS_OK;  
 }
 
 
 NS_IMETHODIMP
 nsDragService::IsDataFlavorSupported(const char *aDataFlavor, PRBool *_retval)
 {
-  NS_OBJC_BEGIN_TRY_ABORT_BLOCK_NSRESULT;
-
   *_retval = PR_FALSE;
 
   if (!globalDragPboard)
     return NS_ERROR_FAILURE;
-
-  nsDependentCString dataFlavor(aDataFlavor);
-
-  // first see if we have data for this in our cached transferable
-  if (mDataItems) {
-    PRUint32 dataItemsCount;
-    mDataItems->Count(&dataItemsCount);
-    for (unsigned int i = 0; i < dataItemsCount; i++) {
-      nsCOMPtr<nsISupports> currentTransferableSupports;
-      mDataItems->GetElementAt(i, getter_AddRefs(currentTransferableSupports));
-      if (!currentTransferableSupports)
-        continue;
-
-      nsCOMPtr<nsITransferable> currentTransferable(do_QueryInterface(currentTransferableSupports));
-      if (!currentTransferable)
-        continue;
-
-      nsCOMPtr<nsISupportsArray> flavorList;
-      nsresult rv = currentTransferable->FlavorsTransferableCanImport(getter_AddRefs(flavorList));
-      if (NS_FAILED(rv))
-        continue;
-
-      PRUint32 flavorCount;
-      flavorList->Count(&flavorCount);
-      for (PRUint32 j = 0; j < flavorCount; j++) {
-        nsCOMPtr<nsISupports> genericFlavor;
-        flavorList->GetElementAt(j, getter_AddRefs(genericFlavor));
-        nsCOMPtr<nsISupportsCString> currentFlavor(do_QueryInterface(genericFlavor));
-        if (!currentFlavor)
-          continue;
-        nsXPIDLCString flavorStr;
-        currentFlavor->ToString(getter_Copies(flavorStr));
-        if (dataFlavor.Equals(flavorStr)) {
-          *_retval = PR_TRUE;
-          return NS_OK;
-        }
-      }
-    }
-  }
-
-  if (dataFlavor.EqualsLiteral(kFileMime)) {
+  
+  if (strcmp(aDataFlavor, kFileMime) == 0) {
     NSString* availableType = [globalDragPboard availableTypeFromArray:[NSArray arrayWithObject:NSFilenamesPboardType]];
     if (availableType && [availableType isEqualToString:NSFilenamesPboardType])
       *_retval = PR_TRUE;
   }
-  else if (dataFlavor.EqualsLiteral(kUnicodeMime)) {
+  else if (strcmp(aDataFlavor, kUnicodeMime) == 0) {
     NSString* availableType = [globalDragPboard availableTypeFromArray:[NSArray arrayWithObject:NSStringPboardType]];
     if (availableType && [availableType isEqualToString:NSStringPboardType])
       *_retval = PR_TRUE;
   }
+  else {
+    NSString* lookingForType = [NSString stringWithUTF8String:aDataFlavor];
+    NSString* availableType = [globalDragPboard availableTypeFromArray:[NSArray arrayWithObject:lookingForType]];
+    if (availableType && [availableType isEqualToString:lookingForType])
+      *_retval = PR_TRUE;
+  }
 
   return NS_OK;
-
-  NS_OBJC_END_TRY_ABORT_BLOCK_NSRESULT;
 }
 
 
 NS_IMETHODIMP
 nsDragService::GetNumDropItems(PRUint32* aNumItems)
 {
-  NS_OBJC_BEGIN_TRY_ABORT_BLOCK_NSRESULT;
-
   *aNumItems = 0;
-
-  // first check to see if we have a number of items cached
-  if (mDataItems) {
-    mDataItems->Count(aNumItems);
-    return NS_OK;
-  }
-
+  
   // if there is a clipboard and there is something on it, then there is at least 1 item
   NSArray* clipboardTypes = [globalDragPboard types];
   if (globalDragPboard && [clipboardTypes count] > 0)
@@ -552,27 +522,4 @@ nsDragService::GetNumDropItems(PRUint32* aNumItems)
     *aNumItems = [fileNames count];
   
   return NS_OK;
-
-  NS_OBJC_END_TRY_ABORT_BLOCK_NSRESULT;
-}
-
-
-NS_IMETHODIMP
-nsDragService::EndDragSession(PRBool aDoneDrag)
-{
-  NS_OBJC_BEGIN_TRY_ABORT_BLOCK_NSRESULT;
-
-  if (mNativeDragView) {
-    [mNativeDragView release];
-    mNativeDragView = nil;
-  }
-  if (mNativeDragEvent) {
-    [mNativeDragEvent release];
-    mNativeDragEvent = nil;
-  }
-
-  mDataItems = nsnull;
-  return nsBaseDragService::EndDragSession(aDoneDrag);
-
-  NS_OBJC_END_TRY_ABORT_BLOCK_NSRESULT;
 }

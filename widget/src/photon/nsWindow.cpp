@@ -166,7 +166,7 @@ void nsWindow::DestroyNativeChildren(void)
   for(PtWidget_t *w=PtWidgetChildFront( mWidget ); w; w=PtWidgetBrotherBehind( w )) 
   {
 	  if( w->flags & Pt_DESTROYED ) continue;
-	  nsWindow *childWindow = static_cast<nsWindow *>(GetInstance(w));
+	  nsWindow *childWindow = NS_STATIC_CAST(nsWindow *, GetInstance(w) );
 		if( childWindow && !childWindow->mIsDestroying) childWindow->Destroy();
   }
 }
@@ -651,13 +651,13 @@ int nsWindow::WindowWMHandler( PtWidget_t *widget, void *data, PtCallbackInfo_t 
 		case Ph_WM_CONSWITCH:
 			gConsoleRectValid = PR_FALSE; /* force a call tp PhWindowQueryVisible() next time, since we might have moved this window into a different console */
       /* rollup the menus */
-      if( gRollupWidget && gRollupListener ) gRollupListener->Rollup(nsnull);
+      if( gRollupWidget && gRollupListener ) gRollupListener->Rollup();
 			break;
 
 		case Ph_WM_FOCUS:
 			if( we->event_state == Ph_WM_EVSTATE_FOCUSLOST ) {
       	/* rollup the menus */
-      	if( gRollupWidget && gRollupListener ) gRollupListener->Rollup(nsnull);
+      	if( gRollupWidget && gRollupListener ) gRollupListener->Rollup();
 
 				if( sFocusWidget ) sFocusWidget->DispatchStandardEvent(NS_DEACTIVATE);
 				}
@@ -726,7 +726,7 @@ void nsWindow::RawDrawFunc( PtWidget_t * pWidget, PhTile_t * damage )
 			if( pev.renderingContext ) {
 				nsIRegion *ClipRegion = pWin->GetRegion( );
 				ClipRegion->SetTo( nsDmg.x, nsDmg.y, nsDmg.width, nsDmg.height );
-				pev.renderingContext->SetClipRegion( static_cast<const nsIRegion &>(*(ClipRegion)), nsClipCombine_kReplace );
+				pev.renderingContext->SetClipRegion( NS_STATIC_CAST(const nsIRegion &, *(ClipRegion)), nsClipCombine_kReplace );
 
 				NS_RELEASE( ClipRegion );
 				
@@ -902,7 +902,7 @@ NS_METHOD nsWindow::Move( PRInt32 aX, PRInt32 aY ) {
 int nsWindow::MenuRegionCallback( PtWidget_t *widget, void *data, PtCallbackInfo_t *cbinfo ) {
 	if( gRollupWidget && gRollupListener ) {
 		/* rollup the menu */
-		gRollupListener->Rollup(nsnull);
+		gRollupListener->Rollup();
 		}
 	return Pt_CONTINUE;
 	}

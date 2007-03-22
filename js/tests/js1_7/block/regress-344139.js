@@ -34,14 +34,12 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-344139.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER     = "344139";
+var bug     = "344139";
 var summary = "Basic let functionality";
 var actual, expect;
 
-printBugNumber(BUGNUMBER);
+printBugNumber(bug);
 printStatus(summary);
 
 /**************
@@ -83,8 +81,8 @@ function f4()
 
   if (q != 62)
     throw "f4(): wrong value for q\n" +
-      "  expected: 62\n" +
-      "  actual:   " + q;
+          "  expected: 62\n" +
+          "  actual:   " + q;
 
   return v;
 }

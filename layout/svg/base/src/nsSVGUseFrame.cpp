@@ -55,9 +55,10 @@ protected:
 
    // nsISupports interface:
   NS_IMETHOD QueryInterface(const nsIID& aIID, void** aInstancePtr);
+
 private:
-  NS_IMETHOD_(nsrefcnt) AddRef() { return 1; }
-  NS_IMETHOD_(nsrefcnt) Release() { return 1; }
+  NS_IMETHOD_(nsrefcnt) AddRef() { return NS_OK; }
+  NS_IMETHOD_(nsrefcnt) Release() { return NS_OK; }  
 
 public:
   // nsIFrame interface:
@@ -94,9 +95,11 @@ public:
 nsIFrame*
 NS_NewSVGUseFrame(nsIPresShell* aPresShell, nsIContent* aContent, nsStyleContext* aContext)
 {
-  nsCOMPtr<nsIDOMSVGUseElement> use = do_QueryInterface(aContent);
-  if (!use) {
-    NS_ERROR("Can't create frame! Content is not an SVG use!");
+  nsCOMPtr<nsIDOMSVGTransformable> transformable = do_QueryInterface(aContent);
+  if (!transformable) {
+#ifdef DEBUG
+    printf("warning: trying to construct an SVGUseFrame for a content element that doesn't support the right interfaces\n");
+#endif
     return nsnull;
   }
 
@@ -130,7 +133,13 @@ nsSVGUseFrame::AttributeChanged(PRInt32         aNameSpaceID,
     // make sure our cached transform matrix gets (lazily) updated
     mCanvasTM = nsnull;
     
-    nsSVGUtils::NotifyChildrenOfSVGChange(this, TRANSFORM_CHANGED);
+    for (nsIFrame* kid = mFrames.FirstChild(); kid;
+         kid = kid->GetNextSibling()) {
+      nsISVGChildFrame* SVGFrame = nsnull;
+      CallQueryInterface(kid, &SVGFrame);
+      if (SVGFrame)
+        SVGFrame->NotifyCanvasTMChanged(PR_FALSE);
+    }
     return NS_OK;
   }
 
@@ -141,9 +150,9 @@ nsSVGUseFrame::AttributeChanged(PRInt32         aNameSpaceID,
 void
 nsSVGUseFrame::Destroy()
 {
-  nsRefPtr<nsSVGUseElement> use = static_cast<nsSVGUseElement*>(mContent);
-  nsSVGUseFrameBase::Destroy();
+  nsSVGUseElement *use = NS_STATIC_CAST(nsSVGUseElement*, mContent);
   use->DestroyAnonymousContent();
+  nsSVGUseFrameBase::Destroy();
 }
 
 
@@ -168,7 +177,7 @@ nsSVGUseFrame::GetCanvasTM()
 
   // x and y:
   float x, y;
-  nsSVGElement *element = static_cast<nsSVGElement*>(mContent);
+  nsSVGElement *element = NS_STATIC_CAST(nsSVGElement*, mContent);
   element->GetAnimatedLengthValues(&x, &y, nsnull);
 
   nsCOMPtr<nsIDOMSVGMatrix> fini;
@@ -186,7 +195,7 @@ nsSVGUseFrame::GetCanvasTM()
 nsresult
 nsSVGUseFrame::CreateAnonymousContent(nsTArray<nsIContent*>& aElements)
 {
-  nsSVGUseElement *use = static_cast<nsSVGUseElement*>(mContent);
+  nsSVGUseElement *use = NS_STATIC_CAST(nsSVGUseElement*, mContent);
 
   nsIContent* clone = use->CreateAnonymousContent();
   if (!clone)

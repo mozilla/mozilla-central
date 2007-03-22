@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '15.1.2.7.js';
-
 /**
    File Name:          15.1.2.7.js
    ECMA Section:       15.1.2.7 isFinite(number)

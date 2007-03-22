@@ -88,8 +88,8 @@ nsThebesFontEnumerator::EnumerateFonts(const char *aLangGroup,
         return NS_OK;
     }
 
-    PRUnichar **fs = static_cast<PRUnichar **>
-                                (nsMemory::Alloc(fontList.Count() * sizeof(PRUnichar*)));
+    PRUnichar **fs = NS_STATIC_CAST(PRUnichar **,
+                                    nsMemory::Alloc(fontList.Count() * sizeof(PRUnichar*)));
     for (int i = 0; i < fontList.Count(); i++) {
         fs[i] = ToNewUnicode(*fontList[i]);
     }
@@ -126,29 +126,5 @@ nsThebesFontEnumerator::UpdateFontList(PRBool *_retval)
 {
     nsresult rv = gfxPlatform::GetPlatform()->UpdateFontList();
     *_retval = PR_FALSE; // always return false for now
-    return NS_OK;
-}
-
-NS_IMETHODIMP
-nsThebesFontEnumerator::GetStandardFamilyName(const PRUnichar *aName,
-                                              PRUnichar **aResult)
-{
-    NS_ENSURE_ARG_POINTER(aResult);
-    NS_ENSURE_ARG_POINTER(aName);
-
-    nsAutoString name(aName);
-    if (name.IsEmpty()) {
-        *aResult = nsnull;
-        return NS_OK;
-    }
-
-    nsAutoString family;
-    nsresult rv = gfxPlatform::GetPlatform()->
-        GetStandardFamilyName(nsDependentString(aName), family);
-    if (NS_FAILED(rv) || family.IsEmpty()) {
-        *aResult = nsnull;
-        return NS_OK;
-    }
-    *aResult = ToNewUnicode(family);
     return NS_OK;
 }

@@ -36,6 +36,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#include "cattable.h"
 #include "mozInlineSpellWordUtil.h"
 #include "nsDebug.h"
 #include "nsIAtom.h"
@@ -48,8 +49,14 @@
 #include "nsIEditor.h"
 #include "nsIDOMNode.h"
 #include "nsIDOMHTMLBRElement.h"
-#include "nsUnicharUtilCIID.h"
-#include "nsServiceManagerUtils.h"
+
+// some character categories we care about from GetCat()
+#define CHAR_CAT_NUMBER 2
+#define CHAR_CAT_SPACE 3
+#define CHAR_CAT_CONTROL 4
+#define CHAR_CAT_WORD 5
+#define CHAR_CAT_PUNCTUATION1 6
+#define CHAR_CAT_PUNCTUATION2 7
 
 // IsIgnorableCharacter
 //
@@ -80,10 +87,6 @@ mozInlineSpellWordUtil::Init(nsWeakPtr aWeakEditor)
 {
   nsresult rv;
 
-  mCategories = do_GetService(NS_UNICHARCATEGORY_CONTRACTID, &rv);
-  if (NS_FAILED(rv))
-    return rv;
-  
   // getting the editor can fail commonly because the editor was detached, so
   // don't assert
   nsCOMPtr<nsIEditor> editor = do_QueryReferent(aWeakEditor, &rv);
@@ -533,7 +536,7 @@ static void
 CheckLeavingBreakElement(nsIDOMNode* aNode, void* aClosure)
 {
   CheckLeavingBreakElementClosure* cl =
-    static_cast<CheckLeavingBreakElementClosure*>(aClosure);
+    NS_STATIC_CAST(CheckLeavingBreakElementClosure*, aClosure);
   if (!cl->mLeftBreakElement && IsBreakElement(cl->mDocView, aNode)) {
     cl->mLeftBreakElement = PR_TRUE;
   }
@@ -838,9 +841,8 @@ WordSplitState::ClassifyCharacter(PRInt32 aIndex, PRBool aRecurse) const
 
   // this will classify the character, we want to treat "ignorable" characters
   // such as soft hyphens as word characters.
-  nsIUGenCategory::nsUGenCategory
-    charCategory = mWordUtil->GetCategories()->Get(PRUint32(mDOMWordText[aIndex]));
-  if (charCategory == nsIUGenCategory::kLetter ||
+  PRInt32 charCategory = GetCat(mDOMWordText[aIndex]);
+  if (charCategory == CHAR_CAT_WORD ||
       IsIgnorableCharacter(mDOMWordText[aIndex]))
     return CHAR_CLASS_WORD;
 
@@ -869,10 +871,10 @@ WordSplitState::ClassifyCharacter(PRInt32 aIndex, PRBool aRecurse) const
   }
 
   // all other punctuation
-  if (charCategory == nsIUGenCategory::kSeparator ||
-      charCategory == nsIUGenCategory::kOther ||
-      charCategory == nsIUGenCategory::kPunctuation ||
-      charCategory == nsIUGenCategory::kSymbol)
+  if (charCategory == CHAR_CAT_SPACE ||
+      charCategory == CHAR_CAT_CONTROL ||
+      charCategory == CHAR_CAT_PUNCTUATION1 ||
+      charCategory == CHAR_CAT_PUNCTUATION2)
     return CHAR_CLASS_SEPARATOR;
 
   // any other character counts as a word

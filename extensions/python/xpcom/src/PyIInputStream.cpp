@@ -65,19 +65,12 @@ static PyObject *DoPyRead_Buffer(nsIInputStream *pI, PyObject *obBuffer, PRUint3
 {
 	PRUint32 nread;
 	void *buf;
-	Py_ssize_t buf_len;
-	if (PyObject_AsWriteBuffer(obBuffer, &buf, &buf_len) != 0) {
+	PRUint32 buf_len;
+	if (PyObject_AsWriteBuffer(obBuffer, &buf, (int *)&buf_len) != 0) {
 		PyErr_Clear();
 		PyErr_SetString(PyExc_TypeError, "The buffer object does not have a write buffer!");
 		return NULL;
 	}
-
-	if ( (buf_len & 0xFFFFFFFF) != buf_len) {
-		PyErr_Clear();
-		PyErr_SetString(PyExc_RuntimeError, "Python Buffer length overflows 32-bit in PyObject_AsWriteBuffer");
-		return NULL;
-	}
-
 	if (n==(PRUint32)-1) {
 		n = buf_len;
 	} else {
@@ -123,17 +116,11 @@ static PyObject *DoPyRead_Size(nsIInputStream *pI, PRUint32 n)
 		rc = PyBuffer_New(nread);
 		if (rc != NULL) {
 			void *ob_buf;
-			Py_ssize_t buf_len;
-			if (PyObject_AsWriteBuffer(rc, &ob_buf, &buf_len) != 0) {
+			PRUint32 buf_len;
+			if (PyObject_AsWriteBuffer(rc, &ob_buf, (int *)&buf_len) != 0) {
 				// should never fail - we just created it!
 				return NULL;
 			}
-
-			if ( (buf_len & 0xFFFFFFFF) != buf_len) {
-				PyErr_SetString(PyExc_RuntimeError, "Python Buffer length overflows 32-bit in PyObject_AsWriteBuffer");
-				return NULL;
-			}
-
 			if (buf_len != nread) {
 				PyErr_SetString(PyExc_RuntimeError, "New buffer isn't the size we created it!");
 				return NULL;

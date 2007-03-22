@@ -14,7 +14,7 @@
  * The Original Code is mozilla.org code.
  *
  * The Initial Developer of the Original Code is
- * Christopher Blizzard <blizzard@mozilla.org>.
+ * Christopher Blizzard <blizzard@mozilla.org>.  Portions created by Christopher Blizzard are Copyright (C) Christopher Blizzard.  All Rights Reserved.
  * Portions created by the Initial Developer are Copyright (C) 2001
  * the Initial Developer. All Rights Reserved.
  *
@@ -54,7 +54,7 @@ class XRemoteService : public nsISuiteRemoteService
   XRemoteService();
   virtual ~XRemoteService();
 
-  NS_DEFINE_STATIC_CID_ACCESSOR(NS_XREMOTESERVICE_CID)
+  NS_DEFINE_STATIC_CID_ACCESSOR(NS_XREMOTESERVICE_CID);
 
   NS_DECL_ISUPPORTS
 

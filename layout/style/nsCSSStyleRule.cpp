@@ -60,6 +60,7 @@
 #include "nsString.h"
 #include "nsStyleConsts.h"
 #include "nsStyleUtil.h"
+#include "nsUnitConversion.h"
 #include "nsIFontMetrics.h"
 #include "nsIDOMCSSStyleSheet.h"
 #include "nsICSSStyleRuleDOMWrapper.h"
@@ -71,12 +72,9 @@
 #include "nsRuleNode.h"
 #include "nsUnicharUtils.h"
 #include "nsCSSPseudoElements.h"
-#include "nsIPrincipal.h"
-#include "nsComponentManagerUtils.h"
 
 #include "nsContentUtils.h"
 #include "nsContentErrors.h"
-#include "mozAutoDocUpdate.h"
 
 #define NS_IF_CLONE(member_)                                                  \
   PR_BEGIN_MACRO                                                              \
@@ -507,38 +505,36 @@ void nsCSSSelector::ToStringInternal(nsAString& aString,
       aString.Append(PRUnichar('|'));
       wroteNamespace = PR_TRUE;
     } else {
-      if (aSheet) {
-        nsXMLNameSpaceMap *sheetNS = aSheet->GetNameSpaceMap();
+      nsXMLNameSpaceMap *sheetNS = aSheet->GetNameSpaceMap();
     
-        // sheetNS is non-null if and only if we had an @namespace rule.  If it's
-        // null, that means that the only namespaces we could have are the
-        // wildcard namespace (which can be implicit in this case) and the "none"
-        // namespace, which we handled above.  So no need to output anything when
-        // sheetNS is null.
-        if (sheetNS) {
-          if (mNameSpace != kNameSpaceID_Unknown) {
-            if (sheetNS->FindNameSpaceID(nsnull) != mNameSpace) {
-              nsIAtom *prefixAtom = sheetNS->FindPrefix(mNameSpace);
-              NS_ASSERTION(prefixAtom, "how'd we get a non-default namespace "
-                                       "without a prefix?");
-              nsAutoString prefix;
-              prefixAtom->ToString(prefix);
-              aString.Append(prefix);
-              aString.Append(PRUnichar('|'));
-              wroteNamespace = PR_TRUE;
-            }
-            // otherwise it must be the default namespace
-          } else {
-            // A selector for an element in any namespace.
-            if (// Use explicit "*|" only when it's not implied
-                sheetNS->FindNameSpaceID(nsnull) != kNameSpaceID_None &&
-                // :not() is special in that the default namespace is
-                // not implied for non-type selectors
-                (!aIsNegated || (!mIDList && !mClassList &&
-                                 !mPseudoClassList && !mAttrList))) {
-              aString.AppendLiteral("*|");
-              wroteNamespace = PR_TRUE;
-            }
+      // sheetNS is non-null if and only if we had an @namespace rule.  If it's
+      // null, that means that the only namespaces we could have are the
+      // wildcard namespace (which can be implicit in this case) and the "none"
+      // namespace, which we handled above.  So no need to output anything when
+      // sheetNS is null.
+      if (sheetNS) {
+        if (mNameSpace != kNameSpaceID_Unknown) {
+          if (sheetNS->FindNameSpaceID(nsnull) != mNameSpace) {
+            nsIAtom *prefixAtom = sheetNS->FindPrefix(mNameSpace);
+            NS_ASSERTION(prefixAtom, "how'd we get a non-default namespace "
+                                     "without a prefix?");
+            nsAutoString prefix;
+            prefixAtom->ToString(prefix);
+            aString.Append(prefix);
+            aString.Append(PRUnichar('|'));
+            wroteNamespace = PR_TRUE;
+          }
+          // otherwise it must be the default namespace
+        } else {
+          // A selector for an element in any namespace.
+          if (// Use explicit "*|" only when it's not implied
+              sheetNS->FindNameSpaceID(nsnull) != kNameSpaceID_None &&
+              // :not() is special in that the default namespace is
+              // not implied for non-type selectors
+              (!aIsNegated || (!mIDList && !mClassList &&
+                               !mPseudoClassList && !mAttrList))) {
+            aString.AppendLiteral("*|");
+            wroteNamespace = PR_TRUE;
           }
         }
       }
@@ -600,16 +596,14 @@ void nsCSSSelector::ToStringInternal(nsAString& aString,
       aString.Append(PRUnichar('['));
       // Append the namespace prefix
       if (list->mNameSpace > 0) {
-        if (aSheet) {
-          nsXMLNameSpaceMap *sheetNS = aSheet->GetNameSpaceMap();
-          // will return null if namespace was the default
-          nsIAtom *prefixAtom = sheetNS->FindPrefix(list->mNameSpace);
-          if (prefixAtom) { 
-            nsAutoString prefix;
-            prefixAtom->ToString(prefix);
-            aString.Append(prefix);
-            aString.Append(PRUnichar('|'));
-          }
+        nsXMLNameSpaceMap *sheetNS = aSheet->GetNameSpaceMap();
+        // will return null if namespace was the default
+        nsIAtom *prefixAtom = sheetNS->FindPrefix(list->mNameSpace);
+        if (prefixAtom) { 
+          nsAutoString prefix;
+          prefixAtom->ToString(prefix);
+          aString.Append(prefix);
+          aString.Append(PRUnichar('|'));
         }
       }
       // Append the attribute name
@@ -695,9 +689,9 @@ nsCSSSelectorList::~nsCSSSelectorList()
   NS_IF_DEEP_DELETE(nsCSSSelectorList, mNext);
 }
 
-void nsCSSSelectorList::AddSelector(nsAutoPtr<nsCSSSelector>& aSelector)
+void nsCSSSelectorList::AddSelector(const nsCSSSelector& aSelector)
 { // prepend to list
-  nsCSSSelector* newSel = aSelector.forget();
+  nsCSSSelector* newSel = aSelector.Clone();
   if (newSel) {
     newSel->mNext = mSelectors;
     mSelectors = newSel;
@@ -812,7 +806,6 @@ public:
                                      PRBool aAllocate);
   virtual nsresult GetCSSParsingEnvironment(nsIURI** aSheetURI,
                                             nsIURI** aBaseURI,
-                                            nsIPrincipal** aSheetPrincipal,
                                             nsICSSLoader** aCSSLoader,
                                             nsICSSParser** aCSSParser);
   virtual nsresult DeclarationChanged();
@@ -878,8 +871,8 @@ DOMCSSDeclarationImpl::~DOMCSSDeclarationImpl(void)
 
 inline DOMCSSStyleRuleImpl* DOMCSSDeclarationImpl::DomRule()
 {
-  return reinterpret_cast<DOMCSSStyleRuleImpl*>
-                         (reinterpret_cast<char*>(this) -
+  return NS_REINTERPRET_CAST(DOMCSSStyleRuleImpl*,
+           NS_REINTERPRET_CAST(char*, this) -
            offsetof(DOMCSSStyleRuleImpl, mDOMDeclaration));
 }
 
@@ -914,14 +907,12 @@ DOMCSSDeclarationImpl::GetCSSDeclaration(nsCSSDeclaration **aDecl,
 nsresult
 DOMCSSDeclarationImpl::GetCSSParsingEnvironment(nsIURI** aSheetURI, 
                                                 nsIURI** aBaseURI,
-                                                nsIPrincipal** aSheetPrincipal,
                                                 nsICSSLoader** aCSSLoader,
                                                 nsICSSParser** aCSSParser)
 {
   // null out the out params since some of them may not get initialized below
   *aSheetURI = nsnull;
   *aBaseURI = nsnull;
-  *aSheetPrincipal = nsnull;
   *aCSSLoader = nsnull;
   *aCSSParser = nsnull;
   nsresult result;
@@ -931,12 +922,6 @@ DOMCSSDeclarationImpl::GetCSSParsingEnvironment(nsIURI** aSheetURI,
     if (sheet) {
       sheet->GetSheetURI(aSheetURI);
       sheet->GetBaseURI(aBaseURI);
-
-      nsCOMPtr<nsICSSStyleSheet> cssSheet(do_QueryInterface(sheet));
-      if (cssSheet) {
-        NS_ADDREF(*aSheetPrincipal = cssSheet->Principal());
-      }
-
       nsCOMPtr<nsIDocument> document;
       sheet->GetOwningDocument(*getter_AddRefs(document));
       if (document) {
@@ -949,11 +934,6 @@ DOMCSSDeclarationImpl::GetCSSParsingEnvironment(nsIURI** aSheetURI,
     result = (*aCSSLoader)->GetParserFor(nsnull, aCSSParser);
   } else {
     result = NS_NewCSSParser(aCSSParser);
-  }
-
-  if (NS_SUCCEEDED(result) && !*aSheetPrincipal) {
-    result = CallCreateInstance("@mozilla.org/nullprincipal;1",
-                                aSheetPrincipal);
   }
 
   return result;

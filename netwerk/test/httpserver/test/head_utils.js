@@ -38,10 +38,6 @@
 
 do_import_script("netwerk/test/httpserver/httpd.js");
 
-// if these tests fail, we'll want the debug output
-DEBUG = true;
-
-
 /**
  * Constructs a new nsHttpServer instance.  This function is intended to
  * encapsulate construction of a server so that at some point in the future
@@ -78,135 +74,8 @@ function makeChannel(url)
  */
 function makeBIS(stream)
 {
-  return new BinaryInputStream(stream);
+  var bis = Cc["@mozilla.org/binaryinputstream;1"]
+              .createInstance(Ci.nsIBinaryInputStream);
+  bis.setInputStream(stream);
+  return bis;
 }
-
-
-/**
- * Returns the contents of the file as a string.
- *
- * @param file : nsILocalFile
- *   the file whose contents are to be read
- * @returns string
- *   the contents of the file
- */
-function fileContents(file)
-{
-  const PR_RDONLY = 0x01;
-  var fis = new FileInputStream(file, PR_RDONLY, 0444,
-                                Ci.nsIFileInputStream.CLOSE_ON_EOF);
-  var sis = new ScriptableInputStream(fis);
-  var contents = sis.read(file.fileSize);
-  sis.close();
-  return contents;
-}
-
-
-/*******************************************************
- * SIMPLE SUPPORT FOR LOADING/TESTING A SERIES OF URLS *
- *******************************************************/
-
-/**
- * Represents a path to load from the tested HTTP server, along with actions to
- * take before, during, and after loading the associated page.
- *
- * @param path
- *   the URL to load from the server
- * @param initChannel
- *   a function which takes as a single parameter a channel created for path and
- *   initializes its state, or null if no additional initialization is needed
- * @param onStartRequest
- *   called during onStartRequest for the load of the URL, with the same
- *   parameters; the request parameter has been QI'd to nsIHttpChannel and
- *   nsIHttpChannelInternal for convenience; may be null if nothing needs to be
- *   done
- * @param onStopRequest
- *   called during onStopRequest for the channel, with the same parameters plus
- *   a trailing parameter containing an array of the bytes of data downloaded in
- *   the body of the channel response; the request parameter has been QI'd to
- *   nsIHttpChannel and nsIHttpChannelInternal for convenience; may be null if
- *   nothing needs to be done
- */
-function Test(path, initChannel, onStartRequest, onStopRequest)
-{
-  function nil() { }
-
-  this.path = path;
-  this.initChannel = initChannel || nil;
-  this.onStartRequest = onStartRequest || nil;
-  this.onStopRequest = onStopRequest || nil;
-}
-
-/**
- * Runs all the tests in testArray.
- *
- * @param testArray
- *   a non-empty array of Tests to run, in order
- * @param done
- *   function to call when all tests have run (e.g. to shut down the server)
- */
-function runHttpTests(testArray, done)
-{
-  /** Kicks off running the next test in the array. */
-  function performNextTest()
-  {
-    if (++testIndex == testArray.length)
-    {
-      done();
-      return;
-    }
-
-    do_test_pending();
-
-    var test = testArray[testIndex];
-    var ch = makeChannel(test.path);
-    test.initChannel(ch);
-
-    ch.asyncOpen(listener, null);
-  }
-
-  /** Index of the test being run. */
-  var testIndex = -1;
-
-  /** Stream listener for the channels. */
-  var listener =
-    {
-      /** Array of bytes of data in body of response. */
-      _data: [],
-
-      onStartRequest: function(request, cx)
-      {
-        var ch = request.QueryInterface(Ci.nsIHttpChannel)
-                        .QueryInterface(Ci.nsIHttpChannelInternal);
-
-        this._data.length = 0;
-        testArray[testIndex].onStartRequest(ch, cx);
-      },
-      onDataAvailable: function(request, cx, inputStream, offset, count)
-      {
-        Array.prototype.push.apply(this._data,
-                                   makeBIS(inputStream).readByteArray(count));
-      },
-      onStopRequest: function(request, cx, status)
-      {
-        var ch = request.QueryInterface(Ci.nsIHttpChannel)
-                        .QueryInterface(Ci.nsIHttpChannelInternal);
-      
-        testArray[testIndex].onStopRequest(ch, cx, status, this._data);
-
-        performNextTest();
-        do_test_finished();
-      },
-      QueryInterface: function(aIID)
-      {
-        if (aIID.equals(Ci.nsIStreamListener) ||
-            aIID.equals(Ci.nsIRequestObserver) ||
-            aIID.equals(Ci.nsISupports))
-          return this;
-        throw Cr.NS_ERROR_NO_INTERFACE;
-      }
-    };
-
-  performNextTest();
-}
-

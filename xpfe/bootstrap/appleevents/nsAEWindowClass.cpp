@@ -52,6 +52,8 @@
 
 #include "nsAEWindowClass.h"
 
+#include "nsGfxUtils.h"
+
 using namespace nsWindowUtils;
 
 /*----------------------------------------------------------------------------

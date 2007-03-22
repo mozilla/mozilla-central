@@ -45,19 +45,12 @@
 #define nsRuleData_h_
 
 #include "nsCSSStruct.h"
-#include "nsStyleStructFwd.h"
-class nsPresContext;
-class nsStyleContext;
-
-struct nsRuleData;
-typedef void (*nsPostResolveFunc)(void* aStyleStruct, nsRuleData* aData);
+#include "nsRuleNode.h"
 
 struct nsRuleData
 {
-  PRUint32 mSIDs;
+  nsStyleStructID mSID;
   PRPackedBool mCanStoreInRuleTree;
-  PRPackedBool mIsImportantRule;
-  PRUint8 mLevel; // an nsStyleSet::sheetType
   nsPresContext* mPresContext;
   nsStyleContext* mStyleContext;
   nsPostResolveFunc mPostResolveCallback;
@@ -79,8 +72,8 @@ struct nsRuleData
 
   nsRuleDataColumn* mColumnData;
 
-  nsRuleData(PRUint32 aSIDs, nsPresContext* aContext, nsStyleContext* aStyleContext) 
-    :mSIDs(aSIDs), mPresContext(aContext), mStyleContext(aStyleContext), mPostResolveCallback(nsnull),
+  nsRuleData(const nsStyleStructID& aSID, nsPresContext* aContext, nsStyleContext* aStyleContext) 
+    :mSID(aSID), mPresContext(aContext), mStyleContext(aStyleContext), mPostResolveCallback(nsnull),
      mFontData(nsnull), mDisplayData(nsnull), mMarginData(nsnull), mListData(nsnull), 
      mPositionData(nsnull), mTableData(nsnull), mColorData(nsnull), mContentData(nsnull), mTextData(nsnull),
      mUserInterfaceData(nsnull), mColumnData(nsnull)
@@ -90,8 +83,8 @@ struct nsRuleData
 #ifdef MOZ_SVG
     mSVGData = nsnull;
 #endif
-  }
-  ~nsRuleData() {}
+  };
+  ~nsRuleData() {};
 };
 
 #endif

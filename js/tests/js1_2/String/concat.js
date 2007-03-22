@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'concat.js';
-
 /**
    Filename:     concat.js
    Description:  'This tests the new String object method: concat'

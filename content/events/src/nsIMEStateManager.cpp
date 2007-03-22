@@ -53,7 +53,6 @@
 #include "nsIKBStateControl.h"
 #include "nsIFocusController.h"
 #include "nsIDOMWindow.h"
-#include "nsContentUtils.h"
 
 /******************************************************************/
 /* nsIMEStateManager                                              */
@@ -62,7 +61,6 @@
 nsIContent*    nsIMEStateManager::sContent      = nsnull;
 nsPresContext* nsIMEStateManager::sPresContext  = nsnull;
 nsPIDOMWindow* nsIMEStateManager::sActiveWindow = nsnull;
-PRBool         nsIMEStateManager::sInstalledMenuKeyboardListener = PR_FALSE;
 
 nsresult
 nsIMEStateManager::OnDestroyPresContext(nsPresContext* aPresContext)
@@ -86,7 +84,7 @@ nsIMEStateManager::OnRemoveContent(nsPresContext* aPresContext,
     return NS_OK;
 
   // Current IME transaction should commit
-  nsCOMPtr<nsIKBStateControl> kb = GetKBStateControl(sPresContext);
+  nsIKBStateControl* kb = GetKBStateControl(sPresContext);
   if (kb) {
     nsresult rv = kb->CancelIMEComposition();
     if (NS_FAILED(rv))
@@ -110,7 +108,7 @@ nsIMEStateManager::OnChangeFocus(nsPresContext* aPresContext,
     return NS_OK;
   }
 
-  nsCOMPtr<nsIKBStateControl> kb = GetKBStateControl(aPresContext);
+  nsIKBStateControl* kb = GetKBStateControl(aPresContext);
   if (!kb) {
     // This platform doesn't support IME controlling
     return NS_OK;
@@ -125,13 +123,13 @@ nsIMEStateManager::OnChangeFocus(nsPresContext* aPresContext,
       // the enabled state isn't changing, we should do nothing.
       return NS_OK;
     }
-    PRUint32 enabled;
+    PRBool enabled;
     if (NS_FAILED(kb->GetIMEEnabled(&enabled))) {
       // this platform doesn't support IME controlling
       return NS_OK;
     }
-    if (enabled ==
-        nsContentUtils::GetKBStateControlStatusFromIMEStatus(newEnabledState)) {
+    if ((enabled && newEnabledState == nsIContent::IME_STATUS_ENABLE) ||
+        (!enabled && newEnabledState == nsIContent::IME_STATUS_DISABLE)) {
       // the enabled state isn't changing.
       return NS_OK;
     }
@@ -139,7 +137,7 @@ nsIMEStateManager::OnChangeFocus(nsPresContext* aPresContext,
 
   // Current IME transaction should commit
   if (sPresContext) {
-    nsCOMPtr<nsIKBStateControl> oldKB;
+    nsIKBStateControl* oldKB;
     if (sPresContext == aPresContext)
       oldKB = kb;
     else
@@ -174,25 +172,16 @@ nsIMEStateManager::OnDeactivate(nsPresContext* aPresContext)
 {
   NS_ENSURE_ARG_POINTER(aPresContext);
   NS_ENSURE_TRUE(aPresContext->Document()->GetWindow(), NS_ERROR_FAILURE);
-  if (sActiveWindow !=
+  if (sActiveWindow ==
       aPresContext->Document()->GetWindow()->GetPrivateRoot())
-    return NS_OK;
-
-  sActiveWindow = nsnull;
+    sActiveWindow = nsnull;
   return NS_OK;
-}
-
-void
-nsIMEStateManager::OnInstalledMenuKeyboardListener(PRBool aInstalling)
-{
-  sInstalledMenuKeyboardListener = aInstalling;
-  OnChangeFocus(sPresContext, sContent);
 }
 
 PRBool
 nsIMEStateManager::IsActive(nsPresContext* aPresContext)
 {
-  NS_ENSURE_TRUE(aPresContext, PR_FALSE);
+  NS_ENSURE_ARG_POINTER(aPresContext);
   nsPIDOMWindow* window = aPresContext->Document()->GetWindow();
   NS_ENSURE_TRUE(window, PR_FALSE);
   if (!sActiveWindow || sActiveWindow != window->GetPrivateRoot()) {
@@ -228,19 +217,19 @@ nsIMEStateManager::GetNewIMEState(nsPresContext* aPresContext,
     return nsIContent::IME_STATUS_DISABLE;
   }
 
-  if (sInstalledMenuKeyboardListener)
-    return nsIContent::IME_STATUS_DISABLE;
+  PRBool isEditable = PR_FALSE;
+  nsCOMPtr<nsISupports> container = aPresContext->GetContainer();
+  nsCOMPtr<nsIEditorDocShell> editorDocShell(do_QueryInterface(container));
+  if (editorDocShell)
+    editorDocShell->GetEditable(&isEditable);
 
-  if (!aContent) {
-    // Even if there are no focused content, the focused document might be
-    // editable, such case is design mode.
-    nsIDocument* doc = aPresContext->Document();
-    if (doc && doc->HasFlag(NODE_IS_EDITABLE))
-      return nsIContent::IME_STATUS_ENABLE;
-    return nsIContent::IME_STATUS_DISABLE;
-  }
+  if (isEditable)
+    return nsIContent::IME_STATUS_ENABLE;
 
-  return aContent->GetDesiredIMEState();
+  if (aContent)
+    return aContent->GetDesiredIMEState();
+
+  return nsIContent::IME_STATUS_DISABLE;
 }
 
 void
@@ -249,12 +238,11 @@ nsIMEStateManager::SetIMEState(nsPresContext*     aPresContext,
                                nsIKBStateControl* aKB)
 {
   if (aState & nsIContent::IME_STATUS_MASK_ENABLED) {
-    PRUint32 state =
-      nsContentUtils::GetKBStateControlStatusFromIMEStatus(aState);
-    aKB->SetIMEEnabled(state);
+    PRBool enable = (aState & nsIContent::IME_STATUS_ENABLE);
+    aKB->SetIMEEnabled(enable);
   }
   if (aState & nsIContent::IME_STATUS_MASK_OPENED) {
-    PRBool open = !!(aState & nsIContent::IME_STATUS_OPEN);
+    PRBool open = (aState & nsIContent::IME_STATUS_OPEN);
     aKB->SetIMEOpenState(open);
   }
 }

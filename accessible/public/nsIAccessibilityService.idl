@@ -44,19 +44,19 @@ interface nsIDocument;
 interface nsIFrame;
 interface nsObjectFrame;
 interface nsIContent;
-interface nsITimer;
 
-[uuid(27386cf1-f27e-4d2d-9bf4-c4621d50d299)]
+[scriptable, uuid(e4cdb7c5-d029-4bee-bff5-99455c6e0057)]
 interface nsIAccessibilityService : nsIAccessibleRetrieval
 {
   nsIAccessible createOuterDocAccessible(in nsIDOMNode aNode);
   nsIAccessible createRootAccessible(in nsIPresShell aShell, in nsIDocument aDocument);
 
   nsIAccessible createHTML4ButtonAccessible(in nsISupports aFrame);
+  nsIAccessible createHTMLAreaAccessible(in nsIWeakReference aPresShell, in nsIDOMNode aDOMNode, in nsIAccessible aAccParent);
   nsIAccessible createHyperTextAccessible(in nsISupports aFrame);
   nsIAccessible createHTMLBRAccessible(in nsISupports aFrame);
   nsIAccessible createHTMLButtonAccessible(in nsISupports aFrame);
-  nsIAccessible createHTMLAccessibleByMarkup(in nsIFrame aFrame, in nsIWeakReference aWeakShell, in nsIDOMNode aDOMNode);
+  [noscript] nsIAccessible createHTMLAccessibleByMarkup(in nsIFrame aFrame, in nsIWeakReference aWeakShell, in nsIDOMNode aDOMNode, in AString aRole);
   nsIAccessible createHTMLLIAccessible(in nsISupports aFrame, in nsISupports aBulletFrame, in AString aBulletText);
   nsIAccessible createHTMLCheckboxAccessible(in nsISupports aFrame);
   nsIAccessible createHTMLComboboxAccessible(in nsIDOMNode aNode, in nsIWeakReference aPresShell);
@@ -74,15 +74,14 @@ interface nsIAccessibilityService : nsIAccessibleRetrieval
   nsIAccessible createHTMLTableHeadAccessible(in nsIDOMNode aDOMNode);
   nsIAccessible createHTMLTextAccessible(in nsISupports aFrame);
   nsIAccessible createHTMLTextFieldAccessible(in nsISupports aFrame);
-  nsIAccessible createHTMLCaptionAccessible(in nsISupports aFrame);
 
-  nsIAccessible getAccessible(in nsIDOMNode aNode, in nsIPresShell aPresShell,                          
+  [noscript] nsIAccessible getAccessible(in nsIDOMNode aNode, in nsIPresShell aPresShell,                          
                               in nsIWeakReference aWeakShell, 
                               inout nsIFrame frameHint, out boolean aIsHidden);
 
   // For gtk+ native window accessible
-  nsIAccessible addNativeRootAccessible(in voidPtr aAtkAccessible);
-  void removeNativeRootAccessible(in nsIAccessible aRootAccessible);
+  [noscript] nsIAccessible addNativeRootAccessible(in voidPtr aAtkAccessible);
+  [noscript] void removeNativeRootAccessible(in nsIAccessible aRootAccessible);
 
   /**
    * Invalidate the accessibility cache associated with aPresShell, for accessibles
@@ -98,20 +97,9 @@ interface nsIAccessibilityService : nsIAccessibleRetrieval
    *                           EVENT_SHOW (make visible or create) or 
    *                           EVENT_HIDE (destroy or hide)
    */
-  void invalidateSubtreeFor(in nsIPresShell aPresShell,
-                            in nsIContent aChangedContent,
-                            in PRUint32 aEvent);
-
-  /**
-   *  An internal doc load event has occured. Handle the event and remove it from the list.
-   *  @param aTimer      The timer created to handle this doc load event
-   *  @param aClosure    The nsIWebProgress* for the load event
-   *  @param aEventType  The type of load event, one of: nsIAccessibleEvent::EVENT_DOCUMENT_LOAD_START,
-   *                                                     nsIAccessibleEvent::EVENT_DOCUMENT_LOAD_COMPLETE or
-   *                                                     nsIAccessibleEvent::EVENT_DOCUMENT_LOAD_STOPPED
-   */
-  void processDocLoadEvent(in nsITimer aTimer, in voidPtr aClosure, in PRUint32 aEventType);
-
+  [noscript] void invalidateSubtreeFor(in nsIPresShell aPresShell,
+                                       in nsIContent aChangedContent,
+                                       in PRUint32 aEvent);
 };
 
 

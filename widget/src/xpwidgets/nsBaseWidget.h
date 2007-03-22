@@ -41,6 +41,7 @@
 #include "nsIWidget.h"
 #include "nsIMouseListener.h"
 #include "nsIEventListener.h"
+#include "nsIMenuListener.h"
 #include "nsIToolkit.h"
 #include "nsIAppShell.h"
 #include "nsILocalFile.h"
@@ -48,9 +49,6 @@
 #include "nsVoidArray.h"
 #include "nsCOMPtr.h"
 #include "nsGUIEvent.h"
-
-class nsIContent;
-class nsAutoRollup;
 
 /**
  * Common widget implementation used as base class for native
@@ -63,7 +61,6 @@ class nsAutoRollup;
 
 class nsBaseWidget : public nsIWidget
 {
-  friend class nsAutoRollup;
 
 public:
   nsBaseWidget();
@@ -82,7 +79,6 @@ public:
   NS_IMETHOD              Destroy();
   NS_IMETHOD              SetParent(nsIWidget* aNewParent);
   virtual nsIWidget*      GetParent(void);
-  virtual nsIWidget*      GetSheetWindowParent(void);
   virtual void            AddChild(nsIWidget* aChild);
   virtual void            RemoveChild(nsIWidget* aChild);
 
@@ -104,14 +100,18 @@ public:
                                     PRUint32 aHotspotX, PRUint32 aHotspotY);
   NS_IMETHOD              GetWindowType(nsWindowType& aWindowType);
   NS_IMETHOD              SetWindowType(nsWindowType aWindowType);
-  NS_IMETHOD              SetHasTransparentBackground(PRBool aTransparent);
-  NS_IMETHOD              GetHasTransparentBackground(PRBool& aTransparent);
+  NS_IMETHOD              SetWindowTranslucency(PRBool aTranslucent);
+  NS_IMETHOD              GetWindowTranslucency(PRBool& aTranslucent);
+  NS_IMETHOD              UpdateTranslucentWindowAlpha(const nsRect& aRect, PRUint8* aAlphas);
   NS_IMETHOD              HideWindowChrome(PRBool aShouldHide);
   NS_IMETHOD              MakeFullScreen(PRBool aFullScreen);
+  nsresult                MakeFullScreenInternal(PRBool aFullScreen);
   virtual nsIRenderingContext* GetRenderingContext();
   virtual nsIDeviceContext* GetDeviceContext();
   virtual nsIToolkit*     GetToolkit();  
+#ifdef MOZ_CAIRO_GFX
   virtual gfxASurface*    GetThebesSurface();
+#endif
   NS_IMETHOD              SetModal(PRBool aModal); 
   NS_IMETHOD              ModalEventFilter(PRBool aRealEvent, void *aEvent,
                             PRBool *aForWindow);
@@ -119,6 +119,7 @@ public:
   NS_IMETHOD              SetBorderStyle(nsBorderStyle aBorderStyle); 
   NS_IMETHOD              AddMouseListener(nsIMouseListener * aListener);
   NS_IMETHOD              AddEventListener(nsIEventListener * aListener);
+  NS_IMETHOD              AddMenuListener(nsIMenuListener * aListener);
   NS_IMETHOD              SetBounds(const nsRect &aRect);
   NS_IMETHOD              GetBounds(nsRect &aRect);
   NS_IMETHOD              GetClientBounds(nsRect &aRect);
@@ -130,12 +131,8 @@ public:
   NS_IMETHOD              GetAttention(PRInt32 aCycleCount);
   NS_IMETHOD              GetLastInputEventTime(PRUint32& aTime);
   NS_IMETHOD              SetIcon(const nsAString &anIconSpec);
-  NS_IMETHOD              BeginSecureKeyboardInput();
-  NS_IMETHOD              EndSecureKeyboardInput();
-  NS_IMETHOD              SetWindowTitlebarColor(nscolor aColor, PRBool aActive);
   virtual void            ConvertToDeviceCoordinates(nscoord  &aX,nscoord &aY) {}
-  virtual void            FreeNativeData(void * data, PRUint32 aDataType) {}
-  NS_IMETHOD              BeginResizeDrag(nsGUIEvent* aEvent, PRInt32 aHorizontal, PRInt32 aVertical);
+  virtual void            FreeNativeData(void * data, PRUint32 aDataType) {}//~~~
 
 protected:
 
@@ -151,18 +148,6 @@ protected:
                                      nsIToolkit *aToolkit,
                                      nsWidgetInitData *aInitData);
 
-  virtual nsIContent* GetLastRollup()
-  {
-    return mLastRollup;
-  }
-
-  virtual nsresult SynthesizeNativeKeyEvent(PRInt32 aNativeKeyboardLayout,
-                                            PRInt32 aNativeKeyCode,
-                                            PRUint32 aModifierFlags,
-                                            const nsAString& aCharacters,
-                                            const nsAString& aUnmodifiedCharacters)
-  { return NS_ERROR_UNEXPECTED; }
-
 protected: 
   void*             mClientData;
   EVENT_CALLBACK    mEventCallback;
@@ -170,6 +155,7 @@ protected:
   nsIToolkit        *mToolkit;
   nsIMouseListener  *mMouseListener;
   nsIEventListener  *mEventListener;
+  nsIMenuListener   *mMenuListener;
   nscolor           mBackground;
   nscolor           mForeground;
   nsCursor          mCursor;
@@ -184,10 +170,6 @@ protected:
   nsRect*           mOriginalBounds;
   PRInt32           mZIndex;
   nsSizeMode        mSizeMode;
-
-  // the last rolled up popup. Only set this when an nsAutoRollup is in scope,
-  // so it can be cleared automatically.
-  static nsIContent* mLastRollup;
     
     // Enumeration of the methods which are accessible on the "main GUI thread"
     // via the CallMethod(...) mechanism...
@@ -227,28 +209,6 @@ protected:
 
   static PRBool debug_GetCachedBoolPref(const char* aPrefName);
 #endif
-};
-
-// A situation can occur when a mouse event occurs over a menu label while the
-// menu popup is already open. The expected behaviour is to close the popup.
-// This happens by calling nsIRollupListener::Rollup before the mouse event is
-// processed. However, in cases where the mouse event is not consumed, this
-// event will then get targeted at the menu label causing the menu to open
-// again. To prevent this, we store in mLastRollup a reference to the popup
-// that was closed during the Rollup call, and prevent this popup from
-// reopening while processing the mouse event.
-// mLastRollup should only be set while an nsAutoRollup is in scope;
-// when it goes out of scope mLastRollup is cleared automatically.
-// As mLastRollup is static, it can be retrieved by calling
-// nsIWidget::GetLastRollup on any widget.
-class nsAutoRollup
-{
-  PRBool wasClear;
-
-  public:
-
-  nsAutoRollup();
-  ~nsAutoRollup();
 };
 
 #endif // nsBaseWidget_h__

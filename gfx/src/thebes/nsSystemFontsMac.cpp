@@ -116,6 +116,7 @@ nsSystemFontsMac::GetSystemFont(nsSystemFontID aID, nsString *aFontName,
     {
         aFontStyle->style       = FONT_STYLE_NORMAL;
         aFontStyle->weight      = FONT_WEIGHT_NORMAL;
+        aFontStyle->decorations = FONT_DECORATION_NONE;
 
         aFontName->AssignLiteral("sans-serif");
         aFontStyle->size = 14;
@@ -140,10 +141,10 @@ nsSystemFontsMac::GetSystemFont(nsSystemFontID aID, nsString *aFontName,
         case eSystemFont_Desktop:       fontID = kThemeViewsFont;          break;
         case eSystemFont_Info:          fontID = kThemeViewsFont;          break;
         case eSystemFont_Dialog:        fontID = kThemeSystemFont;         break;
-        case eSystemFont_Button:        fontID = kThemeSmallSystemFont;    break;
+        case eSystemFont_Button:        fontID = kThemePushButtonFont;     break;
         case eSystemFont_PullDownMenu:  fontID = kThemeMenuItemFont;       break;
-        case eSystemFont_List:          fontID = kThemeSmallSystemFont;    break;
-        case eSystemFont_Field:         fontID = kThemeSmallSystemFont;    break;
+        case eSystemFont_List:          fontID = kThemeSystemFont;         break;
+        case eSystemFont_Field:         fontID = kThemeApplicationFont;    break;
         // moz
         case eSystemFont_Tooltips:      fontID = kThemeSmallSystemFont;    break;
         case eSystemFont_Widget:        fontID = kThemeSmallSystemFont;    break;
@@ -182,6 +183,8 @@ nsSystemFontsMac::GetSystemFont(nsSystemFontID aID, nsString *aFontName,
         aFontStyle->weight = FONT_WEIGHT_BOLD;
     if (fontStyle & italic)
         aFontStyle->style = FONT_STYLE_ITALIC;
+    if (fontStyle & underline)
+        aFontStyle->decorations = FONT_DECORATION_UNDERLINE;
 
     aFontStyle->systemFont = PR_TRUE;
 

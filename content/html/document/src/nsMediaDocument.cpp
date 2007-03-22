@@ -256,6 +256,7 @@ nsMediaDocument::CreateSyntheticDocument()
   if (!body) {
     return NS_ERROR_OUT_OF_MEMORY;
   }
+  mBodyContent = do_QueryInterface(body);
 
   root->AppendChildTo(body, PR_FALSE);
 
@@ -265,17 +266,19 @@ nsMediaDocument::CreateSyntheticDocument()
 nsresult
 nsMediaDocument::StartLayout()
 {
-  mMayStartLayout = PR_TRUE;
-  nsPresShellIterator iter(this);
-  nsCOMPtr<nsIPresShell> shell;
-  while ((shell = iter.GetNextShell())) {
+  PRUint32 numberOfShells = GetNumberOfShells();
+  for (PRUint32 i = 0; i < numberOfShells; i++) {
+    nsIPresShell *shell = GetShellAt(i);
+
+    // Make shell an observer for next time.
+    shell->BeginObservingDocument();
+
+    // Initial-reflow this time.
     nsRect visibleArea = shell->GetPresContext()->GetVisibleArea();
-    nsCOMPtr<nsIPresShell> shellGrip = shell;
     nsresult rv = shell->InitialReflow(visibleArea.width, visibleArea.height);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    // Now trigger a refresh.  vm might be null if the presshell got
-    // Destroy() called already.
+    // Now trigger a refresh.
     nsIViewManager* vm = shell->GetViewManager();
     if (vm) {
       vm->EnableRefresh(NS_VMREFRESH_IMMEDIATE);

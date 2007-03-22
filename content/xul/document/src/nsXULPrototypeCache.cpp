@@ -159,7 +159,7 @@ nsXULPrototypeCache::GetInstance()
 
         CallGetService(kXULPrototypeCacheCID, &cache);
 
-        sInstance = static_cast<nsXULPrototypeCache*>(cache);
+        sInstance = NS_STATIC_CAST(nsXULPrototypeCache*, cache);
     }
     return sInstance;
 }
@@ -269,27 +269,9 @@ nsXULPrototypeCache::GetScript(nsIURI* aURI, PRUint32 *aLangID)
 }
 
 
-/* static */
-PR_STATIC_CALLBACK(PLDHashOperator)
-ReleaseScriptObjectCallback(nsIURI* aKey, CacheScriptEntry &aData, void* aClosure)
-{
-    nsCOMPtr<nsIScriptRuntime> rt;
-    if (NS_SUCCEEDED(NS_GetScriptRuntimeByID(aData.mScriptTypeID, getter_AddRefs(rt))))
-        rt->DropScriptObject(aData.mScriptObject);
-    return PL_DHASH_REMOVE;
-}
-
 nsresult
 nsXULPrototypeCache::PutScript(nsIURI* aURI, PRUint32 aLangID, void* aScriptObject)
 {
-    CacheScriptEntry existingEntry;
-    if (mScriptTable.Get(aURI, &existingEntry)) {
-        NS_WARNING("loaded the same script twice (bug 392650)");
-
-        // Reuse the callback used for enumeration in FlushScripts
-        ReleaseScriptObjectCallback(aURI, existingEntry, nsnull);
-    }
-
     CacheScriptEntry entry = {aLangID, aScriptObject};
 
     NS_ENSURE_TRUE(mScriptTable.Put(aURI, entry), NS_ERROR_OUT_OF_MEMORY);
@@ -303,6 +285,16 @@ nsXULPrototypeCache::PutScript(nsIURI* aURI, PRUint32 aLangID, void* aScriptObje
 
     // On failure doing the lock, we should remove the map entry?
     return rv;
+}
+
+/* static */
+PR_STATIC_CALLBACK(PLDHashOperator)
+ReleaseScriptObjectCallback(nsIURI* aKey, CacheScriptEntry &aData, void* aClosure)
+{
+    nsCOMPtr<nsIScriptRuntime> rt;
+    if (NS_SUCCEEDED(NS_GetScriptRuntimeByID(aData.mScriptTypeID, getter_AddRefs(rt))))
+        rt->DropScriptObject(aData.mScriptObject);
+    return PL_DHASH_REMOVE;
 }
 
 void
@@ -742,7 +734,7 @@ nsXULPrototypeCache::StartFastLoad(nsIURI* aURI)
     // Give the FastLoad service an object by which it can get or create a
     // file output stream given an input stream on the same file.
     nsXULFastLoadFileIO* xio = new nsXULFastLoadFileIO(file);
-    nsCOMPtr<nsIFastLoadFileIO> io = static_cast<nsIFastLoadFileIO*>(xio);
+    nsCOMPtr<nsIFastLoadFileIO> io = NS_STATIC_CAST(nsIFastLoadFileIO*, xio);
     if (! io)
         return NS_ERROR_OUT_OF_MEMORY;
     fastLoadService->SetFileIO(io);

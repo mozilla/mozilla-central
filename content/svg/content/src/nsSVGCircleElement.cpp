@@ -41,7 +41,6 @@
 #include "nsSVGLength2.h"
 #include "nsGkAtoms.h"
 #include "nsSVGUtils.h"
-#include "gfxContext.h"
 
 typedef nsSVGPathGeometryElement nsSVGCircleElementBase;
 
@@ -64,7 +63,7 @@ public:
   NS_FORWARD_NSIDOMSVGELEMENT(nsSVGCircleElementBase::)
 
   // nsSVGPathGeometryElement methods:
-  virtual void ConstructPath(gfxContext *aCtx);
+  virtual void ConstructPath(cairo_t *aCtx);
 
   virtual nsresult Clone(nsINodeInfo *aNodeInfo, nsINode **aResult) const;
 
@@ -148,12 +147,12 @@ nsSVGCircleElement::GetLengthInfo()
 // nsSVGPathGeometryElement methods
 
 void
-nsSVGCircleElement::ConstructPath(gfxContext *aCtx)
+nsSVGCircleElement::ConstructPath(cairo_t *aCtx)
 {
   float x, y, r;
 
   GetAnimatedLengthValues(&x, &y, &r, nsnull);
 
   if (r > 0.0f)
-    aCtx->Arc(gfxPoint(x, y), r, 0, 2*M_PI);
+    cairo_arc(aCtx, x, y, r, 0, 2*M_PI);
 }

@@ -81,12 +81,11 @@ public:
   NS_IMETHOD GetDescription(nsAString& aDescription);
   NS_IMETHOD GetKeyboardShortcut(nsAString& _retval);
   NS_IMETHOD GetDefaultKeyBinding(nsAString& aKeyBinding);
-  NS_IMETHOD GetState(PRUint32 *aState, PRUint32 *aExtraState);
+  NS_IMETHOD GetState(PRUint32 *_retval); 
   NS_IMETHOD GetRole(PRUint32 *_retval); 
   NS_IMETHOD DoAction(PRUint8 index);
   NS_IMETHOD GetActionName(PRUint8 aIndex, nsAString& aName);
   NS_IMETHOD GetNumActions(PRUint8 *_retval);
-  virtual nsresult GetAttributesInternal(nsIPersistentProperties *aAttributes);
   NS_IMETHOD GetAllowsAnonChildAccessibles(PRBool *aAllowsAnonChildren);
 };
 
@@ -95,7 +94,7 @@ class nsXULMenuSeparatorAccessible : public nsXULMenuitemAccessible
 public:
   nsXULMenuSeparatorAccessible(nsIDOMNode* aDomNode, nsIWeakReference* aShell);
   NS_IMETHOD GetName(nsAString& _retval); 
-  NS_IMETHOD GetState(PRUint32 *aState, PRUint32 *aExtraState);
+  NS_IMETHOD GetState(PRUint32 *_retval); 
   NS_IMETHOD GetRole(PRUint32 *_retval); 
   NS_IMETHOD DoAction(PRUint8 index);
   NS_IMETHOD GetActionName(PRUint8 aIndex, nsAString& aName);
@@ -107,7 +106,7 @@ class nsXULMenupopupAccessible : public nsXULSelectableAccessible
 public:
   nsXULMenupopupAccessible(nsIDOMNode* aDomNode, nsIWeakReference* aShell);
   NS_IMETHOD GetName(nsAString& _retval); 
-  NS_IMETHOD GetState(PRUint32 *aState, PRUint32 *aExtraState);
+  NS_IMETHOD GetState(PRUint32 *_retval); 
   NS_IMETHOD GetRole(PRUint32 *_retval); 
   static already_AddRefed<nsIDOMNode> FindInNodeList(nsIDOMNodeList *aNodeList,
                                                      nsIAtom *aAtom, PRUint32 aNameSpaceID);
@@ -119,7 +118,7 @@ class nsXULMenubarAccessible : public nsAccessibleWrap
 public:
   nsXULMenubarAccessible(nsIDOMNode* aDomNode, nsIWeakReference* aShell);
   NS_IMETHOD GetName(nsAString& _retval); 
-  NS_IMETHOD GetState(PRUint32 *aState, PRUint32 *aExtraState);
+  NS_IMETHOD GetState(PRUint32 *_retval); 
   NS_IMETHOD GetRole(PRUint32 *_retval); 
 };
 

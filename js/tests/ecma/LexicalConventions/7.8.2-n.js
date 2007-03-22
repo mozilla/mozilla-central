@@ -35,9 +35,6 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-gTestfile = '7.8.2-n.js';
-
 /**
    File Name:          7.8.2.js
    ECMA Section:       7.8.2 Examples of Automatic Semicolon Insertion
@@ -49,7 +46,7 @@ gTestfile = '7.8.2-n.js';
 
 var SECTION="7.8.2";
 var VERSION="ECMA_1"
-  startTest();
+startTest();
 writeHeaderToLog(SECTION+" "+"Examples of Semicolon Insertion");
 
 

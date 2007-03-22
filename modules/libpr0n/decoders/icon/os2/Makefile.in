@@ -51,7 +51,6 @@ REQUIRES	= xpcom \
 		  necko \
 		  mimetype \
 		  exthandler \
-		  widget \
 		  $(NULL)
 
 CPPSRCS		= nsIconChannel.cpp

@@ -56,8 +56,7 @@ public:
       mStartOffset(0),
       mEndOffset(0),
       mIsPositioned(PR_FALSE),
-      mIsDetached(PR_FALSE),
-      mMaySpanAnonymousSubtrees(PR_FALSE)
+      mIsDetached(PR_FALSE)
   {
   }
 
@@ -102,11 +101,6 @@ public:
            mStartOffset == mEndOffset;
   }
 
-  void SetMaySpanAnonymousSubtrees(PRBool aMaySpanAnonymousSubtrees)
-  {
-    mMaySpanAnonymousSubtrees = aMaySpanAnonymousSubtrees;
-  }
-
   virtual nsINode* GetCommonAncestor() = 0;
 
   virtual void Reset() = 0;
@@ -120,7 +114,6 @@ protected:
 
   PRPackedBool mIsPositioned;
   PRPackedBool mIsDetached;
-  PRPackedBool mMaySpanAnonymousSubtrees;
 };
 
 NS_DEFINE_STATIC_IID_ACCESSOR(nsIRange, NS_IRANGE_IID)

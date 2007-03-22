@@ -45,6 +45,7 @@ class txHTMLOutput : public txXMLOutput
 {
 public:
     txHTMLOutput(txOutputFormat* aFormat, ostream* aOut);
+    ~txHTMLOutput();
 
     /**
      * Init/release table with shorthands.

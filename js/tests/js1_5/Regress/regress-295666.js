@@ -35,15 +35,13 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-295666.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 295666;
+var bug = 295666;
 var summary = 'Check JS only recursion stack overflow';
 var actual = 'No Crash';
 var expect = 'No Crash';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
 try
@@ -52,5 +50,5 @@ try
 }
 catch(e)
 {
-} 
+}  
 reportCompare(expect, actual, summary);

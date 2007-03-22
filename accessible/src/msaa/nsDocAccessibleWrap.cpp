@@ -39,6 +39,7 @@
 #include "nsDocAccessibleWrap.h"
 #include "ISimpleDOMDocument_i.c"
 #include "nsIAccessibilityService.h"
+#include "nsIAccessibleEvent.h"
 #include "nsIDocShell.h"
 #include "nsIDocShellTreeNode.h"
 #include "nsIFrame.h"
@@ -85,12 +86,12 @@ STDMETHODIMP nsDocAccessibleWrap::QueryInterface(REFIID iid, void** ppv)
   *ppv = NULL;
 
   if (IID_ISimpleDOMDocument == iid)
-    *ppv = static_cast<ISimpleDOMDocument*>(this);
+    *ppv = NS_STATIC_CAST(ISimpleDOMDocument*, this);
 
   if (NULL == *ppv)
-    return nsHyperTextAccessibleWrap::QueryInterface(iid, ppv);
+    return nsAccessibleWrap::QueryInterface(iid, ppv);
     
-  (reinterpret_cast<IUnknown*>(*ppv))->AddRef();
+  (NS_REINTERPRET_CAST(IUnknown*, *ppv))->AddRef();
   return S_OK;
 }
 
@@ -117,7 +118,6 @@ STDMETHODIMP nsDocAccessibleWrap::get_accChild(
       /* [in] */ VARIANT varChild,
       /* [retval][out] */ IDispatch __RPC_FAR *__RPC_FAR *ppdispChild)
 {
-__try {
   *ppdispChild = NULL;
 
   if (varChild.vt == VT_I4 && varChild.lVal < 0) {
@@ -128,7 +128,7 @@ __try {
     if (xpAccessible) {
       IAccessible *msaaAccessible;
       xpAccessible->GetNativeInterface((void**)&msaaAccessible);
-      *ppdispChild = static_cast<IDispatch*>(msaaAccessible);
+      *ppdispChild = NS_STATIC_CAST(IDispatch*, msaaAccessible);
       return S_OK;
     }
     else if (mDocument) {
@@ -137,7 +137,7 @@ __try {
       // has focus, but the system thinks the content window has focus.
       nsIDocument* parentDoc = mDocument->GetParentDocument();
       if (parentDoc) {
-        nsIPresShell *parentShell = parentDoc->GetPrimaryShell();
+        nsIPresShell *parentShell = parentDoc->GetShellAt(0);
         nsCOMPtr<nsIWeakReference> weakParentShell(do_GetWeakReference(parentShell));
         if (weakParentShell) {
           nsCOMPtr<nsIAccessibleDocument> parentDocAccessible = 
@@ -158,14 +158,136 @@ __try {
 
   // Otherwise, the normal get_accChild() will do
   return nsAccessibleWrap::get_accChild(varChild, ppdispChild);
-} __except(FilterA11yExceptions(::GetExceptionCode(), GetExceptionInformation())) { }
-  return E_FAIL;
+}
+
+NS_IMETHODIMP nsDocAccessibleWrap::Shutdown()
+{
+  return nsDocAccessible::Shutdown();
+}
+
+NS_IMETHODIMP nsDocAccessibleWrap::FireToolkitEvent(PRUint32 aEvent, nsIAccessible* aAccessible, void* aData)
+{
+#ifdef DEBUG_A11Y
+  // Ensure that we're only firing events that we intend to
+  PRUint32 supportedEvents[] = {
+    nsIAccessibleEvent::EVENT_SHOW,
+    nsIAccessibleEvent::EVENT_HIDE,
+    nsIAccessibleEvent::EVENT_REORDER,
+    nsIAccessibleEvent::EVENT_FOCUS,
+    nsIAccessibleEvent::EVENT_STATE_CHANGE,
+    nsIAccessibleEvent::EVENT_NAME_CHANGE,
+    nsIAccessibleEvent::EVENT_DESCRIPTIONCHANGE,
+    nsIAccessibleEvent::EVENT_LOCATION_CHANGE,
+    nsIAccessibleEvent::EVENT_VALUE_CHANGE,
+    nsIAccessibleEvent::EVENT_SELECTION,
+    nsIAccessibleEvent::EVENT_SELECTION_ADD,
+    nsIAccessibleEvent::EVENT_SELECTION_REMOVE,
+    nsIAccessibleEvent::EVENT_SELECTION_WITHIN,
+    nsIAccessibleEvent::EVENT_ALERT,
+    nsIAccessibleEvent::EVENT_MENUSTART,
+    nsIAccessibleEvent::EVENT_MENUEND,
+    nsIAccessibleEvent::EVENT_MENUPOPUPSTART,
+    nsIAccessibleEvent::EVENT_MENUPOPUPEND,
+    nsIAccessibleEvent::EVENT_SCROLLINGSTART,
+    nsIAccessibleEvent::EVENT_SCROLLINGEND,
+  };
+
+  PRBool found = PR_FALSE;
+  for (PRUint32 count = 0; count < NS_ARRAY_LENGTH(supportedEvents); count ++) {
+    if (aEvent == supportedEvents[count]) {
+      found = PR_TRUE;
+      break;
+    }
+  }
+  if (!found) {
+    // NS_WARNING("Event not supported!");
+  }
+#endif
+  if (!mWeakShell) {   // Means we're not active
+    return NS_ERROR_FAILURE;
+  }
+
+  nsDocAccessible::FireToolkitEvent(aEvent, aAccessible, aData); // Fire nsIObserver message
+
+#ifdef SWALLOW_DOC_FOCUS_EVENTS
+  // Remove this until we can figure out which focus events are coming at
+  // the same time as native window focus events, although
+  // perhaps 2 duplicate focus events on the window isn't really a problem
+  if (aEvent == nsIAccessibleEvent::EVENT_FOCUS) {
+    // Don't fire accessible focus event for documents, 
+    // Microsoft Windows will generate those from native window focus events
+    nsCOMPtr<nsIAccessibleDocument> accessibleDoc(do_QueryInterface(aAccessible));
+    if (accessibleDoc)
+      return NS_OK;
+  }
+#endif
+
+  PRInt32 childID, worldID = OBJID_CLIENT;
+  PRUint32 role = ROLE_SYSTEM_TEXT; // Default value
+
+  HWND hWnd = (HWND)mWnd;
+
+  if (NS_SUCCEEDED(aAccessible->GetRole(&role)) && role == ROLE_SYSTEM_CARET) {
+    childID = CHILDID_SELF;
+    worldID = OBJID_CARET;
+  }
+  else {
+    childID = GetChildIDFor(aAccessible); // get the id for the accessible
+    if (!childID) {
+      return NS_OK; // Can't fire an event without a child ID
+    }
+    if (aAccessible != this) {
+      // See if we're in a scrollable area with its own window
+      nsCOMPtr<nsIAccessible> accessible;
+      if (aEvent == nsIAccessibleEvent::EVENT_HIDE) {
+        // Don't use frame from current accessible when we're hiding that accessible
+        aAccessible->GetParent(getter_AddRefs(accessible));
+      }
+      else {
+        accessible = aAccessible;
+      }
+      nsCOMPtr<nsPIAccessNode> privateAccessNode =
+        do_QueryInterface(accessible);
+      if (privateAccessNode) {
+        nsIFrame *frame = privateAccessNode->GetFrame();
+        if (frame) {
+          hWnd = (HWND)frame->GetWindow()->GetNativeData(NS_NATIVE_WINDOW); 
+        }
+      }
+    }
+  }
+
+  // Gecko uses two windows for every scrollable area. One window contains
+  // scrollbars and the child window contains only the client area.
+  // Details of the 2 window system:
+  // * Scrollbar window: caret drawing window & return value for WindowFromAccessibleObject()
+  // * Client area window: text drawing window & MSAA event window
+  NotifyWinEvent(aEvent, hWnd, worldID, childID);   // Fire MSAA event for client area window
+
+  return NS_OK;
+}
+
+PRInt32 nsDocAccessibleWrap::GetChildIDFor(nsIAccessible* aAccessible)
+{
+  // A child ID of the window is required, when we use NotifyWinEvent, so that the 3rd party application
+  // can call back and get the IAccessible the event occured on.
+
+  void *uniqueID;
+  nsCOMPtr<nsIAccessNode> accessNode(do_QueryInterface(aAccessible));
+  if (!accessNode) {
+    return 0;
+  }
+  accessNode->GetUniqueID(&uniqueID);
+
+  // Yes, this means we're only compatibible with 32 bit
+  // MSAA is only available for 32 bit windows, so it's okay
+  return - NS_PTR_TO_INT32(uniqueID);
 }
 
 NS_IMETHODIMP nsDocAccessibleWrap::FireAnchorJumpEvent()
 {
   // Staying on the same page, jumping to a named anchor
-  // Fire EVENT_SCROLLING_START on first leaf accessible -- because some
+  // Fire EVENT_SCROLLINGSTART on first leaf accessible -- because some
   // assistive technologies only cache the child numbers for leaf accessibles
   // the can only relate events back to their internal model if it's a leaf.
   // There is usually an accessible for the focus node, but if it's an empty text node
@@ -192,142 +314,75 @@ NS_IMETHODIMP nsDocAccessibleWrap::FireAnchorJumpEvent()
   }
 
   nsCOMPtr<nsIAccessible> accessible = GetFirstAvailableAccessible(focusNode, PR_TRUE);
-  nsAccUtils::FireAccEvent(nsIAccessibleEvent::EVENT_SCROLLING_START,
-                           accessible);
-
+  nsCOMPtr<nsPIAccessible> privateAccessible = do_QueryInterface(accessible);
+  if (privateAccessible) {
+    privateAccessible->FireToolkitEvent(nsIAccessibleEvent::EVENT_SCROLLINGSTART,
+                                        accessible, nsnull);
+  }
   return NS_OK;
 }
 
 STDMETHODIMP nsDocAccessibleWrap::get_URL(/* [out] */ BSTR __RPC_FAR *aURL)
 {
-__try {
   *aURL = NULL;
-
   nsAutoString URL;
-  nsresult rv = GetURL(URL);
-  if (NS_FAILED(rv))
-    return E_FAIL;
-
-  if (URL.IsEmpty())
-    return S_FALSE;
-
-  *aURL = ::SysAllocStringLen(URL.get(), URL.Length());
-  return *aURL ? S_OK : E_OUTOFMEMORY;
-
-} __except(FilterA11yExceptions(::GetExceptionCode(), GetExceptionInformation())) { }
+  if (NS_SUCCEEDED(GetURL(URL))) {
+    *aURL= ::SysAllocString(URL.get());
+    return S_OK;
+  }
   return E_FAIL;
 }
 
 STDMETHODIMP nsDocAccessibleWrap::get_title( /* [out] */ BSTR __RPC_FAR *aTitle)
 {
-__try {
   *aTitle = NULL;
-
   nsAutoString title;
-  nsresult rv = GetTitle(title);
-  if (NS_FAILED(rv))
-    return E_FAIL;
-
-  *aTitle = ::SysAllocStringLen(title.get(), title.Length());
-  return *aTitle ? S_OK : E_OUTOFMEMORY;
-
-} __except(FilterA11yExceptions(::GetExceptionCode(), GetExceptionInformation())) { }
+  if (NS_SUCCEEDED(GetTitle(title))) { // getter_Copies(pszTitle)))) {
+    *aTitle= ::SysAllocString(title.get());
+    return S_OK;
+  }
   return E_FAIL;
 }
 
 STDMETHODIMP nsDocAccessibleWrap::get_mimeType(/* [out] */ BSTR __RPC_FAR *aMimeType)
 {
-__try {
   *aMimeType = NULL;
-
   nsAutoString mimeType;
-  nsresult rv = GetMimeType(mimeType);
-  if (NS_FAILED(rv))
-    return E_FAIL;
-
-  if (mimeType.IsEmpty())
-    return S_FALSE;
-
-  *aMimeType = ::SysAllocStringLen(mimeType.get(), mimeType.Length());
-  return *aMimeType ? S_OK : E_OUTOFMEMORY;
-
-} __except(FilterA11yExceptions(::GetExceptionCode(), GetExceptionInformation())) { }
+  if (NS_SUCCEEDED(GetMimeType(mimeType))) {
+    *aMimeType= ::SysAllocString(mimeType.get());
+    return S_OK;
+  }
   return E_FAIL;
 }
 
 STDMETHODIMP nsDocAccessibleWrap::get_docType(/* [out] */ BSTR __RPC_FAR *aDocType)
 {
-__try {
   *aDocType = NULL;
-
   nsAutoString docType;
-  nsresult rv = GetDocType(docType);
-  if (NS_FAILED(rv))
-    return E_FAIL;
-
-  if (docType.IsEmpty())
-    return S_FALSE;
-
-  *aDocType = ::SysAllocStringLen(docType.get(), docType.Length());
-  return *aDocType ? S_OK : E_OUTOFMEMORY;
-
-} __except(FilterA11yExceptions(::GetExceptionCode(), GetExceptionInformation())) { }
+  if (NS_SUCCEEDED(GetDocType(docType))) {
+    *aDocType= ::SysAllocString(docType.get());
+    return S_OK;
+  }
   return E_FAIL;
 }
 
 STDMETHODIMP nsDocAccessibleWrap::get_nameSpaceURIForID(/* [in] */  short aNameSpaceID,
   /* [out] */ BSTR __RPC_FAR *aNameSpaceURI)
 {
-__try {
+  if (aNameSpaceID < 0) {
+    return E_FAIL;  // -1 is kNameSpaceID_Unknown
+  }
   *aNameSpaceURI = NULL;
-
-  if (aNameSpaceID < 0)
-    return E_INVALIDARG;  // -1 is kNameSpaceID_Unknown
-
   nsAutoString nameSpaceURI;
-  nsresult rv = GetNameSpaceURIForID(aNameSpaceID, nameSpaceURI);
-  if (NS_FAILED(rv))
-    return E_FAIL;
-
-  if (nameSpaceURI.IsEmpty())
-    return S_FALSE;
-
-  *aNameSpaceURI = ::SysAllocStringLen(nameSpaceURI.get(),
-                                       nameSpaceURI.Length());
-
-  return *aNameSpaceURI ? S_OK : E_OUTOFMEMORY;
-
-} __except(FilterA11yExceptions(::GetExceptionCode(), GetExceptionInformation())) { }
+  if (NS_SUCCEEDED(GetNameSpaceURIForID(aNameSpaceID, nameSpaceURI))) {
+    *aNameSpaceURI = ::SysAllocString(nameSpaceURI.get());
+    return S_OK;
+  }
   return E_FAIL;
 }
 
-STDMETHODIMP
-nsDocAccessibleWrap::put_alternateViewMediaTypes( /* [in] */ BSTR __RPC_FAR *aCommaSeparatedMediaTypes)
+STDMETHODIMP nsDocAccessibleWrap::put_alternateViewMediaTypes( /* [in] */ BSTR __RPC_FAR *commaSeparatedMediaTypes)
 {
-__try {
-  *aCommaSeparatedMediaTypes = NULL;
-} __except(FilterA11yExceptions(::GetExceptionCode(), GetExceptionInformation())) { }
-
   return E_NOTIMPL;
 }
 
-STDMETHODIMP nsDocAccessibleWrap::get_accValue(
-      /* [optional][in] */ VARIANT varChild,
-      /* [retval][out] */ BSTR __RPC_FAR *pszValue)
-{
-  // For backwards-compat, we still support old MSAA hack to provide URL in accValue
-  *pszValue = NULL;
-  // Check for real value first
-  HRESULT hr = nsAccessibleWrap::get_accValue(varChild, pszValue);
-  if (FAILED(hr) || *pszValue || varChild.lVal != CHILDID_SELF)
-    return hr;
-  // If document is being used to create a widget, don't use the URL hack
-  PRUint32 role = Role(this);
-  if (role != nsIAccessibleRole::ROLE_DOCUMENT &&
-      role != nsIAccessibleRole::ROLE_APPLICATION &&
-      role != nsIAccessibleRole::ROLE_DIALOG &&
-      role != nsIAccessibleRole::ROLE_ALERT)
-    return hr;
-
-  return get_URL(pszValue);
-}

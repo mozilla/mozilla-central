@@ -61,7 +61,6 @@ public:
   ~AutoFILE() { if (fp_) fclose(fp_); }
   operator FILE *() { return fp_; }
   FILE** operator &() { return &fp_; }
-  void operator=(FILE *fp) { fp_ = fp; }
 private:
   FILE *fp_;
 };
@@ -71,27 +70,11 @@ nsINIParser::Init(nsILocalFile* aFile)
 {
     nsresult rv;
 
-    /* open the file. Don't use OpenANSIFileDesc, because you mustn't
-       pass FILE* across shared library boundaries, which may be using
-       different CRTs */
-
+    /* open the file */
     AutoFILE fd;
-
-#ifdef XP_WIN
-    nsAutoString path;
-    rv = aFile->GetPath(path);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    fd = _wfopen(path.get(), L"rb");
-#else
-    nsCAutoString path;
-    rv = aFile->GetNativePath(path);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    fd = fopen(path.get(), "r" BINARY_MODE);
-#endif
-    if (!fd)
-      return NS_ERROR_FAILURE;
+    rv = aFile->OpenANSIFileDesc("r" BINARY_MODE, &fd);
+    if (NS_FAILED(rv))
+      return rv;
 
     return InitFromFILE(fd);
 }
@@ -255,7 +238,7 @@ PLDHashOperator
 nsINIParser::GetSectionsCB(const char *aKey, INIValue *aData,
                            void *aClosure)
 {
-    GSClosureStruct *cs = reinterpret_cast<GSClosureStruct*>(aClosure);
+    GSClosureStruct *cs = NS_REINTERPRET_CAST(GSClosureStruct*, aClosure);
 
     return cs->usercb(aKey, cs->userclosure) ? PL_DHASH_NEXT : PL_DHASH_STOP;
 }

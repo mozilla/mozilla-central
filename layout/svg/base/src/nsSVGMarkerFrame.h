@@ -38,6 +38,10 @@
 #define __NS_SVGMARKERFRAME_H__
 
 #include "nsSVGContainerFrame.h"
+#include "nsIDOMSVGAnimatedEnum.h"
+#include "nsIDOMSVGAnimatedAngle.h"
+#include "nsIDOMSVGRect.h"
+#include "nsIDOMSVGAngle.h"
 
 class gfxContext;
 class nsSVGPathGeometryFrame;
@@ -49,16 +53,15 @@ typedef nsSVGContainerFrame nsSVGMarkerFrameBase;
 
 class nsSVGMarkerFrame : public nsSVGMarkerFrameBase
 {
+protected:
   friend nsIFrame*
   NS_NewSVGMarkerFrame(nsIPresShell* aPresShell, nsIContent* aContent, nsStyleContext* aContext);
-protected:
-  nsSVGMarkerFrame(nsStyleContext* aContext) :
-    nsSVGMarkerFrameBase(aContext),
-    mMarkedFrame(nsnull),
-    mInUse(PR_FALSE),
-    mInUse2(PR_FALSE) {}
+
+  NS_IMETHOD InitSVG();
 
 public:
+  nsSVGMarkerFrame(nsStyleContext* aContext) : nsSVGMarkerFrameBase(aContext) {}
+
   /**
    * Get the "type" of the frame
    *
@@ -83,6 +86,11 @@ public:
                     const nsSVGMark *aMark, float aStrokeWidth);
 
 private:
+  nsCOMPtr<nsIDOMSVGAnimatedEnumeration> mMarkerUnits;
+  nsCOMPtr<nsIDOMSVGAnimatedEnumeration> mOrientType;
+  nsCOMPtr<nsIDOMSVGAngle>               mOrientAngle;
+  nsCOMPtr<nsIDOMSVGRect>                mViewBox;
+
   // stuff needed for callback
   nsSVGPathGeometryFrame *mMarkedFrame;
   float mStrokeWidth, mX, mY, mAngle;
@@ -120,7 +128,9 @@ private:
   PRPackedBool mInUse2;
 };
 
-nsIContent *
-NS_GetSVGMarkerElement(nsIURI *aURI, nsIContent *aContent);
+nsresult
+NS_GetSVGMarkerFrame(nsSVGMarkerFrame **aResult,
+                     nsIURI *aURI,
+                     nsIContent *aContent);
 
 #endif

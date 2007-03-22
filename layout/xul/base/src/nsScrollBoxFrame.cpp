@@ -46,9 +46,12 @@
 #include "nsITimer.h"
 #include "nsRepeatService.h"
 
-class nsAutoRepeatBoxFrame : public nsButtonBoxFrame
+class nsAutoRepeatBoxFrame : public nsButtonBoxFrame, 
+                             public nsITimerCallback
 {
 public:
+  NS_DECL_ISUPPORTS_INHERITED
+
   friend nsIFrame* NS_NewAutoRepeatBoxFrame(nsIPresShell* aPresShell,
                                             nsStyleContext* aContext);
 
@@ -74,20 +77,11 @@ public:
                            nsGUIEvent*     aEvent,
                            nsEventStatus*  aEventStatus);
 
+  NS_DECL_NSITIMERCALLBACK
+
 protected:
   nsAutoRepeatBoxFrame(nsIPresShell* aPresShell, nsStyleContext* aContext):
     nsButtonBoxFrame(aPresShell, aContext) {}
-  
-  void StartRepeat() {
-    nsRepeatService::GetInstance()->Start(Notify, this);
-  }
-  void StopRepeat() {
-    nsRepeatService::GetInstance()->Stop(Notify, this);
-  }
-  void Notify();
-  static void Notify(void* aData) {
-    static_cast<nsAutoRepeatBoxFrame*>(aData)->Notify();
-  }
 
   PRPackedBool mTrustedEvent;
   PRPackedBool mIsPressMode;
@@ -100,6 +94,13 @@ NS_NewAutoRepeatBoxFrame (nsIPresShell* aPresShell, nsStyleContext* aContext)
 {
   return new (aPresShell) nsAutoRepeatBoxFrame (aPresShell, aContext);
 } // NS_NewScrollBarButtonFrame
+
+NS_INTERFACE_MAP_BEGIN(nsAutoRepeatBoxFrame)
+  NS_INTERFACE_MAP_ENTRY(nsITimerCallback)
+NS_INTERFACE_MAP_END_INHERITING(nsButtonBoxFrame)
+
+NS_IMPL_ADDREF_INHERITED(nsAutoRepeatBoxFrame, nsButtonBoxFrame)
+NS_IMPL_RELEASE_INHERITED(nsAutoRepeatBoxFrame, nsButtonBoxFrame)
 
 NS_IMETHODIMP
 nsAutoRepeatBoxFrame::Init(nsIContent* aContent,
@@ -124,7 +125,7 @@ nsAutoRepeatBoxFrame::HandleEvent(nsPresContext* aPresContext,
     case NS_MOUSE_ENTER:
     case NS_MOUSE_ENTER_SYNTH:
       if (!mIsPressMode) {
-        StartRepeat();
+        nsRepeatService::GetInstance()->Start(this);
         mTrustedEvent = NS_IS_TRUSTED_EVENT(aEvent);
       }
       break;
@@ -132,7 +133,7 @@ nsAutoRepeatBoxFrame::HandleEvent(nsPresContext* aPresContext,
     case NS_MOUSE_EXIT:
     case NS_MOUSE_EXIT_SYNTH:
       // always stop on mouse exit
-      StopRepeat();
+      nsRepeatService::GetInstance()->Stop();
       // Not really necessary but do this to be safe
       mTrustedEvent = PR_FALSE;
       break;
@@ -156,7 +157,7 @@ nsAutoRepeatBoxFrame::HandlePress(nsPresContext* aPresContext,
   if (mIsPressMode) {
     mTrustedEvent = NS_IS_TRUSTED_EVENT(aEvent);
     DoMouseClick(aEvent, mTrustedEvent);
-    StartRepeat();
+    nsRepeatService::GetInstance()->Start(this);
   }
 
   return NS_OK;
@@ -168,7 +169,7 @@ nsAutoRepeatBoxFrame::HandleRelease(nsPresContext* aPresContext,
                                     nsEventStatus* aEventStatus)
 {
   if (mIsPressMode) {
-    StopRepeat();
+    nsRepeatService::GetInstance()->Stop();
   }
   return NS_OK;
 }
@@ -179,16 +180,17 @@ nsAutoRepeatBoxFrame::AttributeChanged(PRInt32 aNameSpaceID,
                                        PRInt32 aModType)
 {
   if (aAttribute == nsGkAtoms::type) {
-    StopRepeat();
+    nsRepeatService::GetInstance()->Stop();
     InitRepeatMode();
   }
   return NS_OK;
 }
 
-void
-nsAutoRepeatBoxFrame::Notify()
+NS_IMETHODIMP
+nsAutoRepeatBoxFrame::Notify(nsITimer *timer)
 {
   DoMouseClick(nsnull, mTrustedEvent);
+  return NS_OK;
 }
 
 void
@@ -196,7 +198,7 @@ nsAutoRepeatBoxFrame::Destroy()
 {
   // Ensure our repeat service isn't going... it's possible that a scrollbar can disappear out
   // from under you while you're in the process of scrolling.
-  StopRepeat();
+  nsRepeatService::GetInstance()->Stop();
   nsButtonBoxFrame::Destroy();
 }
 

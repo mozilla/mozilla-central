@@ -40,12 +40,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '11.6.1.js';
-
 START("11.6.1 - XML Assignment");
 
 // Change the value of the id attribute on the second item
-order =
+order = 
 <order>
     <item id="1">
         <description>Big Screen Television</description>
@@ -65,7 +63,7 @@ order =
     </item>
 </order>;
 
-correct =
+correct = 
 <order>
     <item id="1">
         <description>Big Screen Television</description>
@@ -89,7 +87,7 @@ order.item[1].@id = 1.23;
 TEST(1, correct, order);
 
 // Add a new attribute to the second item
-order =
+order = 
 <order>
     <item id="1">
         <description>Big Screen Television</description>
@@ -109,7 +107,7 @@ order =
     </item>
 </order>;
 
-correct =
+correct = 
 <order>
     <item id="1">
         <description>Big Screen Television</description>
@@ -133,7 +131,7 @@ order.item[1].@newattr = "new value";
 TEST(2, correct, order);
 
 // Construct an attribute list containing all the ids in this order
-order =
+order = 
 <order>
     <item id="1">
         <description>Big Screen Television</description>
@@ -153,11 +151,11 @@ order =
     </item>
 </order>;
 
-order.@allids = order.item.@id;   
+order.@allids = order.item.@id;    
 TEST_XML(3, "1 2 3 4", order.@allids);
 
 // Replace first child of the order element with an XML value
-order =
+order = 
 <order>
     <customer>
         <name>John</name>
@@ -184,7 +182,7 @@ order =
 </order>;
 
 
-order.*[0] =
+order.*[0] = 
 <customer>
     <name>Fred</name>
     <address>123 Foobar Ave.</address>
@@ -192,7 +190,7 @@ order.*[0] =
     <state>WA</state>
 </customer>;
 
-correct =
+correct = 
 <order>
     <customer>
        <name>Fred</name>
@@ -222,7 +220,7 @@ TEST(4, correct, order);
 
 // Replace the second child of the order element with a list of items
 
-order =
+order = 
 <order>
     <customer>
         <name>John</name>
@@ -248,7 +246,7 @@ order =
     </item>
 </order>;
 
-correct =
+correct = 
 <order>
     <customer>
         <name>John</name>
@@ -273,14 +271,14 @@ correct =
     </item>
 </order>;
 
-order.item[0] = <item>item one</item> +
-           <item>item two</item> +
+order.item[0] = <item>item one</item> + 
+           <item>item two</item> + 
            <item>item three</item>;
 
 TEST(5, correct, order);
 
 // Replace the third child of the order with a text node
-order =
+order = 
 <order>
     <customer>
         <name>John</name>
@@ -306,7 +304,7 @@ order =
     </item>
 </order>;
 
-correct =
+correct = 
 <order>
     <customer>
         <name>John</name>
@@ -335,7 +333,7 @@ TEST(6, correct, order);
 
 // append a new item to the end of the order
 
-order =
+order = 
 <order>
     <customer>
         <name>John</name>
@@ -361,7 +359,7 @@ order =
     </item>
 </order>;
 
-correct =
+correct = 
 <order>
     <customer>
         <name>John</name>

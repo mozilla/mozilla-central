@@ -385,7 +385,7 @@ nsStringBundle::FormatString(const PRUnichar *aFormatStr,
   // Don't believe me? See:
   //   http://www.eskimo.com/~scs/C-faq/q15.13.html
   // -alecf
-  PRUnichar *text = 
+  *aResult = 
     nsTextFormatter::smprintf(aFormatStr,
                               aLength >= 1 ? aParams[0] : nsnull,
                               aLength >= 2 ? aParams[1] : nsnull,
@@ -397,21 +397,7 @@ nsStringBundle::FormatString(const PRUnichar *aFormatStr,
                               aLength >= 8 ? aParams[7] : nsnull,
                               aLength >= 9 ? aParams[8] : nsnull,
                               aLength >= 10 ? aParams[9] : nsnull);
-
-  if (!text) {
-    *aResult = nsnull;
-    return NS_ERROR_OUT_OF_MEMORY;
-  }
-
-  // nsTextFormatter does not use the shared nsMemory allocator.
-  // Instead it is required to free the memory it allocates using
-  // nsTextFormatter::smprintf_free.  Let's instead use nsMemory based
-  // allocation for the result that we give out and free the string
-  // returned by smprintf ourselves!
-  *aResult = NS_strdup(text);
-  nsTextFormatter::smprintf_free(text);
-
-  return *aResult ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
+  return NS_OK;
 }
 
 NS_IMPL_ISUPPORTS1(nsExtensibleStringBundle, nsIStringBundle)
@@ -584,7 +570,6 @@ nsStringBundleService::Init()
     os->AddObserver(this, "memory-pressure", PR_TRUE);
     os->AddObserver(this, "profile-do-change", PR_TRUE);
     os->AddObserver(this, "chrome-flush-caches", PR_TRUE);
-    os->AddObserver(this, "xpcom-category-entry-added", PR_TRUE);
   }
 
   // instantiate the override service, if there is any.
@@ -603,15 +588,7 @@ nsStringBundleService::Observe(nsISupports* aSubject,
   if (strcmp("memory-pressure", aTopic) == 0 ||
       strcmp("profile-do-change", aTopic) == 0 ||
       strcmp("chrome-flush-caches", aTopic) == 0)
-  {
     flushBundleCache();
-  }
-  else if (strcmp("xpcom-category-entry-added", aTopic) == 0 &&
-           NS_LITERAL_STRING("xpcom-autoregistration").Equals(aSomeData)) 
-  {
-    mOverrideStrings = do_GetService(NS_STRINGBUNDLETEXTOVERRIDE_CONTRACTID);
-  }
-  
   return NS_OK;
 }
 

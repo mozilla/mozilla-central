@@ -97,7 +97,7 @@ NS_METHOD
 nsInputStreamTee::WriteSegmentFun(nsIInputStream *in, void *closure, const char *fromSegment,
                                   PRUint32 offset, PRUint32 count, PRUint32 *writeCount)
 {
-    nsInputStreamTee *tee = reinterpret_cast<nsInputStreamTee *>(closure);
+    nsInputStreamTee *tee = NS_REINTERPRET_CAST(nsInputStreamTee *, closure);
 
     nsresult rv = tee->mWriter(in, tee->mClosure, fromSegment, offset, count, writeCount);
     if (NS_FAILED(rv) || (*writeCount == 0)) {

@@ -73,10 +73,10 @@ public:
   void Init(const PluginWindowWeakRef &ref, HWND hWnd, ULONG msg, MPARAM mp1, MPARAM mp2);
   void Clear();
   HWND   GetWnd()    { return mWnd; };
-  ULONG  GetMsg()    { return mMsg; };
+  ULONG   GetMsg()    { return mMsg; };
   MPARAM GetWParam() { return mWParam; };
   MPARAM GetLParam() { return mLParam; };
-  PRBool InUse()     { return (mWnd!=NULL); };
+  PRBool InUse()     { return (mWnd!=NULL || mMsg!=0); };
   
   NS_DECL_NSIRUNNABLE
 
@@ -86,6 +86,7 @@ protected:
   ULONG  mMsg;
   MPARAM mWParam;
   MPARAM mLParam;
+  PRBool mIsAlloced;
 };
 
 PluginWindowEvent::PluginWindowEvent()
@@ -96,13 +97,16 @@ PluginWindowEvent::PluginWindowEvent()
 void PluginWindowEvent::Clear()
 {
   mWnd    = NULL;
+  mMsg    = 0;
+  mWParam = 0;
+  mLParam = 0;
 }
 
 void PluginWindowEvent::Init(const PluginWindowWeakRef &ref, HWND aWnd,
                              ULONG aMsg, MPARAM mp1, MPARAM mp2)
 {
-  NS_ASSERTION(aWnd != NULL, "invalid plugin event value");
-  NS_ASSERTION(mWnd == NULL, "event already in use");
+  NS_ASSERTION(aWnd!=NULL && aMsg!=0, "invalid plugin event value");
+  NS_ASSERTION(mWnd==NULL && mMsg==0 && mWParam==0 && mLParam==0,"event already in use");
   mPluginWindowRef = ref;
   mWnd    = aWnd;
   mMsg    = aMsg;
@@ -135,10 +139,7 @@ private:
 public:
   // locals
   PFNWP GetWindowProc();
-  PluginWindowEvent* GetPluginWindowEvent(HWND aWnd,
-                                          ULONG aMsg,
-                                          MPARAM mp1, 
-                                          MPARAM mp2);
+  PluginWindowEvent * GetPluginWindowEvent(HWND aWnd, ULONG aMsg, MPARAM mp1, MPARAM mp2);
 
 private:
   PFNWP mPluginWinProc;
@@ -280,29 +281,24 @@ nsPluginNativeWindowOS2::GetPluginWindowEvent(HWND aWnd, ULONG aMsg, MPARAM aMp1
   }
 
   PluginWindowEvent *event;
-
-  // We have the ability to alloc if needed in case in the future some plugin
-  // should post multiple PostMessages. However, this could lead to many
-  // alloc's per second which could become a performance issue. See bug 169247.
-  if (!mCachedPluginWindowEvent) 
-  {
+  if (!mCachedPluginWindowEvent || mCachedPluginWindowEvent->InUse()) {
+    // We have the ability to alloc if needed in case in the future some plugin
+    // should post multiple PostMessages. However, this could lead to many
+    // alloc's per second which could become a performance issue. If/when this
+    // is asserting then this needs to be studied. See bug 169247
+    NS_ASSERTION(1, "possible plugin performance issue");
     event = new PluginWindowEvent();
-    if (!event) return nsnull;
-    mCachedPluginWindowEvent = event;
+    if (!event)
+      return nsnull;
   }
-  else if (mCachedPluginWindowEvent->InUse())
-  {
-    event = new PluginWindowEvent();
-    if (!event) return nsnull;
-  }
-  else
-  {
+  else {
     event = mCachedPluginWindowEvent;
   }
+  NS_ADDREF(event);
 
   event->Init(mWeakRef, aWnd, aMsg, aMp1, aMp2);
   return event;
-}
+};
 
 nsresult nsPluginNativeWindowOS2::CallSetWindow(nsCOMPtr<nsIPluginInstance> &aPluginInstance)
 {

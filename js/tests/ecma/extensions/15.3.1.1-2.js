@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '15.3.1.1-2.js';
-
 /**
    File Name:          15.3.1.1-2.js
    ECMA Section:       15.3.1.1 The Function Constructor Called as a Function
@@ -69,14 +67,14 @@ myfunc2.toString = Object.prototype.toString;
 myfunc3.toString = Object.prototype.toString;
 
 
-new TestCase( SECTION, 
-	      "myfunc2.__proto__",                        
-	      Function.prototype,    
+new TestCase( SECTION,  
+	      "myfunc2.__proto__",                         
+	      Function.prototype,     
 	      myfunc2.__proto__ );
 
-new TestCase( SECTION, 
-	      "myfunc3.__proto__",                        
-	      Function.prototype,    
+new TestCase( SECTION,  
+	      "myfunc3.__proto__",                         
+	      Function.prototype,     
 	      myfunc3.__proto__ );
 
 test();

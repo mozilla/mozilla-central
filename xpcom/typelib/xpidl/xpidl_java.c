@@ -144,55 +144,6 @@ write_indent(FILE *outfile) {
     fputs("  ", outfile);
 }
 
-static GSList*
-add_deprecated(GSList *comments)
-{
-    GSList *last;
-    char *buffer;
-    char *replaced;
-    const char deprecated[] = "* @deprecated */";
-
-    /* Handle the easy case: no documentation. */
-    if (comments == NULL) {
-        buffer = malloc(sizeof(deprecated)+2);
-        buffer[0] = '/';
-        buffer[1] = '*';
-        strcpy(buffer+2, deprecated);
-
-        return g_slist_append(comments, buffer);
-    }
-
-    /* xpidl is so nice in that they give us the data as a single node.
-     * We are going to have to (very hackishly) strip out the the end of the
-     * documentation comment, add the tag, and then pop it back together.
-     */
-
-    /* Step 1: Move the comment into a larger buffer, so that we can have
-     * more space to work with.
-     */
-    last = g_slist_last(comments);
-    buffer = last->data;
-    replaced = (char *)malloc(strlen(buffer) + sizeof(deprecated));
-    strcpy(replaced, buffer);
-    last->data = replaced;
-    free(buffer);
-    
-    /* Now replaced has the comment, with a large enough buffer to put in the
-     * @deprecated tag. We search for the last / in hopes that the previous
-     * character is the * we're looking for...
-     */
-    buffer = strrchr(replaced, '/');
-    if (buffer == NULL || buffer == replaced || buffer[-1] == '*') {
-        /* We can't find a '/', so there's no comment, or this is not the end
-         * of a comment, so we'll ignore adding the deprecated tag.
-         */
-        return comments;
-    }
-    /* buffer now points to '*' '/'. Overwrite both. */
-    strcpy(buffer-1, deprecated);
-    return comments;
-}
-
 static gboolean
 write_classname_iid_define(FILE *file, const char *className)
 {
@@ -339,9 +290,6 @@ interface_declaration(TreeState *state)
         strncpy(outname, state->filename, p + 1 - state->filename);
         outname[p + 1 - state->filename] = '\0';
     }
-    else {
-        outname[0] = '\0';
-    }
     strcat(outname, interface_name);
     strcat(outname, ".java");
 
@@ -377,13 +325,6 @@ interface_declaration(TreeState *state)
         IDL_tree_error(state->tree, "interface %s lacks a uuid attribute\n", 
                        interface_name);
         return FALSE;
-    }
-
-    /*
-     * Add deprecated tags if the interface is deprecated
-     */
-    if (IDL_tree_property_get(IDL_INTERFACE(interface).ident, "deprecated")) {
-        doc_comments = add_deprecated(doc_comments);
     }
 
     /*
@@ -528,10 +469,14 @@ xpcom_to_java_type(TreeState *state, IDL_tree param)
         break;
 
     case IDLN_TYPE_OCTET:
-        if (param && IDL_tree_property_get(IDL_PARAM_DCL(param).simple_declarator, "array"))
-            fputs("byte", state->file);
-        else
-            fputs("short", state->file);
+        /* If real type is 'PRUint8', promote to 'short' */
+        if (IDL_NODE_TYPE(state->tree) == IDLN_IDENT) {
+            if (strcmp(IDL_IDENT(state->tree).str, "PRUint8") == 0) {
+                fputs("short", state->file);
+                break;
+            }
+        }
+        fputs("byte", state->file);
         break;
 
     case IDLN_TYPE_FLOAT:
@@ -832,13 +777,6 @@ method_declaration(TreeState *state)
     }
 #endif
 
-    /*
-     * Add deprecated tags if the interface is deprecated
-     */
-    if (IDL_tree_property_get(method->ident, "deprecated")) {
-        doc_comments = add_deprecated(doc_comments);
-    }
-
     if (doc_comments != NULL) {
         write_indent(state->file);
         printlist(state->file, doc_comments);
@@ -1076,14 +1014,6 @@ attribute_declaration(TreeState *state)
     doc_comments =
         IDL_IDENT(IDL_LIST(IDL_ATTR_DCL
                            (state->tree).simple_declarations).data).comments;
-
-    /*
-     * Add deprecated tags if the interface is deprecated
-     */
-    if (IDL_tree_property_get(ATTR_PROPS(state->tree), "deprecated")) {
-        doc_comments = add_deprecated(doc_comments);
-    }
-
     if (doc_comments != NULL) {
         write_indent(state->file);
         printlist(state->file, doc_comments);

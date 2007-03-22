@@ -55,12 +55,10 @@
  * right calling conventions on Win16.
  */
 
-/* XXX NP_CALLBACK should be the same as NP_LOADDS in npapi.h which differs
-   for WIN16 and maybe WIN64? */
 #ifdef XP_OS2
-#define NP_CALLBACK _System
+#define NP_EXPORT _System
 #else
-#define NP_CALLBACK
+#define NP_EXPORT
 #endif
 
 #if defined(XP_WIN)
@@ -173,80 +171,76 @@ protected:
 
 
 PR_BEGIN_EXTERN_C
-NPObject* NP_CALLBACK
+NPObject* NP_EXPORT
 _getwindowobject(NPP npp);
 
-NPObject* NP_CALLBACK
+NPObject* NP_EXPORT
 _getpluginelement(NPP npp);
 
-NPIdentifier NP_CALLBACK
+NPIdentifier NP_EXPORT
 _getstringidentifier(const NPUTF8* name);
 
-void NP_CALLBACK
+void NP_EXPORT
 _getstringidentifiers(const NPUTF8** names, int32_t nameCount,
                       NPIdentifier *identifiers);
 
-bool NP_CALLBACK
+bool NP_EXPORT
 _identifierisstring(NPIdentifier identifiers);
 
-NPIdentifier NP_CALLBACK
+NPIdentifier NP_EXPORT
 _getintidentifier(int32_t intid);
 
-NPUTF8* NP_CALLBACK
+NPUTF8* NP_EXPORT
 _utf8fromidentifier(NPIdentifier identifier);
 
-int32_t NP_CALLBACK
+int32_t NP_EXPORT
 _intfromidentifier(NPIdentifier identifier);
 
-NPObject* NP_CALLBACK
+NPObject* NP_EXPORT
 _createobject(NPP npp, NPClass* aClass);
 
-NPObject* NP_CALLBACK
+NPObject* NP_EXPORT
 _retainobject(NPObject* npobj);
 
-void NP_CALLBACK
+void NP_EXPORT
 _releaseobject(NPObject* npobj);
 
-bool NP_CALLBACK
+bool NP_EXPORT
 _invoke(NPP npp, NPObject* npobj, NPIdentifier method, const NPVariant *args,
         uint32_t argCount, NPVariant *result);
 
-bool NP_CALLBACK
+bool NP_EXPORT
 _invokeDefault(NPP npp, NPObject* npobj, const NPVariant *args,
                uint32_t argCount, NPVariant *result);
 
-bool NP_CALLBACK
+bool NP_EXPORT
 _evaluate(NPP npp, NPObject* npobj, NPString *script, NPVariant *result);
 
-bool NP_CALLBACK
+bool NP_EXPORT
 _getproperty(NPP npp, NPObject* npobj, NPIdentifier property,
              NPVariant *result);
 
-bool NP_CALLBACK
+bool NP_EXPORT
 _setproperty(NPP npp, NPObject* npobj, NPIdentifier property,
              const NPVariant *value);
 
-bool NP_CALLBACK
+bool NP_EXPORT
 _removeproperty(NPP npp, NPObject* npobj, NPIdentifier property);
 
-bool NP_CALLBACK
+bool NP_EXPORT
 _hasproperty(NPP npp, NPObject* npobj, NPIdentifier propertyName);
 
-bool NP_CALLBACK
+bool NP_EXPORT
 _hasmethod(NPP npp, NPObject* npobj, NPIdentifier methodName);
 
-bool NP_CALLBACK
+bool NP_EXPORT
 _enumerate(NPP npp, NPObject *npobj, NPIdentifier **identifier,
            uint32_t *count);
 
-bool NP_CALLBACK
-_construct(NPP npp, NPObject* npobj, const NPVariant *args,
-           uint32_t argCount, NPVariant *result);
-
-void NP_CALLBACK
+void NP_EXPORT
 _releasevariantvalue(NPVariant *variant);
 
-void NP_CALLBACK
+void NP_EXPORT
 _setexception(NPObject* npobj, const NPUTF8 *message);
 
 PR_END_EXTERN_C
@@ -256,17 +250,6 @@ PeekException();
 
 void
 PopException();
-
-void
-OnPluginDestroy(NPP instance);
-
-void
-OnShutdown();
-
-void
-EnterAsyncPluginThreadCallLock();
-void
-ExitAsyncPluginThreadCallLock();
 
 class NPPStack
 {
@@ -280,22 +263,11 @@ protected:
   static NPP sCurrentNPP;
 };
 
-// XXXjst: The NPPAutoPusher stack is a bit redundant now that
-// PluginDestructionGuard exists, and could thus be replaced by code
-// that uses the PluginDestructionGuard list of plugins on the
-// stack. But they're not identical, and to minimize code changes
-// we're keeping both for the moment, and making NPPAutoPusher inherit
-// the PluginDestructionGuard class to avoid having to keep two
-// separate objects on the stack since we always want a
-// PluginDestructionGuard where we use an NPPAutoPusher.
-
-class NPPAutoPusher : public NPPStack,
-                      protected PluginDestructionGuard
+class NPPAutoPusher : public NPPStack
 {
 public:
   NPPAutoPusher(NPP npp)
-    : PluginDestructionGuard(npp),
-      mOldNPP(sCurrentNPP)
+    : mOldNPP(sCurrentNPP)
   {
     NS_ASSERTION(npp, "Uh, null npp passed to NPPAutoPusher!");
 

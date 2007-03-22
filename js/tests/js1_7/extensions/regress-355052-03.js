@@ -34,10 +34,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-355052-03.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 355052;
+var bug = 355052;
 var summary = 'Do not crash with valueOf:gc and __iterator__';
 var actual = 'No Crash';
 var expect = 'No Crash';
@@ -50,10 +48,10 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
-
-  expect = /TypeError: NaN is not a function/;
+  
+  expect = 'TypeError: NaN is not a function';
   actual = 'No Error';
   try
   {
@@ -70,7 +68,7 @@ function test()
     actual = ex + '';
   }
 
-  reportMatch(expect, actual, summary);
+  reportCompare(expect, actual, summary);
 
   exitFunc ('test');
 }

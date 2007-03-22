@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '7.4.3-16-n.js';
-
 /**
    File Name:          lexical-023.js
    Corresponds To:     7.4.3-16-n.js

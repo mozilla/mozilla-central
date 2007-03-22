@@ -140,12 +140,10 @@ nsresult nsLookAndFeel::NativeGetColor(const nsColorID aID, nscolor &aColor)
 		aColor = PH_TO_NS_RGB(Pg_DGREY);
 		break;
 	  case eColor_highlight:
-	  case eColor__moz_html_cellhighlight:
 	  case eColor__moz_menuhover:
 		aColor = PH_TO_NS_RGB(0x9ba9c9); // bill blue
 		break;
 	  case eColor_highlighttext:
-	  case eColor__moz_html_cellhighlighttext:
 	  case eColor__moz_menuhovertext:
 		aColor = PH_TO_NS_RGB(Pg_BLACK);
 		break;
@@ -214,8 +212,9 @@ nsresult nsLookAndFeel::NativeGetColor(const nsColorID aID, nscolor &aColor)
 		aColor = PH_TO_NS_RGB(Pg_BLACK);
 		break;
 
-	  case eColor__moz_eventreerow:
-	  case eColor__moz_oddtreerow:
+	  // from the CSS3 working draft (not yet finalized)
+	  // http://www.w3.org/tr/2000/wd-css3-userint-20000216.html#color
+
 	  case eColor__moz_field:
 		aColor = PH_TO_NS_RGB(Pg_WHITE);
 		break;
@@ -362,18 +361,6 @@ NS_IMETHODIMP nsLookAndFeel::GetMetric(const nsMetricID aID, PRInt32 & aMetric)
     break;
   case eMetric_TreeScrollLinesMax:
     aMetric = 3;
-    break;
-  case eMetric_WindowsDefaultTheme:
-    aMetric = 0;
-    res = NS_ERROR_NOT_IMPLEMENTED;
-    break;
-  case eMetric_IMERawInputUnderlineStyle:
-  case eMetric_IMEConvertedTextUnderlineStyle:
-    aMetric = NS_UNDERLINE_STYLE_SOLID;
-    break;
-  case eMetric_IMESelectedRawTextUnderlineStyle:
-  case eMetric_IMESelectedConvertedTextUnderline:
-    aMetric = NS_UNDERLINE_STYLE_NONE;
     break;
 
   default:

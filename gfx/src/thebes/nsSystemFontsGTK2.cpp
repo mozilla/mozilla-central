@@ -56,7 +56,7 @@
 #include "gfxPlatformGtk.h"
 
 // Glue to avoid build/runtime dependencies on Pango > 1.6
-#ifndef THEBES_USE_PANGO_CAIRO
+
 static gboolean
 (* PTR_pango_font_description_get_size_is_absolute)(PangoFontDescription*)
     = nsnull;
@@ -68,18 +68,15 @@ static void InitPangoLib()
         return;
     initialized = PR_TRUE;
 
-    PRLibrary *pangoLib = nsnull;
+    PRLibrary* lib = PR_LoadLibrary("libpango-1.0.so");
+    if (!lib)
+        return;
+
     PTR_pango_font_description_get_size_is_absolute =
         (gboolean (*)(PangoFontDescription*))
-        PR_FindFunctionSymbolAndLibrary("pango_font_description_get_size_is_absolute",
-                                        &pangoLib);
-    if (pangoLib)
-        PR_UnloadLibrary(pangoLib);
-}
+        PR_FindFunctionSymbol(lib, "pango_font_description_get_size_is_absolute");
 
-static void
-ShutdownPangoLib()
-{
+    // leak lib deliberately
 }
 
 static gboolean
@@ -92,27 +89,30 @@ MOZ_pango_font_description_get_size_is_absolute(PangoFontDescription *desc)
     // In old versions of pango, this was always false.
     return PR_FALSE;
 }
-#else
-static inline void InitPangoLib()
-{
-}
 
-static inline void ShutdownPangoLib()
-{
-}
-
-static inline gboolean
-MOZ_pango_font_description_get_size_is_absolute(PangoFontDescription *desc)
-{
-    pango_font_description_get_size_is_absolute(desc);
-}
-#endif
+#define DEFAULT_PIXEL_FONT_SIZE 16.0f
 
 nsSystemFontsGTK2::nsSystemFontsGTK2()
   : mDefaultFontName(NS_LITERAL_STRING("sans-serif"))
   , mButtonFontName(NS_LITERAL_STRING("sans-serif"))
   , mFieldFontName(NS_LITERAL_STRING("sans-serif"))
   , mMenuFontName(NS_LITERAL_STRING("sans-serif"))
+  , mDefaultFontStyle(FONT_STYLE_NORMAL, FONT_VARIANT_NORMAL,
+                 FONT_WEIGHT_NORMAL, FONT_DECORATION_NONE,
+                 DEFAULT_PIXEL_FONT_SIZE, NS_LITERAL_CSTRING(""),
+                 0.0f, PR_TRUE, PR_FALSE)
+  , mButtonFontStyle(FONT_STYLE_NORMAL, FONT_VARIANT_NORMAL,
+                FONT_WEIGHT_NORMAL, FONT_DECORATION_NONE,
+                DEFAULT_PIXEL_FONT_SIZE, NS_LITERAL_CSTRING(""),
+                0.0f, PR_TRUE, PR_FALSE)
+  , mFieldFontStyle(FONT_STYLE_NORMAL, FONT_VARIANT_NORMAL,
+               FONT_WEIGHT_NORMAL, FONT_DECORATION_NONE,
+               DEFAULT_PIXEL_FONT_SIZE, NS_LITERAL_CSTRING(""),
+               0.0f, PR_TRUE, PR_FALSE)
+  , mMenuFontStyle(FONT_STYLE_NORMAL, FONT_VARIANT_NORMAL,
+               FONT_WEIGHT_NORMAL, FONT_DECORATION_NONE,
+               DEFAULT_PIXEL_FONT_SIZE, NS_LITERAL_CSTRING(""),
+               0.0f, PR_TRUE, PR_FALSE)
 {
     InitPangoLib();
 
@@ -181,11 +181,6 @@ nsSystemFontsGTK2::nsSystemFontsGTK2()
     gtk_widget_destroy(window);  // no unref, windows are different
 }
 
-nsSystemFontsGTK2::~nsSystemFontsGTK2()
-{
-    ShutdownPangoLib();
-}
-
 nsresult
 nsSystemFontsGTK2::GetSystemFontInfo(GtkWidget *aWidget, nsString *aFontName,
                                      gfxFontStyle *aFontStyle) const
@@ -193,6 +188,7 @@ nsSystemFontsGTK2::GetSystemFontInfo(GtkWidget *aWidget, nsString *aFontName,
     GtkSettings *settings = gtk_widget_get_settings(aWidget);
 
     aFontStyle->style       = FONT_STYLE_NORMAL;
+    aFontStyle->decorations = FONT_DECORATION_NONE;
 
     gchar *fontname;
     g_object_get(settings, "gtk-font-name", &fontname, NULL);
@@ -216,7 +212,7 @@ nsSystemFontsGTK2::GetSystemFontInfo(GtkWidget *aWidget, nsString *aFontName,
 
     if (!MOZ_pango_font_description_get_size_is_absolute(desc)) {
         // |size| is in pango-points, so convert to pixels.
-        size *= float(gfxPlatformGtk::DPI()) / POINTS_PER_INCH_FLOAT;
+        size *= float(gfxPlatformGtk::DPI()) / 72.0f;
     }
 
     // |size| is now pixels

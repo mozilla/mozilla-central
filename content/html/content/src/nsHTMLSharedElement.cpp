@@ -128,10 +128,9 @@ NS_IMPL_RELEASE_INHERITED(nsHTMLSharedElement, nsGenericElement)
 
 
 // QueryInterface implementation for nsHTMLSharedElement
-NS_HTML_CONTENT_INTERFACE_TABLE_AMBIGOUS_HEAD(nsHTMLSharedElement,
-                                              nsGenericHTMLElement,
-                                              nsIDOMHTMLParamElement)
-  NS_INTERFACE_TABLE_TO_MAP_SEGUE
+NS_HTML_CONTENT_INTERFACE_MAP_AMBIGOUS_BEGIN(nsHTMLSharedElement,
+                                             nsGenericHTMLElement,
+                                             nsIDOMHTMLParamElement)
   NS_INTERFACE_MAP_ENTRY_IF_TAG(nsIDOMHTMLParamElement, param)
   NS_INTERFACE_MAP_ENTRY_IF_TAG(nsIDOMHTMLIsIndexElement, isindex)
   NS_INTERFACE_MAP_ENTRY_IF_TAG(nsIDOMHTMLBaseElement, base)
@@ -207,7 +206,7 @@ nsHTMLSharedElement::ParseAttribute(PRInt32 aNamespaceID,
       }
       if (aAttribute == nsGkAtoms::width ||
           aAttribute == nsGkAtoms::height) {
-        return aResult.ParseSpecialIntValue(aValue, PR_TRUE);
+        return aResult.ParseSpecialIntValue(aValue, PR_TRUE, PR_FALSE);
       }
     }
     else if (mNodeInfo->Equals(nsGkAtoms::dir) ||
@@ -239,7 +238,7 @@ SpacerMapAttributesIntoRule(const nsMappedAttributes* aAttributes,
   nsGenericHTMLElement::MapImageMarginAttributeInto(aAttributes, aData);
   nsGenericHTMLElement::MapImageSizeAttributesInto(aAttributes, aData);
 
-  if (aData->mSIDs & NS_STYLE_INHERIT_BIT(Position)) {
+  if (aData->mSID == eStyleStruct_Position) {
     const nsStyleDisplay* display = aData->mStyleContext->GetStyleDisplay();
 
     PRBool typeIsBlock = (display->mDisplay == NS_STYLE_DISPLAY_BLOCK);
@@ -280,8 +279,7 @@ SpacerMapAttributesIntoRule(const nsMappedAttributes* aAttributes,
                                  eCSSUnit_Pixel);
       }
     }
-  }
-  if (aData->mSIDs & NS_STYLE_INHERIT_BIT(Display)) {
+  } else if (aData->mSID == eStyleStruct_Display) {
     const nsAttrValue* value = aAttributes->GetAttr(nsGkAtoms::align);
     if (value && value->Type() == nsAttrValue::eEnum) {
       PRInt32 align = value->GetEnumValue();
@@ -319,7 +317,7 @@ static void
 DirectoryMenuMapAttributesIntoRule(const nsMappedAttributes* aAttributes,
                                nsRuleData* aData)
 {
-  if (aData->mSIDs & NS_STYLE_INHERIT_BIT(List)) {
+  if (aData->mSID == eStyleStruct_List) {
     if (aData->mListData->mType.GetUnit() == eCSSUnit_Null) {
       // type: enum
       const nsAttrValue* value = aAttributes->GetAttr(nsGkAtoms::type);

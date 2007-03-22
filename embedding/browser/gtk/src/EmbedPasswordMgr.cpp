@@ -78,28 +78,32 @@
 #include "nsCOMArray.h"
 #include "nsIServiceManager.h"
 #include "nsIIDNService.h"
+
 #include "nsIAuthInformation.h"
 #include "nsIChannel.h"
-
+#include "nsIPromptService2.h"
 #include "nsIProxiedChannel.h"
 #include "nsIProxyInfo.h"
 #include "nsIURI.h"
 #include "nsNetUtil.h"
 #include "nsEmbedCID.h"
-#include "nsIPromptService2.h"
+#include "nsPromptUtils.h"
+
 #include "EmbedPrivate.h"
 #include "gtkmozembedprivate.h"
 #ifdef MOZILLA_INTERNAL_API
 #include "nsString.h"
 #include "nsXPIDLString.h"
+#include "nsIForm.h"
 #else
 #include "nsDirectoryServiceUtils.h"
+//FIXME
+typedef char* nsXPIDLCString;
+typedef PRUnichar* nsXPIDLString;
+#define getter_Copies(str) &str
 #include "nsComponentManagerUtils.h"
-#include "nsStringAPI.h"
-#endif
-#if defined(FIXED_BUG347731) || !defined(MOZ_ENABLE_LIBXUL)
-#include "nsPromptUtils.h"
 #include "nsIForm.h"
+#include "nsStringAPI.h"
 #endif
 #include "nsIPassword.h"
 #include "nsIPasswordInternal.h"
@@ -292,13 +296,20 @@ EmbedPasswordMgr::Init()
   NS_ASSERTION(progress, "No web progress service");
   progress->AddProgressListener(this, nsIWebProgress::NOTIFY_STATE_DOCUMENT);
   // Now read in the signon file
-  char* signonFile = nsnull;
-  mPrefBranch->GetCharPref("SignonFileName", &signonFile);
-  NS_ASSERTION(signonFile, "Fallback for signon filename not present");
+  nsXPIDLCString signonFile;
+  mPrefBranch->GetCharPref("SignonFileName", getter_Copies(signonFile));
+#ifdef MOZILLA_INTERNAL_API
+  NS_ASSERTION(!signonFile.IsEmpty(), "Fallback for signon filename not present");
+#endif
   NS_GetSpecialDirectory(NS_APP_USER_PROFILE_50_DIR, getter_AddRefs(mSignonFile));
   NS_ENSURE_TRUE(mSignonFile, NS_ERROR_FAILURE);
-  mSignonFile->AppendNative(nsCString(signonFile));
-  nsCString path;
+#ifdef MOZILLA_INTERNAL_API
+  mSignonFile->AppendNative(signonFile);
+#else
+  nsCString cSignonFile(signonFile);
+  mSignonFile->AppendNative(cSignonFile);
+#endif
+  nsCAutoString path;
   mSignonFile->GetNativePath(path);
   ReadPasswords(mSignonFile);
   return NS_OK;
@@ -327,20 +338,20 @@ EmbedPasswordMgr::Register(nsIComponentManager* aCompMgr,
   nsresult rv;
   nsCOMPtr<nsICategoryManager> catman = do_GetService(NS_CATEGORYMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  char* prevEntry;
+  nsXPIDLCString prevEntry;
   catman->AddCategoryEntry(NS_PASSWORDMANAGER_CATEGORY,
                            "MicroB Password Manager",
                            NS_PASSWORDMANAGER_CONTRACTID,
                            PR_TRUE,
                            PR_TRUE,
-                           &prevEntry);
+                           getter_Copies(prevEntry));
 
   catman->AddCategoryEntry("app-startup",
                            "MicroB Password Manager",
                            NS_PASSWORDMANAGER_CONTRACTID,
                            PR_TRUE,
                            PR_TRUE,
-                           &prevEntry);
+                           getter_Copies(prevEntry));
 
   return NS_OK;
 }
@@ -406,12 +417,12 @@ NS_IMETHODIMP
 EmbedPasswordMgr::InsertLogin(const char* username, const char* password)
 {
   if (username && mGlobalUserField)
-    mGlobalUserField->SetValue(NS_ConvertUTF8toUTF16(username));
+    mGlobalUserField->SetValue (NS_ConvertUTF8toUTF16(username));
   else
     return NS_ERROR_FAILURE;
 
   if (password && mGlobalPassField)
-    mGlobalPassField->SetValue(NS_ConvertUTF8toUTF16(password));
+    mGlobalPassField->SetValue (NS_ConvertUTF8toUTF16(password));
   else
     FillPassword();
 
@@ -424,13 +435,14 @@ EmbedPasswordMgr::RemovePasswordsByIndex(PRUint32 aIndex)
   nsCOMPtr<nsIPasswordManager> passwordManager = do_GetService(NS_PASSWORDMANAGER_CONTRACTID);
   if (!passwordManager)
     return NS_ERROR_NULL_POINTER;
-  nsCOMPtr<nsIIDNService> idnService(do_GetService("@mozilla.org/network/idn-service;1"));
+  nsCOMPtr<nsIIDNService> idnService (do_GetService ("@mozilla.org/network/idn-service;1"));
   if (!idnService)
     return NS_ERROR_NULL_POINTER;
+  nsresult result = NS_ERROR_FAILURE;
   nsCOMPtr<nsISimpleEnumerator> passwordEnumerator;
-  nsresult rv = passwordManager->GetEnumerator(getter_AddRefs(passwordEnumerator));
-  if (NS_FAILED(rv))
-    return rv;
+  result = passwordManager->GetEnumerator(getter_AddRefs(passwordEnumerator));
+  if (NS_FAILED(result))
+    return result;
   PRBool enumResult;
   PRUint32 i = 0;
   nsCOMPtr<nsIPassword> nsPassword;
@@ -438,14 +450,14 @@ EmbedPasswordMgr::RemovePasswordsByIndex(PRUint32 aIndex)
        enumResult == PR_TRUE && i <= aIndex;
        passwordEnumerator->HasMoreElements(&enumResult)) {
 
-    rv = passwordEnumerator->GetNext(getter_AddRefs(nsPassword));
-    if (NS_FAILED(rv) || !nsPassword)
-      return rv;
+    result = passwordEnumerator->GetNext (getter_AddRefs(nsPassword));
+    if (NS_FAILED(result) || !nsPassword)
+      return result;
 
     nsCString host;
-    nsPassword->GetHost(host);
+    nsPassword->GetHost (host);
 
-    if (StringBeginsWith(host, mLastHostQuery))
+    if (StringBeginsWith (host, mLastHostQuery))
       i++;
   }
 
@@ -455,11 +467,11 @@ EmbedPasswordMgr::RemovePasswordsByIndex(PRUint32 aIndex)
     nsCString host, idn_host;
     nsString unicodeName;
 
-    nsPassword->GetHost(host);
-    nsPassword->GetUser(unicodeName);
-    rv = idnService->ConvertUTF8toACE(host, idn_host);
+    nsPassword->GetHost (host);
+    nsPassword->GetUser (unicodeName);
+    result = idnService->ConvertUTF8toACE (host, idn_host);
 
-    rv = passwordManager->RemoveUser(idn_host, unicodeName);
+    result = passwordManager->RemoveUser(idn_host, unicodeName);
   }
   return NS_OK;
 }
@@ -470,28 +482,27 @@ EmbedPasswordMgr::RemovePasswords(const char *aHostName, const char *aUserName)
   nsCOMPtr<nsIPasswordManager> passwordManager = do_GetService(NS_PASSWORDMANAGER_CONTRACTID);
   if (!passwordManager)
     return NS_ERROR_NULL_POINTER;
-  nsCOMPtr<nsIIDNService> idnService(do_GetService("@mozilla.org/network/idn-service;1"));
+  nsCOMPtr<nsIIDNService> idnService (do_GetService ("@mozilla.org/network/idn-service;1"));
   if (!idnService)
     return NS_ERROR_NULL_POINTER;
+  nsresult result = NS_ERROR_FAILURE;
   nsCOMPtr<nsISimpleEnumerator> passwordEnumerator;
-  nsresult rv = passwordManager->GetEnumerator(getter_AddRefs(passwordEnumerator));
-  if (NS_FAILED(rv))
-    return rv;
+  result = passwordManager->GetEnumerator(getter_AddRefs(passwordEnumerator));
+  if (NS_FAILED(result))
+    return result;
   PRBool enumResult;
   for (passwordEnumerator->HasMoreElements(&enumResult);
-       enumResult;
-       passwordEnumerator->HasMoreElements(&enumResult)) {
+       enumResult == PR_TRUE ; passwordEnumerator->HasMoreElements(&enumResult)) {
     nsCOMPtr<nsIPassword> nsPassword;
-    rv = passwordEnumerator->GetNext(getter_AddRefs(nsPassword));
-    /* XXX XXX FALSE = NS_OK this is almost certainly wrong */
-    if (NS_FAILED(rv)) return FALSE;
+    result = passwordEnumerator->GetNext (getter_AddRefs(nsPassword));
+    if (NS_FAILED(result)) return FALSE;
     nsCString host, idn_host;
 
-    nsPassword->GetHost(host);
+    nsPassword->GetHost (host);
     nsString unicodeName;
-    nsPassword->GetUser(unicodeName);
-    rv = idnService->ConvertUTF8toACE(host, idn_host);
-    rv = passwordManager->RemoveUser(idn_host, unicodeName);
+    nsPassword->GetUser (unicodeName);
+    result = idnService->ConvertUTF8toACE (host, idn_host);
+    result = passwordManager->RemoveUser(idn_host, unicodeName);
   }
   return NS_OK;
 }
@@ -543,7 +554,7 @@ EmbedPasswordMgr::RemoveReject(const nsACString& aHost)
 NS_IMETHODIMP
 EmbedPasswordMgr::IsEqualToLastHostQuery(nsCString& aHost)
 {
-  return StringBeginsWith(aHost, mLastHostQuery);
+  return StringBeginsWith (aHost, mLastHostQuery);
 }
 
 /* static */ PLDHashOperator PR_CALLBACK
@@ -551,7 +562,7 @@ EmbedPasswordMgr::BuildArrayEnumerator(const nsACString& aKey,
                                        SignonHashEntry* aEntry,
                                        void* aUserData)
 {
-  nsIMutableArray* array = static_cast<nsIMutableArray*>(aUserData);
+  nsIMutableArray* array = NS_STATIC_CAST(nsIMutableArray*, aUserData);
   for (SignonDataEntry* e = aEntry->head; e; e = e->next)
     array->AppendElement(new PasswordEntry(aKey, e), PR_FALSE);
   return PL_DHASH_NEXT;
@@ -573,7 +584,7 @@ EmbedPasswordMgr::BuildRejectArrayEnumerator(const nsACString& aKey,
                                              PRInt32 aEntry,
                                              void* aUserData)
 {
-  nsIMutableArray* array = static_cast<nsIMutableArray*>(aUserData);
+  nsIMutableArray* array = NS_STATIC_CAST(nsIMutableArray*, aUserData);
   nsCOMPtr<nsIPassword> passwordEntry = new PasswordEntry(aKey, nsnull);
   //  if (!passwordEntry) {
   //    // XXX handle oom
@@ -622,7 +633,7 @@ EmbedPasswordMgr::FindEntryEnumerator(const nsACString& aKey,
                                       SignonHashEntry* aEntry,
                                       void* aUserData)
 {
-  findEntryContext* context = static_cast<findEntryContext*>(aUserData);
+  findEntryContext* context = NS_STATIC_CAST(findEntryContext*, aUserData);
   EmbedPasswordMgr* manager = context->manager;
   nsresult rv;
   SignonDataEntry* entry = nsnull;
@@ -870,7 +881,7 @@ EmbedPasswordMgr::OnStateChange(nsIWebProgress* aWebProgress,
   if (!GetPasswordRealm(doc->GetDocumentURI(), realm))
     return NS_OK;
 
-  mLastHostQuery.Assign(realm);
+  mLastHostQuery.Assign (realm);
 
   SignonHashEntry* hashEnt;
   if (!mSignonTable.Get(realm, &hashEnt))
@@ -885,7 +896,6 @@ EmbedPasswordMgr::OnStateChange(nsIWebProgress* aWebProgress,
   // one stored login that matches the username and password field names
   // on the form in question.  Note that we only need to worry about a
   // single login per form.
-#if defined(FIXED_BUG347731) || !defined(MOZ_ENABLE_LIBXUL)
   for (PRUint32 i = 0; i < formCount; ++i) {
     nsCOMPtr<nsIDOMNode> formNode;
     forms->Item(i, getter_AddRefs(formNode));
@@ -1013,7 +1023,7 @@ EmbedPasswordMgr::OnStateChange(nsIWebProgress* aWebProgress,
         if (!prefilledUser) {
           GList * logins = nsnull;
           NS_ConvertUTF16toUTF8 login(buffer);
-          logins = g_list_append(logins, login.BeginWriting());
+          logins = g_list_append(logins, login.get());
           gint retval = -1;
           gtk_signal_emit(GTK_OBJECT(mCommonObject->mCommon),
                           moz_embed_common_signals[COMMON_SELECT_LOGIN],
@@ -1033,12 +1043,11 @@ EmbedPasswordMgr::OnStateChange(nsIWebProgress* aWebProgress,
     mGlobalUserField = userField;
     mGlobalPassField = passField;
   }
-#endif
 done:
   nsCOMPtr<nsIDOMEventTarget> targ = do_QueryInterface(domDoc);
   targ->AddEventListener(
       NS_LITERAL_STRING("unload"),
-      static_cast<nsIDOMLoadListener*>(this),
+      NS_STATIC_CAST(nsIDOMLoadListener*, this),
       PR_FALSE);
   return NS_OK;
 }
@@ -1081,13 +1090,11 @@ EmbedPasswordMgr::OnSecurityChange(nsIWebProgress* aWebProgress,
 
 // nsIFormSubmitObserver implementation
 NS_IMETHODIMP
-EmbedPasswordMgr::Notify(nsIDOMHTMLFormElement* aDOMForm,
+EmbedPasswordMgr::Notify(nsIContent* aFormNode,
                          nsIDOMWindowInternal* aWindow,
                          nsIURI* aActionURL,
                          PRBool* aCancelSubmit)
 {
-  nsCOMPtr<nsIContent> formNode = do_QueryInterface(aDOMForm);
-
   // This function must never return a failure code or the form submit
   // will be cancelled.
   NS_ENSURE_TRUE(aWindow, NS_OK);
@@ -1098,15 +1105,14 @@ EmbedPasswordMgr::Notify(nsIDOMHTMLFormElement* aDOMForm,
   nsCAutoString realm;
   // XXX bug 281125: GetDocument() could sometimes be null here, hinting
   // XXX at a problem with document teardown while a modal dialog is posted.
-  if (!GetPasswordRealm(formNode->GetOwnerDoc()->GetDocumentURI(), realm))
+  if (!GetPasswordRealm(aFormNode->GetOwnerDoc()->GetDocumentURI(), realm))
     return NS_OK;
   PRInt32 rejectValue;
   if (mRejectTable.Get(realm, &rejectValue)) {
     // The user has opted to never save passwords for this site.
     return NS_OK;
   }
-#if defined(FIXED_BUG347731) || !defined(MOZ_ENABLE_LIBXUL)
-  nsCOMPtr<nsIForm> formElement = do_QueryInterface(formNode);
+  nsCOMPtr<nsIForm> formElement = do_QueryInterface(aFormNode);
   PRUint32 numControls;
   formElement->GetElementCount(&numControls);
   // Count the number of password fields in the form.
@@ -1141,21 +1147,34 @@ EmbedPasswordMgr::Notify(nsIDOMHTMLFormElement* aDOMForm,
       // If the username field or the form has autocomplete=off,
       // we don't store the login
       if (!sForceAutocompletion) {
-        nsString autocomplete;
+        nsAutoString autocomplete;
         if (userField) {
           nsCOMPtr<nsIDOMElement> userFieldElement = do_QueryInterface(userField);
           userFieldElement->GetAttribute(NS_LITERAL_STRING("autocomplete"),
                                          autocomplete);
-          if (autocomplete.LowerCaseEqualsLiteral("off"))
-            return NS_OK;
+#ifdef MOZILLA_INTERNAL_API
+          if (autocomplete.EqualsIgnoreCase("off"))
+#else
+            if (autocomplete.LowerCaseEqualsLiteral("off"))
+#endif
+              return NS_OK;
         }
-        aDOMForm->GetAttribute(NS_LITERAL_STRING("autocomplete"), autocomplete);
-        if (autocomplete.LowerCaseEqualsLiteral("off"))
+        nsCOMPtr<nsIDOMElement> formDOMEl = do_QueryInterface(aFormNode);
+        formDOMEl->GetAttribute(NS_LITERAL_STRING("autocomplete"), autocomplete);
+#ifdef MOZILLA_INTERNAL_API
+        if (autocomplete.EqualsIgnoreCase("off"))
+#else
+          if (autocomplete.LowerCaseEqualsLiteral("off"))
+#endif
             return NS_OK;
         nsCOMPtr<nsIDOMElement> passFieldElement = do_QueryInterface(passFields.ObjectAt(0));
         passFieldElement->GetAttribute(NS_LITERAL_STRING("autocomplete"), autocomplete);
-        if (autocomplete.LowerCaseEqualsLiteral("off"))
-          return NS_OK;
+#ifdef MOZILLA_INTERNAL_API
+        if (autocomplete.EqualsIgnoreCase("off"))
+#else
+          if (autocomplete.LowerCaseEqualsLiteral("off"))
+#endif
+            return NS_OK;
       }
       // Check whether this signon is already stored.
       // Note that we don't prompt the user if only the password doesn't match;
@@ -1199,12 +1218,16 @@ EmbedPasswordMgr::Notify(nsIDOMHTMLFormElement* aDOMForm,
       rv = bundleService->CreateBundle("chrome://branding/locale/brand.properties",
                                        getter_AddRefs(brandBundle));
       NS_ENSURE_SUCCESS(rv, rv);
-      nsString brandShortName;
+      nsXPIDLString brandShortName;
       rv = brandBundle->GetStringFromName(NS_LITERAL_STRING("brandShortName").get(),
                                           getter_Copies(brandShortName));
       NS_ENSURE_SUCCESS(rv, rv);
       const PRUnichar* formatArgs[1] = {
-          brandShortName.get()
+#ifdef MOZILLA_INTERNAL_API
+        brandShortName.get()
+#else
+          brandShortName
+#endif
       };
       nsAutoString dialogText;
       GetLocalizedString(NS_LITERAL_STRING("savePasswordText"),
@@ -1222,11 +1245,11 @@ EmbedPasswordMgr::Notify(nsIDOMHTMLFormElement* aDOMForm,
       GetLocalizedString(NS_LITERAL_STRING("notNowButtonText"),
                          notNowButtonText);
       PRInt32 selection;
-      nsCOMPtr<nsIDOMWindow> domWindow(do_QueryInterface(aWindow));
+      nsCOMPtr<nsIDOMWindow> domWindow (do_QueryInterface (aWindow));
       GtkWidget *parentWidget = GetGtkWidgetForDOMWindow(domWindow);
       if (parentWidget)
-        gtk_signal_emit(GTK_OBJECT(GTK_MOZ_EMBED(parentWidget)->common),
-                        moz_embed_common_signals[COMMON_REMEMBER_LOGIN], &selection);
+        gtk_signal_emit (GTK_OBJECT (GTK_MOZ_EMBED(parentWidget)->common),
+                         moz_embed_common_signals[COMMON_REMEMBER_LOGIN], &selection);
       // FIXME These values (0,1,2,3,4) need constant variable.
       if (selection == GTK_MOZ_EMBED_LOGIN_REMEMBER_FOR_THIS_SITE ) {
         SignonDataEntry* entry = new SignonDataEntry();
@@ -1357,7 +1380,6 @@ EmbedPasswordMgr::Notify(nsIDOMHTMLFormElement* aDOMForm,
   default:  // no passwords or something odd; be safe and just don't store anything
           break;
   }
-#endif // FIXED_BUG347731 || MOZ_ENABLE_LIBXUL
   return NS_OK;
 }
 
@@ -1405,7 +1427,7 @@ EmbedPasswordMgr::GetPrompt(nsIDOMWindow* aParent,
     return NS_ERROR_OUT_OF_MEMORY;
 
   NS_ADDREF(wrapper);
-  *_retval = static_cast<nsIAuthPrompt2*>(wrapper);
+  *_retval = NS_STATIC_CAST(nsIAuthPrompt2*, wrapper);
   return NS_OK;
 }
 
@@ -1428,7 +1450,7 @@ EmbedPasswordMgr::RemoveForDOMDocumentEnumerator(nsISupports* aKey,
                                                  PRInt32& aEntry,
                                                  void* aUserData)
 {
-  nsIDOMDocument* domDoc = static_cast<nsIDOMDocument*>(aUserData);
+  nsIDOMDocument* domDoc = NS_STATIC_CAST(nsIDOMDocument*, aUserData);
   nsCOMPtr<nsIDOMHTMLInputElement> element = do_QueryInterface(aKey);
   nsCOMPtr<nsIDOMDocument> elementDoc;
   element->GetOwnerDocument(getter_AddRefs(elementDoc));
@@ -1465,7 +1487,7 @@ EmbedPasswordMgr::WriteRejectEntryEnumerator(const nsACString& aKey,
                                              PRInt32 aEntry,
                                              void* aUserData)
 {
-  nsIOutputStream* stream = static_cast<nsIOutputStream*>(aUserData);
+  nsIOutputStream* stream = NS_STATIC_CAST(nsIOutputStream*, aUserData);
   PRUint32 bytesWritten;
   nsCAutoString buffer(aKey);
   buffer.Append(NS_LINEBREAK);
@@ -1478,7 +1500,7 @@ EmbedPasswordMgr::WriteSignonEntryEnumerator(const nsACString& aKey,
                                              SignonHashEntry* aEntry,
                                              void* aUserData)
 {
-  nsIOutputStream* stream = static_cast<nsIOutputStream*>(aUserData);
+  nsIOutputStream* stream = NS_STATIC_CAST(nsIOutputStream*, aUserData);
   PRUint32 bytesWritten;
   nsCAutoString buffer(aKey);
   buffer.Append(NS_LINEBREAK);
@@ -1662,7 +1684,7 @@ EmbedPasswordMgr::FindPasswordEntryInternal(const SignonDataEntry* aEntry,
       break;
   }
   if (entry) {
-    *aResult = const_cast<SignonDataEntry*>(entry);
+    *aResult = NS_CONST_CAST(SignonDataEntry*, entry);
     return NS_OK;
   }
   *aResult = nsnull;
@@ -1710,7 +1732,6 @@ EmbedPasswordMgr::FillPassword(nsIDOMEvent* aEvent)
   userField->GetForm(getter_AddRefs(formEl));
   if (!formEl)
     return NS_OK;
-#if defined(FIXED_BUG347731) || !defined(MOZ_ENABLE_LIBXUL)
   nsCOMPtr<nsIForm> form = do_QueryInterface(formEl);
   nsCOMPtr<nsISupports> foundNode;
   form->ResolveName(foundEntry->passField, getter_AddRefs(foundNode));
@@ -1720,7 +1741,6 @@ EmbedPasswordMgr::FillPassword(nsIDOMEvent* aEvent)
   nsAutoString passValue;
   if (NS_SUCCEEDED(DecryptData(foundEntry->passValue, passValue)))
     passField->SetValue(passValue);
-#endif
   return NS_OK;
 }
 
@@ -1728,7 +1748,7 @@ void
 EmbedPasswordMgr::AttachToInput(nsIDOMHTMLInputElement* aElement)
 {
   nsCOMPtr<nsIDOMEventTarget> targ = do_QueryInterface(aElement);
-  nsIDOMEventListener* listener = static_cast<nsIDOMFocusListener*>(this);
+  nsIDOMEventListener* listener = NS_STATIC_CAST(nsIDOMFocusListener*, this);
   targ->AddEventListener(NS_LITERAL_STRING("blur"), listener, PR_FALSE);
   targ->AddEventListener(NS_LITERAL_STRING("DOMAutoComplete"), listener, PR_FALSE);
   mAutoCompleteInputs.Put(aElement, 1);
@@ -1771,7 +1791,7 @@ EmbedPasswordMgr::GetLocalizedString(const nsAString& key,
       return;
     }
   }
-  nsString str;
+  nsXPIDLString str;
   if (aIsFormatted)
     sPMBundle->FormatStringFromName(PromiseFlatString(key).get(),
                                     aFormatArgs, aFormatArgsLength,
@@ -2000,9 +2020,7 @@ EmbedSignonPrompt2::PromptAuth(nsIChannel* aChannel,
                                PRBool* aConfirm)
 {
   nsCAutoString key;
-#if defined(FIXED_BUG347731) || !defined(MOZ_ENABLE_LIBXUL)
   NS_GetAuthKey(aChannel, aAuthInfo, key);
-#endif
 
   nsAutoString checkMsg;
   PRBool checkValue = PR_FALSE;
@@ -2026,9 +2044,7 @@ EmbedSignonPrompt2::PromptAuth(nsIChannel* aChannel,
                                    outUser,
                                    outPassword);
 
-#if defined(FIXED_BUG347731) || !defined(MOZ_ENABLE_LIBXUL)
     NS_SetAuthInfo(aAuthInfo, outUser, outPassword);
-#endif
 
     if (!outUser.IsEmpty() || !outPassword.IsEmpty())
       checkValue = PR_TRUE;

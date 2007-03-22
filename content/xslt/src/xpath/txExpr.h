@@ -70,15 +70,6 @@ class txXPathNode;
 class Expr
 {
 public:
-    Expr()
-    {
-        MOZ_COUNT_CTOR(Expr);
-    }
-    virtual ~Expr()
-    {
-        MOZ_COUNT_DTOR(Expr);
-    }
-
     /**
      * Evaluates this Expr based on the given context node and processor state
      * @param context the context node for evaluation of this Expr
@@ -414,15 +405,7 @@ private:
 class txNodeTest
 {
 public:
-    txNodeTest()
-    {
-        MOZ_COUNT_CTOR(txNodeTest);
-    }
-    virtual ~txNodeTest()
-    {
-        MOZ_COUNT_DTOR(txNodeTest);
-    }
-
+    virtual ~txNodeTest() {}
     /*
      * Virtual methods
      * pretty much a txPattern, but not supposed to be used 

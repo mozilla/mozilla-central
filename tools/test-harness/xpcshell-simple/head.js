@@ -59,7 +59,7 @@ _TimerCallback.prototype = {
     throw Components.results.NS_ERROR_NO_INTERFACE;
   },
   notify: function(timer) {
-    eval(this._expr);
+    eval(this._expr);  
   }
 };
 
@@ -142,7 +142,7 @@ function do_import_script(topsrcdirRelativePath) {
   load(scriptPath);
 }
 
-function do_get_file(path, allowInexistent) {
+function do_get_file(path) {
   var comps = path.split("/");
   try {
     // The following always succeeds on Windows because we use cygpath with
@@ -168,55 +168,7 @@ function do_get_file(path, allowInexistent) {
       lf.append(comps[i]);
   }
 
-  if (!allowInexistent) {
-    if (!lf.exists()) {
-      print(lf.path + " doesn't exist\n");
-    }
-    do_check_true(lf.exists());
-  }
+  do_check_true(lf.exists());
 
   return lf;
-}
-
-function do_load_module(path) {
-  var lf = do_get_file(path);
-  const nsIComponentRegistrar = Components.interfaces.nsIComponentRegistrar;
-  do_check_true(Components.manager instanceof nsIComponentRegistrar);
-  Components.manager.autoRegister(lf);
-}
-
-/**
- * Parse a DOM document.
- *
- * @param aPath File path to the document.
- * @param aType Content type to use in DOMParser.
- *
- * @return nsIDOMDocument from the file.
- */
-function do_parse_document(aPath, aType) {
-  switch (aType) {
-    case "application/xhtml+xml":
-    case "application/xml":
-    case "text/xml":
-      break;
-
-    default:
-      throw new Error("do_parse_document requires content-type of " +
-                      "application/xhtml+xml, application/xml, or text/xml.");
-  }
-
-  var lf = do_get_file(aPath);
-  const C_i = Components.interfaces;
-  const parserClass = "@mozilla.org/xmlextras/domparser;1";
-  const streamClass = "@mozilla.org/network/file-input-stream;1";
-  var stream = Components.classes[streamClass]
-                         .createInstance(C_i.nsIFileInputStream);
-  stream.init(lf, -1, -1, C_i.nsIFileInputStream.CLOSE_ON_EOF);
-  var parser = Components.classes[parserClass]
-                         .createInstance(C_i.nsIDOMParser);
-  var doc = parser.parseFromStream(stream, null, lf.fileSize, aType);
-  parser = null;
-  stream = null;
-  lf = null;
-  return doc;
 }

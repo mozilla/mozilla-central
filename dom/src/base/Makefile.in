@@ -53,7 +53,6 @@ REQUIRES	= xpcom \
 		  js \
 		  widget \
 		  gfx \
-		  thebes \
 		  layout \
 		  content \
 		  caps \
@@ -62,11 +61,10 @@ REQUIRES	= xpcom \
 		  pref \
 		  oji \
 		  necko \
-		  nkcache \
 		  mimetype \
 		  java \
 		  locale \
-		  prefetch \
+		  uriloader \
 		  xuldoc \
 		  webshell \
 		  view \
@@ -83,7 +81,6 @@ REQUIRES	= xpcom \
 		  xultmpl \
 		  jar \
 		  storage \
-		  htmlparser \
 		  $(NULL)
 
 ifdef NS_TRACE_MALLOC
@@ -123,22 +120,12 @@ FORCE_STATIC_LIB = 1
 LOCAL_INCLUDES = \
 		-I$(srcdir)/../events \
 		-I$(srcdir)/../storage \
-		-I$(srcdir)/../offline \
 		-I$(topsrcdir)/content/xbl/src \
 		-I$(topsrcdir)/content/xul/document/src \
 		-I$(topsrcdir)/content/events/src \
-		-I$(topsrcdir)/content/base/src \
-		-I$(topsrcdir)/content/html/document/src \
-		-I$(topsrcdir)/layout/style \
 		$(NULL)
 
 DEFINES += -D_IMPL_NS_LAYOUT
-
-ifdef MOZ_SHARK
-DEFINES += -DMOZ_SHARK
-CFLAGS += -F/System/Library/PrivateFrameworks
-LDFLAGS += -F/System/Library/PrivateFrameworks -framework CHUD
-endif
 
 ifdef MOZ_JSDEBUGGER
 DEFINES += -DMOZ_JSDEBUGGER

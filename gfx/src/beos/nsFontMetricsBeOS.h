@@ -45,6 +45,7 @@
 #include "nsIFontEnumerator.h" 
 #include "nsFont.h"
 #include "nsString.h"
+#include "nsUnitConversion.h"
 #include "nsIDeviceContext.h"
 #include "nsCRT.h"
 #include "nsCOMPtr.h"

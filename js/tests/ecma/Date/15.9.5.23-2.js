@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '15.9.5.23-2.js';
-
 /**
    File Name:          15.9.5.23-2.js
    ECMA Section:       15.9.5.23
@@ -59,11 +57,18 @@ var TITLE   = "Date.prototype.setTime()";
 
 writeHeaderToLog( SECTION + " "+ TITLE);
 
-test_times = new Array( TIME_NOW, TIME_1970, TIME_1900, TIME_2000 );
+var TZ_ADJUST = TZ_DIFF * msPerHour;
+
+// get the current time
+var now = (new Date()).valueOf();
+
+test_times = new Array( now, TIME_1970, TIME_1900, TIME_2000 );
+
 
 for ( var j = 0; j < test_times.length; j++ ) {
-  addTestCase( new Date(TIME_NOW), test_times[j] );
+  addTestCase( new Date(now), test_times[j] );
 }
+
 
 new TestCase( SECTION,
 	      "(new Date(NaN)).setTime()",

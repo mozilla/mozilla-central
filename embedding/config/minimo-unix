@@ -41,10 +41,13 @@ components/xpconnect.xpt
 libgkgfx.so 
 libgtksuperwin.so 
 libgtkembedmoz.so 
+libxlibrgb.so
 libgfxpsshar.so
-components/libgkgfxthebes.so
+components/libgfx_gtk.so
 components/libgfxps.so
+components/libgfxxprint.so
 components/gfx.xpt 
+components/libwidget_gtk.so
 components/libwidget_gtk2.so
 components/widget.xpt
 
@@ -117,7 +120,6 @@ components/dom_core.xpt
 components/dom_css.xpt
 components/dom_events.xpt
 components/dom_html.xpt
-components/dom_offline.xpt
 components/dom_range.xpt
 components/dom_stylesheets.xpt
 components/dom_traversal.xpt
@@ -154,7 +156,6 @@ components/libpipnss.so
 components/pipnss.xpt
 chrome/pipnss.jar
 defaults/pref/security-prefs.js
-libnssutil3.so
 libnss3.so
 libsmime3.so
 libsoftokn3.chk
@@ -184,8 +185,6 @@ res/quirk.css
 res/viewsource.css
 res/ua.css
 res/forms.css
-res/contenteditable.css
-res/designmode.css
 res/arrow.gif
 res/arrowd.gif
 res/loading-image.gif

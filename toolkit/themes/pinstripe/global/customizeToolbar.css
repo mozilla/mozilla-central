@@ -66,6 +66,6 @@ hbox button {
 }
 
 #main-box > box > button {
-	min-height: 19px; /* aqua size for small buttons */
+	-moz-appearance: button-small;
 	font: message-box;
 }

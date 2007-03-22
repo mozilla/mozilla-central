@@ -1,6 +1,6 @@
 /* cairo - a vector graphics library with display and print output
  *
- * Copyright © 2006, 2007 Mozilla Corporation
+ * Copyright Â© 2002 University of Southern California
  *
  * This library is free software; you can redistribute it and/or
  * modify it either under the terms of the GNU Lesser General Public
@@ -27,10 +27,11 @@
  *
  * The Original Code is the cairo graphics library.
  *
- * The Initial Developer of the Original Code is Mozilla Corporation.
+ * The Initial Developer of the Original Code is University of Southern
+ * California.
  *
  * Contributor(s):
- *      Vladimir Vukicevic <vladimir@mozilla.com>
+ *	Carl D. Worth <cworth@cworth.org>
  */
 
 #ifndef CAIRO_QUARTZ_H
@@ -40,43 +41,20 @@
 
 #if CAIRO_HAS_QUARTZ_SURFACE
 
-#include <ApplicationServices/ApplicationServices.h>
+#include <Carbon/Carbon.h>
 
 CAIRO_BEGIN_DECLS
 
 cairo_public cairo_surface_t *
-cairo_quartz_surface_create (cairo_format_t format,
-                             unsigned int width,
-                             unsigned int height);
-
-cairo_public cairo_surface_t *
-cairo_quartz_surface_create_for_cg_context (CGContextRef cgContext,
-                                            unsigned int width,
-                                            unsigned int height);
-
-cairo_public CGContextRef
-cairo_quartz_surface_get_cg_context (cairo_surface_t *surface);
-
-/*
- * Quartz font support
- */
-
-#ifdef CAIRO_HAS_QUARTZ_FONT
-
-cairo_public cairo_font_face_t *
-cairo_quartz_font_face_create_for_cgfont (CGFontRef font);
-
-cairo_public cairo_font_face_t *
-cairo_quartz_font_face_create_for_atsu_font_id (ATSUFontID font_id);
-
-#endif /* CAIRO_HAS_QUARTZ_FONT */
+cairo_quartz_surface_create (CGContextRef    context,
+			     int	     width,
+			     int	     height,
+			     cairo_bool_t    y_grows_down);
 
 CAIRO_END_DECLS
 
-#else
-
+#else  /* CAIRO_HAS_QUARTZ_SURFACE */
 # error Cairo was not compiled with support for the quartz backend
-
 #endif /* CAIRO_HAS_QUARTZ_SURFACE */
 
 #endif /* CAIRO_QUARTZ_H */

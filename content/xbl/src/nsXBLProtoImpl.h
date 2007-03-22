@@ -42,11 +42,9 @@
 #include "nsMemory.h"
 #include "nsXBLPrototypeHandler.h"
 #include "nsXBLProtoImplMember.h"
-#include "nsXBLProtoImplField.h"
+#include "nsXBLPrototypeBinding.h"
 
 class nsIXPConnectJSObjectHolder;
-class nsXBLPrototypeBinding;
-class nsXBLProtoImplAnonymousMethod;
 
 class nsXBLProtoImpl
 {
@@ -54,20 +52,20 @@ public:
   nsXBLProtoImpl() 
     : mClassObject(nsnull),
       mMembers(nsnull),
-      mFields(nsnull),
       mConstructor(nsnull),
       mDestructor(nsnull)
   { 
     MOZ_COUNT_CTOR(nsXBLProtoImpl); 
-  }
+  };
   ~nsXBLProtoImpl() 
   { 
     MOZ_COUNT_DTOR(nsXBLProtoImpl);
     // Note: the constructor and destructor are in mMembers, so we'll
     // clean them up automatically.
-    delete mMembers;
-    delete mFields;
-  }
+    for (nsXBLProtoImplMember* curr = mMembers; curr; curr=curr->GetNext())
+      curr->Destroy(mClassObject != nsnull);
+    delete mMembers; 
+  };
   
   nsresult InstallImplementation(nsXBLPrototypeBinding* aBinding, nsIContent* aBoundElement);
   nsresult InitTargetObjects(nsXBLPrototypeBinding* aBinding, nsIScriptContext* aContext, 
@@ -76,37 +74,14 @@ public:
                              void** aTargetClassObject);
   nsresult CompilePrototypeMembers(nsXBLPrototypeBinding* aBinding);
 
-  void SetMemberList(nsXBLProtoImplMember* aMemberList)
-  {
-    delete mMembers;
-    mMembers = aMemberList;
-  }
-
-  void SetFieldList(nsXBLProtoImplField* aFieldList)
-  {
-    delete mFields;
-    mFields = aFieldList;
-  }
-
-  void Trace(TraceCallback aCallback, void *aClosure) const;
-  void UnlinkJSObjects();
-
-  nsXBLProtoImplField* FindField(const nsString& aFieldName) const;
-
-  // Resolve all the fields for this implementation on the object |obj| False
-  // return means a JS exception was set.
-  PRBool ResolveAllFields(JSContext *cx, JSObject *obj) const;
-
-  // Undefine all our fields from object |obj| (which should be a
-  // JSObject for a bound element).
-  void UndefineFields(JSContext* cx, JSObject* obj) const;
-
-  PRBool CompiledMembers() const {
-    return mClassObject != nsnull;
-  }
+  void SetMemberList(nsXBLProtoImplMember* aMemberList) { delete mMembers; mMembers = aMemberList; };
 
 protected:
-  void DestroyMembers();
+  // Function to call if compilation of a member fails.  When this is called,
+  // all members before aBrokenMember are compiled, compilation of
+  // aBrokenMember failed, and members after aBrokenMember are uncompiled.
+  // This function assumes that aBrokenMember is _not_ compiled.
+  void DestroyMembers(nsXBLProtoImplMember* aBrokenMember);
   
 public:
   nsCString mClassName; // The name of the class. 
@@ -116,8 +91,6 @@ protected:
                         // and methods for the binding.
 
   nsXBLProtoImplMember* mMembers; // The members of an implementation are chained in this singly-linked list.
-
-  nsXBLProtoImplField* mFields; // Our fields
   
 public:
   nsXBLProtoImplAnonymousMethod* mConstructor; // Our class constructor.

@@ -44,7 +44,6 @@
           if (val)
             this.setAttribute('notificationshidden', true);
           else this.removeAttribute('notificationshidden');
-          return val;
         </setter>
       </property>
 
@@ -91,8 +90,7 @@
             var newitem = document.createElementNS(XULNS, "notification");
             newitem.setAttribute("label", aLabel);
             newitem.setAttribute("value", aValue);
-            if (aImage)
-                newitem.setAttribute("image", aImage);
+            newitem.setAttribute("image", aImage);
             if (!insertPos) {
               newitem.style.position = "fixed";
               newitem.style.top = "100%";
@@ -166,21 +164,6 @@
                 this.removeNotification(notifications[n]);
             }
             this.currentNotification = null;
-          ]]>
-        </body>
-      </method>
-
-      <method name="removeTransientNotifications">
-        <body>
-          <![CDATA[
-            var notifications = this.allNotifications;
-            for (var n = notifications.length - 1; n >= 0; n--) {
-              var notification = notifications[n];
-              if (notification.persistence)
-                notification.persistence--;
-              else if (Date.now() > notification.timeout)
-                this.removeNotification(notification);
-            }
           ]]>
         </body>
       </method>
@@ -353,19 +336,16 @@
         </getter>
       </property>
 
-      <property name="label" onset="this.setAttribute('label', val); return val;"
+      <property name="label" onset="return this.setAttribute('label', val);"
                              onget="return this.getAttribute('label');"/>
-      <property name="value" onset="this.setAttribute('value', val); return val;"
+      <property name="value" onset="return this.setAttribute('value', val);"
                              onget="return this.getAttribute('value');"/>
-      <property name="image" onset="this.setAttribute('image', val); return val;"
+      <property name="image" onset="return this.setAttribute('image', val);"
                              onget="return this.getAttribute('image');"/>
-      <property name="type" onset="this.setAttribute('type', val); return val;"
-                            onget="return this.getAttribute('type');"/>
-      <property name="priority" onget="return parseInt(this.getAttribute('priority')) || 0;"
+      <property name="type" onget="return this.getAttribute('type');"
+                            onset="this.setAttribute('type', val); return val;"/>
+      <property name="priority" onget="return this.getAttribute('priority');"
                                 onset="this.setAttribute('priority', val); return val;"/>
-      <property name="persistence" onget="return parseInt(this.getAttribute('persistence')) || 0;"
-                                   onset="this.setAttribute('persistence', val); return val;"/>
-      <field name="timeout">0</field>
 
       <property name="control" readonly="true">
         <getter>
@@ -402,7 +382,6 @@
 
             var button = aEvent.target.buttonInfo;
             if (button.popup) {
-              document.popupNode = aEvent.target;
               document.getElementById(button.popup).
                 showPopup(aEvent.originalTarget, -1, -1, "popup", "bottomleft", "topleft");
               aEvent.stopPropagation();

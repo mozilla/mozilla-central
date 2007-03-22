@@ -118,8 +118,9 @@ public:
   static const PRInt32 kBackgroundColorKTable[];
   static const PRInt32 kBackgroundInlinePolicyKTable[];
   static const PRInt32 kBackgroundOriginKTable[];
-  static const PRInt32 kBackgroundPositionKTable[];
   static const PRInt32 kBackgroundRepeatKTable[];
+  static const PRInt32 kBackgroundXPositionKTable[];
+  static const PRInt32 kBackgroundYPositionKTable[];
   static const PRInt32 kBorderCollapseKTable[];
   static const PRInt32 kBorderColorKTable[];
   static const PRInt32 kBorderStyleKTable[];
@@ -159,7 +160,6 @@ public:
   static const PRInt32 kFontVariantKTable[];
   static const PRInt32 kFontWeightKTable[];
   static const PRInt32 kKeyEquivalentKTable[];
-  static const PRInt32 kIMEModeKTable[];
   static const PRInt32 kListStylePositionKTable[];
   static const PRInt32 kListStyleKTable[];
   static const PRInt32 kOutlineStyleKTable[];
@@ -190,7 +190,6 @@ public:
   static const PRInt32 kVisibilityKTable[];
   static const PRInt32 kVolumeKTable[];
   static const PRInt32 kWhitespaceKTable[];
-  static const PRInt32 kWidthKTable[]; // also min-width, max-width
 };
 
 #endif /* nsCSSProps_h___ */

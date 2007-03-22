@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '11.1.1.js';
-
 /**
    File Name:          11.1.1.js
    ECMA Section:       11.1.1 The this keyword

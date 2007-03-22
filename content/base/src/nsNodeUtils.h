@@ -46,24 +46,11 @@ struct JSContext;
 struct JSObject;
 class nsINode;
 class nsNodeInfoManager;
-class nsIVariant;
-class nsIDOMUserDataHandler;
 template<class E> class nsCOMArray;
-class nsCycleCollectionTraversalCallback;
-struct CharacterDataChangeInfo;
 
 class nsNodeUtils
 {
 public:
-  /**
-   * Send CharacterDataWillChange notifications to nsIMutationObservers.
-   * @param aContent  Node whose data changed
-   * @param aInfo     Struct with information details about the change
-   * @see nsIMutationObserver::CharacterDataWillChange
-   */
-  static void CharacterDataWillChange(nsIContent* aContent,
-                                      CharacterDataChangeInfo* aInfo);
-
   /**
    * Send CharacterDataChanged notifications to nsIMutationObservers.
    * @param aContent  Node whose data changed
@@ -79,14 +66,12 @@ public:
    * @param aNameSpaceID  Namespace of changed attribute
    * @param aAttribute    Local-name of changed attribute
    * @param aModType      Type of change (add/change/removal)
-   * @param aStateMask    States which changed
    * @see nsIMutationObserver::AttributeChanged
    */
   static void AttributeChanged(nsIContent* aContent,
                                PRInt32 aNameSpaceID,
                                nsIAtom* aAttribute,
-                               PRInt32 aModType,
-                               PRUint32 aStateMask);
+                               PRInt32 aModType);
 
   /**
    * Send ContentAppended notifications to nsIMutationObservers
@@ -127,8 +112,9 @@ public:
   /**
    * To be called when reference count of aNode drops to zero.
    * @param aNode The node which is going to be deleted.
+   * @param aDelete If PR_TRUE, calling this method also deletes aNode.
    */
-  static void LastRelease(nsINode* aNode);
+  static void LastRelease(nsINode* aNode, PRBool aDelete);
 
   /**
    * Clones aNode, its attributes and, if aDeep is PR_TRUE, its descendant nodes
@@ -190,39 +176,6 @@ public:
   }
 
   /**
-   * Associate an object aData to aKey on node aNode. If aData is null any
-   * previously registered object and UserDataHandler associated to aKey on
-   * aNode will be removed.
-   * Should only be used to implement the DOM Level 3 UserData API.
-   *
-   * @param aNode canonical nsINode pointer of the node to add aData to
-   * @param aKey the key to associate the object to
-   * @param aData the object to associate to aKey on aNode (may be nulll)
-   * @param aHandler the UserDataHandler to call when the node is
-   *                 cloned/deleted/imported/renamed (may be nulll)
-   * @param aResult [out] the previously registered object for aKey on aNode, if
-   *                      any
-   * @return whether adding the object and UserDataHandler succeeded
-   */
-  static nsresult SetUserData(nsINode *aNode, const nsAString &aKey,
-                              nsIVariant *aData,
-                              nsIDOMUserDataHandler *aHandler,
-                              nsIVariant **aResult);
-
-  /**
-   * Get the UserData object registered for a Key on node aNode, if any.
-   * Should only be used to implement the DOM Level 3 UserData API.
-   *
-   * @param aNode canonical nsINode pointer of the node to get UserData for
-   * @param aKey the key to get UserData for
-   * @param aResult [out] the previously registered object for aKey on aNode, if
-   *                      any
-   * @return whether getting the object and UserDataHandler succeeded
-   */
-  static nsresult GetUserData(nsINode *aNode, const nsAString &aKey,
-                              nsIVariant **aResult);
-
-  /**
    * Call registered userdata handlers for operation aOperation for the nodes in
    * aNodesWithProperties. If aCloned is PR_TRUE aNodesWithProperties should
    * contain both the original and the cloned nodes (and only the userdata
@@ -242,16 +195,6 @@ public:
                                        PRUint16 aOperation, PRBool aCloned);
 
   /**
-   * Helper for the cycle collector to traverse the DOM UserData and
-   * UserDataHandlers for aNode.
-   *
-   * @param aNode the node to traverse UserData and UserDataHandlers for
-   * @param aCb the cycle collection callback
-   */
-  static void TraverseUserData(nsINode* aNode,
-                               nsCycleCollectionTraversalCallback &aCb);
-
-  /**
    * A basic implementation of the DOM cloneNode method. Calls nsINode::Clone to
    * do the actual cloning of the node.
    *
@@ -261,13 +204,6 @@ public:
    */
   static nsresult CloneNodeImpl(nsINode *aNode, PRBool aDeep,
                                 nsIDOMNode **aResult);
-
-  /**
-   * Release the UserData and UserDataHandlers for aNode.
-   *
-   * @param aNode the node to release the UserData and UserDataHandlers for
-   */
-  static void UnlinkUserData(nsINode *aNode);
 
 private:
   friend PLDHashOperator PR_CALLBACK

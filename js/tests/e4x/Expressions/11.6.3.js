@@ -40,12 +40,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '11.6.3.js';
-
 START("11.6.3 - Compound Assignment");
 
 // Insert employee 3 and 4 after the first employee
-e =
+e = 
 <employees>
     <employee id="1">
         <name>Joe</name>
@@ -57,7 +55,7 @@ e =
     </employee>
 </employees>;
 
-correct =
+correct = 
 <employees>
     <employee id="1">
         <name>Joe</name>
@@ -74,14 +72,14 @@ correct =
         <age>30</age>
     </employee>
 </employees>;
-   
+    
 e.employee[0] += <employee id="3"><name>Fred</name></employee> +
     <employee id="4"><name>Carol</name></employee>;
-   
+    
 TEST(1, correct, e);
 
 // Append employees 3 and 4 to the end of the employee list
-e =
+e = 
 <employees>
     <employee id="1">
         <name>Joe</name>
@@ -93,7 +91,7 @@ e =
     </employee>
 </employees>;
 
-correct =
+correct = 
 <employees>
     <employee id="1">
         <name>Joe</name>
@@ -114,6 +112,6 @@ correct =
 e.employee[1] += <employee id="3"><name>Fred</name></employee> +
     <employee id="4"><name>Carol</name></employee>;
 TEST(2, correct, e);
-       
+        
 
 END();

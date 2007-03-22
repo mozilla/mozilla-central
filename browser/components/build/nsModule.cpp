@@ -39,7 +39,10 @@
 #include "nsIGenericFactory.h"
 
 #include "nsBrowserCompsCID.h"
-#include "nsPlacesImportExportService.h"
+#ifndef MOZ_PLACES_BOOKMARKS
+#include "nsBookmarksService.h"
+#include "nsForwardProxyDataSource.h"
+#endif
 #ifdef XP_WIN
 #include "nsWindowsShellService.h"
 #elif defined(XP_MACOSX)
@@ -69,10 +72,16 @@
 #include "nsFeedSniffer.h"
 #include "nsAboutFeeds.h"
 #include "nsIAboutModule.h"
+#ifdef MOZ_SAFE_BROWSING
+#include "nsDocNavStartProgressListener.h"
+#endif
 
 /////////////////////////////////////////////////////////////////////////////
 
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsPlacesImportExportService)
+#ifndef MOZ_PLACES_BOOKMARKS
+NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsBookmarksService, Init)
+NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsForwardProxyDataSource, Init)
+#endif
 #ifdef XP_WIN
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsWindowsShellService)
 #elif defined(XP_MACOSX)
@@ -99,6 +108,9 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsCaminoProfileMigrator)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsICabProfileMigrator)
 #endif
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsFeedSniffer)
+#ifdef MOZ_SAFE_BROWSING
+NS_GENERIC_FACTORY_CONSTRUCTOR(nsDocNavStartProgressListener)
+#endif
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -118,11 +130,29 @@ static const nsModuleComponentInfo components[] =
 
 #endif
 
+#ifndef MOZ_PLACES_BOOKMARKS
 
-  { "Places Import/Export Service",
-    NS_PLACESIMPORTEXPORTSERVICE_CID,
-    NS_PLACESIMPORTEXPORTSERVICE_CONTRACTID,
-    nsPlacesImportExportServiceConstructor},
+  { "Bookmarks",
+    NS_BOOKMARKS_SERVICE_CID,
+    NS_BOOKMARKS_SERVICE_CONTRACTID,
+    nsBookmarksServiceConstructor },
+
+  { "Bookmarks",
+    NS_BOOKMARKS_SERVICE_CID,
+    NS_BOOKMARKS_DATASOURCE_CONTRACTID,
+    nsBookmarksServiceConstructor },
+
+  { "Bookmarks",
+    NS_BOOKMARKS_SERVICE_CID,
+    "@mozilla.org/embeddor.implemented/bookmark-charset-resolver;1",
+    nsBookmarksServiceConstructor },
+
+  { "Bookmarks Forward Proxy Inference Data Source",
+    NS_RDF_FORWARDPROXY_INFER_DATASOURCE_CID,
+    NS_RDF_INFER_DATASOURCE_CONTRACTID_PREFIX "forward-proxy",
+    nsForwardProxyDataSourceConstructor },
+
+#endif
 
   { "Feed Sniffer",
     NS_FEEDSNIFFER_CID,
@@ -135,6 +165,13 @@ static const nsModuleComponentInfo components[] =
     NS_ABOUT_MODULE_CONTRACTID_PREFIX "feeds",
     nsAboutFeeds::Create
   },
+
+#ifdef MOZ_SAFE_BROWSING
+  { "Safe browsing document nav start progress listener",
+    NS_DOCNAVSTARTPROGRESSLISTENER_CID,
+    NS_DOCNAVSTARTPROGRESSLISTENER_CONTRACTID,
+    nsDocNavStartProgressListenerConstructor },
+#endif
 
   { "Profile Migrator",
     NS_FIREFOX_PROFILEMIGRATOR_CID,

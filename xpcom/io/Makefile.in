@@ -50,14 +50,7 @@ MOZILLA_INTERNAL_API = 1
 REQUIRES	= string \
 		  $(NULL)
 
-# work around bug 408258
-ifdef GNU_CC 
-ifneq ($(OS_ARCH), Darwin)
-MODULE_OPTIMIZE_FLAGS = -Os -fno-strict-aliasing $(MOZ_OPTIMIZE_SIZE_TWEAK)
-endif
-endif
-
-ifeq ($(MOZ_WIDGET_TOOLKIT),cocoa)
+ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 REQUIRES		+= macmorefiles
 endif
 
@@ -91,8 +84,8 @@ endif
 ifeq ($(MOZ_WIDGET_TOOLKIT),os2)
 CPPSRCS		+= nsLocalFileOS2.cpp
 else
-ifeq ($(MOZ_WIDGET_TOOLKIT),cocoa)
-CMMSRCS		= nsLocalFileOSX.mm
+ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+CPPSRCS		+= nsLocalFileOSX.cpp
 else
 ifeq ($(MOZ_WIDGET_TOOLKIT),windows)
 CPPSRCS		+= nsLocalFileWin.cpp
@@ -112,6 +105,7 @@ EXPORTS		= \
 		nsMultiplexInputStream.h \
 		nsScriptableInputStream.h \
 		nsStorageStream.h \
+		nsStringIO.h \
 		nsStringStream.h \
 		nsStreamUtils.h \
 		nsNativeCharsetUtils.h \
@@ -120,7 +114,7 @@ EXPORTS		= \
 ifeq ($(MOZ_WIDGET_TOOLKIT),os2)
 EXPORTS		+= nsLocalFileOS2.h
 else
-ifeq ($(MOZ_WIDGET_TOOLKIT),cocoa)
+ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 EXPORTS		+= nsLocalFileOSX.h
 else
 ifeq ($(MOZ_WIDGET_TOOLKIT),windows)
@@ -128,7 +122,7 @@ EXPORTS		+= nsLocalFileWin.h
 else
 EXPORTS		+= nsLocalFileUnix.h
 endif # windows
-endif # cocoa
+endif # mac
 endif # os2
 
 XPIDLSRCS	= \
@@ -161,9 +155,9 @@ XPIDLSRCS	= \
 ifeq ($(MOZ_WIDGET_TOOLKIT),os2)
 XPIDLSRCS	+= nsILocalFileOS2.idl
 else
-ifeq ($(MOZ_WIDGET_TOOLKIT),cocoa)
+ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 XPIDLSRCS	+= nsILocalFileMac.idl
-endif # cocoa
+endif # mac
 endif # os2
 
 SDK_XPIDLSRCS   = \

@@ -34,10 +34,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-366668-02.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 366668;
+var bug = 366668;
 var summary = 'decompilation of "let with with" ';
 var actual = '';
 var expect = '';
@@ -50,9 +48,9 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
- 
+  
   var f;
 
   f = function() { let (w) { with({x: w.something }) { } } };

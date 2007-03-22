@@ -50,13 +50,14 @@ menulist {
   -moz-appearance: menulist;
   margin: 2px 4px;
   min-height: 20px !important;
-  color: -moz-DialogText;
 }
 
 .menulist-label-box {
   -moz-appearance: menulist-text;
   -moz-box-align: center;
   -moz-box-pack: center;
+  background-color: #CCCCCC;
+border: 1px solid blue;
 }
 
 .menulist-label {
@@ -101,7 +102,7 @@ menulist[editable="true"][open="true"] > .menulist-dropmarker {
 }
 
 .menulist-editable-box {
-  margin: -1px -1px 1px 0px;
+  margin: -1px 1px -2px -5px;
   padding: 0 2px;
   border: 1px solid #CCCCCC;
   background-color: -moz-Field;

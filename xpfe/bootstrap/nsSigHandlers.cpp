@@ -44,11 +44,9 @@
 
 #include <signal.h>
 #include <stdio.h>
-#include <string.h>
 #include "prthread.h"
 #include "plstr.h"
 #include "prenv.h"
-#include "nsDebug.h"
 
 #if defined(LINUX)
 #include <sys/time.h>
@@ -72,6 +70,7 @@
 
 #ifdef MOZ_WIDGET_PHOTON
 #include <photon/PhProto.h>
+#include <string.h>
 #endif
 
 static char _progname[1024] = "huh?";
@@ -114,21 +113,7 @@ void abnormal_exit_handler(int signum)
 
 #include <unistd.h>
 #include "nsISupportsUtils.h"
-#include "nsStackWalk.h"
-
-extern "C" {
-
-PR_STATIC_CALLBACK(void) PrintStackFrame(void *aPC, void *aClosure)
-{
-  char buf[1024];
-  nsCodeAddressDetails details;
-
-  NS_DescribeCodeAddress(aPC, &details);
-  NS_FormatCodeAddressDetails(aPC, &details, buf, sizeof(buf));
-  fprintf(stdout, buf);
-}
-
-}
+#include "nsStackFrameUnix.h"
 
 void
 ah_crap_handler(int signum)
@@ -139,7 +124,7 @@ ah_crap_handler(int signum)
          signum);
 
   printf("Stack:\n");
-  NS_StackWalk(PrintStackFrame, 2, nsnull);
+  DumpStackToFile(stdout);
 
   printf("Sleeping for %d seconds.\n",_gdb_sleep_duration);
   printf("Type 'gdb %s %d' to attach your debugger to this thread.\n",
@@ -170,36 +155,6 @@ void beos_signal_handler(int signum) {
 	// Exit the appshell so that the app can shutdown normally
 	appStartup->Quit(nsIAppStartup::eAttemptQuit);
 }
-#endif
-
-#ifdef MOZ_WIDGET_GTK2
-// Need this include for version test below.
-#include <glib.h>
-#endif
-
-#if defined(MOZ_WIDGET_GTK2) && (GLIB_MAJOR_VERSION > 2 || (GLIB_MAJOR_VERSION == 2 && GLIB_MINOR_VERSION >= 6))
-
-static GLogFunc orig_log_func = NULL;
-
-extern "C" {
-static void
-my_glib_log_func(const gchar *log_domain, GLogLevelFlags log_level,
-                 const gchar *message, gpointer user_data);
-}
-
-/* static */ void
-my_glib_log_func(const gchar *log_domain, GLogLevelFlags log_level,
-                 const gchar *message, gpointer user_data)
-{
-  if (log_level & (G_LOG_LEVEL_ERROR | G_LOG_FLAG_FATAL | G_LOG_FLAG_RECURSION)) {
-    NS_DebugBreak(NS_DEBUG_ASSERTION, message, "glib assertion", __FILE__, __LINE__);
-  } else if (log_level & (G_LOG_LEVEL_CRITICAL | G_LOG_LEVEL_WARNING)) {
-    NS_DebugBreak(NS_DEBUG_WARNING, message, "glib warning", __FILE__, __LINE__);
-  }
-
-  orig_log_func(log_domain, log_level, message, NULL);
-}
-
 #endif
 
 void InstallUnixSignalHandlers(const char *ProgramName)
@@ -272,18 +227,5 @@ void InstallUnixSignalHandlers(const char *ProgramName)
 
 #ifdef XP_BEOS
 	signal(SIGTERM, beos_signal_handler);
-#endif
-
-#if defined(MOZ_WIDGET_GTK2) && (GLIB_MAJOR_VERSION > 2 || (GLIB_MAJOR_VERSION == 2 && GLIB_MINOR_VERSION >= 6))
-  const char *assertString = PR_GetEnv("XPCOM_DEBUG_BREAK");
-  if (assertString &&
-      (!strcmp(assertString, "suspend") ||
-       !strcmp(assertString, "stack") ||
-       !strcmp(assertString, "abort") ||
-       !strcmp(assertString, "trap") ||
-       !strcmp(assertString, "break"))) {
-    // Override the default glib logging function so we get stacks for it too.
-    orig_log_func = g_log_set_default_handler(my_glib_log_func, NULL);
-  }
 #endif
 }

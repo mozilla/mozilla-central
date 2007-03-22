@@ -36,7 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 /* ===== plugins.css =====================================================
-   == Styles used by the about:plugins page.
+   == Styles used by the about:plugins dialog.
    ======================================================================= */
 
 body {
@@ -52,13 +52,13 @@ div#outside {
  margin-right: 5%;
 }
 
-#plugs {
+div#plugs {
   text-align: center;
   font-size: xx-large;
   font-weight: bold;
 }
 
-#noplugs {
+div#noplugs {
   font-size: x-large;
   font-weight: bold;
 }
@@ -67,7 +67,7 @@ div#findmore {
   margin-top: 2em;
 }
 
-.plugname {
+div.plugname {
   margin-top: 2em;
   margin-bottom: 1em;
   font-size: large;
@@ -89,11 +89,6 @@ table {
   border-spacing: 0px;
 }
 
-th, td {
-  border: none;
-  padding: 3px;
-}
-
 th {
   text-align: center;
   background-color: Highlight;
@@ -108,6 +103,10 @@ td + td {
 td {
   text-align: left;
   border-top: 1px dotted ThreeDShadow;
+}
+
+th, td {
+  padding: 3px;
 }
 
 th.type, th.suff {

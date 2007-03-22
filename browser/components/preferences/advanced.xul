@@ -24,7 +24,6 @@
 # Contributor(s):
 #   Ben Goodger <ben@mozilla.org>
 #   Jeff Walden <jwalden+code@mit.edu>
-#   Ehsan Akhgari <ehsan.akhgari@gmail.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -52,7 +51,11 @@
 <overlay id="AdvancedPaneOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <prefpane id="paneAdvanced" onpaneload="gAdvancedPane.init();">
+  <prefpane id="paneAdvanced" onpaneload="gAdvancedPane.init();"
+            helpURI="chrome://browser/locale/help/help.rdf"
+            xmlns:xhtml2="http://www.w3.org/TR/xhtml2"
+            xmlns:wairole="http://www.w3.org/2005/01/wai-rdf/GUIRoleTaxonomy#"
+            xmlns:aaa="http://www.w3.org/2005/07/aaa">
 
     <preferences id="advancedPreferences">
       <preference id="browser.preferences.advanced.selectedTabIndex"
@@ -70,19 +73,10 @@
       <preference id="general.smoothScroll"            name="general.smoothScroll"            type="bool"/>
       <preference id="layout.spellcheckDefault"        name="layout.spellcheckDefault"        type="int"/>
 
-#ifdef HAVE_SHELL_SERVICE
-      <preference id="browser.shell.checkDefaultBrowser"
-                  name="browser.shell.checkDefaultBrowser"
-                  type="bool"/>
-
-      <preference id="pref.general.disable_button.default_browser"
-                  name="pref.general.disable_button.default_browser"
-                  type="bool"/>
-#endif
 
       <!-- Network tab -->
       <preference id="browser.cache.disk.capacity"     name="browser.cache.disk.capacity"     type="int"/>
-      <preference id="browser.offline-apps.notify"     name="browser.offline-apps.notify"     type="bool"/>
+
 
       <!-- Update tab -->
       <preference id="app.update.enabled"              name="app.update.enabled"              type="bool"
@@ -121,11 +115,6 @@
                   type="bool"/>
     </preferences>
     
-#ifdef HAVE_SHELL_SERVICE
-    <stringbundle id="bundleShell" src="chrome://browser/locale/shellservice.properties"/>
-    <stringbundle id="bundleBrand" src="chrome://branding/locale/brand.properties"/>
-#endif
-
     <script type="application/x-javascript" src="chrome://browser/content/preferences/advanced.js"/>
 
     <tabbox id="advancedPrefs" flex="1"
@@ -181,22 +170,19 @@
                       preference="layout.spellcheckDefault"/>
           </groupbox>
 
-#ifdef HAVE_SHELL_SERVICE
-          <!-- System Defaults -->
-          <groupbox id="systemDefaultsGroup" orient="horizontal">
-            <caption label="&systemDefaults.label;"/>
+          <!-- Languages -->
+          <groupbox id="languagesGroup">
+            <caption label="&languages.label;"/>
 
-            <hbox id="checkDefaultBox" align="center" flex="1">      
-              <checkbox id="alwaysCheckDefault" preference="browser.shell.checkDefaultBrowser"
-                        label="&alwaysCheckDefault.label;" accesskey="&alwaysCheckDefault.accesskey;"
-                        flex="1"/>
-              <button id="checkDefaultButton"
-                      label="&checkNow.label;" accesskey="&checkNow.accesskey;"
-                      oncommand="gAdvancedPane.checkNow()"
-                      preference="pref.general.disable_button.default_browser"/>
+            <hbox id="languagesBox" align="center">
+              <description flex="1" control="chooseLanguage">&chooseLanguage.label;</description>
+              <button id="chooseLanguage"
+                      label="&chooseButton.label;"
+                      accesskey="&chooseButton.accesskey;"
+                      oncommand="gAdvancedPane.showLanguages();"/>
             </hbox>
           </groupbox>
-#endif
+
         </tabpanel>
 
         <!-- Network -->
@@ -214,59 +200,30 @@
              </hbox>
            </groupbox>
 
-           <!-- Cache/Offline apps -->
-           <groupbox id="offlineGroup">
-             <caption label="&offlineStorage.label;"/>
+           <!-- Cache -->
+           <groupbox id="cacheGroup">
+             <caption label="&cache.label;"/>
 
-             <hbox align="center">
-               <label id="useCacheBefore" control="cacheSize"
-                      accesskey="&useCacheBefore.accesskey;" value="&useCacheBefore.label;"/>
-               <textbox id="cacheSize" type="number" size="2"
+             <hbox id="cacheSizeBox" align="center">
+               <label control="cacheSize"
+                      accesskey="&useCacheBefore.accesskey;">&useCacheBefore.label;</label>
+               <textbox id="cacheSize" size="2"
                         preference="browser.cache.disk.capacity"
                         onsyncfrompreference="return gAdvancedPane.readCacheSize();"
                         onsynctopreference="return gAdvancedPane.writeCacheSize();"
-                        aria-labelledby="useCacheBefore cacheSize useCacheAfter"/>
-               <label id="useCacheAfter" flex="1">&useCacheAfter.label;</label>
+                        aaa:labelledby="cacheSizeBox"/>
+               <label flex="1">&useCacheAfter.label;</label>
                <button id="clearCacheButton" icon="clear"
-                       label="&clearCacheNow.label;" accesskey="&clearCacheNow.accesskey;"
+                       label="&clearDataNow.label2;"
                        oncommand="gAdvancedPane.clearCache();"/>
              </hbox>
-	     <hbox align="center">
-	       <checkbox id="offlineNotify" flex="1"
-			 label="&offlineNotify.label;" accesskey="&offlineNotify.accesskey;"
-			 preference="browser.offline-apps.notify"
-			 onsyncfrompreference="return gAdvancedPane.readOfflineNotify();"/>
-	       <button id="offlineNotifyExceptions"
-		       label="&offlineNotifyExceptions.label;"
-		       accesskey="&offlineNotifyExceptions.accesskey;"
-		       oncommand="gAdvancedPane.showOfflineExceptions();"/>
-	     </hbox>
-	     <hbox>
-	       <vbox flex="1">
-
-		 <label id="offlineAppsListLabel">&offlineAppsList.label;</label>
-		 <listbox id="offlineAppsList"
-			  style="height: &offlineAppsList.height;;"
-			  flex="1"
-			  aria-labelledby="offlineAppsListLabel"
-			  onselect="gAdvancedPane.offlineAppSelected(event);">
-		 </listbox>
-	       </vbox>
-	       <vbox pack="end">
-		 <button id="offlineAppsListRemove"
-			 disabled="true"
-			 label="&offlineAppsListRemove.label;"
-			 accesskey="&offlineAppsListRemove.accesskey;" 
-			 oncommand="gAdvancedPane.removeOfflineApp();"/>
-	       </vbox>
-	     </hbox>
-	   </groupbox>
+           </groupbox>
         </tabpanel>
 
         <!-- Update -->
         <tabpanel id="updatePanel" orient="vertical" align="start">
           <label control="autoUpdateGroup">&autoCheck.label;</label>
-          <vbox class="indent" id="autoUpdateGroup" role="group">
+          <vbox class="indent" id="autoUpdateGroup" xhtml2:role="wairole:groupbox">
             <checkbox id="enableAppUpdate"
                       label="&enableAppUpdate.label;"
                       accesskey="&enableAppUpdate.accesskey;"
@@ -342,18 +299,17 @@
 
           <!-- Certificates -->
           <groupbox id="certificatesGroup">
-            <caption id="CertGroupCaption" label="&certificates.label;"/>
+            <caption label="&certificates.label;"/>
 
-            <description id="CertSelectionDesc" control="certSelection">&certSelection.description;</description>
+            <description control="certselection">&certselect.description;</description>
 
             <!--
               The values on these radio buttons may look like l12y issues, but
               they're not - this preference uses *those strings* as its values.
               I KID YOU NOT.
             -->
-            <radiogroup id="certSelection" orient="horizontal" preftype="string"
-                        preference="security.default_personal_cert"
-                        aria-labelledby="CertGroupCaption CertSelectionDesc">
+            <radiogroup id="certSelection" orient="horizontal" preftype="string" 
+	                      preference="security.default_personal_cert">
               <radio label="&certs.auto;" accesskey="&certs.auto.accesskey;" 
                      value="Select Automatically"/>
               <radio label="&certs.ask;" accesskey="&certs.ask.accesskey;" 
@@ -375,7 +331,7 @@
                       oncommand="gAdvancedPane.showCRLs();"
                       preference="security.OCSP.disable_button.managecrl"/>
               <button id="verificationButton"
-                      label="&verify2.label;" accesskey="&verify2.accesskey;" 
+                      label="&verify.label;" accesskey="&verify.accesskey;" 
                       oncommand="gAdvancedPane.showOCSP();"/>
 #ifdef XP_MACOSX
             </hbox>

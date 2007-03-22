@@ -36,10 +36,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-346642-06.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 346642;
+var bug = 346642;
 var summary = 'decompilation of destructuring assignment';
 var actual = '';
 var expect = '';
@@ -52,7 +50,7 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
 
   expect = 3;
@@ -61,22 +59,11 @@ function test()
   actual = 3;
   reportCompare(expect, actual, summary + ': 1');
 
-  try
-  {
-    var z = 6;
-    var f = eval('(function (){for(let [] = []; false;) let z; return z})');
-    expect =  f();
-    actual = eval("("+f+")")()
-      reportCompare(expect, actual, summary + ': 2');
-  }
-  catch(ex)
-  {
-    // See https://bugzilla.mozilla.org/show_bug.cgi?id=408957
-    var summarytrunk = 'let declaration must be direct child of block or top-level implicit block';
-    expect = 'SyntaxError';
-    actual = ex.name;
-    reportCompare(expect, actual, summarytrunk);
-  }
+  var z = 6;
+  var f = function (){for(let [] = []; false;) let z; return z}
+  expect =  f();
+  actual = eval(""+f)()
+  reportCompare(expect, actual, summary + ': 2');
 
   expect = 3;
   actual = '';
@@ -97,7 +84,7 @@ function test()
 
   expect = 3;
   actual = '';
-  "" + function () { for(;; ([[,]] = p)) { } }; actual = 3;
+  "" + function () { for(;; ([[,]] = p)) { } }; actual = 3; 
   reportCompare(expect, actual, summary + ': 6');
 
   expect = 3;

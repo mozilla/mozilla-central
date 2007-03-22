@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = '10.1.4-10.js';
-
 /**
    File Name:          10.1.4-10.js
    ECMA Section:       10.1.4 Scope Chain and Identifier Resolution
@@ -83,23 +81,23 @@ new TestCase( "SECTION", "MYOBJECT.toString()" );
 test();
 
 function test() {
-  for ( gTc=0; gTc < gTestcases.length; gTc++ ) {
+  for ( tc=0; tc < testcases.length; tc++ ) {
     var VALUE = 12345;
     var MYOBJECT = new Number( VALUE );
 
     with ( MYOBJECT ) {
-      gTestcases[gTc].actual = toString();
-      gTestcases[gTc].expect = String(VALUE);
+      testcases[tc].actual = toString();
+      testcases[tc].expect = String(VALUE);
     }
 
-    gTestcases[gTc].passed = writeTestCaseResult(
-      gTestcases[gTc].expect,
-      gTestcases[gTc].actual,
-      gTestcases[gTc].description +" = "+
-      gTestcases[gTc].actual );
+    testcases[tc].passed = writeTestCaseResult(
+      testcases[tc].expect,
+      testcases[tc].actual,
+      testcases[tc].description +" = "+
+      testcases[tc].actual );
 
-    gTestcases[gTc].reason += ( gTestcases[gTc].passed ) ? "" : "wrong value ";
+    testcases[tc].reason += ( testcases[tc].passed ) ? "" : "wrong value ";
   }
   stopTest();
-  return ( gTestcases );
+  return ( testcases );
 }

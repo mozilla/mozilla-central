@@ -181,7 +181,7 @@ PR_PUBLIC_API(PRInt32) ZIP_OpenArchive(const char * zipname, void** hZip)
 
   status = zip->OpenArchive(fd);
   if (status == ZIP_OK)
-    *hZip = static_cast<void*>(zip);
+    *hZip = NS_STATIC_CAST(void*,zip);
   else {
     delete zip;
     PR_Close(fd);
@@ -207,7 +207,7 @@ PR_PUBLIC_API(PRInt32) ZIP_TestArchive(void *hZip)
   if (hZip == 0)
     return ZIP_ERR_PARAM;
 
-  nsZipArchive* zip = static_cast<nsZipArchive*>(hZip);
+  nsZipArchive* zip = NS_STATIC_CAST(nsZipArchive*,hZip);
   if (zip->kMagic != ZIP_MAGIC)
     return ZIP_ERR_PARAM;   /* whatever it is isn't one of ours! */
 
@@ -229,7 +229,7 @@ PR_PUBLIC_API(PRInt32) ZIP_CloseArchive(void** hZip)
   if (hZip == 0 || *hZip == 0)
     return ZIP_ERR_PARAM;
 
-  nsZipArchive* zip = static_cast<nsZipArchive*>(*hZip);
+  nsZipArchive* zip = NS_STATIC_CAST(nsZipArchive*,*hZip);
   if (zip->kMagic != ZIP_MAGIC)
     return ZIP_ERR_PARAM;   /* whatever it is isn't one of ours! */
 
@@ -257,7 +257,7 @@ PR_PUBLIC_API(PRInt32) ZIP_ExtractFile(void* hZip, const char * filename, const 
   if (hZip == 0)
     return ZIP_ERR_PARAM;
 
-  nsZipArchive* zip = static_cast<nsZipArchive*>(hZip);
+  nsZipArchive* zip = NS_STATIC_CAST(nsZipArchive*,hZip);
   if (zip->kMagic != ZIP_MAGIC)
     return ZIP_ERR_PARAM;   /* whatever it is isn't one of ours! */
 
@@ -305,7 +305,7 @@ PR_PUBLIC_API(void*) ZIP_FindInit(void* hZip, const char * pattern)
   if (hZip == 0)
     return 0;
 
-  nsZipArchive* zip = static_cast<nsZipArchive*>(hZip);
+  nsZipArchive* zip = NS_STATIC_CAST(nsZipArchive*,hZip);
   if (zip->kMagic != ZIP_MAGIC)
     return 0;   /* whatever it is isn't one of ours! */
 
@@ -339,7 +339,7 @@ PR_PUBLIC_API(PRInt32) ZIP_FindNext(void* hFind, char * outbuf, PRUint16 bufsize
   if (hFind == 0)
     return ZIP_ERR_PARAM;
 
-  nsZipFind* find = static_cast<nsZipFind*>(hFind);
+  nsZipFind* find = NS_STATIC_CAST(nsZipFind*,hFind);
   if (find->kMagic != ZIPFIND_MAGIC)
     return ZIP_ERR_PARAM;   /* whatever it is isn't one of ours! */
 
@@ -376,7 +376,7 @@ PR_PUBLIC_API(PRInt32) ZIP_FindFree(void* hFind)
   if (hFind == 0)
     return ZIP_ERR_PARAM;
 
-  nsZipFind* find = static_cast<nsZipFind*>(hFind);
+  nsZipFind* find = NS_STATIC_CAST(nsZipFind*,hFind);
   if (find->kMagic != ZIPFIND_MAGIC)
     return ZIP_ERR_PARAM;   /* whatever it is isn't one of ours! */
 
@@ -906,11 +906,6 @@ nsresult nsZipArchive::BuildFileList()
     PRUint16 extralen = xtoint(central->extrafield_len);
     PRUint16 commentlen = xtoint(central->commentfield_len);
 
-    //-- sanity check variable sizes and refuse to deal with
-    //-- anything too big: it's likely a corrupt archive
-    if (namelen > BR_BUF_SIZE || extralen > BR_BUF_SIZE || commentlen > 2*BR_BUF_SIZE)
-      return ZIP_ERR_CORRUPT;
-
     nsZipItem* item = CreateZipItem(namelen);
     if (!item)
       return ZIP_ERR_MEMORY;
@@ -924,10 +919,11 @@ nsresult nsZipArchive::BuildFileList()
     item->date          = xtoint(central->date);
     item->isSynthetic   = PR_FALSE;
     item->hasDataOffset = PR_FALSE;
-
-    PRUint16 compression = xtoint(central->method);
-    item->compression   = (compression < UNSUPPORTED) ? (PRUint8)compression
-                                                      : UNSUPPORTED;
+    item->compression   = (PRUint8)xtoint(central->method);
+#if defined(DEBUG)
+    /* Make sure our space optimization is non lossy. */
+    PR_ASSERT(xtoint(central->method) == (PRUint16)item->compression);
+#endif
 
     item->mode = ExtractMode(central->external_attributes);
 #if defined(XP_UNIX) || defined(XP_BEOS)
@@ -948,11 +944,6 @@ nsresult nsZipArchive::BuildFileList()
       memcpy(buf, buf+pos, leftover);
       byteCount = leftover + PR_Read(mFd, buf+leftover, sizeof(buf)-leftover);
       pos = 0;
-
-      if (byteCount < (namelen + extralen + commentlen + sizeof(sig))) {
-        // truncated file
-        return ZIP_ERR_CORRUPT;
-      }
     }
 
     //-------------------------------------------------------

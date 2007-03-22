@@ -45,6 +45,12 @@
 
 class nsSVGLength2
 {
+  // Needed to allow member classes access to our data.
+  // gcc/vc8 allow access without this.
+  struct DOMBaseVal;
+  struct DOMAnimVal;
+  friend struct DOMBaseVal;
+  friend struct DOMAnimVal;
 
 public:
   void Init(PRUint8 aCtxType = nsSVGUtils::XY,
@@ -65,22 +71,22 @@ public:
   void GetAnimValueString(nsAString& aValue);
 
   float GetBaseValue(nsSVGElement* aSVGElement)
-    { return mBaseVal / GetUnitScaleFactor(aSVGElement); }
+    { return ConvertToUserUnits(mBaseVal, aSVGElement); }
   float GetAnimValue(nsSVGElement* aSVGElement)
-    { return mAnimVal / GetUnitScaleFactor(aSVGElement); }
+    { return ConvertToUserUnits(mAnimVal, aSVGElement); }
 
-  PRUint8 GetCtxType() const { return mCtxType; }
-  PRUint8 GetSpecifiedUnitType() const { return mSpecifiedUnitType; }
-  PRBool IsPercentage() const
-    { return mSpecifiedUnitType == nsIDOMSVGLength::SVG_LENGTHTYPE_PERCENTAGE; }
-  float GetAnimValInSpecifiedUnits() const { return mAnimVal; }
-  float GetBaseValInSpecifiedUnits() const { return mBaseVal; }
+  PRUint8 GetCtxType() { return mCtxType; }
+  PRUint8 GetSpecifiedUnitType() { return mSpecifiedUnitType; }
+  float GetAnimValInSpecifiedUnits() { return mAnimVal; }
+  float GetBaseValInSpecifiedUnits() { return mBaseVal; }
 
-  float GetBaseValue(nsSVGSVGElement* aCtx)
-    { return mBaseVal / GetUnitScaleFactor(aCtx); }
-  float GetAnimValue(nsSVGSVGElement* aCtx)
-    { return mAnimVal / GetUnitScaleFactor(aCtx); }
+  float GetBaseValue(nsSVGSVGElement* aProvider)
+    { return ConvertToUserUnits(mBaseVal, aProvider); }
+  float GetAnimValue(nsSVGSVGElement* aProvider)
+    { return ConvertToUserUnits(mAnimVal, aProvider); }
   
+  nsresult ToDOMBaseVal(nsIDOMSVGLength **aResult, nsSVGElement* aSVGElement);
+  nsresult ToDOMAnimVal(nsIDOMSVGLength **aResult, nsSVGElement* aSVGElement);
   nsresult ToDOMAnimatedLength(nsIDOMSVGAnimatedLength **aResult,
                                nsSVGElement* aSVGElement);
 
@@ -93,21 +99,15 @@ private:
   PRUint8 mCtxType; // X, Y or Unspecified
   PRPackedBool mIsAnimated;
   
-  float GetMMPerPixel(nsSVGSVGElement *aCtx) const;
-  float GetAxisLength(nsSVGSVGElement *aCtx) const;
-  float GetEmLength(nsSVGElement *aSVGElement) const
-    { return nsSVGUtils::GetFontSize(aSVGElement); }
-  float GetExLength(nsSVGElement *aSVGElement) const
-    { return nsSVGUtils::GetFontXHeight(aSVGElement); }
-  float GetUnitScaleFactor(nsSVGElement *aSVGElement) const;
-  float GetUnitScaleFactor(nsSVGSVGElement *aCtx) const;
+  float GetMMPerPixel(nsSVGSVGElement *aCtx);
+  float GetAxisLength(nsSVGSVGElement *aCtx);
+  float ConvertToUserUnits(float aValue, nsSVGElement *aSVGElement);
+  float ConvertToUserUnits(float aValue, nsSVGSVGElement *aProvider);
   void SetBaseValue(float aValue, nsSVGElement *aSVGElement);
   void SetBaseValueInSpecifiedUnits(float aValue, nsSVGElement *aSVGElement);
   void NewValueSpecifiedUnits(PRUint16 aUnitType, float aValue,
                               nsSVGElement *aSVGElement);
   void ConvertToSpecifiedUnits(PRUint16 aUnitType, nsSVGElement *aSVGElement);
-  nsresult ToDOMBaseVal(nsIDOMSVGLength **aResult, nsSVGElement* aSVGElement);
-  nsresult ToDOMAnimVal(nsIDOMSVGLength **aResult, nsSVGElement* aSVGElement);
 
   struct DOMBaseVal : public nsIDOMSVGLength
   {

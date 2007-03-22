@@ -48,18 +48,16 @@ typedef nsSVGContainerFrame nsSVGPaintServerFrameBase;
 class nsSVGPaintServerFrame : public nsSVGPaintServerFrameBase,
                               public nsSVGValue
 {
-protected:
-  nsSVGPaintServerFrame(nsStyleContext* aContext) :
-    nsSVGPaintServerFrameBase(aContext) {}
-
 public:
-  /*
-   * Configure paint server prior to rendering
-   * @return PR_FALSE to skip rendering
-   */
-  virtual PRBool SetupPaintServer(gfxContext *aContext,
-                                  nsSVGGeometryFrame *aSource,
-                                  float aOpacity) = 0;
+  nsSVGPaintServerFrame(nsStyleContext* aContext) :
+      nsSVGPaintServerFrameBase(aContext) {}
+
+  virtual nsresult SetupPaintServer(gfxContext *aContext,
+                                    nsSVGGeometryFrame *aSource,
+                                    float aOpacity,
+                                    void **aClosure) = 0;
+  virtual void CleanupPaintServer(gfxContext *aContext, void *aClosure) = 0;
+
   // nsISupports interface:
   NS_IMETHOD QueryInterface(const nsIID& aIID, void** aInstancePtr);
 

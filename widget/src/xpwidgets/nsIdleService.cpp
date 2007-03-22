@@ -128,7 +128,7 @@ nsIdleService::RemoveIdleObserver(nsIObserver* aObserver, PRUint32 aTime)
 void
 nsIdleService::IdleTimerCallback(nsITimer* aTimer, void* aClosure)
 {
-    static_cast<nsIdleService*>(aClosure)->CheckAwayState();
+    NS_STATIC_CAST(nsIdleService*, aClosure)->CheckAwayState();
 }
 
 void
@@ -149,13 +149,13 @@ nsIdleService::CheckAwayState()
     for (PRUint32 i = 0; i < mArrayListeners.Length(); i++)
     {
         IdleListener& curListener = mArrayListeners.ElementAt(i);
-        if ((curListener.reqIdleTime * 1000 <= idleTime) &&
+        if ((curListener.reqIdleTime * 60000 <= idleTime) &&
             !curListener.isIdle)
         {
             curListener.isIdle = PR_TRUE;
             idleListeners.AppendObject(curListener.observer);
         }
-        else if ((curListener.reqIdleTime * 1000 > idleTime) &&
+        else if ((curListener.reqIdleTime * 60000 > idleTime) &&
                  curListener.isIdle)
         {
             curListener.isIdle = PR_FALSE;

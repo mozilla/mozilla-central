@@ -146,7 +146,7 @@ nsLDAPSyncQuery::OnLDAPInit(nsILDAPConnection *aConn, nsresult aStatus)
     //
     rv = NS_GetProxyForObject(NS_PROXY_TO_CURRENT_THREAD,
                               NS_GET_IID(nsILDAPMessageListener), 
-                              static_cast<nsILDAPMessageListener *>(this),
+                              NS_STATIC_CAST(nsILDAPMessageListener *, this),
                               NS_PROXY_ASYNC | NS_PROXY_ALWAYS, 
                               getter_AddRefs(selfProxy));
     if (NS_FAILED(rv)) {
@@ -285,7 +285,7 @@ nsLDAPSyncQuery::StartLDAPSearch()
     //
     rv = NS_GetProxyForObject(NS_PROXY_TO_CURRENT_THREAD, 
                               NS_GET_IID(nsILDAPMessageListener),
-                              static_cast<nsILDAPMessageListener *>(this),
+                              NS_STATIC_CAST(nsILDAPMessageListener *, this),
                               NS_PROXY_ASYNC | NS_PROXY_ALWAYS,
                               getter_AddRefs(selfProxy));
     if (NS_FAILED(rv)) {
@@ -343,7 +343,7 @@ nsLDAPSyncQuery::StartLDAPSearch()
     // time to kick off the search.
     //
     rv = mOperation->SearchExt(dn, scope, urlFilter, mAttrCount,
-                               const_cast<const char **>(mAttrs), 0, 0);
+                               NS_CONST_CAST(const char **, mAttrs), 0, 0);
 
     if (NS_FAILED(rv)) {
         FinishLDAPQuery();
@@ -380,11 +380,36 @@ nsresult nsLDAPSyncQuery::InitConnection()
         return NS_ERROR_NOT_INITIALIZED;
     }
 
+    // host to connect to
+    //
+    nsCAutoString host;
+    rv = mServerURL->GetAsciiHost(host);
+    if (NS_FAILED(rv)) {
+        FinishLDAPQuery();
+        return NS_ERROR_FAILURE;
+    }
+
+    // on which port
+    //
+    PRInt32 port;
+    rv = mServerURL->GetPort(&port);
+    if (NS_FAILED(rv)) {
+        FinishLDAPQuery();
+        return NS_ERROR_FAILURE;
+    }
+        
+    PRUint32 options;
+    rv = mServerURL->GetOptions(&options);
+    if (NS_FAILED(rv)) {
+        FinishLDAPQuery();
+        return NS_ERROR_FAILURE;
+    }
+
     // get a proxy object so the callback happens on the main thread
     //
     rv = NS_GetProxyForObject(NS_PROXY_TO_CURRENT_THREAD,
                               NS_GET_IID(nsILDAPMessageListener), 
-                              static_cast<nsILDAPMessageListener *>(this), 
+                              NS_STATIC_CAST(nsILDAPMessageListener *, this), 
                               NS_PROXY_ASYNC | NS_PROXY_ALWAYS, 
                               getter_AddRefs(selfProxy));
     if (NS_FAILED(rv)) {
@@ -394,7 +419,9 @@ nsresult nsLDAPSyncQuery::InitConnection()
         return NS_ERROR_FAILURE;
     }
 
-    rv = mConnection->Init(mServerURL, EmptyCString(), selfProxy,
+    rv = mConnection->Init(host.get(), port, 
+                           (options & nsILDAPURL::OPT_SECURE) 
+                           ? PR_TRUE : PR_FALSE, EmptyCString(), selfProxy,
                            nsnull, mProtocolVersion);
     if (NS_FAILED(rv)) {
         FinishLDAPQuery();

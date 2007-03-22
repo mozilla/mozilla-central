@@ -19,7 +19,7 @@
  * The Original Code is mozilla.org code.
  *
  * The Initial Developer of the Original Code is
- * Oleg Romashin.
+ * Oleg Romashin. Portions created by Oleg Romashin are Copyright (C) Oleg Romashin.  All Rights Reserved.
  * Portions created by the Initial Developer are Copyright (C) 2006
  * the Initial Developer. All Rights Reserved.
  *
@@ -47,7 +47,7 @@
 #include "imgIContainer.h"
 #include "imgIRequest.h"
 #include "nsIDOMEventTarget.h"
-#include "nsRect.h"
+#include "nsIFrame.h"
 // for strings
 #ifdef MOZILLA_INTERNAL_API
 #include "nsXPIDLString.h"
@@ -74,7 +74,6 @@ public:
   nsresult          CheckDomImageElement(nsIDOMNode *node, nsString& aHref,
                                        PRInt32 *aWidth, PRInt32 *aHeight);
   nsresult          GetImageRequest(imgIRequest **aRequest, nsIDOMNode *aDOMNode);
-  nsString          GetCtxDocTitle(void) { return mCtxDocTitle; }
 
 
   PRInt32                 mX, mY, mObjWidth, mObjHeight, mCtxFrameNum;
@@ -84,7 +83,7 @@ public:
   nsCOMPtr<nsIDOMNode>    mEventNode;
   nsCOMPtr<nsIDOMEventTarget> mEventTarget;
   nsCOMPtr<nsIDOMDocument>mCtxDocument;
-  nsRect               mFormRect;
+  nsIntRect               mFormRect;
   nsCOMPtr<nsIDOMWindow>  mCtxDomWindow;
   nsCOMPtr<nsIDOMEvent>   mCtxEvent;
   nsCOMPtr<nsIDOMNSHTMLElement> mNSHHTMLElement;
@@ -92,10 +91,9 @@ public:
 private:
   nsresult          SetFrameIndex();
   nsresult          SetFormControlType(nsIDOMEventTarget *originalTarget);
-  nsresult          CheckDomHtmlNode(nsIDOMNode *aNode = nsnull);
+  nsresult          CheckDomHtmlNode(nsIDOMNode *node);
 
   EmbedPrivate           *mOwner;
   nsCOMPtr<nsIDOMNode>    mOrigNode;
-  nsString                mCtxDocTitle;
 }; // class EmbedContextMenuInfo
 #endif // EmbedContextMenuInfo_h__

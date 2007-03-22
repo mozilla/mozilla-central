@@ -61,6 +61,10 @@ public:
     {
     }
 
+    virtual ~txStandaloneHandlerFactory()
+    {
+    }
+
     TX_DECL_TXAOUTPUTHANDLERFACTORY
 
 private:

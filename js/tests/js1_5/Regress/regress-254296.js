@@ -35,15 +35,13 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-254296.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 254296;
+var bug = 254296;
 var summary = 'javascript regular expression negative lookahead';
 var actual = '';
 var expect = '';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
 expect = [3].toString();
@@ -52,7 +50,7 @@ if (actual)
 {
   actual = actual.toString();
 }
- 
+  
 reportCompare(expect, actual, summary + ' ' + inSection(1));
 
 expect = 'AB';

@@ -282,7 +282,7 @@ MySecMan::CanGetService(JSContext * aJSContext, const nsCID & aCID)
 
 /* void CanAccess (in PRUint32 aAction, in nsIXPCNativeCallContext aCallContext, in JSContextPtr aJSContext, in JSObjectPtr aJSObject, in nsISupports aObj, in nsIClassInfo aClassInfo, in JSVal aName, inout voidPtr aPolicy); */
 NS_IMETHODIMP 
-MySecMan::CanAccess(PRUint32 aAction, nsAXPCNativeCallContext *aCallContext, JSContext * aJSContext, JSObject * aJSObject, nsISupports *aObj, nsIClassInfo *aClassInfo, jsval aName, void * *aPolicy)
+MySecMan::CanAccess(PRUint32 aAction, nsIXPCNativeCallContext *aCallContext, JSContext * aJSContext, JSObject * aJSObject, nsISupports *aObj, nsIClassInfo *aClassInfo, jsval aName, void * *aPolicy)
 {
     switch(mMode)
     {
@@ -467,7 +467,7 @@ TestArgFormatter(JSContext* jscontext, JSObject* glob, nsIXPConnect* xpc)
                             a_in, 
                             &NS_GET_IID(nsITestXPCFoo2), b_in.get(), 
                             c_in.get(),
-                            static_cast<const nsAString*>(&d_in), 
+                            NS_STATIC_CAST(const nsAString*, &d_in), 
                             e_in);
 
     if(!argv)
@@ -478,9 +478,9 @@ TestArgFormatter(JSContext* jscontext, JSObject* glob, nsIXPConnect* xpc)
 
     if(!JS_ConvertArguments(jscontext, 5, argv, "s %ip %iv %is s",
                             &a_out, 
-                            static_cast<nsISupports**>(getter_AddRefs(b_out)), 
-                            static_cast<nsIVariant**>(getter_AddRefs(c_out)),
-                            static_cast<nsAString*>(&d_out), 
+                            NS_STATIC_CAST(nsISupports**, getter_AddRefs(b_out)), 
+                            NS_STATIC_CAST(nsIVariant**, getter_AddRefs(c_out)),
+                            NS_STATIC_CAST(nsAString*, &d_out), 
                             &e_out))
     {
         printf(" could not convert from JS to native -- FAILED!\n");

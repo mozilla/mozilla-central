@@ -99,6 +99,8 @@ private:
 
     static PLDHashTableOps HashTableOps;
 
+    PR_STATIC_CALLBACK(const void*)
+        HashTableGetKey(PLDHashTable *table, PLDHashEntryHdr *hdr);
     PR_STATIC_CALLBACK(PLDHashNumber)
         HashTableHashKey(PLDHashTable *table, const void *key);
     PR_STATIC_CALLBACK(PRBool)
@@ -120,6 +122,6 @@ private:
      * memory, which much be pushed and popped at points matching a
      * push/pop on the C++ stack.
      */
-    void* operator new(size_t sz) CPP_THROW_NEW { return nsnull; }
+    void* operator new(size_t sz) CPP_THROW_NEW { return nsnull; };
 };
 

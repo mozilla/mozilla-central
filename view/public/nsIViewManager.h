@@ -46,6 +46,8 @@
 
 class nsIScrollableView;
 class nsIWidget;
+class nsIBlender;
+class nsICompositeListener;
 struct nsRect;
 class nsRegion;
 class nsIDeviceContext;
@@ -60,10 +62,10 @@ enum nsRectVisibility {
   nsRectVisibility_kZeroAreaRect
 }; 
 
-// 855e75b8-32cf-4e16-bc50-4e04c53f6cbc
+// 143945d0-0a20-4bf0-a04d-ad212ab9acc2
 #define NS_IVIEWMANAGER_IID   \
-{ 0x855e75b8, 0x32cf, 0x4e16, \
-  { 0xbc, 0x50, 0x4e, 0x04, 0xc5, 0x3f, 0x6c, 0xbc } }
+{ 0x143945d0, 0x0a20, 0x4bf0, \
+  { 0xa0, 0x4d, 0xad, 0x21, 0x2a, 0xb9, 0xac, 0xc2 } }
 
 class nsIViewManager : public nsISupports
 {
@@ -216,6 +218,18 @@ public:
                           PRBool aAfter) = 0;
 
   /**
+   * Given a parent view, insert a placeholder for a view that logically
+   * belongs to this parent but has to be moved somewhere else for geometry
+   * reasons ("fixed" positioning).
+   * @param aParent parent view
+   * @param aChild child view
+   * @param aSibling sibling view
+   * @param aAfter after or before in the document order
+   */
+  NS_IMETHOD  InsertZPlaceholder(nsIView *aParent, nsIView *aChild, nsIView *aSibling,
+                                 PRBool aAfter) = 0;
+
+  /**
    * Remove a specific child view from its parent. This will NOT remove its placeholder
    * if there is one.
    * The view manager generates the appropriate dirty regions.
@@ -286,6 +300,11 @@ public:
   NS_IMETHOD  SetViewFloating(nsIView *aView, PRBool aFloatingView) = 0;
 
   /**
+   * Set whether the view's children should be searched during event processing.
+   */
+  NS_IMETHOD  SetViewCheckChildEvents(nsIView *aView, PRBool aEnable) = 0;
+
+  /**
    * Set the view observer associated with this manager
    * @param aObserver - new observer
    * @result error status
@@ -322,34 +341,13 @@ public:
    */
   NS_IMETHOD EnableRefresh(PRUint32 aUpdateFlags) = 0;
 
-  class UpdateViewBatch {
-  public:
-    UpdateViewBatch() {}
   /**
    * prevents the view manager from refreshing. allows UpdateView()
    * to notify widgets of damaged regions that should be repainted
-   * when the batch is ended. Call EndUpdateViewBatch on this object
-   * before it is destroyed
+   * when the batch is ended.
    * @return error status
    */
-    UpdateViewBatch(nsIViewManager* aVM) {
-      if (aVM) {
-        mRootVM = aVM->BeginUpdateViewBatch();
-      }
-    }
-    ~UpdateViewBatch() {
-      NS_ASSERTION(!mRootVM, "Someone forgot to call EndUpdateViewBatch!");
-    }
-    
-    /**
-     * See the constructor, this lets you "fill in" a blank UpdateViewBatch.
-     */
-    void BeginUpdateViewBatch(nsIViewManager* aVM) {
-      NS_ASSERTION(!mRootVM, "already started a batch!");
-      if (aVM) {
-        mRootVM = aVM->BeginUpdateViewBatch();
-      }
-    }
+  NS_IMETHOD BeginUpdateViewBatch(void) = 0;
 
   /**
    * allow the view manager to refresh any damaged areas accumulated
@@ -373,27 +371,7 @@ public:
    * @param aUpdateFlags see bottom of nsIViewManager.h for
    * description @return error status
    */
-    void EndUpdateViewBatch(PRUint32 aUpdateFlags) {
-      if (!mRootVM)
-        return;
-      mRootVM->EndUpdateViewBatch(aUpdateFlags);
-      mRootVM = nsnull;
-    }
-
-  private:
-    UpdateViewBatch(const UpdateViewBatch& aOther);
-    const UpdateViewBatch& operator=(const UpdateViewBatch& aOther);
-
-    nsCOMPtr<nsIViewManager> mRootVM;
-  };
-  
-private:
-  friend class UpdateViewBatch;
-
-  virtual nsIViewManager* BeginUpdateViewBatch(void) = 0;
   NS_IMETHOD EndUpdateViewBatch(PRUint32 aUpdateFlags) = 0;
-
-public:
 
   /**
    * set the view that is is considered to be the root scrollable
@@ -412,6 +390,41 @@ public:
   NS_IMETHOD GetRootScrollableView(nsIScrollableView **aScrollable) = 0;
 
   /**
+   * Dump the specified view into a new offscreen rendering context.
+   * @param aRect is the region to capture into the offscreen buffer, in the view's
+   * coordinate system
+   * @param aUntrusted set to PR_TRUE if the contents may be passed to malicious
+   * agents. E.g. we might choose not to paint the contents of sensitive widgets
+   * such as the file name in a file upload widget, and we might choose not
+   * to paint themes.
+   * @param aIgnoreViewportScrolling ignore clipping/scrolling/scrollbar painting
+   * due to scrolling in the viewport
+   * @param aBackgroundColor a background color to render onto
+   * @param aRenderedContext gets set to a rendering context whose offscreen
+   * buffer can be locked to get the data. The buffer's size will be aRect's size.
+   * In all cases the caller must clean it up by calling
+   * cx->DestroyDrawingSurface(cx->GetDrawingSurface()).
+   */
+  NS_IMETHOD RenderOffscreen(nsIView* aView, nsRect aRect, PRBool aUntrusted,
+                             PRBool aIgnoreViewportScrolling,
+                             nscolor aBackgroundColor,
+                             nsIRenderingContext** aRenderedContext) = 0;
+
+  /**
+   * Add a listener to the view manager's composite listener list.
+   * @param aListener - new listener
+   * @result error status
+   */
+  NS_IMETHOD AddCompositeListener(nsICompositeListener *aListener) = 0;
+
+  /**
+   * Remove a listener from the view manager's composite listener list.
+   * @param aListener - listener to remove
+   * @result error status
+   */
+  NS_IMETHOD RemoveCompositeListener(nsICompositeListener *aListener) = 0;
+
+  /**
    * Retrieve the widget at the root of the view manager. This is the
    * widget associated with the root view, if the root view exists and has
    * a widget.
@@ -427,6 +440,17 @@ public:
   // right with view update batching at all (will miss updates).  Maybe this
   // should call FlushPendingInvalidates()?
   NS_IMETHOD ForceUpdate() = 0;
+  
+  /**
+   * Control double buffering of the display. If double buffering
+   * is enabled the viewmanager is allowed to render to an offscreen
+   * drawing surface before copying to the display in order to prevent
+   * flicker. If it is disabled all rendering will appear directly on the
+   * the display. The display is double buffered by default.
+   * @param aDoubleBuffer PR_TRUE to enable double buffering
+   *                      PR_FALSE to disable double buffering
+   */
+  NS_IMETHOD AllowDoubleBuffering(PRBool aDoubleBuffer)=0;
 
   /**
    * Indicate whether the viewmanager is currently painting
@@ -481,7 +505,45 @@ public:
    * (aFromScroll is false) or scrolled (aFromScroll is true).
    */
   NS_IMETHOD SynthesizeMouseMove(PRBool aFromScroll)=0;
+  
+  /**
+   TEMPORARY. Expose BlendingBuffers to layout so layout can
+   paint with opacity. This will go away with cairo/thebes, or be moved
+   to layout, depending on what happens first.
+   
+    This class represents an offscreen buffer which may have an alpha channel.
+    Currently, if an alpha channel is required, we implement it by rendering into
+    two buffers: one with a black background, one with a white background. We can
+    recover the alpha values by comparing corresponding final values for each pixel.
+  */
+  class BlendingBuffers {
+  public:
+    BlendingBuffers(nsIRenderingContext* aCleanupContext);
+    ~BlendingBuffers();
+  
+    // used by the destructor to cleanup resources
+    nsCOMPtr<nsIRenderingContext> mCleanupContext;
+    // The primary rendering context. When an alpha channel is in use, this
+    // holds the black background.
+    nsCOMPtr<nsIRenderingContext> mBlackCX;
+    // Only used when an alpha channel is required; holds the white background.
+    nsCOMPtr<nsIRenderingContext> mWhiteCX;
+  
+    PRBool mOwnBlackSurface;
+    // drawing surface for mBlackCX
+    nsIDrawingSurface*  mBlack;
+    // drawing surface for mWhiteCX
+    nsIDrawingSurface*  mWhite;
+  
+    // The offset within the current widget at which this buffer will
+    // eventually be composited
+    nsPoint mOffset;
+  };
 
+  virtual BlendingBuffers* CreateBlendingBuffers(nsIRenderingContext *aRC, PRBool aBorrowContext,
+                                                 nsIDrawingSurface* aBorrowSurface, PRBool aNeedAlpha,
+                                                 const nsRect& aArea) = 0;
+  virtual nsIBlender* GetBlender() = 0;
 };
 
 NS_DEFINE_STATIC_IID_ACCESSOR(nsIViewManager, NS_IVIEWMANAGER_IID)

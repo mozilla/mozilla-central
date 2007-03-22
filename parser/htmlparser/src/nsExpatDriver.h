@@ -46,7 +46,6 @@
 #include "nsITokenizer.h"
 #include "nsIInputStream.h"
 #include "nsIParser.h"
-#include "nsCycleCollectionParticipant.h"
 
 class nsIExpatSink;
 class nsIExtendedExpatSink;
@@ -56,10 +55,9 @@ class nsExpatDriver : public nsIDTD,
                       public nsITokenizer
 {
 public:
-  NS_DECL_CYCLE_COLLECTING_ISUPPORTS
+  NS_DECL_ISUPPORTS
   NS_DECL_NSIDTD
   NS_DECL_NSITOKENIZER
-  NS_DECL_CYCLE_COLLECTION_CLASS_AMBIGUOUS(nsExpatDriver, nsIDTD)
 
   nsExpatDriver();
   virtual ~nsExpatDriver();
@@ -126,7 +124,7 @@ private:
                    PRUint32 *aConsumed);
   nsresult HandleError();
 
-  void MaybeStopParser(nsresult aState);
+  void MaybeStopParser();
 
   PRBool BlockedOrInterrupted()
   {

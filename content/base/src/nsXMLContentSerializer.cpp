@@ -93,8 +93,7 @@ NS_IMPL_ISUPPORTS1(nsXMLContentSerializer, nsIContentSerializer)
 
 NS_IMETHODIMP 
 nsXMLContentSerializer::Init(PRUint32 flags, PRUint32 aWrapColumn,
-                             const char* aCharSet, PRBool aIsCopying,
-                             PRBool aIsWholeDocument)
+                             const char* aCharSet, PRBool aIsCopying)
 {
   mCharset = aCharSet;
   return NS_OK;
@@ -529,9 +528,7 @@ nsXMLContentSerializer::SerializeAttr(const nsAString& aPrefix,
     // need to select the delimiter character and escape characters using
     // character entity references, ignoring the value of aDoEscapeEntities.
     // See http://www.w3.org/TR/REC-html40/appendix/notes.html#h-B.3.2.2 for
-    // the standard on character entity references in values.  We also have to
-    // make sure to escape any '&' characters.
-    
+    // the standard on character entity references in values. 
     PRBool bIncludesSingle = PR_FALSE;
     PRBool bIncludesDouble = PR_FALSE;
     nsAString::const_iterator iCurr, iEnd;
@@ -567,16 +564,18 @@ nsXMLContentSerializer::SerializeAttr(const nsAString& aPrefix,
         (bIncludesDouble && !bIncludesSingle) ? PRUnichar('\'') : PRUnichar('"');
     AppendToString(PRUnichar('='), aStr);
     AppendToString(cDelimiter, aStr);
-    nsAutoString sValue(aValue);
-    sValue.ReplaceSubstring(NS_LITERAL_STRING("&"),
-                            NS_LITERAL_STRING("&amp;"));
     if (bIncludesDouble && bIncludesSingle) {
-      sValue.ReplaceSubstring(NS_LITERAL_STRING("\""),
-                              NS_LITERAL_STRING("&quot;"));
+      nsAutoString sValue(aValue);
+      sValue.ReplaceSubstring(NS_LITERAL_STRING("\"").get(), NS_LITERAL_STRING("&quot;").get());
+      mInAttribute = PR_TRUE;
+      AppendToString(sValue, aStr, PR_FALSE);
+      mInAttribute = PR_FALSE;
     }
-    mInAttribute = PR_TRUE;
-    AppendToString(sValue, aStr, PR_FALSE);
-    mInAttribute = PR_FALSE;
+    else {
+      mInAttribute = PR_TRUE;
+      AppendToString(aValue, aStr, PR_FALSE);
+      mInAttribute = PR_FALSE;
+    }
     AppendToString(cDelimiter, aStr);
   }
 }

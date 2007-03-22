@@ -39,12 +39,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'regress-263934.js';
-
 START("Testing that replacing a list item with a new list that contains that item works");
-printBugNumber(263934);
+BUG(263934);
 
-var x =
+var x = 
 <x>
   <b>two</b>
   <b>three</b>
@@ -53,7 +51,7 @@ var x =
 // insert <a> element in from of first <b> element
 x.b[0] = <a>one</a> + x.b[0];
 
-var expected =
+var expected = 
 <x>
   <a>one</a>
   <b>two</b>

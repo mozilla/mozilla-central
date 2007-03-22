@@ -20,7 +20,6 @@
  *
  * Contributor(s):
  *   Asaf Romano <mano@mozilla.com>
- *   Sungjoon Steve Won <stevewon@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -38,6 +37,7 @@
 
 var gMoveBookmarksDialog = {
   _nodes: null,
+  _tm: null,
 
   _foldersTree: null,
   get foldersTree() {
@@ -49,31 +49,58 @@ var gMoveBookmarksDialog = {
 
   init: function() {
     this._nodes = window.arguments[0];
-
-    this.foldersTree.place =
-      "place:excludeItems=1&excludeQueries=1&excludeReadOnlyFolders=1&folder=" +
-      PlacesUIUtils.allBookmarksFolderId;
+    this._tm = window.arguments[1];
   },
 
   onOK: function MBD_onOK(aEvent) {
     var selectedNode = this.foldersTree.selectedNode;
-    NS_ASSERT(selectedNode,
-              "selectedNode must be set in a single-selection tree with initial selection set");
-    var selectedFolderID = PlacesUtils.getConcreteItemId(selectedNode);
+    if (!selectedNode) {
+      // XXXmano: the old dialog defaults to the the "Bookmarks" root folder
+      // for some reason. I'm pretty sure we don't want to that yet in Places,
+      // at least not until we make that folder node visible in the tree, if we
+      // ever do so
+      return;
+    }
+    var selectedFolderID = asFolder(selectedNode).folderId;
 
     var transactions = [];
     for (var i=0; i < this._nodes.length; i++) {
+      var parentId = asFolder(this._nodes[i].parent).folderId;
+
       // Nothing to do if the node is already under the selected folder
-      if (this._nodes[i].parent.itemId == selectedFolderID)
+      if (parentId == selectedFolderID)
         continue;
 
-      transactions.push(new
-        PlacesUIUtils.ptm.moveItem(this._nodes[i].itemId, selectedFolderID, -1));
+      var nodeIndex = PlacesUtils.getIndexOfNode(this._nodes[i]);
+      if (PlacesUtils.nodeIsFolder(this._nodes[i])) {
+        // Disallow moving a folder into itself
+        if (asFolder(this._nodes[i]).folderId != selectedFolderID) {
+          transactions.push(new
+            PlacesMoveFolderTransaction(asFolder(this._nodes[i]).folderId,
+                                        parentId, nodeIndex,
+                                        selectedFolderID, -1));
+        }
+      }
+      else if (PlacesUtils.nodeIsBookmark(this._nodes[i])) {
+        transactions.push(new
+          PlacesMoveItemTransaction(this._nodes[i].bookmarkId,
+                                    PlacesUtils._uri(this._nodes[i].uri),
+                                    parentId, nodeIndex, selectedFolderID, -1));
+      }
+      else if (PlacesUtils.nodeIsSeparator(this._nodes[i])) { 
+        // See makeTransaction in utils.js
+        var removeTxn =
+          new PlacesRemoveSeparatorTransaction(parentId, nodeIndex);
+        var createTxn =
+          new PlacesCreateSeparatorTransaction(selectedFolderID, -1);
+        transactions.push(new
+          PlacesAggregateTransaction("SeparatorMove", [removeTxn, createTxn]));
+      }
     }
 
     if (transactions.length != 0) {
-      var txn = PlacesUIUtils.ptm.aggregateTransactions("Move Items", transactions);
-      PlacesUIUtils.ptm.doTransaction(txn);
+      var txn = new PlacesAggregateTransaction("Move Items", transactions);
+      this._tm.doTransaction(txn);
     }
   },
 

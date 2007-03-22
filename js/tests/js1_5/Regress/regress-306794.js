@@ -34,17 +34,15 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-306794.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 306794;
-var summary = 'Do not assert: parsing foo getter';
+var bug = 306794;
+var summary = 'Assertion parsing foo getter';
 var actual = 'No Assertion';
 var expect = 'No Assertion';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
- 
+  
 try
 {
   eval('getter\n');

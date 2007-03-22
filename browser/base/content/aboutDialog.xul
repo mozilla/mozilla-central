@@ -21,7 +21,6 @@
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#   Ehsan Akhgari <ehsan.akhgari@gmail.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -64,19 +63,15 @@
         buttons="accept,extra2"
 #endif
         creditslabel="&copyright;"
-        creditsaccesskey="&copyright.accesskey;"
-        aboutlabel="&aboutLink;"
-        aboutaccesskey="&aboutLink.accesskey;">
+        aboutlabel="&aboutLink;">
     
   <script type="application/x-javascript" src="chrome://browser/content/aboutDialog.js"/>
 
   <deck id="modes" flex="1">
     <vbox flex="1" id="clientBox">
 #expand <label id="version" value="&aboutVersion; __MOZ_APP_VERSION__"/>
-      <label id="distribution"/>
-      <label id="distributionId"/>
-      <description id="copyright">&copyrightInfo;</description>
-      <textbox id="userAgent" multiline="true" readonly="true" flex="1"/>
+      <description id="copyright">&copyrightText;</description>
+      <textbox id="userAgent" multiline="true" readonly="true"/>
     </vbox>
     <vbox flex="1" id="creditsBox">
       <iframe id="creditsIframe" flex="1"/>

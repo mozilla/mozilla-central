@@ -54,12 +54,11 @@ REQUIRES	= xpcom \
 		  content \
 		  txmgr \
 		  txtsvc \
+		  htmlparser \
 		  necko \
 		  pref \
 		  lwbrk \
-		  view \
 		  gfx \
-		  thebes \
 		  widget \
 		  unicharutil \
 		  $(NULL)
@@ -81,7 +80,5 @@ FORCE_STATIC_LIB = 1
 
 include $(topsrcdir)/config/rules.mk
 
-INCLUDES	+= \
-		-I$(topsrcdir)/editor/libeditor/base \
-		-I$(topsrcdir)/content/base/src \
-		$(NULL)
+INCLUDES        += -I$(topsrcdir)/editor/libeditor/base
+

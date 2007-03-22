@@ -15,7 +15,6 @@
 
       <menuitem id="item:findNext"
         label="&cmdFindNext.label;"
-        accesskey="&cmdFindNext.accesskey;"
         key="key:findNext"
         observes="cmd:findNext"/>
 
@@ -69,7 +68,6 @@
 
     <menuitem id="item:findNext" position="2"
       label="&cmdFindNext.label;"
-      accesskey="&cmdFindNext.accesskey;"
       key="key:findNext"
       observes="cmd:findNext"/>
     
@@ -86,7 +84,6 @@
               class="menuitem-iconic" 
               type="checkbox" 
               label="&cmdFlashSelected.label;"
-              accesskey="&cmdFlashSelected.accesskey;"
               observes="cmd:flashSelected"/>
               
     <menuitem id="item:toggleAnon"

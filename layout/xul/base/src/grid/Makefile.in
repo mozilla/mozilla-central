@@ -49,7 +49,6 @@ REQUIRES	= xpcom \
 		  string \
 		  content \
 		  gfx \
-		  thebes \
 		  widget \
 		  locale \
 		  view \

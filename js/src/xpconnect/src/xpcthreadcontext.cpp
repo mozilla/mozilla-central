@@ -46,7 +46,7 @@
 /***************************************************************************/
 
 XPCJSContextStack::XPCJSContextStack()
-    : mStack(),
+    : mStack(nsnull),
       mSafeJSContext(nsnull),
       mOwnSafeJSContext(nsnull)
 {
@@ -76,7 +76,7 @@ XPCJSContextStack::SyncJSContexts()
 NS_IMETHODIMP
 XPCJSContextStack::GetCount(PRInt32 *aCount)
 {
-    *aCount = mStack.Length();
+    *aCount = mStack.GetSize();
     return NS_OK;
 }
 
@@ -84,7 +84,7 @@ XPCJSContextStack::GetCount(PRInt32 *aCount)
 NS_IMETHODIMP
 XPCJSContextStack::Peek(JSContext * *_retval)
 {
-    *_retval = mStack.IsEmpty() ? nsnull : mStack[mStack.Length() - 1].cx;
+    *_retval = (JSContext*) mStack.Peek();
     return NS_OK;
 }
 
@@ -92,33 +92,12 @@ XPCJSContextStack::Peek(JSContext * *_retval)
 NS_IMETHODIMP
 XPCJSContextStack::Pop(JSContext * *_retval)
 {
-    NS_ASSERTION(!mStack.IsEmpty(), "ThreadJSContextStack underflow");
-
-    PRUint32 idx = mStack.Length() - 1; // The thing we're popping
-    NS_ASSERTION(!mStack[idx].frame,
-                 "Shouldn't have a pending frame to restore on the context "
-                 "we're popping!");
+    NS_ASSERTION(mStack.GetSize() > 0, "ThreadJSContextStack underflow");
 
     if(_retval)
-        *_retval = mStack[idx].cx;
-
-    mStack.RemoveElementAt(idx);
-    if(idx > 0)
-    {
-        --idx; // Advance to new top of the stack
-        XPCJSContextInfo & e = mStack[idx];
-        NS_ASSERTION(!e.frame || e.cx, "Shouldn't have frame without a cx!");
-        if(e.cx && e.frame)
-        {
-            JS_RestoreFrameChain(e.cx, e.frame);
-            e.frame = nsnull;
-        }
-
-        if(e.requestDepth)
-            JS_ResumeRequest(e.cx, e.requestDepth);
-
-        e.requestDepth = 0;
-    }
+        *_retval = (JSContext*) mStack.Pop();
+    else
+        mStack.Pop();
     return NS_OK;
 }
 
@@ -126,19 +105,7 @@ XPCJSContextStack::Pop(JSContext * *_retval)
 NS_IMETHODIMP
 XPCJSContextStack::Push(JSContext * cx)
 {
-    if(!mStack.AppendElement(cx))
-        return NS_ERROR_OUT_OF_MEMORY;
-    if(mStack.Length() > 1)
-    {
-        XPCJSContextInfo & e = mStack[mStack.Length() - 2];
-        if(e.cx && e.cx != cx)
-        {
-            e.frame = JS_SaveFrameChain(e.cx);
-
-            if(JS_GetContextThread(e.cx))
-                e.requestDepth = JS_SuspendRequest(e.cx);
-        }
-    }
+    mStack.Push(cx);
     return NS_OK;
 }
 
@@ -146,8 +113,8 @@ XPCJSContextStack::Push(JSContext * cx)
 JSBool 
 XPCJSContextStack::DEBUG_StackHasJSContext(JSContext*  aJSContext)
 {
-    for(PRUint32 i = 0; i < mStack.Length(); i++)
-        if(aJSContext == mStack[i].cx)
+    for(PRInt32 i = 0; i < mStack.GetSize(); i++)
+        if(aJSContext == (JSContext*)mStack.ObjectAt(i))
             return JS_TRUE;
     return JS_FALSE;
 }
@@ -165,7 +132,7 @@ SafeFinalize(JSContext* cx, JSObject* obj)
 {
 #ifndef XPCONNECT_STANDALONE
     nsIScriptObjectPrincipal* sop =
-        static_cast<nsIScriptObjectPrincipal*>(xpc_GetJSPrivate(obj));
+        NS_STATIC_CAST(nsIScriptObjectPrincipal*, JS_GetPrivate(cx, obj));
     NS_IF_RELEASE(sop);
 #endif
 }
@@ -209,7 +176,7 @@ XPCJSContextStack::GetSafeJSContext(JSContext * *aSafeJSContext)
         XPCJSRuntime* xpcrt;
 
         nsXPConnect* xpc = nsXPConnect::GetXPConnect();
-        nsCOMPtr<nsIXPConnect> xpcholder(static_cast<nsIXPConnect*>(xpc));
+        nsCOMPtr<nsIXPConnect> xpcholder(NS_STATIC_CAST(nsIXPConnect*, xpc));
 
         if(xpc && (xpcrt = xpc->GetRuntime()) && (rt = xpcrt->GetJSRuntime()))
         {
@@ -394,7 +361,7 @@ nsXPCThreadJSContextStackImpl::Pop(JSContext * *_retval)
 NS_IMETHODIMP
 nsXPCThreadJSContextStackImpl::Push(JSContext * cx)
 {
-    XPCJSContextStack* myStack = GetStackForCurrentThread(cx);
+    XPCJSContextStack* myStack = GetStackForCurrentThread();
 
     if(!myStack)
         return NS_ERROR_FAILURE;
@@ -423,7 +390,7 @@ nsXPCThreadJSContextStackImpl::GetSafeJSContext(JSContext * *aSafeJSContext)
 NS_IMETHODIMP
 nsXPCThreadJSContextStackImpl::SetSafeJSContext(JSContext * aSafeJSContext)
 {
-    XPCJSContextStack* myStack = GetStackForCurrentThread(aSafeJSContext);
+    XPCJSContextStack* myStack = GetStackForCurrentThread();
 
     if(!myStack)
         return NS_ERROR_FAILURE;
@@ -433,11 +400,9 @@ nsXPCThreadJSContextStackImpl::SetSafeJSContext(JSContext * aSafeJSContext)
 
 /***************************************************************************/
 
-PRUintn           XPCPerThreadData::gTLSIndex       = BAD_TLS_INDEX;
-PRLock*           XPCPerThreadData::gLock           = nsnull;
-XPCPerThreadData* XPCPerThreadData::gThreads        = nsnull;
-XPCPerThreadData *XPCPerThreadData::sMainThreadData = nsnull;
-void *            XPCPerThreadData::sMainJSThread   = nsnull;
+PRUintn           XPCPerThreadData::gTLSIndex = BAD_TLS_INDEX;
+PRLock*           XPCPerThreadData::gLock     = nsnull;
+XPCPerThreadData* XPCPerThreadData::gThreads  = nsnull;
 
 static jsuword
 GetThreadStackLimit()
@@ -460,8 +425,6 @@ GetThreadStackLimit()
   return stackLimit;
 }
 
-MOZ_DECL_CTOR_COUNTER(xpcPerThreadData)
-
 XPCPerThreadData::XPCPerThreadData()
     :   mJSContextStack(new XPCJSContextStack()),
         mNextThread(nsnull),
@@ -479,7 +442,6 @@ XPCPerThreadData::XPCPerThreadData()
       , mWrappedNativeThreadsafetyReportDepth(0)
 #endif
 {
-    MOZ_COUNT_CTOR(xpcPerThreadData);
     if(gLock)
     {
         nsAutoLock lock(gLock);
@@ -504,8 +466,6 @@ XPCPerThreadData::Cleanup()
 
 XPCPerThreadData::~XPCPerThreadData()
 {
-    MOZ_COUNT_DTOR(xpcPerThreadData);
-
     Cleanup();
 
     // Unlink 'this' from the list of threads.
@@ -544,7 +504,7 @@ xpc_ThreadDataDtorCB(void* ptr)
         delete data;
 }
 
-void XPCPerThreadData::TraceJS(JSTracer *trc)
+void XPCPerThreadData::MarkAutoRootsBeforeJSFinalize(JSContext* cx)
 {
 #ifdef XPC_TRACK_AUTOMARKINGPTR_STATS
     {
@@ -560,7 +520,7 @@ void XPCPerThreadData::TraceJS(JSTracer *trc)
 #endif
 
     if(mAutoRoots)
-        mAutoRoots->TraceJS(trc);
+        mAutoRoots->MarkBeforeJSFinalize(cx);
 }
 
 void XPCPerThreadData::MarkAutoRootsAfterJSFinalize()
@@ -571,7 +531,7 @@ void XPCPerThreadData::MarkAutoRootsAfterJSFinalize()
 
 // static
 XPCPerThreadData*
-XPCPerThreadData::GetDataImpl(JSContext *cx)
+XPCPerThreadData::GetData()
 {
     XPCPerThreadData* data;
 
@@ -616,14 +576,6 @@ XPCPerThreadData::GetDataImpl(JSContext *cx)
             return nsnull;
         }
     }
-
-    if(cx && !sMainJSThread && NS_IsMainThread())
-    {
-        sMainJSThread = cx->thread;
-
-        sMainThreadData = data;
-    }
-
     return data;
 }
 
@@ -687,15 +639,21 @@ nsXPCJSContextStackIterator::Reset(nsIJSContextStack *aStack)
 {
     // XXX This is pretty ugly.
     nsXPCThreadJSContextStackImpl *impl =
-        static_cast<nsXPCThreadJSContextStackImpl*>(aStack);
+        NS_STATIC_CAST(nsXPCThreadJSContextStackImpl*, aStack);
     XPCJSContextStack *stack = impl->GetStackForCurrentThread();
     if(!stack)
         return NS_ERROR_FAILURE;
-    mStack = stack->GetStack();
-    if(mStack->IsEmpty())
-        mStack = nsnull;
-    else
-        mPosition = mStack->Length() - 1;
+    const nsDeque &deque = stack->GetStack();
+
+    if(deque.GetSize() == 0)
+    {
+        mIterator = nsnull;
+        return NS_OK;
+    }
+
+    mIterator = new nsDequeIterator(deque.End());
+    if(!mIterator)
+        return NS_ERROR_OUT_OF_MEMORY;
 
     return NS_OK;
 }
@@ -703,23 +661,25 @@ nsXPCJSContextStackIterator::Reset(nsIJSContextStack *aStack)
 NS_IMETHODIMP
 nsXPCJSContextStackIterator::Done(PRBool *aDone)
 {
-    *aDone = !mStack;
+    *aDone = !mIterator;
     return NS_OK;
 }
 
 NS_IMETHODIMP
 nsXPCJSContextStackIterator::Prev(JSContext **aContext)
 {
-    if(!mStack)
+    if(!mIterator)
         return NS_ERROR_NOT_INITIALIZED;
 
-    *aContext = mStack->ElementAt(mPosition).cx;
+    *aContext = (JSContext*)(mIterator->GetCurrent());
 
-    if(mPosition == 0)
-        mStack = nsnull;
+    // XXX This temporary shouldn't be necessary.
+    nsDequeIterator first(*mIterator);
+    if(*mIterator == first.First())
+        mIterator = nsnull;
     else
-        --mPosition;
-    
+        --*mIterator;
+
     return NS_OK;
 }
 

@@ -19,7 +19,7 @@
  * Portions created by the Initial Developer are Copyright (C) 2006
  * the Initial Developer. All Rights Reserved.
  *
- * Contributor(s): Igor Bukanov
+ * Contributor(s): Igor Bukanov 
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -34,10 +34,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-349023-03.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 349023;
+var bug = 349023;
 var summary = 'Bogus JSCLASS_IS_EXTENDED in the generator class';
 var actual = 'No Crash';
 var expect = 'No Crash';
@@ -50,7 +48,7 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
 
   var gen = (function() { yield 3; })();

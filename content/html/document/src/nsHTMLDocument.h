@@ -59,8 +59,6 @@
 
 #include "nsICommandManager.h"
 
-class nsIEditor;
-class nsIEditorDocShell;
 class nsIParser;
 class nsIURI;
 class nsIMarkupDocumentViewer;
@@ -130,11 +128,22 @@ public:
   virtual PRBool IsCaseSensitive();
 
   // nsIMutationObserver
-  NS_DECL_NSIMUTATIONOBSERVER_CONTENTAPPENDED
-  NS_DECL_NSIMUTATIONOBSERVER_CONTENTINSERTED
-  NS_DECL_NSIMUTATIONOBSERVER_CONTENTREMOVED
-  NS_DECL_NSIMUTATIONOBSERVER_ATTRIBUTECHANGED
-
+  virtual void ContentAppended(nsIDocument* aDocument,
+                               nsIContent* aContainer,
+                               PRInt32 aNewIndexInContainer);
+  virtual void ContentInserted(nsIDocument* aDocument,
+                               nsIContent* aContainer,
+                               nsIContent* aChild,
+                               PRInt32 aIndexInContainer);
+  virtual void ContentRemoved(nsIDocument* aDocument,
+                              nsIContent* aContainer,
+                              nsIContent* aChild,
+                              PRInt32 aIndexInContainer);
+  virtual void AttributeChanged(nsIDocument* aDocument,
+                                nsIContent* aChild,
+                                PRInt32 aNameSpaceID,
+                                nsIAtom* aAttribute,
+                                PRInt32 aModType);
   // nsIDOMDocument interface
   NS_DECL_NSIDOMDOCUMENT
 
@@ -171,8 +180,6 @@ public:
   NS_IMETHOD Writeln(const nsAString & text);
   NS_IMETHOD GetElementsByName(const nsAString & elementName,
                                nsIDOMNodeList **_retval);
-  virtual nsresult GetDocumentAllResult(const nsAString& aID,
-                                        nsISupports** aResult);
 
   // nsIDOMNSHTMLDocument interface
   NS_DECL_NSIDOMNSHTMLDOCUMENT
@@ -187,7 +194,6 @@ public:
   virtual void AddedForm();
   virtual void RemovedForm();
   virtual PRInt32 GetNumFormsSynchronous();
-  virtual void TearingDownEditor(nsIEditor *aEditor);
 
   PRBool IsXHTML()
   {
@@ -201,31 +207,12 @@ public:
                               nsIContent** aResult);
 #endif
 
-  nsresult ChangeContentEditableCount(nsIContent *aElement, PRInt32 aChange);
-
-  virtual EditingState GetEditingState()
-  {
-    return mEditingState;
-  }
-
-  virtual nsIContent* GetBodyContentExternal();
-
-  void EndUpdate(nsUpdateType aUpdateType);
-
   NS_DECL_CYCLE_COLLECTION_CLASS_INHERITED_NO_UNLINK(nsHTMLDocument, nsDocument)
 
-  virtual already_AddRefed<nsIParser> GetFragmentParser() {
-    return mFragmentParser.forget();
-  }
-  virtual void SetFragmentParser(nsIParser* aParser) {
-    mFragmentParser = aParser;
-  }
-
-  virtual nsresult SetEditingState(EditingState aState);
-
 protected:
-  nsresult GetBodySize(PRInt32* aWidth,
-                       PRInt32* aHeight);
+  nsresult GetPixelDimensions(nsIPresShell* aShell,
+                              PRInt32* aWidth,
+                              PRInt32* aHeight);
 
   nsresult RegisterNamedItems(nsIContent *aContent);
   nsresult UnregisterNamedItems(nsIContent *aContent);
@@ -248,7 +235,8 @@ protected:
 
   static void DocumentWriteTerminationFunc(nsISupports *aRef);
 
-  nsIContent* GetBodyContent();
+  PRBool GetBodyContent();
+  void GetBodyElement(nsIDOMHTMLBodyElement** aBody);
 
   void GetDomainURI(nsIURI **uri);
 
@@ -265,7 +253,7 @@ protected:
   PRInt32 GetDefaultNamespaceID() const
   {
     return mDefaultNamespaceID;
-  }
+  };
 
   nsCOMArray<nsIDOMHTMLMapElement> mImageMaps;
 
@@ -309,9 +297,6 @@ protected:
   void StartAutodetection(nsIDocShell *aDocShell, nsACString& aCharset,
                           const char* aCommand);
 
-  // Override so we can munge the charset on our wyciwyg channel as needed.
-  virtual void SetDocumentCharacterSet(const nsACString& aCharSetID);
-
   // mWriteState tracks the status of this document if the document is being
   // entirely created by script. In the normal load case, mWriteState will be
   // eNotWriting. Once document.open has been called (either implicitly or
@@ -337,6 +322,8 @@ protected:
 
   // Load flags of the document's channel
   PRUint32 mLoadFlags;
+
+  nsCOMPtr<nsIDOMNode> mBodyContent;
 
   PRPackedBool mIsFrameset;
 
@@ -369,14 +356,14 @@ protected:
 
   /* Midas implementation */
   nsresult   GetMidasCommandManager(nsICommandManager** aCommandManager);
-
+  PRBool     ConvertToMidasInternalCommand(const nsAString & inCommandID,
+                                           const nsAString & inParam,
+                                           nsACString& outCommandID,
+                                           nsACString& outParam,
+                                           PRBool& isBoolean,
+                                           PRBool& boolValue);
   nsCOMPtr<nsICommandManager> mMidasCommandManager;
-
-  nsresult TurnEditingOff();
-  nsresult EditingStateChanged();
-
-  PRUint32 mContentEditableCount;
-  EditingState mEditingState;
+  PRBool                      mEditingIsOn;
 
   nsresult   DoClipboardSecurityCheck(PRBool aPaste);
   static jsval       sCutCopyInternal_id;
@@ -387,9 +374,6 @@ protected:
   // XXXbz should this be reset if someone manually calls
   // SetContentType() on this document?
   PRInt32 mDefaultNamespaceID;
-
-  // Parser used for constructing document fragments.
-  nsCOMPtr<nsIParser> mFragmentParser;
 };
 
 #endif /* nsHTMLDocument_h___ */

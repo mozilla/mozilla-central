@@ -34,10 +34,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-352392.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 352392;
+var bug = 352392;
 var summary = 'Do not hang/crash |for each| over object with getter set to map';
 var actual = 'No Crash';
 var expect = 'No Crash';
@@ -50,7 +48,7 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
 
   expect = 'SyntaxError: invalid for each loop';
@@ -64,7 +62,7 @@ function test()
   {
     actual = ex + '';
   }
-
+ 
   reportCompare(expect, actual, summary);
 
   exitFunc ('test');

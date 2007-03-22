@@ -34,9 +34,8 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK ***** */
-
-/*
+ * ***** END LICENSE BLOCK *****
+ *
  *
  * Date:    29 Sep 2003
  * SUMMARY: Testing __parent__ and __proto__ of Script object
@@ -44,9 +43,8 @@
  * See http://bugzilla.mozilla.org/show_bug.cgi?id=220584
  */
 //-----------------------------------------------------------------------------
-var gTestfile = 'regress-220584.js';
 var UBound = 0;
-var BUGNUMBER = 220584;
+var bug = 220584;
 var summary = 'Testing __parent__ and __proto__ of Script object';
 var status = '';
 var statusitems = [];
@@ -61,9 +59,7 @@ var s;
 status = inSection(1);
 if (typeof Script == 'undefined')
 {
-  reportCompare("Script not defined, Test skipped.",
-                "Script not defined, Test skipped.",
-                summary);
+  print('Test skipped. Script not defined.');
 }
 else
 {
@@ -135,7 +131,7 @@ function addThis()
 function test()
 {
   enterFunc('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber(bug);
   printStatus(summary);
 
   for (var i=0; i<UBound; i++)

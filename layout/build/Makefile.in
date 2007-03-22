@@ -50,6 +50,9 @@ ifeq ($(OS_ARCH),OSF1)
 SHELL := ksh
 endif
 
+BUILD_DATE = gbdate.h
+BUILD_DATE_TS = gbdate.tstamp
+
 MODULE		= layout
 LIBRARY_NAME	= gklayout
 EXPORT_LIBRARY = 1
@@ -64,7 +67,9 @@ PACKAGE_VARS += MOZ_XUL
 ifndef MOZ_ENABLE_LIBXUL
 EXTRA_DSO_LIBS	= gkgfx
 endif
+ifdef MOZ_ENABLE_CAIRO_GFX
 EXTRA_DSO_LIBS	+= thebes
+endif
 
 REQUIRES	= xpcom \
 		  string \
@@ -83,12 +88,14 @@ REQUIRES	= xpcom \
 		  htmlparser \
 		  js \
 		  xpconnect \
+		  uriloader \
 		  caps \
 		  rdf \
 		  xuldoc \
 		  imglib2 \
 		  pref \
 		  unicharutil \
+		  xul \
 		  xultmpl \
 		  lwbrk \
 		  plugin \
@@ -96,11 +103,16 @@ REQUIRES	= xpcom \
 		  webbrwsr \
 		  uconv \
 		  txtsvc \
-		  thebes \
+		  inspector \
 		  $(NULL)
+
+ifdef MOZ_ENABLE_CAIRO_GFX
+REQUIRES += thebes
+endif
 
 CPPSRCS		= \
 		nsLayoutModule.cpp \
+		nsContentHTTPStartup.cpp \
 		nsContentDLF.cpp \
 		nsLayoutStatics.cpp \
 		$(NULL)
@@ -134,10 +146,8 @@ SHARED_LIBRARY_LIBS = \
 	$(DEPTH)/view/src/$(LIB_PREFIX)gkview_s.$(LIB_SUFFIX) \
 	$(DEPTH)/dom/src/base/$(LIB_PREFIX)jsdombase_s.$(LIB_SUFFIX) \
 	$(DEPTH)/dom/src/events/$(LIB_PREFIX)jsdomevents_s.$(LIB_SUFFIX) \
-	$(DEPTH)/dom/src/json/$(LIB_PREFIX)json_s.$(LIB_SUFFIX) \
 	$(DEPTH)/dom/src/jsurl/$(LIB_PREFIX)jsurl_s.$(LIB_SUFFIX) \
 	$(DEPTH)/dom/src/storage/$(LIB_PREFIX)jsdomstorage_s.$(LIB_SUFFIX) \
-	$(DEPTH)/dom/src/offline/$(LIB_PREFIX)jsdomoffline_s.$(LIB_SUFFIX) \
 	$(DEPTH)/editor/libeditor/text/$(LIB_PREFIX)texteditor_s.$(LIB_SUFFIX) \
 	$(DEPTH)/editor/libeditor/base/$(LIB_PREFIX)editorbase_s.$(LIB_SUFFIX) \
 	$(NULL)
@@ -158,12 +168,6 @@ SHARED_LIBRARY_LIBS += \
 endif
 
 ifndef MOZ_NO_INSPECTOR_APIS
-LOCAL_INCLUDES  += \
-      -I$(srcdir)/../inspector/src \
-      $(NULL)
-REQUIRES += \
-      inspector \
-      $(NULL)
 SHARED_LIBRARY_LIBS += ../inspector/src/$(LIB_PREFIX)inspector_s.$(LIB_SUFFIX)
 else
 DEFINES += -DMOZ_NO_INSPECTOR_APIS
@@ -171,10 +175,9 @@ endif
 
 ifdef MOZ_MATHML
 SHARED_LIBRARY_LIBS += \
-		../mathml/content/src/$(LIB_PREFIX)gkmathmlcon_s.$(LIB_SUFFIX) \
-		../mathml/base/src/$(LIB_PREFIX)gkmathmlbase_s.$(LIB_SUFFIX) \
-		$(DEPTH)/content/mathml/content/src/$(LIB_PREFIX)gkcontentmathml_s.$(LIB_SUFFIX) \
-		$(NULL)
+                ../mathml/content/src/$(LIB_PREFIX)gkmathmlcon_s.$(LIB_SUFFIX) \
+                ../mathml/base/src/$(LIB_PREFIX)gkmathmlbase_s.$(LIB_SUFFIX) \
+                $(NULL)
 endif
 
 ifdef MOZ_XTF
@@ -185,10 +188,10 @@ endif
 
 ifdef MOZ_SVG
 SHARED_LIBRARY_LIBS += \
-		../svg/base/src/$(LIB_PREFIX)gksvgbase_s.$(LIB_SUFFIX) \
+                ../svg/base/src/$(LIB_PREFIX)gksvgbase_s.$(LIB_SUFFIX) \
 		$(DEPTH)/content/svg/document/src/$(LIB_PREFIX)gkconsvgdoc_s.$(LIB_SUFFIX) \
 		$(DEPTH)/content/svg/content/src/$(LIB_PREFIX)gkcontentsvg_s.$(LIB_SUFFIX) \
-		$(NULL)
+                $(NULL)
 endif
 
 ifdef MOZ_PLAINTEXT_EDITOR_ONLY
@@ -216,14 +219,31 @@ EXTRA_DSO_LDOPTS = \
 		$(MOZ_JS_LIBS) \
 		$(NULL)
 
+ifdef MOZ_ENABLE_XLIB
+EXTRA_DSO_LDOPTS += \
+		-lxlibrgb \
+		$(NULL)
+endif
+
 ifdef NS_TRACE_MALLOC
 EXTRA_DSO_LIBS	+= tracemalloc
 endif
 
+ifdef MOZ_ENABLE_CAIRO_GFX
+EXTRA_DSO_LIBS += thebes
+else
+ifdef MOZ_ENABLE_CANVAS
+EXTRA_DSO_LDOPTS += $(MOZ_CAIRO_LIBS)
+endif
+endif
+
 ifdef MOZ_ENABLE_GTK2
 EXTRA_DSO_LDOPTS += $(MOZ_GTK2_LIBS) \
-		    -lXrender \
 		    $(NULL)
+ifdef MOZ_ENABLE_CAIRO_GFX
+EXTRA_DSO_LDOPTS += -lXrender \
+		    $(NULL)
+endif
 endif
 
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
@@ -233,7 +253,7 @@ EXTRA_DSO_LDOPTS += \
 endif
 
 # Add explicit X11 dependency when building against X11 toolkits
-ifneq (,$(filter gtk2,$(MOZ_WIDGET_TOOLKIT)))
+ifneq (,$(filter gtk gtk2 qt xlib,$(MOZ_WIDGET_TOOLKIT)))
 EXTRA_DSO_LDOPTS += $(XLDFLAGS) $(XLIBS)
 endif
 
@@ -246,6 +266,7 @@ LOCAL_INCLUDES	+= -I$(srcdir)/../base \
 		   -I$(srcdir)/../style \
 		   -I$(srcdir)/../xul/content/src \
 		   -I$(srcdir)/../xul/base/src \
+		   -I$(srcdir)/../inspector/src \
 		   -I$(topsrcdir)/content/base/src \
 		   -I$(topsrcdir)/content/html/content/src \
 		   -I$(topsrcdir)/content/html/document/src \
@@ -261,10 +282,8 @@ LOCAL_INCLUDES	+= -I$(srcdir)/../base \
 		   -I$(topsrcdir)/content/xbl/src \
 		   -I$(topsrcdir)/view/src \
 		   -I$(topsrcdir)/dom/src/base \
-		   -I$(topsrcdir)/dom/src/json \
 		   -I$(topsrcdir)/dom/src/jsurl \
 		   -I$(topsrcdir)/dom/src/storage \
-		   -I$(topsrcdir)/dom/src/offline \
 		   -I. \
 		   -I$(topsrcdir)/editor/libeditor/base \
 		   -I$(topsrcdir)/editor/libeditor/text \
@@ -283,8 +302,24 @@ endif
 
 DEFINES += -D_IMPL_NS_LAYOUT
 
+GARBAGE += $(BUILD_DATE) $(BUILD_DATE_TS)
+
 ifeq ($(OS_ARCH),IRIX)
 ifeq ($(GNU_CXX),1)
 LDFLAGS += -Wl,-LD_LAYOUT:lgot_buffer=50
 endif
 endif
+
+
+export:: $(BUILD_DATE)
+
+$(BUILD_DATE_TS): FORCE
+	@for f in $(SHARED_LIBRARY_LIBS); do \
+		if [ $$f -nt $@ ]; then \
+			touch $@; \
+		fi; \
+	done
+
+$(BUILD_DATE):: gbdate.pl $(BUILD_DATE_TS)
+	$(RM) $@
+	$(PERL) $(srcdir)/gbdate.pl > $@

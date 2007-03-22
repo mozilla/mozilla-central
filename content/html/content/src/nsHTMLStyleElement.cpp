@@ -37,7 +37,7 @@
  * ***** END LICENSE BLOCK ***** */
 #include "nsIDOMHTMLStyleElement.h"
 #include "nsIDOMLinkStyle.h"
-#include "nsIDOMEventTarget.h"
+#include "nsIDOMEventReceiver.h"
 #include "nsGenericHTMLElement.h"
 #include "nsGkAtoms.h"
 #include "nsStyleConsts.h"
@@ -97,10 +97,20 @@ public:
   virtual nsresult Clone(nsINodeInfo *aNodeInfo, nsINode **aResult) const;
 
   // nsIMutationObserver
-  NS_DECL_NSIMUTATIONOBSERVER_CHARACTERDATACHANGED
-  NS_DECL_NSIMUTATIONOBSERVER_CONTENTAPPENDED
-  NS_DECL_NSIMUTATIONOBSERVER_CONTENTINSERTED
-  NS_DECL_NSIMUTATIONOBSERVER_CONTENTREMOVED
+  virtual void CharacterDataChanged(nsIDocument* aDocument,
+                                    nsIContent* aContent,
+                                    CharacterDataChangeInfo* aInfo);
+  virtual void ContentAppended(nsIDocument* aDocument,
+                                nsIContent* aContainer,
+                               PRInt32 aNewIndexInContainer);
+  virtual void ContentInserted(nsIDocument* aDocument,
+                               nsIContent* aContainer,
+                               nsIContent* aChild,
+                               PRInt32 aIndexInContainer);
+  virtual void ContentRemoved(nsIDocument* aDocument,
+                              nsIContent* aContainer,
+                              nsIContent* aChild,
+                              PRInt32 aIndexInContainer);
 
 protected:
   void GetStyleSheetURL(PRBool* aIsInline,
@@ -109,12 +119,6 @@ protected:
                          nsAString& aType,
                          nsAString& aMedia,
                          PRBool* aIsAlternate);
-  /**
-   * Common method to call from the various mutation observer methods.
-   * aContent is a content node that's either the one that changed or its
-   * parent; we should only respond to the change if aContent is non-anonymous.
-   */
-  void ContentChanged(nsIContent* aContent);
 };
 
 
@@ -137,13 +141,13 @@ NS_IMPL_RELEASE_INHERITED(nsHTMLStyleElement, nsGenericElement)
 
 
 // QueryInterface implementation for nsHTMLStyleElement
-NS_HTML_CONTENT_INTERFACE_TABLE_HEAD(nsHTMLStyleElement, nsGenericHTMLElement)
-  NS_INTERFACE_TABLE_INHERITED4(nsHTMLStyleElement,
-                                nsIDOMHTMLStyleElement,
-                                nsIDOMLinkStyle,
-                                nsIStyleSheetLinkingElement,
-                                nsIMutationObserver)
-NS_HTML_CONTENT_INTERFACE_TABLE_TAIL_CLASSINFO(HTMLStyleElement)
+NS_HTML_CONTENT_INTERFACE_MAP_BEGIN(nsHTMLStyleElement, nsGenericHTMLElement)
+  NS_INTERFACE_MAP_ENTRY(nsIDOMHTMLStyleElement)
+  NS_INTERFACE_MAP_ENTRY(nsIDOMLinkStyle)
+  NS_INTERFACE_MAP_ENTRY(nsIStyleSheetLinkingElement)
+  NS_INTERFACE_MAP_ENTRY(nsIMutationObserver)
+  NS_INTERFACE_MAP_ENTRY_CONTENT_CLASSINFO(HTMLStyleElement)
+NS_HTML_CONTENT_INTERFACE_MAP_END
 
 
 NS_IMPL_ELEMENT_CLONE(nsHTMLStyleElement)
@@ -192,7 +196,7 @@ nsHTMLStyleElement::CharacterDataChanged(nsIDocument* aDocument,
                                          nsIContent* aContent,
                                          CharacterDataChangeInfo* aInfo)
 {
-  ContentChanged(aContent);
+  UpdateStyleSheet();
 }
 
 void
@@ -200,7 +204,7 @@ nsHTMLStyleElement::ContentAppended(nsIDocument* aDocument,
                                     nsIContent* aContainer,
                                     PRInt32 aNewIndexInContainer)
 {
-  ContentChanged(aContainer);
+  UpdateStyleSheet();
 }
 
 void
@@ -209,7 +213,7 @@ nsHTMLStyleElement::ContentInserted(nsIDocument* aDocument,
                                     nsIContent* aChild,
                                     PRInt32 aIndexInContainer)
 {
-  ContentChanged(aChild);
+  UpdateStyleSheet();
 }
 
 void
@@ -218,15 +222,7 @@ nsHTMLStyleElement::ContentRemoved(nsIDocument* aDocument,
                                    nsIContent* aChild,
                                    PRInt32 aIndexInContainer)
 {
-  ContentChanged(aChild);
-}
-
-void
-nsHTMLStyleElement::ContentChanged(nsIContent* aContent)
-{
-  if (nsContentUtils::IsInSameAnonymousTree(this, aContent)) {
-    UpdateStyleSheetInternal(nsnull);
-  }
+  UpdateStyleSheet();
 }
 
 nsresult
@@ -239,7 +235,7 @@ nsHTMLStyleElement::BindToTree(nsIDocument* aDocument, nsIContent* aParent,
                                                  aCompileEventHandlers);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  UpdateStyleSheetInternal(nsnull);
+  UpdateStyleSheet(nsnull);
 
   return rv;  
 }
@@ -250,7 +246,7 @@ nsHTMLStyleElement::UnbindFromTree(PRBool aDeep, PRBool aNullParent)
   nsCOMPtr<nsIDocument> oldDoc = GetCurrentDoc();
 
   nsGenericHTMLElement::UnbindFromTree(aDeep, aNullParent);
-  UpdateStyleSheetInternal(oldDoc);
+  UpdateStyleSheet(oldDoc);
 }
 
 nsresult
@@ -261,11 +257,11 @@ nsHTMLStyleElement::SetAttr(PRInt32 aNameSpaceID, nsIAtom* aName,
   nsresult rv = nsGenericHTMLElement::SetAttr(aNameSpaceID, aName, aPrefix,
                                               aValue, aNotify);
   if (NS_SUCCEEDED(rv)) {
-    UpdateStyleSheetInternal(nsnull,
-                             aNameSpaceID == kNameSpaceID_None &&
-                             (aName == nsGkAtoms::title ||
-                              aName == nsGkAtoms::media ||
-                              aName == nsGkAtoms::type));
+    UpdateStyleSheet(nsnull, nsnull,
+                     aNameSpaceID == kNameSpaceID_None &&
+                     (aName == nsGkAtoms::title ||
+                      aName == nsGkAtoms::media ||
+                      aName == nsGkAtoms::type));
   }
 
   return rv;
@@ -278,11 +274,11 @@ nsHTMLStyleElement::UnsetAttr(PRInt32 aNameSpaceID, nsIAtom* aAttribute,
   nsresult rv = nsGenericHTMLElement::UnsetAttr(aNameSpaceID, aAttribute,
                                                 aNotify);
   if (NS_SUCCEEDED(rv)) {
-    UpdateStyleSheetInternal(nsnull,
-                             aNameSpaceID == kNameSpaceID_None &&
-                             (aAttribute == nsGkAtoms::title ||
-                              aAttribute == nsGkAtoms::media ||
-                              aAttribute == nsGkAtoms::type));
+    UpdateStyleSheet(nsnull, nsnull,
+                     aNameSpaceID == kNameSpaceID_None &&
+                     (aAttribute == nsGkAtoms::title ||
+                      aAttribute == nsGkAtoms::media ||
+                      aAttribute == nsGkAtoms::type));
   }
 
   return rv;
@@ -304,7 +300,7 @@ nsHTMLStyleElement::SetInnerHTML(const nsAString& aInnerHTML)
   
   SetEnableUpdates(PR_TRUE);
   
-  UpdateStyleSheetInternal(nsnull);
+  UpdateStyleSheet();
   return rv;
 }
 

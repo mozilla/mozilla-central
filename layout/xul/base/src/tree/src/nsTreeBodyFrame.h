@@ -49,7 +49,7 @@
 #include "nsITimer.h"
 #include "nsIReflowCallback.h"
 #include "nsILookAndFeel.h"
-#include "nsTArray.h"
+#include "nsValueArray.h"
 #include "nsTreeStyleCache.h"
 #include "nsTreeColumns.h"
 #include "nsTreeImageListener.h"
@@ -57,8 +57,6 @@
 #include "nsDataHashtable.h"
 #include "imgIRequest.h"
 #include "imgIDecoderObserver.h"
-#include "nsIScrollbarFrame.h"
-#include "nsThreadUtils.h"
 
 // An entry in the tree's image cache
 struct nsTreeImageCacheEntry
@@ -94,7 +92,6 @@ public:
 
   // nsIReflowCallback
   virtual PRBool ReflowFinished();
-  virtual void ReflowCallbackCanceled();
 
   // nsICSSPseudoComparator
   NS_IMETHOD PseudoMatches(nsIAtom* aTag, nsCSSSelector* aSelector, PRBool* aResult);
@@ -102,7 +99,7 @@ public:
   // nsIScrollbarMediator
   NS_IMETHOD PositionChanged(nsISupports* aScrollbar, PRInt32 aOldIndex, PRInt32& aNewIndex);
   NS_IMETHOD ScrollbarButtonPressed(nsISupports* aScrollbar, PRInt32 aOldIndex, PRInt32 aNewIndex);
-  NS_IMETHOD VisibilityChanged(nsISupports* aScrollbar, PRBool aVisible) { Invalidate(); return NS_OK; }
+  NS_IMETHOD VisibilityChanged(nsISupports* aScrollbar, PRBool aVisible) { Invalidate(); return NS_OK; };
 
   // Overridden from nsIFrame to cache our pres context.
   NS_IMETHOD Init(nsIContent*     aContent,
@@ -121,24 +118,18 @@ public:
                               const nsRect&           aDirtyRect,
                               const nsDisplayListSet& aLists);
 
-  NS_IMETHOD DidSetStyleContext();
-
   friend nsIFrame* NS_NewTreeBodyFrame(nsIPresShell* aPresShell);
-  friend class nsTreeColumn;
 
   struct ScrollParts {
     nsIScrollbarFrame* mVScrollbar;
     nsIContent*        mVScrollbarContent;
     nsIScrollbarFrame* mHScrollbar;
     nsIContent*        mHScrollbarContent;
-    nsIFrame*          mColumnsFrame;
     nsIScrollableView* mColumnsScrollableView;
   };
 
   void PaintTreeBody(nsIRenderingContext& aRenderingContext,
                      const nsRect& aDirtyRect, nsPoint aPt);
-
-  nsITreeBoxObject* GetTreeBoxObject() const { return mTreeBoxObject; }
 
 protected:
   // This method paints a specific column background of the tree.
@@ -222,8 +213,7 @@ protected:
   void PaintDropFeedback(const nsRect&        aDropFeedbackRect, 
                          nsPresContext*      aPresContext,
                          nsIRenderingContext& aRenderingContext,
-                         const nsRect&        aDirtyRect,
-                         nsPoint              aPt);
+                         const nsRect&        aDirtyRect);
 
   // This method is called with a specific style context and rect to
   // paint the background rect as if it were a full-blown frame.
@@ -236,7 +226,7 @@ protected:
 
   PRInt32 GetLastVisibleRow() {
     return mTopRowIndex + mPageLength;
-  }
+  };
 
   // An internal hit test.  aX and aY are expected to be in twips in the
   // coordinate system of this frame.
@@ -315,11 +305,6 @@ protected:
   // Check overflow and generate events.
   void CheckOverflow(const ScrollParts& aParts);
 
-  // Calls UpdateScrollbars, Invalidate aNeedsFullInvalidation if PR_TRUE,
-  // InvalidateScrollbars and finally CheckOverflow.
-  // returns PR_TRUE if the frame is still alive after the method call.
-  PRBool FullScrollbarsUpdate(PRBool aNeedsFullInvalidation);
-
   // Use to auto-fill some of the common properties without the view having to do it.
   // Examples include container, open, selected, and focus.
   void PrefillPropertyArray(PRInt32 aRowIndex, nsTreeColumn* aCol);
@@ -374,7 +359,7 @@ protected:
     InvalidateRow(aRow);
     if (aOrientation != nsITreeView::DROP_ON)
       InvalidateRow(aRow + aOrientation);
-  }
+  };
 
   already_AddRefed<nsTreeColumn> GetColumnImpl(nsITreeColumn* aUnknownCol) {
     if (!aUnknownCol)
@@ -400,48 +385,6 @@ protected:
   static void LazyScrollCallback(nsITimer *aTimer, void *aClosure);
 
   static void ScrollCallback(nsITimer *aTimer, void *aClosure);
-
-  class ScrollEvent : public nsRunnable {
-  public:
-    NS_DECL_NSIRUNNABLE
-    ScrollEvent(nsTreeBodyFrame *aInner) : mInner(aInner) {}
-    void Revoke() { mInner = nsnull; }
-  private:
-    nsTreeBodyFrame* mInner;
-  };
-
-  void PostScrollEvent();
-  void FireScrollEvent();
-
-#ifdef ACCESSIBILITY
-  /**
-   * Fires 'treeRowCountChanged' event asynchronously. The event supports
-   * nsIDOMDataContainerEvent interface that is used to expose the following
-   * information structures.
-   *
-   * @param aIndex  the row index rows are added/removed from
-   * @param aCount  the number of added/removed rows (the sign points to
-   *                an operation, plus - addition, minus - removing)
-   */
-  void FireRowCountChangedEvent(PRInt32 aIndex, PRInt32 aCount);
-
-  /**
-   * Fires 'treeInvalidated' event asynchronously. The event supports
-   * nsIDOMDataContainerEvent interface that is used to expose the information
-   * structures described by method arguments.
-   *
-   * @param aStartRow  the start index of invalidated rows, -1 means that
-   *                   columns have been invalidated only
-   * @param aEndRow    the end index of invalidated rows, -1 means that columns
-   *                   have been invalidated only
-   * @param aStartCol  the start invalidated column, nsnull means that only rows
-   *                   have been invalidated
-   * @param aEndCol    the end invalidated column, nsnull means that rows have
-   *                   been invalidated only
-   */
-  void FireInvalidateEvent(PRInt32 aStartRow, PRInt32 aEndRow,
-                           nsITreeColumn *aStartCol, nsITreeColumn *aEndCol);
-#endif
 
 protected: // Data Members
   // The cached box object parent.
@@ -477,9 +420,6 @@ protected: // Data Members
   // Our desired horizontal width (the width for which we actually have tree
   // columns).
   nscoord mHorzWidth;
-  // The amount by which to adjust the width of the last cell.
-  // This depends on whether or not the columnpicker and scrollbars are present.
-  nscoord mAdjustWidth;
 
   // Cached heights and indent info.
   nsRect mInnerBox;
@@ -506,18 +446,16 @@ protected: // Data Members
   // Cached row count.
   PRInt32 mRowCount;
 
-  // The row the mouse is hovering over.
-  PRInt32 mMouseOverRow;
-
   class Slots {
     public:
-      Slots() {
-      }
+      Slots()
+        : mValueArray(~PRInt32(0)) {
+      };
 
       ~Slots() {
         if (mTimer)
           mTimer->Cancel();
-      }
+      };
 
       friend class nsTreeBodyFrame;
 
@@ -542,11 +480,9 @@ protected: // Data Members
       // Timer for opening/closing spring loaded folders or scrolling the tree.
       nsCOMPtr<nsITimer>       mTimer;
 
-      // An array used to keep track of all spring loaded folders.
-      nsTArray<PRInt32>        mArray;
+      // A value array used to keep track of all spring loaded folders.
+      nsValueArray             mValueArray;
   };
 
   Slots* mSlots;
-
-  nsRevocableEventPtr<ScrollEvent> mScrollEvent;
 }; // class nsTreeBodyFrame

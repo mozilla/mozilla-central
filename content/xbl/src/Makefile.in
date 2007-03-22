@@ -51,7 +51,6 @@ REQUIRES	= xpcom \
 		  js \
 		  dom \
 		  gfx \
-		  thebes \
 		  layout \
 		  xultmpl \
 		  widget \
@@ -62,6 +61,7 @@ REQUIRES	= xpcom \
 		  pref \
 		  docshell \
 		  webshell \
+		  lwbrk \
 		  xuldoc \
 		  rdf \
 		  imglib2 \
@@ -110,7 +110,6 @@ LOCAL_INCLUDES	= \
 		-I$(srcdir)/../../xul/document/src \
 		-I$(srcdir)/../../events/src \
 		-I$(srcdir)/../../../layout/style \
-		-I$(srcdir)/../../../dom/src/base \
 		$(NULL)
 
 DEFINES += -D_IMPL_NS_LAYOUT

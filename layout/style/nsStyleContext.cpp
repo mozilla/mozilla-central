@@ -51,6 +51,7 @@
 #include "prenv.h"
 
 #include "nsRuleNode.h"
+#include "nsUnitConversion.h"
 #include "nsStyleContext.h"
 #include "imgIRequest.h"
 
@@ -214,9 +215,9 @@ PRBool nsStyleContext::Equals(const nsStyleContext* aOther) const
 
 //=========================================================================================================
 
-const void* nsStyleContext::GetStyleData(nsStyleStructID aSID)
+const nsStyleStruct* nsStyleContext::GetStyleData(nsStyleStructID aSID)
 {
-  const void* cachedData = mCachedStyleData.GetStyleData(aSID); 
+  const nsStyleStruct* cachedData = mCachedStyleData.GetStyleData(aSID); 
   if (cachedData)
     return cachedData; // We have computed data stored on this node in the context tree.
   return mRuleNode->GetStyleData(aSID, this, PR_TRUE); // Our rule node will take care of it for us.
@@ -235,9 +236,9 @@ const void* nsStyleContext::GetStyleData(nsStyleStructID aSID)
 #include "nsStyleStructList.h"
 #undef STYLE_STRUCT
 
-inline const void* nsStyleContext::PeekStyleData(nsStyleStructID aSID)
+inline const nsStyleStruct* nsStyleContext::PeekStyleData(nsStyleStructID aSID)
 {
-  const void* cachedData = mCachedStyleData.GetStyleData(aSID); 
+  const nsStyleStruct* cachedData = mCachedStyleData.GetStyleData(aSID); 
   if (cachedData)
     return cachedData; // We have computed data stored on this node in the context tree.
   return mRuleNode->GetStyleData(aSID, this, PR_FALSE); // Our rule node will take care of it for us.
@@ -246,7 +247,7 @@ inline const void* nsStyleContext::PeekStyleData(nsStyleStructID aSID)
 // This is an evil evil function, since it forces you to alloc your own separate copy of
 // style data!  Do not use this function unless you absolutely have to!  You should avoid
 // this at all costs! -dwh
-void* 
+nsStyleStruct* 
 nsStyleContext::GetUniqueStyleData(const nsStyleStructID& aSID)
 {
   // If we already own the struct and no kids could depend on it, then
@@ -254,20 +255,20 @@ nsStyleContext::GetUniqueStyleData(const nsStyleStructID& aSID)
   // function really shouldn't be called for style contexts that could
   // have kids depending on the data.  ClearStyleData would be OK, but
   // this test for no mChild or mEmptyChild doesn't catch that case.)
-  const void *current = GetStyleData(aSID);
+  const nsStyleStruct *current = GetStyleData(aSID);
   if (!mChild && !mEmptyChild &&
       !(mBits & nsCachedStyleData::GetBitForSID(aSID)) &&
       mCachedStyleData.GetStyleData(aSID))
-    return const_cast<void*>(current);
+    return NS_CONST_CAST(nsStyleStruct*, current);
 
-  void* result;
+  nsStyleStruct* result;
   nsPresContext *presContext = PresContext();
   switch (aSID) {
 
 #define UNIQUE_CASE(c_)                                                       \
   case eStyleStruct_##c_:                                                     \
     result = new (presContext) nsStyle##c_(                                   \
-      * static_cast<const nsStyle##c_ *>(current));                           \
+      * NS_STATIC_CAST(const nsStyle##c_ *, current));                        \
     break;
 
   UNIQUE_CASE(Display)
@@ -283,9 +284,9 @@ nsStyleContext::GetUniqueStyleData(const nsStyleStructID& aSID)
   }
 
   if (!result) {
-    NS_WARNING("Ran out of memory while trying to allocate memory for a unique style struct! "
+    NS_WARNING("Ran out of memory while trying to allocate memory for a unique nsStyleStruct! "
                "Returning the non-unique data.");
-    return const_cast<void*>(current);
+    return NS_CONST_CAST(nsStyleStruct*, current);
   }
 
   SetStyle(aSID, result);
@@ -295,7 +296,7 @@ nsStyleContext::GetUniqueStyleData(const nsStyleStructID& aSID)
 }
 
 void
-nsStyleContext::SetStyle(nsStyleStructID aSID, void* aStruct)
+nsStyleContext::SetStyle(nsStyleStructID aSID, nsStyleStruct* aStruct)
 {
   // This method should only be called from nsRuleNode!  It is not a public
   // method!
@@ -308,24 +309,24 @@ nsStyleContext::SetStyle(nsStyleStructID aSID, void* aStruct)
 
   const nsCachedStyleData::StyleStructInfo& info =
       nsCachedStyleData::gInfo[aSID];
-  char* resetOrInheritSlot = reinterpret_cast<char*>(&mCachedStyleData) +
+  char* resetOrInheritSlot = NS_REINTERPRET_CAST(char*, &mCachedStyleData) +
                              info.mCachedStyleDataOffset;
-  char* resetOrInherit = reinterpret_cast<char*>
-                                         (*reinterpret_cast<void**>(resetOrInheritSlot));
+  char* resetOrInherit = NS_REINTERPRET_CAST(char*,
+      *NS_REINTERPRET_CAST(void**, resetOrInheritSlot));
   if (!resetOrInherit) {
     nsPresContext *presContext = mRuleNode->GetPresContext();
     if (mCachedStyleData.IsReset(aSID)) {
       mCachedStyleData.mResetData = new (presContext) nsResetStyleData;
-      resetOrInherit = reinterpret_cast<char*>(mCachedStyleData.mResetData);
+      resetOrInherit = NS_REINTERPRET_CAST(char*, mCachedStyleData.mResetData);
     } else {
       mCachedStyleData.mInheritedData =
           new (presContext) nsInheritedStyleData;
       resetOrInherit =
-          reinterpret_cast<char*>(mCachedStyleData.mInheritedData);
+          NS_REINTERPRET_CAST(char*, mCachedStyleData.mInheritedData);
     }
   }
   char* dataSlot = resetOrInherit + info.mInheritResetOffset;
-  *reinterpret_cast<void**>(dataSlot) = aStruct;
+  *NS_REINTERPRET_CAST(nsStyleStruct**, dataSlot) = aStruct;
 }
 
 void
@@ -370,8 +371,8 @@ nsStyleContext::ApplyStyleFixups(nsPresContext* aPresContext)
     if (disp->mDisplay != NS_STYLE_DISPLAY_NONE &&
         disp->mDisplay != NS_STYLE_DISPLAY_BLOCK &&
         disp->mDisplay != NS_STYLE_DISPLAY_TABLE) {
-      nsStyleDisplay *mutable_display = static_cast<nsStyleDisplay*>
-                                                   (GetUniqueStyleData(eStyleStruct_Display));
+      nsStyleDisplay *mutable_display = NS_STATIC_CAST(nsStyleDisplay*,
+        GetUniqueStyleData(eStyleStruct_Display));
       if (mutable_display->mDisplay == NS_STYLE_DISPLAY_INLINE_TABLE)
         mutable_display->mDisplay = NS_STYLE_DISPLAY_TABLE;
       else
@@ -383,6 +384,34 @@ nsStyleContext::ApplyStyleFixups(nsPresContext* aPresContext)
   GetStyleUserInterface();
 }
 
+void
+nsStyleContext::ClearStyleData(nsPresContext* aPresContext)
+{
+  // First we need to clear out all of our style data.
+  if (mCachedStyleData.mResetData || mCachedStyleData.mInheritedData)
+    mCachedStyleData.Destroy(mBits, aPresContext);
+
+  mBits = 0; // Clear all bits.
+
+  ApplyStyleFixups(aPresContext);
+
+  if (mChild) {
+    nsStyleContext* child = mChild;
+    do {
+      child->ClearStyleData(aPresContext);
+      child = child->mNextSibling;
+    } while (mChild != child);
+  }
+  
+  if (mEmptyChild) {
+    nsStyleContext* child = mEmptyChild;
+    do {
+      child->ClearStyleData(aPresContext);
+      child = child->mNextSibling;
+    } while (mEmptyChild != child);
+  }
+}
+
 nsChangeHint
 nsStyleContext::CalcStyleDifference(nsStyleContext* aOther)
 {
@@ -391,11 +420,7 @@ nsStyleContext::CalcStyleDifference(nsStyleContext* aOther)
   // We must always ensure that we populate the structs on the new style
   // context that are filled in on the old context, so that if we get
   // two style changes in succession, the second of which causes a real
-  // style change, the PeekStyleData doesn't return null (implying that
-  // nobody ever looked at that struct's data).  In other words, we
-  // can't skip later structs if we get a big change up front, because
-  // we could later get a small change in one of those structs that we
-  // don't want to miss.
+  // style change, the PeekStyleData doesn't fail.
 
   // If our rule nodes are the same, then we are looking at the same
   // style data.  We know this because CalcStyleDifference is always
@@ -412,7 +437,7 @@ nsStyleContext::CalcStyleDifference(nsStyleContext* aOther)
     NS_ASSERTION(NS_IsHintSubset(nsStyle##struct_::MaxDifference(), maxHint), \
                  "Struct placed in the wrong maxHint section");               \
     const nsStyle##struct_* this##struct_ =                                   \
-        static_cast<const nsStyle##struct_*>(                                 \
+        NS_STATIC_CAST(const nsStyle##struct_*,                               \
                        PeekStyleData(eStyleStruct_##struct_));                \
     if (this##struct_) {                                                      \
       const nsStyle##struct_* other##struct_ = aOther->GetStyle##struct_();   \
@@ -431,7 +456,7 @@ nsStyleContext::CalcStyleDifference(nsStyleContext* aOther)
   // We begin by examining those style structs that are capable of
   // causing the maximal difference, a FRAMECHANGE.
   // FRAMECHANGE Structs: Display, XUL, Content, UserInterface,
-  // Visibility, Outline, TableBorder, Table, UIReset, Quotes
+  // Visibility, Outline, TableBorder, Table, Background, UIReset, Quotes
   DO_STRUCT_DIFFERENCE(Display);
   DO_STRUCT_DIFFERENCE(XUL);
   DO_STRUCT_DIFFERENCE(Column);
@@ -441,6 +466,7 @@ nsStyleContext::CalcStyleDifference(nsStyleContext* aOther)
   DO_STRUCT_DIFFERENCE(Outline);
   DO_STRUCT_DIFFERENCE(TableBorder);
   DO_STRUCT_DIFFERENCE(Table);
+  DO_STRUCT_DIFFERENCE(Background);
   DO_STRUCT_DIFFERENCE(UIReset);
   DO_STRUCT_DIFFERENCE(List);
   // If the quotes implementation is ever going to change we might not need
@@ -467,9 +493,8 @@ nsStyleContext::CalcStyleDifference(nsStyleContext* aOther)
   maxHint = NS_STYLE_HINT_VISUAL;
 
   // The following structs cause (as their maximal difference) a
-  // re-render to occur.  VISUAL Structs: Color, Background
+  // re-render to occur.  VISUAL Structs: Color
   DO_STRUCT_DIFFERENCE(Color);
-  DO_STRUCT_DIFFERENCE(Background);
 #ifdef MOZ_SVG
   DO_STRUCT_DIFFERENCE(SVG);
 #endif
@@ -522,15 +547,6 @@ public:
     }
     if (uri) {
       uri->GetSpec(*this);
-    } else {
-      Assign("[none]");
-    }
-  }
-
-  URICString(nsCSSValue::URL* aURI) {
-    if (aURI) {
-      NS_ASSERTION(aURI->mURI, "Must have URI here!");
-      aURI->mURI->GetSpec(*this);
     } else {
       Assign("[none]");
     }
@@ -804,9 +820,8 @@ void nsStyleContext::DumpRegressionData(nsPresContext* aPresContext, FILE* out, 
   // UIReset
   IndentBy(out,aIndent);
   const nsStyleUIReset* uiReset = GetStyleUIReset();
-  fprintf(out, "<uireset data=\"%d %d\" />\n",
-    (int)uiReset->mUserSelect,
-    (int)uiReset->mIMEMode);
+  fprintf(out, "<uireset data=\"%d\" />\n",
+    (int)uiReset->mUserSelect);
 
   // Column
   IndentBy(out,aIndent);
@@ -890,8 +905,6 @@ void nsStyleContext::DumpRegressionData(nsPresContext* aPresContext, FILE* out, 
   fprintf(out, "<svgreset data=\"%ld ", (long)svgReset->mStopColor);
 
   fprintf(out, "%ld ", (long)svgReset->mFloodColor);
-
-  fprintf(out, "%ld ", (long)svgReset->mLightingColor);
 
   fprintf(out, "%s %s %s %f %f %d\" />\n",
           URICString(svgReset->mClipPath).get(),

@@ -74,8 +74,6 @@ public:
                   nsIFrame*        aParent,
                   nsIFrame*        aPrevInFlow);
 
-  virtual nsIAtom* GetType() const;
-
   virtual PRBool ChildrenMustHaveWidgets() const { return PR_TRUE; }
 
 #ifdef NS_DEBUG

@@ -53,6 +53,8 @@ public:
           mContextNode(aContextNode),
           mContextSet(aContextNodeSet)
     {}
+    ~txForwardContext()
+    {}
 
     TX_DECL_EVAL_CONTEXT;
 

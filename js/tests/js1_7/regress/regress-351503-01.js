@@ -34,15 +34,13 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-351503-01.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 351503;
+var bug = 351503;
 var summary = 'decompilation of TypeError messages';
 var actual = '';
 var expect = '';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
 expect = 'TypeError: can\'t convert Object to string';

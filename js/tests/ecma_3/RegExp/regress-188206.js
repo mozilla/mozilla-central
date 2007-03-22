@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -34,9 +33,8 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK ***** */
-
-/*
+ * ***** END LICENSE BLOCK *****
+ *
  *
  * Date:    21 January 2003
  * SUMMARY: Invalid use of regexp quantifiers should generate SyntaxErrors
@@ -47,9 +45,8 @@
  * and http://bugzilla.mozilla.org/show_bug.cgi?id=197451
  */
 //-----------------------------------------------------------------------------
-var gTestfile = 'regress-188206.js';
 var UBound = 0;
-var BUGNUMBER = 188206;
+var bug = 188206;
 var summary = 'Invalid use of regexp quantifiers should generate SyntaxErrors';
 var TEST_PASSED = 'SyntaxError';
 var TEST_FAILED = 'Generated an error, but NOT a SyntaxError!';
@@ -99,6 +96,12 @@ testThis(' /a????/ ');
 /*
  * Now do some weird things on the left side of the regexps -
  */
+status = inSection(7);
+testThis(' /*a/ ');
+
+status = inSection(8);
+testThis(' /**a/ ');
+
 status = inSection(9);
 testThis(' /+a/ ');
 
@@ -110,6 +113,68 @@ testThis(' /?a/ ');
 
 status = inSection(12);
 testThis(' /??a/ ');
+
+
+/*
+ * Misusing the {DecmalDigits} quantifier - according to ECMA,
+ * but not according to Perl.
+ *
+ * ECMA-262 Edition 3 prohibits the use of unescaped braces in
+ * regexp patterns, unless they form part of a quantifier.
+ *
+ * Hovever, Perl does not prohibit this. If not used as part
+ * of a quantifer, Perl treats braces literally.
+ *
+ * We decided to follow Perl on this for backward compatibility.
+ * See http://bugzilla.mozilla.org/show_bug.cgi?id=190685.
+ *
+ * Therefore NONE of the following ECMA violations should generate
+ * a SyntaxError. Note we use checkThis() instead of testThis().
+ */
+status = inSection(13);
+checkThis(' /a*{/ ');
+
+status = inSection(14);
+checkThis(' /a{}/ ');
+
+status = inSection(15);
+checkThis(' /{a/ ');
+
+status = inSection(16);
+checkThis(' /}a/ ');
+
+status = inSection(17);
+checkThis(' /x{abc}/ ');
+
+status = inSection(18);
+checkThis(' /{{0}/ ');
+
+status = inSection(19);
+checkThis(' /{{1}/ ');
+
+status = inSection(20);
+checkThis(' /x{{0}/ ');
+
+status = inSection(21);
+checkThis(' /x{{1}/ ');
+
+status = inSection(22);
+checkThis(' /x{{0}}/ ');
+
+status = inSection(23);
+checkThis(' /x{{1}}/ ');
+
+status = inSection(24);
+checkThis(' /x{{0}}/ ');
+
+status = inSection(25);
+checkThis(' /x{{1}}/ ');
+
+status = inSection(26);
+checkThis(' /x{{0}}/ ');
+
+status = inSection(27);
+checkThis(' /x{{1}}/ ');
 
 
 /*
@@ -207,7 +272,7 @@ function checkThis(sAllowedSyntax)
 function test()
 {
   enterFunc('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber(bug);
   printStatus(summary);
 
   for (var i=0; i<UBound; i++)

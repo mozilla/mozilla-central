@@ -45,26 +45,25 @@ class nsSVGClipPathFrame : public nsSVGClipPathFrameBase
 {
   friend nsIFrame*
   NS_NewSVGClipPathFrame(nsIPresShell* aPresShell, nsIContent* aContent, nsStyleContext* aContext);
-protected:
-  nsSVGClipPathFrame(nsStyleContext* aContext) :
-    nsSVGClipPathFrameBase(aContext),
-    mClipParentMatrix(nsnull),
-    mInUse(PR_FALSE) {}
 
-public:
+  NS_IMETHOD InitSVG();
+
+ public:
+  nsSVGClipPathFrame(nsStyleContext* aContext) : nsSVGClipPathFrameBase(aContext) {}
+
   // nsSVGClipPathFrame methods:
-  nsresult ClipPaint(nsSVGRenderState* aContext,
-                     nsISVGChildFrame* aParent,
-                     nsIDOMSVGMatrix *aMatrix);
+  NS_IMETHOD ClipPaint(nsSVGRenderState* aContext,
+                       nsISVGChildFrame* aParent,
+                       nsCOMPtr<nsIDOMSVGMatrix> aMatrix);
 
-  PRBool ClipHitTest(nsISVGChildFrame* aParent,
-                     nsIDOMSVGMatrix *aMatrix,
-                     float aX, float aY);
+  NS_IMETHOD ClipHitTest(nsISVGChildFrame* aParent,
+                         nsCOMPtr<nsIDOMSVGMatrix> aMatrix,
+                         float aX, float aY, PRBool *aHit);
 
   // Check if this clipPath is made up of more than one geometry object.
   // If so, the clipping API in cairo isn't enough and we need to use
   // mask based clipping.
-  PRBool IsTrivial();
+  NS_IMETHOD IsTrivial(PRBool *aTrivial);
 
   /**
    * Get the "type" of the frame
@@ -81,25 +80,6 @@ public:
 #endif
 
  private:
-  // A helper class to allow us to paint clip paths safely. The helper
-  // automatically sets and clears the mInUse flag on the clip path frame
-  // (to prevent nasty reference loops). It's easy to mess this up
-  // and break things, so this helper makes the code far more robust.
-  class AutoClipPathReferencer
-  {
-  public:
-    AutoClipPathReferencer(nsSVGClipPathFrame *aFrame)
-       : mFrame(aFrame) {
-      NS_ASSERTION(mFrame->mInUse == PR_FALSE, "reference loop!");
-      mFrame->mInUse = PR_TRUE;
-    }
-    ~AutoClipPathReferencer() {
-      mFrame->mInUse = PR_FALSE;
-    }
-  private:
-    nsSVGClipPathFrame *mFrame;
-  };
-
   nsISVGChildFrame *mClipParent;
   nsCOMPtr<nsIDOMSVGMatrix> mClipParentMatrix;
 
@@ -110,7 +90,8 @@ public:
   PRPackedBool mInUse;
 };
 
-nsIContent *
-NS_GetSVGClipPathElement(nsIURI *aURI, nsIContent *aContent);
+nsresult
+NS_GetSVGClipPathFrame(nsSVGClipPathFrame **aResult,
+                       nsIURI *aURI, nsIContent *aContent);
 
 #endif

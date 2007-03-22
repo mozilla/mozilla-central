@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -34,9 +33,8 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK ***** */
-
-/*
+ * ***** END LICENSE BLOCK *****
+ *
  * Date: 09 May 2001
  *
  * SUMMARY: Regression test: we shouldn't crash on this code
@@ -44,15 +42,13 @@
  *
  * See ECMA-262 Edition 3 13-Oct-1999, Section 8.6.2 re [[Class]] property.
  *
- * Same as class-001.js - but testing user-defined types here, not
- * native types.  Therefore we expect the [[Class]] property to equal
- * 'Object' in each case -
+ * Same as class-001.js - but testing user-defined types here, not native types.
+ * Therefore we expect the [[Class]] property to equal 'Object' in each case -
  *
  * The getJSClass() function we use is in a utility file, e.g. "shell.js"
  */
-//-----------------------------------------------------------------------------
-var gTestfile = 'regress-72773.js';
-var BUGNUMBER = 72773;
+//-------------------------------------------------------------------------------------------------
+var bug = 72773;
 var summary = "Regression test: we shouldn't crash on this code";
 var status = '';
 var actual = '';
@@ -88,7 +84,7 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
 
   reportCompare(expect, actual, status);

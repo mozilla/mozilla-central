@@ -209,8 +209,10 @@ nsresult nsIconChannel::ExtractIconInfoFromUrl(nsIFile ** aLocalFile, PRUint32 *
   nsCOMPtr<nsIFile> file;
   rv = fileURL->GetFile(getter_AddRefs(file));
   if (NS_FAILED(rv) || !file) return NS_OK;
-
-  return file->Clone(aLocalFile);
+  
+  *aLocalFile = file;
+  NS_IF_ADDREF(*aLocalFile);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsIconChannel::AsyncOpen(nsIStreamListener *aListener, nsISupports *ctxt)
@@ -273,10 +275,10 @@ static DWORD GetSpecialFolderIcon(nsIFile* aFile, int aFolder, SHFILEINFO* aSFI,
 nsresult nsIconChannel::MakeInputStream(nsIInputStream** _retval, PRBool nonBlocking)
 {
   nsXPIDLCString contentType;
-  nsCAutoString fileExt;
+  nsCAutoString filePath;
   nsCOMPtr<nsIFile> localFile; // file we want an icon for
   PRUint32 desiredImageSize;
-  nsresult rv = ExtractIconInfoFromUrl(getter_AddRefs(localFile), &desiredImageSize, contentType, fileExt);
+  nsresult rv = ExtractIconInfoFromUrl(getter_AddRefs(localFile), &desiredImageSize, contentType, filePath);
   NS_ENSURE_SUCCESS(rv, rv);
 
   // if the file exists, we are going to use it's real attributes...otherwise we only want to use it for it's extension...
@@ -285,16 +287,9 @@ nsresult nsIconChannel::MakeInputStream(nsIInputStream** _retval, PRBool nonBloc
   
   PRBool fileExists = PR_FALSE;
  
-  nsCAutoString filePath(fileExt);
   if (localFile)
   {
-    rv = localFile->Normalize();
-    NS_ENSURE_SUCCESS(rv, rv);
-
     localFile->GetNativePath(filePath);
-    if (filePath.Length() < 2 || filePath[1] != ':')
-      return NS_ERROR_MALFORMED_URI; // UNC
-
     if (filePath.Last() == ':')
       filePath.Append('\\');
     else {
@@ -319,12 +314,12 @@ nsresult nsIconChannel::MakeInputStream(nsIInputStream** _retval, PRBool nonBloc
     nsCOMPtr<nsIMIMEService> mimeService (do_GetService(NS_MIMESERVICE_CONTRACTID, &rv));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCAutoString defFileExt;
-    mimeService->GetPrimaryExtension(contentType, fileExt, defFileExt);
+    nsCAutoString fileExt;
+    mimeService->GetPrimaryExtension(contentType, EmptyCString(), fileExt);
     // If the mime service does not know about this mime type, we show
     // the generic icon.
     // In any case, we need to insert a '.' before the extension.
-    filePath = NS_LITERAL_CSTRING(".") + defFileExt;
+    filePath = NS_LITERAL_CSTRING(".") + fileExt;
   }
 
   rv = NS_ERROR_NOT_AVAILABLE;

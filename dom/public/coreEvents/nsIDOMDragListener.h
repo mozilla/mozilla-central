@@ -43,14 +43,13 @@
 #include "nsIDOMEventListener.h"
 
 /*
- * The listener for drag events.
+ * Mouse up/down/move event listener
+ *
  */
 #define NS_IDOMDRAGLISTENER_IID \
-{ /* CD5186C4-228F-4413-AFD9-B65DAA105714 */ \
-0xcd5186c4, 0x228f, 0x4413, \
-{0xaf, 0xd9, 0xb6, 0x5d, 0xaa, 0x10, 0x57, 0x14} }
-
-
+{ /* 6b8b25d0-ded5-11d1-bd85-00805f8ae3f4 */ \
+0x6b8b25d0, 0xded5, 0x11d1, \
+{0xbd, 0x85, 0x00, 0x80, 0x5f, 0x8a, 0xe3, 0xf4} }
 
 class nsIDOMDragListener : public nsIDOMEventListener {
 
@@ -59,76 +58,40 @@ public:
    NS_DECLARE_STATIC_IID_ACCESSOR(NS_IDOMDRAGLISTENER_IID)
 
   /**
-  * The dragenter event is fired when the mouse is moved from one node onto
-  * another. The target is the node that the mouse is moved onto and the
-  * related target is the node that the mouse left.
-  *
+  * Processes a drag enter event
   * @param aMouseEvent @see nsIDOMEvent.h 
   * @returns whether the event was consumed or ignored. @see nsresult
   */
   NS_IMETHOD DragEnter(nsIDOMEvent* aMouseEvent) = 0;
 
   /**
-  * The dragover event is fired at regular intervals (several times per second)
-  * while a drag is occuring. The target of this event is the node that the
-  * mouse is over.
-  *
+  * Processes a drag over event
   * @param aMouseEvent @see nsIDOMEvent.h 
   * @returns whether the event was consumed or ignored. @see nsresult
   */
   NS_IMETHOD DragOver(nsIDOMEvent* aMouseEvent) = 0;
 
   /**
-  * The dragleave event is fired when the mouse leaves a node for another
-  * node. The dragexit event is fired immediately afterwards which will
-  * call this method. The target is the node that the mouse left and the
-  * related target is the node that the mouse is entering. A dragenter
-  * event will be fired on the node that the mouse is entering after both
-  * the dragleave and dragexit event are fired.
-  *
+  * Processes a drag Exit event
   * @param aMouseEvent @see nsIDOMEvent.h 
   * @returns whether the event was consumed or ignored. @see nsresult
   */
   NS_IMETHOD DragExit(nsIDOMEvent* aMouseEvent) = 0;
 
   /**
-   * The drop event will be fired on the node that the mouse is over once
-   * the drag is complete. The dragdrop event will be fired immediately
-   * afterwards which will call this method.
-   *
+   * Processes a drag drop event
    * @param aMouseEvent @see nsIDOMEvent.h 
    * @returns whether the event was consumed or ignored. @see nsresult
    */
   NS_IMETHOD DragDrop(nsIDOMEvent* aMouseEvent) = 0;
   
   /**
-   * When the user begins a drag by pressing the mouse button and moving the
-   * mouse slightly, a dragstart event will be fired. Afterwards a draggesture
-   * event will be fired which will call this method.
-   *
+   * Processes a drag gesture event
    * @param aMouseEvent @see nsIDOMEvent.h 
    * @returns whether the event was consumed or ignored. @see nsresult
    */
   NS_IMETHOD DragGesture(nsIDOMEvent* aMouseEvent) = 0;
 
-  /**
-   * The dragend event is fired when a drag is finished, whether the data was
-   * dropped successfully or whether the drag was cancelled. The target of
-   * this event is the source node of the drag.
-   *
-   * @param aMouseEvent @see nsIDOMEvent.h 
-   * @returns whether the event was consumed or ignored. @see nsresult
-   */
-  NS_IMETHOD DragEnd(nsIDOMEvent* aMouseEvent) = 0;
-
-  /**
-   * The drag event is fired just before a dragover event is fired. The target
-   * of this event is the source node of the drag.
-   *
-   * @param aMouseEvent @see nsIDOMEvent.h 
-   * @returns whether the event was consumed or ignored. @see nsresult
-   */
-  NS_IMETHOD Drag(nsIDOMEvent* aMouseEvent) = 0;
 };
 
 NS_DEFINE_STATIC_IID_ACCESSOR(nsIDOMDragListener, NS_IDOMDRAGLISTENER_IID)

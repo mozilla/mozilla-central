@@ -1,6 +1,0 @@
-/* Localized versions of Info.plist keys */
-
-CFBundleName = "%FEED_HANDLER_DISPLAY_NAME%";
-CFBundleDisplayName = "%FEED_HANDLER_DISPLAY_NAME%";
-CFBundleGetInfoString = "%FEED_HANDLER_DISPLAY_NAME% 1.0, © 1998-%CM_COPYRIGHT_YEAR% Contributors";
-NSHumanReadableCopyright = "© 1998-%CM_COPYRIGHT_YEAR% Contributors";

@@ -149,11 +149,9 @@ nsresult nsLookAndFeel::NativeGetColor(const nsColorID aID, nscolor &aColor)
       idx = SYSCLR_MENUDISABLEDTEXT;
       break;
     case eColor_highlight:
-    case eColor__moz_html_cellhighlight:
       idx = SYSCLR_HILITEBACKGROUND;
       break;
     case eColor_highlighttext:
-    case eColor__moz_html_cellhighlighttext:
       idx = SYSCLR_HILITEFOREGROUND;
       break;
     case eColor_inactiveborder:
@@ -204,8 +202,6 @@ nsresult nsLookAndFeel::NativeGetColor(const nsColorID aID, nscolor &aColor)
     case eColor_windowtext:
       idx = SYSCLR_WINDOWTEXT;
       break;
-    case eColor__moz_eventreerow:
-    case eColor__moz_oddtreerow:
     case eColor__moz_field:
       idx = SYSCLR_ENTRYFIELD;
       break;
@@ -224,27 +220,11 @@ nsresult nsLookAndFeel::NativeGetColor(const nsColorID aID, nscolor &aColor)
       idx = SYSCLR_BUTTONDEFAULT;
       break;
     case eColor__moz_menuhover:
-      if (WinQuerySysColor(HWND_DESKTOP, SYSCLR_MENUHILITEBGND, 0) ==
-          WinQuerySysColor(HWND_DESKTOP, SYSCLR_MENU, 0)) {
-        // if this happens, we would paint menu selections unreadable
-        // (we are most likely on Warp3), so let's fake a dark grey
-        // background for the selected menu item
-        aColor = NS_RGB( 132, 130, 132);
-        return res;
-      } else {
-        idx = SYSCLR_MENUHILITEBGND;
-      }
+      idx = SYSCLR_MENUHILITEBGND;
       break;
     case eColor__moz_menuhovertext:
     case eColor__moz_menubarhovertext:
-      if (WinQuerySysColor(HWND_DESKTOP, SYSCLR_MENUHILITEBGND, 0) ==
-          WinQuerySysColor(HWND_DESKTOP, SYSCLR_MENU, 0)) {
-        // white text to be readable on dark grey
-        aColor = NS_RGB( 255, 255, 255);
-        return res;
-      } else {
-        idx = SYSCLR_MENUHILITE;
-      }
+      idx = SYSCLR_MENUHILITE;
       break;
     default:
       idx = SYSCLR_WINDOW;
@@ -365,18 +345,6 @@ NS_IMETHODIMP nsLookAndFeel::GetMetric(const nsMetricID aID, PRInt32 & aMetric)
         break;
     case eMetric_TreeScrollLinesMax:
         aMetric = 3;
-        break;
-    case eMetric_WindowsDefaultTheme:
-        aMetric = 0;
-        res = NS_ERROR_NOT_IMPLEMENTED;
-        break;
-    case eMetric_IMERawInputUnderlineStyle:
-    case eMetric_IMEConvertedTextUnderlineStyle:
-        aMetric = NS_UNDERLINE_STYLE_SOLID;
-        break;
-    case eMetric_IMESelectedRawTextUnderlineStyle:
-    case eMetric_IMESelectedConvertedTextUnderline:
-        aMetric = NS_UNDERLINE_STYLE_NONE;
         break;
 
     default:

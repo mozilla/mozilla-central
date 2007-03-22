@@ -144,41 +144,34 @@ html|*.menulist-editable-input {
 /* ::::: compact menulists ::::: */
 
 .menulist-compact {
-  -moz-appearance: none;
   -moz-box-align: center;
   -moz-box-pack: center;
   margin: 0;
-  -moz-border-top-colors: ThreeDHighlight ThreeDLightShadow;
+  -moz-border-top-colors: ThreeDLightShadow ThreeDHighlight;
   -moz-border-right-colors: ThreeDDarkShadow ThreeDShadow;
   -moz-border-bottom-colors: ThreeDDarkShadow ThreeDShadow;
-  -moz-border-left-colors: ThreeDHighlight ThreeDLightShadow;
-  background-color: ThreeDFace;
-  color: ButtonText;
-  list-style-image: url("chrome://global/skin/arrow/arrow-dn.gif");
+  -moz-border-left-colors: ThreeDLightShadow ThreeDHighlight;
+  background-color: -moz-Dialog;
+  color: -moz-DialogText;
 }
 
-.menulist-compact > .menulist-label-box > .menulist-label {
+.menulist-compact > .menulist-label {
   margin: 0 3px !important;
   text-align: right;
 }  
 
-.menulist-compact > .menulist-label-box > .menulist-icon {
+.menulist-compact > .menulist-dropmarker {
   -moz-margin-start: 2px;
+  border: none;
+  padding: 0 !important;
+  background: transparent;
 }
 
 .menulist-compact[open="true"] {
   -moz-border-top-colors: ThreeDDarkShadow ThreeDShadow;
-  -moz-border-right-colors: ThreeDDarkShadow ThreeDHighlight;
-  -moz-border-bottom-colors: ThreeDDarkShadow ThreeDHighlight;
+  -moz-border-right-colors: ThreeDDarkShadow ThreeDShadow;
+  -moz-border-bottom-colors: ThreeDDarkShadow ThreeDShadow;
   -moz-border-left-colors: ThreeDDarkShadow ThreeDShadow;
-}
-
-.menulist-compact[disabled="true"] {
-  list-style-image: url("chrome://global/skin/arrow/arrow-dn-dis.gif");
-}
-
-.menulist-compact:focus > .menulist-label-box {
-  border: 1px dotted;
-  background-color: transparent;
-  color: inherit;
+  background-color: ThreeDShadow;
+  color: ThreeDHighlight;
 }

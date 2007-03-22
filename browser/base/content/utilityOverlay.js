@@ -21,7 +21,6 @@
 #
 # Contributor(s):
 #   Alec Flett <alecf@netscape.com>
-#   Ehsan Akhgari <ehsan.akhgari@gmail.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -204,34 +203,12 @@ function openUILinkIn( url, where, allowThirdPartyFixup, postData, referrerUrl )
     saveURL(url, null, null, true, null, referrerUrl);
     return;
   }
-  const Cc = Components.classes;
-  const Ci = Components.interfaces;
 
   var w = getTopWin();
 
   if (!w || where == "window") {
-    var sa = Cc["@mozilla.org/supports-array;1"].
-             createInstance(Ci.nsISupportsArray);
-
-    var wuri = Cc["@mozilla.org/supports-string;1"].
-               createInstance(Ci.nsISupportsString);
-    wuri.data = url;
-
-    sa.AppendElement(wuri);
-    sa.AppendElement(null);
-    sa.AppendElement(referrerUrl);
-    sa.AppendElement(postData);
-    sa.AppendElement(allowThirdPartyFixup);
-
-    var ww = Cc["@mozilla.org/embedcomp/window-watcher;1"].
-             getService(Ci.nsIWindowWatcher);
-
-    ww.openWindow(w || window,
-                  getBrowserURL(),
-                  null,
-                  "chrome,dialog=no,all",
-                  sa);
-
+    openDialog(getBrowserURL(), "_blank", "chrome,all,dialog=no", url,
+               null, referrerUrl, postData, allowThirdPartyFixup);
     return;
   }
 
@@ -388,11 +365,11 @@ function openAboutDialog()
                 "chrome, resizable=no, minimizable=no");
   }
 #else
-  window.openDialog("chrome://browser/content/aboutDialog.xul", "About", "centerscreen,chrome,resizable=no");
+  window.openDialog("chrome://browser/content/aboutDialog.xul", "About", "modal,centerscreen,chrome,resizable=no");
 #endif
 }
 
-function openPreferences(paneID, extraArgs)
+function openPreferences(paneID)
 {
   var instantApply = getBoolPref("browser.preferences.instantApply", false);
   var features = "chrome,titlebar,toolbar,centerscreen" + (instantApply ? ",dialog=no" : ",modal");
@@ -406,22 +383,10 @@ function openPreferences(paneID, extraArgs)
       var pane = win.document.getElementById(paneID);
       win.document.documentElement.showPane(pane);
     }
-
-    if (extraArgs && extraArgs["advancedTab"]) {
-      var advancedPaneTabs = win.document.getElementById("advancedPrefs");
-      advancedPaneTabs.selectedTab = win.document.getElementById(extraArgs["advancedTab"]);
-    }
-
-    return win;
   }
-
-  return openDialog("chrome://browser/content/preferences/preferences.xul",
-                    "Preferences", features, paneID, extraArgs);
-}
-
-function openAdvancedPreferences(tabID)
-{
-  return openPreferences("paneAdvanced", { "advancedTab" : tabID });
+  else
+    openDialog("chrome://browser/content/preferences/preferences.xul",
+               "Preferences", features, paneID);
 }
 
 /**
@@ -520,19 +485,13 @@ function buildHelpMenu()
 
 function isElementVisible(aElement)
 {
-  if (!aElement)
-    return false;
-
-  // If aElement or a direct or indirect parent is hidden or collapsed,
-  // height, width or both will be 0.
+  // * When an element is hidden, the width and height of its boxObject
+  //   are set to 0
+  // * css-visibility (unlike css-display) is inherited.
   var bo = aElement.boxObject;
-  return (bo.height > 0 && bo.width > 0);
-}
-
-function makeURLAbsolute(aBase, aUrl)
-{
-  // Note:  makeURI() will throw if aUri is not a valid URI
-  return makeURI(aUrl, null, makeURI(aBase)).spec;
+  return (bo.height != 0 && bo.width != 0 &&
+          document.defaultView
+                  .getComputedStyle(aElement, null).visibility == "visible");
 }
 
 function getBrowserFromContentWindow(aContentWindow)
@@ -565,12 +524,9 @@ function getBrowserFromContentWindow(aContentWindow)
  *        If true, then we allow the URL text to be sent to third party services
  *        (e.g., Google's I Feel Lucky) for interpretation. This parameter may
  *        be undefined in which case it is treated as false.
- * @param [optional] aReferrer
- *        If aDocument is null, then this will be used as the referrer.
- *        There will be no security check.
  */ 
 function openNewTabWith(aURL, aDocument, aPostData, aEvent,
-                        aAllowThirdPartyFixup, aReferrer)
+                        aAllowThirdPartyFixup)
 {
   if (aDocument)
     urlSecurityCheck(aURL, aDocument.nodePrincipal);
@@ -598,14 +554,13 @@ function openNewTabWith(aURL, aDocument, aPostData, aEvent,
     originCharset = window.content.document.characterSet;
 
   // open link in new tab
-  var referrerURI = aDocument ? aDocument.documentURIObject : aReferrer;
+  var referrerURI = aDocument ? aDocument.documentURIObject : null;
   var browser = top.document.getElementById("content");
-  return browser.loadOneTab(aURL, referrerURI, originCharset, aPostData,
-                            loadInBackground, aAllowThirdPartyFixup || false);
+  browser.loadOneTab(aURL, referrerURI, originCharset, aPostData,
+                     loadInBackground, aAllowThirdPartyFixup || false);
 }
 
-function openNewWindowWith(aURL, aDocument, aPostData, aAllowThirdPartyFixup,
-                           aReferrer)
+function openNewWindowWith(aURL, aDocument, aPostData, aAllowThirdPartyFixup)
 {
   if (aDocument)
     urlSecurityCheck(aURL, aDocument.nodePrincipal);
@@ -619,78 +574,8 @@ function openNewWindowWith(aURL, aDocument, aPostData, aAllowThirdPartyFixup,
   if (wintype == "navigator:browser")
     charsetArg = "charset=" + window.content.document.characterSet;
 
-  var referrerURI = aDocument ? aDocument.documentURIObject : aReferrer;
-  return window.openDialog(getBrowserURL(), "_blank", "chrome,all,dialog=no",
-                           aURL, charsetArg, referrerURI, aPostData,
-                           aAllowThirdPartyFixup);
-}
-
-/**
- * isValidFeed: checks whether the given data represents a valid feed.
- *
- * @param  aData
- *         An object representing a feed with title, href and type.
- * @param  aPrincipal
- *         The principal of the document, used for security check.
- * @param  aIsFeed
- *         Whether this is already a known feed or not, if true only a security
- *         check will be performed.
- */ 
-function isValidFeed(aData, aPrincipal, aIsFeed)
-{
-  if (!aData || !aPrincipal)
-    return false;
-
-  if (!aIsFeed) {
-    var type = aData.type && aData.type.toLowerCase();
-    type = type.replace(/^\s+|\s*(?:;.*)?$/g, "");
-
-    aIsFeed = (type == "application/rss+xml" ||
-               type == "application/atom+xml");
-
-    if (!aIsFeed) {
-      // really slimy: general XML types with magic letters in the title
-      const titleRegex = /(^|\s)rss($|\s)/i;
-      aIsFeed = ((type == "text/xml" || type == "application/rdf+xml" ||
-                  type == "application/xml") && titleRegex.test(aData.title));
-    }
-  }
-
-  if (aIsFeed) {
-    try {
-      urlSecurityCheck(aData.href, aPrincipal,
-                       Components.interfaces.nsIScriptSecurityManager.DISALLOW_INHERIT_PRINCIPAL);
-    }
-    catch(ex) {
-      aIsFeed = false;
-    }
-  }
-
-  if (type)
-    aData.type = type;
-
-  return aIsFeed;
-}
-
-// aCalledFromModal is optional
-function openHelpLink(aHelpTopic, aCalledFromModal) {
-  var url = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
-                      .getService(Components.interfaces.nsIURLFormatter)
-                      .formatURLPref("app.support.baseURL");
-  url += aHelpTopic;
-
-  var where = aCalledFromModal ? "window" : "tab";
-  openUILinkIn(url, where);
-}
-
-function openPrefsHelp() {
-  var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                        .getService(Components.interfaces.nsIPrefBranch2);
-
-  // non-instant apply prefwindows are usually modal, so we can't open in the topmost window, 
-  // since its probably behind the window.
-  var instantApply = prefs.getBoolPref("browser.preferences.instantApply");
-
-  var helpTopic = document.getElementsByTagName("prefwindow")[0].currentPane.helpTopic;
-  openHelpLink(helpTopic, !instantApply);
+  var referrerURI = aDocument ? aDocument.documentURIObject : null;
+  window.openDialog(getBrowserURL(), "_blank", "chrome,all,dialog=no",
+                    aURL, charsetArg, referrerURI, aPostData,
+                    aAllowThirdPartyFixup);
 }

@@ -114,15 +114,7 @@ public:
     nsIEventTarget*     GetTarget() const { return mTarget; }
     PRInt32             GetProxyType() const { return mProxyType; }
 
-    // these are the equivalents of AddRef/Release, but must be called
-    // while holding the global POM lock
-    nsrefcnt LockedAddRef();
-    nsrefcnt LockedRelease();
-
-    // LockedFind should be called holding the POM lock. It will
-    // temporarily unlock the lock during execution.
     nsresult LockedFind(REFNSIID iid, void **aResult);
-
     void LockedRemove(nsProxyEventObject* aObject);
 
     friend class nsProxyObjectManager;
@@ -184,17 +176,14 @@ public:
                        already_AddRefed<nsISomeInterface> aRealInterface,
                        nsresult *rv);
 
-    // AddRef, but you must be holding the global POM lock
-    nsrefcnt LockedAddRef();
     friend class nsProxyObject;
 
 private:
     ~nsProxyEventObject();
 
-    // Member ordering is important: See note in the destructor.
+    nsCOMPtr<nsISomeInterface>  mRealInterface;
     nsProxyEventClass          *mClass;
     nsCOMPtr<nsProxyObject>     mProxyObject;
-    nsCOMPtr<nsISomeInterface>  mRealInterface;
 
     // Weak reference, maintained by the parent nsProxyObject
     nsProxyEventObject         *mNext;
@@ -244,7 +233,7 @@ public:
     void                SetCallersTarget(nsIEventTarget* target);
     PRBool              IsSync() const
     {
-        return !!(mOwner->GetProxyType() & NS_PROXY_SYNC);
+        return mOwner->GetProxyType() & NS_PROXY_SYNC;
     }
 
 private:
@@ -288,9 +277,9 @@ public:
 
     nsresult GetClass(REFNSIID aIID, nsProxyEventClass **aResult);
 
-    void LockedRemove(nsProxyObject* aProxy);
+    void Remove(nsProxyObject* aProxy);
 
-    PRLock* GetLock() const { return mProxyCreationLock; }
+    PRMonitor*   GetMonitor() const { return mProxyCreationMonitor; }
 
 #ifdef PR_LOGGING
     static PRLogModuleInfo *sLog;
@@ -302,7 +291,7 @@ private:
     static nsProxyObjectManager* mInstance;
     nsHashtable  mProxyObjectMap;
     nsClassHashtable<nsIDHashKey, nsProxyEventClass> mProxyClassMap;
-    PRLock *mProxyCreationLock;
+    PRMonitor   *mProxyCreationMonitor;
 };
 
 #define NS_XPCOMPROXY_CLASSNAME "nsProxyObjectManager"

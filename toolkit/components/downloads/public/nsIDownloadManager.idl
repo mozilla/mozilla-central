@@ -41,80 +41,29 @@
 
 #include "nsISupports.idl"
 
+interface nsIDOMWindow;
 interface nsIURI;
 interface nsILocalFile;
 interface nsIDownload;
 interface nsICancelable;
 interface nsIMIMEInfo;
+interface nsIRDFDataSource;
 interface nsIDownloadProgressListener;
-interface nsISimpleEnumerator;
-interface mozIStorageConnection;
+interface nsISupportsArray;
 
-[scriptable, uuid(88a2df08-47f7-4268-bb16-81bab231f1bf)]
+[scriptable, uuid(1f280341-30f4-4009-bb0d-a78f2936d1fb)]
 interface nsIDownloadManager : nsISupports {
-  /**
-   * Download type for generic file download.
-   */
-  const short DOWNLOAD_TYPE_DOWNLOAD = 0;
+  // Download States
+  const short DOWNLOAD_NOTSTARTED       = -1;
+  const short DOWNLOAD_DOWNLOADING      = 0;
+  const short DOWNLOAD_FINISHED         = 1;
+  const short DOWNLOAD_FAILED           = 2;
+  const short DOWNLOAD_CANCELED         = 3;
+  const short DOWNLOAD_PAUSED           = 4;
 
-  /**
-   * Download state for uninitialized download object.
-   */
-  const short DOWNLOAD_NOTSTARTED = -1;
+  const short DOWNLOAD_TYPE_DOWNLOAD    = 0;
 
-  /**
-   * Download is currently transferring data.
-   */
-  const short DOWNLOAD_DOWNLOADING = 0;
-
-  /**
-   * Download completed including any processing of the target
-   * file.  (completed)
-   */
-  const short DOWNLOAD_FINISHED = 1;
-
-  /**
-   * Transfer failed due to error. (completed)
-   */
-  const short DOWNLOAD_FAILED = 2;
-
-  /**
-   * Download was canceled by the user. (completed)
-   */
-  const short DOWNLOAD_CANCELED = 3;
-
-  /**
-   * Transfer was paused by the user.
-   */
-  const short DOWNLOAD_PAUSED = 4;
-
-  /**
-   * Download is active but data has not yet been received.
-   */
-  const short DOWNLOAD_QUEUED = 5;
-
-  /**
-   * Transfer request was blocked by parental controls proxies. (completed)
-   */
-  const short DOWNLOAD_BLOCKED_PARENTAL = 6;
-
-  /**
-   * Transferred download is being scanned by virus scanners.
-   */
-  const short DOWNLOAD_SCANNING = 7;
-
-  /**
-   * A virus was detected in the download. The target will most likely
-   * no longer exist. (completed)
-   */
-  const short DOWNLOAD_DIRTY = 8;
-
-  /**
-   * Win specific: Request was blocked by zone policy settings.
-   * (see bug #416683) (completed)
-   */
-  const short DOWNLOAD_BLOCKED_POLICY = 9;
-
+  // Methods called by clients to carry out various managing functions
 
   /**
    * Creates an nsIDownload and adds it to be managed by the download manager.
@@ -142,99 +91,100 @@ interface nsIDownloadManager : nsISupports {
    *                    Must not be null.
    *
    * @return The newly created download item with the passed-in properties.
-   *
-   * @note This does not actually start a download.  If you want to add and
-   *       start a download, you need to create an nsIWebBrowserPersist, pass it
-   *       as the aCancelable object, call this method, set the progressListener
-   *       as the returned download object, then call saveURI.
    */
   nsIDownload addDownload(in short aDownloadType, 
                           in nsIURI aSource,
                           in nsIURI aTarget,
                           in AString aDisplayName,
+                          in AString aIconURL,
                           in nsIMIMEInfo aMIMEInfo,
                           in PRTime aStartTime,
                           in nsILocalFile aTempFile,
                           in nsICancelable aCancelable);
 
   /**
-   * Retrieves a download managed by the download manager.  This can be one that
-   * is in progress, or one that has completed in the past and is stored in the
-   * database.
+   *  Retrieves an in-progress download managed by the download manager.
    *
-   * @param aID The unique ID of the download.
-   * @return The download with the specified ID.
-   * @throws NS_ERROR_NOT_AVAILABLE if the download is not in the database.
+   *  @param aPersistentDescriptor The unique identifier used to describe a
+   *                               a download, and an attribute of nsILocalFile.
+   *                               On Windows and Linux, this is just the path
+   *                               of the target, but on Mac this is guaranteed
+   *                               to be unique.
+   *
+   *  @return The download with the specified persistent descriptor.
    */
-  nsIDownload getDownload(in unsigned long aID);
+  nsIDownload getDownload(in wstring aPersistentDescriptor);
 
   /**
-   * Cancels the download with the specified ID if it's currently in-progress.
-   * This calls cancel(NS_BINDING_ABORTED) on the nsICancelable provided by the
-   * download.
+   * Cancels the download with the specified persistent descriptor if it's
+   * currently in progress. This calls cancel(NS_BINDING_ABORTED) on the
+   * nsICancelable provided for the download.
    *
-   * @param aID The unique ID of the download.
-   * @throws NS_ERROR_FAILURE if the download is not in-progress.
+   * @param aPersistentDescriptor The persistent descriptor of the download to
+   *                              be cancelled.
    */
-  void cancelDownload(in unsigned long aID);
+  void cancelDownload(in wstring aPersistentDescriptor);
 
   /**
-   * Removes the download with the specified id if it's not currently
-   * in-progress.  Whereas cancelDownload simply cancels the transfer, but
-   * retains information about it, removeDownload removes all knowledge of it.
+   * Removes the download with the specified persistent descriptor if it's not
+   * currently in progress.  Whereas cancelDownload simply cancels the transfer
+   * but retains information about it, removeDownload removes all knowledge of it.
    *
-   * Also notifies observers of the "download-manager-remove-download" topic
-   * with the download id as the subject to allow any DM consumers to react to
-   * the removal.
-   *
-   * @param aID The unique ID of the download.
-   * @throws NS_ERROR_FAILURE if the download is active.
+   * @param aPersistentDescriptor The persistent descriptor of the download to
+   *                              be removed.
    */
-  void removeDownload(in unsigned long aID);
+  void removeDownload(in wstring aPersistentDescriptor);
 
   /**
    * Pause the specified download.
-   *
-   * @param aID The unique ID of the download.
-   * @throws NS_ERROR_FAILURE if the download is not in-progress.
    */
-  void pauseDownload(in unsigned long aID);
+  void pauseDownload(in wstring aPersistentDescriptor);
 
   /**
    * Resume the specified download.
-   *
-   * @param aID The unique ID of the download.
-   * @throws NS_ERROR_FAILURE if the download is not in-progress.
    */
-  void resumeDownload(in unsigned long aID);
+  void resumeDownload(in wstring aPersistentDescriptor);
+
+  // Front end and Front end update methods. 
+
+  /** 
+   * Opens the Download Manager front end.
+   * 
+   * @param aParent   The parent, or opener, of the front end (optional).
+   * @param aDownload A download to pass to the manager widnow. Useful if,
+   *                  for example, you want the window to select a certain
+   *                  download (optional).
+   */
+
+  void open(in nsIDOMWindow aParent, in wstring aPersistentDescriptor);
+
+  /** 
+   * The Download Manager's progress listener.
+   */
+  attribute nsIDownloadProgressListener listener;
 
   /**
-   * Retries a failed download.
-   *
-   * @param aID The unique ID of the download.
-   * @throws NS_ERROR_NOT_AVAILALE if the download id is not known.
-   * @throws NS_ERROR_FAILURE if the download is not in the following states:
-   *           nsIDownloadManager::DOWNLOAD_CANCELED
-   *           nsIDownloadManager::DOWNLOAD_FAILED
-   */
-  void retryDownload(in unsigned long aID);
+  * Indicate that a batch update (e.g. mass removal) is about to start.
+  */
 
+  void startBatchUpdate();
+  
   /**
-   * The database connection to the downloads database.
-   */
-  readonly attribute mozIStorageConnection DBConnection;
+  * Indicate that a batch update is ending.
+  */
+  
+  void endBatchUpdate();
+
+  // Downloads list book-keeping
 
   /** 
    * Whether or not there are downloads that can be cleaned up (removed)
-   * i.e. downloads that have completed, have failed or have been canceled.
+   * i.e. downloads that have completed, have failed or have been canceled. 
    */
   readonly attribute boolean canCleanUp;
 
   /** 
-   * Removes completed, failed, and canceled downloads from the list.
-   *
-   * Also notifies observers of the "download-manager-remove-download" topic
-   * with a null subject to allow any DM consumers to react to the removals.
+   * Removes completed, failed, and canceled downloads from the list. 
    */
   void cleanUp();
 
@@ -244,46 +194,21 @@ interface nsIDownloadManager : nsISupports {
   readonly attribute long activeDownloadCount;
 
   /**
-   * An enumeration of active nsIDownloads
+   * An enumeration of active downloads.
    */
-  readonly attribute nsISimpleEnumerator activeDownloads;
+  readonly attribute nsISupportsArray activeDownloads;
 
-  /**
-   * Adds a listener from the download manager.
+  /** 
+   * Update the download datasource. 
    */
-  void addListener(in nsIDownloadProgressListener aListener);
+  void saveState();
 
-  /**
-   * Removes a listener from the download manager.
+  /** 
+   * Flush the download datasource to disk.
    */
-  void removeListener(in nsIDownloadProgressListener aListener);
+  void flush();
 
-  /**
-   * Returns the platform default downloads directory.
-   */
-  readonly attribute nsILocalFile defaultDownloadsDirectory;
-
-  /**
-   * Returns the user configured downloads directory. 
-   * The path is dependent on two user configurable prefs
-   * set in preferences:
-   *
-   * browser.download.folderList
-   *   Indicates the location users wish to save downloaded 
-   *   files too.  
-   *   Values: 
-   *     0 - The desktop is the default download location. 
-   *     1 - The system's downloads folder is the default download location. 
-   *     2 - The default download location is elsewhere as specified in  
-   *         browser.download.dir. If invalid, userDownloadsDirectory
-   *         will fallback on defaultDownloadsDirectory.
-   *
-   * browser.download.dir - 
-   *   A local path the user may have selected at some point 
-   *   where downloaded files are saved. The use of which is
-   *   enabled when folderList equals 2. 
-   */
-  readonly attribute nsILocalFile userDownloadsDirectory;
+  readonly attribute nsIRDFDataSource datasource;
 };
 
 

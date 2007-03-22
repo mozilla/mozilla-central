@@ -93,14 +93,14 @@ BackstagePass::GetInterfaces(PRUint32 *aCount, nsIID * **aArray)
 #endif
     *aCount = count;
     nsIID **array;
-    *aArray = array = static_cast<nsIID**>(nsMemory::Alloc(count * sizeof(nsIID*)));
+    *aArray = array = NS_STATIC_CAST(nsIID**, nsMemory::Alloc(count * sizeof(nsIID*)));
     if(!array)
         return NS_ERROR_OUT_OF_MEMORY;
 
     PRUint32 index = 0;
     nsIID* clone;
 #define PUSH_IID(id) \
-    clone = static_cast<nsIID *>(nsMemory::Clone(&NS_GET_IID( id ),   \
+    clone = NS_STATIC_CAST(nsIID *, nsMemory::Clone(&NS_GET_IID( id ), \
                                                     sizeof(nsIID)));  \
     if (!clone)                                                       \
         goto oom;                                                     \
@@ -201,8 +201,6 @@ nsJSRuntimeServiceImpl::~nsJSRuntimeServiceImpl() {
         fprintf(stderr, "nJRSI: destroyed runtime %p\n", (void *)mRuntime);
 #endif
     }
-
-    XPCPerThreadData::ShutDown();
 }
 
 NS_IMPL_THREADSAFE_ISUPPORTS2(nsJSRuntimeServiceImpl,
@@ -259,7 +257,7 @@ nsJSRuntimeServiceImpl::GetRuntime(JSRuntime **runtime)
         //
         // We rely on the implementation of NSPR that calls destructors at 
         // the same order of calling PR_NewThreadPrivateIndex.
-        XPCPerThreadData::GetData(nsnull);
+        XPCPerThreadData::GetData();
         
         mRuntime = JS_NewRuntime(gGCSize);
         if(!mRuntime)

@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -78,9 +77,6 @@ public:
 
   virtual void MarkIntrinsicWidthsDirty();
 
-  virtual nscoord
-  GetIntrinsicWidth(nsIRenderingContext *aRenderingContext);
-
   NS_IMETHOD
   AttributeChanged(PRInt32         aNameSpaceID,
                    nsIAtom*        aAttribute,
@@ -105,10 +101,9 @@ protected:
   float            mMinSize;
   float            mMaxSize;
 
-  PRBool UseMathMLChar();
-
   // overload the base method so that we can setup our nsMathMLChar
-  virtual void ProcessTextData();
+  virtual void
+  ProcessTextData(PRBool aComputeStyleChange);
 
   // helper to get our 'form' and lookup in the Operator Dictionary to fetch 
   // our default data that may come from there, and to complete the setup

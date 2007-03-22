@@ -48,12 +48,14 @@
 #include "nsServiceManagerUtils.h"
 #include "nsCOMPtr.h"
 #include "nsXPCOMCID.h"
+#ifndef MOZILLA_1_8_BRANCH
 #include "nsIClassInfoImpl.h"
+#endif
 
 NS_DECL_CLASSINFO(nsMetricsService)
 
 #define COLLECTOR_CONTRACTID(type) \
-  "@mozilla.org/extensions/metrics/collector;1?name=" type ":" NS_METRICS_NAMESPACE
+  "@mozilla.org/metrics/collector;1?name=" type ":" NS_METRICS_NAMESPACE
 
 static NS_METHOD
 nsMetricsServiceRegisterSelf(nsIComponentManager *compMgr,

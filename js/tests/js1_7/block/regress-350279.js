@@ -34,11 +34,9 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-350279.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 350279;
-var summary = 'Do not assert: left->pn_type == TOK_RC';
+var bug = 350279;
+var summary = 'Assertion failure: left->pn_type == TOK_RC';
 var actual = 'No Crash';
 var expect = 'No Crash';
 
@@ -50,10 +48,10 @@ test();
 function test()
 {
   enterFunc ('test');
-  printBugNumber(BUGNUMBER);
+  printBugNumber (bug);
   printStatus (summary);
 
-  expect = /SyntaxError: /;
+  expect = 'SyntaxError: invalid array comprehension left-hand side';
   try
   {
     eval('let [2 for (x in [])] = 4;');
@@ -63,7 +61,7 @@ function test()
     actual = ex + '';
   }
 
-  reportMatch(expect, actual, summary);
+  reportCompare(expect, actual, summary);
 
   exitFunc ('test');
 }

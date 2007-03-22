@@ -41,7 +41,7 @@
 #include "nsUnicharUtils.h"
 #include "nsIDOMHTMLAnchorElement.h"
 #include "nsIDOMNSHTMLAnchorElement2.h"
-#include "nsIDOMEventTarget.h"
+#include "nsIDOMEventReceiver.h"
 #include "nsIHTMLDocument.h"
 #include "nsGenericHTMLElement.h"
 #include "nsILink.h"
@@ -109,9 +109,8 @@ public:
   virtual void UnbindFromTree(PRBool aDeep = PR_TRUE,
                               PRBool aNullParent = PR_TRUE);
   virtual void SetFocus(nsPresContext* aPresContext);
-  virtual PRBool IsHTMLFocusable(PRBool *aIsFocusable, PRInt32 *aTabIndex);
+  virtual PRBool IsFocusable(PRBool *aTabIndex = nsnull);
 
-  virtual nsresult PreHandleEvent(nsEventChainPreVisitor& aVisitor);
   virtual nsresult PostHandleEvent(nsEventChainPostVisitor& aVisitor);
   virtual PRBool IsLink(nsIURI** aURI) const;
   virtual void GetLinkTarget(nsAString& aTarget);
@@ -154,13 +153,13 @@ NS_IMPL_RELEASE_INHERITED(nsHTMLAnchorElement, nsGenericElement)
 
 
 // QueryInterface implementation for nsHTMLAnchorElement
-NS_HTML_CONTENT_INTERFACE_TABLE_HEAD(nsHTMLAnchorElement, nsGenericHTMLElement)
-  NS_INTERFACE_TABLE_INHERITED4(nsHTMLAnchorElement,
-                                nsIDOMHTMLAnchorElement,
-                                nsIDOMNSHTMLAnchorElement,
-                                nsIDOMNSHTMLAnchorElement2,
-                                nsILink)
-NS_HTML_CONTENT_INTERFACE_TABLE_TAIL_CLASSINFO(HTMLAnchorElement)
+NS_HTML_CONTENT_INTERFACE_MAP_BEGIN(nsHTMLAnchorElement, nsGenericHTMLElement)
+  NS_INTERFACE_MAP_ENTRY(nsIDOMHTMLAnchorElement)
+  NS_INTERFACE_MAP_ENTRY(nsIDOMNSHTMLAnchorElement)
+  NS_INTERFACE_MAP_ENTRY(nsIDOMNSHTMLAnchorElement2)
+  NS_INTERFACE_MAP_ENTRY(nsILink)
+  NS_INTERFACE_MAP_ENTRY_CONTENT_CLASSINFO(HTMLAnchorElement)
+NS_HTML_CONTENT_INTERFACE_MAP_END
 
 
 NS_IMPL_ELEMENT_CLONE(nsHTMLAnchorElement)
@@ -250,20 +249,10 @@ nsHTMLAnchorElement::SetFocus(nsPresContext* aPresContext)
 }
 
 PRBool
-nsHTMLAnchorElement::IsHTMLFocusable(PRBool *aIsFocusable, PRInt32 *aTabIndex)
+nsHTMLAnchorElement::IsFocusable(PRInt32 *aTabIndex)
 {
-  if (nsGenericHTMLElement::IsHTMLFocusable(aIsFocusable, aTabIndex)) {
-    return PR_TRUE;
-  }
-
-  if (IsEditable()) {
-    if (aTabIndex) {
-      *aTabIndex = -1;
-    }
-
-    *aIsFocusable = PR_FALSE;
-
-    return PR_TRUE;
+  if (!nsGenericHTMLElement::IsFocusable(aTabIndex)) {
+    return PR_FALSE;
   }
 
   if (!HasAttr(kNameSpaceID_None, nsGkAtoms::tabindex)) {
@@ -275,9 +264,6 @@ nsHTMLAnchorElement::IsHTMLFocusable(PRBool *aIsFocusable, PRInt32 *aTabIndex)
       if (aTabIndex) {
         *aTabIndex = -1;
       }
-
-      *aIsFocusable = PR_FALSE;
-
       return PR_FALSE;
     }
   }
@@ -286,15 +272,7 @@ nsHTMLAnchorElement::IsHTMLFocusable(PRBool *aIsFocusable, PRInt32 *aTabIndex)
     *aTabIndex = -1;
   }
 
-  *aIsFocusable = PR_TRUE;
-
-  return PR_FALSE;
-}
-
-nsresult
-nsHTMLAnchorElement::PreHandleEvent(nsEventChainPreVisitor& aVisitor)
-{
-  return PreHandleEventForAnchors(aVisitor);
+  return PR_TRUE;
 }
 
 nsresult
@@ -312,10 +290,7 @@ nsHTMLAnchorElement::IsLink(nsIURI** aURI) const
 void
 nsHTMLAnchorElement::GetLinkTarget(nsAString& aTarget)
 {
-  GetAttr(kNameSpaceID_None, nsGkAtoms::target, aTarget);
-  if (aTarget.IsEmpty()) {
-    GetBaseTarget(aTarget);
-  }
+  GetTarget(aTarget);
 }
 
 NS_IMETHODIMP

@@ -44,11 +44,7 @@ include $(DEPTH)/config/autoconf.mk
 MODULE        = extensions
 XPIDL_MODULE  = extensions
 
-XPIDLSRCS = \
-  nsIExtensionManager.idl \
-  nsIBlocklistService.idl \
-  nsIAddonRepository.idl \
-  $(NULL)
+XPIDLSRCS = nsIExtensionManager.idl
 
 include $(topsrcdir)/config/rules.mk
 

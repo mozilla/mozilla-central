@@ -113,18 +113,13 @@ void AppLauncherDlg::OnInitDialog()
         mHelperAppLauncher->GetSource(getter_AddRefs(uri));
         uri->GetSpec(url);
     }
-    nsHandlerInfoAction prefAction = nsIMIMEInfo::saveToDisk;
+    nsMIMEInfoHandleAction prefAction = nsIMIMEInfo::saveToDisk;
     nsAutoString appName;
     nsCAutoString contentType;
     if (mimeInfo)
     {
         mimeInfo->GetPreferredAction(&prefAction);
-        nsCOMPtr<nsIHandlerApp> handlerApp;
-        mimeInfo->GetPreferredApplicationHandler(getter_AddRefs(handlerApp));
-        if (handlerApp)
-        {
-            handlerApp->GetName(appName);
-        }
+        mimeInfo->GetApplicationDescription(appName);
         mimeInfo->GetMIMEType(contentType);
     }
     if (prefAction == nsIMIMEInfo::saveToDisk)
@@ -474,7 +469,6 @@ CHelperAppLauncherDlg::PromptForSaveToFile(nsIHelperAppLauncher *aLauncher,
                                            nsISupports *aWindowContext, 
                                            const PRUnichar *aDefaultFile, 
                                            const PRUnichar *aSuggestedFileExtension, 
-                                           PRBool aForcePrompt, 
                                            nsILocalFile **_retval)
 {
     NS_ENSURE_ARG_POINTER(_retval);

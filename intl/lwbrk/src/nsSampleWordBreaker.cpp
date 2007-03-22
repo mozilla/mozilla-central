@@ -91,9 +91,7 @@ PRUint8 nsSampleWordBreaker::GetClass(PRUnichar c)
 		  }
 	  } else if(IS_THAI(c))	{
 		  return kWbClassThaiLetter;
-	  } else if (c == 0x00A0/*NBSP*/) {
-      return kWbClassSpace;
-    } else {
+	  } else {
 		  return kWbClassAlphaLetter;
 	  }
   }  else {
@@ -163,8 +161,6 @@ PRInt32 nsSampleWordBreaker::NextWord(
 {
   PRInt8 c1, c2;
   PRUint32 cur = aPos;
-  if (cur == aLen)
-    return NS_WORDBREAKER_NEED_MORE_TEXT;
   c1 = this->GetClass(aText[cur]);
  
   for(cur++; cur <aLen; cur++)
@@ -188,11 +184,6 @@ PRInt32 nsSampleWordBreaker::PrevWord(
 {
   PRInt8 c1, c2;
   PRUint32 cur = aPos;
-  if (cur == aLen) {
-    if (cur == 0)
-      return NS_WORDBREAKER_NEED_MORE_TEXT;
-    --cur;
-  }
   c1 = this->GetClass(aText[cur]);
 
   for(; cur > 0; cur--)

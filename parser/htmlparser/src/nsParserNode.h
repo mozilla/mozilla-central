@@ -239,14 +239,11 @@ class nsCParserNode :  public nsIParserNode {
      */
     virtual CToken* PopAttributeToken();
 
-    /** Like PopAttributeToken, but pops off the front of the attribute list */
-    virtual CToken* PopAttributeTokenFront();
-
     /** Retrieve a string containing the tag and its attributes in "source" form
      * @update	rickg 06June2000
      * @return  void
      */
-    virtual void GetSource(nsString& aString) const;
+    virtual void GetSource(nsString& aString);
 
     /**
      * This pair of methods allows us to set a generic bit (for arbitrary use)
@@ -304,7 +301,7 @@ public:
       NS_ASSERTION(mTokenAllocator || mAttributes.GetSize() == 0,
                    "Error: no token allocator");
       CToken* theAttrToken = 0;
-      while ((theAttrToken = static_cast<CToken*>(mAttributes.Pop()))) {
+      while ((theAttrToken = NS_STATIC_CAST(CToken*, mAttributes.Pop()))) {
         IF_FREE(theAttrToken, mTokenAllocator);
       }
     }
@@ -317,8 +314,7 @@ public:
     virtual const    nsAString& GetKeyAt(PRUint32 anIndex) const;
     virtual const    nsAString& GetValueAt(PRUint32 anIndex) const;
     virtual CToken*  PopAttributeToken();
-    virtual CToken*  PopAttributeTokenFront();
-    virtual void     GetSource(nsString& aString) const;
+    virtual void     GetSource(nsString& aString);
     virtual nsresult ReleaseAll();
 protected:
     nsDeque  mAttributes;

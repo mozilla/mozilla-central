@@ -47,6 +47,7 @@
 #include "nsPresContext.h"
 #include "nsIContent.h"
 #include "nsCOMPtr.h"
+#include "nsUnitConversion.h"
 #include "nsINameSpaceManager.h"
 #include "nsGkAtoms.h"
 #include "nsHTMLParts.h"
@@ -79,12 +80,6 @@ nsDeckFrame::nsDeckFrame(nsIPresShell* aPresShell,
   SetLayoutManager(layout);
 }
 
-nsIAtom*
-nsDeckFrame::GetType() const
-{
-  return nsGkAtoms::deckFrame;
-}
-
 NS_IMETHODIMP
 nsDeckFrame::AttributeChanged(PRInt32         aNameSpaceID,
                               nsIAtom*        aAttribute,
@@ -96,7 +91,7 @@ nsDeckFrame::AttributeChanged(PRInt32         aNameSpaceID,
 
    // if the index changed hide the old element and make the new element visible
   if (aAttribute == nsGkAtoms::selectedIndex) {
-    IndexChanged(PresContext());
+    IndexChanged(GetPresContext());
   }
 
   return rv;
@@ -186,7 +181,7 @@ nsDeckFrame::GetSelectedIndex()
 nsIBox* 
 nsDeckFrame::GetSelectedBox()
 {
-  return (mIndex >= 0) ? mFrames.FrameAt(mIndex) : nsnull; 
+  return (mIndex >= 0) ? GetBoxAt(mIndex) : nsnull; 
 }
 
 NS_IMETHODIMP

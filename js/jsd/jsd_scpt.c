@@ -166,7 +166,8 @@ _destroyJSDScript(JSDContext*  jsdc,
     if (jsdscript->profileData)
         free(jsdscript->profileData);
     
-    free(jsdscript);
+    if(jsdscript)
+        free(jsdscript);
 }
 
 /***************************************************************************/
@@ -761,16 +762,13 @@ jsd_SetExecutionHook(JSDContext*           jsdc,
     {
         jsdhook->hook       = hook;
         jsdhook->callerdata = callerdata;
-        JSD_UNLOCK();
         return JS_TRUE;
     }
     /* else... */
 
     jsdhook = (JSDExecHook*)calloc(1, sizeof(JSDExecHook));
-    if( ! jsdhook ) {
-        JSD_UNLOCK();
+    if( ! jsdhook )
         return JS_FALSE;
-    }
     jsdhook->jsdscript  = jsdscript;
     jsdhook->pc         = pc;
     jsdhook->hook       = hook;
@@ -781,7 +779,6 @@ jsd_SetExecutionHook(JSDContext*           jsdc,
                      (void*) PRIVATE_TO_JSVAL(jsdhook)) )
     {
         free(jsdhook);
-        JSD_UNLOCK();
         return JS_FALSE;
     }
 

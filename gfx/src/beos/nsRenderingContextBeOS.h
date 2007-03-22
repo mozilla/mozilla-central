@@ -40,6 +40,7 @@
 #define nsRenderingContextBeOS_h___
 
 #include "nsRenderingContextImpl.h"
+#include "nsUnitConversion.h"
 #include "nsFont.h"
 #include "nsIFontMetrics.h"
 #include "nsPoint.h"
@@ -192,6 +193,12 @@ public:
                                 nsBoundingMetrics& aBoundingMetrics,
                                 PRInt32*           aFontID = nsnull);
 #endif /* MOZ_MATHML */
+
+#ifdef NOBBCACHE
+	NS_IMETHOD GetBackbuffer(const nsRect &aRequestedSize, const nsRect &aMaxSize,
+                           PRBool aForBlending, nsIDrawingSurface* &aBackbuffer);
+	NS_IMETHOD ReleaseBackbuffer(void);
+#endif
 
   //LockAndUpdateView() - method, similar to UpdateGC (from gtk gfx).
   //Acquires "fresh" drawable mView (BView) from drawing surface, locks it (BeOS specifics),

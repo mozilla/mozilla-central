@@ -52,6 +52,7 @@
 #include "nsIDOMRange.h"
 #include "nsIDocShellTreeItem.h"
 #include "nsITypeAheadFind.h"
+#include "nsISupportsArray.h"
 #include "nsISound.h"
 
 #define TYPEAHEADFIND_NOTFOUND_WAV_URL \

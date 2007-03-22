@@ -39,18 +39,14 @@
    - ***** END LICENSE BLOCK ***** -->
 
 <!ENTITY nodeName.label "Nodnamn:">
-<!ENTITY localName.label "Lokalt namn:">
 <!ENTITY namespaceURI.label "Namnrymdens URI:">
 <!ENTITY nodeType.label "Nodtyp:">
-<!ENTITY nodeValue.label "Nodvärde:">
+<!ENTITY nodeValue.label "Nodevärde:">
 
-<!ENTITY namespaceTitle.null.label "null">
+<!ENTITY namespaceTitle.null.label "noll">
 <!ENTITY namespaceTitle.default.label "Dokumentstandard">
-<!ENTITY namespaceTitle.custom.label "Anpassad">
 
-<!-- LOCALIZATION NOTE: The following entities are names of W3C specifications.
-                        Please consult http://www.w3.org/Consortium/Translation/
-                        for appropriate translation or leave unchanged. -->
+<!-- LOCALIZATION NOTE: DO NOT LOCALIZE These are generic Namespaces -->
 <!ENTITY namespaceTitle.XMLNS.label "XMLNS">
 <!ENTITY namespaceTitle.XML.label "XML">
 <!ENTITY namespaceTitle.XHTML.label "XHTML">
@@ -64,3 +60,4 @@
 <!ENTITY namespaceTitle.XMLEvents.label "XML Events">
 <!ENTITY namespaceTitle.WAIRoles.label "WAI Roles">
 <!ENTITY namespaceTitle.WAIProperties.label "WAI Properties">
+<!ENTITY namespaceTitle.custom.label "Custom">

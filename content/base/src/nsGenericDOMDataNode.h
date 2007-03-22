@@ -44,7 +44,7 @@
 #define nsGenericDOMDataNode_h___
 
 #include "nsIDOMCharacterData.h"
-#include "nsIDOMEventTarget.h"
+#include "nsIDOMEventReceiver.h"
 #include "nsTextFragment.h"
 #include "nsVoidArray.h"
 #include "nsDOMError.h"
@@ -180,13 +180,8 @@ public:
   virtual nsresult DispatchDOMEvent(nsEvent* aEvent, nsIDOMEvent* aDOMEvent,
                                     nsPresContext* aPresContext,
                                     nsEventStatus* aEventStatus);
-  virtual nsresult GetListenerManager(PRBool aCreateIfNotFound,
-                                      nsIEventListenerManager** aResult);
-  virtual nsresult AddEventListenerByIID(nsIDOMEventListener *aListener,
-                                         const nsIID& aIID);
-  virtual nsresult RemoveEventListenerByIID(nsIDOMEventListener *aListener,
-                                            const nsIID& aIID);
-  virtual nsresult GetSystemEventGroup(nsIDOMEventGroup** aGroup);
+  NS_IMETHOD GetListenerManager(PRBool aCreateIfNotFound,
+                                nsIEventListenerManager** aResult);
 
   // Implementation for nsIContent
   virtual nsresult BindToTree(nsIDocument* aDocument, nsIContent* aParent,
@@ -225,8 +220,6 @@ public:
                               PRBool aNotify);
   virtual PRBool TextIsOnlyWhitespace();
   virtual void AppendTextTo(nsAString& aResult);
-  virtual void DestroyContent();
-  virtual void SaveSubtreeState();
 #ifdef DEBUG
   virtual void List(FILE* out, PRInt32 aIndent) const;
   virtual void DumpContent(FILE* out, PRInt32 aIndent, PRBool aDumpAll) const;
@@ -300,12 +293,12 @@ protected:
 
   nsDataSlots *GetDataSlots()
   {
-    return static_cast<nsDataSlots*>(GetSlots());
+    return NS_STATIC_CAST(nsDataSlots*, GetSlots());
   }
 
   nsDataSlots *GetExistingDataSlots() const
   {
-    return static_cast<nsDataSlots*>(GetExistingSlots());
+    return NS_STATIC_CAST(nsDataSlots*, GetExistingSlots());
   }
 
   nsresult SplitText(PRUint32 aOffset, nsIDOMText** aReturn);

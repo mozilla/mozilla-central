@@ -40,7 +40,6 @@
 /* Implement shared vtbl methods. */
 
 #include "xptcprivate.h"
-#include "xptiprivate.h" 
 
 #if _HPUX
 #error "This code is for HP-PA RISC 32 bit mode only"
@@ -60,6 +59,7 @@ PrepareAndDispatch(nsXPTCStubBase* self, PRUint32 methodIndex,
 
   nsXPTCMiniVariant paramBuffer[PARAM_BUFFER_COUNT];
   nsXPTCMiniVariant* dispatchParams = NULL;
+  nsIInterfaceInfo* iface_info = NULL;
   const nsXPTMethodInfo* info;
   PRInt32 regwords = 1; /* self pointer is not in the variant records */
   nsresult result = NS_ERROR_FAILURE;
@@ -68,10 +68,11 @@ PrepareAndDispatch(nsXPTCStubBase* self, PRUint32 methodIndex,
 
   NS_ASSERTION(self,"no self");
 
-  self->mEntry->GetMethodInfo(PRUint16(methodIndex), &info);
-  NS_ASSERTION(info,"no method info");
-  if (!info)
-    return NS_ERROR_UNEXPECTED;
+  self->GetInterfaceInfo(&iface_info);
+  NS_ASSERTION(iface_info,"no interface info");
+
+  iface_info->GetMethodInfo(PRUint16(methodIndex), &info);
+  NS_ASSERTION(info,"no interface info");
 
   paramCount = info->GetParamCount();
 
@@ -81,8 +82,6 @@ PrepareAndDispatch(nsXPTCStubBase* self, PRUint32 methodIndex,
   else
     dispatchParams = paramBuffer;
   NS_ASSERTION(dispatchParams,"no place for params");
-  if (!dispatchParams)
-    return NS_ERROR_OUT_OF_MEMORY;
 
   for(i = 0; i < paramCount; ++i, --args)
   {
@@ -148,7 +147,9 @@ PrepareAndDispatch(nsXPTCStubBase* self, PRUint32 methodIndex,
     ++regwords;
   }
 
-  result = self->mOuter->CallMethod((PRUint16) methodIndex, info, dispatchParams); 
+  result = self->CallMethod((PRUint16) methodIndex, info, dispatchParams);
+
+  NS_RELEASE(iface_info);
 
   if(dispatchParams != paramBuffer)
     delete [] dispatchParams;

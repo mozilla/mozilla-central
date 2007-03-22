@@ -50,8 +50,8 @@ class nsSessionStorageEntry;
 class nsDOMStorageDB
 {
 public:
-  nsDOMStorageDB() {}
-  ~nsDOMStorageDB() {}
+  nsDOMStorageDB() {};
+  ~nsDOMStorageDB() {};
 
   nsresult
   Init();
@@ -85,8 +85,7 @@ public:
          const nsAString& aValue,
          PRBool aSecure,
          const nsAString& aOwner,
-         PRInt32 aQuota,
-         PRInt32* aNewUsage);
+         PRInt32 aQuota);
 
   /**
    * Set the secure flag for a key in storage. Does nothing if the key was
@@ -107,27 +106,14 @@ public:
             PRInt32 aKeyUsage);
 
   /**
-   * Removes all keys added by a given domain.
-   */
-  nsresult
-  RemoveOwner(const nsAString& aOwner);
-
-  /**
-   * Removes keys owned by domains that either match or don't match the
-   * list.
-   */
-  nsresult
-  RemoveOwners(const nsStringArray& aOwners, PRBool aMatch);
-
-  /**
    * Removes all keys from storage. Used when clearing storage.
    */
   nsresult
   RemoveAll();
 
-  nsresult GetUsage(const nsAString &aOwner, PRInt32 *aUsage);
-
 protected:
+
+  nsresult GetUsage(const nsAString &aOwner, PRInt32 *aUsage);
 
   nsCOMPtr<mozIStorageConnection> mConnection;
 
@@ -137,7 +123,6 @@ protected:
   nsCOMPtr<mozIStorageStatement> mUpdateKeyStatement;
   nsCOMPtr<mozIStorageStatement> mSetSecureStatement;
   nsCOMPtr<mozIStorageStatement> mRemoveKeyStatement;
-  nsCOMPtr<mozIStorageStatement> mRemoveOwnerStatement;
   nsCOMPtr<mozIStorageStatement> mRemoveAllStatement;
   nsCOMPtr<mozIStorageStatement> mGetUsageStatement;
 

@@ -68,7 +68,7 @@ interface nsILayoutHistoryState;
 interface nsISecureBrowserUI;
 interface nsIDOMStorage;
 
-[scriptable, uuid(7d1cf6b9-daa3-476d-8f9f-9eb2a971a95c)]
+[scriptable, uuid(fbe2a673-4b8b-46a2-b225-398c52cc05cb)]
 interface nsIDocShell : nsISupports
 {
   /**
@@ -125,8 +125,6 @@ interface nsIDocShell : nsISupports
   // This flag marks the first load in this object
   // @see nsIWebNavigation::LOAD_FLAGS_FIRST_LOAD
   const long INTERNAL_LOAD_FLAGS_FIRST_LOAD              = 0x8;
-
-  const long INTERNAL_LOAD_FLAGS_BYPASS_CLASSIFIER       = 0x10;
 
   /**
    * Loads the given URI.  This method is identical to loadURI(...) except
@@ -186,9 +184,6 @@ interface nsIDocShell : nsISupports
    * Notify the associated content viewer and all child docshells that they are
    * about to be hidden.  If |isUnload| is true, then the document is being
    * unloaded as well.
-   *
-   * @param isUnload if true, fire the unload event in addition to the pagehide
-   *                 event.
    */
   [noscript] void firePageHideNotification(in boolean isUnload);
 
@@ -438,30 +433,5 @@ interface nsIDocShell : nsISupports
    * until after OnLocationChange fires.
    */
   readonly attribute nsIChannel currentDocumentChannel;
-
-  /**
-   * Set the offset of this child in its container.
-   */
-  [noscript] void setChildOffset(in unsigned long offset);
-
-  /**
-   * Find out whether the docshell is currently in the middle of a page
-   * transition (after the onunload event has fired, but before the new
-   * document has been set up)
-   */
-  readonly attribute boolean isInUnload;
-
-  /**
-   * Find out if the currently loaded document came from a suspicious channel
-   * (such as a JAR channel where the server-returned content type isn't a
-   * known JAR type).
-   */
-  readonly attribute boolean channelIsUnsafe;
-
-  /**
-   * Disconnects this docshell's editor from its window, and stores the
-   * editor data in the open document's session history entry.
-   */
-  [noscript, notxpcom] void DetachEditorFromWindow();
 };
 

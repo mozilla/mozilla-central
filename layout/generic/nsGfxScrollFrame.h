@@ -51,7 +51,6 @@
 #include "nsIScrollableView.h"
 #include "nsIView.h"
 #include "nsIReflowCallback.h"
-#include "nsBoxLayoutState.h"
 
 class nsPresContext;
 class nsIPresShell;
@@ -97,7 +96,6 @@ public:
 
   // nsIReflowCallback
   virtual PRBool ReflowFinished();
-  virtual void ReflowCallbackCanceled();
 
   // nsIScrollPositionListener
 
@@ -231,7 +229,6 @@ public:
   PRPackedBool mHorizontalOverflow:1;
   PRPackedBool mVerticalOverflow:1;
   PRPackedBool mPostedReflowCallback:1;
-  PRPackedBool mMayHaveDirtyFixedChildren:1;
 };
 
 /**
@@ -264,11 +261,10 @@ public:
   }
 
   PRBool TryLayout(ScrollReflowState* aState,
-                   nsHTMLReflowMetrics* aKidMetrics,
+                   const nsHTMLReflowMetrics& aKidMetrics,
                    PRBool aAssumeVScroll, PRBool aAssumeHScroll,
-                   PRBool aForce, nsresult* aResult);
-  PRBool ScrolledContentDependsOnHeight(ScrollReflowState* aState);
-  nsresult ReflowScrolledFrame(ScrollReflowState* aState,
+                   PRBool aForce);
+  nsresult ReflowScrolledFrame(const ScrollReflowState& aState,
                                PRBool aAssumeHScroll,
                                PRBool aAssumeVScroll,
                                nsHTMLReflowMetrics* aMetrics,
@@ -276,7 +272,6 @@ public:
   nsresult ReflowContents(ScrollReflowState* aState,
                           const nsHTMLReflowMetrics& aDesiredSize);
   void PlaceScrollArea(const ScrollReflowState& aState);
-  nscoord GetIntrinsicVScrollbarWidth(nsIRenderingContext *aRenderingContext);
 
   virtual nscoord GetMinWidth(nsIRenderingContext *aRenderingContext);
   virtual nscoord GetPrefWidth(nsIRenderingContext *aRenderingContext);
@@ -365,11 +360,6 @@ public:
     return mInner.GetActualScrollbarSizes();
   }
   virtual nsMargin GetDesiredScrollbarSizes(nsBoxLayoutState* aState);
-  virtual nsMargin GetDesiredScrollbarSizes(nsPresContext* aPresContext,
-          nsIRenderingContext* aRC) {
-    nsBoxLayoutState bls(aPresContext, aRC, 0);
-    return GetDesiredScrollbarSizes(&bls);
-  }
   virtual nsGfxScrollFrameInner::ScrollbarStyles GetScrollbarStyles() const;
 
   /**
@@ -382,6 +372,8 @@ public:
 #ifdef NS_DEBUG
   NS_IMETHOD GetFrameName(nsAString& aResult) const;
 #endif
+
+  virtual nsresult GetContentOf(nsIContent** aContent);
 
   PRBool DidHistoryRestore() { return mInner.mDidHistoryRestore; }
 
@@ -396,7 +388,6 @@ protected:
   void SetSuppressScrollbarUpdate(PRBool aSuppress) {
     mInner.mSupppressScrollbarUpdate = aSuppress;
   }
-  PRBool GuessHScrollbarNeeded(const ScrollReflowState& aState);
   PRBool GuessVScrollbarNeeded(const ScrollReflowState& aState);
   nsSize GetScrollPortSize() const
   {
@@ -406,18 +397,7 @@ protected:
   PRBool IsScrollbarUpdateSuppressed() const {
     return mInner.mSupppressScrollbarUpdate;
   }
-
-  // Return whether we're in an "initial" reflow.  Some reflows with
-  // NS_FRAME_FIRST_REFLOW set are NOT "initial" as far as we're concerned.
-  PRBool InInitialReflow() const;
   
-  /**
-   * Override this to return false if computed height/min-height/max-height
-   * should NOT be propagated to child content.
-   * nsListControlFrame uses this.
-   */
-  virtual PRBool ShouldPropagateComputedHeightToScrolledContent() const { return PR_TRUE; }
-
 private:
   friend class nsGfxScrollFrameInner;
   nsGfxScrollFrameInner mInner;
@@ -567,11 +547,6 @@ public:
     return mInner.GetActualScrollbarSizes();
   }
   virtual nsMargin GetDesiredScrollbarSizes(nsBoxLayoutState* aState);
-  virtual nsMargin GetDesiredScrollbarSizes(nsPresContext* aPresContext,
-          nsIRenderingContext* aRC) {
-    nsBoxLayoutState bls(aPresContext, aRC, 0);
-    return GetDesiredScrollbarSizes(&bls);
-  }
   virtual nsGfxScrollFrameInner::ScrollbarStyles GetScrollbarStyles() const;
 
   /**
@@ -592,6 +567,8 @@ public:
 #ifdef NS_DEBUG
   NS_IMETHOD GetFrameName(nsAString& aResult) const;
 #endif
+
+  virtual nsresult GetContentOf(nsIContent** aContent);
 
 protected:
   nsXULScrollFrame(nsIPresShell* aShell, nsStyleContext* aContext, PRBool aIsRoot);

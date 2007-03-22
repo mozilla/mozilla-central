@@ -235,7 +235,7 @@ nsContextMenuInfo::GetImageRequest(nsIDOMNode *aDOMNode, imgIRequest **aRequest)
 PRBool
 nsContextMenuInfo::HasBackgroundImage(nsIDOMNode * aDOMNode)
 {
-  NS_ENSURE_TRUE(aDOMNode, PR_FALSE);
+  NS_ENSURE_ARG(aDOMNode);
 
   nsCOMPtr<imgIRequest> request;
   GetBackgroundImageRequest(aDOMNode, getter_AddRefs(request));

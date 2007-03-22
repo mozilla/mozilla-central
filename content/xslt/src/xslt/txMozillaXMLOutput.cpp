@@ -132,6 +132,10 @@ txMozillaXMLOutput::txMozillaXMLOutput(txOutputFormat* aFormat,
     }
 }
 
+txMozillaXMLOutput::~txMozillaXMLOutput()
+{
+}
+
 nsresult
 txMozillaXMLOutput::attribute(nsIAtom* aPrefix,
                               nsIAtom* aLocalName,
@@ -311,9 +315,9 @@ txMozillaXMLOutput::endElement()
     NS_ENSURE_TRUE(mCurrentNode->IsNodeOfType(nsINode::eELEMENT),
                    NS_ERROR_UNEXPECTED);
 
-    nsIContent* element = static_cast<nsIContent*>
-                                     (static_cast<nsINode*>
-                                                 (mCurrentNode));
+    nsIContent* element = NS_STATIC_CAST(nsIContent*,
+                                         NS_STATIC_CAST(nsINode*,
+                                                        mCurrentNode));
 
     // Handle html-elements
     if (!mNoFixup) {
@@ -345,12 +349,14 @@ txMozillaXMLOutput::endElement()
             do_QueryInterface(mCurrentNode);
         if (ssle) {
             ssle->SetEnableUpdates(PR_TRUE);
-            PRBool willNotify;
-            PRBool isAlternate;
-            nsresult rv = ssle->UpdateStyleSheet(mNotifier, &willNotify,
-                                                 &isAlternate);
-            if (mNotifier && NS_SUCCEEDED(rv) && willNotify && !isAlternate) {
-                mNotifier->AddPendingStylesheet();
+            if (ssle->UpdateStyleSheet(nsnull, mNotifier) ==
+                NS_ERROR_HTMLPARSER_BLOCK) {
+                nsCOMPtr<nsIStyleSheet> stylesheet;
+                ssle->GetStyleSheet(*getter_AddRefs(stylesheet));
+                if (mNotifier) {
+                    rv = mNotifier->AddStyleSheet(stylesheet);
+                    NS_ENSURE_SUCCESS(rv, rv);
+                }
             }
         }
     }
@@ -382,7 +388,7 @@ txMozillaXMLOutput::endElement()
     mCurrentNode = parent;
 
     mTableState =
-        static_cast<TableState>(NS_PTR_TO_INT32(mTableStateStack.pop()));
+        NS_STATIC_CAST(TableState, NS_PTR_TO_INT32(mTableStateStack.pop()));
 
     return NS_OK;
 }
@@ -415,7 +421,7 @@ txMozillaXMLOutput::processingInstruction(const nsString& aTarget, const nsStrin
     if (mCreatingNewDocument) {
         ssle = do_QueryInterface(pi);
         if (ssle) {
-            ssle->InitStyleLinkElement(PR_FALSE);
+            ssle->InitStyleLinkElement(nsnull, PR_FALSE);
             ssle->SetEnableUpdates(PR_FALSE);
         }
     }
@@ -425,11 +431,14 @@ txMozillaXMLOutput::processingInstruction(const nsString& aTarget, const nsStrin
 
     if (ssle) {
         ssle->SetEnableUpdates(PR_TRUE);
-        PRBool willNotify;
-        PRBool isAlternate;
-        rv = ssle->UpdateStyleSheet(mNotifier, &willNotify, &isAlternate);
-        if (mNotifier && NS_SUCCEEDED(rv) && willNotify && !isAlternate) {
-            mNotifier->AddPendingStylesheet();
+        rv = ssle->UpdateStyleSheet(nsnull, mNotifier);
+        if (rv == NS_ERROR_HTMLPARSER_BLOCK) {
+            nsCOMPtr<nsIStyleSheet> stylesheet;
+            ssle->GetStyleSheet(*getter_AddRefs(stylesheet));
+            if (mNotifier) {
+                rv = mNotifier->AddStyleSheet(stylesheet);
+                NS_ENSURE_SUCCESS(rv, rv);
+            }
         }
     }
 
@@ -549,7 +558,7 @@ txMozillaXMLOutput::startElementInternal(nsIAtom* aPrefix,
                                        getter_AddRefs(ni));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    NS_NewElement(getter_AddRefs(mOpenedElement), aElemType, ni, PR_FALSE);
+    NS_NewElement(getter_AddRefs(mOpenedElement), aElemType, ni);
 
     // Set up the element and adjust state
     if (!mNoFixup) {
@@ -571,7 +580,7 @@ txMozillaXMLOutput::startElementInternal(nsIAtom* aPrefix,
         nsCOMPtr<nsIStyleSheetLinkingElement> ssle =
             do_QueryInterface(mOpenedElement);
         if (ssle) {
-            ssle->InitStyleLinkElement(PR_FALSE);
+            ssle->InitStyleLinkElement(nsnull, PR_FALSE);
             ssle->SetEnableUpdates(PR_FALSE);
         }
     }
@@ -775,8 +784,8 @@ txMozillaXMLOutput::endHTMLElement(nsIContent* aElement)
 
         mCurrentNode = mCurrentNodeStack.SafeObjectAt(last);
         mCurrentNodeStack.RemoveObjectAt(last);
-        mTableState = static_cast<TableState>
-                                 (NS_PTR_TO_INT32(mTableStateStack.pop()));
+        mTableState = NS_STATIC_CAST(TableState,
+                                     NS_PTR_TO_INT32(mTableStateStack.pop()));
 
         return NS_OK;
     }
@@ -879,8 +888,8 @@ txMozillaXMLOutput::createResultDocument(const nsSubstring& aName, PRInt32 aNsID
 
         if (calias &&
             NS_SUCCEEDED(calias->GetPreferred(charset, canonicalCharset))) {
-            mDocument->SetDocumentCharacterSetSource(kCharsetFromOtherComponent);
             mDocument->SetDocumentCharacterSet(canonicalCharset);
+            mDocument->SetDocumentCharacterSetSource(kCharsetFromOtherComponent);
         }
     }
 
@@ -916,13 +925,15 @@ txMozillaXMLOutput::createResultDocument(const nsSubstring& aName, PRInt32 aNsID
     }
 
     // Set up script loader of the result document.
-    nsScriptLoader *loader = mDocument->ScriptLoader();
-    if (mNotifier) {
-        loader->AddObserver(mNotifier);
-    }
-    else {
-        // Don't load scripts, we can't notify the caller when they're loaded.
-        loader->SetEnabled(PR_FALSE);
+    nsScriptLoader *loader = mDocument->GetScriptLoader();
+    if (loader) {
+        if (mNotifier) {
+            loader->AddObserver(mNotifier);
+        }
+        else {
+            // Don't load scripts, we can't notify the caller when they're loaded.
+            loader->SetEnabled(PR_FALSE);
+        }
     }
 
     if (mNotifier) {
@@ -988,12 +999,16 @@ txMozillaXMLOutput::createHTMLElement(nsIAtom* aName,
                                                 getter_AddRefs(ni));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    return NS_NewHTMLElement(aResult, ni, PR_FALSE);
+    return NS_NewHTMLElement(aResult, ni);
 }
 
 txTransformNotifier::txTransformNotifier()
-    : mPendingStylesheetCount(0),
-      mInTransform(PR_FALSE)      
+    : mInTransform(PR_FALSE)
+      
+{
+}
+
+txTransformNotifier::~txTransformNotifier()
 {
 }
 
@@ -1033,19 +1048,15 @@ txTransformNotifier::StyleSheetLoaded(nsICSSStyleSheet* aSheet,
                                       PRBool aWasAlternate,
                                       nsresult aStatus)
 {
-    if (mPendingStylesheetCount == 0) {
-        // We weren't waiting on this stylesheet anyway.  This can happen if
-        // SignalTransformEnd got called with an error aResult.  See
-        // http://bugzilla.mozilla.org/show_bug.cgi?id=215465.
-        return NS_OK;
-    }
-
-    // We're never waiting for alternate stylesheets
-    if (!aWasAlternate) {
-        --mPendingStylesheetCount;
+    // Check that the stylesheet was in the mStylesheets array, if not it is an
+    // alternate and we don't want to call SignalTransformEnd since we don't
+    // wait on alternates before calling OnTransformDone and so the load of the
+    // alternate could finish after we called OnTransformDone already.
+    // See http://bugzilla.mozilla.org/show_bug.cgi?id=215465.
+    if (mStylesheets.RemoveObject(aSheet)) {
         SignalTransformEnd();
     }
-    
+
     return NS_OK;
 }
 
@@ -1062,10 +1073,11 @@ txTransformNotifier::AddScriptElement(nsIScriptElement* aElement)
                                                     NS_ERROR_OUT_OF_MEMORY;
 }
 
-void
-txTransformNotifier::AddPendingStylesheet()
+nsresult
+txTransformNotifier::AddStyleSheet(nsIStyleSheet* aStyleSheet)
 {
-    ++mPendingStylesheetCount;
+    return mStylesheets.AppendObject(aStyleSheet) ? NS_OK :
+                                                    NS_ERROR_OUT_OF_MEMORY;
 }
 
 void
@@ -1094,14 +1106,11 @@ void
 txTransformNotifier::SignalTransformEnd(nsresult aResult)
 {
     if (mInTransform || (NS_SUCCEEDED(aResult) &&
-        mScriptElements.Count() > 0 || mPendingStylesheetCount > 0)) {
+        mScriptElements.Count() > 0 || mStylesheets.Count() > 0)) {
         return;
     }
 
-    // mPendingStylesheetCount is nonzero at this point only if aResult is an
-    // error.  Set it to 0 so we won't reenter this code when we stop the
-    // CSSLoader.
-    mPendingStylesheetCount = 0;
+    mStylesheets.Clear();
     mScriptElements.Clear();
 
     // Make sure that we don't get deleted while this function is executed and
@@ -1110,8 +1119,11 @@ txTransformNotifier::SignalTransformEnd(nsresult aResult)
 
     nsCOMPtr<nsIDocument> doc = do_QueryInterface(mDocument);
     if (doc) {
-        doc->ScriptLoader()->RemoveObserver(this);
-        // XXX Maybe we want to cancel script loads if NS_FAILED(rv)?
+        nsScriptLoader *scriptLoader = doc->GetScriptLoader();
+        if (scriptLoader) {
+            scriptLoader->RemoveObserver(this);
+            // XXX Maybe we want to cancel script loads if NS_FAILED(rv)?
+        }
 
         if (NS_FAILED(aResult)) {
             doc->CSSLoader()->Stop();

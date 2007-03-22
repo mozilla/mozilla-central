@@ -43,17 +43,16 @@
 
 nsTArray_base::Header nsTArray_base::sEmptyHdr = { 0, 0, 0 };
 
+#ifdef NS_BUILD_REFCNT_LOGGING
 nsTArray_base::nsTArray_base()
   : mHdr(&sEmptyHdr) {
   MOZ_COUNT_CTOR(nsTArray_base);
 }
 
 nsTArray_base::~nsTArray_base() {
-  if (mHdr != &sEmptyHdr && !UsesAutoArrayBuffer()) {
-    NS_Free(mHdr);
-  }
   MOZ_COUNT_DTOR(nsTArray_base);
 }
+#endif // NS_BUILD_REFCNT_LOGGING
 
 PRBool
 nsTArray_base::EnsureCapacity(size_type capacity, size_type elemSize) {
@@ -65,15 +64,15 @@ nsTArray_base::EnsureCapacity(size_type capacity, size_type elemSize) {
   // doubling algorithm may not be able to allocate it.  Additionally we
   // couldn't fit in the Header::mCapacity member. Just bail out in cases
   // like that.  We don't want to be allocating 2 GB+ arrays anyway.
-  if ((PRUint64)capacity * elemSize > size_type(-1)/2) {
+  if (capacity * elemSize > size_type(-1)/2) {
     NS_ERROR("Attempting to allocate excessively large array");
     return PR_FALSE;
   }
 
   if (mHdr == &sEmptyHdr) {
     // NS_Alloc new data
-    Header *header = static_cast<Header*>
-                                (NS_Alloc(sizeof(Header) + capacity * elemSize));
+    Header *header = NS_STATIC_CAST(Header*,
+                         NS_Alloc(sizeof(Header) + capacity * elemSize));
     if (!header)
       return PR_FALSE;
     header->mLength = 0;
@@ -85,13 +84,17 @@ nsTArray_base::EnsureCapacity(size_type capacity, size_type elemSize) {
   }
 
   // Use doubling algorithm when forced to increase available capacity.
-  capacity = PR_MAX(capacity, mHdr->mCapacity << 1);
+  NS_ASSERTION(mHdr->mCapacity > 0, "should not have buffer of zero size");
+  size_type temp = mHdr->mCapacity;
+  while (temp < capacity)
+    temp <<= 1;
+  capacity = temp;
 
   Header *header;
   if (UsesAutoArrayBuffer()) {
     // NS_Alloc and copy
-    header = static_cast<Header*>
-                        (NS_Alloc(sizeof(Header) + capacity * elemSize));
+    header = NS_STATIC_CAST(Header*,
+                            NS_Alloc(sizeof(Header) + capacity * elemSize));
     if (!header)
       return PR_FALSE;
 
@@ -99,7 +102,7 @@ nsTArray_base::EnsureCapacity(size_type capacity, size_type elemSize) {
   } else {
     // NS_Realloc existing data
     size_type size = sizeof(Header) + capacity * elemSize;
-    header = static_cast<Header*>(NS_Realloc(mHdr, size));
+    header = NS_STATIC_CAST(Header*, NS_Realloc(mHdr, size));
     if (!header)
       return PR_FALSE;
   }
@@ -123,7 +126,7 @@ nsTArray_base::ShrinkCapacity(size_type elemSize) {
   if (IsAutoArray() && GetAutoArrayBuffer()->mCapacity >= length) {
     Header* header = GetAutoArrayBuffer();
 
-    // Copy data, but don't copy the header to avoid overwriting mCapacity
+    // copy data, but don't copy the header to avoid overwritng mCapacity
     header->mLength = length;
     memcpy(header + 1, mHdr + 1, length * elemSize);
 
@@ -143,7 +146,7 @@ nsTArray_base::ShrinkCapacity(size_type elemSize) {
   void *ptr = NS_Realloc(mHdr, size);
   if (!ptr)
     return;
-  mHdr = static_cast<Header*>(ptr);
+  mHdr = NS_STATIC_CAST(Header*, ptr);
   mHdr->mCapacity = length;
 }
 
@@ -169,7 +172,7 @@ nsTArray_base::ShiftData(index_type start, size_type oldLen, size_type newLen,
     newLen *= elemSize;
     oldLen *= elemSize;
     num *= elemSize;
-    char *base = reinterpret_cast<char*>(mHdr + 1) + start;
+    char *base = NS_REINTERPRET_CAST(char*, mHdr + 1) + start;
     memmove(base + newLen, base + oldLen, num);
   }
 }
@@ -264,7 +267,7 @@ nsTArray_base::EnsureNotUsingAutoArrayBuffer(size_type elemSize)
   if (UsesAutoArrayBuffer()) {
     size_type size = sizeof(Header) + Length() * elemSize;
 
-    Header* header = static_cast<Header*>(NS_Alloc(size));
+    Header* header = NS_STATIC_CAST(Header*, NS_Alloc(size));
     if (!header)
       return PR_FALSE;
 

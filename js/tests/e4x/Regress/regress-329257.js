@@ -38,14 +38,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-gTestfile = 'regress-329257.js';
-
-var BUGNUMBER = 329257;
-var summary = "namespace prefix in E4X dot query";
-
-printBugNumber(BUGNUMBER);
-START(summary);
-
 var ns12 = new Namespace("foo");
 var nestInfo = <a xmlns="foo">
 	<ParameterAvailabilityInfo>

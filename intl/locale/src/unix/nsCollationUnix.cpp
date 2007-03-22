@@ -72,6 +72,7 @@ inline void nsCollationUnix::DoRestoreLocale()
 nsCollationUnix::nsCollationUnix() 
 {
   mCollation = NULL;
+  mUseCodePointOrder = PR_FALSE;
 }
 
 nsCollationUnix::~nsCollationUnix() 
@@ -88,6 +89,20 @@ nsresult nsCollationUnix::Initialize(nsILocale* locale)
   NS_ASSERTION(mCollation == NULL, "Should only be initialized once");
 
   nsresult res;
+
+  nsCOMPtr<nsIPrefBranch> prefBranch = do_GetService(NS_PREFSERVICE_CONTRACTID);
+  if (prefBranch) {
+    nsCOMPtr<nsIPrefLocalizedString> prefLocalString;
+    res = prefBranch->GetComplexValue("intl.collationOption",
+                                      NS_GET_IID(nsIPrefLocalizedString),
+                                      getter_AddRefs(prefLocalString));
+    if (NS_SUCCEEDED(res) && prefLocalString) {
+      nsXPIDLString prefValue;
+      prefLocalString->GetData(getter_Copies(prefValue));
+      mUseCodePointOrder =
+        prefValue.LowerCaseEqualsLiteral("usecodepointorder");
+    }
+  }
 
   mCollation = new nsCollation;
   if (mCollation == NULL) {
@@ -174,9 +189,14 @@ nsresult nsCollationUnix::CompareString(PRInt32 strength,
   if (NS_SUCCEEDED(res) && str1 != NULL) {
     res = mCollation->UnicodeToChar(stringNormalized2, &str2);
     if (NS_SUCCEEDED(res) && str2 != NULL) {
-      DoSetLocale();
-      *result = strcoll(str1, str2);
-      DoRestoreLocale();
+      if (mUseCodePointOrder) {
+        *result = strcmp(str1, str2);
+      }
+      else {
+        DoSetLocale();
+        *result = strcoll(str1, str2);
+        DoRestoreLocale();
+      }
       PR_Free(str2);
     }
     PR_Free(str1);
@@ -205,21 +225,26 @@ nsresult nsCollationUnix::AllocateRawSortKey(PRInt32 strength,
 
   res = mCollation->UnicodeToChar(stringNormalized, &str);
   if (NS_SUCCEEDED(res) && str != NULL) {
-    DoSetLocale();
-    // call strxfrm to generate a key 
-    size_t len = strxfrm(nsnull, str, 0) + 1;
-    void *buffer = PR_Malloc(len);
-    if (!buffer) {
-      res = NS_ERROR_OUT_OF_MEMORY;
-    } else if (strxfrm((char *)buffer, str, len) >= len) {
-      PR_Free(buffer);
-      res = NS_ERROR_FAILURE;
+    if (mUseCodePointOrder) {
+      *key = (PRUint8 *)str;
+      *outLen = strlen(str) + 1;
     } else {
-      *key = (PRUint8 *)buffer;
-      *outLen = len;
+      DoSetLocale();
+      // call strxfrm to generate a key 
+      size_t len = strxfrm(nsnull, str, 0) + 1;
+      void *buffer = PR_Malloc(len);
+      if (!buffer) {
+        res = NS_ERROR_OUT_OF_MEMORY;
+      } else if (strxfrm((char *)buffer, str, len) >= len) {
+        PR_Free(buffer);
+        res = NS_ERROR_FAILURE;
+      } else {
+        *key = (PRUint8 *)buffer;
+        *outLen = len;
+      }
+      DoRestoreLocale();
+      PR_Free(str);
     }
-    DoRestoreLocale();
-    PR_Free(str);
   }
 
   return res;

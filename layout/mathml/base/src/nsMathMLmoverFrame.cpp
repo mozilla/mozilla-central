@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -43,6 +42,7 @@
 #include "nsCOMPtr.h"
 #include "nsFrame.h"
 #include "nsPresContext.h"
+#include "nsUnitConversion.h"
 #include "nsStyleContext.h"
 #include "nsStyleConsts.h"
 #include "nsINameSpaceManager.h"
@@ -74,7 +74,7 @@ nsMathMLmoverFrame::AttributeChanged(PRInt32         aNameSpaceID,
   if (nsGkAtoms::accent_ == aAttribute) {
     // When we have automatic data to update within ourselves, we ask our
     // parent to re-layout its children
-    return ReLayoutChildren(mParent, NS_FRAME_IS_DIRTY);
+    return ReLayoutChildren(mParent);
   }
 
   return nsMathMLContainerFrame::
@@ -82,10 +82,12 @@ nsMathMLmoverFrame::AttributeChanged(PRInt32         aNameSpaceID,
 }
 
 NS_IMETHODIMP
-nsMathMLmoverFrame::UpdatePresentationData(PRUint32        aFlagsValues,
+nsMathMLmoverFrame::UpdatePresentationData(PRInt32         aScriptLevelIncrement,
+                                           PRUint32        aFlagsValues,
                                            PRUint32        aFlagsToUpdate)
 {
-  nsMathMLContainerFrame::UpdatePresentationData(aFlagsValues, aFlagsToUpdate);
+  nsMathMLContainerFrame::UpdatePresentationData(
+    aScriptLevelIncrement, aFlagsValues, aFlagsToUpdate);
   // disable the stretch-all flag if we are going to act like a superscript
   if ( NS_MATHML_EMBELLISH_IS_MOVABLELIMITS(mEmbellishData.flags) &&
       !NS_MATHML_IS_DISPLAYSTYLE(mPresentationData.flags)) {
@@ -100,6 +102,7 @@ nsMathMLmoverFrame::UpdatePresentationData(PRUint32        aFlagsValues,
 NS_IMETHODIMP
 nsMathMLmoverFrame::UpdatePresentationDataFromChildAt(PRInt32         aFirstIndex,
                                                       PRInt32         aLastIndex,
+                                                      PRInt32         aScriptLevelIncrement,
                                                       PRUint32        aFlagsValues,
                                                       PRUint32        aFlagsToUpdate)
 {
@@ -123,7 +126,8 @@ nsMathMLmoverFrame::UpdatePresentationDataFromChildAt(PRInt32         aFirstInde
         aFlagsToUpdate &= ~NS_MATHML_DISPLAYSTYLE;
         aFlagsValues &= ~NS_MATHML_DISPLAYSTYLE;
       }
-      PropagatePresentationDataFor(childFrame, aFlagsValues, aFlagsToUpdate);
+      PropagatePresentationDataFor(childFrame, aScriptLevelIncrement,
+                                   aFlagsValues, aFlagsToUpdate);
     }
     index++;
     childFrame = childFrame->GetNextSibling();
@@ -215,10 +219,11 @@ XXX The winner is the outermost in conflicting settings like these:
      that math accents and \overline change uncramped styles to their
      cramped counterparts.
   */
-  SetIncrementScriptLevel(1, !NS_MATHML_EMBELLISH_IS_ACCENTOVER(mEmbellishData.flags));
+  PRInt32 increment = NS_MATHML_EMBELLISH_IS_ACCENTOVER(mEmbellishData.flags)
+    ? 0 : 1;
   PRUint32 compress = NS_MATHML_EMBELLISH_IS_ACCENTOVER(mEmbellishData.flags)
     ? NS_MATHML_COMPRESSED : 0;
-  PropagatePresentationDataFor(overscriptFrame,
+  PropagatePresentationDataFor(overscriptFrame, increment,
     ~NS_MATHML_DISPLAYSTYLE | compress,
      NS_MATHML_DISPLAYSTYLE | compress);
 
@@ -243,7 +248,7 @@ i.e.:
  }
 */
 
-/* virtual */ nsresult
+NS_IMETHODIMP
 nsMathMLmoverFrame::Place(nsIRenderingContext& aRenderingContext,
                           PRBool               aPlaceOrigin,
                           nsHTMLReflowMetrics& aDesiredSize)
@@ -251,11 +256,11 @@ nsMathMLmoverFrame::Place(nsIRenderingContext& aRenderingContext,
   if ( NS_MATHML_EMBELLISH_IS_MOVABLELIMITS(mEmbellishData.flags) &&
       !NS_MATHML_IS_DISPLAYSTYLE(mPresentationData.flags)) {
     // place like superscript
-    return nsMathMLmsupFrame::PlaceSuperScript(PresContext(),
+    return nsMathMLmsupFrame::PlaceSuperScript(GetPresContext(),
                                                aRenderingContext,
                                                aPlaceOrigin,
                                                aDesiredSize,
-                                               this, 0, PresContext()->PointsToAppUnits(0.5f));
+                                               this, 0, GetPresContext()->PointsToAppUnits(0.5f));
   }
 
   ////////////////////////////////////
@@ -398,11 +403,11 @@ nsMathMLmoverFrame::Place(nsIRenderingContext& aRenderingContext,
   if (aPlaceOrigin) {
     // place base
     nscoord dy = aDesiredSize.ascent - baseSize.ascent;
-    FinishReflowChild (baseFrame, PresContext(), nsnull, baseSize, dxBase, dy, 0);
+    FinishReflowChild (baseFrame, GetPresContext(), nsnull, baseSize, dxBase, dy, 0);
     // place overscript
     dy = aDesiredSize.ascent - 
       mBoundingMetrics.ascent + bmOver.ascent - overSize.ascent;
-    FinishReflowChild (overFrame, PresContext(), nsnull, overSize, dxOver, dy, 0);
+    FinishReflowChild (overFrame, GetPresContext(), nsnull, overSize, dxOver, dy, 0);
   }
   return NS_OK;
 }

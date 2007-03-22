@@ -36,7 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 #include "nsIDOMHTMLImageElement.h"
 #include "nsIDOMNSHTMLImageElement.h"
-#include "nsIDOMEventTarget.h"
+#include "nsIDOMEventReceiver.h"
 #include "nsGenericHTMLElement.h"
 #include "nsImageLoadingContent.h"
 #include "nsGkAtoms.h"
@@ -108,8 +108,8 @@ public:
   NS_DECL_NSIDOMNSHTMLIMAGEELEMENT
 
   // nsIJSNativeInitializer
-  NS_IMETHOD Initialize(nsISupports* aOwner, JSContext* aContext,
-                        JSObject* aObj, PRUint32 argc, jsval* argv);
+  NS_IMETHOD Initialize(JSContext* aContext, JSObject *aObj,
+                        PRUint32 argc, jsval *argv);
 
   // nsIContent
   virtual PRBool ParseAttribute(PRInt32 aNamespaceID,
@@ -123,7 +123,7 @@ public:
 
   virtual nsresult PreHandleEvent(nsEventChainPreVisitor& aVisitor);
 
-  PRBool IsHTMLFocusable(PRBool *aIsFocusable, PRInt32 *aTabIndex);
+  PRBool IsFocusable(PRInt32 *aTabIndex = nsnull);
 
   // SetAttr override.  C++ is stupid, so have to override both
   // overloaded methods.
@@ -191,15 +191,14 @@ NS_IMPL_RELEASE_INHERITED(nsHTMLImageElement, nsGenericElement)
 
 
 // QueryInterface implementation for nsHTMLImageElement
-NS_HTML_CONTENT_INTERFACE_TABLE_HEAD(nsHTMLImageElement, nsGenericHTMLElement)
-  NS_INTERFACE_TABLE_INHERITED6(nsHTMLImageElement,
-                                nsIDOMHTMLImageElement,
-                                nsIDOMNSHTMLImageElement,
-                                nsIJSNativeInitializer,
-                                imgIDecoderObserver,
-                                nsIImageLoadingContent,
-                                imgIContainerObserver)
-NS_HTML_CONTENT_INTERFACE_TABLE_TAIL_CLASSINFO(HTMLImageElement)
+NS_HTML_CONTENT_INTERFACE_MAP_BEGIN(nsHTMLImageElement, nsGenericHTMLElement)
+  NS_INTERFACE_MAP_ENTRY(nsIDOMHTMLImageElement)
+  NS_INTERFACE_MAP_ENTRY(nsIDOMNSHTMLImageElement)
+  NS_INTERFACE_MAP_ENTRY(nsIJSNativeInitializer)
+  NS_INTERFACE_MAP_ENTRY(imgIDecoderObserver)
+  NS_INTERFACE_MAP_ENTRY(nsIImageLoadingContent)
+  NS_INTERFACE_MAP_ENTRY_CONTENT_CLASSINFO(HTMLImageElement)
+NS_HTML_CONTENT_INTERFACE_MAP_END
 
 
 NS_IMPL_ELEMENT_CLONE(nsHTMLImageElement)
@@ -423,7 +422,7 @@ nsHTMLImageElement::PreHandleEvent(nsEventChainPreVisitor& aVisitor)
   // element. (bug 39723)
   if (aVisitor.mEvent->eventStructType == NS_MOUSE_EVENT &&
       aVisitor.mEvent->message == NS_MOUSE_CLICK &&
-      static_cast<nsMouseEvent*>(aVisitor.mEvent)->button ==
+      NS_STATIC_CAST(nsMouseEvent*, aVisitor.mEvent)->button ==
         nsMouseEvent::eLeftButton) {
     PRBool isMap = PR_FALSE;
     GetIsMap(&isMap);
@@ -435,7 +434,7 @@ nsHTMLImageElement::PreHandleEvent(nsEventChainPreVisitor& aVisitor)
 }
 
 PRBool
-nsHTMLImageElement::IsHTMLFocusable(PRBool *aIsFocusable, PRInt32 *aTabIndex)
+nsHTMLImageElement::IsFocusable(PRInt32 *aTabIndex)
 {
   PRInt32 tabIndex;
   GetTabIndex(&tabIndex);
@@ -455,8 +454,6 @@ nsHTMLImageElement::IsHTMLFocusable(PRBool *aIsFocusable, PRInt32 *aTabIndex)
       }
       // Image map is not focusable itself, but flag as tabbable
       // so that image map areas get walked into.
-      *aIsFocusable = PR_FALSE;
-
       return PR_FALSE;
     }
   }
@@ -466,10 +463,7 @@ nsHTMLImageElement::IsHTMLFocusable(PRBool *aIsFocusable, PRInt32 *aTabIndex)
     *aTabIndex = (sTabFocusModel & eTabFocus_formElementsMask)? tabIndex : -1;
   }
 
-  *aIsFocusable = tabIndex >= 0 ||
-                  HasAttr(kNameSpaceID_None, nsGkAtoms::tabindex);
-
-  return PR_FALSE;
+  return tabIndex >= 0;
 }
 
 nsresult
@@ -495,10 +489,7 @@ nsHTMLImageElement::SetAttr(PRInt32 aNameSpaceID, nsIAtom* aName,
     nsCOMPtr<imgIRequest> oldCurrentRequest = mCurrentRequest;
 
     // Force image loading here, so that we'll try to load the image from
-    // network if it's set to be not cacheable...  If we change things so that
-    // the state gets in nsGenericElement's attr-setting happen around this
-    // LoadImage call, we could start passing PR_FALSE instead of aNotify
-    // here.
+    // network if it's set to be not cacheable...
     LoadImage(aValue, PR_TRUE, aNotify);
 
     if (mCurrentRequest && !mPendingRequest &&
@@ -548,8 +539,8 @@ nsHTMLImageElement::IntrinsicState() const
 }
 
 NS_IMETHODIMP
-nsHTMLImageElement::Initialize(nsISupports* aOwner, JSContext* aContext,
-                               JSObject *aObj, PRUint32 argc, jsval *argv)
+nsHTMLImageElement::Initialize(JSContext* aContext, JSObject *aObj,
+                               PRUint32 argc, jsval *argv)
 {
   if (argc <= 0) {
     // Nothing to do here if we don't get any arguments.
@@ -562,7 +553,7 @@ nsHTMLImageElement::Initialize(nsISupports* aOwner, JSContext* aContext,
   JSBool ret = JS_ValueToInt32(aContext, argv[0], &width);
   NS_ENSURE_TRUE(ret, NS_ERROR_INVALID_ARG);
 
-  nsresult rv = SetIntAttr(nsGkAtoms::width, static_cast<PRInt32>(width));
+  nsresult rv = SetIntAttr(nsGkAtoms::width, NS_STATIC_CAST(PRInt32, width));
 
   if (NS_SUCCEEDED(rv) && (argc > 1)) {
     // The second (optional) argument is the height of the image
@@ -570,7 +561,7 @@ nsHTMLImageElement::Initialize(nsISupports* aOwner, JSContext* aContext,
     ret = JS_ValueToInt32(aContext, argv[1], &height);
     NS_ENSURE_TRUE(ret, NS_ERROR_INVALID_ARG);
 
-    rv = SetIntAttr(nsGkAtoms::height, static_cast<PRInt32>(height));
+    rv = SetIntAttr(nsGkAtoms::height, NS_STATIC_CAST(PRInt32, height));
   }
 
   return rv;

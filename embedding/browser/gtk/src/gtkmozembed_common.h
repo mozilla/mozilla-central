@@ -16,7 +16,7 @@
  * The Original Code is mozilla.org code.
  *
  * The Initial Developer of the Original Code is
- * Christopher Blizzard.
+ * Christopher Blizzard. Portions created by Christopher Blizzard are Copyright (C) Christopher Blizzard.  All Rights Reserved.
  * Portions created by the Initial Developer are Copyright (C) 2001
  * the Initial Developer. All Rights Reserved.
  *
@@ -39,7 +39,6 @@
  * ***** END LICENSE BLOCK ***** */
 #ifndef gtkmozembed_common_h
 #define gtkmozembed_common_h
-#include "gtkmozembed.h"
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -141,6 +140,16 @@ typedef enum
   GTK_MOZ_EMBED_UNKNOWN_SECURITY
 } GtkMozEmbedSecurityMode;
 
+/** @struct GtkWebHistoryItem.
+  * Defines a web history item.
+  */
+typedef struct _GtkMozHistoryItem GtkMozHistoryItem;
+struct _GtkMozHistoryItem
+{
+    const gchar *title; /** < URL title */
+    const gchar *url;   /** < URL */
+    long accessed;      /** < The last time that the URL was accessed */
+};
 typedef struct _GtkMozCookieList GtkMozCookieList;
 struct _GtkMozCookieList
 {
@@ -161,9 +170,9 @@ struct _GtkMozEmbedCookie
 typedef struct _GtkMozPlugin GtkMozPlugin;
 struct _GtkMozPlugin
 {
-    gchar *title;  /** < Plugin title */
-    gchar *path;   /** < Plugin path */
-    gchar *type;   /** < Plugin type */
+    const gchar *title;  /** < Plugin title */
+    const gchar *path;   /** < Plugin path */
+    const gchar *type;   /** < Plugin type */
     gboolean isDisabled; /** < is plugin enabled */
 };
 

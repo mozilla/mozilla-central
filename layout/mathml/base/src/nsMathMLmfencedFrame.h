@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -74,9 +73,6 @@ public:
                               const nsRect&           aDirtyRect,
                               const nsDisplayListSet& aLists);
 
-  virtual nscoord
-  GetIntrinsicWidth(nsIRenderingContext* aRenderingContext);
-
   NS_IMETHOD
   AttributeChanged(PRInt32         aNameSpaceID,
                    nsIAtom*        aAttribute,
@@ -90,26 +86,18 @@ public:
   virtual nscoord
   FixInterFrameSpacing(nsHTMLReflowMetrics& aDesiredSize);
 
-  // exported routines that both mfenced and mfrac share.
-  // mfrac uses these when its bevelled attribute is set.
+  // exported routine that both mfenced and mfrac share.
+  // mfrac uses this when its bevelled attribute is set.
   static nsresult
   doReflow(nsPresContext*          aPresContext,
            const nsHTMLReflowState& aReflowState,
            nsHTMLReflowMetrics&     aDesiredSize,
            nsReflowStatus&          aStatus,
-           nsMathMLContainerFrame*  aForFrame,
+           nsIFrame*                aForFrame,
            nsMathMLChar*            aOpenChar,
            nsMathMLChar*            aCloseChar,
            nsMathMLChar*            aSeparatorsChar,
            PRInt32                  aSeparatorsCount);
-
-  static nscoord
-  doGetIntrinsicWidth(nsIRenderingContext*    aRenderingContext,
-                      nsMathMLContainerFrame* aForFrame,
-                      nsMathMLChar*           aOpenChar,
-                      nsMathMLChar*           aCloseChar,
-                      nsMathMLChar*           aSeparatorsChar,
-                      PRInt32                 aSeparatorsCount);
 
   // helper routines to format the MathMLChars involved here
   static nsresult

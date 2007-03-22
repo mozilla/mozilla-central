@@ -395,7 +395,7 @@ nsresult nsHTMLTokenizer::ScanDocStructure(PRBool aFinalChunk)
                   nsDequeIterator it(theStack, earlyPos), end(theStack.End());
                   while (it < end) {
                     CHTMLToken *theMalformedToken = 
-                        static_cast<CHTMLToken*>(it++);
+                        NS_STATIC_CAST(CHTMLToken*, it++);
                   
                     theMalformedToken->SetContainerInfo(eMalformed);
                   }
@@ -409,7 +409,7 @@ nsresult nsHTMLTokenizer::ScanDocStructure(PRBool aFinalChunk)
           case eToken_end: 
             {
               CHTMLToken *theLastToken =
-                static_cast<CHTMLToken*>(theStack.Peek());
+                NS_STATIC_CAST(CHTMLToken*, theStack.Peek());
               if (theLastToken) {
                 if (theTag == theLastToken->GetTypeID()) {
                   theStack.Pop(); // Yank it for real 
@@ -427,7 +427,7 @@ nsresult nsHTMLTokenizer::ScanDocStructure(PRBool aFinalChunk)
                     do {
                       theLastToken->SetContainerInfo(eMalformed);
                       tempStack.Push(theLastToken);
-                      theLastToken = static_cast<CHTMLToken*>(theStack.Pop());
+                      theLastToken = NS_STATIC_CAST(CHTMLToken*, theStack.Pop());
                     } while (theLastToken && theTag != theLastToken->GetTypeID());
                     // XXX The above test can confuse two different userdefined 
                     // tags.
@@ -643,8 +643,8 @@ nsHTMLTokenizer::ConsumeAttributes(PRUnichar aChar,
 
   while (!done && result == NS_OK) {
     CAttributeToken* theToken =
-      static_cast<CAttributeToken*>
-                 (theAllocator->CreateTokenOfType(eToken_attribute,
+      NS_STATIC_CAST(CAttributeToken*,
+                     theAllocator->CreateTokenOfType(eToken_attribute,
                                                      eHTMLTag_unknown));
     if (NS_LIKELY(theToken != nsnull)) {
       // Tell the new token to finish consuming text...
@@ -791,7 +791,7 @@ nsHTMLTokenizer::ConsumeStartTag(PRUnichar aChar,
             theAllocator->CreateTokenOfType(eToken_text, eHTMLTag_text);
         NS_ENSURE_TRUE(text, NS_ERROR_OUT_OF_MEMORY);
 
-        CTextToken* textToken = static_cast<CTextToken*>(text);
+        CTextToken* textToken = NS_STATIC_CAST(CTextToken*, text);
 
         if (isCDATA) {
           result = textToken->ConsumeCharacterData(theTag != eHTMLTag_script,
@@ -873,7 +873,7 @@ nsHTMLTokenizer::ConsumeStartTag(PRUnichar aChar,
     // If you're here, it's because we were in the midst of consuming a start
     // tag but ran out of data (not in the stream, but in this *part* of the
     // stream. For simplicity, we have to unwind our input. Therefore, we pop
-    // and discard any new tokens we've queued this round. Later we can get
+    // and discard any new tokens we've cued this round. Later we can get
     // smarter about this.
     if (NS_FAILED(result)) {
       while (mTokenDeque.GetSize()>theDequeSize) {
@@ -1120,7 +1120,7 @@ nsHTMLTokenizer::ConsumeSpecialMarkup(PRUnichar aChar,
   nsAutoString theBufCopy;
   aScanner.Peek(theBufCopy, 20);
   ToUpperCase(theBufCopy);
-  PRInt32 theIndex = theBufCopy.Find("DOCTYPE", PR_FALSE, 0, 0);
+  PRInt32 theIndex = theBufCopy.Find("DOCTYPE");
   nsTokenAllocator* theAllocator = this->GetTokenAllocator();
 
   if (theIndex == kNotFound) {

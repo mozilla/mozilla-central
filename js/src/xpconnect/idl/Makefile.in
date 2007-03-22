@@ -54,7 +54,6 @@ XPIDLSRCS	= \
 		xpccomponents.idl \
 		xpcjsid.idl \
 		xpcexception.idl \
-		xpcIJSModuleLoader.idl \
 		nsIJSContextStack.idl \
 		nsIJSRuntimeService.idl \
 		nsIXPConnect.idl \
@@ -64,7 +63,6 @@ XPIDLSRCS	= \
 		nsIXPCScriptNotify.idl \
 		nsIScriptableInterfaces.idl \
 		XPCIDispatch.idl \
-		xpcIJSWeakReference.idl \
 		$(NULL)
 
 ifdef XPC_IDISPATCH_SUPPORT

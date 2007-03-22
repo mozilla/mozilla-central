@@ -48,14 +48,20 @@
 #include "nsPresContext.h"
 #include "nsPoint.h"
 #include "nsGUIEvent.h"
-#include "nsCycleCollectionParticipant.h"
+#include "nsRecycled.h"
 
 class nsIContent;
 class nsIScrollableView;
+
+/* Currently we use a single-object recycler (nsRecycledSingle).
+ * With our current usage pattern, we almost never have more than
+ * a single nsDOMEvent active in memory at a time under normal circumstances.
+ */
  
 class nsDOMEvent : public nsIDOMEvent,
                    public nsIDOMNSEvent,
-                   public nsIPrivateDOMEvent
+                   public nsIPrivateDOMEvent,
+                   public nsRecycledSingle<nsDOMEvent>
 {
 public:
 
@@ -101,8 +107,6 @@ public:
     eDOMEvents_dragexit,
     eDOMEvents_dragdrop,
     eDOMEvents_draggesture,
-    eDOMEvents_drag,
-    eDOMEvents_dragend,
     eDOMEvents_resize,
     eDOMEvents_scroll,
     eDOMEvents_overflow,
@@ -120,12 +124,7 @@ public:
     eDOMEvents_DOMFocusOut,
     eDOMEvents_pageshow,
     eDOMEvents_pagehide,
-    eDOMEvents_DOMMouseScroll,
-    eDOMEvents_offline,
-    eDOMEvents_online,
-    eDOMEvents_copy,
-    eDOMEvents_cut,
-    eDOMEvents_paste
+    eDOMEvents_DOMMouseScroll
 #ifdef MOZ_SVG
    ,
     eDOMEvents_SVGLoad,
@@ -141,8 +140,7 @@ public:
   nsDOMEvent(nsPresContext* aPresContext, nsEvent* aEvent);
   virtual ~nsDOMEvent();
 
-  NS_DECL_CYCLE_COLLECTING_ISUPPORTS
-  NS_DECL_CYCLE_COLLECTION_CLASS_AMBIGUOUS(nsDOMEvent, nsIDOMEvent)
+  NS_DECL_ISUPPORTS
 
   // nsIDOMEvent Interface
   NS_DECL_NSIDOMEVENT
@@ -178,7 +176,6 @@ protected:
   nsCOMPtr<nsIDOMEventTarget> mTmpRealOriginalTarget;
   nsCOMPtr<nsIDOMEventTarget> mExplicitOriginalTarget;
   PRPackedBool                mEventIsInternal;
-  PRPackedBool                mPrivateDataDuplicated;
 };
 
 #define NS_FORWARD_TO_NSDOMEVENT \

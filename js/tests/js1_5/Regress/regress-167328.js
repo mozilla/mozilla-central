@@ -35,18 +35,16 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-167328.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 167328;
+var bug = 167328;
 var summary = 'Normal error reporting code should fill Error object properties';
 var actual = '';
 var expect = '';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
-expect = 'TypeError:53';
+expect = 'TypeError:51';
 try
 {
   var obj = {toString: function() {return new Object();}};
@@ -56,5 +54,5 @@ try
 catch(e)
 {
   actual = e.name + ':' + e.lineNumber;
-} 
+}  
 reportCompare(expect, actual, summary);

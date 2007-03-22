@@ -35,28 +35,26 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-254974.js';
 //-----------------------------------------------------------------------------
 // this test originally was only seen if typed into the js shell.
-// loading as a script file did not exhibit the problem.
+// loading as a script file did not exhibit the problem. 
 // this test case may not exercise the problem properly.
 
-var BUGNUMBER = 254974;
+var bug = 254974;
 var summary = 'all var and arg properties should be JSPROP_SHARED';
 var actual = '';
 var expect = '';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
 function testfunc(tokens) {
-  function eek(y) {} /* remove function eek and the code will change its behavior */
-  return tokens.split(/\]?(?:\[|$)/).shift();
+function eek(y) {} /* remove function eek and the code will change its behavior */
+    return tokens.split(/\]?(?:\[|$)/).shift();
 }
 bad=testfunc;
 function testfunc(tokens) {
-  return tokens.split(/\]?(?:\[|$)/).shift();
+    return tokens.split(/\]?(?:\[|$)/).shift();
 }
 good=testfunc;
 
@@ -68,5 +66,5 @@ printStatus(badvalue);
 
 expect = goodvalue;
 actual = badvalue;
- 
+  
 reportCompare(expect, actual, summary);

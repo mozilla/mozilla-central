@@ -34,15 +34,13 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var gTestfile = 'regress-341877-01.js';
 //-----------------------------------------------------------------------------
-var BUGNUMBER = 341877;
+var bug = 341877;
 var summary = 'GC hazard with for-in loop';
 var actual = 'No Crash';
 var expect = 'No Crash';
 
-printBugNumber(BUGNUMBER);
+printBugNumber (bug);
 printStatus (summary);
 
 var obj = { };
@@ -54,7 +52,7 @@ obj.first = "first"
   obj[prop] = 1;
 
 for (var elem in obj) {
-  var tmp = elem.toString();
+  var tmp = elem.toString(); 
   delete obj[prop];
   // ensure that prop is cut from all roots
   prop = "xsomePropety".substr(2);
@@ -69,5 +67,5 @@ for (var elem in obj) {
   }
 }
 
- 
+  
 reportCompare(expect, actual, summary);

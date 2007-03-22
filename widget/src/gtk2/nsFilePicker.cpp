@@ -39,7 +39,6 @@
 #include <gtk/gtkdialog.h>
 #include <gtk/gtkstock.h>
 #include <gtk/gtkmessagedialog.h>
-#include <gtk/gtkimage.h>
 
 #include "nsIFileURL.h"
 #include "nsIURI.h"
@@ -62,8 +61,6 @@
 
 #define DECL_FUNC_PTR(func) static _##func##_fn _##func
 #define GTK_FILE_CHOOSER(widget) ((GtkFileChooser*) widget)
-
-#define MAX_PREVIEW_SIZE 180
 
 PRLibrary    *nsFilePicker::mGTK24 = nsnull;
 nsILocalFile *nsFilePicker::mPrevDisplayDirectory = nsnull;
@@ -88,8 +85,6 @@ typedef enum
 
 typedef gchar* (*_gtk_file_chooser_get_filename_fn)(GtkFileChooser *chooser);
 typedef GSList* (*_gtk_file_chooser_get_filenames_fn)(GtkFileChooser *chooser);
-typedef gchar* (*_gtk_file_chooser_get_uri_fn)(GtkFileChooser *chooser);
-typedef GSList* (*_gtk_file_chooser_get_uris_fn)(GtkFileChooser *chooser);
 typedef GtkWidget* (*_gtk_file_chooser_dialog_new_fn)(const gchar *title,
                                                       GtkWindow *parent,
                                                       GtkFileChooserAction action,
@@ -106,18 +101,10 @@ typedef GSList* (*_gtk_file_chooser_list_filters_fn)(GtkFileChooser* chooser);
 typedef GtkFileFilter* (*_gtk_file_filter_new_fn)();
 typedef void (*_gtk_file_filter_add_pattern_fn)(GtkFileFilter* filter, const gchar* pattern);
 typedef void (*_gtk_file_filter_set_name_fn)(GtkFileFilter* filter, const gchar* name);
-typedef char* (*_gtk_file_chooser_get_preview_filename_fn)(GtkFileChooser *chooser);
-typedef void (*_gtk_file_chooser_set_preview_widget_active_fn)(GtkFileChooser *chooser, gboolean active);
-typedef void (*_gtk_image_set_from_pixbuf_fn)(GtkImage *image, GdkPixbuf *pixbuf);
-typedef void (*_gtk_file_chooser_set_preview_widget_fn)(GtkFileChooser *chooser, GtkWidget *preview_widget);
-typedef GtkWidget* (*_gtk_image_new_fn)();
-typedef void (*_gtk_misc_set_padding_fn)(GtkMisc *misc, gint xpad, gint ypad);
-typedef void (*_gtk_file_chooser_set_local_only_fn)(GtkFileChooser *chooser, gboolean local_only);
+
 
 DECL_FUNC_PTR(gtk_file_chooser_get_filename);
 DECL_FUNC_PTR(gtk_file_chooser_get_filenames);
-DECL_FUNC_PTR(gtk_file_chooser_get_uri);
-DECL_FUNC_PTR(gtk_file_chooser_get_uris);
 DECL_FUNC_PTR(gtk_file_chooser_dialog_new);
 DECL_FUNC_PTR(gtk_file_chooser_set_select_multiple);
 DECL_FUNC_PTR(gtk_file_chooser_set_do_overwrite_confirmation);
@@ -130,16 +117,7 @@ DECL_FUNC_PTR(gtk_file_chooser_list_filters);
 DECL_FUNC_PTR(gtk_file_filter_new);
 DECL_FUNC_PTR(gtk_file_filter_add_pattern);
 DECL_FUNC_PTR(gtk_file_filter_set_name);
-DECL_FUNC_PTR(gtk_file_chooser_get_preview_filename);
-DECL_FUNC_PTR(gtk_file_chooser_set_preview_widget_active);
-DECL_FUNC_PTR(gtk_image_set_from_pixbuf);
-DECL_FUNC_PTR(gtk_file_chooser_set_preview_widget);
-DECL_FUNC_PTR(gtk_image_new);
-DECL_FUNC_PTR(gtk_misc_set_padding);
-DECL_FUNC_PTR(gtk_file_chooser_set_local_only);
 
-// XXXdholbert -- this function is duplicated in nsPrintDialogGTK.cpp
-// and needs to be unified in some generic utility class.
 static GtkWindow *
 get_gtk_window_for_nsiwidget(nsIWidget *widget)
 {
@@ -211,8 +189,6 @@ nsFilePicker::LoadSymbolsGTK24()
   }
 
   GET_LIBGTK_FUNC(gtk_file_chooser_get_filenames);
-  GET_LIBGTK_FUNC(gtk_file_chooser_get_uri);
-  GET_LIBGTK_FUNC(gtk_file_chooser_get_uris);
   GET_LIBGTK_FUNC(gtk_file_chooser_dialog_new);
   GET_LIBGTK_FUNC(gtk_file_chooser_set_select_multiple);
   GET_LIBGTK_FUNC_OPT(gtk_file_chooser_set_do_overwrite_confirmation);
@@ -225,13 +201,6 @@ nsFilePicker::LoadSymbolsGTK24()
   GET_LIBGTK_FUNC(gtk_file_filter_new);
   GET_LIBGTK_FUNC(gtk_file_filter_add_pattern);
   GET_LIBGTK_FUNC(gtk_file_filter_set_name);
-  GET_LIBGTK_FUNC(gtk_file_chooser_get_preview_filename);
-  GET_LIBGTK_FUNC(gtk_file_chooser_set_preview_widget_active);
-  GET_LIBGTK_FUNC(gtk_image_set_from_pixbuf);
-  GET_LIBGTK_FUNC(gtk_file_chooser_set_preview_widget);
-  GET_LIBGTK_FUNC(gtk_image_new);
-  GET_LIBGTK_FUNC(gtk_misc_set_padding);
-  GET_LIBGTK_FUNC(gtk_file_chooser_set_local_only);
 
   initialized = PR_TRUE;
 
@@ -280,46 +249,6 @@ GetGtkFileChooserAction(PRInt16 aMode)
 }
 
 
-static void
-UpdateFilePreviewWidget(GtkFileChooser *file_chooser,
-                        gpointer preview_widget_voidptr)
-{
-  GtkImage *preview_widget = GTK_IMAGE(preview_widget_voidptr);
-  char *image_filename = _gtk_file_chooser_get_preview_filename(file_chooser);
-
-  if (!image_filename) {
-    _gtk_file_chooser_set_preview_widget_active(file_chooser, FALSE);
-    return;
-  }
-
-  // We do this so GTK scales down images that are too big, but not scale up images that are too small
-  GdkPixbuf *preview_pixbuf = gdk_pixbuf_new_from_file(image_filename, NULL);
-  if (!preview_pixbuf) {
-    g_free(image_filename);
-    _gtk_file_chooser_set_preview_widget_active(file_chooser, FALSE);
-    return;
-  }
-  if (gdk_pixbuf_get_width(preview_pixbuf) > MAX_PREVIEW_SIZE || gdk_pixbuf_get_height(preview_pixbuf) > MAX_PREVIEW_SIZE) {
-    g_object_unref(preview_pixbuf);
-    preview_pixbuf = gdk_pixbuf_new_from_file_at_size(image_filename, MAX_PREVIEW_SIZE, MAX_PREVIEW_SIZE, NULL);
-  }
-
-  g_free(image_filename);
-  if (!preview_pixbuf) {
-    _gtk_file_chooser_set_preview_widget_active(file_chooser, FALSE);
-    return;
-  }
-
-  // This is the easiest way to do center alignment without worrying about containers
-  // Minimum 3px padding each side (hence the 6) just to make things nice
-  gint x_padding = (MAX_PREVIEW_SIZE + 6 - gdk_pixbuf_get_width(preview_pixbuf)) / 2;
-  _gtk_misc_set_padding(GTK_MISC(preview_widget), x_padding, 0);
-
-  _gtk_image_set_from_pixbuf(preview_widget, preview_pixbuf);
-  g_object_unref(preview_pixbuf);
-  _gtk_file_chooser_set_preview_widget_active(file_chooser, TRUE);
-}
-
 NS_IMPL_ISUPPORTS1(nsFilePicker, nsIFilePicker)
 
 nsFilePicker::nsFilePicker()
@@ -336,11 +265,11 @@ void
 ReadMultipleFiles(gpointer filename, gpointer array)
 {
   nsCOMPtr<nsILocalFile> localfile;
-  nsresult rv = NS_NewNativeLocalFile(nsDependentCString(static_cast<char*>(filename)),
+  nsresult rv = NS_NewNativeLocalFile(nsDependentCString(NS_STATIC_CAST(char*, filename)),
                                       PR_FALSE,
                                       getter_AddRefs(localfile));
   if (NS_SUCCEEDED(rv)) {
-    nsCOMArray<nsILocalFile>& files = *static_cast<nsCOMArray<nsILocalFile>*>(array);
+    nsCOMArray<nsILocalFile>& files = *NS_STATIC_CAST(nsCOMArray<nsILocalFile>*, array);
     files.AppendObject(localfile);
   }
 
@@ -353,21 +282,21 @@ nsFilePicker::ReadValuesFromFileChooser(GtkWidget *file_chooser)
   mFiles.Clear();
 
   if (mMode == nsIFilePicker::modeOpenMultiple) {
-    mFileURL.Truncate();
+    mFile.Truncate();
 
     GSList *list = _gtk_file_chooser_get_filenames (GTK_FILE_CHOOSER(file_chooser));
-    g_slist_foreach(list, ReadMultipleFiles, static_cast<gpointer>(&mFiles));
+    g_slist_foreach(list, ReadMultipleFiles, NS_STATIC_CAST(gpointer, &mFiles));
     g_slist_free(list);
   } else {
-    gchar *filename = _gtk_file_chooser_get_uri (GTK_FILE_CHOOSER(file_chooser));
-    mFileURL.Assign(filename);
+    gchar *filename = _gtk_file_chooser_get_filename (GTK_FILE_CHOOSER(file_chooser));
+    mFile.Assign(filename);
     g_free(filename);
   }
 
   GtkFileFilter *filter = _gtk_file_chooser_get_filter (GTK_FILE_CHOOSER(file_chooser));
   GSList *filter_list = _gtk_file_chooser_list_filters (GTK_FILE_CHOOSER(file_chooser));
 
-  mSelectedType = static_cast<PRInt16>(g_slist_index (filter_list, filter));
+  mSelectedType = NS_STATIC_CAST(PRInt16, g_slist_index (filter_list, filter));
   g_slist_free(filter_list);
 
   // Remember last used directory.
@@ -407,7 +336,6 @@ nsFilePicker::InitNative(nsIWidget *aParent,
 NS_IMETHODIMP
 nsFilePicker::AppendFilters(PRInt32 aFilterMask)
 {
-  mAllowURLs = !!(aFilterMask & filterAllowURLs);
   return nsBaseFilePicker::AppendFilters(aFilterMask);
 }
 
@@ -482,26 +410,31 @@ nsFilePicker::GetFile(nsILocalFile **aFile)
   NS_ENSURE_ARG_POINTER(aFile);
 
   *aFile = nsnull;
-  nsCOMPtr<nsIURI> uri;
-  nsresult rv = GetFileURL(getter_AddRefs(uri));
-  if (!uri)
-    return rv;
+  if (mFile.IsEmpty()) {
+    return NS_OK;
+  }
 
-  nsCOMPtr<nsIFileURL> fileURL(do_QueryInterface(uri, &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsILocalFile> file(do_CreateInstance("@mozilla.org/file/local;1"));
+  NS_ENSURE_TRUE(file, NS_ERROR_FAILURE);
 
-  nsCOMPtr<nsIFile> file;
-  rv = fileURL->GetFile(getter_AddRefs(file));
-  NS_ENSURE_SUCCESS(rv, rv);
+  file->InitWithNativePath(mFile);
 
-  return CallQueryInterface(file, aFile);
+  NS_ADDREF(*aFile = file);
+
+  return NS_OK;
 }
 
 NS_IMETHODIMP
-nsFilePicker::GetFileURL(nsIURI **aFileURL)
+nsFilePicker::GetFileURL(nsIFileURL **aFileURL)
 {
-  *aFileURL = nsnull;
-  return NS_NewURI(aFileURL, mFileURL);
+  nsCOMPtr<nsILocalFile> file;
+  GetFile(getter_AddRefs(file));
+
+  nsCOMPtr<nsIURI> uri;
+  NS_NewFileURI(getter_AddRefs(uri), file);
+  NS_ENSURE_TRUE(uri, NS_ERROR_FAILURE);
+
+  return CallQueryInterface(uri, aFileURL);
 }
 
 NS_IMETHODIMP
@@ -579,15 +512,6 @@ nsFilePicker::Show(PRInt16 *aReturn)
                                    GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
                                    accept_button, GTK_RESPONSE_ACCEPT,
                                    NULL);
-  if (mAllowURLs) {
-    _gtk_file_chooser_set_local_only(GTK_FILE_CHOOSER(file_chooser), FALSE);
-  }
-
-  if (mMode == GTK_FILE_CHOOSER_ACTION_OPEN || mMode == GTK_FILE_CHOOSER_ACTION_SAVE) {
-    GtkWidget *img_preview = _gtk_image_new();
-    _gtk_file_chooser_set_preview_widget(GTK_FILE_CHOOSER(file_chooser), img_preview);
-    g_signal_connect(file_chooser, "update-preview", G_CALLBACK(UpdateFilePreviewWidget), img_preview);
-  }
 
   if (parent_widget && parent_widget->group) {
     gtk_window_group_add_window(parent_widget->group, GTK_WINDOW(file_chooser));
@@ -598,7 +522,7 @@ nsFilePicker::Show(PRInt16 *aReturn)
   } else if (mMode == nsIFilePicker::modeSave) {
     char *default_filename = ToNewUTF8String(mDefault);
     _gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER(file_chooser),
-                                       static_cast<const gchar*>(default_filename));
+                                       NS_STATIC_CAST(const gchar*, default_filename));
     nsMemory::Free(default_filename);
   }
 

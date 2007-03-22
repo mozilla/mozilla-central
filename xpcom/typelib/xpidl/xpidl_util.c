@@ -58,6 +58,18 @@ xpidl_malloc(size_t nbytes)
     return p;
 }
 
+#ifdef XP_MAC
+static char *strdup(const char *c)
+{
+	char	*newStr = malloc(strlen(c) + 1);
+	if (newStr)
+	{
+		strcpy(newStr, c);
+	}
+	return newStr;
+}
+#endif
+
 char *
 xpidl_strdup(const char *s)
 {
@@ -277,59 +289,13 @@ matches_nsIFoo(const char* attribute_name)
     return matches_IFoo(attribute_name + 3);
 }
 
-/**
- * Returns TRUE if the method is probably scriptable, FALSE otherwise.
- * The first parameter may also be an attr_tree parameter, since these two are
- * the same with respect to discovering the interface node.
- */
-gboolean
-is_method_scriptable(IDL_tree method_tree, IDL_tree ident)
-{
-    IDL_tree iface;
-    gboolean scriptable_interface;
-    
-    /*
-     * Look up the tree to find the interface. If we can't find the interface,
-     * then the caller is being called on an incorrect tree. If we find it, we
-     * see if it's [scriptable] and duly note it.
-     */
-    if (IDL_NODE_UP(method_tree) && IDL_NODE_UP(IDL_NODE_UP(method_tree)) &&
-        IDL_NODE_TYPE(iface = IDL_NODE_UP(IDL_NODE_UP(method_tree))) 
-        == IDLN_INTERFACE)
-    {
-        scriptable_interface =
-            (IDL_tree_property_get(IDL_INTERFACE(iface).ident, "scriptable")
-             != NULL);
-    } else {
-        IDL_tree_error(method_tree,
-                       "is_method_scriptable called on a non-interface?");
-        return FALSE;
-    }
-
-    /* If the interface isn't scriptable, the method sure can't be... */
-    if (!scriptable_interface)
-      return FALSE;
-
-    /* [notxpcom] implies [noscript] */
-    if (IDL_tree_property_get(ident, "notxpcom") != NULL)
-      return FALSE;
-
-    /* [noscript] methods obviously aren't scriptable */
-    if (IDL_tree_property_get(ident, "noscript") != NULL)
-      return FALSE;
-
-    /* The interface is scriptable, so therefore the method is, if the
-     * interfaces are accessible. That's good enough for this method.
-     */
-    return TRUE;
-}
-
 gboolean
 verify_attribute_declaration(IDL_tree attr_tree)
 {
     IDL_tree iface;
     IDL_tree ident;
     IDL_tree attr_type;
+    gboolean scriptable_interface;
 
     /* We don't support attributes named IID, conflicts with static GetIID 
      * member. The conflict is due to certain compilers (VC++) choosing a
@@ -345,6 +311,22 @@ verify_attribute_declaration(IDL_tree attr_tree)
                        "ordering problems");
         return FALSE;
     }
+    /* 
+     * Verify that we've been called on an interface, and decide if the
+     * interface was marked [scriptable].
+     */
+    if (IDL_NODE_UP(attr_tree) && IDL_NODE_UP(IDL_NODE_UP(attr_tree)) &&
+        IDL_NODE_TYPE(iface = IDL_NODE_UP(IDL_NODE_UP(attr_tree))) 
+        == IDLN_INTERFACE)
+    {
+        scriptable_interface =
+            (IDL_tree_property_get(IDL_INTERFACE(iface).ident, "scriptable")
+             != NULL);
+    } else {
+        IDL_tree_error(attr_tree,
+                    "verify_attribute_declaration called on a non-interface?");
+        return FALSE;
+    }
 
     /*
      * Grab the first of the list of idents and hope that it'll
@@ -354,10 +336,10 @@ verify_attribute_declaration(IDL_tree attr_tree)
 
     /*
      * If the interface isn't scriptable, or the attribute is marked noscript,
-     * there's no need to check. This also verifies that we've been called on
-     * an interface.
+     * there's no need to check.
      */
-    if (!is_method_scriptable(attr_tree, ident))
+    if (!scriptable_interface ||
+        IDL_tree_property_get(ident, "noscript") != NULL)
         return TRUE;
 
     /*
@@ -563,6 +545,7 @@ check_param_attribute(IDL_tree method_tree, IDL_tree param,
     return TRUE;
 }
 
+
 /*
  * Common method verification code, called by *op_dcl in the various backends.
  */
@@ -573,9 +556,9 @@ verify_method_declaration(IDL_tree method_tree)
     IDL_tree iface;
     IDL_tree iter;
     gboolean notxpcom;
+    gboolean scriptable_interface;
     gboolean scriptable_method;
     gboolean seen_retval = FALSE;
-    gboolean hasoptional = PR_FALSE;
     const char *method_name = IDL_IDENT(IDL_OP_DCL(method_tree).ident).str;
 
     /* We don't support attributes named IID, conflicts with static GetIID 
@@ -596,11 +579,35 @@ verify_method_declaration(IDL_tree method_tree)
     }
 
     /* 
-     * Decide if we are a scriptable method, or if we were are notxpcom.
-     * In doing so, we also verify that we've been called on an interface.
+     * Verify that we've been called on an interface, and decide if the
+     * interface was marked [scriptable].
      */
-    scriptable_method = is_method_scriptable(method_tree, op->ident);
+    if (IDL_NODE_UP(method_tree) && IDL_NODE_UP(IDL_NODE_UP(method_tree)) &&
+        IDL_NODE_TYPE(iface = IDL_NODE_UP(IDL_NODE_UP(method_tree))) 
+        == IDLN_INTERFACE)
+    {
+        scriptable_interface =
+            (IDL_tree_property_get(IDL_INTERFACE(iface).ident, "scriptable")
+             != NULL);
+    } else {
+        IDL_tree_error(method_tree,
+                       "verify_method_declaration called on a non-interface?");
+        return FALSE;
+    }
+
+    /*
+     * Require that any method in an interface marked as [scriptable], that
+     * *isn't* scriptable because it refers to some native type, be marked
+     * [noscript] or [notxpcom].
+     *
+     * Also check that iid_is points to nsid, and length_is, size_is points
+     * to unsigned long.
+     */
     notxpcom = IDL_tree_property_get(op->ident, "notxpcom") != NULL;
+
+    scriptable_method = scriptable_interface &&
+        !notxpcom &&
+        IDL_tree_property_get(op->ident, "noscript") == NULL;
 
     /* Loop through the parameters and check. */
     for (iter = op->parameter_dcls; iter; iter = IDL_LIST(iter).next) {
@@ -707,19 +714,6 @@ verify_method_declaration(IDL_tree method_tree)
                                "string, wstring or native", param_name);
                 return FALSE;
             }
-        }
-
-        /*
-         * confirm that once an optional argument is used, all remaining
-         * arguments are marked as optional
-         */
-        if (IDL_tree_property_get(simple_decl, "optional") != NULL) {
-            hasoptional = PR_TRUE;
-        }
-        else if (hasoptional) {
-            IDL_tree_error(method_tree,
-                           "non-optional parameter used after one marked [optional]");
-                return FALSE;
         }
 
         /*
