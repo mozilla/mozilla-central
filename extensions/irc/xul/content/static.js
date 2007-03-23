@@ -2543,6 +2543,10 @@ function setCurrentObject (obj)
     if ("currentObject" in client && client.currentObject == obj)
         return;
 
+    // Set window.content to make screenreader apps find the chat content.
+    if (obj.frame && getContentWindow(obj.frame))
+        window.content = getContentWindow(obj.frame);
+
     var tb, userList;
     userList = document.getElementById("user-list");
 
