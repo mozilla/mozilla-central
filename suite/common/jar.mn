@@ -123,6 +123,7 @@ comm.jar:
    content/communicator/permissions/permissionsOverlay.js           (permissions/permissionsOverlay.js)
    content/communicator/permissions/treeUtils.js                    (permissions/treeUtils.js)
    content/communicator/pref/nsPrefWindow.js                        (pref/nsPrefWindow.js)
+   content/communicator/pref/nsWidgetStateManager.js                (/xpfe/global/resources/content/nsWidgetStateManager.js)
    content/communicator/pref/overrideHandler.js                     (pref/overrideHandler.js)
    content/communicator/pref/permissionsPrefsOverlay.xul            (pref/permissionsPrefsOverlay.xul)
    content/communicator/pref/pref.xul                               (pref/pref.xul)
