@@ -108,13 +108,13 @@ public:
 
     // the message can be stored in a file....allow accessors for getting and setting
     // the file name to post...
-    NS_IMETHOD SetPostMessageFile(nsIFileSpec * aFileName);
-    NS_IMETHOD GetPostMessageFile(nsIFileSpec ** aFileName);
+    NS_IMETHOD SetPostMessageFile(nsIFile * aFile);
+    NS_IMETHOD GetPostMessageFile(nsIFile ** aFile);
 
     NS_IMETHOD AddNewsgroup(const char *newsgroupName);
     
 private:
-    nsIFileSpec *m_postMessageFile;
+    nsCOMPtr <nsIFile> m_postMessageFile;
     char *m_header[HEADER_LAST+1];
     char *m_body;
     char *m_messageBuffer;

@@ -45,12 +45,12 @@
 interface nsIURI;
 interface nsIStreamListener;  
 interface nsISupportsArray;
-interface nsIFileSpec;
+interface nsIFile;
 interface nsIMsgWindow;
 interface nsIMsgFolder;
 interface nsICacheSession;
 
-[scriptable, uuid(4C9F90E0-E19B-11d2-806E-006008128C4E)]
+[scriptable, uuid(11c6a082-9af8-4c4a-99d9-6af828496efe)]
 interface nsINntpService : nsISupports {
   
   /* newsgroupsList is a comma separated list of newsgroups, which may be
@@ -65,7 +65,7 @@ interface nsINntpService : nsISupports {
    */
   void generateNewsHeaderValsForPosting(in string newsgroupsList, out string newsgroupsHeaderVal, out string newshostHeaderVal);
 
-  nsIURI postMessage(in nsIFileSpec fileToPost, in string newsgroupNames, in string aAccountKey, in nsIUrlListener aUrlListener, in nsIMsgWindow aMsgWindow);
+  nsIURI postMessage(in nsIFile aFileToPost, in string newsgroupNames, in string aAccountKey, in nsIUrlListener aUrlListener, in nsIMsgWindow aMsgWindow);
 
   nsIURI getNewNews(in nsINntpIncomingServer nntpServer, in string uri, in boolean getOld, in nsIUrlListener aUrlListener, in nsIMsgWindow aMsgWindow);
 

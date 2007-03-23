@@ -63,6 +63,7 @@
 #include "nsIPrefService.h"
 #include "nsDirectoryServiceDefs.h"
 #include "nsMsgUtils.h"
+#include "nsILineInputStream.h"
 
 NS_IMPL_THREADSAFE_ADDREF(nsMsgProtocol)
 NS_IMPL_THREADSAFE_RELEASE(nsMsgProtocol)
@@ -775,114 +776,47 @@ NS_IMETHODIMP nsMsgProtocol::Resume()
   return NS_ERROR_NOT_AVAILABLE;
 }
 
-nsresult nsMsgProtocol::PostMessage(nsIURI* url, nsIFileSpec *fileSpec)
+nsresult nsMsgProtocol::PostMessage(nsIURI* url, nsIFile *postFile)
 {
-    if (!url || !fileSpec) return NS_ERROR_NULL_POINTER;
+  if (!url || !postFile) return NS_ERROR_NULL_POINTER;
 
 #define POST_DATA_BUFFER_SIZE 2048
 
-    // mscott -- this function should be re-written to use the file url code
-    // so it can be asynch
-    nsFileSpec afileSpec;
-    fileSpec->GetFileSpec(&afileSpec);
-    nsInputFileStream * fileStream = new nsInputFileStream(afileSpec,
-                                                           PR_RDONLY, 00700);
-    if (fileStream && fileStream->is_open())
+  // mscott -- this function should be re-written to use the file url code
+  // so it can be asynch
+  nsCOMPtr<nsIInputStream> inputStream;
+  nsresult rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), postFile);
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsILineInputStream> lineInputStream(do_QueryInterface(inputStream, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  PRBool more = PR_TRUE;
+  nsXPIDLCString line;
+  nsCString outputBuffer;
+
+  do 
+  {
+    lineInputStream->ReadLine(line, &more);
+    
+    /* escape starting periods 
+     */
+    if (line.CharAt(0) == '.')
+      line.Insert('.', 0);
+    line.Append(NS_LITERAL_CSTRING(MSG_LINEBREAK));
+    outputBuffer.Append(line);
+    // test hack by mscott. If our buffer is almost full, then
+    // send it off & reset ourselves 
+    // to make more room.
+    if (outputBuffer.Length() > POST_DATA_BUFFER_SIZE || !more)
     {
-        PRInt32 amtInBuffer = 0; 
-        PRBool lastLineWasComplete = PR_TRUE;
-        
-        PRBool quoteLines = PR_TRUE;  // it is always true but I'd like to
-                                      // generalize this function and then it
-                                      // might not be 
-        char buffer[POST_DATA_BUFFER_SIZE];
-        
-        if (quoteLines /* || add_crlf_to_line_endings */)
-        {
-            char *line;
-            char * b = buffer;
-            PRInt32 bsize = POST_DATA_BUFFER_SIZE;
-            amtInBuffer =  0;
-            do {
-                lastLineWasComplete = PR_TRUE;
-                PRInt32 L = 0;
-                if (fileStream->eof())
-                {
-                    line = nsnull;
-                    break;
-                }
-                
-                if (!fileStream->readline(b, bsize-5)) 
-                    lastLineWasComplete = PR_FALSE;
-                line = b;
-                
-                L = PL_strlen(line);
-                
-                /* escape periods only if quote_lines_p is set
-                 */
-                if (quoteLines && lastLineWasComplete && line[0] == '.')
-                {
-                    /* This line begins with "." so we need to quote it
-                       by adding another "." to the beginning of the line.
-                       */
-                    PRInt32 i;
-                    line[L+1] = 0;
-                    for (i = L; i > 0; i--)
-                        line[i] = line[i-1];
-                    L++;
-                }
-                
-                if (!lastLineWasComplete || (L > 1 && line[L-2] == nsCRT::CR &&
-                                             line[L-1] == nsCRT::LF))
-                {
-                    /* already ok */
-                }
-                else if(L > 0 /* && (line[L-1] == nsCRT::LF || line[L-1] == nsCRT::CR) */)
-                {
-                    /* only add the crlf if required
-                     * we still need to do all the
-                     * if comparisons here to know
-                     * if the line was complete
-                     */
-                    if(/* add_crlf_to_line_endings */ PR_TRUE)
-                    {
-                        /* Change newline to CRLF. */
-                          line[L++] = nsCRT::CR;
-                          line[L++] = nsCRT::LF;
-                          line[L] = 0;
-                    }
-                }
-                else if (L == 0 && !fileStream->eof()
-                         /* && add_crlf_to_line_endings */)
-                {
-                    // jt ** empty line; output CRLF
-                    line[L++] = nsCRT::CR;
-                    line[L++] = nsCRT::LF;
-                    line[L] = 0;
-                }
-                
-                bsize -= L;
-                b += L;
-                amtInBuffer += L;
-                // test hack by mscott. If our buffer is almost full, then
-                // send it off & reset ourselves 
-                // to make more room.
-                if (bsize < 100) // i chose 100 arbitrarily.
-                {
-                    if (*buffer)
-                        SendData(url, buffer);
-                    buffer[0] = '\0';
-                    b = buffer; // reset buffer
-                    bsize = POST_DATA_BUFFER_SIZE;
-                }
-                
-            } while (line /* && bsize > 100 */);
-        }
-        
-        SendData(url, buffer); 
-        delete fileStream;
+      SendData(url, outputBuffer.get());
+      // does this keep the buffer around? That would be best.
+      // Maybe SetLength(0) instead?
+      outputBuffer.Truncate();
     }
-    return NS_OK;
+  } while (more);
+
+  return NS_OK;
 }
 
 nsresult nsMsgProtocol::DoGSSAPIStep1(const char *service, const char *username, nsCString &response)

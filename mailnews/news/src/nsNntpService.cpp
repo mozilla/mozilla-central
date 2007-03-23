@@ -943,7 +943,7 @@ nsNntpService::GetNntpServerByAccount(const char *aAccountKey, nsIMsgIncomingSer
 }
 
 NS_IMETHODIMP
-nsNntpService::PostMessage(nsIFileSpec *fileToPost, const char *newsgroupsNames, const char *aAccountKey, nsIUrlListener * aUrlListener, nsIMsgWindow *aMsgWindow, nsIURI **_retval)
+nsNntpService::PostMessage(nsIFile *aFileToPost, const char *newsgroupsNames, const char *aAccountKey, nsIUrlListener * aUrlListener, nsIMsgWindow *aMsgWindow, nsIURI **_retval)
 {
   // aMsgWindow might be null
   NS_ENSURE_ARG_POINTER(newsgroupsNames);
@@ -977,7 +977,7 @@ nsNntpService::PostMessage(nsIFileSpec *fileToPost, const char *newsgroupsNames,
   NS_ENSURE_SUCCESS(rv,rv);
   if (!post) return NS_ERROR_FAILURE;
 
-  rv = post->SetPostMessageFile(fileToPost);
+  rv = post->SetPostMessageFile(aFileToPost);
   NS_ENSURE_SUCCESS(rv,rv);
   
   rv = nntpUrl->SetMessageToPost(post);

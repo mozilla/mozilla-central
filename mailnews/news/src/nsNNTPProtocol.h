@@ -279,7 +279,7 @@ private:
   nsresult GetNewsStringByName(const char *aName, PRUnichar **aString);
   nsresult GetNewsStringByID(PRInt32 stringID, PRUnichar **aString);
 
-  PRInt32 PostMessageInFile(nsIFileSpec * filePath);
+  PRInt32 PostMessageInFile(nsIFile * filePath);
 
   ////////////////////////////////////////////////////////////////////////////////////////
   // Communication methods --> Reading and writing protocol

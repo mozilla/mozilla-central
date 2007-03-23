@@ -50,15 +50,14 @@ NS_IMPL_ISUPPORTS1(nsNNTPNewsgroupPost, nsINNTPNewsgroupPost)
 
 nsNNTPNewsgroupPost::nsNNTPNewsgroupPost()
 {
-    int i;
-    for (i=0; i <= HEADER_LAST; i++)
-        m_header[i]=nsnull;
+  int i;
+  for (i=0; i <= HEADER_LAST; i++)
+    m_header[i]=nsnull;
 
-    m_body=nsnull;
-    m_messageBuffer=nsnull;
-    
-    m_isControl=PR_FALSE;
-	m_postMessageFile = nsnull;
+  m_body=nsnull;
+  m_messageBuffer=nsnull;
+
+  m_isControl=PR_FALSE;
 }
 
 nsNNTPNewsgroupPost::~nsNNTPNewsgroupPost()
@@ -69,7 +68,6 @@ nsNNTPNewsgroupPost::~nsNNTPNewsgroupPost()
 
     PR_FREEIF(m_body);
     PR_FREEIF(m_messageBuffer);
-    NS_IF_RELEASE(m_postMessageFile);
 }
 
 static char *
@@ -106,28 +104,20 @@ nsNNTPNewsgroupPost::AddNewsgroup(const char *newsgroup)
 // the message can be stored in a file....allow accessors for getting and setting
 // the file name to post...
 nsresult
-nsNNTPNewsgroupPost::SetPostMessageFile(nsIFileSpec * aPostMessageFile)
+nsNNTPNewsgroupPost::SetPostMessageFile(nsIFile * aPostMessageFile)
 {
-	NS_LOCK_INSTANCE();
-	if (aPostMessageFile)
-	{
-		NS_IF_RELEASE(m_postMessageFile);
-		m_postMessageFile = aPostMessageFile;
-		NS_IF_ADDREF(m_postMessageFile);
-	}
-	NS_UNLOCK_INSTANCE();
-	return NS_OK;
+  NS_LOCK_INSTANCE();
+  m_postMessageFile = aPostMessageFile;
+  NS_UNLOCK_INSTANCE();
+  return NS_OK;
 }
 
 nsresult 
-nsNNTPNewsgroupPost::GetPostMessageFile(nsIFileSpec ** aPostMessageFile)
+nsNNTPNewsgroupPost::GetPostMessageFile(nsIFile ** aPostMessageFile)
 {
-	NS_LOCK_INSTANCE();
-	if (aPostMessageFile)
-	{
-		*aPostMessageFile = m_postMessageFile;
-		NS_IF_ADDREF(m_postMessageFile);
-	}
-    NS_UNLOCK_INSTANCE();
-    return NS_OK;
+  NS_LOCK_INSTANCE();
+  if (aPostMessageFile)
+    NS_IF_ADDREF(*aPostMessageFile = m_postMessageFile);
+  NS_UNLOCK_INSTANCE();
+  return NS_OK;
 }

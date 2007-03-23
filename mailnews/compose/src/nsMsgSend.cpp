@@ -3657,9 +3657,9 @@ nsMsgComposeAndSend::DeliverFileAsNews()
     // Note: Don't do a SetMsgComposeAndSendObject since we are in the same thread, and
     // using callbacks for notification
     
-    nsCOMPtr<nsIFileSpec>fileToPost;
+    nsCOMPtr<nsILocalFile> fileToPost;
     
-    rv = NS_NewFileSpecWithSpec(*mTempFileSpec, getter_AddRefs(fileToPost));
+    rv = NS_FileSpecToIFile(mTempFileSpec, getter_AddRefs(fileToPost));
     if (NS_FAILED(rv)) return rv;
     
     // Tell the user we are posting the message!

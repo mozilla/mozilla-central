@@ -42,9 +42,9 @@
 
 #include "nsISupports.idl"
 
-interface nsIFileSpec;
+interface nsIFile;
 
-[scriptable, uuid(c4164a20-bc74-11d2-b7f2-00805f05ffa5)]
+[scriptable, uuid(9979a2cb-a4e6-45e6-bfeb-b08e704c5a2b)]
 interface nsINNTPNewsgroupPost : nsISupports {
     
     /* from RFC850 */
@@ -76,13 +76,10 @@ interface nsINNTPNewsgroupPost : nsISupports {
     /* the message itself */
     attribute string body;
 
-    /* the path to the message */
-    /* attribute nsFilePath postMessageFile; */
-        
     /* is this a control message? */
     readonly attribute boolean isControl;
 
-    attribute nsIFileSpec postMessageFile;
+    attribute nsIFile postMessageFile;
 };
 
 

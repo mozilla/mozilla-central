@@ -3725,11 +3725,11 @@ nsresult nsNNTPProtocol::GetNewsStringByName(const char *aName, PRUnichar **aStr
 }
 
 // sspitzer:  PostMessageInFile is derived from nsSmtpProtocol::SendMessageInFile()
-PRInt32 nsNNTPProtocol::PostMessageInFile(nsIFileSpec *aPostMessageFile)
+PRInt32 nsNNTPProtocol::PostMessageInFile(nsIFile *postMessageFile)
 {
     nsCOMPtr<nsIURI> url = do_QueryInterface(m_runningURL);
-    if (url && aPostMessageFile)
-        nsMsgProtocol::PostMessage(url, aPostMessageFile);
+    if (url && postMessageFile)
+        nsMsgProtocol::PostMessage(url, postMessageFile);
 
     SetFlag(NNTP_PAUSE_FOR_READ);
     
@@ -3761,7 +3761,7 @@ PRInt32 nsNNTPProtocol::PostData()
     rv = m_runningURL->GetMessageToPost(getter_AddRefs(message));
     if (NS_SUCCEEDED(rv)) 
     {
-        nsCOMPtr<nsIFileSpec> filePath;
+        nsCOMPtr<nsIFile> filePath;
         rv = message->GetPostMessageFile(getter_AddRefs(filePath));
         if (NS_SUCCEEDED(rv)) 
             PostMessageInFile(filePath);

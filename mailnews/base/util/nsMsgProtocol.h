@@ -142,7 +142,7 @@ protected:
     // aSuppressLogging is a hint that sensitive data is being sent and should not be logged
   virtual PRInt32 SendData(nsIURI * aURL, const char * dataBuffer, PRBool aSuppressLogging = PR_FALSE);
 
-  virtual nsresult PostMessage(nsIURI* url, nsIFileSpec * fileSpec);
+  virtual nsresult PostMessage(nsIURI* url, nsIFile* aPostFile);
 
   virtual nsresult InitFromURI(nsIURI *aUrl);
 
