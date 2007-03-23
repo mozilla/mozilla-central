@@ -196,11 +196,9 @@ nsXFormsLabelElement::PerformAccesskey()
   nsCOMPtr<nsIDOMNode> parent;
   node->GetParentNode(getter_AddRefs(parent));
   if (parent) {
-    nsCOMPtr<nsIXFormsUIWidget> widget(do_QueryInterface(parent));
-    if (widget) {
-      PRBool isFocused;
-      widget->Focus(&isFocused);
-    }
+    nsCOMPtr<nsIXTFElement> parentElm(do_QueryInterface(parent));
+    if (parentElm)
+      parentElm->PerformAccesskey();
   }
 
   return NS_OK;

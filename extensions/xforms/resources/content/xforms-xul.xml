@@ -331,8 +331,15 @@
     <implementation>
       <method name="getControlElement">
         <body>
-          return this.ownerDocument.
-            getAnonymousElementByAttribute(this, 'anonid', 'control');
+          return {
+            __proto__: this.ownerDocument.
+              getAnonymousElementByAttribute(this, 'anonid', 'control'),
+
+            activate: function triggerControlElmActivate() {
+              this.focus();
+              this.click();
+            }
+          };
         </body>
       </method>
     </implementation>
@@ -364,10 +371,19 @@
           return {
             __proto__: this.ownerDocument.
               getAnonymousElementByAttribute(this, 'anonid', 'control'),
+            trigger: this,
 
             set disabled(val) {
               this.isDisabled = val;
             },
+            activate: function triggerControlElmActivate(aNoFocus) {
+              if (!this.isDisabled) {
+                if (!aNoFocus)
+                  this.trigger.focus();
+                this.trigger.dispatchDOMUIEvent("DOMActivate");
+              }
+            },
+
             isDisabled: false
           }
         </body>
@@ -375,10 +391,7 @@
     </implementation>
 
     <handlers>
-      <handler event="click">
-        if (!this.control.isDisabled)
-          this.dispatchDOMUIEvent("DOMActivate");
-      </handler>
+      <handler event="click" action="this.control.activate(true)"/>
     </handlers>
   </binding>
 

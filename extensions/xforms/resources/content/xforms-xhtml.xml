@@ -313,6 +313,10 @@
             } else {
               this.removeAttribute('disabled');
             }
+          },
+          activate: function triggerControlElmActivate() {
+            this.focus();
+            this.click();
           }
         };
       </body>
@@ -352,10 +356,19 @@
         return {
           __proto__: this.ownerDocument.
             getAnonymousElementByAttribute(this, 'anonid', 'control'),
+          trigger: this,
 
           set disabled(val) {
             this.isDisabled = val;
           },
+          activate: function triggerControlElmActivate(aNoFocus) {
+            if (!this.isDisabled) {
+              if (!aNoFocus)
+                this.trigger.focus();
+              this.trigger.dispatchDOMUIEvent("DOMActivate");
+            }
+          },
+
           isDisabled: false
         };
       </body>
@@ -364,10 +377,7 @@
     </implementation>
 
     <handlers>
-      <handler event="click">
-        if (!this.control.isDisabled) 
-          this.dispatchDOMUIEvent("DOMActivate");
-      </handler>
+      <handler event="click" action="this.control.activate(true);"/>
 
       <handler event="focus" phase="capturing">
         if (event.originalTarget == this.control) {
@@ -533,6 +543,10 @@
             focus: function() {
               this._browseButton.focus();
             },
+            activate: function uploadControlElmActivate() {
+              this._browseButton.focus();
+              this._upload.uploadElement.pickFile();
+            },
 
             _browseButton: this.ownerDocument.
               getAnonymousElementByAttribute(this, 'anonid', 'browse_button'),
@@ -540,6 +554,7 @@
               getAnonymousElementByAttribute(this, 'anonid', 'clear_button'),
             _textControl: this.ownerDocument.
               getAnonymousElementByAttribute(this, 'anonid', 'text_control'),
+            _upload: this
           };
         </body>
       </method>

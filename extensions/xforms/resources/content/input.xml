@@ -153,6 +153,15 @@
         </body>
       </method>
 
+      <method name="performAccesskey">
+        <body>
+          this.focus();
+
+          this.control.value = !this.control.value;
+          this.updateInstanceData();
+        </body>
+      </method>
+
       <method name="getCurrentValue">
         <body>
           return this.control.value ? "true" : "false";

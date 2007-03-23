@@ -46,7 +46,7 @@
  * http://developer.mozilla.org/en/docs/XForms:Custom_Controls
  *
  */
-[scriptable, uuid(f636007c-cc01-4295-b3cb-d525054c4a14)]
+[scriptable, uuid(0448d5cd-c69c-4279-9dab-eeaee47dbc1a)]
 interface nsIXFormsUIWidget : nsIDOMElement
 {
   /**
@@ -58,6 +58,12 @@ interface nsIXFormsUIWidget : nsIDOMElement
    * Tries to focus the UI Widget. Returns true, if focusing succeeded.
    */
   boolean focus();
+
+  /**
+   * The method focuses (or activates) element that accesskey is bound to. It is
+   * called when accesskey is activated.
+   */
+  void performAccesskey();
 
   /**
    * During submission, the \<submit\> should be disabled.
