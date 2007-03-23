@@ -49,8 +49,6 @@
 
 // XXXdmose need to re-query for add & modify to get up-to-date items
 
-// XXXdmose deal with etags
-
 // XXXdmose deal with locking
 
 // XXXdmose need to make and use better error reporting interface for webdav
@@ -65,6 +63,7 @@ function calDavCalendar() {
     this.mObservers = Array();
     this.unmappedProperties = [];
     this.mUriParams = null;
+    this.mEtagCache = Array();
 }
 
 // some shorthand
@@ -72,6 +71,7 @@ const nsIWebDAVOperationListener =
     Components.interfaces.nsIWebDAVOperationListener;
 const calICalendar = Components.interfaces.calICalendar;
 const nsISupportsCString = Components.interfaces.nsISupportsCString;
+const calIErrors = Components.interfaces.calIErrors;
 
 var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
                         .getService(Components.interfaces.nsIXULAppInfo);
@@ -102,6 +102,12 @@ const kCaldavAuthenticated = 3;         // Queue being processed or empty
 const kDavResourceTypeNone = 0;
 const kDavResourceTypeCollection = 1;
 const kDavResourceTypeCalendar = 2;
+
+// used for etag checking
+const CALDAV_ADOPT_ITEM = 1;
+const CALDAV_MODIFY_ITEM = 2;
+const CALDAV_DELETE_ITEM = 3;
+const CALDAV_CACHE_ETAG = 4;
 
 calDavCalendar.prototype = {
     //
@@ -242,20 +248,173 @@ calDavCalendar.prototype = {
             function(o) {return (o != aObserver);});
     },
 
-    // void addItem( in calIItemBase aItem, in calIOperationListener aListener );
-    addItem: function (aItem, aListener) {
+    /**
+     * Fetches etag from server and compares with local cached version
+     * before we add/adopt/modify/delete item.
+     *
+     * @param aMethod     requested method (adopt/modify/delete)
+     * @param aItem       item to check
+     * @param aListener   listener from original request
+     * @param aOldItem    aOldItem argument in modifyItem requests
+     */
+    fetchEtag: function caldavFE(aMethod, aItem, aListener, aOldItem) {
+        if (this.readOnly) {
+            throw calIErrors.CAL_IS_READONLY;
+        }
+
+        var serverEtag = null;
+        var listener = new WebDavListener();
+
+        var thisCalendar = this;
+
+        var itemUri = this.mCalendarUri.clone();
+
+        try {
+            itemUri.spec = this.mMakeUri(aItem.getProperty("X-MOZ-LOCATIONPATH"));
+            LOG("using X-MOZ-LOCATIONPATH: " + itemUri.spec);
+        } catch (ex) {
+            // XXX how are we REALLY supposed to figure this out?
+            itemUri.spec = this.mMakeUri(aItem.id + ".ics");
+        }
+
+        var itemResource = new WebDavResource(itemUri);
+
+        listener.onOperationComplete = function OOC(aStatusCode,
+                                                    aResource,
+                                                    aOperation,
+                                                    aClosure)
+        {
+            var mismatch = (serverEtag != thisCalendar.mEtagCache[aItem.id]);
+
+            switch (aMethod) {
+                case CALDAV_ADOPT_ITEM:
+                    if (serverEtag != null) {
+                        // The server thinks it already has an item we want to
+                        // create as new. This either a server error or we're
+                        // trying to copy an item onto itself; either way the
+                        // safe thing to do is abort the operation.
+                        LOG("CalDAV: non-null etag in adoptItem");
+                        thisCalendar.readOnly = true;
+                    } else {
+                        thisCalendar.performAdoptItem(aItem, aListener);
+                    }
+                    break;
+
+                case CALDAV_MODIFY_ITEM:
+                    if (mismatch) {
+                        LOG("CalDAV: etag mismatch in modifyItem");
+                        thisCalendar.promptOverwrite(aMethod, aItem,
+                                                     aListener, aOldItem);
+                    } else {
+                        thisCalendar.performModifyItem(aItem, aOldItem, aListener);
+                    }
+                    break;
+
+                case CALDAV_DELETE_ITEM:
+                    if (mismatch) {
+                        LOG("CalDAV: etag mismatch in deleteItem");
+                        thisCalendar.promptOverwrite(aMethod, aItem,
+                                                     aListener, null);
+                    } else {
+                        thisCalendar.performDeleteItem(aItem, aListener);
+                    }
+                    break;
+
+                default:
+                    thisCalendar.mEtagCache[aItem.id] = serverEtag;
+                    break;
+            }
+        }
+
+        listener.onOperationDetail = function OOD(aStatusCode, aResource,
+                                                  aOperation, aDetail,
+                                                  aClosure) {
+            var props = aDetail.QueryInterface(Ci.nsIProperties);
+            serverEtag = props.get("DAV: getetag",
+                                   Ci.nsISupportsString).toString();
+        }
+
+        var webdavSvc = Cc['@mozilla.org/webdav/service;1'].
+                        getService(Ci.nsIWebDAVService);
+        webdavSvc.getResourceProperties(itemResource, 1, ["DAV: getetag"],
+                                        false, listener, this, null);
+    },
+
+    promptOverwrite: function caldavPO(aMethod, aItem, aListener, aOldItem) {
+        var promptService = Cc["@mozilla.org/embedcomp/prompt-service;1"].
+                            getService(Ci.nsIPromptService);
+
+        var promptTitle = calGetString("calendar", "itemModifiedOnServerTitle");
+        var promptMessage = calGetString("calendar", "itemModifiedOnServer");
+        var buttonLabel1;
+
+        if (aMethod == CALDAV_MODIFY_ITEM) {
+            promptMessage += calGetString("calendar", "modifyWillLoseData");
+            buttonLabel1 = calGetString("calendar", "proceedModify");
+        } else {
+            promptMessage += calGetString("calendar", "deleteWillLoseData");
+            buttonLabel1 = calGetString("calendar", "proceedDelete");
+        }
+        
+        var buttonLabel2 = calGetString("calendar", "updateFromServer");
+
+        var flags = promptService.BUTTON_TITLE_IS_STRING *
+                    promptService.BUTTON_POS_0 +
+                    promptService.BUTTON_TITLE_IS_STRING *
+                    promptService.BUTTON_POS_1;
+
+        var choice = promptService.confirmEx(null, promptTitle, promptMessage,
+                                             flags, buttonLabel1, buttonLabel2,
+                                             null, null, {});
+
+        if (choice == 0) {
+            if (aMethod == CALDAV_MODIFY_ITEM) {
+                this.performModifyItem(aItem, aOldItem, aListener);
+            } else {
+                this.performDeleteItem(aItem, aListener);
+            }
+        } else {
+            this.getUpdatedItem(aItem, aListener);
+        }
+
+    },
+
+    mEtagCache: Array(),
+
+    /**
+     * addItem() is required by the IDL, but simply calls adoptItem().
+     * Actually adding the item to the CalDAV store takes place in
+     * performAdoptItem().
+     *
+     * @param aItem       item to check
+     * @param aListener   listener for method completion
+     */
+    addItem: function caldavAI(aItem, aListener) {
         var newItem = aItem.clone();
         return this.adoptItem(newItem, aListener);
     },
+    
+    /**
+     * Sends data regarding the requested new item off for etag checking.
+     *
+     * @param aItem       item to check
+     * @param aListener   listener for method completion
+     */
+    adoptItem: function caldavAI2(aItem, aListener) {
+        this.fetchEtag(CALDAV_ADOPT_ITEM, aItem, aListener, null);
+    },
 
-    // void adoptItem( in calIItemBase aItem, in calIOperationListener aListener );
-    adoptItem: function (aItem, aListener) {
-        if (this.readOnly) {
-            throw Components.interfaces.calIErrors.CAL_IS_READONLY;
-        }
-        
-        if (aItem.id == null && aItem.isMutable)
+    /**
+     * Performs the actual addition of the item to CalDAV store, after etag
+     * checking.
+     *
+     * @param aItem       item to check
+     * @param aListener   listener for method completion
+     */
+    performAdoptItem: function caldavPAI(aItem, aListener) {
+        if (aItem.id == null && aItem.isMutable) {
             aItem.id = getUUID();
+        }
 
         if (aItem.id == null) {
             if (aListener)
@@ -285,13 +444,13 @@ calDavCalendar.prototype = {
                 LOG("Item added successfully");
 
                 var retVal = Components.results.NS_OK;
+                // CalDAV does not require that the etag returned on PUT will
+                // be identical to the etag returned on later operations
+                // (CalDAV 5.3.4), so we best re-query.
+                thisCalendar.fetchEtag(CALDAV_CACHE_ETAG, aItem, null, null);
 
             } else if (aStatusCode == 200) {
-                // XXXdmose once we get etag stuff working, this should
-                // 
-                LOG("200 received from clients, until we have etags working"
-                      + " this probably means a collision; after that it'll"
-                      + " mean server malfunction");
+                LOG("CalDAV: 200 received from server: server malfunction");
                 retVal = Components.results.NS_ERROR_FAILURE;
             } else {
                 if (aStatusCode > 999) {
@@ -340,11 +499,25 @@ calDavCalendar.prototype = {
         return;
     },
 
-    // void modifyItem( in calIItemBase aNewItem, in calIItemBase aOldItem, in calIOperationListener aListener );
-    modifyItem: function modifyItem(aNewItem, aOldItem, aListener) {
-        if (this.readOnly) {
-            throw Components.interfaces.calIErrors.CAL_IS_READONLY;
-        }
+    /**
+     * Sends info about the request to modify an item off for etag checking.
+     *
+     * @param aItem       item to check
+     * @param aOldItem    aOldItem argument in modifyItem requests
+     * @param aListener   listener from original request
+     */
+    modifyItem: function caldavMI(aItem, aOldItem, aListener) {
+        this.fetchEtag(CALDAV_MODIFY_ITEM, aItem, aListener, aOldItem);
+    },
+
+    /**
+     * Modifies existing item in CalDAV store.
+     *
+     * @param aItem       item to check
+     * @param aOldItem    previous version of item to be modified
+     * @param aListener   listener from original request
+     */
+    performModifyItem: function caldavPMI(aNewItem, aOldItem, aListener) {
 
         if (aNewItem.id == null) {
 
@@ -380,6 +553,8 @@ calDavCalendar.prototype = {
             eventUri.spec = this.mMakeUri(aNewItem.id + ".ics");
         }
 
+        // It seems redundant to use generation when we have etags
+        // but until the idl is changed we do it.
         if (aOldItem.parentItem.generation != aNewItem.generation) {
             if (aListener) {
                 aListener.onOperationComplete (this.calendarToReturn,
@@ -414,13 +589,16 @@ calDavCalendar.prototype = {
 
         listener.onOperationComplete = function(aStatusCode, aResource,
                                                 aOperation, aClosure) {
-
             // 201 = HTTP "Created"
             // 204 = HTTP "No Content"
             //
             if (aStatusCode == 204 || aStatusCode == 201) {
                 LOG("Item modified successfully.");
                 var retVal = Components.results.NS_OK;
+                // CalDAV does not require that the etag returned on PUT will
+                // be identical to the etag returned on later operations
+                // (CalDAV 5.3.4), so we best re-query.
+                thisCalendar.fetchEtag(CALDAV_CACHE_ETAG, aNewItem, null, null);
 
             } else {
                 if (aStatusCode > 999) {
@@ -470,12 +648,23 @@ calDavCalendar.prototype = {
         return;
     },
 
+    /**
+     * Sends data regarding requested deletion off for etag checking.
+     *
+     * @param aItem       item to check
+     * @param aListener   listener for method completion
+     */
+    deleteItem: function caldavDI(aItem, aListener) {
+        this.fetchEtag(CALDAV_DELETE_ITEM, aItem, aListener, null);
+    },
 
-    // void deleteItem( in calIItemBase aItem, in calIOperationListener aListener );
-    deleteItem: function (aItem, aListener) {
-        if (this.readOnly) {
-            throw Components.interfaces.calIErrors.CAL_IS_READONLY;
-        }
+    /**
+     * Deletes item from CalDAV store.
+     *
+     * @param aItem       item to delete
+     * @param aListener   listener for method completion
+     */
+    performDeleteItem: function caldavPDI(aItem, aListener) {
 
         if (aItem.id == null) {
             if (aListener)
@@ -508,6 +697,7 @@ calDavCalendar.prototype = {
             // 204 = HTTP "No content"
             //
             if (aStatusCode == 204) {
+                delete thisCalendar.mEtagCache[aItem.id];
                 LOG("Item deleted successfully.");
                 var retVal = Components.results.NS_OK;
             } else {
@@ -536,13 +726,68 @@ calDavCalendar.prototype = {
             }
         }
 
-        // XXX check etag/generation
+        // XXX check generation
         // do WebDAV remove
         var webSvc = Components.classes['@mozilla.org/webdav/service;1']
             .getService(Components.interfaces.nsIWebDAVService);
         webSvc.remove(eventResource, listener, this, null);
 
         return;
+    },
+
+    /**
+     * Retrieves a specific item from the CalDAV store.
+     * Use when an outdated copy of the item is in hand.
+     *
+     * @param aItem       item to fetch
+     * @param aListener   listener for method completion
+     */
+    getUpdatedItem: function caldavGUI(aItem, aListener) {
+        if (!aListener) {
+            return;
+        }
+
+        if (aItem == null) {
+            aListener.onOperationComplete(this,
+                                          Components.results.NS_ERROR_FAILURE,
+                                          aListener.GET,
+                                          null,
+                                          "passed in null item");
+            return;
+        }
+
+        var itemType = "VEVENT";
+        if (aItem instanceof Ci.calITodo) {
+            itemType = "VTODO";
+        }
+
+        var C = new Namespace("C", "urn:ietf:params:xml:ns:caldav");
+        var D = new Namespace("D", "DAV:");
+        default xml namespace = C;
+
+        queryXml =
+          <calendar-query xmlns:D="DAV:">
+            <D:prop>
+              <D:getetag/>
+              <calendar-data/>
+            </D:prop>
+            <filter>
+              <comp-filter name="VCALENDAR">
+                <comp-filter name={itemType}>
+                  <prop-filter name="UID">
+                    <text-match collation="i;octet">
+                      {aItem.id}
+                    </text-match>
+                  </prop-filter>
+                </comp-filter>
+              </comp-filter>
+            </filter>
+          </calendar-query>;
+
+        this.reportInternal(xmlHeader + queryXml.toXMLString(),
+                            false, null, null, 1, aListener, aItem);
+        return;
+
     },
 
     // void getItem( in string id, in calIOperationListener aListener );
@@ -589,7 +834,8 @@ calDavCalendar.prototype = {
         return;
     },
 
-    reportInternal: function (aQuery, aOccurrences, aRangeStart, aRangeEnd, aCount, aListener)
+    reportInternal: function caldavRI(aQuery, aOccurrences, aRangeStart,
+                                      aRangeEnd, aCount, aListener, aItem)
     {
         var reportListener = new WebDavListener();
         var count = 0;  // maximum number of hits to return
@@ -636,6 +882,8 @@ calDavCalendar.prototype = {
                 // XXX error-check that we only have one result, etc
                 var C = new Namespace("urn:ietf:params:xml:ns:caldav");
                 var D = new Namespace("DAV:");
+
+                var etag = responseElement..D::["getetag"];
 
                 // cause returned data to be parsed into the item
                 var calData = responseElement..C::["calendar-data"];
@@ -738,6 +986,16 @@ calDavCalendar.prototype = {
                 // we can be confident that 'item' means something below
                 for each (var item in unexpandedItems) {
                     item.calendar = thisCalendar;
+                }
+
+                thisCalendar.mEtagCache[item.id] = etag;
+                if (aItem) {
+                    // if aItem is not null, we were called from
+                    // getUpdatedItem(), and the view isn't listening to any
+                    // changes. So in order to have the updated item displayed
+                    // we need to modify the item currently displayed with
+                    // the one just fetched
+                    thisCalendar.observeModifyItem(item, aItem.parentItem);
                 }
 
                 // figure out what type of item to return
@@ -884,6 +1142,7 @@ calDavCalendar.prototype = {
         var queryXml = 
           <calendar-query xmlns:D={D}>
             <D:prop>
+              <D:getetag/>
               <calendar-data/>
             </D:prop>
             <filter>
@@ -948,7 +1207,7 @@ calDavCalendar.prototype = {
         var occurrences = (aItemFilter &
                            calICalendar.ITEM_FILTER_CLASS_OCCURRENCES) != 0; 
         this.reportInternal(queryString, occurrences, aRangeStart, aRangeEnd,
-                            aCount, aListener);
+                            aCount, aListener, null);
     },
 
     startBatch: function ()
