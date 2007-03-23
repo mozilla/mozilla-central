@@ -37,7 +37,7 @@
 /*
  * Interface to the OCSP implementation.
  *
- * $Id: ocsp.h,v 1.7 2006-02-03 18:13:04 kaie%kuix.de Exp $
+ * $Id: ocsp.h,v 1.8 2007-03-23 05:35:15 kaie%kuix.de Exp $
  */
 
 #ifndef _OCSP_H_
@@ -66,6 +66,37 @@ SEC_BEGIN_PROTOS
  */
 extern SECStatus
 SEC_RegisterDefaultHttpClient(const SEC_HttpClientFcn *fcnTable);
+
+/*
+ * Sets parameters that control NSS' internal OCSP cache.
+ * maxCacheEntries, special varlues are:
+ *   -1 disable cache
+ *   0 unlimited cache entries
+ * minimumSecondsToNextFetchAttempt:
+ *   whenever an OCSP request was attempted or completed over the network,
+ *   wait at least this number of seconds before trying to fetch again.
+ * maximumSecondsToNextFetchAttempt:
+ *   this is the maximum age of a cached response we allow, until we try
+ *   to fetch an updated response, even if the OCSP responder expects
+ *   that newer information update will not be available yet.
+ */
+extern SECStatus
+CERT_OCSPCacheSettings(PRInt32 maxCacheEntries,
+                       PRUint32 minimumSecondsToNextFetchAttempt,
+                       PRUint32 maximumSecondsToNextFetchAttempt);
+
+/*
+ * Set the desired behaviour on OCSP failures.
+ * See definition of ocspFailureMode for allowed choices.
+ */
+extern SECStatus
+CERT_SetOCSPFailureMode(SEC_OcspFailureMode ocspFailureMode);
+
+/*
+ * Removes all items currently stored in the OCSP cache.
+ */
+extern SECStatus
+CERT_ClearOCSPCache(void);
 
 /*
  * FUNCTION: CERT_EnableOCSPChecking
