@@ -977,17 +977,11 @@ NS_IMETHODIMP nsMsgAccountManager::GetFolderCache(nsIMsgFolderCache* *aFolderCac
         return rv;
 
     nsCOMPtr<nsIFile> cacheFile;
-    nsCOMPtr <nsIFileSpec> cacheFileSpec;
     
     rv = NS_GetSpecialDirectory(NS_APP_MESSENGER_FOLDER_CACHE_50_DIR, getter_AddRefs(cacheFile));
     if (NS_FAILED(rv)) return rv;
     
-    // TODO: Make nsIMsgFolderCache::Init take an nsIFile and
-    // avoid this conversion.
-    rv = NS_NewFileSpecFromIFile(cacheFile, getter_AddRefs(cacheFileSpec));
-    if (NS_FAILED(rv)) return rv;
-               
-    m_msgFolderCache->Init(cacheFileSpec);
+    m_msgFolderCache->Init(cacheFile);
   }
 
   *aFolderCache = m_msgFolderCache;

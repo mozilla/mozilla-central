@@ -38,13 +38,13 @@
 
 #include "nsISupports.idl"
 
-interface nsIFileSpec;
+interface nsIFile;
 interface nsIMsgFolderCacheElement;
 
 [scriptable, uuid(a340a8c8-3587-4d7a-a2af-ed06b923d5ac)]
 interface nsIMsgFolderCache : nsISupports 
 {
-  void Init(in nsIFileSpec fileSpec);
+  void Init(in nsIFile aFile);
   nsIMsgFolderCacheElement GetCacheElement(in string key, in boolean createIfMissing);
   void clear();
   void close();

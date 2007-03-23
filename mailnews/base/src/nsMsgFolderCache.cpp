@@ -43,7 +43,6 @@
 #include "nsMorkCID.h"
 #include "nsIMdbFactoryFactory.h"
 #include "nsFileStream.h"
-#include "nsIFileSpec.h"
 
 #include "nsXPIDLString.h"
 #include "nsMsgBaseCID.h"
@@ -197,139 +196,138 @@ nsresult nsMsgFolderCache::InitExistingDB()
 
 nsresult nsMsgFolderCache::OpenMDB(const char *dbName, PRBool exists)
 {
-	nsresult ret=NS_OK;
-	nsIMdbFactory *myMDBFactory = GetMDBFactory();
-	if (myMDBFactory)
-	{
-		ret = myMDBFactory->MakeEnv(nsnull, &m_mdbEnv);
-		if (NS_SUCCEEDED(ret))
-		{
-			nsIMdbThumb *thumb = nsnull;
-			char	*nativeFileName = nsCRT::strdup(dbName);
-			nsIMdbHeap* dbHeap = 0;
-			mdb_bool dbFrozen = mdbBool_kFalse; // not readonly, we want modifiable
+  nsresult ret=NS_OK;
+  nsIMdbFactory *myMDBFactory = GetMDBFactory();
+  if (myMDBFactory)
+  {
+    ret = myMDBFactory->MakeEnv(nsnull, &m_mdbEnv);
+    if (NS_SUCCEEDED(ret))
+    {
+      nsIMdbThumb *thumb = nsnull;
+      char	*nativeFileName = nsCRT::strdup(dbName);
+      nsIMdbHeap* dbHeap = 0;
+      mdb_bool dbFrozen = mdbBool_kFalse; // not readonly, we want modifiable
 
-			if (!nativeFileName)
-				return NS_ERROR_OUT_OF_MEMORY;
+      if (!nativeFileName)
+        return NS_ERROR_OUT_OF_MEMORY;
 
-			if (m_mdbEnv)
-				m_mdbEnv->SetAutoClear(PR_TRUE);
-			if (exists)
-			{
-				mdbOpenPolicy inOpenPolicy;
-				mdb_bool	canOpen;
-				mdbYarn		outFormatVersion;
-				
-				nsIMdbFile* oldFile = 0;
-				ret = myMDBFactory->OpenOldFile(m_mdbEnv, dbHeap, nativeFileName,
-					 dbFrozen, &oldFile);
-				if ( oldFile )
-				{
-					if ( ret == NS_OK )
-					{
-						ret = myMDBFactory->CanOpenFilePort(m_mdbEnv, oldFile, // file to investigate
-							&canOpen, &outFormatVersion);
-						if (ret == 0 && canOpen)
-						{
-							inOpenPolicy.mOpenPolicy_ScopePlan.mScopeStringSet_Count = 0;
-							inOpenPolicy.mOpenPolicy_MinMemory = 0;
-							inOpenPolicy.mOpenPolicy_MaxLazy = 0;
+      if (m_mdbEnv)
+        m_mdbEnv->SetAutoClear(PR_TRUE);
+      if (exists)
+      {
+        mdbOpenPolicy inOpenPolicy;
+        mdb_bool	canOpen;
+        mdbYarn		outFormatVersion;
 
-							ret = myMDBFactory->OpenFileStore(m_mdbEnv, NULL, oldFile, &inOpenPolicy, 
-											&thumb); 
-						}
-						else
-							ret = NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE;
-					}
-					NS_RELEASE(oldFile); // always release our file ref, store has own
-				}
-			}
-			if (NS_SUCCEEDED(ret) && thumb)
-			{
-				mdb_count outTotal;    // total somethings to do in operation
-				mdb_count outCurrent;  // subportion of total completed so far
-				mdb_bool outDone = PR_FALSE;      // is operation finished?
-				mdb_bool outBroken;     // is operation irreparably dead and broken?
-				do
-				{
-					ret = thumb->DoMore(m_mdbEnv, &outTotal, &outCurrent, &outDone, &outBroken);
-					if (ret != 0)
-					{// mork isn't really doing NS errors yet.
-						outDone = PR_TRUE;
-						break;
-					}
-				}
-				while (NS_SUCCEEDED(ret) && !outBroken && !outDone);
-//				m_mdbEnv->ClearErrors(); // ### temporary...
-				if (NS_SUCCEEDED(ret) && outDone)
-				{
-					ret = myMDBFactory->ThumbToOpenStore(m_mdbEnv, thumb, &m_mdbStore);
-					if (ret == NS_OK && m_mdbStore)
-						ret = InitExistingDB();
-				}
+        nsIMdbFile* oldFile = 0;
+        ret = myMDBFactory->OpenOldFile(m_mdbEnv, dbHeap, nativeFileName,
+          dbFrozen, &oldFile);
+        if ( oldFile )
+        {
+          if ( ret == NS_OK )
+          {
+            ret = myMDBFactory->CanOpenFilePort(m_mdbEnv, oldFile, // file to investigate
+              &canOpen, &outFormatVersion);
+            if (ret == 0 && canOpen)
+            {
+              inOpenPolicy.mOpenPolicy_ScopePlan.mScopeStringSet_Count = 0;
+              inOpenPolicy.mOpenPolicy_MinMemory = 0;
+              inOpenPolicy.mOpenPolicy_MaxLazy = 0;
+
+              ret = myMDBFactory->OpenFileStore(m_mdbEnv, NULL, oldFile, &inOpenPolicy, 
+                &thumb); 
+            }
+            else
+              ret = NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE;
+          }
+          NS_RELEASE(oldFile); // always release our file ref, store has own
+        }
+      }
+      if (NS_SUCCEEDED(ret) && thumb)
+      {
+        mdb_count outTotal;    // total somethings to do in operation
+        mdb_count outCurrent;  // subportion of total completed so far
+        mdb_bool outDone = PR_FALSE;      // is operation finished?
+        mdb_bool outBroken;     // is operation irreparably dead and broken?
+        do
+        {
+          ret = thumb->DoMore(m_mdbEnv, &outTotal, &outCurrent, &outDone, &outBroken);
+          if (ret != 0)
+          {// mork isn't really doing NS errors yet.
+            outDone = PR_TRUE;
+            break;
+          }
+        }
+        while (NS_SUCCEEDED(ret) && !outBroken && !outDone);
+        //				m_mdbEnv->ClearErrors(); // ### temporary...
+        if (NS_SUCCEEDED(ret) && outDone)
+        {
+          ret = myMDBFactory->ThumbToOpenStore(m_mdbEnv, thumb, &m_mdbStore);
+          if (ret == NS_OK && m_mdbStore)
+            ret = InitExistingDB();
+        }
 #ifdef DEBUG_bienvenu1
-				DumpContents();
+        DumpContents();
 #endif
-			}
-			else // ### need error code saying why open file store failed
-			{
-				nsIMdbFile* newFile = 0;
-				ret = myMDBFactory->CreateNewFile(m_mdbEnv, dbHeap, dbName, &newFile);
-				if ( newFile )
-				{
-					if (ret == NS_OK)
-					{
-						mdbOpenPolicy inOpenPolicy;
+      }
+      else // ### need error code saying why open file store failed
+      {
+        nsIMdbFile* newFile = 0;
+        ret = myMDBFactory->CreateNewFile(m_mdbEnv, dbHeap, dbName, &newFile);
+        if ( newFile )
+        {
+          if (ret == NS_OK)
+          {
+            mdbOpenPolicy inOpenPolicy;
 
-						inOpenPolicy.mOpenPolicy_ScopePlan.mScopeStringSet_Count = 0;
-						inOpenPolicy.mOpenPolicy_MinMemory = 0;
-						inOpenPolicy.mOpenPolicy_MaxLazy = 0;
+            inOpenPolicy.mOpenPolicy_ScopePlan.mScopeStringSet_Count = 0;
+            inOpenPolicy.mOpenPolicy_MinMemory = 0;
+            inOpenPolicy.mOpenPolicy_MaxLazy = 0;
 
-						ret = myMDBFactory->CreateNewFileStore(m_mdbEnv, dbHeap,
-							 newFile, &inOpenPolicy, &m_mdbStore);
-						if (ret == NS_OK)
-							ret = InitNewDB();
-					}
-					NS_RELEASE(newFile); // always release our file ref, store has own
-				}
+            ret = myMDBFactory->CreateNewFileStore(m_mdbEnv, dbHeap,
+              newFile, &inOpenPolicy, &m_mdbStore);
+            if (ret == NS_OK)
+              ret = InitNewDB();
+          }
+          NS_RELEASE(newFile); // always release our file ref, store has own
+        }
 
-			}
-			NS_IF_RELEASE(thumb);
-			nsCRT::free(nativeFileName);
-		}
-	}
-	return ret;
+      }
+      NS_IF_RELEASE(thumb);
+      nsCRT::free(nativeFileName);
+    }
+  }
+  return ret;
 }
 
-NS_IMETHODIMP nsMsgFolderCache::Init(nsIFileSpec *dbFileSpec)
+NS_IMETHODIMP nsMsgFolderCache::Init(nsIFile *aFile)
 {
-	if (!dbFileSpec)
-		return NS_ERROR_NULL_POINTER;
+  if (!aFile)
+    return NS_ERROR_NULL_POINTER;
 
-	nsresult rv = NS_ERROR_OUT_OF_MEMORY;
+  nsresult rv = NS_ERROR_OUT_OF_MEMORY;
 
-	m_cacheElements = new nsSupportsHashtable;
+  m_cacheElements = new nsSupportsHashtable;
 
-	if (m_cacheElements)
-	{
-		rv = dbFileSpec->GetFileSpec(&m_dbFileSpec);
+  if (m_cacheElements)
+  {
+    PRBool exists;
+    aFile->Exists(&exists);
+    nsCAutoString dbPath;
 
-		if (NS_SUCCEEDED(rv))
-		{
-			PRBool exists = m_dbFileSpec.Exists();
-			// ### evil cast until MDB supports file streams.
-			rv = OpenMDB((const char *) m_dbFileSpec, exists);
-      // if this fails and panacea.dat exists, try blowing away the db and recreating it
-      if (NS_FAILED(rv) && exists)
-      {
-	      if (m_mdbStore)
-		      m_mdbStore->Release();
-        m_dbFileSpec.Delete(PR_FALSE);
-  			rv = OpenMDB((const char *) m_dbFileSpec, PR_FALSE);
-      }
-		}
-	}
-	return rv;
+    aFile->GetNativePath(dbPath);
+    // ### evil cast until MDB supports file streams.
+    rv = OpenMDB(dbPath.get(), exists);
+    // if this fails and panacea.dat exists, try blowing away the db and recreating it
+    if (NS_FAILED(rv) && exists)
+    {
+      if (m_mdbStore)
+        m_mdbStore->Release();
+      aFile->Remove(PR_FALSE);
+      rv = OpenMDB(dbPath.get(), PR_FALSE);
+    }
+  }
+  return rv;
 }
 
 NS_IMETHODIMP nsMsgFolderCache::GetCacheElement(const char *pathKey, PRBool createIfMissing, 

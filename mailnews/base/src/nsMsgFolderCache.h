@@ -50,37 +50,34 @@ class nsMsgFolderCache : public nsIMsgFolderCache
 {
 
 public:
-	friend class nsMsgFolderCacheElement;
+  friend class nsMsgFolderCacheElement;
 
-	nsMsgFolderCache();
-	virtual ~nsMsgFolderCache();
+  nsMsgFolderCache();
+  virtual ~nsMsgFolderCache();
 
-	NS_DECL_ISUPPORTS
+  NS_DECL_ISUPPORTS
     NS_DECL_NSIMSGFOLDERCACHE
 
 protected:
-	static nsIMdbFactory *GetMDBFactory();
+  static nsIMdbFactory *GetMDBFactory();
+  nsresult AddCacheElement(const char *key, nsIMdbRow *row, nsIMsgFolderCacheElement **result);
+  nsresult RowCellColumnToCharPtr(nsIMdbRow *hdrRow, mdb_token columnToken, char **resultPtr);
+  nsresult InitMDBInfo();
+  nsresult InitNewDB();
+  nsresult InitExistingDB();
+  nsresult OpenMDB(const char *dbName, PRBool create);
+  nsIMdbEnv *GetEnv() {return m_mdbEnv;}
+  nsIMdbStore *GetStore() {return m_mdbStore;}
 
-	nsresult AddCacheElement(const char *key, nsIMdbRow *row, nsIMsgFolderCacheElement **result);
+  nsSupportsHashtable *m_cacheElements;
+  // mdb stuff
+  nsIMdbEnv           *m_mdbEnv;	// to be used in all the db calls.
+  nsIMdbStore         *m_mdbStore;
+  nsIMdbTable         *m_mdbAllFoldersTable;
+  mdb_token           m_folderRowScopeToken;
+  mdb_token           m_folderTableKindToken;
 
-	nsresult RowCellColumnToCharPtr(nsIMdbRow *hdrRow, mdb_token columnToken, char **resultPtr);
-	nsresult InitMDBInfo();
-	nsresult InitNewDB();
-	nsresult InitExistingDB();
-	nsresult OpenMDB(const char *dbName, PRBool create);
-	nsIMdbEnv				*GetEnv() {return m_mdbEnv;}
-	nsIMdbStore				*GetStore() {return m_mdbStore;}
-
-	nsFileSpec		m_dbFileSpec;
-	nsSupportsHashtable	*m_cacheElements;
-	// mdb stuff
-	nsIMdbEnv		    *m_mdbEnv;	// to be used in all the db calls.
-	nsIMdbStore	 	    *m_mdbStore;
-	nsIMdbTable		    *m_mdbAllFoldersTable;
-	mdb_token			m_folderRowScopeToken;
-	mdb_token			m_folderTableKindToken;
-
-	struct mdbOid		m_allFoldersTableOID;
+  struct mdbOid       m_allFoldersTableOID;
 
 };
 
