@@ -45,8 +45,6 @@
 - (BOOL)setAttributeType:(SecKeychainAttrType)type toValue:(void*)valuePtr withLength:(UInt32)length;
 @end
 
-NSString* const kSecurityDomainSeparator = @";";
-
 @implementation KeychainItem
 
 + (KeychainItem*)keychainItemForHost:(NSString*)host
@@ -183,7 +181,7 @@ NSString* const kSecurityDomainSeparator = @";";
   [mPassword release];
   [mHost release];
   [mComment release];
-  [mSecurityDomains release];
+  [mSecurityDomain release];
   [super dealloc];
 }
 
@@ -219,8 +217,8 @@ NSString* const kSecurityDomainSeparator = @";";
   mHost = nil;
   [mComment autorelease];
   mComment = nil;
-  [mSecurityDomains autorelease];
-  mSecurityDomains = nil;
+  [mSecurityDomain autorelease];
+  mSecurityDomain = nil;
 
   if (result != noErr) {
     NSLog(@"Couldn't load keychain data");
@@ -228,7 +226,7 @@ NSString* const kSecurityDomainSeparator = @";";
     mPassword = [[NSString alloc] init];
     mHost = [[NSString alloc] init];
     mComment = [[NSString alloc] init];
-    mSecurityDomains = [[NSArray alloc] init];
+    mSecurityDomain = [[NSString alloc] init];
     return;
   }
 
@@ -240,6 +238,8 @@ NSString* const kSecurityDomainSeparator = @";";
       mHost = [[NSString alloc] initWithBytes:(char*)(attr.data) length:attr.length encoding:NSUTF8StringEncoding];
     else if (attr.tag == kSecCommentItemAttr)
       mComment = [[NSString alloc] initWithBytes:(char*)(attr.data) length:attr.length encoding:NSUTF8StringEncoding];
+    else if (attr.tag == kSecSecurityDomainItemAttr)
+      mSecurityDomain = [[NSString alloc] initWithBytes:(char*)(attr.data) length:attr.length encoding:NSUTF8StringEncoding];
     else if (attr.tag == kSecPortItemAttr)
       mPort = *((UInt16*)(attr.data));
     else if (attr.tag == kSecProtocolItemAttr)
@@ -248,13 +248,6 @@ NSString* const kSecurityDomainSeparator = @";";
       mAuthenticationType = *((SecAuthenticationType*)(attr.data));
     else if (attr.tag == kSecCreatorItemAttr)
       mCreator = attr.data ? *((OSType*)(attr.data)) : 0;
-    else if (attr.tag == kSecSecurityDomainItemAttr) {
-      NSString* domainsString = [[[NSString alloc] initWithBytes:(char*)(attr.data) length:attr.length encoding:NSUTF8StringEncoding] autorelease];
-      if ([domainsString isEqualToString:@""])
-        mSecurityDomains = [[NSArray alloc] init];
-      else
-        mSecurityDomains = [[domainsString componentsSeparatedByString:kSecurityDomainSeparator] retain];
-    }
   }
   mPassword = [[NSString alloc] initWithBytes:passwordData length:passwordLength encoding:NSUTF8StringEncoding];
   SecKeychainItemFreeAttributesAndData(attrList, (void*)passwordData);
@@ -393,23 +386,22 @@ NSString* const kSecurityDomainSeparator = @";";
   }
 }
 
- - (void)setSecurityDomains:(NSArray*)securityDomains
+ - (void)setSecurityDomain:(NSString*)securityDomain
 {
-  NSString* domainsString = [securityDomains componentsJoinedByString:kSecurityDomainSeparator];
-  if([self setAttributeType:kSecSecurityDomainItemAttr toString:domainsString]) {
-    [mSecurityDomains autorelease];
-    mSecurityDomains = [securityDomains retain];
+  if ([self setAttributeType:kSecSecurityDomainItemAttr toString:securityDomain]) {
+    [mSecurityDomain autorelease];
+    mSecurityDomain = [securityDomain copy];
   }
   else {
     NSLog(@"Couldn't update keychain item security domains");
   }
 }
  
-- (NSArray*)securityDomains
+- (NSString*)securityDomain
 {
   if (!mDataLoaded)
     [self loadKeychainData];
-  return mSecurityDomains;
+  return mSecurityDomain;
 }
  
 

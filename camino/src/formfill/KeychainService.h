@@ -64,6 +64,8 @@ enum KeychainPromptResult { kSave, kDontRemember, kNeverRemember } ;
 
   BOOL mFormPasswordFillIsEnabled;
 
+  NSMutableDictionary* mAllowedActionHosts; // strong;
+
   nsIObserver* mFormSubmitObserver;
 }
 
@@ -101,10 +103,13 @@ enum KeychainPromptResult { kSave, kDontRemember, kNeverRemember } ;
 
 - (BOOL)formPasswordFillIsEnabled;
 
-// routines to manipulate the keychain deny list for which hosts we shouldn't
-// ask about
+// Methods to interact with the list of hosts we shouldn't ask about.
 - (void)addHostToDenyList:(NSString*)host;
 - (BOOL)isHostInDenyList:(NSString*)host;
+
+// Methods to interact with the list of approved form action hosts.
+- (void)setAllowedActionHosts:(NSArray*)actionHosts forHost:(NSString*)host;
+- (NSArray*)allowedActionHostsForHost:(NSString*)host;
 
 @end
 

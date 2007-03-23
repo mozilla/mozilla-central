@@ -99,6 +99,7 @@ GetNSWindow(nsIDOMWindow* inWindow);
 - (void)upgradeLegacyKeychainEntry:(KeychainItem*)keychainItem
                         withScheme:(NSString*)scheme
                             isForm:(BOOL)isFrom;
+- (NSString*)allowedActionHostsFile;
 @end
 
 @implementation KeychainService
@@ -157,6 +158,11 @@ int KeychainPrefChangedCallback(const char* inPref, void* unused)
       pref->RegisterCallback(gUseKeychainPref, KeychainPrefChangedCallback, nsnull);
     }
     
+    // load the mapping of hosts to allowed action hosts
+    mAllowedActionHosts = [[NSMutableDictionary alloc] initWithContentsOfFile:[self allowedActionHostsFile]];
+    if (!mAllowedActionHosts)
+      mAllowedActionHosts = [[NSMutableDictionary alloc] init];
+
     // load the keychain.nib file with our dialogs in it
     BOOL success = [NSBundle loadNibNamed:@"Keychain" owner:self];
     NS_ASSERTION(success, "can't load keychain prompt dialogs");
@@ -170,6 +176,8 @@ int KeychainPrefChangedCallback(const char* inPref, void* unused)
   NS_IF_RELEASE(mFormSubmitObserver);
   [[NSNotificationCenter defaultCenter] removeObserver:self];
   
+  [mAllowedActionHosts release];
+
   [super dealloc];
 }
 
@@ -225,10 +233,10 @@ int KeychainPrefChangedCallback(const char* inPref, void* unused)
     KeychainItem* item;
     NSEnumerator* keychainEnumerator = [newKeychainItems objectEnumerator];
     while ((item = [keychainEnumerator nextObject])) {
-      NSArray* domains = [item securityDomains];
-      if ([domains count] == 0)
+      NSString* realm = [item securityDomain];
+      if ([realm isEqualToString:@""])
         [genericItems addObject:item];
-      else if ([domains containsObject:securityDomain])
+      else if ([realm isEqualToString:securityDomain])
         [matchingItems addObject:item];
     }
     newKeychainItems = [matchingItems arrayByAddingObjectsFromArray:genericItems];
@@ -314,8 +322,12 @@ int KeychainPrefChangedCallback(const char* inPref, void* unused)
                                                   withUsername:username
                                                       password:password];
   [newItem setCreator:kCaminoKeychainCreatorCode];
-  if (securityDomain)
-    [newItem setSecurityDomains:[NSArray arrayWithObject:securityDomain]];
+  if (securityDomain) {
+    if (isForm)
+      [self setAllowedActionHosts:[NSArray arrayWithObject:securityDomain] forHost:host];
+    else
+      [newItem setSecurityDomain:securityDomain];
+  }
 }
 
 // Stores changes to a site's stored account. Note that this may return a different item than
@@ -378,6 +390,9 @@ int KeychainPrefChangedCallback(const char* inPref, void* unused)
   while ((item = [keychainEnumerator nextObject])) {
     [item removeFromKeychain];
   }
+  // Clear the parallel storage of action hosts
+  [mAllowedActionHosts removeAllObjects];
+  [mAllowedActionHosts writeToFile:[self allowedActionHostsFile] atomically:YES];
 
   // Reset the deny list as well
   [[KeychainDenyList instance] removeAllHosts];
@@ -476,6 +491,28 @@ int KeychainPrefChangedCallback(const char* inPref, void* unused)
 - (BOOL)isHostInDenyList:(NSString*)host
 {
   return [[KeychainDenyList instance] isHostPresent:host];
+}
+
+// Ideally, these would be stored in the keychain item itself, but there is no
+// attribute where we can store arbitrary data (and using the security domain
+// make us incompatible with Safari), so we keep a parallel list.
+// TODO: If keychain item is deleted, we'll don't know to clean up the corresponding
+// entry here. Eventually we need a strategy to prevent cruft from accumulating.
+- (void)setAllowedActionHosts:(NSArray*)actionHosts forHost:(NSString*)host
+{
+  [mAllowedActionHosts setValue:actionHosts forKey:host];
+  [mAllowedActionHosts writeToFile:[self allowedActionHostsFile] atomically:YES];
+}
+
+- (NSArray*)allowedActionHostsForHost:(NSString*)host
+{
+  return [mAllowedActionHosts objectForKey:host];
+}
+
+- (NSString*)allowedActionHostsFile
+{
+  NSString* profilePath = [[PreferenceManager sharedInstance] profilePath];
+  return [profilePath stringByAppendingPathComponent:@"AllowedActionHosts.plist"];
 }
 
 @end
@@ -702,8 +739,10 @@ KeychainPrompt::ProcessPrompt(const PRUnichar* realmBlob, bool checked, PRUnicha
       if (![[keychainEntry username] isEqualToString:username] ||
           ![[keychainEntry password] isEqualToString:password])
         keychainEntry = [keychain updateKeychainEntry:keychainEntry withUsername:username password:password scheme:scheme isForm:NO];
-      if (realm && ([[keychainEntry securityDomains] count] == 0))
-        [keychainEntry setSecurityDomains:[NSArray arrayWithObject:realm]];
+      // TODO: this is just to upgrade pre-1.1 HTTPAuth items; at some point in the future remove from here...
+      if (realm && [[keychainEntry securityDomain] isEqualToString:@""])
+        [keychainEntry setSecurityDomain:realm];
+      // ... to here.
     }
   }
   else if (keychainEntry) {
@@ -883,8 +922,15 @@ KeychainFormSubmitObserver::Notify(nsIContent* node, nsIDOMWindowInternal* windo
            ![[keychainEntry password] isEqualToString:password]) &&
           [keychain confirmChangePassword:GetNSWindow(window)])
         keychainEntry = [keychain updateKeychainEntry:keychainEntry withUsername:username password:password scheme:scheme isForm:YES];
-      if ([[keychainEntry securityDomains] count] == 0)
-        [keychainEntry setSecurityDomains:[NSArray arrayWithObject:actionHost]];
+      // This is just to fix items touched in the pre-1.1 nightlies, before we discovered that using securityDomain
+      // for the action hosts broke Safari. At some point in the future remove from here...
+      if (![[keychainEntry securityDomain] isEqualToString:@""]) {
+        [keychain setAllowedActionHosts:[[keychainEntry securityDomain] componentsSeparatedByString:@";"] forHost:host];
+        [keychainEntry setSecurityDomain:@""];
+      }
+      // ... to here.
+      if ([[keychain allowedActionHostsForHost:host] count] == 0)
+        [keychain setAllowedActionHosts:[NSArray arrayWithObject:actionHost] forHost:host];
     }
     else {
       switch ([keychain confirmStorePassword:GetNSWindow(window)]) {
@@ -1008,7 +1054,7 @@ KeychainFormSubmitObserver::Notify(nsIContent* node, nsIDOMWindowInternal* windo
         NSString* actionHost = [[NSURL URLWithString:[NSString stringWith_nsAString:action]] host];
         if (!actionHost)
           actionHost = host;
-        NSArray* allowedActionHosts = [keychainEntry securityDomains];
+        NSArray* allowedActionHosts = [keychain allowedActionHostsForHost:host];
         if ([allowedActionHosts count] > 0 && ![allowedActionHosts containsObject:actionHost]) {
           // The form has an un-authorized action domain. If we haven't
           // asked the user about this page, ask. If we have and they said
@@ -1021,7 +1067,7 @@ KeychainFormSubmitObserver::Notify(nsIContent* node, nsIDOMWindowInternal* windo
             continue;
           }
           // Remember the approval
-          [keychainEntry setSecurityDomains:[allowedActionHosts arrayByAddingObject:actionHost]];
+          [keychain setAllowedActionHosts:[allowedActionHosts arrayByAddingObject:actionHost] forHost:host];
         }
 
         nsAutoString user, pwd;
