@@ -37,7 +37,7 @@
 /*
  * Public header for exported OCSP types.
  *
- * $Id: ocspt.h,v 1.8 2007-03-23 06:09:58 kaie%kuix.de Exp $
+ * $Id: ocspt.h,v 1.9 2007-03-23 06:57:57 kaie%kuix.de Exp $
  */
 
 #ifndef _OCSPT_H_
@@ -289,5 +289,28 @@ typedef struct SEC_HttpClientFcnStruct {
       /* ...                      */
    } fcnTable;
 } SEC_HttpClientFcn;
+
+/*
+ * ocspMode_FailureIsVerificationFailure:
+ * This is the classic behaviour of NSS.
+ * Any OCSP failure is a verification failure (classic mode, default).
+ * Without a good response, OCSP networking will be retried each time
+ * it is required for verifying a cert.
+ *
+ * ocspMode_FailureIsNotAVerificationFailure:
+ * If we fail to obtain a valid OCSP response, consider the
+ * cert as good.
+ * Failed OCSP attempts might get cached and not retried until
+ * minimumSecondsToNextFetchAttempt.
+ * If we are able to obtain a valid response, the cert
+ * will be considered good, if either status is "good"
+ * or the cert was not yet revoked at verification time.
+ *
+ * Additional failure modes might be added in the future.
+ */
+typedef enum {
+    ocspMode_FailureIsVerificationFailure = 0,
+    ocspMode_FailureIsNotAVerificationFailure = 1
+} SEC_OcspFailureMode;
 
 #endif /* _OCSPT_H_ */
