@@ -844,9 +844,12 @@ nsNntpIncomingServer::WriteHostInfoFile()
       return rv;
 
     // todo, missing some formatting, see the 4.x code
-    WriteLine(hostInfoStream, nsDependentCString("# News host information file."));
-    WriteLine(hostInfoStream, nsDependentCString("# This is a generated file!  Do not edit."));
-    WriteLine(hostInfoStream, nsDependentCString(""));
+    nsCAutoString header("# News host information file.");
+    WriteLine(hostInfoStream, header);
+    header.Assign("# This is a generated file!  Do not edit.");
+    WriteLine(hostInfoStream, header);
+    header.Truncate();
+    WriteLine(hostInfoStream, header);
     nsCAutoString version("version=");
     version.AppendInt(VALID_VERSION);
     WriteLine(hostInfoStream, version);
@@ -862,7 +865,8 @@ nsNntpIncomingServer::WriteHostInfoFile()
     dateStr = "uniqueid=";
     dateStr.AppendInt(mUniqueId);
     WriteLine(hostInfoStream, dateStr);
-    WriteLine(hostInfoStream, nsDependentCString(MSG_LINEBREAK"begingroups"));
+    header.Assign(MSG_LINEBREAK"begingroups");
+    WriteLine(hostInfoStream, header);
 
     // XXX todo, sort groups first?
 
