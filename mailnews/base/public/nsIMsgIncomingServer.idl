@@ -50,13 +50,15 @@ interface nsISpamSettings;
 interface nsIMsgFilterPlugin;
 interface nsIUrlListener;
 interface nsIMsgDBHdr;
+interface nsILocalFile;
+
 /*
  * Interface for incoming mail/news host
  * this is the base interface for all mail server types (imap, pop, nntp, etc)
  * often you will want to add extra interfaces that give you server-specific
  * attributes and methods.
  */
-[scriptable, uuid(DBA43E06-A4B2-4c9e-B4D5-002504F63212)]
+[scriptable, uuid(1e9a61e4-bd3a-4d08-8bc8-27f95ecb88ac)]
 interface nsIMsgIncomingServer : nsISupports {
 
   /**
@@ -155,7 +157,7 @@ interface nsIMsgIncomingServer : nsISupports {
   attribute boolean performingBiff; 
 
   /* the on-disk path to message storage for this server */
-  attribute nsIFileSpec localPath;
+  attribute nsILocalFile localPath;
 
   /* the RDF URI for the root mail folder */
   readonly attribute string serverURI;
@@ -207,7 +209,7 @@ interface nsIMsgIncomingServer : nsISupports {
   void setFilterList(in nsIMsgFilterList aFilterList);
 
   /* we use this to set the default local path.  we use this when migrating prefs */
-  void SetDefaultLocalPath(in nsIFileSpec aDefaultLocalPath);
+  void SetDefaultLocalPath(in nsILocalFile aDefaultLocalPath);
 
   /* do a biff */
   void PerformBiff(in nsIMsgWindow aMsgWindow);
@@ -243,8 +245,8 @@ interface nsIMsgIncomingServer : nsISupports {
   long getIntValue(in string attr);
   void setIntValue(in string attr, in long value);
 
-  nsIFileSpec getFileValue(in string attr);
-  void setFileValue(in string attr, in nsIFileSpec value);
+  nsILocalFile getFileValue(in string attr);
+  void setFileValue(in string attr, in nsILocalFile aValue);
 
   /**
    * this is really dangerous. this destroys all pref values

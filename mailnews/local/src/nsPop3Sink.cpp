@@ -914,17 +914,17 @@ nsPop3Sink::IncorporateAbort(PRBool uidlDownload)
   {
      nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(m_popServer);
      NS_ASSERTION(server, "Could not get the pop server !!");
-     nsCOMPtr<nsIFileSpec> mailDirectory;
+     nsCOMPtr<nsILocalFile> mailDirectory;
      if (uidlDownload)
-        m_folder->GetPath(getter_AddRefs(mailDirectory));
+        m_folder->GetFilePath(getter_AddRefs(mailDirectory));
      else
      {
        rv = server->GetLocalPath(getter_AddRefs(mailDirectory));
        NS_ENSURE_SUCCESS(rv,rv);
-       rv = mailDirectory->AppendRelativeUnixPath("Inbox");
+       rv = mailDirectory->AppendRelativePath(NS_LITERAL_STRING("Inbox"));
        NS_ENSURE_SUCCESS(rv,rv);
      }
-     rv = mailDirectory->Truncate(m_msgOffset);
+     rv = mailDirectory->SetFileSize(m_msgOffset);
      NS_ENSURE_SUCCESS(rv,rv);
   }
 #ifdef DEBUG

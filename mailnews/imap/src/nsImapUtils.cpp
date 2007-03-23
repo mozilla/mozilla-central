@@ -105,11 +105,15 @@ nsImapURI2Path(const char* rootURI, const char* uriStr, nsFileSpec& pathResult)
   
   if (server) 
   {
-    nsCOMPtr<nsIFileSpec> localPath;
+    nsCOMPtr<nsILocalFile> localPath;
     rv = server->GetLocalPath(getter_AddRefs(localPath));
     if (NS_FAILED(rv)) return rv;
+    nsCOMPtr <nsIFileSpec> fileSpec;
+    NS_NewFileSpecFromIFile(localPath, getter_AddRefs(fileSpec));
+    if (!fileSpec)
+      return NS_ERROR_FAILURE;
     
-    rv = localPath->GetFileSpec(&pathResult);
+    rv = fileSpec->GetFileSpec(&pathResult);
     if (NS_FAILED(rv)) return rv;
     
     // This forces the creation of the parent server directory

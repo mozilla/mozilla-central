@@ -188,7 +188,7 @@ enum Pop3StatesEnum {
 typedef struct Pop3UidlEntry { /* information about this message */
     char* uidl;
     char  status; // KEEP=='k', DELETE='d' TOO_BIG='b' FETCH_BODY='f'
-    PRInt32 dateReceived; // time message received, used for aging
+    PRUint32 dateReceived; // time message received, used for aging
 } Pop3UidlEntry;
 
 typedef struct Pop3UidlHost {
@@ -314,7 +314,7 @@ public:
                                   PRBool *changed);
 
   static nsresult MarkMsgForHost(const char *hostName, const char *userName,
-                                      nsIFileSpec *mailDirectory, 
+                                      nsILocalFile *mailDirectory, 
                                       nsVoidArray  &UIDLArray);
 private:
   nsCString m_ApopTimestamp;

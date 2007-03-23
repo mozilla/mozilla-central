@@ -59,6 +59,8 @@
 #include "prprf.h"
 #include "nsISupportsObsolete.h"
 #include "nsIMsgMailSession.h"
+#include "nsNetUtil.h"
+#include "nsIFileURL.h"
 
 static NS_DEFINE_CID(kCMailDB, NS_MAILDB_CID);
 
@@ -141,13 +143,6 @@ nsresult nsMailboxUrl::GetMailboxCopyHandler(nsIStreamListener ** aMailboxCopyHa
   return  NS_OK;
 }
 
-nsresult nsMailboxUrl::GetFileSpec(nsFileSpec ** aFilePath)
-{
-  if (aFilePath)
-    *aFilePath = m_filePath;
-  return NS_OK;
-}
-
 nsresult nsMailboxUrl::GetMessageKey(nsMsgKey* aMessageKey)
 {
   *aMessageKey = m_messageKey;
@@ -177,6 +172,18 @@ NS_IMETHODIMP nsMailboxUrl::SetUri(const char * aURI)
   return NS_OK;
 }
 
+NS_IMETHODIMP nsMailboxUrl::Clone(nsIURI **_retval)
+{
+  nsresult rv = nsMsgMailNewsUrl::Clone(_retval);
+  NS_ENSURE_SUCCESS(rv, rv);
+  // also clone the mURI member, because GetUri below won't work if
+  // mURI isn't set due to nsFileSpec/nsIFile fun.
+  nsCOMPtr <nsIMsgMessageUrl> clonedUrl = do_QueryInterface(*_retval);
+  if (clonedUrl)
+    clonedUrl->SetUri(mURI.get());
+  return rv;
+}
+
 NS_IMETHODIMP nsMailboxUrl::GetUri(char ** aURI)
 {
   // if we have been given a uri to associate with this url, then use it
@@ -187,13 +194,15 @@ NS_IMETHODIMP nsMailboxUrl::GetUri(char ** aURI)
   else
   {
     nsFileSpec * filePath = nsnull;
-    GetFileSpec(&filePath);
+    filePath = m_filePath;
     if (filePath)
     {
       nsCAutoString baseUri;
       // we blow off errors here so that we can open attachments
       // in .eml files.
       (void) MsgMailboxGetURI(m_file, baseUri);
+      if (baseUri.IsEmpty())
+        m_baseURL->GetSpec(baseUri);
       char * baseMessageURI;
       nsCreateLocalBaseMessageURI(baseUri.get(), &baseMessageURI);
       char * uri = nsnull;
@@ -353,6 +362,7 @@ nsresult nsMailboxUrl::ParseUrl()
 {
   delete m_filePath;
   GetFilePath(m_file);
+
   ParseSearchPart();
   // ### fix me.
   // this hack is to avoid asserting on every local message loaded because the security manager
@@ -361,6 +371,8 @@ nsresult nsMailboxUrl::ParseUrl()
     m_filePath = nsnull;
   else
     m_filePath = new nsFileSpec(nsFilePath(nsUnescape((char *) (const char *)m_file)));
+
+  GetPath(m_file);
   return NS_OK;
 }
 

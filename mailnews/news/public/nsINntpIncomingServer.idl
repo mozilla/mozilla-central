@@ -37,19 +37,19 @@
 
 #include "nsISupports.idl"
 
-interface nsIFileSpec;
+interface nsILocalFile;
 interface nsIMsgNewsFolder;
 interface nsINNTPProtocol;
 interface nsIURI;
 interface nsIMsgWindow;
 
-[scriptable, uuid(6200a8d1-21ac-4d28-926f-f9d7ea9d7bf7)]
+[scriptable, uuid(325e8bac-7640-4263-a735-958140dda20b)]
 interface nsINntpIncomingServer : nsISupports {
     /* the on-disk path to the newsrc file for this server */
-    attribute nsIFileSpec newsrcFilePath;
+    attribute nsILocalFile newsrcFilePath;
 
     /* the newsrc root path (the directories all the newsrc files live) */
-    attribute nsIFileSpec newsrcRootPath;
+    attribute nsILocalFile newsrcRootPath;
     
     /* ask the user before downloading more than maxArticles? */
     attribute boolean notifyOn;

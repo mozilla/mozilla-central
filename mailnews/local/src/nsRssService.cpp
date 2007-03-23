@@ -54,7 +54,7 @@ NS_IMPL_ISUPPORTS2(nsRssService,
                    nsIRssService,
                    nsIMsgProtocolInfo)
                    
-NS_IMETHODIMP nsRssService::GetDefaultLocalPath(nsIFileSpec * *aDefaultLocalPath)
+NS_IMETHODIMP nsRssService::GetDefaultLocalPath(nsILocalFile * *aDefaultLocalPath)
 {
     NS_ENSURE_ARG_POINTER(aDefaultLocalPath);
     *aDefaultLocalPath = nsnull;
@@ -70,19 +70,13 @@ NS_IMETHODIMP nsRssService::GetDefaultLocalPath(nsIFileSpec * *aDefaultLocalPath
     if (NS_SUCCEEDED(rv) && !exists)
         rv = localFile->Create(nsIFile::DIRECTORY_TYPE, 0775);
     if (NS_FAILED(rv)) return rv;
-    
-    // Make the resulting nsIFileSpec
-    // TODO: Convert arg to nsILocalFile and avoid this
-    nsCOMPtr<nsIFileSpec> outSpec;
-    rv = NS_NewFileSpecFromIFile(localFile, getter_AddRefs(outSpec));
-    if (NS_FAILED(rv)) return rv;
-    
-    NS_IF_ADDREF(*aDefaultLocalPath = outSpec);
+   
+    NS_IF_ADDREF(*aDefaultLocalPath = localFile);
     return NS_OK;
 
 }
 
-NS_IMETHODIMP nsRssService::SetDefaultLocalPath(nsIFileSpec * aDefaultLocalPath)
+NS_IMETHODIMP nsRssService::SetDefaultLocalPath(nsILocalFile * aDefaultLocalPath)
 {
     NS_ASSERTION(0,"foo");
     return NS_ERROR_NOT_IMPLEMENTED;

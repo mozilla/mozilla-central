@@ -83,15 +83,8 @@ nsresult nsRssIncomingServer::FillInDataSourcePath(const nsAString& aDataSourceN
 {
   nsresult rv;
   // start by gettting the local path for this server
-  nsCOMPtr<nsIFileSpec> localPathForServer;
-  rv = GetLocalPath(getter_AddRefs(localPathForServer));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  // convert to a nsIFile
   nsCOMPtr<nsILocalFile> localFile;
-  nsFileSpec pathSpec;
-  localPathForServer->GetFileSpec(&pathSpec);
-  rv = NS_FileSpecToIFile(&pathSpec, getter_AddRefs(localFile));
+  rv = GetLocalPath(getter_AddRefs(localFile));
   NS_ENSURE_SUCCESS(rv, rv);
 
   // now append the name of the subscriptions data source

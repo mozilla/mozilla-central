@@ -82,6 +82,7 @@
 #include "nsIPrefLocalizedString.h"
 #include "nsISocketTransport.h"
 #include "nsISSLSocketControl.h"
+#include "nsILineInputStream.h"
 
 #define EXTRA_SAFETY_SPACE 3096
 
@@ -156,7 +157,7 @@ PRUint32 TimeInSecondsFromPRTime(PRTime prTime)
 }
 
 static void
-put_hash(PLHashTable* table, const char* key, char value, PRTime dateReceived)
+put_hash(PLHashTable* table, const char* key, char value, PRUint32 dateReceived)
 {
   Pop3UidlEntry* tmp;
 
@@ -221,21 +222,15 @@ static PLHashAllocOps gHashAllocOps = {
 static Pop3UidlHost* 
 net_pop3_load_state(const char* searchhost, 
                     const char* searchuser,
-                    nsIFileSpec *mailDirectory)
+                    nsILocalFile *mailDirectory)
 {
-  char* buf;
-  char* newStr;
-  char* host;
-  char* user;
-  char* uidl;
-  char* flags;
-  char *dateReceivedStr;
   Pop3UidlHost* result = nsnull;
   Pop3UidlHost* current = nsnull;
   Pop3UidlHost* tmp;
   
   result = PR_NEWZAP(Pop3UidlHost);
-  if (!result) return nsnull;
+  if (!result) 
+    return nsnull;
   result->host = PL_strdup(searchhost);
   result->user = PL_strdup(searchuser);
   result->hash = PL_NewHashTable(20, PL_HashString, PL_CompareStrings, PL_CompareValues, &gHashAllocOps, nsnull);
@@ -250,92 +245,101 @@ net_pop3_load_state(const char* searchhost,
     return nsnull;
   }
   
-  nsFileSpec fileSpec;
-  mailDirectory->GetFileSpec(&fileSpec);
-  fileSpec += "popstate.dat";
+  mailDirectory->AppendNative(NS_LITERAL_CSTRING("popstate.dat"));
   
-  nsInputFileStream fileStream(fileSpec);
+  nsCOMPtr<nsIInputStream> fileStream;
+  nsresult rv = NS_NewLocalFileInputStream(getter_AddRefs(fileStream), mailDirectory);
+  NS_ENSURE_SUCCESS(rv, nsnull);
+
+  nsCOMPtr<nsILineInputStream> lineInputStream(do_QueryInterface(fileStream, &rv));
+  NS_ENSURE_SUCCESS(rv, nsnull);
   
-  buf = (char*)PR_CALLOC(512);
-  if (buf) 
+  PRBool more = PR_TRUE;
+  nsXPIDLCString line;
+
+  while (more && NS_SUCCEEDED(rv))
   {
-    while (!fileStream.eof() && !fileStream.failed() && fileStream.is_open())
-    {
-      fileStream.readline(buf, 512);
-      if (*buf == '#' || *buf == nsCRT::CR || *buf == nsCRT::LF || *buf == 0)
+    lineInputStream->ReadLine(line, &more);
+    if (line.IsEmpty())
+      continue;
+    char firstChar = line.CharAt(0);
+    if (firstChar == '#')
+      continue;
+    if (firstChar == '*') {
+      /* It's a host&user line. */
+      current = NULL;
+      nsCStringArray lineElems;
+      lineElems.ParseString(line, " \t");
+      if (lineElems.Count() != 2)
         continue;
-      if (buf[0] == '*') {
-        /* It's a host&user line. */
-        current = NULL;
-        /* XP_FileReadLine uses LF on all platforms */
-        host = nsCRT::strtok(buf + 1, " \t\r\n", &newStr);
-        /* without space to also get realnames - see bug 225332 */
-        user = nsCRT::strtok(newStr, "\t\r\n", &newStr);
-        if (host == NULL || user == NULL) continue;
-        for (tmp = result ; tmp ; tmp = tmp->next) 
-        {
-          if (PL_strcmp(host, tmp->host) == 0 &&
-            PL_strcmp(user, tmp->user) == 0) 
-          {
-            current = tmp;
-            break;
-          }
-        }
-        if (!current) 
-        {
-          current = PR_NEWZAP(Pop3UidlHost);
-          if (current) 
-          {
-            current->host = PL_strdup(host);
-            current->user = PL_strdup(user);
-            current->hash = PL_NewHashTable(20, PL_HashString, PL_CompareStrings, PL_CompareValues, &gHashAllocOps, nsnull);
-            if (!current->host || !current->user || !current->hash) 
-            {
-              PR_Free(current->host);
-              PR_Free(current->user);
-              if (current->hash) 
-                PL_HashTableDestroy(current->hash);
-              PR_Free(current);
-            }
-            else 
-            {
-              current->next = result->next;
-              result->next = current;
-            }
-          }
-        }
-      } 
-      else 
+      nsCString *host = lineElems[0];
+      nsCString *user = lineElems[1];
+      host->Cut(0, 1); // remove the '*'
+      /* without space to also get realnames - see bug 225332 */
+      for (tmp = result ; tmp ; tmp = tmp->next) 
       {
-        /* It's a line with a UIDL on it. */
+        if (host->Equals(tmp->host) && user->Equals(tmp->user)) 
+        {
+          current = tmp;
+          break;
+        }
+      }
+      if (!current) 
+      {
+        current = PR_NEWZAP(Pop3UidlHost);
         if (current) 
         {
-          flags = nsCRT::strtok(buf, " \t\r\n", &newStr);		/* XP_FileReadLine uses LF on all platforms */
-          uidl = nsCRT::strtok(newStr, " \t\r\n", &newStr);
-          dateReceivedStr = nsCRT::strtok(newStr, " \t\r\n", &newStr);
-          PRTime dateReceived = PR_Now(); // if we don't find a date str, assume now.
-          if (dateReceivedStr)
-            dateReceived = atoi(dateReceivedStr);
-          if (flags && uidl) 
+          current->host = PL_strdup(host->get() + 1);
+          current->user = PL_strdup(user->get());
+          current->hash = PL_NewHashTable(20, PL_HashString, PL_CompareStrings, PL_CompareValues, &gHashAllocOps, nsnull);
+          if (!current->host || !current->user || !current->hash) 
           {
-            if ((flags[0] == KEEP) || (flags[0] == DELETE_CHAR) ||
-              (flags[0] == TOO_BIG) || (flags[0] == FETCH_BODY)) 
-            {
-              put_hash(current->hash, uidl, flags[0], dateReceived);
-            }
-            else
-            {
-              NS_ASSERTION(PR_FALSE, "invalid flag in popstate.dat"); 
-            }
+            PR_Free(current->host);
+            PR_Free(current->user);
+            if (current->hash) 
+              PL_HashTableDestroy(current->hash);
+            PR_Free(current);
+          }
+          else 
+          {
+            current->next = result->next;
+            result->next = current;
+          }
+        }
+      }
+    } 
+    else 
+    {
+      /* It's a line with a UIDL on it. */
+      if (current) 
+      {
+        nsCStringArray lineElems;
+        lineElems.ParseString(line, " \t");
+        if (lineElems.Count() < 2)
+          continue;
+        nsCString *flags = lineElems[0];
+        nsCString *uidl = lineElems[1];
+        nsCString *dateReceivedStr = lineElems[2];
+        PRUint32 dateReceived = TimeInSecondsFromPRTime(PR_Now()); // if we don't find a date str, assume now.
+        if (!dateReceivedStr->IsEmpty())
+          dateReceived = atoi(dateReceivedStr->get());
+        if (!flags->IsEmpty() && !uidl->IsEmpty()) 
+        {
+          char flag = flags->CharAt(0);
+          if ((flag == KEEP) || (flag == DELETE_CHAR) ||
+            (flag == TOO_BIG) || (flag == FETCH_BODY)) 
+          {
+            put_hash(current->hash, uidl->get(), flag, dateReceived);
+          }
+          else
+          {
+            NS_ASSERTION(PR_FALSE, "invalid flag in popstate.dat"); 
           }
         }
       }
     }
-    
-    PR_Free(buf);
   }
-  if (fileStream.is_open())
-    fileStream.close();
+  fileStream->Close();
   
   return result;
 }
@@ -370,7 +374,7 @@ hash_empty(PLHashTable* hash)
 static PRIntn PR_CALLBACK
 net_pop3_write_mapper(PLHashEntry* he, PRIntn msgindex, void* arg)
 {
-  nsOutputFileStream* file = (nsOutputFileStream*) arg;
+  nsIOutputStream* file = (nsIOutputStream*) arg;
   Pop3UidlEntry *uidlEntry = (Pop3UidlEntry *) he->value;
   NS_ASSERTION((uidlEntry->status == KEEP) ||
     (uidlEntry->status ==  DELETE_CHAR) ||
@@ -379,7 +383,8 @@ net_pop3_write_mapper(PLHashEntry* he, PRIntn msgindex, void* arg)
   char* tmpBuffer = PR_smprintf("%c %s %d" MSG_LINEBREAK, uidlEntry->status, (char*)
     uidlEntry->uidl, uidlEntry->dateReceived);
   PR_ASSERT(tmpBuffer);
-  *file << tmpBuffer;
+  PRUint32 numBytesWritten;
+  file->Write(tmpBuffer, strlen(tmpBuffer), &numBytesWritten);
   PR_Free(tmpBuffer);
   return HT_ENUMERATE_NEXT;
 }
@@ -395,46 +400,44 @@ net_pop3_delete_old_msgs_mapper(PLHashEntry* he, PRIntn msgindex, void* arg)
 }
 
 static void
-net_pop3_write_state(Pop3UidlHost* host, nsIFileSpec *mailDirectory)
+net_pop3_write_state(Pop3UidlHost* host, nsILocalFile *mailDirectory)
 {
   PRInt32 len = 0;
   
-  nsFileSpec fileSpec;
-  mailDirectory->GetFileSpec(&fileSpec);
-  fileSpec += "popstate.dat";
+  mailDirectory->AppendNative(NS_LITERAL_CSTRING("popstate.dat"));
 #ifdef DEBUG_David_Bienvenu
-  PRUint32 fileSize = fileSpec.GetFileSize();
+//  PRUint32 fileSize = fileSpec.GetFileSize();
   // check if popstate.dat is getting emptied out.
-  if (!host || (hash_empty(host->hash) && fileSize > 80))
-    NS_ASSERTION(PR_FALSE, "bad/empty pop3 uidl hash table");
+//  if (!host || (hash_empty(host->hash) && fileSize > 80))
+//    NS_ASSERTION(PR_FALSE, "bad/empty pop3 uidl hash table");
 #endif
   
-  nsOutputFileStream outFileStream(fileSpec, PR_WRONLY | PR_CREATE_FILE |
-    PR_TRUNCATE);
+  nsCOMPtr<nsIOutputStream> fileOutputStream;
+  nsresult rv = NS_NewLocalFileOutputStream(getter_AddRefs(fileOutputStream), mailDirectory, -1, 00600);
+  if (NS_FAILED(rv))
+    return;
+
   const char tmpBuffer[] =
     "# POP3 State File" MSG_LINEBREAK
     "# This is a generated file!  Do not edit." MSG_LINEBREAK
     MSG_LINEBREAK;
   
-  outFileStream << tmpBuffer;
+  PRUint32 numBytesWritten;
+  fileOutputStream->Write(tmpBuffer, strlen(tmpBuffer), &numBytesWritten);
   
   for (; host && (len >= 0); host = host->next)
   {
     if (!hash_empty(host->hash))
     {
-      outFileStream << "*";
-      outFileStream << host->host;
-      outFileStream << " ";
-      outFileStream << host->user;
-      outFileStream << MSG_LINEBREAK;
-      PL_HashTableEnumerateEntries(host->hash, net_pop3_write_mapper, (void *)&outFileStream);
+      fileOutputStream->Write("*", 1, &numBytesWritten);
+      fileOutputStream->Write(host->host, strlen(host->host), &numBytesWritten);
+      fileOutputStream->Write(" ", 1, &numBytesWritten);
+      fileOutputStream->Write(host->user, strlen(host->user), &numBytesWritten);
+      fileOutputStream->Write(MSG_LINEBREAK, MSG_LINEBREAK_LEN, &numBytesWritten);
+      PL_HashTableEnumerateEntries(host->hash, net_pop3_write_mapper, (void *)fileOutputStream);
     }
   }
-  if (outFileStream.is_open())
-  {
-    outFileStream.flush();
-    outFileStream.close();
-  }
+  fileOutputStream->Close();
 }
 
 static void
@@ -478,7 +481,7 @@ void nsPop3Protocol::MarkMsgInHashTable(PLHashTable *hashTable, const Pop3UidlEn
 /* static */ 
 nsresult 
 nsPop3Protocol::MarkMsgForHost(const char *hostName, const char *userName,
-                                      nsIFileSpec *mailDirectory, 
+                                      nsILocalFile *mailDirectory, 
                                        nsVoidArray &UIDLArray)
 {
   if (!hostName || !userName || !mailDirectory)
@@ -870,7 +873,7 @@ nsresult nsPop3Protocol::LoadUrl(nsIURI* aURL, nsISupports * /* aConsumer */)
   if (pop3Url)
     pop3Url->GetPop3Sink(getter_AddRefs(m_nsIPop3Sink));
   
-  nsCOMPtr<nsIFileSpec> mailDirectory;
+  nsCOMPtr<nsILocalFile> mailDirectory;
   
   nsXPIDLCString hostName;
   nsXPIDLCString userName;
@@ -3529,7 +3532,7 @@ nsPop3Protocol::CommitState(PRBool remove_last_entry)
   if (!m_pop3ConData->only_check_for_new_mail) 
   {
     nsresult rv;
-    nsCOMPtr<nsIFileSpec> mailDirectory;
+    nsCOMPtr<nsILocalFile> mailDirectory;
     
     // get the mail directory
     nsCOMPtr<nsIMsgIncomingServer> server =
@@ -3541,7 +3544,7 @@ nsPop3Protocol::CommitState(PRBool remove_last_entry)
     
     // write the state in the mail directory
     net_pop3_write_state(m_pop3ConData->uidlinfo,
-      mailDirectory);
+      mailDirectory.get());
   }
   return 0;
 }

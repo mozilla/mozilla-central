@@ -51,11 +51,9 @@
 #include "nsAdapterEnumerator.h" 
 #include "nsIMsgWindow.h"
 #include "nsISubscribableServer.h"
-#include "nsMsgLineBuffer.h"
 #include "nsVoidArray.h"
 #include "nsITimer.h"
-#include "nsFileStream.h"
-
+#include "nsILocalFile.h"
 #include "nsITreeView.h"
 #include "nsITreeSelection.h"
 #include "nsIAtom.h"
@@ -68,7 +66,6 @@ class nsNntpIncomingServer : public nsMsgIncomingServer,
                              public nsINntpIncomingServer,
                              public nsIUrlListener,
                              public nsISubscribableServer,
-                             public nsMsgLineBuffer,
                              public nsITreeView
                              
 {
@@ -89,7 +86,7 @@ public:
     NS_IMETHOD OnUserOrHostNameChanged(const char *oldName, const char *newName);
 
     // for nsMsgLineBuffer
-    virtual PRInt32 HandleLine(char *line, PRUint32 line_size);
+    virtual PRInt32 HandleLine(const char *line, PRUint32 line_size);
 
     // override to clear all passwords associated with server
     NS_IMETHODIMP ForgetPassword();
@@ -109,9 +106,9 @@ protected:
     PRBool ConnectionTimeOut(nsINNTPProtocol* aNntpConnection);
     nsCOMPtr<nsISupportsArray> m_connectionCache;
     NS_IMETHOD GetServerRequiresPasswordForBiff(PRBool *aServerRequiresPasswordForBiff);
-    nsByteArray        mHostInfoInputStream;    
     nsresult SetupNewsrcSaveTimer();
     static void OnNewsrcSaveTimer(nsITimer *timer, void *voidIncomingServer);
+    void WriteLine(nsIOutputStream *stream, nsCString &str);
 
 private:
     nsCStringArray mSubscribedNewsgroups;
@@ -139,7 +136,7 @@ private:
     nsAdapterEnumerator *mGroupsEnumerator;
     PRBool mHostInfoLoaded;
     PRBool mHostInfoHasChanged;
-    nsCOMPtr <nsIFileSpec> mHostInfoFile;
+    nsCOMPtr <nsILocalFile> mHostInfoFile;
     
     PRUint32 mLastGroupDate;
     PRTime mFirstNewDate;
@@ -156,9 +153,7 @@ private:
     nsresult EnsureInner();
     nsresult ClearInner();
     nsresult IsValidRow(PRInt32 row);
-
-    nsIOFileStream *mHostInfoStream;
-    nsCOMPtr<nsIFileSpec> mNewsrcFilePath;
+    nsCOMPtr<nsILocalFile> mNewsrcFilePath;
 };
 
 #endif

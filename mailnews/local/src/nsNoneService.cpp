@@ -68,22 +68,14 @@ nsNoneService::~nsNoneService()
 NS_IMPL_ISUPPORTS2(nsNoneService, nsINoneService, nsIMsgProtocolInfo)
 
 NS_IMETHODIMP
-nsNoneService::SetDefaultLocalPath(nsIFileSpec *aPath)
+nsNoneService::SetDefaultLocalPath(nsILocalFile *aPath)
 {
     NS_ENSURE_ARG(aPath);
-    
-    nsFileSpec spec;
-    nsresult rv = aPath->GetFileSpec(&spec);
-    if (NS_FAILED(rv)) return rv;
-    nsCOMPtr<nsILocalFile> localFile;
-    NS_FileSpecToIFile(&spec, getter_AddRefs(localFile));
-    if (!localFile) return NS_ERROR_FAILURE;
-    
-    return NS_SetPersistentFile(PREF_MAIL_ROOT_NONE_REL, PREF_MAIL_ROOT_NONE, localFile);
+    return NS_SetPersistentFile(PREF_MAIL_ROOT_NONE_REL, PREF_MAIL_ROOT_NONE, aPath);
 }     
 
 NS_IMETHODIMP
-nsNoneService::GetDefaultLocalPath(nsIFileSpec ** aResult)
+nsNoneService::GetDefaultLocalPath(nsILocalFile ** aResult)
 {
     NS_ENSURE_ARG_POINTER(aResult);
     *aResult = nsnull;
@@ -103,19 +95,13 @@ nsNoneService::GetDefaultLocalPath(nsIFileSpec ** aResult)
         rv = localFile->Create(nsIFile::DIRECTORY_TYPE, 0775);
     if (NS_FAILED(rv)) return rv;
     
-    // Make the resulting nsIFileSpec
-    // TODO: Convert arg to nsILocalFile and avoid this
-    nsCOMPtr<nsIFileSpec> outSpec;
-    rv = NS_NewFileSpecFromIFile(localFile, getter_AddRefs(outSpec));
-    if (NS_FAILED(rv)) return rv;
-    
     if (!havePref || !exists) 
     {
         rv = NS_SetPersistentFile(PREF_MAIL_ROOT_NONE_REL, PREF_MAIL_ROOT_NONE, localFile);
         NS_ASSERTION(NS_SUCCEEDED(rv), "Failed to set root dir pref.");
     }
         
-    NS_IF_ADDREF(*aResult = outSpec);
+    NS_IF_ADDREF(*aResult = localFile);
     return NS_OK;
 
 }

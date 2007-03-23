@@ -1248,7 +1248,7 @@ nsresult nsMsgDatabase::OpenMDB(const char *dbName, PRBool create)
     }
   }
 #ifdef DEBUG_David_Bienvenu
-  NS_ASSERTION(NS_SUCCEEDED(ret), "failed opening mdb");
+//  NS_ASSERTION(NS_SUCCEEDED(ret), "failed opening mdb");
 #endif
   return ret;
 }

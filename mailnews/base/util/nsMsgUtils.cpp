@@ -78,6 +78,8 @@
 #include "nsIMsgMessageService.h"
 #include "nsIMsgAccountManager.h"
 #include "nsIOutputStream.h"
+#include "nsIFileURL.h"
+#include "nsNetUtil.h"
 
 static NS_DEFINE_CID(kImapUrlCID, NS_IMAPURL_CID);
 static NS_DEFINE_CID(kCMailboxUrl, NS_MAILBOXURL_CID);
@@ -1417,7 +1419,7 @@ PRBool MsgHostDomainIsTrusted(nsCString &host, nsCString &trustedMailDomains)
   return domainIsTrusted;
 }
 
-nsresult MsgMailboxGetURI(const char *nativepath, nsCString &mailboxUri)
+nsresult MsgMailboxGetURI(const char *uriPath, nsCString &mailboxUri)
 {
   
   nsresult rv;
@@ -1429,40 +1431,42 @@ nsresult MsgMailboxGetURI(const char *nativepath, nsCString &mailboxUri)
   nsCOMPtr<nsISupportsArray> serverArray;
   accountManager->GetAllServers(getter_AddRefs(serverArray));
   
-  // do a char*->fileSpec->char* conversion to normalize the path
-  nsFilePath filePath(nativepath);
-  
   PRUint32 cnt;
   rv = serverArray->Count(&cnt);
   NS_ENSURE_SUCCESS(rv, rv);
   PRInt32 count = cnt;
   PRInt32 i;
-  for (i=0; i<count; i++) 
+
+  nsCString nativePath(uriPath);
+  for (i = 0; i < count; i++) 
   {
-    
     nsCOMPtr<nsIMsgIncomingServer> server = do_QueryElementAt(serverArray, i);
-    
     if (!server) continue;
     
-    // get the path string, convert it to an nsFilePath
-    nsCOMPtr<nsIFileSpec> nativeServerPath;
+    // get the path string
+    nsCOMPtr<nsILocalFile> nativeServerPath;
     rv = server->GetLocalPath(getter_AddRefs(nativeServerPath));
     if (NS_FAILED(rv)) continue;
+    nsCOMPtr <nsIURI> fileURI;
+    NS_NewFileURI(getter_AddRefs(fileURI), nativeServerPath);
+
+    nsCOMPtr<nsIFileURL> theFileURL = do_QueryInterface(fileURI, &rv);
+    NS_ENSURE_SUCCESS(rv,rv);
     
-    nsFileSpec spec;
-    nativeServerPath->GetFileSpec(&spec);
-    nsFilePath serverPath(spec);
-    
-    // check if filepath begins with serverPath
-    PRInt32 len = PL_strlen(serverPath);
-    if (PL_strncasecmp(serverPath, filePath, len) == 0) 
+    nsXPIDLCString serverPath;
+    NS_ENSURE_SUCCESS(rv, rv);
+    fileURI->GetSpec(serverPath);
+
+    // check if nativepath begins with serverPath
+    PRInt32 len = serverPath.Length();
+    if (StringBeginsWith(nativePath, serverPath))
     {
       nsXPIDLCString serverURI;
       rv = server->GetServerURI(getter_Copies(serverURI));
       if (NS_FAILED(rv)) continue;
       
       // the relpath is just past the serverpath
-      const char *relpath = nativepath + len;
+      const char *relpath = nativePath.get() + len;
       // skip past leading / if any
       while (*relpath == '/')
         relpath++;

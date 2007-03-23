@@ -37,7 +37,7 @@
 
 #include "nsISupports.idl"
 
-interface nsIFileSpec;
+interface nsILocalFile;
 
 %{C++
 #define NS_MSGPROTOCOLINFO_CONTRACTID_PREFIX \
@@ -45,14 +45,14 @@ interface nsIFileSpec;
 %}
 
 
-[scriptable, uuid(53d0214a-689c-11d3-80f5-00a0c900d445)]
+[scriptable, uuid(1e42b3a3-db00-4e16-912c-9e7881effdd6)]
 interface nsIMsgProtocolInfo : nsISupports
 {
     /**
      * the default path to store local data for this type of
      * server. Each server is usually in a subdirectory below this
      */
-    attribute nsIFileSpec defaultLocalPath;
+    attribute nsILocalFile defaultLocalPath;
 
     /**
      * the IID of the protocol-specific interface for this server

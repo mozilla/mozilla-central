@@ -2659,7 +2659,7 @@ nsMsgDBFolder::parseURI(PRBool needServer)
     }
 
     // now append munged path onto server path
-    nsCOMPtr<nsIFileSpec> serverPath;
+    nsCOMPtr<nsILocalFile> serverPath;
     rv = server->GetLocalPath(getter_AddRefs(serverPath));
     if (NS_FAILED(rv)) return rv;
 
@@ -2667,7 +2667,12 @@ nsMsgDBFolder::parseURI(PRBool needServer)
     {
       if (!newPath.IsEmpty())
       {
-        rv = serverPath->AppendRelativeUnixPath(newPath.get());
+        // I hope this is temporary - Ultimately, 
+        // NS_MsgCreatePathStringFromFolderURI will need to be fixed.
+#if defined(XP_WIN) || defined(XP_OS2)
+        newPath.ReplaceChar('/', '\\');
+#endif
+        rv = serverPath->AppendRelativePath(NS_ConvertASCIItoUTF16(newPath));
         NS_ASSERTION(NS_SUCCEEDED(rv),"failed to append to the serverPath");
         if (NS_FAILED(rv)) 
         {
@@ -2675,7 +2680,10 @@ nsMsgDBFolder::parseURI(PRBool needServer)
           return rv;
         }
       }
-      mPath = serverPath;
+      NS_NewFileSpecFromIFile(serverPath, getter_AddRefs(mPath));
+      nsCString nativeServerPath;
+      serverPath->GetNativePath(nativeServerPath);
+      mPath->SetNativePath(nativeServerPath.get());
     }
 
     // URI is completely parsed when we've attempted to get the server

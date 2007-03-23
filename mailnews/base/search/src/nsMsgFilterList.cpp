@@ -232,16 +232,8 @@ nsMsgFilterList::GetLogFileSpec(nsILocalFile **aFile)
     NS_IF_ADDREF(*aFile = filterLogFile);
   }
   else {
-    nsCOMPtr<nsIFileSpec> fileSpec;
-    rv = server->GetLocalPath(getter_AddRefs(fileSpec));
+    rv = server->GetLocalPath(aFile);
     NS_ENSURE_SUCCESS(rv,rv);
-
-    nsFileSpec spec;
-    rv = fileSpec->GetFileSpec(&spec);
-    NS_ENSURE_SUCCESS(rv,rv);
- 
-    rv = NS_FileSpecToIFile(&spec, aFile);
-    NS_ENSURE_SUCCESS(rv, rv);
 
     rv = (*aFile)->AppendNative(NS_LITERAL_CSTRING("filterlog.html"));
     NS_ENSURE_SUCCESS(rv,rv);

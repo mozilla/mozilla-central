@@ -178,11 +178,13 @@ nsLocalURI2Path(const char* rootURI, const char* uriStr,
   
   // now ask the server what it's root is
   // and begin pathResult with the mailbox root
-  nsCOMPtr<nsIFileSpec> localPath;
+  nsCOMPtr<nsILocalFile> localPath;
   rv = server->GetLocalPath(getter_AddRefs(localPath));
-  if (NS_SUCCEEDED(rv)) 
-    localPath->GetFileSpec(&pathResult);
 
+  nsCString localNativePath;
+
+  localPath->GetNativePath(localNativePath);
+  pathResult = localNativePath.get();
   const char *curPos = uriStr + PL_strlen(rootURI);
   if (curPos) {
     
@@ -234,7 +236,7 @@ nsresult nsParseLocalMessageURI(const char* uri,
                                                    keySeparator); 
     nsAutoString folderPath;
     uriStr.Left(folderURI, keySeparator);
-        folderURI.Cut(7, 8);    // cut out the -message part of mailbox-message:
+    folderURI.Cut(7, 8);    // cut out the -message part of mailbox-message:
 
     nsCAutoString keyStr;
     if (keyEndSeparator != -1)

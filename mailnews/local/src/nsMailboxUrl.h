@@ -50,9 +50,9 @@
 class nsMailboxUrl : public nsIMailboxUrl, public nsMsgMailNewsUrl, public nsIMsgMessageUrl, public nsIMsgI18NUrl
 {
 public:
-	// nsIURI over-ride...
-	NS_IMETHOD SetSpec(const nsACString &aSpec);
-    NS_IMETHOD SetQuery(const nsACString &aQuery);
+  // nsIURI over-ride...
+  NS_IMETHOD SetSpec(const nsACString &aSpec);
+  NS_IMETHOD SetQuery(const nsACString &aQuery);
 
 	// from nsIMailboxUrl:
 	NS_IMETHOD SetMailboxParser(nsIStreamListener * aConsumer);
@@ -60,7 +60,6 @@ public:
 	NS_IMETHOD SetMailboxCopyHandler(nsIStreamListener *  aConsumer);
 	NS_IMETHOD GetMailboxCopyHandler(nsIStreamListener ** aConsumer);
 	
-	NS_IMETHOD GetFileSpec(nsFileSpec ** aFilePath);
 	NS_IMETHOD GetMessageKey(nsMsgKey* aMessageKey);
   NS_IMETHOD GetMessageSize(PRUint32 *aMessageSize);
 	NS_IMETHOD SetMessageSize(PRUint32 aMessageSize);
@@ -72,6 +71,9 @@ public:
 	NS_IMPL_CLASS_GETSET(CurMoveCopyMsgIndex, PRUint32, m_curMsgIndex);
 
   NS_IMETHOD GetFolder(nsIMsgFolder **msgFolder);
+
+  // nsIMsgMailNewsUrl override
+  NS_IMETHOD Clone(nsIURI **_retval);
 
   // nsMailboxUrl
   nsMailboxUrl();

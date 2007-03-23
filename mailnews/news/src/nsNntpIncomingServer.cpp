@@ -44,7 +44,7 @@
 #include "nsIPrefService.h"
 #include "nsIMsgNewsFolder.h"
 #include "nsIMsgFolder.h"
-#include "nsIFileSpec.h"
+#include "nsILocalFile.h"
 #include "nsCOMPtr.h"
 #include "nsINntpService.h"
 #include "nsINNTPProtocol.h"
@@ -65,6 +65,8 @@
 #include "nsUnicharUtils.h"
 #include "nsEscape.h"
 #include "nsISupportsObsolete.h"
+#include "nsILineInputStream.h"
+#include "nsNetUtil.h"
 
 #define INVALID_VERSION         0
 #define VALID_VERSION           1
@@ -103,7 +105,7 @@ NS_INTERFACE_MAP_BEGIN(nsNntpIncomingServer)
     NS_INTERFACE_MAP_ENTRY(nsITreeView)
 NS_INTERFACE_MAP_END_INHERITING(nsMsgIncomingServer)
 
-nsNntpIncomingServer::nsNntpIncomingServer() : nsMsgLineBuffer(nsnull, PR_FALSE)
+nsNntpIncomingServer::nsNntpIncomingServer()
 {    
   mNewsrcHasChanged = PR_FALSE;
   mGroupsEnumerator = nsnull;
@@ -112,8 +114,6 @@ nsNntpIncomingServer::nsNntpIncomingServer() : nsMsgLineBuffer(nsnull, PR_FALSE)
   mHostInfoLoaded = PR_FALSE;
   mHostInfoHasChanged = PR_FALSE;
   mVersion = INVALID_VERSION;
-
-  mHostInfoStream = nsnull;
 
   mLastGroupDate = 0;
   mUniqueId = 0;
@@ -145,13 +145,6 @@ nsNntpIncomingServer::~nsNntpIncomingServer()
         mNewsrcSaveTimer->Cancel();
         mNewsrcSaveTimer = nsnull;
     }
-
-    if (mHostInfoStream) {
-        mHostInfoStream->close();
-        delete mHostInfoStream;
-        mHostInfoStream = nsnull;
-    }
-
     rv = ClearInner();
     NS_ASSERTION(NS_SUCCEEDED(rv), "ClearInner failed");
 
@@ -167,7 +160,7 @@ NS_IMPL_SERVERPREF_BOOL(nsNntpIncomingServer, SingleSignon, "singleSignon")
 NS_IMPL_SERVERPREF_INT(nsNntpIncomingServer, MaxArticles, "max_articles")
 
 NS_IMETHODIMP
-nsNntpIncomingServer::GetNewsrcFilePath(nsIFileSpec **aNewsrcFilePath)
+nsNntpIncomingServer::GetNewsrcFilePath(nsILocalFile **aNewsrcFilePath)
 {
   nsresult rv;
   if (mNewsrcFilePath)
@@ -191,40 +184,34 @@ nsNntpIncomingServer::GetNewsrcFilePath(nsIFileSpec **aNewsrcFilePath)
   rv = GetHostName(getter_Copies(hostname));
   if (NS_FAILED(rv)) return rv;
 
-  // set the leaf name to "dummy", and then call MakeUnique with a suggested leaf name
-  rv = mNewsrcFilePath->AppendRelativeUnixPath("dummy");
   if (NS_FAILED(rv)) return rv;
   nsCAutoString newsrcFileName(NEWSRC_FILE_PREFIX);
   newsrcFileName.Append(hostname);
   newsrcFileName.Append(NEWSRC_FILE_SUFFIX);
-  rv = mNewsrcFilePath->MakeUniqueWithSuggestedName(newsrcFileName.get());
+  rv = mNewsrcFilePath->AppendNative(newsrcFileName);
+  rv = mNewsrcFilePath->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 0644);
   if (NS_FAILED(rv)) return rv;
 
   rv = SetNewsrcFilePath(mNewsrcFilePath);
   if (NS_FAILED(rv)) return rv;
 
-  *aNewsrcFilePath = mNewsrcFilePath;
-  NS_ADDREF(*aNewsrcFilePath);
-
+  NS_ADDREF(*aNewsrcFilePath = mNewsrcFilePath);
   return NS_OK;
 }     
 
 NS_IMETHODIMP
-nsNntpIncomingServer::SetNewsrcFilePath(nsIFileSpec *spec)
+nsNntpIncomingServer::SetNewsrcFilePath(nsILocalFile *aFile)
 {
-    nsresult rv;
-    if (!spec) {
-      return NS_ERROR_FAILURE;
-    }
+    NS_ENSURE_ARG_POINTER(aFile);
 
     PRBool exists;
-
-    rv = spec->Exists(&exists);
-    if (!exists) {
-      rv = spec->Touch();
+    nsresult rv = aFile->Exists(&exists);
+    if (!exists) 
+    {
+      rv = aFile->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 0664);
       if (NS_FAILED(rv)) return rv;
     }
-    return SetFileValue("newsrc.file", spec);
+    return SetFileValue("newsrc.file", aFile);
 }          
 
 NS_IMETHODIMP
@@ -236,55 +223,38 @@ nsNntpIncomingServer::GetLocalStoreType(char **type)
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::SetNewsrcRootPath(nsIFileSpec *aNewsrcRootPath)
+nsNntpIncomingServer::SetNewsrcRootPath(nsILocalFile *aNewsrcRootPath)
 {
     NS_ENSURE_ARG(aNewsrcRootPath);
-    nsFileSpec spec;
-
-    nsresult rv = aNewsrcRootPath->GetFileSpec(&spec);
-    NS_ENSURE_SUCCESS(rv, rv);
-    nsCOMPtr<nsILocalFile> localFile;
-    NS_FileSpecToIFile(&spec, getter_AddRefs(localFile));
-    if (!localFile) return NS_ERROR_FAILURE;
-    
-    return NS_SetPersistentFile(PREF_MAIL_NEWSRC_ROOT_REL, PREF_MAIL_NEWSRC_ROOT, localFile);
+    return NS_SetPersistentFile(PREF_MAIL_NEWSRC_ROOT_REL, PREF_MAIL_NEWSRC_ROOT, aNewsrcRootPath);
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::GetNewsrcRootPath(nsIFileSpec **aNewsrcRootPath)
+nsNntpIncomingServer::GetNewsrcRootPath(nsILocalFile **aNewsrcRootPath)
 {
     NS_ENSURE_ARG_POINTER(aNewsrcRootPath);
     *aNewsrcRootPath = nsnull;
     
     PRBool havePref;
-    nsCOMPtr<nsILocalFile> localFile;    
     nsresult rv = NS_GetPersistentFile(PREF_MAIL_NEWSRC_ROOT_REL,
                               PREF_MAIL_NEWSRC_ROOT,
                               NS_APP_NEWS_50_DIR,
                               havePref,
-                              getter_AddRefs(localFile));
+                              aNewsrcRootPath);
 
     NS_ENSURE_SUCCESS(rv, rv);
 
     PRBool exists;
-    rv = localFile->Exists(&exists);
+    rv = (*aNewsrcRootPath)->Exists(&exists);
     if (NS_SUCCEEDED(rv) && !exists)
-        rv = localFile->Create(nsIFile::DIRECTORY_TYPE, 0775);
-    NS_ENSURE_SUCCESS(rv, rv);
-    
-    // Make the resulting nsIFileSpec
-    // TODO: Convert arg to nsILocalFile and avoid this
-    nsCOMPtr<nsIFileSpec> outSpec;
-    rv = NS_NewFileSpecFromIFile(localFile, getter_AddRefs(outSpec));
+        rv = (*aNewsrcRootPath)->Create(nsIFile::DIRECTORY_TYPE, 0775);
     NS_ENSURE_SUCCESS(rv, rv);
     
     if (!havePref || !exists) 
     {
-        rv = NS_SetPersistentFile(PREF_MAIL_NEWSRC_ROOT_REL, PREF_MAIL_NEWSRC_ROOT, localFile);
+        rv = NS_SetPersistentFile(PREF_MAIL_NEWSRC_ROOT_REL, PREF_MAIL_NEWSRC_ROOT, *aNewsrcRootPath);
         NS_ASSERTION(NS_SUCCEEDED(rv), "Failed to set root dir pref.");
     }
-        
-    NS_IF_ADDREF(*aNewsrcRootPath = outSpec);
     return rv;
 }
 
@@ -366,15 +336,14 @@ nsNntpIncomingServer::WriteNewsrcFile()
 #ifdef DEBUG_NEWS
         printf("write newsrc file for %s\n", (const char *)hostname);
 #endif
-        nsCOMPtr <nsIFileSpec> newsrcFile;
+        nsCOMPtr <nsILocalFile> newsrcFile;
         rv = GetNewsrcFilePath(getter_AddRefs(newsrcFile));
 	    if (NS_FAILED(rv)) return rv;
 
-        nsFileSpec newsrcFileSpec;
-        rv = newsrcFile->GetFileSpec(&newsrcFileSpec);
-        if (NS_FAILED(rv)) return rv;
-
-        nsIOFileStream newsrcStream(newsrcFileSpec, (PR_RDWR | PR_CREATE_FILE | PR_TRUNCATE));
+        nsCOMPtr<nsIOutputStream> newsrcStream;
+        nsresult rv = NS_NewLocalFileOutputStream(getter_AddRefs(newsrcStream), newsrcFile, -1, 00600);
+        if (NS_FAILED(rv))
+          return rv;
 
         nsCOMPtr<nsIEnumerator> subFolders;
         nsCOMPtr<nsIMsgFolder> rootFolder;
@@ -384,10 +353,11 @@ nsNntpIncomingServer::WriteNewsrcFile()
         nsCOMPtr <nsIMsgNewsFolder> newsFolder = do_QueryInterface(rootFolder, &rv);
         if (NS_FAILED(rv)) return rv;
 
+        PRUint32 bytesWritten;
         nsXPIDLCString optionLines;
         rv = newsFolder->GetOptionLines(getter_Copies(optionLines));
         if (NS_SUCCEEDED(rv) && ((const char *)optionLines)) {
-               newsrcStream << (const char *)optionLines;
+          newsrcStream->Write((const char *)optionLines, optionLines.Length(), &bytesWritten);
 #ifdef DEBUG_NEWS
                printf("option lines:\n%s",(const char *)optionLines);
 #endif /* DEBUG_NEWS */
@@ -401,7 +371,7 @@ nsNntpIncomingServer::WriteNewsrcFile()
         nsXPIDLCString unsubscribedLines;
         rv = newsFolder->GetUnsubscribedNewsgroupLines(getter_Copies(unsubscribedLines));
         if (NS_SUCCEEDED(rv) && ((const char *)unsubscribedLines)) {
-               newsrcStream << (const char *)unsubscribedLines;
+          newsrcStream->Write((const char *)unsubscribedLines, unsubscribedLines.Length(), &bytesWritten);
 #ifdef DEBUG_NEWS
                printf("unsubscribedLines:\n%s",(const char *)unsubscribedLines);
 #endif /* DEBUG_NEWS */
@@ -430,14 +400,14 @@ nsNntpIncomingServer::WriteNewsrcFile()
                     rv = newsFolder->GetNewsrcLine(getter_Copies(newsrcLine));
                     if (NS_SUCCEEDED(rv) && ((const char *)newsrcLine)) {
                         // write the line to the newsrc file
-                        newsrcStream << (const char *)newsrcLine;
+                        newsrcStream->Write((const char *)newsrcLine, newsrcLine.Length(), &bytesWritten);
                     }
                 }
             }
         }
         delete simpleEnumerator;
 
-        newsrcStream.close();
+        newsrcStream->Close();
         
         rv = SetNewsrcHasChanged(PR_FALSE);
 		if (NS_FAILED(rv)) return rv;
@@ -833,74 +803,72 @@ nsNntpIncomingServer::SubscribeToNewsgroup(const nsACString &aName)
 PRBool
 writeGroupToHostInfoFile(nsCString &aElement, void *aData)
 {
-    nsIOFileStream *stream;
-    stream = (nsIOFileStream *)aData;
+    nsIOutputStream *stream;
+    stream = (nsIOutputStream *)aData;
     NS_ASSERTION(stream, "no stream");
     if (!stream) {
         // stop, something is bad.
         return PR_FALSE;
     }
-
+    PRUint32 bytesWritten;
     // XXX todo ",,1,0,0" is a temporary hack, fix it
-    *stream << aElement.get() << ",,1,0,0" << MSG_LINEBREAK;
+    stream->Write(aElement.get(), aElement.Length(), &bytesWritten);
+    stream->Write(",,1,0,0"MSG_LINEBREAK, 7 + MSG_LINEBREAK_LEN, &bytesWritten);
     return PR_TRUE;
 }
 
+void nsNntpIncomingServer::WriteLine(nsIOutputStream *stream, nsCString &str)
+{
+  PRUint32 bytesWritten;
+  str.Append(MSG_LINEBREAK);
+  stream->Write(str.get(), str.Length(), &bytesWritten);
+}
 nsresult
 nsNntpIncomingServer::WriteHostInfoFile()
 {
-    nsresult rv = NS_OK;
-
-    if (!mHostInfoHasChanged) {
+    if (!mHostInfoHasChanged)
         return NS_OK;
-    }
-
     PRInt32 firstnewdate;
 
     LL_L2I(firstnewdate, mFirstNewDate);
 
     nsXPIDLCString hostname;
-    rv = GetHostName(getter_Copies(hostname));
+    nsresult rv = GetHostName(getter_Copies(hostname));
     NS_ENSURE_SUCCESS(rv,rv);
     
-    nsFileSpec hostinfoFileSpec;
-
     if (!mHostInfoFile) 
         return NS_ERROR_UNEXPECTED;
-
-    rv = mHostInfoFile->GetFileSpec(&hostinfoFileSpec);
-    NS_ENSURE_SUCCESS(rv,rv);
-
-    if (mHostInfoStream) {
-        mHostInfoStream->close();
-        delete mHostInfoStream;
-    }
-
-    mHostInfoStream = new nsIOFileStream(hostinfoFileSpec, (PR_RDWR | PR_CREATE_FILE | PR_TRUNCATE));
-    if (!mHostInfoStream)
-        return NS_ERROR_OUT_OF_MEMORY;
+    nsCOMPtr<nsIOutputStream> hostInfoStream;
+    rv = NS_NewLocalFileOutputStream(getter_AddRefs(hostInfoStream), mHostInfoFile, -1, 00600);
+    if (NS_FAILED(rv))
+      return rv;
 
     // todo, missing some formatting, see the 4.x code
-    *mHostInfoStream
-         << "# News host information file." << MSG_LINEBREAK
-         << "# This is a generated file!  Do not edit." << MSG_LINEBREAK
-         << "" << MSG_LINEBREAK
-         << "version=" << VALID_VERSION << MSG_LINEBREAK
-         << "newsrcname=" << (const char*)hostname << MSG_LINEBREAK
-         << "lastgroupdate=" << mLastGroupDate << MSG_LINEBREAK
-         << "firstnewdate=" << firstnewdate << MSG_LINEBREAK
-         << "uniqueid=" << mUniqueId << MSG_LINEBREAK
-         << "" << MSG_LINEBREAK
-         << "begingroups" << MSG_LINEBREAK;
+    WriteLine(hostInfoStream, nsDependentCString("# News host information file."));
+    WriteLine(hostInfoStream, nsDependentCString("# This is a generated file!  Do not edit."));
+    WriteLine(hostInfoStream, nsDependentCString(""));
+    nsCAutoString version("version=");
+    version.AppendInt(VALID_VERSION);
+    WriteLine(hostInfoStream, version);
+    nsCAutoString newsrcname("newsrcname=");
+    newsrcname.Append(hostname);
+    WriteLine(hostInfoStream, hostname);
+    nsCAutoString dateStr("lastgroupdate=");
+    dateStr.AppendInt(mLastGroupDate);
+    WriteLine(hostInfoStream, dateStr);
+    dateStr ="firstnewdate=";
+    dateStr.AppendInt(firstnewdate);
+    WriteLine(hostInfoStream, dateStr);
+    dateStr = "uniqueid=";
+    dateStr.AppendInt(mUniqueId);
+    WriteLine(hostInfoStream, dateStr);
+    WriteLine(hostInfoStream, nsDependentCString(MSG_LINEBREAK"begingroups"));
 
     // XXX todo, sort groups first?
 
-    mGroupsOnServer.EnumerateForwards((nsCStringArrayEnumFunc)writeGroupToHostInfoFile, (void *)mHostInfoStream);
+    mGroupsOnServer.EnumerateForwards((nsCStringArrayEnumFunc)writeGroupToHostInfoFile, (void *)hostInfoStream);
 
-    mHostInfoStream->close();
-    delete mHostInfoStream;
-    mHostInfoStream = nsnull;
-
+    hostInfoStream->Close();
     mHostInfoHasChanged = PR_FALSE;
     return NS_OK;
 }
@@ -908,16 +876,16 @@ nsNntpIncomingServer::WriteHostInfoFile()
 nsresult
 nsNntpIncomingServer::LoadHostInfoFile()
 {
-	nsresult rv;
+  nsresult rv;
 	
-    // we haven't loaded it yet
-    mHostInfoLoaded = PR_FALSE;
+  // we haven't loaded it yet
+  mHostInfoLoaded = PR_FALSE;
 
 	rv = GetLocalPath(getter_AddRefs(mHostInfoFile));
 	if (NS_FAILED(rv)) return rv;
 	if (!mHostInfoFile) return NS_ERROR_FAILURE;
 
-	rv = mHostInfoFile->AppendRelativeUnixPath(HOSTINFO_FILE_NAME);
+	rv = mHostInfoFile->AppendNative(NS_LITERAL_CSTRING(HOSTINFO_FILE_NAME));
 	if (NS_FAILED(rv)) return rv;
 
 	PRBool exists;
@@ -927,39 +895,27 @@ nsNntpIncomingServer::LoadHostInfoFile()
 	// it is ok if the hostinfo.dat file does not exist.
 	if (!exists) return NS_OK;
 
-    char *buffer = nsnull;
-    rv = mHostInfoFile->OpenStreamForReading();
-    NS_ENSURE_SUCCESS(rv,rv);
+  nsCOMPtr<nsIInputStream> fileStream;
+  rv = NS_NewLocalFileInputStream(getter_AddRefs(fileStream), mNewsrcFilePath);
+  NS_ENSURE_SUCCESS(rv, nsnull);
 
-    PRInt32 numread = 0;
+  nsCOMPtr<nsILineInputStream> lineInputStream(do_QueryInterface(fileStream, &rv));
+  NS_ENSURE_SUCCESS(rv, nsnull);
+  
+  PRBool more = PR_TRUE;
+  nsXPIDLCString line;
 
-    if (NS_FAILED(mHostInfoInputStream.GrowBuffer(HOSTINFO_FILE_BUFFER_SIZE))) {
-    	return NS_ERROR_FAILURE;
-    }
-	
-	mHasSeenBeginGroups = PR_FALSE;
-
-    while (1) {
-        buffer = mHostInfoInputStream.GetBuffer();
-        rv = mHostInfoFile->Read(&buffer, HOSTINFO_FILE_BUFFER_SIZE, &numread);
-        NS_ENSURE_SUCCESS(rv,rv);
-        if (numread == 0) {
-      		break;
-    	}
-    	else {
-      		rv = BufferInput(mHostInfoInputStream.GetBuffer(), numread);
-      		if (NS_FAILED(rv)) {
-        		break;
-      		}
-    	}
-  	}
-
-    mHostInfoFile->CloseStream();
+  while (more && NS_SUCCEEDED(rv))
+  {
+    lineInputStream->ReadLine(line, &more);
+    if (line.IsEmpty())
+      continue;
+    HandleLine(line.get(), line.Length());
+    mHasSeenBeginGroups = PR_FALSE;
+  }
+  fileStream->Close();
      
-	rv = UpdateSubscribed();
-	if (NS_FAILED(rv)) return rv;
-
-	return NS_OK;
+  return UpdateSubscribed();
 }
 
 NS_IMETHODIMP
@@ -1283,18 +1239,17 @@ nsNntpIncomingServer::Unsubscribe(const PRUnichar *aUnicharName)
 }
 
 PRInt32
-nsNntpIncomingServer::HandleLine(char* line, PRUint32 line_size)
+nsNntpIncomingServer::HandleLine(const char* line, PRUint32 line_size)
 {
   NS_ASSERTION(line, "line is null");
   if (!line) return 0;
 
   // skip blank lines and comments
   if (line[0] == '#' || line[0] == '\0') return 0;
-	
-  line[line_size] = 0;
+  // ###TODO - make this truly const, maybe pass in an nsCString &
 
   if (mHasSeenBeginGroups) {
-    char *commaPos = PL_strchr(line,',');
+    char *commaPos = (char *) PL_strchr(line,',');
     if (commaPos) *commaPos = 0;
 
         // newsrc entries are all in UTF-8
@@ -1313,7 +1268,7 @@ nsNntpIncomingServer::HandleLine(char* line, PRUint32 line_size)
 		if (nsCRT::strncmp(line,"begingroups", 11) == 0) {
 			mHasSeenBeginGroups = PR_TRUE;
 		}
-		char*equalPos = PL_strchr(line, '=');	
+		char*equalPos = (char *) PL_strchr(line, '=');	
 		if (equalPos) {
 			*equalPos++ = '\0';
 			if (PL_strcmp(line, "lastgroupdate") == 0) {
@@ -2117,12 +2072,12 @@ nsNntpIncomingServer::OnUserOrHostNameChanged(const char *oldName, const char *n
 
   // 2. Remove file hostinfo.dat so that the new subscribe 
   //    list will be reloaded from the new server.
-  nsCOMPtr <nsIFileSpec> hostInfoFile;
+  nsCOMPtr <nsILocalFile> hostInfoFile;
   rv = GetLocalPath(getter_AddRefs(hostInfoFile));
   NS_ENSURE_SUCCESS(rv, rv);
-  rv = hostInfoFile->AppendRelativeUnixPath(HOSTINFO_FILE_NAME);
+  rv = hostInfoFile->AppendNative(NS_LITERAL_CSTRING(HOSTINFO_FILE_NAME));
   NS_ENSURE_SUCCESS(rv, rv);
-  hostInfoFile->Delete(PR_FALSE);
+  hostInfoFile->Remove(PR_FALSE);
 
   // 3.Unsubscribe and then subscribe the existing groups to clean up the article numbers
   //   in the rc file (this is because the old and new servers may maintain different 

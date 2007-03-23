@@ -70,6 +70,7 @@
 #include "nsINntpIncomingServer.h"
 #include "nsINewsDatabase.h"
 #include "nsMsgBaseCID.h"
+#include "nsILineInputStream.h"
 
 #include "nsIMsgWindow.h"
 #include "nsIDocShell.h"
@@ -112,18 +113,13 @@ static NS_DEFINE_CID(kCNewsDB, NS_NEWSDB_CID);
 
 ////////////////////////////////////////////////////////////////////////////////
 
-nsMsgNewsFolder::nsMsgNewsFolder(void) : nsMsgLineBuffer(nsnull, PR_FALSE),
+nsMsgNewsFolder::nsMsgNewsFolder(void) : 
      mExpungedBytes(0), mGettingNews(PR_FALSE),
     mInitialized(PR_FALSE),
     m_downloadMessageForOfflineUse(PR_FALSE), m_downloadingMultipleMessages(PR_FALSE), 
     mReadSet(nsnull), mGroupUsername(nsnull), mGroupPassword(nsnull)
 {
   MOZ_COUNT_CTOR(nsNewsFolder); // double count these for now.
-  /* we're parsing the newsrc file, and the line breaks are platform specific.
-   * if MSG_LINEBREAK != CRLF, then we aren't looking for CRLF 
-   */
-  if (PL_strcmp(MSG_LINEBREAK, CRLF))
-    SetLookingForCRLF(PR_FALSE);
 }
 
 nsMsgNewsFolder::~nsMsgNewsFolder(void)
@@ -1035,65 +1031,47 @@ nsMsgNewsFolder::LoadNewsrcFileAndCreateNewsgroups()
 
   if (!exists)
   	// it is ok for the newsrc file to not exist yet
-	return NS_OK;
+    return NS_OK;
 
-  char *buffer = nsnull;
-  rv = mNewsrcFilePath->OpenStreamForReading();
-  NS_ENSURE_SUCCESS(rv,rv);
+  nsCOMPtr<nsIInputStream> fileStream;
+  rv = NS_NewLocalFileInputStream(getter_AddRefs(fileStream), mNewsrcFilePath);
+  NS_ENSURE_SUCCESS(rv, nsnull);
 
-  PRInt32 numread = 0;
+  nsCOMPtr<nsILineInputStream> lineInputStream(do_QueryInterface(fileStream, &rv));
+  NS_ENSURE_SUCCESS(rv, nsnull);
+  
+  PRBool more = PR_TRUE;
+  nsXPIDLCString line;
 
-  if (NS_FAILED(m_newsrcInputStream.GrowBuffer(NEWSRC_FILE_BUFFER_SIZE))) 
-    return NS_ERROR_FAILURE;
-
-	
-  while (1) 
+  while (more && NS_SUCCEEDED(rv))
   {
-    buffer = m_newsrcInputStream.GetBuffer();
-    rv = mNewsrcFilePath->Read(&buffer, NEWSRC_FILE_BUFFER_SIZE, &numread);
-    NS_ENSURE_SUCCESS(rv,rv);
-    if (numread == 0) {
-      break;
-    }
-    else {
-      rv = BufferInput(m_newsrcInputStream.GetBuffer(), numread);
-      if (NS_FAILED(rv)) {
-        break;
-      }
-    }
+    lineInputStream->ReadLine(line, &more);
+    if (line.IsEmpty())
+      continue;
+    HandleNewsrcLine(line.get(), line.Length());
   }
 
-  mNewsrcFilePath->CloseStream();
-  
+  fileStream->Close();
   return rv;
 }
 
-
 PRInt32
-nsMsgNewsFolder::HandleLine(char* line, PRUint32 line_size)
-{
-	return HandleNewsrcLine(line, line_size);
-}
-
-PRInt32
-nsMsgNewsFolder::HandleNewsrcLine(char* line, PRUint32 line_size)
+nsMsgNewsFolder::HandleNewsrcLine(const char* line, PRUint32 line_size)
 {
   nsresult rv;
   
   /* guard against blank line lossage */
   if (line[0] == '#' || line[0] == nsCRT::CR || line[0] == nsCRT::LF) return 0;
   
-  line[line_size] = 0;
-  
   if ((line[0] == 'o' || line[0] == 'O') &&
     !PL_strncasecmp (line, "options", 7)) 
     return RememberLine(line);
   
-  char *s = nsnull;
-  char *setStr = nsnull;
-  char *end = line + line_size;
+  const char *s = nsnull;
+  const char *setStr = nsnull;
+  const char *end = line + line_size;
   
-  for (s = line; s < end; s++)
+  for (s = line; s < end;  s++)
     if ((*s == ':') || (*s == '!'))
       break;
     
@@ -1103,7 +1081,6 @@ nsMsgNewsFolder::HandleNewsrcLine(char* line, PRUint32 line_size)
     
     PRBool subscribed = (*s == ':');
     setStr = s+1;
-    *s = '\0';
     
     if (*line == '\0') 
       return 0;
@@ -1136,7 +1113,7 @@ nsMsgNewsFolder::HandleNewsrcLine(char* line, PRUint32 line_size)
     // we're subscribed, so add it
     nsCOMPtr <nsIMsgFolder> child;
     
-    rv = AddNewsgroup(nsDependentCString(line), setStr, getter_AddRefs(child));
+    rv = AddNewsgroup(nsDependentCSubstring(line, s), setStr, getter_AddRefs(child));
     
     if (NS_FAILED(rv)) return -1;
   }
@@ -1908,7 +1885,7 @@ nsMsgNewsFolder::GetFilterList(nsIMsgWindow *aMsgWindow, nsIMsgFilterList **aRes
     nsresult rv = GetPath(getter_AddRefs(thisFolder));
     NS_ENSURE_SUCCESS(rv, rv);
     
-    mFilterFile = do_CreateInstance(NS_FILESPEC_CONTRACTID, &rv);
+    nsCOMPtr <nsIFileSpec> mFilterFile = do_CreateInstance(NS_FILESPEC_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
     
     // in 4.x, the news filter file was

@@ -46,17 +46,15 @@
 #define nsMsgNewsFolder_h__
 
 #include "nsMsgDBFolder.h" 
-#include "nsFileSpec.h"
-#include "nsFileStream.h"
+#include "nsILocalFile.h"
 #include "nsINntpIncomingServer.h" // need this for the IID
 #include "nsNewsUtils.h"
-#include "nsMsgLineBuffer.h"
 #include "nsMsgKeySet.h"
 #include "nsIMsgNewsFolder.h"
 #include "nsCOMPtr.h"
 #include "nsIMsgFilterService.h"
 
-class nsMsgNewsFolder : public nsMsgDBFolder, public nsIMsgNewsFolder, public nsMsgLineBuffer
+class nsMsgNewsFolder : public nsMsgDBFolder, public nsIMsgNewsFolder
 {
 public:
   nsMsgNewsFolder(void);
@@ -119,9 +117,6 @@ public:
   NS_IMETHOD SetFilterList(nsIMsgFilterList *aFilterList);
   NS_IMETHOD ApplyRetentionSettings();
 
-  // for nsMsgLineBuffer
-  virtual PRInt32 HandleLine(char *line, PRUint32 line_size);
-
 protected:
   // helper routine to parse the URI and update member variables
   nsresult AbbreviatePrettyName(PRUnichar ** prettyName, PRInt32 fullwords);
@@ -136,11 +131,9 @@ protected:
   nsresult ForgetLine(void);
   nsresult GetNewsMessages(nsIMsgWindow *aMsgWindow, PRBool getOld, nsIUrlListener *aListener);
 
-  PRInt32 HandleNewsrcLine(char *line, PRUint32 line_size);
+  PRInt32 HandleNewsrcLine(const char *line, PRUint32 line_size);
   virtual const char *GetIncomingServerType() {return "nntp";}
   virtual nsresult CreateBaseMessageURI(const char *aURI);
-
-  nsByteArray		m_newsrcInputStream;
 
 protected:
   PRUint32  mExpungedBytes;
@@ -153,7 +146,7 @@ protected:
   nsCString mUnsubscribedNewsgroupLines;
   nsMsgKeySet *mReadSet; 
 
-  nsCOMPtr<nsIFileSpec> mNewsrcFilePath; 
+  nsCOMPtr<nsILocalFile> mNewsrcFilePath; 
 
   // used for auth news
   char 		*mGroupUsername;
@@ -171,7 +164,6 @@ private:
     nsresult CreateNewsgroupPasswordUrlForSignon(const char *inUriStr, char **result);
     nsresult CreateNewsgroupUrlForSignon(const char *inUriStr, const char *ref, char **result);
 
-    nsCOMPtr <nsIFileSpec> mFilterFile;
     nsCOMPtr <nsIMsgFilterList> mFilterList;
 };
 

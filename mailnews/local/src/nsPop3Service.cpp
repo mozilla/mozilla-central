@@ -485,25 +485,14 @@ NS_IMETHODIMP nsPop3Service::NewChannel(nsIURI *aURI, nsIChannel **_retval)
 
 
 NS_IMETHODIMP
-nsPop3Service::SetDefaultLocalPath(nsIFileSpec *aPath)
+nsPop3Service::SetDefaultLocalPath(nsILocalFile *aPath)
 {
     NS_ENSURE_ARG(aPath);
-    nsresult rv;
-    
-    nsFileSpec spec;
-    rv = aPath->GetFileSpec(&spec);
-    if (NS_FAILED(rv)) return rv;
-    nsCOMPtr<nsILocalFile> localFile;
-    NS_FileSpecToIFile(&spec, getter_AddRefs(localFile));
-    if (!localFile) return NS_ERROR_FAILURE;
-    
-    rv = NS_SetPersistentFile(PREF_MAIL_ROOT_POP3_REL, PREF_MAIL_ROOT_POP3, localFile);
-
-    return rv;
+    return NS_SetPersistentFile(PREF_MAIL_ROOT_POP3_REL, PREF_MAIL_ROOT_POP3, aPath);
 }     
 
 NS_IMETHODIMP
-nsPop3Service::GetDefaultLocalPath(nsIFileSpec ** aResult)
+nsPop3Service::GetDefaultLocalPath(nsILocalFile ** aResult)
 {
     NS_ENSURE_ARG_POINTER(aResult);
     *aResult = nsnull;
@@ -524,19 +513,12 @@ nsPop3Service::GetDefaultLocalPath(nsIFileSpec ** aResult)
         rv = localFile->Create(nsIFile::DIRECTORY_TYPE, 0775);
         if (NS_FAILED(rv)) return rv;
     
-    // Make the resulting nsIFileSpec
-    // TODO: Convert arg to nsILocalFile and avoid this
-    nsCOMPtr<nsIFileSpec> outSpec;
-    rv = NS_NewFileSpecFromIFile(localFile, getter_AddRefs(outSpec));
-    if (NS_FAILED(rv)) return rv;
-    
     if (!havePref || !exists) {
         rv = NS_SetPersistentFile(PREF_MAIL_ROOT_POP3_REL, PREF_MAIL_ROOT_POP3, localFile);
         NS_ASSERTION(NS_SUCCEEDED(rv), "Failed to set root dir pref.");
     }
         
-    *aResult = outSpec;
-    NS_IF_ADDREF(*aResult);
+    NS_IF_ADDREF(*aResult = localFile);
     return NS_OK;
 }
     

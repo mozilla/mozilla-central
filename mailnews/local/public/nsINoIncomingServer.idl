@@ -37,11 +37,11 @@
 
 #include "nsISupports.idl"
 
-interface nsIFileSpec;
+interface nsILocalFile;
 
-[scriptable, uuid(739b7fb0-5f37-11d3-896b-004005263078)]
+[scriptable, uuid(ba3071e9-39a5-4a10-b770-1809317ef2c1)]
 interface nsINoIncomingServer : nsISupports {
 	/* copy (or prepend) bin/defaults/messenger/<folderNameOnDisk> to <parentDir>/<folderNameOnDisk> */
-	void copyDefaultMessages(in string folderNameOnDisk, in nsIFileSpec parentDir);
+	void copyDefaultMessages(in string folderNameOnDisk, in nsILocalFile parentDir);
 };
 

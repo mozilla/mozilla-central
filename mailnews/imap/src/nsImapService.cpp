@@ -2756,33 +2756,21 @@ NS_IMETHODIMP nsImapService::NewChannel(nsIURI *aURI, nsIChannel **_retval)
 }
 
 NS_IMETHODIMP
-nsImapService::SetDefaultLocalPath(nsIFileSpec *aPath)
+nsImapService::SetDefaultLocalPath(nsILocalFile *aPath)
 {
     NS_ENSURE_ARG(aPath);
-    
-    nsFileSpec spec;
-    nsresult rv = aPath->GetFileSpec(&spec);
-    NS_ENSURE_SUCCESS(rv, rv);
-    nsCOMPtr<nsILocalFile> localFile;
-    NS_FileSpecToIFile(&spec, getter_AddRefs(localFile));
-    if (!localFile) return NS_ERROR_FAILURE;
-    
-    return NS_SetPersistentFile(PREF_MAIL_ROOT_IMAP_REL, PREF_MAIL_ROOT_IMAP, localFile);
+    return NS_SetPersistentFile(PREF_MAIL_ROOT_IMAP_REL, PREF_MAIL_ROOT_IMAP, aPath);
 }       
 
 NS_IMETHODIMP
-nsImapService::GetDefaultLocalPath(nsIFileSpec ** aResult)
+nsImapService::GetDefaultLocalPath(nsILocalFile ** aResult)
 {
     NS_ENSURE_ARG_POINTER(aResult);
     *aResult = nsnull;
     
-    nsresult rv;
-    nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-    if (NS_FAILED(rv)) return rv;
-    
     PRBool havePref;
     nsCOMPtr<nsILocalFile> localFile;    
-    rv = NS_GetPersistentFile(PREF_MAIL_ROOT_IMAP_REL,
+    nsresult rv = NS_GetPersistentFile(PREF_MAIL_ROOT_IMAP_REL,
                               PREF_MAIL_ROOT_IMAP,
                               NS_APP_IMAP_MAIL_50_DIR,
                               havePref,
@@ -2794,11 +2782,6 @@ nsImapService::GetDefaultLocalPath(nsIFileSpec ** aResult)
         rv = localFile->Create(nsIFile::DIRECTORY_TYPE, 0775);
     NS_ENSURE_SUCCESS(rv, rv);
     
-    // Make the resulting nsIFileSpec
-    // TODO: Convert arg to nsILocalFile and avoid this
-    nsCOMPtr<nsIFileSpec> outSpec;
-    rv = NS_NewFileSpecFromIFile(localFile, getter_AddRefs(outSpec));
-    NS_ENSURE_SUCCESS(rv, rv);
     
     if (!havePref || !exists) 
     {
@@ -2806,7 +2789,7 @@ nsImapService::GetDefaultLocalPath(nsIFileSpec ** aResult)
         NS_ASSERTION(NS_SUCCEEDED(rv), "Failed to set root dir pref.");
     }
         
-    NS_IF_ADDREF(*aResult = outSpec);
+    NS_IF_ADDREF(*aResult = localFile);
     return NS_OK;
 }
     

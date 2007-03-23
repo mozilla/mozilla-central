@@ -492,58 +492,37 @@ nsMsgIncomingServer::GetIntValue(const char *prefname,
   return rv;
 }
 
-nsresult
-nsMsgIncomingServer::GetFileValue(const char* prefname,
-                                  nsIFileSpec **spec)
+NS_IMETHODIMP
+nsMsgIncomingServer::GetFileValue(const char* aPrefname,
+                                  nsILocalFile **aLocalFile)
 {
   nsCAutoString fullPrefName;
-  getPrefName(m_serverKey.get(), prefname, fullPrefName);
+  getPrefName(m_serverKey.get(), aPrefname, fullPrefName);
   
   nsCAutoString fullRelPrefName(fullPrefName);
   fullRelPrefName.Append(REL_FILE_PREF_SUFFIX);
-  nsCOMPtr<nsILocalFile> prefLocal;
   
   PRBool gotRelPref;
   nsresult rv = NS_GetPersistentFile(fullRelPrefName.get(), fullPrefName.get(),
-                                     nsnull, gotRelPref, getter_AddRefs(prefLocal));
+                                     nsnull, gotRelPref, aLocalFile);
   if (NS_FAILED(rv)) return rv;
 
   if (NS_SUCCEEDED(rv) && !gotRelPref) 
   {
-    rv = NS_SetPersistentFile(fullRelPrefName.get(), fullPrefName.get(), prefLocal);
+    rv = NS_SetPersistentFile(fullRelPrefName.get(), fullPrefName.get(), *aLocalFile);
     NS_ASSERTION(NS_SUCCEEDED(rv), "Failed to update file pref.");
   }
-  
-  if (NS_FAILED(rv)) return rv;
-
-  nsCOMPtr<nsIFileSpec> outSpec;
-  rv = NS_NewFileSpecFromIFile(prefLocal, getter_AddRefs(outSpec));
-  if (NS_FAILED(rv)) return rv;
-  
-  *spec = outSpec;
-  NS_ADDREF(*spec);
-
-  return NS_OK;
+  return rv;
 }
 
-nsresult
+NS_IMETHODIMP
 nsMsgIncomingServer::SetFileValue(const char* prefname,
-                                    nsIFileSpec *spec)
+                                    nsILocalFile *localFile)
 {
   nsCAutoString fullPrefName;
   getPrefName(m_serverKey.get(), prefname, fullPrefName);
   nsCAutoString fullRelPrefName(fullPrefName);
   fullRelPrefName.Append(REL_FILE_PREF_SUFFIX);
-  
-  nsresult rv;
-  nsFileSpec tempSpec;
-  rv = spec->GetFileSpec(&tempSpec);
-  if (NS_FAILED(rv)) return rv;
-
-  nsCOMPtr<nsILocalFile> localFile;
-  NS_FileSpecToIFile(&tempSpec, getter_AddRefs(localFile));
-  if (!localFile) 
-    return NS_ERROR_FAILURE;
   return NS_SetPersistentFile(fullRelPrefName.get(), fullPrefName.get(), localFile);
 }
 
@@ -982,7 +961,7 @@ nsMsgIncomingServer::ForgetSessionPassword()
 }
 
 NS_IMETHODIMP
-nsMsgIncomingServer::SetDefaultLocalPath(nsIFileSpec *aDefaultLocalPath)
+nsMsgIncomingServer::SetDefaultLocalPath(nsILocalFile *aDefaultLocalPath)
 {
     nsresult rv;
     nsCOMPtr<nsIMsgProtocolInfo> protocolInfo;
@@ -994,7 +973,7 @@ nsMsgIncomingServer::SetDefaultLocalPath(nsIFileSpec *aDefaultLocalPath)
 }
 
 NS_IMETHODIMP
-nsMsgIncomingServer::GetLocalPath(nsIFileSpec **aLocalPath)
+nsMsgIncomingServer::GetLocalPath(nsILocalFile **aLocalPath)
 {
     nsresult rv;
 
@@ -1010,42 +989,33 @@ nsMsgIncomingServer::GetLocalPath(nsIFileSpec **aLocalPath)
     rv = getProtocolInfo(getter_AddRefs(protocolInfo));
     if (NS_FAILED(rv)) return rv;
     
-    nsCOMPtr<nsIFileSpec> path;
-    rv = protocolInfo->GetDefaultLocalPath(getter_AddRefs(path));
+    nsCOMPtr<nsILocalFile> localPath;
+    rv = protocolInfo->GetDefaultLocalPath(getter_AddRefs(localPath));
     if (NS_FAILED(rv)) return rv;
+    localPath->Create(nsIFile::DIRECTORY_TYPE, 0755);
     
-    path->CreateDir();
-    
-	// set the leaf name to "dummy", and then call MakeUnique with a suggested leaf name
-    rv = path->AppendRelativeUnixPath("dummy");
-    if (NS_FAILED(rv)) return rv;
     nsXPIDLCString hostname;
     rv = GetHostName(getter_Copies(hostname));
     if (NS_FAILED(rv)) return rv;
-    rv = path->MakeUniqueDirWithSuggestedName((const char *)hostname);
+    // set the leaf name to "dummy", and then call MakeUnique with a suggested leaf name
+    rv = localPath->AppendNative(hostname);
+    if (NS_FAILED(rv)) return rv;
+    rv = localPath->CreateUnique(nsIFile::DIRECTORY_TYPE, 0755);
     if (NS_FAILED(rv)) return rv;
 
-    rv = SetLocalPath(path);
+    rv = SetLocalPath(localPath);
     if (NS_FAILED(rv)) return rv;
 
-    *aLocalPath = path;
-    NS_ADDREF(*aLocalPath);
-
+    NS_IF_ADDREF(*aLocalPath = localPath);
     return NS_OK;
 }
 
 NS_IMETHODIMP
-nsMsgIncomingServer::SetLocalPath(nsIFileSpec *spec)
+nsMsgIncomingServer::SetLocalPath(nsILocalFile *aLocalPath)
 {
-  if (spec)
-  {
-    spec->CreateDir();
-    return SetFileValue("directory", spec);
-  }
-  else 
-  {
-    return NS_ERROR_NULL_POINTER;
-  }
+  NS_ENSURE_ARG_POINTER(aLocalPath);
+  aLocalPath->Create(nsIFile::DIRECTORY_TYPE, 0755);
+  return SetFileValue("directory", aLocalPath);
 }
 
 NS_IMETHODIMP

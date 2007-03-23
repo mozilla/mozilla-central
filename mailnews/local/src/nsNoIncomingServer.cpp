@@ -112,7 +112,7 @@ nsNoIncomingServer::SetFlagsOnDefaultMailboxes()
   return NS_OK;
 }	
 
-NS_IMETHODIMP nsNoIncomingServer::CopyDefaultMessages(const char *folderNameOnDisk, nsIFileSpec *parentDir)
+NS_IMETHODIMP nsNoIncomingServer::CopyDefaultMessages(const char *folderNameOnDisk, nsILocalFile *parentDir)
 {
   nsresult rv;
   PRBool exists;
@@ -136,19 +136,11 @@ NS_IMETHODIMP nsNoIncomingServer::CopyDefaultMessages(const char *folderNameOnDi
   if (NS_FAILED(rv)) return rv;
   if (!exists) return NS_OK;
   
-  // Make an nsILocalFile of the parentDir
-  nsFileSpec parentDirSpec;
-  nsCOMPtr<nsILocalFile> localParentDir;
-  
-  rv = parentDir->GetFileSpec(&parentDirSpec);
-  if (NS_FAILED(rv)) return rv;
-  rv = NS_FileSpecToIFile(&parentDirSpec, getter_AddRefs(localParentDir));
-  if (NS_FAILED(rv)) return rv;
-  
+
   // check if parentDir/<folderNameOnDisk> exists
   {
     nsCOMPtr<nsIFile> testDir;
-    rv = localParentDir->Clone(getter_AddRefs(testDir));
+    rv = parentDir->Clone(getter_AddRefs(testDir));
     if (NS_FAILED(rv)) return rv;
     rv = testDir->AppendNative(nsDependentCString(folderNameOnDisk));
     if (NS_FAILED(rv)) return rv;
@@ -170,7 +162,7 @@ NS_IMETHODIMP nsNoIncomingServer::CopyDefaultMessages(const char *folderNameOnDi
 #ifdef DEBUG_sspitzer
     printf("copy default %s\n",folderNameOnDisk);
 #endif
-    rv = defaultMessagesFile->CopyTo(localParentDir, EmptyString());
+    rv = defaultMessagesFile->CopyTo(parentDir, EmptyString());
     if (NS_FAILED(rv)) return rv;
   }
   return NS_OK;
@@ -196,7 +188,13 @@ NS_IMETHODIMP nsNoIncomingServer::CreateDefaultMailboxes(nsIFileSpec *path)
   nsCOMPtr<nsIFileSpec> parentDir;
   rv = path->GetParent(getter_AddRefs(parentDir));
   if (NS_FAILED(rv)) return rv;
-  rv = CopyDefaultMessages("Templates",parentDir);
+
+  nsCOMPtr<nsILocalFile> parentFile;
+  nsFileSpec parentSpec;
+  parentDir->GetFileSpec(&parentSpec);
+  NS_FileSpecToIFile(&parentSpec, getter_AddRefs(parentFile));
+
+  rv = CopyDefaultMessages("Templates", parentFile);
   if (NS_FAILED(rv)) return rv;
   
   (void ) CreateLocalFolder(path, "Unsent Messages");

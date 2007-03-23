@@ -588,7 +588,7 @@ NS_IMETHODIMP nsPop3IncomingServer::MarkMessages()
   {
     nsXPIDLCString hostName;
     nsXPIDLCString userName;
-    nsCOMPtr<nsIFileSpec> localPath;
+    nsCOMPtr<nsILocalFile> localPath;
 
     GetLocalPath(getter_AddRefs(localPath));
   
