@@ -1,5 +1,4 @@
 <?xml version="1.0"?>
-
 <!--
    - ***** BEGIN LICENSE BLOCK *****
    - Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -56,7 +55,7 @@
         persist="screenX screenY width height"
         buttons="accept"
         buttonlabelaccept="&calendar.alarm.dismissall.label;"
-        onunload="return onDismissAll();"
+        ondialogaccept="return onDismissAll();"
         width="400"
         height="200">
 
