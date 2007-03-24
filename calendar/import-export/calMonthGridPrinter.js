@@ -108,45 +108,86 @@ function monthPrint_format(aStream, aStart, aEnd, aCount, aItems, aTitle) {
     maybeNewStart.day = 1;
     maybeNewStart.month = start.month+1;
     maybeNewStart.normalize();
-    var firstDate = maybeNewStart.startOfWeek;
-    firstDate.day += weekStart;
-    firstDate.normalize();
-    if (firstDate.weekday < weekStart) {
-        // Go back one week to make sure we display this day
-        firstDate.day -= 7;
-        firstDate.normalize();
-    }
-    if (firstDate.compare(start) != 1) {
-        start = maybeNewStart;
-    }
-
-    var maybeNewEnd = end.clone();
-    maybeNewEnd.day = 1;
-    maybeNewEnd.month = end.month-1;
-    maybeNewEnd.normalize();
-
-    var lastDate = maybeNewEnd.endOfMonth.endOfWeek;
-    lastDate.day += weekStart;
-    lastDate.normalize();
-    if (lastDate.weekday < weekStart) {
-        // Go back one week so we don't display any extra days
-        lastDate.day -= 7;
-        lastDate.normalize();
-    }
-    // aEnd is exclusive, so we can add another day and be safe
-    lastDate.day += 1;
-    lastDate.normalize();
-    if (lastDate.compare(end) != -1) {
-        end = maybeNewEnd;
-    }
-
 
     var date = start.clone();
-    date.day = 1;
+
+    // First we have to adjust the end date for comparison, as the
+    // provided end date is exclusive, i.e. will not be displayed.
+
+    var realEnd = end.clone();
+    realEnd.day -= 1;
+    realEnd.normalize();
+
+    if (start.compare(realEnd) <= 0) {
+        // Only adjust dates if start date is earlier than end date.
+
+        if ((start.month != realEnd.month) || (start.year != realEnd.year)) {
+            // We only need to adjust if start and end are in different months.
+
+            // We want to check whether or not the start day is in the same
+            // week as the beginning of the next month. To do this, we take
+            // the start date, add seven days and subtract the "day of week"
+            // value (which has to be corrected in case we do not start on
+            // Sunday).
+            var testBegin = start.clone();
+            var startWeekday = testBegin.weekday;
+            if (startWeekday < weekStart) {
+                startWeekday += 7;
+                startWeekday.normalize();
+            }
+            testBegin.day += 7 + weekStart - startWeekday;
+            testBegin.normalize();
+            if (testBegin.compare(maybeNewStart) > 0) {
+                start = maybeNewStart;
+                date = start.clone();
+            }
+        }
+        if ((start.month != realEnd.month) || (start.year != realEnd.year)) {
+            // We only need to adjust if start and end are in different months.
+
+            // Next, we want to check whether or not the end day is in the same
+            // week as the end of the previous month. So we have to get the
+            // "day of week" value for the end of the previous month, adjust it
+            // if necessary (when start of week is not Sunday) and check if the
+            // end day is in the same week.
+
+            var lastDayOfPreviousMonth = end.clone();
+            lastDayOfPreviousMonth.day = 0;
+            lastDayOfPreviousMonth.normalize();
+            var lastDayWeekday = lastDayOfPreviousMonth.weekday;
+            if (lastDayWeekday < weekStart) {
+                lastDayWeekday += 7;
+                lastDayWeekday.normalize();
+            }
+            if (date.month != end.month) {
+                date.day = 1;
+                date.normalize();
+            }
+            if ((lastDayWeekday + end.day - 1) < (7 + weekStart)) {
+                date.day = end.day;
+                date.normalize();
+            }
+
+            // Finally, we have to check whether we adjusted the dates too
+            // well so that nothing is printed. That happens if you print just
+            // one week which has the last day of a month in it.
+
+            if (date.compare(end) >= 0) {
+                date.day = 1;
+                date.normalize();
+            }
+        } else {
+            date.day = 1;
+            date.normalize();
+        }
+    } else {
+         // If start date is after end date, just print empty month.
+         date = realEnd.clone();
+    }
 
     var body = <body/>
 
-    while (date.compare(end) <= 0) {
+    while (date.compare(end) < 0) {
         var monthName = calGetString("dateFormat", "month." + (date.month +1)+ ".name");
         monthName += " " + date.year;
         body.appendChild(
