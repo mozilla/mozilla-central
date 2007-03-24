@@ -358,12 +358,13 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
     if (!lineInputStream)
         return rv;
 
-    nsCOMPtr<nsIFileSpec> mailDirectory;
+    nsCOMPtr<nsILocalFile> mailDirectory;
     rv = in_server->GetLocalPath(getter_AddRefs(mailDirectory));
     NS_ENSURE_SUCCESS(rv, rv);
 
     nsFileSpec fileSpec;
-    mailDirectory->GetFileSpec(&fileSpec);
+    nsCOMPtr<nsIFileSpec> fileSpec;
+    rv = NS_NewFileSpecFromIFile(mailDirectory, getter_AddRefs(fileSpec));
     fileSpec += "Inbox";
     nsIOFileStream outFileStream(fileSpec);
     outFileStream.seek(fileSpec.GetFileSize());
