@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
    - ***** BEGIN LICENSE BLOCK *****
    - Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -21,6 +21,7 @@
    - the Initial Developer. All Rights Reserved.
    -
    - Contributor(s):
+   -   Michael Büttner <michael.buettner@sun.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -47,19 +48,57 @@
 
   <binding id="calendar-editable-item">
     <content>
-        <xul:vbox class="calendar-event-box-container calendar-item"
-                  xbl:inherits="context" flex="1" align="left">
-          <xul:label anonid="event-name" style="margin: 0px;" flex="1" crop="right"/>
-          <xul:textbox class="plain" style="background: transparent !important"
-            anonid="event-name-textbox" crop="right" hidden="true" wrap="true"/>
-          <xul:spacer flex="1"/>
-        </xul:vbox>
+      <xul:vbox flex="1">
+        <xul:hbox>
+          <xul:image class="calendar-event-box-shadow-left"/>
+          <xul:stack anonid="event-container"
+                     class="calendar-event-box-container"
+                     flex="1"
+                     xbl:inherits="context">
+            <xul:vbox class="calendar-event-details calendar-event-selection">
+              <xul:label anonid="event-name"
+                         crop="right"
+                         flex="1"
+                         style="margin: 0;"/>
+              <xul:textbox anonid="event-name-textbox"
+                           class="plain"
+                           crop="right"
+                           hidden="true"
+                           style="background: transparent !important;"
+                           wrap="true"/>
+              <xul:spacer flex="1"/>
+            </xul:vbox>
+            <xul:image anonid="gradient"
+                       class="calendar-event-box-gradient event-frame"
+                       hidden="true"/>
+          </xul:stack>
+          <xul:image class="calendar-event-box-shadow-right"/>
+        </xul:hbox>
+        <xul:hbox>
+          <xul:image class="calendar-event-box-shadow-edge-left"/>
+          <xul:image class="calendar-event-box-shadow-bottom" flex="1"/>
+          <xul:image class="calendar-event-box-shadow-edge-right"/>
+        </xul:hbox>
+      </xul:vbox>
     </content>
 
     <implementation>
       <constructor><![CDATA[
+         var gradient = document.getAnonymousElementByAttribute(this,
+                                                                "anonid",
+                                                                "gradient");
+         var container = document.getAnonymousElementByAttribute(this,
+                                                                 "anonid",
+                                                                 "event-container");
+         if (gradient) {
+           gradient.removeAttribute("hidden");
+           gradient.setAttribute("style",
+                                 "height: " +
+                                 container.boxObject.height + "px");
+         }
+
          this.setAttribute("tooltip", "itemTooltip");
-         this.setAttribute("class", "calendar-item");
+         container.setAttribute("class", "calendar-item");
 
          var self = this;
          this.eventNameInput.onblur = function alldayItemBlur() { self.stopEditing(true); };
@@ -136,8 +175,11 @@
 
       <method name="setCSSClasses">
         <body><![CDATA[
+          var container = document.getAnonymousElementByAttribute(this,
+                                                                  "anonid",
+                                                                  "event-container");
           var item = this.mOccurrence
-          this.setAttribute("item-calendar", item.calendar.uri.spec);
+          container.setAttribute("item-calendar", item.calendar.uri.spec);
 
           var categoriesSelectorList = "";
           if (item.getProperty("CATEGORIES") != null) {
@@ -150,7 +192,7 @@
             categoriesSelectorList = categoriesList.join(" ");
           }
 
-          this.setAttribute("item-category", categoriesSelectorList);
+          container.setAttribute("item-category", categoriesSelectorList);
         ]]></body>
       </method>
 

@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
    - ***** BEGIN LICENSE BLOCK *****
    - Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -24,6 +24,7 @@
    -   Vladimir Vukicevic <vladimir@pobox.com>
    -   Stefan Sitter <ssitter@googlemail.com>
    -   Clint Talbert <cmtalbert@myfastmail.com>
+   -   Michael Büttner <michael.buettner@sun.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -50,18 +51,70 @@
 
   <binding id="calendar-month-day-box-item" extends="chrome://calendar/content/calendar-view-core.xml#calendar-editable-item">
     <content>
-      <xul:hbox flex="1" class="calendar-item">
-        <xul:label anonid="item-label" class="calendar-month-day-box-item-label" xbl:inherits="context"/>
-        <xul:vbox class="calendar-event-box-container" xbl:inherits="context" flex="1" align="left">
-          <xul:label anonid="event-name" style="margin: 0px;" flex="1" crop="end"/>
-          <xul:textbox class="plain" style="background: transparent !important"
-            anonid="event-name-textbox" crop="end" hidden="true" wrap="true"/>
-          <xul:spacer flex="1"/>
-        </xul:vbox>
-      </xul:hbox>
-    </content>
+      <xul:vbox flex="1">
+        <xul:hbox>
+          <xul:image class="calendar-event-box-shadow-left"/>
+          <xul:box anonid="event-container" flex="1">
+            <xul:stack class="calendar-event-selection" flex="1">
+              <xul:hbox class="calendar-event-details">
+                <xul:label anonid="item-label"
+                           class="calendar-month-day-box-item-label"
+                           xbl:inherits="context"/>
+                <xul:vbox align="left"
+                          class="calendar-event-box-container"
+                          flex="1"
+                          xbl:inherits="context">
+                  <xul:label anonid="event-name"
+                             crop="end"
+                             flex="1"
+                             style="margin: 0;"/>
+                  <xul:textbox anonid="event-name-textbox"
+                               class="plain"
+                               crop="end"
+                               hidden="true"
+                               style="background: transparent !important;"
+                               wrap="true"/>
+                  <xul:spacer flex="1"/>
+                </xul:vbox>
+              </xul:hbox>
+              <xul:image anonid="gradient"
+                         class="calendar-event-box-gradient event-frame"
+                         hidden="true"/>
+            </xul:stack>
+          </xul:box>
+          <xul:image class="calendar-event-box-shadow-right"/>
+        </xul:hbox>
+        <xul:box orient="horizontal">
+          <xul:image class="calendar-event-box-shadow-edge-left"/>
+          <xul:image class="calendar-event-box-shadow-bottom" flex="1"/>
+          <xul:image class="calendar-event-box-shadow-edge-right"/>
+        </xul:box>
+      </xul:vbox>
+  </content>
 
     <implementation>
+      <constructor><![CDATA[
+        var gradient = document.getAnonymousElementByAttribute(this,
+                                                               "anonid",
+                                                               "gradient");
+        var container = document.getAnonymousElementByAttribute(this,
+                                                                "anonid",
+                                                                "event-container");
+        if (gradient) {
+          gradient.removeAttribute("hidden");
+          gradient.setAttribute("style",
+                                "height: " +
+                                container.boxObject.height+"px");
+        }
+
+        container.setAttribute("class", "calendar-item");
+        container.setAttribute("class", this.getAttribute("class"));
+        container.setAttribute("item-calendar", this.getAttribute("item-calendar"));
+        this.removeAttribute("class");
+        this.removeAttribute("item-calendar");
+      ]]>
+      </constructor>
+
       <property name="occurrence">
         <getter><![CDATA[
 	  return this.mOccurrence;
@@ -69,20 +122,23 @@
         <setter><![CDATA[
           this.mOccurrence = val;
 
+          var label = document.getAnonymousElementByAttribute(this,
+                                                              "anonid",
+                                                              "item-label");
           var str = null;
           // if val is an event and not an all day event, show start time in title
           if (isEvent(val) && !val.startDate.isDate) {
             var df = Cc["@mozilla.org/calendar/datetime-formatter;1"].
                      getService(Ci.calIDateTimeFormatter);
             str = df.formatTime(val.startDate.getInTimezone(this.calendarView.mTimezone));
+            label.setAttribute("time", "true");
           } else if (isToDo(val)) {
             // yeah, this should really be a little picture instead of a "*"
-            str = "* ";
+            str = "*";
           } else {
-            str = " ";
+            str = "";
           }
 
-          var label = document.getAnonymousElementByAttribute(this, "anonid", "item-label");
           label.value = str;
 
           this.setEditableLabel();

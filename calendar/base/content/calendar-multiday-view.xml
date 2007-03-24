@@ -1,5 +1,4 @@
-<?xml version="1.0"?>
-
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
    - ***** BEGIN LICENSE BLOCK *****
    - Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -25,6 +24,7 @@
    -   Vladimir Vukicevic <vladimir.vukicevic@oracle.com>
    -   Thomas Benisch <thomas.benisch@sun.com>
    -   Dan Mosedale <dan.mosedale@oracle.com>
+   -   Michael Büttner <michael.buettner@sun.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -177,7 +177,11 @@
     -->
   <binding id="calendar-event-gripbar">
     <content>
-      <xul:box anonid="thebox" flex="1"/>
+      <xul:box anonid="thebox" flex="1">
+        <xul:spacer flex="1"/>
+        <xul:image xbl:inherits="class"/>
+        <xul:spacer flex="1"/>
+      </xul:box>
     </content>
 
     <implementation>
@@ -225,7 +229,8 @@
 
         // we make assumptions about our position in the tree here;
         // specifically, this should get us to a <calendar-event-box>
-        var evbox = this.parentNode.parentNode;
+        var evbox = this.parentNode.parentNode.parentNode.parentNode.
+                         parentNode.parentNode.parentNode;
 
         // still select it (since we'll stopPropagation())
         evbox.calendarView.setSelectedItems(1, 
@@ -1513,14 +1518,68 @@
   <binding id="calendar-event-box" extends="chrome://calendar/content/calendar-view-core.xml#calendar-editable-item">
 
     <content>
-      <xul:box anonid="eventbox" xbl:inherits="orient,width,height" flex="1">
-        <xul:calendar-event-gripbar anonid="gripbar1" whichside="start" xbl:inherits="parentorient=orient"/>
-        <xul:vbox class="calendar-event-box-container" xbl:inherits="context,parentorient=orient" flex="1" align="stretch">
-          <xul:description anonid="event-name" flex="1" style="margin: 0px;"/>
-          <xul:textbox class="plain" style="background: transparent !important;"
-            anonid="event-name-textbox" flex="1" hidden="true" wrap="true"/>
-        </xul:vbox>
-        <xul:calendar-event-gripbar anonid="gripbar2" whichside="end" xbl:inherits="parentorient=orient"/>
+      <xul:box anonid="shadowbox"
+               xbl:inherits="width,height">
+        <xul:box anonid="shadow-left-box"
+                 xbl:inherits="orient" >
+          <xul:image anonid="shadow-left"
+                     class="calendar-event-box-shadow-left"
+                     flex="1"/>
+          <xul:image anonid="shadow-edge-left"
+                     class="calendar-event-box-shadow-edge-left"/>
+        </xul:box>
+        <xul:box xbl:inherits="orient,width,height" flex="1">
+          <xul:image anonid="shadow-left-if-vertical"
+                     class="calendar-event-box-shadow-left"
+                     hidden="true"/>
+          <xul:box anonid="event-container" xbl:inherits="orient" flex="1">
+            <xul:box class="calendar-event-selection"
+                     flex="1"
+                     xbl:inherits="orient">
+              <xul:stack anonid="eventbox"
+                         align="stretch"
+                         class="calendar-event-box-container"
+                         flex="1"
+                         xbl:inherits="context,parentorient=orient">
+                <xul:vbox class="calendar-event-details">
+                  <xul:description anonid="event-name"
+                                   flex="1"
+                                   style="margin: 0;"/>
+                  <xul:textbox anonid="event-name-textbox"
+                               class="plain"
+                               flex="1"
+                               hidden="true"
+                               style="background: transparent !important;"
+                               wrap="true"/>
+                </xul:vbox>
+                <xul:image class="calendar-event-box-gradient"/>
+                <xul:box xbl:inherits="orient" flex="1">
+                  <xul:calendar-event-gripbar anonid="gripbar1"
+                                              class="calendar-event-box-grippy-top"
+                                              whichside="start"
+                                              xbl:inherits="parentorient=orient"/>
+                  <xul:spacer flex="1"/>
+                  <xul:calendar-event-gripbar anonid="gripbar2"
+                                              class="calendar-event-box-grippy-bottom"
+                                              whichside="end"
+                                              xbl:inherits="parentorient=orient"/>
+                </xul:box>
+              </xul:stack>
+            </xul:box>
+          </xul:box>
+          <xul:image anonid="shadow-bottom"
+                     class="calendar-event-box-shadow-bottom"/>
+        </xul:box>
+        <xul:box xbl:inherits="orient">
+          <xul:image anonid="shadow-edge-left-if-vertical"
+                     class="calendar-event-box-shadow-edge-left"
+                     hidden="true"/>
+          <xul:image anonid="shadow-right"
+                     class="calendar-event-box-shadow-right"
+                     flex="1"/>
+          <xul:image anonid="shadow-edge-right"
+                     class="calendar-event-box-shadow-edge-right"/>
+        </xul:box>
       </xul:box>
     </content>
 
@@ -1530,6 +1589,22 @@
          var otherorient = "vertical";
          if (!orient) orient = "horizontal";
          if (orient == "vertical") otherorient = "horizontal";
+
+         var shadowbox = document.getAnonymousElementByAttribute(this, "anonid", "shadowbox");
+         shadowbox.setAttribute("orient",otherorient);
+
+         if (orient != "vertical") {
+             // Switch bottom/right shadows
+             var shadowBottom = document.getAnonymousElementByAttribute(this, "anonid", "shadow-bottom");
+             var shadowRight = document.getAnonymousElementByAttribute(this, "anonid", "shadow-right");
+             shadowBottom.setAttribute("class", "calendar-event-box-shadow-right");
+             shadowRight.setAttribute("class", "calendar-event-box-shadow-bottom");
+
+             // Move left shadow in layout
+             document.getAnonymousElementByAttribute(this, "anonid", "shadow-edge-left-if-vertical").removeAttribute("hidden");
+             document.getAnonymousElementByAttribute(this, "anonid", "shadow-left-if-vertical").removeAttribute("hidden");
+             document.getAnonymousElementByAttribute(this, "anonid", "shadow-left-box").setAttribute("hidden","true");
+         }
 
          var self = this;
          this.eventNameInput.onblur = 
@@ -1611,6 +1686,10 @@
           } else {
             evl.textContent = calGetString("calendar", "eventUntitled");
           }
+
+          var gripbar = document.getAnonymousElementByAttribute(this, "anonid", "gripbar1").boxObject.height;
+          var height = document.getAnonymousElementByAttribute(this, "anonid", "eventbox").boxObject.height;
+          evl.setAttribute("style", "max-height: " + (height-gripbar*2) + "px");
         ]]></body>
       </method>
     </implementation>

@@ -156,22 +156,24 @@ calendar-header-container[weekend="true"][selected="true"],
 }
 
 .calendar-event-box-container {
-  padding: 2px;
+  padding: 0;
   overflow: hidden;
 }
 
 .calendar-event-box-container[parentorient="vertical"] {
-  border-left: 1px solid #2e4e73;
-  border-right: 1px solid #2e4e73;
-  border-top: none;
-  border-bottom: none;
+  margin: 2px;
 }
 
 .calendar-event-box-container[parentorient="horizontal"] {
-  border-left: none;
-  border-right: none;
-  border-top: 1px solid #2e4e73;
-  border-bottom: 1px solid #2e4e73;
+  margin: 2px;
+}
+
+.event-frame {
+  margin: 2px;
+}
+
+.calendar-event-details {
+  padding-left: 2px;
 }
 
 textbox.editable-label { 
@@ -182,7 +184,7 @@ textbox.editable-label {
   -moz-appearance: none;
 }
 
-calendar-event-box[selected="true"] .calendar-event-box-container { 
+calendar-event-box[selected="true"] .calendar-event-selection {
   color: #000000 !important;
   background: #ffdb67 !important;
 }
@@ -190,11 +192,8 @@ calendar-event-box[selected="true"] .calendar-event-box-container {
 calendar-event-gripbar { 
   -moz-box-align: center;
   -moz-box-pack: center;
-  
-  min-height: 3px;
-  min-width: 3px;
-
-  background: #2e4e73;
+  min-height: 4px;
+  min-width: 4px;
 }
 
 calendar-event-gripbar[parentorient="vertical"] {
@@ -346,7 +345,7 @@ calendar-month-day-box-item {
   padding: 0px 1px 0px 1px;
 }
 
-calendar-month-day-box-item[selected="true"] { 
+calendar-month-day-box-item[selected="true"] .calendar-event-selection {
   color: #000000 !important;
   background: #ffdb67 !important;
 }
@@ -356,9 +355,8 @@ calendar-month-day-box-item[selected="true"] {
   margin: 0px;
 }
 
-.calendar-event-box-container {
-  padding: 0px;
-  padding-left: 2px;
+.calendar-month-day-box-item-label[time="true"] {
+  margin-right: 8px;
 }
 
 calendar-month-view-column-header {
@@ -381,7 +379,7 @@ calendar-month-view-column-header {
   padding: 3px 1px;
 }
 
-calendar-editable-item[selected="true"] .calendar-event-box-container { 
+calendar-editable-item[selected="true"] .calendar-event-selection {
   color: #000000 !important;
   background: #ffdb67 !important;
 }
@@ -392,4 +390,44 @@ box[dropbox="true"] {
   margin: 1px;
   padding: 0px 1px 0px 1px;
   opacity: 0.5;
+}
+
+.calendar-event-box-gradient {
+  list-style-image: url("chrome://calendar/skin/gradient-overlay.png");
+}
+
+.calendar-event-box-shadow-right {
+  list-style-image: url("chrome://calendar/skin/shadow-right.png");
+}
+
+.calendar-event-box-shadow-left {
+  list-style-image: url("chrome://calendar/skin/shadow-left.png");
+}
+
+.calendar-event-box-shadow-edge-right {
+  list-style-image: url("chrome://calendar/skin/shadow-edge-right.png");
+}
+
+.calendar-event-box-shadow-edge-left {
+  list-style-image: url("chrome://calendar/skin/shadow-edge-left.png");
+}
+
+.calendar-event-box-shadow-bottom {
+  list-style-image: url("chrome://calendar/skin/shadow-bottom.png");
+}
+
+calendar-event-box[orient="vertical"]:hover .calendar-event-box-grippy-top {
+  list-style-image: url("chrome://calendar/skin/event-grippy-top.png");
+}
+
+calendar-event-box[orient="vertical"]:hover .calendar-event-box-grippy-bottom {
+  list-style-image: url("chrome://calendar/skin/event-grippy-bottom.png");
+}
+
+calendar-event-box[orient="horizontal"]:hover .calendar-event-box-grippy-top {
+  list-style-image: url("chrome://calendar/skin/event-grippy-left.png");
+}
+
+calendar-event-box[orient="horizontal"]:hover .calendar-event-box-grippy-bottom {
+  list-style-image: url("chrome://calendar/skin/event-grippy-right.png");
 }
