@@ -741,7 +741,7 @@ listitem[selected="true"] > .calendar-list-item-class
 /* workaround to avoid Window Flick */
 #unifinder-search-results-listbox
 {
-   min-height : 40px ;
+   min-height : 92px ;
 }
 
 /*--------------------------------------------------------------------
