@@ -663,11 +663,19 @@ ldaptool_process_args( int argc, char **argv, char *extra_opts,
 	}
     }
 
+#ifdef LDAP_TOOL_PKCS11
     /* if '-N' is specified, -W or -I is needed too */
     if ( isN && NULL == ssl_passwd && 0 == prompt_sslpassword && NULL == ssl_donglefile ) {
         fprintf( stderr, "%s: with the -N option, please specify -W or -I also\n\n", ldaptool_progname ); 
         return (-1);
     }
+#else
+    /* if '-N' is specified, -W is needed too */
+    if ( isN && NULL == ssl_passwd && 0 == prompt_sslpassword ) {
+        fprintf( stderr, "%s: with the -N option, please specify -W also\n\n", ldaptool_progname );
+        return (-1);
+    }
+#endif /* LDAP_TOOL_PKCS11 */
 
     if ( isj && isw ) {
 	fprintf(stderr, "%s: -j and -w options cannot be specified simultaneously\n\n", ldaptool_progname );
