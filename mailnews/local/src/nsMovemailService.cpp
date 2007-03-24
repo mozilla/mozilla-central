@@ -363,8 +363,9 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
     NS_ENSURE_SUCCESS(rv, rv);
 
     nsFileSpec fileSpec;
-    nsCOMPtr<nsIFileSpec> fileSpec;
-    rv = NS_NewFileSpecFromIFile(mailDirectory, getter_AddRefs(fileSpec));
+    nsCOMPtr<nsIFileSpec> iFileSpec;
+    rv = NS_NewFileSpecFromIFile(mailDirectory, getter_AddRefs(iFileSpec));
+    iFileSpec->GetFileSpec(&fileSpec);
     fileSpec += "Inbox";
     nsIOFileStream outFileStream(fileSpec);
     outFileStream.seek(fileSpec.GetFileSize());
