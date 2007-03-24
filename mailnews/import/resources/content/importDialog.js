@@ -663,8 +663,12 @@ function ImportMail( module, success, error) {
         comm4xprofile = comm4xprofile.QueryInterface( Components.interfaces.nsIComm4xProfile);
         if(comm4xprofile != null) {
           var length = {value:0};
-          var profileList = comm4xprofile.getProfileList(length);
-          if (profileList)
+          var profileList = null;
+          try {
+            profileList = comm4xprofile.getProfileList(length);
+          }
+          catch (ex) {}
+          if (length.value)
           {
             var selected = {value:0};
             if (length.value == 1)
