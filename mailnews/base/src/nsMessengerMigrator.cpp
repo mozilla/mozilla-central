@@ -1274,8 +1274,8 @@ nsMessengerMigrator::MigrateLocalMailAccount()
 nsresult
 nsMessengerMigrator::MigrateMovemailAccount(nsIMsgIdentity *identity)
 {
-  nsresult rv;
-  
+  nsresult rv = NS_OK;
+#if 0  // turn off movemail migration for now.
   nsCOMPtr<nsIMsgIncomingServer> server;
   
   nsCOMPtr<nsIMsgAccountManager> accountManager = 
@@ -1327,10 +1327,10 @@ nsMessengerMigrator::MigrateMovemailAccount(nsIMsgIdentity *identity)
   }
 
   // set the default local path for "none" (eventually, "movemail")
-  rv = server->SetDefaultLocalPath(mailDir);
+  rv = server->SetDefaultLocalPath(aFile);
   if (NS_FAILED(rv)) return rv;
 
-  rv = mailDir->Exists(&dirExists);
+  rv = aFile->Exists(&dirExists);
   if (!dirExists) {
     mailDir->CreateDir();
   }
@@ -1379,6 +1379,7 @@ nsMessengerMigrator::MigrateMovemailAccount(nsIMsgIdentity *identity)
 
   // we could only have one movemail account in 4.x, so we make it the default in 5.0
   rv = accountManager->SetDefaultAccount(account);
+#endif // 0
   return rv;
 }
 #endif /* HAVE_MOVEMAIL */
