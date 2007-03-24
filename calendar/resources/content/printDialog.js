@@ -181,7 +181,8 @@ function refreshHtml(finishFunc)
             try {
                 var pipe = Components.classes["@mozilla.org/pipe;1"]
                                      .createInstance(Components.interfaces.nsIPipe);
-                pipe.init(true, true, 0, 0, null);
+                const PR_UINT32_MAX = 4294967295; // signals "infinite-length"
+                pipe.init(true, true, 0, PR_UINT32_MAX, null);
                 printformatter.formatToHtml(pipe.outputStream,
                                             settings.start,
                                             settings.end,
