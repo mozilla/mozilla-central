@@ -25,6 +25,7 @@
    -   Thomas Benisch <thomas.benisch@sun.com>
    -   Dan Mosedale <dan.mosedale@oracle.com>
    -   Michael Büttner <michael.buettner@sun.com>
+   -   Philipp Kewisch <mozilla@kewis.ch>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -1124,6 +1125,23 @@
               // Figure out how much the event moved.
               var duration = col.mDate.subtractDate(dragState.origDate);
               var minutes = dragState.startMin - dragState.origMin;
+
+              // Since both boxDate and beginMove are dates (note datetimes),
+              // subtractDate will only give us a non-zero number of hours on 
+              // DST changes. While strictly speaking, subtractDate's behavior
+              // is correct, we need to move the event a discrete number of
+              // days here. There is no need for normalization here, since
+              // addDuration does the job for us. Also note, the duration used
+              // here is only used to move over multiple days. Moving on the 
+              // same day uses the minutes from the dragState.
+              if (duration.hours == 23) {
+                  // entering DST
+                  duration.hours++;
+              } else if (duration.hours == 1) {
+                  // leaving DST
+                  duration.hours--;
+              }
+
               if (duration.isNegative) {
                   // Adding negative minutes to a negative duration makes the
                   // duration more positive, but we want more negative, and

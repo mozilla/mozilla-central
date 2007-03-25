@@ -25,6 +25,7 @@
    -   Stefan Sitter <ssitter@googlemail.com>
    -   Clint Talbert <cmtalbert@myfastmail.com>
    -   Michael Büttner <michael.buettner@sun.com>
+   -   Philipp Kewisch <mozilla@kewis.ch>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -638,6 +639,21 @@
            var beginMove = item.startDate.clone();
            beginMove.isDate = true;
            var duration = boxDate.subtractDate(beginMove);
+           
+           // Since both boxDate and beginMove are dates (note datetimes),
+           // subtractDate will only give us a non-zero number of hours on DST
+           // changes. While strictly speaking, subtractDate's behavior is 
+           // correct, we need to move the event a discrete number of days here.
+           // There is no need for normalization here, since addDuration does 
+           // the job for us.
+           if (duration.hours == 23) {
+             // entering DST
+             duration.hours++;
+           } else if (duration.hours == 1) {
+             // leaving DST
+             duration.hours--;
+           }
+
            newStart = item.startDate.clone();
            newStart.addDuration(duration);
            newStart.normalize();
