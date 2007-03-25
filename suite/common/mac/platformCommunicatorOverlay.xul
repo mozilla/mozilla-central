@@ -3,6 +3,8 @@
 
 <!DOCTYPE overlay [
 
+<!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
+%brandDTD;
 <!ENTITY % platformCommunicatorDTD SYSTEM "chrome://communicator-platform/locale/platformCommunicatorOverlay.dtd">
 %platformCommunicatorDTD;
 <!ENTITY % utilityDTD SYSTEM "chrome://communicator/locale/utilityOverlay.dtd">
@@ -19,13 +21,24 @@
   <key id="key_closeWindow"  key="&closeCmd.key;" command="cmd_closeWindow" modifiers="accel,shift"/>
   <key id="key_gotoHistory"  key="&historyCmd.key;" oncommand="toHistory();" modifiers="accel,shift"/>
 
+  <menuitem id="menu_preferences" label="&preferencesCmd.label;"
+            key="key_preferences"/>
+
   <menupopup id="menu_FilePopup">
-    <!-- quit -->
-    <menuseparator id="menu_FileQuitSeparator"/>
-    <menuitem label="&quitApplicationCmd.label;" id="menu_FileQuitItem"
+    <!-- These 5 menuitems (and the menu_preferences menuitem above) are added
+      to the Application menu. They just need to be in the DOM, widget code
+      does the rest -->
+    <menuitem id="menu_mac_services" label="&servicesMenu.label;"/>
+    <menuitem id="menu_mac_hide_app" label="&hideThisAppCmd.label;"
+              key="key_hideThisApp"/>
+    <menuitem id="menu_mac_hide_others" label="&hideOtherAppsCmd.label;"
+              key="key_hideOtherApps"/>
+    <menuitem id="menu_mac_show_all" label="&showAllAppsCmd.label;"/>
+    <menuitem id="menu_FileQuitItem" label="&quitApplicationCmd.label;"
               key="key_quit" command="cmd_quit"/>
   </menupopup>
-  <key id="key_quit"  key="&quitApplicationCmd.key;" command="cmd_quit" modifiers="accel"/>
+  <key id="key_quit"  key="&quitApplicationCmd.key;" command="cmd_quit" 
+       modifiers="&quitApplicationCmd.modifiers;"/>
   <command id="cmd_quit" oncommand="goQuitApplication()"/>
 
   <!-- Edit Menu -->
@@ -90,6 +103,18 @@
 
     <key keycode="&openHelp2Cmd.key;"
          command="cmd_openHelp"/>
+
+    <key id="key_hideThisApp"
+         key="&hideThisAppCmd.key;"
+         modifiers="&hideThisAppCmd.modifiers;"/>
+
+    <key id="key_hideOtherApps"
+         key="&hideOtherAppsCmd.key;"
+         modifiers="&hideOtherAppsCmd.modifiers;"/>
+
+    <key id="key_preferences"
+         key="&preferencesCmd.key;"
+         modifiers="&preferencesCmd.modifiers;"/>
   </keyset>
 
   <!-- Window menu -->
