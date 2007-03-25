@@ -62,6 +62,7 @@
 #include "nsIMsgCopyServiceListener.h"
 #include "nsIFileSpec.h"
 #include "nsIURL.h"
+#include "nsNetUtil.h"
 #include "nsIFileURL.h"
 #include "nsMsgCopy.h"
 #include "nsXPIDLString.h"
@@ -77,7 +78,6 @@
 #include "nsIDocument.h"
 #include "nsIDOMDocument.h"
 #include "nsMsgCompCID.h"
-#include "nsIFileSpec.h"
 #include "nsIAbAddressCollecter.h"
 #include "nsAbBaseCID.h"
 #include "nsCOMPtr.h"
@@ -268,11 +268,11 @@ nsMsgComposeAndSend::nsMsgComposeAndSend() :
   mOriginalHTMLBody = nsnull;
 
   // These are for temp file creation and return
-  mReturnFileSpec = nsnull;
-  mTempFileSpec = nsnull;
-  mHTMLFileSpec = nsnull;
-  mCopyFileSpec = nsnull;
-  mCopyFileSpec2 = nsnull;
+  mReturnFile = nsnull;
+  mTempFile = nsnull;
+  mHTMLFile = nsnull;
+  mCopyFile = nsnull;
+  mCopyFile2 = nsnull;
   mCopyObj = nsnull;
   mNeedToPerformSecondFCC = PR_FALSE;
 
@@ -379,50 +379,39 @@ nsMsgComposeAndSend::Clear()
     m_plaintext = nsnull;
   }
 
-  if (mHTMLFileSpec) 
+  if (mHTMLFile) 
   {
-    mHTMLFileSpec->Delete(PR_FALSE);
-    delete mHTMLFileSpec;
-    mHTMLFileSpec= nsnull;
+    mHTMLFile->Remove(PR_FALSE);
+    mHTMLFile = nsnull;
   }
 
   if (mOutputFile) 
-  {
-    delete mOutputFile;
-    mOutputFile = 0;
-  }
+    mOutputFile = nsnull;
 
-  if (mCopyFileSpec)
+  if (mCopyFile)
   {
-    nsFileSpec aFileSpec;
-    mCopyFileSpec->GetFileSpec(&aFileSpec);
-    if (aFileSpec.Valid())
-      aFileSpec.Delete(PR_FALSE);
+    mCopyFile->Remove(PR_FALSE);
 
-    // jt -- *don't* use delete someone may still holding the nsIFileSpec
+    // jt -- *don't* use delete someone may still holding the nsIFile
     // pointer
-    NS_IF_RELEASE(mCopyFileSpec);
+    mCopyFile = nsnull;
   }
 
-  if (mCopyFileSpec2)
+  if (mCopyFile2)
   {
-    nsFileSpec aFileSpec;
-    mCopyFileSpec2->GetFileSpec(&aFileSpec);
-    if (aFileSpec.Valid())
-      aFileSpec.Delete(PR_FALSE);
+    mCopyFile2->Remove(PR_FALSE);
 
-    // jt -- *don't* use delete someone may still holding the nsIFileSpec
+    // jt -- *don't* use delete someone may still holding the nsIFile
     // pointer
-    NS_IF_RELEASE(mCopyFileSpec2);
+    mCopyFile2 = nsnull;
   }
 
-  if (mTempFileSpec) 
+  if (mTempFile) 
   {
-    if (mReturnFileSpec == nsnull)
+    if (mReturnFile == nsnull)
     {
-      mTempFileSpec->Delete(PR_FALSE);
-      delete mTempFileSpec;
-      mTempFileSpec = nsnull;
+      mTempFile->Remove(PR_FALSE);
+      mTempFile = nsnull;
     }
   }
 
@@ -666,6 +655,8 @@ nsMsgComposeAndSend::GatherMimeAttachments()
       goto FAILMEM;
   }
 
+  nsresult rv;
+
   // If we have a text/html main part, and we need a plaintext attachment, then
   // we'll do so now.  This is an asynchronous thing, so we'll kick it off and
   // count on getting back here when it finishes.
@@ -681,19 +672,20 @@ nsMsgComposeAndSend::GatherMimeAttachments()
     // fire off another URL request for this local disk file and that will
     // take care of the conversion...
     //
-    mHTMLFileSpec = nsMsgCreateTempFileSpec("nsmail.html");
-    if (!mHTMLFileSpec)
-      goto FAILMEM;
+    rv = nsMsgCreateTempFile("nsemail.html", getter_AddRefs(mHTMLFile));
+    NS_ENSURE_SUCCESS(rv, rv);
 
-    nsOutputFileStream tempfile(*mHTMLFileSpec, kDefaultMode, 00600);
-    if (! tempfile.is_open()) 
+    nsCOMPtr<nsIOutputStream> tempfile;
+    rv = NS_NewLocalFileOutputStream(getter_AddRefs(tempfile), mHTMLFile, -1, 00600);
+    if (NS_FAILED(rv))
     {
       if (mSendReport)
       {
         nsAutoString error_msg;
+        nsCAutoString cPath;
         nsAutoString path;
-        NS_CopyNativeToUnicode(
-          nsDependentCString(mHTMLFileSpec->GetNativePathCString()), path);
+        mTempFile->GetNativePath(cPath);
+        NS_CopyNativeToUnicode(cPath, path);
         nsMsgBuildErrorMessageByID(NS_MSG_UNABLE_TO_OPEN_TMP_FILE, error_msg, &path, nsnull);
         mSendReport->SetMessage(nsIMsgSendReport::process_Current, error_msg.get(), PR_FALSE);
       }
@@ -703,23 +695,23 @@ nsMsgComposeAndSend::GatherMimeAttachments()
 
     if (mOriginalHTMLBody)
     {
-      PRUint32    origLen = strlen(mOriginalHTMLBody);
-      status = tempfile.write(mOriginalHTMLBody, origLen);
-      if (status < int(origLen)) 
+      PRUint32 origLen = strlen(mOriginalHTMLBody);
+      PRUint32 n;
+      nsresult rv = tempfile->Write(mOriginalHTMLBody, origLen, &n);
+      if (NS_FAILED(rv) || n != origLen)
       {
-        if (status >= 0)
-          status = NS_MSG_ERROR_WRITING_FILE;
+        status = NS_MSG_ERROR_WRITING_FILE;
         goto FAIL;
       }
     }
 
-    if (NS_FAILED(tempfile.flush()) || tempfile.failed())
+    if (NS_FAILED(tempfile->Flush()))
     {
       status = NS_MSG_ERROR_WRITING_FILE;
       goto FAIL;
     }
 
-    tempfile.close();
+    tempfile->Close();
 
     m_plaintext = new nsMsgAttachmentHandler;
     if (!m_plaintext)
@@ -727,16 +719,15 @@ nsMsgComposeAndSend::GatherMimeAttachments()
     m_plaintext->SetMimeDeliveryState(this);
     m_plaintext->m_bogus_attachment = PR_TRUE;
 
-    char *tempURL = nsMsgPlatformFileToURL (*mHTMLFileSpec);
-    if (!tempURL || NS_FAILED(nsMsgNewURL(getter_AddRefs(m_plaintext->mURL), tempURL)))
+    nsCAutoString tempURL;
+    rv = NS_GetURLSpecFromFile(mHTMLFile, tempURL);
+    if (NS_FAILED(rv) || NS_FAILED(nsMsgNewURL(getter_AddRefs(m_plaintext->mURL), tempURL.get())))
     {
       delete m_plaintext;
       m_plaintext = nsnull;
       goto FAILMEM;
     }
   
-    PR_FREEIF(tempURL);
-
     PR_FREEIF(m_plaintext->m_type);
     m_plaintext->m_type = PL_strdup(TEXT_HTML);
     PR_FREEIF(m_plaintext->m_charset);
@@ -765,20 +756,20 @@ nsMsgComposeAndSend::GatherMimeAttachments()
 
   /* First, open the message file.
   */
-  mTempFileSpec = nsMsgCreateTempFileSpec("nsmail.eml");
-  if (! mTempFileSpec)
-    goto FAILMEM;
+  rv = nsMsgCreateTempFile("nsemail.eml", getter_AddRefs(mTempFile));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  mOutputFile = new nsOutputFileStream(*mTempFileSpec, kDefaultMode, 00600);
-  if (! mOutputFile->is_open() || CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_4)) 
+  rv = NS_NewLocalFileOutputStream(getter_AddRefs(mOutputFile), mTempFile, -1, 00600);
+  if (NS_FAILED(rv) || CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_4)) 
   {
     status = NS_MSG_UNABLE_TO_OPEN_TMP_FILE;
     if (mSendReport)
     {
       nsAutoString error_msg;
+      nsCAutoString cPath;
       nsAutoString path;
-      NS_CopyNativeToUnicode(
-        nsDependentCString(mTempFileSpec->GetNativePathCString()), path);
+      mTempFile->GetNativePath(cPath);
+      NS_CopyNativeToUnicode(cPath, path);
       nsMsgBuildErrorMessageByID(NS_MSG_UNABLE_TO_OPEN_TMP_FILE, error_msg, &path, nsnull);
       mSendReport->SetMessage(nsIMsgSendReport::process_Current, error_msg.get(), PR_FALSE);
     }
@@ -1136,20 +1127,26 @@ nsMsgComposeAndSend::GatherMimeAttachments()
  
   if (mOutputFile) 
   {
-    if (NS_FAILED(mOutputFile->flush()) || mOutputFile->failed()) 
+    if (NS_FAILED(mOutputFile->Flush()))
     {
       status = NS_MSG_ERROR_WRITING_FILE;
       goto FAIL;
     }
 
-    mOutputFile->close();
-    delete mOutputFile;
+    mOutputFile->Close();
     mOutputFile = nsnull;
 
+    // mTempFile is stale because we wrote to it.  Get another copy to refresh.
+    nsCOMPtr<nsIFile> tempFileCopy;
+    mTempFile->Clone(getter_AddRefs(tempFileCopy));
+    mTempFile = tempFileCopy;
+    tempFileCopy = nsnull;
     /* If we don't do this check...ZERO length files can be sent */
-    if (mTempFileSpec->GetFileSize() == 0)
+    PRInt64 fileSize;
+    rv = mTempFile->GetFileSize(&fileSize);
+    if (NS_FAILED(rv) || fileSize == 0)
     {
-     status = NS_MSG_ERROR_WRITING_FILE;
+      status = NS_MSG_ERROR_WRITING_FILE;
       goto FAIL;
     }
   }
@@ -1163,13 +1160,17 @@ nsMsgComposeAndSend::GatherMimeAttachments()
     // Need to ditch the file spec here so that we don't delete the
     // file, since in this case, the caller wants the file
     //
-    NS_NewFileSpecWithSpec(*mTempFileSpec, &mReturnFileSpec);
-    delete mTempFileSpec;
-    mTempFileSpec = nsnull;
-    if (!mReturnFileSpec)
+    mReturnFile = mTempFile;
+    mTempFile = nsnull;
+    if (!mReturnFile)
       NotifyListenerOnStopSending(nsnull, NS_ERROR_OUT_OF_MEMORY, nsnull, nsnull);
     else
-      NotifyListenerOnStopSending(nsnull, NS_OK, nsnull, mReturnFileSpec);
+    {
+      nsCOMPtr<nsIFileSpec> aFileSpec;
+      NS_NewFileSpecFromIFile(mTempFile, getter_AddRefs(aFileSpec));
+      NS_ENSURE_SUCCESS(rv, rv);
+      NotifyListenerOnStopSending(nsnull, NS_OK, nsnull, aFileSpec);
+    }
   }
   else 
   {
@@ -1367,20 +1368,22 @@ mime_write_message_body(nsIMsgSend *state, const char *buf, PRInt32 size)
 {
   NS_ENSURE_ARG_POINTER(state);
 
-  nsOutputFileStream * output;
+  nsCOMPtr<nsIOutputStream> output;
   nsCOMPtr<nsIMsgComposeSecure> crypto_closure;
 
-  state->GetOutputStream(&output);
+  state->GetOutputStream(getter_AddRefs(output));
   if (!output || CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_9))
     return NS_MSG_ERROR_WRITING_FILE;
 
   state->GetCryptoclosure(getter_AddRefs(crypto_closure));
   if (crypto_closure)
   {
-	  return crypto_closure->MimeCryptoWriteBlock (buf, size);
-	}
+    return crypto_closure->MimeCryptoWriteBlock (buf, size);
+  }
 
-  if (PRInt32(output->write(buf, size)) < size) 
+  PRUint32 n;
+  nsresult rv = output->Write(buf, size, &n);
+  if (NS_FAILED(rv) || n != size)
   {
     return NS_MSG_ERROR_WRITING_FILE;
   } 
@@ -3211,7 +3214,7 @@ nsMsgComposeAndSend::Init(
               nsIMsgIdentity  *aUserIdentity,
               const char *aAccountKey,
               nsMsgCompFields *fields,
-              nsFileSpec      *sendFileSpec,
+              nsIFile      *sendFile,
               PRBool digest_p,
               PRBool dont_deliver_p,
               nsMsgDeliverMode mode,
@@ -3273,16 +3276,16 @@ nsMsgComposeAndSend::Init(
   //
   // At this point, if we are only creating this object to do
   // send operations on externally created RFC822 disk files, 
-  // make sure we have setup the appropriate nsFileSpec and
+  // make sure we have setup the appropriate nsIFile and
   // move on with life.
   //
   //
   // First check to see if we are doing a send operation on an external file
   // or creating the file itself.
   //
-  if (sendFileSpec)
+  if (sendFile)
   {
-    mTempFileSpec = sendFileSpec;
+    mTempFile = sendFile;
     return NS_OK;
   }
 
@@ -3407,7 +3410,12 @@ nsMsgComposeAndSend::DeliverMessage()
   // if this is a mongo email...we should have a way to warn the user that
   // they are about to do something they may not want to do.
   //
-  if (((mMessageWarningSize > 0) && (mTempFileSpec->GetFileSize() > mMessageWarningSize) && (mGUINotificationEnabled)) ||
+  PRInt64 fileSize;
+  nsresult rv = mTempFile->GetFileSize(&fileSize);
+  if (NS_FAILED(rv))
+    return NS_ERROR_FAILURE;
+
+  if (((mMessageWarningSize > 0) && (fileSize > mMessageWarningSize) && (mGUINotificationEnabled)) ||
       CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_15))
   {
     PRBool abortTheSend = PR_FALSE;
@@ -3417,7 +3425,7 @@ nsMsgComposeAndSend::DeliverMessage()
     
     if (msg)
     {
-      PRUnichar *printfString = nsTextFormatter::smprintf(msg, mTempFileSpec->GetFileSize());
+      PRUnichar *printfString = nsTextFormatter::smprintf(msg, fileSize);
 
       if (printfString)
       {
@@ -3602,7 +3610,7 @@ nsMsgComposeAndSend::DeliverFileAsMail()
     // using callbacks for notification
 
     nsCOMPtr<nsIFileSpec> aFileSpec;
-    NS_NewFileSpecWithSpec(*mTempFileSpec, getter_AddRefs(aFileSpec));
+    NS_NewFileSpecFromIFile(mTempFile, getter_AddRefs(aFileSpec));
 
     // we used to get the prompt from the compose window and we'd pass that in
     // to the smtp protocol as the prompt to use. But when you send a message,
@@ -3657,11 +3665,6 @@ nsMsgComposeAndSend::DeliverFileAsNews()
     // Note: Don't do a SetMsgComposeAndSendObject since we are in the same thread, and
     // using callbacks for notification
     
-    nsCOMPtr<nsILocalFile> fileToPost;
-    
-    rv = NS_FileSpecToIFile(mTempFileSpec, getter_AddRefs(fileToPost));
-    if (NS_FAILED(rv)) return rv;
-    
     // Tell the user we are posting the message!
     nsXPIDLString msg; 
     mComposeBundle->GetStringByID(NS_MSG_POSTING_MESSAGE, getter_Copies(msg));
@@ -3680,7 +3683,7 @@ nsMsgComposeAndSend::DeliverFileAsNews()
     if(NS_FAILED(rv))
       msgWindow = nsnull;
 
-    rv = nntpService->PostMessage(fileToPost, mCompFields->GetNewsgroups(), mAccountKey.get(),
+    rv = nntpService->PostMessage(mTempFile, mCompFields->GetNewsgroups(), mAccountKey.get(),
                                   uriListener, msgWindow, nsnull);
     if (NS_FAILED(rv)) return rv;
   }
@@ -3903,7 +3906,7 @@ nsMsgComposeAndSend::DoFcc()
   // start the copy operation. MimeDoFCC() will take care of all of this
   // for us.
   //
-  nsresult rv = MimeDoFCC(mTempFileSpec,
+  nsresult rv = MimeDoFCC(mTempFile,
                           nsMsgDeliverNow,
                           mCompFields->GetBcc(),
                           mCompFields->GetFcc(), 
@@ -4066,7 +4069,7 @@ nsMsgComposeAndSend::NotifyListenerOnStopCopy(nsresult aStatus)
     const char *fcc2 = mCompFields->GetFcc2();
     if (fcc2 && *fcc2)
     {
-      nsresult rv = MimeDoFCC(mTempFileSpec,
+      nsresult rv = MimeDoFCC(mTempFile,
                               nsMsgDeliverNow,
                               mCompFields->GetBcc(),
                               fcc2, 
@@ -4196,7 +4199,7 @@ nsMsgComposeAndSend::SendMessageFile(
               nsIMsgIdentity                    *aUserIndentity,
               const char                        *aAccountKey,
               nsIMsgCompFields                  *fields,
-              nsIFileSpec                       *sendIFileSpec,
+              nsIFile                           *sendIFile,
               PRBool                            deleteSendFileOnCompletion,
               PRBool                            digest_p,
               nsMsgDeliverMode                  mode,
@@ -4219,38 +4222,24 @@ nsMsgComposeAndSend::SendMessageFile(
   //
   // First check to see if the external file we are sending is a valid file.
   //
-  if (!sendIFileSpec)
+  if (!sendIFile)
     return NS_ERROR_INVALID_ARG;
 
-  PRBool valid;
-  if (NS_FAILED(sendIFileSpec->IsValid(&valid)))
+  PRBool exists;
+  if (NS_FAILED(sendIFile->Exists(&exists)))
     return NS_ERROR_INVALID_ARG;
 
-  if (!valid)
+  if (!exists)
     return NS_ERROR_INVALID_ARG;
-
-  nsFileSpec  *sendFileSpec = nsnull;
-  nsFileSpec  tempFileSpec;
-
-  if (NS_FAILED(sendIFileSpec->GetFileSpec(&tempFileSpec)))
-    return NS_ERROR_UNEXPECTED;
-
-  sendFileSpec = new nsFileSpec(tempFileSpec);
-  if (!sendFileSpec)
-    return NS_ERROR_OUT_OF_MEMORY;
 
   // Setup the listener...
   mListener = aListener;
 
   // Should we delete the temp file when done?
   if (!deleteSendFileOnCompletion)
-  {
-    NS_NewFileSpecWithSpec(*sendFileSpec, &mReturnFileSpec);
-    if (!mReturnFileSpec)
-      return NS_ERROR_OUT_OF_MEMORY;
-  }
+    mReturnFile = sendIFile;
 
-  rv = Init(aUserIndentity, aAccountKey, (nsMsgCompFields *)fields, sendFileSpec,
+  rv = Init(aUserIndentity, aAccountKey, (nsMsgCompFields *)fields, sendIFile,
             digest_p, PR_FALSE, mode, msgToReplace, 
             nsnull, nsnull, nsnull,
             nsnull, nsnull,
@@ -4307,7 +4296,7 @@ BuildURLAttachmentData(nsIURI *url)
 nsresult
 nsMsgComposeAndSend::SendToMagicFolder(nsMsgDeliverMode mode)
 {
-    nsresult rv = MimeDoFCC(mTempFileSpec,
+    nsresult rv = MimeDoFCC(mTempFile,
                             mode,
                             mCompFields->GetBcc(),
                             mCompFields->GetFcc(), 
@@ -4386,7 +4375,7 @@ nsMsgGetEnvelopeLine(void)
 }
 
 nsresult 
-nsMsgComposeAndSend::MimeDoFCC(nsFileSpec       *input_file, 
+nsMsgComposeAndSend::MimeDoFCC(nsIFile          *input_file, 
                                nsMsgDeliverMode mode,
                                const char       *bcc_header,
                                const char       *fcc_header,
@@ -4396,8 +4385,7 @@ nsMsgComposeAndSend::MimeDoFCC(nsFileSpec       *input_file,
   char          *ibuffer = 0;
   PRInt32       ibuffer_size = TEN_K;
   char          *obuffer = 0;
-  PRInt32       n;
-  char          *envelopeLine = nsMsgGetEnvelopeLine();
+  PRUint32      n;
   PRBool        folderIsLocal = PR_TRUE;
   char          *turi = nsnull;
   PRUnichar     *printfString = nsnull;
@@ -4419,57 +4407,52 @@ nsMsgComposeAndSend::MimeDoFCC(nsFileSpec       *input_file,
   //
   // Ok, this is here to keep track of this for 2 copy operations... 
   //
-  if (mCopyFileSpec)
+  if (mCopyFile)
   {
-    mCopyFileSpec2 = mCopyFileSpec;
-    mCopyFileSpec = nsnull;
+    mCopyFile2 = mCopyFile;
+    mCopyFile = nsnull;
   }
 
   //
   // Create the file that will be used for the copy service!
   //
-  nsFileSpec *tFileSpec = nsMsgCreateTempFileSpec("nscopy.tmp"); 
-  if (!tFileSpec)
-    return NS_ERROR_FAILURE;
+  nsresult rv = nsMsgCreateTempFile("nscopy.tmp", getter_AddRefs(mCopyFile));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  NS_NewFileSpecWithSpec(*tFileSpec, &mCopyFileSpec);
-  if (!mCopyFileSpec)
-  {
-    delete tFileSpec;
-    return NS_ERROR_INVALID_ARG;
-  }
-
-  nsOutputFileStream tempOutfile(*tFileSpec, PR_WRONLY | PR_CREATE_FILE, 00600);
-  delete tFileSpec;
-  if (! tempOutfile.is_open()) 
+  nsCOMPtr<nsIOutputStream> tempOutfile;
+  rv = NS_NewLocalFileOutputStream(getter_AddRefs(tempOutfile), mCopyFile, -1, 00600);
+  if (NS_FAILED(rv))
   {   
     if (mSendReport)
     {
       nsAutoString error_msg;
+      nsCAutoString cPath;
       nsAutoString path;
-      NS_CopyNativeToUnicode(
-        nsDependentCString(tFileSpec->GetNativePathCString()), path);
+      mCopyFile->GetNativePath(cPath);
+      NS_CopyNativeToUnicode(cPath, path);
       nsMsgBuildErrorMessageByID(NS_MSG_UNABLE_TO_OPEN_TMP_FILE, error_msg, &path, nsnull);
       mSendReport->SetMessage(nsIMsgSendReport::process_Current, error_msg.get(), PR_FALSE);
     }
     status = NS_MSG_UNABLE_TO_OPEN_TMP_FILE;
 
-    NS_RELEASE(mCopyFileSpec);
+    mCopyFile = nsnull;
     return status;
   }
 
   //
   // Get our files ready...
   //
-  nsInputFileStream inputFile(*input_file);
-  if (!inputFile.is_open() || CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_2))
+  nsCOMPtr<nsIInputStream> inputFile;
+  rv = NS_NewLocalFileInputStream(getter_AddRefs(inputFile), input_file);
+  if (NS_FAILED(rv) || CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_2))
   {
     if (mSendReport)
     {
       nsAutoString error_msg;
+      nsCAutoString cPath;
       nsAutoString path;
-      NS_CopyNativeToUnicode(
-        nsDependentCString(input_file->GetNativePathCString()), path);
+      mTempFile->GetNativePath(cPath);
+      NS_CopyNativeToUnicode(cPath, path);
       nsMsgBuildErrorMessageByID(NS_MSG_UNABLE_TO_OPEN_FILE, error_msg, &path, nsnull);
       mSendReport->SetMessage(nsIMsgSendReport::process_Current, error_msg.get(), PR_FALSE);
     }
@@ -4530,12 +4513,13 @@ nsMsgComposeAndSend::MimeDoFCC(nsFileSpec       *input_file,
     }
   }
 
-  if ( (envelopeLine) && (folderIsLocal) )
+  if (folderIsLocal)
   {
-    PRInt32   len = PL_strlen(envelopeLine);
+    char *envelopeLine = nsMsgGetEnvelopeLine();
+    PRUint32   len = PL_strlen(envelopeLine);
     
-    n = tempOutfile.write(envelopeLine, len);
-    if (n != len)
+    rv = tempOutfile->Write(envelopeLine, len, &n);
+    if (NS_FAILED(rv) || n != len)
     {
       status = NS_ERROR_FAILURE;
       goto FAIL;
@@ -4571,10 +4555,10 @@ nsMsgComposeAndSend::MimeDoFCC(nsFileSpec       *input_file,
     buf = PR_smprintf(X_MOZILLA_STATUS_FORMAT CRLF, flags);
     if (buf)
     {
-      PRInt32   len = PL_strlen(buf);
-      n = tempOutfile.write(buf, len);
+      PRUint32   len = PL_strlen(buf);
+      rv = tempOutfile->Write(buf, len, &n);
       PR_Free(buf);
-      if (n != len)
+      if (NS_FAILED(rv) || n != len)
       {
         status = NS_ERROR_FAILURE;
         goto FAIL;
@@ -4592,10 +4576,10 @@ nsMsgComposeAndSend::MimeDoFCC(nsFileSpec       *input_file,
     buf = PR_smprintf(X_MOZILLA_STATUS2_FORMAT CRLF, flags2);
     if (buf)
     {
-      PRInt32   len = PL_strlen(buf);
-      n = tempOutfile.write(buf, len);
+      PRUint32   len = PL_strlen(buf);
+      rv = tempOutfile->Write(buf, len, &n);
       PR_Free(buf);
-      if (n != len)
+      if (NS_FAILED(rv) || n != len)
       {
         status = NS_ERROR_FAILURE;
         goto FAIL;
@@ -4642,9 +4626,9 @@ nsMsgComposeAndSend::MimeDoFCC(nsFileSpec       *input_file,
 
     PR_snprintf(buf, L-1, "FCC: %s" CRLF, fcc_header);
 
-    PRInt32   len = PL_strlen(buf);
-    n = tempOutfile.write(buf, len);
-    if (n != len)
+    PRUint32   len = PL_strlen(buf);
+    rv = tempOutfile->Write(buf, len, &n);
+    if (NS_FAILED(rv) || n != len)
     {
       status = NS_ERROR_FAILURE;
       goto FAIL;
@@ -4669,10 +4653,10 @@ nsMsgComposeAndSend::MimeDoFCC(nsFileSpec       *input_file,
       buf = PR_smprintf(HEADER_X_MOZILLA_IDENTITY_KEY ": %s" CRLF, key);
       if (buf)
       {
-        PRInt32 len = strlen(buf);
-        n = tempOutfile.write(buf, len);
+        PRUint32 len = strlen(buf);
+        rv = tempOutfile->Write(buf, len, &n);
         PR_Free(buf);
-        if (n != len)
+        if (NS_FAILED(rv) || n != len)
         {
           status = NS_ERROR_FAILURE;
           goto FAIL;
@@ -4685,10 +4669,10 @@ nsMsgComposeAndSend::MimeDoFCC(nsFileSpec       *input_file,
       buf = PR_smprintf(HEADER_X_MOZILLA_ACCOUNT_KEY ": %s" CRLF, mAccountKey.get());
       if (buf)
       {
-        PRInt32 len = strlen(buf);
-        n = tempOutfile.write(buf, len);
+        PRUint32 len = strlen(buf);
+        rv = tempOutfile->Write(buf, len, &n);
         PR_Free(buf);
-        if (n != len)
+        if (NS_FAILED(rv) || n != len)
         {
           status = NS_ERROR_FAILURE;
           goto FAIL;
@@ -4718,11 +4702,11 @@ nsMsgComposeAndSend::MimeDoFCC(nsFileSpec       *input_file,
     }
 
     PR_snprintf(buf, L-1, "BCC: %s" CRLF, convBcc ? convBcc : bcc_header);
-    PRInt32   len = strlen(buf);
-    n = tempOutfile.write(buf, len);
+    PRUint32   len = strlen(buf);
+    rv = tempOutfile->Write(buf, len, &n);
     PR_Free(buf);
     PR_Free(convBcc);
-    if (n != len)
+    if (NS_FAILED(rv) || n != len)
     {
       status = NS_ERROR_FAILURE;
       goto FAIL;
@@ -4769,10 +4753,10 @@ nsMsgComposeAndSend::MimeDoFCC(nsFileSpec       *input_file,
         goto FAIL;
       }
 
-      PRInt32   len = PL_strlen(line);
-      n = tempOutfile.write(line, len);
+      PRUint32   len = PL_strlen(line);
+      rv = tempOutfile->Write(line, len, &n);
       PR_Free(line);
-      if (n != len)
+      if (NS_FAILED(rv) || n != len)
       {
         status = NS_ERROR_FAILURE;
         goto FAIL;
@@ -4792,29 +4776,43 @@ nsMsgComposeAndSend::MimeDoFCC(nsFileSpec       *input_file,
   // It's unfortunate that we end up writing the FCC file a line
   // at a time, but it's the easiest way...
   //
-  while (! inputFile.eof())
+  PRUint32 available;
+  rv = inputFile->Available(&available);
+  NS_ENSURE_SUCCESS(rv, rv);
+  while (available > 0)
   {
     // check *ibuffer in case that ibuffer isn't big enough
-    if (!inputFile.readline(ibuffer, ibuffer_size) && *ibuffer == 0)
+    PRUint32 readCount;
+    rv = inputFile->Read(ibuffer, ibuffer_size, &readCount);
+    if (NS_FAILED(rv) || readCount == 0 || *ibuffer == 0)
     {
       status = NS_ERROR_FAILURE;
       goto FAIL;
     }
 
-    n =  tempOutfile.write(ibuffer, PL_strlen(ibuffer));
-    n += tempOutfile.write(CRLF, 2);
-    if (n != (PRInt32) (PL_strlen(ibuffer) + 2)) // write failed 
+    rv = tempOutfile->Write(ibuffer, readCount, &n);
+    if (NS_FAILED(rv) || n != readCount) // write failed 
     {
       status = NS_MSG_ERROR_WRITING_FILE;
       goto FAIL;
     }
+
+    rv = tempOutfile->Write(CRLF, 2, &n);
+    if (NS_FAILED(rv) || n != 2) // write failed 
+    {
+      status = NS_MSG_ERROR_WRITING_FILE;
+      goto FAIL;
+    }
+
+    rv = inputFile->Available(&available);
+    NS_ENSURE_SUCCESS(rv, rv);
   }
 
   //
   // Terminate with a final newline. 
   //
-  n = tempOutfile.write(CRLF, 2);
-  if (n != 2) // write failed 
+  rv = tempOutfile->Write(CRLF, 2, &n);
+  if (NS_FAILED(rv) || n != 2) // write failed 
   {
     status = NS_MSG_ERROR_WRITING_FILE;
     goto FAIL;
@@ -4826,18 +4824,13 @@ FAIL:
     PR_Free(obuffer);
 
 
-  if (tempOutfile.is_open()) 
-  {
-    if (NS_FAILED(tempOutfile.flush()) || tempOutfile.failed())
-      status = NS_MSG_ERROR_WRITING_FILE;
+  if (NS_FAILED(tempOutfile->Flush()))
+    status = NS_MSG_ERROR_WRITING_FILE;
 
-    tempOutfile.close();
-    if (mCopyFileSpec)
-      mCopyFileSpec->CloseStream();
-  }
+  tempOutfile->Close();
 
-  if (inputFile.is_open()) 
-    inputFile.close();
+  if (inputFile)
+    inputFile->Close();
 
   // 
   // When we get here, we have to see if we have been successful so far.
@@ -4850,7 +4843,7 @@ FAIL:
     //
     // If we are here, time to start the async copy service operation!
     //
-    status = StartMessageCopyOperation(mCopyFileSpec, mode, turi);
+    status = StartMessageCopyOperation(mCopyFile, mode, turi);
   }
   PR_Free(turi);
   return status;
@@ -4861,8 +4854,8 @@ FAIL:
 // nsMsgCopy class
 //
 nsresult 
-nsMsgComposeAndSend::StartMessageCopyOperation(nsIFileSpec        *aFileSpec, 
-                                               nsMsgDeliverMode   mode,
+nsMsgComposeAndSend::StartMessageCopyOperation(nsIFile          *aFile,
+                                               nsMsgDeliverMode mode,
                                                char             *dest_uri)
 {
   mCopyObj = new nsMsgCopy();
@@ -4882,7 +4875,11 @@ nsMsgComposeAndSend::StartMessageCopyOperation(nsIFileSpec        *aFileSpec,
   if (mListener)
     mListener->OnGetDraftFolderURI(m_folderName.get());
 
-  rv = mCopyObj->StartCopyOperation(mUserIdentity, aFileSpec, mode, 
+  nsCOMPtr<nsIFileSpec> fileSpec;
+  rv = NS_NewFileSpecFromIFile(aFile, getter_AddRefs(fileSpec));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = mCopyObj->StartCopyOperation(mUserIdentity, fileSpec, mode, 
                                     this, m_folderName.get(), mMsgToReplace);
   return rv;
 }
@@ -4948,7 +4945,12 @@ nsresult nsMsgComposeAndSend::Abort()
   {
     nsCOMPtr<nsIMsgCopyService> copyService = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
-    copyService->NotifyCompletion(mCopyFileSpec, mCopyObj->mDstFolder, NS_ERROR_ABORT);
+
+    nsCOMPtr<nsIFileSpec> fileSpec;
+    rv = NS_NewFileSpecFromIFile(mCopyFile, getter_AddRefs(fileSpec));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    copyService->NotifyCompletion(fileSpec, mCopyObj->mDstFolder, NS_ERROR_ABORT);
   }
   mAbortInProcess = PR_FALSE;
   return NS_OK;
@@ -5001,10 +5003,10 @@ NS_IMETHODIMP nsMsgComposeAndSend::GetProgress(nsIMsgProgress **_retval)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgComposeAndSend::GetOutputStream(nsOutputFileStream * *_retval)
+NS_IMETHODIMP nsMsgComposeAndSend::GetOutputStream(nsIOutputStream **_retval)
 {
   NS_ENSURE_ARG(_retval);
-  *_retval = mOutputFile;
+  NS_IF_ADDREF(*_retval = mOutputFile);
   return NS_OK;
 }
 

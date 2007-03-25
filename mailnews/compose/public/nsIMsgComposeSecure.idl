@@ -44,22 +44,17 @@
 
 interface nsIMsgCompFields;
 interface nsIMsgIdentity;
-
-%{C++
-class nsOutputFileStream;
-%}
-
-[ptr] native nsOutputFileStream(nsOutputFileStream);
+interface nsIOutputStream;
 
 /* Security interface */
-[noscript, uuid(ed899511-b473-4a93-ba02-d8cb90d58e1c)]
+[noscript, uuid(245f2adc-410e-4bdb-91e2-a7bb42d61787)]
 interface nsIMsgComposeSecure : nsISupports 
 {
     // requiresCryptoEncapsulation --> returns true if the current message send requires us to go through
 	// some encryption work. In the case of false, you can disregard the compose secure object.
     boolean requiresCryptoEncapsulation(in nsIMsgIdentity aIdentity, in nsIMsgCompFields aCompFields);
 
-	void beginCryptoEncapsulation(in nsOutputFileStream aStream, in string aRecipients, in nsIMsgCompFields aCompFields, in nsIMsgIdentity aIdentity, in nsIMsgSendReport sendReport, in boolean aIsDraft);
-	void finishCryptoEncapsulation(in boolean aAbort, in nsIMsgSendReport sendReport);
-	void mimeCryptoWriteBlock(in string aBuf, in long aLen);
+    void beginCryptoEncapsulation(in nsIOutputStream aStream, in string aRecipients, in nsIMsgCompFields aCompFields, in nsIMsgIdentity aIdentity, in nsIMsgSendReport sendReport, in boolean aIsDraft);
+    void finishCryptoEncapsulation(in boolean aAbort, in nsIMsgSendReport sendReport);
+    void mimeCryptoWriteBlock(in string aBuf, in long aLen);
 };

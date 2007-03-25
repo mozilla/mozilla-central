@@ -72,6 +72,7 @@ PR_BEGIN_EXTERN_C
 // in as a template
 //
 nsFileSpec  *nsMsgCreateTempFileSpec(const char *tFileName);
+nsresult    nsMsgCreateTempFile(const char *tFileName, nsIFile **tFile);
 char        *nsMsgCreateTempFileName(const char *tFileName);
 
 

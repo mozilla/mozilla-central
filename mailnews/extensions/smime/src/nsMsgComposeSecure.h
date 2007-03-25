@@ -49,6 +49,7 @@
 #include "nsICMSMessage.h"
 #include "nsIMutableArray.h"
 #include "nsString.h"
+#include "nsIOutputStream.h"
 
 class nsIMsgCompFields;
 
@@ -83,7 +84,7 @@ public:
   nsMsgComposeSecure();
   virtual ~nsMsgComposeSecure();
   /* additional members */
-  nsOutputFileStream *GetOutputStream() { return mStream;}
+  void GetOutputStream(nsIOutputStream **stream) { NS_IF_ADDREF(*stream = mStream);}
 private:
   nsresult MimeInitMultipartSigned(PRBool aOuter, nsIMsgSendReport *sendReport);
   nsresult MimeInitEncryption(PRBool aSign, nsIMsgSendReport *sendReport);
@@ -100,7 +101,7 @@ private:
   nsresult ExtractEncryptionState(nsIMsgIdentity * aIdentity, nsIMsgCompFields * aComposeFields, PRBool * aSignMessage, PRBool * aEncrypt);
 
   mimeDeliveryCryptoState mCryptoState;
-  nsOutputFileStream *mStream;
+  nsCOMPtr<nsIOutputStream> mStream;
   PRInt16 mHashType;
   nsCOMPtr<nsICryptoHash> mDataHash;
   MimeEncoderData *mSigEncoderData;

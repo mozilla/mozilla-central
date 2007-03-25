@@ -59,7 +59,6 @@
 #include "nsIURL.h"
 #include "nsString.h"
 class nsFileSpec;
-class nsOutputFileStream;
 %}
 
 interface nsIMsgProgress;
@@ -69,6 +68,8 @@ interface nsIMsgDBHdr;
 interface nsIMsgHdr;
 interface nsIDocShell;
 interface nsIFileSpec;
+interface nsIFile;
+interface nsIOutputStream;
 interface nsIMsgComposeSecure;
 interface nsIMsgStatusFeedback;
 interface nsIEditor;
@@ -162,10 +163,9 @@ typedef struct nsMsgAttachedFile
 [ptr] native nsMsgAttachmentData(nsMsgAttachmentData);
 [ptr] native nsMsgAttachedFile(nsMsgAttachedFile);
 [ptr] native nsMsgAttachmentHandler(nsMsgAttachmentHandler);
-[ptr] native nsOutputFileStream(nsOutputFileStream);
 [ptr] native nsCString(nsCString);
 
-[scriptable, uuid(39876de6-207f-43f4-99a7-d60f1c49ea48)]
+[scriptable, uuid(7d3aad47-b742-42b8-b5af-0af65cd1b366)]
 interface nsIMsgSend : nsISupports 
 {
   //
@@ -213,7 +213,7 @@ interface nsIMsgSend : nsISupports
     void sendMessageFile(in nsIMsgIdentity       aUserIdentity,
                          in string               aAccountKey,
                          in nsIMsgCompFields     fields,
-                         in nsIFileSpec          sendIFileSpec,
+                         in nsIFile              sendIFile,
                          in PRBool               deleteSendFileOnCompletion,
                          in PRBool               digest_p,
                          in nsMsgDeliverMode     mode,
@@ -265,9 +265,9 @@ interface nsIMsgSend : nsISupports
 
     [noscript] nsIMsgProgress getProgress();
     
-    [noscript] nsOutputFileStream getOutputStream();
+    nsIOutputStream getOutputStream();
 
-	[noscript] attribute nsIRequest runningRequest;
+    [noscript] attribute nsIRequest runningRequest;
 
     [noscript] attribute nsresult status;
 

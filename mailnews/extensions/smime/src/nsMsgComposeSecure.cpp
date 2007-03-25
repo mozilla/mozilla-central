@@ -457,7 +457,7 @@ nsresult nsMsgComposeSecure::ExtractEncryptionState(nsIMsgIdentity * aIdentity, 
 }
 
 /* void beginCryptoEncapsulation (in nsOutputFileStream aStream, in boolean aEncrypt, in boolean aSign, in string aRecipeints, in boolean aIsDraft); */
-NS_IMETHODIMP nsMsgComposeSecure::BeginCryptoEncapsulation(nsOutputFileStream * aStream,
+NS_IMETHODIMP nsMsgComposeSecure::BeginCryptoEncapsulation(nsIOutputStream * aStream,
                                                            const char * aRecipients,
                                                            nsIMsgCompFields * aCompFields,
                                                            nsIMsgIdentity * aIdentity,
@@ -557,7 +557,7 @@ nsresult nsMsgComposeSecure::MimeInitMultipartSigned(PRBool aOuter, nsIMsgSendRe
    */
   nsresult rv = NS_OK;
   char *header = 0;
-  PRInt32 L;
+  PRUint32 L;
 
   rv = make_multipart_signed_header_string(aOuter, &header,
                     &mMultipartSignedBoundary);
@@ -567,7 +567,9 @@ nsresult nsMsgComposeSecure::MimeInitMultipartSigned(PRBool aOuter, nsIMsgSendRe
 
   if (aOuter){
     /* If this is the outer block, write it to the file. */
-    if (PRInt32(mStream->write(header, L)) < L) {
+    PRUint32 n;
+    rv = mStream->Write(header, L, &n);
+    if (NS_FAILED(rv) || n < L) {
       rv = MK_MIME_ERROR_WRITING_FILE;
     }
   } else {
@@ -614,10 +616,12 @@ nsresult nsMsgComposeSecure::MimeInitEncryption(PRBool aSign, nsIMsgSendReport *
         "Content-Description: %s" CRLF
         CRLF,
         MIME_SMIME_ENCRYPTED_CONTENT_DESCRIPTION);
-  PRInt32 L;
+  PRUint32 L;
   if (!s) return NS_ERROR_OUT_OF_MEMORY;
   L = strlen(s);
-  if (PRInt32(mStream->write(s, L)) < L) {
+  PRUint32 n;
+  rv = mStream->Write(s, L, &n);
+  if (NS_FAILED(rv) || n < L) {
     return NS_ERROR_FAILURE;
   }
   PR_Free(s);
@@ -703,7 +707,7 @@ nsresult nsMsgComposeSecure::MimeFinishMultipartSigned (PRBool aOuter, nsIMsgSen
 
   /* Write out the headers for the signature.
    */
-  PRInt32 L;
+  PRUint32 L;
   header =
     PR_smprintf(CRLF
           "--%s" CRLF
@@ -724,7 +728,9 @@ nsresult nsMsgComposeSecure::MimeFinishMultipartSigned (PRBool aOuter, nsIMsgSen
   L = strlen(header);
   if (aOuter) {
     /* If this is the outer block, write it to the file. */
-    if (PRInt32(mStream->write(header, L)) < L) {
+    PRUint32 n;
+    rv = mStream->Write(header, L, &n);
+    if (NS_FAILED(rv) || n < L) {
       rv = MK_MIME_ERROR_WRITING_FILE;
     } 
   } else {
@@ -790,7 +796,7 @@ nsresult nsMsgComposeSecure::MimeFinishMultipartSigned (PRBool aOuter, nsIMsgSen
   /* Now write out the terminating boundary.
    */
   {
-  PRInt32 L;
+  PRUint32 L;
   char *header = PR_smprintf(CRLF "--%s--" CRLF,
                  mMultipartSignedBoundary);
   PR_Free(mMultipartSignedBoundary);
@@ -803,7 +809,9 @@ nsresult nsMsgComposeSecure::MimeFinishMultipartSigned (PRBool aOuter, nsIMsgSen
   L = strlen(header);
   if (aOuter) {
     /* If this is the outer block, write it to the file. */
-    if (PRInt32(mStream->write(header, L)) < L)
+    PRUint32 n;
+    rv = mStream->Write(header, L, &n);
+    if (NS_FAILED(rv) || n < L)
       rv = MK_MIME_ERROR_WRITING_FILE;
   } else {
     /* If this is an inner block, feed it through the crypto stream. */
@@ -865,7 +873,9 @@ nsresult nsMsgComposeSecure::MimeFinishEncryption (PRBool aSign, nsIMsgSendRepor
   rv = MIME_EncoderDestroy(mCryptoEncoderData, PR_FALSE);
   mCryptoEncoderData = 0;
 
-  if (PRInt32(mStream->write(CRLF, 2)) < 2)
+  PRUint32 n;
+  rv = mStream->Write(CRLF, 2, &n);
+  if (NS_FAILED(rv) || n < 2)
     rv = NS_ERROR_FAILURE;
 
  FAIL:
@@ -1059,10 +1069,12 @@ NS_IMETHODIMP nsMsgComposeSecure::MimeCryptoWriteBlock (const char *buf, PRInt32
 	  /* If we're not encrypting (presumably just signing) then write this
 		 data directly to the file. */
 
-    if (PRInt32(mStream->write (buf, size)) < size) {
-  		return MK_MIME_ERROR_WRITING_FILE;
+    PRUint32 n;
+    rv = mStream->Write(buf, size, &n);
+    if (NS_FAILED(rv) || n < size) {
+      return MK_MIME_ERROR_WRITING_FILE;
     }
-	}
+  }
  FAIL:
   return status;
 }
@@ -1137,8 +1149,11 @@ mime_crypto_write_base64 (void *closure, const char *buf,
 nsresult mime_encoder_output_fn(const char *buf, PRInt32 size, void *closure)
 {
   nsMsgComposeSecure *state = (nsMsgComposeSecure *) closure;
-  nsOutputFileStream *stream = state->GetOutputStream();
-  if (PRInt32(stream->write((char *) buf, size)) < size)
+  nsCOMPtr<nsIOutputStream> stream;
+  state->GetOutputStream(getter_AddRefs(stream));
+  PRUint32 n;
+  nsresult rv = stream->Write((char *) buf, size, &n);
+  if (NS_FAILED(rv) || n < size)
     return MK_MIME_ERROR_WRITING_FILE;
   else
     return 0;

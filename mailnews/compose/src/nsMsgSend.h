@@ -143,6 +143,7 @@
 #include "msgCore.h"
 #include "prprf.h" 
 #include "nsFileStream.h"
+#include "nsIOutputStream.h"
 #include "nsMsgMessageFlags.h"
 #include "nsIURL.h"
 #include "nsMsgAttachmentHandler.h"
@@ -216,9 +217,9 @@ public:
   nsresult    FormatStringWithSMTPHostNameByID(PRInt32 aMsgId, PRUnichar **aString);
 
   nsresult    DoFcc();
-  nsresult    StartMessageCopyOperation(nsIFileSpec        *aFileSpec, 
-                                        nsMsgDeliverMode   mode,
-                                        char			   *dest_uri);
+  nsresult    StartMessageCopyOperation(nsIFile          *aFileSpec, 
+                                        nsMsgDeliverMode mode,
+                                        char             *dest_uri);
 
   void	      Clear();
 
@@ -234,7 +235,7 @@ public:
   //
   // FCC operations...
   //
-  nsresult    MimeDoFCC (nsFileSpec *input_file,  
+  nsresult    MimeDoFCC (nsIFile *input_file,  
     nsMsgDeliverMode mode,
     const char *bcc_header,
     const char *fcc_header,
@@ -247,7 +248,7 @@ public:
                    nsIMsgIdentity   *aUserIdentity,
                    const char       *aAccountKey,
                    nsMsgCompFields  *fields,
-                   nsFileSpec       *sendFileSpec,
+                   nsIFile          *sendFile,
                    PRBool           digest_p,
                    PRBool           dont_deliver_p,
                    nsMsgDeliverMode mode,
@@ -306,9 +307,9 @@ public:
   nsCOMPtr<nsIMsgIdentity>  mUserIdentity;
   nsCString                 mAccountKey;
   nsRefPtr<nsMsgCompFields> mCompFields;         // All needed composition fields (header, etc...)
-  nsFileSpec                *mTempFileSpec;      // our temporary file
+  nsCOMPtr<nsIFile>         mTempFile;           // our temporary file
   
-  nsOutputFileStream        *mOutputFile;        // the actual output file stream
+  nsCOMPtr<nsIOutputStream> mOutputFile;         // the actual output file stream
   PRUint32                  mMessageWarningSize; // Warn if a message is over this size!
 
   PRBool                    m_dont_deliver_p;    // If set, we just return the nsFileSpec of the file
@@ -325,18 +326,18 @@ public:
   nsCOMPtr<nsIMsgStatusFeedback>  mStatusFeedback;
   nsCOMPtr<nsIRequest>      mRunningRequest;
   PRBool                    mSendMailAlso;
-  nsIFileSpec               *mReturnFileSpec;     // a holder for file spec's to be returned to caller
+  nsCOMPtr<nsIFile>         mReturnFile;     // a holder for file spec's to be returned to caller
 
   // File where we stored our HTML so that we could make the plaintext form.
-  nsFileSpec                *mHTMLFileSpec;
+  nsCOMPtr<nsIFile>         mHTMLFile;
 
   // Variable for storing the draft name;
   nsCString                  m_folderName;
   //
   // These variables are needed for message Copy operations!
   //
-  nsIFileSpec               *mCopyFileSpec;
-  nsIFileSpec               *mCopyFileSpec2;
+  nsCOMPtr<nsIFile>         mCopyFile;
+  nsCOMPtr<nsIFile>         mCopyFile2;
   nsMsgCopy                 *mCopyObj;
   PRBool                    mNeedToPerformSecondFCC;
 

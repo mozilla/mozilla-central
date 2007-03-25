@@ -110,6 +110,29 @@ NS_IMETHODIMP nsMsgCompUtils::GetMsgMimeConformToStandard(PRBool *_retval)
 #define     TPATH_LEN   1024
 
 //
+// Create a file for the a unique temp file
+// on the local machine. Caller must free memory
+//
+nsresult
+nsMsgCreateTempFile(const char *tFileName, nsIFile **tFile)
+{
+  if ((!tFileName) || (!*tFileName))
+    tFileName = "nsmail.tmp";
+
+  nsresult rv = GetSpecialDirectoryWithFileName(NS_OS_TEMP_DIR,
+                                                tFileName,
+                                                tFile);
+
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = (*tFile)->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);
+  if (NS_FAILED(rv))
+    NS_RELEASE(*tFile);
+
+  return rv;
+}
+
+//
 // Create a file spec for the a unique temp file
 // on the local machine. Caller must free memory
 //

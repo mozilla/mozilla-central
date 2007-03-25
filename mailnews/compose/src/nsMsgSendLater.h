@@ -136,9 +136,8 @@ private:
   //
   // File output stuff...
   //
-  nsFileSpec                *mTempFileSpec;
-  nsIFileSpec               *mTempIFileSpec;
-  nsOutputFileStream        *mOutFile;
+  nsCOMPtr<nsIFile>         mTempFile;
+  nsCOMPtr<nsIOutputStream> mOutFile;
 
   void                      *mTagData;
 

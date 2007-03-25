@@ -67,6 +67,7 @@
 #include "nsIURI.h"
 #include "nsISmtpUrl.h"
 #include "nsIChannel.h"
+#include "nsNetUtil.h"
 #include "prlog.h"
 #include "nsMsgSimulateError.h"
 #include "nsIMimeConverter.h"
@@ -76,8 +77,7 @@ NS_IMPL_ISUPPORTS2(nsMsgSendLater, nsIMsgSendLater, nsIStreamListener)
 
 nsMsgSendLater::nsMsgSendLater()
 {
-  mTempIFileSpec = nsnull;
-  mTempFileSpec = nsnull;
+  mTempFile = nsnull;
   mOutFile = nsnull;
   mTotalSentSuccessfully = 0;
   mTotalSendCount = 0;
@@ -112,7 +112,7 @@ nsMsgSendLater::nsMsgSendLater()
 
 nsMsgSendLater::~nsMsgSendLater()
 {
-  NS_IF_RELEASE(mTempIFileSpec);
+  mTempFile = nsnull;
   PR_Free(m_to);
   PR_Free(m_fcc);
   PR_Free(m_bcc);
@@ -138,7 +138,7 @@ nsMsgSendLater::OnStopRequest(nsIRequest *request, nsISupports *ctxt, nsresult s
   }
 
   if (mOutFile)
-    mOutFile->close();
+    mOutFile->Close();
 
   // See if we succeeded on reading the message from the message store?
   //
@@ -470,7 +470,7 @@ nsMsgSendLater::CompleteMailFileSend()
 
   // If for some reason the tmp file didn't get created, we've failed here
   PRBool created;
-  mTempIFileSpec->Exists(&created);
+  mTempFile->Exists(&created);
   if (!created)
     return NS_ERROR_FAILURE;
 
@@ -548,7 +548,7 @@ nsMsgSendLater::CompleteMailFileSend()
   rv = pMsgSend->SendMessageFile(identity,
                                  mAccountKey,
                                  compFields, // nsIMsgCompFields *fields,
-                                 mTempIFileSpec, // nsIFileSpec *sendFileSpec,
+                                 mTempFile, // nsIFile *sendFileSpec,
                                  PR_TRUE, // PRBool deleteSendFileOnCompletion,
                                  PR_FALSE, // PRBool digest_p,
                                  nsIMsgSend::nsMsgSendUnsent, // nsMsgDeliverMode mode,
@@ -601,13 +601,9 @@ nsMsgSendLater::StartNextMailFileSend()
   printf("Sending message: [%s]\n", (const char*)subject);
 #endif
 
-  mTempFileSpec = nsMsgCreateTempFileSpec("nsqmail.tmp"); 
-  if (!mTempFileSpec)
-    return NS_ERROR_FAILURE;
 
-  NS_NewFileSpecWithSpec(*mTempFileSpec, &mTempIFileSpec);
-  if (!mTempIFileSpec)
-    return NS_ERROR_FAILURE;
+  rv = nsMsgCreateTempFile("nsqmail.tmp", getter_AddRefs(mTempFile)); 
+  NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr <nsIMsgMessageService> messageService;
 	rv = GetMessageServiceFromURI(messageURI, getter_AddRefs(messageService));
@@ -1068,15 +1064,17 @@ nsMsgSendLater::DeliverQueuedLine(char *line, PRInt32 length)
       // and write the appropriate subset of the headers out. 
       m_inhead = PR_FALSE;
 
-      mOutFile = new nsOutputFileStream(*mTempFileSpec, PR_WRONLY | PR_CREATE_FILE, 00600);
-      if ( (!mOutFile) || (!mOutFile->is_open()) )
+      nsresult rv = NS_NewLocalFileOutputStream(getter_AddRefs(mOutFile), mTempFile, -1, 00600);
+      if (NS_FAILED(rv))
         return NS_MSG_ERROR_WRITING_FILE;
 
       nsresult status = BuildHeaders();
       if (NS_FAILED(status))
         return status;
 
-      if (mOutFile->write(m_headers, m_headersFP) != m_headersFP)
+      PRUint32 n;
+      rv = mOutFile->Write(m_headers, m_headersFP, &n);
+      if (NS_FAILED(rv) || n != m_headersFP)
         return NS_MSG_ERROR_WRITING_FILE;
     }
     else
@@ -1104,8 +1102,9 @@ nsMsgSendLater::DeliverQueuedLine(char *line, PRInt32 length)
     PR_ASSERT(mOutFile);
     if (mOutFile)
     {
-      PRInt32 wrote = mOutFile->write(line, length);
-      if (wrote < (PRInt32) length) 
+      PRUint32 wrote;
+      nsresult rv = mOutFile->Write(line, length, &wrote);
+      if (NS_FAILED(rv) || wrote < (PRUint32) length) 
         return NS_MSG_ERROR_WRITING_FILE;
     }
   }
