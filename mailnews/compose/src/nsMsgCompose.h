@@ -67,7 +67,7 @@ class nsMsgComposeSendListener;
 class nsIAddrDatabase;
 class nsIEditorMailSupport;
 
-class nsMsgCompose : public nsIMsgCompose, public nsSupportsWeakReference, public nsIMsgSendListener
+class nsMsgCompose : public nsIMsgCompose, public nsSupportsWeakReference
 {
  public: 
 

@@ -39,6 +39,7 @@
 #include "nsISupports.idl"
 #include "nsIMsgCompFields.idl"
 #include "nsIMsgComposeParams.idl"
+#include "nsIMsgSendListener.idl"
 
 %{C++
 #include "nsString.h"
@@ -130,8 +131,8 @@ interface nsIMsgComposeRecyclingListener : nsISupports {
   void onReopen(in nsIMsgComposeParams params);
 };
 
-[scriptable, uuid(69A74559-7397-489a-9596-142773F8E59C)]
-interface nsIMsgCompose : nsISupports {
+[scriptable, uuid(c58ffdef-39a4-4935-9a81-409fe3986085)]
+interface nsIMsgCompose : nsIMsgSendListener {
 
   /* ... */
   void Initialize(in nsIDOMWindowInternal aWindow, in nsIMsgComposeParams aParams); 
