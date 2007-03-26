@@ -467,14 +467,11 @@ nsXFormsControlListItem::FindControl(nsIXFormsControl *aControl)
   if (!aControl)
     return nsnull;
 
-  nsXFormsControlListItem *listItem;
+  nsRefPtr<nsXFormsControlListItem> listItem;
   nsCOMPtr<nsIDOMElement> element;
   aControl->GetElement(getter_AddRefs(element));
-  if (mControlListHash->Get(element, &listItem)) {
-    return listItem;
-  }
-
-  return nsnull;
+  mControlListHash->Get(element, getter_AddRefs(listItem));
+  return listItem;
 }
 
 already_AddRefed<nsIXFormsControl>
@@ -678,6 +675,9 @@ NS_IMETHODIMP
 nsXFormsModelElement::OnDestroyed()
 {
   mElement = nsnull;
+
+  // Releasing references if the model element is removed from the
+  // document before unload, see bug 375320.
   mSchemas = nsnull;
 
   if (mInstanceDocuments)
@@ -3373,7 +3373,17 @@ nsXFormsModelElement::HandleUnload(nsIDOMEvent* aEvent)
 {
   // due to fastback changes, had to move this notification out from under
   // model's WillChangeDocument override.
-  return nsXFormsUtils::DispatchEvent(mElement, eEvent_ModelDestruct);
+  nsXFormsUtils::DispatchEvent(mElement, eEvent_ModelDestruct);
+
+  // Releasing references as early as possible, see bug 375320.
+  mSchemas = nsnull;
+
+  if (mInstanceDocuments)
+    mInstanceDocuments->DropReferences();
+
+  mFormControls.Clear();
+  mControlListHash.Clear();
+  return NS_OK;
 }
 
 PRBool
