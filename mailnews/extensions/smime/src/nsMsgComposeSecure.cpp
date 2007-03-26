@@ -50,7 +50,6 @@
 #include "nsIX509CertDB.h"
 #include "nsMsgBaseCID.h"
 #include "nsIMsgHeaderParser.h"
-#include "nsFileStream.h"
 #include "nsIServiceManager.h"
 #include "nsIMsgIdentity.h"
 #include "nsIMsgCompFields.h"
