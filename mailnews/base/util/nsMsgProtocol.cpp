@@ -802,7 +802,7 @@ nsresult nsMsgProtocol::PostMessage(nsIURI* url, nsIFile *postFile)
      */
     if (line.CharAt(0) == '.')
       line.Insert('.', 0);
-    line.Append(NS_LITERAL_CSTRING(MSG_LINEBREAK));
+    line.Append(NS_LITERAL_CSTRING(CRLF));
     outputBuffer.Append(line);
     // test hack by mscott. If our buffer is almost full, then
     // send it off & reset ourselves 
