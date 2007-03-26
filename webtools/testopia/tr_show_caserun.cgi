@@ -60,7 +60,8 @@ my $action = $cgi->param('action') || '';
 
 if ($action eq 'Commit'){
     my $caserun = Bugzilla::Testopia::TestCaseRun->new($caserun_id);
-    display(do_update($caserun));
+    $caserun = do_update($caserun);
+    display(Bugzilla::Testopia::TestCaseRun->new($caserun->id));
 }
 elsif ($action eq 'Attach'){
     my $caserun = do_update(Bugzilla::Testopia::TestCaseRun->new($caserun_id));
@@ -93,7 +94,7 @@ elsif ($action eq 'Attach'){
     $attachment->store;
     $vars->{'tr_message'} = "File attached.";
     $vars->{'backlink'} = $caserun;
-    display($caserun);
+    display(Bugzilla::Testopia::TestCaseRun->new($caserun->id));
 }
 
 elsif ($action eq 'delete'){
@@ -339,7 +340,11 @@ sub do_update {
     my $notes    = $cgi->param('notes');
     my $build    = $cgi->param('caserun_build');
     my $env      = $cgi->param('caserun_env');
-    my $assignee = login_to_id(trim($cgi->param('assignee'))) || ThrowUserError("invalid_username", { name => $cgi->param('assignee') }) if $cgi->param('assignee');
+    my $assignee;
+    if ($cgi->param('assignee')) {
+        $assignee = login_to_id(trim($cgi->param('assignee')));
+    }
+    ThrowUserError("invalid_username", { name => $cgi->param('assignee') }) unless $assignee;
     
     ThrowUserError('testopia-missing-required-field', {field => 'Status'}) unless defined $status;
     ThrowUserError('testopia-missing-required-field', {field => 'build'}) unless defined $build;
@@ -377,7 +382,7 @@ sub do_update {
 
 sub display {
     my $caserun = shift;
-    ThrowUserError('insufficient-view-perms') if !$caserun->canview;
+    ThrowUserError("testopia-permission-denied", {'object' => $caserun}) if !$caserun->canview;
     my $table = Bugzilla::Testopia::Table->new('case_run');
     ThrowUserError('testopia-query-too-large', {'limit' => $query_limit}) if $table->list_count > $query_limit;
     $vars->{'table'} = $table;

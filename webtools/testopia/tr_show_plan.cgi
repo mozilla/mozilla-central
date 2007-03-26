@@ -104,7 +104,7 @@ elsif ($action eq 'Clone'){
 elsif ($action eq 'do_clone'){
     unless (Bugzilla->user->in_group('Testers')){
         print $cgi->header;
-        ThrowUserError("testopia-create-denied", {'object' => 'plans'});
+        ThrowUserError("testopia-create-denied", {'object' => 'plan'});
     }
 
     if ($serverpush) {
@@ -235,7 +235,7 @@ elsif ($action eq 'Print'){
     my $plan = Bugzilla::Testopia::TestPlan->new($plan_id);
     unless ($plan->canview){
         print $cgi->header;
-        ThrowUserError("testopia-permission-denied", {'object' => 'plan'});
+        ThrowUserError("testopia-permission-denied", {'object' => $plan});
     }
     $vars->{'printdoc'} = 1;
     $cgi->param('ctype', 'print');

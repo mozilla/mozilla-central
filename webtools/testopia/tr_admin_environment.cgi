@@ -153,12 +153,13 @@ elsif ($action eq 'getcategories'){
     detaint_natural($product_id);
     my $product = Bugzilla::Testopia::Product->new($product_id);
     exit unless $product && Bugzilla->user->can_see_product($product->name);
-    my $cat = Bugzilla::Testopia::Environment::Category({});
+    my $cat = Bugzilla::Testopia::Environment::Category->new({});
     my $categories = $cat->get_element_categories_by_product($product_id);
     my $ret;
     foreach my $c (@{$categories}){
-        $c->name =~ s/<span style='color:blue'>|<\/span>//g;
-        $ret .= $c->id.'||'.$c->name.'|||';
+        my $name = $c->name;
+        $name =~ s/<span style='color:blue'>|<\/span>//g;
+        $ret .= $c->id.'||'.$name.'|||';
     }
     chop($ret);
     print $ret;
@@ -176,23 +177,6 @@ elsif ($action eq 'getelements'){
         $ret .= $elem->{'element_id'}.'||'.$elem->{'name'}.'|||';
     }
     $ret = substr($ret, 0, length($ret) - 3);
-    print $ret;
-}
-
-elsif ($action eq 'getproperties'){
-    my $env = Bugzilla::Testopia::Environment->new({});
-    my $elem_id = $cgi->param('elem_id');
-   
-    
-    detaint_natural($elem_id);
-
-    my $properties = $env->get_properties_by_element_id($elem_id);
-    my $ret;
-    foreach my $p (@{$properties}){
-        @$p[1] =~ s/<span style='color:blue'>|<\/span>//g;
-        $ret .= @$p[0].'||'.@$p[1].'|||';
-    }
-    chop($ret);
     print $ret;
 }
 

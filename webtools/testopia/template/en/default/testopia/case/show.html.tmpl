@@ -162,7 +162,7 @@
     <tr class="bz_row_data">
       <td>
       [% FOREACH plan = case.plans %]
-        <a href="tr_show_plan.cgi?plan_id=[% plan.id FILTER none %]">[% plan.id FILTER none %]: [% plan.name FILTER html %]</a>
+        <a href="tr_show_plan.cgi?plan_id=[% plan.id FILTER none %]">[% plan.id FILTER none %][% IF plan.canview %]:&nbsp;[% plan.name FILTER html %][% END %]</a>
         [% IF case.can_unlink_plan(plan.id) %]
         <a href="tr_show_case.cgi?action=unlink&plan_id=[% plan.id FILTER none %]&case_id=[% case.id FILTER none %]"><img src="testopia/img/del.gif" alt="Unlink Test Plan" /></a>
         [% END %]

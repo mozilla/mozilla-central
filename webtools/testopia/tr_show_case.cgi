@@ -164,6 +164,9 @@ elsif ($action eq 'do_clone'){
         $method = "linked";
         $vars->{'backlink'} = $case;
     }
+    else {
+        ThrowUserError('testopia-missing-parameter', {'param' => 'copymethod'});
+    }
             
     $vars->{'tr_message'} = "Case $method to $count plans.";
     display($case);

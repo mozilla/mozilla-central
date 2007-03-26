@@ -94,17 +94,17 @@ if ($action eq 'Commit'){
             next;
         }
         my $manager = login_to_id(trim($cgi->param('manager')));
-        unless ($manager){
-            print $cgi->multipart_end;
+        if ($cgi->param('manager') && !$manager){
+            print $cgi->multipart_end if $serverpush;
             ThrowUserError("invalid_username", { name => $cgi->param('manager') }) if $cgi->param('manager');
         }
-        my $status;
+        my $stop_date;
         if ($cgi->param('run_status')){
-            if ($cgi->param('run_status') == -1 || $run->status){
-                $status = $run->stop_date;
+            if ($cgi->param('run_status') == -1 || $run->stop_date){
+                $stop_date = $run->stop_date;
             }
             else {
-                $status = get_time_stamp();
+                $stop_date = get_time_stamp();
             }
         }
 
@@ -115,7 +115,7 @@ if ($action eq 'Commit'){
         validate_test_id($build, 'build');
         my %newvalues = ( 
             'manager_id'        => $manager || $run->manager->id,
-            'stop_date'         => $status,
+            'stop_date'         => $stop_date,
             'environment_id'    => $enviro,
             'build_id'          => $build
         );

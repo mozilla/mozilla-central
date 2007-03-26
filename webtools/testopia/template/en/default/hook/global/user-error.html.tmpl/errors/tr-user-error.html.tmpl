@@ -75,14 +75,14 @@
     [% title = "No Categories Defined" %]
     No categories have been created for this product yet.
     [% IF plan %]
-    You can create categories <a href="tr_categories.cgi?plan_id=[% plan.id FILTER none %]">
+    You can create categories <a href="tr_categories.cgi?product_id=[% plan.product.id FILTER none %]">
     here</a>.
     [% END %]
   [% ELSIF error == "testopia-create-build" %]
     [% title = "No Builds Defined" %]
     No builds have been created for this product yet.
     [% IF plan %]
-    You can create builds <a href="tr_builds.cgi?plan_id=[% plan.id FILTER none %]">
+    You can create builds <a href="tr_builds.cgi?product_id=[% plan.product.id FILTER none %]">
     here</a>.
     [% END %]
   [% ELSIF error == "testopia-create-environment" %]
