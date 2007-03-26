@@ -208,7 +208,9 @@ function refreshHtml(finishFunc)
                 dump("printDialog::refreshHtml:" + e + "\n");
                 Components.utils.reportError(e);
             }
-            document.getElementById('content').contentDocument.documentElement.innerHTML = html;
+            var iframeDoc = document.getElementById("content").contentDocument;
+            iframeDoc.documentElement.innerHTML = html;
+            iframeDoc.title = settings.title;
 
             if (finishFunc) {
                 finishFunc();
