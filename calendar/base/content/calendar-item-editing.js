@@ -335,9 +335,22 @@ function canRedo() {
 function checkForAttendees(aItem, aOriginalItem)
 {
     // iTIP is only supported in Lightning right now
-    if (!gDataMigrator.isLightning) {
+    if (isSunbird()) {
         return;
     }
+
+    // Only send invitations for providers which need it.
+    if (!aItem.calendar.sendItipInvitations) {
+        return;
+    }
+
+    // Only send invitations if the user checked the checkbox.
+    if (!aItem.hasProperty("X-MOZ-SEND-INVITATIONS")) {
+        return;
+    } else if (aItem.getProperty("X-MOZ-SEND-INVITATIONS") != "TRUE") {
+        return;
+    }
+
     var sendInvite = false;
     var itemAtt = aItem.getAttendees({});
 

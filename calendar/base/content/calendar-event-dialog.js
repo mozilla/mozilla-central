@@ -94,6 +94,8 @@ function onLoad()
         menuitem.calendar = calendar;
     }
 
+    document.getElementById("send-invitations-checkbox").collapsed = isSunbird();
+
     loadDialog(window.calendarItem);
 
     // figure out what the title of the dialog should be and set it
@@ -444,11 +446,17 @@ function saveDialog(item)
         item.completedDate = jsDateToDateTime(getElementValue("completed-date-picker"));
     }
 
-    /* attendence */
+    // Attendees
     item.removeAllAttendees();
     var attendeeListBox = document.getElementById("attendees-list");
     for each (att in attendeeListBox.attendees) {
         item.addAttendee(att);
+    }
+    var sendInvitesCheckbox = document.getElementById("send-invitations-checkbox");
+    if (sendInvitesCheckbox.checked) {
+        setItemProperty(item, "X-MOZ-SEND-INVITATIONS", "TRUE");
+    } else {
+        item.deleteProperty("X-MOZ-SEND-INVITATIONS");
     }
 
     /* alarms */
@@ -670,6 +678,12 @@ function updateAccept()
                                               !cal.readOnly);
     if (gReadOnlyMode || cal.readOnly) {
         enableAccept = false;
+    }
+
+    if (cal.sendItipInvitations) {
+        enableElement("send-invitations-checkbox");
+    } else {
+        disableElement("send-invitations-checkbox");
     }
 
     if (!updateTaskAlarmWarnings()) {
@@ -969,9 +983,15 @@ function loadDetails() {
     gDetailsShown = true;
     var item = window.calendarItem;
 
-    /* attendence */
+    // Attendees
     var attendeeListBox = document.getElementById("attendees-list");
     attendeeListBox.attendees = item.getAttendees({});
+    var sendInvitesCheckbox = document.getElementById("send-invitations-checkbox");
+    if (item.hasProperty("X-MOZ-SEND-INVITATIONS")) {
+        sendInvitesCheckbox.checked = (item.getProperty("X-MOZ-SEND-INVITATIONS") == "TRUE");
+    } else {
+        sendInvitesCheckbox.checked = false;
+    }
 
     /* Status */
     setElementValue("item-url",         item.getProperty("URL"));

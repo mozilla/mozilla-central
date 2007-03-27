@@ -81,6 +81,7 @@
 
 <!ENTITY newevent.attendees.label           "Attendees" >
 <!ENTITY newevent.attendees.accesskey       "e" >
+<!ENTITY newevent.attendees.sendEmail.label "Send attendees invitations via email">
 
 <!ENTITY newevent.privacy.label             "Privacy" >
 <!ENTITY newevent.privacy.accesskey         "P" >

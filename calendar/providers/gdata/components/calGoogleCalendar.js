@@ -199,6 +199,10 @@ calGoogleCalendar.prototype = {
         return "gdata";
     },
 
+    get sendItipInvitations() {
+        return false;
+    },
+
     get uri() {
         return this.mUri;
     },

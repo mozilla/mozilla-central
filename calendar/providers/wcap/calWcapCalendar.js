@@ -245,6 +245,10 @@ calWcapCalendar.prototype = {
         return (this.m_bSuppressAlarms = bSuppressAlarms);
     },
     
+    get sendItipInvitations() {
+        return false;
+    },
+
     get canRefresh() { return (this.m_cachedResults != null); },
     refresh: function calWcapCalendar_refresh() {
         log("refresh.", this);

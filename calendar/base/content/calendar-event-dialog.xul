@@ -204,11 +204,19 @@
                  accesskey="&newevent.attendees.accesskey;"
                  control="attendees-list"/>
           <hbox flex="1">
-            <!-- XXX This should be changed to a richlistbox that actually
-               -     works and doesn't need to be constrained by max-height.
-              -->
-            <calendar-attendee-list id="attendees-list" flex="1"
-                                    style="max-height: 12em;"/>
+            <vbox flex="1">
+              <!-- XXX This should be changed to a richlistbox that actually
+                 -     works and doesn't need to be constrained by max-height.
+                -->
+              <calendar-attendee-list id="attendees-list" flex="1"
+                                      style="max-height: 12em;"/>
+              <!-- This is only shown on Lightning, since Sunbird can't send
+                 - email yet. -->
+              <checkbox id="send-invitations-checkbox"
+                        collapsed="true"
+                        label="&newevent.attendees.sendEmail.label;"
+                        pack="start"/>
+            </vbox>
             <spacer width="10"/>
 
             <grid>

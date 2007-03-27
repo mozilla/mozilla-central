@@ -42,6 +42,7 @@
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cr = Components.results;
+const kSUNBIRD_UID = "{718e30fb-e89b-41dd-9da7-e25a45638b28}";
 
 /* Returns a clean new calIEvent */
 function createEvent() {
@@ -848,4 +849,15 @@ function deleteItems(selectedItems, doNotConfirm)
         }
     }
     endBatchTransaction();
+}
+
+/**
+ * Returns true if we are Sunbird (according to our UUID), false otherwise.
+ */
+function isSunbird()
+{
+    var appInfo = Cc["@mozilla.org/xre/app-info;1"].
+                  getService(Ci.nsIXULAppInfo);
+
+    return appInfo.ID == kSUNBIRD_UID;
 }

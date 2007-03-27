@@ -303,6 +303,13 @@ interface calICalendar : nsISupports
    */
   attribute boolean suppressAlarms;
 
+  /**
+   * Whether or not this provider requires us to send iTIP invitations when
+   * inviting attendees to an event.  Some providers (ex: WCAP) handle
+   * invitations internally without the use of iTIP invitations, so those
+   * providers return false here.
+   */
+  readonly attribute boolean sendItipInvitations;
 
   /**
    * Refresh the datasource, and call the observers for any changes found.
