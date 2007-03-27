@@ -391,7 +391,7 @@ $vars->{'table'} = $table;
 $vars->{'urlquerypart'} = $cgi->canonicalise_query('cmdtype');
 if ($cgi->param('plan_id')){
     my $plan_id = $cgi->param('plan_id');
-    my $plan = Bugzilla::Testopia::TestRun->new($plan_id);
+    my $plan = Bugzilla::Testopia::TestPlan->new($plan_id);
     $vars->{'dotweak'} = $plan->canedit;
     $vars->{'candelete'} = $plan->candelete;
 }
