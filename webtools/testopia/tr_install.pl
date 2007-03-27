@@ -201,7 +201,7 @@ sub doPatch {
     $rollbackPatchOnFail = 1;
 
     #Now let's really run the patch:
-    $output = `$patchPath -s -l -z .orig -bp 2 -i $fPatch`;
+    $output = `$patchPath -s -l -z .orig -bp 0 -i $fPatch`;
 
     # If the output is empty, everything was perfect (the -s argument)
     chomp $output;
