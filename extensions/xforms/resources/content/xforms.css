@@ -251,7 +251,17 @@ html|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#dateTime"]
 xul|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#date"],
 html|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#date"],
 xul|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#time"],
-html|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#time"] {
+html|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#time"],
+xul|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#gDay"],
+html|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#gDay"],
+xul|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#gMonth"],
+html|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#gMonth"],
+xul|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#gMonthDay"],
+html|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#gMonthDay"],
+xul|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#gYear"],
+html|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#gYear"],
+xul|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#gYearMonth"],
+html|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#gYearMonth"] {
   -moz-binding: url('chrome://xforms/content/range-xul.xml#xformswidget-range-datesandtimes');
 }
 
@@ -271,6 +281,36 @@ html|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#date"] > x
 xul|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#time"] > xul|box,
 html|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#time"] > xul|box {
   -moz-binding: url('chrome://xforms/content/widgets-xul.xml#range-time');
+}
+
+  /* range type="xsd:gDay" */
+xul|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#gDay"] > xul|box,
+html|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#gDay"] > xul|box {
+  -moz-binding: url('chrome://xforms/content/widgets-xul.xml#range-gday');
+}
+
+  /* range type="xsd:gMonth" */
+xul|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#gMonth"] > xul|box,
+html|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#gMonth"] > xul|box {
+  -moz-binding: url('chrome://xforms/content/widgets-xul.xml#range-gmonth');
+}
+
+  /* range type="xsd:gMonthDay" */
+xul|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#gMonthDay"] > xul|box,
+html|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#gMonthDay"] > xul|box {
+  -moz-binding: url('chrome://xforms/content/widgets-xul.xml#range-gmonthday');
+}
+
+  /* range type="xsd:gYear" */
+xul|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#gYear"] > xul|box,
+html|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#gYear"] > xul|box {
+  -moz-binding: url('chrome://xforms/content/widgets-xul.xml#range-gyear');
+}
+
+  /* range type="xsd:gYearMonth" */
+xul|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#gYearMonth"] > xul|box,
+html|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#gYearMonth"] > xul|box {
+  -moz-binding: url('chrome://xforms/content/widgets-xul.xml#range-gyearmonth');
 }
 
 xul|box.xf-value {

@@ -936,17 +936,17 @@
                      xbl:inherits="tabindex=mozType:tabindex"/>
       </xul:box>
       <xul:box class="range-box">
-        <xul:label control="hoursSpin" value="&xforms.datetime.hours.label;"/>
+        <xul:label control="hoursSpin" value="&xforms.time.hours.label;"/>
         <xul:textbox type="number" size="1" anonid="hoursSpin"
                      xbl:inherits="tabindex=mozType:tabindex"/>
       </xul:box>
       <xul:box class="range-box">
-        <xul:label control="minutesSpin" value="&xforms.datetime.minutes.label;"/>
+        <xul:label control="minutesSpin" value="&xforms.time.minutes.label;"/>
         <xul:textbox type="number" size="1" anonid="minutesSpin"
                      xbl:inherits="tabindex=mozType:tabindex"/>
       </xul:box>
       <xul:box class="range-box">
-        <xul:label control="secondsSpin" value="&xforms.datetime.seconds.label;"/>
+        <xul:label control="secondsSpin" value="&xforms.time.seconds.label;"/>
         <xul:textbox type="number" size="1" anonid="secondsSpin"
                      xbl:inherits="tabindex=mozType:tabindex"/>
       </xul:box>
@@ -1306,17 +1306,17 @@
     <content>
       <xul:label value="" anonid="minLabel"/>
       <xul:box class="range-box">
-        <xul:label control="hoursSpin" value="&xforms.datetime.hours.label;"/>
+        <xul:label control="hoursSpin" value="&xforms.time.hours.label;"/>
         <xul:textbox type="number" size="1" anonid="hoursSpin"
                      xbl:inherits="tabindex=mozType:tabindex"/>
       </xul:box>
       <xul:box class="range-box">
-        <xul:label control="minutesSpin" value="&xforms.datetime.minutes.label;"/>
+        <xul:label control="minutesSpin" value="&xforms.time.minutes.label;"/>
         <xul:textbox type="number" size="1" anonid="minutesSpin"
                      xbl:inherits="tabindex=mozType:tabindex"/>
       </xul:box>
       <xul:box class="range-box">
-        <xul:label control="secondsSpin" value="&xforms.datetime.seconds.label;"/>
+        <xul:label control="secondsSpin" value="&xforms.time.seconds.label;"/>
         <xul:textbox type="number" size="1" anonid="secondsSpin"
                      xbl:inherits="tabindex=mozType:tabindex"/>
       </xul:box>
@@ -1449,5 +1449,461 @@
       <field name="_maxLabel">null</field>
     </implementation>
   </binding>
+
+  <!-- NUMERIC SPIN RANGE-->
+  <binding id="range-numeric-spin"
+           extends="chrome://xforms/content/widgets.xml#range">
+
+    <resources>
+      <stylesheet src="chrome://xforms/skin/widgets-xul.css"/>
+    </resources>
+
+    <content>
+      <xul:label value="" anonid="minLabel"/>
+      <xul:box class="range-box">
+        <xul:label control="spinValue" value="" anonid="spinLabel"/>
+        <xul:textbox type="number" size="1" anonid="spinValue"
+                     xbl:inherits="tabindex=mozType:tabindex"/>
+      </xul:box>
+      <xul:label value="" anonid="maxLabel"/>
+    </content>
+
+    <implementation>
+      <method name="updateLabels">
+        <body>
+        <![CDATA[
+          this.minLabel.value = this.start + this._startSeparator;
+          this.maxLabel.value = this._endSeparator + this.end;
+        ]]>
+        </body>
+      </method>
+
+      <method name="updateFields">
+        <body>
+        <![CDATA[
+          this.spinValue.value = this.getNumericValue(this.value);
+        ]]>
+        </body>
+      </method>
+
+      <method name="setSpinbuttonMinMax">
+        <body>
+        <![CDATA[
+          this.spinValue.min = this.getNumericValue(this.start);
+          this.spinValue.max = this.getNumericValue(this.end);
+        ]]>
+        </body>
+      </method>
+
+      <method name="isInRange">
+        <parameter name="aValue"/>
+        <body>
+        <![CDATA[
+          return this.start <= aValue && aValue <= this.end;
+        ]]>
+        </body>
+      </method>
+
+      <method name="getNumericValue">
+        <parameter name="aValue"/>
+        <body>
+        <![CDATA[
+          return parseFloat(aValue);
+        ]]>
+        </body>
+      </method>
+
+      <!-- Private -->
+      <property name="minLabel" readonly="true">
+        <getter>
+          if (!this._minLabel) {
+            this._minLabel = this.ownerDocument.
+              getAnonymousElementByAttribute(this, "anonid", "minLabel");
+          }
+          return this._minLabel;
+        </getter>
+      </property>
+      <field name="_minLabel">null</field>
+
+      <property name="spinLabel" readonly="true">
+        <getter>
+          if (!this._spinLabel) {
+            this._spinLabel = this.ownerDocument.
+              getAnonymousElementByAttribute(this, "anonid", "spinLabel");
+          }
+          return this._spinLabel;
+        </getter>
+      </property>
+      <field name="_spinLabel">null</field>
+
+      <property name="spinValue" readonly="true">
+        <getter>
+          if (!this._spinValue) {
+            this._spinValue = this.ownerDocument.
+              getAnonymousElementByAttribute(this, "anonid", "spinValue");
+          }
+          return this._spinValue;
+        </getter>
+      </property>
+      <field name="_spinValue">null</field>
+
+      <property name="maxLabel" readonly="true">
+        <getter>
+          if (!this._maxLabel) {
+            this._maxLabel = this.ownerDocument.
+              getAnonymousElementByAttribute(this, "anonid", "maxLabel");
+          }
+          return this._maxLabel;
+        </getter>
+      </property>
+      <field name="_maxLabel">null</field>
+    </implementation>
+  </binding>
+
+  <!-- GDAY RANGE-->
+  <binding id="range-gday"
+           extends="#range-numeric-spin">
+
+    <implementation>
+      <field name="_daySpinLabel">&xforms.date.day.label.field;</field>
+
+      <method name="updateValue">
+        <body>
+        <![CDATA[
+          var value = this.spinValue.value.toString();
+          value = this.formatValue(value, 2);
+
+          this.setAttribute("value", value);
+        ]]>
+        </body>
+      </method>
+
+      <!-- private -->
+      <constructor>
+        this.spinLabel.value = this._daySpinLabel;
+      </constructor>
+    </implementation>
+  </binding>
+
+  <!-- GMONTH RANGE-->
+  <binding id="range-gmonth"
+           extends="#range-numeric-spin">
+
+    <implementation>
+      <field name="_monthSpinLabel">&xforms.date.month.label.field;</field>
+
+      <method name="updateValue">
+        <body>
+        <![CDATA[
+          var value = this.spinValue.value.toString();
+          value = this.formatValue(value, 2);
+
+          this.setAttribute("value", value);
+        ]]>
+        </body>
+      </method>
+
+      <!-- private -->
+      <constructor>
+        this.spinLabel.value = this._monthSpinLabel;
+      </constructor>
+    </implementation>
+  </binding>
+
+  <!-- GYEAR RANGE-->
+  <binding id="range-gyear"
+           extends="#range-numeric-spin">
+
+    <implementation>
+      <field name="_yearSpinLabel">&xforms.date.year.label.field;</field>
+
+      <method name="updateValue">
+        <body>
+        <![CDATA[
+          var value = this.spinValue.value.toString();
+          value = this.formatValue(value, 4);
+
+          this.setAttribute("value", value);
+        ]]>
+        </body>
+      </method>
+
+      <!-- private -->
+      <constructor>
+        this.spinLabel.value = this._yearSpinLabel;
+        this.spinValue.size = 3;
+      </constructor>
+    </implementation>
+  </binding>
+
+  <!-- GMONTHDAY RANGE-->
+  <binding id="range-gmonthday"
+           extends="chrome://xforms/content/widgets.xml#gmonthday">
+
+    <resources>
+      <stylesheet src="chrome://xforms/skin/widgets-xul.css"/>
+    </resources>
+
+    <content>
+      <xul:label value="" anonid="minLabel"/>
+      <xul:box class="range-box">
+        <xul:label control="monthSpin" value="&xforms.date.month.label;"/>
+        <xul:textbox type="number" size="1" anonid="monthSpin"
+                     xbl:inherits="tabindex=mozType:tabindex"/>
+      </xul:box>
+      <xul:box class="range-box">
+        <xul:label control="daySpin" value="&xforms.date.day.label;"/>
+        <xul:textbox type="number" size="1" anonid="daySpin"
+                     xbl:inherits="tabindex=mozType:tabindex"/>
+      </xul:box>
+      <xul:label value="" anonid="maxLabel"/>
+    </content>
+
+    <implementation>
+      <method name="updateLabels">
+        <body>
+        <![CDATA[
+          this.minLabel.value = this.start + this._startSeparator;
+          this.maxLabel.value = this._endSeparator + this.end;
+        ]]>
+        </body>
+      </method>
+
+      <method name="updateValue">
+        <body>
+        <![CDATA[
+          // Month
+          var month = this.monthSpin.value.toString();
+          month = this.formatValue(month, 2);
+          // Day
+          var day = this.daySpin.value.toString();
+          day = this.formatValue(day, 2);
+
+          var value = month + "-" + day;
+          this.setAttribute("value", value);
+        ]]>
+        </body>
+      </method>
+
+      <method name="updateFields">
+        <body>
+        <![CDATA[
+          var value = this.value;
+
+          this.monthSpin.value = this.getMonth(value);
+          this.daySpin.value = this.getDay(value);
+        ]]>
+        </body>
+      </method>
+
+      <method name="setSpinbuttonMinMax">
+        <body>
+        <![CDATA[
+          // Month
+          this.monthSpin.min = this.getMonthMin();
+          this.monthSpin.max = this.getMonthMax();
+          // Day
+          this.daySpin.min = this.getDayMin();
+          this.daySpin.max = this.getDayMax();
+        ]]>
+        </body>
+      </method>
+
+      <method name="isInRange">
+        <parameter name="aValue"/>
+        <body>
+        <![CDATA[
+          // Use JS Date objects to determine if the current gMonthDay
+          // falls between the start and end gMonthDay.
+          var startDate = this.getDate(this.start);
+          var endDate = this.getDate(this.end);
+          var currentDate = this.getDate(aValue);
+          return startDate <= currentDate && currentDate <= endDate;
+        ]]>
+        </body>
+      </method>
+
+      <!-- Private -->
+      <property name="minLabel" readonly="true">
+        <getter>
+          if (!this._minLabel) {
+            this._minLabel = this.ownerDocument.
+              getAnonymousElementByAttribute(this, "anonid", "minLabel");
+          }
+          return this._minLabel;
+        </getter>
+      </property>
+      <field name="_minLabel">null</field>
+
+      <property name="monthSpin" readonly="true">
+        <getter>
+          if (!this._monthSpin) {
+            this._monthSpin = this.ownerDocument.
+              getAnonymousElementByAttribute(this, "anonid", "monthSpin");
+          }
+          return this._monthSpin;
+        </getter>
+      </property>
+      <field name="_monthSpin">null</field>
+
+      <property name="daySpin" readonly="true">
+        <getter>
+          if (!this._daySpin) {
+            this._daySpin = this.ownerDocument.
+              getAnonymousElementByAttribute(this, "anonid", "daySpin");
+          }
+          return this._daySpin;
+        </getter>
+      </property>
+      <field name="_daySpin">null</field>
+
+      <property name="maxLabel" readonly="true">
+        <getter>
+          if (!this._maxLabel) {
+            this._maxLabel = this.ownerDocument.
+              getAnonymousElementByAttribute(this, "anonid", "maxLabel");
+          }
+          return this._maxLabel;
+        </getter>
+      </property>
+      <field name="_maxLabel">null</field>
+    </implementation>
+  </binding>
+
+
+  <!-- GYEARMONTH RANGE-->
+  <binding id="range-gyearmonth"
+           extends="chrome://xforms/content/widgets.xml#gyearmonth">
+
+    <resources>
+      <stylesheet src="chrome://xforms/skin/widgets-xul.css"/>
+    </resources>
+
+    <content>
+      <xul:label value="" anonid="minLabel"/>
+      <xul:box class="range-box">
+        <xul:label control="yearSpin" value="&xforms.date.year.label;"/>
+        <xul:textbox type="number" size="3" anonid="yearSpin"
+                     xbl:inherits="tabindex=mozType:tabindex"/>
+      </xul:box>
+      <xul:box class="range-box">
+        <xul:label control="monthSpin" value="&xforms.date.month.label;"/>
+        <xul:textbox type="number" size="1" anonid="monthSpin"
+                     xbl:inherits="tabindex=mozType:tabindex"/>
+      </xul:box>
+      <xul:label value="" anonid="maxLabel"/>
+    </content>
+
+    <implementation>
+      <method name="updateLabels">
+        <body>
+        <![CDATA[
+          this.minLabel.value = this.start + this._startSeparator;
+          this.maxLabel.value = this._endSeparator + this.end;
+        ]]>
+        </body>
+      </method>
+
+      <method name="updateValue">
+        <body>
+        <![CDATA[
+          // Year
+          var year = this.yearSpin.value.toString();
+          year = this.formatValue(year, 4);
+          // Month
+          var month = this.monthSpin.value.toString();
+          month = this.formatValue(month, 2);
+
+          var value = year + "-" + month;
+          this.setAttribute("value", value);
+        ]]>
+        </body>
+      </method>
+
+      <method name="updateFields">
+        <body>
+        <![CDATA[
+          var value = this.value;
+
+          this.yearSpin.value = this.getYear(value);
+          this.monthSpin.value = this.getMonth(value);
+        ]]>
+        </body>
+      </method>
+
+      <method name="setSpinbuttonMinMax">
+        <body>
+        <![CDATA[
+          // Year
+          this.yearSpin.min = this.getYearMin();
+          this.yearSpin.max = this.getYearMax();
+          // Month
+          this.monthSpin.min = this.getMonthMin();
+          this.monthSpin.max = this.getMonthMax();
+        ]]>
+        </body>
+      </method>
+
+      <method name="isInRange">
+        <parameter name="aValue"/>
+        <body>
+        <![CDATA[
+          // Use JS Date objects to determine if the current gYearMonth
+          // falls between the start and end gYearMonth.
+          var startDate = this.getDate(this.start);
+          var endDate = this.getDate(this.end);
+          var currentDate = this.getDate(aValue);
+          return startDate <= currentDate && currentDate <= endDate;
+        ]]>
+        </body>
+      </method>
+
+      <!-- Private -->
+      <property name="minLabel" readonly="true">
+        <getter>
+          if (!this._minLabel) {
+            this._minLabel = this.ownerDocument.
+              getAnonymousElementByAttribute(this, "anonid", "minLabel");
+          }
+          return this._minLabel;
+        </getter>
+      </property>
+      <field name="_minLabel">null</field>
+
+      <property name="yearSpin" readonly="true">
+        <getter>
+          if (!this._yearSpin) {
+            this._yearSpin = this.ownerDocument.
+              getAnonymousElementByAttribute(this, "anonid", "yearSpin");
+          }
+          return this._yearSpin;
+        </getter>
+      </property>
+      <field name="_yearSpin">null</field>
+
+      <property name="monthSpin" readonly="true">
+        <getter>
+          if (!this._monthSpin) {
+            this._monthSpin = this.ownerDocument.
+              getAnonymousElementByAttribute(this, "anonid", "monthSpin");
+          }
+          return this._monthSpin;
+        </getter>
+      </property>
+      <field name="_monthSpin">null</field>
+
+      <property name="maxLabel" readonly="true">
+        <getter>
+          if (!this._maxLabel) {
+            this._maxLabel = this.ownerDocument.
+              getAnonymousElementByAttribute(this, "anonid", "maxLabel");
+          }
+          return this._maxLabel;
+        </getter>
+      </property>
+      <field name="_maxLabel">null</field>
+    </implementation>
+  </binding>
+
 </bindings>
 

@@ -524,10 +524,10 @@
   <binding id="range">
     <implementation>
       <!-- Start label separator -->
-      <field name="_startSeparator">&xforms.range.start.separator;</field>
+      <field name="_startSeparator">&xforms.range.start.separator.field;</field>
 
       <!-- End label separator -->
-      <field name="_endSeparator">&xforms.range.end.separator;</field>
+      <field name="_endSeparator">&xforms.range.end.separator.field;</field>
 
       <!-- interface -->
       <!-- Get/set lower bound of values. -->
@@ -1183,6 +1183,247 @@
           date.setMinutes(this.getMinutes(aTime));
           date.setSeconds(this.getSeconds(aTime));
           return date;
+        </body>
+      </method>
+    </implementation>
+  </binding>
+
+  <!-- GREGORIAN
+       This widget is the base interface for ranges that support gregorian
+       calendar types: gDay, gMonth, gMonthDay, gYear, and gYearMonth.
+  -->
+  <binding id="gregorian" extends="#range">
+    <implementation>
+      <method name="getDaysCount">
+        <parameter name="aMonth"/>
+        <body>
+        <![CDATA[
+          switch (aMonth) {
+            case 1: case 3: case 5: case 7: case 8: case 10: case 12:
+              return 31;
+
+            case 2:
+              return 28;
+
+            case 4: case 6: case 9: case 11:
+              return 30;
+          }
+          return 0;
+        ]]>
+        </body>
+      </method>
+    </implementation>
+  </binding>
+
+  <!-- GMONTHDAY -->
+  <binding id="gmonthday" extends="#gregorian">
+    <implementation>
+    <!-- interface -->
+      <!-- gMonthDay format: mm-dd -->
+
+      <!-- Extract the month from a gMonthDay -->
+      <method name="getMonth">
+        <parameter name="aMonthDay"/>
+        <body>
+          return parseFloat(aMonthDay.substr(0,2));
+        </body>
+      </method>
+
+      <!-- Extract the day from a gMonthDay -->
+      <method name="getDay">
+        <parameter name="aMonthDay"/>
+        <body>
+          return parseFloat(aMonthDay.substr(3,2));
+        </body>
+      </method>
+
+      <!-- Get the minimum Month value. -->
+      <method name="getMonthMin">
+        <body>
+        <![CDATA[
+          // The min value for the month spinbutton will always be
+          // the month of the start gMonthDay.
+          return this.getMonth(this.start);
+        ]]>
+        </body>
+      </method>
+
+      <!-- Get the maximum Month value. -->
+      <method name="getMonthMax">
+        <body>
+        <![CDATA[
+          // The max value for the month spinbutton will always be
+          // the month of the end gMonthDay.
+          return this.getMonth(this.end);
+        ]]>
+        </body>
+      </method>
+
+      <!-- Get the minimum Day value. -->
+      <method name="getDayMin">
+        <body>
+        <![CDATA[
+          var startMonth = this.getMonth(this.start);
+          var endMonth = this.getMonth(this.end);
+          var currentMonth = this.getMonth(this.value);
+          var minDay = 0;
+
+          if (startMonth == endMonth || currentMonth == startMonth) {
+            // Min day is the day of the start gMonthDay.
+            minDay = this.getDay(this.start);
+          } else {
+            // Current month falls between the start and end month.
+            // Min day is the first day of the month.
+            minDay = 1;
+          }
+          return minDay;
+        ]]>
+        </body>
+      </method>
+
+      <!-- Get the maximum Day value. -->
+      <method name="getDayMax">
+        <body>
+        <![CDATA[
+          var startMonth = this.getMonth(this.start);
+          var endMonth = this.getMonth(this.end);
+          var currentMonth = this.getMonth(this.value);
+          var maxDay = 0;
+
+          if (startMonth == endMonth || currentMonth == endMonth) {
+            // Max day is the day of the end gMonthDay.
+            maxDay = this.getDay(this.end);
+          } else {
+            // Current month falls between the start and end month.
+            // Max day is the number of days in the month.
+            maxDay = this.getDaysCount(currentMonth);
+          }
+          return maxDay;
+        ]]>
+        </body>
+      </method>
+
+      <!-- Get a Javacript Date object initialized to the value of aMonthDay.
+           JS Date objects can be used to compare gMonthDays.
+      -->
+      <method name="getDate">
+        <parameter name="aMonthDay"/>
+        <body>
+        <![CDATA[
+          var date = new Date();
+          // A gMonthDay type does not have a year. Any year is acceptable.
+          date.setFullYear(2007);
+          date.setMonth(this.getMonth(aMonthDay));
+          date.setDate(this.getDay(aMonthDay));
+          return date;
+        ]]>
+        </body>
+      </method>
+    </implementation>
+  </binding>
+
+  <!-- GYEARMONTH -->
+  <binding id="gyearmonth" extends="#gregorian">
+    <implementation>
+    <!-- interface -->
+      <!-- gYearMonth format: yyyy-mm -->
+
+      <!-- Extract the year from a gYearMonth -->
+      <method name="getYear">
+        <parameter name="aYearMonth"/>
+        <body>
+          return parseFloat(aYearMonth.substr(0,4));
+        </body>
+      </method>
+
+      <!-- Extract the month from a gYearMonth -->
+      <method name="getMonth">
+        <parameter name="aYearMonth"/>
+        <body>
+          return parseFloat(aYearMonth.substr(5,2));
+        </body>
+      </method>
+
+      <!-- Get the minimum Year value. -->
+      <method name="getYearMin">
+        <body>
+        <![CDATA[
+          // The min value for the year spinbutton will always be
+          // the year of the start gYearMonth.
+          return this.getYear(this.start);
+        ]]>
+        </body>
+      </method>
+
+      <!-- Get the maximum Year value. -->
+      <method name="getYearMax">
+        <body>
+        <![CDATA[
+          // The max value for the year spinbutton will always be
+          // the year of the end gYearMonth.
+          return this.getYear(this.end);
+        ]]>
+        </body>
+      </method>
+
+      <!-- Get the minimum Month value. -->
+      <method name="getMonthMin">
+        <body>
+        <![CDATA[
+          var startYear = this.getYear(this.start);
+          var endYear = this.getYear(this.end);
+          var currentYear = this.getYear(this.value);
+          var minMonth = 0;
+
+          if (startYear == endYear || currentYear == endYear) {
+            // Min month is the month of the start gYearMonth.
+            minMonth = this.getMonth(this.start);
+          } else {
+            // Current year falls between the start and end year.
+            // Min month is the first month of the year.
+            minMonth = 1;
+          }
+          return minMonth;
+        ]]>
+        </body>
+      </method>
+
+      <!-- Get the maximum Month value. -->
+      <method name="getMonthMax">
+        <body>
+        <![CDATA[
+          var startYear = this.getYear(this.start);
+          var endYear = this.getYear(this.end);
+          var currentYear = this.getYear(this.value);
+          var maxMonth = 0;
+
+          if (startYear == endYear || currentYear == endYear) {
+            // Max month is the month of the end gYearMonth.
+            maxMonth = this.getMonth(this.end);
+          } else {
+            // Current year falls between the start and end year.
+            // Max month is the last month of the year.
+            maxMonth = 12;
+          }
+          return maxMonth;
+        ]]>
+        </body>
+      </method>
+
+      <!-- Get a Javacript Date object initialized to the value of aYearMonth.
+           JS Date objects can be used to compare gYearMonths.
+      -->
+      <method name="getDate">
+        <parameter name="aYearMonth"/>
+        <body>
+        <![CDATA[
+          var date = new Date();
+          date.setFullYear(this.getYear(aYearMonth));
+          date.setMonth(this.getMonth(aYearMonth));
+          // A gYearMonth type does not have a day. Any day is acceptable.
+          date.setDate(1);
+          return date;
+        ]]>
         </body>
       </method>
     </implementation>
