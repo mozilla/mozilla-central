@@ -304,13 +304,7 @@ var stateListener = {
       {
         // Notify the SendListener that Send has been aborted and Stopped
         if (gMsgCompose)
-        {
-          var externalListener = gMsgCompose.getExternalSendListener();
-          if (externalListener)
-          {
-              externalListener.onSendNotPerformed(null, Components.results.NS_ERROR_ABORT);
-          }
-        }
+          gMsgCompose.onSendNotPerformed(null, Components.results.NS_ERROR_ABORT);
         MsgComposeCloseWindow(true);
       }
     }
@@ -1074,13 +1068,7 @@ function DoCommandClose()
 
     // Notify the SendListener that Send has been aborted and Stopped
     if (gMsgCompose)
-    {
-      var externalListener = gMsgCompose.getExternalSendListener();
-      if (externalListener)
-      {
-        externalListener.onSendNotPerformed(null, Components.results.NS_ERROR_ABORT);
-      }
-    }
+      gMsgCompose.onSendNotPerformed(null, Components.results.NS_ERROR_ABORT);
 
     MsgComposeCloseWindow(true);
 
