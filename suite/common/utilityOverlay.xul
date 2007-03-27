@@ -328,11 +328,11 @@
                 accesskey="&aboutCommPluginsCmd.accesskey;"
                 label="&aboutCommPluginsCmd.label;"
                 id="pluginInfo"
-                oncommand="openTopWin('about:plugins')"/>
+                oncommand="goAbout('plugins');"/>
       <menuitem accesskey="&aboutCmd.accesskey;"
                 label="&aboutCmd.label;"
                 id="aboutName"
-                oncommand="goAboutDialog();"/>
+                oncommand="goAbout();"/>
     </menupopup>
   </menu>
         

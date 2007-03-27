@@ -354,21 +354,33 @@ function openTopWin( url )
     return window.openDialog( getBrowserURL(), "_blank", "chrome,all,dialog=no", url );
 }
 
-function goAboutDialog()
+function goAbout(aProtocol)
 {
-  var defaultAboutState = false;
-  try {
-    var pref = Components.classes["@mozilla.org/preferences-service;1"]
-                         .getService(Components.interfaces.nsIPrefBranch);
-    defaultAboutState = pref.getBoolPref("browser.show_about_as_stupid_modal_window");
+  const kExistingWindow = Components.interfaces.nsIBrowserDOMWindow.OPEN_CURRENTWINDOW;
+  const kNewWindow = Components.interfaces.nsIBrowserDOMWindow.OPEN_NEWWINDOW;
+
+  var browserWin;
+  var url = "about:" + (aProtocol || "");
+  var pref = Components.classes["@mozilla.org/preferences-service;1"]
+                       .getService(Components.interfaces.nsIPrefBranch);
+  var defaultAboutState = pref.getIntPref("browser.link.open_external");
+
+  if (defaultAboutState != kNewWindow)
+    browserWin = getTopWin();
+
+  if (!browserWin)
+    window.openDialog(getBrowserURL(), "_blank", "chrome,all,dialog=no", url);
+  else {
+    if (defaultAboutState == kExistingWindow)
+      browserWin.loadURI(url);
+    else {
+      // new tab
+      var browser = browserWin.getBrowser();
+      var newTab = browser.addTab(url);
+      browser.selectedTab = newTab;
+    }
+    browserWin.content.focus();
   }
-  catch(e) {
-    defaultAboutState = false;
-  }
-  if( defaultAboutState )
-    window.openDialog("chrome://global/content/about.xul", "About", "modal,chrome,resizable=yes,height=450,width=550");
-  else
-    window.openDialog( getBrowserURL(), "_blank", "chrome,all,dialog=no", 'about:' );
 }
 
 function goReleaseNotes()
