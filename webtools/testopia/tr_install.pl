@@ -127,12 +127,12 @@ sub doPatch {
 
       # This piece of code needs to be modified when a new patch file is added to the distribution:
 
-      if ($Bugzilla::Config::VERSION =~ /^2\.20.*/) {
-        # version 2.20.* detected
-        $fPatch = "patch-2.20";
-      } elsif ($Bugzilla::Config::VERSION =~ /^2\.22\.1$/) {
+      if ($Bugzilla::Config::VERSION =~ /^2\.22\.1$/) {
         # version 2.20.* detected
         $fPatch = "patch-2.22.1";
+      } elsif ($Bugzilla::Config::VERSION =~ /^2\.22\.2$/) {
+        # version 2.20.* detected
+        $fPatch = "patch-2.22.2";
       } elsif ($Bugzilla::Config::VERSION =~ /^2\.22.*/) {
         # version 2.20.* detected
         $fPatch = "patch-2.22";
@@ -166,7 +166,7 @@ sub doPatch {
         "Cannot find the patch command. Is it installed and in your PATH?\n";
     `$patchPath -v` || DieWithStyle($no_patch_msg);
 
-    my $output = `$patchPath -s -l --dry-run -bp 2 -i $fPatch 2>&1`;
+    my $output = `$patchPath -s -l --dry-run -b -p0 -i $fPatch 2>&1`;
 
     # If the output is empty, everything was perfect (the -s argument)
     chomp $output;

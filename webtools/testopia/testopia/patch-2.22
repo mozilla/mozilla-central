@@ -1,52 +1,10 @@
-Index: /bmo-2.22/post_bug.cgi
+Index: checksetup.pl
 ===================================================================
---- /bmo-2.22/post_bug.cgi	2006-01-08 12:56:03.000000000 -0700
-+++ /bmo-2.22-testopia/post_bug.cgi	2006-09-29 13:55:02.000000000 -0600
-@@ -32,6 +32,8 @@
- use Bugzilla::Util;
- use Bugzilla::Bug;
- use Bugzilla::User;
-+use Bugzilla::Testopia::TestCaseRun;
-+use Bugzilla::Testopia::Util;
- use Bugzilla::Field;
- 
- # Shut up misguided -w warnings about "used only once". For some reason,
-@@ -494,6 +496,18 @@
- }
- $vars->{'bug_list'} = \@bug_list;
- 
-+if ($cgi->param('caserun_id')) {
-+    my $tcid = $cgi->param('caserun_id');
-+    detaint_natural($tcid);
-+    validate_test_id($tcid, 'case_run');
-+    my $caserun = Bugzilla::Testopia::TestCaseRun->new($tcid);
-+
-+    $caserun->attach_bug($id);
-+
-+    $vars->{'caserun'} = $caserun;
-+}
-+
-+
- print $cgi->header();
- $template->process("bug/create/created.html.tmpl", $vars)
-   || ThrowTemplateError($template->error());
-Index: /bmo-2.22/enter_bug.cgi
-===================================================================
---- /bmo-2.22/enter_bug.cgi	2006-01-05 07:54:52.000000000 -0700
-+++ /bmo-2.22-testopia/enter_bug.cgi	2006-09-29 13:55:02.000000000 -0600
-@@ -590,6 +590,8 @@
- 
- $vars->{'default'} = \%default;
- 
-+$vars->{'caserun_id'} = $cgi->param('caserun_id');
-+
- my $format = $template->get_format("bug/create/create",
-                                    scalar $cgi->param('format'), 
-                                    scalar $cgi->param('ctype'));
-Index: /bmo-2.22/checksetup.pl
-===================================================================
---- /bmo-2.22/checksetup.pl	2006-01-12 00:03:46.000000000 -0700
-+++ /bmo-2.22-testopia/checksetup.pl	2006-10-04 16:06:13.000000000 -0600
+RCS file: /cvsroot/mozilla/webtools/bugzilla/checksetup.pl,v
+retrieving revision 1.469
+diff -u -r1.469 checksetup.pl
+--- checksetup.pl	12 Jan 2006 07:03:46 -0000	1.469
++++ checksetup.pl	27 Mar 2007 20:34:34 -0000
 @@ -313,7 +313,7 @@
      },
      { 
@@ -72,14 +30,33 @@ Index: /bmo-2.22/checksetup.pl
  my @executable_files = ('whineatnews.pl', 'collectstats.pl',
     'checksetup.pl', 'importxml.pl', 'runtests.pl', 'testserver.pl',
 -   'whine.pl');
-+   'whine.pl', 'build_bugmail.pl', 'tr_install.pl', 'tr_importxml.pl');
++   'whine.pl', 'tr_install.pl', 'tr_importxml.pl');
  
  # tell me if a file is executable.  All CGI files and those in @executable_files
  # are executable
-Index: /bmo-2.22/Bugzilla.pm
+Index: enter_bug.cgi
 ===================================================================
---- /bmo-2.22/Bugzilla.pm	2006-02-07 15:46:28.000000000 -0700
-+++ /bmo-2.22-testopia/Bugzilla.pm	2006-10-04 16:24:33.000000000 -0600
+RCS file: /cvsroot/mozilla/webtools/bugzilla/enter_bug.cgi,v
+retrieving revision 1.126
+diff -u -r1.126 enter_bug.cgi
+--- enter_bug.cgi	5 Jan 2006 14:54:52 -0000	1.126
++++ enter_bug.cgi	27 Mar 2007 20:34:34 -0000
+@@ -590,6 +590,8 @@
+ 
+ $vars->{'default'} = \%default;
+ 
++$vars->{'caserun_id'} = $cgi->param('caserun_id');
++
+ my $format = $template->get_format("bug/create/create",
+                                    scalar $cgi->param('format'), 
+                                    scalar $cgi->param('ctype'));
+Index: Bugzilla.pm
+===================================================================
+RCS file: /cvsroot/mozilla/webtools/bugzilla/Bugzilla.pm,v
+retrieving revision 1.29
+diff -u -r1.29 Bugzilla.pm
+--- Bugzilla.pm	7 Feb 2006 22:46:28 -0000	1.29
++++ Bugzilla.pm	27 Mar 2007 20:34:34 -0000
 @@ -46,6 +46,7 @@
  use constant SHUTDOWNHTML_EXEMPT => [
      'editparams.cgi',
@@ -88,13 +65,71 @@ Index: /bmo-2.22/Bugzilla.pm
  ];
  
  # Non-cgi scripts that should silently exit.
-Index: /bmo-2.22/Bugzilla/User.pm
+Index: post_bug.cgi
+===================================================================
+RCS file: /cvsroot/mozilla/webtools/bugzilla/post_bug.cgi,v
+retrieving revision 1.135
+diff -u -r1.135 post_bug.cgi
+--- post_bug.cgi	8 Jan 2006 19:56:03 -0000	1.135
++++ post_bug.cgi	27 Mar 2007 20:34:34 -0000
+@@ -33,6 +33,8 @@
+ use Bugzilla::Bug;
+ use Bugzilla::User;
+ use Bugzilla::Field;
++use Bugzilla::Testopia::TestCaseRun;
++use Bugzilla::Testopia::Util;
+ 
+ # Shut up misguided -w warnings about "used only once". For some reason,
+ # "use vars" chokes on me when I try it here.
+@@ -494,6 +496,17 @@
+ }
+ $vars->{'bug_list'} = \@bug_list;
+ 
++if ($cgi->param('caserun_id')) {
++    my $tcid = $cgi->param('caserun_id');
++    detaint_natural($tcid);
++    validate_test_id($tcid, 'case_run');
++    my $caserun = Bugzilla::Testopia::TestCaseRun->new($tcid);
++    
++    $caserun->attach_bug($id);
++
++    $vars->{'caserun'} = $caserun;
++}
++
+ print $cgi->header();
+ $template->process("bug/create/created.html.tmpl", $vars)
+   || ThrowTemplateError($template->error());
+Index: editusers.cgi
+===================================================================
+RCS file: /cvsroot/mozilla/webtools/bugzilla/editusers.cgi,v
+retrieving revision 1.113
+diff -u -r1.113 editusers.cgi
+--- editusers.cgi	3 Jan 2006 08:40:45 -0000	1.113
++++ editusers.cgi	27 Mar 2007 20:34:34 -0000
+@@ -185,6 +185,8 @@
+     # Lock tables during the check+creation session.
+     $dbh->bz_lock_tables('profiles WRITE',
+                          'profiles_activity WRITE',
++                         'test_plan_permissions WRITE',
++                         'test_plan_permissions_regexp READ',
+                          'groups READ',
+                          'user_group_map WRITE',
+                          'email_setting WRITE',
+@@ -232,6 +234,7 @@
+     # Lock tables during the check+update session.
+     $dbh->bz_lock_tables('profiles WRITE',
+                          'profiles_activity WRITE',
++                         'test_plan_permissions WRITE',
+                          'fielddefs READ',
+                          'namedqueries READ',
+                          'whine_queries READ',
+Index: Bugzilla/User.pm
 ===================================================================
 RCS file: /cvsroot/mozilla/webtools/bugzilla/Bugzilla/User.pm,v
 retrieving revision 1.101.2.3
 diff -u -r1.101.2.3 User.pm
---- /bmo-2.22/Bugzilla/User.pm	14 Mar 2006 07:45:54 -0000	1.101.2.3
-+++ /bmo-2.22-testopia/Bugzilla/User.pm	9 Jan 2007 00:35:14 -0000
+--- Bugzilla/User.pm	14 Mar 2006 07:45:54 -0000	1.101.2.3
++++ Bugzilla/User.pm	27 Mar 2007 20:34:34 -0000
 @@ -236,6 +236,16 @@
      return $self->{queries};
  }
@@ -111,23 +146,153 @@ diff -u -r1.101.2.3 User.pm
 +
  sub settings {
      my ($self) = @_;
-
-Index: /bmo-2.22/Bugzilla/DB/Schema.pm
+ 
+@@ -467,7 +477,7 @@
+     my $dbh = Bugzilla->dbh;
+     my @params = ();
+ 
+-    my $query = "SELECT id " .
++    my $query = "(SELECT id, products.name AS pname " .
+                 "FROM products " .
+                 "LEFT JOIN group_control_map " .
+                 "ON group_control_map.product_id = products.id ";
+@@ -482,13 +492,22 @@
+               "WHERE group_id IS NULL ";
+ 
+     if (Param('useclassification') && $classification_id) {
+-        $query .= "AND classification_id = ? ";
++        $query .= "AND classification_id = ?) ";
+         detaint_natural($classification_id);
+         push(@params, $classification_id);
+     }
+-
+-    $query .= "ORDER BY name";
+-
++    else {
++        $query .= ") ";
++    }
++    $query .= "UNION (SELECT id, products.name AS pname FROM products ".
++              "INNER JOIN test_plans ON products.id = test_plans.product_id ".
++              "INNER JOIN test_plan_permissions ON test_plan_permissions.plan_id = test_plans.plan_id ".
++              "WHERE test_plan_permissions.userid = ?)";
++    
++    $query .= "ORDER BY pname ";    
++    
++    push @params, $self->id;
++    
+     my $prod_ids = $dbh->selectcol_arrayref($query, undef, @params);
+     my @products;
+     foreach my $prod_id (@$prod_ids) {
+@@ -674,7 +693,34 @@
+             $group_delete->execute($id, $group, GRANT_REGEXP) if $present;
+         }
+     }
+-
++    
++    # Now do the same for Testopia test plans.
++    $sth = $dbh->prepare("SELECT test_plan_permissions_regexp.plan_id, 
++                                 user_regexp, test_plan_permissions_regexp.permissions, 
++                                 test_plan_permissions.plan_id
++                          FROM test_plan_permissions_regexp
++                     LEFT JOIN test_plan_permissions 
++                            ON test_plan_permissions_regexp.plan_id = test_plan_permissions.plan_id
++                           AND test_plan_permissions.userid = ?
++                           AND test_plan_permissions.grant_type = ?");
++    
++    $sth->execute($id, GRANT_REGEXP);
++    my $plan_insert = $dbh->prepare(q{INSERT INTO test_plan_permissions
++                                       (userid, plan_id, permissions, grant_type)
++                                       VALUES (?, ?, ?, ?)});
++    my $plan_delete = $dbh->prepare(q{DELETE FROM test_plan_permissions
++                                       WHERE userid = ?
++                                         AND plan_id = ?
++                                         AND grant_type = ?});
++    
++    while (my ($planid, $regexp, $perms, $present) = $sth->fetchrow_array()) {
++        if (($regexp ne '') && ($self->{login} =~ m/$regexp/i)) {
++            $plan_insert->execute($id, $planid, $perms, GRANT_REGEXP) unless $present;
++        } else {
++            $plan_delete->execute($id, $planid, GRANT_REGEXP) if $present;
++        }
++    }
++    
+     $dbh->do(q{UPDATE profiles
+                   SET refreshed_when = ?
+                 WHERE userid=?},
+Index: Bugzilla/Template.pm
 ===================================================================
---- /bmo-2.22/Bugzilla/DB/Schema.pm	2006-01-06 07:38:42.000000000 -0700
-+++ /bmo-2.22-testopia/Bugzilla/DB/Schema.pm	2006-10-04 16:28:11.000000000 -0600
-@@ -1039,6 +1039,492 @@
-             version     => {TYPE => 'decimal(3,2)', NOTNULL => 1},
+RCS file: /cvsroot/mozilla/webtools/bugzilla/Bugzilla/Template.pm,v
+retrieving revision 1.41
+diff -u -r1.41 Template.pm
+--- Bugzilla/Template.pm	22 Jan 2006 21:37:37 -0000	1.41
++++ Bugzilla/Template.pm	27 Mar 2007 20:34:34 -0000
+@@ -499,6 +499,14 @@
+                 return $var;
+             },
+             
++            # Prevent XSS attacks in WYSIWYG fields. 
++            xss => sub{
++                my ($var) = @_;
++                $var =~ s/(&lt;|<)script/_script/ig;
++                $var =~ s/(&lt;|<)\/script(>|&gt;)/script_/gi;
++                return $var;
++            },
++            
+             # iCalendar contentline filter
+             ics => [ sub {
+                          my ($context, @args) = @_;
+Index: Bugzilla/DB/Schema/Mysql.pm
+===================================================================
+RCS file: /cvsroot/mozilla/webtools/bugzilla/Bugzilla/DB/Schema/Mysql.pm,v
+retrieving revision 1.12
+diff -u -r1.12 Mysql.pm
+--- Bugzilla/DB/Schema/Mysql.pm	18 Dec 2005 18:53:00 -0000	1.12
++++ Bugzilla/DB/Schema/Mysql.pm	27 Mar 2007 20:34:34 -0000
+@@ -103,9 +103,10 @@
+         INT3 =>         'mediumint',
+         INT4 =>         'integer',
+ 
+-        SMALLSERIAL =>  'smallint auto_increment',
+-        MEDIUMSERIAL => 'mediumint auto_increment',
+-        INTSERIAL =>    'integer auto_increment',
++        TINYSERIAL =>    'tinyint unsigned auto_increment',
++        SMALLSERIAL =>   'smallint unsigned auto_increment',
++        MEDIUMSERIAL =>  'mediumint unsigned auto_increment',
++        INTSERIAL =>     'integer unsigned auto_increment',
+ 
+         TINYTEXT =>     'tinytext',
+         MEDIUMTEXT =>   'mediumtext',
+Index: Bugzilla/DB/Schema/Pg.pm
+===================================================================
+RCS file: /cvsroot/mozilla/webtools/bugzilla/Bugzilla/DB/Schema/Pg.pm,v
+retrieving revision 1.9
+diff -u -r1.9 Pg.pm
+--- Bugzilla/DB/Schema/Pg.pm	15 Jun 2005 03:54:59 -0000	1.9
++++ Bugzilla/DB/Schema/Pg.pm	27 Mar 2007 20:34:34 -0000
+@@ -69,6 +69,7 @@
+         INT3 =>         'integer',
+         INT4 =>         'integer',
+ 
++        TINYSERIAL =>   'serial unique',
+         SMALLSERIAL =>  'serial unique',
+         MEDIUMSERIAL => 'serial unique',
+         INTSERIAL =>    'serial unique',
+Index: Bugzilla/DB/Schema.pm
+===================================================================
+RCS file: /cvsroot/mozilla/webtools/bugzilla/Bugzilla/DB/Schema.pm,v
+retrieving revision 1.45
+diff -u -r1.45 Schema.pm
+--- Bugzilla/DB/Schema.pm	6 Jan 2006 14:38:42 -0000	1.45
++++ Bugzilla/DB/Schema.pm	27 Mar 2007 20:34:34 -0000
+@@ -1040,6 +1040,557 @@
          ],
      },
-+    
+ 
 +    # TESTOPIA TABLES
 +    # ---------------
 +    test_attachments => {
 +        FIELDS => [
 +            attachment_id => {TYPE => 'INTSERIAL', PRIMARYKEY => 1, NOTNULL => 1},
-+            plan_id       => {TYPE => 'INT4', UNSIGNED => 1},
-+            case_id       => {TYPE => 'INT4', UNSIGNED => 1},
 +            submitter_id  => {TYPE => 'INT3', NOTNULL => 1},
 +            description   => {TYPE => 'MEDIUMTEXT'},
 +            filename      => {TYPE => 'MEDIUMTEXT'},
@@ -135,8 +300,31 @@ Index: /bmo-2.22/Bugzilla/DB/Schema.pm
 +            mime_type     => {TYPE => 'varchar(100)', NOTNULL => 1},
 +        ],
 +        INDEXES => [
-+            attachment_plan_idx => ['plan_id'],
-+            attachment_case_idx => ['case_id'],
++            test_attachments_submitter_idx => ['submitter_id'],
++        ],
++    },
++    
++    test_case_attachments => {
++        FIELDS => [
++            attachment_id => {TYPE => 'INT4', NOTNULL => 1},
++            case_id       => {TYPE => 'INT4', NOTNULL => 1, UNSIGNED => 1},
++            case_run_id   => {TYPE => 'INT4', UNSIGNED => 1},
++        ],
++        INDEXES => [
++            test_case_attachments_primary_idx => ['attachment_id'],
++            attachment_case_id_idx            => ['case_id'],
++            attachment_caserun_id_idx         => ['case_run_id'],
++        ],
++    },
++    
++    test_plan_attachments => {
++        FIELDS => [
++            attachment_id => {TYPE => 'INT4', NOTNULL => 1},
++            plan_id       => {TYPE => 'INT4', NOTNULL => 1, UNSIGNED => 1},
++        ],
++        INDEXES => [
++            test_plan_attachments_primary_idx => ['attachment_id'],
++            attachment_plan_id_idx            => ['plan_id'],
 +        ],
 +    },
 +
@@ -148,12 +336,12 @@ Index: /bmo-2.22/Bugzilla/DB/Schema.pm
 +            description => {TYPE => 'MEDIUMTEXT'},
 +        ],
 +        INDEXES => [
-+            category_name_idx => ['name'],
-+            category_product_id_name_idx => {FIELDS => [qw(product_id name)],
-+                                             TYPE => 'UNIQUE'},
++            category_product_id_name_idx => {FIELDS => [qw(product_id name)], TYPE => 'UNIQUE'},
++            category_product_idx => {FIELDS => [qw(category_id product_id)], TYPE => 'UNIQUE'},
++            category_name_idx_v2 => ['name'],
 +        ],
 +    },
-+   
++
 +    test_cases => {
 +        FIELDS => [
 +            case_id        => {TYPE => 'INTSERIAL', PRIMARYKEY => 1, NOTNULL => 1},
@@ -163,6 +351,7 @@ Index: /bmo-2.22/Bugzilla/DB/Schema.pm
 +            author_id      => {TYPE => 'INT3', NOTNULL => 1},
 +            default_tester_id => {TYPE => 'INT3'},
 +            creation_date  => {TYPE => 'DATETIME', NOTNULL => 1},
++            estimated_time => {TYPE => 'TIME'},
 +            isautomated    => {TYPE => 'BOOLEAN', NOTNULL => 1, DEFAULT => '0'},
 +            sortkey        => {TYPE => 'INT4'},
 +            script         => {TYPE => 'MEDIUMTEXT'},
@@ -176,25 +365,28 @@ Index: /bmo-2.22/Bugzilla/DB/Schema.pm
 +            test_case_author_idx        => ['author_id'],
 +            test_case_creation_date_idx => ['creation_date'],
 +            test_case_sortkey_idx       => ['sortkey'],
-+            test_case_requirement_idx   => ['requirement'],
 +            test_case_shortname_idx     => ['alias'],
-+        ],     
++            test_case_requirement_idx   => ['requirement'],
++            test_case_status_idx        => ['case_status_id'],
++            test_case_tester_idx        => ['default_tester_id'],
++        ],
 +    },
-+   
++
 +    test_case_bugs => {
 +        FIELDS => [
 +            bug_id      => {TYPE => 'INT3', NOTNULL => 1},
 +            case_run_id => {TYPE => 'INT4', UNSIGNED => 1},
-+            case_id     => {TYPE => 'INT4', UNSIGNED => 1},
-+        ],    
-+        INDEXES => [
-+            case_run_id_idx     => [qw(case_run_id bug_id)],
-+            case_run_bug_id_idx => ['bug_id'],
++            case_id     => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},
 +        ],
-+    },        
-+    
++        INDEXES => [
++            case_bugs_bug_id_idx => ['bug_id'],
++            case_bugs_case_id_idx => ['case_id'],
++            case_bugs_case_run_id_idx => ['case_run_id'],
++        ],
++    },
++
 +    test_case_runs => {
-+        FIELDS => [ 
++        FIELDS => [
 +            case_run_id         => {TYPE => 'INTSERIAL', PRIMARYKEY => 1, NOTNULL => 1},
 +            run_id              => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},
 +            case_id             => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},
@@ -203,33 +395,34 @@ Index: /bmo-2.22/Bugzilla/DB/Schema.pm
 +            case_run_status_id  => {TYPE => 'INT1', NOTNULL => 1, UNSIGNED => 1},
 +            case_text_version   => {TYPE => 'INT3', NOTNULL => 1},
 +            build_id            => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},
++            running_date        => {TYPE => 'DATETIME'},
 +            close_date          => {TYPE => 'DATETIME'},
 +            notes               => {TYPE => 'TEXT'},
 +            iscurrent           => {TYPE => 'BOOLEAN', NOTNULL => 1, DEFAULT => '0'},
 +            sortkey             => {TYPE => 'INT4'},
-+            environment_id      => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},                           
++            environment_id      => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},
 +        ],
 +        INDEXES => [
-+            case_run_run_id_idx     => ['run_id'],
 +            case_run_case_id_idx    => ['case_id'],
 +            case_run_assignee_idx   => ['assignee'],
 +            case_run_testedby_idx   => ['testedby'],
 +            case_run_close_date_idx => ['close_date'],
-+            case_run_shortkey_idx   => ['sortkey'],
-+            case_run_build_idx      => [qw(case_run_id build_id)],
-+            case_run_env_idx        => [qw(case_run_id environment_id)],
 +            case_run_build_env_idx  => {FIELDS => [qw(run_id case_id build_id environment_id)],
 +                                        TYPE => 'UNIQUE'},
++            case_run_status_idx     => ['case_run_status_id'],
++            case_run_text_ver_idx   => ['case_text_version'],
++            case_run_build_idx_v2   => ['build_id'],
++            case_run_env_idx_v2     => ['environment_id'],
 +        ],
 +    },
-+    
++
 +    test_case_texts => {
 +        FIELDS => [
-+            case_id           => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL =>1},        
-+            case_text_version => {TYPE => 'INT3', NOTNULL => 1},        
-+            who               => {TYPE => 'INT3', NOTNULL => 1},        
-+            creation_ts       => {TYPE => 'DATETIME', NOTNULL => 1},        
-+            action            => {TYPE => 'MEDIUMTEXT'},        
++            case_id           => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL =>1},
++            case_text_version => {TYPE => 'INT3', NOTNULL => 1},
++            who               => {TYPE => 'INT3', NOTNULL => 1},
++            creation_ts       => {TYPE => 'DATETIME', NOTNULL => 1},
++            action            => {TYPE => 'MEDIUMTEXT'},
 +            effect            => {TYPE => 'MEDIUMTEXT'},
 +            setup             => {TYPE => 'MEDIUMTEXT'},
 +            breakdown         => {TYPE => 'MEDIUMTEXT'},
@@ -237,11 +430,19 @@ Index: /bmo-2.22/Bugzilla/DB/Schema.pm
 +        INDEXES => [
 +            case_versions_idx             => {FIELDS => [qw(case_id case_text_version)],
 +                                              TYPE => 'UNIQUE'},
-+            case_versions_who_idx         => ['who'],                      
++            case_versions_who_idx         => ['who'],
 +            case_versions_creation_ts_idx => ['creation_ts'],
 +        ],
 +    },
-+    
++
++    test_tags => {
++        FIELDS => [
++            tag_id   => {TYPE => 'INTSERIAL', PRIMARYKEY => 1, NOTNULL => 1},
++            tag_name => {TYPE => 'varchar(255)', NOTNULL => 1},
++        ],
++        INDEXES => [ test_tag_name_idx_v2 => [qw(tag_name)] ],
++    },
++
 +    test_case_tags => {
 +        FIELDS => [
 +            tag_id  => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},
@@ -249,22 +450,41 @@ Index: /bmo-2.22/Bugzilla/DB/Schema.pm
 +            userid  => {TYPE => 'INT3', NOTNULL => 1},
 +        ],
 +        INDEXES => [
-+            case_tags_case_id_idx => {FIELDS => [qw(tag_id case_id)], TYPE => 'UNIQUE'},
-+            case_tags_tag_id_idx  => [qw(tag_id case_id)],
-+            case_tags_user_idx    => [qw(tag_id userid)],
++            case_tags_primary_idx     => {FIELDS => [qw(tag_id case_id userid)], TYPE => 'UNIQUE'},
++            case_tags_secondary_idx   => {FIELDS => [qw(tag_id case_id)], TYPE => 'UNIQUE'},
++            case_tags_case_id_idx_v3  => [qw(case_id)],
++            case_tags_userid_idx      => [qw(userid)],
 +        ],
 +    },
-+    
-+    test_tags => {
++
++    test_run_tags => {
 +        FIELDS => [
-+            tag_id   => {TYPE => 'INTSERIAL', PRIMARYKEY => 1, NOTNULL => 1},
-+            tag_name => {TYPE => 'varchar(255)', NOTNULL => 1},
++            tag_id =>  {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},
++            run_id =>  {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},
++            userid  => {TYPE => 'INT3', NOTNULL => 1},
 +        ],
 +        INDEXES => [
-+            test_tag_name_indx    => {FIELDS => ['tag_name'], TYPE => 'UNIQUE'},
++            run_tags_primary_idx     => {FIELDS => [qw(tag_id run_id userid)], TYPE => 'UNIQUE'},
++            run_tags_secondary_idx   => {FIELDS => [qw(tag_id run_id)], TYPE => 'UNIQUE'},
++            run_tags_run_id_idx      => [qw(run_id)],
++            run_tags_userid_idx      => [qw(userid)],
 +        ],
 +    },
-+    
++
++    test_plan_tags => {
++        FIELDS => [
++            tag_id  => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},
++            plan_id => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},
++            userid  => {TYPE => 'INT3', NOTNULL => 1},
++        ],
++        INDEXES => [
++            plan_tags_primary_idx     => {FIELDS => [qw(tag_id plan_id userid)], TYPE => 'UNIQUE'},
++            plan_tags_secondary_idx   => {FIELDS => [qw(tag_id plan_id)], TYPE => 'UNIQUE'},
++            plan_tags_plan_id_idx     => [qw(plan_id)],
++            plan_tags_userid_idx      => [qw(userid)],
++        ],
++    },
++
 +    test_plans => {
 +        FIELDS => [
 +            plan_id                 => {TYPE => 'INTSERIAL', PRIMARYKEY => 1, NOTNULL => 1},
@@ -278,10 +498,35 @@ Index: /bmo-2.22/Bugzilla/DB/Schema.pm
 +        ],
 +        INDEXES => [
 +            plan_product_plan_id_idx => [qw(product_id plan_id)],
-+            plan_author_idx          => ['author_id'],        
-+            plan_type_idx            => ['type_id'],        
++            plan_author_idx          => ['author_id'],
++            plan_type_idx            => ['type_id'],
 +            plan_isactive_idx        => ['isactive'],
 +            plan_name_idx            => ['name'],
++        ],
++    },
++
++    test_plan_permissions => {
++        FIELDS => [
++            userid                  => {TYPE => 'INT3', NOTNULL => 1},
++            plan_id                 => {TYPE => 'INT4', NOTNULL => 1, UNSIGNED => 1},
++            permissions             => {TYPE => 'INT1', NOTNULL => 1},
++            grant_type              => {TYPE => 'INT1', NOTNULL => 1},
++        ],
++        INDEXES => [
++            testers_plan_user_idx         => {FIELDS => [qw(userid plan_id grant_type)], TYPE => 'UNIQUE'},
++            testers_plan_user_plan_idx    => ['plan_id'],
++            testers_plan_grant_idx        => ['grant_type'],
++        ],
++    },
++
++    test_plan_permissions_regexp => {
++        FIELDS => [
++            plan_id                 => {TYPE => 'INT4', NOTNULL => 1, UNSIGNED => 1},
++            user_regexp             => {TYPE => 'TEXT', NOTNULL => 1},
++            permissions             => {TYPE => 'INT1', NOTNULL => 1},
++        ],
++        INDEXES => [
++            testers_plan_regexp_idx    => {FIELDS => [qw(plan_id)], TYPE => 'UNIQUE'},
 +        ],
 +    },
 +
@@ -298,30 +543,29 @@ Index: /bmo-2.22/Bugzilla/DB/Schema.pm
 +            test_plan_text_who_idx     => ['who'],
 +        ],
 +    },
-+    
++
++    # Tiny table -- don't add keys besides primary key.
 +    test_plan_types => {
 +        FIELDS => [
-+            type_id => {TYPE => 'TINYSERIAL', PRIMARYKEY => 1, NOTNULL => 1},
-+            name    => {TYPE => 'varchar(64)', NOTNULL => 1},
-+        ],
-+        INDEXES => [
-+            plan_type_name_idx => ['name'],
++            type_id     => {TYPE => 'TINYSERIAL', PRIMARYKEY => 1, NOTNULL => 1},
++            name        => {TYPE => 'varchar(64)', NOTNULL => 1},
++            description => {TYPE => 'MEDIUMTEXT'},
 +        ],
 +    },
-+    
++
 +    test_runs => {
 +        FIELDS => [
 +            run_id            => {TYPE => 'INTSERIAL', PRIMARYKEY => 1, NOTNULL => 1},
-+            plan_id           => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},                           
-+            environment_id    => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},                           
-+            product_version   => {TYPE => 'MEDIUMTEXT'},                           
-+            build_id          => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},                           
-+            plan_text_version => {TYPE => 'INT4', NOTNULL => 1},                           
-+            manager_id        => {TYPE => 'INT3', NOTNULL => 1},                           
-+            default_tester_id => {TYPE => 'INT3'},                           
-+            start_date        => {TYPE => 'DATETIME', NOTNULL => 1},                           
-+            stop_date         => {TYPE => 'DATETIME'},                           
-+            summary           => {TYPE => 'TINYTEXT', NOTNULL => 1},                           
++            plan_id           => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},
++            environment_id    => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},
++            product_version   => {TYPE => 'MEDIUMTEXT'},
++            build_id          => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},
++            plan_text_version => {TYPE => 'INT4', NOTNULL => 1},
++            manager_id        => {TYPE => 'INT3', NOTNULL => 1},
++            default_tester_id => {TYPE => 'INT3'},
++            start_date        => {TYPE => 'DATETIME', NOTNULL => 1},
++            stop_date         => {TYPE => 'DATETIME'},
++            summary           => {TYPE => 'TINYTEXT', NOTNULL => 1},
 +            notes             => {TYPE => 'MEDIUMTEXT'},
 +        ],
 +        INDEXES => [
@@ -329,19 +573,23 @@ Index: /bmo-2.22/Bugzilla/DB/Schema.pm
 +            test_run_manager_idx        => ['manager_id'],
 +            test_run_start_date_idx     => ['start_date'],
 +            test_run_stop_date_idx      => ['stop_date'],
++            test_run_env_idx            => ['environment_id'],
++            test_run_build_idx          => ['build_id'],
++            test_run_plan_ver_idx       => ['plan_text_version'],
++            test_run_tester_idx         => ['default_tester_id'],
 +            test_runs_summary_idx       => {FIELDS => ['summary'],
 +                                            TYPE => 'FULLTEXT'},
 +        ],
 +    },
-+    
++
 +    test_case_plans => {
 +        FIELDS => [
-+            plan_id => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},                           
++            plan_id => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},
 +            case_id => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},
 +        ],
 +        INDEXES => [
-+            case_plans_plan_id_idx => [qw(plan_id case_id)],
-+            case_plans_case_id_idx => [qw(case_id plan_id)],
++            test_case_plans_primary_idx => {FIELDS => [qw(plan_id case_id)], TYPE => 'UNIQUE'},
++            test_case_plans_case_idx    => [qw(case_id)],
 +        ],
 +    },
 +
@@ -355,13 +603,14 @@ Index: /bmo-2.22/Bugzilla/DB/Schema.pm
 +            newvalue => {TYPE => 'MEDIUMTEXT'},
 +        ],
 +        INDEXES => [
-+            case_activity_case_id_idx => ['case_id'],    
-+            case_activity_who_idx     => ['who'],    
-+            case_activity_when_idx    => ['changed'],    
++            case_activity_case_id_idx => ['case_id'],
++            case_activity_who_idx     => ['who'],
++            case_activity_when_idx    => ['changed'],
 +            case_activity_field_idx   => ['fieldid'],
 +        ],
 +    },
 +
++    # Tiny table -- don't add keys besides primary key.
 +    test_fielddefs => {
 +        FIELDS => [
 +            fieldid     => {TYPE => 'SMALLSERIAL', PRIMARYKEY => 1, NOTNULL => 1},
@@ -369,36 +618,36 @@ Index: /bmo-2.22/Bugzilla/DB/Schema.pm
 +            description => {TYPE => 'MEDIUMTEXT'},
 +            table_name  => {TYPE => 'varchar(100)', NOTNULL => 1},
 +        ],
-+        INDEXES => [
-+            test_fielddefs_name_idx => ['name'],
-+        ],
 +    },
-+    
++
 +    test_plan_activity => {
 +        FIELDS => [
-+            plan_id  => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},             
-+            fieldid  => {TYPE => 'INT2', UNSIGNED => 1, NOTNULL => 1},             
-+            who      => {TYPE => 'INT3', NOTNULL => 1},             
-+            changed  => {TYPE => 'DATETIME', NOTNULL => 1},             
-+            oldvalue => {TYPE => 'MEDIUMTEXT'},             
-+            newvalue => {TYPE => 'MEDIUMTEXT'},             
++            plan_id  => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},
++            fieldid  => {TYPE => 'INT2', UNSIGNED => 1, NOTNULL => 1},
++            who      => {TYPE => 'INT3', NOTNULL => 1},
++            changed  => {TYPE => 'DATETIME', NOTNULL => 1},
++            oldvalue => {TYPE => 'MEDIUMTEXT'},
++            newvalue => {TYPE => 'MEDIUMTEXT'},
 +        ],
 +        INDEXES => [
-+            plan_activity_who_idx => ['who'],
++            plan_activity_primary_idx => ['plan_id'],
++            plan_activity_field_idx   => ['fieldid'],
++            plan_activity_who_idx     => ['who'],
++            plan_activity_changed_idx => ['changed'],
 +        ],
 +    },
-+    
++
 +    test_case_components => {
 +        FIELDS => [
 +            case_id      => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},
 +            component_id => {TYPE => 'INT2', NOTNULL => 1},
 +        ],
 +        INDEXES => [
-+            components_case_id_idx      => {FIELDS => [qw(case_id component_id)],
-+                                           TYPE => 'UNIQUE'},
-+            components_component_id_idx => ['component_id'],        ],
++            components_case_id_idx      => {FIELDS => [qw(case_id component_id)], TYPE => 'UNIQUE'},
++            components_component_id_idx => ['component_id'],
++        ],
 +    },
-+    
++
 +    test_run_activity => {
 +        FIELDS => [
 +            run_id   => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},
@@ -409,145 +658,124 @@ Index: /bmo-2.22/Bugzilla/DB/Schema.pm
 +            newvalue => {TYPE => 'MEDIUMTEXT'},
 +        ],
 +        INDEXES => [
-+            run_activity_run_id_idx => ['run_id'],    
-+            run_activity_who_idx    => ['who'],    
++            run_activity_run_id_idx => ['run_id'],
++            run_activity_field_idx  => ['fieldid'],
++            run_activity_who_idx    => ['who'],
 +            run_activity_when_idx   => ['changed'],
 +        ],
 +    },
-+    
++
 +    test_run_cc => {
 +        FIELDS => [
-+            run_id => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},                     
++            run_id => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},
 +            who    => {TYPE => 'INT3', NOTNULL => 1},
 +        ],
 +        INDEXES => [
-+            run_cc_run_id_who_idx => [qw(run_id who)],
++            test_run_cc_primary_idx => {FIELDS => [qw(run_id who)], TYPE => 'UNIQUE'},
++            test_run_cc_who_idx => [qw(who)],
 +        ],
 +    },
-+    
++
 +    test_email_settings => {
 +        FIELDS => [
-+            userid          => {TYPE => 'INT3', NOTNULL => 1},                                   
-+            eventid         => {TYPE => 'INT1', UNSIGNED => 1, NOTNULL => 1},                                   
++            userid          => {TYPE => 'INT3', NOTNULL => 1},
++            eventid         => {TYPE => 'INT1', UNSIGNED => 1, NOTNULL => 1},
 +            relationship_id => {TYPE => 'INT1', UNSIGNED => 1, NOTNULL => 1},
 +        ],
 +        INDEXES => [
-+            test_event_user_event_idx        => [qw(userid eventid)],    
-+            test_event_user_relationship_idx => [qw(userid relationship_id)],    
++            test_email_setting_user_id_idx  =>
++                                    {FIELDS => [qw(userid relationship_id eventid)],
++                                     TYPE => 'UNIQUE'},
 +        ],
 +    },
-+    
++
 +    test_events => {
 +        FIELDS => [
-+            eventid => {TYPE => 'INT1', UNSIGNED => 1, PRIMARYKEY => 1, NOTNULL => 1},        
++            eventid => {TYPE => 'INT1', UNSIGNED => 1, PRIMARYKEY => 1, NOTNULL => 1},
 +            name    => {TYPE => 'varchar(50)'},
 +        ],
 +        INDEXES => [
 +            test_event_name_idx => ['name'],
 +        ],
 +    },
-+    
++
 +    test_relationships => {
 +        FIELDS => [
-+            relationship_id => {TYPE => 'INT1', UNSIGNED => 1, PRIMARYKEY => 1, NOTNULL => 1},            
++            relationship_id => {TYPE => 'INT1', UNSIGNED => 1, PRIMARYKEY => 1, NOTNULL => 1},
 +            name            => {TYPE => 'varchar(50)'},
 +        ],
 +    },
-+    
++
++    # Tiny table -- don't add keys besides primary key.
 +    test_case_run_status => {
 +        FIELDS => [
-+            case_run_status_id => {TYPE => 'TINYSERIAL', PRIMARYKEY => 1, NOTNULL => 1},                    
-+            name               => {TYPE => 'varchar(20)'},                    
++            case_run_status_id => {TYPE => 'TINYSERIAL', PRIMARYKEY => 1, NOTNULL => 1},
++            name               => {TYPE => 'varchar(20)'},
 +            sortkey            => {TYPE => 'INT4'},
-+        ],
-+        INDEXES => [
-+            case_run_status_name_idx => ['name'],    
-+            case_run_status_sortkey_idx => ['sortkey'],    
-+        ],
-+    },
-+    
-+    test_case_status => {
-+        FIELDS => [
-+            case_status_id => {TYPE => 'TINYSERIAL', PRIMARYKEY => 1, NOTNULL => 1},                    
-+            name           => {TYPE => 'varchar(255)', NOTNULL => 1},                    
-+        ],
-+        INDEXES => [
-+            test_case_status_name_idx => ['name'],    
-+        ],
-+    },    
-+    
-+    test_case_dependencies => {
-+        FIELDS => [
-+            dependson => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},                    
-+            blocked   => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},                    
++            description        => {TYPE => 'TEXT'},
 +        ],
 +    },
 +
-+    test_plan_group_map => {
++    # Tiny table -- don't add keys besides primary key.
++    test_case_status => {
 +        FIELDS => [
-+            group_id => {TYPE => 'INT3'},
-+            plan_id  => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL =>1},
++            case_status_id => {TYPE => 'TINYSERIAL', PRIMARYKEY => 1, NOTNULL => 1},
++            name           => {TYPE => 'varchar(255)', NOTNULL => 1},
++            description    => {TYPE => 'TEXT'},
 +        ],
-+    },    
-+        
++    },
++
++    test_case_dependencies => {
++        FIELDS => [
++            dependson => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},
++            blocked   => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},
++        ],
++        INDEXES => [
++            case_dependencies_primary_idx => {FIELDS => [qw(dependson blocked)], TYPE => 'UNIQUE'},
++            case_dependencies_blocked_idx => ['blocked'],
++        ],
++    },
++
 +    test_environments => {
 +        FIELDS => [
 +            environment_id  => {TYPE => 'INTSERIAL', PRIMARYKEY => 1, NOTNULL => 1},
-+            product_id      => {TYPE => 'INT2', NOTNULL => 1},        
++            product_id      => {TYPE => 'INT2', NOTNULL => 1},
 +            name            => {TYPE => 'varchar(255)'},
-+            isactive        => {TYPE => 'BOOLEAN', NOTNULL => 1, DEFAULT => '1'},        
-+        ],    
++            isactive        => {TYPE => 'BOOLEAN', NOTNULL => 1, DEFAULT => '1'},
++        ],
 +        INDEXES => [
-+            environment_name_idx     => ['name'],
-+        ],    
++            test_environments_key1 => {FIELDS => [qw(environment_id product_id)], TYPE => 'UNIQUE'},
++            test_environments_key2 => {FIELDS => [qw(product_id name)], TYPE => 'UNIQUE'},
++            environment_name_idx_v2     => ['name'],
++        ],
 +    },
 +
-+    test_run_tags => {    
-+        FIELDS => [
-+            tag_id =>  {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},
-+            run_id =>  {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},
-+            userid  => {TYPE => 'INT3', NOTNULL => 1},
-+        ],
-+        INDEXES => [
-+            run_tags_idx       => {FIELDS => [qw(tag_id run_id)], TYPE => 'UNIQUE'},
-+            run_tags_user_idx  => [qw(tag_id userid)],
-+            
-+        ],    
-+    },
-+    
-+    test_plan_tags => {
-+        FIELDS => [
-+            tag_id  => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},
-+            plan_id => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},
-+            userid  => {TYPE => 'INT3', NOTNULL => 1},        
-+        ],
-+        INDEXES => [
-+            plan_tags_idx       => {FIELDS => [qw(tag_id plan_id)], TYPE => 'UNIQUE'},
-+            plan_tags_user_idx  => [qw(tag_id userid)],
-+        ],    
-+    },
-+    
 +    test_builds => {
 +        FIELDS => [
 +            build_id    => {TYPE => 'INTSERIAL', PRIMARYKEY => 1, NOTNULL => 1},
 +            product_id  => {TYPE => 'INT2', NOTNULL => 1},
 +            milestone   => {TYPE => 'varchar(20)'},
 +            name        => {TYPE => 'varchar(255)'},
-+            description => {TYPE => 'TEXT'},        
++            description => {TYPE => 'TEXT'},
++            isactive    => {TYPE => 'BOOLEAN', NOTNULL => 1, DEFAULT => '1'},
 +        ],
 +        INDEXES => [
-+            build_name_idx => ['name'],
-+            build_product_id_name_idx => {FIELDS => [qw(product_id name)],
-+                                          TYPE => 'UNIQUE'},
-+        ],      
++            build_name_idx            => ['name'],
++            build_milestone_idx       => ['milestone'],
++            build_product_id_name_idx => {FIELDS => [qw(product_id name)], TYPE => 'UNIQUE'},
++            build_prod_idx            => {FIELDS => [qw(build_id product_id)], TYPE => 'UNIQUE'},
++        ],
 +    },
-+    
++
 +    test_attachment_data => {
 +        FIELDS => [
 +            attachment_id => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},
 +            contents      => {TYPE => 'LONGBLOB'},
-+        ],          
-+    },    
++        ],
++        INDEXES => [
++            test_attachment_data_primary_idx => ['attachment_id'],
++        ],
++    },
 +
 +    test_named_queries => {
 +        FIELDS => [
@@ -557,10 +785,11 @@ Index: /bmo-2.22/Bugzilla/DB/Schema.pm
 +            query     => {TYPE => 'MEDIUMTEXT', NOTNULL => 1},
 +        ],
 +        INDEXES => [
++            test_namedquery_primary_idx => {FIELDS => [qw(userid name)], TYPE => 'UNIQUE'},
 +            test_namedquery_name_idx => ['name'],
-+        ],    
++        ],
 +    },
-+    
++
 +    test_environment_map => {
 +        FIELDS => [
 +            environment_id   => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},
@@ -569,8 +798,9 @@ Index: /bmo-2.22/Bugzilla/DB/Schema.pm
 +            value_selected   => {TYPE => 'TINYTEXT'},
 +        ],
 +        INDEXES => [
-+            env_map_env_element_idx  => [qw(environment_id element_id)],
-+            env_map_property_idx     => [qw(environment_id property_id)],
++            env_map_env_element_idx   => [qw(environment_id element_id)],
++            env_map_property_idx      => [qw(environment_id property_id)],
++            test_environment_map_key3 => {FIELDS => [qw(environment_id element_id property_id)], TYPE => 'UNIQUE'},
 +        ],
 +    },
 +    test_environment_element => {
@@ -582,7 +812,8 @@ Index: /bmo-2.22/Bugzilla/DB/Schema.pm
 +            isprivate        => {TYPE => 'BOOLEAN', NOTNULL => 1, DEFAULT => 0},
 +        ],
 +        INDEXES => [
-+            env_element_category_idx => [qw(env_category_id name)],
++            test_environment_element_key1 => {FIELDS => [qw(element_id env_category_id)], TYPE => 'UNIQUE'},
++            test_environment_element_key2 => {FIELDS => [qw(env_category_id name)], TYPE => 'UNIQUE'},
 +        ],
 +    },
 +    test_environment_category => {
@@ -592,7 +823,8 @@ Index: /bmo-2.22/Bugzilla/DB/Schema.pm
 +            name             => {TYPE => 'varchar(255)'},
 +        ],
 +        INDEXES => [
-+            env_category_idx => [qw(name product_id)],
++            test_environment_category_key1 => {FIELDS => [qw(env_category_id product_id)], TYPE => 'UNIQUE'},
++            test_environment_category_key2 => {FIELDS => [qw(product_id name)], TYPE => 'UNIQUE'},
 +        ],
 +    },
 +    test_environment_property => {
@@ -603,58 +835,9 @@ Index: /bmo-2.22/Bugzilla/DB/Schema.pm
 +            validexp      => {TYPE => 'TEXT'},
 +        ],
 +        INDEXES => [
-+            env_element_property_idx => [qw(element_id name)],
++            test_environment_property_key1 => {FIELDS => [qw(property_id element_id)], TYPE => 'UNIQUE'},
++            test_environment_property_key2 => {FIELDS => [qw(element_id name)], TYPE => 'UNIQUE'},
 +        ],
 +    },
- 
  };
  #--------------------------------------------------------------------------
-Index: /bmo-2.22/Bugzilla/Template.pm
-===================================================================
---- /bmo-2.22/Bugzilla/Template.pm	22 Jan 2006 21:37:37 -0000	1.41
-+++ /bmo-2.22-testopia/Bugzilla/Template.pm	8 Dec 2006 18:20:56 -0000
-@@ -498,6 +498,14 @@
-                 }
-                 return $var;
-             },
-+                        
-+            # Prevent XSS attacks in WYSIWYG fields. 
-+            xss => sub{
-+                my ($var) = @_;
-+                $var =~ s/(&lt;|<)script/_script/ig;
-+                $var =~ s/(&lt;|<)\/script(>|&gt;)/script_/gi;
-+                return $var;
-+            },
-             
-             # iCalendar contentline filter
-             ics => [ sub {
-Index: /bmo-2.22/Bugzilla/DB/Schema/Mysql.pm
-===================================================================
---- /bmo-2.22/Bugzilla/DB/Schema/Mysql.pm	2005-12-18 11:53:00.000000000 -0700
-+++ /bmo-2.22-testopia/Bugzilla/DB/Schema/Mysql.pm	2006-09-29 14:08:38.000000000 -0600
-@@ -103,9 +103,10 @@
-         INT3 =>         'mediumint',
-         INT4 =>         'integer',
- 
--        SMALLSERIAL =>  'smallint auto_increment',
--        MEDIUMSERIAL => 'mediumint auto_increment',
--        INTSERIAL =>    'integer auto_increment',
-+        TINYSERIAL =>    'tinyint unsigned auto_increment',
-+        SMALLSERIAL =>   'smallint unsigned auto_increment',
-+        MEDIUMSERIAL =>  'mediumint unsigned auto_increment',
-+        INTSERIAL =>     'integer unsigned auto_increment',
- 
-         TINYTEXT =>     'tinytext',
-         MEDIUMTEXT =>   'mediumtext',
-Index: /bmo-2.22/Bugzilla/DB/Schema/Pg.pm
-===================================================================
---- /bmo-2.22/Bugzilla/DB/Schema/Pg.pm	2005-06-14 21:54:59.000000000 -0600
-+++ /bmo-2.22-testopia/Bugzilla/DB/Schema/Pg.pm	2006-09-21 15:10:19.000000000 -0600
-@@ -69,6 +69,7 @@
-         INT3 =>         'integer',
-         INT4 =>         'integer',
- 
-+        TINYSERIAL =>   'serial unique',
-         SMALLSERIAL =>  'serial unique',
-         MEDIUMSERIAL => 'serial unique',
-         INTSERIAL =>    'serial unique',
