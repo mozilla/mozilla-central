@@ -295,7 +295,6 @@ protected:
   void          ClearCachedObjects(PRBool dbGoingAway);
   // all instantiated headers, but doesn't hold refs. 
   PLDHashTable  *m_headersInUse;
-  static const void* PR_CALLBACK GetKey(PLDHashTable* aTable, PLDHashEntryHdr* aEntry);
   static PLDHashNumber PR_CALLBACK HashKey(PLDHashTable* aTable, const void* aKey);
   static PRBool PR_CALLBACK MatchEntry(PLDHashTable* aTable, const PLDHashEntryHdr* aEntry, const void* aKey);
   static void PR_CALLBACK MoveEntry(PLDHashTable* aTable, const PLDHashEntryHdr* aFrom, PLDHashEntryHdr* aTo);

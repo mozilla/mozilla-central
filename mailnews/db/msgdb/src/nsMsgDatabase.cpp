@@ -438,7 +438,6 @@ PLDHashTableOps nsMsgDatabase::gMsgDBHashTableOps =
 {
   PL_DHashAllocTable,
   PL_DHashFreeTable,
-  GetKey,
   HashKey,
   MatchEntry,
   MoveEntry,
@@ -446,13 +445,6 @@ PLDHashTableOps nsMsgDatabase::gMsgDBHashTableOps =
   PL_DHashFinalizeStub,
   nsnull
 };
-
-const void* PR_CALLBACK
-nsMsgDatabase::GetKey(PLDHashTable* aTable, PLDHashEntryHdr* aEntry)
-{
-  MsgHdrHashElement* hdr = NS_REINTERPRET_CAST(MsgHdrHashElement*, aEntry);
-  return (const void *) hdr->mKey;
-}
 
 // HashKey is supposed to maximize entropy in the low order bits, and the key
 // as is, should do that.
