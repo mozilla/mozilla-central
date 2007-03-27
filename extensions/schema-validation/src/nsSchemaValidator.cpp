@@ -152,7 +152,13 @@ nsSchemaValidator::ValidateString(const nsAString & aValue,
   } else {
     // if its not a simpletype, validating a string makes no sense.
     rv = NS_ERROR_UNEXPECTED;
+    LOG(("  -- unexpected type"));
   }
+
+#ifdef PR_LOGGING
+  if (!isValid)
+    LOG(("  *** INVALID ***"));
+#endif
 
   *aResult = isValid;
   return rv;
@@ -173,7 +179,8 @@ nsSchemaValidator::Validate(nsIDOMNode* aElement, PRBool *aResult)
   NS_ENSURE_STATE(domElement);
 
   PRBool hasTypeAttribute = PR_FALSE;
-  nsresult rv = domElement->HasAttributeNS(NS_LITERAL_STRING(NS_SCHEMA_1999_NAMESPACE),
+  nsresult rv = domElement->HasAttributeNS(NS_LITERAL_STRING(
+                                             NS_SCHEMA_INSTANCE_NAMESPACE),
                                            NS_LITERAL_STRING("type"),
                                            &hasTypeAttribute);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -185,7 +192,8 @@ nsSchemaValidator::Validate(nsIDOMNode* aElement, PRBool *aResult)
     LOG(("  -- found type attribute"));
 
     nsAutoString typeAttribute;
-    rv = domElement->GetAttributeNS(NS_LITERAL_STRING(NS_SCHEMA_1999_NAMESPACE),
+    rv = domElement->GetAttributeNS(NS_LITERAL_STRING(
+                                      NS_SCHEMA_INSTANCE_NAMESPACE),
                                     NS_LITERAL_STRING("type"),
                                     typeAttribute);
     NS_ENSURE_SUCCESS(rv, rv);
@@ -372,7 +380,7 @@ nsSchemaValidator::GetType(const nsAString & aType,
     NS_ENSURE_STATE(mSchema);
   }
 
-  // First try looking for xsd:type
+  // First try looking for xsi:type
   rv = mSchema->GetType(aType, aNamespace, aSchemaType);
   NS_ENSURE_SUCCESS(rv, rv);
 

@@ -1650,10 +1650,26 @@ nsXFormsModelElement::ValidateNode(nsIDOMNode *aInstanceNode, PRBool *aResult)
       validator.LoadSchema(schema);
   }
 
-  nsAutoString value;
-  nsXFormsUtils::GetNodeValue(aInstanceNode, value);
-  PRBool isValid = validator.ValidateString(value, schemaTypeName, schemaTypeNamespace);
+  nsCOMPtr<nsISchemaType> type;
+  rv = validator.GetType(schemaTypeName, schemaTypeNamespace,
+                         getter_AddRefs(type));
+  NS_ENSURE_SUCCESS(rv, rv);
 
+  PRUint16 typevalue = nsISchemaType::SCHEMA_TYPE_SIMPLE;
+  if (type) {
+    rv = type->GetSchemaType(&typevalue);
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
+
+  PRBool isValid = PR_FALSE;
+  if (typevalue == nsISchemaType::SCHEMA_TYPE_SIMPLE) {
+    nsAutoString value;
+    nsXFormsUtils::GetNodeValue(aInstanceNode, value);
+    isValid = validator.ValidateString(value, schemaTypeName,
+                                              schemaTypeNamespace);
+  } else {
+    isValid = validator.Validate(aInstanceNode);
+  }
   *aResult = isValid;
   return NS_OK;
 }
