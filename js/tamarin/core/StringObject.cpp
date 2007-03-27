@@ -70,6 +70,9 @@ namespace avmplus
 
 	// create empty string ready to be filled in
 	String::String(int len)
+#ifdef DEBUGGER
+		: AvmPlusScriptableObject(kStringType)
+#endif DEBUGGER
 	{
 		AvmAssert(len >= 0);
 		MMGC_MEM_TYPE(this);
@@ -79,6 +82,9 @@ namespace avmplus
 
 	// decode utf8 
 	String::String(const char *str, int utf8len, int utf16len)
+#ifdef DEBUGGER
+		: AvmPlusScriptableObject(kStringType)
+#endif DEBUGGER
 	{
 		AvmAssert(utf8len >= 0);
 		AvmAssert(utf16len >= 0);
@@ -89,18 +95,13 @@ namespace avmplus
 											 getData(), utf16len);
 		AvmAssert(m_length >= 0);
 		getData()[m_length] = 0;
-#ifdef DEBUGGER
-
-		AvmCore *core = (AvmCore *) GC::GetGC(this)->GetGCContextVariable (MMgc::GC::GCV_AVMCORE);
-		if(core->allocationTracking)
-		{
-			AvmCore::chargeAllocation(atom());
-		}
-#endif
 	}
 
 	// convert c-style wstring to String
 	String::String(const wchar *str, int len)
+#ifdef DEBUGGER
+		: AvmPlusScriptableObject(kStringType)
+#endif DEBUGGER
 	{
 		AvmAssert(len >= 0);
 		m_length = len;
@@ -108,34 +109,26 @@ namespace avmplus
 		setBuf(allocBuf(m_length));
 		memcpy (getData(), str, m_length * sizeof(wchar));
 		getData()[m_length] = 0;
-#ifdef DEBUGGER
-		AvmCore *core = (AvmCore *) GC::GetGC(this)->GetGCContextVariable (MMgc::GC::GCV_AVMCORE);
-		if(core->allocationTracking)
-		{
-			AvmCore::chargeAllocation(atom());
-		}
-#endif
 	}
 
 	// concat
 	String::String(Stringp s1, Stringp s2)
+#ifdef DEBUGGER
+		: AvmPlusScriptableObject(kStringType)
+#endif DEBUGGER
 	{
 		m_length = s1->length() + s2->length();
 		AvmAssert(m_length >= 0);
 		setPrefixOrOffsetOrNumber(uintptr(s1) | PREFIXFLAG);
 		if (s2->needsNormalization()) s2->normalize();
 		setBuf(s2->m_buf);
-#ifdef DEBUGGER
-		AvmCore *core = (AvmCore *) GC::GetGC(this)->GetGCContextVariable (MMgc::GC::GCV_AVMCORE);
-		if(core->allocationTracking)
-		{
-			AvmCore::chargeAllocation(atom());
-		}
-#endif
 	}
 
 	// substr
 	String::String(Stringp s, int pos, int len)
+#ifdef DEBUGGER
+		: AvmPlusScriptableObject(kStringType)
+#endif DEBUGGER
 	{
 		// out-of-bounds requests return sensible things
 		if (pos < 0) {
@@ -209,13 +202,6 @@ namespace avmplus
 		m_length = len;
 		setBuf(s->m_buf);
 		m_prefixOrOffsetOrNumber = int((pos << 2) | OFFSETFLAG);
-#ifdef DEBUGGER
-		AvmCore *core = (AvmCore *) GC::GetGC(this)->GetGCContextVariable (MMgc::GC::GCV_AVMCORE);
-		if(core->allocationTracking)
-		{
-			AvmCore::chargeAllocation(atom());
-		}
-#endif
 	}
 							  
 	// compare (dst,len) to (src,len), including nulls
@@ -300,6 +286,8 @@ namespace avmplus
 		AvmAssert(needsNormalization() == true);
 		MMGC_MEM_TYPE(this);
 		StringBuf *newData = allocBuf(length());
+		if (newData == NULL)
+			return;
 		wchar *new_buf = newData->m_buf;
 		new_buf[length()] = 0;
 
@@ -1219,5 +1207,23 @@ namespace avmplus
 		}
 		return size;
 	 }
+
+	Stringp String::getTypeName() const
+	{
+		AvmCore *core = this->core();		
+
+		if (core->callStack && core->callStack->env)
+		{
+			Toplevel *toplevel = core->callStack->env->toplevel();
+			ClassClosure *clazz = toplevel->stringClass;
+
+			if (clazz)
+			{
+				return clazz->format(core);
+			}
+		}
+
+		return NULL;
+	}
 #endif
 }	

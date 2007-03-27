@@ -44,6 +44,9 @@ namespace avmplus
 {
 	// See E4X 13.2.2, pg 64
     Namespace::Namespace(Atom prefix, Stringp uri, NamespaceType flags)
+#ifdef DEBUGGER
+		: AvmPlusScriptableObject(kNamespaceType)
+#endif DEBUGGER
 	{
 		// verify our parameters are interned strings
 		AvmAssert (uri->isInterned());
@@ -51,13 +54,6 @@ namespace avmplus
 		AvmAssert (AvmCore::isName(prefix) || AvmCore::isNullOrUndefined(prefix));
 		setPrefix(prefix);
 		setUri(uri, flags);
-#ifdef DEBUGGER
-		AvmCore *core = (AvmCore *) GC::GetGC(this)->GetGCContextVariable (MMgc::GC::GCV_AVMCORE);
-		if(core->allocationTracking)
-		{
-			AvmCore::chargeAllocation(atom());
-		}
-#endif
 	}
 
 	Namespace::~Namespace()
@@ -138,5 +134,26 @@ namespace avmplus
 	{
 		return getURI();
 	}
+
+#ifdef DEBUGGER
+	Stringp Namespace::getTypeName() const
+	{
+		AvmCore *core = this->core();		
+
+		if (core->callStack && core->callStack->env)
+		{
+			Toplevel *toplevel = core->callStack->env->toplevel();
+			ClassClosure *clazz = toplevel->namespaceClass;
+
+			if (clazz)
+			{
+				return clazz->format(core);
+			}
+		}
+
+		return NULL;
+	}
+#endif
+
 }
 

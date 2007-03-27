@@ -41,29 +41,6 @@
 namespace avmplus
 {
 	#ifdef DEBUGGER
-	// helper object to store class instances
-	class GCHashtableScriptObject : public ScriptObject
-	{
-	public:
-		GCHashtableScriptObject(VTable *vtable) : ScriptObject(vtable, vtable->toplevel->objectClass->prototype) {}	
-		
-		int nextNameIndex(int index) 
-		{ 
-			return ht.nextIndex(index); 
-		}
-		
-		Atom nextValue(int index) 
-		{ 
-			Atom a = (Atom)ht.keyAt(index-1);
-			return a;
-		}
-		
-		// so we don't count these
-		ClassClosure* cc() const { return NULL; }
-
-		MMgc::GCHashtable ht;
-	};
-
 	class SlotIterator : public ScriptObject
 	{
 	public:
@@ -80,8 +57,7 @@ namespace avmplus
 			{
 				while ((index = currTraits->next(index)) != 0)
 				{
-					if (AvmCore::isSlotBinding(currTraits->valueAt(index)))
-						return index;
+					return index;
 				}
 
 				currTraits = currTraits->base;
@@ -108,7 +84,11 @@ namespace avmplus
 	ScriptObject::ScriptObject(VTable *vtable,
 							   ScriptObject *delegate,
 	                           int capacity /*=Hashtable::kDefaultCapacity*/)
-		: vtable(vtable)
+		: 
+#ifdef DEBUGGER 
+			AvmPlusScriptableObject((Atom)vtable), 
+#endif DEBUGGER
+			vtable(vtable)
 	{
 		// initialize slots in this object to initial values from traits.
 		Traits* traits = vtable->traits;
@@ -125,13 +105,6 @@ namespace avmplus
 			getTable()->initialize(this->gc(), capacity);
 			getTable()->setDontEnumSupport(true);
 		}
-
-#if 0
-		if (vtable->toplevel && vtable->toplevel->scriptObjectTable)
-		{
-			vtable->toplevel->scriptObjectTable->addScriptObject(this);
-		}
-#endif
 	}
 
 	ScriptObject::~ScriptObject()
@@ -827,42 +800,28 @@ namespace avmplus
 	}
  
 #ifdef DEBUGGER
-	void ScriptObject::addInstance(Atom a)
-	{
-		if(!instances) {			
-			if(!toplevel()->objectClass->ivtable())
-				return;
-			VTable *vt = toplevel()->objectClass->ivtable();
-			instances = new (gc(), vt->getExtraSize()) GCHashtableScriptObject(vt);
-		}
-		if(AvmCore::isPointer(a) && !AvmCore::isNumber(a))
-		{
-			instances->ht.add(a, NULL);
-			// tell the thing about its atom rep so it can properly remove itself later
-			AvmPlusScriptableObject *o = (AvmPlusScriptableObject*)(a&~7);
-			o->setType(a&7);
-			o->setCreator(this);
-		}
-
-	}
-
-	void ScriptObject::removeInstance(Atom a)
-	{
-		if(instances && instances->ht.count() > 0)
-		{
-			instances->ht.remove((const void*)a);
-		}
-	}
-
-	ScriptObject* ScriptObject::getInstances()
-	{
-		return instances;
-	}
-
 	ScriptObject* ScriptObject::getSlotIterator()
 	{
 		VTable *vt = toplevel()->objectClass->ivtable();
 		return new (gc(), vt->getExtraSize()) SlotIterator(this, vt);
+	}
+
+	Stringp ScriptObject::getTypeName() const
+	{
+        Stringp result;
+        Namespace* ns = traits()->ns;
+        Stringp name = traits()->name;
+
+        if ((ns != NULL) && (name != NULL))
+        {
+            result = Multiname::format(core(), ns, name);
+        }
+        else
+        {
+            result = name;
+        }
+
+		return result;
 	}
 	
 	uint32 ScriptObject::size() const
