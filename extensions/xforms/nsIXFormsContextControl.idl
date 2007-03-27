@@ -40,11 +40,13 @@
 #include "nsIXFormsControlBase.idl"
 
 interface nsIDOMNode;
+interface nsIDOMElement;
+interface nsIXFormsControl;
 
 /**
  * Interface for elements that sets the XPath context of its children.
  */
-[uuid(38a904ba-147c-4c7f-9356-9fff88107868)]
+[uuid(35660a75-86f0-4eaf-9da9-f47e2f5466da)]
 interface nsIXFormsContextControl : nsIXFormsControlBase
 {
   /**
@@ -70,4 +72,20 @@ interface nsIXFormsContextControl : nsIXFormsControlBase
    */
   void setContext(in nsIDOMNode aContextNode, in long aContextPosition,
                   in long aContextSize);
+
+  /**
+   * Each context control maintains an 'aborted bind' list.  This list is
+   * used to track xforms controls that this context control contains
+   * which have tried to bind but couldn't because this context control
+   * wasn't bound yet, either.
+   *
+   * @param aControl          The XForms control that couldn't bind because
+   *                          this context control wasn't ready.
+   * @param addControl        If true, aControl is added to the list.  If false
+   *                          aControl will be removed from the list and also
+   *                          aControl will lose its link to this control.
+   */
+  void addRemoveAbortedControl(in nsIXFormsControl aControl,
+                               in boolean aAddControl);
+
 };

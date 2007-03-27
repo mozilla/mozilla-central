@@ -417,6 +417,9 @@ public:
    * @param aContextNode      The resulting context node
    * @param aContextPosition  The resulting context position
    * @param aContextSize      The resulting context size
+   *
+   * This function may return NS_OK_XFORMS_NOTREADY if parent context containers
+   * haven't yet had a chance to bind.
    */
   static NS_HIDDEN_(nsresult) FindParentContext(nsIDOMElement           *aElement,
                                                 nsIModelElementPrivate **aModel,

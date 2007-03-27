@@ -1978,6 +1978,13 @@ nsXFormsModelElement::GetContext(nsAString      &aModelID,
   return NS_OK;
 }
 
+NS_IMETHODIMP
+nsXFormsModelElement::AddRemoveAbortedControl(nsIXFormsControl *aControl,
+                                              PRBool            aAdd)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
 // internal methods
 
 already_AddRefed<nsIDOMDocument>

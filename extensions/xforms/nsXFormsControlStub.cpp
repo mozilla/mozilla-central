@@ -156,7 +156,7 @@ nsXFormsControlStub::ResetBoundNode(const nsString &aBindAttribute,
   mDependencies.Clear();
   RemoveIndexListeners();
 
-  if (!mHasParent || !HasBindingAttribute())
+  if (!mHasParent || !mHasDoc || !HasBindingAttribute())
     return NS_OK_XFORMS_NOTREADY;
 
   nsCOMPtr<nsIDOMXPathResult> result;
@@ -168,7 +168,7 @@ nsXFormsControlStub::ResetBoundNode(const nsString &aBindAttribute,
     return rv;
   }
 
-  if (rv == NS_OK_XFORMS_DEFERRED || !result) {
+  if (rv == NS_OK_XFORMS_DEFERRED || rv == NS_OK_XFORMS_NOTREADY || !result) {
     // Binding was deferred, or not bound
     return rv;
   }
@@ -387,6 +387,13 @@ nsXFormsControlStub::ProcessNodeBinding(const nsString          &aBindingAttr,
                                           &mDependencies,
                                           &indexesUsed);
   NS_ENSURE_SUCCESS(rv, rv);
+
+  // if NS_OK_XFORMS_NOTREADY, mModel probably won't exist or might no longer
+  // be valid, so shouldn't continue.
+  if (rv == NS_OK_XFORMS_NOTREADY) {
+    return rv;
+  }
+
   NS_ENSURE_STATE(mModel);
 
   rv = MaybeAddToModel(oldModel, parentControl);
@@ -643,6 +650,8 @@ nsXFormsControlStub::OnDestroyed()
     mModel = nsnull;
   }
 
+  mAbortedBindListContainer = nsnull;
+
 #ifdef DEBUG_smaug
   sControlList->RemoveElement(this);
 #endif
@@ -654,25 +663,71 @@ nsXFormsControlStub::OnDestroyed()
 nsresult
 nsXFormsControlStub::ForceModelDetach(PRBool aRebind)
 {
+  // We shouldn't bother binding if the control is part of a template, but we
+  // need to run through RemoveFormControl in the event that this control
+  // was just moved under a repeat or itemset and wasn't there originally.
   if (mModel) {
     // Remove from model, so Bind() will be forced to reattach
     mModel->RemoveFormControl(this);
     mModel = nsnull;
   }
 
-  if (!aRebind) {
+  if (!aRebind || GetRepeatState() == eType_Template) {
     return NS_OK;
   }
 
   PRBool dummy;
   nsresult rv = Bind(&dummy);
   NS_ENSURE_SUCCESS(rv, rv);
-  return rv == NS_OK_XFORMS_DEFERRED ? NS_OK : Refresh();
+
+  if (rv == NS_OK_XFORMS_DEFERRED || rv == NS_OK_XFORMS_NOTREADY) {
+    return NS_OK;
+  }
+
+  // If there were any controls that had already tried to bind but failed
+  // to because this control wasn't ready yet, then try them again.
+  PRInt32 arraySize = mAbortedBindList.Count();
+  if (arraySize) {
+    for (PRInt32 i = 0; i < arraySize; ++i) {
+      nsCOMPtr<nsIXFormsControl> control = mAbortedBindList.ObjectAt(i);
+      if (control) {
+        control->RebindAndRefresh();
+        control->SetAbortedBindListContainer(nsnull);
+      }
+    }
+  
+    mAbortedBindList.Clear();
+  }
+
+  return Refresh();
 }
 
 NS_IMETHODIMP
 nsXFormsControlStub::WillChangeDocument(nsIDOMDocument *aNewDocument)
 {
+  // This control is moving to another document or just plain getting removed
+  // from its current document.  In either case, we know that we don't care
+  // about the bind-ready notification we might have been waiting on.
+  nsCOMPtr<nsIXFormsContextControl> ctxtControl;
+  GetAbortedBindListContainer(getter_AddRefs(ctxtControl));
+  if (ctxtControl) {
+    ctxtControl->AddRemoveAbortedControl(this, PR_FALSE);
+  }
+
+  // If we are in the middle of getting set up in the current document then
+  // then we need to make sure that if other controls getting set up in
+  // the current document are depending on this control to help them, that
+  // we remove that dependency.
+  PRInt32 arraySize = mAbortedBindList.Count();
+  if (arraySize) {
+    for (PRInt32 i = 0; i < arraySize; ++i) {
+      nsCOMPtr<nsIXFormsControl> control = mAbortedBindList.ObjectAt(i);
+      control->SetAbortedBindListContainer(nsnull);
+    }
+
+    mAbortedBindList.Clear();
+  }
+
   SetRepeatState(eType_Unknown);
   ResetHelpAndHint(PR_FALSE);
   return NS_OK;
@@ -681,6 +736,8 @@ nsXFormsControlStub::WillChangeDocument(nsIDOMDocument *aNewDocument)
 NS_IMETHODIMP
 nsXFormsControlStub::DocumentChanged(nsIDOMDocument *aNewDocument)
 {
+  mHasDoc = aNewDocument != nsnull;
+
   if (aNewDocument) {
     ResetHelpAndHint(PR_TRUE);
 
@@ -696,12 +753,18 @@ nsXFormsControlStub::DocumentChanged(nsIDOMDocument *aNewDocument)
     }
   }
 
-  return ForceModelDetach(mHasParent && aNewDocument);
+  return ForceModelDetach(mHasParent && mHasDoc);
 }
 
 NS_IMETHODIMP
 nsXFormsControlStub::WillChangeParent(nsIDOMElement *aNewParent)
 {
+  nsCOMPtr<nsIXFormsContextControl> ctxtControl;
+  GetAbortedBindListContainer(getter_AddRefs(ctxtControl));
+  if (ctxtControl) {
+    ctxtControl->AddRemoveAbortedControl(this, PR_FALSE);
+  }
+
   SetRepeatState(eType_Unknown);
   return NS_OK;
 }
@@ -716,7 +779,7 @@ nsXFormsControlStub::ParentChanged(nsIDOMElement *aNewParent)
 
   // We need to re-evaluate our instance data binding when our parent changes,
   // since xmlns declarations or our context could have changed.
-  return ForceModelDetach(mHasParent);
+  return ForceModelDetach(mHasParent && mHasDoc);
 }
 
 NS_IMETHODIMP
@@ -747,6 +810,13 @@ nsXFormsControlStub::AttributeRemoved(nsIAtom *aName)
   return NS_OK;
 }
 
+NS_IMETHODIMP
+nsXFormsControlStub::RebindAndRefresh()
+{
+  ForceModelDetach(PR_TRUE);
+  return NS_OK;
+}
+
 // nsIXFormsContextControl
 
 NS_IMETHODIMP
@@ -765,15 +835,25 @@ nsXFormsControlStub::GetContext(nsAString      &aModelID,
 {
   NS_ENSURE_ARG(aContextSize);
   NS_ENSURE_ARG(aContextPosition);
+  NS_ENSURE_ARG_POINTER(aContextNode);
 
   *aContextPosition = 1;
   *aContextSize = 1;
+  *aContextNode = nsnull;
 
   if (aContextNode) {
     if (mBoundNode) {
       // We are bound to a node: This is the context node
       NS_ADDREF(*aContextNode = mBoundNode);
     } else if (mModel) {
+      // If there is no bound node, it could be because everything isn't ready,
+      // yet.  If mHasDoc or mHasParent are false, then we haven't had a chance
+      // to bind.  This could happen if the nodes in this chain are being added
+      // via DOM manipulation rather than via the parser.
+      if (HasBindingAttribute() && (!mHasDoc || !mHasParent)) {
+        return NS_OK_XFORMS_NOTREADY;
+      }
+
       // We are bound to a model: The document element of its default instance
       // document is the context node
       nsCOMPtr<nsIDOMDocument> instanceDoc;
@@ -784,6 +864,10 @@ nsXFormsControlStub::GetContext(nsAString      &aModelID,
       instanceDoc->GetDocumentElement(&docElement); // addrefs
       NS_ENSURE_STATE(docElement);
       *aContextNode = docElement; // addref'ed above
+    } else {
+      if (HasBindingAttribute() && (!mHasDoc || !mHasParent)) {
+        return NS_OK_XFORMS_NOTREADY;
+      }
     }
   }
 
@@ -794,6 +878,52 @@ nsXFormsControlStub::GetContext(nsAString      &aModelID,
     model->GetAttribute(NS_LITERAL_STRING("id"), aModelID);
   }
   
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsXFormsControlStub::AddRemoveAbortedControl(nsIXFormsControl *aControl,
+                                             PRBool            aAdd)
+{
+  nsresult rv = NS_OK;
+  if (aAdd) {
+    rv = mAbortedBindList.AppendObject(aControl);
+    aControl->SetAbortedBindListContainer(this);
+  } else {
+    rv = mAbortedBindList.RemoveObject(aControl);
+    aControl->SetAbortedBindListContainer(nsnull);
+  }
+  return rv;
+}
+
+NS_IMETHODIMP
+nsXFormsControlStub::GetAbortedBindListContainer(
+  nsIXFormsContextControl **aControlContainingList)
+{
+  NS_ENSURE_ARG_POINTER(aControlContainingList);
+
+  NS_IF_ADDREF(*aControlContainingList = mAbortedBindListContainer);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsXFormsControlStub::SetAbortedBindListContainer(
+  nsIXFormsContextControl *aControlContainingList)
+{
+  // A control should never be on more than one aborted bind list.  There is
+  // probably a chance through some crazy DOM stirring for a control to be
+  // waiting on notification from a context control and then the control finds
+  // itself trying to bind again under a whole different parent tree.  So we'll
+  // have the control remove itself from the old list and link itself to the
+  // new list.
+
+  if (mAbortedBindListContainer && aControlContainingList) {
+    if (!SameCOMIdentity(mAbortedBindListContainer, aControlContainingList)) {
+      mAbortedBindListContainer->AddRemoveAbortedControl(this, PR_FALSE);
+    }
+  }
+
+  mAbortedBindListContainer = aControlContainingList;
   return NS_OK;
 }
 

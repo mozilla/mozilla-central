@@ -49,7 +49,7 @@ interface nsIDOMElement;
 /**
  * Interface implemented by all XForms form control classes.
  */
-[uuid(eb02b76b-6df8-4633-8c53-e86101273339)]
+[uuid(6fb46b32-9aa1-4d81-aa54-d57a414948c3)]
 interface nsIXFormsControl : nsIXFormsContextControl
 {
   /**
@@ -116,4 +116,24 @@ interface nsIXFormsControl : nsIXFormsContextControl
    */
   readonly attribute long defaultIntrinsicState;
   readonly attribute long disabledIntrinsicState;
+
+  /**
+   * This method is used to force the control to recalculate its bound node
+   * and to refresh.  Used primarily internally to correct situations where DOM
+   * manipulations have gotten things out of balance.
+   */
+  void rebindAndRefresh();
+
+  /**
+   * The keeper of the aborted bind list, if any, that this control is
+   * currently listed on.
+   *
+   * In other words, if this control tried to bind and couldn't, we added it
+   * to the appropriate context control's aborted bind list so that this control
+   * could bind as soon as the context control is able to bind.  But if this
+   * control is removed from the DOM before it has a chance to be processed,
+   * we should remove it from the list so that it can be cleaned up
+   * appropriately.
+   */
+  attribute nsIXFormsContextControl abortedBindListContainer;
 };

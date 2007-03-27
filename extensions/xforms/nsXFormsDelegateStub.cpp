@@ -73,7 +73,6 @@ nsXFormsDelegateStub::PerformAccesskey()
 {
   nsCOMPtr<nsIXFormsUIWidget> widget(do_QueryInterface(mElement));
   if (widget) {
-    PRBool isFocused;
     widget->PerformAccesskey();
   }
 

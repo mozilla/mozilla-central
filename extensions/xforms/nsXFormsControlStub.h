@@ -110,11 +110,14 @@ public:
   NS_IMETHOD GetUsesSingleNodeBinding(PRBool *aRes);
   NS_IMETHOD GetDefaultIntrinsicState(PRInt32 *aRes);
   NS_IMETHOD GetDisabledIntrinsicState(PRInt32 *aRes);
+  NS_IMETHOD RebindAndRefresh();
+  NS_IMETHOD GetAbortedBindListContainer(nsIXFormsContextControl **aContainer);
+  NS_IMETHOD SetAbortedBindListContainer(nsIXFormsContextControl *aContainer);
 
   // for nsIXTFElement
   NS_IMETHOD OnCreated(nsIXTFElementWrapper *aWrapper);
   NS_IMETHOD HandleDefault(nsIDOMEvent *aEvent,
-                         PRBool      *aHandled);
+                           PRBool      *aHandled);
   NS_IMETHOD OnDestroyed();
   NS_IMETHOD WillChangeDocument(nsIDOMDocument *aNewDocument);
   NS_IMETHOD DocumentChanged(nsIDOMDocument *aNewDocument);
@@ -187,6 +190,7 @@ public:
                               nsIXTFElement::NOTIFY_HANDLE_DEFAULT),
     kElementFlags(nsXFormsUtils::ELEMENT_WITH_MODEL_ATTR),
     mHasParent(PR_FALSE),
+    mHasDoc(PR_FALSE),
     mPreventLoop(PR_FALSE),
     mUsesModelBinding(PR_FALSE),
     mAppearDisabled(PR_FALSE),
@@ -213,6 +217,9 @@ protected:
 
   /** State that tells whether control has a parent or not */
   PRPackedBool                        mHasParent;
+
+  /** State that tells whether control has a parent or not */
+  PRPackedBool                        mHasDoc;
 
   /** State to prevent infinite loop when generating and handling xforms-next
    *  and xforms-previous events
@@ -248,6 +255,23 @@ protected:
    * the index() function in the binding expression.
    */
   nsCOMArray<nsIXFormsRepeatElement>  mIndexesUsed;
+
+  /**
+   * List of XForms elements contained by this control who tried to bind
+   * and couldn't because this control wasn't ready to bind, yet.  This means
+   * that these contained nodes couldn't bind because they could be potentially
+   * using this control's bound node as a context node.  When this control
+   * is ready to bind and successfully binds, then this list will be processed.
+   * And in turn, if these controls contain controls on THEIR mAbortedBindList,
+   * then they will be similarly processed.
+   */
+  nsCOMArray<nsIXFormsControl> mAbortedBindList;
+
+  /**
+   * The control that contains the aborted bind list that this control is on.
+   * A control should never be on more than one list at a time.
+   */
+  nsCOMPtr<nsIXFormsContextControl> mAbortedBindListContainer;
 
   /**
    * Does control have a binding attribute?

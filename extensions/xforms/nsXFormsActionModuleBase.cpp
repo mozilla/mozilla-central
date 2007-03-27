@@ -58,7 +58,7 @@ nsXFormsActionModuleBase::~nsXFormsActionModuleBase()
 }
 
 NS_IMPL_ISUPPORTS_INHERITED2(nsXFormsActionModuleBase,
-			                       nsXFormsStubElement,
+                             nsXFormsStubElement,
                              nsIXFormsActionModuleElement,
                              nsIDOMEventListener)
 

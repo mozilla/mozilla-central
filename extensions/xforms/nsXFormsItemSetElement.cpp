@@ -102,6 +102,8 @@ nsXFormsItemSetElement::ParentChanged(nsIDOMElement *aNewParent)
 {
   UpdateRepeatState(aNewParent);
 
+  mHasParent = aNewParent != nsnull;
+
   if (aNewParent)
     Refresh();
 

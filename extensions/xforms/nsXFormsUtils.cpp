@@ -423,6 +423,9 @@ nsXFormsUtils::GetNodeContext(nsIDOMElement           *aElement,
     // set, it sets the model to the first model in the document.
   
     NS_ENSURE_SUCCESS(rv, rv);
+    if (rv == NS_OK_XFORMS_NOTREADY) {
+      return rv;
+    }
   }
 
   // if context node is not set, it's the document element of the model's
@@ -670,6 +673,9 @@ nsXFormsUtils::EvaluateNodeBinding(nsIDOMElement           *aElement,
                                &contextSize);
 
   NS_ENSURE_SUCCESS(rv, rv);
+  if (rv == NS_OK_XFORMS_NOTREADY) {
+    return rv;
+  }
 
   if (!contextNode) {
     return NS_OK;   // this will happen if the doc is still loading
@@ -1383,6 +1389,30 @@ nsXFormsUtils::FindParentContext(nsIDOMElement           *aElement,
                                       &cPosition,
                                       &cSize);
       NS_ENSURE_SUCCESS(rv, rv);
+
+      // If we were unable to bind due to the context control not being ready,
+      // then let the context control know that we want to be told when it is
+      // ready.  But if this bind works and we are still waiting for
+      // notification, then remove ourselves from the list we think we
+      // are on.  All of this rigamarole just in case some crazy mutation
+      // handler is out there stirring the pot.
+      nsCOMPtr<nsIXFormsControl> control(do_QueryInterface(aElement));
+      if (control) {
+        if (rv == NS_OK_XFORMS_NOTREADY) {
+          contextControl->AddRemoveAbortedControl(control, PR_TRUE);
+          return rv;
+        }
+
+        if (rv == NS_OK) {
+          nsCOMPtr<nsIXFormsContextControl> ctxtControl;
+
+          control->GetAbortedBindListContainer(getter_AddRefs(ctxtControl));
+          if (ctxtControl) {
+            ctxtControl->AddRemoveAbortedControl(control, PR_FALSE);
+          }
+        }
+      }
+
       // If the call failed, it means that we _have_ a parent which sets the
       // context but it is invalid, ie. the XPath expression could have
       // generated an error.
