@@ -32,8 +32,8 @@
   <property name="name" value="pluglet"/>
   <property name="major.version" value="1" />
   <property name="minor.version" value="1" />
-  <property name="release.version" value="a1" />
-  <property name="release.version.full" value="alpha_1" />
+  <property name="release.version" value="a2" />
+  <property name="release.version.full" value="alpha_2" />
   <property name="version" 
             value="${major.version}_${minor.version}_${release.version}"/>
   <property name="full.version" value="${major.version}_${minor.version}_${release.version.full}"/>
@@ -61,12 +61,12 @@
     <antcall target="compile.all" />
     <antcall target="build.dist.jar" />
     <antcall target="copy.binaries" />
-<!--
-    <antcall target="copy.test.src" />
-    <antcall target="copy.core.src" />
     <antcall target="copy.build.support" />
-    <antcall target="build.javadocs" />
+    <antcall target="copy.test.src" />
     <antcall target="build.zip" />
+<!--
+    <antcall target="copy.core.src" />
+    <antcall target="build.javadocs" />
 -->
   </target>
 
@@ -218,33 +218,16 @@
 
   <target name="copy.test.src" depends="prepare">
 
-    <!-- Populate the netbeans Test Packages -->
-
-    <copy todir="${dist.home}/test/automated/src/main/java">
-      <fileset dir="${source.home}/webclient/test/automated/src/classes">
-        <exclude name="**/*Bookmark*.java" />
-        <exclude name="**/*Preferences*.java" />
-        <exclude name="**/*Profile*.java" />
-      </fileset>
-      <fileset dir="${basedir}/mcp-test/src/test/java">
-        <include name="**/*.java" />
-      </fileset>
-    </copy>
-    <copy todir="${dist.home}/test/automated/src/main/resources">
-      <fileset dir="${source.home}/webclient/test/automated/src/test">
-         <exclude name="*basic*/" />
-      </fileset>
-    </copy>
-
     <!-- Populate the netbeans Source Packages -->
 
-    <copy todir="${dist.home}/test/manual/src/main/java">
-      <fileset dir="${source.home}/webclient/test/manual/src/classes" />
-      <fileset dir="${basedir}/mcp-test/src/main/java">
-        <include name="**/*.java" />
+    <copy todir="${dist.home}">
+      <fileset dir="${basedir}/..">
+        <include name="examples/simple/**/*.*" />
+        <include name="examples/jmfplayer/**/*.*" />
+        <include name="examples/EmptyMainClass/**/*.*" />
+        <include name="examples/index.html" />
       </fileset>
     </copy>
-
 
   </target>
 
@@ -275,13 +258,15 @@
 
   <target name="copy.build.support" depends="prepare">
     <copy todir="${dist.home}/netbeans">
-      <fileset dir="${basedir}/netbeans" />
+      <fileset dir="${basedir}/../netbeans" />
     </copy>
+    <copy file="${mozdocdir}/java-plugins/release-notes/${full.version}.html" todir="${dist.home}" />
+    <copy file="${mozdocdir}/java-plugins/release-notes/${full.version}-detail.html" todir="${dist.home}" />
+<!--
     <copy todir="${dist.home}/non-ide">
       <fileset dir="${basedir}/non-ide" />
     </copy>
-    <copy file="${mozdocdir}/webclient/release-notes/${full.version}.html" todir="${dist.home}" />
-    <copy file="${mozdocdir}/webclient/release-notes/${full.version}-detail.html" todir="${dist.home}" />
+-->
   </target>
 
   <target name="build.javadocs" depends="prepare,uptodate"
