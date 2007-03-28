@@ -162,7 +162,7 @@ elsif ($action eq 'do_clone'){
             detaint_natural($id);
             validate_selection($id,'category_id','test_case_categories');
             my $category = Bugzilla::Testopia::Category->new($id);
-            push @case_ids, @{$category->case_ids};
+            push @case_ids, @{$category->plan_case_ids($plan->id)};
         }
         
         my $progress_interval = 250;

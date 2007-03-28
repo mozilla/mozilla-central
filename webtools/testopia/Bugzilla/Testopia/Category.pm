@@ -241,22 +241,23 @@ sub case_count {
     return $self->{'case_count'};
 }
 
-=head2 case_ids
+=head2 plan_case_ids
 
-Returns a reference to a list of case_ids in this category
+Returns a reference to a list of case_ids in this category for a given plan.
 
 =cut
 
-sub case_ids {
-    my ($self) = @_;
+sub plan_case_ids {
+    my ($self, $plan_id) = @_;
     my $dbh = Bugzilla->dbh;
     return $self->{'case_ids'} if exists $self->{'case_ids'};
 
     $self->{'case_ids'} = $dbh->selectcol_arrayref(
-          "SELECT case_id 
-             FROM test_cases 
-            WHERE category_id = ?", 
-           undef, $self->{'category_id'});
+          "SELECT DISTINCT test_cases.case_id 
+             FROM test_cases
+       INNER JOIN test_case_plans ON test_case_plans.case_id = test_cases.case_id 
+            WHERE category_id = ? AND test_case_plans.plan_id = ?", 
+           undef, ($self->{'category_id'}, $plan_id));
           
     return $self->{'case_ids'};
 }
