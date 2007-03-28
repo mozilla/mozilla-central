@@ -26,7 +26,7 @@ use Bugzilla;
 use Bugzilla::Constants;
 use Bugzilla::DB;
 
-my $VERSION = "1.1";
+my $VERSION = "1.2";
 
 #check that we are on the Bugzilla's directory:
 
@@ -316,6 +316,8 @@ sub UpdateDB {
     $dbh->bz_add_column('test_plan_types', 'description', {TYPE => 'MEDIUMTEXT'}, 0);
     $dbh->bz_add_column('test_case_status', 'description', {TYPE => 'MEDIUMTEXT'}, 0);
     $dbh->bz_add_column('test_case_run_status', 'description', {TYPE => 'MEDIUMTEXT'}, 0);
+    
+    fixTables($dbh);
     
     $dbh->bz_alter_column('test_attachment_data', 'attachment_id', {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1});
     $dbh->bz_alter_column('test_attachments', 'attachment_id', {TYPE => 'INTSERIAL', PRIMARYKEY => 1, NOTNULL => 1});
@@ -787,6 +789,48 @@ sub restorePermissions {
     perm_cp($file.".orig", $file);
   }
   print "Done.\n";
+}
+
+sub fixTables {
+    my $dbh = shift;
+    my ($count) = $dbh->selectrow_array("SELECT COUNT(*) FROM test_case_bugs WHERE case_id IS NULL");
+    if ($count){
+        require Bugzilla::Testopia::TestCaseRun;
+        my $caseruns = $dbh->selectcol_arrayref("SELECT case_run_id FROM test_case_bugs WHERE case_id IS NULL");
+        my $sth = $dbh->prepare_cached("UPDATE test_case_bugs SET case_id = ? WHERE case_run_id = ?"); 
+        foreach my $cr (@$caseruns){
+            my $caserun = Bugzilla::Testopia::TestCaseRun->new($cr);
+            $sth->execute($caserun->case->id, $cr);
+        }
+    }
+    eval{
+        $dbh->bz_add_index('test_case_components', 'components_case_id_idx', {FIELDS => [qw(case_id component_id)], TYPE => 'UNIQUE'});
+    };
+    if ($@){
+        print "Running component fix...\n";
+        my $rows = $dbh->selectall_arrayref("SELECT * FROM test_case_components", {"Slice" => {}});
+        my $seen;
+        foreach my $row (@$rows){
+          my $line = $row->{'case_id'} . "-" . $row->{'component_id'};
+          if (!$seen->{$line}){
+             $seen->{$line} = 'seen';
+          }
+          elsif ($seen->{$line} eq 'seen'){
+              $dbh->do("DELETE FROM test_case_components 
+                        WHERE case_id = ? AND component_id = ?",
+                        undef, ($row->{'case_id'}, $row->{'component_id'}));
+              $dbh->do("INSERT INTO test_case_components 
+                        VALUES(?,?)",
+                        undef, ($row->{'case_id'}, $row->{'component_id'}));
+              $seen->{$line} = 'fixed';
+          }
+          elsif ($seen->{$line} eq 'fixed'){
+              next;
+          }
+        }
+    }
+                        
+              
 }
 
 ######################################
