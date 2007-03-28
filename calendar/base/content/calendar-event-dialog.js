@@ -134,9 +134,13 @@ function dispose()
 
 function onAccept()
 {
-    // if this event isn't mutable, we need to clone it like a sheep
+    // we need to clone the item in order to apply the changes.
+    // it is important to not apply the changes to the original item
+    // (even if it happens to be mutable) in order to guarantee
+    // that providers see a proper oldItem/newItem pair in case
+    // they rely on this fact (e.g. WCAP does).
     var originalItem = window.calendarItem;
-    var item = (originalItem.isMutable) ? originalItem : originalItem.clone();
+    var item = originalItem.clone();
 
     saveDialog(item);
 
