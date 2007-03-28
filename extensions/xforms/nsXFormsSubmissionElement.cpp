@@ -2180,9 +2180,10 @@ nsXFormsSubmissionElement::SendData(const nsCString &uriSpec,
   NS_ENSURE_STATE(channel);
 
   PRBool ignoreStream = PR_FALSE;
+  nsCOMPtr<nsIHttpChannel> httpChannel;
 
   if (mFormat & METHOD_POST) {
-    nsCOMPtr<nsIHttpChannel> httpChannel = do_QueryInterface(channel);
+    httpChannel = do_QueryInterface(channel);
     if (!httpChannel) {
       // The spec doesn't really say how to handle post with anything other
       // than http.  So we are free to make up our own rules.
@@ -2217,33 +2218,6 @@ nsXFormsSubmissionElement::SendData(const nsCString &uriSpec,
                                    nsIScriptError::warningFlag);
         return NS_ERROR_UNEXPECTED;
       }
-    } else {
-
-      rv = httpChannel->SetRequestMethod(NS_LITERAL_CSTRING("POST"));
-      NS_ENSURE_SUCCESS(rv, rv);
-  
-      if (mIsSOAPRequest) {
-        nsCOMPtr<nsIMIMEHeaderParam> mimeHdrParser =
-          do_GetService("@mozilla.org/network/mime-hdrparam;1");
-        NS_ENSURE_STATE(mimeHdrParser);
-  
-        nsAutoString mediatype, action;
-        mElement->GetAttribute(NS_LITERAL_STRING("mediatype"),
-                               mediatype);
-        if (!mediatype.IsEmpty()) {
-          
-          rv = mimeHdrParser->GetParameter(NS_ConvertUTF16toUTF8(mediatype),
-                                           "action", EmptyCString(), PR_FALSE,
-                                           nsnull, action);
-        }
-        if (action.IsEmpty()) {
-          action.AssignLiteral(" ");
-        }
-        rv = httpChannel->SetRequestHeader(NS_LITERAL_CSTRING("SOAPAction"),
-                                           NS_ConvertUTF16toUTF8(action),
-                                           PR_FALSE);
-        NS_ENSURE_SUCCESS(rv, rv);
-      }
     }
   }
 
@@ -2262,6 +2236,38 @@ nsXFormsSubmissionElement::SendData(const nsCString &uriSpec,
     // this in effect sets the request method of the channel to 'PUT'
     rv = uploadChannel->SetUploadStream(bufferedStream, contentType, -1);
     NS_ENSURE_SUCCESS(rv, rv);
+  }
+
+  if (mFormat & METHOD_POST && httpChannel) {
+    // In this case we want to set the request header to have the method of
+    // 'post'.  We need to leave this code after the call to SetUploadStream
+    // since that will blindly overwrite the request header with a method of
+    // 'put'
+    rv = httpChannel->SetRequestMethod(NS_LITERAL_CSTRING("POST"));
+    NS_ENSURE_SUCCESS(rv, rv);
+  
+    if (mIsSOAPRequest) {
+      nsCOMPtr<nsIMIMEHeaderParam> mimeHdrParser =
+        do_GetService("@mozilla.org/network/mime-hdrparam;1");
+      NS_ENSURE_STATE(mimeHdrParser);
+  
+      nsAutoString mediatype, action;
+      mElement->GetAttribute(NS_LITERAL_STRING("mediatype"),
+                             mediatype);
+      if (!mediatype.IsEmpty()) {
+        
+        rv = mimeHdrParser->GetParameter(NS_ConvertUTF16toUTF8(mediatype),
+                                         "action", EmptyCString(), PR_FALSE,
+                                         nsnull, action);
+      }
+      if (action.IsEmpty()) {
+        action.AssignLiteral(" ");
+      }
+      rv = httpChannel->SetRequestHeader(NS_LITERAL_CSTRING("SOAPAction"),
+                                         NS_ConvertUTF16toUTF8(action),
+                                         PR_FALSE);
+      NS_ENSURE_SUCCESS(rv, rv);
+    }
   }
 
   // set loadGroup and notificationCallbacks
