@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   Vladimir Vukicevic <vladimir@pobox.com> (Original Author)
+ *   Alice Nodelman <anodelman@mozilla.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -44,6 +45,9 @@ const ONE_YEAR_SECONDS = 365*ONE_DAY_SECONDS; // leap years whatever.
 
 const MONTH_ABBREV = [ "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" ];
 
+const CONTINUOUS_GRAPH = 0;
+const DISCRETE_GRAPH = 1;
+
 const bonsaicgi = "bonsaibouncer.cgi";
 
 // more days than this and we'll force user confirmation for the bonsai query
@@ -58,24 +62,35 @@ var Tinderbox;
 var BigPerfGraph;
 var SmallPerfGraph;
 var Bonsai;
+var graphType;
 
-function loadingDone() {
+function loadingDone(graphTypePref) {
     //createLoggingPane(true);
+    graphType = graphTypePref;
 
-    Tinderbox = new TinderboxData();
+    if (graphType == CONTINUOUS_GRAPH) {
+        Tinderbox = new TinderboxData();
+        SmallPerfGraph = new CalendarTimeGraph("smallgraph");
+        BigPerfGraph = new CalendarTimeGraph("graph");
+        onDataLoadChanged();
+    }
+    else {
+        Tinderbox = new DiscreteTinderboxData();
+        SmallPerfGraph = new DiscreteGraph("smallgraph");
+        BigPerfGraph = new DiscreteGraph("graph");
+        onDiscreteDataLoadChanged();
+    }
+
     Tinderbox.init();
 
     if (BonsaiService)
         Bonsai = new BonsaiService();
 
-    SmallPerfGraph = new CalendarTimeGraph("smallgraph");
     SmallPerfGraph.yLabelHeight = 20;
     SmallPerfGraph.setSelectionType("range");
-    BigPerfGraph = new CalendarTimeGraph("graph");
     BigPerfGraph.setSelectionType("cursor");
     BigPerfGraph.setCursorType("free");
 
-    onDataLoadChanged();
 
     SmallPerfGraph.onSelectionChanged.
         subscribe (function (type, args, obj) {
@@ -128,8 +143,9 @@ function loadingDone() {
                        updateLinkToThis();
                    });
 
-    BigPerfGraph.onCursorMoved.
-        subscribe (function (type, args, obj) {
+    if (graphType == CONTINUOUS_GRAPH) {
+         BigPerfGraph.onCursorMoved.
+             subscribe (function (type, args, obj) {
                        var time = args[0];
                        var val = args[1];
                        if (time != null && val != null) {
@@ -139,11 +155,42 @@ function loadingDone() {
                            showStatus(null);
                        }
                    });
+    }
+    else {
+        BigPerfGraph.onCursorMoved.
+            subscribe (function (type, args, obj) {
+                       var time = args[0];
+                       var val = args[1];
+                       var extra_data = args[2]
+                       if (time != null && val != null) {
+                           // cheat
+                           showStatus("Interval: " + Math.floor(time) + " Value: " + val.toFixed(2) + " " + extra_data);
+                       } else {
+                           showStatus(null);
+                       }
+                   });
+         BigPerfGraph.onNewGraph.
+             subscribe (function(type, args, obj) {
+                 showGraphList(args[0]);
+             });
+    }
     if (document.location.hash) {
         handleHash(document.location.hash);
     } else {
-        addGraphForm();
+        if (graphType == CONTINUOUS_GRAPH) {
+            addGraphForm();
+        }
+        else {
+            addDiscreteGraphForm();
+        }
     }
+}
+
+function addDiscreteGraphForm(config) {
+    var m = new DiscreteGraphFormModule(config);
+    m.render (getElement("graphforms"));
+    m.setColor(randomColor());
+    return m;
 }
 
 function addGraphForm(config) {
@@ -181,7 +228,9 @@ function onUpdateBonsai() {
     }
 }
 
-function onGraph() {
+
+
+function onGraph()  {
     for each (var g in [BigPerfGraph, SmallPerfGraph]) {
         g.clearDataSets();
         g.setTimeRange(null, null);
@@ -219,8 +268,8 @@ function onGraphLoadRemainder(baselineDataSet) {
             SmallPerfGraph.selectionStartTime &&
             SmallPerfGraph.selectionEndTime)
         {
-            if (SmallPerfGraph.selectionStartTime < gCurrentLoadRange[0] ||
-                SmallPerfGraph.selectionEndTime > gCurrentLoadRange[1])
+            if (gCurrentLoadRange && (SmallPerfGraph.selectionStartTime < gCurrentLoadRange[0] ||
+                SmallPerfGraph.selectionEndTime > gCurrentLoadRange[1]))
             {
                 SmallPerfGraph.selectionStartTime = Math.max (SmallPerfGraph.selectionStartTime, gCurrentLoadRange[0]);
                 SmallPerfGraph.selectionEndTime = Math.min (SmallPerfGraph.selectionEndTime, gCurrentLoadRange[1]);
@@ -266,7 +315,9 @@ function onGraphLoadRemainder(baselineDataSet) {
                         gReadyForRedraw = true;
                     }
 
-                    updateLinkToThis();
+                    //if (graphType == CONTINUOUS_GRAPH) {
+                        updateLinkToThis();
+                    //}
                 } catch(e) { log(e); }
             };
         };
@@ -274,6 +325,7 @@ function onGraphLoadRemainder(baselineDataSet) {
         Tinderbox.requestDataSetFor (graphModule.testId, makeCallback(graphModule));
     }
 }
+
 
 function onDataLoadChanged() {
     log ("loadchanged");
@@ -300,6 +352,15 @@ function onDataLoadChanged() {
     }
 
     Tinderbox.clearValueDataSets();
+
+    // hack, reset colors
+    randomColorBias = 0;
+}
+
+function onDiscreteDataLoadChanged() {
+    log ("loadchanged");
+    Tinderbox.defaultLoadRange = null;
+    gCurrentLoadRange = null;
 
     // hack, reset colors
     randomColorBias = 0;
@@ -339,8 +400,14 @@ function handleHash(hash) {
     var ctr = 1;
     while (("m" + ctr + "tid") in qsdata) {
         var prefix = "m" + ctr;
-        addGraphForm({testid: qsdata[prefix + "tid"],
+        if (graphType == CONTINUOUS_GRAPH) {
+            addGraphForm({testid: qsdata[prefix + "tid"],
                       average: qsdata[prefix + "avg"]});
+        }
+        else {
+            addDiscreteGraphForm({testid: qsdata[prefix + "tid"],
+                      average: qsdata[prefix + "avg"]});
+        }
         ctr++;
     }
 
@@ -352,14 +419,48 @@ function handleHash(hash) {
 
     Tinderbox.defaultLoadRange = [tstart, tend];
 
-    Tinderbox.requestTestList(function (tests) {
-        setTimeout (onGraph, 0); // let the other handlers do their thing
-    });
+    if (graphType == CONTINUOUS_GRAPH) {
+        Tinderbox.requestTestList(function (tests) {
+            setTimeout (onGraph, 0); // let the other handlers do their thing
+        });
+    }
+    else {
+        Tinderbox.requestTestList(null, null, null, null, function (tests) {
+            setTimeout (onGraph, 0); // let the other handlers do their thing
+        });
+    }
 
 }
 
 function showStatus(s) {
     replaceChildNodes("status", s);
+}
+
+function showGraphList(s) {
+    replaceChildNodes("graph-label-list",null);
+    log("s: " +s);
+    var tbl = new TABLE({});
+    var tbl_tr = new TR();
+    appendChildNodes(tbl_tr, new TD(""));
+    appendChildNodes(tbl_tr, new TD("avg"));
+    appendChildNodes(tbl_tr, new TD("max"));
+    appendChildNodes(tbl_tr, new TD("min"));
+    appendChildNodes(tbl, tbl_tr);
+    for each (var ds in s) {
+       var tbl_tr = new TR();
+       var rstring = ds.stats + " ";
+       var colorDiv = new DIV({ id: "whee", style: "display: inline; border: 1px solid black; height: 15; " +
+                              "padding-right: 15; vertical-align: middle; margin: 3px;" });
+       colorDiv.style.backgroundColor = colorToRgbString(ds.color);
+       log("ds.stats" + ds.stats);
+       appendChildNodes(tbl_tr, colorDiv);
+       for each (var val in ds.stats) {
+         appendChildNodes(tbl_tr, new TD(val.toFixed(2)));
+       }
+       appendChildNodes(tbl, tbl_tr);
+    } 
+    appendChildNodes("graph-label-list", tbl);
+    //replaceChildNodes("graph-label-list",rstring);
 }
 
 /* Get some pre-set colors in for the first 5 graphs, thens start randomly generating stuff */

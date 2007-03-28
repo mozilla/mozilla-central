@@ -15,7 +15,7 @@ import cStringIO
 from pysqlite2 import dbapi2 as sqlite
 
 DBPATH = "db/data.sqlite"
-
+db = sqlite.connect(DBPATH)
 #
 # All objects are returned in the form:
 # {
@@ -51,6 +51,14 @@ DBPATH = "db/data.sqlite"
 # endtime=tval
 #  End time, in seconds since GMT epoch
 #
+# getlist=1
+#   To be combined with branch, machine and testname
+#   Returns a list of distinct branches, machines or testnames in the database
+#
+# if neither getlist nor setid are found in the query string the returned results will be a list
+# of tests, limited by a given datelimit, branch, machine and testname
+#  ie) dgetdata?datelimit=1&branch=1.8 will return all tests in the database that are not older than a day and that
+#      were run on the 1.8 branch
 
 def doError(errCode):
     errString = "unknown error"
@@ -60,28 +68,52 @@ def doError(errCode):
         errString = "bad test name"
     print "{ resultcode: " + str(errCode) + ", error: '" + errString + "' }"
 
-db = None
-
-def doListTests(fo):
+def doGetList(fo, type, branch, machine, testname):
     results = []
-    
+    s1 = ""
+    if branch:
+      s1 = "SELECT DISTINCT branch FROM dataset_info"
+    if machine:
+      s1 = "SELECT DISTINCT machine FROM dataset_info"
+    if testname:
+      s1 = "SELECT DISTINCT test FROM dataset_info"
     cur = db.cursor()
-    cur.execute("SELECT id, machine, test, test_type, extra_data FROM dataset_info WHERE test_type != ?", ("baseline",))
+    cur.execute(s1 + " WHERE type = ?", (type,))
+    for row in cur:
+        results.append({ "value": row[0] })
+    cur.close()
+    fo.write(json.write( {"resultcode": 0, "results": results} ))  
+
+def doListTests(fo, type, datelimit, branch, machine, testname):
+    results = []
+    s1 = ""
+    if branch:
+       s1 += " AND branch = '" + branch + "' "
+    if machine:
+       s1 += " AND machine = '" + machine + "' "
+    if testname:
+       s1 += " AND test = '" + testname + "' "
+   
+    cur = db.cursor()
+    cur.execute("SELECT id, machine, test, test_type, date, extra_data, branch FROM dataset_info WHERE type = ? AND test_type != ? and date > ?" + s1, (type, "baseline", datelimit))
     for row in cur:
         results.append( {"id": row[0],
                          "machine": row[1],
                          "test": row[2],
                          "test_type": row[3],
-                         "extra_data": row[4]} )
+                         "date": row[4],
+                         "extra_data": row[5],
+                         "branch": row[6]})
+
     cur.close()
     fo.write (json.write( {"resultcode": 0, "results": results} ))
 
 def doSendResults(fo, setid, starttime, endtime, raw):
     s1 = ""
     s2 = ""
-    if starttime is not None:
+    if starttime:
         s1 = " AND time >= " + starttime
-    if endtime is not None:
+    if endtime:
         s2 = " AND time <= " + endtime
 
     fo.write ("{ resultcode: 0,")
@@ -134,44 +166,78 @@ def doSendResults(fo, setid, starttime, endtime, raw):
         cur.close()
         fo.write ("],")
 
+    cur = db.cursor()
+    cur.execute("SELECT avg(value), max(value), min(value) from dataset_values where dataset_id = ? " + s1 + s2 + " GROUP BY dataset_id", (setid,))
+    fo.write("stats: [")
+    for row in cur:
+        fo.write("%s, %s, %s," %(row[0], row[1], row[2]))
+    cur.close()
+    fo.write("],")
+
     fo.write ("}")
 
-def main():
-    doGzip = 0
-    try:
-        if "gzip" in os.environ["HTTP_ACCEPT_ENCODING"]:
-            doGzip = 1
-    except:
-        pass
+#if var is a number returns a value other than None
+def checkNumber(var):
+    if var is None:
+      return 1
+    reNumber = re.compile('^[0-9.]*$')
+    return reNumber.match(var)
 
-    form = cgi.FieldStorage()
+#if var is a string returns a value other than None
+def checkString(var):
+    if var is None:
+      return 1
+    reString = re.compile('^[0-9A-Za-z._()\- ]*$')
+    return reString.match(var)
 
-    setid = form.getfirst("setid")
-    raw = form.getfirst("raw")
-    starttime = form.getfirst("starttime")
-    endtime = form.getfirst("endtime")
+doGzip = 0
+try:
+    if "gzip" in os.environ["HTTP_ACCEPT_ENCODING"]:
+        doGzip = 1
+except:
+    pass
 
-    zbuf = cStringIO.StringIO()
-    zfile = zbuf
-    if doGzip == 1:
-        zfile = gzip.GzipFile(mode = 'wb', fileobj = zbuf, compresslevel = 5)
+form = cgi.FieldStorage()
 
-    global db
-    db = sqlite.connect(DBPATH)
-    
-    if setid is None:
-        doListTests(zfile)
-    else:
-        doSendResults(zfile, setid, starttime, endtime, raw)
+#make sure that we are getting clean data from the user
+for strField in ["type", "machine", "branch", "test"]:
+    val = form.getfirst(strField)
+    if strField == "test":
+        strField = "testname"
+    if not checkString(val):
+        print "Invalid string arg: ", strField, " '" + val + "'"
+        sys.exit(500)
+    globals()[strField] = val
 
-    sys.stdout.write("Content-Type: text/plain\n")
-    if doGzip == 1:
-        zfile.close()
-        sys.stdout.write("Content-Encoding: gzip\n")
-    sys.stdout.write("\n")
+for numField in ["setid", "raw", "starttime", "endtime", "datelimit", "getlist"]:
+    val = form.getfirst(numField)
+    if not checkNumber(val):
+        print "Invalid string arg: ", numField, " '" + val + "'"
+        sys.exit(500)
+    globals()[numField] = val
 
-    sys.stdout.write(zbuf.getvalue())
+if not datelimit:
+  datelimit = 0
 
-main()
+zbuf = cStringIO.StringIO()
+zfile = zbuf
+if doGzip == 1:
+    zfile = gzip.GzipFile(mode = 'wb', fileobj = zbuf, compresslevel = 5)
+
+if not setid and not getlist:
+    doListTests(zfile, type, datelimit, branch, machine, testname)
+elif not getlist:
+    doSendResults(zfile, setid, starttime, endtime, raw)
+else:
+    doGetList(zfile, type, branch, machine, testname)
+
+sys.stdout.write("Content-Type: text/plain\n")
+if doGzip == 1:
+    zfile.close()
+    sys.stdout.write("Content-Encoding: gzip\n")
+sys.stdout.write("\n")
+
+sys.stdout.write(zbuf.getvalue())
+
 
 

@@ -6,6 +6,13 @@
   width: 15em;
 }
 
+.dgraphconfig {
+  background-color: #cccccc;
+  -moz-border-radius: 10px 0 0 10px;
+  padding: 10px;
+  width: 7em;
+}
+
 .graphconfig-list {
   background-color: #cccccc;
   -moz-border-radius:  0 10px 10px 0;
@@ -33,7 +40,13 @@
 */
 
 select.tinderbox, select.testname {
+  font-family: monospace;
   width: 200px
+}
+
+select.other {
+  font-family: monospace;
+  width: 100px
 }
 
 .plusminus {

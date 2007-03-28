@@ -1,9 +1,9 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
   <head>
-    <title>Perf-o-matic</title>
+    <title>Perf-o-matic-too</title>
 
-    <link rel="stylesheet" type="text/css" href="js/graph.css">
+    <link rel="stylesheet" type="text/css" href="js/graph.css"></link>
 
     <!-- MochiKit -->
     <script type="text/javascript" src="js/mochikit/MochiKit.js"></script>
@@ -20,14 +20,14 @@
     <script type="text/javascript" src="js/DataSet.js"></script>
     <script type="text/javascript" src="js/GraphCanvas.js"></script>
 
-    <script type="text/javascript" src="js/GraphFormModule.js"></script>
+    <script type="text/javascript" src="js/dGraphFormModule.js"></script>
     <script type="text/javascript" src="js/graph.js"></script>
 
     <!-- BonsaiService needs e4x -->
     <script type="text/javascript; e4x=1" src="js/BonsaiService.js"></script>
   </head>
 
-  <body onload="loadingDone(CONTINUOUS_GRAPH)">
+  <body onload="loadingDone(DISCRETE_GRAPH)">
     <!--<h1>Graph</h1>-->
 
     <!-- Take your damn divs and floats and clears and shove 'em! -->
@@ -36,29 +36,19 @@
       <table class="graphconfig-no" width="100%">
 
         <tr style="vertical-align: top">
-          <td class="graphconfig">
-            <table>
-              <tr style="vertical-align: top;">
-                <td>Show</td>
-                <td>
-                  <input id="load-all-radio"  type="radio" name="dataload" onclick="onDataLoadChanged()">
-                  <label>all data</label><br>
-                  <input id="load-days-radio" type="radio" name="dataload" onclick="onDataLoadChanged()" checked>
-                  <label>previous</label> <input type="text" value="30" id="load-days-entry" size="3" onchange="onDataLoadChanged()"> <label>days</label>
-                </td>
-              </tr>
-            </table>
-
+          <td class="dgraphconfig">
+<!-- 
             <div id="baseline">
               <span>Use </span><select id="baselineDropdown"><option value="0">nothing</option></select><span> as a baseline</span><br>
             </div>
-
+-->
             <br>
 
             <div id="formend">
               <input type="submit" onclick="onGraph()" value="Graph It!">
               <!--        <label for="baseline">No baseline</label><input type="radio" name="baseline" checked onclick="onNoBaseLineClick()"> -->
-              <a id="linktothis" href="graph.html">Link to this graph</a>
+              </br> </br>
+              <div><a id="linktothis" href="dgraph.html">Link to this graph</a> </div>
             </div>
 
             <br>
@@ -70,33 +60,38 @@
             <div id="graphforms"></div>
 
             <div id="addone">
-              <img src="js/img/plus.png" class="plusminus" onclick="addGraphForm()" alt="Plus">
+              <img src="js/img/plus.png" class="plusminus" onclick="addDiscreteGraphForm()">
             </div>
           </td>
         </tr>
-      </table>
 
+    </table>
     </form>
 
     <!-- small graph -->
+    <div style="width: 900px; height:20px">
+      <center><span id="status" class="status"></span></center>
+    </div>
+
+   <div id="container" style="width: 100%">
 
     <!-- these are absolute size, so we wrap them in a div that can overflow -->
-    <div id="graph-container" style="width: 900px;">
+    <div id="graph-container" style="width: 710px;float:left;">
       <div id="smallgraph-labels-x" style="position: relative; left: 51px; margin-left: 1px; margin-right: 1px; height: 30px; width: 700px"></div>
       <div id="smallgraph-labels-y" style="position: relative; left: 0px; top: 0px; float: left; height: 76px; width: 50px;"></div>
-      <canvas style="clear: left; border: 1px solid #888; padding-top: 1px;" id="smallgraph" height="75" width="700"></canvas>
+      <canvas style="clear: left; border: 1px solid #888; padding-top: 1px;" id="smallgraph" height="75" width="650"></canvas>
       
       <br/>
       <br/>
 
       <div id="graph-labels-y" style="position: relative; left: 0px; top: 0px; float: left; margin-top: 1px; margin-bottom: 1px; height: 300px; width: 50px;"></div>
-      <canvas style="clear: left; border: 1px solid #888;" id="graph" height="300" width="700"></canvas>
+      <canvas style="clear: left; border: 1px solid #888;" id="graph" height="300" width="650"></canvas>
       <div id="graph-labels-x" style="position: relative; left: 50px; margin-left: 1px; margin-right: 1px; height: 50px; width: 700px"></div>
     </div>
 
-    <div style="width: 900px">
-      <center><span id="status" class="status"></span></center>
-    </div>
+    <div id="graph-label-container" style="float:left;margin-top:30px;">
+      <span id="graph-label-list" class="graph-label-list-member" align="left"></span>
+    </div> </div>
 
   </body>
 </html>

@@ -135,7 +135,7 @@ GraphFormModule.prototype = {
                                                                    });
 
                                       for each (var test in sortedTests) {
-                                          var tstr = test.machine + " - " + test.test;
+                                          var tstr = test.machine + " - " + test.test + " - " + test.branch;
                                           opts.push(new OPTION({ value: test.id }, tstr));
                                       }
                                       replaceChildNodes(self.testSelect, opts);

@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   Vladimir Vukicevic <vladimir@pobox.com> (Original Author)
+ *   Alice Nodelman <anodelman@mozilla.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -37,7 +38,7 @@
 
 //const getdatacgi = "getdata-fake.cgi?";
 //const getdatacgi = "http://localhost:9050/getdata.cgi?";
-const getdatacgi = "getdata.cgi?";
+const getdatacgi = "getdata.cgi?"
 
 
 function checkErrorReturn(obj) {
@@ -51,9 +52,10 @@ function checkErrorReturn(obj) {
 function TinderboxData() {
     this.onTestListAvailable = new YAHOO.util.CustomEvent("testlistavailable");
     this.onDataSetAvailable = new YAHOO.util.CustomEvent("datasetavailable");
-
     this.testList = null;
+    
     this.testData = {};
+
 }
 
 TinderboxData.prototype = {
@@ -68,20 +70,22 @@ TinderboxData.prototype = {
     init: function () {
         var self = this;
         //netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect")
-
-        loadJSONDoc(getdatacgi)
+        
+        loadJSONDoc(getdatacgi + "type=continuous")
         .addCallbacks(
             function (obj) {
                 if (!checkErrorReturn(obj)) return;
                 self.testList = obj.results;
+                //log("default test list" + self.testList);
                 self.onTestListAvailable.fire(self.testList);
             },
-            function () {alert ("Error talking to getdata.cgi"); });
+            function () {alert ("Error talking to " + getdatacgi + ""); });
     },
 
     requestTestList: function (callback) {
+        //log("requestTestList default");
         var self = this;
-
+        
         if (this.testList != null) {
             callback.call (window, this.testList);
         } else {
@@ -90,7 +94,7 @@ TinderboxData.prototype = {
                 self.onTestListAvailable.unsubscribe(cb, obj);
                 obj.call (window, args[0]);
             };
-
+            
             this.onTestListAvailable.subscribe (cb, callback);
         }
     },
@@ -159,13 +163,22 @@ TinderboxData.prototype = {
             reqstr += "&starttime=" + startTime;
         if (endTime)
             reqstr += "&endtime=" + endTime;
-        log (reqstr);
+        //raw data is the extra_data column
+        reqstr += "&raw=1";
+        //log (reqstr);
         loadJSONDoc(reqstr)
         .addCallbacks(
             function (obj) {
                 if (!checkErrorReturn(obj)) return;
 
                 var ds = new TimeValueDataSet(obj.results);
+
+                //this is the the case of a discrete graph - where the entire test run is always requested
+                //so the start and end points are the first and last entries in the returned data set
+                if  (!startTime && !endTime)  {
+                    startTime = ds.data[0];
+                    endTime = ds.data[ds.data.length -2];
+                }
                 ds.requestedFirstTime = startTime;
                 ds.requestedLastTime = endTime;
                 self.testData[testId] = ds;
@@ -173,15 +186,73 @@ TinderboxData.prototype = {
                     ds.annotations = new TimeStringDataSet(obj.annotations);
                 if (obj.baselines)
                     ds.baselines = obj.baselines;
-
+                if (obj.rawdata)
+                    ds.rawdata = obj.rawdata;
+                if (obj.stats)
+                    ds.stats = obj.stats;
                 self.onDataSetAvailable.fire(testId, ds, startTime, endTime);
             },
-            function (obj) {alert ("Error talking to getdata.cgi (" + obj + ")"); log (obj.stack); });
+            function (obj) {alert ("Error talking to " + getdatacgi + " (" + obj + ")"); log (obj.stack); });
     },
 
     clearValueDataSets: function () {
         //log ("clearvalueDatasets");
         this.tinderboxTestData = {};
-    }
+    },
+
 };
 
+function DiscreteTinderboxData() {
+};
+
+DiscreteTinderboxData.prototype = {
+    __proto__: new TinderboxData(),
+   
+    init: function () {
+    },
+    
+    requestTestList: function (limitDate, branch, machine, testname, callback) {
+        var self = this;
+        //netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect")
+        var limiters = "";
+
+        var tDate = 0;
+        if (limitDate != null) {
+          tDate = new Date().getTime();
+          tDate -= limitDate * 86400 * 1000;
+          //log ("returning test lists greater than this date" + (new Date(tDate)).toGMTString());
+          //TODO hack hack hack
+          tDate = Math.floor(tDate/1000)
+          
+        }
+        if (branch != null) limiters += "&branch=" + branch;
+        if (machine != null) limiters += "&machine=" + machine;
+        if (testname != null) limiters += "&test=" + testname;
+        //log("drequestTestList: " + getdatacgi + "type=discrete&datelimit=" + tDate + limiters);
+        loadJSONDoc(getdatacgi + "type=discrete&datelimit=" + tDate + limiters)
+        .addCallbacks(
+            function (obj) {
+                if (!checkErrorReturn(obj)) return;
+                self.testList = obj.results;
+                //log ("testlist: " + self.testList);
+                callback.call(window, self.testList);
+            },
+            function () {alert ("requestTestList: Error talking to " + getdatacgi + ""); });
+    },
+
+    requestSearchList: function (branch, machine, testname, callback) {
+        var self = this;
+        limiters = ""; 
+        if (branch != null) limiters += "&branch=" + branch;
+        if (machine != null) limiters += "&machine=" + machine;
+        if (testname != null) limiters += "&test=" + testname;
+        //log(getdatacgi + "getlist=1&type=discrete" + limiters);
+        loadJSONDoc(getdatacgi + "getlist=1&type=discrete" + limiters)
+        .addCallbacks(
+            function (obj) {
+                if (!checkErrorReturn(obj)) return;
+                callback.call(window, obj.results);
+            },
+            function () {alert ("requestSearchList: Error talking to " + getdatacgi); });
+    },
+};

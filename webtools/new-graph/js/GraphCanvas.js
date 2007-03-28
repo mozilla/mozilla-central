@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   Vladimir Vukicevic <vladimir@pobox.com> (Original Author)
+ *   Alice Nodelman <anodelman@mozilla.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -41,6 +42,8 @@ function Graph() {
 Graph.prototype = {
     startTime: null,
     endTime: null,
+    offsetTime: 0,
+    //this offsetTime is used in DiscreteGraphs to draw bar graphs
 
     borderTop: 1,
     borderLeft: 1,
@@ -76,6 +79,7 @@ Graph.prototype = {
 
     onSelectionChanged: null,
     onCursorMoved: null,
+    onNewGraph: null,
 
     cursorType: "none",
     cursorColor: "rgba(200,200,0,0.7)",
@@ -110,6 +114,8 @@ Graph.prototype = {
 
         this.onSelectionChanged = new YAHOO.util.CustomEvent("graphselectionchanged");
         this.onCursorMoved = new YAHOO.util.CustomEvent("graphcursormoved");
+        this.onNewGraph = new YAHOO.util.CustomEvent("onnewgraph");
+        //log(this.offsetTime + " offsetTime");
     },
 
     getQueryString: function (prefix) {
@@ -125,6 +131,7 @@ Graph.prototype = {
         }
 
         qs += "&" + prefix + "start=" + this.startTime + "&" + prefix + "end=" + this.endTime;
+        log ("getQueryString", qs);
 
         return qs;
     },
@@ -377,7 +384,8 @@ Graph.prototype = {
         var xoffs = this.startTime;
         var yoffs = this.yOffset;
 
-        var xscale = cw / (this.endTime - this.startTime);
+
+        var xscale = cw / (this.endTime - this.startTime + this.offsetTime);
 
         var hasAverageDSs = false;
         for each (var ds in this.dataSets) {
@@ -458,14 +466,13 @@ Graph.prototype = {
                         stroke();
                     }
 
-                    //log ("ds start end", this.startTime, this.endTime, "timediff:", (this.endTime - this.startTime));
+                    //log ("ds start end", this.startTime, this.endTime, "timediff:", (this.endTime - this.startTime + this.offsetTime));
                     save();
                     scale(xscale, -this.yScale);
                     translate(0, -ch/this.yScale);
 
                     beginPath();
 
-                    var first = true;
                     var startIdx = this.dataSetIndices[i][0];
                     var endIdx = this.dataSetIndices[i][1];
 
@@ -475,16 +482,18 @@ Graph.prototype = {
                     if (startIdx > 0) startIdx--;
                     if (endIdx < ((this.dataSets[i].data.length)/2)) endIdx++;
 
+                   
+                    //using the offsetTime creates a bar graph 
+                    //if offsetTime = 0 then a regular point to point graph is drawn 
                     for (var j = startIdx; j < endIdx; j++)
                     {
                         var t = this.dataSets[i].data[j*2];
                         var v = this.dataSets[i].data[j*2+1];
-                        if (first) {
-                            moveTo (t-xoffs, v-yoffs);
-                            first = false;
-                        } else {
-                            lineTo (t-xoffs, v-yoffs);
-                        }
+
+                        lineTo(t-xoffs, v-yoffs);
+                        if (this.offsetTime)
+                            lineTo(this.offsetTime+t-xoffs, v-yoffs);
+
                     }
 
                     /* bleh. */
@@ -504,6 +513,7 @@ Graph.prototype = {
         }
 
         this.redrawOverlayOnly();
+        this.onNewGraph.fire(this.dataSets);
 
         try {
             this.makeLabels();
@@ -526,7 +536,7 @@ Graph.prototype = {
             clearRect(0, 0, this.overlayBuffer.width, this.overlayBuffer.height);
             if (this.selectionCursorTime || (this.selectionStartTime && this.selectionEndTime)) {
                 var spixel, epixel;
-                var pps = (this.frontBuffer.width / (this.endTime - this.startTime));
+                var pps = (this.frontBuffer.width / (this.endTime - this.startTime + this.offsetTime));
 
                 if (this.selectionCursorTime) {
                     spixel = Math.round((this.selectionCursorTime-this.startTime) * pps);
@@ -558,7 +568,7 @@ Graph.prototype = {
                 lineTo(cw+0.5, v+0.5);
                 stroke();
 
-                v = Math.round((this.cursorTime-this.startTime) * cw/(this.endTime - this.startTime));
+                v = Math.round((this.cursorTime-this.startTime) * cw/(this.endTime - this.startTime + this.offsetTime));
                 beginPath();
                 moveTo(v+0.5,   -0.5);
                 lineTo(v+0.5, ch+0.5);
@@ -656,7 +666,7 @@ Graph.prototype = {
         // x axis is always time in seconds
 
         // duration is in seconds
-        var duration = this.endTime - this.startTime;
+        var duration = this.endTime - this.startTime + this.offsetTime;
 
         // we know the pixel size and we know the time, we can
         // compute the seconds per pixel
@@ -809,7 +819,7 @@ Graph.prototype = {
             var ds = this.dragState;
 
             ds.curX = ds.startX + 1;
-            ds.secondsPerPixel = (this.endTime - this.startTime) / this.frontBuffer.width;
+            ds.secondsPerPixel = (this.endTime - this.startTime + this.offsetTime) / this.frontBuffer.width;
 
             this.selectionStartTime = ds.startX * ds.secondsPerPixel + this.startTime;
             this.selectionEndTime = ds.curX * ds.secondsPerPixel + this.startTime;
@@ -819,7 +829,7 @@ Graph.prototype = {
             this.selectionSweeping = true;
         } else if (this.selectionType == "cursor") {
             var pos = YAHOO.util.Dom.getX(this.frontBuffer) + this.borderLeft;
-            var secondsPerPixel = (this.endTime - this.startTime) / this.frontBuffer.width;
+            var secondsPerPixel = (this.endTime - this.startTime + this.offsetTime) / this.frontBuffer.width;
 
             this.selectionCursorTime = (event.pageX - pos) * secondsPerPixel + this.startTime;
 
@@ -915,13 +925,23 @@ Graph.prototype = {
         var pos = YAHOO.util.Dom.getXY(this.frontBuffer);
         pos[0] = pos[0] + this.borderLeft;
         pos[1] = pos[1] + this.borderTop;
-        var secondsPerPixel = (this.endTime - this.startTime) / this.frontBuffer.width;
+        var secondsPerPixel = (this.endTime - this.startTime + this.offsetTime) / this.frontBuffer.width;
         var valuesPerPixel = 1.0 / this.yScale;
 
         this.cursorTime = (event.pageX - pos[0]) * secondsPerPixel + this.startTime;
         this.cursorValue = (this.frontBuffer.height - (event.pageY - pos[1])) * valuesPerPixel + this.yOffset;
 
-        this.onCursorMoved.fire(this.cursorTime, this.cursorValue);
+        //for adding extra_data variable to the status line 
+        var extra_data = "";
+        for (var i = 0; i < this.dataSets.length; i++) {
+          if (this.dataSets[i].rawdata) {
+            if (Math.floor(this.cursorTime)*2+1 < this.dataSets[i].rawdata.length) {
+              extra_data += this.dataSets[i].rawdata[Math.floor(this.cursorTime)*2+1] + " ";
+            }
+          }
+        }
+
+        this.onCursorMoved.fire(this.cursorTime, this.cursorValue, extra_data);
 
         this.redrawOverlayOnly();
     },
@@ -951,6 +971,65 @@ Graph.prototype = {
     addMarker: function (mtime, mlabel) {
         this.markers.push (mtime);
         this.markers.push (mlabel);
+    },
+
+};
+
+function DiscreteGraph(canvasId) {
+    this.__proto__.__proto__.init.call (this, canvasId);
+    this.offsetTime = 1;
+}
+
+DiscreteGraph.prototype = {
+    __proto__: new Graph(),
+
+    formatTimeLabel: function (ltime) {
+        return ltime + "";
+    },
+
+    getTimeAxisLabels: function () {
+        if (!this.dirty)
+            return this.xAxisLabels;
+
+        // x axis is an interval
+
+        // duration is in seconds
+        var duration = this.endTime - this.startTime + this.offsetTime;
+
+        // we know the pixel size and we know the time, we can
+        // compute the seconds per pixel
+        var secondsPerPixel = Math.ceil(duration / this.frontBuffer.width);
+
+        // so what's the exact duration of one label of our desired size?
+        var labelDuration = this.xLabelWidth * secondsPerPixel;
+
+        // how many labels max can we fit?
+        var numLabels = (this.frontBuffer.width / this.xLabelWidth);
+
+        var labels = [];
+
+        // we want our first label to land on a multiple of the label duration;
+        // figure out where that lies.
+        var firstLabelOffsetSeconds = (labelDuration - (this.startTime % labelDuration));
+
+        //log ("sps", secondsPerPixel, "ldur", labelDuration, "nl", numLabels, "flo", firstLabelOffsetSeconds);
+
+        for (var i = 0; i < numLabels; i++) {
+            // figure out the time value of this label
+            var ltime = this.startTime + firstLabelOffsetSeconds + i*labelDuration;
+            if (ltime > this.endTime)
+                break;
+
+            // the first number is at what px position to place the label;
+            // the second number is the actual value of the label
+            // the third is an array of strings that go into the label
+            var lval = [(ltime - this.startTime)/secondsPerPixel - (this.xLabelWidth/2), ltime, this.formatTimeLabel(ltime)];
+            //log ("ltime", ltime, "lpos", lval[0], "end", this.endTime);
+            labels.push(lval);
+        }
+
+        this.xAxisLabels = labels;
+        return labels;
     },
 
 };
@@ -985,4 +1064,6 @@ CalendarTimeGraph.prototype = {
     },
 
 };
+
+
 
