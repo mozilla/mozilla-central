@@ -342,7 +342,7 @@
            accesskey="&newsrcFilePath.accesskey;"/>
     <hbox align="center">
       <textbox readonly="true" wsm_persist="true" flex="1" id="nntp.newsrcFilePath"
-               datatype="nsIFileSpec"
+               datatype="nsILocalFile"
                prefstring="mail.server.%serverkey%.newsrc.file" class="uri-element"/>
       <button id="browseForNewsrc" label="&browseNewsrc.label;" filepickertitle="&newsrcPicker.label;"
               accesskey="&browseNewsrc.accesskey;" oncommand="BrowseForNewsrc()"/>
@@ -355,7 +355,7 @@
     <label value="&localPath.label;" control="server.localPath"
            accesskey="&localPath.accesskey;"/>
     <hbox align="center">
-      <textbox readonly="true" wsm_persist="true" flex="1" id="server.localPath" datatype="nsIFileSpec"
+      <textbox readonly="true" wsm_persist="true" flex="1" id="server.localPath" datatype="nsILocalFile"
                prefstring="mail.server.%serverkey%.directory" class="uri-element"/>
       <button id="browseForLocalFolder" label="&browseFolder.label;" filepickertitle="&localFolderPicker.label;"
               accesskey="&browseFolder.accesskey;" oncommand="BrowseForLocalFolders()"/>

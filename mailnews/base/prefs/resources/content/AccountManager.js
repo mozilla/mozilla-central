@@ -1055,24 +1055,7 @@ function setFormElementValue(formElement, value) {
 
     formElement.selectedItem = selectedItem;
   }
-  // handle nsIFileSpec
-  else if (type == "textbox" &&
-           formElement.getAttribute("datatype") == "nsIFileSpec") {
-    if (value) {
-      var filespec = value.QueryInterface(Components.interfaces.nsIFileSpec);
-      try {
-        formElement.value = filespec.unicodePath;
-      } catch (ex) {
-        dump("Still need to fix uninitialized filespec problem!\n");
-      }
-    } else {
-      if ("defaultValue" in formElement)
-        formElement.value = formElement.defaultValue;
-      else
-        formElement.value = "";
-    }
-  }
-
+  // handle nsILocalFile
   else if (type == "textbox" &&
            formElement.getAttribute("datatype") == "nsILocalFile") {
     if (value) {
