@@ -132,7 +132,7 @@
               windowtitle="${name} API as of ${NOW}"
 			  link="http://java.sun.com/j2se/1.3/docs/api"
               doctitle="${name}"
-              bottom="Subject to Netscape Public License">
+              bottom="Subject to Mozilla Public License">
         <group title="Utilities" packages="org.ietf.ldap.util*"/>
         <group title="Controls" packages="org.ietf.ldap.controls*"/>
         <link href="http://java.sun.com/products/jdk/1.3/docs/api"/>
