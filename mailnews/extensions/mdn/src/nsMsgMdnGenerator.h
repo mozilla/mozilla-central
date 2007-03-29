@@ -45,9 +45,8 @@
 #include "nsIUrlListener.h"
 #include "nsXPIDLString.h"
 #include "nsIMsgIncomingServer.h"
-#include "nsFileStream.h"
 #include "nsIOutputStream.h"
-#include "nsIFileSpec.h"
+#include "nsIFile.h"
 #include "nsIMsgIdentity.h"
 #include "nsIMsgWindow.h"
 #include "nsIMimeHeaders.h"
@@ -97,7 +96,7 @@ private:
     EDisposeType m_disposeType;
     nsCOMPtr<nsIMsgWindow> m_window;
     nsCOMPtr<nsIOutputStream> m_outputStream;
-    nsCOMPtr<nsIFileSpec> m_fileSpec;
+    nsCOMPtr<nsIFile> m_file;
     nsCOMPtr<nsIMsgIdentity> m_identity;
     nsXPIDLCString m_charset;
     nsXPIDLCString m_email;

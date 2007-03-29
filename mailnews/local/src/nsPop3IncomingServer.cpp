@@ -402,12 +402,15 @@ nsPop3IncomingServer::SetFlagsOnDefaultMailboxes()
 }
     
 
-NS_IMETHODIMP nsPop3IncomingServer::CreateDefaultMailboxes(nsIFileSpec *path)
+NS_IMETHODIMP nsPop3IncomingServer::CreateDefaultMailboxes(nsIFile *aPath)
 {
-  if (!path) return NS_ERROR_NULL_POINTER;
+  NS_ENSURE_ARG_POINTER(aPath);
+  nsCOMPtr <nsIFile> path;
+  nsresult rv = aPath->Clone(getter_AddRefs(path));
+  NS_ENSURE_SUCCESS(rv, rv);
   
-  (void) path->AppendRelativeUnixPath("Inbox");
-  nsresult rv = CreateLocalFolder(path, "Inbox");
+  (void) path->AppendNative(NS_LITERAL_CSTRING("Inbox"));
+  rv = CreateLocalFolder(path, "Inbox");
   if (NS_FAILED(rv)) return rv;
   return CreateLocalFolder(path, "Trash");
 }

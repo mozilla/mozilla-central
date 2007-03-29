@@ -203,7 +203,7 @@ public:
 protected:
   nsresult CopyFolderAcrossServer(nsIMsgFolder *srcFolder, nsIMsgWindow *msgWindow,nsIMsgCopyServiceListener* listener);
 
-  nsresult CreateSubFolders(nsFileSpec &path);
+  nsresult CreateSubFolders(nsIFile *path);
   nsresult GetTrashFolder(nsIMsgFolder** trashFolder);
   nsresult WriteStartOfNewMessage();
   nsresult IsChildOfTrash(PRBool *result);

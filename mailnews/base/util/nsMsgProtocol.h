@@ -208,7 +208,7 @@ public:
   virtual ~nsMsgAsyncWriteProtocol(); 
   
   // temporary over ride...
-  virtual nsresult PostMessage(nsIURI* url, nsIFileSpec *fileSpec);
+  virtual nsresult PostMessage(nsIURI* url, nsIFile *postFile);
   
   // over ride the following methods from the base class
   virtual nsresult SetupTransportState();
@@ -251,7 +251,7 @@ protected:
                                                    // the input stream becomes unblocked
   PRUint32                  mSuspendedReadBytesPostPeriod; // # of bytes which need processed after we insert a '.' before 
                                                            // the input stream becomes unblocked.
-  PRUint32  mFilePostSize; // used for determining progress on posting files.
+  PRInt64  mFilePostSize; // used for determining progress on posting files.
   PRUint32  mNumBytesPosted; // used for deterimining progress on posting files 
   PRBool    mGenerateProgressNotifications; // set during a post operation after we've started sending the post data...
 

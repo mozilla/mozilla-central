@@ -238,32 +238,38 @@ nsMsgLocalMailFolder::Init(const char* aURI)
 }
 
 nsresult
-nsMsgLocalMailFolder::CreateSubFolders(nsFileSpec &path)
+nsMsgLocalMailFolder::CreateSubFolders(nsIFile *path)
 {
   nsresult rv = NS_OK;
-  nsAutoString currentFolderNameStr;
   nsCOMPtr<nsIMsgFolder> child;
+  nsCOMPtr<nsISimpleEnumerator> directoryEnumerator;
+  rv = path->GetDirectoryEntries(getter_AddRefs(directoryEnumerator));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  for (nsDirectoryIterator dir(path, PR_FALSE); dir.Exists(); dir++) 
+  PRBool hasMore;
+  directoryEnumerator->HasMoreElements(&hasMore);
+  while (hasMore && NS_SUCCEEDED(rv))
   {
-    nsFileSpec currentFolderPath = dir.Spec();
+    nsCOMPtr<nsISupports> aSupport;
+    rv = directoryEnumerator->GetNext(getter_AddRefs(aSupport));
+    nsCOMPtr<nsIFile> currentFolderPath(do_QueryInterface(aSupport, &rv));
 
-    char *leafName = currentFolderPath.GetLeafName();
-    NS_CopyNativeToUnicode(nsDependentCString(leafName), currentFolderNameStr);
-    PR_Free(leafName);
+    nsAutoString leafName;
+    currentFolderPath->GetLeafName(leafName);
 
+    directoryEnumerator->HasMoreElements(&hasMore);
     // here we should handle the case where the current file is a .sbd directory w/o
     // a matching folder file, or a directory w/o the name .sbd
-    if (nsShouldIgnoreFile(currentFolderNameStr))
+    if (nsShouldIgnoreFile(leafName))
       continue;
 
-    rv = AddSubfolder(currentFolderNameStr, getter_AddRefs(child));  
+    rv = AddSubfolder(leafName, getter_AddRefs(child));  
     if (child)
     { 
       nsXPIDLString folderName;
       child->GetName(getter_Copies(folderName));  // try to get it from cache/db
       if (folderName.IsEmpty())
-        child->SetPrettyName(currentFolderNameStr.get());
+        child->SetPrettyName(leafName.get());
     }
   }
   return rv;
@@ -381,24 +387,22 @@ nsMsgLocalMailFolder::GetSubFolders(nsIEnumerator* *result)
   nsresult rv = GetIsServer(&isServer);
 
   if (!mInitialized) {
-    nsCOMPtr<nsIFileSpec> pathSpec;
-    rv = GetPath(getter_AddRefs(pathSpec));
+    nsCOMPtr<nsILocalFile> path;
+    rv = GetFilePath(getter_AddRefs(path));
     if (NS_FAILED(rv)) return rv;
     
-    nsFileSpec path;
-    rv = pathSpec->GetFileSpec(&path);
-    if (NS_FAILED(rv)) return rv;
-    
-    if (!path.Exists())
-      path.CreateDirectory();
-    if (!path.IsDirectory())
-      AddDirectorySeparator(path);
-    
+    PRBool exists, directory;
+    path->Exists(&exists);
+    if (!exists)
+      path->Create(nsIFile::DIRECTORY_TYPE, 0755);
+
+    path->IsDirectory(&directory);
+
     mInitialized = PR_TRUE;      // need to set this flag here to avoid infinite recursion
     // we have to treat the root folder specially, because it's name
     // doesn't end with .sbd
     PRInt32 newFlags = MSG_FOLDER_FLAG_MAIL;
-    if (path.IsDirectory()) 
+    if (directory) 
     {
       newFlags |= (MSG_FOLDER_FLAG_DIRECTORY | MSG_FOLDER_FLAG_ELIDED);
       SetFlag(newFlags);
@@ -416,15 +420,10 @@ nsMsgLocalMailFolder::GetSubFolders(nsIEnumerator* *result)
           localMailServer = do_QueryInterface(server, &rv);
           if (NS_FAILED(rv)) return rv;
           if (!localMailServer) return NS_MSG_INVALID_OR_MISSING_SERVER;
-          
-          nsCOMPtr<nsIFileSpec> spec;
-          rv = NS_NewFileSpecWithSpec(path, getter_AddRefs(spec));
-          if (NS_FAILED(rv)) return rv;
-          
+        
           // first create the folders on disk (as empty files)
-          rv = localMailServer->CreateDefaultMailboxes(spec);
+          rv = localMailServer->CreateDefaultMailboxes(path);
           NS_ENSURE_SUCCESS(rv, rv);
-          if (NS_FAILED(rv)) return rv;
           createdDefaultMailboxes = PR_TRUE;
       }
 

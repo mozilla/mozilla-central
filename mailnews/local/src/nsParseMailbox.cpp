@@ -88,6 +88,7 @@
 #include "nsIMsgComposeService.h"
 #include "nsIMsgCopyService.h"
 #include "nsICryptoHash.h"
+#include "nsIFileSpec.h"
 
 static NS_DEFINE_CID(kCMailDB, NS_MAILDB_CID);
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);

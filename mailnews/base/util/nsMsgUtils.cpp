@@ -80,6 +80,7 @@
 #include "nsIOutputStream.h"
 #include "nsIFileURL.h"
 #include "nsNetUtil.h"
+#include "nsIFileSpec.h"
 
 static NS_DEFINE_CID(kImapUrlCID, NS_IMAPURL_CID);
 static NS_DEFINE_CID(kCMailboxUrl, NS_MAILBOXURL_CID);
@@ -846,10 +847,10 @@ GetOrCreateFolder(const nsACString &aURI, nsIUrlListener *aListener)
   rv = msgFolder->GetParent(getter_AddRefs(parent));
   if (NS_FAILED(rv) || !parent)
   {
-    nsCOMPtr <nsIFileSpec> folderPath;
+    nsCOMPtr <nsILocalFile> folderPath;
     // for local folders, path is to the berkeley mailbox. 
     // for imap folders, path needs to have .msf appended to the name
-    msgFolder->GetPath(getter_AddRefs(folderPath));
+    msgFolder->GetFilePath(getter_AddRefs(folderPath));
 
     nsXPIDLCString type;
     rv = server->GetType(getter_Copies(type));

@@ -168,62 +168,66 @@ nsMovemailIncomingServer::SetFlagsOnDefaultMailboxes()
     return NS_OK;
 }
 
-NS_IMETHODIMP nsMovemailIncomingServer::CreateDefaultMailboxes(nsIFileSpec *path)
+NS_IMETHODIMP nsMovemailIncomingServer::CreateDefaultMailboxes(nsIFile *aPath)
 {
-    NS_ENSURE_ARG_POINTER(path);
+    NS_ENSURE_ARG_POINTER(aPath);
+    nsCOMPtr <nsIFile> path;
+    nsresult rv = aPath->Clone(getter_AddRefs(path));
+    NS_ENSURE_SUCCESS(rv, rv);
 
-    nsresult rv = path->AppendRelativeUnixPath("Inbox");
+    rv = path->AppendNative(NS_LITERAL_CSTRING("Inbox"));
     if (NS_FAILED(rv)) return rv;
     PRBool exists;
     rv = path->Exists(&exists);
     if (NS_FAILED(rv)) return rv;
-    if (!exists) {
-        rv = path->Touch();
-        if (NS_FAILED(rv)) return rv;
+    if (!exists) 
+    {
+      rv = path->Create(nsIFile::NORMAL_FILE_TYPE, 0644);
+      if (NS_FAILED(rv)) return rv;
     }
 
-    rv = path->SetLeafName("Trash");
+    rv = path->SetNativeLeafName("Trash");
     if (NS_FAILED(rv)) return rv;
     rv = path->Exists(&exists);
     if (NS_FAILED(rv)) return rv;
     if (!exists) {
-        rv = path->Touch();
+        rv = path->Create(nsIFile::NORMAL_FILE_TYPE, 0644);
         if (NS_FAILED(rv)) return rv;
     }
 
-    rv = path->SetLeafName("Sent");
+    rv = path->SetNativeLeafName("Sent");
     if (NS_FAILED(rv)) return rv;
     rv = path->Exists(&exists);
     if (NS_FAILED(rv)) return rv;
     if (!exists) {
-        rv = path->Touch();
+        rv = path->Create(nsIFile::NORMAL_FILE_TYPE, 0644);
         if (NS_FAILED(rv)) return rv;
     }
 
-    rv = path->SetLeafName("Drafts");
+    rv = path->SetNativeLeafName("Drafts");
     if (NS_FAILED(rv)) return rv;
     rv = path->Exists(&exists);
     if (NS_FAILED(rv)) return rv;
     if (!exists) {
-        rv = path->Touch();
+        rv = path->Create(nsIFile::NORMAL_FILE_TYPE, 0644);
         if (NS_FAILED(rv)) return rv;
     }
 
-    rv = path->SetLeafName("Templates");
+    rv = path->SetNativeLeafName("Templates");
     if (NS_FAILED(rv)) return rv;
     rv = path->Exists(&exists);
     if (NS_FAILED(rv)) return rv;
     if (!exists) {
-        rv = path->Touch();
+        rv = path->Create(nsIFile::NORMAL_FILE_TYPE, 0644);
         if (NS_FAILED(rv)) return rv;
     }
 
-    rv = path->SetLeafName("Unsent Messages");
+    rv = path->SetNativeLeafName("Unsent Messages");
     if (NS_FAILED(rv)) return rv;
     rv = path->Exists(&exists);
     if (NS_FAILED(rv)) return rv;
     if (!exists) {
-        rv = path->Touch();
+        rv = path->Create(nsIFile::NORMAL_FILE_TYPE, 0644);
         if (NS_FAILED(rv)) return rv;
     }
     return rv;

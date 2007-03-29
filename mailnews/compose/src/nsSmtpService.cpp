@@ -87,7 +87,7 @@ static NS_DEFINE_CID(kCMailtoUrlCID, NS_MAILTOURL_CID);
 
 // foward declarations...
 nsresult
-NS_MsgBuildSmtpUrl(nsIFileSpec * aFilePath,
+NS_MsgBuildSmtpUrl(nsIFile * aFilePath,
                    const char* aSmtpHostName, 
                    PRInt32 aSmtpPort,
                    const char* aSmtpUserName, 
@@ -115,7 +115,7 @@ nsSmtpService::~nsSmtpService()
 NS_IMPL_ISUPPORTS2(nsSmtpService, nsISmtpService, nsIProtocolHandler)
 
 
-nsresult nsSmtpService::SendMailMessage(nsIFileSpec * aFilePath,
+nsresult nsSmtpService::SendMailMessage(nsIFile * aFilePath,
                                         const char * aRecipients, 
                                         nsIMsgIdentity * aSenderIdentity,
                                         const char * aPassword,
@@ -183,7 +183,7 @@ nsresult nsSmtpService::SendMailMessage(nsIFileSpec * aFilePath,
 // The following are two convience functions I'm using to help expedite building and running a mail to url...
 
 // short cut function for creating a mailto url...
-nsresult NS_MsgBuildSmtpUrl(nsIFileSpec * aFilePath,
+nsresult NS_MsgBuildSmtpUrl(nsIFile * aFilePath,
                             const char* aSmtpHostName, 
                             PRInt32 aSmtpPort,
                             const char* aSmtpUserName, 

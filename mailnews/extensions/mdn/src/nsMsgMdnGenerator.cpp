@@ -64,6 +64,7 @@
 #include "nsDirectoryServiceDefs.h"
 #include "nsMsgUtils.h"
 #include "nsNativeCharsetUtils.h"
+#include "nsNetUtil.h"
 
 #define MDN_NOT_IN_TO_CC          ((int) 0x0001)
 #define MDN_OUTSIDE_DOMAIN        ((int) 0x0002)
@@ -415,19 +416,16 @@ nsresult nsMsgMdnGenerator::CreateMdnMsg()
     nsCOMPtr<nsIFile> tmpFile;
     rv = GetSpecialDirectoryWithFileName(NS_OS_TEMP_DIR,
                                          "mdnmsg",
-                                         getter_AddRefs(tmpFile));
+                                         getter_AddRefs(m_file));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    rv = tmpFile->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);
+    rv = m_file->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);
+    nsCOMPtr <nsILocalFile> localFile = do_QueryInterface(m_file);
     NS_ENSURE_SUCCESS(rv, rv);
-
-    rv = NS_NewFileSpecFromIFile(tmpFile, getter_AddRefs(m_fileSpec));
-
-    NS_ASSERTION(NS_SUCCEEDED(rv),"creating mdn: failed to create");
-    if (NS_FAILED(rv)) 
-        return NS_OK;
-
-    rv = m_fileSpec->GetOutputStream(getter_AddRefs(m_outputStream));
+    rv = NS_NewLocalFileOutputStream(getter_AddRefs(m_outputStream),
+                                     localFile,
+                                     PR_CREATE_FILE | PR_WRONLY | PR_TRUNCATE,
+                                     0664);
     NS_ASSERTION(NS_SUCCEEDED(rv),"creating mdn: failed to output stream");
     if (NS_FAILED(rv)) 
         return NS_OK;
@@ -445,10 +443,8 @@ nsresult nsMsgMdnGenerator::CreateMdnMsg()
         m_outputStream->Flush();
         m_outputStream->Close();
     }
-    if (m_fileSpec)
-        m_fileSpec->CloseStream();
     if (NS_FAILED(rv))
-        m_fileSpec->Delete(PR_FALSE);
+        m_file->Remove(PR_FALSE);
     else
         rv = SendMdnMsg();
 
@@ -888,7 +884,7 @@ nsresult nsMsgMdnGenerator::SendMdnMsg()
     NS_ENSURE_SUCCESS(rv,rv);
 
     nsCOMPtr<nsIRequest> aRequest;
-    smtpService->SendMailMessage(m_fileSpec, m_dntRrt, m_identity,
+    smtpService->SendMailMessage(m_file, m_dntRrt, m_identity,
                                      nsnull, this, nsnull, nsnull, nsnull,
                                      getter_AddRefs(aRequest));
     
@@ -1019,6 +1015,6 @@ NS_IMETHODIMP nsMsgMdnGenerator::OnStopRunningUrl(nsIURI *url,
                                                   nsresult aExitCode)
 {
     DEBUG_MDN("nsMsgMdnGenerator::OnStopRunningUrl");
-    m_fileSpec->Delete(PR_FALSE);
+    m_file->Remove(PR_FALSE);
     return NS_OK;
 }

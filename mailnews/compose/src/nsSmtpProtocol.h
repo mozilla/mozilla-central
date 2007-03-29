@@ -201,7 +201,7 @@ private:
     // message specific information
     PRInt32 m_totalAmountWritten;
 #endif /* UNREADY_CODE */
-    PRUint32 m_totalMessageSize;
+    PRInt64 m_totalMessageSize;
     
     char *m_dataBuf;
     PRUint32 m_dataBufSize;

@@ -368,14 +368,14 @@ nsMsgIncomingServer::GetServerURI(char* *aResult)
 // helper routine to create local folder on disk, if it doesn't exist.
 // Path must already have a LeafName for this to work...
 nsresult
-nsMsgIncomingServer::CreateLocalFolder(nsIFileSpec *path, const char *folderName)
+nsMsgIncomingServer::CreateLocalFolder(nsIFile *path, const char *folderName)
 {
-  (void) path->SetLeafName(folderName); // never fails
+  (void) path->SetNativeLeafName(nsDependentCString(folderName)); 
   PRBool exists;
   nsresult rv = path->Exists(&exists);
   NS_ENSURE_SUCCESS(rv, rv);
   if (!exists) 
-    rv = path->Touch();
+    rv = path->Create(nsIFile::NORMAL_FILE_TYPE, 0644);
   return rv;
 }
 

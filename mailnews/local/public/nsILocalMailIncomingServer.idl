@@ -41,12 +41,12 @@ interface nsIURI;
 interface nsIMsgWindow;
 interface nsIUrlListener;
 interface nsIMsgFolder;
-interface nsIFileSpec;
+interface nsIFile;
 
-[scriptable, uuid(ee87cc60-1dd1-11b2-b25a-ff87320f212d)]
+[scriptable, uuid(e710d72c-9328-4bcb-8b8f-dd7ac18e2156)]
 interface nsILocalMailIncomingServer : nsISupports 
 {
-  void createDefaultMailboxes(in nsIFileSpec path);
+  void createDefaultMailboxes(in nsIFile aPath);
   void setFlagsOnDefaultMailboxes();
   nsIURI getNewMail(in nsIMsgWindow aMsgWindow, in nsIUrlListener aUrlListener, in nsIMsgFolder aInbox);
 };

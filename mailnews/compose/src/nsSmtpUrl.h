@@ -41,7 +41,6 @@
 #include "nsISmtpUrl.h"
 #include "nsIURI.h"
 #include "nsMsgMailNewsUrl.h"
-#include "nsIFileSpec.h"
 #include "nsIMsgIdentity.h"
 #include "nsCOMPtr.h"
 #include "nsIPrompt.h"
@@ -114,7 +113,7 @@ protected:
 
 	/* Smtp specific event sinks */
 	nsCString	m_userName;
-	nsCOMPtr<nsIFileSpec> m_fileName;
+	nsCOMPtr<nsIFile> m_fileName;
 	nsCOMPtr<nsIMsgIdentity> m_senderIdentity;
     nsCOMPtr<nsIPrompt> m_netPrompt;
     nsCOMPtr<nsIAuthPrompt> m_netAuthPrompt;

@@ -39,7 +39,6 @@
 #include "MailNewsTypes2.idl"
 #include "nsIImapUrl.idl"
 
-interface nsIFileSpec;
 interface nsIMsgMailNewsUrl;
 
 [scriptable, uuid(b92c9161-2345-4adb-af90-5a42cd898209)]

@@ -1160,15 +1160,8 @@ NS_IMETHODIMP nsMsgAsyncWriteProtocol::Cancel(nsresult status)
   return NS_OK;
 }
 
-nsresult nsMsgAsyncWriteProtocol::PostMessage(nsIURI* url, nsIFileSpec *fileSpec)
+nsresult nsMsgAsyncWriteProtocol::PostMessage(nsIURI* url, nsIFile *file)
 {
-  // convert the file spec into a nsIFile....
-  nsFileSpec spec;
-  fileSpec->GetFileSpec(&spec);
-
-  nsCOMPtr<nsILocalFile> file;
-  NS_FileSpecToIFile(&spec, getter_AddRefs(file));
-
   nsCOMPtr<nsIStreamListener> listener;
   NS_NEWXPCOM(listener, nsMsgFilePostHelper);
   if (!listener) return NS_ERROR_OUT_OF_MEMORY;
@@ -1176,7 +1169,7 @@ nsresult nsMsgAsyncWriteProtocol::PostMessage(nsIURI* url, nsIFileSpec *fileSpec
   // be sure to initialize some state before posting
   mSuspendedReadBytes = 0;
   mNumBytesPosted = 0;
-  fileSpec->GetFileSize(&mFilePostSize);
+  file->GetFileSize(&mFilePostSize);
   mSuspendedRead = PR_FALSE;
   mInsertPeriodRequired = PR_FALSE;
   mSuspendedReadBytesPostPeriod = 0;

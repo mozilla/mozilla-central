@@ -104,26 +104,22 @@ NS_IMETHODIMP nsRssIncomingServer::GetFeedItemsDataSourcePath(nsILocalFile ** aL
   return FillInDataSourcePath(NS_LITERAL_STRING("feeditems.rdf"), aLocation);
 }
 
-NS_IMETHODIMP nsRssIncomingServer::CreateDefaultMailboxes(nsIFileSpec *path)
+NS_IMETHODIMP nsRssIncomingServer::CreateDefaultMailboxes(nsIFile *aPath)
 {
-    NS_ENSURE_ARG_POINTER(path);
-    
+    NS_ENSURE_ARG_POINTER(aPath);
+    nsCOMPtr <nsIFile> path;
+    nsresult rv = aPath->Clone(getter_AddRefs(path));
+    NS_ENSURE_SUCCESS(rv, rv);
     // for RSS, all we have is Trash
     // XXX or should we be use Local Folders/Trash?
-    nsresult rv = path->AppendRelativeUnixPath("Trash");
-    if (NS_FAILED(rv)) 
-        return rv;
+    rv = path->AppendNative(NS_LITERAL_CSTRING("Trash"));
+    NS_ENSURE_SUCCESS(rv, rv);
     
     PRBool exists;
     rv = path->Exists(&exists);
     if (!exists) 
-    {
-        rv = path->Touch();
-        if (NS_FAILED(rv)) 
-            return rv;
-    }
-    
-    return NS_OK;
+      rv = path->Create(nsIFile::NORMAL_FILE_TYPE, 0644);
+    return rv;
 }
 
 NS_IMETHODIMP nsRssIncomingServer::SetFlagsOnDefaultMailboxes()

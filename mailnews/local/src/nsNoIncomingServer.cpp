@@ -169,15 +169,16 @@ NS_IMETHODIMP nsNoIncomingServer::CopyDefaultMessages(const char *folderNameOnDi
 }
 
 
-NS_IMETHODIMP nsNoIncomingServer::CreateDefaultMailboxes(nsIFileSpec *path)
+NS_IMETHODIMP nsNoIncomingServer::CreateDefaultMailboxes(nsIFile *aPath)
 {
-  nsresult rv;
-  if (!path) 
-    return NS_ERROR_NULL_POINTER;
+    NS_ENSURE_ARG_POINTER(aPath);
+    nsCOMPtr <nsIFile> path;
+    nsresult rv = aPath->Clone(getter_AddRefs(path));
+    NS_ENSURE_SUCCESS(rv, rv);
   
   // notice, no Inbox, unless we're deferred to...
    // need to have a leaf to start with
-  rv = path->AppendRelativeUnixPath("Trash"); 
+  rv = path->AppendNative(NS_LITERAL_CSTRING("Trash")); 
   PRBool isDeferredTo;
   if (NS_SUCCEEDED(GetIsDeferredTo(&isDeferredTo)) && isDeferredTo)
     CreateLocalFolder(path, "Inbox");
@@ -185,16 +186,11 @@ NS_IMETHODIMP nsNoIncomingServer::CreateDefaultMailboxes(nsIFileSpec *path)
   if (NS_FAILED(rv)) return rv;
   
   // copy the default templates into the Templates folder
-  nsCOMPtr<nsIFileSpec> parentDir;
+  nsCOMPtr<nsIFile> parentDir;
   rv = path->GetParent(getter_AddRefs(parentDir));
   if (NS_FAILED(rv)) return rv;
-
-  nsCOMPtr<nsILocalFile> parentFile;
-  nsFileSpec parentSpec;
-  parentDir->GetFileSpec(&parentSpec);
-  NS_FileSpecToIFile(&parentSpec, getter_AddRefs(parentFile));
-
-  rv = CopyDefaultMessages("Templates", parentFile);
+  nsCOMPtr <nsILocalFile> parent = do_QueryInterface(parentDir);
+  rv = CopyDefaultMessages("Templates", parent);
   if (NS_FAILED(rv)) return rv;
   
   (void ) CreateLocalFolder(path, "Unsent Messages");

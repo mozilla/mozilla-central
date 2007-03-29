@@ -43,11 +43,11 @@ interface nsIUrlListener;
 interface nsISupportsArray;
 interface nsIMsgIdentity;
 interface nsIInterfaceRequestor;
-interface nsIFileSpec;
+interface nsIFile;
 interface nsIMsgStatusFeedback;
 interface nsIRequest;
 
-[scriptable, uuid(FBAF0F10-CA9B-11d2-8063-006008128C4E)]
+[scriptable, uuid(b9e6e1ea-8f9a-42d4-a426-084d71694c36)]
 interface nsISmtpService : nsISupports {
   
   ///////////////////////////////////////////////////////////////////////////
@@ -70,7 +70,7 @@ interface nsISmtpService : nsISupports {
   // server.
   //////////////////////////////////////////////////////////////////////////
 
-  void SendMailMessage(in nsIFileSpec aFilePath, in string aRecipients, 
+  void SendMailMessage(in nsIFile aFilePath, in string aRecipients, 
                        in nsIMsgIdentity aSenderIdentity,
                        in string aPassword,
                        in nsIUrlListener aUrlListener, 

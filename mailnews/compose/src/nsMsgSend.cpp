@@ -3609,9 +3609,6 @@ nsMsgComposeAndSend::DeliverFileAsMail()
     // Note: Don't do a SetMsgComposeAndSendObject since we are in the same thread, and
     // using callbacks for notification
 
-    nsCOMPtr<nsIFileSpec> aFileSpec;
-    NS_NewFileSpecFromIFile(mTempFile, getter_AddRefs(aFileSpec));
-
     // we used to get the prompt from the compose window and we'd pass that in
     // to the smtp protocol as the prompt to use. But when you send a message,
     // we dismiss the compose window.....so you are parenting off of a window that
@@ -3631,7 +3628,7 @@ nsMsgComposeAndSend::DeliverFileAsMail()
     if (!msgStatus)
       msgStatus = do_QueryInterface(mStatusFeedback);
 
-    rv = smtpService->SendMailMessage(aFileSpec, buf, mUserIdentity,
+    rv = smtpService->SendMailMessage(mTempFile, buf, mUserIdentity,
                                       mSmtpPassword.get(), uriListener, msgStatus,
                                       callbacks, nsnull, getter_AddRefs(mRunningRequest));
   }

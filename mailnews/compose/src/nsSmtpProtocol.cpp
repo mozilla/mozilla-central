@@ -296,10 +296,10 @@ void nsSmtpProtocol::Initialize(nsIURI * aURL)
 
     m_sizelimit = 0;
     m_totalMessageSize = 0;
-    nsCOMPtr<nsIFileSpec> fileSpec;
-    m_runningURL->GetPostMessageFile(getter_AddRefs(fileSpec));
-    if (fileSpec)
-        fileSpec->GetFileSize(&m_totalMessageSize);
+    nsCOMPtr<nsIFile> file;
+    m_runningURL->GetPostMessageFile(getter_AddRefs(file));
+    if (file)
+        file->GetFileSize(&m_totalMessageSize);
 
     m_originalContentLength = 0;
     m_totalAmountRead = 0;
@@ -1423,18 +1423,18 @@ PRInt32 nsSmtpProtocol::SendDataResponse()
 
 PRInt32 nsSmtpProtocol::SendMessageInFile()
 {
-	nsCOMPtr<nsIFileSpec> fileSpec;
+  nsCOMPtr<nsIFile> file;
   nsCOMPtr<nsIURI> url = do_QueryInterface(m_runningURL);
-	m_runningURL->GetPostMessageFile(getter_AddRefs(fileSpec));
-	if (url && fileSpec)
-        // need to fully qualify to avoid getting overwritten by a #define
-        // in some windows header file
-        nsMsgAsyncWriteProtocol::PostMessage(url, fileSpec);
+  m_runningURL->GetPostMessageFile(getter_AddRefs(file));
+  if (url && file)
+    // need to fully qualify to avoid getting overwritten by a #define
+    // in some windows header file
+    nsMsgAsyncWriteProtocol::PostMessage(url, file);
 
-	SetFlag(SMTP_PAUSE_FOR_READ);
+  SetFlag(SMTP_PAUSE_FOR_READ);
 
-	// for now, we are always done at this point..we aren't making multiple calls
-	// to post data...
+  // for now, we are always done at this point..we aren't making multiple calls
+  // to post data...
 
   UpdateStatus(SMTP_DELIV_MAIL);
   m_nextState = SMTP_RESPONSE;

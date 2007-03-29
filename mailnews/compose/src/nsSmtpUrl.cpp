@@ -525,7 +525,6 @@ nsSmtpUrl::nsSmtpUrl() : nsMsgMailNewsUrl()
 {
   // nsISmtpUrl specific state...
 
-  m_fileName = nsnull;
   m_isPostMessage = PR_TRUE;
 }
  
@@ -587,29 +586,22 @@ NS_IMPL_GETSET(nsSmtpUrl, PostMessage, PRBool, m_isPostMessage)
 
 // the message can be stored in a file....allow accessors for getting and setting
 // the file name to post...
-NS_IMETHODIMP nsSmtpUrl::SetPostMessageFile(nsIFileSpec * aFileSpec)
+NS_IMETHODIMP nsSmtpUrl::SetPostMessageFile(nsIFile * aFile)
 {
   nsresult rv = NS_OK;
-  if (aFileSpec)
-    m_fileName = aFileSpec;
+  if (aFile)
+    m_fileName = aFile;
   else
     rv = NS_ERROR_NULL_POINTER;
   
   return rv;
 }
 
-NS_IMETHODIMP nsSmtpUrl::GetPostMessageFile(nsIFileSpec ** aFileSpec)
+NS_IMETHODIMP nsSmtpUrl::GetPostMessageFile(nsIFile ** aFile)
 {
-  nsresult rv = NS_OK;
-  if (aFileSpec)
-  {
-    *aFileSpec = m_fileName;
-    NS_IF_ADDREF(*aFileSpec);
-  }
-  else
-    rv = NS_ERROR_NULL_POINTER;
-  
-  return rv;
+  NS_ENSURE_ARG_POINTER(aFile);
+  NS_IF_ADDREF(*aFile = m_fileName);
+  return NS_OK;
 }
 
 NS_IMETHODIMP 
