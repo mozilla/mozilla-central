@@ -50,8 +50,6 @@
 <!DOCTYPE window [
 <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
 %brandDTD;
-<!ENTITY % contentAreaCommandsDTD SYSTEM "chrome://communicator/locale/contentAreaCommands.dtd" >
-%contentAreaCommandsDTD;
 <!ENTITY % messengerDTD SYSTEM "chrome://messenger/locale/messenger.dtd" >
 %messengerDTD;
 ]>

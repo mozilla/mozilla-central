@@ -650,6 +650,22 @@
 <!ENTITY reportPhishingURL.label "Report E-mail Scam">
 <!ENTITY reportPhishingURL.accesskey "o">
 
+<!-- Content Pane Context Menu -->
+<!ENTITY saveLinkCmd.label "Save Link Target">
+<!ENTITY saveLinkCmd.accesskey "r">
+<!ENTITY saveImageCmd.label "Save Image">
+<!ENTITY saveImageCmd.accesskey "v">
+<!ENTITY copyCmd.label "Copy">
+<!ENTITY copyCmd.accesskey "C">
+<!ENTITY selectAllCmd.label "Select All">
+<!ENTITY selectAllCmd.accesskey "A">
+<!ENTITY copyLinkCmd.label "Copy Link Location">
+<!ENTITY copyLinkCmd.accesskey "C">
+<!ENTITY copyImageCmd.label "Copy Image Location">
+<!ENTITY copyImageCmd.accesskey "o">
+<!ENTITY copyEmailCmd.label "Copy Email Address">
+<!ENTITY copyEmailCmd.accesskey "E">
+
 <!-- Statusbar -->
 <!ENTITY statusText.label "Done">
 

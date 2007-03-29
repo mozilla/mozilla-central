@@ -49,8 +49,6 @@
   %messengerDTD;
   <!ENTITY % msgViewPickerDTD SYSTEM "chrome://messenger/locale/msgViewPickerOverlay.dtd" >
   %msgViewPickerDTD;
-  <!ENTITY % contentAreaCommandsDTD SYSTEM "chrome://communicator/locale/contentAreaCommands.dtd">
-  %contentAreaCommandsDTD;
   <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
   %brandDTD;
 ]>

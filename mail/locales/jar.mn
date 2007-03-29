@@ -146,7 +146,6 @@
 % locale mozldap @AB_CD@ %locale/@AB_CD@/mozldap/
   locale/@AB_CD@/mozldap/ldap.properties                                (%chrome/mozldap/ldap.properties)
 % locale communicator @AB_CD@ %locale/@AB_CD@/communicator/
-  locale/@AB_CD@/communicator/contentAreaCommands.dtd        (%chrome/communicator/contentAreaCommands.dtd)
   locale/@AB_CD@/communicator/contentAreaCommands.properties (%chrome/communicator/contentAreaCommands.properties)
   locale/@AB_CD@/communicator/utilityOverlay.properties      (%chrome/communicator/utilityOverlay.properties)
 * locale/@AB_CD@/communicator/utilityOverlay.dtd             (%chrome/communicator/utilityOverlay.dtd)
