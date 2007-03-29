@@ -24,7 +24,7 @@ use Config;         # for $Config{sig_name} and $Config{sig_num}
 use File::Find ();
 use File::Copy;
 
-$::UtilsVersion = '$Revision: 1.353 $ ';
+$::UtilsVersion = '$Revision: 1.354 $ ';
 
 package TinderUtils;
 
@@ -3459,11 +3459,17 @@ sub BloatTest2 {
     if ($Settings::OS =~ /^WIN/) {
         @args = ("leakstats", $malloc_log);
     } else {
-        @args = ("run-mozilla.sh", "./leakstats", $malloc_log);
+        @args = ("./leakstats", $malloc_log);
     }
     $result = run_cmd($build_dir, $binary_dir, \@args, $leakstats_log,
                       $timeout_secs);
     print_logfile($leakstats_log, "trace-malloc bloat test: leakstats");
+
+    if ($result->{exit_value}) {
+        print_test_errors($result, "leakstats");
+        print_log "Error: bloat test failed.\n";
+        return 'testfailed';
+    }
 
     my $newstats = ReadLeakstatsLog($leakstats_log);
     my $oldstats;
