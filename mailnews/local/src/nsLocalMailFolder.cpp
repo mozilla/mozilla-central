@@ -397,6 +397,18 @@ nsMsgLocalMailFolder::GetSubFolders(nsIEnumerator* *result)
       path->Create(nsIFile::DIRECTORY_TYPE, 0755);
 
     path->IsDirectory(&directory);
+    if (!directory)
+    {
+      nsCOMPtr <nsIFile> dirFile;
+      rv = path->Clone(getter_AddRefs(dirFile));
+      NS_ENSURE_SUCCESS(rv, rv);
+      nsCAutoString leafName;
+      dirFile->GetNativeLeafName(leafName);
+      leafName.AppendLiteral(".sbd");
+      dirFile->SetNativeLeafName(leafName);
+      path = do_QueryInterface(dirFile);
+      path->IsDirectory(&directory);
+    }
 
     mInitialized = PR_TRUE;      // need to set this flag here to avoid infinite recursion
     // we have to treat the root folder specially, because it's name
