@@ -186,7 +186,7 @@ NS_IMETHODIMP nsMovemailIncomingServer::CreateDefaultMailboxes(nsIFile *aPath)
       if (NS_FAILED(rv)) return rv;
     }
 
-    rv = path->SetNativeLeafName(NS_LITERAL_STRING("Trash"));
+    rv = path->SetNativeLeafName(NS_LITERAL_CSTRING("Trash"));
     if (NS_FAILED(rv)) return rv;
     rv = path->Exists(&exists);
     if (NS_FAILED(rv)) return rv;
@@ -195,7 +195,7 @@ NS_IMETHODIMP nsMovemailIncomingServer::CreateDefaultMailboxes(nsIFile *aPath)
         if (NS_FAILED(rv)) return rv;
     }
 
-    rv = path->SetNativeLeafName(NS_LITERAL_STRING("Sent"));
+    rv = path->SetNativeLeafName(NS_LITERAL_CSTRING("Sent"));
     if (NS_FAILED(rv)) return rv;
     rv = path->Exists(&exists);
     if (NS_FAILED(rv)) return rv;
@@ -204,7 +204,7 @@ NS_IMETHODIMP nsMovemailIncomingServer::CreateDefaultMailboxes(nsIFile *aPath)
         if (NS_FAILED(rv)) return rv;
     }
 
-    rv = path->SetNativeLeafName(NS_LITERAL_STRING("Drafts"));
+    rv = path->SetNativeLeafName(NS_LITERAL_CSTRING("Drafts"));
     if (NS_FAILED(rv)) return rv;
     rv = path->Exists(&exists);
     if (NS_FAILED(rv)) return rv;
@@ -213,7 +213,7 @@ NS_IMETHODIMP nsMovemailIncomingServer::CreateDefaultMailboxes(nsIFile *aPath)
         if (NS_FAILED(rv)) return rv;
     }
 
-    rv = path->SetNativeLeafName(NS_LITERAL_STRING("Templates"));
+    rv = path->SetNativeLeafName(NS_LITERAL_CSTRING("Templates"));
     if (NS_FAILED(rv)) return rv;
     rv = path->Exists(&exists);
     if (NS_FAILED(rv)) return rv;
@@ -222,7 +222,7 @@ NS_IMETHODIMP nsMovemailIncomingServer::CreateDefaultMailboxes(nsIFile *aPath)
         if (NS_FAILED(rv)) return rv;
     }
 
-    rv = path->SetNativeLeafName(NS_LITERAL_STRING("Unsent Messages"));
+    rv = path->SetNativeLeafName(NS_LITERAL_CSTRING("Unsent Messages"));
     if (NS_FAILED(rv)) return rv;
     rv = path->Exists(&exists);
     if (NS_FAILED(rv)) return rv;
