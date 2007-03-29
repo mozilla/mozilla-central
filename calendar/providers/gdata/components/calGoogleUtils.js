@@ -484,22 +484,9 @@ function ItemToXMLEntry(aItem, aAuthorEmail, aAuthorName) {
     var duration = aItem.endDate.subtractDate(aItem.startDate);
     entry.gd::when.@startTime = toRFC3339(aItem.startDate);
 
-    if ((aItem.startDate.isDate && duration.days > 1) ||
-        (!aItem.startDate.isDate && duration != "PT0S")) {
-        // Multiple Day, All Day events need an end time
-        // Events with a time need an end time
-        // Zero Duration Events do NOT need an end time
-        // One Day, All Day events do NOT need an end time
-
-        var endDate = aItem.endDate.clone();
-        if (aItem.startDate.isDate && duration.days > 1) {
-            // sunbird sets the end date to 00:00:00 on the day after the event
-            // ends, google wants the last day of the event
-            endDate.day--;
-            endDate.normalize();
-        }
-
-        entry.gd::when.@endTime = toRFC3339(endDate);
+    if (duration != "PT0S") {
+        // Zero Duration Events must not have an end time
+        entry.gd::when.@endTime = toRFC3339(aItem.endDate);
     }
 
     // gd:visibility
