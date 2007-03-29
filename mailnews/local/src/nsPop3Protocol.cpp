@@ -245,14 +245,19 @@ net_pop3_load_state(const char* searchhost,
     return nsnull;
   }
   
-  mailDirectory->AppendNative(NS_LITERAL_CSTRING("popstate.dat"));
+  nsCOMPtr <nsIFile> clonedDirectory;
+  mailDirectory->Clone(getter_AddRefs(clonedDirectory));
+  if (!clonedDirectory)
+    return nsnull;
+  nsCOMPtr <nsILocalFile> popState = do_QueryInterface(clonedDirectory);
+  popState->AppendNative(NS_LITERAL_CSTRING("popstate.dat"));
   
   nsCOMPtr<nsIInputStream> fileStream;
-  nsresult rv = NS_NewLocalFileInputStream(getter_AddRefs(fileStream), mailDirectory);
-  NS_ENSURE_SUCCESS(rv, nsnull);
+  nsresult rv = NS_NewLocalFileInputStream(getter_AddRefs(fileStream), popState);
+  NS_ENSURE_SUCCESS(rv, result);
 
   nsCOMPtr<nsILineInputStream> lineInputStream(do_QueryInterface(fileStream, &rv));
-  NS_ENSURE_SUCCESS(rv, nsnull);
+  NS_ENSURE_SUCCESS(rv, result);
   
   PRBool more = PR_TRUE;
   nsXPIDLCString line;
@@ -403,17 +408,16 @@ static void
 net_pop3_write_state(Pop3UidlHost* host, nsILocalFile *mailDirectory)
 {
   PRInt32 len = 0;
-  
-  mailDirectory->AppendNative(NS_LITERAL_CSTRING("popstate.dat"));
-#ifdef DEBUG_David_Bienvenu
-//  PRUint32 fileSize = fileSpec.GetFileSize();
-  // check if popstate.dat is getting emptied out.
-//  if (!host || (hash_empty(host->hash) && fileSize > 80))
-//    NS_ASSERTION(PR_FALSE, "bad/empty pop3 uidl hash table");
-#endif
+  nsCOMPtr <nsIFile> clonedDirectory;
+
+  mailDirectory->Clone(getter_AddRefs(clonedDirectory));
+  if (!clonedDirectory)
+    return;
+  nsCOMPtr <nsILocalFile> popState = do_QueryInterface(clonedDirectory);
+  popState->AppendNative(NS_LITERAL_CSTRING("popstate.dat"));
   
   nsCOMPtr<nsIOutputStream> fileOutputStream;
-  nsresult rv = NS_NewLocalFileOutputStream(getter_AddRefs(fileOutputStream), mailDirectory, -1, 00600);
+  nsresult rv = NS_NewLocalFileOutputStream(getter_AddRefs(fileOutputStream), popState, -1, 00600);
   if (NS_FAILED(rv))
     return;
 
