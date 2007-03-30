@@ -1,0 +1,1 @@
+CLOBBER requested to try and get it to pull directory/c-sdk after having changed the version tag in client.mk (Bug 359716).
