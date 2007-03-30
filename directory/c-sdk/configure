@@ -3728,9 +3728,8 @@ case "$host" in
     WIN_TOP_SRC=`cd $srcdir && pwd -W`
     ;;
 *-cygwin*|*-msvc*|*-mks*)
-# don't really need cygwin_wrapper anymore
-    CYGWIN_WRAPPER=
-#    CYGWIN_WRAPPER='sh $(topsrcdir)/config/cygwin-wrapper'
+#    CYGWIN_WRAPPER=
+    CYGWIN_WRAPPER='sh $(topsrcdir)/config/cygwin-wrapper'
     NSINSTALL='$(CYGWIN_WRAPPER) nsinstall'
     if test "`${PERL} -v | grep -c cygwin  2>/dev/null`" = 0; then
         PERL='$(CYGWIN_WRAPPER) perl'
