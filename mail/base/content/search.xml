@@ -149,7 +149,7 @@
             this.clearButtonHidden = false;
         ]]></handler>
 
-      <handler event="keypress" keycode="vk_up" modifiers="control" phase="capturing">
+      <handler event="keypress" keycode="VK_UP" modifiers="control" phase="capturing">
         <![CDATA[
           var  menuPopup = document.getElementById('quick-search-menupopup');
           var menuPopupValue = menuPopup.getAttribute('value');
@@ -162,7 +162,7 @@
           }
         ]]></handler>
 
-      <handler event="keypress" keycode="vk_down" modifiers="control" phase="capturing">
+      <handler event="keypress" keycode="VK_DOWN" modifiers="control" phase="capturing">
         <![CDATA[
           var  menuPopup = document.getElementById('quick-search-menupopup');
           var menuPopupValue = menuPopup.getAttribute('value');
@@ -175,11 +175,11 @@
           }
         ]]></handler>
 
-        <handler event="keypress" keycode="vk_down" modifiers="alt" phase="capturing" action="return this.openmenupopup();"/>
-        <handler event="keypress" keycode="vk_up"   modifiers="alt" phase="capturing" action="return this.openmenupopup();"/>
+        <handler event="keypress" keycode="VK_DOWN" modifiers="alt" phase="capturing" action="return this.openmenupopup();"/>
+        <handler event="keypress" keycode="VK_UP"   modifiers="alt" phase="capturing" action="return this.openmenupopup();"/>
 
 #ifndef XP_MACOSX
-      <handler event="keypress" keycode="vk_f4" phase="capturing" action="return this.openmenupopup();"/>
+      <handler event="keypress" keycode="VK_F4" phase="capturing" action="return this.openmenupopup();"/>
 #endif
 
       <handler event="dragdrop" phase="capturing">

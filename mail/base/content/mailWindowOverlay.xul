@@ -2113,7 +2113,7 @@
                         oncommand="changeQuickSearchMode(this)"/>
               <menuseparator/>
               <!-- if the value for the save as virtual folder menu changes, please update the 
-                   vk_down key handler in searchbar.xml
+                   VK_DOWN key handler in searchbar.xml
               -->
               <menuitem value="5" id="quickSearchSaveAsVirtualFolder" label="&saveAsVirtualFolderMenu.label;" 
                         oncommand="saveViewAsVirtualFolder()"/>
