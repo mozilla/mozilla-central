@@ -140,3 +140,6 @@ pref("browser.fixup.hide_user_pass", false);
 
 // give users the option of restoring windows after a crash
 pref("browser.sessionstore.resume_from_crash", true);
+
+// Camino makes its own popup windows (context menus, tooltips)
+pref("ui.use_native_popup_windows", true);
