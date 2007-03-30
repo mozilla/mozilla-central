@@ -847,6 +847,7 @@ function FolderPaneSelectionChange()
             var sortOrder = 0;
             var viewFlags = 0;
             var viewType = 0;
+            gDefaultSearchViewTerms = null;
             gVirtualFolderTerms = null;
             gXFVirtualFolderTerms = null;
             gPrevFolderFlags = folderFlags;
@@ -927,7 +928,7 @@ function FolderPaneSelectionChange()
 
             if (gXFVirtualFolderTerms)
               viewType = nsMsgViewType.eShowVirtualFolderResults;
-            else if (gSearchEmailAddress || gDefaultSearchViewTerms || gVirtualFolderTerms) 
+            else if (gSearchEmailAddress || gVirtualFolderTerms)
               viewType = nsMsgViewType.eShowQuickSearchResults;
             else if (viewType == nsMsgViewType.eShowQuickSearchResults)
               viewType = nsMsgViewType.eShowAllThreads;  //override viewType - we don't want to start w/ quick search
