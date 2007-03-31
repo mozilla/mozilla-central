@@ -103,15 +103,17 @@ public class KeyFactoryTest {
 	PasswordCallback cb = new FilePasswordCallback(argv[1]);
         tok.login(cb);
 
-        Provider []provs = Security.getProviders();
-        for( int i=0; i < provs.length; ++i) {
-            System.out.println("======");
-            System.out.println(provs[i].getName());
-            provs[i].list(System.out);
-            System.out.println("======");
-        }
+/* This is just a huge amount of needless info for the tinderbox and nightly QA
+*        Provider []provs = Security.getProviders();
+*        for( int i=0; i < provs.length; ++i) {
+*            System.out.println("======");
+*            System.out.println(provs[i].getName());
+*            provs[i].list(System.out);
+*            System.out.println("======");
+*        }
+*/
 
-        (new KeyFactoryTest()).doTest();          
+        (new KeyFactoryTest()).doTest();
         
       } catch(Throwable e) {
             e.printStackTrace();

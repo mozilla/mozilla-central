@@ -61,6 +61,19 @@ public class SSLClientAuth implements Runnable {
     public static final SignatureAlgorithm sigAlg = 
             SignatureAlgorithm.RSASignatureWithSHA1Digest;
 
+     /**
+     * Method that generates a certificate for given credential
+     * 
+     * @param issuerName 
+     * @param subjectName 
+     * @param serialNumber 
+     * @param privKey 
+     * @param pubKey 
+     * @param rand 
+     * @param extensions 
+     * @throws java.lang.Exception 
+     * @return 
+     */
     public static Certificate makeCert(String issuerName, String subjectName,
         int serialNumber, PrivateKey privKey, PublicKey pubKey, int rand,
         SEQUENCE extensions) throws Exception
@@ -100,6 +113,11 @@ public class SSLClientAuth implements Runnable {
         return new Certificate(info, privKey, sigAlg);
     }
 
+    /**
+     * 
+     * @param args 
+     * @throws java.lang.Exception 
+     */
     public static void main(String[] args) throws Exception {
         (new SSLClientAuth()).doIt(args);
     }
@@ -108,6 +126,11 @@ public class SSLClientAuth implements Runnable {
     private String serverCertNick, clientCertNick;
 
 
+    /**
+     * 
+     * @param args 
+     * @throws java.lang.Exception 
+     */
     public void doIt(String[] args) throws Exception {
 
         if ( args.length < 2 ) {
@@ -134,20 +157,30 @@ public class SSLClientAuth implements Runnable {
            System.out.println("enabled bypassPKCS11 mode for all sockets");
            System.out.println(SSLSocket.getSSLDefaultOptions());
         }
+
         SecureRandom rng= SecureRandom.getInstance("pkcs11prng",
             "Mozilla-JSS");
-        int rand = nextRandInt(rng);
-
+        int rand;
+        X509Certificate[] certs;
+        do {
+            /* ensure certificate does not already exists */
+            /* we don't have to test all three */
+            rand = nextRandInt (rng);
+            serverCertNick = "servercertnick"+rand;
+            certs = cm.findCertsByNickname (serverCertNick);
+        } while (certs.length > 0);
+            
         // generate CA cert
-        // 512-bit RSA Key with default exponent
+        // RSA Key with default exponent
+        int keyLength = 512;
         java.security.KeyPairGenerator kpg =
         java.security.KeyPairGenerator.getInstance("RSA", "Mozilla-JSS");
-        kpg.initialize(512);
+        kpg.initialize(keyLength);
         KeyPair caPair = kpg.genKeyPair();
 
         SEQUENCE extensions = new SEQUENCE();
         extensions.addElement(makeBasicConstraintsExtension());
-        Certificate caCert = makeCert("CACert", "CACert", 1,
+        Certificate caCert = makeCert("CACert", "CACert", rand+1,
             caPair.getPrivate(), caPair.getPublic(), rand, extensions);
         X509Certificate nssCaCert = cm.importUserCACertPackage(
             ASN1Util.encode(caCert), "cacertnick"+rand);
@@ -158,18 +191,18 @@ public class SSLClientAuth implements Runnable {
             InternalCertificate.VALID_CA);
 
         // generate server cert
-        kpg.initialize(512);
+        kpg.initialize(keyLength);
         KeyPair serverPair = kpg.genKeyPair();
-        Certificate serverCert = makeCert("CACert", "localhost", 2,
+        Certificate serverCert = makeCert("CACert", "localhost", rand+2,
             caPair.getPrivate(), serverPair.getPublic(), rand, null);
         serverCertNick = "servercertnick"+rand;
         nssServerCert = cm.importCertPackage(
             ASN1Util.encode(serverCert), serverCertNick);
 
         // generate client auth cert
-        kpg.initialize(512);
+        kpg.initialize(keyLength);
         KeyPair clientPair = kpg.genKeyPair();
-        Certificate clientCert = makeCert("CACert", "ClientCert", 3,
+        Certificate clientCert = makeCert("CACert", "ClientCert", rand+3,
             caPair.getPrivate(), clientPair.getPublic(), rand, null);
         clientCertNick = "clientcertnick"+rand;
         nssClientCert = cm.importCertPackage(
