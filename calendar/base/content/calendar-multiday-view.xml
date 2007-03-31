@@ -1876,6 +1876,7 @@
       <field name="mMinPixelsPerMinute">0.1</field>
       <field name="mSelectedItems">[]</field>
       <field name="mSelectedDayCol">null</field>
+      <field name="mSelectedDay">null</field>
 
       <field name="mStartMin">0*60</field>
       <field name="mEndMin">24*60</field>
@@ -2274,6 +2275,9 @@
           if (this.numVisibleDates == 1)
             return this.mDateColumns[0].date;
 
+          if (this.mSelectedDay)
+            return this.mSelectedDay;
+
           if (this.mSelectedDayCol)
             return this.mSelectedDayCol.date;
 
@@ -2295,11 +2299,11 @@
           if (val) {
             this.mSelectedDayCol = this.findColumnForDate(val);
             if (this.mSelectedDayCol) {
+              this.mSelectedDay = this.mSelectedDayCol.date;
               this.mSelectedDayCol.column.selected = true;
               this.mSelectedDayCol.header.setAttribute("selected", "true");
             } else {
-              dump ("XX couldn't find column to select for day: " + val + "\n");
-              return null;
+              this.mSelectedDay = val;
             }
           }
           this.fireEvent("dayselect", val);
