@@ -140,10 +140,11 @@
       collapsed="true"/>
   
     <hbox id="input-widgets" align="center">
-      <button id="server-nick" type="menu" label=""/>
+      <button id="server-nick" type="menu" label="" tooltiptext="&server-nick.tooltip;"/>
       <hbox id="multiline-box" flex="1" collapsed="true">
         <textbox id="multiline-input" multiline="true" flex="1" height="100px"
-          class="multiline-input-widget" onfocus="onInputFocus();"/>
+          class="multiline-input-widget" onfocus="onInputFocus();"
+          tabindex="-1"/>
         <vbox>
           <toolbarbutton id="button-input" flex="1"
             oncommand="onMultilineSend(event);"
@@ -155,7 +156,7 @@
       </hbox>
       <hbox id="singleline-box" flex="1" collapsed="true">
         <textbox id="input" class="input-widget" flex="1"
-          onfocus="onInputFocus();"/>
+          onfocus="onInputFocus();" tabindex="-1"/>
         <toolbarbutton id="button-multiline-expand" 
           oncommand="dispatch('pref multiline true');" 
           tooltiptext="&multiline-expand.tooltip;"/>

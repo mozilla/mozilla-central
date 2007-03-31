@@ -459,6 +459,13 @@ function onTabCompleteRequest (e)
     else
         wordEnd += selStart;
 
+    // Double tab on nothing, inform user how to get out of the input box
+    if (wordEnd == wordStart)
+    {
+        display(MSG_LEAVE_INPUTBOX, MT_INFO);
+        return;
+    }
+
     if ("performTabMatch" in client.currentObject)
     {
         var word = line.substring(wordStart, wordEnd);
@@ -584,6 +591,11 @@ function onWindowKeyPress (e)
                 w.scrollTo (w.pageXOffset, newOfs);
             else
                 w.scrollTo (w.pageXOffset, (w.innerHeight + w.pageYOffset));
+            e.preventDefault();
+            break;
+
+        case 117: /* F6 */
+            advanceKeyboardFocus(e.shiftKey ? -1 : 1);
             e.preventDefault();
             break;
     }

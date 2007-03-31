@@ -216,6 +216,7 @@ function init()
     dispatch("networks");
 
     initInstrumentation();
+    setTimeout("dispatch('focus-input')", 0);
     setTimeout(processStartupURLs, 0);
 }
 
@@ -2639,6 +2640,26 @@ function scrollDown(frame, force)
     var window = getContentWindow(frame);
     if (window && (force || checkScroll(frame)))
         window.scrollTo(0, window.document.height);
+}
+
+function advanceKeyboardFocus(amount)
+{
+    var contentWin = getContentWindow(client.currentObject.frame);
+    var contentDoc = getContentDocument(client.currentObject.frame);
+    var userList = document.getElementById("user-list");
+
+    // Focus userlist, inputbox and outputwindow in turn:
+    var focusableElems = [userList, client.input.inputField, contentWin];
+
+    var elem = document.commandDispatcher.focusedElement;
+    // Finding focus in the content window is "hard". It's going to be null
+    // if the window itself is focused, and "some element" inside of it if the
+    // user starts tabbing through.
+    if (!elem || (elem.ownerDocument == contentDoc))
+        elem = contentWin;
+
+    var newIndex = (arrayIndexOf(focusableElems, elem) * 1 + 3 + amount) % 3;
+    focusableElems[newIndex].focus();
 }
 
 /* valid values for |what| are "superfluous", "activity", and "attention".
