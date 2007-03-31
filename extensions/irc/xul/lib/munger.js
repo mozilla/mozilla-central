@@ -125,6 +125,7 @@ function mng_getrule(name)
                 return this.entries[p][name];
         }
     }
+    return null;
 }
 
 CMunger.prototype.addRule =
