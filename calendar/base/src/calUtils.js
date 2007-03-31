@@ -785,21 +785,15 @@ function getContrastingTextColor(bgColor)
     var green = parseInt(calcColor.substring(2, 4), 16);
     var blue = parseInt(calcColor.substring(4, 6), 16);
 
-    // Calculate the L(ightness) value of the HSL color system.
-    // L = (max(R, G, B) + min(R, G, B)) / 2
-    var max = Math.max(Math.max(red, green), blue);
-    var min = Math.min(Math.min(red, green), blue);
-    var lightness = (max + min) / 2;
+    // Calculate the brightness (Y) value using the YUV color system.
+    var brightness = (0.299 * red) + (0.587 * green) + (0.114 * blue);
 
-    // Consider all colors with less than 50% Lightness as dark colors
-    // and use white as the foreground color; otherwise use black.
-    // Actually we use a threshold a bit below 50%, so colors like
-    // #FF0000, #00FF00 and #0000FF still get black text which looked
-    // better when we tested this.
-    if (lightness < 120) {
+    // Consider all colors with less than 56% brightness as dark colors and
+    // use white as the foreground color, otherwise use black.
+    if (brightness < 144) {
         return "white";
     }
-    
+
     return "black";
 }
 
