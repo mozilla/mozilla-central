@@ -11,16 +11,13 @@
    - for the specific language governing rights and limitations under the
    - License.
    -
-   - The Original Code is Mozilla Communicator.
+   - The Original Code is SeaMonkey Internet Suite code.
    -
-   - The Initial Developer of the Original Code is
-   - Netscape Communications Corp.
-   - Portions created by the Initial Developer are Copyright (C) 2002
+   - The Initial Developer of the Original Code is Karsten Düsterloh <mnyromyr@tprac.de>.
+   - Portions created by the Initial Developer are Copyright (C) 2006
    - the Initial Developer. All Rights Reserved.
    -
    - Contributor(s):
-   -   Seth Spitzer <sspitzer@netscape.com>
-   -   Mark Banner <mark@standard8.demon.co.uk>
    -   Scott MacGregor <mscott@mozilla.org> (original Thunderbird parts)
    -
    - Alternatively, the contents of this file may be used under the terms of
@@ -37,9 +34,22 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<!ENTITY junkLog.title "Junk Mail Log">
-<!ENTITY junkLogInfo.label "Log of junk mail control activity.">
-<!ENTITY clearLog.label "Clear Log">
-<!ENTITY clearLog.accesskey "C">
-<!ENTITY closeLog.label "Close">
-<!ENTITY closeLog.accesskey "o">
+<!ENTITY pref.junk.title "Junk Mail">
+<!ENTITY junkSettings.caption "Global Junk Mail Settings">
+<!ENTITY junkMail.intro "Goto Account Settings to configure account specific junk mail settings.">
+
+<!-- Junk Mail Controls -->
+<!ENTITY manualMark.label               "When I mark messages as junk:">
+<!ENTITY manualMark.accesskey           "W">
+<!ENTITY manualMarkModeMove.label       "Move them to the account's &quot;Junk&quot; folder">
+<!ENTITY manualMarkModeMove.accesskey   "M">
+<!ENTITY manualMarkModeDelete.label     "Delete them">
+<!ENTITY manualMarkModeDelete.accesskey "D">
+<!ENTITY markAsReadOnSpam.label         "Mark messages determined to be junk as read">
+<!ENTITY markAsReadOnSpam.acesskey      "r">
+<!ENTITY enableJunkLogging.label        "Enable junk filter logging">
+<!ENTITY enableJunkLogging.accesskey    "E">
+<!ENTITY openJunkLog.label              "Show log">
+<!ENTITY openJunkLog.accesskey          "S">
+<!ENTITY resetTrainingData.label        "Reset training data">
+<!ENTITY resetTrainingData.accesskey    "t">
