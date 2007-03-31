@@ -67,90 +67,155 @@ public class GenerateTestCert {
     private final SignatureAlgorithm sigAlg =
             SignatureAlgorithm.RSASignatureWithSHA1Digest;
     private X509Certificate nssServerCert, nssClientCert;
-    private String serverCertNick, clientCertNick;
-    
+    static final private String CACERT_NICKNAME = "JSSCATestCert";
+    static final private String SERVERCERT_NICKNAME = "JSSTestServerCert";
+    static final private String CLIENTCERT_NICKNAME = "JSSTestClientCert";
+
     /**
      * Main method for testing and generating cert pairs.
      */
     public static void main(String[] args) throws Exception {
-        if( args.length > 0 )
-            (new GenerateTestCert()).doIt(args);
-        else
-            System.out.println("USAGE: " + 
+       GenerateTestCert gtc = new GenerateTestCert();
+        if ( args.length > 0 ) {
+            gtc.doIt(args);
+        } else {
+            gtc.usage();
+        }
+    }
+
+    public void usage() {
+        System.out.println("USAGE: " + 
                     "java org.mozilla.jss.tests.GenerateTestCert " + 
-                    "<test dir> <password file>\n");
+                    "<test dir> <password file> [hostname] [CAcertNickname] " +
+                    "[ServerCertNickname] [ClientCertNickName]");
+        System.out.println("This program creates self signed Certificates." +
+                    "They are only meant for testing and should never be " +
+                    "used in production. " +
+                    "\nThe default nicknames:" +
+                    "\n\tCA certificate: " + CACERT_NICKNAME +
+                    "\n\tServer certificate: " + SERVERCERT_NICKNAME +
+                    "\n\tClient certificate: " + CLIENTCERT_NICKNAME);
         System.exit(1);
     }
-    
+ 
     /**
      * Based on the input parameters, generate a cert
      * pair.
      */
     private void doIt(String[] args) throws Exception {
-        
-        if ( args.length != 2 ) {
-	    System.out.println("Usage: java org.mozilla.jss.tests." +
-			       "GenerateTestCert <dbdir> <passwordFile>");
-            System.exit(1);
+        String caCertNick = CACERT_NICKNAME;
+        String serverCertNick = SERVERCERT_NICKNAME;
+        String clientCertNick = CLIENTCERT_NICKNAME;
+
+        if ( args.length < 2 ) {
+            usage();
         }
-        
+
         try {
             CryptoManager.initialize(args[0]);
             CryptoManager cm = CryptoManager.getInstance();
-        
+
             CryptoToken tok = cm.getInternalKeyStorageToken();
-        
+
             PasswordCallback cb = new FilePasswordCallback(args[1]);
             tok.login(cb);
-        
+
             SecureRandom rng= SecureRandom.getInstance("pkcs11prng",
                 "Mozilla-JSS");
-            int rand = 24022402;
-        
+            int rand = nextRandInt (rng);
+
+            String hostname = "localhost";
+            if (args.length > 3) {
+                hostname = args[2];
+            }
+
+            X509Certificate[] certs;
+            if (args.length > 4) {
+                caCertNick = args[3];
+            }
+
+            /* ensure certificate does not already exists */
+            certs = cm.findCertsByNickname(caCertNick);
+            if (certs.length > 0) {
+                System.out.println(caCertNick + " already exists!");
+                System.exit (1);
+            };
+
+            if (args.length > 5) {
+                serverCertNick = args[4];
+            }
+            certs = cm.findCertsByNickname(serverCertNick);
+            if (certs.length > 0) {
+                System.out.println(serverCertNick + " already exists!");
+                System.exit (1);
+            };
+
+            if (args.length == 6) {
+                clientCertNick = args[5];
+            }
+            certs = cm.findCertsByNickname(clientCertNick);
+            if (certs.length > 0) {
+                System.out.println(clientCertNick + " already exists!");
+                System.exit (1);
+            };
+
+            int keyLength = 512;
             // generate CA cert
             java.security.KeyPairGenerator kpg =
             java.security.KeyPairGenerator.getInstance("RSA", "Mozilla-JSS");
-            kpg.initialize(512);
+            kpg.initialize(keyLength);
             KeyPair caPair = kpg.genKeyPair();
-        
+
             SEQUENCE extensions = new SEQUENCE();
             extensions.addElement(makeBasicConstraintsExtension());
-            Certificate caCert = makeCert("CACert", "CACert", 1,
+
+            Certificate caCert = makeCert("CACert", "CACert", rand+1,
                 caPair.getPrivate(), caPair.getPublic(), rand, extensions);
-            X509Certificate nssCaCert = cm.importUserCACertPackage(
-                ASN1Util.encode(caCert), "JSSCATestCert");
+            X509Certificate nssCaCert = cm.importUserCACertPackage (
+                ASN1Util.encode (caCert), caCertNick);
             InternalCertificate intern = (InternalCertificate)nssCaCert;
             intern.setSSLTrust(
                 InternalCertificate.TRUSTED_CA |
                 InternalCertificate.TRUSTED_CLIENT_CA |
                 InternalCertificate.VALID_CA);
-        
+
             // generate server cert
-            kpg.initialize(512);
+            kpg.initialize(keyLength);
             KeyPair serverPair = kpg.genKeyPair();
-            Certificate serverCert = makeCert("CACert", "localhost", 2,
+            Certificate serverCert = makeCert("CACert", hostname, rand+2,
                 caPair.getPrivate(), serverPair.getPublic(), rand, null);
-            serverCertNick = "JSSCATestServerCert";
             nssServerCert = cm.importCertPackage(
                 ASN1Util.encode(serverCert), serverCertNick);
-        
+
             // generate client auth cert
-            kpg.initialize(512);
+            kpg.initialize(keyLength);
             KeyPair clientPair = kpg.genKeyPair();
-            Certificate clientCert = makeCert("CACert", "ClientCert", 3,
+            Certificate clientCert = makeCert("CACert", "ClientCert", rand+3,
                 caPair.getPrivate(), clientPair.getPublic(), rand, null);
-            clientCertNick = "JSSCATestClientCert";
             nssClientCert = cm.importCertPackage(
                 ASN1Util.encode(clientCert), clientCertNick);
-        
+
+            System.out.println("\nThis program created certificates with \n" +
+                               "following cert nicknames:" +
+                               "\n\t" + caCertNick +
+                               "\n\t" + serverCertNick +
+                               "\n\t" + clientCertNick);
             System.out.println("Exiting main()");
+
         } catch(Exception e) {
               e.printStackTrace();
               System.exit(1);
         }
         System.exit(0);
     }
-    
+
+    static int nextRandInt(SecureRandom rand) throws Exception {
+        byte[] bytes = new byte[4];
+        rand.nextBytes(bytes);
+        return  ((int)bytes[0])<<24 | ((int)bytes[1])<<16 |
+                ((int)bytes[2])<<8 | ((int)bytes[3]);
+    }
+
     /**
      * Make basic extension.
      */
@@ -162,9 +227,19 @@ public class GenerateTestCert {
                 OCTET_STRING enc = new OCTET_STRING(ASN1Util.encode(bc));
                 return new Extension(bcOID, true, enc);
     }
-    
+
     /**
      * Method that generates a certificate for given credential
+     * 
+     * @param issuerName 
+     * @param subjectName 
+     * @param serialNumber 
+     * @param privKey 
+     * @param pubKey 
+     * @param rand 
+     * @param extensions 
+     * @throws java.lang.Exception 
+     * @return 
      */
     private Certificate makeCert(String issuerName,
             String subjectName,
@@ -174,38 +249,38 @@ public class GenerateTestCert {
             int rand,
             SEQUENCE extensions) throws Exception {
         AlgorithmIdentifier sigAlgID = new AlgorithmIdentifier( sigAlg.toOID());
-        
+
         Name issuer = new Name();
         issuer.addCommonName(issuerName);
         issuer.addCountryName("US");
         issuer.addOrganizationName("Mozilla"+rand);
         issuer.addOrganizationalUnitName("JSS Testing");
-        
+
         Name subject = new Name();
         subject.addCommonName(subjectName);
         subject.addCountryName("US");
         subject.addOrganizationName("Mozilla"+rand);
         subject.addOrganizationalUnitName("JSS Testing");
-        
+
         Calendar cal = Calendar.getInstance();
         Date notBefore = cal.getTime();
         cal.add(Calendar.YEAR, 1);
         Date notAfter = cal.getTime();
-        
+
         SubjectPublicKeyInfo.Template spkiTemp =
                 new SubjectPublicKeyInfo.Template();
         SubjectPublicKeyInfo spki =
                 (SubjectPublicKeyInfo) ASN1Util.decode(spkiTemp,
                 pubKey.getEncoded());
-        
+
         CertificateInfo info = new CertificateInfo(
                 CertificateInfo.v3, new INTEGER(serialNumber), sigAlgID,
                 issuer, notBefore, notAfter, subject, spki);
         if( extensions != null ) {
             info.setExtensions(extensions);
         }
-        
+
         return new Certificate(info, privKey, sigAlg);
     }
-    
+
 }
