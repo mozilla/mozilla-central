@@ -550,6 +550,11 @@ enum {
     mRefreshIcon = YES;
     [self refreshDownloadInfo];
   }
+  
+  // Unsubscribe our notice if the file has moved and is currently watched.
+  // This call is made to work around a bug in kqueue in OS X 10.3 (see bug 375420).
+  if (!fileExists && mFileIsWatched)
+    [self unsubscribeFileSystemNotification];
 }
 
 -(void)setProgressViewFromDictionary:(NSDictionary*)aDict
