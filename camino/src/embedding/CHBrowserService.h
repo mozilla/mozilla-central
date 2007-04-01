@@ -74,7 +74,14 @@ public:
   // embedding application. Some examples are security dialogs, password
   // manager, and Necko prompts. This can be called at any time after
   // XPCOM has been initialized.
-  static void RegisterAppComponents(const nsModuleComponentInfo* inComponents, const int inNumComponents);
+  // Note that this should be called only once, as ReRegisterAppComponents
+  // will not re-register anything registered in subsequent calls.
+  static void RegisterAppComponents(const nsModuleComponentInfo* inComponents,
+                                    const int inNumComponents);
+  // Repeates the registration done in RegisterAppComponents.
+  // Called automatically after autoregistration to ensure that overrides
+  // remain in effect.
+  static void ReRegisterAppComponents();
   
   static void SetAlertController(nsAlertController* aController);
   static nsAlertController* GetAlertController();
@@ -84,10 +91,13 @@ public:
 
 private:
   static void ShutDown();
+  static void SetUpAutoregistrationListener();
 
   static CHBrowserService* sSingleton;
   static nsAlertController* sController;
   static PRBool sCanTerminate;
+  static const nsModuleComponentInfo* sAppComponents; // weak
+  static int sAppComponentCount;
 };
 
 

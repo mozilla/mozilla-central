@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Stuart Morgan <stuart.morgan@alumni.case.edu>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -46,6 +47,7 @@
 #include "nsString.h"
 #include "nsIGenericFactory.h"
 #include "nsIComponentRegistrar.h"
+#include "nsICategoryManager.h"
 #include "nsEmbedAPI.h"
 #include "nsIURI.h"
 #include "nsIDownload.h"
@@ -54,6 +56,7 @@
 #include "nsIExternalHelperAppService.h"
 #include "nsIMIMEInfo.h"
 #include "nsIPref.h"
+#include "nsIObserver.h"
 #include "nsIObserverService.h"
 #include "GeckoUtils.h"
 
@@ -65,9 +68,49 @@ nsAlertController* CHBrowserService::sController = nsnull;
 CHBrowserService* CHBrowserService::sSingleton = nsnull;
 PRUint32 CHBrowserService::sNumBrowsers = 0;
 PRBool CHBrowserService::sCanTerminate = PR_FALSE;
+const nsModuleComponentInfo* CHBrowserService::sAppComponents = nsnull;
+int CHBrowserService::sAppComponentCount = 0;
 
+#pragma mark Autoregistration observer
 
-// CHBrowserService implementation
+class XPCOMAutoregistrationObserver : public nsIObserver
+{
+public:
+  XPCOMAutoregistrationObserver() {}
+  virtual ~XPCOMAutoregistrationObserver() {}
+  
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSIOBSERVER
+};
+
+NS_IMPL_ISUPPORTS1(XPCOMAutoregistrationObserver, nsIObserver);
+
+NS_IMETHODIMP
+XPCOMAutoregistrationObserver::Observe(nsISupports* aSubject, const char* aTopic, const PRUnichar* aSomeData)
+{
+  if (strcmp(aTopic, "end") == 0)
+    CHBrowserService::ReRegisterAppComponents();
+  return NS_OK;
+}
+
+NS_GENERIC_FACTORY_CONSTRUCTOR(XPCOMAutoregistrationObserver)
+
+// {13de2e6a-5745-4b43-9b63-f62a7b7a6a5d}
+#define CH_AUTOREGISTRATIONOBSERVER_CID \
+        {0x13de2e6a, 0x5745, 0x4b43, {0x9b, 0x63, 0xf6, 0x2a, 0x7b, 0x7a, 0x6a, 0x5d}}
+#define CH_AUTOREGISTRATIONOBSERVER_CONTRACTID \
+        "@mozilla.org/chbrowser/auto-registration-listener;1"
+
+static const nsModuleComponentInfo sAutoregistrationListenerComponentInfo = {
+  "CHBrowser Autoregistration Listener",
+  CH_AUTOREGISTRATIONOBSERVER_CID,
+  CH_AUTOREGISTRATIONOBSERVER_CONTRACTID,
+  XPCOMAutoregistrationObserverConstructor
+};
+
+#pragma mark -
+#pragma mark CHBrowserService implementation
+
 CHBrowserService::CHBrowserService()
 {
 }
@@ -333,6 +376,57 @@ CHBrowserService::RegisterAppComponents(const nsModuleComponentInfo* inComponent
                              inComponents[i].mContractID,
                              componentFactory);
     NS_ASSERTION(NS_SUCCEEDED(rv), "Unable to register factory for component");
+  }
+  
+  // The first time through, store the arguments and set up a listener that will
+  // re-run registration after any later autoregistration (since overrides may
+  // be lost during autoregistration).
+  if (!sAppComponents) {
+    // No need to copy this, since the component info must be valid for the
+    // lifetime of the components they describe anyway.
+    sAppComponents = inComponents;
+    sAppComponentCount = inNumComponents;
+    SetUpAutoregistrationListener();
+  }
+}
+
+void
+CHBrowserService::ReRegisterAppComponents() {
+  RegisterAppComponents(sAppComponents, sAppComponentCount);
+}
+
+void
+CHBrowserService::SetUpAutoregistrationListener() {
+  nsCOMPtr<nsIComponentRegistrar> cr;
+  NS_GetComponentRegistrar(getter_AddRefs(cr));
+  if (!cr)
+    return;
+  
+  // Register the component.
+  nsCOMPtr<nsIGenericFactory> componentFactory;
+  nsresult rv = NS_NewGenericFactory(getter_AddRefs(componentFactory),
+                                     &sAutoregistrationListenerComponentInfo);
+  if (NS_FAILED(rv)) {
+    NS_ASSERTION(PR_FALSE, "Unable to create factory for autoregistration listener");
+    return;
+  }
+  rv = cr->RegisterFactory(sAutoregistrationListenerComponentInfo.mCID,
+                           sAutoregistrationListenerComponentInfo.mDescription,
+                           sAutoregistrationListenerComponentInfo.mContractID,
+                           componentFactory);
+  if (NS_FAILED(rv)) {
+    NS_ASSERTION(PR_FALSE, "Unable to register factory for autoregistration listener");
+    return;
+  }
+    
+  // Set it to listen for XPCOM autoregistration.
+  nsCOMPtr<nsICategoryManager> cm = do_GetService(NS_CATEGORYMANAGER_CONTRACTID);
+  if (cm) {
+    rv = cm->AddCategoryEntry("xpcom-autoregistration",
+                              "CHBrowserService Autoregistration Listener",
+                              CH_AUTOREGISTRATIONOBSERVER_CONTRACTID,
+                              PR_TRUE, PR_TRUE, NULL);
+    NS_ASSERTION(NS_SUCCEEDED(rv), "Unable to register factory for notifications");
   }
 }
 
