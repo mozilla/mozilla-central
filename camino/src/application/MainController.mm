@@ -658,6 +658,7 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
       if (tabIndex != NSNotFound) {
         [tabView selectTabViewItemAtIndex:tabIndex];
         [[browser window] makeKeyAndOrderFront:self];
+        [browser reload:nil];
         return;
       }
     }

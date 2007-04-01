@@ -3090,17 +3090,25 @@ enum BWCOpenDest {
   }
 }
 
+// Reloads the given BrowserWrapper, automatically performing the appropriate
+// checks to decide whether to do a force-reload if sender is non-nil.
 - (void)reloadBrowserWrapper:(BrowserWrapper *)inWrapper sender:(id)sender
 {
   unsigned int reloadFlags = NSLoadFlagsNone;
-  if ([sender respondsToSelector:@selector(keyEquivalent)]) {
-    // Capital R tests for shift when there's a keyEquivalent, keyEquivalentModifierMask tests when there isn't
-    if ([[sender keyEquivalent] isEqualToString:@"R"] || ([sender keyEquivalentModifierMask] & NSShiftKeyMask))
+  // If the sender is nil then the reload was programatically invoked, so we
+  // don't want to change behavior based on whether shift happens to be pressed.
+  if (sender) {
+    if ([sender respondsToSelector:@selector(keyEquivalent)]) {
+      // Capital R tests for shift when there's a keyEquivalent, keyEquivalentModifierMask
+      // tests when there isn't
+      if ([[sender keyEquivalent] isEqualToString:@"R"] ||
+          ([sender keyEquivalentModifierMask] & NSShiftKeyMask))
+        reloadFlags = NSLoadFlagsBypassCacheAndProxy;
+    }
+    // It's a toolbar button, so we test for shift using modifierFlags
+    else if ([[NSApp currentEvent] modifierFlags] & NSShiftKeyMask)
       reloadFlags = NSLoadFlagsBypassCacheAndProxy;
   }
-  // It's a toolbar button, so we test for shift using modifierFlags
-  else if ([[NSApp currentEvent] modifierFlags] & NSShiftKeyMask)
-    reloadFlags = NSLoadFlagsBypassCacheAndProxy;
 
   [inWrapper reload:reloadFlags];
 }
