@@ -329,6 +329,12 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
   [mCookiesTable setTarget:self];
   
   CookieDateFormatter* cookieDateFormatter = [[CookieDateFormatter alloc] initWithDateFormat:@"%b %d, %Y" allowNaturalLanguage:NO];
+  // Once we are 10.4+, the above and all the CF stuff in CookieDateFormatter
+  // can be replaced with the following:
+  //CookieDateFormatter* cookieDateFormatter = [[CookieDateFormatter alloc] init];
+  //[cookieDateFormatter setFormatterBehavior:NSDateFormatterBehavior10_4];
+  //[cookieDateFormatter setDateStyle:NSDateFormatterMediumStyle];
+  //[cookieDateFormatter setTimeStyle:NSDateFormatterNoStyle];
   [[[mCookiesTable tableColumnWithIdentifier:@"Expires"] dataCell] setFormatter:cookieDateFormatter];
   [cookieDateFormatter release];
 
@@ -1151,13 +1157,43 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
 
 @implementation CookieDateFormatter
 
+- (id)initWithDateFormat:(NSString*)format allowNaturalLanguage:(BOOL)flag;
+{
+  if ((self = [super initWithDateFormat:format allowNaturalLanguage:flag])) {
+    CFLocaleRef userLocale = CFLocaleCopyCurrent();
+    if (userLocale) {
+      mLocaleFormatter = CFDateFormatterCreate(NULL,
+                                               userLocale,
+                                               kCFDateFormatterMediumStyle,
+                                               kCFDateFormatterNoStyle);
+      CFRelease(userLocale);
+    }
+  }
+  return self;
+}
+
+- (void)dealloc
+{
+  if (mLocaleFormatter)
+    CFRelease(mLocaleFormatter);
+  [super dealloc];
+}
+
 - (NSString*)stringForObjectValue:(id)anObject
 {
   if ([(NSDate*)anObject timeIntervalSince1970] == 0)
     return NSLocalizedStringFromTableInBundle(@"CookieExpiresOnQuit", nil,
                                               [NSBundle bundleForClass:[self class]], nil);
-  else
-    return [super stringForObjectValue:anObject];
+  if (mLocaleFormatter) {
+    NSString* dateString = (NSString*)CFDateFormatterCreateStringWithDate(NULL,
+                                                                          mLocaleFormatter,
+                                                                          (CFDateRef)anObject);
+    if (dateString)
+      return [dateString autorelease];
+  }
+
+  // If all else fails, fall back on the standard date formatter
+  return [super stringForObjectValue:anObject];
 }
 
 @end

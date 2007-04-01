@@ -141,5 +141,6 @@ typedef enum ECookiePolicyPopupIndex
 // custom formatter for cookies list to handle session cookie expiration sanely
 @interface CookieDateFormatter : NSDateFormatter
 {
+  CFDateFormatterRef mLocaleFormatter; // strong
 }
 @end
