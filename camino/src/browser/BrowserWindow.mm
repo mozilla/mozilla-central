@@ -120,6 +120,10 @@ static const int kEscapeKeyCode = 53;
     BOOL shiftKeyIsDown = (([theEvent modifierFlags] & NSShiftKeyMask) != 0);
     handled = [windowController handleCommandReturn:shiftKeyIsDown];
   } else if (keyChar == '+') {
+    // If someone assigns this shortcuts to a menu, we want that to win.
+    if ([[NSApp mainMenu] performKeyEquivalent:theEvent])
+      return YES;
+    
     if ([windowController canMakeTextBigger])
       [windowController makeTextBigger:nil];
     else
@@ -127,6 +131,10 @@ static const int kEscapeKeyCode = 53;
     handled = YES;
   } else if (keyChar >= '1' && keyChar <= '9') {
     if (([theEvent modifierFlags] & standardModifierKeys) == NSCommandKeyMask) {
+      // If someone assigns one of these shortcuts to a menu, we want that to win.
+      if ([[NSApp mainMenu] performKeyEquivalent:theEvent])
+        return YES;
+
       // use |forceReuse| to disable looking at the modifier keys since we know the command
       // key is down right now.
       handled = [windowController loadBookmarkBarIndex:(keyChar - '1') openBehavior:eBookmarkOpenBehavior_ForceReuse];
@@ -143,6 +151,10 @@ static const int kEscapeKeyCode = 53;
       if ((([theEvent modifierFlags] & standardModifierKeys) == NSCommandKeyMask) &&
           [windowController validateActionBySelector:@selector(addBookmark:)])
       {
+        // If someone assigns this shortcuts to a menu, we want that to win.
+        if ([[NSApp mainMenu] performKeyEquivalent:theEvent])
+          return YES;
+
         [windowController addBookmark:nil];
         handled = YES;
       }
