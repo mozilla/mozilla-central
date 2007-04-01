@@ -521,6 +521,7 @@ int KeychainPrefChangedCallback(const char* inPref, void* unused)
 @interface KeychainDenyList (KeychainDenyListPrivate)
 - (void)writeToDisk;
 - (NSString*)pathToDenyListFile;
+- (NSString*)pathToLegacyDenyListFile;
 @end
 
 
@@ -536,7 +537,10 @@ static KeychainDenyList *sDenyListInstance = nil;
 - (id)init
 {
   if ((self = [super init])) {
-    mDenyList = [[NSUnarchiver unarchiveObjectWithFile:[self pathToDenyListFile]] retain];
+    mDenyList = [[NSMutableArray alloc] initWithContentsOfFile:[self pathToDenyListFile]];
+    // If there's no new deny list file, try the old one
+    if (!mDenyList)
+      mDenyList = [[NSUnarchiver unarchiveObjectWithFile:[self pathToLegacyDenyListFile]] retain];
     if (!mDenyList)
       mDenyList = [[NSMutableArray alloc] init];
   }
@@ -556,7 +560,7 @@ static KeychainDenyList *sDenyListInstance = nil;
 //
 - (void)writeToDisk
 {
-  [NSArchiver archiveRootObject:mDenyList toFile:[self pathToDenyListFile]];
+  [mDenyList writeToFile:[self pathToDenyListFile] atomically:YES];
 }
 
 - (BOOL)isHostPresent:(NSString*)host
@@ -586,26 +590,16 @@ static KeychainDenyList *sDenyListInstance = nil;
   [self writeToDisk];
 }
 
-
-//
-// pathToDenyListFile
-//
-// returns a path ('/' delimited) that cocoa can use to point to the
-// deny list save file in the current user's profile
-//
 - (NSString*)pathToDenyListFile
 {
-  NSString* path = nil;
+  NSString* profilePath = [[PreferenceManager sharedInstance] profilePath];
+  return [profilePath stringByAppendingPathComponent:@"KeychainDenyList.plist"];
+}
 
-  nsCOMPtr<nsIFile> appProfileDir;
-  NS_GetSpecialDirectory(NS_APP_USER_PROFILE_50_DIR, getter_AddRefs(appProfileDir));
-  if (appProfileDir) {
-    nsAutoString profilePath;
-    appProfileDir->GetPath(profilePath);
-    path = [[NSString stringWith_nsAString:profilePath] stringByAppendingPathComponent:@"Keychain Deny List"];
-  }
-  
-  return path;
+- (NSString*)pathToLegacyDenyListFile
+{
+  NSString* profilePath = [[PreferenceManager sharedInstance] profilePath];
+  return [profilePath stringByAppendingPathComponent:@"Keychain Deny List"];
 }
 
 @end
