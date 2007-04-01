@@ -311,6 +311,11 @@ enum {
   }
 }
 
+- (void)reapplyFrame
+{
+  [self setFrame:[self frame] resizingBrowserViewIfHidden:YES];
+}
+
 - (void)setBrowserActive:(BOOL)inActive
 {
   [mBrowserView setActive:inActive];
@@ -554,7 +559,14 @@ enum {
   if (newPage)
   {
     // defer hiding of blocked popup view until we've loaded the new page
-    [self removeBlockedPopupViewAndDisplay];
+    if (mBlockedPopupView) {
+      [self removeBlockedPopupViewAndDisplay];
+      // If we are being called from within a history navigation, then core code
+      // has already stored our old size, and will incorrectly truncate the page
+      // later (see bug 350752, and the XXXbryner comment in nsDocShell.cpp). To
+      // work around that, re-set the frame once core is done meddling.
+      [self performSelector:@selector(reapplyFrame) withObject:nil afterDelay:0];
+    }
     if(mBlockedPopups)
       mBlockedPopups->Clear();
     [mDelegate showPopupBlocked:NO];
