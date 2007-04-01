@@ -241,18 +241,23 @@ int KeychainPrefChangedCallback(const char* inPref, void* unused)
     }
     newKeychainItems = [matchingItems arrayByAddingObjectsFromArray:genericItems];
   }
+  
+  // Find the best matching keychain entry. The password is always checked to
+  // ensure that it's not nil before returning that item (which triggers an auth
+  // request if necsessary) so that we know we are always returning something
+  // that is actually useful.
 
   // First, check for a new-style Camino keychain entry
   KeychainItem* item;
   NSEnumerator* keychainEnumerator = [newKeychainItems objectEnumerator];
   while ((item = [keychainEnumerator nextObject])) {
-    if ([item creator] == kCaminoKeychainCreatorCode)
+    if (([item creator] == kCaminoKeychainCreatorCode) && [item password])
       return item;
   }
 
   // If there isn't one, check for an old-style Camino entry
   item = [self findLegacyKeychainEntryForHost:host port:port];
-  if (item)
+  if (item && [item password])
     return item;
 
   // Finally, check for a new style entry created by something other than Camino.
@@ -267,14 +272,16 @@ int KeychainPrefChangedCallback(const char* inPref, void* unused)
       // items; that's just the way they roll. This fragile method is the best we can do.
       if ([[item password] isEqualToString:@" "])
         continue;
-      return item;
+      if ([item password])
+        return item;
     }
   }
   keychainEnumerator = [newKeychainItems objectEnumerator];
   while ((item = [keychainEnumerator nextObject])) {
     if ([[item password] isEqualToString:@" "])
       continue;
-    return item;
+    if ([item password])
+      return item;
   }
 
   return nil;

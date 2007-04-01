@@ -44,6 +44,7 @@
  @private
   SecKeychainItemRef mKeychainItemRef; // strong
   BOOL mDataLoaded;
+  BOOL mPasswordLoaded;
   NSString* mUsername;                 // strong
   NSString* mPassword;                 // strong
   NSString* mHost;                     // strong
