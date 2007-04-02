@@ -24,7 +24,7 @@ use Config;         # for $Config{sig_name} and $Config{sig_num}
 use File::Find ();
 use File::Copy;
 
-$::UtilsVersion = '$Revision: 1.354 $ ';
+$::UtilsVersion = '$Revision: 1.355 $ ';
 
 package TinderUtils;
 
@@ -1925,6 +1925,29 @@ sub run_all_tests {
 
     my $test_result = 'success';
 
+    # Setup talkback to submit reports automatically, if present.
+    my $talkback_installed = 0;
+    my $talkback_ini_path;
+    my $talkback_client_path = getPathToTalkbackClient($binary_dir);
+    if ($talkback_client_path) {
+        if (setTalkbackMasterConfigToAutoSubmit($talkback_client_path)) { 
+            $talkback_ini_path = getPathToTalkbackIni($binary_dir);
+            if ($talkback_ini_path) {
+                if (setTalkbackIniToAutoSubmit($talkback_ini_path)) {
+                    $talkback_installed = 1;
+                } else {
+                    print_log "Unable to set Talkback.ini. Proceeding as if Talkback was not installed.\n";
+                }
+            } else {
+                print_log "Unable to find path to Talkback application data. Proceeding as if Talkback was not installed.\n";
+            }
+        } else {
+            print_log "Unable to set Talkback master.ini. Proceeding as if Talkback was not installed.\n";
+        }
+    } else {
+        print_log "Unable to find path to Talkback client. Proceeding as if Talkback was not installed.\n";
+    }
+
     # Windows needs this for file: urls.
     my $win32_build_dir = $build_dir;
     if ($Settings::OS =~ /^WIN/ && $win32_build_dir !~ m/^.:\//) {
@@ -1944,6 +1967,9 @@ sub run_all_tests {
         } else {
             $args = ["$binary_dir/regxpcom"];
         }
+        if ($talkback_installed) {
+            setTestnameForTalkbackReport($talkback_ini_path,"regxpcom");
+        }
         AliveTest("regxpcom", $binary_dir, $args,
                   $Settings::RegxpcomTestTimeout);
     }
@@ -1952,6 +1978,10 @@ sub run_all_tests {
     my ($pref_file, $profile_dir);
 
     if ($Settings::UseMozillaProfile) {
+        if ($talkback_installed) {
+            setTestnameForTalkbackReport($talkback_ini_path,"CreateProfile");
+        }
+
       # Profile directory.  This lives in way-different places
       # depending on the OS.
       #
@@ -2029,6 +2059,9 @@ sub run_all_tests {
       # Run TestGtkEmbed to generate proper pref file.
       # This should only need to be run the first time for a given tree.
       unless (-e $pref_file) {
+        if ($talkback_installed) {
+            setTestnameForTalkbackReport($talkback_ini_path,"EmbedAliveTest_profile");
+        }
         $test_result = AliveTest("EmbedAliveTest_profile", $build_dir,
                                  ["$embed_binary_dir/$embed_binary_basename"],
                                  $Settings::EmbedTestTimeout);
@@ -2133,6 +2166,9 @@ sub run_all_tests {
     # debugging another part of the test sequence.  -mcafee
     #
     if ($Settings::AliveTest and $test_result eq 'success') {
+        if ($talkback_installed) {
+            setTestnameForTalkbackReport($talkback_ini_path,"MozillaAliveTest");
+        }
         $test_result = AliveTest("MozillaAliveTest", $build_dir,
                                  [$binary, "-P", $Settings::MozProfileName],
                                  $Settings::AliveTestTimeout);
@@ -2144,6 +2180,10 @@ sub run_all_tests {
         # Workaround for rh7.1 & jvm < 1.3.0:
         $ENV{LD_ASSUME_KERNEL} = "2.2.5";
 
+        if ($talkback_installed) {
+            setTestnameForTalkbackReport($talkback_ini_path,"MozillaJavaTest");
+        }
+
         $test_result = AliveTest("MozillaJavaTest", $build_dir,
                                  [$binary, "http://java.sun.com"],
                                  $Settings::JavaTestTimeout);
@@ -2152,6 +2192,9 @@ sub run_all_tests {
 
     # Viewer alive test
     if ($Settings::ViewerTest and $test_result eq 'success') {
+        if ($talkback_installed) {
+            setTestnameForTalkbackReport($talkback_ini_path,"ViewerAliveTest");
+        }
         $test_result = AliveTest("ViewerAliveTest", $build_dir,
                                  ["$binary_dir/viewer"],
                                  $Settings::ViewerTestTimeout);
@@ -2159,7 +2202,10 @@ sub run_all_tests {
 
     # Embed test.  Test the embedded app.
     if ($Settings::EmbedTest and $test_result eq 'success') {
-        $test_result = AliveTest("EmbedAliveTest", $build_dir,
+        if ($talkback_installed) {
+            setTestnameForTalkbackReport($talkback_ini_path,"EmbedAliveTest");
+        }
+       $test_result = AliveTest("EmbedAliveTest", $build_dir,
                                  ["$embed_binary_dir/$embed_binary_basename"],
                                  $Settings::EmbedTestTimeout);
     }
@@ -2174,6 +2220,11 @@ sub run_all_tests {
       } else {
         $app_args = ["-f", "bloaturls.txt"];
       }      
+
+      if ($talkback_installed) {
+        setTestnameForTalkbackReport($talkback_ini_path,"BloatTest");
+      }
+
       $test_result = BloatTest($binary, $build_dir,
                                $app_args, "",
                                $Settings::BloatTestTimeout);
@@ -2181,6 +2232,9 @@ sub run_all_tests {
 
     # New and improved bloat/leak test (based on trace-malloc)
     if ($Settings::BloatTest2 and $test_result eq 'success') {
+        if ($talkback_installed) {
+            setTestnameForTalkbackReport($talkback_ini_path,"BloatTest2");
+        }
         $test_result = BloatTest2($binary, $build_dir, $Settings::BloatTestTimeout);
     }
 
@@ -2217,6 +2271,10 @@ sub run_all_tests {
         # Remove the Inbox.msf file.
         # unlink("Inbox.msf");
 
+        if ($talkback_installed) {
+            setTestnameForTalkbackReport($talkback_ini_path,"MailBloattest");
+        }
+
         $test_result = BloatTest($binary, $build_dir, ["-mail"], "mail",
                                  $Settings::MailBloatTestTimeout);
 
@@ -2228,6 +2286,9 @@ sub run_all_tests {
     # DomToTextConversion test
     if (($Settings::EditorTest or $Settings::DomToTextConversionTest)
         and $test_result eq 'success') {
+        if ($talkback_installed) {
+            setTestnameForTalkbackReport($talkback_ini_path,"DomToTextConversionTest");
+        }
         $test_result =
             FileBasedTest("DomToTextConversionTest", $build_dir, $binary_dir,
                           ["perl", "TestOutSinks.pl"], $Settings::DomTestTimeout,
@@ -2236,6 +2297,9 @@ sub run_all_tests {
 
     # XpcomGlue test.  Do not run this on MacOSX.
     if ($Settings::XpcomGlueTest and $test_result eq 'success') {
+      if ($talkback_installed) {
+        setTestnameForTalkbackReport($talkback_ini_path,"XpcomGlueTest");
+      }
       $test_result =
         FileBasedTest("XpcomGlueTest", $build_dir, $binary_dir,
                       ["nsTestSample"], $Settings::DomTestTimeout,
@@ -2250,13 +2314,19 @@ sub run_all_tests {
     # SeaMonkey Codesize test.
     #
     if ($Settings::CodesizeTest and $test_result eq 'success') {
-      CodesizeTest("SeaMonkeyCodesizeTest", $build_dir, 0);
+        if ($talkback_installed) {
+            setTestnameForTalkbackReport($talkback_ini_path,"SeaMonkeyCodesizeTest");
+        }
+        CodesizeTest("SeaMonkeyCodesizeTest", $build_dir, 0);
     }
 
 
     # Embed Codesize test.
     if ($Settings::EmbedCodesizeTest and $test_result eq 'success') {
-      CodesizeTest("EmbedCodesizeTest", $build_dir, 1);
+        if ($talkback_installed) {
+            setTestnameForTalkbackReport($talkback_ini_path,"EmbedCodesizeTest");
+        }
+        CodesizeTest("EmbedCodesizeTest", $build_dir, 1);
     }
 
 
@@ -2276,6 +2346,10 @@ sub run_all_tests {
       unless ($Settings::BinaryName eq "TestGtkEmbed" ||
               $Settings::BinaryName eq 'Camino') {
         push(@$app_args, "-P", $Settings::MozProfileName);
+      }
+
+      if ($talkback_installed) {
+        setTestnameForTalkbackReport($talkback_ini_path,"LayoutPerformanceTest");
       }
 
       $test_result = LayoutPerformanceTest("LayoutPerformanceTest",
@@ -2301,6 +2375,10 @@ sub run_all_tests {
         push(@$app_args, "-P", $Settings::MozProfileName);
       }
 
+      if ($talkback_installed) {
+        setTestnameForTalkbackReport($talkback_ini_path,"LayoutPerformanceLocalTest");
+      }
+
       $test_result = LayoutPerformanceLocalTest("LayoutPerformanceLocalTest",
                                            $build_dir,
                                            $app_args);
@@ -2317,6 +2395,10 @@ sub run_all_tests {
         @app_args = [$binary, "-P", $Settings::MozProfileName];
       }
 
+      if ($talkback_installed) {
+        setTestnameForTalkbackReport($talkback_ini_path,"DHTMLPerformanceTest");
+      }
+
       $test_result = DHTMLPerformanceTest("DHTMLPerformanceTest",
                                           $build_dir,
                                           @app_args);
@@ -2324,6 +2406,10 @@ sub run_all_tests {
 
     # QA test: Client-side JS, DOM/HTML/Views, form submission.
     if ($Settings::QATest and $test_result eq 'success') {
+        if ($talkback_installed) {
+            setTestnameForTalkbackReport($talkback_ini_path,"QATest");
+        }
+
         $test_result = QATest("QATest",
                               $build_dir,
                               $binary_dir,
@@ -2343,6 +2429,10 @@ sub run_all_tests {
 
         my @urlargs = (-chrome,"file:$build_dir/mozilla/xpfe/test/winopen.xul");
         if($test_result eq 'success') {
+            if ($talkback_installed) {
+                setTestnameForTalkbackReport($talkback_ini_path,$test_name);
+            }
+
             $open_time = AliveTestReturnToken($test_name,
                                               $build_dir,
                                               [$binary, "-P", $Settings::MozProfileName, @urlargs],
@@ -2388,6 +2478,10 @@ sub run_all_tests {
         $app_args = ["-P", $Settings::MozProfileName];
       }
 
+      if ($talkback_installed) {
+        setTestnameForTalkbackReport($talkback_ini_path,"StartupPerformanceTest");
+      }
+
       $test_result = StartupPerformanceTest("StartupPerformanceTest",
                                             $binary,
                                             $build_dir,
@@ -2396,6 +2490,10 @@ sub run_all_tests {
     }
 
     if ($Settings::NeckoUnitTest and $test_result eq 'success') {
+        if ($talkback_installed) {
+            setTestnameForTalkbackReport($talkback_ini_path,"NeckoUnitTest");
+        }
+        
         $test_result = FileBasedTest("Necko unit tests",
                                      $build_dir, $binary_dir,
                                      ["necko_unit_tests/test_all.sh"],
@@ -2415,6 +2513,10 @@ sub run_all_tests {
         set_pref($pref_file, 'dom.disable_open_during_load', 'true');
       }
 
+      if ($talkback_installed) {
+        setTestnameForTalkbackReport($talkback_ini_path,"RenderPerformanceTest");
+      }
+
       $test_result = RenderPerformanceTest("RenderPerformanceTest",
                                            $build_dir, $binary_dir,
                                            [$binary, "-P", $Settings::MozProfileName]);
@@ -2430,6 +2532,9 @@ sub run_all_tests {
 
     # run TUnit
     if ($Settings::RunUnitTests and $test_result eq 'success') {
+      if ($talkback_installed) {
+        setTestnameForTalkbackReport($talkback_ini_path,"RunUnitTests");
+      }
       $test_result = RunUnitTests("RunUnitTests",
                                   $build_dir, $objdir,
                                   ["make", "-k", "check"]);
@@ -3628,6 +3733,189 @@ sub ShortHostname
   my $host = ::hostname();
   $host = $1 if $host =~ /(.*?)\./;
   return $host;
+}
+
+# Find the Talkback path based on the location of the master.ini file.
+sub getPathToTalkbackClient
+{
+    my ($binary_dir) =  @_;
+
+    my @possible_talkback_paths = (
+        "$binary_dir/extensions/talkback\@mozilla.org/components",
+        "$binary_dir/extensions/talkback\@mozilla.org/components/talkback",
+        "$binary_dir/components/",
+        );
+
+    foreach my $possible_talkback_path (@possible_talkback_paths) {
+        if (-e "$possible_talkback_path/master.ini") {
+            return $possible_talkback_path;
+        }
+    }
+    
+    return 0;
+}
+
+# Find or create the path to the Talkback application data directory
+sub getPathToTalkbackIni
+{
+    my ($binary_dir) =  @_;
+    my $talkback_client_path = getPathToTalkbackClient($binary_dir);
+    if (!$talkback_client_path) {
+        print_log "getPathToTalkbackIni: Unable to find $talkback_client_path\n";
+        return 0;
+    }
+
+    my ($vendor_id, $product_id, $platform_id, $build_id);
+    if ( -e "$talkback_client_path/master.ini" ) {
+        open (MASTER, "$talkback_client_path/master.ini") or return 0;
+        while (<MASTER>) {
+            chomp;
+            if (/VendorID = "([^"]*)"/) {
+                $vendor_id = $1;
+	    } elsif (/ProductID = "([^"]*)"/) {
+                $product_id = $1;
+            } elsif (/PlatformID = "([^"]*)"/) {
+		$platform_id = $1;
+	    } elsif (/BuildID = "([^"]*)"/) {
+                $build_id = $1;
+            }
+        }
+        close (MASTER);
+    } else {
+        print_log "getPathToTalkbackIni: Couldn't find $talkback_client_path/master.ini\n";
+        return 0;
+    }
+
+    my $talkback_appdata_path;
+
+    if (is_windows()) {
+        my $appdata = $ENV{APPDATA};
+        if (!$appdata) {
+            print_log "getPathToTalkbackIni: Empty Windows Application Data directory\n";
+            return 0;        
+        }
+
+        open PATH, "cygpath -d \"$appdata\"|" || die "Unable to open cygpath: $!";
+        my $path = "";
+        while (<PATH>) {
+            chomp;
+            $path .= $_;
+        }
+        close PATH;
+        $path =~ s/\\/\\\\/g;
+
+        if (!$path) {
+            print_log "getPathToTalkbackIni: Unable to convert Windows Application Data directory to short format\n";
+            return 0;
+        }
+
+        # convert application data directory to unix format
+        $appdata = "";
+        open PATH, "cygpath -u $path|" || die "unable to open cygpath: $!";
+        while (<PATH>) {
+            chomp;
+            $appdata .= $_;
+        }
+        close PATH;
+        if (!$appdata) {
+            print_log "getPathToTalkbackIni: Unix format Windows Application Data directory is empty\n";
+        }
+        $talkback_appdata_path = "$appdata/Talkback";
+    } elsif (is_linux()) {
+        $talkback_appdata_path="$ENV{HOME}/.fullcircle";
+    } elsif (is_mac()) {
+        $talkback_appdata_path="$ENV{HOME}/Library/Application\ Support/FullCircle";
+    } else {
+        print_log "getPathToTalkbackIni: Unsupported OS (1)\n";         
+        return 0;
+    }
+
+    if ( ! -e "$talkback_appdata_path" ) {
+        if (! mkdir "$talkback_appdata_path", 755) {
+            print_log "getPathToTalkbackIni: Unable to create $talkback_appdata_path\n: $!";
+            return 0;
+        }
+    }
+
+    my $talkback_ini_path;
+    if (is_windows()) {
+        $talkback_ini_path = "$talkback_appdata_path/$vendor_id/$product_id/$platform_id/$build_id";
+    } elsif (is_linux() or is_mac()) {
+        $talkback_ini_path = "$talkback_appdata_path/$vendor_id$product_id$platform_id$build_id";
+    } else {
+        print_log "getPathToTalkbackIni: Unsupported OS (2)\n";         
+        return 0;
+    }
+
+    my $status = run_shell_command("mkdir -p $talkback_ini_path");
+    if ($status) {
+        print_log "getPathToTalkbackIni: Unable to create $talkback_ini_path\n";
+        return 0;
+    }
+    
+    return $talkback_ini_path;
+}
+
+sub setTalkbackMasterConfigToAutoSubmit
+{
+    my ($talkback_client_path) = @_;
+    if (-e "$talkback_client_path/master.ini") {
+        open (MASTERCOPY, ">$talkback_client_path/master.ini.copy") or return 0;
+        open (MASTER, "$talkback_client_path/master.ini") or return 0;
+        while (<MASTER>) {
+            s/DisableDontAsk = 0/DisableDontAsk = 1/;
+            s/DisableUI = 0/DisableUI = 1/;
+            s/DisableWizard = 0/DisableWizard = 1/;
+            print MASTERCOPY;
+        }
+        close (MASTER);
+        close (MASTERCOPY);
+        File::Copy::move("$talkback_client_path/master.ini.copy", "$talkback_client_path/master.ini") or return 0;
+        return 1;
+    }
+    
+    return 0;
+}
+
+sub setTalkbackIniToAutoSubmit
+{
+    my ($talkback_ini_path) = @_;
+
+    open (INI, ">$talkback_ini_path/Talkback.ini") or return 0;
+    print INI "HistorySettings = 3, 10, 100\n";
+    print INI "EnableAgentFromWizard = 1\n";
+    print INI "SeenIntro = 1\n";
+    print INI "PromptUser = 0\n";
+    print INI "LocalKey = BFAF47F801\n";
+    print INI "RandomPool = A21DF17FEA8D8A9F5155C3D45CA2AC367763CB23915C6F6BF6F810F264DFCE67EF4067E0CEA849A3A9C25D74D26CA10B08A9D03D1BB34D51A5DD4186721B3C4A38B35F4B3F1869F0235EFB88A3DC59AABD86129BCA6C7BAD7B8A0DBED0AF57BE284C750E48F94745879C3F5F932BCA2494E4D9430D9942264E02F7C29C8C4375\n";
+    if (is_windows()) {
+        print INI "EmailEdit = \"build\@mozilla.org\"\n";
+        print INI "URLEdit = \"tinderbox\"\n";
+    } elsif (is_mac()) {
+        print INI "UserEmailAddress = \"build\@mozilla.org\"\n";
+        print INI "URLEditControl = \"tinderbox\"\n";
+    } elsif (is_linux()) {
+        print INI "EmailControl = \"build\@mozilla.org\"\n";
+        print INI "URLEditControl = \"tinderbox\"\n";
+    }
+    close (INI) or return 0;
+ 
+    return 1;
+}
+
+sub setTestnameForTalkbackReport
+{
+    my ($talkback_ini_path, $testname) = @_;
+    open (INICOPY, ">$talkback_ini_path/Talkback.ini.copy") or return 0;
+    open (INI, "$talkback_ini_path/Talkback.ini") or return 0;
+    while (<INI>) {
+        s/(URLEdit.* = "tinderbox).*"/$1:$testname"/;
+        print INICOPY;
+    }
+    close (INI);
+    close (INICOPY);
+    File::Copy::move("$talkback_ini_path/Talkback.ini.copy", "$talkback_ini_path/Talkback.ini") or return 0;
+    return 1;
 }
 
 # Need to end with a true value, (since we're using "require").
