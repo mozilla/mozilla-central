@@ -43,6 +43,7 @@ relativesrcdir = suite/locales
 include $(DEPTH)/config/autoconf.mk
 
 DEFINES += -DAB_CD=$(AB_CD)
+DEFINES += -DMOZ_PSM=$(MOZ_PSM)
 
 include $(topsrcdir)/config/rules.mk
 
