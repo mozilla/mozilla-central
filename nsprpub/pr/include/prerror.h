@@ -49,6 +49,21 @@ typedef PRInt32 PRErrorCode;
 #include "prerr.h"
 
 /*
+** Compile-time assert. "condition" must be a constant expression.
+** The macro should be used only once per source line in places where
+** a "typedef" declaration is allowed.
+** For stringification of the line numbers where the macro is used we need some
+** macro indirection. IMPL is required to get macro-expansion of __LINE__ to
+** its integer value so that IMPL2 will stringify the number, not "__LINE__".
+*/
+#define PR_STATIC_ASSERT(condition)                                           \
+    PR_STATIC_ASSERT_IMPL(condition, __LINE__)
+#define PR_STATIC_ASSERT_IMPL(condition, line)                                \
+    PR_STATIC_ASSERT_IMPL2(condition, line)
+#define PR_STATIC_ASSERT_IMPL2(condition, line)                               \
+    typedef int pr_static_assert_line_##line[(condition) ? 1 : -1]
+
+/*
 ** Set error will preserve an error condition within a thread context.
 ** The values stored are the NSPR (platform independent) translation of
 ** the error. Also, if available, the platform specific oserror is stored.
