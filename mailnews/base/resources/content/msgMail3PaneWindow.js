@@ -114,20 +114,17 @@ function SelectAndScrollToKey(aMsgKey)
 // we select and scroll to the correct message (could be the first new message,
 // could be the last displayed message, etc.)
 // returns true if we ended up scrolling to a message
-function ScrollToMessageAfterFolderLoad (folder)
+function ScrollToMessageAfterFolderLoad(folder)
 {
-  var scrolled = false;
-  if (folder && pref.getBoolPref("mailnews.remember_selected_message")) 
+  var scrolled = pref.getBoolPref("mailnews.scroll_to_new_message") &&
+               ScrollToMessage(nsMsgNavigationType.firstNew, true, false /* selectMessage */);
+  if (!scrolled && folder && pref.getBoolPref("mailnews.remember_selected_message"))
   {
     // reselect the last selected message
     var lastMessageLoaded = folder.lastMessageLoaded;
     if (lastMessageLoaded != nsMsgKey_None)
       scrolled = SelectAndScrollToKey(lastMessageLoaded);
   }
-
-  if (!scrolled)
-    scrolled = pref.getBoolPref("mailnews.scroll_to_new_message") &&
-               ScrollToMessage(nsMsgNavigationType.firstNew, true, false /* selectMessage */);
 
   if (!scrolled) 
   {
