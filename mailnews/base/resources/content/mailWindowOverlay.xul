@@ -1948,7 +1948,7 @@
       <label id="allowRemoteContentForAuthorDesc" class="text-link"
              onclick="allowRemoteContentForSender();"/>
     </vbox>
-    <button label="&loadRemoteContentButton.label;" oncommand="loadMsgWithRemoteContent();"/>
+    <button label="&loadRemoteContentButton.label;" oncommand="LoadMsgWithRemoteContent();"/>
   </hbox>
 </deck>
 
