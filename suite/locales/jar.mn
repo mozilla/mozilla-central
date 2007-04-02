@@ -337,6 +337,8 @@
   locale/@AB_CD@/navigator/navigator.properties                             (%chrome/browser/navigator.properties)
   locale/@AB_CD@/navigator/pageInfo.dtd                                     (%chrome/browser/pageInfo.dtd)
   locale/@AB_CD@/navigator/pageInfo.properties                              (%chrome/browser/pageInfo.properties)
+  locale/@AB_CD@/navigator/tabbrowser.dtd                                   (%chrome/browser/tabbrowser.dtd)
+  locale/@AB_CD@/navigator/tabbrowser.properties                            (%chrome/browser/tabbrowser.properties)
   locale/@AB_CD@/navigator/turboDialog.dtd                                  (%chrome/browser/turboDialog.dtd)
   locale/@AB_CD@/navigator/turboMenu.properties                             (%chrome/browser/turboMenu.properties)
   locale/@AB_CD@/navigator/viewSource.dtd                                   (%chrome/browser/viewSource.dtd)

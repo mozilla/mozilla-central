@@ -32,6 +32,7 @@ comm.jar:
    content/navigator/pageInfo.xul
    content/navigator/searchconfig.properties
    content/navigator/sessionHistoryUI.js
+   content/navigator/tabbrowser.xml
    content/navigator/turboDialog.xul
    content/navigator/urlbarBindings.xml
    content/navigator/viewsource.js

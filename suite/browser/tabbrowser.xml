@@ -40,7 +40,7 @@
    - ***** END LICENSE BLOCK ***** -->
 
 <!DOCTYPE bindings [
-<!ENTITY % tabBrowserDTD SYSTEM "chrome://global/locale/tabbrowser.dtd" >
+<!ENTITY % tabBrowserDTD SYSTEM "chrome://navigator/locale/tabbrowser.dtd" >
 %tabBrowserDTD;
 ]>
 
@@ -52,11 +52,11 @@
 
   <binding id="tabbrowser">
     <resources>
-      <stylesheet src="chrome://global/skin/browser.css"/>
+      <stylesheet src="chrome://navigator/skin/tabbrowser.css"/>
     </resources>
 
     <content>
-      <xul:stringbundle anonid="tbstringbundle" src="chrome://global/locale/tabbrowser.properties"/>
+      <xul:stringbundle anonid="tbstringbundle" src="chrome://navigator/locale/tabbrowser.properties"/>
       <xul:tabbox anonid="tabbox" flex="1" eventnode="document" xbl:inherits="handleCtrlPageUpDown">
         <xul:hbox class="tab-drop-indicator-bar" hidden="true">
           <xul:image class="tab-drop-indicator" mousethrough="always"/>
@@ -119,7 +119,7 @@
           </xul:tabs>
         </xul:hbox>
         <xul:tabpanels flex="1" class="plain" selectedIndex="0" anonid="panelcontainer">
-          <xul:browser type="content-primary" xbl:inherits="tooltip=contenttooltip,contextmenu=contentcontextmenu"/>
+          <xul:browser type="content-primary" xbl:inherits="tooltip=contenttooltip,contextmenu=contentcontextmenu" autoscroll="false"/>
         </xul:tabpanels>
       </xul:tabbox>
       <children/>
@@ -227,9 +227,8 @@
           var w = win.innerWidth;
           var h = win.innerHeight;
 
-          if (!this.mPrefs.getBoolPref("browser.tabs.tooltippreview.enable") ||
-              tab == this.mCurrentTab ||
-              h == 0) {
+          if (tab == this.mCurrentTab || h == 0 ||
+              !this.mPrefs.getBoolPref("browser.tabs.tooltippreview.enable")) {
             return true;
           }
 
@@ -1015,6 +1014,7 @@
             b.setAttribute("type", "content-targetable");
             b.setAttribute("contextmenu", this.getAttribute("contentcontextmenu"));
             b.setAttribute("tooltip", this.getAttribute("contenttooltip"));
+            b.setAttribute("autoscroll", "false");
 
             this.mPanelContainer.appendChild(b);
 
@@ -2068,7 +2068,10 @@
           this.mCurrentBrowser.addEventListener("DOMTitleChanged", this.onTitleChanged, true);
 
           // Ensure the browser's session history and security UI are wired up
-          this.mCurrentBrowser.init();
+          // note that toolkit browser automatically inits its security UI
+          // when you get it but for xpfe you need to init it explicitly
+          if (!this.mCurrentBrowser.securityUI)
+            this.mCurrentBrowser.init();
 
           // Wire up the tab's progress listener and filter.
           const nsIWebProgress = Components.interfaces.nsIWebProgress;
@@ -2166,4 +2169,27 @@
     </handlers>
   </binding>
 
+  <binding id="tabbrowser-tabs" 
+           extends="chrome://global/content/bindings/tabbox.xml#tabs">
+    <resources>
+      <stylesheet src="chrome://navigator/skin/tabbrowser.css"/>
+    </resources>
+
+    <content>
+      <xul:stack>
+        <xul:spacer class="tabs-left"/>
+        <xul:toolbarbutton ondblclick="event.stopPropagation();" class="tabs-newbutton" xbl:inherits="oncommand=onnewtab,tooltiptext=tooltiptextnew"/>
+      </xul:stack>
+      <xul:hbox flex="1" style="min-width: 1px; overflow: -moz-hidden-unscrollable;">
+        <children/>
+        <xul:spacer class="tabs-right" flex="1"/>
+      </xul:hbox>
+      <xul:stack>
+        <xul:spacer class="tabs-right"/>
+        <xul:hbox class="tabs-closebutton-box" align="center" pack="end">
+          <xul:toolbarbutton ondblclick="event.stopPropagation();" class="tabs-closebutton close-button" xbl:inherits="disabled=disableclose,oncommand=onclosetab"/>
+        </xul:hbox>
+      </xul:stack>
+    </content>
+  </binding>
 </bindings>
