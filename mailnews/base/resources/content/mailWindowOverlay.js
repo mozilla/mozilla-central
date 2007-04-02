@@ -56,7 +56,7 @@ const kWideMailLayout = 1;
 const kVerticalMailLayout = 2;
 
 // Per message header flags to keep track of whether the user is allowing remote
-// content for a particular message. 
+// content for a particular message.
 // if you change or add more values to these constants, be sure to modify
 // the corresponding definitions in nsMsgContentPolicy.cpp
 const kNoRemoteContentPolicy = 0;

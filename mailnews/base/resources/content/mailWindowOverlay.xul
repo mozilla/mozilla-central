@@ -60,7 +60,7 @@
 %contentAreaCommandsDTD;
 <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
 %brandDTD;
-]>  
+]>
 
 <overlay
   xmlns:nc="http://home.netscape.com/NC-rdf#"
