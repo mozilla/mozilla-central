@@ -105,14 +105,17 @@ function CMungerEntry(name, regex, className, priority, startPriority,
         this.className = className;
 }
 
-function CMunger()
+function CMunger(textMunger)
 {
     this.entries = new Array();
     this.tagName = "html:span";
     this.enabled = true;
+    if (textMunger)
+        this.insertPlainText = textMunger;
 }
 
 CMunger.prototype.enabled = true;
+CMunger.prototype.insertPlainText = insertText;
 
 CMunger.prototype.getRule =
 function mng_getrule(name)
@@ -175,7 +178,7 @@ function mng_munge(text, containerTag, data)
     // If nothing matched, we don't have to do anything,
     // just insert text (if any).
     if (text)
-        insertText(text, containerTag, data);
+        this.insertPlainText(text, containerTag, data);
     return containerTag;
 }
 
@@ -237,8 +240,9 @@ function mng_mungePriority(priority, text, containerTag, data)
         firstMatch.end = firstMatch.start + firstMatch.text.length;
 
         // Insert the text before the match if there is any
+        var beforeText = text.substr(0, firstMatch.start);
         if (firstMatch.start > 0)
-            insertText(text.substr(0, firstMatch.start), containerTag, data);
+            this.insertPlainText(beforeText, containerTag, data);
 
         if (typeof munger.lambdaReplace == "function")
         {

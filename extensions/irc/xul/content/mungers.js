@@ -64,7 +64,7 @@ function initMunger()
     const HIGH_PRIORITY = 15;
     const HIGHER_PRIORITY = 20;
 
-    var munger = client.munger = new CMunger();
+    var munger = client.munger = new CMunger(insertHyphenatedWord);
     // Special internal munger!
     munger.addRule(".inline-buttons", /(\[\[.*?\]\])/, insertInlineButton,
                    10, 5, false);
