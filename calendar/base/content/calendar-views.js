@@ -140,7 +140,7 @@ var calendarViewController = {
 
         // if modifying this item directly (e.g. just dragged to new time),
         // then do so; otherwise pop up the dialog
-        if ((aNewStartTime && aNewEndTime) || aNewTitle) {
+        if (aNewStartTime || aNewEndTime || aNewTitle) {
             var instance = aOccurrence.clone();
 
             if (aNewTitle) {
@@ -153,14 +153,22 @@ var calendarViewController = {
             // function. If we ever revert that decision, check CVS history
             // here to get that code back.
 
-            if (aNewStartTime) { // we know we have aEndTime too then
+            if (aNewStartTime || aNewEndTime) {
                 // Yay for variable names that make this next line look silly
                 if (instance instanceof Components.interfaces.calIEvent) {
-                    instance.startDate = aNewStartTime;
-                    instance.endDate = aNewEndTime;
+                    if (aNewStartTime && instance.startDate) {
+                        instance.startDate = aNewStartTime;
+                    }
+                    if (aNewEndTime && instance.endDate) {
+                        instance.endDate = aNewEndTime;
+                    }
                 } else {
-                    instance.entryDate = aNewStartTime;
-                    instance.dueDate = aNewEndTime;
+                    if (aNewStartTime && instance.entryDate) {
+                        instance.entryDate = aNewStartTime;
+                    }
+                    if (aNewEndTime && instance.dueDate) {
+                        instance.dueDate = aNewEndTime;
+                    }
                 }
             }
             doTransaction('modify', instance, instance.calendar, aOccurrence, null);
