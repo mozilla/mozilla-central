@@ -27,8 +27,7 @@
 /main/NSS_Initialize/nss_Init/secoid_Init/**
 
 #367374
-/main/PR_Init/_PR_ImplicitInitialization/_PR_InitStuff/**
-/main/PR_Init/_PR_InitStuff/**
+/main/PR_Init/**
 
 #367376
 /main/launch_threads/PR_CreateThread/_PR_CreateThread/pthread_create@@GLIBC_2.1/**
