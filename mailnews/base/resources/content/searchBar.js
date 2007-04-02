@@ -293,7 +293,8 @@ function restorePreSearchView()
     else
       ClearMessagePane();
   }
-  ScrollToMessageAfterFolderLoad(null);
+  if (!scrolled)
+    ScrollToMessageAfterFolderLoad(null);
 }
 
 function onSearch(aSearchTerms)
