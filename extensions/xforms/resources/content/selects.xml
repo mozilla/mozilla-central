@@ -732,14 +732,12 @@
           if (aIncremental) {
             // Fire 'select'/'deselect' only if user changed the select value.
 
-            // per http://www.w3.org/TR/xforms/slice4.html#evt-select
-            // we send the event to the itemset if it is a parent.
-            var parent = this.ownerDocument.getBindingParent(aItem);
-            var target = parent && parent.localName == "itemset" ? parent : aItem;
+            // per errata for XForms 1.0 second edition, we send the event to
+            // the item even if it is contained inside an itemset
 
             var eventName = this.isItemMarkedSelected(aItem) ?
               "xforms-select" : "xforms-deselect";
-            this.dispatchXFormsNotificationEvent(eventName, target);
+            this.dispatchXFormsNotificationEvent(eventName, aItem);
           }
 
           this.updateInstanceData(aIncremental);
@@ -823,10 +821,8 @@
           if (aIncremental) {
             // Fire 'select'/'deselect' only if user changed the select1 value.
 
-            // per http://www.w3.org/TR/xforms/slice4.html#evt-select
-            // we send the event to the itemset if it is a parent.
-            var parent = this.ownerDocument.getBindingParent(aItem);
-            var target = parent && parent.localName == "itemset" ? parent : aItem;
+            // per errata for XForms 1.0 second edition, we send the event
+            // to the item even if it is contained by an itemset
 
             function _unselectItems(aItem, aNewSelectedItem, aTarget) {
               if (aItem != aNewSelectedItem) {
@@ -839,11 +835,11 @@
               }
               return true;
             }
-            this.traverseItems(this, _unselectItems, aItem, target);
+            this.traverseItems(this, _unselectItems, aItem, aItem);
 
             var eventName = this.isItemMarkedSelected(aItem) ?
               "xforms-select" : "xforms-deselect";
-            this.dispatchXFormsNotificationEvent(eventName, target);
+            this.dispatchXFormsNotificationEvent(eventName, aItem);
           }
 
           this.updateInstanceData(aIncremental);

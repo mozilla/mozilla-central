@@ -82,6 +82,7 @@
 #include "nsIDOMDocumentEvent.h"
 #include "nsIChannelEventSink.h"
 #include "nsIXFormsEphemeralMessageUI.h"
+#include "nsIContent.h"
 
 #define MESSAGE_WINDOW_PROPERTIES \
   "centerscreen,chrome,dependent,dialog"
@@ -271,6 +272,14 @@ nsXFormsMessageElement::OnDestroyed()
 NS_IMETHODIMP
 nsXFormsMessageElement::HandleEvent(nsIDOMEvent* aEvent)
 {
+  if (GetRepeatState() == eType_Template) {
+    return NS_OK;
+  }
+
+  nsCOMPtr<nsIDOMEventTarget> target;
+  aEvent->GetTarget(getter_AddRefs(target));
+  nsCOMPtr<nsIContent> content(do_QueryInterface(target));
+
   return nsXFormsUtils::EventHandlingAllowed(aEvent, mElement) ?
            HandleAction(aEvent, nsnull) : NS_OK;
 }

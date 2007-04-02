@@ -104,15 +104,14 @@ nsXFormsCopyElement::ParentChanged(nsIDOMElement *aNewParent)
     if (!nsXFormsUtils::IsXFormsElement(aNewParent, 
                                         NS_LITERAL_STRING("itemset")) &&
         !nsXFormsUtils::IsXFormsElement(aNewParent, 
-          NS_LITERAL_STRING("contextcontainer"))) {
+          NS_LITERAL_STRING("item"))) {
 
-        // parent of a copy element must always be an itemset.  We really can't
+        // Parent of a copy element must always be an itemset.  We really can't
         // enforce this all that well until we have full schema support but for
         // now we'll at least warn the author.  We are also checking for
-        // contextcontainer because under Mozilla, the children of an itemset
-        // element are cloned underneath a contextcontainer which is in turn
-        // contained in a nsXFormsItemElement.  Each such item element is then
-        // appended as anonymous content of the itemset.
+        // item because under Mozilla, the children of an itemset
+        // element are cloned underneath an nsXFormsItemElement.  Each such
+        // item element is then appended as anonymous content of the itemset.
         nsXFormsUtils::ReportError(NS_LITERAL_STRING("copyError"), mElement);
     }
   }
@@ -125,14 +124,10 @@ nsXFormsCopyElement::DocumentChanged(nsIDOMDocument* aNewDocument)
   if (!aNewDocument)
     return NS_OK;
   
-  // tell grandparent (xf:item) that it contains a xf:copy element and
+  // tell parent (xf:item) that it contains a xf:copy element and
   // not a xf:value element.
-  nsCOMPtr<nsIDOMNode> contextContainer;
-  nsresult rv = mElement->GetParentNode(getter_AddRefs(contextContainer));
-  NS_ENSURE_TRUE(contextContainer, rv);
-
   nsCOMPtr<nsIDOMNode> itemNode;
-  rv = contextContainer->GetParentNode(getter_AddRefs(itemNode));
+  nsresult rv = mElement->GetParentNode(getter_AddRefs(itemNode));
   NS_ENSURE_TRUE(itemNode, rv);
 
   nsCOMPtr<nsIXFormsItemElement> item = do_QueryInterface(itemNode);

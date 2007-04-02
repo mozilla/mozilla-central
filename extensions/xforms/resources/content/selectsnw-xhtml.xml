@@ -173,7 +173,7 @@
            extends="#nativewidget-select-compact">
     <content>
       <html:select xbl:inherits="style, accesskey, disabled=readonly"
-                   class="xf-value" anonid="control"/>
+                   class="xf-value" anonid="control" size="5"/>
     </content>
   </binding>
 

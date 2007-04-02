@@ -736,7 +736,7 @@ nsXFormsControlStub::WillChangeDocument(nsIDOMDocument *aNewDocument)
 NS_IMETHODIMP
 nsXFormsControlStub::DocumentChanged(nsIDOMDocument *aNewDocument)
 {
-  mHasDoc = aNewDocument != nsnull;
+  nsXFormsStubElement::DocumentChanged(aNewDocument);
 
   if (aNewDocument) {
     ResetHelpAndHint(PR_TRUE);
@@ -752,6 +752,10 @@ nsXFormsControlStub::DocumentChanged(nsIDOMDocument *aNewDocument)
       xtfWrap->SetIntrinsicState(iState);
     }
   }
+
+  nsCOMPtr<nsIDOMNode> parent;
+  mElement->GetParentNode(getter_AddRefs(parent));
+  UpdateRepeatState(parent);
 
   return ForceModelDetach(mHasParent && mHasDoc);
 }
@@ -773,7 +777,7 @@ nsXFormsControlStub::WillChangeParent(nsIDOMElement *aNewParent)
 NS_IMETHODIMP
 nsXFormsControlStub::ParentChanged(nsIDOMElement *aNewParent)
 {
-  mHasParent = aNewParent != nsnull;
+  nsXFormsStubElement::ParentChanged(aNewParent);
 
   UpdateRepeatState(aNewParent);
 
@@ -1025,47 +1029,6 @@ nsXFormsControlStub::IsContentComplex()
     }
   }
   return isComplex;
-}
-
-nsRepeatState
-nsXFormsControlStub::GetRepeatState()
-{
-  return mRepeatState;
-}
-
-void
-nsXFormsControlStub::SetRepeatState(nsRepeatState aState)
-{
-  mRepeatState = aState;
-  return;
-}
-
-nsRepeatState
-nsXFormsControlStub::UpdateRepeatState(nsIDOMNode *aParent)
-{
-  nsRepeatState repeatState = eType_NotApplicable;
-
-  nsCOMPtr<nsIDOMNode> parent = aParent;
-  while (parent) {
-    if (nsXFormsUtils::IsXFormsElement(parent, NS_LITERAL_STRING("contextcontainer"))) {
-      repeatState = eType_GeneratedContent;
-      break;
-    }
-    if (nsXFormsUtils::IsXFormsElement(parent, NS_LITERAL_STRING("repeat"))) {
-      repeatState = eType_Template;
-      break;
-    }
-    if (nsXFormsUtils::IsXFormsElement(parent, NS_LITERAL_STRING("itemset"))) {
-      repeatState = eType_Template;
-      break;
-    }
-    nsCOMPtr<nsIDOMNode> tmp;
-    parent->GetParentNode(getter_AddRefs(tmp));
-    parent = tmp;
-  }
-
-  SetRepeatState(repeatState);
-  return repeatState;
 }
 
 NS_IMPL_ISUPPORTS_INHERITED3(nsXFormsControlStub,

@@ -43,6 +43,30 @@
 #include "nsIXFormsControlBase.h"
 
 /**
+ * nsRepeatState is used to indicate whether the element is inside a
+ * \<repeat\> or \<itemset\> template. If it is, there is no need
+ * to refresh the widget bound to the element.
+ *
+ *  eType_Unknown - repeat state has yet to be determined
+ *  eType_Template - element lives inside the template (an original element
+ *                   from the document that is hidden from the user)
+ *  eType_GeneratedContent - A generated clone of an element from the template.
+ *                           It is generated as the repeat or itemset processes
+ *                           the nodeset that it is bound to.  For every node in
+ *                           the nodeset, the repeat or itemset will go through
+ *                           its template and create a clone for every element
+ *                           in the template.  A user will see these elements.
+ *  eType_NotApplicable - element lives in the DOM and is not contained
+ *                        by a repeat or an itemset
+ */
+enum nsRepeatState {
+  eType_Unknown,
+  eType_Template,
+  eType_GeneratedContent,
+  eType_NotApplicable
+};
+
+/**
  * An implementation of a generic XForms element.
  */
 class nsXFormsStubElement : public nsIXTFElement
@@ -53,9 +77,51 @@ protected:
   // derived class destructor.
   virtual ~nsXFormsStubElement() {}
 
+  /**
+   * This is processed when an XForms control or XForms action has been inserted
+   * under a parent node AND has been inserted into a document.
+   * It checks the ancestors of the element and returns an nsRepeatState
+   * depending on the element's place in the document.
+   *
+   * @param aParent           The new parent of the XForms control
+   */
+  nsRepeatState UpdateRepeatState(nsIDOMNode *aParent);
+
+  nsRepeatState mRepeatState;
+
+  /**
+   * State that tells whether control has a parent or not.  This could be
+   * false even if the control has a parent.  Just means that the element
+   * doesn't need to track whether it has a parent or not (i.e. xf:choices)
+   */
+  PRPackedBool                        mHasParent;
+
+  /**
+   * State that tells whether control has a document or not.  This could be
+   * false even if the control has a document.  Just means that the element
+   * doesn't need to track whether it has a document or not (i.e. xf:choices)
+   */
+  PRPackedBool                        mHasDoc;
+
 public:
   NS_DECL_ISUPPORTS
   NS_DECL_NSIXTFELEMENT
+
+  /** Constructor */
+  nsXFormsStubElement() :
+    mRepeatState(eType_Unknown),
+    mHasParent(PR_FALSE),
+    mHasDoc(PR_FALSE)
+    {};
+
+  /**
+   * Get/Set the repeat state for the xforms control or action.  The repeat
+   * state indicates whether the control or action lives inside a context
+   * container, a repeat element, an itemset or none of the above.
+   */
+  virtual nsRepeatState GetRepeatState();
+  virtual void SetRepeatState(nsRepeatState aState);
+
 };
 
 /* Factory methods */

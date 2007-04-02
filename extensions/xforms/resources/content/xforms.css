@@ -689,7 +689,7 @@ html|*:root html|span.-moz-select1-container {
   padding-right: 0px;
   overflow: hidden;
   border-width: 2px;
-  padding-bottom: 0px;
+  padding-bottom: 1px;
   padding-top: 1px;
 }
 

@@ -1092,14 +1092,12 @@
 
           var elm = aElement;
 
-          // per http://www.w3.org/TR/2005/PER-xforms-20051006/index-all.html#evt-select
-          // we send the event to the itemset if it is a parent.
-          if (elm.parentNode && elm.parentNode.localName == "itemset")
-            elm = elm.parentNode;
+          // per errata for XForms 1.0 second edition, we send the event to the
+          // item, even if it is contained in an itemset
 
           elm.dispatchEvent(ev);
           return true;
-	]]>
+        ]]>
         </body>
       </method>
 

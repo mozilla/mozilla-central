@@ -61,18 +61,6 @@ class nsIDOMEvent;
 class nsIDOMXPathResult;
 
 /**
- * nsRepeatState is used to indicate whether the element
- * is inside \<repeat\>'s template. If it is, there is no need
- * to refresh the widget bound to the element.
- */
-enum nsRepeatState {
-  eType_Unknown,
-  eType_Template,
-  eType_GeneratedContent,
-  eType_NotApplicable
-};
-
-/**
  * Common stub for all XForms controls that inherit from nsIXFormsControl and
  * is bound to an instance node.
  */
@@ -161,14 +149,6 @@ public:
    */
   virtual PRBool IsContentComplex();
 
-  /**
-   * Get/Set the repeat state for the control.  The repeat state indicates
-   * whether the control lives inside a context container, a repeat element,
-   * an itemset or non of the above.
-   */
-  virtual nsRepeatState GetRepeatState();
-  virtual void SetRepeatState(nsRepeatState aState);
-
   // nsIXFormsContextControl
   NS_DECL_NSIXFORMSCONTEXTCONTROL
 
@@ -189,14 +169,11 @@ public:
                               nsIXTFElement::NOTIFY_PARENT_CHANGED |
                               nsIXTFElement::NOTIFY_HANDLE_DEFAULT),
     kElementFlags(nsXFormsUtils::ELEMENT_WITH_MODEL_ATTR),
-    mHasParent(PR_FALSE),
-    mHasDoc(PR_FALSE),
     mPreventLoop(PR_FALSE),
     mUsesModelBinding(PR_FALSE),
     mAppearDisabled(PR_FALSE),
     mOnDeferredBindList(PR_FALSE),
-    mBindAttrsCount(0),
-    mRepeatState(eType_Unknown)
+    mBindAttrsCount(0)
     {};
 
 protected:
@@ -214,12 +191,6 @@ protected:
 
   /** This event listener is used to create xforms-hint and xforms-help events. */
   nsCOMPtr<nsIDOMEventListener>       mEventListener;
-
-  /** State that tells whether control has a parent or not */
-  PRPackedBool                        mHasParent;
-
-  /** State that tells whether control has a parent or not */
-  PRPackedBool                        mHasDoc;
 
   /** State to prevent infinite loop when generating and handling xforms-next
    *  and xforms-previous events
@@ -247,8 +218,6 @@ protected:
    * attributes.
    */
   PRInt8 mBindAttrsCount;
-
-  nsRepeatState mRepeatState;
 
   /**
    * List of repeats that the node binding depends on.  This happens when using
@@ -355,15 +324,6 @@ protected:
    * bound.
    */
   nsresult GetBoundBuiltinType(PRUint16 *aBuiltinType);
-
-  /**
-   * This is called when the parent node for a XForms control changes.
-   * It checks the ancestors of the element and returns an nsRepeatState
-   * depending on the element's place in the document.
-   *
-   * @param aParent           The new parent of the XForms control
-   */
-  nsRepeatState UpdateRepeatState(nsIDOMNode *aParent);
 
 };
 

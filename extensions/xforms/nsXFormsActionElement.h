@@ -59,6 +59,10 @@ public:
   NS_DECL_NSIXFORMSACTIONMODULEELEMENT
   NS_IMETHOD OnCreated(nsIXTFElementWrapper* aWrapper);
   NS_IMETHOD OnDestroyed();
+  NS_IMETHOD WillChangeDocument(nsIDOMDocument *aNewDocument);
+  NS_IMETHOD DocumentChanged(nsIDOMDocument *aNewDocument);
+  NS_IMETHOD WillChangeParent(nsIDOMElement *aNewParent);
+  NS_IMETHOD ParentChanged(nsIDOMElement *aNewParent);
 private:
   nsIDOMElement*                                mElement;
   nsCOMPtr<nsIXFormsActionElement>              mParentAction;

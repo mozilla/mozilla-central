@@ -72,6 +72,12 @@ nsXFormsActionModuleBase::OnCreated(nsIXTFElementWrapper *aWrapper)
   aWrapper->GetElementNode(getter_AddRefs(node));
   mElement = node;
   NS_ASSERTION(mElement, "Wrapper is not an nsIDOMElement, we'll crash soon");
+
+  aWrapper->SetNotificationMask(nsIXTFElement::NOTIFY_WILL_CHANGE_DOCUMENT |
+                                nsIXTFElement::NOTIFY_WILL_CHANGE_PARENT |
+                                nsIXTFElement::NOTIFY_DOCUMENT_CHANGED |
+                                nsIXTFElement::NOTIFY_PARENT_CHANGED);
+
   return NS_OK;
 }
 
@@ -82,8 +88,45 @@ NS_IMETHODIMP nsXFormsActionModuleBase::OnDestroyed()
 }
 
 NS_IMETHODIMP
+nsXFormsActionModuleBase::WillChangeParent(nsIDOMElement *aNewParent)
+{
+  SetRepeatState(eType_Unknown);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsXFormsActionModuleBase::ParentChanged(nsIDOMElement *aNewParent)
+{
+  nsXFormsStubElement::ParentChanged(aNewParent);
+  UpdateRepeatState(aNewParent);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsXFormsActionModuleBase::WillChangeDocument(nsIDOMDocument *aNewDocument)
+{
+  SetRepeatState(eType_Unknown);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsXFormsActionModuleBase::DocumentChanged(nsIDOMDocument *aNewDocument)
+{
+  nsXFormsStubElement::DocumentChanged(aNewDocument);
+
+  nsCOMPtr<nsIDOMNode> parent;
+  mElement->GetParentNode(getter_AddRefs(parent));
+  UpdateRepeatState(parent);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
 nsXFormsActionModuleBase::HandleEvent(nsIDOMEvent* aEvent)
 {
+  if (GetRepeatState() == eType_Template) {
+    return NS_OK;
+  }
+
   return nsXFormsUtils::EventHandlingAllowed(aEvent, mElement) ?
            HandleAction(aEvent, nsnull) : NS_OK;
 }

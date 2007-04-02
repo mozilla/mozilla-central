@@ -168,11 +168,6 @@
               case "item":
                 this.nativeWidget.setLabelFor(parent, label);
                 break;
-              case "contextcontainer":
-                // Parent of xf:contextcontainer element is xf:item element in
-                // the case of auto-generated content of xf:itemset.
-                this.nativeWidget.setLabelFor(parent.parentNode, label);
-                break;
             }
           }
         ]]>
@@ -788,9 +783,6 @@
             if (child.namespaceURI == this.XFORMS_NS) {
               if (child.localName == "label")
                 return child;
-
-              if (child.localName == "contextcontainer")
-                return this.getLabelFor(child);
             }
           }
           return null;
@@ -884,15 +876,6 @@
                 continue;
 
               var target = listElm.elm;
-              var parent = target.parentNode;
-              while (parent && parent != this.selectControl) {
-                if (parent.namespaceURI == this.XFORMS_NS &&
-                    parent.localName == "itemset") {
-                  target = parent;
-                  break;
-                }
-                parent = parent.parentNode;
-              }
 
               // First we should send 'xforms-unselect' events for all
               // unselected item elements and then 'xforms-select' events.
@@ -907,8 +890,9 @@
             }
 
             for (var index = 0; index < deferredEventTargets.length; ++index) {
-              this.selectControl.dispatchXFormsNotificationEvent("xforms-select",
-                                                                 target);
+              this.selectControl.dispatchXFormsNotificationEvent(
+                "xforms-select", deferredEventTargets[index]);
+                                                                
             }
           }
 
@@ -957,7 +941,7 @@
             dump("native elm: " + obj.nativeElm.localName);
             var label = this.getLabelFor(obj.elm);
             if (label)
-              dump(", label: " + label.textContent);
+              dump(", label: " + label.textValue);
             dump("\n");
           }
         ]]>
