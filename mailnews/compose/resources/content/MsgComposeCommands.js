@@ -1063,23 +1063,16 @@ function setupLdapAutocompleteSession()
 
 function DoCommandClose()
 {
-  var retVal;
-  if ((retVal = ComposeCanClose())) {
-
+  if (ComposeCanClose()) {
     // Notify the SendListener that Send has been aborted and Stopped
     if (gMsgCompose)
       gMsgCompose.onSendNotPerformed(null, Components.results.NS_ERROR_ABORT);
 
+    // note: if we're not caching this window, this destroys it for us
     MsgComposeCloseWindow(true);
-
-    // at this point, we might be caching this window.
-    // in which case, we don't want to close it
-    if (sMsgComposeService.isCachedWindow(window)) {
-      retVal = false;
-    }
   }
 
-  return retVal;
+  return false;
 }
 
 function DoCommandPrint()
