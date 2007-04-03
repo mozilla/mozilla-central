@@ -959,6 +959,8 @@ function OnLoadFolderPane()
     folderTreeBuilder.addObserver(folderObserver);
     folderTree.addEventListener("click",FolderPaneOnClick,true);
     folderTree.addEventListener("mousedown",TreeOnMouseDown,true);
+
+    folderTree.view.selection.currentColumn = folderTree.columns.getKeyColumn();
 }
 
 // builds prior to 12-08-2001 did not have the labels column
