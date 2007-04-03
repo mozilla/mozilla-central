@@ -175,77 +175,13 @@ nsSchemaValidator::Validate(nsIDOMNode* aElement, PRBool *aResult)
   // init the override
   mForceInvalid = PR_FALSE;
 
-  nsCOMPtr<nsIDOMElement> domElement = do_QueryInterface(aElement);
-  NS_ENSURE_STATE(domElement);
-
-  PRBool hasTypeAttribute = PR_FALSE;
-  nsresult rv = domElement->HasAttributeNS(NS_LITERAL_STRING(
-                                             NS_SCHEMA_INSTANCE_NAMESPACE),
-                                           NS_LITERAL_STRING("type"),
-                                           &hasTypeAttribute);
-  NS_ENSURE_SUCCESS(rv, rv);
-
   // will hold the type to validate against
   nsCOMPtr<nsISchemaType> type;
 
-  if (hasTypeAttribute) {
-    LOG(("  -- found type attribute"));
+  nsresult rv = GetElementXsiType(aElement, getter_AddRefs(type));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    nsAutoString typeAttribute;
-    rv = domElement->GetAttributeNS(NS_LITERAL_STRING(
-                                      NS_SCHEMA_INSTANCE_NAMESPACE),
-                                    NS_LITERAL_STRING("type"),
-                                    typeAttribute);
-    NS_ENSURE_SUCCESS(rv, rv);
-    LOG(("  Type is: %s", NS_ConvertUTF16toUTF8(typeAttribute).get()));
-
-    if (typeAttribute.IsEmpty())
-      return NS_ERROR_SCHEMAVALIDATOR_NO_TYPE_FOUND;
-
-    // split type (ns:type) into namespace and type.
-    nsCOMPtr<nsIParserService> parserService =
-      do_GetService("@mozilla.org/parser/parser-service;1", &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    const nsAFlatString& qName = PromiseFlatString(typeAttribute);
-    const PRUnichar *colon;
-    rv = parserService->CheckQName(qName, PR_TRUE, &colon);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    const PRUnichar* end;
-    qName.EndReading(end);
-
-    nsAutoString schemaTypePrefix, schemaType, schemaTypeNamespace;
-    if (!colon) {
-      // colon not found, so no prefix
-      schemaType.Assign(typeAttribute);
-
-      // get namespace from node
-      aElement->GetNamespaceURI(schemaTypeNamespace);
-    } else {
-      schemaTypePrefix.Assign(Substring(qName.get(), colon));
-      schemaType.Assign(Substring(colon + 1, end));
-
-      // get the namespace url from the prefix
-      nsCOMPtr<nsIDOM3Node> domNode3 = do_QueryInterface(aElement);
-      rv = domNode3->LookupNamespaceURI(schemaTypePrefix, schemaTypeNamespace);
-      NS_ENSURE_SUCCESS(rv, rv);
-    }
-
-    LOG(("  Type to validate against is %s:%s",
-      NS_LossyConvertUTF16toASCII(schemaTypePrefix).get(),
-      NS_LossyConvertUTF16toASCII(schemaType).get()));
-
-    // no schemas loaded and type is not builtin, abort
-    if (!mSchema &&
-        !schemaTypeNamespace.EqualsLiteral(NS_SCHEMA_1999_NAMESPACE) &&
-        !schemaTypeNamespace.EqualsLiteral(NS_SCHEMA_2001_NAMESPACE))
-      return NS_ERROR_SCHEMAVALIDATOR_NO_SCHEMA_LOADED;
-
-    // get the type
-    rv = GetType(schemaType, schemaTypeNamespace, getter_AddRefs(type));
-    NS_ENSURE_SUCCESS(rv, rv);
-  } else if (mSchema) {
+  if (!type && mSchema) {
     // no type attribute, look for an xsd:element in the schema that matches
     LOG(("   -- no type attribute found, so looking for matching xsd:element"));
 
@@ -4286,6 +4222,89 @@ nsSchemaValidator::ValidateComplexParticle(nsIDOMNode* aNode,
 }
 
 nsresult
+nsSchemaValidator::GetElementXsiType(nsIDOMNode*     aNode,
+                                     nsISchemaType** aType)
+{
+
+  nsCOMPtr<nsIDOMElement> domElement = do_QueryInterface(aNode);
+  NS_ENSURE_STATE(domElement);
+
+  PRBool hasTypeAttribute = PR_FALSE;
+  nsresult rv = domElement->HasAttributeNS(NS_LITERAL_STRING(
+                                             NS_SCHEMA_INSTANCE_NAMESPACE),
+                                           NS_LITERAL_STRING("type"),
+                                           &hasTypeAttribute);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  /* XXX: This all may need to change when 
+     element.GetSchemaTypeInfo() is implemented from DOM Level 3 Core,
+     see:
+     http://www.w3.org/TR/DOM-Level-3-Core/core.html#Attr-schemaTypeInfo
+  */
+
+  if (hasTypeAttribute) {
+    LOG(("  -- found xsi:type attribute"));
+
+    nsAutoString typeAttribute;
+    rv = domElement->GetAttributeNS(NS_LITERAL_STRING(
+                                      NS_SCHEMA_INSTANCE_NAMESPACE),
+                                    NS_LITERAL_STRING("type"),
+                                    typeAttribute);
+    NS_ENSURE_SUCCESS(rv, rv);
+    LOG(("  Type is: %s", NS_ConvertUTF16toUTF8(typeAttribute).get()));
+
+    if (typeAttribute.IsEmpty())
+      return NS_ERROR_SCHEMAVALIDATOR_NO_TYPE_FOUND;
+
+    // split type (ns:type) into namespace and type.
+    nsCOMPtr<nsIParserService> parserService =
+      do_GetService("@mozilla.org/parser/parser-service;1", &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    const nsAFlatString& qName = PromiseFlatString(typeAttribute);
+    const PRUnichar *colon;
+    rv = parserService->CheckQName(qName, PR_TRUE, &colon);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    const PRUnichar* end;
+    qName.EndReading(end);
+
+    nsAutoString schemaTypePrefix, schemaType, schemaTypeNamespace;
+    if (!colon) {
+      // colon not found, so no prefix
+      schemaType.Assign(typeAttribute);
+
+      // get namespace from node
+      aNode->GetNamespaceURI(schemaTypeNamespace);
+    } else {
+      schemaTypePrefix.Assign(Substring(qName.get(), colon));
+      schemaType.Assign(Substring(colon + 1, end));
+
+      // get the namespace url from the prefix
+      nsCOMPtr<nsIDOM3Node> domNode3 = do_QueryInterface(aNode);
+      rv = domNode3->LookupNamespaceURI(schemaTypePrefix, schemaTypeNamespace);
+      NS_ENSURE_SUCCESS(rv, rv);
+    }
+
+    LOG(("  Type to validate against is %s:%s",
+      NS_LossyConvertUTF16toASCII(schemaTypePrefix).get(),
+      NS_LossyConvertUTF16toASCII(schemaType).get()));
+
+    // no schemas loaded and type is not builtin, abort
+    if (!mSchema &&
+        !schemaTypeNamespace.EqualsLiteral(NS_SCHEMA_1999_NAMESPACE) &&
+        !schemaTypeNamespace.EqualsLiteral(NS_SCHEMA_2001_NAMESPACE))
+      return NS_ERROR_SCHEMAVALIDATOR_NO_SCHEMA_LOADED;
+
+    // get the type
+    rv = GetType(schemaType, schemaTypeNamespace, aType);
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
+
+  return rv;
+}
+
+nsresult
 nsSchemaValidator::ValidateComplexElement(nsIDOMNode* aNode,
                                           nsISchemaParticle *aSchemaParticle,
                                           PRBool *aResult)
@@ -4297,12 +4316,19 @@ nsSchemaValidator::ValidateComplexElement(nsIDOMNode* aNode,
   if (!schemaElement)
     return NS_ERROR_UNEXPECTED;
 
+  // will hold the type to validate against
   nsCOMPtr<nsISchemaType> type;
-  nsresult rv = schemaElement->GetType(getter_AddRefs(type));
+
+  nsresult rv = GetElementXsiType(aNode, getter_AddRefs(type));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  if (!type)
-    return NS_ERROR_UNEXPECTED;
+  if (!type) {
+    rv = schemaElement->GetType(getter_AddRefs(type));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    if (!type)
+      return NS_ERROR_UNEXPECTED;
+  }
 
   PRUint16 typeValue;
   rv = type->GetSchemaType(&typeValue);

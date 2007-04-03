@@ -350,6 +350,7 @@ private:
                                         const nsAString & aAttrName,
                                         PRUint32 *aFoundAttrCount,
                                         PRBool *aResult);
+  nsresult GetElementXsiType(nsIDOMNode* aNode, nsISchemaType** aType);
 
 static void
 ReleaseObject(void    *aObject,
