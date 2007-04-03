@@ -2672,7 +2672,7 @@ nsMsgDBFolder::parseURI(PRBool needServer)
 #if defined(XP_WIN) || defined(XP_OS2)
         newPath.ReplaceChar('/', '\\');
 #endif
-        rv = serverPath->AppendRelativePath(NS_ConvertASCIItoUTF16(newPath));
+        rv = serverPath->AppendRelativeNativePath(newPath);
         NS_ASSERTION(NS_SUCCEEDED(rv),"failed to append to the serverPath");
         if (NS_FAILED(rv)) 
         {
