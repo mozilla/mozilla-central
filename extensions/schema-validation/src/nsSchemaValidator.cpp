@@ -3656,7 +3656,8 @@ nsSchemaValidator::ValidateComplextype(nsIDOMNode* aNode,
     }
 
     case nsISchemaComplexType::CONTENT_MODEL_MIXED: {
-      rv = NS_ERROR_NOT_IMPLEMENTED;
+      LOG(("    complex type, mixed content"));
+      rv = ValidateComplexModelElement(aNode, aSchemaComplexType, &isValid);
       break;
     }
   }
