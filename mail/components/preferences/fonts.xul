@@ -267,6 +267,7 @@
       </hbox>
 
       <separator class="thin"/>
+      <separator class="groove"/>
       <hbox>
         <checkbox id="useDocumentFonts" 
                   label="&useDocumentFonts.label;" accesskey="&useDocumentFonts.accesskey;"
