@@ -275,52 +275,9 @@ function mng_mungePriority(priority, text, containerTag, data)
     return null;
 }
 
-//XXXgijs: this depends on our own data-structures, which are in
-// content/mungers.js, but we can't move this function out cause insertText
-// depends on it, and the rest of the munger depends on that. Sigh.
-function calcClass(data)
-{
-    var className = "";
-    if ("hasColorInfo" in data)
-    {
-        if ("currFgColor" in data)
-            className += " chatzilla-fg" + data.currFgColor;
-        if ("currBgColor" in data)
-            className += " chatzilla-bg" + data.currBgColor;
-        if ("isBold" in data)
-            className += " chatzilla-bold";
-        if ("isUnderline" in data)
-            className += " chatzilla-underline";
-    }
-    return className;
-}
-
 function insertText(text, containerTag, data)
 {
     var textNode = document.createTextNode(text);
-
-    if ("hasColorInfo" in data)
-    {
-        var newClass = calcClass(data);
-        if (newClass)
-        {
-            var newTag = document.createElementNS(NS_XHTML, "html:span");
-            newTag.setAttribute("class", newClass);
-            newTag.appendChild(textNode);
-            containerTag.appendChild(newTag);
-        }
-        else
-        {
-            delete data.hasColorInfo;
-            containerTag.appendChild(textNode);
-        }
-
-        var wbr = document.createElementNS(NS_XHTML, "html:wbr");
-        containerTag.appendChild(wbr);
-    }
-    else
-    {
-        containerTag.appendChild(textNode);
-    }
+    containerTag.appendChild(textNode);
 }
 

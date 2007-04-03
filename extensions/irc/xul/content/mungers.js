@@ -214,7 +214,7 @@ function insertLink(matchText, containerTag, data, mungerEntry)
     mungerEntry.enabled = true;
     containerTag.appendChild(anchor);
     if (trailing)
-        insertHyphenatedWord(trailing, containerTag);
+        insertHyphenatedWord(trailing, containerTag, data);
 
 }
 
@@ -338,7 +338,7 @@ function insertBugzillaLink (matchText, containerTag, eventData, mungerEntry)
     }
 }
 
-function insertRheet (matchText, containerTag)
+function insertRheet (matchText, containerTag, data)
 {
 
     var anchor = document.createElementNS("http://www.w3.org/1999/xhtml",
@@ -347,7 +347,7 @@ function insertRheet (matchText, containerTag)
                         "http://ftp.mozilla.org/pub/mozilla.org/mozilla/libraries/bonus-tracks/rheet.wav");
     anchor.setAttribute("class", "chatzilla-rheet chatzilla-link");
     //anchor.setAttribute ("target", "_content");
-    insertHyphenatedWord(matchText, anchor);
+    insertHyphenatedWord(matchText, anchor, data);
     containerTag.appendChild(anchor);
 }
 
@@ -571,9 +571,13 @@ function showCtrlChar(c, containerTag)
     containerTag.appendChild (span);
 }
 
-function insertHyphenatedWord (longWord, containerTag)
+function insertHyphenatedWord(longWord, containerTag, data)
 {
-    var wordParts = splitLongWord (longWord, client.MAX_WORD_DISPLAY);
+    var wordParts = splitLongWord(longWord, client.MAX_WORD_DISPLAY);
+    var newClass = "";
+    if (data && ("hasColorInfo" in data))
+        newClass = calcClass(data);
+
     for (var i = 0; i < wordParts.length; ++i)
     {
         if (i > 0)
@@ -582,7 +586,19 @@ function insertHyphenatedWord (longWord, containerTag)
                                                "html:wbr");
             containerTag.appendChild(wbr);
         }
-        containerTag.appendChild (document.createTextNode (wordParts[i]));
+
+        if (newClass)
+        {
+            var newTag = document.createElementNS(NS_XHTML, "html:span");
+            newTag.setAttribute("class", newClass);
+            newTag.appendChild(document.createTextNode(wordParts[i]));
+            containerTag.appendChild(newTag);
+        }
+        else
+        {
+            delete data.hasColorInfo;
+            containerTag.appendChild(document.createTextNode(wordParts[i]));
+        }
     }
 }
 
@@ -611,5 +627,20 @@ function insertInlineButton(text, containerTag, data)
     containerTag.appendChild(document.createTextNode("]"));
 }
 
-
+function calcClass(data)
+{
+    var className = "";
+    if ("hasColorInfo" in data)
+    {
+        if ("currFgColor" in data)
+            className += " chatzilla-fg" + data.currFgColor;
+        if ("currBgColor" in data)
+            className += " chatzilla-bg" + data.currBgColor;
+        if ("isBold" in data)
+            className += " chatzilla-bold";
+        if ("isUnderline" in data)
+            className += " chatzilla-underline";
+    }
+    return className;
+}
 
