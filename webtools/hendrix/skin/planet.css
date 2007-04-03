@@ -98,3 +98,20 @@ body {
   background: url("http://www.mozilla.org/images/subsite_mozilla-org.gif") no-repeat;
   margin-bottom: 1.5em;
 }
+
+fieldset {
+  -moz-border-radius: 5px;
+  
+}
+fieldset, legend {
+  background-color: lightyellow;
+  border: 1px red solid;
+}
+
+legend {
+  border: 1px gray solid;
+}
+
+ul {
+  line-height: 1.5em;
+}
