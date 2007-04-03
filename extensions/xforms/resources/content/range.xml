@@ -67,13 +67,8 @@
         <![CDATA[
           // The start/end/step attrs are all optional and if any are omitted
           // we need to adjust their values.
-          this.adjustRangeValues(this.start, this.end, this.step);
-
-          // Start > End is an error.
-          if (this.start > this.end) {
-            this.delegate.reportError("rangeBeginEndError");
+          if (!this.adjustRangeValues(this.start, this.end, this.step))
             return;
-          }
 
           this.control.readonly = this.accessors.isReadonly();
 
@@ -210,6 +205,14 @@
         <parameter name="aStep"/>
         <body>
           <![CDATA[
+          // Start > End is an error.
+          if (!isNaN(aStart) && !isNaN(aEnd)) {
+            if (aStart > aEnd) {
+              this.delegate.reportError("rangeBeginEndError");
+              return false;
+            }
+          }
+
           if (isNaN(aStep)) {
             // Step is not specified and will depend on the values of start
             // and end (which also may not be specified).
@@ -275,6 +278,7 @@
               this.end = aEnd;
             }
           }
+          return true;
           ]]>
         </body>
       </method>

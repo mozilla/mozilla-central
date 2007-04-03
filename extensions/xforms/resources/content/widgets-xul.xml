@@ -542,7 +542,6 @@
         <![CDATA[
           if (typeof val == "number")
             this.setAttribute("increment", val);
-          return increment;
         ]]>
         </setter>
       </property>
@@ -1450,6 +1449,7 @@
     </implementation>
   </binding>
 
+
   <!-- NUMERIC SPIN RANGE-->
   <binding id="range-numeric-spin"
            extends="chrome://xforms/content/widgets.xml#range">
@@ -1854,6 +1854,137 @@
           var endDate = this.getDate(this.end);
           var currentDate = this.getDate(aValue);
           return startDate <= currentDate && currentDate <= endDate;
+        ]]>
+        </body>
+      </method>
+
+      <!-- Private -->
+      <property name="minLabel" readonly="true">
+        <getter>
+          if (!this._minLabel) {
+            this._minLabel = this.ownerDocument.
+              getAnonymousElementByAttribute(this, "anonid", "minLabel");
+          }
+          return this._minLabel;
+        </getter>
+      </property>
+      <field name="_minLabel">null</field>
+
+      <property name="yearSpin" readonly="true">
+        <getter>
+          if (!this._yearSpin) {
+            this._yearSpin = this.ownerDocument.
+              getAnonymousElementByAttribute(this, "anonid", "yearSpin");
+          }
+          return this._yearSpin;
+        </getter>
+      </property>
+      <field name="_yearSpin">null</field>
+
+      <property name="monthSpin" readonly="true">
+        <getter>
+          if (!this._monthSpin) {
+            this._monthSpin = this.ownerDocument.
+              getAnonymousElementByAttribute(this, "anonid", "monthSpin");
+          }
+          return this._monthSpin;
+        </getter>
+      </property>
+      <field name="_monthSpin">null</field>
+
+      <property name="maxLabel" readonly="true">
+        <getter>
+          if (!this._maxLabel) {
+            this._maxLabel = this.ownerDocument.
+              getAnonymousElementByAttribute(this, "anonid", "maxLabel");
+          }
+          return this._maxLabel;
+        </getter>
+      </property>
+      <field name="_maxLabel">null</field>
+    </implementation>
+  </binding>
+
+  <!-- YEARMONTHDURATION RANGE-->
+  <binding id="range-yearmonthduration"
+           extends="chrome://xforms/content/widgets.xml#yearmonthduration">
+    <resources>
+      <stylesheet src="chrome://xforms/skin/widgets-xul.css"/>
+    </resources>
+
+    <content>
+      <xul:label value="" anonid="minLabel"/>
+      <xul:box class="range-box">
+        <xul:label control="yearSpin" value="&xforms.date.year.label;"/>
+        <xul:textbox type="number" size="1" anonid="yearSpin"
+                     xbl:inherits="tabindex=mozType:tabindex"/>
+      </xul:box>
+      <xul:box class="range-box">
+        <xul:label control="monthSpin" value="&xforms.date.month.label;"/>
+        <xul:textbox type="number" size="1" anonid="monthSpin"
+                     xbl:inherits="tabindex=mozType:tabindex"/>
+      </xul:box>
+      <xul:label value="" anonid="maxLabel"/>
+    </content>
+
+    <implementation>
+      <method name="updateLabels">
+        <body>
+        <![CDATA[
+          this.minLabel.value = this.start + this._startSeparator;
+          this.maxLabel.value = this._endSeparator + this.end;
+        ]]>
+        </body>
+      </method>
+
+      <method name="updateValue">
+        <body>
+        <![CDATA[
+          var years = this.yearSpin.value.toString();
+          var months = this.monthSpin.value.toString();
+
+          var duration = "P" + years + "Y" + months + "M";
+
+          this.setAttribute("value", duration);
+        ]]>
+        </body>
+      </method>
+
+      <method name="updateFields">
+        <body>
+        <![CDATA[
+          var value = this.value;
+          var years = this.getYears(value);
+          var months = this.getMonths(value);
+
+          this.yearSpin.value = years;
+          this.monthSpin.value = months;
+        ]]>
+        </body>
+      </method>
+
+      <method name="setSpinbuttonMinMax">
+        <body>
+        <![CDATA[
+          // Years
+          this.yearSpin.min = this.getYearsMin();
+          this.yearSpin.max = this.getYearsMax();
+          // Months
+          this.monthSpin.min = this.getMonthsMin();
+          this.monthSpin.max = this.getMonthsMax();
+        ]]>
+        </body>
+      </method>
+
+      <method name="isInRange">
+        <parameter name="aValue"/>
+        <body>
+        <![CDATA[
+          var startMonths = this.getDurationMonths(this.start);
+          var endMonths = this.getDurationMonths(this.end);
+          var currentMonths = this.getDurationMonths(aValue);
+
+          return startMonths <= currentMonths && currentMonths <= endMonths;
         ]]>
         </body>
       </method>

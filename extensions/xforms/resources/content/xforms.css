@@ -261,7 +261,9 @@ html|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#gMonthDay"
 xul|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#gYear"],
 html|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#gYear"],
 xul|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#gYearMonth"],
-html|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#gYearMonth"] {
+html|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#gYearMonth"],
+xul|*:root range[mozType|type="http://www.w3.org/2002/xforms#yearMonthDuration"],
+html|*:root range[mozType|type="http://www.w3.org/2002/xforms#yearMonthDuration"] {
   -moz-binding: url('chrome://xforms/content/range-xul.xml#xformswidget-range-datesandtimes');
 }
 
@@ -311,6 +313,12 @@ html|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#gYear"] > 
 xul|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#gYearMonth"] > xul|box,
 html|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#gYearMonth"] > xul|box {
   -moz-binding: url('chrome://xforms/content/widgets-xul.xml#range-gyearmonth');
+}
+
+  /* range type="xf:yearMonthDuration" */
+xul|*:root range[mozType|type="http://www.w3.org/2002/xforms#yearMonthDuration"] > xul|box,
+html|*:root range[mozType|type="http://www.w3.org/2002/xforms#yearMonthDuration"] > xul|box {
+  -moz-binding: url('chrome://xforms/content/widgets-xul.xml#range-yearmonthduration');
 }
 
 xul|box.xf-value {

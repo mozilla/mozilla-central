@@ -1180,7 +1180,7 @@
         <body>
           var date = new Date();
           date.setHours(this.getHours(aTime));
-          date.setMinutes(this.getMinutes(aTime));
+          date.setMinutes(this.getMinutes(aTime));                                  
           date.setSeconds(this.getSeconds(aTime));
           return date;
         </body>
@@ -1423,6 +1423,274 @@
           // A gYearMonth type does not have a day. Any day is acceptable.
           date.setDate(1);
           return date;
+        ]]>
+        </body>
+      </method>
+    </implementation>
+  </binding>
+
+  <!-- DURATION -->
+  <binding id="duration" extends="#range">
+    <implementation>
+    <!-- interface -->
+      <!-- Duration format: PnYnMnDTnHnMnS
+           dayTimeDuration: PnDnTHnMnS (days, hours, minutes, seconds).
+           yearMonthDuration: PnYnM (years and months)
+
+           - The designator 'P' must always be present.
+           - The designator 'T' must be absent if and only if all of the
+             time items are absent.
+           - If the number of years, months, days, hours, minutes or seconds
+             equals zero, the number and its corresponding designator may be
+             omitted.
+           - There are no restrictions on the number of digits in 'n'.
+       -->
+
+      <!-- Set start/end/step/value -->
+      <method name="set">
+        <parameter name="aStart"/>
+        <parameter name="aEnd"/>
+        <parameter name="aStep"/>
+        <parameter name="aValue"/>
+        <body>
+          this.start = this.formatDuration(aStart);
+          this.end = this.formatDuration(aEnd);
+          this.step = aStep;
+          if (!aValue)
+            this.value = this.start;
+          else
+            this.value = this.formatDuration(aValue);
+
+          this.updateLabels();
+        </body>
+      </method>
+
+      <!-- Format a duration value to the proper format. -->
+      <method name="formatDuration">
+        <parameter name="aDuration"/>
+        <body>
+          return true;
+        </body>
+      </method>
+
+      <!-- Extract the years from a duration -->
+      <method name="getYears">
+        <parameter name="aDuration"/>
+        <body>
+          return this.getDurationValue(aDuration, "Y");
+        </body>
+      </method>
+
+      <!-- Extract the months from a duration -->
+      <method name="getMonths">
+        <parameter name="aDuration"/>
+        <body>
+          return this.getDurationValue(aDuration, "M");
+        </body>
+      </method>
+
+      <!-- Extract the days from a duration -->
+      <method name="getDays">
+        <parameter name="aDuration"/>
+        <body>
+          return this.getDurationValue(aDuration, "D");
+        </body>
+      </method>
+
+      <!-- Extract the hours from a duration -->
+      <method name="getHours">
+        <parameter name="aDuration"/>
+        <body>
+          return this.getDurationValue(aDuration, "H");
+        </body>
+      </method>
+
+      <!-- Extract the minutes from a duration -->
+      <method name="getMinutes">
+        <parameter name="aDuration"/>
+        <body>
+        <![CDATA[
+          // Minutes is represented by the designator 'M', but so is
+          // Months, so first extract the time portion of the duration.
+          var indexT = aDuration.indexOf("T");
+          var time = aDuration.substring(indexT);
+          return this.getDurationValue(time, "M");
+        ]]>
+        </body>
+      </method>
+
+      <!-- Extract the seconds from a duration -->
+      <method name="getSeconds">
+        <parameter name="aDuration"/>
+        <body>
+          return this.getDurationValue(aDuration, "S");
+        </body>
+      </method>
+
+      <!-- Get the value of a given duration designator.
+           The value precedes the designator and may be any length.
+       -->
+      <method name="getDurationValue">
+        <parameter name="aDuration"/>
+        <parameter name="aDesignator"/>
+        <body>
+        <![CDATA[
+          var duration = 0;
+          // Find the designator.
+          var index = aDuration.indexOf(aDesignator);
+          if (index != -1) {
+            // Find the starting index of the value by searching
+            // backwards until we encounter another designator.
+            var i = index - 1;
+            while (!this.isDesignator(aDuration.charCodeAt(i)))
+              --i;
+
+            // The value is between the two designators.
+            duration = parseFloat(aDuration.substring(i + 1, index));
+          }
+
+          return duration;
+        ]]>
+        </body>
+      </method>
+
+      <!-- Is the character one of the duration designators?
+       -->
+      <method name="isDesignator">
+        <parameter name="aCharCode"/>
+        <body>
+        <![CDATA[
+          // Char codes: 'P' == 80
+          //             'Y' == 89
+          //             'M' == 77
+          //             'D' == 68
+          //             'T' == 84
+          //             'H' == 72
+          //             'S' == 83
+          var isdesignator = false;
+
+          if (aCharCode == 80 || aCharCode == 89 ||
+              aCharCode == 77 || aCharCode == 68 ||
+              aCharCode == 84 || aCharCode == 72 ||
+              aCharCode == 83)
+              isdesignator = true;
+
+          return isdesignator;
+        ]]>
+        </body>
+      </method>
+    </implementation>
+  </binding>
+
+  <!-- YEARMONTHDURATION -->
+  <binding id="yearmonthduration" extends="#duration">
+    <implementation>
+    <!-- interface -->
+      <!-- yearMonthDuration format: PnYnM (years and months) -->
+
+      <!-- Format a yearMonthDuration to the format PnYnM so that we
+           have a non-zero number of years and the months range between
+           0 - 11.
+
+           If aDuration is null, this method will return a yearMonthDuration
+           of zero years and zero months (P0Y0M).
+      -->
+      <method name="formatDuration">
+        <parameter name="aDuration"/>
+        <body>
+        <![CDATA[
+          var years = this.getYears(aDuration);
+          var months = this.getMonths(aDuration);
+
+          years = years + Math.floor(months / 12);
+          months = months % 12;
+
+          return "P" + years + "Y" + months + "M";
+        ]]>
+        </body>
+      </method>
+
+      <!-- Get the total number of months in a yearMonthDuration. -->
+      <method name="getDurationMonths">
+        <parameter name="aDuration"/>
+        <body>
+        <![CDATA[
+          var years = this.getYears(aDuration);
+          var months = this.getMonths(aDuration);
+          var durationMonths = (years * 12) + months;
+
+          return durationMonths;
+        ]]>
+        </body>
+      </method>
+
+      <!-- Get the minimum years value. -->
+      <method name="getYearsMin">
+        <body>
+        <![CDATA[
+          // The min value for the years spinbutton will always
+          // be the year of the start duration.
+          return this.getYears(this.start);
+        ]]>
+        </body>
+      </method>
+
+      <!-- Get the maximum years value. -->
+      <method name="getYearsMax">
+        <body>
+        <![CDATA[
+          // The max value for the years spinbutton will always
+          // be the year of the end duration.
+          return this.getYears(this.end);
+        ]]>
+        </body>
+      </method>
+
+      <!-- Get the minimum months value. -->
+      <method name="getMonthsMin">
+        <body>
+        <![CDATA[
+          // The min value for the month spinbutton depends on the year
+          // range and the current value of the year.
+          var minMonth = 0;
+
+          var startYear = this.getYears(this.start);
+          var endYear = this.getYears(this.end);
+          var currentYear = this.getYears(this.value);
+
+          if (startYear == endYear || currentYear == startYear) {
+            // Min month is the month of the start duration.
+            minMonth = this.getMonths(this.start);
+          } else {
+            // Current year falls between the start and end year.
+            minMonth = 0;
+          }
+          return minMonth;
+        ]]>
+        </body>
+      </method>
+
+      <!-- Get the maximum months value. -->
+      <method name="getMonthsMax">
+        <body>
+        <![CDATA[
+          // The max value for the month spinbutton depends on the year
+          // range and the current value of the year.
+          var maxMonth = 0;
+
+          var startYear = this.getYears(this.start);
+          var endYear = this.getYears(this.end);
+          var currentYear = this.getYears(this.value);
+
+          if (startYear == endYear || currentYear == endYear) {
+            // Max month is the month of the end duration.
+            maxMonth = this.getMonths(this.end);
+          } else {
+            // Current year falls between the start and end year.
+            maxMonth = 11;
+          }
+
+          return maxMonth;
         ]]>
         </body>
       </method>
