@@ -134,7 +134,7 @@ nsProfileMigrator::GetDefaultMailMigratorKey(nsACString& aKey, nsCOMPtr<nsIMailP
   NS_NAMED_LITERAL_CSTRING(migratorPrefix,
                            NS_MAILPROFILEMIGRATOR_CONTRACTID_PREFIX);
   nsCAutoString migratorID;
-  if (forceMigrationType.get())
+  if (!forceMigrationType.IsEmpty())
   {
     PRBool exists = PR_FALSE;
     migratorID = migratorPrefix;
