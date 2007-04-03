@@ -181,7 +181,13 @@ nsSchemaValidator::Validate(nsIDOMNode* aElement, PRBool *aResult)
   nsresult rv = GetElementXsiType(aElement, getter_AddRefs(type));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  if (!type && mSchema) {
+  if (!type) {
+    if (!mSchema) {
+      // no type attribute and no loaded schemas, so abort
+      // XXX: needed better error here
+      return NS_ERROR_SCHEMAVALIDATOR_NO_SCHEMA_LOADED;
+    }
+
     // no type attribute, look for an xsd:element in the schema that matches
     LOG(("   -- no type attribute found, so looking for matching xsd:element"));
 
@@ -205,10 +211,6 @@ nsSchemaValidator::Validate(nsIDOMNode* aElement, PRBool *aResult)
 
     rv = element->GetType(getter_AddRefs(type));
     NS_ENSURE_SUCCESS(rv, rv);
-  } else {
-    // no type attribute and no loaded schemas, so abort
-    // XXX: needed better error here
-    return NS_ERROR_SCHEMAVALIDATOR_NO_SCHEMA_LOADED;
   }
 
   /* 
