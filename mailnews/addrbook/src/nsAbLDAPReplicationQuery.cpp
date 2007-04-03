@@ -51,7 +51,8 @@
 #include "prmem.h"
 #include "nsIRDFService.h"
 
-NS_IMPL_ISUPPORTS1(nsAbLDAPReplicationQuery, nsIAbLDAPReplicationQuery)
+NS_IMPL_THREADSAFE_ISUPPORTS1(nsAbLDAPReplicationQuery,
+                              nsIAbLDAPReplicationQuery)
 
 nsAbLDAPReplicationQuery::nsAbLDAPReplicationQuery()
     :  mInitialized(PR_FALSE)
@@ -67,14 +68,14 @@ nsresult nsAbLDAPReplicationQuery::InitLDAPData()
  
   nsCAutoString resourceURI(kLDAPDirectoryRoot);
   resourceURI.Append(mDirPrefName);
- 
+
   nsCOMPtr<nsIRDFResource> resource;
   rv = rdfService->GetResource(resourceURI, getter_AddRefs(resource));
   NS_ENSURE_SUCCESS(rv, rv);
- 
+
   mDirectory = do_QueryInterface(resource, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
- 
+
   nsCAutoString fileName;
   rv = mDirectory->GetReplicationFileName(fileName);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -102,20 +103,11 @@ nsresult nsAbLDAPReplicationQuery::InitLDAPData()
   rv = mDirectory->SetReplicationFileName(fileName);
   NS_ENSURE_SUCCESS(rv, rv);
  
-  mURL = do_CreateInstance(NS_LDAPURL_CONTRACTID, &rv);
-  if (NS_FAILED(rv)) 
-    return rv;
-
-  nsCOMPtr<nsIAbDirectory> abDirectory(do_QueryInterface(mDirectory, &rv));
+  rv = mDirectory->GetLDAPURL(getter_AddRefs(mURL));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCAutoString uri;
-  rv = abDirectory->GetURI(uri);
+  rv = mDirectory->GetAuthDn(mLogin);
   NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = mURL->SetSpec(uri);
-  if (NS_FAILED(rv)) 
-    return rv;
 
   mConnection = do_CreateInstance(NS_LDAPCONNECTION_CONTRACTID, &rv);
   if (NS_FAILED(rv)) 
@@ -126,40 +118,32 @@ nsresult nsAbLDAPReplicationQuery::InitLDAPData()
   return rv;
 }
 
-nsresult nsAbLDAPReplicationQuery::CreateNewLDAPOperation()
+nsresult nsAbLDAPReplicationQuery::ConnectToLDAPServer()
 {
-  nsresult rv;
-  nsCOMPtr <nsILDAPMessageListener> oldListener;
-  mOperation->GetMessageListener(getter_AddRefs(oldListener));
-  // release old and create a new instance
-  mOperation = do_CreateInstance(NS_LDAPOPERATION_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-  return mOperation->Init(mConnection, oldListener, nsnull);
-}
-
-
-NS_IMETHODIMP nsAbLDAPReplicationQuery::ConnectToLDAPServer(nsILDAPURL *aURL, const nsACString & aAuthDN)
-{
-    NS_ENSURE_ARG_POINTER(aURL);
-    if (!mInitialized) 
+    if (!mInitialized || !mURL)
         return NS_ERROR_NOT_INITIALIZED;
 
     nsCAutoString host;
-    nsresult rv = aURL->GetHost(host);
+    nsresult rv = mURL->GetHost(host);
     if (NS_FAILED(rv)) 
         return rv;
     if (host.IsEmpty())
         return NS_ERROR_UNEXPECTED;
 
     PRInt32 port;
-    rv = aURL->GetPort(&port);
+    rv = mURL->GetPort(&port);
     if (NS_FAILED(rv)) 
         return rv;
     if (!port)
         return NS_ERROR_UNEXPECTED;
 
     PRUint32 options;
-    rv = aURL->GetOptions(&options);
+    rv = mURL->GetOptions(&options);
+    if (NS_FAILED(rv))
+      return NS_ERROR_UNEXPECTED;
+
+    nsCOMPtr<nsILDAPMessageListener> mDp = do_QueryInterface(mDataProcessor,
+                                                             &rv);
     if (NS_FAILED(rv))
       return NS_ERROR_UNEXPECTED;
 
@@ -167,7 +151,7 @@ NS_IMETHODIMP nsAbLDAPReplicationQuery::ConnectToLDAPServer(nsILDAPURL *aURL, co
     nsCOMPtr<nsILDAPMessageListener> listener;
     rv = NS_GetProxyForObject(NS_PROXY_TO_CURRENT_THREAD,
                   NS_GET_IID(nsILDAPMessageListener), 
-                  NS_STATIC_CAST(nsILDAPMessageListener*, mDataProcessor),
+                  mDp,
                   NS_PROXY_SYNC | NS_PROXY_ALWAYS, 
                   getter_AddRefs(listener));
     if (!listener) 
@@ -176,20 +160,9 @@ NS_IMETHODIMP nsAbLDAPReplicationQuery::ConnectToLDAPServer(nsILDAPURL *aURL, co
     // this could be a rebind call
     PRInt32 replicationState = nsIAbLDAPProcessReplicationData::kIdle;
     rv = mDataProcessor->GetReplicationState(&replicationState);
-    if(NS_FAILED(rv)) 
+    if (NS_FAILED(rv) ||
+        replicationState != nsIAbLDAPProcessReplicationData::kIdle)
         return rv;
-    if((replicationState != nsIAbLDAPProcessReplicationData::kIdle))
-    {
-        // release old and create a new instance
-        mConnection = do_CreateInstance(NS_LDAPCONNECTION_CONTRACTID, &rv);
-        if(NS_FAILED(rv)) 
-            return rv;
-
-        // release old and create a new instance
-        mOperation = do_CreateInstance(NS_LDAPOPERATION_CONTRACTID, &rv);
-        if(NS_FAILED(rv)) 
-            return rv;
-    }
 
     PRUint32 protocolVersion;
     rv = mDirectory->GetProtocolVersion(&protocolVersion);
@@ -198,7 +171,7 @@ NS_IMETHODIMP nsAbLDAPReplicationQuery::ConnectToLDAPServer(nsILDAPURL *aURL, co
     // initialize the LDAP connection
     return mConnection->Init(host.get(), port, 
                              (options & nsILDAPURL::OPT_SECURE) ? PR_TRUE : PR_FALSE,
-                             aAuthDN, listener, nsnull, protocolVersion);
+                             mLogin, listener, nsnull, protocolVersion);
 }
 
 NS_IMETHODIMP nsAbLDAPReplicationQuery::Init(const nsACString & aPrefName, nsIWebProgressListener *aProgressListener)
@@ -212,55 +185,21 @@ NS_IMETHODIMP nsAbLDAPReplicationQuery::Init(const nsACString & aPrefName, nsIWe
     if (NS_FAILED(rv)) 
         return rv;
 
-    mDataProcessor =  do_CreateInstance(NS_ABLDAP_PROCESSREPLICATIONDATA_CONTRACTID, &rv);
+    mDataProcessor =
+      do_CreateInstance(NS_ABLDAP_PROCESSREPLICATIONDATA_CONTRACTID, &rv);
     if (NS_FAILED(rv)) 
         return rv;
 
     // 'this' initialized
     mInitialized = PR_TRUE;
 
-    return mDataProcessor->Init(this, aProgressListener);
+    return mDataProcessor->Init(mDirectory, mConnection, mURL, this,
+                                aProgressListener);
 }
 
 NS_IMETHODIMP nsAbLDAPReplicationQuery::DoReplicationQuery()
 {
-    return ConnectToLDAPServer(mURL, EmptyCString());
-}
-
-NS_IMETHODIMP nsAbLDAPReplicationQuery::QueryAllEntries()
-{
-    if (!mInitialized) 
-        return NS_ERROR_NOT_INITIALIZED;
-
-    // get the search filter associated with the directory server url; 
-    //
-    nsCAutoString urlFilter;
-    nsresult rv = mURL->GetFilter(urlFilter);
-    if (NS_FAILED(rv)) 
-        return rv;
-
-    nsCAutoString dn;
-    rv = mURL->GetDn(dn);
-    if (NS_FAILED(rv)) 
-        return rv;
-    if (dn.IsEmpty())
-        return NS_ERROR_UNEXPECTED;
-
-    PRInt32 scope;
-    rv = mURL->GetScope(&scope);
-    if (NS_FAILED(rv)) 
-        return rv;
-
-    CharPtrArrayGuard attributes;
-    rv = mURL->GetAttributes(attributes.GetSizeAddr(), attributes.GetArrayAddr());
-    if (NS_FAILED(rv)) 
-        return rv;
-
-    rv = CreateNewLDAPOperation();
-    NS_ENSURE_SUCCESS(rv, rv);
-    return mOperation->SearchExt(dn, scope, urlFilter, 
-                               attributes.GetSize(), attributes.GetArray(),
-                               0, 0);
+    return ConnectToLDAPServer();
 }
 
 NS_IMETHODIMP nsAbLDAPReplicationQuery::CancelQuery()
@@ -275,7 +214,7 @@ NS_IMETHODIMP nsAbLDAPReplicationQuery::Done(PRBool aSuccess)
 {
    if (!mInitialized) 
        return NS_ERROR_NOT_INITIALIZED;
-   
+
    nsresult rv = NS_OK;
    nsCOMPtr<nsIAbLDAPReplicationService> replicationService = 
                             do_GetService(NS_ABLDAP_REPLICATIONSERVICE_CONTRACTID, &rv);
@@ -283,47 +222,4 @@ NS_IMETHODIMP nsAbLDAPReplicationQuery::Done(PRBool aSuccess)
       replicationService->Done(aSuccess);
 
    return rv;
-}
-
-
-NS_IMETHODIMP nsAbLDAPReplicationQuery::GetOperation(nsILDAPOperation * *aOperation)
-{
-   NS_ENSURE_ARG_POINTER(aOperation);
-   if (!mInitialized) 
-       return NS_ERROR_NOT_INITIALIZED;
-   
-   NS_IF_ADDREF(*aOperation = mOperation);
-
-   return NS_OK;
-}
-
-NS_IMETHODIMP nsAbLDAPReplicationQuery::GetConnection(nsILDAPConnection * *aConnection)
-{
-   NS_ENSURE_ARG_POINTER(aConnection);
-   if (!mInitialized) 
-       return NS_ERROR_NOT_INITIALIZED;
-
-   NS_IF_ADDREF(*aConnection = mConnection); 
-
-   return NS_OK;
-}
-
-NS_IMETHODIMP nsAbLDAPReplicationQuery::GetReplicationURL(nsILDAPURL * *aReplicationURL)
-{
-   NS_ENSURE_ARG_POINTER(aReplicationURL);
-   if (!mInitialized) 
-       return NS_ERROR_NOT_INITIALIZED;
-
-   NS_IF_ADDREF(*aReplicationURL = mURL); 
-
-   return NS_OK;
-}
-
-NS_IMETHODIMP nsAbLDAPReplicationQuery::GetLDAPDirectory(nsIAbLDAPDirectory * *aDirectory)
-{
-  NS_ENSURE_ARG_POINTER(aDirectory);
-
-  NS_IF_ADDREF(*aDirectory = mDirectory);
-
-  return NS_OK;
 }

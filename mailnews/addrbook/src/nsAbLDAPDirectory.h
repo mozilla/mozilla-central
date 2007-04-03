@@ -77,7 +77,6 @@ public:
 
     // nsAbLDAPDirectoryQuery methods
     nsresult GetLDAPConnection (nsILDAPConnection** connection);
-    nsresult GetLDAPURL (nsILDAPURL** url);
     nsresult CreateCard (nsILDAPURL* uri, const char* dn, nsIAbCard** card);
 
     // nsIAbDirectorySearch methods

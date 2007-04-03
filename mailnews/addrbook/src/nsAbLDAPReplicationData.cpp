@@ -56,12 +56,13 @@
 // independently along with its related independent nsAbLDAPReplicationQuery object.
 NS_IMPL_THREADSAFE_ISUPPORTS2(nsAbLDAPProcessReplicationData, nsIAbLDAPProcessReplicationData, nsILDAPMessageListener)
 
-nsAbLDAPProcessReplicationData::nsAbLDAPProcessReplicationData()
- : mState(kIdle),
-   mProtocol(-1),
-   mCount(0),
-   mDBOpen(PR_FALSE),
-   mInitialized(PR_FALSE)
+nsAbLDAPProcessReplicationData::nsAbLDAPProcessReplicationData() :
+  nsAbLDAPListenerBase(),
+  mState(kIdle),
+  mProtocol(-1),
+  mCount(0),
+  mDBOpen(PR_FALSE),
+  mInitialized(PR_FALSE)
 {
 }
 
@@ -72,35 +73,45 @@ nsAbLDAPProcessReplicationData::~nsAbLDAPProcessReplicationData()
       mReplicationDB->Close(PR_FALSE);
 }
 
-NS_IMETHODIMP nsAbLDAPProcessReplicationData::Init(nsIAbLDAPReplicationQuery *query, nsIWebProgressListener *progressListener)
+NS_IMETHODIMP nsAbLDAPProcessReplicationData::Init(
+  nsIAbLDAPDirectory *aDirectory,
+  nsILDAPConnection *aConnection,
+  nsILDAPURL* aURL,
+  nsIAbLDAPReplicationQuery *aQuery,
+  nsIWebProgressListener *aProgressListener)
 {
-   NS_ENSURE_ARG_POINTER(query);
+  NS_ENSURE_ARG_POINTER(aDirectory);
+  NS_ENSURE_ARG_POINTER(aConnection);
+  NS_ENSURE_ARG_POINTER(aURL);
+  NS_ENSURE_ARG_POINTER(aQuery);
 
-   mQuery = query;
+  mDirectory = aDirectory;
+  mConnection = aConnection;
+  mDirectoryUrl = aURL;
+  mQuery = aQuery;
 
-   nsresult rv = mQuery->GetLDAPDirectory(getter_AddRefs(mDirectory));
-   if(NS_FAILED(rv)) {
-       mQuery = nsnull;
-       return rv;
-   }
+  mListener = aProgressListener;
 
-   rv = mDirectory->GetAttributeMap(getter_AddRefs(mAttrMap));
-   if (NS_FAILED(rv)) {
-     mQuery = nsnull;
-     return rv;
-   }
+  nsresult rv = mDirectory->GetAttributeMap(getter_AddRefs(mAttrMap));
+  if (NS_FAILED(rv)) {
+    mQuery = nsnull;
+    return rv;
+  }
 
-   mListener = progressListener;
+  rv = mDirectory->GetAuthDn(mLogin);
+  if (NS_FAILED(rv)) {
+    mQuery = nsnull;
+    return rv;
+  }
 
-   mInitialized = PR_TRUE;
+  mInitialized = PR_TRUE;
 
-   return rv;
+  return rv;
 }
 
 NS_IMETHODIMP nsAbLDAPProcessReplicationData::GetReplicationState(PRInt32 *aReplicationState) 
 {
     NS_ENSURE_ARG_POINTER(aReplicationState);
-
     *aReplicationState = mState; 
     return NS_OK; 
 }
@@ -112,243 +123,165 @@ NS_IMETHODIMP nsAbLDAPProcessReplicationData::GetProtocolUsed(PRInt32 *aProtocol
     return NS_OK; 
 }
 
-NS_IMETHODIMP nsAbLDAPProcessReplicationData::OnLDAPInit(nsILDAPConnection *aConn, nsresult aStatus)
-{
-    if(!mInitialized) 
-        return NS_ERROR_NOT_INITIALIZED;
-
-    // Make sure that the Init() worked properly
-    if(NS_FAILED(aStatus)) {
-        Done(PR_FALSE);
-        return NS_ERROR_FAILURE;
-    }
-
-    nsCOMPtr<nsILDAPMessageListener> listener;
-    nsresult rv = NS_GetProxyForObject(NS_PROXY_TO_CURRENT_THREAD,
-                  NS_GET_IID(nsILDAPMessageListener), 
-                  NS_STATIC_CAST(nsILDAPMessageListener*, this),
-                  NS_PROXY_SYNC | NS_PROXY_ALWAYS, 
-                  getter_AddRefs(listener));
-    if(NS_FAILED(rv)) {
-        Done(PR_FALSE);
-        return rv;
-    }
-
-    nsCOMPtr<nsILDAPOperation> operation;
-    rv = mQuery->GetOperation(getter_AddRefs(operation));
-    if(NS_FAILED(rv)) {
-       Done(PR_FALSE);
-       return rv;   
-    }
-
-    nsCOMPtr<nsILDAPConnection> connection;
-    rv = mQuery->GetConnection(getter_AddRefs(connection));
-    if(NS_FAILED(rv)) {
-       Done(PR_FALSE);
-       return rv;  
-    }
-
-    rv = operation->Init(connection, listener, nsnull);
-    if(NS_FAILED(rv)) {
-        Done(PR_FALSE);
-        return rv;
-    }
-
-    // Bind
-    rv = operation->SimpleBind(mAuthPswd);
-    mState = mAuthPswd.IsEmpty() ? kAnonymousBinding : kAuthenticatedBinding;
-
-    if(NS_FAILED(rv)) {
-        Done(PR_FALSE);
-    }
-
-    return rv;
-}
-
 NS_IMETHODIMP nsAbLDAPProcessReplicationData::OnLDAPMessage(nsILDAPMessage *aMessage)
 {
-    NS_ENSURE_ARG_POINTER(aMessage);
-    if(!mInitialized) 
-        return NS_ERROR_NOT_INITIALIZED;
+  NS_ENSURE_ARG_POINTER(aMessage);
 
-    PRInt32 messageType;
-    nsresult rv = aMessage->GetType(&messageType);
-    if(NS_FAILED(rv)) {
-#ifdef DEBUG_rdayal
-        printf("LDAP Replication : OnLDAPMessage : couldnot GetType \n");
-#endif
-        Done(PR_FALSE);
-        return rv;
-    }
+  if (!mInitialized)
+    return NS_ERROR_NOT_INITIALIZED;
 
-    switch(messageType)
-    {
-    case nsILDAPMessage::RES_BIND:
-        rv = OnLDAPBind(aMessage);
-        break;
-    case nsILDAPMessage::RES_SEARCH_ENTRY:
-        rv = OnLDAPSearchEntry(aMessage);
-        break;
-    case nsILDAPMessage::RES_SEARCH_RESULT:
-        rv = OnLDAPSearchResult(aMessage);
-        break;
-    default:
-        // for messageTypes we do not handle return NS_OK to LDAP and move ahead.
-        rv = NS_OK;
-        break;
-    }
-
+  PRInt32 messageType;
+  nsresult rv = aMessage->GetType(&messageType);
+  if (NS_FAILED(rv)) {
+    Done(PR_FALSE);
     return rv;
+  }
+
+  switch (messageType)
+  {
+  case nsILDAPMessage::RES_BIND:
+    rv = OnLDAPMessageBind(aMessage);
+    if (NS_FAILED(rv))
+      rv = Abort();
+    break;
+  case nsILDAPMessage::RES_SEARCH_ENTRY:
+    rv = OnLDAPSearchEntry(aMessage);
+    break;
+  case nsILDAPMessage::RES_SEARCH_RESULT:
+    rv = OnLDAPSearchResult(aMessage);
+    break;
+  default:
+    // for messageTypes we do not handle return NS_OK to LDAP and move ahead.
+    rv = NS_OK;
+    break;
+  }
+
+  return rv;
 }
 
 NS_IMETHODIMP nsAbLDAPProcessReplicationData::Abort()
 {
-    if(!mInitialized) 
-        return NS_ERROR_NOT_INITIALIZED;
-
-#ifdef DEBUG_rdayal
-    printf ("ChangeLog Replication : ABORT called !!! \n");
-#endif
-
-    nsCOMPtr<nsILDAPOperation> operation;
-    nsresult rv = mQuery->GetOperation(getter_AddRefs(operation));
-    if(operation && mState != kIdle)
-    {
-        rv = operation->AbandonExt();
-        if(NS_SUCCEEDED(rv))
-            mState = kIdle;
-    }
-
-    if(mReplicationDB && mDBOpen) {
-        mReplicationDB->ForceClosed(); // force close since we need to delete the file.
-        mDBOpen = PR_FALSE;
-
-        // delete the unsaved replication file
-        if(mReplicationFile) {
-            rv = mReplicationFile->Remove(PR_FALSE);
-            if(NS_SUCCEEDED(rv) && mDirectory) {
-                nsCAutoString fileName;
-                rv = mDirectory->GetReplicationFileName(fileName);
-                // now put back the backed up replicated file if aborted
-                if(NS_SUCCEEDED(rv) && mBackupReplicationFile) 
-                    rv = mBackupReplicationFile->MoveToNative(nsnull, fileName);
-            }
-        }
-    }
-
-
-    Done(PR_FALSE);
-
-    return rv;
-}
-
-// this should get the authDN from prefs and password from PswdMgr
-NS_IMETHODIMP nsAbLDAPProcessReplicationData::PopulateAuthData()
-{
-  if (!mDirectory)
+  if (!mInitialized)
     return NS_ERROR_NOT_INITIALIZED;
 
-  nsCAutoString authDn;
-  nsresult rv = mDirectory->GetAuthDn(authDn);
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsresult rv = NS_OK;
 
-  mAuthDN.Assign(authDn);
+  if (mState != kIdle && mOperation) {
+    rv = mOperation->AbandonExt();
+    if (NS_SUCCEEDED(rv))
+      mState = kIdle;
+  }
 
-    nsCOMPtr <nsIPasswordManagerInternal> passwordMgrInt = do_GetService(NS_PASSWORDMANAGER_CONTRACTID, &rv);
-    if(NS_SUCCEEDED(rv) && passwordMgrInt) {
-        // Get the current server URI
-        nsCOMPtr<nsILDAPURL> url;
-        rv = mQuery->GetReplicationURL(getter_AddRefs(url));
-        if (NS_FAILED(rv))
-            return rv;
-        nsCAutoString serverUri;
-        rv = url->GetSpec(serverUri);
-        if (NS_FAILED(rv)) 
-            return rv;
+  if (mReplicationDB && mDBOpen) {
+    // force close since we need to delete the file.
+    mReplicationDB->ForceClosed();
+    mDBOpen = PR_FALSE;
 
-        nsCAutoString hostFound;
-        nsAutoString userNameFound;
-        nsAutoString passwordFound;
-
-        // Get password entry corresponding to the server URI we are passing in.
-        rv = passwordMgrInt->FindPasswordEntry(serverUri, EmptyString(),
-                                               EmptyString(), hostFound,
-                                               userNameFound, passwordFound);
-        if (NS_FAILED(rv))
-            return rv;
-
-        if (!passwordFound.IsEmpty())
-            CopyUTF16toUTF8(passwordFound, mAuthPswd);
+    // delete the unsaved replication file
+    if (mReplicationFile) {
+      rv = mReplicationFile->Remove(PR_FALSE);
+      if (NS_SUCCEEDED(rv) && mDirectory) {
+        nsCAutoString fileName;
+        rv = mDirectory->GetReplicationFileName(fileName);
+        // now put back the backed up replicated file if aborted
+        if (NS_SUCCEEDED(rv) && mBackupReplicationFile)
+          rv = mBackupReplicationFile->MoveToNative(nsnull, fileName);
+      }
     }
+  }
 
-    return rv;
+  Done(PR_FALSE);
+
+  return rv;
 }
 
-nsresult nsAbLDAPProcessReplicationData::OnLDAPBind(nsILDAPMessage *aMessage)
+nsresult nsAbLDAPProcessReplicationData::DoTask()
 {
-    NS_ENSURE_ARG_POINTER(aMessage);
-    if(!mInitialized) 
-        return NS_ERROR_NOT_INITIALIZED;
+  if (!mInitialized)
+    return NS_ERROR_NOT_INITIALIZED;
 
-    PRInt32 errCode;
-
-    nsresult rv = aMessage->GetErrorCode(&errCode);
-    if(NS_FAILED(rv)) {
-        Done(PR_FALSE);
-        return rv;
-    }
-
-    if(errCode != nsILDAPErrors::SUCCESS) {
-        Done(PR_FALSE);
-        return NS_ERROR_FAILURE;
-    }
-
-    rv = OpenABForReplicatedDir(PR_TRUE);
-    if(NS_FAILED(rv)) {
-        // do not call done here since it is called by OpenABForReplicationDir
-        return rv;
-    }
-
-    rv = mQuery->QueryAllEntries();
-    if(NS_FAILED(rv)) {
-        Done(PR_FALSE);
-        return rv;
-    }
-
-    mState = kReplicatingAll;
-
-    if(mListener && NS_SUCCEEDED(rv))
-        mListener->OnStateChange(nsnull, nsnull, nsIWebProgressListener::STATE_START, PR_TRUE);
-
+  nsresult rv = OpenABForReplicatedDir(PR_TRUE);
+  if (NS_FAILED(rv))
+    // do not call done here since it is called by OpenABForReplicationDir
     return rv;
+
+  mOperation = do_CreateInstance(NS_LDAPOPERATION_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsILDAPMessageListener> proxyListener;
+  rv = NS_GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
+                            NS_GET_IID(nsILDAPMessageListener),
+                            NS_STATIC_CAST(nsILDAPMessageListener*, this),
+                            NS_PROXY_SYNC | NS_PROXY_ALWAYS,
+                            getter_AddRefs(proxyListener));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = mOperation->Init(mConnection, proxyListener, nsnull);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // get the relevant attributes associated with the directory server url
+  nsCAutoString urlFilter;
+  rv = mDirectoryUrl->GetFilter(urlFilter);
+  if (NS_FAILED(rv))
+    return rv;
+
+  nsCAutoString dn;
+  rv = mDirectoryUrl->GetDn(dn);
+  if (NS_FAILED(rv))
+    return rv;
+
+  if (dn.IsEmpty())
+    return NS_ERROR_UNEXPECTED;
+
+  PRInt32 scope;
+  rv = mDirectoryUrl->GetScope(&scope);
+  if (NS_FAILED(rv))
+    return rv;
+
+  CharPtrArrayGuard attributes;
+  rv = mDirectoryUrl->GetAttributes(attributes.GetSizeAddr(),
+                                    attributes.GetArrayAddr());
+  if (NS_FAILED(rv))
+    return rv;
+
+  mState = kReplicatingAll;
+
+  if (mListener && NS_SUCCEEDED(rv))
+    mListener->OnStateChange(nsnull, nsnull,
+                             nsIWebProgressListener::STATE_START, PR_TRUE);
+
+  return mOperation->SearchExt(dn, scope, urlFilter,
+                               attributes.GetSize(), attributes.GetArray(),
+                               0, 0);
 }
 
 nsresult nsAbLDAPProcessReplicationData::OnLDAPSearchEntry(nsILDAPMessage *aMessage)
 {
     NS_ENSURE_ARG_POINTER(aMessage);
-    if(!mInitialized) 
+    if (!mInitialized)
         return NS_ERROR_NOT_INITIALIZED;
     // since this runs on the main thread and is single threaded, this will 
     // take care of entries returned by LDAP Connection thread after Abort.
-    if(!mReplicationDB || !mDBOpen) 
+    if (!mReplicationDB || !mDBOpen)
         return NS_ERROR_FAILURE;
 
-  nsresult rv = NS_OK;
+    nsresult rv = NS_OK;
 
-  // Although we would may naturally create an nsIAbLDAPCard here, we don't
-  // need to as we are writing this straight to the database, so just create
-  // the database version instead.
-  nsCOMPtr<nsIAbMDBCard> dbCard(do_CreateInstance(NS_ABMDBCARD_CONTRACTID, &rv));
-  if(NS_FAILED(rv)) {
-    Abort();
-    return rv;
-  }
+    // Although we would may naturally create an nsIAbLDAPCard here, we don't
+    // need to as we are writing this straight to the database, so just create
+    // the database version instead.
+    nsCOMPtr<nsIAbMDBCard> dbCard(do_CreateInstance(NS_ABMDBCARD_CONTRACTID,
+                                                    &rv));
+    if (NS_FAILED(rv)) {
+      Abort();
+      return rv;
+    }
 
-  nsCOMPtr<nsIAbCard> newCard(do_QueryInterface(dbCard, &rv));
-  if(NS_FAILED(rv)) {
-    Abort();
-    return rv;
-  }
+    nsCOMPtr<nsIAbCard> newCard(do_QueryInterface(dbCard, &rv));
+    if (NS_FAILED(rv)) {
+      Abort();
+      return rv;
+    }
 
     rv = mAttrMap->SetCardPropertiesFromLDAPMessage(aMessage, newCard);
     if (NS_FAILED(rv))
@@ -403,7 +336,7 @@ nsresult nsAbLDAPProcessReplicationData::OnLDAPSearchEntry(nsILDAPMessage *aMess
 
     mCount ++;
 
-    if(!(mCount % 10))  // inform the listener every 10 entries
+    if (mListener && !(mCount % 10)) // inform the listener every 10 entries
     {
         mListener->OnProgressChange(nsnull,nsnull,mCount, -1, mCount, -1);
         // in case if the LDAP Connection thread is starved and causes problem
@@ -614,8 +547,8 @@ void nsAbLDAPProcessReplicationData::Done(PRBool aSuccess)
    if(mListener)
        mListener->OnStateChange(nsnull, nsnull, nsIWebProgressListener::STATE_STOP, aSuccess);
 
-   // since this is called when all is done here, either on success, failure or abort
-   // releas the query now.
+   // since this is called when all is done here, either on success,
+   // failure or abort release the query now.
    mQuery = nsnull;
 }
 

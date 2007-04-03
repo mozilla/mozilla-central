@@ -57,7 +57,7 @@ public:
   nsAbLDAPReplicationQuery();
 
   nsresult InitLDAPData();
-  nsresult CreateNewLDAPOperation();
+  nsresult ConnectToLDAPServer();
 
 protected :
   // pointer to interfaces used by this object
@@ -68,8 +68,9 @@ protected :
 
   nsCOMPtr<nsIAbLDAPProcessReplicationData> mDataProcessor;
 
-  PRBool          mInitialized; 
-  nsCString       mDirPrefName;
+  PRBool mInitialized;
+  nsCString mDirPrefName;
+  nsCString mLogin;
 };
 
 #endif // nsAbLDAPReplicationQuery_h__

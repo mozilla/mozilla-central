@@ -432,10 +432,10 @@ nsAbLDAPDirectoryQuery::~nsAbLDAPDirectoryQuery()
 }
 
 NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectoryQueryArguments* arguments,
-        nsIAbDirectoryQueryResultListener* listener,
-        PRInt32 resultLimit,
-        PRInt32 timeOut,
-        PRInt32* _retval)
+  nsIAbDirectoryQueryResultListener* listener,
+  PRInt32 resultLimit,
+  PRInt32 timeOut,
+  PRInt32* _retval)
 {
     PRBool alreadyInitialized = mInitialized;
     mInitialized = PR_TRUE;
@@ -492,7 +492,10 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectoryQueryArguments* argu
     }
 
     // Set up the search ldap url
-    rv = GetLDAPURL(getter_AddRefs(mDirectoryUrl));
+    nsCOMPtr<nsIAbLDAPDirectory> directory(do_QueryInterface(this, &rv));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    rv = directory->GetLDAPURL(getter_AddRefs(mDirectoryUrl));
     NS_ENSURE_SUCCESS(rv, rv);
     
     nsCAutoString host;

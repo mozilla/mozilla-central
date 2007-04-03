@@ -40,6 +40,7 @@
 
 interface nsIMutableArray;
 interface nsIAbLDAPAttributeMap;
+interface nsILDAPURL;
 
 %{C++
 #define kLDAPDirectoryRoot         "moz-abldapdirectory://"
@@ -50,7 +51,7 @@ interface nsIAbLDAPAttributeMap;
  * XXX This should really inherit from nsIAbDirectory, and some day it will.
  * But for now, doing that complicates implementation.
  */
-[scriptable, uuid(9857182c-9051-4788-9393-735ae7bdd8b3)]
+[scriptable, uuid(d67b4a29-10d5-4409-a693-3e8bab184948)]
 interface nsIAbLDAPDirectory : nsISupports
 {
   /**
@@ -89,5 +90,13 @@ interface nsIAbLDAPDirectory : nsISupports
    * The attribute map that is associated with this directory's server.
    */
   readonly attribute nsIAbLDAPAttributeMap attributeMap;
+
+  /**
+   * The LDAP URL for this directory. Note that this differs from
+   * nsIAbDirectory::URI. This attribute will give you a true ldap
+   * url, e.g. ldap://localhost:389/ whereas the uri will give you the
+   * directories rdf uri, e.g. moz-abldapdirectory://<pref base name>/.
+   */
+  readonly attribute nsILDAPURL lDAPURL;
 };
 

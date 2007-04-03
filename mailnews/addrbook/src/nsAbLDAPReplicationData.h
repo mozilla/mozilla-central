@@ -43,6 +43,7 @@
 #include "nsIAbLDAPReplicationData.h"
 #include "nsIWebProgressListener.h"
 #include "nsIAbLDAPReplicationQuery.h"
+#include "nsAbLDAPListenerBase.h"
 #include "nsIAddrDatabase.h"
 #include "nsILocalFile.h"
 #include "nsDirPrefs.h"
@@ -50,21 +51,26 @@
 #include "nsIAbLDAPDirectory.h"
 #include "nsString.h"
 
-class nsAbLDAPProcessReplicationData : public nsIAbLDAPProcessReplicationData
+class nsAbLDAPProcessReplicationData : public nsIAbLDAPProcessReplicationData,
+                                       public nsAbLDAPListenerBase
 {
 public:
   NS_DECL_ISUPPORTS
   NS_DECL_NSIABLDAPPROCESSREPLICATIONDATA
-  NS_DECL_NSILDAPMESSAGELISTENER
 
   nsAbLDAPProcessReplicationData();
   virtual ~nsAbLDAPProcessReplicationData();
-  
+
+  // nsILDAPMessageListener
+  NS_IMETHOD OnLDAPMessage(nsILDAPMessage *aMessage);
+
 protected :
-  nsCOMPtr<nsIAbLDAPReplicationQuery> mQuery;
+  virtual nsresult DoTask();
 
   // pointer to the interfaces used by this object
   nsCOMPtr<nsIWebProgressListener> mListener;
+  // pointer to the query to call back to once we've finished
+  nsCOMPtr<nsIAbLDAPReplicationQuery> mQuery;
 
   nsCOMPtr<nsIAddrDatabase> mReplicationDB;
   nsCOMPtr <nsILocalFile> mReplicationFile;
@@ -78,11 +84,9 @@ protected :
   PRBool          mInitialized;
   
   nsCOMPtr<nsIAbLDAPDirectory> mDirectory;
-  nsCString       mAuthDN;      // authDN of the user
-  nsCString       mAuthPswd;    // pswd of the authDN user
+  nsCOMPtr<nsILDAPOperation> mOperation;
   nsCOMPtr<nsIAbLDAPAttributeMap> mAttrMap; // maps ab properties to ldap attrs
   
-  virtual nsresult OnLDAPBind(nsILDAPMessage *aMessage);
   virtual nsresult OnLDAPSearchEntry(nsILDAPMessage *aMessage);
   virtual nsresult OnLDAPSearchResult(nsILDAPMessage *aMessage);
   

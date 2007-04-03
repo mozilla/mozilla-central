@@ -1,3 +1,4 @@
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -35,17 +36,19 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsISupports.idl"
-#include "nsILDAPMessageListener.idl"
 
+interface nsIAbLDAPDirectory;
+interface nsILDAPConnection;
+interface nsILDAPURL;
 interface nsIAbLDAPReplicationQuery;
 interface nsIWebProgressListener;
 
 /**
  * this service does replication of an LDAP directory to a local Mork AB Database.
  */
-[scriptable, uuid(00D568A2-3C3B-11d6-B7B9-00B0D06E5F27)]
-interface nsIAbLDAPProcessReplicationData : nsILDAPMessageListener {
-   
+[scriptable, uuid(e628bbc9-8793-4f0b-bce4-990d399b1fca)]
+interface nsIAbLDAPProcessReplicationData : nsISupports
+{
    /**
      * readonly attribute giving the current replication state
      */
@@ -83,16 +86,15 @@ interface nsIAbLDAPProcessReplicationData : nsILDAPMessageListener {
    /**
      * this method initializes the implementation
      */
-    void init (in nsIAbLDAPReplicationQuery query, in nsIWebProgressListener progressListener);
+    void init(in nsIAbLDAPDirectory directory,
+              in nsILDAPConnection connection,
+              in nsILDAPURL url,
+              in nsIAbLDAPReplicationQuery query,
+              in nsIWebProgressListener progressListener);
 
    /**
      * this method a aborts the ongoing processing
      */
     void abort();
-   
-   /**
-     * this utility method populates authentication data from Dir Server
-     */
-   void populateAuthData();
 };
 

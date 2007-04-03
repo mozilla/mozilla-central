@@ -60,7 +60,6 @@ public:
     void setLdapUrl (const char* aldapUrl);
 
     virtual nsresult GetLDAPConnection (nsILDAPConnection** connection) = 0;
-    virtual nsresult GetLDAPURL (nsILDAPURL** url) = 0;
     virtual nsresult CreateCard (nsILDAPURL* url, const char* dn, nsIAbCard** card) = 0;
 
 protected:

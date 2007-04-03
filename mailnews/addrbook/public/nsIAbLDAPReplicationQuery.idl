@@ -1,3 +1,4 @@
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -19,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Mark Banner <bugzilla@standard8.demon.co.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -45,67 +47,53 @@ interface nsIAbLDAPDirectory;
 /**
  * this interface provides methods to perform LDAP Replication Queries
  */
-[scriptable, uuid(91c213f7-a381-4b1d-adf3-af58a2bb95d2)]
-interface nsIAbLDAPReplicationQuery : nsISupports {
-
-   readonly attribute nsILDAPURL replicationURL;
-   readonly attribute nsILDAPConnection connection;
-   readonly attribute nsILDAPOperation operation;
-
-   readonly attribute nsIAbLDAPDirectory lDAPDirectory;
-
-   /**
-     * initialize for the query
-     */
-    void init (in ACString aPrefName, in nsIWebProgressListener aProgressListener);
+[scriptable, uuid(6d33127c-faef-4140-bb19-bb03c1590917)]
+interface nsIAbLDAPReplicationQuery : nsISupports
+{
+  /**
+   * initialize for the query
+   */
+  void init(in ACString aPrefName, in nsIWebProgressListener aProgressListener);
      
-   /**
-     * Starts an LDAP query to do replication as needed
-     */
-    void doReplicationQuery();
+  /**
+   * Starts an LDAP query to do replication as needed
+   */
+  void doReplicationQuery();
 
   /**
-     * connects to an LDAP Server using a DN
-	 */
-	void connectToLDAPServer(in nsILDAPURL aURL, in AUTF8String aAuthDN);
+   * Cancels the currently executing query
+   */
+  void cancelQuery();
 
   /**
-    * Starts an LDAP query to replicate all entries
-    */
-    void queryAllEntries();
-   
-   /**
-     * Cancels the currently executing query
-     */
-    void cancelQuery();
-
-   /**
-     * this method is the callback when query is done, failed or successful
-     */
-    void done(in boolean aSuccess);
+   * this method is the callback when query is done, failed or successful
+   */
+  void done(in boolean aSuccess);
 };
 
-
+// XXX This interface currently isn't implemented as it didn't work.
+// Bug 311632 should fix it
 [scriptable, uuid(126202D1-4460-11d6-B7C2-00B0D06E5F27)]
-interface nsIAbLDAPChangeLogQuery : nsISupports {
+interface nsIAbLDAPChangeLogQuery : nsISupports
+{
   /**
-    * Starts an LDAP query to find auth DN
-    */
-    void queryAuthDN(in AUTF8String aValueUsedToFindDn);
+   * Starts an LDAP query to find auth DN
+   */
+  void queryAuthDN(in AUTF8String aValueUsedToFindDn);
 
   /**
-    * Starts an LDAP query to search server's Root DSE
-    */
-    void queryRootDSE();
+   * Starts an LDAP query to search server's Root DSE
+   */
+  void queryRootDSE();
 
   /**
-    * Starts an LDAP ChangeLog query to find changelog entries
-    */
-    void queryChangeLog(in AUTF8String aChangeLogDN, in PRInt32 aLastChangeNo);
+   * Starts an LDAP ChangeLog query to find changelog entries
+   */
+  void queryChangeLog(in AUTF8String aChangeLogDN, in PRInt32 aLastChangeNo);
       
   /**
-    * Starts an LDAP query to find changed entries
-    */
-    void queryChangedEntries(in AUTF8String aChangedEntryDN);
+   * Starts an LDAP query to find changed entries
+   */
+  void queryChangedEntries(in AUTF8String aChangedEntryDN);
 };
 

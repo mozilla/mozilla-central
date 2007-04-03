@@ -67,6 +67,9 @@ nsAbLDAPListenerBase::~nsAbLDAPListenerBase()
 
 nsresult nsAbLDAPListenerBase::Initiate()
 {
+  if (!mConnection || !mDirectoryUrl)
+    return NS_ERROR_NULL_POINTER;
+
   if (mInitialized)
     return NS_OK;
 
@@ -81,6 +84,9 @@ nsresult nsAbLDAPListenerBase::Initiate()
 
 NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresult aStatus)
 {
+  if (!mConnection || !mDirectoryUrl)
+    return NS_ERROR_NULL_POINTER;
+
   nsresult rv;
   nsXPIDLString passwd;
 
@@ -225,6 +231,7 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
                             NS_STATIC_CAST(nsILDAPMessageListener *, this),
                             NS_PROXY_SYNC | NS_PROXY_ALWAYS,
                             getter_AddRefs(proxyListener));
+  NS_ENSURE_SUCCESS(rv, rv);
 
   rv = ldapOperation->Init(mConnection, proxyListener, nsnull);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -269,7 +276,7 @@ nsresult nsAbLDAPListenerBase::OnLDAPMessageBind(nsILDAPMessage *aMessage)
         // pop up a dialog telling the user to go manually delete
         // this password in the password manager.
       }
-    } 
+    }
 
     // XXX this error should be propagated back to the UI somehow
     return NS_ERROR_FAILURE;
