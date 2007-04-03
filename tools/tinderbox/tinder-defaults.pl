@@ -251,9 +251,11 @@ $update_aus_host = 'aus2-staging.mozilla.org';
 
 $crashreporter_buildsymbols = 0;
 $crashreporter_pushsymbols = 0;
-#$ENV{AIRBAG_SYMBOL_SERVER} = ''
-#$ENV{AIRBAG_SYMBOL_USER}   = ''
-#$ENV{AIRBAG_SYMBOL_PATH}   = ''
+#$ENV{SYMBOL_SERVER_HOST} = '';
+#$ENV{SYMBOL_SERVER_USER}   = '';
+#$ENV{SYMBOL_SERVER_PATH}   = '';
+# this is optional, it's a full path to a ssh private key
+#$ENV{SYMBOL_SERVER_SSH_KEY} = '';
 
 # Reboot the OS at the end of build-and-test cycle. This is primarily
 # intended for Win9x, which can't last more than a few cycles before
