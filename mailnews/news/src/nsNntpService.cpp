@@ -129,7 +129,7 @@ NS_IMPL_QUERY_INTERFACE7(nsNntpService,
 
 NS_IMETHODIMP 
 nsNntpService::SaveMessageToDisk(const char *aMessageURI, 
-                                 nsIFileSpec *aFile, 
+                                 nsIFile *aFile, 
                                  PRBool aAddDummyEnvelope, 
                                  nsIUrlListener *aUrlListener, 
                                  nsIURI **aURL,
@@ -1536,14 +1536,6 @@ nsNntpService::GetShowComposeMsgLink(PRBool *showComposeMsgLink)
     *showComposeMsgLink = PR_FALSE;
     return NS_OK;
 }  
-
-NS_IMETHODIMP
-nsNntpService::GetNeedToBuildSpecialFolderURIs(PRBool *needToBuildSpecialFolderURIs)
-{
-    NS_ENSURE_ARG_POINTER(needToBuildSpecialFolderURIs);
-    *needToBuildSpecialFolderURIs = PR_FALSE;
-    return NS_OK;
-}
 
 NS_IMETHODIMP
 nsNntpService::GetSpecialFoldersDeletionAllowed(PRBool *specialFoldersDeletionAllowed)

@@ -2681,17 +2681,17 @@ nsresult nsImapProtocol::BeginMessageDownLoad(
     else if (m_imapMessageSink /* && m_imapAction == nsIImapUrl::nsImapSaveMessageToDisk */) 
     {
       // we get here when download the inbox for offline use
-      nsCOMPtr<nsIFileSpec> fileSpec;
+      nsCOMPtr<nsIFile> file;
       PRBool addDummyEnvelope = PR_TRUE;
       nsCOMPtr<nsIMsgMessageUrl> msgurl = do_QueryInterface(m_runningUrl);
-      msgurl->GetMessageFile(getter_AddRefs(fileSpec));
+      msgurl->GetMessageFile(getter_AddRefs(file));
       msgurl->GetAddDummyEnvelope(&addDummyEnvelope);
       //                m_imapMessageSink->SetupMsgWriteStream(fileSpec, addDummyEnvelope);
       nsXPIDLCString nativePath;
       //        NS_ASSERTION(fileSpec, "no fileSpec!");
-      if (fileSpec) 
+      if (file) 
       {
-        fileSpec->GetNativePath(getter_Copies(nativePath));
+        file->GetNativePath(nativePath);
         rv = m_imapMessageSink->SetupMsgWriteStream(nativePath, addDummyEnvelope);
       }
     }
@@ -5377,10 +5377,10 @@ void nsImapProtocol::OnLSubFolders()
 
 void nsImapProtocol::OnAppendMsgFromFile()
 {
-  nsCOMPtr<nsIFileSpec> fileSpec;
+  nsCOMPtr<nsIFile> file;
   nsresult rv = NS_OK;
-  rv = m_runningUrl->GetMsgFileSpec(getter_AddRefs(fileSpec));
-  if (NS_SUCCEEDED(rv) && fileSpec)
+  rv = m_runningUrl->GetMsgFile(getter_AddRefs(file));
+  if (NS_SUCCEEDED(rv) && file)
   {
     char *mailboxName =  OnCreateServerSourceFolderPathString();
     if (mailboxName)
@@ -5412,7 +5412,7 @@ void nsImapProtocol::OnAppendMsgFromFile()
       rv = m_runningUrl->GetImapAction(&imapAction);
       if (NS_SUCCEEDED(rv) && (imapAction == nsIImapUrl::nsImapAppendDraftFromFile))
         flagsToSet |= kImapMsgDraftFlag;
-      UploadMessageFromFile(fileSpec, mailboxName, date, flagsToSet, keywords);
+      UploadMessageFromFile(file, mailboxName, date, flagsToSet, keywords);
       PR_Free( mailboxName );
     }
     else
@@ -5422,16 +5422,16 @@ void nsImapProtocol::OnAppendMsgFromFile()
   }
 }
 
-void nsImapProtocol::UploadMessageFromFile (nsIFileSpec* fileSpec,
+void nsImapProtocol::UploadMessageFromFile (nsIFile* file,
                                             const char* mailboxName,
                                             PRTime date,
                                             imapMessageFlagsType flags,
                                             nsCString &keywords)
 {
-  if (!fileSpec || !mailboxName) return;
+  if (!file || !mailboxName) return;
   IncrementCommandTagNumber();
   
-  PRUint32 fileSize = 0;
+  PRInt64 fileSize = 0;
   PRInt32 totalSize;
   PRUint32 readCount;
   char *dataBuffer = nsnull;
@@ -5498,9 +5498,10 @@ void nsImapProtocol::UploadMessageFromFile (nsIFileSpec* fileSpec,
     
     dataBuffer = (char*) PR_CALLOC(COPY_BUFFER_SIZE+1);
     if (!dataBuffer) goto done;
-    rv = fileSpec->GetFileSize(&fileSize);
+    rv = file->GetFileSize(&fileSize);
     if (NS_FAILED(rv)) goto done;
-    rv = fileSpec->GetInputStream(getter_AddRefs(fileInputStream));
+    nsCOMPtr <nsILocalFile> localFile = do_QueryInterface(file);
+    rv = NS_NewLocalFileInputStream(getter_AddRefs(fileInputStream), localFile);
     if (NS_FAILED(rv) || !fileInputStream) goto done;
     command.AppendInt((PRInt32)fileSize);
     if (hasLiteralPlus)
@@ -5526,7 +5527,6 @@ void nsImapProtocol::UploadMessageFromFile (nsIFileSpec* fileSpec,
         rv = SendData(dataBuffer);
         totalSize -= readCount;
         PercentProgressUpdateEvent(nsnull, fileSize - totalSize, fileSize);
-        rv = fileSpec->Eof(&eof);
       }
     }
     if (NS_SUCCEEDED(rv))
@@ -5611,7 +5611,7 @@ void nsImapProtocol::UploadMessageFromFile (nsIFileSpec* fileSpec,
   }
 done:
   PR_Free(dataBuffer);
-  fileSpec->CloseStream();
+  fileInputStream->Close();
   nsMemory::Free(escapedName);
 }
 

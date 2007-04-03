@@ -180,7 +180,7 @@ nsMessengerBootstrap::Handle(nsICommandLine* aCmdLine)
       {
         nsMsgKey msgKey;
         msgHdr->GetMessageKey(&msgKey);
-        rv = OpenMessengerWindowWithUri("mail:3pane", folderUri.get(), msgKey);  
+        rv = OpenMessengerWindowWithUri("mail:messageWindow", folderUri.get(), msgKey);  
         return rv;
       }
     }
@@ -292,7 +292,7 @@ NS_IMETHODIMP nsMessengerBootstrap::OpenMessengerWindowWithUri(const char *windo
   NS_ENSURE_SUCCESS(rv, rv);
 
   // we need to use the "mailnews.reuse_thread_window2" pref
-	// to determine if we should open a new window, or use an existing one.
+  // to determine if we should open a new window, or use an existing one.
   nsCOMPtr<nsIDOMWindow> newWindow;
   rv = wwatch->OpenWindow(0, chromeurl.get(), "_blank",
                  "chrome,extrachrome,menubar,resizable,scrollbars,status,toolbar,dialog=no",

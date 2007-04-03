@@ -40,7 +40,7 @@
 #include "nsMsgKeyArray.h"
 #include "nsCOMArray.h"
 #include "nspr.h"
-#include "nsIFileSpec.h"
+#include "nsIFile.h"
 #include "nsIMsgFolderNotificationService.h"
 #include "nsMsgBaseCID.h"
 
@@ -342,7 +342,7 @@ nsMsgCopyService::DoNextCopy()
           }
           else if (copyRequest->m_requestType == nsCopyFileMessageType)
           {
-            nsCOMPtr<nsIFileSpec> aSpec(do_QueryInterface(copyRequest->m_srcSupport, &rv));
+            nsCOMPtr<nsIFile> aFile(do_QueryInterface(copyRequest->m_srcSupport, &rv));
             if (NS_SUCCEEDED(rv))
             {
                 // ** in case of saving draft/template; the very first
@@ -357,7 +357,7 @@ nsMsgCopyService::DoNextCopy()
                 }
                 copyRequest->m_processed = PR_TRUE;
                 rv = copyRequest->m_dstFolder->CopyFileMessage
-                    (aSpec, aMessage,
+                    (aFile, aMessage,
                      copyRequest->m_isMoveOrDraftOrTemplate,
                      copyRequest->m_newMsgFlags,
                      copyRequest->m_msgWindow,
@@ -581,7 +581,7 @@ nsMsgCopyService::CopyFolders( nsISupportsArray* folders,
 }
 
 NS_IMETHODIMP
-nsMsgCopyService::CopyFileMessage(nsIFileSpec* fileSpec,
+nsMsgCopyService::CopyFileMessage(nsIFile* file,
                                   nsIMsgFolder* dstFolder,
                                   nsIMsgDBHdr* msgToReplace,
                                   PRBool isDraft,
@@ -595,14 +595,14 @@ nsMsgCopyService::CopyFileMessage(nsIFileSpec* fileSpec,
   nsCOMPtr<nsISupports> fileSupport;
   nsCOMPtr<nsITransactionManager> txnMgr;
 
-  NS_ENSURE_ARG_POINTER(fileSpec);
+  NS_ENSURE_ARG_POINTER(file);
   NS_ENSURE_ARG_POINTER(dstFolder);
 
   if (window)
     window->GetTransactionManager(getter_AddRefs(txnMgr));
   copyRequest = new nsCopyRequest();
   if (!copyRequest) return rv;
-  fileSupport = do_QueryInterface(fileSpec, &rv);
+  fileSupport = do_QueryInterface(file, &rv);
   if (NS_FAILED(rv)) goto done;
 
   rv = copyRequest->Init(nsCopyFileMessageType, fileSupport, dstFolder,

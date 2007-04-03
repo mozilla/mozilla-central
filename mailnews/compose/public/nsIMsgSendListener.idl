@@ -37,9 +37,9 @@
 
 #include "nsISupports.idl"
 
-interface nsIFileSpec;
+interface nsIFile;
 
-[scriptable, uuid(ED3D3227-2803-11D3-82B7-444553540002)]
+[scriptable, uuid(D34DC178-5E78-45E8-8658-A8F52D9CCF5F)]
 interface nsIMsgSendListener : nsISupports {
 
     /**
@@ -73,7 +73,7 @@ interface nsIMsgSendListener : nsISupports {
      * returnFileSpec The returned file spec for save to file operations.
      */
     void onStopSending(in string aMsgID, in nsresult aStatus, in wstring aMsg, 
-					             in nsIFileSpec returnFileSpec);
+					             in nsIFile aReturnFile);
 
     /**
      * Notify the observer with the folder uri before the draft is copied.

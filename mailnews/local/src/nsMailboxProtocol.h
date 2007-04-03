@@ -40,7 +40,7 @@
 
 #include "nsMsgProtocol.h"
 #include "nsCOMPtr.h"
-#include "nsIFileSpec.h"
+#include "nsIFile.h"
 #include "nsIChannel.h"
 #include "nsIOutputStream.h"
 #include "nsIMailboxUrl.h"
@@ -116,7 +116,9 @@ private:
   PRInt32 mCurrentProgress;
 	PRUint32	m_messageID;
 
-	nsCOMPtr<nsIFileSpec> m_tempMessageFile;
+        // can we just use the base class m_tempMsgFile?
+	nsCOMPtr<nsIFile> m_tempMessageFile;
+        nsCOMPtr<nsIOutputStream> m_msgFileOutputStream;
 
   // this is used to hold the source mailbox file open when move/copying
   // multiple messages.

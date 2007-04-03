@@ -45,7 +45,6 @@ interface nsIMsgMailNewsUrl;
 
 interface nsIImapMessageSink : nsISupports {
     // set up messge download output stream
-//    void SetupMsgWriteStream(in nsIFileSpec aFileSpec, in boolean appendDummyEnvelope);
 	void SetupMsgWriteStream(in string aNativePath, in boolean appendDummyEnvelope);
 
     void ParseAdoptedMsgLine(in string adoptedMsgLine, in nsMsgKey uidOfMsg);

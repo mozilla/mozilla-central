@@ -3091,37 +3091,24 @@ NS_IMETHODIMP nsImapMailFolder::BeginCopy(nsIMsgDBHdr *message)
   nsresult rv = NS_ERROR_NULL_POINTER;
   if (!m_copyState) 
     return rv;
-  if (m_copyState->m_tmpFileSpec) // leftover file spec nuke it
+  if (m_copyState->m_tmpFile) // leftover file spec nuke it
   {
-    PRBool isOpen = PR_FALSE;
-    rv = m_copyState->m_tmpFileSpec->IsStreamOpen(&isOpen);
-    if (isOpen)
-      m_copyState->m_tmpFileSpec->CloseStream();
-    nsFileSpec fileSpec;
-    m_copyState->m_tmpFileSpec->GetFileSpec(&fileSpec);
-    if (fileSpec.Valid())
-      fileSpec.Delete(PR_FALSE);
-    m_copyState->m_tmpFileSpec = nsnull;
+     m_copyState->m_tmpFile->Remove(PR_FALSE);
+     m_copyState->m_tmpFile = nsnull;
   }
   if (message)
     m_copyState->m_message = do_QueryInterface(message, &rv);
 
-  nsFileSpec tmpFileSpec;
+  nsCOMPtr<nsIFile> msgFile;
 
   rv = GetSpecialDirectoryWithFileName(NS_OS_TEMP_DIR,
                                        "nscpmsg.txt",
-                                       &tmpFileSpec);
-  
-  tmpFileSpec.MakeUnique();
-  rv = NS_NewFileSpecWithSpec(tmpFileSpec,
-                                getter_AddRefs(m_copyState->m_tmpFileSpec));
-  nsCOMPtr<nsILocalFile> msgFile;
-  if (NS_SUCCEEDED(rv))
-    rv = NS_FileSpecToIFile(&tmpFileSpec, getter_AddRefs(msgFile));
+                                        getter_AddRefs(m_copyState->m_tmpFile));
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIOutputStream> fileOutputStream;
-  rv = NS_NewLocalFileOutputStream(getter_AddRefs(fileOutputStream), msgFile, -1, 00600);
+  nsCOMPtr <nsILocalFile> localFile = do_QueryInterface(m_copyState->m_tmpFile);
+  rv = NS_NewLocalFileOutputStream(getter_AddRefs(fileOutputStream), localFile, -1, 00600);
   NS_ENSURE_SUCCESS(rv,rv);
   rv = NS_NewBufferedOutputStream(getter_AddRefs(m_copyState->m_msgFileStream), fileOutputStream, FOUR_K);
   NS_ENSURE_SUCCESS(rv,rv);
@@ -3225,7 +3212,7 @@ NS_IMETHODIMP nsImapMailFolder::CopyData(nsIInputStream *aIStream,
                      PRInt32 aLength)
 {
   nsresult rv = NS_ERROR_NULL_POINTER;
-  NS_ASSERTION(m_copyState && m_copyState->m_tmpFileSpec 
+  NS_ASSERTION(m_copyState && m_copyState->m_tmpFile 
                   && m_copyState->m_dataBuffer, "Fatal copy operation error\n");
   if (!m_copyState || !m_copyState->m_msgFileStream || !m_copyState->m_dataBuffer) 
     return rv;
@@ -3251,7 +3238,7 @@ NS_IMETHODIMP nsImapMailFolder::EndCopy(PRBool copySucceeded)
         if (m_copyState)
             copySupport = do_QueryInterface(m_copyState);
         rv = imapService->AppendMessageFromFile(m_thread,
-                                                m_copyState->m_tmpFileSpec,
+                                                m_copyState->m_tmpFile,
                                                 this, "", PR_TRUE,
                                                 m_copyState->m_selectedState,
                                                 urlListener, nsnull,
@@ -7389,7 +7376,7 @@ nsImapMailFolder::CopyFolder(nsIMsgFolder* srcFolder,
 }
 
 NS_IMETHODIMP
-nsImapMailFolder::CopyFileMessage(nsIFileSpec* fileSpec,
+nsImapMailFolder::CopyFileMessage(nsIFile* file,
                                   nsIMsgDBHdr* msgToReplace,
                                   PRBool isDraftOrTemplate,
                                   PRUint32 aNewMsgFlags,
@@ -7401,7 +7388,7 @@ nsImapMailFolder::CopyFileMessage(nsIFileSpec* fileSpec,
     nsCAutoString messageId;
     nsCOMPtr<nsIUrlListener> urlListener;
     nsCOMPtr<nsISupportsArray> messages;
-    nsCOMPtr<nsISupports> srcSupport = do_QueryInterface(fileSpec, &rv);
+    nsCOMPtr<nsISupports> srcSupport = do_QueryInterface(file, &rv);
 
     rv = NS_NewISupportsArray(getter_AddRefs(messages));
     if (NS_FAILED(rv)) 
@@ -7432,7 +7419,7 @@ nsImapMailFolder::CopyFileMessage(nsIFileSpec* fileSpec,
         copySupport = do_QueryInterface(m_copyState);
     if (!isDraftOrTemplate)
       m_copyState->m_totalCount = 1;
-    rv = imapService->AppendMessageFromFile(m_thread, fileSpec, this,
+    rv = imapService->AppendMessageFromFile(m_thread, file, this,
                                             messageId.get(),
                                             PR_TRUE, isDraftOrTemplate,
                                             urlListener, nsnull,
@@ -7543,16 +7530,8 @@ nsImapMailCopyState::~nsImapMailCopyState()
         srcFolder->GetUriForMsg(m_message, getter_Copies(uri));
       }
     }
-    if (m_tmpFileSpec)
-    {
-        PRBool isOpen = PR_FALSE;
-        nsFileSpec  fileSpec;
-        if (isOpen)
-            m_tmpFileSpec->CloseStream();
-        m_tmpFileSpec->GetFileSpec(&fileSpec);
-        if (fileSpec.Valid())
-            fileSpec.Delete(PR_FALSE);
-    }
+    if (m_tmpFile)
+      m_tmpFile->Remove(PR_FALSE);
 }
 
 

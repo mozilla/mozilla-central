@@ -153,14 +153,13 @@ nsLocalURI2Server(const char* uriStr,
 // given rootURI and rootURI##folder, return on-disk path of folder
 nsresult
 nsLocalURI2Path(const char* rootURI, const char* uriStr,
-                nsFileSpec& pathResult)
+                nsCString& pathResult)
 {
   nsresult rv;
   
   // verify that rootURI starts with "mailbox:/" or "mailbox-message:/"
   if ((PL_strcmp(rootURI, kMailboxRootURI) != 0) && 
       (PL_strcmp(rootURI, kMailboxMessageRootURI) != 0)) {
-    pathResult = nsnull;
     return NS_ERROR_FAILURE;
   }
 
@@ -184,6 +183,12 @@ nsLocalURI2Path(const char* rootURI, const char* uriStr,
   nsCString localNativePath;
 
   localPath->GetNativePath(localNativePath);
+#if defined(XP_WIN) || defined(XP_OS2)
+  localNativePath.Insert('/', 0);
+  localNativePath.ReplaceChar('\\', '/');
+  if (localNativePath.CharAt(2) == ':')
+    localNativePath.SetCharAt('|', 2);
+#endif
   pathResult = localNativePath.get();
   const char *curPos = uriStr + PL_strlen(rootURI);
   if (curPos) {
@@ -208,7 +213,8 @@ nsLocalURI2Path(const char* rootURI, const char* uriStr,
     else
       NS_MsgCreatePathStringFromFolderURI(curPos, newPath);
 
-    pathResult+=newPath.get();
+    pathResult.Append('/');
+    pathResult.Append(newPath);
   }
 
   return NS_OK;

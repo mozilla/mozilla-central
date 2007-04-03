@@ -42,7 +42,7 @@
 #include "nsIMessenger.h"
 #include "nsCOMPtr.h"
 #include "nsITransactionManager.h"
-#include "nsFileSpec.h"
+#include "nsILocalFile.h"
 #include "nsIDocShell.h"
 #include "nsIStringBundle.h"
 #include "nsILocalFile.h"
@@ -63,10 +63,10 @@ public:
   NS_DECL_NSIFOLDERLISTENER
     
   nsresult Alert(const char * stringName);
-  nsresult SaveAttachment(nsIFileSpec *fileSpec, const char* unescapedUrl,
+  nsresult SaveAttachment(nsIFile *file, const char* unescapedUrl,
                             const char* messageUri, const char* contentType, 
                             void *closure);
-  nsresult PromptIfFileExists(nsFileSpec &fileSpec);
+  nsresult PromptIfFileExists(nsILocalFile *file);
   nsresult DetachAttachments(PRUint32 aCount,
                                   const char ** aContentTypeArray,
                                   const char ** aUrlArray,

@@ -453,7 +453,7 @@ nsImapOfflineSync::ProcessAppendMsgOperation(nsIMsgOfflineImapOperation *current
                     m_curTempFile = tempFileSpec;
                     nsCOMPtr<nsIMsgCopyService> copyService = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID);
                     if (copyService)
-                      rv = copyService->CopyFileMessage(tempFileSpec, destFolder,
+                      rv = copyService->CopyFileMessage(tmpFile, destFolder,
                       /* nsIMsgDBHdr* msgToReplace */ nsnull,
                       PR_TRUE /* isDraftOrTemplate */,
                       0, // new msg flags - are there interesting flags here?

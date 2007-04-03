@@ -45,7 +45,7 @@ interface nsILocalFile;
 %}
 
 
-[scriptable, uuid(1e42b3a3-db00-4e16-912c-9e7881effdd6)]
+[scriptable, uuid(035fd631-e751-46af-9bbd-a660b930c288)]
 interface nsIMsgProtocolInfo : nsISupports
 {
     /**
@@ -122,14 +122,6 @@ interface nsIMsgProtocolInfo : nsISupports
      * do we need to show compose message link in the AccountCentral page ? 
      */
     readonly attribute boolean showComposeMsgLink;
-
-    /**
-     * do we need to build special folder URIs ? In case of IMAP, special folders
-     * like 'Sent', 'Drafts' and 'Templates' are not created unless needed.
-     * But, we do need to create folder URIs to reflect the choices in the UI in
-     * copies and folders settings panel.
-     */
-    readonly attribute boolean needToBuildSpecialFolderURIs;
 
     /**
      * do we allow special folder deletion ?

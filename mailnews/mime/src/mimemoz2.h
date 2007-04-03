@@ -45,6 +45,7 @@
 #include "mozITXTToHTMLConv.h"
 #include "nsIMsgSend.h"
 #include "nsIMimeConverter.h"
+#include "nsIFileSpec.h"
 
 class nsOutputFileStream;
 

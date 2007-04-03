@@ -38,7 +38,7 @@
 #include "nsISupports.idl"
 #include "nsIURL.idl"
 
-interface nsIFileSpec;
+interface nsIFile;
 interface nsIUrlListener;
 interface nsIMsgStatusFeedback;
 interface nsIMsgIncomingServer;
@@ -53,7 +53,7 @@ interface nsIMsgFolder;
 interface nsIMsgHeaderSink;
 interface nsIMsgDBHdr;
 
-[scriptable, uuid(6CFFCEB0-CB8C-11d2-8065-006008128C4E)]
+[scriptable, uuid(0f9fb55c-f9ac-4501-af93-d4a7f23f82fb)]
 interface nsIMsgMailNewsUrl : nsIURL {
 	///////////////////////////////////////////////////////////////////////////////
 	// Eventually we'd like to push this type of functionality up into nsIURI.
@@ -108,7 +108,7 @@ interface nsIMsgMailNewsUrl : nsIURL {
 	const unsigned long eMove     = 1;
 	const unsigned long eDisplay  = 2;
 	boolean IsUrlType(in unsigned long type);
-    nsIStreamListener getSaveAsListener(in boolean addDummyEnvelope, in nsIFileSpec aFileSpec);
+    nsIStreamListener getSaveAsListener(in boolean addDummyEnvelope, in nsIFile aFile);
 
     // typically the header sink is tied to the nsIMsgWindow, but in certain circumstances, a consumer
     // may chose to provide its own header sink for this url
@@ -125,13 +125,13 @@ interface nsIMsgMailNewsUrl : nsIURL {
 // grouping it into a separate interface...
 //////////////////////////////////////////////////////////////////////////////////
 
-[scriptable, uuid(6BEED963-0424-44C5-A605-C01F6DCBAAC2)]
+[scriptable, uuid(1a7340d8-be3c-4fb6-919d-152fb3074da7)]
 interface nsIMsgMessageUrl : nsISupports {
   // get and set the RDF URI associated with the url. Note, not all urls have
   // had uri's set on them so be prepared to handle cases where this string is empty.
   attribute string uri;
   // used by imap, pop and nntp in order to implement save message to disk
-  attribute nsIFileSpec messageFile;
+  attribute nsIFile messageFile;
   attribute boolean AddDummyEnvelope;	
   attribute boolean canonicalLineEnding;
   attribute string originalSpec;

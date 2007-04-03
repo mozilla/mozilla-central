@@ -46,7 +46,7 @@ static const char kMailboxRootURI[] = "mailbox:/";
 static const char kMailboxMessageRootURI[] = "mailbox-message:/";
 
 nsresult
-nsLocalURI2Path(const char* rootURI, const char* uriStr, nsFileSpec& pathResult);
+nsLocalURI2Path(const char* rootURI, const char* uriStr, nsCString& pathResult);
 
 nsresult
 nsParseLocalMessageURI(const char* uri, nsCString& folderURI, PRUint32 *key);

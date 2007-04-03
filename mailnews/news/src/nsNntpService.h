@@ -43,7 +43,7 @@
 #include "nsIMsgMessageService.h"
 #include "nsINntpIncomingServer.h"
 #include "nsIMsgIncomingServer.h"
-#include "nsIFileSpec.h"
+#include "nsIFile.h"
 #include "MailNewsTypes.h"
 #include "nsIMsgProtocolInfo.h"
 #include "nsIMsgWindow.h"

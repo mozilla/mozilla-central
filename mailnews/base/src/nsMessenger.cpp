@@ -50,7 +50,6 @@
 #include "nsEscape.h"
 #include "nsXPIDLString.h"
 #include "nsReadableUtils.h"
-#include "nsIFileSpec.h"
 #include "nsILocalFile.h"
 #include "nsDirectoryServiceDefs.h"
 #include "nsISupportsObsolete.h"
@@ -242,7 +241,7 @@ class nsSaveMsgListener : public nsIUrlListener,
                           public nsICancelable
 {
 public:
-    nsSaveMsgListener(nsIFileSpec* fileSpec, nsMessenger* aMessenger);
+    nsSaveMsgListener(nsIFile* file, nsMessenger* aMessenger);
     virtual ~nsSaveMsgListener();
 
     NS_DECL_ISUPPORTS
@@ -253,7 +252,7 @@ public:
     NS_DECL_NSIREQUESTOBSERVER
     NS_DECL_NSICANCELABLE
 
-    nsCOMPtr<nsIFileSpec> m_fileSpec;
+    nsCOMPtr<nsIFile> m_file;
     nsCOMPtr<nsIOutputStream> m_outputStream;
     char *m_dataBuffer;
     nsCOMPtr<nsIChannel> m_channel;
@@ -447,10 +446,12 @@ nsMessenger::Observe(nsISupports *aSubject, const char *aTopic, const PRUnichar 
 }
 
 nsresult
-nsMessenger::PromptIfFileExists(nsFileSpec &fileSpec)
+nsMessenger::PromptIfFileExists(nsILocalFile *file)
 {
-    nsresult rv = NS_ERROR_FAILURE;
-    if (fileSpec.Exists())
+  nsresult rv = NS_ERROR_FAILURE;
+  PRBool exists;
+  file->Exists(&exists);
+    if (exists)
     {
         nsCOMPtr<nsIPrompt> dialog(do_GetInterface(mDocShell));
         if (!dialog) return rv;
@@ -458,8 +459,7 @@ nsMessenger::PromptIfFileExists(nsFileSpec &fileSpec)
         PRBool dialogResult = PR_FALSE;
         nsXPIDLString errorMessage;
 
-        NS_CopyNativeToUnicode(
-            nsDependentCString(fileSpec.GetNativePathCString()), path);
+        file->GetPath(path);
         const PRUnichar *pathFormatStrings[] = { path.get() };
 
         if (!mStringBundle)
@@ -519,7 +519,6 @@ nsMessenger::PromptIfFileExists(nsFileSpec &fileSpec)
             }
 
             nsCOMPtr<nsILocalFile> localFile;
-            nsCAutoString filePath;
 
             rv = filePicker->GetFile(getter_AddRefs(localFile));
             if (NS_FAILED(rv)) return rv;
@@ -527,12 +526,9 @@ nsMessenger::PromptIfFileExists(nsFileSpec &fileSpec)
             rv = SetLastSaveDirectory(localFile);
             NS_ENSURE_SUCCESS(rv,rv);
 
-            rv = localFile->GetNativePath(filePath);
-            if (NS_FAILED(rv)) return rv;
-
-            fileSpec = filePath.get();
-            return NS_OK;
-        }
+            // reset the file to point to the new path
+            return file->InitWithFile(localFile);
+         }
     }
     else
     {
@@ -693,7 +689,7 @@ nsMessenger::LoadURL(nsIDOMWindowInternal *aWin, const char *aURL)
 }
 
 nsresult
-nsMessenger::SaveAttachment(nsIFileSpec * fileSpec,
+nsMessenger::SaveAttachment(nsIFile * file,
                             const char * url,
                             const char * messageUri,
                             const char * contentType,
@@ -709,7 +705,7 @@ nsMessenger::SaveAttachment(nsIFileSpec * fileSpec,
   // XXX todo
   // document the ownership model of saveListener
   // whacky ref counting here...what's the deal? when does saveListener get released? it's not clear.
-  nsSaveMsgListener *saveListener = new nsSaveMsgListener(fileSpec, this);
+  nsSaveMsgListener *saveListener = new nsSaveMsgListener(file, this);
   if (!saveListener)
     return NS_ERROR_OUT_OF_MEMORY;
 
@@ -722,16 +718,8 @@ nsMessenger::SaveAttachment(nsIFileSpec * fileSpec,
     if (saveState->m_detachingAttachments)
     {
 
-      nsFileSpec realSpec;
-      fileSpec->GetFileSpec(&realSpec);
-
-      // Create nsILocalFile from a nsFileSpec.
-      nsCOMPtr<nsILocalFile> outputFile;
-      nsresult rv = NS_FileSpecToIFile(&realSpec, getter_AddRefs(outputFile)); 
-      NS_ENSURE_SUCCESS(rv, rv);
-
       nsCOMPtr<nsIURI> outputURI;
-      rv = NS_NewFileURI(getter_AddRefs(outputURI), outputFile);
+      nsresult rv = NS_NewFileURI(getter_AddRefs(outputURI), file);
       NS_ENSURE_SUCCESS(rv, rv);
       nsCAutoString fileUriSpec;
       outputURI->GetSpec(fileUriSpec);
@@ -848,11 +836,7 @@ nsMessenger::SaveAttachmentToFolder(const char * contentType, const char * url, 
   rv = attachmentDestination->AppendNative(unescapedFileName);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIFileSpec> fileSpec;
-  rv = NS_NewFileSpecFromIFile(attachmentDestination, getter_AddRefs(fileSpec));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = SaveAttachment(fileSpec, url, messageUri, contentType, nsnull);
+  rv = SaveAttachment(attachmentDestination, url, messageUri, contentType, nsnull);
 
   attachmentDestination.swap(*aOutFile);
   return rv;
@@ -877,7 +861,6 @@ nsMessenger::SaveAttachment(const char * contentType, const char * url,
   PRInt16 dialogResult;
   nsCOMPtr<nsILocalFile> localFile;
   nsCOMPtr<nsILocalFile> lastSaveDir;
-  nsCOMPtr<nsIFileSpec> fileSpec;
   nsXPIDLCString filePath;
 
   
@@ -904,10 +887,7 @@ nsMessenger::SaveAttachment(const char * contentType, const char * url,
   
   (void)SetLastSaveDirectory(localFile);
 
-  rv = NS_NewFileSpecFromIFile(localFile, getter_AddRefs(fileSpec));
-  if (NS_FAILED(rv)) goto done;
-
-  rv = SaveAttachment(fileSpec, url, messageUri, contentType, nsnull);
+  rv = SaveAttachment(localFile, url, messageUri, contentType, nsnull);
 
 done:
   return rv;
@@ -939,7 +919,6 @@ nsMessenger::SaveAllAttachments(PRUint32 count,
         do_CreateInstance("@mozilla.org/filepicker;1", &rv);
     nsCOMPtr<nsILocalFile> localFile;
     nsCOMPtr<nsILocalFile> lastSaveDir;
-    nsCOMPtr<nsIFileSpec> fileSpec;
     nsXPIDLCString dirName;
     nsSaveAllAttachmentsState *saveState = nsnull;
     PRInt16 dialogResult;
@@ -968,8 +947,6 @@ nsMessenger::SaveAllAttachments(PRUint32 count,
 
     rv = localFile->GetNativePath(dirName);
     if (NS_FAILED(rv)) goto done;
-    rv = NS_NewFileSpec(getter_AddRefs(fileSpec));
-    if (NS_FAILED(rv)) goto done;
 
     saveState = new nsSaveAllAttachmentsState(count,
                                               contentTypeArray,
@@ -978,19 +955,16 @@ nsMessenger::SaveAllAttachments(PRUint32 count,
                                               messageUriArray, 
                                               (const char*) dirName, detaching);
     {
-        nsFileSpec aFileSpec((const char *) dirName);
-
         nsXPIDLCString unescapedName;
         rv = ConvertAndSanitizeFileName(displayNameArray[0], nsnull, getter_Copies(unescapedName));
         if (NS_FAILED(rv))
           goto done;
 
-        aFileSpec += unescapedName.get();
-        rv = PromptIfFileExists(aFileSpec);
+        localFile->AppendNative(unescapedName);
+        rv = PromptIfFileExists(localFile);
         if (NS_FAILED(rv)) 
           return rv;
-        fileSpec->SetFromFileSpec(aFileSpec);
-        rv = SaveAttachment(fileSpec, urlArray[0], messageUriArray[0], 
+        rv = SaveAttachment(localFile, urlArray[0], messageUriArray[0], 
                             contentTypeArray[0], (void *)saveState);
     }
 done:
@@ -1149,18 +1123,10 @@ nsMessenger::SaveAs(const char *aURI, PRBool aAsFile, nsIMsgIdentity *aIdentity,
         }
         break;
     }
-   
-    // XXX argh!  converting from nsILocalFile to nsFileSpec ... oh baby, lets drop from unicode to ascii too
-    //        nsXPIDLString path;
-    //        localFile->GetUnicodePath(getter_Copies(path));
-    nsCOMPtr<nsIFileSpec> fileSpec;
-    rv = NS_NewFileSpecFromIFile(localFile, getter_AddRefs(fileSpec));
-    if (NS_FAILED(rv)) 
-      goto done;
-    
+       
     // XXX todo
     // document the ownership model of saveListener
-    saveListener = new nsSaveMsgListener(fileSpec, this);
+    saveListener = new nsSaveMsgListener(localFile, this);
     if (!saveListener) {
       rv = NS_ERROR_OUT_OF_MEMORY;
       goto done;
@@ -1173,7 +1139,7 @@ nsMessenger::SaveAs(const char *aURI, PRBool aAsFile, nsIMsgIdentity *aIdentity,
     
     if (saveAsFileType == EML_FILE_TYPE) 
     {
-      rv = messageService->SaveMessageToDisk(aURI, fileSpec, PR_FALSE,
+      rv = messageService->SaveMessageToDisk(aURI, localFile, PR_FALSE,
         urlListener, nsnull,
         PR_FALSE, mMsgWindow);
     }
@@ -1236,14 +1202,20 @@ nsMessenger::SaveAs(const char *aURI, PRBool aAsFile, nsIMsgIdentity *aIdentity,
   else
   {
     // ** save as Template
-    nsCOMPtr<nsIFileSpec> fileSpec;
-    nsFileSpec tmpFileSpec("nsmail.tmp");
-    rv = NS_NewFileSpecWithSpec(tmpFileSpec, getter_AddRefs(fileSpec));
+    nsCOMPtr <nsIFile> tmpTempFile;
+    nsresult rv = GetSpecialDirectoryWithFileName(NS_OS_TEMP_DIR,
+                                                  "nsmail.tmp",
+                                                  getter_AddRefs(tmpTempFile));
+    
+    NS_ENSURE_SUCCESS(rv, rv);
+    
+    nsCOMPtr <nsILocalFile> tmpFile = do_QueryInterface(tmpTempFile, &rv);
+    rv = tmpFile->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);
     if (NS_FAILED(rv)) goto done;
     
     // XXX todo
     // document the ownership model of saveListener
-    saveListener = new nsSaveMsgListener(fileSpec, this);
+    saveListener = new nsSaveMsgListener(tmpFile, this);
     if (!saveListener) {
       rv = NS_ERROR_OUT_OF_MEMORY;
       goto done;
@@ -1268,7 +1240,7 @@ nsMessenger::SaveAs(const char *aURI, PRBool aAsFile, nsIMsgIdentity *aIdentity,
     if (NS_FAILED(rv)) 
       goto done;
     
-    rv = messageService->SaveMessageToDisk(aURI, fileSpec, 
+    rv = messageService->SaveMessageToDisk(aURI, tmpFile, 
       needDummyHeader,
       urlListener, nsnull,
       canonicalLineEnding, mMsgWindow); 
@@ -1778,9 +1750,9 @@ nsMessenger::SendUnsentMessages(nsIMsgIdentity *aIdentity, nsIMsgWindow *aMsgWin
 	return NS_OK;
 }
 
-nsSaveMsgListener::nsSaveMsgListener(nsIFileSpec* aSpec, nsMessenger *aMessenger)
+nsSaveMsgListener::nsSaveMsgListener(nsIFile* aFile, nsMessenger *aMessenger)
 {
-    m_fileSpec = do_QueryInterface(aSpec);
+    m_file = do_QueryInterface(aFile);
     m_messenger = aMessenger;
 
     // rhp: for charset handling
@@ -1791,8 +1763,8 @@ nsSaveMsgListener::nsSaveMsgListener(nsIFileSpec* aSpec, nsMessenger *aMessenger
     mCanceled = PR_FALSE;
     m_outputFormat = eUnknown;
     mInitialized = PR_FALSE;
-    if (m_fileSpec)
-      m_fileSpec->GetOutputStream(getter_AddRefs(m_outputStream));
+    if (m_file)
+       NS_NewLocalFileOutputStream(getter_AddRefs(m_outputStream), m_file, -1, 00600);
     m_dataBuffer = (char*) PR_CALLOC(FOUR_K+1);
 }
 
@@ -1828,10 +1800,10 @@ nsSaveMsgListener::OnStopRunningUrl(nsIURI* url, nsresult exitCode)
   nsresult rv = exitCode;
   PRBool killSelf = PR_TRUE;
 
-  if (m_fileSpec)
+  if (m_outputStream)
   {
-    m_fileSpec->Flush();
-    m_fileSpec->CloseStream();
+    m_outputStream->Flush();
+    m_outputStream->Close();
     if (NS_FAILED(rv)) goto done;
     if (m_templateUri) { // ** save as template goes here
         nsCOMPtr<nsIRDFService> rdf(do_GetService(kRDFServiceCID, &rv));
@@ -1844,7 +1816,7 @@ nsSaveMsgListener::OnStopRunningUrl(nsIURI* url, nsresult exitCode)
         if (NS_FAILED(rv)) goto done;
         nsCOMPtr<nsIMsgCopyService> copyService = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID);
         if (copyService)
-          rv = copyService->CopyFileMessage(m_fileSpec, templateFolder, nsnull, 
+          rv = copyService->CopyFileMessage(m_file, templateFolder, nsnull, 
                                         PR_TRUE, MSG_FLAG_READ, this, nsnull);
         killSelf = PR_FALSE;
     }
@@ -1853,12 +1825,8 @@ nsSaveMsgListener::OnStopRunningUrl(nsIURI* url, nsresult exitCode)
 done:
   if (NS_FAILED(rv))
   {
-    if (m_fileSpec)
-    {
-      nsFileSpec realSpec;
-      m_fileSpec->GetFileSpec(&realSpec);
-      realSpec.Delete(PR_FALSE);
-    }
+    if (m_file)
+      m_file->Remove(PR_FALSE);
     if (m_messenger)
         m_messenger->Alert("saveMessageFailed");
   }
@@ -1895,12 +1863,8 @@ nsSaveMsgListener::GetMessageId(nsCString* aMessageId)
 NS_IMETHODIMP
 nsSaveMsgListener::OnStopCopy(nsresult aStatus)
 {
-  if (m_fileSpec)
-  {
-    nsFileSpec realSpec;
-    m_fileSpec->GetFileSpec(&realSpec);
-    realSpec.Delete(PR_FALSE);
-  }
+  if (m_file)
+    m_file->Remove(PR_FALSE);
   Release(); // all done kill ourself
   return aStatus;
 }
@@ -1927,12 +1891,8 @@ nsresult nsSaveMsgListener::InitializeDownload(nsIRequest * aRequest, PRInt32 aB
       nsCOMPtr<nsIMIMEInfo> mimeinfo;
 
       mimeService->GetFromTypeAndExtension(m_contentType, EmptyCString(), getter_AddRefs(mimeinfo)); 
-      nsFileSpec realSpec;
-      m_fileSpec->GetFileSpec(&realSpec);
 
-      // Create nsILocalFile from a nsFileSpec.
-      nsCOMPtr<nsILocalFile> outputFile;
-      NS_FileSpecToIFile(&realSpec, getter_AddRefs(outputFile)); 
+      nsCOMPtr<nsILocalFile> outputFile = do_QueryInterface(m_file);
 
       // create a download progress window
       // XXX: we don't want to show the progress dialog if the download is really small.
@@ -2017,7 +1977,7 @@ nsSaveMsgListener::OnStopRequest(nsIRequest* request, nsISupports* aSupport,
   // rhp: If we are doing the charset conversion magic, this is different
   // processing, otherwise, its just business as usual.
   //
-  if ( (m_doCharsetConversion) && (m_fileSpec) )
+  if ( (m_doCharsetConversion) && (m_outputStream) )
   {
     char        *conBuf = nsnull;
     PRUint32    conLength = 0; 
@@ -2045,11 +2005,10 @@ nsSaveMsgListener::OnStopRequest(nsIRequest* request, nsISupports* aSupport,
     PR_FREEIF(conBuf);
   }
 
-  // close down the file stream and release ourself
-  if (m_fileSpec)
+  // close down the output stream and release ourself
+  if (m_outputStream)
   {
-    m_fileSpec->Flush();
-    m_fileSpec->CloseStream();
+    m_outputStream->Close();
     m_outputStream = nsnull;
   }
   
@@ -2061,11 +2020,11 @@ nsSaveMsgListener::OnStopRequest(nsIRequest* request, nsISupports* aSupport,
       {
           nsSaveAllAttachmentsState *state = m_saveAllAttachmentsState;
           PRUint32 i = state->m_curIndex;
-          nsCOMPtr<nsIFileSpec> fileSpec;
-          nsFileSpec aFileSpec ((const char *) state->m_directoryName);
-
           nsXPIDLCString unescapedName;
-          rv = NS_NewFileSpec(getter_AddRefs(fileSpec));
+          nsCOMPtr<nsILocalFile> localFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+          if (NS_FAILED(rv)) goto done;
+          rv = localFile->InitWithNativePath(nsDependentCString(state->m_directoryName));
+
           if (NS_FAILED(rv)) goto done;
  
           rv = ConvertAndSanitizeFileName(state->m_displayNameArray[i], nsnull, 
@@ -2073,11 +2032,10 @@ nsSaveMsgListener::OnStopRequest(nsIRequest* request, nsISupports* aSupport,
           if (NS_FAILED(rv))
             goto done;
 
-          aFileSpec += unescapedName;
-          rv = m_messenger->PromptIfFileExists(aFileSpec);
+          localFile->AppendNative(unescapedName);
+          rv = m_messenger->PromptIfFileExists(localFile);
           if (NS_FAILED(rv)) goto done;
-          fileSpec->SetFromFileSpec(aFileSpec);
-          rv = m_messenger->SaveAttachment(fileSpec,
+          rv = m_messenger->SaveAttachment(localFile,
                                            state->m_urlArray[i],
                                            state->m_messageUriArray[i],
                                            state->m_contentTypeArray[i],
@@ -2785,11 +2743,8 @@ nsDelAttachListener::OnStopRequest(nsIRequest * aRequest, nsISupports * aContext
   m_state = eCopyingNewMsg;
   if (copyService) 
   {
-    nsCOMPtr<nsIFileSpec> fileSpec;
-    rv = NS_NewFileSpecFromIFile(mMsgFile, getter_AddRefs(fileSpec));
-    if (NS_SUCCEEDED(rv))
-      rv = copyService->CopyFileMessage(fileSpec, mMessageFolder, nsnull, PR_FALSE,
-                                        mOrigMsgFlags, listenerCopyService, mMsgWindow);
+    rv = copyService->CopyFileMessage(mMsgFile, mMessageFolder, nsnull, PR_FALSE,
+                                      mOrigMsgFlags, listenerCopyService, mMsgWindow);
   }
   return rv;
 }

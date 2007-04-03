@@ -41,7 +41,7 @@
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
 #include "nsIEnumerator.h"
-#include "nsIFileSpec.h"
+#include "nsIFile.h"
 #include "nsISmtpService.h"
 #include "nsIMsgMailNewsUrl.h"
 #include "nsMsgDeliveryListener.h"
@@ -370,7 +370,7 @@ SendOperationListener::OnSendNotPerformed(const char *aMsgID, nsresult aStatus)
   
 nsresult
 SendOperationListener::OnStopSending(const char *aMsgID, nsresult aStatus, const PRUnichar *aMsg, 
-                                     nsIFileSpec *returnFileSpec)
+                                     nsIFile *returnFile)
 {
   nsresult rv = NS_OK;
 
@@ -548,7 +548,7 @@ nsMsgSendLater::CompleteMailFileSend()
   rv = pMsgSend->SendMessageFile(identity,
                                  mAccountKey,
                                  compFields, // nsIMsgCompFields *fields,
-                                 mTempFile, // nsIFile *sendFileSpec,
+                                 mTempFile, // nsIFile *sendFile,
                                  PR_TRUE, // PRBool deleteSendFileOnCompletion,
                                  PR_FALSE, // PRBool digest_p,
                                  nsIMsgSend::nsMsgSendUnsent, // nsMsgDeliverMode mode,
@@ -563,7 +563,6 @@ nsMsgSendLater::CompleteMailFileSend()
 nsresult
 nsMsgSendLater::StartNextMailFileSend()
 {
-  nsFileSpec    fileSpec;
   nsresult      rv = NS_OK;
   nsXPIDLCString  messageURI;
 

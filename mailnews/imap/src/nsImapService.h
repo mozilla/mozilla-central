@@ -42,7 +42,7 @@
 #include "nsIMsgMessageService.h"
 #include "nsISupportsArray.h"
 #include "nsCOMPtr.h"
-#include "nsIFileSpec.h"
+#include "nsIFile.h"
 #include "nsIProtocolHandler.h"
 #include "nsIMsgProtocolInfo.h"
 #include "nsIContentHandler.h"
@@ -136,7 +136,7 @@ protected:
                        imapMessageFlagsType flags,
                        PRBool messageIdsAreUID);
 
-  nsresult OfflineAppendFromFile(nsIFileSpec* aFileSpec,
+  nsresult OfflineAppendFromFile(nsIFile* aFile,
                                  nsIURI *aUrl,
                                  nsIMsgFolder* aDstFolder,
                                  const char* messageId, // te be replaced

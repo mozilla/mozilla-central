@@ -712,6 +712,8 @@ NS_IMETHODIMP nsMsgHdr::SetCharset(const char *aCharset)
 NS_IMETHODIMP nsMsgHdr::SetThreadParent(nsMsgKey inKey)
 {
   m_threadParent = inKey;
+  if (inKey == m_messageKey)
+    NS_ASSERTION(PR_FALSE, "can't be your own parent");
   SetUInt32Column(m_threadParent, m_mdb->m_threadParentColumnToken);
   m_initedValues |= THREAD_PARENT_INITED;
   return NS_OK;

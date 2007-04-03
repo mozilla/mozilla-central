@@ -49,7 +49,7 @@
 
 #include "nsWeakPtr.h"
 #include "nsXPIDLString.h"
-#include "nsIFileSpec.h"
+#include "nsIFile.h"
 
 class nsImapUrl : public nsIImapUrl, public nsMsgMailNewsUrl, public nsIMsgMessageUrl, public nsIMsgI18NUrl
 {
@@ -142,11 +142,11 @@ protected:
 
   // online message copy support; i don't have a better solution yet
   nsCOMPtr <nsISupports> m_copyState;   // now, refcounted.
-  nsIFileSpec* m_fileSpec;
+  nsIFile* m_file;
   nsCOMPtr<nsIImapMockChannel> m_mockChannel;
 
     // used by save message to disk
-  nsCOMPtr<nsIFileSpec> m_messageFileSpec;
+  nsCOMPtr<nsIFile> m_messageFile;
   PRBool                m_addDummyEnvelope;
   PRBool                m_canonicalLineEnding; // CRLF
   

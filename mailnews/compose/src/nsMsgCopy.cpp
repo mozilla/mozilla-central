@@ -173,7 +173,7 @@ NS_IMPL_ISUPPORTS1(nsMsgCopy, nsIUrlListener)
 
 nsMsgCopy::nsMsgCopy()
 {
-  mFileSpec = nsnull;
+  mFile = nsnull;
   mMode = nsIMsgSend::nsMsgDeliverNow;
   mSavePref = nsnull;
 }
@@ -185,7 +185,7 @@ nsMsgCopy::~nsMsgCopy()
 
 nsresult
 nsMsgCopy::StartCopyOperation(nsIMsgIdentity       *aUserIdentity,
-                              nsIFileSpec          *aFileSpec, 
+                              nsIFile          *aFile, 
                               nsMsgDeliverMode     aMode,
                               nsIMsgSend           *aMsgSendObj,
                               const char           *aSavePref,
@@ -247,7 +247,7 @@ nsMsgCopy::StartCopyOperation(nsIMsgIdentity       *aUserIdentity,
   }
 
   mMode = aMode;
-  mFileSpec = aFileSpec;
+  mFile = aFile;
   mDstFolder = dstFolder;
   mMsgToReplace = aMsgToReplace;
   mIsDraft = isDraft;
@@ -255,14 +255,14 @@ nsMsgCopy::StartCopyOperation(nsIMsgIdentity       *aUserIdentity,
   if (!waitForUrl)
   {
     // cache info needed for DoCopy and call DoCopy when OnStopUrl is called.
-    rv = DoCopy(aFileSpec, dstFolder, aMsgToReplace, isDraft, msgWindow, aMsgSendObj);
+    rv = DoCopy(aFile, dstFolder, aMsgToReplace, isDraft, msgWindow, aMsgSendObj);
     // N.B. "this" may be deleted when this call returns.
   }
   return rv;
 }
 
 nsresult 
-nsMsgCopy::DoCopy(nsIFileSpec *aDiskFile, nsIMsgFolder *dstFolder,
+nsMsgCopy::DoCopy(nsIFile *aDiskFile, nsIMsgFolder *dstFolder,
                   nsIMsgDBHdr *aMsgToReplace, PRBool aIsDraft,
                   nsIMsgWindow *msgWindow,
                   nsIMsgSend   *aMsgSendObj)
@@ -334,7 +334,7 @@ nsMsgCopy::OnStopRunningUrl(nsIURI * aUrl, nsresult aExitCode)
   nsresult rv = aExitCode;
   if (NS_SUCCEEDED(aExitCode))
   {
-    rv = DoCopy(mFileSpec, mDstFolder, mMsgToReplace, mIsDraft, nsnull, mMsgSendObj);
+    rv = DoCopy(mFile, mDstFolder, mMsgToReplace, mIsDraft, nsnull, mMsgSendObj);
   }
   return rv;
 }
@@ -381,10 +381,10 @@ nsMsgCopy::CreateIfMissing(nsIMsgFolder **folder, PRBool *waitForUrl)
     (*folder)->GetParent(getter_AddRefs(parent));
     if (!parent)
     {
-      nsCOMPtr <nsIFileSpec> folderPath;
+      nsCOMPtr <nsILocalFile> folderPath;
       // for local folders, path is to the berkeley mailbox. 
       // for imap folders, path needs to have .msf appended to the name
-      (*folder)->GetPath(getter_AddRefs(folderPath));
+      (*folder)->GetFilePath(getter_AddRefs(folderPath));
         PRBool isImapFolder = !nsCRT::strncasecmp(mSavePref, "imap:", 5);
       // if we can't get the path from the folder, then try to create the storage.
       // for imap, it doesn't matter if the .msf file exists - it still might not

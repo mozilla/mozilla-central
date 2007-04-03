@@ -114,7 +114,7 @@ public:
 
     /* void OnStopSending (in string aMsgID, in nsresult aStatus, in wstring aMsg, in nsIFileSpec returnFileSpec); */
     NS_IMETHOD OnStopSending(const char *aMsgID, nsresult aStatus, const PRUnichar *aMsg, 
-                           nsIFileSpec *returnFileSpec) {
+                           nsIFile *returnFile) {
         PR_CEnterMonitor(this);
         PR_CNotifyAll(this);
         m_done = PR_TRUE;

@@ -91,7 +91,7 @@ public:
     nsCOMPtr<nsIMsgDBHdr> m_message; // current message to be copied
     nsCOMPtr<nsIMsgCopyServiceListener> m_listener; // listener of this copy
                                                     // operation 
-    nsCOMPtr<nsIFileSpec> m_tmpFileSpec; // temp file spec for copy operation
+    nsCOMPtr<nsIFile> m_tmpFile; // temp file spec for copy operation
     nsCOMPtr<nsIMsgWindow> m_msgWindow; // msg window for copy operation
 
     nsCOMPtr<nsIMsgMessageService> m_msgService; // source folder message service; can
@@ -272,7 +272,7 @@ public:
                           PRBool allowUndo);
   NS_IMETHOD CopyFolder(nsIMsgFolder *srcFolder, PRBool isMove, nsIMsgWindow *msgWindow,
                         nsIMsgCopyServiceListener* listener);
-  NS_IMETHOD CopyFileMessage(nsIFileSpec* fileSpec, 
+  NS_IMETHOD CopyFileMessage(nsIFile* fileSpec, 
                               nsIMsgDBHdr* msgToReplace,
                               PRBool isDraftOrTemplate,
                               PRUint32 aNewMsgFlags,

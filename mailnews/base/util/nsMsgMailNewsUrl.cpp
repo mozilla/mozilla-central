@@ -54,7 +54,8 @@
 #include "nsIStreamListener.h"
 #include "nsIOutputStream.h"
 #include "nsIInputStream.h"
-#include "nsIFileSpec.h"
+#include "nsNetUtil.h"
+#include "nsIFile.h"
 #include <time.h>
 
 nsMsgMailNewsUrl::nsMsgMailNewsUrl()
@@ -817,12 +818,12 @@ public:
   NS_DECL_NSIREQUESTOBSERVER
   NS_DECL_NSISTREAMLISTENER
 
-  nsMsgSaveAsListener(nsIFileSpec *aFileSpec, PRBool addDummyEnvelope);
+  nsMsgSaveAsListener(nsIFile *aFile, PRBool addDummyEnvelope);
   virtual ~nsMsgSaveAsListener();
-  nsresult SetupMsgWriteStream(nsIFileSpec *aFileSpec, PRBool addDummyEnvelope);
+  nsresult SetupMsgWriteStream(nsIFile *aFile, PRBool addDummyEnvelope);
 protected:
   nsCOMPtr<nsIOutputStream> m_outputStream;
-  nsCOMPtr<nsIFileSpec> m_outputFile;
+  nsCOMPtr<nsIFile> m_outputFile;
   PRBool m_addDummyEnvelope;
   PRBool m_writtenData;
   PRUint32 m_leftOver;
@@ -832,9 +833,9 @@ protected:
 
 NS_IMPL_ISUPPORTS1(nsMsgSaveAsListener, nsIStreamListener)
 
-nsMsgSaveAsListener::nsMsgSaveAsListener(nsIFileSpec *aFileSpec, PRBool addDummyEnvelope)
+nsMsgSaveAsListener::nsMsgSaveAsListener(nsIFile *aFile, PRBool addDummyEnvelope)
 {
-  m_outputFile = aFileSpec;
+  m_outputFile = aFile;
   m_writtenData = PR_FALSE;
   m_addDummyEnvelope = addDummyEnvelope;
   m_leftOver = 0;
@@ -857,8 +858,6 @@ nsMsgSaveAsListener::OnStopRequest(nsIRequest *request, nsISupports * aCtxt, nsr
     m_outputStream->Flush();
     m_outputStream->Close();
   }
-  if (m_outputFile)
-    m_outputFile->CloseStream();
   return NS_OK;
 } 
 
@@ -947,7 +946,7 @@ NS_IMETHODIMP nsMsgSaveAsListener::OnDataAvailable(nsIRequest* request,
   //  rv = m_outputStream->WriteFrom(inStream, PR_MIN(available, count), &bytesWritten);
 }
 
-nsresult nsMsgSaveAsListener::SetupMsgWriteStream(nsIFileSpec *aFileSpec, PRBool addDummyEnvelope)
+nsresult nsMsgSaveAsListener::SetupMsgWriteStream(nsIFile *aFile, PRBool addDummyEnvelope)
 {
   nsresult rv = NS_ERROR_FAILURE;
 
@@ -960,12 +959,10 @@ nsresult nsMsgSaveAsListener::SetupMsgWriteStream(nsIFileSpec *aFileSpec, PRBool
   // have to close the stream before deleting the file, else data
   // would still be written happily into a now non-existing file.
   // (Windows doesn't care, btw, just unixoids do...)
-  nsFileSpec fileSpec;
-  aFileSpec->CloseStream();
-  aFileSpec->GetFileSpec(&fileSpec);
-  fileSpec.Delete(PR_FALSE);
+  aFile->Remove(PR_FALSE);
 
-  rv = aFileSpec->GetOutputStream(getter_AddRefs(m_outputStream));
+  nsCOMPtr <nsILocalFile> localFile = do_QueryInterface(aFile);
+  rv = NS_NewLocalFileOutputStream(getter_AddRefs(m_outputStream), localFile, -1, 00600);
   NS_ENSURE_SUCCESS(rv,rv);
 
   if (m_outputStream && addDummyEnvelope)
@@ -996,10 +993,10 @@ nsresult nsMsgSaveAsListener::SetupMsgWriteStream(nsIFileSpec *aFileSpec, PRBool
 
 
 NS_IMETHODIMP nsMsgMailNewsUrl::GetSaveAsListener(PRBool addDummyEnvelope, 
-                                                  nsIFileSpec *aFileSpec, nsIStreamListener **aSaveListener)
+                                                  nsIFile *aFile, nsIStreamListener **aSaveListener)
 {
   NS_ENSURE_ARG_POINTER(aSaveListener);
-  nsMsgSaveAsListener *saveAsListener = new nsMsgSaveAsListener(aFileSpec, addDummyEnvelope);
+  nsMsgSaveAsListener *saveAsListener = new nsMsgSaveAsListener(aFile, addDummyEnvelope);
   return saveAsListener->QueryInterface(NS_GET_IID(nsIStreamListener), (void **) aSaveListener);
 }
 

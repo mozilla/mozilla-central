@@ -714,15 +714,12 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetFolderURL(char **url)
   
   nsresult rv;
   
-  nsCOMPtr<nsIFileSpec> pathSpec;
-  rv = GetPath(getter_AddRefs(pathSpec));
+  nsCOMPtr<nsILocalFile> path;
+  rv = GetFilePath(getter_AddRefs(path));
   if (NS_FAILED(rv)) return rv;
   
-  nsFileSpec path;
-  rv = pathSpec->GetFileSpec(&path);
-  if (NS_FAILED(rv)) return rv;
-  
-  nsCAutoString tmpPath((nsFilePath)path);
+  nsCAutoString tmpPath;
+  path->GetNativePath(tmpPath);
   
   nsCAutoString urlStr(urlScheme);
   urlStr.Append(tmpPath);
@@ -2193,7 +2190,7 @@ nsMsgLocalMailFolder::CopyFolderLocal(nsIMsgFolder *srcFolder,
 }
 
 NS_IMETHODIMP
-nsMsgLocalMailFolder::CopyFileMessage(nsIFileSpec* fileSpec, nsIMsgDBHdr*
+nsMsgLocalMailFolder::CopyFileMessage(nsIFile* aFile, nsIMsgDBHdr*
                                       msgToReplace, PRBool isDraftOrTemplate,
                                       PRUint32 newMsgFlags,
                                       nsIMsgWindow *msgWindow,
@@ -2203,7 +2200,7 @@ nsMsgLocalMailFolder::CopyFileMessage(nsIFileSpec* fileSpec, nsIMsgDBHdr*
   nsCOMPtr<nsIInputStream> inputStream;
   nsParseMailMessageState* parseMsgState = nsnull;
   PRUint32 fileSize = 0;
-  nsCOMPtr<nsISupports> fileSupport(do_QueryInterface(fileSpec, &rv));
+  nsCOMPtr<nsISupports> fileSupport(do_QueryInterface(aFile, &rv));
 
   nsCOMPtr<nsISupportsArray> messages;
   rv = NS_NewISupportsArray(getter_AddRefs(messages));
@@ -2229,10 +2226,7 @@ nsMsgLocalMailFolder::CopyFileMessage(nsIFileSpec* fileSpec, nsIMsgDBHdr*
       parseMsgState->SetMailDB(msgDb);
   }
 
-  rv = fileSpec->OpenStreamForReading();
-  if (NS_FAILED(rv)) goto done;
-
-  rv = fileSpec->GetInputStream(getter_AddRefs(inputStream));
+  rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), aFile);
   if (NS_FAILED(rv)) goto done;
   
   rv = NS_ERROR_NULL_POINTER;
@@ -2253,7 +2247,7 @@ done:
   if(NS_FAILED(rv))
     (void) OnCopyCompleted(fileSupport, PR_FALSE);
 
-  fileSpec->CloseStream();
+  inputStream->Close();
   return rv;
 }
 

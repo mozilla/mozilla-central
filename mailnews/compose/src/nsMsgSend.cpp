@@ -60,7 +60,7 @@
 #include "nsICharsetConverterManager.h"
 #include "nsIMsgSendListener.h"
 #include "nsIMsgCopyServiceListener.h"
-#include "nsIFileSpec.h"
+#include "nsIFile.h"
 #include "nsIURL.h"
 #include "nsNetUtil.h"
 #include "nsIFileURL.h"
@@ -1166,10 +1166,7 @@ nsMsgComposeAndSend::GatherMimeAttachments()
       NotifyListenerOnStopSending(nsnull, NS_ERROR_OUT_OF_MEMORY, nsnull, nsnull);
     else
     {
-      nsCOMPtr<nsIFileSpec> aFileSpec;
-      NS_NewFileSpecFromIFile(mTempFile, getter_AddRefs(aFileSpec));
-      NS_ENSURE_SUCCESS(rv, rv);
-      NotifyListenerOnStopSending(nsnull, NS_OK, nsnull, aFileSpec);
+      NotifyListenerOnStopSending(nsnull, NS_OK, nsnull, mTempFile);
     }
   }
   else 
@@ -3949,10 +3946,10 @@ nsMsgComposeAndSend::NotifyListenerOnStatus(const char *aMsgID, const PRUnichar 
 
 NS_IMETHODIMP
 nsMsgComposeAndSend::NotifyListenerOnStopSending(const char *aMsgID, nsresult aStatus, const PRUnichar *aMsg, 
-                                                  nsIFileSpec *returnFileSpec)
+                                                  nsIFile *returnFile)
 {
   if (mListener != nsnull)
-    mListener->OnStopSending(aMsgID, aStatus, aMsg, returnFileSpec);
+    mListener->OnStopSending(aMsgID, aStatus, aMsg, returnFile);
 
   return NS_OK;
 }
@@ -4829,6 +4826,11 @@ FAIL:
   if (inputFile)
     inputFile->Close();
 
+
+  // here we should clone mCopyFile, since it has changed on disk.
+  nsCOMPtr <nsIFile> clonedFile;
+  mCopyFile->Clone(getter_AddRefs(clonedFile));
+  mCopyFile = clonedFile;
   // 
   // When we get here, we have to see if we have been successful so far.
   // If we have, then we should start up the async copy service operation.
@@ -4872,11 +4874,7 @@ nsMsgComposeAndSend::StartMessageCopyOperation(nsIFile          *aFile,
   if (mListener)
     mListener->OnGetDraftFolderURI(m_folderName.get());
 
-  nsCOMPtr<nsIFileSpec> fileSpec;
-  rv = NS_NewFileSpecFromIFile(aFile, getter_AddRefs(fileSpec));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = mCopyObj->StartCopyOperation(mUserIdentity, fileSpec, mode, 
+  rv = mCopyObj->StartCopyOperation(mUserIdentity, aFile, mode, 
                                     this, m_folderName.get(), mMsgToReplace);
   return rv;
 }
@@ -4943,11 +4941,7 @@ nsresult nsMsgComposeAndSend::Abort()
     nsCOMPtr<nsIMsgCopyService> copyService = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCOMPtr<nsIFileSpec> fileSpec;
-    rv = NS_NewFileSpecFromIFile(mCopyFile, getter_AddRefs(fileSpec));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    copyService->NotifyCompletion(fileSpec, mCopyObj->mDstFolder, NS_ERROR_ABORT);
+    copyService->NotifyCompletion(mCopyFile, mCopyObj->mDstFolder, NS_ERROR_ABORT);
   }
   mAbortInProcess = PR_FALSE;
   return NS_OK;

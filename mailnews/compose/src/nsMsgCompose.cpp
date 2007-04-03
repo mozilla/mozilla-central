@@ -3055,10 +3055,10 @@ NS_IMETHODIMP nsMsgCompose::OnStatus(const char *aMsgID, const PRUnichar *aMsg)
 }
 
 NS_IMETHODIMP nsMsgCompose::OnStopSending(const char *aMsgID, nsresult aStatus, const PRUnichar *aMsg,
-                                      nsIFileSpec *returnFileSpec)
+                                      nsIFile *returnFile)
 {
   for (PRInt32 i = 0; i < mExternalSendListeners.Count(); i++)
-    mExternalSendListeners[i]->OnStopSending(aMsgID, aStatus, aMsg, returnFileSpec);
+    mExternalSendListeners[i]->OnStopSending(aMsgID, aStatus, aMsg, returnFile);
   return NS_OK;
 }
 
@@ -3189,7 +3189,7 @@ nsresult nsMsgComposeSendListener::OnSendNotPerformed(const char *aMsgID, nsresu
 
 
 nsresult nsMsgComposeSendListener::OnStopSending(const char *aMsgID, nsresult aStatus, const PRUnichar *aMsg, 
-                                     nsIFileSpec *returnFileSpec)
+                                     nsIFile *returnFile)
 {
   nsresult rv = NS_OK;
 
@@ -3263,7 +3263,7 @@ nsresult nsMsgComposeSendListener::OnStopSending(const char *aMsgID, nsresult aS
 
   nsCOMPtr<nsIMsgSendListener> composeSendlistener = do_QueryReferent(mWeakComposeObj);
   if (composeSendlistener)
-    composeSendlistener->OnStopSending(aMsgID, aStatus, aMsg, returnFileSpec);
+    composeSendlistener->OnStopSending(aMsgID, aStatus, aMsg, returnFile);
 
   return rv;
 }
@@ -3744,6 +3744,7 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsStrin
   //
   //    user_pref(".....sig_file", "y:\\sig.html");
   //    user_pref(".....attach_signature", true);
+  //    user_pref("...sigText", "unicode sig");
   //
   // Note: We will have intelligent signature behavior in that we
   // look at the signature file first...if the extension is .htm or 
@@ -3755,6 +3756,10 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsStrin
   // are doing plain text compose, we should insert some sort of message
   // saying "Image Signature Omitted" or something.
   //
+  // If there's a sig pref, we will append its text after the sig file contents - we don't
+  // expect many users to use both, but when they do, I think it the pref text is more
+  // likely to be centrally controlled by MCD or a custom installation, and thus will
+  // be more general, and thus should probably go after the user's sig file.
   nsCAutoString sigNativePath;
   PRBool        useSigFile = PR_FALSE;
   PRBool        htmlSig = PR_FALSE;
@@ -3797,17 +3802,19 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsStrin
       }
     }
   }
-
+  nsXPIDLString prefSigText;
+  // the pref sig is always going to be treated as html
+  identity->GetUnicharAttribute("htmlSigText", getter_Copies(prefSigText));
   // Now, if they didn't even want to use a signature, we should
   // just return nicely.
   //
-  if (!useSigFile || NS_FAILED(rv))
+  if ((!useSigFile  && prefSigText.IsEmpty()) || NS_FAILED(rv))
     return NS_OK;
 
   nsFileSpec    testSpec(sigNativePath.get());
 
   // If this file doesn't really exist, just bail!
-  if (!testSpec.Exists())
+  if (!testSpec.Exists() && prefSigText.IsEmpty())
     return NS_OK;
 
   static const char      htmlBreak[] = "<BR>";
@@ -3858,6 +3865,26 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsStrin
       LoadDataFromFile(testSpec, sigData);  // Get the data!
   }
 
+  // if we have a prefSigText, append it to sigData.
+  if (!prefSigText.IsEmpty())
+  {
+    // insert a line between the sig file and the pref sig text, if there was a sig file.
+    if (!sigData.IsEmpty())
+      if (m_composeHTML)
+        sigOutput.AppendLiteral(htmlBreak);
+      else
+        sigOutput.AppendLiteral(CRLF);
+    
+    if (!m_composeHTML)
+    {
+      ConvertBufToPlainText(prefSigText, PR_FALSE);
+      sigData.Append(prefSigText);
+    }
+    else
+    {
+      sigData.Append(prefSigText); 
+    }
+  }
   // Now that sigData holds data...if any, append it to the body in a nice
   // looking manner
   if (!sigData.IsEmpty())

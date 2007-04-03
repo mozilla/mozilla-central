@@ -39,7 +39,7 @@
 #define _nsMsgCopy_H_
 
 #include "nscore.h"
-#include "nsIFileSpec.h"
+#include "nsIFile.h"
 #include "nsMsgSend.h"
 #include "nsIMsgFolder.h"
 #include "nsITransactionManager.h"
@@ -105,13 +105,13 @@ public:
   //////////////////////////////////////////////////////////////////////
   //
   nsresult              StartCopyOperation(nsIMsgIdentity       *aUserIdentity,
-                                           nsIFileSpec          *aFileSpec, 
+                                           nsIFile          *aFile, 
                                            nsMsgDeliverMode     aMode,
                                            nsIMsgSend           *aMsgSendObj,
                                            const char           *aSavePref,
                                            nsIMsgDBHdr          *aMsgToReplace);
 
-  nsresult              DoCopy(nsIFileSpec *aDiskFile, nsIMsgFolder *dstFolder,
+  nsresult              DoCopy(nsIFile *aDiskFile, nsIMsgFolder *dstFolder,
                                nsIMsgDBHdr *aMsgToReplace, PRBool aIsDraft,
                                nsIMsgWindow *msgWindow,
                                nsIMsgSend   *aMsgSendObj);
@@ -126,7 +126,7 @@ public:
   //
   // Vars for implementation...
   //
-  nsIFileSpec                     *mFileSpec;     // the file we are sending...
+  nsIFile                     *mFile;     // the file we are sending...
   nsMsgDeliverMode                mMode;
   nsCOMPtr<nsIMsgFolder>          mDstFolder;
   nsCOMPtr<nsIMsgDBHdr>           mMsgToReplace;

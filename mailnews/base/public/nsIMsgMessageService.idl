@@ -41,7 +41,7 @@ interface nsIURI;
 interface nsIUrlListener;
 interface nsIStreamListener;
 interface nsIMsgWindow;
-interface nsIFileSpec;
+interface nsIFile;
 interface nsIMsgFolder;
 interface nsIMsgSearchSession;
 interface nsIMsgDBHdr;
@@ -54,7 +54,7 @@ interface nsIStreamConverter;
 [ptr] native nsMsgKeyArrayPtr(nsMsgKeyArray);
 
 
-[scriptable, uuid(F11009C1-F697-11d2-807F-006008128C4E)]
+[scriptable, uuid(e39c2eab-ad6c-4560-b642-7f98ba2c0c35)]
 interface nsIMsgMessageService : nsISupports {
      
      /////////////////////////////////////////////////////////////////
@@ -126,7 +126,7 @@ interface nsIMsgMessageService : nsISupports {
 	 //					  appended at the end of the file. 
      ///////////////////////////////////////////////////////////////////
 
-  void SaveMessageToDisk(in string aMessageURI, in nsIFileSpec aFile,
+  void SaveMessageToDisk(in string aMessageURI, in nsIFile aFile,
                          in boolean aGenerateDummyEnvelope, 
                          in nsIUrlListener aUrlListener, out nsIURI aURL,
                          in boolean canonicalLineEnding, in nsIMsgWindow aMsgWindow);

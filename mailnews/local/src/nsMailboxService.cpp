@@ -83,9 +83,8 @@ nsresult nsMailboxService::ParseMailbox(nsIMsgWindow *aMsgWindow, nsFileSpec& aM
   {
     nsCOMPtr<nsIMsgMailNewsUrl> url = do_QueryInterface(mailboxurl);
     // okay now generate the url string
-    nsFilePath filePath(aMailboxPath); // convert to file url representation...
     nsCAutoString buf;
-    NS_EscapeURL((const char *)filePath,-1,
+    NS_EscapeURL((const char *)aMailboxPath,-1,
                      esc_Minimal|esc_Forced|esc_AlwaysCopy,buf);
     url->SetUpdatingFolder(PR_TRUE);
     url->SetMsgWindow(aMsgWindow);
@@ -359,7 +358,7 @@ NS_IMETHODIMP nsMailboxService::OpenAttachment(const char *aContentType,
 
 NS_IMETHODIMP 
 nsMailboxService::SaveMessageToDisk(const char *aMessageURI, 
-                                    nsIFileSpec *aFile, 
+                                    nsIFile *aFile, 
                                     PRBool aAddDummyEnvelope, 
                                     nsIUrlListener *aUrlListener,
                                     nsIURI **aURL,
@@ -443,8 +442,8 @@ nsresult nsMailboxService::PrepareMessageUrl(const char * aSrcMsgMailboxURI, nsI
     // okay now generate the url string
     char * urlSpec;
     nsCAutoString folderURI;
-    nsFileSpec folderPath;
     nsMsgKey msgKey;
+    nsCString folderPath;
     const char *part = PL_strstr(aSrcMsgMailboxURI, "part=");
     const char *header = PL_strstr(aSrcMsgMailboxURI, "header=");
     rv = nsParseLocalMessageURI(aSrcMsgMailboxURI, folderURI, &msgKey);
@@ -454,9 +453,8 @@ nsresult nsMailboxService::PrepareMessageUrl(const char * aSrcMsgMailboxURI, nsI
     if (NS_SUCCEEDED(rv))
     {
       // set up the url spec and initialize the url with it.
-      nsFilePath filePath(folderPath); // convert to file url representation...
       nsCAutoString buf;
-      NS_EscapeURL((const char *)filePath,-1,
+      NS_EscapeURL(folderPath.get(),-1,
                    esc_Directory|esc_Forced|esc_AlwaysCopy,buf);
       if (mPrintingOperation)
         urlSpec = PR_smprintf("mailbox://%s?number=%d&header=print", buf.get(), msgKey);

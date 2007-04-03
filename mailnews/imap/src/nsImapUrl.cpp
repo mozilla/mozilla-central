@@ -96,7 +96,7 @@ nsImapUrl::nsImapUrl()
   
   // ** jt - the following are not ref counted
   m_copyState = nsnull;
-  m_fileSpec = nsnull;
+  m_file = nsnull;
   m_imapMailFolderSink = nsnull;
   m_imapMessageSink = nsnull;
   m_addDummyEnvelope = PR_FALSE;
@@ -1184,22 +1184,21 @@ NS_IMETHODIMP nsImapUrl::GetCopyState(nsISupports** copyState)
 }
 
 NS_IMETHODIMP
-nsImapUrl::SetMsgFileSpec(nsIFileSpec* fileSpec)
+nsImapUrl::SetMsgFile(nsIFile* aFile)
 {
   nsresult rv = NS_OK;
   nsAutoCMonitor mon(this);
-  m_fileSpec = fileSpec; // ** jt - not ref counted
+  m_file = aFile; 
   return rv;
 }
 
 NS_IMETHODIMP
-nsImapUrl::GetMsgFileSpec(nsIFileSpec** fileSpec)
+nsImapUrl::GetMsgFile(nsIFile** aFile)
 {
-  NS_ENSURE_ARG_POINTER(fileSpec);
+  NS_ENSURE_ARG_POINTER(aFile);
 
   nsAutoCMonitor mon(this);
-  *fileSpec = m_fileSpec;
-  NS_IF_ADDREF(*fileSpec);
+  NS_IF_ADDREF(*aFile = m_file);
   return NS_OK;
 }
 
@@ -1320,19 +1319,16 @@ NS_IMETHODIMP nsImapUrl::SetMsgLoadingFromCache(PRBool loadingFromCache)
   return rv;
 }
 
-NS_IMETHODIMP nsImapUrl::SetMessageFile(nsIFileSpec * aFileSpec)
+NS_IMETHODIMP nsImapUrl::SetMessageFile(nsIFile * aFile)
 {
-	m_messageFileSpec = aFileSpec;
+	m_messageFile = aFile;
 	return NS_OK;
 }
 
-NS_IMETHODIMP nsImapUrl::GetMessageFile(nsIFileSpec ** aFileSpec)
+NS_IMETHODIMP nsImapUrl::GetMessageFile(nsIFile ** aFile)
 {
-	if (aFileSpec)
-	{
-		*aFileSpec = m_messageFileSpec;
-		NS_IF_ADDREF(*aFileSpec);
-	}
+	if (aFile)
+		NS_IF_ADDREF(*aFile = m_messageFile);
 	return NS_OK;
 }
 

@@ -43,7 +43,7 @@
 #include "nsReadableUtils.h"
 #include "nsUnicharUtils.h"
 #include "nsCOMPtr.h"
-#include "nsIFileSpec.h"
+#include "nsIFile.h"
 #include "nsIComponentManager.h"
 #include "nsIServiceManager.h"
 #include "nsIIOService.h"
@@ -133,9 +133,9 @@ public:
 
 	/* void OnStopSending (in string aMsgID, in nsresult aStatus, in wstring aMsg, in nsIFileSpec returnFileSpec); */
 	NS_IMETHOD OnStopSending(const char *aMsgID, nsresult aStatus, const PRUnichar *aMsg, 
-						   nsIFileSpec *returnFileSpec) {
+						   nsIFile *returnFile) {
 		m_done = PR_TRUE;
-		m_location = returnFileSpec;
+		m_location = returnFile;
 		NS_IF_ADDREF( m_location);
 		return NS_OK;
 	}
@@ -152,7 +152,7 @@ public:
 
 public:
 	PRBool			m_done;
-	nsIFileSpec *	m_location;
+	nsIFile *	m_location;
 };
 
 
@@ -718,7 +718,7 @@ nsresult nsOutlookCompose::SendTheMessage( nsIFileSpec *pMsg, nsMsgDeliverMode m
 		nsCRT::free( pMimeType);
 
 	if (pListen->m_location) {
-		pMsg->FromFileSpec( pListen->m_location);
+                NS_NewFileSpecFromIFile(pListen->m_location, &pMsg);
 		rv = NS_OK;
 	}
 	else {

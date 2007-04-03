@@ -52,13 +52,14 @@ interface nsIImapMessageSink;
 interface nsIUrlListener;
 interface nsIURI;
 interface nsIEventTarget;
+interface nsIFile;
 interface nsIMsgFolder;
 interface nsIMsgWindow;
 interface nsIImapIncomingServer;
 interface nsICacheSession;
 
 
-[scriptable, uuid(0819ca53-746b-4072-896a-87a452dc5a77)]
+[scriptable, uuid(f05bce9f-66ec-40d3-ac89-0273bbcb4ed6)]
 interface nsIImapService : nsISupports
 {
 	// As always, you can pass in null for the url listener and the url if you don't require either.....
@@ -185,7 +186,7 @@ interface nsIImapService : nsISupports
 
 
   void appendMessageFromFile(in nsIEventTarget aClientEventTarget, 
-                             in nsIFileSpec aFileSpec,
+                             in nsIFile aFile,
                              in nsIMsgFolder aDstFolder,
                              in string aMessageId,
                              in boolean idsAreUids,

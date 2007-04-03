@@ -156,12 +156,6 @@ NS_IMETHODIMP nsRssService::GetShowComposeMsgLink(PRBool *aShowComposeMsgLink)
     return NS_OK;
 }
 
-NS_IMETHODIMP nsRssService::GetNeedToBuildSpecialFolderURIs(PRBool *aNeedToBuildSpecialFolderURIs)
-{
-    NS_ASSERTION(0,"foo");
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
 NS_IMETHODIMP nsRssService::GetSpecialFoldersDeletionAllowed(PRBool *aSpecialFoldersDeletionAllowed)
 {
     NS_ASSERTION(0,"foo");

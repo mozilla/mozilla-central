@@ -218,7 +218,8 @@ nsresult nsMailboxProtocol::Initialize(nsIURI * aURL)
   m_initialState = MAILBOX_READ_FOLDER;
   mCurrentProgress = 0;
   
-  NS_NewFileSpecFromIFile(m_tempMsgFile, getter_AddRefs(m_tempMessageFile));
+  // do we really need both?
+  m_tempMessageFile = m_tempMsgFile;
   return rv;
 }
 
@@ -399,8 +400,8 @@ PRInt32 nsMailboxProtocol::DoneReadingMessage()
   nsresult rv = NS_OK;
   // and close the article file if it was open....
   
-  if (m_mailboxAction == nsIMailboxUrl::ActionSaveMessageToDisk && m_tempMessageFile)
-    rv = m_tempMessageFile->CloseStream();
+  if (m_mailboxAction == nsIMailboxUrl::ActionSaveMessageToDisk && m_msgFileOutputStream)
+    rv = m_msgFileOutputStream->Close();
   
   return rv;
 }
@@ -510,7 +511,7 @@ nsresult nsMailboxProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer)
           {
             nsCOMPtr<nsIMsgMessageUrl> msgUri = do_QueryInterface(m_runningUrl);
             msgUri->GetMessageFile(getter_AddRefs(m_tempMessageFile));
-            m_tempMessageFile->OpenStreamForWriting();
+            NS_NewLocalFileOutputStream(getter_AddRefs(m_msgFileOutputStream), m_tempMessageFile, -1, 00600);
           }
         case nsIMailboxUrl::ActionCopyMessage:
         case nsIMailboxUrl::ActionMoveMessage:
@@ -631,18 +632,18 @@ PRInt32 nsMailboxProtocol::ReadMessageResponse(nsIInputStream * inputStream, PRU
         // mscott - the firstline hack is aimed at making sure we don't write
         // out the dummy header when we are trying to display the message.
         // The dummy header is the From line with the date tag on it.
-        if (m_tempMessageFile && TestFlag(MAILBOX_MSG_PARSE_FIRST_LINE))
+        if (m_msgFileOutputStream && TestFlag(MAILBOX_MSG_PARSE_FIRST_LINE))
         {
-          PRInt32 count = 0;
+          PRUint32 count = 0;
           if (line)
-            rv = m_tempMessageFile->Write(line, PL_strlen(line),
+            rv = m_msgFileOutputStream->Write(line, PL_strlen(line),
             &count);
           if (NS_FAILED(rv)) break;
           
           if (canonicalLineEnding)
-            rv = m_tempMessageFile->Write(CRLF, 2, &count);
+            rv = m_msgFileOutputStream->Write(CRLF, 2, &count);
           else
-            rv = m_tempMessageFile->Write(MSG_LINEBREAK,
+            rv = m_msgFileOutputStream->Write(MSG_LINEBREAK,
             MSG_LINEBREAK_LEN, &count);
           
           if (NS_FAILED(rv)) break;

@@ -67,7 +67,7 @@ interface nsIRequest;
 interface nsIMsgDBHdr;
 interface nsIMsgHdr;
 interface nsIDocShell;
-interface nsIFileSpec;
+interface nsIFile;
 interface nsIFile;
 interface nsIOutputStream;
 interface nsIMsgComposeSecure;
@@ -165,7 +165,7 @@ typedef struct nsMsgAttachedFile
 [ptr] native nsMsgAttachmentHandler(nsMsgAttachmentHandler);
 [ptr] native nsCString(nsCString);
 
-[scriptable, uuid(7d3aad47-b742-42b8-b5af-0af65cd1b366)]
+[scriptable, uuid(F9F9E2DA-967D-4598-8FD5-ECAF1D369366)]
 interface nsIMsgSend : nsISupports 
 {
   //
@@ -242,7 +242,7 @@ interface nsIMsgSend : nsISupports
     [noscript] void notifyListenerOnStartSending(in string aMsgID, in unsigned long aMsgSize);
     [noscript] void notifyListenerOnProgress(in string aMsgID, in unsigned long aProgress, in unsigned long aProgressMax);
     [noscript] void notifyListenerOnStatus(in string aMsgID, in wstring aMsg);
-    [noscript] void notifyListenerOnStopSending(in string aMsgID, in nsresult aStatus, in wstring aMsg, in nsIFileSpec returnFileSpec);
+    [noscript] void notifyListenerOnStopSending(in string aMsgID, in nsresult aStatus, in wstring aMsg, in nsIFile returnFile);
     [noscript] void deliverAsMailExit(in nsIURI aUrl, in nsresult aExitCode);
     [noscript] void deliverAsNewsExit(in nsIURI aUrl, in nsresult aExitCode);
 

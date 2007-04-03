@@ -898,7 +898,7 @@ nsresult nsImapService::DecomposeImapURI(const char * aMessageURI, nsIMsgFolder 
 }
 
 NS_IMETHODIMP nsImapService::SaveMessageToDisk(const char *aMessageURI, 
-                                               nsIFileSpec *aFile, 
+                                               nsIFile *aFile, 
                                                PRBool aAddDummyEnvelope, 
                                                nsIUrlListener *aUrlListener, 
                                                nsIURI **aURL,
@@ -1912,7 +1912,7 @@ nsImapService::OnlineMessageCopy(nsIEventTarget* aClientEventTarget,
     return rv;
 }
 
-nsresult nsImapService::OfflineAppendFromFile(nsIFileSpec* aFileSpec,
+nsresult nsImapService::OfflineAppendFromFile(nsIFile* aFile,
                                               nsIURI *aUrl,
                                      nsIMsgFolder* aDstFolder,
                                      const char* messageId, // te be replaced
@@ -1959,15 +1959,16 @@ nsresult nsImapService::OfflineAppendFromFile(nsIFileSpec* aFileSpec,
         nsCOMPtr <nsIMsgParseMailMsgState> msgParser = do_CreateInstance(NS_PARSEMAILMSGSTATE_CONTRACTID, &rv);
         msgParser->SetMailDB(destDB);
 
+        nsCOMPtr <nsILocalFile> localFile = do_QueryInterface(aFile);
         if (NS_SUCCEEDED(rv))
-          rv = aFileSpec->GetInputStream(getter_AddRefs(inputStream));
+          rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), localFile);
         if (NS_SUCCEEDED(rv) && inputStream)
         {
           // now, copy the temp file to the offline store for the dest folder.
           PRInt32 inputBufferSize = 10240;
           nsMsgLineStreamBuffer *inputStreamBuffer = new nsMsgLineStreamBuffer(inputBufferSize, PR_TRUE /* allocate new lines */, PR_FALSE /* leave CRLFs on the returned string */);
-          PRUint32 fileSize;
-          aFileSpec->GetFileSize(&fileSize);
+          PRInt64 fileSize;
+          aFile->GetFileSize(&fileSize);
           PRUint32 bytesWritten;
           rv = NS_OK;
 //            rv = inputStream->Read(inputBuffer, inputBufferSize, &bytesRead);
@@ -2007,8 +2008,8 @@ nsresult nsImapService::OfflineAppendFromFile(nsIFileSpec* aFileSpec,
             }
           }
           // tell the listener we're done.
+          inputStream->Close();
           inputStream = nsnull;
-          aFileSpec->CloseStream();
           aListener->OnStopRunningUrl(aUrl, NS_OK);
           delete inputStreamBuffer;
         }
@@ -2027,7 +2028,7 @@ nsresult nsImapService::OfflineAppendFromFile(nsIFileSpec* aFileSpec,
 /* imap://HOST>appenddraftfromfile>DESTINATIONMAILBOXPATH>UID>messageId */
 NS_IMETHODIMP
 nsImapService::AppendMessageFromFile(nsIEventTarget* aClientEventTarget,
-                                     nsIFileSpec* aFileSpec,
+                                     nsIFile* aFile,
                                      nsIMsgFolder* aDstFolder,
                                      const char* messageId, // te be replaced
                                      PRBool idsAreUids,
@@ -2038,7 +2039,7 @@ nsImapService::AppendMessageFromFile(nsIEventTarget* aClientEventTarget,
                                      nsIMsgWindow *aMsgWindow)
 {
     nsresult rv = NS_ERROR_NULL_POINTER;
-    if (!aClientEventTarget || !aFileSpec || !aDstFolder)
+    if (!aClientEventTarget || !aFile || !aDstFolder)
         return rv;
     
     nsCOMPtr<nsIImapUrl> imapUrl;
@@ -2057,7 +2058,7 @@ nsImapService::AppendMessageFromFile(nsIEventTarget* aClientEventTarget,
         }
 
         SetImapUrlSink(aDstFolder, imapUrl);
-        imapUrl->SetMsgFileSpec(aFileSpec);
+        imapUrl->SetMsgFile(aFile);
         imapUrl->SetCopyState(aCopyState);
 
         nsCOMPtr<nsIURI> uri = do_QueryInterface(imapUrl);
@@ -2088,7 +2089,7 @@ nsImapService::AppendMessageFromFile(nsIEventTarget* aClientEventTarget,
         rv = uri->SetSpec(urlSpec);
         if (WeAreOffline())
         {
-          return OfflineAppendFromFile(aFileSpec, uri, aDstFolder, messageId, inSelectedState, aListener, aURL, aCopyState);
+          return OfflineAppendFromFile(aFile, uri, aDstFolder, messageId, inSelectedState, aListener, aURL, aCopyState);
           // handle offline append to drafts or templates folder here.
         }
         if (NS_SUCCEEDED(rv))
@@ -2861,14 +2862,6 @@ nsImapService::GetShowComposeMsgLink(PRBool *showComposeMsgLink)
 {
     NS_ENSURE_ARG_POINTER(showComposeMsgLink);
     *showComposeMsgLink = PR_TRUE;
-    return NS_OK;
-}        
-
-NS_IMETHODIMP
-nsImapService::GetNeedToBuildSpecialFolderURIs(PRBool *needToBuildSpecialFolderURIs)
-{
-    NS_ENSURE_ARG_POINTER(needToBuildSpecialFolderURIs);
-    *needToBuildSpecialFolderURIs = PR_TRUE;
     return NS_OK;
 }        
 

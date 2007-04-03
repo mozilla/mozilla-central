@@ -4555,7 +4555,7 @@ nsMsgDBFolder::CopyFolder(nsIMsgFolder* srcFolder,
 }
 
 NS_IMETHODIMP
-nsMsgDBFolder::CopyFileMessage(nsIFileSpec* fileSpec,
+nsMsgDBFolder::CopyFileMessage(nsIFile* aFile,
                              nsIMsgDBHdr* messageToReplace,
                              PRBool isDraftOrTemplate,
                              PRUint32 aNewMsgFlags,

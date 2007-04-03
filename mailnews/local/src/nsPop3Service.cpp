@@ -595,15 +595,6 @@ nsPop3Service::GetShowComposeMsgLink(PRBool *showComposeMsgLink)
 }  
 
 NS_IMETHODIMP
-nsPop3Service::GetNeedToBuildSpecialFolderURIs(PRBool *needToBuildSpecialFolderURIs)
-{
-    NS_ENSURE_ARG_POINTER(needToBuildSpecialFolderURIs);
-    *needToBuildSpecialFolderURIs = PR_FALSE;
-    return NS_OK;
-}
-
-
-NS_IMETHODIMP
 nsPop3Service::GetDefaultServerPort(PRBool isSecure, PRInt32 *aPort)
 {
     NS_ENSURE_ARG_POINTER(aPort);

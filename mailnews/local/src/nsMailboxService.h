@@ -47,8 +47,7 @@
 #include "nsIURL.h"
 #include "nsIUrlListener.h"
 #include "nsIStreamListener.h"
-#include "nsFileSpec.h"
-#include "nsIFileSpec.h"
+#include "nsIFile.h"
 #include "nsIProtocolHandler.h"
 #include "nsIRDFService.h"
 

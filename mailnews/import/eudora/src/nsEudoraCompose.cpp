@@ -113,10 +113,9 @@ class EudoraSendListener : public nsIMsgSendListener
 public:
 	EudoraSendListener() {
 		m_done = PR_FALSE;
-		m_location = nsnull;
 	}
 
-	virtual ~EudoraSendListener() { NS_IF_RELEASE( m_location); }
+	virtual ~EudoraSendListener() { }
 
 	// nsISupports interface
 	NS_DECL_ISUPPORTS
@@ -132,10 +131,9 @@ public:
 
 	/* void OnStopSending (in string aMsgID, in nsresult aStatus, in wstring aMsg, in nsIFileSpec returnFileSpec); */
 	NS_IMETHOD OnStopSending(const char *aMsgID, nsresult aStatus, const PRUnichar *aMsg, 
-						   nsIFileSpec *returnFileSpec) {
+						   nsIFile *returnFile) {
 		m_done = PR_TRUE;
-		m_location = returnFileSpec;
-		NS_IF_ADDREF( m_location);
+		m_location = returnFile;
 		return NS_OK;
 	}
 
@@ -147,11 +145,11 @@ public:
 
 	static nsresult CreateSendListener( nsIMsgSendListener **ppListener);
 
-	void Reset() { m_done = PR_FALSE; NS_IF_RELEASE( m_location); m_location = nsnull;}
+	void Reset() { m_done = PR_FALSE;  m_location = nsnull;}
 
 public:
 	PRBool			m_done;
-	nsIFileSpec *	m_location;
+	nsCOMPtr <nsIFile> 	m_location;
 };
 
 
@@ -777,7 +775,7 @@ nsresult nsEudoraCompose::SendTheMessage( nsIFileSpec *pMsg)
 		nsCRT::free( pMimeType);
 
 	if (pListen->m_location) {
-		pMsg->FromFileSpec( pListen->m_location);
+                NS_NewFileSpecFromIFile(pListen->m_location, &pMsg);
 		rv = NS_OK;
 	}
 	else {

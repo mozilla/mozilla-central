@@ -61,6 +61,7 @@
 #include "nsIMsgMailSession.h"
 #include "nsNetUtil.h"
 #include "nsIFileURL.h"
+#include "nsIFileSpec.h"
 
 static NS_DEFINE_CID(kCMailDB, NS_MAILDB_CID);
 
@@ -83,7 +84,7 @@ nsMailboxUrl::nsMailboxUrl()
   m_messageID = nsnull;
   m_messageKey = nsMsgKey_None;
   m_messageSize = 0;
-  m_messageFileSpec = nsnull;
+  m_messageFile = nsnull;
   m_addDummyEnvelope = PR_FALSE;
   m_canonicalLineEnding = PR_FALSE;
   m_curMsgIndex = 0;
@@ -91,7 +92,6 @@ nsMailboxUrl::nsMailboxUrl()
  
 nsMailboxUrl::~nsMailboxUrl()
 {
-    delete m_filePath;
     PR_Free(m_messageID);
 }
 
@@ -193,9 +193,7 @@ NS_IMETHODIMP nsMailboxUrl::GetUri(char ** aURI)
     *aURI = ToNewCString(mURI);
   else
   {
-    nsFileSpec * filePath = nsnull;
-    filePath = m_filePath;
-    if (filePath)
+    if (m_filePath)
     {
       nsCAutoString baseUri;
       // we blow off errors here so that we can open attachments
@@ -207,7 +205,6 @@ NS_IMETHODIMP nsMailboxUrl::GetUri(char ** aURI)
       nsCreateLocalBaseMessageURI(baseUri.get(), &baseMessageURI);
       char * uri = nsnull;
       nsCAutoString uriStr;
-      nsFileSpec folder = *filePath;
       nsBuildLocalMessageURI(baseMessageURI, m_messageKey, uriStr);
       nsCRT::free(baseMessageURI);
       uri = ToNewCString(uriStr);
@@ -230,7 +227,7 @@ nsresult nsMailboxUrl::GetMsgHdrForKey(nsMsgKey  msgKey, nsIMsgDBHdr ** aMsgHdr)
     
     nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
     nsCOMPtr <nsIFileSpec> dbFileSpec;
-    NS_NewFileSpecWithSpec(*m_filePath, getter_AddRefs(dbFileSpec));
+    rv = NS_NewFileSpecFromIFile(m_filePath, getter_AddRefs(dbFileSpec));
     
     if (msgDBService)
       rv = msgDBService->OpenMailDBFromFileSpec(dbFileSpec, PR_FALSE, PR_FALSE, (nsIMsgDatabase **) getter_AddRefs(mailDB));
@@ -283,19 +280,17 @@ nsMailboxUrl::SetOriginalSpec(const char *aSpec)
     return NS_OK;
 }
 
-NS_IMETHODIMP nsMailboxUrl::SetMessageFile(nsIFileSpec * aFileSpec)
+NS_IMETHODIMP nsMailboxUrl::SetMessageFile(nsIFile * aFile)
 {
-  m_messageFileSpec = aFileSpec;
+  m_messageFile = aFile;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMailboxUrl::GetMessageFile(nsIFileSpec ** aFileSpec)
+NS_IMETHODIMP nsMailboxUrl::GetMessageFile(nsIFile ** aFile)
 {
-  if (aFileSpec)
-  {
-    *aFileSpec = m_messageFileSpec;
-    NS_IF_ADDREF(*aFileSpec);
-  }
+  // why don't we return an error for null aFile?
+  if (aFile)
+    NS_IF_ADDREF(*aFile = m_messageFile);
   return NS_OK;
 }
 
@@ -360,7 +355,6 @@ nsresult nsMailboxUrl::ParseSearchPart()
 // warning: don't assume when parsing the url that the protocol part is "news"...
 nsresult nsMailboxUrl::ParseUrl()
 {
-  delete m_filePath;
   GetFilePath(m_file);
 
   ParseSearchPart();
@@ -370,7 +364,22 @@ nsresult nsMailboxUrl::ParseUrl()
   if (strlen(m_file) < 2)
     m_filePath = nsnull;
   else
-    m_filePath = new nsFileSpec(nsFilePath(nsUnescape((char *) (const char *)m_file)));
+  {
+    nsCString fileUri("file://");
+    fileUri.Append(m_file);
+    nsresult rv;
+    nsCOMPtr<nsIIOService> ioService = do_GetService(NS_IOSERVICE_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr <nsIURI> uri;
+    rv = ioService->NewURI(fileUri, nsnull, nsnull, getter_AddRefs(uri));
+    NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr <nsIFileURL> fileURL = do_QueryInterface(uri);
+    NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr <nsIFile> fileURLFile;
+    fileURL->GetFile(getter_AddRefs(fileURLFile));
+    m_filePath = do_QueryInterface(fileURLFile, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);    
+  }
 
   GetPath(m_file);
   return NS_OK;

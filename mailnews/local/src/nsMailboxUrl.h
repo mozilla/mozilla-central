@@ -40,8 +40,7 @@
 
 #include "nsIMailboxUrl.h"
 #include "nsMsgMailNewsUrl.h"
-#include "nsFileSpec.h"
-#include "nsIFileSpec.h"
+#include "nsIFile.h"
 #include "nsCOMPtr.h"
 #include "nsXPIDLString.h"
 #include "nsMsgKeyArray.h"
@@ -93,14 +92,14 @@ protected:
 	nsCOMPtr<nsIStreamListener> m_mailboxCopyHandler;
 
 	nsMailboxAction m_mailboxAction; // the action this url represents...parse mailbox, display messages, etc.
-	nsFileSpec	*m_filePath; 
+	nsCOMPtr <nsILocalFile>	m_filePath; 
 	char		*m_messageID;
 	PRUint32	m_messageSize;
 	nsMsgKey	m_messageKey;
 	nsXPIDLCString m_file;
 
 	// used by save message to disk
-	nsCOMPtr<nsIFileSpec> m_messageFileSpec;
+	nsCOMPtr<nsIFile> m_messageFile;
   PRBool                m_addDummyEnvelope;
   PRBool                m_canonicalLineEnding;
 	nsresult ParseSearchPart();

@@ -61,17 +61,18 @@ interface nsIMsgFilterList;
 
 interface nsIMsgFolderCacheElement;
 interface nsITransport;
-interface nsIFileSpec;
+interface nsIFile;
 interface nsIOutputStream;
 interface nsIInputStream;
 interface nsILocalFile;
 interface nsIMsgIdentity;
+interface nsIFileSpec;
 
 typedef long nsMsgBiffState;
 // enumerated type for determining if a message has been replied to, forwarded, etc.
 typedef long nsMsgDispositionState;
 
-[scriptable, uuid(83d2454c-632e-4d6e-900a-7236a6d2aa9a)]
+[scriptable, uuid(f636bca2-3feb-4113-9773-d8b15f98b509)]
 interface nsIMsgFolder : nsICollection {
 
 const nsMsgBiffState nsMsgBiffState_NewMail = 0; // User has new mail waiting.
@@ -302,7 +303,7 @@ const nsMsgBiffState nsMsgBiffState_Unknown = 2; // We dunno whether there is ne
   void copyFolder(in nsIMsgFolder srcFolder, in boolean isMoveFolder,
                   in nsIMsgWindow msgWindow, in nsIMsgCopyServiceListener listener );
 
-  void copyFileMessage(in nsIFileSpec fileSpec, in nsIMsgDBHdr msgToReplace,
+  void copyFileMessage(in nsIFile file, in nsIMsgDBHdr msgToReplace,
                        in boolean isDraft, in unsigned long newMsgFlags,
                        in nsIMsgWindow msgWindow,
                        in nsIMsgCopyServiceListener listener);

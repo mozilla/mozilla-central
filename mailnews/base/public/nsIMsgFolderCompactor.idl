@@ -40,7 +40,6 @@
 
 interface nsIMsgFolder;
 interface nsIMsgDatabase;
-interface nsIFileSpec;
 interface nsIMsgWindow;
 
 [scriptable, uuid(2af7d7a2-e5b6-11d4-a5b7-0060b0fc04b7)]

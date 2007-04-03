@@ -48,32 +48,32 @@ interface nsIMsgDBHdr;
 
 interface nsITransactionManager;
 interface nsIMsgWindow;
-interface nsIFileSpec;
+interface nsIFile;
 
-[scriptable, uuid(c9255b88-5e0f-4614-8fdc-ebb97a0f333e)]
+[scriptable, uuid(f0ee3821-e382-43de-9b71-bd9a4a594fcb)]
 interface nsIMsgCopyService : nsISupports {
 
     /**
      *
      */
-	void CopyMessages(in nsIMsgFolder srcFolder,
-	                  in nsISupportsArray messages,
-					          in nsIMsgFolder dstFolder,
-					          in boolean isMove,
-                    in nsIMsgCopyServiceListener listener,
-					          in nsIMsgWindow msgWindow,
-					          in boolean allowUndo);
+    void CopyMessages(in nsIMsgFolder srcFolder,
+                      in nsISupportsArray messages,
+                      in nsIMsgFolder dstFolder,
+                      in boolean isMove,
+                      in nsIMsgCopyServiceListener listener,
+                      in nsIMsgWindow msgWindow,
+                      in boolean allowUndo);
 
     /**
      *
      */
-	void CopyFolders( in nsISupportsArray folders,
+    void CopyFolders( in nsISupportsArray folders,
                       in nsIMsgFolder dstFolder,
                       in boolean isMove,
                       in nsIMsgCopyServiceListener listener,
                       in nsIMsgWindow msgWindow);
 
-    void CopyFileMessage(in nsIFileSpec fileSpec,
+    void CopyFileMessage(in nsIFile aFile,
                          in nsIMsgFolder dstFolder,
                          in nsIMsgDBHdr msgToReplace,
                          in boolean isDraftOrTemplate,
@@ -88,12 +88,12 @@ interface nsIMsgCopyService : nsISupports {
      * aSupport and dstFolder uniquely identify a copy service request.
      *
      * aSupport -- the originator of CopyMessages or CopyFileMessage; it can
-     *             be either a nsIMsgFolder or a nsIFileSpec
+     *             be either a nsIMsgFolder or a nsIFile
      * dstFolder -- the destination folder which performs the copy operation
      * result -- the result of the copy operation
      */
 	void NotifyCompletion(in nsISupports aSupport,
-						            in nsIMsgFolder dstFolder,
-                        in nsresult result);
+                              in nsIMsgFolder dstFolder,
+                              in nsresult result);
 
 };

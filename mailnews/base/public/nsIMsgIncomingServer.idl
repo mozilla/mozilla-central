@@ -39,7 +39,6 @@
 #include "nsISupports.idl"
 #include "MailNewsTypes2.idl"
 
-interface nsIFileSpec;
 interface nsIMsgFolder;
 interface nsIMsgFolderCache;
 interface nsIMsgWindow;
@@ -480,18 +479,6 @@ NS_IMETHODIMP	   								\
 _class::Set##_postfix(PRInt32 ivalue)			\
 {												\
   return SetIntValue(_prefname, ivalue);			\
-}
-
-#define NS_IMPL_SERVERPREF_FILE(_class, _postfix, _prefname)\
-NS_IMETHODIMP								   	\
-_class::Get##_postfix(nsIFileSpec **retval)   		\
-{											   	\
-  return GetFileValue(_prefname, retval);			\
-}												\
-NS_IMETHODIMP	   								\
-_class::Set##_postfix(nsIFileSpec* ivalue)			\
-{												\
-  return SetFileValue(_prefname, ivalue);			\
 }
 
 

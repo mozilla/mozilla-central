@@ -41,8 +41,7 @@
 #include "nsINntpUrl.h"
 #include "nsMsgMailNewsUrl.h"
 #include "nsINNTPNewsgroupPost.h"
-#include "nsFileSpec.h"
-#include "nsIFileSpec.h"
+#include "nsIFile.h"
 
 class nsNntpUrl : public nsINntpUrl, public nsMsgMailNewsUrl, public nsIMsgMessageUrl, public nsIMsgI18NUrl
 {
@@ -77,10 +76,10 @@ private:
   nsCString mCharsetOverride; // used by nsIMsgI18NUrl...
 
   nsCString mOriginalSpec;
-  nsFileSpec	*m_filePath; 
+  nsCOMPtr <nsILocalFile>  m_filePath; 
     
   // used by save message to disk
-	nsCOMPtr<nsIFileSpec> m_messageFileSpec;
+	nsCOMPtr<nsIFile> m_messageFile;
 
   PRPackedBool  m_addDummyEnvelope;
   PRPackedBool  m_canonicalLineEnding;

@@ -226,19 +226,16 @@ NS_IMETHODIMP nsNntpUrl::GetUri(char ** aURI)
 NS_IMPL_GETSET(nsNntpUrl, AddDummyEnvelope, PRBool, m_addDummyEnvelope)
 NS_IMPL_GETSET(nsNntpUrl, CanonicalLineEnding, PRBool, m_canonicalLineEnding)
 
-NS_IMETHODIMP nsNntpUrl::SetMessageFile(nsIFileSpec * aFileSpec)
+NS_IMETHODIMP nsNntpUrl::SetMessageFile(nsIFile * aFile)
 {
-	m_messageFileSpec = aFileSpec;
+	m_messageFile = aFile;
 	return NS_OK;
 }
 
-NS_IMETHODIMP nsNntpUrl::GetMessageFile(nsIFileSpec ** aFileSpec)
+NS_IMETHODIMP nsNntpUrl::GetMessageFile(nsIFile ** aFile)
 {
-	if (aFileSpec)
-	{
-		*aFileSpec = m_messageFileSpec;
-		NS_IF_ADDREF(*aFileSpec);
-	}
+	if (aFile)
+		NS_IF_ADDREF(*aFile = m_messageFile);
 	return NS_OK;
 }
 
