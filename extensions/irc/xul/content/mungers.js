@@ -116,15 +116,21 @@ function initMunger()
                    insertHyphenatedWord, LOW_PRIORITY, NORMAL_PRIORITY);
 
     client.enableColors = client.prefs["munger.colorCodes"];
-    for (var entry in client.munger.entries)
+    var branch = client.prefManager.prefBranch;
+    for (var entry in munger.entries)
     {
-        var branch = client.prefManager.prefBranch;
-        if (entry[0] != ".")
+        if (!isinstance(munger.entries[entry], Object))
+            continue;
+
+        for (var rule in munger.entries[entry])
         {
+            if (rule[0] == ".")
+                continue;
+
             try
             {
-                munger.entries[entry].enabled =
-                    branch.getBoolPref("munger." + entry);
+                munger.entries[entry][rule].enabled =
+                    branch.getBoolPref("munger." + rule);
             }
             catch (ex)
             {
