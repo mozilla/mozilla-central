@@ -64,7 +64,6 @@ REQUIRES =	xpcom \
 		$(NULL)
 
 CPPSRCS		= \
-		nsTextStringBundle.cpp			\
 		nsTextImport.cpp				\
 		nsTextAddress.cpp 				\
 		$(NULL)

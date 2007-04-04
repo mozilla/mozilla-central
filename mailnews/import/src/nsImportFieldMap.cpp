@@ -87,7 +87,7 @@ nsImportFieldMap::nsImportFieldMap(nsIStringBundle *aBundle)
 	for (PRInt32 i = IMPORT_FIELD_DESC_START; i <= IMPORT_FIELD_DESC_END; i++, m_mozFieldCount++) {
 		pStr = new nsString();
     if (pBundle) {
-      nsImportStringBundle::GetStringByID( i, *pStr, pBundle);
+      nsImportStringBundle::GetStringByID(i, pBundle, *pStr);
 		}
 		else
 			pStr->AppendInt( i);

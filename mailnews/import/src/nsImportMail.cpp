@@ -502,7 +502,7 @@ NS_IMETHODIMP nsImportGenericMail::BeginImport(nsISupportsString *successLog, ns
 
 	if (!m_doImport) {
     nsImportStringBundle::GetStringByID(IMPORT_NO_MAILBOXES,
-                                        success, m_stringBundle);
+                                        m_stringBundle, success);
 		SetLogs( success, error, successLog, errorLog);			
 		*_retval = PR_TRUE;
 		return( NS_OK);		
@@ -511,7 +511,7 @@ NS_IMETHODIMP nsImportGenericMail::BeginImport(nsISupportsString *successLog, ns
 	if (!m_pInterface || !m_pMailboxes) {
     IMPORT_LOG0( "*** BeginImport: Either the interface or source mailbox is not set properly.");
     nsImportStringBundle::GetStringByID(IMPORT_ERROR_MB_NOTINITIALIZED,
-                                        error, m_stringBundle);
+                                        m_stringBundle, error);
 		SetLogs( success, error, successLog, errorLog);
 		*_retval = PR_FALSE;
 		return( NS_OK);
@@ -520,7 +520,7 @@ NS_IMETHODIMP nsImportGenericMail::BeginImport(nsISupportsString *successLog, ns
 	if (!m_pDestFolder) {
     IMPORT_LOG0( "*** BeginImport: The destination mailbox is not set properly.");
     nsImportStringBundle::GetStringByID(IMPORT_ERROR_MB_NODESTFOLDER,
-                                        error, m_stringBundle);
+                                        m_stringBundle, error);
 		SetLogs( success, error, successLog, errorLog);
 		*_retval = PR_FALSE;
 		return( NS_OK);
@@ -570,7 +570,7 @@ NS_IMETHODIMP nsImportGenericMail::BeginImport(nsISupportsString *successLog, ns
 		m_pThreadData = nsnull;
 		*_retval = PR_FALSE;
     nsImportStringBundle::GetStringByID(IMPORT_ERROR_MB_NOTHREAD,
-                                        error, m_stringBundle);
+                                        m_stringBundle, error);
 		SetLogs( success, error, successLog, errorLog);
 	}
 	else
@@ -833,7 +833,8 @@ ImportMailThread( void *stuff)
                                    getter_AddRefs( curProxy));
 				if (NS_FAILED( rv)) {
           IMPORT_LOG1("*** ImportMailThread: Failed to get the proxy interface for child folder '%s'.", NS_ConvertUTF16toUTF8(lastName).get());
-					nsImportStringBundle::GetStringByID( IMPORT_ERROR_MB_NOPROXY, error, pBundle);
+					nsImportStringBundle::GetStringByID(IMPORT_ERROR_MB_NOPROXY, pBundle,
+                                               error);
 					pData->fatalError = PR_TRUE;
 					break;
 				}
@@ -862,7 +863,8 @@ ImportMailThread( void *stuff)
 				}
 				if (NS_FAILED( rv)) {
           IMPORT_LOG1("*** ImportMailThread: Failed to get the proxy interface for parent folder '%s'.", lastName.get());
-          nsImportStringBundle::GetStringByID( IMPORT_ERROR_MB_NOPROXY, error, pBundle);
+          nsImportStringBundle::GetStringByID(IMPORT_ERROR_MB_NOPROXY, pBundle,
+                                              error);
 					pData->fatalError = PR_TRUE;
 					break;
 				}

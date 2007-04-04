@@ -45,10 +45,15 @@ class nsIStringBundle;
 class nsImportStringBundle
 {
 public:
-  static PRUnichar* GetStringByID(PRInt32 stringID, nsIStringBundle *pBundle = nsnull);
-  static void GetStringByID(PRInt32 stringID, nsString& result, nsIStringBundle *pBundle);
-  static nsresult GetStringBundle(const char* pPropertyURL, nsIStringBundle** aBundle);
-  static nsresult GetStringBundleProxy(nsIStringBundle* aOriginalBundle, nsIStringBundle **aProxy);
+  static PRUnichar* GetStringByID(PRInt32 aStringID,
+                                  nsIStringBundle *aBundle = nsnull);
+  static void GetStringByID(PRInt32 aStringID,
+                            nsIStringBundle *aBundle,
+                            nsString &aResult);
+  static nsresult GetStringBundle(const char *aPropertyURL,
+                                  nsIStringBundle **aBundle);
+  static nsresult GetStringBundleProxy(nsIStringBundle *aOriginalBundle,
+                                       nsIStringBundle **aProxy);
 };
 
 #define IMPORT_MSGS_URL       "chrome://messenger/locale/importMsgs.properties"

@@ -44,7 +44,8 @@
 #include "nsIProxyObjectManager.h"
 #include "nsIURI.h"
 
-nsresult nsImportStringBundle::GetStringBundle(const char* aPropertyURL, nsIStringBundle** aBundle)
+nsresult nsImportStringBundle::GetStringBundle(const char *aPropertyURL,
+                                               nsIStringBundle **aBundle)
 {
   nsresult rv;
 
@@ -57,7 +58,8 @@ nsresult nsImportStringBundle::GetStringBundle(const char* aPropertyURL, nsIStri
   return rv;
 }
 
-nsresult nsImportStringBundle::GetStringBundleProxy(nsIStringBundle* aOriginalBundle, nsIStringBundle **aProxy)
+nsresult nsImportStringBundle::GetStringBundleProxy(nsIStringBundle *aOriginalBundle,
+                                                    nsIStringBundle **aProxy)
 {
 	// create a proxy object if we aren't on the same thread?
   return NS_GetProxyForObject( NS_PROXY_TO_MAIN_THREAD,
@@ -67,24 +69,27 @@ nsresult nsImportStringBundle::GetStringBundleProxy(nsIStringBundle* aOriginalBu
                                (void **) aProxy);
 }
 
-void nsImportStringBundle::GetStringByID(PRInt32 stringID, nsString& result, nsIStringBundle *aBundle)
+void nsImportStringBundle::GetStringByID(PRInt32 aStringID,
+                                         nsIStringBundle *aBundle,
+                                         nsString &aResult)
 {
-  result.Adopt(GetStringByID(stringID, aBundle));
+  aResult.Adopt(GetStringByID(aStringID, aBundle));
 }
 
-PRUnichar *nsImportStringBundle::GetStringByID(PRInt32 stringID, nsIStringBundle *aBundle)
+PRUnichar *nsImportStringBundle::GetStringByID(PRInt32 aStringID,
+                                               nsIStringBundle *aBundle)
 {
   if (aBundle)
   {
     PRUnichar *ptrv = nsnull;
-    nsresult rv = aBundle->GetStringFromID(stringID, &ptrv);
-				
+    nsresult rv = aBundle->GetStringFromID(aStringID, &ptrv);
+
     if (NS_SUCCEEDED(rv) && ptrv)
       return(ptrv);
   }
 
   nsString resultString(NS_LITERAL_STRING("[StringID "));
-  resultString.AppendInt(stringID);
+  resultString.AppendInt(aStringID);
   resultString.AppendLiteral("?]");
 
   return ToNewUnicode(resultString);

@@ -55,7 +55,6 @@
 // text import Include Files
 ////////////////////////////////////////////////////////////////////////////////
 #include "nsTextImport.h"
-#include "nsTextStringBundle.h"
 
 static NS_DEFINE_CID(kTextImportCID,    	NS_TEXTIMPORT_CID);
 
@@ -273,8 +272,6 @@ static const nsModuleComponentInfo components[] = {
 
 PR_STATIC_CALLBACK(void) importModuleDtor(nsIModule* self)
 {
-    nsTextStringBundle::Cleanup();
-
 #if defined(XP_WIN) || defined(XP_MACOSX)
     nsEudoraStringBundle::Cleanup();
 #endif

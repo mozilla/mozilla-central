@@ -68,8 +68,7 @@
 #include "nsIAbLDIFService.h"
 #include "nsAbBaseCID.h"
 #include "nsTextFormatter.h"
-#include "nsTextStringBundle.h"
-#include "nsIStringBundle.h"
+#include "nsImportStringBundle.h"
 #include "nsTextAddress.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
@@ -79,15 +78,25 @@
 #include "nsIFileSpec.h"
 #include "nsNetUtil.h"
 
+#define TEXT_MSGS_URL "chrome://messenger/locale/textImportMsgs.properties"
+#define TEXTIMPORT_NAME                  2000
+#define TEXTIMPORT_DESCRIPTION           2001
+#define TEXTIMPORT_ADDRESS_NAME          2002
+#define TEXTIMPORT_ADDRESS_SUCCESS       2003
+#define TEXTIMPORT_ADDRESS_BADPARAM      2004
+#define TEXTIMPORT_ADDRESS_BADSOURCEFILE 2005
+#define TEXTIMPORT_ADDRESS_CONVERTERROR  2006
+
 static NS_DEFINE_IID(kISupportsIID,			NS_ISUPPORTS_IID);
 PRLogModuleInfo* TEXTIMPORTLOGMODULE;
 
 class ImportAddressImpl : public nsIImportAddressBooks
 {
 public:
-    ImportAddressImpl();
+  ImportAddressImpl(nsIStringBundle* aStringBundle);
 
-	static nsresult Create(nsIImportAddressBooks** aImport);
+  static nsresult Create(nsIImportAddressBooks** aImport,
+                         nsIStringBundle *aStringBundle);
 
     // nsISupports interface
     NS_DECL_ISUPPORTS
@@ -132,15 +141,19 @@ private:
 	void	ClearSampleFile( void);
 	void	SaveFieldMap( nsIImportFieldMap *pMap);
 
-	static void	ReportSuccess( nsString& name, nsString *pStream);
-	static void SetLogs( nsString& success, nsString& error, PRUnichar **pError, PRUnichar **pSuccess);
-	static void ReportError( PRInt32 errorNum, nsString& name, nsString *pStream);
-	static void	SanitizeSampleData( nsCString& val);
+  static void ReportSuccess(nsString& name, nsString *pStream,
+                            nsIStringBundle* pBundle);
+  static void SetLogs(nsString& success, nsString& error, PRUnichar **pError,
+                      PRUnichar **pSuccess);
+  static void ReportError(PRInt32 errorNum, nsString& name, nsString *pStream,
+                          nsIStringBundle* pBundle);
+  static void SanitizeSampleData(nsCString& val);
 
 private:
   nsTextAddress m_text;
   PRBool m_haveDelim;
   nsCOMPtr<nsILocalFile> m_fileLoc;
+  nsCOMPtr<nsIStringBundle> m_notProxyBundle;
   char m_delim;
   PRUint32 m_bytesImported;
 };
@@ -157,9 +170,9 @@ nsTextImport::nsTextImport()
     TEXTIMPORTLOGMODULE = PR_NewLogModule("IMPORT");
 	IMPORT_LOG0( "nsTextImport Module Created\n");
 
-	nsTextStringBundle::GetStringBundle();
+  nsImportStringBundle::GetStringBundle(TEXT_MSGS_URL,
+                                        getter_AddRefs(m_stringBundle));
 }
-
 
 nsTextImport::~nsTextImport()
 {
@@ -175,24 +188,21 @@ NS_IMPL_ISUPPORTS1(nsTextImport, nsIImportModule)
 
 NS_IMETHODIMP nsTextImport::GetName( PRUnichar **name)
 {
-    NS_PRECONDITION(name != nsnull, "null ptr");
-    if (! name)
-        return NS_ERROR_NULL_POINTER;
+  NS_ENSURE_ARG_POINTER(name);
 
-	*name = nsTextStringBundle::GetStringByID( TEXTIMPORT_NAME);
-		
-    return NS_OK;
+  *name = nsImportStringBundle::GetStringByID(TEXTIMPORT_NAME, m_stringBundle);
+
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsTextImport::GetDescription( PRUnichar **name)
 {
-    NS_PRECONDITION(name != nsnull, "null ptr");
-    if (! name)
-        return NS_ERROR_NULL_POINTER;
+  NS_ENSURE_ARG_POINTER(name);
 
-	*name = nsTextStringBundle::GetStringByID( TEXTIMPORT_DESCRIPTION);
-		
-    return NS_OK;
+  *name = nsImportStringBundle::GetStringByID(TEXTIMPORT_DESCRIPTION,
+                                              m_stringBundle);
+
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsTextImport::GetSupports( char **supports)
@@ -232,7 +242,7 @@ NS_IMETHODIMP nsTextImport::GetImportInterface( const char *pImportType, nsISupp
 		// create the nsIImportMail interface and return it!
 		nsIImportAddressBooks *	pAddress = nsnull;
 		nsIImportGeneric *		pGeneric = nsnull;
-		rv = ImportAddressImpl::Create( &pAddress);
+    rv = ImportAddressImpl::Create(&pAddress, m_stringBundle);
 		if (NS_SUCCEEDED( rv)) {
 			nsCOMPtr<nsIImportService> impSvc(do_GetService(NS_IMPORTSERVICE_CONTRACTID, &rv));
 			if (NS_SUCCEEDED( rv)) {
@@ -255,13 +265,14 @@ NS_IMETHODIMP nsTextImport::GetImportInterface( const char *pImportType, nsISupp
 
 
 
-nsresult ImportAddressImpl::Create(nsIImportAddressBooks** aImport)
+nsresult ImportAddressImpl::Create(nsIImportAddressBooks** aImport,
+                                   nsIStringBundle* aStringBundle)
 {
     NS_PRECONDITION(aImport != nsnull, "null ptr");
     if (! aImport)
         return NS_ERROR_NULL_POINTER;
 
-    *aImport = new ImportAddressImpl();
+    *aImport = new ImportAddressImpl(aStringBundle);
     if (! *aImport)
         return NS_ERROR_OUT_OF_MEMORY;
 
@@ -270,7 +281,8 @@ nsresult ImportAddressImpl::Create(nsIImportAddressBooks** aImport)
     return NS_OK;
 }
 
-ImportAddressImpl::ImportAddressImpl()
+ImportAddressImpl::ImportAddressImpl(nsIStringBundle* aStringBundle) :
+  m_notProxyBundle(aStringBundle)
 {
 	m_haveDelim = PR_FALSE;
 }
@@ -287,7 +299,18 @@ NS_IMETHODIMP ImportAddressImpl::GetAutoFind(PRUnichar **addrDescription, PRBool
     
     nsString	str;
     *_retval = PR_FALSE;
-    nsTextStringBundle::GetStringByID( TEXTIMPORT_ADDRESS_NAME, str);
+
+    if (!m_notProxyBundle)
+      return NS_ERROR_FAILURE;
+
+    nsCOMPtr<nsIStringBundle> proxy;
+    nsresult rv =
+      nsImportStringBundle::GetStringBundleProxy(m_notProxyBundle,
+                                                 getter_AddRefs(proxy));
+    NS_ENSURE_SUCCESS(rv, rv);
+    
+    nsImportStringBundle::GetStringByID(TEXTIMPORT_ADDRESS_NAME, proxy, str);
+
     *addrDescription = ToNewUnicode(str);
     
     return( NS_OK);
@@ -411,36 +434,36 @@ NS_IMETHODIMP ImportAddressImpl::FindAddressBooks(nsIFileSpec *pLoc, nsISupports
 	return( rv);
 }
 
-	
-
-void ImportAddressImpl::ReportSuccess( nsString& name, nsString *pStream)
+void ImportAddressImpl::ReportSuccess(nsString& name, nsString *pStream,
+                                      nsIStringBundle* pBundle)
 {
-	if (!pStream)
-		return;
-	// load the success string
-	nsIStringBundle *pBundle = nsTextStringBundle::GetStringBundleProxy();
-	PRUnichar *pFmt = nsTextStringBundle::GetStringByID( TEXTIMPORT_ADDRESS_SUCCESS, pBundle);
-	PRUnichar *pText = nsTextFormatter::smprintf( pFmt, name.get());
-	pStream->Append( pText);
-	nsTextFormatter::smprintf_free( pText);
-	nsTextStringBundle::FreeString( pFmt);
-	pStream->Append( PRUnichar(nsCRT::LF));
-	NS_IF_RELEASE( pBundle);
+  if (!pStream)
+    return;
+
+  // load the success string
+  PRUnichar *pFmt =
+    nsImportStringBundle::GetStringByID(TEXTIMPORT_ADDRESS_SUCCESS, pBundle);
+
+  PRUnichar *pText = nsTextFormatter::smprintf(pFmt, name.get());
+  pStream->Append(pText);
+  nsTextFormatter::smprintf_free(pText);
+  NS_Free(pFmt);
+  pStream->Append(PRUnichar(nsCRT::LF));
 }
 
-void ImportAddressImpl::ReportError( PRInt32 errorNum, nsString& name, nsString *pStream)
+void ImportAddressImpl::ReportError(PRInt32 errorNum, nsString& name,
+                                    nsString *pStream, nsIStringBundle* pBundle)
 {
-	if (!pStream)
-		return;
-	// load the error string
-	nsIStringBundle *pBundle = nsTextStringBundle::GetStringBundleProxy();
-	PRUnichar *pFmt = nsTextStringBundle::GetStringByID( errorNum, pBundle);
-	PRUnichar *pText = nsTextFormatter::smprintf( pFmt, name.get());
-	pStream->Append( pText);
-	nsTextFormatter::smprintf_free( pText);
-	nsTextStringBundle::FreeString( pFmt);
-	pStream->Append( PRUnichar(nsCRT::LF));
-	NS_IF_RELEASE( pBundle);
+  if (!pStream)
+    return;
+
+  // load the error string
+  PRUnichar *pFmt = nsImportStringBundle::GetStringByID(errorNum, pBundle);
+  PRUnichar *pText = nsTextFormatter::smprintf(pFmt, name.get());
+  pStream->Append(pText);
+  nsTextFormatter::smprintf_free(pText);
+  NS_Free(pFmt);
+  pStream->Append(PRUnichar(nsCRT::LF));
 }
 
 void ImportAddressImpl::SetLogs( nsString& success, nsString& error, PRUnichar **pError, PRUnichar **pSuccess)
@@ -463,19 +486,28 @@ NS_IMETHODIMP ImportAddressImpl::ImportAddressBook(	nsIImportABDescriptor *pSour
     NS_PRECONDITION(pSource != nsnull, "null ptr");
     NS_PRECONDITION(pDestination != nsnull, "null ptr");
     NS_PRECONDITION(fatalError != nsnull, "null ptr");
+
+  nsCOMPtr<nsIStringBundle> pBundle;
+  nsresult rv =
+    nsImportStringBundle::GetStringBundleProxy(m_notProxyBundle,
+                                               getter_AddRefs(pBundle));
+  NS_ENSURE_SUCCESS(rv, rv);
 	
-	nsCOMPtr<nsIStringBundle>	bundle( dont_AddRef( nsTextStringBundle::GetStringBundleProxy()));
 	m_bytesImported = 0;
 
-	nsString	success;
-	nsString	error;
-    if (!pSource || !pDestination || !fatalError) {
-		IMPORT_LOG0( "*** Bad param passed to text address import\n");
-		nsTextStringBundle::GetStringByID( TEXTIMPORT_ADDRESS_BADPARAM, error, bundle);
-		if (fatalError)
-			*fatalError = PR_TRUE;
-		SetLogs( success, error, pErrorLog, pSuccessLog);
-	    return( NS_ERROR_NULL_POINTER);
+  nsString success, error;
+  if (!pSource || !pDestination || !fatalError) {
+    IMPORT_LOG0( "*** Bad param passed to text address import\n");
+    nsImportStringBundle::GetStringByID(TEXTIMPORT_ADDRESS_BADPARAM,
+                                        pBundle,
+                                        error);
+
+    SetLogs(success, error, pErrorLog, pSuccessLog);
+
+    if (fatalError)
+      *fatalError = PR_TRUE;
+
+    return NS_ERROR_NULL_POINTER;
 	}
    
 	ClearSampleFile();
@@ -488,20 +520,19 @@ NS_IMETHODIMP ImportAddressImpl::ImportAddressBook(	nsIImportABDescriptor *pSour
 	pSource->GetSize( &addressSize);
 	if (addressSize == 0) {
 		IMPORT_LOG0( "Address book size is 0, skipping import.\n");
-		ReportSuccess( name, &success);
-		SetLogs( success, error, pErrorLog, pSuccessLog);
+    ReportSuccess(name, &success, pBundle);
+    SetLogs(success, error, pErrorLog, pSuccessLog);
 		return NS_OK;
 	}
 
   nsCOMPtr<nsIFile> inFile;
   if (NS_FAILED(pSource->GetAbFile(getter_AddRefs(inFile)))) {
-		ReportError( TEXTIMPORT_ADDRESS_BADSOURCEFILE, name, &error);
-		SetLogs( success, error, pErrorLog, pSuccessLog);		
+    ReportError(TEXTIMPORT_ADDRESS_BADSOURCEFILE, name, &error, pBundle);
+    SetLogs(success, error, pErrorLog, pSuccessLog);
     return NS_ERROR_FAILURE;
   }
 
 	PRBool	isLDIF = PR_FALSE;
-  nsresult rv;
     nsCOMPtr<nsIAbLDIFService> ldifService = do_GetService(NS_ABLDIFSERVICE_CONTRACTID, &rv);
 
     if (NS_SUCCEEDED(rv)) {
@@ -512,8 +543,8 @@ NS_IMETHODIMP ImportAddressImpl::ImportAddressBook(	nsIImportABDescriptor *pSour
     }
 
 	if (NS_FAILED( rv)) {
-		ReportError( TEXTIMPORT_ADDRESS_CONVERTERROR, name, &error);
-		SetLogs( success, error, pErrorLog, pSuccessLog);
+    ReportError(TEXTIMPORT_ADDRESS_CONVERTERROR, name, &error, pBundle);
+    SetLogs(success, error, pErrorLog, pSuccessLog);
 		return( rv);
 	}
 	
@@ -529,13 +560,13 @@ NS_IMETHODIMP ImportAddressImpl::ImportAddressBook(	nsIImportABDescriptor *pSour
 	}
 
 	if (NS_SUCCEEDED( rv) && error.IsEmpty()) {
-		ReportSuccess( name, &success);
+    ReportSuccess(name, &success, pBundle);
+    SetLogs(success, error, pErrorLog, pSuccessLog);
 	}
 	else {
-		ReportError( TEXTIMPORT_ADDRESS_CONVERTERROR, name, &error);
+    ReportError(TEXTIMPORT_ADDRESS_CONVERTERROR, name, &error, pBundle);
+    SetLogs(success, error, pErrorLog, pSuccessLog);
 	}
-
-	SetLogs( success, error, pErrorLog, pSuccessLog);
 
 	IMPORT_LOG0( "*** Text address import done\n");
   return rv;

@@ -562,13 +562,15 @@ NS_IMETHODIMP nsImportGenericAddressBooks::BeginImport(nsISupportsString *succes
 	
 	if (!m_doImport) {
 		*_retval = PR_TRUE;
-    nsImportStringBundle::GetStringByID(IMPORT_NO_ADDRBOOKS, success, m_stringBundle);
+    nsImportStringBundle::GetStringByID(IMPORT_NO_ADDRBOOKS, m_stringBundle,
+                                        success);
 		SetLogs( success, error, successLog, errorLog);
 		return( NS_OK);		
 	}
 	
 	if (!m_pInterface || !m_pBooks) {
-    nsImportStringBundle::GetStringByID(IMPORT_ERROR_AB_NOTINITIALIZED, error, m_stringBundle);
+    nsImportStringBundle::GetStringByID(IMPORT_ERROR_AB_NOTINITIALIZED,
+                                        m_stringBundle, error);
 		SetLogs( success, error, successLog, errorLog);
 		*_retval = PR_FALSE;
 		return( NS_OK);
@@ -615,7 +617,8 @@ NS_IMETHODIMP nsImportGenericAddressBooks::BeginImport(nsISupportsString *succes
 		m_pThreadData->DriverDelete();
 		m_pThreadData = nsnull;
 		*_retval = PR_FALSE;
-    nsImportStringBundle::GetStringByID(IMPORT_ERROR_AB_NOTHREAD, error, m_stringBundle);
+    nsImportStringBundle::GetStringByID(IMPORT_ERROR_AB_NOTHREAD,
+                                        m_stringBundle, error);
 		SetLogs( success, error, successLog, errorLog);
 	}
 	else

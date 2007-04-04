@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 2 -*-
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
  *
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -21,6 +21,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Mark Banner <bugzilla@standard8.demon.co.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -41,21 +42,18 @@
 
 #include "nsIImportModule.h"
 #include "nsCOMPtr.h"
-
+#include "nsIStringBundle.h"
 
 #define NS_TEXTIMPORT_CID					\
 { /* A5991D01-ADA7-11d3-A9C2-00A0CC26DA63 */      \
 	0xa5991d01, 0xada7, 0x11d3,						\
 	{0xa9, 0xc2, 0x0, 0xa0, 0xcc, 0x26, 0xda, 0x63 }}
 
-
-
 #define kTextSupportsString NS_IMPORT_ADDRESS_STR
 
 class nsTextImport : public nsIImportModule
 {
 public:
-
 	nsTextImport();
 	virtual ~nsTextImport();
 	
@@ -69,6 +67,7 @@ public:
 
 		
 protected:
+  nsCOMPtr<nsIStringBundle>   m_stringBundle;
 };
 
 
