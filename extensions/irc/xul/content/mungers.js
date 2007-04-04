@@ -210,8 +210,10 @@ function insertLink(matchText, containerTag, data, mungerEntry)
 
     anchor.setAttribute("target", "_content");
     mungerEntry.enabled = false;
+    data.inLink = true;
     client.munger.munge(linkText, anchor, data);
     mungerEntry.enabled = true;
+    delete data.inLink;
     containerTag.appendChild(anchor);
     if (trailing)
         insertHyphenatedWord(trailing, containerTag, data);
@@ -220,6 +222,13 @@ function insertLink(matchText, containerTag, data, mungerEntry)
 
 function insertMailToLink(matchText, containerTag, eventData, mungerEntry)
 {
+    if (("inLink" in eventData) && eventData.inLink)
+    {
+        mungerEntry.enabled = false;
+        client.munger.munge(matchText, containerTag, eventData);
+        mungerEntry.enabled = true;
+        return;
+    }
 
     var href;
 
@@ -242,14 +251,24 @@ function insertMailToLink(matchText, containerTag, eventData, mungerEntry)
 
     //anchor.setAttribute ("target", "_content");
     mungerEntry.enabled = false;
+    eventData.inLink = true;
     client.munger.munge(matchText, anchor, eventData);
     mungerEntry.enabled = true;
+    delete eventData.inLink;
     containerTag.appendChild(anchor);
 
 }
 
 function insertChannelLink(matchText, containerTag, eventData, mungerEntry)
 {
+    if (("inLink" in eventData) && eventData.inLink)
+    {
+        mungerEntry.enabled = false;
+        client.munger.munge(matchText, containerTag, eventData);
+        mungerEntry.enabled = true;
+        return;
+    }
+
     var bogusChannels =
         /^#(include|error|define|if|ifdef|else|elsif|endif|\d+)$/i;
 
@@ -274,13 +293,23 @@ function insertChannelLink(matchText, containerTag, eventData, mungerEntry)
         anchor.setAttribute("class", "chatzilla-link");
 
     mungerEntry.enabled = false;
+    eventData.inLink = true;
     client.munger.munge(matchText, anchor, eventData);
     mungerEntry.enabled = true;
+    delete eventData.inLink;
     containerTag.appendChild(anchor);
 }
 
 function insertTalkbackLink(matchText, containerTag, eventData, mungerEntry)
 {
+    if (("inLink" in eventData) && eventData.inLink)
+    {
+        mungerEntry.enabled = false;
+        client.munger.munge(matchText, containerTag, eventData);
+        mungerEntry.enabled = true;
+        return;
+    }
+
     var anchor = document.createElementNS("http://www.w3.org/1999/xhtml",
                                           "html:a");
 
@@ -302,6 +331,14 @@ function insertTalkbackLink(matchText, containerTag, eventData, mungerEntry)
 
 function insertBugzillaLink (matchText, containerTag, eventData, mungerEntry)
 {
+    if (("inLink" in eventData) && eventData.inLink)
+    {
+        mungerEntry.enabled = false;
+        client.munger.munge(matchText, containerTag, eventData);
+        mungerEntry.enabled = true;
+        return;
+    }
+
     var bugURL;
     if (eventData.channel)
         bugURL = eventData.channel.prefs["bugURL"];
@@ -326,8 +363,10 @@ function insertBugzillaLink (matchText, containerTag, eventData, mungerEntry)
 
         anchor.setAttribute("target", "_content");
         mungerEntry.enabled = false;
+        eventData.inLink = true;
         client.munger.munge(matchText, anchor, eventData);
         mungerEntry.enabled = true;
+        delete eventData.inLink;
         containerTag.appendChild(anchor);
     }
     else
@@ -338,8 +377,15 @@ function insertBugzillaLink (matchText, containerTag, eventData, mungerEntry)
     }
 }
 
-function insertRheet (matchText, containerTag, data)
+function insertRheet(matchText, containerTag, eventData, mungerEntry)
 {
+    if (("inLink" in eventData) && eventData.inLink)
+    {
+        mungerEntry.enabled = false;
+        client.munger.munge(matchText, containerTag, eventData);
+        mungerEntry.enabled = true;
+        return;
+    }
 
     var anchor = document.createElementNS("http://www.w3.org/1999/xhtml",
                                           "html:a");
