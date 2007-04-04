@@ -52,7 +52,5 @@ ifndef BUILD_SMIME
 DIRS += smimestub
 endif
 
-DIRS += resources
-
 include $(topsrcdir)/config/rules.mk
 
