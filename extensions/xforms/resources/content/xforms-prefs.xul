@@ -35,13 +35,33 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<overlay id="XFormsContentPaneOverlay"
+<!DOCTYPE overlay [
+<!ENTITY % xformsDTD SYSTEM "chrome://xforms/locale/xforms.dtd">
+<!ENTITY % securityDTD SYSTEM "chrome://browser/locale/preferences/security.dtd">
+<!ENTITY % preferencesDTD SYSTEM "chrome://browser/locale/preferences/preferences.dtd">
+  %xformsDTD;
+  %securityDTD;
+  %preferencesDTD;
+]>
+
+<overlay id="XFormsSecurityPaneOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-<prefwindow id="BrowserPreferences">
-  <prefpane id="paneContent">
+<prefwindow id="BrowserPreferences"
+#ifdef USE_WIN_TITLE_STYLE
+            style="&prefWindow.styleWin;">
+#else
+#ifdef XP_MACOSX
+            style="&prefWindow.styleMac;">
+#else
+            style="&prefWindow.styleGNOME;">
+#endif
+#endif
+>
 
-    <preferences id="contentPreferences">
+  <prefpane id="paneSecurity">
+
+    <preferences id="securityPreferences">
       <preference id="xforms.crossdomain.enabled" name="xforms.crossdomain.enabled" type="bool"/>
     </preferences>
 

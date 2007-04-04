@@ -86,3 +86,6 @@
 <!ENTITY xforms.date.day.label.field        "&#34;Day&#34;">
 <!ENTITY xforms.range.start.separator.field "<![CDATA[&#34; >> &#34;]]>">
 <!ENTITY xforms.range.end.separator.field   "<![CDATA[&#34; << &#34;]]>">
+
+<!ENTITY  prefWindow.styleWin     "width: 42em; height: 42em;">
+<!ENTITY  prefWindow.styleGNOME   "width: 42em; height: 40.5em;">

@@ -62,7 +62,7 @@ function XFormsUIClass() {
 }
 
 XFormsUIClass.prototype.pageLoad = function(aEvent) {
-  var pane = document.getElementById("paneContent");
+  var pane = document.getElementById("paneSecurity");
   if (pane.loaded) {
     xformsUI.loadOverlay();
   } else {

@@ -37,38 +37,46 @@
 
 <!DOCTYPE overlay [
 <!ENTITY % xformsDTD SYSTEM "chrome://xforms/locale/xforms.dtd">
-<!ENTITY % contentDTD SYSTEM "chrome://browser/locale/preferences/content.dtd">
+<!ENTITY % securityDTD SYSTEM "chrome://browser/locale/preferences/security.dtd">
+<!ENTITY % preferencesDTD SYSTEM "chrome://browser/locale/preferences/preferences.dtd">
   %xformsDTD;
-  %contentDTD;
+  %securityDTD;
+  %preferencesDTD;
 ]>
 
-<overlay id="XFormsContentPaneOverlayUI"
+<overlay id="XFormsSecurityPaneOverlayUI"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-<prefwindow id="BrowserPreferences">
-  <prefpane id="paneContent">
+<prefwindow id="BrowserPreferences"
+#ifdef USE_WIN_TITLE_STYLE
+            style="&prefWindow.styleWin;">
+#else
+#ifdef XP_MACOSX
+            style="&prefWindow.styleMac;">
+#else
+            style="&prefWindow.styleGNOME;">
+#endif
+#endif
+>
 
-    <preferences id="contentPreferences">
+  <prefpane id="paneSecurity">
+
+    <preferences id="securityPreferences">
       <preference id="xforms.crossdomain.enabled" name="xforms.crossdomain.enabled" type="bool"/>
     </preferences>
 
-    <groupbox id="contentGroupbox">
-      <grid id="contentGrid">
-        <rows id="contentRows-1">
-          <row insertafter="enableSoftwareInstallRow">
-            <vbox align="start">
-              <checkbox id="xformsCrossDomain" preference="xforms.crossdomain.enabled"
-                        label="&xforms.crossdomain.ui.label;"
-                        accesskey="&xforms.crossdomain.ui.accesskey;"
-                        onsyncfrompreference="return gContentPane.updateButtons('xformsCrossDomainButton', 'xforms.crossdomain.enabled');"/>
-            </vbox>
-            <button id="xformsCrossDomainButton"
-                    label="&allowedSitesXForms.label;"
-                    accesskey="&allowedSitesXForms.accesskey;"
-                    oncommand="loadXFormsPermission()"/>
-          </row>
-        </rows>
-      </grid>
+    <groupbox id="addonsPhishingGroup">
+      <hbox insertafter="addonInstallBox">
+        <checkbox id="xformsCrossDomain" preference="xforms.crossdomain.enabled"
+                  flex="1"
+                  label="&xforms.crossdomain.ui.label;"
+                  accesskey="&xforms.crossdomain.ui.accesskey;"
+                  onsyncfrompreference="return gContentPane.updateButtons('xformsCrossDomainButton', 'xforms.crossdomain.enabled');"/>
+        <button id="xformsCrossDomainButton"
+                label="&allowedSitesXForms.label;"
+                accesskey="&allowedSitesXForms.accesskey;"
+                oncommand="loadXFormsPermission()"/>
+      </hbox>
     </groupbox>
   </prefpane>
 </prefwindow>
