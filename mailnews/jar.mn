@@ -209,4 +209,17 @@ messenger.jar:
     content/messenger/markByDate.xul                                           (base/resources/content/markByDate.xul)
     content/messenger/dateFormat.js                                            (base/resources/content/dateFormat.js)
     content/messenger/start.xhtml                                              (base/resources/content/start.xhtml)
+#ifdef XP_MACOSX
+    content/messenger/platformMailnewsOverlay.xul                              (base/resources/content/mac/platformMailnewsOverlay.xul)
+#else
+#ifdef XP_WIN32
+    content/messenger/platformMailnewsOverlay.xul                              (base/resources/content/win/platformMailnewsOverlay.xul)
+#else
+#ifdef XP_OS2
+    content/messenger/platformMailnewsOverlay.xul                              (base/resources/content/win/platformMailnewsOverlay.xul)
+#else
+    content/messenger/platformMailnewsOverlay.xul                              (base/resources/content/unix/platformMailnewsOverlay.xul)
+#endif
+#endif
+#endif
 #endif
