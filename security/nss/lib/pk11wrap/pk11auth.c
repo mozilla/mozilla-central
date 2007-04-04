@@ -84,6 +84,8 @@ pk11_CheckPassword(PK11SlotInfo *slot,char *pw)
     CK_RV crv;
     SECStatus rv;
     int64 currtime = PR_Now();
+    PRBool mustRetry;
+    int retry = 0;
 
     if (slot->protectedAuthPath) {
 	len = 0;
@@ -95,27 +97,48 @@ pk11_CheckPassword(PK11SlotInfo *slot,char *pw)
 	len = PORT_Strlen(pw);
     }
 
-    PK11_EnterSlotMonitor(slot);
-    crv = PK11_GETTAB(slot)->C_Login(slot->session,CKU_USER,
+    do {
+	PK11_EnterSlotMonitor(slot);
+	crv = PK11_GETTAB(slot)->C_Login(slot->session,CKU_USER,
 						(unsigned char *)pw,len);
-    slot->lastLoginCheck = 0;
-    PK11_ExitSlotMonitor(slot);
-    switch (crv) {
-    /* if we're already logged in, we're good to go */
-    case CKR_OK:
-	slot->authTransact = PK11_Global.transaction;
-    case CKR_USER_ALREADY_LOGGED_IN:
-	slot->authTime = currtime;
-	rv = SECSuccess;
-	break;
-    case CKR_PIN_INCORRECT:
-	PORT_SetError(SEC_ERROR_BAD_PASSWORD);
-	rv = SECWouldBlock; /* everything else is ok, only the pin is bad */
-	break;
-    default:
-	PORT_SetError(PK11_MapError(crv));
-	rv = SECFailure; /* some failure we can't fix by retrying */
-    }
+	slot->lastLoginCheck = 0;
+	mustRetry = PR_FALSE;
+	PK11_ExitSlotMonitor(slot);
+	switch (crv) {
+	/* if we're already logged in, we're good to go */
+	case CKR_OK:
+	    slot->authTransact = PK11_Global.transaction;
+	    /* Fall through */
+	case CKR_USER_ALREADY_LOGGED_IN:
+	    slot->authTime = currtime;
+	    rv = SECSuccess;
+	    break;
+	case CKR_PIN_INCORRECT:
+	    PORT_SetError(SEC_ERROR_BAD_PASSWORD);
+	    rv = SECWouldBlock; /* everything else is ok, only the pin is bad */
+	    break;
+	/* someone called reset while we fetched the password, try again once
+	 * if the token is still there. */
+	case CKR_SESSION_HANDLE_INVALID:
+	case CKR_SESSION_CLOSED:
+	    if (retry++ == 0) {
+		rv = PK11_InitToken(slot,PR_FALSE);
+		if (rv == SECSuccess) {
+		    if (slot->session != CK_INVALID_SESSION) {
+			mustRetry = PR_TRUE;
+		    } else {
+			PORT_SetError(PK11_MapError(crv));
+			rv = SECFailure;
+		    }
+		}
+		break;
+	    }
+	    /* Fall through */
+	default:
+	    PORT_SetError(PK11_MapError(crv));
+	    rv = SECFailure; /* some failure we can't fix by retrying */
+	}
+    } while (mustRetry);
     return rv;
 }
 
