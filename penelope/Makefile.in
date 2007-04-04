@@ -46,20 +46,12 @@ include $(DEPTH)/config/autoconf.mk
 MODULE	= penelope
 
 export XPI_NAME	= penelope
-DIST_FILES = xpi/install.rdf xpi/install.js base/content/newmail.wav 
+DIST_FILES = xpi/install.rdf base/content/newmail.wav 
 XPI_PKGNAME = penelope
 STRIP_XPI = 1
 
 DIRS    = \
           $(NULL)
-
-ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
-THEME=pinstripe
-else
-THEME=winstripe
-endif
-
-DEFINES += -DTHEME=$(THEME)
 
 DEFINES += -DTHUNDERBIRD_VERSION=$(THUNDERBIRD_VERSION) 
 DEFINES += -DTARGET_PLATFORM=$(OS_TARGET)_$(TARGET_XPCOM_ABI)
@@ -70,13 +62,11 @@ DEFINES += -DPENELOPE_VERSION=$(PENELOPE_VERSION)
 
 DEFINES += -DBUILD_ID=$(BUILD_ID)
 
-ifdef MOZ_XUL_APP
 XPI_NAME               = penelope
 USE_EXTENSION_MANIFEST = 1
 NO_JAR_AUTO_REG        = 1
 INSTALL_EXTENSION_ID   = {D1D37B8A-4F3C-11DB-8373-B622A1EF5492}
 XPI_PKGNAME            = penelope-$(PENELOPE_VERSION)
-endif
 
 PREF_JS_EXPORTS = $(srcdir)/base/prefs/penelope.js
 
