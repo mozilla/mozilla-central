@@ -223,7 +223,7 @@ $crashreporter_pushsymbols = 1;
 $ENV{SYMBOL_SERVER_HOST} = 'stage.mozilla.org';
 $ENV{SYMBOL_SERVER_USER}   = 'ffxbld';
 $ENV{SYMBOL_SERVER_PATH}   = '/mnt/netapp/breakpad/symbols_ffx/';
-$ENV{SYMBOL_SERVER_SSH_KEY} = '~/.ssh/ffxbld_dsa';
+$ENV{SYMBOL_SERVER_SSH_KEY}   = "$ENV{HOME}/.ssh/ffxbld_dsa";
 
 # Reboot the OS at the end of build-and-test cycle. This is primarily
 # intended for Win9x, which can't last more than a few cycles before
