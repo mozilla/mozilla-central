@@ -404,6 +404,8 @@ calICSCalendar.prototype = {
         this.mObserver.removeObserver(aObserver);
     },
 
+    get sendItipInvitations() { return true; },
+
     // Always use the queue, just to reduce the amount of places where
     // this.mMemoryCalendar.addItem() and friends are called. less
     // copied code.
