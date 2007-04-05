@@ -823,7 +823,10 @@ InitCrypto(char *cert_dir, PRBool readOnly)
 
 	if (password) {
 	    PK11_SetPasswordFunc(pk11_password_hardcode);
+	} else {
+	    PK11_SetPasswordFunc(SECU_GetModulePassword);
 	}
+	
 
 	/* Must login to FIPS before you do anything else */
 	if (PK11_IsFIPS()) {
