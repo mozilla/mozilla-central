@@ -246,7 +246,6 @@ calICSCalendar.prototype = {
                                          .createInstance(Components.interfaces.calICalendar);
         this.mMemoryCalendar.uri = this.mUri;
         this.mMemoryCalendar.wrappedJSObject.calendarToReturn = this;
-        this.mMemoryCalendar.addObserver(this.mObserver);
 
         this.mObserver.onStartBatch();
 
@@ -270,6 +269,13 @@ calICSCalendar.prototype = {
         }
         this.mObserver.onEndBatch();
         this.mObserver.onLoad();
+        
+        // Now that all items have been stuffed into the memory calendar
+        // we should add ourselves as observer. It is important that this
+        // happens *after* the calls to adoptItem in the above loop to prevent
+        // the views from being notified.
+        this.mMemoryCalendar.addObserver(this.mObserver);
+        
         this.unlock();
     },
 
