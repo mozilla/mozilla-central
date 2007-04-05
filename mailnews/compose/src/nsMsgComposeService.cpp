@@ -1456,8 +1456,9 @@ nsMsgComposeService::LoadDraftOrTemplate(const nsACString& aMsgURI, nsMimeOutput
     rv = messageService->GetUrlForUri(nsPromiseFlatCString(aMsgURI).get(), getter_AddRefs(url), aMsgWindow);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = url->SetSpec(aMsgURI);
-  NS_ENSURE_SUCCESS(rv, rv);
+  // ignore errors here - it's not fatal, and in the case of mailbox messages,
+  // we're always passing in an invalid spec...
+  (void )url->SetSpec(aMsgURI);
 
   // if we are forwarding a message and that message used a charset over ride
   // then use that over ride charset instead of the charset specified in the message
