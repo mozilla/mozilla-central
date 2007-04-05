@@ -1465,6 +1465,13 @@
       <method name="addEvent">
         <parameter name="aItem"/>
         <body><![CDATA[
+          // prevent same items being added
+          if (this.mItemBoxes.some(function (itemBox) {
+                                     return itemBox.occurrence.hasSameIds(aItem);
+                                   })) {
+            return;
+          }
+
           function createXULElement(el) {
             return document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", el);
           }
@@ -1488,6 +1495,7 @@
             if (this.mItemBoxes[i].occurrence.hasSameIds(aItem)) {
               this.mainbox.removeChild(this.mItemBoxes[i]);
               this.mItemBoxes.splice(i, 1);
+              break;
             }
           }
         ]]></body>
@@ -2615,8 +2623,10 @@
                   dayHeaderBox = headerboxkids[counter];
                   dayHeaderBox.removeAttribute("today");
                   // Delete backwards to make sure we get them all
-                  for (var i = dayHeaderBox.mItemBoxes.length-1; i >= 0; i--) {
-                      dayHeaderBox.deleteEvent(dayHeaderBox.mItemBoxes[i].occurrence);
+                  // and delete until no more elements are left.
+                  while(dayHeaderBox.mItemBoxes.length != 0) {
+                      var num = dayHeaderBox.mItemBoxes.length;
+                      dayHeaderBox.deleteEvent(dayHeaderBox.mItemBoxes[num-1].occurrence);
                   }
               } else {
                   dayHeaderBox = createXULElement("calendar-header-container");
