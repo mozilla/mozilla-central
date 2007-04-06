@@ -26,12 +26,12 @@ bin\components\xpcom_io.xpt
 bin\components\xpcom_thread.xpt
 bin\components\xpcom_xpti.xpt
 bin\components\xpcom_obsolete.xpt
-bin\nspr4.dll      
-bin\plc4.dll       
+bin\nspr4.dll
+bin\plc4.dll
 bin\plds4.dll
-bin\js3250.dll   
+bin\js3250.dll
 bin\components\jsd3250.dll
-bin\components\xpinstal.dll  
+bin\components\xpinstal.dll
 bin\Microsoft.VC80.CRT.manifest
 bin\msvcm80.dll
 bin\msvcp80.dll
@@ -144,7 +144,7 @@ bin\greprefs\*
 ; App extensions to Mail
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; LDAP components 
+; LDAP components
 bin\components\mozldap.xpt
 bin\components\nsLDAPPrefsService.js
 bin\components\nsAbLDAPAttributeMap.js
@@ -152,8 +152,8 @@ bin\nsldap32v50.dll
 bin\nsldappr32v50.dll
 
 ; wallet
-bin\components\wallet.xpt 
-bin\components\signonviewer.xpt 
+bin\components\wallet.xpt
+bin\components\signonviewer.xpt
 
 ; download progress
 bin\components\nsHelperAppDlg.js
@@ -192,12 +192,12 @@ bin\components\xpconnect.xpt
 
 ; XP widgets/graphics
 bin\components\widget.xpt
-bin\components\gfx.xpt                      
+bin\components\gfx.xpt
 
 ; layout
-bin\components\layout_base.xpt              
-bin\components\layout_printing.xpt              
-bin\components\layout_xul.xpt               
+bin\components\layout_base.xpt
+bin\components\layout_printing.xpt
+bin\components\layout_xul.xpt
 bin\components\content_base.xpt
 bin\components\htmlparser.xpt
 bin\components\content_html.xpt
@@ -213,17 +213,17 @@ bin\components\imgicon.xpt
 bin\components\imglib2.xpt
 
 ; accessibility (out of process API support)
-bin\components\accessibility.xpt                 
+bin\components\accessibility.xpt
 bin\components\accessibility-msaa.xpt
 
 ; caps (JavaScript security)
-bin\components\caps.xpt                             
+bin\components\caps.xpt
 
 ; glue: appshell, docshell, uriloader, chrome, components
-bin\components\appshell.xpt                                 
+bin\components\appshell.xpt
 bin\components\appstartup.xpt
-bin\components\docshell_base.xpt            
-bin\components\uriloader.xpt        
+bin\components\docshell_base.xpt
+bin\components\uriloader.xpt
 bin\components\webBrowser_core.xpt
 bin\components\windowwatcher.xpt
 bin\components\webbrowserpersist.xpt
@@ -235,9 +235,9 @@ bin\components\mozbrwsr.xpt
 bin\components\jar.xpt
 
 ; prefs
-bin\components\pref.xpt                     
+bin\components\pref.xpt
 
-; profile              
+; profile
 bin\components\profile.xpt
 bin\components\toolkitprofile.xpt
 
@@ -255,8 +255,8 @@ bin\components\locale.xpt
 bin\components\uconv.xpt
 bin\components\unicharutil.xpt
 
-; dom 
-bin\components\dom.xpt                      
+; dom
+bin\components\dom.xpt
 bin\components\dom_base.xpt
 bin\components\dom_core.xpt
 bin\components\dom_css.xpt
@@ -284,21 +284,21 @@ bin\components\txtsvc.xpt
 bin\components\storage.xpt
 
 ; netwerk
-bin\components\necko.xpt                               
-bin\components\necko_dns.xpt                
-bin\components\necko_http.xpt               
-bin\components\necko_res.xpt                
+bin\components\necko.xpt
+bin\components\necko_dns.xpt
+bin\components\necko_http.xpt
+bin\components\necko_res.xpt
 bin\components\necko_strconv.xpt
 bin\components\necko_file.xpt
 bin\components\necko_cache.xpt
-bin\components\necko_cookie.xpt         
-bin\components\necko_socket.xpt         
+bin\components\necko_cookie.xpt
+bin\components\necko_socket.xpt
 bin\components\nsProxyAutoConfig.js
- 
+
 ; extensions
 bin\components\nsExtensionManager.js
-bin\components\nsUpdateService.js 
-bin\components\nsPostUpdateWin.js 
+bin\components\nsUpdateService.js
+bin\components\nsPostUpdateWin.js
 bin\components\extensions.xpt
 bin\components\update.xpt
 bin\components\websrvcs.xpt
@@ -320,7 +320,6 @@ bin\ssl3.dll
 bin\nssckbi.dll
 
 ; core platform files
-bin\regxpcom.exe
 bin\components\xpautocomplete.xpt
 bin\components\autocomplete.xpt
 bin\components\alerts.xpt
