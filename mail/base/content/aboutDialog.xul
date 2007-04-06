@@ -107,14 +107,12 @@
 
     <deck id="modes" flex="1">
       <vbox flex="1" id="clientBox">
-      <vbox id="versionWrapper">
-        <textbox id="versionField" readonly="true" class="plain" tabindex="2" value="&aboutVersion; 3 alpha 1"/>
-<!--        
+      <vbox id="versionWrapper" flex="1" pack="center">
+        <textbox id="versionField" readonly="true" class="plain" tabindex="2"
 #expand value="&aboutVersion; __MOZ_APP_VERSION__"/>
--->
             </vbox>
-          <separator class="thin"/>
       <description id="copyright">&copyrightText;</description>
+      <separator/>
       </vbox>
 
       <vbox flex="1" id="creditsBox">
