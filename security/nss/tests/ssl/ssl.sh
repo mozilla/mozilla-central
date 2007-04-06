@@ -152,19 +152,21 @@ is_selfserv_alive()
 ########################################################################
 wait_for_selfserv()
 {
-  echo "waiting for selfserv at `date`"
+  echo "trying to connect to selfserv at `date`"
   echo "tstclnt -p ${PORT} -h ${HOSTADDR} ${CLIENT_OPTIONS} -q \\"
   echo "        -d ${P_R_CLIENTDIR} < ${REQUEST_FILE}"
   tstclnt -p ${PORT} -h ${HOSTADDR} ${CLIENT_OPTIONS} -q \
           -d ${P_R_CLIENTDIR} < ${REQUEST_FILE}
   if [ $? -ne 0 ]; then
-      html_failed "<TR><TD> Wait for Server "
-      echo "RETRY: tstclnt -p ${PORT} -h ${HOSTADDR} ${CLIENT_OPTIONS} -q \\"
-      echo "               -d ${P_R_CLIENTDIR} < ${REQUEST_FILE}"
+      sleep 5
+      echo "retrying to connect to selfserv at `date`"
+      echo "tstclnt -p ${PORT} -h ${HOSTADDR} ${CLIENT_OPTIONS} -q \\"
+      echo "        -d ${P_R_CLIENTDIR} < ${REQUEST_FILE}"
       tstclnt -p ${PORT} -h ${HOSTADDR} ${CLIENT_OPTIONS} -q \
               -d ${P_R_CLIENTDIR} < ${REQUEST_FILE}
-  elif [ "$sparam" = "$CSHORT" -o "$sparam" = "$CLONG" ] ; then
-      html_passed "<TR><TD> Wait for Server"
+      if [ $? -ne 0 ]; then
+          html_failed "<TR><TD> Waiting for Server"
+      fi
   fi
   is_selfserv_alive
 }
