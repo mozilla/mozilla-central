@@ -1376,15 +1376,19 @@ const int kOutlineViewLeftMargin = 19; // determined empirically, since it doesn
     if ([aTableView numberOfSelectedRows] > 0) {
       BookmarkFolder* aFolder = [mRootBookmarks objectAtIndex:rowIndex];
 
-      [contextMenu addItem:[NSMenuItem separatorItem]];
-      NSMenuItem* useAsDockItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Use as Dock Menu", nil)
-                                                             action:@selector(toggleIsDockMenuFolder:)
-                                                      keyEquivalent:@""];
-      [useAsDockItem setTarget:self];
-      if ([aFolder isDockMenu])
-        [useAsDockItem setState:NSOnState];
-      [contextMenu addItem:useAsDockItem];
-      [useAsDockItem release];
+      // Create and add the "Use as Dock Menu" menu item for every collection but history
+      if (aFolder != [[BookmarkManager sharedBookmarkManager] historyFolder]) {
+        [contextMenu addItem:[NSMenuItem separatorItem]];
+
+        NSMenuItem* useAsDockItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Use as Dock Menu", nil)
+                                                               action:@selector(toggleIsDockMenuFolder:)
+                                                        keyEquivalent:@""];
+        [useAsDockItem setTarget:self];
+        if ([aFolder isDockMenu])
+          [useAsDockItem setState:NSOnState];
+        [contextMenu addItem:useAsDockItem];
+        [useAsDockItem release];
+      }
 
       if ([[BookmarkManager sharedBookmarkManager] isUserCollection:aFolder]) {
         NSMenuItem* deleteItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Delete", nil)
