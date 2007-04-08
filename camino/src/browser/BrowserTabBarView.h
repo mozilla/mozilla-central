@@ -50,6 +50,7 @@
   TabButtonCell*    mActiveTabButton;     // active tab button, mainly useful for handling drags (STRONG)
   NSButton*         mOverflowRightButton; // button to slide tabs to the left
   NSButton*         mOverflowLeftButton;  // button to slide tabs to the right
+  NSButton*         mOverflowMenuButton;  // button to popup the tab menu
   
   // drag tracking
   NSPoint           mLastClickPoint;

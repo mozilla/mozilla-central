@@ -64,7 +64,7 @@
 -(void)setLeftMostVisibleTabIndex:(int)index;
 -(NSButton*)scrollButtonAtPoint:(NSPoint)clickPoint;
 -(BOOL)tabIndexIsVisible:(int)index;
--(void)drawButtons;
+-(void)drawOverflowButtons;
 
 @end
 
@@ -82,7 +82,7 @@ static const int kTabDragThreshold = 3;   // distance a drag must go before we s
 
 static const float kOverflowButtonWidth = 16;
 static const float kOverflowButtonHeight = 16;
-static const int kOverflowButtonMargin = 1;
+static const float kOverflowMenuButtonWidth = 12;
 
 -(id)initWithFrame:(NSRect)frame 
 {
@@ -120,6 +120,7 @@ static const int kOverflowButtonMargin = 1;
   [mActiveTabButton release];
   [mOverflowRightButton release];
   [mOverflowLeftButton release];
+  [mOverflowMenuButton release];
 
   [mBackgroundImage release];
   [mButtonDividerImage release];
@@ -154,15 +155,28 @@ static const int kOverflowButtonMargin = 1;
     prevButton = tabButton;
     tab = nextTab;
   }
-  
-  // The button divider image should only be drawn if the left most visible tab is not selected.
+
+  // Draw the leftmost button image divider (right sides are drawn by the buttons themselves).
+  // A divider is not needed if the leftmost button is selected.
   if ([mTabView indexOfTabViewItem:[mTabView selectedTabViewItem]] != mLeftMostVisibleTabIndex) {
-    if (mOverflowTabs)
-      [mButtonDividerImage compositeToPoint:NSMakePoint(kTabBarMarginWhenOverflowTabs - [mButtonDividerImage size].width, 0) operation:NSCompositeSourceOver];
+    if (mOverflowTabs) {
+      [mButtonDividerImage compositeToPoint:NSMakePoint(kTabBarMarginWhenOverflowTabs -
+                                                        [mButtonDividerImage size].width, 0)
+                                  operation:NSCompositeSourceOver];
+    }
     else
-      [mButtonDividerImage compositeToPoint:NSMakePoint(kTabBarMargin - [mButtonDividerImage size].width, 0) operation:NSCompositeSourceOver];
+      [mButtonDividerImage compositeToPoint:NSMakePoint(kTabBarMargin -
+                                                        [mButtonDividerImage size].width, 0)
+                                  operation:NSCompositeSourceOver];
   }
-  
+
+  // Draw a divider to the left of the overflow menu button, if it's showing
+  if (mOverflowTabs)
+    [mButtonDividerImage compositeToPoint:NSMakePoint(NSMaxX(tabsRect) +
+                                                      kTabBarMarginWhenOverflowTabs -
+                                                      [mButtonDividerImage size].width, 0)
+                                operation:NSCompositeSourceOver];
+
   if (mDragOverBar && !mDragDestButton)
     [self drawTabBarBackgroundHiliteRectInRect:rect];
 }
@@ -227,6 +241,8 @@ static const int kOverflowButtonMargin = 1;
     return mOverflowLeftButton;
   if (NSPointInRect(clickPoint, [mOverflowRightButton frame]))
     return mOverflowRightButton;
+  if (NSPointInRect(clickPoint, [mOverflowMenuButton frame]))
+    return mOverflowMenuButton;
   return nil;
 }
 
@@ -483,6 +499,7 @@ static const int kOverflowButtonMargin = 1;
     xCoord = kTabBarMargin;
     [mOverflowLeftButton removeFromSuperview];
     [mOverflowRightButton removeFromSuperview];
+    [mOverflowMenuButton removeFromSuperview];
   }
   // Lay out the tabs, giving off-screen tabs a width of 0.
   NSSize buttonSize = NSMakeSize(widthOfATab, kTabBarDefaultHeight);
@@ -551,17 +568,55 @@ static const int kOverflowButtonMargin = 1;
     [mOverflowRightButton setImage:[NSImage imageNamed:@"tab_scroll_button_right"]];
     [mOverflowRightButton setAction:@selector(scrollRight:)];
   }
-  [self drawButtons];
+  if (!mOverflowMenuButton) {
+    mOverflowMenuButton = [[NSButton alloc] initWithFrame:NSMakeRect(0, 0, kOverflowButtonWidth, kOverflowButtonHeight)];
+    [mOverflowMenuButton setImage:[NSImage imageNamed:@"tab_menu_button"]];
+    [mOverflowMenuButton setImagePosition:NSImageOnly];
+    [mOverflowMenuButton setBezelStyle:NSShadowlessSquareBezelStyle];
+    [mOverflowMenuButton setBordered:NO];
+    [[mOverflowMenuButton cell] setHighlightsBy:NSNoCellMask];
+    [mOverflowMenuButton setTarget:self];
+    [mOverflowMenuButton setAction:@selector(showOverflowMenu:)];
+    [(NSButtonCell *)[mOverflowMenuButton cell] sendActionOn:NSLeftMouseDownMask];
+  }
+  [self drawOverflowButtons];
 }
 
--(void)drawButtons {
+-(void)drawOverflowButtons {
   // Add the overflow buttons to the tab bar view.
-  [mOverflowLeftButton setFrame:NSMakeRect(0, ([self tabBarHeight] - kOverflowButtonHeight) / 2, kOverflowButtonWidth, kOverflowButtonHeight)];
+  NSRect rect = [self tabsRect];
+  float tabBarHeight = [self tabBarHeight];
+
+  [mOverflowLeftButton setFrameOrigin:NSMakePoint(0, (tabBarHeight - kOverflowButtonHeight) / 2)];
   [mOverflowLeftButton setEnabled:(mLeftMostVisibleTabIndex != 0)];
   [self addSubview:mOverflowLeftButton];
-  [mOverflowRightButton setFrame:NSMakeRect(NSMaxX([self tabsRect]), ([self tabBarHeight] - kOverflowButtonHeight) / 2, kOverflowButtonWidth, kOverflowButtonHeight)];
+  [mOverflowRightButton setFrameOrigin:NSMakePoint(NSMaxX(rect) - [mButtonDividerImage size].width,
+                                                   (tabBarHeight - kOverflowButtonHeight) / 2)];
   [mOverflowRightButton setEnabled:(mLeftMostVisibleTabIndex + mNumberOfVisibleTabs != [mTabView numberOfTabViewItems])];
   [self addSubview:mOverflowRightButton];
+  [mOverflowMenuButton setFrameOrigin:NSMakePoint(NSMaxX(rect) + [mButtonDividerImage size].width + kOverflowButtonWidth,
+                                                  ((tabBarHeight - kOverflowButtonHeight) / 2) + 1)];
+  [self addSubview:mOverflowMenuButton];
+}
+
+- (IBAction)showOverflowMenu:(id)sender
+{
+  NSMenu* overflowMenu = [[[NSMenu alloc] init] autorelease];
+  int numberOfTabs = [mTabView numberOfTabViewItems];
+
+  for (int i = 0; i < numberOfTabs; i++)
+    [overflowMenu addItem:[[mTabView tabViewItemAtIndex:i] menuItem]];
+
+  // Insert the separators from right to left, so we don't mess up the index numbers as we go
+  if (mLeftMostVisibleTabIndex + mNumberOfVisibleTabs < numberOfTabs)
+    [overflowMenu insertItem:[NSMenuItem separatorItem] atIndex:(mLeftMostVisibleTabIndex + mNumberOfVisibleTabs)];
+  if (mLeftMostVisibleTabIndex > 0)
+    [overflowMenu insertItem:[NSMenuItem separatorItem] atIndex:mLeftMostVisibleTabIndex];
+
+  NSPopUpButtonCell* popupCell = [[[NSPopUpButtonCell alloc] initTextCell:@"" pullsDown:NO] autorelease];
+  [popupCell setAltersStateOfSelectedItem:YES];
+  [popupCell setMenu:overflowMenu];
+  [popupCell trackMouse:[NSApp currentEvent] inRect:[sender bounds] ofView:sender untilMouseUp:YES];
 }
 
 // When a user clicks on mOverflowLeftButton this method is called to slide the 
@@ -606,7 +661,7 @@ static const int kOverflowButtonMargin = 1;
   NSRect rect = [self frame];
   if (mOverflowTabs) {
     rect.origin.x += kTabBarMarginWhenOverflowTabs;
-    rect.size.width -= 2 * kTabBarMarginWhenOverflowTabs;
+    rect.size.width -= (2 * kTabBarMarginWhenOverflowTabs) + [mButtonDividerImage size].width + kOverflowMenuButtonWidth;
   }
   else {
     rect.origin.x += kTabBarMargin;
