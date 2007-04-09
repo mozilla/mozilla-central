@@ -1717,8 +1717,10 @@ NS_IMETHODIMP nsMsgDBView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsAStr
     {
       rv = FetchSubject(msgHdr, m_flags[aRow], getter_Copies(valueText));
       nsAutoString previewText;
-      rv = FetchPreviewText(msgHdr, previewText);
-      if (!previewText.IsEmpty())
+      nsresult rv2 = FetchPreviewText(msgHdr, previewText);
+      // We should append the preview text only when it was succeeded.
+      // So, even if it was failed, we should return the subject.
+      if (NS_SUCCEEDED(rv2) && !previewText.IsEmpty())
       {
         valueText.Append(NS_LITERAL_STRING(" - "));
         valueText.Append(previewText);

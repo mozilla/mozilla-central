@@ -188,6 +188,19 @@ NS_MSG_BASE nsresult nsMsgI18NSaveAsCharset(const char* contentType, const char*
  */
 NS_MSG_BASE nsresult nsMsgI18NFormatNNTPXPATInNonRFC1522Format(const nsCString& aCharset, const nsString& inString, nsCString& outString);
 
+/**
+ * Shrink the aStr to aMaxLength bytes. Note that this doesn't check whether
+ * the aUTF8Str is valid UTF-8 string.
+ *
+ * @param inString   [IN] Input UTF-8 string (it must be valid UTF-8 string)
+ * @param aMaxLength [IN] Shrink to this length (it means bytes)
+ * @param outString  [OUT] Shrunken UTF-8 string
+ * @return           nsresult
+ */
+NS_MSG_BASE nsresult nsMsgI18NShrinkUTF8Str(const nsAFlatCString &inString,
+                                            PRUint32 aMaxLength,
+                                            nsACString &outString);
+
 // inline forwarders to avoid littering with 'x-imap4-.....'
 inline nsresult CopyUTF16toMUTF7(const nsAFlatString &aSrc, nsACString& aDest)
 {

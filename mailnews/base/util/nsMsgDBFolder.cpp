@@ -5333,8 +5333,13 @@ NS_IMETHODIMP nsMsgDBFolder::GetMsgTextFromStream(nsIMsgDBHdr *msgHdr, nsIInputS
   CopyUTF16toUTF8(aCompressQuotes ? compressedQuotesMsgStr : unicodeMsgBodyStr, aMsgText);
   
   // finally, truncate the string based on aMaxOutputLen
-  if (aMsgText.Length() > aMaxOutputLen)
-    aMsgText.Truncate(aMaxOutputLen);
+  if (aMsgText.Length() > aMaxOutputLen) {
+    if (IsASCII(aMsgText))
+      aMsgText.Truncate(aMaxOutputLen);
+    else
+      nsMsgI18NShrinkUTF8Str(nsPromiseFlatCString(aMsgText),
+                             aMaxOutputLen, aMsgText);
+  }
   return rv;
 }
 
