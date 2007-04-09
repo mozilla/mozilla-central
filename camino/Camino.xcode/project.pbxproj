@@ -67,6 +67,26 @@
 			settings = {
 			};
 		};
+		00A29E860BC9AA5B00BF313F = {
+			isa = PBXFileReference;
+			lastKnownFileType = image.tiff;
+			name = tab_menu_button.tif;
+			path = resources/images/chrome/tab_menu_button.tif;
+			refType = 2;
+			sourceTree = SOURCE_ROOT;
+		};
+		00A29E870BC9AA5B00BF313F = {
+			fileRef = 00A29E860BC9AA5B00BF313F;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		00A29E880BC9AA5B00BF313F = {
+			fileRef = 00A29E860BC9AA5B00BF313F;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 //000
 //001
 //002
@@ -4718,6 +4738,7 @@
 				DE1BDD260AD4E13000F0C7BD,
 				DE1BDD270AD4E13000F0C7BD,
 				DE8AD6A10ADB4E38009D44F6,
+				00A29E870BC9AA5B00BF313F,
 			);
 			isa = PBXResourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -8594,6 +8615,7 @@
 				DE1BDD240AD4E13000F0C7BD,
 				DE1BDD250AD4E13000F0C7BD,
 				DE8AD6A00ADB4E38009D44F6,
+				00A29E880BC9AA5B00BF313F,
 			);
 			isa = PBXResourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -14906,6 +14928,7 @@
 				3FF08F1406E7D3C2001C9B19,
 				DE1BDD220AD4E13000F0C7BD,
 				DE1BDD230AD4E13000F0C7BD,
+				00A29E860BC9AA5B00BF313F,
 				F540BD1A029ED15301026D5D,
 				F540BD1C029ED17901026D5D,
 				0FCD888808C52A9900A1923B,
