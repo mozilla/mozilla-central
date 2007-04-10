@@ -81,6 +81,7 @@
 #include "nsIWebProgressListener.h"
 #include "nsIBrowserDOMWindow.h"
 #include "nsIPermissionManager.h"
+#include "nsIScriptSecurityManager.h"
 
 class nsIDOMPopupBlockedEvent;
 
@@ -1039,6 +1040,38 @@ enum {
 {
   NSString* currentURI = [self currentURI];
   return ([currentURI hasPrefix:@"about:"] || [currentURI hasPrefix:@"view-source:"]);
+}
+
+//
+// -isBookmarkable
+//
+// Returns YES if the current URI is appropriate and safe for bookmarking.
+//
+- (BOOL)isBookmarkable
+{
+  if ([self isEmpty])
+    return NO;
+
+  // Check for any potential security implications as determined by nsIScriptSecurityManager's
+  // DISALLOW_INHERIT_PRINCIPAL. (e.g. |javascript:| or |data:| URIs)
+  nsCOMPtr<nsIDOMWindow> domWindow = [mBrowserView getContentWindow];
+  if (!domWindow) 
+    return NO;
+  nsCOMPtr<nsIDOMDocument> domDocument;
+  domWindow->GetDocument(getter_AddRefs(domDocument));
+  if (!domDocument)
+    return NO;
+  nsCOMPtr<nsIDocument> document(do_QueryInterface(domDocument));
+  if (!document)
+    return NO;
+  nsCOMPtr<nsIScriptSecurityManager> scriptSecurityManager(do_GetService(NS_SCRIPTSECURITYMANAGER_CONTRACTID));
+  if (!scriptSecurityManager)
+    return NO;
+  nsresult uriIsSafe = 
+    scriptSecurityManager->CheckLoadURIWithPrincipal(document->NodePrincipal(), 
+                                                     document->GetDocumentURI(), 
+                                                     nsIScriptSecurityManager::DISALLOW_INHERIT_PRINCIPAL);
+  return (NS_SUCCEEDED(uriIsSafe) ? YES : NO);
 }
 
 - (BOOL)canReload

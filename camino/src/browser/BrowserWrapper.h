@@ -187,6 +187,7 @@ class nsIArray;
 - (BOOL)isBusy;
 - (BOOL)isEmpty;                      // is about:blank loaded?
 - (BOOL)isInternalURI;
+- (BOOL)isBookmarkable;
 - (BOOL)canReload;
 
 - (NSString*)pendingURI;

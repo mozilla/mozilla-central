@@ -1736,9 +1736,7 @@ enum BWCOpenDest {
       action == @selector(closeSendersTab:) ||
       action == @selector(closeOtherTabs:) ||
       action == @selector(nextTab:) ||
-      action == @selector(previousTab:) ||
-      action == @selector(addTabGroup:) ||
-      action == @selector(addTabGroupWithoutPrompt:))
+      action == @selector(previousTab:))
   {
     return ([mTabBrowser numberOfTabViewItems] > 1);
   }
@@ -1747,7 +1745,12 @@ enum BWCOpenDest {
   if (action == @selector(addBookmark:) ||
       action == @selector(addBookmarkWithoutPrompt:))
   {
-    return ![mBrowserView isEmpty];
+    return [mBrowserView isBookmarkable];
+  }
+  if (action == @selector(addTabGroup:) ||
+      action == @selector(addTabGroupWithoutPrompt:))
+  {
+    return ([mTabBrowser numberOfBookmarkableTabViewItems] > 1);
   }
   if (action == @selector(makeTextBigger:))
     return [self canMakeTextBigger];
@@ -2823,6 +2826,9 @@ enum BWCOpenDest {
   for (int i = 0; i < numTabs; i++)
   {
     BrowserWrapper* browserWrapper = (BrowserWrapper*)[[mTabBrowser tabViewItemAtIndex:i] view];
+    if (![browserWrapper isBookmarkable])
+      continue;
+
     NSString* curTitleString = [browserWrapper pageTitle];
     NSString* hrefString = [browserWrapper currentURI];
 
@@ -2838,6 +2844,7 @@ enum BWCOpenDest {
     [itemsArray addObject:itemInfo];
   }
 
+  NS_ASSERTION([itemsArray count], "Displaying the Add Bookmark dialog with no URIs");
   AddBookmarkDialogController* dlgController = [AddBookmarkDialogController sharedAddBookmarkDialogController];
   [dlgController showDialogWithLocationsAndTitles:itemsArray isFolder:NO onWindow:[self window]];
 
@@ -2854,32 +2861,45 @@ enum BWCOpenDest {
   NSString* itemTitle = [browserWrapper pageTitle];
   NSString* itemURL = [browserWrapper currentURI];
 
+  NS_ASSERTION([browserWrapper isBookmarkable], "Bookmarking an innappropriate URI");
   [parentFolder addBookmark:itemTitle url:itemURL inPosition:[parentFolder count] isSeparator:NO];
   [bookmarkManager setLastUsedBookmarkFolder:parentFolder];
 }
 
 - (IBAction)addTabGroupWithoutPrompt:(id)aSender
 {
-  BookmarkManager* bookmarkManager = [BookmarkManager sharedBookmarkManager];
-  BookmarkFolder*  parentFolder = [bookmarkManager lastUsedBookmarkFolder];
+  BookmarkFolder* newTabGroup = [[[BookmarkFolder alloc] init] autorelease];
+  [newTabGroup setIsGroup:YES];
 
-  unsigned int folderPosition = [parentFolder count];
-  unsigned int numItems = [mTabBrowser numberOfTabViewItems];
-  BrowserWrapper* browserWrapper = [self getBrowserWrapper];
+  BrowserWrapper* currentBrowserWrapper = [self getBrowserWrapper];
+  int numberOfTabs = [mTabBrowser numberOfTabViewItems];
+  NSString *primaryTabTitle = nil;
 
-  NSString* titleString = [NSString stringWithFormat:NSLocalizedString(@"defaultTabGroupTitle", nil),
-                                                       numItems, [browserWrapper pageTitle]];
-  BookmarkFolder* newGroup = [parentFolder addBookmarkFolder:titleString inPosition:folderPosition isGroup:YES];
+  for (int i = 0; i < numberOfTabs; i++) {
+    BrowserWrapper* browserWrapper = (BrowserWrapper*)[[mTabBrowser tabViewItemAtIndex:i] view];
+    if (![browserWrapper isBookmarkable])
+      continue;
 
-  for (unsigned int i = 0; i < numItems; i++) {
-    browserWrapper = (BrowserWrapper*)[[mTabBrowser tabViewItemAtIndex:i] view];
-    NSString* itemTitle = [browserWrapper pageTitle];
-    NSString* itemURL = [browserWrapper currentURI];
+    Bookmark *bookmark = [newTabGroup addBookmark];
+    [bookmark setTitle:[browserWrapper pageTitle]];
+    [bookmark setUrl:[browserWrapper currentURI]];
 
-    [newGroup addBookmark:itemTitle url:itemURL inPosition:i isSeparator:NO];
+    if (browserWrapper == currentBrowserWrapper)
+      primaryTabTitle = [browserWrapper pageTitle];
   }
 
-  [bookmarkManager setLastUsedBookmarkFolder:parentFolder];
+  if (!primaryTabTitle && [newTabGroup count]) {
+    // The active tab was not included in the group.
+    primaryTabTitle = [[newTabGroup objectAtIndex:0] title];
+  }
+
+  NS_ASSERTION([newTabGroup count], "Adding a tab group with no children");
+  [newTabGroup setTitle:[NSString stringWithFormat:NSLocalizedString(@"defaultTabGroupTitle", nil),
+                                                   [newTabGroup count], 
+                                                   primaryTabTitle]];
+  BookmarkFolder* parentFolder = [[BookmarkManager sharedBookmarkManager] lastUsedBookmarkFolder];
+  [parentFolder appendChild:newTabGroup];
+  [[BookmarkManager sharedBookmarkManager] setLastUsedBookmarkFolder:parentFolder];
 }
 
 - (IBAction)addBookmarkForLink:(id)aSender
@@ -4122,6 +4142,9 @@ enum BWCOpenDest {
     [[result itemWithTarget:self andAction:@selector(viewPageSource:)] setEnabled:NO];
     [[result itemWithTarget:self andAction:@selector(viewSource:)] setEnabled:NO];
   }
+
+  // validate 'Bookmark This Page'
+  [[result itemWithTarget:self andAction:@selector(addBookmark:)] setEnabled:[[self getBrowserWrapper] isBookmarkable]];
 
   if (showSpellingItems)
     showSpellingItems = [self prepareSpellingSuggestionMenu:result tag:kSpellingRelatedItemsTag];
