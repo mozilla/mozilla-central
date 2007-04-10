@@ -127,7 +127,12 @@
               getAnonymousElementByAttribute(this, "anonid", "control"),
 
             set value(val) {
-              this.src = val;
+              // We have to use a timeout since set value can be hit during the
+              // output's constructor.  There are always potential problems
+              // changing the DOM during the constructor.  For example, if we
+              // don't use a timeout then setting the img's @src won't work on
+              // FF 1.5 or FF 2.  So we'll wait a tick before changing it here.
+              setTimeout(function(img, val) {img.src = val;}, 0, this, val);
             }
           };
         </body>
@@ -154,7 +159,12 @@
               getAnonymousElementByAttribute(this, "anonid", "control"),
 
             set value(val) {
-              this.src = "data:[image/*][;base64]," + val;
+              // We have to use a timeout since set value can be hit during the
+              // output's constructor.  There are always potential problems
+              // changing the DOM during the constructor.  For example, if we
+              // don't use a timeout then setting the img's @src won't work on
+              // FF 1.5 or FF 2.  So we'll wait a tick before changing it here.
+              setTimeout(function(img, val) {img.src = "data:[image/*][;base64]," + val;}, 0, this, val);
             }
           };
         </body>
