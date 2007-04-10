@@ -311,8 +311,15 @@
 
 
   <!-- DROPMARKER -->
-  <binding id="dropmarker"
-           extends="chrome://global/content/bindings/general.xml#dropmarker">
+  <binding id="dropmarker" extends="xul:button">
+
+    <resources>
+      <stylesheet src="chrome://xforms/skin/widgets-xul.css"/>
+    </resources>
+
+    <content>
+      <xul:image class="dropmarker-icon"/>
+    </content>
 
     <implementation implements="nsIAccessibleProvider">
       <property name="accessibleType" readonly="true">
