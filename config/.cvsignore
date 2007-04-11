@@ -21,3 +21,4 @@ asdecode
 final-link-comp-names
 final-link-comps
 final-link-libs
+*.pyc
