@@ -330,7 +330,7 @@ html|*:root range[mozType|type="http://www.w3.org/2002/xforms#yearMonthDuration"
   -moz-binding: url('chrome://xforms/content/widgets-xul.xml#range-yearmonthduration');
 }
 
-xul|box.xf-value {
+range xul|box.xf-value {
   -moz-box-align: end;
   -moz-box-orient: horizontal;
 }
