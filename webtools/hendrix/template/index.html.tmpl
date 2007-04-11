@@ -18,7 +18,7 @@
   # Portions created by the Initial Developer are Copyright (C) 2004
   # the Initial Developer. All Rights Reserved.
   #
-  # Contributor(s):
+  # Contributor(s): Reed Loden <reed@reedloden.com>
   #
   # The Initial Developer wrote this software to the Glory of God.
   # ***** END LICENSE BLOCK ***** %]
@@ -93,14 +93,10 @@ function onLoad() {
       </td>
       <td class="widget">
         <select id="product" name="product">
-          <option name="Firefox">Firefox</option>
-          <option name="Thunderbird">Thunderbird</option>
-          <option name="Mozilla Suite">Mozilla Suite</option>
-          <option name="SeaMonkey">SeaMonkey</option>
-          <option name="Sunbird">Sunbird</option>
-          <option name="Camino">Camino</option>
-          <option name="Bon Echo">Bon Echo</option>
-          <option name="Minefield">Minefield</option>
+          [% FOREACH product = products %]
+            [% NEXT IF product == "Other" %]
+            <option name="[% product %]">[% product %]</option>
+          [% END %]
           <option name="Other">Other (please state)</option>
         </select>
       </td>

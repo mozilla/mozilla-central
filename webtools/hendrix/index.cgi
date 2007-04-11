@@ -21,7 +21,7 @@
 # Portions created by the Initial Developer are Copyright (C) 2004
 # the Initial Developer. All Rights Reserved.
 #
-# Contributor(s):
+# Contributor(s): Reed Loden <reed@reedloden.com>
 #
 # The Initial Developer wrote this software to the Glory of God.
 # ***** END LICENSE BLOCK *****
@@ -32,19 +32,54 @@ use strict;
 # Mail::Send) module.
 use Template;
 use CGI;
-use Email::Send qw(NNTP);
+use Email::Send;
 use Net::RBLClient;
 
 # use CGI::Carp qw(fatalsToBrowser);
 
 # Configuration
-my $newsgroup = $::ENV{'HENDRIX_NEWSGROUP'} || "mozilla.feedback";
-my $server    = $::ENV{'HENDRIX_NNTP_SERVER'} || "news.mozilla.org";
-my $skin      = $::ENV{'HENDRIX_SKIN'} || "skin/planet.css";
 
+# Map products to destination
+my %product_destination_map = (
+	"Firefox" => "mozilla.feedback",
+	"Thunderbird" => "mozilla.feedback",
+	"Mozilla Suite" => "mozilla.feedback",
+	"SeaMonkey" => "mozilla.feedback",
+	"Sunbird" => "mozilla.feedback",
+	"Camino" => "caminofeedback\@mozilla.org",
+	"Bon Echo" => "mozilla.feedback",
+	"Gran Paradiso" => "mozilla.feedback",
+	"Minefield" => "mozilla.feedback",
+	"eBay Companion" => "mozilla.feedback.companion.ebay",
+	"Other" => "mozilla.feedback"
+);
+
+# List of products to show on the main Hendrix page (in order)
+my @products_list = (
+	"Firefox", "Thunderbird", "Mozilla Suite", 
+	"SeaMonkey", "Sunbird", "Camino", "Bon Echo",
+	"Gran Paradiso", "Minefield", "Other"
+);
+
+# The default newsgroup if the product isn't in the above map (NNTP only)
+my $default_newsgroup = $::ENV{'HENDRIX_NEWSGROUP'} || "mozilla.feedback";
+
+# The news (NNTP) server to use for posting
+my $nntp_server = $::ENV{'HENDRIX_NNTP_SERVER'} || "news.mozilla.org";
+
+# The default sender to use if no e-mail address is provided
+my $default_sender = $::ENV{'HENDRIX_SENDER'} || "hendrix-no-reply\@mozilla.org";
+
+# The mail (SMTP) server to use for posting
+my $smtp_server = $::ENV{'HENDRIX_SMTP_SERVER'} || "smtp.mozilla.org";
+
+# The CSS file to include in the template
+my $skin = $::ENV{'HENDRIX_SKIN'} || "skin/planet.css";
+
+# The DNS blacklists by which to check sender IP addresses
 my $rbl = Net::RBLClient->new(
     lists => [
-        'opm.blitzed.org',
+        'dnsbl.ahbl.org',
         'http.dnsbl.sorbs.net',
         'socks.dnsbl.sorbs.net',
         'misc.dnsbl.sorbs.net',
@@ -56,7 +91,7 @@ my $cgi = new CGI;
 my $form = $cgi->Vars;
 my $vars;
 $vars->{'form'} = $form;
-$vars->{'newsgroup'} = $newsgroup;
+$vars->{'products'} = \@products_list;
 $vars->{'stylesheet'} = $skin;
 
 my $template = Template->new({
@@ -65,7 +100,8 @@ my $template = Template->new({
     TRIM => 1,
     FILTERS => {
         email => \&emailFilter,
-    },  
+        remove_newlines => \&removeNewlinesFilter,
+    },
 }) || die("Template creation failed.\n");
 
 my $action = $cgi->param("action");
@@ -97,7 +133,11 @@ elsif ($action eq "submit") {
     if (!$form->{'name'} || !$form->{'subject'} || !$form->{'product'}) {
       throwError("bad_parameters");
     }
-    
+
+    $vars->{'destination'} = $product_destination_map{$form->{'product'}} || $default_newsgroup;
+    $vars->{'method'} = $vars->{'destination'} =~ /@/ ? "SMTP" : "NNTP";
+    $vars->{'email'} = $form->{'email'} =~ /d:^[\w\.\+\-=]+@[\w\.\-]+\.[\w\-]+$:/ ? $form->{'email'} : $default_sender;
+
     my $message;
     my $headers;
     
@@ -105,16 +145,20 @@ elsif ($action eq "submit") {
       || die("Template process failed: " . $template->error() . "\n");
     $template->process("message.txt.tmpl", $vars, \$message)
       || die("Template process failed: " . $template->error() . "\n");
-       
-    # Post formatted message to newsgroup
-    my $newsMsg = Email::Simple->new($headers . "\n\n" . $message);
-    my $success = send NNTP => $newsMsg, $server;
 
-    throwError("cant_post") if (!$success);
+    # Post formatted message to newsgroup/email
+    my $theMsg = Email::Simple->new($headers . "\n\n" . $message);
+    my $sender = Email::Send->new({
+        mailer      => $vars->{'method'},
+        mailer_args => [ Host => $vars->{'method'} eq "SMTP" ? $smtp_server : $nntp_server ],
+    });
+    my $success = $sender->send($theMsg);
 
-    # Give user feedback on success
+    # Give user feedback on success/failure
     $vars->{'headers'} = $headers;
     $vars->{'message'} = $message;
+
+    throwError("cant_post") if (!$success);
     
     print "Content-Type: text/html\n\n";
     $template->process("submit-successful.html.tmpl", $vars)
@@ -131,6 +175,16 @@ sub emailFilter {
     my ($var) = @_;
     $var =~ s/\@/at/;
     $var =~ s/\./dot/g;
+    return $var;
+}
+
+# Remove newlines and replace them with spaces
+sub removeNewlinesFilter {
+    my ($var) = @_;
+    $var =~ s/\r\n/ /g;
+    $var =~ s/\n\r/ /g;
+    $var =~ s/\r/ /g;
+    $var =~ s/\n/ /g;
     return $var;
 }
 

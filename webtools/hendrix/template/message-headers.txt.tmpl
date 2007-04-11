@@ -18,17 +18,12 @@
   # Portions created by the Initial Developer are Copyright (C) 2004
   # the Initial Developer. All Rights Reserved.
   #
-  # Contributor(s):
+  # Contributor(s): Reed Loden <reed@reedloden.com>
   #
   # The Initial Developer wrote this software to the Glory of God.
   # ***** END LICENSE BLOCK ***** %]
-[% from = form.name %]
-[% IF form.email %]
-  [% from = BLOCK %]
-    [% from %] <[% form.email FILTER email %]>
-  [% END %]
-[% END %]
-Newsgroups: [% newsgroup %]
-From: [% from %]
-X-Hendrix-Product: [% form.product %]
-Subject: [Hendrix] [% form.subject %]
+[% method == "SMTP" ? "To: <$destination>" : "Newsgroups: $destination" %]
+[% filtered_email = email FILTER email FILTER remove_newlines %]
+From: [% form.name FILTER remove_newlines %] <[% method == "SMTP" ? email : filtered_email %]>
+X-Hendrix-Product: [% form.product FILTER remove_newlines %]
+Subject: [Hendrix] [% form.subject FILTER remove_newlines %]
