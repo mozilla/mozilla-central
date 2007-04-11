@@ -51,7 +51,16 @@ instance,
 submission,
 bind,
 value,
-copy {
+copy,
+setvalue,
+send,
+load,
+dispatch,
+setfocus,
+toggle,
+insert,
+delete,
+setindex {
   display: none !important;
 }
 
