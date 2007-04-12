@@ -414,11 +414,10 @@ sub value_encode {
   return $s;
 }
 
-# Quotify a string, suitable for invoking a shell process
+# Only allow characters suitable for invoking a shell process
 sub shell_escape {
     my ($file) = @_;
-    $file =~ s/\000/_NULL_/g;
-    $file =~ s/([ \"\'\`\~\^\?\$\&\|\!<>\(\)\[\]\;\:])/\\$1/g;
+    $file =~ tr/[^A-Za-z0-9\-\_\+\=\.\,]//;
     return $file;
 }
 

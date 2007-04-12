@@ -83,11 +83,11 @@ for my $k (@revs) {
     my $prevrev = &PrevRev($rev);
     my $fullname = "$cvsroot/$dir/$file,v";
     $fullname = "$cvsroot/$dir/Attic/$file,v" if (! -r $fullname);
-    if (! -r $fullname || IsHidden($fullname)) {
+    if (! -e $fullname || ! -r $fullname || IsHidden($fullname)) {
         next;
     }
     &ChrootFilename($cvsroot, $fullname);
-    open( DIFF, "$rcsdiffcommand -r$prevrev -r$rev -u " . shell_escape($fullname) ." 2>&1|" ) || die "rcsdiff failed\n";
+    open(DIFF, "-|", "$rcsdiffcommand -r$prevrev -r$rev -u " . shell_escape($fullname) . " 2>&1") || die "rcsdiff failed\n";
     while(<DIFF>){
 		if (($_ =~ /RCS file/) || ($_ =~ /rcsdiff/)) { 
 			$_ =~ s/(^.*)(.*\/)(.*)/$1 $3/;
