@@ -67,12 +67,4 @@ sub html_quote {
     return $var;
 }
 
-# Quotify a string, suitable for invoking a shell process
-sub shell_escape {
-    my ($file) = @_;
-    $file =~ s/\000/_NULL_/g;
-    $file =~ s/([ \"\'\`\~\^\?\$\&\|\!<>\(\)\[\]\;\:])/\\$1/g;
-    return $file;
-}
-
 1;
