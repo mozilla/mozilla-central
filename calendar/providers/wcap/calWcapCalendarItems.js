@@ -277,6 +277,9 @@ function diffProperty(newItem, oldItem, propName) {
             val = "";
     }
     else {
+        val = val.replace(/(\r\n)|\n/g, "\r\n");
+        if (oldVal)
+            oldVal = oldVal.replace(/(\r\n)|\n/g, "\r\n");
         if (val == oldVal)
             val = null;
     }
@@ -849,15 +852,6 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
                 var rid = item.recurrenceId;
                 if (rid) {
                     item.recurrenceInfo = null;
-                    var startDate = (isEvent(item)
-                                     ? item.startDate : item.entryDate);
-                    if (startDate && startDate.isDate && !rid.isDate) {
-                        // cs ought to return proper all-day RECURRENCE-ID!
-                        // get into startDate's timezone before cutting:
-                        rid = rid.getInTimezone(startDate.timezone);
-                        rid.isDate = true;
-                        item.recurrenceId = rid;
-                    }
                     if (LOG_LEVEL > 1) {
                         log("exception item: " + item.title +
                             "\nrid=" + rid.icalString +
@@ -887,6 +881,14 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
         var parent = uid2parent[item.id];
         if (parent) {
             item.parentItem = parent;
+            var recStartDate = parent.recurrenceStartDate;
+            if (recStartDate && recStartDate.isDate && !item.recurrenceId.isDate) {
+                // cs ought to return proper all-day RECURRENCE-ID!
+                // get into startDate's timezone before cutting:
+                var rid = item.recurrenceId.getInTimezone(recStartDate.timezone);
+                rid.isDate = true;
+                item.recurrenceId = rid;
+            }
             item.makeImmutable();
             parent.recurrenceInfo.modifyException(item);
         }

@@ -388,14 +388,8 @@ calWcapCalendar.prototype = {
     checkAccess: function calWcapCalendar_checkAccess(accessControlBits)
     {
         // xxx todo: take real acl into account
-        // for now, assuming that owners have been granted full access,
-        // and all others can read, but not add/modify/delete.
+        // for now, optimistically assuming that everybody has full access, server will check:
         var granted = calIWcapCalendar.AC_FULL;
-        if (!this.isOwnedCalendar) {
-            // burn out write access:
-            granted &= ~(calIWcapCalendar.AC_COMP_WRITE |
-                         calIWcapCalendar.AC_PROP_WRITE);
-        }
         // check whether every bit fits:
         return ((accessControlBits & granted) == accessControlBits);
     },

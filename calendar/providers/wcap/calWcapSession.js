@@ -305,7 +305,7 @@ calWcapSession.prototype = {
                 var passwordManager =
                     Components.classes["@mozilla.org/passwordmanager;1"]
                               .getService(Components.interfaces.nsIPasswordManager);
-                var pwHost = this_.sessionUri.spec;
+                var pwHost = this_.uri.spec;
                 if (pwHost[pwHost.length - 1] == '/')
                     pwHost = pwHost.substr(0, pwHost.length - 1);
                 
