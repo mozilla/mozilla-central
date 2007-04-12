@@ -148,8 +148,9 @@ bin\greprefs\*
 bin\components\mozldap.xpt
 bin\components\nsLDAPPrefsService.js
 bin\components\nsAbLDAPAttributeMap.js
-bin\nsldap32v50.dll
-bin\nsldappr32v50.dll
+bin\nsldap32v60.dll
+bin\nsldappr32v60.dll
+bin\nsldif32v60.dll
 
 ; wallet
 bin\components\wallet.xpt

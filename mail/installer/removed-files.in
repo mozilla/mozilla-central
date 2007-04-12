@@ -41,6 +41,8 @@ components/xmlextras.dll
 components/xpc3250.dll
 components/xpcom_compat_c.dll
 components/xppref32.dll
+nsldap32v50.dll
+nsldappr32v50.dll
 #ifdef XP_WIN
 components/accessibility-msaa.xpt
 components/accessibility.xpt
