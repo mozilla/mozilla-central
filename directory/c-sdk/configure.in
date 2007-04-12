@@ -580,13 +580,22 @@ dnl otherwise, cross compile if host is given
 cross_compiling=no
 dnl host must be specified to cross compile
 if test -n "$host" ; then
+    case $target in
+    *-darwin*)
+        if test "$host" != "$target" ; then
+            cross_compiling=yes
+        fi
+    ;;
+    *)
 dnl host == build - do not cross compile
-    if test "$host" = "$build" ; then
-        cross_compiling=no
+        if test "$host" = "$build" ; then
+            cross_compiling=no
 dnl host != build or host != target - do cross compile
-    elif test "$host" != "$target" -o "$host" != "$build" ; then
-        cross_compiling=yes
-    fi
+        elif test "$host" != "$target" -o "$host" != "$build" ; then
+            cross_compiling=yes
+        fi
+    ;;
+    esac
 fi
 if test "$cross_compiling" = "no"; then
     AC_PROG_CXX
@@ -936,9 +945,7 @@ case "$host" in
     WIN_TOP_SRC=`cd $srcdir && pwd -W`
     ;;
 *-cygwin*|*-msvc*|*-mks*)
-# don't really need cygwin_wrapper anymore
-    CYGWIN_WRAPPER=
-#    CYGWIN_WRAPPER='sh $(topsrcdir)/config/cygwin-wrapper'
+    CYGWIN_WRAPPER='sh $(topsrcdir)/config/cygwin-wrapper'
     NSINSTALL='$(CYGWIN_WRAPPER) nsinstall'
     if test "`${PERL} -v | grep -c cygwin  2>/dev/null`" = 0; then
         PERL='$(CYGWIN_WRAPPER) perl'
@@ -1552,9 +1559,7 @@ tools are selected during the Xcode/Developer Tools installation.])
         # Use temp file for windres (bug 213281)
         RC="$WINDRES -O coff --use-temp-file"
     else
-# don't really need cygwin_wrapper anymore
-#        CYGWIN_WRAPPER='sh $(topsrcdir)/config/cygwin-wrapper'
-        CYGWIN_WRAPPER=
+        CYGWIN_WRAPPER='sh $(topsrcdir)/config/cygwin-wrapper'
         CC=cl
         CXX=cl
         LD=link
