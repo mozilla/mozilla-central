@@ -210,10 +210,13 @@ public class GenerateTestCert {
     }
 
     static int nextRandInt(SecureRandom rand) throws Exception {
+        int i;
         byte[] bytes = new byte[4];
         rand.nextBytes(bytes);
-        return  ((int)bytes[0])<<24 | ((int)bytes[1])<<16 |
+        i =  ((int)bytes[0])<<24 | ((int)bytes[1])<<16 |
                 ((int)bytes[2])<<8 | ((int)bytes[3]);
+        System.out.println("generated random value:" + i);
+        return i;
     }
 
     /**

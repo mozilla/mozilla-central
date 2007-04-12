@@ -59,6 +59,24 @@
 #include <signal.h>
 #endif
 
+
+/** These externs are only here to
+ ** keep certain compilers from optimizing the
+ ** version info away.
+ */
+
+#include "util/jssver.h"
+extern const char __jss_base_rcsid[];
+extern const char __jss_base_sccsid[];
+
+const char * jss_rcsid() {
+    return __jss_base_rcsid;
+}
+
+const char * jss_sccsid() {
+    return __jss_base_sccsid;
+}
+
 /********************************************************************/
 /* The VERSION Strings should be updated in the following           */
 /* files everytime a new release of JSS is generated:               */

@@ -36,53 +36,39 @@
 
 package org.mozilla.jss.tests;
 
-import org.mozilla.jss.ssl.*;
 import org.mozilla.jss.CryptoManager;
-import org.mozilla.jss.crypto.*;
-import org.mozilla.jss.asn1.*;
-import org.mozilla.jss.pkix.primitive.*;
-import org.mozilla.jss.pkix.cert.*;
-import org.mozilla.jss.pkix.cert.Certificate;
-import org.mozilla.jss.util.PasswordCallback;
 
 public class JSSPackageTest {
 
-    private static CryptoManager    cm          = null;
-
     public static void main(String[] args) {
-        String certDbPath = ".";
         try {
-            try {
-                certDbPath = (String)args[0];
-            } catch (Exception e) { 
-                System.out.println("Exception caught : " + e.getMessage());
-                e.printStackTrace();
-                System.exit(1);
-            }
-            CryptoManager.initialize(certDbPath);
-
             Package pkg = Package.getPackage("org.mozilla.jss");
+            if (pkg != null) {
+                System.out.println("\n---------------------------------------------------------");
+                System.out.println("Checking jss jar and library version");
+                System.out.println("---------------------------------------------------------");
+                System.out.println("              Introspecting jss jar file");
+                System.out.println("Package name:\t" + pkg.getName());
 
-            System.out.println("\n---------------------------------------------------------");
-            System.out.println("Checking jss jar and library version");
-            System.out.println("---------------------------------------------------------");
-            System.out.println("              Introspecting jss jar file");
-            System.out.println("Package name:\t" + pkg.getName());
+                System.out.println("Spec title  :\t" + pkg.getSpecificationTitle());
+                System.out.println("Spec vendor :\t" + pkg.getSpecificationVendor());
+                System.out.println("Spec version:\t" + pkg.getSpecificationVersion());
 
-            System.out.println("Spec title  :\t" + pkg.getSpecificationTitle());
-            System.out.println("Spec vendor :\t" + pkg.getSpecificationVendor());
-            System.out.println("Spec version:\t" + pkg.getSpecificationVersion());
+                System.out.println("Impl title  :\t" + pkg.getImplementationTitle());
+                System.out.println("Impl vendor :\t" + pkg.getImplementationVendor());
+                System.out.println("Impl version:\t" + pkg.getImplementationVersion());
+            }
+            System.out.println("\n\tFetching version information " +
+                               "from CryptoManager");
+            System.out.println("\n\t" + org.mozilla.jss.CryptoManager.JAR_JSS_VERSION);
+            System.out.println("\n\tSuggested NSS/NSPR version to use " +
+                               "with this JSS:");
+            System.out.println("\n\t" + org.mozilla.jss.CryptoManager.JAR_NSS_VERSION);
+            System.out.println("\t" + org.mozilla.jss.CryptoManager.JAR_NSPR_VERSION);
 
-            System.out.println("Impl title  :\t" + pkg.getImplementationTitle());
-            System.out.println("Impl vendor :\t" + pkg.getImplementationVendor());
-            System.out.println("Impl version:\t" + pkg.getImplementationVersion());
-
-            System.out.println("\n  Fetching version information from CryptoManager");
-            System.out.println(CryptoManager.JAR_JSS_VERSION);
-            System.out.println(CryptoManager.JAR_NSS_VERSION);
-            System.out.println(CryptoManager.JAR_NSPR_VERSION);
-
-            System.out.println("\n  Checking for header information in jss library");
+            System.out.println("\n\tTo check the JNI version in libjss4.so:"); 
+            System.out.println("\n\ttry: strings libjss4.so | grep -i header"); 
+            System.out.println("\n\tor : ident libjss4.so");         
             System.exit(0);
 
         } catch (Exception e) {
