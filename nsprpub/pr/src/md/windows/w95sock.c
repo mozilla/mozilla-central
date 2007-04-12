@@ -167,7 +167,8 @@ _PR_MD_SOCKET(int af, int type, int flags)
         return -1;
     }
 
-    if (socketSetCompatMode)
+    if ((af == AF_INET || af == AF_INET6) && 
+        type == SOCK_STREAM && socketSetCompatMode)
     {
         WSA_COMPATIBILITY_MODE mode;
         char dummy[4];
@@ -179,9 +180,19 @@ _PR_MD_SOCKET(int af, int type, int flags)
                          (char *)&mode, sizeof(mode),
                          dummy, 4, &ret_dummy, 0, NULL) == SOCKET_ERROR)
         {
-            PR_SetError(PR_UNKNOWN_ERROR, WSAGetLastError());
-            closesocket(sock);
-            return -1;
+            int err = WSAGetLastError();
+            PR_LOG(_pr_io_lm, PR_LOG_DEBUG, ("WSAIoctl() failed with %d", err));
+
+            /* SIO_SET_COMPATIBILITY_MODE may not be supported
+            ** if the call to WSAIoctl() fails with WSAEINVAL
+            ** don't close the socket
+            */ 
+            if (err != WSAEINVAL)
+            {
+                PR_SetError(PR_UNKNOWN_ERROR, err);
+                closesocket(sock);
+                return -1;
+            }
         }
     }
 
