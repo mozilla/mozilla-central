@@ -637,7 +637,7 @@ sub open_showbuilds_href_target {
 
             local $_;
             $::BatchID='';
-            eval qq(require "$::bonsai_dir/data/$bonsai_tree/batchid.pl");
+            eval qq(do "$::bonsai_dir/data/$bonsai_tree/batchid.pl");
             if ($::BatchID eq '') {
                 warn "No BatchID in $::bonsai_dir/data/$bonsai_tree/batchid.pl\n";
                 return;
