@@ -624,11 +624,6 @@ function Startup()
         try {
           switch (pref.getIntPref("browser.windows.loadOnNewWindow"))
           {
-            case -1:
-              var handler = Components.classes['@mozilla.org/commandlinehandler/general-startup;1?type=browser']
-                                      .getService(Components.interfaces.nsICmdLineHandler);
-              uriArray = handler.defaultArgs.split('\n');
-              break;
             default:
               uriArray = ["about:blank"];
               break;
@@ -1316,13 +1311,6 @@ function BrowserOpenTab()
     try {
       switch ( pref.getIntPref("browser.tabs.loadOnNewTab") )
       {
-        case -1:
-          var handler = Components.classes['@mozilla.org/commandlinehandler/general-startup;1?type=browser']
-                                  .getService(Components.interfaces.nsICmdLineHandler);
-          uriToLoad = handler.defaultArgs.split("\n")[0];
-          if (!/\S/.test(uriToLoad))
-            uriToLoad = "about:blank";
-          break;
         default:
           uriToLoad = "about:blank";
           break;
