@@ -145,11 +145,6 @@ radio[pane=paneAdvanced]:active {
   background-color: transparent;
   border: none;
   padding: 1px 0px 0px 0px;
-  margin: none;
-}
-
-prefpane button {
-  -moz-appearance: button-small;
 }
 
 prefpane .groupbox-body {
