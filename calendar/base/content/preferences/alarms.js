@@ -120,7 +120,7 @@ var gAlarmsPane = {
         var fp = Components.classes["@mozilla.org/filepicker;1"]
                     .createInstance(nsIFilePicker);
 
-        var bundlePreferences = document.getElementById("bundlePreferences");
+        var bundlePreferences = document.getElementById("bundleCalendarPreferences");
         var title = bundlePreferences.getString("Open");
         var wildmat = "*.wav";
         var label = bundlePreferences.getFormattedString("filterWav", [wildmat], 1);

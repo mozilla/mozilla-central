@@ -54,7 +54,7 @@
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
     <vbox id="calPreferencesBoxAlarms">
-        <stringbundle id="bundlePreferences"
+        <stringbundle id="bundleCalendarPreferences"
                       src="chrome://calendar/locale/calendar.properties"/>
         <script type="application/x-javascript"
                 src="chrome://calendar/content/preferences/alarms.js"/>

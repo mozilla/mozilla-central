@@ -157,7 +157,7 @@ var gAdvancedPane = {
      */
     _removeMasterPassword: function advRemoveMasterPassword() {
         if (this._secModDb.isFIPSEnabled) {
-            var bundle = document.getElementById("bundlePreferences");
+            var bundle = document.getElementById("bundleCalendarPreferences");
             var promptSvc = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                                       .getService(Components.interfaces.nsIPromptService);
             promptSvc.alert(window,
