@@ -165,14 +165,23 @@ ltnMimeConverter.prototype = {
 
             // this.mUri is the message URL that we are processing.
             // We use it to get the nsMsgHeaderSink to store the calItipItem.
-            var msgUrl = this.mUri.QueryInterface(Ci.nsIMsgMailNewsUrl);
-            var sinkProps = msgUrl.msgWindow.msgHeaderSink.properties;
-            sinkProps.setPropertyAsInterface("itipItem", itipItem);
+            if (this.mUri) {
+                var msgUrl = this.mUri.QueryInterface(Ci.nsIMsgMailNewsUrl);
+                var sinkProps = msgUrl.msgWindow.msgHeaderSink.properties;
+                sinkProps.setPropertyAsInterface("itipItem", itipItem);
+            
+                // Notify the observer that the itipItem is available
+                var observer = Cc["@mozilla.org/observer-service;1"].
+                               getService(Ci.nsIObserverService);
+                observer.notifyObservers(null, "onItipItemCreation", 0);
+            } else {
+                // Thunderbird 1.5.x case: We have no choice but to try
+                // sending the iTIP item directly with the notification
+                var observer = Cc["@mozilla.org/observer-service;1"].
+                               getService(Ci.nsIObserverService);
+                observer.notifyObservers(itipItem, "onItipItemCreation", 0);
+            }
 
-            // Notify the observer that the itipItem is available
-            var observer = Cc["@mozilla.org/observer-service;1"].
-                           getService(Ci.nsIObserverService);
-            observer.notifyObservers(null, "onItipItemCreation", 0);
         } catch (e) {
             Components.utils.reportError("convertToHTML: " +
                                          "Cannot create itipItem: " + e);

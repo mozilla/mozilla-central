@@ -46,20 +46,26 @@ var gItipItem;
 const onItipItem = {
     observe: function observe(subject, topic, state) {
         if (topic == "onItipItemCreation") {
-            checkForItipItem();
+            checkForItipItem(subject);
         }
     }
 };
 
-function checkForItipItem()
+function checkForItipItem(subject)
 {
     var itipItem;
     try {
-        var msgUri = GetLoadedMessage();
-        var sinkProps = msgWindow.msgHeaderSink.properties;
-        // This property was set by LightningTextCalendarConverter.js
-        itipItem = sinkProps.getPropertyAsInterface("itipItem",
-                                                    Components.interfaces.calIItipItem);
+        if (!subject) {
+            var msgUri = GetLoadedMessage();
+            var sinkProps = msgWindow.msgHeaderSink.properties;
+            // This property was set by LightningTextCalendarConverter.js
+            itipItem = sinkProps.getPropertyAsInterface("itipItem",
+                                                        Components.interfaces.calIItipItem);
+        } else {
+            // With Thunderbird 1.5.x we have to use the subject to pass the
+            // iTIP item because we don't have sinkProps available.
+            itipItem = subject.QueryInterface(Components.interfaces.calIItipItem);
+        }
     } catch (e) {
         // This will throw on every message viewed that doesn't have the
         // itipItem property set on it. So we eat the errors and move on.
