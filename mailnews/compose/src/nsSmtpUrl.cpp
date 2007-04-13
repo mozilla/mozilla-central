@@ -65,136 +65,136 @@ NS_IMPL_ISUPPORTS2(nsMailtoUrl, nsIMailtoUrl, nsIURI)
 
 nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
 {
-	char *rest = searchPart;
-        nsCAutoString inReplyToPart;
-	// okay, first, free up all of our old search part state.....
-	CleanupMailtoState();
+  char *rest = searchPart;
+  nsCAutoString inReplyToPart;
+  // okay, first, free up all of our old search part state.....
+  CleanupMailtoState();
 
-	if (rest && *rest == '?')
-	{
- 		/* start past the '?' */
-		rest++;
-	}
+  if (rest && *rest == '?')
+  {
+    /* start past the '?' */
+    rest++;
+  }
 
-	if (rest)
-	{
+  if (rest)
+  {
     char *token = nsCRT::strtok(rest, "&", &rest);
-		while (token && *token)
-		{
-			char *value = 0;
+    while (token && *token)
+    {
+      char *value = 0;
       char *eq = PL_strchr(token, '=');
-			if (eq)
-			{
-				value = eq+1;
-				*eq = 0;
-			}
-			
-			switch (nsCRT::ToUpper(*token))
-			{
-/* DO NOT support attachment= in mailto urls. This poses a security fire hole!!! 
-				case 'A':
-          if (!nsCRT::strcasecmp (token, "attachment"))
-					  m_attachmentPart = value;
-				  break;
-*/
-				case 'B':
-				  if (!nsCRT::strcasecmp (token, "bcc"))
-				  {
-					  if (!m_bccPart.IsEmpty())
-            {
-               m_bccPart += ", ";
-               m_bccPart += value;
-            }
-            else
-					    m_bccPart = value; 
-          }
-					else if (!nsCRT::strcasecmp (token, "body"))
-					{
-            if (!m_bodyPart.IsEmpty())
-            {
-              m_bodyPart +="\n";
-              m_bodyPart += value;
-            }
-            else
-              m_bodyPart = value;
-          }
-          break;
-        case 'C': 
-					if (!nsCRT::strcasecmp  (token, "cc"))
-					{
-						if (!m_ccPart.IsEmpty())
-						{
-              m_ccPart += ", ";
-              m_ccPart += value;
-						}
-						else
-							m_ccPart = value;
-					}
-          break;
-        case 'F': 
-					if (!nsCRT::strcasecmp (token, "followup-to"))
-						m_followUpToPart = value;
-					else if (!nsCRT::strcasecmp (token, "from"))
-						m_fromPart = value;
-					break;
-        case 'H':
-          if (!nsCRT::strcasecmp(token, "html-part") || !nsCRT::strcasecmp (token, "html-body"))
-          {
-            // m_htmlPart holds the body for both html-part and html-body.
-            m_htmlPart = value;
-            mFormat = nsIMsgCompFormat::HTML;
-          }
-          break;
-                                case 'I':
-                                        if (!nsCRT::strcasecmp (token, "in-reply-to"))
-                                                inReplyToPart = value;
-                                        break;
+      if (eq)
+      {
+        value = eq+1;
+        *eq = 0;
+      }
 
-				case 'N':
-					if (!nsCRT::strcasecmp (token, "newsgroups"))
-						m_newsgroupPart = value;
-					else if (!nsCRT::strcasecmp (token, "newshost"))
-						m_newsHostPart = value;
-				  break;
-				case 'O':
-					if (!nsCRT::strcasecmp (token, "organization"))
-						m_organizationPart = value;
-					break;
-        case 'R':
-					if (!nsCRT::strcasecmp (token, "references"))
-						m_referencePart = value;
-					else if (!nsCRT::strcasecmp (token, "reply-to"))
-						m_replyToPart = value;
-					break;
-				case 'S':
-					if(!nsCRT::strcasecmp (token, "subject"))
-						m_subjectPart = value;
-					break;
-				case 'P':
-					if (!nsCRT::strcasecmp (token, "priority"))
-						m_priorityPart = PL_strdup(value);
-					break;
-				case 'T':
-					if (!nsCRT::strcasecmp (token, "to"))
-				  {
-						if (!m_toPart.IsEmpty())
-						{
-              m_toPart += ", ";
-              m_toPart += value;
-						}
-						else
-							m_toPart = value;
-					}
-					break;
-        default:
-          break;
+      switch (nsCRT::ToUpper(*token))
+      {
+        /* DO NOT support attachment= in mailto urls. This poses a security fire hole!!! 
+        case 'A':
+        if (!nsCRT::strcasecmp (token, "attachment"))
+        m_attachmentPart = value;
+        break;
+        */
+      case 'B':
+        if (!nsCRT::strcasecmp (token, "bcc"))
+        {
+          if (!m_bccPart.IsEmpty())
+          {
+            m_bccPart += ", ";
+            m_bccPart += value;
+          }
+          else
+            m_bccPart = value; 
+        }
+        else if (!nsCRT::strcasecmp (token, "body"))
+        {
+          if (!m_bodyPart.IsEmpty())
+          {
+            m_bodyPart +="\n";
+            m_bodyPart += value;
+          }
+          else
+            m_bodyPart = value;
+        }
+        break;
+      case 'C': 
+        if (!nsCRT::strcasecmp  (token, "cc"))
+        {
+          if (!m_ccPart.IsEmpty())
+          {
+            m_ccPart += ", ";
+            m_ccPart += value;
+          }
+          else
+            m_ccPart = value;
+        }
+        break;
+      case 'F': 
+        if (!nsCRT::strcasecmp (token, "followup-to"))
+          m_followUpToPart = value;
+        else if (!nsCRT::strcasecmp (token, "from"))
+          m_fromPart = value;
+        break;
+      case 'H':
+        if (!nsCRT::strcasecmp(token, "html-part") || !nsCRT::strcasecmp (token, "html-body"))
+        {
+          // m_htmlPart holds the body for both html-part and html-body.
+          m_htmlPart = value;
+          mFormat = nsIMsgCompFormat::HTML;
+        }
+        break;
+      case 'I':
+        if (!nsCRT::strcasecmp (token, "in-reply-to"))
+          inReplyToPart = value;
+        break;
+
+      case 'N':
+        if (!nsCRT::strcasecmp (token, "newsgroups"))
+          m_newsgroupPart = value;
+        else if (!nsCRT::strcasecmp (token, "newshost"))
+          m_newsHostPart = value;
+        break;
+      case 'O':
+        if (!nsCRT::strcasecmp (token, "organization"))
+          m_organizationPart = value;
+        break;
+      case 'R':
+        if (!nsCRT::strcasecmp (token, "references"))
+          m_referencePart = value;
+        else if (!nsCRT::strcasecmp (token, "reply-to"))
+          m_replyToPart = value;
+        break;
+      case 'S':
+        if(!nsCRT::strcasecmp (token, "subject"))
+          m_subjectPart = value;
+        break;
+      case 'P':
+        if (!nsCRT::strcasecmp (token, "priority"))
+          m_priorityPart = PL_strdup(value);
+        break;
+      case 'T':
+        if (!nsCRT::strcasecmp (token, "to"))
+        {
+          if (!m_toPart.IsEmpty())
+          {
+            m_toPart += ", ";
+            m_toPart += value;
+          }
+          else
+            m_toPart = value;
+        }
+        break;
+      default:
+        break;
       } // end of switch statement...
-			
-			if (eq)
-				  *eq = '='; /* put it back */
-				token = nsCRT::strtok(rest, "&", &rest);
-		} // while we still have part of the url to parse...
-	} // if rest && *rest
+
+      if (eq)
+        *eq = '='; /* put it back */
+      token = nsCRT::strtok(rest, "&", &rest);
+    } // while we still have part of the url to parse...
+  } // if rest && *rest
 
   // Ensure that References and In-Reply-To are consistent...
   if (!inReplyToPart.IsEmpty())
@@ -218,63 +218,73 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
   char *decodedString;
 
   // Now unescape any fields that need escaped...
-	if (!m_toPart.IsEmpty())
+  if (!m_toPart.IsEmpty())
   {
-		nsUnescape(m_toPart.BeginWriting());
+    nsUnescape(m_toPart.BeginWriting());
     if (mimeConverter)
     {
       if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeader(m_toPart.get(),
-                                                       &decodedString,
-                                                       "UTF-8", PR_FALSE))
-                                                       && decodedString)
+        &decodedString,
+        "UTF-8", PR_FALSE))
+        && decodedString)
         m_toPart.Adopt(decodedString);
     }
   }
-	if (!m_ccPart.IsEmpty())
+  if (!m_ccPart.IsEmpty())
   {
-		nsUnescape(m_ccPart.BeginWriting());
+    nsUnescape(m_ccPart.BeginWriting());
     if (mimeConverter)
     {
       if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeader(m_ccPart.get(),
-                                                       &decodedString,
-                                                       "UTF-8", PR_FALSE))
-                                                       && decodedString)
+        &decodedString,
+        "UTF-8", PR_FALSE))
+        && decodedString)
         m_ccPart.Adopt(decodedString);
     }
   }
-	if (!m_subjectPart.IsEmpty())
+  if (!m_bccPart.IsEmpty())
+  {
+    nsUnescape(m_bccPart.BeginWriting());
+    if (mimeConverter && 
+      NS_SUCCEEDED(mimeConverter->DecodeMimeHeader(m_bccPart.get(),
+                                                &decodedString,
+                                                "UTF-8", PR_FALSE))
+                                                && decodedString)
+        m_bccPart.Adopt(decodedString);
+  }
+  if (!m_subjectPart.IsEmpty())
   {
     nsUnescape(m_subjectPart.BeginWriting());
     if (mimeConverter)
     {
       if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeader(m_subjectPart.get(),
-                                                       &decodedString,
-                                                       "UTF-8", PR_FALSE))
-                                                       && decodedString)
+        &decodedString,
+        "UTF-8", PR_FALSE))
+        && decodedString)
         m_subjectPart.Adopt(decodedString);
     }
   }
-	if (!m_newsgroupPart.IsEmpty())
-		nsUnescape(m_newsgroupPart.BeginWriting());
-	if (!m_referencePart.IsEmpty())
-		nsUnescape(m_referencePart.BeginWriting());
-	if (!m_bodyPart.IsEmpty())
+  if (!m_newsgroupPart.IsEmpty())
+    nsUnescape(m_newsgroupPart.BeginWriting());
+  if (!m_referencePart.IsEmpty())
+    nsUnescape(m_referencePart.BeginWriting());
+  if (!m_bodyPart.IsEmpty())
   {
-		nsUnescape(m_bodyPart.BeginWriting());
+    nsUnescape(m_bodyPart.BeginWriting());
     if (mimeConverter)
     {
       if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeader(m_bodyPart.get(),
-                                                       &decodedString,
-                                                       "UTF-8", PR_FALSE,
-                                                       PR_FALSE))
-                                                       && decodedString)
+        &decodedString,
+        "UTF-8", PR_FALSE,
+        PR_FALSE))
+        && decodedString)
         m_bodyPart.Adopt(decodedString);
     }
   }
-	if (!m_newsHostPart.IsEmpty())
-		nsUnescape(m_newsHostPart.BeginWriting());
+  if (!m_newsHostPart.IsEmpty())
+    nsUnescape(m_newsHostPart.BeginWriting());
 
-	return NS_OK;
+  return NS_OK;
 }
 
 
