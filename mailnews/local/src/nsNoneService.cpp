@@ -49,7 +49,6 @@
 #include "nsMsgBaseCID.h"
 #include "nsXPIDLString.h"
 #include "nsCOMPtr.h"
-#include "nsIFileSpec.h"
 #include "nsMsgUtils.h"
 
 #include "nsIDirectoryService.h"

@@ -39,7 +39,6 @@
 #include "nsCOMPtr.h"
 #include "nsILocalFile.h"
 #include "nsFileSpec.h"
-#include "nsIFileSpec.h"
 #include "nsAppDirectoryServiceDefs.h"
 
 nsRssService::nsRssService()

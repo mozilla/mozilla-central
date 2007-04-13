@@ -42,7 +42,6 @@
 
 #include "msgCore.h"
 #include "nsMsgFilterService.h"
-#include "nsFileStream.h"
 #include "nsMsgFilterList.h"
 #include "nsDirectoryServiceDefs.h"
 #include "nsIPrompt.h"
@@ -64,6 +63,7 @@
 #include "nsIOutputStream.h"
 #include "nsIMsgComposeService.h"
 #include "nsMsgCompCID.h"
+#include "nsNetUtil.h"
 #include "nsMsgUtils.h"
 
 NS_IMPL_ISUPPORTS1(nsMsgFilterService, nsIMsgFilterService)
@@ -76,13 +76,14 @@ nsMsgFilterService::~nsMsgFilterService()
 {
 }
 
-NS_IMETHODIMP nsMsgFilterService::OpenFilterList(nsIFileSpec *filterFile, nsIMsgFolder *rootFolder, nsIMsgWindow *aMsgWindow, nsIMsgFilterList **resultFilterList)
+NS_IMETHODIMP nsMsgFilterService::OpenFilterList(nsILocalFile *aFilterFile, nsIMsgFolder *rootFolder, nsIMsgWindow *aMsgWindow, nsIMsgFilterList **resultFilterList)
 {
-	nsresult ret = NS_OK;
+	nsresult rv = NS_OK;
 
-    nsFileSpec filterSpec;
-    filterFile->GetFileSpec(&filterSpec);
-	nsIOFileStream *fileStream = new nsIOFileStream(filterSpec);
+	nsCOMPtr <nsIInputStream> fileStream;
+        rv = NS_NewLocalFileInputStream(getter_AddRefs(fileStream), aFilterFile);
+        NS_ENSURE_SUCCESS(rv, rv);
+
 	if (!fileStream)
 		return NS_ERROR_OUT_OF_MEMORY;
 
@@ -93,16 +94,15 @@ NS_IMETHODIMP nsMsgFilterService::OpenFilterList(nsIFileSpec *filterFile, nsIMsg
     filterList->SetFolder(rootFolder);
     
     // temporarily tell the filter where it's file path is
-    filterList->SetDefaultFile(filterFile);
+    filterList->SetDefaultFile(aFilterFile);
     
-    PRUint32 size;
-    ret = filterFile->GetFileSize(&size);
-	if (NS_SUCCEEDED(ret) && size > 0)
-		ret = filterList->LoadTextFilters(fileStream);
-  fileStream->close();
-  delete fileStream;
+    PRInt64 size;
+    rv = aFilterFile->GetFileSize(&size);
+	if (NS_SUCCEEDED(rv) && size > 0)
+		rv = filterList->LoadTextFilters(fileStream);
+  fileStream->Close();
   fileStream =nsnull;
-	if (NS_SUCCEEDED(ret))
+	if (NS_SUCCEEDED(rv))
   {
 		*resultFilterList = filterList;
         PRInt16 version;
@@ -110,26 +110,26 @@ NS_IMETHODIMP nsMsgFilterService::OpenFilterList(nsIFileSpec *filterFile, nsIMsg
     if (version != kFileVersion)
     {
 
-      SaveFilterList(filterList, filterFile);
+      SaveFilterList(filterList, aFilterFile);
     }
   }
 	else
   {
     NS_RELEASE(filterList);
-    if (ret == NS_MSG_FILTER_PARSE_ERROR && aMsgWindow)
+    if (rv == NS_MSG_FILTER_PARSE_ERROR && aMsgWindow)
     {
-      ret = BackUpFilterFile(filterFile, aMsgWindow);
-      NS_ENSURE_SUCCESS(ret, ret);
-      ret = filterFile->Truncate(0);
-      NS_ENSURE_SUCCESS(ret, ret);
-      return OpenFilterList(filterFile, rootFolder, aMsgWindow, resultFilterList);
+      rv = BackUpFilterFile(aFilterFile, aMsgWindow);
+      NS_ENSURE_SUCCESS(rv, rv);
+      rv = aFilterFile->SetFileSize(0);
+      NS_ENSURE_SUCCESS(rv, rv);
+      return OpenFilterList(aFilterFile, rootFolder, aMsgWindow, resultFilterList);
     }
-    else if(ret == NS_MSG_CUSTOM_HEADERS_OVERFLOW && aMsgWindow)
+    else if (rv == NS_MSG_CUSTOM_HEADERS_OVERFLOW && aMsgWindow)
       ThrowAlertMsg("filterCustomHeaderOverflow", aMsgWindow);
-    else if(ret == NS_MSG_INVALID_CUSTOM_HEADER && aMsgWindow)
+    else if(rv == NS_MSG_INVALID_CUSTOM_HEADER && aMsgWindow)
       ThrowAlertMsg("invalidCustomHeader", aMsgWindow);
   }
-	return ret;
+	return rv;
 }
 
 NS_IMETHODIMP nsMsgFilterService::CloseFilterList(nsIMsgFilterList *filterList)
@@ -139,100 +139,69 @@ NS_IMETHODIMP nsMsgFilterService::CloseFilterList(nsIMsgFilterList *filterList)
 }
 
 /* save without deleting */
-NS_IMETHODIMP	nsMsgFilterService::SaveFilterList(nsIMsgFilterList *filterList, nsIFileSpec *filterFile)
+NS_IMETHODIMP	nsMsgFilterService::SaveFilterList(nsIMsgFilterList *filterList, nsILocalFile *filterFile)
 {
   NS_ENSURE_ARG_POINTER(filterFile);
   NS_ENSURE_ARG_POINTER(filterList);
 
   nsresult ret = NS_OK;
-  nsCOMPtr <nsIFileSpec> tmpFiltersFile;
-  nsCOMPtr <nsIFileSpec> realFiltersFile;
-  nsCOMPtr <nsIFileSpec> parentDir;
-
+  nsCOMPtr <nsILocalFile> realFiltersFile;
+  nsCOMPtr <nsIFile> parentDir;
+  nsCOMPtr <nsIFile> tmpFile;
   ret = GetSpecialDirectoryWithFileName(NS_OS_TEMP_DIR,
                                         "tmprules.dat",
-                                        getter_AddRefs(tmpFiltersFile));
+                                        getter_AddRefs(tmpFile));
+
 
   NS_ASSERTION(NS_SUCCEEDED(ret),"writing filters file: failed to append filename");
   if (NS_FAILED(ret)) 
     return ret;
 
-  ret = tmpFiltersFile->MakeUnique();  //need a unique tmp file to prevent dataloss in multiuser environment
+  nsCOMPtr <nsILocalFile> tmpFiltersFile = do_QueryInterface(tmpFile);
+  ret = tmpFiltersFile->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);  //need a unique tmp file to prevent dataloss in multiuser environment
   NS_ENSURE_SUCCESS(ret, ret);
-
-  nsFileSpec tmpFileSpec;
-  tmpFiltersFile->GetFileSpec(&tmpFileSpec);
-
-	nsIOFileStream *tmpFileStream = nsnull;
   
   if (NS_SUCCEEDED(ret))
     ret = filterFile->GetParent(getter_AddRefs(parentDir));
 
+  nsCOMPtr <nsIOutputStream> tmpFileStream;
+
   if (NS_SUCCEEDED(ret))
-    tmpFileStream = new nsIOFileStream(tmpFileSpec);
-	if (!tmpFileStream)
-		return NS_ERROR_OUT_OF_MEMORY;
+    ret = NS_NewLocalFileOutputStream(getter_AddRefs(tmpFileStream), tmpFiltersFile, -1, 00600);
+  NS_ENSURE_SUCCESS(ret, ret);
+
   ret = filterList->SaveToFile(tmpFileStream);
-  tmpFileStream->close();
-  delete tmpFileStream;
+  tmpFileStream->Close();
   tmpFileStream = nsnull;
   
   if (NS_SUCCEEDED(ret))
   {
-    // can't move across drives
-    ret = tmpFiltersFile->CopyToDir(parentDir);
-    if (NS_SUCCEEDED(ret))
-    {
-      filterFile->Delete(PR_FALSE);
-      nsXPIDLCString tmpFileName;
-      tmpFiltersFile->GetLeafName(getter_Copies(tmpFileName));
-      parentDir->AppendRelativeUnixPath(tmpFileName.get());
-      nsXPIDLCString finalLeafName;
-      filterFile->GetLeafName(getter_Copies(finalLeafName));
-      if (!finalLeafName.IsEmpty())
-        parentDir->Rename(finalLeafName);
-      else // fall back to msgFilterRules.dat
-        parentDir->Rename("msgFilterRules.dat");
-
-      tmpFiltersFile->Delete(PR_FALSE);
-    }
-
+    
+    nsXPIDLCString finalLeafName;
+    filterFile->GetNativeLeafName(finalLeafName);
+    ret = tmpFiltersFile->MoveToNative(parentDir, finalLeafName);
   }
   NS_ASSERTION(NS_SUCCEEDED(ret), "error opening/saving filter list");
-	return ret;
+  return ret;
 }
 
 NS_IMETHODIMP nsMsgFilterService::CancelFilterList(nsIMsgFilterList *filterList)
 { 
-	return NS_ERROR_NOT_IMPLEMENTED;
+  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-nsresult nsMsgFilterService::BackUpFilterFile(nsIFileSpec *aFilterFile, nsIMsgWindow *aMsgWindow)
+nsresult nsMsgFilterService::BackUpFilterFile(nsILocalFile *aFilterFile, nsIMsgWindow *aMsgWindow)
 {
   nsresult rv;
   AlertBackingUpFilterFile(aMsgWindow);
-  aFilterFile->CloseStream();
 
-  nsCOMPtr<nsILocalFile> localFilterFile;
-  nsFileSpec filterFileSpec;
-  aFilterFile->GetFileSpec(&filterFileSpec);
-  rv = NS_FileSpecToIFile(&filterFileSpec, getter_AddRefs(localFilterFile));
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  nsCOMPtr<nsILocalFile> localParentDir;
-  nsCOMPtr <nsIFileSpec> parentDir;
-  rv = aFilterFile->GetParent(getter_AddRefs(parentDir));
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  nsFileSpec parentDirSpec;
-  parentDir->GetFileSpec(&parentDirSpec);
-
-  rv = NS_FileSpecToIFile(&parentDirSpec, getter_AddRefs(localParentDir));
+  nsCOMPtr<nsIFile> localParentDir;
+  rv = aFilterFile->GetParent(getter_AddRefs(localParentDir));
   NS_ENSURE_SUCCESS(rv,rv);
 
   //if back-up file exists delete the back up file otherwise copy fails. 
-  nsCOMPtr <nsILocalFile> backupFile;
-  rv = NS_FileSpecToIFile(&parentDirSpec, getter_AddRefs(backupFile));
+  nsCOMPtr <nsIFile> backupFile;
+  rv = localParentDir->Clone(getter_AddRefs(backupFile));
   NS_ENSURE_SUCCESS(rv,rv);
   backupFile->AppendNative(NS_LITERAL_CSTRING("rulesbackup.dat"));
   PRBool exists;
@@ -240,7 +209,7 @@ nsresult nsMsgFilterService::BackUpFilterFile(nsIFileSpec *aFilterFile, nsIMsgWi
   if (exists)
     backupFile->Remove(PR_FALSE);
 
-  return localFilterFile->CopyToNative(localParentDir, NS_LITERAL_CSTRING("rulesbackup.dat"));
+  return aFilterFile->CopyToNative(localParentDir, NS_LITERAL_CSTRING("rulesbackup.dat"));
 }
 
 nsresult nsMsgFilterService::AlertBackingUpFilterFile(nsIMsgWindow *aMsgWindow)

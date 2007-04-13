@@ -117,7 +117,7 @@ NS_IMETHODIMP nsMsgFilterList::SetFolder(nsIMsgFolder *aFolder)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgFilterList::SaveToFile(nsIOFileStream *stream)
+NS_IMETHODIMP nsMsgFilterList::SaveToFile(nsIOutputStream *stream)
 {
 	if (!stream)
 		return NS_ERROR_NULL_POINTER;
@@ -127,7 +127,7 @@ NS_IMETHODIMP nsMsgFilterList::SaveToFile(nsIOFileStream *stream)
 NS_IMETHODIMP nsMsgFilterList::EnsureLogFile()
 {
   nsCOMPtr <nsILocalFile> file;
-  nsresult rv = GetLogFileSpec(getter_AddRefs(file));
+  nsresult rv = GetLogFile(getter_AddRefs(file));
   NS_ENSURE_SUCCESS(rv,rv);
 
   PRBool exists;
@@ -146,7 +146,7 @@ nsresult nsMsgFilterList::TruncateLog()
   NS_ENSURE_SUCCESS(rv,rv);
 
   nsCOMPtr <nsILocalFile> file;
-  rv = GetLogFileSpec(getter_AddRefs(file));
+  rv = GetLogFile(getter_AddRefs(file));
   NS_ENSURE_SUCCESS(rv,rv);
 
   file->Remove(PR_FALSE);
@@ -174,7 +174,7 @@ NS_IMETHODIMP nsMsgFilterList::ClearLog()
 }
 
 nsresult 
-nsMsgFilterList::GetLogFileSpec(nsILocalFile **aFile)
+nsMsgFilterList::GetLogFile(nsILocalFile **aFile)
 {
   NS_ENSURE_ARG_POINTER(aFile);
 
@@ -205,16 +205,13 @@ nsMsgFilterList::GetLogFileSpec(nsILocalFile **aFile)
   // mcom.test.htm
   if (type.Equals("nntp") && !isServer) 
   {
-    nsCOMPtr<nsIFileSpec> thisFolder;
-    rv = m_folder->GetPath(getter_AddRefs(thisFolder));
+    nsCOMPtr<nsILocalFile> thisFolder;
+    rv = m_folder->GetFilePath(getter_AddRefs(thisFolder));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsFileSpec spec;
-    rv = thisFolder->GetFileSpec(&spec);
+    nsCOMPtr<nsILocalFile> filterLogFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
-
-    nsCOMPtr<nsILocalFile> filterLogFile;
-    rv = NS_FileSpecToIFile(&spec, getter_AddRefs(filterLogFile));
+    rv = filterLogFile->InitWithFile(thisFolder);
     NS_ENSURE_SUCCESS(rv, rv);
 
     // NOTE:
@@ -247,7 +244,7 @@ nsMsgFilterList::GetLogURL(char **aLogURL)
   NS_ENSURE_ARG_POINTER(aLogURL);
 
   nsCOMPtr <nsILocalFile> file;
-  nsresult rv = GetLogFileSpec(getter_AddRefs(file));
+  nsresult rv = GetLogFile(getter_AddRefs(file));
   NS_ENSURE_SUCCESS(rv,rv);
   
   nsCString url;
@@ -285,7 +282,7 @@ nsMsgFilterList::GetLogStream(nsIOutputStream **aLogStream)
 
   if (!m_logStream) {
     nsCOMPtr <nsILocalFile> logFile;
-    rv = GetLogFileSpec(getter_AddRefs(logFile));
+    rv = GetLogFile(getter_AddRefs(logFile));
     NS_ENSURE_SUCCESS(rv,rv);
 
     // append to the end of the log file
@@ -377,33 +374,17 @@ nsMsgFilterList::ApplyFiltersToHdr(nsMsgFilterTypeType filterType,
 }
 
 NS_IMETHODIMP
-nsMsgFilterList::SetDefaultFile(nsIFileSpec *aFileSpec)
+nsMsgFilterList::SetDefaultFile(nsILocalFile *aFile)
 {
-    nsresult rv;
-    m_defaultFile = do_CreateInstance(NS_FILESPEC_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
-    
-    rv = m_defaultFile->FromFileSpec(aFileSpec);
-    NS_ENSURE_SUCCESS(rv, rv);
-    return NS_OK;
+  m_defaultFile = aFile;
+  return NS_OK;
 }
 
 NS_IMETHODIMP
-nsMsgFilterList::GetDefaultFile(nsIFileSpec **aResult)
+nsMsgFilterList::GetDefaultFile(nsILocalFile **aResult)
 {
     NS_ENSURE_ARG_POINTER(aResult);
-
-    nsresult rv;
-    nsCOMPtr<nsIFileSpec> fileSpec =
-        do_CreateInstance(NS_FILESPEC_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
-    
-    rv = fileSpec->FromFileSpec(m_defaultFile);
-    NS_ENSURE_SUCCESS(rv, rv);
-    
-    *aResult = fileSpec;
-    NS_ADDREF(*aResult);
-
+    NS_IF_ADDREF(*aResult = m_defaultFile);
     return NS_OK;
 }
 
@@ -440,11 +421,16 @@ static FilterFileAttribEntry FilterFileAttribTable[] =
 };
 
 // If we want to buffer file IO, wrap it in here.
-char nsMsgFilterList::ReadChar(nsIOFileStream *aStream)
+char nsMsgFilterList::ReadChar(nsIInputStream *aStream)
 {
   char	newChar;
-  *aStream >> newChar;
-  if (aStream->eof())
+  PRUint32 bytesRead;
+  nsresult rv = aStream->Read(&newChar, 1, &bytesRead);
+  if (NS_FAILED(rv) || !bytesRead)
+    return -1;
+  PRUint32 bytesAvailable;
+  rv = aStream->Available(&bytesAvailable);
+  if (NS_FAILED(rv))
     return -1;
   else
   {
@@ -454,7 +440,7 @@ char nsMsgFilterList::ReadChar(nsIOFileStream *aStream)
   }
 }
 
-char nsMsgFilterList::SkipWhitespace(nsIOFileStream *aStream)
+char nsMsgFilterList::SkipWhitespace(nsIInputStream *aStream)
 {
   char ch;
   do
@@ -469,7 +455,7 @@ PRBool nsMsgFilterList::StrToBool(nsCString &str)
   return str.Equals("yes") ;
 }
 
-char nsMsgFilterList::LoadAttrib(nsMsgFilterFileAttribValue &attrib, nsIOFileStream *aStream)
+char nsMsgFilterList::LoadAttrib(nsMsgFilterFileAttribValue &attrib, nsIInputStream *aStream)
 {
   char	attribStr[100];
   char	curChar;
@@ -506,7 +492,7 @@ const char *nsMsgFilterList::GetStringForAttrib(nsMsgFilterFileAttribValue attri
   return nsnull;
 }
 
-nsresult nsMsgFilterList::LoadValue(nsCString &value, nsIOFileStream *aStream)
+nsresult nsMsgFilterList::LoadValue(nsCString &value, nsIInputStream *aStream)
 {
   nsCAutoString	valueStr;
   char	curChar;
@@ -547,17 +533,17 @@ nsresult nsMsgFilterList::LoadValue(nsCString &value, nsIOFileStream *aStream)
     valueStr += curChar;
     curChar = ReadChar(aStream);
   }
-  while (!aStream->eof());
+  while (curChar != -1);
   return NS_OK;
 }
 
-nsresult nsMsgFilterList::LoadTextFilters(nsIOFileStream *aStream)
+nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
 {
   nsresult	err = NS_OK;
+  PRUint32 bytesAvailable;
   nsMsgFilterFileAttribValue attrib;
   nsCOMPtr<nsIMsgRuleAction> currentFilterAction;
   // We'd really like to move lot's of these into the objects that they refer to.
-  aStream->seek(PR_SEEK_SET, 0);
   do 
   {
     nsCAutoString	value;
@@ -731,7 +717,7 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIOFileStream *aStream)
       }
       break;
     }
-  } while (!aStream->eof());
+  } while (NS_SUCCEEDED(aStream->Available(&bytesAvailable)));
   
   if (m_curFilter)
   {
@@ -841,58 +827,62 @@ NS_IMETHODIMP nsMsgFilterList::ParseCondition(nsIMsgFilter *aFilter, const char 
   return err;
 }
 
-nsresult nsMsgFilterList::WriteIntAttr(nsMsgFilterFileAttribValue attrib, int value, nsIOFileStream *aStream)
+nsresult nsMsgFilterList::WriteIntAttr(nsMsgFilterFileAttribValue attrib, int value, nsIOutputStream *aStream)
 {
-	const char *attribStr = GetStringForAttrib(attrib);
-	if (attribStr)
-	{
-		*aStream << attribStr;
-		*aStream << "=\"";
-		*aStream << value;
-		*aStream << "\"" MSG_LINEBREAK;
-	}
-//		XP_FilePrintf(fid, "%s=\"%d\"%s", attribStr, value, LINEBREAK);
-	return NS_OK;
+  nsresult rv = NS_OK;
+  const char *attribStr = GetStringForAttrib(attrib);
+  if (attribStr)
+  {
+    PRUint32 bytesWritten;
+    nsCAutoString writeStr(attribStr);
+    writeStr.AppendLiteral("=\"");
+    writeStr.AppendInt(value);
+    writeStr.AppendLiteral("\"" MSG_LINEBREAK);
+    rv = aStream->Write(writeStr.get(), writeStr.Length(), &bytesWritten);
+  }
+  return rv;
 }
 
 nsresult
 nsMsgFilterList::WriteStrAttr(nsMsgFilterFileAttribValue attrib,
-                              const char *str, nsIOFileStream *aStream)
+                              const char *str, nsIOutputStream *aStream)
 {
-	if (str && str[0] && aStream) // only proceed if we actually have a string to write out. 
-	{
-		char *escapedStr = nsnull;
-		if (PL_strchr(str, '"'))
-			escapedStr = nsMsgSearchTerm::EscapeQuotesInStr(str);
+  nsresult rv = NS_OK;
+  if (str && str[0] && aStream) // only proceed if we actually have a string to write out. 
+  {
+    char *escapedStr = nsnull;
+    if (PL_strchr(str, '"'))
+      escapedStr = nsMsgSearchTerm::EscapeQuotesInStr(str);
 
-		const char *attribStr = GetStringForAttrib(attrib);
-		if (attribStr)
-		{
-			*aStream << attribStr;
-			*aStream << "=\"";
-			*aStream << ((escapedStr) ? escapedStr : (const char *) str);
-			*aStream << "\"" MSG_LINEBREAK;
-//			XP_FilePrintf(fid, "%s=\"%s\"%s", attribStr, (escapedStr) ? escapedStr : str, LINEBREAK);
-		}
-		PR_FREEIF(escapedStr);
-	}
-	return NS_OK;
+    const char *attribStr = GetStringForAttrib(attrib);
+    if (attribStr)
+    {
+      PRUint32 bytesWritten;
+      nsCAutoString writeStr(attribStr);
+      writeStr.AppendLiteral("=\"");
+      writeStr.Append((escapedStr) ? escapedStr : (const char *) str);
+      writeStr.AppendLiteral("\"" MSG_LINEBREAK);
+      rv = aStream->Write(writeStr.get(), writeStr.Length(), &bytesWritten);
+    }
+    PR_Free(escapedStr);
+  }
+  return rv;
 }
 
-nsresult nsMsgFilterList::WriteBoolAttr(nsMsgFilterFileAttribValue attrib, PRBool boolVal, nsIOFileStream *aStream)
+nsresult nsMsgFilterList::WriteBoolAttr(nsMsgFilterFileAttribValue attrib, PRBool boolVal, nsIOutputStream *aStream)
 {
-	return WriteStrAttr(attrib, (boolVal) ? "yes" : "no", aStream);
+  return WriteStrAttr(attrib, (boolVal) ? "yes" : "no", aStream);
 }
 
 nsresult
 nsMsgFilterList::WriteWstrAttr(nsMsgFilterFileAttribValue attrib,
-                               const PRUnichar *aFilterName, nsIOFileStream *aStream)
+                               const PRUnichar *aFilterName, nsIOutputStream *aStream)
 {
     WriteStrAttr(attrib, NS_ConvertUTF16toUTF8(aFilterName).get(), aStream);
     return NS_OK;
 }
 
-nsresult nsMsgFilterList::SaveTextFilters(nsIOFileStream *aStream)
+nsresult nsMsgFilterList::SaveTextFilters(nsIOutputStream *aStream)
 {
 	nsresult	err = NS_OK;
 	const char *attribStr;

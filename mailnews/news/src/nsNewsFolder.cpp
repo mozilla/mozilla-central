@@ -1881,11 +1881,13 @@ nsMsgNewsFolder::GetFilterList(nsIMsgWindow *aMsgWindow, nsIMsgFilterList **aRes
 
   if (!mFilterList) 
   {
-    nsCOMPtr<nsIFileSpec> thisFolder;
-    nsresult rv = GetPath(getter_AddRefs(thisFolder));
+    nsCOMPtr<nsILocalFile> thisFolder;
+    nsresult rv = GetFilePath(getter_AddRefs(thisFolder));
     NS_ENSURE_SUCCESS(rv, rv);
     
-    nsCOMPtr <nsIFileSpec> mFilterFile = do_CreateInstance(NS_FILESPEC_CONTRACTID, &rv);
+    nsCOMPtr <nsILocalFile> filterFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);;
+    rv = filterFile->InitWithFile(thisFolder);
     NS_ENSURE_SUCCESS(rv, rv);
     
     // in 4.x, the news filter file was
@@ -1893,26 +1895,24 @@ nsMsgNewsFolder::GetFilterList(nsIMsgWindow *aMsgWindow, nsIMsgFilterList **aRes
     // where the summary file was 
     // C:\Program Files\Netscape\Users\meer\News\host-news.mcom.com\mcom.test.snm
     // we make the rules file ".dat" in mozilla, so that migration works.
-    rv = mFilterFile->FromFileSpec(thisFolder);
-    NS_ENSURE_SUCCESS(rv, rv);
     
     // NOTE:
     // we don't we need to call NS_MsgHashIfNecessary()
     // it's already been hashed, if necessary
     nsXPIDLCString filterFileName;
-    rv = mFilterFile->GetLeafName(getter_Copies(filterFileName));
+    rv = filterFile->GetNativeLeafName(filterFileName);
     NS_ENSURE_SUCCESS(rv,rv);
     
     filterFileName.Append(".dat");
     
-    rv = mFilterFile->SetLeafName(filterFileName.get());
+    rv = filterFile->SetNativeLeafName(filterFileName);
     NS_ENSURE_SUCCESS(rv,rv);
     
     nsCOMPtr<nsIMsgFilterService> filterService =
       do_GetService(NS_MSGFILTERSERVICE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
     
-    rv = filterService->OpenFilterList(mFilterFile, this, aMsgWindow, getter_AddRefs(mFilterList));
+    rv = filterService->OpenFilterList(filterFile, this, aMsgWindow, getter_AddRefs(mFilterList));
     NS_ENSURE_SUCCESS(rv, rv);
   }
   

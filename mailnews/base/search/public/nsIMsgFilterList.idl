@@ -41,7 +41,6 @@
 #include "nsIMsgFilter.idl"
 #include "nsIMsgFilterHitNotify.idl"
 
-interface nsIOFileStream;
 interface nsIOutputStream;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -53,7 +52,7 @@ interface nsIOutputStream;
 
 typedef long nsMsgFilterFileAttribValue;
 
-[scriptable, uuid(ab0105ad-86bf-4862-9adb-84f4e266577c)]
+[scriptable, uuid(a5cf1698-251a-4c5a-9fcd-9ae518fda452)]
 interface nsIMsgFilterList : nsISupports {
 
     const nsMsgFilterFileAttribValue attribNone = 0;
@@ -91,13 +90,13 @@ interface nsIMsgFilterList : nsISupports {
 
     nsIMsgFilter createFilter(in wstring name);
 
-    void saveToFile(in nsIOFileStream stream);
+    void saveToFile(in nsIOutputStream stream);
 
     void parseCondition(in nsIMsgFilter aFilter, in string condition);
     // this is temporary so that we can save the filterlist to disk
     // without knowing where the filters were read from intially
     // (such as the filter list dialog)
-    attribute nsIFileSpec defaultFile;
+    attribute nsILocalFile defaultFile;
     void saveToDefaultFile();
     
 
@@ -116,10 +115,10 @@ interface nsIMsgFilterList : nsISupports {
                            in nsILocalFile aMessageFile);
 
     // IO routines, used by filter object filing code.
-    void writeIntAttr(in nsMsgFilterFileAttribValue attrib, in long value, in nsIOFileStream stream);
-    void writeStrAttr(in nsMsgFilterFileAttribValue attrib, in string value, in nsIOFileStream stream);
-    void writeWstrAttr(in nsMsgFilterFileAttribValue attrib, in wstring value, in nsIOFileStream stream);
-    void writeBoolAttr(in nsMsgFilterFileAttribValue attrib, in boolean value, in nsIOFileStream stream);
+    void writeIntAttr(in nsMsgFilterFileAttribValue attrib, in long value, in nsIOutputStream stream);
+    void writeStrAttr(in nsMsgFilterFileAttribValue attrib, in string value, in nsIOutputStream stream);
+    void writeWstrAttr(in nsMsgFilterFileAttribValue attrib, in wstring value, in nsIOutputStream stream);
+    void writeBoolAttr(in nsMsgFilterFileAttribValue attrib, in boolean value, in nsIOutputStream stream);
     boolean matchOrChangeFilterTarget(in string oldUri, in string newUri, in boolean caseInsensitive);
  
     // for filter logging

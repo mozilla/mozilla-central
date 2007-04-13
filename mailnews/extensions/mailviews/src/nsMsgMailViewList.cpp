@@ -280,20 +280,16 @@ nsresult nsMsgMailViewList::LoadMailViews()
         // now copy the file over to the profile directory
         defaultMailViewSpec->CopyToDir(profileDirSpec);
     }
-
-    nsCOMPtr<nsIFileSpec> mailViewSpec;
-    rv = NS_NewFileSpecFromIFile(file, getter_AddRefs(mailViewSpec));
-    if (NS_FAILED(rv)) return rv;
-
     // this is kind of a hack but I think it will be an effective hack. The filter service already knows how to 
-    // take a nsIFileSpec and parse the contents into filters which are very similar to mail views. Intead of
+    // take a nsILocalFile and parse the contents into filters which are very similar to mail views. Intead of
     // re-writing all of that dirty parsing code, let's just re-use it then convert the results into a data strcuture
     // we wish to give to our consumers. 
       
     nsCOMPtr<nsIMsgFilterService> filterService = do_GetService(NS_MSGFILTERSERVICE_CONTRACTID, &rv);
     nsCOMPtr<nsIMsgFilterList> mfilterList;
       
-    rv = filterService->OpenFilterList(mailViewSpec, NULL, NULL, getter_AddRefs(mFilterList));
+    nsCOMPtr <nsILocalFile> localFile = do_QueryInterface(file);
+    rv = filterService->OpenFilterList(localFile, NULL, NULL, getter_AddRefs(mFilterList));
     NS_ENSURE_SUCCESS(rv, rv);
 
     // now convert the filter list into our mail view objects, stripping out just the info we need

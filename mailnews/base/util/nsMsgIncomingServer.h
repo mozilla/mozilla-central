@@ -105,7 +105,7 @@ protected:
   nsresult InternalSetHostName(const char *aHostname, const char *prefName);
 
   nsresult getProtocolInfo(nsIMsgProtocolInfo **aResult);
-  nsCOMPtr <nsIFileSpec> mFilterFile;
+  nsCOMPtr <nsILocalFile> mFilterFile;
   nsCOMPtr <nsIMsgFilterList> mFilterList;
   // these allow us to handle duplicate incoming messages, e.g. delete them.
   nsHashtable m_downloadedHdrs;

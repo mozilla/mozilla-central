@@ -41,7 +41,6 @@
 #include "plstr.h"
 #include "prprf.h"
 
-#include "nsIFileSpec.h"
 #include "nsXPIDLString.h"
 
 #include "nsNoIncomingServer.h"

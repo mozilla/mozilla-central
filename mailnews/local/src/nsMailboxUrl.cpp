@@ -61,7 +61,6 @@
 #include "nsIMsgMailSession.h"
 #include "nsNetUtil.h"
 #include "nsIFileURL.h"
-#include "nsIFileSpec.h"
 
 static NS_DEFINE_CID(kCMailDB, NS_MAILDB_CID);
 

@@ -42,7 +42,6 @@
 #include "nsINoIncomingServer.h"
 #include "nsILocalMailIncomingServer.h"
 #include "nsMsgIncomingServer.h"
-#include "nsIFileSpec.h"
 
 /* get some implementation from nsMsgIncomingServer */
 class nsNoIncomingServer : public nsMsgIncomingServer,

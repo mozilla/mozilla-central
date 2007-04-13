@@ -732,15 +732,15 @@ nsresult nsMsgFilter::ConvertMoveOrCopyToFolderValue(nsIMsgRuleAction *filterAct
 	// set m_action.m_value.m_folderUri
 }
 
-nsresult nsMsgFilter::SaveToTextFile(nsIOFileStream *aStream)
+nsresult nsMsgFilter::SaveToTextFile(nsIOutputStream *aStream)
 {
   NS_ENSURE_ARG_POINTER(aStream);
   if (m_unparseable)
   {
+    PRUint32 bytesWritten;
     //we need to trim leading whitespaces before filing out
     m_unparsedBuffer.Trim(kWhitespace, PR_TRUE /*leadingCharacters*/, PR_FALSE /*trailingCharacters*/);
-    *aStream << m_unparsedBuffer.get();
-    return NS_OK;
+    return aStream->Write(m_unparsedBuffer.get(), m_unparsedBuffer.Length(), &bytesWritten);
   }
   nsresult err = m_filterList->WriteWstrAttr(nsIMsgFilterList::attribName, m_filterName.get(), aStream);
   err = m_filterList->WriteBoolAttr(nsIMsgFilterList::attribEnabled, m_enabled, aStream);
@@ -753,7 +753,7 @@ nsresult nsMsgFilter::SaveToTextFile(nsIOFileStream *aStream)
   return err;
 }
 
-nsresult nsMsgFilter::SaveRule(nsIOFileStream *aStream)
+nsresult nsMsgFilter::SaveRule(nsIOutputStream *aStream)
 {
   nsresult err = NS_OK;
   nsCOMPtr<nsIMsgFilterList> filterList;

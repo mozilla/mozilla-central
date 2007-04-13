@@ -93,8 +93,8 @@ public:
                                    nsMsgFilterType::NewsJavaScript)) != 0;}
 
   // filing routines.
-  nsresult  SaveToTextFile(nsIOFileStream *aStream);
-  nsresult  SaveRule(nsIOFileStream *aStream);
+  nsresult  SaveToTextFile(nsIOutputStream *aStream);
+  nsresult  SaveRule(nsIOutputStream *aStream);
 
   PRInt16   GetVersion();
 #ifdef DEBUG

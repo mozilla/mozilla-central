@@ -40,14 +40,14 @@
 #include "nsIMsgFilterList.idl"
 #include "nsIMsgWindow.idl"
 
-[scriptable, uuid(6673cad0-072e-11d3-8d70-00805f8a6617)]
+[scriptable, uuid(fda31be9-b5c1-465b-99c9-c90835a214a3)]
 interface nsIMsgFilterService : nsISupports {
 
-    nsIMsgFilterList OpenFilterList(in nsIFileSpec filterFile, in nsIMsgFolder rootFolder, in nsIMsgWindow msgWindow);
+    nsIMsgFilterList OpenFilterList(in nsILocalFile filterFile, in nsIMsgFolder rootFolder, in nsIMsgWindow msgWindow);
     void CloseFilterList(in nsIMsgFilterList filterList);
 
     void SaveFilterList(in nsIMsgFilterList filterList,
-                        in nsIFileSpec filterFile);
+                        in nsILocalFile filterFile);
     
     void CancelFilterList(in nsIMsgFilterList filterList);
     nsIMsgFilterList getTempFilterList(in nsIMsgFolder aFolder);

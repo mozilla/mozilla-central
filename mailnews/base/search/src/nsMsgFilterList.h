@@ -45,7 +45,6 @@
 #include "nsCOMPtr.h"
 #include "nsISupportsArray.h"
 #include "nsILocalFile.h"
-#include "nsIFileSpec.h"
 #include "nsIOutputStream.h"
 
 const PRInt16 kFileVersion = 8;
@@ -73,7 +72,7 @@ public:
   virtual ~nsMsgFilterList();
 
   nsresult Close();
-  nsresult LoadTextFilters(nsIOFileStream *aStream);
+  nsresult LoadTextFilters(nsIInputStream *aStream);
 
   PRBool m_temporaryList;
 
@@ -85,14 +84,14 @@ protected:
 #endif
 protected:
   nsresult ComputeArbitraryHeaders();
-  nsresult SaveTextFilters(nsIOFileStream *aStream);
+  nsresult SaveTextFilters(nsIOutputStream *aStream);
   // file streaming methods
-  char ReadChar(nsIOFileStream *aStream);
-  char SkipWhitespace(nsIOFileStream *aStream);
+  char ReadChar(nsIInputStream *aStream);
+  char SkipWhitespace(nsIInputStream *aStream);
   PRBool StrToBool(nsCString &str);
-  char LoadAttrib(nsMsgFilterFileAttribValue &attrib, nsIOFileStream *aStream);
+  char LoadAttrib(nsMsgFilterFileAttribValue &attrib, nsIInputStream *aStream);
   const char *GetStringForAttrib(nsMsgFilterFileAttribValue attrib);
-  nsresult LoadValue(nsCString &value, nsIOFileStream *aStream);
+  nsresult LoadValue(nsCString &value, nsIInputStream *aStream);
   PRInt16 m_fileVersion;
   PRPackedBool m_loggingEnabled;
   PRPackedBool m_startWritingToBuffer; //tells us when to start writing one whole filter to m_unparsedBuffer
@@ -101,12 +100,12 @@ protected:
   const char *m_filterFileName;
   nsCOMPtr<nsISupportsArray> m_filters;
   nsCString m_arbitraryHeaders;
-  nsCOMPtr<nsIFileSpec> m_defaultFile;
+  nsCOMPtr<nsILocalFile> m_defaultFile;
   nsCString m_unparsedFilterBuffer; //holds one entire filter unparsed 
 
 private:
   nsresult TruncateLog();
-  nsresult GetLogFileSpec(nsILocalFile **aFileSpec);
+  nsresult GetLogFile(nsILocalFile **aFile);
   nsCOMPtr<nsIOutputStream> m_logStream;
 };
 

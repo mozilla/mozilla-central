@@ -60,9 +60,9 @@ public:
    with dialog boxes. To apply the new list call MSG_CloseFilterList.
 
 */
-	NS_IMETHOD OpenFilterList(nsFileSpec *filterFile, nsIMsgFilterList **filterList) = 0;
+	NS_IMETHOD OpenFilterList(nsILocalFile *filterFile, nsIMsgFilterList **filterList) = 0;
 	NS_IMETHOD CloseFilterList(nsIMsgFilterList *filterList) = 0;
-	NS_IMETHOD	SaveFilterList(nsIMsgFilterList *filterList, nsFileSpec *filterFile) = 0;	/* save without deleting */
+	NS_IMETHOD SaveFilterList(nsIMsgFilterList *filterList, nsILocalFile *filterFile) = 0;	/* save without deleting */
 	NS_IMETHOD CancelFilterList(nsIMsgFilterList *filterList) = 0;
 
 };

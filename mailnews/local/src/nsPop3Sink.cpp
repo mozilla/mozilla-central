@@ -44,7 +44,6 @@
 #include "nscore.h"
 #include <stdio.h>
 #include <time.h>
-#include "nsIFileSpec.h"
 #include "nsParseMailbox.h"
 #include "nsIMsgLocalMailFolder.h"
 #include "nsIMsgIncomingServer.h"
@@ -868,17 +867,17 @@ nsPop3Sink::IncorporateComplete(nsIMsgWindow *aMsgWindow, PRInt32 aSize)
       }
       else
       {
-        nsFileSpec destFolderSpec;
-        nsCOMPtr<nsIFileSpec> path;
+        nsCOMPtr<nsILocalFile> path;
         // cleanup after mailHdr in source DB because we moved the message.
         m_newMailParser->m_mailDB->RemoveHeaderMdbRow(hdr);
 
         // if the filter moved the message, it called nsParseMailMessageState::Init
         // to truncate the source folder, which resets m_envelopePos and m_position.
         // So set the envelopePos explicitly here.
-        m_folder->GetPath(getter_AddRefs(path));
-        path->GetFileSpec(&destFolderSpec);
-        m_newMailParser->SetEnvelopePos(destFolderSpec.GetFileSize());
+        m_folder->GetFilePath(getter_AddRefs(path));
+        PRInt64 fileSize;
+        path->GetFileSize(&fileSize);
+        m_newMailParser->SetEnvelopePos(fileSize);
       }
       m_newMailParser->m_newMsgHdr = nsnull;
       m_outFileStream->close(); // close so we can truncate.

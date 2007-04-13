@@ -1167,47 +1167,31 @@ nsMsgIncomingServer::GetFilterList(nsIMsgWindow *aMsgWindow, nsIMsgFilterList **
       nsresult rv = GetRootFolder(getter_AddRefs(msgFolder));
       NS_ENSURE_SUCCESS(rv, rv);
       
-      nsCOMPtr<nsIFileSpec> thisFolder;
-      rv = msgFolder->GetPath(getter_AddRefs(thisFolder));
+      nsCOMPtr<nsILocalFile> thisFolder;
+      rv = msgFolder->GetFilePath(getter_AddRefs(thisFolder));
       NS_ENSURE_SUCCESS(rv, rv);
 
-      mFilterFile = do_CreateInstance(NS_FILESPEC_CONTRACTID, &rv);
+      mFilterFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+      NS_ENSURE_SUCCESS(rv, rv);
+      rv = mFilterFile->InitWithFile(thisFolder);
       NS_ENSURE_SUCCESS(rv, rv);
 
-      rv = mFilterFile->FromFileSpec(thisFolder);
-      NS_ENSURE_SUCCESS(rv, rv);
-
-      mFilterFile->AppendRelativeUnixPath("msgFilterRules.dat");
+      mFilterFile->AppendNative(NS_LITERAL_CSTRING("msgFilterRules.dat"));
       
       PRBool fileExists;
       mFilterFile->Exists(&fileExists);
       if (!fileExists)
       {
-        nsCOMPtr<nsIFileSpec> oldFilterFile = do_CreateInstance(NS_FILESPEC_CONTRACTID, &rv);
+        nsCOMPtr<nsILocalFile> oldFilterFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
         NS_ENSURE_SUCCESS(rv, rv);
-
-        rv = oldFilterFile->FromFileSpec(thisFolder);
+        rv = oldFilterFile->InitWithFile(thisFolder);
         NS_ENSURE_SUCCESS(rv, rv);
-        oldFilterFile->AppendRelativeUnixPath("rules.dat");
+        oldFilterFile->AppendNative(NS_LITERAL_CSTRING("rules.dat"));
         
         oldFilterFile->Exists(&fileExists);
         if (fileExists)  //copy rules.dat --> msgFilterRules.dat
         {
-          nsFileSpec rootFolderSpec;
-          thisFolder->GetFileSpec(&rootFolderSpec);
-
-          nsCOMPtr<nsILocalFile> rootFolderDir;
-          rv = NS_FileSpecToIFile(&rootFolderSpec, getter_AddRefs(rootFolderDir));
-          NS_ENSURE_SUCCESS(rv, rv);
-
-          nsFileSpec oldFilterSpec;
-          oldFilterFile->GetFileSpec(&oldFilterSpec);
-
-          nsCOMPtr<nsILocalFile> localFilterFile;
-          rv = NS_FileSpecToIFile(&oldFilterSpec, getter_AddRefs(localFilterFile));
-          NS_ENSURE_SUCCESS(rv, rv);
-
-          rv = localFilterFile->CopyToNative(rootFolderDir, NS_LITERAL_CSTRING("msgFilterRules.dat"));
+          rv = oldFilterFile->CopyToNative(thisFolder, NS_LITERAL_CSTRING("msgFilterRules.dat"));
           NS_ENSURE_SUCCESS(rv, rv);
         }
       }
@@ -1933,14 +1917,11 @@ nsMsgIncomingServer::ConfigureTemporaryServerSpamFilters(nsIMsgFilterList *filte
   if (!file)
     return NS_OK;
 
-  nsCOMPtr<nsIFileSpec> serverFilterSpec;
-  rv = NS_NewFileSpecFromIFile(file, getter_AddRefs(serverFilterSpec));
-  if (NS_FAILED(rv)) return rv;
-
   nsCOMPtr<nsIMsgFilterService> filterService = do_GetService(NS_MSGFILTERSERVICE_CONTRACTID, &rv);
   nsCOMPtr<nsIMsgFilterList> serverFilterList;
     
-  rv = filterService->OpenFilterList(serverFilterSpec, NULL, NULL, getter_AddRefs(serverFilterList));
+  nsCOMPtr <nsILocalFile> localFile = do_QueryInterface(file);
+  rv = filterService->OpenFilterList(localFile, NULL, NULL, getter_AddRefs(serverFilterList));
   NS_ENSURE_SUCCESS(rv, rv);
 
   rv = serverFilterList->GetFilterNamed(yesFilterName.get(),
