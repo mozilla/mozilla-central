@@ -9,6 +9,8 @@ from os import environ, makedirs, listdir, rename, unlink
 from os.path import isdir
 from shutil import rmtree
 from tempfile import mkdtemp
+from datetime import datetime
+
 try:
     from subprocess import check_call
 except ImportError:
@@ -21,6 +23,8 @@ except ImportError:
             if cmd is None:
                 cmd = popenargs[0]
             raise Exception("Command '%s' returned non-zero exit status %d" % (cmd, retcode))
+
+CVS_REPO_IMPORT_TAG = "HG_REPO_INITIAL_IMPORT"
 
 mozilla_files = (
     "Makefile.in",
@@ -118,7 +122,7 @@ mozilla_files = (
     )
 
 nspr_files = ("nsprpub",)
-nspr_tag = "NSPRPUB_PRE_4_2_CLIENT_BRANCH"
+NSPR_CVS_TRACKING_TAG = "NSPRPUB_PRE_4_2_CLIENT_BRANCH"
 
 nss_files = (
     "dbm",
@@ -126,7 +130,7 @@ nss_files = (
     "security/coreconf",
     "security/dbm"
     )
-nss_tag = "NSS_3_11_5_RTM"
+NSS_CVS_TRACKING_TAG = "NSS_3_11_5_RTM"
 
 def ensurevalue(val, envvar, default = None):
     if val:
@@ -147,41 +151,90 @@ def rmfileortree(path):
     else:
         unlink(path)
 
-def CheckoutDirs(directory, branch, cvsroot, dirlist):
-    arglist = ['cvs', '-Q', '-d', cvsroot, 'co', '-P', '-N']
+def CheckoutDirs(directory, cvsroot, dirlist, date=None, branch=None):
+    arglist = ['cvs', '-d', cvsroot, 'co', '-P', '-N']
+    if date is not None:
+        arglist.extend(['-D', date])
     if branch is not None:
         arglist.extend(['-r', branch])
 
     arglist.extend(["mozilla/%s" % dir for dir in dirlist])
     check_call(arglist, cwd=directory)
 
-def ImportMozillaCVS(directory, cvsroot=None, hg=None, tempdir=None):
-    cvsroot = ensurevalue(cvsroot, "CVSROOT", ":pserver:anonymous@cvs-mirror.mozilla.org:/cvsroot")
+def ImportMozillaCVS(directory, cvsroot=None, hg=None, tempdir=None, mode=None, importDate=None):
+    cvsroot = ensurevalue(cvsroot, "CVSROOT", ":ext:cltbld@cvs.mozilla.org:/cvsroot")
     
     tempd = mkdtemp("cvsimport", dir=tempdir)
 
+    if mode == 'init':
+        nspr_tag = nss_tag = mozilla_tag = CVS_REPO_IMPORT_TAG
+        nspr_date = nss_date = mozilla_date = None
+    elif mode == 'import':
+        if importDate is not None:
+            nspr_date = nss_date = mozilla_date = importDate
+        else:
+            nspr_date = nss_date = mozilla_date = datetime.utcnow().strftime("%d %b %Y %T +0000")
+
+        nspr_tag = NSPR_CVS_TRACKING_TAG
+        nss_tag = NSS_CVS_TRACKING_TAG
+        mozilla_tag = None
+    else:
+        raise Exception, "ImportMozillaCVS unknown/unsupported mode: %s" % mode
+
+    importModules = {};
+    importModules['mozilla'] = { 'files' : mozilla_files,
+                                 'tag' : mozilla_tag,
+                                 'date' : mozilla_date };
+
+    importModules['nss'] = { 'files' : nss_files,
+                             'tag' : nss_tag,
+                             'date' : nss_date };
+
+    importModules['nspr'] = { 'files' : nspr_files,
+                              'tag' : nspr_tag,
+                              'date' : nspr_date };
+
     try:
-        CheckoutDirs(tempd, nspr_tag, cvsroot, nspr_files)
-        CheckoutDirs(tempd, nss_tag, cvsroot, nss_files)
-        CheckoutDirs(tempd, None, cvsroot, mozilla_files)
+        try:
+            for cvsModuleName in importModules.keys(): 
+                cvsModule = importModules[cvsModuleName]
 
-        # Remove everything in the hg repository except for the .hg directory
-        for f in listdir(directory):
-            if f != ".hg" and f != ".hgignore":
-                rmfileortree("%s/%s" % (directory, f))
+                CheckoutDirs(tempd, cvsroot, cvsModule['files'],
+                 cvsModule['date'], cvsModule['tag'])
 
-        # Move everything from the mozilla/ directory to the hg repo
-        for f in listdir("%s/mozilla" % tempd):
-            source = "%s/mozilla/%s" % (tempd, f)
-            dest = "%s/%s" % (directory, f)
-            print "Moving %s to %s" % (source, dest)
-            rename(source, dest)
+            # Remove everything in the hg repository except for the .hg
+            # directory
+            for f in listdir(directory):
+                if f != ".hg" and f != ".hgignore":
+                    rmfileortree("%s/%s" % (directory, f))
 
-        check_call(['hg', '-q', 'add'], cwd=directory)
-        check_call(['hg', '-q', 'remove', '--after'], cwd=directory)
+            # Move everything from the mozilla/ directory to the hg repo
+            for f in listdir("%s/mozilla" % tempd):
+                source = "%s/mozilla/%s" % (tempd, f)
+                dest = "%s/%s" % (directory, f)
+                print "Moving %s to %s" % (source, dest)
+                rename(source, dest)
 
-        check_call(['hg', '-q', 'commit', '-m', 'Automated import from CVS.'],
-                   cwd=directory)
+            check_call(['hg', 'add'], cwd=directory)
+            check_call(['hg', 'remove', '--after'], cwd=directory)
+
+            commitMesg = "Automatic merge from CVS:\n" 
+
+            for cvsModuleName in importModules.keys(): 
+                cvsModule = importModules[cvsModuleName]
+                if cvsModule['tag'] is None:
+                    cvsTagName = 'HEAD'
+                else:
+                    cvsTagName = cvsModule['tag']
+
+                commitMesg = (commitMesg + "\tModule %s: tag %s at %s\n" % 
+                 (cvsModuleName, cvsTagName, cvsModule['date']))
+
+            check_call(['hg', 'commit', '-m', commitMesg], cwd=directory)
+    
+        except Exception, e:
+            print "ImportMozillaCVS: Exception hit: %s" % (str(e))
+            raise
 
     finally:
         rmtree(tempd)
@@ -211,6 +264,9 @@ if __name__ == '__main__':
                  help="Initialize a repository for import.")
     p.add_option("--tempdir", dest="tempdir",
                  help="Use a specific directory for temporary files.")
+    p.add_option("--importdate", dest="importdate",
+                 help="Use a specific date to import from CVS; " +
+                  "must be parseable by CVS's -D option.")
 
     (options, args) = p.parse_args()
 
@@ -221,8 +277,11 @@ if __name__ == '__main__':
     if options.initrepo:
         print "Initializing hg repository '%s'." % args[0]
         InitRepo(args[0], options.hg)
+        ImportMozillaCVS(args[0], options.hg, options.cvsroot, options.tempdir,
+         'init')
         print "Initialization successful."
     else:
         print "Importing CVS to repository '%s'." % args[0]
-        ImportMozillaCVS(args[0], options.hg, options.cvsroot, options.tempdir)
+        ImportMozillaCVS(args[0], options.hg, options.cvsroot, options.tempdir,
+         'import', options.importdate)
         print "Import successful."
