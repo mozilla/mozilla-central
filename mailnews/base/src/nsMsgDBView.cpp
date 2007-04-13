@@ -5243,10 +5243,8 @@ nsresult nsMsgDBView::NavigateFromPos(nsMsgNavigationTypeValue motion, nsMsgView
             break;
         case nsMsgNavigationType::nextUnreadThread:
             if (startIndex != nsMsgViewIndex_None)
-            {
-                nsMsgKeyArray idsMarkedRead;
-                MarkThreadOfMsgRead(m_keys.GetAt(startIndex), startIndex, idsMarkedRead, PR_TRUE);
-            }
+              ApplyCommandToIndices(nsMsgViewCommandType::markThreadRead, &startIndex, 1);
+
             return NavigateFromPos(nsMsgNavigationType::nextUnreadMessage, startIndex, pResultKey, pResultIndex, pThreadIndex, PR_TRUE);
         case nsMsgNavigationType::toggleThreadKilled:
             {
