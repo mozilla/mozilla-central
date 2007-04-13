@@ -14,8 +14,6 @@ $ENV{CVS_RSH} = "ssh";
 
 $MacUniversalBinary = 1;
 
-$BuildXForms = 1;
-
 # $ENV{MOZ_PACKAGE_MSI}
 #-----------------------------------------------------------------------------
 #  Default: 0

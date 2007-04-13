@@ -7,7 +7,6 @@
 #-    Uncomment the variables you need to set.
 #-    The default values are the same as the commented variables.
 
-$BuildXForms = "1";
 $ENV{MOZILLA_OFFICIAL} = 1;
 $ENV{CVS_RSH} = "ssh";
 #$ENV{PATH} = "/usr/gcc-3.3.2rh/bin:$ENV{PATH}";

@@ -249,6 +249,3 @@ $ENV{SYMBOL_SERVER_SSH_KEY}   = "$ENV{HOME}/.ssh/ffxbld_dsa";
 # Prevent Extension Manager from spawning child processes during tests
 # - processes that tbox scripts cannot kill. 
 #$ENV{NO_EM_RESTART} = '1';
-
-# Build XForms
-$BuildXForms = 1;
