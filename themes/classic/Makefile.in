@@ -58,10 +58,10 @@ FILES = \
 
 libs::
 	$(INSTALL) $(FILES) $(DIST)/bin/extensions/$(CLASSIC_EXTENSION_DIR)
-	$(PERL) $(MOZILLA_DIR)/config/preprocessor.pl $(DEFINES) $(ACDEFINES) $(topsrcdir)/suite/themes/classic/install.rdf > $(DIST)/bin/extensions/$(CLASSIC_EXTENSION_DIR)/install.rdf
+	$(PYTHON) $(MOZILLA_DIR)/config/Preprocessor.py $(DEFINES) $(ACDEFINES) $(topsrcdir)/suite/themes/classic/install.rdf > $(DIST)/bin/extensions/$(CLASSIC_EXTENSION_DIR)/install.rdf
 
 install::
 	$(SYSINSTALL) $(IFLAGS1) $(FILES) $(DESTDIR)$(mozappdir)/extensions/$(CLASSIC_EXTENSION_DIR)
-	$(PERL) $(MOZILLA_DIR)/config/preprocessor.pl $(DEFINES) $(ACDEFINES) $(topsrcdir)/suite/themes/classic/install.rdf > $(DESTDIR)$(mozappdir)/extensions/$(CLASSIC_EXTENSION_DIR)/install.rdf
+	$(PYTHON) $(MOZILLA_DIR)/config/Preprocessor.py $(DEFINES) $(ACDEFINES) $(topsrcdir)/suite/themes/classic/install.rdf > $(DESTDIR)$(mozappdir)/extensions/$(CLASSIC_EXTENSION_DIR)/install.rdf
 
 endif
