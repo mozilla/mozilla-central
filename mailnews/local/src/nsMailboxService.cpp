@@ -86,6 +86,7 @@ nsresult nsMailboxService::ParseMailbox(nsIMsgWindow *aMsgWindow, nsFileSpec& aM
     nsCAutoString buf;
     NS_EscapeURL((const char *)aMailboxPath,-1,
                      esc_Minimal|esc_Forced|esc_AlwaysCopy,buf);
+    nsEscapeNativePath(buf);
     url->SetUpdatingFolder(PR_TRUE);
     url->SetMsgWindow(aMsgWindow);
     char *temp = PR_smprintf("mailbox://%s", buf.get());
@@ -95,7 +96,8 @@ nsresult nsMailboxService::ParseMailbox(nsIMsgWindow *aMsgWindow, nsFileSpec& aM
     if (aUrlListener)
       url->RegisterListener(aUrlListener);
     
-    RunMailboxUrl(url, nsnull);
+    rv = RunMailboxUrl(url, nsnull);
+    NS_ENSURE_SUCCESS(rv, rv);
     
     if (aURL)
     {

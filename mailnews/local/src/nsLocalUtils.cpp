@@ -183,12 +183,7 @@ nsLocalURI2Path(const char* rootURI, const char* uriStr,
   nsCString localNativePath;
 
   localPath->GetNativePath(localNativePath);
-#if defined(XP_WIN) || defined(XP_OS2)
-  localNativePath.Insert('/', 0);
-  localNativePath.ReplaceChar('\\', '/');
-  if (localNativePath.CharAt(2) == ':')
-    localNativePath.SetCharAt('|', 2);
-#endif
+  nsEscapeNativePath(localNativePath);
   pathResult = localNativePath.get();
   const char *curPos = uriStr + PL_strlen(rootURI);
   if (curPos) {
@@ -289,4 +284,14 @@ nsresult nsCreateLocalBaseMessageURI(const char *baseURI, char **baseMessageURI)
     return NS_ERROR_OUT_OF_MEMORY;
 
   return NS_OK;
+}
+
+void nsEscapeNativePath(nsCString& nativePath)
+{
+#if defined(XP_WIN) || defined(XP_OS2)
+  nativePath.Insert('/', 0);
+  nativePath.ReplaceChar('\\', '/');
+  if (nativePath.CharAt(2) == ':')
+    nativePath.SetCharAt('|', 2);
+#endif
 }

@@ -57,4 +57,7 @@ nsBuildLocalMessageURI(const char* baseURI, PRUint32 key, nsCString& uri);
 nsresult
 nsCreateLocalBaseMessageURI(const char *baseURI, char **baseMessageURI);
 
+void
+nsEscapeNativePath(nsCString& nativePath);
+
 #endif //NS_LOCALUTILS_H
