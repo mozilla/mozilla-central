@@ -309,6 +309,7 @@ var stateListener = {
         // Notify the SendListener that Send has been aborted and Stopped
         if (gMsgCompose)
           gMsgCompose.onSendNotPerformed(null, Components.results.NS_ERROR_ABORT);
+
         MsgComposeCloseWindow(true);
       }
     }
@@ -1478,10 +1479,7 @@ function WizCallback(state)
   }
   else
   {
-    if (gMsgCompose)
-      gMsgCompose.CloseWindow(false); //Don't try to recyle a bogus window
-    else
-      window.close();
+    MsgComposeCloseWindow(false); // Don't try to recycle a bogus window
 //  window.tryToClose=ComposeCanClose;
   }
 }
@@ -1556,10 +1554,7 @@ function ComposeLoad()
     else
       window.alert(errorMsg);
 
-    if (gMsgCompose)
-      gMsgCompose.CloseWindow(false); //Don't try to recycle a bogus window
-    else
-      window.close();
+    MsgComposeCloseWindow(false); // Don't try to recycle a bogus window
     return;
   }
   window.tryToClose=ComposeCanClose;
@@ -2564,6 +2559,8 @@ function MsgComposeCloseWindow(recycleIt)
 {
   if (gMsgCompose)
     gMsgCompose.CloseWindow(recycleIt);
+  else
+    window.close();
 }
 
 function GetLastAttachDirectory()
