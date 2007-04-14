@@ -246,7 +246,7 @@
                 Components.interfaces.calIWcapCalendar);
             var att = wcapCalendar.getInvitedAttendee(aItem);
             if (att) {
-                att_ = att.clone();
+                var att_ = att.clone();
                 att_.participationStatus = aStatus;
                 aItem.removeAttendee(att);
                 aItem.addAttendee(att_);

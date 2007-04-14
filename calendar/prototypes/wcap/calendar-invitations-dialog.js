@@ -105,8 +105,7 @@ function fillJobQueue(queue) {
         if (newStatus != oldStatus) {
             var actionString = "modify";
             var oldCalendarItem = richListItem.calendarItem;
-            var newCalendarItem = (oldCalendarItem.isMutable)
-                ? oldCalendarItem : oldCalendarItem.clone();
+            var newCalendarItem = oldCalendarItem.clone();
             richListItem.setCalendarItemParticipationStatus(newCalendarItem,
                 newStatus);
             var job = {
