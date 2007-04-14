@@ -24,7 +24,13 @@ except ImportError:
                 cmd = popenargs[0]
             raise Exception("Command '%s' returned non-zero exit status %d" % (cmd, retcode))
 
+## The HG_REPO_INITIAL_IMPORT tag is based on the MOZILLA_1_9a3_RELEASE tag,
+## but only applied to the directories that were imported into Hg (not
+## the entire tree, like the 1.9a3 tag. The tag date was pulled from the logs
+## when that tag was applied. The _DATE is for record keeping purposes, and
+## for the initial import checkin message ; the import pulls the tag.
 CVS_REPO_IMPORT_TAG = "HG_REPO_INITIAL_IMPORT"
+CVS_REPO_IMPORT_DATE = "22 Mar 2007 10:30 PDT"
 
 mozilla_files = (
     "Makefile.in",
@@ -218,7 +224,7 @@ def ImportMozillaCVS(directory, cvsroot=None, hg=None, tempdir=None, mode=None, 
             check_call(['hg', 'add'], cwd=directory)
             check_call(['hg', 'remove', '--after'], cwd=directory)
 
-            commitMesg = "Automatic merge from CVS:\n" 
+            commitMesg = "Automatic merge from CVS: " 
 
             for cvsModuleName in importModules.keys(): 
                 cvsModule = importModules[cvsModuleName]
@@ -227,8 +233,16 @@ def ImportMozillaCVS(directory, cvsroot=None, hg=None, tempdir=None, mode=None, 
                 else:
                     cvsTagName = cvsModule['tag']
 
-                commitMesg = (commitMesg + "\tModule %s: tag %s at %s\n" % 
-                 (cvsModuleName, cvsTagName, cvsModule['date']))
+                ## In the init case, munge the date (which is None, because
+                ## we pull by tag for the initial import), so the checkin
+                ## message has something useful.
+                if mode == 'init':
+                    cvsDate = CVS_REPO_IMPORT_DATE
+                else:
+                    cvsDate = cvsModule['date']
+
+                commitMesg = (commitMesg + "Module %s: tag %s at %s, " % 
+                 (cvsModuleName, cvsTagName, cvsDate))
 
             check_call(['hg', 'commit', '-m', commitMesg], cwd=directory)
     
