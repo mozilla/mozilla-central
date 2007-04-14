@@ -399,7 +399,7 @@ function insertRheet(matchText, containerTag, eventData, mungerEntry)
                         "http://ftp.mozilla.org/pub/mozilla.org/mozilla/libraries/bonus-tracks/rheet.wav");
     anchor.setAttribute("class", "chatzilla-rheet chatzilla-link");
     //anchor.setAttribute ("target", "_content");
-    insertHyphenatedWord(matchText, anchor, data);
+    insertHyphenatedWord(matchText, anchor, eventData);
     containerTag.appendChild(anchor);
 }
 
