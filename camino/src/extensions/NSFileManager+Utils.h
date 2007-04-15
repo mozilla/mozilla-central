@@ -49,4 +49,8 @@
 // (e.g. bookmarks.plist will be changed to "bookmarksSUFFIX-1.plist".
 - (NSString*)backupFileNameFromPath:(NSString*)inPath withSuffix:(NSString*)inFileSuffix;
 
+// Finds the last modified subdirectory at the specified path. not recursive. 
+// Ignores hidden directories and will return nil on failure.
+- (NSString *)lastModifiedSubdirectoryAtPath:(NSString *)path;
+
 @end

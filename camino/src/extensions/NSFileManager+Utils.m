@@ -102,4 +102,36 @@
   return newName;
 }
 
+- (NSString *)lastModifiedSubdirectoryAtPath:(NSString *)inPath
+{
+  inPath = [inPath stringByStandardizingPath];
+
+  NSFileManager* fileManager = [NSFileManager defaultManager];
+  BOOL isDirectory = NO;
+  if (!([fileManager fileExistsAtPath:inPath isDirectory:&isDirectory] && isDirectory))
+    return nil;
+
+  NSDate* newestModificationDateFound = [NSDate distantPast];
+  NSString* lastModifiedSubdirectory = nil;
+  NSEnumerator* directoryContentsEnumerator = [[fileManager directoryContentsAtPath:inPath] objectEnumerator];
+  NSString* subpath = nil;
+  while ((subpath = [directoryContentsEnumerator nextObject])) {
+    if ([subpath hasPrefix:@"."])
+      continue;
+
+    subpath = [inPath stringByAppendingPathComponent:subpath];
+
+    if (!([fileManager fileExistsAtPath:subpath isDirectory:&isDirectory] && isDirectory))
+      continue;
+
+    NSDate* currentFileModificationDate = [[fileManager fileAttributesAtPath:subpath
+                                                                traverseLink:NO] fileModificationDate];
+    if ([currentFileModificationDate timeIntervalSinceDate:newestModificationDateFound] > 0) {
+      newestModificationDateFound = currentFileModificationDate;
+      lastModifiedSubdirectory = subpath;
+    }
+  }
+  return lastModifiedSubdirectory;
+}
+
 @end

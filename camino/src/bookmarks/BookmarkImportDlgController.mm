@@ -42,6 +42,7 @@
 #import "MainController.h"
 #import "BrowserWindowController.h"
 #import "BookmarkViewController.h"
+#import "NSFileManager+Utils.h"
 
 @interface BookmarkImportDlgController (Private)
 
@@ -68,7 +69,8 @@
   [self buildAvailableFileList];
 }
 
-// Check for common webbrower bookmark files and, if they exist, add import buttons.
+// Looks through known bookmark locations of other browsers and populates the import 
+// choices with those found.  Must be called when showing the dialog.
 - (void)buildAvailableFileList
 {
   NSString *mozPath;
@@ -137,21 +139,15 @@
     [self buildButtonForBrowser:@"OmniWeb 5" withPathArray:haveFiles];
 }
 
-// Given a Mozilla-like profile, returns the bookmarks.html file in the salt directory,
-// or nil if no salt directory is found
+// Given a Mozilla-like profile, returns the bookmarks.html file in the salt directory
+// for the last modified profile, or nil on error
 - (NSString *)getSaltedBookmarkPathForProfile:(NSString *)aPath
 {
-  NSFileManager *fm = [NSFileManager defaultManager];
-  id aTempItem;
-  NSString *fullPathString = [aPath stringByStandardizingPath];
-  if ([fm fileExistsAtPath:fullPathString]) {
-    NSArray *saltArray = [fm directoryContentsAtPath:fullPathString];
-    NSEnumerator *enumerator = [saltArray objectEnumerator];
-    while ((aTempItem = [enumerator nextObject])) {
-      if (![aTempItem hasPrefix:@"."])
-        return [fullPathString stringByAppendingFormat:@"/%@/bookmarks.html", aTempItem];
-    }
-  }
+  // find the last modified profile
+  NSString *lastModifiedSubDir = [[NSFileManager defaultManager] lastModifiedSubdirectoryAtPath:aPath];
+  if (lastModifiedSubDir) 
+    return [lastModifiedSubDir stringByAppendingPathComponent:@"bookmarks.html"];
+
   return nil;
 }
 
@@ -172,7 +168,6 @@
 - (IBAction)cancel:(id)aSender
 {
   [[self window] orderOut:self];
-
 }
 
 - (IBAction)import:(id)aSender
