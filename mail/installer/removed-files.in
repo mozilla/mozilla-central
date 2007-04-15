@@ -23,6 +23,7 @@ components/mozfind.dll
 components/mozldap.dll
 components/msgMapi.dll
 components/msgsmime.dll
+components/myspell.dll
 components/necko.dll
 components/necko2.dll
 components/nsprefm.dll
@@ -32,6 +33,7 @@ components/pippki.dll
 components/profile.dll
 components/profilemigration.dll
 components/rdf.dll
+components/spellchk.dll
 components/txmgr.dll
 components/uconv.dll
 components/wallet.dll
