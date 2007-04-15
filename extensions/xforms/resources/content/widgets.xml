@@ -1697,4 +1697,68 @@
     </implementation>
   </binding>
 
+  <!-- DAYTIMEDURATION -->
+  <binding id="daytimeduration" extends="#duration">
+    <implementation>
+    <!-- interface -->
+      <!-- dayTimeDuration format: PnDTnHnMnS (days, hours, minutes, seconds). -->
+
+      <!-- Format a dayTimeDuration to the format PnDTnHnMnS so that we have a
+           whole number of days, hours are between 0 - 23, minutes are between
+           0 - 59, and seconds are between 0 - 59.
+
+           If aDuration is null, this method will return a dayTimeDuration of
+           zero days, zero hours, zero minutes, and zero seconds (P0DT0H0M0S).
+      -->
+      <method name="formatDuration">
+        <parameter name="aDuration"/>
+        <body>
+        <![CDATA[
+          var days = this.getDays(aDuration);
+          var hours = this.getHours(aDuration);
+          var minutes = this.getMinutes(aDuration);
+          var seconds = this.getSeconds(aDuration);
+
+          // If the seconds value exceeds 60, allocate the number of
+          // minutes in the seconds to the minutes value.
+          minutes = minutes + Math.floor(seconds / 60);
+          seconds = seconds % 60;
+
+          // If the minutes value now exceeds 60, allocate the number of
+          // hours in the minutes to the hours value.
+          hours = hours + Math.floor(minutes / 60);
+          minutes = minutes % 60;
+
+          // If the hours value now exceeds 23, allocate the number of
+          // days in the hours to the days value.
+          days = days + Math.floor(hours / 24);
+          hours = hours % 24;
+
+          return "P" + days + "DT" + hours + "H" + minutes + "M" + seconds + "S";
+        ]]>
+        </body>
+      </method>
+
+      <!-- Get the total number of seconds in a dayTimeDuration -->
+      <method name="getDurationSeconds">
+        <parameter name="aDuration"/>
+        <body>
+        <![CDATA[
+          var days = this.getDays(aDuration);
+          var hours = this.getHours(aDuration);
+          var minutes = this.getMinutes(aDuration);
+          var seconds = this.getSeconds(aDuration);
+
+          var durationSeconds = (days * 86400) +
+                                (hours * 3600) +
+                                (minutes * 60) +
+                                seconds;
+
+          return durationSeconds;
+        ]]>
+        </body>
+      </method>
+    </implementation>
+  </binding>
+
 </bindings>

@@ -498,7 +498,7 @@
         <![CDATA[
           if (typeof val == "number") {
             this.setAttribute("min", val);
-            if (this.value < val)
+            if (this.value <= val)
               this._validateValue(val, false);
           }
           return val;
@@ -516,10 +516,10 @@
           if (typeof val != "number")
             return val;
           var min = this.min;
-          if (val < min)
+          if (val <= min)
             val = min;
           this.setAttribute("max", val);
-          if (this.value > val)
+          if (this.value >= val)
             this._validateValue(val, false);
           return val;
         ]]>
@@ -637,9 +637,9 @@
             // maximum on decrement events.
             var wrapAround = this.wrapAround &&
                              min != -Infinity && max != Infinity;
-            if (aValue < min)
+            if (aValue <= min)
               aValue = (aIsIncDec && wrapAround ? max : min);
-            else if (aValue > max)
+            else if (aValue >= max)
               aValue = (aIsIncDec && wrapAround ? min : max);
 
             // Round the value to specified number of decimal places.
@@ -2029,6 +2029,444 @@
         </getter>
       </property>
       <field name="_monthSpin">null</field>
+
+      <property name="maxLabel" readonly="true">
+        <getter>
+          if (!this._maxLabel) {
+            this._maxLabel = this.ownerDocument.
+              getAnonymousElementByAttribute(this, "anonid", "maxLabel");
+          }
+          return this._maxLabel;
+        </getter>
+      </property>
+      <field name="_maxLabel">null</field>
+    </implementation>
+  </binding>
+
+  <!-- DAYTIMEDURATION RANGE-->
+  <binding id="range-daytimeduration"
+           extends="chrome://xforms/content/widgets.xml#daytimeduration">
+
+    <resources>
+      <stylesheet src="chrome://xforms/skin/widgets-xul.css"/>
+    </resources>
+
+    <content>
+      <xul:label value="" anonid="minLabel"/>
+      <xul:box class="range-box">
+        <xul:label control="daySpin" value="&xforms.date.day.label;"/>
+        <xul:textbox type="number" size="1" anonid="daySpin"
+                     xbl:inherits="tabindex=mozType:tabindex"/>
+      </xul:box>
+      <xul:box class="range-box">
+        <xul:label control="hoursSpin" value="&xforms.time.hours.label;"/>
+        <xul:textbox type="number" size="1" anonid="hoursSpin"
+                     xbl:inherits="tabindex=mozType:tabindex"/>
+      </xul:box>
+      <xul:box class="range-box">
+        <xul:label control="minutesSpin" value="&xforms.time.minutes.label;"/>
+        <xul:textbox type="number" size="1" anonid="minutesSpin"
+                     xbl:inherits="tabindex=mozType:tabindex"/>
+      </xul:box>
+      <xul:box class="range-box">
+        <xul:label control="secondsSpin" value="&xforms.time.seconds.label;"/>
+        <xul:textbox type="number" size="1" anonid="secondsSpin"
+                     xbl:inherits="tabindex=mozType:tabindex"/>
+      </xul:box>
+      <xul:label value="" anonid="maxLabel"/>
+    </content>
+
+    <implementation>
+      <method name="updateLabels">
+        <body>
+        <![CDATA[
+          this.minLabel.value = this.start + this._startSeparator;
+          this.maxLabel.value = this._endSeparator + this.end;
+        ]]>
+        </body>
+      </method>
+
+      <method name="updateValue">
+        <body>
+        <![CDATA[
+          var days = this.daySpin.value.toString();
+          var hours = this.hoursSpin.value.toString();
+          var minutes = this.minutesSpin.value.toString();
+          var seconds = this.secondsSpin.value.toString();
+
+          var duration = "P" + days + "DT" + hours + "H" +
+                         minutes + "M" + seconds + "S";
+
+          this.setAttribute("value", duration);
+        ]]>
+        </body>
+      </method>
+
+      <method name="updateFields">
+        <body>
+        <![CDATA[
+          var value = this.value;
+
+          this.daySpin.value = this.getDays(value);
+          this.hoursSpin.value = this.getHours(value);
+          this.minutesSpin.value = this.getMinutes(value);
+          this.secondsSpin.value = this.getSeconds(value);
+        ]]>
+        </body>
+      </method>
+
+      <method name="setSpinbuttonMinMax">
+        <body>
+        <![CDATA[
+          var start = this.start;
+          var end = this.end;
+          var value = this.value;
+
+          // Days
+          var startDays = this.getDays(start);
+          var endDays = this.getDays(end);
+          var currentDays = this.getDays(value);
+
+          // Hours
+          var startHours = this.getHours(start);
+          var endHours = this.getHours(end);
+          var currentHours = this.getHours(value);
+
+          // Minutes
+          var startMinutes = this.getMinutes(start);
+          var endMinutes = this.getMinutes(end);
+          var currentMinutes = this.getMinutes(value);
+
+          // Seconds
+          var startSeconds = this.getSeconds(start);
+          var endSeconds = this.getSeconds(end);
+
+          // Calculated min/max values for each spinbutton.
+          var minHours = 0;
+          var maxHours = 0;
+          var minMinutes = 0;
+          var maxMinutes = 0;
+          var minSeconds = 0;
+          var maxSeconds = 0;
+
+          // Min and Max for the hours spinbutton depends on the day range.
+          if (endDays == startDays) {
+            // Range is less than one full day but the days of the start
+            // and end are the same.
+            // Example: start=P0DT23H59M59S, end=P1DT20H10M25S
+            // OR
+            // The range is greater than or equal to 1 day but less than
+            // 2 days and the start and end days are the same.
+            // Example: start=P1DT0H0M0S, end=P1DT23H59M259S
+
+            // Hours range between the start and end hours.
+            minHours = startHours;
+            maxHours = endHours;
+
+            // Min and Max minutes depends on the current hours.
+            if (currentHours == startHours) {
+              if (startHours == endHours) {
+                // This is a simple range of minutes and seconds. Min minutes
+                // is the minutes of the start duration and max minutes is
+                // the minutes of the end duration.
+                // Example: start=0DT0H1M0S, end=0DT0H30M30S
+                minMinutes = startMinutes;
+                maxMinutes = endMinutes;
+              } else {
+                // Min minutes is the minutes of the start duration. Max minutes
+                // is the maximum number of minutes in an hour.
+                minMinutes = startMinutes;
+                maxMinutes = 59;
+              }
+
+              // Seconds depends on the current minutes.
+              if (currentMinutes == startMinutes) {
+                if (startMinutes == endMinutes) {
+                  // Simple range of seconds only so min seconds is the seconds
+                  // of the start duration and max seconds is the seconds of the
+                  // end duration.
+                  // Example: start=0DT0H0M10S, end=0DT0H0M20S
+                  minSeconds = startSeconds;
+                  maxSeconds = endSeconds;
+                } else {
+                  // Current minutes is the start minutes of the start day and
+                  // start hour. Seconds can range from the start seconds to the
+                  // maximum number of seconds in a minute.
+                  minSeconds = startSeconds;
+                  maxSeconds = 59;
+                }
+              } else if (currentMinutes == endMinutes) {
+                // Current minutes is the end minutes of the start day and
+                // start hour. Seconds can range from 0 to the number of
+                // seconds in the end duration.
+                minSeconds = 0;
+                maxSeconds = endSeconds;
+              } else {
+                // Current minutes is between the start and end minutes of
+                // the start day/start hour.
+                minSeconds = 0;
+                maxSeconds = 59;
+              }
+            } else if (currentHours == endHours) {
+              // Current hours value is equal to the end hours. The min minutes
+              // is minimum number of minutes in an hour and the max minutes
+              // is the minutes of the end duration. The min seconds is the
+              // minimum number of seconds in a minute and the max seconds is
+              // the seconds of the end duration.
+              // Example: start=P1DT0H0M0S, end=P1DT1H59M59S
+              minMinutes = 0;
+              maxMinutes = endMinutes;
+              minSeconds = 0;
+              maxSeconds = endSeconds;
+            } else {
+              // Current hours value is between the start and end hours values
+              // of the same day. Minutes and seconds can range between their
+              // miminimum and maximum values.
+              // Example: start=P1DT0H0M0S, end=P1DT10H59M59S
+              minMinutes = 0;
+              maxMinutes = 59;
+              minSeconds = 0;
+              maxSeconds = 59;
+            }
+          } else if (endDays - startDays == 1) {
+            // Range is less than one full day but the days of the start
+            // and end are different.
+            // Example: start=P0D23H59M59S, end=P1D20H30M10S
+            // OR
+            // The range is greater than or equal to 1 day but less than
+            // 2 days and the start and end days are different.
+            // Example: start=P0D0H0M0S, end=P1D23H10M10S
+            // Example: start=P0D0H0M0S, end=P1D0H0M0S
+
+            // Hours, minutes, and seconds depend on the current day.
+            if (currentDays == startDays) {
+              // Current day value is equal to the start day.
+              // The min hour is the start hours and the max hours is the
+              // maximum number of hours in a day.
+              minHours = startHours;
+              maxHours = 23;
+              // Minutes can range between the minutes of the start duration
+              // and the maximum number of minutes in an hour.
+              minMinutes = startMinutes;
+              maxMinutes = 59;
+              // Seconds can range between the seconds of the start duration
+              // and the maximum number of seconds in a minute.
+              minSeconds = startSeconds;
+              maxSeconds = 59;
+            } else if (currentDays == endDays) {
+              // Current day value is equal to the end day.
+              // The min hour is the minimum number of hours in a day and the
+              // max hours is the hours of the end duration.
+              minHours = 0;
+              maxHours = endHours;
+
+              // Minutes and seconds depend on the current hours.
+              if (currentHours >= endHours) {
+                // Current hour is the end hour of the end day.
+                minMinutes = 0;
+                maxMinutes = endMinutes;
+
+                if (currentMinutes >= endMinutes) {
+                  // Current minutes is greater than or equal to the end
+                  // minutes of the end day. Seconds can range between the
+                  // minimum number of seconds in a minute to the seconds of
+                  // the end duration.
+                  minSeconds = 0;
+                  maxSeconds = endSeconds;
+                } else {
+                  // Current minutes is between the start and end minutes of
+                  // the current hour. Seconds range between their minimum and
+                  // maximum values.
+                  minSeconds = 0;
+                  maxSeconds = 59;
+                }
+              } else {
+                // Current hours is between the start and end hours of the
+                // end day. Minutes and seconds can range between their
+                // minimum and maximum values.
+                minMinutes = 0;
+                maxMinutes = 59;
+                minSeconds = 0;
+                maxSeconds = 59;
+              }
+            }
+          } else {
+            // Range is more than one full day.
+            // Example: start= P1DT10H59M59S, end=P3DT23H30M10S
+            // Example: start= P1DT0H0M0S, end=P3DT0H0M0S
+
+            if (currentDays == startDays) {
+              // Min hours is the start hours and max hours is the maximum
+              // number of hours in a day.
+              // on the end hours.
+              minHours = startHours;
+              maxHours = 23;
+
+              // Minutes depends on the current hour.
+              if (currentHours == startHours) {
+                // Current hours is equal to the start hours. Minutes range
+                // from the start minutes to the maximum number of minutes
+                // in an hour.
+                minMinutes = startMinutes;
+                maxMinutes = 59;
+
+                // Seconds depends on the current minutes.
+                if (currentMinutes == startMinutes) {
+                  // Current minutes is equal to the start minutes. Seconds
+                  // range from the start seconds to the maximum number of
+                  // seconds in a minute.
+                  minSeconds = startSeconds;
+                  maxSeconds = 59;
+                } else {
+                  // Current minutes is between the start and end minutes of
+                  // the current hour.  Seconds range between their minimum
+                  // and maximum values.
+                  minSeconds = 0;
+                  maxSeconds = 59;
+                }
+              } else {
+                // Current hours is between the start and end hours of the
+                // current day. Minutes and seconds range between their minimum
+                // and maximum values.
+                minMinutes = 0;
+                maxMinutes = 59;
+                minSeconds = 0;
+                maxSeconds = 59;
+              }
+            } else if (currentDays == endDays) {
+              // Current day is equal to the end day.
+              // Hours range between the minimum number of hours in a day and
+              // the hours of the end duration.
+              minHours = 0;
+              maxHours = endHours;
+
+              // Minutes depend on the current hour.
+              if (currentHours == endHours) {
+                // Current hour is equal to the end hour. Minutes range between
+                // the minimum number of minutes in an hour and the minutes of
+                // the end duration.
+                minMinutes = 0;
+                maxMinutes = endMinutes;
+
+                // Seconds depends on the current minutes.
+                if (currentMinutes >= endMinutes) {
+                  // Current minutes is greater than or equal to the end
+                  // minutes of the end day. Seconds range between the minimum
+                  // number of seconds in a minute and the seconds of the end
+                  // duration.
+                  minSeconds = 0;
+                  maxSeconds = endSeconds;
+                } else {
+                  // Current minutes is between the start and end minutes of
+                  // the current hour. Seconds range between their minimum and
+                  // maximum values.
+                  minSeconds = 0;
+                  maxSeconds = 59;
+                }
+              } else {
+                // Current hours is between the start and end hours of the
+                // end day. Minutes and seconds range between their minimum
+                // and maximum values.
+                minMinutes = 0;
+                maxMinutes = 59;
+                minSeconds = 0;
+                maxSeconds = 59;
+              }
+            } else {
+              // Current day falls between the start and end days. Hours,
+              // minutes, and seconds all range between their minimum and
+              // maximum values.
+              minHours = 0;
+              maxHours = 23;
+              minMinutes = 0;
+              maxMinutes = 59;
+              minSeconds = 0;
+              maxSeconds = 59;
+            }
+          }
+
+          // Set the min and max for the days, hours, minutes,
+          // and seconds spinbuttons.
+          this.daySpin.min = startDays;
+          this.daySpin.max = endDays;
+          this.hoursSpin.min = minHours;
+          this.hoursSpin.max = maxHours;
+          this.minutesSpin.min = minMinutes;
+          this.minutesSpin.max = maxMinutes;
+          this.secondsSpin.min = minSeconds;
+          this.secondsSpin.max = maxSeconds;
+        ]]>
+        </body>
+      </method>
+
+      <method name="isInRange">
+        <parameter name="aValue"/>
+        <body>
+        <![CDATA[
+          var startSeconds = this.getDurationSeconds(this.start);
+          var endSeconds = this.getDurationSeconds(this.end);
+          var currentSeconds = this.getDurationSeconds(aValue);
+
+          return startSeconds <= currentSeconds && currentSeconds <= endSeconds;
+        ]]>
+        </body>
+      </method>
+
+      <!-- Private -->
+      <property name="minLabel" readonly="true">
+        <getter>
+          if (!this._minLabel) {
+            this._minLabel = this.ownerDocument.
+              getAnonymousElementByAttribute(this, "anonid", "minLabel");
+          }
+          return this._minLabel;
+        </getter>
+      </property>
+      <field name="_minLabel">null</field>
+
+      <property name="daySpin" readonly="true">
+        <getter>
+          if (!this._daySpin) {
+            this._daySpin = this.ownerDocument.
+              getAnonymousElementByAttribute(this, "anonid", "daySpin");
+          }
+          return this._daySpin;
+        </getter>
+      </property>
+      <field name="_daySpin">null</field>
+
+      <property name="hoursSpin" readonly="true">
+        <getter>
+          if (!this._hoursSpin) {
+            this._hoursSpin = this.ownerDocument.
+              getAnonymousElementByAttribute(this, "anonid", "hoursSpin");
+          }
+          return this._hoursSpin;
+        </getter>
+      </property>
+      <field name="_hoursSpin">null</field>
+
+      <property name="minutesSpin" readonly="true">
+        <getter>
+          if (!this._minutesSpin) {
+            this._minutesSpin = this.ownerDocument.
+              getAnonymousElementByAttribute(this, "anonid", "minutesSpin");
+          }
+          return this._minutesSpin;
+        </getter>
+      </property>
+      <field name="_minutesSpin">null</field>
+
+      <property name="secondsSpin" readonly="true">
+        <getter>
+          if (!this._secondsSpin) {
+            this._secondsSpin = this.ownerDocument.
+              getAnonymousElementByAttribute(this, "anonid", "secondsSpin");
+          }
+          return this._secondsSpin;
+        </getter>
+      </property>
+      <field name="_secondsSpin">null</field>
 
       <property name="maxLabel" readonly="true">
         <getter>
