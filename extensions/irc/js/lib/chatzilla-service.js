@@ -265,6 +265,10 @@ if ("URI_DANGEROUS_TO_LOAD" in nsIProtocolHandler) {
   IRCProtocolHandler.prototype.protocolFlags |=
       nsIProtocolHandler.URI_LOADABLE_BY_ANYONE;
 }
+if ("URI_NON_PERSISTABLE" in nsIProtocolHandler) {
+  IRCProtocolHandler.prototype.protocolFlags |=
+      nsIProtocolHandler.URI_NON_PERSISTABLE;
+}
 
 IRCProtocolHandler.prototype.allowPort =
 function ircph_allowPort(port, scheme)
