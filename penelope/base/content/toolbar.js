@@ -105,32 +105,3 @@ var PenelopeToolbar = {
 window.addEventListener("load", function(e) { PenelopeToolbar.onLoad(e); }, false); 
 window.addEventListener("unload", function(e) { PenelopeToolbar.unLoad(e); }, false); 
 
-function dumpNodes(nodes)
-{
-    for (var i = 0; i < nodes.length; i++)
-    {
-        var attrs = nodes[i].attributes;
-        var text = ""; 
-        if (attrs)
-        {
-            for(var j=attrs.length-1; j>=0; j--) 
-            {
-                text += attrs[j].name + "=" + "'"+attrs[j].value+"' ";
-            }
-        }
-        dump("<"+nodes[i].nodeName+" "+text+">\n");
-
-        if (nodes[i].nodeValue)
-        {
-            dump(nodes[i].nodeValue);
-
-        }
-        if (nodes[i].hasChildNodes())
-        {
-            dumpNodes(nodes[i].childNodes);
-        }
-        dump("</"+nodes[i].nodeName+">\n");
-    }
-    dump("\n");
-}
-

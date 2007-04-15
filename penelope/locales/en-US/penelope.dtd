@@ -51,3 +51,4 @@
 <!ENTITY penelope.statusRedirected.label "Redirected">
 <!ENTITY penelope.statusSent.label "Sent">
 <!ENTITY penelope.statusUnsent.label "Unsent">
+<!ENTITY penelope.keybindingTips.label "Shortcuts">

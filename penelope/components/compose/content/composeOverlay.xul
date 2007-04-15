@@ -55,6 +55,7 @@ xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   -->
   <script type="application/x-javascript" src="chrome://penelope/content/composeOverlay.js" />
   <script type="application/x-javascript" src="chrome://penelope/content/quotes.js" />
+  <script type="application/x-javascript" src="chrome://penelope/content/help.js" />
 
   <menuitem id="menu_newmsg"
             toolbaritem="button-newmsg"/>
@@ -195,4 +196,6 @@ xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
            defaultset="priority-button,separator,quoteButton,separator,button-attach,separator,button-address,separator,spellingButton,separator,button-send,separator,spring">
   </toolbar>
   
+  <menuitem id="hintsAndTips" oncommand="penelopeHelp();"/>
+
 </overlay>

@@ -39,7 +39,6 @@
 var PenelopeMessenger = { 
     onLoad: function() 
     { 
-
         // TODO If the window has already been created, close the new one and focus the old one
 
         // quit if this function has already been called
@@ -769,6 +768,7 @@ var groupSelectColumnHandler =
     isString:            function() { return false; },
     getCellProperties:   function(row, col, props) {},
     getImageSrc:         function(row, col) { return null; },
+    getRowProperties:    function(row, properties) {},
     getSortLongForRow:   function(hdr) { return groupSelectIndexArray[hdr.messageKey]; }
 }
 

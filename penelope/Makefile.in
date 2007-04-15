@@ -70,5 +70,9 @@ XPI_PKGNAME            = penelope-$(PENELOPE_VERSION)
 
 PREF_JS_EXPORTS = $(srcdir)/base/prefs/penelope.js
 
+XULAPP_DEFINES = \
+    -DEXTENSION_VERSION=$(PENELOPE_VERSION) \
+    $(NULL)
+
 include $(topsrcdir)/config/rules.mk
 

@@ -55,6 +55,7 @@ xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <script type="application/x-javascript" src="chrome://penelope/content/toolbarbuttons.js" />
   <script type="application/x-javascript" src="chrome://penelope/content/toolbar.js" />
+  <script type="application/x-javascript" src="chrome://penelope/content/help.js" />
 
   <stringbundleset id="stringbundleset">
     <stringbundle id="penelopeStrings"
@@ -98,7 +99,7 @@ xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
     <command id="cmd_penelopeOpenInbox" oncommand="openInbox();" />
     <command id="cmd_penelopeOpenOutbox" oncommand="openOutbox();" />
     <command id="cmd_penelopeAddToAddrBook" oncommand="addEmail();" observes="cmd_tag" />
-    <command id="cmd_penelopeHelp" oncommand="openRegionURL('mailnews.hints_and_tips.url');"/>
+    <command id="cmd_penelopeHelp" oncommand="penelopeHelp()"/>
   </commandset>
 
   <menu id="menu_MessagePaneLayout" hidden="true"/>
@@ -259,6 +260,8 @@ xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <menuitem id="menu_replyToAll"
             toolbaritem="button-replyall"/>
   <menuitem id="menu_forwardMsg"
+            accesskey=""
+            key=""
             toolbaritem="button-forward"/>
   <menuitem id="forwardAsMenu"
             toolbaritem="not-supported"/>
@@ -619,6 +622,7 @@ xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
         </rule>
       </template>
     </menu>
+
   </menubar>
 
 </overlay>

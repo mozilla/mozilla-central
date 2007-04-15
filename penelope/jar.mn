@@ -1,17 +1,19 @@
 penelope.jar:
 % content penelope %content/penelope/ xpcnativewrappers=yes
-% overlay	chrome://global/content/globalOverlay.xul	                        chrome://penelope/content/globalOverlay.xul
-% overlay	chrome://messenger/content/mailTasksOverlay.xul	                    chrome://penelope/content/globalOverlay.xul
-% overlay	chrome://messenger/content/mailWindowOverlay.xul	                chrome://penelope/content/globalOverlay.xul
-% overlay	chrome://messenger/content/messageWindow.xul	                    chrome://penelope/content/globalOverlay.xul
-% overlay	chrome://messenger/content/messengercompose/messengercompose.xul	chrome://penelope/content/globalOverlay.xul
-% overlay	chrome://messenger/content/messengercompose/messengercompose.xul	chrome://penelope/content/composeOverlay.xul
-% overlay	chrome://editor/content/editorOverlay.xul	                        chrome://penelope/content/editorOverlay.xul
-% overlay	chrome://messenger/content/messenger.xul	                        chrome://penelope/content/globalOverlay.xul
-% overlay	chrome://messenger/content/messenger.xul	                        chrome://penelope/content/messengerOverlay.xul
-% overlay	chrome://messenger/content/mailWindowOverlay.xul	                chrome://penelope/content/toolbarOverlay.xul
-% overlay	chrome://messenger/content/preferences/preferences.xul	            chrome://penelope/content/preferencesOverlay.xul
-% override	chrome://global/content/customizeToolbar.xul	                    chrome://penelope/content/customizeToolbar.xul
+% overlay    chrome://global/content/globalOverlay.xul                          chrome://penelope/content/globalOverlay.xul
+% overlay    chrome://messenger/content/mailTasksOverlay.xul                    chrome://penelope/content/globalOverlay.xul
+% overlay    chrome://messenger/content/mailWindowOverlay.xul                   chrome://penelope/content/globalOverlay.xul
+% overlay    chrome://messenger/content/messageWindow.xul                       chrome://penelope/content/globalOverlay.xul
+% overlay    chrome://messenger/content/messengercompose/messengercompose.xul   chrome://penelope/content/globalOverlay.xul
+% overlay    chrome://messenger/content/messengercompose/messengercompose.xul   chrome://penelope/content/composeOverlay.xul
+% overlay    chrome://messenger/content/messengercompose/messengercompose.xul   chrome://penelope/content/helpOverlay.xul
+% overlay    chrome://editor/content/editorOverlay.xul                          chrome://penelope/content/editorOverlay.xul
+% overlay    chrome://messenger/content/messenger.xul                           chrome://penelope/content/globalOverlay.xul
+% overlay     chrome://messenger/content/messenger.xul                          chrome://penelope/content/messengerOverlay.xul
+% overlay     chrome://messenger/content/mailWindowOverlay.xul                  chrome://penelope/content/toolbarOverlay.xul
+% overlay     chrome://messenger/content/mailWindowOverlay.xul                  chrome://penelope/content/helpOverlay.xul
+% overlay    chrome://messenger/content/preferences/preferences.xul             chrome://penelope/content/preferencesOverlay.xul
+% override    chrome://global/content/customizeToolbar.xul                      chrome://penelope/content/customizeToolbar.xul
   content/penelope/globalOverlay.xul                                 (base/content/globalOverlay.xul)
   content/penelope/globalOverlay.js                                  (base/content/globalOverlay.js)
   content/penelope/messengerOverlay.xul                              (base/content/messengerOverlay.xul)
@@ -22,6 +24,8 @@ penelope.jar:
   content/penelope/toolbarbuttons.js                                 (base/content/toolbarbuttons.js)
   content/penelope/toolbar.js                                        (base/content/toolbar.js)
   content/penelope/quotes.js                                         (base/content/quotes.js)
+  content/penelope/help.js                                           (base/content/help.js)
+  content/penelope/helpOverlay.xul                                   (base/content/helpOverlay.xul)
   content/penelope/composeOverlay.js                                 (components/compose/content/composeOverlay.js)
   content/penelope/composeOverlay.xul                                (components/compose/content/composeOverlay.xul)
   content/penelope/editorOverlay.xul                                 (components/compose/content/editorOverlay.xul)

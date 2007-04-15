@@ -43,14 +43,14 @@
 <!ENTITY % penelopeOverlayDTD SYSTEM "chrome://penelope/locale/penelope.dtd" >
 %penelopeOverlayDTD;
 ]>
-<overlay id="penelopeEditorOverlay"
+<overlay id="penelopeMessengerOverlay"
 xmlns:nc="http://home.netscape.com/NC-rdf#"
 xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <keyset id="editorKeys">
-    <key id="increaseindentkb" disabled="true"/>
-    <key id="decreaseindentkb" disabled="true"/>
-    <key id="insertlinkkb" disabled="true"/>
-    <key id="fixedwidthkb" disabled="true"/>
-  </keyset>
+    <script type="application/x-javascript" src="chrome://penelope/content/help.js" />
+
+    <menupopup id="menu_HelpPopup">
+      <menuitem id="penelopeKeybindingTips" label="&penelope.keybindingTips.label;" insertafter="hintsAndTips" oncommand="openSomeURL('http://wiki.mozilla.org/Eudora_Keybindings');"/>
+    </menupopup>
+
 </overlay>

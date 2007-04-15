@@ -35,7 +35,24 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-function penelopePrefsOnLoad()
+
+function penelopeHelp()
 {
-    dump("in penelopePrefsOnLoad\n");
+    var urlToOpen = "http://wiki.mozilla.org/Documentation_Project";
+    openSomeURL(urlToOpen)
+}
+
+function openSomeURL(url)
+{
+    try 
+    {
+        var uri = Components.classes["@mozilla.org/network/io-service;1"]
+              .getService(Components.interfaces.nsIIOService)
+              .newURI(url, null, null);
+
+        var protocolSvc = Components.classes["@mozilla.org/uriloader/external-protocol-service;1"]
+                      .getService(Components.interfaces.nsIExternalProtocolService);
+        protocolSvc.loadUrl(uri);
+    } 
+    catch (ex) {}
 }

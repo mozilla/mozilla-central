@@ -193,7 +193,7 @@
 
 #button-out:active,
 #button-out:focus,
-#button-out:hover:active,
+#button-out:hover:active
 {
   list-style-image: url("chrome://penelope/skin/icons/tbar32-active.png");
   -moz-image-region: rect(0px 96px 31px 64px) !important;
@@ -212,7 +212,7 @@
 
 #button-find:active,
 #button-find:focus,
-#button-find:hover:active,
+#button-find:hover:active
 {
   list-style-image: url("chrome://penelope/skin/icons/tbar32-active.png");
   -moz-image-region: rect(0px 95px 31px 64px) !important;
