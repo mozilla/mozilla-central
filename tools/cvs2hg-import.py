@@ -152,6 +152,7 @@ def ensurevalue(val, envvar, default = None):
 
 def rmfileortree(path):
     print "Removing %s" % path
+    sys.stdout.flush()
     if isdir(path):
         rmtree(path)
     else:
@@ -219,6 +220,7 @@ def ImportMozillaCVS(directory, cvsroot=None, hg=None, tempdir=None, mode=None, 
                 source = "%s/mozilla/%s" % (tempd, f)
                 dest = "%s/%s" % (directory, f)
                 print "Moving %s to %s" % (source, dest)
+                sys.stdout.flush()
                 rename(source, dest)
 
             check_call(['hg', 'add'], cwd=directory)
@@ -248,6 +250,7 @@ def ImportMozillaCVS(directory, cvsroot=None, hg=None, tempdir=None, mode=None, 
     
         except Exception, e:
             print "ImportMozillaCVS: Exception hit: %s" % (str(e))
+            sys.stdout.flush()
             raise
 
     finally:
@@ -290,12 +293,16 @@ if __name__ == '__main__':
 
     if options.initrepo:
         print "Initializing hg repository '%s'." % args[0]
+        sys.stdout.flush()
         InitRepo(args[0], options.hg)
         ImportMozillaCVS(args[0], options.hg, options.cvsroot, options.tempdir,
          'init')
         print "Initialization successful."
+        sys.stdout.flush()
     else:
         print "Importing CVS to repository '%s'." % args[0]
+        sys.stdout.flush()
         ImportMozillaCVS(args[0], options.hg, options.cvsroot, options.tempdir,
          'import', options.importdate)
         print "Import successful."
+        sys.stdout.flush()
