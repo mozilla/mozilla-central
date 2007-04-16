@@ -604,6 +604,6 @@ nsresult nsMsgI18NShrinkUTF8Str(const nsAFlatCString &inString,
     return NS_OK;
   }
   PRUint32 len = prev - start;
-  outString.Assign(Substring(inString, len));
+  outString.Assign(Substring(inString, 0, len));
   return NS_OK;
 }
