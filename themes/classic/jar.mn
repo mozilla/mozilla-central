@@ -145,6 +145,7 @@ classic.jar:
   skin/classic/editor/icons/progress-busy.gif                           (editor/icons/progress-busy.gif)
   skin/classic/editor/icons/progress-done.gif                           (editor/icons/progress-done.gif)
   skin/classic/editor/icons/progress-failed.gif                         (editor/icons/progress-failed.gif)
+#ifndef MOZ_XUL_APP
 #ifdef XP_MACOSX
   skin/classic/global/button.css                                (global/mac/button.css)
   skin/classic/global/console.css                               (global/mac/console.css)
@@ -387,6 +388,7 @@ classic.jar:
   skin/classic/global/splitter/grip-hrz-after.gif                       (global/splitter/grip-hrz-after.gif)
   skin/classic/global/splitter/grip-hrz-before.gif                      (global/splitter/grip-hrz-before.gif)
   skin/classic/global/splitter/drag-bg.gif                              (global/splitter/drag-bg.gif)
+#endif
   skin/classic/messenger/dialogs.css                                    (messenger/dialogs.css)
   skin/classic/messenger/mailWindow2.css                                (messenger/mailWindow2.css)
   skin/classic/messenger/accountManage.css                              (messenger/accountManage.css)
