@@ -102,13 +102,19 @@ calAttendee.prototype = {
                         "userType"];
         for (var i in allProps)
             a[allProps[i]] = this[allProps[i]];
-        // clone properties!
+
+        var bagenum = this.propertyEnumerator;
+        while (bagenum.hasMoreElements()) {
+            var iprop = bagenum.getNext().QueryInterface(Components.interfaces.nsIProperty);
+            a.setProperty(iprop.name, iprop.value);
+        }
+
         return a;
     },
     // XXX enforce legal values for our properties;
 
     icalAttendeePropMap: [
-    { cal: "rsvp",                ics: "RSVP" },
+    { cal: "mRsvp",               ics: "RSVP" },
     { cal: "commonName",          ics: "CN" },
     { cal: "participationStatus", ics: "PARTSTAT" },
     { cal: "userType",            ics: "CUTYPE" },
@@ -117,6 +123,9 @@ calAttendee.prototype = {
     mIsOrganizer: false,
     get isOrganizer() { return this.mIsOrganizer; },
     set isOrganizer(bool) { this.mIsOrganizer = bool; },
+
+    get rsvp() { return this.mRsvp == "TRUE"; },
+    set rsvp(aValue) { this.mRsvp = (aValue ? "TRUE" : "FALSE"); },
 
     // icalatt is a calIcalProperty of type attendee
     set icalProperty (icalatt) {
@@ -195,7 +204,6 @@ var makeMemberAttr;
 if (makeMemberAttr) {
     makeMemberAttr(calAttendee, "mId", null, "id");
     makeMemberAttr(calAttendee, "mCommonName", null, "commonName");
-    makeMemberAttr(calAttendee, "mRsvp", null, "rsvp");
     makeMemberAttr(calAttendee, "mRole", null, "role");
     makeMemberAttr(calAttendee, "mParticipationStatus", "NEEDS-ACTION",
                    "participationStatus");
