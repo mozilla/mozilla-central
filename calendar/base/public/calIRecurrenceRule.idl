@@ -57,6 +57,10 @@ interface calIRecurrenceRule : calIRecurrenceItem
   attribute AUTF8String type;
 
   // repeat every N of type
+  // XXX Please mind an implementation detail:
+  // the underlying libical currently only supports C short values for interval,
+  // i.e. commonly 16 bits on most platforms, thus please use only 0 <= interval <= 0x7fff.
+  // It is open whether we go with IDL short here or tweak libical to support at least 32 bits.
   attribute long interval;
 
   // These two are mutually exclusive; whichever is set

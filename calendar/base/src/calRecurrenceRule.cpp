@@ -54,6 +54,8 @@ extern "C" {
     #include "ical.h"
 }
 
+#include <climits>
+
 NS_IMPL_ISUPPORTS2_CI(calRecurrenceRule, calIRecurrenceItem, calIRecurrenceRule)
 
 calRecurrenceRule::calRecurrenceRule()
@@ -208,7 +210,9 @@ NS_IMETHODIMP
 calRecurrenceRule::SetCount(PRInt32 aRecurCount)
 {
     if (aRecurCount != -1) {
-        mIcalRecur->count = aRecurCount;
+        if (aRecurCount < 0 || aRecurCount > INT_MAX)
+            return NS_ERROR_ILLEGAL_VALUE;
+        mIcalRecur->count = NS_STATIC_CAST(int, aRecurCount);
     } else {
         mIcalRecur->count = 0;
     }
@@ -281,7 +285,9 @@ calRecurrenceRule::GetInterval(PRInt32 *aInterval)
 NS_IMETHODIMP
 calRecurrenceRule::SetInterval(PRInt32 aInterval)
 {
-    mIcalRecur->interval = aInterval;
+    if (aInterval < 0 || aInterval > SHRT_MAX)
+        return NS_ERROR_ILLEGAL_VALUE;
+    mIcalRecur->interval = NS_STATIC_CAST(short, aInterval);
     return NS_OK;
 }
 

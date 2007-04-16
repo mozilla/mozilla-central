@@ -1676,14 +1676,20 @@ calStorageCalendar.prototype = {
 
                     ritem.type = row.recur_type;
                     if (row.count) {
-                        ritem.count = row.count;
+                        try {
+                            ritem.count = row.count;
+                        } catch(exc) {
+                        }
                     } else {
                         if (row.end_date)
                             ritem.endDate = newDateTime(row.end_date);
                         else
                             ritem.endDate = null;
                     }
-                    ritem.interval = row.interval;
+                    try {
+                        ritem.interval = row.interval;
+                    } catch(exc) {
+                    }
 
                     var rtypes = ["second",
                                   "minute",
