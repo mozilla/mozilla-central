@@ -10,6 +10,7 @@ from os.path import isdir
 from shutil import rmtree
 from tempfile import mkdtemp
 from datetime import datetime
+import sys
 
 try:
     from subprocess import check_call
@@ -261,7 +262,7 @@ def InitRepo(directory, hg=None):
     check_call([hg, 'init', directory])
 
     ignoref = open("%s/.hgignore" % directory, "wb")
-    print >>ignoref, "CVS\n\\.cvsignore"
+    print >>ignoref, "CVS\/.*\n^\\.cvsignore$"
     ignoref.close()
 
     check_call([hg, 'add', '.hgignore'], cwd=directory)
@@ -271,7 +272,7 @@ def InitRepo(directory, hg=None):
 if __name__ == '__main__':
     from optparse import OptionParser
 
-    usage = "usage: %prog [options] directory"
+    usage = "usage: %prog [options] mercural_repository"
     p = OptionParser()
     p.add_option("--cvsroot", dest="cvsroot",
                  help="Specify the CVSROOT for checkout.")
