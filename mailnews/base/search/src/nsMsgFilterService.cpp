@@ -79,6 +79,13 @@ nsMsgFilterService::~nsMsgFilterService()
 NS_IMETHODIMP nsMsgFilterService::OpenFilterList(nsILocalFile *aFilterFile, nsIMsgFolder *rootFolder, nsIMsgWindow *aMsgWindow, nsIMsgFilterList **resultFilterList)
 {
 	nsresult rv = NS_OK;
+        PRBool exists;
+        aFilterFile->Exists(&exists);
+        if (!exists)
+        {
+          rv = aFilterFile->Create(nsIFile::NORMAL_FILE_TYPE, 0644);
+          NS_ENSURE_SUCCESS(rv, rv);
+        }
 
 	nsCOMPtr <nsIInputStream> fileStream;
         rv = NS_NewLocalFileInputStream(getter_AddRefs(fileStream), aFilterFile);
