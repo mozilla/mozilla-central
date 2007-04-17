@@ -81,8 +81,21 @@ function disableElement(elementId)
 }
 
 /* use with textfields oninput to only allow integers */
-function validateIntegers(event)
-{
+function validateIntegerRange(event, lowerBound, upperBound) {
+    validateIntegers(event);
+
+    var num = Number(event.target.value);
+
+    // Only modify the number if a value is entered, otherwise deleting the
+    // value (to maybe enter a new number) will cause the field to be set to the
+    // lower bound.
+    if (event.target.value != "" && (num < lowerBound || num > upperBound)) {
+        event.target.value = Math.min(Math.max(num, lowerBound), upperBound);
+        event.preventDefault();
+    }
+}
+
+function validateIntegers(event) {
     if (isNaN(Number(event.target.value))) {
         var newValue = parseInt(event.target.value);
         event.target.value = isNaN(newValue) ? "" : newValue;

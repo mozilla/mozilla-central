@@ -96,7 +96,7 @@
                     <xul:radiogroup id="daily-group" oncommand="updateRecurrenceControls();">
                       <xul:box orient="horizontal" align="center">
                         <xul:radio label="&event.recurrence.pattern.every.label;" disable-on-readonly="true" disable-on-occurrence="true" selected="true"/>
-                        <xul:textbox id="daily-days" value="1" size="3" oninput="validateIntegers(event); updateRecurrenceControls();" disable-on-readonly="true" disable-on-occurrence="true"/>
+                        <xul:textbox id="daily-days" value="1" size="3" oninput="validateIntegerRange(event, 1, 0x7FFF); updateRecurrenceControls();" disable-on-readonly="true" disable-on-occurrence="true"/>
                         <xul:label value="&repeat.units.days;" disable-on-readonly="true" disable-on-occurrence="true"/>
                         <xul:spacer flex="1"/>
                       </xul:box>
@@ -108,7 +108,7 @@
                   <xul:vbox>
                     <xul:hbox align="center">
                       <xul:label value="&event.recurrence.pattern.every.label;" disable-on-readonly="true" disable-on-occurrence="true"/>
-                      <xul:textbox id="weekly-weeks" value="1" size="3" oninput="validateIntegers(event); updateRecurrenceControls();" disable-on-readonly="true" disable-on-occurrence="true"/>
+                      <xul:textbox id="weekly-weeks" value="1" size="3" oninput="validateIntegerRange(event, 1, 0x7FFF); updateRecurrenceControls();" disable-on-readonly="true" disable-on-occurrence="true"/>
                       <xul:label value="&repeat.units.weeks.both;" disable-on-readonly="true" disable-on-occurrence="true"/>
                     </xul:hbox>
                     <xul:hbox>
@@ -121,7 +121,7 @@
                   <xul:vbox>
                     <xul:hbox align="center">
                       <xul:label value="&event.recurrence.pattern.every.label;" disable-on-readonly="true" disable-on-occurrence="true"/>
-                      <xul:textbox id="monthly-interval" value="1" size="3" oninput="validateIntegers(event); updateRecurrenceControls();" disable-on-readonly="true" disable-on-occurrence="true"/>
+                      <xul:textbox id="monthly-interval" value="1" size="3" oninput="validateIntegerRange(event, 1, 0x7FFF); updateRecurrenceControls();" disable-on-readonly="true" disable-on-occurrence="true"/>
                       <xul:label value="&repeat.units.months.both;" disable-on-readonly="true" disable-on-occurrence="true"/>
                     </xul:hbox>
                     <xul:radiogroup id="monthly-group" oncommand="updateRecurrenceControls();">
@@ -159,7 +159,7 @@
                   <xul:box orient="vertical" align="top">
                     <xul:hbox align="center">
                       <xul:label value="&event.recurrence.every.label;"/>
-                      <xul:textbox id="yearly-interval" value="1" size="3" oninput="validateIntegers(event); updateRecurrenceControls();" disable-on-readonly="true" disable-on-occurrence="true"/>
+                      <xul:textbox id="yearly-interval" value="1" size="3" oninput="validateIntegerRange(event, 1, 0x7FFF); updateRecurrenceControls();" disable-on-readonly="true" disable-on-occurrence="true"/>
                       <xul:label value="&repeat.units.years.both;"/>
                     </xul:hbox>
 
@@ -256,7 +256,7 @@
               <xul:radio id="recurrence-range-forever" label="&event.recurrence.forever.label;" value="forever" selected="true" disable-on-readonly="true" disable-on-occurrence="true"/>
               <xul:box orient="horizontal" align="center">
                 <xul:radio id="recurrence-range-for" label="&event.recurrence.repeat.for.label;" value="ntimes" disable-on-readonly="true" disable-on-occurrence="true"/>
-                <xul:textbox id="repeat-ntimes-count" size="3" value="5" oninput="validateIntegers(event); updateRecurrenceControls();" disable-on-readonly="true" disable-on-occurrence="true"/>
+                <xul:textbox id="repeat-ntimes-count" size="3" value="5" oninput="validateIntegerRange(event, 1, 0x7FFF); updateRecurrenceControls();" disable-on-readonly="true" disable-on-occurrence="true"/>
                 <xul:label id="repeat-appointments-label" value="&event.recurrence.appointments.label;" disable-on-readonly="true" disable-on-occurrence="true"/>
               </xul:box>
               <xul:box orient="horizontal" align="center">

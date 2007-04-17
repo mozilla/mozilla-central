@@ -100,7 +100,7 @@
             <vbox>
               <hbox align="center">
                 <label value="&newevent.recurrence.every.label;"/>
-                <textbox id="daily-days" value="1" size="3" oninput="validateIntegers(event); updateAccept();"/>
+                <textbox id="daily-days" value="1" size="3" oninput="validateIntegerRange(event, 1, 0x7FFF); updateAccept();"/>
                 <label value="&repeat.units.days;"/>
                 <spacer flex="1"/>
               </hbox>
@@ -112,7 +112,7 @@
               <hbox align="center">
                 <label value="&newevent.recurrence.every.label;"/>
                 <textbox id="weekly-weeks" value="1" size="3" 
-                         oninput="validateIntegers(event); updateAccept();"/>
+                         oninput="validateIntegerRange(event, 1, 0x7FFF); updateAccept();"/>
                 <label value="&newevent.recurrence.weeks.label;"/>
               </hbox>
               <hbox>
@@ -135,7 +135,7 @@
               <hbox align="center">
                 <label value="&newevent.recurrence.every.label;"/>
                 <textbox id="monthly-months" value="1" size="3"
-                         oninput="validateIntegers(event); updateAccept();"/>
+                         oninput="validateIntegerRange(event, 1, 0x7FFF); updateAccept();"/>
                 <label value="&newevent.recurrence.months.label;"/>
               </hbox>
               <radiogroup id="monthly-type">
@@ -151,7 +151,7 @@
               <hbox align="center">
                 <label value="&newevent.recurrence.every.label;"/>
                 <textbox id="yearly-years" value="1" size="3" 
-                         oninput="validateIntegers(event); updateAccept();"/>
+                         oninput="validateIntegerRange(event, 1, 0x7FFF); updateAccept();"/>
                 <label value="&repeat.units.years;"/>
                 <spacer flex="1"/>
               </hbox>
@@ -182,7 +182,7 @@
           <row>
             <radio label="&newevent.repeat.for.label;" value="ntimes"/>
             <hbox align="center">
-              <textbox id="repeat-ntimes-count" size="3" value="5" oninput="validateIntegers(event); updateAccept();"/>
+              <textbox id="repeat-ntimes-count" size="3" value="5" oninput="validateIntegerRange(event, 1, 0x7FFF); updateAccept();"/>
               <spacer flex="0.5"/>
               <label value="&repeat.units.occurence.both;"/>
               <spacer flex="1"/>
