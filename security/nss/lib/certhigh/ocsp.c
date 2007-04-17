@@ -39,7 +39,7 @@
  * Implementation of OCSP services, for both client and server.
  * (XXX, really, mostly just for client right now, but intended to do both.)
  *
- * $Id: ocsp.c,v 1.39 2007-03-23 06:57:57 kaie%kuix.de Exp $
+ * $Id: ocsp.c,v 1.40 2007-04-17 17:17:16 kaie%kuix.de Exp $
  */
 
 #include "prerror.h"
@@ -79,15 +79,15 @@ typedef struct OCSPCacheDataStr OCSPCacheData;
 
 struct OCSPCacheItemStr {
     /* LRU linking */
-    OCSPCacheItem *more_recent;
-    OCSPCacheItem *less_recent;
+    OCSPCacheItem *moreRecent;
+    OCSPCacheItem *lessRecent;
 
     /* key */
     CERTOCSPCertID *certID;
     /* CertID's arena also used to allocate "this" cache item */
 
     /* cache control information */
-    PRTime next_fetch_attempt_time;
+    PRTime nextFetchAttemptTime;
 
     /* Cached contents. Use a separate arena, because lifetime is different */
     PRArenaPool *certStatusArena; /* NULL means: no cert status cached */
@@ -101,9 +101,9 @@ struct OCSPCacheItemStr {
 
 struct OCSPCacheDataStr {
     PLHashTable *entries;
-    PRUint32 number_of_entries;
-    OCSPCacheItem *most_recently_used_cache_item;
-    OCSPCacheItem *least_recently_used_cache_item;
+    PRUint32 numberOfEntries;
+    OCSPCacheItem *MRUitem; /* most recently used cache item */
+    OCSPCacheItem *LRUitem; /* least recently used cache item */
 };
 
 static struct OCSPGlobalStruct {
@@ -147,80 +147,109 @@ ocsp_GetVerifiedSingleResponseForCertID(CERTCertDBHandle *handle,
                                         int64             time,
                                         CERTOCSPSingleResponse **pSingleResponse);
 
-#ifdef DEBUG_kaie
+#ifndef DEBUG
+#define OCSP_TRACE(msg)
+#define OCSP_TRACE_TIME(msg, time)
+#define OCSP_TRACE_CERT(cert)
+#else
 #define OCSP_TRACE(msg) ocsp_Trace msg
 #define OCSP_TRACE_TIME(msg, time) ocsp_dumpStringWithTime(msg, time)
 #define OCSP_TRACE_CERT(cert) dumpCertificate(cert)
+
+#if (defined(XP_UNIX) || defined(XP_WIN32) || defined(XP_BEOS) \
+     || defined(XP_MACOSX)) && !defined(_WIN32_WCE)
+#define NSS_HAVE_GETENV 1
+#endif
+
+static PRBool wantOcspTrace()
+{
+    static PRBool firstTime = PR_TRUE;
+    static PRBool wantTrace = PR_FALSE;
+
+#ifdef NSS_HAVE_GETENV
+    if (firstTime) {
+        char *ev = getenv("NSS_TRACE_OCSP");
+        if (ev && ev[0]) {
+            wantTrace = PR_TRUE;
+        }
+        firstTime = PR_FALSE;
+    }
+#endif
+    return wantTrace;
+}
 
 static void
 ocsp_Trace(const char *format, ...)
 {
     char buf[2000];
-  
     va_list args;
+  
+    if (!wantOcspTrace())
+        return;
     va_start(args, format);
     PR_vsnprintf(buf, sizeof(buf), format, args);
     va_end(args);
-    fprintf(stderr, buf);
+    PR_LogPrint("%s", buf);
 }
 
 static void
 ocsp_dumpStringWithTime(const char *str, int64 time)
 {
     PRExplodedTime timePrintable;
-    char *timestr;
+    char timestr[100];
+
+    if (!wantOcspTrace())
+        return;
     PR_ExplodeTime(time, PR_GMTParameters, &timePrintable);
-    timestr = PORT_Alloc(100);
     PR_FormatTime(timestr, 100, "%a %b %d %H:%M:%S %Y", 
                   &timePrintable);
-    OCSP_TRACE(("OCSP %s %s\n", str, timestr));
-    PORT_Free(timestr);
+    ocsp_Trace("OCSP %s %s\n", str, timestr);
 }
 
 static void
-printHexString(SECItem *hexval)
+printHexString(const char *prefix, SECItem *hexval)
 {
-    OCSP_TRACE(("OCSP "));
     unsigned int i;
+    char *hexbuf = NULL;
+
     for (i = 0; i < hexval->len; i++) {
         if (i != hexval->len - 1) {
-            OCSP_TRACE(("%02x:", hexval->data[i]));
+            PR_sprintf_append(hexbuf, "%02x:", hexval->data[i]);
         } else {
-            OCSP_TRACE(("%02x", hexval->data[i]));
+            PR_sprintf_append(hexbuf, "%02x", hexval->data[i]);
         }
     }
-    OCSP_TRACE(("\n"));
+    if (hexbuf) {
+        ocsp_Trace("%s %s\n", prefix, hexbuf);
+        PR_smprintf_free(hexbuf);
+    }
 }
 
 static void
 dumpCertificate(CERTCertificate *cert)
 {
-    OCSP_TRACE(("OCSP ----------------\n"));
-    OCSP_TRACE(("OCSP ## SUBJECT:  %s\n", cert->subjectName));
+    if (!wantOcspTrace())
+        return;
+
+    ocsp_Trace("OCSP ----------------\n");
+    ocsp_Trace("OCSP ## SUBJECT:  %s\n", cert->subjectName);
     {
         int64 timeBefore, timeAfter;
         PRExplodedTime beforePrintable, afterPrintable;
-        char *beforestr, *afterstr;
+        char beforestr[100], afterstr[100];
         DER_DecodeTimeChoice(&timeBefore, &cert->validity.notBefore);
         DER_DecodeTimeChoice(&timeAfter, &cert->validity.notAfter);
         PR_ExplodeTime(timeBefore, PR_GMTParameters, &beforePrintable);
         PR_ExplodeTime(timeAfter, PR_GMTParameters, &afterPrintable);
-        beforestr = PORT_Alloc(100);
-        afterstr = PORT_Alloc(100);
         PR_FormatTime(beforestr, 100, "%a %b %d %H:%M:%S %Y", 
                       &beforePrintable);
         PR_FormatTime(afterstr, 100, "%a %b %d %H:%M:%S %Y", 
                       &afterPrintable);
-        OCSP_TRACE(("OCSP ## VALIDITY:  %s to %s\n", beforestr, afterstr));
+        ocsp_Trace("OCSP ## VALIDITY:  %s to %s\n", beforestr, afterstr);
     }
-    OCSP_TRACE(("OCSP ## ISSUER:  %s\n", cert->issuerName));
-    OCSP_TRACE(("OCSP ## SERIAL NUMBER:  "));
-    printHexString(&cert->serialNumber);
+    ocsp_Trace("OCSP ## ISSUER:  %s\n", cert->issuerName);
+    printHexString("OCSP ## SERIAL NUMBER:", &cert->serialNumber);
 }
-#else /* DEBUG */
-#define OCSP_TRACE(msg)
-#define OCSP_TRACE_TIME(msg, time)
-#define OCSP_TRACE_CERT(cert)
 #endif
 
 SECStatus
@@ -360,16 +389,16 @@ ocsp_AddCacheItemToLinkedList(OCSPCacheData *cache, OCSPCacheItem *new_most_rece
 {
     PR_EnterMonitor(OCSP_Global.monitor);
 
-    if (!cache->least_recently_used_cache_item) {
-        cache->least_recently_used_cache_item = new_most_recent;
+    if (!cache->LRUitem) {
+        cache->LRUitem = new_most_recent;
     }
-    new_most_recent->less_recent = cache->most_recently_used_cache_item;
-    new_most_recent->more_recent = NULL;
+    new_most_recent->lessRecent = cache->MRUitem;
+    new_most_recent->moreRecent = NULL;
 
-    if (cache->most_recently_used_cache_item) {
-        cache->most_recently_used_cache_item->more_recent = new_most_recent;
+    if (cache->MRUitem) {
+        cache->MRUitem->moreRecent = new_most_recent;
     }
-    cache->most_recently_used_cache_item = new_most_recent;
+    cache->MRUitem = new_most_recent;
 
     PR_ExitMonitor(OCSP_Global.monitor);
 }
@@ -379,52 +408,52 @@ ocsp_RemoveCacheItemFromLinkedList(OCSPCacheData *cache, OCSPCacheItem *item)
 {
     PR_EnterMonitor(OCSP_Global.monitor);
 
-    if (!item->less_recent && !item->more_recent) {
+    if (!item->lessRecent && !item->moreRecent) {
         /*
          * Fail gracefully on attempts to remove an item from the list,
          * which is currently not part of the list.
          * But check for the edge case it is the single entry in the list.
          */
-        if (item == cache->least_recently_used_cache_item &&
-            item == cache->most_recently_used_cache_item) {
+        if (item == cache->LRUitem &&
+            item == cache->MRUitem) {
             /* remove the single entry */
-            PORT_Assert(cache->number_of_entries == 1);
-            PORT_Assert(item->more_recent == NULL);
-            cache->most_recently_used_cache_item = NULL;
-            cache->least_recently_used_cache_item = NULL;
+            PORT_Assert(cache->numberOfEntries == 1);
+            PORT_Assert(item->moreRecent == NULL);
+            cache->MRUitem = NULL;
+            cache->LRUitem = NULL;
         }
         PR_ExitMonitor(OCSP_Global.monitor);
         return;
     }
 
-    PORT_Assert(cache->number_of_entries > 1);
+    PORT_Assert(cache->numberOfEntries > 1);
   
-    if (item == cache->least_recently_used_cache_item) {
-        PORT_Assert(item != cache->most_recently_used_cache_item);
-        PORT_Assert(item->less_recent == NULL);
-        PORT_Assert(item->more_recent != NULL);
-        PORT_Assert(item->more_recent->less_recent == item);
-        cache->least_recently_used_cache_item = item->more_recent;
-        cache->least_recently_used_cache_item->less_recent = NULL;
+    if (item == cache->LRUitem) {
+        PORT_Assert(item != cache->MRUitem);
+        PORT_Assert(item->lessRecent == NULL);
+        PORT_Assert(item->moreRecent != NULL);
+        PORT_Assert(item->moreRecent->lessRecent == item);
+        cache->LRUitem = item->moreRecent;
+        cache->LRUitem->lessRecent = NULL;
     }
-    else if (item == cache->most_recently_used_cache_item) {
-        PORT_Assert(item->more_recent == NULL);
-        PORT_Assert(item->less_recent != NULL);
-        PORT_Assert(item->less_recent->more_recent == item);
-        cache->most_recently_used_cache_item = item->less_recent;
-        cache->most_recently_used_cache_item->more_recent = NULL;
+    else if (item == cache->MRUitem) {
+        PORT_Assert(item->moreRecent == NULL);
+        PORT_Assert(item->lessRecent != NULL);
+        PORT_Assert(item->lessRecent->moreRecent == item);
+        cache->MRUitem = item->lessRecent;
+        cache->MRUitem->moreRecent = NULL;
     } else {
         /* remove an entry in the middle of the list */
-        PORT_Assert(item->more_recent != NULL);
-        PORT_Assert(item->less_recent != NULL);
-        PORT_Assert(item->less_recent->more_recent == item);
-        PORT_Assert(item->more_recent->less_recent == item);
-        item->more_recent->less_recent = item->less_recent;
-        item->less_recent->more_recent = item->more_recent;
+        PORT_Assert(item->moreRecent != NULL);
+        PORT_Assert(item->lessRecent != NULL);
+        PORT_Assert(item->lessRecent->moreRecent == item);
+        PORT_Assert(item->moreRecent->lessRecent == item);
+        item->moreRecent->lessRecent = item->lessRecent;
+        item->lessRecent->moreRecent = item->moreRecent;
     }
 
-    item->less_recent = NULL;
-    item->more_recent = NULL;
+    item->lessRecent = NULL;
+    item->moreRecent = NULL;
 
     PR_ExitMonitor(OCSP_Global.monitor);
 }
@@ -435,7 +464,7 @@ ocsp_MakeCacheEntryMostRecent(OCSPCacheData *cache, OCSPCacheItem *new_most_rece
     OCSP_TRACE(("OCSP ocsp_MakeCacheEntryMostRecent THREADID %p\n", 
                 PR_GetCurrentThread()));
     PR_EnterMonitor(OCSP_Global.monitor);
-    if (cache->most_recently_used_cache_item == new_most_recent) {
+    if (cache->MRUitem == new_most_recent) {
         OCSP_TRACE(("OCSP ocsp_MakeCacheEntryMostRecent ALREADY MOST\n"));
         PR_ExitMonitor(OCSP_Global.monitor);
         return;
@@ -449,6 +478,10 @@ ocsp_MakeCacheEntryMostRecent(OCSPCacheData *cache, OCSPCacheItem *new_most_rece
 static PRBool
 ocsp_IsCacheDisabled()
 {
+    /* 
+     * maxCacheEntries == 0 means unlimited cache entries
+     * maxCacheEntries  < 0 means cache is disabled
+     */
     PRBool retval;
     PR_EnterMonitor(OCSP_Global.monitor);
     retval = (OCSP_Global.maxCacheEntries < 0);
@@ -507,7 +540,7 @@ ocsp_RemoveCacheItem(OCSPCacheData *cache, OCSPCacheItem *item)
     couldRemoveFromHashTable = PL_HashTableRemove(cache->entries, 
                                                   item->certID);
     PORT_Assert(couldRemoveFromHashTable);
-    --cache->number_of_entries;
+    --cache->numberOfEntries;
     ocsp_FreeCacheItem(item);
     PR_ExitMonitor(OCSP_Global.monitor);
 }
@@ -519,8 +552,8 @@ ocsp_CheckCacheSize(OCSPCacheData *cache)
     PR_EnterMonitor(OCSP_Global.monitor);
     if (OCSP_Global.maxCacheEntries <= 0) /* disabled or unlimited */
         return;
-    while (cache->number_of_entries > OCSP_Global.maxCacheEntries) {
-        ocsp_RemoveCacheItem(cache, cache->least_recently_used_cache_item);
+    while (cache->numberOfEntries > OCSP_Global.maxCacheEntries) {
+        ocsp_RemoveCacheItem(cache, cache->LRUitem);
     }
     PR_ExitMonitor(OCSP_Global.monitor);
 }
@@ -530,18 +563,18 @@ CERT_ClearOCSPCache()
 {
     OCSP_TRACE(("OCSP CERT_ClearOCSPCache\n"));
     PR_EnterMonitor(OCSP_Global.monitor);
-    while (OCSP_Global.cache.number_of_entries > 0) {
+    while (OCSP_Global.cache.numberOfEntries > 0) {
         ocsp_RemoveCacheItem(&OCSP_Global.cache, 
-                             OCSP_Global.cache.least_recently_used_cache_item);
+                             OCSP_Global.cache.LRUitem);
     }
     PR_ExitMonitor(OCSP_Global.monitor);
     return SECSuccess;
 }
 
 static SECStatus
-ocsp_CreateCacheItem_and_ConsumeCertID(OCSPCacheData *cache,
-                                       CERTOCSPCertID *certID, 
-                                       OCSPCacheItem **pCacheItem)
+ocsp_CreateCacheItemAndConsumeCertID(OCSPCacheData *cache,
+                                     CERTOCSPCertID *certID, 
+                                     OCSPCacheItem **pCacheItem)
 {
     PRArenaPool *arena;
     void *mark;
@@ -567,7 +600,7 @@ ocsp_CreateCacheItem_and_ConsumeCertID(OCSPCacheData *cache,
     if (!new_hash_entry) {
         goto loser;
     }
-    ++cache->number_of_entries;
+    ++cache->numberOfEntries;
     PORT_ArenaUnmark(arena, mark);
     ocsp_AddCacheItemToLinkedList(cache, item);
     *pCacheItem = item;
@@ -633,16 +666,15 @@ ocsp_FreshenCacheItemNextFetchAttemptTime(OCSPCacheItem *cacheItem)
   
     if (cacheItem->haveThisUpdate) {
         OCSP_TRACE_TIME("thisUpdate:", cacheItem->thisUpdate);
-        LL_ADD(latestTimeWhenResponseIsConsideredFresh,
-               cacheItem->thisUpdate, 
-               OCSP_Global.maximumSecondsToNextFetchAttempt * 
-                   MICROSECONDS_PER_SECOND);
+        latestTimeWhenResponseIsConsideredFresh = cacheItem->thisUpdate +
+            OCSP_Global.maximumSecondsToNextFetchAttempt * 
+                MICROSECONDS_PER_SECOND;
         OCSP_TRACE_TIME("latestTimeWhenResponseIsConsideredFresh:", 
                         latestTimeWhenResponseIsConsideredFresh);
     } else {
-        LL_ADD(latestTimeWhenResponseIsConsideredFresh,
-               now, OCSP_Global.minimumSecondsToNextFetchAttempt *
-                        MICROSECONDS_PER_SECOND);
+        latestTimeWhenResponseIsConsideredFresh = now +
+            OCSP_Global.minimumSecondsToNextFetchAttempt *
+                MICROSECONDS_PER_SECOND;
         OCSP_TRACE_TIME("no thisUpdate, "
                         "latestTimeWhenResponseIsConsideredFresh:", 
                         latestTimeWhenResponseIsConsideredFresh);
@@ -660,9 +692,9 @@ ocsp_FreshenCacheItemNextFetchAttemptTime(OCSPCacheItem *cacheItem)
                         latestTimeWhenResponseIsConsideredFresh);
     }
   
-    LL_ADD(earliestAllowedNextFetchAttemptTime,
-           now, OCSP_Global.minimumSecondsToNextFetchAttempt * 
-                    MICROSECONDS_PER_SECOND);
+    earliestAllowedNextFetchAttemptTime = now +
+        OCSP_Global.minimumSecondsToNextFetchAttempt * 
+            MICROSECONDS_PER_SECOND;
     OCSP_TRACE_TIME("earliestAllowedNextFetchAttemptTime:", 
                     earliestAllowedNextFetchAttemptTime);
   
@@ -674,9 +706,9 @@ ocsp_FreshenCacheItemNextFetchAttemptTime(OCSPCacheItem *cacheItem)
                         latestTimeWhenResponseIsConsideredFresh);
     }
   
-    cacheItem->next_fetch_attempt_time = 
+    cacheItem->nextFetchAttemptTime = 
         latestTimeWhenResponseIsConsideredFresh;
-    OCSP_TRACE_TIME("next_fetch_attempt_time", 
+    OCSP_TRACE_TIME("nextFetchAttemptTime", 
         latestTimeWhenResponseIsConsideredFresh);
 
     PR_ExitMonitor(OCSP_Global.monitor);
@@ -690,7 +722,7 @@ ocsp_IsCacheItemFresh(OCSPCacheItem *cacheItem)
 
     PR_EnterMonitor(OCSP_Global.monitor);
     now = PR_Now();
-    retval = LL_CMP(cacheItem->next_fetch_attempt_time, >, now);
+    retval = (cacheItem->nextFetchAttemptTime > now);
     OCSP_TRACE(("OCSP ocsp_IsCacheItemFresh: %d\n", retval));
     PR_ExitMonitor(OCSP_Global.monitor);
     return retval;
@@ -721,8 +753,8 @@ ocsp_CreateOrUpdateCacheEntry(OCSPCacheData *cache,
   
     cacheItem = ocsp_FindCacheEntry(cache, certID);
     if (!cacheItem) {
-        rv = ocsp_CreateCacheItem_and_ConsumeCertID(cache, certID, 
-                                                    &cacheItem);
+        rv = ocsp_CreateCacheItemAndConsumeCertID(cache, certID, 
+                                                  &cacheItem);
         if (rv != SECSuccess) {
             PR_ExitMonitor(OCSP_Global.monitor);
             return rv;
@@ -805,7 +837,7 @@ CERT_OCSPCacheSettings(PRInt32 maxCacheEntries,
 }
 
 /* this function is called at NSS initialization time */
-SECStatus InitOCSPGlobal(void)
+SECStatus OCSP_InitGlobal(void)
 {
     SECStatus rv = SECFailure;
 
@@ -825,15 +857,16 @@ SECStatus InitOCSPGlobal(void)
                             NULL, 
                             NULL);
         OCSP_Global.ocspFailureMode = ocspMode_FailureIsVerificationFailure;
-        OCSP_Global.cache.number_of_entries = 0;
-        OCSP_Global.cache.most_recently_used_cache_item = NULL;
-        OCSP_Global.cache.least_recently_used_cache_item = NULL;
+        OCSP_Global.cache.numberOfEntries = 0;
+        OCSP_Global.cache.MRUitem = NULL;
+        OCSP_Global.cache.LRUitem = NULL;
     } else {
         /*
          * NSS might call this function twice while attempting to init.
          * But it's not allowed to call this again after any activity.
          */
-        PORT_Assert(OCSP_Global.cache.number_of_entries == 0);
+        PORT_Assert(OCSP_Global.cache.numberOfEntries == 0);
+        PORT_SetError(SEC_ERROR_LIBRARY_FAILURE);
     }
     if (OCSP_Global.cache.entries)
         rv = SECSuccess;
@@ -841,10 +874,10 @@ SECStatus InitOCSPGlobal(void)
     return rv;
 }
 
-SECStatus ShutdownOCSPCache(void)
+SECStatus OCSP_ShutdownCache(void)
 {
     if (!OCSP_Global.monitor)
-        return SECFailure;
+        return SECSuccess;
 
     PR_EnterMonitor(OCSP_Global.monitor);
     if (OCSP_Global.cache.entries) {
@@ -852,9 +885,9 @@ SECStatus ShutdownOCSPCache(void)
         PL_HashTableDestroy(OCSP_Global.cache.entries);
         OCSP_Global.cache.entries = NULL;
     }
-    PORT_Assert(OCSP_Global.cache.number_of_entries == 0);
-    OCSP_Global.cache.most_recently_used_cache_item = NULL;
-    OCSP_Global.cache.least_recently_used_cache_item = NULL;
+    PORT_Assert(OCSP_Global.cache.numberOfEntries == 0);
+    OCSP_Global.cache.MRUitem = NULL;
+    OCSP_Global.cache.LRUitem = NULL;
     PR_ExitMonitor(OCSP_Global.monitor);
     return SECSuccess;
 }
@@ -1812,12 +1845,11 @@ ocsp_CreateRequestFromCert(PRArenaPool *arena,
                            PRBool includeLocator)
 {
     ocspSingleRequest **requestList = NULL;
-    int i, count;
     void *mark = PORT_ArenaMark(arena);
     PORT_Assert(certID != NULL && singleCert != NULL);
-    count = 1;
 
-    requestList = PORT_ArenaNewArray(arena, ocspSingleRequest *, count + 1);
+    /* meaning of value 2: one entry + one end marker */
+    requestList = PORT_ArenaNewArray(arena, ocspSingleRequest *, 2);
     if (requestList == NULL)
         goto loser;
     requestList[0] = PORT_ArenaZNew(arena, ocspSingleRequest);
@@ -1833,10 +1865,9 @@ ocsp_CreateRequestFromCert(PRArenaPool *arena,
         if (rv != SECSuccess)
             goto loser;
     }
-    i = 1;
 
     PORT_ArenaUnmark(arena, mark);
-    requestList[i] = NULL;
+    requestList[1] = NULL;
     return requestList;
 
 loser:

@@ -36,7 +36,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: nssinit.c,v 1.78 2007-03-23 06:57:57 kaie%kuix.de Exp $ */
+/* $Id: nssinit.c,v 1.79 2007-04-17 17:17:17 kaie%kuix.de Exp $ */
 
 #include <ctype.h>
 #include "seccomon.h"
@@ -430,7 +430,7 @@ nss_Init(const char *configdir, const char *certPrefix, const char *keyPrefix,
         return SECFailure;
     }
     
-    if (SECSuccess != InitOCSPGlobal()) {
+    if (SECSuccess != OCSP_InitGlobal()) {
         return SECFailure;
     }
 
@@ -788,7 +788,7 @@ NSS_Shutdown(void)
 	shutdownRV = SECFailure;
     }
     ShutdownCRLCache();
-    ShutdownOCSPCache();
+    OCSP_ShutdownCache();
     SECOID_Shutdown();
     status = STAN_Shutdown();
     cert_DestroySubjectKeyIDHashTable();
