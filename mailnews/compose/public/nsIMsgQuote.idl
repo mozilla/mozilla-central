@@ -35,11 +35,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 #include "nsISupports.idl"
-#include "nsIStreamListener.idl"
+#include "nsIMsgQuotingOutputStreamListener.idl"
 #include "nsIChannel.idl"
 #include "nsIMimeStreamConverter.idl"
 
-[scriptable, uuid(1C7ABF0C-21E5-11d3-8EF1-00A024A7D144)]
+[scriptable, uuid(fcc907ce-abff-47b7-8c0f-c09063b13494)]
 interface nsIMsgQuote : nsISupports {
 	/*
 	 * This is the primary interface for quoting a particular message specified
@@ -49,12 +49,13 @@ interface nsIMsgQuote : nsISupports {
     /* aCharset is an option parameter which can be used to force the message to be 
 	   quoted using a particular charset. 
 	*/
-  void QuoteMessage(in string msgURI, in boolean quoteHeaders, in nsIStreamListener aStreamListener, 
+  void QuoteMessage(in string msgURI, in boolean quoteHeaders,
+                    in nsIMsgQuotingOutputStreamListener streamListener, 
                     in string aCharset, in boolean headersOnly);
 	                  
     readonly attribute nsIMimeStreamConverterListener quoteListener;
     readonly attribute nsIChannel quoteChannel;
-	readonly attribute nsIStreamListener streamListener;
+    readonly attribute nsIMsgQuotingOutputStreamListener streamListener;
 };
 
 [scriptable, uuid(1EC75AD9-88DE-11d3-989D-001083010E9B)]

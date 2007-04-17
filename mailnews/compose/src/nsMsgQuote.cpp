@@ -100,14 +100,14 @@ NS_IMETHODIMP nsMsgQuoteListener::GetMsgQuote(nsIMsgQuote ** aMsgQuote)
 
 nsresult nsMsgQuoteListener::OnHeadersReady(nsIMimeHeaders * headers)
 {
-  nsCOMPtr<nsIStreamListener> aStreamListener;
+  nsCOMPtr<nsIMsgQuotingOutputStreamListener> quotingOutputStreamListener;
   nsCOMPtr<nsIMsgQuote> msgQuote = do_QueryReferent(mMsgQuote);
 
   if (msgQuote)
-    msgQuote->GetStreamListener(getter_AddRefs(aStreamListener));
+    msgQuote->GetStreamListener(getter_AddRefs(quotingOutputStreamListener));
 
-  if (aStreamListener)
-    NS_STATIC_CAST(QuotingOutputStreamListener*, NS_STATIC_CAST(nsIStreamListener*, aStreamListener))->SetMimeHeaders(headers);
+  if (quotingOutputStreamListener)
+    quotingOutputStreamListener->SetMimeHeaders(headers);
   return NS_OK;
 }
 
@@ -133,7 +133,7 @@ NS_INTERFACE_MAP_BEGIN(nsMsgQuote)
    NS_INTERFACE_MAP_ENTRY(nsISupportsWeakReference)
 NS_INTERFACE_MAP_END
 
-NS_IMETHODIMP nsMsgQuote::GetStreamListener(nsIStreamListener ** aStreamListener)
+NS_IMETHODIMP nsMsgQuote::GetStreamListener(nsIMsgQuotingOutputStreamListener ** aStreamListener)
 {
   nsresult rv = NS_OK;
   if (aStreamListener)
@@ -148,7 +148,8 @@ NS_IMETHODIMP nsMsgQuote::GetStreamListener(nsIStreamListener ** aStreamListener
 }
 
 nsresult
-nsMsgQuote::QuoteMessage(const char *msgURI, PRBool quoteHeaders, nsIStreamListener * aQuoteMsgStreamListener,
+nsMsgQuote::QuoteMessage(const char *msgURI, PRBool quoteHeaders,
+                         nsIMsgQuotingOutputStreamListener * aQuoteMsgStreamListener,
                          const char * aMsgCharSet, PRBool headersOnly)
 {
   nsresult  rv;

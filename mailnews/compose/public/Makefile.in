@@ -59,6 +59,7 @@ XPIDLSRCS	= \
 		nsIMsgCompose.idl \
 		nsIMsgCompFields.idl \
 		nsIMsgQuote.idl \
+		nsIMsgQuotingOutputStreamListener.idl \
 		nsIMsgSendListener.idl \
 		nsIMsgSendLaterListener.idl \
 		nsIMsgSend.idl \

@@ -12,11 +12,10 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is mozilla.org code.
+ * The Original Code is Quoting Output Stream Listener interface.
  *
- * The Initial Developer of the Original Code is
- * Netscape Communications Corporation.
- * Portions created by the Initial Developer are Copyright (C) 1998
+ * The Initial Developer of the Original Code is Neil Rashbrook
+ * Portions created by the Initial Developer are Copyright (C) 2007
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
@@ -34,52 +33,15 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-#ifndef __nsMsgQuote_h__
-#define __nsMsgQuote_h__
 
-#include "nsIMsgQuote.h" 
-#include "nsFileSpec.h"
-#include "nsIFileSpec.h"
-#include "nsIMsgMessageService.h"
-#include "nsIStreamListener.h"
-#include "nsIMimeStreamConverter.h"
-#include "nsIChannel.h"
-#include "nsCOMPtr.h"
-#include "nsWeakReference.h"
+#include "nsIStreamListener.idl"
 
-class nsMsgQuote;
+interface nsIMimeHeaders;
 
-class nsMsgQuoteListener: public nsIMsgQuoteListener
-{
-public:
-	nsMsgQuoteListener();
-	virtual     ~nsMsgQuoteListener();
+[scriptable, uuid(1fe345e6-2428-4a43-a0c6-d2acea0d4da4)]
+interface nsIMsgQuotingOutputStreamListener : nsIStreamListener {
 
-	NS_DECL_ISUPPORTS
+    // The headers are used to fill in the reply's compose fields
+    void setMimeHeaders(in nsIMimeHeaders headers);
 
-	// nsIMimeStreamConverterListener support
-	NS_DECL_NSIMIMESTREAMCONVERTERLISTENER
-  NS_DECL_NSIMSGQUOTELISTENER
-
-private:
-  nsWeakPtr mMsgQuote;
 };
-
-class nsMsgQuote: public nsIMsgQuote, public nsSupportsWeakReference {
-public: 
-  nsMsgQuote();
-  virtual ~nsMsgQuote();
-
-  NS_DECL_ISUPPORTS
-  NS_DECL_NSIMSGQUOTE
-
-  // 
-  // Implementation data...
-  //
-  nsCOMPtr<nsIMsgQuotingOutputStreamListener> mStreamListener;
-  PRBool			mQuoteHeaders;
-  nsCOMPtr<nsIMsgQuoteListener> mQuoteListener;
-  nsCOMPtr<nsIChannel> mQuoteChannel;
-};
-
-#endif /* __nsMsgQuote_h__ */
