@@ -81,7 +81,8 @@ function onLoad()
         }
     }
 
-    if (window.calendarItem.calendar && window.calendarItem.calendar.readOnly) {
+    if (window.calendarItem.calendar && window.calendarItem.calendar.readOnly
+        && window.mode != "new") {
         gReadOnlyMode = true;
     }
 
