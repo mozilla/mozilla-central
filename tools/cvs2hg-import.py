@@ -262,7 +262,7 @@ def InitRepo(directory, hg=None):
     check_call([hg, 'init', directory])
 
     ignoref = open("%s/.hgignore" % directory, "wb")
-    print >>ignoref, "CVS\/.*\n^\\.cvsignore$"
+    print >>ignoref, "CVS\/.*\n\\.cvsignore$"
     ignoref.close()
 
     check_call([hg, 'add', '.hgignore'], cwd=directory)
