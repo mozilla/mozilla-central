@@ -24,6 +24,7 @@
  *   Michael Buettner <michael.buettner@sun.com>
  *   gekacheka@yahoo.com
  *   Matthew Willis <lilmatt@mozilla.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -183,19 +184,71 @@ var calendarViewController = {
         }
     },
 
-    deleteOccurrence: function (aOccurrence) {
-        var itemToDelete = getOccurrenceOrParent(aOccurrence);
-        if (!itemToDelete) {
-            return;
+    deleteOccurrences: function (aCount,
+                                 aOccurrences,
+                                 aUseParentItems,
+                                 aDoNotConfirm) {
+        startBatchTransaction();
+        var recurringItems = {};
+
+        function getSavedItem(aItemToDelete) {
+            // Get the parent item, saving it in our recurringItems object for
+            // later use. Use one string twice to resolve "ab" + "cd" vs. "a" +
+            // "bcd" ambiguity.
+            var hashVal = aItemToDelete.parentItem.calendar.id +
+                          aItemToDelete.parentItem.id +
+                          aItemToDelete.parentItem.calendar.id;
+            if (!recurringItems[hashVal]) {
+                recurringItems[hashVal] = {
+                    oldItem: aItemToDelete.parentItem,
+                    newItem: aItemToDelete.parentItem.clone()
+                };
+            }
+            return recurringItems[hashVal];
         }
-        itemToDelete = this.finalizePendingModification(itemToDelete);
-        if (!itemToDelete.parentItem.hasSameIds(itemToDelete)) {
-            var event = itemToDelete.parentItem.clone();
-            event.recurrenceInfo.removeOccurrenceAt(itemToDelete.recurrenceId);
-            doTransaction('modify', event, event.calendar, itemToDelete.parentItem, null);
-        } else {
-            doTransaction('delete', itemToDelete, itemToDelete.calendar, null, null);
+
+        // Make sure we are modifying a copy of aOccurrences, otherwise we will
+        // run into race conditions when the view's doDeleteItem removes the
+        // array elements while we are iterating through them.
+        var occurrences = aOccurrences.slice(0);
+
+        for each (var itemToDelete in occurrences) {
+            if (aUseParentItems) {
+                // Usually happens when ctrl-click is used. In that case we
+                // don't need to ask the user if he wants to delete an
+                // occurrence or not.
+                itemToDelete = itemToDelete.parentItem;
+            } else if (!aDoNotConfirm && occurrences.length == 1) {
+                // Only give the user the selection if only one occurrence is
+                // selected. Otherwise he will get a dialog for each occurrence
+                // he deletes.
+                itemToDelete = getOccurrenceOrParent(itemToDelete);
+            }
+            if (!itemToDelete) {
+                continue;
+            }
+            itemToDelete = this.finalizePendingModification(itemToDelete);
+            if (!itemToDelete.parentItem.hasSameIds(itemToDelete)) {
+                var savedItem = getSavedItem(itemToDelete);
+                savedItem.newItem.recurrenceInfo
+                         .removeOccurrenceAt(itemToDelete.recurrenceId);
+                // Dont start the transaction yet. Do so later, in case the
+                // parent item gets modified more than once.
+            } else {
+                doTransaction('delete', itemToDelete, itemToDelete.calendar, null, null);
+            }
         }
+
+        // Now handle recurring events. This makes sure that all occurrences
+        // that have been passed are deleted.
+        for each (var ritem in recurringItems) {
+            doTransaction('modify',
+                          ritem.newItem,
+                          ritem.newItem.calendar,
+                          ritem.oldItem,
+                          null);
+        }
+        endBatchTransaction();
     }
 };
 

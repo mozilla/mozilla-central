@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Vladimir Vukicevic <vladimir.vukicevic@oracle.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -44,7 +45,7 @@ interface calIDateTime;
 interface calIEvent;
 interface calIItemBase;
 
-[scriptable, uuid(1f783898-f4c2-4b2d-972e-360e0de38237)]
+[scriptable, uuid(40430501-a666-4c24-b234-eeac5ccb70f6)]
 interface calICalendarViewController : nsISupports
 {
   /**
@@ -84,10 +85,22 @@ interface calICalendarViewController : nsISupports
                          in calIDateTime aNewEndTime,
                          in AString aNewTitle);
   /**
-   * Delete the given event.  This should prompt whether to delete
-   * just this occurrence or all occurrences, and do whatever else
-   * is appropriate.
+   * Delete all events in the given array. If more than one event is passed,
+   * this will prompt whether to delete just this occurrence or all occurrences.
+   * All passed events will be handled in one transaction, i.e undoing this will
+   * make all events reappear.
+   *
+   * @param aCount          The number of events in the array
+   * @param aOccurrences    An array of Items/Occurrences to delete
+   * @param aUseParentItems If set, each occurence will have its parent item
+   *                        deleted.
+   * @param aDoNotConfirm   If set, the events will be deleted without
+   *                        confirmation.
    */
-  void deleteOccurrence (in calIItemBase aOccurrence);
+  void deleteOccurrences (in PRUint32 aCount,
+                          [array, size_is(aCount)]
+                          in calIItemBase aOccurrences,
+                          in boolean aUseParentItems,
+                          in boolean aDoNotConfirm);
 };
 

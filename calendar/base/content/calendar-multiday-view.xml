@@ -2975,10 +2975,10 @@
             event.keyCode == kKE.DOM_VK_DELETE)
         {
             if (!this.activeInPlaceEdit && this.mSelectedItems.length && this.controller) {
-                for each (var item in this.mSelectedItems) {
-                    var item = (event.ctrlKey) ? item.parentItem : item;
-                    this.controller.deleteOccurrence(item);
-                }
+                this.controller.deleteOccurrences(this.mSelectedItems.length,
+                                                  this.mSelectedItems,
+                                                  event.ctrlKey,
+                                                  false);
             }
         }
       ]]></handler>
