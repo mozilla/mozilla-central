@@ -152,6 +152,7 @@ public:
   PRUint16              m_body_lines;
   
   PRBool                m_IgnoreXMozillaStatus;
+  PRBool      m_useReceivedDate;
 
   // this enables extensions to add the values of particular headers to 
   // the .msf file as properties of nsIMsgHdr. It is initialized from a

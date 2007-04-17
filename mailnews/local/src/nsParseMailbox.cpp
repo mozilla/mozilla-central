@@ -476,6 +476,7 @@ nsParseMailMessageState::nsParseMailMessageState()
 {
   m_position = 0;
   m_IgnoreXMozillaStatus = PR_FALSE;
+  m_useReceivedDate = PR_FALSE;
   m_state = nsIMsgParseMailMsgState::ParseBodyState;
 
   // setup handling of custom db headers, headers that are added to .msf files
@@ -498,6 +499,7 @@ nsParseMailMessageState::nsParseMailMessageState()
        if (!m_customDBHeaderValues)
          m_customDBHeaders.Clear();
      }
+     pPrefBranch->GetBoolPref("mailnews.use_received_date", &m_useReceivedDate);
   }
   Clear();
 
@@ -1445,7 +1447,7 @@ int nsParseMailMessageState::FinalizeHeaders()
         else if (inReplyTo != nsnull)
           m_newMsgHdr->SetReferences(inReplyTo->value);
         
-        if (!LL_IS_ZERO(m_receivedTime))
+        if (!LL_IS_ZERO(m_receivedTime) && (!date || m_useReceivedDate))
           m_newMsgHdr->SetDate(m_receivedTime);
         else 
         {
