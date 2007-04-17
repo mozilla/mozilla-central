@@ -470,9 +470,10 @@ function ltnEditSelectedItem() {
 
 function ltnDeleteSelectedItem() {
     var selectedItems = currentView().getSelectedItems({});
-    for each (var item in selectedItems) {
-        calendarViewController.deleteOccurrence(item);
-    }
+    calendarViewController.deleteOccurrences(selectedItems.length,
+                                             selectedItems,
+                                             false,
+                                             false);
 }
 
 function ltnCreateEvent() {

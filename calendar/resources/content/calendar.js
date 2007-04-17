@@ -288,9 +288,9 @@ function getSelectedCalendarOrNull()
 /**
 *  Delete the current selected item with focus from the ToDo unifinder list
 */
-function deleteToDoCommand( DoNotConfirm )
+function deleteToDoCommand(aDoNotConfirm)
 {
-   var SelectedItems = new Array();
+   var selectedItems = new Array();
    var tree = document.getElementById( ToDoUnifinderTreeName );
    var start = new Object();
    var end = new Object();
@@ -302,10 +302,13 @@ function deleteToDoCommand( DoNotConfirm )
       tree.view.selection.getRangeAt(t, start, end);
       for (v = start.value; v <= end.value; v++) {
          toDoItem = tree.taskView.getCalendarTaskAtRow( v );
-         SelectedItems.push( toDoItem );
+         selectedItems.push( toDoItem );
       }
    }
-   deleteItems( SelectedItems, DoNotConfirm );
+   calendarViewController.deleteOccurrences(selectedItems.length,
+                                            selectedItems,
+                                            false,
+                                            aDoNotConfirm);
    tree.view.selection.clearSelection();
 }
 
