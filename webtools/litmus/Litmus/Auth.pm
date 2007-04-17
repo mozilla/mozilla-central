@@ -156,13 +156,13 @@ sub getCurrentSession() {
 # Returns the Litmus::User object corresponding to the current logged-in
 # user, or 0 if no valid login cookie exists
 sub getCurrentUser() {
-	my $session = getCurrentSession();
-	
-	if ($session) {
-		return $session->user_id();
-	} else {
-		return 0;
-	}
+  my $session = getCurrentSession();
+
+  if ($session) {
+    return $session->user_id();
+  } else {
+    return 0;
+  }
 }
 
 

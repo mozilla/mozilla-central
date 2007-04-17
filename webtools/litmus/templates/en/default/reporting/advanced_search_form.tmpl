@@ -30,9 +30,17 @@
 <form id="advanced_search" name="advanced_search" method="get" action="advanced_search.cgi">
 
 <script type="text/javascript">
-function init()
-{
-    FormInit(document.forms['advanced_search'], document.location.search);
+[% IF products_js %]var products=[% products_js %];
+[% END %]
+[% IF branches_js %]var branches=[% branches_js %];
+[% END %]
+[% IF testgroups_js %]var testgroups=[% testgroups_js %];
+[% END %]
+[% IF opsyses_js %]var opsyses=[% opsyses_js %];
+[% END %]
+
+function init() {
+    repopulateForm();
 }
 </script>
 
@@ -48,38 +56,58 @@ Limit your search to specific values of visible fields.
 </td>
 </tr>
 <tr>
-<td class="heading">Branch:</td>
-<td>[% INCLUDE form_widgets/select_branch.tmpl name="branch" placeholder=1 %]</td>
+<td class="heading">Test Run:</td>
+<td>[% INCLUDE form_widgets/select_test_run_id.tmpl name="test_run" placeholder=1 display_id=1 %]</td>
 </tr>
+
+<tr>
+<td colspan="2"><hr/></td>
+</tr>
+<tr>
+<td class="heading">Product:</td>
+<td>[% INCLUDE form_widgets/select_product_id.tmpl name="product" placeholder=1 display_id=1 onchange="changeProduct();" %]</td>
+</tr>
+<tr>
+<td class="heading">Branch:</td>
+<td>[% INCLUDE form_widgets/select_branch_id.tmpl name="branch" placeholder=1 display_id=1 onchange="changeBranch();" %]</td>
+</tr>
+<tr>
+<td class="heading">Testgroup:</td>
+<td>[% INCLUDE form_widgets/select_testgroup_id.tmpl name="testgroup" placeholder=1 display_id=1 onchange="changeTestgroup();" %]</td>
+</tr>
+<tr>
+<td class="heading">Subgroup:</td>
+<td>[% INCLUDE form_widgets/select_subgroup_id.tmpl name="subgroup" placeholder=1 display_id=1 onchange="changeSubgroup();" %]</td>
+</tr>
+<tr>
+<td class="heading">Testcase:</td>
+<td>[% INCLUDE form_widgets/select_testcase_id.tmpl show_summary=1 name="testcase" placeholder=1 %]</td>
+</tr>
+
+<tr>
+<td colspan="2"><hr/></td>
+</tr>
+
+<tr>
+<td class="heading">Platform:</td>
+<td>[% INCLUDE form_widgets/select_platform_id.tmpl name="platform" placeholder=1 display_id=1 onchange="changePlatform(null,1);" %]</td>
+</tr>
+<tr>
+<td class="heading">Operating System:</td>
+<td>[% INCLUDE form_widgets/select_opsys_id.tmpl name="opsys" placeholder=1 display_id=1 %]</td>
+</tr>
+
+<tr>
+<td colspan="2"><hr/></td>
+</tr>
+
 <tr>
 <td class="heading">Locale:</td>
 <td>[% INCLUDE form_widgets/select_locale.tmpl name="locale" placeholder=1 %]</td>
 </tr>
 <tr>
-<td class="heading">Platform:</td>
-<td>[% INCLUDE form_widgets/select_unique_platform.tmpl name="platform" placeholder=1 %]</td>
-</tr>
-<tr>
-<td class="heading">Product:</td>
-<td>[% INCLUDE form_widgets/select_product.tmpl name="product" placeholder=1 %]</td>
-</tr>
-<tr>
 <td class="heading">Status:</td>
 <td>[% INCLUDE form_widgets/select_result_status.tmpl name="result_status" placeholder=1 %]</td>
-</tr>
-[% IF show_admin==1 %]
-<tr>
-<td class="heading">Submitted By:</td>
-<td>[% INCLUDE form_widgets/select_email.tmpl name="email" placeholder=1 %]</td>
-</tr>
-[% END %]
-<tr>
-<td class="heading">Testcase ID#:</td>
-<td>[% INCLUDE form_widgets/select_testcase_id.tmpl name="testcase_id" placeholder=1 %]</td>
-</tr>
-<tr>
-<td class="heading">Testgroup:</td>
-<td>[% INCLUDE form_widgets/select_test_group.tmpl name="test_group" placeholder=1 %]</td>
 </tr>
 </table>
   </div>
@@ -92,11 +120,15 @@ Limit your search to specific values of visible fields.
   <div class="section-content">
 <table class="advanced-search">
 <tr>
-<td colspan="2" class="instructions"><p>Display only results between these two dates.</p><p>NOTE: the preferred format for dates is YYYYMMDDhhmmss, although the search engine will do its best (within reason) to parse dates from whatever is submitted.</p></td>
+<td width="40%" colspan="2" class="instructions">Display only results between these two dates.<br/><br/>NOTE: the preferred format for dates is YYYYMMDDhhmmss, although the search engine will do its best (within reason) to parse dates from whatever is submitted.</td>
+<td align="center" rowspan="3"><strong>OR</strong></td>
+<td width="40%" colspan="2" class="instructions">Choose a preset timespan.</td>
 </tr>
 <tr>
 <td class="heading">Start Date:</td>
 <td><input type="text" name="start_date" value="" /></td>
+<td class="heading">Timespan:</td>
+<td>[% INCLUDE form_widgets/select_timespan.tmpl %]</td>
 </tr>
 <tr>
 <td class="heading">End Date:</td>
@@ -188,7 +220,17 @@ Use this to limit the number of results displayed.
 </td>
 </tr>
 <tr>
-<td colspan="2">Limit to <input type="text" name="limit" value="15" size="5" /> results</td>
+<td class="heading">Limit to:</td>
+<td><input type="text" name="limit" value="15" size="5" /> results</td>
+<tr>
+<td class="heading">Display only <em>my</em> test results?</td>
+<td><input type="checkbox" name="my_results_only" /></td>
+</tr>
+</tr>
+<tr>
+<td class="heading">Display only results with comments?</td>
+<td><input type="checkbox" name="has_comments" /></td>
+</tr>
 </tr>
 </table>
   </div>
@@ -206,7 +248,20 @@ Admin-specific limiting criteria go here. These criteria are not available to re
 </td>
 </tr>
 <tr>
-<td colspan="2"><input type="checkbox" name="trusted_only" />&nbsp;Display only test results from trusted sources</td>
+<td class="heading">Submitted By:</td>
+<td>[% INCLUDE form_widgets/select_email.tmpl name="email" placeholder=1 %]</td>
+</tr>
+<tr>
+<td class="heading">Display only test results from trusted sources?</td>
+<td><input type="checkbox" name="trusted_only" /></td>
+</tr>
+<tr>
+<td class="heading">Display only vetted test results?</td>
+<td><input type="checkbox" name="vetted_only" /></td>
+</tr>
+<tr>
+<td class="heading">Display only valid test results?</td>
+<td><input type="checkbox" name="valid_only" /></td>
 </tr>
 </table>
   </div>

@@ -143,7 +143,7 @@ sub getOpsyses()
 #########################################################################
 sub getUniqueOpsyses()
 {
-    my $sql = "SELECT DISTINCT(name) FROM opsyses ORDER BY name ASC";
+    my $sql = "SELECT DISTINCT(name), opsys_id, platform_id FROM opsyses ORDER BY name ASC";
     return _getValues($sql);
 }
 
@@ -165,18 +165,26 @@ sub getTestStatuses()
 #########################################################################
 sub getResultStatuses()
 {
-    my $sql = "SELECT result_status_id,class_name FROM test_result_status_lookup ORDER BY result_status_id";
+    my $sql = "SELECT result_status_id,name,class_name FROM test_result_status_lookup ORDER BY result_status_id";
     return _getValues($sql);
 }
 
 #########################################################################
 sub getTestcaseIDs()
 {
-    my ($self, $enabled) = @_;
-    my $sql = "SELECT testcase_id FROM testcases";
+    my ($self, $enabled, $community_enabled) = @_;
+    my $sql = "SELECT testcase_id,summary FROM testcases";
     if ($enabled) {
       $sql .= " WHERE enabled=1";
     }
+    if ($community_enabled) {
+      if ($sql =~ /WHERE/) {
+        $sql .= " AND community_enabled=1";
+      } else {
+        $sql .= " WHERE community_enabled=1";
+      }
+    }
+
     $sql .= " ORDER BY testcase_id";
     return _getValues($sql);
 }
@@ -260,6 +268,13 @@ sub getTestgroups()
 sub getLocales()
 {
   my @locales = Litmus::DB::Locale->retrieve_all();
+  # Append an extra copy of 'en-US' at the start of the list.
+  foreach my $locale (@locales) {
+    if ($locale->abbrev eq 'en-US') {
+      unshift @locales, $locale;
+      last;
+    } 
+  }
   return \@locales;
 }
 
@@ -340,9 +355,9 @@ sub getMatchCriteria()
                           { name => "contains_case",
                             display_string => "contains the word/string (exact case)" },
                           { name => "not_contain",
-                            display_string => "does not contains the word/string" },
+                            display_string => "does not contain the word/string" },
                           { name => "not_contain_any",
-                            display_string => "does not contains any of the words/string" },
+                            display_string => "does not contain any of the words/strings" },
                           { name => "regexp",
                             display_string => "matches the regexp" },
                           { name => "not_regexp",

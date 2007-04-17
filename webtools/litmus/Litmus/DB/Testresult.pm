@@ -36,6 +36,7 @@ use strict;
 use base 'Litmus::DBI';
 
 use Date::Manip;
+use Litmus::DB::TestRun;
 use Time::Piece;
 use Time::Seconds;
 
@@ -85,9 +86,9 @@ Litmus::DB::Testresult->has_many(bugs => "Litmus::DB::Resultbug", {order_by => '
 Litmus::DB::Testresult->autoinflate(dates => 'Time::Piece');
 
 Litmus::DB::Testresult->set_sql(DefaultTestResults => qq{
-    SELECT DISTINCT(tr.testresult_id),tr.testcase_id,t.summary,tr.submission_time AS created,p.name AS platform_name,pr.name as product_name,trsl.name AS result_status,trsl.class_name AS result_status_class,b.name AS branch_name, tr.locale_abbrev, u.email
-    FROM test_results tr, testcases t, platforms p, opsyses o, branches b, products pr, test_result_status_lookup trsl, users u
-    WHERE tr.testcase_id=t.testcase_id AND tr.opsys_id=o.opsys_id AND o.platform_id=p.platform_id AND tr.branch_id=b.branch_id AND b.product_id=pr.product_id AND tr.result_status_id=trsl.result_status_id AND tr.user_id=u.user_id AND tr.valid=1
+    SELECT DISTINCT(tr.testresult_id),tr.testcase_id,t.summary,tr.submission_time AS created,pl.name AS platform_name,pr.name as product_name,trsl.name AS result_status,trsl.class_name AS result_status_class,b.name AS branch_name, tr.locale_abbrev, u.email
+    FROM test_results tr, testcases t, platforms pl, opsyses o, branches b, products pr, test_result_status_lookup trsl, users u
+    WHERE tr.testcase_id=t.testcase_id AND tr.opsys_id=o.opsys_id AND o.platform_id=pl.platform_id AND tr.branch_id=b.branch_id AND b.product_id=pr.product_id AND tr.result_status_id=trsl.result_status_id AND tr.user_id=u.user_id AND tr.valid=1
     ORDER BY tr.submission_time DESC, t.testcase_id DESC
     LIMIT $_num_results_default 
 });
@@ -103,35 +104,32 @@ Litmus::DB::Testresult->set_sql(CommonResults => qq{
 
 Litmus::DB::Testresult->set_sql(Completed => qq{
     SELECT tr.* 
-    FROM test_results tr, opsyses o
+    FROM test_results tr
     WHERE tr.testcase_id=? AND 
         tr.build_id=? AND 
         tr.locale_abbrev=? AND
-        tr.opsys_id=o.opsys_id AND
-        o.platform_id=?
+        tr.opsys_id=?
     ORDER BY tr.submission_time DESC
 });
 
 Litmus::DB::Testresult->set_sql(CompletedByUser => qq{
     SELECT tr.* 
-    FROM test_results tr, opsyses o
+    FROM test_results tr
     WHERE tr.testcase_id=? AND 
         tr.build_id=? AND 
         tr.locale_abbrev=? AND
-        tr.opsys_id=o.opsys_id AND
-        o.platform_id=? AND
+        tr.opsys_id=? AND
         tr.user_id=?
     ORDER BY tr.submission_time DESC
 });
 
 Litmus::DB::Testresult->set_sql(CompletedByTrusted => qq{
     SELECT tr.*
-    FROM test_results tr, opsyses o, users u
+    FROM test_results tr, users u
     WHERE tr.testcase_id=? AND 
         tr.build_id=? AND 
         tr.locale_abbrev=? AND
-        tr.opsys_id=o.opsys_id AND
-        o.platform_id=? AND
+        tr.opsys_id=? AND
         tr.user_id=u.user_id AND
         u.is_admin=1
     ORDER BY tr.submission_time DESC
@@ -186,39 +184,52 @@ sub getDefaultTestResults($) {
 sub getTestResults($\@\@$) {
     my ($self,$where_criteria,$order_by_criteria,$limit_value) = @_;
     
-    my $select = 'SELECT DISTINCT(tr.testresult_id),tr.testcase_id,t.summary,tr.submission_time AS created,p.name AS platform_name,pr.name as product_name,trsl.name AS result_status,trsl.class_name AS result_status_class,b.name AS branch_name,tg.name AS test_group_name, tr.locale_abbrev, u.email';
+    my $select = 'SELECT DISTINCT(tr.testresult_id),tr.testcase_id,t.summary,tr.submission_time AS created,pl.name AS platform_name,pr.name as product_name,trsl.name AS result_status,trsl.class_name AS result_status_class,b.name AS branch_name,tg.name AS test_group_name, tr.locale_abbrev, u.email';
     
-    my $from = 'FROM test_results tr, testcases t, platforms p, opsyses o, branches b, products pr, test_result_status_lookup trsl, testgroups tg, subgroups sg, users u, testcase_subgroups tcsg, subgroup_testgroups sgtg';
+    my $from = 'FROM test_results tr, testcases t, platforms pl, opsyses o, branches b, products pr, test_result_status_lookup trsl, testgroups tg, subgroups sg, users u, testcase_subgroups tcsg, subgroup_testgroups sgtg';
     
-    my $where = 'WHERE tr.testcase_id=t.testcase_id AND tr.opsys_id=o.opsys_id AND o.platform_id=p.platform_id AND tr.branch_id=b.branch_id AND b.product_id=pr.product_id AND tr.result_status_id=trsl.result_status_id AND tcsg.testcase_id=tr.testcase_id AND tcsg.subgroup_id=sg.subgroup_id AND sg.subgroup_id=sgtg.subgroup_id AND sgtg.testgroup_id=tg.testgroup_id AND tr.user_id=u.user_id AND tr.valid=1';
+    my $where = 'WHERE tr.testcase_id=t.testcase_id AND tr.opsys_id=o.opsys_id AND o.platform_id=pl.platform_id AND tr.branch_id=b.branch_id AND b.product_id=pr.product_id AND tr.result_status_id=trsl.result_status_id AND tcsg.testcase_id=tr.testcase_id AND tcsg.subgroup_id=sg.subgroup_id AND sg.subgroup_id=sgtg.subgroup_id AND sgtg.testgroup_id=tg.testgroup_id AND tr.user_id=u.user_id';
     
     my $limit = 'LIMIT ';
 
     foreach my $criterion (@$where_criteria) {
          $criterion->{'value'} =~ s/'/\\\'/g;
-        if ($criterion->{'field'} eq 'branch') {
-            $where .= " AND b.name='" . $criterion->{'value'} . "'";
+        if ($criterion->{'field'} eq 'product') {
+            $where .= " AND pr.product_id=" . $criterion->{'value'};
+        } elsif ($criterion->{'field'} eq 'branch') {
+            $where .= " AND b.branch_id=" . $criterion->{'value'};
+        } elsif ($criterion->{'field'} eq 'testgroup') {
+            $where .= " AND tg.testgroup_id=" . $criterion->{'value'};
+        } elsif ($criterion->{'field'} eq 'subgroup') {
+            $where .= " AND sg.subgroup_id=" . $criterion->{'value'};
+        } elsif ($criterion->{'field'} eq 'testcase') {
+            $where .= " AND tr.testcase_id=" . $criterion->{'value'};
+        } elsif ($criterion->{'field'} eq 'platform') {
+            $where .= " AND pl.platform_id=" . $criterion->{'value'};
+        } elsif ($criterion->{'field'} eq 'opsys') {
+            $where .= " AND o.opsys_id=" . $criterion->{'value'};
         } elsif ($criterion->{'field'} eq 'locale') {
             $where .= " AND tr.locale_abbrev='" . $criterion->{'value'} . "'";
-        } elsif ($criterion->{'field'} eq 'product') {
-            $where .= " AND pr.name='" . $criterion->{'value'} . "'";
-        } elsif ($criterion->{'field'} eq 'platform') {
-            $where .= " AND p.name='" . $criterion->{'value'} . "'";
-        } elsif ($criterion->{'field'} eq 'test_group') {
-            $where .= " AND tg.name='" . $criterion->{'value'} . "'";
-        } elsif ($criterion->{'field'} eq 'testcase_id') {
-            $where .= " AND tr.testcase_id='" . $criterion->{'value'} . "'";
+        } elsif ($criterion->{'field'} eq 'result_status') {
+            $where .= " AND trsl.class_name='" . $criterion->{'value'} . "'";
         } elsif ($criterion->{'field'} eq 'summary') {
             $where .= ' AND t.summary LIKE \'%%' . $criterion->{'value'} . '%%\'';
         } elsif ($criterion->{'field'} eq 'email') {
             $where .= ' AND u.email LIKE \'%%' . $criterion->{'value'} . '%%\'';
-        } elsif ($criterion->{'field'} eq 'result_status') {
-            $where .= " AND trsl.class_name='" . $criterion->{'value'} . "'";
         } elsif ($criterion->{'field'} eq 'trusted_only') {            
             if ($from !~ /users u/) {
                 $from .= ", users u";
             }
             $where .= " AND u.user_id=tr.user_id AND u.is_admin=1";
+        } elsif ($criterion->{'field'} eq 'vetted_only') {
+            $where .= " AND tr.vetted=1";
+        } elsif ($criterion->{'field'} eq 'valid_only') {        
+            $where .= " AND tr.valid=1";
+        } elsif ($criterion->{'field'} eq 'user_id') {        
+            if ($from !~ /users u/) {
+                $from .= ", users u";
+            }
+            $where .= " AND u.user_id=tr.user_id AND u.user_id=" . $criterion->{'value'};
         } elsif ($criterion->{'field'} eq 'start_date') {
             my $start_timestamp = &Date::Manip::UnixDate(&Date::Manip::ParseDateString($criterion->{'value'}),"%q");
             if ($start_timestamp !~ /^\d\d\d\d\d\d\d\d\d\d\d\d\d\d$/) {
@@ -248,6 +259,20 @@ sub getTestResults($\@\@$) {
             ($from,$where) = &_processSearchField($criterion,$from,$where);
         } elsif ($criterion->{'field'} eq 'has_comments') {
           $from =~ s/^FROM test_results tr,/FROM test_results tr INNER JOIN test_result_comments trc ON tr.testresult_id=trc.test_result_id,/;
+       } elsif ($criterion->{'field'} eq 'test_run_id') {
+            # First check to make sure test run exists.
+            my $test_run = Litmus::DB::TestRun->retrieve($criterion->{'value'});
+            if ($test_run) {
+                # We have to match against *ALL* the test run parameters. 
+                $from .= ", test_run_testgroups truntg, test_runs trun";
+                $where .= " AND trun.test_run_id=" . $criterion->{'value'};
+                $where .= " AND trun.test_run_id=truntg.test_run_id";
+                $where .= " AND truntg.testgroup_id=sgtg.testgroup_id";
+                $where .= " AND trun.product_id=pr.product_id";
+                $where .= " AND trun.branch_id=b.branch_id";
+            
+                $where .= $test_run->getCriteriaSql();
+            }
         } else {
             # Skip unknown field
         }
@@ -265,7 +290,7 @@ sub getTestResults($\@\@$) {
         } elsif ($criterion->{'field'} eq 'product') {
             $order_by .= "pr.name $criterion->{'direction'},";
         } elsif ($criterion->{'field'} eq 'platform') {
-            $order_by .= "p.name $criterion->{'direction'},";
+            $order_by .= "pl.name $criterion->{'direction'},";
         } elsif ($criterion->{'field'} eq 'test_group') {
             $order_by .= "tg.name $criterion->{'direction'},";
         } elsif ($criterion->{'field'} eq 'testcase_id') {
@@ -297,7 +322,7 @@ sub getTestResults($\@\@$) {
     }
     
     my $sql = "$select $from $where $group_by $order_by $limit";
-    # print $sql,"<br/>\n";
+    #print STDERR $sql,"\n";
     Litmus::DB::Testresult->set_sql(TestResults => qq{
         $sql
         });
@@ -317,14 +342,15 @@ sub _processSearchField(\%) {
     my $table_field = "";
     if ($search_field->{'search_field'} eq 'build_id') {
         $table_field='tr.build_id';
-    } elsif ($search_field->{'search_field'} eq 'comments') {
-        $table_field='c.comment';        
+    } elsif ($search_field->{'search_field'} eq 'comment') {
+        $table_field='trc.comment';
+        $from =~ s/^FROM test_results tr,/FROM test_results tr INNER JOIN test_result_comments trc ON tr.testresult_id=trc.test_result_id,/;
     } elsif ($search_field->{'search_field'} eq 'locale') {
         $table_field='tr.locale_abbrev';        
     } elsif ($search_field->{'search_field'} eq 'opsys') {
         $table_field='o.name';
     } elsif ($search_field->{'search_field'} eq 'platform') {
-        $table_field='p.name';
+        $table_field='pl.name';
     } elsif ($search_field->{'search_field'} eq 'product') {
         $table_field='pr.name';
     } elsif ($search_field->{'search_field'} eq 'result_status') {

@@ -14,7 +14,7 @@ function disableBranchModeButtons() {
   document.getElementById("delete_branch_button").disabled=true;
 }
 
-function loadBranch() {
+function loadBranch(silent) {
   var branch_select = document.getElementById("branch_id");
 
   if (! branch_select ||
@@ -40,20 +40,8 @@ function populateBranch(data) {
   document.getElementById('edit_branch_form_branch_id_display').innerHTML = branch.branch_id;
   document.getElementById('edit_branch_form_name').value = branch.name;
   document.getElementById('edit_branch_form_detect_regexp').value = branch.detect_regexp;
-  var product_box = document.getElementById('edit_branch_form_product_id');
-  var options = product_box.getElementsByTagName('option');
-  var found_product = 0;
-  for (var i=0; i<options.length; i++) {
-    if (options[i].value == branch.product_id.product_id) {
-      options[i].selected = true;
-      found_product=1;
-    } else {
-      options[i].selected = false;
-    }
-  }
-  if (found_product == 0) {
-    options[0].selected = true;
-  }
+  var productBox = document.getElementById('edit_branch_form_product_id');
+  var found_product = setSelected(productBox,branch.product_id.product_id);
 
   var enabled_em = document.getElementById('edit_branch_form_enabled')
   if (branch.enabled == 1) {
@@ -63,6 +51,7 @@ function populateBranch(data) {
   }
 
   document.getElementById('edit_branch_form_div').style.display = 'block';
+  disableForm('edit_branch_form');
   enableBranchModeButtons();
 }
 
@@ -147,7 +136,7 @@ function disableOpsysModeButtons() {
   document.getElementById("delete_opsys_button").disabled=true;
 }
 
-function loadOpsys() {
+function loadOpsys(silent) {
   var opsys_select = document.getElementById("opsys_id");
 
   if (! opsys_select ||
@@ -173,22 +162,11 @@ function populateOpsys(data) {
   document.getElementById('edit_opsys_form_opsys_id_display').innerHTML = opsys.opsys_id;
   document.getElementById('edit_opsys_form_name').value = opsys.name;
   document.getElementById('edit_opsys_form_detect_regexp').value = opsys.detect_regexp;
-  var platform_box = document.getElementById('edit_opsys_form_platform_id');
-  var options = platform_box.getElementsByTagName('option');
-  var found_platform = 0;
-  for (var i=0; i<options.length; i++) {
-    if (options[i].value == opsys.platform_id.platform_id) {
-      options[i].selected = true;
-      found_platform=1;
-    } else {
-      options[i].selected = false;
-    }
-  }
-  if (found_platform == 0) {
-    options[0].selected = true;
-  }
+  var platformBox = document.getElementById('edit_opsys_form_platform_id');
+  var found_platform = setSelected(platformBox,opsys.platform_id.platform_id);
 
   document.getElementById('edit_opsys_form_div').style.display = 'block';
+  disableForm('edit_opsys_form');
   enableOpsysModeButtons();
 }
 
@@ -241,7 +219,7 @@ function disablePlatformModeButtons() {
   document.getElementById("delete_platform_button").disabled=true;
 }
 
-function loadPlatform() {
+function loadPlatform(silent) {
   var platform_select = document.getElementById("platform_id");
 
   if (! platform_select ||
@@ -279,6 +257,7 @@ function populatePlatform(data) {
   }
 
   document.getElementById('edit_platform_form_div').style.display = 'block';
+  disableForm('edit_platform_form');
   enablePlatformModeButtons();
 }
 
@@ -336,7 +315,7 @@ function disableProductModeButtons() {
   document.getElementById("delete_product_button").disabled=true;
 }
 
-function loadProduct() {
+function loadProduct(silent) {
   var product_select = document.getElementById("product_id");
 
   if (! product_select ||
@@ -370,6 +349,7 @@ function populateProduct(data) {
   }
 
   document.getElementById('edit_product_form_div').style.display = 'block';
+  disableForm('edit_product_form');
   enableProductModeButtons();
 }
 
@@ -421,7 +401,7 @@ function disableTestdayModeButtons() {
   document.getElementById("delete_testday_button").disabled=true;
 }
 
-function loadTestday() {
+function loadTestday(silent) {
   var testday_select = document.getElementById("testday_id");
 
   if (! testday_select ||
@@ -448,32 +428,33 @@ function populateTestday(data) {
   document.getElementById('edit_testday_form_desc').value = testday.description;
   document.getElementById('edit_testday_form_start_timestamp').value = testday.start_timestamp.replace(/-| |:/g, "");
   document.getElementById('edit_testday_form_finish_timestamp').value = testday.finish_timestamp.replace(/-| |:/g, "");
-  productBox = document.getElementById('testday_product_id');
-  branchBox = document.getElementById('testday_branch_id');
-  testgroupBox = document.getElementById('testday_testgroup_id');
+  productBox = document.getElementById('product');
+  branchBox = document.getElementById('branch');
+  testgroupBox = document.getElementById('testgroup');
   if (testday.product_id) {
-    changeSelected(productBox,testday.product_id.product_id);
-    changeProduct(productBox,branchBox,testgroupBox);
+    setSelected(productBox,testday.product_id.product_id);
+    changeProduct();
     if (testday.branch_id) {
-      changeSelected(branchBox,testday.branch_id.branch_id);
-      changeBranch(branchBox,testgroupBox);
+      setSelected(branchBox,testday.branch_id.branch_id);
+      changeBranch();
       if (testday.testgroup_id) {
-        changeSelected(testgroupBox,testday.testgroup_id.testgroup_id);
+        setSelected(testgroupBox,testday.testgroup_id.testgroup_id);
       }
     }
   } else {
-    changeSelected(productBox,"");
-    changeProduct(productBox,branchBox,testgroupBox);
+    setSelected(productBox,"");
+    changeProduct();
   } 
-  document.getElementById('testday_build_id').value = testday.build_id
-  localeBox = document.getElementById('testday_locale');
+  document.getElementById('build_id').value = testday.build_id
+  localeBox = document.getElementById('locale');
   if (testday.locale_abbrev) {
-    changeSelected(localeBox,testday.locale_abbrev.abbrev);
+    setSelected(localeBox,testday.locale_abbrev.abbrev);
   } else {
-    changeSelected(localeBox,"");
+    setSelected(localeBox,"");
   }
 
   document.getElementById('edit_testday_form_div').style.display = 'block';
+  disableForm('edit_testday_form');
   enableTestdayModeButtons();
 }
 

@@ -366,12 +366,3 @@ function copyToList(from,to)
     }
   }
 }
-
-function changeSelected(selectBox,value) {
-  var options = selectBox.options;
-  for (iOpt = 0; iOpt < options.length; iOpt++) {
-    if (options[iOpt].value == value) {
-      options[iOpt].selected = true;;
-    }
-  }
-}

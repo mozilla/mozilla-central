@@ -2,6 +2,7 @@ var iBugNumber = "This field must be a valid, positive integer (>0). Please re-e
 var iNumber = iBugNumber;
 var iEmail = "This field must be a valid email address (like foo@bar.com). Please re-enter it now.";
 var iBuildId = "This field must be a valid build ID, which is a non-zero string of 10 digits. Please follow the 'How do I determine the build ID?' link for more information.";
+var iTimestamp = "This field must be a valid timestamp, which is a non-zero string of 14 digits in the format: YYMMDDHHmmSS.";
 var iPasswordMismatch = "The passwords you entered did not match.";
 var iPasswordLength = "Your password must be longer than 4 characters.";
 var defaultEmptyOK = false;
@@ -223,6 +224,29 @@ function checkBuildId (theField, emptyOK)
     }
 }
 
+// checkTimestamp (TEXTFIELD theField [, BOOLEAN emptyOK==false])
+//
+// Check that string theField.value is a valid timestamp.
+//
+// For explanation of optional argument emptyOK,
+// see comments of function isInteger.
+function checkTimestamp (theField, emptyOK)
+{   
+    if (checkTimestamp.arguments.length == 1) { 
+	emptyOK = defaultEmptyOK;
+    }
+    
+    if ((emptyOK == true) && (isEmpty(theField.value))) {
+	return true;
+    } else {
+	if (!/^\d{14,14}$/.test(theField.value) || theField.value == '00000000000000') {
+	    return warnInvalid (theField, iTimestamp);
+	} else {
+	    return true;
+	}
+    }
+}
+
 // checkNumber (TEXTFIELD theField [, BOOLEAN emptyOK==false])
 //
 // Check that string theField.value is a valid, positive integer.
@@ -387,20 +411,26 @@ function checkRadio(theField, fieldName) {
       return true;
     }
   } 
-  return false;
+  if (theField[0]) {
+    return warnInvalid (theField[0], 'You must select an option for ' + fieldName + '. Please make a selection now.');
+  }
 }
 
-function toggleMessage(msgType,msg) {
+function toggleMessage(msgType,msg,timeout) {
   var em = document.getElementById("message");
   if (toggleMessage.arguments.length < 1) {
      em.innerHTML="";
      em.style.display = 'none';
      return;
   }
+  
+  if (typeof(timeout) == "undefined") {
+    timeout=5000;
+  }
 
   switch (msgType) {
     case "loading":
-      if (!msg || msg == '') {
+      if (typeof(msg) == "undefined" || msg == '') {
         msg = 'Loading...';
       }
       em.innerHTML = '<div class="loading">'+msg+'</div>';
@@ -409,17 +439,17 @@ function toggleMessage(msgType,msg) {
     case "info":
       em.innerHTML = '<div class="info">'+msg+'</div>';
       em.style.display = 'block';
-      setTimeout('toggleMessage()',5000);
+      setTimeout('toggleMessage()',timeout);
       break;
     case "success":
       em.innerHTML = '<div class="success">'+msg+'</div>';
       em.style.display = 'block';
-      setTimeout('toggleMessage()',5000);
+      setTimeout('toggleMessage()',timeout);
       break;
     case "failure":
       em.innerHTML = '<div class="failure">'+msg+'</div>';
       em.style.display = 'block';
-      setTimeout('toggleMessage()',5000);
+      setTimeout('toggleMessage()',timeout);
       break;
     case "none":
     default:
@@ -434,15 +464,21 @@ function enableForm(formid) {
   var f = document.getElementById(formid);
   var ems = f.getElementsByTagName('input');
   for (var i in ems) {
-    ems[i].disabled=false;
+    if (typeof(ems[i]) == 'object') {
+      ems[i].disabled=false;
+    }
   }
   ems = f.getElementsByTagName('select');
   for (var i in ems) {
-    ems[i].disabled=false;
+    if (typeof(ems[i]) == 'object') {
+      ems[i].disabled=false;
+    }
   }
   ems = f.getElementsByTagName('textarea');
   for (var i in ems) {
-    ems[i].disabled=false;
+    if (typeof(ems[i]) == 'object') {
+      ems[i].disabled=false;
+    }
   }
 }
 
@@ -450,32 +486,21 @@ function disableForm(formid) {
   var f = document.getElementById(formid);
   var ems = f.getElementsByTagName('input');
   for (var i in ems) {
-    ems[i].disabled=true;
+    if (typeof(ems[i]) == 'object') {
+      ems[i].disabled=true;
+    }
   }
   ems = f.getElementsByTagName('select');
   for (var i in ems) {
-    ems[i].disabled=true;
+    if (typeof(ems[i]) == 'object') {
+      ems[i].disabled=true;
+    }
   }
   ems = f.getElementsByTagName('textarea');
   for (var i in ems) {
-    ems[i].disabled=true;
-  }
-}
-
-function changeSelectedValue(selectid, optionvalue) {
-  var em = document.getElementById(selectid)
-  var options = em.getElementsByTagName('option');
-  var found = 0;
-  for (var i=0; i<options.length; i++) {
-    if (options[i].value == optionvalue) {
-      options[i].selected = true;
-      found=1;
-    } else {
-      options[i].selected = false;
+    if (typeof(ems[i]) == 'object') {
+      ems[i].disabled=true;
     }
-  }
-  if (found == 0) {
-    options[0].selected = true;
   }
 }
 
@@ -483,7 +508,8 @@ function blankForm(formid) {
   var f = document.getElementById(formid);
   var ems = f.getElementsByTagName('input');
   for (var i in ems) {
-    if (ems[i].type == 'submit' ||
+    if (typeof(ems[i]) != 'object' ||
+        ems[i].type == 'submit' ||
         ems[i].value == 'Reset' ||
         ems[i].type == 'radio' ||
         ems[i].type == 'checkbox' ||

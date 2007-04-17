@@ -1,297 +1,363 @@
-function selects_onload() {
-    load_products(getElementByClass("select_product"));
-    load_testgroups(getElementByClass("select_testgroup"));
-    load_subgroups(getElementByClass("select_subgroup"));
-    
-    load_platforms(getElementByClass("select_platform"));
-    load_opsyses(getElementByClass("select_opsys"));
-    load_branches(getElementByClass("select_branch"));
+if (!suffix) { 
+  var suffix="";
 }
 
-function load_products(selects) {
-    if (!selects) { return; }
-    // for each select box in selects, load in the list of products
-    for (var select=0; select<selects.length; select++) {
-        var productbox = selects[select];
-        clearSelect(productbox);
-        addNullEntry(productbox);
-        for (var i=0; i<litmusconfig.length; i++) {
-            var option = makeOption(litmusconfig[i]);
-            productbox.add(option, null);
-            // handle the default selection
-            if (isDefault(document.getElementById(productbox.name+"_default"), litmusconfig[i]['id'])) {
-                 productbox.selectedIndex = i+1;
-            }
-        }
+function getProductById(productId) {
+  for (var i=0; i<products.length; i++) {
+    if (products[i].product_id == productId) {
+      return (products[i]);
     }
+  }
 }
 
-function load_testgroups(selects) {
-    if (!selects[0]) { return; }
-    // load the proper list of testgroups for the 
-    // currently selected product for each testgroup
-    // select:
-    for (var select=0; select<selects.length; select++) {
-        var groupbox = selects[select];
-        clearSelect(groupbox);
-        addNullEntry(groupbox);
-        // find the currently selected product that goes with this select
-        var productbox = document.getElementById("product"+groupbox.name.substr(9));
-	var productid = productbox.options[productbox.selectedIndex].value;
-        var product = getProductById(productid);
-        if (!product) {
-            return;
-        }
-
-        var branchbox = document.getElementById("branch"+groupbox.name.substr(9));
-	
-        // now get the list of testgroups that goes with that product:
-        var testgroups = product['testgroups'];
-        for (var group=0; group<testgroups.length; group++) {
-            var option = makeOption(testgroups[group])
-            groupbox.add(option, null);
-            // handle the default selection
-            if (isDefault(document.getElementById(groupbox.name+"_default"), testgroups[group]['id'])) {
-                    groupbox.selectedIndex = group+1;
-            }     
-        }
+function getTestgroupById(testgroupId) {
+  for (var i=0; i<testgroups.length; i++) {
+    if (testgroups[i].testgroup_id == testgroupId) {
+      return (testgroups[i]);
     }
+  }
 }
 
-function load_subgroups(selects) {
-    if (!selects[0]) { return; }
-    for (var select=0; select<selects.length; select++) {
-        var subgroupbox = selects[select];
-        clearSelect(subgroupbox);
-        addNullEntry(subgroupbox);
-        // find the currently selected testgroup that goes with this select
-        var testgroupbox = document.getElementById("testgroup"+subgroupbox.name.substr(8));
-        var testgroupid = testgroupbox.options[testgroupbox.selectedIndex].value;
-        var testgroup = getTestgroupById(testgroupid);
-        if (!testgroup) {
-            // no testgroup set
-            return;
-        }
-        // now get the list of subgroups that goes with that testgroup
-        var subgroups = testgroup['subgroups'];
-        for (var i=0; i<subgroups.length; i++) {
-            var option = makeOption(subgroups[i]);
-            subgroupbox.add(option, null);
-            if (isDefault(document.getElementById(subgroupbox.name+"_default"), subgroups[i]['id'])) {
-                    subgroupbox.selectedIndex = i+1;
-            }
-        }
+function getPlatformById(platformId) {
+  for (var i=0; i<platforms.length; i++) {
+    if (platforms[i].platform_id == platformId) {
+      return (platforms[i]);
     }
-} // wow, that was fun
-
-
-function load_platforms(selects) {
-    if (!selects[0]) { return; }
-    for (var select=0; select<selects.length; select++) {
-        var platformbox = selects[select];
-        clearSelect(platformbox);
-        addNullEntry(platformbox);
-        // find the currently selected product that goes with this select
-        var productbox = document.getElementById("product"+platformbox.name.substr(8));
-	if (!productbox) {
-	  return;
-        }
-        var productid = productbox.options[productbox.selectedIndex].value;
-        var product = getProductById(productid);
-        if (!product) {
-            // no product set
-            return;
-        }
-        var platforms = product['platforms'];
-        for (var i=0; i<platforms.length; i++) {
-            var option = makeOption(platforms[i]);
-            platformbox.add(option, null);
-            if (isDefault(document.getElementById(platformbox.name+"_default"), platforms[i]['id'])) {
-                    platformbox.selectedIndex = i+1;
-            }
-        }
-    }
+  }
 }
-
-function load_branches(selects) {
-    if (!selects[0]) { return; }
-    for (var select=0; select<selects.length; select++) {
-        var branchbox = selects[select];
-        clearSelect(branchbox);
-        addNullEntry(branchbox);
-        // find the currently selected product that goes with this select
-        var productbox = document.getElementById("product"+branchbox.name.substr(6));
-        var productid = productbox.options[productbox.selectedIndex].value;
-        var product = getProductById(productid);
-        if (!product) {
-            // no product set
-            return;
-        }
-        var branches = product['branches'];
-        for (var i=0; i<branches.length; i++) {
-            var option = makeOption(branches[i]);
-            branchbox.add(option, null);
-            if (isDefault(document.getElementById(branchbox.name+"_default"), branches[i]['id'])) {
-                 branchbox.selectedIndex = i+1;
-            }
-        }
-    }
-}
-
-function load_opsyses(selects) {
-    if (!selects[0]) { return; }
-    for (var select=0; select<selects.length; select++) {
-        var opsysbox = selects[select];
-        clearSelect(opsysbox);
-        addNullEntry(opsysbox);
-        // find the currently selected platform
-        var platformbox = document.getElementById("platform"+opsysbox.name.substr(5));
-        var platformid = platformbox.options[platformbox.selectedIndex].value;
-        var platform = getPlatformById(platformid);
-        if (!platform) {
-            return;
-        }
-        var opsyses = platform['opsyses'];
-        for (var i=0; i<opsyses.length; i++) {
-            var option = makeOption(opsyses[i]);
-            opsysbox.add(option, null);
-           if (isDefault(document.getElementById(opsysbox.name+"_default"), opsyses[i]['id'])) {
-                 opsysbox.selectedIndex = i+1;
-            }
-        }
-    }
-}
-
-function changeProduct(testid) {
-    var testidflag = "";
-    if (testid) { testidflag = "_"+testid; }
-    
-    var em = document.getElementById("testgroup"+testidflag);
-    if (em) {
-      load_testgroups([em]);
-      changeTestgroup(testid);
-    }
-     
-    em = document.getElementById("platform"+testidflag);
-    if (em) {
-      load_platforms([em]);
-      changePlatform(testid);
-    }
-
-    em = document.getElementById("branch"+testidflag);
-    if (em) {
-      load_branches([document.getElementById("branch"+testidflag)]);
-    }
-}
-
-function changeBranch(testid) {
-    var testidflag = "";
-    if (testid) { testidflag = "_"+testid; }
-    
-    var em = document.getElementById("testgroup"+testidflag);
-    if (em) {
-      load_testgroups([em]);
-    }
-}
-
-function changeTestgroup(testid) {
-    var testidflag = "";
-    if (testid) { testidflag = "_"+testid; }
-    
-    load_subgroups([document.getElementById("subgroup"+testidflag)]);
-}
-
-function changePlatform(testid) {
-    var testidflag = "";
-    if (testid) { testidflag = "_"+testid; }
-    
-    load_opsyses([document.getElementById("opsys"+testidflag)]);
-}
-
-function addNullEntry(select) {
-    // add a blank entry to the current select
-    // if possible, try to make the null entry reflect the select's 
-    // contents based on it's name:
-    
-    if (select.className == 'select_product') {
-    	select.add(new Option("-Product-", "", false, false), null);
-    } else if (select.className == 'select_testgroup') {
-    	select.add(new Option("-Testgroup-", "", false, false), null);
-    } else if (select.className == 'select_subgroup') {
-    	select.add(new Option("-Subgroup-", "", false, false), null);
-    } else if (select.className == 'select_branch') {
-    	select.add(new Option("-Branch-", "", false, false), null);
-    } else if (select.className == 'select_platform') {
-    	select.add(new Option("-Platform-", "", false, false), null);
-    } else if (select.className == 'select_opsys') {
-    	select.add(new Option("-Operating System-", "", false, false), null);
-    } else {
-    	select.add(new Option("---", "", false, false), null);
-    }
-}
-
-function clearSelect(select) {
-    // remove all options from a select:
-    while (select.options[0]) {
-        select.remove(0);
-    }
-}
-
-function getProductById(prodid) {
-    for (var i=0; i<litmusconfig.length; i++) {
-        if (litmusconfig[i]['id'] == prodid) {
-                return(litmusconfig[i]);
-        }
-    }    
-}
-
-function getTestgroupById(testgroupid) {
-    for (var i=0; i<litmusconfig.length; i++) {
-        for (var j=0; j<litmusconfig[i]['testgroups'].length; j++) {
-            if (litmusconfig[i]['testgroups'][j]['id'] == testgroupid) {
-                return(litmusconfig[i]['testgroups'][j]);
-            }
-        }
-    }    
-}
-
-
-function getPlatformById(platformid) {
-    for (var i=0; i<litmusconfig.length; i++) {
-        for (var j=0; j<litmusconfig[i]['platforms'].length; j++) {
-            if (litmusconfig[i]['platforms'][j]['id'] == platformid) {
-                return(litmusconfig[i]['platforms'][j]);
-            }
-        }
-    }    
-}
-
 
 // pass this the <input> containing the list of possible default values
 // and the current value, returns true if the current value appears in 
 // defaultInput, otherwise returns false
-function isDefault(defaultInput, curvalue) {
-    if (! defaultInput) { return false; }
-    var defaultarray = defaultInput.value.split(',');
-    for (var i=0; i<defaultarray.length; i++) {
-        if (defaultarray[i] == curvalue) { 
-        return true; 
-        }
-    }
+function isDefault(defaultInput, curValue) {
+  if (! defaultInput) { 
     return false;
-}
-
-function makeOption(obj) {
-    return new Option(obj['name'], obj['id'], false, false)
-}
-
-function getElementByClass(theClass) {
-    var elements = new Array();
-    var all = document.getElementsByTagName("*"); 
-    for (var i=0; i<all.length; i++) {
-        if (all[i].className == theClass) {
-            elements.push(all[i]);
-        }
+  }
+  var defaultArray = defaultInput.value.split(',');
+  for (var i=0; i<defaultArray.length; i++) {
+    if (defaultArray[i] == curValue) { 
+      return true; 
     }
-    return elements;
+  }
+  return false;
+}
+
+function clearSelect(select) {
+  select.options.length = 0;
+}
+
+function addNullEntry(select) {
+  // add a blank entry to the current select
+  // if possible, try to make the null entry reflect the select's 
+  // contents based on it's name:
+
+  if (select.className == 'select_product') {
+    select.add(new Option("-Product (ID#)-", "", false, false), null);
+  } else if (select.className == 'select_branch') {
+    select.add(new Option("-Branch (ID#)-", "", false, false), null);
+  } else if (select.className == 'select_test_run') {
+    select.add(new Option("-Test Run (ID#)-", "", false, false), null);
+  } else if (select.className == 'select_testgroup') {
+    select.add(new Option("-Testgroup (ID#)-", "", false, false), null);
+  } else if (select.className == 'select_subgroup') {
+    select.add(new Option("-Subgroup (ID#)-", "", false, false), null);
+  } else if (select.className == 'select_testcase') {
+    select.add(new Option("-ID#: Testcase Summary-", "", false, false), null);
+  } else if (select.className == 'select_platform') {
+    select.add(new Option("-Platform (ID#)-", "", false, false), null);
+  } else if (select.className == 'select_opsys') {
+    select.add(new Option("-Operating System (ID#)-", "", false, false), null);
+  } else {
+    select.add(new Option("---", "", false, false), null);
+  }
+}
+
+function selectsOnLoad(mySuffix,silent) {
+  if (!mySuffix) {
+    mySuffix=suffix;
+  }	
+  var productBox = document.getElementById('product'+mySuffix);  
+  loadProducts(productBox,mySuffix,silent);
+}
+
+function loadProducts(productBox,mySuffix,silent) {
+  if (!productBox) {
+    return;
+  }
+  if (!mySuffix) {
+    mySuffix=suffix;
+  }	
+  disableForm(formName);
+  clearSelect(productBox);
+  addNullEntry(productBox);
+  if (products) {
+    for (var i=0; i<products.length; i++) {
+      var option = new Option(products[i].name + " (" + products[i].product_id + ")",products[i].product_id, false, false)
+      productBox.add(option, null);
+      // handle the default selection
+      if (isDefault(document.getElementById(productBox.name+"_default"), products[i].product_id)) {
+	 productBox.selectedIndex = i+1;
+      }
+    }
+  }
+  enableForm(formName);
+}
+
+function changeProduct(mySuffix,silent) {
+  if (!mySuffix) {
+    mySuffix=suffix;
+  }
+  var branchBox = document.getElementById('branch'+mySuffix);
+  if (branchBox) {
+    loadBranches(branchBox,mySuffix,silent);
+  }
+}
+
+function loadBranches(branchBox,mySuffix,silent) {
+  if (!branchBox) {
+    return;
+  }
+  if (!mySuffix) {
+    mySuffix=suffix;
+  }	
+  disableForm(formName);
+  clearSelect(branchBox);
+  addNullEntry(branchBox);
+  var productBox = document.getElementById('product'+mySuffix);
+  var productId = productBox.options[productBox.selectedIndex].value;
+  if (!productId) {
+    // No product selected.
+    enableForm(formName);
+    return;
+  }
+  if (branches) {
+    for (var i=0; i<branches.length; i++) {
+      if (branches[i].product_id == productId) {
+        var option = new Option(branches[i].name + ' (' + branches[i].branch_id + ')', branches[i].branch_id, false, false)
+        branchBox.add(option, null);
+        // handle the default selection
+        if (isDefault(document.getElementById(branchBox.name+"_default"), branches[i].branch_id)) {
+          branchBox.selectedIndex = i+1;
+        }        
+      }
+    }
+  }
+  enableForm(formName);
+}
+
+function changeBranch(mySuffix,silent) {
+  if (!mySuffix) {
+    mySuffix=suffix;
+  }	
+  var testgroupBox = document.getElementById('testgroup'+mySuffix);
+  if (testgroupBox) {
+    loadTestgroups(testgroupBox,mySuffix,silent);
+  }
+}
+
+function loadTestgroups(testgroupBox,mySuffix,silent) {
+  if (!mySuffix) {
+    mySuffix=suffix;
+  }	
+  disableForm(formName);
+  clearSelect(testgroupBox);
+  addNullEntry(testgroupBox);
+
+  var productBox = document.getElementById('product'+mySuffix);
+  var productId = productBox.options[productBox.selectedIndex].value;
+  var branchBox = document.getElementById('branch'+mySuffix);
+  var branchId = branchBox.options[branchBox.selectedIndex].value;
+  if (testgroups) {
+    for (var i=0; i<testgroups.length; i++) {
+      if ((branchId && testgroups[i].branch_id == branchId) ||
+	  (!branchId && productId && testgroups[i].product_id == productId) ||
+	  (!branchId && !productId)) {
+        var option = new Option(testgroups[i].name + ' (' + testgroups[i].testgroup_id + ')', testgroups[i].testgroup_id);
+        testgroupBox.add(option, null);
+        if (isDefault(document.getElementById(testgroupBox.name+"_default"), testgroups[i].testgroup_id)) {
+          testgroupBox.selectedIndex = i+1;
+        }
+      }
+    }
+  }
+  enableForm(formName);
+}
+
+function changeTestgroup(mySuffix,silent) {
+  if (!mySuffix) {
+    mySuffix=suffix;
+  }	
+  var subgroupBox = document.getElementById('subgroup'+mySuffix);
+  if (subgroupBox) {
+    loadSubgroups(subgroupBox,mySuffix,silent);
+  }
+}
+
+function loadSubgroups(subgroupBox,mySuffix,silent) {
+  if (!mySuffix) {
+    mySuffix=suffix;
+  }
+  var testgroupBox = document.getElementById('testgroup'+mySuffix);
+  var testgroupId = testgroupBox.options[testgroupBox.selectedIndex].value;
+  if (!testgroupId) {
+    // No testgroup selected.
+    return;
+  }
+  disableForm(formName);
+  if (!silent) {
+    toggleMessage('loading','Loading Subgroups...');
+  }
+  var url = 'json.cgi?testgroup_id=' + testgroupId;
+  fetchJSON(url,populateSubgroups,silent);
+}
+
+function populateSubgroups(data) {
+  testgroup=data;
+
+  if (typeof(subgroupBox) == "undefined") {
+    subgroupBox = document.getElementById('subgroup'+suffix);
+  }
+
+  clearSelect(subgroupBox);
+  addNullEntry(subgroupBox);
+  if (testgroup) {
+    for (var i=0; i<testgroup.subgroups.length; i++) {
+      var optionText = testgroup.subgroups[i].name + ' (' + testgroup.subgroups[i].subgroup_id + ')';
+      subgroupBox.options[subgroupBox.length] = new Option(optionText,
+                                                         testgroup.subgroups[i].subgroup_id);
+    }
+  }
+  toggleMessage('none');
+  FormInit(document.forms[formName], document.location.search);
+  enableForm(formName);
+}
+
+function changeSubgroup(mySuffix,silent) {
+  if (!mySuffix) {
+    mySuffix=suffix;
+  }	
+  var testcaseBox = document.getElementById('testcase'+mySuffix);
+  if (testcaseBox) {
+    loadTestcases(testcaseBox,mySuffix,silent);
+  }
+}
+
+function loadTestcases(testcaseBox,mySuffix,silent) {
+  if (!mySuffix) {
+    mySuffix=suffix;
+  }	
+  var subgroupBox = document.getElementById('subgroup'+mySuffix);
+  var subgroupId = subgroupBox.options[subgroupBox.selectedIndex].value;
+  if (!subgroupId) {
+    // No subgroup selected.
+    return;
+  }
+
+  disableForm(formName);
+  if (!silent) {
+    toggleMessage('loading','Loading Testcases...');
+  }
+  var url = 'json.cgi?subgroup_id=' + subgroupId;
+  fetchJSON(url,populateTestcases,silent);
+}
+
+function populateTestcases(data,mySuffix) {
+  if (!mySuffix) {
+    mySuffix=suffix;
+  }	
+  subgroup=data;
+
+  var testcaseBox = document.getElementById('testcase'+mySuffix);
+  clearSelect(testcaseBox);
+  addNullEntry(testcaseBox);
+  for (var i=0; i<subgroup.testcases.length; i++) {
+    var optionText = subgroup.testcases[i].summary + ' (' + subgroup.testcases[i].testcase_id + ')';
+    testcaseBox.options[testcaseBox.length] = new Option(optionText,
+                                                         subgroup.testcases[i].testcase_id);
+  }
+  toggleMessage('none');
+  FormInit(document.forms[formName], document.location.search);
+  enableForm(formName);
+}
+
+function changePlatform(mySuffix,silent) {
+  if (!mySuffix) {
+    mySuffix=suffix;
+  }	
+  var opsysBox = document.getElementById("opsys"+mySuffix);
+  if (opsysBox) {
+    loadOpsyses(opsysBox,mySuffix,silent);
+  }
+}
+
+function loadOpsyses(opsysBox,mySuffix,silent) {
+  if (!opsysBox) {
+    return;
+  }
+  if (!mySuffix) {
+    mySuffix=suffix;
+  }	
+  clearSelect(opsysBox);
+  addNullEntry(opsysBox);
+  var platformBox = document.getElementById('platform'+mySuffix);
+  var platformId = platformBox.options[platformBox.selectedIndex].value;
+  if (!platformId) {
+    // No platform selected.
+    return;
+  }
+  if (opsyses) {
+    for (var i=0; i<opsyses.length; i++) {
+      if (opsyses[i].platform_id == platformId) {
+        var option = new Option(opsyses[i].name + ' (' + opsyses[i].opsys_id + ')', opsyses[i].opsys_id, false, false)
+        opsysBox.add(option, null);
+        // handle the default selection
+        if (isDefault(document.getElementById(opsysBox.name+"_default"), opsyses[i].opsys_id)) {
+          opsysBox.selectedIndex = i+1;
+        }        
+
+      }
+    }
+  }
+}
+
+function populateBranches(branchBox,productBox) {
+  if (!branchBox) {
+    return;
+  }
+  branchBox.options.length = 0;
+  
+  var productId = productBox.options[productBox.selectedIndex].value;
+  var product = getProductById(productId);
+  if (!product) {
+    // no product set
+    var option = new Option('-No product selected-','');
+    branchBox.add(option, null);
+    return;
+  }
+  var option = new Option('-Branch (ID#)-','');
+  branchBox.add(option, null);
+  for (var i=0; i<branches.length; i++) {
+    if (branches[i].product_id == productId) {
+      var option = new Option(branches[i].name + ' (' + branches[i].branch_id + ')',branches[i].branch_id);
+      option.selected = false;
+      branchBox.add(option, null);
+    }
+  }
+}
+
+function setSelected(selectBox,selectedValue) {
+  var options = selectBox.getElementsByTagName('option');
+  var found_selected = 0;
+  for (var i=0; i<options.length; i++) {
+    if (options[i].value == selectedValue) {
+      options[i].selected = true;
+      found_selected=1;
+    } else {
+      options[i].selected = false;
+    }
+  }
+  if (found_selected == 0) {
+    options[0].selected = true;
+  } 
+  return found_selected;
 }

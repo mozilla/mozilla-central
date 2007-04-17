@@ -8,7 +8,7 @@ if (parseInt(navigator.appVersion) < 4) {
 if (document.body && document.body.addEventListener) {
   document.body.addEventListener("click",maybeclosepopup,false);
 }
-setTimeout('location.reload()',900000);
+//setTimeout('location.reload()',900000);
 
 function closepopup() {
   var p = document.getElementById("popup");
