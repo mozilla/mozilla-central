@@ -298,13 +298,15 @@ function calWcapCalendar_storeItem(bAddItem, item, oldItem, request, netRespFunc
     var params = "";
     
     var calId = this.calId;
-    if (oldItem && this.isInvitation(oldItem)) { // REPLY
+    if (this.isInvitation(item)) { // REPLY
         bAttendeeReply = true;
         var att = getAttendeeByCalId(item.getAttendees({}), calId);
         if (att) {
             log("attendee: " + att.icalProperty.icalString, this);
-            var oldAtt = getAttendeeByCalId(oldItem.getAttendees({}), calId);
-            if (att.participationStatus != oldAtt.participationStatus) {
+            var oldAtt = null;
+            if (oldItem)
+                oldAtt = getAttendeeByCalId(oldItem.getAttendees({}), calId);
+            if (!oldAtt || (att.participationStatus != oldAtt.participationStatus)) {
                 // REPLY first for just this calendar:
                 params += ("&attendees=PARTSTAT=" + att.participationStatus +
                            "^" + encodeURIComponent(att.id));
