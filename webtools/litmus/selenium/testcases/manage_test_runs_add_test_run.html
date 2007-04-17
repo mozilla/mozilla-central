@@ -1,0 +1,164 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>manage_test_runs_add_test_run</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">manage_test_runs_add_test_run</td></tr>
+</thead><tbody>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Manage Test Runs</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>add_test_run_button</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForVisible</td>
+	<td>editform_div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Automatically generated for a new Test Run</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>name</td>
+	<td>Coop's New Test Run</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>description</td>
+	<td>Bogus description for new test run.</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>product</td>
+	<td>label=Firefox*</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>branch</td>
+	<td>label=Trunk*</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>start_timestamp</td>
+	<td>20061201000000</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>finish_timestamp</td>
+	<td>20061231235959</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>enabled</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>recommended</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>build_id_new_1</td>
+	<td>2006120104</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>platform_new_1</td>
+	<td>value=1</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>opsys_new_1</td>
+	<td>value=32</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>add_row_new_1</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>build_id_new_2</td>
+	<td>2006120105</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>platform_new_2</td>
+	<td>value=13</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>opsys_new_2</td>
+	<td>value=35</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>add_row_new_2</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>build_id_new_3</td>
+	<td>2006120103</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>platform_new_3</td>
+	<td>value=2</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>opsys_new_3</td>
+	<td>value=5</td>
+</tr>
+<tr>
+	<td>addSelection</td>
+	<td>testgroups_for_product</td>
+	<td>value=40</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>add_testgroup_button</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>submit</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForVisible</td>
+	<td>test_run_display_div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Coop's New Test Run</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Firefox</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Trunk</td>
+	<td></td>
+</tr>
+
+</tbody></table>
+</body>
+</html>

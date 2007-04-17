@@ -1,0 +1,89 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Manage Testgroups - Clone</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">Manage Testgroups - Clone</td></tr>
+</thead><tbody>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Manage Testgroups</td>
+	<td></td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>testgroup_id</td>
+	<td>label=Coop's Edited Testgroup*</td>
+</tr>
+<tr>
+	<td>waitForVisible</td>
+	<td>testgroup_display_div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Coop's Edited Testgroup</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Firefox</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>2.0 Branch</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>clone_testgroup_button</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertConfirmation</td>
+	<td>Really clone this testgroup?</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForVisible</td>
+	<td>testgroup_display_div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>edit_testgroup_button</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>name</td>
+	<td>Coop's Edited Testgroup</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>name</td>
+	<td>Coop's Cloned Testgroup</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>submit</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForVisible</td>
+	<td>testgroup_display_div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Coop's Cloned Testgroup</td>
+	<td></td>
+</tr>
+
+</tbody></table>
+</body>
+</html>

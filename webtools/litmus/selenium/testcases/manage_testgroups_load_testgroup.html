@@ -1,0 +1,69 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>manage_testgroups_load_testgroup</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">manage_testgroups_load_testgroup</td></tr>
+</thead><tbody>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Manage Testgroups</td>
+	<td></td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>product_filter</td>
+	<td>label=Firefox*</td>
+</tr>
+<tr>
+	<td>waitForElementNotPresent</td>
+	<td>//SELECT[@id='branch_filter'][@disabled]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>branch_filter</td>
+	<td>label=Trunk*</td>
+</tr>
+<tr>
+	<td>waitForElementNotPresent</td>
+	<td>//SELECT[@id='testgroup_id'][@disabled]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>testgroup_id</td>
+	<td>label=Coop's New Testgroup*</td>
+</tr>
+<tr>
+	<td>waitForVisible</td>
+	<td>testgroup_display_div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Testgroup ID #:</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Coop's New Testgroup</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Firefox</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Trunk</td>
+	<td></td>
+</tr>
+
+</tbody></table>
+</body>
+</html>

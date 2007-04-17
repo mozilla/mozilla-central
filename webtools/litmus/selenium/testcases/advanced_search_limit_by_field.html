@@ -1,0 +1,159 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>advanced_search_limit_by_field</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">advanced_search_limit_by_field</td></tr>
+</thead><tbody>
+<tr>
+	<td>open</td>
+	<td>/advanced_search.cgi</td>
+	<td></td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>product</td>
+	<td>label=Firefox (1)</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>branch</td>
+	<td>label=1.5 Branch (2)</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>testgroup</td>
+	<td>label=1.5 Smoketests (1)</td>
+</tr>
+<tr>
+	<td>waitForElementNotPresent</td>
+	<td>//SELECT[@id='subgroup'][@disabled]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>subgroup</td>
+	<td>label=Install and Startup (1)</td>
+</tr>
+<tr>
+	<td>waitForElementNotPresent</td>
+	<td>//SELECT[@id='testcase'][@disabled]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>testcase</td>
+	<td>label=Verify Firefox launches as expected (1)</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>platform</td>
+	<td>label=Windows (1)</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>opsys</td>
+	<td>label=Windows XP (4)</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>locale</td>
+	<td>label=en-US</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>result_status</td>
+	<td>label=Pass</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//input[@type='submit']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyText</td>
+	<td>//h1[2]</td>
+	<td>Advanced Search Results</td>
+</tr>
+<tr>
+	<td>verifyText</td>
+	<td>//div[3]/div/p[1]</td>
+	<td>Custom<br />Product is '1'<br />Branch is '2'<br />Testgroup is '1'<br />Subgroup is '1'<br />Testcase ID# is '1'<br />Platform is '1'<br />Operating System is '4'<br />Locale is 'en-US'<br />Status is 'pass'</td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>//div[3]/div[2]/div[2]/table</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>//div[3]/div[2]/div[2]/table/tbody/tr[2]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifySelectedValue</td>
+	<td>//SELECT[@id='product']</td>
+	<td>1</td>
+</tr>
+<tr>
+	<td>verifySelectedValue</td>
+	<td>//SELECT[@id='branch']</td>
+	<td>2</td>
+</tr>
+<tr>
+	<td>verifySelectedValue</td>
+	<td>//SELECT[@id='testgroup']</td>
+	<td>1</td>
+</tr>
+<tr>
+	<td>waitForElementNotPresent</td>
+	<td>//SELECT[@id='subgroup'][@disabled]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifySelectedValue</td>
+	<td>//SELECT[@id='subgroup']</td>
+	<td>1</td>
+</tr>
+<tr>
+	<td>waitForElementNotPresent</td>
+	<td>//SELECT[@id='testcase'][@disabled]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifySelectedValue</td>
+	<td>//SELECT[@id='testcase']</td>
+	<td>1</td>
+</tr>
+<tr>
+	<td>verifySelectedValue</td>
+	<td>//SELECT[@id='platform']</td>
+	<td>1</td>
+</tr>
+<tr>
+	<td>waitForElementNotPresent</td>
+	<td>//SELECT[@id='opsys'][@disabled]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifySelectedValue</td>
+	<td>//SELECT[@id='opsys']</td>
+	<td>4</td>
+</tr>
+<tr>
+	<td>verifySelectedValue</td>
+	<td>//SELECT[@id='locale']</td>
+	<td>en-US</td>
+</tr>
+<tr>
+	<td>verifySelectedValue</td>
+	<td>//SELECT[@id='result_status']</td>
+	<td>pass</td>
+</tr>
+
+</tbody></table>
+</body>
+</html>

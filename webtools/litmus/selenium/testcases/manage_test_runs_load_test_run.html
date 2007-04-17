@@ -1,0 +1,84 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>manage_test_runs_load_test_run</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">manage_test_runs_load_test_run</td></tr>
+</thead><tbody>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Manage Test Runs</td>
+	<td></td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>product_filter</td>
+	<td>label=Firefox*</td>
+</tr>
+<tr>
+	<td>waitForElementNotPresent</td>
+	<td>//SELECT[@id='branch_filter'][@disabled]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>branch_filter</td>
+	<td>label=Trunk*</td>
+</tr>
+<tr>
+	<td>waitForElementNotPresent</td>
+	<td>//SELECT[@id='test_run_id'][@disabled]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>test_run_id</td>
+	<td>label=Coop's New Test Run*</td>
+</tr>
+<tr>
+	<td>waitForVisible</td>
+	<td>test_run_display_div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Test Run ID #:</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Coop's New Test Run</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Bogus description for new test run.</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Firefox</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Trunk</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td></td>
+	<td>Enabled?</td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td></td>
+	<td>Recommended?</td>
+</tr>
+
+</tbody></table>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>manage_subgroups_delete_subgroup</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">manage_subgroups_delete_subgroup</td></tr>
+</thead><tbody>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Manage Subgroups</td>
+	<td></td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>subgroup_id</td>
+	<td>label=Coop's Cloned Subgroup*</td>
+</tr>
+<tr>
+	<td>waitForVisible</td>
+	<td>subgroup_display_div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>delete_subgroup_button</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertConfirmation</td>
+	<td>Really delete this subgroup?</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyNotSomethingSelected</td>
+	<td>subgroup_id</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextNotPresent</td>
+	<td>Coop's Cloned Subgroup</td>
+	<td></td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>subgroup_id</td>
+	<td>label=Coop's Edited Subgroup*</td>
+</tr>
+<tr>
+	<td>waitForVisible</td>
+	<td>subgroup_display_div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>delete_subgroup_button</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertConfirmation</td>
+	<td>Really delete this subgroup?</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyNotSomethingSelected</td>
+	<td>subgroup_id</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextNotPresent</td>
+	<td>Coop's Edited Subgroup</td>
+	<td></td>
+</tr>
+
+</tbody></table>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>manage_testcases_clone_testcase</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">manage_testcases_clone_testcase</td></tr>
+</thead><tbody>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Manage Testcases</td>
+	<td></td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>testcase_id</td>
+	<td>label=*Coop's Edited Testcase</td>
+</tr>
+<tr>
+	<td>waitForVisible</td>
+	<td>testcase_display_div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Coop's Edited Testcase</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Firefox</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>2.0 Branch</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>clone_testcase_button</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertConfirmation</td>
+	<td>Really clone this testcase?</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForVisible</td>
+	<td>testcase_display_div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>edit_testcase_button</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>summary</td>
+	<td>Coop's Edited Testcase</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>summary</td>
+	<td>Coop's Cloned Testcase</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>submit</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForVisible</td>
+	<td>testcase_display_div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Coop's Cloned Testcase</td>
+	<td></td>
+</tr>
+
+</tbody></table>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>manage_subgroups_edit_subgroup</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">manage_subgroups_edit_subgroup</td></tr>
+</thead><tbody>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Manage Subgroups</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>edit_subgroup_button</td>
+	<td></td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>subgroup_id</td>
+	<td>label=Coop's New Subgroup*</td>
+</tr>
+<tr>
+	<td>waitForVisible</td>
+	<td>subgroup_display_div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>edit_subgroup_button</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForVisible</td>
+	<td>editform_div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>name</td>
+	<td>Coop's New Subgroup</td>
+</tr>
+<tr>
+	<td>verifySelectedLabel</td>
+	<td>product</td>
+	<td>Firefox*</td>
+</tr>
+<tr>
+	<td>verifySelectedLabel</td>
+	<td>branch</td>
+	<td>Trunk*</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>name</td>
+	<td>Coop's Edited Subgroup</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>branch</td>
+	<td>label=2.0 Branch*</td>
+</tr>
+<tr>
+	<td>addSelection</td>
+	<td>subgroup_testcases</td>
+	<td>label=*Verify Build ID</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>remove_testcase_button</td>
+	<td></td>
+</tr>
+<tr>
+	<td>addSelection</td>
+	<td>testcases_for_product</td>
+	<td>label=*Allow JavaScript</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>add_testcase_button</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>submit</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForVisible</td>
+	<td>subgroup_display_div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Coop's Edited Subgroup</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Firefox</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>2.0 Branch</td>
+	<td></td>
+</tr>
+
+</tbody></table>
+</body>
+</html>

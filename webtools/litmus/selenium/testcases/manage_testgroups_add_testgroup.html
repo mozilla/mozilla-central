@@ -1,0 +1,89 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Manage Testgroups - Add</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">Manage Testgroups - Add</td></tr>
+</thead><tbody>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Manage Testgroups</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>add_testgroup_button</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForVisible</td>
+	<td>editform_div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Automatically generated for a new testgroup</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>name</td>
+	<td>Coop's New Testgroup</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>product</td>
+	<td>label=Firefox*</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>branch</td>
+	<td>label=Trunk*</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>enabled</td>
+	<td></td>
+</tr>
+<tr>
+	<td>addSelection</td>
+	<td>subgroups_for_product</td>
+	<td>label=Localization (l10n) (629)</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>add_subgroup_button</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>submit</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForVisible</td>
+	<td>testgroup_display_div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Coop's New Testgroup</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Firefox</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Trunk</td>
+	<td></td>
+</tr>
+
+</tbody></table>
+</body>
+</html>

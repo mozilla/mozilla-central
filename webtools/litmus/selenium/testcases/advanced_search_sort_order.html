@@ -1,0 +1,119 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>advanced_search_sort_order</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">advanced_search_sort_order</td></tr>
+</thead><tbody>
+<tr>
+	<td>open</td>
+	<td>/advanced_search.cgi</td>
+	<td></td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>sort_field1</td>
+	<td>label=Date</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>sort_order1</td>
+	<td>label=Descending (Z->A)</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>sort_field2</td>
+	<td>label=Product</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>sort_order2</td>
+	<td>label=Ascending (A->Z)</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>sort_field3</td>
+	<td>label=Branch</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>sort_order3</td>
+	<td>label=Descending (Z->A)</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>sort_field4</td>
+	<td>label=Testcase ID#</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>sort_order4</td>
+	<td>label=Ascending (A->Z)</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//input[@type='submit']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyText</td>
+	<td>//div[3]/div/p[1]</td>
+	<td>Custom<br />Order by created DESC<br />Order by product ASC<br />Order by branch DESC<br />Order by testcase id ASC</td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>//div[3]/div[2]/div[2]/table</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>//div[3]/div[2]/div[2]/table/tbody/tr[2]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifySelectedLabel</td>
+	<td>sort_field1</td>
+	<td>Date</td>
+</tr>
+<tr>
+	<td>verifySelectedLabel</td>
+	<td>sort_order1</td>
+	<td>Descending (Z->A)</td>
+</tr>
+<tr>
+	<td>verifySelectedLabel</td>
+	<td>sort_field2</td>
+	<td>Product</td>
+</tr>
+<tr>
+	<td>verifySelectedLabel</td>
+	<td>sort_order2</td>
+	<td>Ascending (A->Z)</td>
+</tr>
+<tr>
+	<td>verifySelectedLabel</td>
+	<td>sort_field3</td>
+	<td>Branch</td>
+</tr>
+<tr>
+	<td>verifySelectedLabel</td>
+	<td>sort_order3</td>
+	<td>Descending (Z->A)</td>
+</tr>
+<tr>
+	<td>verifySelectedLabel</td>
+	<td>sort_field4</td>
+	<td>Testcase ID#</td>
+</tr>
+<tr>
+	<td>verifySelectedLabel</td>
+	<td>sort_order4</td>
+	<td>Ascending (A->Z)</td>
+</tr>
+
+</tbody></table>
+</body>
+</html>

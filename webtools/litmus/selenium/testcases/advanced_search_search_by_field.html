@@ -1,0 +1,159 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>advanced_search_search_by_field</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">advanced_search_search_by_field</td></tr>
+</thead><tbody>
+<tr>
+	<td>open</td>
+	<td>/advanced_search.cgi</td>
+	<td></td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>search_field1</td>
+	<td>label=Comments</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>match_criteria1</td>
+	<td>label=contains all of the words/strings</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>search_value1</td>
+	<td>comment</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>search_field2</td>
+	<td>label=Locale</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>match_criteria2</td>
+	<td>label=does not contain any of the words/strings</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>search_value2</td>
+	<td>en-US de</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>search_field3</td>
+	<td>label=Summary</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>match_criteria3</td>
+	<td>label=matches the regexp</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>search_value3</td>
+	<td>Install*</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>search_field4</td>
+	<td>label=Product</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>match_criteria4</td>
+	<td>label=contains the word/string (exact case)</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>search_value4</td>
+	<td>Firefox</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//input[@type='submit']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyText</td>
+	<td>//div[3]/div/p[1]</td>
+	<td>Custom<br />Comment contains all 'comment'<br />Locale not contain any 'en-US de'<br />Summary regexp 'Install*'<br />Product contains case 'Firefox'</td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>//div[3]/div[2]/div[2]/table</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>//div[3]/div[2]/div[2]/table/tbody/tr[2]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifySelectedLabel</td>
+	<td>search_field1</td>
+	<td>Comments</td>
+</tr>
+<tr>
+	<td>verifySelectedLabel</td>
+	<td>match_criteria1</td>
+	<td>contains all of the words/strings</td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>search_value1</td>
+	<td>comment</td>
+</tr>
+<tr>
+	<td>verifySelectedLabel</td>
+	<td>search_field2</td>
+	<td>Locale</td>
+</tr>
+<tr>
+	<td>verifySelectedLabel</td>
+	<td>match_criteria2</td>
+	<td>does not contain any of the words/strings</td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>search_value2</td>
+	<td>en-US de</td>
+</tr>
+<tr>
+	<td>verifySelectedLabel</td>
+	<td>search_field3</td>
+	<td>Summary</td>
+</tr>
+<tr>
+	<td>verifySelectedLabel</td>
+	<td>match_criteria3</td>
+	<td>matches the regexp</td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>search_value3</td>
+	<td>Install*</td>
+</tr>
+<tr>
+	<td>verifySelectedLabel</td>
+	<td>search_field4</td>
+	<td>Product</td>
+</tr>
+<tr>
+	<td>verifySelectedLabel</td>
+	<td>match_criteria4</td>
+	<td>contains the word/string (exact case)</td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>search_value4</td>
+	<td>Firefox</td>
+</tr>
+
+</tbody></table>
+</body>
+</html>

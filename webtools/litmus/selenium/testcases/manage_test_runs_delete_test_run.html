@@ -1,0 +1,79 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>manage_test_runs_delete_test_run</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">manage_test_runs_delete_test_run</td></tr>
+</thead><tbody>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Manage Test Runs</td>
+	<td></td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>test_run_id</td>
+	<td>label=Coop's Cloned Test Run*</td>
+</tr>
+<tr>
+	<td>waitForVisible</td>
+	<td>test_run_display_div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>delete_test_run_button</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertConfirmation</td>
+	<td>Really delete this test run?</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyNotSomethingSelected</td>
+	<td>test_run_id</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextNotPresent</td>
+	<td>Coop's Cloned Test Run</td>
+	<td></td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>test_run_id</td>
+	<td>label=Coop's Edited Test Run*</td>
+</tr>
+<tr>
+	<td>waitForVisible</td>
+	<td>test_run_display_div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>delete_test_run_button</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertConfirmation</td>
+	<td>Really delete this test run?</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyNotSomethingSelected</td>
+	<td>test_run_id</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextNotPresent</td>
+	<td>Coop's Edited Test Run</td>
+	<td></td>
+</tr>
+
+</tbody></table>
+</body>
+</html>

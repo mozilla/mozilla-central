@@ -1,0 +1,94 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>advanced_search_admin_options</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">advanced_search_admin_options</td></tr>
+</thead><tbody>
+<tr>
+	<td>open</td>
+	<td>/advanced_search.cgi</td>
+	<td></td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>email</td>
+	<td>label=ccooper@deadsquid.com</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//input[@type='submit']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyText</td>
+	<td>//div[3]/div/p[1]</td>
+	<td>Custom<br />Submitted By is 'ccooper@deadsquid.com'</td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>//div[3]/div[2]/div[2]/table/tbody/tr[2]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifySelectedLabel</td>
+	<td>email</td>
+	<td>ccooper@deadsquid.com</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>email</td>
+	<td>label=-Submitted By-</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>trusted_only</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>vetted_only</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>valid_only</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//input[@type='submit']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyText</td>
+	<td>//div[3]/div/p[1]</td>
+	<td>Custom<br />Display trusted results only<br />Display vetted results only<br />Display valid results only</td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>//div[3]/div[2]/div[2]/table/tbody/tr[2]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>trusted_only</td>
+	<td>on</td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>vetted_only</td>
+	<td>on</td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>valid_only</td>
+	<td>on</td>
+</tr>
+
+</tbody></table>
+</body>
+</html>

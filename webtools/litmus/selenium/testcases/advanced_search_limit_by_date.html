@@ -1,0 +1,99 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>advanced_search_limit_by_date</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">advanced_search_limit_by_date</td></tr>
+</thead><tbody>
+<tr>
+	<td>open</td>
+	<td>/advanced_search.cgi</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>start_date</td>
+	<td>20061201</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>end_date</td>
+	<td>20070101</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//input[@type='submit']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyText</td>
+	<td>//div[3]/div/p[1]</td>
+	<td>Custom<br />Date between '20061201' and '20070101'</td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>//div[3]/div[2]/div[2]/table</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>//div[3]/div[2]/div[2]/table/tbody/tr[2]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>start_date</td>
+	<td>20061201</td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>end_date</td>
+	<td>20070101</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>start_date</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>end_date</td>
+	<td></td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>timespan</td>
+	<td>label=In the last 2 weeks</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//input[@type='submit']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyText</td>
+	<td>//div[3]/div/p[1]</td>
+	<td>Custom<br />Submitted in the last 14 days</td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>//div[3]/div[2]/div[2]/table</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>//div[3]/div[2]/div[2]/table/tbody/tr[2]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifySelectedLabel</td>
+	<td>//SELECT[@id='timespan']</td>
+	<td>In the last 2 weeks</td>
+</tr>
+
+</tbody></table>
+</body>
+</html>
