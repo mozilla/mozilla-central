@@ -948,45 +948,37 @@ nsPop3Protocol::WaitForStartOfConnectionResponse(nsIInputStream* aInputStream,
   PRUint32 line_length = 0;
   PRBool pauseForMoreData = PR_FALSE;
   line = m_lineStreamBuffer->ReadNextLine(aInputStream, line_length, pauseForMoreData);
-  
+
   PR_LOG(POP3LOGMODULE, PR_LOG_ALWAYS,("RECV: %s", line));
-  
+
   if(pauseForMoreData || !line)
   {
     m_pop3ConData->pause_for_read = PR_TRUE; /* pause */
     PR_Free(line);
     return(line_length);
   }
-  
+
   if(*line == '+')
   {
     m_pop3ConData->command_succeeded = PR_TRUE;
     if(PL_strlen(line) > 4)
-      m_commandResponse = line+4;
+      m_commandResponse = line + 4;
     else
       m_commandResponse = line;
-    
+
     if (m_useSecAuth)
     {
-        PRInt32 endMark = m_commandResponse.FindChar('>');
-        PRInt32 startMark = m_commandResponse.FindChar('<');
-        PRInt32 at = m_commandResponse.FindChar('@');
-
-        if (!(endMark == -1 || startMark == -1 || at == -1 ||
-            endMark < startMark || at > endMark || at < startMark))
+        nsresult rv;
+        nsCOMPtr<nsISignatureVerifier> verifier = do_GetService(SIGNATURE_VERIFIER_CONTRACTID, &rv);
+        // this checks if psm is installed...
+        if (NS_SUCCEEDED(rv))
         {
-            nsresult rv;
-            nsCOMPtr<nsISignatureVerifier> verifier = do_GetService(SIGNATURE_VERIFIER_CONTRACTID, &rv);
-            // this checks if psm is installed...
-            if (NS_SUCCEEDED(rv))
-            {
-                m_ApopTimestamp = Substring(m_commandResponse, startMark, endMark - startMark + 1);
-                SetCapFlag(POP3_HAS_AUTH_APOP);
-            }
+          if (NS_SUCCEEDED(GetApopTimestamp()))
+            SetCapFlag(POP3_HAS_AUTH_APOP);
         }
     }
     else
-        ClearCapFlag(POP3_HAS_AUTH_APOP);
+      ClearCapFlag(POP3_HAS_AUTH_APOP);
 
     m_pop3Server->SetPop3CapabilityFlags(m_pop3ConData->capability_flags);
 
@@ -4039,3 +4031,38 @@ NS_IMETHODIMP nsPop3Protocol::CheckMessage(const char *aUidl, PRBool *aBool)
   return NS_OK;
 }
 
+
+/* Function for finding an APOP Timestamp and simple check
+   it for its validity. If returning NS_OK m_ApopTimestamp
+   contains the validated substring of m_commandResponse. */
+nsresult nsPop3Protocol::GetApopTimestamp()
+{
+  PRInt32 startMark = m_commandResponse.Length(), endMark = -1;
+
+  while (PR_TRUE)
+  {
+    // search for previous <
+    if ((startMark = m_commandResponse.RFindChar('<', startMark - 1)) < 0)
+      return NS_ERROR_FAILURE;
+
+    // search for next >
+    if ((endMark = m_commandResponse.FindChar('>', startMark)) < 0)
+      continue;
+
+    // look for an @ between start and end as a raw test
+    PRInt32 at = m_commandResponse.FindChar('@', startMark);
+    if (at < 0 || at >= endMark)
+      continue;
+
+    // now test if sub only consists of chars in ASCII range
+    nsCString sub(Substring(m_commandResponse, startMark, endMark - startMark + 1));
+    if (nsCRT::IsAscii(sub.get()))
+    {
+      // set m_ApopTimestamp to the validated substring
+      m_ApopTimestamp.Assign(sub);
+      break;
+    }
+  }
+
+  return NS_OK;
+}
