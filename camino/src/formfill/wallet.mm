@@ -3791,9 +3791,9 @@ wallet_IsNewValue(nsIDOMNode* elementNode, nsString valueOnForm) {
 }
 
 void
-WLLT_OnSubmit(nsIContent* currentForm, nsIDOMWindowInternal* window) {
+WLLT_OnSubmit(nsIDOMHTMLFormElement* currentFormNode, nsIDOMWindowInternal* window) {
 
-  nsCOMPtr<nsIDOMHTMLFormElement> currentFormNode(do_QueryInterface(currentForm));
+  nsCOMPtr<nsIContent> currentForm(do_QueryInterface(currentFormNode));
 
   /* get url name as ascii string */
   nsAutoString strippedURLNameUCS2;

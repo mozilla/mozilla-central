@@ -130,7 +130,7 @@ extern void
 WLLT_GetPrefillListForViewer(nsAString& aPrefillList);
 
 extern void
-WLLT_OnSubmit(nsIContent* formNode, nsIDOMWindowInternal* window);
+WLLT_OnSubmit(nsIDOMHTMLFormElement* formNode, nsIDOMWindowInternal* window);
 
 extern void
 WLLT_ExpirePassword(PRBool* status);

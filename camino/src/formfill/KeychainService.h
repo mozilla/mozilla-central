@@ -170,7 +170,7 @@ public:
   NS_DECL_NSIOBSERVER
 
   // NS_DECL_NSIFORMSUBMITOBSERVER
-  NS_IMETHOD Notify(nsIContent* formNode, nsIDOMWindowInternal* window, nsIURI* actionURL, PRBool* cancelSubmit);
+  NS_IMETHOD Notify(nsIDOMHTMLFormElement* formNode, nsIDOMWindowInternal* window, nsIURI* actionURL, PRBool* cancelSubmit);
 };
 
 //

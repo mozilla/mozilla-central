@@ -853,14 +853,14 @@ KeychainFormSubmitObserver::Observe(nsISupports *aSubject, const char *aTopic, c
 }
 
 NS_IMETHODIMP
-KeychainFormSubmitObserver::Notify(nsIContent* node, nsIDOMWindowInternal* window, nsIURI* actionURL,
+KeychainFormSubmitObserver::Notify(nsIDOMHTMLFormElement* formNode, nsIDOMWindowInternal* window, nsIURI* actionURL,
                                     PRBool* cancelSubmit)
 {
   KeychainService* keychain = [KeychainService instance];
   if (![keychain formPasswordFillIsEnabled])
     return NS_OK;
 
-  nsCOMPtr<nsIDOMHTMLFormElement> formNode(do_QueryInterface(node));
+  nsCOMPtr<nsIContent> node(do_QueryInterface(formNode));
   if (!formNode)
     return NS_OK;
 
