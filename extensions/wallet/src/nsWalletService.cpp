@@ -46,7 +46,6 @@
 #include "nsIDOMHTMLDocument.h"
 #include "nsIDOMHTMLCollection.h"
 #include "nsIDOMHTMLFormElement.h"
-#include "nsIContent.h"
 #include "nsIDocument.h"
 #include "nsCURILoader.h"
 #include "nsIDOMHTMLInputElement.h"
@@ -223,7 +222,7 @@ NS_IMETHODIMP nsWalletlibService::Observe(nsISupports *aSubject, const char *aTo
 }
 
 #define CRLF "\015\012"
-NS_IMETHODIMP nsWalletlibService::Notify(nsIContent* formNode, nsIDOMWindowInternal* window, nsIURI* actionURL, PRBool* cancelSubmit)
+NS_IMETHODIMP nsWalletlibService::Notify(nsIDOMHTMLFormElement* formNode, nsIDOMWindowInternal* window, nsIURI* actionURL, PRBool* cancelSubmit)
 {
   if (!formNode) {
     return NS_ERROR_FAILURE;

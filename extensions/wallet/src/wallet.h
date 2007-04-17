@@ -54,6 +54,7 @@ class nsIOutputStream;
 class nsIFile;
 class nsIDOMWindowInternal;
 class nsIDOMNode;
+class nsIDOMHTMLFormElement;
 
 PR_BEGIN_EXTERN_C
 
@@ -107,7 +108,7 @@ extern void
 WLLT_GetPrefillListForViewer(nsAString& aPrefillList);
 
 extern void
-WLLT_OnSubmit(nsIContent* formNode, nsIDOMWindowInternal* window);
+WLLT_OnSubmit(nsIDOMHTMLFormElement* formNode, nsIDOMWindowInternal* window);
 
 extern void
 WLLT_ExpirePassword(PRBool* status);
