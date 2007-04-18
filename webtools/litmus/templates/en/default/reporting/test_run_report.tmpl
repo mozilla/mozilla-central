@@ -133,7 +133,7 @@ Any OS
         [% ELSE %]
           [% classname=result.status= %]
         [% END %]
-      [% END %][% classname%]">[% IF testcase_coverage.${testcase.testcase_id}.${sysconfig.id}.size == 1 %]<a href="single_result.cgi?id=[% testcase_coverage.${testcase.testcase_id}.${sysconfig.id}.0.result_id %]">[% ELSE %]<a href="advanced_search.cgi?test_run_id=[% test_run.test_run_id %]&amp;testcase=[% testcase.testcase_id %]">[% END %][% testcase_coverage.${testcase.testcase_id}.${sysconfig.id}.size %]</a></td>[% ELSE %]<td align="center">0</td>[% END %]
+      [% END %][% classname%]">[% IF testcase_coverage.${testcase.testcase_id}.${sysconfig.id}.size == 1 %]<a href="single_result.cgi?id=[% testcase_coverage.${testcase.testcase_id}.${sysconfig.id}.0.result_id %]">[% ELSE %]<a href="advanced_search.cgi?test_run=[% test_run.test_run_id %]&amp;testcase=[% testcase.testcase_id %]">[% END %][% testcase_coverage.${testcase.testcase_id}.${sysconfig.id}.size %]</a></td>[% ELSE %]<td align="center">0</td>[% END %]
     [% END %]
   [% ELSE %]
     [% IF testcase_coverage.${testcase.testcase_id}.catchall %]<td align="center" class="[% classname="fail" %]
@@ -146,7 +146,7 @@ Any OS
         [% END %]
       [% END %][% classname %]">
       [% IF testcase_coverage.${testcase.testcase_id}.catchall.size == 1 %]<a href="single_result.cgi?id=[% testcase_coverage.${testcase.testcase_id}.catchall.0.result_id %]">
-      [% ELSE %]<a href="advanced_search.cgi?test_run_id=[% test_run.test_run_id %]&amp;testcase=[% testcase.testcase_id %]">
+      [% ELSE %]<a href="advanced_search.cgi?test_run=[% test_run.test_run_id %]&amp;testcase=[% testcase.testcase_id %]">
       [% END %]
       [% testcase_coverage.${testcase.testcase_id}.catchall.size %]</a></td>
     [% ELSE %]<td align="center">0</td>[% END %]
