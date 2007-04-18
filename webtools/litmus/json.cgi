@@ -32,15 +32,20 @@ use strict;
 use Litmus;
 use Litmus::Auth;
 use Litmus::Error;
+use Litmus::DB::TestRun;
 use Text::Markdown;
 use JSON;
 
 use CGI;
 use Date::Manip;
 
+my $json = JSON->new(skipinvalid => 1, convblessed => 1);
+
 Litmus->init();
 my $c = Litmus->cgi(); 
 print $c->header('text/plain');
+
+my $js;
 
 if ($c->param("testcase_id")) {
   my $testcase_id = $c->param("testcase_id");
@@ -49,14 +54,12 @@ if ($c->param("testcase_id")) {
   my @subgroups = Litmus::DB::Subgroup->search_ByTestcase($testcase_id);
   $testcase->{'testgroups'} = \@testgroups;
   $testcase->{'subgroups'} = \@subgroups;
-  my $json = JSON->new(skipinvalid => 1, convblessed => 1);
   
   # apply markdown formatting to the steps and expected results:
   $testcase->{'steps_formatted'} = Text::Markdown::markdown($testcase->steps());
   $testcase->{'expected_results_formatted'} = Text::Markdown::markdown($testcase->expected_results());
   
-  my $js = $json->objToJson($testcase);
-  print $js;
+  $js = $json->objToJson($testcase);
 } elsif ($c->param("subgroup_id")) {
   my $subgroup_id = $c->param("subgroup_id");
   my $subgroup = Litmus::DB::Subgroup->retrieve($subgroup_id);
@@ -64,9 +67,7 @@ if ($c->param("testcase_id")) {
   my @testcases = Litmus::DB::Testcase->search_BySubgroup($subgroup_id);
   $subgroup->{'testgroups'} = \@testgroups;
   $subgroup->{'testcases'} = \@testcases;
-  my $json = JSON->new(skipinvalid => 1, convblessed => 1);
-  my $js = $json->objToJson($subgroup);
-  print $js;
+  $js = $json->objToJson($subgroup);
 } elsif ($c->param("testgroup_id")) {
   my $testgroup_id = $c->param("testgroup_id");
   my $testgroup = Litmus::DB::Testgroup->retrieve($testgroup_id);
@@ -74,9 +75,21 @@ if ($c->param("testcase_id")) {
   $testgroup->{'subgroups'} = \@subgroups;
   my @branches = Litmus::DB::Branch->search_ByTestgroup($testgroup_id);
   $testgroup->{'branches'} = \@branches;
-  my $json = JSON->new(skipinvalid => 1, convblessed => 1);
-  my $js = $json->objToJson($testgroup);
-  print $js;
+  $js = $json->objToJson($testgroup);
+} elsif ($c->param("test_run_id")) {
+  my $test_run_id = $c->param("test_run_id");
+  my $test_run = Litmus::DB::TestRun->retrieve($test_run_id);
+  if ($c->param("coverage")) {
+    my $coverage = $test_run->coverage;
+    print '{"test_run_id":' . $test_run_id . ',"coverage":' . $coverage . '}';
+    exit 0;
+  } else {
+    my @testgroups = Litmus::DB::Testgroup->search_ByTestRun($test_run_id);
+    $test_run->{'testgroups'} = \@testgroups;
+    my $criteria = $test_run->getCriteria();
+    $test_run->{'criteria'} = $criteria;  
+    $js = $json->objToJson($test_run);
+  }
 } elsif ($c->param("validate_login")) {
   my $uname = $c->param("username");
   my $passwd = $c->param("password");
@@ -84,59 +97,45 @@ if ($c->param("testcase_id")) {
   if (!$login) { $login = 0 }
   else { $login = 1 } 
   print $login;
+  exit 0;
 } elsif ($c->param("product_id")) {
   my $product_id = $c->param("product_id");
   my $product = Litmus::DB::Product->retrieve($product_id);
-  my $json = JSON->new(skipinvalid => 1, convblessed => 1);
-  my $js = $json->objToJson($product);
-  print $js;
+  $js = $json->objToJson($product);
 } elsif ($c->param("platform_id")) {
   my $platform_id = $c->param("platform_id");
   my $platform = Litmus::DB::Platform->retrieve($platform_id);
   my @products = Litmus::DB::Product->search_ByPlatform($platform_id);
   $platform->{'products'} = \@products;
-  my $json = JSON->new(skipinvalid => 1, convblessed => 1);
-  my $js = $json->objToJson($platform);
-  print $js;
+  $js = $json->objToJson($platform);
 } elsif ($c->param("opsys_id")) {
   my $opsys_id = $c->param("opsys_id");
   my $opsys = Litmus::DB::Opsys->retrieve($opsys_id);
-  my $json = JSON->new(skipinvalid => 1, convblessed => 1);
-  my $js = $json->objToJson($opsys);
-  print $js;
+  $js = $json->objToJson($opsys);
 } elsif ($c->param("branch_id")) {
   my $branch_id = $c->param("branch_id");
   my $branch = Litmus::DB::Branch->retrieve($branch_id);
-  my $json = JSON->new(skipinvalid => 1, convblessed => 1);
-  my $js = $json->objToJson($branch);
-  print $js;
+  $js = $json->objToJson($branch);
 } elsif ($c->param("testday_id")) {
   use Litmus::DB::TestDay;
   my $testday_id = $c->param("testday_id");
   my $testday = Litmus::DB::TestDay->retrieve($testday_id);
-  my $json = JSON->new(skipinvalid => 1, convblessed => 1);
-  my $js = $json->objToJson($testday);
-  print $js;
+  $js = $json->objToJson($testday);
 } elsif ($c->param("products")) {
   my @products = Litmus::DB::Product->retrieve_all();
-  my $json = JSON->new(skipinvalid => 1, convblessed => 1);
-  my $js = $json->objToJson(\@products);
-  print $js;
+  $js = $json->objToJson(\@products);
 } elsif ($c->param("platforms")) {
   my @platforms = Litmus::DB::Platform->retrieve_all();
-  my $json = JSON->new(skipinvalid => 1, convblessed => 1);
-  my $js = $json->objToJson(\@platforms);
-  print $js;
+  $js = $json->objToJson(\@platforms);
 } elsif ($c->param("opsyses")) {
   my @opsyses = Litmus::DB::Opsys->retrieve_all();
-  my $json = JSON->new(skipinvalid => 1, convblessed => 1);
-  my $js = $json->objToJson(\@opsyses);
-  print $js;
+  $js = $json->objToJson(\@opsyses);
 } elsif ($c->param("branches")) {
   my @branches = Litmus::DB::Branch->retrieve_all();
-  my $json = JSON->new(skipinvalid => 1, convblessed => 1);
-  my $js = $json->objToJson(\@branches);
-  print $js;
+  $js = $json->objToJson(\@branches);
 } 
 
+print $js;
+
+exit 0;
 
