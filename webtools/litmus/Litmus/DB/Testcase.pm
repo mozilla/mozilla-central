@@ -185,8 +185,10 @@ sub isCompleted {
   return @results;
 }
 
+#########################################################################
 sub coverage() {
     my $self = shift;
+    my $test_run_id = shift;
     my $build_id = shift;
     my $platform_id = shift;
     my $opsys_id = shift;
@@ -194,14 +196,25 @@ sub coverage() {
     my $user = shift;        # optional
     my $trusted = shift;        # optional
  
-#   print STDERR "b:$build_id p:$platform_id o:$opsys_id l:$locale u:$user t:$trusted\n";
-  
-    # Propagate subgroup membership;
     my $dbh = __PACKAGE__->db_Main();
     my $select = "SELECT tr.testresult_id, trsl.class_name";
     my $from = " FROM test_results tr, users u, opsyses o, test_result_status_lookup trsl";
     my $where = " WHERE tr.testcase_id=" . quotemeta($self->{'testcase_id'}) . " AND tr.user_id=u.user_id AND tr.opsys_id=o.opsys_id AND tr.result_status_id=trsl.result_status_id";
     my $order_by = " ORDER BY tr.submission_time DESC";
+
+    if ($test_run_id) {
+        $from .= ", test_runs trun, test_run_testgroups truntg, subgroup_testgroups sgtg, testcase_subgroups tcsg, testcases tc";
+        $where .= " AND trun.test_run_id=" . quotemeta($test_run_id);
+        $where .= " AND trun.test_run_id=truntg.test_run_id";
+        $where .= " AND truntg.testgroup_id=sgtg.testgroup_id";
+        $where .= " AND sgtg.subgroup_id=tcsg.subgroup_id";
+        $where .= " AND tcsg.testcase_id=tc.testcase_id";
+        $where .= " AND tc.testcase_id=tr.testcase_id";
+        $where .= " AND tr.submission_time>=trun.start_timestamp";
+        $where .= " AND tr.submission_time<trun.finish_timestamp";
+        $where .= " AND trun.product_id=tc.product_id";
+        $where .= " AND trun.branch_id=tr.branch_id";
+    }
 
     if ($build_id) {
         $where .= " AND tr.build_id=" . quotemeta($build_id);
@@ -222,7 +235,7 @@ sub coverage() {
         $where .= " AND u.is_admin=1";
     }
     my $sql = $select . $from . $where . $order_by;
-#    print $sql,"<br/>\n";
+    #print $sql,"<br/>\n";
     my $sth = $dbh->prepare_cached($sql);
     $sth->execute();
     my @test_results;

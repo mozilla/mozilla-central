@@ -57,64 +57,106 @@
 <table class="test_run_report">
 <tr>
 <td><strong>Criteria</strong></td>
+[% IF test_run.criteria && test_run.criteria.size > 0 %]
 [% FOREACH criterion=test_run.criteria %]
-<th>[% criterion.build_id || "" %]<br/>
+<th>[% criterion.build_id || "Any Build ID" %]<br/>
 [% criterion.platform_name || "Any Platform" %]<br/>
 [% criterion.opsys_name || "Any OS" %]
+</th>
+[% END %]
+[% ELSE %]
+<th>Any Build ID<br/>
+Any Platform<br/>
+Any OS
 </th>
 [% END %]
 </tr>
 
 [% FOREACH testgroup=testgroups %]
 <tr>
-<td class="testgroup" colspan="[% sysconfigs.size + 1 %]">Testgroup: [% testgroup.name %]</td>
+<td class="testgroup" colspan="[% IF sysconfigs && sysconfigs.size>0 %][% sysconfigs.size + 1 %][% ELSE %]2[% END %]">Testgroup: [% testgroup.name %]</td>
 </tr>
 
 [% FOREACH subgroup=subgroups.${testgroup.testgroup_id} %]
 <tr>
-<td class="subgroup" colspan="[% sysconfigs.size + 1 %]">Subgroup: [% subgroup.name %]</td>
+<td class="subgroup" colspan="[% IF sysconfigs && sysconfigs.size>0 %][% sysconfigs.size + 1 %][% ELSE %]2[% END %]">Subgroup: [% subgroup.name %]</td>
 </tr>
 [% FOREACH testcase=testcases.${subgroup.subgroup_id} %]
   [% classname="pass" %]
   [% all_configs_tested=1 %]
   [% all_configs_pass=1 %]
-  [% FOREACH sysconfig=sysconfigs %]
-    [% IF ! testcase_coverage.${testcase.testcase_id}.${sysconfig.id} %]
+  [% IF sysconfigs && sysconfigs.size > 0 %]
+    [% FOREACH sysconfig=sysconfigs %]
+      [% IF ! testcase_coverage.${testcase.testcase_id}.${sysconfig.id} %]
+        [% all_configs_tested=0 %]
+        [% LAST %]
+      [% ELSE %]
+        [% any_results_pass=0 %]
+        [% FOREACH result=testcase_coverage.${testcase.testcase_id}.${sysconfig.id} %]
+          [% classname=result.status %]
+          [% IF result.status=="pass" %]
+            [% any_results_pass=1 %]
+            [% LAST %]
+          [% END %]
+        [% END %]
+        [% IF ! any_results_pass %]
+          [% all_configs_pass=0 %]
+          [% LAST %]
+        [% END %]
+      [% END %]
+    [% END %]
+  [% ELSE %]
+    [% IF ! testcase_coverage.${testcase.testcase_id}.catchall %]
       [% all_configs_tested=0 %]
-      [% LAST %]
     [% ELSE %]
       [% any_results_pass=0 %]
-      [% FOREACH result=testcase_coverage.${testcase.testcase_id}.${sysconfig.id} %]
+      [% FOREACH result=testcase_coverage.${testcase.testcase_id}.catchall %]
         [% classname=result.status %]
         [% IF result.status=="pass" %]
-	  [% any_results_pass=1 %]
+          [% any_results_pass=1 %]
           [% LAST %]
-	[% END %]
+        [% END %]
       [% END %]
       [% IF ! any_results_pass %]
         [% all_configs_pass=0 %]
-        [% LAST %]
       [% END %]
-    [% END %]
+    [% END %]  
   [% END %]
 <tr class="[% IF all_configs_tested %][% IF all_configs_pass %]pass[% ELSE %][% classname %][% END %][% ELSE %][% IF not (loop.count % 2) %]even[% ELSE %]odd[% END %][% END %]">
 <td>[% testcase.testcase_id %]: [% testcase.summary %]</td>
-  [% FOREACH sysconfig=sysconfigs %]
-    [% IF testcase_coverage.${testcase.testcase_id}.${sysconfig.id} %]<td align="center" class="[% classname="fail" %][% FOREACH result=testcase_coverage.${testcase.testcase_id}.${sysconfig.id} %]
-  [% IF result.status=="pass" %]
-    [% classname="pass" %]
-    [% LAST %]
+  [% IF sysconfigs && sysconfigs.size > 0 %]
+    [% FOREACH sysconfig=sysconfigs %]
+      [% IF testcase_coverage.${testcase.testcase_id}.${sysconfig.id} %]<td align="center" class="[% classname="fail" %][% FOREACH result=testcase_coverage.${testcase.testcase_id}.${sysconfig.id} %]
+        [% IF result.status=="pass" %]
+          [% classname="pass" %]
+          [% LAST %]
+        [% ELSE %]
+          [% classname=result.status= %]
+        [% END %]
+      [% END %][% classname%]">[% IF testcase_coverage.${testcase.testcase_id}.${sysconfig.id}.size == 1 %]<a href="single_result.cgi?id=[% testcase_coverage.${testcase.testcase_id}.${sysconfig.id}.0.result_id %]">[% ELSE %]<a href="advanced_search.cgi?test_run_id=[% test_run.test_run_id %]&amp;testcase=[% testcase.testcase_id %]">[% END %][% testcase_coverage.${testcase.testcase_id}.${sysconfig.id}.size %]</a></td>[% ELSE %]<td align="center">0</td>[% END %]
+    [% END %]
   [% ELSE %]
-    [% classname=result.status= %]
-  [% END %]
-[% END %][% classname%]">[% IF testcase_coverage.${testcase.testcase_id}.${sysconfig.id}.size == 1 %]<a href="single_result.cgi?id=[% testcase_coverage.${testcase.testcase_id}.${sysconfig.id}.0.result_id %]">[% ELSE %]<a href="advanced_search.cgi?test_run_id=[% test_run.test_run_id %]&amp;testcase=[% testcase.testcase_id %]">[% END %][% testcase_coverage.${testcase.testcase_id}.${sysconfig.id}.size %]</a></td>[% ELSE %]<td align="center">0</td>[% END %]
+    [% IF testcase_coverage.${testcase.testcase_id}.catchall %]<td align="center" class="[% classname="fail" %]
+      [% FOREACH result=testcase_coverage.${testcase.testcase_id}.catchall %]
+        [% IF result.status=="pass" %]
+          [% classname="pass" %]
+          [% LAST %]
+        [% ELSE %]
+          [% classname=result.status= %]
+        [% END %]
+      [% END %][% classname %]">
+      [% IF testcase_coverage.${testcase.testcase_id}.catchall.size == 1 %]<a href="single_result.cgi?id=[% testcase_coverage.${testcase.testcase_id}.catchall.0.result_id %]">
+      [% ELSE %]<a href="advanced_search.cgi?test_run_id=[% test_run.test_run_id %]&amp;testcase=[% testcase.testcase_id %]">
+      [% END %]
+      [% testcase_coverage.${testcase.testcase_id}.catchall.size %]</a></td>
+    [% ELSE %]<td align="center">0</td>[% END %]
   [% END %]
 </tr>
 [% END %]
 [% END %]
 [% IF ! loop.last %]
 <tr>
-<td colspan="[% sysconfigs.size + 1 %]"><hr/></td>
+<td colspan="[% IF sysconfigs && sysconfigs.size>0 %][% sysconfigs.size + 1 %][% ELSE %]2[% END %]"><hr/></td>
 </tr>
 [% END %]
 [% END %]

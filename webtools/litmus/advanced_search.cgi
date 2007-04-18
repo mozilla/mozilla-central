@@ -164,7 +164,7 @@ if ($c->param) {
                           value => $value};
             $where_criteria .= "Branch is \'".$c->param($param)."\'<br/>";
             $defaults->{branch} =  $c->param($param);
-        } elsif ($param eq 'test_run_id') {
+        } elsif ($param eq 'test_run') {
             my $value = $c->param($param);
             push @where, {field => $param,
                           value => $value};

@@ -259,7 +259,7 @@ sub getTestResults($\@\@$) {
             ($from,$where) = &_processSearchField($criterion,$from,$where);
         } elsif ($criterion->{'field'} eq 'has_comments') {
           $from =~ s/^FROM test_results tr,/FROM test_results tr INNER JOIN test_result_comments trc ON tr.testresult_id=trc.test_result_id,/;
-       } elsif ($criterion->{'field'} eq 'test_run_id') {
+       } elsif ($criterion->{'field'} eq 'test_run') {
             # First check to make sure test run exists.
             my $test_run = Litmus::DB::TestRun->retrieve($criterion->{'value'});
             if ($test_run) {
@@ -268,6 +268,8 @@ sub getTestResults($\@\@$) {
                 $where .= " AND trun.test_run_id=" . $criterion->{'value'};
                 $where .= " AND trun.test_run_id=truntg.test_run_id";
                 $where .= " AND truntg.testgroup_id=sgtg.testgroup_id";
+                $where .= " AND tr.submission_time>=trun.start_timestamp";
+                $where .= " AND tr.submission_time<trun.finish_timestamp";
                 $where .= " AND trun.product_id=pr.product_id";
                 $where .= " AND trun.branch_id=b.branch_id";
             

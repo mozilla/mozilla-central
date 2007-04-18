@@ -53,14 +53,14 @@ if (!$test_run_id) {
 my $test_run = Litmus::DB::TestRun->getTestRunWithRefs($test_run_id);
 my @sysconfigs;
 foreach my $criterion (@{$test_run->{'criteria'}}) {
-    my $sysconfig = Litmus::SysConfig::new(
-                                           $test_run_id,
-                                           $criterion->{'build_id'},
-                                           $criterion->{'platform_id'} || undef,
-                                           $criterion->{'opsys_id'} || undef,
-                                           undef
-                                          );
-    push @sysconfigs, $sysconfig;
+  my $sysconfig = Litmus::SysConfig::new(
+                                         $test_run_id,
+                                         $criterion->{'build_id'} || undef,
+                                         $criterion->{'platform_id'} || undef,
+                                         $criterion->{'opsys_id'} || undef,
+                                         undef
+                                        );
+  push @sysconfigs, $sysconfig;
 }
 
 my $user =  Litmus::Auth::getCookie();
@@ -92,14 +92,26 @@ foreach my $testgroup (@testgroups) {
     }
     $testcases{$subgroup->subgroup_id()} = \@component_testcases;
     foreach my $testcase (@component_testcases) {
-        foreach my $sysconfig (@sysconfigs) {
+        if (scalar @sysconfigs > 0) {
+            foreach my $sysconfig (@sysconfigs) {
+                my $coverage = $testcase->coverage(
+                                                   $test_run_id,
+                                                   $sysconfig->{'build_id'} || 0,
+                                                   $sysconfig->{'platform_id'} || 0,
+                                                   $sysconfig->{'opsys_id'} || 0,
+                                                   $sysconfig->{'locale'} || 0
+                                                  );
+                $testcase_coverage{$testcase->{'testcase_id'}}{$sysconfig->{'id'}} = $coverage || 0;
+            }
+        } else {
             my $coverage = $testcase->coverage(
-                                               $sysconfig->{'build_id'} || 0,
-                                               $sysconfig->{'platform_id'} || 0,
-                                               $sysconfig->{'opsys_id'} || 0,
-                                               $sysconfig->{'locale'} || 0
+                                               $test_run_id,
+                                               0,
+                                               0,
+                                               0,
+                                               0
                                               );
-            $testcase_coverage{$testcase->{'testcase_id'}}{$sysconfig->{'id'}} = $coverage || 0;
+            $testcase_coverage{$testcase->{'testcase_id'}}{'catchall'} = $coverage || 0;          
         }
     }
   }
