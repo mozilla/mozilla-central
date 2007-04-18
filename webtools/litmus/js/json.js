@@ -136,6 +136,6 @@ function fetchJSON(url,callbackFunction,silent) {
       return;
     }
     logError(err);
-    logger.debuggingBookmarklet();
+    //logger.debuggingBookmarklet();
   });
 }
