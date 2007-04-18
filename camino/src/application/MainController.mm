@@ -107,6 +107,9 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 
 @interface MainController(Private)<NetworkServicesClient>
 
+- (void)ensureGeckoInitted;
+- (void)ensureInitializationCompleted;
+- (void)setInitialized:(BOOL)flag;
 - (void)setupStartpage;
 - (void)setupRendezvous;
 - (void)checkDefaultBrowser;
@@ -199,16 +202,30 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
   const nsModuleComponentInfo* comps = GetAppComponents(&numComps);
   CHBrowserService::RegisterAppComponents(comps, numComps);
 
-  // To work around a bug on Tiger where the view hookup order has been changed from postfix to prefix
-  // order, we need to set a user default to return to the old behavior.
-  [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"NSViewSetAncestorsWindowFirst"];
-
   mGeckoInitted = YES;
 }
 
-- (void)applicationDidFinishLaunching:(NSNotification*)aNotification
+- (BOOL)isInitialized
 {
+  return mInitialized;
+}
+
+- (void)setInitialized:(BOOL)flag
+{
+  mInitialized = flag;
+}
+
+- (void)ensureInitializationCompleted
+{
+  if ([self isInitialized])
+    return;
+
   [self ensureGeckoInitted];
+
+  // To work around bugs on Tiger caused by the view hookup order having been
+  // changed from postfix to prefix order, we need to set a user default to
+  // return to the old behavior.
+  [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"NSViewSetAncestorsWindowFirst"];
 
   NSNotificationCenter* notificationCenter = [NSNotificationCenter defaultCenter];
   // turn on menu display notifications
@@ -311,6 +328,13 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 
   // delay the default browser check to give the first page time to load
   [self performSelector:@selector(checkDefaultBrowser) withObject:nil afterDelay:2.0f];
+
+  [self setInitialized:YES];
+}
+
+- (void)applicationDidFinishLaunching:(NSNotification*)aNotification
+{
+  [self ensureInitializationCompleted];
 }
 
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication*)sender
@@ -694,9 +718,9 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 
 - (BOOL)application:(NSApplication*)theApplication openFile:(NSString*)filename
 {
-  // We can get called before -applicationDidFinishLaunching, so make sure gecko
-  // has been initted
-  [self ensureGeckoInitted];
+  // We can get here before the application is fully initialized and the previous
+  // session is restored.  We want to avoid opening URLs before that happens.
+  [self ensureInitializationCompleted];
 
   NSURL* urlToOpen = [MainController decodeLocalFileURL:[NSURL fileURLWithPath:filename]];
   [self showURL:[urlToOpen absoluteString]];

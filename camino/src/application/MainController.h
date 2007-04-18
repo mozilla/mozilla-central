@@ -88,6 +88,7 @@ typedef enum EBookmarkOpenBehavior
     IBOutlet NSMenuItem*    mCreateBookmarksSeparatorMenuItem;  // unused
     IBOutlet NSMenuItem*    mShowAllBookmarksMenuItem;
 
+    BOOL                    mInitialized;
     BOOL                    mOffline;
     BOOL                    mGeckoInitted;
     BOOL                    mBookmarksMenuUpdatePending;
@@ -106,6 +107,8 @@ typedef enum EBookmarkOpenBehavior
     SharedMenusObj*         mSharedMenusObj;
     NSMutableDictionary*    mCharsets;
 }
+
+- (BOOL)isInitialized;
 
 // Application menu actions
 - (IBAction)aboutWindow:(id)sender;
@@ -176,8 +179,6 @@ typedef enum EBookmarkOpenBehavior
 - (IBAction)setFileExtension:(id)aSender;
 // used by page info panel to show certificate information
 - (IBAction)showCertificates:(id)aSender;
-
-- (void)ensureGeckoInitted;
 
 // if the main/key window is a browser window, return its controller, otherwise nil
 - (BrowserWindowController*)getMainWindowBrowserController;
