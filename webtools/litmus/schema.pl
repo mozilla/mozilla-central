@@ -221,7 +221,7 @@ $table{test_results} =
          vetted_by_user_id int(11) default \'0\',
          validated_timestamp datetime,
          vetted_timestamp datetime,
-     is_automated_result tinyint(1) not null default \'0\',
+         is_automated_result tinyint(1) not null default \'0\',
 	 
 	 index(testcase_id),
 	 index(last_updated),
@@ -243,7 +243,8 @@ $table{test_results} =
          index(validated_by_user_id),
          index(vetted_by_user_id),
          index(validated_timestamp),
-         index(vetted_timestamp)';
+         index(vetted_timestamp),
+         index(is_automated_result)';
 
 $table{test_run_criteria} = 
 	'test_run_id int(11) not null,
@@ -256,32 +257,39 @@ $table{test_run_criteria} =
 $table{test_run_testgroups} = 
 	'test_run_id int(11) not null,
          testgroup_id smallint(6) not null,
+         sort_order smallint(6) not null default "1",
 
-         primary key(test_run_id,testgroup_id)';
+         primary key(test_run_id,testgroup_id),
+         index(sort_order)';
 
 $table{test_runs} = 
 	'test_run_id int(11) not null primary key auto_increment,
          name varchar(64) not null,
          description varchar(255),
-         start_timestamp datetime not null,
-         finish_timestamp datetime not null,
+         start_timestamp timestamp not null,
+         finish_timestamp timestamp not null,
          enabled tinyint(1) not null default "1",
+         recommended tinyint(1) not null default "0",
          product_id tinyint(4) not null,
          branch_id smallint(6) not null,
-         creation_date datetime not null,
-         last_updated datetime not null,
+         creation_date timestamp not null,
+         last_updated timestamp not null,
          author_id int(11) not null,
+         version smallint(6) not null default "1",
 
          index(name),
          index(description),
          index(start_timestamp),
          index(finish_timestamp),
          index(enabled),
+         index(recommended),
          index(product_id),
          index(branch_id),
          index(creation_date),
          index(last_updated),
-         index(author_id)';
+         index(author_id),
+         index(version)';
+
 
 $table{testcase_subgroups} =
         'testcase_id int(11) not null,

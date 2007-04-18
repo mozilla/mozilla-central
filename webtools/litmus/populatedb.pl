@@ -248,6 +248,14 @@ $dbtool->DropField("test_result_logs", "test_result_id");
 
 $dbtool->AddField("test_results", "is_automated_result", "tinyint(1) not null default '0'");
 
+$dbtool->AddField("test_runs", "recommended", "tinyint(1) not null default '0'");
+$dbtool->AddKey("test_runs", 'recommended (recommended)', '');
+
+$dbtool->AddField("test_runs", "version", "smallint(6) not null default '1'");
+$dbtool->AddKey("test_runs", 'version (version)', '');
+$dbtool->AddField("test_run_testgroups", "sort_order", "smallint(6) not null default '1'");
+$dbtool->AddKey("test_run_testgroups", 'sort_order (sort_order)', '');
+
 print "Schema update complete.\n\n";
 print <<EOS;
 Due to the schema changes introduced, and depending on the when you last 
