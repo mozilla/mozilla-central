@@ -53,3 +53,9 @@ tier_app_dirs += \
 	calendar \
 	calendar/sunbird \
 	$(NULL)
+
+installer:
+	@$(MAKE) -C calendar/installer installer
+
+package:
+	@$(MAKE) -C calendar/installer

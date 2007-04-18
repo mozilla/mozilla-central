@@ -72,3 +72,9 @@ tier_app_dirs += suite
 ifndef MOZ_XUL_APP
 tier_app_dirs += xpfe/bootstrap
 endif
+
+installer:
+	@$(MAKE) -C xpinstall/packager installer
+
+package:
+	@$(MAKE) -C xpinstall/packager

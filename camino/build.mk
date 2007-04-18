@@ -57,3 +57,6 @@ tier_app_dirs += \
 	embedding/config \
 	camino \
 	$(NULL)
+
+package:
+	@$(MAKE) -C camino/installer

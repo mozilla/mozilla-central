@@ -54,3 +54,9 @@ tier_app_dirs += \
 	mailnews \
 	mail \
 	$(NULL)
+
+installer:
+	@$(MAKE) -C mail/installer installer
+
+package:
+	@$(MAKE) -C mail/installer
