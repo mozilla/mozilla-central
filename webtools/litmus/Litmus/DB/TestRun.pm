@@ -229,7 +229,9 @@ sub update_criteria() {
     my $dbh = __PACKAGE__->db_Main();
     my $sql = "INSERT INTO test_run_criteria (test_run_id,build_id,platform_id,opsys_id) VALUES (?,?,?,?)";
     foreach my $criterion (@$new_criteria) {
-      next if (!$criterion);
+      next if (!$criterion or
+               !$criterion->{'build_id'} or
+               !$criterion->{'build_id'} eq '');
       # Log any failures/duplicate keys to STDERtr.
       eval {
         my $rows = $dbh->do($sql,
