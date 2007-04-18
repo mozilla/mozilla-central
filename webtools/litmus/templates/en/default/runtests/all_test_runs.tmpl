@@ -28,13 +28,10 @@
 [%# INTERFACE:
 #%]
 
-[% INCLUDE global/html_header.tmpl js_files=['js/Help.js','js/prototype.lite.js','js/json.js','js/MochiKit/MochiKit.js','js/TestRunCoverage.js','js/RunTests.js','js/SelectBoxes.js','js/FormValidation.js'] %]
+[% INCLUDE global/html_header.tmpl js_files=['js/Help.js','js/prototype.lite.js','js/json.js','js/MochiKit/MochiKit.js','js/TestRunCoverage.js','js/RunTests.js'] %]
 [% INCLUDE global/litmus_header.tmpl %]
 
 <script type="text/javascript">
-var test_run=[% IF test_run_js %][% test_run_js %][% ELSE %]{}[% END %];
-var platforms=[% IF platforms_js %][% platforms_js %][% ELSE %]{}[% END %];
-var opsyses=[% IF opsyses_js %][% opsyses_js %][% ELSE %]{}[% END %];
 </script>
 
 <div id="page">
@@ -43,8 +40,9 @@ var opsyses=[% IF opsyses_js %][% opsyses_js %][% ELSE %]{}[% END %];
 
   <div id="content">
 
-[% INCLUDE instructions/required_criteria.tmpl %]
-[% INCLUDE runtests/test_run_detail.tmpl active_test_runs=test_run select_criteria=-1 display_title_link=0 %]
+[% INCLUDE instructions/selecting_a_test_run.tmpl %]
+[% INCLUDE runtests/test_run_detail.tmpl title="Active Test Runs - Recommended" active_test_runs=recommended_test_runs recommended=1 display_title_link=1 %]
+[% INCLUDE runtests/test_run_detail.tmpl  title="Active Test Runs - Remaining"  active_test_runs=remaining_test_runs recommended=0 display_title_link=1 %]
 
   </div> <!--END content-->
 

@@ -37,7 +37,8 @@
   #                         from the current group
 #%]
 
-[% INCLUDE global/html_header.tmpl %] 
+[% test_run=test_runs.0 %]
+[% INCLUDE global/html_header.tmpl js_files=['js/prototype.lite.js','js/moo.fx.js','js/moo.fx.pack.js','js/RunTests.js','js/json.js','js/MochiKit/MochiKit.js','js/TestRunCoverage.js'] %] 
 [% INCLUDE global/litmus_header.tmpl %] 
 
 <div id="page">
@@ -46,21 +47,29 @@
 
   <div id="content">
 
-    <h1 class="firstHeading">[% title | html %]</h1>
+[% INCLUDE instructions/continue_testing.tmpl %]
 
-<div class="section-full">
-  <div class="section-header">
-Results submitted
-  </div>
+<h1 class="firstHeading"><a title="Click to display details of your chosen Test Run." onclick="testConfigHeight.toggle('height');" name="test_run_details">Run Tests - Your Chosen Test Run&nbsp;&raquo;</a></h1>
+
+<div id="test_run_summary">
+[% INCLUDE reporting/test_run_summary.tmpl active_test_runs=test_runs display_title_link=0 %]
+</div>
+
+<hr/>
+
+    <h1 class="firstHeading">Test results submitted</h1>
+
+<div class="section-center">
+
   <div class="section-content">
 
-<p>Thank you for your testing efforts.</p>
-
+<p>
 [% IF testcount %]
     [% IF testcount > 1 %] [% plural = 's' %] [% END %]
-    <p>You have submitted <strong>[% testcount FILTER html %]</strong> 
-      test result[% plural | html %].</p>
+    You have submitted <strong>[% testcount FILTER html %]</strong> 
+      test result[% plural | html %]. 
 [% END %]
+Thank you for your testing efforts.</p>
 
 [% IF resultcounts.keys.0 %]
     <p><strong>Result Summary:</strong></p>
@@ -89,11 +98,16 @@ Results submitted
     </table>
 [% END %]
 
-<p>
-  [% IF return %]
-    <a href="[% return | html | uri %]">Go Back</a> or 
-  [% END %]
-    <a href="run_tests.cgi?product=[% product.productid | html | uri %]&continuetesting=1[% IF testgroup %]&defaulttestgroup=[% testgroup.testgroup_id | html | uri %][% END %]">Run Some More Tests</a>
+<hr/>
+
+<p><strong>Where to now?</strong></p>
+<ul class="test_run_nav">
+    <li><a href="run_tests.cgi?test_run_id=[% test_run.test_run_id %]&amp;continuetesting=1[% IF testgroup %]&amp;defaulttestgroup=[% testgroup.testgroup_id | html | uri %][% END %]">Continue testing this Test Run under the same configuration.[% IF test_run.recommended %]<img class="inline" alt="*" src="images/yellowstar.gif" / title="Mozilla needs help testing this right now" />[% END %]</a></li>
+    <li><a href="run_tests.cgi?test_run_id=[% test_run.test_run_id %]">Continue testing this Test Run, but change my configuration.</a></li>    
+    <li><a href="run_tests.cgi">Select a new Test Run to test.</a></li>    
+    <li><a href="test_run_report.cgi?test_run_id=[% test_run.test_run_id %]">Show me the report for this Test Run.</a></li>    
+    <li><a href="index.cgi">Back to the Litmus main page.</a></li>    
+</ul>
 </p>
 
       </div> <!--END section-content-->
@@ -101,6 +115,12 @@ Results submitted
     </div> <!--END section-full-->
 
   </div> <!--END content-->
+
+  <script type="text/javascript">
+    testConfigHeight = new fx.Height('test_run_summary', {duration: 400});
+    testConfigHeight.toggle();
+    beginCoverageLookup();
+  </script>
 
 </div> <!--END page-->
 

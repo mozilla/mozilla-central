@@ -32,24 +32,26 @@
 
 [% title="View Testcase" %]
 
-[% includeselects=1 %] 
 [% INCLUDE global/html_header.tmpl js_files=['js/FormValidation.js','js/MochiKit/MochiKit.js','js/json.js','js/Help.js','js/SelectBoxes.js','js/FormPersist.js','js/ViewTestcase.js'] %]
 [% INCLUDE global/litmus_header.tmpl %]
 
 <script type="text/javascript">
-var products=[% products_js %];
-var testgroups=[% testgroups_js %];
-var subgroups=[% subgroups_js %];
+var products=[% IF products_js %][% products_js %][% ELSE %]{}[% END %];
+var branches=[% IF branches_js %][% branches_js %][% ELSE %]{}[% END %];
+var testgroups=[% IF testgroups_js %][% testgroups_js %][% ELSE %]{}[% END %];
+var subgroups=[% IF subgroups_js %][% subgroups_js %][% ELSE %]{}[% END %];
+var formName='testcase_search_by_category'; 
+var suffix='_id';
 
 function init() {
+  selectsOnLoad();
 [% IF searchType == "by_category" %]
-  productBox = document.getElementById('product_id');
-  testgroupBox = document.getElementById('testgroup_id');
   FormInit(document.forms['testcase_search_by_category'], document.location.search);
-  changeProduct(productBox);
+  changeProduct();
   FormInit(document.forms['testcase_search_by_category'], document.location.search);
-  changeTestgroup(testgroupBox);
+  changeBranch();
   FormInit(document.forms['testcase_search_by_category'], document.location.search);
+  changeTestgroup();
 [% END %]
 [% IF searchType == "by_id" %]
   FormInit(document.forms['testcase_search_by_id'], document.location.search);
@@ -93,18 +95,25 @@ var relevanceHelpText = '<p>Relevance values are non-negative floating-point num
 	      <table border="0">
                 <tr>
 		  <td>Product:</td>
+		  <td>Branch:</td>
+                </tr>
+		<tr>
+		  <td>
+                    [% INCLUDE form_widgets/select_product_id.tmpl name="product_id" placeholder=1 display_id=1 onchange="changeProduct();changeBranch();changeTestgroup;populateSubgroups();" %]
+                  </td>
+		  <td>
+                    [% INCLUDE form_widgets/select_branch_id.tmpl name="branch_id" placeholder=1 display_id=1 onchange="changeBranch();changeTestgroup();populateSubgroups();" %]
+                  </td>
+                <tr>
 		  <td>Testgroup:</td>
 	          <td>Subgroup:</td>
 		</tr>
-		<tr>
-		  <td>
-                    [% INCLUDE form_widgets/select_product_id.tmpl name="product_id" placeholder=1 onchange="changeProduct(this);" %]
-                  </td>
+                <tr>
 	          <td>
-                    [% INCLUDE form_widgets/select_testgroup_id.tmpl name="testgroup_id" placeholder=1 onchange="changeTestgroup(this);" %]
+                    [% INCLUDE form_widgets/select_testgroup_id.tmpl name="testgroup_id" placeholder=1 display_id=1 onchange="changeTestgroup();" %]
                   </td>
                   <td>
-                    [% INCLUDE form_widgets/select_subgroup_id.tmpl name="subgroup_id" placeholder=1 %]
+                    [% INCLUDE form_widgets/select_subgroup_id.tmpl name="subgroup_id" display_id=1 placeholder=1 %]
                   </td>
                 </tr>
               </table>

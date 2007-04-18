@@ -7,12 +7,12 @@ function MM_findObj(n, d) { //v4.01
 }
 
 function showsubgroup() {
-  var groupselect = MM_findObj("group");
-
+  var groupselect = MM_findObj("testgroup");
+  
   if (!groupselect) {
     return;
   }
-
+  
   var selnum;
 
   if (groupselect.value) {
@@ -68,6 +68,6 @@ function showsubgroup() {
 }
 
 function group_init() {
-    testConfigHeight = new fx.Height('testconfig', {duration: 400});
-    testConfigHeight.hide();
+    testConfigHeight = new fx.Height('test_run_summary', {duration: 400});
+    testConfigHeight.toggle();
 }

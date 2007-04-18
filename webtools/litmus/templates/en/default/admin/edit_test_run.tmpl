@@ -1,0 +1,197 @@
+[%# ***** BEGIN LICENSE BLOCK *****
+  # Version: MPL 1.1
+  #
+  # The contents of this file are subject to the Mozilla Public License Version
+  # 1.1 (the "License"); you may not use this file except in compliance with
+  # the License. You may obtain a copy of the License at
+  # http://www.mozilla.org/MPL/
+  #
+  # Software distributed under the License is distributed on an "AS IS" basis,
+  # WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+  # for the specific language governing rights and limitations under the
+  # License.
+  #
+  # The Original Code is Litmus.
+  #
+  # The Initial Developer of the Original Code is
+  # The Mozilla Corporation.
+  # Portions created by the Initial Developer are Copyright (C) 2006
+  # the Initial Developer. All Rights Reserved.
+  #
+  # Contributor(s):
+  #   Chris Cooper <ccooper@deadsquid.com>
+  #   Zach Lipton <zach@zachlipton.com>
+  #
+  # ***** END LICENSE BLOCK *****
+#%]
+
+[%# INTERFACE:
+  # $test_run   - the test_run object to show
+#%]
+
+      <form id="edit_test_run_form" name="edit_test_run_form" method="post" action="manage_test_runs.cgi" onSubmit="selectNone('testgroups_for_product');selectAll('test_run_testgroups');return checkFormContents(this);">
+      <input id="mode" name="mode" type="hidden" value="edit">
+      <input id="editform_test_run_id" name="editform_test_run_id" type="hidden" value="">
+
+      <table class="manage">
+	<tr>
+	<td class="headerleft">Test Run ID#:</td>
+	<td name="test_run_id_display" id="test_run_id_display"></td>
+	</tr>
+        <tr>
+        <td class="headerleft">Name:</td>
+        <td><input name="name"
+                   id="name"
+                   value=""
+                   size="35"/ disabled></td>
+        </tr>
+        <tr>
+        <td class="headerleft">Description:</td>
+        <td><textarea name="description"
+                      id="description"
+                      cols="40" rows="3" disabled></textarea></td>
+        </tr>
+	<tr>
+	<td class="headerleft">Product:</td>
+	<td>[% INCLUDE form_widgets/select_product_id.tmpl name="product" placeholder=1 multiple=0 size=1 display_id=1 onchange="changeProduct();populateBranches(document.getElementById('branch'),document.getElementById('product'));populateAllTestgroups();" %]</td>
+	</tr>
+        <tr>
+	<td class="headerleft">Branch:</td>
+	<td>[% INCLUDE form_widgets/select_branch_id.tmpl name="branch" placeholder=1 multiple=0 size=1 display_id=1 onchange="populateAllTestgroups();" %]</td>
+	</tr>
+        <tr>
+        <td class="headerleft">Start Timestamp:</td>
+        <td><input name="start_timestamp"
+                   id="start_timestamp"
+                   value=""
+                   size="35"/ disabled></td>
+        <td>&lArr;&nbsp;YYYYMMDDHHmmSS</td>
+        </tr>
+        <tr>
+        <td class="headerleft">Finish Timestamp:</td>
+        <td><input name="finish_timestamp"
+                   id="finish_timestamp"
+                   value=""
+                   size="35"/ disabled></td>
+        <td>&lArr;&nbsp;YYYYMMDDHHmmSS</td>
+        </tr>
+        <tr>
+          <td class="headerleft">Author:</td>
+	<td>[% INCLUDE form_widgets/select_author.tmpl name="author_id" disabled=1 placeholder=1 display_id=1 %]
+        </tr>
+        <tr>
+          <td class="headerleft">Enabled?</td>
+          <td>
+            <input name="enabled" 
+                   type="checkbox"
+                   id="enabled"
+                   value="1" disabled>
+          </td>
+          <td>&lArr;&nbsp;Uncheck this to completely disable this test run.</td>
+        </tr>
+        <tr>
+          <td class="headerleft">Recommended?</td>
+          <td>
+            <input name="recommended" 
+                   type="checkbox"
+                   id="recommended"
+                   value="1" disabled>
+          </td>
+          <td>&lArr;&nbsp;Recommended test runs will be displayed preferentially in the Mozilla Recommends... section.</td>
+        </tr>
+
+        <tr>
+          <td class="headerleft">Creation Date:</td>
+          <td name="creation_date" id="creation_date"></td>
+        </tr>
+        <tr>
+          <td class="headerleft">Last Updated:</td>
+          <td name="last_updated" id="last_updated"></td>
+        </tr>
+        <tr>
+          <td class="headerleft">Version #:</td>
+          <td name="version" id="version"></td>
+        </tr>
+
+ 	<tr>
+	<td colspan="3"><hr/></td>
+        </tr> 
+
+	<tr>
+          <td class="headerleft" colspan="3">Manage Test Run Criteria</td>
+        </tr>
+
+        <tr>
+          <td colspan="3">
+            <div class="manage">
+          <table class="newCriteria" id="tblNewCriteria" name="tblNewCriteria" border="0" cellspacing="10" cellpadding="0">
+
+            <tr>
+              <td class="headerleft">Build ID#</td>
+              <td class="headerleft">Platform</td>
+              <td class="headerleft">Operating System</td>
+            </tr>
+
+            <tr>
+              <td><input id="build_id_new_1" name="build_id_new_1" type="text" size="10" /></td>
+              <td>[% INCLUDE form_widgets/select_platform_id.tmpl name="platform_new_1" placeholder=1 size=1 show_name=1 display_id=1 onchange="changePlatform('_new_1');" %]</td>
+              <td>[% INCLUDE form_widgets/select_opsys_id.tmpl name="opsys_new_1" placeholder=1 size=1 show_name=1 display_id=1 classname="select_opsys" %]</td>
+              <td><input type="button" class="button" onclick="removeRowFromTable('tblNewCriteria');" value="-" /></td>
+              <td><input type="button" class="button" onclick="addRowToTable('tblNewCriteria');" value="+" /></td>
+            </tr>
+          </table>
+
+            </div>
+          
+          </td>
+        </tr>
+
+	<tr>
+	<td colspan="3"><hr/></td>
+        </tr> 
+
+	<tr>
+	<td class="headerleft" colspan="3">Manage Testgroups for this Test Run</td>
+        </tr> 
+
+	<tr>
+	<td colspan="3">
+	<div class="manage">
+          <table border="0" cellspacing="10" cellpadding="0" width="100%">
+            <tr>
+            <td id="testgroups_for_product_header" name="testgroups_for_product_header" class="headerleft">All Testgroups For Product/Branch</td>
+            <td></td>
+            <td class="headerleft">Testgroups in Test Run</td>
+            </tr>
+            <tr>
+            <td><select multiple class="testgroup-test-runs" id="testgroups_for_product" name="testgroups_for_product" size="15">
+            <option value="">--No Product/Branch selected--</option>
+            </select></td>
+            <td align="center" valign="middle"><input id="add_testgroup_button" name="add_testgroup_button" type="button" value="&rArr;" onClick="copyToList('testgroups_for_product','test_run_testgroups');"><br/><br/><input id="remove_testgroup_button" name="remove_testgroup_button" type="button" value="&lArr;" onClick="removeSelectedFromList('test_run_testgroups',true);"></td>
+            <td><select multiple class="testgroup-test-runs" id="test_run_testgroups" name="test_run_testgroups" size="15">
+            <option value="">--No Test Run selected--</option>
+            </select></td>
+            <td align="center" valign="middle"><input id="move_testgroup_up_button" name="move_testgroup_up_button" type="button" value="&uArr;" onClick="up('test_run_testgroups');"><br/><br/><input id="move_testgroup_down_button" name="move_testgroup_down_button" type="button" value="&dArr;" onClick="down('test_run_testgroups');"></td>
+            </tr>
+            <tr>
+            <td align="right">&uArr;&nbsp;<a name="previewTestgroup" onclick="previewTestgroup('testgroups_for_product');">Preview Testgroup</a></td>
+            <td></td>
+            <td align="right">&uArr;&nbsp;<a name="previewTestgroup" onclick="previewTestgroup('test_run_testgroups');">Preview Testgroup</a></td>
+            <td></td>
+            </tr>            
+            <tr>
+            <td colspan="3" align="right">&uArr;&nbsp;<a name="showManageTestgroupsHelp" onclick="toggleHelp(manageTestgroupsHelpTitle,manageTestgroupsHelpText);">Help with Managing Testgroups</a></td>
+            <td></td>
+            </tr>
+          </table>
+          </div>
+        </td>
+	</tr>
+
+        <tr>
+          <td colspan="3" align="right"><input id="reset" class="button" type="button" value="Reset" disabled onClick="resetTestRun();" />&nbsp;<input class="button" type="submit" id="submit" name="submit" value="Submit Edits" disabled /></div> 
+          </td>
+        </tr>	
+      </table>
+
+      </form>

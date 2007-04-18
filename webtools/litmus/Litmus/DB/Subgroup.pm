@@ -111,8 +111,9 @@ ORDER by sg.name ASC
 #########################################################################
 sub coverage() {
   my $self = shift;
-  my $platform = shift;
   my $build_id = shift;
+  my $platform_id = shift;
+  my $opsys_id = shift;
   my $locale = shift;
   my $community_only = shift;
   my $user = shift;
@@ -140,7 +141,7 @@ sub coverage() {
   if ($trusted) {
     $sql .= ", users u";
   } 
-  $sql .= " WHERE tsg.subgroup_id=? AND tr.build_id=? AND tr.locale_abbrev=? AND o.platform_id=?";
+  $sql .= " WHERE tsg.subgroup_id=? AND tr.build_id=? AND tr.locale_abbrev=? AND o.platform_id=? AND o.opsys_id=?";
   if ($community_only) {
     $sql .= " AND t.community_enabled=1";
   }
@@ -158,7 +159,8 @@ sub coverage() {
                 $self->{'subgroup_id'},
                 $build_id,
                 $locale,
-                $platform->{'platform_id'}
+                $platform_id,
+                $opsys_id
                );
   my @test_results = $self->sth_to_objects($sth);
 

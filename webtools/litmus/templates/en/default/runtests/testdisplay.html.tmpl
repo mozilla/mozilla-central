@@ -33,7 +33,8 @@
   # @tests       - an array of test objects to run
 #%]
 
-[% INCLUDE global/html_header.tmpl js_files=['js/prototype.lite.js','js/moo.fx.js','js/moo.fx.pack.js','js/RunTests.js'] %] 
+[% test_run=test_runs.0 %]
+[% INCLUDE global/html_header.tmpl js_files=['js/prototype.lite.js','js/moo.fx.js','js/moo.fx.pack.js','js/RunTests.js','js/json.js','js/MochiKit/MochiKit.js','js/TestRunCoverage.js'] %] 
 [% INCLUDE global/litmus_header.tmpl %]
 
 <div id="page">
@@ -42,14 +43,21 @@
 
   <div id="content">
 
-    <h1 class="firstHeading">[% title | html %]</h1>
+<h1 class="firstHeading"><a title="Click to display details of your chosen Test Run." onclick="testConfigHeight.toggle('height');" name="test_run_details">Run Tests - Your Chosen Test Run&nbsp;&raquo;</a></h1>
 
-[% INCLUDE runtests/testing_config.tmpl sysconfig=sysconfig %]
+<div id="test_run_summary">
+[% INCLUDE reporting/test_run_summary.tmpl active_test_runs=test_runs display_title_link=0 %]
+</div>
+
+<hr/>
+
+<h1 class="firstHeading">Enter Test Results</h1>
 
 <form action="process_test.cgi" method="post" name="form" id="form">
-<input name="isTestResult" type="hidden" value="true" />
-<input name="editingTestcases" id="editingTestcases" type="hidden" value="" />
-<input name="testgroup" type="hidden" value="[% group.testgroup_id FILTER html %]" />
+<input type="hidden" id="test_run_id" name="test_run_id" value="[% test_run.test_run_id %]"/>
+<input id="isTestResult" name="isTestResult" type="hidden" value="true" />
+<input id="editingTestcases" name="editingTestcases" id="editingTestcases" type="hidden" value="" />
+<input id="testgroup" name="testgroup" type="hidden" value="[% group.testgroup_id FILTER html %]" />
 
 <div class="section-full">
 <div class="sec_head">
@@ -90,10 +98,10 @@
   <!-- Test [% i %] Start -->
 
 [% IF show_admin %]
-  [% results=curtest.is_completed(sysconfig.platform,sysconfig.build_id,sysconfig.locale,defaultemail,show_admin) %]
+  [% results=curtest.isCompleted(sysconfig.opsys_id,sysconfig.build_id,sysconfig.locale,defaultemail,show_admin) %]
   [% already_run_text = 'A trusted tester has already submitted a result for this testcase.' %]
 [% ELSE %]
-  [% results=curtest.is_completed(sysconfig.platform,sysconfig.build_id,sysconfig.locale,defaultemail) %]
+  [% results=curtest.isCompleted(sysconfig.opsys_id,sysconfig.build_id,sysconfig.locale,defaultemail) %]
   [% already_run_text = 'You have already submitted a result for this testcase.' %]
 [% END %]
 
@@ -146,9 +154,9 @@ var tmp_menub=new Array([% i=1 %][% FOREACH testcase_id=testcase_ids %]"mb[% i %
 </form>
 
   <script type="text/javascript">
-    Element.cleanWhitespace('testconfig');
     showAll=0;
     tc_init();
+    beginCoverageLookup();
   </script>
 
 </div> <!--END content-->

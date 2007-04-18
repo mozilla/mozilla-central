@@ -31,13 +31,13 @@ use strict;
 
 use Litmus;
 use Litmus::Auth;
-use Litmus::Cache;
 use Litmus::Error;
 use Litmus::FormWidget;
 use Litmus::Utils;
 
 use CGI;
 use Date::Manip;
+use JSON;
 
 Litmus->init();
 my $c = Litmus->cgi(); 
@@ -53,6 +53,7 @@ my $rv;
 if ($c->param("searchTestcaseList")) {
   print $c->header('text/plain');
   my $product_id = $c->param("product");
+  my $branch_id = $c->param("branch");
   my $testgroup_id = $c->param("testgroup");
   my $subgroup_id = $c->param("subgroup");
   
@@ -62,8 +63,12 @@ if ($c->param("searchTestcaseList")) {
     $tests = Litmus::DB::Testcase->search_BySubgroup($subgroup_id);
   } elsif ($testgroup_id) {
     $tests = Litmus::DB::Testcase->search_ByTestgroup($testgroup_id);
+  } elsif ($branch_id) {
+    $tests = Litmus::DB::Testcase->search(branch => $branch_id);
   } elsif ($product_id) {
     $tests = Litmus::DB::Testcase->search(product => $product_id);
+  } else {
+    $tests = Litmus::DB::Testcase->retrieve_all;
   }
   while (my $t = $tests->next) {
     print $t->testcase_id()."\n";
@@ -82,7 +87,6 @@ if ($c->param("testcase_id")) {
   }
 }
 
-my $rebuild_cache = 0;
 my $defaults;
 if ($c->param("delete_testcase_button")) {
   my $testcase = Litmus::DB::Testcase->retrieve($testcase_id);
@@ -91,7 +95,6 @@ if ($c->param("delete_testcase_button")) {
     if ($rv) {
       $status = "success";
       $message = "Testcase ID# $testcase_id deleted successfully.";
-      $rebuild_cache=1;
     } else {
       $status = "failure";
       $message = "Failed to delete Testcase ID# $testcase_id.";
@@ -107,30 +110,29 @@ if ($c->param("delete_testcase_button")) {
     $status = "success";
     $message = "Testcase cloned successfully. New testcase ID# is " . $new_testcase->testcase_id;
     $defaults->{'testcase_id'} = $new_testcase->testcase_id;
-    $rebuild_cache=1;
   } else {
     $status = "failure";
     $message = "Failed to clone Testcase ID# $testcase_id.";
   }
-} elsif ($c->param("editform_mode")) {
-  requireField('summary', $c->param('editform_summary'));
-  requireField('product', $c->param('editform_product'));
-  requireField('branch', $c->param('editform_branch'));
-  requireField('author', $c->param('editform_author_id'));
-  my $enabled = $c->param('editform_enabled') ? 1 : 0;
-  my $community_enabled = $c->param('editform_communityenabled') ? 1 : 0;
+} elsif ($c->param("mode")) {
+  requireField('summary', $c->param('summary'));
+  requireField('product', $c->param('product'));
+  requireField('branch', $c->param('branch'));
+  requireField('author', $c->param('author_id'));
+  my $enabled = $c->param('enabled') ? 1 : 0;
+  my $community_enabled = $c->param('communityenabled') ? 1 : 0;
   my $now = &UnixDate("today","%q");
-  if ($c->param("editform_mode") eq "add") {
+  if ($c->param("mode") eq "add") {
     my %hash = (
-                summary => $c->param('editform_summary'),
-                steps => $c->param('editform_steps') ? $c->param('editform_steps') : '',
-                expected_results => $c->param('editform_results') ? $c->param('editform_results') : '',
-                product_id => $c->param('editform_product'),
-                branch_id => $c->param('editform_branch'),
+                summary => $c->param('summary'),
+                steps => $c->param('steps') ? $c->param('steps') : '',
+                expected_results => $c->param('results') ? $c->param('results') : '',
+                product_id => $c->param('product'),
+                branch_id => $c->param('branch'),
                 enabled => $enabled,
                 community_enabled => $community_enabled,
-                regression_bug_id => $c->param('editform_regression_bug_id') ? $c->param('editform_regression_bug_id') : '',
-                author_id => $c->param('editform_author_id'),
+                regression_bug_id => $c->param('regression_bug_id') ? $c->param('regression_bug_id') : '',
+                author_id => $c->param('author_id'),
                 creation_date => $now,
                 last_updated => $now,
                );
@@ -141,26 +143,25 @@ if ($c->param("delete_testcase_button")) {
       $status = "success";
       $message = "Testcase added successfully. New testcase ID# is " . $new_testcase->testcase_id;
       $defaults->{'testcase_id'} = $new_testcase->testcase_id;
-      $rebuild_cache=1;
     } else {
       $status = "failure";
       $message = "Failed to add testcase.";        
     }
     
-  } elsif ($c->param("editform_mode") eq "edit") {
+  } elsif ($c->param("mode") eq "edit") {
     requireField('testcase_id', $c->param("editform_testcase_id"));
     $testcase_id = $c->param("editform_testcase_id");
     my $testcase = Litmus::DB::Testcase->retrieve($testcase_id);
     if ($testcase) {
-      $testcase->summary($c->param('editform_summary'));
-      $testcase->steps($c->param('editform_steps') ? $c->param('editform_steps') : '');
-      $testcase->expected_results($c->param('editform_results') ? $c->param('editform_results') : '');
-      $testcase->product_id($c->param('editform_product'));
-      $testcase->branch_id($c->param('editform_branch'));
+      $testcase->summary($c->param('summary'));
+      $testcase->steps($c->param('steps') ? $c->param('steps') : '');
+      $testcase->expected_results($c->param('results') ? $c->param('results') : '');
+      $testcase->product_id($c->param('product'));
+      $testcase->branch_id($c->param('branch'));
       $testcase->enabled($enabled);
       $testcase->community_enabled($community_enabled);
-      $testcase->regression_bug_id($c->param('editform_regression_bug_id') ? $c->param('editform_regression_bug_id') : '');
-      $testcase->author_id($c->param('editform_author_id'));
+      $testcase->regression_bug_id($c->param('regression_bug_id') ? $c->param('regression_bug_id') : '');
+      $testcase->author_id($c->param('author_id'));
       $testcase->last_updated($now);
       $testcase->version($testcase->version + 1);
       $rv = $testcase->update();
@@ -168,7 +169,6 @@ if ($c->param("delete_testcase_button")) {
         $status = "success";
 	$message = "Testcase ID# $testcase_id updated successfully.";
         $defaults->{'testcase_id'} = $testcase_id;
-        $rebuild_cache=1;
       } else {
 	$status = "failure";
 	$message = "Failed to update testcase ID# $testcase_id.";        
@@ -190,17 +190,26 @@ if ($status and $message) {
   $vars->{'onload'} = "toggleMessage('$status','$message');";
 }
 
-if ($rebuild_cache) {
-  Litmus::Cache::rebuildCache();
-}
-
-my $testcases = Litmus::FormWidget->getTestcases(0,'name');
 my $products = Litmus::FormWidget->getProducts();
+my $branches = Litmus::FormWidget->getBranches();
+my $testgroups = Litmus::FormWidget->getTestgroups(0);
+my $subgroups = Litmus::FormWidget->getSubgroups(0,'name');
+my $testcases = Litmus::FormWidget->getTestcases(0,'name');
+
 my $authors = Litmus::FormWidget->getAuthors();
+
+my $json = JSON->new(skipinvalid => 1, convblessed => 1);
+my $products_js = $json->objToJson($products);
+my $branches_js = $json->objToJson($branches);
+my $testgroups_js = $json->objToJson($testgroups);
+my $subgroups_js = $json->objToJson($subgroups);
 
 $vars->{'title'} = "Manage Testcases";
 $vars->{'testcases'} = $testcases;
-$vars->{'products'} = $products;
+$vars->{'products_js'} = $products_js;
+$vars->{'branches_js'} = $branches_js;
+$vars->{'testgroups_js'} = $testgroups_js;
+$vars->{'subgroups_js'} = $subgroups_js;
 $vars->{'authors'} = $authors;
 $vars->{'user'} = Litmus::Auth::getCurrentUser();
 $vars->{'edit'} = $edit;

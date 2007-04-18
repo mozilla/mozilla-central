@@ -33,17 +33,13 @@
   # @subgroups - a list of subgroups to which the current testcase belongs
 #%]
 
-[% PROCESS global/selects.none.tmpl %]
-
 [% IF testcase.community_enabled OR show_admin %]
 [% title="Testcase ID #$testcase.testcase_id - $testcase.summary" %]
 [% ELSE %]
 [% title="Testcase disabled" %]
 [% END %]
 
-[% includeselects=1 %]
-
-[% INCLUDE global/html_header.tmpl js_files=['js/prototype.lite.js','js/moo.fx.js','js/moo.fx.pack.js','js/EditTests.js','js/FormValidation.js','js/SelectBoxes.js','js/ManageTestcases.js'] %] 
+[% INCLUDE global/html_header.tmpl js_files=['js/prototype.lite.js','js/moo.fx.js','js/moo.fx.pack.js','js/FormValidation.js','js/SelectBoxes.js','js/ManageTestcases.js'] %] 
 [% INCLUDE global/litmus_header.tmpl %]
 
 <div id="page">

@@ -35,13 +35,13 @@
 #%]
 
 [% onload = "$onload; showsubgroup();" %]
-
-[% INCLUDE global/html_header.tmpl js_files=['js/prototype.lite.js','js/moo.fx.js','js/moo.fx.pack.js','js/SubGroup.js','js/SelectBoxes.js','js/RunTests.js','js/Help.js'] %] 
+[% test_run=test_runs.0 %]
+[% INCLUDE global/html_header.tmpl js_files=['js/prototype.lite.js','js/moo.fx.js','js/moo.fx.pack.js','js/SubGroup.js','js/SelectBoxes.js','js/RunTests.js','js/Help.js','js/json.js','js/MochiKit/MochiKit.js','js/TestRunCoverage.js'] %] 
 [% INCLUDE global/litmus_header.tmpl %]
 
 <script type="text/javascript">
 var percentagesHelpTitle = 'Percentages explained';
-var percentagesHelpText = '<p>The testing coverage percentages are based on Platform (Windows, Mac, Linux) and Build ID. Since the Build ID is datestamp-based, this should mean that there are always some tests that need running if you update to the latest nightly build.</p><p>While we appreciate all testing efforts, it is more helpful if you select a testing group or subgroup for testing that does not already have complete testing coverage by the community.</p><p>If there are problems with an existing test result that you have submitted (e.g. invalid status), please add a comment to the test result in question.</p>';
+var percentagesHelpText = '<p>The testing coverage percentages are based on Operating System, Build ID, and Locale. Since the Build ID is datestamp-based, this should mean that there are always some tests that need running if you update to the latest nightly build.</p><p>While we appreciate all testing efforts, it is more helpful if you select a testgroup or subgroup for testing that does not already have complete testing coverage by the community.</p><p>If there are problems with an existing test result that you have submitted (e.g. invalid status), please add a comment to the test result in question.</p>';
 </script>
 
 <div id="page">
@@ -50,17 +50,25 @@ var percentagesHelpText = '<p>The testing coverage percentages are based on Plat
 
   <div id="content">
 
-    <h1 class="firstHeading">[% title | html %]</h1>
+[% INCLUDE instructions/group_selection.tmpl %]
 
-[% INCLUDE runtests/testing_config.tmpl sysconfig=sysconfig %]
+<h1 class="firstHeading"><a title="Click to display details of your chosen Test Run." onclick="testConfigHeight.toggle('height');" name="test_run_details">Run Tests - Your Chosen Test Run&nbsp;&raquo;</a></h1>
 
-<div class="section-full">
+<div id="test_run_summary">
+[% INCLUDE reporting/test_run_summary.tmpl active_test_runs=test_runs display_title_link=0 %]
+</div>
+
+<hr/>
+
+<h1 class="firstHeading">Select a Testgroup and Subgroup to Test</h1>
+
+<div class="section-center">
   <div class="section-header">
 Select Testing Group
   </div>
   <div class="section-content">
 <form action="run_tests.cgi" method="post" name="form" id="form">
-
+<input type="hidden" id="test_run_id" name="test_run_id" value="[% test_run.test_run_id %]"/>
 <p>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
@@ -70,11 +78,11 @@ Select Testing Group
 <tr>
 <th>Name</th>
 [% IF show_admin %]
-<th>Trusted Coverage</th>
+<th>Trusted Coverage <a name="showPercentagesHelpText" onclick="toggleHelp(percentagesHelpTitle,percentagesHelpText);"><img class="inline" src="images/info.png" alt="Percentages Explained" /></a></th>
 [% ELSE %]
-<th>Personal Testing Coverage</th>
+<th>Personal Testing Coverage <a name="showPercentagesHelpText" onclick="toggleHelp(percentagesHelpTitle,percentagesHelpText);"><img class="inline" src="images/info.png" alt="Percentages Explained" /></a></th>
 [% END %]
-<th>Community Testing Coverage</th>
+<th>Community Testing Coverage <a name="showPercentagesHelpText" onclick="toggleHelp(percentagesHelpTitle,percentagesHelpText);"><img class="inline" src="images/info.png" alt="Percentages Explained" /></a></th>
 </tr>
 
 [% IF defaultgroup.testgroup_id=="" %]
@@ -82,18 +90,18 @@ Select Testing Group
 [% ELSE %]
   [% select_first_avail_group=0 %]
 [% END %]
-[% FOREACH curgroup = groups %]
+[% FOREACH testgroup = testgroups %]
 
   [% IF show_admin %]
-    [% personal_completed = curgroup.coverage(sysconfig.platform, sysconfig.build_id, sysconfig.locale, 0, 0, 1) %]
+    [% personal_completed = testgroup.coverage(sysconfig.build_id, sysconfig.platform_id, sysconfig.opsys_id, sysconfig.locale, 0, 0, 1) %]
   [% ELSE %]
-    [% personal_completed = curgroup.coverage(sysconfig.platform, sysconfig.build_id, sysconfig.locale, 0, user) %]
+    [% personal_completed = testgroup.coverage(sysconfig.build_id, sysconfig.platform_id, sysconfig.opsys_id, sysconfig.locale, 0, user) %]
   [% END %]
 
   [% IF personal_completed == 100 %]
     [% community_completed = 100 %]
   [% ELSE %]
-    [% community_completed = curgroup.coverage(sysconfig.platform, sysconfig.build_id, sysconfig.locale, 0) %]
+    [% community_completed = testgroup.coverage(sysconfig.build_id, sysconfig.platform_id, sysconfig.opsys_id, sysconfig.locale, 0) %]
   [% END %]
 
   [% IF community_completed == 100 OR completed == 'N/A' %]
@@ -116,7 +124,7 @@ Select Testing Group
 
   [% IF personal_completed != 100 AND 
     personal_completed != 'N/A' AND 
-    (defaultgroup.testgroup_id==curgroup.testgroup_id OR 
+    (defaultgroup.testgroup_id==testgroup.testgroup_id OR 
      select_first_avail_group==1) %]
       [% selected = "checked" %]
       [% select_first_avail_group=0 %]
@@ -124,9 +132,9 @@ Select Testing Group
       [% selected = "" %]
     [% END %]
 
-    <td><input [% IF personal_completed == 'N/A' %]disabled [% END %] type="radio" id="group" name="group" value="[% curgroup.testgroup_id FILTER html %]"
+    <td><input [% IF personal_completed == 'N/A' %]disabled [% END %] type="radio" id="testgroup" name="testgroup" value="[% testgroup.testgroup_id FILTER html %]"
         onClick="showsubgroup()" [% selected | none %]>
-         [% curgroup.name FILTER html %]</td>
+         [% testgroup.name FILTER html %]</td>
     <td align="center">[% personal_completed FILTER html %][% IF personal_completed != 'N/A' %]%[% END %]</td>
     <td align="center">[% community_completed FILTER html %][% IF community_completed != 'N/A' %]%[% END %]</td>
 </tr>
@@ -136,8 +144,6 @@ Select Testing Group
 
 </td>
 
-<td style="padding-left: 1em;">&lArr; <a name="showPercentagesHelpText" onclick="toggleHelp(percentagesHelpTitle,percentagesHelpText);">Percentages explained</a></td>
-
 </tr>
 </table>
 
@@ -145,19 +151,19 @@ Select Testing Group
 
   </div> <!--END section-content-->
 
-</div> <!--END section-full-->
+</div> <!--END section-center-->
 
-<div class="section-full">
+<div class="section-center">
   <div class="section-header">
 Select Subgroup
   </div>
   <div class="section-content">
 <p>
 [% IF show_admin %]
-  [% headerrow = '<tr><th>Name</th><th>Number of Tests</th><th>Trusted Coverage</th><th>Community Testing Coverage</th></tr>' %]
+  [% headerrow = '<tr><th>Name</th><th>Number of Tests</th><th>Trusted Coverage <a name="showPercentagesHelpText" onclick="toggleHelp(percentagesHelpTitle,percentagesHelpText);"><img class="inline" src="images/info.png" alt="Percentages Explained" /></a></th><th>Community Testing Coverage <a name="showPercentagesHelpText" onclick="toggleHelp(percentagesHelpTitle,percentagesHelpText);"><img class="inline" src="images/info.png" alt="Percentages Explained" /></a></th></tr>' %]
   [% colspan = 5 %]
 [% ELSE %]
-  [% headerrow = '<tr><th>Name</th><th>Number of Tests</th><th>Personal Testing Coverage</th><th>Community Testing Coverage</th></tr>' %]
+  [% headerrow = '<tr><th>Name</th><th>Number of Tests</th><th>Personal Testing Coverage <a name="showPercentagesHelpText" onclick="toggleHelp(percentagesHelpTitle,percentagesHelpText);"><img class="inline" src="images/info.png" alt="Percentages Explained" /></a></th><th>Community Testing Coverage <a name="showPercentagesHelpText" onclick="toggleHelp(percentagesHelpTitle,percentagesHelpText);"><img class="inline" src="images/info.png" alt="Percentages Explained" /></a></th></tr>' %]
   [% colspan = 4 %]
 [% END %]
     
@@ -172,9 +178,9 @@ Please select a testing group with testcases, or that has not yet been tested in
 </table>
 </div>
 
-[% FOREACH curgroup = subgroups.keys %]
-    [% cursubgrouplist = subgroups.$curgroup %]
-    <div id="divsubgroup_[% curgroup FILTER html %]" style="display: none;">
+[% FOREACH testgroup = subgroups.keys %]
+    [% cursubgrouplist = subgroups.$testgroup %]
+    <div id="divsubgroup_[% testgroup FILTER html %]" style="display: none;">
 	<table border="0" cellspacing="0" cellpadding="0">
 	<tr>
 	<td>
@@ -184,15 +190,15 @@ Please select a testing group with testcases, or that has not yet been tested in
             [% FOREACH cursubgroup = cursubgrouplist %]
 
             [% IF show_admin %]
-              [% personal_completed = cursubgroup.coverage(sysconfig.platform, sysconfig.build_id, sysconfig.locale, 0, 0, 1) %]
+              [% personal_completed = cursubgroup.coverage(sysconfig.build_id, sysconfig.platform_id, sysconfig.opsys_id, sysconfig.locale, 0, 0, 1) %]
             [% ELSE %]
-              [% personal_completed = cursubgroup.coverage(sysconfig.platform, sysconfig.build_id, sysconfig.locale, 0, user) %]
+              [% personal_completed = cursubgroup.coverage(sysconfig.build_id, sysconfig.platform_id, sysconfig.opsys_id, sysconfig.locale, 0, user) %]
             [% END %]
 
             [% IF personal_completed == 100 %]
               [% community_completed = 100 %]
             [% ELSE %]
-              [% community_completed = cursubgroup.coverage(sysconfig.platform, sysconfig.build_id, sysconfig.locale, 0) %]
+              [% community_completed = cursubgroup.coverage(sysconfig.build_id, sysconfig.platform_id, sysconfig.opsys_id, sysconfig.locale, 0) %]
             [% END %]
 
             [% IF community_completed == 100 OR completed == 'N/A' %]
@@ -218,9 +224,9 @@ Please select a testing group with testcases, or that has not yet been tested in
             [% END %]
             
             <tr class="[% groupstyle | none %]">
-                <td align="left"><input [% IF ! counttests %]disabled [% ELSIF select_first_avail_subgroup==1 %][% select_first_avail_subgroup=0 %]checked [% END %]type="radio" name="subgroup_[% curgroup FILTER html %]" 
-                    value="[% cursubgroup.id FILTER html %]">
-                    [% cursubgroup.name FILTER html %]</input></td>
+                <td align="left"><table class="none"><tr><td><input [% IF ! counttests %]disabled [% ELSIF select_first_avail_subgroup==1 %][% select_first_avail_subgroup=0 %]checked [% END %]type="radio" id="subgroup_[% testgroup FILTER html %]" name="subgroup_[% testgroup FILTER html %]" 
+                    value="[% cursubgroup.id FILTER html %]" /></td>
+                    <td>[% cursubgroup.name FILTER html %]</td></tr></table></td>
                 <td align="center">[% IF ! counttests %] 0 [% ELSE %] [% counttests %] [% END %]</td>
                 <td align="center">[% personal_completed FILTER html %][% IF personal_completed != 'N/A' %]%[% END %]</td>
                 <td align="center">[% community_completed FILTER html %][% IF community_completed != 'N/A' %]%[% END %]</td>
@@ -229,8 +235,6 @@ Please select a testing group with testcases, or that has not yet been tested in
         </table>
 
         </td>
-
-        <td style="padding-left: 1em;">&lArr; <a name="showPercentagesHelpText" onclick="toggleHelp(percentagesHelpTitle,percentagesHelpText);">Percentages explained</a></td>
 
         </tr>
         </table>
@@ -249,13 +253,13 @@ Please select a testing group with testcases, or that has not yet been tested in
 
   </div> <!--END section-content-->
 
-</div> <!--END section-full-->
+</div> <!--END section-center-->
 
   </div> <!--END content-->
 
   <script type="text/javascript">
-    Element.cleanWhitespace('testconfig');
     group_init();
+    beginCoverageLookup();
   </script>
 
 </div> <!--END page-->

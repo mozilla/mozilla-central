@@ -144,14 +144,14 @@ WHERE
 });
 
 #########################################################################
-# is_completed($$$$$)
+# isCompleted($$$$$)
 #
 # Check whether we have test results for the current test that correspond
 # to the provided platform, build_id, and user(optional).
 #########################################################################
-sub is_completed {
+sub isCompleted {
   my $self = shift;
-  my $platform = shift;
+  my $opsys_id = shift;
   my $build_id = shift;
   my $locale = shift;
   my $user = shift;        # optional
@@ -162,27 +162,83 @@ sub is_completed {
     @results = Litmus::DB::Testresult->search_CompletedByTrusted(
                                                                  $self->{'testcase_id'},
                                                                  $build_id,
-                                                                 $locale->{'abbrev'},
-                                                                 $platform->{'platform_id'},
+                                                                 $locale,
+                                                                 $opsys_id,
                                                                 );
   } elsif ($user) {
     @results = Litmus::DB::Testresult->search_CompletedByUser(
                                                               $self->{'testcase_id'},
                                                               $build_id,
-                                                              $locale->{'abbrev'},
-                                                              $platform->{'platform_id'},
+                                                              $locale,
+                                                              $opsys_id,
                                                               $user->{'user_id'},
                                                              );
   } else {
     @results = Litmus::DB::Testresult->search_Completed(
                                                         $self->{'testcase_id'},
                                                         $build_id,
-                                                        $locale->{'abbrev'},
-                                                        $platform->{'platform_id'},
+                                                        $locale,
+                                                        $opsys_id,
                                                        );
   }
 
   return @results;
+}
+
+sub coverage() {
+    my $self = shift;
+    my $build_id = shift;
+    my $platform_id = shift;
+    my $opsys_id = shift;
+    my $locale = shift;
+    my $user = shift;        # optional
+    my $trusted = shift;        # optional
+ 
+#   print STDERR "b:$build_id p:$platform_id o:$opsys_id l:$locale u:$user t:$trusted\n";
+  
+    # Propagate subgroup membership;
+    my $dbh = __PACKAGE__->db_Main();
+    my $select = "SELECT tr.testresult_id, trsl.class_name";
+    my $from = " FROM test_results tr, users u, opsyses o, test_result_status_lookup trsl";
+    my $where = " WHERE tr.testcase_id=" . quotemeta($self->{'testcase_id'}) . " AND tr.user_id=u.user_id AND tr.opsys_id=o.opsys_id AND tr.result_status_id=trsl.result_status_id";
+    my $order_by = " ORDER BY tr.submission_time DESC";
+
+    if ($build_id) {
+        $where .= " AND tr.build_id=" . quotemeta($build_id);
+    }
+    if ($platform_id) {
+        $where .= " AND o.platform_id=" . quotemeta($platform_id);
+    }
+    if ($opsys_id) {
+        $where .= " AND tr.opsys_id=" . quotemeta($opsys_id);
+    }
+    if ($locale) {
+        $where .= " AND tr.locale_abbrev='" . quotemeta($locale) . "'";
+    }
+    if ($user) {
+        $where .= " AND tr.user_id=" . quotemeta($user->{'user_id'});
+    }
+    if ($trusted) {
+        $where .= " AND u.is_admin=1";
+    }
+    my $sql = $select . $from . $where . $order_by;
+#    print $sql,"<br/>\n";
+    my $sth = $dbh->prepare_cached($sql);
+    $sth->execute();
+    my @test_results;
+    while (my ($result_id, $class_name) = $sth->fetchrow_array) {
+        my $hash_ref;
+        $hash_ref->{'result_id'} = $result_id;
+        $hash_ref->{'status'} = $class_name;
+        push @test_results, $hash_ref;
+    }
+    $sth->finish;
+
+    if (scalar(@test_results) == 0) {
+        return undef;
+    }
+
+    return \@test_results;
 }
 
 #########################################################################

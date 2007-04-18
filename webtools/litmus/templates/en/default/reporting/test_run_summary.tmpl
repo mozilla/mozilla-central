@@ -1,0 +1,96 @@
+<table class="test_run_summary">
+
+<tr>
+<th class="headerleft">Name</th>
+<th>Coverage</th>
+<th>Results</th>
+</tr>
+
+[% IF active_test_runs.list.size > 0 %]
+
+[% FOREACH active_test_run=active_test_runs %]
+
+[% IF loop.count > 1 %]
+<tr><td colspan="3"><hr/></td></tr>
+[% END %]
+
+<tr [% IF not (loop.count % 2) %]class="even"[% ELSE %]class="odd"[% END %]>
+<td class="name">[% IF display_title_link %]<a title="Click here to join this test run!" href="run_tests.cgi?test_run_id=[% active_test_run.test_run_id %]">[% END %][% active_test_run.name %][% IF active_test_run.recommended %] <img alt="*" src="images/yellowstar.gif" / title="Mozilla needs help testing this right now">[% END %][% IF ! select_criteria %]</a>[% END %]</td>
+<td id="coverage_[% active_test_run.test_run_id %]" name="coverage_[% active_test_run.test_run_id %]" class="coverage"><a href="test_run_report.cgi?test_run_id=[% active_test_run.test_run_id %]">Loading...<br/><img src="images/loading.gif" alt="Loading..." class="coverage-loading" /></a></td>
+<td class="results" >Pass: <a href="search_results.cgi?test_run_id=[% active_test_run.test_run_id %]&amp;result_status=pass">[% active_test_run.getNumResultsByStatus(1) %]</a> / Fail: <a href="search_results.cgi?test_run_id=[% active_test_run.test_run_id %]&amp;result_status=fail">[% active_test_run.getNumResultsByStatus(2) %]</a> / Unclear: <a href="search_results.cgi?test_run_id=[% active_test_run.test_run_id %]&amp;result_status=unclear">[% active_test_run.getNumResultsByStatus(3) %]</a><br/>
+Results with Comments: <a href="search_results.cgi?test_run_id=[% active_test_run.test_run_id %]&amp;has_comments=1">[% active_test_run.getNumResultsWithComments %]</a></td>
+</tr>
+<tr class="[% IF not (loop.count % 2) %]even[% ELSE %]odd[% END %]">
+<td class="criteria" colspan="3">
+<table>
+<tr>
+<td><strong>Description:</strong></td>
+<td>[% active_test_run.description || "No further description provided." %]</td>
+<tr>
+<td><strong>Details:</strong></td>
+<td>[% active_test_run.product_id.name %], [% active_test_run.branch_id.name %], [% active_test_run.start_timestamp %] &rArr; [% active_test_run.finish_timestamp %]
+</td>
+</tr>
+<tr>
+<td><strong>Testgroups:</strong></td>
+<td>
+[% IF active_test_run.testgroups %]
+[% FOR testgroup=active_test_run.testgroups %]
+[% IF ! loop.first %], [%END %][% testgroup.name %]
+[% END %]
+[% ELSE %]
+None
+[% END %]
+</td>
+</tr>
+
+[% criteria=active_test_run.criteria %]
+[% IF select_criteria %]
+</table>
+</td> 
+</tr>
+
+</table>
+
+[% INCLUDE runtests/select_criteria.tmpl %]
+
+[% ELSE %]
+<tr>
+<td><strong>Criteria:</strong></td>
+[% IF criteria && criteria.list.size > 0 %]
+[% FOR criterion=criteria %]
+[% IF ! loop.first %]<tr><td></td>[% END %]
+<td colspan="2"[% IF criterion.in_use %] class="in_use"[% END %]>
+Build ID: [% IF criterion.build_id_from_user %]<em>[% END %][% criterion.build_id%][% IF criterion.build_id_from_user %]</em>[% END %]
+[% IF criterion.platform_name %], Platform: [% IF criterion.platform_id_from_user %]<em>[% END %][% criterion.platform_name %][% IF criterion.platform_id_from_user %]</em>[% END %]
+[% IF criterion.opsys_name %], Operating System: [% IF criterion.opsys_id_from_user %]<em>[% END %][% criterion.opsys_name %][% END %][% IF criterion.opsys_id_from_user %]</em>[% END %][% END %]</td>
+[% IF ! loop.last %]<td><strong>OR</strong></td>[%END %]
+</tr>
+[% END %]
+[% ELSE %]
+<td>
+No further criteria specified
+</td>
+</tr>
+[% END %]
+
+[% END %]
+
+</table>
+</td> 
+</tr>
+[% END %]
+
+[% ELSE %]
+<tr>
+<td class="no-results" colspan="3">[% IF recommended %]There are no recommended, active test runs.[% ELSE %]There are no active test runs.[% END %]</td>
+</tr>
+[% END %]
+
+[% IF show_footer %]
+<tr>
+<td colspan="3" align="right"><a href="run_tests.cgi">View All Available Test Runs</a></td>
+</tr>
+[% END %]
+
+</table>

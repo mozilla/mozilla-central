@@ -4,11 +4,11 @@
   [% IF size %] size="[% size %]"[% END %]
   [% IF onchange %] onchange="[% onchange %]"[% END %]
   [% IF disabled %] disabled[% END %]>
-    [% IF placeholder %]<option value="">-Testgroup-</option>[% END %]
+    [% IF placeholder %]<option value="">-Testgroup[% IF display_id %] (ID#)[% END %]-</option>[% END %]
 [% IF testgroups %]
 [% FOREACH testgroup=testgroups %]
     <option[% IF defaults.testgroup_id==testgroup.testgroup_id %] selected[% END %] 
-        value="[% testgroup.testgroup_id | html %]">[% testgroup.name %]</option>
+        value="[% testgroup.testgroup_id | html %]">[% testgroup.name %][% IF display_id %] ([% testgroup.testgroup_id %])[% END %]</option>
 [% END %]
 [% END %]
 </select>

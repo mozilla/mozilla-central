@@ -7,11 +7,11 @@
   [% IF onchange %] onchange="[% onchange %]"[% END %]
   [% IF multiple %] multiple[% END %]>
     
-  [% IF placeholder %]<option value="">-Operating System-</option>[% END %]
+  [% IF placeholder %]<option value="">-Operating System[% IF display_id %] (ID#)[% END %]-</option>[% END %]
   [% IF opsyses %]
     [% FOREACH opsys=opsyses %]
       <option[% IF defaults.opsys==opsys.name %] selected[% END %] 
-        value="[% opsys.opsys_id | html %]">[% opsys.name | html %] ([% opsys.opsys_id %])</option>
+        value="[% opsys.opsys_id | html %]">[% opsys.name | html %][% IF display_id %] ([% opsys.opsys_id %])[% END %]</option>
     [% END %]
   [% END %]
 </select>

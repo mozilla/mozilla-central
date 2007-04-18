@@ -22,11 +22,7 @@
   # $user - the edited user object
 #%]
 
-[% PROCESS global/selects.none.tmpl %]
-
-[% includeselects=1 %]
-[% INCLUDE global/html_header.tmpl js_files=['js/SelectBoxes.js','js/FormValidation.js'] 
-    title='Edit User' %]
+[% INCLUDE global/html_header.tmpl js_files=['js/SelectBoxes.js','js/FormValidation.js'] title='Edit User' %]
 [% INCLUDE global/litmus_header.tmpl %]
 
 <div id="page">

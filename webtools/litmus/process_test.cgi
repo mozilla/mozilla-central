@@ -29,6 +29,9 @@
 
 use strict;
 
+use Time::HiRes qw( gettimeofday tv_interval );
+our $t0 = [gettimeofday];
+
 use Litmus;
 use Litmus::Error;
 use Litmus::DB::Product;
@@ -41,7 +44,6 @@ use Litmus::XML;
 
 use CGI;
 use Date::Manip;
-
 
 Litmus->init();
 my $c = Litmus->cgi(); 
@@ -58,19 +60,29 @@ if ($c->param('data')) {
 	exit; # that's all folks!
 }
 
-my $user;
-my $sysconfig;
-if ($c->param("isSysConfig")) {
-  $user = $user || Litmus::Auth::getCurrentUser();
-  if (!$user) {
-    my $return = $c->param("return") || 'index.cgi';
-    Litmus::Auth::requireLogin($return);    
-  }
-  $sysconfig = Litmus::SysConfig->processForm($c);
-  # get the user id and set a sysconfig cookie
-  $c->storeCookie($sysconfig->setCookie());
-}
+Litmus::Auth::requireLogin("process_test.cgi");
+my $user || Litmus::Auth::getCurrentUser();
+
 print $c->header();
+
+my $test_run_id = $c->param("test_run_id");
+
+if (!$test_run_id) {
+  invalidInputError("No Test Run selected!");
+  exit 1;
+}
+
+my $test_run = Litmus::DB::TestRun->getTestRunWithRefs($test_run_id);
+my $sysconfig = Litmus::SysConfig->getCookieByTestRunId($test_run_id);
+ 
+if (!$sysconfig) {
+  invalidInputError("No system configuration information found!");
+  exit 1;
+};
+
+$c->storeCookie($sysconfig->setCookie());
+
+$test_run->flagCriteriaInUse($sysconfig);
 
 my @names = $c->param();
 
@@ -82,11 +94,8 @@ foreach my $curname (@names) {
   }
 }
 
-# don't get to use the simple test interface if you really 
-# have more than one test (i.e. you cheated and changed the 
-# hidden input)
-if (scalar @tests > 1 && $c->param("isSimpleTest")) {
-  invalidInputError("Cannot use simpletest interface with more than one test");
+if (scalar @tests <= 1) {
+  invalidInputError("No test results found!");
 }
 
 my $testcount;
@@ -102,42 +111,13 @@ foreach my $curtestid (@tests) {
   my $curtest = Litmus::DB::Testcase->retrieve($curtestid);
   unless ($curtest) {
     # oddly enough, the test doesn't exist
+    print STDERR "No testcase found for ID: $curtestid";
     next;
   }
   
   $testcount++;
   
-  $product = $curtest->product();
-  
   my $ua = Litmus::UserAgentDetect->new();
-  # for simpletest, build a temporary sysconfig based on the 
-  # UA string and product of this test:
-  if ($c->param("isSimpleTest")) {
-    $sysconfig = Litmus::SysConfig->new(
-                                        $curtest->product(), 
-                                        $ua->platform($curtest->product()), 
-                                        "NULL", # no way to autodetect the opsys
-                                        $ua->branch($curtest->product()), 
-                                        $ua->build_id(),
-                                       );
-  }
-  
-  # get system configuration. If there is no configuration and we're 
-  # not doing the simpletest interface, then we make you enter it
-  # Get system configuration. If there is no configuration,
-  # then we make the user enter it.
-  if (!$sysconfig) {
-    $sysconfig = Litmus::SysConfig->getCookie($product);
-  }
-  
-  # Users who still don't have a sysconfig for this product
-  # should go configure themselves first.
-  if (!$sysconfig) {
-    Litmus::SysConfig->displayForm($product,
-                                   "process_test.cgi",
-                                   $c);
-    exit;
-  }
   
   my $result_status = Litmus::DB::ResultStatus->retrieve($c->param("testresult_".$curtestid));
   $resultcounts{$result_status->name()}++;
@@ -146,27 +126,19 @@ foreach my $curtestid (@tests) {
   my $bugs = $c->param("bugs_".$curtestid);
   
   my $time = &Date::Manip::UnixDate("now","%q");
-  
-  # normally, the user comes with a cookie, but for simpletest
-  # users, we just use the web-user@mozilla.org user:
-  
-  if ($c->param("isSimpleTest")) {
-    $user = $user || Litmus::DB::User->search(email => 'web-tester@mozilla.org')->next();
-  } else {
-    $user = $user || Litmus::Auth::getCookie()->user_id();
-  } 
-  
+  $user = $user || Litmus::Auth::getCookie()->user_id();
+  print STDERR "user: $user\n";
   my $tr = Litmus::DB::Testresult->create({
-                                           user      => $user,
-                                           testcase    => $curtest,
-                                           timestamp => $time,
-                                           last_updated => $time,
-                                           useragent => $ua,
+                                           user_id       => $user,
+                                           testcase      => $curtest,
+                                           timestamp     => $time,
+                                           last_updated  => $time,
+                                           useragent     => $ua,
                                            result_status => $result_status,
-                                           opsys     => $sysconfig->opsys(),
-                                           branch    => $sysconfig->branch(),
-                                           build_id   => $sysconfig->build_id(),
-                                           locale_abbrev => $sysconfig->locale(),
+                                           opsys_id      => $sysconfig->{'opsys_id'},
+                                           branch_id     => $test_run->branch_id,
+                                           build_id      => $sysconfig->{'build_id'},
+                                           locale_abbrev => $sysconfig->{'locale'},
                                           });
   
   # if there's a note, create an entry in the comments table for it
@@ -180,7 +152,7 @@ foreach my $curtestid (@tests) {
                                  comment         => $note
                                 });
   }
-  
+
   if ($bugs and
       $bugs ne '') {
     $bugs =~ s/[^0-9,]//g;
@@ -202,15 +174,10 @@ foreach my $curtestid (@tests) {
 if (! $testcount) {
   invalidInputError("No results submitted.");
 }
-
-
   
 my $testgroup;
 if ($c->param("testgroup")) {
   $testgroup = Litmus::DB::Testgroup->retrieve($c->param("testgroup"));
-  if (! $product) {
-    $product = $testgroup->product();
-  }
 } 
 
 my $vars;
@@ -219,9 +186,8 @@ $vars->{'title'} = 'Run Tests';
 my $cookie =  Litmus::Auth::getCookie();
 $vars->{"defaultemail"} = $cookie;
 $vars->{"show_admin"} = Litmus::Auth::istrusted($cookie);
-
+$vars->{"test_runs"} = [$test_run];
 $vars->{'testcount'} = $testcount;
-$vars->{'product'} = $product || undef;
 $vars->{'resultcounts'} = \%resultcounts || undef;
 $vars->{'testgroup'} = $testgroup || undef;
 $vars->{'return'} = $c->param("return") || undef;
@@ -229,3 +195,17 @@ $vars->{'return'} = $c->param("return") || undef;
 Litmus->template()->process("process/process.html.tmpl", $vars) ||
   internalError(Litmus->template()->error());    
 
+if ($Litmus::Config::DEBUG) {
+  my $elapsed = tv_interval ( $t0 );
+  printf  "<div id='pageload'>Page took %f seconds to load.</div>", $elapsed;
+}
+
+exit 0;
+
+# END
+
+#########################################################################
+sub redirectToRunTests() {
+  my $c = Litmus->cgi();
+  print $c->redirect("http://127.0.0.1/run_tests.cgi");
+}

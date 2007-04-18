@@ -30,88 +30,24 @@
 #%]
 
 <script type="text/javascript">
-var products=[% products_js %];
-var branches=[% branches_js %];
-var testgroups=[% testgroups_js %];
+var products=[% IF products_js %][% products_js %][% ELSE %]{}[% END %];
+var branches=[% IF branches_js %][% branches_js %][% ELSE %]{}[% END %];
+var testgroups=[% IF testgroups_js %][% testgroups_js %][% ELSE %]{}[% END %];
 
-function init()
-{
-    populateProductSelect("product_id");
-    productBox = document.getElementById('product_id');
-    branchBox = document.getElementById('branch_id');
-    FormInit(document.forms['testday_report'], document.location.search);
-    FormInit(document.forms['testevent_report'], document.location.search);
-    changeProduct(productBox);
-    FormInit(document.forms['testevent_report'], document.location.search);
-    changeBranch(branchBox);
-    FormInit(document.forms['testevent_report'], document.location.search);
+function init() {
+  FormInit(document.forms['testday_report'], document.location.search);
+
+  productBox = document.getElementById('product_id');
+  branchBox = document.getElementById('branch_id');
+
+  loadProducts(productBox)
+  FormInit(document.forms['testevent_report'], document.location.search);
+  changeProduct();
+  FormInit(document.forms['testevent_report'], document.location.search);
+  changeBranch();
+  FormInit(document.forms['testevent_report'], document.location.search);
 }
 
-function populateProductSelect(selectID)
-{
-    if (products) {
-        var selectBox = document.getElementById(selectID)
-        selectBox.options.length = 0;
-        selectBox.options[0] = new Option('-Product-','');
-        for (var i=0; i<products.length; i++) {
-            selectBox.options[i+1] = new Option(products[i].name,products[i].product_id);
-        }
-    }
-}
-
-function changeProduct(productSelectBox)
-{
-    if (productSelectBox.selectedIndex &&
-        productSelectBox.options[productSelectBox.selectedIndex].value != '') {
-
-        var branchSelectBox = document.getElementById('branch_id');
-        if (branchSelectBox) {
-            branchSelectBox.options.length = 0;
-            branchSelectBox.options[0] = new Option('-Branch-','');
-            var i = 1;
-            for (var j=0; j<branches.length; j++) {
-                if (branches[j].product_id == productSelectBox.options[productSelectBox.selectedIndex].value) {
-                    branchSelectBox.options[i] = new Option(branches[j].name,branches[j].branch_id);
-                    i++;
-                }
-            }
-        }  
-
-        var testgroupSelectBox = document.getElementById('testgroup_id');
-        if (testgroupSelectBox) {
-            testgroupSelectBox.options.length = 0;
-            testgroupSelectBox.options[0] = new Option('-Testgroup-','');
-            var i = 1;
-            for (var j=0; j<testgroups.length; j++) {
-                if (testgroups[j].product_id == productSelectBox.options[productSelectBox.selectedIndex].value) {
-                    testgroupSelectBox.options[i] = new Option(testgroups[j].name,testgroups[j].testgroup_id);
-                    i++;
-                }
-            }
-        }  
-
-    }
-}
-
-function changeBranch(branchSelectBox)
-{
-    if (branchSelectBox.selectedIndex &&
-        branchSelectBox.options[branchSelectBox.selectedIndex].value != '') {
-        var testgroupSelectBox = document.getElementById('testgroup_id');
-        if (testgroupSelectBox) {
-            testgroupSelectBox.options.length = 0;
-            testgroupSelectBox.options[0] = new Option('-Testgroup-','');
-            var i = 1;
-            for (var j=0; j<testgroups.length; j++) {
-                if (testgroups[j].branch_id == branchSelectBox.options[branchSelectBox.selectedIndex].value) {
-                    testgroupSelectBox.options[i] = new Option(testgroups[j].name,testgroups[j].testgroup_id);
-                    i++;
-                }
-            }
-        }  
-        
-    }
-}
 </script>
 
 <div class="section-full">
@@ -168,16 +104,16 @@ function changeBranch(branchSelectBox)
               </tr>
               <tr>
                 <td>Product:</td>
-                <td>[% INCLUDE form_widgets/select_product_id.tmpl name="product_id" placeholder=1 onchange="changeProduct(this);" %]</td>
+                <td>[% INCLUDE form_widgets/select_product_id.tmpl name="product" placeholder=1 onchange="changeProduct();" %]</td>
               </tr>
               <tr>
                 <td>Branch:</td>
-                <td>[% INCLUDE form_widgets/select_branch_id.tmpl name="branch_id" placeholder=1 onchange="changeBranch(this);" %]</td>
+                <td>[% INCLUDE form_widgets/select_branch_id.tmpl name="branch" placeholder=1 onchange="changeBranch();" %]</td>
  		<td>&lArr; Select Product first</td>
               </tr>
               <tr>
                 <td>Testgroup:</td>
-                <td>[% INCLUDE form_widgets/select_testgroup_id.tmpl name="testgroup_id" placeholder=1 %]</td>
+                <td>[% INCLUDE form_widgets/select_testgroup_id.tmpl name="testgroup" placeholder=1 %]</td>
  		<td>&lArr; Select Branch first</td>
               </tr>
               <tr>

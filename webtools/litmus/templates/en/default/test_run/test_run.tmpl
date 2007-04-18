@@ -1,0 +1,87 @@
+[%# ***** BEGIN LICENSE BLOCK *****
+  # Version: MPL 1.1
+  #
+  # The contents of this file are subject to the Mozilla Public License Version
+  # 1.1 (the "License"); you may not use this file except in compliance with
+  # the License. You may obtain a copy of the License at
+  # http://www.mozilla.org/MPL/
+  #
+  # Software distributed under the License is distributed on an "AS IS" basis,
+  # WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+  # for the specific language governing rights and limitations under the
+  # License.
+  #
+  # The Original Code is Litmus.
+  #
+  # The Initial Developer of the Original Code is
+  # The Mozilla Corporation.
+  # Portions created by the Initial Developer are Copyright (C) 2006
+  # the Initial Developer. All Rights Reserved.
+  #
+  # Contributor(s):
+  #   Chris Cooper <ccooper@deadsquid.com>
+  #   Zach Lipton <zach@zachlipton.com>
+  #
+  # ***** END LICENSE BLOCK *****
+#%]
+
+[%# INTERFACE:
+  # $test_run             - the test run object to show
+  # $show_config          - display the config options (product, etc.)
+  #                         for a given test run
+  # $show_edit (optional) - display test run for editing
+#%]
+
+[% IF show_config %]
+<table cellspacing="0" cellpadding="0" class="tcm">
+  <tr>
+    <td><b>Test Run ID #:</b></td>
+    <td id="test_run_id_display[% IF ! show_edit %]_[% test_run.test_run_id | html %][% END %]">[% test_run.test_run_id | html %]</td>
+    [% IF ! show_edit %]<td align="right" valign="top" colspan="5"><a href="manage_test_runs.cgi?test_run_id=[%test_run.test_run_id | html%]"> Edit Test Run</a></td>[% END %]
+  </tr>
+  <tr>
+    <td><b>Name:</b></td>
+    <td><div id="name_text[% IF ! show_edit %]_[% test_run.test_run_id | html%][% END %]">[% test_run.name | html %]</div></td>
+  </tr>
+  <tr>
+    <td><b>Description:</b></td>
+    <td><div id="desc_text[% IF ! show_edit %]_[% test_run.test_run_id | html%][% END %]">[% IF test_run.description %][% test_run.description | html %][% ELSE %]<em>No description provided.</em>[% END %]</div></td>
+  </tr>
+  <tr>
+  <td width="20%"><b>Product:</b></td>
+  <td>
+    <div id="product_text[% IF ! show_edit %]_[% test_run.test_run_id | html %][% END %]">[% test_run.product.name | html %]</div>
+    </td>
+  </tr>
+  <tr>
+  <td width="20%"><b>Branch:</b></td>
+  <td>
+    <div id="branch_text[% IF ! show_edit %]_[% test_run.test_run_id | html %][% END %]">[% test_run.branch.name | html %]</div>
+    </td>
+  </tr>
+  <tr>
+  <td width="20%"><b>Start Timestamp:</b></td>
+  <td>
+    <div id="start_timestamp_text[% IF ! show_edit %]_[% test_run.test_run_id | html %][% END %]">[% test_run.start_timestamp | html %]</div>
+    </td>
+  </tr>
+  <tr>
+  <td width="20%"><b>Finish Timestamp:</b></td>
+  <td>
+    <div id="finish_timestamp_text[% IF ! show_edit %]_[% test_run.test_run_id | html %][% END %]">[% test_run.finish_timestamp | html %]</div>
+    </td>
+  </tr>
+[% IF show_admin %]
+  <tr>
+    <td><b>Enabled?</b></td>
+    <td><input id="enabled_display" name="enabled_display" type="checkbox" value="1" [% IF test_run.enabled %] checked[% END %] disabled></td>
+  </tr>
+  <tr>
+    <td><b>Recommended?</b></td>
+    <td><input id="recommended_display" name="recommended_display" type="checkbox" value="1" [% IF test_run.recommended %] checked[% END %] disabled></td>
+  </tr>
+[% END %]
+</table>
+
+<br clear="all" />
+[% END %]

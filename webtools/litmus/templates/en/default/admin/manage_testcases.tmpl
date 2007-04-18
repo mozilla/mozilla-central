@@ -30,6 +30,11 @@
 
 <script type="text/javascript">
 var current_user_id=[% user.user_id %];
+var formName='select_testcase_and_mode_form';
+var products=[% IF products_js %][% products_js %][% ELSE %]{}[% END %];
+var branches=[% IF branches_js %][% branches_js %][% ELSE %]{}[% END %];
+var testgroups=[% IF testgroups_js %][% testgroups_js %][% ELSE %]{}[% END %];
+var subgroups=[% IF subgroups_js %][% subgroups_js %][% ELSE %]{}[% END %];
 </script>
 
 <div id="page">
@@ -51,18 +56,22 @@ var current_user_id=[% user.user_id %];
 	  <table border="0">
 	    <tr>
 	      <td>Product:</td>
+	      <td>Branch:</td>
 	      <td>Testgroup:</td>
 	      <td>Subgroup:</td>
 	    </tr>
 	    <tr>
               <td>
-                [% INCLUDE form_widgets/select_product_id.tmpl name="product_filter" placeholder=1 size=1 onchange="changeProduct('filter');filterList();" %]
+                [% INCLUDE form_widgets/select_product_id.tmpl name="product_filter" placeholder=1 size=1 display_id=1 onchange="changeProduct('_filter');filterList();" %]
               </td>
               <td>
-                [% INCLUDE form_widgets/select_testgroup_id.tmpl name="testgroup_filter" placeholder=1 size=1 onchange="changeTestgroup('filter');filterList()\;" %]
+                [% INCLUDE form_widgets/select_branch_id.tmpl name="branch_filter" placeholder=1 size=1 display_id=1 onchange="changeBranch('_filter');filterList();" %]
+              </td>
+              <td>
+                [% INCLUDE form_widgets/select_testgroup_id.tmpl name="testgroup_filter" placeholder=1 size=1 display_id=1 onchange="subgroupBox=document.getElementById('subgroup_filter');changeTestgroup('_filter');filterList();" %]
               </td> 
               <td>
-                [% INCLUDE form_widgets/select_subgroup_id.tmpl name="subgroup_filter" placeholder=1 size=1 onchange="filterList()\;" %]
+                [% INCLUDE form_widgets/select_subgroup_id.tmpl name="subgroup_filter" placeholder=1 size=1 display_id=1 onchange="filterList();" %]
               </td> 
 	    </tr>
 	  </table>
@@ -111,6 +120,7 @@ var current_user_id=[% user.user_id %];
 </div> <!--END page-->
 
 <script type="text/javascript">
+loadProducts(document.getElementById('product_filter'),'_filter',1);
 var em = document.getElementById('testcase_id'); 
 if (em.selectedIndex >= 0) {
 [% IF edit %] 

@@ -1,0 +1,134 @@
+[%# ***** BEGIN LICENSE BLOCK *****
+  # Version: MPL 1.1
+  #
+  # The contents of this file are subject to the Mozilla Public License Version
+  # 1.1 (the "License"); you may not use this file except in compliance with
+  # the License. You may obtain a copy of the License at
+  # http://www.mozilla.org/MPL/
+  #
+  # Software distributed under the License is distributed on an "AS IS" basis,
+  # WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+  # for the specific language governing rights and limitations under the
+  # License.
+  #
+  # The Original Code is Litmus.
+  #
+  # The Initial Developer of the Original Code is
+  # The Mozilla Corporation.
+  # Portions created by the Initial Developer are Copyright (C) 2006
+  # the Initial Developer. All Rights Reserved.
+  #
+  # Contributor(s):
+  #   Chris Cooper <ccooper@deadsquid.com>
+  #   Zach Lipton <zach@zachlipton.com>
+  #
+  # ***** END LICENSE BLOCK *****
+#%]
+  
+[%# INTERFACE:
+  # no interface for this template
+#%]
+
+[% test_run=test_runs.0 %]
+[% INCLUDE global/html_header.tmpl js_files=['js/prototype.lite.js',
+                                             'js/moo.fx.js',
+                                             'js/moo.fx.pack.js',
+                                             'js/RunTests.js',
+                                             'js/json.js',
+                                             'js/MochiKit/MochiKit.js',
+                                             'js/TestRunCoverage.js'
+                                             ] %]
+[% INCLUDE global/litmus_header.tmpl %]
+
+<div id="page">
+
+[% INCLUDE sidebar/sidebar.tmpl results=[1] %]
+
+  <div id="content">
+
+<h1 class="firstHeading"><a title="Click to display details of your chosen Test Run." onclick="testConfigHeight.toggle('height');" name="test_run_details">Test Run Report - Test Run ID# [% test_run.test_run_id %]&nbsp;&raquo;</a></h1>
+
+<div id="test_run_summary">
+[% INCLUDE reporting/test_run_summary.tmpl active_test_runs=test_runs display_title_link=0 %]
+</div>
+
+<hr/>
+
+<table class="test_run_report">
+<tr>
+<td><strong>Criteria</strong></td>
+[% FOREACH criterion=test_run.criteria %]
+<th>[% criterion.build_id || "" %]<br/>
+[% criterion.platform_name || "Any Platform" %]<br/>
+[% criterion.opsys_name || "Any OS" %]
+</th>
+[% END %]
+</tr>
+
+[% FOREACH testgroup=testgroups %]
+<tr>
+<td class="testgroup" colspan="[% sysconfigs.size + 1 %]">Testgroup: [% testgroup.name %]</td>
+</tr>
+
+[% FOREACH subgroup=subgroups.${testgroup.testgroup_id} %]
+<tr>
+<td class="subgroup" colspan="[% sysconfigs.size + 1 %]">Subgroup: [% subgroup.name %]</td>
+</tr>
+[% FOREACH testcase=testcases.${subgroup.subgroup_id} %]
+  [% classname="pass" %]
+  [% all_configs_tested=1 %]
+  [% all_configs_pass=1 %]
+  [% FOREACH sysconfig=sysconfigs %]
+    [% IF ! testcase_coverage.${testcase.testcase_id}.${sysconfig.id} %]
+      [% all_configs_tested=0 %]
+      [% LAST %]
+    [% ELSE %]
+      [% any_results_pass=0 %]
+      [% FOREACH result=testcase_coverage.${testcase.testcase_id}.${sysconfig.id} %]
+        [% classname=result.status %]
+        [% IF result.status=="pass" %]
+	  [% any_results_pass=1 %]
+          [% LAST %]
+	[% END %]
+      [% END %]
+      [% IF ! any_results_pass %]
+        [% all_configs_pass=0 %]
+        [% LAST %]
+      [% END %]
+    [% END %]
+  [% END %]
+<tr class="[% IF all_configs_tested %][% IF all_configs_pass %]pass[% ELSE %][% classname %][% END %][% ELSE %][% IF not (loop.count % 2) %]even[% ELSE %]odd[% END %][% END %]">
+<td>[% testcase.testcase_id %]: [% testcase.summary %]</td>
+  [% FOREACH sysconfig=sysconfigs %]
+    [% IF testcase_coverage.${testcase.testcase_id}.${sysconfig.id} %]<td align="center" class="[% classname="fail" %][% FOREACH result=testcase_coverage.${testcase.testcase_id}.${sysconfig.id} %]
+  [% IF result.status=="pass" %]
+    [% classname="pass" %]
+    [% LAST %]
+  [% ELSE %]
+    [% classname=result.status= %]
+  [% END %]
+[% END %][% classname%]">[% IF testcase_coverage.${testcase.testcase_id}.${sysconfig.id}.size == 1 %]<a href="single_result.cgi?id=[% testcase_coverage.${testcase.testcase_id}.${sysconfig.id}.0.result_id %]">[% ELSE %]<a href="advanced_search.cgi?test_run_id=[% test_run.test_run_id %]&amp;testcase=[% testcase.testcase_id %]">[% END %][% testcase_coverage.${testcase.testcase_id}.${sysconfig.id}.size %]</a></td>[% ELSE %]<td align="center">0</td>[% END %]
+  [% END %]
+</tr>
+[% END %]
+[% END %]
+[% IF ! loop.last %]
+<tr>
+<td colspan="[% sysconfigs.size + 1 %]"><hr/></td>
+</tr>
+[% END %]
+[% END %]
+</table>
+
+  </div> <!--END content-->
+
+  <script type="text/javascript">
+    showAll=0;
+    testConfigHeight = new fx.Height('test_run_summary', {duration: 400});
+    beginCoverageLookup();
+  </script>
+
+</div> <!--END page-->
+
+[% INCLUDE global/litmus_footer.tmpl %]
+[% INCLUDE global/html_footer.tmpl %]

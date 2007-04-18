@@ -31,7 +31,6 @@ use strict;
 
 use Litmus;
 use Litmus::Auth;
-use Litmus::Cache;
 use Litmus::Error;
 use Litmus::FormWidget;
 use Litmus::Utils;
@@ -53,8 +52,17 @@ my $rv;
 if ($c->param("searchTestgroupList")) {
   print $c->header('text/plain');
   my $product_id = $c->param("product");
+  my $branch_id = $c->param("branch");
 
-  my $testgroups = Litmus::DB::Testgroup->search(product => $product_id);
+  my $testgroups;
+  if ($branch_id) {
+    $testgroups = Litmus::DB::Testgroup->search(branch => $branch_id);
+  } elsif ($product_id) {
+    $testgroups = Litmus::DB::Testgroup->search(product => $product_id);
+  } else {
+    $testgroups = Litmus::DB::Testgroup->retrieve_all;
+  }
+
   while (my $tg = $testgroups->next) {
     print $tg->testgroup_id()."\n";
   }
@@ -68,7 +76,7 @@ Litmus::Auth::requireAdmin('manage_testgroups.cgi');
 if ($c->param("testgroup_id")) {
   $testgroup_id = $c->param("testgroup_id");
 }
-my $rebuild_cache = 0;
+
 my $defaults;
 if ($c->param("delete_testgroup_button")) {
   my $testgroup = Litmus::DB::Testgroup->retrieve($testgroup_id);
@@ -77,7 +85,6 @@ if ($c->param("delete_testgroup_button")) {
     if ($rv) {
       $status = "success";
       $message = "Testgroup ID# $testgroup_id deleted successfully.";
-      $rebuild_cache = 1;
     } else {
       $status = "failure";
       $message = "Failed to delete Testgroup ID# $testgroup_id.";
@@ -93,55 +100,50 @@ if ($c->param("delete_testgroup_button")) {
     $status = "success";
     $message = "Testgroup cloned successfully. New testgroup ID# is " . $new_testgroup->testgroup_id;
     $defaults->{'testgroup_id'} = $new_testgroup->testgroup_id;
-    $rebuild_cache = 1;
   } else {
     $status = "failure";
     $message = "Failed to clone Testgroup ID# $testgroup_id.";
   }
-} elsif ($c->param("editform_mode")) {
-  requireField('product', $c->param('editform_product'));
-  requireField('branch', $c->param('editform_branch'));
-  my $enabled = $c->param('editform_enabled') ? 1 : 0;
-  if ($c->param("editform_mode") eq "add") {
+} elsif ($c->param("mode")) {
+  requireField('product', $c->param('product'));
+  requireField('branch', $c->param('branch'));
+  my $enabled = $c->param('enabled') ? 1 : 0;
+  if ($c->param("mode") eq "add") {
     my %hash = (
-                name => $c->param('editform_name'),
-                product_id => $c->param('editform_product'),
+                name => $c->param('name'),
+                product_id => $c->param('product'),
                 enabled => $enabled,
-                branch_id => $c->param('editform_branch'),
+                branch_id => $c->param('branch'),
                );
     my $new_testgroup = 
       Litmus::DB::Testgroup->create(\%hash);
 
     if ($new_testgroup) {
-      my @selected_subgroups = $c->param("editform_testgroup_subgroups");
+      my @selected_subgroups = $c->param("testgroup_subgroups");
       $new_testgroup->update_subgroups(\@selected_subgroups);
-      # XXX: Placeholder for updating test runs
       $status = "success";
       $message = "Testgroup added successfully. New testgroup ID# is " . $new_testgroup->testgroup_id;
       $defaults->{'testgroup_id'} = $new_testgroup->testgroup_id;
-      $rebuild_cache = 1;
     } else {
       $status = "failure";
       $message = "Failed to add testgroup.";
     }
-  } elsif ($c->param("editform_mode") eq "edit") {
+  } elsif ($c->param("mode") eq "edit") {
     requireField('testgroup_id', $c->param("editform_testgroup_id"));
     $testgroup_id = $c->param("editform_testgroup_id");
     my $testgroup = Litmus::DB::Testgroup->retrieve($testgroup_id);
     if ($testgroup) {
-      $testgroup->product_id($c->param('editform_product'));
-      $testgroup->branch_id($c->param('editform_branch'));
+      $testgroup->product_id($c->param('product'));
+      $testgroup->branch_id($c->param('branch'));
       $testgroup->enabled($enabled);
-      $testgroup->name($c->param('editform_name'));
+      $testgroup->name($c->param('name'));
       $rv = $testgroup->update();
       if ($rv) {
-        my @selected_subgroups = $c->param("editform_testgroup_subgroups");
+        my @selected_subgroups = $c->param("testgroup_subgroups");
         $testgroup->update_subgroups(\@selected_subgroups);
-        # XXX: Placeholder for updating test runs
         $status = "success";
 	$message = "Testgroup ID# $testgroup_id updated successfully.";
         $defaults->{'testgroup_id'} = $testgroup_id;
-        $rebuild_cache = 1;
       } else {
 	$status = "failure";
 	$message = "Failed to update testgroup ID# $testgroup_id.";
@@ -163,21 +165,23 @@ if ($status and $message) {
   $vars->{'onload'} = "toggleMessage('$status','$message');";
 }
 
-if ($rebuild_cache) {
-  Litmus::Cache::rebuildCache();
-}
-
-my $testgroups = Litmus::FormWidget->getTestgroups;
 my $products = Litmus::FormWidget->getProducts();
+my $branches = Litmus::FormWidget->getBranches();
+my $testgroups = Litmus::FormWidget->getTestgroups;
 my $subgroups = Litmus::FormWidget->getSubgroups(0,'name');
 
 my $json = JSON->new(skipinvalid => 1, convblessed => 1);
+my $products_js = $json->objToJson($products);
+my $branches_js = $json->objToJson($branches);
 my $subgroups_js = $json->objToJson($subgroups);
 
 $vars->{'title'} = "Manage Testgroups";
-$vars->{'testgroups'} = $testgroups;
 $vars->{'products'} = $products;
-$vars->{'all_subgroups'} = $subgroups_js;
+$vars->{'products_js'} = $products_js;
+$vars->{'branches'} = $branches;
+$vars->{'branches_js'} = $branches_js;
+$vars->{'testgroups'} = $testgroups;
+$vars->{'subgroups_js'} = $subgroups_js;
 $vars->{'user'} = Litmus::Auth::getCurrentUser();
 
 my $cookie =  Litmus::Auth::getCookie();

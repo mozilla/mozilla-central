@@ -4,12 +4,12 @@
   [% IF size %] size="[% size %]"[% END %]
   [% IF onchange %] onchange="[% onchange %]"[% END %]
   [% IF disabled %] disabled[% END %]>
-    [% IF placeholder %]<option value="">-Subgroup-</option>[% END %]
+    [% IF placeholder %]<option value="">-Subgroup[% IF display_id %] (ID#)[% END %]-</option>[% END %]
 [% IF subgroups %]
 [% FOREACH subgroup=subgroups %]
      [% subgroup.subgroup_id %]<br/>
     <option[% IF defaults.subgroup_id==subgroup.subgroup_id %] selected[% END %] 
-      value="[% subgroup.subgroup_id | html %]">[% subgroup.name %]</option>
+      value="[% subgroup.subgroup_id | html %]">[% subgroup.name %][% IF display_id %] ([% subgroup.subgroup_id %])[% END %]</option>
 [% END %]
 [% END %]
 </select>

@@ -34,12 +34,14 @@ our $t0 = [gettimeofday];
 
 use Litmus;
 use Litmus::Error;
+use Litmus::FormWidget;
 use Litmus::DB::Product;
 use Litmus::UserAgentDetect;
 use Litmus::SysConfig;
 use Litmus::Auth;
 
 use CGI;
+use JSON;
 use Time::Piece::MySQL;
 
 Litmus->init();
@@ -48,79 +50,123 @@ our $title = "Run Tests";
 
 our $c = Litmus->cgi(); 
 
-if ($c->param("group")) { # display the test screen
-  &page_test();
-} elsif ($c->param("platform") || $c->param("continuetesting")) { # pick a group
-  &page_pickGroupSubgroup();
-} else { # need to setup their system config
-  &page_sysSetup();
-}  
+if ($c->param) {
+  if ($c->param("testgroup")) {
+    &displayTestcases();
+  } elsif ($c->param("criterion") or
+           $c->param("continuetesting")) { 
+    &displayGroupSelection();
+  } elsif ($c->param("test_run_id")) {
+    &displaySysConfig();
+  } else { 
+    &displayAllTestRuns();
+  }
+} else {
+  &displayAllTestRuns();
+}
+
+if ($Litmus::Config::DEBUG) {
+  my $elapsed = tv_interval ( $t0 );
+  printf  "<div id='pageload'>Page took %f seconds to load.</div>", $elapsed;
+}
+
+exit 0;
 
 # END
 
 #########################################################################
-
-# a menu for the user to enter their platform information
-sub page_sysSetup {
-  print $c->header();
-  
-  # sometimes the user will have already selected their product
-  my $productid = $c->param("product");
-  my $product = undef;
-  if ($productid) {
-    $product = Litmus::DB::Product->retrieve($productid);
-    unless ($product) {
-      invalidInputError("Invalid product selection: $productid");
-    }
-  }
-  
-  Litmus::SysConfig->displayForm($product, "run_tests.cgi");
-  exit;
-}
-
-# the user has selected their system information and now needs to pick 
-# an area to test:
-sub page_pickGroupSubgroup {
-  my $sysconfig;
-  
-  my $product = Litmus::DB::Product->retrieve($c->param("product"));
-  if (! $product) {
-    print $c->header();
-    invalidInputError("Invalid product ".$c->param("product"));
-  }
-  
-  my $branch;
-  if ($c->param("continuetesting")) {
-    # they have already gotten setup and just want to 
-    # pick a new group or subgroup:
-    $sysconfig = Litmus::SysConfig->getCookie($product);
-    if (!$sysconfig) {
-      page_pickProduct()
-    };
-    $branch = $sysconfig->branch();
-  } else {
-    $branch = Litmus::DB::Branch->retrieve($c->param("branch"));
-    if (! $branch) {
-      print $c->header();
-      invalidInputError("Invalid branch ".$c->param("branch"));
-    }
-    $sysconfig = Litmus::SysConfig->processForm($c);
-    # get the user id and set a sysconfig cookie
-    $c->storeCookie($sysconfig->setCookie());
-  }
-  
+sub displaySysConfig() {
   Litmus::Auth::requireLogin("run_tests.cgi");
   
+  my $test_run_id = $c->param("test_run_id");
+
+  if (!$test_run_id) {
+    &displayAllTestRuns();
+  }
+
+  print $c->header();
+
+  my $test_run = Litmus::DB::TestRun->getTestRunWithRefs($test_run_id);
+  
+  my $title = "Run Tests - Your Chosen Test Run";
+
+  my $platforms = Litmus::FormWidget->getPlatforms();
+  my $opsyses = Litmus::FormWidget->getOpsyses();
+  my $locales = Litmus::FormWidget->getLocales();
+
+  my $json = JSON->new(skipinvalid => 1, convblessed => 1);
+  my $test_run_js = $json->objToJson($test_run);
+  my $platforms_js = $json->objToJson($platforms);
+  my $opsyses_js = $json->objToJson($opsyses);
+
+  my $vars = {
+              title        => $title,
+              user         => Litmus::Auth::getCurrentUser(),
+              test_run     => [$test_run],
+              test_run_js  => $test_run_js,
+              platforms_js => $platforms_js,
+              opsyses_js   => $opsyses_js,
+              locales      => $locales,
+             };
+  
+  my $cookie =  Litmus::Auth::getCookie();
+  $vars->{"defaultemail"} = $cookie;
+  $vars->{"show_admin"} = Litmus::Auth::istrusted($cookie);
+  
+  Litmus->template()->process("runtests/sysconfig.html.tmpl", $vars) || 
+    internalError(Litmus->template()->error());
+  
+}
+
+#########################################################################
+sub displayGroupSelection() {
+  Litmus::Auth::requireLogin("run_tests.cgi");
+  
+  my $test_run_id = $c->param("test_run_id");
+
+  if (!$test_run_id) {
+    &displayAllTestRuns();
+    return;
+  }
+
+  my $test_run = Litmus::DB::TestRun->getTestRunWithRefs($test_run_id);
+  my $sysconfig;
+  if ($c->param("continuetesting")) {
+    # Check that we have config info for this test run already.
+    $sysconfig = Litmus::SysConfig->getCookieByTestRunId($test_run_id);
+  } else {
+    $sysconfig = &verifySysConfig($test_run);
+  }
+ 
+  if (!$sysconfig) {
+    &displaySysConfig();
+    return;
+  };
+
+  $c->storeCookie($sysconfig->setCookie());
+  
+  $test_run->flagCriteriaInUse($sysconfig);
+
   print $c->header();
   
-  # Get all groups for the current branch.
-  my @groups = Litmus::DB::Testgroup->search_EnabledByBranch($branch->branch_id());
+  my $user =  Litmus::Auth::getCookie();
+  my @testgroups;
+  if (Litmus::Auth::istrusted($user)) {
+    @testgroups = Litmus::DB::Testgroup->search_ByTestRun($test_run_id);
+  } else {
+    @testgroups = Litmus::DB::Testgroup->search_EnabledByTestRun($test_run_id);
+  }
   
   # all possible subgroups per group:
   my %subgroups; 
-  foreach my $curgroup (@groups) {
-    my @subgroups = Litmus::DB::Subgroup->search_EnabledByTestgroup($curgroup->testgroup_id());
-    $subgroups{$curgroup->testgroup_id()} = \@subgroups;
+  foreach my $testgroup (@testgroups) {
+    my @component_subgroups;
+    if (Litmus::Auth::istrusted($user)) {
+      @component_subgroups = Litmus::DB::Subgroup->search_ByTestgroup($testgroup->testgroup_id());
+    } else {
+      @component_subgroups = Litmus::DB::Subgroup->search_EnabledByTestgroup($testgroup->testgroup_id());
+    }
+    $subgroups{$testgroup->testgroup_id()} = \@component_subgroups;
   }
   
   my $defaultgroup = "";
@@ -128,41 +174,57 @@ sub page_pickGroupSubgroup {
     $defaultgroup = Litmus::DB::Testgroup->
       retrieve($c->param("defaulttestgroup"));
   }
-  
+
   my $vars = {
               title        => $title,
               user         => Litmus::Auth::getCurrentUser(),
-              opsys        => $sysconfig->opsys(),
-              groups       => \@groups,
+              test_runs     => [$test_run],
+              testgroups   => \@testgroups,
               subgroups    => \%subgroups,
-              sysconfig    => $sysconfig,
               defaultgroup => $defaultgroup,
+              defaultemail => $user,
+              show_admin   => Litmus::Auth::istrusted($user),
+              sysconfig    => $sysconfig,
              };
-  
-  my $cookie =  Litmus::Auth::getCookie();
-  $vars->{"defaultemail"} = $cookie;
-  $vars->{"show_admin"} = Litmus::Auth::istrusted($cookie);
-  
+
   Litmus->template()->process("runtests/selectgroupsubgroup.html.tmpl", 
-                              $vars) || 
-                                internalError(Litmus->template()->error());
-  
-  if ($Litmus::Config::DEBUG) {
-    my $elapsed = tv_interval ( $t0 );
-    printf  "<div id='pageload'>Page took %f seconds to load.</div>", $elapsed;
-  }
+                              $vars) or 
+    internalError(Litmus->template()->error());
 }
 
-# display a page of testcases:
-sub page_test {
+#########################################################################
+sub displayTestcases() {
+  Litmus::Auth::requireLogin("run_tests.cgi");
+  
+  my $test_run_id = $c->param("test_run_id");
+
+  if (!$test_run_id) {
+    &displayAllTestRuns();
+  }
+
+  my $test_run = Litmus::DB::TestRun->getTestRunWithRefs($test_run_id);
+  my $sysconfig = Litmus::SysConfig->getCookieByTestRunId($test_run_id);
+ 
+  if (!$sysconfig) {
+    &displaySysConfig();
+    return;
+  };
+
+  $c->storeCookie($sysconfig->setCookie());
+  
+  $test_run->flagCriteriaInUse($sysconfig);
+
+  print $c->header();
+#  use Data::Dumper;
+#  print Dumper $sysconfig;
+#  print Dumper $test_run->{'criteria'};
+
   # the form has a subgroup radio button set for each possible group, named
   # subgroup_n where n is the group id number. We get the correct
   # subgroup based on whatever group the user selected: 
-  my $testgroup_id = $c->param("group");
+  my $testgroup_id = $c->param("testgroup");
   my $subgroup_id = $c->param("subgroup_".$testgroup_id);
-  
-  print $c->header();
-  
+
   my $cookie =  Litmus::Auth::getCookie();
   my $show_admin = Litmus::Auth::istrusted($cookie);
   
@@ -174,24 +236,120 @@ sub page_test {
     @tests = Litmus::DB::Testcase->search_CommunityEnabledBySubgroup($subgroup_id,$testgroup_id);
   }
   
-  my $sysconfig = Litmus::SysConfig->getCookie($tests[0]->product());
-  
   my $vars = {
-              title     => $title,
-              sysconfig => $sysconfig,
-              group     => Litmus::DB::Testgroup->retrieve($testgroup_id),
-              subgroup  => Litmus::DB::Subgroup->retrieve($subgroup_id),
-              tests     => \@tests,
+              title        => $title,
+              test_runs    => [$test_run],
+              testgroup    => Litmus::DB::Testgroup->retrieve($testgroup_id),
+              subgroup     => Litmus::DB::Subgroup->retrieve($subgroup_id),
+              tests        => \@tests,
               defaultemail => $cookie,
               show_admin   => $show_admin,
               istrusted    => $show_admin,
+              sysconfig    => $sysconfig,
              };
   
   Litmus->template()->process("runtests/testdisplay.html.tmpl", $vars) ||
     internalError(Litmus->template()->error());
+}
+
+#########################################################################
+sub displayAllTestRuns() {
+  print $c->header();
+
+  my @recommended_test_runs = Litmus::DB::TestRun->getTestRuns(1,'true',0);
+  my @remaining_test_runs = Litmus::DB::TestRun->getTestRuns(1,'false',0);
+
+  my $title = "Active Test Runs - All";
+
+  my $vars = {
+              title        => $title,
+              user         => Litmus::Auth::getCurrentUser(),
+              recommended_test_runs => \@recommended_test_runs,
+              remaining_test_runs => \@remaining_test_runs,
+             };
   
-  if ($Litmus::Config::DEBUG) {
-    my $elapsed = tv_interval ( $t0 );
-    printf  "<div id='pageload'>Page took %f seconds to load.</div>", $elapsed;
+  my $cookie =  Litmus::Auth::getCookie();
+  $vars->{"defaultemail"} = $cookie;
+  $vars->{"show_admin"} = Litmus::Auth::istrusted($cookie);
+  
+  Litmus->template()->process("runtests/all_test_runs.tmpl", 
+                              $vars) || 
+                                internalError(Litmus->template()->error());
+}
+
+#########################################################################
+sub verifySysConfig() {
+  my ($test_run) = @_;
+  
+  # Use the criterion value as the basis for our check, since disabled form
+  # controls don't dubmit their values anyway.
+  my ($row_num,$build_id,$platform_id,$opsys_id);
+  if ($c->param("criterion")) {
+    ($row_num,$build_id,$platform_id,$opsys_id) = split(/\|/,$c->param("criterion"),4);
+    if (!$build_id) {
+      $build_id = $c->param("build_id_${row_num}");
+    }
+    if (!$platform_id) {
+      $platform_id = $c->param("platform_${row_num}");
+    }
+    if (!$opsys_id) {
+      $opsys_id = $c->param("opsys_${row_num}");
+    }
   }
+  my $locale = $c->param("locale");
+
+  # Make sure we have a complete set of criteria.
+  if (!$build_id or
+      !$platform_id or
+      !$opsys_id or
+      !$locale) {
+    return undef;
+  }
+  
+  # Compare the provided criteria with any required criteria.
+  my $found_match = 0;
+  if ($test_run->criteria and scalar(@{$test_run->criteria}) > 0) {
+    foreach my $criterion (@{$test_run->criteria}) {
+      # Build ID alone is the smallest possible criteria set.
+      if ($criterion->{'build_id'} == $build_id) {
+        if ($criterion->{'platform_id'}) {
+          if ($criterion->{'platform_id'} == $platform_id) {
+            if ($criterion->{'opsys_id'}) {
+              if ($criterion->{'opsys_id'} == $opsys_id) {
+                # Matches build ID, platform ID, and opsys ID
+                $found_match = 1;
+                last;
+              }
+              next;
+            }
+            # Matches build ID and platform ID
+            $found_match = 1;
+            last;
+          }
+          next;
+        }
+        # Matches build ID.
+        $found_match = 1;
+        last;
+      }
+      next;
+    }    
+  } else {
+    # No criteria associated with this test run, so any complete set of
+    # criteria will do.
+    $found_match = 1;
+  }
+
+  if (!$found_match) {
+    return undef;
+  }
+
+  my $sysconfig = Litmus::SysConfig::new(
+                                         $test_run->{'test_run_id'},
+                                         $build_id,
+                                         $platform_id,
+                                         $opsys_id,
+                                         $locale
+                                         );
+  return $sysconfig;
 }

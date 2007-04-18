@@ -1,0 +1,12 @@
+<select class="test_run" id="[% name %]" name="[% name %]"[% IF size %] size="[% size %]"[% END %][% IF onchange %] onchange="[% onchange %]"[% END %][% IF disabled %] disabled[% END %]>
+    [% IF placeholder %]<option value="">-Test Run Name (ID#)-</option>[% END %]
+[% IF test_runs %]
+[% FOREACH test_run=test_runs %]
+
+    <option[% IF defaults.test_run_id==test_run.test_run_id %] selected[% END %] 
+        value="[% test_run.test_run_id | html %]"
+        id="[%name%]_test_run_[%test_run.test_run_id | html %]">
+            [% test_run.name %][% IF display_id %] ([% test_run.test_run_id | html%])[% END %]</option>
+[% END %]
+</select>
+[% END %]

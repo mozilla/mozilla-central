@@ -48,46 +48,69 @@ Litmus::DB::Testgroup->has_a(product => "Litmus::DB::Product");
 Litmus::DB::Testgroup->has_a(branch => "Litmus::DB::Branch");
 
 __PACKAGE__->set_sql(EnabledByBranch => qq{
-                                           SELECT tg.* 
-                                           FROM testgroups tg
-                                           WHERE tg.branch_id=? AND tg.enabled=1 ORDER by tg.name ASC
+SELECT tg.* 
+FROM testgroups tg
+WHERE tg.branch_id=? AND tg.enabled=1
+ORDER by tg.name ASC
 });
 
 __PACKAGE__->set_sql(ByBranch => qq{
-                                    SELECT tg.* 
-                                    FROM testgroups tg
-                                    WHERE tg.branch_id=? ORDER by tg.name ASC
+SELECT tg.* 
+FROM testgroups tg
+WHERE tg.branch_id=?
+ORDER by tg.name ASC
 });
 
 __PACKAGE__->set_sql(EnabledBySubgroup => qq{
-                                             SELECT tg.* 
-                                             FROM testgroups tg, subgroup_testgroups sgtg
-                                             WHERE sgtg.subgroup_id=? AND sgtg.testgroup_id=tg.testgroup_id AND tg.enabled=1 ORDER by tg.name ASC
+SELECT tg.* 
+FROM testgroups tg, subgroup_testgroups sgtg
+WHERE sgtg.subgroup_id=? AND sgtg.testgroup_id=tg.testgroup_id AND tg.enabled=1
+ORDER by tg.name ASC
 });
 
 __PACKAGE__->set_sql(BySubgroup => qq{
-                                      SELECT tg.* 
-                                      FROM testgroups tg, subgroup_testgroups sgtg
-                                      WHERE sgtg.subgroup_id=? AND sgtg.testgroup_id=tg.testgroup_id ORDER by tg.name ASC
+SELECT tg.* 
+FROM testgroups tg, subgroup_testgroups sgtg
+WHERE sgtg.subgroup_id=? AND sgtg.testgroup_id=tg.testgroup_id
+ORDER by tg.name ASC
 });
 
 __PACKAGE__->set_sql(EnabledByTestcase => qq{
-                                             SELECT tg.* 
-                                             FROM testgroups tg, subgroup_testgroups sgtg, testcase_subgroups tcsg
-                                             WHERE tcsg.testcase_id=? AND tcsg.subgroup_id=sgtg.subgroup_id AND sgtg.testgroup_id=tg.testgroup_id AND tg.enabled=1 ORDER by tg.name ASC
+SELECT tg.* 
+FROM testgroups tg, subgroup_testgroups sgtg, testcase_subgroups tcsg
+WHERE tcsg.testcase_id=? AND tcsg.subgroup_id=sgtg.subgroup_id AND sgtg.testgroup_id=tg.testgroup_id AND tg.enabled=1
+ORDER by tg.name ASC
 });
 
 __PACKAGE__->set_sql(ByTestcase => qq{
-                                      SELECT tg.* 
-                                      FROM testgroups tg, subgroup_testgroups sgtg, testcase_subgroups tcsg
-                                      WHERE tcsg.testcase_id=? AND tcsg.subgroup_id=sgtg.subgroup_id AND sgtg.testgroup_id=tg.testgroup_id ORDER by tg.name ASC
+SELECT tg.* 
+FROM testgroups tg, subgroup_testgroups sgtg, testcase_subgroups tcsg
+WHERE tcsg.testcase_id=? AND tcsg.subgroup_id=sgtg.subgroup_id AND sgtg.testgroup_id=tg.testgroup_id
+ORDER by tg.name ASC
+});
+
+__PACKAGE__->set_sql(ByTestRun => qq{
+SELECT tg.* 
+FROM testgroups tg, test_run_testgroups trtg
+WHERE trtg.test_run_id=? AND trtg.testgroup_id=tg.testgroup_id
+ORDER by tg.name ASC
+});
+
+__PACKAGE__->set_sql(EnabledByTestRun => qq{
+SELECT tg.* 
+FROM testgroups tg, test_run_testgroups trtg
+WHERE trtg.test_run_id=? AND
+  trtg.testgroup_id=tg.testgroup_id AND
+  tg.enabled=1
+ORDER by tg.name ASC
 });
 
 #########################################################################
 sub coverage {
   my $self = shift;
-  my $platform = shift;
   my $build_id = shift;
+  my $platform_id = shift;
+  my $opsys_id = shift;
   my $locale = shift;
   my $community_only = shift;
   my $user = shift;
@@ -99,8 +122,9 @@ sub coverage {
   my $num_empty_subgroups = 0;
   foreach my $subgroup (@subgroups) {
     my $subgroup_percent = $subgroup->coverage(
-                                               $platform, 
                                                $build_id, 
+                                               $platform_id, 
+                                               $opsys_id,
                                                $locale,
                                                $community_only,
                                                $user,
@@ -133,15 +157,15 @@ sub clone() {
   
   # Propagate testgroup membership;
   my $sql = "INSERT INTO subgroup_testgroups (subgroup_id,testgroup_id,sort_order) SELECT subgroup_id,?,sort_order FROM subgroup_testgroups WHERE testgroup_id=?";
-  
-  my $dbh = __PACKAGE__->db_Main();  
+
+  my $dbh = __PACKAGE__->db_Main();
   my $rows = $dbh->do($sql,
                    undef,
                    $new_testgroup->testgroup_id,
                    $self->testgroup_id
                   );
   if (! $rows) {
-    # XXX: Do we need to throw a warning here?
+    print STDERR "Unable to clone testgroup membership for testgroup ID# " . $self->testgroup_id . ' -> ' . $new_testgroup->testgroup_id . "\n";
   }  
   
   return $new_testgroup;

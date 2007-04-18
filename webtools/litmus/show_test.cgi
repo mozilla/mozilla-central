@@ -53,14 +53,18 @@ $vars->{'default_num_days'} = Litmus::DB::Testcase->getDefaultNumDays();
 $vars->{'default_relevance_threshold'} = Litmus::DB::Testcase->getDefaultRelevanceThreshold();
 
 my $products = Litmus::FormWidget->getProducts($show_admin);
+my $branches = Litmus::FormWidget->getBranches($show_admin);
 my $testgroups = Litmus::FormWidget->getTestgroups($show_admin);
 my $subgroups = Litmus::FormWidget->getSubgroups($show_admin,'sort_order');
+
 my $json = JSON->new(skipinvalid => 1, convblessed => 1);
 my $products_js = $json->objToJson($products);
+my $branches_js = $json->objToJson($branches);
 my $testgroups_js = $json->objToJson($testgroups);
 my $subgroups_js = $json->objToJson($subgroups);
 
 $vars->{'products_js'} = $products_js;
+$vars->{'branches_js'} = $branches_js;
 $vars->{'testgroups_js'} = $testgroups_js;
 $vars->{'subgroups_js'} = $subgroups_js;
 
@@ -147,7 +151,7 @@ if ($c->param("id")) {
   my $showallresults = $c->param("showallresults") || "";
 
   my @where;
-  push @where, { field => 'testcase_id', value => $testcase_id };
+  push @where, { field => 'testcase', value => $testcase_id };
   my @order_by;
   push @order_by, { field => 'created', direction => 'DESC' };
   my $test_results = Litmus::DB::Testresult->getTestResults(\@where,\@order_by);

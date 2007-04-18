@@ -1,0 +1,71 @@
+<div class="select_criteria">
+  <form id="select_criteria_form" name="select_criteria_form" method="post" action="run_tests.cgi" onSubmit="return checkFormContents(this);">
+
+    <input type="hidden" name="test_run_id" id="test_run_id" value="[% active_test_run.test_run_id %]" />
+ 
+  <table class="criteria" id="tblCriteria" name="tblCriteria" border="0" cellspacing="2" cellpadding="10">
+    <tr>
+[% IF criteria && criteria.list.size > 0 %]
+      <td class="sectionHeading" colspan="4">Which of the required criteria matches your configuration?</td>
+[% ELSE %]
+      <td class="sectionHeading" colspan="4">Please provide your configuration details:</td>
+[% END %]
+    </tr>
+
+    <tr>
+      <th>Select</td>
+      <th>Build ID#&nbsp<a name="showBuildIDHelpText" onclick="toggleHelp(buildIDHelpTitle,buildIDHelpText);"><img class="inline" src="images/info.png" alt="How do I determine the build ID?" /></a></td>
+      <th>Platform</td>
+      <th>Operating System</td>
+    </tr>
+
+    <tr>
+      <td colspan="4"><hr /></td>
+    </tr>
+
+    <tr>
+      <td class="sectionHeading" colspan="4">Extra configuration information:</td>
+    </tr>
+
+    <tr>
+      <th>Locale</td>
+      <td colspan="3">[% INCLUDE form_widgets/select_locale.tmpl name="locale" defaults.locale=ua.locale %]</td>
+    </tr>
+
+    <tr>
+      <td colspan="4"><hr /></td>
+    </tr>
+
+    <tr>
+      <td colspan="4" align="right"><input class="button" type="button" value="Reset" onClick="resetCriteria();" />&nbsp;<input class="button" type="submit" value="Submit configuration" /></td>
+    </tr>
+
+</table>
+
+</form>
+
+<script type="text/javascript">
+[% IF defaultbuildid %] 
+appBuildID = "[% defaultbuildid | js | html %]"; 
+[% END %]
+
+getBuildId();
+
+if (test_run.criteria.length > 0) {
+  for (var i=0; i<test_run.criteria.length; i++) {
+    addRowToTable('tblCriteria',
+                  i+2,
+                  test_run.criteria[i].build_id,
+                  test_run.criteria[i].platform_id,
+                  test_run.criteria[i].opsys_id
+                 );
+  }
+} else {
+  addRowToTable('tblCriteria',
+                2
+               );
+}
+
+</script>
+
+</div>

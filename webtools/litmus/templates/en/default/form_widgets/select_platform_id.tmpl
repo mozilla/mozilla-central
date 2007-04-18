@@ -5,11 +5,11 @@
   [% IF disabled %] disabled[% END %]
   [% IF onchange %] onchange="[% onchange %]"[% END %]>
 
-  [% IF placeholder %]<option value="">-Platform-</option>[% END %]
+  [% IF placeholder %]<option value="">-Platform[% IF display_id %] (ID#)[% END %]-</option>[% END %]
   [% IF platforms %]
     [% FOREACH platform=platforms %]
       <option[% IF defaults.platform==platform.name %] selected[% END %] 
-        value="[% platform.platform_id | html %]">[% platform.name | html %] ([% platform.platform_id %])</option>
+        value="[% platform.platform_id | html %]">[% platform.name | html %][% IF display_id %] ([% platform.platform_id %])[% END %]</option>
     [% END %]
   [% END %]
 </select>

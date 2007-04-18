@@ -30,58 +30,45 @@
 use strict;
 $|++;
 
-#use Time::HiRes qw( gettimeofday tv_interval );
-#my $t0 = [gettimeofday];
+my $t0;
+if ($Litmus::Config::DEBUG) {
+  use Time::HiRes qw( gettimeofday tv_interval );
+  $t0 = [gettimeofday];
+}
 
 use Litmus;
 use Litmus::Auth;
 use Litmus::Error;
-use Litmus::DB::Testresult;
-use Litmus::FormWidget;
-
-use Time::Piece::MySQL;
-
-
+use Litmus::DB::TestRun;
 
 Litmus->init();
-
-my ($criteria,$results) = Litmus::DB::Testresult->getDefaultTestResults;
-
-my $products = Litmus::FormWidget->getProducts();
-my $platforms = Litmus::FormWidget->getUniquePlatforms();
-my $test_groups = Litmus::FormWidget->getTestgroups();
-my $result_statuses = Litmus::FormWidget->getResultStatuses;
-my $branches = Litmus::FormWidget->getBranches();
 
 my $c = Litmus->cgi();
 print $c->header();
 
 my $vars = {
-            title => 'Main Page',
-            products => $products,
-            platforms => $platforms,
-            test_groups => $test_groups,
-            result_statuses => $result_statuses,
-            branches => $branches,
-            limit => $Litmus::DB::Testresult::_num_results_default,
+            title => 'Active Test Runs',
            };
 
-# Only include results if we have them.
-if ($results and scalar @$results > 0) {
-  $vars->{results} = $results;
+my @test_runs = Litmus::DB::TestRun->getTestRuns(1,'all',5);
+
+if (@test_runs and scalar @test_runs > 0) {
+  $vars->{'active_test_runs'} = \@test_runs;
 }
 
 my $user = Litmus::Auth::getCurrentUser();
 if ($user) {
-	$vars->{"defaultemail"} = $user;
-	$vars->{"show_admin"} = $user->is_admin();
+  $vars->{"defaultemail"} = $user;
+  $vars->{"show_admin"} = $user->is_admin();
 }
 
 Litmus->template()->process("index.tmpl", $vars) ||
   internalError(Litmus->template()->error());
 
-#my $elapsed = tv_interval ( $t0 );
-#printf  "<div id='pageload'>Page took %f seconds to load.</div>", $elapsed;
+if ($Litmus::Config::DEBUG) {
+  my $elapsed = tv_interval ( $t0 );
+  printf  "<div id='pageload'>Page took %f seconds to load.</div>", $elapsed;
+}
 
 exit 0;
 

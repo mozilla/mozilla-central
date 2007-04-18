@@ -2,15 +2,16 @@ var subgroup;
 var filter_req;
 
 var showAll = function(err) {
-	// if they cancelled, then just don't change anything:
-	if (err instanceof CancelledError) { return }
-	toggleMessage('none');
-	
-	var testbox = document.getElementById("subgroup_id");
-	for (var i=0; i<testbox.options.length; i++) {
-		var option = testbox.options[i];
-		option.style.display = '';
-	}
+  // if they cancelled, then just don't change anything:
+  if (err instanceof CancelledError) { return }
+    toggleMessage('none');
+
+  var testbox = document.getElementById("subgroup_id");
+  for (var i=0; i<testbox.options.length; i++) {
+    var option = testbox.options[i];
+    option.style.display = '';
+  }
+  enableForm(formName);
 };
 
 var doFilterList = function(req) {
@@ -24,6 +25,7 @@ for (var i=0; i<subgroupbox.options.length; i++) {
     hide == 1 ? subgroup.style.display = 'none' : subgroup.style.display = '';
   }
   toggleMessage('none');
+  enableForm(formName);
 };
 
 // filter the list by various criteria:
@@ -32,11 +34,14 @@ function filterList() {
   if (filter_req instanceof Deferred && filter_req.fired == -1)
   filter_req.cancel();
 
+  disableForm(formName);
   var productfilter = document.getElementById('product_filter');
+  var branchfilter = document.getElementById('branch_filter');
   var testgroupfilter = document.getElementById('testgroup_filter');
 
-  if (productfilter.options[productfilter.selectedIndex].value == '---' &&
-      testgroupfilter.options[testgroupfilter.selectedIndex].value == '---') {
+  if (productfilter.options[productfilter.selectedIndex].value == '' &&
+      branchfilter.options[branchfilter.selectedIndex].value == '' &&
+      testgroupfilter.options[testgroupfilter.selectedIndex].value == '') {
     // nothing to do here
     showAll();
     return;
@@ -45,9 +50,11 @@ function filterList() {
   toggleMessage('loading','Filtering subgroup list...');
   filter_req = doSimpleXMLHttpRequest('manage_subgroups.cgi', {
     searchSubgroupList: 1,
-    product: (productfilter.options[productfilter.selectedIndex].value == '---' ?
+    product: (productfilter.options[productfilter.selectedIndex].value == '' ?
     '' : productfilter.options[productfilter.selectedIndex].value),
-    testgroup: (testgroupfilter.options[testgroupfilter.selectedIndex].value == '---' ? 
+    branch: (branchfilter.options[branchfilter.selectedIndex].value == '' ?
+    '' : branchfilter.options[branchfilter.selectedIndex].value),
+    testgroup: (testgroupfilter.options[testgroupfilter.selectedIndex].value == '' ? 
     '' : testgroupfilter.options[testgroupfilter.selectedIndex].value)
   });
   // if something went wrong, just show all the tests:
@@ -92,44 +99,37 @@ function loadSubgroup(silent) {
 
 function populateSubgroup(data) {
   subgroup=data;
-  document.getElementById('editform_subgroup_id').value = subgroup.subgroup_id;
-  document.getElementById('editform_subgroup_id_display').innerHTML = subgroup.subgroup_id;
-  document.getElementById('editform_name').value = subgroup.name;
-  document.getElementById('name_text').innerHTML = subgroup.name;
-  document.getElementById('subgroup_id_display').innerHTML = subgroup.subgroup_id;
 
-  var productBox = document.getElementById('editform_product');
-  var options = productBox.getElementsByTagName('option');  
-  var found_product = 0;
-  for (var i=0; i<options.length; i++) {
-    if (options[i].value == subgroup.product_id.product_id) {
-      options[i].selected = true;
-      document.getElementById('product_text').innerHTML = options[i].text;
-      found_product=1;
-    } else {
-      options[i].selected = false;
-    }      
-  }
-  if (found_product == 0 && options) {
-    options[0].selected = true;
+  document.getElementById('editform_subgroup_id').value = subgroup.subgroup_id;
+  document.getElementById('subgroup_id_display').innerHTML = subgroup.subgroup_id;
+  document.getElementById('name').value = subgroup.name;
+  document.getElementById('name_text').innerHTML = subgroup.name;
+
+  var productBox = document.getElementById('product');
+  var found_product = setSelected(productBox,subgroup.product_id.product_id);
+  if (found_product == 1) {
+    for (var i=0; i<products.length; i++) {
+      if (products[i].product_id == subgroup.product_id.product_id) {
+        document.getElementById('product_text').innerHTML = products[i].name;
+        continue;
+      }
+    }
+  } else {
+    document.getElementById('product_text').innerHTML = '<em>No product set for this subgroup.</em>';
   }
   changeProduct();
-  populateBranches(productBox);
-  var branchBox = document.getElementById('editform_branch');
-  var options = branchBox.getElementsByTagName('option');
-  var found_branch = 0;
-  for (var i=0; i<options.length; i++) {
-    if (options[i].value == subgroup.branch_id.branch_id) {
-      options[i].selected = true;
-      document.getElementById('branch_text').innerHTML = options[i].text;
-      found_branch=1;
-    } else {
-      options[i].selected = false;
+  var branchBox = document.getElementById('branch');
+  populateBranches(branchBox,productBox);
+  var found_branch = setSelected(branchBox,subgroup.branch_id.branch_id);
+  if (found_branch == 1) {
+    for (var i=0; i<branches.length; i++) {
+      if (branches[i].branch_id == subgroup.branch_id.branch_id) {
+        document.getElementById('branch_text').innerHTML = branches[i].name;
+        continue;
+      }
     }
-  }
-  if (found_branch == 0) {
+  } else {
     document.getElementById('branch_text').innerHTML = '<em>No branch set for this subgroup.</em>';
-    options[0].selected = true;
   }
   var testgroups_text = "";
   var testgroups_link_text = "";
@@ -149,17 +149,17 @@ function populateSubgroup(data) {
     document.getElementById('testgroups_link_display').innerHTML = '<span class="errorHeading">This subgroup does not belong to any testgroups that are currently enabled &rArr;&nbsp;<a target="manage_testgroups" href="manage_testgroups.cgi">Jump to Manage Testgroups</a>.</span>';
   }
 
-  var enabled_em = document.getElementById('editform_enabled')
+  var enabled_em = document.getElementById('enabled')
   if (subgroup.enabled == 1) {
     enabled_em.checked = true;
   } else {
     enabled_em.checked = false;
   } 
-  document.getElementById('editform_testrunner_group_id').innerHTML = subgroup.testrunner_group_id;
+  document.getElementById('testrunner_group_id').innerHTML = subgroup.testrunner_group_id;
 
   populateAllTestcases();
 
-  var selectBoxSubgroup = document.getElementById('editform_subgroup_testcases');
+  var selectBoxSubgroup = document.getElementById('subgroup_testcases');
   selectBoxSubgroup.options.length = 0;
   for (var i=0; i<subgroup.testcases.length; i++) {
     var optionText = subgroup.testcases[i].testcase_id + ': ' + subgroup.testcases[i].summary;
@@ -174,19 +174,19 @@ function populateSubgroup(data) {
 
 function blankSubgroupForm(formid) {
   blankForm(formid);
-  document.getElementById('editform_subgroup_id_display').innerHTML = '';
-  var selectBoxAll = document.getElementById('editform_testcases_for_product');
+  document.getElementById('subgroup_id_display').innerHTML = '';
+  var selectBoxAll = document.getElementById('testcases_for_product');
   selectBoxAll.options.length = 0;
-  selectBoxAll.options[selectBoxAll.length] = new Option("--No product selected--",
+  selectBoxAll.options[selectBoxAll.length] = new Option("-No product selected-",
                                                              "");
   selectBoxAll.selectedIndex=-1;
-  var selectBoxSubgroup = document.getElementById('editform_subgroup_testcases');
+  var selectBoxSubgroup = document.getElementById('subgroup_testcases');
   selectBoxSubgroup.options.length = 0;
-  selectBoxSubgroup.options[selectBoxSubgroup.length] = new Option("--No subgroup selected--",
+  selectBoxSubgroup.options[selectBoxSubgroup.length] = new Option("-No subgroup selected-",
                                                              "");
   selectBoxSubgroup.selectedIndex=-1;
  
-  document.getElementById('editform_testrunner_group_id').innerHTML = '';
+  document.getElementById('testrunner_group_id').innerHTML = '';
 
   changeProduct();
   changeTestgroup();
@@ -195,57 +195,28 @@ function blankSubgroupForm(formid) {
 function switchToAdd() {
   disableModeButtons();
   blankSubgroupForm('edit_subgroup_form');
-  document.getElementById('editform_subgroup_id_display').innerHTML = '<em>Automatically generated for a new subgroup</em>';
+  document.getElementById('subgroup_id_display').innerHTML = '<em>Automatically generated for a new subgroup</em>';
   document.getElementById('testgroups_link_display').innerHTML = '<em>A new subgroup does not belong to any testgroups by default.<br/>Use the <a target="manage_testgroups" href="manage_testgroups.cgi">Manage Testgroups</a> interface to assign the subgroup to testgroups after the new subgroup is created.</em>';
- document.getElementById('editform_testrunner_group_id').innerHTML = '<em>Not Applicable</em>';
- document.getElementById('editform_submit').value = 'Add Subgroup';
-  document.getElementById('editform_mode').value = 'add';
+ document.getElementById('testrunner_group_id').innerHTML = '<em>Not Applicable</em>';
+ document.getElementById('submit').value = 'Add Subgroup';
+  document.getElementById('mode').value = 'add';
   enableForm('edit_subgroup_form');
   document.getElementById('subgroup_display_div').style.display = 'none';
   document.getElementById('editform_div').style.display = 'block';
 }
 
 function switchToEdit() {
-  document.getElementById('editform_submit').value = 'Submit Edits';
-  document.getElementById('editform_mode').value = 'edit';
+  document.getElementById('submit').value = 'Submit Edits';
+  document.getElementById('mode').value = 'edit';
   enableForm('edit_subgroup_form');
   document.getElementById('subgroup_display_div').style.display = 'none';
   document.getElementById('editform_div').style.display = 'block';
 }
 
-function populateBranches(productBox) {
-  var branchBox = document.getElementById('editform_branch'); 
-  branchBox.options.length = 0;
-  
-  var productId = productBox.options[productBox.selectedIndex].value;
-  var product = getProductById(productId);
-  if (!product) {
-    // no product set
-    var option = new Option('-No product selected-','');
-    branchBox.add(option, null);
-    return;
-  }
-  var option = new Option('-Branch-','');
-  branchBox.add(option, null);
-  var branches = product['branches'];
-  for (var i=0; i<branches.length; i++) {
-    var option = new Option(branches[i].name,branches[i].id);
-    option.selected = false;
-    if (subgroup &&
-	subgroup.product_id && 
-	productId == subgroup.product_id.product_id) {
-      if (option.value == subgroup.branch_id) {
-        option.selected = true;
-      }
-    }
-    branchBox.add(option, null);
-  }
-}
-
 function populateAllTestcases() {
-  var productBox = document.getElementById('editform_product');
-  var branchBox = document.getElementById('editform_branch');
-  var selectBoxAll = document.getElementById('editform_testcases_for_product');
+  var productBox = document.getElementById('product');
+  var branchBox = document.getElementById('branch');
+  var selectBoxAll = document.getElementById('testcases_for_product');
   selectBoxAll.options.length = 0;
   for (var i in testcases) {
     if (testcases[i].product_id != productBox.options[productBox.selectedIndex].value) {
@@ -280,9 +251,9 @@ function resetSubgroup() {
 
 function checkFormContents(f) {
   return (
-          checkString(f.editform_name, 'Name') &&
-          verifySelected(f.editform_product, 'Product') &&
-          verifySelected(f.editform_branch, 'Branch')
+          checkString(f.name, 'Name') &&
+          verifySelected(f.product, 'Product') &&
+          verifySelected(f.branch, 'Branch')
          );
 }
 

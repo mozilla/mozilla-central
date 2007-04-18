@@ -1,4 +1,4 @@
-<select name="[% name | html %]">
+<select id="[% name %]" name="[% name | html %]">
 [% IF match_criteria %]
 [% FOREACH match_criterion=match_criteria %]
     <option value="[% match_criterion.name | html %]">

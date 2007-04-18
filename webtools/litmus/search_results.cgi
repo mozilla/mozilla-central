@@ -42,13 +42,11 @@ Litmus->init();
 my $c = Litmus->cgi(); 
 print $c->header();
 
-
-
 my $criteria = "Custom<br/>";
 my $results;
 my @where;
 my @order_by;
-my $limit;
+my $limit = $Litmus::DB::Testresult::_num_results_default;
 my $where_criteria = "";
 my $order_by_criteria = "";
 my $limit_criteria = "";
@@ -83,11 +81,21 @@ if ($c->param) {
             push @where, {field => $param,
                           value => $value};
             $where_criteria .= "Platform is \'".$c->param($param)."\'<br/>";
-        } elsif ($param eq 'test_group') {
-            my $value = quotemeta($c->param($param));
+        } elsif ($param eq 'test_run_id') {
+            my $value = $c->param($param);
             push @where, {field => $param,
                           value => $value};
-            $where_criteria .= "Test group is \'".$c->param($param)."\'<br/>";
+            $where_criteria .= "Test Run ID# is \'".$c->param($param)."\'<br/>";
+        } elsif ($param eq 'testgroup' or $param eq 'test_group') {
+            my $value = $c->param($param);
+            push @where, {field => $param,
+                          value => $value};
+            $where_criteria .= "Testgroup is \'".$c->param($param)."\'<br/>";
+        } elsif ($param eq 'subgroup') {
+            my $value = $c->param($param);
+            push @where, {field => $param,
+                          value => $value};
+            $where_criteria .= "Subgroup is \'".$c->param($param)."\'<br/>";
         } elsif ($param eq 'testcase_id') {
             my $value = quotemeta($c->param($param));
             push @where, {field => $param,
