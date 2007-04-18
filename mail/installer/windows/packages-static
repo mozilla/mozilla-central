@@ -161,6 +161,9 @@ bin\components\nsHelperAppDlg.js
 bin\components\nsProgressDialog.js
 bin\components\downloads.xpt
 
+; spellchecker (may not be present)
+bin\components\spellchecker.xpt
+
 ; xpinstall (needed to dynamically install themes
 bin\components\xpinstall.xpt
 
