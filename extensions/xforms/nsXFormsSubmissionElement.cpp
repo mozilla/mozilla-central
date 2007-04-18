@@ -669,7 +669,10 @@ nsXFormsSubmissionElement::Submit()
 
   //
   // 4. Validate document
-  // XXX: model->ValidateDocument(submissionDoc, &res);
+  // XXX: Some unresolved issues with this, see
+  //      bug https://bugzilla.mozilla.org/show_bug.cgi?id=278762
+  // if (GetBooleanAttr(NS_LITERAL_STRING("validate"), PR_TRUE))
+  //   model->ValidateDocument(submissionDoc, &res);
 
   //
   // 5. Convert submission document into the requested format
@@ -1362,6 +1365,8 @@ nsXFormsSubmissionElement::CopyChildren(nsIModelElementPrivate *aModel,
                                         const nsString         &aCDATAElements,
                                         PRUint32                aDepth)
 {
+  PRBool validate = GetBooleanAttr(NS_LITERAL_STRING("validate"), PR_TRUE);
+
   nsCOMPtr<nsIDOMNode> currentNode(aSource), node, destChild;
 
   while (currentNode) {
@@ -1433,7 +1438,12 @@ nsXFormsSubmissionElement::CopyChildren(nsIModelElementPrivate *aModel,
           currentNode->GetNextSibling(getter_AddRefs(node));
           currentNode.swap(node);
           continue;
-        } else if (handleNodeResult == nsIModelElementPrivate::SUBMIT_ABORT_SUBMISSION) {
+        } else if (validate &&
+                   handleNodeResult ==
+                     nsIModelElementPrivate::SUBMIT_ABORT_SUBMISSION) {
+          // If node is invalid or empty required, then only fail if
+          // @validate attribute is false
+
           // abort
           nsXFormsUtils::ReportError(NS_LITERAL_STRING("warnSubmitInvalidNode"),
                                      currentNode, nsIScriptError::warningFlag);
