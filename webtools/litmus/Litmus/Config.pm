@@ -36,7 +36,7 @@ use strict;
 
 do 'localconfig';
 
-our $version = "0.6";
+our $version = "0.9";
 
 # if true, then Litmus will not accept any requests
 our $disabled = 0;
