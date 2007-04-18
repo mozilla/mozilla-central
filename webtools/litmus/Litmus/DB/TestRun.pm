@@ -272,9 +272,9 @@ sub getTestRuns() {
     } else {
       $where .= ' recommended=0';
     }      
-    $order_by = ' ORDER BY finish_timestamp ASC, test_run_id ASC';
+    $order_by = ' ORDER BY finish_timestamp ASC, product_id ASC, branch_id ASC, test_run_id ASC';
   } else {
-    $order_by = ' ORDER BY recommended DESC, finish_timestamp ASC, test_run_id ASC';
+    $order_by = ' ORDER BY recommended DESC, finish_timestamp ASC, product_id ASC, branch_id ASC, test_run_id ASC';
   }
 
   my $sql = $select . $where . $order_by;
