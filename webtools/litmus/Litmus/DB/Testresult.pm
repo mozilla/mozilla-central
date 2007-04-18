@@ -272,6 +272,7 @@ sub getTestResults($\@\@$) {
                 $where .= " AND tr.submission_time<trun.finish_timestamp";
                 $where .= " AND trun.product_id=pr.product_id";
                 $where .= " AND trun.branch_id=b.branch_id";
+                $where .= " AND trun.branch_id=tr.branch_id";
             
                 $where .= $test_run->getCriteriaSql();
             }
