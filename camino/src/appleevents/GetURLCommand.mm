@@ -69,6 +69,7 @@ static NSString* const kMainControllerIsInitializedKey = @"initialized";
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
 {
   if ([keyPath isEqualToString:kMainControllerIsInitializedKey] && [[change objectForKey:NSKeyValueChangeNewKey] boolValue]) {
+    [object removeObserver:self forKeyPath:kMainControllerIsInitializedKey];
     // explicitly perform the command's default implementation again, 
     // since |resumeExecutionWithResult:| will not.
     id result = [self executeCommand];
@@ -78,7 +79,6 @@ static NSString* const kMainControllerIsInitializedKey = @"initialized";
 
 - (void)dealloc
 {
-  [[NSApp delegate] removeObserver:self forKeyPath:kMainControllerIsInitializedKey];
   [super dealloc];
 }
 
