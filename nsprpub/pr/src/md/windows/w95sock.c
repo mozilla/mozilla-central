@@ -183,16 +183,10 @@ _PR_MD_SOCKET(int af, int type, int flags)
             int err = WSAGetLastError();
             PR_LOG(_pr_io_lm, PR_LOG_DEBUG, ("WSAIoctl() failed with %d", err));
 
-            /* SIO_SET_COMPATIBILITY_MODE may not be supported
-            ** if the call to WSAIoctl() fails with WSAEINVAL
-            ** don't close the socket
+            /* SIO_SET_COMPATIBILITY_MODE may not be supported.
+            ** If the call to WSAIoctl() fails with WSAEOPNOTSUPP,
+            ** don't close the socket.
             */ 
-            if (err != WSAEINVAL)
-            {
-                PR_SetError(PR_UNKNOWN_ERROR, err);
-                closesocket(sock);
-                return -1;
-            }
         }
     }
 
