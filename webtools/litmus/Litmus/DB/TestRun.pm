@@ -231,8 +231,8 @@ sub update_criteria() {
     foreach my $criterion (@$new_criteria) {
       next if (!$criterion or
                !$criterion->{'build_id'} or
-               !$criterion->{'build_id'} eq '');
-      # Log any failures/duplicate keys to STDERtr.
+               $criterion->{'build_id'} eq '');
+      # Log any failures/duplicate keys to STDERR.
       eval {
         my $rows = $dbh->do($sql,
                             undef,

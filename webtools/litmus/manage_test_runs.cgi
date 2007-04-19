@@ -133,7 +133,7 @@ if ($c->param("delete_test_run_button")) {
     if ($test_run) {
       $test_run->update_testgroups(\@selected_testgroups);
       if ($criteria and
-          $#$criteria >= 0) {
+          scalar @{$criteria} > 0) {
         $test_run->update_criteria($criteria);
       }
       $status = "success";    
@@ -166,7 +166,7 @@ if ($c->param("delete_test_run_button")) {
       if ($rv) {
         $test_run->update_testgroups(\@selected_testgroups);
         if ($criteria and
-          $#$criteria >= 0) {
+          scalar @{$criteria} > 0) {
           $test_run->update_criteria($criteria);
         }
         $status = "success";
