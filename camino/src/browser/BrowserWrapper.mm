@@ -89,7 +89,7 @@ class nsIDOMPopupBlockedEvent;
 static NSString* const kEnablePluginsChangedNotificationName = @"EnablePluginsChanged";
 
 // types of status bar messages, in order of priority for showing to the user
-enum {
+enum StatusPriority {
   eStatusLinkTarget    = 0, // link mouseover info
   eStatusProgress      = 1, // loading progress
   eStatusScript        = 2, // javascript window.status
@@ -109,6 +109,8 @@ enum {
 - (void)setSiteIconURI:(NSString*)inSiteIconURI;
 
 - (void)updateSiteIconImage:(NSImage*)inSiteIcon withURI:(NSString *)inSiteIconURI loadError:(BOOL)inLoadError;
+
+- (void)updateStatusString:(NSString*)statusString withPriority:(StatusPriority)priority;
 
 - (void)setPendingURI:(NSString*)inURI;
 
@@ -177,6 +179,8 @@ enum {
 
     mDisplayTitle = [[NSString alloc] init];
     
+    mLoadingResources = [[NSMutableSet alloc] init];
+    
     [self registerNotificationListener];
   }
   return self;
@@ -193,6 +197,7 @@ enum {
   [mSiteIconImage release];
   [mSiteIconURI release];
   [mStatusStrings release];
+  [mLoadingResources release];
 
   [mToolTip release];
   [mDisplayTitle release];
@@ -490,9 +495,10 @@ enum {
   [mDelegate loadingStarted];
   [mDelegate setLoadingActive:YES];
   [mDelegate setLoadingProgress:mProgress];
-
-  [mStatusStrings replaceObjectAtIndex:eStatusProgress withObject:NSLocalizedString(@"TabLoading", @"")];
-  [mDelegate updateStatus:[self statusString]];
+  
+  [mLoadingResources removeAllObjects];
+  
+  [self updateStatusString:NSLocalizedString(@"TabLoading", @"") withPriority:eStatusProgress];
 
   [(BrowserTabViewItem*)mTabItem startLoadAnimation];
   
@@ -510,9 +516,8 @@ enum {
   [self setPendingURI:nil];
   
   [mDelegate setLoadingActive:NO];
-
-  [mStatusStrings replaceObjectAtIndex:eStatusProgress withObject:[NSNull null]];
-  [mDelegate updateStatus:[self statusString]];
+  
+  [self updateStatusString:nil withPriority:eStatusProgress];
 
   [(BrowserTabViewItem*)mTabItem stopLoadAnimation];
 
@@ -534,6 +539,24 @@ enum {
     NSDictionary*   userInfo = [NSDictionary dictionaryWithObject:[NSNumber numberWithBool:succeeded] forKey:URLLoadSuccessKey];
     NSNotification* note     = [NSNotification notificationWithName:URLLoadNotification object:urlString userInfo:userInfo];
     [[NSNotificationQueue defaultQueue] enqueueNotification:note postingStyle:NSPostWhenIdle];
+  }
+}
+
+- (void)onResourceLoadingStarted:(NSNumber*)resourceIdentifier
+{
+  [mLoadingResources addObject:resourceIdentifier];
+}
+
+- (void)onResourceLoadingCompleted:(NSNumber*)resourceIdentifier
+{
+  if ([mLoadingResources containsObject:resourceIdentifier])
+  {
+    [mLoadingResources removeObject:resourceIdentifier];
+    // When the last sub-resource finishes loading (which may be after
+    // onLoadingCompleted: is called), clear the status string, since otherwise
+    // it will stay stuck on the last loading message.
+    if ([mLoadingResources count] == 0)
+      [self updateStatusString:nil withPriority:eStatusProgress];
   }
 }
 
@@ -623,8 +646,7 @@ enum {
 
 - (void)onStatusChange:(NSString*)aStatusString
 {
-  [mStatusStrings replaceObjectAtIndex:eStatusProgress withObject:aStatusString];
-  [mDelegate updateStatus:[self statusString]];
+  [self updateStatusString:aStatusString withPriority:eStatusProgress];
 }
 
 //
@@ -642,16 +664,24 @@ enum {
 
 - (void)setStatus:(NSString *)statusString ofType:(NSStatusType)type 
 {
-  int index;
+  StatusPriority priority;
 
   if (type == NSStatusTypeScriptDefault)
-    index = eStatusScriptDefault;
+    priority = eStatusScriptDefault;
   else if (type == NSStatusTypeScript)
-    index = eStatusScript;
+    priority = eStatusScript;
   else
-    index = eStatusLinkTarget;
+    priority = eStatusLinkTarget;
 
-  [mStatusStrings replaceObjectAtIndex:index withObject:(statusString ? (id)statusString : (id)[NSNull null])];
+  [self updateStatusString:statusString withPriority:priority];
+}
+
+// Private method to consolidate all status string changes, as status strings
+// can come from Gecko through several callbacks.
+- (void)updateStatusString:(NSString*)statusString withPriority:(StatusPriority)priority
+{
+  [mStatusStrings replaceObjectAtIndex:priority withObject:(statusString ? (id)statusString
+                                                                         : (id)[NSNull null])];
   [mDelegate updateStatus:[self statusString]];
 }
 

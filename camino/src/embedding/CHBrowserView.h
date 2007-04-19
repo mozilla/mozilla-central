@@ -68,6 +68,10 @@ class nsISecureBrowserUI;
 
 - (void)onLoadingStarted;
 - (void)onLoadingCompleted:(BOOL)succeeded;
+// Called when each resource on a page (the main HTML plus any subsidiary
+// resources such as images and style sheets) starts ond finishes.
+- (void)onResourceLoadingStarted:(NSNumber*)resourceIdentifier;
+- (void)onResourceLoadingCompleted:(NSNumber*)resourceIdentifier;
 // Invoked regularly as data associated with a page streams
 // in. If the total number of bytes expected is unknown,
 // maxBytes is -1.
