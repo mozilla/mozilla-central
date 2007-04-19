@@ -81,9 +81,9 @@ if ($c->param) {
             push @where, {field => $param,
                           value => $value};
             $where_criteria .= "Platform is \'".$c->param($param)."\'<br/>";
-        } elsif ($param eq 'test_run_id') {
+        } elsif ($param =~ /^test_run/) {
             my $value = $c->param($param);
-            push @where, {field => $param,
+            push @where, {field => 'test_run',
                           value => $value};
             $where_criteria .= "Test Run ID# is \'".$c->param($param)."\'<br/>";
         } elsif ($param eq 'testgroup' or $param eq 'test_group') {
