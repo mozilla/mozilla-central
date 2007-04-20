@@ -42,7 +42,7 @@ var gPreQuickSearchView = null;
 var gSearchTimer = null;
 var gViewSearchListener;
 var gSearchBundle;
-var gStatusBar = null;
+var gProgressMeter = null;
 var gSearchInProgress = false;
 var gClearButton = null;
 var gDefaultSearchViewTerms = null;
@@ -83,7 +83,7 @@ var gSearchNotificationListener =
     {
         SetQSStatusText(gDBView.QueryInterface(Components.interfaces.nsITreeView).rowCount)
         statusFeedback.showProgress(0);
-        gStatusBar.setAttribute("mode","normal");
+        gProgressMeter.setAttribute("mode", "normal");
         gSearchInProgress = false;
 
         // ### TODO need to find out if there's quick search within a virtual folder.
@@ -106,7 +106,7 @@ var gSearchNotificationListener =
     {
       statusFeedback.showProgress(0);
       statusFeedback.showStatusString(gSearchBundle.getString("searchingMessage"));
-      gStatusBar.setAttribute("mode","undetermined");
+      gProgressMeter.setAttribute("mode", "undetermined");
       gSearchInProgress = true;
       gNumTotalMessages = 0; 
       gNumUnreadMessages = 0;
@@ -116,7 +116,7 @@ var gSearchNotificationListener =
 function getDocumentElements()
 {
   gSearchBundle = document.getElementById("bundle_search");  
-  gStatusBar = document.getElementById('statusbar-icon');
+  gProgressMeter = document.getElementById('statusbar-icon');
   gClearButton = document.getElementById('clearButton');
   GetSearchInput();
 }
