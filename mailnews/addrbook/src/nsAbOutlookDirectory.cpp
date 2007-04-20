@@ -1519,7 +1519,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::ModifyCard(nsIAbCard *aModifiedCard)
   }
 
   aModifiedCard->GetWorkAddress(unichar);
-  aModifiedCard->GetWorkAddress2(unichar2));
+  aModifiedCard->GetWorkAddress2(unichar2);
 
   utility.Assign(unichar.get());
   if (!utility.IsEmpty())
