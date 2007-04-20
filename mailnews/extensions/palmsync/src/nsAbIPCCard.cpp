@@ -234,7 +234,8 @@ nsresult nsAbIPCCard::Copy(nsABCOMCardStruct * srcCard)
     CONVERT_CRLF_TO_SPACE(str, srcCard->custom4);
     SetCustom4(str);
 
-    SetNotes(srcCard->notes);
+    str.Assign(srcCard->notes);
+    SetNotes(str);
     SetLastModifiedDate(srcCard->lastModifiedDate);
     SetIsMailList(srcCard->isMailList);
     SetMailListURI(srcCard->mailListURI);
