@@ -96,8 +96,6 @@ typedef enum
 	idReplLastChangeNumber,
 	idReplDataVersion,
 	idReplSyncURL,
-	idPalmCategory,
-        idPalmSyncTimeStamp,
   idProtocolVersion,
   idAttributeMap
 } DIR_PrefId;
@@ -147,10 +145,6 @@ typedef struct DIR_Server
 
 	/* Replication fields */
 	DIR_ReplicationInfo *replInfo;
-
-	/* fields for palm Sync */
-	PRInt32 PalmCategoryId;
-	PRUint32 PalmSyncTimeStamp;
 } DIR_Server;
 
 /* We are developing a new model for managing DIR_Servers. In the 4.0x world, the FEs managed each list. 

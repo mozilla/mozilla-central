@@ -58,7 +58,8 @@
 
 // used for when creating new directories
 // either from user input, or during bootstrapping
-[scriptable, uuid(1c10fa4e-a7f2-4731-a3ec-a78be1086e29)]
+// Note this interface is expected to go away soon, see bug 331557
+[scriptable, uuid(c69e64ca-0fe7-477b-a0cf-711537b33af9)]
 interface nsIAbDirectoryProperties : nsISupports {
   attribute AString description;
   attribute string URI;
@@ -67,12 +68,10 @@ interface nsIAbDirectoryProperties : nsISupports {
   attribute unsigned long dirType;
   attribute unsigned long maxHits;
   attribute string authDn;
-  attribute unsigned long syncTimeStamp;
-  attribute long categoryId;
   attribute long position;
 };
 
-[scriptable, uuid(831251b9-3d8d-462a-9460-71674e505f6c)]
+[scriptable, uuid(2f8feba2-23fd-49cf-b154-41432506af8d)]
 interface nsIAbDirectory : nsISupports {
 
   // Types of operation
@@ -107,12 +106,6 @@ interface nsIAbDirectory : nsISupports {
 
   // The position of the directory on the display.
   readonly attribute long position;
-
-  // The palm sync category id.
-  readonly attribute long palmSyncCategoryId;
-
-  // The palm sync time stamp
-  readonly attribute unsigned long palmSyncTimeStamp;
 
   // XXX End "readonly XXX"
 

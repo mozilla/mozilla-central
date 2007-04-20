@@ -433,8 +433,7 @@ NS_IMETHODIMP nsAbBSDirectory::ModifyDirectory(nsIAbDirectory *directory, nsIAbD
   nsAutoString description;
   nsXPIDLCString uri;
   nsXPIDLCString authDn;
-  PRUint32 maxHits, palmSyncTimeStamp;
-  PRInt32 palmCategoryId;
+  PRUint32 maxHits;
 
   rv = aProperties->GetDescription(description);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -458,14 +457,6 @@ NS_IMETHODIMP nsAbBSDirectory::ModifyDirectory(nsIAbDirectory *directory, nsIAbD
   nsCRT::free(server->authDn);
   server->authDn = ToNewCString(authDn);
 
-  rv = aProperties->GetSyncTimeStamp(&palmSyncTimeStamp);
-  NS_ENSURE_SUCCESS(rv, rv);
-  server->PalmSyncTimeStamp = palmSyncTimeStamp;
-
-  rv = aProperties->GetCategoryId(&palmCategoryId);
-  NS_ENSURE_SUCCESS(rv, rv);
-  server->PalmCategoryId = palmCategoryId;
-  
   DIR_SavePrefsForOneServer(server);
 
   if (!oldValue.Equals(description)) {

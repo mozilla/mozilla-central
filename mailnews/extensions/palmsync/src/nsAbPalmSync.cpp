@@ -200,23 +200,22 @@ nsresult nsAbPalmHotSync::GetABInterface()
       if (NS_SUCCEEDED(rv))
       {
         // TODO: may need to skip mailing list?? but maybe not since there's no mailing list on the top level.
-        nsCOMPtr <nsIAbDirectoryProperties> properties;
-        rv = directory->GetDirectoryProperties(getter_AddRefs(properties));
-        if(NS_FAILED(rv)) return E_FAIL;
 
-        rv = properties->GetDescription(description);
+        rv = directory->GetDescription(description);
         if(NS_FAILED(rv)) return E_FAIL;
-        rv = properties->GetFileName(getter_Copies(fileName));
+        rv = directory->GetFileName(getter_Copies(fileName));
         if(NS_FAILED(rv)) return E_FAIL;
-        rv = properties->GetURI(getter_Copies(uri));
+        rv = directory->GetURI(getter_Copies(uri));
         if(NS_FAILED(rv)) return E_FAIL;
-        rv = properties->GetDirType(&dirType);
+        rv = directory->GetDirType(&dirType);
         if(NS_FAILED(rv)) return E_FAIL;
-        rv = properties->GetSyncTimeStamp(&palmSyncTimeStamp);
-        if(NS_FAILED(rv)) return E_FAIL;
-        rv = properties->GetCategoryId(&palmCategoryIndex);
-        if(NS_FAILED(rv)) return E_FAIL;
-        rv = properties->GetPrefName(getter_Copies(prefName));
+        rv = directory->GetDirPrefId(getter_Copies(prefName));
+        if (NS_FAILED(rv)) return E_FAIL;
+        rv = directory->GetIntValue("PalmCategoryId", -1, &palmCategoryIndex);
+        if (NS_FAILED(rv)) return E_FAIL;
+        rv = directory->GetIntValue("PalmSyncTimeStamp", 0,
+                                    (PRInt32*)&palmSyncTimeStamp);
+        if (NS_FAILED(rv)) return E_FAIL;
 
         // Skip/Ignore 4.X addrbooks (ie, with ".na2" extension).
         if (((fileName.Length() > kABFileName_PreviousSuffixLen) && 
@@ -1027,14 +1026,11 @@ nsresult nsAbPalmHotSync::RenameAB(long aCategoryIndex, const char * aABUrl)
   NS_ENSURE_SUCCESS(rv,rv);
   rv = properties->SetDirType(kPABDirectory); // pab dir type for PalmSync
   NS_ENSURE_SUCCESS(rv,rv);
-  rv = properties->SetCategoryId(aCategoryIndex);
-  NS_ENSURE_SUCCESS(rv,rv);
+
   PRUint32 modTimeInSec;
   PRTime2Seconds(PR_Now(), &modTimeInSec);
-  rv = properties->SetSyncTimeStamp(modTimeInSec);
-  NS_ENSURE_SUCCESS(rv,rv);
 
-  return(ModifyAB(aABUrl, properties));
+  return ModifyAB(aABUrl, properties, modTimeInSec, aCategoryIndex);
 }
 
 nsresult nsAbPalmHotSync::NewAB(const nsString& aAbName)
@@ -1066,15 +1062,14 @@ nsresult nsAbPalmHotSync::UpdateABInfo(PRUint32 aModTime, PRInt32 aCategoryIndex
   NS_ENSURE_SUCCESS(rv,rv);
   rv = properties->SetDirType(mDirType);
   NS_ENSURE_SUCCESS(rv,rv);
-  rv = properties->SetCategoryId(aCategoryIndex);
-  NS_ENSURE_SUCCESS(rv,rv);
-  rv = properties->SetSyncTimeStamp(aModTime);
-  NS_ENSURE_SUCCESS(rv,rv);
 
-  return(ModifyAB(mUri.get(), properties));
+  return(ModifyAB(mUri.get(), properties, aModTime, aCategoryIndex));
 }
 
-nsresult nsAbPalmHotSync::ModifyAB(const char * aABUrl, nsIAbDirectoryProperties *aProperties)
+nsresult nsAbPalmHotSync::ModifyAB(const char * aABUrl,
+				   nsIAbDirectoryProperties *aProperties,
+				   const PRUint32 aModTime,
+				   const PRInt32 aCategoryId)
 {
   nsresult rv;
 
@@ -1095,6 +1090,13 @@ nsresult nsAbPalmHotSync::ModifyAB(const char * aABUrl, nsIAbDirectoryProperties
   NS_ENSURE_SUCCESS(rv, rv);
   nsCOMPtr <nsIAbDirectory> selectedDirectory = do_QueryInterface(childResource, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
+
+  // Now set the mod time and category id directly via the selected directory.
+  rv = selectedDirectory->SetIntValue("PalmSyncTimeStamp", aModTime);
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  rv = selectedDirectory->SetIntValue("PalmSyncCategoryId", aCategoryId);
+  NS_ENSURE_SUCCESS(rv, rV);
 
   // RDF data source for addrbook
   nsCOMPtr<nsIRDFDataSource> ds;

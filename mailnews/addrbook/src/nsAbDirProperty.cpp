@@ -132,18 +132,6 @@ NS_IMETHODIMP nsAbDirProperty::GetPosition(PRInt32 *aPosition)
   return GetIntValue("position", kDefaultPosition, aPosition);
 }
 
-NS_IMETHODIMP nsAbDirProperty::GetPalmSyncCategoryId(PRInt32 *aPalmSyncCategoryId)
-{
-  return GetIntValue("PalmCategoryId", -1, aPalmSyncCategoryId);
-}
-
-NS_IMETHODIMP nsAbDirProperty::GetPalmSyncTimeStamp(PRUint32 *aPalmSyncTimeStamp)
-{
-  // Prefs only accept unsigned longs, but we need time stamp as a unsigned
-  // int, so unfortunately we have to do this conversion
-  return GetIntValue("PalmSyncTimeStamp", 0, (PRInt32*)aPalmSyncTimeStamp);
-}
-
 NS_IMETHODIMP nsAbDirProperty::GetLastModifiedDate(PRUint32 *aLastModifiedDate)
 {
 	if (aLastModifiedDate)
@@ -405,19 +393,6 @@ NS_IMETHODIMP nsAbDirProperty::GetDirectoryProperties(nsIAbDirectoryProperties *
   rv = properties->SetAuthDn(prefStringValue.get());
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = GetPalmSyncCategoryId(&prefIntValue);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = properties->SetCategoryId(prefIntValue);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  PRUint32 timeStamp;
-  rv = GetPalmSyncTimeStamp(&timeStamp);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = properties->SetSyncTimeStamp(timeStamp);
-  NS_ENSURE_SUCCESS(rv, rv);
-
   rv = GetPosition(&prefIntValue);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -559,8 +534,6 @@ nsAbDirectoryProperties::nsAbDirectoryProperties(void)
 {
   mDirType = LDAPDirectory;
   mMaxHits = 0;
-  mSyncTimeStamp = 0;
-  mCategoryId = -1;
   mPosition = 0;
 }
 
@@ -666,19 +639,6 @@ NS_IMETHODIMP nsAbDirectoryProperties::GetAuthDn(char **aAuthDn)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbDirectoryProperties::SetCategoryId(PRInt32 aCategoryId)
-{
-  mCategoryId = aCategoryId;
-  return NS_OK;
-}
-
-NS_IMETHODIMP nsAbDirectoryProperties::GetCategoryId(PRInt32 *aCategoryId)
-{
-  NS_ENSURE_ARG_POINTER(aCategoryId);
-  *aCategoryId = mCategoryId;
-  return NS_OK;
-}
-
 NS_IMETHODIMP nsAbDirectoryProperties::SetPosition(PRInt32 aPosition)
 {
   mPosition = aPosition;
@@ -689,19 +649,5 @@ NS_IMETHODIMP nsAbDirectoryProperties::GetPosition(PRInt32 *aPosition)
 {
   NS_ENSURE_ARG_POINTER(aPosition);
   *aPosition = mPosition;
-  return NS_OK;
-}
-
-
-NS_IMETHODIMP nsAbDirectoryProperties::SetSyncTimeStamp(PRUint32 aSyncTimeStamp)
-{
-  mSyncTimeStamp = aSyncTimeStamp;
-  return NS_OK;
-}
-
-NS_IMETHODIMP nsAbDirectoryProperties::GetSyncTimeStamp(PRUint32 *aSyncTimeStamp)
-{
-  NS_ENSURE_ARG_POINTER(aSyncTimeStamp);
-  *aSyncTimeStamp = mSyncTimeStamp;
   return NS_OK;
 }

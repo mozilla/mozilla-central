@@ -218,10 +218,11 @@ STDMETHODIMP CPalmSyncImp::nsGetABList(BOOL aIsUnicode, short * aABListCount,
           if(NS_FAILED(rv)) return E_FAIL;
           rv = directory->GetDirType(&dirType);
           if(NS_FAILED(rv)) return E_FAIL;
-          rv = directory->GetPalmSyncTimeStamp(&palmSyncTimeStamp);
-          if(NS_FAILED(rv)) return E_FAIL;
-          rv = directory->GetPalmSyncCategoryId(&palmCategoryIndex);
-          if(NS_FAILED(rv)) return E_FAIL;
+          rv = directory->GetIntValue("PalmCategoryId", -1, &palmCategoryIndex);
+          if (NS_FAILED(rv)) return E_FAIL;
+          rv = directory->GetIntValue("PalmSyncTimeStamp", 0,
+                                      (PRInt32*)&palmSyncTimeStamp);
+          if (NS_FAILED(rv)) return E_FAIL;
 
           PRBool disableThisAB;
           rv = directory->GetBoolValue("disablePalmSync", PR_FALSE, &disableThisAB);

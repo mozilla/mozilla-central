@@ -421,15 +421,13 @@ function AbOnRenameAddressBook(aName)
   // the RDF resource URI for LDAPDirectory will be like: "moz-abmdbdirectory://abook-3.mab"
   var selectedABDirectory = RDF.GetResource(selectedABURI).QueryInterface(Components.interfaces.nsIAbDirectory);
 
-  // Copy existing dir type category id and mod time so they won't get reset.
+  // Copy existing property items so they won't get reset.
   var oldProperties = selectedABDirectory.directoryProperties;
 
   // Create and fill in properties info
   var properties = Components.classes["@mozilla.org/addressbook/properties;1"].createInstance(Components.interfaces.nsIAbDirectoryProperties);
   properties.URI = selectedABURI;
   properties.dirType = oldProperties.dirType;
-  properties.categoryId = oldProperties.categoryId;
-  properties.syncTimeStamp = oldProperties.syncTimeStamp;
   properties.description = aName;
 
   // Now do the modification.

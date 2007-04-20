@@ -374,11 +374,6 @@ function onAccept()
         var selectedABURI = "moz-abldapdirectory://" + gCurrentDirectoryString;
         var selectedABDirectory = RDF.GetResource(selectedABURI).QueryInterface(Components.interfaces.nsIAbDirectory);
  
-        // Carry over existing palm category id and mod time if it was synced before.
-        var oldProperties = selectedABDirectory.directoryProperties;
-        properties.categoryId = oldProperties.categoryId;
-        properties.syncTimeStamp = oldProperties.syncTimeStamp;
-
         // Now do the modification.
         addressbook.modifyAddressBook(addressbookDS, parentDir, selectedABDirectory, properties);
         window.opener.gNewServerString = gCurrentDirectoryString;       
