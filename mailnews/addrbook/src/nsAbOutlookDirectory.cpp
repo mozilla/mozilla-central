@@ -971,7 +971,7 @@ nsresult FillPropertyValues(nsIAbCard *aCard, nsIAbDirectoryQueryArguments *aArg
     else {
 			nsXPIDLString value ;
 
-			retCode = aCard->GetCardValue(cPropName, getter_Copies(value)) ;
+      retCode = aCard->GetCardValue(cPropName, value);
 			NS_ENSURE_SUCCESS(retCode, retCode) ;
             if (!value.IsEmpty()) {
                 newValue = new nsAbDirectoryQueryPropertyValue(cPropName, value.get()) ;
