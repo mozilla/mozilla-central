@@ -5788,7 +5788,7 @@ void nsMsgIMAPFolderACL::BuildInitialACLFromCache()
   if (startingFlags & IMAP_ACL_CREATE_SUBFOLDER_FLAG)
     myrights +="c";
   if (startingFlags & IMAP_ACL_DELETE_FLAG)
-    myrights += "d";
+    myrights += "dt";
   if (startingFlags & IMAP_ACL_ADMINISTER_FLAG)
     myrights += "a";
   
@@ -5969,7 +5969,8 @@ PRBool	nsMsgIMAPFolderACL::GetCanUserCreateSubfolder(const char *userName)
 
 PRBool	nsMsgIMAPFolderACL::GetCanUserDeleteInFolder(const char *userName)
 {
-  return GetFlagSetInRightsForUser(userName, 'd', PR_FALSE);
+  return GetFlagSetInRightsForUser(userName, 'd', PR_FALSE)
+    || GetFlagSetInRightsForUser(userName, 't', PR_FALSE);
 }
 
 PRBool	nsMsgIMAPFolderACL::GetCanUserAdministerFolder(const char *userName)
@@ -6014,7 +6015,8 @@ PRBool	nsMsgIMAPFolderACL::GetCanICreateSubfolder()
 
 PRBool	nsMsgIMAPFolderACL::GetCanIDeleteInFolder()
 {
-  return GetFlagSetInRightsForUser(nsnull, 'd', PR_TRUE);
+  return GetFlagSetInRightsForUser(nsnull, 'd', PR_TRUE) ||
+    GetFlagSetInRightsForUser(nsnull, 't', PR_TRUE);
 }
 
 PRBool	nsMsgIMAPFolderACL::GetCanIAdministerFolder()
