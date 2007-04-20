@@ -201,18 +201,19 @@ NS_IMETHODIMP nsAddrBookSession::GetUserProfileDirectory(nsILocalFile * *userDir
 NS_IMETHODIMP nsAddrBookSession::GenerateNameFromCard(nsIAbCard *card, PRInt32 generateFormat, PRUnichar **aName)
 {
   nsresult rv = NS_OK;
+  nsAutoString name;
   
   if (generateFormat == kDisplayName) {
-    rv = card->GetDisplayName(aName);
+    rv = card->GetDisplayName(name);
   }
   else  {
-    nsXPIDLString firstName;
-    nsXPIDLString lastName;
+    nsAutoString firstName;
+    nsAutoString lastName;
     
-    rv = card->GetFirstName(getter_Copies(firstName));
+    rv = card->GetFirstName(firstName);
     NS_ENSURE_SUCCESS(rv, rv);       
     
-    rv = card->GetLastName(getter_Copies(lastName));
+    rv = card->GetLastName(lastName);
     NS_ENSURE_SUCCESS(rv,rv);
     
     if (!lastName.IsEmpty() && !firstName.IsEmpty()) {
@@ -241,34 +242,31 @@ NS_IMETHODIMP nsAddrBookSession::GenerateNameFromCard(nsIAbCard *card, PRInt32 g
       }
       
       NS_ENSURE_SUCCESS(rv,rv); 
-      *aName = ToNewUnicode(generatedName);
+      name = generatedName;
     }
     else {
       if (lastName.Length())
-        *aName = ToNewUnicode(lastName);
+        name = lastName;
       else {
-        // aName may be empty here, but that's ok.
-        *aName = ToNewUnicode(firstName);
+        // name may be empty here, but that's ok.
+        name = firstName;
       }
     }
   }
   
-  if (!*aName || **aName == '\0') 
+  if (name.IsEmpty())
   {
     // see bug #211078
     // if there is no generated name at this point
     // use the userid from the email address
     // it is better than nothing.
-    nsXPIDLString primaryEmail;
-    card->GetPrimaryEmail(getter_Copies(primaryEmail));
-    PRInt32 index = primaryEmail.FindChar('@');
+    card->GetPrimaryEmail(name);
+    PRInt32 index = name.FindChar('@');
     if (index != kNotFound)
-      primaryEmail.Truncate(index);
-    if (*aName)
-      nsMemory::Free(*aName);
-    *aName = ToNewUnicode(primaryEmail);
+      name.Truncate(index);
   }
 
+  *aName = ToNewUnicode(name);
   return NS_OK;
 }
 
@@ -277,14 +275,14 @@ NS_IMETHODIMP nsAddrBookSession::GeneratePhoneticNameFromCard(nsIAbCard *aCard, 
   NS_ENSURE_ARG_POINTER(aCard);
   NS_ENSURE_ARG_POINTER(aName);
 
-  nsXPIDLString firstName;
-  nsXPIDLString lastName;
+  nsAutoString firstName;
+  nsAutoString lastName;
   
-  nsresult rv = aCard->GetPhoneticFirstName(getter_Copies(firstName));
-  NS_ENSURE_SUCCESS(rv, rv);       
+  nsresult rv = aCard->GetPhoneticFirstName(firstName);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = aCard->GetPhoneticLastName(getter_Copies(lastName));
-  NS_ENSURE_SUCCESS(rv,rv);
+  rv = aCard->GetPhoneticLastName(lastName);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   if (aLastNameFirst)
     *aName = ToNewUnicode(lastName + firstName);
@@ -293,3 +291,4 @@ NS_IMETHODIMP nsAddrBookSession::GeneratePhoneticNameFromCard(nsIAbCard *aCard, 
 
   return *aName ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
 }
+

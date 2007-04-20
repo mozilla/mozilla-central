@@ -1443,14 +1443,14 @@ NS_IMETHODIMP nsAbOutlookDirectory::ModifyCard(nsIAbCard *aModifiedCard)
   if (!properties) {
     return NS_ERROR_OUT_OF_MEMORY;
   }
-  aModifiedCard->GetFirstName(getter_Copies(properties[index_FirstName]));
-  aModifiedCard->GetLastName(getter_Copies(properties[index_LastName]));
+  aModifiedCard->GetFirstName(properties[index_FirstName]);
+  aModifiedCard->GetLastName(properties[index_LastName]);
   // This triple search for something to put in the name
   // is because in the case of a mailing list edition in 
   // Mozilla, the display name will not be provided, and 
   // MAPI doesn't allow that, so we fall back on an optional
   // name, and when all fails, on the email address.
-  aModifiedCard->GetDisplayName(getter_Copies(properties[index_DisplayName]));
+  aModifiedCard->GetDisplayName(properties[index_DisplayName]);
   if (*properties[index_DisplayName].get() == 0) {
     nsresult rv;
     nsCOMPtr<nsIPrefBranch> prefBranch =
@@ -1469,31 +1469,31 @@ NS_IMETHODIMP nsAbOutlookDirectory::ModifyCard(nsIAbCard *aModifiedCard)
     NS_ENSURE_SUCCESS(rv,rv);
 
     if (*properties[index_DisplayName].get() == 0) {
-      aModifiedCard->GetPrimaryEmail(getter_Copies(properties[index_DisplayName]));
+      aModifiedCard->GetPrimaryEmail(properties[index_DisplayName]);
     }
   }
   aModifiedCard->SetDisplayName(properties[index_DisplayName]);
-  aModifiedCard->GetNickName(getter_Copies(properties[index_NickName]));
-  aModifiedCard->GetPrimaryEmail(getter_Copies(properties[index_EmailAddress]));
-  aModifiedCard->GetWorkPhone(getter_Copies(properties[index_WorkPhoneNumber]));
-  aModifiedCard->GetHomePhone(getter_Copies(properties[index_HomePhoneNumber]));
-  aModifiedCard->GetFaxNumber(getter_Copies(properties[index_WorkFaxNumber]));
-  aModifiedCard->GetPagerNumber(getter_Copies(properties[index_PagerNumber]));
-  aModifiedCard->GetCellularNumber(getter_Copies(properties[index_MobileNumber]));
-  aModifiedCard->GetHomeCity(getter_Copies(properties[index_HomeCity]));
-  aModifiedCard->GetHomeState(getter_Copies(properties[index_HomeState]));
-  aModifiedCard->GetHomeZipCode(getter_Copies(properties[index_HomeZip]));
-  aModifiedCard->GetHomeCountry(getter_Copies(properties[index_HomeCountry]));
-  aModifiedCard->GetWorkCity(getter_Copies(properties[index_WorkCity]));
-  aModifiedCard->GetWorkState(getter_Copies(properties[index_WorkState]));
-  aModifiedCard->GetWorkZipCode(getter_Copies(properties[index_WorkZip]));
-  aModifiedCard->GetWorkCountry(getter_Copies(properties[index_WorkCountry]));
-  aModifiedCard->GetJobTitle(getter_Copies(properties[index_JobTitle]));
-  aModifiedCard->GetDepartment(getter_Copies(properties[index_Department]));
-  aModifiedCard->GetCompany(getter_Copies(properties[index_Company]));
-  aModifiedCard->GetWebPage1(getter_Copies(properties[index_WorkWebPage]));
-  aModifiedCard->GetWebPage2(getter_Copies(properties[index_HomeWebPage]));
-  aModifiedCard->GetNotes(getter_Copies(properties[index_Comments]));
+  aModifiedCard->GetNickName(properties[index_NickName]);
+  aModifiedCard->GetPrimaryEmail(properties[index_EmailAddress]);
+  aModifiedCard->GetWorkPhone(properties[index_WorkPhoneNumber]);
+  aModifiedCard->GetHomePhone(properties[index_HomePhoneNumber]);
+  aModifiedCard->GetFaxNumber(properties[index_WorkFaxNumber]);
+  aModifiedCard->GetPagerNumber(properties[index_PagerNumber]);
+  aModifiedCard->GetCellularNumber(properties[index_MobileNumber]);
+  aModifiedCard->GetHomeCity(properties[index_HomeCity]);
+  aModifiedCard->GetHomeState(properties[index_HomeState]);
+  aModifiedCard->GetHomeZipCode(properties[index_HomeZip]);
+  aModifiedCard->GetHomeCountry(properties[index_HomeCountry]);
+  aModifiedCard->GetWorkCity(properties[index_WorkCity]);
+  aModifiedCard->GetWorkState(properties[index_WorkState]);
+  aModifiedCard->GetWorkZipCode(properties[index_WorkZip]);
+  aModifiedCard->GetWorkCountry(properties[index_WorkCountry]);
+  aModifiedCard->GetJobTitle(properties[index_JobTitle]);
+  aModifiedCard->GetDepartment(properties[index_Department]);
+  aModifiedCard->GetCompany(properties[index_Company]);
+  aModifiedCard->GetWebPage1(properties[index_WorkWebPage]);
+  aModifiedCard->GetWebPage2(properties[index_HomeWebPage]);
+  aModifiedCard->GetNotes(properties[index_Comments]);
   if (!mapiAddBook->SetPropertiesUString(*mMapiData, OutlookCardMAPIProps,
                                          index_LastProp, properties)) {
     PRINTF(("Cannot set general properties.\n")) ;
@@ -1506,8 +1506,8 @@ NS_IMETHODIMP nsAbOutlookDirectory::ModifyCard(nsIAbCard *aModifiedCard)
   WORD month = 0;
   WORD day = 0;
 
-  aModifiedCard->GetHomeAddress(getter_Copies(unichar));
-  aModifiedCard->GetHomeAddress2(getter_Copies(unichar2));
+  aModifiedCard->GetHomeAddress(unichar);
+  aModifiedCard->GetHomeAddress2(unichar2);
 
   utility.Assign(unichar.get());
   if (!utility.IsEmpty())
@@ -1518,8 +1518,8 @@ NS_IMETHODIMP nsAbOutlookDirectory::ModifyCard(nsIAbCard *aModifiedCard)
     PRINTF(("Cannot set home address.\n")) ;
   }
 
-  aModifiedCard->GetWorkAddress(getter_Copies(unichar));
-  aModifiedCard->GetWorkAddress2(getter_Copies(unichar2));
+  aModifiedCard->GetWorkAddress(unichar);
+  aModifiedCard->GetWorkAddress2(unichar2));
 
   utility.Assign(unichar.get());
   if (!utility.IsEmpty())
@@ -1530,11 +1530,11 @@ NS_IMETHODIMP nsAbOutlookDirectory::ModifyCard(nsIAbCard *aModifiedCard)
     PRINTF(("Cannot set work address.\n")) ;
   }
 
-  aModifiedCard->GetBirthYear(getter_Copies(unichar));
+  aModifiedCard->GetBirthYear(unichar);
   UnicodeToWord(unichar.get(), year);
-  aModifiedCard->GetBirthMonth(getter_Copies(unichar));
+  aModifiedCard->GetBirthMonth(unichar);
   UnicodeToWord(unichar.get(), month);
-  aModifiedCard->GetBirthDay(getter_Copies(unichar));
+  aModifiedCard->GetBirthDay(unichar);
   UnicodeToWord(unichar.get(), day);
   if (!mapiAddBook->SetPropertyDate(*mMapiData, PR_BIRTHDAY, year, month, day)) {
     PRINTF(("Cannot set date.\n")) ;

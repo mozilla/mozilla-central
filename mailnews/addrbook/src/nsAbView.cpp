@@ -475,7 +475,12 @@ nsresult nsAbView::GetCardValue(nsIAbCard *card, const PRUnichar *colID, PRUnich
     NS_ENSURE_SUCCESS(rv,rv);
   }
   else {
-      rv = card->GetCardValue(NS_LossyConvertUTF16toASCII(colID).get(), _retval);
+      nsXPIDLString cardValue;
+      rv = card->GetCardValue(NS_LossyConvertUTF16toASCII(colID).get(),
+                              cardValue);
+      *_retval = ToNewUnicode(cardValue);
+      if (!_retval)
+          return NS_ERROR_OUT_OF_MEMORY;
   }
   return rv;
 }
@@ -1222,9 +1227,9 @@ NS_IMETHODIMP nsAbView::SwapFirstNameLastName()
         NS_ENSURE_SUCCESS(rv, rv);
 
         // swap FN/LN
-        nsXPIDLString fn, ln;
-        abCard->GetFirstName(getter_Copies(fn));
-        abCard->GetLastName(getter_Copies(ln));
+        nsAutoString fn, ln;
+        abCard->GetFirstName(fn);
+        abCard->GetLastName(ln);
         if (!fn.IsEmpty() || !ln.IsEmpty())
         {
           abCard->SetFirstName(ln);
@@ -1259,8 +1264,8 @@ NS_IMETHODIMP nsAbView::SwapFirstNameLastName()
             NS_ENSURE_SUCCESS(rv, rv);
 
             // get the current display name
-            nsXPIDLString dn;
-            rv = abCard->GetDisplayName(getter_Copies(dn));
+            nsAutoString dn;
+            rv = abCard->GetDisplayName(dn);
             NS_ENSURE_SUCCESS(rv, rv);
 
             // swap the display name if not edited
@@ -1277,9 +1282,9 @@ NS_IMETHODIMP nsAbView::SwapFirstNameLastName()
           }
 
           // swap phonetic names
-          rv = abCard->GetPhoneticFirstName(getter_Copies(fn));
+          rv = abCard->GetPhoneticFirstName(fn);
           NS_ENSURE_SUCCESS(rv, rv);
-          rv = abCard->GetPhoneticLastName(getter_Copies(ln));
+          rv = abCard->GetPhoneticLastName(ln);
           NS_ENSURE_SUCCESS(rv, rv);
           if (!fn.IsEmpty() || !ln.IsEmpty())
           {
@@ -1318,7 +1323,7 @@ NS_IMETHODIMP nsAbView::GetSelectedAddresses(nsISupportsArray **_retval)
 
     PRBool isMailList;
     card->GetIsMailList(&isMailList);
-    nsXPIDLString primaryEmail;
+    nsAutoString primaryEmail;
     if (isMailList) {
       nsCOMPtr<nsIRDFService> rdfService = do_GetService(NS_RDF_CONTRACTID "/rdf-service;1", &rv);
       NS_ENSURE_SUCCESS(rv, rv);
@@ -1342,7 +1347,7 @@ NS_IMETHODIMP nsAbView::GetSelectedAddresses(nsISupportsArray **_retval)
         nsCOMPtr<nsIAbCard> mailListCard = do_QueryElementAt(mailListAddresses, j, &rv);
         NS_ENSURE_SUCCESS(rv,rv);
 
-        rv = mailListCard->GetPrimaryEmail(getter_Copies(primaryEmail));
+        rv = mailListCard->GetPrimaryEmail(primaryEmail);
         NS_ENSURE_SUCCESS(rv,rv);
 
         if (!primaryEmail.IsEmpty()) {
@@ -1353,7 +1358,7 @@ NS_IMETHODIMP nsAbView::GetSelectedAddresses(nsISupportsArray **_retval)
       }
     }
     else {
-      rv = card->GetPrimaryEmail(getter_Copies(primaryEmail));
+      rv = card->GetPrimaryEmail(primaryEmail);
       NS_ENSURE_SUCCESS(rv,rv);
 
       if (!primaryEmail.IsEmpty()) {

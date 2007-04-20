@@ -139,20 +139,6 @@ NS_IMPL_ISUPPORTS1(nsAbCardProperty, nsIAbCard)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-nsresult nsAbCardProperty::GetAttributeName(PRUnichar **aName, nsString& value)
-{
-  NS_ENSURE_ARG_POINTER(aName);
-  *aName = ToNewUnicode(value);
-  return (*aName) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
-}
-
-nsresult nsAbCardProperty::SetAttributeName(const PRUnichar *aName, nsString& attribute)
-{
-  if (aName)
-    attribute = aName;
-  return NS_OK;
-}
-
 NS_IMETHODIMP nsAbCardProperty::GetPopularityIndex(PRUint32 *aPopularityIndex)
 {
   *aPopularityIndex = m_PopularityIndex;
@@ -223,10 +209,9 @@ NS_IMETHODIMP nsAbCardProperty::SetMailListURI(const char *aMailListURI)
     return NS_ERROR_NULL_POINTER;
 }
 
-NS_IMETHODIMP nsAbCardProperty::GetCardValue(const char *attrname, PRUnichar **value)
+NS_IMETHODIMP nsAbCardProperty::GetCardValue(const char *attrname, nsAString &value)
 {
   NS_ENSURE_ARG_POINTER(attrname);
-  NS_ENSURE_ARG_POINTER(value);
 
   nsresult rv = NS_OK;
 
@@ -241,8 +226,8 @@ NS_IMETHODIMP nsAbCardProperty::GetCardValue(const char *attrname, PRUnichar **v
         {
           PRBool allowRemoteContent = PR_FALSE;
           GetAllowRemoteContent(&allowRemoteContent);
-          *value = allowRemoteContent ? ToNewUnicode(NS_LITERAL_STRING("true")) :
-                     ToNewUnicode(NS_LITERAL_STRING("false"));
+          value = allowRemoteContent ? NS_LITERAL_STRING("true") :
+                                       NS_LITERAL_STRING("false");
           break;
         }
         case 'Y':
@@ -384,7 +369,7 @@ NS_IMETHODIMP nsAbCardProperty::GetCardValue(const char *attrname, PRUnichar **v
           // fix me?  LDAP code gets here
           PRUint32 lastModifiedDate;
           rv = GetLastModifiedDate(&lastModifiedDate);
-          *value = ToNewUnicode(NS_LITERAL_STRING("0Z")); 
+          value.AssignLiteral("0Z");
         }
       }
       else
@@ -405,14 +390,14 @@ NS_IMETHODIMP nsAbCardProperty::GetCardValue(const char *attrname, PRUnichar **v
 
           switch (format) {
             case nsIAbPreferMailFormat::html:
-              *value = ToNewUnicode(NS_LITERAL_STRING("html"));
+              value.AssignLiteral("html");
               break;
             case nsIAbPreferMailFormat::plaintext:
-              *value = ToNewUnicode(NS_LITERAL_STRING("plaintext"));
+              value.AssignLiteral("plaintext");
               break;
             case nsIAbPreferMailFormat::unknown:
             default :
-              *value = ToNewUnicode(NS_LITERAL_STRING("unknown"));
+              value.AssignLiteral("unknown");
               break;
           }
           break;
@@ -493,10 +478,9 @@ NS_IMETHODIMP nsAbCardProperty::GetCardValue(const char *attrname, PRUnichar **v
   return rv;
 }
 
-NS_IMETHODIMP nsAbCardProperty::SetCardValue(const char *attrname, const PRUnichar *value)
+NS_IMETHODIMP nsAbCardProperty::SetCardValue(const char *attrname, const nsAString &value)
 {
   NS_ENSURE_ARG_POINTER(attrname);
-  NS_ENSURE_ARG_POINTER(value);
 
   nsresult rv = NS_OK;
 
@@ -508,7 +492,7 @@ NS_IMETHODIMP nsAbCardProperty::SetCardValue(const char *attrname, const PRUnich
       // AllowRemoteContent, AnniversaryYear, AnniversaryMonth, AnniversaryDay
       switch (attrname[11]) {
         case 'C':
-          SetAllowRemoteContent(value[0] == 't' || value[0] == 'T');
+            SetAllowRemoteContent(value.First() == 't' || value.First() == 'T');
           break;
         case 'Y':
           rv = SetAnniversaryYear(value);
@@ -662,7 +646,7 @@ NS_IMETHODIMP nsAbCardProperty::SetCardValue(const char *attrname, const PRUnich
     case 'P':
       switch (attrname[2]) { 
         case 'e':
-          switch (value[0]) {
+          switch (value.First()) {
             case 't':    // "true"
             case 'T':
               rv = SetPreferMailFormat(nsIAbPreferMailFormat::html);
@@ -751,420 +735,82 @@ NS_IMETHODIMP nsAbCardProperty::SetCardValue(const char *attrname, const PRUnich
 }
 
 NS_IMETHODIMP
-nsAbCardProperty::GetFirstName(PRUnichar * *aFirstName)
-{ return GetAttributeName(aFirstName, m_FirstName); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetLastName(PRUnichar * *aLastName)
-{ return GetAttributeName(aLastName, m_LastName); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetPhoneticFirstName(PRUnichar * *aPhoneticFirstName)
-{ return GetAttributeName(aPhoneticFirstName, m_PhoneticFirstName); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetPhoneticLastName(PRUnichar * *aPhoneticLastName)
-{ return GetAttributeName(aPhoneticLastName, m_PhoneticLastName); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetDisplayName(PRUnichar * *aDisplayName)
-{ return GetAttributeName(aDisplayName, m_DisplayName); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetNickName(PRUnichar * *aNickName)
-{ return GetAttributeName(aNickName, m_NickName); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetPrimaryEmail(PRUnichar * *aPrimaryEmail)
-{ return GetAttributeName(aPrimaryEmail, m_PrimaryEmail); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetSecondEmail(PRUnichar * *aSecondEmail)
-{ return GetAttributeName(aSecondEmail, m_SecondEmail); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetWorkPhone(PRUnichar * *aWorkPhone)
-{ return GetAttributeName(aWorkPhone, m_WorkPhone); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetHomePhone(PRUnichar * *aHomePhone)
-{ return GetAttributeName(aHomePhone, m_HomePhone); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetFaxNumber(PRUnichar * *aFaxNumber)
-{ return GetAttributeName(aFaxNumber, m_FaxNumber); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetPagerNumber(PRUnichar * *aPagerNumber)
-{ return GetAttributeName(aPagerNumber, m_PagerNumber); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetCellularNumber(PRUnichar * *aCellularNumber)
-{ return GetAttributeName(aCellularNumber, m_CellularNumber); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetWorkPhoneType(PRUnichar * *aWorkPhoneType)
-{ return GetAttributeName(aWorkPhoneType, m_WorkPhoneType); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetHomePhoneType(PRUnichar * *aHomePhoneType)
-{ return GetAttributeName(aHomePhoneType, m_HomePhoneType); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetFaxNumberType(PRUnichar * *aFaxNumberType)
-{ return GetAttributeName(aFaxNumberType, m_FaxNumberType); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetPagerNumberType(PRUnichar * *aPagerNumberType)
-{ return GetAttributeName(aPagerNumberType, m_PagerNumberType); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetCellularNumberType(PRUnichar * *aCellularNumberType)
-{ return GetAttributeName(aCellularNumberType, m_CellularNumberType); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetHomeAddress(PRUnichar * *aHomeAddress)
-{ return GetAttributeName(aHomeAddress, m_HomeAddress); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetHomeAddress2(PRUnichar * *aHomeAddress2)
-{ return GetAttributeName(aHomeAddress2, m_HomeAddress2); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetHomeCity(PRUnichar * *aHomeCity)
-{ return GetAttributeName(aHomeCity, m_HomeCity); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetHomeState(PRUnichar * *aHomeState)
-{ return GetAttributeName(aHomeState, m_HomeState); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetHomeZipCode(PRUnichar * *aHomeZipCode)
-{ return GetAttributeName(aHomeZipCode, m_HomeZipCode); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetHomeCountry(PRUnichar * *aHomecountry)
-{ return GetAttributeName(aHomecountry, m_HomeCountry); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetWorkAddress(PRUnichar * *aWorkAddress)
-{ return GetAttributeName(aWorkAddress, m_WorkAddress); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetWorkAddress2(PRUnichar * *aWorkAddress2)
-{ return GetAttributeName(aWorkAddress2, m_WorkAddress2); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetWorkCity(PRUnichar * *aWorkCity)
-{ return GetAttributeName(aWorkCity, m_WorkCity); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetWorkState(PRUnichar * *aWorkState)
-{ return GetAttributeName(aWorkState, m_WorkState); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetWorkZipCode(PRUnichar * *aWorkZipCode)
-{ return GetAttributeName(aWorkZipCode, m_WorkZipCode); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetWorkCountry(PRUnichar * *aWorkCountry)
-{ return GetAttributeName(aWorkCountry, m_WorkCountry); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetJobTitle(PRUnichar * *aJobTitle)
-{ return GetAttributeName(aJobTitle, m_JobTitle); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetDepartment(PRUnichar * *aDepartment)
-{ return GetAttributeName(aDepartment, m_Department); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetCompany(PRUnichar * *aCompany)
-{ return GetAttributeName(aCompany, m_Company); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetAimScreenName(PRUnichar * *aAimScreenName)
-{ return GetAttributeName(aAimScreenName, m_AimScreenName); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetAnniversaryYear(PRUnichar * *aAnniversaryYear)
-{ return GetAttributeName(aAnniversaryYear, m_AnniversaryYear); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetAnniversaryMonth(PRUnichar * *aAnniversaryMonth)
-{ return GetAttributeName(aAnniversaryMonth, m_AnniversaryMonth); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetAnniversaryDay(PRUnichar * *aAnniversaryDay)
-{ return GetAttributeName(aAnniversaryDay, m_AnniversaryDay); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetSpouseName(PRUnichar * *aSpouseName)
-{ return GetAttributeName(aSpouseName, m_SpouseName); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetFamilyName(PRUnichar * *aFamilyName)
-{ return GetAttributeName(aFamilyName, m_FamilyName); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetDefaultAddress(PRUnichar * *aDefaultAddress)
-{ return GetAttributeName(aDefaultAddress, m_DefaultAddress); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetCategory(PRUnichar * *aCategory)
-{ return GetAttributeName(aCategory, m_Category); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetWebPage1(PRUnichar * *aWebPage1)
-{ return GetAttributeName(aWebPage1, m_WebPage1); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetWebPage2(PRUnichar * *aWebPage2)
-{ return GetAttributeName(aWebPage2, m_WebPage2); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetBirthYear(PRUnichar * *aBirthYear)
-{ return GetAttributeName(aBirthYear, m_BirthYear); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetBirthMonth(PRUnichar * *aBirthMonth)
-{ return GetAttributeName(aBirthMonth, m_BirthMonth); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetBirthDay(PRUnichar * *aBirthDay)
-{ return GetAttributeName(aBirthDay, m_BirthDay); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetCustom1(PRUnichar * *aCustom1)
-{ return GetAttributeName(aCustom1, m_Custom1); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetCustom2(PRUnichar * *aCustom2)
-{ return GetAttributeName(aCustom2, m_Custom2); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetCustom3(PRUnichar * *aCustom3)
-{ return GetAttributeName(aCustom3, m_Custom3); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetCustom4(PRUnichar * *aCustom4)
-{ return GetAttributeName(aCustom4, m_Custom4); }
-
-NS_IMETHODIMP
-nsAbCardProperty::GetNotes(PRUnichar * *aNotes)
-{ return GetAttributeName(aNotes, m_Note); }
-
-NS_IMETHODIMP
 nsAbCardProperty::GetLastModifiedDate(PRUint32 *aLastModifiedDate)
-{ *aLastModifiedDate = m_LastModDate; return NS_OK; }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetFirstName(const PRUnichar * aFirstName)
-{ return SetAttributeName(aFirstName, m_FirstName); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetLastName(const PRUnichar * aLastName)
-{ return SetAttributeName(aLastName, m_LastName); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetPhoneticLastName(const PRUnichar * aPhoneticLastName)
-{ return SetAttributeName(aPhoneticLastName, m_PhoneticLastName); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetPhoneticFirstName(const PRUnichar * aPhoneticFirstName)
-{ return SetAttributeName(aPhoneticFirstName, m_PhoneticFirstName); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetDisplayName(const PRUnichar * aDisplayName)
-{ return SetAttributeName(aDisplayName, m_DisplayName); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetNickName(const PRUnichar * aNickName)
-{ return SetAttributeName(aNickName, m_NickName); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetPrimaryEmail(const PRUnichar * aPrimaryEmail)
-{ return SetAttributeName(aPrimaryEmail, m_PrimaryEmail); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetSecondEmail(const PRUnichar * aSecondEmail)
-{ return SetAttributeName(aSecondEmail, m_SecondEmail); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetWorkPhone(const PRUnichar * aWorkPhone)
-{ return SetAttributeName(aWorkPhone, m_WorkPhone); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetHomePhone(const PRUnichar * aHomePhone)
-{ return SetAttributeName(aHomePhone, m_HomePhone); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetFaxNumber(const PRUnichar * aFaxNumber)
-{ return SetAttributeName(aFaxNumber, m_FaxNumber); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetPagerNumber(const PRUnichar * aPagerNumber)
-{ return SetAttributeName(aPagerNumber, m_PagerNumber); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetCellularNumber(const PRUnichar * aCellularNumber)
-{ return SetAttributeName(aCellularNumber, m_CellularNumber); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetWorkPhoneType(const PRUnichar * aWorkPhoneType)
-{ return SetAttributeName(aWorkPhoneType, m_WorkPhoneType); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetHomePhoneType(const PRUnichar * aHomePhoneType)
-{ return SetAttributeName(aHomePhoneType, m_HomePhoneType); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetFaxNumberType(const PRUnichar * aFaxNumberType)
-{ return SetAttributeName(aFaxNumberType, m_FaxNumberType); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetPagerNumberType(const PRUnichar * aPagerNumberType)
-{ return SetAttributeName(aPagerNumberType, m_PagerNumberType); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetCellularNumberType(const PRUnichar * aCellularNumberType)
-{ return SetAttributeName(aCellularNumberType, m_CellularNumberType); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetHomeAddress(const PRUnichar * aHomeAddress)
-{ return SetAttributeName(aHomeAddress, m_HomeAddress); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetHomeAddress2(const PRUnichar * aHomeAddress2)
-{ return SetAttributeName(aHomeAddress2, m_HomeAddress2); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetHomeCity(const PRUnichar * aHomeCity)
-{ return SetAttributeName(aHomeCity, m_HomeCity); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetHomeState(const PRUnichar * aHomeState)
-{ return SetAttributeName(aHomeState, m_HomeState); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetHomeZipCode(const PRUnichar * aHomeZipCode)
-{ return SetAttributeName(aHomeZipCode, m_HomeZipCode); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetHomeCountry(const PRUnichar * aHomecountry)
-{ return SetAttributeName(aHomecountry, m_HomeCountry); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetWorkAddress(const PRUnichar * aWorkAddress)
-{ return SetAttributeName(aWorkAddress, m_WorkAddress); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetWorkAddress2(const PRUnichar * aWorkAddress2)
-{ return SetAttributeName(aWorkAddress2, m_WorkAddress2); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetWorkCity(const PRUnichar * aWorkCity)
-{ return SetAttributeName(aWorkCity, m_WorkCity); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetWorkState(const PRUnichar * aWorkState)
-{ return SetAttributeName(aWorkState, m_WorkState); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetWorkZipCode(const PRUnichar * aWorkZipCode)
-{ return SetAttributeName(aWorkZipCode, m_WorkZipCode); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetWorkCountry(const PRUnichar * aWorkCountry)
-{ return SetAttributeName(aWorkCountry, m_WorkCountry); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetJobTitle(const PRUnichar * aJobTitle)
-{ return SetAttributeName(aJobTitle, m_JobTitle); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetDepartment(const PRUnichar * aDepartment)
-{ return SetAttributeName(aDepartment, m_Department); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetCompany(const PRUnichar * aCompany)
-{ return SetAttributeName(aCompany, m_Company); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetAimScreenName(const PRUnichar *aAimScreenName)
-{ return SetAttributeName(aAimScreenName, m_AimScreenName); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetAnniversaryYear(const PRUnichar * aAnniversaryYear)
-{ return SetAttributeName(aAnniversaryYear, m_AnniversaryYear); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetAnniversaryMonth(const PRUnichar * aAnniversaryMonth)
-{ return SetAttributeName(aAnniversaryMonth, m_AnniversaryMonth); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetAnniversaryDay(const PRUnichar * aAnniversaryDay)
-{ return SetAttributeName(aAnniversaryDay, m_AnniversaryDay); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetSpouseName(const PRUnichar * aSpouseName)
-{ return SetAttributeName(aSpouseName, m_SpouseName); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetFamilyName(const PRUnichar * aFamilyName)
-{ return SetAttributeName(aFamilyName, m_FamilyName); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetDefaultAddress(const PRUnichar * aDefaultAddress)
-{ return SetAttributeName(aDefaultAddress, m_DefaultAddress); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetCategory(const PRUnichar * aCategory)
-{ return SetAttributeName(aCategory, m_Category); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetWebPage1(const PRUnichar * aWebPage1)
-{ return SetAttributeName(aWebPage1, m_WebPage1); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetWebPage2(const PRUnichar * aWebPage2)
-{ return SetAttributeName(aWebPage2, m_WebPage2); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetBirthYear(const PRUnichar * aBirthYear)
-{ return SetAttributeName(aBirthYear, m_BirthYear); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetBirthMonth(const PRUnichar * aBirthMonth)
-{ return SetAttributeName(aBirthMonth, m_BirthMonth); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetBirthDay(const PRUnichar * aBirthDay)
-{ return SetAttributeName(aBirthDay, m_BirthDay); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetCustom1(const PRUnichar * aCustom1)
-{ return SetAttributeName(aCustom1, m_Custom1); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetCustom2(const PRUnichar * aCustom2)
-{ return SetAttributeName(aCustom2, m_Custom2); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetCustom3(const PRUnichar * aCustom3)
-{ return SetAttributeName(aCustom3, m_Custom3); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetCustom4(const PRUnichar * aCustom4)
-{ return SetAttributeName(aCustom4, m_Custom4); }
-
-NS_IMETHODIMP
-nsAbCardProperty::SetNotes(const PRUnichar * aNotes)
-{ return SetAttributeName(aNotes, m_Note); }
+{
+  *aLastModifiedDate = m_LastModDate;
+  return NS_OK;
+}
 
 NS_IMETHODIMP
 nsAbCardProperty::SetLastModifiedDate(PRUint32 aLastModifiedDate)
-{ return m_LastModDate = aLastModifiedDate; }
+{
+  m_LastModDate = aLastModifiedDate;
+  return NS_OK;
+}
+
+#define GET_SET_STR_ATTR(_method, _member)                             \
+NS_IMETHODIMP nsAbCardProperty::Get##_method(nsAString &aString)       \
+{                                                                      \
+  aString = _member;                                                   \
+  return NS_OK;                                                        \
+}                                                                      \
+NS_IMETHODIMP nsAbCardProperty::Set##_method(const nsAString &aString) \
+{                                                                      \
+  _member = aString;                                                   \
+ return NS_OK;                                                         \
+}
+
+GET_SET_STR_ATTR(FirstName, m_FirstName)
+GET_SET_STR_ATTR(LastName, m_LastName)
+GET_SET_STR_ATTR(PhoneticFirstName, m_PhoneticFirstName)
+GET_SET_STR_ATTR(PhoneticLastName, m_PhoneticLastName)
+GET_SET_STR_ATTR(DisplayName, m_DisplayName)
+GET_SET_STR_ATTR(NickName, m_NickName)
+GET_SET_STR_ATTR(PrimaryEmail, m_PrimaryEmail)
+GET_SET_STR_ATTR(SecondEmail, m_SecondEmail)
+GET_SET_STR_ATTR(WorkPhone, m_WorkPhone)
+GET_SET_STR_ATTR(HomePhone, m_HomePhone)
+GET_SET_STR_ATTR(FaxNumber, m_FaxNumber)
+GET_SET_STR_ATTR(PagerNumber, m_PagerNumber)
+GET_SET_STR_ATTR(CellularNumber, m_CellularNumber)
+GET_SET_STR_ATTR(WorkPhoneType, m_WorkPhoneType)
+GET_SET_STR_ATTR(HomePhoneType, m_HomePhoneType)
+GET_SET_STR_ATTR(FaxNumberType, m_FaxNumberType)
+GET_SET_STR_ATTR(PagerNumberType, m_PagerNumberType)
+GET_SET_STR_ATTR(CellularNumberType, m_CellularNumberType)
+GET_SET_STR_ATTR(HomeAddress, m_HomeAddress)
+GET_SET_STR_ATTR(HomeAddress2, m_HomeAddress2)
+GET_SET_STR_ATTR(HomeCity, m_HomeCity)
+GET_SET_STR_ATTR(HomeState, m_HomeState)
+GET_SET_STR_ATTR(HomeZipCode, m_HomeZipCode)
+GET_SET_STR_ATTR(HomeCountry, m_HomeCountry)
+GET_SET_STR_ATTR(WorkAddress, m_WorkAddress)
+GET_SET_STR_ATTR(WorkAddress2, m_WorkAddress2)
+GET_SET_STR_ATTR(WorkCity, m_WorkCity)
+GET_SET_STR_ATTR(WorkState, m_WorkState)
+GET_SET_STR_ATTR(WorkZipCode, m_WorkZipCode)
+GET_SET_STR_ATTR(WorkCountry, m_WorkCountry)
+GET_SET_STR_ATTR(JobTitle, m_JobTitle)
+GET_SET_STR_ATTR(Department, m_Department)
+GET_SET_STR_ATTR(Company, m_Company)
+GET_SET_STR_ATTR(AimScreenName, m_AimScreenName)
+GET_SET_STR_ATTR(AnniversaryYear, m_AnniversaryYear)
+GET_SET_STR_ATTR(AnniversaryMonth, m_AnniversaryMonth)
+GET_SET_STR_ATTR(AnniversaryDay, m_AnniversaryDay)
+GET_SET_STR_ATTR(SpouseName, m_SpouseName)
+GET_SET_STR_ATTR(FamilyName, m_FamilyName)
+GET_SET_STR_ATTR(DefaultAddress, m_DefaultAddress)
+GET_SET_STR_ATTR(Category, m_Category)
+GET_SET_STR_ATTR(WebPage1, m_WebPage1)
+GET_SET_STR_ATTR(WebPage2, m_WebPage2)
+GET_SET_STR_ATTR(BirthYear, m_BirthYear)
+GET_SET_STR_ATTR(BirthMonth, m_BirthMonth)
+GET_SET_STR_ATTR(BirthDay, m_BirthDay)
+GET_SET_STR_ATTR(Custom1, m_Custom1)
+GET_SET_STR_ATTR(Custom2, m_Custom2)
+GET_SET_STR_ATTR(Custom3, m_Custom3)
+GET_SET_STR_ATTR(Custom4, m_Custom4)
+GET_SET_STR_ATTR(Notes, m_Note)
 
 // This function may be overriden by derived classes for
 // nsAb*Card specific implementations.
@@ -1173,124 +819,124 @@ NS_IMETHODIMP nsAbCardProperty::Copy(nsIAbCard* srcCard)
   NS_ENSURE_ARG_POINTER(srcCard);
 
 	nsXPIDLString str;
-	srcCard->GetFirstName(getter_Copies(str));
-	SetFirstName(str);
+  srcCard->GetFirstName(str);
+  SetFirstName(str);
 
-	srcCard->GetLastName(getter_Copies(str));
-	SetLastName(str);
-	srcCard->GetPhoneticFirstName(getter_Copies(str));
-	SetPhoneticFirstName(str);
-	srcCard->GetPhoneticLastName(getter_Copies(str));
-	SetPhoneticLastName(str);
-	srcCard->GetDisplayName(getter_Copies(str));
-	SetDisplayName(str);
-	srcCard->GetNickName(getter_Copies(str));
-	SetNickName(str);
-	srcCard->GetPrimaryEmail(getter_Copies(str));
-	SetPrimaryEmail(str);
-	srcCard->GetSecondEmail(getter_Copies(str));
-	SetSecondEmail(str);
+  srcCard->GetLastName(str);
+  SetLastName(str);
+  srcCard->GetPhoneticFirstName(str);
+  SetPhoneticFirstName(str);
+  srcCard->GetPhoneticLastName(str);
+  SetPhoneticLastName(str);
+  srcCard->GetDisplayName(str);
+  SetDisplayName(str);
+  srcCard->GetNickName(str);
+  SetNickName(str);
+  srcCard->GetPrimaryEmail(str);
+  SetPrimaryEmail(str);
+  srcCard->GetSecondEmail(str);
+  SetSecondEmail(str);
 
-	PRUint32 format = nsIAbPreferMailFormat::unknown;
-	srcCard->GetPreferMailFormat(&format);
-	SetPreferMailFormat(format);
+  PRUint32 format = nsIAbPreferMailFormat::unknown;
+  srcCard->GetPreferMailFormat(&format);
+  SetPreferMailFormat(format);
 
-	PRUint32 popularityIndex = 0;
-	srcCard->GetPopularityIndex(&popularityIndex);
-	SetPopularityIndex(popularityIndex);
+  PRUint32 popularityIndex = 0;
+  srcCard->GetPopularityIndex(&popularityIndex);
+  SetPopularityIndex(popularityIndex);
 
   PRBool allowRemoteContent = PR_FALSE;
   srcCard->GetAllowRemoteContent(&allowRemoteContent);
   SetAllowRemoteContent(allowRemoteContent);
 
-	srcCard->GetWorkPhone(getter_Copies(str));
-	SetWorkPhone(str);
-	srcCard->GetHomePhone(getter_Copies(str));
-	SetHomePhone(str);
-	srcCard->GetFaxNumber(getter_Copies(str));
-	SetFaxNumber(str);
-	srcCard->GetPagerNumber(getter_Copies(str));
-	SetPagerNumber(str);
-	srcCard->GetCellularNumber(getter_Copies(str));
-	SetCellularNumber(str);
-  srcCard->GetWorkPhoneType(getter_Copies(str));
+  srcCard->GetWorkPhone(str);
+  SetWorkPhone(str);
+  srcCard->GetHomePhone(str);
+  SetHomePhone(str);
+  srcCard->GetFaxNumber(str);
+  SetFaxNumber(str);
+  srcCard->GetPagerNumber(str);
+  SetPagerNumber(str);
+  srcCard->GetCellularNumber(str);
+  SetCellularNumber(str);
+  srcCard->GetWorkPhoneType(str);
   SetWorkPhoneType(str);
-  srcCard->GetHomePhoneType(getter_Copies(str));
+  srcCard->GetHomePhoneType(str);
   SetHomePhoneType(str);
-  srcCard->GetFaxNumberType(getter_Copies(str));
+  srcCard->GetFaxNumberType(str);
   SetFaxNumberType(str);
-  srcCard->GetPagerNumberType(getter_Copies(str));
+  srcCard->GetPagerNumberType(str);
   SetPagerNumberType(str);
-  srcCard->GetCellularNumberType(getter_Copies(str));
+  srcCard->GetCellularNumberType(str);
   SetCellularNumberType(str);
-	srcCard->GetHomeAddress(getter_Copies(str));
-	SetHomeAddress(str);
-	srcCard->GetHomeAddress2(getter_Copies(str));
-	SetHomeAddress2(str);
-	srcCard->GetHomeCity(getter_Copies(str));
-	SetHomeCity(str);
-	srcCard->GetHomeState(getter_Copies(str));
-	SetHomeState(str);
-	srcCard->GetHomeZipCode(getter_Copies(str));
-	SetHomeZipCode(str);
-	srcCard->GetHomeCountry(getter_Copies(str));
-	SetHomeCountry(str);
-	srcCard->GetWorkAddress(getter_Copies(str));
-	SetWorkAddress(str);
-	srcCard->GetWorkAddress2(getter_Copies(str));
-	SetWorkAddress2(str);
-	srcCard->GetWorkCity(getter_Copies(str));
-	SetWorkCity(str);
-	srcCard->GetWorkState(getter_Copies(str));
-	SetWorkState(str);
-	srcCard->GetWorkZipCode(getter_Copies(str));
-	SetWorkZipCode(str);
-	srcCard->GetWorkCountry(getter_Copies(str));
-	SetWorkCountry(str);
-	srcCard->GetJobTitle(getter_Copies(str));
-	SetJobTitle(str);
-	srcCard->GetDepartment(getter_Copies(str));
-	SetDepartment(str);
-	srcCard->GetCompany(getter_Copies(str));
-	SetCompany(str);
-  srcCard->GetAimScreenName(getter_Copies(str));
+  srcCard->GetHomeAddress(str);
+  SetHomeAddress(str);
+  srcCard->GetHomeAddress2(str);
+  SetHomeAddress2(str);
+  srcCard->GetHomeCity(str);
+  SetHomeCity(str);
+  srcCard->GetHomeState(str);
+  SetHomeState(str);
+  srcCard->GetHomeZipCode(str);
+  SetHomeZipCode(str);
+  srcCard->GetHomeCountry(str);
+  SetHomeCountry(str);
+  srcCard->GetWorkAddress(str);
+  SetWorkAddress(str);
+  srcCard->GetWorkAddress2(str);
+  SetWorkAddress2(str);
+  srcCard->GetWorkCity(str);
+  SetWorkCity(str);
+  srcCard->GetWorkState(str);
+  SetWorkState(str);
+  srcCard->GetWorkZipCode(str);
+  SetWorkZipCode(str);
+  srcCard->GetWorkCountry(str);
+  SetWorkCountry(str);
+  srcCard->GetJobTitle(str);
+  SetJobTitle(str);
+  srcCard->GetDepartment(str);
+  SetDepartment(str);
+  srcCard->GetCompany(str);
+  SetCompany(str);
+  srcCard->GetAimScreenName(str);
   SetAimScreenName(str);
 
-  srcCard->GetAnniversaryYear(getter_Copies(str));
+  srcCard->GetAnniversaryYear(str);
   SetAnniversaryYear(str);
-  srcCard->GetAnniversaryMonth(getter_Copies(str));
+  srcCard->GetAnniversaryMonth(str);
   SetAnniversaryMonth(str);
-  srcCard->GetAnniversaryDay(getter_Copies(str));
+  srcCard->GetAnniversaryDay(str);
   SetAnniversaryDay(str);
-  srcCard->GetSpouseName(getter_Copies(str));
+  srcCard->GetSpouseName(str);
   SetSpouseName(str);
-  srcCard->GetFamilyName(getter_Copies(str));
+  srcCard->GetFamilyName(str);
   SetFamilyName(str);
-  srcCard->GetDefaultAddress(getter_Copies(str));
+  srcCard->GetDefaultAddress(str);
   SetDefaultAddress(str);
-  srcCard->GetCategory(getter_Copies(str));
+  srcCard->GetCategory(str);
   SetCategory(str);
 
-	srcCard->GetWebPage1(getter_Copies(str));
-	SetWebPage1(str);
-	srcCard->GetWebPage2(getter_Copies(str));
-	SetWebPage2(str);
-	srcCard->GetBirthYear(getter_Copies(str));
-	SetBirthYear(str);
-	srcCard->GetBirthMonth(getter_Copies(str));
-	SetBirthMonth(str);
-	srcCard->GetBirthDay(getter_Copies(str));
-	SetBirthDay(str);
-	srcCard->GetCustom1(getter_Copies(str));
-	SetCustom1(str);
-	srcCard->GetCustom2(getter_Copies(str));
-	SetCustom2(str);
-	srcCard->GetCustom3(getter_Copies(str));
-	SetCustom3(str);
-	srcCard->GetCustom4(getter_Copies(str));
-	SetCustom4(str);
-	srcCard->GetNotes(getter_Copies(str));
-	SetNotes(str);
+  srcCard->GetWebPage1(str);
+  SetWebPage1(str);
+  srcCard->GetWebPage2(str);
+  SetWebPage2(str);
+  srcCard->GetBirthYear(str);
+  SetBirthYear(str);
+  srcCard->GetBirthMonth(str);
+  SetBirthMonth(str);
+  srcCard->GetBirthDay(str);
+  SetBirthDay(str);
+  srcCard->GetCustom1(str);
+  SetCustom1(str);
+  srcCard->GetCustom2(str);
+  SetCustom2(str);
+  srcCard->GetCustom3(str);
+  SetCustom3(str);
+  srcCard->GetCustom4(str);
+  SetCustom4(str);
+  srcCard->GetNotes(str);
+  SetNotes(str);
 
   PRBool isMailList;
   srcCard->GetIsMailList(&isMailList);
@@ -1334,12 +980,12 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToEscapedVCard(char **aResult)
     // to this function and remedy this O(m*n) function where n = # attribute values and
     // m = # of vcard properties....  
 
-    (void)GetDisplayName(getter_Copies(str));
+    (void)GetDisplayName(str);
     if (!str.IsEmpty()) {
         myAddPropValue(vObj, VCFullNameProp, str.get(), &vCardHasData);
     }
     
-    (void)GetLastName(getter_Copies(str));
+    (void)GetLastName(str);
     if (!str.IsEmpty()) {
         t = isAPropertyOf(vObj, VCNameProp);
         if (!t)
@@ -1347,7 +993,7 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToEscapedVCard(char **aResult)
         myAddPropValue(t, VCFamilyNameProp, str.get(), &vCardHasData);
     }
     
-    (void)GetFirstName(getter_Copies(str));
+    (void)GetFirstName(str);
     if (!str.IsEmpty()) {
         t = isAPropertyOf(vObj, VCNameProp);
         if (!t)
@@ -1355,7 +1001,7 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToEscapedVCard(char **aResult)
         myAddPropValue(t, VCGivenNameProp, str.get(), &vCardHasData);
     }
 
-    (void)GetCompany(getter_Copies(str));
+    (void)GetCompany(str);
     if (!str.IsEmpty())
     {
         t = isAPropertyOf(vObj, VCOrgProp);
@@ -1364,7 +1010,7 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToEscapedVCard(char **aResult)
         myAddPropValue(t, VCOrgNameProp, str.get(), &vCardHasData);
     }
 
-    (void)GetDepartment(getter_Copies(str));
+    (void)GetDepartment(str);
     if (!str.IsEmpty())
     {
         t = isAPropertyOf(vObj, VCOrgProp);
@@ -1373,7 +1019,7 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToEscapedVCard(char **aResult)
         myAddPropValue(t, VCOrgUnitProp, str.get(), &vCardHasData);
     }
  
-    (void)GetWorkAddress2(getter_Copies(str));
+    (void)GetWorkAddress2(str);
     if (!str.IsEmpty())
     {
         t = isAPropertyOf(vObj, VCAdrProp);
@@ -1382,7 +1028,7 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToEscapedVCard(char **aResult)
         myAddPropValue(t, VCPostalBoxProp, str.get(), &vCardHasData);  
     }
 
-    (void)GetWorkAddress(getter_Copies(str));
+    (void)GetWorkAddress(str);
     if (!str.IsEmpty())
     {
         t = isAPropertyOf(vObj, VCAdrProp);
@@ -1391,7 +1037,7 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToEscapedVCard(char **aResult)
         myAddPropValue(t, VCStreetAddressProp, str.get(), &vCardHasData);
     }
 
-    (void)GetWorkCity(getter_Copies(str));
+    (void)GetWorkCity(str);
     if (!str.IsEmpty())
     {
         t = isAPropertyOf(vObj, VCAdrProp);
@@ -1400,7 +1046,7 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToEscapedVCard(char **aResult)
         myAddPropValue(t, VCCityProp, str.get(), &vCardHasData);
     }
 
-    (void)GetWorkState(getter_Copies(str));
+    (void)GetWorkState(str);
     if (!str.IsEmpty())
     {
         t = isAPropertyOf(vObj, VCAdrProp);
@@ -1409,7 +1055,7 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToEscapedVCard(char **aResult)
         myAddPropValue(t, VCRegionProp, str.get(), &vCardHasData);
     }
 
-    (void)GetWorkZipCode(getter_Copies(str));
+    (void)GetWorkZipCode(str);
     if (!str.IsEmpty())
     {
         t = isAPropertyOf(vObj, VCAdrProp);
@@ -1418,7 +1064,7 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToEscapedVCard(char **aResult)
         myAddPropValue(t, VCPostalCodeProp, str.get(), &vCardHasData);
     }
 
-    (void)GetWorkCountry(getter_Copies(str));
+    (void)GetWorkCountry(str);
     if (!str.IsEmpty())
     {
         t = isAPropertyOf(vObj, VCAdrProp);
@@ -1436,55 +1082,55 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToEscapedVCard(char **aResult)
         }
     }
 
-    (void)GetPrimaryEmail(getter_Copies(str));
+    (void)GetPrimaryEmail(str);
     if (!str.IsEmpty())
     {
         t = myAddPropValue(vObj, VCEmailAddressProp, str.get(), &vCardHasData);  
         addProp(t, VCInternetProp);
     }
  
-    (void)GetJobTitle(getter_Copies(str));
+    (void)GetJobTitle(str);
     if (!str.IsEmpty())
     {
         myAddPropValue(vObj, VCTitleProp, str.get(), &vCardHasData);
     }
 
-    (void)GetWorkPhone(getter_Copies(str));
+    (void)GetWorkPhone(str);
     if (!str.IsEmpty())
     {
         t = myAddPropValue(vObj, VCTelephoneProp, str.get(), &vCardHasData);
         addProp(t, VCWorkProp);
     }
 
-    (void)GetFaxNumber(getter_Copies(str));
+    (void)GetFaxNumber(str);
     if (!str.IsEmpty())
     {
         t = myAddPropValue(vObj, VCTelephoneProp, str.get(), &vCardHasData);
         addProp(t, VCFaxProp);
     }
 
-    (void)GetPagerNumber(getter_Copies(str));
+    (void)GetPagerNumber(str);
     if (!str.IsEmpty())
     {
         t = myAddPropValue(vObj, VCTelephoneProp, str.get(), &vCardHasData);
         addProp(t, VCPagerProp);
     }
     
-    (void)GetHomePhone(getter_Copies(str));
+    (void)GetHomePhone(str);
     if (!str.IsEmpty())
     {
         t = myAddPropValue(vObj, VCTelephoneProp, str.get(), &vCardHasData);
         addProp(t, VCHomeProp);
     }
 
-    (void)GetCellularNumber(getter_Copies(str));
+    (void)GetCellularNumber(str);
     if (!str.IsEmpty())
     {
         t = myAddPropValue(vObj, VCTelephoneProp, str.get(), &vCardHasData);
         addProp(t, VCCellularProp);
     }
 
-    (void)GetNotes(getter_Copies(str));
+    (void)GetNotes(str);
     if (!str.IsEmpty())
     {
         myAddPropValue(vObj, VCNoteProp, str.get(), &vCardHasData);
@@ -1499,7 +1145,7 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToEscapedVCard(char **aResult)
         myAddPropValue(vObj, VCUseHTML, NS_LITERAL_STRING("FALSE").get(), &vCardHasData);
     }
 
-    (void)GetWebPage1(getter_Copies(str));
+    (void)GetWebPage1(str);
     if (!str.IsEmpty())
     {
         myAddPropValue(vObj, VCURLProp, str.get(), &vCardHasData);
@@ -1547,7 +1193,7 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToBase64EncodedXML(char **result)
   }
 
   nsXPIDLString xmlSubstr;
-  rv = ConvertToXMLPrintData(getter_Copies(xmlSubstr));
+  rv = ConvertToXMLPrintData(xmlSubstr);
   NS_ENSURE_SUCCESS(rv,rv);
 
   xmlStr.Append(xmlSubstr);
@@ -1557,10 +1203,8 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToBase64EncodedXML(char **result)
   return (*result ? NS_OK : NS_ERROR_OUT_OF_MEMORY);
 }
 
-NS_IMETHODIMP nsAbCardProperty::ConvertToXMLPrintData(PRUnichar **aXMLSubstr)
+NS_IMETHODIMP nsAbCardProperty::ConvertToXMLPrintData(nsAString &aXMLSubstr)
 {
-  NS_ENSURE_ARG_POINTER(aXMLSubstr);
-
   nsresult rv;
   nsCOMPtr<nsIPrefBranch> prefBranch = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
@@ -1601,17 +1245,19 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToXMLPrintData(PRUnichar **aXMLSubstr)
   // use ScanTXT to convert < > & to safe values.
   nsXPIDLString safeText;
   if (!generatedName.IsEmpty()) {
-    rv = conv->ScanTXT(generatedName, mozITXTToHTMLConv::kEntities , getter_Copies(safeText));
+    rv = conv->ScanTXT(generatedName, mozITXTToHTMLConv::kEntities,
+                       getter_Copies(safeText));
     NS_ENSURE_SUCCESS(rv,rv);
   }
 
   if (safeText.IsEmpty()) {
-    nsXPIDLString primaryEmail;
-    rv = GetCardValue(kPriEmailColumn, getter_Copies(primaryEmail));
+    nsAutoString primaryEmail;
+    rv = GetCardValue(kPriEmailColumn, primaryEmail);
     NS_ENSURE_SUCCESS(rv,rv);
 
     // use ScanTXT to convert < > & to safe values.
-    rv = conv->ScanTXT(primaryEmail, mozITXTToHTMLConv::kEntities, getter_Copies(safeText));
+    rv = conv->ScanTXT(primaryEmail.get(), mozITXTToHTMLConv::kEntities,
+                       getter_Copies(safeText));
     NS_ENSURE_SUCCESS(rv,rv);
   }
   xmlStr.Append(safeText);
@@ -1654,33 +1300,35 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToXMLPrintData(PRUnichar **aXMLSubstr)
     rv = mailList->GetAddressLists(getter_AddRefs(addresses));
     if (addresses) {
       PRUint32 total = 0;
-      addresses->Count(&total);		            
+      addresses->Count(&total);
       if (total) {
         PRUint32 i;
-        nsXPIDLString displayName;
-        nsXPIDLString primaryEmail;
+        nsAutoString displayName;
+        nsAutoString primaryEmail;
         for (i = 0; i < total; i++) {
           nsCOMPtr <nsIAbCard> listCard = do_QueryElementAt(addresses, i, &rv);
           NS_ENSURE_SUCCESS(rv,rv);
 
           xmlStr.AppendLiteral("<PrimaryEmail>\n");
 
-          rv = listCard->GetDisplayName(getter_Copies(displayName));
+          rv = listCard->GetDisplayName(displayName);
           NS_ENSURE_SUCCESS(rv,rv);
 
           // use ScanTXT to convert < > & to safe values.
           nsXPIDLString safeText;
-          rv = conv->ScanTXT(displayName, mozITXTToHTMLConv::kEntities, getter_Copies(safeText));
+          rv = conv->ScanTXT(displayName.get(), mozITXTToHTMLConv::kEntities,
+                             getter_Copies(safeText));
           NS_ENSURE_SUCCESS(rv,rv);
           xmlStr.Append(safeText);
 
           xmlStr.AppendLiteral(" &lt;");
           
-          rv = listCard->GetPrimaryEmail(getter_Copies(primaryEmail));
+          rv = listCard->GetPrimaryEmail(primaryEmail);
           NS_ENSURE_SUCCESS(rv,rv);
 
           // use ScanTXT to convert < > & to safe values.
-          rv = conv->ScanTXT(primaryEmail, mozITXTToHTMLConv::kEntities, getter_Copies(safeText));
+          rv = conv->ScanTXT(primaryEmail.get(), mozITXTToHTMLConv::kEntities,
+                             getter_Copies(safeText));
           NS_ENSURE_SUCCESS(rv,rv);
           xmlStr.Append(safeText);
 
@@ -1698,7 +1346,7 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToXMLPrintData(PRUnichar **aXMLSubstr)
   
   xmlStr.AppendLiteral("</td></tr></table>");
 
-  *aXMLSubstr = ToNewUnicode(xmlStr);
+  aXMLSubstr = xmlStr;
 
   return NS_OK;
 }
@@ -1706,7 +1354,7 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToXMLPrintData(PRUnichar **aXMLSubstr)
 nsresult nsAbCardProperty::AppendData(const char *aAttrName, mozITXTToHTMLConv *aConv, nsString &aResult)
 {
   nsXPIDLString attrValue;
-  nsresult rv = GetCardValue(aAttrName, getter_Copies(attrValue));
+  nsresult rv = GetCardValue(aAttrName, attrValue);
   NS_ENSURE_SUCCESS(rv,rv);
 
   if (attrValue.IsEmpty())
@@ -1746,7 +1394,7 @@ nsresult nsAbCardProperty::AppendSection(const AppendItem *aArray, PRInt16 aCoun
 
   PRInt16 i = 0;
   for (i=0;i<aCount;i++) {
-    rv = GetCardValue(aArray[i].mColumn, getter_Copies(attrValue));
+    rv = GetCardValue(aArray[i].mColumn, attrValue);
     NS_ENSURE_SUCCESS(rv,rv);
     sectionIsEmpty &= attrValue.IsEmpty();
   }
@@ -1794,7 +1442,7 @@ nsresult nsAbCardProperty::AppendLine(const AppendItem &aItem,
   NS_ENSURE_ARG_POINTER(aConv);
 
   nsXPIDLString attrValue;
-  nsresult rv = GetCardValue(aItem.mColumn, getter_Copies(attrValue));
+  nsresult rv = GetCardValue(aItem.mColumn, attrValue);
   NS_ENSURE_SUCCESS(rv,rv);
 
   if (attrValue.IsEmpty())
@@ -1833,7 +1481,7 @@ nsresult nsAbCardProperty::AppendLabel(const AppendItem &aItem,
   
   nsXPIDLString attrValue;
 
-  rv = GetCardValue(aItem.mColumn, getter_Copies(attrValue));
+  rv = GetCardValue(aItem.mColumn, attrValue);
   NS_ENSURE_SUCCESS(rv,rv);
 
   if (attrValue.IsEmpty())

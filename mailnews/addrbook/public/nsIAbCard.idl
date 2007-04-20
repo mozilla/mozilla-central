@@ -38,90 +38,93 @@
 #include "nsISupports.idl"
 
 [scriptable, uuid(97448252-F189-11d4-A422-001083003D0C)]
-interface nsIAbPreferMailFormat { 
-    const unsigned long unknown   = 0; 
-    const unsigned long plaintext = 1; 
-    const unsigned long html      = 2; 
-}; 
+interface nsIAbPreferMailFormat {
+    const unsigned long unknown   = 0;
+    const unsigned long plaintext = 1;
+    const unsigned long html      = 2;
+};
 
-[scriptable, uuid(e4e2a043-4b06-43a3-b52b-146e155d9ec5)]
+[scriptable, uuid(511887fc-4096-4981-be2b-aa0f7d30f97a)]
 interface nsIAbCard : nsISupports {
-	// Card properties
-	attribute wstring firstName;
-	attribute wstring lastName;
-	attribute wstring phoneticFirstName;
-	attribute wstring phoneticLastName;
-	attribute wstring displayName;
-	attribute wstring nickName;
-	attribute wstring primaryEmail;
-	attribute wstring secondEmail;
-	attribute wstring workPhone;
-	attribute wstring homePhone;
-	attribute wstring faxNumber;
-	attribute wstring pagerNumber;
-	attribute wstring cellularNumber;
-  attribute wstring workPhoneType;
-  attribute wstring homePhoneType;
-  attribute wstring faxNumberType;
-  attribute wstring pagerNumberType;
-  attribute wstring cellularNumberType;
-	attribute wstring homeAddress;
-	attribute wstring homeAddress2;
-	attribute wstring homeCity;
-	attribute wstring homeState;
-	attribute wstring homeZipCode;
-	attribute wstring homeCountry;
-	attribute wstring workAddress;
-	attribute wstring workAddress2;
-	attribute wstring workCity;
-	attribute wstring workState;
-	attribute wstring workZipCode;
-	attribute wstring workCountry;
-	attribute wstring jobTitle;
-	attribute wstring department;
-	attribute wstring company;
-  attribute wstring aimScreenName;
-  attribute wstring anniversaryYear;
-  attribute wstring anniversaryMonth;
-  attribute wstring anniversaryDay;
-  attribute wstring spouseName;
-  attribute wstring familyName;
-  attribute wstring defaultAddress;
-  attribute wstring category;
-	/**
-	 * webPage1 is work web page
-	 */
-	attribute wstring webPage1;
-	/**
-	 * webPage2 is home web page
-	 */
-	attribute wstring webPage2;
-	attribute wstring birthYear;
-	attribute wstring birthMonth;
-	attribute wstring birthDay;
-	attribute wstring custom1;
-	attribute wstring custom2;
-	attribute wstring custom3;
-	attribute wstring custom4;
-	attribute wstring notes;
-	attribute unsigned long lastModifiedDate;
-	attribute unsigned long popularityIndex; /* bumped every time e-mail is sent to this recipient */
-	attribute unsigned long preferMailFormat;
-	attribute boolean isMailList;
-	/**
-	 * If isMailList is true then mailListURI
-	 * will contain the URI of the associated
-	 * mail list
-	 */
-	attribute string mailListURI;
+  // Card properties
+  attribute AString firstName;
+  attribute AString lastName;
+  attribute AString phoneticFirstName;
+  attribute AString phoneticLastName;
+  attribute AString displayName;
+  attribute AString nickName;
+  attribute AString primaryEmail;
+  attribute AString secondEmail;
+  attribute AString workPhone;
+  attribute AString homePhone;
+  attribute AString faxNumber;
+  attribute AString pagerNumber;
+  attribute AString cellularNumber;
+  attribute AString workPhoneType;
+  attribute AString homePhoneType;
+  attribute AString faxNumberType;
+  attribute AString pagerNumberType;
+  attribute AString cellularNumberType;
+  attribute AString homeAddress;
+  attribute AString homeAddress2;
+  attribute AString homeCity;
+  attribute AString homeState;
+  attribute AString homeZipCode;
+  attribute AString homeCountry;
+  attribute AString workAddress;
+  attribute AString workAddress2;
+  attribute AString workCity;
+  attribute AString workState;
+  attribute AString workZipCode;
+  attribute AString workCountry;
+  attribute AString jobTitle;
+  attribute AString department;
+  attribute AString company;
+  attribute AString aimScreenName;
+  attribute AString anniversaryYear;
+  attribute AString anniversaryMonth;
+  attribute AString anniversaryDay;
+  attribute AString spouseName;
+  attribute AString familyName;
+  attribute AString defaultAddress;
+  attribute AString category;
   /**
-   * allowRemoteContent to be displayed in HTML mail received from this contact.
+   * webPage1 is work web page
+   */
+  attribute AString webPage1;
+  /**
+   * webPage2 is home web page
+   */
+  attribute AString webPage2;
+  attribute AString birthYear;
+  attribute AString birthMonth;
+  attribute AString birthDay;
+  attribute AString custom1;
+  attribute AString custom2;
+  attribute AString custom3;
+  attribute AString custom4;
+  attribute AString notes;
+  attribute unsigned long lastModifiedDate;
+  /**
+   * Popularity Index is bumped every time e-mail is sent to this recipient
+   */
+  attribute unsigned long popularityIndex;
+  attribute unsigned long preferMailFormat;
+  attribute boolean isMailList;
+  /**
+   * If isMailList is true then mailListURI
+   * will contain the URI of the associated
+   * mail list
+   */
+  attribute string mailListURI;
+  /**
+   * allowRemoteContent to be displayed in HTML mail received from this contact
    */
   attribute boolean allowRemoteContent;
 
-	wstring getCardValue(in string name);
+  AString getCardValue(in string name);
 
-	void setCardValue(in string attrname, in wstring value);
+  void setCardValue(in string attrname, in AString value);
 
   /**
    * This function will copy all values from one card to another.
@@ -129,10 +132,10 @@ interface nsIAbCard : nsISupports {
    * @param  srcCard  The source card to copy values from.
    */
   void copy(in nsIAbCard srcCard);
-	
-	boolean equals(in nsIAbCard card);
 
-	string convertToBase64EncodedXML();
-	wstring convertToXMLPrintData();
-	string convertToEscapedVCard();
+  boolean equals(in nsIAbCard card);
+
+  string convertToBase64EncodedXML();
+  AString convertToXMLPrintData();
+  string convertToEscapedVCard();
 };

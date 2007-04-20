@@ -882,16 +882,16 @@ nsresult nsAddrDatabase::AddRowToDeletedCardsTable(nsIAbCard *card, nsIMdbRow **
       mdb_err merror = m_mdbDeletedCardsTable->AddRow(m_mdbEnv, cardRow);
       if (merror != NS_OK) return NS_ERROR_FAILURE;
       nsXPIDLString unicodeStr;
-      card->GetFirstName(getter_Copies(unicodeStr));
+      card->GetFirstName(unicodeStr);
       AddFirstName(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
     
-      card->GetLastName(getter_Copies(unicodeStr));
+      card->GetLastName(unicodeStr);
       AddLastName(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
     
-      card->GetDisplayName(getter_Copies(unicodeStr));
+      card->GetDisplayName(unicodeStr);
       AddDisplayName(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
 
-      card->GetPrimaryEmail(getter_Copies(unicodeStr));
+      card->GetPrimaryEmail(unicodeStr);
       if (unicodeStr)
         AddUnicodeToColumn(cardRow, m_PriEmailColumnToken, m_LowerPriEmailColumnToken, unicodeStr);
 
@@ -1321,31 +1321,31 @@ nsresult nsAddrDatabase::AddAttributeColumnsToRow(nsIAbCard *card, nsIMdbRow *ca
   if (card && cardRow)
   {
     nsXPIDLString unicodeStr;
-    card->GetFirstName(getter_Copies(unicodeStr));
+    card->GetFirstName(unicodeStr);
     AddFirstName(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-    
-    card->GetLastName(getter_Copies(unicodeStr));
+
+    card->GetLastName(unicodeStr);
     AddLastName(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-    
-    card->GetPhoneticFirstName(getter_Copies(unicodeStr));
+
+    card->GetPhoneticFirstName(unicodeStr);
     AddPhoneticFirstName(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-    
-    card->GetPhoneticLastName(getter_Copies(unicodeStr));
+
+    card->GetPhoneticLastName(unicodeStr);
     AddPhoneticLastName(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-    
-    card->GetDisplayName(getter_Copies(unicodeStr));
+
+    card->GetDisplayName(unicodeStr);
     AddDisplayName(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-    
-    card->GetNickName(getter_Copies(unicodeStr));
+
+    card->GetNickName(unicodeStr);
     AddNickName(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-    
-    card->GetPrimaryEmail(getter_Copies(unicodeStr));
+
+    card->GetPrimaryEmail(unicodeStr);
     if (unicodeStr)
       AddUnicodeToColumn(cardRow, m_PriEmailColumnToken, m_LowerPriEmailColumnToken, unicodeStr);
 
-    card->GetSecondEmail(getter_Copies(unicodeStr));
+    card->GetSecondEmail(unicodeStr);
     Add2ndEmail(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-    
+
     PRUint32 format = nsIAbPreferMailFormat::unknown;
     card->GetPreferMailFormat(&format);
     AddPreferMailFormat(cardRow, format);
@@ -1357,142 +1357,142 @@ nsresult nsAddrDatabase::AddAttributeColumnsToRow(nsIAbCard *card, nsIMdbRow *ca
     PRBool allowRemoteContent = PR_FALSE;
     card->GetAllowRemoteContent(&allowRemoteContent);
     AddAllowRemoteContent(cardRow, allowRemoteContent);
-    
-    card->GetWorkPhone(getter_Copies(unicodeStr));
+
+    card->GetWorkPhone(unicodeStr);
     AddWorkPhone(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-    
-    card->GetHomePhone(getter_Copies(unicodeStr));
+
+    card->GetHomePhone(unicodeStr);
     AddHomePhone(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-    
-    card->GetFaxNumber(getter_Copies(unicodeStr));
+
+    card->GetFaxNumber(unicodeStr);
     AddFaxNumber(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-    
-    card->GetPagerNumber(getter_Copies(unicodeStr));
+
+    card->GetPagerNumber(unicodeStr);
     AddPagerNumber(cardRow,NS_ConvertUTF16toUTF8(unicodeStr).get());
-    
-    card->GetCellularNumber(getter_Copies(unicodeStr));
+
+    card->GetCellularNumber(unicodeStr);
     AddCellularNumber(cardRow,NS_ConvertUTF16toUTF8(unicodeStr).get());
-    
-    card->GetWorkPhoneType(getter_Copies(unicodeStr));
+
+    card->GetWorkPhoneType(unicodeStr);
     AddWorkPhoneType(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-    
-    card->GetHomePhoneType(getter_Copies(unicodeStr));
+
+    card->GetHomePhoneType(unicodeStr);
     AddHomePhoneType(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-    
-    card->GetFaxNumberType(getter_Copies(unicodeStr));
+
+    card->GetFaxNumberType(unicodeStr);
     AddFaxNumberType(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-    
-    card->GetPagerNumberType(getter_Copies(unicodeStr));
+
+    card->GetPagerNumberType(unicodeStr);
     AddPagerNumberType(cardRow,NS_ConvertUTF16toUTF8(unicodeStr).get());
-    
-    card->GetCellularNumberType(getter_Copies(unicodeStr));
+
+    card->GetCellularNumberType(unicodeStr);
     AddCellularNumberType(cardRow,NS_ConvertUTF16toUTF8(unicodeStr).get());
-    
-    card->GetHomeAddress(getter_Copies(unicodeStr));
+
+    card->GetHomeAddress(unicodeStr);
     AddHomeAddress(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-    
-    card->GetHomeAddress2(getter_Copies(unicodeStr)); 
+
+    card->GetHomeAddress2(unicodeStr);
     AddHomeAddress2(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-    
-    card->GetHomeCity(getter_Copies(unicodeStr)); 
+
+    card->GetHomeCity(unicodeStr);
     AddHomeCity(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-    
-    card->GetHomeState(getter_Copies(unicodeStr)); 
+
+    card->GetHomeState(unicodeStr);
     AddHomeState(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-    
-    card->GetHomeZipCode(getter_Copies(unicodeStr)); 
+
+    card->GetHomeZipCode(unicodeStr);
     AddHomeZipCode(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-    
-    card->GetHomeCountry(getter_Copies(unicodeStr)); 
+
+    card->GetHomeCountry(unicodeStr);
     AddHomeCountry(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-    
-    card->GetWorkAddress(getter_Copies(unicodeStr));  
+
+    card->GetWorkAddress(unicodeStr);
     AddWorkAddress(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-      
-    card->GetWorkAddress2(getter_Copies(unicodeStr)); 
+
+    card->GetWorkAddress2(unicodeStr);
     AddWorkAddress2(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-      
-    card->GetWorkCity(getter_Copies(unicodeStr)); 
+
+    card->GetWorkCity(unicodeStr);
     AddWorkCity(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-      
-    card->GetWorkState(getter_Copies(unicodeStr)); 
+
+    card->GetWorkState(unicodeStr);
     AddWorkState(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-     
-    card->GetWorkZipCode(getter_Copies(unicodeStr)); 
+
+    card->GetWorkZipCode(unicodeStr);
     AddWorkZipCode(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-     
-    card->GetWorkCountry(getter_Copies(unicodeStr)); 
+
+    card->GetWorkCountry(unicodeStr);
     AddWorkCountry(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-      
-    card->GetJobTitle(getter_Copies(unicodeStr)); 
+
+    card->GetJobTitle(unicodeStr);
     AddJobTitle(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-      
-    card->GetDepartment(getter_Copies(unicodeStr)); 
+
+    card->GetDepartment(unicodeStr);
     AddDepartment(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-      
-    card->GetCompany(getter_Copies(unicodeStr)); 
+
+    card->GetCompany(unicodeStr);
     AddCompany(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-     
+
     // AimScreenName
-    card->GetAimScreenName(getter_Copies(unicodeStr)); 
+    card->GetAimScreenName(unicodeStr);
     AddAimScreenName(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-     
-    card->GetAnniversaryYear(getter_Copies(unicodeStr)); 
+
+    card->GetAnniversaryYear(unicodeStr);
     AddAnniversaryYear(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-  
-    card->GetAnniversaryMonth(getter_Copies(unicodeStr)); 
+
+    card->GetAnniversaryMonth(unicodeStr);
     AddAnniversaryMonth(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-  
-    card->GetAnniversaryDay(getter_Copies(unicodeStr)); 
+
+    card->GetAnniversaryDay(unicodeStr);
     AddAnniversaryDay(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
 
-    card->GetSpouseName(getter_Copies(unicodeStr)); 
+    card->GetSpouseName(unicodeStr);
     AddSpouseName(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
 
-    card->GetFamilyName(getter_Copies(unicodeStr)); 
+    card->GetFamilyName(unicodeStr);
     AddFamilyName(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
 
-    card->GetDefaultAddress(getter_Copies(unicodeStr)); 
+    card->GetDefaultAddress(unicodeStr);
     AddDefaultAddress(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
 
-    card->GetCategory(getter_Copies(unicodeStr)); 
+    card->GetCategory(unicodeStr);
     AddCategory(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
 
-    card->GetWebPage1(getter_Copies(unicodeStr)); 
+    card->GetWebPage1(unicodeStr);
     AddWebPage1(cardRow,NS_ConvertUTF16toUTF8(unicodeStr).get());
-     
-    card->GetWebPage2(getter_Copies(unicodeStr)); 
+
+    card->GetWebPage2(unicodeStr);
     AddWebPage2(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-     
-    card->GetBirthYear(getter_Copies(unicodeStr)); 
+
+    card->GetBirthYear(unicodeStr);
     AddBirthYear(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-      
-    card->GetBirthMonth(getter_Copies(unicodeStr)); 
+
+    card->GetBirthMonth(unicodeStr);
     AddBirthMonth(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-      
-    card->GetBirthDay(getter_Copies(unicodeStr)); 
+
+    card->GetBirthDay(unicodeStr);
     AddBirthDay(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-      
-    card->GetCustom1(getter_Copies(unicodeStr)); 
+
+    card->GetCustom1(unicodeStr);
     AddCustom1(cardRow,NS_ConvertUTF16toUTF8(unicodeStr).get());
-     
-    card->GetCustom2(getter_Copies(unicodeStr)); 
+
+    card->GetCustom2(unicodeStr);
     AddCustom2(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-      
-    card->GetCustom3(getter_Copies(unicodeStr)); 
+
+    card->GetCustom3(unicodeStr);
     AddCustom3(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-      
-    card->GetCustom4(getter_Copies(unicodeStr)); 
+
+    card->GetCustom4(unicodeStr);
     AddCustom4(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-    
-    card->GetNotes(getter_Copies(unicodeStr)); 
+
+    card->GetNotes(unicodeStr);
     AddNotes(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-      
+
     PRUint32 lastModDate = 0;
     card->GetLastModifiedDate(&lastModDate);
     AddIntColumn(cardRow, m_LastModDateColumnToken, lastModDate);
-      
   }
+
   return NS_OK;
 }
 
@@ -1555,8 +1555,8 @@ NS_IMETHODIMP nsAddrDatabase::CreateNewListCardAndAddToDB(nsIAbDirectory *aList,
   PRUint32 count;
     addressList->Count(&count);
 
-  nsXPIDLString newEmail;
-  rv = newCard->GetPrimaryEmail(getter_Copies(newEmail));
+  nsAutoString newEmail;
+  rv = newCard->GetPrimaryEmail(newEmail);
   NS_ENSURE_SUCCESS(rv,rv);
 
     PRUint32 i;
@@ -1574,11 +1574,11 @@ NS_IMETHODIMP nsAddrDatabase::CreateNewListCardAndAddToDB(nsIAbDirectory *aList,
       return NS_OK;
     }
 
-    nsXPIDLString currentEmail;
-    rv = currentCard->GetPrimaryEmail(getter_Copies(currentEmail));
+    nsAutoString currentEmail;
+    rv = currentCard->GetPrimaryEmail(currentEmail);
     NS_ENSURE_SUCCESS(rv,rv);
 
-    if (!nsCRT::strcmp(newEmail.get(), currentEmail.get())) {
+    if (newEmail.Equals(currentEmail)) {
       // card is already in list, bail out
       // this can happen when dropping a card on a mailing list from another directory (not the one that contains the mailing list
       // or if you have multiple cards on a directory, with the same primary email address.
@@ -1609,7 +1609,7 @@ NS_IMETHODIMP nsAddrDatabase::AddListCardColumnsToRow
   
   nsresult    err = NS_OK;
   nsXPIDLString email;
-  pCard->GetPrimaryEmail(getter_Copies(email));
+  pCard->GetPrimaryEmail(email);
   if (email)
   {
     nsIMdbRow    *pCardRow = nsnull;
@@ -1637,7 +1637,7 @@ NS_IMETHODIMP nsAddrDatabase::AddListCardColumnsToRow
     NS_ENSURE_TRUE(pCardRow, NS_ERROR_NULL_POINTER);
     
     nsXPIDLString name;
-    pCard->GetDisplayName(getter_Copies(name));
+    pCard->GetDisplayName(name);
     if (!name.IsEmpty()) {
       AddDisplayName(pCardRow, NS_ConvertUTF16toUTF8(name).get());
       err = m_mdbPabTable->AddRow(m_mdbEnv, pCardRow);
@@ -1714,7 +1714,7 @@ nsresult nsAddrDatabase::AddListAttributeColumnsToRow(nsIAbDirectory *list, nsIM
         PRUint32 count;
         pAddressLists->Count(&count);
 
-      nsXPIDLString email;
+        nsAutoString email;
         PRUint32 i, total;
         total = 0;
         for (i = 0; i < count; i++)
@@ -1724,9 +1724,8 @@ nsresult nsAddrDatabase::AddListAttributeColumnsToRow(nsIAbDirectory *list, nsIM
             if (NS_FAILED(err))
                 continue;
 
-            pCard->GetPrimaryEmail(getter_Copies(email));
-            PRInt32 emailLength = nsCRT::strlen(email);
-            if (email && emailLength)
+            pCard->GetPrimaryEmail(email);
+            if (!email.IsEmpty())
                 total++;
         }
         SetListAddressTotal(listRow, total);
@@ -1735,7 +1734,7 @@ nsresult nsAddrDatabase::AddListAttributeColumnsToRow(nsIAbDirectory *list, nsIM
         for (i = 0; i < count; i++)
         {
             nsCOMPtr<nsIAbCard> pCard(do_QueryElementAt(pAddressLists, i, &err));
-            
+
             if (NS_FAILED(err))
                 continue;
 
@@ -1744,9 +1743,8 @@ nsresult nsAddrDatabase::AddListAttributeColumnsToRow(nsIAbDirectory *list, nsIM
 
             // start from 1
             pos = i + 1;
-            pCard->GetPrimaryEmail(getter_Copies(email));
-            PRInt32 emailLength = nsCRT::strlen(email);
-            if (email && emailLength)
+            pCard->GetPrimaryEmail(email);
+            if (!email.IsEmpty())
             {
                 nsCOMPtr<nsIAbCard> pNewCard;
                 err = AddListCardColumnsToRow(pCard, listRow, pos, getter_AddRefs(pNewCard), listHasCard);
@@ -1773,7 +1771,7 @@ NS_IMETHODIMP nsAddrDatabase::SetListAddressTotal(nsIMdbRow* aListRow, PRUint32 
 NS_IMETHODIMP nsAddrDatabase::FindRowByCard(nsIAbCard * aCard,nsIMdbRow **aRow)
 {
     nsXPIDLString primaryEmail;
-    aCard->GetPrimaryEmail(getter_Copies(primaryEmail));
+    aCard->GetPrimaryEmail(primaryEmail);
     return GetRowForCharColumn(primaryEmail, m_PriEmailColumnToken, PR_TRUE, aRow);
 }
 
@@ -2626,49 +2624,49 @@ NS_IMETHODIMP nsAddrDatabase::InitCardFromRow(nsIAbCard *newCard, nsIMdbRow* car
     err = GetStringColumn(cardRow, m_FirstNameColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetFirstName(tempString.get());
+        newCard->SetFirstName(tempString);
     }
 
     err = GetStringColumn(cardRow, m_LastNameColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetLastName(tempString.get());
+        newCard->SetLastName(tempString);
     }
 
     err = GetStringColumn(cardRow, m_PhoneticFirstNameColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetPhoneticFirstName(tempString.get());
+        newCard->SetPhoneticFirstName(tempString);
     }
 
     err = GetStringColumn(cardRow, m_PhoneticLastNameColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetPhoneticLastName(tempString.get());
+        newCard->SetPhoneticLastName(tempString);
     }
 
     err = GetStringColumn(cardRow, m_DisplayNameColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetDisplayName(tempString.get());
+        newCard->SetDisplayName(tempString);
     }
 
     err = GetStringColumn(cardRow, m_NickNameColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetNickName(tempString.get());
+        newCard->SetNickName(tempString);
     }
 
     err = GetStringColumn(cardRow, m_PriEmailColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetPrimaryEmail(tempString.get());
+        newCard->SetPrimaryEmail(tempString);
     }
 
     err = GetStringColumn(cardRow, m_2ndEmailColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetSecondEmail(tempString.get());
+        newCard->SetSecondEmail(tempString);
     }
 
     PRUint32 format = nsIAbPreferMailFormat::unknown;
@@ -2689,234 +2687,234 @@ NS_IMETHODIMP nsAddrDatabase::InitCardFromRow(nsIAbCard *newCard, nsIMdbRow* car
     err = GetStringColumn(cardRow, m_WorkPhoneColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetWorkPhone(tempString.get());
+        newCard->SetWorkPhone(tempString);
     }
 
     err = GetStringColumn(cardRow, m_HomePhoneColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetHomePhone(tempString.get());
+        newCard->SetHomePhone(tempString);
     }
 
     err = GetStringColumn(cardRow, m_FaxColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetFaxNumber(tempString.get());
+        newCard->SetFaxNumber(tempString);
     }
 
     err = GetStringColumn(cardRow, m_PagerColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetPagerNumber(tempString.get());
+        newCard->SetPagerNumber(tempString);
     }
 
     err = GetStringColumn(cardRow, m_CellularColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetCellularNumber(tempString.get());
+        newCard->SetCellularNumber(tempString);
     }
 
     err = GetStringColumn(cardRow, m_WorkPhoneTypeColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-        newCard->SetWorkPhoneType(tempString.get());
+        newCard->SetWorkPhoneType(tempString);
 
     err = GetStringColumn(cardRow, m_HomePhoneTypeColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-        newCard->SetHomePhoneType(tempString.get());
+        newCard->SetHomePhoneType(tempString);
 
     err = GetStringColumn(cardRow, m_FaxTypeColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-        newCard->SetFaxNumberType(tempString.get());
+        newCard->SetFaxNumberType(tempString);
 
     err = GetStringColumn(cardRow, m_PagerTypeColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-        newCard->SetPagerNumberType(tempString.get());
+        newCard->SetPagerNumberType(tempString);
 
     err = GetStringColumn(cardRow, m_CellularTypeColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-        newCard->SetCellularNumberType(tempString.get());
+        newCard->SetCellularNumberType(tempString);
 
     err = GetStringColumn(cardRow, m_HomeAddressColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetHomeAddress(tempString.get());
+        newCard->SetHomeAddress(tempString);
     }
 
     err = GetStringColumn(cardRow, m_HomeAddress2ColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetHomeAddress2(tempString.get());
+        newCard->SetHomeAddress2(tempString);
     }
 
     err = GetStringColumn(cardRow, m_HomeCityColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetHomeCity(tempString.get());
+        newCard->SetHomeCity(tempString);
     }
 
     err = GetStringColumn(cardRow, m_HomeStateColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetHomeState(tempString.get());
+        newCard->SetHomeState(tempString);
     }
 
     err = GetStringColumn(cardRow, m_HomeZipCodeColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetHomeZipCode(tempString.get());
+        newCard->SetHomeZipCode(tempString);
     }
 
     err = GetStringColumn(cardRow, m_HomeCountryColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetHomeCountry(tempString.get());
+        newCard->SetHomeCountry(tempString);
     }
 
     err = GetStringColumn(cardRow, m_WorkAddressColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetWorkAddress(tempString.get());
+        newCard->SetWorkAddress(tempString);
     }
 
     err = GetStringColumn(cardRow, m_WorkAddress2ColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetWorkAddress2(tempString.get());
+        newCard->SetWorkAddress2(tempString);
     }
 
     err = GetStringColumn(cardRow, m_WorkCityColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetWorkCity(tempString.get());
+        newCard->SetWorkCity(tempString);
     }
 
     err = GetStringColumn(cardRow, m_WorkStateColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetWorkState(tempString.get());
+        newCard->SetWorkState(tempString);
     }
 
     err = GetStringColumn(cardRow, m_WorkZipCodeColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetWorkZipCode(tempString.get());
+        newCard->SetWorkZipCode(tempString);
     }
 
     err = GetStringColumn(cardRow, m_WorkCountryColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetWorkCountry(tempString.get());
+        newCard->SetWorkCountry(tempString);
     }
 
     err = GetStringColumn(cardRow, m_JobTitleColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetJobTitle(tempString.get());
+        newCard->SetJobTitle(tempString);
     }
 
     err = GetStringColumn(cardRow, m_DepartmentColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetDepartment(tempString.get());
+        newCard->SetDepartment(tempString);
     }
 
     err = GetStringColumn(cardRow, m_CompanyColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetCompany(tempString.get());
+        newCard->SetCompany(tempString);
     }
 
     // AimScreenName
     err = GetStringColumn(cardRow, m_AimScreenNameColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-        newCard->SetAimScreenName(tempString.get());
+        newCard->SetAimScreenName(tempString);
 
     err = GetStringColumn(cardRow, m_AnniversaryYearColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-        newCard->SetAnniversaryYear(tempString.get());
+        newCard->SetAnniversaryYear(tempString);
 
     err = GetStringColumn(cardRow, m_AnniversaryMonthColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-        newCard->SetAnniversaryMonth(tempString.get());
+        newCard->SetAnniversaryMonth(tempString);
 
     err = GetStringColumn(cardRow, m_AnniversaryDayColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-        newCard->SetAnniversaryDay(tempString.get());
+        newCard->SetAnniversaryDay(tempString);
 
     err = GetStringColumn(cardRow, m_SpouseNameColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-        newCard->SetSpouseName(tempString.get());
+        newCard->SetSpouseName(tempString);
 
     err = GetStringColumn(cardRow, m_FamilyNameColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-        newCard->SetFamilyName(tempString.get());
+        newCard->SetFamilyName(tempString);
 
     err = GetStringColumn(cardRow, m_DefaultAddressColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-        newCard->SetDefaultAddress(tempString.get());
+        newCard->SetDefaultAddress(tempString);
 
     err = GetStringColumn(cardRow, m_CategoryColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-        newCard->SetCategory(tempString.get());
+        newCard->SetCategory(tempString);
 
     err = GetStringColumn(cardRow, m_WebPage1ColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetWebPage1(tempString.get());
+        newCard->SetWebPage1(tempString);
     }
 
     err = GetStringColumn(cardRow, m_WebPage2ColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetWebPage2(tempString.get());
+        newCard->SetWebPage2(tempString);
     }
 
     err = GetStringColumn(cardRow, m_BirthYearColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetBirthYear(tempString.get());
+        newCard->SetBirthYear(tempString);
     }
 
     err = GetStringColumn(cardRow, m_BirthMonthColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetBirthMonth(tempString.get());
+        newCard->SetBirthMonth(tempString);
     }
 
     err = GetStringColumn(cardRow, m_BirthDayColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetBirthDay(tempString.get());
+        newCard->SetBirthDay(tempString);
     }
 
     err = GetStringColumn(cardRow, m_Custom1ColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetCustom1(tempString.get());
+        newCard->SetCustom1(tempString);
     }
 
     err = GetStringColumn(cardRow, m_Custom2ColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetCustom2(tempString.get());
+        newCard->SetCustom2(tempString);
     }
 
     err = GetStringColumn(cardRow, m_Custom3ColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetCustom3(tempString.get());
+        newCard->SetCustom3(tempString);
     }
 
     err = GetStringColumn(cardRow, m_Custom4ColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetCustom4(tempString.get());
+        newCard->SetCustom4(tempString);
     }
 
     err = GetStringColumn(cardRow, m_NotesColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        newCard->SetNotes(tempString.get());
+        newCard->SetNotes(tempString);
     }
     PRUint32 lastModDate = 0;
     err = GetIntColumn(cardRow, m_LastModDateColumnToken, &lastModDate, 0);
@@ -2946,18 +2944,18 @@ nsresult nsAddrDatabase::GetListCardFromDB(nsIAbCard *listCard, nsIMdbRow* listR
     err = GetStringColumn(listRow, m_ListNameColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        listCard->SetDisplayName(tempString.get());
-        listCard->SetLastName(tempString.get());
+        listCard->SetDisplayName(tempString);
+        listCard->SetLastName(tempString);
     }
     err = GetStringColumn(listRow, m_ListNickNameColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        listCard->SetNickName(tempString.get());
+        listCard->SetNickName(tempString);
     }
     err = GetStringColumn(listRow, m_ListDescriptionColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        listCard->SetNotes(tempString.get());
+        listCard->SetNotes(tempString);
     }
     PRUint32 key = 0;
     err = GetIntColumn(listRow, m_RecordKeyColumnToken, &key, 0);

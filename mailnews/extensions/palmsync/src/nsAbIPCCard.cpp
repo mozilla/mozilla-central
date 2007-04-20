@@ -137,102 +137,102 @@ nsresult nsAbIPCCard::Copy(nsABCOMCardStruct * srcCard)
     // moz only displays fields in a single line).
     nsAutoString str;
     CONVERT_CRLF_TO_SPACE(str, srcCard->firstName);
-    SetFirstName(str.get());
+    SetFirstName(str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->lastName);
-    SetLastName(str.get());
+    SetLastName(str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->displayName);
-    SetDisplayName(str.get());
+    SetDisplayName(str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->nickName);
-    SetNickName(str.get());
+    SetNickName(str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->primaryEmail);
-    SetPrimaryEmail(str.get());
+    SetPrimaryEmail(str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->secondEmail);
-    SetSecondEmail(str.get());
+    SetSecondEmail(str);
 
     SetPreferMailFormat(srcCard->preferMailFormat);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->workPhone);
-    SetWorkPhone(str.get());
+    SetWorkPhone(str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->homePhone);
-    SetHomePhone(str.get());
+    SetHomePhone(str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->faxNumber);
-    SetFaxNumber(str.get());
+    SetFaxNumber(str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->pagerNumber);
-    SetPagerNumber(str.get());
+    SetPagerNumber(str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->cellularNumber);
-    SetCellularNumber(str.get());
+    SetCellularNumber(str);
 
     // See if home address contains multiple lines.
     SplitHomeAndWorkAddresses(srcCard, PR_TRUE);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->homeCity);
-    SetHomeCity(str.get());
+    SetHomeCity(str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->homeState);
-    SetHomeState(str.get());
+    SetHomeState(str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->homeZipCode);
-    SetHomeZipCode(str.get());
+    SetHomeZipCode(str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->homeCountry);
-    SetHomeCountry(str.get());
+    SetHomeCountry(str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->workCity);
-    SetWorkCity(str.get());
+    SetWorkCity(str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->workState);
-    SetWorkState(str.get());
+    SetWorkState(str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->workZipCode);
-    SetWorkZipCode(str.get());
+    SetWorkZipCode(str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->workCountry);
-    SetWorkCountry(str.get());
+    SetWorkCountry(str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->jobTitle);
-    SetJobTitle(str.get());
+    SetJobTitle(str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->department);
-    SetDepartment(str.get());
+    SetDepartment(str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->company);
-    SetCompany(str.get());
+    SetCompany(str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->webPage1);
-    SetWebPage1(str.get());
+    SetWebPage1(str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->webPage2);
-    SetWebPage2(str.get());
+    SetWebPage2(str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->birthYear);
-    SetBirthYear(str.get());
+    SetBirthYear(str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->birthMonth);
-    SetBirthMonth(str.get());
+    SetBirthMonth(str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->birthDay);
-    SetBirthDay(str.get());
+    SetBirthDay(str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->custom1);
-    SetCustom1(str.get());
+    SetCustom1(str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->custom2);
-    SetCustom2(str.get());
+    SetCustom2(str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->custom3);
-    SetCustom3(str.get());
+    SetCustom3(str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->custom4);
-    SetCustom4(str.get());
+    SetCustom4(str);
 
     SetNotes(srcCard->notes);
     SetLastModifiedDate(srcCard->lastModifiedDate);
@@ -256,105 +256,105 @@ nsresult nsAbIPCCard::ConvertToUnicodeAndCopy(nsABCOMCardStruct * srcCard)
     // so replace CRLFs with spaces (since other than Notes field
     // moz only displays fields in a single line).
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->firstName, PR_TRUE);
-    SetFirstName(str.get());
+    SetFirstName(str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->lastName, PR_TRUE);
-    SetLastName(str.get());
+    SetLastName(str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->displayName, PR_TRUE);
-    SetDisplayName(str.get());
+    SetDisplayName(str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->nickName, PR_TRUE);
-    SetNickName(str.get());
+    SetNickName(str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->primaryEmail, PR_TRUE);
-    SetPrimaryEmail(str.get());
+    SetPrimaryEmail(str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->secondEmail, PR_TRUE);
-    SetSecondEmail(str.get());
+    SetSecondEmail(str);
 
     SetPreferMailFormat(srcCard->preferMailFormat);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->workPhone, PR_TRUE);
-    SetWorkPhone(str.get());
+    SetWorkPhone(str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->homePhone, PR_TRUE);
-    SetHomePhone(str.get());
+    SetHomePhone(str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->faxNumber, PR_TRUE);
-    SetFaxNumber(str.get());
+    SetFaxNumber(str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->pagerNumber, PR_TRUE);
-    SetPagerNumber(str.get());
+    SetPagerNumber(str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->cellularNumber, PR_TRUE);
-    SetCellularNumber(str.get());
+    SetCellularNumber(str);
 
     // See if home address contains multiple lines.
     SplitHomeAndWorkAddresses(srcCard, PR_FALSE);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->homeCity, PR_TRUE);
-    SetHomeCity(str.get());
+    SetHomeCity(str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->homeState, PR_TRUE);
-    SetHomeState(str.get());
+    SetHomeState(str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->homeZipCode, PR_TRUE);
-    SetHomeZipCode(str.get());
+    SetHomeZipCode(str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->homeCountry, PR_TRUE);
-    SetHomeCountry(str.get());
+    SetHomeCountry(str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->workCity, PR_TRUE);
-    SetWorkCity(str.get());
+    SetWorkCity(str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->workState, PR_TRUE);
-    SetWorkState(str.get());
+    SetWorkState(str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->workZipCode, PR_TRUE);
-    SetWorkZipCode(str.get());
+    SetWorkZipCode(str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->workCountry, PR_TRUE);
-    SetWorkCountry(str.get());
+    SetWorkCountry(str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->jobTitle, PR_TRUE);
-    SetJobTitle(str.get());
+    SetJobTitle(str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->department, PR_TRUE);
-    SetDepartment(str.get());
+    SetDepartment(str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->company, PR_TRUE);
-    SetCompany(str.get());
+    SetCompany(str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->webPage1, PR_TRUE);
-    SetWebPage1(str.get());
+    SetWebPage1(str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->webPage2, PR_TRUE);
-    SetWebPage2(str.get());
+    SetWebPage2(str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->birthYear, PR_TRUE);
-    SetBirthYear(str.get());
+    SetBirthYear(str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->birthMonth, PR_TRUE);
-    SetBirthMonth(str.get());
+    SetBirthMonth(str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->birthDay, PR_TRUE);
-    SetBirthDay(str.get());
+    SetBirthDay(str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->custom1, PR_TRUE);
-    SetCustom1(str.get());
+    SetCustom1(str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->custom2, PR_TRUE);
-    SetCustom2(str.get());
+    SetCustom2(str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->custom3, PR_TRUE);
-    SetCustom3(str.get());
+    SetCustom3(str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->custom4, PR_TRUE);
-    SetCustom4(str.get());
+    SetCustom4(str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->notes, PR_FALSE);
-    SetNotes(str.get());
+    SetNotes(str);
 
     SetLastModifiedDate(srcCard->lastModifiedDate);
     SetIsMailList(srcCard->isMailList);
@@ -385,22 +385,23 @@ void nsAbIPCCard::SplitAddresses(PRBool isUnicode, LPTSTR homeAddress, LPTSTR wo
     homeAddressStr.Right( addr2, homeAddressStr.Length() - idx - 2);  // need to minus string lenght of CRLF.
     addr2.ReplaceSubstring(NS_LITERAL_STRING("\x0D\x0A").get(),NS_LITERAL_STRING(", ").get());
 
-    SetHomeAddress(addr1.get());
-    SetHomeAddress2(addr2.get());
+    SetHomeAddress(addr1);
+    SetHomeAddress2(addr2);
   }
   else
-    SetHomeAddress(homeAddressStr.get());
+    SetHomeAddress(homeAddressStr);
+
   if ((idx = workAddressStr.Find( "\x0D\x0A")) != kNotFound)
   {
     workAddressStr.Left(addr1, idx);
     workAddressStr.Right( addr2, workAddressStr.Length() - idx - 2);  // need to minus string lenght of CRLF.
     addr2.ReplaceSubstring(NS_LITERAL_STRING("\x0D\x0A").get(),NS_LITERAL_STRING(", ").get());
 
-    SetWorkAddress(addr1.get());
-    SetWorkAddress2(addr2.get());
+    SetWorkAddress(addr1);
+    SetWorkAddress2(addr2);
   }
   else
-    SetWorkAddress(workAddressStr.get());
+    SetWorkAddress(workAddressStr);
 }
 
 void nsAbIPCCard::SplitHomeAndWorkAddresses(nsABCOMCardStruct * card, PRBool isUnicode)
@@ -573,144 +574,144 @@ NS_IMETHODIMP nsAbIPCCard::Equals(nsIAbCard *card, PRBool *_retval)
     nsXPIDLString str;
     *_retval = PR_FALSE;
 
-    card->GetFirstName(getter_Copies(str));
+    card->GetFirstName(str);
     if (Compare(str, m_FirstName, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
-    card->GetLastName(getter_Copies(str));
+    card->GetLastName(str);
     if (Compare(str, m_LastName, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
-    card->GetDisplayName(getter_Copies(str));
+    card->GetDisplayName(str);
     if (Compare(str, m_DisplayName, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
-    card->GetNickName(getter_Copies(str));
+    card->GetNickName(str);
     if (Compare(str, m_NickName, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
-    card->GetPrimaryEmail(getter_Copies(str));
+    card->GetPrimaryEmail(str);
     if (Compare(str, m_PrimaryEmail, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
-    card->GetSecondEmail(getter_Copies(str));
+    card->GetSecondEmail(str);
     if (Compare(str, m_SecondEmail, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
-    card->GetWorkPhone(getter_Copies(str));
+    card->GetWorkPhone(str);
     if (Compare(str, m_WorkPhone, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
-    card->GetHomePhone(getter_Copies(str));
+    card->GetHomePhone(str);
     if (Compare(str, m_HomePhone, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
-    card->GetFaxNumber(getter_Copies(str));
+    card->GetFaxNumber(str);
     if (Compare(str, m_FaxNumber, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
-    card->GetPagerNumber(getter_Copies(str));
+    card->GetPagerNumber(str);
     if (Compare(str, m_PagerNumber, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
-    card->GetCellularNumber(getter_Copies(str));
+    card->GetCellularNumber(str);
     if (Compare(str, m_CellularNumber, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
-    card->GetHomeAddress(getter_Copies(str));
+    card->GetHomeAddress(str);
     if (Compare(str, m_HomeAddress, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
-    card->GetHomeAddress2(getter_Copies(str));
+    card->GetHomeAddress2(str);
     if (Compare(str, m_HomeAddress2, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
-    card->GetHomeCity(getter_Copies(str));
+    card->GetHomeCity(str);
     if (Compare(str, m_HomeCity, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
-    card->GetHomeState(getter_Copies(str));
+    card->GetHomeState(str);
     if (Compare(str, m_HomeState, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
-    card->GetHomeZipCode(getter_Copies(str));
+    card->GetHomeZipCode(str);
     if (Compare(str, m_HomeZipCode, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
-    card->GetHomeCountry(getter_Copies(str));
+    card->GetHomeCountry(str);
     if (Compare(str, m_HomeCountry, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
     // both card and this have their addresses split, which is correct
-    card->GetWorkAddress(getter_Copies(str));
+    card->GetWorkAddress(str);
     if (Compare(str, m_WorkAddress, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
-    card->GetWorkAddress2(getter_Copies(str));
+    card->GetWorkAddress2(str);
     if (Compare(str, m_WorkAddress2, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
-    card->GetWorkCity(getter_Copies(str));
+    card->GetWorkCity(str);
     if (Compare(str, m_WorkCity, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
-    card->GetWorkState(getter_Copies(str));
+    card->GetWorkState(str);
     if (Compare(str, m_WorkState, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
-    card->GetWorkZipCode(getter_Copies(str));
+    card->GetWorkZipCode(str);
     if (Compare(str, m_WorkZipCode, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
-    card->GetWorkCountry(getter_Copies(str));
+    card->GetWorkCountry(str);
     if (Compare(str, m_WorkCountry, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
-    card->GetJobTitle(getter_Copies(str));
+    card->GetJobTitle(str);
     if (Compare(str, m_JobTitle, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
-    card->GetDepartment(getter_Copies(str));
+    card->GetDepartment(str);
     if (Compare(str, m_Department, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
-    card->GetCompany(getter_Copies(str));
+    card->GetCompany(str);
     if (Compare(str, m_Company, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
-    card->GetWebPage1(getter_Copies(str));
+    card->GetWebPage1(str);
     if (Compare(str, m_WebPage1, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
-    card->GetWebPage2(getter_Copies(str));
+    card->GetWebPage2(str);
     if (Compare(str, m_WebPage2, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
-    card->GetBirthYear(getter_Copies(str));
+    card->GetBirthYear(str);
     if (Compare(str, m_BirthYear, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
-    card->GetBirthMonth(getter_Copies(str));
+    card->GetBirthMonth(str);
     if (Compare(str, m_BirthMonth, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
-    card->GetBirthDay(getter_Copies(str));
+    card->GetBirthDay(str);
     if (Compare(str, m_BirthDay, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
-    card->GetCustom1(getter_Copies(str));
+    card->GetCustom1(str);
     if (Compare(str, m_Custom1, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
-    card->GetCustom2(getter_Copies(str));
+    card->GetCustom2(str);
     if (Compare(str, m_Custom2, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
-    card->GetCustom3(getter_Copies(str));
+    card->GetCustom3(str);
     if (Compare(str, m_Custom3, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
-    card->GetCustom4(getter_Copies(str));
+    card->GetCustom4(str);
     if (Compare(str, m_Custom4, nsCaseInsensitiveStringComparator()))
         return NS_OK;
 
@@ -788,16 +789,16 @@ PRBool nsAbIPCCard::Same(nsIAbCard *card)
     }
 
     nsXPIDLString str;
-    card->GetFirstName(getter_Copies(str));
+    card->GetFirstName(str);
     if (Compare(str, m_FirstName, nsCaseInsensitiveStringComparator()))
         return PR_FALSE;
-    card->GetLastName(getter_Copies(str));
+    card->GetLastName(str);
     if (Compare(str, m_LastName, nsCaseInsensitiveStringComparator()))
         return PR_FALSE;
-    card->GetDisplayName(getter_Copies(str));
+    card->GetDisplayName(str);
     if (Compare(str, m_DisplayName, nsCaseInsensitiveStringComparator()))
         return PR_FALSE;
-    card->GetNickName(getter_Copies(str));
+    card->GetNickName(str);
     if (Compare(str, m_NickName, nsCaseInsensitiveStringComparator()))
         return PR_FALSE;
 

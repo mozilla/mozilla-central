@@ -4405,8 +4405,8 @@ NS_IMETHODIMP nsMsgCompose::CheckAndPopulateRecipients(PRBool populateMailList, 
                     if (NS_FAILED(rv))
                       return rv;
 
-                    nsXPIDLString pDisplayName;
-                    nsXPIDLString pEmail;
+                    nsAutoString pDisplayName;
+                    nsAutoString pEmail;
                     nsAutoString fullNameStr;
 
                     PRBool bIsMailList;
@@ -4414,14 +4414,14 @@ NS_IMETHODIMP nsMsgCompose::CheckAndPopulateRecipients(PRBool populateMailList, 
                     if (NS_FAILED(rv))
                       return rv;
 
-                    rv = existingCard->GetDisplayName(getter_Copies(pDisplayName));
+                    rv = existingCard->GetDisplayName(pDisplayName);
                     if (NS_FAILED(rv))
                       return rv;
 
                     if (bIsMailList)
-                      rv = existingCard->GetNotes(getter_Copies(pEmail));
+                      rv = existingCard->GetNotes(pEmail);
                     else
-                      rv = existingCard->GetPrimaryEmail(getter_Copies(pEmail));
+                      rv = existingCard->GetPrimaryEmail(pEmail);
                     if (NS_FAILED(rv))
                       return rv;
 
@@ -4444,7 +4444,7 @@ NS_IMETHODIMP nsMsgCompose::CheckAndPopulateRecipients(PRBool populateMailList, 
                       fullNameStr.AppendLiteral(" <");
                       if (bIsMailList)
                       {
-                        if (pEmail && pEmail[0] != 0)
+                        if (!pEmail.IsEmpty())
                           fullNameStr += pEmail;
                         else
                           fullNameStr += pDisplayName;

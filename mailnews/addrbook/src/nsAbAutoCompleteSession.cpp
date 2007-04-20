@@ -372,7 +372,7 @@ nsresult nsAbAutoCompleteSession::SearchCards(nsIAbDirectory* directory, nsAbAut
             continue;
           if (bIsMailList)
           {
-            rv = card->GetNotes(getter_Copies(pNotesStr));
+            rv = card->GetNotes(pNotesStr);
             if (NS_FAILED(rv))
               continue;
           }
@@ -382,9 +382,14 @@ nsresult nsAbAutoCompleteSession::SearchCards(nsIAbDirectory* directory, nsAbAut
             {
               switch (i)
               {
-                case 0: rv = card->GetPrimaryEmail(getter_Copies(pEmailStr[i]));  break;
-                case 1: rv = card->GetSecondEmail(getter_Copies(pEmailStr[i]));   break;
-                default: return NS_ERROR_FAILURE;
+                case 0:
+                  rv = card->GetPrimaryEmail(pEmailStr[i]);
+                  break;
+                case 1:
+                  rv = card->GetSecondEmail(pEmailStr[i]);
+                  break;
+                default:
+                  return NS_ERROR_FAILURE;
               }
               if (NS_FAILED(rv))
                 continue;
@@ -400,18 +405,18 @@ nsresult nsAbAutoCompleteSession::SearchCards(nsIAbDirectory* directory, nsAbAut
             if (pEmailStr[0].IsEmpty() && pEmailStr[1].IsEmpty())
               continue;
           }
-            
-            //Now, retrieve the user name and nickname
-          rv = card->GetDisplayName(getter_Copies(pDisplayNameStr));
+
+          // Now, retrieve the user name and nickname
+          rv = card->GetDisplayName(pDisplayNameStr);
           if (NS_FAILED(rv))
               continue;
-          rv = card->GetFirstName(getter_Copies(pFirstNameStr));
+          rv = card->GetFirstName(pFirstNameStr);
           if (NS_FAILED(rv))
               continue;
-          rv = card->GetLastName(getter_Copies(pLastNameStr));
+          rv = card->GetLastName(pLastNameStr);
           if (NS_FAILED(rv))
               continue;
-          rv = card->GetNickName(getter_Copies(pNickNameStr));
+          rv = card->GetNickName(pNickNameStr);
           if (NS_FAILED(rv))
               continue;
 

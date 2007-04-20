@@ -569,7 +569,7 @@ nsresult nsAbDirectoryQuery::matchCardCondition (nsIAbCard* card,
     }
 
     nsXPIDLString value;
-    rv = card->GetCardValue (name.get (), getter_Copies (value));
+    rv = card->GetCardValue(name.get(), value);
     NS_ENSURE_SUCCESS(rv, rv);
 
     if (value.IsEmpty())
@@ -656,8 +656,8 @@ nsresult nsAbDirectoryQuery::queryMatch (nsIAbCard* card,
         }
         else
         {
-            nsXPIDLString value;
-            rv = card->GetCardValue (n.get (), getter_Copies (value));
+            nsAutoString value;
+            rv = card->GetCardValue (n.get (), value);
             NS_ENSURE_SUCCESS(rv, rv);
 
             if (!value.get () || value.Length () == 0)

@@ -295,7 +295,7 @@ nsAddbookProtocolHandler::BuildDirectoryXML(nsIAbDirectory *aDirectory,
         nsCOMPtr <nsIAbCard> card = do_QueryInterface(item);
         nsXPIDLString xmlSubstr;
 
-        rv = card->ConvertToXMLPrintData(getter_Copies(xmlSubstr));
+        rv = card->ConvertToXMLPrintData(xmlSubstr);
         NS_ENSURE_SUCCESS(rv,rv);
 
         aOutput.AppendLiteral("<separator/>");

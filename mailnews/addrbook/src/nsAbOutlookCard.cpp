@@ -107,30 +107,30 @@ nsresult nsAbOutlookCard::Init(const char *aUri)
     ULONG i = 0 ;
 
     if (mapiAddBook->GetPropertiesUString(*mMapiData, OutlookCardMAPIProps, index_LastProp, unichars)) {
-        SetFirstName(unichars [index_FirstName]->get()) ;
-        SetLastName(unichars [index_LastName]->get()) ;
-        SetDisplayName(unichars [index_DisplayName]->get()) ;
-        SetNickName(unichars [index_NickName]->get()) ;
-        SetPrimaryEmail(unichars [index_EmailAddress]->get()) ;
-        SetWorkPhone(unichars [index_WorkPhoneNumber]->get()) ;
-        SetHomePhone(unichars [index_HomePhoneNumber]->get()) ;
-        SetFaxNumber(unichars [index_WorkFaxNumber]->get()) ;
-        SetPagerNumber(unichars [index_PagerNumber]->get()) ;
-        SetCellularNumber(unichars [index_MobileNumber]->get()) ;
-        SetHomeCity(unichars [index_HomeCity]->get()) ;
-        SetHomeState(unichars [index_HomeState]->get()) ;
-        SetHomeZipCode(unichars [index_HomeZip]->get()) ;
-        SetHomeCountry(unichars [index_HomeCountry]->get()) ;
-        SetWorkCity(unichars [index_WorkCity]->get()) ;
-        SetWorkState(unichars [index_WorkState]->get()) ;
-        SetWorkZipCode(unichars [index_WorkZip]->get()) ;
-        SetWorkCountry(unichars [index_WorkCountry]->get()) ;
-        SetJobTitle(unichars [index_JobTitle]->get()) ;
-        SetDepartment(unichars [index_Department]->get()) ;
-        SetCompany(unichars [index_Company]->get()) ;
-        SetWebPage1(unichars [index_WorkWebPage]->get()) ;
-        SetWebPage2(unichars [index_HomeWebPage]->get()) ;
-        SetNotes(unichars [index_Comments]->get()) ;
+        SetFirstName(unichars [index_FirstName]);
+        SetLastName(unichars [index_LastName]);
+        SetDisplayName(unichars [index_DisplayName]);
+        SetNickName(unichars [index_NickName]);
+        SetPrimaryEmail(unichars [index_EmailAddress]);
+        SetWorkPhone(unichars [index_WorkPhoneNumber]);
+        SetHomePhone(unichars [index_HomePhoneNumber]);
+        SetFaxNumber(unichars [index_WorkFaxNumber]);
+        SetPagerNumber(unichars [index_PagerNumber]);
+        SetCellularNumber(unichars [index_MobileNumber]);
+        SetHomeCity(unichars [index_HomeCity]);
+        SetHomeState(unichars [index_HomeState]);
+        SetHomeZipCode(unichars [index_HomeZip]);
+        SetHomeCountry(unichars [index_HomeCountry]);
+        SetWorkCity(unichars [index_WorkCity]);
+        SetWorkState(unichars [index_WorkState]);
+        SetWorkZipCode(unichars [index_WorkZip]);
+        SetWorkCountry(unichars [index_WorkCountry]);
+        SetJobTitle(unichars [index_JobTitle]);
+        SetDepartment(unichars [index_Department]);
+        SetCompany(unichars [index_Company]);
+        SetWebPage1(unichars [index_WorkWebPage]);
+        SetWebPage2(unichars [index_HomeWebPage]);
+        SetNotes(unichars [index_Comments]);
     }
     ULONG cardType = 0 ;
     nsCAutoString normalChars ;
@@ -148,25 +148,25 @@ nsresult nsAbOutlookCard::Init(const char *aUri)
 
     if (mapiAddBook->GetPropertyUString(*mMapiData, PR_HOME_ADDRESS_STREET_W, unichar)) {
         splitString(unichar, unicharBis) ;
-        SetHomeAddress(unichar.get()) ;
-        SetHomeAddress2(unicharBis.get()) ;
+        SetHomeAddress(unichar) ;
+        SetHomeAddress2(unicharBis) ;
     }
     if (mapiAddBook->GetPropertyUString(*mMapiData, PR_BUSINESS_ADDRESS_STREET_W, unichar)) {
         splitString(unichar, unicharBis) ;
-        SetWorkAddress(unichar.get()) ;
-        SetWorkAddress2(unicharBis.get()) ;
+        SetWorkAddress(unichar) ;
+        SetWorkAddress2(unicharBis) ;
     }
     WORD year = 0 ;
     WORD month = 0 ;
     WORD day = 0 ;
 
     if (mapiAddBook->GetPropertyDate(*mMapiData, PR_BIRTHDAY, year, month, day)) {
-        wordToUnicode(year, unichar) ;
-        SetBirthYear(unichar.get()) ;
-        wordToUnicode(month, unichar) ;
-        SetBirthMonth(unichar.get()) ;
-        wordToUnicode(day, unichar) ;
-        SetBirthDay(unichar.get()) ;
+        wordToUnicode(year, unichar);
+        SetBirthYear(unichar);
+        wordToUnicode(month, unichar);
+        SetBirthMonth(unichar);
+        wordToUnicode(day, unichar);
+        SetBirthDay(unichar);
     }
     return retCode ;
 }

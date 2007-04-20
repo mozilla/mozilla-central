@@ -151,7 +151,7 @@ NS_IMETHODIMP nsAbAddressCollecter::CollectAddress(const char *aAddress, PRBool 
         rv = AutoCollectScreenName(senderCard, curAddress, &modifiedCard);
         NS_ASSERTION(NS_SUCCEEDED(rv), "failed to set screenname");
 
-        rv = senderCard->SetPrimaryEmail(NS_ConvertASCIItoUTF16(curAddress).get());
+        rv = senderCard->SetPrimaryEmail(NS_ConvertASCIItoUTF16(curAddress));
         NS_ASSERTION(NS_SUCCEEDED(rv), "failed to set email");
 
         if (aSendFormat != nsIAbPreferMailFormat::unknown)
@@ -215,8 +215,8 @@ nsresult nsAbAddressCollecter::AutoCollectScreenName(nsIAbCard *aCard, const cha
 
   *aModifiedCard = PR_FALSE;
 
-  nsXPIDLString screenName;
-  nsresult rv = aCard->GetAimScreenName(getter_Copies(screenName));
+  nsAutoString screenName;
+  nsresult rv = aCard->GetAimScreenName(screenName);
   NS_ENSURE_SUCCESS(rv,rv);
 
   // don't override existing screennames
@@ -245,7 +245,7 @@ nsresult nsAbAddressCollecter::AutoCollectScreenName(nsIAbCard *aCard, const cha
 
   NS_ConvertASCIItoUTF16 userName(Substring(aEmail, atPos));
 
-  rv = aCard->SetAimScreenName(userName.get());
+  rv = aCard->SetAimScreenName(userName);
   NS_ENSURE_SUCCESS(rv,rv);
   
   *aModifiedCard = PR_TRUE;
@@ -261,23 +261,23 @@ nsAbAddressCollecter::SetNamesForCard(nsIAbCard *senderCard, const char *fullNam
   *aModifiedCard = PR_FALSE;
 
   nsXPIDLString displayName;
-  nsresult rv = senderCard->GetDisplayName(getter_Copies(displayName));
+  nsresult rv = senderCard->GetDisplayName(displayName);
   NS_ENSURE_SUCCESS(rv,rv);
 
   // we already have a display name, so don't do anything
   if (!displayName.IsEmpty())
     return NS_OK;
 
-  senderCard->SetDisplayName(NS_ConvertUTF8toUTF16(fullName).get());
+  senderCard->SetDisplayName(NS_ConvertUTF8toUTF16(fullName));
   *aModifiedCard = PR_TRUE;
 
   rv = SplitFullName(fullName, &firstName, &lastName);
   if (NS_SUCCEEDED(rv))
   {
-    senderCard->SetFirstName(NS_ConvertUTF8toUTF16(firstName).get());
+    senderCard->SetFirstName(NS_ConvertUTF8toUTF16(firstName));
     
     if (lastName)
-      senderCard->SetLastName(NS_ConvertUTF8toUTF16(lastName).get());
+      senderCard->SetLastName(NS_ConvertUTF8toUTF16(lastName));
   }
   PR_FREEIF(firstName);
   PR_FREEIF(lastName);

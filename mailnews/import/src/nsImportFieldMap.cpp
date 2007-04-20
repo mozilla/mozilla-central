@@ -399,145 +399,143 @@ NS_IMETHODIMP nsImportFieldMap::SetFieldValueByDescription(nsIAddrDatabase *data
 
 NS_IMETHODIMP nsImportFieldMap::GetFieldValue(nsIAbCard *card, PRInt32 fieldNum, PRUnichar **_retval)
 {
-    NS_PRECONDITION(_retval != nsnull, "null ptr");
-    NS_PRECONDITION(card != nsnull, "null ptr");
-	if (!_retval || !card)
-		return NS_ERROR_NULL_POINTER;
-	
-	if (fieldNum == -1) {
-		PRUnichar	c = 0;
-		*_retval = nsCRT::strdup( &c);
-		return( NS_OK);
+  if (!_retval || !card)
+    return NS_ERROR_NULL_POINTER;
+
+  if (fieldNum == -1) {
+    PRUnichar c = 0;
+    *_retval = nsCRT::strdup(&c);
+    return NS_OK;
 	}
 
-	if ((fieldNum < 0) || (fieldNum >= m_mozFieldCount))
-		return( NS_ERROR_FAILURE);
+  if ((fieldNum < 0) || (fieldNum >= m_mozFieldCount))
+    return( NS_ERROR_FAILURE);
 
-	// ARRGGG!!! Lots of typing again
-	// get the field from the card
-	nsresult	rv;
-	PRUnichar *	pVal = nsnull;
+  // ARRGGG!!! Lots of typing again
+  // get the field from the card
+  nsresult rv;
+  nsAutoString value;
 
-	switch (fieldNum) {
-	case 0:
-		rv = card->GetFirstName( &pVal);
-		break;
-	case 1:
-		rv = card->GetLastName( &pVal);
-		break;
-	case 2:
-		rv = card->GetDisplayName( &pVal);
-		break;
-	case 3:
-		rv = card->GetNickName( &pVal);
-		break;
-	case 4:
-		rv = card->GetPrimaryEmail( &pVal);
-		break;
-	case 5:
-		rv = card->GetSecondEmail( &pVal);
-		break;
-	case 6:
-		rv = card->GetWorkPhone( &pVal);
-		break;
-	case 7:
-		rv = card->GetHomePhone( &pVal);
-		break;
-	case 8:
-		rv = card->GetFaxNumber( &pVal);
-		break;
-	case 9:
-		rv = card->GetPagerNumber( &pVal);
-		break;
-	case 10:
-		rv = card->GetCellularNumber( &pVal);
-		break;
-	case 11:
-		rv = card->GetHomeAddress( &pVal);
-		break;
-	case 12:
-		rv = card->GetHomeAddress2( &pVal);
-		break;
-	case 13:
-		rv = card->GetHomeCity( &pVal);
-		break;
-	case 14:
-		rv = card->GetHomeState( &pVal);
-		break;
-	case 15:
-		rv = card->GetHomeZipCode( &pVal);
-		break;
-	case 16:
-		rv = card->GetHomeCountry( &pVal);
-		break;
-	case 17:
-		rv = card->GetWorkAddress( &pVal);
-		break;
-	case 18:
-		rv = card->GetWorkAddress2( &pVal);
-		break;
-	case 19:
-		rv = card->GetWorkCity( &pVal);
-		break;
-	case 20:
-		rv = card->GetWorkState( &pVal);
-		break;
-	case 21:
-		rv = card->GetWorkZipCode( &pVal);
-		break;
-	case 22:
-		rv = card->GetWorkCountry( &pVal);
-		break;
-	case 23:
-		rv = card->GetJobTitle( &pVal);
-		break;
-	case 24:
-		rv = card->GetDepartment( &pVal);
-		break;
-	case 25:
-		rv = card->GetCompany( &pVal);
-		break;
-	case 26:
-		rv = card->GetWebPage1( &pVal);
-		break;
-	case 27:
-		rv = card->GetWebPage2( &pVal);
-		break;
-	case 28:
-		rv = card->GetBirthYear( &pVal);
-		break;
-	case 29:
-		rv = card->GetBirthMonth( &pVal);
-		break;
-	case 30:
-		rv = card->GetBirthDay( &pVal);
-		break;
-	case 31:
-		rv = card->GetCustom1( &pVal);
-		break;
-	case 32:
-		rv = card->GetCustom2( &pVal);
-		break;
-	case 33:
-		rv = card->GetCustom3( &pVal);
-		break;
-	case 34:
-		rv = card->GetCustom4( &pVal);
-		break;
-	case 35:
-		rv = card->GetNotes( &pVal);
-		break;
-	default:
-		/* Get the field description, and add it as an anonymous attr? */
-		/* OR WHAT???? */
-		{
-			rv = NS_ERROR_FAILURE;
-		}
-	}
-	
-	*_retval = pVal;
+  switch (fieldNum) {
+  case 0:
+    rv = card->GetFirstName(value);
+    break;
+  case 1:
+    rv = card->GetLastName(value);
+    break;
+  case 2:
+    rv = card->GetDisplayName(value);
+    break;
+  case 3:
+    rv = card->GetNickName(value);
+    break;
+  case 4:
+    rv = card->GetPrimaryEmail(value);
+    break;
+  case 5:
+    rv = card->GetSecondEmail(value);
+    break;
+  case 6:
+    rv = card->GetWorkPhone(value);
+    break;
+  case 7:
+    rv = card->GetHomePhone(value);
+    break;
+  case 8:
+    rv = card->GetFaxNumber(value);
+    break;
+  case 9:
+    rv = card->GetPagerNumber(value);
+    break;
+  case 10:
+    rv = card->GetCellularNumber(value);
+    break;
+  case 11:
+    rv = card->GetHomeAddress(value);
+    break;
+  case 12:
+    rv = card->GetHomeAddress2(value);
+    break;
+  case 13:
+    rv = card->GetHomeCity(value);
+    break;
+  case 14:
+    rv = card->GetHomeState(value);
+    break;
+  case 15:
+    rv = card->GetHomeZipCode(value);
+    break;
+  case 16:
+    rv = card->GetHomeCountry(value);
+    break;
+  case 17:
+    rv = card->GetWorkAddress(value);
+    break;
+  case 18:
+    rv = card->GetWorkAddress2(value);
+    break;
+  case 19:
+    rv = card->GetWorkCity(value);
+    break;
+  case 20:
+    rv = card->GetWorkState(value);
+    break;
+  case 21:
+    rv = card->GetWorkZipCode(value);
+    break;
+  case 22:
+    rv = card->GetWorkCountry(value);
+    break;
+  case 23:
+    rv = card->GetJobTitle(value);
+    break;
+  case 24:
+    rv = card->GetDepartment(value);
+    break;
+  case 25:
+    rv = card->GetCompany(value);
+    break;
+  case 26:
+    rv = card->GetWebPage1(value);
+    break;
+  case 27:
+    rv = card->GetWebPage2(value);
+    break;
+  case 28:
+    rv = card->GetBirthYear(value);
+    break;
+  case 29:
+    rv = card->GetBirthMonth(value);
+    break;
+  case 30:
+    rv = card->GetBirthDay(value);
+    break;
+  case 31:
+    rv = card->GetCustom1(value);
+    break;
+  case 32:
+    rv = card->GetCustom2(value);
+    break;
+  case 33:
+    rv = card->GetCustom3(value);
+    break;
+  case 34:
+    rv = card->GetCustom4(value);
+    break;
+  case 35:
+    rv = card->GetNotes(value);
+    break;
+  default:
+    /* Get the field description, and add it as an anonymous attr? */
+    /* OR WHAT???? */
+    {
+      rv = NS_ERROR_FAILURE;
+    }
+  }
 
-	return( rv);
+  *_retval = ToNewUnicode(value);
+
+  return rv;
 }
 
 NS_IMETHODIMP nsImportFieldMap::GetFieldValueByDescription(nsIAbCard *card, const PRUnichar *fieldDesc, PRUnichar **_retval)
