@@ -1032,20 +1032,31 @@
         <body>
         <![CDATA[
           // The min value for the seconds spinbutton depends on the current
-          // minutes but may also be constrained by the seconds of the start
-          // time.
+          // hours and minutes but may also be constrained by the seconds of
+          // the start time.
+          var startHours = this.getHours(this.start);
+          var endHours = this.getHours(this.end);
+          var currentHours = this.getHours(this.value);
           var startMinutes = this.getMinutes(this.start);
           var endMinutes = this.getMinutes(this.end);
           var currentMinutes = this.getMinutes(this.value);
           var startSeconds = this.getSeconds(this.start);
           var minSeconds = 0;
 
-          if (startMinutes == endMinutes || currentMinutes == startMinutes) {
-            // Min seconds is the seconds of the start time.
-            minSeconds = startSeconds;
+          if (startHours == endHours || currentHours == startHours) {
+            // The minimum seconds value depends on the current minutes.
+            if (startMinutes == endMinutes || currentMinutes == startMinutes) {
+              // Min seconds is the seconds of the start time.
+              minSeconds = startSeconds;
+            } else {
+              // Current minutes falls between the start and end minutes of
+              // the start hours. Min seconds is the first second of a minute.
+              minSeconds = 0;
+            }
           } else {
-            // Current minutes falls between the start and end minutes.
-            // Min seconds is the first second of a minute.
+            // Current hours falls between the start and end hours.
+            // The range of minutes will vary from a minimum of 0 to
+            // a maximum of 59 and so will the seconds.
             minSeconds = 0;
           }
           return minSeconds;
@@ -1058,20 +1069,31 @@
         <body>
         <![CDATA[
           // The max value for the seconds spinbutton depends on the current
-          // minutes but may also be constrained by the seconds of the end
-          // time.
+          // hours and minutes but may also be constrained by the seconds of
+          // the end time.
+          var startHours = this.getHours(this.start);
+          var endHours = this.getHours(this.end);
+          var currentHours = this.getHours(this.value);
           var startMinutes = this.getMinutes(this.start);
           var endMinutes = this.getMinutes(this.end);
           var currentMinutes = this.getMinutes(this.value);
           var endSeconds = this.getSeconds(this.end);
           var maxSeconds = 0;
 
-          if (startMinutes == endMinutes || currentMinutes == endMinutes) {
-            // Max seconds is the seconds of the end time.
-            maxSeconds = endSeconds;
+          if (startHours == endHours || currentHours == endHours) {
+            // The maximum seconds value depends on the current minutes.
+            if (startMinutes == endMinutes || currentMinutes == endMinutes) {
+              // Max seconds is the seconds of the end time.
+              maxSeconds = endSeconds;
+            } else {
+              // Current minutes falls between the start and end minutes of
+              // the end hour. Max seconds is the last second of a minute.
+              maxSeconds = 59;
+            }
           } else {
-            // Current minutes falls between the start and end minutes.
-            // Max seconds is the last second of a minute.
+            // Current hours falls between the start and end hours.
+            // The range of minutes will vary from a minimum of 0 to
+            // a maximum of 59 and so will the seconds.
             maxSeconds = 59;
           }
           return maxSeconds;
