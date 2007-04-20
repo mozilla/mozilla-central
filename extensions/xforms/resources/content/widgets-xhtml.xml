@@ -399,7 +399,7 @@
             value = this.max;
 
           var boxobj = this.sliderController;
-          if (!isNaN(this.value) && this.value != value)
+          if (this.value != value)
             this.eraseSlider(boxobj.getXCoordFromValue(this.value));
           this.drawSlider(boxobj.getXCoordFromValue(value));
           this.setAttribute("value", value);
@@ -522,6 +522,12 @@
 
             // Takes a value and calculates the x position.
             getXCoordFromValue: function(aValue) {
+              if (isNaN(aValue) || isNaN(this.max) || isNaN(this.min)) {
+                // During initialization, it is possible that aValue will be
+                // NaN.  Math type stuff has issues with NaN, so we'll bow out
+                // early if we find that is the case.
+                return NaN;
+              }
               var k = this.barWidth / (this.max - this.min);
               var pos = aValue - this.min;
               return Math.round(pos * k) + this.barMargin;
@@ -563,6 +569,10 @@
         <parameter name="aPos"/>
         <body>
         <![CDATA[
+          if (isNaN(aPos)) {
+            // aPos could be NaN if getXCoordFromValue returns NaN, for example
+            return;
+          }
           var boxobj = this.sliderController;
           if (boxobj.barHeight <= 0 || boxobj.barWidth <=0)
             return;
@@ -598,6 +608,10 @@
         <parameter name="aPos"/>
         <body>
         <![CDATA[
+          if (isNaN(aPos)) {
+            // aPos could be NaN if getXCoordFromValue returns NaN, for example
+            return;
+          }
           var boxobj = this.sliderController;
           if (boxobj.barHeight <= 0 || boxobj.barWidth <= 0)
             return;
