@@ -263,6 +263,34 @@ nsXFormsStubElement::UpdateRepeatState(nsIDOMNode *aParent)
 
     if (nsXFormsUtils::IsXFormsElement(parent, NS_LITERAL_STRING("item"))) {
       childIsItem = PR_TRUE;
+    } else {
+
+      nsCOMPtr<nsIDOMElement> parentEle(do_QueryInterface(parent));
+      if (!parentEle) {
+        // I don't know how this can possibly happen, but if it does I guess
+        // we should just ignore it and coninue on our way.
+        break;
+      }
+
+      // if this control is contained underneath an element that contains
+      // an xforms binding attribute that introduces an anonymous xf:repeat
+      // then the control is part of a template
+      PRBool repeatAttr = PR_FALSE;
+      parentEle->HasAttributeNS(NS_LITERAL_STRING(NS_NAMESPACE_XFORMS),
+                                NS_LITERAL_STRING("repeat-bind"),
+                                &repeatAttr);
+      if (repeatAttr) {
+        repeatState = eType_Template;
+        break;
+      }
+
+      parentEle->HasAttributeNS(NS_LITERAL_STRING(NS_NAMESPACE_XFORMS),
+                                NS_LITERAL_STRING("repeat-nodeset"),
+                                &repeatAttr);
+      if (repeatAttr) {
+        repeatState = eType_Template;
+        break;
+      }
     }
     nsCOMPtr<nsIDOMNode> tmp;
     parent->GetParentNode(getter_AddRefs(tmp));

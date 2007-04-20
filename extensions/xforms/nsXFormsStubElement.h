@@ -85,7 +85,7 @@ protected:
    *
    * @param aParent           The new parent of the XForms control
    */
-  nsRepeatState UpdateRepeatState(nsIDOMNode *aParent);
+  virtual nsRepeatState UpdateRepeatState(nsIDOMNode *aParent);
 
   nsRepeatState mRepeatState;
 
