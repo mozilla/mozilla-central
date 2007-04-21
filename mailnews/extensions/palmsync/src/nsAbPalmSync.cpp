@@ -181,10 +181,9 @@ nsresult nsAbPalmHotSync::GetABInterface()
   nsCOMPtr <nsIAbDirectory> directory = do_QueryInterface(resource, &rv);
   if(NS_FAILED(rv)) return E_FAIL;
 
-  nsXPIDLCString fileName, uri, prefName;
-  nsAutoString description;
-  PRUint32 dirType, palmSyncTimeStamp;
-  PRInt32 palmCategoryIndex;
+  nsXPIDLCString fileName, uri, prefName, description;
+  PRUint32 palmSyncTimeStamp;
+  PRInt32 dirType, palmCategoryIndex;
   nsCOMPtr<nsISimpleEnumerator> subDirectories;
   if (NS_FAILED(directory->GetChildNodes(getter_AddRefs(subDirectories))) || !subDirectories)
     return E_FAIL;
@@ -201,15 +200,15 @@ nsresult nsAbPalmHotSync::GetABInterface()
       {
         // TODO: may need to skip mailing list?? but maybe not since there's no mailing list on the top level.
 
-        rv = directory->GetDescription(description);
+        rv = directory->GetDescription(getter_Copies(description));
         if(NS_FAILED(rv)) return E_FAIL;
-        rv = directory->GetFileName(getter_Copies(fileName));
+        rv = directory->GetFileName(fileName);
         if(NS_FAILED(rv)) return E_FAIL;
-        rv = directory->GetURI(getter_Copies(uri));
+        rv = directory->GetURI(uri);
         if(NS_FAILED(rv)) return E_FAIL;
         rv = directory->GetDirType(&dirType);
         if(NS_FAILED(rv)) return E_FAIL;
-        rv = directory->GetDirPrefId(getter_Copies(prefName));
+        rv = directory->GetDirPrefId(prefName);
         if (NS_FAILED(rv)) return E_FAIL;
         rv = directory->GetIntValue("PalmCategoryId", -1, &palmCategoryIndex);
         if (NS_FAILED(rv)) return E_FAIL;
@@ -1096,7 +1095,7 @@ nsresult nsAbPalmHotSync::ModifyAB(const char * aABUrl,
   NS_ENSURE_SUCCESS(rv, rv);
   
   rv = selectedDirectory->SetIntValue("PalmSyncCategoryId", aCategoryId);
-  NS_ENSURE_SUCCESS(rv, rV);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   // RDF data source for addrbook
   nsCOMPtr<nsIRDFDataSource> ds;
