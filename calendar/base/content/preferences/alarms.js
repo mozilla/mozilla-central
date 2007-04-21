@@ -146,9 +146,13 @@ var gAlarmsPane = {
                             .getService(Components.interfaces.nsIIOService);
         var url;
         try {
-            url = ios.newURI(soundUrl, null, null);
             soundIfc.init();
-            soundIfc.play(url);
+            if (soundUrl && soundUrl.length && soundUrl.length > 0) {
+                url = ios.newURI(soundUrl, null, null);
+                soundIfc.play(url);
+            } else {
+                soundIfc.beep();
+            }
         } catch (ex) {
             dump("alarms.js previewAlarm Exception caught! " + ex + "\n");
         }

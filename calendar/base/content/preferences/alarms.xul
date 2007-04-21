@@ -69,7 +69,7 @@
             <preference id="calendar.alarms.soundURL"
                         name="calendar.alarms.soundURL"
                         type="string"
-                        onchange="gAlarmsPane.readSoundLocation();"/>/>
+                        onchange="gAlarmsPane.readSoundLocation();"/>
             <preference id="calendar.alarms.show"
                         name="calendar.alarms.show"
                         type="bool"/>

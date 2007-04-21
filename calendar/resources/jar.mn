@@ -21,7 +21,6 @@ calendar.jar:
     content/calendar/publish.js  (content/publish.js)
     content/calendar/publishDialog.js  (content/publishDialog.js)    
     content/calendar/publishDialog.xul  (content/publishDialog.xul)
-    content/calendar/sound.wav (content/sound.wav)
     content/calendar/unifinder.js (content/unifinder.js)
     content/calendar/unifinderToDo.js (content/unifinderToDo.js)
     content/calendar/mouseoverPreviews.js (content/mouseoverPreviews.js)
