@@ -355,15 +355,16 @@ function onAccept()
         ldapUrl.options |= ldapUrl.OPT_SECURE;
 
       properties.URI = ldapUrl.spec;
-      properties.maxHits = results;
       properties.authDn = dn;
+
+      // the rdf service
+      var RDF = Components.classes["@mozilla.org/rdf/rdf-service;1"]
+                          .getService(Components.interfaces.nsIRDFService);
 
       // check if we are modifying an existing directory or adding a new directory
       if (gCurrentDirectory && gCurrentDirectoryString) {
         // we are modifying an existing directory
-        // the rdf service
-        var RDF = Components.classes["@mozilla.org/rdf/rdf-service;1"].
-                         getService(Components.interfaces.nsIRDFService);
+
         // get the datasource for the addressdirectory
         var addressbookDS = RDF.GetDataSource("rdf:addressdirectory");
 
@@ -372,7 +373,8 @@ function onAccept()
 
         // the RDF resource URI for LDAPDirectory will be moz-abldapdirectory://<prefName>
         var selectedABURI = "moz-abldapdirectory://" + gCurrentDirectoryString;
-        var selectedABDirectory = RDF.GetResource(selectedABURI).QueryInterface(Components.interfaces.nsIAbDirectory);
+        var selectedABDirectory = RDF.GetResource(selectedABURI)
+          .QueryInterface(Components.interfaces.nsIAbDirectory);
  
         // Now do the modification.
         addressbook.modifyAddressBook(addressbookDS, parentDir, selectedABDirectory, properties);
@@ -382,6 +384,15 @@ function onAccept()
         addressbook.newAddressBook(properties);
         window.opener.gNewServerString = properties.prefName;
       }
+
+      // XXX This is really annoying - both new/modify Address Book don't
+      // give us back the new directory we just created - so go find it from
+      // rdf so we can set a few final things up on it.
+      var theDirectory = RDF.GetResource("moz-abldapdirectory://" +
+                                         window.opener.gNewServerString)
+        .QueryInterface(Components.interfaces.nsIAbLDAPDirectory);
+
+      theDirectory.maxHits = results;
 
       window.opener.gNewServer = description;
       // set window.opener.gUpdate to true so that LDAP Directory Servers

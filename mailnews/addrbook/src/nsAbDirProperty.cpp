@@ -49,7 +49,6 @@
 #include "rdf.h"
 
 // From nsDirPrefs
-#define kDefaultMaxHits 100
 #define kDefaultPosition 1
 
 nsAbDirProperty::nsAbDirProperty(void)
@@ -381,12 +380,6 @@ NS_IMETHODIMP nsAbDirProperty::GetDirectoryProperties(nsIAbDirectoryProperties *
   rv = properties->SetURI(prefStringValue.get());
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = GetIntValue("maxHits", kDefaultMaxHits, &prefIntValue);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = properties->SetMaxHits(prefIntValue);
-  NS_ENSURE_SUCCESS(rv, rv);
-
   rv = GetStringValue("auth.dn", EmptyCString(), prefStringValue);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -533,7 +526,6 @@ NS_IMETHODIMP nsAbDirProperty::SetStringValue(const char *aName,
 nsAbDirectoryProperties::nsAbDirectoryProperties(void)
 {
   mDirType = LDAPDirectory;
-  mMaxHits = 0;
   mPosition = 0;
 }
 
@@ -610,19 +602,6 @@ NS_IMETHODIMP nsAbDirectoryProperties::GetDirType(PRUint32 *aDirType)
 {
   NS_ENSURE_ARG_POINTER(aDirType);
   *aDirType = mDirType;
-  return NS_OK;
-}
-
-NS_IMETHODIMP nsAbDirectoryProperties::SetMaxHits(PRUint32 aMaxHits)
-{
-  mMaxHits = aMaxHits;
-  return NS_OK;
-}
-
-NS_IMETHODIMP nsAbDirectoryProperties::GetMaxHits(PRUint32 *aMaxHits)
-{
-  NS_ENSURE_ARG_POINTER(aMaxHits);
-  *aMaxHits = mMaxHits;
   return NS_OK;
 }
 

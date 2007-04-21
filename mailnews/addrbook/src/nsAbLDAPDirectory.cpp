@@ -55,6 +55,8 @@
 #include "nsEnumeratorUtils.h"
 #include "nsIAbLDAPAttributeMap.h"
 
+#define kDefaultMaxHits 100
+
 nsAbLDAPDirectory::nsAbLDAPDirectory() :
     nsAbDirectoryRDFResource(),
     nsAbLDAPDirectoryQuery (),
@@ -371,9 +373,9 @@ NS_IMETHODIMP nsAbLDAPDirectory::StartSearch ()
 
     // Get the max hits to return
     PRInt32 maxHits;
-    rv = GetIntValue("maxHits", 100, &maxHits);
+    rv = GetMaxHits(&maxHits);
     if (NS_FAILED(rv))
-      maxHits = 100;
+      maxHits = kDefaultMaxHits;
 
     // get the appropriate ldap attribute map, and pass it in via the
     // TypeSpecificArgument
@@ -548,6 +550,16 @@ NS_IMETHODIMP nsAbLDAPDirectory::SetProtocolVersion(PRUint32 aProtocolVersion)
   return SetStringValue("protocolVersion",
                         aProtocolVersion == nsILDAPConnection::VERSION3 ?
                         NS_LITERAL_CSTRING("3") : NS_LITERAL_CSTRING("2"));
+}
+
+NS_IMETHODIMP nsAbLDAPDirectory::GetMaxHits(PRInt32 *aMaxHits)
+{
+  return GetIntValue("maxHits", kDefaultMaxHits, aMaxHits);
+}
+
+NS_IMETHODIMP nsAbLDAPDirectory::SetMaxHits(PRInt32 aMaxHits)
+{
+  return SetIntValue("maxHits", aMaxHits);
 }
 
 NS_IMETHODIMP nsAbLDAPDirectory::GetReplicationFileName(nsACString &aReplicationFileName)

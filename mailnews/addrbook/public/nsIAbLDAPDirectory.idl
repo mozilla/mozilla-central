@@ -51,7 +51,7 @@ interface nsILDAPURL;
  * XXX This should really inherit from nsIAbDirectory, and some day it will.
  * But for now, doing that complicates implementation.
  */
-[scriptable, uuid(d67b4a29-10d5-4409-a693-3e8bab184948)]
+[scriptable, uuid(dbb5cd0a-d646-46e2-a640-3da0d8d4d70a)]
 interface nsIAbLDAPDirectory : nsISupports
 {
   /**
@@ -75,6 +75,11 @@ interface nsIAbLDAPDirectory : nsISupports
    * The AuthDN to use to access the server.
    */
   attribute ACString authDn;
+
+  /**
+   * The maximum number of matches that the server will return per a search.
+   */
+  attribute long maxHits;
 
   /**
    * The Last Change Number used for replication.

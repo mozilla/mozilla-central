@@ -110,7 +110,6 @@ private:
   nsCString mFileName;
   nsCString mPrefName;
   PRUint32  mDirType;
-  PRUint32  mMaxHits;
   nsCString mAuthDn;
   PRInt32   mPosition;
 };

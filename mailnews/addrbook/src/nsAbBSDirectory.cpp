@@ -233,10 +233,6 @@ NS_IMETHODIMP nsAbBSDirectory::CreateNewDirectory(nsIAbDirectoryProperties *aPro
   rv = aProperties->GetDirType(&dirType);
   NS_ENSURE_SUCCESS(rv, rv);
   
-  PRUint32 maxHits;
-  rv = aProperties->GetMaxHits(&maxHits);
-  NS_ENSURE_SUCCESS(rv, rv);
-  
   rv = aProperties->GetAuthDn(getter_Copies(authDn));
   NS_ENSURE_SUCCESS(rv, rv);
   
@@ -252,8 +248,7 @@ NS_IMETHODIMP nsAbBSDirectory::CreateNewDirectory(nsIAbDirectoryProperties *aPro
   DIR_Server* server = nsnull;
   rv = DIR_AddNewAddressBook(description.get(),
     (fileName.Length ()) ? fileName.get () : nsnull,
-    PR_FALSE /* is_migrating */, uri.get(),
-    maxHits, authDn,
+    PR_FALSE /* is_migrating */, uri.get(), authDn,
     (DirectoryType)dirType, 
     &server);
   NS_ENSURE_SUCCESS (rv, rv);
@@ -289,7 +284,7 @@ NS_IMETHODIMP nsAbBSDirectory::CreateDirectoryByURI(const PRUnichar *aDisplayNam
     fileName = aURI + kMDBDirectoryRootLen;
 
   DIR_Server * server = nsnull;
-  rv = DIR_AddNewAddressBook(aDisplayName, fileName, migrating, aURI, 0, nsnull, PABDirectory, &server);
+  rv = DIR_AddNewAddressBook(aDisplayName, fileName, migrating, aURI, nsnull, PABDirectory, &server);
   NS_ENSURE_SUCCESS(rv,rv);
 
   nsCOMPtr <nsIAbDirectoryProperties> properties;
@@ -433,7 +428,6 @@ NS_IMETHODIMP nsAbBSDirectory::ModifyDirectory(nsIAbDirectory *directory, nsIAbD
   nsAutoString description;
   nsXPIDLCString uri;
   nsXPIDLCString authDn;
-  PRUint32 maxHits;
 
   rv = aProperties->GetDescription(description);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -448,10 +442,6 @@ NS_IMETHODIMP nsAbBSDirectory::ModifyDirectory(nsIAbDirectory *directory, nsIAbD
   nsCRT::free(server->uri);
   server->uri = ToNewCString(uri);
 
-  rv = aProperties->GetMaxHits(&maxHits);
-  NS_ENSURE_SUCCESS(rv, rv);
-  server->maxHits = maxHits;
-  
   rv = aProperties->GetAuthDn(getter_Copies(authDn));
   NS_ENSURE_SUCCESS(rv, rv);
   nsCRT::free(server->authDn);

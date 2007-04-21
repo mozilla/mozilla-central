@@ -74,7 +74,6 @@ typedef enum
 	idSearchBase,
 	idFileName,
 	idPort,
-	idMaxHits,
 	idUri,
 	idType,	
 	idCSID,
@@ -125,7 +124,6 @@ typedef struct DIR_Server
 	char   *searchBase;		    /* DN suffix to search at                 */
 	char   *fileName;			/* XP path name of local DB               */
 	PRInt32 port;				/* network port number                    */
-	PRInt32 maxHits;			/* maximum number of hits to return       */
 	DirectoryType dirType;	
 	PRInt16   csid;				/* LDAP entries' codeset (normally UTF-8) */
 	char    *locale;			/* the locale associated with the address book or directory */
@@ -156,7 +154,7 @@ nsVoidArray* DIR_GetDirectories();
 DIR_Server* DIR_GetServerFromList(const char* prefName);
 nsresult DIR_ShutDown(void);  /* FEs should call this when the app is shutting down. It frees all DIR_Servers regardless of ref count values! */
 
-nsresult DIR_AddNewAddressBook(const PRUnichar *dirName, const char *fileName, PRBool migrating, const char * uri, int maxHits, const char * authDn, DirectoryType dirType, DIR_Server** pServer);
+nsresult DIR_AddNewAddressBook(const PRUnichar *dirName, const char *fileName, PRBool migrating, const char * uri, const char * authDn, DirectoryType dirType, DIR_Server** pServer);
 nsresult DIR_ContainsServer(DIR_Server* pServer, PRBool *hasDir);
 
 nsresult DIR_DeleteServerFromList (DIR_Server *);

@@ -94,7 +94,6 @@
 #define CS_UNKNOWN    (SINGLEBYTE         | 255) /* 255 */
 
 /* Default settings for site-configurable prefs */
-#define kDefaultMaxHits 100
 #define kDefaultIsOffline PR_TRUE
 #define kDefaultEnableAuth PR_FALSE
 #define kDefaultSavePassword PR_FALSE
@@ -196,6 +195,10 @@ NS_IMETHODIMP DirPrefObserver::Observe(nsISupports *aSubject, const char *aTopic
   const char *prefname = NS_ConvertUTF16toUTF8(aData).get();
 
   DIR_PrefId id = DIR_AtomizePrefName(prefname);
+
+  // Just get out if we get nothing here - we don't need to do anything
+  if (id == idNone)
+    return NS_OK;
 
   /* Check to see if the server is in the unified server list.
    */
@@ -400,7 +403,7 @@ nsresult DIR_ContainsServer(DIR_Server* pServer, PRBool *hasDir)
   return NS_OK;
 }
 
-nsresult DIR_AddNewAddressBook(const PRUnichar *dirName, const char *fileName, PRBool migrating, const char * uri, int maxHits, const char * authDn, DirectoryType dirType, DIR_Server** pServer)
+nsresult DIR_AddNewAddressBook(const PRUnichar *dirName, const char *fileName, PRBool migrating, const char * uri, const char * authDn, DirectoryType dirType, DIR_Server** pServer)
 {
   DIR_Server * server = (DIR_Server *) PR_Malloc(sizeof(DIR_Server));
   if (!server)
@@ -436,9 +439,7 @@ nsresult DIR_AddNewAddressBook(const PRUnichar *dirName, const char *fileName, P
       // we are migrating directories.
       DIR_ForceFlag(server, DIR_LDAP_VERSION3, PR_TRUE);
     }
-    if (maxHits)
-      server->maxHits = maxHits;
-    
+
     dir_ServerList->AppendElement(server);
     if (!migrating) {
       DIR_SavePrefsForOneServer(server); 
@@ -496,7 +497,6 @@ static nsresult DIR_InitServer(DIR_Server *server)
   {
     memset(server, 0, sizeof(DIR_Server));
     server->port = LDAP_PORT;
-    server->maxHits = kDefaultMaxHits;
     server->isOffline = kDefaultIsOffline;
     server->position = kDefaultPosition;
     server->csid = CS_UTF8;
@@ -580,7 +580,6 @@ static nsresult DIR_CopyServer(DIR_Server *in, DIR_Server **out)
 
 			(*out)->position = in->position;
 			(*out)->port = in->port;
-			(*out)->maxHits = in->maxHits;
 			(*out)->isSecure = in->isSecure;
 			(*out)->isOffline = in->isOffline;
 			(*out)->dirType = in->dirType;
@@ -959,10 +958,6 @@ static DIR_PrefId DIR_AtomizePrefName(const char *prefname)
 		rc = idLocale;
 		break;
 
-	case 'm':
-		rc = idMaxHits;
-		break;
-
 	case 'p':
 		switch (prefname[1]) {
 		case 'o':
@@ -1033,7 +1028,6 @@ static DIR_PrefId DIR_AtomizePrefName(const char *prefname)
 		break;
 	}
 
-	PR_ASSERT(rc != idNone);
 	return rc;
 }
 
@@ -1695,7 +1689,6 @@ static void DIR_GetPrefsForOneServer (DIR_Server *server, PRBool reinitialize, P
   server->port = DIR_GetIntPref (prefstring, "port", server->isSecure ? LDAPS_PORT : LDAP_PORT);
   if (server->port == 0)
     server->port = server->isSecure ? LDAPS_PORT : LDAP_PORT;
-  server->maxHits = DIR_GetIntPref (prefstring, "maxHits", kDefaultMaxHits);
   
   if (0 == PL_strcmp(prefstring, "ldap_2.servers.pab") || 
     0 == PL_strcmp(prefstring, "ldap_2.servers.history")) 
@@ -2300,7 +2293,6 @@ void DIR_SavePrefsForOneServer(DIR_Server *server)
   if (server->port == 0)
     server->port = server->isSecure ? LDAPS_PORT : LDAP_PORT;
   DIR_SetIntPref(prefstring, "port", server->port, server->isSecure ? LDAPS_PORT : LDAP_PORT);
-  DIR_SetIntPref(prefstring, "maxHits", server->maxHits, kDefaultMaxHits);
   DIR_SetBoolPref(prefstring, "isSecure", server->isSecure, PR_FALSE);
   DIR_SetIntPref(prefstring, "dirType", server->dirType, LDAPDirectory);
   DIR_SetBoolPref(prefstring, "isOffline", server->isOffline, kDefaultIsOffline);

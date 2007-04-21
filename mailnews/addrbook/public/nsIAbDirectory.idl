@@ -59,14 +59,13 @@
 // used for when creating new directories
 // either from user input, or during bootstrapping
 // Note this interface is expected to go away soon, see bug 331557
-[scriptable, uuid(c69e64ca-0fe7-477b-a0cf-711537b33af9)]
+[scriptable, uuid(42f1e848-e650-4050-9ab9-cb18523a1e84)]
 interface nsIAbDirectoryProperties : nsISupports {
   attribute AString description;
   attribute string URI;
   attribute string prefName;
   attribute string fileName;
   attribute unsigned long dirType;
-  attribute unsigned long maxHits;
   attribute string authDn;
   attribute long position;
 };
