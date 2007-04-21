@@ -17,7 +17,7 @@
             </Description>
         </em:targetApplication>
         <em:id>wcap-enabler@calendar.mozilla.org</em:id>
-        <em:version>0.3</em:version>
+        <em:version>0.5</em:version>
         <em:name>WCAP Enabler</em:name>
         <em:description>Enables support for the Sun Java System Calendar Server (WCAP) in the Lightning calendar extension.</em:description>
         <em:creator>Mozilla Calendar Project</em:creator>
