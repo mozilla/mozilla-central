@@ -1,5 +1,5 @@
 /*
- * $Id: MCP.java,v 1.8 2007-03-14 21:02:13 edburns%acm.org Exp $
+ * $Id: MCP.java,v 1.9 2007-04-21 03:25:37 edburns%acm.org Exp $
  */
 
 /* 
@@ -33,11 +33,15 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseListener;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.mozilla.dom.util.DOMTreeDumper;
+import org.mozilla.dom.util.DOMTreeDumper.AbortTraversalException;
+import org.mozilla.dom.util.DOMTreeDumper.TreeTraversalCallBack;
 import org.mozilla.webclient.BrowserControl;
 import org.mozilla.webclient.BrowserControlCanvas;
 import org.mozilla.webclient.BrowserControlFactory;
@@ -49,6 +53,7 @@ import org.mozilla.webclient.PageInfoListener;
 import org.mozilla.webclient.WebclientEvent;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 /**
  * <p>The main class for the Mozilla Control Program.  Please see <a
@@ -110,6 +115,9 @@ public class MCP {
     }
 
     private void openLatch() {
+        if (null == latch) {
+            return;
+        }
         if (null != latch || 1 != latch.getCount()) {
             latch.countDown();
             latch = null;
@@ -405,6 +413,79 @@ public class MCP {
         
         return result;
     }
+    
+    /**
+
+     * <p>Given an argument <code>id</code>, return a List of DOM 
+     * <code>Element</code> instances that are HTML anchors that are 
+     * direct or indirect children of the element with that <code>id</code>.
+     */
+    public List<Element> getAnchors(String id) {
+        List<Element> result = getChildElementsWithTagName(id, "a");
+        return result;
+    }
+
+    /**
+
+     * <p>Return a List of DOM 
+     * <code>Element</code> instances that are HTML anchors that are 
+     * present in the document.
+     * If no such elements exist,
+     * <code>null</code> is returned.</p>
+     */
+    public List<Element> getAnchors() {
+        Element root = getCurrentPage().getDOM().getDocumentElement();
+        List<Element> result = getChildElementsWithTagName(root, "a");
+        return result;
+    }
+    
+    /**
+
+     * <p>Return a List of DOM <code>Element</code> instances whose
+     * tagName attribute is equal to the argument <code>tagName</code>.
+     * If no such elements exist,
+     * <code>null</code> is returned.</p>
+     */
+    
+    public List<Element> getChildElementsWithTagName(Element root,
+            final String tagName) {
+        List<Element> results = new ArrayList<Element>();
+        if (null != root) {
+            TreeTraversalCallBack callback = new TreeTraversalCallBack() {
+                public void takeActionOnNode(Node node, Object closure)
+                throws AbortTraversalException {
+                    List<Element> list = (List<Element>) closure;
+                    Element element = null;
+                    if (node instanceof Element) {
+                        element = (Element) node;
+                        String nodeTagName = element.getTagName();
+                        if (null != nodeTagName && nodeTagName.equalsIgnoreCase(tagName)){
+                            list.add(element);
+                        }
+                    }
+                }
+            };
+            getDOMTreeDumper().preorderTreeWalk(root, callback, results);
+        }
+        
+        return results;
+    }
+    /**
+
+     * <p>Return a List of DOM <code>Element</code> instances whose
+     * tagName attribute is equal to the argument <code>tagName</code>.
+     * If no such elements exist,
+     * <code>null</code> is returned.</p>
+     */
+    
+    public List<Element> getChildElementsWithTagName(String id,
+            final String tagName) {
+        List<Element> results = null;
+        Element root = findElement(id);
+        results = getChildElementsWithTagName(root, tagName);
+        
+        return results;
+    }
 
     /**
 
@@ -432,9 +513,9 @@ public class MCP {
 
     */
     
-    public void clickElement(String id) {
-        Element element = findElement(id);
+    public void clickElement(Element element) {
         String clientX = null, clientY = null;
+        String id = element.getAttribute("id");
         if (null != element) {
             clientX = element.getAttribute("clientX");
             clientY = element.getAttribute("clientY");
@@ -444,7 +525,6 @@ public class MCP {
                     x = Integer.valueOf(clientX).intValue();
                     y = Integer.valueOf(clientY).intValue();
                     Robot robot = getRobot();
-                    createLatch();
                     robot.mouseMove(x, y);
                     robot.mousePress(InputEvent.BUTTON1_MASK);
                     robot.mouseRelease(InputEvent.BUTTON1_MASK);
@@ -466,16 +546,34 @@ public class MCP {
 
     * <p>Find the DOM element within the current page matching the
     * argument <code>id</code> using {@link #findElement}.  Use
+    * <code>java.awt.Robot</code> to click the element.  Return
+    * immediately after clicking the element.</p>
+
+    */
+    
+    public void clickElement(String id) {
+        Element element = findElement(id);
+        if (null != element) {
+            clickElement(element);
+        }
+    }
+    
+    
+    /**
+
+    * <p>Find the DOM element within the current page matching the
+    * argument <code>id</code> using {@link #findElement}.  Use
     * <code>java.awt.Robot</code> to click the element.  Block until the
     * document load triggered by the click has completed.</p>
 
     */
 
     
-    public void blockingClickElement(String idOrName) {
+    public void blockingClickElement(Element element) {
         synchronized (this) {
             try {
-                clickElement(idOrName);
+                createLatch();
+                clickElement(element);
                 lockLatch();
             }
             catch (InterruptedException ie) {
@@ -483,6 +581,23 @@ public class MCP {
                     LOGGER.log(Level.WARNING, "blockingClickElementGivenId", ie);
                 }
             }
+        }
+    }
+
+    /**
+
+    * <p>Find the DOM element within the current page matching the
+    * argument <code>id</code> using {@link #findElement}.  Use
+    * <code>java.awt.Robot</code> to click the element.  Block until the
+    * document load triggered by the click has completed.</p>
+
+    */
+
+    
+    public void blockingClickElement(String idOrName) {
+        Element element = findElement(idOrName);
+        if (null != element) {
+            blockingClickElement(element);
         }
     }
 

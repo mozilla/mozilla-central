@@ -24,6 +24,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import org.w3c.dom.DOMException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -233,34 +234,60 @@ public class DOMTreeDumper {
         dbg("finished dumping...");
         return baos.toString();
     }
-
     
-    private Element findElementWithName(Element start, String name) {
-        Element result = null;
-        Node child = null;
-        String elementName = start.getAttribute("name");
-        if (null != elementName && elementName.equals(name)) {
-            return start;
+    public void preorderTreeWalk(Node start, 
+            TreeTraversalCallBack callback, Object closure) {
+        try {
+            doPreorderTreeWalk(start, callback, closure);
+        } catch (AbortTraversalException ex) {
+            return;
         }
-        else {
-            NodeList children = start.getChildNodes();
-            int length = 0;
-            boolean hasChildren = ((children != null) && 
-                    ((length = children.getLength()) > 0));
-            if (!hasChildren) {
-                return result;
-            }
-            for (int i=0; i < length; i++) {
-                child = children.item(i);
-                result = null;
-                if (child instanceof Element) {
-                    result = findElementWithName((Element) child, name);
-                }
-                if (null != result) {
-                    break;
-                }
-            }
+    }
+    
+    
+    private void doPreorderTreeWalk(Node start, 
+            TreeTraversalCallBack callback, Object closure) 
+            throws AbortTraversalException {
+        callback.takeActionOnNode(start, closure);
+        NodeList children = start.getChildNodes();
+        Node child = null;
+        int length = 0;
+        boolean hasChildren = ((children != null) &&
+                ((length = children.getLength()) > 0));
+        if (!hasChildren) {
+            return;
+        }
+        for (int i=0; i < length; i++) {
+            child = children.item(i);
+            doPreorderTreeWalk(child, callback, closure);
 	}
+    }    
+    
+    private Element findElementWithName(Element start, final String name) {
+        TreeTraversalCallBack callback = new TreeTraversalCallBack() {
+            
+            public void takeActionOnNode(Node node, Object closure)
+              throws AbortTraversalException {
+                Element element = null;
+                if (node instanceof Element) {
+                    element = (Element) node;
+                    String elementName = element.getAttribute("name");
+                    if (null != elementName && elementName.equals(name)) {
+                        this.setResult(node);
+                        throw new AbortTraversalException("Found result");
+                    }
+                }
+            }
+            
+        };
+        
+        Element result = null;
+        
+        this.preorderTreeWalk(start, callback, name);
+        Object obj = callback.getResult();
+        if (obj instanceof Element) {
+            result = (Element)obj;
+        }
 
         return result;
     }
@@ -279,5 +306,30 @@ public class DOMTreeDumper {
 	if (debug) {
 	    System.out.println(name + ": " + str);
 	}
+    }
+    
+    public static abstract class TreeTraversalCallBack {
+        public abstract void takeActionOnNode(Node node, Object closure)
+throws AbortTraversalException;
+
+        private Object result;
+
+        public Object getResult() {
+            return result;
+        }
+
+        public void setResult(Object result) {
+            this.result = result;
+        }
+    }
+    
+    public static class AbortTraversalException extends RuntimeException {
+        private Object closure;
+        public AbortTraversalException(Object closure) {
+            this.closure = closure;
+        }
+        public Object getClosure() {
+            return closure;
+        }
     }
 }
