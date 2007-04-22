@@ -511,7 +511,7 @@ pref("mail.server.default.spamActionTargetFolder","");
 pref("mail.server.default.useWhiteList",true);
 pref("mail.server.default.whiteListAbURI","moz-abmdbdirectory://abook.mab");  // the Personal addressbook.
 pref("mail.server.default.useServerFilter", false);
-pref("mail.server.default.serverFilterName", "SpamAssasin");
+pref("mail.server.default.serverFilterName", "SpamAssassin");
 pref("mail.server.default.serverFilterTrustFlags", 1); // 1 == trust positives, 2 == trust negatives, 3 == trust both
 pref("mail.server.default.purgeSpam",false);
 pref("mail.server.default.purgeSpamInterval",14); // 14 days
