@@ -2555,7 +2555,7 @@ enum BWCOpenDest {
   
   const char *aURLSpec = [currentURL lossyCString];
   NSString *aDomain = @"";
-  nsIURI *aURI = nil;
+  nsCOMPtr<nsIURI> aURI;
   
   // If we have an about: type URL, remove " site:%d" from the search string
   // This is a fix to deal with Google's Search this Site feature
@@ -2576,7 +2576,7 @@ enum BWCOpenDest {
   if ([[inSearchField stringValue] isEqualToString:@""]) {
     aURLSpec = [searchURL lossyCString];
     
-    if (NS_NewURI(&aURI, aURLSpec, nsnull, nsnull) == NS_OK) {
+    if (NS_NewURI(getter_AddRefs(aURI), aURLSpec) == NS_OK) {
       nsCAutoString spec;
       aURI->GetHost(spec);
       
@@ -2593,7 +2593,7 @@ enum BWCOpenDest {
     aURLSpec = [[[self getBrowserWrapper] currentURI] UTF8String];
     
     // Get the domain so that we can replace %d in our searchURL
-    if (NS_NewURI(&aURI, aURLSpec, nsnull, nsnull) == NS_OK) {
+    if (NS_NewURI(getter_AddRefs(aURI), aURLSpec) == NS_OK) {
       nsCAutoString spec;
       aURI->GetHost(spec);
       
