@@ -66,8 +66,6 @@
 #include "nsIMsgHeaderParser.h"
 #include "nsILineInputStream.h"
 #include "nsISeekableStream.h"
-#include "nsIFileSpec.h"
-#include "nsFileSpec.h"
 #include "nsILocalFile.h"
 #include "nsIFileStreams.h"
 #include "nsNetCID.h"
@@ -755,12 +753,8 @@ char *MsgMapiListContext::ConvertBodyToMapiFormat (nsIMsgDBHdr *hdr)
     return nsnull;
 
   nsCOMPtr <nsIInputStream> inputStream;
-  nsCOMPtr <nsIFileSpec> fileSpec;
-  folder->GetPath(getter_AddRefs(fileSpec));
-  nsFileSpec realSpec;
-  fileSpec->GetFileSpec(&realSpec);
   nsCOMPtr <nsILocalFile> localFile;
-  NS_FileSpecToIFile(&realSpec, getter_AddRefs(localFile));
+  folder->GetFilePath(getter_AddRefs(localFile));
 
   nsresult rv;
   nsCOMPtr<nsIFileInputStream> fileStream = do_CreateInstance(NS_LOCALFILEINPUTSTREAM_CONTRACTID, &rv);
