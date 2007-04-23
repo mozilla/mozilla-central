@@ -70,6 +70,8 @@
           if (!this.adjustRangeValues(this.start, this.end, this.step))
             return;
 
+          this.changed = false;
+
           this.control.readonly = this.accessors.isReadonly();
 
           var value = this.accessors.getValue();
@@ -106,12 +108,6 @@
         </body>
       </method>
 
-      <method name="getCurrentValue">
-        <body>
-          var value = this.control.value;
-          return isNaN(value) ? "" : value;
-        </body>
-      </method>
 
       <property name="start"
                 onget="return this.control.start;"
@@ -149,16 +145,55 @@
         </getter>
       </property>
 
+      <method name="getCurrentValue">
+        <body>
+          return this.control.value;
+        </body>
+      </method>
+
+      <!--
+        updateInstanceData updates the instance data bound to this control
+        under certain conditions.
+
+        If aIncremental is false, it means that this function was called due
+        to a blur event on the control.  In this case, we should update the
+        instance data only if the control is NOT incremental and the user has
+        interacted with the control since the last refresh.
+
+        If aIncremental is true, it means that this function was called because
+        the user interacted with the control (either through mouse or keyboard
+        action) and we set a flag to indicate this fact.  If the control is
+        incremental, we update the value of the bound instance data.
+      -->
       <method name="updateInstanceData">
         <parameter name="aIncremental"/>
         <body>
+        <![CDATA[
           if (!this.accessors.hasBoundNode())
             return;
 
-          if (!aIncremental || this.incremental)
-            this.accessors.setValue(this.control.value);
+          if (aIncremental) {
+            this.changed = true;
+            if (!this.incremental)
+              return;
+          } else {
+            if (!this.changed)
+              return;
+          }
+
+          this.accessors.setValue(this.control.value);
+          this.changed = false;
+        ]]>
         </body>
       </method>
+
+      <!--
+        We need to remember if the user has interacted with this control.
+        We don't want to change the value of the node that this control is
+        bound to unless the user caused the change.
+      -->
+      <field name="changed">false</field>
+
     </implementation>
   </binding>
 
@@ -180,6 +215,13 @@
           return Components.interfaces.nsIAccessibleProvider.XFormsSliderRange;
         </getter>
       </property>
+
+      <method name="getCurrentValue">
+        <body>
+          var value = this.control.value;
+          return isNaN(value) ? "" : value;
+        </body>
+      </method>
 
       <method name="isInRange">
         <parameter name="aValue"/>
