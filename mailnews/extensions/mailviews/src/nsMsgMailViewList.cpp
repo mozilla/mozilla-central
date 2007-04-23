@@ -41,10 +41,11 @@
 #include "nsISupportsArray.h"
 #include "nsIFileChannel.h"
 #include "nsIMsgFilterService.h"
-#include "nsIFileSpec.h"
 #include "nsIMsgMailSession.h"
 #include "nsMsgBaseCID.h"
 #include "nsAppDirectoryServiceDefs.h"
+#include "nsDirectoryServiceUtils.h"
+#include "nsILocalFile.h"
 
 #define kDefaultViewPeopleIKnow "People I Know"
 #define kDefaultViewRecent "Recent Mail"
@@ -265,20 +266,15 @@ nsresult nsMsgMailViewList::LoadMailViews()
         nsCOMPtr<nsIMsgMailSession> mailSession = do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
         NS_ENSURE_SUCCESS(rv, rv);
         nsCOMPtr<nsIFile> defaultMessagesFile;
+        nsCOMPtr<nsIFile> profileDir;
         rv = mailSession->GetDataFilesDir("messenger", getter_AddRefs(defaultMessagesFile));
         rv = defaultMessagesFile->AppendNative(nsDependentCString("mailViews.dat"));
 
-        nsCOMPtr<nsIFileSpec> defaultMailViewSpec;
-        rv = NS_NewFileSpecFromIFile(defaultMessagesFile, getter_AddRefs(defaultMailViewSpec));
+         // get the profile directory
+        rv = NS_GetSpecialDirectory(NS_APP_USER_PROFILE_50_DIR, getter_AddRefs(profileDir));
         
-        // get the profile directory
-        rv = NS_GetSpecialDirectory(NS_APP_USER_PROFILE_50_DIR, getter_AddRefs(defaultMessagesFile));
-        
-        // convert to spec
-        nsCOMPtr<nsIFileSpec> profileDirSpec;
-        rv = NS_NewFileSpecFromIFile(defaultMessagesFile, getter_AddRefs(profileDirSpec));
         // now copy the file over to the profile directory
-        defaultMailViewSpec->CopyToDir(profileDirSpec);
+        defaultMessagesFile->CopyToNative(profileDir, EmptyCString());
     }
     // this is kind of a hack but I think it will be an effective hack. The filter service already knows how to 
     // take a nsILocalFile and parse the contents into filters which are very similar to mail views. Intead of
