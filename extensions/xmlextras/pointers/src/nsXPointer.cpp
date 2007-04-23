@@ -192,8 +192,8 @@ static nsresult NS_NewXPointerResult(nsIDOMNode *aNode,
 class nsXPointerSchemeContext : public nsIXPointerSchemeContext
 {
 public:
-  nsXPointerSchemeContext() {};
-  virtual ~nsXPointerSchemeContext() {};
+  nsXPointerSchemeContext() {}
+  virtual ~nsXPointerSchemeContext() {}
   
   NS_DECL_ISUPPORTS
   NS_DECL_NSIXPOINTERSCHEMECONTEXT
