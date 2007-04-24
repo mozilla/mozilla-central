@@ -202,13 +202,20 @@ nsXFormsActionElement::SetRebuild(nsIModelElementPrivate* aModel,
   }
 
   PRUint32 deferred = 0;
-  mDeferredUpdates.Get(aModel, &deferred);
+
+  // It is possible that QI's to an interface that isn't nsISupports (like
+  // nsIModelElementPrivate) could produce different values even from the same
+  // model element.  So we'll convert the model to nsISupports before querying
+  // it or storing it via hashtable.
+  nsCOMPtr<nsISupports> temp(do_QueryInterface(aModel));
+  mDeferredUpdates.Get(temp, &deferred);
   if (aEnable) {
     deferred |= DEFERRED_REBUILD;
   } else {
     deferred &= ~DEFERRED_REBUILD;
   }
-  mDeferredUpdates.Put(aModel, deferred);
+  
+  mDeferredUpdates.Put(temp, deferred);
   return NS_OK;
 }
 
