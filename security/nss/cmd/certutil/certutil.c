@@ -1442,13 +1442,14 @@ MakeV1Cert(	CERTCertDBHandle *	handle,
 
     /* note that the time is now in micro-second unit */
     validity = CERT_CreateValidity (now, after);
-
-    cert = CERT_CreateCertificate(serialNumber, 
-				  (selfsign ? &req->subject 
-				            : &issuerCert->subject), 
-	                          validity, req);
+    if (validity) {
+        cert = CERT_CreateCertificate(serialNumber, 
+				      (selfsign ? &req->subject 
+				                : &issuerCert->subject), 
+	                              validity, req);
     
-    CERT_DestroyValidity(validity);
+        CERT_DestroyValidity(validity);
+    }
     if ( issuerCert ) {
 	CERT_DestroyCertificate (issuerCert);
     }
