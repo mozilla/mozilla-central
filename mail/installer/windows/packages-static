@@ -167,9 +167,6 @@ bin\components\spellchecker.xpt
 ; xpinstall (needed to dynamically install themes
 bin\components\xpinstall.xpt
 
-; xmlextras (for RSS feeds and the like)
-bin\components\xmlextras.xpt
-
 ; misson control, autoconfig
 bin\defaults\autoconfig\platform.js
 bin\defaults\autoconfig\prefcalls.js

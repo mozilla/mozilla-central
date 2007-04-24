@@ -223,3 +223,4 @@ uninstall/uninstall.exe
 components/myspell/en-US.dic
 components/myspell/en-US.aff
 regxpcom.exe
+components/xmlextras.xpt
