@@ -68,7 +68,7 @@ function showImapSignatureUnknown()
     if (promptService.confirm(window,
           gBrandBundle.getString("brandShortName"),
           gBundle.getString("ImapOnDemand"))) {
-      ReloadWithAllParts();
+      gDBView.reloadMessageWithAllParts();
     }
   }
 }
