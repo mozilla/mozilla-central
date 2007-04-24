@@ -117,7 +117,6 @@ function Startup() {
                                                 "isHandlingJPEG",
                                                 "isHandlingGIF",
                                                 "isHandlingPNG",
-                                                "isHandlingMNG",
                                                 "isHandlingXBM",
                                                 "isHandlingBMP",
                                                 "isHandlingICO",
