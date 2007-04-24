@@ -2741,9 +2741,12 @@ nsDelAttachListener::OnStopRequest(nsIRequest * aRequest, nsISupports * aContext
   mNewMessageKey = PR_UINT32_MAX;
   nsCOMPtr<nsIMsgCopyService> copyService = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID);
   m_state = eCopyingNewMsg;
+  // clone file because nsIFile on Windows caches the wrong file size.
+  nsCOMPtr <nsIFile> clone;
+  mMsgFile->Clone(getter_AddRefs(clone));
   if (copyService) 
   {
-    rv = copyService->CopyFileMessage(mMsgFile, mMessageFolder, nsnull, PR_FALSE,
+    rv = copyService->CopyFileMessage(clone, mMessageFolder, nsnull, PR_FALSE,
                                       mOrigMsgFlags, listenerCopyService, mMsgWindow);
   }
   return rv;
