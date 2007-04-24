@@ -245,6 +245,7 @@
     else if (attr.tag == kSecCreatorItemAttr)
       mCreator = attr.data ? *((OSType*)(attr.data)) : 0;
   }
+  SecKeychainItemFreeAttributesAndData(attrList, NULL);
   mDataLoaded = YES;
 }
 
