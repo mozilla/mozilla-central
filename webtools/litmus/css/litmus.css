@@ -1012,7 +1012,7 @@ div.testcase-completed {
     color: #333333;
 }
 
-.testcase-completed, td.in_use, div.recommended_test_runs {
+.testcase-completed, td.in_use, div.recommended_test_runs, a.test_run:hover {
     background-color: #eeffee;
     border-width: 2px;
     border-color: #99cc99;
@@ -1466,4 +1466,12 @@ ul.test_run_nav a {
 
 li.recommended {
     font-size: 1.2em;
+}
+
+a.test_run {
+    padding: 5px;
+}
+
+a.test_run:link, a.test_run:visited {
+    color: #006633;
 }
