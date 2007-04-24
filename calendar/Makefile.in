@@ -44,4 +44,8 @@ include $(DEPTH)/config/autoconf.mk
 MODULE	= calendar
 DIRS = libical resources base providers import-export locales
 
+ifdef ENABLE_TESTS
+DIRS += test
+endif
+
 include $(topsrcdir)/config/rules.mk
