@@ -25,7 +25,7 @@
                 </li>
                 <li>
                     <Description nc:panelid="search"
-                        nc:datasources="search-db.rdf"
+                        nc:datasources="rdf:null"
                         nc:emptysearchtext="[No matching items found.]"
                         nc:emptysearchlink="chrome://help/locale/welcome.xhtml#search_tips"/>
                 </li>
