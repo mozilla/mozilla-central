@@ -721,7 +721,7 @@ Java_org_mozilla_jss_ssl_SSLSocket_socketRead(JNIEnv *env, jobject self,
     jint size;
     PRIntervalTime ivtimeout;
     PRThread *me;
-    jint nread;
+    jint nread = -1;
     
     size = (*env)->GetArrayLength(env, bufBA);
     if( off < 0 || len < 0 || (off+len) > size) {
@@ -745,6 +745,11 @@ Java_org_mozilla_jss_ssl_SSLSocket_socketRead(JNIEnv *env, jobject self,
     /* set the current thread doing the read */
     me = PR_GetCurrentThread();
     PR_Lock(sock->lock);
+    if ( sock->closePending ) {
+       PR_Unlock(sock->lock);
+       JSSL_throwSSLSocketException(env, "Read operation interrupted");
+       goto finish;
+    }
     PR_ASSERT(sock->reader == NULL);
     sock->reader = me;
     PR_Unlock(sock->lock);
@@ -850,6 +855,11 @@ Java_org_mozilla_jss_ssl_SSLSocket_socketWrite(JNIEnv *env, jobject self,
     /* set the current thread doing the write */
     me = PR_GetCurrentThread();
     PR_Lock(sock->lock);
+    if ( sock->closePending ) {
+       PR_Unlock(sock->lock);
+       JSSL_throwSSLSocketException(env, "Write operation interrupted");
+       goto finish;
+    }
     PR_ASSERT(sock->writer == NULL);
     sock->writer = me;
     PR_Unlock(sock->lock);
@@ -914,8 +924,9 @@ Java_org_mozilla_jss_ssl_SSLSocket_abortReadWrite(
         PR_Interrupt(sock->reader); 
     }
     if ( sock->writer ) {
-	PR_Interrupt(sock->writer); 
+        PR_Interrupt(sock->writer); 
     }
+    sock->closePending = PR_TRUE;   /* socket is to be closed */
     PR_Unlock(sock->lock);
 finish:
     EXCEPTION_CHECK(env, sock)

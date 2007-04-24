@@ -63,7 +63,6 @@ JSSL_throwSSLSocketException(JNIEnv *env, char *message)
     jobject excepObj;
     jstring msgString;
     jint result;
-    const char *classname=NULL;
 
     /*
      * get the error code and error string
@@ -298,6 +297,7 @@ JSSL_CreateSocketData(JNIEnv *env, jobject sockObj, PRFileDesc* newFD,
     sockdata->reader = NULL;
     sockdata->writer = NULL;
     sockdata->accepter = NULL;
+    sockdata->closePending = PR_FALSE;
 
     sockdata->lock = PR_NewLock();
     if( sockdata->lock == NULL ) {
@@ -552,7 +552,6 @@ JNIEXPORT jint JNICALL
 Java_org_mozilla_jss_ssl_SocketBase_getSSLOption(JNIEnv *env,
                                         jobject self, jint option)
 {
-    PRSocketOptionData sockOptions;
     JSSL_SocketData *sock = NULL;
     SECStatus status = SECSuccess;
     PRBool bOption = PR_FALSE;

@@ -100,6 +100,12 @@ Java_org_mozilla_jss_ssl_SSLServerSocket_socketAccept
     /* Set the current thread doing the accept. */
     me = PR_GetCurrentThread();
     PR_Lock(sock->lock);
+    if ( sock->closePending ) {
+       PR_Unlock(sock->lock);
+       JSSL_throwSSLSocketException(env, 
+                "Accept operation failed: socket is closing");
+       goto finish;
+    }
     PR_ASSERT(sock->accepter == NULL);
     sock->accepter = me;
     PR_Unlock(sock->lock);
@@ -188,6 +194,7 @@ Java_org_mozilla_jss_ssl_SSLServerSocket_abortAccept(
     if ( sock->accepter ) {
         PR_Interrupt(sock->accepter); 
     }
+    sock->closePending = PR_TRUE;   /* socket is to be closed */
     PR_Unlock(sock->lock);
 finish:
     EXCEPTION_CHECK(env, sock)

@@ -89,7 +89,6 @@ JSS_SSL_getException(PRFilePrivate *priv)
 static PRInt32 
 writebuf(JNIEnv *env, PRFileDesc *fd, jobject sockObj, jbyteArray byteArray)
 {
-    PRStatus stat = PR_FAILURE;
     jmethodID getOutputStream, writeMethod;
     jclass sockClass, osClass;
     jobject outputStream;
@@ -375,7 +374,6 @@ getInetAddress(PRFileDesc *fd, PRNetAddr *addr, LocalOrPeer localOrPeer)
      */
     {
         jbyte *addrBytes;
-        PRInt32 rawAddr;
 
         memset(addr, 0, sizeof(PRNetAddr));
 
