@@ -104,7 +104,9 @@
                                 accesskey="&portNumber.accesskey;"
                                 control="port"/>
                          <hbox>
-                             <textbox id="port" size="6" disableiflocked="true"/> 
+                             <textbox id="port" type="number" size="5" min="1"
+                                       max="65535" hidespinbuttons="true"
+                                       disableiflocked="true"/>
                          </hbox>
                      </row>
                      <row align="center">
@@ -144,7 +146,8 @@
                        accesskey="&return.accesskey;"
                        control="results"/>
                  <hbox align="center">
-                   <textbox id="results" size="6"/>
+                   <textbox id="results" type="number" size="10" min="1"
+                            max="2147483647" hidespinbuttons="true"/>
                    <label value="&results.label;"/>
                  </hbox>
                </row>
