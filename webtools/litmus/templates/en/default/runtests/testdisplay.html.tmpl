@@ -28,9 +28,10 @@
 [%# INTERFACE:
   # $sysconfig - the user's system configuration
   # $istrusted - is the user trusted?
-  # $group     - selected group to test
+  # $test_run  - chosen test run
+  # $testgroup - selected group to test
   # $subgroup  - selected subgroup to test
-  # @tests       - an array of test objects to run
+  # @tests     - an array of test objects to run
 #%]
 
 [% test_run=test_runs.0 %]
@@ -57,13 +58,13 @@
 <input type="hidden" id="test_run_id" name="test_run_id" value="[% test_run.test_run_id %]"/>
 <input id="isTestResult" name="isTestResult" type="hidden" value="true" />
 <input id="editingTestcases" name="editingTestcases" id="editingTestcases" type="hidden" value="" />
-<input id="testgroup" name="testgroup" type="hidden" value="[% group.testgroup_id FILTER html %]" />
+<input id="testgroup" name="testgroup" type="hidden" value="[% testgroup.testgroup_id FILTER html %]" />
 
 <div class="section-full">
 <div class="sec_head">
   <table cellspacing="0" cellpadding="0">
   <tr>
-  <td colspan="2" class="l">Testcases - <a href="run_tests.cgi?product=[% sysconfig.product.productid %]&amp;defaulttestgroup=[% group.testgroup_id %]&amp;continuetesting=1" title="Click here to return to the Test Group selection page">[% group.name | html %]</a>: [% subgroup.name | html %]</td>
+  <td colspan="2" class="l">Testcases - <a href="run_tests.cgi?product=[% sysconfig.product.productid %]&amp;defaulttestgroup=[% group.testgroup_id %]&amp;continuetesting=1" title="Click here to return to the Testgroup selection page">[% group.name | html %]</a>: [% subgroup.name | html %]</td>
   </tr>
   <tr>
   <td class="submitall"><div class="v3"><input class="button" type="submit" id="Submit" name="Submit" value="Submit All Results" onclick="findEdited()" /></div></td>

@@ -102,7 +102,7 @@ Thank you for your testing efforts.</p>
 
 <p><strong>Where to now?</strong></p>
 <ul class="test_run_nav">
-    <li><a href="run_tests.cgi?test_run_id=[% test_run.test_run_id %]&amp;continuetesting=1[% IF testgroup %]&amp;defaulttestgroup=[% testgroup.testgroup_id | html | uri %][% END %]">Continue testing this Test Run under the same configuration.[% IF test_run.recommended %]<img class="inline" alt="*" src="images/yellowstar.gif" / title="Mozilla needs help testing this right now" />[% END %]</a></li>
+    <li class="recommended"><a href="run_tests.cgi?test_run_id=[% test_run.test_run_id %]&amp;continuetesting=1[% IF testgroup %]&amp;defaulttestgroup=[% testgroup.testgroup_id | html | uri %][% END %]">Continue testing this Test Run under the same configuration.[% IF test_run.recommended %]<img class="inline" alt="*" src="images/yellowstar.gif" / title="Mozilla needs help testing this right now" />[% END %]</a></li>
     <li><a href="run_tests.cgi?test_run_id=[% test_run.test_run_id %]">Continue testing this Test Run, but change my configuration.</a></li>    
     <li><a href="run_tests.cgi">Select a new Test Run to test.</a></li>    
     <li><a href="test_run_report.cgi?test_run_id=[% test_run.test_run_id %]">Show me the report for this Test Run.</a></li>    

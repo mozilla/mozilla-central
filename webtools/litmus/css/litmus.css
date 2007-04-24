@@ -1463,3 +1463,7 @@ ul.test_run_nav li {
 ul.test_run_nav a {
     text-transform: none;
 }
+
+li.recommended {
+    font-size: 1.2em;
+}

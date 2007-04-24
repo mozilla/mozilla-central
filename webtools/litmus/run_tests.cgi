@@ -123,6 +123,7 @@ sub displayGroupSelection() {
   Litmus::Auth::requireLogin("run_tests.cgi");
   
   my $test_run_id = $c->param("test_run_id");
+  my $default_testgroup = $c->param("defaulttestgroup");
 
   if (!$test_run_id) {
     &displayAllTestRuns();
@@ -176,15 +177,15 @@ sub displayGroupSelection() {
   }
 
   my $vars = {
-              title        => $title,
-              user         => Litmus::Auth::getCurrentUser(),
-              test_runs     => [$test_run],
-              testgroups   => \@testgroups,
-              subgroups    => \%subgroups,
-              defaultgroup => $defaultgroup,
-              defaultemail => $user,
-              show_admin   => Litmus::Auth::istrusted($user),
-              sysconfig    => $sysconfig,
+              title            => $title,
+              user             => Litmus::Auth::getCurrentUser(),
+              test_runs        => [$test_run],
+              testgroups       => \@testgroups,
+              subgroups        => \%subgroups,
+              defaulttestgroup => $default_testgroup,
+              defaultemail     => $user,
+              show_admin       => Litmus::Auth::istrusted($user),
+              sysconfig        => $sysconfig,
              };
 
   Litmus->template()->process("runtests/selectgroupsubgroup.html.tmpl", 

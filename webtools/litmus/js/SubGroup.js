@@ -67,7 +67,18 @@ function showsubgroup() {
 
 }
 
-function group_init() {
-    testConfigHeight = new fx.Height('test_run_summary', {duration: 400});
-    testConfigHeight.toggle();
+function group_init(testgroup_id) {
+  testConfigHeight = new fx.Height('test_run_summary', {duration: 400});
+  testConfigHeight.toggle();
+    
+  if (testgroup_id) {
+    var testgroups = document.getElementsByName('testgroup');
+    for (var i=0; i<testgroups.length; i++) {
+      if (testgroups[i].value == testgroup_id) {
+        testgroups[i].checked = true;            
+      } else {
+        testgroups[i].checked = false;
+      }
+    }
+  }
 }
