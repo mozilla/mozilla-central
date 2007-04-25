@@ -45,6 +45,7 @@
 #include "nsIURL.h"
 #include "nsIThread.h"
 #include "nsILoadGroup.h"
+#include "nsIFile.h"
 #include "nsCOMPtr.h"
 #include "nsIInterfaceRequestor.h"
 #include "nsIInterfaceRequestorUtils.h"

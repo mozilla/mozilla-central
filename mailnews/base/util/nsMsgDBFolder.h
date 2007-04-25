@@ -48,6 +48,7 @@
 #include "nsStaticAtom.h"
 #include "nsIDBChangeListener.h"
 #include "nsIURL.h"
+#include "nsILocalFile.h"
 #include "nsWeakReference.h"
 #include "nsIMsgFilterList.h"
 #include "nsIUrlListener.h"

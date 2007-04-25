@@ -44,6 +44,7 @@
 #include "nsIMsgFilterList.h"
 #include "msgCore.h"
 #include "nsIMsgFolder.h"
+#include "nsILocalFile.h"
 #include "nsCOMPtr.h"
 #include "nsWeakReference.h"
 #include "nsIMsgDatabase.h"
