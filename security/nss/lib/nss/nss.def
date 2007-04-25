@@ -892,6 +892,10 @@ SECKEY_SignatureLen;
 CERT_SetOCSPFailureMode;
 CERT_OCSPCacheSettings;
 CERT_ClearOCSPCache;
+DER_GeneralizedDayToAscii;
+DER_TimeChoiceDayToAscii;
+DER_TimeToGeneralizedTime;
+DER_TimeToGeneralizedTimeArena;
 ;+    local:
 ;+       *;
 ;+};
