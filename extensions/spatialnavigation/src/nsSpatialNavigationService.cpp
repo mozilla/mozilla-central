@@ -35,6 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsSpatialNavigationPrivate.h"
+#include "nsIObserverService.h"
 
 nsSpatialNavigationService::nsSpatialNavigationService()  
 {
@@ -109,7 +110,64 @@ nsSpatialNavigationService::Observe(nsISupports *aSubject, const char *aTopic, c
     nsCOMPtr<nsIPrefBranch2> prefBranch = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
-	prefBranch->AddObserver("snav.", this, PR_FALSE);
+    prefBranch->AddObserver("snav.", this, PR_FALSE);
+    
+    nsCOMPtr<nsIObserverService> observerService = 
+             do_GetService(NS_OBSERVERSERVICE_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+    rv = observerService->AddObserver(this, "profile-after-change", PR_FALSE);
+    NS_ENSURE_SUCCESS(rv, rv);
+    
+    return NS_OK;
+  }
+  
+  if (!strcmp(aTopic,"profile-after-change"))
+  {
+    // the profile has loaded, read in the preferences
+    nsCOMPtr<nsIPrefBranch> prefBranch = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+    
+    PRBool tempBool;
+    PRInt32 tempInt32;
+    
+    // note that if Get*Pref fails, the pref may not exist, so we fallback to
+    // the defaults as defined in the constructor
+    
+    rv = prefBranch->GetBoolPref("snav.enabled", &tempBool);
+    if (NS_SUCCEEDED(rv))
+      mEnabled = tempBool;
+    rv = prefBranch->GetBoolPref("snav.ignoreTextFields", &tempBool);
+    if (NS_SUCCEEDED(rv))
+      mIgnoreTextFields = tempBool;
+    rv = prefBranch->GetIntPref("snav.directionalBias", &tempInt32);
+    if (NS_SUCCEEDED(rv))
+    {
+      gDirectionalBias = tempInt32;
+      if (gDirectionalBias == 0)
+        gDirectionalBias = 1;
+    }
+    rv = prefBranch->GetBoolPref("snav.disableJS", &tempBool);
+    if (NS_SUCCEEDED(rv))
+      mDisableJSWhenFocusing = tempBool;
+    rv = prefBranch->GetIntPref("snav.rectFudge", &tempInt32);
+    if (NS_SUCCEEDED(rv))
+      gRectFudge = tempInt32;
+    rv = prefBranch->GetIntPref("snav.keyCode.left", &tempInt32);
+    if (NS_SUCCEEDED(rv))
+      mKeyCodeLeft = tempInt32;
+    rv = prefBranch->GetIntPref("snav.keyCode.right", &tempInt32);
+    if (NS_SUCCEEDED(rv))
+      mKeyCodeRight = tempInt32;
+    rv = prefBranch->GetIntPref("snav.keyCode.up", &tempInt32);
+    if (NS_SUCCEEDED(rv))
+      mKeyCodeUp = tempInt32;
+    rv = prefBranch->GetIntPref("snav.keyCode.down", &tempInt32);
+    if (NS_SUCCEEDED(rv))
+      mKeyCodeDown = tempInt32;
+    rv = prefBranch->GetIntPref("snav.keyCode.modifier", &tempInt32);
+    if (NS_SUCCEEDED(rv))
+      mKeyCodeModifier = tempInt32;
+    
     return NS_OK;
   }
   
