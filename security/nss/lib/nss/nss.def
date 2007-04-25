@@ -887,6 +887,14 @@ SECKEY_SignatureLen;
 ;+    local:
 ;+       *;
 ;+};
+;+NSS_3.11.7 {
+;+    global:
+CERT_SetOCSPFailureMode;
+CERT_OCSPCacheSettings;
+CERT_ClearOCSPCache;
+;+    local:
+;+       *;
+;+};
 ;+NSS_3.12 { 	# NSS 3.12 release
 ;+    global:
 PK11_GetAllSlotsForCert;
@@ -899,9 +907,6 @@ VFY_VerifyDataDirect;
 VFY_VerifyDataWithAlgorithmID;
 VFY_VerifyDigestDirect;
 VFY_VerifyDigestWithAlgorithmID;
-CERT_SetOCSPFailureMode;
-CERT_OCSPCacheSettings;
-CERT_ClearOCSPCache;
 ;+    local:
 ;+       *;
 ;+};
