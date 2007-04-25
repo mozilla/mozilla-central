@@ -62,10 +62,7 @@
 #include "nsCRT.h"  // for nsCRT::strtok
 #include "prprf.h"
 #include "nsIMsgFolderCache.h"
-#include "nsFileStream.h"
-#include "nsIFileStreams.h"
 #include "nsMsgUtils.h"
-#include "nsIFileSpec.h" 
 #include "nsILocalFile.h"
 #include "nsIURL.h"
 #include "nsNetCID.h"

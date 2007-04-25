@@ -62,9 +62,6 @@ public:
 
   nsFolderCompactState(void);
   virtual ~nsFolderCompactState(void);
-//  virtual nsresult Init(nsIMsgFolder *folder, const char *baseMsgUri, nsIMsgDatabase *db,
-//                           nsIFileSpec *pathSpec);
-  // virtual nsresult FinishCompact();
 protected:
   virtual nsresult InitDB(nsIMsgDatabase *db);
   virtual nsresult StartCompacting();
@@ -73,7 +70,7 @@ protected:
   void  CleanupTempFilesAfterError();
 
   nsresult Init(nsIMsgFolder *aFolder, const char* aBaseMsgUri, nsIMsgDatabase *aDb,
-                            nsIFileSpec *aPathSpec, nsIMsgWindow *aMsgWindow);
+                            nsILocalFile *aPath, nsIMsgWindow *aMsgWindow);
   nsresult GetMessage(nsIMsgDBHdr **message);
   nsresult BuildMessageURI(const char *baseURI, PRUint32 key, nsCString& uri);  
   nsresult ShowStatusMsg(const PRUnichar *aMsg);
@@ -88,8 +85,8 @@ protected:
   nsCString m_messageUri; // current message uri being copy
   nsCOMPtr<nsIMsgFolder> m_folder; // current folder being compact
   nsCOMPtr<nsIMsgDatabase> m_db; // new database for the compact folder
-  nsFileSpec m_fileSpec; // new mailbox for the compact folder
-  nsOutputFileStream *m_fileStream; // output file stream for writing
+  nsCOMPtr <nsILocalFile> m_file; // new mailbox for the compact folder
+  nsCOMPtr <nsIOutputStream> m_fileStream; // output file stream for writing
   nsMsgKeyArray m_keyArray; // all message keys need to be copied over
   PRInt32 m_size; // size of the message key array
   PRInt32 m_curIndex; // index of the current copied message key in key array
@@ -109,7 +106,7 @@ protected:
   PRBool m_needStatusLine;
   PRBool m_startOfMsg;
   PRInt32 m_statusOffset;
-  PRInt32 m_addedHeaderSize;
+  PRUint32 m_addedHeaderSize;
   nsCOMPtr <nsISupportsArray> m_offlineFolderArray;
 
 };

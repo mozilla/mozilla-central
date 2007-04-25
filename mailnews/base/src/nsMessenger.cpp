@@ -45,7 +45,6 @@
 // xpcom
 #include "nsIComponentManager.h"
 #include "nsIServiceManager.h"
-#include "nsFileStream.h"
 #include "nsIStringStream.h"
 #include "nsEscape.h"
 #include "nsXPIDLString.h"

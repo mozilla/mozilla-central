@@ -50,7 +50,6 @@
 #include "nsMsgBaseCID.h"
 #include "nsMsgLocalCID.h"
 #include "nsMsgFolderFlags.h"
-#include "nsIFileSpec.h"
 #include "nsPop3Protocol.h"
 #include "nsIMsgLocalMailFolder.h"
 #include "nsIMsgAccountManager.h"

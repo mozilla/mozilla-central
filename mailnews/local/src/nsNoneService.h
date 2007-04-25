@@ -41,7 +41,6 @@
 
 #include "nscore.h"
 
-#include "nsFileSpec.h"
 #include "nsIMsgProtocolInfo.h"
 #include "nsINoneService.h"
 

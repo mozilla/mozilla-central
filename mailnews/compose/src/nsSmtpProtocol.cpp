@@ -48,7 +48,6 @@
 #include "nsIOutputStream.h"
 #include "nsISocketTransport.h"
 #include "nsIMsgHeaderParser.h"
-#include "nsFileStream.h"
 #include "nsIMsgMailNewsUrl.h"
 #include "nsMsgBaseCID.h"
 #include "nsMsgCompCID.h"

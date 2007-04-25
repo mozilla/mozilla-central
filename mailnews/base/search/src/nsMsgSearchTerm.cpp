@@ -62,7 +62,7 @@
 #include "nsIPrefBranch.h"
 #include "nsIPrefService.h"
 #include "nsIMsgFilterPlugin.h"
-#include "nsIFileSpec.h"
+#include "nsILocalFile.h"
 #include "nsIRDFService.h"
 #include "nsISupportsObsolete.h"
 #include "nsNetCID.h"
@@ -1498,11 +1498,7 @@ NS_IMETHODIMP nsMsgSearchScopeTerm::GetMailFile(nsILocalFile **aLocalFile)
     if (!m_folder)
      return NS_ERROR_NULL_POINTER;
 
-    nsCOMPtr <nsIFileSpec> fileSpec;
-    m_folder->GetPath(getter_AddRefs(fileSpec));
-    nsFileSpec realSpec;
-    fileSpec->GetFileSpec(&realSpec);
-    NS_FileSpecToIFile(&realSpec, getter_AddRefs(m_localFile));
+    m_folder->GetFilePath(getter_AddRefs(m_localFile));
   }
   if (m_localFile)
   {

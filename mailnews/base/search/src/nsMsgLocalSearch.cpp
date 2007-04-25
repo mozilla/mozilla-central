@@ -52,7 +52,6 @@
 #include "nsMsgSearchValue.h"
 #include "nsIMsgLocalMailFolder.h"
 #include "nsIMsgWindow.h"
-#include "nsIFileSpec.h"
 #include "nsIMsgHdr.h"
 
 extern "C"

@@ -45,7 +45,6 @@
 #include "nsMsgFilterList.h"
 #include "nsMsgFilter.h"
 #include "nsIMsgFilterHitNotify.h"
-#include "nsFileStream.h"
 #include "nsMsgUtils.h"
 #include "nsMsgSearchTerm.h"
 #include "nsXPIDLString.h"

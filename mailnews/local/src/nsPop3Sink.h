@@ -40,8 +40,7 @@
 #include "nscore.h"
 #include "nsIURL.h"
 #include "nsIPop3Sink.h"
-#include "nsFileSpec.h"
-#include "nsFileStream.h"
+#include "nsIOutputStream.h"
 #include "prmem.h"
 #include "prio.h"
 #include "plstr.h"
@@ -61,7 +60,7 @@ public:
     NS_DECL_ISUPPORTS
     NS_DECL_NSIPOP3SINK
     nsresult	GetServerFolder(nsIMsgFolder **aFolder);
-    nsresult	FindPartialMessages(nsFileSpec *fileSpec);
+    nsresult	FindPartialMessages(nsILocalFile *folderFile);
     void	CheckPartialMessages(nsIPop3Protocol *protocol);
 
     static char*  GetDummyEnvelope(void);
@@ -88,10 +87,10 @@ protected:
 #ifdef DEBUG
     PRInt32 m_fileCounter;
 #endif
-    nsIOFileStream* m_outFileStream;
+    nsCOMPtr <nsIOutputStream> m_outFileStream;
     PRBool m_buildMessageUri;
     PRBool m_downloadingToTempFile;
-    nsFileSpec m_tmpDownloadFileSpec;
+    nsCOMPtr <nsILocalFile> m_tmpDownloadFile;
     nsCString m_messageUri;
     nsXPIDLCString m_baseMessageUri;
     nsXPIDLCString m_accountKey;

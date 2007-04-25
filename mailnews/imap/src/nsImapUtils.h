@@ -38,7 +38,6 @@
 #ifndef NS_IMAPUTILS_H
 #define NS_IMAPUTILS_H
 
-#include "nsFileSpec.h"
 #include "nsString.h"
 #include "nsIMsgIncomingServer.h"
 #include "nsMsgKeyArray.h"
@@ -50,7 +49,7 @@ static const char kImapMessageRootURI[] = "imap-message:/";
 
 extern nsresult
 nsImapURI2Path(const char* rootURI, const char* uriStr, 
-               nsFileSpec& pathResult);
+               nsILocalFile **pathResult);
 
 extern nsresult
 nsImapURI2FullName(const char* rootURI, const char* hostname, const char* uriStr,

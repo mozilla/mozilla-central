@@ -61,8 +61,6 @@
 #include "plbase64.h"
 #include "nsIMsgMailNewsUrl.h"
 #include "nsPop3Protocol.h"
-#include "nsFileSpec.h"
-#include "nsFileStream.h"
 #include "MailNewsTypes.h"
 #include "nsString.h"
 #include "nsXPIDLString.h"
@@ -769,7 +767,7 @@ nsresult nsPop3Protocol::GetPassword(char ** aPassword, PRBool *okayValue)
   return rv;
 }
 
-NS_IMETHODIMP nsPop3Protocol::OnTransportStatus(nsITransport *aTransport, nsresult aStatus, PRUint32 aProgress, PRUint32 aProgressMax)
+NS_IMETHODIMP nsPop3Protocol::OnTransportStatus(nsITransport *aTransport, nsresult aStatus, PRUint64 aProgress, PRUint64 aProgressMax)
 {
   return nsMsgProtocol::OnTransportStatus(aTransport, aStatus, aProgress, aProgressMax);
 }
@@ -2790,18 +2788,22 @@ nsPop3Protocol::GetMsg()
       nsresult rv;
       PRInt64 mailboxSpaceLeft = LL_Zero();
       nsCOMPtr <nsIMsgFolder> folder;
-      nsCOMPtr <nsIFileSpec> path;
+      nsCOMPtr <nsILocalFile> path;
       
       // Get the path to the current mailbox
       // 	
       NS_ENSURE_TRUE(m_nsIPop3Sink, NS_ERROR_UNEXPECTED); 
       rv = m_nsIPop3Sink->GetFolder(getter_AddRefs(folder));
       if (NS_FAILED(rv)) return rv;
-      rv = folder->GetPath(getter_AddRefs(path));
+      rv = folder->GetFilePath(getter_AddRefs(path));
       if (NS_FAILED(rv)) return rv;
       
-      // call GetDiskSpaceAvailable
-      rv = path->GetDiskSpaceAvailable(&mailboxSpaceLeft);
+      // call GetDiskSpaceAvailable on the directory
+      nsCOMPtr <nsIFile> parent;
+      path->GetParent(getter_AddRefs(parent));
+      nsCOMPtr <nsILocalFile> localParent = do_QueryInterface(parent, &rv);
+      if (localParent)
+        rv = localParent->GetDiskSpaceAvailable(&mailboxSpaceLeft);
       if (NS_FAILED(rv))
       {
         // The call to GetDiskSpaceAvailable FAILED!
@@ -2818,7 +2820,7 @@ nsPop3Protocol::GetMsg()
       else
       {
 #ifdef DEBUG
-        printf("GetDiskSpaceAvailable returned: %d bytes\n", mailboxSpaceLeft);
+        printf("GetDiskSpaceAvailable returned: %d bytes\n", (PRUint32) mailboxSpaceLeft);
 #endif
         
         // Original comment from old implementation follows...

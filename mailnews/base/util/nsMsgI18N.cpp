@@ -50,9 +50,8 @@
 #include "nsIMimeConverter.h"
 #include "msgCore.h"
 #include "nsMsgI18N.h"
-#include "nsFileSpec.h"
-#include "nsFileStream.h"
 #include "nsMsgMimeCID.h"
+#include "nsILineInputStream.h"
 #include "nsMimeTypes.h"
 #include "nsIEntityConverter.h"
 #include "nsISaveAsCharset.h"
@@ -61,10 +60,9 @@
 #include "nsString.h"
 #include "nsReadableUtils.h"
 #include "prmem.h"
-#include "nsFileSpec.h"
 #include "plstr.h"
 #include "nsUTF8Utils.h"
-
+#include "nsNetUtil.h"
 //
 // International functions necessary for composition
 //
@@ -337,39 +335,43 @@ PRBool nsMsgI18Ncheck_data_in_charset_range(const char *charset, const PRUnichar
 // Simple parser to parse META charset. 
 // It only supports the case when the description is within one line. 
 const char * 
-nsMsgI18NParseMetaCharset(nsFileSpec* fileSpec) 
+nsMsgI18NParseMetaCharset(nsILocalFile* file) 
 { 
   static char charset[kMAX_CSNAME+1]; 
-  char buffer[512]; 
 
   *charset = '\0'; 
 
-  if (fileSpec->IsDirectory()) {
+  PRBool isDirectory = PR_FALSE;
+  file->IsDirectory(&isDirectory);
+  if (isDirectory) {
     NS_ASSERTION(0,"file is a directory");
     return charset; 
   }
 
-  nsInputFileStream fileStream(*fileSpec); 
+  nsresult rv;
+  nsCOMPtr <nsIFileInputStream> fileStream = do_CreateInstance(NS_LOCALFILEINPUTSTREAM_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, charset);
+  
+  rv = fileStream->Init(file, PR_RDONLY, 0664, PR_FALSE);
+  nsCOMPtr <nsILineInputStream> lineStream = do_QueryInterface(fileStream, &rv);
 
-  while (!fileStream.eof() && !fileStream.failed() && 
-         fileStream.is_open()) { 
-    fileStream.readline(buffer, 512); 
-    if (*buffer == nsCRT::CR || *buffer == nsCRT::LF || *buffer == 0) 
+  nsCString curLine;
+  PRBool more = PR_TRUE;
+  while (NS_SUCCEEDED(rv) && more) { 
+    rv = lineStream->ReadLine(curLine, &more); 
+    if (curLine.IsEmpty()) 
       continue; 
 
-    PRUint32 len = PL_strlen(buffer);
-    for (PRUint32 i = 0; i < len; i++) { 
-      buffer[i] = toupper(buffer[i]); 
-    } 
+    ToUpperCase(curLine);
 
-    if (PL_strstr(buffer, "/HEAD")) 
+    if (curLine.Find("/HEAD") != kNotFound) 
       break; 
 
-    if (PL_strstr(buffer, "META") && 
-        PL_strstr(buffer, "HTTP-EQUIV") && 
-        PL_strstr(buffer, "CONTENT-TYPE") && 
-        PL_strstr(buffer, "CHARSET")) { 
-      char *cp = PL_strstr(PL_strstr(buffer, "CHARSET"), "=");
+    if (curLine.Find("META") != kNotFound && 
+       curLine.Find("HTTP-EQUIV") != kNotFound && 
+        curLine.Find("CONTENT-TYPE") != kNotFound && 
+       curLine.Find("CHARSET") != kNotFound) { 
+      char *cp = (char *) PL_strstr(PL_strstr(curLine.get(), "CHARSET"), "=");
       char *newStr;
       char *token = cp ? nsCRT::strtok(cp + 1, " \"\'", &newStr) : nsnull;
       if (token) { 

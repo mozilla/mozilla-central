@@ -48,7 +48,6 @@
 #include "nsMsgKeySet.h"
 #include "nsIEnumerator.h"
 #include "nsMsgThread.h"
-#include "nsFileStream.h"
 #include "nsDependentSubstring.h"
 #include "nsXPIDLString.h"
 #include "nsReadableUtils.h"
@@ -59,7 +58,6 @@
 #include "prlog.h"
 #include "prprf.h"
 #include "nsTime.h"
-#include "nsIFileSpec.h"
 #include "nsMsgDBCID.h"
 #include "nsILocale.h"
 #include "nsLocaleCID.h"
@@ -111,7 +109,7 @@ NS_IMETHODIMP nsMsgDBService::OpenFolderDB(nsIMsgFolder *aFolder, PRBool aCreate
   if (cacheDB)
   {
     // this db could have ended up in the folder cache w/o an m_folder pointer via
-    // OpenMailDBFromFileSpec. If so, take this chance to fix the folder.
+    // OpenMailDBFromFile. If so, take this chance to fix the folder.
     if (!cacheDB->m_folder)
       cacheDB->m_folder = aFolder;
     *_retval = cacheDB; // FindInCache already addRefed.
@@ -127,8 +125,8 @@ NS_IMETHODIMP nsMsgDBService::OpenFolderDB(nsIMsgFolder *aFolder, PRBool aCreate
   dbContractID.Append(localStoreType.get());
   nsCOMPtr <nsIMsgDatabase> msgDB = do_CreateInstance(dbContractID.get(), &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  nsCOMPtr <nsIFileSpec> folderPath;
-  rv = aFolder->GetPath(getter_AddRefs(folderPath));
+  nsCOMPtr <nsILocalFile> folderPath;
+  rv = aFolder->GetFilePath(getter_AddRefs(folderPath));
   NS_ENSURE_SUCCESS(rv, rv);
   rv = msgDB->Open(folderPath, aCreate, aLeaveInvalidDB);
   if (NS_FAILED(rv) && (rv != NS_MSG_ERROR_FOLDER_SUMMARY_MISSING 
@@ -167,13 +165,13 @@ NS_IMETHODIMP nsMsgDBService::OpenFolderDB(nsIMsgFolder *aFolder, PRBool aCreate
 // having a corresponding nsIMsgFolder object.  This happens in a few
 // situations, including imap folder discovery, compacting local folders, 
 // and copying local folders.
-NS_IMETHODIMP nsMsgDBService::OpenMailDBFromFileSpec(nsIFileSpec *aFolderName, PRBool aCreate, PRBool aLeaveInvalidDB, nsIMsgDatabase** pMessageDB)
+NS_IMETHODIMP nsMsgDBService::OpenMailDBFromFile(nsILocalFile *aFolderName, PRBool aCreate, PRBool aLeaveInvalidDB, nsIMsgDatabase** pMessageDB)
 {
   if (!aFolderName)
     return NS_ERROR_NULL_POINTER;
 
-  nsFileSpec dbPath;
-  nsresult rv = GetSummaryFileLocation(aFolderName, &dbPath);
+  nsCOMPtr <nsILocalFile>  dbPath;
+  nsresult rv = GetSummaryFileLocation(aFolderName, getter_AddRefs(dbPath));
   NS_ENSURE_SUCCESS(rv, rv);
 
   *pMessageDB = (nsMsgDatabase *) nsMsgDatabase::FindInCache(dbPath);
@@ -782,7 +780,7 @@ nsMsgDatabase::CleanupCache()
 //----------------------------------------------------------------------
 // FindInCache - this addrefs the db it finds.
 //----------------------------------------------------------------------
-nsMsgDatabase* nsMsgDatabase::FindInCache(nsFileSpec &dbName)
+nsMsgDatabase* nsMsgDatabase::FindInCache(nsILocalFile *dbName)
 {
   for (PRInt32 i = 0; i < GetDBCache()->Count(); i++)
   {
@@ -804,13 +802,13 @@ nsMsgDatabase* nsMsgDatabase::FindInCache(nsFileSpec &dbName)
 //----------------------------------------------------------------------
 nsIMsgDatabase* nsMsgDatabase::FindInCache(nsIMsgFolder *folder)
 {
-  nsCOMPtr<nsIFileSpec> folderPath;
+  nsCOMPtr<nsILocalFile> folderPath;
 
-  nsresult rv = folder->GetPath(getter_AddRefs(folderPath));
+  nsresult rv = folder->GetFilePath(getter_AddRefs(folderPath));
   NS_ENSURE_SUCCESS(rv, nsnull);
 
-  nsFileSpec summaryFile;
-  rv = GetSummaryFileLocation(folderPath, &summaryFile);
+  nsCOMPtr <nsILocalFile> summaryFile;
+  rv = GetSummaryFileLocation(folderPath, getter_AddRefs(summaryFile));
   NS_ENSURE_SUCCESS(rv, nsnull);
 
   return (nsIMsgDatabase *) FindInCache(summaryFile);
@@ -829,9 +827,11 @@ int nsMsgDatabase::FindInCache(nsMsgDatabase* pMessageDB)
   return(-1);
 }
 
-PRBool nsMsgDatabase::MatchDbName(nsFileSpec &dbName)	// returns PR_TRUE if they match
+PRBool nsMsgDatabase::MatchDbName(nsILocalFile *dbName)	// returns PR_TRUE if they match
 {
-  return (m_dbName == dbName); 
+  nsCString dbPath;
+  dbName->GetNativePath(dbPath);
+  return dbPath.Equals(m_dbName);
 }
 
 //----------------------------------------------------------------------
@@ -1028,7 +1028,7 @@ void nsMsgDatabase::UnixToNative(char*& ioPath)
 // caller passes in leaveInvalidDB==PR_TRUE if they want back a db even if the db is out of date.
 // If so, they'll extract out the interesting info from the db, close it, delete it, and
 // then try to open the db again, prior to reparsing.
-NS_IMETHODIMP nsMsgDatabase::Open(nsIFileSpec *aFolderName, PRBool aCreate, PRBool aLeaveInvalidDB)
+NS_IMETHODIMP nsMsgDatabase::Open(nsILocalFile *aFolderName, PRBool aCreate, PRBool aLeaveInvalidDB)
 {
   PRBool summaryFileExists;
   PRBool newFile = PR_FALSE;
@@ -1036,12 +1036,8 @@ NS_IMETHODIMP nsMsgDatabase::Open(nsIFileSpec *aFolderName, PRBool aCreate, PRBo
   if (!aFolderName)
     return NS_ERROR_NULL_POINTER;
   
-  nsCOMPtr<nsIFileSpec> folderName;
-  nsresult err = GetSummaryFileLocation(aFolderName, getter_AddRefs(folderName));
-  NS_ENSURE_SUCCESS(err, err);
-
-  nsFileSpec summaryFile;
-  err = folderName->GetFileSpec(&summaryFile);
+  nsCOMPtr<nsILocalFile> summaryFile;
+  nsresult err = GetSummaryFileLocation(aFolderName, getter_AddRefs(summaryFile));
   NS_ENSURE_SUCCESS(err, err);
 
   nsIDBFolderInfo	*folderInfo = nsnull;
@@ -1052,16 +1048,22 @@ NS_IMETHODIMP nsMsgDatabase::Open(nsIFileSpec *aFolderName, PRBool aCreate, PRBo
     (const char*)folderName, aCreate ? "TRUE":"FALSE",
     this, aLeaveInvalidDB ? "TRUE":"FALSE", (const char*)folderName);
 #endif
+  PRBool exists;
+  PRInt64 fileSize;
+  summaryFile->Exists(&exists);
+  summaryFile->GetFileSize(&fileSize);
   // if the old summary doesn't exist, we're creating a new one.
-  if ((!summaryFile.Exists() || !summaryFile.GetFileSize()) && aCreate)
+  if ((!exists || !fileSize) && aCreate)
     newFile = PR_TRUE;
   
   // stat file before we open the db, because if we've latered
   // any messages, handling latered will change time stamp on
   // folder file.
-  summaryFileExists = summaryFile.Exists()  && summaryFile.GetFileSize() > 0;
+  summaryFileExists = exists && fileSize > 0;
   
-  err = OpenMDB((const char *) summaryFile, aCreate);
+  nsCAutoString summaryFilePath;
+  summaryFile->GetNativePath(summaryFilePath);
+  err = OpenMDB(summaryFilePath.get(), aCreate);
   if (err == NS_ERROR_FILE_TARGET_DOES_NOT_EXIST)
     return err;
 
@@ -1103,7 +1105,7 @@ NS_IMETHODIMP nsMsgDatabase::Open(nsIFileSpec *aFolderName, PRBool aCreate, PRBo
     NS_IF_RELEASE(m_dbFolderInfo);
     ForceClosed();
     if (err == NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE)
-      summaryFile.Delete(PR_FALSE);
+      summaryFile->Remove(PR_FALSE);
   }
   if (err != NS_OK || newFile)
   {
@@ -1116,7 +1118,7 @@ NS_IMETHODIMP nsMsgDatabase::Open(nsIFileSpec *aFolderName, PRBool aCreate, PRBo
     else if (err != NS_OK && err != NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE)
     {
       Close(PR_FALSE);
-      summaryFile.Delete(PR_FALSE);  // blow away the db if it's corrupt.
+      summaryFile->Remove(PR_FALSE);  // blow away the db if it's corrupt.
     }
   }
   if (err == NS_OK || err == NS_MSG_ERROR_FOLDER_SUMMARY_MISSING)
@@ -1148,9 +1150,6 @@ nsresult nsMsgDatabase::OpenMDB(const char *dbName, PRBool create)
       if (m_mdbEnv)
         m_mdbEnv->SetAutoClear(PR_TRUE);
       m_dbName = dbName;
-#if defined(XP_WIN) || defined(XP_OS2)
-      UnixToNative(nativeFileName);
-#endif
       if (stat(nativeFileName, &st)) 
         ret = NS_MSG_ERROR_FOLDER_SUMMARY_MISSING;
       else
@@ -1256,12 +1255,12 @@ NS_IMETHODIMP nsMsgDatabase::ForceFolderDBClosed(nsIMsgFolder *aFolder)
 {
   NS_ENSURE_ARG(aFolder);
 
-  nsCOMPtr<nsIFileSpec> folderPath;
-  nsresult rv = aFolder->GetPath(getter_AddRefs(folderPath));
+  nsCOMPtr<nsILocalFile> folderPath;
+  nsresult rv = aFolder->GetFilePath(getter_AddRefs(folderPath));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsFileSpec dbPath;
-  rv = GetSummaryFileLocation(folderPath, &dbPath);
+  nsCOMPtr <nsILocalFile> dbPath;
+  rv = GetSummaryFileLocation(folderPath, getter_AddRefs(dbPath));
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsIMsgDatabase *mailDB = (nsMsgDatabase *) FindInCache(dbPath);
@@ -1401,7 +1400,7 @@ NS_IMETHODIMP nsMsgDatabase::Commit(nsMsgDBCommit commitType)
     if (NS_SUCCEEDED(rv) && folderCache)
     {
       nsCOMPtr <nsIMsgFolderCacheElement> cacheElement;
-      rv = folderCache->GetCacheElement(m_dbName, PR_FALSE, getter_AddRefs(cacheElement));
+      rv = folderCache->GetCacheElement(m_dbName.get(), PR_FALSE, getter_AddRefs(cacheElement));
       if (NS_SUCCEEDED(rv) && cacheElement && m_dbFolderInfo)
       {
         PRInt32 totalMessages, unreadMessages, pendingMessages, pendingUnreadMessages;
@@ -4780,12 +4779,12 @@ NS_IMETHODIMP nsMsgDatabase::ResetHdrCacheSize(PRUint32 aSize)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgDatabase::GetFolderStream(nsIOFileStream **aFileStream)
+NS_IMETHODIMP nsMsgDatabase::GetFolderStream(nsIOutputStream **aFileStream)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsMsgDatabase::SetFolderStream(nsIOFileStream *aFileStream)
+NS_IMETHODIMP nsMsgDatabase::SetFolderStream(nsIOutputStream *aFileStream)
 {
   NS_ASSERTION(0, "Trying to set the folderStream, not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;

@@ -57,6 +57,7 @@
 #include "nsIWebProgress.h"
 #include "nsMsgAttachmentHandler.h"
 #include "nsMsgSend.h"
+#include "nsISeekableStream.h"
 #include "nsIStreamConverterService.h"
 #include "nsIMsgProgress.h"
 

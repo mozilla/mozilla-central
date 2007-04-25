@@ -38,14 +38,15 @@
 #include "msgCore.h"    // precompiled header...
 #include "nsCOMPtr.h"
 #include "nsXPIDLString.h"
-#include "nsIMsgFolder.h"	 
+#include "nsIMsgFolder.h"	
+#include "nsILocalFile.h"
+#include "nsNetUtil.h"
 #include "nsIMsgHdr.h"
-#include "nsIFileSpec.h"
 #include "nsIStreamListener.h"
 #include "nsIMsgMessageService.h"
-#include "nsFileStream.h"
 #include "nsMsgDBCID.h"
 #include "nsMsgUtils.h"
+#include "nsISeekableStream.h"
 #include "nsIRDFService.h"
 #include "nsIDBFolderInfo.h"
 #include "nsRDFCID.h"
@@ -97,8 +98,7 @@ void nsFolderCompactState::CloseOutputStream()
 {
   if (m_fileStream)
   {
-    m_fileStream->close();
-    delete m_fileStream;
+    m_fileStream->Close();
     m_fileStream = nsnull;
   }
 
@@ -109,10 +109,10 @@ void nsFolderCompactState::CleanupTempFilesAfterError()
   CloseOutputStream();
   if (m_db)
     m_db->ForceClosed();
-  nsFileSpec summaryFile;
-  GetSummaryFileLocation(m_fileSpec, &summaryFile); 
-  m_fileSpec.Delete(PR_FALSE);
-  summaryFile.Delete(PR_FALSE);
+  nsCOMPtr <nsILocalFile> summaryFile;
+  GetSummaryFileLocation(m_file, getter_AddRefs(summaryFile)); 
+  m_file->Remove(PR_FALSE);
+  summaryFile->Remove(PR_FALSE);
 }
 
 nsresult nsFolderCompactState::BuildMessageURI(const char *baseURI, PRUint32 key, nsCString& uri)
@@ -128,15 +128,13 @@ nsresult
 nsFolderCompactState::InitDB(nsIMsgDatabase *db)
 {
   nsCOMPtr<nsIMsgDatabase> mailDBFactory;
-  nsCOMPtr<nsIFileSpec> newPathSpec;
 
   db->ListAllKeys(m_keyArray);
-  nsresult rv = NS_NewFileSpecWithSpec(m_fileSpec, getter_AddRefs(newPathSpec));
-
+  nsresult rv;
   nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
   if (msgDBService) 
   {
-    nsresult folderOpen = msgDBService->OpenMailDBFromFileSpec(newPathSpec, PR_TRUE,
+    nsresult folderOpen = msgDBService->OpenMailDBFromFile(m_file, PR_TRUE,
                                      PR_FALSE,
                                      getter_AddRefs(m_db));
 
@@ -145,7 +143,7 @@ nsFolderCompactState::InitDB(nsIMsgDatabase *db)
        folderOpen == NS_MSG_ERROR_FOLDER_SUMMARY_MISSING )
     {
       // if it's out of date then reopen with upgrade.
-      rv = msgDBService->OpenMailDBFromFileSpec(newPathSpec,
+      rv = msgDBService->OpenMailDBFromFile(m_file,
                                PR_TRUE, PR_TRUE,
                                getter_AddRefs(m_db));
     }
@@ -197,7 +195,7 @@ nsFolderCompactState::Compact(nsIMsgFolder *folder, PRBool aOfflineStore, nsIMsg
    nsCOMPtr<nsIMsgDatabase> db;
    nsCOMPtr<nsIDBFolderInfo> folderInfo;
    nsCOMPtr<nsIMsgDatabase> mailDBFactory;
-   nsCOMPtr<nsIFileSpec> pathSpec;
+   nsCOMPtr<nsILocalFile> path;
    nsXPIDLCString baseMessageURI;
 
    nsCOMPtr <nsIMsgLocalMailFolder> localFolder = do_QueryInterface(folder, &rv);
@@ -233,13 +231,13 @@ nsFolderCompactState::Compact(nsIMsgFolder *folder, PRBool aOfflineStore, nsIMsg
      rv=folder->GetMsgDatabase(nsnull, getter_AddRefs(db));
      NS_ENSURE_SUCCESS(rv,rv);
    }
-   rv = folder->GetPath(getter_AddRefs(pathSpec));
+   rv = folder->GetFilePath(getter_AddRefs(path));
    NS_ENSURE_SUCCESS(rv,rv);
 
    rv = folder->GetBaseMessageURI(getter_Copies(baseMessageURI));
    NS_ENSURE_SUCCESS(rv,rv);
     
-   rv = Init(folder, baseMessageURI, db, pathSpec, m_window);
+   rv = Init(folder, baseMessageURI, db, path, m_window);
    NS_ENSURE_SUCCESS(rv,rv);
 
    PRBool isLocked;
@@ -276,22 +274,21 @@ nsresult nsFolderCompactState::ShowStatusMsg(const PRUnichar *aMsg)
 
 nsresult
 nsFolderCompactState::Init(nsIMsgFolder *folder, const char *baseMsgUri, nsIMsgDatabase *db,
-                           nsIFileSpec *pathSpec, nsIMsgWindow *aMsgWindow)
+                           nsILocalFile *path, nsIMsgWindow *aMsgWindow)
 {
   nsresult rv;
 
   m_folder = folder;
   m_baseMessageUri = baseMsgUri;
-
-  pathSpec->GetFileSpec(&m_fileSpec);
-
+  m_file = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  m_file->InitWithFile(path);
   // need to make sure the temp file goes in the same real directory
   // as the original file, so resolve sym links.
-  PRBool ignored;
-  m_fileSpec.ResolveSymlink(ignored);
+  m_file->SetFollowLinks(PR_TRUE);
 
-  m_fileSpec.SetLeafName("nstmp");
-  m_fileSpec.MakeUnique();   //make sure we are not crunching existing nstmp file
+  m_file->SetNativeLeafName(NS_LITERAL_CSTRING("nstmp"));
+  m_file->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);   //make sure we are not crunching existing nstmp file
   m_window = aMsgWindow;
   m_keyArray.RemoveAll();
   InitDB(db);
@@ -299,17 +296,12 @@ nsFolderCompactState::Init(nsIMsgFolder *folder, const char *baseMsgUri, nsIMsgD
   m_size = m_keyArray.GetSize();
   m_curIndex = 0;
   
-  m_fileStream = new nsOutputFileStream(m_fileSpec);
-  if (!m_fileStream) 
-  {
+  rv = NS_NewLocalFileOutputStream(getter_AddRefs(m_fileStream), m_file, -1, 00600);
+  if (NS_FAILED(rv)) 
     m_folder->ThrowAlertMsg("compactFolderWriteFailed", m_window);
-    rv = NS_ERROR_OUT_OF_MEMORY; 
-  }
   else
-  {
     rv = GetMessageServiceFromURI(baseMsgUri,
                                 getter_AddRefs(m_messageService));
-  }
   if (NS_FAILED(rv))
   {
     m_status = rv;
@@ -370,32 +362,30 @@ nsFolderCompactState::FinishCompact()
 {
     // All okay time to finish up the compact process
   nsresult rv = NS_OK;
-  nsCOMPtr<nsIFileSpec> pathSpec;
+  nsCOMPtr<nsILocalFile> path;
   nsCOMPtr<nsIDBFolderInfo> folderInfo; 
-  nsFileSpec fileSpec;
-  nsFileSpec summaryFile;
 
     // get leaf name and database name of the folder
-  rv = m_folder->GetPath(getter_AddRefs(pathSpec));
-  pathSpec->GetFileSpec(&fileSpec);
-
+  rv = m_folder->GetFilePath(getter_AddRefs(path));
+  nsCOMPtr <nsILocalFile> folderPath = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr <nsILocalFile> summaryFile;
+  folderPath->InitWithFile(path);
   // need to make sure we put the .msf file in the same directory
   // as the original mailbox, so resolve symlinks.
-  PRBool ignored;
-  fileSpec.ResolveSymlink(ignored);
-
-  GetSummaryFileLocation(fileSpec, &summaryFile);
+  folderPath->SetFollowLinks(PR_TRUE);
+  GetSummaryFileLocation(folderPath, getter_AddRefs(summaryFile));
   
   nsXPIDLCString leafName;
-  nsCAutoString dbName(summaryFile.GetLeafName());
+  summaryFile->GetNativeLeafName(leafName);
+  nsCAutoString dbName(leafName);
 
-  pathSpec->GetLeafName(getter_Copies(leafName));
+  path->GetNativeLeafName(leafName);
 
     // close down the temp file stream; preparing for deleting the old folder
     // and its database; then rename the temp folder and database
-  m_fileStream->flush();
-  m_fileStream->close();
-  delete m_fileStream;
+  m_fileStream->Flush();
+  m_fileStream->Close();
   m_fileStream = nsnull;
 
   // make sure the new database is valid.
@@ -404,8 +394,8 @@ nsFolderCompactState::FinishCompact()
   m_db->ForceClosed();
   m_db = nsnull;
 
-  nsFileSpec newSummaryFile;
-  GetSummaryFileLocation(m_fileSpec, &newSummaryFile);
+  nsCOMPtr <nsILocalFile> newSummaryFile;
+  GetSummaryFileLocation(m_file, getter_AddRefs(newSummaryFile));
 
   nsCOMPtr <nsIDBFolderInfo> transferInfo;
   m_folder->GetDBTransferInfo(getter_AddRefs(transferInfo));
@@ -416,21 +406,25 @@ nsFolderCompactState::FinishCompact()
 
   PRBool folderRenameSucceeded = PR_FALSE;
   PRBool msfRenameSucceeded = PR_FALSE;
+  PRBool summaryFileExists;
     // remove the old folder and database
-  summaryFile.Delete(PR_FALSE);
-  if (!summaryFile.Exists())
+  rv = summaryFile->Remove(PR_FALSE);
+  summaryFile->Exists(&summaryFileExists);
+  if (NS_SUCCEEDED(rv) && !summaryFileExists)
   {
-    fileSpec.Delete(PR_FALSE);
-    if (!fileSpec.Exists())
+    PRBool folderPathExists;
+    rv = folderPath->Remove(PR_FALSE);
+    folderPath->Exists(&folderPathExists);
+    if (NS_SUCCEEDED(rv) && !folderPathExists)
     {
       // rename the copied folder and database to be the original folder and
       // database 
-      rv = m_fileSpec.Rename(leafName.get());
+      rv = m_file->MoveToNative((nsIFile *) nsnull, leafName);
       NS_ASSERTION(NS_SUCCEEDED(rv), "error renaming compacted folder");
       if (NS_SUCCEEDED(rv))
       {
         folderRenameSucceeded = PR_TRUE;
-        rv = newSummaryFile.Rename(dbName.get());
+        rv = newSummaryFile->MoveToNative((nsIFile *) nsnull, dbName);
         NS_ASSERTION(NS_SUCCEEDED(rv), "error renaming compacted folder's db");
         msfRenameSucceeded = NS_SUCCEEDED(rv);
       }
@@ -438,9 +432,9 @@ nsFolderCompactState::FinishCompact()
   }
   NS_ASSERTION(msfRenameSucceeded && folderRenameSucceeded, "rename failed in compact");
   if (!folderRenameSucceeded)
-    m_fileSpec.Delete(PR_FALSE);
+    m_file->Remove(PR_FALSE);
   if (!msfRenameSucceeded)
-    newSummaryFile.Delete(PR_FALSE);
+    newSummaryFile->Remove(PR_FALSE);
   rv = ReleaseFolderLock();
   NS_ASSERTION(NS_SUCCEEDED(rv),"folder lock not released successfully");
   if (msfRenameSucceeded && folderRenameSucceeded)
@@ -646,6 +640,8 @@ nsFolderCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
     m_startOfMsg = PR_FALSE;
   }
   PRUint32 maxReadCount, readCount, writeCount;
+  PRUint32 bytesWritten;
+  
   while (NS_SUCCEEDED(rv) && (PRInt32) count > 0)
   {
     maxReadCount = count > sizeof(m_dataBuffer) - 1 ? sizeof(m_dataBuffer) - 1 : count;
@@ -687,12 +683,13 @@ nsFolderCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
           // skip from line
           AdvanceToNextLine(m_dataBuffer, blockOffset, readCount);
           char statusLine[50];
-          writeCount = m_fileStream->write(m_dataBuffer, blockOffset);
+          m_fileStream->Write(m_dataBuffer, blockOffset, &writeCount);
           m_statusOffset = blockOffset;
           PR_snprintf(statusLine, sizeof(statusLine), X_MOZILLA_STATUS_FORMAT MSG_LINEBREAK, msgFlags & 0xFFFF);
-          m_addedHeaderSize = m_fileStream->write(statusLine, strlen(statusLine));
+          m_fileStream->Write(statusLine, strlen(statusLine), &m_addedHeaderSize);
           PR_snprintf(statusLine, sizeof(statusLine), X_MOZILLA_STATUS2_FORMAT MSG_LINEBREAK, msgFlags & 0xFFFF0000);
-          m_addedHeaderSize += m_fileStream->write(statusLine, strlen(statusLine));
+          m_fileStream->Write(statusLine, strlen(statusLine), &bytesWritten);
+          m_addedHeaderSize += bytesWritten;
         }
         else
         {
@@ -722,12 +719,13 @@ nsFolderCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
           AdvanceToNextLine(m_dataBuffer, blockOffset, readCount);
           AdvanceToNextLine(m_dataBuffer, blockOffset, readCount);
           // need to rewrite the headers up to and including the x-mozilla-status2 header
-          writeCount = m_fileStream->write(m_dataBuffer, blockOffset);
+          m_fileStream->Write(m_dataBuffer, blockOffset, &writeCount);
         }
         // we should write out the existing keywords from the msg hdr, if any.
         if (msgHdrKeywords.IsEmpty())
         { // no keywords, so write blank header
-          m_addedHeaderSize += m_fileStream->write(X_MOZILLA_KEYWORDS, sizeof(X_MOZILLA_KEYWORDS) - 1);
+          m_fileStream->Write(X_MOZILLA_KEYWORDS, sizeof(X_MOZILLA_KEYWORDS) - 1, &bytesWritten);
+          m_addedHeaderSize += bytesWritten;
         }
         else
         {
@@ -735,14 +733,16 @@ nsFolderCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
           { // keywords fit in normal blank header, so replace blanks in keyword hdr with keywords
             nsCAutoString keywordsHdr(X_MOZILLA_KEYWORDS);
             keywordsHdr.Replace(sizeof(HEADER_X_MOZILLA_KEYWORDS) + 1, msgHdrKeywords.Length(), msgHdrKeywords);
-            m_addedHeaderSize += m_fileStream->write(keywordsHdr.get(), keywordsHdr.Length());
+            m_fileStream->Write(keywordsHdr.get(), keywordsHdr.Length(), &bytesWritten);
+            m_addedHeaderSize += bytesWritten;
           }
           else
           { // keywords don't fit, so write out keywords on one line and an extra blank line
             nsCString newKeywordHeader(HEADER_X_MOZILLA_KEYWORDS ": ");
             newKeywordHeader.Append(msgHdrKeywords);
             newKeywordHeader.Append(MSG_LINEBREAK EXTRA_KEYWORD_HDR);
-            m_addedHeaderSize += m_fileStream->write(newKeywordHeader.get(), newKeywordHeader.Length());
+            m_fileStream->Write(newKeywordHeader.get(), newKeywordHeader.Length(), &bytesWritten);
+            m_addedHeaderSize += bytesWritten;
           }
         }
         addKeywordHdr = PR_FALSE;
@@ -767,7 +767,7 @@ nsFolderCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
         PRInt32 oldKeywordSize = blockOffset - preKeywordBlockOffset;
 
         // rewrite the headers up to and including the x-mozilla-status2 header
-        writeCount = m_fileStream->write(m_dataBuffer, preKeywordBlockOffset);
+        m_fileStream->Write(m_dataBuffer, preKeywordBlockOffset, &writeCount);
         // let's just rewrite all the keywords on several lines and add a blank line,
         // instead of worrying about which are missing.
         PRBool done = PR_FALSE;
@@ -787,13 +787,15 @@ nsFolderCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
           {
             keywordHdr.Append(nsDependentCSubstring(msgHdrKeywords, curHdrLineStart, msgHdrKeywords.Length() - curHdrLineStart));
             keywordHdr.Append(MSG_LINEBREAK);
-            newKeywordSize += m_fileStream->write(keywordHdr.get(), keywordHdr.Length());
+            m_fileStream->Write(keywordHdr.get(), keywordHdr.Length(), &bytesWritten);
+            newKeywordSize += bytesWritten;
             curHdrLineStart = nextBlankOffset;
             keywordHdr.Assign(' ');
           }
           nextBlankOffset++;
         }
-        newKeywordSize += m_fileStream->write(EXTRA_KEYWORD_HDR, sizeof(EXTRA_KEYWORD_HDR) - 1);
+        m_fileStream->Write(EXTRA_KEYWORD_HDR, sizeof(EXTRA_KEYWORD_HDR) - 1, &bytesWritten);
+        newKeywordSize += bytesWritten;
         m_addedHeaderSize += newKeywordSize - oldKeywordSize;
         m_curSrcHdr->SetUint32Property("growKeywords", 0);
         needToGrowKeywords = PR_FALSE;
@@ -806,7 +808,8 @@ nsFolderCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
         // not sure what to do to handle this.
       
       }
-      writeCount += m_fileStream->write(m_dataBuffer + blockOffset, readCount - blockOffset);
+      m_fileStream->Write(m_dataBuffer + blockOffset, readCount - blockOffset, &bytesWritten);
+      writeCount += bytesWritten;
       count -= readCount;
       if (writeCount != readCount)
       {
@@ -905,24 +908,21 @@ nsOfflineStoreCompactState::FinishCompact()
 {
     // All okay time to finish up the compact process
   nsresult rv = NS_OK;
-  nsCOMPtr<nsIFileSpec> pathSpec;
-  nsFileSpec fileSpec;
+  nsCOMPtr<nsILocalFile> path;
   PRUint32 flags;
 
     // get leaf name and database name of the folder
   m_folder->GetFlags(&flags);
-  rv = m_folder->GetPath(getter_AddRefs(pathSpec));
-  pathSpec->GetFileSpec(&fileSpec);
+  rv = m_folder->GetFilePath(getter_AddRefs(path));
 
   nsXPIDLCString leafName;
 
-  pathSpec->GetLeafName(getter_Copies(leafName));
+  path->GetNativeLeafName(leafName);
 
     // close down the temp file stream; preparing for deleting the old folder
     // and its database; then rename the temp folder and database
-  m_fileStream->flush();
-  m_fileStream->close();
-  delete m_fileStream;
+  m_fileStream->Flush();
+  m_fileStream->Close();
   m_fileStream = nsnull;
 
     // make sure the new database is valid
@@ -937,10 +937,10 @@ nsOfflineStoreCompactState::FinishCompact()
   m_db->SetSummaryValid(PR_TRUE);
 
     // remove the old folder 
-  fileSpec.Delete(PR_FALSE);
+  path->Remove(PR_FALSE);
 
     // rename the copied folder to be the original folder 
-  m_fileSpec.Rename(leafName.get());
+  m_file->MoveToNative((nsIFile *) nsnull, leafName);
 
   PRUnichar emptyStr = 0;
   ShowStatusMsg(&emptyStr);
@@ -963,11 +963,15 @@ nsFolderCompactState::StartMessage()
   NS_ASSERTION(m_fileStream, "Fatal, null m_fileStream...\n");
   if (m_fileStream)
   {
+    nsCOMPtr <nsISeekableStream> seekableStream = do_QueryInterface(m_fileStream, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
     // this will force an internal flush, but not a sync. Tell should really do an internal flush,
     // but it doesn't, and I'm afraid to change that nsIFileStream.cpp code anymore.
-    m_fileStream->seek(PR_SEEK_CUR, 0);
+    seekableStream->Seek(nsISeekableStream::NS_SEEK_CUR, 0);
     // record the new message key for the message
-    m_startOfNewMsg = m_fileStream->tell();
+    PRInt64 filePos;
+    seekableStream->Tell(&filePos);
+    m_startOfNewMsg = (PRUint32) filePos;
     rv = NS_OK;
   }
   return rv;

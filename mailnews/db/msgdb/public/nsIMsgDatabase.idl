@@ -44,7 +44,6 @@
 #include "nsMsgKeyArray.h"
 %}
 
-interface nsIFileSpec;
 interface nsIDBChangeListener;
 interface nsIMsgDBHdr;
 interface nsISimpleEnumerator;
@@ -52,9 +51,10 @@ interface nsIMsgThread;
 interface nsIDBFolderInfo;
 interface nsIMsgOfflineImapOperation;
 interface nsIMsgFolder;
-interface nsIOFileStream;
+interface nsIOutputStream;
 interface nsIUrlListener;
 interface nsISupportsArray;
+interface nsILocalFile;
 
 [ptr] native octetPtr(PRUint8);
 
@@ -113,7 +113,7 @@ interface nsIMsgDBService : nsISupports
     // want to remove this method from nsIMsgDatabase...
     // if a db is opened on the folder, the listener will automatically be added
     nsIMsgDatabase openFolderDB(in nsIMsgFolder aFolder, in boolean aCreate, in boolean aLeaveInvalidDB);
-    nsIMsgDatabase openMailDBFromFileSpec(in nsIFileSpec aFolderName, in boolean aCreate, in boolean aLeaveInvalidDB);
+    nsIMsgDatabase openMailDBFromFile(in nsILocalFile aFolderName, in boolean aCreate, in boolean aLeaveInvalidDB);
     void registerPendingListener(in nsIMsgFolder aFolder, in nsIDBChangeListener aListener);
     void unregisterPendingListener(in nsIDBChangeListener aListener);
 };
@@ -121,7 +121,7 @@ interface nsIMsgDBService : nsISupports
 [scriptable, uuid(6c8db586-57ff-4a1b-bb7e-acff79d6a4ce)]
 
 interface  nsIMsgDatabase : nsIDBChangeAnnouncer {
-  void Open(in nsIFileSpec aFolderName, in boolean aCreate, in boolean aLeaveInvalidDB);
+  void Open(in nsILocalFile aFolderName, in boolean aCreate, in boolean aLeaveInvalidDB);
   void forceFolderDBClosed(in nsIMsgFolder aFolder);
   void Close(in boolean aForceCommit);
 
@@ -292,9 +292,9 @@ interface  nsIMsgDatabase : nsIDBChangeAnnouncer {
   // for msg hdr hash table allocation. controllable by caller to improve folder loading preformance.
   attribute unsigned long msgHdrCacheSize;
 
-  // extremely deprecated - this is going away when we get rid of nsFileSpec and friends.
-  // and it's [noscript] though I don't know if you can make an attribute noscript.
-  attribute nsIOFileStream folderStream;
+  // this is used to cache the folder stream the db reads and write. It's also an
+  // nsIInputStream, and nsISeekable.
+  attribute nsIOutputStream folderStream;
 
   /**
    * The list of messages currently in the NEW state.

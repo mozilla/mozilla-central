@@ -42,7 +42,6 @@
 #include "nsCOMPtr.h"
 #include "nsReadableUtils.h"
 #include "nsEscape.h"
-#include "nsIFileSpec.h"
 
 // stuff for temporary root folder hack
 #include "nsIMsgAccountManager.h"
@@ -192,11 +191,6 @@ nsLocalURI2Path(const char* rootURI, const char* uriStr,
     while ((*curPos)=='/') curPos++;
     while (*curPos && (*curPos)!='/') curPos++;
 
-    // get the separator
-    nsAutoString sbdSep;
-    rv = nsGetMailFolderSeparator(sbdSep);
-    
-       
     nsCAutoString newPath("");
     char *unescaped = nsCRT::strdup(curPos);  
     // Unescape folder name

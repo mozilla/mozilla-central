@@ -41,7 +41,6 @@
 #include "nsMsgUtils.h"
 #include "nsString.h"
 #include "nsReadableUtils.h"
-#include "nsFileSpec.h"
 #include "nsEscape.h"
 #include "nsIServiceManager.h"
 #include "nsCOMPtr.h"
@@ -78,9 +77,9 @@
 #include "nsIMsgMessageService.h"
 #include "nsIMsgAccountManager.h"
 #include "nsIOutputStream.h"
+#include "nsMsgFileStream.h"
 #include "nsIFileURL.h"
 #include "nsNetUtil.h"
-#include "nsIFileSpec.h"
 
 static NS_DEFINE_CID(kImapUrlCID, NS_IMAPURL_CID);
 static NS_DEFINE_CID(kCMailboxUrl, NS_MAILBOXURL_CID);
@@ -1221,58 +1220,27 @@ void Seconds2PRTime(PRUint32 seconds, PRTime *prTime)
   LL_MUL((*prTime), intermediateResult, microSecondsPerSecond);
 }
 
-nsresult GetSummaryFileLocation(nsIFile* fileLocation, nsIFile** summaryLocation)
+nsresult GetSummaryFileLocation(nsILocalFile* fileLocation, nsILocalFile** summaryLocation)
 {
-  nsIFile* newSummaryLocation;
-
-  nsresult rv = fileLocation->Clone(&newSummaryLocation);
+  nsresult rv;
+  nsCOMPtr <nsILocalFile> newSummaryLocation = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsXPIDLCString fileName;
+  newSummaryLocation->InitWithFile(fileLocation);
+  nsString fileName;
 
-  rv = newSummaryLocation->GetNativeLeafName(fileName);
+  rv = newSummaryLocation->GetLeafName(fileName);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  fileName.Append(NS_LITERAL_CSTRING(SUMMARY_SUFFIX));
+  fileName.Append(NS_LITERAL_STRING(SUMMARY_SUFFIX));
 
-  rv = newSummaryLocation->SetNativeLeafName(fileName);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  *summaryLocation = newSummaryLocation;
-  return NS_OK;
-}
-
-nsresult GetSummaryFileLocation(nsIFileSpec* fileLocation, nsIFileSpec** summaryLocation)
-{
-  nsIFileSpec* newSummaryLocation;
-  nsresult rv = NS_NewFileSpec(&newSummaryLocation);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = newSummaryLocation->FromFileSpec(fileLocation);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsXPIDLCString fileName;
-
-  rv = newSummaryLocation->GetLeafName(getter_Copies(fileName));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  fileName.Append(NS_LITERAL_CSTRING(SUMMARY_SUFFIX));
-  
   rv = newSummaryLocation->SetLeafName(fileName);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  *summaryLocation = newSummaryLocation;
+  NS_IF_ADDREF(*summaryLocation = newSummaryLocation);
   return NS_OK;
 }
 
-nsresult GetSummaryFileLocation(nsIFileSpec* fileLocation, nsFileSpec* summaryLocation)
-{
-  nsCOMPtr<nsIFileSpec> summaryIFile;
-  nsresult rv = GetSummaryFileLocation(fileLocation, getter_AddRefs(summaryIFile));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  return summaryIFile->GetFileSpec(summaryLocation);
-}
 
 void MsgGenerateNowStr(nsACString &nowStr)
 {
@@ -1284,20 +1252,6 @@ void MsgGenerateNowStr(nsACString &nowStr)
   nowStr.Assign(dateBuf);
 }
 
-void GetSummaryFileLocation(nsFileSpec& fileLocation, nsFileSpec* summaryLocation)
-{
-  nsXPIDLCString fileName;
-
-  // First copy all the details across
-  *summaryLocation = fileLocation;
-
-  // Now work out the new file name.
-  fileName.Adopt(fileLocation.GetLeafName());
-
-  fileName.Append(NS_LITERAL_CSTRING(SUMMARY_SUFFIX));
-  
-  summaryLocation->SetLeafName(fileName);
-}
 
 // Gets a special directory and appends the supplied file name onto it.
 nsresult GetSpecialDirectoryWithFileName(const char* specialDirName,
@@ -1310,34 +1264,24 @@ nsresult GetSpecialDirectoryWithFileName(const char* specialDirName,
   return (*result)->AppendNative(nsDependentCString(fileName));
 }
 
-// XXX This function is provided temporarily whilst we are still working
-// on bug 33451 to remove nsIFileSpec from mailnews.
-nsresult GetSpecialDirectoryWithFileName(const char* specialDirName,
-                                         const char* fileName,
-                                         nsIFileSpec** result)
-{
-  nsCOMPtr<nsIFile> tmpFile;
-  nsresult rv = GetSpecialDirectoryWithFileName(specialDirName, fileName,
-                                                getter_AddRefs(tmpFile));
-  NS_ENSURE_SUCCESS(rv, rv);
 
-  return NS_NewFileSpecFromIFile(tmpFile, result);
+nsresult MsgGetFileStream(nsILocalFile *file, nsIOutputStream **fileStream)
+{
+  nsMsgFileStream *newFileStream = new nsMsgFileStream;
+  NS_ENSURE_TRUE(newFileStream, NS_ERROR_OUT_OF_MEMORY);
+  nsresult rv = newFileStream->InitWithFile(file);
+  if (NS_SUCCEEDED(rv))
+    rv = newFileStream->QueryInterface(NS_GET_IID(nsIOutputStream), (void **) fileStream);
+  return rv;
 }
 
-// XXX This function is provided temporarily whilst we are still working
-// on bug 33451 to remove nsIFileSpec from mailnews.
-nsresult GetSpecialDirectoryWithFileName(const char* specialDirName,
-                                         const char* fileName,
-                                         nsFileSpec* result)
+nsresult MsgReopenFileStream(nsILocalFile *file, nsIInputStream *fileStream)
 {
-
-
-  nsCOMPtr<nsIFileSpec> tmpFile;
-  nsresult rv = GetSpecialDirectoryWithFileName(specialDirName, fileName,
-                                                getter_AddRefs(tmpFile));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  return tmpFile->GetFileSpec(result);
+  nsMsgFileStream *msgFileStream = NS_STATIC_CAST(nsMsgFileStream *, fileStream);
+  if (msgFileStream)
+    return msgFileStream->InitWithFile(file);
+  else
+    return NS_ERROR_FAILURE;
 }
 
 PRBool MsgFindKeyword(const nsACString &keyword, nsACString &keywords, nsACString::const_iterator &start, nsACString::const_iterator &end)

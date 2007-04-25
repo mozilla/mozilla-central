@@ -2686,14 +2686,8 @@ nsresult nsImapProtocol::BeginMessageDownLoad(
       nsCOMPtr<nsIMsgMessageUrl> msgurl = do_QueryInterface(m_runningUrl);
       msgurl->GetMessageFile(getter_AddRefs(file));
       msgurl->GetAddDummyEnvelope(&addDummyEnvelope);
-      //                m_imapMessageSink->SetupMsgWriteStream(fileSpec, addDummyEnvelope);
-      nsXPIDLCString nativePath;
-      //        NS_ASSERTION(fileSpec, "no fileSpec!");
       if (file) 
-      {
-        file->GetNativePath(nativePath);
-        rv = m_imapMessageSink->SetupMsgWriteStream(nativePath, addDummyEnvelope);
-      }
+        rv = m_imapMessageSink->SetupMsgWriteStream(file, addDummyEnvelope);
     }
     if (m_imapMailFolderSink && m_runningUrl)
     {

@@ -40,11 +40,12 @@
 
 #include "nsMsgDatabase.h"
 #include "nsMsgMessageFlags.h"
+#include "nsILocalFile.h"
 
 // This is the subclass of nsMsgDatabase that handles local mail messages.
 class nsMsgKeyArray;
 class nsIOFileStream;
-class nsFileSpec;
+class nsILocalFile;
 class nsOfflineImapOperation;
 
 class nsMailDatabase : public nsMsgDatabase
@@ -52,14 +53,14 @@ class nsMailDatabase : public nsMsgDatabase
 public:
   nsMailDatabase();
   virtual ~nsMailDatabase();
-  NS_IMETHOD  Open(nsIFileSpec *aFolderName, PRBool create, PRBool upgrading);
+  NS_IMETHOD  Open(nsILocalFile *aFolderName, PRBool create, PRBool upgrading);
   NS_IMETHOD  ForceClosed();
   NS_IMETHOD DeleteMessages(nsMsgKeyArray* nsMsgKeys, nsIDBChangeListener *instigator);
 
   NS_IMETHOD StartBatch();
   NS_IMETHOD EndBatch();
 
-  static  nsresult        SetFolderInfoValid(nsFileSpec *folderSpec, int num, int numunread);
+  static  nsresult        SetFolderInfoValid(nsILocalFile *folderFile, int num, int numunread);
   nsresult                GetFolderName(nsString &folderName);
   virtual nsMailDatabase  *GetMailDB() {return this;}
 
@@ -75,8 +76,8 @@ public:
   NS_IMETHOD    ListAllOfflineOpIds(nsMsgKeyArray *offlineOpIds);
   NS_IMETHOD    ListAllOfflineDeletes(nsMsgKeyArray *offlineDeletes);
 
-  NS_IMETHOD SetFolderStream(nsIOFileStream *aFileStream);
-  NS_IMETHOD GetFolderStream(nsIOFileStream **aFileStream);
+  NS_IMETHOD SetFolderStream(nsIOutputStream *aFileStream);
+  NS_IMETHOD GetFolderStream(nsIOutputStream **aFileStream);
 
   friend class nsMsgOfflineOpEnumerator;
 protected:
@@ -90,15 +91,15 @@ protected:
 
   virtual PRBool  SetHdrFlag(nsIMsgDBHdr *, PRBool bSet, MsgFlags flag);
   virtual void    UpdateFolderFlag(nsIMsgDBHdr *msgHdr, PRBool bSet, 
-                                    MsgFlags flag, nsIOFileStream **ppFileStream);
+                                    MsgFlags flag, nsIOutputStream **ppFileStream);
   virtual void    SetReparse(PRBool reparse);
   
 protected:
   virtual void    GetGlobalPrefs();
   
   PRBool          m_reparse;
-  nsFileSpec	  *m_folderSpec;
-  nsIOFileStream  *m_folderStream; 	/* this is a cache for loops which want file left open */
+  nsCOMPtr <nsILocalFile> m_folderFile;
+  nsCOMPtr <nsIOutputStream> m_folderStream; 	/* this is a cache for loops which want file left open */
   PRBool          m_ownFolderStream; //if we are the owner of m_folderStream
 };
 

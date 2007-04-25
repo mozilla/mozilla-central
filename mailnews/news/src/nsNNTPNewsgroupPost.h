@@ -41,9 +41,9 @@
 #include "msgCore.h"
 #include "nsINNTPNewsgroupPost.h"
 #include "nsCOMPtr.h"
-#include "nsIFileSpec.h"
 #include "prmem.h"
 #include "nsISupportsObsolete.h"
+#include "nsIFile.h"
 
 #define IDX_HEADER_FROM             0
 #define IDX_HEADER_NEWSGROUPS       1

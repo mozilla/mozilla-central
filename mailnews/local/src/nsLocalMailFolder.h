@@ -45,10 +45,8 @@
 #define nsMsgLocalMailFolder_h__
 
 #include "nsMsgDBFolder.h" /* include the interface we are going to support */
-#include "nsFileSpec.h"
 #include "nsAutoPtr.h"
 #include "nsICopyMessageListener.h"
-#include "nsFileStream.h"
 #include "nsIFileStreams.h"
 #include "nsIPop3IncomingServer.h"  // need this for an interface ID
 #include "nsMsgTxn.h"
@@ -58,6 +56,8 @@
 #include "nsIMsgLocalMailFolder.h"
 #include "nsIMsgStringService.h"
 #include "nsIMsgFilterPlugin.h"
+#include "nsISeekableStream.h"
+
 #define COPY_BUFFER_SIZE 16384
 
 struct nsLocalMailCopyState
@@ -65,7 +65,7 @@ struct nsLocalMailCopyState
   nsLocalMailCopyState();
   virtual ~nsLocalMailCopyState();
   
-  nsOutputFileStream * m_fileStream;
+  nsCOMPtr <nsIOutputStream> m_fileStream;
   nsCOMPtr<nsISupports> m_srcSupport;
   nsCOMPtr<nsISupportsArray> m_messages;
   nsRefPtr<nsMsgTxn> m_undoMsgTxn;
@@ -102,7 +102,6 @@ struct nsLocalFolderScanState
   nsLocalFolderScanState();
   ~nsLocalFolderScanState();
 
-  nsFileSpec *m_fileSpec;
   nsCOMPtr<nsILocalFile> m_localFile;
   nsCOMPtr<nsIFileInputStream> m_fileStream;
   nsCOMPtr<nsIInputStream> m_inputStream;

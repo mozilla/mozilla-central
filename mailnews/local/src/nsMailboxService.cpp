@@ -74,7 +74,7 @@ nsMailboxService::~nsMailboxService()
 
 NS_IMPL_ISUPPORTS4(nsMailboxService, nsIMailboxService, nsIMsgMessageService, nsIProtocolHandler, nsIMsgMessageFetchPartService)
 
-nsresult nsMailboxService::ParseMailbox(nsIMsgWindow *aMsgWindow, nsFileSpec& aMailboxPath, nsIStreamListener *aMailboxParser, 
+nsresult nsMailboxService::ParseMailbox(nsIMsgWindow *aMsgWindow, nsILocalFile *aMailboxPath, nsIStreamListener *aMailboxParser, 
 										nsIUrlListener * aUrlListener, nsIURI ** aURL)
 {
   nsresult rv;
@@ -83,8 +83,11 @@ nsresult nsMailboxService::ParseMailbox(nsIMsgWindow *aMsgWindow, nsFileSpec& aM
   {
     nsCOMPtr<nsIMsgMailNewsUrl> url = do_QueryInterface(mailboxurl);
     // okay now generate the url string
+    nsCString mailboxPath;
+    
+    aMailboxPath->GetNativePath(mailboxPath);
     nsCAutoString buf;
-    NS_EscapeURL((const char *)aMailboxPath,-1,
+    NS_EscapeURL(mailboxPath.get(),-1,
                      esc_Minimal|esc_Forced|esc_AlwaysCopy,buf);
     nsEscapeNativePath(buf);
     url->SetUpdatingFolder(PR_TRUE);

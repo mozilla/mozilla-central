@@ -44,7 +44,6 @@
 #include "nsCOMPtr.h"
 #include "mdb.h"
 #include "nsHashtable.h"
-#include "nsFileSpec.h"
 
 class nsMsgFolderCache : public nsIMsgFolderCache
 {

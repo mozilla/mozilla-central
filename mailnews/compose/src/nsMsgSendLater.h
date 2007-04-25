@@ -44,8 +44,6 @@
 #include "nsIEnumerator.h"
 #include "nsISupportsArray.h"
 #include "nsIMsgFolder.h"
-#include "nsIFileSpec.h"
-#include "nsFileStream.h"
 #include "nsIMsgSendListener.h"
 #include "nsIMsgSendLaterListener.h"
 #include "nsMsgDeliveryListener.h"

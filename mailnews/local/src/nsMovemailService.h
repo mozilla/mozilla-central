@@ -43,7 +43,6 @@
 #include "nscore.h"
 
 #include "nsIMovemailService.h"
-#include "nsFileSpec.h"
 #include "nsIMsgProtocolInfo.h"
 #include "nsIMsgStringService.h"
 #include "nsIMsgWindow.h"

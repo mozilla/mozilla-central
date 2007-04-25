@@ -51,13 +51,14 @@
 
 #include "nsMsgAppleDouble.h"
 
-typedef struct _AppledoubleEncodeObject
+class AppleDoubleEncodeObject
 {
+public:
   appledouble_encode_object   ap_encode_obj;
   char                        *buff;          // the working buff
   PRInt32                     s_buff;         // the working buff size
-  nsIOFileStream              *fileStream;    // file to hold the encoding
-} AppleDoubleEncodeObject;
+  nsCOMPtr <nsIOutputStream>  fileStream;    // file to hold the encoding
+};
 
 #endif  // XP_MACOSX
 
@@ -89,7 +90,7 @@ private:
   nsresult              SnarfMsgAttachment(nsMsgCompFields *compFields);
   PRBool                UseUUEncode_p(void);
   void                  AnalyzeDataChunk (const char *chunk, PRInt32 chunkSize);
-  nsresult              LoadDataFromFile(nsFileSpec& fSpec, nsString &sigData, PRBool charsetConversion); //A similar function already exist in nsMsgCompose!
+  nsresult              LoadDataFromFile(nsILocalFile *file, nsString &sigData, PRBool charsetConversion); //A similar function already exist in nsMsgCompose!
 #ifdef XP_MACOSX
   PRBool HasResourceFork(FSSpec *fsSpec);
 #endif
@@ -100,14 +101,14 @@ private:
   //
 public:
   nsCOMPtr <nsIURI> mURL;
-  nsFileSpec            *mFileSpec;         // The temp file to which we save it 
+  nsCOMPtr <nsILocalFile>        mTmpFile;         // The temp file to which we save it 
   nsCOMPtr<nsIFileOutputStream>  mOutFile;          
   nsIRequest            *mRequest;          // The live request used while fetching an attachment
   nsMsgCompFields       *mCompFields;       // Message composition fields for the sender
   PRBool                m_bogus_attachment; // This is to catch problem children...
 
 #ifdef XP_MACOSX
-  nsFileSpec            *mAppleFileSpec;    // The temp file holds the appledouble
+  nsCOMPtr <nsILocalFile>            mAppleFile;    // The temp file holds the appledouble
                                             // encoding of the file we want to send.
 #endif
   char                  *m_x_mac_type;      // Mac file type

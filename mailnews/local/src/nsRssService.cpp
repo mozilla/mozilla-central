@@ -38,7 +38,6 @@
 #include "nsIRssIncomingServer.h"
 #include "nsCOMPtr.h"
 #include "nsILocalFile.h"
-#include "nsFileSpec.h"
 #include "nsAppDirectoryServiceDefs.h"
 
 nsRssService::nsRssService()

@@ -46,7 +46,6 @@
 #include "nsIThread.h"
 #include "nsILoadGroup.h"
 #include "nsCOMPtr.h"
-#include "nsIFileSpec.h"
 #include "nsIInterfaceRequestor.h"
 #include "nsIInterfaceRequestorUtils.h"
 #include "nsIProgressEventSink.h"

@@ -41,7 +41,6 @@
 #include "nsIPrefBranch.h"
 #include "prmem.h"
 #include "nsEscape.h"
-#include "nsIFileSpec.h"
 #include "nsMsgSend.h"
 #include "nsIIOService.h"
 #include "nsIHttpProtocolHandler.h"
@@ -130,31 +129,6 @@ nsMsgCreateTempFile(const char *tFileName, nsIFile **tFile)
     NS_RELEASE(*tFile);
 
   return rv;
-}
-
-//
-// Create a file spec for the a unique temp file
-// on the local machine. Caller must free memory
-//
-nsFileSpec * 
-nsMsgCreateTempFileSpec(const char *tFileName)
-{
-  if ((!tFileName) || (!*tFileName))
-    tFileName = "nsmail.tmp";
-
-  nsFileSpec *tmpSpec = new nsFileSpec;
-  
-  if (NS_FAILED(GetSpecialDirectoryWithFileName(NS_OS_TEMP_DIR,
-                                                tFileName,
-                                                tmpSpec)))
-  {
-    delete tmpSpec;
-    return nsnull;
-  }
-
-  tmpSpec->MakeUnique();
-
-  return tmpSpec;
 }
 
 //
@@ -1845,19 +1819,6 @@ char
 #endif
 }
 
-char *
-nsMsgPlatformFileToURL (nsFileSpec  aFileSpec)
-{
-  nsFileURL   tURL(aFileSpec);
-  const char  *tPtr = nsnull;
-
-  tPtr = tURL.GetURLString();
-  if (tPtr)
-    return PL_strdup(tPtr);
-  else
-    return nsnull;
-}
-
 char * 
 nsMsgParseURLHost(const char *url)
 {
@@ -2117,49 +2078,6 @@ ConvertBufToPlainText(nsString &aConBuf, PRBool formatflowed /* = PR_FALSE */)
   }
 
   return rv;
-}
-
-// Simple parser to parse Subject. 
-// It only supports the case when the description is within one line. 
-char * 
-nsMsgParseSubjectFromFile(nsFileSpec* fileSpec) 
-{ 
-  nsIFileSpec   *tmpFileSpec = nsnull;
-  char          *subject = nsnull;
-  char          buffer[1024];
-  char          *ptr = &buffer[0];
-
-  NS_NewFileSpecWithSpec(*fileSpec, &tmpFileSpec);
-  if (!tmpFileSpec)
-    return nsnull;
-
-  if (NS_FAILED(tmpFileSpec->OpenStreamForReading()))
-    return nsnull;
-
-  PRBool eof = PR_FALSE;
-
-  while ( NS_SUCCEEDED(tmpFileSpec->Eof(&eof)) && (!eof) )
-  {
-    PRBool wasTruncated = PR_FALSE;
-
-    if (NS_FAILED(tmpFileSpec->ReadLine(&ptr, sizeof(buffer), &wasTruncated)))
-      break;
-
-    if (wasTruncated)
-      continue;
-
-    if (*buffer == nsCRT::CR || *buffer == nsCRT::LF || *buffer == 0) 
-      break; 
-
-    if ( !PL_strncasecmp(buffer, "Subject: ", 9) )
-    { 
-      subject = nsCRT::strdup(buffer + 9);
-      break;
-    } 
-  } 
-
-  tmpFileSpec->CloseStream();
-  return subject; 
 }
 
 /**

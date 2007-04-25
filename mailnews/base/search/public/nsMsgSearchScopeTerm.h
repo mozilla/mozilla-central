@@ -44,7 +44,6 @@
 #include "nsIMsgSearchAdapter.h"
 #include "nsIMsgFolder.h"
 #include "nsIMsgSearchAdapter.h"
-#include "nsFileStream.h"
 #include "nsIMsgSearchSession.h"
 #include "nsCOMPtr.h"
 #include "nsIWeakReference.h"

@@ -60,7 +60,6 @@
 #include "nsIUnicodeDecoder.h"
 #include "nsIEditor.h"
 #include "nsIMsgFolder.h"
-
 // Forward declares
 class QuotingOutputStreamListener;
 class nsMsgComposeSendListener;
@@ -88,8 +87,8 @@ private:
  // Deal with quoting issues...
 	nsresult                      QuoteOriginalMessage(const char * originalMsgURI, PRInt32 what); // New template
   nsresult                      SetQuotingToFollow(PRBool aVal);
-  nsresult                      ConvertHTMLToText(nsFileSpec& aSigFile, nsString &aSigData);
-  nsresult                      ConvertTextToHTML(nsFileSpec& aSigFile, nsString &aSigData);
+  nsresult                      ConvertHTMLToText(nsILocalFile *aSigFile, nsString &aSigData);
+  nsresult                      ConvertTextToHTML(nsILocalFile *aSigFile, nsString &aSigData);
   PRBool                        IsEmbeddedObjectSafe(const char * originalScheme,
                                                      const char * originalHost,
                                                      const char * originalPath,
@@ -102,7 +101,7 @@ private:
 
   PRInt32                       mWhatHolder;
 
-  nsresult                      LoadDataFromFile(nsFileSpec& fSpec,
+  nsresult                      LoadDataFromFile(nsILocalFile *file,
                                                  nsString &sigData,
                                                  PRBool aAllowUTF8 = PR_TRUE,
                                                  PRBool aAllowUTF16 = PR_TRUE);

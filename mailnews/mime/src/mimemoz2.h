@@ -45,9 +45,6 @@
 #include "mozITXTToHTMLConv.h"
 #include "nsIMsgSend.h"
 #include "nsIMimeConverter.h"
-#include "nsIFileSpec.h"
-
-class nsOutputFileStream;
 
 // SHERRY - Need to get these out of here eventually
 
@@ -153,8 +150,8 @@ struct mime_draft_data
   nsMsgAttachedFile   *messageBody;        // message body 
   nsMsgAttachedFile   *curAttachment;		   // temp 
 
-  nsIFileSpec         *tmpFileSpec;
-  nsOutputFileStream  *tmpFileStream;      // output file handle 
+  nsCOMPtr <nsILocalFile> tmpFile;
+  nsCOMPtr <nsIOutputStream> tmpFileStream;      // output file handle 
 
   MimeDecoderData     *decoder_data;
   char                *mailcharset;        // get it from CHARSET of Content-Type 

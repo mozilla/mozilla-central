@@ -41,6 +41,7 @@
 #include "nsINewsBlogFeedDownloader.h"
 #include "nsIMsgMailSession.h"
 #include "nsMsgBaseCID.h"
+#include "nsILocalFile.h"
 
 #include "nsIMsgLocalMailFolder.h"
 #include "nsIDBFolderInfo.h"

@@ -220,7 +220,6 @@ public:
   
   NS_IMETHOD CreateSubfolder(const PRUnichar *folderName,nsIMsgWindow *msgWindow );
   NS_IMETHOD AddSubfolder(const nsAString& aName, nsIMsgFolder** aChild);
-  NS_IMETHOD AddSubfolderWithPath(nsAString& name, nsIFileSpec *dbPath, nsIMsgFolder **child);
   NS_IMETHODIMP CreateStorageIfMissing(nsIUrlListener* urlListener);
   
   NS_IMETHOD Compact(nsIUrlListener *aListener, nsIMsgWindow *aMsgWindow);
@@ -272,7 +271,7 @@ public:
                           PRBool allowUndo);
   NS_IMETHOD CopyFolder(nsIMsgFolder *srcFolder, PRBool isMove, nsIMsgWindow *msgWindow,
                         nsIMsgCopyServiceListener* listener);
-  NS_IMETHOD CopyFileMessage(nsIFile* fileSpec, 
+  NS_IMETHOD CopyFileMessage(nsIFile* file, 
                               nsIMsgDBHdr* msgToReplace,
                               PRBool isDraftOrTemplate,
                               PRUint32 aNewMsgFlags,
@@ -280,8 +279,8 @@ public:
                               nsIMsgCopyServiceListener* listener);
   NS_IMETHOD GetNewMessages(nsIMsgWindow *aWindow, nsIUrlListener *aListener);
   
-  NS_IMETHOD GetPath(nsIFileSpec** aPathName);
-  NS_IMETHOD SetPath(nsIFileSpec * aPath);
+  NS_IMETHOD GetFilePath(nsILocalFile** aPathName);
+  NS_IMETHOD SetFilePath(nsILocalFile * aPath);
   
   NS_IMETHOD Shutdown(PRBool shutdownChildren);
   
@@ -327,6 +326,7 @@ public:
   NS_IMETHOD SetFilterList(nsIMsgFilterList *aMsgFilterList);
   NS_IMETHOD GetCustomIdentity(nsIMsgIdentity **aIdentity);
         
+  nsresult AddSubfolderWithPath(nsAString& name, nsILocalFile *dbPath, nsIMsgFolder **child);
   nsresult MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr, 
                                   nsIMsgDatabase *sourceDB, 
                                   const nsACString& destFolder,
@@ -377,8 +377,8 @@ protected:
   nsresult DisplayStatusMsg(nsIImapUrl *aImapUrl, const PRUnichar *msg);
   
   //nsresult RenameLocal(const char *newName);
-  nsresult AddDirectorySeparator(nsFileSpec &path);
-  nsresult CreateSubFolders(nsFileSpec &path);
+  nsresult AddDirectorySeparator(nsILocalFile *path);
+  nsresult CreateSubFolders(nsILocalFile *path);
   nsresult GetDatabase(nsIMsgWindow *aMsgWindow);
   virtual const char *GetIncomingServerType() {return "imap";}
   
@@ -460,7 +460,6 @@ protected:
   PRUnichar m_hierarchyDelimiter;
   PRInt32 m_boxFlags;
   nsCString m_onlineFolderName;
-  nsFileSpec *m_pathName;
   nsCString m_ownerUserName;  // username of the "other user," as in
   // "Other Users' Mailboxes"
   

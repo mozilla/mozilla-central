@@ -53,8 +53,8 @@ public:
 
     virtual int       Write();
 
-    virtual int       SetFile(nsFileSpec *filename);
-    const nsFileSpec  *GetFileSpec() {return m_filespec;}
+    virtual nsresult    SetFile(nsILocalFile *filename);
+    const nsILocalFile  *GetFile() {return m_file;}
 
     virtual int       SetBuffer(const char* buffer);
     const char        *GetBuffer() {return m_buffer;}
@@ -97,11 +97,11 @@ public:
                       }
 protected:
 	int                 CopyString(char** dest, const char* src);
-	int                 PushBody(char* buffer, PRInt32 length);
+	int                 PushBody(const char* buffer, PRInt32 length);
 
 	nsCOMPtr<nsIMsgSend> m_state;
 	nsMsgSendPart       *m_parent;
-  nsFileSpec          *m_filespec;
+  nsCOMPtr <nsILocalFile>   m_file;
 	char                *m_buffer;
   char                *m_type;
   char                *m_other;

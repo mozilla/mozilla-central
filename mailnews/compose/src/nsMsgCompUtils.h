@@ -40,7 +40,6 @@
 
 #include "nscore.h"
 #include "nsMsgSend.h"
-#include "nsFileSpec.h"
 #include "nsMsgCompFields.h"
 #include "nsIMsgSend.h"
 #include "nsIMsgCompUtils.h"
@@ -71,7 +70,6 @@ PR_BEGIN_EXTERN_C
 // Create a file spec or file name using the name passed
 // in as a template
 //
-nsFileSpec  *nsMsgCreateTempFileSpec(const char *tFileName);
 nsresult    nsMsgCreateTempFile(const char *tFileName, nsIFile **tFile);
 char        *nsMsgCreateTempFileName(const char *tFileName);
 
@@ -147,13 +145,10 @@ PRBool      nsMsgMIMEGetConformToStandard (void);
 nsresult    nsMsgNewURL(nsIURI** aInstancePtrResult, const char * aSpec);
 PRBool      nsMsgIsLocalFile(const char *url);
 char        *nsMsgGetLocalFileFromURL(const char *url);
-char        *nsMsgPlatformFileToURL (nsFileSpec aFileSpec);
 
 char        *nsMsgParseURLHost(const char *url);
 
 char        *GenerateFileNameFromURI(nsIURI *aURL);
-
-char        *nsMsgParseSubjectFromFile(nsFileSpec* fileSpec); 
 
 //
 // Folder calls...

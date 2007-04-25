@@ -47,7 +47,6 @@
 #include "nsMsgFilterList.h"    // for kFileVersion
 #include "nsMsgFilter.h"
 #include "nsMsgUtils.h"
-#include "nsFileStream.h"
 #include "nsMsgLocalSearch.h"
 #include "nsMsgSearchTerm.h"
 #include "nsXPIDLString.h"

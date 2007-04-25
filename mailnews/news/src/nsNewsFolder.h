@@ -120,9 +120,9 @@ public:
 protected:
   // helper routine to parse the URI and update member variables
   nsresult AbbreviatePrettyName(PRUnichar ** prettyName, PRInt32 fullwords);
-  nsresult ParseFolder(nsFileSpec& path);
-  nsresult CreateSubFolders(nsFileSpec &path);
-  nsresult AddDirectorySeparator(nsFileSpec &path);
+  nsresult ParseFolder(nsILocalFile *path);
+  nsresult CreateSubFolders(nsILocalFile *path);
+  nsresult AddDirectorySeparator(nsILocalFile *path);
   nsresult GetDatabase(nsIMsgWindow *aMsgWindow);
 
   nsresult LoadNewsrcFileAndCreateNewsgroups();

@@ -59,8 +59,6 @@
 #include "nsIPrompt.h"
 
 #include "nsILocalFile.h"
-#include "nsFileStream.h"
-#include "nsIFileSpec.h"
 #include "nsAppDirectoryServiceDefs.h"
 #include "nsMsgUtils.h"
 
@@ -71,6 +69,7 @@
 #include "nsMsgFolderFlags.h"
 
 #include "nsILineInputStream.h"
+#include "nsISeekableStream.h"
 #include "nsNetUtil.h"
 #include "nsAutoPtr.h"
 
@@ -361,14 +360,14 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
     nsCOMPtr<nsILocalFile> mailDirectory;
     rv = in_server->GetLocalPath(getter_AddRefs(mailDirectory));
     NS_ENSURE_SUCCESS(rv, rv);
-
-    nsFileSpec fileSpec;
-    nsCOMPtr<nsIFileSpec> iFileSpec;
-    rv = NS_NewFileSpecFromIFile(mailDirectory, getter_AddRefs(iFileSpec));
-    iFileSpec->GetFileSpec(&fileSpec);
-    fileSpec += "Inbox";
-    nsIOFileStream outFileStream(fileSpec);
-    outFileStream.seek(fileSpec.GetFileSize());
+    mailDirectory->AppendNative(NS_LITERAL_CSTRING("Inbox"));
+  
+    nsCOMPtr <nsIOutputStream> outputStream;
+    rv = MsgGetFileStream(mailDirectory, getter_AddRefs(outputStream));
+    NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr <nsIInputStream> inputStream = do_QueryInterface(outputStream);
+    nsCOMPtr <nsISeekableStream> seekableStream = do_QueryInterface(outputStream);
+    seekableStream->Seek(nsISeekableStream::NS_SEEK_END, 0);
     nsCOMPtr<nsIMsgFolder> serverFolder;
     nsCOMPtr<nsIMsgFolder> inbox;
     nsCOMPtr<nsIMsgFolder> rootMsgFolder;
@@ -390,7 +389,7 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
                                            getter_AddRefs(inbox));
     NS_ENSURE_SUCCESS(rv, rv);
     rv = newMailParser->Init(serverFolder, inbox, 
-                             fileSpec, &outFileStream, nsnull, PR_FALSE);
+                             mailDirectory, inputStream, nsnull, PR_FALSE);
     NS_ENSURE_SUCCESS(rv, rv);
 
     in_server->SetServerBusy(PR_TRUE);
@@ -409,6 +408,7 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
     // MIDDLE of the FUN : consume the mailbox data.
     PRBool isMore = PR_TRUE;
     nsCAutoString buffer;
+    PRUint32 bytesWritten;
 
     while (isMore &&
            NS_SUCCEEDED(lineInputStream->ReadLine(buffer, &isMore)))
@@ -423,24 +423,23 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
         buffer += MSG_LINEBREAK;
 
         newMailParser->HandleLine(buffer.BeginWriting(), buffer.Length());
-        outFileStream << buffer.get();
+        outputStream->Write(buffer.get(), buffer.Length(), &bytesWritten);
 
         // 'From' lines delimit messages
         if (isMore && !strncmp(buffer.get(), "From ", 5)) {
             buffer.AssignLiteral("X-Mozilla-Status: 8000" MSG_LINEBREAK);
             newMailParser->HandleLine(buffer.BeginWriting(), buffer.Length());
-            outFileStream << buffer.get();
+            outputStream->Write(buffer.get(), buffer.Length(), &bytesWritten);
             buffer.AssignLiteral("X-Mozilla-Status2: 00000000" MSG_LINEBREAK);
             newMailParser->HandleLine(buffer.BeginWriting(), buffer.Length());
-            outFileStream << buffer.get();
+            outputStream->Write(buffer.get(), buffer.Length(), &bytesWritten);
         }
     }
 
-    outFileStream.flush();
+    outputStream->Flush();
     newMailParser->OnStopRequest(nsnull, nsnull, NS_OK);
     newMailParser->SetDBFolderStream(nsnull); // stream is going away
-    if (outFileStream.is_open())
-        outFileStream.close();
+    outputStream->Close();
 
     // Truncate the spool file
     rv = spoolFile->SetFileSize(0);

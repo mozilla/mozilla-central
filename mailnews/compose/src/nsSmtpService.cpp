@@ -54,7 +54,6 @@
 
 #include "nsSmtpUrl.h"
 #include "nsSmtpProtocol.h"
-#include "nsIFileSpec.h"
 #include "nsCOMPtr.h"
 #include "nsIMsgIdentity.h"
 #include "nsMsgComposeStringBundle.h"

@@ -53,7 +53,6 @@
 #include "nsCOMPtr.h"
 #include "nsCOMArray.h"
 #include "nsTime.h"
-#include "nsFileSpec.h"
 #include "nsIDBChangeListener.h"
 #include "nsIWeakReference.h"
 #include "nsIMsgWindow.h"
@@ -63,7 +62,6 @@
 #include "nsIMsgFilterHitNotify.h"
 #include "nsIMsgFolderNotificationService.h"
 
-class nsFileSpec;
 class nsByteArray;
 class nsOutputFileStream;
 class nsIOFileStream;
@@ -241,8 +239,8 @@ public:
   nsParseNewMailState();
   virtual ~nsParseNewMailState();
   NS_DECL_ISUPPORTS_INHERITED
-  nsresult Init(nsIMsgFolder *rootFolder, nsIMsgFolder *downloadFolder, nsFileSpec &folder, 
-                nsIOFileStream *inboxFileStream, nsIMsgWindow *aMsgWindow,
+  nsresult Init(nsIMsgFolder *rootFolder, nsIMsgFolder *downloadFolder, nsILocalFile *folder, 
+                nsIInputStream *inboxFileStream, nsIMsgWindow *aMsgWindow,
                 PRBool downloadingToTempFile);
   
   virtual void	DoneParsingFolder(nsresult status);
@@ -256,8 +254,8 @@ public:
   void            GetMsgWindow(nsIMsgWindow **aMsgWindow);
   nsresult EndMsgDownload();
 
-  nsresult AppendMsgFromFile(nsIOFileStream *fileStream, PRInt32 offset, 
-                             PRUint32 length, nsFileSpec &destFileSpec);
+  nsresult AppendMsgFromFile(nsIInputStream *fileStream, PRInt32 offset, 
+                             PRUint32 length, nsILocalFile *destFile);
 
   virtual void	ApplyFilters(PRBool *pMoved, nsIMsgWindow *msgWindow, 
                              PRUint32 msgOffset);
@@ -288,8 +286,8 @@ protected:
   nsImapMoveCoalescer *m_moveCoalescer; // strictly owned by nsParseNewMailState;
 
   PRBool        m_msgMovedByFilter;
-  nsIOFileStream  *m_inboxFileStream;
-  nsFileSpec    m_inboxFileSpec;
+  nsCOMPtr <nsIInputStream>  m_inboxFileStream;
+  nsCOMPtr <nsILocalFile>    m_inboxFile;
   PRBool        m_disableFilters;
   PRBool        m_downloadingToTempFile;
   PRUint32      m_ibuffer_fp;

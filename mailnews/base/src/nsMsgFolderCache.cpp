@@ -42,7 +42,6 @@
 #include "nsMsgFolderCache.h"
 #include "nsMorkCID.h"
 #include "nsIMdbFactoryFactory.h"
-#include "nsFileStream.h"
 
 #include "nsXPIDLString.h"
 #include "nsMsgBaseCID.h"

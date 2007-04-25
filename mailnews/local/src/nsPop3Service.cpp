@@ -326,13 +326,11 @@ NS_IMETHODIMP nsPop3Service::NewURI(const nsACString &aSpec,
     nsCOMPtr<nsIMsgLocalMailFolder> localFolder = do_QueryInterface(folder);
     nsCOMPtr <nsIMailboxUrl> mailboxUrl = do_QueryInterface(aBaseURI);
 
-    nsCOMPtr<nsIFileSpec> path;
-    rv = folder->GetPath(getter_AddRefs(path));
+    nsCOMPtr<nsILocalFile> path;
+    rv = folder->GetFilePath(getter_AddRefs(path));
     if (NS_FAILED(rv)) return rv;
 
-    nsFileSpec fileSpec;
-    path->GetFileSpec(&fileSpec);
-    folderScanState.m_fileSpec = &fileSpec;
+    folderScanState.m_localFile = path;
     if (mailboxUrl && localFolder)
     {
       rv = localFolder->GetFolderScanState(&folderScanState);

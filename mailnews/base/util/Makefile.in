@@ -58,7 +58,6 @@ META_COMPONENT = mail
 PACKAGE_FILE = msgbaseutil.pkg
 
 REQUIRES	= xpcom \
-		  xpcom_obsolete \
 		  string \
 		  msgbase \
 		  rdf \
@@ -108,6 +107,7 @@ CPPSRCS		= \
 		nsMsgI18N.cpp \
 		nsAdapterEnumerator.cpp \
 		nsImapMoveCoalescer.cpp \
+                nsMsgFileStream.cpp \
 		$(NULL)
 
 EXPORTS		= \

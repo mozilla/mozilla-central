@@ -44,7 +44,6 @@
 #include "msgCore.h"
 #include "nsImapMailDatabase.h"
 #include "nsDBFolderInfo.h"
-#include "nsIFileSpec.h"
 
 const char *kPendingHdrsScope = "ns:msg:db:row:scope:pending:all";	// scope for all offine ops table
 const char *kPendingHdrsTableKind = "ns:msg:db:table:kind:pending";
@@ -86,7 +85,7 @@ NS_IMETHODIMP	nsImapMailDatabase::SetSummaryValid(PRBool valid)
 
 // IMAP does not set local file flags, override does nothing
 void	nsImapMailDatabase::UpdateFolderFlag(nsIMsgDBHdr * /* msgHdr */, PRBool /* bSet */, 
-                                              MsgFlags /* flag */, nsIOFileStream ** /* ppFileStream */)
+                                              MsgFlags /* flag */, nsIOutputStream ** /* ppFileStream */)
 {
 }
 
@@ -130,12 +129,12 @@ NS_IMETHODIMP nsImapMailDatabase::ForceClosed()
   return nsMailDatabase::ForceClosed();
 }
 
-NS_IMETHODIMP nsImapMailDatabase::GetFolderStream(nsIOFileStream **aFileStream)
+NS_IMETHODIMP nsImapMailDatabase::GetFolderStream(nsIOutputStream **aFileStream)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsImapMailDatabase::SetFolderStream(nsIOFileStream *aFileStream)
+NS_IMETHODIMP nsImapMailDatabase::SetFolderStream(nsIOutputStream *aFileStream)
 {
   NS_ASSERTION(0, "Trying to set folderStream, not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;

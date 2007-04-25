@@ -52,7 +52,7 @@
 #include "nsMsgDBCID.h"
 #include "nsIMailboxUrl.h"
 #include "nsCRT.h"
-#include "nsFileStream.h"
+#include "nsNetUtil.h"
 #include "nsMsgFolderFlags.h"
 #include "nsIMsgFolder.h"
 #include "nsXPIDLString.h"
@@ -70,6 +70,7 @@
 #include "nsIMsgLocalMailFolder.h"
 #include "nsMsgUtils.h"
 #include "prprf.h"
+#include "nsISeekableStream.h"
 #include "nsEscape.h"
 #include "nsIMimeHeaders.h"
 #include "nsIMsgMdnGenerator.h"
@@ -88,7 +89,6 @@
 #include "nsIMsgComposeService.h"
 #include "nsIMsgCopyService.h"
 #include "nsICryptoHash.h"
-#include "nsIFileSpec.h"
 
 static NS_DEFINE_CID(kCMailDB, NS_MAILDB_CID);
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
@@ -135,15 +135,15 @@ NS_IMETHODIMP nsMsgMailboxParser::OnStartRequest(nsIRequest *request, nsISupport
 
         folder->GetName(getter_Copies(m_folderName));
 
-        nsCOMPtr<nsIFileSpec> path;
-        folder->GetPath(getter_AddRefs(path));
+        nsCOMPtr<nsILocalFile> path;
+        folder->GetFilePath(getter_AddRefs(path));
        
         if (path)
         {
-            nsFileSpec dbName;
-            path->GetFileSpec(&dbName);
+          PRInt64 fileSize;
+          path->GetFileSize(&fileSize);
             // the size of the mailbox file is our total base line for measuring progress
-            m_graph_progress_total = dbName.GetFileSize();
+            m_graph_progress_total = (PRUint32) fileSize;
             UpdateStatusText(LOCAL_STATUS_SELECTING_MAILBOX);
 
             nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
@@ -647,7 +647,7 @@ NS_IMETHODIMP nsParseMailMessageState::SetMailDB(nsIMsgDatabase *mailDB)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsParseMailMessageState::SetDBFolderStream(nsIOFileStream *fileStream)
+NS_IMETHODIMP nsParseMailMessageState::SetDBFolderStream(nsIOutputStream *fileStream)
 {
   NS_ASSERTION(m_mailDB, "m_mailDB is not set");
   if (m_mailDB)
@@ -1543,14 +1543,16 @@ nsParseNewMailState::nsParseNewMailState()
 NS_IMPL_ISUPPORTS_INHERITED1(nsParseNewMailState, nsMsgMailboxParser, nsIMsgFilterHitNotify)
 
 nsresult
-nsParseNewMailState::Init(nsIMsgFolder *serverFolder, nsIMsgFolder *downloadFolder, nsFileSpec &folder, 
-                          nsIOFileStream *inboxFileStream, nsIMsgWindow *aMsgWindow,
+nsParseNewMailState::Init(nsIMsgFolder *serverFolder, nsIMsgFolder *downloadFolder, nsILocalFile *folder, 
+                          nsIInputStream *inboxFileStream, nsIMsgWindow *aMsgWindow,
                           PRBool downloadingToTempFile)
 {
   nsresult rv;
-  m_position = folder.GetFileSize();
+  PRInt64 folderSize;
+  folder->GetFileSize(&folderSize);
+  m_position = folderSize;
   m_rootFolder = serverFolder;
-  m_inboxFileSpec = folder;
+  m_inboxFile = folder;
   m_inboxFileStream = inboxFileStream;
   m_msgWindow = aMsgWindow;
   m_downloadFolder = downloadFolder;
@@ -1560,15 +1562,8 @@ nsParseNewMailState::Init(nsIMsgFolder *serverFolder, nsIMsgFolder *downloadFold
   // the OnStartRequest mechanism the mailbox parser uses. So, let's open the db right now.
   nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
   if (msgDBService)
-  {
-    nsCOMPtr <nsIFileSpec> dbFileSpec;
-    NS_NewFileSpecWithSpec(folder, getter_AddRefs(dbFileSpec));
     rv = msgDBService->OpenFolderDB(downloadFolder, PR_TRUE, PR_FALSE, (nsIMsgDatabase **) getter_AddRefs(m_mailDB));
-  }
-  //	rv = nsMailDatabase::Open(folder, PR_TRUE, &m_mailDB, PR_FALSE);
-  if (NS_FAILED(rv)) 
-    return rv;
-  
+  NS_ENSURE_SUCCESS(rv, rv);  
   nsCOMPtr <nsIMsgFolder> rootMsgFolder = do_QueryInterface(serverFolder, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
   
@@ -1647,8 +1642,10 @@ PRInt32 nsParseNewMailState::PublishMsgHeader(nsIMsgWindow *msgWindow)
   {
     if (!m_disableFilters)
     {
+      // seems like the code that's writing to disk should do
+      // the flushing...
       // flush the inbox because filters will read from disk
-      m_inboxFileStream->flush();
+      // m_inboxFileStream->Flush();
       PRUint32 msgOffset;
       (void) m_newMsgHdr->GetMessageOffset(&msgOffset);
       m_curHdrOffset = msgOffset;
@@ -1671,17 +1668,18 @@ PRInt32 nsParseNewMailState::PublishMsgHeader(nsIMsgWindow *msgWindow)
           {
             case nsIMsgIncomingServer::deleteDups:
               {
-                m_inboxFileStream->close();
+                m_inboxFileStream->Close();
 
-                nsresult truncRet = m_inboxFileSpec.Truncate(msgOffset);
+                nsresult truncRet = m_inboxFile->SetFileSize(msgOffset);
                 NS_ASSERTION(NS_SUCCEEDED(truncRet), "unable to truncate file");
                 if (NS_FAILED(truncRet))
                   m_rootFolder->ThrowAlertMsg("dupDeleteFolderTruncateFailed", msgWindow);
 
-                //  need to re-open the inbox file stream.
-                m_inboxFileStream->Open(m_inboxFileSpec, (PR_RDWR | PR_CREATE_FILE));
-                if (m_inboxFileStream)
-                  m_inboxFileStream->seek(m_inboxFileSpec.GetFileSize());
+                MsgReopenFileStream(m_inboxFile, m_inboxFileStream);
+                
+                nsCOMPtr <nsISeekableStream> seekableStream = do_QueryInterface(m_inboxFileStream);
+                if (seekableStream)
+                  seekableStream->Seek(nsISeekableStream::NS_SEEK_END, 0);
   
                 m_mailDB->RemoveHeaderMdbRow(m_newMsgHdr);
                 // tell parser we've truncated the inbox.
@@ -1782,16 +1780,13 @@ void nsParseNewMailState::ApplyFilters(PRBool *pMoved, nsIMsgWindow *msgWindow, 
       char * headers = m_headers.GetBuffer();
       PRUint32 headersSize = m_headers.GetBufferPos();
       nsresult matchTermStatus;
-      // get nsILocalFile from m_inboxFileSpec
-      nsCOMPtr <nsILocalFile> localFile;
-      NS_FileSpecToIFile(&m_inboxFileSpec, getter_AddRefs(localFile));
       if (m_filterList)
         matchTermStatus = m_filterList->ApplyFiltersToHdr(nsMsgFilterType::InboxRule,
-                    msgHdr, downloadFolder, m_mailDB, headers, headersSize, this, msgWindow, localFile);
+                    msgHdr, downloadFolder, m_mailDB, headers, headersSize, this, msgWindow, m_inboxFile);
       if (!m_msgMovedByFilter && m_deferredToServerFilterList)
       {
         matchTermStatus = m_deferredToServerFilterList->ApplyFiltersToHdr(nsMsgFilterType::InboxRule,
-                    msgHdr, downloadFolder, m_mailDB, headers, headersSize, this, msgWindow, localFile);
+                    msgHdr, downloadFolder, m_mailDB, headers, headersSize, this, msgWindow, m_inboxFile);
       }
     }
   }
@@ -2170,15 +2165,17 @@ nsresult nsParseNewMailState::EndMsgDownload()
   return rv;
 }
 
-nsresult nsParseNewMailState::AppendMsgFromFile(nsIOFileStream *fileStream, 
+nsresult nsParseNewMailState::AppendMsgFromFile(nsIInputStream *fileStream, 
                                                 PRInt32 offset, PRUint32 length,
-                                                nsFileSpec &destFileSpec)
+                                                nsILocalFile *destFile)
 {
-  fileStream->seek(PR_SEEK_SET, offset);
+  nsCOMPtr <nsISeekableStream> seekableStream = do_QueryInterface(fileStream);
+  seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, offset);
 
-  nsIOFileStream *destFile = new nsIOFileStream(destFileSpec, PR_WRONLY | PR_CREATE_FILE);
+  nsCOMPtr <nsIOutputStream> destFileStream;
+  NS_NewLocalFileOutputStream(getter_AddRefs(destFileStream), destFile, PR_RDWR | PR_CREATE_FILE, 00600);
   
-  if (!destFile) 
+  if (!destFileStream) 
   {
 #ifdef DEBUG_bienvenu
     NS_ASSERTION(PR_FALSE, "out of memory");
@@ -2186,8 +2183,11 @@ nsresult nsParseNewMailState::AppendMsgFromFile(nsIOFileStream *fileStream,
     return  NS_MSG_ERROR_WRITING_MAIL_FOLDER;
   }
   
-  destFile->seek(PR_SEEK_END, 0);
-  PRInt32 newMsgPos = destFile->tell();
+  nsCOMPtr <nsISeekableStream> seekableDestStream = do_QueryInterface(destFileStream);
+  seekableDestStream->Seek(nsISeekableStream::NS_SEEK_END, 0);
+  PRInt64 filePos;
+  seekableDestStream->Tell(&filePos);
+  PRUint32 newMsgPos = filePos;
   
   if (!m_ibuffer)
     m_ibuffer_size = 10240;
@@ -2202,19 +2202,21 @@ nsresult nsParseNewMailState::AppendMsgFromFile(nsIOFileStream *fileStream,
   NS_ASSERTION(m_ibuffer != nsnull, "couldn't get memory to move msg");
   while ((length > 0) && m_ibuffer)
   {
-    PRUint32 nRead = m_inboxFileStream->read (m_ibuffer, length > m_ibuffer_size ? m_ibuffer_size  : length);
+    PRUint32 nRead;
+    fileStream->Read (m_ibuffer, length > m_ibuffer_size ? m_ibuffer_size  : length, &nRead);
     if (nRead == 0)
       break;
     
+    PRUint32 bytesWritten;
     // we must monitor the number of bytes actually written to the file. (mscott)
-    if (destFile->write(m_ibuffer, nRead) != (PRInt32) nRead) 
+    destFileStream->Write(m_ibuffer, nRead, &bytesWritten);
+    if (bytesWritten != nRead) 
     {
-      destFile->close();     
+      destFileStream->Close();     
       
       // truncate  destination file in case message was partially written
       // ### how to do this with a stream?
-      destFileSpec.Truncate(newMsgPos);
-      delete destFile;
+      destFile->SetFileSize(newMsgPos);
       return NS_MSG_ERROR_WRITING_MAIL_FOLDER;
     }
     
@@ -2222,7 +2224,6 @@ nsresult nsParseNewMailState::AppendMsgFromFile(nsIOFileStream *fileStream,
   }
   
   NS_ASSERTION(length == 0, "didn't read all of original message in filter move");
-  delete destFile;
   return NS_OK;
 }
 
@@ -2263,11 +2264,8 @@ nsresult nsParseNewMailState::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
     if (destFolderTooBig)
       return NS_MSG_ERROR_WRITING_MAIL_FOLDER;
   }
-  nsCOMPtr <nsIFileSpec> destIFolderSpec;
-
-  nsFileSpec destFolderSpec;
-  destIFolder->GetPath(getter_AddRefs(destIFolderSpec));
-  err = destIFolderSpec->GetFileSpec(&destFolderSpec);
+  nsCOMPtr <nsILocalFile> destFolderFile;
+  destIFolder->GetFilePath(getter_AddRefs(destFolderFile));
   
   if (NS_FAILED(err))
     return err;
@@ -2293,9 +2291,11 @@ nsresult nsParseNewMailState::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
     
     return NS_MSG_FOLDER_UNREADABLE;	// ### dmb
   }
-  
-  m_inboxFileStream->seek(PR_SEEK_SET, m_curHdrOffset);
-  PRUint32 newMsgPos = destFolderSpec.GetFileSize();
+  nsCOMPtr <nsISeekableStream> seekableStream = do_QueryInterface(m_inboxFileStream);
+  seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, m_curHdrOffset);
+  PRInt64 destFolderSize;
+  destFolderFile->GetFileSize(&destFolderSize);
+  PRUint32 newMsgPos = destFolderSize;
   
   nsCOMPtr<nsIMsgLocalMailFolder> localFolder = do_QueryInterface(destIFolder);
   nsCOMPtr<nsIMsgDatabase> destMailDB;
@@ -2310,7 +2310,7 @@ nsresult nsParseNewMailState::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
 
   PRUint32 messageLength;
   mailHdr->GetMessageSize(&messageLength);
-  rv = AppendMsgFromFile(m_inboxFileStream, m_curHdrOffset, messageLength, destFolderSpec);
+  rv = AppendMsgFromFile(m_inboxFileStream, m_curHdrOffset, messageLength, destFolderFile);
 
   if (NS_FAILED(rv))
   {
@@ -2364,9 +2364,9 @@ nsresult nsParseNewMailState::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
     destIFolder->SetHasNewMessages(PR_TRUE);
   if (m_filterTargetFolders.IndexOf(destIFolder) == kNotFound)
     m_filterTargetFolders.AppendObject(destIFolder);
-  m_inboxFileStream->close();
+  m_inboxFileStream->Close();
 
-  nsresult truncRet = m_inboxFileSpec.Truncate(m_curHdrOffset);
+  nsresult truncRet = m_inboxFile->SetFileSize(m_curHdrOffset);
   NS_ASSERTION(NS_SUCCEEDED(truncRet), "unable to truncate file");
   if (NS_FAILED(truncRet))
    destIFolder->ThrowAlertMsg("filterFolderTruncateFailed", msgWindow);
@@ -2374,10 +2374,13 @@ nsresult nsParseNewMailState::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
     // tell parser that we've truncated the Inbox
     nsParseMailMessageState::Init(m_curHdrOffset);
 
-  //  need to re-open the inbox file stream.
-  m_inboxFileStream->Open(m_inboxFileSpec, (PR_RDWR | PR_CREATE_FILE));
-  if (m_inboxFileStream)
-    m_inboxFileStream->seek(m_inboxFileSpec.GetFileSize());
+  MsgReopenFileStream(m_inboxFile, m_inboxFileStream);
+  
+  seekableStream = do_QueryInterface(m_inboxFileStream);
+  PRInt64 inboxFileSize;
+  m_inboxFile->GetFileSize(&inboxFileSize);
+ if (seekableStream)
+    seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, inboxFileSize);
   
   if (destIFolder)
     destIFolder->ReleaseSemaphore (myISupports);

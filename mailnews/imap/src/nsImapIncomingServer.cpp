@@ -85,7 +85,6 @@
 // for the memory cache...
 #include "nsICacheEntryDescriptor.h"
 #include "nsImapUrl.h"
-#include "nsFileStream.h"
 #include "nsIMsgProtocolInfo.h"
 #include "nsIMsgMailSession.h"
 #include "nsIMAPNamespace.h"

@@ -60,6 +60,11 @@ class nsIMsgFolder;
 #define SUMMARY_SUFFIX ".msf"
 
 /*
+ * The suffix we use for folder subdirectories.
+ */
+#define FOLDER_SUFFIX ".sbd"
+
+/*
  * These are folder property strings, which are used in several places.
 
  */
@@ -189,15 +194,5 @@ NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_MAILNEWS, value)
 #endif
 
 #endif // MOZ_STATIC_MAIL_BUILD
-
-////////////////////////////////////////////////////////////////////////////////
-// Utilities 
-
-// mscott: one wouldn't normally have to add the NS_MSG_BASE prefix here 
-// except this function is implemented in base\util.
-nsresult NS_MSG_BASE
-nsGetMailFolderSeparator(nsString& result);
-
-////////////////////////////////////////////////////////////////////////////////
 
 #endif

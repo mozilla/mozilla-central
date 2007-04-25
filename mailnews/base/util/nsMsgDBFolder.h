@@ -51,7 +51,6 @@
 #include "nsWeakReference.h"
 #include "nsIMsgFilterList.h"
 #include "nsIUrlListener.h"
-#include "nsIFileSpec.h"
 #include "nsIMsgHdr.h"
 #include "nsIOutputStream.h"
 #include "nsITransport.h"
@@ -103,7 +102,7 @@ public:
 
   NS_IMETHOD MatchName(nsString *name, PRBool *matches);
 
-  nsresult CreateDirectoryForFolder(nsFileSpec &path);
+  nsresult CreateDirectoryForFolder(nsILocalFile **result);
   nsresult GetMsgPreviewTextFromStream(nsIMsgDBHdr *msgHdr, nsIInputStream *stream);
 protected:
   
@@ -138,11 +137,11 @@ protected:
   nsresult CheckWithNewMessagesStatus(PRBool messageAdded);
   void     UpdateNewMessages();
   nsresult OnHdrAddedOrDeleted(nsIMsgDBHdr *hdrChanged, PRBool added);
-  nsresult CreateFileSpecForDB(const char *userLeafName, nsFileSpec &baseDir, nsIFileSpec **dbFileSpec);
+  nsresult CreateFileForDB(const char *userLeafName, nsILocalFile *baseDir, nsILocalFile **dbFile);
 
-  nsresult GetFolderCacheKey(nsIFileSpec **aFileSpec, PRBool createDBIfMissing = PR_FALSE);
-  nsresult GetFolderCacheElemFromFileSpec(nsIFileSpec *fileSpec, nsIMsgFolderCacheElement **cacheElement);
-  nsresult AddDirectorySeparator(nsFileSpec &path);
+  nsresult GetFolderCacheKey(nsILocalFile **aFile, PRBool createDBIfMissing = PR_FALSE);
+  nsresult GetFolderCacheElemFromFile(nsILocalFile *file, nsIMsgFolderCacheElement **cacheElement);
+  nsresult AddDirectorySeparator(nsILocalFile *path);
   nsresult CheckIfFolderExists(const PRUnichar *newFolderName, nsIMsgFolder *parentFolder, nsIMsgWindow *msgWindow);
 
 
@@ -235,7 +234,7 @@ protected:
   PRBool mIsServerIsValid;
   PRBool mIsServer;
   nsString mName;
-  nsCOMPtr<nsIFileSpec> mPath;
+  nsCOMPtr<nsILocalFile> mPath;
   char * mBaseMessageURI; //The uri with the message scheme
 
   PRBool mInVFEditSearchScope ; // non persistant state used by the virtual folder UI

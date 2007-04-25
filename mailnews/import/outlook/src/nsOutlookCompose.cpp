@@ -553,8 +553,9 @@ nsMsgAttachedFile * nsOutlookCompose::GetLocalAttachments( void)
 		// NS_PRECONDITION( PR_FALSE, "Forced Break");
 
 		pAttach = (OutlookAttachment *) m_pAttachments->ElementAt( i);
-		a[i].file_spec = new nsFileSpec;
-		pAttach->pAttachment->GetFileSpec( a[i].file_spec);
+                nsFileSpec tmpFileSpec;
+		pAttach->pAttachment->GetFileSpec( &tmpFileSpec);
+                NS_FileSpecToIFile(&tmpFileSpec, getter_AddRefs(a[i].tmp_file));
 		urlStr.Adopt(0);
 		pAttach->pAttachment->GetURLString(getter_Copies(urlStr));
 		if (!urlStr) {

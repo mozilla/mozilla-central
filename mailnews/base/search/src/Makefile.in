@@ -50,7 +50,6 @@ MOZILLA_INTERNAL_API = 1
 EXPORT_DIR	= $(DIST)/bin/isp
 
 REQUIRES	= xpcom \
-		  xpcom_obsolete \
 		  string \
 		  mailnews \
 		  msgdb \

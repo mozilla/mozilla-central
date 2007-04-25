@@ -46,7 +46,6 @@
 #include "nsIRDFRemoteDataSource.h"
 
 #include "nsIFileChannel.h"
-#include "nsIFileSpec.h"
 #include "nsNetUtil.h"
 #include "nsIMsgMailSession.h"
 #include "nsMsgBaseCID.h"

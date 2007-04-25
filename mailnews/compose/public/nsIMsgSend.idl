@@ -58,7 +58,6 @@
 %{C++
 #include "nsIURL.h"
 #include "nsString.h"
-class nsFileSpec;
 %}
 
 interface nsIMsgProgress;
@@ -68,7 +67,7 @@ interface nsIMsgDBHdr;
 interface nsIMsgHdr;
 interface nsIDocShell;
 interface nsIFile;
-interface nsIFile;
+interface nsILocalFile;
 interface nsIOutputStream;
 interface nsIMsgComposeSecure;
 interface nsIMsgStatusFeedback;
@@ -81,7 +80,7 @@ typedef long nsMsgDeliverMode;
 // Callback declarations for message delivery
 //
 // For completion of send/message creation operations...
-typedef nsresult (*nsMsgSendCompletionCallback) (nsresult aExitCode, void *tagData, nsFileSpec *returnFileSpec);
+typedef nsresult (*nsMsgSendCompletionCallback) (nsresult aExitCode, void *tagData, nsILocalFile *returnFile);
 
 // For completion of sending unsent messages operations...
 typedef nsresult (*nsMsgSendUnsentMessagesCallback) (nsresult aExitCode, PRUint32 totalSentCount,
@@ -131,7 +130,7 @@ typedef struct nsMsgAttachedFile
 {
   nsCOMPtr<nsIURI> orig_url;	// Where it came from on the network (or even elsewhere on the local disk.)
 
-  nsFileSpec  *file_spec;		// The tmp file in which the (possibly converted) data now resides.
+  nsCOMPtr <nsILocalFile>  tmp_file;		// The tmp file in which the (possibly converted) data now resides.
   
   char        *type;			  // The type of the data in file_name (not necessarily the same as the type of orig_url.)
 

@@ -44,7 +44,6 @@
 #include "nsIPop3URL.h"
 #include "nsIUrlListener.h"
 #include "nsIStreamListener.h"
-#include "nsFileSpec.h"
 #include "nsIProtocolHandler.h"
 #include "nsIMsgProtocolInfo.h"
 

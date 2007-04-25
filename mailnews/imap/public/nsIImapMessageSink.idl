@@ -41,11 +41,11 @@
 
 interface nsIMsgMailNewsUrl;
 
-[scriptable, uuid(b92c9161-2345-4adb-af90-5a42cd898209)]
+[scriptable, uuid(AD0F50C3-8C0E-461F-B8DC-DF07FB72E0E0)]
 
 interface nsIImapMessageSink : nsISupports {
     // set up messge download output stream
-	void SetupMsgWriteStream(in string aNativePath, in boolean appendDummyEnvelope);
+	void SetupMsgWriteStream(in nsIFile aFile, in boolean appendDummyEnvelope);
 
     void ParseAdoptedMsgLine(in string adoptedMsgLine, in nsMsgKey uidOfMsg);
     

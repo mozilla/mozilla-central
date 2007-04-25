@@ -60,6 +60,7 @@
 #include "nsITextToSubURI.h"
 #include "nsEscape.h"
 #include "nsIURL.h"
+#include "nsIFileURL.h"
 #include "nsNetCID.h"
 #include "nsIMimeStreamConverter.h"
 #include "nsMsgMimeCID.h"
@@ -74,7 +75,7 @@
 
 #define AD_WORKING_BUFF_SIZE                  8192
 
-extern void         MacGetFileType(nsFileSpec *fs, PRBool *useDefault, char **type, char **encoding);
+extern void         MacGetFileType(nsILocalFile *fs, PRBool *useDefault, char **type, char **encoding);
 
 #include "nsIInternetConfigService.h"
 #include "MoreFilesX.h"
@@ -126,16 +127,11 @@ nsMsgAttachmentHandler::nsMsgAttachmentHandler()
   m_size = 0;
 
   mCompFields = nsnull;   // Message composition fields for the sender
-  mFileSpec = nsnull;
   mURL = nsnull;
   mRequest = nsnull;
 
   m_x_mac_type = nsnull;
   m_x_mac_creator = nsnull;
-
-#ifdef XP_MACOSX
-  mAppleFileSpec = nsnull;
-#endif
 
   mDeleteFile = PR_FALSE;
   m_uri = nsnull;
@@ -146,16 +142,11 @@ nsMsgAttachmentHandler::~nsMsgAttachmentHandler()
 #if defined(DEBUG_ducarroz)
   printf("DISPOSE nsMsgAttachmentHandler: %x\n", this);
 #endif
-#ifdef XP_MACOSX
-  if (mAppleFileSpec)
-    delete mAppleFileSpec;
-#endif
 
-  if (mFileSpec && mDeleteFile)
-    mFileSpec->Delete(PR_FALSE);
+  if (mTmpFile && mDeleteFile)
+    mTmpFile->Remove(PR_FALSE);
 
-  delete mFileSpec;
-  mFileSpec=nsnull;
+  mTmpFile=nsnull;
 
   PR_Free(m_charset);
   PR_Free(m_type);
@@ -233,28 +224,32 @@ void
 nsMsgAttachmentHandler::AnalyzeSnarfedFile(void)
 {
   char chunk[1024];
-  PRInt32 numRead = 0;
+  PRUint32 numRead = 0;
 
   if (m_file_analyzed)
     return;
 
-  if (mFileSpec)
+  if (mTmpFile)
   {
-    m_size = mFileSpec->GetFileSize();
-    nsInputFileStream fileHdl(*mFileSpec, PR_RDONLY, 0);
-    if (fileHdl.is_open())
+    PRInt64 fileSize;
+    mTmpFile->GetFileSize(&fileSize);
+    m_size = (PRUint32) fileSize;
+    nsCOMPtr <nsIInputStream> inputFile;
+    nsresult rv = NS_NewLocalFileInputStream(getter_AddRefs(inputFile), mTmpFile);    
+    if (NS_FAILED(rv))
+      return;
     {
       do
       {
-        numRead = fileHdl.read(chunk, sizeof(chunk));
-        if (numRead > 0)
+        rv = inputFile->Read(chunk, sizeof(chunk), &numRead);
+        if (numRead)
           AnalyzeDataChunk(chunk, numRead);
       }
-      while (numRead > 0);
+      while (numRead && NS_SUCCEEDED(rv));
       if (m_prev_char_was_cr)
         m_have_cr = 1;
 
-      fileHdl.close();
+      inputFile->Close();
       m_file_analyzed = PR_TRUE;
     }
   }
@@ -499,7 +494,7 @@ FetcherURLDoneCallback(nsresult aStatus,
     {
 #ifdef XP_MACOSX
       //Do not change the type if we are dealing with an apple double file
-      if (!ma->mAppleFileSpec)
+      if (!ma->mAppleFile)
 #else
         // can't send appledouble on non-macs
         if (strcmp(aContentType, "multipart/appledouble")) 
@@ -530,23 +525,24 @@ nsMsgAttachmentHandler::SnarfMsgAttachment(nsMsgCompFields *compFields)
 
   if (PL_strcasestr(m_uri, "-message:"))
   {
-    mFileSpec = nsMsgCreateTempFileSpec("nsmail.tmp");
+    nsCOMPtr <nsIFile> tmpFile;
+    rv = nsMsgCreateTempFile("nsmail.tmp", getter_AddRefs(tmpFile));
+    NS_ENSURE_SUCCESS(rv, rv);
+    mTmpFile = do_QueryInterface(tmpFile);
     mDeleteFile = PR_TRUE;
     mCompFields = compFields;
     PR_FREEIF(m_type);
     m_type = PL_strdup(MESSAGE_RFC822);
     PR_FREEIF(m_override_type);
     m_override_type = PL_strdup(MESSAGE_RFC822);
-    if (!mFileSpec) 
+    if (!mTmpFile) 
     {
       rv = NS_ERROR_FAILURE;
       goto done;
     }
 
-    nsCOMPtr<nsILocalFile> localFile;
     nsCOMPtr<nsIOutputStream> outputStream;
-    NS_FileSpecToIFile(mFileSpec, getter_AddRefs(localFile));
-    rv = NS_NewLocalFileOutputStream(getter_AddRefs(outputStream), localFile, -1, 00600);
+    rv = NS_NewLocalFileOutputStream(getter_AddRefs(outputStream), mTmpFile, -1, 00600);
     if (NS_FAILED(rv) || !outputStream || CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_3))
     {
       if (m_mime_delivery_state)
@@ -557,8 +553,7 @@ nsMsgAttachmentHandler::SnarfMsgAttachment(nsMsgCompFields *compFields)
         {
           nsAutoString error_msg;
           nsAutoString path;
-          NS_CopyNativeToUnicode(
-            nsDependentCString(mFileSpec->GetNativePathCString()), path);
+          mTmpFile->GetPath(path);
           nsMsgBuildErrorMessageByID(NS_MSG_UNABLE_TO_OPEN_TMP_FILE, error_msg, &path, nsnull);
           sendReport->SetMessage(nsIMsgSendReport::process_Current, error_msg.get(), PR_FALSE);
         }
@@ -576,7 +571,7 @@ nsMsgAttachmentHandler::SnarfMsgAttachment(nsMsgCompFields *compFields)
       goto done;
     }
 
-    rv = fetcher->Initialize(localFile, mOutFile, FetcherURLDoneCallback, this);
+    rv = fetcher->Initialize(mTmpFile, mOutFile, FetcherURLDoneCallback, this);
     rv = GetMessageServiceFromURI(m_uri, getter_AddRefs(messageService));
     if (NS_SUCCEEDED(rv) && messageService)
     {
@@ -636,11 +631,10 @@ done:
         mOutFile = nsnull;
       }
 
-      if (mFileSpec)
+      if (mTmpFile)
       {
-        mFileSpec->Delete(PR_FALSE);
-        delete mFileSpec;
-        mFileSpec = nsnull;
+        mTmpFile->Remove(PR_FALSE);
+        mTmpFile = nsnull;
       }
   }
 
@@ -676,15 +670,14 @@ nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
 
   // First, get as file spec and create the stream for the
   // temp file where we will save this data
-    mFileSpec = nsMsgCreateTempFileSpec("nsmail.tmp");
-  if (! mFileSpec )
-    return (NS_ERROR_FAILURE);
+  nsCOMPtr <nsIFile> tmpFile;
+  status = nsMsgCreateTempFile("nsmail.tmp", getter_AddRefs(tmpFile));
+  NS_ENSURE_SUCCESS(status, status);
+  mTmpFile = do_QueryInterface(tmpFile);
   mDeleteFile = PR_TRUE;
 
-  nsCOMPtr<nsILocalFile> localFile;
   nsCOMPtr<nsIOutputStream> outputStream;
-  NS_FileSpecToIFile(mFileSpec, getter_AddRefs(localFile));
-  status = NS_NewLocalFileOutputStream(getter_AddRefs(outputStream), localFile, -1, 00600);
+  status = NS_NewLocalFileOutputStream(getter_AddRefs(outputStream), mTmpFile, -1, 00600);
   if (NS_FAILED(status) || !outputStream || CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_3))
   {
     if (m_mime_delivery_state)
@@ -695,15 +688,13 @@ nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
       {
         nsAutoString error_msg;
         nsAutoString path;
-        NS_CopyNativeToUnicode(
-          nsDependentCString(mFileSpec->GetNativePathCString()), path);
+        mTmpFile->GetPath(path);
         nsMsgBuildErrorMessageByID(NS_MSG_UNABLE_TO_OPEN_TMP_FILE, error_msg, &path, nsnull);
         sendReport->SetMessage(nsIMsgSendReport::process_Current, error_msg.get(), PR_FALSE);
       }
     }
-    mFileSpec->Delete(PR_FALSE);
-    delete mFileSpec;
-    mFileSpec = nsnull;
+    mTmpFile->Remove(PR_FALSE);
+    mTmpFile = nsnull;
     return NS_MSG_UNABLE_TO_OPEN_TMP_FILE; 
   }
   mOutFile = do_QueryInterface(outputStream);
@@ -723,8 +714,10 @@ nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
     nsCAutoString escapedFilename(src_filename);
     nsUnescape(escapedFilename.BeginWriting());
 
+    nsCOMPtr <nsILocalFile> scr_file;
+    NS_NewNativeLocalFile(escapedFilename, PR_TRUE, getter_AddRefs(scr_file));
+
     //We need to retrieve the file type and creator...
-    nsFileSpec scr_fileSpec(escapedFilename.get());
     FSSpec fsSpec;
     Boolean isDir;
     FSPathMakeFSSpec((UInt8 *)escapedFilename.get(), &fsSpec, &isDir);
@@ -805,23 +798,20 @@ nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
     if( sendResourceFork && (! UseUUEncode_p()) )
     {
       char                *separator;
-      nsInputFileStream   *myInputFile = new nsInputFileStream(scr_fileSpec);
-
-      if ((!myInputFile) || (!myInputFile->is_open()))
-        return NS_ERROR_OUT_OF_MEMORY;
 
       separator = mime_make_separator("ad");
       if (!separator)
       {
-        delete myInputFile;
         PR_FREEIF(src_filename);
         return NS_ERROR_OUT_OF_MEMORY;
       }
-            
-      mAppleFileSpec = nsMsgCreateTempFileSpec("appledouble");
-      if (!mAppleFileSpec) 
+       
+      nsCOMPtr <nsIFile> tmpFile;
+      nsresult rv = nsMsgCreateTempFile("appledouble", getter_AddRefs(tmpFile));
+      if (NS_SUCCEEDED(rv))
+        mAppleFile = do_QueryInterface(tmpFile);
+      if (!mAppleFile) 
       {
-        delete myInputFile;
         PR_FREEIF(separator);
         PR_FREEIF(src_filename);
         return NS_ERROR_OUT_OF_MEMORY;
@@ -837,16 +827,15 @@ nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
       AppleDoubleEncodeObject     *obj = new (AppleDoubleEncodeObject);
       if (obj == NULL) 
       {
-        delete mAppleFileSpec;
+        mAppleFile = nsnull;
         PR_FREEIF(src_filename);
         PR_FREEIF(separator);
         return NS_ERROR_OUT_OF_MEMORY;
       }
    
-      obj->fileStream = new nsIOFileStream(*mAppleFileSpec, (PR_RDWR | PR_CREATE_FILE | PR_TRUNCATE));
-      if ( (!obj->fileStream) || (!obj->fileStream->is_open()) )
+      rv = MsgGetFileStream(mAppleFile, getter_AddRefs(obj->fileStream));
+      if (NS_FAILED(rv) || !obj->fileStream)
       {
-        delete myInputFile;
         PR_FREEIF(src_filename);
         PR_FREEIF(separator);
         delete obj;
@@ -891,38 +880,44 @@ nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
           //
           // we got the encode data, so call the next stream to write it to the disk.
           //
-          if (obj->fileStream->write(obj->buff, count) != count)
+          PRUint32 bytesWritten;
+          obj->fileStream->Write(obj->buff, count, &bytesWritten);
+          if (bytesWritten != (PRUint32) count)
             status = NS_MSG_ERROR_WRITING_FILE;
         }
       } 
       
-      delete myInputFile;  
       ap_encode_end(&(obj->ap_encode_obj), (status >= 0)); // if this is true, ok, false abort
       if (obj->fileStream)
-        obj->fileStream->close();
+        obj->fileStream->Close();
 
       PR_FREEIF(obj->buff);               /* free the working buff.   */
       PR_FREEIF(obj);
 
-      char *newURLSpec = nsMsgPlatformFileToURL(*mAppleFileSpec);
-
-      if (!newURLSpec) 
-      {
-        PR_FREEIF(src_filename);
-        PR_FREEIF(separator);
-        return NS_ERROR_OUT_OF_MEMORY;
-      }
-
-      if (NS_FAILED(nsMsgNewURL(getter_AddRefs(mURL), newURLSpec)))
-      {
-        PR_FREEIF(src_filename);
-        PR_FREEIF(separator);
-        PR_FREEIF(newURLSpec);
-        return NS_ERROR_OUT_OF_MEMORY;
-      }
-  
-      PR_FREEIF(newURLSpec);
+      nsCOMPtr <nsIURI> fileURI;
+      NS_NewFileURI(getter_AddRefs(fileURI), mAppleFile);
       
+      nsCOMPtr<nsIFileURL> theFileURL = do_QueryInterface(fileURI, &rv);
+      NS_ENSURE_SUCCESS(rv,rv);
+      
+      nsCString newURLSpec;
+      NS_ENSURE_SUCCESS(rv, rv);
+      fileURI->GetSpec(newURLSpec);
+      
+      if (newURLSpec.IsEmpty()) 
+      {
+        PR_FREEIF(src_filename);
+        PR_FREEIF(separator);
+        return NS_ERROR_OUT_OF_MEMORY;
+      }
+
+      if (NS_FAILED(nsMsgNewURL(getter_AddRefs(mURL), newURLSpec.get())))
+      {
+        PR_FREEIF(src_filename);
+        PR_FREEIF(separator);
+        return NS_ERROR_OUT_OF_MEMORY;
+      }
+        
       // Now after conversion, also patch the types.
       char        tmp[128];
       PR_snprintf(tmp, sizeof(tmp), MULTIPART_APPLEDOUBLE ";\r\n boundary=\"%s\"", separator);
@@ -952,7 +947,7 @@ nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
 
         if (info.fdType != TEXT_TYPE && info.fdType != text_TYPE)
         {
-          MacGetFileType(&scr_fileSpec, &useDefault, &macType, &macEncoding);
+          MacGetFileType(scr_file, &useDefault, &macType, &macEncoding);
           PR_FREEIF(m_type);
           m_type = macType;
         }
@@ -980,27 +975,32 @@ nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
       return rv;
   }
 
-  return fetcher->FireURLRequest(mURL, localFile, mOutFile, FetcherURLDoneCallback, this);
+  return fetcher->FireURLRequest(mURL, mTmpFile, mOutFile, FetcherURLDoneCallback, this);
 }
 
 nsresult
-nsMsgAttachmentHandler::LoadDataFromFile(nsFileSpec& fSpec, nsString &sigData, PRBool charsetConversion)
+nsMsgAttachmentHandler::LoadDataFromFile(nsILocalFile *file, nsString &sigData, PRBool charsetConversion)
 {
   PRInt32       readSize;
   char          *readBuf;
 
-  nsInputFileStream tempFile(fSpec);
-  if (!tempFile.is_open())
+  nsCOMPtr <nsIInputStream> inputFile;
+  nsresult rv = NS_NewLocalFileInputStream(getter_AddRefs(inputFile), file);    
+  if (NS_FAILED(rv))
     return NS_MSG_ERROR_WRITING_FILE;        
   
-  readSize = fSpec.GetFileSize();
+  PRInt64 fileSize;
+  file->GetFileSize(&fileSize);
+  readSize = (PRUint32) fileSize;
+  
   readBuf = (char *)PR_Malloc(readSize + 1);
   if (!readBuf)
     return NS_ERROR_OUT_OF_MEMORY;
   memset(readBuf, 0, readSize + 1);
 
-  readSize = tempFile.read(readBuf, readSize);
-  tempFile.close();
+  PRUint32 bytesRead;
+  inputFile->Read(readBuf, readSize, &bytesRead);
+  inputFile->Close();
 
   if (charsetConversion)
   {
@@ -1046,7 +1046,15 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
     mOutFile->Close();
     mOutFile = nsnull;
   }
-  
+  // this silliness is because Windows nsILocalFile caches its file size
+  // so if an output stream writes to it, it will still return the original
+  // cached size.
+  if (mTmpFile)
+  {
+    nsCOMPtr <nsIFile> tmpFile;
+    mTmpFile->Clone(getter_AddRefs(tmpFile));
+    mTmpFile = do_QueryInterface(tmpFile);
+  }
   mRequest = nsnull;
 
   // First things first, we are now going to see if this is an HTML
@@ -1060,7 +1068,7 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
   {
     if (PL_strcasecmp(m_type, TEXT_HTML) == 0)
     {
-      char *tmpCharset = (char *)nsMsgI18NParseMetaCharset(mFileSpec);
+      char *tmpCharset = (char *)nsMsgI18NParseMetaCharset(mTmpFile);
       if (tmpCharset[0] != '\0')
       {
         PR_FREEIF(m_charset);
@@ -1163,24 +1171,37 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
       //
       nsAutoString      conData;
 
-      if (NS_SUCCEEDED(LoadDataFromFile(*mFileSpec, conData, PR_TRUE)))
+      if (NS_SUCCEEDED(LoadDataFromFile(mTmpFile, conData, PR_TRUE)))
       {
         if (NS_SUCCEEDED(ConvertBufToPlainText(conData, UseFormatFlowed(m_charset))))
         {
           if (mDeleteFile)
-          mFileSpec->Delete(PR_FALSE);
+            mTmpFile->Remove(PR_FALSE);
 
-          nsOutputFileStream tempfile(*mFileSpec, PR_WRONLY | PR_CREATE_FILE, 00600);
-          if (tempfile.is_open()) 
+          nsCOMPtr<nsIOutputStream> outputStream;
+          nsresult rv = NS_NewLocalFileOutputStream(getter_AddRefs(outputStream), mTmpFile,  PR_WRONLY | PR_CREATE_FILE, 00600);
+          
+          if (NS_SUCCEEDED(rv)) 
           {
             nsCAutoString tData;
             if (NS_FAILED(ConvertFromUnicode(m_charset, conData, tData)))
               LossyCopyUTF16toASCII(conData, tData);
             if (!tData.IsEmpty())
             {
-              (void) tempfile.write(tData.get(), tData.Length());
+              PRUint32 bytesWritten;
+              (void) outputStream->Write(tData.get(), tData.Length(), &bytesWritten);
             }
-            tempfile.close();
+            outputStream->Close();
+            // this silliness is because Windows nsILocalFile caches its file size
+            // so if an output stream writes to it, it will still return the original
+            // cached size.
+            if (mTmpFile)
+            {
+              nsCOMPtr <nsIFile> tmpFile;
+              mTmpFile->Clone(getter_AddRefs(tmpFile));
+              mTmpFile = do_QueryInterface(tmpFile);
+            }
+
           }
         }
       }

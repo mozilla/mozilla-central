@@ -306,7 +306,7 @@ public:
 
   nsresult GetPassword(char ** aPassword, PRBool *okayValue);
 
-  NS_IMETHOD OnTransportStatus(nsITransport *transport, nsresult status, PRUint32 progress, PRUint32 progressMax);
+  NS_IMETHOD OnTransportStatus(nsITransport *transport, nsresult status, PRUint64 progress, PRUint64 progressMax);
   NS_IMETHOD OnStopRequest(nsIRequest *request, nsISupports * aContext, nsresult aStatus);
   NS_IMETHOD Cancel(nsresult status);
 

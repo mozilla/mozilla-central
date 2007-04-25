@@ -41,14 +41,9 @@
 interface nsIURI;
 interface nsIStreamListener;
 interface nsIMsgWindow;
+interface nsILocalFile;
 
-[ref] native nsFileSpec(nsFileSpec);
-
-%{C++
-#include "nsFileSpec.h"
-%}
-
-[scriptable, uuid(EEF82460-CB69-11d2-8065-006008128C4E)]
+[scriptable, uuid(809FCD02-B9EA-4DC0-84F0-3FBC55AE11F1)]
 interface nsIMailboxService : nsISupports {
 
   /*
@@ -64,7 +59,7 @@ interface nsIMailboxService : nsISupports {
    * pass in a mailbox  parser (the consumer). The url listener can be null
    * if you have no interest in tracking the url.
    */
-  [noscript] nsIURI ParseMailbox(in nsIMsgWindow aMsgWindow, in nsFileSpec aMailboxPath,
+  nsIURI ParseMailbox(in nsIMsgWindow aMsgWindow, in nsILocalFile aMailboxPath,
                                  in nsIStreamListener aMailboxParser,
                                  in nsIUrlListener aUrlListener);
 

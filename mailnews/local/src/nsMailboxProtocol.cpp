@@ -59,7 +59,6 @@
 #include "prprf.h"
 #include "nspr.h"
 
-#include "nsFileStream.h"
 PRLogModuleInfo *MAILBOX;
 #include "nsIFileStreams.h"
 #include "nsIStreamTransportService.h"

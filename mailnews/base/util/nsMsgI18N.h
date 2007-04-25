@@ -40,7 +40,7 @@
 
 #include "nscore.h"
 #include "msgCore.h"
-class nsFileSpec;
+class nsILocalFile;
 
 #ifndef kMAX_CSNAME
 #define kMAX_CSNAME 64
@@ -141,10 +141,10 @@ NS_MSG_BASE nsresult nsMsgI18NConvertToUnicode(const char* aCharset,
 /**
  * Parse for META charset.
  *
- * @param fileSpec    [IN] A filespec.
+ * @param file    [IN] A nsILocalFile.
  * @return            A charset name or empty string if not found.
  */
-NS_MSG_BASE const char *nsMsgI18NParseMetaCharset(nsFileSpec* fileSpec);
+NS_MSG_BASE const char *nsMsgI18NParseMetaCharset(nsILocalFile* file);
 
 /**
  * Convert input to HTML entities (e.g. &nbsp;, &aacute;).

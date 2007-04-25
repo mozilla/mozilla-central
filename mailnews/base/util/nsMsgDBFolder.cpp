@@ -52,9 +52,9 @@
 #include "nsMsgDatabase.h"
 #include "nsIMsgAccountManager.h"
 #include "nsXPIDLString.h"
+#include "nsISeekableStream.h"
 #include "nsEscape.h"
 #include "nsNativeCharsetUtils.h"
-#include "nsIFileStream.h"
 #include "nsIChannel.h"
 #include "nsITransport.h"
 #include "nsIMsgFolderCompactor.h"
@@ -497,10 +497,10 @@ void nsMsgDBFolder::UpdateNewMessages()
 // helper function that gets the cache element that corresponds to the passed in file spec.
 // This could be static, or could live in another class - it's not specific to the current
 // nsMsgDBFolder. If it lived at a higher level, we could cache the account manager and folder cache.
-nsresult nsMsgDBFolder::GetFolderCacheElemFromFileSpec(nsIFileSpec *fileSpec, nsIMsgFolderCacheElement **cacheElement)
+nsresult nsMsgDBFolder::GetFolderCacheElemFromFile(nsILocalFile *file, nsIMsgFolderCacheElement **cacheElement)
 {
   nsresult result;
-  if (!fileSpec || !cacheElement)
+  if (!file || !cacheElement)
     return NS_ERROR_NULL_POINTER;
   nsCOMPtr <nsIMsgFolderCache> folderCache;
 #ifdef DEBUG_bienvenu1
@@ -514,9 +514,9 @@ nsresult nsMsgDBFolder::GetFolderCacheElemFromFileSpec(nsIFileSpec *fileSpec, ns
     result = accountMgr->GetFolderCache(getter_AddRefs(folderCache));
     if (NS_SUCCEEDED(result) && folderCache)
     {
-      nsXPIDLCString persistentPath;
-      fileSpec->GetPersistentDescriptorString(getter_Copies(persistentPath));
-      result = folderCache->GetCacheElement(persistentPath, PR_FALSE, cacheElement);
+      nsCString persistentPath;
+      file->GetPersistentDescriptor(persistentPath);
+      result = folderCache->GetCacheElement(persistentPath.get(), PR_FALSE, cacheElement);
     }
   }
   return result;
@@ -534,14 +534,14 @@ nsresult nsMsgDBFolder::ReadDBFolderInfo(PRBool force)
   // and, we might get stale info, so don't do it.
   if (!mInitializedFromCache)
   {
-    nsCOMPtr <nsIFileSpec> dbPath;
+    nsCOMPtr <nsILocalFile> dbPath;
     
     result = GetFolderCacheKey(getter_AddRefs(dbPath), PR_TRUE /* createDBIfMissing */);
     
     if (dbPath)
     {
       nsCOMPtr <nsIMsgFolderCacheElement> cacheElement;
-      result = GetFolderCacheElemFromFileSpec(dbPath, getter_AddRefs(cacheElement));
+      result = GetFolderCacheElemFromFile(dbPath, getter_AddRefs(cacheElement));
       if (NS_SUCCEEDED(result) && cacheElement)
       {
         result = ReadFromFolderCacheElem(cacheElement);
@@ -650,10 +650,10 @@ NS_IMETHODIMP nsMsgDBFolder::DownloadAllForOffline(nsIUrlListener *listener, nsI
 
 NS_IMETHODIMP nsMsgDBFolder::GetOfflineStoreInputStream(nsIInputStream **stream)
 {
-  nsresult rv = NS_ERROR_NULL_POINTER;
-  if (mPath)
-    rv = mPath->GetInputStream(stream);
-  return rv;
+  nsCOMPtr <nsILocalFile> localStore;
+  nsresult rv = GetFilePath(getter_AddRefs(localStore));
+  NS_ENSURE_SUCCESS(rv, rv);
+  return NS_NewLocalFileInputStream(stream, localStore);
 }
 
 NS_IMETHODIMP nsMsgDBFolder::GetOfflineFileStream(nsMsgKey msgKey, PRUint32 *offset, PRUint32 *size, nsIInputStream **aFileStream)
@@ -662,12 +662,10 @@ NS_IMETHODIMP nsMsgDBFolder::GetOfflineFileStream(nsMsgKey msgKey, PRUint32 *off
 
   *offset = *size = 0;
   
-  nsXPIDLCString nativePath;
-  mPath->GetNativePath(getter_Copies(nativePath));
-
   nsCOMPtr <nsILocalFile> localStore;
-  nsresult rv = NS_NewNativeLocalFile(nativePath, PR_TRUE, getter_AddRefs(localStore));
-  if (NS_SUCCEEDED(rv) && localStore)
+  nsresult rv = GetFilePath(getter_AddRefs(localStore));
+  NS_ENSURE_SUCCESS(rv, rv);
+  if (localStore)
   {
     rv = NS_NewLocalFileInputStream(aFileStream, localStore);
 
@@ -711,8 +709,6 @@ NS_IMETHODIMP nsMsgDBFolder::GetOfflineFileStream(nsMsgKey msgKey, PRUint32 *off
 NS_IMETHODIMP nsMsgDBFolder::GetOfflineStoreOutputStream(nsIOutputStream **outputStream)
 {
   nsresult rv = NS_ERROR_NULL_POINTER;
-  if (mPath)
-  {
     // the following code doesn't work for a host of reasons - the transfer offset
     // is ignored for output streams. The buffering used by file channels does not work
     // if transfer offsets are coerced to work, etc.
@@ -733,25 +729,23 @@ NS_IMETHODIMP nsMsgDBFolder::GetOfflineStoreOutputStream(nsIOutputStream **outpu
       }
     }
 #endif
-    nsCOMPtr<nsISupports>  supports;
-    nsFileSpec fileSpec;
-    mPath->GetFileSpec(&fileSpec);
-    rv = NS_NewIOFileStream(getter_AddRefs(supports), fileSpec, PR_WRONLY | PR_CREATE_FILE, 00700);
-    NS_ENSURE_SUCCESS(rv, rv);
-    supports->QueryInterface(NS_GET_IID(nsIOutputStream), (void **) outputStream);
+  nsCOMPtr <nsILocalFile> localPath;
+  rv = GetFilePath(getter_AddRefs(localPath));
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = NS_NewLocalFileOutputStream(outputStream, localPath, PR_WRONLY | PR_CREATE_FILE, 00600);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCOMPtr <nsISeekableStream> seekable = do_QueryInterface(supports);
-    if (seekable)
-      seekable->Seek(nsISeekableStream::NS_SEEK_END, 0);
-  }
+  nsCOMPtr <nsISeekableStream> seekable = do_QueryInterface(*outputStream);
+  if (seekable)
+    seekable->Seek(nsISeekableStream::NS_SEEK_END, 0);
   return rv;
 }
 
 // path coming in is the root path without the leaf name,
 // on the way out, it's the whole path.
-nsresult nsMsgDBFolder::CreateFileSpecForDB(const char *userLeafName, nsFileSpec &path, nsIFileSpec **dbFileSpec)
+nsresult nsMsgDBFolder::CreateFileForDB(const char *userLeafName, nsILocalFile *path, nsILocalFile **dbFile)
 {
-  NS_ENSURE_ARG_POINTER(dbFileSpec);
+  NS_ENSURE_ARG_POINTER(dbFile);
   NS_ENSURE_ARG_POINTER(userLeafName);
 
   // XXX : This function is only called by nsImapMailFolder which calls
@@ -762,8 +756,8 @@ nsresult nsMsgDBFolder::CreateFileSpecForDB(const char *userLeafName, nsFileSpec
   nsCAutoString proposedDBName(userLeafName);
   NS_MsgHashIfNecessary(proposedDBName);
 
-  // (note, the caller of this will be using the dbFileSpec to call db->Open() 
-  // will turn the path into summary spec, and append the ".msf" extension)
+  // (note, the caller of this will be using the dbFile to call db->Open() 
+  // will turn the path into summary file path, and append the ".msf" extension)
   //
   // we want db->Open() to create a new summary file
   // so we have to jump through some hoops to make sure the .msf it will
@@ -772,18 +766,24 @@ nsresult nsMsgDBFolder::CreateFileSpecForDB(const char *userLeafName, nsFileSpec
   // unique and then string off the ".msf" so that we pass the right thing
   // into Open().  this isn't ideal, since this is not atomic
   // but it will make do.
-  proposedDBName+= SUMMARY_SUFFIX;
-  path += proposedDBName.get();
-  if (path.Exists()) 
+  nsresult rv;
+  nsCOMPtr <nsILocalFile> dbPath = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  dbPath->InitWithFile(path);
+  proposedDBName += SUMMARY_SUFFIX;
+  dbPath->AppendNative(proposedDBName);
+  PRBool exists;
+  dbPath->Exists(&exists);
+  if (exists) 
   {
-    path.MakeUnique();
-    proposedDBName = path.GetLeafName();
+    dbPath->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);
+    dbPath->GetNativeLeafName(proposedDBName);
   }
   // now, take the ".msf" off
   proposedDBName.Truncate(proposedDBName.Length() - NS_LITERAL_CSTRING(SUMMARY_SUFFIX).Length());
-  path.SetLeafName(proposedDBName.get());
+  dbPath->SetNativeLeafName(proposedDBName);
 
-  NS_NewFileSpecWithSpec(path, dbFileSpec);
+  NS_IF_ADDREF(*dbFile = dbPath);
   return NS_OK;
 }
 
@@ -1118,19 +1118,19 @@ NS_IMETHODIMP nsMsgDBFolder::ReadFromFolderCacheElem(nsIMsgFolderCacheElement *e
   return rv;
 }
 
-nsresult nsMsgDBFolder::GetFolderCacheKey(nsIFileSpec **aFileSpec, PRBool createDBIfMissing /* = PR_FALSE */)
+nsresult nsMsgDBFolder::GetFolderCacheKey(nsILocalFile **aFile, PRBool createDBIfMissing /* = PR_FALSE */)
 {
   nsresult rv;
-  nsCOMPtr <nsIFileSpec> path;
-  rv = GetPath(getter_AddRefs(path));
+  nsCOMPtr <nsILocalFile> path;
+  rv = GetFilePath(getter_AddRefs(path));
   
-  // now we put a new file spec in aFileSpec, because we're going to change it.
-  rv = NS_NewFileSpec(aFileSpec);
+  // now we put a new file  in aFile, because we're going to change it.
+  nsCOMPtr <nsILocalFile> dbPath = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
   
-  if (NS_SUCCEEDED(rv) && *aFileSpec)
+  if (dbPath)
   {
-    nsIFileSpec *dbPath = *aFileSpec;
-    dbPath->FromFileSpec(path);
+    dbPath->InitWithFile(path);
     // if not a server, we need to convert to a db Path with .msf on the end
     PRBool isServer = PR_FALSE;
     GetIsServer(&isServer);
@@ -1138,18 +1138,19 @@ nsresult nsMsgDBFolder::GetFolderCacheKey(nsIFileSpec **aFileSpec, PRBool create
     // if it's a server, we don't need the .msf appended to the name
     if (!isServer)
     {
-      nsFileSpec summaryName;
-      rv = GetSummaryFileLocation(dbPath, &summaryName);
+      nsCOMPtr <nsILocalFile> summaryName;
+      rv = GetSummaryFileLocation(dbPath, getter_AddRefs(summaryName));
       
-      dbPath->SetFromFileSpec(summaryName);
+      dbPath->InitWithFile(summaryName);
       
       // create the .msf file
       // see bug #244217 for details
       PRBool exists;
       if (createDBIfMissing && NS_SUCCEEDED(dbPath->Exists(&exists)) && !exists)
-        dbPath->Touch();
+        dbPath->Create(nsIFile::NORMAL_FILE_TYPE, 0644);
     }
   }
+  NS_IF_ADDREF(*aFile = dbPath);
   return rv;
 }
 
@@ -1177,7 +1178,7 @@ NS_IMETHODIMP nsMsgDBFolder::WriteToFolderCache(nsIMsgFolderCache *folderCache, 
   if (folderCache)
   {
     nsCOMPtr <nsIMsgFolderCacheElement> cacheElement;
-    nsCOMPtr <nsIFileSpec> dbPath;
+    nsCOMPtr <nsILocalFile> dbPath;
 
     rv = GetFolderCacheKey(getter_AddRefs(dbPath));
 #ifdef DEBUG_bienvenu1
@@ -1187,8 +1188,8 @@ NS_IMETHODIMP nsMsgDBFolder::WriteToFolderCache(nsIMsgFolderCache *folderCache, 
     if (NS_SUCCEEDED(rv) && dbPath)
     {
       nsXPIDLCString persistentPath;
-      dbPath->GetPersistentDescriptorString(getter_Copies(persistentPath));
-      rv = folderCache->GetCacheElement(persistentPath, PR_TRUE, getter_AddRefs(cacheElement));
+      dbPath->GetPersistentDescriptor(persistentPath);
+      rv = folderCache->GetCacheElement(persistentPath.get(), PR_TRUE, getter_AddRefs(cacheElement));
       if (NS_SUCCEEDED(rv) && cacheElement)
         rv = WriteToFolderCacheElem(cacheElement);
     }
@@ -1818,12 +1819,12 @@ nsMsgDBFolder::GetStringProperty(const char *propertyName, char **propertyValue)
 {
   NS_ENSURE_ARG_POINTER(propertyName);
   NS_ENSURE_ARG_POINTER(propertyValue);
-  nsCOMPtr <nsIFileSpec> dbPath;
+  nsCOMPtr <nsILocalFile> dbPath;
   nsresult rv = GetFolderCacheKey(getter_AddRefs(dbPath));
   if (dbPath)
   {
     nsCOMPtr <nsIMsgFolderCacheElement> cacheElement;
-    rv = GetFolderCacheElemFromFileSpec(dbPath, getter_AddRefs(cacheElement));
+    rv = GetFolderCacheElemFromFile(dbPath, getter_AddRefs(cacheElement));
     if (cacheElement)  //try to get from cache
       rv = cacheElement->GetStringProperty(propertyName, propertyValue);
     if (NS_FAILED(rv))  //if failed, then try to get from db
@@ -1848,12 +1849,12 @@ nsMsgDBFolder::SetStringProperty(const char *propertyName, const char *propertyV
   NS_ENSURE_ARG_POINTER(propertyName);
   NS_ENSURE_ARG_POINTER(propertyValue);
 
-  nsCOMPtr <nsIFileSpec> dbPath;
+  nsCOMPtr <nsILocalFile> dbPath;
   GetFolderCacheKey(getter_AddRefs(dbPath));
   if (dbPath)
   {
     nsCOMPtr <nsIMsgFolderCacheElement> cacheElement;
-    GetFolderCacheElemFromFileSpec(dbPath, getter_AddRefs(cacheElement));
+    GetFolderCacheElemFromFile(dbPath, getter_AddRefs(cacheElement));
     if (cacheElement)  //try to set in the cache
       cacheElement->SetStringProperty(propertyName, propertyValue);
   }  
@@ -2680,10 +2681,9 @@ nsMsgDBFolder::parseURI(PRBool needServer)
           return rv;
         }
       }
-      NS_NewFileSpecFromIFile(serverPath, getter_AddRefs(mPath));
-      nsCString nativeServerPath;
-      serverPath->GetNativePath(nativeServerPath);
-      mPath->SetNativePath(nativeServerPath.get());
+      mPath = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+      NS_ENSURE_SUCCESS(rv, rv);
+      mPath->InitWithFile(serverPath);
     }
 
     // URI is completely parsed when we've attempted to get the server
@@ -3119,7 +3119,7 @@ NS_IMETHODIMP nsMsgDBFolder::RecursiveDelete(PRBool deleteStorage, nsIMsgWindow 
   // frees memory for the subfolders but NOT for _this_
 
   nsresult status = NS_OK;
-  nsCOMPtr <nsIFileSpec> dbPath;
+  nsCOMPtr <nsILocalFile> dbPath;
   
   // first remove the deleted folder from the folder cache;
   nsresult result = GetFolderCacheKey(getter_AddRefs(dbPath));
@@ -3132,8 +3132,8 @@ NS_IMETHODIMP nsMsgDBFolder::RecursiveDelete(PRBool deleteStorage, nsIMsgWindow 
     result = accountMgr->GetFolderCache(getter_AddRefs(folderCache));
     if (NS_SUCCEEDED(result) && folderCache)
     {
-      nsXPIDLCString persistentPath;
-      dbPath->GetPersistentDescriptorString(getter_Copies(persistentPath));
+      nsCString persistentPath;
+      dbPath->GetPersistentDescriptor(persistentPath);
       folderCache->RemoveElement(persistentPath.get());
     }
   }
@@ -3240,9 +3240,9 @@ NS_IMETHODIMP nsMsgDBFolder::AddSubfolder(const nsAString& name,
   if (NS_FAILED(rv))
     return rv;
 
-  nsFileSpec path;
+  nsCOMPtr <nsILocalFile> path;
   // we just need to do this for the parent folder, i.e., "this".
-  rv = CreateDirectoryForFolder(path);
+  rv = CreateDirectoryForFolder(getter_AddRefs(path));
   NS_ENSURE_SUCCESS(rv, rv);
 
   folder->GetFlags((PRUint32 *)&flags);
@@ -3341,40 +3341,29 @@ nsMsgDBFolder::CheckIfFolderExists(const PRUnichar *newFolderName, nsIMsgFolder 
 
 
 nsresult
-nsMsgDBFolder::AddDirectorySeparator(nsFileSpec &path)
-{
-    nsAutoString sep;
-    nsresult rv = nsGetMailFolderSeparator(sep);
-    if (NS_FAILED(rv)) return rv;
-    
-    // see if there's a dir with the same name ending with .sbd
-    // unfortunately we can't just say:
-    //          path += sep;
-    // here because of the way nsFileSpec concatenates
- 
-    nsCAutoString str(path.GetNativePathCString());
-    str.AppendWithConversion(sep);
-    path = str.get();
-
-    return rv;
+nsMsgDBFolder::AddDirectorySeparator(nsILocalFile *path)
+{ 
+    nsAutoString leafName;
+    path->GetLeafName(leafName);
+    leafName.Append(NS_LITERAL_STRING(FOLDER_SUFFIX));
+    return path->SetLeafName(leafName);
 }
 
 /* Finds the directory associated with this folder.  That is if the path is
    c:\Inbox, it will return c:\Inbox.sbd if it succeeds.  If that path doesn't
    currently exist then it will create it. Path is strictly an out parameter.
   */
-nsresult nsMsgDBFolder::CreateDirectoryForFolder(nsFileSpec &path)
+nsresult nsMsgDBFolder::CreateDirectoryForFolder(nsILocalFile **resultFile)
 {
   nsresult rv = NS_OK;
   
-  nsCOMPtr<nsIFileSpec> pathSpec;
-  rv = GetPath(getter_AddRefs(pathSpec));
+  nsCOMPtr<nsILocalFile> path;
+  rv = GetFilePath(getter_AddRefs(path));
   if (NS_FAILED(rv)) return rv;
-  
-  rv = pathSpec->GetFileSpec(&path);
-  if (NS_FAILED(rv)) return rv;
-  
-  if(!path.IsDirectory())
+
+  PRBool pathIsDirectory = PR_FALSE;
+  path->IsDirectory(&pathIsDirectory);
+  if(!pathIsDirectory)
   {
     //If the current path isn't a directory, add directory separator
     //and test it out.
@@ -3383,27 +3372,27 @@ nsresult nsMsgDBFolder::CreateDirectoryForFolder(nsFileSpec &path)
       return rv;
     
     //If that doesn't exist, then we have to create this directory
-    if(!path.IsDirectory())
+    pathIsDirectory = PR_FALSE;
+    path->IsDirectory(&pathIsDirectory);
+    if(!pathIsDirectory)
     {
+      PRBool pathExists;
+      path->Exists(&pathExists);
       //If for some reason there's a file with the directory separator
       //then we are going to fail.
-      if(path.Exists())
+      if(pathExists)
       {
         return NS_MSG_COULD_NOT_CREATE_DIRECTORY;
       }
       //otherwise we need to create a new directory.
       else
       {
-        nsFileSpec tempPath(path.GetNativePathCString(), PR_TRUE); // create intermediate directories
-        path.CreateDirectory();
-        //Above doesn't return an error value so let's see if
-        //it was created.
-        if(!path.IsDirectory())
-          return NS_MSG_COULD_NOT_CREATE_DIRECTORY;
+        rv = path->Create(nsIFile::DIRECTORY_TYPE, 0700);
       }
     }
   }
-  
+  if (NS_SUCCEEDED(rv))
+    NS_IF_ADDREF(*resultFile = path);
   return rv;
 }
 
@@ -3411,9 +3400,9 @@ nsresult nsMsgDBFolder::CreateDirectoryForFolder(nsFileSpec &path)
 
 NS_IMETHODIMP nsMsgDBFolder::Rename(const PRUnichar *aNewName, nsIMsgWindow *msgWindow)
 {
-  nsCOMPtr<nsIFileSpec> oldPathSpec;
+  nsCOMPtr<nsILocalFile> oldPathFile;
   nsCOMPtr<nsIAtom> folderRenameAtom;
-  nsresult rv = GetPath(getter_AddRefs(oldPathSpec));
+  nsresult rv = GetFilePath(getter_AddRefs(oldPathFile));
   if (NS_FAILED(rv)) 
     return rv;
   nsCOMPtr<nsIMsgFolder> parentFolder;
@@ -3422,18 +3411,18 @@ NS_IMETHODIMP nsMsgDBFolder::Rename(const PRUnichar *aNewName, nsIMsgWindow *msg
     return rv;
   nsCOMPtr<nsISupports> parentSupport = do_QueryInterface(parentFolder);
 
-  nsFileSpec oldSummarySpec;
-  rv = GetSummaryFileLocation(oldPathSpec, &oldSummarySpec);
+  nsCOMPtr <nsILocalFile> oldSummaryFile;
+  rv = GetSummaryFileLocation(oldPathFile, getter_AddRefs(oldSummaryFile));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsFileSpec dirSpec;
+  nsCOMPtr <nsILocalFile> dirFile;
   
   PRUint32 cnt = 0;
   if (mSubFolders)
     mSubFolders->Count(&cnt);
   
   if (cnt > 0)
-    rv = CreateDirectoryForFolder(dirSpec);
+    rv = CreateDirectoryForFolder(getter_AddRefs(dirFile));
   
   // convert from PRUnichar* to char* due to not having Rename(PRUnichar*)
   // function in nsIFileSpec
@@ -3444,8 +3433,8 @@ NS_IMETHODIMP nsMsgDBFolder::Rename(const PRUnichar *aNewName, nsIMsgWindow *msg
   if (NS_FAILED(NS_CopyUnicodeToNative(safeName, newDiskName)))
     return NS_ERROR_FAILURE;
   
-  nsXPIDLCString oldLeafName;
-  oldPathSpec->GetLeafName(getter_Copies(oldLeafName));
+  nsCAutoString oldLeafName;
+  oldPathFile->GetNativeLeafName(oldLeafName);
   
   if (mName.Equals(aNewName, nsCaseInsensitiveStringComparator()))
   {
@@ -3455,16 +3444,13 @@ NS_IMETHODIMP nsMsgDBFolder::Rename(const PRUnichar *aNewName, nsIMsgWindow *msg
   }
   else
   {
-    nsCOMPtr <nsIFileSpec> parentPathSpec;
-    parentFolder->GetPath(getter_AddRefs(parentPathSpec));
+    nsCOMPtr <nsILocalFile> parentPathFile;
+    parentFolder->GetFilePath(getter_AddRefs(parentPathFile));
     NS_ENSURE_SUCCESS(rv,rv);
-    
-    nsFileSpec parentPath;
-    parentPathSpec->GetFileSpec(&parentPath);
-    NS_ENSURE_SUCCESS(rv,rv);
-    
-    if (!parentPath.IsDirectory())
-      AddDirectorySeparator(parentPath);
+    PRBool isDirectory = PR_FALSE;
+    parentPathFile->IsDirectory(&isDirectory);
+    if (!isDirectory)
+      AddDirectorySeparator(parentPathFile);
     
     rv = CheckIfFolderExists(aNewName, parentFolder, msgWindow);
     if (NS_FAILED(rv)) 
@@ -3476,11 +3462,11 @@ NS_IMETHODIMP nsMsgDBFolder::Rename(const PRUnichar *aNewName, nsIMsgWindow *msg
   nsCAutoString newNameDirStr(newDiskName);  //save of dir name before appending .msf 
   
   if (! (mFlags & MSG_FOLDER_FLAG_VIRTUAL))
-    rv = oldPathSpec->Rename(newDiskName.get());
+    rv = oldPathFile->MoveToNative(nsnull, newDiskName);
   if (NS_SUCCEEDED(rv))
   {
     newDiskName += SUMMARY_SUFFIX;
-    oldSummarySpec.Rename(newDiskName.get());
+    oldSummaryFile->MoveToNative(nsnull, newDiskName);
   }
   else
   {
@@ -3492,7 +3478,7 @@ NS_IMETHODIMP nsMsgDBFolder::Rename(const PRUnichar *aNewName, nsIMsgWindow *msg
   {
     // rename "*.sbd" directory
     newNameDirStr += ".sbd";
-    dirSpec.Rename(newNameDirStr.get());
+    dirFile->MoveToNative(nsnull, newNameDirStr);
   }
   
   nsCOMPtr<nsIMsgFolder> newFolder;
@@ -4343,50 +4329,27 @@ NS_IMETHODIMP nsMsgDBFolder::GetRootFolder(nsIMsgFolder * *aRootFolder)
 }
 
 NS_IMETHODIMP
-nsMsgDBFolder::GetPath(nsIFileSpec * *aPath)
-{
-  NS_ENSURE_ARG_POINTER(aPath);
-  nsresult rv=NS_OK;
-
-  if (!mPath)
-    rv = parseURI(PR_TRUE);
-
-  *aPath = mPath;
-  NS_IF_ADDREF(*aPath);
-
-  return rv;
-}
-
-NS_IMETHODIMP
-nsMsgDBFolder::SetPath(nsIFileSpec  *aPath)
-{
-  // XXX - make a local copy!
-  mPath = aPath;
-
-  return NS_OK;
-}
-
-NS_IMETHODIMP
 nsMsgDBFolder::SetFilePath(nsILocalFile *aFile)
 {
-  NS_ASSERTION(PR_FALSE, "don't call this until we've converted mPath to an nsIFile");
-  return NS_ERROR_NOT_IMPLEMENTED;
+  mPath = aFile;
+  return NS_OK;
 }
 
 NS_IMETHODIMP
 nsMsgDBFolder::GetFilePath(nsILocalFile * *aFile)
 {
   NS_ENSURE_ARG_POINTER(aFile);
-
-  nsCOMPtr <nsIFileSpec> fileSpec;
-  nsresult rv = GetPath(getter_AddRefs(fileSpec));
+  nsresult rv;
+  // make a new nsILocalFile object in case the caller
+  // alters the underlying file object.
+  
+  nsCOMPtr <nsILocalFile> file = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-
-  nsFileSpec spec;
-  rv = fileSpec->GetFileSpec(&spec);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  return NS_FileSpecToIFile(&spec, aFile);
+  if (!mPath)
+    parseURI();
+  rv = file->InitWithFile(mPath);
+  NS_IF_ADDREF(*aFile = file);
+  return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -4767,13 +4730,6 @@ nsresult nsMsgDBFolder::NotifyFolderEvent(nsIAtom* aEvent)
   if (NS_SUCCEEDED(rv))
     folderListenerManager->OnItemEvent(this, aEvent);
 
-  return NS_OK;
-}
-
-nsresult
-nsGetMailFolderSeparator(nsString& result)
-{
-  result.AssignLiteral(".sbd");
   return NS_OK;
 }
 

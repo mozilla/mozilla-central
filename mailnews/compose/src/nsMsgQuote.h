@@ -38,8 +38,6 @@
 #define __nsMsgQuote_h__
 
 #include "nsIMsgQuote.h" 
-#include "nsFileSpec.h"
-#include "nsIFileSpec.h"
 #include "nsIMsgMessageService.h"
 #include "nsIStreamListener.h"
 #include "nsIMimeStreamConverter.h"

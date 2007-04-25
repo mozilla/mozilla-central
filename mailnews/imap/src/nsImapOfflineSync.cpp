@@ -37,6 +37,7 @@
 
 #include "msgCore.h"
 #include "netCore.h"
+#include "nsNetUtil.h"
 #include "nsImapOfflineSync.h"
 #include "nsImapMailFolder.h"
 #include "nsMsgFolderFlags.h"
@@ -48,7 +49,7 @@
 #include "nsINntpIncomingServer.h"
 #include "nsIRequestObserver.h"
 #include "nsDirectoryServiceDefs.h"
-#include "nsIFileStream.h"
+#include "nsISeekableStream.h"
 #include "nsIMsgCopyService.h"
 #include "nsImapProtocol.h"
 #include "nsMsgUtils.h"
@@ -101,7 +102,7 @@ nsImapOfflineSync::OnStopRunningUrl(nsIURI* url, nsresult exitCode)
 
   if (m_curTempFile)
   {
-    m_curTempFile->Delete(PR_FALSE);
+    m_curTempFile->Remove(PR_FALSE);
     m_curTempFile = nsnull;
   }
   if (stopped)
@@ -379,7 +380,6 @@ nsImapOfflineSync::ProcessAppendMsgOperation(nsIMsgOfflineImapOperation *current
     PRUint32 messageSize;
     mailHdr->GetMessageOffset(&messageOffset);
     mailHdr->GetOfflineMessageSize(&messageSize);
-    nsCOMPtr <nsIFileSpec>	tempFileSpec;
     nsCOMPtr<nsIFile> tmpFile;
 
     if (NS_FAILED(GetSpecialDirectoryWithFileName(NS_OS_TEMP_DIR,
@@ -390,86 +390,82 @@ nsImapOfflineSync::ProcessAppendMsgOperation(nsIMsgOfflineImapOperation *current
     if (NS_FAILED(tmpFile->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600)))
       return;
 
-    NS_NewFileSpecFromIFile(tmpFile, getter_AddRefs(tempFileSpec));
-    if (tempFileSpec)
+    nsCOMPtr <nsIOutputStream> outputStream;
+    rv = NS_NewLocalFileOutputStream(getter_AddRefs(outputStream), tmpFile, PR_WRONLY | PR_CREATE_FILE, 00600);
+    if (NS_SUCCEEDED(rv) && outputStream)
     {
-      nsCOMPtr <nsIOutputStream> outputStream;
-      rv = tempFileSpec->GetOutputStream(getter_AddRefs(outputStream));
-      if (NS_SUCCEEDED(rv) && outputStream)
+      nsXPIDLCString moveDestination;
+      currentOp->GetDestinationFolderURI(getter_Copies(moveDestination));
+      nsCOMPtr<nsIRDFService> rdf(do_GetService(kRDFServiceCID, &rv));
+      nsCOMPtr<nsIRDFResource> res;
+      if (NS_FAILED(rv)) return ; // ### return error code.
+      rv = rdf->GetResource(moveDestination, getter_AddRefs(res));
+      if (NS_SUCCEEDED(rv))
       {
-        nsXPIDLCString moveDestination;
-        currentOp->GetDestinationFolderURI(getter_Copies(moveDestination));
-        nsCOMPtr<nsIRDFService> rdf(do_GetService(kRDFServiceCID, &rv));
-        nsCOMPtr<nsIRDFResource> res;
-        if (NS_FAILED(rv)) return ; // ### return error code.
-        rv = rdf->GetResource(moveDestination, getter_AddRefs(res));
-        if (NS_SUCCEEDED(rv))
+        nsCOMPtr<nsIMsgFolder> destFolder(do_QueryInterface(res, &rv));
+        if (NS_SUCCEEDED(rv) && destFolder)
         {
-          nsCOMPtr<nsIMsgFolder> destFolder(do_QueryInterface(res, &rv));
-          if (NS_SUCCEEDED(rv) && destFolder)
+          nsCOMPtr <nsIInputStream> offlineStoreInputStream;
+          rv = destFolder->GetOfflineStoreInputStream(getter_AddRefs(offlineStoreInputStream));
+          if (NS_SUCCEEDED(rv) && offlineStoreInputStream)
           {
-            nsCOMPtr <nsIInputStream> offlineStoreInputStream;
-            rv = destFolder->GetOfflineStoreInputStream(getter_AddRefs(offlineStoreInputStream));
-            if (NS_SUCCEEDED(rv) && offlineStoreInputStream)
+            nsCOMPtr<nsISeekableStream> seekStream = do_QueryInterface(offlineStoreInputStream);
+            NS_ASSERTION(seekStream, "non seekable stream - can't read from offline msg");
+            if (seekStream)
             {
-              nsCOMPtr<nsISeekableStream> seekStream = do_QueryInterface(offlineStoreInputStream);
-              NS_ASSERTION(seekStream, "non seekable stream - can't read from offline msg");
-              if (seekStream)
+              rv = seekStream->Seek(PR_SEEK_SET, messageOffset);
+              if (NS_SUCCEEDED(rv))
               {
-                rv = seekStream->Seek(PR_SEEK_SET, messageOffset);
-                if (NS_SUCCEEDED(rv))
+                // now, copy the dest folder offline store msg to the temp file
+                PRInt32 inputBufferSize = 10240;
+                char *inputBuffer = nsnull;
+                
+                while (!inputBuffer && (inputBufferSize >= 512))
                 {
-                  // now, copy the dest folder offline store msg to the temp file
-                  PRInt32 inputBufferSize = 10240;
-                  char *inputBuffer = nsnull;
-                  
-                  while (!inputBuffer && (inputBufferSize >= 512))
+                  inputBuffer = (char *) PR_Malloc(inputBufferSize);
+                  if (!inputBuffer)
+                    inputBufferSize /= 2;
+                }
+                PRInt32 bytesLeft;
+                PRUint32 bytesRead, bytesWritten;
+                bytesLeft = messageSize;
+                rv = NS_OK;
+                while (bytesLeft > 0 && NS_SUCCEEDED(rv))
+                {
+                  PRInt32 bytesToRead = PR_MIN(inputBufferSize, bytesLeft);
+                  rv = offlineStoreInputStream->Read(inputBuffer, bytesToRead, &bytesRead);
+                  if (NS_SUCCEEDED(rv) && bytesRead > 0)
                   {
-                    inputBuffer = (char *) PR_Malloc(inputBufferSize);
-                    if (!inputBuffer)
-                      inputBufferSize /= 2;
-                  }
-                  PRInt32 bytesLeft;
-                  PRUint32 bytesRead, bytesWritten;
-                  bytesLeft = messageSize;
-                  rv = NS_OK;
-                  while (bytesLeft > 0 && NS_SUCCEEDED(rv))
-                  {
-                    PRInt32 bytesToRead = PR_MIN(inputBufferSize, bytesLeft);
-                    rv = offlineStoreInputStream->Read(inputBuffer, bytesToRead, &bytesRead);
-                    if (NS_SUCCEEDED(rv) && bytesRead > 0)
-                    {
-                      rv = outputStream->Write(inputBuffer, bytesRead, &bytesWritten);
-                      NS_ASSERTION(bytesWritten == bytesRead, "wrote out correct number of bytes");
-                    }
-                    else
-                      break;
-                    bytesLeft -= bytesRead;
-                  }
-                  outputStream->Flush();
-                  tempFileSpec->CloseStream();
-                  if (NS_SUCCEEDED(rv))
-                  {
-                    m_curTempFile = tempFileSpec;
-                    nsCOMPtr<nsIMsgCopyService> copyService = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID);
-                    if (copyService)
-                      rv = copyService->CopyFileMessage(tmpFile, destFolder,
-                      /* nsIMsgDBHdr* msgToReplace */ nsnull,
-                      PR_TRUE /* isDraftOrTemplate */,
-                      0, // new msg flags - are there interesting flags here?
-                        this,
-                        m_window);
+                    rv = outputStream->Write(inputBuffer, bytesRead, &bytesWritten);
+                    NS_ASSERTION(bytesWritten == bytesRead, "wrote out correct number of bytes");
                   }
                   else
-                    tempFileSpec->Delete(PR_FALSE);
+                    break;
+                  bytesLeft -= bytesRead;
                 }
-                currentOp->ClearOperation(nsIMsgOfflineImapOperation::kAppendDraft);
-                m_currentDB->DeleteHeader(mailHdr, nsnull, PR_TRUE, PR_TRUE);
+                outputStream->Flush();
+                outputStream->Close();
+                if (NS_SUCCEEDED(rv))
+                {
+                  m_curTempFile = do_QueryInterface(tmpFile);
+                  nsCOMPtr<nsIMsgCopyService> copyService = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID);
+                  if (copyService)
+                    rv = copyService->CopyFileMessage(tmpFile, destFolder,
+                    /* nsIMsgDBHdr* msgToReplace */ nsnull,
+                    PR_TRUE /* isDraftOrTemplate */,
+                    0, // new msg flags - are there interesting flags here?
+                      this,
+                      m_window);
+                }
+                else
+                  tmpFile->Remove(PR_FALSE);
               }
+              currentOp->ClearOperation(nsIMsgOfflineImapOperation::kAppendDraft);
+              m_currentDB->DeleteHeader(mailHdr, nsnull, PR_TRUE, PR_TRUE);
             }
-            // want to close in failure case too
-            tempFileSpec->CloseStream();
           }
+          // want to close in failure case too
+          outputStream->Close();
         }
       }
     }

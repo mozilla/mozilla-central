@@ -61,7 +61,6 @@
 #include "nsIMsgMailSession.h"
 #include "nsNetUtil.h"
 #include "nsIFileURL.h"
-#include "nsIFileSpec.h"
 static NS_DEFINE_CID(kCMailDB, NS_MAILDB_CID);
 
 // this is totally lame and MUST be removed by M6
@@ -225,11 +224,9 @@ nsresult nsMailboxUrl::GetMsgHdrForKey(nsMsgKey  msgKey, nsIMsgDBHdr ** aMsgHdr)
     nsCOMPtr<nsIMsgDatabase> mailDB;
     
     nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
-    nsCOMPtr <nsIFileSpec> dbFileSpec;
-    rv = NS_NewFileSpecFromIFile(m_filePath, getter_AddRefs(dbFileSpec));
     
     if (msgDBService)
-      rv = msgDBService->OpenMailDBFromFileSpec(dbFileSpec, PR_FALSE, PR_FALSE, (nsIMsgDatabase **) getter_AddRefs(mailDB));
+      rv = msgDBService->OpenMailDBFromFile(m_filePath, PR_FALSE, PR_FALSE, (nsIMsgDatabase **) getter_AddRefs(mailDB));
     if (NS_SUCCEEDED(rv) && mailDB) // did we get a db back?
       rv = mailDB->GetMsgHdrForKey(msgKey, aMsgHdr);
     else

@@ -51,10 +51,8 @@
 #define AppleDouble_h
 
 #include "msgCore.h"
-#include "nsFileSpec.h"
-#include "nsFileStream.h"
 #include "nsMsgComposeStringBundle.h"
-
+#include "nsIOutputStream.h"
 
 #define NOERR			0
 #define errDone			1
@@ -178,7 +176,7 @@ typedef struct _appledouble_decode_object
 	PRInt32	dirId; 
 	PRInt16	fileId;				/* the id for the open file (data/resource fork) */
 #endif
-	nsIOFileStream *fileSpec;					/* the stream for data fork work.					 */
+	// nsIOFileStream *fileSpec;					/* the stream for data fork work.					 */
 
 	int 	state;
 	
@@ -203,9 +201,9 @@ typedef struct _appledouble_decode_object
 	int		pos_inbuff;			/* the offset in the current buffer.			*/ 
 
 
-	nsFileSpec          *tmpFileSpec;		/* the temp file to hold the decode data fork 	*/
+	nsCOMPtr <nsILocalFile> tmpFile;		/* the temp file to hold the decode data fork 	*/
 								                      /* when doing the binhex exporting.				*/
-  nsIOFileStream      *tmpFileStream; /* The output File Stream */
+  nsCOMPtr <nsIOutputStream> tmpFileStream; /* The output File Stream */
 	PRInt32	            data_size;			/* the size of the data in the tmp file.		*/
 
 } appledouble_decode_object;

@@ -904,7 +904,9 @@ ImportMailThread( void *stuff)
 				if (NS_SUCCEEDED( rv)) {
 					newFolder = do_QueryInterface( subFolder);
 					if (newFolder) {
-						newFolder->GetPath( getter_AddRefs( outBox));
+                                          nsCOMPtr <nsILocalFile> localPath;
+						newFolder->GetFilePath( getter_AddRefs( localPath));
+                                                NS_NewFileSpecFromIFile(localPath, getter_AddRefs(outBox));
 					}
 					else {
             IMPORT_LOG1("*** ImportMailThread: Failed to locate subfolder interface '%s'.", lastName.get());

@@ -40,13 +40,12 @@
 #include "nsMailDatabase.h"
 #include "nsDBFolderInfo.h"
 #include "nsMsgLocalFolderHdrs.h"
-#include "nsFileStream.h"
-#include "nsFileSpec.h"
+#include "nsNetUtil.h"
+#include "nsISeekableStream.h"
 #include "nsMsgOfflineImapOperation.h"
 #include "nsMsgFolderFlags.h"
 #include "prlog.h"
 #include "prprf.h"
-#include "nsIFileSpec.h"
 #include "nsMsgUtils.h"
 #ifdef PUTUP_ALERT_ON_INVALID_DB
 #include "nsIPrompt.h"
@@ -61,17 +60,16 @@ struct mdbOid gAllOfflineOpsTableOID;
 
 
 nsMailDatabase::nsMailDatabase()
-    : m_reparse(PR_FALSE), m_folderSpec(nsnull), m_folderStream(nsnull), m_ownFolderStream(PR_FALSE)
+    : m_reparse(PR_FALSE), m_ownFolderStream(PR_FALSE)
 {
   m_mdbAllOfflineOpsTable = nsnull;
 }
 
 nsMailDatabase::~nsMailDatabase()
 {
-  delete m_folderSpec;
 }
 
-NS_IMETHODIMP nsMailDatabase::SetFolderStream(nsIOFileStream *aFileStream)
+NS_IMETHODIMP nsMailDatabase::SetFolderStream(nsIOutputStream *aFileStream)
 {
   NS_ASSERTION(!m_folderStream || !aFileStream, "m_folderStream is not null and we are assigning a non null stream to it");
   m_folderStream = aFileStream; //m_folderStream is set externally, so m_ownFolderStream is false
@@ -79,16 +77,17 @@ NS_IMETHODIMP nsMailDatabase::SetFolderStream(nsIOFileStream *aFileStream)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMailDatabase::GetFolderStream(nsIOFileStream **aFileStream)
+NS_IMETHODIMP nsMailDatabase::GetFolderStream(nsIOutputStream **aFileStream)
 {
   NS_ENSURE_ARG_POINTER(aFileStream);
   if (!m_folderStream)
   {
-    m_folderStream = new nsIOFileStream(nsFileSpec(*m_folderSpec));
+    nsresult rv = MsgGetFileStream(m_folderFile, getter_AddRefs(m_folderStream));
+    NS_ENSURE_SUCCESS(rv, rv);
     m_ownFolderStream = PR_TRUE;
   }
-  // N.B. - not a ref-counted interface pointer
-  *aFileStream = m_folderStream;
+  
+  NS_IF_ADDREF(*aFileStream = m_folderStream);
   return NS_OK;
 }
 
@@ -107,11 +106,9 @@ void nsMailDatabase::GetGlobalPrefs()
 // caller passes in upgrading==PR_TRUE if they want back a db even if the db is out of date.
 // If so, they'll extract out the interesting info from the db, close it, delete it, and
 // then try to open the db again, prior to reparsing.
-NS_IMETHODIMP nsMailDatabase::Open(nsIFileSpec *aFolderName, PRBool aCreate, PRBool aUpgrading)
+NS_IMETHODIMP nsMailDatabase::Open(nsILocalFile *aFolderName, PRBool aCreate, PRBool aUpgrading)
 {
-  nsFileSpec  folderName;
-  aFolderName->GetFileSpec(&folderName);
-  m_folderSpec = new nsFileSpec(folderName);
+  m_folderFile = aFolderName;
   nsresult rv = nsMsgDatabase::Open(aFolderName, aCreate, aUpgrading);
   return rv;
 }
@@ -145,7 +142,8 @@ NS_IMETHODIMP nsMailDatabase::StartBatch()
       NS_ASSERTION(PR_FALSE, "Some other operation is in progress");
       return NS_MSG_FOLDER_BUSY;
     }
-    m_folderStream = new nsIOFileStream(nsFileSpec(*m_folderSpec));
+    nsresult rv = MsgGetFileStream(m_folderFile, getter_AddRefs(m_folderStream));
+    NS_ENSURE_SUCCESS(rv, rv);
     m_ownFolderStream = PR_TRUE;
   }
 
@@ -158,9 +156,8 @@ NS_IMETHODIMP nsMailDatabase::EndBatch()
   {
     if (m_folderStream)
     {
-      m_folderStream->flush();
-      m_folderStream->close();  
-      delete m_folderStream;
+      m_folderStream->Flush();
+      m_folderStream->Close();  
     }
     m_folderStream = nsnull;
     m_ownFolderStream = PR_FALSE;
@@ -171,6 +168,7 @@ NS_IMETHODIMP nsMailDatabase::EndBatch()
 
 NS_IMETHODIMP nsMailDatabase::DeleteMessages(nsMsgKeyArray* nsMsgKeys, nsIDBChangeListener *instigator)
 {
+  nsresult rv;
   if (!m_folderStream && m_folder)
   {
     PRBool isLocked;
@@ -180,31 +178,31 @@ NS_IMETHODIMP nsMailDatabase::DeleteMessages(nsMsgKeyArray* nsMsgKeys, nsIDBChan
       NS_ASSERTION(PR_FALSE, "Some other operation is in progress");
       return NS_MSG_FOLDER_BUSY;
     }
-    m_folderStream = new nsIOFileStream(nsFileSpec(*m_folderSpec));
+    rv = MsgGetFileStream(m_folderFile, getter_AddRefs(m_folderStream));
+    NS_ENSURE_SUCCESS(rv, rv);
     m_ownFolderStream = PR_TRUE;
   }
 
-  nsresult rv = nsMsgDatabase::DeleteMessages(nsMsgKeys, instigator);
+  rv = nsMsgDatabase::DeleteMessages(nsMsgKeys, instigator);
   if (m_ownFolderStream)//only if we own the stream, then we should close it
   {
     if (m_folderStream)
     {
-      m_folderStream->flush(); // this does a sync
-      m_folderStream->close();
-      delete m_folderStream;
+      m_folderStream->Flush(); // this does a sync
+      m_folderStream->Close();
     }
     m_folderStream = nsnull;
     m_ownFolderStream = PR_FALSE;
   }
 
-  SetFolderInfoValid(m_folderSpec, 0, 0);
+  SetFolderInfoValid(m_folderFile, 0, 0);
   return rv;
 }
 
 // Helper routine - lowest level of flag setting
 PRBool nsMailDatabase::SetHdrFlag(nsIMsgDBHdr *msgHdr, PRBool bSet, MsgFlags flag)
 {
-  nsIOFileStream *fileStream = nsnull;
+  nsIOutputStream *fileStream = nsnull;
   PRBool ret = PR_FALSE;
 
   if (!m_folderStream && m_folder)  //we are going to create a stream, bail out if someone else has lock
@@ -222,10 +220,10 @@ PRBool nsMailDatabase::SetHdrFlag(nsIMsgDBHdr *msgHdr, PRBool bSet, MsgFlags fla
     UpdateFolderFlag(msgHdr, bSet, flag, &fileStream);
     if (fileStream)
     {
-      fileStream->flush();
-      fileStream->close();
-      delete fileStream;
-      SetFolderInfoValid(m_folderSpec, 0, 0);
+      fileStream->Flush();
+      fileStream->Close();
+      NS_RELEASE(fileStream);
+      SetFolderInfoValid(m_folderFile, 0, 0);
     }
     ret = PR_TRUE;
   }
@@ -252,11 +250,11 @@ int msg_UnHex(char C)
 // As an experiment, try caching the fid in the db as m_folderFile.
 // If this is set, use it but don't return *pFid.
 void nsMailDatabase::UpdateFolderFlag(nsIMsgDBHdr *mailHdr, PRBool bSet, 
-							  MsgFlags flag, nsIOFileStream **ppFileStream)
+							  MsgFlags flag, nsIOutputStream **ppFileStream)
 {
   static char buf[50];
-  PRInt32 folderStreamPos = 0; //saves the folderStream pos in case we are sharing the stream with other code
-  nsIOFileStream *fileStream = (m_folderStream) ? m_folderStream : *ppFileStream;
+  PRInt64 folderStreamPos = 0; //saves the folderStream pos in case we are sharing the stream with other code
+  nsIOutputStream *fileStream = (m_folderStream) ? m_folderStream.get() : *ppFileStream;
   //#ifdef GET_FILE_STUFF_TOGETHER
 #ifdef XP_MAC
   /* ducarroz: Do we still need this ??
@@ -274,33 +272,48 @@ void nsMailDatabase::UpdateFolderFlag(nsIMsgDBHdr *mailHdr, PRBool bSet,
 #endif // XP_MAC
   PRUint32 offset;
   (void)mailHdr->GetStatusOffset(&offset);
+  nsCOMPtr <nsISeekableStream> seekableStream;
+  
+  nsresult rv;
+  
   if (offset > 0) 
   {
     
     if (fileStream == NULL) 
     {
-      fileStream = new nsIOFileStream(nsFileSpec(*m_folderSpec));
+      rv = MsgGetFileStream(m_folderFile, &fileStream);
+      if (NS_FAILED(rv))
+        return;
+      seekableStream = do_QueryInterface(fileStream);
     }
     else if (!m_ownFolderStream)
     {
-      m_folderStream->flush();
-      folderStreamPos = m_folderStream->tell();
+      m_folderStream->Flush();
+      seekableStream = do_QueryInterface(fileStream);
+      seekableStream->Tell(&folderStreamPos);
     }
+    else
+      seekableStream = do_QueryInterface(m_folderStream);
+      
     if (fileStream) 
     {
       PRUint32 msgOffset;
       (void)mailHdr->GetMessageOffset(&msgOffset);
       PRUint32 statusPos = offset + msgOffset;
       PR_ASSERT(offset < 10000);
-      fileStream->seek(PR_SEEK_SET, statusPos);
+      seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, statusPos);
       buf[0] = '\0';
-      if (fileStream->readline(buf, sizeof(buf))) 
+      nsCOMPtr <nsIInputStream> inputStream = do_QueryInterface(fileStream);
+      PRUint32 bytesRead;
+      if (NS_SUCCEEDED(inputStream->Read(buf, X_MOZILLA_STATUS_LEN + 6, &bytesRead)))
       {
+        buf[bytesRead] = '\0';
         if (strncmp(buf, X_MOZILLA_STATUS, X_MOZILLA_STATUS_LEN) == 0 &&
           strncmp(buf + X_MOZILLA_STATUS_LEN, ": ", 2) == 0 &&
           strlen(buf) >= X_MOZILLA_STATUS_LEN + 6) 
         {
           PRUint32 flags;
+          PRUint32 bytesWritten;
           (void)mailHdr->GetFlags(&flags);
           if (!(flags & MSG_FLAG_EXPUNGED))
           {
@@ -321,17 +334,17 @@ void nsMailDatabase::UpdateFolderFlag(nsIMsgDBHdr *mailHdr, PRBool bSet,
           {
             flags &= ~MSG_FLAG_RUNTIME_ONLY;
           }
-          fileStream->seek(statusPos);
+          seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, statusPos);
           // We are filing out x-mozilla-status flags here
           PR_snprintf(buf, sizeof(buf), X_MOZILLA_STATUS_FORMAT,
             flags & 0x0000FFFF);
           PRInt32 lineLen = PL_strlen(buf);
           PRUint32 status2Pos = statusPos + lineLen + MSG_LINEBREAK_LEN;
-          fileStream->write(buf, lineLen);
+          fileStream->Write(buf, lineLen, &bytesWritten);
           
           // time to upate x-mozilla-status2
-          fileStream->seek(status2Pos);
-          if (fileStream->readline(buf, sizeof(buf))) 
+          seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, status2Pos);
+          if (NS_SUCCEEDED(inputStream->Read(buf, X_MOZILLA_STATUS2_LEN + 10, &bytesRead)))
           {
             if (strncmp(buf, X_MOZILLA_STATUS2, X_MOZILLA_STATUS2_LEN) == 0 &&
               strncmp(buf + X_MOZILLA_STATUS2_LEN, ": ", 2) == 0 &&
@@ -340,9 +353,9 @@ void nsMailDatabase::UpdateFolderFlag(nsIMsgDBHdr *mailHdr, PRBool bSet,
               PRUint32 dbFlags;
               (void)mailHdr->GetFlags(&dbFlags);
               dbFlags &= 0xFFFF0000;
-              fileStream->seek(status2Pos);
+              seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, status2Pos);
               PR_snprintf(buf, sizeof(buf), X_MOZILLA_STATUS2_FORMAT, dbFlags);
-              fileStream->write(buf, PL_strlen(buf));
+              fileStream->Write(buf, PL_strlen(buf), &bytesWritten);
             }
           }
         } else 
@@ -374,8 +387,10 @@ void nsMailDatabase::UpdateFolderFlag(nsIMsgDBHdr *mailHdr, PRBool bSet,
     else
     {
 #ifdef DEBUG
+      nsCString folderPath;
+      m_folderFile->GetNativePath(folderPath);
       printf("Couldn't open mail folder for update%s!\n",
-        (const char*)m_folderSpec);
+        folderPath.get());
 #endif
       PR_ASSERT(PR_FALSE);
     }
@@ -384,18 +399,16 @@ void nsMailDatabase::UpdateFolderFlag(nsIMsgDBHdr *mailHdr, PRBool bSet,
   if (!m_folderStream)
     *ppFileStream = fileStream; // This tells the caller that we opened the file, and please to close it.
   else if (!m_ownFolderStream)
-    m_folderStream->seek(PR_SEEK_SET, folderStreamPos);
+    seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, folderStreamPos);
 }
 
 PRUint32 nsMailDatabase::GetMailboxModDate()
 {
   PRUint32 retModTime = 0;
-  nsCOMPtr <nsILocalFile> localFile;
   PRInt64 lastModTime;
-  nsresult rv = NS_FileSpecToIFile(m_folderSpec, getter_AddRefs(localFile));
-  if (NS_SUCCEEDED(rv))
+  if (m_folderFile)
   {
-    rv = localFile->GetLastModifiedTime(&lastModTime);
+    nsresult rv = m_folderFile->GetLastModifiedTime(&lastModTime);
     if (NS_SUCCEEDED(rv))
     {
 
@@ -406,9 +419,6 @@ PRUint32 nsMailDatabase::GetMailboxModDate()
       LL_L2UI(retModTime, temp64);
     }
   }
-  if (!retModTime)
-    m_folderSpec->GetModDate(retModTime) ;
-
   return retModTime;
 }
 
@@ -417,14 +427,14 @@ NS_IMETHODIMP nsMailDatabase::GetSummaryValid(PRBool *aResult)
   NS_ENSURE_ARG_POINTER(aResult);
   PRUint32 folderSize;
   PRUint32  folderDate;
-  nsFileSpec::TimeStamp actualFolderTimeStamp;
+  PRUint32  actualFolderTimeStamp;
   PRInt32 numUnreadMessages;
   nsAutoString errorMsg;
 
         
   *aResult = PR_FALSE;
   
-  if (m_folderSpec && m_dbFolderInfo)
+  if (m_folderFile && m_dbFolderInfo)
   {
     actualFolderTimeStamp = GetMailboxModDate();
   
@@ -437,7 +447,9 @@ NS_IMETHODIMP nsMailDatabase::GetSummaryValid(PRBool *aResult)
     PRUint32 version;
 
     m_dbFolderInfo->GetVersion(&version);
-    if (folderSize == m_folderSpec->GetFileSize() &&
+    PRInt64 fileSize;
+    m_folderFile->GetFileSize(&fileSize);
+    if (folderSize == fileSize &&
         numUnreadMessages >= 0 && GetCurVersion() == version)
     {
       GetGlobalPrefs();
@@ -487,17 +499,19 @@ NS_IMETHODIMP nsMailDatabase::GetSummaryValid(PRBool *aResult)
 NS_IMETHODIMP nsMailDatabase::SetSummaryValid(PRBool valid)
 {
   nsresult ret = NS_OK;
-  
-  if (!m_folderSpec->Exists()) 
+  PRBool exists;
+  m_folderFile->Exists(&exists);
+  if (!exists) 
     return NS_MSG_ERROR_FOLDER_MISSING;
   
   if (m_dbFolderInfo)
   {
     if (valid)
     {
-      nsFileSpec::TimeStamp actualFolderTimeStamp = GetMailboxModDate();
-      
-      m_dbFolderInfo->SetFolderSize(m_folderSpec->GetFileSize());
+      PRUint32 actualFolderTimeStamp = GetMailboxModDate();
+      PRInt64 fileSize;
+      m_folderFile->GetFileSize(&fileSize);
+      m_dbFolderInfo->SetFolderSize((PRUint32) fileSize);
       m_dbFolderInfo->SetFolderDate(actualFolderTimeStamp);
       m_dbFolderInfo->SetVersion(GetCurVersion());
     }
@@ -512,8 +526,8 @@ NS_IMETHODIMP nsMailDatabase::SetSummaryValid(PRBool valid)
 
 nsresult nsMailDatabase::GetFolderName(nsString &folderName)
 {
-	folderName.AssignWithConversion(NS_STATIC_CAST(const char*, *m_folderSpec));
-	return NS_OK;
+  m_folderFile->GetPath(folderName);
+  return NS_OK;
 }
 
 
@@ -697,14 +711,16 @@ NS_IMETHODIMP nsMailDatabase::ListAllOfflineDeletes(nsMsgKeyArray *offlineDelete
 }
 
 /* static */
-nsresult nsMailDatabase::SetFolderInfoValid(nsFileSpec *folderName, int num, int numunread)
+nsresult nsMailDatabase::SetFolderInfoValid(nsILocalFile *folderName, int num, int numunread)
 {
   nsresult err = NS_OK;
   PRBool bOpenedDB = PR_FALSE;
-  nsFileSpec summaryPath;
-  GetSummaryFileLocation(*folderName, &summaryPath);
+  nsCOMPtr <nsILocalFile> summaryPath;
+  GetSummaryFileLocation(folderName, getter_AddRefs(summaryPath));
   
-  if (!folderName->Exists())
+  PRBool exists;
+  folderName->Exists(&exists);
+  if (!exists)
     return NS_MSG_ERROR_FOLDER_SUMMARY_MISSING;
   
   // should we have type safe downcast methods again?
@@ -715,16 +731,13 @@ nsresult nsMailDatabase::SetFolderInfoValid(nsFileSpec *folderName, int num, int
     if(!pMessageDB)
       return NS_ERROR_OUT_OF_MEMORY;
     
-    pMessageDB->m_folderSpec = new nsFileSpec();
-    if(!pMessageDB->m_folderSpec)
-    {
-      delete pMessageDB;
-      return NS_ERROR_OUT_OF_MEMORY;
-    }
+    pMessageDB->m_folderFile = folderName;
     
-    *(pMessageDB->m_folderSpec) = summaryPath;
+//    *(pMessageDB->m_folderSpec) = summaryPath;
     // ### this does later stuff (marks latered messages unread), which may be a problem
-    err = pMessageDB->OpenMDB(summaryPath, PR_FALSE);
+    nsCString summaryNativePath;
+    summaryPath->GetNativePath(summaryNativePath);
+    err = pMessageDB->OpenMDB(summaryNativePath.get(), PR_FALSE);
     if (err != NS_OK)
     {
       delete pMessageDB;
@@ -742,9 +755,11 @@ nsresult nsMailDatabase::SetFolderInfoValid(nsFileSpec *folderName, int num, int
   }
   
   {
-    pMessageDB->m_folderSpec = folderName;
-    nsFileSpec::TimeStamp actualFolderTimeStamp = pMessageDB->GetMailboxModDate();
-    pMessageDB->m_dbFolderInfo->SetFolderSize(folderName->GetFileSize());
+    pMessageDB->m_folderFile = folderName;
+    PRUint32 actualFolderTimeStamp = pMessageDB->GetMailboxModDate();
+    PRInt64 fileSize;
+    folderName->GetFileSize(&fileSize);
+    pMessageDB->m_dbFolderInfo->SetFolderSize((PRUint32) fileSize);
     pMessageDB->m_dbFolderInfo->SetFolderDate(actualFolderTimeStamp);
     pMessageDB->m_dbFolderInfo->ChangeNumUnreadMessages(numunread);
     pMessageDB->m_dbFolderInfo->ChangeNumMessages(num);

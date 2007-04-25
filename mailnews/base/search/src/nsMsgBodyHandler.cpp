@@ -40,9 +40,9 @@
 #include "nsMsgUtils.h"
 #include "nsMsgBodyHandler.h"
 #include "nsMsgSearchTerm.h"
-#include "nsFileStream.h"
-#include "nsIFileStream.h"
-#include "nsIFileSpec.h"
+#include "nsISeekableStream.h"
+#include "nsIInputStream.h"
+#include "nsILocalFile.h"
 
 nsMsgBodyHandler::nsMsgBodyHandler (nsIMsgSearchScopeTerm * scope, PRUint32 offset, PRUint32 numLines, nsIMsgDBHdr* msg, nsIMsgDatabase * db)
 {
@@ -133,7 +133,7 @@ void nsMsgBodyHandler::OpenLocalFolder()
   if (NS_SUCCEEDED(rv))
   {
     nsCOMPtr <nsISeekableStream> seekableStream = do_QueryInterface(inputStream);
-    seekableStream->Seek(PR_SEEK_SET, m_localFileOffset);
+    seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, m_localFileOffset);
   }
   m_fileLineStream = do_QueryInterface(inputStream);
 }

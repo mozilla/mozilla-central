@@ -369,11 +369,10 @@ nsMsgComposeAndSend::Clear()
     if (m_plaintext->mOutFile)
       m_plaintext->mOutFile->Close();
 
-    if (m_plaintext->mFileSpec)
+    if (m_plaintext->mTmpFile)
     {
-      m_plaintext->mFileSpec->Delete(PR_FALSE);
-      delete m_plaintext->mFileSpec;
-      m_plaintext->mFileSpec = nsnull;
+      m_plaintext->mTmpFile->Remove(PR_FALSE);
+      m_plaintext->mTmpFile = nsnull;
     }
     delete m_plaintext;
     m_plaintext = nsnull;
@@ -443,24 +442,22 @@ nsMsgComposeAndSend::Clear()
       PR_FREEIF (m_attachments [i].m_content_id);
       if (m_attachments[i].mOutFile)
           m_attachments[i].mOutFile->Close();
-      if (m_attachments[i].mFileSpec) 
+      if (m_attachments[i].mTmpFile) 
       {
         // Only Delete the file if this variable is set!
         if (m_attachments[i].mDeleteFile)
-          m_attachments[i].mFileSpec->Delete(PR_FALSE);
-        delete m_attachments[i].mFileSpec;
-        m_attachments[i].mFileSpec = nsnull;
+          m_attachments[i].mTmpFile->Remove(PR_FALSE);
+        m_attachments[i].mTmpFile = nsnull;
       }
 
 #ifdef XP_MACOSX
       //
       // remove the appledoubled intermediate file after we done all.
       //
-      if (m_attachments[i].mAppleFileSpec) 
+      if (m_attachments[i].mAppleFile) 
       {
-        m_attachments[i].mAppleFileSpec->Delete(PR_FALSE);
-        delete m_attachments[i].mAppleFileSpec;
-        m_attachments[i].mAppleFileSpec = nsnull;
+        m_attachments[i].mAppleFile->Remove(PR_FALSE);
+        m_attachments[i].mAppleFile = nsnull;
       }
 #endif /* XP_MACOSX */
     }
@@ -614,7 +611,7 @@ nsMsgComposeAndSend::GatherMimeAttachments()
         // the mime_attachment objects.) 
         //
         attachments[i].orig_url = ma->mURL;
-        attachments[i].file_spec = ma->mFileSpec;
+        attachments[i].tmp_file = ma->mTmpFile;
 
         SNARF(attachments[i].type, ma->m_type);
         SNARF(attachments[i].encoding, ma->m_encoding);
@@ -844,7 +841,7 @@ nsMsgComposeAndSend::GatherMimeAttachments()
     status = plainpart->SetType(TEXT_PLAIN);
     if (status < 0)
       goto FAIL;
-    status = plainpart->SetFile(m_plaintext->mFileSpec);
+    status = plainpart->SetFile(m_plaintext->mTmpFile);
     if (status < 0)
       goto FAIL;
 
@@ -1277,7 +1274,7 @@ nsMsgComposeAndSend::PreProcessPart(nsMsgAttachmentHandler  *ma,
   PR_FREEIF(hdrs);
   if (NS_FAILED(status))
     return 0;
-  status = part->SetFile(ma->mFileSpec);
+  status = part->SetFile(ma->mTmpFile);
   if (NS_FAILED(status))
     return 0;
   if (ma->m_encoder_data) 
@@ -2274,12 +2271,11 @@ nsMsgComposeAndSend::AddCompFieldLocalAttachments()
 
         nsMsgNewURL(getter_AddRefs(m_attachments[newLoc].mURL), url.get());
 
-        if (m_attachments[newLoc].mFileSpec)
+        if (m_attachments[newLoc].mTmpFile)
         {
           if (m_attachments[newLoc].mDeleteFile)
-            m_attachments[newLoc].mFileSpec->Delete(PR_FALSE);
-          delete (m_attachments[newLoc].mFileSpec);
-          m_attachments[newLoc].mFileSpec =nsnull;
+            m_attachments[newLoc].mTmpFile->Remove(PR_FALSE);
+          m_attachments[newLoc].mTmpFile =nsnull;
         }
         if (!NS_IsNativeUTF8())
         {
@@ -2294,7 +2290,18 @@ nsMsgComposeAndSend::AddCompFieldLocalAttachments()
           NS_EscapeURL(nativeUrl.get(), -1, esc_FilePath | esc_AlwaysCopy,
                        url);
         }
-        m_attachments[newLoc].mFileSpec = new nsFileSpec(nsFileURL(url.get()));
+        nsresult rv;
+        NS_ENSURE_SUCCESS(rv, rv);
+        nsCOMPtr<nsIIOService> ioService = do_GetService(NS_IOSERVICE_CONTRACTID, &rv);
+        NS_ENSURE_SUCCESS(rv, rv);
+        nsCOMPtr <nsIURI> uri;
+        rv = ioService->NewURI(url, nsnull, nsnull, getter_AddRefs(uri));
+        NS_ENSURE_SUCCESS(rv, rv);
+        nsCOMPtr <nsIFileURL> fileURL = do_QueryInterface(uri);
+        NS_ENSURE_SUCCESS(rv, rv);
+        nsCOMPtr <nsIFile> fileURLFile;
+        fileURL->GetFile(getter_AddRefs(fileURLFile));
+        m_attachments[newLoc].mTmpFile = do_QueryInterface(fileURLFile);                                                   
         m_attachments[newLoc].mDeleteFile = PR_FALSE;
         if (m_attachments[newLoc].mURL)
         {
@@ -2388,7 +2395,7 @@ nsMsgComposeAndSend::AddCompFieldLocalAttachments()
         {
           if (PL_strcasecmp(m_attachments[newLoc].m_type, TEXT_HTML) == 0)
           {
-            char *tmpCharset = (char *)nsMsgI18NParseMetaCharset(m_attachments[newLoc].mFileSpec);
+            char *tmpCharset = (char *)nsMsgI18NParseMetaCharset(m_attachments[newLoc].mTmpFile);
             if (tmpCharset[0] != '\0')
             {
               PR_FREEIF(m_attachments[newLoc].m_charset);
@@ -2591,9 +2598,9 @@ nsMsgComposeAndSend::HackAttachments(const nsMsgAttachmentData *attachments,
       // sniff the file and see if we can figure it out.
       if ( (m_attachments[i].m_type) &&  (*m_attachments[i].m_type) ) 
       {
-        if ( (PL_strcasecmp(m_attachments[i].m_type, TEXT_HTML) == 0) && (preloaded_attachments[i].file_spec) )
+        if ( (PL_strcasecmp(m_attachments[i].m_type, TEXT_HTML) == 0) && (preloaded_attachments[i].tmp_file) )
         {
-          char *tmpCharset = (char *)nsMsgI18NParseMetaCharset(preloaded_attachments[i].file_spec);
+          char *tmpCharset = (char *)nsMsgI18NParseMetaCharset(preloaded_attachments[i].tmp_file);
           if (tmpCharset[0] != '\0')
           {
             PR_FREEIF(m_attachments[i].m_charset);
@@ -2613,14 +2620,13 @@ nsMsgComposeAndSend::HackAttachments(const nsMsgAttachmentData *attachments,
       PR_FREEIF(m_attachments[i].m_encoding);
       m_attachments[i].m_encoding = PL_strdup (preloaded_attachments[i].encoding);
 
-      if (m_attachments[i].mFileSpec)
+      if (m_attachments[i].mTmpFile)
       {
         if (m_attachments[i].mDeleteFile)
-          m_attachments[i].mFileSpec->Delete(PR_FALSE);
-        delete (m_attachments[i].mFileSpec);
-        m_attachments[i].mFileSpec=nsnull;
+          m_attachments[i].mTmpFile->Remove(PR_FALSE);
+        m_attachments[i].mTmpFile = nsnull;
       }
-      m_attachments[i].mFileSpec = new nsFileSpec(*(preloaded_attachments[i].file_spec));
+      m_attachments[i].mTmpFile = preloaded_attachments[i].tmp_file;
 
       m_attachments[i].m_size = preloaded_attachments[i].size;
       m_attachments[i].m_unprintable_count = preloaded_attachments[i].unprintable_count;

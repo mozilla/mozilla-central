@@ -176,7 +176,7 @@ partialRecord::~partialRecord()
 // matches the current Account, then look for the Uidl and save
 // this message for later processing.
 nsresult
-nsPop3Sink::FindPartialMessages(nsFileSpec *fileSpec)
+nsPop3Sink::FindPartialMessages(nsILocalFile *folderFile)
 {
   nsresult rv;
 
@@ -204,7 +204,7 @@ nsPop3Sink::FindPartialMessages(nsFileSpec *fileSpec)
       // Open the various streams we need to seek and read from the mailbox
       if (!isOpen)
       {
-        folderScanState.m_fileSpec = fileSpec;
+        folderScanState.m_localFile = folderFile;
         rv = localFolder->GetFolderScanState(&folderScanState);
         if (NS_SUCCEEDED(rv))
           isOpen = PR_TRUE;
@@ -286,8 +286,6 @@ nsPop3Sink::BeginMailDelivery(PRBool uidlDownload, nsIMsgWindow *aMsgWindow, PRB
     acctMgr->FindAccountForServer(server, getter_AddRefs(account));
     if (account)
       account->GetKey(getter_Copies(m_accountKey));
-    nsFileSpec fileSpec;
-    // ### if we're doing a UIDL, then the fileSpec needs to be for the current folder
 
     PRBool isLocked;
     nsCOMPtr <nsISupports> supports = do_QueryInterface(NS_STATIC_CAST(nsIPop3Sink*, this));
@@ -297,10 +295,9 @@ nsPop3Sink::BeginMailDelivery(PRBool uidlDownload, nsIMsgWindow *aMsgWindow, PRB
     else
       return NS_MSG_FOLDER_BUSY;
 
-    nsCOMPtr<nsIFileSpec> path;
+    nsCOMPtr<nsILocalFile> path;
 
-    m_folder->GetPath(getter_AddRefs(path));
-    path->GetFileSpec(&fileSpec);
+    m_folder->GetFilePath(getter_AddRefs(path));
 
     nsCOMPtr<nsIPrefBranch> pPrefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
     if (pPrefBranch)
@@ -309,7 +306,7 @@ nsPop3Sink::BeginMailDelivery(PRBool uidlDownload, nsIMsgWindow *aMsgWindow, PRB
     if (m_downloadingToTempFile)
     {
       // need to create an nsIOFileStream from a temp file...
-      nsCOMPtr<nsIFileSpec> tmpDownloadFile;
+      nsCOMPtr<nsIFile> tmpDownloadFile;
       rv = GetSpecialDirectoryWithFileName(NS_OS_TEMP_DIR,
                                            "newmsg",
                                            getter_AddRefs(tmpDownloadFile));
@@ -318,17 +315,18 @@ nsPop3Sink::BeginMailDelivery(PRBool uidlDownload, nsIMsgWindow *aMsgWindow, PRB
       if (NS_FAILED(rv)) 
         return rv;
 
-      rv = tmpDownloadFile->MakeUnique();  //need a unique tmp file to prevent dataloss in multiuser environment
+      rv = tmpDownloadFile->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);  //need a unique tmp file to prevent dataloss in multiuser environment
       NS_ENSURE_SUCCESS(rv, rv);
 
-      rv = tmpDownloadFile->GetFileSpec(&m_tmpDownloadFileSpec);
-
+      m_tmpDownloadFile = do_QueryInterface(tmpDownloadFile);
       if (NS_SUCCEEDED(rv))
-        m_outFileStream = new nsIOFileStream(m_tmpDownloadFileSpec);
+        rv = MsgGetFileStream(m_tmpDownloadFile, getter_AddRefs(m_outFileStream));
+       NS_ENSURE_SUCCESS(rv, rv);
     }
     else
     {
-      m_outFileStream = new nsIOFileStream(fileSpec /*, PR_CREATE_FILE */);
+      rv = MsgGetFileStream(path, getter_AddRefs(m_outFileStream));
+      NS_ENSURE_SUCCESS(rv, rv);
     }
     // The following (!m_outFileStream etc) was added to make sure that we don't write somewhere 
     // where for some reason or another we can't write to and lose the messages
@@ -336,11 +334,9 @@ nsPop3Sink::BeginMailDelivery(PRBool uidlDownload, nsIMsgWindow *aMsgWindow, PRB
     if (!m_outFileStream)
         return NS_ERROR_OUT_OF_MEMORY;
  
-    m_outFileStream->seek(PR_SEEK_END, 0);
- 
-    if (!m_outFileStream->is_open())
-        return NS_ERROR_FAILURE;
-    
+    nsCOMPtr <nsISeekableStream> seekableOutStream = do_QueryInterface(m_outFileStream);
+    seekableOutStream->Seek(nsISeekableStream::NS_SEEK_END, 0);
+     
     // create a new mail parser
     m_newMailParser = new nsParseNewMailState;
     NS_IF_ADDREF(m_newMailParser);
@@ -352,8 +348,9 @@ nsPop3Sink::BeginMailDelivery(PRBool uidlDownload, nsIMsgWindow *aMsgWindow, PRB
     rv = GetServerFolder(getter_AddRefs(serverFolder));
     if (NS_FAILED(rv)) return rv;
 
-    rv = m_newMailParser->Init(serverFolder, m_folder, (m_downloadingToTempFile) ? m_tmpDownloadFileSpec : fileSpec, 
-                              m_outFileStream, aMsgWindow, m_downloadingToTempFile);
+    nsCOMPtr <nsIInputStream> inboxInputStream = do_QueryInterface(m_outFileStream);
+    rv = m_newMailParser->Init(serverFolder, m_folder, (m_downloadingToTempFile) ? m_tmpDownloadFile : path, 
+                              inboxInputStream, aMsgWindow, m_downloadingToTempFile);
 	// if we failed to initialize the parser, then just don't use it!!!
 	// we can still continue without one...
 
@@ -367,17 +364,21 @@ nsPop3Sink::BeginMailDelivery(PRBool uidlDownload, nsIMsgWindow *aMsgWindow, PRB
       // Share the inbox fileStream so that moz-status-line flags can be set in the Inbox 
       m_newMailParser->SetDBFolderStream(m_outFileStream); 
       if (m_downloadingToTempFile)
-      // Tell the parser to use the offset that will be in the dest folder,
-      // not the temp folder, so that the msg hdr will start off with
-      // the correct mdb oid
-      m_newMailParser->SetEnvelopePos(fileSpec.GetFileSize());
+      {
+        // Tell the parser to use the offset that will be in the dest folder,
+        // not the temp folder, so that the msg hdr will start off with
+        // the correct mdb oid
+        PRInt64 fileSize;
+        path->GetFileSize(&fileSize);
+        m_newMailParser->SetEnvelopePos((PRUint32) fileSize);
+      }
     }
     if (m_newMailParser)
     {
       if (uidlDownload)
         m_newMailParser->DisableFilters();
       else
-        FindPartialMessages(&fileSpec);
+        FindPartialMessages(path);
     }
 
 
@@ -397,20 +398,19 @@ nsPop3Sink::EndMailDelivery(nsIPop3Protocol *protocol)
   if (m_newMailParser)
   {
     if (m_outFileStream)
-      m_outFileStream->flush();	// try this.
+      m_outFileStream->Flush();	// try this.
     m_newMailParser->OnStopRequest(nsnull, nsnull, NS_OK);
     m_newMailParser->SetDBFolderStream(nsnull); // stream is going away
     m_newMailParser->EndMsgDownload();
   }
   if (m_outFileStream)
   {
-    m_outFileStream->close();
-    delete m_outFileStream;
+    m_outFileStream->Close();
     m_outFileStream = 0;
   }
 
   if (m_downloadingToTempFile)
-    m_tmpDownloadFileSpec.Delete(PR_FALSE);
+    m_tmpDownloadFile->Remove(PR_FALSE);
 
   // tell the parser to mark the db valid *after* closing the mailbox.
   if (m_newMailParser)
@@ -526,14 +526,12 @@ nsPop3Sink::AbortMailDelivery(nsIPop3Protocol *protocol)
 
   if (m_outFileStream)
   {
-    if (m_outFileStream->is_open())
-      m_outFileStream->close();
-    delete m_outFileStream;
+    m_outFileStream->Close();
     m_outFileStream = 0;
   }
 
   if (m_downloadingToTempFile)
-    m_tmpDownloadFileSpec.Delete(PR_FALSE);
+    m_tmpDownloadFile->Remove(PR_FALSE);
 
   /* tell the parser to mark the db valid *after* closing the mailbox.
   we have truncated the inbox, so berkeley mailbox and msf file are in sync*/
@@ -564,8 +562,11 @@ nsPop3Sink::IncorporateBegin(const char* uidlString,
 #endif 
     if (closure)
         *closure = (void*) this;
+    nsCOMPtr <nsISeekableStream> seekableStream = do_QueryInterface(m_outFileStream);
+    PRInt64 filePos;
+    seekableStream->Tell(&filePos);
+    m_msgOffset = (PRUint32) filePos;
     
-    m_msgOffset = m_outFileStream->tell();
     char *dummyEnvelope = GetDummyEnvelope();
     
     nsresult rv = WriteLineToMailbox(dummyEnvelope);
@@ -716,12 +717,12 @@ nsresult nsPop3Sink::WriteLineToMailbox(const char *buffer)
     if (!m_outFileStream)
       return NS_ERROR_OUT_OF_MEMORY;
     
-    NS_ASSERTION(m_outFileStream->eof(), "we are not writing to end-of-file");
-    
-    if (!m_outFileStream->eof())
-      m_outFileStream->seek(PR_SEEK_END, 0);
-    PRInt32 bytes = m_outFileStream->write(buffer,bufferLen);
-    if (bytes != bufferLen) return NS_ERROR_FAILURE;
+    // seek to the end in case someone else has seeked elsewhere in our stream.
+    nsCOMPtr <nsISeekableStream> seekableOutStream = do_QueryInterface(m_outFileStream);
+    seekableOutStream->Seek(nsISeekableStream::NS_SEEK_END, 0);
+    PRUint32 bytesWritten;
+    m_outFileStream->Write(buffer, bufferLen, &bytesWritten);
+    if ((PRInt32) bytesWritten != bufferLen) return NS_ERROR_FAILURE;
   }
   return NS_OK;
 }
@@ -779,7 +780,7 @@ nsPop3Sink::IncorporateComplete(nsIMsgWindow *aMsgWindow, PRInt32 aSize)
 
   nsresult rv = WriteLineToMailbox(MSG_LINEBREAK);
   if (NS_FAILED(rv)) return rv;
-  rv = m_outFileStream->flush();   //to make sure the message is written to the disk
+  rv = m_outFileStream->Flush();   //to make sure the message is written to the disk
   if (NS_FAILED(rv)) return rv;
   NS_ASSERTION(m_newMailParser, "could not get m_newMailParser");
   if (m_newMailParser)
@@ -799,14 +800,18 @@ nsPop3Sink::IncorporateComplete(nsIMsgWindow *aMsgWindow, PRInt32 aSize)
     {
       PRBool moved = PR_FALSE;
       // close file to give virus checkers a chance to do their thing...
-      m_outFileStream->flush();
-      m_outFileStream->close();
+      m_outFileStream->Flush();
+      m_outFileStream->Close();
       m_newMailParser->FinishHeader();
       // need to re-open the inbox file stream.
-      if (!m_tmpDownloadFileSpec.Exists())
+      PRBool exists;
+      m_tmpDownloadFile->Exists(&exists);
+      if (!exists)
         return HandleTempDownloadFailed(aMsgWindow);   
 
-      m_outFileStream->Open(m_tmpDownloadFileSpec, (PR_RDWR | PR_CREATE_FILE));
+      nsCOMPtr <nsIInputStream> inboxInputStream = do_QueryInterface(m_outFileStream);
+      rv = MsgReopenFileStream(m_tmpDownloadFile, inboxInputStream);
+      NS_ENSURE_SUCCESS(rv, HandleTempDownloadFailed(aMsgWindow));
       nsMsgKey saveMsgKey;
       hdr->GetMessageKey(&saveMsgKey);
       // this is the offset in the temp file, which we need to be correct
@@ -820,22 +825,23 @@ nsPop3Sink::IncorporateComplete(nsIMsgWindow *aMsgWindow, PRInt32 aSize)
       hdr->SetMessageKey(saveMsgKey);
       if (!moved)
       {
-        if (m_outFileStream->is_open())
+        if (m_outFileStream)
         {
-          nsFileSpec destFolderSpec;
+          nsCOMPtr<nsILocalFile> path;
 
-          nsCOMPtr<nsIFileSpec> path;
-
-          m_folder->GetPath(getter_AddRefs(path));
-          path->GetFileSpec(&destFolderSpec);
-          PRUint32 newMsgPos = destFolderSpec.GetFileSize();
+          PRInt64 folderSize, tmpDownloadFileSize;
+          m_folder->GetFilePath(getter_AddRefs(path));
+          path->GetFileSize(&folderSize);
+          PRUint32 newMsgPos = (PRUint32) folderSize;
           PRUint32 msgSize;
           hdr->GetMessageSize(&msgSize);
           hdr->SetMessageKey(newMsgPos);
-          if (msgSize > m_tmpDownloadFileSpec.GetFileSize())
+          m_tmpDownloadFile->GetFileSize(&tmpDownloadFileSize);
+          
+          if (msgSize > tmpDownloadFileSize)
             rv = NS_MSG_ERROR_WRITING_MAIL_FOLDER;   
           else
-            rv = m_newMailParser->AppendMsgFromFile(m_outFileStream, 0, msgSize, destFolderSpec);
+            rv = m_newMailParser->AppendMsgFromFile(inboxInputStream, 0, msgSize, path);
           if (NS_FAILED(rv))
             return HandleTempDownloadFailed(aMsgWindow);   
 
@@ -877,13 +883,13 @@ nsPop3Sink::IncorporateComplete(nsIMsgWindow *aMsgWindow, PRInt32 aSize)
         m_folder->GetFilePath(getter_AddRefs(path));
         PRInt64 fileSize;
         path->GetFileSize(&fileSize);
-        m_newMailParser->SetEnvelopePos(fileSize);
+        m_newMailParser->SetEnvelopePos((PRUint32) fileSize);
       }
       m_newMailParser->m_newMsgHdr = nsnull;
-      m_outFileStream->close(); // close so we can truncate.
-      m_tmpDownloadFileSpec.Truncate(0);
-      m_outFileStream->Open(m_tmpDownloadFileSpec, (PR_RDWR | PR_CREATE_FILE));
-      m_outFileStream->seek(PR_SEEK_END, 0);
+      m_outFileStream->Close(); // close so we can truncate.
+      m_tmpDownloadFile->SetFileSize(0);
+      rv = MsgReopenFileStream(m_tmpDownloadFile, inboxInputStream);
+      NS_ENSURE_SUCCESS(rv, rv);
     } else
     	m_newMailParser->PublishMsgHeader(aMsgWindow); 
     // run any reply/forward filter after we've finished with the
@@ -907,7 +913,7 @@ NS_IMETHODIMP
 nsPop3Sink::IncorporateAbort(PRBool uidlDownload)
 {
   nsresult rv;
-  rv = m_outFileStream->close();   //need to close so that the file can be truncated.
+  rv = m_outFileStream->Close();   //need to close so that the file can be truncated.
   NS_ENSURE_SUCCESS(rv,rv);
   if (m_msgOffset >= 0 && !m_downloadingToTempFile)
   {

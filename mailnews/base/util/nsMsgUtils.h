@@ -53,6 +53,7 @@ class nsIMsgFolder;
 class nsIMsgMessageService;
 class nsIUrlListener;
 class nsIOutputStream;
+class nsIInputStream;
 
 //These are utility functions that can used throughout the mailnews code
 
@@ -152,37 +153,17 @@ NS_MSG_BASE void MsgGenerateNowStr(nsACString &nowStr);
 
 // Appends the correct summary file extension onto the supplied fileLocation
 // and returns it in summaryLocation.
-NS_MSG_BASE nsresult GetSummaryFileLocation(nsIFile* fileLocation,
-                                            nsIFile** summaryLocation);
-// XXX This function is provided temporarily whilst we are still working
-// on bug 33451 to remove nsIFileSpec from mailnews.
-NS_MSG_BASE nsresult GetSummaryFileLocation(nsIFileSpec* fileLocation,
-                                            nsIFileSpec** summaryLocation);
-// XXX This function is provided temporarily whilst we are still working
-// on bug 33451 to remove nsIFileSpec from mailnews.
-NS_MSG_BASE nsresult GetSummaryFileLocation(nsIFileSpec* fileLocation,
-                                            nsFileSpec* summaryLocation);
-// XXX This function is provided temporarily whilst we are still working
-// on bug 33451 to remove nsIFileSpec from mailnews.
-NS_MSG_BASE void GetSummaryFileLocation(nsFileSpec& fileLocation,
-                                        nsFileSpec* summaryLocation);
+NS_MSG_BASE nsresult GetSummaryFileLocation(nsILocalFile* fileLocation,
+                                            nsILocalFile** summaryLocation);
 
 // Gets a special directory and appends the supplied file name onto it.
 NS_MSG_BASE nsresult GetSpecialDirectoryWithFileName(const char* specialDirName,
                                                      const char* fileName,
                                                      nsIFile** result);
 
-// XXX This function is provided temporarily whilst we are still working
-// on bug 33451 to remove nsIFileSpec from mailnews.
-NS_MSG_BASE nsresult GetSpecialDirectoryWithFileName(const char* specialDirName,
-                                                     const char* fileName,
-                                                     nsIFileSpec** result);
+NS_MSG_BASE nsresult MsgGetFileStream(nsILocalFile *file, nsIOutputStream **fileStream);
 
-// XXX This function is provided temporarily whilst we are still working
-// on bug 33451 to remove nsIFileSpec from mailnews.
-NS_MSG_BASE nsresult GetSpecialDirectoryWithFileName(const char* specialDirName,
-                                                     const char* fileName,
-                                                     nsFileSpec* result);
+NS_MSG_BASE nsresult MsgReopenFileStream(nsILocalFile *file, nsIInputStream *fileStream);
 
 // fills in the position of the passed in keyword in the passed in keyword list
 // and returns false if the keyword isn't present

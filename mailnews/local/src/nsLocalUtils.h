@@ -38,7 +38,6 @@
 #ifndef NS_LOCALUTILS_H
 #define NS_LOCALUTILS_H
 
-#include "nsFileSpec.h"
 #include "nsString.h"
 #include "nsIMsgIncomingServer.h"
 

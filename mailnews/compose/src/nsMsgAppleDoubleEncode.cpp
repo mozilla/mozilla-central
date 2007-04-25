@@ -53,18 +53,18 @@
 #include "msgCore.h"
 #include "nsMsgAppleDouble.h"
 #include "nsMsgAppleCodes.h"
-#include "nsFileSpec.h"
 #include "nsMsgCompUtils.h"
 #include "nsCExternalHandlerService.h"
 #include "nsIMIMEService.h"
 #include "nsMimeTypes.h"
 #include "prmem.h"
+#include "nsNetUtil.h"
 
 #if defined(XP_MACOSX)
 #include "MoreFilesX.h"
 
 void	
-MacGetFileType(nsFileSpec   *fs, 
+MacGetFileType(nsILocalFile   *fs, 
                PRBool       *useDefault, 
                char         **fileType, 
                char         **encoding)
@@ -72,7 +72,9 @@ MacGetFileType(nsFileSpec   *fs,
 	if ((fs == NULL) || (fileType == NULL) || (encoding == NULL))
 		return;
 
-  if (!fs->Exists())
+  PRBool exists;
+  fs->Exists(&exists);
+  if (!exists)
     return;
 
 	*useDefault = TRUE;
@@ -81,7 +83,9 @@ MacGetFileType(nsFileSpec   *fs,
 
 	FInfo		fndrInfo;
   FSSpec fsSpec;
-  FSPathMakeFSSpec((UInt8 *)fs->GetNativePathCString(), &fsSpec, NULL);
+  nsCString nativePath;
+  fs->GetNativePath(nativePath);
+  FSPathMakeFSSpec((UInt8 *)nativePath.get(), &fsSpec, NULL);
   OSErr err = FSpGetFInfo (&fsSpec, &fndrInfo);
 
   if ( (err != noErr) || (fndrInfo.fdType == 'TEXT') )
@@ -91,10 +95,8 @@ MacGetFileType(nsFileSpec   *fs,
     // At this point, we should call the mime service and
     // see what we can find out?
     nsresult      rv;
-    nsIURI        *tURI = nsnull;
-    nsFileURL     tFileURL(*fs);
-
-    if (NS_SUCCEEDED(nsMsgNewURL(&tURI, tFileURL.GetURLString())) && tURI)
+    nsCOMPtr <nsIURI> tURI;
+    if (NS_SUCCEEDED(NS_NewFileURI(getter_AddRefs(tURI), fs)) && tURI)
     {
       nsCOMPtr<nsIMIMEService> mimeFinder (do_GetService(NS_MIMESERVICE_CONTRACTID, &rv));
       if (NS_SUCCEEDED(rv) && mimeFinder) 
@@ -129,9 +131,11 @@ int ap_encode_init( appledouble_encode_object *p_ap_encode_obj,
 {
 	FSSpec	fspec;
 	
-	nsFileSpec  mySpec(fname);
-	if (!mySpec.Exists())
-		return -1;
+  nsCOMPtr <nsILocalFile> myFile;
+  NS_NewNativeLocalFile(nsDependentCString(fname), PR_TRUE, getter_AddRefs(myFile));
+  PRBool exists;
+  if (myFile && NS_SUCCEEDED(myFile->Exists(&exists)) && !exists)
+    return -1;
 
 	FSPathMakeFSSpec((const UInt8 *)fname, &fspec, NULL);
 	memset(p_ap_encode_obj, 0, sizeof(appledouble_encode_object));

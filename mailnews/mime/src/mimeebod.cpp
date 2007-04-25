@@ -43,7 +43,6 @@
 #include "plstr.h"
 #include "prlog.h"
 #include "prio.h"
-#include "nsFileSpec.h"
 #include "nsEscape.h"
 #include "msgCore.h"
 #include "nsMimeStringResources.h"
@@ -178,104 +177,109 @@ MimeExternalBody_make_url(const char *ct,
 {
   char *s;
   if (!at)
-    {
-	  return 0;
-    }
+  {
+    return 0;
+  }
   else if (!nsCRT::strcasecmp(at, "ftp") || !nsCRT::strcasecmp(at, "anon-ftp"))
-	{
-	  if (!site || !name)
-		return 0;
-	  s = (char *) PR_MALLOC(strlen(name) + strlen(site) +
-							(dir  ? strlen(dir) : 0) + 20);
-	  if (!s) return 0;
-	  PL_strcpy(s, "ftp://");
-	  PL_strcat(s, site);
-	  PL_strcat(s, "/");
-	  if (dir) PL_strcat(s, (dir[0] == '/' ? dir+1 : dir));
-	  if (s[strlen(s)-1] != '/')
-		PL_strcat(s, "/");
-	  PL_strcat(s, name);
-	  return s;
-	}
+  {
+    if (!site || !name)
+      return 0;
+    s = (char *) PR_MALLOC(strlen(name) + strlen(site) +
+                           (dir  ? strlen(dir) : 0) + 20);
+    if (!s) return 0;
+    PL_strcpy(s, "ftp://");
+    PL_strcat(s, site);
+    PL_strcat(s, "/");
+    if (dir) PL_strcat(s, (dir[0] == '/' ? dir+1 : dir));
+    if (s[strlen(s)-1] != '/')
+      PL_strcat(s, "/");
+    PL_strcat(s, name);
+    return s;
+  }
   else if (!nsCRT::strcasecmp(at, "local-file") || !nsCRT::strcasecmp(at, "afs"))
-	{
-	  char *s2;
-	  if (!name)
-		return 0;
-
+  {
+    char *s2;
+    if (!name)
+      return 0;
+    
 #ifdef XP_UNIX
-	  if (!nsCRT::strcasecmp(at, "afs"))   /* only if there is a /afs/ directory */
-		{
-      nsFileSpec    fs("/afs/.");
-      
-      if  (!fs.Exists())
+    if (!nsCRT::strcasecmp(at, "afs"))   /* only if there is a /afs/ directory */
+    {
+      nsCOMPtr <nsILocalFile> fs = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID);
+      PRBool exists = PR_FALSE;
+      if (fs)
+      {
+        fs->InitWithNativePath(NS_LITERAL_CSTRING("/afs/."));
+        fs->Exists(&exists);
+      }
+      if  (!exists)
         return 0;
-		}
+    }
 #else  /* !XP_UNIX */
-	  return 0;						/* never, if not Unix. */
+return 0;						/* never, if not Unix. */
 #endif /* !XP_UNIX */
 
-	  s = (char *) PR_MALLOC(strlen(name)*3 + 20);
-	  if (!s) return 0;
-	  PL_strcpy(s, "file:");
+s = (char *) PR_MALLOC(strlen(name)*3 + 20);
+if (!s) return 0;
+PL_strcpy(s, "file:");
 
-	  s2 = nsEscape(name, url_Path);
-	  if (s2)
-	  {
-	      PL_strcat(s, s2);
-	      nsCRT::free(s2);
-	  }
-	  return s;
+s2 = nsEscape(name, url_Path);
+if (s2)
+{
+  PL_strcat(s, s2);
+  nsCRT::free(s2);
+}
+return s;
 	}
-  else if (!nsCRT::strcasecmp(at, "mail-server"))
-	{
-	  char *s2;
-	  if (!svr)
-		return 0;
-	  s = (char *) PR_MALLOC(strlen(svr)*4 +
-							(subj ? strlen(subj)*4 : 0) +
-							(body ? strlen(body)*4 : 0) + 20);
-	  if (!s) return 0;
-	  PL_strcpy(s, "mailto:");
-
-	  s2 = nsEscape(svr, url_XAlphas);
-	  if (s2)
-	  {
-	      PL_strcat(s, s2);
-	      nsCRT::free(s2);
-	  }
-
-	  if (subj)
+else if (!nsCRT::strcasecmp(at, "mail-server"))
+{
+  char *s2;
+  if (!svr)
+    return 0;
+  s = (char *) PR_MALLOC(strlen(svr)*4 +
+                         (subj ? strlen(subj)*4 : 0) +
+                         (body ? strlen(body)*4 : 0) + 20);
+  if (!s) return 0;
+  PL_strcpy(s, "mailto:");
+  
+  s2 = nsEscape(svr, url_XAlphas);
+  if (s2)
+  {
+    PL_strcat(s, s2);
+    nsCRT::free(s2);
+  }
+  
+  if (subj)
 		{
 		  s2 = nsEscape(subj, url_XAlphas);
 		  PL_strcat(s, "?subject=");
 		  if (s2)
 		  {
-		      PL_strcat(s, s2);
-		      nsCRT::free(s2);
+                    PL_strcat(s, s2);
+                    nsCRT::free(s2);
 		  }
 		}
-	  if (body)
+  if (body)
 		{
 		  s2 = nsEscape(body, url_XAlphas);
 		  PL_strcat(s, (subj ? "&body=" : "?body="));
 		  if (s2)
 		  {
-		      PL_strcat(s, s2);
-		      nsCRT::free(s2);
+                    PL_strcat(s, s2);
+                    nsCRT::free(s2);
 		  }
 		}
-	  return s;
-	}
-  else if (!nsCRT::strcasecmp(at, "url"))	    /* RFC 2017 */
-	{
-	  if (url)
-		return nsCRT::strdup(url);		   /* it's already quoted and everything */
-	  else
-		return 0;
-	}
+  return s;
+}
+else if (!nsCRT::strcasecmp(at, "url"))	    /* RFC 2017 */
+                            {
+  if (url)
+    return nsCRT::strdup(url);		   /* it's already quoted and everything */
   else
-	return 0;
+    return 0;
+                            }
+                            else
+                            return 0;
 }
 
 static int
@@ -283,189 +287,189 @@ MimeExternalBody_parse_eof (MimeObject *obj, PRBool abort_p)
 {
   int status = 0;
   MimeExternalBody *bod = (MimeExternalBody *) obj;
-
+  
   if (obj->closed_p) return 0;
-
+  
   /* Run parent method first, to flush out any buffered data. */
   status = ((MimeObjectClass*)&MIME_SUPERCLASS)->parse_eof(obj, abort_p);
   if (status < 0) return status;
-
+  
 #ifdef XP_MACOSX
   if (obj->parent && mime_typep(obj->parent, 
-	  (MimeObjectClass*) &mimeMultipartAppleDoubleClass))
-	  goto done;
+                                (MimeObjectClass*) &mimeMultipartAppleDoubleClass))
+    goto done;
 #endif /* XP_MACOSX */
-
+  
   if (!abort_p &&
-	  obj->output_p &&
-	  obj->options &&
-	  obj->options->write_html_p)
-	{
-	  PRBool all_headers_p = obj->options->headers == MimeHeadersAll;
-	  MimeDisplayOptions *newopt = obj->options;  /* copy it */
-
-	  char *ct = MimeHeaders_get(obj->headers, HEADER_CONTENT_TYPE,
-								 PR_FALSE, PR_FALSE);
-	  char *at, *lexp, *size, *perm;
-	  char *url, *dir, *mode, *name, *site, *svr, *subj;
-	  char *h = 0, *lname = 0, *lurl = 0, *body = 0;
-	  MimeHeaders *hdrs = 0;
-
-	  if (!ct) return MIME_OUT_OF_MEMORY;
-
-	  at   = MimeHeaders_get_parameter(ct, "access-type", NULL, NULL);
-	  lexp  = MimeHeaders_get_parameter(ct, "expiration", NULL, NULL);
-	  size = MimeHeaders_get_parameter(ct, "size", NULL, NULL);
-	  perm = MimeHeaders_get_parameter(ct, "permission", NULL, NULL);
-	  dir  = MimeHeaders_get_parameter(ct, "directory", NULL, NULL);
-	  mode = MimeHeaders_get_parameter(ct, "mode", NULL, NULL);
-	  name = MimeHeaders_get_parameter(ct, "name", NULL, NULL);
-	  site = MimeHeaders_get_parameter(ct, "site", NULL, NULL);
-	  svr  = MimeHeaders_get_parameter(ct, "server", NULL, NULL);
-	  subj = MimeHeaders_get_parameter(ct, "subject", NULL, NULL);
-	  url  = MimeHeaders_get_parameter(ct, "url", NULL, NULL);
-	  PR_FREEIF(ct);
-
-	  /* the *internal* content-type */
-	  ct = MimeHeaders_get(bod->hdrs, HEADER_CONTENT_TYPE,
-						   PR_TRUE, PR_FALSE);
-
-	  h = (char *) PR_MALLOC((at ? strlen(at) : 0) +
-							(lexp ? strlen(lexp) : 0) +
-							(size ? strlen(size) : 0) +
-							(perm ? strlen(perm) : 0) +
-							(dir ? strlen(dir) : 0) +
-							(mode ? strlen(mode) : 0) +
-							(name ? strlen(name) : 0) +
-							(site ? strlen(site) : 0) +
-							(svr ? strlen(svr) : 0) +
-							(subj ? strlen(subj) : 0) +
-                                                        (ct ? strlen(ct) : 0) +
-							(url ? strlen(url) : 0) + 100);
-	  if (!h)
-		{
-		  status = MIME_OUT_OF_MEMORY;
-		  goto FAIL;
-		}
-
-	  /* If there's a URL parameter, remove all whitespace from it.
-		 (The URL parameter to one of these headers is stored with
-		 lines broken every 40 characters or less; it's assumed that
-		 all significant whitespace was URL-hex-encoded, and all the
-		 rest of it was inserted just to keep the lines short.)
-	   */
-	  if (url)
-		{
-		  char *in, *out;
-		  for (in = url, out = url; *in; in++)
-			if (!nsCRT::IsAsciiSpace(*in))
-			  *out++ = *in;
-		  *out = 0;
-		}
-
-	  hdrs = MimeHeaders_new();
-	  if (!hdrs)
-		{
-		  status = MIME_OUT_OF_MEMORY;
-		  goto FAIL;
-		}
-
+      obj->output_p &&
+      obj->options &&
+      obj->options->write_html_p)
+  {
+    PRBool all_headers_p = obj->options->headers == MimeHeadersAll;
+    MimeDisplayOptions *newopt = obj->options;  /* copy it */
+    
+    char *ct = MimeHeaders_get(obj->headers, HEADER_CONTENT_TYPE,
+                               PR_FALSE, PR_FALSE);
+    char *at, *lexp, *size, *perm;
+    char *url, *dir, *mode, *name, *site, *svr, *subj;
+    char *h = 0, *lname = 0, *lurl = 0, *body = 0;
+    MimeHeaders *hdrs = 0;
+    
+    if (!ct) return MIME_OUT_OF_MEMORY;
+    
+    at   = MimeHeaders_get_parameter(ct, "access-type", NULL, NULL);
+    lexp  = MimeHeaders_get_parameter(ct, "expiration", NULL, NULL);
+    size = MimeHeaders_get_parameter(ct, "size", NULL, NULL);
+    perm = MimeHeaders_get_parameter(ct, "permission", NULL, NULL);
+    dir  = MimeHeaders_get_parameter(ct, "directory", NULL, NULL);
+    mode = MimeHeaders_get_parameter(ct, "mode", NULL, NULL);
+    name = MimeHeaders_get_parameter(ct, "name", NULL, NULL);
+    site = MimeHeaders_get_parameter(ct, "site", NULL, NULL);
+    svr  = MimeHeaders_get_parameter(ct, "server", NULL, NULL);
+    subj = MimeHeaders_get_parameter(ct, "subject", NULL, NULL);
+    url  = MimeHeaders_get_parameter(ct, "url", NULL, NULL);
+    PR_FREEIF(ct);
+    
+    /* the *internal* content-type */
+    ct = MimeHeaders_get(bod->hdrs, HEADER_CONTENT_TYPE,
+                         PR_TRUE, PR_FALSE);
+    
+    h = (char *) PR_MALLOC((at ? strlen(at) : 0) +
+                           (lexp ? strlen(lexp) : 0) +
+                           (size ? strlen(size) : 0) +
+                           (perm ? strlen(perm) : 0) +
+                           (dir ? strlen(dir) : 0) +
+                           (mode ? strlen(mode) : 0) +
+                           (name ? strlen(name) : 0) +
+                           (site ? strlen(site) : 0) +
+                           (svr ? strlen(svr) : 0) +
+                           (subj ? strlen(subj) : 0) +
+                           (ct ? strlen(ct) : 0) +
+                           (url ? strlen(url) : 0) + 100);
+    if (!h)
+    {
+      status = MIME_OUT_OF_MEMORY;
+      goto FAIL;
+    }
+    
+    /* If there's a URL parameter, remove all whitespace from it.
+      (The URL parameter to one of these headers is stored with
+       lines broken every 40 characters or less; it's assumed that
+       all significant whitespace was URL-hex-encoded, and all the
+       rest of it was inserted just to keep the lines short.)
+      */
+    if (url)
+    {
+      char *in, *out;
+      for (in = url, out = url; *in; in++)
+        if (!nsCRT::IsAsciiSpace(*in))
+          *out++ = *in;
+      *out = 0;
+    }
+    
+    hdrs = MimeHeaders_new();
+    if (!hdrs)
+    {
+      status = MIME_OUT_OF_MEMORY;
+      goto FAIL;
+    }
+    
 # define FROB(STR,VAR) \
-	  if (VAR) \
-		{ \
-		  PL_strcpy(h, STR ": "); \
-		  PL_strcat(h, VAR); \
-		  PL_strcat(h, MSG_LINEBREAK); \
-		  status = MimeHeaders_parse_line(h, strlen(h), hdrs); \
-		  if (status < 0) goto FAIL; \
-		}
-	  FROB("Access-Type",	at);
-	  FROB("URL",			url);
-	  FROB("Site",			site);
-	  FROB("Server",		svr);
-	  FROB("Directory",		dir);
-	  FROB("Name",			name);
-      FROB("Type",			ct);
-	  FROB("Size",			size);
-	  FROB("Mode",			mode);
-	  FROB("Permission",	perm);
-	  FROB("Expiration",	lexp);
-	  FROB("Subject",		subj);
+    if (VAR) \
+    { \
+      PL_strcpy(h, STR ": "); \
+        PL_strcat(h, VAR); \
+          PL_strcat(h, MSG_LINEBREAK); \
+            status = MimeHeaders_parse_line(h, strlen(h), hdrs); \
+              if (status < 0) goto FAIL; \
+    }
+    FROB("Access-Type",	at);
+    FROB("URL",			url);
+    FROB("Site",			site);
+    FROB("Server",		svr);
+    FROB("Directory",		dir);
+    FROB("Name",			name);
+    FROB("Type",			ct);
+    FROB("Size",			size);
+    FROB("Mode",			mode);
+    FROB("Permission",	perm);
+    FROB("Expiration",	lexp);
+    FROB("Subject",		subj);
 # undef FROB
-	  PL_strcpy(h, MSG_LINEBREAK);
-	  status = MimeHeaders_parse_line(h, strlen(h), hdrs);
-	  if (status < 0) goto FAIL;
-
-	  lurl = MimeExternalBody_make_url(ct, at, lexp, size, perm, dir, mode,
-									   name, url, site, svr, subj, bod->body);
-	  if (lurl)
-		{
-		  lname = MimeGetStringByID(MIME_MSG_LINK_TO_DOCUMENT);
-		}
-	  else
-		{
-		  lname = MimeGetStringByID(MIME_MSG_DOCUMENT_INFO);
-		  all_headers_p = PR_TRUE;
-		}
-		
-	  all_headers_p = PR_TRUE;  /* #### just do this all the time? */
-
-	  if (bod->body && all_headers_p)
-		{
-		  char *s = bod->body;
-		  while (nsCRT::IsAsciiSpace(*s)) s++;
-		  if (*s)
-			{
-			  char *s2;
-			  const char *pre = "<P><PRE>";
-			  const char *suf = "</PRE>";
-			  PRInt32 i;
-			  for(i = strlen(s)-1; i >= 0 && nsCRT::IsAsciiSpace(s[i]); i--)
-				s[i] = 0;
- 			  s2 = nsEscapeHTML(s);
-			  if (!s2) goto FAIL;
-			  body = (char *) PR_MALLOC(strlen(pre) + strlen(s2) +
-									   strlen(suf) + 1);
-			  if (!body)
-				{
-				  nsCRT::free(s2);
-				  goto FAIL;
-				}
-			  PL_strcpy(body, pre);
-			  PL_strcat(body, s2);
-			  PL_strcat(body, suf);
-			}
-		}
-
-	  newopt->fancy_headers_p = PR_TRUE;
-	  newopt->headers = (all_headers_p ? MimeHeadersAll : MimeHeadersSome);
-
-	FAIL:
-	  if (hdrs)
-		MimeHeaders_free(hdrs);
-	  PR_FREEIF(h);
-	  PR_FREEIF(lname);
-	  PR_FREEIF(lurl);
-	  PR_FREEIF(body);
-	  PR_FREEIF(ct);
-	  PR_FREEIF(at);
-	  PR_FREEIF(lexp);
-	  PR_FREEIF(size);
-	  PR_FREEIF(perm);
-	  PR_FREEIF(dir);
-	  PR_FREEIF(mode);
-	  PR_FREEIF(name);
-	  PR_FREEIF(url);
-	  PR_FREEIF(site);
-	  PR_FREEIF(svr);
-	  PR_FREEIF(subj);
-	}
-
+    PL_strcpy(h, MSG_LINEBREAK);
+    status = MimeHeaders_parse_line(h, strlen(h), hdrs);
+    if (status < 0) goto FAIL;
+    
+    lurl = MimeExternalBody_make_url(ct, at, lexp, size, perm, dir, mode,
+                                     name, url, site, svr, subj, bod->body);
+    if (lurl)
+    {
+      lname = MimeGetStringByID(MIME_MSG_LINK_TO_DOCUMENT);
+    }
+    else
+    {
+      lname = MimeGetStringByID(MIME_MSG_DOCUMENT_INFO);
+      all_headers_p = PR_TRUE;
+    }
+    
+    all_headers_p = PR_TRUE;  /* #### just do this all the time? */
+    
+    if (bod->body && all_headers_p)
+    {
+      char *s = bod->body;
+      while (nsCRT::IsAsciiSpace(*s)) s++;
+      if (*s)
+      {
+        char *s2;
+        const char *pre = "<P><PRE>";
+        const char *suf = "</PRE>";
+        PRInt32 i;
+        for(i = strlen(s)-1; i >= 0 && nsCRT::IsAsciiSpace(s[i]); i--)
+          s[i] = 0;
+        s2 = nsEscapeHTML(s);
+        if (!s2) goto FAIL;
+        body = (char *) PR_MALLOC(strlen(pre) + strlen(s2) +
+                                  strlen(suf) + 1);
+        if (!body)
+        {
+          nsCRT::free(s2);
+          goto FAIL;
+        }
+        PL_strcpy(body, pre);
+        PL_strcat(body, s2);
+        PL_strcat(body, suf);
+      }
+    }
+    
+    newopt->fancy_headers_p = PR_TRUE;
+    newopt->headers = (all_headers_p ? MimeHeadersAll : MimeHeadersSome);
+    
+FAIL:
+      if (hdrs)
+        MimeHeaders_free(hdrs);
+    PR_FREEIF(h);
+    PR_FREEIF(lname);
+    PR_FREEIF(lurl);
+    PR_FREEIF(body);
+    PR_FREEIF(ct);
+    PR_FREEIF(at);
+    PR_FREEIF(lexp);
+    PR_FREEIF(size);
+    PR_FREEIF(perm);
+    PR_FREEIF(dir);
+    PR_FREEIF(mode);
+    PR_FREEIF(name);
+    PR_FREEIF(url);
+    PR_FREEIF(site);
+    PR_FREEIF(svr);
+    PR_FREEIF(subj);
+  }
+  
 #ifdef XP_MACOSX
 done:
 #endif
-
-  return status;
+    
+    return status;
 }
 
 #if 0
@@ -524,13 +528,19 @@ MimeExternalBody_displayable_inline_p (MimeObjectClass *clazz,
 	inline_p = PR_TRUE;
 #ifdef XP_UNIX
   else if (!nsCRT::strcasecmp(at, "afs"))   /* only if there is a /afs/ directory */
-	{
-    nsFileSpec    fs("/afs/.");
-    if  (!fs.Exists())
+  {
+    nsCOMPtr <nsILocalFile> fs = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID);
+    PRBool exists = PR_FALSE;
+    if (fs)
+    {
+      fs->InitWithNativePath(NS_LITERAL_CSTRING("/afs/."));
+      fs->Exists(&exists);
+    }
+    if  (!exists)
       return 0;
 
     inline_p = PR_TRUE;
-	}
+  }
 #endif /* XP_UNIX */
 
   PR_FREEIF(ct);

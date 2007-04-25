@@ -39,21 +39,20 @@
 #include "nsMsgSend.h"
 #include "nsMsgSendPart.h"
 #include "nsIMimeConverter.h"
-#include "nsFileStream.h"
 #include "nsCOMPtr.h"
 #include "nsIComponentManager.h"
 #include "nsMsgEncoders.h"
 #include "nsMsgI18N.h"
 #include "nsMsgCompUtils.h"
-#include "nsFileStream.h"
 #include "nsMsgMimeCID.h"
 #include "nsMimeTypes.h"
 #include "prmem.h"
 #include "nsMsgPrompts.h"
 #include "nsMsgComposeStringBundle.h"
 #include "nsNativeCharsetUtils.h"
+#include "nsNetUtil.h"
+#include "nsILineInputStream.h"
 
-// defined in msgCompGlue.cpp
 static char *mime_mailto_stream_read_buffer = 0;
 
 PRInt32 nsMsgSendPart::M_counter = 0;
@@ -70,7 +69,6 @@ nsMsgSendPart::nsMsgSendPart(nsIMsgSend* state, const char *part_charset)
   SetMimeDeliveryState(state);
 
   m_parent = nsnull;
-  m_filespec = nsnull;
   m_buffer = nsnull;
   m_type = nsnull;
   m_other = nsnull;
@@ -97,8 +95,6 @@ nsMsgSendPart::~nsMsgSendPart()
   delete [] m_children;
     PR_FREEIF(m_buffer);
   PR_FREEIF(m_other);
-  if (m_filespec)
-    delete m_filespec;
   PR_FREEIF(m_type);
 }
 
@@ -116,13 +112,10 @@ int nsMsgSendPart::CopyString(char** dest, const char* src)
 }
 
 
-int nsMsgSendPart::SetFile(nsFileSpec *filename)
+nsresult nsMsgSendPart::SetFile(nsILocalFile *file)
 {
-  m_filespec = new nsFileSpec(*filename);
-  if (!m_filespec)
-    return NS_ERROR_OUT_OF_MEMORY;
-  else
-    return NS_OK;
+  m_file = file;
+  return NS_OK;
 }
 
 
@@ -261,10 +254,10 @@ nsMsgSendPart* nsMsgSendPart::GetChild(PRInt32 which)
 
 
 
-int nsMsgSendPart::PushBody(char* buffer, PRInt32 length)
+int nsMsgSendPart::PushBody(const char* buffer, PRInt32 length)
 {
   int status = 0;
-  char* encoded_data = buffer;
+  const char* encoded_data = buffer;
   
   if (m_encoder_data) 
   {
@@ -336,7 +329,7 @@ int nsMsgSendPart::PushBody(char* buffer, PRInt32 length)
   }
   
   if (encoded_data && encoded_data != buffer) {
-    PR_Free(encoded_data);
+    PR_Free((char *) encoded_data);
   }
   
   return status;
@@ -489,30 +482,32 @@ nsMsgSendPart::Write()
   if ( (m_parent) &&
        (m_numchildren == 0) &&
        ( (!m_buffer) || (!*m_buffer) ) &&
-       (!m_filespec) &&
+       (!m_file) &&
        (!m_mainpart) )
     return SKIP_EMPTY_PART;
 
   if (m_mainpart && m_type && PL_strcmp(m_type, TEXT_HTML) == 0) 
   {     
-    if (m_filespec) 
+    if (m_file) 
     {
       // The "insert HTML links" code requires a memory buffer,
       // so read the file into memory.
       NS_ASSERTION(m_buffer == nsnull, "not-null buffer");
       PRInt32           length = 0;
-      
-      if (m_filespec->Valid())
-        length = m_filespec->GetFileSize();
+      PRInt64 fileSize;
+      if (NS_SUCCEEDED(m_file->GetFileSize(&fileSize)))
+          length = fileSize;
       
       m_buffer = (char *) PR_Malloc(sizeof(char) * (length + 1));
       if (m_buffer) 
       {
-        nsInputFileStream file(*m_filespec);
-        if (file.is_open()) 
+        nsCOMPtr<nsIInputStream> inputFile;
+        nsresult rv = NS_NewLocalFileInputStream(getter_AddRefs(inputFile), m_file);
+        if (NS_SUCCEEDED(rv)) 
         {
-          length = file.read(m_buffer, length);
-          file.close();
+          PRUint32 bytesRead;
+          rv = inputFile->Read(m_buffer, length, &bytesRead);
+          inputFile->Close();
           m_buffer[length] = '\0';
         }
         else 
@@ -651,11 +646,15 @@ nsMsgSendPart::Write()
     if (status < 0)
       goto FAIL;
   }
-  else if (m_filespec) 
+  else if (m_file) 
   {
-    nsInputFileStream   myStream(*m_filespec);
-
-    if (!myStream.is_open())
+    nsresult rv;
+    nsCOMPtr <nsIFileInputStream> fileStream = do_CreateInstance(NS_LOCALFILEINPUTSTREAM_CONTRACTID, &rv);
+    if (NS_FAILED(rv))
+      goto FAIL;
+    
+    rv = fileStream->Init(m_file, PR_RDONLY, 0664, PR_FALSE);
+    if (NS_FAILED(rv))
     {
       // mysteriously disappearing?
       nsCOMPtr<nsIMsgSendReport> sendReport;
@@ -664,14 +663,18 @@ nsMsgSendPart::Write()
       {
         nsAutoString error_msg;
         nsAutoString path;
-        NS_CopyNativeToUnicode(
-          nsDependentCString(m_filespec->GetNativePathCString()), path);
+        m_file->GetPath(path);
         nsMsgBuildErrorMessageByID(NS_MSG_UNABLE_TO_OPEN_TMP_FILE, error_msg, &path, nsnull);
         sendReport->SetMessage(nsIMsgSendReport::process_Current, error_msg.get(), PR_FALSE);
       }
       status = NS_MSG_UNABLE_TO_OPEN_TMP_FILE;
       goto FAIL;
     }
+
+    nsCOMPtr <nsILineInputStream> lineStream = do_QueryInterface(fileStream, &rv);
+    nsCString curLine;
+    PRBool more = PR_TRUE;
+
     /* Kludge to avoid having to allocate memory on the toy computers... */
     if (!mime_mailto_stream_read_buffer) 
     {
@@ -690,39 +693,20 @@ nsMsgSendPart::Write()
       // strip out certain sensitive internal header fields.
       PRBool skipping = PR_FALSE;
 
-      while (1) 
+      while (more) 
       {
-        char *line;
-
-        if (myStream.eof())
-          line = nsnull;
-        else
-        {
-          buffer[0] = '\0';
-          myStream.readline(buffer, MIME_BUFFER_SIZE-3);
-          line = buffer;
-        }
+        lineStream->ReadLine(curLine, &more);
       
-        if (!line)
-          break;  /* EOF */
+        curLine.Append(CRLF);
         
+        char *line = (char *) curLine.get();
         if (skipping) {
           if (*line == ' ' || *line == '\t')
             continue;
           else
             skipping = PR_FALSE;
         }
-        
-        int hdrLen = PL_strlen(buffer);
-        if ((hdrLen < 2) || (buffer[hdrLen-2] != nsCRT::CR)) { // if the line doesn't end with CRLF,
-          // ... make it end with CRLF.
-          if ( (hdrLen == 0) || ((buffer[hdrLen-1] != nsCRT::CR) && (buffer[hdrLen-1] != nsCRT::LF)) )
-            hdrLen++;
-          buffer[hdrLen-1] = '\015';
-          buffer[hdrLen] = '\012';
-          buffer[hdrLen+1] = '\0';
-        }
-        
+                
         if (!PL_strncasecmp(line, "From -", 6) ||
             !PL_strncasecmp(line, "BCC:", 4) ||
             !PL_strncasecmp(line, "FCC:", 4) ||
@@ -742,15 +726,17 @@ nsMsgSendPart::Write()
         
         PUSH(line);
         
-        if (*line == nsCRT::CR || *line == nsCRT::LF) {
+        if (curLine.Length() == 2) {
           break;  // Now can do normal reads for the body.
         }
       }
     }
         
-    while (!myStream.eof()) 
+    while (status >= 0) 
     {
-      if ((status = myStream.read(buffer, MIME_BUFFER_SIZE)) < 0)
+      PRUint32 bytesRead;
+      nsresult rv = fileStream->Read(buffer, MIME_BUFFER_SIZE, &bytesRead);
+      if (NS_FAILED(rv))
       {  
         nsCOMPtr<nsIMsgSendReport> sendReport;
         m_state->GetSendReport(getter_AddRefs(sendReport));
@@ -758,16 +744,18 @@ nsMsgSendPart::Write()
         {
           nsAutoString error_msg;
           nsAutoString path;
-          NS_CopyNativeToUnicode(nsDependentCString(m_filespec->GetNativePathCString()), path);
+          m_file->GetPath(path);
           nsMsgBuildErrorMessageByID(NS_MSG_UNABLE_TO_OPEN_FILE, error_msg, &path, nsnull);
           sendReport->SetMessage(nsIMsgSendReport::process_Current, error_msg.get(), PR_FALSE);
           status = NS_MSG_UNABLE_TO_OPEN_FILE;
           goto FAIL;
         }
       }
-      status = PushBody(buffer, status);
+      status = PushBody(buffer, bytesRead);
       if (status < 0)
         goto FAIL;
+      if (bytesRead < MIME_BUFFER_SIZE)
+        break;
     }
   }
   

@@ -61,9 +61,7 @@
 #include "msgCore.h"
 #include "nsCRT.h"
 #include "nsEscape.h"
-#include "nsIFileSpec.h"
 #include "nsIMsgSend.h"
-#include "nsFileStream.h"
 #include "nsMimeStringResources.h"
 #include "nsIIOService.h"
 #include "nsNetUtil.h"
@@ -115,80 +113,28 @@ static NS_DEFINE_CID(kCMsgComposeServiceCID,  NS_MSGCOMPOSESERVICE_CID);
 #define SAFE_TMP_FILENAME "nsmime.tmp"
 
 //
-// Create a file spec for the a unique temp file
+// Create a file for the a unique temp file
 // on the local machine. Caller must free memory
 //
-nsFileSpec * 
-nsMsgCreateTempFileSpec(const char *tFileName)
+nsresult
+nsMsgCreateTempFile(const char *tFileName, nsIFile **tFile)
 {
-  //Calling NS_MsgHashIfNecessary so that when Replies are forwarded - the ':' in the subject line doesn't cause problems
-  nsCOMPtr<nsIFile> tmpFile;
-  nsresult rv = NS_GetSpecialDirectory(NS_OS_TEMP_DIR, getter_AddRefs(tmpFile));
-  if (NS_FAILED(rv))
-    return nsnull;
-
-  nsCOMPtr<nsIFileSpec> tmpFileSpec;
-  rv = NS_NewFileSpecFromIFile(tmpFile, getter_AddRefs(tmpFileSpec));
-
-  if (NS_FAILED(rv))
-    return nsnull;
+  if ((!tFileName) || (!*tFileName))
+    tFileName = SAFE_TMP_FILENAME;
   
-  nsFileSpec *tmpSpec = new nsFileSpec;
-  tmpFileSpec->GetFileSpec(tmpSpec);
-  if (!tmpSpec)
-    return nsnull;
-
-  nsCAutoString tempName;
-  if ((!tFileName) || (!*tFileName)) {
-    tempName = SAFE_TMP_FILENAME;
-  }
-  else {
-    nsAutoString tempNameUni; 
-    if (NS_FAILED(NS_CopyNativeToUnicode(nsDependentCString(tFileName),
-                                         tempNameUni))) {
-      tempName = SAFE_TMP_FILENAME;
-      goto fallback;
-    }
-
-    PRInt32 dotChar = tempNameUni.RFindChar('.');
-    if (dotChar == kNotFound) {
-       rv = NS_MsgHashIfNecessary(tempNameUni);
-    }
-    else {
-      // this scary code will not lose any 3 or 4 character normal extensions, 
-      // like foo.eml, foo.txt, foo.html
-      // this code is to turn arbitrary attachment file names to ones 
-      // that are safe for the underlying OS 
-      // eventually, this code will go away once bug #86089 is fixed
-      nsAutoString extension;
-      tempNameUni.Right(extension, tempNameUni.Length() - dotChar - 1);
-      tempNameUni.Truncate(dotChar);
-      rv = NS_MsgHashIfNecessary(tempNameUni);
-      if (NS_SUCCEEDED(rv)) {
-        rv = NS_MsgHashIfNecessary(extension);    // should be a NOOP for normal 3 or 4 char extension
-        if (NS_SUCCEEDED(rv)) {
-          tempNameUni += '.';
-          tempNameUni += extension;
-          // hash the combinded string, so that filenames like "<giant string>.<giant string>" are made safe
-          rv = NS_MsgHashIfNecessary(tempNameUni);   
-        }
-      }
-    } 
-    rv = NS_CopyUnicodeToNative(tempNameUni, tempName);
-    NS_ASSERTION(NS_SUCCEEDED(rv), "UTF-16 to native filename failed"); 
-  }
-
-fallback:
-  NS_ASSERTION(NS_SUCCEEDED(rv), "hash failed");
-  if (NS_FAILED(rv)) {
-    tempName = SAFE_TMP_FILENAME;
-  }
-  // we are guaranteed that tempName is safe for the underlying OS
-  *tmpSpec += tempName.get();
-
-  tmpSpec->MakeUnique();
-  return tmpSpec;
+  nsresult rv = GetSpecialDirectoryWithFileName(NS_OS_TEMP_DIR,
+                                                tFileName,
+                                                tFile);
+  
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  rv = (*tFile)->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);
+  if (NS_FAILED(rv))
+    NS_RELEASE(*tFile);
+  
+  return rv;
 }
+
 
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
@@ -485,8 +431,10 @@ dummy_file_write( char *buf, PRInt32 size, void *fileHandle )
   if (!fileHandle)
     return NS_ERROR_FAILURE;
 
-  nsOutputFileStream  *tStream = (nsOutputFileStream *) fileHandle;
-  return tStream->write(buf, size);
+  nsIOutputStream  *tStream = (nsIOutputStream *) fileHandle;
+  PRUint32 bytesWritten;
+  tStream->Write(buf, size, &bytesWritten);
+  return (int) bytesWritten;
 }
 
 static int PR_CALLBACK
@@ -545,10 +493,10 @@ mime_free_attachments ( nsMsgAttachedFile *attachments, int count )
     PR_FREEIF ( cur->description );
     PR_FREEIF ( cur->x_mac_type );
     PR_FREEIF ( cur->x_mac_creator );
-    if ( cur->file_spec ) 
+    if ( cur->tmp_file ) 
     {
-      cur->file_spec->Delete(PR_FALSE);
-      delete ( cur->file_spec );
+      cur->tmp_file->Remove(PR_FALSE);
+      cur->tmp_file = nsnull;
     }
   }
 
@@ -1487,17 +1435,28 @@ mime_parse_stream_complete (nsMIMESession *stream)
       
       if (!bodyAsAttachment)
       {
-        bodyLen = mdd->messageBody->file_spec->GetFileSize();
+        PRInt64 fileSize;
+        nsCOMPtr<nsIFile> tempFileCopy;
+        mdd->messageBody->tmp_file->Clone(getter_AddRefs(tempFileCopy));
+        mdd->messageBody->tmp_file = do_QueryInterface(tempFileCopy);
+        tempFileCopy = nsnull;
+        mdd->messageBody->tmp_file->GetFileSize(&fileSize);
+        bodyLen = fileSize;
         body = (char *)PR_MALLOC (bodyLen + 1);
         if (body)
         {
           memset (body, 0, bodyLen+1);
         
-          nsInputFileStream inputFile(*(mdd->messageBody->file_spec));
-          if (inputFile.is_open())
-            inputFile.read(body, bodyLen);
+          PRUint32 bytesRead;
+          nsCOMPtr <nsIInputStream> inputStream;
+          
+          nsresult rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), mdd->messageBody->tmp_file);
+          if (NS_FAILED(rv))
+            return;
+          
+          inputStream->Read(body, bodyLen, &bytesRead);
         
-          inputFile.close();
+          inputStream->Close();
 
           // Convert the body to UTF-8
           char *mimeCharset = nsnull;
@@ -1646,13 +1605,8 @@ mime_parse_stream_complete (nsMIMESession *stream)
   // files we need on disk
   //
   if (bodyAsAttachment)
-  {
-    if ( mdd->messageBody->file_spec ) 
-    {
-      delete ( mdd->messageBody->file_spec );
-      mdd->messageBody->file_spec = nsnull;
-    }
-  }
+    mdd->messageBody->tmp_file = nsnull;
+
   mime_free_attachments (mdd->messageBody, 1);
 
   if (mdd->attachments)
@@ -1661,13 +1615,7 @@ mime_parse_stream_complete (nsMIMESession *stream)
     nsMsgAttachedFile *cur = mdd->attachments;
     
     for ( i = 0; i < mdd->attachments_count; i++, cur++ ) 
-    {
-      if ( cur->file_spec ) 
-      {
-        delete ( cur->file_spec );
-        cur->file_spec = nsnull;
-      }
-    }
+        cur->tmp_file = nsnull;
     
     mime_free_attachments( mdd->attachments, mdd->attachments_count );
   }
@@ -1898,7 +1846,7 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
   if  ( ( (!newAttachment->description) || (!*newAttachment->description) ) && (workURLSpec) )
     newAttachment->description = nsCRT::strdup(workURLSpec);
 
-  nsFileSpec *tmpSpec = nsnull;
+  nsCOMPtr <nsIFile> tmpFile = nsnull;
   {
     // Let's build a temp file with an extension based on the content-type: nsmail.<extension>
 
@@ -1930,41 +1878,32 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
       newAttachName.Append(".tmp");
     }
 
-    tmpSpec = nsMsgCreateTempFileSpec(newAttachName.get());
+    nsMsgCreateTempFile(newAttachName.get(), getter_AddRefs(tmpFile));
   }
+  nsresult rv;
 
   // This needs to be done so the attachment structure has a handle 
   // on the temp file for this attachment...
-  // if ( (tmpSpec) && (!bodyPart) )
-  if (tmpSpec)
+  // if ( (tmpFile) && (!bodyPart) )
+  if (tmpFile)
   {
-    nsCOMPtr<nsILocalFile> lf = do_CreateInstance("@mozilla.org/file/local;1");
-    if (!lf)
-      return MIME_OUT_OF_MEMORY;
-    nsresult rv =
-      lf->InitWithNativePath(nsDependentCString(tmpSpec->GetCString()));
-    if (NS_SUCCEEDED(rv))
-    {
       nsCAutoString fileURL;
-      rv = NS_GetURLSpecFromFile(lf, fileURL);
+      rv = NS_GetURLSpecFromFile(tmpFile, fileURL);
       if (NS_SUCCEEDED(rv))
         nsMimeNewURI(getter_AddRefs(newAttachment->orig_url),
                      fileURL.get(), nsnull);
-    }
   }
 
   PR_FREEIF(workURLSpec);
-  if (!tmpSpec)
+  if (!tmpFile)
     return MIME_OUT_OF_MEMORY;
 
-  NS_NewFileSpecWithSpec(*tmpSpec, &mdd->tmpFileSpec);
-  if (!mdd->tmpFileSpec)
-    return MIME_OUT_OF_MEMORY;
+  mdd->tmpFile = do_QueryInterface(tmpFile);
   
-  newAttachment->file_spec = tmpSpec;
+  newAttachment->tmp_file = mdd->tmpFile;
 
-  mdd->tmpFileStream = new nsOutputFileStream(*tmpSpec, PR_WRONLY | PR_CREATE_FILE, 00600);
-  if (!mdd->tmpFileStream)
+  rv = NS_NewLocalFileOutputStream(getter_AddRefs(mdd->tmpFileStream), tmpFile,PR_WRONLY | PR_CREATE_FILE, 00600);
+  if (NS_FAILED(rv))
     return MIME_UNABLE_TO_OPEN_TMP_FILE;
     
   // For now, we are always going to decode all of the attachments 
@@ -2030,8 +1969,9 @@ mime_decompose_file_output_fn (const char     *buf,
   }
   else 
   {
-    ret = mdd->tmpFileStream->write(buf, size);
-    if (ret < size)
+    PRUint32 bytesWritten;
+    mdd->tmpFileStream->Write(buf, size, &bytesWritten);
+    if (bytesWritten < size)
       return MIME_ERROR_WRITING_FILE;
   }
   
@@ -2054,14 +1994,11 @@ mime_decompose_file_close_fn ( void *stream_closure )
     mdd->decoder_data = 0;
   }
 
-  if (mdd->tmpFileStream->GetIStream())
-    mdd->tmpFileStream->close();
+  mdd->tmpFileStream->Close();
 
-  delete mdd->tmpFileStream;
   mdd->tmpFileStream = nsnull;
 
-  delete mdd->tmpFileSpec;
-  mdd->tmpFileSpec = nsnull;
+  mdd->tmpFile = nsnull;
   
   return 0;
 }

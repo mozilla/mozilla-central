@@ -141,15 +141,15 @@
 #include "msgCore.h"
 #include "nsMimeStringResources.h"
 #include "nsMimeTypes.h"
-#include "nsFileStream.h"
-#include "nsFileSpec.h"
 #include "mimebuf.h"
 #include "nsMsgUtils.h"
 
 //
 // External Defines...
 //
-extern nsFileSpec *nsMsgCreateTempFileSpec(const char *tFileName);
+
+extern nsresult
+nsMsgCreateTempFile(const char *tFileName, nsIFile **tFile);
 
 #define MIME_SUPERCLASS mimeMultipartClass
 MimeDefClass(MimeMultipartRelated, MimeMultipartRelatedClass,
@@ -235,23 +235,20 @@ MimeMultipartRelated_finalize (MimeObject *obj)
 
   if (relobj->input_file_stream) 
   {
-    relobj->input_file_stream->close();
-    delete relobj->input_file_stream;
+    relobj->input_file_stream->Close();
     relobj->input_file_stream = nsnull;
   }
 
   if (relobj->output_file_stream) 
   {
-    relobj->output_file_stream->close();
-    delete relobj->output_file_stream;
+    relobj->output_file_stream->Close();
     relobj->output_file_stream = nsnull;
   }
 
-  if (relobj->file_buffer_spec) 
+  if (relobj->file_buffer) 
   {
-    relobj->file_buffer_spec->Delete(PR_FALSE);
-    delete relobj->file_buffer_spec;
-    relobj->file_buffer_spec = nsnull;
+    relobj->file_buffer->Remove(PR_FALSE);
+    relobj->file_buffer = nsnull;
   }
 
   ((MimeObjectClass*)&MIME_SUPERCLASS)->finalize(obj);
@@ -649,7 +646,7 @@ MimeMultipartRelated_parse_child_line (MimeObject *obj,
   /* Buffer this up (###tw much code duplication from mimemalt.c) */
   /* If we don't yet have a buffer (either memory or file) try and make a
      memory buffer. */
-  if (!relobj->head_buffer && !relobj->file_buffer_spec) {
+  if (!relobj->head_buffer && !relobj->file_buffer) {
     int target_size = 1024 * 50;       /* try for 50k */
     while (target_size > 0) {
       relobj->head_buffer = (char *) PR_MALLOC(target_size);
@@ -666,19 +663,18 @@ MimeMultipartRelated_parse_child_line (MimeObject *obj,
     relobj->head_buffer_fp = 0;
   }
 
+  nsresult rv;
   /* Ok, if at this point we still don't have either kind of buffer, try and
      make a file buffer. */
-  if (!relobj->head_buffer && !relobj->file_buffer_spec) 
+  if (!relobj->head_buffer && !relobj->file_buffer) 
   {
-    relobj->file_buffer_spec = nsMsgCreateTempFileSpec("nsma");
-    if (!relobj->file_buffer_spec) 
-      return MIME_OUT_OF_MEMORY;
+    nsCOMPtr <nsIFile> file;
+    rv = nsMsgCreateTempFile("nsma", getter_AddRefs(file));
+    NS_ENSURE_SUCCESS(rv, rv);
+    relobj->file_buffer = do_QueryInterface(file);
 
-    relobj->output_file_stream = new nsOutputFileStream(*(relobj->file_buffer_spec), PR_WRONLY | PR_CREATE_FILE, 00600);
-    if (!relobj->output_file_stream) 
-    {
-      return MIME_UNABLE_TO_OPEN_TMP_FILE;
-    }
+    rv = NS_NewLocalFileOutputStream(getter_AddRefs(relobj->output_file_stream), relobj->file_buffer, PR_WRONLY | PR_CREATE_FILE, 00600);
+    NS_ENSURE_SUCCESS(rv, rv);
   }
   
   PR_ASSERT(relobj->head_buffer || relobj->output_file_stream);
@@ -697,25 +693,24 @@ MimeMultipartRelated_parse_child_line (MimeObject *obj,
        to it. */
     if (!relobj->output_file_stream) 
     {
-      if (!relobj->file_buffer_spec) 
+      if (!relobj->file_buffer) 
       {
-        relobj->file_buffer_spec = nsMsgCreateTempFileSpec("nsma");
+        nsCOMPtr <nsIFile> file;
+        rv = nsMsgCreateTempFile("nsma", getter_AddRefs(file));
+        NS_ENSURE_SUCCESS(rv, rv);
+        relobj->file_buffer = do_QueryInterface(file);
       }
 
-      if (!relobj->file_buffer_spec) 
-        return MIME_OUT_OF_MEMORY;
-
-      relobj->output_file_stream = new nsOutputFileStream(*(relobj->file_buffer_spec), PR_WRONLY | PR_CREATE_FILE, 00600);
-      if (!relobj->output_file_stream) 
-      {
-        return MIME_UNABLE_TO_OPEN_TMP_FILE;
-      }
+      nsresult rv = NS_NewLocalFileOutputStream(getter_AddRefs(relobj->output_file_stream), relobj->file_buffer, PR_WRONLY | PR_CREATE_FILE, 00600);
+      NS_ENSURE_SUCCESS(rv, rv);
 
       if (relobj->head_buffer && relobj->head_buffer_fp) 
       {
-        status = relobj->output_file_stream->write(relobj->head_buffer,
-                                                   relobj->head_buffer_fp);
-        if (status < relobj->head_buffer_fp)
+        PRUint32 bytesWritten;
+        status = relobj->output_file_stream->Write(relobj->head_buffer,
+                                                   relobj->head_buffer_fp,
+                                                   &bytesWritten);
+        if (bytesWritten < relobj->head_buffer_fp)
           return MIME_UNABLE_TO_OPEN_TMP_FILE;
       }
 
@@ -725,9 +720,10 @@ MimeMultipartRelated_parse_child_line (MimeObject *obj,
     }
 
     /* Dump this line to the file. */
-    status = relobj->output_file_stream->write(line, length);
-    if (status < length) 
-      return status;
+    PRUint32 bytesWritten;
+    rv = relobj->output_file_stream->Write(line, length, &bytesWritten);
+    if ((PRInt32) bytesWritten < length || NS_FAILED(rv)) 
+      return MIME_UNABLE_TO_OPEN_TMP_FILE;
   }
 
   return 0;
@@ -1043,7 +1039,7 @@ MimeMultipartRelated_parse_eof (MimeObject *obj, PRBool abort_p)
   if ( obj->options && 
      obj->options->decompose_file_p &&
      obj->options->decompose_file_init_fn &&
-     (relobj->file_buffer_spec || relobj->head_buffer))
+     (relobj->file_buffer || relobj->head_buffer))
   {
     status = obj->options->decompose_file_init_fn ( obj->options->stream_closure,
                             relobj->buffered_hdrs );
@@ -1060,13 +1056,13 @@ MimeMultipartRelated_parse_eof (MimeObject *obj, PRBool abort_p)
   if (relobj->head_buffer) 
   {
     /* Read it out of memory. */
-    PR_ASSERT(!relobj->file_buffer_spec && !relobj->input_file_stream);
+    PR_ASSERT(!relobj->file_buffer && !relobj->input_file_stream);
 
     status = body->clazz->parse_buffer(relobj->head_buffer,
                          relobj->head_buffer_fp,
                          body);
   } 
-  else if (relobj->file_buffer_spec) 
+  else if (relobj->file_buffer) 
   {
     /* Read it off disk. */
     char *buf;
@@ -1074,8 +1070,8 @@ MimeMultipartRelated_parse_eof (MimeObject *obj, PRBool abort_p)
 
     PR_ASSERT(relobj->head_buffer_size == 0 &&
           relobj->head_buffer_fp == 0);
-    PR_ASSERT(relobj->file_buffer_spec);
-    if (!relobj->file_buffer_spec) 
+    PR_ASSERT(relobj->file_buffer);
+    if (!relobj->file_buffer) 
     {
       status = -1;
       goto FAIL;
@@ -1090,10 +1086,10 @@ MimeMultipartRelated_parse_eof (MimeObject *obj, PRBool abort_p)
 
     // First, close the output file to open the input file!
     if (relobj->output_file_stream)
-      relobj->output_file_stream->close();
+      relobj->output_file_stream->Close();
 
-    relobj->input_file_stream = new nsInputFileStream(*(relobj->file_buffer_spec));
-    if (!relobj->input_file_stream) 
+    nsresult rv = NS_NewLocalFileInputStream(getter_AddRefs(relobj->input_file_stream), relobj->file_buffer);
+    if (NS_FAILED(rv)) 
     {
       PR_Free(buf);
       status = MIME_UNABLE_TO_OPEN_TMP_FILE;
@@ -1102,10 +1098,11 @@ MimeMultipartRelated_parse_eof (MimeObject *obj, PRBool abort_p)
 
     while(1) 
     {
-      PRInt32 rstatus = relobj->input_file_stream->read(buf, buf_size - 1);
-      if (rstatus <= 0) 
+      PRUint32 bytesRead = 0;
+      rv = relobj->input_file_stream->Read(buf, buf_size - 1, &bytesRead);
+      if (NS_FAILED(rv) || !bytesRead) 
       {
-        status = rstatus;
+        status = NS_FAILED(rv) ? -1 : 0;
         break;
       } 
       else 
@@ -1114,7 +1111,7 @@ MimeMultipartRelated_parse_eof (MimeObject *obj, PRBool abort_p)
            some user events and other input sources get processed.
            Oh well. */
 
-        status = body->clazz->parse_buffer(buf, rstatus, body);
+        status = body->clazz->parse_buffer(buf, bytesRead, body);
         if (status < 0) break;
       }
     }
@@ -1135,7 +1132,7 @@ FAIL:
   if ( obj->options &&
      obj->options->decompose_file_p &&
      obj->options->decompose_file_close_fn &&
-     (relobj->file_buffer_spec || relobj->head_buffer)) {
+     (relobj->file_buffer || relobj->head_buffer)) {
   status = obj->options->decompose_file_close_fn ( obj->options->stream_closure );
   if (status < 0) return status;
   }

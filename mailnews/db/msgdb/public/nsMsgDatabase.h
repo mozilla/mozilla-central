@@ -42,7 +42,6 @@
 #include "nsMsgHdr.h"
 #include "nsVoidArray.h"
 #include "nsString.h"
-#include "nsFileSpec.h"
 #include "nsIDBChangeListener.h"
 #include "nsIDBChangeAnnouncer.h"
 #include "nsMsgMessageFlags.h"
@@ -116,7 +115,7 @@ public:
   nsresult GetTableCreateIfMissing(const char *scope, const char *kind, nsIMdbTable **table, 
                                    mdb_token &scopeToken, mdb_token &kindToken);
 
-  static nsMsgDatabase* FindInCache(nsFileSpec &dbName);
+  static nsMsgDatabase* FindInCache(nsILocalFile *dbName);
   static nsIMsgDatabase* FindInCache(nsIMsgFolder *folder);
 
   //helper function to fill in nsStrings from hdr row cell contents.
@@ -194,7 +193,7 @@ protected:
     GetDBCache()->AppendElement(pMessageDB);}
   static void		RemoveFromCache(nsMsgDatabase* pMessageDB);
   static int		FindInCache(nsMsgDatabase* pMessageDB);
-  PRBool	MatchDbName(nsFileSpec &dbName);	// returns TRUE if they match
+  PRBool	MatchDbName(nsILocalFile *dbName);	// returns TRUE if they match
   
 #if defined(XP_WIN) || defined(XP_OS2) // this should go away when we can provide our own file stream to MDB/Mork
   static void		UnixToNative(char*& ioPath);
@@ -241,7 +240,7 @@ protected:
   nsIMdbStore   *m_mdbStore;
   nsIMdbTable   *m_mdbAllMsgHeadersTable;
   nsIMdbTable   *m_mdbAllThreadsTable;
-  nsFileSpec    m_dbName;
+  nsCString     m_dbName;
   nsMsgKeyArray m_newSet;	// new messages since last open.
   PRBool        m_mdbTokensInitialized;
   nsCOMPtr <nsISupportsArray>  m_ChangeListeners;

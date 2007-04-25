@@ -58,7 +58,6 @@
 #include "nsIRDFService.h"
 #include "nsIRDFDataSource.h"
 #include "nsRDFCID.h"
-#include "nsFileStream.h"
 #include "nsMsgDBCID.h"
 #include "nsMsgNewsCID.h"
 #include "nsMsgUtils.h"
@@ -154,7 +153,7 @@ NS_IMETHODIMP nsMsgNewsFolder::QueryInterface(REFNSIID aIID, void** aInstancePtr
 ////////////////////////////////////////////////////////////////////////////////
 
 nsresult
-nsMsgNewsFolder::CreateSubFolders(nsFileSpec &path)
+nsMsgNewsFolder::CreateSubFolders(nsILocalFile *path)
 {
   nsresult rv = NS_OK;
 
@@ -261,7 +260,7 @@ nsMsgNewsFolder::AddNewsgroup(const nsACString &name, const char *setStr,
 }
 
 
-nsresult nsMsgNewsFolder::ParseFolder(nsFileSpec& path)
+nsresult nsMsgNewsFolder::ParseFolder(nsILocalFile *path)
 {
   NS_ASSERTION(0,"ParseFolder not implemented");
  	return NS_ERROR_NOT_IMPLEMENTED;
@@ -292,32 +291,12 @@ nsMsgNewsFolder::Enumerate(nsIEnumerator **result)
 }
 
 nsresult
-nsMsgNewsFolder::AddDirectorySeparator(nsFileSpec &path)
+nsMsgNewsFolder::AddDirectorySeparator(nsILocalFile *path)
 {
-    nsresult rv = NS_OK;
-    if (mURI.Equals(kNewsRootURI)) 
-    {
-    // don't concat the full separator with .sbd
-    }
-    else 
-    {
-      // see if there's a dir with the same name ending with .sbd
-      // unfortunately we can't just say:
-      //          path += sep;
-      // here because of the way nsFileSpec concatenates
-      nsAutoString str;
-      str.AssignWithConversion(nsFilePath(path));
-#if 0
-      nsAutoString sep;
-      rv = nsGetNewsFolderSeparator(sep);
-      if (NS_FAILED(rv)) return rv;
-      str += sep;
-#endif
-
-      path = nsFilePath(str);
-    }
-
-    return rv;
+  // don't concat the full separator with .sbd
+  return (mURI.Equals(kNewsRootURI)) ?
+                  NS_OK :
+                  nsMsgDBFolder::AddDirectorySeparator(path);
 }
 
 NS_IMETHODIMP
@@ -331,15 +310,9 @@ nsMsgNewsFolder::GetSubFolders(nsIEnumerator* *result)
     // see bug #70494
     mInitialized = PR_TRUE;
     
-    nsCOMPtr<nsIFileSpec> pathSpec;
-    rv = GetPath(getter_AddRefs(pathSpec));
+    nsCOMPtr<nsILocalFile> path;
+    rv = GetFilePath(getter_AddRefs(path));
     if (NS_FAILED(rv)) return rv;
-    
-    nsFileSpec path;
-    rv = pathSpec->GetFileSpec(&path);
-    if (NS_FAILED(rv)) return rv;
-    
-    nsFileSpec tempPath(path.GetNativePathCString(), PR_TRUE);
     
     rv = CreateSubFolders(path);
     if (NS_FAILED(rv)) return rv;
@@ -361,10 +334,6 @@ nsresult nsMsgNewsFolder::GetDatabase(nsIMsgWindow *aMsgWindow)
   nsresult rv;
   if (!mDatabase)
   {
-    nsCOMPtr<nsIFileSpec> pathSpec;
-    rv = GetPath(getter_AddRefs(pathSpec));
-    if (NS_FAILED(rv)) return rv;
-    
     nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv,rv);
 
@@ -596,7 +565,7 @@ NS_IMETHODIMP nsMsgNewsFolder::Delete()
 
   if (NS_SUCCEEDED(rv))
   {
-    nsCOMPtr<nsIFile> summaryPath;
+    nsCOMPtr<nsILocalFile> summaryPath;
     rv = GetSummaryFileLocation(folderPath, getter_AddRefs(summaryPath));
     if (NS_SUCCEEDED(rv))
     {

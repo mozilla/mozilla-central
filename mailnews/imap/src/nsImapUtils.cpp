@@ -43,7 +43,6 @@
 #include "nsIServiceManager.h"
 #include "prsystem.h"
 #include "nsEscape.h"
-#include "nsIFileSpec.h"
 #include "nsNetCID.h"
 
 // stuff for temporary root folder hack
@@ -57,17 +56,12 @@
 #include "nsISupportsObsolete.h"
 
 nsresult
-nsImapURI2Path(const char* rootURI, const char* uriStr, nsFileSpec& pathResult)
+nsImapURI2Path(const char* rootURI, const char* uriStr, nsILocalFile **pathResult)
 {
   nsresult rv;
   
-  nsAutoString sbdSep;
   nsCOMPtr<nsIURL> url;
  
-  rv = nsGetMailFolderSeparator(sbdSep);
-  if (NS_FAILED(rv)) 
-    return rv;
-  
   url = do_CreateInstance(NS_STANDARDURL_CONTRACTID, &rv);
   if (NS_FAILED(rv)) return rv;
   
@@ -78,7 +72,7 @@ nsImapURI2Path(const char* rootURI, const char* uriStr, nsFileSpec& pathResult)
   if ((PL_strcmp(rootURI, kImapRootURI) != 0) &&
     (PL_strcmp(rootURI, kImapMessageRootURI) != 0)) 
   {
-    pathResult = nsnull;
+    *pathResult = nsnull;
     rv = NS_ERROR_FAILURE; 
   }
   
@@ -103,24 +97,16 @@ nsImapURI2Path(const char* rootURI, const char* uriStr, nsFileSpec& pathResult)
 
   if (NS_FAILED(rv)) return rv;
   
+  nsCOMPtr<nsILocalFile> localPath;
   if (server) 
   {
-    nsCOMPtr<nsILocalFile> localPath;
     rv = server->GetLocalPath(getter_AddRefs(localPath));
-    if (NS_FAILED(rv)) return rv;
-    nsCOMPtr <nsIFileSpec> fileSpec;
-    NS_NewFileSpecFromIFile(localPath, getter_AddRefs(fileSpec));
-    if (!fileSpec)
-      return NS_ERROR_FAILURE;
-    
-    rv = fileSpec->GetFileSpec(&pathResult);
     if (NS_FAILED(rv)) return rv;
     
     // This forces the creation of the parent server directory
     // so that we don't get imapservername.sbd instead
     // when the host directory has been deleted. See bug 210683
-    nsFileSpec tempPath(pathResult.GetNativePathCString(), PR_TRUE); 
-    pathResult.CreateDirectory();
+    localPath->Create(nsIFile::DIRECTORY_TYPE, 0700);
   }
   
   if (NS_FAILED(rv)) 
@@ -143,8 +129,8 @@ nsImapURI2Path(const char* rootURI, const char* uriStr, nsFileSpec& pathResult)
       parentName.Right(leafName, parentName.Length() - dirEnd -1);
       parentName.Truncate(dirEnd);
       NS_MsgHashIfNecessary(parentName);
-      parentName.AppendWithConversion(sbdSep);
-      pathResult += parentName.get();
+      parentName.Append(NS_LITERAL_CSTRING(FOLDER_SUFFIX));
+      localPath->AppendNative(parentName);
       // this fixes a strange purify warning.
       parentName = leafName.get();
       dirEnd = parentName.FindChar('/');
@@ -152,10 +138,10 @@ nsImapURI2Path(const char* rootURI, const char* uriStr, nsFileSpec& pathResult)
     if (!leafName.IsEmpty()) 
     {
       NS_MsgHashIfNecessary(leafName);
-      pathResult += leafName.get();
+      localPath->AppendNative(leafName);
     }
   }
-  
+  NS_IF_ADDREF(*pathResult = localPath);
   return NS_OK;
 }
 

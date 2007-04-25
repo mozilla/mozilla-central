@@ -58,7 +58,6 @@
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
 #include "nsIServiceManager.h"
-#include "nsFileSpec.h"
 #include "comi18n.h"
 #include "nsIStringBundle.h"
 #include "nsString.h"

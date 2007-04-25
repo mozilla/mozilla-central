@@ -280,7 +280,7 @@ nsSoundDatasource::GetTargets(nsIRDFResource *source,
         dirEntries->GetNext(getter_AddRefs(nextItem));
         nsCOMPtr <nsIFile> theFile = do_QueryInterface(nextItem);
    
-        PRBool isDirectory;
+        PRBool isDirectory = PR_FALSE;
         theFile->IsDirectory(&isDirectory);
    
         if (!isDirectory) {

@@ -44,7 +44,6 @@
 #include "nsIMsgOfflineImapOperation.h"
 #include "nsIMsgWindow.h"
 #include "nsIMsgFolder.h"
-#include "nsIFileSpec.h"
 
 class nsImapOfflineSync : public nsIUrlListener, public nsIMsgCopyServiceListener {
 public:												// set to one folder to playback one folder only
@@ -87,7 +86,7 @@ protected:
   nsCOMPtr <nsISupportsArray> m_allFolders;
   nsCOMPtr <nsIMsgIncomingServer> m_currentServer;
   nsCOMPtr <nsIEnumerator> m_serverEnumerator;
-  nsCOMPtr <nsIFileSpec> m_curTempFile;
+  nsCOMPtr <nsILocalFile> m_curTempFile;
   
   nsMsgKeyArray	m_CurrentKeys;
   PRUint32      m_KeyIndex;

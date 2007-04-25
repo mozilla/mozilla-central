@@ -66,11 +66,11 @@ XPIDLSRCS	= \
 		nsINewsBlogFeedDownloader.idl \
 		$(NULL)
 
-ifdef MOZ_MOVEMAIL
+#ifdef MOZ_MOVEMAIL
 XPIDLSRCS	+= \
 		nsIMovemailService.idl \
 		nsIMovemailIncomingServer.idl
-endif
+#endif
 
 include $(topsrcdir)/config/rules.mk
 

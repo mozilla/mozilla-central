@@ -3594,7 +3594,7 @@ NS_IMETHODIMP nsMsgComposeSendListener::OnSecurityChange(nsIWebProgress *aWebPro
 }
 
 nsresult
-nsMsgCompose::ConvertHTMLToText(nsFileSpec& aSigFile, nsString &aSigData)
+nsMsgCompose::ConvertHTMLToText(nsILocalFile *aSigFile, nsString &aSigData)
 {
   nsresult    rv;
   nsAutoString    origBuf;
@@ -3609,7 +3609,7 @@ nsMsgCompose::ConvertHTMLToText(nsFileSpec& aSigFile, nsString &aSigData)
 }
 
 nsresult
-nsMsgCompose::ConvertTextToHTML(nsFileSpec& aSigFile, nsString &aSigData)
+nsMsgCompose::ConvertTextToHTML(nsILocalFile *aSigFile, nsString &aSigData)
 {
   nsresult    rv;
   nsAutoString    origBuf;
@@ -3636,31 +3636,39 @@ nsMsgCompose::ConvertTextToHTML(nsFileSpec& aSigFile, nsString &aSigData)
 }
 
 nsresult
-nsMsgCompose::LoadDataFromFile(nsFileSpec& fSpec, nsString &sigData,
+nsMsgCompose::LoadDataFromFile(nsILocalFile *file, nsString &sigData,
                                PRBool aAllowUTF8, PRBool aAllowUTF16)
 {
   PRInt32       readSize;
-  PRInt32       nGot;
+  PRUint32       nGot;
   char          *readBuf;
   char          *ptr;
 
-  if (fSpec.IsDirectory()) {
+  PRBool isDirectory = PR_FALSE;
+  file->IsDirectory(&isDirectory);
+  if (isDirectory) {
     NS_ASSERTION(0,"file is a directory");
     return NS_MSG_ERROR_READING_FILE;  
   }
 
-  nsInputFileStream tempFile(fSpec);
-  if (!tempFile.is_open())
-    return NS_MSG_ERROR_READING_FILE;  
-
-  readSize = fSpec.GetFileSize();
+  
+  nsCOMPtr <nsIInputStream> inputFile;
+  nsresult rv = NS_NewLocalFileInputStream(getter_AddRefs(inputFile), file);    
+  if (NS_FAILED(rv))
+    return NS_MSG_ERROR_READING_FILE;        
+  
+  PRInt64 fileSize;
+  file->GetFileSize(&fileSize);
+  readSize = (PRUint32) fileSize;
+  
+  
   ptr = readBuf = (char *)PR_Malloc(readSize + 1);  if (!readBuf)
     return NS_ERROR_OUT_OF_MEMORY;
   memset(readBuf, 0, readSize + 1);
 
   while (readSize) {
-    nGot = tempFile.read(ptr, readSize);
-    if (nGot > 0) {
+    inputFile->Read(ptr, readSize, &nGot);
+    if (nGot) {
       readSize -= nGot;
       ptr += nGot;
     }
@@ -3668,9 +3676,11 @@ nsMsgCompose::LoadDataFromFile(nsFileSpec& fSpec, nsString &sigData,
       readSize = 0;
     }
   }
-  tempFile.close();
+  inputFile->Close();
 
-  nsCAutoString sigEncoding(nsMsgI18NParseMetaCharset(&fSpec));
+  readSize = (PRUint32) fileSize;
+  
+  nsCAutoString sigEncoding(nsMsgI18NParseMetaCharset(file));
   PRBool removeSigCharset = !sigEncoding.IsEmpty() && m_composeHTML;
 
   if (sigEncoding.IsEmpty()) {
@@ -3678,7 +3688,7 @@ nsMsgCompose::LoadDataFromFile(nsFileSpec& fSpec, nsString &sigData,
       sigEncoding.Assign("UTF-8");
     }
     else if (sigEncoding.IsEmpty() && aAllowUTF16 &&
-             fSpec.GetFileSize() % 2 == 0 && fSpec.GetFileSize() >= 2 &&
+             readSize % 2 == 0 && readSize >= 2 &&
              ((readBuf[0] == char(0xFE) && readBuf[1] == char(0xFF)) ||
               (readBuf[0] == char(0xFF) && readBuf[1] == char(0xFE)))) {
       sigEncoding.Assign("UTF-16");
@@ -3691,7 +3701,7 @@ nsMsgCompose::LoadDataFromFile(nsFileSpec& fSpec, nsString &sigData,
     }
   }
 
-  nsCAutoString readStr(readBuf, fSpec.GetFileSize());
+  nsCAutoString readStr(readBuf, (PRInt32) fileSize);
   PR_FREEIF(readBuf);
 
   if (NS_FAILED(ConvertToUnicode(sigEncoding.get(), readStr, sigData)))
@@ -3769,6 +3779,7 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsStrin
   PRInt32      reply_on_top = 0;
   PRBool       sig_bottom = PR_TRUE;
 
+  nsCOMPtr<nsILocalFile> sigFile;
   if (identity)
   {
     identity->GetReplyOnTop(&reply_on_top);
@@ -3778,7 +3789,6 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsStrin
     {
       useSigFile = PR_FALSE;  // by default, assume no signature file!
 
-      nsCOMPtr<nsILocalFile> sigFile;
       rv = identity->GetSignature(getter_AddRefs(sigFile));
       if (NS_SUCCEEDED(rv) && sigFile) {
         rv = sigFile->GetNativePath(sigNativePath);
@@ -3804,17 +3814,18 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsStrin
   }
   nsXPIDLString prefSigText;
   // the pref sig is always going to be treated as html
-  identity->GetUnicharAttribute("htmlSigText", getter_Copies(prefSigText));
+  if (identity)
+    identity->GetUnicharAttribute("htmlSigText", getter_Copies(prefSigText));
   // Now, if they didn't even want to use a signature, we should
   // just return nicely.
   //
   if ((!useSigFile  && prefSigText.IsEmpty()) || NS_FAILED(rv))
     return NS_OK;
 
-  nsFileSpec    testSpec(sigNativePath.get());
-
+  PRBool exists;
+  sigFile->Exists(&exists);
   // If this file doesn't really exist, just bail!
-  if (!testSpec.Exists() && prefSigText.IsEmpty())
+  if (!exists && prefSigText.IsEmpty())
     return NS_OK;
 
   static const char      htmlBreak[] = "<BR>";
@@ -3848,7 +3859,8 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsStrin
       sigOutput.AppendLiteral("<img src=\"file:///");
            /* XXX pp This gives me 4 slashes on Unix, that's at least one to
               much. Better construct the URL with some service. */
-      sigOutput.AppendWithConversion(testSpec);
+      // this isn't right on windows - need to convert to url format...
+      sigOutput.AppendWithConversion(sigNativePath);
       sigOutput.AppendLiteral("\" border=0>");
       sigOutput.AppendLiteral(htmlsigclose);
     }
@@ -3857,12 +3869,12 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsStrin
   {
     // is this a text sig with an HTML editor?
     if ( (m_composeHTML) && (!htmlSig) )
-      ConvertTextToHTML(testSpec, sigData);
+      ConvertTextToHTML(sigFile, sigData);
     // is this a HTML sig with a text window?
     else if ( (!m_composeHTML) && (htmlSig) )
-      ConvertHTMLToText(testSpec, sigData);
+      ConvertHTMLToText(sigFile, sigData);
     else // We have a match...
-      LoadDataFromFile(testSpec, sigData);  // Get the data!
+      LoadDataFromFile(sigFile, sigData);  // Get the data!
   }
 
   // if we have a prefSigText, append it to sigData.
