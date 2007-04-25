@@ -198,10 +198,10 @@
             set value(val) {
               if (val != null) {
                 this._explicitContent.style.display = 'none';
-                this._implicitContent.style.display = 'inline';
+                this._implicitContent.style.removeProperty('display');
                 this._implicitContent.textContent = val;
               } else {
-                this._explicitContent.style.display = 'inline';
+                this._explicitContent.style.removeProperty('display');
                 this._implicitContent.style.display = 'none';
                 this._implicitContent.textContent = '';
               }
