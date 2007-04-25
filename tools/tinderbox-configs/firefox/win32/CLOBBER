@@ -1,1 +1,2 @@
-Triggering a clobber for a new nightly now that Gmail is fixed (bug 375931)
+clobbering to revert objdir change from bug 377100, see bug 378746
+
