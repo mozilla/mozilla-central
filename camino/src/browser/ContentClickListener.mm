@@ -107,6 +107,9 @@ ContentClickListener::MouseClick(nsIDOMEvent* aEvent)
     else
       hrefScheme = @"file"; // implicitly file:// if no colon is found
 
+    if (!GeckoUtils::IsSafeToOpenURIFromReferrer([hrefStr UTF8String], [referrer UTF8String]))
+      return NS_OK;
+
     // The Command key is down or we got a middle-click.
     // Open the link in a new window or tab if it's an internally handled, non-Javascript link.
     if (![hrefScheme isEqualToString:@"javascript"] && GeckoUtils::isProtocolInternal([hrefScheme UTF8String])) {

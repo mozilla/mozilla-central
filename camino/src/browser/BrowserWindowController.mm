@@ -4027,6 +4027,7 @@ enum BWCOpenDest {
   BOOL showFrameItems = NO;
   BOOL showSpellingItems = NO;
   BOOL needsAlternates = NO;
+  BOOL isUnsafeLink = NO;
 
   NSArray* emailAddresses = nil;
   unsigned numEmailAddresses = 0;
@@ -4065,6 +4066,16 @@ enum BWCOpenDest {
     emailAddresses = [self mailAddressesInContextMenuLinkNode];
     if (emailAddresses != nil)
       numEmailAddresses = [emailAddresses count];
+
+    // Verify that it is safe to open this link.
+    NSString* referrerURL = [[mBrowserView getBrowserView] getFocusedURLString];
+    nsCOMPtr<nsIDOMElement> linkElement;
+    nsAutoString hrefURL;
+    GeckoUtils::GetEnclosingLinkElementAndHref(mDataOwner->mContextMenuNode,
+                                               getter_AddRefs(linkElement),
+                                               hrefURL);
+    if (!GeckoUtils::IsSafeToOpenURIFromReferrer(NS_ConvertUTF16toUTF8(hrefURL).get(), [referrerURL UTF8String]))
+      isUnsafeLink = YES;
 
     if ((contextMenuFlags & nsIContextMenuListener::CONTEXT_IMAGE) != 0) {
       if (numEmailAddresses > 0)
@@ -4135,6 +4146,16 @@ enum BWCOpenDest {
   // we have to clone the menu and return that, so that we don't change
   // our only copy of the menu
   NSMenu* result = [[menuPrototype copy] autorelease];
+
+  if (isUnsafeLink) {
+    // To avoid updating the BrowserWindow.nib close to release time, the
+    // menu items to remove will be removed from index 0 three times. After
+    // the 1.1 release, this needs to be changed (see bug 378081). The first
+    // two remove calls will pull out the "Open Link in *" menu items.
+    [result removeItemAtIndex:0];
+    [result removeItemAtIndex:0];
+    [result removeItemAtIndex:0];  // remove separator 
+  }
 
   // validate View Page/Frame Source
   BrowserWrapper* browser = [self getBrowserWrapper];

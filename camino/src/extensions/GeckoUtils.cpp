@@ -55,6 +55,8 @@
 #include "nsIProtocolHandler.h"
 #include "nsIServiceManager.h"
 #include "nsIExternalProtocolHandler.h"
+#include "nsIScriptSecurityManager.h"
+#include "nsNetUtil.h"
 
 #include "nsIEditor.h"
 #include "nsISelection.h"
@@ -224,6 +226,25 @@ void GeckoUtils::GetURIForDocShell(nsIDocShell* aDocShell, nsACString& aURI)
     aURI.Truncate();
   else
     uri->GetSpec(aURI);
+}
+
+/* static */
+PRBool 
+GeckoUtils::IsSafeToOpenURIFromReferrer(const char* aTargetUri, const char* aReferrerUri)
+{
+  PRBool isUnsafeLink = PR_TRUE;
+  nsCOMPtr<nsIURI> referrerUri;
+  nsCOMPtr<nsIURI> targetUri;
+  NS_NewURI(getter_AddRefs(referrerUri), aReferrerUri);
+  NS_NewURI(getter_AddRefs(targetUri), aTargetUri);
+
+  nsCOMPtr<nsIScriptSecurityManager> secManager = do_GetService(NS_SCRIPTSECURITYMANAGER_CONTRACTID);
+  if (secManager&& referrerUri && targetUri) {
+    nsresult rv = secManager->CheckLoadURI(referrerUri, targetUri, 0);
+    isUnsafeLink = NS_SUCCEEDED(rv);
+  }
+
+  return isUnsafeLink;
 }
 
 // NOTE: this addrefs the result!

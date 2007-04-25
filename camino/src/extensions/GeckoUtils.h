@@ -64,6 +64,11 @@ class GeckoUtils
 
     /* Ouputs the docshell |aDocShell|'s URI as a nsACString. */
     static void GetURIForDocShell(nsIDocShell* aDocShell, nsACString& aURI);
+    
+    // Find out if a URI is safe to load given the referrer URI.
+    // An unsafe URI could be a 'file://' or 'chrome://' from a referrer of a different URI scheme.
+    // For more info, see http://developer.mozilla.org/en/docs/Safely_loading_URIs
+    static PRBool IsSafeToOpenURIFromReferrer(const char* aTargetUri, const char* aReferrerUri);
   
     // Finds the anchor node for the selection in the given editor
     static void GetAnchorNodeFromSelection(nsIEditor* inEditor, nsIDOMNode** outAnchorNode, PRInt32* outAnchorOffset);
