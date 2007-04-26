@@ -38,6 +38,17 @@
  * ***** END LICENSE BLOCK ***** */
 
 
+function OpCompleteListener(respFunc) {
+    this.mRespFunc = respFunc;
+}
+OpCompleteListener.prototype = {
+    onOperationComplete: function opc_onOperationComplete(calendar, status, opType, id, detail) {
+        this.mRespFunc(Components.isSuccessCode(status) ? detail : null);
+    },
+    onGetResult: function opc_onGetResult() {
+    }
+};
+
 /* all params are optional */
 function createEventWithDialog(calendar, startDate, endDate, summary, event)
 {
@@ -45,8 +56,13 @@ function createEventWithDialog(calendar, startDate, endDate, summary, event)
 
 
     var onNewEvent = function(event, calendar, originalEvent) {
-        doTransaction('add', event, calendar, null, null);
-        checkForAttendees(event, originalEvent);
+        doTransaction('add', event, calendar, null,
+                      new OpCompleteListener(
+                          function respFunc(savedItem) {
+                              if (savedItem) {
+                                  checkForAttendees(savedItem, originalEvent);
+                              }
+                          }));
     }
 
     if (event) {
@@ -106,8 +122,13 @@ function createTodoWithDialog(calendar, dueDate, summary, todo)
     const kDefaultTimezone = calendarDefaultTimezone();
 
     var onNewItem = function(item, calendar, originalItem) {
-        doTransaction('add', item, calendar, null, null);
-        checkForAttendees(item, originalItem);
+        doTransaction('add', item, calendar, null,
+                      new OpCompleteListener(
+                          function respFunc(savedItem) {
+                              if (savedItem) {
+                                  checkForAttendees(savedItem, originalItem);
+                              }
+                          }));
     }
 
     if (todo) {
@@ -131,8 +152,13 @@ function createTodoWithDialog(calendar, dueDate, summary, todo)
         todo.dueDate = dueDate;
 
     var onNewItem = function(item, calendar, originalItem) {
-        calendar.addItem(item, null);
-        checkForAttendees(item, originalItem);
+        calendar.addItem(item,
+                         new OpCompleteListener(
+                             function respFunc(savedItem) {
+                                 if (savedItem) {
+                                     checkForAttendees(savedItem, originalItem);
+                                 }
+                             }));
     }
 
     setDefaultAlarmValues(todo);
@@ -144,16 +170,21 @@ function createTodoWithDialog(calendar, dueDate, summary, todo)
 function modifyEventWithDialog(item, job)
 {
     var onModifyItem = function(item, calendar, originalItem) {
+        var listener = new OpCompleteListener(
+            function respFunc(savedItem) {
+                if (savedItem) {
+                    checkForAttendees(savedItem, originalItem);
+                }
+            });
         // compare cal.uri because there may be multiple instances of
         // calICalendar or uri for the same spec, and those instances are
         // not ==.
         if (!originalItem.calendar || 
             (originalItem.calendar.uri.equals(calendar.uri)))
-            doTransaction('modify', item, item.calendar, originalItem, null);
+            doTransaction('modify', item, item.calendar, originalItem, listener);
         else {
-            doTransaction('move', item, calendar, originalItem, null);
+            doTransaction('move', item, calendar, originalItem, listener);
         }
-        checkForAttendees(item, originalItem);
     }
 
     if (item) {
@@ -396,6 +427,7 @@ function checkForAttendees(aItem, aOriginalItem)
         var item = aItem.clone();
 
         // Fix up our attendees for invitations using some good defaults
+        itemAtt = item.getAttendees({}); // reuse cloned attendees
         item.removeAllAttendees();
         for each (var attendee in itemAtt) {
             attendee.role = "REQ-PARTICIPANT";
