@@ -97,8 +97,8 @@ memleak_init()
 	REQUEST_FILE="${QADIR}/memleak/sslreq.dat"
 	IGNORED_STACKS="${QADIR}/memleak/ignored"
 	
-	echo ${OBJDIR} | grep "_64_" > /dev/null
-	if [ $? -eq 0 ] ; then
+	gline=`echo ${OBJDIR} | grep "_64_"`
+	if [ "${gline}" ] ; then
 		BIT_NAME="64"
 	else
 		BIT_NAME="32"
@@ -427,6 +427,9 @@ run_ciphers_server()
 			sleep 20
 			clear_freebl
 			
+			if [ ${OS_NAME} = "Linux" ]; then
+				echo "==0==" >> ${LOGFILE}
+			fi
 			echo "" >> ${LOGFILE}
 
 			log_parse >> ${FOUNDLEAKS}
@@ -463,6 +466,9 @@ run_ciphers_client()
 			sleep 20
 			clear_freebl
 
+			if [ ${OS_NAME} = "Linux" ]; then
+				echo "==0==" >> ${LOGFILE}
+			fi
 			echo "" >> ${LOGFILE}
 
 			log_parse >> ${FOUNDLEAKS}
@@ -500,13 +506,13 @@ parse_logfile_dbx()
 			mel_line=`expr ${mel_line} + 1`
 			
 			if [ ${mel_line} -ge 4 ] ; then
-				new_line=`echo ${line} | cut -d" " -f2 | cut -d"(" -f1`
+				new_line=`echo "${line}" | cut -d" " -f2 | cut -d"(" -f1`
 				stack_string="/${new_line}${stack_string}"
 			fi
 				
-			echo ${line} | grep "Found leaked block of size" > /dev/null
-			if [ $? -eq 0 ] ; then
-				lbytes=`echo ${line} | sed "s/Found leaked block of size \(.*\) bytes.*/\1/"`
+			gline=`echo "${line}" | grep "Found leaked block of size"`
+			if [ "${gline}" ] ; then
+				lbytes=`echo "${line}" | sed "s/Found leaked block of size \(.*\) bytes.*/\1/"`
 				tbytes=`expr "${tbytes}" + "${lbytes}"`
 				tblocks=`expr "${tblocks}" + 1`
 			fi
@@ -524,21 +530,21 @@ parse_logfile_valgrind()
 
 	while read line
 	do
-		echo "${line}" | grep "^==" > /dev/null
-		if [ $? -ne 0 ] ; then
+		gline=`echo "${line}" | grep "^=="`
+		if [ ! "${gline}" ] ; then
 			continue
 		fi
 
 		line=`echo "${line}" | sed "s/==[0-9]*==\s*\(.*\)/\1/"`
 
-		echo ${line} | grep "blocks are" > /dev/null
-		if [ $? -eq 0 ] ; then
+		gline=`echo "${line}" | grep "blocks are"`
+		if [ "${gline}" ] ; then
 			in_mel=1
 			mel_line=0
 			stack_string=""
 		else
-			echo ${line} | grep "LEAK SUMMARY" > /dev/null
-			if [ $? -eq 0 ] ; then
+			gline=`echo "${line}" | grep "LEAK SUMMARY"`
+			if [ "${gline}" ] ; then
 				in_sum=1
 				mel_line=0
 			fi
@@ -557,7 +563,7 @@ parse_logfile_valgrind()
 			mel_line=`expr ${mel_line} + 1`
 			
 			if [ ${mel_line} -ge 2 ] ; then
-				new_line=`echo ${line} | sed "s/[^:]*:\ \(\S*\).*/\1/"`
+				new_line=`echo "${line}" | sed "s/[^:]*:\ \(\S*\).*/\1/"`
 				if [ "${new_line}" = "(within" ] ; then
 					new_line="*"
 				fi
@@ -567,10 +573,10 @@ parse_logfile_valgrind()
 			mel_line=`expr ${mel_line} + 1`
 			
 			if [ ${mel_line} -ge 2 ] ; then
-				echo ${line} | grep "bytes.*blocks" > /dev/null
-				if [ $? -eq 0 ] ; then
-					lbytes=`echo ${line} | sed "s/.*: \(.*\) bytes.*/\1/" | sed "s/,//g"`
-					lblocks=`echo ${line} | sed "s/.*bytes in \(.*\) blocks.*/\1/" | sed "s/,//g"`
+				gline=`echo "${line}" | grep "bytes.*blocks"`
+				if [ "${gline}" ] ; then
+					lbytes=`echo "${line}" | sed "s/.*: \(.*\) bytes.*/\1/" | sed "s/,//g"`
+					lblocks=`echo "${line}" | sed "s/.*bytes in \(.*\) blocks.*/\1/" | sed "s/,//g"`
 
 					tbytes=`expr "${tbytes}" + "${lbytes}"`
 					tblocks=`expr "${tblocks}" + "${lblocks}"`
@@ -601,29 +607,30 @@ log_compare()
 		
 		NEXT=0
 
-		echo "${LINE}" | grep '^#' > /dev/null
-		if [ $? -eq 0 ] ; then
+		gline=`echo "${LINE}" | grep '^#'`
+		if [ "${gline}" ] ; then
 			BUG_ID="${LINE}"
 			NEXT=1
 		fi
 		
-		echo "${LINE}" | grep '*' > /dev/null
-		if [ $? -ne 0 ] ; then
+		gline=`echo "${LINE}" | grep '*'`
+		if [ ! "${gline}" ] ; then
 			NEXT=1
 		fi
 		
 		while [ "${LINE}" != "" -a ${NEXT} -ne 1 ]
 		do
 			L_WORD=`echo "${LINE}" | cut -d '/' -f1`
-			if ( echo "${LINE}" | grep '/' > /dev/null )
-			[ $? -eq 0 ] ; then
+			gline=`echo "${LINE}" | grep '/'`
+			if [ "${gline}" ] ; then
 				LINE=`echo "${LINE}" | cut -d '/' -f2-`
 			else
 				LINE=""
 			fi
+
 			S_WORD=`echo "${STACK}" | cut -d '/' -f1`
-			if ( echo "${STACK}" | grep '/' > /dev/null )
-			[ $? -eq 0 ] ; then
+			gline=`echo "${STACK}" | grep '/'`
+			if [ "${gline}" ] ; then
 				STACK=`echo "${STACK}" | cut -d '/' -f2-`
 			else
 				STACK=""
