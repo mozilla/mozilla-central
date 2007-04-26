@@ -513,24 +513,29 @@ function ItemToXMLEntry(aItem, aAuthorEmail, aAuthorName) {
 
         gdReminder.@minutes = discreteValue;
         entry.gd::when.gd::reminder += gdReminder;
+    }
 
-        if (!aItem.calendar.isDefaultCalendar) {
-            // On non-default calendars, alarms do not work as expected. This is
-            // an error on Google's side. We are going to work around with an
-            // extended property. After Google crippled alarm support,
-            // non-default calendars will work even better regarding alarms - at
-            // least in sunbird/lightning. See
-            // http://code.google.com/p/google-gdata/issues/detail?id=20
+    if (!aItem.calendar.isDefaultCalendar) {
+        // On non-default calendars, alarms do not work as expected. This is
+        // an error on Google's side. We are going to work around with an
+        // extended property. After Google crippled alarm support,
+        // non-default calendars will work even better regarding alarms - at
+        // least in sunbird/lightning. See
+        // http://code.google.com/p/google-gdata/issues/detail?id=20
 
-            var gdExtendedReminder = <gd:extendedProperty xmlns:gd={gd}/>;
-            var alarmTime = aItem.startDate.clone();
+        var gdExtendedReminder = <gd:extendedProperty xmlns:gd={gd}/>;
+        var alarmTime;
+        if (aItem.alarmOffset) {
+            alarmTime = aItem.startDate.clone();
             alarmTime.addDuration(aItem.alarmOffset);
-
-            gdExtendedReminder.@name = "X-MOZ-ALARM-WORKAROUND";
-            gdExtendedReminder.@value = toRFC3339(alarmTime);
-
-            entry.gd::extendedProperty += gdExtendedReminder;
         }
+
+        gdExtendedReminder.@name = "X-MOZ-ALARM-WORKAROUND";
+        gdExtendedReminder.@value = toRFC3339(alarmTime);
+
+        // Google has a bug where extendedProperty tags are not unset if the tag
+        // is missing from the event feed. Therefore, set the tag in any case.
+        entry.gd::extendedProperty += gdExtendedReminder;
     }
 
     // XXX Google currently only supports one reminder. Nevertheless, according
