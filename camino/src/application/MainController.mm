@@ -320,6 +320,13 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
     [[SessionManager sharedInstance] clearSavedState];
   }
 
+  [self setInitialized:YES];
+}
+
+- (void)applicationDidFinishLaunching:(NSNotification*)aNotification
+{
+  [self ensureInitializationCompleted];
+
   // open a new browser window if we don't already have one or we have a specific
   // start URL we need to show
   NSWindow* browserWindow = [self getFrontmostBrowserWindow];
@@ -328,13 +335,6 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 
   // delay the default browser check to give the first page time to load
   [self performSelector:@selector(checkDefaultBrowser) withObject:nil afterDelay:2.0f];
-
-  [self setInitialized:YES];
-}
-
-- (void)applicationDidFinishLaunching:(NSNotification*)aNotification
-{
-  [self ensureInitializationCompleted];
 }
 
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication*)sender
