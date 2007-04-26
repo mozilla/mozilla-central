@@ -437,6 +437,9 @@ function onTabCompleteRequest (e)
     {
         if ("defaultCompletion" in client.currentObject)
             singleInput.value = client.currentObject.defaultCompletion;
+        // If there was nothing to complete, help the user:
+        if (!singleInput.value)
+            display(MSG_LEAVE_INPUTBOX, MT_INFO);
         return;
     }
 
