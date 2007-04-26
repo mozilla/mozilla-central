@@ -373,7 +373,7 @@ static int cvt_f(SprintfState *ss, double d, const char *fmt0, const char *fmt1)
 ** width. "prec" is the maximum number of characters of "s" to output,
 ** where -1 means until NUL.
 */
-static int cvt_s(SprintfState *ss, const char *s, int width, int prec,
+static int cvt_s(SprintfState *ss, const char *str, int width, int prec,
 		 int flags)
 {
     int slen;
@@ -382,15 +382,22 @@ static int cvt_s(SprintfState *ss, const char *s, int width, int prec,
 	return 0;
 
     /* Limit string length by precision value */
-    slen = s ? strlen(s) : 6;
+    if (!str) {
+    	str = "(null)";
+    } 
     if (prec > 0) {
-	if (prec < slen) {
-	    slen = prec;
-	}
+	/* this is:  slen = strnlen(str, prec); */
+	register const char *s;
+
+	for(s = str; prec && *s; s++, prec-- )
+	    ;
+	slen = s - str;
+    } else {
+	slen = strlen(str);
     }
 
     /* and away we go */
-    return fill2(ss, s ? s : "(null)", slen, width, flags);
+    return fill2(ss, str, slen, width, flags);
 }
 
 /*
