@@ -2467,6 +2467,8 @@ enum BWCOpenDest {
     // open a new window and hide the toolbars for prettyness
     BrowserWindowController* controller = [[BrowserWindowController alloc] initWithWindowNibName:@"BrowserWindow"];
     [controller setChromeMask:kNoToolbarsChromeMask];
+    [controller disableAutosave]; // don't save view-source window size/position
+
     if (loadInBackground)
       [[controller window] orderWindow:NSWindowBelow relativeTo:[[self window] windowNumber]];
     else
