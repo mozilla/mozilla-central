@@ -84,6 +84,7 @@ calGoogleCalendar.prototype = {
     },
 
     /* Member Variables */
+    mID: null,
     mSession: null,
     mObservers: null,
     mReadOnly: false,
@@ -102,6 +103,19 @@ calGoogleCalendar.prototype = {
      */
     get googleCalendarName() {
         return this.mCalendarName;
+    },
+
+    /**
+     * readonly attribute isDefaultCalendar
+     * Returns true if this is the default calendar of the user.
+     */
+    get isDefaultCalendar() {
+        // If there is no session, use the non-default calendar identifier as a
+        // fallback.
+        return ((this.mSession &&
+                 this.mCalendarName == this.mSession.googleUser) ||
+                (!this.mSession &&
+                 this.mCalendarName.indexOf("group.calendar.google.com") < 0));
     },
 
     /**
@@ -178,13 +192,13 @@ calGoogleCalendar.prototype = {
      * implement calICalendar
      */
     // attribute AUTF8String id;
-    mID: null,
     get id() {
         return this.mID;
     },
+
     set id(id) {
         if (this.mID)
-            throw Components.results.NS_ERROR_ALREADY_INITIALIZED;
+            throw Cr.NS_ERROR_ALREADY_INITIALIZED;
         return (this.mID = id);
     },
 
@@ -678,7 +692,7 @@ calGoogleCalendar.prototype = {
 
             // Parse all <entry> tags
             for each (var entry in xml.entry) {
-                var item = XMLEntryToItem(entry, timezone);
+                var item = XMLEntryToItem(entry, timezone, this);
 
                 if (item) {
                     var itemReturnOccurrences =
@@ -765,7 +779,7 @@ calGoogleCalendar.prototype = {
             var timezone = getPrefSafe("calendar.timezone.local");
 
             // Parse the Item with the given timezone
-            var item = XMLEntryToItem(xml, timezone);
+            var item = XMLEntryToItem(xml, timezone, this);
 
             LOGitem(item);
             item.calendar = this;
