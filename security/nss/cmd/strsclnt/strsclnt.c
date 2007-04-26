@@ -115,6 +115,7 @@ int ssl3CipherSuites[] = {
     TLS_DHE_DSS_WITH_AES_256_CBC_SHA, 	    	/* w */
     TLS_DHE_RSA_WITH_AES_256_CBC_SHA,       	/* x */
     TLS_RSA_WITH_AES_256_CBC_SHA,     	    	/* y */
+    SSL_RSA_WITH_NULL_SHA,			/* z */
     0
 };
 
