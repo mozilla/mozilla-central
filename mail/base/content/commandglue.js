@@ -129,7 +129,7 @@ function setTitleFromFolder(msgfolder, subject)
             }
         if (middle) title += " " + middle;
         if (end) title += " " + end;
-    }
+      }
     }
 
 #ifndef XP_MACOSX
@@ -822,7 +822,7 @@ function GetSelectedFolderResource()
 function ChangeMessagePaneVisibility(now_hidden)
 {
   // we also have to hide the File/Attachments menuitem
-  node = document.getElementById("fileAttachmentMenu");
+  var node = document.getElementById("fileAttachmentMenu");
   if (node)
     node.hidden = now_hidden;
 
@@ -1162,12 +1162,13 @@ function GetScopeForFolder(folder)
 function setupXFVirtualFolderSearch(folderUrisToSearch, searchTerms, searchOnline)
 {
     var count = new Object;
+  var i;
 
     gSearchSession = Components.classes[searchSessionContractID].createInstance(Components.interfaces.nsIMsgSearchSession);
 
     gMailSession = Components.classes[mailSessionContractID].getService(Components.interfaces.nsIMsgMailSession);
 
-    for (var i in folderUrisToSearch) 
+  for (i in folderUrisToSearch)
     {
       var realFolderRes = GetResourceFromUri(folderUrisToSearch[i]);
       var realFolder = realFolderRes.QueryInterface(Components.interfaces.nsIMsgFolder);
@@ -1176,7 +1177,7 @@ function setupXFVirtualFolderSearch(folderUrisToSearch, searchTerms, searchOnlin
     }
 
     var termsArray = searchTerms.QueryInterface(Components.interfaces.nsISupportsArray);
-    for (var i = 0; i < termsArray.Count(); i++)
+  for (i = 0; i < termsArray.Count(); ++i)
       gSearchSession.appendTerm(termsArray.GetElementAt(i).QueryInterface(Components.interfaces.nsIMsgSearchTerm));
 }
 
