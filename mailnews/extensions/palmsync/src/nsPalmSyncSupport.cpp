@@ -53,6 +53,7 @@
 #include "nsILocalFile.h"
 #include "nsIPrefBranch.h"
 #include "nsIPrefService.h"
+#include "nsIXULAppInfo.h"
 
 #include "PalmSyncImp.h"
 #include "nsPalmSyncSupport.h"
@@ -216,7 +217,30 @@ nsresult nsPalmSyncSupport::LaunchPalmSyncInstallExe()
         rv = GetPalmSyncInstall(getter_AddRefs(palmSyncInstall));
         NS_ENSURE_SUCCESS(rv, rv);
 
-        rv = palmSyncInstall->Launch();             
+        // Get our app name.
+        nsCOMPtr<nsIXULAppInfo> appInfo = 
+          do_GetService("@mozilla.org/xre/app-info;1", &rv);
+        NS_ENSURE_SUCCESS(rv, rv);
+
+        nsCAutoString appName;
+        rv = appInfo->GetName(appName);
+        NS_ENSURE_SUCCESS(rv, rv);
+
+        nsCAutoString args(NS_LITERAL_CSTRING("/n"));
+        args.Append(appName);
+
+        // nsILocalFile->Launch doesn't accept arguments so we'll have to
+	// do it ourselves
+        nsString path;
+        rv = palmSyncInstall->GetPath(path);
+        NS_ENSURE_SUCCESS(rv, rv);
+
+        LONG r = (LONG)::ShellExecuteW(NULL, NULL, path.get(),
+				       NS_ConvertUTF8toUTF16(args).get(),
+				       NULL, SW_SHOWNORMAL);
+
+        if (r < 32)
+          rv = NS_ERROR_FAILURE;
     }
 
     return rv;

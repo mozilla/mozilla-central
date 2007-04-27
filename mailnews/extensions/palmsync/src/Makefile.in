@@ -70,6 +70,7 @@ REQUIRES    = xpcom \
           msgbaseutil \
           necko \
           addrbook \
+          xulapp \
           $(NULL)
 
 ifdef MOZ_XUL_APP
