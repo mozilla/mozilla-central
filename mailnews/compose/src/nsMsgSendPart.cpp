@@ -51,6 +51,8 @@
 #include "nsMsgComposeStringBundle.h"
 #include "nsNativeCharsetUtils.h"
 #include "nsNetUtil.h"
+#include "nsISeekableStream.h"
+#include "nsReadLine.h"
 #include "nsILineInputStream.h"
 
 static char *mime_mailto_stream_read_buffer = 0;
@@ -648,12 +650,8 @@ nsMsgSendPart::Write()
   }
   else if (m_file) 
   {
-    nsresult rv;
-    nsCOMPtr <nsIFileInputStream> fileStream = do_CreateInstance(NS_LOCALFILEINPUTSTREAM_CONTRACTID, &rv);
-    if (NS_FAILED(rv))
-      goto FAIL;
-    
-    rv = fileStream->Init(m_file, PR_RDONLY, 0664, PR_FALSE);
+    nsCOMPtr<nsIInputStream> inputStream;
+    nsresult rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), m_file);
     if (NS_FAILED(rv))
     {
       // mysteriously disappearing?
@@ -671,7 +669,6 @@ nsMsgSendPart::Write()
       goto FAIL;
     }
 
-    nsCOMPtr <nsILineInputStream> lineStream = do_QueryInterface(fileStream, &rv);
     nsCString curLine;
     PRBool more = PR_TRUE;
 
@@ -692,10 +689,15 @@ nsMsgSendPart::Write()
       // We are attaching a message, so we should be careful to
       // strip out certain sensitive internal header fields.
       PRBool skipping = PR_FALSE;
+      nsLineBuffer<char> *lineBuffer;
+      
+      rv = NS_InitLineBuffer(&lineBuffer);
+      NS_ENSURE_SUCCESS(rv, rv);
 
       while (more) 
       {
-        lineStream->ReadLine(curLine, &more);
+        // NS_ReadLine doesn't return line termination chars.
+        rv = NS_ReadLine(inputStream.get(), lineBuffer, curLine, &more);
       
         curLine.Append(CRLF);
         
@@ -727,6 +729,9 @@ nsMsgSendPart::Write()
         PUSH(line);
         
         if (curLine.Length() == 2) {
+          nsCOMPtr <nsISeekableStream> seekableStream = do_QueryInterface(inputStream);
+          // seek back the amount of data left in the line buffer...
+          seekableStream->Seek(nsISeekableStream::NS_SEEK_CUR, lineBuffer->current - lineBuffer->end);
           break;  // Now can do normal reads for the body.
         }
       }
@@ -735,7 +740,7 @@ nsMsgSendPart::Write()
     while (status >= 0) 
     {
       PRUint32 bytesRead;
-      nsresult rv = fileStream->Read(buffer, MIME_BUFFER_SIZE, &bytesRead);
+      nsresult rv = inputStream->Read(buffer, MIME_BUFFER_SIZE, &bytesRead);
       if (NS_FAILED(rv))
       {  
         nsCOMPtr<nsIMsgSendReport> sendReport;
