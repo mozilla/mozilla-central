@@ -2,5 +2,6 @@ balsa-18branch|Depend
 bl-bldlnx01|prometheus-vm
 bl-bldxp01|pacifica-vm
 prometheus-vm|Depend
-bm-xserve02|Depend
+bm-xserve02|Fx-Nightly
+bm-xserve02|Tb-Nightly
 pacifica-vm|Depend
