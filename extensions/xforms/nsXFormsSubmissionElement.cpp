@@ -1176,6 +1176,9 @@ nsXFormsSubmissionElement::CreatePurgedDoc(nsIDOMNode      *source,
       encoding +
       NS_LITERAL_STRING("\"");
 
+    if (GetBooleanAttr(NS_LITERAL_STRING("standalone"), PR_FALSE))
+      buf += NS_LITERAL_STRING(" standalone=\"yes\"");
+
     nsCOMPtr<nsIDOMProcessingInstruction> pi;
     doc->CreateProcessingInstruction(NS_LITERAL_STRING("xml"), buf,
                                      getter_AddRefs(pi));
