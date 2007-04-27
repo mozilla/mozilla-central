@@ -4,9 +4,7 @@ messenger.jar:
 % content messenger-smime %content/messenger-smime/
 % overlay chrome://messenger/content/messengercompose/messengercompose.xul     chrome://messenger-smime/content/msgCompSMIMEOverlay.xul
 % overlay chrome://messenger/content/msgHdrViewOverlay.xul                     chrome://messenger-smime/content/msgHdrViewSMIMEOverlay.xul
-% overlay chrome://messenger/content/mail3PaneWindowVertLayout.xul             chrome://messenger-smime/content/msgReadSMIMEOverlay.xul
-% overlay chrome://messenger/content/messenger.xul                             chrome://messenger-smime/content/msgReadSMIMEOverlay.xul
-% overlay chrome://messenger/content/messageWindow.xul                         chrome://messenger-smime/content/msgReadSMIMEOverlay.xul
+% overlay chrome://messenger/content/mailWindowOverlay.xul                     chrome://messenger-smime/content/msgReadSMIMEOverlay.xul
 #else
 *   content/messenger-smime/contents.rdf                             (resources/content/contents.rdf)
 #endif
