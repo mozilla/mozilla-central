@@ -1,6 +1,6 @@
-balsa-18branch
-bl-bldlnx01
-bl-bldxp01
-prometheus-vm
-bm-xserve02
-pacifica-vm
+balsa-18branch|Depend
+bl-bldlnx01|prometheus-vm
+bl-bldxp01|pacifica-vm
+prometheus-vm|Depend
+bm-xserve02|Depend
+pacifica-vm|Depend

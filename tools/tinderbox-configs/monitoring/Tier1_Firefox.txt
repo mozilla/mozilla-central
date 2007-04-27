@@ -1,6 +1,6 @@
-argo-vm
-bl-bldlnx01
-bl-bldxp01
-bm-xserve08
-fxdbug-linux-tbox
-fx-win32-tbox
+argo-vm|Depend
+bl-bldlnx01|argo-vm
+bl-bldxp01|fx-linux-tbox
+bm-xserve08|Depend
+fxdbug-linux-tbox|Depend
+fx-win32-tbox|Depend
