@@ -76,6 +76,7 @@ LOCAL_INCLUDES += -I$(PALM_CDK_INC) \
 EXTRA_DSO_LDOPTS = \
 		   $(PALM_CDK_LIB)/sync20.$(LIB_SUFFIX) \
 		   $(PALM_CDK_LIB)/palmcmn.$(LIB_SUFFIX) \
+       $(PALM_CDK_LIB)/hslog20.$(LIB_SUFFIX) \
 		   $(NULL)
 
 OS_LIBS		+= ole32.lib comctl32.lib
