@@ -5452,10 +5452,8 @@ NS_IMETHODIMP nsMsgDBFolder::AddKeywordsToMessages(nsISupportsArray *aMessages, 
 
     for(PRUint32 i = 0; i < count; i++)
     {
-      nsMsgKey msgKey;
       nsCOMPtr<nsIMsgDBHdr> message = do_QueryElementAt(aMessages, i, &rv);
       NS_ENSURE_SUCCESS(rv, rv);
-      (void) message->GetMessageKey(&msgKey);
 
       message->GetStringProperty("keywords", getter_Copies(keywords));
       nsCStringArray keywordArray;
@@ -5470,7 +5468,13 @@ NS_IMETHODIMP nsMsgDBFolder::AddKeywordsToMessages(nsISupportsArray *aMessages, 
           keywords.Append(keywordArray[j]->get());
         }
       }
-      mDatabase->SetStringProperty(msgKey, "keywords", keywords);
+      // go through the msg, not the db, to set the string property, because
+      // in the case of filters running on incoming pop3 mail with quarantining
+      // turned on, the message key is wrong.
+      message->SetStringProperty("keywords", keywords);
+      PRUint32 msgFlags;
+      message->GetFlags(&msgFlags);
+      mDatabase->NotifyHdrChangeAll(message, msgFlags, msgFlags, nsnull);
     }
   }
   return rv;
