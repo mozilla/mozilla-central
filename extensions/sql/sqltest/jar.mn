@@ -1,5 +1,9 @@
 sqltest.jar:
+#ifdef MOZ_XUL_APP
+% content sqltest %content/sqltest/
+#else
     content/sqltest/contents.rdf			(contents.rdf)
+#endif
     content/sqltest/sqltest.xul				(sqltest.xul)
     content/sqltest/sqltest.js				(sqltest.js)
     content/sqltest/sqltest.css				(sqltest.css)
