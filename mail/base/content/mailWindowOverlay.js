@@ -1270,10 +1270,16 @@ function getDestinationFolder(preselectedFolder, server)
     return destinationFolder;
 }
 
+/** Open subscribe window. */
 function MsgSubscribe()
 {
-    var preselectedFolder = GetFirstSelectedMsgFolder();
-    Subscribe(preselectedFolder);
+  var preselectedFolder = GetFirstSelectedMsgFolder();
+
+  var server = (preselectedFolder) ? preselectedFolder.server : null;
+  if (server && server.type == "rss")
+    openSubscriptionsDialog(server); // open feed subscription dialog
+  else
+    Subscribe(preselectedFolder); // open imap/nntp subscription dialog
 }
 
 function ConfirmUnsubscribe(folder)
