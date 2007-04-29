@@ -56,9 +56,29 @@ function flashblockShowFlash() {
 	if(placeholder.flashblock == "frame") {
 		current.height = current.prevHeight;
 		current.width = current.prevWidth;
+		current.src = placeholder.title;
 		current.LoadMovie(0, current.src);
 	} else {
 		parent.insertBefore(current, placeholder);
+		if (placeholder.hasAttribute("srcAttribute")) {
+			current.setAttribute("src", placeholder.getAttribute("srcAttribute"));
+		}
+		if (placeholder.hasAttribute("movieAttribute")) {
+			current.setAttribute("movie", placeholder.getAttribute("movieAttribute"));
+		}
+		if (placeholder.hasAttribute("dataAttribute")) {
+			current.setAttribute("data", placeholder.getAttribute("dataAttribute"));
+		}
+		if (placeholder.movieParam) {
+			var mparam = placeholder.movieParam;
+			mparam[0].value = mparam[1];
+		}
+		if (placeholder.hasAttribute("embedsrc")) {
+			var embeds = current.getElementsByTagName("embed");
+			if (embeds && embeds.length > 0) {
+				embeds[0].setAttribute("src", placeholder.getAttribute("embedsrc"));
+			}
+		}
 	}
 	parent.removeChild(placeholder);
 }
@@ -90,20 +110,31 @@ function flashblockSetImage(placeholder, type) {
 	placeholder.style.background = placeholder.bgInactive;
 }
 
-function flashblockStylePlaceholder(flash, placeholder) {
+function flashblockStylePlaceholder(flash, placeholder, isStandalone) {
 	// If object's size was relative, use that.
 	// Otherwise, set size to minimum 32x32 px
 	placeholder.style.minWidth = "32px !important";
 	placeholder.style.minHeight = "32px !important";
 	// The size and positioning may come from a class
-	placeholder.setAttribute("class", flash.getAttribute("class"));
+	// or from the id for id-specific CSS styles
+	var fId = flash.getAttribute("id");
+	if (fId)
+		placeholder.setAttribute("id", fId);
+	var fClass = flash.getAttribute("class");
+	if (fClass)
+		placeholder.setAttribute("class", fClass);
 
 	if(flash.width.match("%$")) {
 		placeholder.style.width = current.width;
 	} else {
 		var width = parseInt(flash.width || flash.style.width);
-		if (width && width >= 32) {
-			placeholder.style.width = width + "px";
+		if (width) {
+			if (width >= 32) {
+				placeholder.style.width = width + "px";
+			}
+			else {
+			placeholder.style.width = "32px";
+			}
 		}
 	}
 
@@ -111,8 +142,13 @@ function flashblockStylePlaceholder(flash, placeholder) {
 		placeholder.style.height = flash.height;
 	} else {
 		var height = parseInt(flash.height || flash.style.height);
-		if (height && height >= 32) {
-			placeholder.style.height = height + "px";
+		if (height) {
+			if (height >= 32) {
+				placeholder.style.height = height + "px";
+			}
+			else {
+				placeholder.style.height = "32px";
+			}
 		}
 	}
 
@@ -125,13 +161,59 @@ function flashblockStylePlaceholder(flash, placeholder) {
 	// The size of the placeholder should include borders too,
 	// otherwise scrollbars appear for blocked standalone objects
 	placeholder.style.MozBoxSizing = "border-box";
+
+	// Make some style adjustments since the placeholder is a <div>	// element instead of a <embed>, <object>, ... element.	// An <embed> will be centered if the parent has	// 'text-align: center' but a <div> will not. This code fixes that.	var parentStyle = window.getComputedStyle(flash.parentNode, "");	if (parentStyle.getPropertyValue("text-align") == "center") {		placeholder.style.marginRight = "auto";		placeholder.style.marginLeft = "auto";	}
 }
 
-var current = this;
-var parent = current.parentNode;
+function flashblockSetTitle(current, placeholder, isStandalone) {
+	if (isStandalone) {
+		placeholder.title = current.src;
+		current.src = "";
+	}
+	else if (current.hasAttribute("src") ||
+			current.hasAttribute("data") ||
+			current.hasAttribute("movie") ) {
+		var srcURI = current.getAttribute("src") ||
+			current.getAttribute("movie") ||
+			current.getAttribute("data") ;
+		placeholder.title = srcURI;
+		if (current.hasAttribute("src")) {
+			placeholder.setAttribute("srcAttribute", current.getAttribute("src"));
+			current.setAttribute("src", "");
+		}
+		if (current.hasAttribute("data")) {
+			placeholder.setAttribute("dataAttribute", current.getAttribute("data"));
+			current.setAttribute("data", "");
+		}
+		if (current.hasAttribute("movie")) {
+			placeholder.setAttribute("movieAttribute", current.getAttribute("movie"));
+			current.setAttribute("movie", "");
+		}
+	}
+	else {
+		var params = current.getElementsByTagName("param");
+		for (var ii = 0; ii < params.length; ii++) {
+			if (params[ii].getAttribute("name") == "movie" &&
+				params[ii].hasAttribute("value")) {
+				placeholder.title = params[ii].value;
+				placeholder.movieParam = [ params[ii], placeholder.title ];
+				params[ii].value = "";
+				break;
+			}
+		}
+		var embeds = current.getElementsByTagName("embed");
+		if (embeds && embeds.length > 0 && embeds[0].hasAttribute("src")) {
+			placeholder.setAttribute("embedsrc", embeds[0].getAttribute("src"));
+			embeds[0].setAttribute("src","");
+		}
+	}
+}
 
 if(flashblockIsWhitelisted())
 	return;
+
+var current = this;
+var parent = current.parentNode;
 
 // Check parent too (case of working EMBED inside broken OBJECT)
 if (current.overrideCTV || parent.overrideCTV) {
@@ -169,7 +251,9 @@ var placeholder = flashblockCreatePlaceholder(isStandalone);
 var type = this.flashblockType ? this.flashblockType : "flash"
 flashblockSetImage(placeholder, type);
 
-flashblockStylePlaceholder(current, placeholder);
+flashblockStylePlaceholder(current, placeholder, isStandalone);
+
+flashblockSetTitle(current, placeholder, isStandalone);
 
 // Change the placeholder background when the mouse enters/exits the div.
 placeholder.onmouseover = function()
