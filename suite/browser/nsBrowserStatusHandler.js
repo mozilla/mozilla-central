@@ -316,7 +316,7 @@ nsBrowserStatusHandler.prototype =
       }
     }
 
-    if (!getWebNavigation().canGoBack && location == "about:blank")
+    if (!getWebNavigation().canGoBack && location == "about:blank" && !content.opener)
       location = "";
 
     // Disable menu entries for images, enable otherwise

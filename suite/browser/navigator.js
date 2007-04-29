@@ -1555,7 +1555,7 @@ function BrowserLoadURL(aTriggeringEvent)
             null, null, nsIWebNavigation.LOAD_FLAGS_ALLOW_THIRD_PARTY_FIXUP);
         // Reset url in the urlbar, copied from handleURLBarRevert()
         var oldURL = browser.currentURI.spec;
-        if (oldURL != "about:blank") {
+        if (oldURL != "about:blank" || content.opener) {
           gURLBar.value = oldURL;
           SetPageProxyState("valid", null);
         } else
@@ -2208,7 +2208,7 @@ function handleURLBarRevert()
   // don't revert to last valid url unless page is NOT loading
   // and user is NOT key-scrolling through autocomplete list
   if (!throbberElement.hasAttribute("busy") && !isScrolling) {
-    if (url != "about:blank") {
+    if (url != "about:blank" || content.opener) {
       gURLBar.value = url;
       gURLBar.select();
       SetPageProxyState("valid", null); // XXX Build a URI and pass it in here.

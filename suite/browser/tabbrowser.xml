@@ -657,7 +657,9 @@
               if (docElement.getAttribute("chromehidden").indexOf("location") != -1) {
                 var uri  = this.mURIFixup.createExposableURI(
                              this.mCurrentBrowser.currentURI);
-                if (uri.host)
+                if (uri.schemeIs("about"))
+                  newTitle = uri.spec + sep + newTitle;
+                else if (uri.host)
                   newTitle = uri.prePath + sep + newTitle;
               }
             } catch (e) {}
