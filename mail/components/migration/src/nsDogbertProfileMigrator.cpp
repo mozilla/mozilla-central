@@ -804,7 +804,7 @@ nsDogbertProfileMigrator::ProcessPrefsCallback(const char* oldProfilePathStr, co
     localMailFile = oldMOVEMAILMailPath;
     rv = GetSizes(localMailFile, PR_TRUE, &totalLocalMailSize);
 
-    localMailSpec->GetDiskSpaceAvailable(&localMailDrive);
+    localMailFile->GetDiskSpaceAvailable(&localMailDrive);
    
   }    
 #endif //HAVE_MOVEMAIL
