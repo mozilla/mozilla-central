@@ -1879,7 +1879,7 @@ nsDogbertProfileMigrator::GetDirFromPref(nsILocalFile * oldProfilePath, nsILocal
 	// let's make all three platforms the same.
 	if (PR_TRUE) {
 #else
-	nsCOMPtr <nsILocalFile> oldPrefPathParent;
+	nsCOMPtr <nsIFile> oldPrefPathParent;
 	rv = oldPrefPath->GetParent(getter_AddRefs(oldPrefPathParent));
 	if (NS_FAILED(rv)) return rv;
 
