@@ -3346,7 +3346,6 @@
 				F5F190BB02D1F81A01026D5D,
 				F5F190BE02D217C201026D5D,
 				3F22CC1303DF42A200026DCE,
-				F56610A1039474CB01A9666E,
 				3003B8AB044514E300B85BF3,
 				3FFE23520847CB0D00D6CAFC,
 			);
@@ -3974,7 +3973,6 @@
 			buildPhases = (
 				3F44ABD705BDFB9E00CB4B08,
 				3F44AC2805BDFB9E00CB4B08,
-				3F44AC8005BDFB9E00CB4B08,
 				3F44AC8205BDFB9E00CB4B08,
 				3F44ACCF05BDFB9E00CB4B08,
 				0F66E4AC07D6D9B000444E2A,
@@ -5132,15 +5130,6 @@
 			isa = PBXBuildFile;
 			settings = {
 			};
-		};
-		3F44AC8005BDFB9E00CB4B08 = {
-			buildActionMask = 2147483647;
-			files = (
-			);
-			isa = PBXShellScriptBuildPhase;
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# Rez the version resource resources, which are required for the Directory plugin to work.\n/Developer/Tools/Rez resources/application/ChimeraVersion.r -o $TARGET_BUILD_DIR/Camino.app/Contents/Resources/Camino.rsrc -useDF";
 		};
 		3F44AC8205BDFB9E00CB4B08 = {
 			buildActionMask = 2147483647;
@@ -7853,7 +7842,6 @@
 			buildPhases = (
 				3F44AE1005BDFBA000CB4B08,
 				3F44AE6105BDFBA000CB4B08,
-				3F44AEBA05BDFBA000CB4B08,
 				3F44AEBB05BDFBA000CB4B08,
 				3F44AF0905BDFBA000CB4B08,
 				3F44AF4805BDFBA000CB4B08,
@@ -9009,15 +8997,6 @@
 			isa = PBXBuildFile;
 			settings = {
 			};
-		};
-		3F44AEBA05BDFBA000CB4B08 = {
-			buildActionMask = 2147483647;
-			files = (
-			);
-			isa = PBXShellScriptBuildPhase;
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# Rez the version resource resources, which are required for the Directory plugin to work.\n/Developer/Tools/Rez resources/application/ChimeraVersion.r -o $TARGET_BUILD_DIR/Camino.app/Contents/Resources/Camino.rsrc -useDF";
 		};
 		3F44AEBB05BDFBA000CB4B08 = {
 			buildActionMask = 2147483647;
@@ -16485,15 +16464,6 @@
 			path = src/extensions/IconTabViewItem.mm;
 			refType = 2;
 			sourceTree = SOURCE_ROOT;
-		};
-		F56610A1039474CB01A9666E = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.rez;
-			name = ChimeraVersion.r;
-			path = resources/application/ChimeraVersion.r;
-			refType = 4;
-			sourceTree = "<group>";
 		};
 		F56610A40394767101A9666E = {
 			children = (
