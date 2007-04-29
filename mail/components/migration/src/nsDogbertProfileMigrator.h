@@ -49,8 +49,6 @@
 #include "nsIPrefBranch.h"
 
 class nsIFile;
-class nsIFileSpec;
-class nsFileSpec;
 
 // ripped off from nsPrefMigration, warts and all
 
@@ -110,70 +108,70 @@ private:
   nsCOMPtr<nsILocalFile> m_prefsFile;
 protected:
   nsresult ProcessPrefsCallback(const char* oldProfilePathStr, const char * newProfilePathStr);
-  nsresult ConvertPersistentStringToFileSpec(const char *str, nsIFileSpec *path);
-  nsresult CreateNewUser5Tree(nsIFileSpec* oldProfilePath, 
-                              nsIFileSpec* newProfilePath);
+  nsresult ConvertPersistentStringToFile(const char *str, nsILocalFile *path);
+  nsresult CreateNewUser5Tree(nsILocalFile* oldProfilePath, 
+                              nsILocalFile* newProfilePath);
 
-  nsresult GetDirFromPref(nsIFileSpec* oldProfilePath,
-                          nsIFileSpec* newProfilePath, 
+  nsresult GetDirFromPref(nsILocalFile* oldProfilePath,
+                          nsILocalFile* newProfilePath, 
                           const char* newDirName,
                           const char* pref, 
-                          nsIFileSpec* newPath, 
-                          nsIFileSpec* oldPath);
+                          nsILocalFile** newPath, 
+                          nsILocalFile** oldPath);
 
-  nsresult GetSizes(nsFileSpec inputPath,
+  nsresult GetSizes(nsILocalFile *inputPath,
                     PRBool readSubdirs,
-                    PRUint32* sizeTotal);
+                    PRInt64* sizeTotal);
 
   nsresult ComputeSpaceRequirements(PRInt64 DriveArray[], 
                                     PRUint32 SpaceReqArray[], 
                                     PRInt64 Drive, 
                                     PRUint32 SpaceNeeded);
 
-  nsresult DoTheCopy(nsIFileSpec *oldPath, 
-                     nsIFileSpec *newPath,
+  nsresult DoTheCopy(nsIFile *oldPath, 
+                     nsIFile *newPath,
                      PRBool readSubdirs); 
-  nsresult DoTheCopy(nsIFileSpec *oldPath,
-                     nsIFileSpec *newPath,
+  nsresult DoTheCopy(nsILocalFile *oldPath,
+                     nsILocalFile *newPath,
                      const char *fileOrDirName,
                      PRBool isDirectory = PR_FALSE);
 
-  nsresult DoTheCopyAndRename(nsIFileSpec *oldPath, 
-                          nsIFileSpec *newPath,
+  nsresult DoTheCopyAndRename(nsIFile *oldPath, 
+                          nsIFile *newPath,
                           PRBool readSubdirs,
                           PRBool needToRenameFiles,
                           const char *oldName,
                           const char *newName); 
-  nsresult DoTheCopyAndRename(nsIFileSpec *aPath, 
+  nsresult DoTheCopyAndRename(nsIFile *aPath, 
                           PRBool aReadSubdirs,
                           const char *aOldName,
                           const char *aNewName);
-  nsresult CopyFilesByPattern(nsIFileSpec * oldPathSpec,
-                          nsIFileSpec * newPathSpec,
+  nsresult CopyFilesByPattern(nsILocalFile * oldPath,
+                          nsILocalFile * newPath,
                           const char *pattern);
 
-  nsresult AddFileCopyToList(nsFileSpec * aOldPath, nsFileSpec * aNewPath, const char * newFileName);
+  nsresult AddFileCopyToList(nsIFile * aOldPath, nsIFile * aNewPath, const char * newFileName);
   void CopyNextFolder();
   void EndCopyFolders();
 
 #ifdef NEED_TO_COPY_AND_RENAME_NEWSRC_FILES
-  nsresult CopyAndRenameNewsrcFiles(nsIFileSpec *newPath);
+  nsresult CopyAndRenameNewsrcFiles(nsILocalFile *newPath);
 #endif /* NEED_TO_COPY_AND_RENAME_NEWSRC_FILES */
 
-  nsresult DoSpecialUpdates(nsIFileSpec * profilePath);
-  nsresult Rename4xFileAfterMigration(nsIFileSpec *profilePath, const char *oldFileName, const char *newFileName);
+  nsresult DoSpecialUpdates(nsILocalFile * profilePath);
+  nsresult Rename4xFileAfterMigration(nsIFile *profilePath, const char *oldFileName, const char *newFileName);
 #ifdef IMAP_MAIL_FILTER_FILE_NAME_FORMAT_IN_4x
-  nsresult RenameAndMove4xImapFilterFile(nsIFileSpec *profilePath, const char *hostname);
-  nsresult RenameAndMove4xImapFilterFiles(nsIFileSpec *profilePath);
+  nsresult RenameAndMove4xImapFilterFile(nsILocalFile *profilePath, const char *hostname);
+  nsresult RenameAndMove4xImapFilterFiles(nsILocalFile *profilePath);
 #endif /* IMAP_MAIL_FILTER_FILE_NAME_FORMAT_IN_4x */
-  nsresult RenameAndMove4xPopStateFile(nsIFileSpec *profilePath);
-  nsresult RenameAndMove4xPopFilterFile(nsIFileSpec *profilePath);
-  nsresult RenameAndMove4xPopFile(nsIFileSpec * profilePath, const char *fileNameIn4x, const char *fileNameIn5x);
+  nsresult RenameAndMove4xPopStateFile(nsILocalFile *profilePath);
+  nsresult RenameAndMove4xPopFilterFile(nsILocalFile *profilePath);
+  nsresult RenameAndMove4xPopFile(nsILocalFile * profilePath, const char *fileNameIn4x, const char *fileNameIn5x);
   
-  nsresult DetermineOldPath(nsIFileSpec *profilePath, const char *oldPathName, const char *oldPathEntityName, nsIFileSpec *oldPath);
-  nsresult SetPremigratedFilePref(const char *pref_name, nsIFileSpec *filePath);
+  nsresult DetermineOldPath(nsILocalFile *profilePath, const char *oldPathName, const char *oldPathEntityName, nsILocalFile *oldPath);
+  nsresult SetPremigratedFilePref(const char *pref_name, nsILocalFile *filePath);
 #ifdef NEED_TO_COPY_AND_RENAME_NEWSRC_FILES
-  nsresult GetPremigratedFilePref(const char *pref_name, nsIFileSpec **filePath);
+  nsresult GetPremigratedFilePref(const char *pref_name, nsILocalFile **filePath);
 #endif /* NEED_TO_COPY_AND_RENAME_NEWSRC_FILES */
 };
 

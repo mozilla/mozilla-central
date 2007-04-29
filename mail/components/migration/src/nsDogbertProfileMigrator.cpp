@@ -35,7 +35,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-// this file is mostly a copy of nsPrefMigration.cpp...old nsFileSpec warts and all
+// this file is mostly a copy of nsPrefMigration.cpp.
 
 #include "nsMailProfileMigratorUtils.h"
 #include "nsCRT.h"
@@ -62,9 +62,6 @@
 // lots of includes required for the nsPrefMigration.cpp code that we copied:
 #include "nsICharsetConverterManager.h"
 #include "nsIPlatformCharset.h"
-#include "nsIFileSpec.h"
-#include "nsFileSpec.h"
-#include "nsFileStream.h"
 
 #define MIGRATION_PROPERTIES_URL "chrome://messenger/locale/migration/migration.properties"
 
@@ -589,20 +586,20 @@ nsDogbertProfileMigrator::ProcessPrefsCallback(const char* oldProfilePathStr, co
 { 
   nsresult rv;
   
-  nsCOMPtr<nsIFileSpec> oldProfilePath;
-  nsCOMPtr<nsIFileSpec> newProfilePath; 
-  nsCOMPtr<nsIFileSpec> oldPOPMailPath;
-  nsCOMPtr<nsIFileSpec> newPOPMailPath;
-  nsCOMPtr<nsIFileSpec> oldIMAPMailPath;
-  nsCOMPtr<nsIFileSpec> newIMAPMailPath;
-  nsCOMPtr<nsIFileSpec> oldIMAPLocalMailPath;
-  nsCOMPtr<nsIFileSpec> newIMAPLocalMailPath;
-  nsCOMPtr<nsIFileSpec> oldNewsPath;
-  nsCOMPtr<nsIFileSpec> newNewsPath;
+  nsCOMPtr<nsILocalFile> oldProfilePath;
+  nsCOMPtr<nsILocalFile> newProfilePath; 
+  nsCOMPtr<nsILocalFile> oldPOPMailPath;
+  nsCOMPtr<nsILocalFile> newPOPMailPath;
+  nsCOMPtr<nsILocalFile> oldIMAPMailPath;
+  nsCOMPtr<nsILocalFile> newIMAPMailPath;
+  nsCOMPtr<nsILocalFile> oldIMAPLocalMailPath;
+  nsCOMPtr<nsILocalFile> newIMAPLocalMailPath;
+  nsCOMPtr<nsILocalFile> oldNewsPath;
+  nsCOMPtr<nsILocalFile> newNewsPath;
   nsCOMPtr<nsILocalFile> newPrefsFile;
 #ifdef HAVE_MOVEMAIL
-  nsCOMPtr<nsIFileSpec> oldMOVEMAILMailPath;
-  nsCOMPtr<nsIFileSpec> newMOVEMAILMailPath;
+  nsCOMPtr<nsILocalFile> oldMOVEMAILMailPath;
+  nsCOMPtr<nsILocalFile> newMOVEMAILMailPath;
 #endif /* HAVE_MOVEMAIL */
   PRBool exists                  = PR_FALSE, 
          enoughSpace             = PR_TRUE,
@@ -611,25 +608,26 @@ nsDogbertProfileMigrator::ProcessPrefsCallback(const char* oldProfilePathStr, co
          newsDriveDefault        = PR_FALSE,
          copyMailFileInMigration = PR_TRUE;
 
-  nsFileSpec localMailSpec,
-             summaryMailSpec,
-             newsSpec, 
-             oldProfileSpec, newProfileSpec;
+  nsCOMPtr <nsILocalFile> localMailFile;
+  nsCOMPtr <nsILocalFile> summaryMailFile;
+  nsCOMPtr <nsILocalFile> newsFile;
+  nsCOMPtr <nsILocalFile> oldProfileFile;
+  nsCOMPtr <nsILocalFile> newProfileFile;
 
   PRInt32 serverType = POP_4X_MAIL_TYPE; 
   char *popServerName = nsnull;
 
-  PRUint32 totalLocalMailSize = 0,
-           totalSummaryFileSize = 0,
-           totalNewsSize = 0, 
-           totalProfileSize = 0,
-           totalRequired = 0;
+  PRUint32          totalRequired = 0;
 
 
   PRInt64  localMailDrive   = LL_Zero(),
            summaryMailDrive = LL_Zero(),
            newsDrive        = LL_Zero(),
-           profileDrive     = LL_Zero();
+    totalSummaryFileSize = LL_Zero(),
+    profileDrive     = LL_Zero(),
+           totalLocalMailSize = LL_Zero(),
+    totalNewsSize = LL_Zero(), 
+           totalProfileSize = LL_Zero();
 
   PRInt64  DriveID[MAX_DRIVES];
   PRUint32 SpaceRequired[MAX_DRIVES];
@@ -647,41 +645,26 @@ nsDogbertProfileMigrator::ProcessPrefsCallback(const char* oldProfilePathStr, co
     SpaceRequired[i] = 0;
   }
   
-  rv = NS_NewFileSpec(getter_AddRefs(oldProfilePath));
+  oldProfilePath = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
   if (NS_FAILED(rv)) return rv;
-  rv = NS_NewFileSpec(getter_AddRefs(newProfilePath));
+  newProfilePath = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
   if (NS_FAILED(rv)) return rv;
       
-  rv = ConvertPersistentStringToFileSpec(oldProfilePathStr, oldProfilePath);
+  rv = ConvertPersistentStringToFile(oldProfilePathStr, oldProfilePath);
   if (NS_FAILED(rv)) return rv;
-  rv = ConvertPersistentStringToFileSpec(newProfilePathStr, newProfilePath);
+  rv = ConvertPersistentStringToFile(newProfilePathStr, newProfilePath);
   if (NS_FAILED(rv)) return rv;
 
-  oldProfilePath->GetFileSpec(&oldProfileSpec);
-  newProfilePath->GetFileSpec(&newProfileSpec);
+  oldProfileFile = oldProfilePath;
+  newProfileFile = newProfilePath;
   
   /* initialize prefs with the old prefs.js file (which is a copy of the 4.x preferences file) */
-  nsCOMPtr<nsIFileSpec> PrefsFile4x;
-
-  //Get the location of the 4.x prefs file
-  rv = NS_NewFileSpec(getter_AddRefs(PrefsFile4x));
-  if (NS_FAILED(rv)) return rv;
+  nsCOMPtr<nsILocalFile> PrefsFile4x = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
   
-  rv = PrefsFile4x->FromFileSpec(oldProfilePath);
+  rv = PrefsFile4x->InitWithFile(oldProfilePath);
   if (NS_FAILED(rv)) return rv;
 
-  rv = PrefsFile4x->AppendRelativeUnixPath(PREF_FILE_NAME_IN_4x);
-  if (NS_FAILED(rv)) return rv;
-
-  //Need to convert PrefsFile4x to an IFile in order to copy it to a 
-  //unique name in the system temp directory.
-  nsFileSpec PrefsFile4xAsFileSpec;
-  rv = PrefsFile4x->GetFileSpec(&PrefsFile4xAsFileSpec);
-  if (NS_FAILED(rv)) return rv;
-  
-  nsCOMPtr<nsILocalFile> PrefsFile4xAsIFile;
-  rv = NS_FileSpecToIFile(&PrefsFile4xAsFileSpec,
-                     getter_AddRefs(PrefsFile4xAsIFile));
+  rv = PrefsFile4x->AppendNative(NS_LITERAL_CSTRING(PREF_FILE_NAME_IN_4x));
   if (NS_FAILED(rv)) return rv;
 
   nsCOMPtr<nsIFile> systemTempDir;
@@ -694,7 +677,7 @@ nsDogbertProfileMigrator::ProcessPrefsCallback(const char* oldProfilePathStr, co
   rv = systemTempDir->CreateUnique(nsIFile::DIRECTORY_TYPE, 0700); 
   if (NS_FAILED(rv)) return rv;
 
-  rv = PrefsFile4xAsIFile->CopyToNative(systemTempDir, NS_LITERAL_CSTRING(PREF_FILE_NAME_IN_4x));
+  rv = PrefsFile4x->CopyToNative(systemTempDir, NS_LITERAL_CSTRING(PREF_FILE_NAME_IN_4x));
   if (NS_FAILED(rv)) return rv;
   
   nsCOMPtr<nsIFile> cloneFile;
@@ -715,8 +698,8 @@ nsDogbertProfileMigrator::ProcessPrefsCallback(const char* oldProfilePathStr, co
 
   // Start computing the sizes required for migration
   //
-  rv = GetSizes(oldProfileSpec, PR_FALSE, &totalProfileSize);
-  profileDrive = newProfileSpec.GetDiskSpaceAvailable();
+  rv = GetSizes(oldProfileFile, PR_FALSE, &totalProfileSize);
+  newProfileFile->GetDiskSpaceAvailable(&profileDrive);
 
   rv = mPrefs->GetIntPref(PREF_MAIL_SERVER_TYPE, &serverType);
   if (NS_FAILED(rv)) return rv;
@@ -730,13 +713,8 @@ nsDogbertProfileMigrator::ProcessPrefsCallback(const char* oldProfilePathStr, co
     summaryMailDriveDefault = PR_TRUE; //summary files are only used in IMAP so just set it to true here.
     summaryMailDrive = profileDrive;   //just set the drive for summary files to be the same as the new profile
 
-    rv = NS_NewFileSpec(getter_AddRefs(newPOPMailPath));
-    if (NS_FAILED(rv)) return rv;
-
-    rv = NS_NewFileSpec(getter_AddRefs(oldPOPMailPath));
-    if (NS_FAILED(rv)) return rv;
-    
-    rv = GetDirFromPref(oldProfilePath,newProfilePath,NEW_MAIL_DIR_NAME, PREF_MAIL_DIRECTORY, newPOPMailPath, oldPOPMailPath);
+    rv = GetDirFromPref(oldProfilePath,newProfilePath,NEW_MAIL_DIR_NAME, PREF_MAIL_DIRECTORY, 
+                        getter_AddRefs(newPOPMailPath), getter_AddRefs(oldPOPMailPath));
     if (NS_FAILED(rv)) {
       rv = DetermineOldPath(oldProfilePath, OLD_MAIL_DIR_NAME, "mailDirName", oldPOPMailPath);
       if (NS_FAILED(rv)) return rv;
@@ -744,24 +722,19 @@ nsDogbertProfileMigrator::ProcessPrefsCallback(const char* oldProfilePathStr, co
       rv = SetPremigratedFilePref(PREF_MAIL_DIRECTORY, oldPOPMailPath);
       if (NS_FAILED(rv)) return rv;
 
-      rv = newPOPMailPath->FromFileSpec(newProfilePath);
+      newPOPMailPath->InitWithFile(newProfilePath);
       if (NS_FAILED(rv)) return rv;
 
       localMailDriveDefault = PR_TRUE;
     }
-    oldPOPMailPath->GetFileSpec(&localMailSpec);
-    rv = GetSizes(localMailSpec, PR_TRUE, &totalLocalMailSize);
-    localMailDrive = localMailSpec.GetDiskSpaceAvailable();
+    localMailFile = oldPOPMailPath;
+    rv = GetSizes(localMailFile, PR_TRUE, &totalLocalMailSize);
+    localMailFile->GetDiskSpaceAvailable(&localMailDrive);
   }
   else if(serverType == IMAP_4X_MAIL_TYPE) {
-    rv = NS_NewFileSpec(getter_AddRefs(newIMAPLocalMailPath));
-    if (NS_FAILED(rv)) return rv;
-      
-    rv = NS_NewFileSpec(getter_AddRefs(oldIMAPLocalMailPath));
-    if (NS_FAILED(rv)) return rv;
-        
     /* First get the actual 4.x "Local Mail" files location */
-    rv = GetDirFromPref(oldProfilePath,newProfilePath, NEW_MAIL_DIR_NAME, PREF_MAIL_DIRECTORY, newIMAPLocalMailPath, oldIMAPLocalMailPath);
+    rv = GetDirFromPref(oldProfilePath,newProfilePath, NEW_MAIL_DIR_NAME, PREF_MAIL_DIRECTORY, 
+                        getter_AddRefs(newIMAPLocalMailPath), getter_AddRefs(oldIMAPLocalMailPath));
     if (NS_FAILED(rv)) {
       rv = DetermineOldPath(oldProfilePath, OLD_MAIL_DIR_NAME, "mailDirName", oldIMAPLocalMailPath);
       if (NS_FAILED(rv)) return rv;
@@ -769,44 +742,39 @@ nsDogbertProfileMigrator::ProcessPrefsCallback(const char* oldProfilePathStr, co
       rv = SetPremigratedFilePref(PREF_MAIL_DIRECTORY, oldIMAPLocalMailPath);
       if (NS_FAILED(rv)) return rv;
 
-      rv = newIMAPLocalMailPath->FromFileSpec(newProfilePath);
+      rv = newIMAPLocalMailPath->InitWithFile(newProfilePath);
       if (NS_FAILED(rv)) return rv;
       
       localMailDriveDefault = PR_TRUE;
     }
 
-    oldIMAPLocalMailPath->GetFileSpec(&localMailSpec);
-    rv = GetSizes(localMailSpec, PR_TRUE, &totalLocalMailSize);
-    localMailDrive = localMailSpec.GetDiskSpaceAvailable();
+    localMailFile = oldIMAPLocalMailPath;
+    rv = GetSizes(localMailFile, PR_TRUE, &totalLocalMailSize);
+    localMailFile->GetDiskSpaceAvailable(&localMailDrive);
 
     /* Next get IMAP mail summary files location */
-    rv = NS_NewFileSpec(getter_AddRefs(newIMAPMailPath));
-    if (NS_FAILED(rv)) return rv;
-    
-    rv = NS_NewFileSpec(getter_AddRefs(oldIMAPMailPath));
-    if (NS_FAILED(rv)) return rv;
-
-    rv = GetDirFromPref(oldProfilePath,newProfilePath, NEW_IMAPMAIL_DIR_NAME, PREF_MAIL_IMAP_ROOT_DIR,newIMAPMailPath,oldIMAPMailPath);
+    rv = GetDirFromPref(oldProfilePath,newProfilePath, NEW_IMAPMAIL_DIR_NAME, PREF_MAIL_IMAP_ROOT_DIR,
+                        getter_AddRefs(newIMAPMailPath), getter_AddRefs(oldIMAPMailPath));
     if (NS_FAILED(rv)) {
-      rv = oldIMAPMailPath->FromFileSpec(oldProfilePath);
+      rv = oldIMAPMailPath->InitWithFile(oldProfilePath);
       if (NS_FAILED(rv)) return rv;
         
       /* we didn't over localize "ImapMail" in 4.x, so this is all we have to do */
-      rv = oldIMAPMailPath->AppendRelativeUnixPath(OLD_IMAPMAIL_DIR_NAME);
+      rv = oldIMAPMailPath->AppendNative(NS_LITERAL_CSTRING(OLD_IMAPMAIL_DIR_NAME));
       if (NS_FAILED(rv)) return rv;
 
       rv = SetPremigratedFilePref(PREF_MAIL_IMAP_ROOT_DIR, oldIMAPMailPath);
       if (NS_FAILED(rv)) return rv;   
       
-      rv = newIMAPMailPath->FromFileSpec(newProfilePath);
+      rv = newIMAPMailPath->InitWithFile(newProfilePath);
       if (NS_FAILED(rv)) return rv;
 
       summaryMailDriveDefault = PR_TRUE;
     }
 
-    oldIMAPMailPath->GetFileSpec(&summaryMailSpec);
-    rv = GetSizes(summaryMailSpec, PR_TRUE, &totalSummaryFileSize);
-    summaryMailDrive = summaryMailSpec.GetDiskSpaceAvailable();
+    summaryMailFile = oldIMAPMailPath;
+    rv = GetSizes(summaryMailFile, PR_TRUE, &totalSummaryFileSize);
+    summaryMailFile->GetDiskSpaceAvailable(&summaryMailDrive);
   }   
 
 #ifdef HAVE_MOVEMAIL
@@ -815,33 +783,28 @@ nsDogbertProfileMigrator::ProcessPrefsCallback(const char* oldProfilePathStr, co
     summaryMailDriveDefault = PR_TRUE;
     summaryMailDrive = profileDrive;
 
-    rv = NS_NewFileSpec(getter_AddRefs(newMOVEMAILMailPath));
-    if (NS_FAILED(rv)) return rv;
-
-    rv = NS_NewFileSpec(getter_AddRefs(oldMOVEMAILMailPath));
-    if (NS_FAILED(rv)) return rv;
-    
-    rv = GetDirFromPref(oldProfilePath,newProfilePath,NEW_MAIL_DIR_NAME, PREF_MAIL_DIRECTORY, newMOVEMAILMailPath, oldMOVEMAILMailPath);
+    rv = GetDirFromPref(oldProfilePath,newProfilePath,NEW_MAIL_DIR_NAME, PREF_MAIL_DIRECTORY, 
+                        getter_AddRefs(newMOVEMAILMailPath), getter_AddRefs(oldMOVEMAILMailPath));
     if (NS_FAILED(rv)) {
-      rv = oldMOVEMAILMailPath->FromFileSpec(oldProfilePath);
+      rv = oldMOVEMAILMailPath->InitWithFile(oldProfilePath);
       if (NS_FAILED(rv)) return rv;
 
       /* we didn't over localize this in 4.x, so this is all we have to do */
-      rv = oldMOVEMAILMailPath->AppendRelativeUnixPath(OLD_MAIL_DIR_NAME);
+      rv = oldMOVEMAILMailPath->AppendNative(NS_LITERAL_CSTRING(OLD_MAIL_DIR_NAME));
       if (NS_FAILED(rv)) return rv;
       
       rv = SetPremigratedFilePref(PREF_MAIL_DIRECTORY, oldMOVEMAILMailPath);
       if (NS_FAILED(rv)) return rv;
 
-      rv = newMOVEMAILMailPath->FromFileSpec(newProfilePath);
+      rv = newMOVEMAILMailPath->InitWithFile(newProfilePath);
       if (NS_FAILED(rv)) return rv;
 
       localMailDriveDefault = PR_TRUE;
     }
-    oldMOVEMAILMailPath->GetFileSpec(&localMailSpec);
-    rv = GetSizes(localMailSpec, PR_TRUE, &totalLocalMailSize);
+    localMailFile = oldMOVEMAILMailPath;
+    rv = GetSizes(localMailFile, PR_TRUE, &totalLocalMailSize);
 
-    localMailDrive = localMailSpec.GetDiskSpaceAvailable();
+    localMailSpec->GetDiskSpaceAvailable(&localMailDrive);
    
   }    
 #endif //HAVE_MOVEMAIL
@@ -849,13 +812,8 @@ nsDogbertProfileMigrator::ProcessPrefsCallback(const char* oldProfilePathStr, co
     ////////////////////////////////////////////////////////////////////////////
     // Now get the NEWS disk space requirements for migration.
     ////////////////////////////////////////////////////////////////////////////
-    rv = NS_NewFileSpec(getter_AddRefs(newNewsPath));
-    if (NS_FAILED(rv)) return rv;
-    
-    rv = NS_NewFileSpec(getter_AddRefs(oldNewsPath));
-    if (NS_FAILED(rv)) return rv;
-    
-    rv = GetDirFromPref(oldProfilePath,newProfilePath, NEW_NEWS_DIR_NAME, PREF_NEWS_DIRECTORY, newNewsPath,oldNewsPath);
+    rv = GetDirFromPref(oldProfilePath,newProfilePath, NEW_NEWS_DIR_NAME, PREF_NEWS_DIRECTORY, 
+                        getter_AddRefs(newNewsPath), getter_AddRefs(oldNewsPath));
     if (NS_FAILED(rv)) {
       rv = DetermineOldPath(oldProfilePath, OLD_NEWS_DIR_NAME, "newsDirName", oldNewsPath);
       if (NS_FAILED(rv)) return rv;
@@ -863,14 +821,13 @@ nsDogbertProfileMigrator::ProcessPrefsCallback(const char* oldProfilePathStr, co
       rv = SetPremigratedFilePref(PREF_NEWS_DIRECTORY, oldNewsPath);
       if (NS_FAILED(rv)) return rv; 
 
-      rv = newNewsPath->FromFileSpec(newProfilePath);
+      rv = newNewsPath->InitWithFile(newProfilePath);
       if (NS_FAILED(rv)) return rv;
 
       newsDriveDefault = PR_TRUE;
     }
-    oldNewsPath->GetFileSpec(&newsSpec);
-    rv = GetSizes(newsSpec, PR_TRUE, &totalNewsSize);
-    newsDrive = newsSpec.GetDiskSpaceAvailable();
+    rv = GetSizes(oldNewsPath, PR_TRUE, &totalNewsSize);
+    oldNewsPath->GetDiskSpaceAvailable(&newsDrive);
 
     // 
     // Compute the space needed to migrate the profile
@@ -915,32 +872,22 @@ nsDogbertProfileMigrator::ProcessPrefsCallback(const char* oldProfilePathStr, co
     rv = newPOPMailPath->Exists(&exists);
     if (NS_FAILED(rv)) return rv;
     if (!exists)  {
-      rv = newPOPMailPath->CreateDir();
+      rv = newPOPMailPath->Create(nsIFile::DIRECTORY_TYPE, 0700);
       if (NS_FAILED(rv)) return rv;
     }
 
-    rv = newPOPMailPath->AppendRelativeUnixPath(NEW_MAIL_DIR_NAME);
+    rv = newPOPMailPath->AppendNative(NS_LITERAL_CSTRING(NEW_MAIL_DIR_NAME));
     if (NS_FAILED(rv)) return rv;
  
     rv = newPOPMailPath->Exists(&exists);
     if (NS_FAILED(rv)) return rv;
     if (!exists)  {
-      rv = newPOPMailPath->CreateDir();
+      rv = newPOPMailPath->Create(nsIFile::DIRECTORY_TYPE, 0700);
       if (NS_FAILED(rv)) return rv;
     }
 
-    {
-      // temporarily go through nsFileSpec
-      nsFileSpec newPOPMailPathSpec;
-      newPOPMailPath->GetFileSpec(&newPOPMailPathSpec);
-      
-      nsCOMPtr<nsILocalFile> newPOPMailPathFile;
-      NS_FileSpecToIFile(&newPOPMailPathSpec,
-                         getter_AddRefs(newPOPMailPathFile));
-      
-      rv = mPrefs->SetComplexValue(PREF_MAIL_DIRECTORY, NS_GET_IID(nsILocalFile), newPOPMailPathFile); 
-      if (NS_FAILED(rv)) return rv;
-    }
+    rv = mPrefs->SetComplexValue(PREF_MAIL_DIRECTORY, NS_GET_IID(nsILocalFile), newPOPMailPath); 
+    if (NS_FAILED(rv)) return rv;
 
     mPrefs->GetCharPref(PREF_NETWORK_HOSTS_POP_SERVER, &popServerName);
 
@@ -949,10 +896,10 @@ nsDogbertProfileMigrator::ProcessPrefsCallback(const char* oldProfilePathStr, co
 
     if (colonPos != -1 ) {
 	    popServerNamewithoutPort.Truncate(colonPos);
-	    rv = newPOPMailPath->AppendRelativeUnixPath(popServerNamewithoutPort.get());
+	    rv = newPOPMailPath->AppendNative(popServerNamewithoutPort);
     }
     else {
-	    rv = newPOPMailPath->AppendRelativeUnixPath(popServerName);
+	    rv = newPOPMailPath->AppendNative(nsDependentCString(popServerName));
     }
 
     if (NS_FAILED(rv)) return rv;				  
@@ -960,7 +907,7 @@ nsDogbertProfileMigrator::ProcessPrefsCallback(const char* oldProfilePathStr, co
     rv = newPOPMailPath->Exists(&exists);
     if (NS_FAILED(rv)) return rv;
     if (!exists)  {
-      rv = newPOPMailPath->CreateDir();
+      rv = newPOPMailPath->Create(nsIFile::DIRECTORY_TYPE, 0700);
       if (NS_FAILED(rv)) return rv;
     }
   }
@@ -970,39 +917,29 @@ nsDogbertProfileMigrator::ProcessPrefsCallback(const char* oldProfilePathStr, co
      rv = newIMAPLocalMailPath->Exists(&exists);
      if (NS_FAILED(rv)) return rv;
      if (!exists)  {
-        rv = newIMAPLocalMailPath->CreateDir();
+        rv = newIMAPLocalMailPath->Create(nsIFile::DIRECTORY_TYPE, 0700);
         if (NS_FAILED(rv)) return rv;
      }
       
-    rv = newIMAPLocalMailPath->AppendRelativeUnixPath(NEW_MAIL_DIR_NAME);
+    rv = newIMAPLocalMailPath->AppendNative(NS_LITERAL_CSTRING(NEW_MAIL_DIR_NAME));
     if (NS_FAILED(rv)) return rv;
 
     /* Now create the new "Mail/Local Folders" directory */
     rv = newIMAPLocalMailPath->Exists(&exists);
     if (NS_FAILED(rv)) return rv;
     if (!exists)  {
-      newIMAPLocalMailPath->CreateDir();
+      newIMAPLocalMailPath->Create(nsIFile::DIRECTORY_TYPE, 0700);
     }
 
-    {
-      // temporarily go through nsFileSpec
-      nsFileSpec newIMAPLocalMailPathSpec;
-      newIMAPLocalMailPath->GetFileSpec(&newIMAPLocalMailPathSpec);
-      
-      nsCOMPtr<nsILocalFile> newIMAPLocalMailPathFile;
-      NS_FileSpecToIFile(&newIMAPLocalMailPathSpec,
-                         getter_AddRefs(newIMAPLocalMailPathFile));
-      
-      rv = mPrefs->SetComplexValue(PREF_MAIL_DIRECTORY, NS_GET_IID(nsILocalFile), newIMAPLocalMailPathFile); 
-      if (NS_FAILED(rv)) return rv;
-    }
+    rv = mPrefs->SetComplexValue(PREF_MAIL_DIRECTORY, NS_GET_IID(nsILocalFile), newIMAPLocalMailPath); 
+    if (NS_FAILED(rv)) return rv;
 
-    rv = newIMAPLocalMailPath->AppendRelativeUnixPath(NEW_LOCAL_MAIL_DIR_NAME);
+    rv = newIMAPLocalMailPath->AppendNative(NS_LITERAL_CSTRING(NEW_LOCAL_MAIL_DIR_NAME));
     if (NS_FAILED(rv)) return rv;
     rv = newIMAPLocalMailPath->Exists(&exists);
     if (NS_FAILED(rv)) return rv;
     if (!exists)  {
-      rv = newIMAPLocalMailPath->CreateDir();
+      rv = newIMAPLocalMailPath->Create(nsIFile::DIRECTORY_TYPE, 0700);
       if (NS_FAILED(rv)) return rv;
     }
 
@@ -1010,59 +947,31 @@ nsDogbertProfileMigrator::ProcessPrefsCallback(const char* oldProfilePathStr, co
     rv = newIMAPMailPath->Exists(&exists);
     if (NS_FAILED(rv)) return rv;
     if (!exists)  {
-      rv = newIMAPMailPath->CreateDir();
+      rv = newIMAPMailPath->Create(nsIFile::DIRECTORY_TYPE, 0700);
       if (NS_FAILED(rv)) return rv;
     }
 
-    rv = newIMAPMailPath->AppendRelativeUnixPath(NEW_IMAPMAIL_DIR_NAME);
+    rv = newIMAPMailPath->AppendNative(NS_LITERAL_CSTRING(NEW_IMAPMAIL_DIR_NAME));
     if (NS_FAILED(rv)) return rv;
 
     rv = newIMAPMailPath->Exists(&exists);
     if (NS_FAILED(rv)) return rv;
     if (!exists)  {
-      rv = newIMAPMailPath->CreateDir();
+      rv = newIMAPMailPath->Create(nsIFile::DIRECTORY_TYPE, 0700);
       if (NS_FAILED(rv)) return rv;
     }
 
     {
-      // temporarily go through nsFileSpec
-      nsFileSpec newIMAPMailPathSpec;
-      newIMAPMailPath->GetFileSpec(&newIMAPMailPathSpec);
-      
-      nsCOMPtr<nsILocalFile> newIMAPMailPathFile;
-      NS_FileSpecToIFile(&newIMAPMailPathSpec,
-                         getter_AddRefs(newIMAPMailPathFile));
-      
-      rv = mPrefs->SetComplexValue(PREF_MAIL_IMAP_ROOT_DIR, NS_GET_IID(nsILocalFile), newIMAPMailPathFile);
+      rv = mPrefs->SetComplexValue(PREF_MAIL_IMAP_ROOT_DIR, NS_GET_IID(nsILocalFile), newIMAPMailPath);
       if (NS_FAILED(rv)) return rv;
     }
    }
    else
    {
-    {
-      // temporarily go through nsFileSpec
-      nsFileSpec oldIMAPLocalMailPathSpec;
-      oldIMAPLocalMailPath->GetFileSpec(&oldIMAPLocalMailPathSpec);
-
-      nsCOMPtr<nsILocalFile> oldIMAPLocalMailPathFile;
-      NS_FileSpecToIFile(&oldIMAPLocalMailPathSpec,
-                         getter_AddRefs(oldIMAPLocalMailPathFile));
-
-      rv = mPrefs->SetComplexValue(PREF_MAIL_DIRECTORY, NS_GET_IID(nsILocalFile), oldIMAPLocalMailPathFile);
+      rv = mPrefs->SetComplexValue(PREF_MAIL_DIRECTORY, NS_GET_IID(nsILocalFile), oldIMAPLocalMailPath);
       if (NS_FAILED(rv)) return rv;
-    }
-    {
-      // temporarily go through nsFileSpec
-      nsFileSpec oldIMAPMailPathSpec;
-      oldIMAPMailPath->GetFileSpec(&oldIMAPMailPathSpec);
-
-      nsCOMPtr<nsILocalFile> oldIMAPMailPathFile;
-      NS_FileSpecToIFile(&oldIMAPMailPathSpec,
-                         getter_AddRefs(oldIMAPMailPathFile));
-
-      rv = mPrefs->SetComplexValue(PREF_MAIL_IMAP_ROOT_DIR, NS_GET_IID(nsILocalFile), oldIMAPMailPathFile);
+      rv = mPrefs->SetComplexValue(PREF_MAIL_IMAP_ROOT_DIR, NS_GET_IID(nsILocalFile), oldIMAPMailPath);
       if (NS_FAILED(rv)) return rv;
-    }
    }
   }
 
@@ -1072,40 +981,30 @@ nsDogbertProfileMigrator::ProcessPrefsCallback(const char* oldProfilePathStr, co
     rv = newMOVEMAILMailPath->Exists(&exists);
     if (NS_FAILED(rv)) return rv;
     if (!exists)  {
-      rv = newMOVEMAILMailPath->CreateDir();
+      rv = newMOVEMAILMailPath->Create(nsIFile::DIRECTORY_TYPE, 0700);
       if (NS_FAILED(rv)) return rv;
     }
 
-    rv = newMOVEMAILMailPath->AppendRelativeUnixPath(NEW_MAIL_DIR_NAME);
+    rv = newMOVEMAILMailPath->AppendNative(NS_LITERAL_CSTRING(NEW_MAIL_DIR_NAME));
     if (NS_FAILED(rv)) return rv;
 
     rv = newMOVEMAILMailPath->Exists(&exists);
     if (NS_FAILED(rv)) return rv;
     if (!exists)  {
-      rv = newMOVEMAILMailPath->CreateDir();
+      rv = newMOVEMAILMailPath->Create(nsIFile::DIRECTORY_TYPE, 0700);
       if (NS_FAILED(rv)) return rv;
     }
 
-    {
-      // temporarily go through nsFileSpec
-      nsFileSpec newMOVEMAILPathSpec;
-      newMOVEMAILMailPath->GetFileSpec(&newMOVEMAILPathSpec);
-      
-      nsCOMPtr<nsILocalFile> newMOVEMAILPathFile;
-      NS_FileSpecToIFile(&newMOVEMAILPathSpec,
-                         getter_AddRefs(newMOVEMAILPathFile));
-      
-      rv = mPrefs->SetComplexValue(PREF_MAIL_DIRECTORY, NS_GET_IID(nsILocalFile), newMOVEMAILPathFile); 
-      if (NS_FAILED(rv)) return rv;
-    }
+    rv = mPrefs->SetComplexValue(PREF_MAIL_DIRECTORY, NS_GET_IID(nsILocalFile), newMOVEMAILMailPath); 
+    if (NS_FAILED(rv)) return rv;
 
-    rv = newMOVEMAILMailPath->AppendRelativeUnixPath(NEW_MOVEMAIL_DIR_NAME);
+    rv = newMOVEMAILMailPath->AppendNative(NS_LITERAL_CSTRING(NEW_MOVEMAIL_DIR_NAME));
     if (NS_FAILED(rv)) return rv;
 
     rv = newMOVEMAILMailPath->Exists(&exists);
     if (NS_FAILED(rv)) return rv;
     if (!exists)  {
-      rv = newMOVEMAILMailPath->CreateDir();
+      rv = newMOVEMAILMailPath->Create(nsIFile::DIRECTORY_TYPE, 0700);
       if (NS_FAILED(rv)) return rv;
     }
     rv = NS_OK;
@@ -1123,32 +1022,22 @@ nsDogbertProfileMigrator::ProcessPrefsCallback(const char* oldProfilePathStr, co
   rv = newNewsPath->Exists(&exists);
   if (NS_FAILED(rv)) return rv;
   if (!exists)  {
-    rv = newNewsPath->CreateDir();
+    rv = newNewsPath->Create(nsIFile::DIRECTORY_TYPE, 0700);
     if (NS_FAILED(rv)) return rv;
   }
 
-  rv = newNewsPath->AppendRelativeUnixPath(NEW_NEWS_DIR_NAME);
+  rv = newNewsPath->AppendNative(NS_LITERAL_CSTRING(NEW_NEWS_DIR_NAME));
   if (NS_FAILED(rv)) return rv;
 
   rv = newNewsPath->Exists(&exists);
   if (NS_FAILED(rv)) return rv;
   if (!exists)  {
-    rv = newNewsPath->CreateDir();
+    rv = newNewsPath->Create(nsIFile::DIRECTORY_TYPE, 0700);
     if (NS_FAILED(rv)) return rv;
   }
 
-  {
-    // temporarily go through nsFileSpec
-    nsFileSpec newNewsPathSpec;
-    newNewsPath->GetFileSpec(&newNewsPathSpec);
-    
-    nsCOMPtr<nsILocalFile> newNewsPathFile;
-    NS_FileSpecToIFile(&newNewsPathSpec,
-                       getter_AddRefs(newNewsPathFile));
-    
-    rv = mPrefs->SetComplexValue(PREF_NEWS_DIRECTORY, NS_GET_IID(nsILocalFile), newNewsPathFile); 
-    if (NS_FAILED(rv)) return rv;
-  }
+  rv = mPrefs->SetComplexValue(PREF_NEWS_DIRECTORY, NS_GET_IID(nsILocalFile), newNewsPath); 
+  if (NS_FAILED(rv)) return rv;
 
   PRBool needToRenameFilterFiles;
   if (PL_strcmp(IMAP_MAIL_FILTER_FILE_NAME_IN_4x,IMAP_MAIL_FILTER_FILE_NAME_IN_5x)) {
@@ -1261,9 +1150,9 @@ nsDogbertProfileMigrator::ProcessPrefsCallback(const char* oldProfilePathStr, co
   if (NS_FAILED(rv)) return rv;
     PR_FREEIF(popServerName);
 
-  nsXPIDLCString path;
+  nsCString path;
 
-  newProfilePath->GetNativePath(getter_Copies(path));
+  newProfilePath->GetNativePath(path);
   NS_NewNativeLocalFile(path, PR_TRUE, getter_AddRefs(newPrefsFile));
 
   rv = newPrefsFile->AppendNative(NS_LITERAL_CSTRING(PREF_FILE_NAME_IN_5x));
@@ -1286,7 +1175,7 @@ nsDogbertProfileMigrator::ProcessPrefsCallback(const char* oldProfilePathStr, co
   return rv;
 }
 
-nsresult nsDogbertProfileMigrator::CreateNewUser5Tree(nsIFileSpec * oldProfilePath, nsIFileSpec * newProfilePath)
+nsresult nsDogbertProfileMigrator::CreateNewUser5Tree(nsILocalFile * oldProfilePath, nsILocalFile * newProfilePath)
 {
   nsresult rv;
   PRBool exists;
@@ -1298,73 +1187,79 @@ nsresult nsDogbertProfileMigrator::CreateNewUser5Tree(nsIFileSpec * oldProfilePa
       
   /* Copy the old prefs file to the new profile directory for modification and reading.  
      after copying it, rename it to pref.js, the 5.x pref file name on all platforms */
-  nsCOMPtr<nsIFileSpec> oldPrefsFile;
-  rv = NS_NewFileSpec(getter_AddRefs(oldPrefsFile)); 
+  nsCOMPtr<nsILocalFile> oldPrefsFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
   if (NS_FAILED(rv)) return rv;
   
-  rv = oldPrefsFile->FromFileSpec(oldProfilePath);
+  rv = oldPrefsFile->InitWithFile(oldProfilePath);
   if (NS_FAILED(rv)) return rv;
   
-  rv = oldPrefsFile->AppendRelativeUnixPath(PREF_FILE_NAME_IN_4x);
+  rv = oldPrefsFile->AppendNative(NS_LITERAL_CSTRING(PREF_FILE_NAME_IN_4x));
   if (NS_FAILED(rv)) return rv;
 
   /* the new prefs file */
-  nsCOMPtr<nsIFileSpec> newPrefsFile;
-  rv = NS_NewFileSpec(getter_AddRefs(newPrefsFile)); 
+  nsCOMPtr<nsILocalFile> newPrefsFile  = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);;
   if (NS_FAILED(rv)) return rv;
   
-  rv = newPrefsFile->FromFileSpec(newProfilePath);
+  rv = newPrefsFile->InitWithFile(newProfilePath);
   if (NS_FAILED(rv)) return rv;
   
   rv = newPrefsFile->Exists(&exists);
   if (!exists)
   {
-	  rv = newPrefsFile->CreateDir();
+	  rv = newPrefsFile->Create(nsIFile::DIRECTORY_TYPE, 0700);
   }
 
-  rv = oldPrefsFile->CopyToDir(newPrefsFile);
+  rv = oldPrefsFile->CopyTo(newPrefsFile, EmptyString());
   NS_ASSERTION(NS_SUCCEEDED(rv),"failed to copy prefs file");
 
-  rv = newPrefsFile->AppendRelativeUnixPath(PREF_FILE_NAME_IN_4x);
-  rv = newPrefsFile->Rename(PREF_FILE_NAME_IN_5x);
+  rv = newPrefsFile->AppendNative(NS_LITERAL_CSTRING(PREF_FILE_NAME_IN_4x));
+  rv = newPrefsFile->MoveTo(nsnull, NS_LITERAL_STRING(PREF_FILE_NAME_IN_5x));
 
   return NS_OK;
 }
 
 #ifdef NEED_TO_COPY_AND_RENAME_NEWSRC_FILES
-nsresult nsDogbertProfileMigrator::CopyAndRenameNewsrcFiles(nsIFileSpec * newPathSpec)
+nsresult nsDogbertProfileMigrator::CopyAndRenameNewsrcFiles(nsILocalFile * newPathFile)
 {
   nsresult rv;
-  nsCOMPtr <nsIFileSpec>oldPathSpec;
-  nsFileSpec oldPath;
-  nsFileSpec newPath;
-  char* folderName = nsnull;
+  nsCOMPtr <nsILocalFile> oldPathFile;
   nsCAutoString fileOrDirNameStr;
 
-  rv = GetPremigratedFilePref(PREF_NEWS_DIRECTORY, getter_AddRefs(oldPathSpec));
-  if (NS_FAILED(rv)) return rv;
-  rv = oldPathSpec->GetFileSpec(&oldPath);
-  if (NS_FAILED(rv)) return rv;
-  rv = newPathSpec->GetFileSpec(&newPath);
+  rv = GetPremigratedFilePref(PREF_NEWS_DIRECTORY, getter_AddRefs(oldPathFile));
   if (NS_FAILED(rv)) return rv;
 
-  for (nsDirectoryIterator dir(oldPath, PR_FALSE); dir.Exists(); dir++)
+  nsCOMPtr<nsISimpleEnumerator> directoryEnumerator;
+  rv = oldPathFile->GetDirectoryEntries(getter_AddRefs(directoryEnumerator));
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  PRBool hasMore;
+  directoryEnumerator->HasMoreElements(&hasMore);
+  while (hasMore && NS_SUCCEEDED(rv))
   {
-    nsFileSpec fileOrDirName = dir.Spec(); //set first file or dir to a nsFileSpec
-    folderName = fileOrDirName.GetLeafName();    //get the filename without the full path
-    fileOrDirNameStr.Assign(folderName);
+    nsCOMPtr<nsISupports> aSupport;
+    rv = directoryEnumerator->GetNext(getter_AddRefs(aSupport));
+    nsCOMPtr<nsIFile> currentFile(do_QueryInterface(aSupport, &rv));
+    nsCOMPtr<nsILocalFile> curLocalFile = do_QueryInterface(currentFile);
+
+    currentFile->GetNativeLeafName(fileOrDirNameStr);
 
     if (nsCStringStartsWith(fileOrDirNameStr, NEWSRC_PREFIX_IN_4x) || nsCStringStartsWith(fileOrDirNameStr, SNEWSRC_PREFIX_IN_4x)) {
 #ifdef DEBUG_seth
 	    printf("newsrc file == %s\n",folderName);
 #endif /* DEBUG_seth */
 
-	    rv = fileOrDirName.CopyToDir(newPath);
+        rv = currentFile->CopyTo(newPathFile, EmptyString());
         NS_ASSERTION(NS_SUCCEEDED(rv),"failed to copy news file");
 
-        nsFileSpec newFile = newPath;
-        newFile += fileOrDirNameStr.get();
-        newFile.Rename(folderName + 1); /* rename .newsrc-news to newsrc-news, no need to keep it hidden anymore */
+        nsCOMPtr <nsIFile> newFile;
+        newPathFile->Clone(getter_AddRefs(newFile));
+        if (newFile)
+        {
+          newFile->AppendNative(fileOrDirNameStr);
+          fileOrDirNameStr.Cut(0, 1);
+          newFile->MoveToNative(nsnull, fileOrDirNameStr); /* rename .newsrc-news to newsrc-news, no need to keep it hidden anymore */
+          
+        }
     }
   }
 
@@ -1394,41 +1289,44 @@ nsresult nsDogbertProfileMigrator::CopyAndRenameNewsrcFiles(nsIFileSpec * newPat
  *          NS_ERROR_FAILURE if failed
  *
  *--------------------------------------------------------------------------*/
-nsresult nsDogbertProfileMigrator::DoTheCopyAndRename(nsIFileSpec * oldPathSpec, nsIFileSpec *newPathSpec, PRBool readSubdirs, PRBool needToRenameFiles, const char *oldName, const char *newName)
+nsresult nsDogbertProfileMigrator::DoTheCopyAndRename(nsIFile * oldPathFile, nsIFile *newPathFile, PRBool readSubdirs, PRBool needToRenameFiles, const char *oldName, const char *newName)
 {
   nsresult rv;
-  char* folderName = nsnull;
   nsCAutoString fileOrDirNameStr;
-  nsFileSpec oldPath;
-  nsFileSpec newPath;
+    
+  nsCOMPtr<nsISimpleEnumerator> directoryEnumerator;
+  rv = oldPathFile->GetDirectoryEntries(getter_AddRefs(directoryEnumerator));
+  NS_ENSURE_SUCCESS(rv, rv);
   
-  rv = oldPathSpec->GetFileSpec(&oldPath);
-  if (NS_FAILED(rv)) return rv;
-  rv = newPathSpec->GetFileSpec(&newPath);
-  if (NS_FAILED(rv)) return rv;
-  
-  for (nsDirectoryIterator dir(oldPath, PR_FALSE); dir.Exists(); dir++)
+  PRBool hasMore;
+  directoryEnumerator->HasMoreElements(&hasMore);
+  while (hasMore && NS_SUCCEEDED(rv))
   {
-    nsFileSpec fileOrDirName = dir.Spec(); //set first file or dir to a nsFileSpec
-    folderName = fileOrDirName.GetLeafName();    //get the filename without the full path
-    fileOrDirNameStr.Assign(folderName);
+    nsCOMPtr<nsISupports> aSupport;
+    rv = directoryEnumerator->GetNext(getter_AddRefs(aSupport));
+    nsCOMPtr<nsIFile> currentFile(do_QueryInterface(aSupport, &rv));
+    nsCOMPtr<nsILocalFile> curLocalFile = do_QueryInterface(currentFile);
+        
+    currentFile->GetNativeLeafName(fileOrDirNameStr);  
 
-    if (nsCStringEndsWith(fileOrDirNameStr, MAIL_SUMMARY_SUFFIX_IN_4x) || nsCStringEndsWith(fileOrDirNameStr, NEWS_SUMMARY_SUFFIX_IN_4x) || nsCStringEndsWith(fileOrDirNameStr, SUMMARY_SUFFIX_IN_5x)) /* Don't copy the summary files */
+    if (nsCStringEndsWith(fileOrDirNameStr, MAIL_SUMMARY_SUFFIX_IN_4x) || nsCStringEndsWith(fileOrDirNameStr, NEWS_SUMMARY_SUFFIX_IN_4x) || 
+          nsCStringEndsWith(fileOrDirNameStr, SUMMARY_SUFFIX_IN_5x)) /* Don't copy the summary files */
       continue;
     else
     {
-      if (fileOrDirName.IsDirectory())
+      PRBool isDirectory = PR_FALSE;
+      currentFile->IsDirectory(&isDirectory);
+      if (isDirectory)
       {
         if(readSubdirs)
         {
-          nsCOMPtr<nsIFileSpec> newPathExtended;
-          rv = NS_NewFileSpecWithSpec(newPath, getter_AddRefs(newPathExtended));
-          rv = newPathExtended->AppendRelativeUnixPath(folderName);
-          rv = newPathExtended->CreateDir();
+          nsCOMPtr<nsIFile> newPathExtended;
+          rv = newPathFile->Clone(getter_AddRefs(newPathExtended));
+          NS_ENSURE_SUCCESS(rv, rv);
+          rv = newPathExtended->AppendNative(fileOrDirNameStr);
+          rv = newPathExtended->Create(nsIFile::DIRECTORY_TYPE, 0700);
           
-          nsCOMPtr<nsIFileSpec>fileOrDirNameSpec;
-          rv = NS_NewFileSpecWithSpec(fileOrDirName, getter_AddRefs(fileOrDirNameSpec));
-          DoTheCopyAndRename(fileOrDirNameSpec, newPathExtended, PR_TRUE, needToRenameFiles, oldName, newName); /* re-enter the DoTheCopyAndRename function */
+          DoTheCopyAndRename(curLocalFile, newPathExtended, PR_TRUE, needToRenameFiles, oldName, newName); /* re-enter the DoTheCopyAndRename function */
         }
         else
           continue;
@@ -1436,9 +1334,9 @@ nsresult nsDogbertProfileMigrator::DoTheCopyAndRename(nsIFileSpec * oldPathSpec,
       else {
         // copy the file
         if (fileOrDirNameStr.Equals(oldName)) 
-          AddFileCopyToList(&fileOrDirName, &newPath, newName);
+          AddFileCopyToList(curLocalFile, newPathFile, newName);
         else
-          AddFileCopyToList(&fileOrDirName, &newPath, "");
+          AddFileCopyToList(curLocalFile, newPathFile, "");
       }
     }
   }  
@@ -1461,135 +1359,126 @@ nsresult nsDogbertProfileMigrator::DoTheCopyAndRename(nsIFileSpec * oldPathSpec,
  *          NS_ERROR_FAILURE if failed
  *
  *--------------------------------------------------------------------------*/
-nsresult nsDogbertProfileMigrator::DoTheCopyAndRename(nsIFileSpec * aPathSpec, PRBool aReadSubdirs, const char *aOldName, const char *aNewName)
+nsresult nsDogbertProfileMigrator::DoTheCopyAndRename(nsIFile * aPathFile, PRBool aReadSubdirs, const char *aOldName, const char *aNewName)
 {
   if( !aOldName || !aNewName || !strcmp(aOldName, aNewName) )
     return NS_ERROR_FAILURE;
 
-  nsresult rv;
-  nsFileSpec path, file;
+  nsCOMPtr <nsIFile> file;
+  nsresult rv = aPathFile->Clone(getter_AddRefs(file));
+  NS_ENSURE_SUCCESS(rv, rv);
+  file->AppendNative(nsDependentCString(aOldName));
   
-  rv = aPathSpec->GetFileSpec(&path);
-  if (NS_FAILED(rv))
-    return rv;
-  rv = aPathSpec->GetFileSpec(&file);
-  if (NS_FAILED(rv))
-    return rv;
-  file += aOldName;
+  nsCOMPtr<nsISimpleEnumerator> directoryEnumerator;
+  rv = aPathFile->GetDirectoryEntries(getter_AddRefs(directoryEnumerator));
+  NS_ENSURE_SUCCESS(rv, rv);
   
-  // Handle sub folders
-  for (nsDirectoryIterator dir(path, PR_FALSE); dir.Exists(); dir++)
+  PRBool hasMore;
+  directoryEnumerator->HasMoreElements(&hasMore);
+  while (hasMore && NS_SUCCEEDED(rv))
   {
-    nsFileSpec fileOrDirName = dir.Spec(); //set first file or dir to a nsFileSpec
-    if (fileOrDirName.IsDirectory())
+    nsCOMPtr<nsISupports> aSupport;
+    rv = directoryEnumerator->GetNext(getter_AddRefs(aSupport));
+    nsCOMPtr<nsILocalFile> currentFile(do_QueryInterface(aSupport, &rv));
+    // Handle sub folders
+    PRBool isDirectory = PR_FALSE;
+    currentFile->IsDirectory(&isDirectory);
+    if (isDirectory)
     {
       if( aReadSubdirs )
       {
-        nsCOMPtr<nsIFileSpec>fileOrDirNameSpec;
-        rv = NS_NewFileSpecWithSpec(fileOrDirName, getter_AddRefs(fileOrDirNameSpec));
-        DoTheCopyAndRename(fileOrDirNameSpec, aReadSubdirs, aOldName, aNewName); /* re-enter the DoTheCopyAndRename function */
+        nsCOMPtr<nsIFile>fileOrDirName;
+        currentFile->Clone(getter_AddRefs(fileOrDirName));
+        DoTheCopyAndRename(fileOrDirName, aReadSubdirs, aOldName, aNewName); /* re-enter the DoTheCopyAndRename function */
       }
       else
         continue;
     }
   }
 
-  nsCOMPtr<nsILocalFile> localFileOld, localFileDirectory;
-  rv = NS_FileSpecToIFile(&file, getter_AddRefs(localFileOld));
-  if (NS_FAILED(rv))
-    return rv;
-  rv = NS_FileSpecToIFile(&path, getter_AddRefs(localFileDirectory));
-  if (NS_FAILED(rv))
-    return rv;
   nsAutoString newName = NS_ConvertUTF8toUTF16(aNewName);
-  localFileOld->CopyTo(localFileDirectory, newName);
+  file->CopyTo(aPathFile, newName);
 
   return NS_OK;
 }
 
-nsresult nsDogbertProfileMigrator::CopyFilesByPattern(nsIFileSpec * oldPathSpec, nsIFileSpec * newPathSpec, const char *pattern)
+nsresult nsDogbertProfileMigrator::CopyFilesByPattern(nsILocalFile * oldPathFile, nsILocalFile * newPathFile, const char *pattern)
 {
-  nsFileSpec oldPath;
-  nsFileSpec newPath;
+  nsCOMPtr<nsISimpleEnumerator> directoryEnumerator;
+  nsresult rv = oldPathFile->GetDirectoryEntries(getter_AddRefs(directoryEnumerator));
+  NS_ENSURE_SUCCESS(rv, rv);
   
-  nsresult rv = oldPathSpec->GetFileSpec(&oldPath);
-  NS_ENSURE_SUCCESS(rv,rv);
-  rv = newPathSpec->GetFileSpec(&newPath);
-  NS_ENSURE_SUCCESS(rv,rv);
-  
-  for (nsDirectoryIterator dir(oldPath, PR_FALSE); dir.Exists(); dir++)
+  PRBool hasMore;
+  directoryEnumerator->HasMoreElements(&hasMore);
+  while (hasMore && NS_SUCCEEDED(rv))
   {
-    nsFileSpec fileOrDirName = dir.Spec();    //set first file or dir to a nsFileSpec
-
-    if (fileOrDirName.IsDirectory())
+    nsCOMPtr<nsISupports> aSupport;
+    rv = directoryEnumerator->GetNext(getter_AddRefs(aSupport));
+    nsCOMPtr<nsILocalFile> currentFile(do_QueryInterface(aSupport, &rv));
+    
+    PRBool isDirectory = PR_FALSE;
+    currentFile->IsDirectory(&isDirectory);
+    if (isDirectory)
       continue;
 
-    nsCAutoString fileOrDirNameStr(fileOrDirName.GetLeafName());
+    nsCAutoString fileOrDirNameStr;
+    currentFile->GetNativeLeafName(fileOrDirNameStr);
     if (!nsCStringEndsWith(fileOrDirNameStr, pattern))
       continue;
 
 
-    AddFileCopyToList(&fileOrDirName, &newPath, "");
+    AddFileCopyToList(currentFile, newPathFile, "");
   }  
   
   return NS_OK;
 }
 
-nsresult nsDogbertProfileMigrator::AddFileCopyToList(nsFileSpec * aOldPath, nsFileSpec * aNewPath, const char * newName)
+nsresult nsDogbertProfileMigrator::AddFileCopyToList(nsIFile * aOldPath, nsIFile * aNewPath, const char * newName)
 {
-  // convert to nsIFile
-  nsCOMPtr<nsILocalFile> oldPathFile;
-  nsCOMPtr<nsILocalFile> newPathFile;
-
-  NS_FileSpecToIFile(aOldPath, getter_AddRefs(oldPathFile));
-  NS_FileSpecToIFile(aNewPath, getter_AddRefs(newPathFile));
-
   fileTransactionEntry* fileEntry = new fileTransactionEntry;
-  fileEntry->srcFile = do_QueryInterface(oldPathFile);
-  fileEntry->destFile = do_QueryInterface(newPathFile);
+  fileEntry->srcFile = do_QueryInterface(aOldPath);
+  fileEntry->destFile = do_QueryInterface(aNewPath);
   fileEntry->newName = NS_ConvertUTF8toUTF16(newName);
   mFileCopyTransactions->AppendElement((void*) fileEntry);
 
   return NS_OK;
 }
 
-nsresult nsDogbertProfileMigrator::DoTheCopy(nsIFileSpec * oldPath, nsIFileSpec * newPath, PRBool readSubdirs)
+nsresult nsDogbertProfileMigrator::DoTheCopy(nsIFile * oldPath, nsIFile * newPath, PRBool readSubdirs)
 {
   return DoTheCopyAndRename(oldPath, newPath, readSubdirs, PR_FALSE, "", "");
 }
 
-nsresult nsDogbertProfileMigrator::DoTheCopy(nsIFileSpec * oldPath, nsIFileSpec * newPath, const char *fileOrDirName, PRBool isDirectory)
+nsresult nsDogbertProfileMigrator::DoTheCopy(nsILocalFile * oldPath, nsILocalFile * newPath, const char *fileOrDirName, PRBool isDirectory)
 {
   nsresult rv;
 
   if (isDirectory)
   {
-    nsCOMPtr<nsIFileSpec> oldSubPath;
+    nsCOMPtr<nsIFile> oldSubPath;
 
-    NS_NewFileSpec(getter_AddRefs(oldSubPath));
-    oldSubPath->FromFileSpec(oldPath);
-    rv = oldSubPath->AppendRelativeUnixPath(fileOrDirName);
+    oldPath->Clone(getter_AddRefs(oldSubPath));
+    rv = oldSubPath->AppendNative(nsDependentCString(fileOrDirName));
     if (NS_FAILED(rv)) return rv;
     PRBool exist;
     rv = oldSubPath->Exists(&exist);
     if (NS_FAILED(rv)) return rv;
     if (!exist)
     {
-      rv = oldSubPath->CreateDir();
+      rv = oldSubPath->Create(nsIFile::DIRECTORY_TYPE, 0700);
       if (NS_FAILED(rv)) return rv;
     }
 
-    nsCOMPtr<nsIFileSpec> newSubPath;
+    nsCOMPtr<nsILocalFile> newSubPath = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+    newSubPath->InitWithFile(newPath);
 
-    NS_NewFileSpec(getter_AddRefs(newSubPath));
-    newSubPath->FromFileSpec(newPath);
-    rv = newSubPath->AppendRelativeUnixPath(fileOrDirName);
+    rv = newSubPath->AppendNative(nsDependentCString(fileOrDirName));
     if (NS_FAILED(rv)) return rv;
     rv = newSubPath->Exists(&exist);
     if (NS_FAILED(rv)) return rv;
     if (!exist)
     {
-      rv = newSubPath->CreateDir();
+      rv = newSubPath->Create(nsIFile::DIRECTORY_TYPE, 0700);
       if (NS_FAILED(rv)) return rv;
     }
 
@@ -1597,22 +1486,15 @@ nsresult nsDogbertProfileMigrator::DoTheCopy(nsIFileSpec * oldPath, nsIFileSpec 
   }
   else
   {
-    nsCOMPtr<nsIFileSpec> file;
-    NS_NewFileSpec(getter_AddRefs(file));
-    file->FromFileSpec(oldPath);
-    rv = file->AppendRelativeUnixPath(fileOrDirName);
+    nsCOMPtr<nsILocalFile> file = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+    file->InitWithFile(oldPath);
+    rv = file->AppendNative(nsDependentCString(fileOrDirName));
     if( NS_FAILED(rv) ) return rv;
     PRBool exist;
     rv = file->Exists(&exist);
     if( NS_FAILED(rv) ) return rv;
     if( exist) {
-      // convert back to nsFileSpec
-      nsFileSpec oldPath;
-      nsFileSpec newPathSpec;
-
-      file->GetFileSpec(&oldPath);
-      newPath->GetFileSpec(&newPathSpec);
-      AddFileCopyToList(&oldPath, &newPathSpec, "");
+      AddFileCopyToList(oldPath, newPath, "");
     }
   }
 
@@ -1624,30 +1506,27 @@ nsresult nsDogbertProfileMigrator::DoTheCopy(nsIFileSpec * oldPath, nsIFileSpec 
  * DoSpecialUpdates updates is a routine that does some miscellaneous updates 
  * like renaming certain files, etc.
  *--------------------------------------------------------------------------*/
-nsresult nsDogbertProfileMigrator::DoSpecialUpdates(nsIFileSpec  * profilePath)
+nsresult nsDogbertProfileMigrator::DoSpecialUpdates(nsILocalFile  * profilePath)
 {
   nsresult rv;
   PRInt32 serverType;
-  nsFileSpec fs;
-
-  rv = profilePath->GetFileSpec(&fs);
+  nsCOMPtr <nsILocalFile> prefFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
   if (NS_FAILED(rv)) return rv;
+  prefFile->InitWithFile(profilePath);
+  prefFile->AppendNative(NS_LITERAL_CSTRING(PREF_FILE_NAME_IN_5x));
   
-  fs += PREF_FILE_NAME_IN_5x;
-  
-  nsOutputFileStream fsStream(fs, (PR_WRONLY | PR_CREATE_FILE | PR_APPEND));
-  
-  if (!fsStream.is_open())
-  {
-    return NS_ERROR_FAILURE;
-  }
+  nsCOMPtr <nsIOutputStream> fsStream;
+  rv = NS_NewLocalFileOutputStream(getter_AddRefs(fsStream), prefFile, PR_WRONLY | PR_APPEND | PR_CREATE_FILE, 0660);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   /* Need to add a string to the top of the prefs.js file to prevent it
    * from being loaded as a standard javascript file which would be a
    * security hole.
    */
-  fsStream << PREF_FILE_HEADER_STRING << nsEndl ;
-  fsStream.close();
+  PRUint32 bytesWritten;
+  nsCAutoString headerLine(PREF_FILE_HEADER_STRING NS_LINEBREAK);
+  fsStream->Write(headerLine.get(), headerLine.Length(), &bytesWritten) ;
+  fsStream->Close();
     
   /* Create the new mail directory from the setting in prefs.js or a default */
   rv = mPrefs->GetIntPref(PREF_MAIL_SERVER_TYPE, &serverType);
@@ -1669,12 +1548,12 @@ nsresult nsDogbertProfileMigrator::DoSpecialUpdates(nsIFileSpec  * profilePath)
   return rv;
 }
 
-nsresult nsDogbertProfileMigrator::RenameAndMove4xPopFilterFile(nsIFileSpec * profilePath)
+nsresult nsDogbertProfileMigrator::RenameAndMove4xPopFilterFile(nsILocalFile * profilePath)
 {
   return RenameAndMove4xPopFile(profilePath, POP_MAIL_FILTER_FILE_NAME_IN_4x, POP_MAIL_FILTER_FILE_NAME_IN_5x);
 }
 
-nsresult nsDogbertProfileMigrator::RenameAndMove4xPopStateFile(nsIFileSpec * profilePath)
+nsresult nsDogbertProfileMigrator::RenameAndMove4xPopStateFile(nsILocalFile * profilePath)
 {
 #ifdef POPSTATE_FILE_IN_4x
   return RenameAndMove4xPopFile(profilePath, POPSTATE_FILE_IN_4x, POPSTATE_FILE_IN_5x);
@@ -1687,26 +1566,27 @@ nsresult nsDogbertProfileMigrator::RenameAndMove4xPopStateFile(nsIFileSpec * pro
 #endif /* POPSTATE_FILE_IN_4x */
 }
 
-nsresult nsDogbertProfileMigrator::RenameAndMove4xPopFile(nsIFileSpec * profilePath, const char *fileNameIn4x, const char *fileNameIn5x)
+nsresult nsDogbertProfileMigrator::RenameAndMove4xPopFile(nsILocalFile * profilePath, const char *fileNameIn4x, const char *fileNameIn5x)
 {
-  nsFileSpec file;
-  nsresult rv = profilePath->GetFileSpec(&file);
-  if (NS_FAILED(rv)) return rv;
+  nsresult rv;
+  nsCOMPtr <nsILocalFile> file = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  file->InitWithFile(profilePath);
   
   // we assume the 4.x pop files live at <profile>/<fileNameIn4x>
-  file += fileNameIn4x;
+  file->AppendNative(nsDependentCString(fileNameIn4x));
 
   // figure out where the 4.x pop mail directory got copied to
   char *popServerName = nsnull;
-  nsFileSpec migratedPopDirectory;
-  rv = profilePath->GetFileSpec(&migratedPopDirectory);
-  migratedPopDirectory += NEW_MAIL_DIR_NAME;
+  nsCOMPtr <nsIFile> migratedPopDirectory;
+  profilePath->Clone(getter_AddRefs(migratedPopDirectory));
+  migratedPopDirectory->AppendNative(NS_LITERAL_CSTRING(NEW_MAIL_DIR_NAME));
   mPrefs->GetCharPref(PREF_NETWORK_HOSTS_POP_SERVER, &popServerName);
-  migratedPopDirectory += popServerName;
+  migratedPopDirectory->AppendNative(nsDependentCString(popServerName));
   PR_FREEIF(popServerName);
 
   // copy the 4.x file from <profile>/<fileNameIn4x> to the <profile>/Mail/<hostname>/<fileNameIn4x>
-  rv = file.CopyToDir(migratedPopDirectory);
+  rv = file->CopyTo(migratedPopDirectory, EmptyString());
   NS_ASSERTION(NS_SUCCEEDED(rv),"failed to copy pop file");
   
   // XXX todo, delete the old file
@@ -1714,12 +1594,11 @@ nsresult nsDogbertProfileMigrator::RenameAndMove4xPopFile(nsIFileSpec * profileP
   
   // make migratedPopDirectory point the the copied filter file,
   // <profile>/Mail/<hostname>/<fileNameIn4x>
-  migratedPopDirectory += fileNameIn4x;
+  migratedPopDirectory->AppendNative(nsDependentCString(fileNameIn4x));
 
   // rename <profile>/Mail/<hostname>/<fileNameIn4x>to <profile>/Mail/<hostname>/<fileNameIn5x>, if necessary
-  if (PL_strcmp(fileNameIn4x,fileNameIn5x)) {
-	  migratedPopDirectory.Rename(fileNameIn5x);
-  }
+  if (PL_strcmp(fileNameIn4x,fileNameIn5x))
+	  migratedPopDirectory->MoveToNative(nsnull, nsDependentCString(fileNameIn5x));
 
   return NS_OK;
 }
@@ -1727,43 +1606,45 @@ nsresult nsDogbertProfileMigrator::RenameAndMove4xPopFile(nsIFileSpec * profileP
 
 #ifdef IMAP_MAIL_FILTER_FILE_NAME_FORMAT_IN_4x
 #define BUFFER_LEN	128
-nsresult nsDogbertProfileMigrator::RenameAndMove4xImapFilterFile(nsIFileSpec * profilePath, const char *hostname)
+nsresult nsDogbertProfileMigrator::RenameAndMove4xImapFilterFile(nsILocalFile * profilePath, const char *hostname)
 {
-  nsresult rv = NS_OK;
   char imapFilterFileName[BUFFER_LEN];
 
   // the 4.x imap filter file lives in "<profile>/<hostname> Rules"
-  nsFileSpec file;
-  rv = profilePath->GetFileSpec(&file);
+  nsCOMPtr <nsIFile> file;
+  nsresult rv = profilePath->Clone(getter_AddRefs(file));
   if (NS_FAILED(rv)) return rv;
   
   PR_snprintf(imapFilterFileName, BUFFER_LEN, IMAP_MAIL_FILTER_FILE_NAME_FORMAT_IN_4x, hostname);
-  file += imapFilterFileName;
+  file->AppendNative(nsDependentCString(imapFilterFileName));
 
+  PRBool exists = PR_FALSE;
+  file->Exists(&exists);
   // if that file didn't exist, because they didn't use filters for that server, return now
-  if (!file.Exists()) return NS_OK;
+  if (!exists) return NS_OK;
 
   // figure out where the 4.x pop mail directory got copied to
-  nsFileSpec migratedImapDirectory;
-  rv = profilePath->GetFileSpec(&migratedImapDirectory);
-  migratedImapDirectory += NEW_IMAPMAIL_DIR_NAME;
-  migratedImapDirectory += hostname;
+  nsCOMPtr <nsILocalFile> migratedImapDirectory = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  migratedImapDirectory->InitWithFile(profilePath);
+  migratedImapDirectory->AppendNative(NS_LITERAL_CSTRING(NEW_IMAPMAIL_DIR_NAME));
+  migratedImapDirectory->AppendNative(nsDependentCString(hostname));
 
   // copy the 4.x file from "<profile>/<hostname> Rules" to <profile>/ImapMail/<hostname>/
-  rv = file.CopyToDir(migratedImapDirectory);
+  rv = file->CopyTo(migratedImapDirectory, EmptyString());
   NS_ASSERTION(NS_SUCCEEDED(rv),"failed to copy imap file");
 
   // make migratedPopDirectory point the the copied filter file,
   // "<profile>/ImapMail/<hostname>/<hostname> Rules"
-  migratedImapDirectory += imapFilterFileName;
+  migratedImapDirectory->AppendNative(nsDependentCString(imapFilterFileName));
 
   // rename "<profile>/ImapMail/<hostname>/<hostname> Rules" to  "<profile>/ImapMail/<hostname>/rules.dat"
-  migratedImapDirectory.Rename(IMAP_MAIL_FILTER_FILE_NAME_IN_5x);
+  migratedImapDirectory->MoveTo(nsnull, NS_LITERAL_STRING(IMAP_MAIL_FILTER_FILE_NAME_IN_5x));
 
   return NS_OK;         
 }
 
-nsresult nsDogbertProfileMigrator::RenameAndMove4xImapFilterFiles(nsIFileSpec * profilePath)
+nsresult nsDogbertProfileMigrator::RenameAndMove4xImapFilterFiles(nsILocalFile * profilePath)
 {
   nsresult rv;
   char *hostList=nsnull;
@@ -1799,54 +1680,46 @@ nsresult nsDogbertProfileMigrator::RenameAndMove4xImapFilterFiles(nsIFileSpec * 
 #endif /* IMAP_MAIL_FILTER_FILE_NAME_FORMAT_IN_4x */
 
 nsresult
-nsDogbertProfileMigrator::Rename4xFileAfterMigration(nsIFileSpec * profilePath, const char *oldFileName, const char *newFileName)
+nsDogbertProfileMigrator::Rename4xFileAfterMigration(nsIFile * profilePath, const char *oldFileName, const char *newFileName)
 {
-  nsresult rv = NS_OK;
   // if they are the same, don't bother to rename the file.
-  if (PL_strcmp(oldFileName, newFileName) == 0) {
-    return rv;
-  }
+  if (PL_strcmp(oldFileName, newFileName) == 0)
+    return NS_OK;
                
-  nsFileSpec file;
-  rv = profilePath->GetFileSpec(&file);
+  nsCOMPtr <nsIFile> file;
+  nsresult rv = profilePath->Clone(getter_AddRefs(file));
   if (NS_FAILED(rv)) return rv;
   
-  file += oldFileName;
-  
+  file->AppendNative(nsDependentCString(oldFileName));
+  PRBool exists = PR_FALSE;
+  file->Exists(&exists);
   // make sure it exists before you try to rename it
-  if (file.Exists()) {
-    file.Rename(newFileName);
-  }
+  if (exists)
+    rv = file->MoveToNative(nsnull, nsDependentCString(newFileName));
+
   return rv;
 }
 
 #ifdef NEED_TO_COPY_AND_RENAME_NEWSRC_FILES
-nsresult nsDogbertProfileMigrator::GetPremigratedFilePref(const char *pref_name, nsIFileSpec **path)
+nsresult nsDogbertProfileMigrator::GetPremigratedFilePref(const char *pref_name, nsILocalFile **path)
 {
-  nsresult rv;
   if (!pref_name) return NS_ERROR_FAILURE;
   char premigration_pref[MAX_PREF_LEN];
   PR_snprintf(premigration_pref,MAX_PREF_LEN,"%s%s",PREMIGRATION_PREFIX,pref_name);
 
-  nsCOMPtr<nsILocalFile> preMigrationFile;
-  rv = mPrefs->GetComplexValue((const char *)premigration_pref, NS_GET_IID(nsILocalFile), getter_AddRefs(preMigrationFile));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  return NS_NewFileSpecFromIFile(preMigrationFile, path);;
+  return mPrefs->GetComplexValue((const char *)premigration_pref, NS_GET_IID(nsILocalFile), (void **) path);
 }
 
 #endif /* NEED_TO_COPY_AND_RENAME_NEWSRC_FILES */
 
-nsresult nsDogbertProfileMigrator::DetermineOldPath(nsIFileSpec *profilePath, const char *oldPathName, const char *oldPathEntityName, nsIFileSpec *oldPath)
+nsresult nsDogbertProfileMigrator::DetermineOldPath(nsILocalFile *profilePath, const char *oldPathName, const char *oldPathEntityName, nsILocalFile *oldPath)
 {
 	nsresult rv;
 
-  	/* set oldLocalFile to profilePath.  need to convert nsIFileSpec->nsILocalFile */
-	nsCOMPtr<nsILocalFile> oldLocalFile;
-	nsFileSpec pathSpec;
-	profilePath->GetFileSpec(&pathSpec);
-	rv = NS_FileSpecToIFile(&pathSpec, getter_AddRefs(oldLocalFile));
-	if (NS_FAILED(rv)) return rv;
+  	/* set oldLocalFile to profilePath.  need to convert nsILocalFile->nsILocalFile */
+	nsCOMPtr<nsILocalFile> oldLocalFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+	NS_ENSURE_SUCCESS(rv, rv);
+        oldLocalFile->InitWithFile(profilePath);
 	
 	/* get the string bundle, and get the appropriate localized string out of it */
 	nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
@@ -1869,10 +1742,10 @@ nsresult nsDogbertProfileMigrator::DetermineOldPath(nsIFileSpec *profilePath, co
 	rv = oldLocalFile->Exists(&exists);
 	if (!exists) {
 		/* if the localized name doesn't exist, use the english name */
-		rv = oldPath->FromFileSpec(profilePath);
+		rv = oldPath->InitWithFile(profilePath);
 		if (NS_FAILED(rv)) return rv;
 		
-		rv = oldPath->AppendRelativeUnixPath(oldPathName);
+		rv = oldPath->AppendNative(nsDependentCString(oldPathName));
 		if (NS_FAILED(rv)) return rv;
 		
 		return NS_OK;
@@ -1882,18 +1755,18 @@ nsresult nsDogbertProfileMigrator::DetermineOldPath(nsIFileSpec *profilePath, co
 	nsCAutoString persistentDescriptor;
 	rv = oldLocalFile->GetPersistentDescriptor(persistentDescriptor);
 	if (NS_FAILED(rv)) return rv;
-	rv = oldPath->SetPersistentDescriptorString(persistentDescriptor.get());
+	rv = oldPath->SetPersistentDescriptor(persistentDescriptor);
 	if (NS_FAILED(rv)) return rv;
 
 	return NS_OK;
 }
 
-nsresult nsDogbertProfileMigrator::ConvertPersistentStringToFileSpec(const char *str, nsIFileSpec *path)
+nsresult nsDogbertProfileMigrator::ConvertPersistentStringToFile(const char *str, nsILocalFile *path)
 {
 	nsresult rv;
 	if (!str || !path) return NS_ERROR_NULL_POINTER;
 	
-	rv = path->SetPersistentDescriptorString(str);
+	rv = path->SetPersistentDescriptor(nsDependentCString(str));
 	return rv;
 }
 
@@ -1901,31 +1774,46 @@ nsresult nsDogbertProfileMigrator::ConvertPersistentStringToFileSpec(const char 
  * GetSizes reads the 4.x files in the profile tree and accumulates their sizes
  *--------------------------------------------------------------------------------*/
 
-nsresult nsDogbertProfileMigrator::GetSizes(nsFileSpec inputPath, PRBool readSubdirs, PRUint32 *sizeTotal)
+nsresult nsDogbertProfileMigrator::GetSizes(nsILocalFile *inputPath, PRBool readSubdirs, PRInt64 *sizeTotal)
 {
-  char* folderName;
-  nsCAutoString fileOrDirNameStr;
+  nsCAutoString folderName;
 
-  for (nsDirectoryIterator dir(inputPath, PR_FALSE); dir.Exists(); dir++)
+  nsCOMPtr<nsISimpleEnumerator> directoryEnumerator;
+  nsresult rv = inputPath->GetDirectoryEntries(getter_AddRefs(directoryEnumerator));
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  PRBool hasMore;
+  directoryEnumerator->HasMoreElements(&hasMore);
+  while (hasMore && NS_SUCCEEDED(rv))
   {
-    nsFileSpec fileOrDirName = dir.Spec();
-    folderName = fileOrDirName.GetLeafName();
-    fileOrDirNameStr.Assign(folderName);
-    if (nsCStringEndsWith(fileOrDirNameStr, MAIL_SUMMARY_SUFFIX_IN_4x) || nsCStringEndsWith(fileOrDirNameStr, NEWS_SUMMARY_SUFFIX_IN_4x) || nsCStringEndsWith(fileOrDirNameStr, SUMMARY_SUFFIX_IN_5x)) /* Don't copy the summary files */
+    nsCOMPtr<nsISupports> aSupport;
+    rv = directoryEnumerator->GetNext(getter_AddRefs(aSupport));
+    nsCOMPtr<nsILocalFile> currentFile(do_QueryInterface(aSupport, &rv));
+    // Handle sub folders
+    PRBool isDirectory = PR_FALSE;
+    currentFile->GetNativeLeafName(folderName);
+    if (nsCStringEndsWith(folderName, MAIL_SUMMARY_SUFFIX_IN_4x) || nsCStringEndsWith(folderName, NEWS_SUMMARY_SUFFIX_IN_4x) || nsCStringEndsWith(folderName, SUMMARY_SUFFIX_IN_5x)) /* Don't copy the summary files */
       continue;
     else
     {
-      if (fileOrDirName.IsDirectory())
+      currentFile->IsDirectory(&isDirectory);
+    if (isDirectory)
+
       {
         if(readSubdirs)
         {
-          GetSizes(fileOrDirName, PR_TRUE, sizeTotal); /* re-enter the GetSizes function */
+          GetSizes(currentFile, PR_TRUE, sizeTotal); /* re-enter the GetSizes function */
         }
         else
           continue;
       }
       else
-        *sizeTotal += fileOrDirName.GetFileSize();
+      {
+        PRInt64 fileSize;
+        currentFile->GetFileSize(&fileSize);
+        *sizeTotal += fileSize;
+        
+      }
     }
   }
 
@@ -1958,13 +1846,16 @@ nsresult nsDogbertProfileMigrator::GetSizes(nsFileSpec inputPath, PRBool readSub
  *
  *--------------------------------------------------------------------------------*/
 nsresult
-nsDogbertProfileMigrator::GetDirFromPref(nsIFileSpec * oldProfilePath, nsIFileSpec * newProfilePath, const char *newDirName, const char* pref, nsIFileSpec* newPath, nsIFileSpec* oldPath)
+nsDogbertProfileMigrator::GetDirFromPref(nsILocalFile * oldProfilePath, nsILocalFile * newProfilePath, const char *newDirName, const char* pref, nsILocalFile** newPath, nsILocalFile** oldPath)
 {
   nsresult rv;
   
-  if (!oldProfilePath || !newProfilePath || !newDirName || !pref || !newPath || !oldPath) return NS_ERROR_NULL_POINTER;
+  if (!oldProfilePath || !newProfilePath || !newDirName || !pref || !newPath || !oldPath)
+    return NS_ERROR_NULL_POINTER;
   
-  nsCOMPtr <nsIFileSpec> oldPrefPath;
+  nsCOMPtr <nsILocalFile> oldPrefPath;
+  nsCOMPtr <nsILocalFile> newPathFile;
+  nsCOMPtr <nsILocalFile> oldPathFile;
   nsXPIDLCString oldPrefPathStr;
   rv = mPrefs->GetCharPref(pref, getter_Copies(oldPrefPathStr));
   if (NS_FAILED(rv)) return rv;
@@ -1976,25 +1867,8 @@ nsDogbertProfileMigrator::GetDirFromPref(nsIFileSpec * oldProfilePath, nsIFileSp
   }
   if (NS_FAILED(rv)) return rv;
   
-  nsCOMPtr <nsILocalFile> oldPrefPathFile;
-  rv = mPrefs->GetComplexValue(pref, NS_GET_IID(nsILocalFile), getter_AddRefs(oldPrefPathFile));
+  rv = mPrefs->GetComplexValue(pref, NS_GET_IID(nsILocalFile), getter_AddRefs(oldPathFile));
   if (NS_FAILED(rv)) return rv;
-  
-  // convert nsILocalFile to nsIFileSpec
-  rv = oldPrefPathFile->GetNativePath(oldPrefPathStr);
-  if (NS_FAILED(rv)) return rv;
-
-  rv = NS_NewFileSpec(getter_AddRefs(oldPrefPath));
-  if (NS_FAILED(rv)) return rv;
-  
-  rv = oldPrefPath->SetNativePath(oldPrefPathStr);
-  if (NS_FAILED(rv)) return rv;
-
-  // oldPath will also needs the conversion from nsILocalFile
-  // this is nasty, eventually we'll switch entirely over to nsILocalFile
-  rv = oldPath->SetNativePath(oldPrefPathStr);
-  if (NS_FAILED(rv)) return rv;
-
   
 #ifdef XP_UNIX
 	// what if they don't want to go to <profile>/<newDirName>?
@@ -2005,7 +1879,7 @@ nsDogbertProfileMigrator::GetDirFromPref(nsIFileSpec * oldProfilePath, nsIFileSp
 	// let's make all three platforms the same.
 	if (PR_TRUE) {
 #else
-	nsCOMPtr <nsIFileSpec> oldPrefPathParent;
+	nsCOMPtr <nsILocalFile> oldPrefPathParent;
 	rv = oldPrefPath->GetParent(getter_AddRefs(oldPrefPathParent));
 	if (NS_FAILED(rv)) return rv;
 
@@ -2014,24 +1888,26 @@ nsDogbertProfileMigrator::GetDirFromPref(nsIFileSpec * oldProfilePath, nsIFileSp
 	// this way it will get migrated as the user expects
 	PRBool pathsMatch;
 	rv = oldProfilePath->Equals(oldPrefPathParent, &pathsMatch);
-	if (NS_SUCCEEDED(rv) && pathsMatch) {
+        newPathFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+        NS_ENSURE_SUCCESS(rv, rv);
+	if (NS_SUCCEEDED(rv) && pathsMatch)
+        {
+          
 #endif /* XP_UNIX */
-		rv = newPath->FromFileSpec(newProfilePath);
-		if (NS_FAILED(rv)) return rv;
+          newPathFile->InitWithFile(newProfilePath);
 	}
-	else {
-		nsXPIDLCString leafname;
-		rv = newPath->FromFileSpec(oldPath);
-		if (NS_FAILED(rv)) return rv;
-		rv = newPath->GetLeafName(getter_Copies(leafname));
-		if (NS_FAILED(rv)) return rv;
-		nsCString newleafname((const char *)leafname);
-		newleafname += NEW_DIR_SUFFIX;
-		rv = newPath->SetLeafName(newleafname.get());
-		if (NS_FAILED(rv)) return rv;
+	else
+        {
+          nsCAutoString leafname;
+          newPathFile->InitWithFile(oldPathFile);
+          rv = newPathFile->GetNativeLeafName(leafname);
+          if (NS_FAILED(rv)) return rv;
+          leafname.Append(NS_LITERAL_CSTRING(NEW_DIR_SUFFIX));
+          rv = newPathFile->SetNativeLeafName(leafname);
+          if (NS_FAILED(rv)) return rv;
 	}
 
-  rv = SetPremigratedFilePref(pref, oldPath);
+  rv = SetPremigratedFilePref(pref, oldPathFile);
   if (NS_FAILED(rv)) return rv;
   
 #ifdef XP_UNIX
@@ -2044,36 +1920,29 @@ nsDogbertProfileMigrator::GetDirFromPref(nsIFileSpec * oldProfilePath, nsIFileSp
    * isn't this fun?  
    */
   if (PL_strcmp(PREF_NEWS_DIRECTORY, pref) == 0) {
-    rv = oldPath->FromFileSpec(oldProfilePath);
-    if (NS_FAILED(rv)) return rv;
-    rv = oldPath->AppendRelativeUnixPath(OLD_NEWS_DIR_NAME);
+    rv = oldProfilePath->AppendNative(NS_LITERAL_CSTRING(OLD_NEWS_DIR_NAME));
     if (NS_FAILED(rv)) return rv;
   }
 #endif /* XP_UNIX */
+  NS_IF_ADDREF(*newPath = newPathFile);
+  NS_IF_ADDREF(*oldPath = oldPathFile);
   return rv;
 }
 
-nsresult nsDogbertProfileMigrator::SetPremigratedFilePref(const char *pref_name, nsIFileSpec *path)
+nsresult nsDogbertProfileMigrator::SetPremigratedFilePref(const char *pref_name, nsILocalFile *pathFile)
 {
-	nsresult rv;
+  nsresult rv;
 
-	if (!pref_name) return NS_ERROR_FAILURE;
+  if (!pref_name) return NS_ERROR_FAILURE;
 
-	// save off the old pref, prefixed with "premigration"
-	// for example, we need the old "mail.directory" pref when
-	// migrating the copies and folder prefs in nsMsgAccountManager.cpp
-	//
-	// note we do this for all platforms.
-	char premigration_pref[MAX_PREF_LEN];
-	PR_snprintf(premigration_pref,MAX_PREF_LEN,"%s%s",PREMIGRATION_PREFIX,pref_name);
+  // save off the old pref, prefixed with "premigration"
+  // for example, we need the old "mail.directory" pref when
+  // migrating the copies and folder prefs in nsMsgAccountManager.cpp
+  //
+  // note we do this for all platforms.
+  char premigration_pref[MAX_PREF_LEN];
+  PR_snprintf(premigration_pref,MAX_PREF_LEN,"%s%s",PREMIGRATION_PREFIX,pref_name);
 
-  // need to convert nsIFileSpec->nsILocalFile
-  nsFileSpec pathSpec;
-  path->GetFileSpec(&pathSpec);
-  
-  nsCOMPtr<nsILocalFile> pathFile;
-  rv = NS_FileSpecToIFile(&pathSpec, getter_AddRefs(pathFile));
-  if (NS_FAILED(rv)) return rv;
   
   PRBool exists = PR_FALSE;
   pathFile->Exists(&exists);
