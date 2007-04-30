@@ -1695,7 +1695,7 @@ function parseIRCURL (url)
 
         rv.target = arrayHasElementAt(ary, 1) ? ecmaUnescape(ary[1]) : "";
 
-        if (rv.target.search(/[\x07,:\s]/) != -1)
+        if (rv.target.search(/[\x07,\s]/) != -1)
         {
             dd ("parseIRCURL: invalid characters in channel name");
             return null;
