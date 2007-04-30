@@ -42,7 +42,7 @@ tabpanels {
 }
 
 tab {
-  list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-item.gif"); 
+  list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-item.png"); 
 }
 
 tab[busy] {
