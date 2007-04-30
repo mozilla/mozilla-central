@@ -84,42 +84,34 @@
             accesskey="&level.accesskey;"  label="&level.label;"/>
   <separator class="thin"/>
 
-  <grid>
-    <columns>
-      <column flex="1"/>
-      <column/>
-    </columns>
-    
-    <rows>
-      <row align="center">
-        <checkbox id="server.useWhiteList" 
-                  genericattr="true" pref="true" wsm_persist="true" preftype="bool"
-                  prefstring="mail.server.%serverkey%.useWhiteList" 
-                  accesskey="&whitelist.accesskey;" label="&whitelist.label;"/>
-        <menulist id="whiteListAbURI" oncommand="onWhiteListAbURIChange();" datasources="rdf:addressdirectory"
-                  ref="moz-abdirectory://" sortActive="true" sortDirection="ascending"
-                  sortResource="http://home.netscape.com/NC-rdf#DirTreeNameSort">
-          <template>
-            <rule nc:IsWriteable="false"/>
-            <rule nc:IsMailList="false">
-              <menupopup>
-                <menuitem uri="..."
-                          label="rdf:http://home.netscape.com/NC-rdf#DirName"
-                          value="rdf:http://home.netscape.com/NC-rdf#DirUri"/>
-              </menupopup>
-            </rule>
-          </template>
-        </menulist>
-      </row>
-      
-      <row align="center">
-        <checkbox id="server.useServerFilter" label="&ispHeaders.label;" accesskey="&ispHeaders.accesskey;"
-                  genericattr="true" pref="true" wsm_persist="true" preftype="bool"
-                  prefstring="mail.server.%serverkey%.useServerFilter"/>
-        <menulist id="useServerFilterList" oncommand="onServerFilterListChange();"/>
-      </row>
-    </rows>
-  </grid>
+  <checkbox hidden="true" id="server.useWhiteList"
+            genericattr="true" pref="true" wsm_persist="true" preftype="bool"
+            prefstring="mail.server.%serverkey%.useWhiteList"/>
+  <label value="&whitelist.label;" accesskey="&whitelist.accesskey;"
+         control="whiteListAbURI"/>
+  <listbox id="whiteListAbURI" rows="5"
+           ref="moz-abdirectory://" datasources="rdf:addressdirectory"
+           sortActive="true" sortDirection="ascending"
+           sortResource="http://home.netscape.com/NC-rdf#DirTreeNameSort">
+    <template>
+      <rule nc:IsWriteable="false"/>
+      <rule nc:IsMailList="false">
+        <listitem uri="rdf:*" type="checkbox" class="listitem-iconic"
+                  label="rdf:http://home.netscape.com/NC-rdf#DirName"
+                  value="rdf:http://home.netscape.com/NC-rdf#DirUri"/>
+      </rule>
+    </template>
+  </listbox>
+
+  <vbox>
+    <hbox>
+      <checkbox id="server.useServerFilter" label="&ispHeaders.label;"
+                accesskey="&ispHeaders.accesskey;"
+                genericattr="true" pref="true" wsm_persist="true" preftype="bool"
+                prefstring="mail.server.%serverkey%.useServerFilter"/>
+      <menulist id="useServerFilterList" oncommand="onServerFilterListChange();"/>
+    </hbox>
+  </vbox>
 
   <checkbox id="server.moveOnSpam" label="&move.label;" oncommand="updateMoveTargetMode(this.checked);"
             wsm_persist="true" pref="true" preftype="bool" genericattr="true"

@@ -1892,7 +1892,7 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
   *aFiltersRun = PR_FALSE;
   nsCOMPtr<nsIMsgIncomingServer> server;
   nsCOMPtr<nsISpamSettings> spamSettings;
-  nsCOMPtr<nsIAbMDBDirectory> whiteListDirectory;
+  nsCOMArray<nsIAbMDBDirectory> whiteListDirArray;
   nsCOMPtr<nsIMsgHeaderParser> headerParser;
   PRBool useWhiteList = PR_FALSE;
   PRInt32 spamLevel = 0;
@@ -1985,12 +1985,18 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
       nsCOMPtr <nsIRDFService> rdfService = do_GetService("@mozilla.org/rdf/rdf-service;1",&rv);
       NS_ENSURE_SUCCESS(rv, rv);
 
-      nsCOMPtr <nsIRDFResource> resource;
-      rv = rdfService->GetResource(whiteListAbURI, getter_AddRefs(resource));
-      NS_ENSURE_SUCCESS(rv, rv);
+      nsCStringArray whiteListArray;
+      whiteListArray.ParseString(whiteListAbURI.get(), " "); 
 
-      whiteListDirectory = do_QueryInterface(resource, &rv);
-      NS_ENSURE_SUCCESS(rv, rv);
+      for (PRInt32 index = 0; index < whiteListArray.Count(); index++)
+      {
+        nsCOMPtr<nsIRDFResource> resource;
+        rv = rdfService->GetResource(*whiteListArray[index], getter_AddRefs(resource));
+
+        nsCOMPtr<nsIAbMDBDirectory> whiteListDirectory = do_QueryInterface(resource, &rv);
+        if (whiteListDirectory)
+          whiteListDirArray.AppendObject(whiteListDirectory);
+      }
     }
     // if we can't get the db, we probably want to continue firing spam filters.
   }
@@ -2000,7 +2006,7 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
   if (prefBranch)
     prefBranch->GetCharPref("mail.trusteddomains", getter_Copies(trustedMailDomains));
 
-  if (whiteListDirectory || !trustedMailDomains.IsEmpty())
+  if (whiteListDirArray.Count() != 0 || !trustedMailDomains.IsEmpty())
   {
     headerParser = do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
@@ -2022,7 +2028,7 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
         continue;
       nsXPIDLCString author;
       nsXPIDLCString authorEmailAddress;
-      if (whiteListDirectory || !trustedMailDomains.IsEmpty())
+    if (whiteListDirArray.Count() != 0 || !trustedMailDomains.IsEmpty())
       {
         msgHdr->GetAuthor(getter_Copies(author));
         rv = headerParser->ExtractHeaderAddressMailboxes(nsnull, author.get(), getter_Copies(authorEmailAddress));
@@ -2046,15 +2052,20 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
       if (!junkScore.IsEmpty()) // ignore already scored messages.
         continue;
     // check whitelist first:
-      if (whiteListDirectory)
+    if (whiteListDirArray.Count() != 0)
       {
         if (NS_SUCCEEDED(rv))
         {
           PRBool cardExists = PR_FALSE;
           // don't want to abort the rest of the scoring.
           if (!authorEmailAddress.IsEmpty())
-            rv = whiteListDirectory->HasCardForEmailAddress(authorEmailAddress, &cardExists);
-          if (NS_SUCCEEDED(rv) && cardExists)
+        {
+          for (PRInt32 index = 0; index < whiteListDirArray.Count() && !cardExists; index++)
+            rv = whiteListDirArray[index]->HasCardForEmailAddress(authorEmailAddress, &cardExists);
+            if (NS_FAILED(rv))
+              cardExists = PR_FALSE;
+        }
+          if (cardExists)
           {
             // mark this msg as non-junk, because we whitelisted it.
             mDatabase->SetStringProperty(msgKey, "junkscore", "0");

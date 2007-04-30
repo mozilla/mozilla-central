@@ -65,9 +65,17 @@ function onInit(aPageId, aServerId)
   SetFolderPicker(spamActionTargetFolder, 'actionTargetFolder');
   
   // set up the whitelist UI
-  document.getElementById("whiteListAbURI").value =
-    document.getElementById("server.whiteListAbURI").value;
-  
+  var wList = document.getElementById("whiteListAbURI");
+  var currentArray = [];
+  if (document.getElementById("server.useWhiteList").checked)
+    currentArray = document.getElementById("server.whiteListAbURI").value.split(" ");
+
+  for (var i = 0; i < wList.getRowCount(); i++)
+  {
+    var wlNode = wList.getItemAtIndex(i);
+    wlNode.checked = (currentArray.indexOf(wlNode.id) > -1);
+  }
+
   // set up trusted IP headers
   var serverFilterList = document.getElementById("useServerFilterList");
   serverFilterList.value =
@@ -105,12 +113,27 @@ function onServerFilterListChange()
     document.getElementById("useServerFilterList").value;
 }
 
+function onSave()
+{
+  onSaveWhiteList();
+}
+
 // propagate changes to the whitelist menu list back to
 // our hidden wsm element.
-function onWhiteListAbURIChange()
+function onSaveWhiteList()
 {
-  document.getElementById('server.whiteListAbURI').value =
-    document.getElementById("whiteListAbURI").value;
+  var wList = document.getElementById("whiteListAbURI");
+  var wlArray = [];
+
+  for (var i = 0; i < wList.getRowCount(); i++)
+  {
+    var wlNode = wList.getItemAtIndex(i);
+    if (wlNode.checked)
+      wlArray.push(wlNode.id);
+  }
+  var wlValue = wlArray.join(" ");
+  document.getElementById("server.whiteListAbURI").setAttribute("value", wlValue);
+  document.getElementById("server.useWhiteList").checked = (wlValue != "");
 }
 
 function onActionTargetChange(aMenuList, aWSMElementId)
