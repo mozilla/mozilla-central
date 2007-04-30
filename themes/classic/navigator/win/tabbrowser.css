@@ -20,6 +20,20 @@ tabpanels {
   width: 3px;
 }
 
+.tabs-bottom {
+  -moz-appearance: tabpanels;
+  height: 4px;
+}
+
+.tabs-stack {
+  border-bottom: 1px solid;
+  -moz-border-bottom-colors: ThreeDShadow;
+}
+
+.tabs-bottom-spacer {
+  height: 2px;
+}
+
 .tab-icon {
   margin-top: 1px;
   margin-right: 3px;
@@ -39,7 +53,7 @@ tab[busy] {
 
 .tabs-closebutton {
   margin: 3px;
-  list-style-image: url("chrome://global/skin/icons/close-button.gif");
+  list-style-image: url("chrome://navigator/skin/icons/close.gif");
 }
 
 .tabs-closebutton > .toolbarbutton-icon {
@@ -48,7 +62,7 @@ tab[busy] {
 
 .tabs-newbutton {
   margin: 0px;
-  list-style-image: url("chrome://global/skin/icons/tab-new.gif");
+  list-style-image: url("chrome://navigator/skin/icons/tab-new.gif");
 }
 
 .tab-drop-indicator-bar {
@@ -63,7 +77,7 @@ tab[busy] {
     width: 11px;
     margin-bottom: -5px;
     position: relative;
-    list-style-image: url('chrome://global/skin/icons/tab-drag-indicator.gif');
+    list-style-image: url('chrome://navigator/skin/icons/tab-drag-indicator.gif');
 }
 
 tooltip[tabpreview="true"] {
