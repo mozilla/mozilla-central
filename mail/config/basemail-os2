@@ -99,9 +99,6 @@ components\xpinstall.xpt
 ; xmlextras (for XPointer support)
 components\xmlextra.dll
 
-; offline extension (may not be present in the build, that's ok)
-chrome\offline.jar
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Base Package Files
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -285,8 +282,6 @@ components\mork.dll
 components\mozfind.dll
 components\mozfind.xpt
 components\mimetype.xpt
-components\nsprefm.dll
-components\prefmigr.xpt
 components\proxyObjInst.xpt
 components\exthandler.xpt
 components\embed_base.xpt

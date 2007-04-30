@@ -104,9 +104,6 @@ components/libspellchecker.so
 components/libxpinstall.so
 components/xpinstall.xpt
 
-; offline extension (may not be present in the build, that's ok)
-chrome/offline.jar
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; base browser for unix (from basebrowser-unix)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -339,8 +336,6 @@ components/libmork.so
 components/libmozfind.so
 components/mozfind.xpt
 components/mimetype.xpt
-components/libnsprefm.so
-components/prefmigr.xpt
 ;components/proxyObject.xpt
 components/exthandler.xpt
 components/embed_base.xpt

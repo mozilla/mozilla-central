@@ -37,11 +37,6 @@ bin\msvcm80.dll
 bin\msvcp80.dll
 bin\msvcr80.dll
 
-; Optional offline extension
-[offline]
-bin\chrome\offline.jar
-bin\chrome\offline.manifest
-
 ; Optional RSS extension
 [newsblog]
 bin\chrome\newsblog.jar
@@ -327,20 +322,17 @@ bin\components\jsconsole-clhandler.js
 bin\components\layout_xul_tree.xpt
 bin\components\mozfind.xpt
 bin\components\mimetype.xpt
-bin\components\prefmigr.xpt
 bin\components\proxyObject.xpt
 bin\components\exthandler.xpt
 bin\components\embed_base.xpt
 bin\components\webshell_idls.xpt
 bin\components\widget.xpt
 bin\components\windowds.xpt
-bin\components\helperAppDlg.xpt
 bin\components\progressDlg.xpt
 bin\components\dom_xpath.xpt
 bin\AccessibleMarshal.dll
 bin\components\lwbrk.xpt
 bin\components\nsCloseAllWindows.js
-bin\components\winhooks.xpt
 bin\components\pluginGlue.js
 bin\components\txEXSLTRegExFunctions.js
 
@@ -380,7 +372,6 @@ bin\res\table-remove-row-hover.gif
 bin\res\table-remove-row.gif
 
 ; svg
-bin\gksvggdiplus.dll
 bin\res\svg.css
 bin\components\dom_svg.xpt
 
