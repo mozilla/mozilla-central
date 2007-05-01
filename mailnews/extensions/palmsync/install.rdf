@@ -5,9 +5,7 @@
 <RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
      xmlns:em="http://www.mozilla.org/2004/em-rdf#">
   <Description about="urn:mozilla:install-manifest">
-    <!-- make this id as short as possible due to a bug with the palm deskop and long path names. 
-         Change nsPalmSyncSupport.cpp if the id value -->
-    <em:id>p@m</em:id>  
+    <em:id>@INSTALL_EXTENSION_ID@</em:id>  
     <em:version>@EXTENSION_VERSION@</em:version>
 
     <em:targetApplication>

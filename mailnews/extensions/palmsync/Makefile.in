@@ -52,7 +52,9 @@ ifdef MOZ_XUL_APP
 XPI_NAME               = palmsync
 USE_EXTENSION_MANIFEST = 1
 NO_JAR_AUTO_REG        = 1
-INSTALL_EXTENSION_ID   = palmsync@mozilla.org
+# make this id as short as possible due to a bug with the palm deskop and long path names.
+# Change xpinstall/wizard/windows/palmsync/Makefile.in and nsPalmSyncSupport.cpp if this changes.
+INSTALL_EXTENSION_ID   = p@m
 XPI_PKGNAME            = palmsync-$(MOZ_APP_VERSION)
 DIST_FILES = install.rdf
 endif
@@ -65,6 +67,7 @@ PREF_JS_EXPORTS = $(srcdir)/palmsync.js
 # that we've even pulled that file. So we hardcode them.
 
 XULAPP_DEFINES = \
+	-DINSTALL_EXTENSION_ID=$(INSTALL_EXTENSION_ID) \
 	-DTHUNDERBIRD_VERSION=$(THUNDERBIRD_VERSION) \
 	-DSEAMONKEY_VERSION=$(SEAMONKEY_VERSION) \
 	-DEXTENSION_VERSION=$(MOZILLA_VERSION) \
