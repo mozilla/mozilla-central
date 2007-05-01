@@ -1,2 +1,1 @@
-clobbering to revert objdir change from bug 377100, see bug 378746
-
+clobber to check reftests for bug 368020
