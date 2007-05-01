@@ -377,3 +377,7 @@ bin\components\dom_svg.xpt
 
 ; [Updater]
 bin\updater.exe
+
+; [crash reporter]
+bin\crashreporter.exe
+bin\crashreporter.ini
