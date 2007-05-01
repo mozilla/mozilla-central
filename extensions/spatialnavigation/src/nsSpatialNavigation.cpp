@@ -651,7 +651,7 @@ nsSpatialNavigation::handleMove(int direction)
     if (!doc)
       return NS_ERROR_FAILURE;
     
-/*    nsIPresShell *presShell = doc->GetShellAt(0);
+/*    nsIPresShell *presShell = doc->GetPrimaryShell();
 
     nsIFrame* cframe = presShell->GetPrimaryFrameFor(c);
     
@@ -679,7 +679,7 @@ nsSpatialNavigation::handleMove(int direction)
     contentWindow->GetDocument(getter_AddRefs(domDoc));
     nsCOMPtr<nsIDocument> doc = do_QueryInterface(domDoc);
 
-    nsIPresShell *shell = doc->GetShellAt(0);
+    nsIPresShell *shell = doc->GetPrimaryShell();
     if (!shell) return NS_OK;
   
     presContext = shell->GetPresContext();
@@ -706,7 +706,7 @@ nsSpatialNavigation::handleMove(int direction)
     subdocWindow->GetDocument(getter_AddRefs(subdomdoc));
     if (!subdoc) return NS_OK;
 
-    nsIPresShell *subdocShell = subdoc->GetShellAt(0);
+    nsIPresShell *subdocShell = subdoc->GetPrimaryShell();
     if (!subdocShell) return NS_OK;
   
     nsPresContext *subdocPresContext = subdocShell->GetPresContext();
@@ -856,7 +856,7 @@ nsSpatialNavigation::getPresContext(nsIContent* content)
   if (!doc) return nsnull;
   
   // the only case where there could be more shells in printpreview
-  nsIPresShell *shell = doc->GetShellAt(0);
+  nsIPresShell *shell = doc->GetPrimaryShell();
   if (!shell) return nsnull;
   
   nsPresContext *presContext = shell->GetPresContext();

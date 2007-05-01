@@ -306,7 +306,7 @@ nsresult getFrameForContent(nsIContent* aContent, nsIFrame** aFrame)
   if (!doc)
     return NS_ERROR_FAILURE;
   
-  nsIPresShell *presShell = doc->GetShellAt(0);
+  nsIPresShell *presShell = doc->GetPrimaryShell();
   nsIFrame* frame = presShell->GetPrimaryFrameFor(aContent);
   
   if (!frame)

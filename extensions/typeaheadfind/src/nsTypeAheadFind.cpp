@@ -487,7 +487,7 @@ nsTypeAheadFind::UseInWindow(nsIDOMWindow *aDOMWin)
     return NS_OK;
   }
 
-  nsIPresShell *presShell = doc->GetShellAt(0);
+  nsIPresShell *presShell = doc->GetPrimaryShell();
 
   if (!presShell) {
     return NS_OK;
@@ -823,7 +823,7 @@ nsTypeAheadFind::BackOneChar(PRBool *aIsBackspaceUsed)
       startNode->GetOwnerDocument(getter_AddRefs(domDoc));
       nsCOMPtr<nsIDocument> doc(do_QueryInterface(domDoc));
       if (doc) {
-        presShell = doc->GetShellAt(0);
+        presShell = doc->GetPrimaryShell();
       }
     }
     if (!presShell) {
@@ -2471,7 +2471,7 @@ nsTypeAheadFind::GetTargetIfTypeAheadOkay(nsIDOMEvent *aEvent,
 
   // ---------- Get presshell -----------
 
-  nsIPresShell *presShell = doc->GetShellAt(0);
+  nsIPresShell *presShell = doc->GetPrimaryShell();
   if (!presShell) {
     return NS_OK;
   }
