@@ -1183,9 +1183,6 @@ nsresult nsMsgAsyncWriteProtocol::PostMessage(nsIURI* url, nsIFile *file)
 
 nsresult nsMsgAsyncWriteProtocol::SuspendPostFileRead()
 {
-#ifdef DEBUG_mscott
-  printf("suspending post read during send\n");
-#endif
   if (mFilePostHelper && !mFilePostHelper->mSuspendedPostFileRead)
   {
     // uhoh we need to pause reading in the file until we get unblocked...
@@ -1198,10 +1195,6 @@ nsresult nsMsgAsyncWriteProtocol::SuspendPostFileRead()
 
 nsresult nsMsgAsyncWriteProtocol::ResumePostFileRead()
 {
-#ifdef DEBUG_mscott
-  printf("resuming post read during send\n");
-#endif
-
   if (mFilePostHelper)
   {
     if (mFilePostHelper->mSuspendedPostFileRead)
