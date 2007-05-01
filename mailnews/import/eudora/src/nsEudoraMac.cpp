@@ -923,8 +923,8 @@ void nsEudoraMac::SetIdentities(nsIMsgAccountManager *accMgr, nsIMsgAccount *acc
 		if (pStrs[kFullNameStr]->Length()) {
 			fullName.AssignWithConversion(pStrs[kFullNameStr]->get());
 		}
-		id->SetFullName( fullName.get());
-		id->SetIdentityName( fullName.get());
+		id->SetFullName(fullName);
+		id->SetIdentityName(fullName);
 		if (pStrs[kReturnAddressStr]->Length()) {
 			id->SetEmail( pStrs[kReturnAddressStr]->get());
 		}
