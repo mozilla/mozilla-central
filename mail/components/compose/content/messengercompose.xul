@@ -42,6 +42,9 @@
 <?xml-stylesheet href="chrome://messenger/skin/messengercompose/messengercompose.css" type="text/css"?>
 <?xml-stylesheet href="chrome://messenger/skin/folderMenus.css" type="text/css"?>
 <?xul-overlay href="chrome://editor/content/editorOverlay.xul"?>
+#ifdef XP_MACOSX
+<?xul-overlay href="chrome://messenger/content/macMenuOverlay.xul"?>
+#endif
 
 <!DOCTYPE window [
 <!ENTITY % messengercomposeDTD SYSTEM "chrome://messenger/locale/messengercompose/messengercompose.dtd" >

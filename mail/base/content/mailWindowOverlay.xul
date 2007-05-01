@@ -41,6 +41,9 @@
 
 <?xul-overlay href="chrome://global/content/charsetOverlay.xul"?>
 <?xul-overlay href="chrome://messenger/content/mailWindowExtrasOverlay.xul"?>
+#ifdef XP_MACOSX
+<?xul-overlay href="chrome://messenger/content/macMenuOverlay.xul"?>
+#endif
 
 <!DOCTYPE overlay [
   <!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd">
@@ -1809,10 +1812,12 @@
     <!-- Tasks -->
     <menu id="tasksMenu" label="&tasksMenu.label;" accesskey="&tasksMenu.accesskey;">
       <menupopup id="taskPopup" onpopupshowing="document.commandDispatcher.updateCommands('create-menu-tasks')">
+#ifndef XP_MACOSX
         <menuitem hidden="true" accesskey="&messengerCmd.accesskey;" label="&messengerCmd.label;" 
                   key="key_mail" oncommand="toMessengerWindow();" id="tasksMenuMail" class="menuitem-iconic menu-iconic"/>
         <menuitem id="addressBook" label="&addressBookCmd.label;" accesskey="&addressBookCmd.accesskey;" key="key_addressbook"
                   oncommand="toOpenWindowByType('mail:addressbook', 'chrome://messenger/content/addressbook/addressbook.xul');"/>
+#endif
         <menuitem id="addonsManager" label="&addons.label;" accesskey="&addons.accesskey;" 
                   oncommand="openAddonsMgr();"/>
         <menuseparator id="devToolsSeparator"/>
