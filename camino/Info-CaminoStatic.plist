@@ -95,7 +95,7 @@
 	<key>CFBundleExecutable</key>
 	<string>Camino</string>
 	<key>CFBundleGetInfoString</key>
-	<string>Camino 1.2+, © 1998-2007 Contributors</string>
+	<string>Camino 2.0a1pre, © 1998-2007 Contributors</string>
 	<key>CFBundleIconFile</key>
 	<string>appicon.icns</string>
 	<key>CFBundleIdentifier</key>
@@ -107,7 +107,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.2+</string>
+	<string>2.0a1pre</string>
 	<key>CFBundleSignature</key>
 	<string>MOZC</string>
 	<key>CFBundleURLTypes</key>
@@ -158,7 +158,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>1.2+</string>
+	<string>2.0a1pre</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>10.3</string>
 	<key>NSAppleScriptEnabled</key>
