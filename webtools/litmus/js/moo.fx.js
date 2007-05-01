@@ -58,7 +58,7 @@ fx.Layout = Class.create();
 fx.Layout.prototype = Object.extend(new fx.Base(), {
 	initialize: function(el, options) {
 		this.el = $(el);
-		this.el.style.overflow = "hidden";
+		this.el.style.overflow = "auto";
 		this.iniWidth = this.el.offsetWidth;
 		this.iniHeight = this.el.offsetHeight;
 		this.setOptions(options);
@@ -105,7 +105,7 @@ fx.Opacity.prototype = Object.extend(new fx.Base(), {
 	},
 	
 	setOpacity: function(opacity) {
-		if (opacity == 0 && this.el.style.visibility != "hidden") this.el.style.visibility = "hidden";
+		if (opacity == 0 && this.el.style.visibility != "auto") this.el.style.visibility = "auto";
 		else if (this.el.style.visibility != "visible") this.el.style.visibility = "visible";
 		if (window.ActiveXObject) this.el.style.filter = "alpha(opacity=" + opacity*100 + ")";
 		this.el.style.opacity = opacity;
