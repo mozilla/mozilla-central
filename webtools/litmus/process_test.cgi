@@ -94,7 +94,7 @@ foreach my $curname (@names) {
   }
 }
 
-if (scalar @tests <= 1) {
+if (scalar @tests < 1) {
   invalidInputError("No test results found!");
 }
 
