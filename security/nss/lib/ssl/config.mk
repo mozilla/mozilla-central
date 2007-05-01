@@ -39,6 +39,10 @@ ifdef NISCC_TEST
 DEFINES += -DNISCC_TEST
 endif
 
+ifdef NSS_SURVIVE_DOUBLE_BYPASS_FAILURE
+DEFINES += -DNSS_SURVIVE_DOUBLE_BYPASS_FAILURE
+endif
+
 ifeq (,$(filter-out WIN%,$(OS_TARGET)))
 
 # don't want the 32 in the shared library name
