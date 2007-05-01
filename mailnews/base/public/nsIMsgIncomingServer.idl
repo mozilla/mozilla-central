@@ -244,8 +244,8 @@ interface nsIMsgIncomingServer : nsISupports {
   long getIntValue(in string attr);
   void setIntValue(in string attr, in long value);
 
-  nsILocalFile getFileValue(in string attr);
-  void setFileValue(in string attr, in nsILocalFile aValue);
+  nsILocalFile getFileValue(in string relpref, in string abspref);
+  void setFileValue(in string relpref, in string abspref, in nsILocalFile aValue);
 
   /**
    * this is really dangerous. this destroys all pref values

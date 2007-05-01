@@ -77,8 +77,6 @@ class NS_MSG_BASE nsMsgIncomingServer : public nsIMsgIncomingServer,
 
 protected:
   nsCString m_serverKey;
-  void getPrefName(const char *serverKey, const char *pref, nsCString& fullPrefName);
-  void getDefaultPrefName(const char *pref, nsCString& fullPrefName);
 
   nsresult ConfigureTemporaryReturnReceiptsFilter(nsIMsgFilterList *filterList);
   nsresult ConfigureTemporaryServerSpamFilters(nsIMsgFilterList *filterList);
@@ -92,10 +90,6 @@ protected:
   nsCOMPtr <nsIMsgFolder> m_rootFolder;
   nsCOMPtr <nsIMsgRetentionSettings> m_retentionSettings;
   nsCOMPtr <nsIMsgDownloadSettings> m_downloadSettings;
-  nsresult getDefaultCharPref(const char *pref, char **);
-  nsresult getDefaultUnicharPref(const char *pref, PRUnichar **);
-  nsresult getDefaultBoolPref(const char *pref, PRBool *);
-  nsresult getDefaultIntPref(const char *pref, PRInt32 *);
   
   nsresult CreateLocalFolder(nsIFile *path, const char *folderName);
   nsresult GetDeferredServers(nsIMsgIncomingServer *server, nsISupportsArray **_retval);
@@ -107,6 +101,9 @@ protected:
   nsresult getProtocolInfo(nsIMsgProtocolInfo **aResult);
   nsCOMPtr <nsILocalFile> mFilterFile;
   nsCOMPtr <nsIMsgFilterList> mFilterList;
+  nsCOMPtr<nsIPrefBranch> mPrefBranch;
+  nsCOMPtr<nsIPrefBranch> mDefPrefBranch;
+
   // these allow us to handle duplicate incoming messages, e.g. delete them.
   nsHashtable m_downloadedHdrs;
   PRInt32  m_numMsgsDownloaded;

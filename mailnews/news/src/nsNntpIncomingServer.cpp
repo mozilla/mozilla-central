@@ -170,7 +170,7 @@ nsNntpIncomingServer::GetNewsrcFilePath(nsILocalFile **aNewsrcFilePath)
     return NS_OK;
   }
 
-  rv = GetFileValue("newsrc.file", aNewsrcFilePath);
+  rv = GetFileValue("newsrc.file-rel", "newsrc.file", aNewsrcFilePath);
   if (NS_SUCCEEDED(rv) && *aNewsrcFilePath) 
   {
     mNewsrcFilePath = *aNewsrcFilePath;
@@ -211,7 +211,7 @@ nsNntpIncomingServer::SetNewsrcFilePath(nsILocalFile *aFile)
       rv = aFile->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 0664);
       if (NS_FAILED(rv)) return rv;
     }
-    return SetFileValue("newsrc.file", aFile);
+    return SetFileValue("newsrc.file-rel", "newsrc.file", aFile);
 }          
 
 NS_IMETHODIMP

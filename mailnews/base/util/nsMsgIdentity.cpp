@@ -40,7 +40,6 @@
 #include "msgCore.h" // for pre-compiled headers
 #include "nsMsgIdentity.h"
 #include "nsIPrefService.h"
-#include "nsXPIDLString.h"
 #include "nsReadableUtils.h"
 
 #include "nsMsgCompCID.h"
@@ -59,355 +58,93 @@
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 
-#define REL_FILE_PREF_SUFFIX NS_LITERAL_CSTRING("-rel")
+#define REL_FILE_PREF_SUFFIX "-rel"
 
 NS_IMPL_THREADSAFE_ISUPPORTS1(nsMsgIdentity,
                    nsIMsgIdentity)
-
-nsMsgIdentity::nsMsgIdentity():
-  m_signature(0),
-  m_identityKey(0),
-  m_prefBranch(0)
-{
-}
-
-nsMsgIdentity::~nsMsgIdentity()
-{
-  PR_FREEIF(m_identityKey);
-  NS_IF_RELEASE(m_prefBranch);
-}
-
-nsresult
-nsMsgIdentity::getPrefService()
-{
-  if (m_prefBranch)
-    return NS_OK;
-
-  return CallGetService(NS_PREFSERVICE_CONTRACTID, &m_prefBranch);
-}
-
 
 /*
  * accessors for pulling values directly out of preferences
  * instead of member variables, etc
  */
 
-/* convert an identity key and preference name
-   to mail.identity.<identityKey>.<prefName>
-*/
-char *
-nsMsgIdentity::getPrefName(const char *identityKey,
-                           const char *prefName)
-{
-  return PR_smprintf("mail.identity.%s.%s", identityKey, prefName);
-}
-
-// this will be slightly faster than the above, and allows
-// the "default" identity preference root to be set in one place
-char *
-nsMsgIdentity::getDefaultPrefName(const char *fullPrefName)
-{
-  return PR_smprintf("mail.identity.default.%s", fullPrefName);
-}
-
-/* The following are equivalent to the nsIPref's Get/CopyXXXPref
-   except they construct the preference name with the above function
-*/
 nsresult
-nsMsgIdentity::getBoolPref(const char *prefname,
-                           PRBool *val)
+nsMsgIdentity::GetKey(char** aKey)
 {
-  nsresult rv = getPrefService();
-  if (NS_FAILED(rv)) return rv;
-  
-  char *fullPrefName = getPrefName(m_identityKey, prefname);
-  rv = m_prefBranch->GetBoolPref(fullPrefName, val);
-  PR_Free(fullPrefName);
-
-  if (NS_FAILED(rv))
-    rv = getDefaultBoolPref(prefname, val);
-  
-  return rv;
-}
-
-nsresult
-nsMsgIdentity::getDefaultBoolPref(const char *prefname,
-                                        PRBool *val) {
-  
-  nsresult rv = getPrefService();
-  if (NS_FAILED(rv)) return rv;
-  
-  char *fullPrefName = getDefaultPrefName(prefname);
-  rv = m_prefBranch->GetBoolPref(fullPrefName, val);
-  PR_Free(fullPrefName);
-
-  if (NS_FAILED(rv)) {
-    *val = PR_FALSE;
-    rv = NS_OK;
-  }
-  return rv;
-}
-
-nsresult
-nsMsgIdentity::setBoolPref(const char *prefname,
-                           PRBool val)
-{
-  nsresult rv = getPrefService();
-  if (NS_FAILED(rv)) return rv;
-  
-  char *prefName = getPrefName(m_identityKey, prefname);
-  rv = m_prefBranch->SetBoolPref(prefName, val);
-  PR_Free(prefName);
-  return rv;
-}
-
-
-nsresult
-nsMsgIdentity::getUnicharPref(const char *prefname,
-                              PRUnichar **val)
-{
-  nsresult rv = getPrefService();
-  if (NS_FAILED(rv)) return rv;
-  
-  char *fullPrefName = getPrefName(m_identityKey, prefname);
-  nsCOMPtr<nsISupportsString> supportsString;
-  rv = m_prefBranch->GetComplexValue(fullPrefName,
-                                     NS_GET_IID(nsISupportsString),
-                                     getter_AddRefs(supportsString));
-  PR_Free(fullPrefName);
-
-  if (NS_FAILED(rv))
-    rv = getDefaultUnicharPref(prefname, val);
-
-  if (supportsString)
-    rv = supportsString->ToString(val);
-
-  return rv;
-}
-
-nsresult
-nsMsgIdentity::getCharPref(const char *prefname,
-                           char **val)
-{
-  nsresult rv = getPrefService();
-  if (NS_FAILED(rv)) return rv;
-  
-  char *fullPrefName = getPrefName(m_identityKey, prefname);
-  rv = m_prefBranch->GetCharPref(fullPrefName, val);
-  PR_Free(fullPrefName);
-
-  if (NS_FAILED(rv))
-    rv = getDefaultCharPref(prefname, val);
-
-  return rv;
-}
-
-nsresult
-nsMsgIdentity::getDefaultUnicharPref(const char *prefname,
-                                     PRUnichar **val)
-{
-  nsresult rv = getPrefService();
-  if (NS_FAILED(rv)) return rv;
-  
-  char *fullPrefName = getDefaultPrefName(prefname);
-  nsCOMPtr<nsISupportsString> supportsString;
-  rv = m_prefBranch->GetComplexValue(fullPrefName,
-                                     NS_GET_IID(nsISupportsString),
-                                     getter_AddRefs(supportsString));
-  PR_Free(fullPrefName);
-
-  if (NS_FAILED(rv) || !supportsString) {
-    *val = nsnull;              // null is ok to return here
-    return NS_OK;
-  }
-
-  return supportsString->ToString(val);
-}
-
-nsresult
-nsMsgIdentity::getDefaultCharPref(const char *prefname,
-                                        char **val)
-{
-  nsresult rv = getPrefService();
-  if (NS_FAILED(rv)) return rv;
-  
-  char *fullPrefName = getDefaultPrefName(prefname);
-  rv = m_prefBranch->GetCharPref(fullPrefName, val);
-  PR_Free(fullPrefName);
-
-  if (NS_FAILED(rv)) {
-    *val = nsnull;              // null is ok to return here
-    rv = NS_OK;
-  }
-  return rv;
-}
-
-nsresult
-nsMsgIdentity::setUnicharPref(const char *prefname,
-                              const PRUnichar *val)
-{
-  nsresult rv = getPrefService();
-  if (NS_FAILED(rv)) return rv;
-  
-  rv = NS_OK;
-  char *prefName = getPrefName(m_identityKey, prefname);
-  if (val) {
-    nsCOMPtr<nsISupportsString> supportsString =
-      do_CreateInstance(NS_SUPPORTS_STRING_CONTRACTID, &rv);
-    if (supportsString) {
-      supportsString->SetData(nsDependentString(val));
-      rv = m_prefBranch->SetComplexValue(prefName,
-                                         NS_GET_IID(nsISupportsString),
-                                         supportsString);
-    }
-  }
-  else {
-    m_prefBranch->ClearUserPref(prefName);
-  }
-  PR_Free(prefName);
-  return rv;
-}
-
-nsresult
-nsMsgIdentity::setCharPref(const char *prefname,
-                           const char *val)
-{
-  nsresult rv = getPrefService();
-  if (NS_FAILED(rv)) return rv;
-  
-  rv = NS_OK;
-  char *prefName = getPrefName(m_identityKey, prefname);
-  if (val) 
-    rv = m_prefBranch->SetCharPref(prefName, val);
-  else
-    m_prefBranch->ClearUserPref(prefName);
-  PR_Free(prefName);
-  return rv;
-}
-
-nsresult
-nsMsgIdentity::getIntPref(const char *prefname,
-                                PRInt32 *val)
-{
-  nsresult rv = getPrefService();
-  if (NS_FAILED(rv)) return rv;
-  
-  char *fullPrefName = getPrefName(m_identityKey, prefname);
-  rv = m_prefBranch->GetIntPref(fullPrefName, val);
-  PR_Free(fullPrefName);
-
-  if (NS_FAILED(rv))
-	rv = getDefaultIntPref(prefname, val);
-
-  return rv;
-}
-
-nsresult
-nsMsgIdentity::getDefaultIntPref(const char *prefname,
-                                        PRInt32 *val) {
-  
-  nsresult rv = getPrefService();
-  if (NS_FAILED(rv)) return rv;
-  
-  char *fullPrefName = getDefaultPrefName(prefname);
-  rv = m_prefBranch->GetIntPref(fullPrefName, val);
-  PR_Free(fullPrefName);
-
-  if (NS_FAILED(rv)) {
-    *val = 0;
-    rv = NS_OK;
-  }
-  
-  return rv;
-}
-
-nsresult
-nsMsgIdentity::setIntPref(const char *prefname,
-                                 PRInt32 val)
-{
-  nsresult rv = getPrefService();
-  if (NS_FAILED(rv)) return rv;
-  
-  char *prefName = getPrefName(m_identityKey, prefname);
-  rv = m_prefBranch->SetIntPref(prefName, val);
-  PR_Free(prefName);
-  return rv;
+  NS_ENSURE_ARG_POINTER(aKey);
+  return (*aKey = ToNewCString(mKey)) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
 }
 
 nsresult
 nsMsgIdentity::SetKey(const char* identityKey)
 {
-  PR_FREEIF(m_identityKey);
-  m_identityKey = PL_strdup(identityKey);
-  return NS_OK;
+  mKey.Assign(identityKey);
+  nsresult rv;
+  nsCOMPtr<nsIPrefService> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+  if (NS_FAILED(rv))
+    return rv;
+
+  nsCAutoString branchName;
+  branchName.AssignLiteral("mail.identity.");
+  branchName += mKey;
+  branchName.Append('.');
+  rv = prefs->GetBranch(branchName.get(), getter_AddRefs(mPrefBranch));
+  if (NS_FAILED(rv))
+    return rv;
+
+  rv = prefs->GetBranch("mail.identity.default.", getter_AddRefs(mDefPrefBranch));
+  return rv;
 }
 
 nsresult
-nsMsgIdentity::GetIdentityName(PRUnichar **idName) {
-  if (!idName) return NS_ERROR_NULL_POINTER;
-
-  *idName = nsnull;
-  nsresult rv = getUnicharPref("identityName",idName);
+nsMsgIdentity::GetIdentityName(nsAString& idName)
+{
+  nsresult rv = GetUnicharAttribute("identityName", idName);
   if (NS_FAILED(rv)) return rv;
 
-  if (!(*idName)) {
-    nsXPIDLString fullName;
-    rv = GetFullName(getter_Copies(fullName));
+  if (idName.IsEmpty()) {
+    nsString fullName;
+    rv = GetFullName(fullName);
     if (NS_FAILED(rv)) return rv;
-    
+
     nsXPIDLCString email;
     rv = GetEmail(getter_Copies(email));
     if (NS_FAILED(rv)) return rv;
 
-    nsAutoString str;
-    str += (const PRUnichar*)fullName;
-    str.AppendLiteral(" <");
-    str.AppendWithConversion((const char*)email);
-    str.AppendLiteral(">");
-    *idName = ToNewUnicode(str);
-    rv = NS_OK;
+    idName.Assign(fullName);
+    idName.AppendLiteral(" <");
+    idName.Append(NS_ConvertASCIItoUTF16(email));
+    idName.AppendLiteral(">");
   }
 
   return rv;
 }
 
-nsresult nsMsgIdentity::SetIdentityName(const PRUnichar *idName) {
-  return setUnicharPref("identityName", idName);
+nsresult nsMsgIdentity::SetIdentityName(const nsAString& idName) {
+  return SetUnicharAttribute("identityName", idName);
 }
 
 NS_IMETHODIMP
-nsMsgIdentity::ToString(PRUnichar **aResult)
+nsMsgIdentity::ToString(nsAString& aResult)
 {
-  nsString idname(NS_LITERAL_STRING("[nsIMsgIdentity: "));
-  idname.AppendWithConversion(m_identityKey);
-  idname.AppendLiteral("]");
-
-  *aResult = ToNewUnicode(idname);
+  aResult.AssignLiteral("[nsIMsgIdentity: ");
+  aResult.Append(NS_ConvertASCIItoUTF16(mKey));
+  aResult.AppendLiteral("]");
   return NS_OK;
 }
 
 /* Identity attribute accessors */
 
 NS_IMETHODIMP
-nsMsgIdentity::GetSignature(nsILocalFile **sig) 
+nsMsgIdentity::GetSignature(nsILocalFile **sig)
 {
-  nsresult rv = getPrefService();
-  if (NS_FAILED(rv)) return rv;
-  
-  char *prefName = getPrefName(m_identityKey, "sig_file");
-  if (!prefName)
-    return NS_ERROR_FAILURE;  
-  nsCAutoString relPrefName(prefName);
-  relPrefName.Append(REL_FILE_PREF_SUFFIX);
-  
   PRBool gotRelPref;
-  rv = NS_GetPersistentFile(relPrefName.get(), prefName, nsnull, gotRelPref, sig);
-  if (NS_SUCCEEDED(rv) && !gotRelPref) 
+  nsresult rv = NS_GetPersistentFile("sig_file" REL_FILE_PREF_SUFFIX, "sig_file", nsnull, gotRelPref, sig, mPrefBranch);
+  if (NS_SUCCEEDED(rv) && !gotRelPref)
   {
-    rv = NS_SetPersistentFile(relPrefName.get(), prefName, *sig);
+    rv = NS_SetPersistentFile("sig_file" REL_FILE_PREF_SUFFIX, "sig_file", *sig, mPrefBranch);
     NS_ASSERTION(NS_SUCCEEDED(rv), "Failed to write signature file pref.");
   }
-  PR_Free(prefName);
   return NS_OK;
 }
 
@@ -415,45 +152,17 @@ NS_IMETHODIMP
 nsMsgIdentity::SetSignature(nsILocalFile *sig)
 {
   nsresult rv = NS_OK;
-  if (sig) 
-  {
-    char *prefName = getPrefName(m_identityKey, "sig_file");
-    if (!prefName)
-      return NS_ERROR_FAILURE;  
-  
-    nsCAutoString relPrefName(prefName);
-    relPrefName.Append(REL_FILE_PREF_SUFFIX);
-    rv = NS_SetPersistentFile(relPrefName.get(), prefName, sig);
-  }
+  if (sig)
+    rv = NS_SetPersistentFile("sig_file" REL_FILE_PREF_SUFFIX, "sig_file", sig, mPrefBranch);
   return rv;
 }
 
 NS_IMETHODIMP
 nsMsgIdentity::ClearAllValues()
 {
-    nsresult rv = getPrefService();
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    nsCAutoString rootPref("mail.identity.");
-    rootPref += m_identityKey;
-    rootPref += '.';
-
-    PRUint32 childCount;
-    char**   childArray;
-    rv = m_prefBranch->GetChildList(rootPref.get(), &childCount, &childArray);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    for (PRUint32 i = 0; i < childCount; ++i) {
-        m_prefBranch->ClearUserPref(childArray[i]);
-    }
-
-    NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(childCount, childArray);
-
-    return NS_OK;
+  return mPrefBranch->DeleteBranch("");
 }
 
-
-NS_IMPL_GETTER_STR(nsMsgIdentity::GetKey, m_identityKey)
 NS_IMPL_IDPREF_STR(EscapedVCard, "escapedVCard")
 NS_IMPL_IDPREF_STR(SmtpServerKey, "smtpServer")
 NS_IMPL_IDPREF_WSTR(FullName, "fullName")
@@ -472,7 +181,7 @@ NS_IMPL_IDPREF_INT(SignatureDate,"sig_date")
 
 NS_IMPL_IDPREF_BOOL(DoFcc, "fcc")
 
-NS_IMPL_FOLDERPREF_STR(FccFolder, "fcc_folder")
+NS_IMPL_FOLDERPREF_STR(FccFolder, "fcc_folder", MSG_FOLDER_FLAG_SENTMAIL)
 NS_IMPL_IDPREF_STR(FccFolderPickerMode, "fcc_folder_picker_mode")
 NS_IMPL_IDPREF_BOOL(FccReplyFollowsParent, "fcc_reply_follows_parent")
 NS_IMPL_IDPREF_STR(DraftsFolderPickerMode, "drafts_folder_picker_mode")
@@ -485,31 +194,22 @@ NS_IMPL_IDPREF_STR (BccList, "bcc_other_list")
 NS_IMETHODIMP
 nsMsgIdentity::GetDoBcc(PRBool *aValue)
 {
-  nsresult rv = getPrefService();
-  NS_ENSURE_SUCCESS(rv,rv);
-  
-  char *prefName = getPrefName(m_identityKey, "doBcc");
-  rv = m_prefBranch->GetBoolPref(prefName, aValue);
-  PR_Free(prefName);
-  
+  nsresult rv = mPrefBranch->GetBoolPref("doBcc", aValue);
   if (NS_SUCCEEDED(rv))
-    return GetBoolAttribute("doBcc", aValue);
+    return rv;
 
   PRBool bccSelf = PR_FALSE;
-  rv = GetBccSelf(&bccSelf);
-  NS_ENSURE_SUCCESS(rv,rv);
+  GetBccSelf(&bccSelf);
 
   PRBool bccOthers = PR_FALSE;
-  rv = GetBccOthers(&bccOthers);
-  NS_ENSURE_SUCCESS(rv,rv);
+  GetBccOthers(&bccOthers);
 
   nsXPIDLCString others;
-  rv = GetBccList(getter_Copies(others));
-  NS_ENSURE_SUCCESS(rv,rv);
-    
+  GetBccList(getter_Copies(others));
+
   *aValue = bccSelf || (bccOthers && !others.IsEmpty());
 
-  return SetDoBcc(*aValue);  
+  return SetDoBcc(*aValue);
 }
 
 NS_IMETHODIMP
@@ -521,28 +221,19 @@ nsMsgIdentity::SetDoBcc(PRBool aValue)
 NS_IMETHODIMP
 nsMsgIdentity::GetDoBccList(char **aValue)
 {
-  nsresult rv = getPrefService();
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  char *prefName = getPrefName(m_identityKey, "doBccList");
-  rv = m_prefBranch->GetCharPref(prefName, aValue);
-  PR_Free(prefName);
-
+  nsresult rv = mPrefBranch->GetCharPref("doBccList", aValue);
   if (NS_SUCCEEDED(rv))
-    return GetCharAttribute("doBccList", aValue);
-  
-  nsCAutoString result;
+    return rv;
 
+  nsXPIDLCString result;
   PRBool bccSelf = PR_FALSE;
   rv = GetBccSelf(&bccSelf);
   NS_ENSURE_SUCCESS(rv,rv);
-  
+
   if (bccSelf) {
-    nsXPIDLCString email;
-    GetEmail(getter_Copies(email));
-    result += email; 
+    GetEmail(getter_Copies(result));
   }
-  
+
   PRBool bccOthers = PR_FALSE;
   rv = GetBccOthers(&bccOthers);
   NS_ENSURE_SUCCESS(rv,rv);
@@ -556,10 +247,10 @@ nsMsgIdentity::GetDoBccList(char **aValue)
       result += ",";
     result += others;
   }
-  
+
   *aValue = ToNewCString(result);
-  
-  return SetDoBccList(*aValue);  
+
+  return SetDoBccList(*aValue);
 }
 
 NS_IMETHODIMP
@@ -568,8 +259,8 @@ nsMsgIdentity::SetDoBccList(const char *aValue)
   return SetCharAttribute("doBccList", aValue);
 }
 
-NS_IMPL_FOLDERPREF_STR (DraftFolder, "draft_folder")
-NS_IMPL_FOLDERPREF_STR (StationeryFolder, "stationery_folder")
+NS_IMPL_FOLDERPREF_STR(DraftFolder, "draft_folder", MSG_FOLDER_FLAG_DRAFTS)
+NS_IMPL_FOLDERPREF_STR(StationeryFolder, "stationery_folder", MSG_FOLDER_FLAG_TEMPLATES)
 
 NS_IMPL_IDPREF_BOOL(ShowSaveMsgDlg, "showSaveMsgDlg")
 NS_IMPL_IDPREF_STR (DirectoryServer, "directoryServer")
@@ -578,99 +269,75 @@ NS_IMPL_IDPREF_BOOL(AutocompleteToMyDomain, "autocompleteToMyDomain")
 
 NS_IMPL_IDPREF_BOOL(Valid, "valid")
 
-nsresult 
-nsMsgIdentity::getFolderPref(const char *prefname, char **retval, PRBool mustHaveDefault)
+nsresult
+nsMsgIdentity::getFolderPref(const char *prefname, char **retval, PRUint32 folderflag)
 {
-  nsresult rv = getCharPref(prefname, retval);
-  if (!mustHaveDefault) return rv;
+  nsresult rv = mPrefBranch->GetCharPref(prefname, retval);
+  if (NS_SUCCEEDED(rv) && *retval && **retval) {
+    // get the corresponding RDF resource
+    // RDF will create the folder resource if it doesn't already exist
+    nsCOMPtr<nsIRDFService> rdf(do_GetService(kRDFServiceCID, &rv));
+    if (NS_FAILED(rv)) return rv;
+    nsCOMPtr<nsIRDFResource> resource;
+    rdf->GetResource(nsDependentCString(*retval), getter_AddRefs(resource));
 
-  // Use default value if fail to get or not set
-  if (NS_FAILED(rv) || !*retval || !strlen(*retval))
-  {
-    PR_FREEIF(*retval);	// free the empty string
-    rv = getDefaultCharPref(prefname, retval);
-    if (NS_SUCCEEDED(rv) && *retval)
+    nsCOMPtr <nsIMsgFolder> folderResource = do_QueryInterface(resource);
+    if (folderResource)
     {
-      rv = setFolderPref(prefname, (const char *)*retval);
-    }
-  }
-  // get the corresponding RDF resource
-  // RDF will create the folder resource if it doesn't already exist
-  nsCOMPtr<nsIRDFService> rdf(do_GetService(kRDFServiceCID, &rv));
-  if (NS_FAILED(rv)) return rv;
-  nsCOMPtr<nsIRDFResource> resource;
-  rv = rdf->GetResource(nsDependentCString(*retval), getter_AddRefs(resource));
-  if (NS_FAILED(rv)) 
-    return rv;
-
-  nsCOMPtr <nsIMsgFolder> folderResource;
-  folderResource = do_QueryInterface(resource, &rv);
-  if (NS_SUCCEEDED(rv) && folderResource) 
-  {
-    // don't check validity of folder - caller will handle creating it
-    nsCOMPtr<nsIMsgIncomingServer> server; 
-    //make sure that folder hierarchy is built so that legitimate parent-child relationship is established
-    rv = folderResource->GetServer(getter_AddRefs(server));
-    if (server)
-    {
-      nsCOMPtr <nsIMsgFolder> msgFolder;
-      rv = server->GetMsgFolderFromURI(folderResource, *retval, getter_AddRefs(msgFolder));
-      PR_Free(*retval);
-      if (NS_SUCCEEDED(rv))
+      // don't check validity of folder - caller will handle creating it
+      nsCOMPtr<nsIMsgIncomingServer> server;
+      //make sure that folder hierarchy is built so that legitimate parent-child relationship is established
+      folderResource->GetServer(getter_AddRefs(server));
+      if (server)
+      {
+        nsCOMPtr <nsIMsgFolder> msgFolder;
+        server->GetMsgFolderFromURI(folderResource, *retval, getter_AddRefs(msgFolder));
+        PR_FREEIF(*retval);
         return msgFolder->GetURI(retval);
-    }
-    else // if the server doesn't exist, fall back to the default pref.
-    {
-      PR_FREEIF(*retval);	// free the empty string
-      rv = getDefaultCharPref(prefname, retval);
-      if (NS_SUCCEEDED(rv) && *retval)
-        rv = setFolderPref(prefname, (const char *)*retval);
+      }
     }
   }
+
+  // if the server doesn't exist, fall back to the default pref.
+  PR_FREEIF(*retval); // free the empty string
+  rv = mDefPrefBranch->GetCharPref(prefname, retval);
+  if (NS_SUCCEEDED(rv) && *retval)
+    rv = setFolderPref(prefname, *retval, folderflag);
   return rv;
 }
 
-nsresult 
-nsMsgIdentity::setFolderPref(const char *prefname, const char *value)
+nsresult
+nsMsgIdentity::setFolderPref(const char *prefname, const char *value, PRUint32 folderflag)
 {
   nsXPIDLCString oldpref;
   nsresult rv;
   nsCOMPtr<nsIRDFResource> res;
   nsCOMPtr<nsIMsgFolder> folder;
-  PRUint32 folderflag;
   nsCOMPtr<nsIRDFService> rdf(do_GetService(kRDFServiceCID, &rv));
-  
-  if (nsCRT::strcmp(prefname, "fcc_folder") == 0)
+
+  if (folderflag == MSG_FOLDER_FLAG_SENTMAIL)
   {
     // Clear the temporary return receipt filter so that the new filter
     // rule can be recreated (by ConfigureTemporaryFilters()).
-    nsCOMPtr<nsIMsgAccountManager> accountManager = 
+    nsCOMPtr<nsIMsgAccountManager> accountManager =
       do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv,rv);
-    
-    nsCOMPtr<nsISupportsArray> servers; 
+
+    nsCOMPtr<nsISupportsArray> servers;
     rv = accountManager->GetServersForIdentity(this, getter_AddRefs(servers));
     NS_ENSURE_SUCCESS(rv,rv);
     PRUint32 cnt = 0;
     servers->Count(&cnt);
     if (cnt > 0)
     {
-      nsCOMPtr<nsISupports> supports = getter_AddRefs(servers->ElementAt(0));
-      nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(supports,&rv);
+      nsCOMPtr<nsIMsgIncomingServer> server(do_QueryElementAt(servers, 0, &rv));
       if (NS_SUCCEEDED(rv))
         server->ClearTemporaryReturnReceiptsFilter(); // okay to fail; no need to check for return code
     }
-    folderflag = MSG_FOLDER_FLAG_SENTMAIL;
   }
-  else if (nsCRT::strcmp(prefname, "draft_folder") == 0)
-    folderflag = MSG_FOLDER_FLAG_DRAFTS;
-  else if (nsCRT::strcmp(prefname, "stationery_folder") == 0)
-    folderflag = MSG_FOLDER_FLAG_TEMPLATES;
-  else
-    return NS_ERROR_FAILURE;
-  
+
   // get the old folder, and clear the special folder flag on it
-  rv = getFolderPref(prefname, getter_Copies(oldpref), PR_FALSE);
+  rv = mPrefBranch->GetCharPref(prefname, getter_Copies(oldpref));
   if (NS_SUCCEEDED(rv) && !oldpref.IsEmpty())
   {
     rv = rdf->GetResource(oldpref, getter_AddRefs(res));
@@ -681,9 +348,9 @@ nsMsgIdentity::setFolderPref(const char *prefname, const char *value)
         rv = folder->ClearFlag(folderflag);
     }
   }
-  
+
   // set the new folder, and set the special folder flags on it
-  rv = setCharPref(prefname, value);
+  rv = SetCharAttribute(prefname, value);
   if (NS_SUCCEEDED(rv) && value && *value)
   {
     rv = rdf->GetResource(nsDependentCString(value), getter_AddRefs(res));
@@ -697,44 +364,93 @@ nsMsgIdentity::setFolderPref(const char *prefname, const char *value)
   return rv;
 }
 
-NS_IMETHODIMP nsMsgIdentity::SetUnicharAttribute(const char *aName, const PRUnichar *val)
+NS_IMETHODIMP nsMsgIdentity::SetUnicharAttribute(const char *aName, const nsAString& val)
 {
-  return setUnicharPref(aName, val);
+  if (!val.IsEmpty()) {
+    nsresult rv;
+    nsCOMPtr<nsISupportsString> supportsString(
+        do_CreateInstance(NS_SUPPORTS_STRING_CONTRACTID, &rv));
+    if (NS_SUCCEEDED(rv))
+      rv = supportsString->SetData(val);
+    if (NS_SUCCEEDED(rv))
+      rv = mPrefBranch->SetComplexValue(aName,
+                                        NS_GET_IID(nsISupportsString),
+                                        supportsString);
+    return rv;
+  }
+
+  mPrefBranch->ClearUserPref(aName);
+  return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgIdentity::GetUnicharAttribute(const char *aName, PRUnichar **val)
+NS_IMETHODIMP nsMsgIdentity::GetUnicharAttribute(const char *aName, nsAString& val)
 {
-  return getUnicharPref(aName, val);
+  nsCOMPtr<nsISupportsString> supportsString;
+  if (NS_FAILED(mPrefBranch->GetComplexValue(aName,
+                                             NS_GET_IID(nsISupportsString),
+                                             getter_AddRefs(supportsString))))
+    mDefPrefBranch->GetComplexValue(aName,
+                                    NS_GET_IID(nsISupportsString),
+                                    getter_AddRefs(supportsString));
+
+  if (supportsString)
+    supportsString->GetData(val);
+  else
+    val.Truncate();
+
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgIdentity::SetCharAttribute(const char *aName, const char *val)
 {
-  return setCharPref(aName, val);
+  if (val)
+    return mPrefBranch->SetCharPref(aName, val);
+
+  mPrefBranch->ClearUserPref(aName);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgIdentity::GetCharAttribute(const char *aName, char **val)
 {
-  return getCharPref(aName, val);
+  NS_ENSURE_ARG_POINTER(val);
+  *val = nsnull;
+
+  if (NS_FAILED(mPrefBranch->GetCharPref(aName, val)))
+    mDefPrefBranch->GetCharPref(aName, val);
+
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgIdentity::SetBoolAttribute(const char *aName, PRBool val)
 {
-  return setBoolPref(aName, val);
+  return mPrefBranch->SetBoolPref(aName, val);
 }
 
 NS_IMETHODIMP nsMsgIdentity::GetBoolAttribute(const char *aName, PRBool *val)
 {
-  return getBoolPref(aName, val);
+  NS_ENSURE_ARG_POINTER(val);
+  *val = PR_FALSE;
+
+  if (NS_FAILED(mPrefBranch->GetBoolPref(aName, val)))
+    mDefPrefBranch->GetBoolPref(aName, val);
+
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgIdentity::SetIntAttribute(const char *aName, PRInt32 val)
 {
-  return setIntPref(aName, val);
+  return mPrefBranch->SetIntPref(aName, val);
 }
 
 NS_IMETHODIMP nsMsgIdentity::GetIntAttribute(const char *aName, PRInt32 *val)
 {
-  return getIntPref(aName, val);
+  NS_ENSURE_ARG_POINTER(val);
+  *val = 0;
+
+  if (NS_FAILED(mPrefBranch->GetIntPref(aName, val)))
+    mDefPrefBranch->GetIntPref(aName, val);
+
+  return NS_OK;
 }
 
 #define COPY_IDENTITY_FILE_VALUE(SRC_ID,MACRO_GETTER,MACRO_SETTER) 	\
@@ -779,21 +495,14 @@ NS_IMETHODIMP nsMsgIdentity::GetIntAttribute(const char *aName, PRInt32 *val)
             } \
 	}
 
-static const PRUnichar unicharEmptyString[] = { (PRUnichar)'\0' };
-
 #define COPY_IDENTITY_WSTR_VALUE(SRC_ID,MACRO_GETTER,MACRO_SETTER) 	\
 	{	\
-        	nsXPIDLString macro_oldStr;	\
+        	nsString macro_oldStr;	\
 		    nsresult macro_rv;	\
-        	macro_rv = SRC_ID->MACRO_GETTER(getter_Copies(macro_oldStr)); \
+        	macro_rv = SRC_ID->MACRO_GETTER(macro_oldStr); \
         	if (NS_SUCCEEDED(macro_rv)) { \
-        	  if (!macro_oldStr) {	\
-                	this->MACRO_SETTER(unicharEmptyString);	\
-              }	\
-        	  else {	\
                 	this->MACRO_SETTER(macro_oldStr);	\
               }	\
-            } \
 	}
 
 NS_IMETHODIMP
@@ -832,9 +541,9 @@ nsMsgIdentity::GetRequestReturnReceipt(PRBool *aVal)
   if (useCustomPrefs)
     return GetBoolAttribute("request_return_receipt_on", aVal);
 
-  rv = getPrefService();
+  nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
-  return m_prefBranch->GetBoolPref("mail.receipt.request_return_receipt_on", aVal);
+  return prefs->GetBoolPref("mail.receipt.request_return_receipt_on", aVal);
 }
 
 NS_IMETHODIMP
@@ -848,7 +557,7 @@ nsMsgIdentity::GetReceiptHeaderType(PRInt32 *aType)
   if (useCustomPrefs)
     return GetIntAttribute("request_receipt_header_type", aType);
 
-  rv = getPrefService();
+  nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
-  return m_prefBranch->GetIntPref("mail.receipt.request_header_type", aType);
+  return prefs->GetIntPref("mail.receipt.request_header_type", aType);
 }

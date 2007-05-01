@@ -238,8 +238,8 @@ nsresult nsEudoraCompose::CreateIdentity( void)
 	rv = accMgr->CreateIdentity( &m_pIdentity);
 	nsString	name(NS_LITERAL_STRING("Import Identity"));
 	if (m_pIdentity) {
-		m_pIdentity->SetFullName( name.get());
-		m_pIdentity->SetIdentityName( name.get());
+		m_pIdentity->SetFullName(name);
+		m_pIdentity->SetIdentityName(name);
 		m_pIdentity->SetEmail( "import@import.service");
 	}
 	

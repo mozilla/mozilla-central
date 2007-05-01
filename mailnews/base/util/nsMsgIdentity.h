@@ -42,114 +42,84 @@
 #include "nsIMsgIdentity.h"
 #include "nsIPrefBranch.h"
 #include "msgCore.h"
-#include "nsISmtpServer.h"
-#include "nsWeakPtr.h"
 
 
 class NS_MSG_BASE nsMsgIdentity : public nsIMsgIdentity
 {
 public:
-  nsMsgIdentity();
-  virtual ~nsMsgIdentity();
-  
   NS_DECL_ISUPPORTS
   NS_DECL_NSIMSGIDENTITY
   
 private:
-  nsIMsgSignature* m_signature;
-  char *m_identityKey;
-  nsIPrefBranch *m_prefBranch;
-  nsWeakPtr m_smtpServer;
+  nsCString mKey;
+  nsCOMPtr<nsIPrefBranch> mPrefBranch;
+  nsCOMPtr<nsIPrefBranch> mDefPrefBranch;
 
 protected:
-  nsresult getPrefService();
-  char *getPrefName(const char *identityKey, const char *pref);
-  char *getDefaultPrefName(const char *pref);
-  
-  nsresult getCharPref(const char *pref, char **);
-  nsresult getDefaultCharPref(const char *pref, char **);
-  nsresult setCharPref(const char *pref, const char *);
-
-  nsresult getUnicharPref(const char *pref, PRUnichar **);
-  nsresult getDefaultUnicharPref(const char *pref, PRUnichar **);
-  nsresult setUnicharPref(const char *pref, const PRUnichar *);
-
-  nsresult getBoolPref(const char *pref, PRBool *);
-  nsresult getDefaultBoolPref(const char *pref, PRBool *);
-  nsresult setBoolPref(const char *pref, PRBool);
-
-  nsresult getIntPref(const char *pref, PRInt32 *);
-  nsresult getDefaultIntPref(const char *pref, PRInt32 *);
-  nsresult setIntPref(const char *pref, PRInt32);
-
-  nsresult getFolderPref(const char *pref, char **, PRBool);
-  nsresult setFolderPref(const char *pref, const char *);
-
-private:
-  nsresult loadSmtpServer(nsISmtpServer**);
-  
+  nsresult getFolderPref(const char *pref, char **, PRUint32);
+  nsresult setFolderPref(const char *pref, const char *, PRUint32);
 };
 
 
-#define NS_IMPL_IDPREF_STR(_postfix, _prefname)	\
-NS_IMETHODIMP								   	\
-nsMsgIdentity::Get##_postfix(char **retval)   	\
-{											   	\
-  return getCharPref(_prefname, retval);		\
-}												\
-NS_IMETHODIMP	   								\
-nsMsgIdentity::Set##_postfix(const char *value)		\
-{												\
-  return setCharPref(_prefname, value);\
+#define NS_IMPL_IDPREF_STR(_postfix, _prefname) \
+NS_IMETHODIMP                                   \
+nsMsgIdentity::Get##_postfix(char **retval)     \
+{                                               \
+  return GetCharAttribute(_prefname, retval);   \
+}                                               \
+NS_IMETHODIMP                                   \
+nsMsgIdentity::Set##_postfix(const char *value) \
+{                                               \
+  return SetCharAttribute(_prefname, value);    \
 }
 
-#define NS_IMPL_IDPREF_WSTR(_postfix, _prefname)\
-NS_IMETHODIMP								   	\
-nsMsgIdentity::Get##_postfix(PRUnichar **retval)\
-{											   	\
-  return getUnicharPref(_prefname, retval);		\
-}												\
-NS_IMETHODIMP	   								\
-nsMsgIdentity::Set##_postfix(const PRUnichar *value)\
-{												\
-  return setUnicharPref(_prefname, value);\
+#define NS_IMPL_IDPREF_WSTR(_postfix, _prefname)     \
+NS_IMETHODIMP                                        \
+nsMsgIdentity::Get##_postfix(nsAString& retval)      \
+{                                                    \
+  return GetUnicharAttribute(_prefname, retval);     \
+}                                                    \
+NS_IMETHODIMP                                        \
+nsMsgIdentity::Set##_postfix(const nsAString& value) \
+{                                                    \
+  return SetUnicharAttribute(_prefname, value);      \
 }
 
-#define NS_IMPL_IDPREF_BOOL(_postfix, _prefname)\
-NS_IMETHODIMP								   	\
-nsMsgIdentity::Get##_postfix(PRBool *retval)   	\
-{											   	\
-  return getBoolPref(_prefname, retval);		\
-}												\
-NS_IMETHODIMP	   								\
-nsMsgIdentity::Set##_postfix(PRBool value)		\
-{												\
-  return setBoolPref(_prefname, value);			\
+#define NS_IMPL_IDPREF_BOOL(_postfix, _prefname)     \
+NS_IMETHODIMP                                        \
+nsMsgIdentity::Get##_postfix(PRBool *retval)         \
+{                                                    \
+  return GetBoolAttribute(_prefname, retval);        \
+}                                                    \
+NS_IMETHODIMP                                        \
+nsMsgIdentity::Set##_postfix(PRBool value)           \
+{                                                    \
+  return mPrefBranch->SetBoolPref(_prefname, value); \
 }
 
-#define NS_IMPL_IDPREF_INT(_postfix, _prefname) \
-NS_IMETHODIMP								   	\
-nsMsgIdentity::Get##_postfix(PRInt32 *retval)   \
-{											   	\
-  return getIntPref(_prefname, retval);		\
-}												\
-NS_IMETHODIMP	   								\
-nsMsgIdentity::Set##_postfix(PRInt32 value)		\
-{												\
-  return setIntPref(_prefname, value);			\
+#define NS_IMPL_IDPREF_INT(_postfix, _prefname)     \
+NS_IMETHODIMP                                       \
+nsMsgIdentity::Get##_postfix(PRInt32 *retval)       \
+{                                                   \
+  return GetIntAttribute(_prefname, retval);        \
+}                                                   \
+NS_IMETHODIMP                                       \
+nsMsgIdentity::Set##_postfix(PRInt32 value)         \
+{                                                   \
+  return mPrefBranch->SetIntPref(_prefname, value); \
 }
 
 
-#define NS_IMPL_FOLDERPREF_STR(_postfix, _prefname)	\
-NS_IMETHODIMP								   	\
-nsMsgIdentity::Get##_postfix(char **retval)   	\
-{											   	\
-  return getFolderPref(_prefname, retval, PR_TRUE);		\
-}												\
-NS_IMETHODIMP	   								\
-nsMsgIdentity::Set##_postfix(const char *value)		\
-{												\
-  return setFolderPref(_prefname, value);\
+#define NS_IMPL_FOLDERPREF_STR(_postfix, _prefname, _flag) \
+NS_IMETHODIMP                                              \
+nsMsgIdentity::Get##_postfix(char **retval)                \
+{                                                          \
+  return getFolderPref(_prefname, retval, _flag);          \
+}                                                          \
+NS_IMETHODIMP                                              \
+nsMsgIdentity::Set##_postfix(const char *value)            \
+{                                                          \
+  return setFolderPref(_prefname, value, _flag);           \
 }
 
 #endif /* nsMsgIdentity_h___ */

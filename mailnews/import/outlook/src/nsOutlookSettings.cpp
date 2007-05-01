@@ -471,16 +471,14 @@ PRBool OutlookSettings::IdentityMatches( nsIMsgIdentity *pIdent, const char *pNa
 	//	and the reply to address is the same (if it is supplied)
 	//	then we match regardless of the full name.
 	
-	PRUnichar *ppIName = nsnull;
+	nsString ppIName;
 
-	nsresult rv = pIdent->GetFullName( &ppIName);
+	nsresult rv = pIdent->GetFullName(ppIName);
 	rv = pIdent->GetEmail( &pIEmail);
 	rv = pIdent->GetReplyTo( &pIReply);
 	
-	if (ppIName) {
-		nsString name(ppIName);
-		nsCRT::free( ppIName);
-		pIName = ToNewCString(name);
+	if (!ppIName.IsEmpty()) {
+		pIName = ToNewCString(ppIName);
 	}
 
 	// for now, if it's the same server and reply to and email then it matches
@@ -523,13 +521,13 @@ void OutlookSettings::SetIdentities( nsIMsgAccountManager *pMgr, nsIMsgAccount *
         nsDependentCString(pName), name);
       if (NS_SUCCEEDED(rv))
       {
-        id->SetFullName( name.get());
-        id->SetIdentityName( name.get());
+        id->SetFullName(name);
+        id->SetIdentityName(name);
       }
       rv = nsMsgI18NConvertToUnicode(nsMsgI18NFileSystemCharset(),
         nsDependentCString(pOrgName), organization);
       if (NS_SUCCEEDED(rv))
-        id->SetOrganization( organization.get());
+        id->SetOrganization(organization);
       id->SetEmail( pEmail);
       if (pReply)
         id->SetReplyTo( pReply);

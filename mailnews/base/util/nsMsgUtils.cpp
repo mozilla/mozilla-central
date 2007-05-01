@@ -866,7 +866,7 @@ GetOrCreateFolder(const nsACString &aURI, nsIUrlListener *aListener)
     {
       // Hack to work around a localization bug with the Junk Folder.
       // Please see Bug #270261 for more information...
-      nsXPIDLString localizedJunkName; 
+      nsString localizedJunkName; 
       msgFolder->GetName(getter_Copies(localizedJunkName));
 
       // force the junk folder name to be Junk so it gets created on disk correctly...
@@ -1067,25 +1067,29 @@ NS_MSG_BASE nsresult NS_GetPersistentFile(const char *relPrefName,
                                           const char *absPrefName,
                                           const char *dirServiceProp,
                                           PRBool& gotRelPref,
-                                          nsILocalFile **aFile)
+                                          nsILocalFile **aFile,
+                                          nsIPrefBranch *prefBranch)
 {
     NS_ENSURE_ARG_POINTER(aFile);
     *aFile = nsnull;
     NS_ENSURE_ARG(relPrefName);
     NS_ENSURE_ARG(absPrefName);
     gotRelPref = PR_FALSE;
-    
-    nsCOMPtr<nsIPrefService> prefService(do_GetService(NS_PREFSERVICE_CONTRACTID));
-    if (!prefService) return NS_ERROR_FAILURE;
+
     nsCOMPtr<nsIPrefBranch> mainBranch;
-    prefService->GetBranch(nsnull, getter_AddRefs(mainBranch));
-    if (!mainBranch) return NS_ERROR_FAILURE;
+    if (!prefBranch) {
+        nsCOMPtr<nsIPrefService> prefService(do_GetService(NS_PREFSERVICE_CONTRACTID));
+        if (!prefService) return NS_ERROR_FAILURE;
+        prefService->GetBranch(nsnull, getter_AddRefs(mainBranch));
+        if (!mainBranch) return NS_ERROR_FAILURE;
+        prefBranch = mainBranch;
+    }
 
     nsCOMPtr<nsILocalFile> localFile;
     
     // Get the relative first    
     nsCOMPtr<nsIRelativeFilePref> relFilePref;
-    mainBranch->GetComplexValue(relPrefName,
+    prefBranch->GetComplexValue(relPrefName,
                                 NS_GET_IID(nsIRelativeFilePref), getter_AddRefs(relFilePref));
     if (relFilePref) {
         relFilePref->GetFile(getter_AddRefs(localFile));
@@ -1096,7 +1100,7 @@ NS_MSG_BASE nsresult NS_GetPersistentFile(const char *relPrefName,
     
     // If not, get the old absolute
     if (!localFile) {
-        mainBranch->GetComplexValue(absPrefName,
+        prefBranch->GetComplexValue(absPrefName,
                                     NS_GET_IID(nsILocalFile), getter_AddRefs(localFile));
                                         
         // If not, and given a dirServiceProp, use directory service.
@@ -1119,30 +1123,33 @@ NS_MSG_BASE nsresult NS_GetPersistentFile(const char *relPrefName,
 
 NS_MSG_BASE nsresult NS_SetPersistentFile(const char *relPrefName,
                                           const char *absPrefName,
-                                          nsILocalFile *aFile)
+                                          nsILocalFile *aFile,
+                                          nsIPrefBranch *prefBranch)
 {
     NS_ENSURE_ARG(relPrefName);
     NS_ENSURE_ARG(absPrefName);
     NS_ENSURE_ARG(aFile);
-    
-    nsresult rv;
-    nsCOMPtr<nsIPrefService> prefService(do_GetService(NS_PREFSERVICE_CONTRACTID));
-    if (!prefService) return NS_ERROR_FAILURE;
+
     nsCOMPtr<nsIPrefBranch> mainBranch;
-    prefService->GetBranch(nsnull, getter_AddRefs(mainBranch));
-    if (!mainBranch) return NS_ERROR_FAILURE;
+    if (!prefBranch) {
+        nsCOMPtr<nsIPrefService> prefService(do_GetService(NS_PREFSERVICE_CONTRACTID));
+        if (!prefService) return NS_ERROR_FAILURE;
+        prefService->GetBranch(nsnull, getter_AddRefs(mainBranch));
+        if (!mainBranch) return NS_ERROR_FAILURE;
+        prefBranch = mainBranch;
+    }
 
     // Write the absolute for backwards compatibilty's sake.
     // Or, if aPath is on a different drive than the profile dir.
-    rv = mainBranch->SetComplexValue(absPrefName, NS_GET_IID(nsILocalFile), aFile);
+    nsresult rv = prefBranch->SetComplexValue(absPrefName, NS_GET_IID(nsILocalFile), aFile);
     
     // Write the relative path.
     nsCOMPtr<nsIRelativeFilePref> relFilePref;
     NS_NewRelativeFilePref(aFile, nsDependentCString(NS_APP_USER_PROFILE_50_DIR), getter_AddRefs(relFilePref));
     if (relFilePref) {
-        nsresult rv2 = mainBranch->SetComplexValue(relPrefName, NS_GET_IID(nsIRelativeFilePref), relFilePref);
+        nsresult rv2 = prefBranch->SetComplexValue(relPrefName, NS_GET_IID(nsIRelativeFilePref), relFilePref);
         if (NS_FAILED(rv2) && NS_SUCCEEDED(rv))
-            mainBranch->ClearUserPref(relPrefName);
+            prefBranch->ClearUserPref(relPrefName);
     }
 
     return rv;
@@ -1150,8 +1157,8 @@ NS_MSG_BASE nsresult NS_SetPersistentFile(const char *relPrefName,
 
 NS_MSG_BASE nsresult NS_GetUnicharPreferenceWithDefault(nsIPrefBranch *prefBranch,  //can be null, if so uses the root branch
                                                         const char *prefName,
-                                                        const nsString& defValue,
-                                                        nsString& prefValue)
+                                                        const nsAString& defValue,
+                                                        nsAString& prefValue)
 {
     NS_ENSURE_ARG(prefName);
 
@@ -1160,20 +1167,20 @@ NS_MSG_BASE nsresult NS_GetUnicharPreferenceWithDefault(nsIPrefBranch *prefBranc
         pbr = do_GetService(NS_PREFSERVICE_CONTRACTID);
         prefBranch = pbr;
     }
-    nsCOMPtr<nsISupportsString> str;
 
+  nsCOMPtr<nsISupportsString> str;
     nsresult rv = prefBranch->GetComplexValue(prefName, NS_GET_IID(nsISupportsString), getter_AddRefs(str));
     if (NS_SUCCEEDED(rv))
-        return str->GetData(prefValue);
-
+    str->GetData(prefValue);
+  else
     prefValue = defValue;
     return NS_OK;
 }
  
 NS_MSG_BASE nsresult NS_GetLocalizedUnicharPreferenceWithDefault(nsIPrefBranch *prefBranch,  //can be null, if so uses the root branch
                                                                  const char *prefName,
-                                                                 const nsString& defValue,
-                                                                 nsXPIDLString& prefValue)
+                                                                 const nsAString& defValue,
+                                                                 nsAString& prefValue)
 {
     NS_ENSURE_ARG(prefName);
 
@@ -1184,10 +1191,13 @@ NS_MSG_BASE nsresult NS_GetLocalizedUnicharPreferenceWithDefault(nsIPrefBranch *
     }
 
     nsCOMPtr<nsIPrefLocalizedString> str;
-
     nsresult rv = prefBranch->GetComplexValue(prefName, NS_GET_IID(nsIPrefLocalizedString), getter_AddRefs(str));
     if (NS_SUCCEEDED(rv))
-        str->ToString(getter_Copies(prefValue));
+  {
+    nsString tmpValue;
+    str->ToString(getter_Copies(tmpValue));
+    prefValue.Assign(tmpValue);
+  }
     else
         prefValue = defValue;
     return NS_OK;

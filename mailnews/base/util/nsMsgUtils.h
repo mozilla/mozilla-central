@@ -109,11 +109,13 @@ NS_MSG_BASE nsresult NS_GetPersistentFile(const char *relPrefName,
                                           const char *absPrefName,
                                           const char *dirServiceProp, // Can be NULL
                                           PRBool& gotRelPref,
-                                          nsILocalFile **aFile);
+                                          nsILocalFile **aFile,
+                                          nsIPrefBranch *prefBranch = nsnull);
 
 NS_MSG_BASE nsresult NS_SetPersistentFile(const char *relPrefName,
                                           const char *absPrefName,
-                                          nsILocalFile *aFile);
+                                          nsILocalFile *aFile,
+                                          nsIPrefBranch *prefBranch = nsnull);
 
 NS_MSG_BASE nsresult CreateServicesForPasswordManager();
 
@@ -121,13 +123,13 @@ NS_MSG_BASE nsresult IsRFC822HeaderFieldName(const char *aHdr, PRBool *aResult);
 
 NS_MSG_BASE nsresult NS_GetUnicharPreferenceWithDefault(nsIPrefBranch *prefBranch,   //can be null, if so uses the root branch
                                                         const char *prefName,
-                                                        const nsString& defValue,
-                                                        nsString& prefValue);
+                                                        const nsAString& defValue,
+                                                        nsAString& prefValue);
  
 NS_MSG_BASE nsresult NS_GetLocalizedUnicharPreferenceWithDefault(nsIPrefBranch *prefBranch,   //can be null, if so uses the root branch
                                                                  const char *prefName,
-                                                                 const nsString& defValue,
-                                                                 nsXPIDLString& prefValue);
+                                                                 const nsAString& defValue,
+                                                                 nsAString& prefValue);
 
   /**
    * this needs a listener, because we might have to create the folder

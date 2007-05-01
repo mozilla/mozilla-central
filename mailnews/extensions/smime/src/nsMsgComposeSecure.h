@@ -106,9 +106,9 @@ private:
   nsCOMPtr<nsICryptoHash> mDataHash;
   MimeEncoderData *mSigEncoderData;
   char *mMultipartSignedBoundary;
-  nsXPIDLString mSigningCertName;
+  nsString mSigningCertName;
   nsCOMPtr<nsIX509Cert> mSelfSigningCert;
-  nsXPIDLString mEncryptionCertName;
+  nsString mEncryptionCertName;
   nsCOMPtr<nsIX509Cert> mSelfEncryptionCert;
   nsCOMPtr<nsIMutableArray> mCerts;
   nsCOMPtr<nsICMSMessage> mEncryptionCinfo;

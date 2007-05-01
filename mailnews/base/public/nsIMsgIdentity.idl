@@ -49,7 +49,7 @@
  */
 
 
-[scriptable, uuid(e823535a-66b8-4bd4-99cd-cb1cafbfedb6)]
+[scriptable, uuid(21959CED-8C60-4e22-8D90-4FB100AF4189)]
 interface nsIMsgIdentity : nsISupports {
   /* internal preferences ID */
   attribute string key;
@@ -58,10 +58,10 @@ interface nsIMsgIdentity : nsISupports {
    *overriding display name for this identity. if this pref is not set
    * then this will return some composed string from the fullname and email
    */
-  attribute wstring identityName;
+  attribute AString identityName;
 
   /* user's full name, i.e. John Doe */
-  attribute wstring fullName;
+  attribute AString fullName;
 
   /* user's e-mail address, i.e. john@doe.com */
   attribute string email;
@@ -70,7 +70,7 @@ interface nsIMsgIdentity : nsISupports {
   attribute string replyTo;
 
   /* optional organization */
-  attribute wstring organization;
+  attribute AString organization;
 
   /* should we compose with HTML by default? */
   attribute boolean composeHtml;
@@ -162,8 +162,8 @@ interface nsIMsgIdentity : nsISupports {
    * these generic getter / setters, useful for extending mailnews 
    * note, these attributes persist across sessions
    */
-  wstring getUnicharAttribute(in string name);
-  void setUnicharAttribute(in string name, in wstring value);
+  AString getUnicharAttribute(in string name);
+  void setUnicharAttribute(in string name, in AString value);
   
   string getCharAttribute(in string name);
   void setCharAttribute(in string name, in string value);
@@ -175,5 +175,5 @@ interface nsIMsgIdentity : nsISupports {
   void setIntAttribute(in string name, in long value);
 
   /* useful for debugging */
-  wstring toString();
+  AString toString();
 };

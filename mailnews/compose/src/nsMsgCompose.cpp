@@ -930,12 +930,12 @@ nsresult nsMsgCompose::_SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity *ide
   {
     // Pref values are supposed to be stored as UTF-8, so no conversion
     nsXPIDLCString email;
-    nsXPIDLString fullName;
-    nsXPIDLString organization;
+    nsString fullName;
+    nsString organization;
 
     identity->GetEmail(getter_Copies(email));
-    identity->GetFullName(getter_Copies(fullName));
-    identity->GetOrganization(getter_Copies(organization));
+    identity->GetFullName(fullName);
+    identity->GetOrganization(organization);
 
     char * sender = nsnull;
     nsCOMPtr<nsIMsgHeaderParser> parser (do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID));
@@ -3812,10 +3812,11 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsStrin
       }
     }
   }
-  nsXPIDLString prefSigText;
+  
   // the pref sig is always going to be treated as html
+  nsString prefSigText;
   if (identity)
-    identity->GetUnicharAttribute("htmlSigText", getter_Copies(prefSigText));
+    identity->GetUnicharAttribute("htmlSigText", prefSigText);
   // Now, if they didn't even want to use a signature, we should
   // just return nicely.
   //
@@ -5129,19 +5130,19 @@ NS_IMETHODIMP nsMsgCompose::CheckCharsetConversion(nsIMsgIdentity *identity, cha
 
   if (*_retval) 
   {
-    nsXPIDLString fullName;
-    nsXPIDLString organization;
+    nsString fullName;
+    nsString organization;
     nsAutoString identityStrings;
 
-    rv = identity->GetFullName(getter_Copies(fullName));
+    rv = identity->GetFullName(fullName);
     NS_ENSURE_SUCCESS(rv, rv);
-    if (fullName)
-      identityStrings.Append(fullName.get());
+    if (!fullName.IsEmpty())
+      identityStrings.Append(fullName);
 
-    rv = identity->GetOrganization(getter_Copies(organization));
+    rv = identity->GetOrganization(organization);
     NS_ENSURE_SUCCESS(rv, rv);
-    if (organization)
-      identityStrings.Append(organization.get());
+    if (!organization.IsEmpty())
+      identityStrings.Append(organization);
 
     if (!identityStrings.IsEmpty())
     {

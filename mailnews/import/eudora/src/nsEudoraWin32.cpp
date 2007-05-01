@@ -865,8 +865,8 @@ void nsEudoraWin32::SetIdentities(nsIMsgAccountManager *accMgr, nsIMsgAccount *a
 	if (id) {
 		nsAutoString fullName; 
 		fullName.AssignWithConversion(realName.get());
-		id->SetFullName( fullName.get());
-		id->SetIdentityName( fullName.get());
+		id->SetFullName(fullName);
+		id->SetIdentityName(fullName);
 		if (email.IsEmpty()) {
 			email = userName;
 			email += "@";

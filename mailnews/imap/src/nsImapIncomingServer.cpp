@@ -3384,15 +3384,9 @@ nsImapIncomingServer::GetPrefForServerAttribute(const char *prefSuffix, PRBool *
   nsCAutoString prefName;
   nsCOMPtr<nsIPrefBranch> prefBranch = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
 
-  nsXPIDLCString serverKey;
-  rv = GetKey(getter_Copies(serverKey));
-
   // Time to check if this server has the pref 
   // (mail.server.<serverkey>.prefSuffix) already set
-  nsMsgIncomingServer::getPrefName(serverKey, 
-                                   prefSuffix, 
-                                   prefName);
-  rv = prefBranch->GetBoolPref(prefName.get(), prefValue);
+  rv = mPrefBranch->GetBoolPref(prefName.get(), prefValue);
 
   // If the server pref is not set in then look at the 
   // pref set with redirector type
@@ -3581,9 +3575,7 @@ NS_IMETHODIMP nsImapIncomingServer::SetSocketType(PRInt32 aSocketType)
   nsresult rv = GetSocketType(&oldSocketType);
   if (NS_SUCCEEDED(rv) && oldSocketType != aSocketType)
     CloseCachedConnections();
-  nsCAutoString fullPrefName;
-  getPrefName(m_serverKey.get(), "socketType", fullPrefName);
-  return m_prefBranch->SetIntPref(fullPrefName.get(), aSocketType);
+  return nsMsgIncomingServer::SetSocketType(aSocketType);
 }
 
 NS_IMETHODIMP

@@ -61,6 +61,7 @@
 #include "nsIMsgProtocolInfo.h"
 #include "nsIMsgMailSession.h"
 #include "nsIPrefService.h"
+#include "nsIRelativeFilePref.h"
 #include "nsIDocShell.h"
 #include "nsIAuthPrompt.h"
 #include "nsIObserverService.h"
@@ -82,12 +83,9 @@
 
 #define PORT_NOT_SET -1
 
-#define REL_FILE_PREF_SUFFIX NS_LITERAL_CSTRING("-rel")
-
 nsMsgIncomingServer::nsMsgIncomingServer():
     m_rootFolder(0),
     m_numMsgsDownloaded(0),
-    m_prefBranch(0),
     m_biffState(nsIMsgFolder::nsMsgBiffState_NoMail),
     m_serverBusy(PR_FALSE),
     m_canHaveFilters(PR_TRUE),
@@ -98,7 +96,6 @@ nsMsgIncomingServer::nsMsgIncomingServer():
 
 nsMsgIncomingServer::~nsMsgIncomingServer()
 {
-    NS_IF_RELEASE(m_prefBranch);
 }
 
 NS_IMPL_THREADSAFE_ADDREF(nsMsgIncomingServer)
@@ -118,10 +115,21 @@ nsMsgIncomingServer::SetKey(const char * serverKey)
     m_serverKey.Assign(serverKey);
 
     // in order to actually make use of the key, we need the prefs
-    if (m_prefBranch)
-        return NS_OK;
+    nsresult rv;
+    nsCOMPtr<nsIPrefService> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+    if (NS_FAILED(rv))
+        return rv;
 
-    return CallGetService(NS_PREFSERVICE_CONTRACTID, &m_prefBranch);
+    nsCAutoString branchName;
+    branchName.AssignLiteral("mail.server.");
+    branchName += m_serverKey;
+    branchName.Append('.');
+    rv = prefs->GetBranch(branchName.get(), getter_AddRefs(mPrefBranch));
+    if (NS_FAILED(rv))
+        return rv;
+
+    rv = prefs->GetBranch("mail.server.default.", getter_AddRefs(mDefPrefBranch));
+    return rv;
 }
     
 NS_IMETHODIMP
@@ -404,77 +412,31 @@ nsMsgIncomingServer::CreateRootFolder()
   return rv;
 }
 
-void
-nsMsgIncomingServer::getPrefName(const char *serverKey,
-                                 const char *prefName,
-                                 nsCString& fullPrefName)
-{
-    // mail.server.<key>.<pref>
-    fullPrefName = "mail.server.";
-    fullPrefName.Append(serverKey);
-    fullPrefName.Append('.');
-    fullPrefName.Append(prefName);
-}
-
-// this will be slightly faster than the above, and allows
-// the "default" server preference root to be set in one place
-void
-nsMsgIncomingServer::getDefaultPrefName(const char *prefName,
-                                        nsCString& fullPrefName)
-{
-    // mail.server.default.<pref>
-    fullPrefName = "mail.server.default.";
-    fullPrefName.Append(prefName);
-}
-
-
 nsresult
 nsMsgIncomingServer::GetBoolValue(const char *prefname,
                                  PRBool *val)
 {
-  nsCAutoString fullPrefName;
-  getPrefName(m_serverKey.get(), prefname, fullPrefName);
-  nsresult rv = m_prefBranch->GetBoolPref(fullPrefName.get(), val);
-  
-  if (NS_FAILED(rv))
-    rv = getDefaultBoolPref(prefname, val);
-  
-  return rv;
+  NS_ENSURE_ARG_POINTER(val);
+  *val = PR_FALSE;
+
+  if (NS_FAILED(mPrefBranch->GetBoolPref(prefname, val)))
+    mDefPrefBranch->GetBoolPref(prefname, val);
+
+  return NS_OK;
 }
-
-
-nsresult
-nsMsgIncomingServer::getDefaultBoolPref(const char *prefname,
-                                        PRBool *val) {
-  
-  nsCAutoString fullPrefName;
-  getDefaultPrefName(prefname, fullPrefName);
-  nsresult rv = m_prefBranch->GetBoolPref(fullPrefName.get(), val);
-
-  if (NS_FAILED(rv)) {
-    *val = PR_FALSE;
-    rv = NS_OK;
-  }
-  return rv;
-}
-
 
 nsresult
 nsMsgIncomingServer::SetBoolValue(const char *prefname,
                                  PRBool val)
 {
-  nsresult rv;
-  nsCAutoString fullPrefName;
-  getPrefName(m_serverKey.get(), prefname, fullPrefName);
-
   PRBool defaultValue;
-  rv = getDefaultBoolPref(prefname, &defaultValue);
+  nsresult rv = mDefPrefBranch->GetBoolPref(prefname, &defaultValue);
 
   if (NS_SUCCEEDED(rv) && val == defaultValue)
-    m_prefBranch->ClearUserPref(fullPrefName.get());
+    mPrefBranch->ClearUserPref(prefname);
   else
-    rv = m_prefBranch->SetBoolPref(fullPrefName.get(), val);
-  
+    rv = mPrefBranch->SetBoolPref(prefname, val);
+
   return rv;
 }
 
@@ -482,173 +444,131 @@ nsresult
 nsMsgIncomingServer::GetIntValue(const char *prefname,
                                 PRInt32 *val)
 {
-  nsCAutoString fullPrefName;
-  getPrefName(m_serverKey.get(), prefname, fullPrefName);
-  nsresult rv = m_prefBranch->GetIntPref(fullPrefName.get(), val);
+  NS_ENSURE_ARG_POINTER(val);
+  *val = 0;
 
-  if (NS_FAILED(rv))
-    rv = getDefaultIntPref(prefname, val);
-  
+  if (NS_FAILED(mPrefBranch->GetIntPref(prefname, val)))
+    mDefPrefBranch->GetIntPref(prefname, val);
+
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgIncomingServer::GetFileValue(const char* aRelPrefName,
+                                  const char* aAbsPrefName,
+                                  nsILocalFile** aLocalFile)
+{
+  // Get the relative first    
+  nsCOMPtr<nsIRelativeFilePref> relFilePref;
+  nsresult rv = mPrefBranch->GetComplexValue(aRelPrefName,
+                                             NS_GET_IID(nsIRelativeFilePref),
+                                             getter_AddRefs(relFilePref));
+  if (relFilePref) {
+    rv = relFilePref->GetFile(aLocalFile);
+    NS_ASSERTION(*aLocalFile, "An nsIRelativeFilePref has no file.");
+  } else {
+    rv = mPrefBranch->GetComplexValue(aAbsPrefName,
+                                      NS_GET_IID(nsILocalFile),
+                                      NS_REINTERPRET_CAST(void**, aLocalFile));
+    if (NS_FAILED(rv))
+      return rv;
+
+    rv = NS_NewRelativeFilePref(*aLocalFile,
+                                NS_LITERAL_CSTRING(NS_APP_USER_PROFILE_50_DIR),
+                                getter_AddRefs(relFilePref));
+    if (relFilePref)
+      rv = mPrefBranch->SetComplexValue(aRelPrefName,
+                                        NS_GET_IID(nsIRelativeFilePref),
+                                        relFilePref);
+  }
+
   return rv;
 }
 
 NS_IMETHODIMP
-nsMsgIncomingServer::GetFileValue(const char* aPrefname,
-                                  nsILocalFile **aLocalFile)
+nsMsgIncomingServer::SetFileValue(const char* aRelPrefName,
+                                  const char* aAbsPrefName,
+                                  nsILocalFile* aLocalFile)
 {
-  nsCAutoString fullPrefName;
-  getPrefName(m_serverKey.get(), aPrefname, fullPrefName);
-  
-  nsCAutoString fullRelPrefName(fullPrefName);
-  fullRelPrefName.Append(REL_FILE_PREF_SUFFIX);
-  
-  PRBool gotRelPref;
-  nsresult rv = NS_GetPersistentFile(fullRelPrefName.get(), fullPrefName.get(),
-                                     nsnull, gotRelPref, aLocalFile);
-  if (NS_FAILED(rv)) return rv;
-
-  if (NS_SUCCEEDED(rv) && !gotRelPref) 
-  {
-    rv = NS_SetPersistentFile(fullRelPrefName.get(), fullPrefName.get(), *aLocalFile);
-    NS_ASSERTION(NS_SUCCEEDED(rv), "Failed to update file pref.");
+  // Write the relative path.
+  nsCOMPtr<nsIRelativeFilePref> relFilePref;
+  NS_NewRelativeFilePref(aLocalFile,
+                         NS_LITERAL_CSTRING(NS_APP_USER_PROFILE_50_DIR),
+                         getter_AddRefs(relFilePref));
+  if (relFilePref) {
+    nsresult rv = mPrefBranch->SetComplexValue(aRelPrefName,
+                                               NS_GET_IID(nsIRelativeFilePref),
+                                               relFilePref);
+    if (NS_FAILED(rv))
+      return rv;
   }
-  return rv;
-}
-
-NS_IMETHODIMP
-nsMsgIncomingServer::SetFileValue(const char* prefname,
-                                    nsILocalFile *localFile)
-{
-  nsCAutoString fullPrefName;
-  getPrefName(m_serverKey.get(), prefname, fullPrefName);
-  nsCAutoString fullRelPrefName(fullPrefName);
-  fullRelPrefName.Append(REL_FILE_PREF_SUFFIX);
-  return NS_SetPersistentFile(fullRelPrefName.get(), fullPrefName.get(), localFile);
-}
-
-nsresult
-nsMsgIncomingServer::getDefaultIntPref(const char *prefname,
-                                        PRInt32 *val) {
-  
-  nsCAutoString fullPrefName;
-  getDefaultPrefName(prefname, fullPrefName);
-  nsresult rv = m_prefBranch->GetIntPref(fullPrefName.get(), val);
-
-  if (NS_FAILED(rv)) {
-    *val = 0;
-    rv = NS_OK;
-  }
-  
-  return rv;
+  return mPrefBranch->SetComplexValue(aAbsPrefName, NS_GET_IID(nsILocalFile), aLocalFile);
 }
 
 nsresult
 nsMsgIncomingServer::SetIntValue(const char *prefname,
                                  PRInt32 val)
 {
-  nsresult rv;
-  nsCAutoString fullPrefName;
-  getPrefName(m_serverKey.get(), prefname, fullPrefName);
-  
   PRInt32 defaultVal;
-  rv = getDefaultIntPref(prefname, &defaultVal);
+  nsresult rv = mDefPrefBranch->GetIntPref(prefname, &defaultVal);
   
   if (NS_SUCCEEDED(rv) && defaultVal == val)
-    m_prefBranch->ClearUserPref(fullPrefName.get());
+    mPrefBranch->ClearUserPref(prefname);
   else
-    rv = m_prefBranch->SetIntPref(fullPrefName.get(), val);
+    rv = mPrefBranch->SetIntPref(prefname, val);
   
   return rv;
 }
 
 nsresult
 nsMsgIncomingServer::GetCharValue(const char *prefname,
-                                 char  **val)
+                                  char** val)
 {
-  nsCAutoString fullPrefName;
-  getPrefName(m_serverKey.get(), prefname, fullPrefName);
-  nsresult rv = m_prefBranch->GetCharPref(fullPrefName.get(), val);
-  
-  if (NS_FAILED(rv))
-    rv = getDefaultCharPref(prefname, val);
-  
-  return rv;
+  NS_ENSURE_ARG_POINTER(val);
+  *val = nsnull;
+
+  if (NS_FAILED(mPrefBranch->GetCharPref(prefname, val)))
+    mDefPrefBranch->GetCharPref(prefname, val);
+
+  return NS_OK;
 }
 
 nsresult
 nsMsgIncomingServer::GetUnicharValue(const char *prefname,
                                      PRUnichar **val)
 {
-  nsCAutoString fullPrefName;
-  getPrefName(m_serverKey.get(), prefname, fullPrefName);
   nsCOMPtr<nsISupportsString> supportsString;
-  nsresult rv = m_prefBranch->GetComplexValue(fullPrefName.get(),
-                                              NS_GET_IID(nsISupportsString),
-                                              getter_AddRefs(supportsString));
-  
-  if (NS_FAILED(rv))
-    return getDefaultUnicharPref(prefname, val);
+  if (NS_FAILED(mPrefBranch->GetComplexValue(prefname,
+                                             NS_GET_IID(nsISupportsString),
+                                             getter_AddRefs(supportsString))))
+    mDefPrefBranch->GetComplexValue(prefname,
+                                    NS_GET_IID(nsISupportsString),
+                                    getter_AddRefs(supportsString));
 
   if (supportsString)
-    rv = supportsString->ToString(val);
+    return supportsString->ToString(val);
 
-  return rv;
-}
-
-nsresult
-nsMsgIncomingServer::getDefaultCharPref(const char *prefname,
-                                        char **val)
-{
-  nsCAutoString fullPrefName;
-  getDefaultPrefName(prefname, fullPrefName);
-  nsresult rv = m_prefBranch->GetCharPref(fullPrefName.get(), val);
-
-  if (NS_FAILED(rv)) {
-    *val = nsnull;              // null is ok to return here
-    rv = NS_OK;
-  }
-  return rv;
-}
-
-nsresult
-nsMsgIncomingServer::getDefaultUnicharPref(const char *prefname,
-                                           PRUnichar **val) {
-  
-  nsCAutoString fullPrefName;
-  getDefaultPrefName(prefname, fullPrefName);
-  nsCOMPtr<nsISupportsString> supportsString;
-  nsresult rv = m_prefBranch->GetComplexValue(fullPrefName.get(),
-                                              NS_GET_IID(nsISupportsString),
-                                              getter_AddRefs(supportsString));
-  if (NS_FAILED(rv) || !supportsString) {
-    *val = nsnull;              // null is ok to return here
-    return NS_OK;
-  }
-
-  return supportsString->ToString(val);
+  *val = nsnull;
+  return NS_OK;
 }
 
 nsresult
 nsMsgIncomingServer::SetCharValue(const char *prefname,
                                  const char * val)
 {
-  nsresult rv;
-  nsCAutoString fullPrefName;
-  getPrefName(m_serverKey.get(), prefname, fullPrefName);
-
   if (!val) {
-    m_prefBranch->ClearUserPref(fullPrefName.get());
+    mPrefBranch->ClearUserPref(prefname);
     return NS_OK;
   }
-  
+
   nsXPIDLCString defaultVal;
-  rv = getDefaultCharPref(prefname, getter_Copies(defaultVal));
-  
+  nsresult rv = mDefPrefBranch->GetCharPref(prefname, getter_Copies(defaultVal));
+
   if (NS_SUCCEEDED(rv) && defaultVal.Equals(val))
-    m_prefBranch->ClearUserPref(fullPrefName.get());
+    mPrefBranch->ClearUserPref(prefname);
   else
-    rv = m_prefBranch->SetCharPref(fullPrefName.get(), val);
-  
+    rv = mPrefBranch->SetCharPref(prefname, val);
+
   return rv;
 }
 
@@ -656,33 +576,30 @@ nsresult
 nsMsgIncomingServer::SetUnicharValue(const char *prefname,
                                   const PRUnichar * val)
 {
-  nsresult rv;
-  nsCAutoString fullPrefName;
-  getPrefName(m_serverKey.get(), prefname, fullPrefName);
-
   if (!val) {
-    m_prefBranch->ClearUserPref(fullPrefName.get());
+    mPrefBranch->ClearUserPref(prefname);
     return NS_OK;
   }
 
-  PRUnichar *defaultVal=nsnull;
-  rv = getDefaultUnicharPref(prefname, &defaultVal);
-  if (defaultVal && NS_SUCCEEDED(rv) &&
-      nsCRT::strcmp(defaultVal, val) == 0)
-    m_prefBranch->ClearUserPref(fullPrefName.get());
+  nsCOMPtr<nsISupportsString> supportsString;
+  nsresult rv = mDefPrefBranch->GetComplexValue(prefname,
+                                                NS_GET_IID(nsISupportsString),
+                                                getter_AddRefs(supportsString));
+  nsString defaultVal;
+  if (NS_SUCCEEDED(rv) &&
+      NS_SUCCEEDED(supportsString->GetData(defaultVal)) &&
+      defaultVal.Equals(val))
+    mPrefBranch->ClearUserPref(prefname);
   else {
-    nsCOMPtr<nsISupportsString> supportsString =
-      do_CreateInstance(NS_SUPPORTS_STRING_CONTRACTID, &rv);
+    supportsString = do_CreateInstance(NS_SUPPORTS_STRING_CONTRACTID, &rv);
     if (supportsString) {
       supportsString->SetData(nsDependentString(val));
-      rv = m_prefBranch->SetComplexValue(fullPrefName.get(),
-                                         NS_GET_IID(nsISupportsString),
-                                         supportsString);
+      rv = mPrefBranch->SetComplexValue(prefname,
+                                        NS_GET_IID(nsISupportsString),
+                                        supportsString);
     }
   }
 
-  PR_FREEIF(defaultVal);
-  
   return rv;
 }
 
@@ -857,14 +774,12 @@ nsMsgIncomingServer::GetPasswordWithUI(const PRUnichar * aPromptMessage, const
       nsXPIDLCString serverUri;
       rv = GetServerURI(getter_Copies(serverUri));
       if (NS_FAILED(rv)) return rv;
-      PRBool passwordProtectLocalCache = PR_FALSE;
 
-      (void) m_prefBranch->GetBoolPref( "mail.password_protect_local_cache", &passwordProtectLocalCache);
       PRUnichar *uniPassword = nsnull;
       if (*aPassword)
         uniPassword = ToNewUnicode(NS_ConvertASCIItoUTF16(*aPassword));
 
-      PRUint32 savePasswordType = (passwordProtectLocalCache) ? nsIAuthPrompt::SAVE_PASSWORD_FOR_SESSION : nsIAuthPrompt::SAVE_PASSWORD_PERMANENTLY;
+      PRUint32 savePasswordType = PasswordProtectLocalCache() ? nsIAuthPrompt::SAVE_PASSWORD_FOR_SESSION : nsIAuthPrompt::SAVE_PASSWORD_PERMANENTLY;
       rv = dialog->PromptPassword(aPromptTitle, aPromptMessage, 
         NS_ConvertASCIItoUTF16(serverUri).get(), savePasswordType,
         &uniPassword, okayValue);
@@ -978,7 +893,7 @@ nsMsgIncomingServer::GetLocalPath(nsILocalFile **aLocalPath)
     nsresult rv;
 
     // if the local path has already been set, use it
-    rv = GetFileValue("directory", aLocalPath);
+    rv = GetFileValue("directory-rel", "directory", aLocalPath);
     if (NS_SUCCEEDED(rv) && *aLocalPath) return rv;
     
     // otherwise, create the path using the protocol info.
@@ -1015,7 +930,7 @@ nsMsgIncomingServer::SetLocalPath(nsILocalFile *aLocalPath)
 {
   NS_ENSURE_ARG_POINTER(aLocalPath);
   aLocalPath->Create(nsIFile::DIRECTORY_TYPE, 0755);
-  return SetFileValue("directory", aLocalPath);
+  return SetFileValue("directory-rel", "directory", aLocalPath);
 }
 
 NS_IMETHODIMP
@@ -1030,9 +945,12 @@ nsMsgIncomingServer::SetRememberPassword(PRBool value)
 
 PRBool nsMsgIncomingServer::PasswordProtectLocalCache()
 {
+    nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID));
+    NS_ENSURE_TRUE(prefs, PR_FALSE);
+
     PRBool passwordProtectLocalCache;
 
-    nsresult rv = m_prefBranch->GetBoolPref( "mail.password_protect_local_cache", &passwordProtectLocalCache);
+    nsresult rv = prefs->GetBoolPref( "mail.password_protect_local_cache", &passwordProtectLocalCache);
     NS_ENSURE_SUCCESS(rv, PR_FALSE);
     return passwordProtectLocalCache;
 }
@@ -1094,21 +1012,7 @@ nsMsgIncomingServer::Equals(nsIMsgIncomingServer *server, PRBool *_retval)
 NS_IMETHODIMP
 nsMsgIncomingServer::ClearAllValues()
 {
-    nsCAutoString rootPref("mail.server.");
-    rootPref += m_serverKey;
-    rootPref += '.';
-
-    PRUint32 childCount;
-    char**   childArray;
-    nsresult rv = m_prefBranch->GetChildList(rootPref.get(), &childCount, &childArray);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    for (PRUint32 i = 0; i < childCount; ++i) 
-        m_prefBranch->ClearUserPref(childArray[i]);
-
-    NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(childCount, childArray);
-
-    return NS_OK;
+  return mPrefBranch->DeleteBranch("");
 }
 
 NS_IMETHODIMP
@@ -1359,9 +1263,7 @@ nsMsgIncomingServer::GetDoBiff(PRBool *aDoBiff)
     NS_ENSURE_ARG_POINTER(aDoBiff);
     nsresult rv;
    
-    nsCAutoString fullPrefName;
-    getPrefName(m_serverKey.get(), BIFF_PREF_NAME, fullPrefName);
-    rv = m_prefBranch->GetBoolPref(fullPrefName.get(), aDoBiff);
+    rv = mPrefBranch->GetBoolPref(BIFF_PREF_NAME, aDoBiff);
     if (NS_SUCCEEDED(rv)) return rv;
 
     // if the pref isn't set, use the default
@@ -1384,11 +1286,7 @@ nsMsgIncomingServer::GetDoBiff(PRBool *aDoBiff)
 NS_IMETHODIMP
 nsMsgIncomingServer::SetDoBiff(PRBool aDoBiff)
 {
-    nsresult rv;
-    nsCAutoString fullPrefName;
-    getPrefName(m_serverKey.get(), BIFF_PREF_NAME, fullPrefName);
-
-    rv = m_prefBranch->SetBoolPref(fullPrefName.get(), aDoBiff);
+    nsresult rv = mPrefBranch->SetBoolPref(BIFF_PREF_NAME, aDoBiff);
     NS_ENSURE_SUCCESS(rv,rv);
     return NS_OK;
 }
@@ -1768,15 +1666,13 @@ NS_IMETHODIMP nsMsgIncomingServer::GetIntAttribute(const char *aName, PRInt32 *v
 
 NS_IMETHODIMP nsMsgIncomingServer::GetSocketType(PRInt32 *aSocketType)
 {
-  nsCAutoString fullPrefName;
-  getPrefName(m_serverKey.get(), "socketType", fullPrefName);
-  nsresult rv = m_prefBranch->GetIntPref(fullPrefName.get(), aSocketType);
+  nsresult rv = mPrefBranch->GetIntPref("socketType", aSocketType);
 
   // socketType is set to default value. Look at isSecure setting
   if (NS_FAILED(rv))
   {
     PRBool isSecure;
-    rv = GetBoolValue("isSecure", &isSecure);
+    rv = mPrefBranch->GetBoolPref("isSecure", &isSecure);
     if (NS_SUCCEEDED(rv) && isSecure)
     {
        *aSocketType = nsIMsgIncomingServer::useSSL;
@@ -1785,7 +1681,9 @@ NS_IMETHODIMP nsMsgIncomingServer::GetSocketType(PRInt32 *aSocketType)
     }
     else
     {
-       getDefaultIntPref("socketType", aSocketType);
+      rv = mDefPrefBranch->GetIntPref("socketType", aSocketType);
+      if (NS_FAILED(rv))
+        *aSocketType = nsIMsgIncomingServer::defaultSocket;
     }
   }
   return rv;
@@ -1794,11 +1692,7 @@ NS_IMETHODIMP nsMsgIncomingServer::GetSocketType(PRInt32 *aSocketType)
 
 NS_IMETHODIMP nsMsgIncomingServer::SetSocketType(PRInt32 aSocketType)
 {
-  nsCAutoString fullPrefName;
-  getPrefName(m_serverKey.get(), "socketType", fullPrefName);
-  nsresult rv = m_prefBranch->SetIntPref(fullPrefName.get(), aSocketType);
-
-  return rv;
+  return mPrefBranch->SetIntPref("socketType", aSocketType);
 }
 
 // Check if the password is available and return a boolean indicating whether 
@@ -1998,7 +1892,9 @@ nsMsgIncomingServer::ConfigureTemporaryReturnReceiptsFilter(nsIMsgFilterList *fi
     rv = GetIntValue("incorporate_return_receipt", &incorp);
   else
   {
-    rv = m_prefBranch->GetIntPref("mail.incorporate.return_receipt", &incorp);
+    nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID));
+    if (prefs)
+      prefs->GetIntPref("mail.incorporate.return_receipt", &incorp);
   }
 
   PRBool enable = (incorp == nsIMsgMdnGenerator::eIncorporateSent);

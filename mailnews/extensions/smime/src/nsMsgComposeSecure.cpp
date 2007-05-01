@@ -484,8 +484,8 @@ NS_IMETHODIMP nsMsgComposeSecure::BeginCryptoEncapsulation(nsIOutputStream * aSt
   else
     PR_ASSERT(0);
 
-  aIdentity->GetUnicharAttribute("signing_cert_name", getter_Copies(mSigningCertName));
-  aIdentity->GetUnicharAttribute("encryption_cert_name", getter_Copies(mEncryptionCertName));
+  aIdentity->GetUnicharAttribute("signing_cert_name", mSigningCertName);
+  aIdentity->GetUnicharAttribute("encryption_cert_name", mEncryptionCertName);
 
   rv = MimeCryptoHackCerts(aRecipients, sendReport, encryptMessages, signMessage);
   if (NS_FAILED(rv)) {

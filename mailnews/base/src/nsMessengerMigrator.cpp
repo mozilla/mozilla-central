@@ -301,14 +301,13 @@
 #define MIGRATE_SIMPLE_WSTR_PREF(PREFNAME,MACRO_OBJECT,MACRO_METHOD) \
   { \
     nsresult macro_rv; \
-    PRUnichar *macro_oldStr = nsnull; \
+    nsString macro_oldStr; \
     nsCOMPtr<nsISupportsString> macro_tmpstr; \
     macro_rv = m_prefs->GetComplexValue(PREFNAME, NS_GET_IID(nsISupportsString), getter_AddRefs(macro_tmpstr)); \
     if (NS_SUCCEEDED(macro_rv)) { \
-      macro_tmpstr->ToString(&macro_oldStr); \
+      macro_tmpstr->GetData(macro_oldStr); \
       MACRO_OBJECT->MACRO_METHOD(macro_oldStr); \
     } \
-    PR_FREEIF(macro_oldStr); \
   }
 
 #define MIGRATE_SIMPLE_INT_PREF(PREFNAME,MACRO_OBJECT,MACRO_METHOD) \
