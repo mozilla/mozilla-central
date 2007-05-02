@@ -39,9 +39,10 @@
 #define nsImportMailboxDescriptor_h___
 
 #include "nscore.h"
+#include "nsString.h"
 #include "nsReadableUtils.h"
 #include "nsIImportMailboxDescriptor.h"
-#include "nsIFileSpec.h"
+#include "nsILocalFile.h"
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -70,13 +71,13 @@ public:
 	NS_IMETHOD	GetImport( PRBool *pImport) { *pImport = m_import; return( NS_OK);}
 	NS_IMETHOD	SetImport( PRBool doImport) { m_import = doImport; return( NS_OK);}
 	
-	/* readonly attribute nsIFileSpec fileSpec; */
-	NS_IMETHOD GetFileSpec(nsIFileSpec * *aFileSpec) { if (m_pFileSpec) { m_pFileSpec->AddRef(); *aFileSpec = m_pFileSpec; return( NS_OK);} else return( NS_ERROR_FAILURE); }
+	/* readonly attribute nsILocalFile file; */
+	NS_IMETHOD GetFile(nsILocalFile * *aFile) { if (m_pFile) { NS_ADDREF(*aFile = m_pFile); return( NS_OK);} else return( NS_ERROR_FAILURE); }
 
 
 
 	nsImportMailboxDescriptor();
-	virtual ~nsImportMailboxDescriptor() { if (m_pFileSpec) m_pFileSpec->Release();}
+	virtual ~nsImportMailboxDescriptor() {}
 
  	static NS_METHOD Create( nsISupports *aOuter, REFNSIID aIID, void **aResult);
 			
@@ -84,7 +85,7 @@ private:
 	PRUint32		m_id;			// used by creator of the structure
 	PRUint32		m_depth;		// depth in the heirarchy
 	nsString		m_displayName;// name of this mailbox
-	nsIFileSpec	*	m_pFileSpec;	// source file (if applicable)
+	nsCOMPtr <nsILocalFile> m_pFile;	// source file (if applicable)
 	PRUint32		m_size;
 	PRBool			m_import;		// import it or not?	
 };

@@ -45,20 +45,20 @@
 
 #include "nsISupports.idl"
 
-interface nsIFileSpec;
+interface nsILocalFile;
 
 [scriptable, uuid(d92056c0-184d-11d3-a206-00a0cc26da63)]
 interface nsIImportMailboxDescriptor : nsISupports
 {	
-	attribute unsigned long 		identifier;
-	attribute unsigned long			depth;
-	attribute unsigned long			size;
+	attribute unsigned long identifier;
+	attribute unsigned long	depth;
+	attribute unsigned long	size;
 	
 	wstring	GetDisplayName();
 	void	SetDisplayName( [const] in wstring name);
 	
-	attribute boolean				import;
-	readonly attribute nsIFileSpec	fileSpec;
+	attribute boolean import;
+	readonly attribute nsILocalFile file;
 };
 	
 

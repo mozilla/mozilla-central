@@ -61,6 +61,7 @@
 #include "nsMsgUtils.h"
 #include "nsIOutputStream.h"
 #include "nsMsgI18N.h"
+#include "nsNetUtil.h"
 
 static NS_DEFINE_CID(kImportMimeEncodeCID,	NS_IMPORTMIMEENCODE_CID);
 static NS_DEFINE_IID(kISupportsIID,			NS_ISUPPORTS_IID);
@@ -383,96 +384,99 @@ void nsOutlookMail::SetDefaultContentType(CMapiMessage &msg, nsCString &cType)
   cType = msg.BodyIsHtml() ? "text/html" : "text/plain";
 }
 
-nsresult nsOutlookMail::ImportMailbox( PRUint32 *pDoneSoFar, PRBool *pAbort, PRInt32 index, const PRUnichar *pName, nsIFileSpec *pDest, PRInt32 *pMsgCount)
+nsresult nsOutlookMail::ImportMailbox( PRUint32 *pDoneSoFar, PRBool *pAbort, PRInt32 index, const PRUnichar *pName, nsIFile *pDest, PRInt32 *pMsgCount)
 {
-	if ((index < 0) || (index >= m_folderList.GetSize())) {
-		IMPORT_LOG0( "*** Bad mailbox identifier, unable to import\n");
-		*pAbort = PR_TRUE;
-		return( NS_ERROR_FAILURE);
-	}
-	
-	PRInt32		dummyMsgCount = 0;
-	if (pMsgCount)
-		*pMsgCount = 0;
-	else
-		pMsgCount = &dummyMsgCount;
+  if ((index < 0) || (index >= m_folderList.GetSize())) {
+    IMPORT_LOG0( "*** Bad mailbox identifier, unable to import\n");
+    *pAbort = PR_TRUE;
+    return( NS_ERROR_FAILURE);
+  }
 
-	CMapiFolder *pFolder = m_folderList.GetItem( index);
-	OpenMessageStore( pFolder);
-	if (!m_lpMdb) {
-		IMPORT_LOG1( "*** Unable to obtain mapi message store for mailbox: %S\n", pName);
-		return( NS_ERROR_FAILURE);
-	}
-	
-	if (pFolder->IsStore())
-		return( NS_OK);
-	
-	nsCOMPtr<nsIFileSpec>	compositionFile;
-	nsresult	rv;
-	if (NS_FAILED( rv = NS_NewFileSpec( getter_AddRefs( compositionFile)))) {
-		return( rv);
-	}
-	
-	nsOutlookCompose		compose;
-	SimpleBufferTonyRCopiedTwice			copy;
+  PRInt32		dummyMsgCount = 0;
+  if (pMsgCount)
+    *pMsgCount = 0;
+  else
+    pMsgCount = &dummyMsgCount;
 
-	copy.Allocate( kCopyBufferSize);
+  CMapiFolder *pFolder = m_folderList.GetItem( index);
+  OpenMessageStore( pFolder);
+  if (!m_lpMdb) {
+    IMPORT_LOG1( "*** Unable to obtain mapi message store for mailbox: %S\n", pName);
+    return( NS_ERROR_FAILURE);
+  }
 
-	// now what?
-	CMapiFolderContents		contents( m_lpMdb, pFolder->GetCBEntryID(), pFolder->GetEntryID());
+  if (pFolder->IsStore())
+    return( NS_OK);
 
-	BOOL		done = FALSE;
-	ULONG		cbEid;
-	LPENTRYID	lpEid;
-	ULONG		oType;
-	LPMESSAGE	lpMsg = nsnull;
-	int			attachCount;
-	ULONG		totalCount;
-	PRFloat64	doneCalc;
-	nsCString	fromLine;
-	int			fromLen;
-	PRBool		lostAttach = PR_FALSE;
+  nsresult	rv;
+  nsCOMPtr<nsILocalFile>	compositionFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+  if (NS_FAILED( rv))
+    return( rv);
 
-	while (!done) {
-		if (!contents.GetNext( &cbEid, &lpEid, &oType, &done)) {
-			IMPORT_LOG1( "*** Error iterating mailbox: %S\n", pName);
-			return( NS_ERROR_FAILURE);
-		}
-		
-		totalCount = contents.GetCount();
-		doneCalc = *pMsgCount;
-		doneCalc /= totalCount;
-		doneCalc *= 1000;
-		if (pDoneSoFar) {
-			*pDoneSoFar = (PRUint32) doneCalc;
-			if (*pDoneSoFar > 1000)
-				*pDoneSoFar = 1000;
-		}
+  nsOutlookCompose		compose;
+  SimpleBufferTonyRCopiedTwice			copy;
 
-		if (!done && (oType == MAPI_MESSAGE)) {
-			if (!m_mapi.OpenMdbEntry( m_lpMdb, cbEid, lpEid, (LPUNKNOWN *) &lpMsg)) {
-				IMPORT_LOG1( "*** Error opening messages in mailbox: %S\n", pName);
-				return( NS_ERROR_FAILURE);
-			}
-			
-			CMapiMessage	msg( lpMsg);
-	
-			BOOL bResult = msg.FetchHeaders();
-			if (bResult)
-				bResult = msg.FetchBody();
-			if (bResult)
-				fromLine = msg.GetFromLine( fromLen);
+  copy.Allocate( kCopyBufferSize);
 
-			attachCount = msg.CountAttachments();
-			BuildAttachments( msg, attachCount);
+  // now what?
+  CMapiFolderContents		contents( m_lpMdb, pFolder->GetCBEntryID(), pFolder->GetEntryID());
 
-			if (!bResult) {
-				IMPORT_LOG1( "*** Error reading message from mailbox: %S\n", pName);
-				return( NS_ERROR_FAILURE);
-			}
-						
-			// --------------------------------------------------------------
-			compose.SetBody( msg.GetBody());
+  BOOL		done = FALSE;
+  ULONG		cbEid;
+  LPENTRYID	lpEid;
+  ULONG		oType;
+  LPMESSAGE	lpMsg = nsnull;
+  int			attachCount;
+  ULONG		totalCount;
+  PRFloat64	doneCalc;
+  nsCString	fromLine;
+  int			fromLen;
+  PRBool		lostAttach = PR_FALSE;
+
+  while (!done) {
+    if (!contents.GetNext( &cbEid, &lpEid, &oType, &done)) {
+      IMPORT_LOG1( "*** Error iterating mailbox: %S\n", pName);
+      return( NS_ERROR_FAILURE);
+    }
+
+    totalCount = contents.GetCount();
+    doneCalc = *pMsgCount;
+    doneCalc /= totalCount;
+    doneCalc *= 1000;
+    if (pDoneSoFar) {
+      *pDoneSoFar = (PRUint32) doneCalc;
+      if (*pDoneSoFar > 1000)
+        *pDoneSoFar = 1000;
+    }
+
+    if (!done && (oType == MAPI_MESSAGE)) {
+      if (!m_mapi.OpenMdbEntry( m_lpMdb, cbEid, lpEid, (LPUNKNOWN *) &lpMsg)) {
+        IMPORT_LOG1( "*** Error opening messages in mailbox: %S\n", pName);
+        return( NS_ERROR_FAILURE);
+      }
+
+      nsCOMPtr <nsIOutputStream> destOutputStream;
+      rv = NS_NewLocalFileOutputStream(getter_AddRefs(destOutputStream), pDest, -1, 0600);
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      CMapiMessage	msg( lpMsg);
+
+      BOOL bResult = msg.FetchHeaders();
+      if (bResult)
+        bResult = msg.FetchBody();
+      if (bResult)
+        fromLine = msg.GetFromLine( fromLen);
+
+      attachCount = msg.CountAttachments();
+      BuildAttachments( msg, attachCount);
+
+      if (!bResult) {
+        IMPORT_LOG1( "*** Error reading message from mailbox: %S\n", pName);
+        return( NS_ERROR_FAILURE);
+      }
+
+      // --------------------------------------------------------------
+      compose.SetBody( msg.GetBody());
 
       // Need to convert all headers to unicode (for i18n).
       // Init header here since 'composes' is used for all msgs.
@@ -482,12 +486,12 @@ nsresult nsOutlookMail::ImportMailbox( PRUint32 *pDoneSoFar, PRBool *pAbort, PRI
       nsCAutoString tempCStr(msg.GetHeaders(), msg.GetHeaderLen());
 
       rv = nsMsgI18NConvertToUnicode(nsMsgI18NFileSystemCharset(),
-                                     tempCStr, newheader);
+        tempCStr, newheader);
       NS_ASSERTION(NS_SUCCEEDED(rv), "failed to convert headers to utf8");
       if (NS_SUCCEEDED(rv))
         compose.SetHeaders(NS_ConvertUTF16toUTF8(newheader).get());
 
-			compose.SetAttachments( &m_attachments);
+      compose.SetAttachments( &m_attachments);
 
       // See if it's a drafts folder. Outlook doesn't allow drafts
       // folder to be configured so it's ok to hard code it here.
@@ -496,27 +500,27 @@ nsresult nsOutlookMail::ImportMailbox( PRUint32 *pDoneSoFar, PRBool *pAbort, PRI
       mode = nsIMsgSend::nsMsgSaveAsDraft;
       if ( folderName.LowerCaseEqualsLiteral("drafts") )
         mode = nsIMsgSend::nsMsgSaveAsDraft;
-			
-			/*
-				If I can't get no headers,
-				I can't get no satisfaction
-			*/
-			if (msg.GetHeaderLen()) {
+
+      /*
+      If I can't get no headers,
+      I can't get no satisfaction
+      */
+      if (msg.GetHeaderLen()) {
         nsCAutoString cType;
         SetDefaultContentType(msg, cType);
-				rv = compose.SendTheMessage( compositionFile, mode, cType);
-				if (NS_SUCCEEDED( rv)) {
-					rv = compose.CopyComposedMessage( fromLine, compositionFile, pDest, copy);
-					DeleteFile( compositionFile);
-					if (NS_FAILED( rv)) {
-						IMPORT_LOG0( "*** Error copying composed message to destination mailbox\n");
-						return( rv);
-					}
+        rv = compose.SendTheMessage( compositionFile, mode, cType);
+        if (NS_SUCCEEDED( rv)) {
+          rv = compose.CopyComposedMessage( fromLine, compositionFile, destOutputStream, copy);
+          DeleteFile( compositionFile);
+          if (NS_FAILED( rv)) {
+            IMPORT_LOG0( "*** Error copying composed message to destination mailbox\n");
+            return( rv);
+          }
           (*pMsgCount)++;
-				}
-			}
-			else
-				rv = NS_OK;
+        }
+      }
+      else
+        rv = NS_OK;
 
       // The following code to write msg to folder when compose.SendTheMessage() fails is commented
       // out for now because the code doesn't handle attachments and users will complain anyway so
@@ -524,53 +528,53 @@ nsresult nsOutlookMail::ImportMailbox( PRUint32 *pDoneSoFar, PRBool *pAbort, PRI
       // think that all msgs are imported ok. This will also help users to identify which msgs are
       // not imported and help to debug the problem.
 #if 0
-			if (NS_FAILED( rv)) {
-				
-				/* NS_PRECONDITION( FALSE, "Manual breakpoint"); */
+      if (NS_FAILED( rv)) {
 
-				IMPORT_LOG1( "Message #%d failed.\n", (int) (*pMsgCount));
-				DumpAttachments();
-	
-				// --------------------------------------------------------------
+        /* NS_PRECONDITION( FALSE, "Manual breakpoint"); */
 
-				// This is the OLD way of writing out the message which uses
-				// all kinds of crufty old crap for attachments.
-				// Since we now use Compose to send attachments, 
-				// this is only fallback error stuff.
+        IMPORT_LOG1( "Message #%d failed.\n", (int) (*pMsgCount));
+        DumpAttachments();
 
-				// Attachments get lost.		
+        // --------------------------------------------------------------
 
-				if (attachCount) {
-					lostAttach = PR_TRUE;
-					attachCount = 0;
-				}
+        // This is the OLD way of writing out the message which uses
+        // all kinds of crufty old crap for attachments.
+        // Since we now use Compose to send attachments, 
+        // this is only fallback error stuff.
 
-				BOOL needsTerminate = FALSE;
-				if (!WriteMessage( pDest, &msg, attachCount, &needsTerminate)) {
-					IMPORT_LOG0( "*** Error writing message\n");
-					*pAbort = PR_TRUE;
-					return( NS_ERROR_FAILURE);
-				}
-				
-				if (needsTerminate) {
-					if (!WriteMimeBoundary( pDest, &msg, TRUE)) {
-						IMPORT_LOG0( "*** Error writing message mime boundary\n");
-						*pAbort = PR_TRUE;
-						return( NS_ERROR_FAILURE);
-					}
-				}
-			}
+        // Attachments get lost.		
+
+        if (attachCount) {
+          lostAttach = PR_TRUE;
+          attachCount = 0;
+        }
+
+        BOOL needsTerminate = FALSE;
+        if (!WriteMessage( destOutputStream, &msg, attachCount, &needsTerminate)) {
+          IMPORT_LOG0( "*** Error writing message\n");
+          *pAbort = PR_TRUE;
+          return( NS_ERROR_FAILURE);
+        }
+
+        if (needsTerminate) {
+          if (!WriteMimeBoundary( destOutputStream, &msg, TRUE)) {
+            IMPORT_LOG0( "*** Error writing message mime boundary\n");
+            *pAbort = PR_TRUE;
+            return( NS_ERROR_FAILURE);
+          }
+        }
+      }
 #endif
 
-			// Just for YUCKS, let's try an extra endline
-			WriteData( pDest, "\x0D\x0A", 2);
-		}
-	}
+      // Just for YUCKS, let's try an extra endline
+      WriteData( destOutputStream, "\x0D\x0A", 2);
+    }
+  }
 
-	return( NS_OK);
+  return( NS_OK);
 }
 
-BOOL nsOutlookMail::WriteMessage( nsIFileSpec *pDest, CMapiMessage *pMsg, int& attachCount, BOOL *pTerminate)
+BOOL nsOutlookMail::WriteMessage( nsIOutputStream *pDest, CMapiMessage *pMsg, int& attachCount, BOOL *pTerminate)
 {
 	BOOL		bResult = TRUE;
 	const char *pData;
@@ -585,8 +589,7 @@ BOOL nsOutlookMail::WriteMessage( nsIFileSpec *pDest, CMapiMessage *pMsg, int& a
 		checkStart = TRUE;
 	}
 
-  nsCOMPtr<nsIOutputStream> outStream;
-  pDest->GetOutputStream (getter_AddRefs (outStream));
+  nsCOMPtr<nsIOutputStream> outStream = pDest;
   
 	pData = pMsg->GetHeaders( len);
 	if (pData && len) {
@@ -656,18 +659,18 @@ BOOL nsOutlookMail::WriteMessage( nsIFileSpec *pDest, CMapiMessage *pMsg, int& a
 }
 
 
-BOOL nsOutlookMail::WriteData( nsIFileSpec *pDest, const char *pData, PRInt32 len)
+BOOL nsOutlookMail::WriteData( nsIOutputStream *pDest, const char *pData, PRInt32 len)
 {	
-	PRInt32		written;
+	PRUint32		written;
 	nsresult rv = pDest->Write( pData, len, &written);
 	if (NS_FAILED( rv) || (written != len))
 		return( FALSE);
 	return( TRUE);
 }
 
-BOOL nsOutlookMail::WriteStr( nsIFileSpec *pDest, const char *pStr)
+BOOL nsOutlookMail::WriteStr( nsIOutputStream *pDest, const char *pStr)
 {	
-	PRInt32		written;
+	PRUint32 written;
 	PRInt32		len = strlen( pStr);
 
 	nsresult rv = pDest->Write( pStr, len, &written);
@@ -676,7 +679,7 @@ BOOL nsOutlookMail::WriteStr( nsIFileSpec *pDest, const char *pStr)
 	return( TRUE);
 }
 
-BOOL nsOutlookMail::WriteMimeMsgHeader( nsIFileSpec *pDest, CMapiMessage *pMsg)
+BOOL nsOutlookMail::WriteMimeMsgHeader( nsIOutputStream *pDest, CMapiMessage *pMsg)
 {
 	BOOL	bResult = TRUE;
 	if (!pMsg->HasMimeVersion())
@@ -692,7 +695,7 @@ BOOL nsOutlookMail::WriteMimeMsgHeader( nsIFileSpec *pDest, CMapiMessage *pMsg)
 	return( bResult);
 }
 
-BOOL nsOutlookMail::WriteMimeBoundary( nsIFileSpec *pDest, CMapiMessage *pMsg, BOOL terminate)
+BOOL nsOutlookMail::WriteMimeBoundary( nsIOutputStream *pDest, CMapiMessage *pMsg, BOOL terminate)
 {
 	BOOL	bResult = WriteStr( pDest, "--");
 	if (bResult)
@@ -707,7 +710,7 @@ BOOL nsOutlookMail::WriteMimeBoundary( nsIFileSpec *pDest, CMapiMessage *pMsg, B
 
 
 /*
-PRBool nsOutlookMail::WriteAttachment( nsIFileSpec *pDest, CMapiMessage *pMsg)
+PRBool nsOutlookMail::WriteAttachment( nsIOutputStream *pDest, CMapiMessage *pMsg)
 {
 	nsCOMPtr<nsIFileSpec> pSpec;
 	nsresult rv = NS_NewFileSpec( getter_AddRefs( pSpec));
@@ -756,90 +759,68 @@ PRBool nsOutlookMail::WriteAttachment( nsIFileSpec *pDest, CMapiMessage *pMsg)
 
 
 
-nsresult nsOutlookMail::DeleteFile( nsIFileSpec *pSpec)
+nsresult nsOutlookMail::DeleteFile( nsIFile *pFile)
 {
-	PRBool		result;
-	nsresult	rv = NS_OK;
-
-	result = PR_FALSE;
-	pSpec->IsStreamOpen( &result);
-	if (result)
-		pSpec->CloseStream();
-	result = PR_FALSE;
-	pSpec->Exists( &result);
-	if (result) {
-		result = PR_FALSE;
-		pSpec->IsFile( &result);
-		if (result) {
-			nsFileSpec	spec;
-			rv = pSpec->GetFileSpec( &spec);
-			if (NS_SUCCEEDED( rv))
-				spec.Delete( PR_FALSE);
-		}
-	}
-
-	return( rv);
+  return pFile->Remove(PR_FALSE);
 }
 
 void nsOutlookMail::EmptyAttachments( void)
 {
-	PRBool	exists;
-	PRBool	isFile;
-	PRInt32 max = m_attachments.Count();
-	OutlookAttachment *	pAttach;
-	for (PRInt32 i = 0; i < max; i++) {
-		pAttach = (OutlookAttachment *) m_attachments.ElementAt( i);
-		if (pAttach) {
-			if (pAttach->pAttachment) {
-				exists = PR_FALSE;
-				isFile = PR_FALSE;
-				pAttach->pAttachment->Exists( &exists);
-				if (exists)
-					pAttach->pAttachment->IsFile( &isFile);
-				if (exists && isFile)
-					DeleteFile( pAttach->pAttachment);
-				NS_RELEASE( pAttach->pAttachment);
-			}
-			nsCRT::free( pAttach->description);
-			nsCRT::free( pAttach->mimeType);
-			delete pAttach;
-		}
-	}
+  PRBool	exists;
+  PRBool	isFile;
+  PRInt32 max = m_attachments.Count();
+  OutlookAttachment *	pAttach;
+  for (PRInt32 i = 0; i < max; i++) {
+    pAttach = (OutlookAttachment *) m_attachments.ElementAt( i);
+    if (pAttach) {
+      if (pAttach->pAttachment) {
+        exists = PR_FALSE;
+        isFile = PR_FALSE;
+        pAttach->pAttachment->Exists( &exists);
+        if (exists)
+          pAttach->pAttachment->IsFile( &isFile);
+        if (exists && isFile)
+          DeleteFile( pAttach->pAttachment);
+        pAttach->pAttachment = nsnull;
+      }
+      nsCRT::free( pAttach->description);
+      nsCRT::free( pAttach->mimeType);
+      delete pAttach;
+    }
+  }
 
-	m_attachments.Clear();
+  m_attachments.Clear();
 }
 
 void nsOutlookMail::BuildAttachments( CMapiMessage& msg, int count)
 {
-	EmptyAttachments();
-	if (count) {
-		nsIFileSpec *	pSpec;
-		nsresult rv;
-		for (int i = 0; i < count; i++) {
-			if (!msg.GetAttachmentInfo( i)) {
-				IMPORT_LOG1( "*** Error getting attachment info for #%d\n", i);
-			}
+  EmptyAttachments();
+  if (count) {
+    nsresult rv;
+    nsCOMPtr <nsILocalFile>	pFile;
+    for (int i = 0; i < count; i++) {
+      if (!msg.GetAttachmentInfo( i)) {
+        IMPORT_LOG1( "*** Error getting attachment info for #%d\n", i);
+      }
 
-			pSpec = nsnull;
-			rv = NS_NewFileSpec( &pSpec);
-			if (NS_FAILED( rv) || !pSpec) {
-				IMPORT_LOG0( "*** Error creating file spec for attachment\n");
-			}
-			else {
-				if (msg.GetAttachFileLoc( pSpec)) {
-					PRBool	isFile = PR_FALSE;
-					PRBool	exists = PR_FALSE;
-					pSpec->Exists( &exists);
-					pSpec->IsFile( &isFile);
+      pFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+      if (NS_FAILED( rv) || !pFile) {
+        IMPORT_LOG0( "*** Error creating file spec for attachment\n");
+      }
+      else {
+        if (msg.GetAttachFileLoc( pFile)) {
+          PRBool	isFile = PR_FALSE;
+          PRBool	exists = PR_FALSE;
+          pFile->Exists( &exists);
+          pFile->IsFile( &isFile);
 
-					if (!exists || !isFile) {
-						IMPORT_LOG0( "Attachment file does not exist\n");
-						NS_RELEASE( pSpec);
-					}
-					else {
-						// We have a file spec, now get the other info
-						OutlookAttachment *a = new OutlookAttachment;
-						a->mimeType = nsCRT::strdup( msg.GetMimeType());
+          if (!exists || !isFile) {
+            IMPORT_LOG0( "Attachment file does not exist\n");
+          }
+          else {
+            // We have a file spec, now get the other info
+            OutlookAttachment *a = new OutlookAttachment;
+            a->mimeType = nsCRT::strdup( msg.GetMimeType());
             // Init description here so that we cacn tell
             // if defaul tattacchment is needed later.
             a->description = nsnull;  
@@ -849,7 +830,7 @@ void nsOutlookMail::BuildAttachments( CMapiMessage& msg, int count)
               // Convert description to unicode.
               nsAutoString description;
               rv = nsMsgI18NConvertToUnicode(nsMsgI18NFileSystemCharset(),
-                                             nsDependentCString(fileName), description);
+                nsDependentCString(fileName), description);
               NS_ASSERTION(NS_SUCCEEDED(rv), "failed to convert system string to unicode");
               if (NS_SUCCEEDED(rv))
                 a->description = ToNewUTF8String(description);
@@ -858,20 +839,17 @@ void nsOutlookMail::BuildAttachments( CMapiMessage& msg, int count)
             // If no description use "Attachment i" format.
             if (!a->description) {
               nsCAutoString	str("Attachment ");
-							str.AppendInt( (PRInt32) i);
-							a->description = ToNewCString( str);
-						}
+              str.AppendInt( (PRInt32) i);
+              a->description = ToNewCString( str);
+            }
 
-						a->pAttachment = pSpec;
-						m_attachments.AppendElement( a);
-					}
-				}
-				else {
-					NS_RELEASE( pSpec);
-				}
-			}
-		}
-	}
+            a->pAttachment = pFile;
+            m_attachments.AppendElement( a);
+          }
+        }
+      }
+    }
+  }
 }
 
 void nsOutlookMail::DumpAttachments( void)
@@ -895,9 +873,9 @@ void nsOutlookMail::DumpAttachments( void)
 		if (pAttach->description)
 			IMPORT_LOG1( "\t\tDescription: %s\n", pAttach->description);
 		if (pAttach->pAttachment) {
-			nsXPIDLCString	path;
-			pAttach->pAttachment->GetNativePath( getter_Copies( path));
-			IMPORT_LOG1( "\t\tFile: %s\n", (const char *)path);
+			nsCString	path;
+			pAttach->pAttachment->GetNativePath( path);
+			IMPORT_LOG1( "\t\tFile: %s\n", path.get());
 		}
 	}
 #endif

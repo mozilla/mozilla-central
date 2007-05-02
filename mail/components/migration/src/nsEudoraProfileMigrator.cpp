@@ -51,7 +51,7 @@
 #include "nsVoidArray.h"
 
 #include "nsIImportSettings.h"
-#include "nsIFileSpec.h" // needed for an obsolete API
+#include "nsIFile.h" 
 
 
 NS_IMPL_ISUPPORTS2(nsEudoraProfileMigrator, nsIMailProfileMigrator, nsITimerCallback)
@@ -154,7 +154,7 @@ nsEudoraProfileMigrator::GetSourceExists(PRBool* aResult)
   if (importSettings)
   {
     nsXPIDLString description;
-    nsCOMPtr<nsIFileSpec> location;
+    nsCOMPtr<nsIFile> location;
     importSettings->AutoLocate(getter_Copies(description), getter_AddRefs(location), aResult);
   }
 

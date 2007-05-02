@@ -39,7 +39,6 @@
 
 #include "nscore.h"
 #include "nsImportMailboxDescriptor.h"
-
 ////////////////////////////////////////////////////////////////////////
 
 
@@ -64,9 +63,8 @@ NS_IMPL_THREADSAFE_ISUPPORTS1(nsImportMailboxDescriptor, nsIImportMailboxDescrip
 nsImportMailboxDescriptor::nsImportMailboxDescriptor() 
 { 
 	m_import = PR_TRUE;
-	m_pFileSpec = nsnull;
 	m_size = 0;
 	m_depth = 0;
 	m_id = 0;
-	NS_NewFileSpec( &m_pFileSpec);
+        m_pFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID);
 }

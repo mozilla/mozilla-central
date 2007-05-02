@@ -53,7 +53,7 @@ public:
 	nsImportMimeEncode();
 	~nsImportMimeEncode();
 	
-	void	EncodeFile( nsIFileSpec *pInFile, ImportOutFile *pOut, const char *pFileName, const char *pMimeType);
+	void	EncodeFile( nsIFile *pInFile, ImportOutFile *pOut, const char *pFileName, const char *pMimeType);
 
 	PRBool	DoWork( PRBool *pDone);
 	
@@ -70,8 +70,8 @@ protected:
 
 
 protected:
-	nsCString			m_fileName;
-	nsIFileSpec *		m_pMimeFile;
+	nsCString             m_fileName;
+	nsCOMPtr <nsIFile>    m_pMimeFile;
 	ImportOutFile *		m_pOut;
 	nsCString			m_mimeType;
 

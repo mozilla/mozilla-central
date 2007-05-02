@@ -42,10 +42,11 @@
 #include "nscore.h"
 #include "nsString.h"
 #include "nsVoidArray.h"
-#include "nsIFileSpec.h"
+#include "nsIFile.h"
 #include "nsISupportsArray.h"
 #include "nsEudoraCompose.h"
 
+class nsIOutputStream;
 
 /////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////
@@ -58,33 +59,33 @@ public:
 
 	// Things that must be overridden because they are platform specific.
 		// retrieve the mail folder
-	virtual PRBool		FindMailFolder( nsIFileSpec *pFolder) { return( PR_FALSE);}
+	virtual PRBool		FindMailFolder( nsIFile **pFolder) { return( PR_FALSE);}
 		// get the list of mailboxes
-	virtual nsresult	FindMailboxes( nsIFileSpec *pRoot, nsISupportsArray **ppArray) { return( NS_ERROR_FAILURE);}
+	virtual nsresult	FindMailboxes( nsIFile *pRoot, nsISupportsArray **ppArray) { return( NS_ERROR_FAILURE);}
 		// get the toc file corresponding to this mailbox
-	virtual nsresult	FindTOCFile( nsIFileSpec *pMailFile, nsIFileSpec **pTOCFile, PRBool *pDeleteToc) { return( NS_ERROR_FAILURE);}
+	virtual nsresult	FindTOCFile( nsIFile *pMailFile, nsIFile **pTOCFile, PRBool *pDeleteToc) { return( NS_ERROR_FAILURE);}
 		// interpret the attachment line and return the attached file
-	virtual nsresult	GetAttachmentInfo( const char *pFileName, nsIFileSpec *pSpec, nsCString& mimeType, nsCString& aAttachment) { return( NS_ERROR_FAILURE);}
+	virtual nsresult	GetAttachmentInfo( const char *pFileName, nsIFile *pFile, nsCString& mimeType, nsCString& aAttachment) { return( NS_ERROR_FAILURE);}
 		
 	// Non-platform specific common stuff
 		// import a mailbox
-	nsresult ImportMailbox( PRUint32 *pBytes, PRBool *pAbort, const PRUnichar *pName, nsIFileSpec *pSrc, nsIFileSpec *pDst, PRInt32 *pMsgCount);
+	nsresult ImportMailbox( PRUint32 *pBytes, PRBool *pAbort, const PRUnichar *pName, nsIFile *pSrc, nsIFile *pDst, PRInt32 *pMsgCount);
 
 	static PRInt32		IsEudoraFromSeparator( const char *pData, PRInt32 maxLen, nsCString& defaultDate);
 	static PRBool		IsEudoraTag( const char *pChar, PRInt32 maxLen, PRBool &insideEudoraTags, nsCString &bodyType, PRInt32& tagLength);
 
 protected:
-	nsresult	CreateTempFile( nsIFileSpec **ppSpec);
-	nsresult	DeleteFile( nsIFileSpec *pSpec);
+	nsresult	CreateTempFile( nsIFile **ppFile);
+	nsresult	DeleteFile( nsIFile *pFile);
 
 
 private:
-	nsresult	CompactMailbox( PRUint32 *pBytes, PRBool *pAbort, nsIFileSpec *pMail, nsIFileSpec *pToc, nsIFileSpec *pDst);
+	nsresult	CompactMailbox( PRUint32 *pBytes, PRBool *pAbort, nsIFile *pMail, nsIFile *pToc, nsIOutputStream *pDstOutputStream);
 	nsresult	ReadNextMessage( ReadFileState *pState, SimpleBufferTonyRCopiedOnce& copy, SimpleBufferTonyRCopiedOnce& header, SimpleBufferTonyRCopiedOnce& body, nsCString& defaultDate, nsCString &defBodyType);
 	PRInt32		FindStartLine( SimpleBufferTonyRCopiedOnce& data);
 	PRInt32		FindNextEndLine( SimpleBufferTonyRCopiedOnce& data);
 	PRInt32		IsEndHeaders( SimpleBufferTonyRCopiedOnce& data);
-	nsresult	WriteFromSep( nsIFileSpec *pDst);
+	nsresult	WriteFromSep( nsIOutputStream *pDst);
 	nsresult	FillMailBuffer( ReadFileState *pState, SimpleBufferTonyRCopiedOnce& read);
 	
 	void		EmptyAttachments( void);
@@ -96,7 +97,7 @@ private:
 	static int			IsMonthStr( const char *pStr);
 
 private:
-	PRUint32		m_mailSize;
+	PRInt64		m_mailSize;
 	PRInt32			m_fromLen;
 	nsVoidArray		m_attachments;
 };

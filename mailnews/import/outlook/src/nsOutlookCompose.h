@@ -41,7 +41,7 @@
 
 #include "nscore.h"
 #include "nsString.h"
-#include "nsIFileSpec.h"
+#include "nsIFile.h"
 #include "nsVoidArray.h"
 #include "nsIImportService.h"
 
@@ -52,18 +52,21 @@ class nsIMsgSendListener;
 class nsIIOService;
 
 #include "nsIMsgSend.h"
+#include "nsNetUtil.h"
 
-
-typedef struct {
-	nsIFileSpec *	pAttachment;
+typedef class {
+public:
+	nsCOMPtr <nsILocalFile>	pAttachment;
 	char *			mimeType;
 	char *			description;
 } OutlookAttachment;
 
-typedef struct {
+typedef class {
+public:
 	PRUint32		offset;
-	PRUint32		size;
-	nsIFileSpec *	pFile;
+	PRInt64		size;
+	nsCOMPtr <nsIFile>	pFile;
+        nsCOMPtr <nsIInputStream> pInputStream;
 } ReadFileState;
 
 class SimpleBufferTonyRCopiedTwice {
@@ -126,13 +129,13 @@ public:
 	nsOutlookCompose();
 	~nsOutlookCompose();
 
-	nsresult	SendTheMessage( nsIFileSpec *pMsg, nsMsgDeliverMode mode, nsCString &useThisCType);
+	nsresult	SendTheMessage( nsIFile *pMsg, nsMsgDeliverMode mode, nsCString &useThisCType);
 
 	void		SetBody( const char *pBody) { m_Body = pBody;}
 	void		SetHeaders( const char *pHeaders) { m_Headers = pHeaders;}
 	void		SetAttachments( nsVoidArray *pAttachments) { m_pAttachments = pAttachments;}
 
-	nsresult	CopyComposedMessage( nsCString& fromLine, nsIFileSpec *pSrc, nsIFileSpec *pDst, SimpleBufferTonyRCopiedTwice& copy);
+	nsresult	CopyComposedMessage( nsCString& fromLine, nsIFile *pSrc, nsIOutputStream *pDst, SimpleBufferTonyRCopiedTwice& copy);
 
 	static nsresult	FillMailBuffer( ReadFileState *pState, SimpleBufferTonyRCopiedTwice& read);
 
@@ -158,7 +161,7 @@ private:
 	PRInt32		FindNextEndLine( SimpleBufferTonyRCopiedTwice& data);
 	PRInt32		IsEndHeaders( SimpleBufferTonyRCopiedTwice& data);
 	PRInt32		IsSpecialHeader( const char *pHeader);
-	nsresult	WriteHeaders( nsIFileSpec *pDst, SimpleBufferTonyRCopiedTwice& newHeaders);
+	nsresult	WriteHeaders( nsIOutputStream *pDst, SimpleBufferTonyRCopiedTwice& newHeaders);
 	PRBool		IsReplaceHeader( const char *pHeader);
   void      ConvertSystemStringToUnicode( const char *pSysStr, nsString& uniStr);
 

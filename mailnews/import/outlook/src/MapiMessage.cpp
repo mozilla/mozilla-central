@@ -38,7 +38,6 @@
 #include "nscore.h"
 #include <time.h>
 #include "nsString.h"
-#include "nsFileSpec.h"
 #include "nsDirectoryServiceDefs.h"
 #include "nsMsgUtils.h"
 
@@ -296,11 +295,12 @@ void CMapiMessage::GenerateBoundary( void)
 	m_mimeBoundary += "====";
 }
 
-BOOL CMapiMessage::GetAttachFileLoc( nsIFileSpec * pLoc)
+BOOL CMapiMessage::GetAttachFileLoc( nsIFile * pLoc)
 {
 	if (m_attachPath.IsEmpty())
 		return( FALSE);
-	pLoc->SetNativePath( m_attachPath.get());
+        nsCOMPtr <nsILocalFile> locFile = do_QueryInterface(pLoc);
+        locFile->InitWithNativePath(m_attachPath);
 	m_ownsAttachFile = FALSE;
 	return( TRUE);
 }
@@ -592,8 +592,9 @@ BOOL CMapiMessage::IterateAttachTable( void)
 void CMapiMessage::ClearTempAttachFile( void)
 {
 	if (m_ownsAttachFile && !m_attachPath.IsEmpty()) {
-		nsFileSpec	spec( m_attachPath.get());
-		spec.Delete( PR_FALSE);
+            nsCOMPtr <nsILocalFile> locFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID);
+            if (locFile && (NS_SUCCEEDED(locFile->InitWithNativePath(m_attachPath))))
+                locFile->Remove(PR_FALSE);
 	}
 	m_ownsAttachFile = FALSE;	
 	m_attachPath.Truncate();
@@ -601,67 +602,65 @@ void CMapiMessage::ClearTempAttachFile( void)
 
 BOOL CMapiMessage::CopyBinAttachToFile( LPATTACH lpAttach)
 {
-	LPSTREAM	lpStreamFile;
+  LPSTREAM	lpStreamFile;
 
-	m_ownsAttachFile = FALSE;
-	m_attachPath.Truncate();
+  m_ownsAttachFile = FALSE;
+  m_attachPath.Truncate();
 
-    nsCOMPtr<nsIFile> tmpFile;
-    nsresult rv = GetSpecialDirectoryWithFileName(NS_OS_TEMP_DIR,
-                                                  "mapiattach.tmp",
-                                                  getter_AddRefs(tmpFile));
-    NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIFile> tmpFile;
+  nsresult rv = GetSpecialDirectoryWithFileName(NS_OS_TEMP_DIR,
+    "mapiattach.tmp",
+    getter_AddRefs(tmpFile));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    rv = tmpFile->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);
-    NS_ENSURE_SUCCESS(rv, rv);
+  rv = tmpFile->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    nsXPIDLCString tmpPath;
-    tmpFile->GetNativePath(tmpPath);
-	HRESULT hr = CMapiApi::OpenStreamOnFile( gpMapiAllocateBuffer, gpMapiFreeBuffer, STGM_READWRITE | STGM_CREATE,
-						(char *) tmpPath.get(), NULL, &lpStreamFile);
-	if (HR_FAILED(hr)) {
-		MAPI_TRACE1( "~~ERROR~~ OpenStreamOnFile failed - temp path: %s\r\n", tPath);
-		return( FALSE);
-	}
-	MAPI_TRACE1( "\t\t** Attachment extracted to temp file: %s\r\n", (const char *)m_attachPath);
+  nsXPIDLCString tmpPath;
+  tmpFile->GetNativePath(tmpPath);
+  HRESULT hr = CMapiApi::OpenStreamOnFile( gpMapiAllocateBuffer, gpMapiFreeBuffer, STGM_READWRITE | STGM_CREATE,
+    (char *) tmpPath.get(), NULL, &lpStreamFile);
+  if (HR_FAILED(hr)) {
+    MAPI_TRACE1( "~~ERROR~~ OpenStreamOnFile failed - temp path: %s\r\n", tPath);
+    return( FALSE);
+  }
+  MAPI_TRACE1( "\t\t** Attachment extracted to temp file: %s\r\n", (const char *)m_attachPath);
 
-	BOOL		bResult = TRUE;
-	LPSTREAM	lpAttachStream;
-	hr = lpAttach->OpenProperty( PR_ATTACH_DATA_BIN, &IID_IStream, 0, 0, (LPUNKNOWN *)&lpAttachStream);
+  BOOL		bResult = TRUE;
+  LPSTREAM	lpAttachStream;
+  hr = lpAttach->OpenProperty( PR_ATTACH_DATA_BIN, &IID_IStream, 0, 0, (LPUNKNOWN *)&lpAttachStream);
 
-	if (HR_FAILED( hr)) {
-		MAPI_TRACE0( "~~ERROR~~ OpenProperty failed for PR_ATTACH_DATA_BIN.\r\n");
-		lpAttachStream = NULL;
-		bResult = FALSE;
-	}
-	else {
-		STATSTG		st;
-		hr = lpAttachStream->Stat( &st, STATFLAG_NONAME);
-		if (HR_FAILED( hr)) {
-			MAPI_TRACE0( "~~ERROR~~ Stat failed for attachment stream\r\n");
-			bResult = FALSE;
-		}
-		else {
-			hr = lpAttachStream->CopyTo( lpStreamFile, st.cbSize, NULL, NULL);
-			if (HR_FAILED( hr)) {
-				MAPI_TRACE0( "~~ERROR~~ Attach Stream CopyTo temp file failed.\r\n");
-				bResult = FALSE;
-			}
-		}
-	}
+  if (HR_FAILED( hr)) {
+    MAPI_TRACE0( "~~ERROR~~ OpenProperty failed for PR_ATTACH_DATA_BIN.\r\n");
+    lpAttachStream = NULL;
+    bResult = FALSE;
+  }
+  else {
+    STATSTG		st;
+    hr = lpAttachStream->Stat( &st, STATFLAG_NONAME);
+    if (HR_FAILED( hr)) {
+      MAPI_TRACE0( "~~ERROR~~ Stat failed for attachment stream\r\n");
+      bResult = FALSE;
+    }
+    else {
+      hr = lpAttachStream->CopyTo( lpStreamFile, st.cbSize, NULL, NULL);
+      if (HR_FAILED( hr)) {
+        MAPI_TRACE0( "~~ERROR~~ Attach Stream CopyTo temp file failed.\r\n");
+        bResult = FALSE;
+      }
+    }
+  }
 
-	m_attachPath = tmpPath;
-	if (lpAttachStream)
-		lpAttachStream->Release();
-	lpStreamFile->Release();
-	if (!bResult) {
-		nsFileSpec	spec( m_attachPath.get());
-		spec.Delete( PR_FALSE);
-	}
-	else
-		m_ownsAttachFile = TRUE;
+  m_attachPath = tmpPath;
+  if (lpAttachStream)
+    lpAttachStream->Release();
+  lpStreamFile->Release();
+  if (!bResult)
+    tmpFile->Remove(PR_FALSE);
+  else
+    m_ownsAttachFile = TRUE;
 
-	return( bResult);
+  return( bResult);
 }
 
 BOOL CMapiMessage::GetAttachmentInfo( int idx)

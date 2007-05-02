@@ -106,7 +106,7 @@ nsOutlookSettings::~nsOutlookSettings()
 
 NS_IMPL_ISUPPORTS1(nsOutlookSettings, nsIImportSettings)
 
-NS_IMETHODIMP nsOutlookSettings::AutoLocate(PRUnichar **description, nsIFileSpec **location, PRBool *_retval)
+NS_IMETHODIMP nsOutlookSettings::AutoLocate(PRUnichar **description, nsIFile **location, PRBool *_retval)
 {
     NS_PRECONDITION(description != nsnull, "null ptr");
     NS_PRECONDITION(_retval != nsnull, "null ptr");
@@ -129,7 +129,7 @@ NS_IMETHODIMP nsOutlookSettings::AutoLocate(PRUnichar **description, nsIFileSpec
 	return( NS_OK);
 }
 
-NS_IMETHODIMP nsOutlookSettings::SetLocation(nsIFileSpec *location)
+NS_IMETHODIMP nsOutlookSettings::SetLocation(nsIFile *location)
 {
 	return( NS_OK);
 }
@@ -456,31 +456,34 @@ PRBool OutlookSettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, cha
 
 PRBool OutlookSettings::IdentityMatches( nsIMsgIdentity *pIdent, const char *pName, const char *pServer, const char *pEmail, const char *pReply, const char *pUserName)
 {
-  if (!pIdent)
-    return( PR_FALSE);
+	if (!pIdent)
+		return( PR_FALSE);
 
-  nsCString pIEmail;
-  nsCString pIReply;
+	char *	pIName = nsnull;
+	nsCString pIEmail;
+	nsCString pIReply;
+	
+	PRBool	result = PR_TRUE;
 
-  PRBool  result = PR_TRUE;
+	// The test here is:
+	// If the smtp host is the same
+	//	and the email address is the same (if it is supplied)
+	//	and the reply to address is the same (if it is supplied)
+	//	then we match regardless of the full name.
+	
 
-  // The test here is:
-  // If the smtp host is the same
-  //	and the email address is the same (if it is supplied)
-  //	and the reply to address is the same (if it is supplied)
-  //	then we match regardless of the full name.
+	nsresult rv;
+	rv = pIdent->GetEmail(pIEmail);
+	rv = pIdent->GetReplyTo(pIReply);
+	
 
-  nsresult rv;
-  rv = pIdent->GetEmail(pIEmail);
-  rv = pIdent->GetReplyTo(pIReply);
+	// for now, if it's the same server and reply to and email then it matches
+	if (pReply && !pIReply.Equals(pReply, nsCaseInsensitiveCStringComparator()))
+	  result = PR_FALSE;
+	if (pEmail && !pIEmail.Equals(pEmail, nsCaseInsensitiveCStringComparator()))
+	  result = PR_FALSE;
 
-  // for now, if it's the same server and reply to and email then it matches
-  if (pReply && !pIReply.Equals(pReply, nsCaseInsensitiveCStringComparator()))
-    result = PR_FALSE;
-  if (pEmail && !pIEmail.Equals(pEmail, nsCaseInsensitiveCStringComparator()))
-    result = PR_FALSE;
-  return result;
-  return( result);
+	return( result);
 }
 
 void OutlookSettings::SetIdentities( nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc, HKEY hKey)
@@ -567,5 +570,4 @@ void OutlookSettings::SetSmtpServer( nsIMsgAccountManager *pMgr, nsIMsgAccount *
 		}
  	}
 }
-
 

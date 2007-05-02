@@ -53,6 +53,7 @@
 #include "nsMsgI18N.h"
 #include "nsNativeCharsetUtils.h"
 #include "nsIOutputStream.h"
+#include "nsNetUtil.h"
 
 #include "nsMsgBaseCID.h"
 #include "nsMsgCompCID.h"
@@ -553,11 +554,13 @@ nsMsgAttachedFile * nsOutlookCompose::GetLocalAttachments( void)
 		// NS_PRECONDITION( PR_FALSE, "Forced Break");
 
 		pAttach = (OutlookAttachment *) m_pAttachments->ElementAt( i);
-                nsFileSpec tmpFileSpec;
-		pAttach->pAttachment->GetFileSpec( &tmpFileSpec);
-                NS_FileSpecToIFile(&tmpFileSpec, getter_AddRefs(a[i].tmp_file));
+                // should we clone here?
+		a[i].tmp_file = pAttach->pAttachment;
 		urlStr.Adopt(0);
-		pAttach->pAttachment->GetURLString(getter_Copies(urlStr));
+                nsCOMPtr <nsIURI> uri;
+                rv = NS_NewFileURI(getter_AddRefs(uri), pAttach->pAttachment);
+                NS_ENSURE_SUCCESS(rv, nsnull);
+                uri->GetSpec(urlStr);
 		if (!urlStr) {
 			CleanUpAttach( a, count);
 			return( nsnull);
@@ -577,7 +580,7 @@ nsMsgAttachedFile * nsOutlookCompose::GetLocalAttachments( void)
 }
 
 // Test a message send????
-nsresult nsOutlookCompose::SendTheMessage( nsIFileSpec *pMsg, nsMsgDeliverMode mode, nsCString &useThisCType)
+nsresult nsOutlookCompose::SendTheMessage( nsIFile *pMsg, nsMsgDeliverMode mode, nsCString &useThisCType)
 {
 	nsresult	rv = CreateComponents();
 	if (NS_SUCCEEDED( rv))
@@ -719,7 +722,7 @@ nsresult nsOutlookCompose::SendTheMessage( nsIFileSpec *pMsg, nsMsgDeliverMode m
 		nsCRT::free( pMimeType);
 
 	if (pListen->m_location) {
-                NS_NewFileSpecFromIFile(pListen->m_location, &pMsg);
+                pListen->m_location->Clone(&pMsg);
 		rv = NS_OK;
 	}
 	else {
@@ -862,7 +865,7 @@ PRInt32 nsOutlookCompose::IsEndHeaders( SimpleBufferTonyRCopiedTwice& data)
 }
 
 
-nsresult nsOutlookCompose::CopyComposedMessage( nsCString& fromLine, nsIFileSpec *pSrc, nsIFileSpec *pDst, SimpleBufferTonyRCopiedTwice& copy)
+nsresult nsOutlookCompose::CopyComposedMessage( nsCString& fromLine, nsIFile *pSrc, nsIOutputStream *pDst, SimpleBufferTonyRCopiedTwice& copy)
 {
 	copy.m_bytesInBuf = 0;
 	copy.m_writeOffset = 0;
@@ -876,13 +879,13 @@ nsresult nsOutlookCompose::CopyComposedMessage( nsCString& fromLine, nsIFileSpec
 		return( NS_ERROR_FAILURE);
 	}
 
-	nsresult rv = pSrc->OpenStreamForReading();
+        nsresult rv = NS_NewLocalFileInputStream(getter_AddRefs(state.pInputStream), pSrc);
 	if (NS_FAILED( rv)) {
 		IMPORT_LOG0( "*** Error, unable to open composed message file\n");
 		return( NS_ERROR_FAILURE);
 	}
 	
-	PRInt32 written;
+	PRUint32 written;
 	rv = pDst->Write( fromLine.get(), fromLine.Length(), &written);
 
 	// well, isn't this a hoot!
@@ -902,20 +905,16 @@ nsresult nsOutlookCompose::CopyComposedMessage( nsCString& fromLine, nsIFileSpec
 	// so that the following will properly copy the rest of the body
 	char	lastChar = 0;
 
-  nsCOMPtr<nsIOutputStream> outStream;
-  pDst->GetOutputStream (getter_AddRefs (outStream));
-	if (NS_SUCCEEDED( rv)) {
-    rv = EscapeFromSpaceLine(outStream, copy.m_pBuffer + copy.m_writeOffset, copy.m_pBuffer+copy.m_bytesInBuf);
+    rv = EscapeFromSpaceLine(pDst, copy.m_pBuffer + copy.m_writeOffset, copy.m_pBuffer+copy.m_bytesInBuf);
 		if (copy.m_bytesInBuf)
 			lastChar = copy.m_pBuffer[copy.m_bytesInBuf - 1];
     if (NS_SUCCEEDED(rv))
       copy.m_writeOffset = copy.m_bytesInBuf;
-	}
 
 	while ((state.offset < state.size) && NS_SUCCEEDED( rv)) {
 		rv = FillMailBuffer( &state, copy);
 		if (NS_SUCCEEDED( rv)) {
-      rv = EscapeFromSpaceLine(outStream, copy.m_pBuffer + copy.m_writeOffset, copy.m_pBuffer+copy.m_bytesInBuf);
+      rv = EscapeFromSpaceLine(pDst, copy.m_pBuffer + copy.m_writeOffset, copy.m_pBuffer+copy.m_bytesInBuf);
 			lastChar = copy.m_pBuffer[copy.m_bytesInBuf - 1];
 			if (NS_SUCCEEDED( rv))
 		    copy.m_writeOffset = copy.m_bytesInBuf;
@@ -924,7 +923,6 @@ nsresult nsOutlookCompose::CopyComposedMessage( nsCString& fromLine, nsIFileSpec
 		}
 	}
 
-	pSrc->CloseStream();
 	
 	if ((lastChar != 0x0A) && NS_SUCCEEDED( rv)) {
 		rv = pDst->Write( "\x0D\x0A", 2, &written);
@@ -951,9 +949,9 @@ nsresult nsOutlookCompose::FillMailBuffer( ReadFileState *pState, SimpleBufferTo
 	if (((PRUint32)count + pState->offset) > pState->size)
 		count = pState->size - pState->offset;
 	if (count) {
-		PRInt32		bytesRead = 0;
+		PRUint32		bytesRead = 0;
 		char *		pBuffer = read.m_pBuffer + read.m_bytesInBuf;
-		nsresult	rv = pState->pFile->Read( &pBuffer, count, &bytesRead);
+		nsresult	rv = pState->pInputStream->Read( pBuffer, count, &bytesRead);
 		if (NS_FAILED( rv)) return( rv);
 		if (bytesRead != count) return( NS_ERROR_FAILURE);
 		read.m_bytesInBuf += bytesRead;
@@ -1002,7 +1000,7 @@ PRInt32 nsOutlookCompose::IsSpecialHeader( const char *pHeader)
 }
 
 
-nsresult nsOutlookCompose::WriteHeaders( nsIFileSpec *pDst, SimpleBufferTonyRCopiedTwice& newHeaders)
+nsresult nsOutlookCompose::WriteHeaders( nsIOutputStream *pDst, SimpleBufferTonyRCopiedTwice& newHeaders)
 {
 	// Well, ain't this a peach?
 	// This is rather disgusting but there really isn't much to be done about it....
@@ -1016,7 +1014,7 @@ nsresult nsOutlookCompose::WriteHeaders( nsIFileSpec *pDst, SimpleBufferTonyRCop
 	nsCString	header;
 	nsCString	val;
 	nsCString	replaceVal;
-	PRInt32		written;
+	PRUint32		written;
 	nsresult	rv = NS_OK; // it's ok if we don't have the first header on the predefined lists.
 	PRInt32		specialHeader;
 	PRBool		specials[kMaxSpecialHeaders];

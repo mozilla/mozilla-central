@@ -39,19 +39,21 @@
 #define nsOE5File_h___
 
 #include "nsString.h"
-#include "nsIFileSpec.h"
+#include "nsIFile.h"
+
+class nsIInputStream;
 
 class nsOE5File
 {
 public:
 		/* pFile must already be open for reading. */
-	static PRBool	VerifyLocalMailFile( nsIFileSpec *pFile);
+	static PRBool	VerifyLocalMailFile( nsIFile *pFile);
 		/* pFile must NOT be open for reading	 */
-	static PRBool	IsLocalMailFile( nsIFileSpec *pFile);
+	static PRBool	IsLocalMailFile( nsIFile *pFile);
 
-	static PRBool	ReadIndex( nsIFileSpec *pFile, PRUint32 **ppIndex, PRUint32 *pSize);
+	static PRBool	ReadIndex( nsIInputStream *pFile, PRUint32 **ppIndex, PRUint32 *pSize);
 
-	static nsresult	ImportMailbox( PRUint32 *pBytesDone, PRBool *pAbort, nsString& name, nsIFileSpec *inFile, nsIFileSpec *pDestination, PRUint32 *pCount);
+	static nsresult	ImportMailbox( PRUint32 *pBytesDone, PRBool *pAbort, nsString& name, nsIFile *inFile, nsIFile *pDestination, PRUint32 *pCount);
 
 private:
 	typedef struct {
@@ -62,9 +64,9 @@ private:
 	
 	static const char *m_pFromLineSep;
 
-	static PRBool	ReadBytes( nsIFileSpec *stream, void *pBuffer, PRUint32 offset, PRUint32 bytes);
-	static PRUint32 ReadMsgIndex( nsIFileSpec *file, PRUint32 offset, PRUint32Array *pArray);
-	static void		ConvertIndex( nsIFileSpec *pFile, char *pBuffer, PRUint32 *pIndex, PRUint32 size);
+	static PRBool	ReadBytes( nsIInputStream *stream, void *pBuffer, PRUint32 offset, PRUint32 bytes);
+	static PRUint32 ReadMsgIndex( nsIInputStream *file, PRUint32 offset, PRUint32Array *pArray);
+	static void	ConvertIndex( nsIInputStream *pFile, char *pBuffer, PRUint32 *pIndex, PRUint32 size);
 	static PRBool	IsFromLine( char *pLine, PRUint32 len);
 
 

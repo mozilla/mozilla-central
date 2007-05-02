@@ -75,7 +75,6 @@
 #include "nsXPIDLString.h"
 #include "nsProxiedService.h"
 #include "TextDebugLog.h"
-#include "nsIFileSpec.h"
 #include "nsNetUtil.h"
 
 #define TEXT_MSGS_URL "chrome://messenger/locale/textImportMsgs.properties"
@@ -109,14 +108,14 @@ public:
 	/* PRBool GetAutoFind (out wstring description); */
 	NS_IMETHOD GetAutoFind(PRUnichar **description, PRBool *_retval);
 	
-	/* PRBool GetNeedsFieldMap (nsIFileSpec *location); */
-	NS_IMETHOD GetNeedsFieldMap(nsIFileSpec *location, PRBool *_retval);
+	/* PRBool GetNeedsFieldMap (nsIFile *location); */
+	NS_IMETHOD GetNeedsFieldMap(nsIFile *location, PRBool *_retval);
 	
-	/* void GetDefaultLocation (out nsIFileSpec location, out boolean found, out boolean userVerify); */
-	NS_IMETHOD GetDefaultLocation(nsIFileSpec **location, PRBool *found, PRBool *userVerify);
+	/* void GetDefaultLocation (out nsIFile location, out boolean found, out boolean userVerify); */
+	NS_IMETHOD GetDefaultLocation(nsIFile **location, PRBool *found, PRBool *userVerify);
 	
-	/* nsISupportsArray FindAddressBooks (in nsIFileSpec location); */
-	NS_IMETHOD FindAddressBooks(nsIFileSpec *location, nsISupportsArray **_retval);
+	/* nsISupportsArray FindAddressBooks (in nsIFile location); */
+	NS_IMETHOD FindAddressBooks(nsIFile *location, nsISupportsArray **_retval);
 	
 	/* nsISupports InitFieldMap(nsIImportFieldMap fieldMap); */
 	NS_IMETHOD InitFieldMap(nsIImportFieldMap *fieldMap);
@@ -135,7 +134,7 @@ public:
  
 	NS_IMETHOD GetSampleData( PRInt32 index, PRBool *pFound, PRUnichar **pStr);
 
-	NS_IMETHOD SetSampleLocation( nsIFileSpec *);
+	NS_IMETHOD SetSampleLocation( nsIFile *);
 
 private:
 	void	ClearSampleFile( void);
@@ -317,7 +316,7 @@ NS_IMETHODIMP ImportAddressImpl::GetAutoFind(PRUnichar **addrDescription, PRBool
 }
 
 
-NS_IMETHODIMP ImportAddressImpl::GetDefaultLocation(nsIFileSpec **ppLoc, PRBool *found, PRBool *userVerify)
+NS_IMETHODIMP ImportAddressImpl::GetDefaultLocation(nsIFile **ppLoc, PRBool *found, PRBool *userVerify)
 {
     NS_PRECONDITION(found != nsnull, "null ptr");
     NS_PRECONDITION(ppLoc != nsnull, "null ptr");
@@ -334,7 +333,7 @@ NS_IMETHODIMP ImportAddressImpl::GetDefaultLocation(nsIFileSpec **ppLoc, PRBool 
 
 
 	
-NS_IMETHODIMP ImportAddressImpl::FindAddressBooks(nsIFileSpec *pLoc, nsISupportsArray **ppArray)
+NS_IMETHODIMP ImportAddressImpl::FindAddressBooks(nsIFile *pLoc, nsISupportsArray **ppArray)
 {
     NS_PRECONDITION(pLoc != nsnull, "null ptr");
     NS_PRECONDITION(ppArray != nsnull, "null ptr");
@@ -354,16 +353,7 @@ NS_IMETHODIMP ImportAddressImpl::FindAddressBooks(nsIFileSpec *pLoc, nsISupports
 	if (NS_FAILED( rv) || !isFile)
 		return( NS_ERROR_FAILURE);
 
-  // XXX this should just be passed in as an nsIFile.
-  nsFileSpec spec;
-  rv = pLoc->GetFileSpec(&spec);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsILocalFile> fileLocation;
-  rv = NS_FileSpecToIFile(&spec, getter_AddRefs(fileLocation));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = m_text.DetermineDelim(fileLocation);
+  rv = m_text.DetermineDelim(pLoc);
 	
 	if (NS_FAILED( rv)) {
 		IMPORT_LOG0( "*** Error determining delimitter\n");
@@ -372,7 +362,7 @@ NS_IMETHODIMP ImportAddressImpl::FindAddressBooks(nsIFileSpec *pLoc, nsISupports
 	m_haveDelim = PR_TRUE;
 	m_delim = m_text.GetDelim();
 	
-	m_fileLoc = fileLocation;
+	m_fileLoc = do_QueryInterface(pLoc);
 
 	/* Build an address book descriptor based on the file passed in! */
 	nsCOMPtr<nsISupportsArray>	array;
@@ -382,20 +372,12 @@ NS_IMETHODIMP ImportAddressImpl::FindAddressBooks(nsIFileSpec *pLoc, nsISupports
 		return( rv);
 	}
 		
-	nsXPIDLCString pName;
-	rv = pLoc->GetLeafName(getter_Copies(pName));
+	nsString	name;
+	m_fileLoc->GetLeafName(name);
 	if (NS_FAILED( rv)) {
 		IMPORT_LOG0( "*** Failed getting leaf name of file\n");
 		return( rv);
 	}
-
-	// for get unicode leafname.  If it uses nsILocalFile interface,
-	// these codes do not need due to nsILocalFile->GetUnicodeLeafName()
-	nsString	name;
-	rv = nsMsgI18NConvertToUnicode(nsMsgI18NFileSystemCharset(), pName, name);
-	if (NS_FAILED(rv))
-		name.AssignWithConversion((const char*) pName);
-
 
 	PRInt32		idx = name.RFindChar( '.');
 	if ((idx != -1) && (idx > 0) && ((name.Length() - idx - 1) < 5)) {
@@ -415,10 +397,10 @@ NS_IMETHODIMP ImportAddressImpl::FindAddressBooks(nsIFileSpec *pLoc, nsISupports
 	
 	rv = impSvc->CreateNewABDescriptor( getter_AddRefs( desc));
 	if (NS_SUCCEEDED( rv)) {
-		PRUint32 sz = 0;
-		pLoc->GetFileSize( &sz);	
+		PRInt64 sz = 0;
+		pLoc->GetFileSize(&sz);	
     desc->SetPreferredName(name);
-		desc->SetSize( sz);
+		desc->SetSize((PRUint32) sz);
     desc->SetAbFile(m_fileLoc);
 		rv = desc->QueryInterface( kISupportsIID, (void **) &pInterface);
 		array->AppendElement( pInterface);
@@ -582,43 +564,36 @@ NS_IMETHODIMP ImportAddressImpl::GetImportProgress(PRUint32 *_retval)
 }
 
 
-NS_IMETHODIMP ImportAddressImpl::GetNeedsFieldMap(nsIFileSpec *location, PRBool *_retval)
+NS_IMETHODIMP ImportAddressImpl::GetNeedsFieldMap(nsIFile *aLocation, PRBool *_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
-  NS_ENSURE_ARG_POINTER(location);
+  NS_ENSURE_ARG_POINTER(aLocation);
 
-	*_retval = PR_TRUE;
-	PRBool	exists = PR_FALSE;
-	PRBool	isFile = PR_FALSE;
+  *_retval = PR_TRUE;
+  PRBool	exists = PR_FALSE;
+  PRBool	isFile = PR_FALSE;
 
-	nsresult rv = location->Exists( &exists);
-	rv = location->IsFile( &isFile);
+  nsresult rv = aLocation->Exists( &exists);
+  rv = aLocation->IsFile( &isFile);
 	
-	if (!exists || !isFile)
-		return( NS_ERROR_FAILURE);
+  if (!exists || !isFile)
+    return( NS_ERROR_FAILURE);
 
-  nsXPIDLCString pPath; 
-  location->GetNativePath(getter_Copies(pPath));
+  PRBool	isLDIF = PR_FALSE;
+  nsCOMPtr<nsIAbLDIFService> ldifService = do_GetService(NS_ABLDIFSERVICE_CONTRACTID, &rv);
 
-  nsCOMPtr<nsILocalFile> inFile;
-  rv = NS_NewNativeLocalFile(pPath, PR_TRUE, getter_AddRefs(inFile));
-  NS_ENSURE_SUCCESS(rv, rv);
+  if (NS_SUCCEEDED(rv))
+    rv = ldifService->IsLDIFFile(aLocation, &isLDIF);
 
-	PRBool	isLDIF = PR_FALSE;
-    nsCOMPtr<nsIAbLDIFService> ldifService = do_GetService(NS_ABLDIFSERVICE_CONTRACTID, &rv);
+  if (NS_FAILED( rv)) {
+    IMPORT_LOG0( "*** Error determining if file is of type LDIF\n");
+    return( rv);
+  }
 
-    if (NS_SUCCEEDED(rv))
-      rv = ldifService->IsLDIFFile(inFile, &isLDIF);
+  if (isLDIF)
+    *_retval = PR_FALSE;
 
-	if (NS_FAILED( rv)) {
-		IMPORT_LOG0( "*** Error determining if file is of type LDIF\n");
-		return( rv);
-	}
-	
-	if (isLDIF)
-		*_retval = PR_FALSE;
-	
-	return( NS_OK);
+  return( NS_OK);
 }
 
 void ImportAddressImpl::SanitizeSampleData( nsCString& val)
@@ -695,21 +670,13 @@ NS_IMETHODIMP ImportAddressImpl::GetSampleData( PRInt32 index, PRBool *pFound, P
 	return NS_OK;
 }
 
-NS_IMETHODIMP ImportAddressImpl::SetSampleLocation(nsIFileSpec *pLocation)
+NS_IMETHODIMP ImportAddressImpl::SetSampleLocation(nsIFile *pLocation)
 {
   NS_ENSURE_ARG_POINTER(pLocation);
 
-  // XXX this should just be passed in as an nsIFile.
-  nsFileSpec spec;
-  nsresult rv = pLocation->GetFileSpec(&spec);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = NS_FileSpecToIFile(&spec, getter_AddRefs(m_fileLoc));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-	m_haveDelim = PR_FALSE;
-
-	return NS_OK;
+  m_fileLoc = do_QueryInterface(pLocation);
+  m_haveDelim = PR_FALSE;
+  return NS_OK;
 }
 
 void ImportAddressImpl::ClearSampleFile( void)

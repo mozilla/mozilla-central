@@ -44,8 +44,9 @@
 #include "nsEudoraCompose.h"
 #include "nspr.h"
 #include "nsMsgUtils.h"
-
+#include "nsNetUtil.h"
 #include "EudoraDebugLog.h"
+#include "nsISeekableStream.h"
 
 #define	kCopyBufferSize		8192
 #define	kMailReadBufferSize	16384
@@ -56,16 +57,15 @@
 const char *eudoraFromLine = "From - Mon Jan 1 00:00:00 1965\x0D\x0A";
 
 #ifdef IMPORT_DEBUG
-void DUMP_FILENAME( nsIFileSpec *pSpec, PRBool endLine);
+void DUMP_FILENAME( nsIFile *pFile, PRBool endLine);
 
-void DUMP_FILENAME( nsIFileSpec *pSpec, PRBool endLine)
+void DUMP_FILENAME( nsIFile *pFile, PRBool endLine)
 {
-	char *pPath = nsnull;
-	if (pSpec)
-		pSpec->GetNativePath( &pPath);
-	if (pPath) {
-		IMPORT_LOG1( "%s", pPath);
-		nsCRT::free( pPath);
+	nsCString pPath;
+	if (pFile)
+		pFile->GetNativePath(pPath);
+	if (!pPath.IsEmpty()) {
+		IMPORT_LOG1( "%s", pPath.get());
 	}
 	else {
 		IMPORT_LOG0( "Unknown");
@@ -117,46 +117,32 @@ nsEudoraMailbox::~nsEudoraMailbox()
 	EmptyAttachments();
 }
 
-nsresult nsEudoraMailbox::CreateTempFile( nsIFileSpec **ppSpec)
+nsresult nsEudoraMailbox::CreateTempFile( nsIFile **ppFile)
 {
-  *ppSpec = nsnull;
-
-  nsCOMPtr<nsIFile> tmpFile;
   nsresult rv = GetSpecialDirectoryWithFileName(NS_OS_TEMP_DIR,
                                                 "impmail.txt",
-                                                getter_AddRefs(tmpFile));
+                                                ppFile);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = tmpFile->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  return NS_NewFileSpecFromIFile(tmpFile, ppSpec);
+  return (*ppFile)->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);
 }
 
-nsresult nsEudoraMailbox::DeleteFile( nsIFileSpec *pSpec)
+nsresult nsEudoraMailbox::DeleteFile( nsIFile *pFile)
 {
 	PRBool		result;
 	nsresult	rv = NS_OK;
 
 	result = PR_FALSE;
-	pSpec->IsStreamOpen( &result);
-	if (result)
-		pSpec->CloseStream();
-	result = PR_FALSE;
-	pSpec->Exists( &result);
+	pFile->Exists( &result);
 	if (result) {
 		result = PR_FALSE;
-		pSpec->IsFile( &result);
+		pFile->IsFile( &result);
 		if (result) {
-			nsFileSpec	spec;
-			rv = pSpec->GetFileSpec( &spec);
 #ifndef DONT_DELETE_EUDORA_TEMP_FILES
-			if (NS_SUCCEEDED( rv))
-				spec.Delete( PR_FALSE);
+				rv = pFile->Remove(PR_FALSE);
 #endif
 		}
 	}
-
 	return( rv);
 }
 
@@ -164,23 +150,25 @@ nsresult nsEudoraMailbox::DeleteFile( nsIFileSpec *pSpec)
 #define kComposeErrorStr	"X-Eudora-Compose-Error: *****" "\x0D\x0A"
 #define kHTMLTag "<html>"
 
-nsresult nsEudoraMailbox::ImportMailbox( PRUint32 *pBytes, PRBool *pAbort, const PRUnichar *pName, nsIFileSpec *pSrc, nsIFileSpec *pDst, PRInt32 *pMsgCount)
+nsresult nsEudoraMailbox::ImportMailbox( PRUint32 *pBytes, PRBool *pAbort, const PRUnichar *pName, nsIFile *pSrc, nsIFile *pDst, PRInt32 *pMsgCount)
 {
-	nsCOMPtr<nsIFileSpec>	tocFile;
-	PRBool					deleteToc = PR_FALSE;
-	nsresult				rv;
-	nsCOMPtr<nsIFileSpec>	mailFile;
-	PRBool					deleteMailFile = PR_FALSE;
-	PRUint32				div = 1;
-	PRUint32				mul = 1;
+	nsCOMPtr<nsIFile>   tocFile;
+        nsCOMPtr <nsIInputStream> srcInputStream;
+        nsCOMPtr <nsIOutputStream> mailOutputStream;
+	PRBool              deleteToc = PR_FALSE;
+	nsresult            rv;
+	nsCOMPtr<nsIFile>   mailFile;
+	PRBool              deleteMailFile = PR_FALSE;
+	PRUint32            div = 1;
+	PRUint32            mul = 1;
 
 	if (pMsgCount)
-		*pMsgCount = 0;
+	  *pMsgCount = 0;
 
 	rv = pSrc->GetFileSize( &m_mailSize);
 
-	rv = pSrc->OpenStreamForReading();
-	if (NS_FAILED( rv))
+        rv = NS_NewLocalFileInputStream(getter_AddRefs(srcInputStream), pSrc);
+        if (NS_FAILED( rv))
 		return( rv);
 
 	NS_ADDREF( pSrc);
@@ -191,43 +179,38 @@ nsresult nsEudoraMailbox::ImportMailbox( PRUint32 *pBytes, PRBool *pAbort, const
 		IMPORT_LOG0( "Reading euroda toc file: ");
 		DUMP_FILENAME( tocFile, PR_TRUE);
 
-		rv = CreateTempFile( getter_AddRefs( mailFile));
+		rv = CreateTempFile(getter_AddRefs( mailFile));
 		deleteMailFile = PR_TRUE;
 		if (NS_SUCCEEDED( rv)) {
 			// Read the TOC and compact the mailbox file into a temp file
-			rv = tocFile->OpenStreamForReading();
 			if (NS_SUCCEEDED( rv)) {
-				rv = mailFile->OpenStreamForWriting();
+                          rv = NS_NewLocalFileOutputStream(getter_AddRefs(mailOutputStream),
+                                                   mailFile,
+                                                   PR_CREATE_FILE | PR_WRONLY | PR_TRUNCATE,
+                                                   0644);
 				if (NS_SUCCEEDED( rv)) {
 					// Read the toc and compact the mailbox into mailFile
-					rv = CompactMailbox( pBytes, pAbort, pSrc, tocFile, mailFile);
+					rv = CompactMailbox( pBytes, pAbort, pSrc, tocFile, mailOutputStream);
 					div = 4;
 					mul = 3;
 				}
 			}
 		}
 		
-		pSrc->CloseStream();
-
 		// clean up
-		if (deleteToc) {
-			DeleteFile( tocFile);
-		}
-		if (NS_SUCCEEDED( rv))
-			rv = mailFile->CloseStream();
+		if (deleteToc)
+                  DeleteFile( tocFile);
 		if (NS_FAILED( rv)) {
 			DeleteFile( mailFile);
-			mailFile->FromFileSpec( pSrc);
+			mailFile = pSrc;
 			deleteMailFile = PR_FALSE;
 			IMPORT_LOG0( "*** Error compacting mailbox.\n");
 		}
 		
 		IMPORT_LOG0( "Compacted mailbox: "); DUMP_FILENAME( mailFile, PR_TRUE);
 
-		rv = mailFile->OpenStreamForReading();
 		if (NS_SUCCEEDED( rv)) {
-			pSrc->Release();
-			mailFile->QueryInterface( NS_GET_IID(nsIFileSpec), (void **)&pSrc);
+			mailFile = pSrc;
 
 			IMPORT_LOG0( "Compacting mailbox was successful\n");
 		}
@@ -249,13 +232,14 @@ nsresult nsEudoraMailbox::ImportMailbox( PRUint32 *pBytes, PRBool *pAbort, const
 	// like MIME headers, character encoding, and attachments - beautiful!
 	
 	rv = pSrc->GetFileSize( &m_mailSize);
+        NS_ENSURE_SUCCESS(rv, rv);
 
-	nsCOMPtr<nsIFileSpec>	compositionFile;
+	nsCOMPtr<nsIFile>	compositionFile;
 	SimpleBufferTonyRCopiedOnce			readBuffer;
 	SimpleBufferTonyRCopiedOnce			headers;
 	SimpleBufferTonyRCopiedOnce			body;
 	SimpleBufferTonyRCopiedOnce			copy;
-	PRInt32					written;
+	PRUint32					written;
 	nsCString				fromLine(eudoraFromLine);
 	
 	headers.m_convertCRs = PR_TRUE;
@@ -263,17 +247,19 @@ nsresult nsEudoraMailbox::ImportMailbox( PRUint32 *pBytes, PRBool *pAbort, const
 	
 	copy.Allocate( kCopyBufferSize);
 	readBuffer.Allocate( kMailReadBufferSize);
-	ReadFileState			state;
+	ReadFileState state;
 	state.offset = 0;
 	state.size = m_mailSize;
 	state.pFile = pSrc;
+        rv = NS_NewLocalFileInputStream(getter_AddRefs(state.pInputStream), pSrc);
 
 	IMPORT_LOG0( "Reading mailbox\n");
 
-	if (NS_SUCCEEDED( rv = NS_NewFileSpec( getter_AddRefs( compositionFile)))) {
+	if (NS_SUCCEEDED(rv))
+        {
 		nsEudoraCompose		compose;
-    nsCString defaultDate;
-    nsCAutoString bodyType;
+                nsCString defaultDate;
+                nsCAutoString bodyType;
 		
 		/*
 		IMPORT_LOG0( "Calling compose.SendMessage\n");
@@ -288,6 +274,13 @@ nsresult nsEudoraMailbox::ImportMailbox( PRUint32 *pBytes, PRBool *pAbort, const
 
 		IMPORT_LOG0( "Reading first message\n");
 
+
+    nsCOMPtr <nsIOutputStream> dstOutputStream;
+    rv = NS_NewLocalFileOutputStream(getter_AddRefs(dstOutputStream),
+                             pDst,
+                             PR_CREATE_FILE | PR_WRONLY | PR_TRUNCATE,
+                             0644);
+    NS_ENSURE_SUCCESS(rv, rv);
     while (!*pAbort && NS_SUCCEEDED( rv = ReadNextMessage( &state, readBuffer, headers, body, defaultDate, bodyType))) {
 			
 			if (pBytes) {
@@ -305,11 +298,11 @@ nsresult nsEudoraMailbox::ImportMailbox( PRUint32 *pBytes, PRBool *pAbort, const
 			compose.SetAttachments( &m_attachments);
       compose.SetDefaultDate(defaultDate);
 
-			rv = compose.SendTheMessage( compositionFile);
+			rv = compose.SendTheMessage( getter_AddRefs(compositionFile));
 			if (NS_SUCCEEDED( rv)) {
 				/* IMPORT_LOG0( "Composed message in file: "); DUMP_FILENAME( compositionFile, PR_TRUE); */
 				// copy the resulting file into the destination file!
-				rv = compose.CopyComposedMessage( fromLine, compositionFile, pDst, copy);
+				rv = compose.CopyComposedMessage( fromLine, compositionFile, dstOutputStream, copy);
 				DeleteFile( compositionFile);
 				if (NS_FAILED( rv)) {
 					IMPORT_LOG0( "*** Error copying composed message to destination mailbox\n");
@@ -320,20 +313,20 @@ nsresult nsEudoraMailbox::ImportMailbox( PRUint32 *pBytes, PRBool *pAbort, const
 			}
 			else {
 				IMPORT_LOG0( "*** Error composing message, writing raw message\n");
-				rv = WriteFromSep( pDst);
+				rv = WriteFromSep( dstOutputStream);
 				
-				rv = pDst->Write( kComposeErrorStr,
+				rv = dstOutputStream->Write( kComposeErrorStr,
 									strlen( kComposeErrorStr),
 									&written );
 				
 				if (NS_SUCCEEDED( rv))
-					rv = pDst->Write( headers.m_pBuffer, headers.m_writeOffset - 1, &written);
+					rv = dstOutputStream->Write( headers.m_pBuffer, headers.m_writeOffset - 1, &written);
 				if (NS_SUCCEEDED( rv) && (written == (headers.m_writeOffset - 1)))
-					rv = pDst->Write( "\x0D\x0A" "\x0D\x0A", 4, &written);
+					rv = dstOutputStream->Write( "\x0D\x0A" "\x0D\x0A", 4, &written);
 				if (NS_SUCCEEDED( rv) && (written == 4))
-					rv = pDst->Write( body.m_pBuffer, body.m_writeOffset - 1, &written);
+					rv = dstOutputStream->Write( body.m_pBuffer, body.m_writeOffset - 1, &written);
 				if (NS_SUCCEEDED( rv) && (written == (body.m_writeOffset - 1))) {
-					rv = pDst->Write( "\x0D\x0A", 2, &written);
+					rv = dstOutputStream->Write( "\x0D\x0A", 2, &written);
 					if (written != 2)
 						rv = NS_ERROR_FAILURE;
 				}
@@ -369,10 +362,10 @@ nsresult nsEudoraMailbox::ImportMailbox( PRUint32 *pBytes, PRBool *pAbort, const
 #define kMsgFirstOffset		104
 #endif
 
-nsresult nsEudoraMailbox::CompactMailbox( PRUint32 *pBytes, PRBool *pAbort, nsIFileSpec *pMail, nsIFileSpec *pToc, nsIFileSpec *pDst)
+nsresult nsEudoraMailbox::CompactMailbox( PRUint32 *pBytes, PRBool *pAbort, nsIFile *pMail, nsIFile *pToc, nsIOutputStream *pDstOutputStream)
 {
-	PRUint32	mailSize = m_mailSize;
-	PRUint32	tocSize = 0;
+	PRInt64	mailSize = m_mailSize;
+	PRInt64	tocSize = 0;
   PRUint32	msgCount = 0;
 	nsresult	rv;
 
@@ -388,27 +381,36 @@ nsresult nsEudoraMailbox::CompactMailbox( PRUint32 *pBytes, PRBool *pAbort, nsIF
 	PRInt32			tocOffset = kMsgFirstOffset;
 	PRInt32			data[2];
 	PRInt32			count;
-	PRInt32			read;
-	PRInt32			written;
+	PRUint32		read;
+	PRUint32		written;
 	char *			pBuffer;
 	char			lastChar;
 
 	copy.Allocate( kCopyBufferSize);
 
 	IMPORT_LOG0( "Compacting mailbox: ");
+        nsCOMPtr <nsIInputStream> tocStream;
+        rv = NS_NewLocalFileInputStream(getter_AddRefs(tocStream), pToc);
+
+        nsCOMPtr <nsISeekableStream> seekTOCStream = do_QueryInterface(tocStream, &rv);
+        NS_ENSURE_SUCCESS(rv, rv);
+        nsCOMPtr <nsIInputStream> mailInputStream;
+        rv = NS_NewLocalFileInputStream(getter_AddRefs(mailInputStream), pMail);
+        nsCOMPtr <nsISeekableStream> seekMailStream = do_QueryInterface(mailInputStream, &rv);
+        NS_ENSURE_SUCCESS(rv, rv);
 
 	while (!*pAbort && (tocOffset < (PRInt32)tocSize)) {
-		if (NS_FAILED( rv = pToc->Seek( tocOffset))) return( rv);
+		if (NS_FAILED( rv = seekTOCStream->Seek(nsISeekableStream::NS_SEEK_SET, tocOffset))) return( rv);
 		pBuffer = (char *)data;
-		if (NS_FAILED( rv = pToc->Read( &pBuffer, 8, &read)) || (read != 8)) 
+		if (NS_FAILED( rv = tocStream->Read( pBuffer, 8, &read)) || (read != 8)) 
 			return( NS_ERROR_FAILURE);
 		// data[0] is the message offset, data[1] is the message size
-		if (NS_FAILED( rv = pMail->Seek( data[0]))) return( rv);
+		if (NS_FAILED( rv = seekMailStream->Seek(nsISeekableStream::NS_SEEK_SET, data[0]))) return( rv);
 		count = kCopyBufferSize;
 		if (count > data[1])
 			count = data[1];
 		pBuffer = copy.m_pBuffer;
-		if (NS_FAILED( rv = pMail->Read( &pBuffer, count, &read)) || (read != count))
+		if (NS_FAILED( rv = mailInputStream->Read( pBuffer, count, &read)) || (read != count))
 			return( NS_ERROR_FAILURE);
 		if (count < 6)
 			return( NS_ERROR_FAILURE);
@@ -422,7 +424,7 @@ nsresult nsEudoraMailbox::CompactMailbox( PRUint32 *pBytes, PRBool *pAbort, nsIF
 		// Looks like everything is cool, we have a message that appears to start with a separator
 		while (data[1]) {
 			lastChar = copy.m_pBuffer[count - 1];
-			if (NS_FAILED( rv = pDst->Write( copy.m_pBuffer, count, &written)) || (written != count))
+			if (NS_FAILED( rv = pDstOutputStream->Write( copy.m_pBuffer, count, &written)) || (written != count))
 				return( NS_ERROR_FAILURE);
 			data[1] -= count;
 			if (data[1]) {
@@ -430,12 +432,12 @@ nsresult nsEudoraMailbox::CompactMailbox( PRUint32 *pBytes, PRBool *pAbort, nsIF
 				count = kCopyBufferSize;
 				if (count > data[1])
 					count = data[1];
-				if (NS_FAILED( rv = pMail->Read( &pBuffer, count, &read)) || (read != count))
+				if (NS_FAILED( rv = mailInputStream->Read( pBuffer, count, &read)) || (read != count))
 					return( NS_ERROR_FAILURE);
 			}
 		}
 		if ((lastChar != 0x0D) && (lastChar != 0x0A)) {
-			if (NS_FAILED( rv = pDst->Write( "\x0D\x0A", 2, &written)) || (written != 2))
+			if (NS_FAILED( rv = pDstOutputStream->Write( "\x0D\x0A", 2, &written)) || (written != 2))
 				return( rv);
 		}
 		
@@ -1027,11 +1029,11 @@ int nsEudoraMailbox::IsMonthStr( const char *pStr)
 	return( 0);
 }
 
-nsresult nsEudoraMailbox::WriteFromSep( nsIFileSpec *pDst)
+nsresult nsEudoraMailbox::WriteFromSep( nsIOutputStream *pDst)
 {
 	if (!m_fromLen)
 		m_fromLen = strlen( eudoraFromLine);
-	PRInt32	written = 0;
+	PRUint32	written = 0;
 	nsresult rv = pDst->Write( eudoraFromLine, m_fromLen, &written);
 	if (NS_SUCCEEDED( rv) && (written != m_fromLen))
 		return( NS_ERROR_FAILURE);
@@ -1045,7 +1047,6 @@ void nsEudoraMailbox::EmptyAttachments( void)
 	for (PRInt32 i = 0; i < max; i++) {
 		pAttach = (ImportAttachment *) m_attachments.ElementAt( i);
 		if (pAttach) {
-			NS_IF_RELEASE( pAttach->pAttachment);
 			nsCRT::free( pAttach->description);
 			nsCRT::free( pAttach->mimeType);
 			delete pAttach;
@@ -1135,22 +1136,20 @@ PRBool nsEudoraMailbox::AddAttachment( nsCString& fileName)
 {
 	IMPORT_LOG1( "Found attachment: %s\n", fileName.get());
 
-	nsIFileSpec *	pSpec;
-	nsresult 	rv  = NS_NewFileSpec( &pSpec);
+        nsresult rv;
+	nsCOMPtr <nsILocalFile>	pFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
 	if (NS_FAILED( rv))
 		return( PR_FALSE);
 
 	nsCString	mimeType;
-  nsCString attachmentName;
-	if (NS_FAILED( GetAttachmentInfo( fileName.get(), pSpec, mimeType, attachmentName))) {
-		NS_RELEASE( pSpec);
+        nsCString attachmentName;
+	if (NS_FAILED( GetAttachmentInfo( fileName.get(), pFile, mimeType, attachmentName)))
 		return( PR_FALSE);
-	}
 
 	ImportAttachment *a = new ImportAttachment;
 	a->mimeType = ToNewCString(mimeType);
   a->description = !attachmentName.IsEmpty() ? ToNewCString(attachmentName) : nsCRT::strdup( "Attached File");
-	a->pAttachment = pSpec;
+	a->pAttachment = pFile;
 
 	m_attachments.AppendElement( a);
 
@@ -1173,9 +1172,9 @@ nsresult nsEudoraMailbox::FillMailBuffer( ReadFileState *pState, SimpleBufferTon
 	if (((PRUint32)count + pState->offset) > pState->size)
 		count = pState->size - pState->offset;
 	if (count) {
-		PRInt32		bytesRead = 0;
+		PRUint32		bytesRead = 0;
 		char *		pBuffer = read.m_pBuffer + read.m_bytesInBuf;
-		nsresult	rv = pState->pFile->Read( &pBuffer, count, &bytesRead);
+		nsresult	rv = pState->pInputStream->Read(pBuffer, count, &bytesRead);
 		if (NS_FAILED( rv)) return( rv);
 		if (bytesRead != count) return( NS_ERROR_FAILURE);
 		read.m_bytesInBuf += bytesRead;

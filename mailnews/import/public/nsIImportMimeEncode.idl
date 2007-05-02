@@ -42,20 +42,20 @@
 
 #include "nsISupports.idl"
 
-interface nsIFileSpec;
+interface nsIFile;
 
-[noscript, uuid(455ca0a0-8de2-11d3-a206-00a0cc26da63)]
+[noscript, uuid(1d63892f-f660-465c-a550-95d4cb089de4)]
 interface nsIImportMimeEncode : nsISupports
 {	
 	
-	void	EncodeFile( in nsIFileSpec inFile, in nsIFileSpec outFile, [const] in string fileName, [const] in string mimeType);
+	void	EncodeFile( in nsIFile inFile, in nsIFile outFile, [const] in string fileName, [const] in string mimeType);
 
 	boolean	DoWork( out boolean done);
 	
 	long	NumBytesProcessed();
 
 	boolean	DoEncoding();
-	void	Initialize( in nsIFileSpec inFile, in nsIFileSpec outFile, [const] in string fileName, [const] in string mimeType);
+	void	Initialize( in nsIFile inFile, in nsIFile outFile, [const] in string fileName, [const] in string mimeType);
 
 };
 	

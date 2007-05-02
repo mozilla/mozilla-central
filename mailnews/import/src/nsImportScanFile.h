@@ -37,18 +37,16 @@
 
 #ifndef nsImportScanFile_h__
 #define nsImportScanFile_h__
-
-#include "nsIFileSpec.h"
+#include "nsCOMPtr.h"
+#include "nsIInputStream.h"
 
 class nsImportScanFile {
 public:
 	nsImportScanFile();
-	nsImportScanFile( nsIFileSpec *pSpec, PRUint8 * pBuf, PRUint32 sz);
 	virtual ~nsImportScanFile();
 
-	void	InitScan( nsIFileSpec *pSpec, PRUint8 * pBuf, PRUint32 sz);
+	void	InitScan( nsIInputStream *pInputStream, PRUint8 * pBuf, PRUint32 sz);
 
-	PRBool	OpenScan( nsIFileSpec *pSpec, PRUint32 bufSz = 4096);
 	void	CleanUpScan( void);
 
 	virtual	PRBool	Scan( PRBool *pDone);
@@ -59,7 +57,7 @@ protected:
 	virtual PRBool	ScanBuffer( PRBool *pDone);
 
 protected:
-	nsIFileSpec *	m_pFile;
+	nsCOMPtr <nsIInputStream> m_pInputStream;
 	PRUint8 *		m_pBuf;
 	PRUint32		m_bufSz;
 	PRUint32		m_bytesInBuf;

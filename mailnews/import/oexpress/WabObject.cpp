@@ -112,7 +112,7 @@ AddrImportField		extraUserFields[kExtraUserFields] = {
 // pszFileName - FileName of WAB file to open
 //          if no file name is specified, opens the default
 //
-CWAB::CWAB(nsIFileSpec *file)
+CWAB::CWAB(nsILocalFile *file)
 {
     // Here we load the WAB Object and initialize it
     m_pUniBuff = NULL;
@@ -155,13 +155,13 @@ CWAB::CWAB(nsIFileSpec *file)
         if(m_lpfnWABOpen)
         {
         	char		fName[2] = {0, 0};
-        	char *		pPath = nsnull;
             HRESULT hr = E_FAIL;
             WAB_PARAM wp = {0};
             wp.cbSize = sizeof(WAB_PARAM);
             if (file != nsnull) {
-            	file->GetNativePath( &pPath);	
-            	wp.szFileName = (LPTSTR) pPath;
+                nsCString path;
+            	file->GetNativePath(path);	
+            	wp.szFileName = (LPTSTR) ToNewCString(path);
             }
             else
             	wp.szFileName = (LPTSTR) fName;
@@ -174,8 +174,6 @@ CWAB::CWAB(nsIFileSpec *file)
             if(!hr)
                 m_bInitialized = TRUE;
             
-            if (pPath)
-            	nsCRT::free( pPath);
         }
     }
 

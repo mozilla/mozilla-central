@@ -61,8 +61,6 @@
 #include "nsIProxyObjectManager.h"
 #include "nsXPIDLString.h"
 
-#include "nsIFileSpec.h"
-
 #include "nsIMsgAccountManager.h"
 #include "nsIMessengerMigrator.h"
 #include "nsIMsgMailSession.h"
@@ -131,7 +129,7 @@ private:
 	nsIMsgFolder *		m_pDestFolder;
 	PRBool				m_deleteDestFolder;
 	PRBool				m_createdFolder;
-	nsCOMPtr <nsIFileSpec> m_pSrcLocation;
+	nsCOMPtr <nsIFile> m_pSrcLocation;
 	PRBool				m_gotLocation;
 	PRBool				m_found;
 	PRBool				m_userVerify;
@@ -319,9 +317,7 @@ NS_IMETHODIMP nsImportGenericMail::SetData( const char *dataId, nsISupports *ite
       nsresult rv;
       nsCOMPtr <nsILocalFile> location = do_QueryInterface(item, &rv);
       NS_ENSURE_SUCCESS(rv,rv);
-      
-      rv = NS_NewFileSpecFromIFile(location, getter_AddRefs(m_pSrcLocation));
-      NS_ENSURE_SUCCESS(rv,rv);
+      m_pSrcLocation = location;
     }
 	}
 	
@@ -376,21 +372,18 @@ NS_IMETHODIMP nsImportGenericMail::GetStatus( const char *statusKind, PRInt32 *_
 
 void nsImportGenericMail::GetDefaultLocation( void)
 {
-	if (!m_pInterface)
-		return;
-	
-	if (m_pSrcLocation && m_gotLocation)
-		return;
+  if (!m_pInterface)
+    return;
 
-	m_gotLocation = PR_TRUE;
+  if (m_pSrcLocation && m_gotLocation)
+    return;
 
-	nsIFileSpec *	pLoc = nsnull;
-	m_pInterface->GetDefaultLocation( &pLoc, &m_found, &m_userVerify);
-	if (!m_pSrcLocation)
-		m_pSrcLocation = pLoc;
-	else {
-		NS_IF_RELEASE( pLoc);
-	}
+  m_gotLocation = PR_TRUE;
+
+  nsCOMPtr <nsIFile> pLoc;
+  m_pInterface->GetDefaultLocation( getter_AddRefs(pLoc), &m_found, &m_userVerify);
+  if (!m_pSrcLocation)
+    m_pSrcLocation = pLoc;
 }
 
 void nsImportGenericMail::GetDefaultMailboxes( void)
@@ -764,9 +757,9 @@ ImportMailThread( void *stuff)
 	nsCOMPtr<nsIMsgFolder>  	curFolder( destRoot);
 	nsCOMPtr<nsIMsgFolder>		curProxy;
 
-	nsCOMPtr<nsIMsgFolder>		newFolder;
-	nsCOMPtr<nsIFileSpec>  		outBox;
-	nsCOMPtr<nsISupports>		subFolder;
+	nsCOMPtr<nsIMsgFolder>          newFolder;
+	nsCOMPtr<nsILocalFile>          outBox;
+	nsCOMPtr<nsISupports>           subFolder;
 	nsCOMPtr<nsIEnumerator>     enumerator;
 
 	PRBool						exists;
@@ -903,14 +896,10 @@ ImportMailThread( void *stuff)
 				rv = curProxy->GetChildNamed( lastName.get(), getter_AddRefs( subFolder));
 				if (NS_SUCCEEDED( rv)) {
 					newFolder = do_QueryInterface( subFolder);
-					if (newFolder) {
-                                          nsCOMPtr <nsILocalFile> localPath;
-						newFolder->GetFilePath( getter_AddRefs( localPath));
-                                                NS_NewFileSpecFromIFile(localPath, getter_AddRefs(outBox));
-					}
-					else {
+					if (newFolder)
+						newFolder->GetFilePath( getter_AddRefs( outBox));
+					else 
             IMPORT_LOG1("*** ImportMailThread: Failed to locate subfolder interface '%s'.", lastName.get());
-					}
 				}
         else
           IMPORT_LOG1("*** ImportMailThread: Failed to locate subfolder '%s' after it's been created.", lastName.get());
@@ -936,8 +925,6 @@ ImportMailThread( void *stuff)
 
 				pData->currentSize = 0;
 				pData->currentTotal += size;
-					
-				outBox->CloseStream();
 
           // OK, we've copied the actual folder/file over if the folder size is not 0
           // (ie, the msg summary is no longer valid) so close the msg database so that

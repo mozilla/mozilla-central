@@ -36,7 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nscore.h"
-#include "nsIFileSpec.h"
+#include "nsILocalFile.h"
 #include "nsCRT.h"
 #include "nsImportScanFile.h"
 #include "ImportCharSet.h"
@@ -45,58 +45,18 @@ nsImportScanFile::nsImportScanFile()
 {
 	m_allocated = PR_FALSE;
 	m_eof = PR_FALSE;
-	m_pFile = nsnull;
 	m_pBuf = nsnull;
-}
-
-nsImportScanFile::nsImportScanFile( nsIFileSpec *pSpec, PRUint8 * pBuf, PRUint32 sz)
-{
-	m_allocated = PR_FALSE;
-	m_eof = PR_FALSE;
-	InitScan( pSpec, pBuf, sz);
 }
 
 nsImportScanFile::~nsImportScanFile()
 {
-	if (m_allocated) {
+	if (m_allocated)
 		CleanUpScan();
-	}
-	
-	NS_IF_RELEASE( m_pFile);
 }
 
-PRBool nsImportScanFile::OpenScan( nsIFileSpec *pSpec, PRUint32 bufSz)
+void nsImportScanFile::InitScan( nsIInputStream *pInputStream, PRUint8 * pBuf, PRUint32 sz)
 {
-	if (!bufSz)
-		bufSz = 32 * 1024;
-	if (!m_pBuf) {
-		m_pBuf = new PRUint8[bufSz];
-	}
-	
-	PRBool	open = PR_FALSE;
-	nsresult rv = pSpec->IsStreamOpen( &open);
-	if (NS_FAILED( rv) || !open) {
-		rv = pSpec->OpenStreamForReading();
-		if (NS_FAILED( rv)) {
-			delete [] m_pBuf;
-			m_pBuf = nsnull;
-			return( PR_FALSE);
-		}
-	}
-	m_pFile = pSpec;
-	NS_IF_ADDREF( m_pFile);
-	m_allocated = PR_TRUE;
-	m_bytesInBuf = 0;
-	m_pos = 0;
-	m_bufSz = bufSz;
-	return( PR_TRUE);
-}
-
-
-void nsImportScanFile::InitScan( nsIFileSpec *pSpec, PRUint8 * pBuf, PRUint32 sz)
-{
-	m_pFile = pSpec;
-	NS_IF_ADDREF( pSpec);
+	m_pInputStream = pInputStream;
 	m_pBuf = pBuf;
 	m_bufSz = sz;
 	m_bytesInBuf = 0;
@@ -105,11 +65,9 @@ void nsImportScanFile::InitScan( nsIFileSpec *pSpec, PRUint8 * pBuf, PRUint32 sz
 
 void nsImportScanFile::CleanUpScan( void)
 {
-	NS_IF_RELEASE( m_pFile);
-	m_pFile = nsnull;
+	m_pInputStream = nsnull;
 	if (m_allocated) {
-		if (m_pBuf)
-			delete [] m_pBuf;
+		delete [] m_pBuf;
 		m_pBuf = NULL;
 	}
 }
@@ -136,11 +94,10 @@ void nsImportScanFile::ShiftBuffer( void)
 
 PRBool nsImportScanFile::FillBufferFromFile( void)
 {
-	PRBool eof = PR_FALSE;
-	nsresult rv = m_pFile->Eof( &eof);
-	if (eof) {
+	PRUint32 available;
+	nsresult rv = m_pInputStream->Available( &available);
+	if (NS_FAILED(rv))
 		return( PR_FALSE);
-	}
 
 	// Fill up a buffer and scan it
 	ShiftBuffer();
@@ -150,17 +107,16 @@ PRBool nsImportScanFile::FillBufferFromFile( void)
 	// To distinguish from disk errors
 	// Check first for end of file?
 	// Set a done flag if true...
-	PRInt32 read;
+	PRUint32 read;
 	char *pBuf = (char *)m_pBuf;
 	pBuf += m_bytesInBuf;
-	rv = m_pFile->Read( &pBuf, (PRInt32) cnt, &read);
+	rv = m_pInputStream->Read(pBuf, (PRInt32) cnt, &read);
 
 	if (NS_FAILED( rv))
 		return( PR_FALSE);
-	eof = PR_FALSE;
-	rv = m_pFile->Eof( &eof);
-	if (eof)
-		m_eof = PR_TRUE;
+	rv = m_pInputStream->Available( &available);
+	if (NS_FAILED(rv))
+          m_eof = PR_TRUE;
 
 	m_bytesInBuf += cnt;
 	return( PR_TRUE);
@@ -168,13 +124,12 @@ PRBool nsImportScanFile::FillBufferFromFile( void)
 
 PRBool nsImportScanFile::Scan( PRBool *pDone)
 {
-	PRBool eof = PR_FALSE;
-	m_pFile->Eof( &eof);
-
-	if (eof) {
-		if (m_pos < m_bytesInBuf) {
+	PRUint32 available;
+	nsresult rv = m_pInputStream->Available( &available);
+	if (NS_FAILED(rv))
+        {
+		if (m_pos < m_bytesInBuf) 
 			ScanBuffer( pDone);
-		}
 		*pDone = PR_TRUE;
 		return( PR_TRUE);
 	}

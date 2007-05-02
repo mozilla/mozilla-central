@@ -38,6 +38,9 @@
 #include "nscore.h"
 #include "nsString.h"
 #include "nsCRT.h"
+#include "prio.h"
+#include "nsNetUtil.h"
+#include "nsISeekableStream.h"
 #include "ImportOutFile.h"
 #include "ImportCharSet.h"
 
@@ -59,37 +62,31 @@ ImportOutFile::ImportOutFile()
 	m_pos = 0;
 	m_pBuf = nsnull;
 	m_bufSz = 0;
-	m_pFile = nsnull;
 	m_pTrans = nsnull;
 	m_pTransOut = nsnull;
 	m_pTransBuf = nsnull;
 }
 
-ImportOutFile::ImportOutFile( nsIFileSpec *pSpec, PRUint8 * pBuf, PRUint32 sz)
+ImportOutFile::ImportOutFile( nsIFile *pFile, PRUint8 * pBuf, PRUint32 sz)
 {
 	m_pTransBuf = nsnull;
 	m_pTransOut = nsnull;
 	m_pTrans = nsnull;
 	m_ownsFileAndBuffer = PR_FALSE;
-	InitOutFile( pSpec, pBuf, sz);
+	InitOutFile( pFile, pBuf, sz);
 }
 
 ImportOutFile::~ImportOutFile()
 {
-	if (m_ownsFileAndBuffer) {
-		Flush();
-		if (m_pBuf)
-			delete [] m_pBuf;
-	}
+  if (m_ownsFileAndBuffer) 
+  {
+    Flush();
+    delete [] m_pBuf;
+  }
 	
-	NS_IF_RELEASE( m_pFile);
-
-	if (m_pTrans)
-		delete m_pTrans;
-	if (m_pTransOut)
-		delete m_pTransOut;
-	if (m_pTransBuf)
-		delete m_pTransBuf;
+  delete m_pTrans;
+  delete m_pTransOut;
+  delete m_pTransBuf;
 }
 
 PRBool ImportOutFile::Set8bitTranslator( nsImportTranslator *pTrans)
@@ -128,17 +125,15 @@ PRBool ImportOutFile::End8bitTranslation( PRBool *pEngaged, nsCString& useCharse
 	*pEngaged = m_engaged;
 	delete m_pTrans;
 	m_pTrans = nsnull;
-	if (m_pTransOut)
-		delete m_pTransOut;
+	delete m_pTransOut;
 	m_pTransOut = nsnull;
-	if (m_pTransBuf)
-		delete m_pTransBuf;
+	delete m_pTransBuf;
 	m_pTransBuf = nsnull;
 
 	return( bResult);
 }
 
-PRBool ImportOutFile::InitOutFile( nsIFileSpec *pSpec, PRUint32 bufSz)
+PRBool ImportOutFile::InitOutFile( nsIFile *pFile, PRUint32 bufSz)
 {
 	if (!bufSz)
 		bufSz = 32 * 1024;	
@@ -148,30 +143,32 @@ PRBool ImportOutFile::InitOutFile( nsIFileSpec *pSpec, PRUint32 bufSz)
 	
 	// m_fH = UFile::CreateFile( oFile, kMacNoCreator, kMacTextFile);
 	PRBool	open = PR_FALSE;
-	nsresult rv = pSpec->IsStreamOpen( &open);
-	if (NS_FAILED( rv) || !open) {
-		rv = pSpec->OpenStreamForWriting();
-		if (NS_FAILED( rv)) {
+        if (!m_outputStream)
+        {
+          nsresult rv = NS_NewLocalFileOutputStream(getter_AddRefs(m_outputStream),
+                                   pFile,
+                                   PR_CREATE_FILE | PR_WRONLY | PR_TRUNCATE,
+                                   0644);
+
+		if (NS_FAILED( rv)) 
+                {
 			IMPORT_LOG0( "Couldn't create outfile\n");
 			delete [] m_pBuf;
 			m_pBuf = nsnull;
 			return( PR_FALSE);
 		}
 	}
-	m_pFile = pSpec;
-	NS_ADDREF( m_pFile);
+	m_pFile = pFile;
 	m_ownsFileAndBuffer = PR_TRUE;
 	m_pos = 0;
 	m_bufSz = bufSz;
-
 	return( PR_TRUE);
 }
 
-void ImportOutFile::InitOutFile( nsIFileSpec *pSpec, PRUint8 * pBuf, PRUint32 sz)
+void ImportOutFile::InitOutFile( nsIFile *pFile, PRUint8 * pBuf, PRUint32 sz)
 {
 	m_ownsFileAndBuffer = PR_FALSE;
-	m_pFile = pSpec;
-	NS_IF_ADDREF( m_pFile);
+	m_pFile = pFile;
 	m_pBuf = pBuf;
 	m_bufSz = sz;
 	m_pos = 0;
@@ -238,8 +235,8 @@ PRBool ImportOutFile::Flush( void)
 		duddleyDoWrite = PR_TRUE;
 
 	if (duddleyDoWrite) {
-		PRInt32 written = 0;
-		nsresult rv = m_pFile->Write( (const char *)m_pBuf, (PRInt32)m_pos, &written);
+		PRUint32 written = 0;
+		nsresult rv = m_outputStream->Write( (const char *)m_pBuf, (PRInt32)m_pos, &written);
 		if (NS_FAILED( rv) || ((PRUint32)written != m_pos))
 			return( PR_FALSE);
 		m_pos = 0;
@@ -278,10 +275,15 @@ PRBool ImportOutFile::SetMarker( int markerID)
 	}
 
 	if (markerID < kMaxMarkers) {
-		PRInt32 pos = 0;
-		nsresult rv;
-		if (m_pFile) {
-			rv = m_pFile->Tell( &pos);
+		PRInt64 pos = 0;
+		if (m_outputStream) 
+                {
+                  // do we need to flush for the seek to give us the right pos?
+                  m_outputStream->Flush();
+                  nsresult rv;
+                  nsCOMPtr <nsISeekableStream> seekStream = do_QueryInterface(m_outputStream, &rv);
+                  NS_ENSURE_SUCCESS(rv, PR_FALSE);
+			rv = seekStream->Tell( &pos);
 			if (NS_FAILED( rv)) {
 				IMPORT_LOG0( "*** Error, Tell failed on output stream\n");
 				return( PR_FALSE);
@@ -306,20 +308,23 @@ PRBool ImportOutFile::WriteStrAtMarker( int markerID, const char *pStr)
 
 	if (!Flush())
 		return( PR_FALSE);
-	nsresult	rv;
-	PRInt32		pos;
-	rv = m_pFile->Tell( &pos);
+	PRInt64		pos;
+        m_outputStream->Flush();
+        nsresult rv;
+        nsCOMPtr <nsISeekableStream> seekStream = do_QueryInterface(m_outputStream, &rv);
+        NS_ENSURE_SUCCESS(rv, PR_FALSE);
+	rv = seekStream->Tell( &pos);
 	if (NS_FAILED( rv))
 		return( PR_FALSE);
-	rv = m_pFile->Seek( (PRInt32) m_markers[markerID]);
+	rv = seekStream->Seek(nsISeekableStream::NS_SEEK_SET, (PRInt32) m_markers[markerID]);
 	if (NS_FAILED( rv))
 		return( PR_FALSE);
-	PRInt32 written;
-	rv = m_pFile->Write( pStr, strlen( pStr), &written);
+	PRUint32 written;
+	rv = m_outputStream->Write( pStr, strlen( pStr), &written);
 	if (NS_FAILED( rv))
 		return( PR_FALSE);
 
-	rv = m_pFile->Seek( pos);
+	rv = seekStream->Seek(nsISeekableStream::NS_SEEK_SET, pos);
 	if (NS_FAILED( rv))
 		return( PR_FALSE);
 

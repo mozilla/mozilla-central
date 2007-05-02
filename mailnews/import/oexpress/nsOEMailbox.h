@@ -41,14 +41,14 @@
 #include "nscore.h"
 #include "prtypes.h"
 #include "nsString.h"
-#include "nsIFileSpec.h"
+#include "nsIFile.h"
 
 class CImportMailbox {
 public:
-	static PRBool	ImportMailbox( PRUint32 *pDone, PRBool *pAbort, nsString& name, nsIFileSpec * inFile, nsIFileSpec * outFile, PRUint32 *pCount);
+	static PRBool	ImportMailbox( PRUint32 *pDone, PRBool *pAbort, nsString& name, nsIFile * inFile, nsIFile * outFile, PRUint32 *pCount);
 
 private:
-	static PRBool	GetIndexFile( nsIFileSpec* mbxFile);
+	static PRBool	GetIndexFile( nsIFile* mbxFile);
 };
 
 

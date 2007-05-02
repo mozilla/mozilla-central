@@ -67,7 +67,7 @@
 
 #include "nsISupports.idl"
 
-interface 	nsIFileSpec;
+interface 	nsIFile;
 interface 	nsISupportsArray;
 interface	nsIImportMailboxDescriptor;
 interface	nsIOutputStream;
@@ -82,14 +82,14 @@ interface nsIImportMail : nsISupports
 		If userVerify is true, the user will have an opportunity to specify
 		a different location to import mail from.
 	*/
-	void 	GetDefaultLocation( out nsIFileSpec location,
+	void 	GetDefaultLocation( out nsIFile location,
 								out boolean	found,
 								out boolean	userVerify);	
 	/*
 		Returns an nsISupportsArray which contains an nsIImportMailboxID for each 
 		mailbox.  The array is not sorted before display to the user.
 	*/
-	nsISupportsArray FindMailboxes( in nsIFileSpec location);
+	nsISupportsArray FindMailboxes( in nsIFile location);
 	
 	/*
 		Import a specific mailbox into the destination file supplied.  If an error
@@ -98,7 +98,7 @@ interface nsIImportMail : nsISupports
 		and the import operation will abort.
 	*/
 	void 	ImportMailbox( in nsIImportMailboxDescriptor source, 
-						   in nsIFileSpec destination,
+						   in nsIFile destination,
 						   out wstring errorLog,
 						   out wstring successLog, 
 						   out boolean fatalError);

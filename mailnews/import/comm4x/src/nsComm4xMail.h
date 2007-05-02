@@ -39,7 +39,7 @@
 
 #include "nscore.h"
 #include "nsString.h"
-#include "nsIFileSpec.h"
+#include "nsILocalFile.h"
 #include "nsISupportsArray.h"
 
 class nsIImportService;
@@ -53,12 +53,12 @@ public:
     virtual    ~nsComm4xMail();
 
     // get the list of mailboxes
-    virtual nsresult    FindMailboxes(nsIFileSpec *pRoot, nsISupportsArray **ppArray);
+    virtual nsresult    FindMailboxes(nsIFile *pRoot, nsISupportsArray **ppArray);
     
 private:
-    nsresult    ScanMailDir(nsIFileSpec *pFolder, nsISupportsArray *pArray, nsIImportService *pImport);
-    nsresult    IterateMailDir(nsIFileSpec *pFolder, nsISupportsArray *pArray, nsIImportService *pImport);
-    nsresult    FoundMailbox(nsIFileSpec *mailFile, nsAutoString *pName, nsISupportsArray *pArray, nsIImportService *pImport);
+    nsresult    ScanMailDir(nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport);
+    nsresult    IterateMailDir(nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport);
+    nsresult    FoundMailbox(nsIFile *mailFile, nsAutoString *pName, nsISupportsArray *pArray, nsIImportService *pImport);
 
 private:
     PRUint32    m_depth;

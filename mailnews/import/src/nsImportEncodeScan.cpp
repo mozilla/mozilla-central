@@ -38,6 +38,7 @@
 #include "nscore.h"
 #include "nsCRT.h"
 #include "nsImportEncodeScan.h"
+#include "nsNetUtil.h"
 
 #define	kBeginAppleSingle		0
 #define	kBeginDataFork			1
@@ -90,39 +91,34 @@ U32 Get2000Secs( void)
 
 nsImportEncodeScan::nsImportEncodeScan()
 {
-	m_pFile = nsnull;
 	m_isAppleSingle = PR_FALSE;
 	m_encodeScanState = 0;
 	m_resourceForkSize = 0;
 	m_dataForkSize = 0;
-	m_pInputFile = nsnull;
 }
 
 nsImportEncodeScan::~nsImportEncodeScan()
 {
-	NS_IF_RELEASE( m_pInputFile);
 }
 
-PRBool nsImportEncodeScan::InitEncodeScan( PRBool appleSingleEncode, nsIFileSpec *fileLoc, const char *pName, PRUint8 * pBuf, PRUint32 sz)
+PRBool nsImportEncodeScan::InitEncodeScan( PRBool appleSingleEncode, nsIFile *fileLoc, const char *pName, PRUint8 * pBuf, PRUint32 sz)
 {
 	CleanUpEncodeScan();
 	m_isAppleSingle = appleSingleEncode;
 	m_encodeScanState = kBeginAppleSingle;
-	m_pInputFile = fileLoc;
-	NS_IF_ADDREF( m_pInputFile);
+	m_pInputFile = do_QueryInterface(fileLoc);
 	m_useFileName = pName;
 	m_pBuf = pBuf;
 	m_bufSz = sz;
-	if (!m_isAppleSingle) {
-		PRBool	open = PR_FALSE;
-		nsresult rv = m_pInputFile->IsStreamOpen( &open);
-		if (NS_FAILED( rv) || !open) {
-			rv = m_pInputFile->OpenStreamForReading();
-			if (NS_FAILED( rv))
-				return( PR_FALSE);
+	if (!m_isAppleSingle) 
+        {
+		if (!m_inputStream) 
+                {
+                  nsresult rv = NS_NewLocalFileInputStream(getter_AddRefs(m_inputStream), m_pInputFile);
+                  NS_ENSURE_SUCCESS(rv, PR_FALSE);
 		}
 
-		InitScan( m_pInputFile, pBuf, sz);
+		InitScan( m_inputStream, pBuf, sz);
 	}
 	else {
 	#ifdef _MAC_IMPORT_CODE
@@ -137,8 +133,9 @@ PRBool nsImportEncodeScan::InitEncodeScan( PRBool appleSingleEncode, nsIFileSpec
 
 void nsImportEncodeScan::CleanUpEncodeScan( void)
 {
-	NS_IF_RELEASE( m_pInputFile);
-	m_pInputFile = nsnull;
+  m_pInputStream->Close();
+  m_pInputStream = nsnull;
+  m_pInputFile = nsnull;
 }
 
 
@@ -289,11 +286,11 @@ PRBool nsImportEncodeScan::Scan( PRBool *pDone)
 		// when handling eof.
 		switch( m_encodeScanState) {
 			case kBeginAppleSingle: {
-				#ifdef _MAC_IMPORT_CODE
+#ifdef _MAC_IMPORT_CODE
 				OSErr err = GetCatInfoNoName( m_inputFileLoc.GetVRefNum(), m_inputFileLoc.GetParID(), m_inputFileLoc.GetFileNamePtr(), &gCatInfoPB);
 				if (err != noErr)
 					return( FALSE);
-				#endif
+#endif
 				m_eof = PR_FALSE;
 				m_pos = 0;
 				memcpy( m_pBuf, gAppleSingleHeader, kAppleSingleHeaderSize);
@@ -317,12 +314,11 @@ PRBool nsImportEncodeScan::Scan( PRBool *pDone)
 					return( PR_TRUE);
 				}
 				// Initialize the scan of the data fork...
-				PRBool open = PR_FALSE;
-				rv = m_pInputFile->IsStreamOpen( &open);
-				if (!open)
-					rv = m_pInputFile->OpenStreamForReading();
-				if (NS_FAILED( rv))
-					return( PR_FALSE);	
+				if (!m_inputStream)
+                                {
+                                  rv = NS_NewLocalFileInputStream(getter_AddRefs(m_inputStream), m_pInputFile);
+                                  NS_ENSURE_SUCCESS(rv, PR_FALSE);
+                                }
 				m_encodeScanState = kScanningDataFork;
 				return( PR_TRUE);
 			}
@@ -336,8 +332,9 @@ PRBool nsImportEncodeScan::Scan( PRBool *pDone)
 					m_eof = PR_FALSE;
 					result = ScanBuffer( pDone);
 					if (!result)
-						return( PR_FALSE);
-					m_pInputFile->CloseStream();
+					  return( PR_FALSE);
+					m_inputStream->Close();
+                                        m_inputStream = nsnull;
 					m_encodeScanState = kDoneWithFile;
 					return( PR_TRUE);
 				}
@@ -355,7 +352,8 @@ PRBool nsImportEncodeScan::Scan( PRBool *pDone)
 					result = ScanBuffer( pDone);
 					if (!result)
 						return( PR_FALSE);
-					m_pInputFile->CloseStream();
+					m_inputStream->Close();
+                                        m_inputStream = nsnull;
 					m_encodeScanState = kBeginDataFork;
 					return( PR_TRUE);
 				}

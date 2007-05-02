@@ -55,6 +55,7 @@
 #include "nsEudoraStringBundle.h"
 #include "nsEudoraImport.h"
 #include "nsUnicharUtils.h"
+#include "nsNetUtil.h"
 #include "EudoraDebugLog.h"
 
 static NS_DEFINE_IID(kISupportsIID,			NS_ISUPPORTS_IID);
@@ -85,29 +86,24 @@ BYTE * nsEudoraWin32::GetValueBytes( HKEY hKey, const char *pValueName)
 
 nsEudoraWin32::nsEudoraWin32()
 {
-	m_mailImportLocation = nsnull;
-	m_addressImportFolder = nsnull;
-	m_pMimeSection = nsnull;
+  m_pMimeSection = nsnull;
 }
 
 nsEudoraWin32::~nsEudoraWin32()
 {
-	NS_IF_RELEASE( m_mailImportLocation);
-	NS_IF_RELEASE( m_addressImportFolder);
-	if (m_pMimeSection)
-		delete [] m_pMimeSection;
+	delete [] m_pMimeSection;
 }
 
-PRBool nsEudoraWin32::FindMailFolder( nsIFileSpec *pFolder)
+PRBool nsEudoraWin32::FindMailFolder( nsIFile **pFolder)
 {
 	return( FindEudoraLocation( pFolder));
 }
 
-PRBool nsEudoraWin32::FindEudoraLocation( nsIFileSpec *pFolder, PRBool findIni)
+PRBool nsEudoraWin32::FindEudoraLocation( nsIFile **pFolder, PRBool findIni)
 {
-	PRBool	result = PR_FALSE;
+  PRBool result = PR_FALSE;
   PRBool  exists = PR_FALSE;
-
+  nsCOMPtr <nsILocalFile> eudoraPath = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID);
 	// look in the registry to see where eudora is installed?
 	HKEY	sKey;
 	if (::RegOpenKeyEx( HKEY_CURRENT_USER, "Software\\Qualcomm\\Eudora\\CommandLine", 0, KEY_QUERY_VALUE, &sKey) == ERROR_SUCCESS) {
@@ -126,19 +122,19 @@ PRBool nsEudoraWin32::FindEudoraLocation( nsIFileSpec *pFolder, PRBool findIni)
         if (index != -1) {
           index++; // skip the space
           nsCString	path;
-					str.Mid( path, index, str.Length() - index);
+	str.Mid( path, index, str.Length() - index);
 
-          pFolder->SetNativePath( path.get());
-          pFolder->IsFile( &exists);
+          eudoraPath->InitWithNativePath(path);
+          eudoraPath->IsFile( &exists);
           if (exists)
-					  result = exists;
+	    result = exists;
           else // it may just be the mailbox location....guess that there will be a eudora.ini file there
           {
-            pFolder->AppendRelativeUnixPath("eudora.ini");
-            pFolder->IsFile( &exists);
-					  result = exists;
-          }
-        }
+            eudoraPath->AppendNative(NS_LITERAL_CSTRING("eudora.ini"));
+            eudoraPath->IsFile( &exists);
+	  result = exists;
+          }       
+        } 
       } // if findIni
       else {
 			int	idx = -1;
@@ -163,11 +159,11 @@ PRBool nsEudoraWin32::FindEudoraLocation( nsIFileSpec *pFolder, PRBool findIni)
 				}
 				if (endIdx != -1) {
 					nsCString	path;
-					str.Mid( path, idx, endIdx - idx);
+					str.Mid( path, idx, endIdx - idx);					
+					
+                                        eudoraPath->InitWithNativePath(path);
 
-					pFolder->SetNativePath( path.get());
-
-					  if (NS_SUCCEEDED( pFolder->IsDirectory( &exists)))
+					  if (NS_SUCCEEDED( eudoraPath->IsDirectory( &exists)))
 							result = exists;
 						}
 					}
@@ -176,10 +172,11 @@ PRBool nsEudoraWin32::FindEudoraLocation( nsIFileSpec *pFolder, PRBool findIni)
 		::RegCloseKey( sKey);
 	}
 
+  NS_IF_ADDREF(*pFolder = eudoraPath);
 	return( result);
 }
 
-nsresult nsEudoraWin32::FindMailboxes( nsIFileSpec *pRoot, nsISupportsArray **ppArray)
+nsresult nsEudoraWin32::FindMailboxes( nsIFile *pRoot, nsISupportsArray **ppArray)
 {
 	nsresult rv = NS_NewISupportsArray( ppArray);
 	if (NS_FAILED( rv)) {
@@ -192,41 +189,57 @@ nsresult nsEudoraWin32::FindMailboxes( nsIFileSpec *pRoot, nsISupportsArray **pp
 		return( rv);
 
 	m_depth = 0;
-	NS_IF_RELEASE( m_mailImportLocation);
-	m_mailImportLocation = pRoot;
-	NS_IF_ADDREF( m_mailImportLocation);
-
+	m_mailImportLocation = do_QueryInterface(pRoot);
 	return( ScanMailDir( pRoot, *ppArray, impSvc));
 }
 
 
-nsresult nsEudoraWin32::ScanMailDir( nsIFileSpec *pFolder, nsISupportsArray *pArray, nsIImportService *pImport)
+nsresult nsEudoraWin32::ScanMailDir( nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport)
 {
 	PRBool					exists = PR_FALSE;
 	PRBool					isFile = PR_FALSE;
 	char *					pContents = nsnull;
 	PRInt32					len = 0;
-	nsCOMPtr<nsIFileSpec>	descMap;
+	nsCOMPtr<nsIFile>	descMap;
 	nsresult				rv;
 
-	if (NS_FAILED( rv = NS_NewFileSpec( getter_AddRefs( descMap))))
+	if (NS_FAILED( rv = pFolder->Clone(getter_AddRefs(descMap))))
 		return( rv);
 
 	m_depth++;
 
-	descMap->FromFileSpec( pFolder);
-	rv = descMap->AppendRelativeUnixPath( "descmap.pce");
+	rv = descMap->AppendNative(NS_LITERAL_CSTRING("descmap.pce"));
 	if (NS_SUCCEEDED( rv))
 		rv = descMap->IsFile( &isFile);
 	if (NS_SUCCEEDED( rv))
 		rv = descMap->Exists( &exists);
 	if (NS_SUCCEEDED( rv) && exists && isFile) {
-		rv = descMap->GetFileContents( &pContents);
+          nsCOMPtr<nsIInputStream> inputStream;
+          nsresult rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), descMap);
+          if (NS_FAILED(rv)) 
+            return rv;
+           
+          PRUint32 bytesLeft = 0;
+
+          rv = inputStream->Available(&bytesLeft);
+          if (NS_FAILED(rv)) {
+            IMPORT_LOG0( "*** Error checking address file for eof\n");
+            inputStream->Close();
+            return rv;
+          }
+          pContents = (char *) PR_Malloc(bytesLeft + 1);
+          if (!pContents)
+            return NS_ERROR_OUT_OF_MEMORY;
+          PRUint32 bytesRead;
+          rv = inputStream->Read(pContents, bytesLeft, &bytesRead);
+          if (bytesRead != bytesLeft)
+            return NS_ERROR_FAILURE;
+          pContents[bytesRead] = '\0';
 		if (NS_SUCCEEDED( rv) && pContents) {
-			len = strlen( pContents);
+			len = bytesRead;	
 			if (NS_SUCCEEDED( rv))
 				rv = ScanDescmap( pFolder, pArray, pImport, pContents, len);
-			nsCRT::free( pContents);
+			PR_Free( pContents);
 		}
 		else
 			rv = NS_ERROR_FAILURE;
@@ -240,88 +253,77 @@ nsresult nsEudoraWin32::ScanMailDir( nsIFileSpec *pFolder, nsISupportsArray *pAr
 	return( rv);
 }
 
-nsresult nsEudoraWin32::IterateMailDir( nsIFileSpec *pFolder, nsISupportsArray *pArray, nsIImportService *pImport)
+nsresult nsEudoraWin32::IterateMailDir( nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport)
 {
-	nsCOMPtr<nsIDirectoryIterator>	dir;
-	nsresult rv = NS_NewDirectoryIterator( getter_AddRefs( dir));
-	if (NS_FAILED( rv))
-		return( rv);
+  PRBool hasMore;
+  nsCOMPtr<nsISimpleEnumerator> directoryEnumerator;
+  nsresult rv = pFolder->GetDirectoryEntries(getter_AddRefs(directoryEnumerator));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-	PRBool	exists = PR_FALSE;
-	rv = dir->Init( pFolder, PR_TRUE);
-	if (NS_FAILED( rv))
-		return( rv);
+  directoryEnumerator->HasMoreElements(&hasMore);
+  PRBool            isFolder;
+  PRBool            isFile;
+  nsCOMPtr<nsIFile> entry;
+  nsCString         fName;
+  nsCString         ext;
+  nsCString         name;
 
-	rv = dir->Exists( &exists);
-	if (NS_FAILED( rv))
-		return( rv);
+  while (hasMore && NS_SUCCEEDED(rv))
+  {
+    nsCOMPtr<nsISupports> aSupport;
+    rv = directoryEnumerator->GetNext(getter_AddRefs(aSupport));
+    nsCOMPtr<nsILocalFile> entry(do_QueryInterface(aSupport, &rv));
+    directoryEnumerator->HasMoreElements(&hasMore);
 
-	PRBool					isFolder;
-	PRBool					isFile;
-	nsCOMPtr<nsIFileSpec>	entry;
-	char *					pName;
-	nsCString				fName;
-	nsCString				ext;
-	nsCString				name;
-
-	while (exists && NS_SUCCEEDED( rv)) {
-		rv = dir->GetCurrentSpec( getter_AddRefs( entry));
-		if (NS_SUCCEEDED( rv)) {
-			rv = entry->GetLeafName( &pName);
-			if (NS_SUCCEEDED( rv) && pName) {
-				fName = pName;
-				nsCRT::free( pName);
-				if (fName.Length() > 4) {
-					fName.Right( ext, 4);
-					fName.Left( name, fName.Length() - 4);
-				}
-				else {
-					ext.Truncate();
-					name = fName;
-				}
-				ToLowerCase(ext);
-				if (ext.EqualsLiteral(".fol")) {
-					isFolder = PR_FALSE;
-					entry->IsDirectory( &isFolder);
-					if (isFolder) {
-						// add the folder
-						rv = FoundMailFolder( entry, name.get(), pArray, pImport);
-						if (NS_SUCCEEDED( rv)) {
-							rv = ScanMailDir( entry, pArray, pImport);
-							if (NS_FAILED( rv)) {
-								IMPORT_LOG0( "*** Error scanning mail directory\n");
-							}
-						}
-					}
-				}
-				else if (ext.EqualsLiteral(".mbx")) {
-					isFile = PR_FALSE;
-					entry->IsFile( &isFile);
-					if (isFile) {
-						rv = FoundMailbox( entry, name.get(), pArray, pImport);
-					}
-				}
-			}
-		}
-
-		rv = dir->Next();
-		if (NS_SUCCEEDED( rv))
-			rv = dir->Exists( &exists);
-	}
-
-	return( rv);
+    if (NS_SUCCEEDED( rv)) {
+      rv = entry->GetNativeLeafName(fName);
+      if (NS_SUCCEEDED( rv) && !fName.IsEmpty()) {
+        if (fName.Length() > 4) {
+          fName.Right( ext, 4);
+          fName.Left( name, fName.Length() - 4);
+        }
+        else {
+          ext.Truncate();
+          name = fName;
+        }
+        ToLowerCase(ext);
+        if (ext.EqualsLiteral(".fol")) {
+          isFolder = PR_FALSE;
+          entry->IsDirectory( &isFolder);
+          if (isFolder) {
+            // add the folder
+            rv = FoundMailFolder( entry, name.get(), pArray, pImport);
+            if (NS_SUCCEEDED( rv)) {
+              rv = ScanMailDir( entry, pArray, pImport);
+              if (NS_FAILED( rv)) {
+                IMPORT_LOG0( "*** Error scanning mail directory\n");
+              }
+            }
+          }
+        }
+        else if (ext.EqualsLiteral(".mbx")) {
+          isFile = PR_FALSE;
+          entry->IsFile( &isFile);
+          if (isFile) {
+            rv = FoundMailbox( entry, name.get(), pArray, pImport);
+          }
+        }
+      }				
+    }
+  }
+  return( rv);
 }
 
-nsresult nsEudoraWin32::ScanDescmap( nsIFileSpec *pFolder, nsISupportsArray *pArray, nsIImportService *pImport, const char *pData, PRInt32 len)
+nsresult nsEudoraWin32::ScanDescmap( nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport, const char *pData, PRInt32 len)
 {
 	// use this to find stuff in the directory.
 
-	nsCOMPtr<nsIFileSpec>	entry;
+	nsCOMPtr<nsIFile>	entry;
 	nsresult				rv;
 
-	if (NS_FAILED( rv = NS_NewFileSpec( getter_AddRefs( entry))))
+	if (NS_FAILED( rv = pFolder->Clone(getter_AddRefs(entry))))
 		return( rv);
-
+        entry->AppendNative(NS_LITERAL_CSTRING("dummy"));
 	// format is Name,FileName,Type,Flag?
 	//	Type = M or S for mailbox
 	//		 = F for folder
@@ -394,8 +396,7 @@ nsresult nsEudoraWin32::ScanDescmap( nsIFileSpec *pFolder, nsISupportsArray *pAr
 		IMPORT_LOG2( "name: %s, fName: %s\n", name.get(), fName.get());
 
 		if (!fName.IsEmpty() && !name.IsEmpty() && (type.Length() == 1)) {
-			entry->FromFileSpec( pFolder);
-			rv = entry->AppendRelativeUnixPath( fName.get());
+			rv = entry->SetNativeLeafName(fName);
 			if (NS_SUCCEEDED( rv)) {
 				if (type.CharAt( 0) == 'F') {
 					isFolder = PR_FALSE;
@@ -425,7 +426,7 @@ nsresult nsEudoraWin32::ScanDescmap( nsIFileSpec *pFolder, nsISupportsArray *pAr
 }
 
 
-nsresult nsEudoraWin32::FoundMailbox( nsIFileSpec *mailFile, const char *pName, nsISupportsArray *pArray, nsIImportService *pImport)
+nsresult nsEudoraWin32::FoundMailbox( nsIFile *mailFile, const char *pName, nsISupportsArray *pArray, nsIImportService *pImport)
 {
 	nsString								displayName;
 	nsCOMPtr<nsIImportMailboxDescriptor>	desc;
@@ -434,30 +435,27 @@ nsresult nsEudoraWin32::FoundMailbox( nsIFileSpec *mailFile, const char *pName, 
 	NS_CopyNativeToUnicode(nsDependentCString(pName), displayName);
 
 #ifdef IMPORT_DEBUG
-	char *pPath = nsnull;
-	mailFile->GetNativePath( &pPath);
-	if (pPath) {
-		IMPORT_LOG2( "Found eudora mailbox, %s: %s\n", pPath, pName);
-		nsCRT::free( pPath);
-	}
-	else {
+	nsCAutoString path;
+	mailFile->GetNativePath(path);
+	if (!path.IsEmpty())
+		IMPORT_LOG2( "Found eudora mailbox, %s: %s\n", path.get(), pName);
+	else
 		IMPORT_LOG1( "Found eudora mailbox, %s\n", pName);
-	}
 	IMPORT_LOG1( "\tm_depth = %d\n", (int)m_depth);
 #endif
 
 	nsresult rv = pImport->CreateNewMailboxDescriptor( getter_AddRefs( desc));
 	if (NS_SUCCEEDED( rv)) {
-		PRUint32		sz = 0;
-		mailFile->GetFileSize( &sz);
+		PRInt64		sz = 0;
+		mailFile->GetFileSize( &sz);	
 		desc->SetDisplayName( displayName.get());
 		desc->SetDepth( m_depth);
 		desc->SetSize( sz);
-		nsIFileSpec *pSpec = nsnull;
-		desc->GetFileSpec( &pSpec);
-		if (pSpec) {
-			pSpec->FromFileSpec( mailFile);
-			NS_RELEASE( pSpec);
+		nsCOMPtr <nsILocalFile> pFile = nsnull;
+		desc->GetFile(getter_AddRefs(pFile));
+		if (pFile) {
+                        nsCOMPtr <nsILocalFile> localMailFile = do_QueryInterface(mailFile);
+			pFile->InitWithFile( localMailFile);
 		}
 		rv = desc->QueryInterface( kISupportsIID, (void **) &pInterface);
 		pArray->AppendElement( pInterface);
@@ -468,7 +466,7 @@ nsresult nsEudoraWin32::FoundMailbox( nsIFileSpec *mailFile, const char *pName, 
 }
 
 
-nsresult nsEudoraWin32::FoundMailFolder( nsIFileSpec *mailFolder, const char *pName, nsISupportsArray *pArray, nsIImportService *pImport)
+nsresult nsEudoraWin32::FoundMailFolder( nsIFile *mailFolder, const char *pName, nsISupportsArray *pArray, nsIImportService *pImport)
 {
 	nsString								displayName;
 	nsCOMPtr<nsIImportMailboxDescriptor>	desc;
@@ -477,11 +475,10 @@ nsresult nsEudoraWin32::FoundMailFolder( nsIFileSpec *mailFolder, const char *pN
 	NS_CopyNativeToUnicode(nsDependentCString(pName), displayName);
 
 #ifdef IMPORT_DEBUG
-	char *pPath = nsnull;
-	mailFolder->GetNativePath( &pPath);
-	if (pPath) {
-		IMPORT_LOG2( "Found eudora folder, %s: %s\n", pPath, pName);
-		nsCRT::free( pPath);
+	nsCAutoString path;
+	mailFolder->GetNativePath(path);
+	if (!path.IsEmpty()) {
+		IMPORT_LOG2( "Found eudora folder, %s: %s\n", path.get(), pName);
 	}
 	else {
 		IMPORT_LOG1( "Found eudora folder, %s\n", pName);
@@ -495,11 +492,11 @@ nsresult nsEudoraWin32::FoundMailFolder( nsIFileSpec *mailFolder, const char *pN
 		desc->SetDisplayName( displayName.get());
 		desc->SetDepth( m_depth);
 		desc->SetSize( sz);
-		nsIFileSpec *pSpec = nsnull;
-		desc->GetFileSpec( &pSpec);
-		if (pSpec) {
-			pSpec->FromFileSpec( mailFolder);
-			NS_RELEASE( pSpec);
+		nsCOMPtr <nsILocalFile> pFile = nsnull;
+		desc->GetFile(getter_AddRefs(pFile));
+		if (pFile) {
+                        nsCOMPtr <nsILocalFile> localMailFile = do_QueryInterface(mailFolder);
+			pFile->InitWithFile( localMailFile);
 		}
 		rv = desc->QueryInterface( kISupportsIID, (void **) &pInterface);
 		pArray->AppendElement( pInterface);
@@ -510,29 +507,27 @@ nsresult nsEudoraWin32::FoundMailFolder( nsIFileSpec *mailFolder, const char *pN
 }
 
 
-nsresult nsEudoraWin32::FindTOCFile( nsIFileSpec *pMailFile, nsIFileSpec **ppTOCFile, PRBool *pDeleteToc)
+nsresult nsEudoraWin32::FindTOCFile( nsIFile *pMailFile, nsIFile **ppTOCFile, PRBool *pDeleteToc)
 {
 	nsresult		rv;
-	char	*		pName = nsnull;
+	nsCAutoString	leaf;
 
 	*pDeleteToc = PR_FALSE;
 	*ppTOCFile = nsnull;
-	rv = pMailFile->GetLeafName( &pName);
+	rv = pMailFile->GetNativeLeafName(leaf);
 	if (NS_FAILED( rv))
 		return( rv);
 	rv = pMailFile->GetParent( ppTOCFile);
 	if (NS_FAILED( rv))
 		return( rv);
 
-	nsCString	leaf(pName);
-	nsCRT::free( pName);
 	nsCString	name;
 	if ((leaf.Length() > 4) && (leaf.CharAt( leaf.Length() - 4) == '.'))
 		leaf.Left( name, leaf.Length() - 4);
 	else
 		name = leaf;
 	name.Append( ".toc");
-	rv = (*ppTOCFile)->AppendRelativeUnixPath( name.get());
+	rv = (*ppTOCFile)->AppendNative(name);
 	if (NS_FAILED( rv))
 		return( rv);
 
@@ -551,7 +546,7 @@ nsresult nsEudoraWin32::FindTOCFile( nsIFileSpec *pMailFile, nsIFileSpec **ppTOC
 }
 
 
-PRBool nsEudoraWin32::ImportSettings( nsIFileSpec *pIniFile, nsIMsgAccount **localMailAccount)
+PRBool nsEudoraWin32::ImportSettings( nsIFile *pIniFile, nsIMsgAccount **localMailAccount)
 {
 	PRBool		result = PR_FALSE;
 	nsresult	rv;
@@ -566,14 +561,10 @@ PRBool nsEudoraWin32::ImportSettings( nsIFileSpec *pIniFile, nsIMsgAccount **loc
 	// Eudora info is arranged by key, 1 for the default, then persona's for additional
 	// accounts.
 	// Start with the first one, then do each persona
-	char *pIniPath = nsnull;
-	pIniFile->GetNativePath( &pIniPath);
-	if (!pIniPath)
+	nsCString iniPath;
+	pIniFile->GetNativePath(iniPath);
+	if (iniPath.IsEmpty())
 		return( PR_FALSE);
-
-	nsCString	iniPath(pIniPath);
-	nsCRT::free( pIniPath);
-
 	UINT			valInt;
 	SimpleBufferTonyRCopiedOnce	section;
 	DWORD			sSize;
@@ -909,24 +900,24 @@ void nsEudoraWin32::SetSmtpServer( nsIMsgAccountManager *pMgr, nsIMsgAccount *pA
  	}
 }
 
-nsresult nsEudoraWin32::GetAttachmentInfo( const char *pFileName, nsIFileSpec *pSpec, nsCString& mimeType, nsCString& aAttachmentName)
+nsresult nsEudoraWin32::GetAttachmentInfo( const char *pFileName, nsIFile *pFile, nsCString& mimeType, nsCString& aAttachmentName)
 {
-	mimeType.Truncate();
-	pSpec->SetNativePath( pFileName);
 	nsresult	rv;
+	mimeType.Truncate();
+        nsCOMPtr <nsILocalFile> pLocalFile = do_QueryInterface(pFile, &rv);
+        NS_ENSURE_SUCCESS(rv, rv);
+	pLocalFile->InitWithNativePath(nsDependentCString(pFileName));
 	PRBool		isFile = PR_FALSE;
 	PRBool		exists = PR_FALSE;
-	if (NS_FAILED( rv = pSpec->Exists( &exists)))
+	if (NS_FAILED( rv = pFile->Exists( &exists)))
 		return( rv);
-	if (NS_FAILED( rv = pSpec->IsFile( &isFile)))
+	if (NS_FAILED( rv = pFile->IsFile( &isFile)))
 		return( rv);
 	if (exists && isFile) {
-		char *pLeaf = nsnull;
-		pSpec->GetLeafName( &pLeaf);
-		if (!pLeaf)
+		nsCAutoString name;
+		pFile->GetNativeLeafName(name);
+		if (name.IsEmpty())
 			return( NS_ERROR_FAILURE);
-		nsCString name(pLeaf);
-		nsCRT::free( pLeaf);
 		if (name.Length() > 4) {
 			nsCString ext;
 			PRInt32 idx = name.RFindChar( '.');
@@ -946,37 +937,36 @@ nsresult nsEudoraWin32::GetAttachmentInfo( const char *pFileName, nsIFileSpec *p
 	return( NS_ERROR_FAILURE);
 }
 
-PRBool nsEudoraWin32::FindMimeIniFile( nsIFileSpec *pSpec)
+PRBool nsEudoraWin32::FindMimeIniFile( nsIFile *pFile)
 {
-	nsCOMPtr<nsIDirectoryIterator>	dir;
-	nsresult rv = NS_NewDirectoryIterator( getter_AddRefs( dir));
-	if (NS_FAILED( rv))
-		return( PR_FALSE);
+  PRBool hasMore;
+  nsCOMPtr<nsISimpleEnumerator> directoryEnumerator;
+  nsresult rv = pFile->GetDirectoryEntries(getter_AddRefs(directoryEnumerator));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-	PRBool	exists = PR_FALSE;
-	rv = dir->Init( pSpec, PR_TRUE);
-	if (NS_FAILED( rv))
-		return( PR_FALSE);
+  nsCOMPtr <nsILocalFile> pLocalFile = do_QueryInterface(pFile, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-	rv = dir->Exists( &exists);
-	if (NS_FAILED( rv))
-		return( PR_FALSE);
+  directoryEnumerator->HasMoreElements(&hasMore);
+  PRBool            isFile;
+  nsCOMPtr<nsIFile> entry;
+  nsCString         fName;
+  nsCString         ext;
+  nsCString         name;
 
-	PRBool					isFile;
-	nsCOMPtr<nsIFileSpec>	entry;
-	char *					pName;
-	nsCString				fName;
-	nsCString				ext;
-	nsCString				name;
-	PRBool					found = PR_FALSE;
+  PRBool found = PR_FALSE;
 
-	while (exists && NS_SUCCEEDED( rv)) {
-		rv = dir->GetCurrentSpec( getter_AddRefs( entry));
+  while (hasMore && NS_SUCCEEDED(rv))
+  {
+    nsCOMPtr<nsISupports> aSupport;
+    rv = directoryEnumerator->GetNext(getter_AddRefs(aSupport));
+    nsCOMPtr<nsILocalFile> entry(do_QueryInterface(aSupport, &rv));
+    directoryEnumerator->HasMoreElements(&hasMore);
+
+
 		if (NS_SUCCEEDED( rv)) {
-			rv = entry->GetLeafName( &pName);
-			if (NS_SUCCEEDED( rv) && pName) {
-				fName = pName;
-				nsCRT::free( pName);
+			rv = entry->GetNativeLeafName(fName);
+			if (NS_SUCCEEDED( rv) && !fName.IsEmpty()) {
 				if (fName.Length() > 4) {
 					fName.Right( ext, 4);
 					fName.Left( name, fName.Length() - 4);
@@ -992,30 +982,22 @@ PRBool nsEudoraWin32::FindMimeIniFile( nsIFileSpec *pSpec)
 					if (isFile) {
 						if (found) {
 							// which one of these files is newer?
-							PRUint32	modDate1, modDate2;
-							entry->GetModDate( &modDate2);
-							pSpec->GetModDate( &modDate1);
+							PRInt64	modDate1, modDate2;
+							entry->GetLastModifiedTime( &modDate2);
+							pFile->GetLastModifiedTime( &modDate1);
 							if (modDate2 > modDate1)
-								pSpec->FromFileSpec( entry);
+                        					pLocalFile->InitWithFile( entry);
 						}
 						else {
-							pSpec->FromFileSpec( entry);
+							pLocalFile->InitWithFile( entry);
 							found = PR_TRUE;
 						}
 					}
 				}
 			}
 		}
-
-		rv = dir->Next();
-		if (NS_SUCCEEDED( rv))
-			rv = dir->Exists( &exists);
-	}
-
-	if (found)
-		return( PR_TRUE);
-	else
-		return( PR_FALSE);
+  }
+  return found;
 }
 
 
@@ -1041,35 +1023,30 @@ void nsEudoraWin32::GetMimeTypeFromExtension( nsCString& ext, nsCString& mimeTyp
 	// It's not in the registry, try and find the .ini file for Eudora's private
 	// mime type list
 	if (!m_pMimeSection) {
-		nsIFileSpec *pSpec;
-		nsresult rv = NS_NewFileSpec( &pSpec);
-		if (NS_FAILED( rv) || !pSpec)
-			return;
+		nsCOMPtr <nsILocalFile> pFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID);
+                if (!pFile)
+                  return;
 
-		pSpec->FromFileSpec( m_mailImportLocation);
+		pFile->InitWithFile( m_mailImportLocation);
 
-		pSpec->AppendRelativeUnixPath( "eudora.ini");
+		pFile->AppendNative(NS_LITERAL_CSTRING("eudora.ini"));
 		PRBool exists = PR_FALSE;
 		PRBool isFile = PR_FALSE;
-		rv = pSpec->Exists( &exists);
+		nsresult rv = pFile->Exists( &exists);
 		if (NS_SUCCEEDED( rv))
-			rv = pSpec->IsFile( &isFile);
-
+			rv = pFile->IsFile( &isFile);
 		if (!isFile || !exists) {
-			rv = pSpec->FromFileSpec( m_mailImportLocation);
+			rv = pFile->InitWithFile( m_mailImportLocation);
 			if (NS_FAILED( rv))
 				return;
-			if (!FindMimeIniFile( pSpec))
+			if (!FindMimeIniFile( pFile))
 				return;
 		}
 
-		char *pName = nsnull;
-		pSpec->GetNativePath( &pName);
-		if (!pName)
-			return;
-		nsCString	fileName(pName);
-		nsCRT::free( pName);
-
+		nsCAutoString fileName;
+		pFile->GetNativePath(fileName);
+		if (fileName.IsEmpty())
+		  return;
 		// Read the mime map section
 		DWORD	size = 1024;
 		DWORD	dSize = size - 2;
@@ -1161,21 +1138,19 @@ void nsEudoraWin32::GetMimeTypeFromExtension( nsCString& ext, nsCString& mimeTyp
 	}
 }
 
-PRBool nsEudoraWin32::FindAddressFolder( nsIFileSpec *pFolder)
+PRBool nsEudoraWin32::FindAddressFolder( nsIFile **pFolder)
 {
 	IMPORT_LOG0( "*** Looking for Eudora address folder\n");
 
 	return( FindEudoraLocation( pFolder));
 }
 
-nsresult nsEudoraWin32::FindAddressBooks( nsIFileSpec *pRoot, nsISupportsArray **ppArray)
+nsresult nsEudoraWin32::FindAddressBooks( nsIFile *pRoot, nsISupportsArray **ppArray)
 {
 
-	nsCOMPtr<nsIFileSpec>	spec;
-	nsresult rv = NS_NewFileSpec( getter_AddRefs( spec));
-	if (NS_FAILED( rv))
-		return( rv);
-	rv = spec->FromFileSpec( pRoot);
+	nsCOMPtr<nsILocalFile>	file;
+        nsCOMPtr<nsILocalFile> localRoot = do_QueryInterface(pRoot);
+	nsresult rv = file->InitWithFile( localRoot);
 	if (NS_FAILED( rv))
 		return( rv);
 
@@ -1188,71 +1163,62 @@ nsresult nsEudoraWin32::FindAddressBooks( nsIFileSpec *pRoot, nsISupportsArray *
 	nsCOMPtr<nsIImportService> impSvc(do_GetService(NS_IMPORTSERVICE_CONTRACTID, &rv));
 	if (NS_FAILED( rv))
 		return( rv);
-
-	NS_IF_RELEASE( m_addressImportFolder);
 	m_addressImportFolder = pRoot;
-	NS_IF_ADDREF( pRoot);
-
-
 	nsString		displayName;
 	nsEudoraStringBundle::GetStringByID( EUDORAIMPORT_NICKNAMES_NAME, displayName);
 
 	// First off, get the default nndbase.txt, then scan the default nicknames subdir,
 	// then look in the .ini file for additional directories to scan for address books!
-	rv = spec->AppendRelativeUnixPath( "nndbase.txt");
+	rv = file->AppendNative( NS_LITERAL_CSTRING("nndbase.txt"));
 	PRBool exists = PR_FALSE;
 	PRBool isFile = PR_FALSE;
 	if (NS_SUCCEEDED( rv))
-		rv = spec->Exists( &exists);
+		rv = file->Exists( &exists);
 	if (NS_SUCCEEDED( rv) && exists)
-		rv = spec->IsFile( &isFile);
+		rv = file->IsFile( &isFile);
 	if (exists && isFile) {
-		if (NS_FAILED( rv = FoundAddressBook( spec, displayName.get(), *ppArray, impSvc)))
+		if (NS_FAILED( rv = FoundAddressBook( file, displayName.get(), *ppArray, impSvc)))
 			return( rv);
 	}
 
 	// Try the default directory
-	rv = spec->FromFileSpec( pRoot);
+	rv = 	rv = file->InitWithFile( localRoot);
 	if (NS_FAILED( rv))
 		return( rv);
-	rv = spec->AppendRelativeUnixPath( "Nickname");
+	rv = file->AppendNative(NS_LITERAL_CSTRING("Nickname"));
 	PRBool isDir = PR_FALSE;
 	exists = PR_FALSE;
 	if (NS_SUCCEEDED( rv))
-		rv = spec->Exists( &exists);
+		rv = file->Exists( &exists);
 	if (NS_SUCCEEDED( rv) && exists)
-		rv = spec->IsDirectory( &isDir);
+		rv = file->IsDirectory( &isDir);
 	if (exists && isDir) {
-		if (NS_FAILED( rv = ScanAddressDir( spec, *ppArray, impSvc)))
+		if (NS_FAILED( rv = ScanAddressDir(file, *ppArray, impSvc)))
 			return( rv);
 	}
 
 	// Try the ini file to find other directories!
-	rv = spec->FromFileSpec( pRoot);
-	if (NS_SUCCEEDED( rv))
-		rv = spec->AppendRelativeUnixPath( "eudora.ini");
+	rv = 	rv = file->InitWithFile( localRoot);
+	if (NS_FAILED( rv))
+		return( rv);
+	rv = file->AppendNative(NS_LITERAL_CSTRING("eudora.ini"));
 	exists = PR_FALSE;
 	isFile = PR_FALSE;
 	if (NS_SUCCEEDED( rv))
-		rv = spec->Exists( &exists);
+		rv = file->Exists( &exists);
 	if (NS_SUCCEEDED( rv) && exists)
-		rv = spec->IsFile( &isFile);
-
+		rv = file->IsFile( &isFile);
+	
 	if (!isFile || !exists) {
-		rv = spec->FromFileSpec( pRoot);
+		rv = file->InitWithFile( localRoot);
 		if (NS_FAILED( rv))
 			return( NS_OK);
-		if (!FindMimeIniFile( spec))
+		if (!FindMimeIniFile(file))
 			return( NS_OK);
 	}
 
-	char *pName = nsnull;
-	spec->GetNativePath( &pName);
-	if (!pName)
-		return( NS_OK);
-	nsCString	fileName(pName);
-	nsCRT::free( pName);
-
+	nsCString fileName;
+	file->GetNativePath(fileName);
 	// This is the supposed ini file name!
 	// Get the extra directories for nicknames and parse it for valid nickname directories
 	// to look into...
@@ -1272,15 +1238,15 @@ nsresult nsEudoraWin32::FindAddressBooks( nsIFileSpec *pRoot, nsISupportsArray *
 		dirs.Left( currentDir, idx);
 		currentDir.Trim( kWhitespace);
 		if (!currentDir.IsEmpty()) {
-			rv = spec->SetNativePath( currentDir.get());
+			rv = file->InitWithNativePath(currentDir);
 			exists = PR_FALSE;
 			isDir = PR_FALSE;
 			if (NS_SUCCEEDED( rv))
-				rv = spec->Exists( &exists);
+				rv = file->Exists( &exists);
 			if (NS_SUCCEEDED( rv) && exists)
-				rv = spec->IsDirectory( &isDir);
+				rv = file->IsDirectory( &isDir);
 			if (exists && isDir) {
-				if (NS_FAILED( rv = ScanAddressDir( spec, *ppArray, impSvc)))
+				if (NS_FAILED( rv = ScanAddressDir(file, *ppArray, impSvc)))
 					return( rv);
 			}
 		}
@@ -1289,15 +1255,15 @@ nsresult nsEudoraWin32::FindAddressBooks( nsIFileSpec *pRoot, nsISupportsArray *
 		dirs.Trim( kWhitespace);
 	}
 	if (!dirs.IsEmpty()) {
-		rv = spec->SetNativePath( dirs.get());
+		rv = file->InitWithNativePath(dirs);
 		exists = PR_FALSE;
 		isDir = PR_FALSE;
 		if (NS_SUCCEEDED( rv))
-			rv = spec->Exists( &exists);
+			rv = file->Exists( &exists);
 		if (NS_SUCCEEDED( rv) && exists)
-			rv = spec->IsDirectory( &isDir);
+			rv = file->IsDirectory( &isDir);
 		if (exists && isDir) {
-			if (NS_FAILED( rv = ScanAddressDir( spec, *ppArray, impSvc)))
+			if (NS_FAILED( rv = ScanAddressDir(file, *ppArray, impSvc)))
 				return( rv);
 		}
 	}
@@ -1306,67 +1272,62 @@ nsresult nsEudoraWin32::FindAddressBooks( nsIFileSpec *pRoot, nsISupportsArray *
 }
 
 
-nsresult nsEudoraWin32::ScanAddressDir( nsIFileSpec *pDir, nsISupportsArray *pArray, nsIImportService *impSvc)
+nsresult nsEudoraWin32::ScanAddressDir( nsIFile *pDir, nsISupportsArray *pArray, nsIImportService *impSvc)
 {
-	nsCOMPtr<nsIDirectoryIterator>	dir;
-	nsresult rv = NS_NewDirectoryIterator( getter_AddRefs( dir));
-	if (NS_FAILED( rv))
-		return( rv);
+  PRBool hasMore;
+  nsCOMPtr<nsISimpleEnumerator> directoryEnumerator;
+  nsresult rv = pDir->GetDirectoryEntries(getter_AddRefs(directoryEnumerator));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-	PRBool	exists = PR_FALSE;
-	rv = dir->Init( pDir, PR_TRUE);
-	if (NS_FAILED( rv))
-		return( rv);
+  nsCOMPtr <nsILocalFile> pLocalFile = do_QueryInterface(pDir, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-	rv = dir->Exists( &exists);
-	if (NS_FAILED( rv))
-		return( rv);
+  directoryEnumerator->HasMoreElements(&hasMore);
+  PRBool            isFile;
+  nsCOMPtr<nsIFile> entry;
+  nsCString         fName;
+  nsCString         ext;
+  nsCString         name;
 
-	PRBool					isFile;
-	nsCOMPtr<nsIFileSpec>	entry;
-	char *					pName;
-	nsCString				fName;
-	nsCString				ext;
-	nsCString				name;
+  PRBool found = PR_FALSE;
 
-	while (exists && NS_SUCCEEDED( rv)) {
-		rv = dir->GetCurrentSpec( getter_AddRefs( entry));
-		if (NS_SUCCEEDED( rv)) {
-			rv = entry->GetLeafName( &pName);
-			if (NS_SUCCEEDED( rv) && pName) {
-				fName = pName;
-				nsCRT::free( pName);
-				if (fName.Length() > 4) {
-					fName.Right( ext, 4);
-					fName.Left( name, fName.Length() - 4);
-				}
-				else {
-					ext.Truncate();
-					name = fName;
-				}
-				ToLowerCase(ext);
-				if (ext.EqualsLiteral(".txt")) {
-					isFile = PR_FALSE;
-					entry->IsFile( &isFile);
-					if (isFile) {
-						rv = FoundAddressBook( entry, nsnull, pArray, impSvc);
-						if (NS_FAILED( rv))
-							return( rv);
-					}
-				}
-			}
-		}
+  while (hasMore && NS_SUCCEEDED(rv))
+  {
+    nsCOMPtr<nsISupports> aSupport;
+    rv = directoryEnumerator->GetNext(getter_AddRefs(aSupport));
+    nsCOMPtr<nsILocalFile> entry(do_QueryInterface(aSupport, &rv));
+    directoryEnumerator->HasMoreElements(&hasMore);
 
-		rv = dir->Next();
-		if (NS_SUCCEEDED( rv))
-			rv = dir->Exists( &exists);
-	}
+    if (NS_SUCCEEDED( rv)) {
+      rv = entry->GetNativeLeafName(fName);
+      if (NS_SUCCEEDED( rv) && !fName.IsEmpty()) {
+        if (fName.Length() > 4) {
+          fName.Right( ext, 4);
+          fName.Left( name, fName.Length() - 4);
+        }
+        else {
+          ext.Truncate();
+          name = fName;
+        }
+        ToLowerCase(ext);
+        if (ext.EqualsLiteral(".txt")) {
+          isFile = PR_FALSE;
+          entry->IsFile( &isFile);
+          if (isFile) {
+            rv = FoundAddressBook( entry, nsnull, pArray, impSvc);
+            if (NS_FAILED( rv))
+              return( rv);
+          }
+        }
+      }				
+    }
+  }
 
-	return( rv);
+  return( rv);
 }
 
 
-nsresult nsEudoraWin32::FoundAddressBook( nsIFileSpec *spec, const PRUnichar *pName, nsISupportsArray *pArray, nsIImportService *impSvc)
+nsresult nsEudoraWin32::FoundAddressBook( nsIFile *file, const PRUnichar *pName, nsISupportsArray *pArray, nsIImportService *impSvc)
 {
 	nsCOMPtr<nsIImportABDescriptor>	desc;
 	nsISupports *					pInterface;
@@ -1376,37 +1337,29 @@ nsresult nsEudoraWin32::FoundAddressBook( nsIFileSpec *spec, const PRUnichar *pN
 	if (pName)
 		name = pName;
 	else {
-		char *pLeaf = nsnull;
-		rv = spec->GetLeafName( &pLeaf);
+		nsAutoString leaf;
+		rv = file->GetLeafName(leaf);
 		if (NS_FAILED( rv))
 			return( rv);
-		if (!pLeaf)
+		if (leaf.IsEmpty())
 			return( NS_ERROR_FAILURE);
-		NS_CopyNativeToUnicode(nsDependentCString(pLeaf), name);
-		nsCRT::free( pLeaf);
 		nsString	tStr;
-		name.Right( tStr, 4);
+		leaf.Right( tStr, 4);
 		if (tStr.LowerCaseEqualsLiteral(".txt")) {
-			name.Left( tStr, name.Length() - 4);
-			name = tStr;
+			leaf.Left( tStr, leaf.Length() - 4);
+			leaf = tStr;
 		}
 	}
 
-    // XXX this should be fixed by implementing bug 323211
-    nsFileSpec fileSpec;
-    rv = spec->GetFileSpec(&fileSpec);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    nsCOMPtr<nsILocalFile> fileLoc;
-    rv = NS_FileSpecToIFile(&fileSpec, getter_AddRefs(fileLoc));
+    nsCOMPtr<nsILocalFile> fileLoc = do_QueryInterface(file, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
 	rv = impSvc->CreateNewABDescriptor( getter_AddRefs( desc));
 	if (NS_SUCCEEDED( rv)) {
-		PRUint32 sz = 0;
-		spec->GetFileSize( &sz);
+		PRInt64 sz = 0;
+		file->GetFileSize( &sz);	
 		desc->SetPreferredName(name);
-		desc->SetSize( sz);
+		desc->SetSize((PRUint32) sz);
 		desc->SetAbFile(fileLoc);
 		rv = desc->QueryInterface( kISupportsIID, (void **) &pInterface);
 		pArray->AppendElement( pInterface);

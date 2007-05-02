@@ -41,7 +41,7 @@
 
 #include "nscore.h"
 #include "nsString.h"
-#include "nsIFileSpec.h"
+#include "nsILocalFile.h"
 #include "nsISupportsArray.h"
 #include "nsEudoraMailbox.h"
 #include "nsEudoraAddress.h"
@@ -59,37 +59,37 @@ public:
 	~nsEudoraWin32();
 
 		// retrieve the mail folder
-	virtual PRBool		FindMailFolder( nsIFileSpec *pFolder);
+	virtual PRBool		FindMailFolder( nsIFile **pFolder);
 		// get the list of mailboxes
-	virtual nsresult	FindMailboxes( nsIFileSpec *pRoot, nsISupportsArray **ppArray);
+	virtual nsresult	FindMailboxes( nsIFile *pRoot, nsISupportsArray **ppArray);
 		// get a TOC file from a mailbox file
-	virtual nsresult	FindTOCFile( nsIFileSpec *pMailFile, nsIFileSpec **pTOCFile, PRBool *pDeleteToc);
+	virtual nsresult	FindTOCFile( nsIFile *pMailFile, nsIFile **pTOCFile, PRBool *pDeleteToc);
 
-	virtual nsresult	GetAttachmentInfo( const char *pFileName, nsIFileSpec *pSpec, nsCString& mimeType, nsCString& aAttachment);
+	virtual nsresult	GetAttachmentInfo( const char *pFileName, nsIFile *pFile, nsCString& mimeType, nsCString& aAttachment);
 
 	// Things that must be overridden because they are platform specific.
 		// retrieve the address book folder
-	virtual PRBool		FindAddressFolder( nsIFileSpec *pFolder);
+	virtual PRBool		FindAddressFolder( nsIFile **pFolder);
 		// get the list of address books
-	virtual nsresult	FindAddressBooks( nsIFileSpec *pRoot, nsISupportsArray **ppArray);
+	virtual nsresult	FindAddressBooks( nsIFile *pRoot, nsISupportsArray **ppArray);
 
 		// import settings from Win32 ini file
-	static PRBool	ImportSettings( nsIFileSpec *pIniFile, nsIMsgAccount **localMailAccount);
-	static PRBool	FindSettingsFile( nsIFileSpec *pIniFile) { return( FindEudoraLocation( pIniFile, PR_TRUE));}
+	static PRBool	ImportSettings( nsIFile *pIniFile, nsIMsgAccount **localMailAccount);
+	static PRBool	FindSettingsFile( nsIFile **pIniFile) { return( FindEudoraLocation( pIniFile, PR_TRUE));}
 
 private:
-	nsresult	ScanMailDir( nsIFileSpec *pFolder, nsISupportsArray *pArray, nsIImportService *pImport);
-	nsresult	IterateMailDir( nsIFileSpec *pFolder, nsISupportsArray *pArray, nsIImportService *pImport);
-	nsresult	ScanDescmap( nsIFileSpec *pFolder, nsISupportsArray *pArray, nsIImportService *pImport, const char *pData, PRInt32 len);
-	nsresult	FoundMailFolder( nsIFileSpec *mailFolder, const char *pName, nsISupportsArray *pArray, nsIImportService *pImport);
-	nsresult	FoundMailbox( nsIFileSpec *mailFile, const char *pName, nsISupportsArray *pArray, nsIImportService *pImport);
-	PRBool		FindMimeIniFile( nsIFileSpec *pSpec);
+	nsresult	ScanMailDir( nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport);
+	nsresult	IterateMailDir( nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport);
+	nsresult	ScanDescmap( nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport, const char *pData, PRInt32 len);
+	nsresult	FoundMailFolder( nsIFile *mailFolder, const char *pName, nsISupportsArray *pArray, nsIImportService *pImport);
+	nsresult	FoundMailbox( nsIFile *mailFile, const char *pName, nsISupportsArray *pArray, nsIImportService *pImport);
+	PRBool		FindMimeIniFile( nsIFile *pFile);
 	void		GetMimeTypeFromExtension( nsCString& ext, nsCString& mimeType);
-	nsresult	FoundAddressBook( nsIFileSpec *spec, const PRUnichar *pName, nsISupportsArray *pArray, nsIImportService *impSvc);
-	nsresult	ScanAddressDir( nsIFileSpec *pDir, nsISupportsArray *pArray, nsIImportService *impSvc);
+	nsresult	FoundAddressBook( nsIFile *file, const PRUnichar *pName, nsISupportsArray *pArray, nsIImportService *impSvc);
+	nsresult	ScanAddressDir( nsIFile *pDir, nsISupportsArray *pArray, nsIImportService *impSvc);
 
 
-	static PRBool		FindEudoraLocation( nsIFileSpec *pFolder, PRBool findIni = PR_FALSE);
+	static PRBool		FindEudoraLocation( nsIFile **pFolder, PRBool findIni = PR_FALSE);
 
 		// Settings support
 	static PRBool	BuildPOPAccount( nsIMsgAccountManager *accMgr, const char *pSection, const char *pIni, nsIMsgAccount **ppAccount);
@@ -106,8 +106,8 @@ private:
 
 private:
 	PRUint32		m_depth;
-	nsIFileSpec *	m_mailImportLocation;
-	nsIFileSpec *	m_addressImportFolder;
+	nsCOMPtr <nsILocalFile>	m_mailImportLocation;
+	nsCOMPtr <nsIFile>	m_addressImportFolder;
 	char *			m_pMimeSection;
 };
 

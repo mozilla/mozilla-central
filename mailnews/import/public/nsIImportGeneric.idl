@@ -53,7 +53,7 @@ interface nsIImportGeneric : nsISupports
 		/*
 			"mailInterface" - nsIImportMail interface
 			"mailBoxes" - nsISupportsArray of nsIImportMailboxDescriptors
-			"mailLocation" - nsIFileSpec, source location for mail
+			"mailLocation" - nsIFile, source location for mail
 
 			"addressInterface" - nsIImportAddressBooks interface
 			"addressBooks" - nsISupportsArray of nsIImportABDescriptors

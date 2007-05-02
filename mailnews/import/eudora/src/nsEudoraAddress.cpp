@@ -48,7 +48,8 @@
 #include "nsReadableUtils.h"
 #include "nsMsgI18N.h"
 #include "nsNativeCharsetUtils.h"
-
+#include "nsNetUtil.h"
+#include "nsILineInputStream.h"
 #include "EudoraDebugLog.h"
 
 #define	kWhitespace	" \t\b\r\n"
@@ -112,61 +113,62 @@ nsEudoraAddress::~nsEudoraAddress()
 }
 
 
-nsresult nsEudoraAddress::ImportAddresses( PRUint32 *pBytes, PRBool *pAbort, const PRUnichar *pName, nsIFileSpec *pSrc, nsIAddrDatabase *pDb, nsString& errors)
+nsresult nsEudoraAddress::ImportAddresses( PRUint32 *pBytes, PRBool *pAbort, 
+                                          const PRUnichar *pName, nsIFile *pSrc,
+                                          nsIAddrDatabase *pDb, nsString& errors)
 {
-	// Open the source file for reading, read each line and process it!
+  // Open the source file for reading, read each line and process it!
 	
-	EmptyAliases();
-	
-	nsresult rv = pSrc->OpenStreamForReading();
-	if (NS_FAILED( rv)) {
-		IMPORT_LOG0( "*** Error opening address file for reading\n");
-		return( rv);
-	}
-	
-	char *pLine = new char[kEudoraAddressBufferSz];
-	PRBool	wasTruncated;
-	PRBool	eof = PR_FALSE;
-	rv = pSrc->Eof( &eof);
-	if (NS_FAILED( rv)) {
-		IMPORT_LOG0( "*** Error checking address file for eof\n");
-		pSrc->CloseStream();
-		return( rv);
-	}
-	
-	while (!(*pAbort) && !eof && NS_SUCCEEDED( rv)) {
-		wasTruncated = PR_FALSE;
-		rv = pSrc->ReadLine( &pLine, kEudoraAddressBufferSz, &wasTruncated);
-		if (wasTruncated)
-			pLine[kEudoraAddressBufferSz - 1] = 0;
-		if (NS_SUCCEEDED( rv)) {
-			PRInt32	len = strlen( pLine);
-			ProcessLine( pLine, len, errors);
-			rv = pSrc->Eof( &eof);
-			if (pBytes)
-				*pBytes += (len / 2);
-		}
-	}
-	
-	rv = pSrc->CloseStream();
-	
-	delete [] pLine;
+  EmptyAliases();
+  nsCOMPtr<nsIInputStream> inputStream;
+  nsresult rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), pSrc);
+  if (NS_FAILED(rv)) {
+    IMPORT_LOG0( "*** Error opening address file for reading\n");
+    return rv;
+  }
+   
+  PRUint32 bytesLeft = 0;
 
-	if (!eof) {
-		IMPORT_LOG0( "*** Error reading the address book, didn't reach the end\n");
-		return( NS_ERROR_FAILURE);
-	}
-	
-	// Run through the alias array and make address book entries...
-	#ifdef IMPORT_DEBUG
-	DumpAliasArray( m_alias);
-	#endif
-	
-	BuildABCards( pBytes, pDb);
-	
-  rv = pDb->Commit(nsAddrDBCommitType::kLargeCommit);
-	return rv;
-}
+  rv = inputStream->Available(&bytesLeft);
+  if (NS_FAILED(rv)) {
+    IMPORT_LOG0( "*** Error checking address file for eof\n");
+    inputStream->Close();
+    return rv;
+  }
+
+  nsCOMPtr<nsILineInputStream> lineStream(do_QueryInterface(inputStream, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  PRBool more = PR_TRUE;
+
+  while ((!(*pAbort) && more && NS_SUCCEEDED( rv)))
+  {
+    nsCString line;
+    rv = lineStream->ReadLine(line, &more);
+    if (NS_SUCCEEDED( rv)) 
+    {
+      PRInt32	len = line.Length();
+      ProcessLine( line.get(), len, errors);
+      if (pBytes)
+        *pBytes += (len / 2);
+    }
+  }
+  rv = inputStream->Close();
+
+  if (!more)
+  {
+    IMPORT_LOG0( "*** Error reading the address book, didn't reach the end\n");
+    return( NS_ERROR_FAILURE);
+  }
+  // Run through the alias array and make address book entries...
+#ifdef IMPORT_DEBUG
+  DumpAliasArray( m_alias);
+#endif
+
+  BuildABCards( pBytes, pDb);
+
+  return pDb->Commit(nsAddrDBCommitType::kLargeCommit);
+  }
 
 
 PRInt32 nsEudoraAddress::CountWhiteSpace( const char *pLine, PRInt32 len)

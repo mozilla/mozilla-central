@@ -41,7 +41,7 @@
 #include "nscore.h"
 #include "prtypes.h"
 #include "nsString.h"
-#include "nsIFileSpec.h"
+#include "nsILocalFile.h"
 
 #include <windows.h>
 #include <wab.h>
@@ -57,7 +57,7 @@ public:
 class CWAB
 {
 public:
-    CWAB( nsIFileSpec *fileName);
+    CWAB( nsILocalFile *fileName);
     ~CWAB();
     
 	PRBool		Loaded( void) { return( m_bInitialized);}

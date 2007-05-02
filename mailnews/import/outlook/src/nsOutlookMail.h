@@ -39,10 +39,10 @@
 #define nsOutlookMail_h___
 
 #include "nsISupportsArray.h"
-#include "nsIFileSpec.h"
 #include "nsString.h"
 #include "nsVoidArray.h"
 #include "nsOutlookCompose.h"
+#include "nsIFile.h"
 #include "MapiApi.h"
 #include "MapiMessage.h"
 
@@ -56,19 +56,19 @@ public:
   
   nsresult GetMailFolders( nsISupportsArray **pArray);
   nsresult GetAddressBooks( nsISupportsArray **pArray);
-  nsresult ImportMailbox( PRUint32 *pDoneSoFar, PRBool *pAbort, PRInt32 index, const PRUnichar *pName, nsIFileSpec *pDest, PRInt32 *pMsgCount);
+  nsresult ImportMailbox( PRUint32 *pDoneSoFar, PRBool *pAbort, PRInt32 index, const PRUnichar *pName, nsIFile *pDest, PRInt32 *pMsgCount);
   nsresult ImportAddresses( PRUint32 *pCount, PRUint32 *pTotal, const PRUnichar *pName, PRUint32 id, nsIAddrDatabase *pDb, nsString& errors);
   
   
 private:
   void  OpenMessageStore( CMapiFolder *pNextFolder);
-  BOOL  WriteData( nsIFileSpec *pDest, const char *pData, PRInt32 len);
-  BOOL  WriteMessage( nsIFileSpec *pDest, CMapiMessage *pMsg, int& attachCount, BOOL *pTerminate);
-  BOOL  WriteStr( nsIFileSpec *pDest, const char *pStr);
-  BOOL  WriteMimeMsgHeader( nsIFileSpec *pDest, CMapiMessage *pMsg);
-  BOOL  WriteMimeBoundary( nsIFileSpec *pDest, CMapiMessage *pMsg, BOOL terminate);
+  BOOL  WriteData( nsIOutputStream *pDest, const char *pData, PRInt32 len);
+  BOOL  WriteMessage( nsIOutputStream *pDest, CMapiMessage *pMsg, int& attachCount, BOOL *pTerminate);
+  BOOL  WriteStr( nsIOutputStream *pDest, const char *pStr);
+  BOOL  WriteMimeMsgHeader( nsIOutputStream *pDest, CMapiMessage *pMsg);
+  BOOL  WriteMimeBoundary( nsIOutputStream *pDest, CMapiMessage *pMsg, BOOL terminate);
   
-  nsresult  DeleteFile( nsIFileSpec *pSpec);
+  nsresult  DeleteFile( nsIFile *pSpec);
   void      EmptyAttachments( void);
   void      BuildAttachments( CMapiMessage& msg, int count);
   void      DumpAttachments( void);

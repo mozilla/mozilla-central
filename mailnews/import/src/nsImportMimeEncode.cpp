@@ -57,23 +57,19 @@ nsImportMimeEncode::nsImportMimeEncode()
 	m_state = kNoState;
 	m_bytesProcessed = 0;
 	m_pInputBuf = nsnull;
-	m_pMimeFile = nsnull;
 }
 
 nsImportMimeEncode::~nsImportMimeEncode()
 {
-	NS_IF_RELEASE( m_pMimeFile);
-	if (m_pInputBuf)
-		delete [] m_pInputBuf;
+  delete [] m_pInputBuf;
 }
 
-void nsImportMimeEncode::EncodeFile( nsIFileSpec *pInFile, ImportOutFile *pOut, const char *pFileName, const char *pMimeType)
+void nsImportMimeEncode::EncodeFile( nsIFile *pInFile, ImportOutFile *pOut, const char *pFileName, const char *pMimeType)
 {
 	m_fileName = pFileName;
 	m_mimeType = pMimeType;
 
 	m_pMimeFile = pInFile;
-	NS_IF_ADDREF( m_pMimeFile);
 
 	m_pOut = pOut;
 	m_state = kStartState;
@@ -402,7 +398,7 @@ nsIImportMimeEncodeImpl::~nsIImportMimeEncodeImpl()
 
 NS_IMPL_ISUPPORTS1(nsIImportMimeEncodeImpl, nsIImportMimeEncode)
 
-NS_METHOD nsIImportMimeEncodeImpl::EncodeFile(nsIFileSpec *inFile, nsIFileSpec *outFile, const char *fileName, const char *mimeType)
+NS_METHOD nsIImportMimeEncodeImpl::EncodeFile(nsIFile *inFile, nsIFile *outFile, const char *fileName, const char *mimeType)
 {
 	return( Initialize( inFile, outFile, fileName, mimeType));
 }
@@ -436,12 +432,10 @@ NS_METHOD nsIImportMimeEncodeImpl::DoEncoding(PRBool *_retval)
 		return( NS_ERROR_FAILURE);
 }
 
-NS_METHOD nsIImportMimeEncodeImpl::Initialize(nsIFileSpec *inFile, nsIFileSpec *outFile, const char *fileName, const char *mimeType)
+NS_METHOD nsIImportMimeEncodeImpl::Initialize(nsIFile *inFile, nsIFile *outFile, const char *fileName, const char *mimeType)
 {
-	if (m_pEncode)
-		delete m_pEncode;
-	if (m_pOut)
-		delete m_pOut;
+	delete m_pEncode;
+	delete m_pOut;
 
 	m_pOut = new ImportOutFile();
 	m_pOut->InitOutFile( outFile);

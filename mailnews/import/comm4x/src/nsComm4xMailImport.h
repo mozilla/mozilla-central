@@ -43,7 +43,7 @@
 #include "nsIStringBundle.h"
 #include "nsIImportMail.h"
 #include "nsISupportsArray.h"
-#include "nsIFileSpec.h"
+#include "nsIFile.h"
 #include "nsComm4xMail.h"
 
 //{7792e9e0-412a-11d6-92bf-0010a4b26cda}
@@ -86,14 +86,14 @@ public:
 
     // nsIImportMail interface
     
-    /* void GetDefaultLocation (out nsIFileSpec location, out boolean found, out boolean userVerify); */
-    NS_IMETHOD GetDefaultLocation(nsIFileSpec **location, PRBool *found, PRBool *userVerify);
+    /* void GetDefaultLocation (out nsIFile location, out boolean found, out boolean userVerify); */
+    NS_IMETHOD GetDefaultLocation(nsIFile **location, PRBool *found, PRBool *userVerify);
 
-    /* nsISupportsArray FindMailboxes (in nsIFileSpec location); */
-    NS_IMETHOD FindMailboxes(nsIFileSpec *location, nsISupportsArray **_retval);
+    /* nsISupportsArray FindMailboxes (in nsIFile location); */
+    NS_IMETHOD FindMailboxes(nsIFile *location, nsISupportsArray **_retval);
 
-    /* void ImportMailbox (in nsIImportMailboxDescriptor source, in nsIFileSpec destination, out boolean fatalError); */
-    NS_IMETHOD ImportMailbox(nsIImportMailboxDescriptor *source, nsIFileSpec *destination, 
+    /* void ImportMailbox (in nsIImportMailboxDescriptor source, in nsIFile destination, out boolean fatalError); */
+    NS_IMETHOD ImportMailbox(nsIImportMailboxDescriptor *source, nsIFile *destination, 
                              PRUnichar **pErrorLog, PRUnichar **pSuccessLog, PRBool *fatalError);
 
     /* unsigned long GetImportProgress (); */

@@ -42,7 +42,8 @@
 #include "nscore.h"
 #include "nsCOMPtr.h"
 #include "nsString.h"
-#include "nsIFileSpec.h"
+#include "nsIFile.h"
+#include "nsIInputStream.h"
 #include "nsVoidArray.h"
 #include "nsIImportService.h"
 #include "nsNativeCharsetUtils.h"
@@ -57,16 +58,19 @@ class nsIIOService;
 #include "nsIMsgSend.h"
 
 
-typedef struct {
-	nsIFileSpec *	pAttachment;
+typedef class {
+public:
+	nsCOMPtr <nsIFile>	pAttachment;
 	char *			mimeType;
 	char *			description;
 } ImportAttachment;
 
-typedef struct {
+typedef class {
+public:
 	PRUint32		offset;
-	PRUint32		size;
-	nsIFileSpec *	pFile;
+	PRInt64		size;
+	nsCOMPtr <nsIFile>	pFile;
+        nsCOMPtr <nsIInputStream> pInputStream;
 } ReadFileState;
 
 class SimpleBufferTonyRCopiedOnce {
@@ -129,14 +133,14 @@ public:
 	nsEudoraCompose();
 	~nsEudoraCompose();
 
-	nsresult	SendTheMessage( nsIFileSpec *pMsg);
+	nsresult	SendTheMessage( nsIFile **pMsg);
 
   void		SetBody( const char *pBody, PRInt32 len, nsCString &bodyType) { m_pBody = pBody; m_bodyLen = len; m_bodyType = bodyType;}
 	void		SetHeaders( const char *pHeaders, PRInt32 len) { m_pHeaders = pHeaders; m_headerLen = len;}
 	void		SetAttachments( nsVoidArray *pAttachments) { m_pAttachments = pAttachments;}
   void		SetDefaultDate( nsCString date) { m_defaultDate = date;}
 
-	nsresult	CopyComposedMessage( nsCString& fromLine, nsIFileSpec *pSrc, nsIFileSpec *pDst, SimpleBufferTonyRCopiedOnce& copy);
+	nsresult	CopyComposedMessage( nsCString& fromLine, nsIFile *pSrc, nsIOutputStream *pDst, SimpleBufferTonyRCopiedOnce& copy);
 
 	static nsresult	FillMailBuffer( ReadFileState *pState, SimpleBufferTonyRCopiedOnce& read);
 
@@ -162,7 +166,7 @@ private:
 	PRInt32		FindNextEndLine( SimpleBufferTonyRCopiedOnce& data);
 	PRInt32		IsEndHeaders( SimpleBufferTonyRCopiedOnce& data);
 	PRInt32		IsSpecialHeader( const char *pHeader);
-	nsresult	WriteHeaders( nsIFileSpec *pDst, SimpleBufferTonyRCopiedOnce& newHeaders);
+	nsresult	WriteHeaders( nsIOutputStream *pDst, SimpleBufferTonyRCopiedOnce& newHeaders);
 	PRBool		IsReplaceHeader( const char *pHeader);
 
 private:

@@ -107,7 +107,7 @@ nsOESettings::~nsOESettings()
 
 NS_IMPL_ISUPPORTS1(nsOESettings, nsIImportSettings)
 
-NS_IMETHODIMP nsOESettings::AutoLocate(PRUnichar **description, nsIFileSpec **location, PRBool *_retval)
+NS_IMETHODIMP nsOESettings::AutoLocate(PRUnichar **description, nsIFile **location, PRBool *_retval)
 {
   NS_PRECONDITION(description != nsnull, "null ptr");
   NS_PRECONDITION(_retval != nsnull, "null ptr");
@@ -145,7 +145,7 @@ NS_IMETHODIMP nsOESettings::AutoLocate(PRUnichar **description, nsIFileSpec **lo
   return( NS_OK);
 }
 
-NS_IMETHODIMP nsOESettings::SetLocation(nsIFileSpec *location)
+NS_IMETHODIMP nsOESettings::SetLocation(nsIFile *location)
 {
 	return( NS_OK);
 }

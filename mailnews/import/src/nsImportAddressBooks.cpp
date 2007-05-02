@@ -53,7 +53,6 @@
 #include "nsIURL.h"
 #include "nsNetCID.h"
 
-#include "nsIFileSpec.h"
 #include "nsILocalFile.h"
 
 #include "nsIAddrDatabase.h"
@@ -121,7 +120,7 @@ public:
 private:
 	nsIImportAddressBooks *		m_pInterface;
 	nsISupportsArray *			m_pBooks;
-	nsCOMPtr <nsIFileSpec> m_pLocation;
+	nsCOMPtr <nsIFile>              m_pLocation;
 	nsIImportFieldMap *			m_pFieldMap;
 	PRBool						m_autoFind;
 	PRUnichar *					m_description;
@@ -338,16 +337,13 @@ NS_IMETHODIMP nsImportGenericAddressBooks::SetData( const char *dataId, nsISuppo
 
     if (item) {
       nsresult rv;
-      nsCOMPtr <nsILocalFile> location = do_QueryInterface(item, &rv);
-      NS_ENSURE_SUCCESS(rv,rv);
-      
-      rv = NS_NewFileSpecFromIFile(location, getter_AddRefs(m_pLocation));
+      m_pLocation = do_QueryInterface(item, &rv);
       NS_ENSURE_SUCCESS(rv,rv);
     }
 
     if (m_pInterface)
-			m_pInterface->SetSampleLocation(m_pLocation);
-	}
+      m_pInterface->SetSampleLocation(m_pLocation);
+    }
 
 	if (!nsCRT::strcasecmp( dataId, "addressDestination")) {
 		if (item) {
@@ -433,13 +429,10 @@ void nsImportGenericAddressBooks::GetDefaultLocation( void)
 		return;
 	}
 
-	nsIFileSpec *	pLoc = nsnull;
-	m_pInterface->GetDefaultLocation( &pLoc, &m_found, &m_userVerify);
+	nsCOMPtr <nsIFile> pLoc;
+	m_pInterface->GetDefaultLocation( getter_AddRefs(pLoc), &m_found, &m_userVerify);
 	if (!m_pLocation)
-		m_pLocation = pLoc;
-	else {
-		NS_IF_RELEASE( pLoc);
-	}
+	  m_pLocation = pLoc;
 }
 
 void nsImportGenericAddressBooks::GetDefaultBooks( void)

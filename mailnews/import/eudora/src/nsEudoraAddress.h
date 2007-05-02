@@ -42,7 +42,7 @@
 #include "nscore.h"
 #include "nsString.h"
 #include "nsVoidArray.h"
-#include "nsIFileSpec.h"
+#include "nsILocalFile.h"
 #include "nsISupportsArray.h"
 #include "nsCOMPtr.h"
 #include "nsIImportService.h"
@@ -64,13 +64,13 @@ public:
 
 	// Things that must be overridden because they are platform specific.
 		// retrieve the mail folder
-	virtual PRBool		FindAddressFolder( nsIFileSpec *pFolder) { return( PR_FALSE);}
+	virtual PRBool		FindAddressFolder( nsIFile **pFolder) { return( PR_FALSE);}
 		// get the list of mailboxes
-	virtual nsresult	FindAddressBooks( nsIFileSpec *pRoot, nsISupportsArray **ppArray) { return( NS_ERROR_FAILURE);}
+	virtual nsresult	FindAddressBooks( nsIFile *pRoot, nsISupportsArray **ppArray) { return( NS_ERROR_FAILURE);}
 		
 	// Non-platform specific common stuff
 		// import a mailbox
-	nsresult ImportAddresses( PRUint32 *pBytes, PRBool *pAbort, const PRUnichar *pName, nsIFileSpec *pSrc, nsIAddrDatabase *pDb, nsString& errors);
+	nsresult ImportAddresses( PRUint32 *pBytes, PRBool *pAbort, const PRUnichar *pName, nsIFile *pSrc, nsIAddrDatabase *pDb, nsString& errors);
 
 
 private:

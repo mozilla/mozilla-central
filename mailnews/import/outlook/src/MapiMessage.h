@@ -39,7 +39,7 @@
 
 #include "nsUInt32Array.h"
 #include "nsString.h"
-#include "nsIFileSpec.h"
+#include "nsILocalFile.h"
 #include "MapiApi.h"
 
 
@@ -109,7 +109,7 @@ public:
 	const char *GetMimeBoundary( void) { return( m_mimeBoundary.get());}
 	void		GenerateBoundary( void);
 
-	BOOL		GetAttachFileLoc( nsIFileSpec *pLoc);
+	BOOL		GetAttachFileLoc( nsIFile *pLoc);
 
 	const char *GetMimeType( void) { return( m_attachMimeType.get());}
 	const char *GetFileName( void) { return( m_attachFileName.get());}

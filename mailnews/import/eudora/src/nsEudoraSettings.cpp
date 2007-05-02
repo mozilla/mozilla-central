@@ -81,7 +81,7 @@ nsEudoraSettings::~nsEudoraSettings()
 
 NS_IMPL_ISUPPORTS1(nsEudoraSettings, nsIImportSettings)
 
-NS_IMETHODIMP nsEudoraSettings::AutoLocate(PRUnichar **description, nsIFileSpec **location, PRBool *_retval)
+NS_IMETHODIMP nsEudoraSettings::AutoLocate(PRUnichar **description, nsIFile **location, PRBool *_retval)
 {
     NS_PRECONDITION(description != nsnull, "null ptr");
     NS_PRECONDITION(_retval != nsnull, "null ptr");
@@ -93,20 +93,19 @@ NS_IMETHODIMP nsEudoraSettings::AutoLocate(PRUnichar **description, nsIFileSpec 
 	*_retval = PR_FALSE;	
 
 	nsresult	rv;
-
-	if (NS_FAILED( rv = NS_NewFileSpec( getter_AddRefs(m_pLocation))))
-		return rv;
+        m_pLocation =  do_CreateInstance (NS_LOCAL_FILE_CONTRACTID, &rv);
+        NS_ENSURE_SUCCESS(rv, rv);
 	*description = nsEudoraStringBundle::GetStringByID( EUDORAIMPORT_NAME);
 
 #if defined(XP_WIN) || defined(XP_OS2)
-	*_retval = nsEudoraWin32::FindSettingsFile( m_pLocation );
+	*_retval = nsEudoraWin32::FindSettingsFile( getter_AddRefs(m_pLocation));
 #endif
 	
   NS_IF_ADDREF(*location = m_pLocation);
 	return NS_OK;
 }
 
-NS_IMETHODIMP nsEudoraSettings::SetLocation(nsIFileSpec *location)
+NS_IMETHODIMP nsEudoraSettings::SetLocation(nsIFile *location)
 {
 	m_pLocation = location;
 	return( NS_OK);
@@ -122,18 +121,15 @@ NS_IMETHODIMP nsEudoraSettings::Import(nsIMsgAccount **localMailAccount, PRBool 
 	// Get the settings file if it doesn't exist
 	if (!m_pLocation) {
 #if defined(XP_WIN) || defined(XP_OS2)
-		if (NS_SUCCEEDED( rv = NS_NewFileSpec( getter_AddRefs(m_pLocation)))) {
-			if (!nsEudoraWin32::FindSettingsFile( m_pLocation)) {
+                m_pLocation =  do_CreateInstance (NS_LOCAL_FILE_CONTRACTID, &rv);
+		if (NS_SUCCEEDED(rv)) {
+			if (!nsEudoraWin32::FindSettingsFile(getter_AddRefs(m_pLocation))) {
 				m_pLocation = nsnull;
 			}
 		}
 #endif
 #ifdef XP_MACOSX
-		if (NS_SUCCEEDED( rv = NS_NewFileSpec( getter_AddRefs(m_pLocation)))) {
-			if (!nsEudoraMac::FindSettingsFile( m_pLocation)) {
-				m_pLocation = nsnull;
-			}
-		}
+                nsEudoraMac::FindSettingsFile( getter_AddRefs(m_pLocation));
 #endif
 	}
 

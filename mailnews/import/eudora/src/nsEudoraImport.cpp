@@ -100,14 +100,14 @@ public:
 
     // nsIImportmail interface
   
-	/* void GetDefaultLocation (out nsIFileSpec location, out boolean found, out boolean userVerify); */
-	NS_IMETHOD GetDefaultLocation(nsIFileSpec **location, PRBool *found, PRBool *userVerify);
+	/* void GetDefaultLocation (out nsIFile location, out boolean found, out boolean userVerify); */
+	NS_IMETHOD GetDefaultLocation(nsIFile **location, PRBool *found, PRBool *userVerify);
 	
-	/* nsISupportsArray FindMailboxes (in nsIFileSpec location); */
-	NS_IMETHOD FindMailboxes(nsIFileSpec *location, nsISupportsArray **_retval);
+	/* nsISupportsArray FindMailboxes (in nsIFile location); */
+	NS_IMETHOD FindMailboxes(nsIFile *location, nsISupportsArray **_retval);
 	
 	/* void ImportMailbox (in nsIImportMailboxDescriptor source, in nsIFileSpec destination, out boolean fatalError); */
-	NS_IMETHOD ImportMailbox(nsIImportMailboxDescriptor *source, nsIFileSpec *destination, 
+	NS_IMETHOD ImportMailbox(nsIImportMailboxDescriptor *source, nsIFile *destination, 
 								PRUnichar **pErrorLog, PRUnichar **pSuccessLog, PRBool *fatalError);
 	
 	/* unsigned long GetImportProgress (); */
@@ -154,14 +154,14 @@ public:
 	/* PRBool GetAutoFind (out wstring description); */
 	NS_IMETHOD GetAutoFind(PRUnichar **description, PRBool *_retval);
 	
-	/* PRBool GetNeedsFieldMap (nsIFileSpec location); */
-	NS_IMETHOD GetNeedsFieldMap(nsIFileSpec *location, PRBool *_retval) { *_retval = PR_FALSE; return( NS_OK);}
+	/* PRBool GetNeedsFieldMap (nsIFile location); */
+	NS_IMETHOD GetNeedsFieldMap(nsIFile *location, PRBool *_retval) { *_retval = PR_FALSE; return( NS_OK);}
 	
-	/* void GetDefaultLocation (out nsIFileSpec location, out boolean found, out boolean userVerify); */
-	NS_IMETHOD GetDefaultLocation(nsIFileSpec **location, PRBool *found, PRBool *userVerify);
+	/* void GetDefaultLocation (out nsIFile location, out boolean found, out boolean userVerify); */
+	NS_IMETHOD GetDefaultLocation(nsIFile **location, PRBool *found, PRBool *userVerify);
 	
-	/* nsISupportsArray FindAddressBooks (in nsIFileSpec location); */
-	NS_IMETHOD FindAddressBooks(nsIFileSpec *location, nsISupportsArray **_retval);
+	/* nsISupportsArray FindAddressBooks (in nsIFile location); */
+	NS_IMETHOD FindAddressBooks(nsIFile *location, nsISupportsArray **_retval);
 	
 	/* nsISupports GetFieldMap (in nsIImportABDescriptor source); */
 	NS_IMETHOD InitFieldMap(nsIImportFieldMap *fieldMap)
@@ -182,7 +182,7 @@ public:
 	NS_IMETHOD GetSampleData( PRInt32 index, PRBool *pFound, PRUnichar **pStr)
 		{ return( NS_ERROR_FAILURE);}
 
-	NS_IMETHOD SetSampleLocation( nsIFileSpec *) { return( NS_OK); }
+	NS_IMETHOD SetSampleLocation( nsIFile *) { return( NS_OK); }
 
 private:
 	static void	ReportSuccess( nsString& name, nsString *pStream);
@@ -370,7 +370,7 @@ ImportEudoraMailImpl::~ImportEudoraMailImpl()
 
 NS_IMPL_THREADSAFE_ISUPPORTS1(ImportEudoraMailImpl, nsIImportMail)
 
-NS_IMETHODIMP ImportEudoraMailImpl::GetDefaultLocation( nsIFileSpec **ppLoc, PRBool *found, PRBool *userVerify)
+NS_IMETHODIMP ImportEudoraMailImpl::GetDefaultLocation( nsIFile **ppLoc, PRBool *found, PRBool *userVerify)
 {
     NS_PRECONDITION(ppLoc != nsnull, "null ptr");
     NS_PRECONDITION(found != nsnull, "null ptr");
@@ -379,28 +379,14 @@ NS_IMETHODIMP ImportEudoraMailImpl::GetDefaultLocation( nsIFileSpec **ppLoc, PRB
         return NS_ERROR_NULL_POINTER;
 	
 	*ppLoc = nsnull;
-
-	nsresult	rv;
-	nsIFileSpec *	spec;
-	if (NS_FAILED( rv = NS_NewFileSpec( &spec)))
-		return( rv);
-	
-	*found = m_eudora.FindMailFolder( spec);
-	
-	if (!*found) {
-		NS_RELEASE( spec);
-	}
-	else {
-		*ppLoc = spec;
-	}
-
+	*found = m_eudora.FindMailFolder(ppLoc);
 	*userVerify = PR_TRUE;
 
 	return( NS_OK);
 }
 
 
-NS_IMETHODIMP ImportEudoraMailImpl::FindMailboxes( nsIFileSpec *pLoc, nsISupportsArray **ppArray)
+NS_IMETHODIMP ImportEudoraMailImpl::FindMailboxes( nsIFile *pLoc, nsISupportsArray **ppArray)
 {
     NS_PRECONDITION(pLoc != nsnull, "null ptr");
     NS_PRECONDITION(ppArray != nsnull, "null ptr");
@@ -466,11 +452,11 @@ void ImportEudoraMailImpl::SetLogs( nsString& success, nsString& error, PRUnicha
 		*pSuccess = ToNewUnicode(success);
 }
 
-NS_IMETHODIMP ImportEudoraMailImpl::ImportMailbox(	nsIImportMailboxDescriptor *pSource, 
-												nsIFileSpec *pDestination, 
-												PRUnichar **pErrorLog,
-												PRUnichar **pSuccessLog,
-												PRBool *fatalError)
+NS_IMETHODIMP ImportEudoraMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pSource, 
+						nsIFile *pDestination, 
+						PRUnichar **pErrorLog,
+						PRUnichar **pSuccessLog,
+						PRBool *fatalError)
 {
     NS_PRECONDITION(pSource != nsnull, "null ptr");
     NS_PRECONDITION(pDestination != nsnull, "null ptr");
@@ -508,18 +494,18 @@ NS_IMETHODIMP ImportEudoraMailImpl::ImportMailbox(	nsIImportMailboxDescriptor *p
 	}
 
     
-	nsIFileSpec	*	inFile;
-    if (NS_FAILED( pSource->GetFileSpec( &inFile))) {
-		ReportError( EUDORAIMPORT_MAILBOX_BADSOURCEFILE, name, &error);
-		SetLogs( success, error, pErrorLog, pSuccessLog);		
-    	return( NS_ERROR_FAILURE);
+    nsCOMPtr <nsILocalFile>  inFile;
+    if (NS_FAILED(pSource->GetFile( getter_AddRefs(inFile))))
+    {
+        ReportError( EUDORAIMPORT_MAILBOX_BADSOURCEFILE, name, &error);
+        SetLogs( success, error, pErrorLog, pSuccessLog);		
+        return( NS_ERROR_FAILURE);
     }
 
 #ifdef IMPORT_DEBUG
-	char *pPath;
-	inFile->GetNativePath( &pPath);    
-	IMPORT_LOG1( "Import mailbox: %s\n", pPath);
-	nsCRT::free( pPath);
+	nsCString pPath;
+	inFile->GetNativePath(pPath);    
+	IMPORT_LOG1( "Import mailbox: %s\n", pPath.get());
 #endif
 	
 	    
@@ -528,17 +514,10 @@ NS_IMETHODIMP ImportEudoraMailImpl::ImportMailbox(	nsIImportMailboxDescriptor *p
 	
 	m_bytes = 0;
 	rv = m_eudora.ImportMailbox( &m_bytes, &abort, name.get(), inFile, pDestination, &msgCount);
-
-    inFile->Release();
-
-	    
-    
-	if (NS_SUCCEEDED( rv)) {
+	if (NS_SUCCEEDED( rv))
 		ReportSuccess( name, msgCount, &success);
-	}
-	else {
+	else 
 		ReportError( EUDORAIMPORT_MAILBOX_CONVERTERROR, name, &error);
-	}
 
 	SetLogs( success, error, pErrorLog, pSuccessLog);
 
@@ -614,7 +593,7 @@ NS_IMETHODIMP ImportEudoraAddressImpl::GetAutoFind(PRUnichar **description, PRBo
 }
 
 
-NS_IMETHODIMP ImportEudoraAddressImpl::GetDefaultLocation(nsIFileSpec **ppLoc, PRBool *found, PRBool *userVerify)
+NS_IMETHODIMP ImportEudoraAddressImpl::GetDefaultLocation(nsIFile **ppLoc, PRBool *found, PRBool *userVerify)
 {
     NS_PRECONDITION(found != nsnull, "null ptr");
     NS_PRECONDITION(ppLoc != nsnull, "null ptr");
@@ -623,18 +602,7 @@ NS_IMETHODIMP ImportEudoraAddressImpl::GetDefaultLocation(nsIFileSpec **ppLoc, P
         return NS_ERROR_NULL_POINTER;
     
 	*ppLoc = nsnull;
-	nsresult		rv;
-	nsIFileSpec *	spec;
-	if (NS_FAILED( rv = NS_NewFileSpec( &spec)))
-		return( rv);
-	
-	*found = m_eudora.FindAddressFolder( spec);
-	if (!(*found)) {
-		NS_IF_RELEASE( spec);
-	}
-	else {
-		*ppLoc = spec;
-	}
+	*found = m_eudora.FindAddressFolder(ppLoc);
 	*userVerify = PR_TRUE;
 	
 	return( NS_OK);    
@@ -642,7 +610,7 @@ NS_IMETHODIMP ImportEudoraAddressImpl::GetDefaultLocation(nsIFileSpec **ppLoc, P
 
 
 	
-NS_IMETHODIMP ImportEudoraAddressImpl::FindAddressBooks(nsIFileSpec *pLoc, nsISupportsArray **ppArray)
+NS_IMETHODIMP ImportEudoraAddressImpl::FindAddressBooks(nsIFile *pLoc, nsISupportsArray **ppArray)
 {
     NS_PRECONDITION(pLoc != nsnull, "null ptr");
     NS_PRECONDITION(ppArray != nsnull, "null ptr");
@@ -727,13 +695,6 @@ NS_IMETHODIMP ImportEudoraAddressImpl::ImportAddressBook(	nsIImportABDescriptor 
     	return( NS_ERROR_FAILURE);
     }
 
-    nsIFileSpec *inFileSpec;
-    if (NS_FAILED(NS_NewFileSpecFromIFile(inFile, &inFileSpec))) {
-		ImportEudoraMailImpl::ReportError( EUDORAIMPORT_ADDRESS_BADSOURCEFILE, name, &error);
-		ImportEudoraMailImpl::SetLogs( success, error, pErrorLog, pSuccessLog);		
-    	return( NS_ERROR_FAILURE);
-    }
-
 
 #ifdef IMPORT_DEBUG
 	nsCString path;
@@ -745,12 +706,8 @@ NS_IMETHODIMP ImportEudoraAddressImpl::ImportAddressBook(	nsIImportABDescriptor 
     nsresult rv = NS_OK;
 	
 	m_bytes = 0;
-	rv = m_eudora.ImportAddresses( &m_bytes, &abort, name.get(), inFileSpec, pDestination, error);
+	rv = m_eudora.ImportAddresses( &m_bytes, &abort, name.get(), inFile, pDestination, error);
 
-    inFileSpec->Release();
-
-	    
-    
 	if (NS_SUCCEEDED( rv) && error.IsEmpty()) {
 		ReportSuccess( name, &success);
 	}

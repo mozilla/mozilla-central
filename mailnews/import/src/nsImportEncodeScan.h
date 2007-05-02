@@ -38,7 +38,7 @@
 #ifndef nsImportEncodeScan_h___
 #define nsImportEncodeScan_h___
 
-#include "nsIFileSpec.h"
+#include "nsIFile.h"
 #include "nsImportScanFile.h"
 #include "nsString.h"
 
@@ -47,7 +47,7 @@ public:
 	nsImportEncodeScan();
 	~nsImportEncodeScan();
 
-	PRBool	InitEncodeScan( PRBool appleSingleEncode, nsIFileSpec *pSpec, const char *pName, PRUint8 * pBuf, PRUint32 sz);
+	PRBool	InitEncodeScan( PRBool appleSingleEncode, nsIFile *pFile, const char *pName, PRUint8 * pBuf, PRUint32 sz);
 	void	CleanUpEncodeScan( void);
 
 	virtual PRBool	Scan( PRBool *pDone);
@@ -58,8 +58,9 @@ protected:
 
 protected:
 	PRBool			m_isAppleSingle;
-	nsIFileSpec *	m_pInputFile;
-	int				m_encodeScanState;
+	nsCOMPtr<nsILocalFile> 	m_pInputFile;
+        nsCOMPtr<nsIInputStream> m_inputStream;
+	int			m_encodeScanState;
 	long			m_resourceForkSize;
 	long			m_dataForkSize;
 	nsCString		m_useFileName;

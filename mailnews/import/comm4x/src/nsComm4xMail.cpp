@@ -104,7 +104,7 @@ nsComm4xMail::~nsComm4xMail()
 {
 }
 
-nsresult nsComm4xMail::FindMailboxes(nsIFileSpec *pRoot, nsISupportsArray **ppArray)
+nsresult nsComm4xMail::FindMailboxes(nsIFile *pRoot, nsISupportsArray **ppArray)
 {
     nsresult rv = NS_NewISupportsArray(ppArray);
     if (NS_FAILED(rv)) {
@@ -122,93 +122,74 @@ nsresult nsComm4xMail::FindMailboxes(nsIFileSpec *pRoot, nsISupportsArray **ppAr
 }
 
 
-nsresult nsComm4xMail::ScanMailDir(nsIFileSpec *pFolder, nsISupportsArray *pArray, nsIImportService *pImport)
+nsresult nsComm4xMail::ScanMailDir(nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport)
 {
     
-    nsCOMPtr<nsIFileSpec>    descMap;
-    nsresult                rv;
-
-    if (NS_FAILED(rv = NS_NewFileSpec(getter_AddRefs(descMap))))
-        return rv;
-
     m_depth++;
-
-    descMap->FromFileSpec(pFolder);
-    rv = IterateMailDir(pFolder, pArray, pImport);
-    
+    nsresult rv = IterateMailDir(pFolder, pArray, pImport);
     m_depth--;
 
     return rv;            
 }
 
-nsresult nsComm4xMail::IterateMailDir(nsIFileSpec *pFolder, nsISupportsArray *pArray, nsIImportService *pImport)
+nsresult nsComm4xMail::IterateMailDir(nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport)
 {
-    nsCOMPtr<nsIDirectoryIterator>    dir;
-    nsresult rv = NS_NewDirectoryIterator(getter_AddRefs(dir));
-    if (NS_FAILED(rv))
-        return rv;
+  nsCOMPtr<nsISimpleEnumerator> directoryEnumerator;
+  nsresult rv = pFolder->GetDirectoryEntries(getter_AddRefs(directoryEnumerator));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    PRBool    exists = PR_FALSE;
-    rv = dir->Init(pFolder, PR_TRUE);
-    if (NS_FAILED(rv))
-        return rv;
+  PRBool hasMore;
+  directoryEnumerator->HasMoreElements(&hasMore);
+  while (hasMore && NS_SUCCEEDED(rv))
+  {
+    nsCOMPtr<nsISupports> aSupport;
+    rv = directoryEnumerator->GetNext(getter_AddRefs(aSupport));
+    nsCOMPtr<nsILocalFile> currentFolderPath(do_QueryInterface(aSupport, &rv));
+    directoryEnumerator->HasMoreElements(&hasMore);
 
-    rv = dir->Exists(&exists);
-    if (NS_FAILED(rv))
-        return rv;
-    
     PRBool                    isFile;
-    nsCOMPtr<nsIFileSpec>    entry;
-    nsXPIDLCString                    pName;
-    nsXPIDLCString                 dirName;
-    nsAutoString currentFolderNameStr;
-    PRBool                    isDirectory;
-    nsAutoString ext;
+    nsXPIDLCString            pName;
+    nsXPIDLCString            dirName;
+    nsAutoString              currentFolderNameStr;
+    PRBool                    isDirectory, exists;
+    nsAutoString              ext;
 
-    while (exists && NS_SUCCEEDED(rv)) {
-        rv = dir->GetCurrentSpec(getter_AddRefs(entry));
-        if (NS_SUCCEEDED(rv)) {
-            rv = entry->GetLeafName(getter_Copies(pName));
-            NS_CopyNativeToUnicode(pName, currentFolderNameStr);
-            isFile = PR_FALSE;
-            entry->IsFile(&isFile);
-            if (isFile) {
-                if (!nsShouldIgnoreFile(currentFolderNameStr)) {
-                    rv = FoundMailbox(entry, &currentFolderNameStr, pArray, pImport);
-                    if (NS_FAILED(rv))
-                        return rv;
-                    entry->GetNativePath(getter_Copies(dirName));
-                    dirName.Append(".sbd");
-                    rv = entry->SetNativePath(dirName.get());
-                    if (NS_FAILED(rv))
-                        return rv;
-                    exists = PR_FALSE;
-                    entry->Exists(&exists);
-                    isDirectory = PR_FALSE;
-                    entry->IsDirectory(&isDirectory);
-                    if (exists && isDirectory) {
-                        rv = ScanMailDir (entry, pArray, pImport);
-                        if (NS_FAILED(rv))
-                            return rv;
-                    }
 
-                }
-            }
+    rv = currentFolderPath->GetLeafName(currentFolderNameStr);
+    isFile = PR_FALSE;
+    currentFolderPath->IsFile(&isFile);
+    if (isFile) 
+    {
+      if (!nsShouldIgnoreFile(currentFolderNameStr)) 
+      {
+        rv = FoundMailbox(currentFolderPath, &currentFolderNameStr, pArray, pImport);
+        if (NS_FAILED(rv))
+          return rv;
+        currentFolderNameStr.Append(NS_LITERAL_STRING(".sbd"));
+        rv = currentFolderPath->SetLeafName(currentFolderNameStr);
+        if (NS_FAILED(rv))
+          return rv;
+        exists = PR_FALSE;
+        currentFolderPath->Exists(&exists);
+        isDirectory = PR_FALSE;
+        currentFolderPath->IsDirectory(&isDirectory);
+        if (exists && isDirectory) {
+          rv = ScanMailDir (currentFolderPath, pArray, pImport);
+          if (NS_FAILED(rv))
+            return rv;
         }
-        rv = dir->Next();
-        if (NS_SUCCEEDED(rv))
-            rv = dir->Exists(&exists);
+      }
     }
-
-    return rv;
+  }
+  return rv;
 }
 
-nsresult nsComm4xMail::FoundMailbox(nsIFileSpec *mailFile, nsAutoString *pName, nsISupportsArray *pArray, nsIImportService *pImport)
+nsresult nsComm4xMail::FoundMailbox(nsIFile *mailFile, nsAutoString *pName, nsISupportsArray *pArray, nsIImportService *pImport)
 {
     nsCOMPtr<nsIImportMailboxDescriptor>    desc;
 
     nsXPIDLCString pPath;
-    mailFile->GetNativePath(getter_Copies(pPath));
+    mailFile->GetNativePath(pPath);
     if (!pPath.IsEmpty())
       IMPORT_LOG2("Found comm4x mailbox: %s, m_depth = %d\n", pPath.get(), m_depth);
     else
@@ -216,15 +197,16 @@ nsresult nsComm4xMail::FoundMailbox(nsIFileSpec *mailFile, nsAutoString *pName, 
 
     nsresult rv = pImport->CreateNewMailboxDescriptor(getter_AddRefs(desc));
     if (NS_SUCCEEDED(rv)) {
-        PRUint32        sz = 0;
+        PRInt64        sz = 0;
         mailFile->GetFileSize(&sz);    
         desc->SetDisplayName(pName->get());
         desc->SetDepth(m_depth);
-        desc->SetSize(sz);
-        nsCOMPtr <nsIFileSpec> pSpec;
-        desc->GetFileSpec(getter_AddRefs(pSpec));
-        if (pSpec) {
-            pSpec->FromFileSpec(mailFile);
+        desc->SetSize((PRUint32) sz);
+        nsCOMPtr <nsILocalFile> pFile;
+        desc->GetFile(getter_AddRefs(pFile));
+        if (pFile) {
+          nsCOMPtr <nsILocalFile> localMailFile = do_QueryInterface(mailFile);
+          pFile->InitWithFile(localMailFile);
         }
         nsCOMPtr <nsISupports> pInterface = do_QueryInterface(desc);
         if (pInterface)

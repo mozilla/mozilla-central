@@ -214,7 +214,7 @@ ImportComm4xMailImpl::~ImportComm4xMailImpl()
 
 NS_IMPL_THREADSAFE_ISUPPORTS1(ImportComm4xMailImpl, nsIImportMail)
 
-NS_IMETHODIMP ImportComm4xMailImpl::GetDefaultLocation(nsIFileSpec **ppLoc, PRBool *found, PRBool *userVerify)
+NS_IMETHODIMP ImportComm4xMailImpl::GetDefaultLocation(nsIFile **ppLoc, PRBool *found, PRBool *userVerify)
 {
     NS_ENSURE_ARG_POINTER(found);
     NS_ENSURE_ARG_POINTER(ppLoc);
@@ -227,7 +227,7 @@ NS_IMETHODIMP ImportComm4xMailImpl::GetDefaultLocation(nsIFileSpec **ppLoc, PRBo
 }
 
 
-NS_IMETHODIMP ImportComm4xMailImpl::FindMailboxes(nsIFileSpec *pLoc, nsISupportsArray **ppArray)
+NS_IMETHODIMP ImportComm4xMailImpl::FindMailboxes(nsIFile *pLoc, nsISupportsArray **ppArray)
 {
     NS_ENSURE_ARG_POINTER(pLoc);
     NS_ENSURE_ARG_POINTER(ppArray);
@@ -270,7 +270,7 @@ void ImportComm4xMailImpl::SetLogs(nsString& success, nsString& error, PRUnichar
 }
 
 NS_IMETHODIMP ImportComm4xMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pSource, 
-                                                nsIFileSpec *pDestination, 
+                                                nsIFile *pDestination, 
                                                 PRUnichar **pErrorLog,
                                                 PRUnichar **pSuccessLog,
                                                 PRBool *fatalError)
@@ -312,19 +312,19 @@ NS_IMETHODIMP ImportComm4xMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pS
     m_bytesDone = 0;
 
     // copy files from 4.x to here.
-    nsCOMPtr <nsIFileSpec> inFile;
-    if (NS_FAILED(pSource->GetFileSpec(getter_AddRefs(inFile)))) {
+    nsCOMPtr <nsILocalFile> inFile;
+    if (NS_FAILED(pSource->GetFile(getter_AddRefs(inFile)))) {
         ReportStatus(COMM4XMAILIMPORT_MAILBOX_CONVERTERROR, name, &error);
         SetLogs(success, error, pErrorLog, pSuccessLog);
         return NS_ERROR_FAILURE;
     }
 
     nsXPIDLCString pSrcPath, pDestPath;;
-    inFile->GetNativePath(getter_Copies(pSrcPath));
-    pDestination ->GetNativePath(getter_Copies(pDestPath));
+    inFile->GetNativePath(pSrcPath);
+    pDestination ->GetNativePath(pDestPath);
     IMPORT_LOG2("ImportComm4xMailImpl::ImportMailbox: Copying folder from '%s' to '%s'.", pSrcPath.get(), pDestPath.get());
 
-    nsCOMPtr <nsIFileSpec> parent;
+    nsCOMPtr <nsIFile> parent;
     if (NS_FAILED (pDestination->GetParent(getter_AddRefs(parent))))
     {
         ReportStatus( COMM4XMAILIMPORT_MAILBOX_CONVERTERROR, name, &error);
@@ -334,8 +334,8 @@ NS_IMETHODIMP ImportComm4xMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pS
     PRBool exists = PR_FALSE;
     pDestination->Exists(&exists);
     if (exists)
-        rv = pDestination->Delete(PR_FALSE);
-    rv = inFile->CopyToDir(parent);
+        rv = pDestination->Remove(PR_FALSE);
+    rv = inFile->CopyTo(parent, NS_LITERAL_STRING(""));
       
     if (NS_SUCCEEDED(rv)) {
         m_bytesDone = mailSize;

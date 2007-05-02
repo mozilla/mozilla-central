@@ -95,14 +95,14 @@ public:
 
     // nsIImportmail interface
   
-	/* void GetDefaultLocation (out nsIFileSpec location, out boolean found, out boolean userVerify); */
-	NS_IMETHOD GetDefaultLocation(nsIFileSpec **location, PRBool *found, PRBool *userVerify);
+	/* void GetDefaultLocation (out nsIFile location, out boolean found, out boolean userVerify); */
+	NS_IMETHOD GetDefaultLocation(nsIFile **location, PRBool *found, PRBool *userVerify);
 	
-	/* nsISupportsArray FindMailboxes (in nsIFileSpec location); */
-	NS_IMETHOD FindMailboxes(nsIFileSpec *location, nsISupportsArray **_retval);
+	/* nsISupportsArray FindMailboxes (in nsIFile location); */
+	NS_IMETHOD FindMailboxes(nsIFile *location, nsISupportsArray **_retval);
 	
-	/* void ImportMailbox (in nsIImportMailboxDescriptor source, in nsIFileSpec destination, out boolean fatalError); */
-	NS_IMETHOD ImportMailbox(nsIImportMailboxDescriptor *source, nsIFileSpec *destination, 
+	/* void ImportMailbox (in nsIImportMailboxDescriptor source, in nsIFile destination, out boolean fatalError); */
+	NS_IMETHOD ImportMailbox(nsIImportMailboxDescriptor *source, nsIFile *destination, 
 								PRUnichar **pErrorLog, PRUnichar **pSuccessLog, PRBool *fatalError);
 	
 	/* unsigned long GetImportProgress (); */
@@ -140,17 +140,17 @@ public:
 	/* PRBool GetAutoFind (out wstring description); */
 	NS_IMETHOD GetAutoFind(PRUnichar **description, PRBool *_retval);
 	
-	/* PRBool GetNeedsFieldMap ( nsIFileSpec *location); */
-	NS_IMETHOD GetNeedsFieldMap(nsIFileSpec *pLoc, PRBool *_retval) { *_retval = PR_FALSE; return( NS_OK);}
+	/* PRBool GetNeedsFieldMap ( nsIFile *location); */
+	NS_IMETHOD GetNeedsFieldMap(nsIFile *pLoc, PRBool *_retval) { *_retval = PR_FALSE; return( NS_OK);}
 	
-	/* void GetDefaultLocation (out nsIFileSpec location, out boolean found, out boolean userVerify); */
-	NS_IMETHOD GetDefaultLocation(nsIFileSpec **location, PRBool *found, PRBool *userVerify)
+	/* void GetDefaultLocation (out nsIFile location, out boolean found, out boolean userVerify); */
+	NS_IMETHOD GetDefaultLocation(nsIFile **location, PRBool *found, PRBool *userVerify)
 		{ return( NS_ERROR_FAILURE);}
 	
 	/* nsISupportsArray FindAddressBooks (in nsIFileSpec location); */
-	NS_IMETHOD FindAddressBooks(nsIFileSpec *location, nsISupportsArray **_retval);
+	NS_IMETHOD FindAddressBooks(nsIFile *location, nsISupportsArray **_retval);
 	
-	/* nsISupports InitFieldMap(nsIFileSpec *location, nsIImportFieldMap *fieldMap); */
+	/* nsISupports InitFieldMap(nsIImportFieldMap *fieldMap); */
 	NS_IMETHOD InitFieldMap(nsIImportFieldMap *fieldMap)
 		{ return( NS_ERROR_FAILURE); }
 	
@@ -169,7 +169,7 @@ public:
 	NS_IMETHOD GetSampleData( PRInt32 index, PRBool *pFound, PRUnichar **pStr)
 		{ return( NS_ERROR_FAILURE);}
 	
-	NS_IMETHOD SetSampleLocation( nsIFileSpec *) { return( NS_OK); }
+	NS_IMETHOD SetSampleLocation( nsIFile *) { return( NS_OK); }
 
 private:
 	static void	ReportSuccess( nsString& name, nsString *pStream);
@@ -365,7 +365,7 @@ NS_IMETHODIMP ImportOEMailImpl::TranslateFolderName(const nsAString & aFolderNam
     return NS_OK;
 }
 
-NS_IMETHODIMP ImportOEMailImpl::GetDefaultLocation( nsIFileSpec **ppLoc, PRBool *found, PRBool *userVerify)
+NS_IMETHODIMP ImportOEMailImpl::GetDefaultLocation( nsIFile **ppLoc, PRBool *found, PRBool *userVerify)
 {
     NS_PRECONDITION(ppLoc != nsnull, "null ptr");
     NS_PRECONDITION(found != nsnull, "null ptr");
@@ -375,25 +375,24 @@ NS_IMETHODIMP ImportOEMailImpl::GetDefaultLocation( nsIFileSpec **ppLoc, PRBool 
 
 	// use scanboxes to find the location.
 	nsresult	rv;
-	nsIFileSpec *	spec;
-	if (NS_FAILED( rv = NS_NewFileSpec( &spec)))
-		return( rv);
+	nsCOMPtr <nsILocalFile> file = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+	if (NS_FAILED(rv))
+		return rv;
 	
-	if (nsOEScanBoxes::FindMail( spec)) {
+	if (nsOEScanBoxes::FindMail(file)) {
 		*found = PR_TRUE;
-		*ppLoc = spec;
+		NS_IF_ADDREF(*ppLoc = file);
 	}
 	else {
 		*found = PR_FALSE;
 		*ppLoc = nsnull;
-		spec->Release();
 	}
 	*userVerify = PR_TRUE;
 	return( NS_OK);
 }
 
 
-NS_IMETHODIMP ImportOEMailImpl::FindMailboxes( nsIFileSpec *pLoc, nsISupportsArray **ppArray)
+NS_IMETHODIMP ImportOEMailImpl::FindMailboxes( nsIFile *pLoc, nsISupportsArray **ppArray)
 {
     NS_PRECONDITION(pLoc != nsnull, "null ptr");
     NS_PRECONDITION(ppArray != nsnull, "null ptr");
@@ -459,7 +458,7 @@ void ImportOEMailImpl::SetLogs( nsString& success, nsString& error, PRUnichar **
 }
 
 NS_IMETHODIMP ImportOEMailImpl::ImportMailbox(	nsIImportMailboxDescriptor *pSource, 
-                                              nsIFileSpec *pDestination, 
+                                              nsIFile *pDestination, 
                                               PRUnichar **pErrorLog,
                                               PRUnichar **pSuccessLog,
                                               PRBool *fatalError)
@@ -495,15 +494,15 @@ NS_IMETHODIMP ImportOEMailImpl::ImportMailbox(	nsIImportMailboxDescriptor *pSour
     return( NS_OK);
   }
   
-  nsIFileSpec	*	inFile;
-  if (NS_FAILED( pSource->GetFileSpec( &inFile))) {
+  nsCOMPtr <nsILocalFile> inFile;
+  if (NS_FAILED( pSource->GetFile(getter_AddRefs(inFile)))) {
     ReportError( OEIMPORT_MAILBOX_BADSOURCEFILE, name, &error);
     SetLogs( success, error, pErrorLog, pSuccessLog);		
     return( NS_ERROR_FAILURE);
   }
   
   nsXPIDLCString pPath; 
-  inFile->GetNativePath(getter_Copies(pPath));
+  inFile->GetNativePath(pPath);
   IMPORT_LOG1( "Importing Outlook Express mailbox: %s\n", pPath.get());
   
   m_bytesDone = 0;
@@ -521,8 +520,6 @@ NS_IMETHODIMP ImportOEMailImpl::ImportMailbox(	nsIImportMailboxDescriptor *pSour
     		rv = NS_ERROR_FAILURE;
     }
   }
-  
-  inFile->Release();
   
   if (NS_SUCCEEDED( rv)) {
     ReportSuccess( name, msgCount, &success);
@@ -596,7 +593,7 @@ NS_IMETHODIMP ImportOEAddressImpl::GetAutoFind(PRUnichar **description, PRBool *
 
 	
 	
-NS_IMETHODIMP ImportOEAddressImpl::FindAddressBooks(nsIFileSpec *location, nsISupportsArray **_retval)
+NS_IMETHODIMP ImportOEAddressImpl::FindAddressBooks(nsIFile *location, nsISupportsArray **_retval)
 {
     NS_PRECONDITION(_retval != nsnull, "null ptr");
     if (!_retval)

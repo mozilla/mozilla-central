@@ -41,7 +41,7 @@
 
 #include "nscore.h"
 #include "nsString.h"
-#include "nsIFileSpec.h"
+#include "nsIFile.h"
 #include "nsISupportsArray.h"
 #include "nsEudoraMailbox.h"
 #include "nsEudoraAddress.h"
@@ -57,37 +57,37 @@ public:
 	~nsEudoraMac();
 
 		// retrieve the mail folder
-	virtual PRBool		FindMailFolder( nsIFileSpec *pFolder);
+	virtual PRBool		FindMailFolder( nsIFile **pFolder);
 		// get the list of mailboxes
-	virtual nsresult	FindMailboxes( nsIFileSpec *pRoot, nsISupportsArray **ppArray);
+	virtual nsresult	FindMailboxes( nsIFile *pRoot, nsISupportsArray **ppArray);
 		// get a TOC file from a mailbox file
-	virtual nsresult	FindTOCFile( nsIFileSpec *pMailFile, nsIFileSpec **pTOCFile, PRBool *pDeleteToc);
+	virtual nsresult	FindTOCFile( nsIFile *pMailFile, nsIFile **pTOCFile, PRBool *pDeleteToc);
 
-	virtual nsresult	GetAttachmentInfo( const char *pFileName, nsIFileSpec *pSpec, nsCString& mimeType, nsCString& aAttachment);
+	virtual nsresult	GetAttachmentInfo( const char *pFileName, nsIFile *pFile, nsCString& mimeType, nsCString& aAttachment);
 
 		// Address book stuff
-	virtual PRBool		FindAddressFolder( nsIFileSpec *pFolder);
+	virtual PRBool		FindAddressFolder( nsIFile **pFolder);
 		// get the list of mailboxes
-	virtual nsresult	FindAddressBooks( nsIFileSpec *pRoot, nsISupportsArray **ppArray);
+	virtual nsresult	FindAddressBooks( nsIFile *pRoot, nsISupportsArray **ppArray);
 
 		// import settings
-	static PRBool	ImportSettings( nsIFileSpec *pIniFile, nsIMsgAccount **localMailAccount);
-	static PRBool	FindSettingsFile( nsIFileSpec *pIniFile) { return( FindEudoraLocation( pIniFile, PR_TRUE));}
+	static PRBool	ImportSettings( nsIFile *pIniFile, nsIMsgAccount **localMailAccount);
+	static PRBool	FindSettingsFile( nsIFile **pIniFile) { return( FindEudoraLocation( pIniFile, PR_TRUE));}
 
 private:
-	static PRBool		FindEudoraLocation( nsIFileSpec *pFolder, PRBool findIni = PR_FALSE, nsIFileSpec *pLookIn = nsnull);
+	static PRBool		FindEudoraLocation( nsIFile **pFolder, PRBool findIni = PR_FALSE, nsIFile *pLookIn = nsnull);
 
 
-	nsresult	ScanMailDir( nsIFileSpec *pFolder, nsISupportsArray *pArray, nsIImportService *pImport);
-	nsresult	IterateMailDir( nsIFileSpec *pFolder, nsISupportsArray *pArray, nsIImportService *pImport);
-	nsresult	FoundMailFolder( nsIFileSpec *mailFolder, const char *pName, nsISupportsArray *pArray, nsIImportService *pImport);
-	nsresult	FoundMailbox( nsIFileSpec *mailFile, const char *pName, nsISupportsArray *pArray, nsIImportService *pImport);
+	nsresult	ScanMailDir( nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport);
+	nsresult	IterateMailDir( nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport);
+	nsresult	FoundMailFolder( nsILocalFile *mailFolder, const char *pName, nsISupportsArray *pArray, nsIImportService *pImport);
+	nsresult	FoundMailbox( nsIFile *mailFile, const char *pName, nsISupportsArray *pArray, nsIImportService *pImport);
 
 	PRBool 		IsValidMailFolderName( nsCString& name);
 	PRBool 		IsValidMailboxName( nsCString& fName);
-	PRBool 		IsValidMailboxFile( nsIFileSpec *pFile);
+	PRBool 		IsValidMailboxFile( nsIFile *pFile);
 
-	PRBool		CreateTocFromResource( nsIFileSpec *pMail, nsIFileSpec *pToc);
+	PRBool		CreateTocFromResource( nsIFile *pMail, nsIFile **pToc);
 
 	
 
@@ -96,12 +96,12 @@ private:
 	static PRBool	BuildIMAPAccount( nsIMsgAccountManager *accMgr, nsCString **pStrs, nsIMsgAccount **ppAccount, nsString& accName);
 	static void		SetIdentities( nsIMsgAccountManager *accMgr, nsIMsgAccount *acc, const char *userName, const char *serverName, nsCString **pStrs);
 	static void		SetSmtpServer( nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc, const char *pServer, const char *pUser);
-	static PRBool 	GetSettingsFromResource( nsIFileSpec *pSettings, short resId, nsCString **pStrs, PRBool *pIMAP);
+	static PRBool 	GetSettingsFromResource( nsIFile *pSettings, short resId, nsCString **pStrs, PRBool *pIMAP);
 
 
 private:
-	PRUint32		m_depth;
-	nsIFileSpec *	m_mailImportLocation;
+	PRUint32                m_depth;
+        nsCOMPtr <nsILocalFile>      m_mailImportLocation;
         PRBool HasResourceFork(FSSpec *fsSpec);
 };
 

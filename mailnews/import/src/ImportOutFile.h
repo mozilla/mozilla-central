@@ -38,7 +38,8 @@
 #define ImportOutFile_h___
 
 #include "nsImportTranslator.h"
-#include "nsIFileSpec.h"
+#include "nsIOutputStream.h"
+#include "nsIFile.h"
 
 #define kMaxMarkers		10
 
@@ -47,11 +48,11 @@ class ImportOutFile;
 class ImportOutFile {
 public:
 	ImportOutFile();
-	ImportOutFile( nsIFileSpec *pFile, PRUint8 * pBuf, PRUint32 sz);
+	ImportOutFile( nsIFile *pFile, PRUint8 * pBuf, PRUint32 sz);
 	~ImportOutFile();
 
-	PRBool	InitOutFile( nsIFileSpec *pFile, PRUint32 bufSz = 4096);
-	void	InitOutFile( nsIFileSpec *pFile, PRUint8 * pBuf, PRUint32 sz);
+	PRBool	InitOutFile( nsIFile *pFile, PRUint32 bufSz = 4096);
+	void	InitOutFile( nsIFile *pFile, PRUint8 * pBuf, PRUint32 sz);
 	inline PRBool	WriteData( const PRUint8 * pSrc, PRUint32 len);
 	inline PRBool	WriteByte( PRUint8 byte);
 	PRBool	WriteStr( const char *pStr) {return( WriteU8NullTerm( (const PRUint8 *) pStr, PR_FALSE)); }
@@ -72,7 +73,8 @@ protected:
 	PRBool	Flush( void);
 
 protected:
-	nsIFileSpec *	m_pFile;
+	nsCOMPtr <nsIFile>      m_pFile;
+        nsCOMPtr <nsIOutputStream> m_outputStream;
 	PRUint8 *		m_pBuf;
 	PRUint32		m_bufSz;
 	PRUint32		m_pos;

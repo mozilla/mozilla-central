@@ -45,14 +45,14 @@
 #include "nsISupports.idl"
 
 interface nsIMsgAccount;
-interface nsIFileSpec;
+interface nsIFile;
 
-[scriptable, uuid(a9411860-66ac-11d3-a206-00a0cc26da63)]
+[scriptable, uuid(1c0e3012-bc4d-4fb2-be6a-0335c7bab9ac)]
 interface nsIImportSettings : nsISupports
 {		
-	boolean		AutoLocate( out wstring description, out nsIFileSpec location);
+	boolean		AutoLocate( out wstring description, out nsIFile location);
 	
-	void		SetLocation( in nsIFileSpec location);
+	void		SetLocation( in nsIFile location);
 
 	/*
 		Create all of the accounts, identities, and servers.  Return an
