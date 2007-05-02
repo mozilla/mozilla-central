@@ -456,46 +456,31 @@ PRBool OutlookSettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, cha
 
 PRBool OutlookSettings::IdentityMatches( nsIMsgIdentity *pIdent, const char *pName, const char *pServer, const char *pEmail, const char *pReply, const char *pUserName)
 {
-	if (!pIdent)
-		return( PR_FALSE);
+  if (!pIdent)
+    return( PR_FALSE);
 
-	char *	pIName = nsnull;
-	char *	pIEmail = nsnull;
-	char *	pIReply = nsnull;
-	
-	PRBool	result = PR_TRUE;
+  nsCString pIEmail;
+  nsCString pIReply;
 
-	// The test here is:
-	// If the smtp host is the same
-	//	and the email address is the same (if it is supplied)
-	//	and the reply to address is the same (if it is supplied)
-	//	then we match regardless of the full name.
-	
-	nsString ppIName;
+  PRBool  result = PR_TRUE;
 
-	nsresult rv = pIdent->GetFullName(ppIName);
-	rv = pIdent->GetEmail( &pIEmail);
-	rv = pIdent->GetReplyTo( &pIReply);
-	
-	if (!ppIName.IsEmpty()) {
-		pIName = ToNewCString(ppIName);
-	}
+  // The test here is:
+  // If the smtp host is the same
+  //	and the email address is the same (if it is supplied)
+  //	and the reply to address is the same (if it is supplied)
+  //	then we match regardless of the full name.
 
-	// for now, if it's the same server and reply to and email then it matches
-	if (pReply) {
-		if (!pIReply || nsCRT::strcasecmp( pReply, pIReply))
-			result = PR_FALSE;
-	}
-	if (pEmail) {
-		if (!pIEmail || nsCRT::strcasecmp( pEmail, pIEmail))
-			result = PR_FALSE;
-	}
+  nsresult rv;
+  rv = pIdent->GetEmail(pIEmail);
+  rv = pIdent->GetReplyTo(pIReply);
 
-	nsCRT::free( pIName);
-	nsCRT::free( pIEmail);
-	nsCRT::free( pIReply);
-
-	return( result);
+  // for now, if it's the same server and reply to and email then it matches
+  if (pReply && !pIReply.Equals(pReply, nsCaseInsensitiveCStringComparator()))
+    result = PR_FALSE;
+  if (pEmail && !pIEmail.Equals(pEmail, nsCaseInsensitiveCStringComparator()))
+    result = PR_FALSE;
+  return result;
+  return( result);
 }
 
 void OutlookSettings::SetIdentities( nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc, HKEY hKey)
@@ -528,9 +513,9 @@ void OutlookSettings::SetIdentities( nsIMsgAccountManager *pMgr, nsIMsgAccount *
         nsDependentCString(pOrgName), organization);
       if (NS_SUCCEEDED(rv))
         id->SetOrganization(organization);
-      id->SetEmail( pEmail);
+      id->SetEmail(nsCString(pEmail));
       if (pReply)
-        id->SetReplyTo( pReply);
+        id->SetReplyTo(nsCString(pReply));
       pAcc->AddIdentity( id);
 
       IMPORT_LOG0( "Created identity and added to the account\n");

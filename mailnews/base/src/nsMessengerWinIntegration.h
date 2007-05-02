@@ -147,7 +147,7 @@ private:
   fnSHEnumerateUnreadMailAccounts mSHEnumerateUnreadMailAccounts;
 
   char *mInboxURI;
-  char *mEmail;
+  nsCString mEmail;
 
   nsString  mAppName;
   nsString  mEmailPrefix;

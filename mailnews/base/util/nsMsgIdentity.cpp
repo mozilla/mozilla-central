@@ -68,17 +68,17 @@ NS_IMPL_THREADSAFE_ISUPPORTS1(nsMsgIdentity,
  * instead of member variables, etc
  */
 
-nsresult
-nsMsgIdentity::GetKey(char** aKey)
+NS_IMETHODIMP
+nsMsgIdentity::GetKey(nsACString& aKey)
 {
-  NS_ENSURE_ARG_POINTER(aKey);
-  return (*aKey = ToNewCString(mKey)) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
+  aKey = mKey;
+  return NS_OK;
 }
 
-nsresult
-nsMsgIdentity::SetKey(const char* identityKey)
+NS_IMETHODIMP
+nsMsgIdentity::SetKey(const nsACString& identityKey)
 {
-  mKey.Assign(identityKey);
+  mKey = identityKey;
   nsresult rv;
   nsCOMPtr<nsIPrefService> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   if (NS_FAILED(rv))
@@ -107,8 +107,8 @@ nsMsgIdentity::GetIdentityName(nsAString& idName)
     rv = GetFullName(fullName);
     if (NS_FAILED(rv)) return rv;
 
-    nsXPIDLCString email;
-    rv = GetEmail(getter_Copies(email));
+    nsCString email;
+    rv = GetEmail(email);
     if (NS_FAILED(rv)) return rv;
 
     idName.Assign(fullName);
@@ -204,8 +204,8 @@ nsMsgIdentity::GetDoBcc(PRBool *aValue)
   PRBool bccOthers = PR_FALSE;
   GetBccOthers(&bccOthers);
 
-  nsXPIDLCString others;
-  GetBccList(getter_Copies(others));
+  nsCString others;
+  GetBccList(others);
 
   *aValue = bccSelf || (bccOthers && !others.IsEmpty());
 
@@ -219,42 +219,40 @@ nsMsgIdentity::SetDoBcc(PRBool aValue)
 }
 
 NS_IMETHODIMP
-nsMsgIdentity::GetDoBccList(char **aValue)
+nsMsgIdentity::GetDoBccList(nsACString& aValue)
 {
-  nsresult rv = mPrefBranch->GetCharPref("doBccList", aValue);
+  nsCString val;
+  nsresult rv = mPrefBranch->GetCharPref("doBccList", getter_Copies(val));
+  aValue = val;
   if (NS_SUCCEEDED(rv))
     return rv;
 
-  nsXPIDLCString result;
   PRBool bccSelf = PR_FALSE;
   rv = GetBccSelf(&bccSelf);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  if (bccSelf) {
-    GetEmail(getter_Copies(result));
-  }
+  if (bccSelf)
+    GetEmail(aValue);
 
   PRBool bccOthers = PR_FALSE;
   rv = GetBccOthers(&bccOthers);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsXPIDLCString others;
-  rv = GetBccList(getter_Copies(others));
+  nsCString others;
+  rv = GetBccList(others);
   NS_ENSURE_SUCCESS(rv,rv);
 
   if (bccOthers && !others.IsEmpty()) {
     if (bccSelf)
-      result += ",";
-    result += others;
+      aValue.AppendLiteral(",");
+    aValue.Append(others);
   }
 
-  *aValue = ToNewCString(result);
-
-  return SetDoBccList(*aValue);
+  return SetDoBccList(aValue);
 }
 
 NS_IMETHODIMP
-nsMsgIdentity::SetDoBccList(const char *aValue)
+nsMsgIdentity::SetDoBccList(const nsACString& aValue)
 {
   return SetCharAttribute("doBccList", aValue);
 }
@@ -270,16 +268,16 @@ NS_IMPL_IDPREF_BOOL(AutocompleteToMyDomain, "autocompleteToMyDomain")
 NS_IMPL_IDPREF_BOOL(Valid, "valid")
 
 nsresult
-nsMsgIdentity::getFolderPref(const char *prefname, char **retval, PRUint32 folderflag)
+nsMsgIdentity::getFolderPref(const char *prefname, nsCString& retval, PRUint32 folderflag)
 {
-  nsresult rv = mPrefBranch->GetCharPref(prefname, retval);
-  if (NS_SUCCEEDED(rv) && *retval && **retval) {
+  nsresult rv = mPrefBranch->GetCharPref(prefname, getter_Copies(retval));
+  if (NS_SUCCEEDED(rv) && !retval.IsEmpty()) {
     // get the corresponding RDF resource
     // RDF will create the folder resource if it doesn't already exist
     nsCOMPtr<nsIRDFService> rdf(do_GetService(kRDFServiceCID, &rv));
     if (NS_FAILED(rv)) return rv;
     nsCOMPtr<nsIRDFResource> resource;
-    rdf->GetResource(nsDependentCString(*retval), getter_AddRefs(resource));
+    rdf->GetResource(retval, getter_AddRefs(resource));
 
     nsCOMPtr <nsIMsgFolder> folderResource = do_QueryInterface(resource);
     if (folderResource)
@@ -291,25 +289,23 @@ nsMsgIdentity::getFolderPref(const char *prefname, char **retval, PRUint32 folde
       if (server)
       {
         nsCOMPtr <nsIMsgFolder> msgFolder;
-        server->GetMsgFolderFromURI(folderResource, *retval, getter_AddRefs(msgFolder));
-        PR_FREEIF(*retval);
-        return msgFolder->GetURI(retval);
+        server->GetMsgFolderFromURI(folderResource, retval.get(), getter_AddRefs(msgFolder));
+        return msgFolder->GetURI(getter_Copies(retval));
       }
     }
   }
 
   // if the server doesn't exist, fall back to the default pref.
-  PR_FREEIF(*retval); // free the empty string
-  rv = mDefPrefBranch->GetCharPref(prefname, retval);
-  if (NS_SUCCEEDED(rv) && *retval)
-    rv = setFolderPref(prefname, *retval, folderflag);
+  rv = mDefPrefBranch->GetCharPref(prefname, getter_Copies(retval));
+  if (NS_SUCCEEDED(rv) && !retval.IsEmpty())
+    rv = setFolderPref(prefname, retval, folderflag);
   return rv;
 }
 
 nsresult
-nsMsgIdentity::setFolderPref(const char *prefname, const char *value, PRUint32 folderflag)
+nsMsgIdentity::setFolderPref(const char *prefname, const nsCString& value, PRUint32 folderflag)
 {
-  nsXPIDLCString oldpref;
+  nsCString oldpref;
   nsresult rv;
   nsCOMPtr<nsIRDFResource> res;
   nsCOMPtr<nsIMsgFolder> folder;
@@ -351,9 +347,9 @@ nsMsgIdentity::setFolderPref(const char *prefname, const char *value, PRUint32 f
 
   // set the new folder, and set the special folder flags on it
   rv = SetCharAttribute(prefname, value);
-  if (NS_SUCCEEDED(rv) && value && *value)
+  if (NS_SUCCEEDED(rv) && !value.IsEmpty())
   {
-    rv = rdf->GetResource(nsDependentCString(value), getter_AddRefs(res));
+    rv = rdf->GetResource(value, getter_AddRefs(res));
     if (NS_SUCCEEDED(rv) && res)
     {
       folder = do_QueryInterface(res, &rv);
@@ -401,23 +397,21 @@ NS_IMETHODIMP nsMsgIdentity::GetUnicharAttribute(const char *aName, nsAString& v
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgIdentity::SetCharAttribute(const char *aName, const char *val)
+NS_IMETHODIMP nsMsgIdentity::SetCharAttribute(const char *aName, const nsACString& val)
 {
-  if (val)
-    return mPrefBranch->SetCharPref(aName, val);
+  if (!val.IsEmpty())
+    return mPrefBranch->SetCharPref(aName, nsCString(val).get());
 
   mPrefBranch->ClearUserPref(aName);
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgIdentity::GetCharAttribute(const char *aName, char **val)
+NS_IMETHODIMP nsMsgIdentity::GetCharAttribute(const char *aName, nsACString& val)
 {
-  NS_ENSURE_ARG_POINTER(val);
-  *val = nsnull;
-
-  if (NS_FAILED(mPrefBranch->GetCharPref(aName, val)))
-    mDefPrefBranch->GetCharPref(aName, val);
-
+  nsCString tmpVal;
+  if (NS_FAILED(mPrefBranch->GetCharPref(aName, getter_Copies(tmpVal))))
+    mDefPrefBranch->GetCharPref(aName, getter_Copies(tmpVal));
+  val = tmpVal;
   return NS_OK;
 }
 
@@ -482,16 +476,11 @@ NS_IMETHODIMP nsMsgIdentity::GetIntAttribute(const char *aName, PRInt32 *val)
 
 #define COPY_IDENTITY_STR_VALUE(SRC_ID,MACRO_GETTER,MACRO_SETTER) 	\
 	{	\
-        	nsXPIDLCString macro_oldStr;	\
+        	nsCString macro_oldStr;	\
 		    nsresult macro_rv;	\
-        	macro_rv = SRC_ID->MACRO_GETTER(getter_Copies(macro_oldStr));	\
+        	macro_rv = SRC_ID->MACRO_GETTER(macro_oldStr);	\
             if (NS_SUCCEEDED(macro_rv)) { \
-        	  if (!macro_oldStr) {	\
-                	this->MACRO_SETTER("");	\
-              }	\
-        	  else {	\
                   	this->MACRO_SETTER(macro_oldStr);	\
-              }	\
             } \
 	}
 

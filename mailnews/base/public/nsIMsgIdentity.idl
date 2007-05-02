@@ -52,7 +52,7 @@
 [scriptable, uuid(21959CED-8C60-4e22-8D90-4FB100AF4189)]
 interface nsIMsgIdentity : nsISupports {
   /* internal preferences ID */
-  attribute string key;
+  attribute ACString key;
 
   /*
    *overriding display name for this identity. if this pref is not set
@@ -64,10 +64,10 @@ interface nsIMsgIdentity : nsISupports {
   attribute AString fullName;
 
   /* user's e-mail address, i.e. john@doe.com */
-  attribute string email;
+  attribute ACString email;
 
   /* optional replyTo address, i.e. johnNOSPAM@doe.com */
-  attribute string replyTo;
+  attribute ACString replyTo;
 
   /* optional organization */
   attribute AString organization;
@@ -96,31 +96,30 @@ interface nsIMsgIdentity : nsISupports {
   attribute nsILocalFile signature;
   attribute long signatureDate;
 
-  attribute string escapedVCard;
+  attribute ACString escapedVCard;
 
   attribute boolean doFcc;
-  attribute string fccFolder;
+  attribute ACString fccFolder;
 
-  attribute string fccFolderPickerMode;
+  attribute ACString fccFolderPickerMode;
   attribute boolean fccReplyFollowsParent;
-  attribute string draftsFolderPickerMode;
-  attribute string tmplFolderPickerMode;  
-
+  attribute ACString draftsFolderPickerMode;
+  attribute ACString tmplFolderPickerMode;  
 
   // Don't call bccSelf, bccOthers, and bccList directly, they are 
   // only used for migration and backward compatability. Use doBcc
   // and doBccList instead.
   attribute boolean bccSelf;
   attribute boolean bccOthers;
-  attribute string bccList;
+  attribute ACString bccList;
 
   attribute boolean doBcc;
-  attribute string doBccList;
+  attribute ACString doBccList;
 
-  attribute string draftFolder;
-  attribute string stationeryFolder;
+  attribute ACString draftFolder;
+  attribute ACString stationeryFolder;
   attribute boolean showSaveMsgDlg;
-  attribute string directoryServer;
+  attribute ACString directoryServer;
   attribute boolean overrideGlobalPref;
   /**
    * If this is false, don't append the user's domain
@@ -145,7 +144,7 @@ interface nsIMsgIdentity : nsISupports {
    * if this is set, this the smtp server that should be used
    * for the message send
    */
-  attribute string smtpServerKey;
+  attribute ACString smtpServerKey;
 
   /**
    * default request for return receipt option for this identity
@@ -165,8 +164,8 @@ interface nsIMsgIdentity : nsISupports {
   AString getUnicharAttribute(in string name);
   void setUnicharAttribute(in string name, in AString value);
   
-  string getCharAttribute(in string name);
-  void setCharAttribute(in string name, in string value);
+  ACString getCharAttribute(in string name);
+  void setCharAttribute(in string name, in ACString value);
 
   boolean getBoolAttribute(in string name);
   void setBoolAttribute(in string name, in boolean value);

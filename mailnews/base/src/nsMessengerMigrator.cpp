@@ -55,7 +55,7 @@
 #include "nsIDirectoryService.h"
 #include "nsDirectoryServiceDefs.h"
 #include "nsAppDirectoryServiceDefs.h"
-#include "nsIFileSpec.h" 
+#include "nsIFileSpec.h"
 #include "nsILocalFile.h"
 #include "nsIURL.h"
 #include "nsNetCID.h"
@@ -131,7 +131,7 @@
 /* we are going to clear these after migration */
 #define PREF_4X_MAIL_IDENTITY_USEREMAIL "mail.identity.useremail"
 #define PREF_4X_MAIL_IDENTITY_USERNAME "mail.identity.username"
-#define PREF_4X_MAIL_IDENTITY_REPLY_TO "mail.identity.reply_to"    
+#define PREF_4X_MAIL_IDENTITY_REPLY_TO "mail.identity.reply_to"
 #define PREF_4X_MAIL_IDENTITY_ORGANIZATION "mail.identity.organization"
 #define PREF_4X_MAIL_SIGNATURE_FILE "mail.signature_file"
 #define PREF_4X_MAIL_SIGNATURE_DATE "mail.signature_date"
@@ -210,22 +210,21 @@
 
 #define CONVERT_4X_URI(IDENTITY,FOR_NEWS,USERNAME,HOSTNAME,DEFAULT_FOLDER_NAME,MACRO_GETTER,MACRO_SETTER,DEFAULT_PREF) \
 { \
-  nsXPIDLCString macro_oldStr; \
+  nsCString macro_oldStr; \
   nsresult macro_rv; \
-  macro_rv = IDENTITY->MACRO_GETTER(getter_Copies(macro_oldStr));	\
-  if (NS_FAILED(macro_rv) || !macro_oldStr) { \
-    IDENTITY->MACRO_SETTER("");	\
+  macro_rv = IDENTITY->MACRO_GETTER(macro_oldStr);	\
+  if (NS_FAILED(macro_rv) || macro_oldStr.IsEmpty()) { \
+    IDENTITY->MACRO_SETTER(macro_oldStr);	\
   }\
   else {	\
-    char *converted_uri = nsnull; \
-    macro_rv = Convert4XUri((const char *)macro_oldStr, FOR_NEWS, USERNAME, HOSTNAME, DEFAULT_FOLDER_NAME, DEFAULT_PREF, &converted_uri); \
+    nsCString converted_uri; \
+    macro_rv = Convert4XUri(macro_oldStr.get(), FOR_NEWS, USERNAME, HOSTNAME, DEFAULT_FOLDER_NAME, DEFAULT_PREF, getter_Copies(converted_uri)); \
     if (NS_FAILED(macro_rv)) { \
-      IDENTITY->MACRO_SETTER("");	\
+      IDENTITY->MACRO_SETTER(EmptyCString());	\
     } \
     else { \
       IDENTITY->MACRO_SETTER(converted_uri); \
     } \
-    PR_FREEIF(converted_uri); \
   }	\
 }
 
@@ -261,13 +260,13 @@
 			char *macro_oldStr = nsnull; \
 			macro_rv = macro_spec->GetUnixStyleFilePath(&macro_oldStr);	\
     		if (NS_SUCCEEDED(macro_rv)) { \
-				MACRO_OBJECT->MACRO_METHOD(macro_oldStr); \
+				MACRO_OBJECT->MACRO_METHOD(nsCString(macro_oldStr)); \
             } \
             PR_FREEIF(macro_oldStr); \
     	} \
 	} \
 	else { \
-		MACRO_OBJECT->MACRO_METHOD(""); \
+		MACRO_OBJECT->MACRO_METHOD(EmptyCString()); \
 	}	\
     PR_FREEIF(macro_val); \
   }
@@ -287,15 +286,24 @@
     PR_FREEIF(macro_oldStr); \
   }
 
-#define MIGRATE_SIMPLE_STR_PREF(PREFNAME,MACRO_OBJECT,MACRO_METHOD) \
+  #define MIGRATE_SIMPLE_CHARSTR_PREF(PREFNAME,MACRO_OBJECT,MACRO_METHOD) \
   { \
     nsresult macro_rv; \
-    char *macro_oldStr = nsnull; \
+    char * macro_oldStr = nsnull; \
     macro_rv = m_prefs->GetCharPref(PREFNAME, &macro_oldStr); \
     if (NS_SUCCEEDED(macro_rv)) { \
       MACRO_OBJECT->MACRO_METHOD(macro_oldStr); \
     } \
-    PR_FREEIF(macro_oldStr); \
+  }
+
+#define MIGRATE_SIMPLE_STR_PREF(PREFNAME,MACRO_OBJECT,MACRO_METHOD) \
+  { \
+    nsresult macro_rv; \
+    nsCString macro_oldStr; \
+    macro_rv = m_prefs->GetCharPref(PREFNAME, getter_Copies(macro_oldStr)); \
+    if (NS_SUCCEEDED(macro_rv)) { \
+      MACRO_OBJECT->MACRO_METHOD(macro_oldStr); \
+    } \
   }
 
 #define MIGRATE_SIMPLE_WSTR_PREF(PREFNAME,MACRO_OBJECT,MACRO_METHOD) \
@@ -383,43 +391,43 @@ nsMessengerMigrator::~nsMessengerMigrator()
     Shutdown();
     //Don't remove from Observer service in Shutdown because Shutdown also gets called
     //from xpcom shutdown observer.  And we don't want to remove from the service in that case.
-    nsCOMPtr<nsIObserverService> observerService = 
+    nsCOMPtr<nsIObserverService> observerService =
              do_GetService("@mozilla.org/observer-service;1", &rv);
     if (NS_SUCCEEDED(rv))
     {
       observerService->RemoveObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID);
     }
-  }     
+  }
 }
 
 nsresult nsMessengerMigrator::Init()
 {
   nsresult rv;
 
-  nsCOMPtr<nsIObserverService> observerService = 
+  nsCOMPtr<nsIObserverService> observerService =
            do_GetService("@mozilla.org/observer-service;1", &rv);
   if (NS_SUCCEEDED(rv))
   {
     observerService->AddObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID, PR_FALSE);
-  }    
+  }
 
   initializeStrings();
-  
+
   rv = getPrefService();
-  if (NS_FAILED(rv)) return rv;   
+  if (NS_FAILED(rv)) return rv;
 
   rv = ResetState();
   return rv;
 }
 
-nsresult 
+nsresult
 nsMessengerMigrator::Shutdown()
 {
   m_prefs = nsnull;
 
   m_haveShutdown = PR_TRUE;
   return NS_OK;
-}       
+}
 
 nsresult
 nsMessengerMigrator::getPrefService()
@@ -435,7 +443,7 @@ nsMessengerMigrator::getPrefService()
   if (!m_prefs) return NS_ERROR_FAILURE;
 
   return NS_OK;
-} 
+}
 
 nsresult
 nsMessengerMigrator::initializeStrings()
@@ -444,12 +452,12 @@ nsMessengerMigrator::initializeStrings()
   nsCOMPtr<nsIStringBundleService> bundleService =
     do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   nsCOMPtr<nsIStringBundle> bundle;
   rv = bundleService->CreateBundle("chrome://messenger/locale/messenger.properties",
                                    getter_AddRefs(bundle));
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   // now retrieve strings
   nsXPIDLString localFolders;
   rv = bundle->GetStringFromName(NS_LITERAL_STRING("localFolders").get(),
@@ -473,17 +481,17 @@ NS_IMETHODIMP nsMessengerMigrator::Observe(nsISupports *aSubject, const char *aT
   }
 
   return NS_OK;
-}           
+}
 
 nsresult
 nsMessengerMigrator::ProceedWithMigration()
 {
   char *prefvalue = nsnull;
   nsresult rv = NS_OK;
-  
-  if ((m_oldMailType == POP_4X_MAIL_TYPE) 
+
+  if ((m_oldMailType == POP_4X_MAIL_TYPE)
 #ifdef HAVE_MOVEMAIL
-	|| (m_oldMailType == MOVEMAIL_4X_MAIL_TYPE) 
+	|| (m_oldMailType == MOVEMAIL_4X_MAIL_TYPE)
 #endif /* HAVE_MOVEMAIL */
 	) {
     // if they were using pop or movemail, "mail.pop_name" must have been set
@@ -520,7 +528,7 @@ NS_IMETHODIMP
 nsMessengerMigrator::CreateLocalMailAccount(PRBool migrating)
 {
   nsresult rv;
-  nsCOMPtr<nsIMsgAccountManager> accountManager = 
+  nsCOMPtr<nsIMsgAccountManager> accountManager =
            do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
   if (NS_FAILED(rv)) return rv;
 
@@ -538,10 +546,10 @@ nsMessengerMigrator::CreateLocalMailAccount(PRBool migrating)
   nsCOMPtr<nsINoIncomingServer> noServer;
   noServer = do_QueryInterface(server, &rv);
   if (NS_FAILED(rv)) return rv;
-   
+
   // create the directory structure for old 4.x "Local Mail"
   // under <profile dir>/Mail/Local Folders or
-  // <"mail.directory" pref>/Local Folders 
+  // <"mail.directory" pref>/Local Folders
   nsCOMPtr <nsIFile> mailDir;
   nsFileSpec dir;
   PRBool dirExists;
@@ -563,19 +571,19 @@ nsMessengerMigrator::CreateLocalMailAccount(PRBool migrating)
     if (NS_FAILED(rv)) return rv;
     localFile = do_QueryInterface(mailDir);
   }
-  
+
   rv = mailDir->Exists(&dirExists);
   if (NS_SUCCEEDED(rv) && !dirExists)
     rv = mailDir->Create(nsIFile::DIRECTORY_TYPE, 0775);
-  if (NS_FAILED(rv)) return rv; 
-   
+  if (NS_FAILED(rv)) return rv;
+
   nsXPIDLCString descString;
   nsCOMPtr<nsIFileSpec> mailDirSpec;
-  
+
   // set the default local path for "none"
   rv = server->SetDefaultLocalPath(localFile);
   if (NS_FAILED(rv)) return rv;
- 
+
   if (migrating) {
   	// set the local path for this "none" server
 	//
@@ -584,20 +592,20 @@ nsMessengerMigrator::CreateLocalMailAccount(PRBool migrating)
 	// it would be great to use the server key, but we don't know it
 	// when we are copying of the mail.
 	rv = localFile->AppendNative(mLocalFoldersHostname);
-	if (NS_FAILED(rv)) return rv; 
+	if (NS_FAILED(rv)) return rv;
         // this will create the dir, if it doesn't exist
 	rv = server->SetLocalPath(localFile);
 	if (NS_FAILED(rv)) return rv;
   }
 
   // Create an account when valid server values are established.
-  // This will keep the status of accounts sane by avoiding the addition of incomplete accounts. 
+  // This will keep the status of accounts sane by avoiding the addition of incomplete accounts.
   nsCOMPtr<nsIMsgAccount> account;
   rv = accountManager->CreateAccount(getter_AddRefs(account));
   if (NS_FAILED(rv)) return rv;
 
   // notice, no identity for local mail
-  // hook the server to the account 
+  // hook the server to the account
   // after we set the server's local path
   // (see bug #66018)
   account->SetIncomingServer(server);
@@ -651,9 +659,9 @@ nsMessengerMigrator::UpgradePrefs()
     else {
       printf("PASS:  proceed with migration.\n");
     }
-#endif 
+#endif
 
-    nsCOMPtr<nsIMsgAccountManager> accountManager = 
+    nsCOMPtr<nsIMsgAccountManager> accountManager =
              do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
     if (NS_FAILED(rv)) return rv;
 
@@ -664,18 +672,18 @@ nsMessengerMigrator::UpgradePrefs()
     if (NS_FAILED(rv)) return rv;
 
     rv = MigrateIdentity(identity);
-    if (NS_FAILED(rv)) return rv;    
-    
-    nsCOMPtr<nsISmtpService> smtpService = 
+    if (NS_FAILED(rv)) return rv;
+
+    nsCOMPtr<nsISmtpService> smtpService =
              do_GetService(NS_SMTPSERVICE_CONTRACTID, &rv);
-    if (NS_FAILED(rv)) return rv;    
+    if (NS_FAILED(rv)) return rv;
 
     nsCOMPtr<nsISmtpServer> smtpServer;
     rv = smtpService->CreateSmtpServer(getter_AddRefs(smtpServer));
-    if (NS_FAILED(rv)) return rv;    
+    if (NS_FAILED(rv)) return rv;
 
     rv = MigrateSmtpServer(smtpServer);
-    if (NS_FAILED(rv)) return rv;    
+    if (NS_FAILED(rv)) return rv;
 
     // set the newly created smtp server as the default
     smtpService->SetDefaultServer(smtpServer); // ignore the error code....continue even if this call fails...
@@ -693,7 +701,7 @@ nsMessengerMigrator::UpgradePrefs()
     else if (m_oldMailType == IMAP_4X_MAIL_TYPE) {
       rv = MigrateImapAccounts(identity);
       if (NS_FAILED(rv)) return rv;
-      
+
       // if they had IMAP in 4.x, they also had "Local Mail"
       // we'll migrate that to "Local Folders"
       rv = MigrateLocalMailAccount();
@@ -726,7 +734,7 @@ nsMessengerMigrator::UpgradePrefs()
 
     rv = ldapPrefsService->MigratePrefsIfNeeded();
     NS_ENSURE_SUCCESS(rv, rv);
-#endif    
+#endif
     rv = MigrateAddressBookPrefs();
     NS_ENSURE_SUCCESS(rv,rv);
 
@@ -748,7 +756,7 @@ nsMessengerMigrator::UpgradePrefs()
     return rv;
 }
 
-nsresult 
+nsresult
 nsMessengerMigrator::SetUsernameIfNecessary()
 {
     nsresult rv;
@@ -760,7 +768,7 @@ nsMessengerMigrator::SetUsernameIfNecessary()
     }
 
     nsXPIDLString fullnameFromSystem;
-    
+
     nsCOMPtr<nsIUserInfo> userInfo = do_GetService(NS_USERINFO_CONTRACTID, &rv);
     if (NS_FAILED(rv)) return rv;
 
@@ -785,7 +793,7 @@ nsresult
 nsMessengerMigrator::MigrateIdentity(nsIMsgIdentity *identity)
 {
   nsresult rv;
-  
+
   rv = SetUsernameIfNecessary();
   /* SetUsernameIfNecessary() can fail. */
   //if (NS_FAILED(rv)) return rv;
@@ -802,16 +810,13 @@ nsMessengerMigrator::MigrateIdentity(nsIMsgIdentity *identity)
 
   MIGRATE_SIMPLE_BOOL_PREF(PREF_4X_MAIL_ATTACH_VCARD, identity, SetAttachVCard)
   nsCOMPtr <nsIAddressBook> ab = do_CreateInstance(NS_ADDRESSBOOK_CONTRACTID);
-  if (ab) 
+  if (ab)
   {
-      nsXPIDLCString escapedVCardStr;
-      rv = ab->Convert4xVCardPrefs(PREF_4X_MAIL_IDENTITY_VCARD_ROOT, getter_Copies(escapedVCardStr));
-      if (NS_SUCCEEDED(rv) && !escapedVCardStr.IsEmpty()) 
-      {
-          rv = identity->SetEscapedVCard(escapedVCardStr.get());
-          NS_ASSERTION(NS_SUCCEEDED(rv), "failed to set escaped vCard string");
-      }
-  }    
+    nsCString escapedVCardStr;
+    rv = ab->Convert4xVCardPrefs(PREF_4X_MAIL_IDENTITY_VCARD_ROOT, getter_Copies(escapedVCardStr));
+    if (NS_SUCCEEDED(rv) && !escapedVCardStr.IsEmpty())
+        rv = identity->SetEscapedVCard(escapedVCardStr);
+  }
 
   /* NOTE:  if you add prefs here, make sure you update nsMsgIdentity::Copy() */
   return NS_OK;
@@ -820,8 +825,8 @@ nsMessengerMigrator::MigrateIdentity(nsIMsgIdentity *identity)
 nsresult
 nsMessengerMigrator::MigrateSmtpServer(nsISmtpServer *server)
 {
-  MIGRATE_SIMPLE_STR_PREF(PREF_4X_NETWORK_HOSTS_SMTP_SERVER,server,SetHostname)
-  MIGRATE_SIMPLE_STR_PREF(PREF_4X_MAIL_SMTP_NAME,server,SetUsername)
+  MIGRATE_SIMPLE_CHARSTR_PREF(PREF_4X_NETWORK_HOSTS_SMTP_SERVER,server,SetHostname)
+  MIGRATE_SIMPLE_CHARSTR_PREF(PREF_4X_MAIL_SMTP_NAME,server,SetUsername)
   MIGRATE_SIMPLE_INT_PREF(PREF_4X_MAIL_SMTP_SSL,server,SetTrySSL)
 
   return NS_OK;
@@ -831,14 +836,14 @@ nsresult
 nsMessengerMigrator::SetNewsCopiesAndFolders(nsIMsgIdentity *identity)
 {
   nsresult rv;
-  
+
   MIGRATE_SIMPLE_BOOL_PREF(PREF_4X_NEWS_CC_SELF,identity,SetBccSelf)
   MIGRATE_SIMPLE_BOOL_PREF(PREF_4X_NEWS_USE_DEFAULT_CC,identity,SetBccOthers)
   MIGRATE_SIMPLE_STR_PREF(PREF_4X_NEWS_DEFAULT_CC,identity,SetBccList)
   MIGRATE_SIMPLE_BOOL_PREF(PREF_4X_NEWS_USE_FCC,identity,SetDoFcc)
   MIGRATE_SIMPLE_STR_PREF(PREF_4X_MAIL_DEFAULT_DRAFTS,identity,SetDraftFolder)
   MIGRATE_SIMPLE_STR_PREF(PREF_4X_MAIL_DEFAULT_TEMPLATES,identity,SetStationeryFolder)
-      
+
   PRBool news_used_uri_for_sent_in_4x;
   rv = m_prefs->GetBoolPref(PREF_4X_NEWS_USE_IMAP_SENTMAIL, &news_used_uri_for_sent_in_4x);
   if (NS_FAILED(rv)) {
@@ -895,7 +900,7 @@ nsresult
 nsMessengerMigrator::SetMailCopiesAndFolders(nsIMsgIdentity *identity, const char *username, const char *hostname)
 {
   nsresult rv;
-  
+
   MIGRATE_SIMPLE_BOOL_PREF(PREF_4X_MAIL_CC_SELF,identity,SetBccSelf)
   MIGRATE_SIMPLE_BOOL_PREF(PREF_4X_MAIL_USE_DEFAULT_CC,identity,SetBccOthers)
   MIGRATE_SIMPLE_STR_PREF(PREF_4X_MAIL_DEFAULT_CC,identity,SetBccList)
@@ -921,7 +926,7 @@ nsMessengerMigrator::SetMailCopiesAndFolders(nsIMsgIdentity *identity, const cha
   CONVERT_4X_URI(identity, PR_FALSE /* for news */, username, hostname, DEFAULT_4X_SENT_FOLDER_NAME,GetFccFolder,SetFccFolder,DEFAULT_FCC_FOLDER_PREF_NAME)
   CONVERT_4X_URI(identity, PR_FALSE /* for news */, username, hostname, DEFAULT_4X_TEMPLATES_FOLDER_NAME,GetStationeryFolder,SetStationeryFolder,DEFAULT_STATIONERY_FOLDER_PREF_NAME)
   CONVERT_4X_URI(identity, PR_FALSE /* for news */, username, hostname, DEFAULT_4X_DRAFTS_FOLDER_NAME,GetDraftFolder,SetDraftFolder,DEFAULT_DRAFT_FOLDER_PREF_NAME)
-    
+
   return NS_OK;
 }
 
@@ -957,7 +962,7 @@ nsMessengerMigrator::Convert4XUri(const char *old_uri, PRBool for_news, const ch
         ESCAPE_USER_NAME(escaped_aUsername,aUsername);
 		*new_uri = PR_smprintf("%s/%s@%s/%s",IMAP_SCHEMA,(const char *)escaped_aUsername,aHostname,default_folder_name);
 	}
-	else if ((m_oldMailType == POP_4X_MAIL_TYPE) 
+	else if ((m_oldMailType == POP_4X_MAIL_TYPE)
 #ifdef HAVE_MOVEMAIL
 		|| (m_oldMailType == MOVEMAIL_4X_MAIL_TYPE)
 #endif /* HAVE_MOVEMAIL */
@@ -991,7 +996,7 @@ nsMessengerMigrator::Convert4XUri(const char *old_uri, PRBool for_news, const ch
     rv = uri->GetUsername(username);
     if (NS_FAILED(rv)) return rv;
 
-    // in 4.x, mac and windows stored the URI as IMAP://<hostname> 
+    // in 4.x, mac and windows stored the URI as IMAP://<hostname>
 	// if the URI was the default folder on the server.
 	// If it wasn't the default folder, they would have stored it as
 	if (username.IsEmpty()) {
@@ -1012,7 +1017,7 @@ nsMessengerMigrator::Convert4XUri(const char *old_uri, PRBool for_news, const ch
 			printf("new_uri = %s/%s@%s/%s\n",IMAP_SCHEMA, imap_username, hostname.get(), default_folder_name);
 #endif /* DEBUG_MIGRATOR */
 			*new_uri = PR_smprintf("%s/%s@%s/%s",IMAP_SCHEMA, imap_username, hostname.get(), default_folder_name);
-			return NS_OK;      
+			return NS_OK;
 		}
     }
     else {
@@ -1050,7 +1055,7 @@ nsMessengerMigrator::Convert4XUri(const char *old_uri, PRBool for_news, const ch
     rv = m_prefs->GetComplexValue(PREF_MAIL_DIRECTORY, NS_GET_IID(nsIFileSpec), getter_AddRefs(mail_dir));
     if (NS_SUCCEEDED(rv)) {
 	rv = mail_dir->GetUnixStyleFilePath(&mail_directory_value);
-    } 
+    }
 
     if (NS_FAILED(rv) || !mail_directory_value || !*mail_directory_value) {
       NS_ASSERTION(0,"failed to get a base value for the mail.directory");
@@ -1086,8 +1091,8 @@ nsMessengerMigrator::Convert4XUri(const char *old_uri, PRBool for_news, const ch
 	nsXPIDLCString movemail_username;
 
 	rv = m_prefs->GetCharPref(PREF_4X_MAIL_POP_NAME, getter_Copies(movemail_username));
-	if (NS_FAILED(rv)) return rv; 
-	
+	if (NS_FAILED(rv)) return rv;
+
     nsXPIDLCString escaped_movemail_username;
 
     ESCAPE_USER_NAME(escaped_movemail_username,movemail_username);
@@ -1110,7 +1115,7 @@ nsMessengerMigrator::Convert4XUri(const char *old_uri, PRBool for_news, const ch
 	printf("turn %s into %s/%s/(%s - %s)\n",old_uri,MAILBOX_SCHEMA,usernameAtHostname,old_uri + MAILBOX_SCHEMA_LENGTH,mail_directory_value);
 #endif
 	// the extra -1 is because in 4.x, we had this:
-	// mailbox:<PATH> instead of mailbox:/<PATH> 
+	// mailbox:<PATH> instead of mailbox:/<PATH>
 	folderPath = old_uri + MAILBOX_SCHEMA_LENGTH + PL_strlen(mail_directory_value) -1;
   }
   else {
@@ -1119,7 +1124,7 @@ nsMessengerMigrator::Convert4XUri(const char *old_uri, PRBool for_news, const ch
 #endif
 	folderPath = old_uri + PL_strlen(mail_directory_value);
   }
-  
+
 
   // if folder path is "", then the URI was mailbox:/<foobar>
   // and the directory pref was <foobar>
@@ -1162,10 +1167,10 @@ nsMessengerMigrator::Convert4XUri(const char *old_uri, PRBool for_news, const ch
 }
 
 nsresult
-nsMessengerMigrator::MigrateLocalMailAccount() 
+nsMessengerMigrator::MigrateLocalMailAccount()
 {
   nsresult rv;
-  nsCOMPtr<nsIMsgAccountManager> accountManager = 
+  nsCOMPtr<nsIMsgAccountManager> accountManager =
            do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
   if (NS_FAILED(rv)) return rv;
 
@@ -1185,7 +1190,7 @@ nsMessengerMigrator::MigrateLocalMailAccount()
 
   // create the directory structure for old 4.x "Local Mail"
   // under <profile dir>/Mail/Local Folders or
-  // <"mail.directory" pref>/Local Folders 
+  // <"mail.directory" pref>/Local Folders
   nsCOMPtr<nsIFile> mailDir;
   nsFileSpec dir;
   PRBool dirExists;
@@ -1196,7 +1201,7 @@ nsMessengerMigrator::MigrateLocalMailAccount()
   rv = m_prefs->GetComplexValue(PREF_MAIL_DIRECTORY, NS_GET_IID(nsILocalFile), getter_AddRefs(localFile));
   if (NS_SUCCEEDED(rv))
     mailDir = localFile;
-  
+
   if (!mailDir) {
     // we want <profile>/Mail
     rv = NS_GetSpecialDirectory(NS_APP_MAIL_50_DIR, getter_AddRefs(mailDir));
@@ -1207,8 +1212,8 @@ nsMessengerMigrator::MigrateLocalMailAccount()
   rv = mailDir->Exists(&dirExists);
   if (NS_SUCCEEDED(rv) && !dirExists)
     rv = mailDir->Create(nsIFile::DIRECTORY_TYPE, 0775);
-  if (NS_FAILED(rv)) return rv;  
-    
+  if (NS_FAILED(rv)) return rv;
+
   // set the default local path for "none"
   rv = server->SetDefaultLocalPath(localFile);
   if (NS_FAILED(rv)) return rv;
@@ -1227,16 +1232,16 @@ nsMessengerMigrator::MigrateLocalMailAccount()
     // it would be great to use the server key, but we don't know it
     // when we are copying of the mail.
     rv = localFile->AppendNative(mLocalFoldersHostname);
-    if (NS_FAILED(rv)) return rv; 
+    if (NS_FAILED(rv)) return rv;
   }
   rv = server->SetLocalPath(localFile);
   if (NS_FAILED(rv)) return rv;
-  
+
   // we don't want "nobody at Local Folders" to show up in the
   // folder pane, so we set the pretty name to "Local Folders"
   server->SetPrettyName(mLocalFoldersName.get());
-  
-  // pass the "Local Folders" server so the send later uri pref 
+
+  // pass the "Local Folders" server so the send later uri pref
   // will be "mailbox://nobody@Local Folders/Unsent Messages"
   rv = SetSendLaterUriPref(server);
   if (NS_FAILED(rv)) return rv;
@@ -1248,15 +1253,15 @@ nsMessengerMigrator::MigrateLocalMailAccount()
   if (!noneServer) return NS_ERROR_FAILURE;
   rv = noneServer->CopyDefaultMessages("Templates", localFile);
   if (NS_FAILED(rv)) return rv;
- 
+
   // Create an account when valid server values are established.
-  // This will keep the status of accounts sane by avoiding the addition of incomplete accounts. 
+  // This will keep the status of accounts sane by avoiding the addition of incomplete accounts.
   nsCOMPtr<nsIMsgAccount> account;
   rv = accountManager->CreateAccount(getter_AddRefs(account));
   if (NS_FAILED(rv)) return rv;
 
   // notice, no identity for local mail
-  // hook the server to the account 
+  // hook the server to the account
   // after we set the server's local path
   // (see bug #66018)
   rv = account->SetIncomingServer(server);
@@ -1276,8 +1281,8 @@ nsMessengerMigrator::MigrateMovemailAccount(nsIMsgIdentity *identity)
   nsresult rv = NS_OK;
 #if 0  // turn off movemail migration for now.
   nsCOMPtr<nsIMsgIncomingServer> server;
-  
-  nsCOMPtr<nsIMsgAccountManager> accountManager = 
+
+  nsCOMPtr<nsIMsgAccountManager> accountManager =
            do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
   if (NS_FAILED(rv)) return rv;
 
@@ -1317,7 +1322,7 @@ nsMessengerMigrator::MigrateMovemailAccount(nsIMsgIdentity *identity)
   if (NS_FAILED(rv)) {
     // we wan't <profile>/Mail
     nsCOMPtr<nsIFile> aFile;
-    
+
     rv = NS_GetSpecialDirectory(NS_APP_MAIL_50_DIR, getter_AddRefs(aFile));
     if (NS_FAILED(rv)) return rv;
 
@@ -1337,23 +1342,23 @@ nsMessengerMigrator::MigrateMovemailAccount(nsIMsgIdentity *identity)
   // we want .../Mail/movemail, not .../Mail
   rv = mailDir->AppendRelativeUnixPath(MOVEMAIL_FAKE_HOST_NAME);
   if (NS_FAILED(rv)) return rv;
-  
+
   // set the local path for this "none" (eventually, "movemail" server)
   rv = server->SetLocalPath(mailDir);
   if (NS_FAILED(rv)) return rv;
-    
+
   rv = mailDir->Exists(&dirExists);
   if (!dirExists) {
     mailDir->CreateDir();
   }
 
   // Create an account when valid server and identity values are established.
-  // This will keep the status of accounts sane by avoiding the addition of incomplete accounts. 
+  // This will keep the status of accounts sane by avoiding the addition of incomplete accounts.
   nsCOMPtr<nsIMsgAccount> account;
   rv = accountManager->CreateAccount(getter_AddRefs(account));
   if (NS_FAILED(rv)) return rv;
-    
-  // hook the server to the account 
+
+  // hook the server to the account
   // before setting the copies and folder prefs
   // (see bug #31904)
   // but after we set the server's local path
@@ -1370,8 +1375,8 @@ nsMessengerMigrator::MigrateMovemailAccount(nsIMsgIdentity *identity)
   // set the cc and fcc values
   rv = SetMailCopiesAndFolders(copied_identity, (const char *)username, MOVEMAIL_FAKE_HOST_NAME);
   if (NS_FAILED(rv)) return rv;
-  
-  // pass the server so the send later uri pref 
+
+  // pass the server so the send later uri pref
   // will be something like "mailbox://sspitzer@movemail/Unsent Messages"
   rv = SetSendLaterUriPref(server);
   if (NS_FAILED(rv)) return rv;
@@ -1387,7 +1392,7 @@ nsresult
 nsMessengerMigrator::MigratePopAccount(nsIMsgIdentity *identity)
 {
   nsresult rv;
-  nsCOMPtr<nsIMsgAccountManager> accountManager = 
+  nsCOMPtr<nsIMsgAccountManager> accountManager =
            do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
   if (NS_FAILED(rv)) return rv;
 
@@ -1409,7 +1414,7 @@ nsMessengerMigrator::MigratePopAccount(nsIMsgIdentity *identity)
   PRInt32 colonPos = hostname.FindChar(':');
   if (colonPos != -1) {
         hostname.Truncate(colonPos);
-        
+
         // migrate the port from hostAndPort
         nsCAutoString portStr(hostAndPort + colonPos);
         PRInt32 err;
@@ -1429,7 +1434,7 @@ nsMessengerMigrator::MigratePopAccount(nsIMsgIdentity *identity)
   if (port > 0) {
     server->SetPort(port);
   }
-  
+
   // now upgrade all the prefs
   nsCOMPtr <nsIFile> mailDir;
   nsFileSpec dir;
@@ -1455,7 +1460,7 @@ nsMessengerMigrator::MigratePopAccount(nsIMsgIdentity *identity)
   rv = m_prefs->GetComplexValue(PREF_MAIL_DIRECTORY, NS_GET_IID(nsILocalFile), getter_AddRefs(localFile));
   if (NS_SUCCEEDED(rv))
     mailDir = localFile;
-  
+
   if (!mailDir) {
     // we wan't <profile>/Mail
     rv = NS_GetSpecialDirectory(NS_APP_MAIL_50_DIR, getter_AddRefs(mailDir));
@@ -1467,7 +1472,7 @@ nsMessengerMigrator::MigratePopAccount(nsIMsgIdentity *identity)
   if (NS_SUCCEEDED(rv) && !dirExists)
     rv = mailDir->Create(nsIFile::DIRECTORY_TYPE, 0775);
   if (NS_FAILED(rv)) return rv;
-  
+
   // set the default local path for "pop3"
   rv = server->SetDefaultLocalPath(localFile);
   if (NS_FAILED(rv)) return rv;
@@ -1478,25 +1483,25 @@ nsMessengerMigrator::MigratePopAccount(nsIMsgIdentity *identity)
   }
 
   // we want .../Mail/<hostname>, not .../Mail
-  // Only host name is required 
+  // Only host name is required
   rv = mailDir->AppendNative(hostname);
   if (NS_FAILED(rv)) return rv;
-  
+
   // set the local path for this "pop3" server
   rv = server->SetLocalPath(localFile);
   if (NS_FAILED(rv)) return rv;
-    
+
   rv = localFile->Exists(&dirExists);
   if (!dirExists) {
     localFile->Create(nsIFile::DIRECTORY_TYPE, 0775);
   }
-    
-  // pass the pop server so the send later uri pref 
+
+  // pass the pop server so the send later uri pref
   // will be something like "mailbox://sspitzer@tintin/Unsent Messages"
   rv = SetSendLaterUriPref(server);
   if (NS_FAILED(rv)) return rv;
 
-  // Set check for new mail option for default account to TRUE 
+  // Set check for new mail option for default account to TRUE
   rv = server->SetLoginAtStartUp(PR_TRUE);
 
   // create the identity
@@ -1505,12 +1510,12 @@ nsMessengerMigrator::MigratePopAccount(nsIMsgIdentity *identity)
   if (NS_FAILED(rv)) return rv;
 
   // Create an account when valid server and identity values are established.
-  // This will keep the status of accounts sane by avoiding the addition of incomplete accounts. 
+  // This will keep the status of accounts sane by avoiding the addition of incomplete accounts.
   nsCOMPtr<nsIMsgAccount> account;
   rv = accountManager->CreateAccount(getter_AddRefs(account));
   if (NS_FAILED(rv)) return rv;
 
-  // hook the server to the account 
+  // hook the server to the account
   // before setting the copies and folder prefs
   // (see bug #31904)
   // but after we set the server's local path
@@ -1529,10 +1534,10 @@ nsMessengerMigrator::MigratePopAccount(nsIMsgIdentity *identity)
 
   rv = SetMailCopiesAndFolders(copied_identity, username.get(), hostname.get());
   if (NS_FAILED(rv)) return rv;
-  
+
   return rv;
 }
-nsresult 
+nsresult
 nsMessengerMigrator::SetSendLaterUriPref(nsIMsgIncomingServer *server)
 {
 	nsresult rv;
@@ -1541,7 +1546,7 @@ nsMessengerMigrator::SetSendLaterUriPref(nsIMsgIncomingServer *server)
 	// mailbox://nobody@Local Folders/Unsent Messages"
 	// mailbox://sspitzer@tintin/Unsent Messages"
 	//
-	// note, the schema is mailbox:/ 
+	// note, the schema is mailbox:/
 	// Unsent is an off-line thing, and that needs to be
 	// on the disk, not on an imap server.
 	nsXPIDLCString username;
@@ -1569,11 +1574,11 @@ nsMessengerMigrator::MigrateOldMailPrefs(nsIMsgIncomingServer * server)
 {
   nsresult rv;
 
-  // don't migrate the remember password pref.  see bug #42216 
+  // don't migrate the remember password pref.  see bug #42216
   //MIGRATE_SIMPLE_BOOL_PREF(PREF_4X_MAIL_REMEMBER_PASSWORD,server,SetRememberPassword)
   rv = server->SetRememberPassword(PR_FALSE);
   if (NS_FAILED(rv)) return rv;
-  
+
   rv = server->SetPassword(nsnull);
   if (NS_FAILED(rv)) return rv;
 
@@ -1585,7 +1590,7 @@ nsMessengerMigrator::MigrateOldMailPrefs(nsIMsgIncomingServer * server)
   popServer = do_QueryInterface(server, &rv);
   if (NS_SUCCEEDED(rv) && popServer) {
 	  MIGRATE_SIMPLE_BOOL_PREF(PREF_4X_MAIL_LEAVE_ON_SERVER,popServer,SetLeaveMessagesOnServer)
-	  MIGRATE_SIMPLE_BOOL_PREF(PREF_4X_MAIL_DELETE_MAIL_LEFT_ON_SERVER,popServer,SetDeleteMailLeftOnServer) 
+	  MIGRATE_SIMPLE_BOOL_PREF(PREF_4X_MAIL_DELETE_MAIL_LEFT_ON_SERVER,popServer,SetDeleteMailLeftOnServer)
   }
   else {
 	// could be a movemail server, in that case do nothing.
@@ -1604,20 +1609,20 @@ nsMessengerMigrator::MigrateImapAccounts(nsIMsgIdentity *identity)
 
   rv = m_prefs->GetCharPref(PREF_4X_NETWORK_HOSTS_IMAP_SERVER, &hostList);
   if (NS_FAILED(rv)) return rv;
-  
+
   if (!hostList || !*hostList) return NS_OK;  // NS_ERROR_FAILURE?
-  
+
   char *token = nsnull;
   char *rest = hostList;
   nsCAutoString str;
 
   PRBool isDefaultAccount = PR_TRUE;
-      
+
   token = nsCRT::strtok(rest, ",", &rest);
   while (token && *token) {
     str = token;
     str.StripWhitespace();
-    
+
     if (!str.IsEmpty()) {
       // str is the hostname
       rv = MigrateImapAccount(identity,str.get(),isDefaultAccount);
@@ -1639,14 +1644,14 @@ nsMessengerMigrator::MigrateImapAccounts(nsIMsgIdentity *identity)
 nsresult
 nsMessengerMigrator::MigrateImapAccount(nsIMsgIdentity *identity, const char *hostAndPort, PRBool isDefaultAccount)
 {
-  nsresult rv;  
+  nsresult rv;
 
-  nsCOMPtr<nsIMsgAccountManager> accountManager = 
+  nsCOMPtr<nsIMsgAccountManager> accountManager =
            do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
   if (NS_FAILED(rv)) return rv;
 
   if (!hostAndPort) return NS_ERROR_NULL_POINTER;
- 
+
   // get the old username
   nsXPIDLCString username;
   char *imapUsernamePref =
@@ -1708,7 +1713,7 @@ nsMessengerMigrator::MigrateImapAccount(nsIMsgIdentity *identity, const char *ho
   // is called here after all port settings are taken care of.
   // Port values, if not default, will be used as a part of pretty name.
   nsXPIDLString prettyName;
-  rv = server->GeneratePrettyNameForMigration(getter_Copies(prettyName));  
+  rv = server->GeneratePrettyNameForMigration(getter_Copies(prettyName));
   NS_ENSURE_SUCCESS(rv,rv);
 
   // Set pretty name for the account with this server
@@ -1740,7 +1745,7 @@ nsMessengerMigrator::MigrateImapAccount(nsIMsgIdentity *identity, const char *ho
   rv = m_prefs->GetComplexValue(PREF_IMAP_DIRECTORY, NS_GET_IID(nsILocalFile), getter_AddRefs(localFile));
   if (NS_SUCCEEDED(rv))
     imapMailDir = localFile;
-  
+
   if (!imapMailDir) {
     // we want <profile>/ImapMail
     rv = NS_GetSpecialDirectory(NS_APP_IMAP_MAIL_50_DIR, getter_AddRefs(imapMailDir));
@@ -1752,7 +1757,7 @@ nsMessengerMigrator::MigrateImapAccount(nsIMsgIdentity *identity, const char *ho
   if (NS_SUCCEEDED(rv) && !dirExists)
     rv = imapMailDir->Create(nsIFile::DIRECTORY_TYPE, 0775);
   if (NS_FAILED(rv)) return rv;
-  
+
   // we only need to do this once
   if (!m_alreadySetImapDefaultLocalPath) {
     // set the default local path for "imap"
@@ -1761,7 +1766,7 @@ nsMessengerMigrator::MigrateImapAccount(nsIMsgIdentity *identity, const char *ho
 
     m_alreadySetImapDefaultLocalPath = PR_TRUE;
   }
-  
+
   // we want .../ImapMail/<hostname>, not .../ImapMail
   rv = localFile->AppendNative(hostname);
   if (NS_FAILED(rv)) return rv;
@@ -1769,19 +1774,19 @@ nsMessengerMigrator::MigrateImapAccount(nsIMsgIdentity *identity, const char *ho
   // set the local path for this "imap" server
   rv = server->SetLocalPath(localFile);
   if (NS_FAILED(rv)) return rv;
-  
+
   // create the identity
   nsCOMPtr<nsIMsgIdentity> copied_identity;
   rv = accountManager->CreateIdentity(getter_AddRefs(copied_identity));
   if (NS_FAILED(rv)) return rv;
 
   // Create an account when valid server and identity values are established.
-  // This will keep the status of accounts sane by avoiding the addition of incomplete accounts. 
+  // This will keep the status of accounts sane by avoiding the addition of incomplete accounts.
   nsCOMPtr<nsIMsgAccount> account;
   rv = accountManager->CreateAccount(getter_AddRefs(account));
   if (NS_FAILED(rv)) return rv;
 
-  // hook the server to the account 
+  // hook the server to the account
   // before setting the copies and folder prefs
   // (see bug #31904)
   // but after we set the server's local path
@@ -1793,16 +1798,16 @@ nsMessengerMigrator::MigrateImapAccount(nsIMsgIdentity *identity, const char *ho
   // that we created out of the 4.x prefs
   rv = copied_identity->Copy(identity);
   if (NS_FAILED(rv)) return rv;
-  
+
   rv = SetMailCopiesAndFolders(copied_identity, username.get(), hostname.get());
-  if (NS_FAILED(rv)) return rv;  
-  
- 
+  if (NS_FAILED(rv)) return rv;
+
+
   if (isDefaultAccount) {
     rv = accountManager->SetDefaultAccount(account);
     if (NS_FAILED(rv)) return rv;
 
-    // Set check for new mail option for default account to TRUE 
+    // Set check for new mail option for default account to TRUE
     rv = server->SetLoginAtStartUp(PR_TRUE);
   }
 
@@ -1820,7 +1825,7 @@ nsMessengerMigrator::MigrateOldImapPrefs(nsIMsgIncomingServer *server, const cha
   if (NS_FAILED(rv)) return rv;
 
   // upgrade the msg incoming server prefs
-  // don't migrate the remember password pref.  see bug #42216 
+  // don't migrate the remember password pref.  see bug #42216
   //MIGRATE_BOOL_PREF("mail.imap.server.%s.remember_password",hostAndPort,server,SetRememberPassword)
   rv = server->SetRememberPassword(PR_FALSE);
   if (NS_FAILED(rv)) return rv;
@@ -1852,7 +1857,7 @@ nsMessengerMigrator::MigrateOldImapPrefs(nsIMsgIncomingServer *server, const cha
   return NS_OK;
 }
 
-nsresult 
+nsresult
 nsMessengerMigrator::MigrateAddressBookPrefs()
 {
   nsresult rv;
@@ -1898,25 +1903,25 @@ nsMessengerMigrator::MigrateNewsAccounts(nsIMsgIdentity *identity)
     rv = NS_ERROR_FAILURE;
 #endif /* USE_NEWSRC_MAP_FILE */
 
-    if (!newsDir) {	    
+    if (!newsDir) {
 	    rv = NS_GetSpecialDirectory(NS_APP_NEWS_50_DIR, getter_AddRefs(newsDir));
 	    if (NS_FAILED(rv)) return rv;
     }
- 
+
     PRBool dirExists;
     rv = newsDir->Exists(&dirExists);
     if (NS_SUCCEEDED(rv) && !dirExists)
       newsDir->Create(nsIFile::DIRECTORY_TYPE, 0775);
     if (NS_FAILED(rv)) return rv;
-    
+
     // TODO: convert users os nsIFileSpec to nsILocalFile
     // and avoid this step.
     nsCAutoString pathBuf;
     rv = newsDir->GetNativePath(pathBuf);
     if (NS_FAILED(rv)) return rv;
-    newsHostsDir = pathBuf.get();    
-    
-#ifdef USE_NEWSRC_MAP_FILE	
+    newsHostsDir = pathBuf.get();
+
+#ifdef USE_NEWSRC_MAP_FILE
     // if we are using the fat file, it lives in the newsHostsDir.
     newsrcDir = newsHostsDir;
 
@@ -1940,57 +1945,57 @@ nsMessengerMigrator::MigrateNewsAccounts(nsIMsgIdentity *identity)
     }
 
     nsInputFileStream inputStream(fatFile);
-	
+
 	// if it exists, but it is empty, just return and handle it gracefully
     if (inputStream.eof()) {
       inputStream.close();
       return NS_OK;
     }
-	
+
     /* we expect the first line to be NEWSRC_MAP_FILE_COOKIE */
     ok = inputStream.readline(buffer, sizeof(buffer));
-	
+
     if ((!ok) || (PL_strncmp(buffer, NEWSRC_MAP_FILE_COOKIE, PL_strlen(NEWSRC_MAP_FILE_COOKIE)))) {
 		inputStream.close();
 		return NS_ERROR_FAILURE;
-	}   
-	
+	}
+
 	while (!inputStream.eof()) {
 		char * p;
 		PRInt32 i;
-		
+
 		ok = inputStream.readline(buffer, sizeof(buffer));
 		if (!ok) {
 			inputStream.close();
 			return NS_ERROR_FAILURE;
-		}  
-		
+		}
+
 		/* TODO: replace this with nsString code? */
 
 		/*
 		This used to be scanf() call which would incorrectly
 		parse long filenames with spaces in them.  - JRE
 		*/
-		
+
 		filename[0] = '\0';
 		is_newsgroup[0]='\0';
-		
+
 		for (i = 0, p = buffer; *p && *p != '\t' && i < 500; p++, i++)
 			pseudo_name[i] = *p;
 		pseudo_name[i] = '\0';
-		if (*p) 
+		if (*p)
 		{
 			for (i = 0, p++; *p && *p != '\t' && i < 500; p++, i++)
 				filename[i] = *p;
 			filename[i]='\0';
-			if (*p) 
+			if (*p)
 			{
 				for (i = 0, p++; *p && *p != '\r' && i < 500; p++, i++)
 					is_newsgroup[i] = *p;
 				is_newsgroup[i]='\0';
 			}
 		}
-		
+
 		if(PL_strncmp(is_newsgroup, "TRUE", 4)) {
 #ifdef NEWS_FAT_STORES_ABSOLUTE_NEWSRC_FILE_PATHS
 			// most likely, the fat file has been copied (or moved ) from
@@ -2008,7 +2013,7 @@ nsMessengerMigrator::MigrateNewsAccounts(nsIMsgIdentity *identity)
 			rcFile += filename;
 #endif /* NEWS_FAT_STORES_ABSOLUTE_NEWSRC_FILE_PATHS */
 
-			// pseudo-name is of the form newsrc-<host> or snewsrc-<host>.  
+			// pseudo-name is of the form newsrc-<host> or snewsrc-<host>.
 			if (PL_strncmp(PSEUDO_NAME_PREFIX,pseudo_name,PL_strlen(PSEUDO_NAME_PREFIX)) == 0) {
                 // check that there is a hostname to get after the "newsrc-" part
                 NS_ASSERTION(PL_strlen(pseudo_name) > PL_strlen(PSEUDO_NAME_PREFIX), "pseudo_name is too short");
@@ -2042,14 +2047,14 @@ nsMessengerMigrator::MigrateNewsAccounts(nsIMsgIdentity *identity)
             }
 		}
 	}
-	
+
 	inputStream.close();
 #else /* USE_NEWSRC_MAP_FILE */
     nsCOMPtr<nsILocalFile> prefLocal;
     rv = m_prefs->GetComplexValue(PREF_NEWS_DIRECTORY, NS_GET_IID(nsILocalFile), getter_AddRefs(prefLocal));
     if (NS_FAILED(rv)) return rv;
     newsDir = prefLocal;
-    
+
     {
         nsCAutoString pathBuf;
         newsDir->GetNativePath(pathBuf);
@@ -2061,7 +2066,7 @@ nsMessengerMigrator::MigrateNewsAccounts(nsIMsgIdentity *identity)
       nsFileSpec possibleRcFile = i.Spec();
 
       char *filename = possibleRcFile.GetLeafName();
-      
+
       if ((PL_strncmp(NEWSRC_FILE_PREFIX_IN_5x, filename, PL_strlen(NEWSRC_FILE_PREFIX_IN_5x)) == 0) && (PL_strlen(filename) > PL_strlen(NEWSRC_FILE_PREFIX_IN_5x))) {
 #ifdef DEBUG_MIGRATOR
         printf("found a newsrc file: %s\n", filename);
@@ -2096,9 +2101,9 @@ nsMessengerMigrator::MigrateNewsAccounts(nsIMsgIdentity *identity)
 
 nsresult
 nsMessengerMigrator::MigrateNewsAccount(nsIMsgIdentity *identity, const char *hostAndPort, nsFileSpec & newsrcfile, nsFileSpec & newsHostsDir, PRBool isSecure)
-{  
+{
 	nsresult rv;
-    nsCOMPtr<nsIMsgAccountManager> accountManager = 
+    nsCOMPtr<nsIMsgAccountManager> accountManager =
              do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
     if (NS_FAILED(rv)) return rv;
 
@@ -2125,7 +2130,7 @@ nsMessengerMigrator::MigrateNewsAccount(nsIMsgIdentity *identity, const char *ho
     rv = accountManager->CreateIncomingServer(nsnull /* username */, hostname.get(), "nntp",
                               getter_AddRefs(server));
     NS_ENSURE_SUCCESS(rv,rv);
- 
+
     if (port > 0) {
         rv = server->SetPort(port);
         NS_ENSURE_SUCCESS(rv,rv);
@@ -2134,7 +2139,7 @@ nsMessengerMigrator::MigrateNewsAccount(nsIMsgIdentity *identity, const char *ho
         if (isSecure) {
             nsCOMPtr <nsIMsgProtocolInfo> protocolInfo = do_GetService("@mozilla.org/messenger/protocol/info;1?type=nntp", &rv);
             NS_ENSURE_SUCCESS(rv,rv);
-    
+
             rv = protocolInfo->GetDefaultServerPort(PR_TRUE, &port);
             NS_ENSURE_SUCCESS(rv,rv);
 
@@ -2167,7 +2172,7 @@ nsMessengerMigrator::MigrateNewsAccount(nsIMsgIdentity *identity, const char *ho
       // we really want <profile>/News or /home/sspitzer/
       // not <profile>/News/news.rc or /home/sspitzer/.newsrc-news
       if (NS_FAILED(rv)) return rv;
-            
+
       nsCOMPtr<nsINntpIncomingServer> nntpServer;
       nntpServer = do_QueryInterface(server, &rv);
       if (NS_FAILED(rv)) return rv;
@@ -2177,15 +2182,15 @@ nsMessengerMigrator::MigrateNewsAccount(nsIMsgIdentity *identity, const char *ho
 
       m_alreadySetNntpDefaultLocalPath = PR_TRUE;
     }
-    
+
 #ifdef DEBUG_MIGRATOR
     printf("migrate old nntp prefs\n");
 #endif /* DEBUG_MIGRATOR */
 
     rv = MigrateOldNntpPrefs(server, hostAndPort, newsrcfile);
     if (NS_FAILED(rv)) return rv;
-		
-	// can't do dir += "host-"; dir += hostname; 
+
+	// can't do dir += "host-"; dir += hostname;
 	// because += on a nsFileSpec inserts a separator
 	// so we'd end up with host-/<hostname> and not host-<hostname>
 	nsCAutoString alteredHost;
@@ -2200,7 +2205,7 @@ nsMessengerMigrator::MigrateNewsAccount(nsIMsgIdentity *identity, const char *ho
     // we have to use PRUnichar-version of NS_MsgHashIfNecessary
     // (ref. bug 264071)
 	alteredHost += hostAndPort;
-	NS_MsgHashIfNecessary(alteredHost);	
+	NS_MsgHashIfNecessary(alteredHost);
 	thisNewsHostsDir += alteredHost.get();
 
     nsCOMPtr <nsIFileSpec> newsDir;
@@ -2215,12 +2220,12 @@ nsMessengerMigrator::MigrateNewsAccount(nsIMsgIdentity *identity, const char *ho
   if (NS_FAILED(rv)) return rv;
 
   // Create an account when valid server and identity values are established.
-  // This will keep the status of accounts sane by avoiding the addition of incomplete accounts. 
+  // This will keep the status of accounts sane by avoiding the addition of incomplete accounts.
   nsCOMPtr<nsIMsgAccount> account;
   rv = accountManager->CreateAccount(getter_AddRefs(account));
   if (NS_FAILED(rv)) return rv;
 
-  // hook the server to the account 
+  // hook the server to the account
   // before setting the copies and folder prefs
   // (see bug #31904)
   // but after we set the server's local path
@@ -2243,7 +2248,7 @@ nsresult
 nsMessengerMigrator::MigrateOldNntpPrefs(nsIMsgIncomingServer *server, const char *hostAndPort, nsFileSpec & newsrcfile)
 {
   nsresult rv;
-  
+
   // some of this ought to be moved out into the NNTP implementation
   nsCOMPtr<nsINntpIncomingServer> nntpServer;
   nntpServer = do_QueryInterface(server, &rv);
@@ -2252,18 +2257,18 @@ nsMessengerMigrator::MigrateOldNntpPrefs(nsIMsgIncomingServer *server, const cha
   MIGRATE_SIMPLE_BOOL_PREF(PREF_4X_NEWS_NOTIFY_ON,nntpServer,SetNotifyOn)
   MIGRATE_SIMPLE_BOOL_PREF(PREF_4X_NEWS_MARK_OLD_READ,nntpServer,SetMarkOldRead)
   MIGRATE_SIMPLE_INT_PREF(PREF_4X_NEWS_MAX_ARTICLES,nntpServer,SetMaxArticles)
- 
+
   /* in 4.x, news username and passwords did not persist beyond the session
    * so we don't need to call server->SetRememberPassword(PR_FALSE);
    * doing so is also bad since it will call nsNntpIncomingServer::ForgetPassword()
-   * which fail since don't have any subfolders (newgroups) yet. 
+   * which fail since don't have any subfolders (newgroups) yet.
    */
-	
+
   // Create nsILocalFile from a nsFileSpec.
   nsCOMPtr <nsILocalFile> outputFile;
-  NS_FileSpecToIFile(&newsrcfile, getter_AddRefs(outputFile)); 
+  NS_FileSpecToIFile(&newsrcfile, getter_AddRefs(outputFile));
 
   nntpServer->SetNewsrcFilePath(outputFile);
-    
+
   return NS_OK;
 }

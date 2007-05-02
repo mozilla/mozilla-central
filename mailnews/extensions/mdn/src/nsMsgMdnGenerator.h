@@ -99,7 +99,7 @@ private:
     nsCOMPtr<nsIFile> m_file;
     nsCOMPtr<nsIMsgIdentity> m_identity;
     nsXPIDLCString m_charset;
-    nsXPIDLCString m_email;
+    nsCString m_email;
     nsXPIDLCString m_mimeSeparator;
     nsXPIDLCString m_messageId;
     nsCOMPtr<nsIMsgFolder> m_folder;

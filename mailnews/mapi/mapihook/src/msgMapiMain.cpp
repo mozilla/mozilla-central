@@ -118,7 +118,7 @@ void nsMAPIConfiguration::OpenConfiguration()
 PRInt16 nsMAPIConfiguration::RegisterSession(PRUint32 aHwnd,
                 const PRUnichar *aUserName, const PRUnichar *aPassword,
                 PRBool aForceDownLoad, PRBool aNewSession,
-                PRUint32 *aSession, char *aIdKey)
+                PRUint32 *aSession, const char *aIdKey)
 {
     PRInt16 nResult = 0;
     PRUint32 n_SessionId = 0;
@@ -289,22 +289,18 @@ void nsMAPIConfiguration::SetMapiListContext(PRUint32 aSessionID, void *mapiList
     PR_Unlock(m_Lock);
 }
 
-char *nsMAPIConfiguration::GetIdKey(PRUint32 aSessionID)
+void nsMAPIConfiguration::GetIdKey(PRUint32 aSessionID, nsCString& aKey)
 {
-    char *pResult = nsnull;
-
     PR_Lock(m_Lock);
-
     if (aSessionID != 0)
     {
-        nsPRUintKey sessionKey(aSessionID);
-        nsMAPISession *pTemp = (nsMAPISession *)m_SessionMap.Get(&sessionKey);
-        if (pTemp)
-           pResult = pTemp->GetIdKey();
+      nsPRUintKey sessionKey(aSessionID);
+      nsMAPISession *pTemp = (nsMAPISession *)m_SessionMap.Get(&sessionKey);
+      if (pTemp)
+        pTemp->GetIdKey(aKey);
     }
-
     PR_Unlock(m_Lock);
-    return pResult;
+    return;
 }
 
 // util func
@@ -354,7 +350,7 @@ HRESULT nsMAPIConfiguration::GetMAPIErrorFromNSError (nsresult res)
 
 nsMAPISession::nsMAPISession(PRUint32 aHwnd, const PRUnichar *aUserName,\
                              const PRUnichar *aPassword, \
-                             PRBool aForceDownLoad, char *aKey)
+                             PRBool aForceDownLoad, const char *aKey)
 : m_bIsForcedDownLoad(aForceDownLoad),
   m_hAppHandle(aHwnd),
   m_nShared(1),
@@ -367,11 +363,6 @@ nsMAPISession::nsMAPISession(PRUint32 aHwnd, const PRUnichar *aUserName,\
 
 nsMAPISession::~nsMAPISession()
 {
-    if (m_pIdKey != nsnull)
-    {
-        delete [] m_pIdKey;
-        m_pIdKey = nsnull;
-    }
 }
 
 PRUint32 nsMAPISession::IncrementSession()
@@ -394,8 +385,9 @@ PRUnichar *nsMAPISession::GetPassword()
     return (PRUnichar *)m_pPassword.get();
 }
 
-char *nsMAPISession::GetIdKey()
+void nsMAPISession::GetIdKey(nsCString& aKey)
 {
-    return m_pIdKey;
+  aKey = m_pIdKey;
+  return;
 }
 

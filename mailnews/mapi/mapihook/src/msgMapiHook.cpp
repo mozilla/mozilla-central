@@ -254,11 +254,11 @@ PRBool nsMapiHook::DisplayLoginDialog(PRBool aLogin, PRUnichar **aUsername,
     return btnResult;
 }
 
-PRBool nsMapiHook::VerifyUserName(const PRUnichar *aUsername, char **aIdKey)
+PRBool nsMapiHook::VerifyUserName(const nsString& aUsername, nsCString& aIdKey)
 {
     nsresult rv;
 
-    if (aUsername == nsnull)
+    if (aUsername.IsEmpty())
         return PR_FALSE;
 
     nsCOMPtr<nsIMsgAccountManager> accountManager(do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv));
@@ -278,17 +278,16 @@ PRBool nsMapiHook::VerifyUserName(const PRUnichar *aUsername, char **aIdKey)
         nsCOMPtr<nsIMsgIdentity> thisIdentity(do_QueryInterface(thisSupports, &rv));
         if (NS_SUCCEEDED(rv) && thisIdentity)
         {
-            nsXPIDLCString email;
-            rv = thisIdentity->GetEmail(getter_Copies(email));
+            nsCString email;
+            rv = thisIdentity->GetEmail(email);
             if (NS_FAILED(rv)) continue;
 
             // get the username from the email and compare with the username
-            nsCAutoString aEmail(email.get());
-            PRInt32 index = aEmail.FindChar('@');
+            PRInt32 index = email.FindChar('@');
             if (index != -1)
-                aEmail.Truncate(index);
+                email.Truncate(index);
 
-			if (nsDependentString(aUsername) == NS_ConvertASCIItoUTF16(aEmail))  // == overloaded
+            if (aUsername.Equals(NS_ConvertASCIItoUTF16(email)))
                 return NS_SUCCEEDED(thisIdentity->GetKey(aIdKey));
         }
     }
@@ -368,14 +367,15 @@ nsresult nsMapiHook::BlindSendMail (unsigned long aSession, nsIMsgCompFields * a
     nsCAutoString smtpPassword ;
     smtpPassword.AssignWithConversion (password) ;
     // Id key
-    char * MsgIdKey = pMapiConfig->GetIdKey(aSession) ;
+    nsCString MsgIdKey;
+    pMapiConfig->GetIdKey(aSession, MsgIdKey);
 
     // get the MsgIdentity for the above key using AccountManager
     nsCOMPtr <nsIMsgAccountManager> accountManager = do_GetService (NS_MSGACCOUNTMANAGER_CONTRACTID) ;
     if (NS_FAILED(rv) || (!accountManager) ) return rv ;
 
     nsCOMPtr <nsIMsgIdentity> pMsgId ;
-    rv = accountManager->GetIdentity (MsgIdKey, getter_AddRefs(pMsgId)) ;
+    rv = accountManager->GetIdentity (MsgIdKey.get(), getter_AddRefs(pMsgId)) ;
     if (NS_FAILED(rv) ) return rv ;
 
     // create a send listener to get back the send status

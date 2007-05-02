@@ -647,13 +647,9 @@ nsMsgSendLater::StartNextMailFileSend()
 NS_IMETHODIMP 
 nsMsgSendLater::GetUnsentMessagesFolder(nsIMsgIdentity *aIdentity, nsIMsgFolder **folder)
 {
-  char *uri = GetFolderURIFromUserPrefs(nsIMsgSend::nsMsgQueueForLater, aIdentity);
-
-  if (!uri)
-    return NS_ERROR_OUT_OF_MEMORY;
-
-  nsresult rv = LocateMessageFolder(aIdentity, nsIMsgSend::nsMsgQueueForLater, uri, folder);
-  PR_Free(uri);
+  nsCString uri;
+  GetFolderURIFromUserPrefs(nsIMsgSend::nsMsgQueueForLater, aIdentity, uri);
+  nsresult rv = LocateMessageFolder(aIdentity, nsIMsgSend::nsMsgQueueForLater, uri.get(), folder);
   return rv;
 }
 
@@ -1247,8 +1243,8 @@ nsMsgSendLater::GetIdentityFromKey(const char *aKey, nsIMsgIdentity  **aIdentity
         if (NS_FAILED(rv))
           continue;
 
-        nsXPIDLCString key;
-        lookupIdentity->GetKey(getter_Copies(key));
+        nsCString key;
+        lookupIdentity->GetKey(key);
         if (key.Equals(aKey))
         {
           NS_IF_ADDREF(*aIdentity = lookupIdentity);

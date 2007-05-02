@@ -56,19 +56,19 @@ private:
   nsCOMPtr<nsIPrefBranch> mDefPrefBranch;
 
 protected:
-  nsresult getFolderPref(const char *pref, char **, PRUint32);
-  nsresult setFolderPref(const char *pref, const char *, PRUint32);
+  nsresult getFolderPref(const char *pref, nsCString&, PRUint32);
+  nsresult setFolderPref(const char *pref, const nsCString&, PRUint32);
 };
 
 
 #define NS_IMPL_IDPREF_STR(_postfix, _prefname) \
 NS_IMETHODIMP                                   \
-nsMsgIdentity::Get##_postfix(char **retval)     \
+nsMsgIdentity::Get##_postfix(nsACString& retval)     \
 {                                               \
   return GetCharAttribute(_prefname, retval);   \
 }                                               \
 NS_IMETHODIMP                                   \
-nsMsgIdentity::Set##_postfix(const char *value) \
+nsMsgIdentity::Set##_postfix(const nsACString& value) \
 {                                               \
   return SetCharAttribute(_prefname, value);    \
 }
@@ -109,17 +109,20 @@ nsMsgIdentity::Set##_postfix(PRInt32 value)         \
   return mPrefBranch->SetIntPref(_prefname, value); \
 }
 
-
 #define NS_IMPL_FOLDERPREF_STR(_postfix, _prefname, _flag) \
 NS_IMETHODIMP                                              \
-nsMsgIdentity::Get##_postfix(char **retval)                \
+nsMsgIdentity::Get##_postfix(nsACString& retval)                \
 {                                                          \
-  return getFolderPref(_prefname, retval, _flag);          \
+  nsresult rv;                                             \
+  nsCString folderPref;                                    \
+  rv = getFolderPref(_prefname, folderPref, _flag);        \
+  retval = folderPref;                                     \
+  return rv;                                               \
 }                                                          \
 NS_IMETHODIMP                                              \
-nsMsgIdentity::Set##_postfix(const char *value)            \
+nsMsgIdentity::Set##_postfix(const nsACString& value)      \
 {                                                          \
-  return setFolderPref(_prefname, value, _flag);           \
+  return setFolderPref(_prefname, nsCString(value), _flag); \
 }
 
 #endif /* nsMsgIdentity_h___ */

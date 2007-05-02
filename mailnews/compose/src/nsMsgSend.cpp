@@ -2032,8 +2032,8 @@ nsMsgComposeAndSend::ProcessMultipartRelated(PRInt32 *aMailboxCount, PRInt32 *aN
       //
       // Next, generate a content id for use with this part
       //    
-      nsXPIDLCString email;
-      mUserIdentity->GetEmail(getter_Copies(email));
+      nsCString email;
+      mUserIdentity->GetEmail(email);
       m_attachments[i].m_content_id = mime_gen_content_id(locCount+1, email.get());  
   
       if (!m_attachments[i].m_content_id)
@@ -3006,14 +3006,12 @@ nsMsgComposeAndSend::InitCompositionFields(nsMsgCompFields *fields,
 
       if (useDefaultFCC)
       {
-        char *uri = GetFolderURIFromUserPrefs(nsMsgDeliverNow, mUserIdentity);
-        if ( (uri) && (*uri) )
-        {
-          mCompFields->SetFcc(PL_strcasecmp(uri, "nocopy://") ? uri : "");
-          PL_strfree(uri);
-        }
+        nsCString uri;
+        GetFolderURIFromUserPrefs(nsMsgDeliverNow, mUserIdentity, uri);
+        if (!uri.IsEmpty())
+          mCompFields->SetFcc(PL_strcasecmp(uri.get(), "nocopy://") ? uri.get() : "");
         else
-					mCompFields->SetFcc("");
+          mCompFields->SetFcc("");
       }
     }
   }
@@ -3126,10 +3124,9 @@ nsMsgComposeAndSend::InitCompositionFields(nsMsgCompFields *fields,
 // them and add them to the other custom headers.
 nsresult
 nsMsgComposeAndSend::AddDefaultCustomHeaders() {
-  nsXPIDLCString headersList;
+  nsCString headersList;
   // get names of prefs containing headers to add
-  nsresult rv = mUserIdentity->GetCharAttribute("headers",
-                                                getter_Copies(headersList));
+  nsresult rv = mUserIdentity->GetCharAttribute("headers", headersList);
   if (NS_SUCCEEDED(rv) && !headersList.IsEmpty()) {
     PRInt32 start = 0;
     PRInt32 end = 0;
@@ -3149,9 +3146,8 @@ nsMsgComposeAndSend::AddDefaultCustomHeaders() {
                                Substring(headersList, start, len));
       start = end + 1;
       
-      nsXPIDLCString headerVal;
-      rv = mUserIdentity->GetCharAttribute(headerName.get(),
-                                           getter_Copies(headerVal));
+      nsCString headerVal;
+      rv = mUserIdentity->GetCharAttribute(headerName.get(), headerVal);
       if (NS_SUCCEEDED(rv)) {
         PRInt32 colonIdx = headerVal.FindChar(':') + 1;
         if (colonIdx != 0) { // check that the header is *most likely* valid.
@@ -4387,7 +4383,7 @@ nsMsgComposeAndSend::MimeDoFCC(nsIFile          *input_file,
   char          *obuffer = 0;
   PRUint32      n;
   PRBool        folderIsLocal = PR_TRUE;
-  char          *turi = nsnull;
+  nsCString     turi;
   PRUnichar     *printfString = nsnull;
   nsXPIDLString folderName;
   nsXPIDLString msg; 
@@ -4482,10 +4478,10 @@ nsMsgComposeAndSend::MimeDoFCC(nsIFile          *input_file,
 
   (void)GetExistingFolder(fcc_header, getter_AddRefs(folder));
   if ((mode == nsMsgDeliverNow || mode == nsMsgSendUnsent) && folder)
-    turi = PL_strdup(fcc_header);
+    turi = fcc_header;
   else
-    turi = GetFolderURIFromUserPrefs(mode, mUserIdentity);
-  status = MessageFolderIsLocal(mUserIdentity, mode, turi, &folderIsLocal);
+    GetFolderURIFromUserPrefs(mode, mUserIdentity, turi);
+  status = MessageFolderIsLocal(mUserIdentity, mode, turi.get(), &folderIsLocal);
   if (NS_FAILED(status))
     goto FAIL;
 
@@ -4497,7 +4493,7 @@ nsMsgComposeAndSend::MimeDoFCC(nsIFile          *input_file,
     if (rdfService)
     {
       nsCOMPtr<nsIRDFResource> res;
-      rdfService->GetResource(nsDependentCString(turi), getter_AddRefs(res));
+      rdfService->GetResource(turi, getter_AddRefs(res));
       nsCOMPtr<nsIMsgFolder> folder = do_QueryInterface(res);
       if (folder)
         folder->GetName(getter_Copies(folderName));
@@ -4646,11 +4642,12 @@ nsMsgComposeAndSend::MimeDoFCC(nsIFile          *input_file,
      && ( mUserIdentity )
      )
   {
-    char *buf = nsnull, *key = nsnull;
+    char *buf = nsnull;
+    nsCString key;
 
-    if (NS_SUCCEEDED(mUserIdentity->GetKey(&key)) && (key))
+    if (NS_SUCCEEDED(mUserIdentity->GetKey(key)) && !key.IsEmpty())
     {
-      buf = PR_smprintf(HEADER_X_MOZILLA_IDENTITY_KEY ": %s" CRLF, key);
+      buf = PR_smprintf(HEADER_X_MOZILLA_IDENTITY_KEY ": %s" CRLF, key.get());
       if (buf)
       {
         PRUint32 len = strlen(buf);
@@ -4837,20 +4834,16 @@ FAIL:
   nsCOMPtr <nsIFile> clonedFile;
   mCopyFile->Clone(getter_AddRefs(clonedFile));
   mCopyFile = clonedFile;
-  // 
+
   // When we get here, we have to see if we have been successful so far.
   // If we have, then we should start up the async copy service operation.
   // If we weren't successful, then we should just return the error and 
   // bail out.
-  //
   if (NS_SUCCEEDED(status))
   {
-    //
     // If we are here, time to start the async copy service operation!
-    //
     status = StartMessageCopyOperation(mCopyFile, mode, turi);
   }
-  PR_Free(turi);
   return status;
 }
 
@@ -4861,7 +4854,7 @@ FAIL:
 nsresult 
 nsMsgComposeAndSend::StartMessageCopyOperation(nsIFile          *aFile,
                                                nsMsgDeliverMode mode,
-                                               char             *dest_uri)
+                                               const nsCString& dest_uri)
 {
   mCopyObj = new nsMsgCopy();
   if (!mCopyObj)
@@ -4872,10 +4865,10 @@ nsMsgComposeAndSend::StartMessageCopyOperation(nsIFile          *aFile,
   // default to the default "Flagged" folder choices
   //
   nsresult    rv;
-  if (dest_uri && *dest_uri)
+  if (!dest_uri.IsEmpty())
     m_folderName = dest_uri;
   else
-    m_folderName = GetFolderURIFromUserPrefs(mode, mUserIdentity);
+    GetFolderURIFromUserPrefs(mode, mUserIdentity, m_folderName);
 
   if (mListener)
     mListener->OnGetDraftFolderURI(m_folderName.get());

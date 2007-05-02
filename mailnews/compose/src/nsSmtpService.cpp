@@ -842,10 +842,10 @@ nsSmtpService::GetSmtpServerByIdentity(nsIMsgIdentity *aSenderIdentity, nsISmtpS
 
   // First try the identity's preferred server
   if (aSenderIdentity) {
-      nsXPIDLCString smtpServerKey;
-      rv = aSenderIdentity->GetSmtpServerKey(getter_Copies(smtpServerKey));
+      nsCString smtpServerKey;
+      rv = aSenderIdentity->GetSmtpServerKey(smtpServerKey);
       if (NS_SUCCEEDED(rv) && !(smtpServerKey.IsEmpty()))
-          rv = GetServerByKey(smtpServerKey, aSmtpServer);
+          rv = GetServerByKey(smtpServerKey.get(), aSmtpServer);
   }
 
   // Fallback to the default

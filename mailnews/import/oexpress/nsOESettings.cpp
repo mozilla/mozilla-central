@@ -65,19 +65,19 @@
 
 class OESettings {
 public:
-	static HKEY	Find50Key( void);
-	static HKEY	Find40Key( void);
-	static HKEY FindAccountsKey( void);
+  static HKEY Find50Key( void);
+  static HKEY Find40Key( void);
+  static HKEY FindAccountsKey( void);
 
-	static PRBool DoImport( nsIMsgAccount **ppAccount);
+  static PRBool DoImport( nsIMsgAccount **ppAccount);
 
-	static PRBool DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount);
-	static PRBool DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount);
-	
-	static void SetIdentities( nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc, HKEY hKey);
-	static PRBool IdentityMatches( nsIMsgIdentity *pIdent, const char *pName, const char *pServer, const char *pEmail, const char *pReply, const char *pUserName);
+  static PRBool DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount);
+  static PRBool DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount);
 
-	static void SetSmtpServer( nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc, char *pServer, char *pUser);
+  static void SetIdentities( nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc, HKEY hKey);
+  static PRBool IdentityMatches( nsIMsgIdentity *pIdent, const char *pName, const char *pServer, const char *pEmail, const char *pReply, const char *pUserName);
+
+  static void SetSmtpServer( nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc, char *pServer, char *pUser);
   static nsresult GetAccountName(HKEY hKey, char *defaultName, nsString &acctName);
 };
 
@@ -109,40 +109,40 @@ NS_IMPL_ISUPPORTS1(nsOESettings, nsIImportSettings)
 
 NS_IMETHODIMP nsOESettings::AutoLocate(PRUnichar **description, nsIFileSpec **location, PRBool *_retval)
 {
-    NS_PRECONDITION(description != nsnull, "null ptr");
-    NS_PRECONDITION(_retval != nsnull, "null ptr");
-	if (!description || !_retval)
-		return( NS_ERROR_NULL_POINTER);
-	
-	*description = nsOEStringBundle::GetStringByID( OEIMPORT_NAME);
-	*_retval = PR_FALSE;
+  NS_PRECONDITION(description != nsnull, "null ptr");
+  NS_PRECONDITION(_retval != nsnull, "null ptr");
+  if (!description || !_retval)
+    return( NS_ERROR_NULL_POINTER);
 
-	if (location)
-		*location = nsnull;
-	HKEY	key;
-	key = OESettings::Find50Key();
-	if (key != nsnull) {
-		*_retval = PR_TRUE;
-		::RegCloseKey( key);
-	}
-	else {
-		key = OESettings::Find40Key();
-		if (key != nsnull) {
-			*_retval = PR_TRUE;
-			::RegCloseKey( key);
-		}
-	}
-	if (*_retval) {
-		key = OESettings::FindAccountsKey();
-		if (key == nsnull) {
-			*_retval = PR_FALSE;
-		}
-		else {
-			::RegCloseKey( key);
-		}
-	}
+  *description = nsOEStringBundle::GetStringByID( OEIMPORT_NAME);
+  *_retval = PR_FALSE;
 
-	return( NS_OK);
+  if (location)
+    *location = nsnull;
+  HKEY	key;
+  key = OESettings::Find50Key();
+  if (key != nsnull) {
+    *_retval = PR_TRUE;
+    ::RegCloseKey( key);
+  }
+  else {
+    key = OESettings::Find40Key();
+    if (key != nsnull) {
+      *_retval = PR_TRUE;
+      ::RegCloseKey( key);
+    }
+  }
+  if (*_retval) {
+    key = OESettings::FindAccountsKey();
+    if (key == nsnull) {
+      *_retval = PR_FALSE;
+    }
+    else {
+      ::RegCloseKey( key);
+    }
+  }
+
+  return( NS_OK);
 }
 
 NS_IMETHODIMP nsOESettings::SetLocation(nsIFileSpec *location)
@@ -501,43 +501,30 @@ PRBool OESettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pS
 
 PRBool OESettings::IdentityMatches( nsIMsgIdentity *pIdent, const char *pName, const char *pServer, const char *pEmail, const char *pReply, const char *pUserName)
 {
-	if (!pIdent)
-		return( PR_FALSE);
+  if (!pIdent)
+    return( PR_FALSE);
 
-	char *	pIName = nsnull;
-	char *	pIEmail = nsnull;
-	char *	pIReply = nsnull;
-	
-	PRBool	result = PR_TRUE;
+  nsCString pIEmail;
+  nsCString pIReply;
 
-	// The test here is:
-	// If the smtp host is the same
-	//	and the email address is the same (if it is supplied)
-	//	and the reply to address is the same (if it is supplied)
-	//	then we match regardless of the full name.
-	nsString ppIName;
+  PRBool  result = PR_TRUE;
 
-	nsresult rv = pIdent->GetFullName( ppIName);
-	rv = pIdent->GetEmail( &pIEmail);
-	rv = pIdent->GetReplyTo( &pIReply);
-	if (!ppIName.IsEmpty())
-		pIName = ToNewCString(ppIName);
+  // The test here is:
+  // If the smtp host is the same
+  //	and the email address is the same (if it is supplied)
+  //	and the reply to address is the same (if it is supplied)
+  //	then we match regardless of the full name.
 
-	// for now, if it's the same server and reply to and email then it matches
-	if (pReply) {
-		if (!pIReply || nsCRT::strcasecmp( pReply, pIReply))
-			result = PR_FALSE;
-	}
-	if (pEmail) {
-		if (!pIEmail || nsCRT::strcasecmp( pEmail, pIEmail))
-			result = PR_FALSE;
-	}
+  nsresult rv;
+  rv = pIdent->GetEmail(pIEmail);
+  rv = pIdent->GetReplyTo(pIReply);
 
-	nsCRT::free( pIName);
-	nsCRT::free( pIEmail);
-	nsCRT::free( pIReply);
-
-	return( result);
+  // for now, if it's the same server and reply to and email then it matches
+  if (pReply && !pIReply.Equals(pReply, nsCaseInsensitiveCStringComparator()))
+    result = PR_FALSE;
+  if (pEmail && !pIEmail.Equals(pEmail, nsCaseInsensitiveCStringComparator()))
+    result = PR_FALSE;
+  return result;
 }
 
 void OESettings::SetIdentities( nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc, HKEY hKey)
@@ -550,7 +537,7 @@ void OESettings::SetIdentities( nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc,
   char *pUserName = (char *)nsOERegUtil::GetValueBytes( hKey, "SMTP User Name");
   char *pOrgName = (char *)nsOERegUtil::GetValueBytes( hKey, "SMTP Organization Name");
 
-  nsresult	rv;
+  nsresult rv;
 
   if (pEmail && pName && pServer) {
     // The default identity, nor any other identities matched,
@@ -571,9 +558,9 @@ void OESettings::SetIdentities( nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc,
       if (NS_SUCCEEDED(rv))
         id->SetOrganization(organization);
 
-      id->SetEmail(pEmail);
+      id->SetEmail(nsCString(pEmail));
       if (pReply)
-        id->SetReplyTo(pReply);
+        id->SetReplyTo(nsCString(pReply));
 
       // Outlook Express users are used to top style quoting.
       id->SetReplyOnTop(1); 

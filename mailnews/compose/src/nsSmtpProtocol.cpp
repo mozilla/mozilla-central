@@ -573,7 +573,7 @@ PRInt32 nsSmtpProtocol::SendHeloResponse(nsIInputStream * inputStream, PRUint32 
   }
 
   // extract the email address from the identity
-  nsXPIDLCString emailAddress;
+  nsCString emailAddress;
   nsCOMPtr <nsIMsgIdentity> senderIdentity;
   rv = m_runningURL->GetSenderIdentity(getter_AddRefs(senderIdentity));
   if (NS_FAILED(rv) || !senderIdentity)
@@ -583,10 +583,10 @@ PRInt32 nsSmtpProtocol::SendHeloResponse(nsIInputStream * inputStream, PRUint32 
   }
   else 
   {
-    senderIdentity->GetEmail(getter_Copies(emailAddress));
+    senderIdentity->GetEmail(emailAddress);
   }
   
-  if(!((const char *)emailAddress) || CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_16))
+  if(emailAddress.IsEmpty() || CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_16))
   {
     m_urlErrorState = NS_ERROR_COULD_NOT_GET_USERS_MAIL_ADDRESS;
     return(NS_ERROR_COULD_NOT_GET_USERS_MAIL_ADDRESS);
@@ -609,7 +609,7 @@ PRInt32 nsSmtpProtocol::SendHeloResponse(nsIInputStream * inputStream, PRUint32 
       //
       // seems a little weird that we are passing in the emailAddress
       // when that's the out parameter 
-      parser->MakeFullAddress(nsnull, nsnull /* name */, emailAddress /* address */, &fullAddress);
+      parser->MakeFullAddress(nsnull, nsnull /* name */, emailAddress.get() /* address */, &fullAddress);
     }
 #ifdef UNREADY_CODE		
     if (CE_URL_S->msg_pane) 

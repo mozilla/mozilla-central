@@ -376,7 +376,7 @@ nsMsgAccountManager::CreateIdentity(nsIMsgIdentity **_retval)
   nsCAutoString key;
   getUniqueKey(ID_PREFIX, &m_identities, key);
 
-  rv = createKeyedIdentity(key.get(), _retval);
+  rv = createKeyedIdentity(key, _retval);
 
   return rv;
 }
@@ -404,7 +404,7 @@ nsMsgAccountManager::GetIdentity(const char* key,
   }
 
   // identity doesn't exist. create it.
-  rv = createKeyedIdentity(key, _retval);
+  rv = createKeyedIdentity(nsCString(key), _retval);
 
   return rv;
 }
@@ -414,7 +414,7 @@ nsMsgAccountManager::GetIdentity(const char* key,
  * create an identity and add it to the accountmanager's list.
  */
 nsresult
-nsMsgAccountManager::createKeyedIdentity(const char* key,
+nsMsgAccountManager::createKeyedIdentity(const nsCString& key,
                                          nsIMsgIdentity ** aIdentity)
 {
   nsresult rv;
@@ -1212,8 +1212,8 @@ nsMsgAccountManager::addIdentityIfUnique(nsISupports *element, void *aData)
   nsISupportsArray *array = (nsISupportsArray*)aData;
 
   
-  nsXPIDLCString key;
-  rv = identity->GetKey(getter_Copies(key));
+  nsCString key;
+  rv = identity->GetKey(key);
   if (NS_FAILED(rv)) return PR_TRUE;
 
   PRUint32 count=0;
@@ -1230,9 +1230,9 @@ nsMsgAccountManager::addIdentityIfUnique(nsISupports *element, void *aData)
       do_QueryInterface(thisElement, &rv);
     if (NS_FAILED(rv)) continue;
 
-    nsXPIDLCString thisKey;
-    thisIdentity->GetKey(getter_Copies(thisKey));
-    if (PL_strcmp(key, thisKey)==0) {
+    nsCString thisKey;
+    thisIdentity->GetKey(thisKey);
+    if (key.Equals(thisKey)) {
       found = PR_TRUE;
       break;
     }
@@ -1513,11 +1513,11 @@ nsMsgAccountManager::SetSpecialFolders()
 
     if (NS_SUCCEEDED(rv) && thisIdentity)
     {
-      nsXPIDLCString folderUri;
+      nsCString folderUri;
       nsCOMPtr<nsIRDFResource> res;
       nsCOMPtr<nsIMsgFolder> folder;
-      thisIdentity->GetFccFolder(getter_Copies(folderUri));
-      if (folderUri && NS_SUCCEEDED(rdf->GetResource(folderUri, getter_AddRefs(res))))
+      thisIdentity->GetFccFolder(folderUri);
+      if (!folderUri.IsEmpty() && NS_SUCCEEDED(rdf->GetResource(folderUri, getter_AddRefs(res))))
       {
         folder = do_QueryInterface(res, &rv);
         nsCOMPtr <nsIMsgFolder> parent;
@@ -1528,8 +1528,8 @@ nsMsgAccountManager::SetSpecialFolders()
             rv = folder->SetFlag(MSG_FOLDER_FLAG_SENTMAIL);
         }
       }
-      thisIdentity->GetDraftFolder(getter_Copies(folderUri));
-      if (folderUri && NS_SUCCEEDED(rdf->GetResource(folderUri, getter_AddRefs(res))))
+      thisIdentity->GetDraftFolder(folderUri);
+      if (!folderUri.IsEmpty() && NS_SUCCEEDED(rdf->GetResource(folderUri, getter_AddRefs(res))))
       {
         folder = do_QueryInterface(res, &rv);
         nsCOMPtr <nsIMsgFolder> parent;
@@ -1540,8 +1540,8 @@ nsMsgAccountManager::SetSpecialFolders()
             rv = folder->SetFlag(MSG_FOLDER_FLAG_DRAFTS);
         }
       }
-      thisIdentity->GetStationeryFolder(getter_Copies(folderUri));
-      if (folderUri && NS_SUCCEEDED(rdf->GetResource(folderUri, getter_AddRefs(res))))
+      thisIdentity->GetStationeryFolder(folderUri);
+      if (!folderUri.IsEmpty() && NS_SUCCEEDED(rdf->GetResource(folderUri, getter_AddRefs(res))))
       {
         folder = do_QueryInterface(res, &rv);
         if (folder && NS_SUCCEEDED(rv))
@@ -2276,8 +2276,8 @@ nsMsgAccountManager::findServersForIdentity(nsISupports *element, void *aData)
   identities->Count(&idCount);
 
   PRUint32 id;
-  nsXPIDLCString identityKey;
-  rv = entry->identity->GetKey(getter_Copies(identityKey));
+  nsCString identityKey;
+  rv = entry->identity->GetKey(identityKey);
 
   
   for (id=0; id<idCount; id++) 
@@ -2294,10 +2294,10 @@ nsMsgAccountManager::findServersForIdentity(nsISupports *element, void *aData)
     if (NS_SUCCEEDED(rv)) 
     {
 
-      nsXPIDLCString thisIdentityKey;
-      rv = thisIdentity->GetKey(getter_Copies(thisIdentityKey));
+      nsCString thisIdentityKey;
+      rv = thisIdentity->GetKey(thisIdentityKey);
 
-      if (NS_SUCCEEDED(rv) && PL_strcmp(identityKey, thisIdentityKey) == 0) 
+      if (NS_SUCCEEDED(rv) && identityKey.Equals(thisIdentityKey)) 
       {
         nsCOMPtr<nsIMsgIncomingServer> thisServer;
         rv = account->GetIncomingServer(getter_AddRefs(thisServer));

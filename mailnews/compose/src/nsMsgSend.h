@@ -141,7 +141,7 @@
 #include "nsIMsgSend.h"
 
 #include "msgCore.h"
-#include "prprf.h" 
+#include "prprf.h"
 #include "nsIOutputStream.h"
 #include "nsMsgMessageFlags.h"
 #include "nsIURL.h"
@@ -196,11 +196,11 @@ public:
   // internal callback only. This way, no thread boundry issues and
   // we can get away without all of the listener array code.
   //
-  void (*m_attachments_done_callback) (nsresult  status, 
+  void (*m_attachments_done_callback) (nsresult  status,
         const PRUnichar *error_msg, struct nsMsgAttachedFile *attachments);
-  
+
   //
-  // Define QueryInterface, AddRef and Release for this class 
+  // Define QueryInterface, AddRef and Release for this class
   //
   NS_DECL_ISUPPORTS
 
@@ -216,11 +216,11 @@ public:
   nsresult    FormatStringWithSMTPHostNameByID(PRInt32 aMsgId, PRUnichar **aString);
 
   nsresult    DoFcc();
-  nsresult    StartMessageCopyOperation(nsIFile          *aFileSpec, 
+  nsresult    StartMessageCopyOperation(nsIFile          *aFileSpec,
                                         nsMsgDeliverMode mode,
-                                        char             *dest_uri);
+                                        const nsCString& dest_uri);
 
-  void	      Clear();
+  void        Clear();
 
   NS_METHOD   SendToMagicFolder (nsMsgDeliverMode flag);
   nsresult    QueueForLater();
@@ -234,12 +234,12 @@ public:
   //
   // FCC operations...
   //
-  nsresult    MimeDoFCC (nsIFile *input_file,  
+  nsresult    MimeDoFCC (nsIFile *input_file,
     nsMsgDeliverMode mode,
     const char *bcc_header,
     const char *fcc_header,
     const char *news_url);
-  
+
   // Init() will allow for either message creation without delivery or full
   // message creation and send operations
   //
@@ -282,7 +282,7 @@ public:
   nsresult    AddCompFieldRemoteAttachments(PRUint32  aStartLocation, PRInt32 *aMailboxCount, PRInt32 *aNewsCount);
 
   // Deal with multipart related data
-  nsresult    ProcessMultipartRelated(PRInt32 *aMailboxCount, PRInt32 *aNewsCount); 
+  nsresult    ProcessMultipartRelated(PRInt32 *aMailboxCount, PRInt32 *aNewsCount);
   nsresult    GetEmbeddedObjectInfo(nsIDOMNode *node, nsMsgAttachmentData *attachment, PRBool *acceptObject);
   PRUint32    GetMultipartRelatedCount(PRBool forceToBeCalculated = PR_FALSE);
   nsCOMPtr<nsISupportsArray> mEmbeddedObjectList; // it's initialized when calling GetMultipartRelatedCount
@@ -298,7 +298,7 @@ public:
 
   NS_DECL_NSIMSGSEND
   nsresult    SetStatusMessage(const PRUnichar *aMsgString);     // Status message method
-  
+
   //
   // All vars necessary for this implementation
   //
@@ -307,13 +307,13 @@ public:
   nsCString                 mAccountKey;
   nsRefPtr<nsMsgCompFields> mCompFields;         // All needed composition fields (header, etc...)
   nsCOMPtr<nsIFile>         mTempFile;           // our temporary file
-  
+
   nsCOMPtr<nsIOutputStream> mOutputFile;         // the actual output file stream
   PRUint32                  mMessageWarningSize; // Warn if a message is over this size!
 
   PRBool                    m_dont_deliver_p;    // If set, we just return the nsFileSpec of the file
 							                                   // created, instead of actually delivering message.
-  nsMsgDeliverMode          m_deliver_mode;      // nsMsgDeliverNow, nsMsgQueueForLater, nsMsgSaveAsDraft, 
+  nsMsgDeliverMode          m_deliver_mode;      // nsMsgDeliverNow, nsMsgQueueForLater, nsMsgSaveAsDraft,
                                                  // nsMsgSaveAsTemplate and nsMsgSendUnsent
   nsCOMPtr<nsIMsgDBHdr>     mMsgToReplace;       // If the mode is nsMsgSaveAsDraft, this is the message it will
                                                  // replace
@@ -366,7 +366,7 @@ public:
   PRUint32                m_attachment_count;
   PRUint32                m_attachment_pending_count;
   nsMsgAttachmentHandler  *m_attachments;
-  nsresult                m_status; // in case some attachments fail but not all 
+  nsresult                m_status; // in case some attachments fail but not all
 
   PRUint32                mPreloadedAttachmentCount;
   PRUint32                mRemoteAttachmentCount;
@@ -385,12 +385,12 @@ public:
 								                                        // nsMsgAttachedFile structs which describe them.
 
   PRBool                  m_pre_snarfed_attachments_p;	// If true, then the attachments were
-										                                    // loaded by in the background and therefore 
-                                                        // we shouldn't delete the tmp files (but should 
+										                                    // loaded by in the background and therefore
+                                                        // we shouldn't delete the tmp files (but should
                                                         // leave that to the caller.)
 
   PRBool                  m_digest_p;                   // Whether to be multipart/digest instead of
-								                                        // multipart/mixed. 
+								                                        // multipart/mixed.
 
   PRBool                  m_be_synchronous_p;	          // If true, we will load one URL after another,
 								                                        // rather than starting all URLs going at once
@@ -419,12 +419,12 @@ private:
 
   // add default custom headers to the message
   nsresult AddDefaultCustomHeaders();
-  
+
   nsCOMPtr<nsIMsgSendReport>  mSendReport;
   nsCString                   mSmtpPassword;            // store the smtp Password use during a send
 };
 
-// 
+//
 // These C routines should only be used by the nsMsgSendPart class.
 //
 extern nsresult mime_write_message_body(nsIMsgSend *state, const char *buf, PRInt32 size);

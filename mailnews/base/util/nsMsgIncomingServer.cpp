@@ -1910,8 +1910,8 @@ nsMsgIncomingServer::ConfigureTemporaryReturnReceiptsFilter(nsIMsgFilterList *fi
       newFilter->SetEnabled(enable);
   else if (enable)
   {
-    nsXPIDLCString actionTargetFolderUri;
-    rv = identity->GetFccFolder(getter_Copies(actionTargetFolderUri));
+    nsCString actionTargetFolderUri;
+    rv = identity->GetFccFolder(actionTargetFolderUri);
     if (!actionTargetFolderUri.IsEmpty())
     {
       filterList->CreateFilter(internalReturnReceiptFilterName.get(),
@@ -1966,7 +1966,7 @@ nsMsgIncomingServer::ConfigureTemporaryReturnReceiptsFilter(nsIMsgFilterList *fi
         nsCOMPtr<nsIMsgRuleAction> filterAction;
         newFilter->CreateAction(getter_AddRefs(filterAction));
         filterAction->SetType(nsMsgFilterAction::MoveToFolder);
-          filterAction->SetTargetFolderUri(actionTargetFolderUri);
+          filterAction->SetTargetFolderUri(actionTargetFolderUri.get());
           newFilter->AppendAction(filterAction);
           filterList->InsertFilterAt(0, newFilter);
         }

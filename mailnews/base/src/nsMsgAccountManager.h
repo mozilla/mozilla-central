@@ -123,7 +123,7 @@ private:
                              const char* type,
                              nsIMsgIncomingServer **_retval);
 
-  nsresult createKeyedIdentity(const char* key,
+  nsresult createKeyedIdentity(const nsCString& key,
                                nsIMsgIdentity **_retval);
 
   /* internal destruction routines - fixes prefs */

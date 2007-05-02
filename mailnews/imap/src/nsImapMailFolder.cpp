@@ -8582,18 +8582,17 @@ NS_IMETHODIMP nsImapMailFolder::GetCustomIdentity(nsIMsgIdentity **aIdentity)
       nsCOMPtr <nsIMsgIdentity> retIdentity;
       nsCOMPtr <nsIMsgAccount> account;
       nsXPIDLCString foldersUserName;
-      nsXPIDLCString ourEmailAddress;
+      nsCString ourEmailAddress;
 
       accountManager->FindAccountForServer(server, getter_AddRefs(account));
       NS_ENSURE_SUCCESS(rv, rv);
       account->GetDefaultIdentity(getter_AddRefs(ourIdentity));
       NS_ENSURE_SUCCESS(rv, rv);
-      ourIdentity->GetEmail(getter_Copies(ourEmailAddress));
+      ourIdentity->GetEmail(ourEmailAddress);
       PRInt32 atPos = ourEmailAddress.FindChar('@');
       if (atPos != -1)
       {
-        nsXPIDLCString otherUsersEmailAddress;
-
+        nsCString otherUsersEmailAddress;
         GetFolderOwnerUserName(getter_Copies(otherUsersEmailAddress));
         otherUsersEmailAddress.Append(Substring(ourEmailAddress, atPos, ourEmailAddress.Length()));
         nsCOMPtr <nsISupportsArray> identities;
@@ -8607,8 +8606,8 @@ NS_IMETHODIMP nsImapMailFolder::GetCustomIdentity(nsIMsgIdentity **aIdentity)
           nsCOMPtr<nsIMsgIdentity> identity = do_QueryElementAt(identities, identityIndex);
           if (!identity)
             continue;
-          nsXPIDLCString identityEmail;
-          identity->GetEmail(getter_Copies(identityEmail));
+          nsCString identityEmail;
+          identity->GetEmail(identityEmail);
           if (identityEmail.Equals(otherUsersEmailAddress))
           {
             retIdentity = identity;;
@@ -8625,7 +8624,6 @@ NS_IMETHODIMP nsImapMailFolder::GetCustomIdentity(nsIMsgIdentity **aIdentity)
           accountManager->FindAccountForServer(server, getter_AddRefs(account));
           NS_ENSURE_SUCCESS(rv, rv);
           account->AddIdentity(retIdentity);
-
         }
       }
       if (retIdentity)

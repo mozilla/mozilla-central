@@ -224,22 +224,22 @@ nsOutlookCompose::~nsOutlookCompose()
 
 nsresult nsOutlookCompose::CreateIdentity( void)
 {
-	if (m_pIdentity)
-		return( NS_OK);
+  if (m_pIdentity)
+    return( NS_OK);
 
-	nsresult	rv;
+  nsresult rv;
     NS_WITH_PROXIED_SERVICE(nsIMsgAccountManager, accMgr, NS_MSGACCOUNTMANAGER_CONTRACTID, NS_PROXY_TO_MAIN_THREAD, &rv);
     if (NS_FAILED(rv)) return( rv);
-	rv = accMgr->CreateIdentity( &m_pIdentity);
-	nsString	name;
-	name.AssignLiteral("Import Identity");
-	if (m_pIdentity) {
-		m_pIdentity->SetFullName(name);
-		m_pIdentity->SetIdentityName(name);
-		m_pIdentity->SetEmail( "import@import.service");
-	}
-	
-	return( rv);
+  rv = accMgr->CreateIdentity( &m_pIdentity);
+  nsString name;
+  name.AssignLiteral("Import Identity");
+  if (m_pIdentity) {
+    m_pIdentity->SetFullName(name);
+    m_pIdentity->SetIdentityName(name);
+    m_pIdentity->SetEmail(NS_LITERAL_CSTRING("import@import.service"));
+  }
+
+  return( rv);
 }
 
 nsresult nsOutlookCompose::CreateComponents( void)

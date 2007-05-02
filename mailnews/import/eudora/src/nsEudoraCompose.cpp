@@ -229,64 +229,63 @@ nsEudoraCompose::~nsEudoraCompose()
 
 nsresult nsEudoraCompose::CreateIdentity( void)
 {
-	if (m_pIdentity)
-		return( NS_OK);
+  if (m_pIdentity)
+    return( NS_OK);
 
-	nsresult	rv;
-    NS_WITH_PROXIED_SERVICE(nsIMsgAccountManager, accMgr, NS_MSGACCOUNTMANAGER_CONTRACTID, NS_PROXY_TO_MAIN_THREAD, &rv);
-    if (NS_FAILED(rv)) return( rv);
-	rv = accMgr->CreateIdentity( &m_pIdentity);
-	nsString	name(NS_LITERAL_STRING("Import Identity"));
-	if (m_pIdentity) {
-		m_pIdentity->SetFullName(name);
-		m_pIdentity->SetIdentityName(name);
-		m_pIdentity->SetEmail( "import@import.service");
-	}
-	
-	return( rv);
+  nsresult  rv;
+  NS_WITH_PROXIED_SERVICE(nsIMsgAccountManager, accMgr, NS_MSGACCOUNTMANAGER_CONTRACTID, NS_PROXY_TO_MAIN_THREAD, &rv);
+  if (NS_FAILED(rv)) return( rv);
+  rv = accMgr->CreateIdentity( &m_pIdentity);
+  nsString name(NS_LITERAL_STRING("Import Identity"));
+  if (m_pIdentity) {
+    m_pIdentity->SetFullName(name);
+    m_pIdentity->SetIdentityName(name);
+    m_pIdentity->SetEmail(NS_LITERAL_CSTRING("import@import.service"));
+  }
+  return( rv);
 }
 
 nsresult nsEudoraCompose::CreateComponents( void)
 {
-	nsresult	rv = NS_OK;
-	
-	if (!m_pIOService) {
-		IMPORT_LOG0( "Creating nsIOService\n");
+  nsresult	rv = NS_OK;
 
-		NS_WITH_PROXIED_SERVICE(nsIIOService, service, NS_IOSERVICE_CONTRACTID, NS_PROXY_TO_MAIN_THREAD, &rv);
-		if (NS_FAILED(rv)) 
-			return( rv);
-		m_pIOService = service;
-		NS_IF_ADDREF( m_pIOService);
-	}
-	
-	NS_IF_RELEASE( m_pMsgFields);
-	if (!m_pMsgSend) {
-		rv = CallCreateInstance( kMsgSendCID, &m_pMsgSend); 
-		if (NS_SUCCEEDED( rv) && m_pMsgSend) {
+  if (!m_pIOService) {
+    IMPORT_LOG0( "Creating nsIOService\n");
+
+    NS_WITH_PROXIED_SERVICE(nsIIOService, service, NS_IOSERVICE_CONTRACTID, NS_PROXY_TO_MAIN_THREAD, &rv);
+    if (NS_FAILED(rv)) 
+      return( rv);
+    m_pIOService = service;
+    NS_IF_ADDREF( m_pIOService);
+  }
+
+  NS_IF_RELEASE( m_pMsgFields);
+  if (!m_pMsgSend) {
+    rv = CallCreateInstance( kMsgSendCID, &m_pMsgSend); 
+    if (NS_SUCCEEDED( rv) && m_pMsgSend) {
       rv = NS_GetProxyForObject( NS_PROXY_TO_MAIN_THREAD, NS_GET_IID(nsIMsgSend),
                   m_pMsgSend, NS_PROXY_SYNC, (void**)&m_pSendProxy);
       if (NS_FAILED( rv)) {
         m_pSendProxy = nsnull;
-				NS_RELEASE( m_pMsgSend);
-				m_pMsgSend = nsnull;
-			}
-		}
-	}
-	if (!m_pListener && NS_SUCCEEDED( rv)) {
-		rv = EudoraSendListener::CreateSendListener( &m_pListener);
-	}
+        NS_RELEASE( m_pMsgSend);
+        m_pMsgSend = nsnull;
+      }
+    }
+  }
+  if (!m_pListener && NS_SUCCEEDED( rv)) {
+    rv = EudoraSendListener::CreateSendListener( &m_pListener);
+  }
 
-	if (NS_SUCCEEDED(rv) && m_pMsgSend) { 
-	    rv = CallCreateInstance( kMsgCompFieldsCID, &m_pMsgFields); 
-		if (NS_SUCCEEDED(rv) && m_pMsgFields) {
-			// IMPORT_LOG0( "nsOutlookCompose - CreateComponents succeeded\n");
-			m_pMsgFields->SetForcePlainText( PR_FALSE);
-			return( NS_OK);
-		}
-	}
+  if (NS_SUCCEEDED(rv) && m_pMsgSend) { 
+      rv = CallCreateInstance( kMsgCompFieldsCID, &m_pMsgFields); 
+    if (NS_SUCCEEDED(rv) && m_pMsgFields) {
+      // IMPORT_LOG0( "nsOutlookCompose - CreateComponents succeeded\n");
+      m_pMsgFields->SetForcePlainText( PR_FALSE);
+      return( NS_OK);
+    }
+  }
 
-	return( NS_ERROR_FAILURE);
+  return NS_ERROR_FAILURE;
 }
 
 void nsEudoraCompose::GetNthHeader( const char *pData, PRInt32 dataLen, PRInt32 n, nsCString& header, nsCString& val, PRBool unwrap)

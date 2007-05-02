@@ -153,8 +153,7 @@ char        *GenerateFileNameFromURI(nsIURI *aURL);
 //
 // Folder calls...
 //
-char        *GetFolderURIFromUserPrefs(nsMsgDeliverMode   aMode,
-                                       nsIMsgIdentity *identity);
+void GetFolderURIFromUserPrefs(nsMsgDeliverMode   aMode, nsIMsgIdentity *identity, nsCString& uri);
                                        
 // File calls...
 nsresult ConvertBufToPlainText(nsString &aConBuf, PRBool formatflowed = PR_FALSE);

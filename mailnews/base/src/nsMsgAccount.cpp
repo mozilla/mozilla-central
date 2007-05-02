@@ -324,8 +324,8 @@ nsMsgAccount::AddIdentity(nsIMsgIdentity *identity)
   // when this is actually implemented, don't refcount the default identity
   nsresult rv;
   
-  nsXPIDLCString key;
-  rv = identity->GetKey(getter_Copies(key));
+  nsCString key;
+  rv = identity->GetKey(key);
 
   if (NS_SUCCEEDED(rv)) {
 
@@ -397,8 +397,8 @@ nsMsgAccount::RemoveIdentity(nsIMsgIdentity * aIdentity)
 
   NS_ENSURE_TRUE(count > 1, NS_ERROR_FAILURE); // you must have at least one identity
 
-  nsXPIDLCString key;
-  nsresult rv = aIdentity->GetKey(getter_Copies(key));
+  nsCString key;
+  nsresult rv = aIdentity->GetKey(key);
 
   // remove our identity
   m_identities->RemoveElement(aIdentity);
@@ -424,7 +424,7 @@ nsMsgAccount::RemoveIdentity(nsIMsgIdentity * aIdentity)
     nsCOMPtr<nsIMsgIdentity> identity = do_QueryElementAt(m_identities, index, &rv);
     if (identity)
     {
-      identity->GetKey(getter_Copies(key));
+      identity->GetKey(key);
 
       if (!index)
         newIdentityList = key;

@@ -71,11 +71,11 @@ public :
     void OpenConfiguration();
     PRInt16 RegisterSession(PRUint32 aHwnd, const PRUnichar *aUserName, \
                             const PRUnichar *aPassword, PRBool aForceDownLoad, \
-                            PRBool aNewSession, PRUint32 *aSession, char *aIdKey);
+                            PRBool aNewSession, PRUint32 *aSession, const char *aIdKey);
     PRBool IsSessionValid(PRUint32 aSessionID);
     PRBool UnRegisterSession(PRUint32 aSessionID);
     PRUnichar *GetPassword(PRUint32 aSessionID);
-    char *GetIdKey(PRUint32 aSessionID);
+    void GetIdKey(PRUint32 aSessionID, nsCString& aKey);
     void *GetMapiListContext(PRUint32 aSessionID);
     void SetMapiListContext(PRUint32 aSessionID, void *mapiListContext);
     ~nsMAPIConfiguration();
@@ -94,7 +94,7 @@ class nsMAPISession
         PRBool   m_bApp_or_Service;
         PRUint32 m_hAppHandle;
         PRUint32 m_nShared;
-        char     *m_pIdKey;
+        nsCString m_pIdKey;
         nsString m_pProfileName;
         nsString m_pPassword;
         PRInt32 m_messageIndex;
@@ -104,12 +104,12 @@ class nsMAPISession
 
         nsMAPISession(PRUint32 aHwnd, const PRUnichar *aUserName, \
                       const PRUnichar *aPassword, \
-                      PRBool aForceDownLoad, char *aKey);
+                      PRBool aForceDownLoad, const char *aKey);
         PRUint32 IncrementSession();
         PRUint32 DecrementSession();
         PRUint32 GetSessionCount();
         PRUnichar *nsMAPISession::GetPassword();
-        char *nsMAPISession::GetIdKey();
+        void GetIdKey(nsCString& aKey);
         ~nsMAPISession();
         // For enumerating Messages...
         void SetMapiListContext( void *listContext) { m_listContext = listContext; } 

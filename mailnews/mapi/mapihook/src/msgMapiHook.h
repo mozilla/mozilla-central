@@ -46,7 +46,7 @@ class nsMapiHook
         static PRBool Initialize();
         static PRBool DisplayLoginDialog(PRBool aLogin, PRUnichar **aUsername, 
                         PRUnichar **aPassword);
-        static PRBool VerifyUserName(const PRUnichar *aUsername, char **aIdKey);
+        static PRBool VerifyUserName(const nsString& aUsername, nsCString& aIdKey);
 
         static PRBool IsBlindSendAllowed () ;
         static nsresult BlindSendMail (unsigned long aSession, nsIMsgCompFields * aCompFields) ;

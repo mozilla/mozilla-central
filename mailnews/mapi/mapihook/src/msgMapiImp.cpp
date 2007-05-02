@@ -164,7 +164,7 @@ STDMETHODIMP CMapiImp::Login(unsigned long aUIArg, LOGIN_PW_TYPE aLogin, LOGIN_P
 {
     HRESULT hr = E_FAIL;
      PRBool bNewSession = PR_FALSE;
-    char *id_key = nsnull;
+    nsCString id_key;
 
     PR_LOG(MAPI, PR_LOG_DEBUG, ("CMapiImp::Login using flags %d\n", aFlags));
     if (aFlags & MAPI_NEW_SESSION)
@@ -173,7 +173,7 @@ STDMETHODIMP CMapiImp::Login(unsigned long aUIArg, LOGIN_PW_TYPE aLogin, LOGIN_P
     // Check For Profile Name
     if (aLogin != nsnull && aLogin[0] != '\0')
     {
-        if (nsMapiHook::VerifyUserName(aLogin, &id_key) == PR_FALSE)
+        if (nsMapiHook::VerifyUserName(nsString(aLogin), id_key) == PR_FALSE)
         {
             *aSessionId = MAPI_E_LOGIN_FAILURE;
             PR_LOG(MAPI, PR_LOG_DEBUG, ("CMapiImp::Login failed for username %s\n", aLogin));
@@ -194,7 +194,7 @@ STDMETHODIMP CMapiImp::Login(unsigned long aUIArg, LOGIN_PW_TYPE aLogin, LOGIN_P
       NS_ENSURE_SUCCESS(rv,MAPI_E_LOGIN_FAILURE);
       account->GetDefaultIdentity(getter_AddRefs(identity));
       NS_ENSURE_SUCCESS(rv,MAPI_E_LOGIN_FAILURE);
-      identity->GetKey(&id_key);
+      identity->GetKey(id_key);
 
     }
 
@@ -206,7 +206,7 @@ STDMETHODIMP CMapiImp::Login(unsigned long aUIArg, LOGIN_PW_TYPE aLogin, LOGIN_P
     if (pConfig != nsnull)
         nResult = pConfig->RegisterSession(aUIArg, aLogin, aPassWord,
                                            (aFlags & MAPI_FORCE_DOWNLOAD), bNewSession,
-                                           &nSession_Id, id_key);
+                                           &nSession_Id, id_key.get());
     switch (nResult)
     {
         case -1 :

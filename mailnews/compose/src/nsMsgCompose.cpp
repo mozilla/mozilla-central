@@ -929,11 +929,11 @@ nsresult nsMsgCompose::_SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity *ide
   if (m_compFields && identity) 
   {
     // Pref values are supposed to be stored as UTF-8, so no conversion
-    nsXPIDLCString email;
+    nsCString email;
     nsString fullName;
     nsString organization;
 
-    identity->GetEmail(getter_Copies(email));
+    identity->GetEmail(email);
     identity->GetFullName(fullName);
     identity->GetOrganization(organization);
 
@@ -941,52 +941,16 @@ nsresult nsMsgCompose::_SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity *ide
     nsCOMPtr<nsIMsgHeaderParser> parser (do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID));
     if (parser) {
       // convert to UTF8 before passing to MakeFullAddress
-      parser->MakeFullAddress(nsnull, NS_ConvertUTF16toUTF8(fullName).get(), email, &sender);
+      parser->MakeFullAddress(nsnull, NS_ConvertUTF16toUTF8(fullName).get(), email.get(), &sender);
     }
 
-  if (!sender)
-    m_compFields->SetFrom(email);
-  else
-    m_compFields->SetFrom(sender);
-  PR_FREEIF(sender);
+    if (!sender)
+      m_compFields->SetFrom(email.get());
+    else
+      m_compFields->SetFrom(sender);
+    PR_FREEIF(sender);
 
     m_compFields->SetOrganization(organization);
-
-#if defined(DEBUG_ducarroz) || defined(DEBUG_seth_)
-  {
-    printf("----------------------------\n");
-    printf("--  Sending Mail Message  --\n");
-    printf("----------------------------\n");
-    printf("from: %s\n", m_compFields->GetFrom());
-    printf("To: %s  Cc: %s  Bcc: %s\n", m_compFields->GetTo(), m_compFields->GetCc(), m_compFields->GetBcc());
-    printf("Newsgroups: %s\n", m_compFields->GetNewsgroups());
-    printf("Subject: %s  \nMsg: %s\n", m_compFields->GetSubject(), m_compFields->GetBody());
-    nsCOMPtr<nsISupportsArray> attachmentsArray;
-    m_compFields->GetAttachmentsArray(getter_AddRefs(attachmentsArray));
-    if (attachmentsArray)
-    {
-      PRUint32 i;
-      PRUint32 attachmentCount = 0;
-      attachmentsArray->Count(&attachmentCount);
-
-      nsCOMPtr<nsIMsgAttachment> element;
-      for (i = 0; i < attachmentCount; i ++)
-      {
-        attachmentsArray->QueryElementAt(i, NS_GET_IID(nsIMsgAttachment), getter_AddRefs(element));
-        if (element)
-        {
-          nsAutoString name;
-          nsXPIDLCString url;
-          element->GetName(name);
-          element->GetUrl(getter_Copies(url));
-          printf("Attachment %d: %s - %s\n",i + 1, NS_ConvertUTF16toUTF8(name).get(), url.get());
-        }
-      }
-    }
-    printf("----------------------------\n");
-  }
-#endif //DEBUG
-
     mMsgSend = do_CreateInstance(NS_MSGSEND_CONTRACTID);
     if (mMsgSend)
     {
@@ -1204,15 +1168,15 @@ NS_IMETHODIMP nsMsgCompose::SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity 
 
   if (attachVCard && identity && (deliverMode == nsIMsgCompDeliverMode::Now || deliverMode == nsIMsgCompDeliverMode::Later))
   {
-      nsXPIDLCString escapedVCard;
+      nsCString escapedVCard;
       // make sure, if there is no card, this returns an empty string, or NS_ERROR_FAILURE
-      rv = identity->GetEscapedVCard(getter_Copies(escapedVCard));
+      rv = identity->GetEscapedVCard(escapedVCard);
 
       if (NS_SUCCEEDED(rv) && !escapedVCard.IsEmpty()) 
       {
           nsCString vCardUrl;
           vCardUrl = "data:text/x-vcard;charset=utf-8;base64,";
-          char *unescapedData = PL_strdup(escapedVCard);
+          char *unescapedData = ToNewCString(escapedVCard);
           if (!unescapedData)
               return NS_ERROR_OUT_OF_MEMORY;
           nsUnescape(unescapedData);
@@ -1228,8 +1192,8 @@ NS_IMETHODIMP nsMsgCompose::SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity 
               // Send the vCard out with a filename which distinguishes this user. e.g. jsmith.vcf
               // The main reason to do this is for interop with Eudora, which saves off 
               // the attachments separately from the message body
-              nsXPIDLCString userid;
-              (void)identity->GetEmail(getter_Copies(userid));
+              nsCString userid;
+              (void)identity->GetEmail(userid);
               PRInt32 index = userid.FindChar('@');
               if (index != kNotFound)
                   userid.Truncate(index);
@@ -1626,9 +1590,9 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
       nsXPIDLCString::const_iterator start, end;
 
       /* Setup reply-to field */
-      nsXPIDLCString replyTo;
-      m_identity->GetReplyTo(getter_Copies(replyTo));
-      if (replyTo && *(const char *)replyTo)
+      nsCString replyTo;
+      m_identity->GetReplyTo(replyTo);
+      if (!replyTo.IsEmpty())
       {
         nsXPIDLCString replyToStr;
         replyToStr.Assign(m_compFields->GetReplyTo());
@@ -1655,8 +1619,8 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
           bccStr.BeginReading(start);
           bccStr.EndReading(end);
 
-          nsXPIDLCString bccList;
-          m_identity->GetDoBccList(getter_Copies(bccList));
+          nsCString bccList;
+          m_identity->GetDoBccList(bccList);
           if (FindInReadable(bccList, start, end) == PR_FALSE) {
             if (bccStr.Length() > 0)
               bccStr.Append(',');
@@ -1669,16 +1633,16 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
 
   if (mType == nsIMsgCompType::Draft)
   {
-    nsXPIDLCString curDraftIdURL;
+    nsCString curDraftIdURL;
 
     rv = m_compFields->GetDraftId(getter_Copies(curDraftIdURL));
-    NS_ASSERTION((NS_SUCCEEDED(rv) && (curDraftIdURL)), "RemoveCurrentDraftMessage can't get draft id");
+    NS_ASSERTION(NS_SUCCEEDED(rv) && !curDraftIdURL.IsEmpty(), "RemoveCurrentDraftMessage can't get draft id");
 
     // Skip if no draft id (probably a new draft msg).
-    if (NS_SUCCEEDED(rv) && curDraftIdURL.get() && strlen(curDraftIdURL.get()))
+    if (NS_SUCCEEDED(rv) && !curDraftIdURL.IsEmpty())
     { 
       nsCOMPtr <nsIMsgDBHdr> msgDBHdr;
-      rv = GetMsgDBHdrFromURI(curDraftIdURL, getter_AddRefs(msgDBHdr));
+      rv = GetMsgDBHdrFromURI(curDraftIdURL.get(), getter_AddRefs(msgDBHdr));
       NS_ASSERTION(NS_SUCCEEDED(rv), "RemoveCurrentDraftMessage can't get msg header DB interface pointer.");
       if (msgDBHdr)
       {
@@ -1955,8 +1919,8 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
                 if (NS_FAILED(rv))
                   continue;
 
-                nsXPIDLCString curIdentityEmail;
-                lookupIdentity->GetEmail(getter_Copies(curIdentityEmail));
+                nsCString curIdentityEmail;
+                lookupIdentity->GetEmail(curIdentityEmail);
                 if (curIdentityEmail.Equals(authorEmailAddress))
                 {
                   isReplyToOwnMsg = PR_TRUE;
@@ -2528,10 +2492,10 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
             nsCString addressToBeRemoved(_compFields->GetTo());
             if (mIdentity)
             {
-              nsXPIDLCString email;
-              mIdentity->GetEmail(getter_Copies(email));
-              addressToBeRemoved += ", ";
-              addressToBeRemoved += email;
+              nsCString email;
+              mIdentity->GetEmail(email);
+              addressToBeRemoved.AppendLiteral(", ");
+              addressToBeRemoved.Append(email);
             }
 
             rv= RemoveDuplicateAddresses(_compFields->GetCc(), addressToBeRemoved.get(), PR_TRUE, &resultStr);

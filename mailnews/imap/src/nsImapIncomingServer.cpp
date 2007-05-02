@@ -218,9 +218,9 @@ nsImapIncomingServer::GetConstructedPrettyName(PRUnichar **retval)
 
   if (NS_SUCCEEDED(rv) && identity)
   {
-    nsXPIDLCString identityEmailAddress;
-    identity->GetEmail(getter_Copies(identityEmailAddress));
-    emailAddress.AssignWithConversion(identityEmailAddress);
+    nsCString identityEmailAddress;
+    identity->GetEmail(identityEmailAddress);
+    emailAddress.Assign(NS_ConvertASCIItoUTF16(identityEmailAddress));
   }
   else
   {

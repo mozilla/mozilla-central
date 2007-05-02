@@ -3759,25 +3759,25 @@ NS_IMETHODIMP nsMsgDBFolder::SetPrefFlag()
   rv = accountMgr->GetFirstIdentityForServer(server, getter_AddRefs(identity));
   if (NS_SUCCEEDED(rv) && identity)
   {
-    nsXPIDLCString folderUri;
+    nsCString folderUri;
     nsCOMPtr<nsIRDFResource> res;
     nsCOMPtr<nsIMsgFolder> folder;
-    identity->GetFccFolder(getter_Copies(folderUri));
-    if (folderUri && NS_SUCCEEDED(rdf->GetResource(folderUri, getter_AddRefs(res))))
+    identity->GetFccFolder(folderUri);
+    if (!folderUri.IsEmpty() && NS_SUCCEEDED(rdf->GetResource(folderUri, getter_AddRefs(res))))
     {
       folder = do_QueryInterface(res, &rv);
       if (NS_SUCCEEDED(rv))
         rv = folder->SetFlag(MSG_FOLDER_FLAG_SENTMAIL);
     }
-    identity->GetDraftFolder(getter_Copies(folderUri));
-    if (folderUri && NS_SUCCEEDED(rdf->GetResource(folderUri, getter_AddRefs(res))))
+    identity->GetDraftFolder(folderUri);
+    if (!folderUri.IsEmpty() && NS_SUCCEEDED(rdf->GetResource(folderUri, getter_AddRefs(res))))
     {
       folder = do_QueryInterface(res, &rv);
       if (NS_SUCCEEDED(rv))
         rv = folder->SetFlag(MSG_FOLDER_FLAG_DRAFTS);
     }
-    identity->GetStationeryFolder(getter_Copies(folderUri));
-    if (folderUri && NS_SUCCEEDED(rdf->GetResource(folderUri, getter_AddRefs(res))))
+    identity->GetStationeryFolder(folderUri);
+    if (!folderUri.IsEmpty() && NS_SUCCEEDED(rdf->GetResource(folderUri, getter_AddRefs(res))))
     {
       folder = do_QueryInterface(res, &rv);
       if (NS_SUCCEEDED(rv))

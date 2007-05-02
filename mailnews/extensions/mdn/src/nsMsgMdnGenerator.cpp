@@ -195,8 +195,8 @@ PRBool nsMsgMdnGenerator::ProcessSendMode()
     
     if (m_identity)
     {
-        m_identity->GetEmail(getter_Copies(m_email));
-        if (!m_email)
+        m_identity->GetEmail(m_email);
+        if (m_email.IsEmpty())
             return m_reallySendMdn;
 
         const char *accountDomain = strchr(m_email.get(), '@');
@@ -344,22 +344,22 @@ PRBool nsMsgMdnGenerator::MailAddrMatch(const char *addr1, const char *addr2)
 PRBool nsMsgMdnGenerator::NotInToOrCc()
 {
     DEBUG_MDN("nsMsgMdnGenerator::NotInToOrCc");
-    nsXPIDLCString reply_to;
-    nsXPIDLCString to;
-    nsXPIDLCString cc;
+    nsCString reply_to;
+    nsCString to;
+    nsCString cc;
 
-    m_identity->GetReplyTo(getter_Copies(reply_to));
+    m_identity->GetReplyTo(reply_to);
     m_headers->ExtractHeader(HEADER_TO, PR_TRUE, getter_Copies(to));
     m_headers->ExtractHeader(HEADER_CC, PR_TRUE, getter_Copies(cc));
   
   // start with a simple check
-  if ((to.Length() && PL_strcasestr(to.get(), m_email.get())) || 
-      (cc.Length() && PL_strcasestr(cc.get(), m_email.get()))) {
+  if ((!to.IsEmpty() && PL_strcasestr(to.get(), m_email.get())) || 
+      (!cc.IsEmpty() && PL_strcasestr(cc.get(), m_email.get()))) {
       return PR_FALSE;
   }
 
-  if ((reply_to.Length() && to.Length() && PL_strcasestr(to.get(), reply_to.get())) ||
-      (reply_to.Length() && cc.Length() && PL_strcasestr(cc.get(), reply_to.get()))) {
+  if ((!reply_to.IsEmpty() && !to.IsEmpty() && PL_strcasestr(to.get(), reply_to.get())) ||
+      (!reply_to.IsEmpty() && !cc.IsEmpty() && PL_strcasestr(cc.get(), reply_to.get()))) {
       return PR_FALSE;
   }
   return PR_TRUE;
@@ -373,15 +373,15 @@ PRBool nsMsgMdnGenerator::ValidateReturnPath()
     if (!m_autoSend)
         return m_reallySendMdn;
     
-    nsXPIDLCString returnPath;
+    nsCString returnPath;
     m_headers->ExtractHeader(HEADER_RETURN_PATH, PR_FALSE,
                              getter_Copies(returnPath));
-    if (!returnPath || !*returnPath)
+    if (!returnPath.IsEmpty())
     {
-        m_autoSend = PR_FALSE;
-        return m_reallySendMdn;
+      m_autoSend = PR_FALSE;
+      return m_reallySendMdn;
     }
-    m_autoSend = MailAddrMatch(returnPath, m_dntRrt);
+    m_autoSend = MailAddrMatch(returnPath.get(), m_dntRrt);
     return m_reallySendMdn;
 }
 

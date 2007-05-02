@@ -914,36 +914,34 @@ PRBool nsEudoraMac::BuildIMAPAccount( nsIMsgAccountManager *accMgr, nsCString **
 
 void nsEudoraMac::SetIdentities(nsIMsgAccountManager *accMgr, nsIMsgAccount *acc, const char *userName, const char *serverName, nsCString **pStrs)
 {
-	nsresult	rv;
+  nsresult rv;
 
-	nsCOMPtr<nsIMsgIdentity>	id;
-	rv = accMgr->CreateIdentity( getter_AddRefs( id));
-	if (id) {
-		nsAutoString fullName;
-		if (pStrs[kFullNameStr]->Length()) {
-			fullName.AssignWithConversion(pStrs[kFullNameStr]->get());
-		}
-		id->SetFullName(fullName);
-		id->SetIdentityName(fullName);
-		if (pStrs[kReturnAddressStr]->Length()) {
-			id->SetEmail( pStrs[kReturnAddressStr]->get());
-		}
-		else {
-			nsCAutoString emailAddress;
-			emailAddress = userName;
-			emailAddress += "@";
-			emailAddress += serverName;
-			id->SetEmail(emailAddress.get());
-		}
-		acc->AddIdentity( id);
-
-		IMPORT_LOG0( "Created identity and added to the account\n");
-		IMPORT_LOG1( "\tname: %s\n", pStrs[kFullNameStr]->get());
-		IMPORT_LOG1( "\temail: %s\n", pStrs[kReturnAddressStr]->get());
-	}
-
-	SetSmtpServer( accMgr, acc, pStrs[kSmtpServerStr]->get(), userName);
-
+  nsCOMPtr<nsIMsgIdentity> id;
+  rv = accMgr->CreateIdentity( getter_AddRefs( id));
+  if (id) {
+    nsAutoString fullName;
+    if (pStrs[kFullNameStr]->Length()) {
+      fullName.AssignWithConversion(pStrs[kFullNameStr]->get());
+    }
+    id->SetFullName(fullName);
+    id->SetIdentityName(fullName);
+    if (pStrs[kReturnAddressStr]->Length()) {
+      id->SetEmail( pStrs[kReturnAddressStr]->get());
+    }
+    else {
+      nsCAutoString emailAddress;
+      emailAddress = userName;
+      emailAddress += "@";
+      emailAddress += serverName;
+      id->SetEmail(emailAddress);
+    }
+    acc->AddIdentity( id);
+    IMPORT_LOG0( "Created identity and added to the account\n");
+    IMPORT_LOG1( "\tname: %s\n", pStrs[kFullNameStr]->get());
+    IMPORT_LOG1( "\temail: %s\n", pStrs[kReturnAddressStr]->get());
+  }
+  
+  SetSmtpServer( accMgr, acc, pStrs[kSmtpServerStr]->get(), userName);
 }
 
 

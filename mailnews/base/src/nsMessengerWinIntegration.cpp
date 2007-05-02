@@ -260,7 +260,6 @@ nsMessengerWinIntegration::nsMessengerWinIntegration()
 
   mUnreadTimerActive = PR_FALSE;
   mInboxURI = nsnull;
-  mEmail = nsnull;
   mStoreUnreadCounts = PR_FALSE; 
 
   mBiffStateAtom = do_GetAtom("BiffState");
@@ -284,8 +283,6 @@ nsMessengerWinIntegration::~nsMessengerWinIntegration()
   NS_ASSERTION(NS_SUCCEEDED(rv), "failed to update registry on shutdown");
   
   CRTFREEIF(mInboxURI);
-  CRTFREEIF(mEmail);
-
   DestroyBiffIcon(); 
 }
 
@@ -304,7 +301,7 @@ nsresult
 nsMessengerWinIntegration::ResetCurrent()
 {
   CRTFREEIF(mInboxURI);
-  CRTFREEIF(mEmail);
+  mEmail.Truncate(0);
 
   mCurrentUnreadCount = -1;
   mLastUnreadCountWrittenToRegistry = -1;
@@ -892,7 +889,7 @@ nsMessengerWinIntegration::OnItemBoolPropertyChanged(nsIRDFResource *aItem,
     // mInboxURI to null, so we use that
     // to prevent us from attempting to remove 
     // something from the registry that has already been removed
-    if (mInboxURI && mEmail) {
+    if (mInboxURI && !mEmail.IsEmpty()) {
       rv = RemoveCurrentFromRegistry();
       NS_ENSURE_SUCCESS(rv,rv);
     }
@@ -1020,12 +1017,10 @@ nsMessengerWinIntegration::RemoveCurrentFromRegistry()
   nsAutoString currentUnreadMailCountKey;
   if (!mEmailPrefix.IsEmpty()) {
     currentUnreadMailCountKey.Assign(mEmailPrefix);
-    currentUnreadMailCountKey.AppendWithConversion(mEmail);
+    currentUnreadMailCountKey.Append(NS_ConvertASCIItoUTF16(mEmail));
   }
-  else {
+  else
     currentUnreadMailCountKey.AssignWithConversion(mEmail);
-  }
-
 
   WCHAR registryUnreadMailCountKey[_MAX_PATH] = {0};
   // Enumerate through registry entries to delete the key matching 
@@ -1063,7 +1058,7 @@ nsMessengerWinIntegration::UpdateRegistryWithCurrent()
 {
   if (!mStoreUnreadCounts) return NS_OK; // don't do anything here if we aren't storing unread counts...
 
-  if (!mInboxURI || !mEmail) 
+  if (!mInboxURI || mEmail.IsEmpty()) 
     return NS_OK;
 
   // only update the registry if the count has changed
@@ -1098,11 +1093,10 @@ nsMessengerWinIntegration::UpdateRegistryWithCurrent()
 
     if (!mEmailPrefix.IsEmpty()) {
       pBuffer.Assign(mEmailPrefix);
-      pBuffer.AppendWithConversion(mEmail);
+      pBuffer.Append(NS_ConvertASCIItoUTF16(mEmail));
     }
-    else {
+    else
       pBuffer.AssignWithConversion(mEmail);
-    }
 
     // Write the info into the registry
     HRESULT hr = mSHSetUnreadMailCount(pBuffer.get(), 
@@ -1187,7 +1181,7 @@ nsMessengerWinIntegration::SetupInbox()
     if (!identity)
       return NS_ERROR_FAILURE;
  
-    rv = identity->GetEmail(&mEmail);
+    rv = identity->GetEmail(mEmail);
     NS_ENSURE_SUCCESS(rv,rv);
     
     nsCOMPtr<nsIMsgFolder> rootMsgFolder;

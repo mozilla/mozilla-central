@@ -255,7 +255,7 @@ public:
     nsCOMPtr<nsIOutputStream> m_outputStream;
     char *m_dataBuffer;
     nsCOMPtr<nsIChannel> m_channel;
-    nsXPIDLCString m_templateUri;
+    nsCString m_templateUri;
     nsMessenger *m_messenger; // not ref counted
     nsSaveAllAttachmentsState *m_saveAllAttachmentsState;
 
@@ -1222,15 +1222,15 @@ nsMessenger::SaveAs(const char *aURI, PRBool aAsFile, nsIMsgIdentity *aIdentity,
     NS_ADDREF(saveListener);
     
     if (aIdentity)
-      rv = aIdentity->GetStationeryFolder(getter_Copies(saveListener->m_templateUri));
+      rv = aIdentity->GetStationeryFolder(saveListener->m_templateUri);
     if (NS_FAILED(rv)) 
       goto done;
 
     PRBool needDummyHeader =
-      PL_strcasestr(saveListener->m_templateUri, "mailbox://") 
+      PL_strcasestr(saveListener->m_templateUri.get(), "mailbox://") 
       != nsnull;
     PRBool canonicalLineEnding =
-      PL_strcasestr(saveListener->m_templateUri, "imap://")
+      PL_strcasestr(saveListener->m_templateUri.get(), "imap://")
       != nsnull;
 
     rv = saveListener->QueryInterface(
@@ -1804,7 +1804,7 @@ nsSaveMsgListener::OnStopRunningUrl(nsIURI* url, nsresult exitCode)
     m_outputStream->Flush();
     m_outputStream->Close();
     if (NS_FAILED(rv)) goto done;
-    if (m_templateUri) { // ** save as template goes here
+    if (!m_templateUri.IsEmpty()) { // ** save as template goes here
         nsCOMPtr<nsIRDFService> rdf(do_GetService(kRDFServiceCID, &rv));
         if (NS_FAILED(rv)) goto done;
         nsCOMPtr<nsIRDFResource> res;
