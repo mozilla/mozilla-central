@@ -2291,7 +2291,6 @@ nsMsgComposeAndSend::AddCompFieldLocalAttachments()
                        url);
         }
         nsresult rv;
-        NS_ENSURE_SUCCESS(rv, rv);
         nsCOMPtr<nsIIOService> ioService = do_GetService(NS_IOSERVICE_CONTRACTID, &rv);
         NS_ENSURE_SUCCESS(rv, rv);
         nsCOMPtr <nsIURI> uri;
