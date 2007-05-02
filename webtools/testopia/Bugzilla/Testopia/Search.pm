@@ -1051,11 +1051,13 @@ sub init {
             }
         }
         if ($cgi->param($profile)){
+            my $user = trim($cgi->param($profile));
+            trick_taint($user);
             if ($cgi->param('andor')){
-                push(@specialchart, [$profile, $t, trim($cgi->param($profile))]);
+                push(@specialchart, [$profile, $t, $user]);
             }
             else{
-                push(@clist, $profile, $t, trim($cgi->param($profile)));
+                push(@clist, $profile, $t, $user);
             }
         }
     }
