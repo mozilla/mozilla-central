@@ -498,7 +498,7 @@ NS_IMETHODIMP nsMailDatabase::GetSummaryValid(PRBool *aResult)
 
 NS_IMETHODIMP nsMailDatabase::SetSummaryValid(PRBool valid)
 {
-  nsresult ret = NS_OK;
+  nsresult rv = NS_OK;
   PRBool exists;
   m_folderFile->Exists(&exists);
   if (!exists) 
@@ -510,7 +510,11 @@ NS_IMETHODIMP nsMailDatabase::SetSummaryValid(PRBool valid)
     {
       PRUint32 actualFolderTimeStamp = GetMailboxModDate();
       PRInt64 fileSize;
-      m_folderFile->GetFileSize(&fileSize);
+      nsCOMPtr <nsIFile> copyFolderFile;
+      // clone file because nsLocalFile caches sizes.
+      rv = m_folderFile->Clone(getter_AddRefs(copyFolderFile));
+      NS_ENSURE_SUCCESS(rv, rv);
+      copyFolderFile->GetFileSize(&fileSize);
       m_dbFolderInfo->SetFolderSize((PRUint32) fileSize);
       m_dbFolderInfo->SetFolderDate(actualFolderTimeStamp);
       m_dbFolderInfo->SetVersion(GetCurVersion());
@@ -521,7 +525,7 @@ NS_IMETHODIMP nsMailDatabase::SetSummaryValid(PRBool valid)
     }
   }
   Commit(nsMsgDBCommitType::kLargeCommit);
-  return ret;
+  return rv;
 }
 
 nsresult nsMailDatabase::GetFolderName(nsString &folderName)
