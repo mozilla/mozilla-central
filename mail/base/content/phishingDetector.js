@@ -122,41 +122,42 @@ var gPhishingDetector = {
    * @param aLinkText (optional) user visible link text associated with aHref in case
    *        we are dealing with a link node.
    * @return asynchronously calls gMessageNotificationBar.setPhishingMsg if the link node
-   *         conains a phishing URL.  
+   *         contains a phishing URL.
    */
-   analyzeUrl: function (aUrl, aLinkText)
-   {
-     if (!aUrl)
-       return;
+  analyzeUrl: function (aUrl, aLinkText)
+  {
+    if (!aUrl)
+      return;
 
+    var ioService = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
+    var hrefURL;
+    // make sure relative link urls don't make us bail out
+    try {
+      hrefURL = ioService.newURI(aUrl, null, null);
+    } catch(ex) { return; }
 
-     var ioService = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
-     var hrefURL;
-     // make sure relative link urls don't make us bail out
-     try {
-       hrefURL = ioService.newURI(aUrl, null, null);
-     } catch(ex) { return; }
-  
-     // only check for phishing urls if the url is an http or https link.
-     // this prevents us from flagging imap and other internally handled urls
-     if (hrefURL.schemeIs('http') || hrefURL.schemeIs('https'))
-     {
-       var failsStaticTests = false;      
-       var linkTextURL = {};
-       var unobscuredHostName = {};
-       unobscuredHostName.value = hrefURL.host;
-       
-       if (this.mCheckForIPAddresses && this.hostNameIsIPAddress(hrefURL.host, unobscuredHostName) && !this.isLocalIPAddress(unobscuredHostName))
-         failsStaticTests = true;
-       else if (this.mCheckForMismatchedHosts && aLinkText && this.misMatchedHostWithLinkText(hrefURL, aLinkText, linkTextURL))
-         failsStaticTests = true;
-       
-       // Lookup the url against our local list. We want to do this even if the url fails our static
-       // test checks because the url might be in the white list.
-       if (this.mPhishingWarden)
+    // only check for phishing urls if the url is an http or https link.
+    // this prevents us from flagging imap and other internally handled urls
+    if (hrefURL.schemeIs('http') || hrefURL.schemeIs('https'))
+    {
+      var linkTextURL = {};
+      var unobscuredHostName = {};
+      unobscuredHostName.value = hrefURL.host;
+
+      // The link is not suspicious if the visible text is the same as the URL,
+      // even if the URL is an IP address.
+      var failsStaticTests = (aLinkText != aUrl) &&
+         ((this.mCheckForIPAddresses && this.hostNameIsIPAddress(hrefURL.host, unobscuredHostName) &&
+           !this.isLocalIPAddress(unobscuredHostName)) ||
+          (this.mCheckForMismatchedHosts && aLinkText &&
+           this.misMatchedHostWithLinkText(hrefURL, aLinkText, linkTextURL)));
+
+      // Lookup the url against our local list. We want to do this even if the url fails our static
+      // test checks because the url might be in the white list.
+      if (this.mPhishingWarden)
         this.mPhishingWarden.isEvilURL(GetLoadedMessage(), failsStaticTests, aUrl, this.localListCallback);
-       else
-         this.localListCallback(GetLoadedMessage(), failsStaticTests, aUrl, 2 /* not found */);
+      else
+        this.localListCallback(GetLoadedMessage(), failsStaticTests, aUrl, 2 /* not found */);
     }
   },
   
