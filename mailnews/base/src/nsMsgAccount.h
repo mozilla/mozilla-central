@@ -38,20 +38,20 @@
 #include "nscore.h"
 #include "nsIMsgAccount.h"
 #include "nsIPrefBranch.h"
+#include "nsString.h"
 
 class nsMsgAccount : public nsIMsgAccount
 {
-  
+
 public:
   nsMsgAccount();
   virtual ~nsMsgAccount();
-   
+
   NS_DECL_ISUPPORTS
-    
   NS_DECL_NSIMSGACCOUNT
-  
+
 private:
-  nsXPIDLCString m_accountKey;
+  nsCString m_accountKey;
   nsCOMPtr<nsIPrefBranch> m_prefs;
   nsCOMPtr<nsIMsgIncomingServer> m_incomingServer;
 

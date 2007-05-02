@@ -46,7 +46,6 @@
 #include "plstr.h"
 #include "prenv.h"
 #include "nsIMsgFolder.h"
-#include "nsXPIDLString.h"
 
 class nsParseNewMailState;
 class nsIMsgFolder;
@@ -59,9 +58,9 @@ public:
 
     NS_DECL_ISUPPORTS
     NS_DECL_NSIPOP3SINK
-    nsresult	GetServerFolder(nsIMsgFolder **aFolder);
-    nsresult	FindPartialMessages(nsILocalFile *folderFile);
-    void	CheckPartialMessages(nsIPop3Protocol *protocol);
+    nsresult GetServerFolder(nsIMsgFolder **aFolder);
+    nsresult FindPartialMessages(nsILocalFile *folderFile);
+    void CheckPartialMessages(nsIPop3Protocol *protocol);
 
     static char*  GetDummyEnvelope(void);
     
@@ -92,8 +91,8 @@ protected:
     PRBool m_downloadingToTempFile;
     nsCOMPtr <nsILocalFile> m_tmpDownloadFile;
     nsCString m_messageUri;
-    nsXPIDLCString m_baseMessageUri;
-    nsXPIDLCString m_accountKey;
+    nsCString m_baseMessageUri;
+    nsCString m_accountKey;
     nsVoidArray m_partialMsgsArray;
 };
 

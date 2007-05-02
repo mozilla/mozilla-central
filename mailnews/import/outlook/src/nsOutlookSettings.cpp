@@ -401,8 +401,8 @@ PRBool OutlookSettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, cha
             pMgr->FindAccountForServer(localFoldersServer, getter_AddRefs(localFoldersAccount)); 
             if (localFoldersAccount)
             {
-                nsXPIDLCString localFoldersAcctKey;
-                localFoldersAccount->GetKey(getter_Copies(localFoldersAcctKey));
+                nsCString localFoldersAcctKey;
+                localFoldersAccount->GetKey(localFoldersAcctKey);
                 pop3Server->SetDeferredToAccount(localFoldersAcctKey.get()); 
                 pop3Server->SetDeferGetNewMail(PR_TRUE);
             }

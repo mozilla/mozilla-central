@@ -153,7 +153,7 @@ NS_IMETHODIMP nsOESettings::SetLocation(nsIFile *location)
 NS_IMETHODIMP nsOESettings::Import(nsIMsgAccount **localMailAccount, PRBool *_retval)
 {
 	NS_PRECONDITION( _retval != nsnull, "null ptr");
-	
+
 	if (OESettings::DoImport( localMailAccount)) {
 		*_retval = PR_TRUE;
 		IMPORT_LOG0( "Settings import appears successful\n");
@@ -219,8 +219,8 @@ PRBool OESettings::DoImport( nsIMsgAccount **ppAccount)
 	}
 
 	nsresult	rv;
-	
-	nsCOMPtr<nsIMsgAccountManager> accMgr = 
+
+	nsCOMPtr<nsIMsgAccountManager> accMgr =
 	         do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
     if (NS_FAILED(rv)) {
 		IMPORT_LOG0( "*** Failed to create a account manager!\n");
@@ -295,7 +295,7 @@ PRBool OESettings::DoImport( nsIMsgAccount **ppAccount)
 					}
 					nsOERegUtil::FreeValueBytes( pBytes);
 				}
-				
+
 				if (anAccount) {
 					// Is this the default account?
 					keyComp = keyName;
@@ -353,7 +353,7 @@ PRBool OESettings::DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pS
 			rv = in->SetType( "imap");
 			// rv = in->SetHostName( pServerName);
 			// rv = in->SetUsername( (char *)pBytes);
-			
+
 			IMPORT_LOG2( "Created IMAP server named: %s, userName: %s\n", pServerName, (char *)pBytes);
 
 			nsString	prettyName;
@@ -366,13 +366,13 @@ PRBool OESettings::DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pS
 			nsCRT::free( pretty);
         }
       }
-			
+
 			// We have a server, create an account.
 			nsCOMPtr<nsIMsgAccount>	account;
 			rv = pMgr->CreateAccount( getter_AddRefs( account));
 			if (NS_SUCCEEDED( rv) && account) {
-				rv = account->SetIncomingServer( in);	
-				
+				rv = account->SetIncomingServer( in);
+
 				IMPORT_LOG0( "Created an account and set the IMAP server as the incoming server\n");
 
 				// Fiddle with the identities
@@ -380,12 +380,12 @@ PRBool OESettings::DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pS
 				result = PR_TRUE;
 				if (ppAccount)
 					account->QueryInterface( NS_GET_IID(nsIMsgAccount), (void **)ppAccount);
-			}				
+			}
 		}
 	}
 	else
 		result = PR_TRUE;
-	
+
 	nsOERegUtil::FreeValueBytes( pBytes);
 
 	return( result);
@@ -431,24 +431,24 @@ PRBool OESettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pS
                         IMPORT_LOG0( "*** Failed to create messenger migrator!\n");
                         return PR_FALSE;
                     }
-          
+
                     rv = messengerMigrator->CreateLocalMailAccount(PR_FALSE);
                     if (NS_FAILED(rv)) {
                         IMPORT_LOG0( "*** Failed to create Local Folders!\n");
                         return PR_FALSE;
                     }
-    
-                    pMgr->GetLocalFoldersServer(getter_AddRefs(localFoldersServer)); 
+
+                    pMgr->GetLocalFoldersServer(getter_AddRefs(localFoldersServer));
                 }
 
                 // now get the account for this server
                 nsCOMPtr<nsIMsgAccount> localFoldersAccount;
-                pMgr->FindAccountForServer(localFoldersServer, getter_AddRefs(localFoldersAccount)); 
+                pMgr->FindAccountForServer(localFoldersServer, getter_AddRefs(localFoldersAccount));
                 if (localFoldersAccount)
                 {
-                    nsXPIDLCString localFoldersAcctKey;
-                    localFoldersAccount->GetKey(getter_Copies(localFoldersAcctKey));
-                    pop3Server->SetDeferredToAccount(localFoldersAcctKey.get()); 
+                    nsCString localFoldersAcctKey;
+                    localFoldersAccount->GetKey(localFoldersAcctKey);
+                    pop3Server->SetDeferredToAccount(localFoldersAcctKey.get());
                     pop3Server->SetDeferGetNewMail(PR_TRUE);
                 }
             }
@@ -465,14 +465,14 @@ PRBool OESettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pS
 			nsCRT::free( pretty);
         }
       }
-			
+
 			// We have a server, create an account.
 			nsCOMPtr<nsIMsgAccount>	account;
 			rv = pMgr->CreateAccount( getter_AddRefs( account));
 			if (NS_SUCCEEDED( rv) && account) {
 				rv = account->SetIncomingServer( in);
 				IMPORT_LOG0( "Created a new account and set the incoming server to the POP3 server.\n");
-					
+
         nsCOMPtr<nsIPop3IncomingServer> pop3Server = do_QueryInterface(in, &rv);
         NS_ENSURE_SUCCESS(rv,rv);
         BYTE *pLeaveOnServer = nsOERegUtil::GetValueBytes( hKey, "Leave Mail On Server");
@@ -487,12 +487,12 @@ PRBool OESettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pS
 				result = PR_TRUE;
 				if (ppAccount)
 					account->QueryInterface( NS_GET_IID(nsIMsgAccount), (void **)ppAccount);
-			}				
+			}
 		}
 	}
 	else
 		result = PR_TRUE;
-	
+
 	nsOERegUtil::FreeValueBytes( pBytes);
 
 	return( result);
@@ -563,7 +563,7 @@ void OESettings::SetIdentities( nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc,
         id->SetReplyTo(nsCString(pReply));
 
       // Outlook Express users are used to top style quoting.
-      id->SetReplyOnTop(1); 
+      id->SetReplyOnTop(1);
       pAcc->AddIdentity(id);
 
       IMPORT_LOG0("Created identity and added to the account\n");
@@ -575,7 +575,7 @@ void OESettings::SetIdentities( nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc,
   if (!pUserName) {
     nsCOMPtr <nsIMsgIncomingServer> incomingServer;
     rv = pAcc->GetIncomingServer(getter_AddRefs(incomingServer));
-    if (NS_SUCCEEDED(rv) && incomingServer) 
+    if (NS_SUCCEEDED(rv) && incomingServer)
       rv = incomingServer->GetUsername(&pUserName);
     NS_ASSERTION(NS_SUCCEEDED(rv), "Unable to get UserName from incomingServer");
   }
@@ -594,17 +594,17 @@ void OESettings::SetSmtpServer( nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc,
 	nsresult	rv;
 
 
-	nsCOMPtr<nsISmtpService> smtpService(do_GetService(NS_SMTPSERVICE_CONTRACTID, &rv)); 
+	nsCOMPtr<nsISmtpService> smtpService(do_GetService(NS_SMTPSERVICE_CONTRACTID, &rv));
 	if (NS_SUCCEEDED(rv) && smtpService) {
 		nsCOMPtr<nsISmtpServer>		foundServer;
-	
+
 		rv = smtpService->FindServer( pUser, pServer, getter_AddRefs( foundServer));
 		if (NS_SUCCEEDED( rv) && foundServer) {
 			IMPORT_LOG1( "SMTP server already exists: %s\n", pServer);
 			return;
 		}
 		nsCOMPtr<nsISmtpServer>		smtpServer;
-		
+
 		rv = smtpService->CreateSmtpServer( getter_AddRefs( smtpServer));
 		if (NS_SUCCEEDED( rv) && smtpServer) {
 			smtpServer->SetHostname( pServer);

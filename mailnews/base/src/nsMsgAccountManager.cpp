@@ -78,7 +78,7 @@
 #include "nsMsgFolderFlags.h"
 #include "nsIRDFService.h"
 #include "nsRDFCID.h"
-#include "nsIImapIncomingServer.h" 
+#include "nsIImapIncomingServer.h"
 #include "nsIImapUrl.h"
 #include "nsIMessengerOSIntegration.h"
 #include "nsICategoryManager.h"
@@ -172,10 +172,10 @@ nsMsgAccountManager::~nsMsgAccountManager()
     Shutdown();
     //Don't remove from Observer service in Shutdown because Shutdown also gets called
     //from xpcom shutdown observer.  And we don't want to remove from the service in that case.
-    nsCOMPtr<nsIObserverService> observerService = 
+    nsCOMPtr<nsIObserverService> observerService =
          do_GetService("@mozilla.org/observer-service;1", &rv);
     if (NS_SUCCEEDED(rv))
-    {    
+    {
       observerService->RemoveObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID);
       observerService->RemoveObserver(this, ABOUT_TO_GO_OFFLINE_TOPIC);
     }
@@ -191,10 +191,10 @@ nsresult nsMsgAccountManager::Init()
 
   rv = NS_NewISupportsArray(getter_AddRefs(mFolderListeners));
 
-  nsCOMPtr<nsIObserverService> observerService = 
+  nsCOMPtr<nsIObserverService> observerService =
            do_GetService("@mozilla.org/observer-service;1", &rv);
   if (NS_SUCCEEDED(rv))
-  {    
+  {
     observerService->AddObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID, PR_TRUE);
     observerService->AddObserver(this, "quit-application" , PR_TRUE);
     observerService->AddObserver(this, ABOUT_TO_GO_OFFLINE_TOPIC, PR_TRUE);
@@ -213,7 +213,7 @@ nsresult nsMsgAccountManager::Shutdown()
   nsresult rv;
 
   SaveVirtualFolders();
-    
+
   nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
   if (msgDBService)
   {
@@ -225,7 +225,7 @@ nsresult nsMsgAccountManager::Shutdown()
     WriteToFolderCache(m_msgFolderCache);
   (void)ShutdownServers();
   (void)UnloadAccounts();
-  
+
   //shutdown removes nsIIncomingServer listener from biff manager, so do it after accounts have been unloaded
   nsCOMPtr<nsIMsgBiffManager> biffService = do_GetService(NS_MSGBIFFMANAGER_CONTRACTID, &rv);
   if (NS_SUCCEEDED(rv) && biffService)
@@ -235,7 +235,7 @@ nsresult nsMsgAccountManager::Shutdown()
   nsCOMPtr<nsIMsgPurgeService> purgeService = do_GetService(NS_MSGPURGESERVICE_CONTRACTID, &rv);
   if (NS_SUCCEEDED(rv) && purgeService)
     purgeService->Shutdown();
-  
+
   m_msgFolderCache = nsnull;
 
   m_haveShutdown = PR_TRUE;
@@ -274,13 +274,13 @@ NS_IMETHODIMP nsMsgAccountManager::Observe(nsISupports *aSubject, const char *aT
     Shutdown();
     return NS_OK;
   }
-  
+
   if (!nsCRT::strcmp(aTopic,"quit-application"))
   {
     m_shutdownInProgress = PR_TRUE;
     return NS_OK;
   }
-  
+
   if (!nsCRT::strcmp(aTopic, ABOUT_TO_GO_OFFLINE_TOPIC))
   {
     nsAutoString dataString(NS_LITERAL_STRING("offline"));
@@ -292,19 +292,19 @@ NS_IMETHODIMP nsMsgAccountManager::Observe(nsISupports *aSubject, const char *aT
     }
     return NS_OK;
   }
-  
+
   if (!nsCRT::strcmp(aTopic, "session-logout"))
   {
     m_incomingServers.Enumerate(hashLogoutOfServer, nsnull);
     return NS_OK;
   }
-  
+
   if (!nsCRT::strcmp(aTopic, "profile-before-change"))
   {
     Shutdown();
     return NS_OK;
   }
-    
+
  return NS_OK;
 }
 
@@ -314,7 +314,7 @@ nsMsgAccountManager::getPrefService()
 
   // get the prefs service
   nsresult rv = NS_OK;
-  
+
   if (!m_prefs)
     m_prefs = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
 
@@ -336,7 +336,7 @@ nsMsgAccountManager::getUniqueKey(const char* prefix,
     aResult.AppendInt(i++);
     nsCStringKey hashKey(aResult);
     void* hashElement = hashTable->Get(&hashKey);
-    
+
     if (!hashElement) unique=PR_TRUE;
   } while (!unique);
 
@@ -349,15 +349,15 @@ nsMsgAccountManager::getUniqueAccountKey(const char *prefix,
 {
   PRInt32 i=1;
   PRBool unique = PR_FALSE;
-  
+
   findAccountByKeyEntry findEntry;
   findEntry.account = nsnull;
-  
+
   do {
       aResult = prefix;
       aResult.AppendInt(i++);
       findEntry.key = aResult.get();
-    
+
     accounts->EnumerateForwards(findAccountByKey, (void *)&findEntry);
 
     if (!findEntry.account) unique=PR_TRUE;
@@ -370,7 +370,7 @@ nsresult
 nsMsgAccountManager::CreateIdentity(nsIMsgIdentity **_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
-  
+
   nsresult rv;
 
   nsCAutoString key;
@@ -421,9 +421,9 @@ nsMsgAccountManager::createKeyedIdentity(const nsCString& key,
   nsCOMPtr<nsIMsgIdentity> identity =
       do_CreateInstance(NS_MSGIDENTITY_CONTRACTID, &rv);
   if (NS_FAILED(rv)) return rv;
-  
+
   identity->SetKey(key);
-  
+
   nsCStringKey hashKey(key);
 
   // addref for the hash table`
@@ -432,7 +432,7 @@ nsMsgAccountManager::createKeyedIdentity(const nsCString& key,
   m_identities.Put(&hashKey, (void *)idsupports);
 
   NS_ADDREF(*aIdentity = identity);
-  
+
   return NS_OK;
 }
 
@@ -459,7 +459,7 @@ nsMsgAccountManager::GetIncomingServer(const char* key,
   NS_ENSURE_ARG_POINTER(_retval);
 
   nsresult rv=NS_OK;
-  
+
   nsCStringKey hashKey(key);
   nsCOMPtr<nsIMsgIncomingServer> server =
     do_QueryInterface((nsISupports*)m_incomingServers.Get(&hashKey), &rv);
@@ -474,12 +474,12 @@ nsMsgAccountManager::GetIncomingServer(const char* key,
   // instead of leaving it up to the incoming server.
   // this should be fixed somehow so that we can create the incoming server
   // and then read from the incoming server's attributes
-  
+
   // in order to create the right kind of server, we have to look
   // at the pref for this server to get the username, hostname, and type
   nsCAutoString serverPrefPrefix(PREF_MAIL_SERVER_PREFIX);
   serverPrefPrefix += key;
-  
+
   nsCAutoString serverPref;
 
   //
@@ -489,7 +489,7 @@ nsMsgAccountManager::GetIncomingServer(const char* key,
   nsXPIDLCString serverType;
   rv = m_prefs->GetCharPref(serverPref.get(), getter_Copies(serverType));
   NS_ENSURE_SUCCESS(rv, NS_ERROR_NOT_INITIALIZED);
-  
+
   //
   // .userName
   serverPref = serverPrefPrefix;
@@ -503,7 +503,7 @@ nsMsgAccountManager::GetIncomingServer(const char* key,
   nsXPIDLCString hostname;
   rv = m_prefs->GetCharPref(serverPref.get(), getter_Copies(hostname));
   NS_ENSURE_SUCCESS(rv, NS_ERROR_NOT_INITIALIZED);
-  
+
     // the server type doesn't exist. That's bad.
 
   rv = createKeyedServer(key, username, hostname, serverType, _retval);
@@ -527,12 +527,12 @@ nsMsgAccountManager::createKeyedServer(const char* key,
   //construct the contractid
   nsCAutoString serverContractID(NS_MSGINCOMINGSERVER_CONTRACTID_PREFIX);
   serverContractID += type;
-  
+
   // finally, create the server
   nsCOMPtr<nsIMsgIncomingServer> server =
            do_CreateInstance(serverContractID.get(), &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   server->SetKey(key);
   server->SetType(type);
   server->SetUsername(username);
@@ -553,7 +553,7 @@ nsMsgAccountManager::createKeyedServer(const char* key,
   mFolderListeners->EnumerateForwards(addListenerToFolder,
                                       (void *)(nsIMsgFolder*)rootFolder);
   NS_ADDREF(*aServer = server);
-  
+
   return NS_OK;
 }
 
@@ -583,7 +583,7 @@ nsMsgAccountManager::removeListenerFromFolder(nsISupports *element, void *data)
 
 NS_IMETHODIMP
 nsMsgAccountManager::DuplicateAccount(nsIMsgAccount *aAccount)
-{ 
+{
   NS_ENSURE_ARG_POINTER(aAccount);
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -601,16 +601,16 @@ nsMsgAccountManager::RemoveAccount(nsIMsgAccount *aAccount)
   NS_ENSURE_ARG_POINTER(aAccount);
   nsresult rv;
   rv = LoadAccounts();
-  if (NS_FAILED(rv)) return rv;
+  NS_ENSURE_SUCCESS(rv, rv);
 
   // order is important!
   // remove it from the prefs first
-  nsXPIDLCString key;
-  rv = aAccount->GetKey(getter_Copies(key));
-  if (NS_FAILED(rv)) return rv;
-  
-  rv = removeKeyedAccount(key);
-  if (NS_FAILED(rv)) return rv;
+  nsCString key;
+  rv = aAccount->GetKey(key);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = removeKeyedAccount(key.get());
+  NS_ENSURE_SUCCESS(rv, rv);
 
   // we were able to save the new prefs (i.e. not locked) so now remove it
   // from the account manager... ignore the error though, because the only
@@ -619,9 +619,8 @@ nsMsgAccountManager::RemoveAccount(nsIMsgAccount *aAccount)
   m_accounts->RemoveElement(aAccount);
 
   // if it's the default, clear the default account
-  if (m_defaultAccount.get() == aAccount) {
+  if (m_defaultAccount.get() == aAccount)
     SetDefaultAccount(nsnull);
-  }
 
   // XXX - need to figure out if this is the last time this server is
   // being used, and only send notification then.
@@ -640,7 +639,7 @@ nsMsgAccountManager::RemoveAccount(nsIMsgAccount *aAccount)
         nsXPIDLCString cachedServerKey;
         rv = m_lastFindServerResult->GetKey(getter_Copies(cachedServerKey));
         NS_ENSURE_SUCCESS(rv,rv);
-    
+
         if (!nsCRT::strcmp((const char *)serverKey,(const char *)cachedServerKey)) {
             rv = SetLastServerFound(nsnull,"","",0,"");
             NS_ENSURE_SUCCESS(rv,rv);
@@ -648,7 +647,7 @@ nsMsgAccountManager::RemoveAccount(nsIMsgAccount *aAccount)
     }
 
     nsCStringKey hashKey(serverKey);
-    
+
     nsIMsgIncomingServer* removedServer =
       (nsIMsgIncomingServer*) m_incomingServers.Remove(&hashKey);
 
@@ -656,7 +655,7 @@ nsMsgAccountManager::RemoveAccount(nsIMsgAccount *aAccount)
 
     // remove reference from hashtable
     NS_IF_RELEASE(removedServer);
-    
+
     nsCOMPtr<nsIMsgFolder> rootFolder;
     server->GetRootFolder(getter_AddRefs(rootFolder));
     nsCOMPtr<nsISupportsArray> allDescendents;
@@ -670,17 +669,17 @@ nsMsgAccountManager::RemoveAccount(nsIMsgAccount *aAccount)
       nsCOMPtr<nsIMsgFolder> folder = do_QueryElementAt(allDescendents, i, &rv);
       folder->ForceDBClosed();
     }
-   
+
     mFolderListeners->EnumerateForwards(removeListenerFromFolder,
                                         (void*)rootFolder);
-    
+
     NotifyServerUnloaded(server);
 
 
     rv = server->RemoveFiles();
     NS_ASSERTION(NS_SUCCEEDED(rv), "failed to remove the files associated with server");
 
-    
+
     // now clear out the server once and for all.
     // watch out! could be scary
     server->ClearAllValues();
@@ -688,7 +687,7 @@ nsMsgAccountManager::RemoveAccount(nsIMsgAccount *aAccount)
     rootFolder->Shutdown(PR_TRUE);
   }
   nsCOMPtr<nsISupportsArray> identityArray;
-  
+
   rv = aAccount->GetIdentities(getter_AddRefs(identityArray));
   if (NS_SUCCEEDED(rv)) {
 
@@ -731,7 +730,7 @@ nsMsgAccountManager::removeKeyedAccount(const char *key)
   nsCAutoString newAccountList;
   char *newStr;
   char *rest = accountList.BeginWriting();
-  
+
   char *token = nsCRT::strtok(rest, ",", &newStr);
   while (token) {
     nsCAutoString testKey(token);
@@ -767,7 +766,7 @@ nsMsgAccountManager::GetDefaultAccount(nsIMsgAccount * *aDefaultAccount)
   nsresult rv;
   rv = LoadAccounts();
   if (NS_FAILED(rv)) return rv;
-  
+
   PRUint32 count;
   if (!m_defaultAccount) {
     m_accounts->Count(&count);
@@ -778,7 +777,7 @@ nsMsgAccountManager::GetDefaultAccount(nsIMsgAccount * *aDefaultAccount)
 
     nsXPIDLCString defaultKey;
     rv = m_prefs->GetCharPref(PREF_MAIL_ACCOUNTMANAGER_DEFAULTACCOUNT, getter_Copies(defaultKey));
-    
+
     if (NS_SUCCEEDED(rv))
       GetAccount(defaultKey, getter_AddRefs(m_defaultAccount));
 
@@ -794,11 +793,11 @@ nsMsgAccountManager::GetDefaultAccount(nsIMsgAccount * *aDefaultAccount)
           nsCOMPtr <nsIMsgIncomingServer> server;
           rv = aAccount->GetIncomingServer(getter_AddRefs(server));
           NS_ENSURE_SUCCESS(rv,rv);
-          
+
           PRBool canBeDefaultServer = PR_FALSE;
           if (server)
             server->GetCanBeDefaultServer(&canBeDefaultServer);
-          
+
           // if this can serve as default server, set it as default and
           // break outof the loop.
           if (canBeDefaultServer) {
@@ -821,7 +820,7 @@ nsMsgAccountManager::GetDefaultAccount(nsIMsgAccount * *aDefaultAccount)
       }
     }
   }
-  
+
   *aDefaultAccount = m_defaultAccount;
   NS_IF_ADDREF(*aDefaultAccount);
   return NS_OK;
@@ -855,7 +854,7 @@ nsMsgAccountManager::notifyDefaultServerChange(nsIMsgAccount *aOldAccount,
 
   nsCOMPtr<nsIMsgIncomingServer> server;
   nsCOMPtr<nsIMsgFolder> rootFolder;
-  
+
   // first tell old server it's no longer the default
   if (aOldAccount) {
     rv = aOldAccount->GetIncomingServer(getter_AddRefs(server));
@@ -866,7 +865,7 @@ nsMsgAccountManager::notifyDefaultServerChange(nsIMsgAccount *aOldAccount,
                                                         PR_TRUE, PR_FALSE);
     }
   }
-    
+
     // now tell new server it is.
   if (aNewAccount) {
     rv = aNewAccount->GetIncomingServer(getter_AddRefs(server));
@@ -880,7 +879,7 @@ nsMsgAccountManager::notifyDefaultServerChange(nsIMsgAccount *aOldAccount,
 
   if (aOldAccount && aNewAccount)  //only notify if the user goes and changes default account
   {
-    nsCOMPtr<nsIObserverService> observerService = 
+    nsCOMPtr<nsIObserverService> observerService =
       do_GetService("@mozilla.org/observer-service;1", &rv);
 
     if (NS_SUCCEEDED(rv))
@@ -894,16 +893,16 @@ nsresult
 nsMsgAccountManager::setDefaultAccountPref(nsIMsgAccount* aDefaultAccount)
 {
   nsresult rv;
-  
+
   rv = getPrefService();
   NS_ENSURE_SUCCESS(rv,rv);
 
   if (aDefaultAccount) {
-    nsXPIDLCString key;
-    rv = aDefaultAccount->GetKey(getter_Copies(key));
+    nsCString key;
+    rv = aDefaultAccount->GetKey(key);
     NS_ENSURE_SUCCESS(rv, rv);
-    
-    rv = m_prefs->SetCharPref(PREF_MAIL_ACCOUNTMANAGER_DEFAULTACCOUNT, key);
+
+    rv = m_prefs->SetCharPref(PREF_MAIL_ACCOUNTMANAGER_DEFAULTACCOUNT, key.get());
     NS_ENSURE_SUCCESS(rv,rv);
   }
   else
@@ -912,7 +911,6 @@ nsMsgAccountManager::setDefaultAccountPref(nsIMsgAccount* aDefaultAccount)
 
   return NS_OK;
 }
-    
 
 // enumaration for sending unload notifications
 PRBool
@@ -923,7 +921,7 @@ nsMsgAccountManager::hashUnloadServer(nsHashKey *aKey, void *aData,
     nsCOMPtr<nsIMsgIncomingServer> server =
       do_QueryInterface((nsISupports*)aData, &rv);
     if (NS_FAILED(rv)) return PR_TRUE;
-    
+
     nsMsgAccountManager *accountManager = (nsMsgAccountManager*)closure;
     accountManager->NotifyServerUnloaded(server);
 
@@ -974,10 +972,10 @@ NS_IMETHODIMP nsMsgAccountManager::GetFolderCache(nsIMsgFolderCache* *aFolderCac
         return rv;
 
     nsCOMPtr<nsIFile> cacheFile;
-    
+
     rv = NS_GetSpecialDirectory(NS_APP_MESSENGER_FOLDER_CACHE_50_DIR, getter_AddRefs(cacheFile));
     if (NS_FAILED(rv)) return rv;
-    
+
     m_msgFolderCache->Init(cacheFile);
   }
 
@@ -1006,7 +1004,7 @@ PRBool PR_CALLBACK nsMsgAccountManager::cleanupOnExit(nsHashKey *aKey, void *aDa
   PRBool emptyTrashOnExit = PR_FALSE;
   PRBool cleanupInboxOnExit = PR_FALSE;
   nsresult rv;
-    
+
   if (WeAreOffline())
     return PR_TRUE;
 
@@ -1038,16 +1036,16 @@ PRBool PR_CALLBACK nsMsgAccountManager::cleanupOnExit(nsHashKey *aKey, void *aDa
            server->GetServerRequiresPasswordForBiff(&serverRequiresPasswordForAuthentication);
            server->GetPassword(getter_Copies(passwd));
          }
-         if (!isImap || (isImap && (!serverRequiresPasswordForAuthentication || (passwd && 
+         if (!isImap || (isImap && (!serverRequiresPasswordForAuthentication || (passwd &&
                         strlen((const char*) passwd)))))
          {
            nsCOMPtr<nsIUrlListener> urlListener;
-           nsCOMPtr<nsIMsgAccountManager> accountManager = 
+           nsCOMPtr<nsIMsgAccountManager> accountManager =
                     do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
            if (NS_FAILED(rv)) return rv;
            if (isImap)
              urlListener = do_QueryInterface(accountManager, &rv);
-                    
+
            if (isImap && cleanupInboxOnExit)
            {
              nsCOMPtr<nsIEnumerator> aEnumerator;
@@ -1055,7 +1053,7 @@ PRBool PR_CALLBACK nsMsgAccountManager::cleanupOnExit(nsHashKey *aKey, void *aDa
              nsCOMPtr<nsISupports> aSupport;
              rv = aEnumerator->First();
              while (NS_SUCCEEDED(rv))
-             {  
+             {
                rv = aEnumerator->CurrentItem(getter_AddRefs(aSupport));
                nsCOMPtr<nsIMsgFolder>inboxFolder = do_QueryInterface(aSupport);
                PRUint32 flags;
@@ -1071,14 +1069,14 @@ PRBool PR_CALLBACK nsMsgAccountManager::cleanupOnExit(nsHashKey *aKey, void *aDa
                   rv = aEnumerator->Next();
              }
            }
-                          
+
            if (emptyTrashOnExit)
            {
              rv = folder->EmptyTrash(nsnull, urlListener);
              if (isImap && NS_SUCCEEDED(rv))
                accountManager->SetFolderDoingEmptyTrash(folder);
            }
-                    
+
            if (isImap && urlListener)
            {
              nsIThread *thread = NS_GetCurrentThread();
@@ -1110,9 +1108,9 @@ PRBool PR_CALLBACK nsMsgAccountManager::cleanupOnExit(nsHashKey *aKey, void *aDa
                  NS_ProcessPendingEvents(thread);
                }
              }
-           } 
+           }
          }
-       }     
+       }
      }
    }
    return PR_TRUE;
@@ -1142,10 +1140,10 @@ NS_IMETHODIMP
 nsMsgAccountManager::GetAccounts(nsISupportsArray **_retval)
 {
   nsresult rv;
-  
+
   rv = LoadAccounts();
   if (NS_FAILED(rv)) return rv;
-  
+
   nsCOMPtr<nsISupportsArray> accounts;
   NS_NewISupportsArray(getter_AddRefs(accounts));
 
@@ -1185,7 +1183,7 @@ nsMsgAccountManager::GetAllIdentities(nsISupportsArray **_retval)
   nsresult rv;
   rv = LoadAccounts();
   if (NS_FAILED(rv)) return rv;
-  
+
   nsCOMPtr<nsISupportsArray> identities;
   rv = NS_NewISupportsArray(getter_AddRefs(identities));
   if (NS_FAILED(rv)) return rv;
@@ -1208,10 +1206,10 @@ nsMsgAccountManager::addIdentityIfUnique(nsISupports *element, void *aData)
     printf("addIdentityIfUnique problem\n");
     return PR_TRUE;
   }
-  
+
   nsISupportsArray *array = (nsISupportsArray*)aData;
 
-  
+
   nsCString key;
   rv = identity->GetKey(key);
   if (NS_FAILED(rv)) return PR_TRUE;
@@ -1219,7 +1217,7 @@ nsMsgAccountManager::addIdentityIfUnique(nsISupports *element, void *aData)
   PRUint32 count=0;
   rv = array->Count(&count);
   if (NS_FAILED(rv)) return PR_TRUE;
-  
+
   PRBool found=PR_FALSE;
   PRUint32 i;
   for (i=0; i<count; i++) {
@@ -1250,14 +1248,14 @@ nsMsgAccountManager::getIdentitiesToArray(nsISupports *element, void *aData)
   nsresult rv;
   nsCOMPtr<nsIMsgAccount> account = do_QueryInterface(element, &rv);
   if (NS_FAILED(rv)) return PR_TRUE;
-  
-  
+
+
   nsCOMPtr<nsISupportsArray> identities;
   rv = account->GetIdentities(getter_AddRefs(identities));
   if (NS_FAILED(rv)) return PR_TRUE;
 
   identities->EnumerateForwards(addIdentityIfUnique, aData);
-  
+
   return PR_TRUE;
 }
 
@@ -1268,7 +1266,7 @@ nsMsgAccountManager::GetAllServers(nsISupportsArray **_retval)
   nsresult rv;
   rv = LoadAccounts();
   if (NS_FAILED(rv)) return rv;
-  
+
   nsCOMPtr<nsISupportsArray> servers;
   rv = NS_NewISupportsArray(getter_AddRefs(servers));
   if (NS_FAILED(rv)) return rv;
@@ -1290,11 +1288,11 @@ nsMsgAccountManager::getServersToArray(nsHashKey *aKey,
   nsCOMPtr<nsIMsgIncomingServer> server =
     do_QueryInterface((nsISupports*)element, &rv);
   if (NS_FAILED(rv)) return PR_TRUE;
-  
+
   nsISupportsArray *array = (nsISupportsArray*)aData;
-  
+
   nsCOMPtr<nsISupports> serverSupports = do_QueryInterface(server);
-  if (NS_SUCCEEDED(rv)) 
+  if (NS_SUCCEEDED(rv))
     array->AppendElement(serverSupports);
 
   return PR_TRUE;
@@ -1310,21 +1308,21 @@ nsMsgAccountManager::LoadAccounts()
     return NS_OK;
 
   kDefaultServerAtom = do_GetAtom("DefaultServer");
-  
+
   //Ensure biff service has started
-  nsCOMPtr<nsIMsgBiffManager> biffService = 
+  nsCOMPtr<nsIMsgBiffManager> biffService =
            do_GetService(NS_MSGBIFFMANAGER_CONTRACTID, &rv);
 
   if (NS_SUCCEEDED(rv))
     biffService->Init();
 
   //Ensure purge service has started
-  nsCOMPtr<nsIMsgPurgeService> purgeService = 
+  nsCOMPtr<nsIMsgPurgeService> purgeService =
            do_GetService(NS_MSGPURGESERVICE_CONTRACTID, &rv);
 
   if (NS_SUCCEEDED(rv))
     purgeService->Init();
-  
+
   // Ensure messenger OS integration service has started
   // note, you can't expect the integrationService to be there
   // we don't have OS integration on all platforms.
@@ -1336,25 +1334,25 @@ nsMsgAccountManager::LoadAccounts()
   rv = getPrefService();
   if (NS_SUCCEEDED(rv)) {
     rv = m_prefs->GetCharPref(PREF_MAIL_ACCOUNTMANAGER_ACCOUNTS, getter_Copies(accountList));
-    
-    /** 
+
+    /**
      * Check to see if we need to add pre-configured accounts.
      * Following prefs are important to note in understanding the procedure here.
      *
      * 1. pref("mailnews.append_preconfig_accounts.version", version number);
-     * This pref registers the current version in the user prefs file. A default value 
-     * is stored in mailnews.js file. If a given vendor needs to add more preconfigured 
-     * accounts, the default version number can be increased. Comparing version 
+     * This pref registers the current version in the user prefs file. A default value
+     * is stored in mailnews.js file. If a given vendor needs to add more preconfigured
+     * accounts, the default version number can be increased. Comparing version
      * number from user's prefs file and the default one from mailnews.js, we
      * can add new accounts and any other version level changes that need to be done.
      *
      * 2. pref("mail.accountmanager.appendaccounts", <comma separated account list>);
      * This pref contains the list of pre-configured accounts that ISP/Vendor wants to
-     * to add to the existing accounts list. 
+     * to add to the existing accounts list.
      */
     nsCOMPtr<nsIPrefService> prefservice(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
     NS_ENSURE_SUCCESS(rv,rv);
-    
+
     nsCOMPtr<nsIPrefBranch> defaultsPrefBranch;
     rv = prefservice->GetDefaultBranch(MAILNEWS_ROOT_PREF, getter_AddRefs(defaultsPrefBranch));
     NS_ENSURE_SUCCESS(rv,rv);
@@ -1384,11 +1382,11 @@ nsMsgAccountManager::LoadAccounts()
           nsCStringArray existingAccountsArray;
           existingAccountsArray.ParseString(accountList.get(), ACCOUNT_DELIMITER);
 
-          // Tokenize the data and add each account if it is not already there 
+          // Tokenize the data and add each account if it is not already there
           // in the user's current mailnews account list
           char *newAccountStr;
           char *preConfigAccountsStr = ToNewCString(appendAccountList);
-  
+
           char *token = nsCRT::strtok(preConfigAccountsStr, ACCOUNT_DELIMITER, &newAccountStr);
 
           nsCAutoString newAccount;
@@ -1417,23 +1415,23 @@ nsMsgAccountManager::LoadAccounts()
 
   m_accountsLoaded = PR_TRUE;  //It is ok to return null accounts like when we create new profile
   m_haveShutdown = PR_FALSE;
-  
+
   if (!accountList || !accountList[0])
     return NS_OK;
-  
-  /* parse accountList and run loadAccount on each string, comma-separated */   
+
+  /* parse accountList and run loadAccount on each string, comma-separated */
   nsCOMPtr<nsIMsgAccount> account;
   char *newStr;
   char *rest = accountList.BeginWriting();
   nsCAutoString str;
-  
+
   for (char *token = nsCRT::strtok(rest, ",", &newStr);
        token;
        token = nsCRT::strtok(newStr, ",", &newStr))
   {
     str = token;
     str.StripWhitespace();
-      
+
     if (str.IsEmpty() ||
         NS_FAILED(createKeyedAccount(str.get(), getter_AddRefs(account))) ||
         !account) {
@@ -1444,12 +1442,12 @@ nsMsgAccountManager::LoadAccounts()
     // force load of accounts (need to find a better way to do this)
     nsCOMPtr<nsISupportsArray> identities;
     account->GetIdentities(getter_AddRefs(identities));
-    
+
     nsCOMPtr<nsIMsgIncomingServer> server;
     account->GetIncomingServer(getter_AddRefs(server));
   }
 
-  nsCOMPtr<nsIMsgMailSession> mailSession = do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv); 
+  nsCOMPtr<nsIMsgMailSession> mailSession = do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
 
   if (NS_SUCCEEDED(rv))
     mailSession->AddFolderListener(this, nsIFolderListener::added | nsIFolderListener::removed);
@@ -1464,10 +1462,11 @@ nsMsgAccountManager::getAccountList(nsISupports *element, void *aData)
   nsCAutoString* accountList = (nsCAutoString*) aData;
   nsCOMPtr<nsIMsgAccount> account = do_QueryInterface(element, &rv);
   if (NS_FAILED(rv)) return PR_TRUE;
-  
-  nsXPIDLCString key;
-  rv = account->GetKey(getter_Copies(key));
-  if (NS_FAILED(rv)) return PR_TRUE;
+
+  nsCString key;
+  rv = account->GetKey(key);
+  if (NS_FAILED(rv)) 
+    return PR_TRUE;
 
   if ((*accountList).IsEmpty())
     (*accountList).Append(key);
@@ -1491,7 +1490,7 @@ nsMsgAccountManager::SetSpecialFolders()
 {
   nsresult rv;
   nsCOMPtr<nsIRDFService> rdf = do_GetService("@mozilla.org/rdf/rdf-service;1", &rv);
-  NS_ENSURE_SUCCESS(rv,rv); 
+  NS_ENSURE_SUCCESS(rv,rv);
 
   nsCOMPtr<nsISupportsArray> identities;
   GetAllIdentities(getter_AddRefs(identities));
@@ -1501,13 +1500,13 @@ nsMsgAccountManager::SetSpecialFolders()
 
   PRUint32 id;
   nsXPIDLCString identityKey;
-  
-  for (id=0; id<idCount; id++) 
+
+  for (id=0; id<idCount; id++)
   {
     nsCOMPtr<nsISupports> thisSupports;
     rv = identities->GetElementAt(id, getter_AddRefs(thisSupports));
     if (NS_FAILED(rv)) continue;
-    
+
     nsCOMPtr<nsIMsgIdentity>
       thisIdentity = do_QueryInterface(thisSupports, &rv);
 
@@ -1611,12 +1610,12 @@ nsresult
 nsMsgAccountManager::createKeyedAccount(const char* key,
                                         nsIMsgAccount ** aAccount)
 {
-    
+
   nsresult rv;
   nsCOMPtr<nsIMsgAccount> account = do_CreateInstance(kMsgAccountCID, &rv);
-  if (NS_FAILED(rv)) return rv;
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  account->SetKey(key);
+  account->SetKey(nsCString(key));
 
   // add to internal nsISupportsArray
   m_accounts->AppendElement(NS_STATIC_CAST(nsISupports*, account));
@@ -1635,7 +1634,7 @@ nsMsgAccountManager::createKeyedAccount(const char* key,
                          mAccountKeyList.get());
 
   NS_ADDREF(*aAccount = account);
-  
+
   return NS_OK;
 }
 
@@ -1659,7 +1658,7 @@ nsMsgAccountManager::GetAccount(const char* key,
     findAccountByKeyEntry findEntry;
     findEntry.key = key;
     findEntry.account = nsnull;
-    
+
     m_accounts->EnumerateForwards(findAccountByKey, (void *)&findEntry);
 
     if (findEntry.account)
@@ -1677,14 +1676,14 @@ nsMsgAccountManager::FindServerIndex(nsIMsgIncomingServer* server,
 {
   NS_ENSURE_ARG_POINTER(server);
   nsresult rv;
-  
+
   nsXPIDLCString key;
   rv = server->GetKey(getter_Copies(key));
 
   findServerByKeyEntry findEntry;
   findEntry.key = key;
   findEntry.index = -1;
-  
+
   // do this by account because the account list is in order
   m_accounts->EnumerateForwards(findServerIndexByServer, (void *)&findEntry);
 
@@ -1692,7 +1691,7 @@ nsMsgAccountManager::FindServerIndex(nsIMsgIncomingServer* server,
   // this means that all servers not in the array return an index higher
   // than all "registered" servers
   *result = findEntry.index;
-  
+
   return NS_OK;
 }
 
@@ -1700,65 +1699,66 @@ PRBool
 nsMsgAccountManager::findServerIndexByServer(nsISupports *element, void *aData)
 {
   nsresult rv;
-  
+
   nsCOMPtr<nsIMsgAccount> account = do_QueryInterface(element);
   findServerByKeyEntry *entry = (findServerByKeyEntry*) aData;
 
   // increment the index;
   entry->index++;
-  
+
   nsCOMPtr<nsIMsgIncomingServer> server;
   rv = account->GetIncomingServer(getter_AddRefs(server));
   if (!server || NS_FAILED(rv)) return PR_TRUE;
-  
+
   nsXPIDLCString key;
   rv = server->GetKey(getter_Copies(key));
   if (NS_FAILED(rv)) return PR_TRUE;
 
   // stop when found,
-  // index will be set to the current index 
+  // index will be set to the current index
   if (nsCRT::strcmp(key, entry->key)==0)
     return PR_FALSE;
-  
+
   return PR_TRUE;
 }
 
 PRBool
 nsMsgAccountManager::findAccountByKey(nsISupports* element, void *aData)
 {
-    nsresult rv;
-    nsCOMPtr<nsIMsgAccount> account = do_QueryInterface(element, &rv);
-    if (NS_FAILED(rv)) return PR_TRUE;
-    
-    findAccountByKeyEntry *entry = (findAccountByKeyEntry*) aData;
-
-    nsXPIDLCString key;
-    account->GetKey(getter_Copies(key));
-    if (PL_strcmp(key, entry->key)==0) {
-        entry->account = account;
-        return PR_FALSE;        // stop when found
-    }
-
+  nsresult rv;
+  nsCOMPtr<nsIMsgAccount> account = do_QueryInterface(element, &rv);
+  if (NS_FAILED(rv))
     return PR_TRUE;
+
+  findAccountByKeyEntry *entry = (findAccountByKeyEntry*) aData;
+
+  nsCString key;
+  account->GetKey(key);
+  if (key.Equals(entry->key)) 
+  {
+    entry->account = account;
+    return PR_FALSE;        // stop when found
+  }
+
+  return PR_TRUE;
 }
 
 NS_IMETHODIMP nsMsgAccountManager::AddIncomingServerListener(nsIIncomingServerListener *serverListener)
 {
-   m_incomingServerListeners.AppendObject(serverListener);
-   return NS_OK;
+  m_incomingServerListeners.AppendObject(serverListener);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgAccountManager::RemoveIncomingServerListener(nsIIncomingServerListener *serverListener)
 {
-    m_incomingServerListeners.RemoveObject(serverListener);
-    return NS_OK;
+  m_incomingServerListeners.RemoveObject(serverListener);
+  return NS_OK;
 }
-
 
 NS_IMETHODIMP nsMsgAccountManager::NotifyServerLoaded(nsIMsgIncomingServer *server)
 {
     PRInt32 count = m_incomingServerListeners.Count();
-    
+
     for(PRInt32 i = 0; i < count; i++)
     {
         nsIIncomingServerListener* listener = m_incomingServerListeners[i];
@@ -1771,8 +1771,8 @@ NS_IMETHODIMP nsMsgAccountManager::NotifyServerLoaded(nsIMsgIncomingServer *serv
 NS_IMETHODIMP nsMsgAccountManager::NotifyServerUnloaded(nsIMsgIncomingServer *server)
 {
     PRInt32 count = m_incomingServerListeners.Count();
-    server->SetFilterList(nsnull); // clear this to cut shutdown leaks. we are always passing valid non-null server here. 
-    
+    server->SetFilterList(nsnull); // clear this to cut shutdown leaks. we are always passing valid non-null server here.
+
     for(PRInt32 i = 0; i < count; i++)
     {
         nsIIncomingServerListener* listener = m_incomingServerListeners[i];
@@ -1785,7 +1785,7 @@ NS_IMETHODIMP nsMsgAccountManager::NotifyServerUnloaded(nsIMsgIncomingServer *se
 NS_IMETHODIMP nsMsgAccountManager::NotifyServerChanged(nsIMsgIncomingServer *server)
 {
     PRInt32 count = m_incomingServerListeners.Count();
-    
+
     for(PRInt32 i = 0; i < count; i++)
     {
         nsIIncomingServerListener* listener = m_incomingServerListeners[i];
@@ -1801,7 +1801,7 @@ nsMsgAccountManager::FindServerByURI(nsIURI *aURI, PRBool aRealFlag,
 {
   nsresult rv;
   nsCOMPtr<nsISupportsArray> servers;
-  
+
   // Get username and hostname and port so we can get the server
   nsCAutoString username;
   rv = aURI->GetUserPass(username);
@@ -1846,7 +1846,7 @@ nsMsgAccountManager::FindServerByURI(nsIURI *aURI, PRBool aRealFlag,
       (m_lastFindServerUserName.Equals(username)) &&
       (port == m_lastFindServerPort) &&
       (m_lastFindServerType.Equals(type)) &&
-      m_lastFindServerResult) 
+      m_lastFindServerResult)
   {
     NS_ADDREF(*aResult = m_lastFindServerResult);
     return NS_OK;
@@ -1871,10 +1871,10 @@ nsMsgAccountManager::FindServerByURI(nsIURI *aURI, PRBool aRealFlag,
   serverInfo.useRealSetting = aRealFlag;
 
   serverInfo.server = *aResult = nsnull;
-  
+
   servers->EnumerateForwards(findServerUrl, (void *)&serverInfo);
 
-  if (!serverInfo.server) 
+  if (!serverInfo.server)
     return NS_ERROR_UNEXPECTED;
 
   // cache for next time
@@ -1882,7 +1882,7 @@ nsMsgAccountManager::FindServerByURI(nsIURI *aURI, PRBool aRealFlag,
   NS_ENSURE_SUCCESS(rv,rv);
 
   NS_ADDREF(*aResult = serverInfo.server);
-  
+
   return NS_OK;
 }
 
@@ -1895,7 +1895,7 @@ nsMsgAccountManager::InternalFindServer(const char* username,
 {
   nsresult rv;
   nsCOMPtr<nsISupportsArray> servers;
- 
+
   findServerEntry serverInfo;
 
   // "" acts as the wild card.
@@ -1915,7 +1915,7 @@ nsMsgAccountManager::InternalFindServer(const char* username,
       (m_lastFindServerHostName.Equals(serverInfo.hostname)) &&
       (m_lastFindServerUserName.Equals(serverInfo.username)) &&
       (m_lastFindServerType.Equals(serverInfo.type)) &&
-      m_lastFindServerResult) 
+      m_lastFindServerResult)
   {
     NS_ADDREF(*aResult = m_lastFindServerResult);
     return NS_OK;
@@ -1925,7 +1925,7 @@ nsMsgAccountManager::InternalFindServer(const char* username,
   if (NS_FAILED(rv)) return rv;
 
   serverInfo.server = *aResult = nsnull;
-  
+
   servers->EnumerateForwards(findServer, (void *)&serverInfo);
 
   if (!serverInfo.server) return NS_ERROR_UNEXPECTED;
@@ -1935,7 +1935,7 @@ nsMsgAccountManager::InternalFindServer(const char* username,
   NS_ENSURE_SUCCESS(rv,rv);
 
   NS_ADDREF(*aResult = serverInfo.server);
-  
+
   return NS_OK;
 
 }
@@ -1963,11 +1963,11 @@ nsMsgAccountManager::FindRealServer(const char* username,
   nsresult rv;
   nsCOMPtr<nsIURL> aUrl = do_CreateInstance(NS_STANDARDURL_CONTRACTID, &rv);
   if (NS_FAILED(rv)) return NS_OK;
-  
+
 
   aUrl->SetSpec(spec);
 
-  if (!*type) 
+  if (!*type)
     // empty type -- use 'any' as the magic scheme value
     aUrl->SetScheme(NS_LITERAL_CSTRING("any"));
   else
@@ -1993,12 +1993,12 @@ nsMsgAccountManager::findAccountByServerKey(nsISupports *element,
   findAccountByKeyEntry *entry = (findAccountByKeyEntry*)aData;
   nsCOMPtr<nsIMsgAccount> account =
     do_QueryInterface(element, &rv);
-  if (NS_FAILED(rv)) 
+  if (NS_FAILED(rv))
     return PR_TRUE;
 
   nsCOMPtr<nsIMsgIncomingServer> server;
   rv = account->GetIncomingServer(getter_AddRefs(server));
-  if (!server || NS_FAILED(rv)) 
+  if (!server || NS_FAILED(rv))
     return PR_TRUE;
 
   nsXPIDLCString key;
@@ -2006,7 +2006,7 @@ nsMsgAccountManager::findAccountByServerKey(nsISupports *element,
   if (NS_FAILED(rv)) return PR_TRUE;
 
   // if the keys are equal, the servers are equal
-  if (PL_strcmp(key, entry->key)==0) 
+  if (PL_strcmp(key, entry->key)==0)
   {
     entry->account = account;
     return PR_FALSE;            // stop on first found account
@@ -2020,26 +2020,26 @@ nsMsgAccountManager::FindAccountForServer(nsIMsgIncomingServer *server,
                                             nsIMsgAccount **aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
-  
-  if (!server) 
+
+  if (!server)
   {
     (*aResult) = nsnull;
     return NS_OK;
   }
-  
+
   nsresult rv;
 
   nsXPIDLCString key;
   rv = server->GetKey(getter_Copies(key));
   if (NS_FAILED(rv)) return rv;
-  
+
   findAccountByKeyEntry entry;
   entry.key = key;
   entry.account = nsnull;
 
   m_accounts->EnumerateForwards(findAccountByServerKey, (void *)&entry);
 
-  if (entry.account) 
+  if (entry.account)
     NS_ADDREF(*aResult = entry.account);
 
   return NS_OK;
@@ -2050,12 +2050,12 @@ PRBool
 nsMsgAccountManager::findServerUrl(nsISupports *aElement, void *data)
 {
   nsresult rv;
-  
+
   nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(aElement);
   if (!server) return PR_TRUE;
 
   findServerEntry *entry = (findServerEntry*) data;
-  
+
   nsXPIDLCString thisHostname;
   if (entry->useRealSetting)
     rv = server->GetRealHostName(getter_Copies(thisHostname));
@@ -2069,14 +2069,14 @@ nsMsgAccountManager::findServerUrl(nsISupports *aElement, void *data)
   else
     rv = server->GetUsername(getter_Copies(thisUsername));
   if (NS_FAILED(rv)) return PR_TRUE;
- 
+
   nsXPIDLCString thisType;
   rv = server->GetType(getter_Copies(thisType));
   if (NS_FAILED(rv)) return PR_TRUE;
- 
+
   PRInt32 thisPort = -1; // use the default port identifier
-  // Don't try and get a port for the 'none' scheme 
-  if (!thisType.EqualsLiteral("none")) 
+  // Don't try and get a port for the 'none' scheme
+  if (!thisType.EqualsLiteral("none"))
   {
     rv = server->GetPort(&thisPort);
     NS_ENSURE_TRUE(NS_SUCCEEDED(rv), PR_TRUE);
@@ -2086,15 +2086,15 @@ nsMsgAccountManager::findServerUrl(nsISupports *aElement, void *data)
   // treat it as a match
   // NOTE: DO NOT REPLACE PL_strcmp OR PL_strcasecmp below because one or more
   // of these items may be null
-  if ((!*entry->type || (PL_strcmp(entry->type, thisType)==0)) && 
-      (!*entry->hostname || (PL_strcasecmp(entry->hostname, thisHostname)==0)) && 
-      (!(entry->port != 0) || (entry->port == thisPort)) && 
-      (!*entry->username || (PL_strcmp(entry->username, thisUsername)==0))) 
+  if ((!*entry->type || (PL_strcmp(entry->type, thisType)==0)) &&
+      (!*entry->hostname || (PL_strcasecmp(entry->hostname, thisHostname)==0)) &&
+      (!(entry->port != 0) || (entry->port == thisPort)) &&
+      (!*entry->username || (PL_strcmp(entry->username, thisUsername)==0)))
   {
     entry->server = server;
-    return PR_FALSE;            // stop on first find 
+    return PR_FALSE;            // stop on first find
   }
-  
+
   return PR_TRUE;
 }
 
@@ -2103,12 +2103,12 @@ PRBool
 nsMsgAccountManager::findServer(nsISupports *aElement, void *data)
 {
   nsresult rv;
-  
+
   nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(aElement, &rv);
   if (NS_FAILED(rv)) return PR_TRUE;
 
   findServerEntry *entry = (findServerEntry*) data;
-  
+
   nsXPIDLCString thisHostname;
   if (entry->useRealSetting)
     rv = server->GetRealHostName(getter_Copies(thisHostname));
@@ -2122,24 +2122,24 @@ nsMsgAccountManager::findServer(nsISupports *aElement, void *data)
   else
   rv = server->GetUsername(getter_Copies(thisUsername));
   if (NS_FAILED(rv)) return PR_TRUE;
- 
+
   nsXPIDLCString thisType;
   rv = server->GetType(getter_Copies(thisType));
   if (NS_FAILED(rv)) return PR_TRUE;
- 
+
   // treat "" as a wild card, so if the caller passed in "" for the desired attribute
   // treat it as a match
   PRBool checkType = PL_strcmp(entry->type, "");
   PRBool checkHostname = PL_strcmp(entry->hostname,"");
   PRBool checkUsername = PL_strcmp(entry->username,"");
-  if ((!checkType || (PL_strcmp(entry->type, thisType)==0)) && 
-      (!checkHostname || (PL_strcasecmp(entry->hostname, thisHostname)==0)) && 
-      (!checkUsername || (PL_strcmp(entry->username, thisUsername)==0))) 
+  if ((!checkType || (PL_strcmp(entry->type, thisType)==0)) &&
+      (!checkHostname || (PL_strcasecmp(entry->hostname, thisHostname)==0)) &&
+      (!checkUsername || (PL_strcmp(entry->username, thisUsername)==0)))
   {
     entry->server = server;
-    return PR_FALSE;            // stop on first find 
+    return PR_FALSE;            // stop on first find
   }
-  
+
   return PR_TRUE;
 }
 
@@ -2159,7 +2159,7 @@ nsMsgAccountManager::GetFirstIdentityForServer(nsIMsgIncomingServer *aServer, ns
   rv = identities->Count(&numIdentities);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  if (numIdentities > 0) 
+  if (numIdentities > 0)
   {
     nsCOMPtr<nsIMsgIdentity> identity;
     rv = identities->QueryElementAt(0, NS_GET_IID(nsIMsgIdentity),
@@ -2181,15 +2181,15 @@ nsMsgAccountManager::GetIdentitiesForServer(nsIMsgIncomingServer *server,
   nsresult rv;
   rv = LoadAccounts();
   if (NS_FAILED(rv)) return rv;
-  
+
   nsCOMPtr<nsISupportsArray> identities;
   rv = NS_NewISupportsArray(getter_AddRefs(identities));
   if (NS_FAILED(rv)) return rv;
-  
+
   findIdentitiesByServerEntry identityInfo;
   identityInfo.server = server;
   identityInfo.identities = identities;
-  
+
   m_accounts->EnumerateForwards(findIdentitiesForServer,
                                 (void *)&identityInfo);
 
@@ -2205,25 +2205,25 @@ nsMsgAccountManager::findIdentitiesForServer(nsISupports* element, void *aData)
   nsresult rv;
   nsCOMPtr<nsIMsgAccount> account = do_QueryInterface(element, &rv);
   if (NS_FAILED(rv)) return PR_TRUE;
-  
+
   findIdentitiesByServerEntry *entry = (findIdentitiesByServerEntry*)aData;
-  
+
   nsCOMPtr<nsIMsgIncomingServer> thisServer;
   rv = account->GetIncomingServer(getter_AddRefs(thisServer));
   if (NS_FAILED(rv)) return PR_TRUE;
   nsXPIDLCString serverKey;
-    
+
 //  NS_ASSERTION(thisServer, "thisServer is null");
   NS_ASSERTION(entry, "entry is null");
   NS_ASSERTION(entry->server, "entry->server is null");
   // if this happens, bail.
-  if (!thisServer || !entry || !(entry->server)) 
+  if (!thisServer || !entry || !(entry->server))
     return PR_TRUE;
 
   entry->server->GetKey(getter_Copies(serverKey));
   nsXPIDLCString thisServerKey;
   thisServer->GetKey(getter_Copies(thisServerKey));
-  if (PL_strcmp(serverKey, thisServerKey)==0) 
+  if (PL_strcmp(serverKey, thisServerKey)==0)
   {
     // add all these elements to the nsISupports array
     nsCOMPtr<nsISupportsArray> theseIdentities;
@@ -2242,15 +2242,15 @@ nsMsgAccountManager::GetServersForIdentity(nsIMsgIdentity *identity,
   nsresult rv;
   rv = LoadAccounts();
   if (NS_FAILED(rv)) return rv;
-  
+
   nsCOMPtr<nsISupportsArray> servers;
   rv = NS_NewISupportsArray(getter_AddRefs(servers));
   if (NS_FAILED(rv)) return rv;
-  
+
   findServersByIdentityEntry serverInfo;
   serverInfo.identity = identity;
   serverInfo.servers = servers;
-  
+
   m_accounts->EnumerateForwards(findServersForIdentity,
                                 (void *)&serverInfo);
 
@@ -2259,14 +2259,14 @@ nsMsgAccountManager::GetServersForIdentity(nsIMsgIdentity *identity,
 
   return NS_OK;
 }
-  
+
 PRBool
 nsMsgAccountManager::findServersForIdentity(nsISupports *element, void *aData)
 {
   nsresult rv;
   nsCOMPtr<nsIMsgAccount> account = do_QueryInterface(element, &rv);
   if (NS_FAILED(rv)) return PR_TRUE;
-  
+
   findServersByIdentityEntry *entry = (findServersByIdentityEntry*)aData;
 
   nsCOMPtr<nsISupportsArray> identities;
@@ -2279,30 +2279,30 @@ nsMsgAccountManager::findServersForIdentity(nsISupports *element, void *aData)
   nsCString identityKey;
   rv = entry->identity->GetKey(identityKey);
 
-  
-  for (id=0; id<idCount; id++) 
+
+  for (id=0; id<idCount; id++)
   {
 
     // convert supports->Identity
     nsCOMPtr<nsISupports> thisSupports;
     rv = identities->GetElementAt(id, getter_AddRefs(thisSupports));
     if (NS_FAILED(rv)) continue;
-    
+
     nsCOMPtr<nsIMsgIdentity>
       thisIdentity = do_QueryInterface(thisSupports, &rv);
 
-    if (NS_SUCCEEDED(rv)) 
+    if (NS_SUCCEEDED(rv))
     {
 
       nsCString thisIdentityKey;
       rv = thisIdentity->GetKey(thisIdentityKey);
 
-      if (NS_SUCCEEDED(rv) && identityKey.Equals(thisIdentityKey)) 
+      if (NS_SUCCEEDED(rv) && identityKey.Equals(thisIdentityKey))
       {
         nsCOMPtr<nsIMsgIncomingServer> thisServer;
         rv = account->GetIncomingServer(getter_AddRefs(thisServer));
-        
-        if (thisServer && NS_SUCCEEDED(rv)) 
+
+        if (thisServer && NS_SUCCEEDED(rv))
         {
           entry->servers->AppendElement(thisServer);
           break;
@@ -2321,7 +2321,7 @@ nsMsgAccountManager::AddRootFolderListener(nsIFolderListener *aListener)
   NS_ENSURE_TRUE(aListener, NS_OK);
   // first add listener to the list
   rv = mFolderListeners->AppendElement(aListener);
-  
+
   // now add the listener to all loaded accounts
   m_incomingServers.Enumerate(addListener, (void *)aListener);
 
@@ -2335,7 +2335,7 @@ nsMsgAccountManager::RemoveRootFolderListener(nsIFolderListener *aListener)
   NS_ENSURE_TRUE(aListener, NS_OK);
   // remove the listener from the notification list
   rv = mFolderListeners->RemoveElement(aListener);
-  
+
   // remove the listener from the individual folders
   m_incomingServers.Enumerate(removeListener, (void *)aListener);
 
@@ -2350,14 +2350,14 @@ nsMsgAccountManager::addListener(nsHashKey *aKey, void *element, void *aData)
   nsIFolderListener* listener = (nsIFolderListener *)aData;
 
   nsresult rv;
-  
+
   nsCOMPtr<nsIMsgFolder> rootFolder;
   rv = server->GetRootFolder(getter_AddRefs(rootFolder));
   NS_ENSURE_SUCCESS(rv, PR_TRUE);
 
   rv = rootFolder->AddFolderListener(listener);
   NS_ENSURE_SUCCESS(rv, PR_TRUE);
-  
+
   return PR_TRUE;
 }
 
@@ -2368,14 +2368,14 @@ nsMsgAccountManager::removeListener(nsHashKey *aKey, void *element, void *aData)
   nsIFolderListener* listener = (nsIFolderListener *)aData;
 
   nsresult rv;
-  
+
   nsCOMPtr<nsIMsgFolder> rootFolder;
   rv = server->GetRootFolder(getter_AddRefs(rootFolder));
   NS_ENSURE_SUCCESS(rv, PR_TRUE);
 
   rv = rootFolder->RemoveFolderListener(listener);
   NS_ENSURE_SUCCESS(rv, PR_TRUE);
-  
+
   return PR_TRUE;
 }
 
@@ -2387,7 +2387,7 @@ NS_IMETHODIMP nsMsgAccountManager::SetLocalFoldersServer(nsIMsgIncomingServer *a
     nsXPIDLCString key;
     rv = aServer->GetKey(getter_Copies(key));
     if (NS_FAILED(rv)) return rv;
-    
+
     rv = m_prefs->SetCharPref(PREF_MAIL_ACCOUNTMANAGER_LOCALFOLDERSSERVER, (const char *)key);
     return rv;
 }
@@ -2399,14 +2399,14 @@ NS_IMETHODIMP nsMsgAccountManager::GetLocalFoldersServer(nsIMsgIncomingServer **
 
   if (!aServer) return NS_ERROR_NULL_POINTER;
 
-  if (!m_prefs) 
+  if (!m_prefs)
   {
     rv = getPrefService();
     NS_ENSURE_SUCCESS(rv,rv);
   }
   rv = m_prefs->GetCharPref(PREF_MAIL_ACCOUNTMANAGER_LOCALFOLDERSSERVER, getter_Copies(serverKey));
 
-  if (NS_SUCCEEDED(rv) && ((const char *)serverKey)) 
+  if (NS_SUCCEEDED(rv) && ((const char *)serverKey))
   {
       rv = GetIncomingServer(serverKey, aServer);
       if (!*aServer) return NS_ERROR_FAILURE;
@@ -2415,20 +2415,20 @@ NS_IMETHODIMP nsMsgAccountManager::GetLocalFoldersServer(nsIMsgIncomingServer **
 
   // try ("nobody","Local Folders","none"), and work down to any "none" server.
   rv = FindServer("nobody","Local Folders","none",aServer);
-  if (NS_FAILED(rv) || !*aServer) 
+  if (NS_FAILED(rv) || !*aServer)
   {
       rv = FindServer("nobody",nsnull,"none",aServer);
-      if (NS_FAILED(rv) || !*aServer) 
+      if (NS_FAILED(rv) || !*aServer)
       {
-          rv = FindServer(nsnull,"Local Folders","none",aServer); 
-          if (NS_FAILED(rv) || !*aServer) 
+          rv = FindServer(nsnull,"Local Folders","none",aServer);
+          if (NS_FAILED(rv) || !*aServer)
               rv = FindServer(nsnull,nsnull,"none",aServer);
       }
   }
 
   if (NS_FAILED(rv)) return rv;
   if (!*aServer) return NS_ERROR_FAILURE;
-  
+
   rv = SetLocalFoldersServer(*aServer);
   return rv;
 }
@@ -2445,7 +2445,7 @@ nsMsgAccountManager::OnStopRunningUrl(nsIURI * aUrl, nsresult aExitCode)
 {
   if (aUrl)
   {
-    nsCOMPtr<nsIImapUrl> imapUrl = do_QueryInterface(aUrl); 
+    nsCOMPtr<nsIImapUrl> imapUrl = do_QueryInterface(aUrl);
     if (imapUrl)
     {
       nsImapAction imapAction = nsIImapUrl::nsImapTest;
@@ -2463,7 +2463,7 @@ nsMsgAccountManager::OnStopRunningUrl(nsIURI * aUrl, nsresult aExitCode)
           }
           break;
         case nsIImapUrl::nsImapDeleteAllMsgs:
-          if (m_folderDoingEmptyTrash) 
+          if (m_folderDoingEmptyTrash)
           {
             PR_CEnterMonitor(m_folderDoingEmptyTrash);
             PR_CNotifyAll(m_folderDoingEmptyTrash);
@@ -2474,7 +2474,7 @@ nsMsgAccountManager::OnStopRunningUrl(nsIURI * aUrl, nsresult aExitCode)
           break;
         default:
           break;
-       } 
+       }
      }
    }
    return NS_OK;
@@ -2511,7 +2511,7 @@ nsMsgAccountManager::GetCleanupInboxInProgress(PRBool *bVal)
   *bVal = m_cleanupInboxInProgress;
   return NS_OK;
 }
-nsresult 
+nsresult
 nsMsgAccountManager::SetLastServerFound(nsIMsgIncomingServer *server, const char *hostname, const char *username, PRInt32 port, const char *type)
 {
     m_lastFindServerResult = server;
@@ -2519,7 +2519,7 @@ nsMsgAccountManager::SetLastServerFound(nsIMsgIncomingServer *server, const char
     m_lastFindServerUserName = username;
     m_lastFindServerPort = port;
     m_lastFindServerType = type;
-    
+
     return NS_OK;
 }
 
@@ -2537,7 +2537,7 @@ nsMsgAccountManager::GetChromePackageName(const char *aExtensionName, char **aCh
 {
   NS_ENSURE_ARG_POINTER(aExtensionName);
   NS_ENSURE_ARG_POINTER(aChromePackageName);
- 
+
   nsresult rv;
   nsCOMPtr<nsICategoryManager> catman = do_GetService(NS_CATEGORYMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
@@ -2548,7 +2548,7 @@ nsMsgAccountManager::GetChromePackageName(const char *aExtensionName, char **aCh
     while (PR_TRUE) {
       nsCOMPtr<nsISupportsCString> catEntry;
       rv = e->GetNext(getter_AddRefs(catEntry));
-      if (NS_FAILED(rv) || !catEntry) 
+      if (NS_FAILED(rv) || !catEntry)
         break;
 
       nsCAutoString entryString;
@@ -2558,18 +2558,18 @@ nsMsgAccountManager::GetChromePackageName(const char *aExtensionName, char **aCh
 
       nsXPIDLCString contractidString;
       rv = catman->GetCategoryEntry(MAILNEWS_ACCOUNTMANAGER_EXTENSIONS, entryString.get(), getter_Copies(contractidString));
-      if (NS_FAILED(rv)) 
+      if (NS_FAILED(rv))
         break;
 
       nsCOMPtr <nsIMsgAccountManagerExtension> extension = do_GetService(contractidString.get(), &rv);
       if (NS_FAILED(rv) || !extension)
         break;
-      
+
       nsXPIDLCString name;
       rv = extension->GetName(getter_Copies(name));
       if (NS_FAILED(rv))
         break;
-      
+
       if (!strcmp(name.get(), aExtensionName))
         return extension->GetChromePackageName(aChromePackageName);
     }
@@ -2657,14 +2657,14 @@ NS_IMETHODIMP VirtualFolderChangeListener::OnHdrChange(nsIMsgDBHdr *aHdrChanged,
 
   nsresult rv = m_folderWatching->GetMsgDatabase(nsnull, getter_AddRefs(msgDB));
   PRBool oldMatch = PR_FALSE, newMatch = PR_FALSE;
-  // we don't want any early returns from this function, until we've 
+  // we don't want any early returns from this function, until we've
   // called ClearScopes 0n the search session.
   m_searchSession->AddScopeTerm(nsMsgSearchScope::offlineMail, m_folderWatching);
   rv = m_searchSession->MatchHdr(aHdrChanged, msgDB, &newMatch);
   if (NS_SUCCEEDED(rv) && m_searchOnMsgStatus)
   {
     // if status is a search criteria, check if the header matched before
-    // it changed, in order to determine if we need to bump the counts. 
+    // it changed, in order to determine if we need to bump the counts.
     aHdrChanged->SetFlags(aOldFlags);
     rv = m_searchSession->MatchHdr(aHdrChanged, msgDB, &oldMatch);
     aHdrChanged->SetFlags(aNewFlags); // restore new flags even on match failure.
@@ -2701,7 +2701,7 @@ NS_IMETHODIMP VirtualFolderChangeListener::OnHdrChange(nsIMsgDBHdr *aHdrChanged,
     PRBool msgHdrIsRead;
     aHdrChanged->GetIsRead(&msgHdrIsRead);
     if (oldMatch == newMatch) // read flag changed state
-      unreadDelta = (msgHdrIsRead) ? -1 : 1; 
+      unreadDelta = (msgHdrIsRead) ? -1 : 1;
     else if (oldMatch) // else header should removed
       unreadDelta = (aOldFlags & MSG_FLAG_READ) ? 0 : -1;
     else               // header should be added
@@ -2857,13 +2857,13 @@ NS_IMETHODIMP nsMsgAccountManager::LoadVirtualFolders()
 
   nsresult rv;
   nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
-  if (msgDBService) 
+  if (msgDBService)
   {
      NS_ENSURE_SUCCESS(rv, rv);
      nsCOMPtr<nsIFileInputStream> fileStream = do_CreateInstance(NS_LOCALFILEINPUTSTREAM_CONTRACTID, &rv);
      NS_ENSURE_SUCCESS(rv, rv);
 
-     rv = fileStream->Init(file,  PR_RDONLY, 0664, PR_FALSE);  
+     rv = fileStream->Init(file,  PR_RDONLY, 0664, PR_FALSE);
      nsCOMPtr <nsILineInputStream> lineInputStream(do_QueryInterface(fileStream));
 
     PRBool isMore = PR_TRUE;
@@ -2910,8 +2910,8 @@ NS_IMETHODIMP nsMsgAccountManager::LoadVirtualFolders()
                 break;
               nsDependentCSubstring parentUri(buffer, 0, lastSlash);
               // hold a reference so it won't get deleted before it's parented.
-              oldParent = parentFolder; 
-              
+              oldParent = parentFolder;
+
               rdf->GetResource(parentUri, getter_AddRefs(resource));
               parentFolder = do_QueryInterface(resource);
               if (parentFolder)
@@ -2993,7 +2993,7 @@ NS_IMETHODIMP nsMsgAccountManager::SaveVirtualFolders()
     allServers->Count(&count);
     PRUint32 i;
     nsCOMPtr <nsIOutputStream> outputStream;
-    for (i = 0; i < count; i++) 
+    for (i = 0; i < count; i++)
     {
       nsCOMPtr<nsIMsgIncomingServer> server = do_QueryElementAt(allServers, i);
       if (server)
@@ -3029,7 +3029,7 @@ NS_IMETHODIMP nsMsgAccountManager::SaveVirtualFolders()
             if (dbFolderInfo)
             {
               nsXPIDLCString srchFolderUri;
-              nsXPIDLCString searchTerms; 
+              nsXPIDLCString searchTerms;
               PRBool searchOnline = PR_FALSE;
               dbFolderInfo->GetBooleanProperty("searchOnline", PR_FALSE, &searchOnline);
               dbFolderInfo->GetCharPtrProperty("searchFolderUri", getter_Copies(srchFolderUri));
@@ -3062,7 +3062,7 @@ nsresult nsMsgAccountManager::WriteLineToOutputStream(const char *prefix, const 
   return NS_OK;
 }
 
-nsresult nsMsgAccountManager::AddVFListenersForVF(nsIMsgFolder *virtualFolder, 
+nsresult nsMsgAccountManager::AddVFListenersForVF(nsIMsgFolder *virtualFolder,
                                                   const char *srchFolderUris,
                                                   nsIRDFService *rdf,
                                                   nsIMsgDBService *msgDBService)

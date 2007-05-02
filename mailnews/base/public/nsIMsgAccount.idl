@@ -48,14 +48,14 @@
  * mail.account.<account>.identities
  */
 
-[scriptable, uuid(da368bd0-e624-11d2-b7fc-00805f05ffa5)]
+[scriptable, uuid(3FE5B45D-ACF8-4348-8951-757D21E983F2)]
 interface nsIMsgAccount : nsISupports {
   
   /* init function */
   void init();
 
   /* internal key identifying itself */
-  attribute string key;
+  attribute ACString key;
   
   /* incoming server stuff */
   attribute nsIMsgIncomingServer incomingServer;
@@ -77,5 +77,5 @@ interface nsIMsgAccount : nsISupports {
   void clearAllValues();
   
   /* name in javascript */
-  wstring toString();
+  AString toString();
 };

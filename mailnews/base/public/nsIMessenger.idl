@@ -112,7 +112,7 @@ interface nsIMessenger : nsISupports {
                              [array, size_is(count)] in string urlArray, [array, size_is(count)] in string displayNameArray,
                              [array, size_is(count)] in string messageUriArray, in boolean saveFirst);
     // saveAttachmentToFolder is used by the drag and drop code to drop an attachment to a destination folder
-	// we need to return the actual file path (including the filename).
+    // we need to return the actual file path (including the filename).
     nsILocalFile saveAttachmentToFolder(in string contentType, in string url, in string displayName, in string messageUri, in nsILocalFile aDestFolder);
 
     attribute boolean sendingUnsentMsgs;

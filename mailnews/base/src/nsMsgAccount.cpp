@@ -44,7 +44,6 @@
 #include "nsIServiceManager.h"
 
 #include "nsCOMPtr.h"
-#include "nsXPIDLString.h"
 #include "nsReadableUtils.h"
 
 #include "nsIPrefService.h"
@@ -64,26 +63,21 @@ nsMsgAccount::~nsMsgAccount()
 {
 }
 
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsMsgAccount::Init()
 {
-	NS_ASSERTION(!m_identities, "don't call Init twice!");
-	if (m_identities) return NS_ERROR_FAILURE;
-
-	return createIdentities();
+  NS_ASSERTION(!m_identities, "don't call Init twice!");
+  return m_identities ? NS_ERROR_FAILURE : createIdentities();
 }
 
 nsresult
-nsMsgAccount::getPrefService() 
+nsMsgAccount::getPrefService()
 {
-  if (m_prefs) 
+  if (m_prefs)
     return NS_OK;
 
   nsresult rv;
   m_prefs = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
-  if (NS_FAILED(rv))
-    m_prefs = nsnull;
-
   return rv;
 }
 
@@ -98,7 +92,7 @@ nsMsgAccount::GetIncomingServer(nsIMsgIncomingServer * *aIncomingServer)
     nsresult rv = createIncomingServer();
     NS_ASSERTION(NS_SUCCEEDED(rv), "couldn't lazily create the server\n");
   }
-  
+
   NS_IF_ADDREF(*aIncomingServer = m_incomingServer);
 
   return NS_OK;
@@ -107,7 +101,9 @@ nsMsgAccount::GetIncomingServer(nsIMsgIncomingServer * *aIncomingServer)
 nsresult
 nsMsgAccount::createIncomingServer()
 {
-  if (!(const char*)m_accountKey) return NS_ERROR_NOT_INITIALIZED;
+  if (m_accountKey.IsEmpty())
+    return NS_ERROR_NOT_INITIALIZED;
+
   // from here, load mail.account.myaccount.server
   // Load the incoming server
   //
@@ -120,23 +116,19 @@ nsMsgAccount::createIncomingServer()
   nsCAutoString serverKeyPref("mail.account.");
   serverKeyPref += m_accountKey;
   serverKeyPref += ".server";
-  nsXPIDLCString serverKey;
+  nsCString serverKey;
   rv = m_prefs->GetCharPref(serverKeyPref.get(), getter_Copies(serverKey));
   if (NS_FAILED(rv)) return rv;
-    
-#ifdef DEBUG_alecf
-  printf("\t%s's server: %s\n", (const char*)m_accountKey, (const char*)serverKey);
-#endif
 
   // get the server from the account manager
-  nsCOMPtr<nsIMsgAccountManager> accountManager = 
+  nsCOMPtr<nsIMsgAccountManager> accountManager =
            do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-    
+
   nsCOMPtr<nsIMsgIncomingServer> server;
-  rv = accountManager->GetIncomingServer(serverKey, getter_AddRefs(server));
+  rv = accountManager->GetIncomingServer(serverKey.get(), getter_AddRefs(server));
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   // store the server in this structure
   m_incomingServer = server;
   accountManager->NotifyServerLoaded(server);
@@ -149,29 +141,28 @@ NS_IMETHODIMP
 nsMsgAccount::SetIncomingServer(nsIMsgIncomingServer * aIncomingServer)
 {
   nsresult rv;
-  
-  nsXPIDLCString key;
+
+  nsCString key;
   rv = aIncomingServer->GetKey(getter_Copies(key));
-  
+
   if (NS_SUCCEEDED(rv)) {
     nsCAutoString serverPrefName("mail.account.");
     serverPrefName.Append(m_accountKey);
-    serverPrefName.Append(".server");
-    m_prefs->SetCharPref(serverPrefName.get(), key);
+    serverPrefName.AppendLiteral(".server");
+    m_prefs->SetCharPref(serverPrefName.get(), key.get());
   }
 
   m_incomingServer = aIncomingServer;
 
   PRBool serverValid;
   (void) aIncomingServer->GetValid(&serverValid);
-  // only notify server loaded if server is valid so 
+  // only notify server loaded if server is valid so
   // account manager only gets told about finished accounts.
-  if (serverValid) 
+  if (serverValid)
   {
-  nsCOMPtr<nsIMsgAccountManager> accountManager =
-    do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
+    nsCOMPtr<nsIMsgAccountManager> accountManager = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
     if (NS_SUCCEEDED(rv))
-    accountManager->NotifyServerLoaded(aIncomingServer);
+      accountManager->NotifyServerLoaded(aIncomingServer);
   }
   return NS_OK;
 }
@@ -180,14 +171,10 @@ nsMsgAccount::SetIncomingServer(nsIMsgIncomingServer * aIncomingServer)
 NS_IMETHODIMP
 nsMsgAccount::GetIdentities(nsISupportsArray **_retval)
 {
-  if (!_retval) return NS_ERROR_NULL_POINTER;
+  NS_ENSURE_ARG_POINTER(_retval);
+  NS_ENSURE_TRUE(m_identities, NS_ERROR_FAILURE);
 
-  NS_ASSERTION(m_identities,"you never called Init()");
-  if (!m_identities) return NS_ERROR_FAILURE;
-
-  *_retval = m_identities;
-  NS_ADDREF(*_retval);
-
+  NS_IF_ADDREF(*_retval = m_identities);
   return NS_OK;
 }
 
@@ -198,11 +185,10 @@ nsMsgAccount::GetIdentities(nsISupportsArray **_retval)
 nsresult
 nsMsgAccount::createIdentities()
 {
-  NS_ASSERTION(!m_identities, "only call createIdentities() once!");
-  if (m_identities) return NS_ERROR_FAILURE;
+  NS_ENSURE_TRUE(!m_accountKey.IsEmpty(), NS_ERROR_NOT_INITIALIZED);
+  if (m_identities)
+    return NS_ERROR_FAILURE;
 
-  NS_ENSURE_TRUE((const char*)m_accountKey, NS_ERROR_NOT_INITIALIZED);
-  
   NS_NewISupportsArray(getter_AddRefs(m_identities));
 
   // get the pref
@@ -210,28 +196,19 @@ nsMsgAccount::createIdentities()
   nsCAutoString identitiesKeyPref("mail.account.");
   identitiesKeyPref.Append(m_accountKey);
   identitiesKeyPref.Append(".identities");
-  
-  nsXPIDLCString identityKey;
+
+  nsCString identityKey;
   nsresult rv;
   rv = getPrefService();
-  if (NS_FAILED(rv)) return rv;
-  
-  rv = m_prefs->GetCharPref(identitiesKeyPref.get(), getter_Copies(identityKey));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  if (NS_FAILED(rv)) return rv;
-  if (identityKey.IsEmpty())    // not an error if no identities, but 
+  m_prefs->GetCharPref(identitiesKeyPref.get(), getter_Copies(identityKey));
+  if (identityKey.IsEmpty())    // not an error if no identities, but
     return NS_OK;               // nsCRT::strtok will be unhappy
-  
-#ifdef DEBUG_alecf
-  printf("%s's identities: %s\n",
-         (const char*)m_accountKey,
-         (const char*)identityKey);
-#endif
-  
   // get the server from the account manager
-  nsCOMPtr<nsIMsgAccountManager> accountManager = 
+  nsCOMPtr<nsIMsgAccountManager> accountManager =
            do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
-  if (NS_FAILED(rv)) return rv;
+  NS_ENSURE_SUCCESS(rv, rv);
 
   // const-casting because nsCRT::strtok whacks the string,
   // but safe because identityKey is a copy
@@ -247,7 +224,7 @@ nsMsgAccount::createIdentities()
   while (token) {
     key = token;
     key.StripWhitespace();
-    
+
     // create the account
     rv = accountManager->GetIdentity(key.get(), getter_AddRefs(identity));
     if (NS_SUCCEEDED(rv)) {
@@ -259,31 +236,26 @@ nsMsgAccount::createIdentities()
     // advance to next key, if any
     token = nsCRT::strtok(newStr, ",", &newStr);
   }
-    
+
   return rv;
 }
 
 
 /* attribute nsIMsgIdentity defaultIdentity; */
 NS_IMETHODIMP
-nsMsgAccount::GetDefaultIdentity(nsIMsgIdentity * *aDefaultIdentity)
+nsMsgAccount::GetDefaultIdentity(nsIMsgIdentity **aDefaultIdentity)
 {
-  if (!aDefaultIdentity) return NS_ERROR_NULL_POINTER;
+  NS_ENSURE_ARG_POINTER(aDefaultIdentity);
   nsresult rv;
-  if (!m_identities) {
-    rv = Init();
-    if (NS_FAILED(rv)) return rv;
-  }
-
-  nsISupports* idsupports;
-  rv = m_identities->GetElementAt(0, &idsupports);
-  if (NS_FAILED(rv)) return rv;
   
-  if (idsupports) {
-      rv = idsupports->QueryInterface(NS_GET_IID(nsIMsgIdentity),
-                                          (void **)aDefaultIdentity);
-      NS_RELEASE(idsupports);
+  if (!m_identities)
+  {
+    rv = Init();
+    NS_ENSURE_SUCCESS(rv, rv);
   }
+  
+  nsCOMPtr<nsIMsgIdentity> identity( do_QueryElementAt(m_identities, 0));
+  identity.swap(*aDefaultIdentity);
   return rv;
 }
 
@@ -291,13 +263,12 @@ nsMsgAccount::GetDefaultIdentity(nsIMsgIdentity * *aDefaultIdentity)
 NS_IMETHODIMP
 nsMsgAccount::SetDefaultIdentity(nsIMsgIdentity * aDefaultIdentity)
 {
-  NS_ASSERTION(m_identities,"you never called Init()");
-  if (!m_identities) return NS_ERROR_FAILURE;  
-  
+  NS_ENSURE_TRUE(m_identities, NS_ERROR_FAILURE);
+
   NS_ASSERTION(m_identities->IndexOf(aDefaultIdentity) != -1, "Where did that identity come from?!");
   if (m_identities->IndexOf(aDefaultIdentity) == -1)
     return NS_ERROR_UNEXPECTED;
-  
+
   m_defaultIdentity = aDefaultIdentity;
   return NS_OK;
 }
@@ -308,12 +279,9 @@ nsMsgAccount::SetDefaultIdentity(nsIMsgIdentity * aDefaultIdentity)
 nsresult
 nsMsgAccount::addIdentityInternal(nsIMsgIdentity *identity)
 {
-  NS_ASSERTION(m_identities,"you never called Init()");
-  if (!m_identities) return NS_ERROR_FAILURE;  
-
+  NS_ENSURE_TRUE(m_identities, NS_ERROR_FAILURE);
   return m_identities->AppendElement(identity);
 }
-
 
 /* void addIdentity (in nsIMsgIdentity identity); */
 NS_IMETHODIMP
@@ -323,7 +291,7 @@ nsMsgAccount::AddIdentity(nsIMsgIdentity *identity)
   // for now just treat this as a Setxxx accessor
   // when this is actually implemented, don't refcount the default identity
   nsresult rv;
-  
+
   nsCString key;
   rv = identity->GetKey(key);
 
@@ -332,25 +300,25 @@ nsMsgAccount::AddIdentity(nsIMsgIdentity *identity)
     nsCAutoString identitiesKeyPref("mail.account.");
     identitiesKeyPref.Append(m_accountKey);
     identitiesKeyPref.Append(".identities");
-      
+
     nsXPIDLCString identityList;
     m_prefs->GetCharPref(identitiesKeyPref.get(),
                          getter_Copies(identityList));
 
     nsCAutoString newIdentityList(identityList);
-    
+
     nsCAutoString testKey;      // temporary to strip whitespace
     PRBool foundIdentity = PR_FALSE; // if the input identity is found
 
     // nsCRT::strtok will be unhappy with an empty string
     if (!identityList.IsEmpty()) {
-      
+
       // const-casting because nsCRT::strtok whacks the string,
       // but safe because identityList is a copy
       char *newStr;
       char *rest = identityList.BeginWriting();
       char *token = nsCRT::strtok(rest, ",", &newStr);
-      
+
       // look for the identity key that we're adding
       while (token) {
         testKey = token;
@@ -372,16 +340,16 @@ nsMsgAccount::AddIdentity(nsIMsgIdentity *identity)
         newIdentityList.Append(key);
       }
     }
-    
+
     m_prefs->SetCharPref(identitiesKeyPref.get(), newIdentityList.get());
   }
 
   // now add it to the in-memory list
   rv = addIdentityInternal(identity);
-  
+
   if (!m_defaultIdentity)
     SetDefaultIdentity(identity);
-  
+
   return rv;
 }
 
@@ -389,8 +357,8 @@ nsMsgAccount::AddIdentity(nsIMsgIdentity *identity)
 NS_IMETHODIMP
 nsMsgAccount::RemoveIdentity(nsIMsgIdentity * aIdentity)
 {
-  NS_ENSURE_TRUE(m_identities, NS_ERROR_FAILURE);
   NS_ENSURE_ARG_POINTER(aIdentity);
+  NS_ENSURE_TRUE(m_identities, NS_ERROR_FAILURE);
 
   PRUint32 count =0;
   m_identities->Count(&count);
@@ -415,7 +383,7 @@ nsMsgAccount::RemoveIdentity(nsIMsgIdentity * aIdentity)
   nsCAutoString identitiesKeyPref("mail.account.");
   identitiesKeyPref.Append(m_accountKey);
   identitiesKeyPref.Append(".identities");
-      
+
   nsCAutoString newIdentityList;
 
   // iterate over the remaining identities
@@ -437,60 +405,57 @@ nsMsgAccount::RemoveIdentity(nsIMsgIdentity * aIdentity)
   }
 
   m_prefs->SetCharPref(identitiesKeyPref.get(), newIdentityList.get());
- 
+
   return rv;
 }
 
-NS_IMPL_GETTER_STR(nsMsgAccount::GetKey, m_accountKey)
-
-nsresult
-nsMsgAccount::SetKey(const char *accountKey)
+NS_IMETHODIMP nsMsgAccount::GetKey(nsACString& accountKey)
 {
-  if (!accountKey) return NS_ERROR_NULL_POINTER;
+  accountKey = m_accountKey;
+  return NS_OK;
+}
 
+NS_IMETHODIMP
+nsMsgAccount::SetKey(const nsACString& accountKey)
+{
   // need the prefs service to do anything
   nsresult rv = getPrefService();
-  if (NS_FAILED(rv)) return rv;
-
-  m_accountKey.Assign(accountKey);
-  
+  NS_ENSURE_SUCCESS(rv, rv);
+  m_accountKey = accountKey;
   return Init();
 }
 
 NS_IMETHODIMP
-nsMsgAccount::ToString(PRUnichar **aResult)
+nsMsgAccount::ToString(nsAString& aResult)
 {
   nsAutoString val;
-  val.AssignLiteral("[nsIMsgAccount: ");
-  AppendASCIItoUTF16(m_accountKey, val);
-  val.Append(']');
-  *aResult = ToNewUnicode(val);
+  aResult.AssignLiteral("[nsIMsgAccount: ");
+  aResult.Append(NS_ConvertASCIItoUTF16(m_accountKey));
+  aResult.AppendLiteral("]");
   return NS_OK;
 }
-
 
 NS_IMETHODIMP
 nsMsgAccount::ClearAllValues()
 {
-    nsresult rv;
-    nsCAutoString rootPref("mail.account.");
-    rootPref += m_accountKey;
-    rootPref += '.';
+  nsresult rv;
+  nsCAutoString rootPref("mail.account.");
+  rootPref += m_accountKey;
+  rootPref += '.';
 
-    rv = getPrefService();
-    if (NS_FAILED(rv))
-        return rv;
+  rv = getPrefService();
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    PRUint32 cntChild, i;
-    char **childArray;
- 
-    rv = m_prefs->GetChildList(rootPref.get(), &cntChild, &childArray);
-    if (NS_SUCCEEDED(rv)) {
-        for (i = 0; i < cntChild; i++)
-            m_prefs->ClearUserPref(childArray[i]);
+  PRUint32 cntChild, i;
+  char **childArray;
 
-        NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(cntChild, childArray);
-    }
+  rv = m_prefs->GetChildList(rootPref.get(), &cntChild, &childArray);
+  if (NS_SUCCEEDED(rv)) 
+  {
+    for (i = 0; i < cntChild; i++)
+      m_prefs->ClearUserPref(childArray[i]);
+    NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(cntChild, childArray);
+  }
 
-    return rv;
+  return rv;
 }
