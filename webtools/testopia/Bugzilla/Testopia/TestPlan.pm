@@ -468,9 +468,8 @@ sub add_plan_type {
     my $dbh = Bugzilla->dbh;    
 
     my $type = $dbh->do(
-            "INSERT INTO test_plan_types (type_id, name, description)
-                VALUES(?,?,?)", 
-            undef, (undef, $name, $desc));
+            "INSERT INTO test_plan_types (name, description) VALUES(?, ?)",
+             undef, ($name, $desc));
 }
 
 =head2 get_fields
