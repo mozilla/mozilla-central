@@ -926,7 +926,7 @@ void nsEudoraMac::SetIdentities(nsIMsgAccountManager *accMgr, nsIMsgAccount *acc
     id->SetFullName(fullName);
     id->SetIdentityName(fullName);
     if (pStrs[kReturnAddressStr]->Length()) {
-      id->SetEmail( pStrs[kReturnAddressStr]->get());
+      id->SetEmail(pStrs[kReturnAddressStr]);
     }
     else {
       nsCAutoString emailAddress;
