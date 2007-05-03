@@ -985,15 +985,6 @@ function getFormElementValue(formElement) {
       return formElement.checked;
     }
     if (type == "textbox" &&
-        formElement.getAttribute("datatype") == "nsIFileSpec") {
-      if (formElement.value) {
-        var filespec = Components.classes["@mozilla.org/filespec;1"].createInstance(Components.interfaces.nsIFileSpec);
-        filespec.unicodePath = formElement.value;
-        return filespec;
-      }
-      return null;
-    }
-    if (type == "textbox" &&
         formElement.getAttribute("datatype") == "nsILocalFile") {
       if (formElement.value) {
         var localfile = Components.classes["@mozilla.org/file/local;1"].createInstance(Components.interfaces.nsILocalFile);

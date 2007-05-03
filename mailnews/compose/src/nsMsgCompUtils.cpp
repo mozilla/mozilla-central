@@ -1804,11 +1804,6 @@ nsMsgIsLocalFile(const char *url)
 char
 *nsMsgGetLocalFileFromURL(const char *url)
 {
-#ifdef XP_MAC
-  nsFileURL fileURL(url);
-  const char * nativePath = fileURL.GetFileSpec().GetNativePathCString();
-  return nsCRT::strdup (nativePath);
-#else
   char * finalPath;
   NS_ASSERTION(PL_strncasecmp(url, "file://", 7) == 0, "invalid url");
   finalPath = (char*)PR_Malloc(strlen(url));
@@ -1816,7 +1811,6 @@ char
     return NULL;
   strcpy(finalPath, url+6+1);
   return finalPath;
-#endif
 }
 
 char *

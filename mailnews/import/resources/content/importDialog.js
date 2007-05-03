@@ -528,19 +528,6 @@ function ShowAddressComplete( good)
     alert( str);
 }
 
-function CreateNewFileSpecFromPath( inPath)
-{
-  var file = Components.classes["@mozilla.org/filespec;1"].createInstance();
-  if (file != null) {
-    file = file.QueryInterface( Components.interfaces.nsIFileSpec);
-    if (file != null) {
-      file.nativePath = inPath;
-    }
-  }
-
-  return( file);
-}
-
 /*
   Import Settings from a specific module, returns false if it failed
   and true if successful.  A "local mail" account is returned in newAccount.
@@ -576,10 +563,7 @@ function ImportSettings( module, newAccount, error) {
             filePicker.init( top.window, gImportMsgsBundle.getString('ImportSelectSettings'), Components.interfaces.nsIFilePicker.modeOpen);
             filePicker.appendFilters( Components.interfaces.nsIFilePicker.filterAll);
             filePicker.show();
-            if (filePicker.file && (filePicker.file.path.length > 0))
-              file = CreateNewFileSpecFromPath( filePicker.file.path);
-            else
-              file = null;
+            file = filePicker.file;
           }
           catch(ex) {
             file = null;
@@ -618,19 +602,6 @@ function ImportSettings( module, newAccount, error) {
     error.value = gImportMsgsBundle.getString('ImportSettingsFailed');
   }
   return( result);
-}
-
-function CreateNewFileSpec( inFile)
-{
-  var file = Components.classes["@mozilla.org/filespec;1"].createInstance();
-  if (file != null) {
-    file = file.QueryInterface( Components.interfaces.nsIFileSpec);
-    if (file != null) {
-      file.fromFileSpec( inFile);
-    }
-  }
-
-  return( file);
 }
 
 function ImportMail( module, success, error) {
@@ -779,7 +750,7 @@ function ImportAddress( module, success, error) {
   if (loc == false) {
     loc = addInterface.GetData( "addressLocation");
     if (loc != null) {
-      loc = loc.QueryInterface( Components.interfaces.nsIFileSpec);
+      loc = loc.QueryInterface( Components.interfaces.nsIFile);
       if (loc != null) {
         if (!loc.exists)
           loc = null;
