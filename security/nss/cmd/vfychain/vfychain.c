@@ -99,8 +99,18 @@ static void
 Usage(const char *progName)
 {
     fprintf(stderr, 
-	    "Usage: %s [-d dbdir] certfile [certfile ...]\n",
-            progName);
+	"Usage: %s [options] certfile [[options] certfile] ...\n"
+	"\twhere options are:\n"
+	"\t-a\t\t following certfile is base64 encoded\n"
+	"\t-b YYMMDDHHMMZ\t Validate date (default: now)\n"
+	"\t-d directory\t Database directory\n"
+	"\t-r\t\t following certfile is raw binary DER (default)\n"
+	"\t-u usage \t 0=SSL client, 1=SSL server, 2=SSL StepUp, 3=SSL CA,\n"
+	"\t\t\t 4=Email signer, 5=Email recipient, 6=Object signer,\n"
+	"\t\t\t 9=ProtectedObjectSigner, 10=OCSP responder, 11=Any CA\n"
+	"\t-v\t\t verbose mode\n"
+	"\t-w password\t Database password\n",
+	progName);
     exit(1);
 }
 
@@ -240,21 +250,29 @@ main(int argc, char *argv[], char *envp[])
     SECStatus            secStatus;
     SECCertificateUsage  certUsage    = certificateUsageSSLServer;
     PLOptState *         optstate;
+    PRTime               time         = 0;
     PLOptStatus          status;
     int                  rv = 1;
+    int                  usage;
 
     PR_Init( PR_SYSTEM_THREAD, PR_PRIORITY_NORMAL, 1);
 
     progName = PL_strdup(argv[0]);
 
-    optstate = PL_CreateOptState(argc, argv, "ad:ru:w:v");
+    optstate = PL_CreateOptState(argc, argv, "ab:d:ru:w:v");
     while ((status = PL_GetNextOpt(optstate)) == PL_OPT_OK) {
 	switch(optstate->option) {
 	case  0  : /* positional parameter */  goto breakout;
 	case 'a' : isAscii  = PR_TRUE;                        break;
+	case 'b' : secStatus = DER_AsciiToTime(&time, optstate->value);
+	           if (secStatus != SECSuccess) Usage(progName); break;
 	case 'd' : certDir  = PL_strdup(optstate->value);     break;
 	case 'r' : isAscii  = PR_FALSE;                       break;
-	case 'u' : certUsage = ((SECCertificateUsage) 1) << PORT_Atoi(optstate->value); break;
+	case 'u' : usage    = PORT_Atoi(optstate->value);
+	           if (usage < 0 || usage > 62) Usage(progName);
+		   certUsage = ((SECCertificateUsage)1) << usage; 
+		   if (certUsage > certificateUsageHighest) Usage(progName);
+		   break;
 	case 'w' : password = PL_strdup(optstate->value);     break;
 	case 'v' : verbose++;                                 break;
 	default  : Usage(progName);                           break;
@@ -297,15 +315,19 @@ breakout:
 	}
         status = PL_GetNextOpt(optstate);
     }
+    PL_DestroyOptState(optstate);
     if (status == PL_OPT_BAD || !firstCert)
 	Usage(progName);
+
+    if (!time)
+    	time = PR_Now();
 
     /* NOW, verify the cert chain. */
     defaultDB = CERT_GetDefaultCertDB();
     secStatus = CERT_VerifyCertificate(defaultDB, firstCert, 
                                 PR_TRUE /* check sig */,
 				certUsage, 
-				PR_Now(), 
+				time, 
 				NULL, 		/* wincx  */
 				NULL,		/* error log */
                                 NULL);          /* returned usages */
@@ -313,8 +335,8 @@ breakout:
     if (secStatus != SECSuccess) {
 	PRIntn err = PR_GetError();
 	fprintf(stderr, "Chain is bad, %d = %s\n", err, SECU_Strerror(err));
-	SECU_printCertProblems(stderr, defaultDB, firstCert, 
-			  PR_TRUE, certUsage, NULL, verbose);
+	SECU_printCertProblemsOnDate(stderr, defaultDB, firstCert, 
+			  PR_TRUE, certUsage, NULL, verbose, time);
     	rv = 1;
     } else {
     	fprintf(stderr, "Chain is good!\n");
