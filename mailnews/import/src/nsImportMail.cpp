@@ -62,7 +62,6 @@
 #include "nsXPIDLString.h"
 
 #include "nsIMsgAccountManager.h"
-#include "nsIMessengerMigrator.h"
 #include "nsIMsgMailSession.h"
 #include "nsMsgBaseCID.h"
 #include "nsIMsgFolder.h"
@@ -1008,12 +1007,7 @@ PRBool nsImportGenericMail::CreateFolder( nsIMsgFolder **ppFolder)
   // if Local Folders does not exist already, create it
   if (NS_FAILED(rv) || !server)
   {
-    nsCOMPtr <nsIMessengerMigrator> messengerMigrator = do_GetService(NS_MESSENGERMIGRATOR_CONTRACTID, &rv);
-    if (NS_FAILED(rv)) {
-      IMPORT_LOG0( "*** Failed to create messenger migrator!\n");
-      return PR_FALSE;
-    }
-    rv = messengerMigrator->CreateLocalMailAccount(PR_FALSE);
+    rv = accMgr->CreateLocalMailAccount();
     if (NS_FAILED(rv)) {
       IMPORT_LOG0( "*** Failed to create Local Folders!\n");
       return PR_FALSE;

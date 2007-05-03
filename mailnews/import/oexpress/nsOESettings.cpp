@@ -61,7 +61,6 @@
 #include "nsOEStringBundle.h"
 #include "OEDebugLog.h"
 #include "nsIPop3IncomingServer.h"
-#include "nsIMessengerMigrator.h"
 
 class OESettings {
 public:
@@ -426,13 +425,8 @@ PRBool OESettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pS
                     // if the other import modules end up needing to do this too.
 
                     // if Local Folders does not exist already, create it
-                    nsCOMPtr <nsIMessengerMigrator> messengerMigrator = do_GetService(NS_MESSENGERMIGRATOR_CONTRACTID, &rv);
-                    if (NS_FAILED(rv)) {
-                        IMPORT_LOG0( "*** Failed to create messenger migrator!\n");
-                        return PR_FALSE;
-                    }
 
-                    rv = messengerMigrator->CreateLocalMailAccount(PR_FALSE);
+                    rv = pMgr->CreateLocalMailAccount();
                     if (NS_FAILED(rv)) {
                         IMPORT_LOG0( "*** Failed to create Local Folders!\n");
                         return PR_FALSE;

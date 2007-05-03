@@ -72,6 +72,7 @@
 #include "nsIMsgBiffManager.h"
 #include "nsIMsgPurgeService.h"
 #include "nsIObserverService.h"
+#include "nsINoIncomingServer.h"
 #include "nsIMsgMailSession.h"
 #include "nsIDirectoryService.h"
 #include "nsAppDirectoryServiceDefs.h"
@@ -2432,6 +2433,62 @@ NS_IMETHODIMP nsMsgAccountManager::GetLocalFoldersServer(nsIMsgIncomingServer **
   rv = SetLocalFoldersServer(*aServer);
   return rv;
 }
+
+NS_IMETHODIMP
+nsMsgAccountManager::CreateLocalMailAccount()
+{
+  // create the server
+  nsCOMPtr<nsIMsgIncomingServer> server;
+  nsresult rv = CreateIncomingServer("nobody",
+                            "Local Folders",
+                            "none", getter_AddRefs(server));
+  NS_ENSURE_SUCCESS(rv,rv);
+  
+  // we don't want "nobody at Local Folders" to show up in the
+  // folder pane, so we set the pretty name to "Local Folders"
+  server->SetPrettyName(NS_LITERAL_STRING("Local Folders").get());
+  
+  nsCOMPtr<nsINoIncomingServer> noServer;
+  noServer = do_QueryInterface(server, &rv);
+  if (NS_FAILED(rv)) return rv;
+  
+  // create the directory structure for old 4.x "Local Mail"
+  // under <profile dir>/Mail/Local Folders or
+  // <"mail.directory" pref>/Local Folders
+  nsCOMPtr <nsIFile> mailDir;
+  nsCOMPtr <nsILocalFile> localFile;
+  PRBool dirExists;
+    
+  // we want <profile>/Mail
+  rv = NS_GetSpecialDirectory(NS_APP_MAIL_50_DIR, getter_AddRefs(mailDir));
+  if (NS_FAILED(rv)) return rv;
+  localFile = do_QueryInterface(mailDir);
+  
+  rv = mailDir->Exists(&dirExists);
+  if (NS_SUCCEEDED(rv) && !dirExists)
+    rv = mailDir->Create(nsIFile::DIRECTORY_TYPE, 0775);
+  if (NS_FAILED(rv)) return rv;
+  
+  // set the default local path for "none"
+  rv = server->SetDefaultLocalPath(localFile);
+  if (NS_FAILED(rv)) return rv;
+  
+  // Create an account when valid server values are established.
+  // This will keep the status of accounts sane by avoiding the addition of incomplete accounts.
+  nsCOMPtr<nsIMsgAccount> account;
+  rv = CreateAccount(getter_AddRefs(account));
+  if (NS_FAILED(rv)) return rv;
+  
+  // notice, no identity for local mail
+  // hook the server to the account
+  // after we set the server's local path
+  // (see bug #66018)
+  account->SetIncomingServer(server);
+  
+  // remember this as the local folders server
+  return SetLocalFoldersServer(server);  
+}
+
   // nsIUrlListener methods
 
 NS_IMETHODIMP

@@ -47,7 +47,7 @@
 interface nsIMsgFolderCache;
 interface nsIFolderListener;
 
-[scriptable, uuid(0dc74b96-c2fc-4ce0-baed-c6f03c69026e)]
+[scriptable, uuid(8129D2AD-6093-479D-884C-D8E79FA29B46)]
 interface nsIMsgAccountManager : nsISupports {
 
   nsIMsgAccount createAccount();
@@ -171,6 +171,9 @@ interface nsIMsgAccountManager : nsISupports {
    * this will allow you to get */
   attribute nsIMsgIncomingServer localFoldersServer;
 
+  // Create the account for that special server.
+  void createLocalMailAccount();
+  
   /* load accounts kicks off the creation of all accounts. You do not need
    * to call this and all accounts should be loaded lazily if you use any
    * of the above.

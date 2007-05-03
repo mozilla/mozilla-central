@@ -625,8 +625,7 @@ function verifyLocalFoldersAccount()
     {
       // dump("Creating local mail account\n");
       // creates a copy of the identity you pass in
-      messengerMigrator = Components.classes["@mozilla.org/messenger/migrator;1"].getService(Components.interfaces.nsIMessengerMigrator);
-      messengerMigrator.createLocalMailAccount(false /* false, since we are not migrating */);
+      am.createLocalMailAccount();
       try {
         localMailServer = am.localFoldersServer;
       }

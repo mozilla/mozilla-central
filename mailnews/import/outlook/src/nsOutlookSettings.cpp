@@ -61,7 +61,6 @@
 #include "nsOutlookStringBundle.h"
 #include "OutlookDebugLog.h"
 #include "nsIPop3IncomingServer.h"
-#include "nsIMessengerMigrator.h"
 #include "nsMsgI18N.h"
 
 class OutlookSettings {
@@ -381,13 +380,7 @@ PRBool OutlookSettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, cha
                 // XXX: We may need to move this local folder creation code to the generic nsImportSettings code
                 // if the other import modules end up needing to do this too.
                 // if Local Folders does not exist already, create it
-                nsCOMPtr <nsIMessengerMigrator> messengerMigrator = do_GetService(NS_MESSENGERMIGRATOR_CONTRACTID, &rv);
-                if (NS_FAILED(rv)) {
-                    IMPORT_LOG0( "*** Failed to create messenger migrator!\n");
-                    return PR_FALSE;
-                }
-
-                rv = messengerMigrator->CreateLocalMailAccount(PR_FALSE);
+                rv = pMgr->CreateLocalMailAccount();
                 if (NS_FAILED(rv)) {
                     IMPORT_LOG0( "*** Failed to create Local Folders!\n");
                     return PR_FALSE;

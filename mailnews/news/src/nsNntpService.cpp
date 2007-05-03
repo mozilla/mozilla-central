@@ -97,8 +97,6 @@
 #define PREF_NETWORK_HOSTS_NNTP_SERVER	"network.hosts.nntp_server"
 #define PREF_MAIL_ROOT_NNTP 	"mail.root.nntp"        // old - for backward compatibility only
 #define PREF_MAIL_ROOT_NNTP_REL 	"mail.root.nntp-rel"
-
-static NS_DEFINE_CID(kMessengerMigratorCID, NS_MESSENGERMIGRATOR_CID);
                     
 nsNntpService::nsNntpService()
 {
@@ -1104,20 +1102,6 @@ nsNntpService::GetProtocolForUri(nsIURI *aUri, nsIMsgWindow *aMsgWindow, nsINNTP
   nsCOMPtr <nsISupportsArray> accounts;
   rv = accountManager->GetAccounts(getter_AddRefs(accounts));
   if (NS_FAILED(rv)) return rv;
-
-  PRUint32 accountCount;
-  rv = accounts->Count(&accountCount);
-  if (NS_FAILED(rv)) return rv;
-
-  if (accountCount == 0)
-  {
-	nsCOMPtr <nsIMessengerMigrator> messengerMigrator = do_GetService(kMessengerMigratorCID, &rv);
-    if (NS_FAILED(rv)) return rv;
-    if (!messengerMigrator) return NS_ERROR_FAILURE;
-
-    // migration can fail;
-    messengerMigrator->UpgradePrefs(); 
-  }
 
   // news:group becomes news://group, so we have three types of urls:
   // news://group       (autosubscribing without a host)

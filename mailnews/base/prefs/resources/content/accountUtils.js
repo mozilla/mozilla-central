@@ -38,7 +38,6 @@
 // The gReturnmycall is used as a global variable that is set during a callback.
 var gReturnmycall=false;
 var accountManagerContractID   = "@mozilla.org/messenger/account-manager;1";
-var messengerMigratorContractID   = "@mozilla.org/messenger/migrator;1";
 var gAnyValidIdentity = false; //If there are no valid identities for any account
 // returns the first account with an invalid server or identity
 
@@ -166,22 +165,8 @@ function verifyAccounts(wizardcallback)
           if (!adminUrl)
             newProfile = false;
         }
-        if ((newProfile  && !accountCount) || accountCount == invalidAccounts.length) {
-            try {
-                  var messengerMigrator = Components.classes[messengerMigratorContractID].getService(Components.interfaces.nsIMessengerMigrator); 
-                  messengerMigrator.UpgradePrefs();
-                  // if there is a callback mechanism then inform parent window to shut itself down
-                  if (wizardcallback){
-                      state = false;
-                      WizCallback(state);
-                  }
-                  ret = false;
-            }
-            catch (ex) {
-                  // upgrade prefs failed, so open account wizard
-                  openWizard = true;
-            }
-        }
+        if ((newProfile  && !accountCount) || accountCount == invalidAccounts.length)
+          openWizard = true;
 
         //We are doing openWizard if  MessengerMigration returns some kind of error
         //(including those cases where there is nothing to migrate).
@@ -195,7 +180,7 @@ function verifyAccounts(wizardcallback)
 
         if (openWizard || prefillAccount || ((!gAnyValidIdentity) && wizardcallback)) {
             MsgAccountWizard();
-		        ret = false;
+            ret = false;
         }
         else
         {
@@ -211,10 +196,7 @@ function verifyAccounts(wizardcallback)
 
           // we didn't create the MsgAccountWizard - we need to verify that local folders exists.
           if (!localFoldersExists)
-          {
-            messengerMigrator = Components.classes["@mozilla.org/messenger/migrator;1"].getService(Components.interfaces.nsIMessengerMigrator);
-            messengerMigrator.createLocalMailAccount(false /* false, since we are not migrating */);
-          }
+            am.createLocalMailAccount();
         }
         
         // This will only succeed on SeaMonkey windows builds

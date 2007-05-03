@@ -45,8 +45,6 @@
 #include "nsCOMPtr.h"
 #include "MailNewsTypes2.h"
 
-class nsFileSpec;
-class nsIFileSpec;
 class nsILocalFile;
 class nsIPrefBranch;
 class nsIMsgFolder;

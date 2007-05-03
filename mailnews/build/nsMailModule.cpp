@@ -67,7 +67,6 @@
 #include "nsMsgMailSession.h"
 #include "nsMsgAccount.h"
 #include "nsMsgAccountManager.h"
-#include "nsMessengerMigrator.h"
 #include "nsMsgIdentity.h"
 #include "nsMsgIncomingServer.h"
 #include "nsMsgFolderDataSource.h"
@@ -302,7 +301,6 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsUrlListenerManager)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsMsgMailSession, Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMessenger)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsMsgAccountManager, Init)
-NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsMessengerMigrator, Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgAccount)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgIdentity)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsMsgFolderDataSource, Init)
@@ -677,10 +675,6 @@ static const nsModuleComponentInfo gComponents[] = {
     { "Messenger Account Manager", NS_MSGACCOUNTMANAGER_CID,
       NS_MSGACCOUNTMANAGER_CONTRACTID,
       nsMsgAccountManagerConstructor,
-    },
-    { "Messenger Migrator", NS_MESSENGERMIGRATOR_CID,
-      NS_MESSENGERMIGRATOR_CONTRACTID,
-      nsMessengerMigratorConstructor,
     },
     { "Messenger User Account", NS_MSGACCOUNT_CID,
       NS_MSGACCOUNT_CONTRACTID,

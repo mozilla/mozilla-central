@@ -479,9 +479,9 @@ function ShowImportResultsRaw(title, results, good)
   // import "mail" and "settings"
   var checkLocalFolder = (top.progressInfo.importType == 'mail' || top.progressInfo.importType == 'settings') ? true : false;
   if (good && checkLocalFolder && !top.progressInfo.localFolderExists) {
-    var messengerMigrator = Components.classes["@mozilla.org/messenger/migrator;1"].getService(Components.interfaces.nsIMessengerMigrator);
-    if (messengerMigrator)
-      messengerMigrator.createLocalMailAccount(false);
+    var am = Components.classes["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
+    if (am)
+      am.createLocalMailAccount();
   }
 }
 
