@@ -126,7 +126,7 @@ nsMsgAccount::createIncomingServer()
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIMsgIncomingServer> server;
-  rv = accountManager->GetIncomingServer(serverKey.get(), getter_AddRefs(server));
+  rv = accountManager->GetIncomingServer(serverKey, getter_AddRefs(server));
   NS_ENSURE_SUCCESS(rv, rv);
 
   // store the server in this structure
@@ -226,7 +226,7 @@ nsMsgAccount::createIdentities()
     key.StripWhitespace();
 
     // create the account
-    rv = accountManager->GetIdentity(key.get(), getter_AddRefs(identity));
+    rv = accountManager->GetIdentity(key, getter_AddRefs(identity));
     if (NS_SUCCEEDED(rv)) {
       // ignore error from addIdentityInternal() - if it fails, it fails.
       rv = addIdentityInternal(identity);

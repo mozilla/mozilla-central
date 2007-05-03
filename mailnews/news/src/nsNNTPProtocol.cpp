@@ -415,7 +415,7 @@ NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI * aURL, nsIMsgWindow *aMsgWindow
 
   // find the server
   nsCOMPtr<nsIMsgIncomingServer> server;
-  rv = accountManager->FindServer(unescapedUserPass, hostName.get(), "nntp",
+  rv = accountManager->FindServer(nsDependentCString(unescapedUserPass), hostName, NS_LITERAL_CSTRING("nntp"),
     getter_AddRefs(server));
   PR_FREEIF(unescapedUserPass);
   NS_ENSURE_SUCCESS(rv, NS_MSG_INVALID_OR_MISSING_SERVER);
@@ -4079,7 +4079,7 @@ PRBool nsNNTPProtocol::CheckIfAuthor(nsISupports *aElement, void *data)
     nsCOMPtr<nsIMsgHeaderParser> parser = do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID, &rv);
 
     if (NS_FAILED(rv)) {
-        cancelInfo->from.Truncate(0);
+        cancelInfo->from.Truncate();
         return PR_TRUE;
     }
 
@@ -4092,7 +4092,7 @@ PRBool nsNNTPProtocol::CheckIfAuthor(nsISupports *aElement, void *data)
 
     if (NS_FAILED(rv1) || NS_FAILED(rv2) || !us.Equals(them, nsCaseInsensitiveCStringComparator())) {
         //no match.  don't set cancel email
-        cancelInfo->from.Truncate(0);
+        cancelInfo->from.Truncate();
         return PR_TRUE;
     }
     else {
@@ -4136,7 +4136,7 @@ PRInt32 nsNNTPProtocol::DoCancel()
   distribution = m_cancelDistribution;
   id = m_cancelID;
   cancelInfo.old_from = m_cancelFromHdr;
-  cancelInfo.from.Truncate(0);
+  cancelInfo.from.Truncate();
 
   nsCOMPtr<nsIPrefBranch> prefBranch = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);

@@ -405,8 +405,8 @@ nsMsgAccountManagerDataSource::GetTarget(nsIRDFResource *source,
         NS_ENSURE_SUCCESS(rv, PR_FALSE);
 
         // turn NC#PageTitlefoobar into foobar, so we can get the am-foobar.properties bundle
-        nsXPIDLCString chromePackageName;
-        rv = am->GetChromePackageName((sourceValue + strlen(NC_RDF_PAGETITLE_PREFIX)), getter_Copies(chromePackageName));
+        nsCString chromePackageName;
+        rv = am->GetChromePackageName(nsCString(sourceValue + strlen(NC_RDF_PAGETITLE_PREFIX)), chromePackageName);
         NS_ENSURE_SUCCESS(rv,rv);
 
         nsCAutoString bundleURL;
@@ -746,8 +746,8 @@ nsMsgAccountManagerDataSource::appendGenericSettingsResources(nsIMsgIncomingServ
         break;
 
       if (showPanel) {
-        nsXPIDLCString name;
-        rv = extension->GetName(getter_Copies(name));
+        nsCString name;
+        rv = extension->GetName(name);
         if (NS_FAILED(rv))
           break;
 
@@ -1366,7 +1366,7 @@ nsMsgAccountManagerDataSource::IsFakeAccountRequired()
   nsCOMPtr<nsIMsgIncomingServer> server;
 
   if (!fakeHostName.IsEmpty()) {
-    rv = accountManager->FindServer("",fakeHostName.get(),"", getter_AddRefs(server));
+    rv = accountManager->FindServer(EmptyCString(), fakeHostName, EmptyCString(), getter_AddRefs(server));
     if (NS_SUCCEEDED(rv) && server)
       return PR_FALSE;
   }

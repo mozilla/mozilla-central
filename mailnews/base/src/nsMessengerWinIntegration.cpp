@@ -301,7 +301,7 @@ nsresult
 nsMessengerWinIntegration::ResetCurrent()
 {
   CRTFREEIF(mInboxURI);
-  mEmail.Truncate(0);
+  mEmail.Truncate();
 
   mCurrentUnreadCount = -1;
   mLastUnreadCountWrittenToRegistry = -1;

@@ -3008,7 +3008,7 @@ nsMsgComposeAndSend::InitCompositionFields(nsMsgCompFields *fields,
         nsCString uri;
         GetFolderURIFromUserPrefs(nsMsgDeliverNow, mUserIdentity, uri);
         if (!uri.IsEmpty())
-          mCompFields->SetFcc(PL_strcasecmp(uri.get(), "nocopy://") ? uri.get() : "");
+          mCompFields->SetFcc(uri.LowerCaseEqualsLiteral("nocopy://") ? "" : uri.get());
         else
           mCompFields->SetFcc("");
       }

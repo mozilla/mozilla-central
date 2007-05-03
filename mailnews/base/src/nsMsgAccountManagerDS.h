@@ -179,11 +179,7 @@ private:
   static nsCOMPtr<nsISupportsArray> mAccountArcsOut;
   static nsCOMPtr<nsISupportsArray> mAccountRootArcsOut;
   nsWeakPtr mAccountManager;
-
   nsCOMPtr<nsIStringBundle> mStringBundle;
-
 };
-
-
 
 #endif

@@ -188,7 +188,7 @@ NS_IMETHODIMP nsPop3IncomingServer::SetDeferredToAccount(const char *aAccountKey
           if (aAccountKey && *aAccountKey)
           {
             nsCOMPtr <nsIMsgAccount> account;
-            acctMgr->GetAccount(aAccountKey, getter_AddRefs(account));
+            acctMgr->GetAccount(nsDependentCString(aAccountKey), getter_AddRefs(account));
             if (account)
             {
               nsCOMPtr <nsIMsgIncomingServer> server;

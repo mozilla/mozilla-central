@@ -3056,7 +3056,7 @@ nsMsgLocalMailFolder::MarkMsgsOnPop3Server(nsISupportsArray *aMessages, PRInt32 
       if (folderScanState.m_uidl)
       {
         nsCOMPtr <nsIMsgAccount> account;
-        rv = accountManager->GetAccount(folderScanState.m_accountKey.get(), getter_AddRefs(account));
+        rv = accountManager->GetAccount(folderScanState.m_accountKey, getter_AddRefs(account));
         if (NS_SUCCEEDED(rv) && account)
         {
           account->GetIncomingServer(getter_AddRefs(incomingServer));

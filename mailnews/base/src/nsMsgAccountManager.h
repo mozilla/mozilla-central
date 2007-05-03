@@ -112,23 +112,23 @@ private:
   PRInt32 m_lastFindServerPort;
   nsCString m_lastFindServerType;
 
-  nsresult SetLastServerFound(nsIMsgIncomingServer *server, const char *hostname, const char *username, const PRInt32 port, const char *type);
+  nsresult SetLastServerFound(nsIMsgIncomingServer *server, const nsACString& hostname,
+                              const nsACString& username, const PRInt32 port, const nsACString& type);
 
   /* internal creation routines - updates m_identities and m_incomingServers */
-  nsresult createKeyedAccount(const char* key,
+  nsresult createKeyedAccount(const nsCString& key,
                               nsIMsgAccount **_retval);
-  nsresult createKeyedServer(const char*key,
-                             const char* username,
-                             const char* password,
-                             const char* type,
+  nsresult createKeyedServer(const nsACString& key,
+                             const nsACString& username,
+                             const nsACString& password,
+                             const nsACString& type,
                              nsIMsgIncomingServer **_retval);
 
-  nsresult createKeyedIdentity(const nsCString& key,
+  nsresult createKeyedIdentity(const nsACString& key,
                                nsIMsgIdentity **_retval);
 
   /* internal destruction routines - fixes prefs */
-  nsresult removeKeyedAccount(const char *key);
-
+  nsresult removeKeyedAccount(const nsCString& key);
 
   // sets the pref for the default server
   nsresult setDefaultAccountPref(nsIMsgAccount *aDefaultAccount);
@@ -163,9 +163,6 @@ private:
   // account enumerators
   // ("element" is always an account)
   //
-  
-  // append the account keys to the given string
-  static PRBool getAccountList(nsISupports *aKey, void *aData);
 
   // find the identities that correspond to the given server
   static PRBool findIdentitiesForServer(nsISupports *element, void *aData);
@@ -212,10 +209,10 @@ private:
                                nsIRDFService *rdf,
                                nsIMsgDBService *msgDBService);
 
-  static void getUniqueKey(const char* prefix,
+  static void getUniqueKey(const char * prefix,
                            nsHashtable *hashTable,
                            nsCString& aResult);
-  static void getUniqueAccountKey(const char* prefix,
+  static void getUniqueAccountKey(const char * prefix,
                                   nsISupportsArray *accounts,
                                   nsCString& aResult);
 
@@ -224,8 +221,6 @@ private:
  
   nsresult getPrefService();
   nsCOMPtr<nsIPrefBranch> m_prefs;
-
-  nsresult InternalFindServer(const char* username, const char* hostname, const char* type, PRBool useRealSetting, nsIMsgIncomingServer** aResult);
 
   //
   // root folder listener stuff

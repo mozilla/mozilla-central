@@ -332,86 +332,86 @@ nsresult OESettings::GetAccountName(HKEY hKey, char *defaultName, nsString &acct
 
 PRBool OESettings::DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount)
 {
-	if (ppAccount)
-		*ppAccount = nsnull;
+  if (ppAccount)
+    *ppAccount = nsnull;
 
-	BYTE *pBytes;
-	pBytes = nsOERegUtil::GetValueBytes( hKey, "IMAP User Name");
-	if (!pBytes)
-		return( PR_FALSE);
+  BYTE *pBytes;
+  pBytes = nsOERegUtil::GetValueBytes( hKey, "IMAP User Name");
+  if (!pBytes)
+    return( PR_FALSE);
 
-	PRBool	result = PR_FALSE;
+  PRBool result = PR_FALSE;
 
-	// I now have a user name/server name pair, find out if it already exists?
-	nsCOMPtr<nsIMsgIncomingServer>	in;
-	nsresult rv = pMgr->FindServer( (const char *)pBytes, pServerName, "imap", getter_AddRefs( in));
-	if (NS_FAILED( rv) || (in == nsnull)) {
-		// Create the incoming server and an account for it?
-		rv = pMgr->CreateIncomingServer( (const char *)pBytes, pServerName, "imap", getter_AddRefs( in));
-		if (NS_SUCCEEDED( rv) && in) {
-			rv = in->SetType( "imap");
-			// rv = in->SetHostName( pServerName);
-			// rv = in->SetUsername( (char *)pBytes);
+  // I now have a user name/server name pair, find out if it already exists?
+  nsCOMPtr<nsIMsgIncomingServer> in;
+  nsresult rv = pMgr->FindServer( nsDependentCString((const char *)pBytes), nsDependentCString(pServerName), NS_LITERAL_CSTRING("imap"), getter_AddRefs(in));
+  if (NS_FAILED( rv) || (in == nsnull)) {
+    // Create the incoming server and an account for it?
+    rv = pMgr->CreateIncomingServer( nsDependentCString((const char *)pBytes), nsDependentCString(pServerName), NS_LITERAL_CSTRING("imap"), getter_AddRefs(in));
+    if (NS_SUCCEEDED( rv) && in) {
+      rv = in->SetType( "imap");
+      // rv = in->SetHostName( pServerName);
+      // rv = in->SetUsername( (char *)pBytes);
 
-			IMPORT_LOG2( "Created IMAP server named: %s, userName: %s\n", pServerName, (char *)pBytes);
+      IMPORT_LOG2( "Created IMAP server named: %s, userName: %s\n", pServerName, (char *)pBytes);
 
-			nsString	prettyName;
+      nsString	prettyName;
       if (NS_SUCCEEDED(GetAccountName(hKey, pServerName, prettyName)))
       {
-			PRUnichar *pretty = ToNewUnicode(prettyName);
+      PRUnichar *pretty = ToNewUnicode(prettyName);
         if (pretty)
         {
-			rv = in->SetPrettyName( pretty);
-			nsCRT::free( pretty);
+      rv = in->SetPrettyName( pretty);
+      nsCRT::free( pretty);
         }
       }
 
-			// We have a server, create an account.
-			nsCOMPtr<nsIMsgAccount>	account;
-			rv = pMgr->CreateAccount( getter_AddRefs( account));
-			if (NS_SUCCEEDED( rv) && account) {
-				rv = account->SetIncomingServer( in);
+      // We have a server, create an account.
+      nsCOMPtr<nsIMsgAccount>	account;
+      rv = pMgr->CreateAccount( getter_AddRefs( account));
+      if (NS_SUCCEEDED( rv) && account) {
+        rv = account->SetIncomingServer( in);
 
-				IMPORT_LOG0( "Created an account and set the IMAP server as the incoming server\n");
+        IMPORT_LOG0( "Created an account and set the IMAP server as the incoming server\n");
 
-				// Fiddle with the identities
-				SetIdentities( pMgr, account, hKey);
-				result = PR_TRUE;
-				if (ppAccount)
-					account->QueryInterface( NS_GET_IID(nsIMsgAccount), (void **)ppAccount);
-			}
-		}
-	}
-	else
-		result = PR_TRUE;
+        // Fiddle with the identities
+        SetIdentities( pMgr, account, hKey);
+        result = PR_TRUE;
+        if (ppAccount)
+          account->QueryInterface( NS_GET_IID(nsIMsgAccount), (void **)ppAccount);
+      }
+    }
+  }
+  else
+    result = PR_TRUE;
 
-	nsOERegUtil::FreeValueBytes( pBytes);
+  nsOERegUtil::FreeValueBytes( pBytes);
 
-	return( result);
+  return( result);
 }
 
 PRBool OESettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount)
 {
-	if (ppAccount)
-		*ppAccount = nsnull;
+  if (ppAccount)
+    *ppAccount = nsnull;
 
-	BYTE *pBytes;
-	pBytes = nsOERegUtil::GetValueBytes( hKey, "POP3 User Name");
-	if (!pBytes)
-		return( PR_FALSE);
+  BYTE *pBytes;
+  pBytes = nsOERegUtil::GetValueBytes( hKey, "POP3 User Name");
+  if (!pBytes)
+    return( PR_FALSE);
 
-	PRBool	result = PR_FALSE;
+  PRBool result = PR_FALSE;
 
-	// I now have a user name/server name pair, find out if it already exists?
-	nsCOMPtr<nsIMsgIncomingServer>	in;
-	nsresult rv = pMgr->FindServer( (const char *)pBytes, pServerName, "pop3", getter_AddRefs( in));
-	if (NS_FAILED( rv) || (in == nsnull)) {
-		// Create the incoming server and an account for it?
-		rv = pMgr->CreateIncomingServer( (const char *)pBytes, pServerName, "pop3", getter_AddRefs( in));
-		if (NS_SUCCEEDED( rv) && in) {
-			rv = in->SetType( "pop3");
-			rv = in->SetHostName( pServerName);
-			rv = in->SetUsername( (char *)pBytes);
+  // I now have a user name/server name pair, find out if it already exists?
+  nsCOMPtr<nsIMsgIncomingServer> in;
+  nsresult rv = pMgr->FindServer(nsDependentCString((const char *)pBytes), nsDependentCString(pServerName), NS_LITERAL_CSTRING("pop3"), getter_AddRefs( in));
+  if (NS_FAILED( rv) || (in == nsnull)) {
+    // Create the incoming server and an account for it?
+    rv = pMgr->CreateIncomingServer(nsDependentCString((const char *)pBytes), nsDependentCString(pServerName), NS_LITERAL_CSTRING("pop3"), getter_AddRefs( in));
+    if (NS_SUCCEEDED( rv) && in) {
+      rv = in->SetType( "pop3");
+      rv = in->SetHostName( pServerName);
+      rv = in->SetUsername( (char *)pBytes);
 
             nsCOMPtr<nsIPop3IncomingServer> pop3Server = do_QueryInterface(in);
             if (pop3Server) {

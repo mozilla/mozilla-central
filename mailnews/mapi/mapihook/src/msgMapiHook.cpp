@@ -375,7 +375,7 @@ nsresult nsMapiHook::BlindSendMail (unsigned long aSession, nsIMsgCompFields * a
     if (NS_FAILED(rv) || (!accountManager) ) return rv ;
 
     nsCOMPtr <nsIMsgIdentity> pMsgId ;
-    rv = accountManager->GetIdentity (MsgIdKey.get(), getter_AddRefs(pMsgId)) ;
+    rv = accountManager->GetIdentity (MsgIdKey, getter_AddRefs(pMsgId)) ;
     if (NS_FAILED(rv) ) return rv ;
 
     // create a send listener to get back the send status

@@ -692,57 +692,57 @@ PRBool nsEudoraMac::ImportSettings( nsIFile *pIniFile, nsIMsgAccount **localMail
 
 PRBool nsEudoraMac::BuildPOPAccount( nsIMsgAccountManager *accMgr, nsCString **pStrs, nsIMsgAccount **ppAccount, nsString& accName)
 {
-	if (ppAccount)
-		*ppAccount = nsnull;
+  if (ppAccount)
+    *ppAccount = nsnull;
 
 
-	if (!pStrs[kPopServerStr]->Length() || !pStrs[kPopAccountNameStr]->Length())
-		return( PR_FALSE);
+  if (!pStrs[kPopServerStr]->Length() || !pStrs[kPopAccountNameStr]->Length())
+    return( PR_FALSE);
 
-	PRBool	result = PR_FALSE;
+  PRBool	result = PR_FALSE;
 
-	// I now have a user name/server name pair, find out if it already exists?
-	nsCOMPtr<nsIMsgIncomingServer>	in;
-	nsresult rv = accMgr->FindServer( pStrs[kPopAccountNameStr]->get(), pStrs[kPopServerStr]->get(), "pop3", getter_AddRefs( in));
-	if (NS_FAILED( rv) || (in == nsnull)) {
-		// Create the incoming server and an account for it?
-		rv = accMgr->CreateIncomingServer( pStrs[kPopAccountNameStr]->get(), pStrs[kPopServerStr]->get(), "pop3", getter_AddRefs( in));
-		if (NS_SUCCEEDED( rv) && in) {
-			rv = in->SetType( "pop3");
-			// rv = in->SetHostName( pStrs[kPopServerStr]->get());
-			// rv = in->SetUsername( pStrs[kPopAccountNameStr]->get());
+  // I now have a user name/server name pair, find out if it already exists?
+  nsCOMPtr<nsIMsgIncomingServer> in;
+  nsresult rv = accMgr->FindServer( *(pStrs[kPopAccountNameStr]), *(pStrs[kPopServerStr]), NS_LITERAL_CSTRING("pop3"), getter_AddRefs( in));
+  if (NS_FAILED( rv) || (in == nsnull)) {
+    // Create the incoming server and an account for it?
+    rv = accMgr->CreateIncomingServer( *(pStrs[kPopAccountNameStr]), *(pStrs[kPopServerStr]), NS_LITERAL_CSTRING("pop3"), getter_AddRefs( in));
+    if (NS_SUCCEEDED( rv) && in) {
+      rv = in->SetType( "pop3");
+      // rv = in->SetHostName( pStrs[kPopServerStr]->get());
+      // rv = in->SetUsername( pStrs[kPopAccountNameStr]->get());
 
-			IMPORT_LOG2( "Created POP3 server named: %s, userName: %s\n", pStrs[kPopServerStr]->get(), pStrs[kPopAccountNameStr]->get());
+      IMPORT_LOG2( "Created POP3 server named: %s, userName: %s\n", pStrs[kPopServerStr]->get(), pStrs[kPopAccountNameStr]->get());
 
-			PRUnichar *pretty = ToNewUnicode(accName);
-			IMPORT_LOG1( "\tSet pretty name to: %S\n", pretty);
-			rv = in->SetPrettyName( pretty);
-			nsCRT::free( pretty);
+      PRUnichar *pretty = ToNewUnicode(accName);
+      IMPORT_LOG1( "\tSet pretty name to: %S\n", pretty);
+      rv = in->SetPrettyName( pretty);
+      nsCRT::free( pretty);
 
-			// We have a server, create an account.
-			nsCOMPtr<nsIMsgAccount>	account;
-			rv = accMgr->CreateAccount( getter_AddRefs( account));
-			if (NS_SUCCEEDED( rv) && account) {
-				rv = account->SetIncomingServer( in);
+      // We have a server, create an account.
+      nsCOMPtr<nsIMsgAccount>	account;
+      rv = accMgr->CreateAccount( getter_AddRefs( account));
+      if (NS_SUCCEEDED( rv) && account) {
+        rv = account->SetIncomingServer( in);
 
-				IMPORT_LOG0( "Created a new account and set the incoming server to the POP3 server.\n");
+        IMPORT_LOG0( "Created a new account and set the incoming server to the POP3 server.\n");
 
         nsCOMPtr<nsIPop3IncomingServer> pop3Server = do_QueryInterface(in, &rv);
         NS_ENSURE_SUCCESS(rv,rv);
         pop3Server->SetLeaveMessagesOnServer(pStrs[kLeaveOnServerStr]->First() == 'Y' ? PR_TRUE : PR_FALSE);
 
         // Fiddle with the identities
-				SetIdentities(accMgr, account, pStrs[kPopAccountNameStr]->get(), pStrs[kPopServerStr]->get(), pStrs);
-				result = PR_TRUE;
-				if (ppAccount)
-					account->QueryInterface( NS_GET_IID(nsIMsgAccount), (void **)ppAccount);
-			}
-		}
-	}
-	else
-		result = PR_TRUE;
+        SetIdentities(accMgr, account, pStrs[kPopAccountNameStr]->get(), pStrs[kPopServerStr]->get(), pStrs);
+        result = PR_TRUE;
+        if (ppAccount)
+          account->QueryInterface( NS_GET_IID(nsIMsgAccount), (void **)ppAccount);
+      }
+    }
+  }
+  else
+    result = PR_TRUE;
 
-	return( result);
+  return( result);
 }
 
 
@@ -755,10 +755,10 @@ PRBool nsEudoraMac::BuildIMAPAccount( nsIMsgAccountManager *accMgr, nsCString **
 	PRBool	result = PR_FALSE;
 
 	nsCOMPtr<nsIMsgIncomingServer>	in;
-	nsresult rv = accMgr->FindServer( pStrs[kPopAccountNameStr]->get(), pStrs[kPopServerStr]->get(), "imap", getter_AddRefs( in));
+	nsresult rv = accMgr->FindServer(*(pStrs[kPopAccountNameStr]), *(pStrs[kPopServerStr]), NS_LITERAL_CSTRING("imap"), getter_AddRefs( in));
 	if (NS_FAILED( rv) || (in == nsnull)) {
 		// Create the incoming server and an account for it?
-		rv = accMgr->CreateIncomingServer( pStrs[kPopAccountNameStr]->get(), pStrs[kPopServerStr]->get(), "imap", getter_AddRefs( in));
+		rv = accMgr->CreateIncomingServer( *(pStrs[kPopAccountNameStr]), *(pStrs[kPopServerStr]), NS_LITERAL_CSTRING("imap"), getter_AddRefs( in));
 		if (NS_SUCCEEDED( rv) && in) {
 			rv = in->SetType( "imap");
 			// rv = in->SetHostName( pStrs[kPopServerStr]->get());

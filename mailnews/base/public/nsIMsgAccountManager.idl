@@ -54,7 +54,7 @@ interface nsIMsgAccountManager : nsISupports {
   /*
    * Return the account with the provided key, or null if none found.
    */
-  nsIMsgAccount getAccount(in string key);
+  nsIMsgAccount getAccount(in ACString key);
     
   void removeAccount(in nsIMsgAccount account);
   void removeIdentity(in nsIMsgIdentity identity);
@@ -69,22 +69,22 @@ interface nsIMsgAccountManager : nsISupports {
    * creates a new server and assigns it a new, unique "key"
    * the given type will be used to construct a ContractID
    */
-  nsIMsgIncomingServer createIncomingServer(in string username,
-                                            in string hostname,
-                                            in string type);
+  nsIMsgIncomingServer createIncomingServer(in ACString username,
+                                            in ACString hostname,
+                                            in ACString type);
   
   /*
    * get the identity with the given key
    * if the identity does not exist, it will be created
    */
-  nsIMsgIdentity getIdentity(in string key);
+  nsIMsgIdentity getIdentity(in ACString key);
 
   /*
    * Gets the existing incoming server with the given key
    * if the server's type does not exist in the preference,
    * an error is returned/thrown
    */
-  nsIMsgIncomingServer getIncomingServer(in string key);
+  nsIMsgIncomingServer getIncomingServer(in ACString key);
 
   /* account list stuff */
 
@@ -125,7 +125,7 @@ interface nsIMsgAccountManager : nsISupports {
    * i.e. "imap", "pop3", "none", or "nntp"
    */
   nsIMsgIncomingServer
-      FindServer(in string userName, in string hostname, in string type);
+      FindServer(in ACString userName, in ACString hostname, in ACString type);
 
   /*
    * search for the server with the given uri
@@ -141,15 +141,14 @@ interface nsIMsgAccountManager : nsISupports {
    * 'realhostname' and 'realuserName' pref settings.
    */
   nsIMsgIncomingServer
-      findRealServer(in string userName, in string hostname, in string type, in long port );
+      findRealServer(in ACString userName, in ACString hostname, in ACString type, in long port );
 
   /**
    * find the index of this server in the (ordered) list of accounts
    */
   long FindServerIndex(in nsIMsgIncomingServer server);
 
-  nsIMsgAccount
-      FindAccountForServer(in nsIMsgIncomingServer server);
+  nsIMsgAccount FindAccountForServer(in nsIMsgIncomingServer server);
 
   /* given a server, return all identities in accounts that have this server
    * returns an array of nsIMsgIdentity
@@ -214,20 +213,17 @@ interface nsIMsgAccountManager : nsISupports {
   // force account info out to prefs file
   void saveAccountInfo();
 
-  string getChromePackageName(in string aExtensionName);
+  ACString getChromePackageName(in ACString aExtensionName);
 };
-
 
 %{C++
 #define MAILNEWS_ACCOUNTMANAGER_EXTENSIONS "mailnews-accountmanager-extensions"
 %}
 
-
-[scriptable, uuid(9ce9fc76-1dd1-11b2-8da2-bf6b98b4c537)]
+[scriptable, uuid(70032DE0-CD59-41ba-839D-FC1B65367EE7)]
 interface nsIMsgAccountManagerExtension : nsISupports
 {
-    readonly attribute string name;   // examples:  mdn
-    boolean showPanel(in nsIMsgIncomingServer server);
-    readonly attribute string chromePackageName;  // example:  messenger, chrome://messenger/content/am-mdn.xul and chrome://messenger/locale/am-mdn.properties
+  readonly attribute ACString name;   // examples:  mdn
+  boolean showPanel(in nsIMsgIncomingServer server);
+  readonly attribute ACString chromePackageName;  // example:  messenger, chrome://messenger/content/am-mdn.xul and chrome://messenger/locale/am-mdn.properties
 };
-

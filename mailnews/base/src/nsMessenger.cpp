@@ -1226,12 +1226,8 @@ nsMessenger::SaveAs(const char *aURI, PRBool aAsFile, nsIMsgIdentity *aIdentity,
     if (NS_FAILED(rv)) 
       goto done;
 
-    PRBool needDummyHeader =
-      PL_strcasestr(saveListener->m_templateUri.get(), "mailbox://") 
-      != nsnull;
-    PRBool canonicalLineEnding =
-      PL_strcasestr(saveListener->m_templateUri.get(), "imap://")
-      != nsnull;
+    PRBool needDummyHeader = StringBeginsWith(saveListener->m_templateUri, NS_LITERAL_CSTRING("mailbox://"));
+    PRBool canonicalLineEnding = StringBeginsWith(saveListener->m_templateUri, NS_LITERAL_CSTRING("imap://"));
 
     rv = saveListener->QueryInterface(
       NS_GET_IID(nsIUrlListener),

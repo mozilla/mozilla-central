@@ -349,7 +349,7 @@ NS_IMETHODIMP nsPop3Service::NewURI(const nsACString &aSpec,
         if (accountManager)
         {
           nsCOMPtr <nsIMsgAccount> account;
-          accountManager->GetAccount(folderScanState.m_accountKey.get(), getter_AddRefs(account));
+          accountManager->GetAccount(folderScanState.m_accountKey, getter_AddRefs(account));
           if (account)
             account->GetIncomingServer(getter_AddRefs(server));
         }

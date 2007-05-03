@@ -193,7 +193,7 @@ nsSmtpServer::GetDisplayname(char * *aDisplayname)
     rv = mPrefBranch->GetIntPref("port", &port);
     if (NS_FAILED(rv))
         port = 0;
-    
+
     if (port) {
         hostname.Append(':');
         hostname.AppendInt(port);
@@ -303,7 +303,7 @@ nsSmtpServer::GetPassword(char * *aPassword)
     if (m_password.IsEmpty() && !m_logonFailed)
     {
       // try to avoid prompting the user for another password. If the user has set
-      // the appropriate pref, we'll use the password from an incoming server, if 
+      // the appropriate pref, we'll use the password from an incoming server, if
       // the user has already logged onto that server.
 
       // if this is set, we'll only use this, and not the other prefs
@@ -312,24 +312,22 @@ nsSmtpServer::GetPassword(char * *aPassword)
       // if this is set, we'll accept an exact match of user name and server
       // user_pref("mail.smtp.useMatchingHostNameServer", true);
 
-      // if this is set, and we don't find an exact match of user and host name, 
+      // if this is set, and we don't find an exact match of user and host name,
       // we'll accept a match of username and domain, where domain
       // is everything after the first '.'
       // user_pref("mail.smtp.useMatchingDomainServer", true);
 
-      nsXPIDLCString accountKey;
+      nsCString accountKey;
       PRBool useMatchingHostNameServer = PR_FALSE;
       PRBool useMatchingDomainServer = PR_FALSE;
       mPrefBranch->GetCharPref("incomingAccount", getter_Copies(accountKey));
 
       nsCOMPtr<nsIMsgAccountManager> accountManager = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID);
       nsCOMPtr<nsIMsgIncomingServer> incomingServerToUse;
-      if (accountManager) 
+      if (accountManager)
       {
-        if (!accountKey.IsEmpty()) 
-        {
-          accountManager->GetIncomingServer(accountKey.get(), getter_AddRefs(incomingServerToUse));
-        }
+        if (!accountKey.IsEmpty())
+          accountManager->GetIncomingServer(accountKey, getter_AddRefs(incomingServerToUse));
         else
         {
           nsresult rv;
@@ -339,15 +337,15 @@ nsSmtpServer::GetPassword(char * *aPassword)
           prefBranch->GetBoolPref("mail.smtp.useMatchingDomainServer", &useMatchingDomainServer);
           if (useMatchingHostNameServer || useMatchingDomainServer)
           {
-            nsXPIDLCString userName;
-            nsXPIDLCString hostName;
+            nsCString userName;
+            nsCString hostName;
             GetHostname(getter_Copies(hostName));
             GetUsername(getter_Copies(userName));
             if (useMatchingHostNameServer)
               // pass in empty type and port=0, to match imap and pop3.
-              accountManager->FindRealServer(userName, hostName, "", 0, getter_AddRefs(incomingServerToUse));
+              accountManager->FindRealServer(userName, hostName, EmptyCString(), 0, getter_AddRefs(incomingServerToUse));
             PRInt32 dotPos = -1;
-            if (!incomingServerToUse && useMatchingDomainServer 
+            if (!incomingServerToUse && useMatchingDomainServer
               && (dotPos = hostName.FindChar('.')) != kNotFound)
             {
               hostName.Cut(0, dotPos);
@@ -358,7 +356,7 @@ nsSmtpServer::GetPassword(char * *aPassword)
                 PRUint32 count = 0;
                 allServers->Count(&count);
                 PRUint32 i;
-                for (i = 0; i < count; i++) 
+                for (i = 0; i < count; i++)
                 {
                   nsCOMPtr<nsIMsgIncomingServer> server = do_QueryElementAt(allServers, i);
                   if (server)
@@ -404,9 +402,9 @@ nsSmtpServer::SetPassword(const char * aPassword)
 
 NS_IMETHODIMP
 nsSmtpServer::GetPasswordWithUI(const PRUnichar * aPromptMessage, const
-                                PRUnichar *aPromptTitle, 
+                                PRUnichar *aPromptTitle,
                                 nsIAuthPrompt* aDialog,
-                                char **aPassword) 
+                                char **aPassword)
 {
     nsresult rv = NS_OK;
 
@@ -431,7 +429,7 @@ nsSmtpServer::GetPasswordWithUI(const PRUnichar * aPromptMessage, const
             (void) prefBranch->GetBoolPref( "mail.password_protect_local_cache", &passwordProtectLocalCache);
 
             PRUint32 savePasswordType = (passwordProtectLocalCache) ? nsIAuthPrompt::SAVE_PASSWORD_FOR_SESSION : nsIAuthPrompt::SAVE_PASSWORD_PERMANENTLY;
-            rv = aDialog->PromptPassword(aPromptTitle, aPromptMessage, 
+            rv = aDialog->PromptPassword(aPromptTitle, aPromptMessage,
                     NS_ConvertASCIItoUTF16(serverUri).get(), savePasswordType,
                     getter_Copies(uniPassword), &okayValue);
             if (NS_FAILED(rv))
@@ -444,7 +442,7 @@ nsSmtpServer::GetPasswordWithUI(const PRUnichar * aPromptMessage, const
             }
 
             // we got a password back...so remember it
-            nsCString aCStr; aCStr.AssignWithConversion(uniPassword); 
+            nsCString aCStr; aCStr.AssignWithConversion(uniPassword);
 
             rv = SetPassword(aCStr.get());
             if (NS_FAILED(rv))
@@ -458,10 +456,10 @@ nsSmtpServer::GetPasswordWithUI(const PRUnichar * aPromptMessage, const
 
 NS_IMETHODIMP
 nsSmtpServer::GetUsernamePasswordWithUI(const PRUnichar * aPromptMessage, const
-                                PRUnichar *aPromptTitle, 
+                                PRUnichar *aPromptTitle,
                                 nsIAuthPrompt* aDialog,
                                 char **aUsername,
-                                char **aPassword) 
+                                char **aPassword)
 {
     nsresult rv = NS_OK;
 
@@ -480,12 +478,12 @@ nsSmtpServer::GetUsernamePasswordWithUI(const PRUnichar * aPromptMessage, const
             rv = GetServerURI(getter_Copies(serverUri));
             if (NS_FAILED(rv))
                 return rv;
-            rv = aDialog->PromptUsernameAndPassword(aPromptTitle, aPromptMessage, 
+            rv = aDialog->PromptUsernameAndPassword(aPromptTitle, aPromptMessage,
                                          NS_ConvertASCIItoUTF16(serverUri).get(), nsIAuthPrompt::SAVE_PASSWORD_PERMANENTLY,
                                          getter_Copies(uniUsername), getter_Copies(uniPassword), &okayValue);
             if (NS_FAILED(rv))
                 return rv;
-				
+
             if (!okayValue) // if the user pressed cancel, just return NULL;
             {
                 *aUsername = nsnull;
@@ -494,14 +492,14 @@ nsSmtpServer::GetUsernamePasswordWithUI(const PRUnichar * aPromptMessage, const
             }
 
             // we got a userid and password back...so remember it
-            nsCString aCStr; 
+            nsCString aCStr;
 
-            aCStr.AssignWithConversion(uniUsername); 
+            aCStr.AssignWithConversion(uniUsername);
             rv = SetUsername(aCStr.get());
             if (NS_FAILED(rv))
                 return rv;
 
-            aCStr.AssignWithConversion(uniPassword); 
+            aCStr.AssignWithConversion(uniPassword);
             rv = SetPassword(aCStr.get());
             if (NS_FAILED(rv))
                 return rv;
@@ -560,7 +558,7 @@ nsSmtpServer::GetServerURI(char **aResult)
         *((char **)getter_Copies(escapedUsername)) =
             nsEscape(username, url_XAlphas);
 //            nsEscape(username, url_Path);
-        // not all servers have a username 
+        // not all servers have a username
         uri.Append(escapedUsername);
         uri += '@';
     }
@@ -579,7 +577,7 @@ nsSmtpServer::GetServerURI(char **aResult)
     *aResult = ToNewCString(uri);
     return NS_OK;
 }
-    
+
 NS_IMETHODIMP
 nsSmtpServer::SetRedirectorType(const char *aRedirectorType)
 {
@@ -596,12 +594,12 @@ nsSmtpServer::GetRedirectorType(char **aResult)
     nsresult rv;
 
     rv = mPrefBranch->GetCharPref("redirector_type", aResult);
-    if (NS_FAILED(rv)) 
+    if (NS_FAILED(rv))
       *aResult = nsnull;
 
     // Check if we need to change 'aol' to 'netscape' per #4696
     if (*aResult)
-    { 
+    {
       if (!nsCRT::strcasecmp(*aResult, "aol"))
       {
         nsXPIDLCString hostName;
@@ -617,7 +615,7 @@ nsSmtpServer::GetRedirectorType(char **aResult)
     }
     else {
       // for people who have migrated from 4.x or outlook, or mistakenly
-      // created redirected accounts as regular imap accounts, 
+      // created redirected accounts as regular imap accounts,
       // they won't have redirector type set properly
       // this fixes the redirector type for them automatically
       nsXPIDLCString hostName;
@@ -632,7 +630,7 @@ nsSmtpServer::GetRedirectorType(char **aResult)
       NS_ENSURE_SUCCESS(rv,rv);
       nsXPIDLCString defaultRedirectorType;
       rv = prefBranch->GetCharPref(prefName.get(), getter_Copies(defaultRedirectorType));
-      if (NS_SUCCEEDED(rv) && !defaultRedirectorType.IsEmpty()) 
+      if (NS_SUCCEEDED(rv) && !defaultRedirectorType.IsEmpty())
       {
         // only set redirectory type in memory
         // if we call SetRedirectorType() that sets it in prefs

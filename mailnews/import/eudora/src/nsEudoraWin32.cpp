@@ -428,41 +428,41 @@ nsresult nsEudoraWin32::ScanDescmap( nsIFile *pFolder, nsISupportsArray *pArray,
 
 nsresult nsEudoraWin32::FoundMailbox( nsIFile *mailFile, const char *pName, nsISupportsArray *pArray, nsIImportService *pImport)
 {
-	nsString								displayName;
-	nsCOMPtr<nsIImportMailboxDescriptor>	desc;
-	nsISupports *							pInterface;
+  nsString displayName;
+  nsCOMPtr<nsIImportMailboxDescriptor> desc;
+  nsISupports * pInterface;
 
-	NS_CopyNativeToUnicode(nsDependentCString(pName), displayName);
+  NS_CopyNativeToUnicode(nsDependentCString(pName), displayName);
 
 #ifdef IMPORT_DEBUG
-	nsCAutoString path;
-	mailFile->GetNativePath(path);
-	if (!path.IsEmpty())
-		IMPORT_LOG2( "Found eudora mailbox, %s: %s\n", path.get(), pName);
-	else
-		IMPORT_LOG1( "Found eudora mailbox, %s\n", pName);
-	IMPORT_LOG1( "\tm_depth = %d\n", (int)m_depth);
+  nsCAutoString path;
+  mailFile->GetNativePath(path);
+  if (!path.IsEmpty())
+    IMPORT_LOG2( "Found eudora mailbox, %s: %s\n", path.get(), pName);
+  else
+    IMPORT_LOG1( "Found eudora mailbox, %s\n", pName);
+  IMPORT_LOG1( "\tm_depth = %d\n", (int)m_depth);
 #endif
 
-	nsresult rv = pImport->CreateNewMailboxDescriptor( getter_AddRefs( desc));
-	if (NS_SUCCEEDED( rv)) {
-		PRInt64		sz = 0;
-		mailFile->GetFileSize( &sz);	
-		desc->SetDisplayName( displayName.get());
-		desc->SetDepth( m_depth);
-		desc->SetSize( sz);
-		nsCOMPtr <nsILocalFile> pFile = nsnull;
-		desc->GetFile(getter_AddRefs(pFile));
-		if (pFile) {
-                        nsCOMPtr <nsILocalFile> localMailFile = do_QueryInterface(mailFile);
-			pFile->InitWithFile( localMailFile);
-		}
-		rv = desc->QueryInterface( kISupportsIID, (void **) &pInterface);
-		pArray->AppendElement( pInterface);
-		pInterface->Release();
-	}
+  nsresult rv = pImport->CreateNewMailboxDescriptor( getter_AddRefs( desc));
+  if (NS_SUCCEEDED( rv)) {
+    PRInt64 sz = 0;
+    mailFile->GetFileSize( &sz);
+    desc->SetDisplayName( displayName.get());
+    desc->SetDepth( m_depth);
+    desc->SetSize( sz);
+    nsCOMPtr <nsILocalFile> pFile = nsnull;
+    desc->GetFile(getter_AddRefs(pFile));
+    if (pFile) {
+      nsCOMPtr <nsILocalFile> localMailFile = do_QueryInterface(mailFile);
+      pFile->InitWithFile( localMailFile);
+    }
+    rv = desc->QueryInterface( kISupportsIID, (void **) &pInterface);
+    pArray->AppendElement( pInterface);
+    pInterface->Release();
+  }
 
-	return( NS_OK);
+  return( NS_OK);
 }
 
 
@@ -713,124 +713,123 @@ void nsEudoraWin32::GetAccountName( const char *pSection, nsString& str)
 
 PRBool nsEudoraWin32::BuildPOPAccount( nsIMsgAccountManager *accMgr, const char *pSection, const char *pIni, nsIMsgAccount **ppAccount)
 {
-	if (ppAccount)
-		*ppAccount = nsnull;
+  if (ppAccount)
+    *ppAccount = nsnull;
 
-	char		valBuff[kIniValueSize];
-	nsCString	serverName;
-	nsCString	userName;
+  char valBuff[kIniValueSize];
+  nsCString serverName;
+  nsCString userName;
 
-	GetServerAndUserName( pSection, pIni, serverName, userName, valBuff);
+  GetServerAndUserName( pSection, pIni, serverName, userName, valBuff);
 
-	if (serverName.IsEmpty() || userName.IsEmpty())
-		return( PR_FALSE);
+  if (serverName.IsEmpty() || userName.IsEmpty())
+    return( PR_FALSE);
 
-	PRBool	result = PR_FALSE;
+  PRBool result = PR_FALSE;
 
-	// I now have a user name/server name pair, find out if it already exists?
-	nsCOMPtr<nsIMsgIncomingServer>	in;
-	nsresult rv = accMgr->FindServer( userName.get(), serverName.get(), "pop3", getter_AddRefs( in));
-	if (NS_FAILED( rv) || (in == nsnull)) {
-		// Create the incoming server and an account for it?
-		rv = accMgr->CreateIncomingServer( userName.get(), serverName.get(), "pop3", getter_AddRefs( in));
-		if (NS_SUCCEEDED( rv) && in) {
-			rv = in->SetType( "pop3");
-			// rv = in->SetHostName( serverName);
-			// rv = in->SetUsername( userName);
+  // I now have a user name/server name pair, find out if it already exists?
+  nsCOMPtr<nsIMsgIncomingServer> in;
+  nsresult rv = accMgr->FindServer( userName, serverName, NS_LITERAL_CSTRING("pop3"), getter_AddRefs(in));
+  if (NS_FAILED(rv) || !in) {
+    // Create the incoming server and an account for it?
+    rv = accMgr->CreateIncomingServer( userName, serverName, NS_LITERAL_CSTRING("pop3"), getter_AddRefs(in));
+    if (NS_SUCCEEDED( rv) && in) {
+      rv = in->SetType( "pop3");
+      // rv = in->SetHostName( serverName);
+      // rv = in->SetUsername( userName);
 
-			IMPORT_LOG2( "Created POP3 server named: %s, userName: %s\n", serverName.get(), userName.get());
+      IMPORT_LOG2( "Created POP3 server named: %s, userName: %s\n", serverName.get(), userName.get());
 
-			nsString	prettyName;
-			GetAccountName( pSection, prettyName);
+      nsString prettyName;
+      GetAccountName( pSection, prettyName);
 
-			PRUnichar *pretty = ToNewUnicode(prettyName);
-			IMPORT_LOG1( "\tSet pretty name to: %S\n", pretty);
-			rv = in->SetPrettyName( pretty);
-			nsCRT::free( pretty);
+      PRUnichar *pretty = ToNewUnicode(prettyName);
+      IMPORT_LOG1( "\tSet pretty name to: %S\n", pretty);
+      rv = in->SetPrettyName( pretty);
+      nsCRT::free( pretty);
 
-			// We have a server, create an account.
-			nsCOMPtr<nsIMsgAccount>	account;
-			rv = accMgr->CreateAccount( getter_AddRefs( account));
-			if (NS_SUCCEEDED( rv) && account) {
-				rv = account->SetIncomingServer( in);
+      // We have a server, create an account.
+      nsCOMPtr<nsIMsgAccount>	account;
+      rv = accMgr->CreateAccount( getter_AddRefs( account));
+      if (NS_SUCCEEDED( rv) && account) {
+        rv = account->SetIncomingServer( in);
 
-				IMPORT_LOG0( "Created a new account and set the incoming server to the POP3 server.\n");
+        IMPORT_LOG0( "Created a new account and set the incoming server to the POP3 server.\n");
 
         nsCOMPtr<nsIPop3IncomingServer> pop3Server = do_QueryInterface(in, &rv);
         NS_ENSURE_SUCCESS(rv,rv);
         UINT valInt = ::GetPrivateProfileInt(pSection, "LeaveMailOnServer", 0, pIni);
         pop3Server->SetLeaveMessagesOnServer(valInt ? PR_TRUE : PR_FALSE);
 
-				// Fiddle with the identities
-				SetIdentities(accMgr, account, pSection, pIni, userName.get(), serverName.get(), valBuff);
-				result = PR_TRUE;
-				if (ppAccount)
-					account->QueryInterface( NS_GET_IID(nsIMsgAccount), (void **)ppAccount);
-			}
-		}
-	}
-	else
-		result = PR_TRUE;
+        // Fiddle with the identities
+        SetIdentities(accMgr, account, pSection, pIni, userName.get(), serverName.get(), valBuff);
+        result = PR_TRUE;
+        if (ppAccount)
+          account->QueryInterface( NS_GET_IID(nsIMsgAccount), (void **)ppAccount);
+      }
+    }
+  }
+  else
+    result = PR_TRUE;
 
-	return( result);
+  return( result);
 }
-
 
 PRBool nsEudoraWin32::BuildIMAPAccount( nsIMsgAccountManager *accMgr, const char *pSection, const char *pIni, nsIMsgAccount **ppAccount)
 {
-	char		valBuff[kIniValueSize];
-	nsCString	serverName;
-	nsCString	userName;
+  char valBuff[kIniValueSize];
+  nsCString serverName;
+  nsCString userName;
 
-	GetServerAndUserName( pSection, pIni, serverName, userName, valBuff);
+  GetServerAndUserName( pSection, pIni, serverName, userName, valBuff);
 
-	if (serverName.IsEmpty() || userName.IsEmpty())
-		return( PR_FALSE);
+  if (serverName.IsEmpty() || userName.IsEmpty())
+    return( PR_FALSE);
 
-	PRBool	result = PR_FALSE;
+  PRBool result = PR_FALSE;
 
-	nsCOMPtr<nsIMsgIncomingServer>	in;
-	nsresult rv = accMgr->FindServer( userName.get(), serverName.get(), "imap", getter_AddRefs( in));
-	if (NS_FAILED( rv) || (in == nsnull)) {
-		// Create the incoming server and an account for it?
-		rv = accMgr->CreateIncomingServer( userName.get(), serverName.get(), "imap", getter_AddRefs( in));
-		if (NS_SUCCEEDED( rv) && in) {
-			rv = in->SetType( "imap");
-			// rv = in->SetHostName( serverName);
-			// rv = in->SetUsername( userName);
+  nsCOMPtr<nsIMsgIncomingServer> in;
+  nsresult rv = accMgr->FindServer( userName, serverName, NS_LITERAL_CSTRING("imap"), getter_AddRefs(in));
+  if (NS_FAILED( rv) || (in == nsnull)) {
+    // Create the incoming server and an account for it?
+    rv = accMgr->CreateIncomingServer( userName, serverName, NS_LITERAL_CSTRING("imap"), getter_AddRefs(in));
+    if (NS_SUCCEEDED( rv) && in) {
+      rv = in->SetType( "imap");
+      // rv = in->SetHostName( serverName);
+      // rv = in->SetUsername( userName);
 
-			IMPORT_LOG2( "Created IMAP server named: %s, userName: %s\n", serverName.get(), userName.get());
+      IMPORT_LOG2( "Created IMAP server named: %s, userName: %s\n", serverName.get(), userName.get());
 
-			nsString	prettyName;
-			GetAccountName( pSection, prettyName);
+      nsString prettyName;
+      GetAccountName( pSection, prettyName);
 
-			PRUnichar *pretty = ToNewUnicode(prettyName);
+      PRUnichar *pretty = ToNewUnicode(prettyName);
 
-			IMPORT_LOG1( "\tSet pretty name to: %S\n", pretty);
+      IMPORT_LOG1( "\tSet pretty name to: %S\n", pretty);
 
-			rv = in->SetPrettyName( pretty);
-			nsCRT::free( pretty);
+      rv = in->SetPrettyName( pretty);
+      nsCRT::free( pretty);
 
-			// We have a server, create an account.
-			nsCOMPtr<nsIMsgAccount>	account;
-			rv = accMgr->CreateAccount( getter_AddRefs( account));
-			if (NS_SUCCEEDED( rv) && account) {
-				rv = account->SetIncomingServer( in);
+      // We have a server, create an account.
+      nsCOMPtr<nsIMsgAccount> account;
+      rv = accMgr->CreateAccount( getter_AddRefs( account));
+      if (NS_SUCCEEDED( rv) && account) {
+        rv = account->SetIncomingServer(in);
 
-				IMPORT_LOG0( "Created an account and set the IMAP server as the incoming server\n");
+        IMPORT_LOG0( "Created an account and set the IMAP server as the incoming server\n");
 
-				// Fiddle with the identities
-				SetIdentities(accMgr, account, pSection, pIni, userName.get(), serverName.get(), valBuff);
-				result = PR_TRUE;
-				if (ppAccount)
-					account->QueryInterface( NS_GET_IID(nsIMsgAccount), (void **)ppAccount);
-			}
-		}
-	}
-	else
-		result = PR_TRUE;
+        // Fiddle with the identities
+        SetIdentities(accMgr, account, pSection, pIni, userName.get(), serverName.get(), valBuff);
+        result = PR_TRUE;
+        if (ppAccount)
+          account->QueryInterface( NS_GET_IID(nsIMsgAccount), (void **)ppAccount);
+      }
+    }
+  }
+  else
+    result = PR_TRUE;
 
-	return( result);
+  return( result);
 }
 
 void nsEudoraWin32::SetIdentities(nsIMsgAccountManager *accMgr, nsIMsgAccount *acc, const char *pSection, const char *pIniFile, const char *userName, const char *serverName, char *pBuff)

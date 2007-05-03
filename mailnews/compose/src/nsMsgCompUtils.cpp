@@ -326,7 +326,7 @@ mime_generate_headers (nsMsgCompFields *fields,
   PRBool hasDisclosedRecipient = PR_FALSE;
 
   nsCAutoString headerBuf;    // accumulate header strings to get length
-  headerBuf.Truncate(0);
+  headerBuf.Truncate();
 
   NS_ASSERTION (fields, "null fields");
   if (!fields)
@@ -1960,7 +1960,7 @@ void
 GetFolderURIFromUserPrefs(nsMsgDeliverMode aMode, nsIMsgIdentity* identity, nsCString& uri)
 {
   nsresult rv;
-  uri.Truncate(0);
+  uri.Truncate();
 
   if (aMode == nsIMsgSend::nsMsgQueueForLater)       // QueueForLater (Outbox)
   {
@@ -1973,7 +1973,7 @@ GetFolderURIFromUserPrefs(nsMsgDeliverMode aMode, nsIMsgIdentity* identity, nsCS
     else
     {
       // check if uri is unescaped, and if so, escape it and reset the pef.
-      if (PL_strchr(uri.get(), ' ') != nsnull)
+      if (uri.FindChar(' ') != kNotFound)
       {
         uri.ReplaceSubstring(" ", "%20");
         prefs->SetCharPref("mail.default_sendlater_uri", uri.get());
