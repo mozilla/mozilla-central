@@ -1403,10 +1403,10 @@ PK11_ExportEncryptedPrivKeyInfo(
 	PK11SymKey *newkey = pk11_CopyToSlot(pk->pkcs11Slot,
 						key->type, CKA_WRAP, key);
 	if (newkey == NULL) {
+            /* couldn't import the wrapping key, try exporting the
+             * private key */
 	    tmpPK = pk11_loadPrivKey(key->slot, pk, NULL, PR_FALSE, PR_TRUE);
 	    if (tmpPK == NULL) {
-		/* couldn't import the wrapping key, couldn't export the
-		 * private key, we are done */
 		rv = SECFailure;
 		goto loser;
 	    }
