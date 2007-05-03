@@ -36,7 +36,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: sslsnce.c,v 1.39 2006-12-06 01:36:08 wtchang%redhat.com Exp $ */
+/* $Id: sslsnce.c,v 1.40 2007-05-03 21:16:35 glen.beasley%sun.com Exp $ */
 
 /* Note: ssl_FreeSID() in sslnonce.c gets used for both client and server 
  * cache sids!
@@ -152,11 +152,10 @@ struct sidCacheEntryStr {
 /*  4 */    SSL3KEAType exchKeyType;
 /*  4 */    PRInt32     certIndex;
 /*116 */} ssl3;
-#if defined(LINUX)                      /* XXX Why only on Linux ? */
-	struct {
-	    PRUint8     filler[144];	/* XXX why this number ? */
+/* force sizeof(sidCacheEntry) to be a multiple of cache line size */
+        struct {
+/*120 */    PRUint8     filler[120]; /* 72+120==196, a multiple of 16 */
 	} forceSize;
-#endif
     } u;
 };
 typedef struct sidCacheEntryStr sidCacheEntry;
@@ -1153,11 +1152,7 @@ SSL_ConfigServerSessionIDCacheInstance(	cacheDesc *cache,
 #if defined(DEBUG_nelsonb)
     printf("sizeof(sidCacheEntry) == %u\n", sizeof(sidCacheEntry));
 #endif
-#if !(defined(SOLARIS) && defined(i386))
-#ifndef XP_OS2
-    PORT_Assert(sizeof(sidCacheEntry) % 8 == 0);
-#endif
-#endif
+    PORT_Assert(sizeof(sidCacheEntry) == 192);
     PORT_Assert(sizeof(certCacheEntry) == 4096);
 
     myPid = SSL_GETPID();
