@@ -3258,9 +3258,10 @@ bestCertName(CERTCertificate *cert) {
 }
 
 void
-SECU_printCertProblems(FILE *outfile, CERTCertDBHandle *handle, 
+SECU_printCertProblemsOnDate(FILE *outfile, CERTCertDBHandle *handle, 
 	CERTCertificate *cert, PRBool checksig, 
-	SECCertificateUsage certUsage, void *pinArg, PRBool verbose)
+	SECCertificateUsage certUsage, void *pinArg, PRBool verbose,
+	PRTime datetime)
 {
     CERTVerifyLog      log;
     CERTVerifyLogNode *node   = NULL;
@@ -3272,7 +3273,7 @@ SECU_printCertProblems(FILE *outfile, CERTCertDBHandle *handle,
     log.arena = PORT_NewArena(512);
     log.head = log.tail = NULL;
     log.count = 0;
-    CERT_VerifyCertificate(handle, cert, checksig, certUsage, PR_Now(), pinArg, &log, NULL);
+    CERT_VerifyCertificate(handle, cert, checksig, certUsage, datetime, pinArg, &log, NULL);
 
     if (log.count > 0) {
 	fprintf(outfile,"PROBLEM WITH THE CERT CHAIN:\n");
@@ -3356,6 +3357,15 @@ SECU_printCertProblems(FILE *outfile, CERTCertDBHandle *handle,
 	}    
     }
     PORT_SetError(err); /* restore original error code */
+}
+
+void
+SECU_printCertProblems(FILE *outfile, CERTCertDBHandle *handle, 
+	CERTCertificate *cert, PRBool checksig, 
+	SECCertificateUsage certUsage, void *pinArg, PRBool verbose)
+{
+    SECU_printCertProblemsOnDate(outfile, handle, cert, checksig, 
+	                         certUsage, pinArg, verbose, PR_Now());
 }
 
 SECOidTag 

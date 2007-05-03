@@ -168,11 +168,17 @@ extern void SECU_PrintSystemError(char *progName, char *msg, ...);
 /* Return informative error string */
 extern const char * SECU_Strerror(PRErrorCode errNum);
 
-/* print information about cert verification failure */
+/* print information about cert verification failure at time == now */
 extern void
 SECU_printCertProblems(FILE *outfile, CERTCertDBHandle *handle, 
 	CERTCertificate *cert, PRBool checksig, 
 	SECCertificateUsage certUsage, void *pinArg, PRBool verbose);
+
+/* print information about cert verification failure at specified time */
+extern void
+SECU_printCertProblemsOnDate(FILE *outfile, CERTCertDBHandle *handle, 
+	CERTCertificate *cert, PRBool checksig, SECCertificateUsage certUsage, 
+	void *pinArg, PRBool verbose, PRTime datetime);
 
 /* Read the contents of a file into a SECItem */
 extern SECStatus SECU_FileToItem(SECItem *dst, PRFileDesc *src);
