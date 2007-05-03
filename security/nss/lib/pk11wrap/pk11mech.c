@@ -1480,7 +1480,6 @@ PK11_ParamToAlgid(SECOidTag algTag, SECItem *param,
     SECStatus rv = SECFailure;
     unsigned long rc2version;
 
-    rv = SECSuccess;
     switch (type) {
     case CKM_RC4:
     case CKM_CAMELLIA_ECB:
@@ -1599,6 +1598,8 @@ PK11_ParamToAlgid(SECOidTag algTag, SECItem *param,
     case CKM_JUNIPER_SHUFFLE:
 	newParams = SEC_ASN1EncodeItem(NULL,NULL,param,
 						SEC_OctetStringTemplate);
+	if (newParams == NULL)
+	    break;
 	rv = SECSuccess;
 	break;
     }
