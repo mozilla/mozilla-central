@@ -938,10 +938,10 @@ calDateTime::HasInstance(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-/* PRUint32 mark (in nsIXPConnectWrappedNative wrapper, in JSContextPtr cx, in JSObjectPtr obj, in voidPtr arg); */
+/* void trace (in nsIXPConnectWrappedNative wrapper, in JSTracePtr trc, in JSObjectPtr obj); */
 NS_IMETHODIMP
-calDateTime::Mark(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
-                  JSObject * obj, void * arg, PRUint32 *_retval)
+calDateTime::Trace(nsIXPConnectWrappedNative *wrapper, JSTracer *trc,
+                   JSObject *obj)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
