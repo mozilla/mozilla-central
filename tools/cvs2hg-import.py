@@ -1,8 +1,7 @@
 #!/usr/bin/python
 
 """A script which will import from Mozilla CVS into a Mercurial
-repository. It pulls NSPR and NSS from the appropriate release tags
-currently in use on the Mozilla trunk."""
+repository. It omits certain parts of tree, including NSPR, NSS, and Tamarin."""
 
 from sys import exit
 from os import environ, makedirs, listdir, rename, unlink
@@ -128,6 +127,10 @@ mozilla_files = (
     "xulrunner"
     )
 
+MOZILLA_EXCEPTIONS = (
+    "js/tamarin",
+    )
+
 nspr_files = ("nsprpub",)
 NSPR_CVS_TRACKING_TAG = "NSPRPUB_PRE_4_2_CLIENT_BRANCH"
 
@@ -191,16 +194,18 @@ def ImportMozillaCVS(directory, cvsroot=None, hg=None, tempdir=None, mode=None, 
 
     importModules = {};
     importModules['mozilla'] = { 'files' : mozilla_files,
+                                 'exceptions' : MOZILLA_EXCEPTIONS,
                                  'tag' : mozilla_tag,
                                  'date' : mozilla_date };
 
-    importModules['nss'] = { 'files' : nss_files,
-                             'tag' : nss_tag,
-                             'date' : nss_date };
-
-    importModules['nspr'] = { 'files' : nspr_files,
-                              'tag' : nspr_tag,
-                              'date' : nspr_date };
+#   Per final discussions, we're not importing NSS/NSPR into Hg.
+#   importModules['nss'] = { 'files' : nss_files,
+#                            'tag' : nss_tag,
+#                            'date' : nss_date };
+#
+#   importModules['nspr'] = { 'files' : nspr_files,
+#                             'tag' : nspr_tag,
+#                             'date' : nspr_date };
 
     try:
         try:
@@ -209,6 +214,11 @@ def ImportMozillaCVS(directory, cvsroot=None, hg=None, tempdir=None, mode=None, 
 
                 CheckoutDirs(tempd, cvsroot, cvsModule['files'],
                  cvsModule['date'], cvsModule['tag'])
+
+            # Remove the exceptions from the CVS tree; we shouldn't be
+            # importing these things.
+            for ex in cvsModule['exceptions']:
+                rmfileortree("%s/%s/%s" % (tempd, "mozilla", ex))
 
             # Remove everything in the hg repository except for the .hg
             # directory
@@ -238,8 +248,9 @@ def ImportMozillaCVS(directory, cvsroot=None, hg=None, tempdir=None, mode=None, 
 
                 ## In the init case, munge the date (which is None, because
                 ## we pull by tag for the initial import), so the checkin
-                ## message has something useful.
+                ## message has something useful; also munge the message.
                 if mode == 'init':
+                    commitMesg = "Free the (distributed) Lizard! " + commitMesg
                     cvsDate = CVS_REPO_IMPORT_DATE
                 else:
                     cvsDate = cvsModule['date']
