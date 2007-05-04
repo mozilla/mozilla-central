@@ -1163,7 +1163,7 @@ nsMsgComposeAndSend::GatherMimeAttachments()
       NotifyListenerOnStopSending(nsnull, NS_ERROR_OUT_OF_MEMORY, nsnull, nsnull);
     else
     {
-      NotifyListenerOnStopSending(nsnull, NS_OK, nsnull, mTempFile);
+      NotifyListenerOnStopSending(nsnull, NS_OK, nsnull, mReturnFile);
     }
   }
   else 
