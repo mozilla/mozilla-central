@@ -834,7 +834,9 @@ sub init {
          ",anyexact" => sub {
              my @list;
              foreach my $w (split(/,/, $v)) {
-                 push(@list, $dbh->quote($w));
+                 $q = $dbh->quote($w);
+                 trick_taint($q);
+                 push(@list, $q);
              }
              if (@list) {
                  $term = "$ff IN (" . join (',', @list) . ")";
@@ -1166,6 +1168,8 @@ sub init {
                 # a valid field name, which means that it's ok.
                 trick_taint($f);
                 $q = $dbh->quote($v);
+                # Now that the value has been quoted, we can detaint it.
+                trick_taint($q);
                 my $rhs = $v;
                 $rhs =~ tr/,//;
                 my $func;
@@ -1346,11 +1350,10 @@ sub GetByWordListSubstr {
     my $dbh = Bugzilla->dbh;
 
     foreach my $word (split(/[\s,]+/, $strs)) {
+        next if $word eq "";
+        $word = $dbh->quote($word);
         trick_taint($word);
-        if ($word ne "") {
-            push(@list, $dbh->sql_position(lc($dbh->quote($word)),
-                                           "LOWER($field)") . " > 0");
-        }
+        push(@list, $dbh->sql_position(lc($word), "LOWER($field)") . " > 0");
     }
 
     return \@list;
