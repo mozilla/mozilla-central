@@ -189,18 +189,19 @@ function saveIdentitySettings(identity)
     identity.attachVCard = document.getElementById('identity.attachVCard').checked;
     identity.escapedVCard = document.getElementById('identity.escapedVCard').value;
     identity.smtpServerKey = document.getElementById('identity.smtpServerKey').value;
-    
+
     var attachSignaturePath = document.getElementById('identity.signature').value;
+    identity.signature = null; // this is important so we don't accidentally inherit the default
+    
     if (attachSignaturePath)
     {
       // convert signature path back into a nsIFile
       var sfile = Components.classes["@mozilla.org/file/local;1"]
                   .createInstance(Components.interfaces.nsILocalFile);
       sfile.initWithPath(attachSignaturePath);
-      identity.signature = sfile;
+      if (sfile.exists())
+        identity.signature = sfile;
     }
-    else
-      identity.signature = null; // this is important so we don't accidentally inherit the default
   }
 }
 
@@ -271,7 +272,7 @@ function GetSigFolder()
       signatureFile = signatureFile.QueryInterface( Components.interfaces.nsILocalFile );
       sigFolder = signatureFile.parent;
 
-      if (!sigFolder.exists) 
+      if (!sigFolder.exists()) 
           sigFolder = null;
     }
   }
