@@ -24,6 +24,7 @@ use lib ".";
 
 use Bugzilla;
 use Bugzilla::Constants;
+use Bugzilla::Error;
 
 Bugzilla->login(LOGIN_REQUIRED);
 use vars qw($vars);
