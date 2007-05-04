@@ -81,7 +81,7 @@ private:
 	void			ProcessNote( const char *pLine, PRInt32 len, nsString& errors);
 	PRInt32			GetAliasName( const char *pLine, PRInt32 len, nsCString& name);
 	CAliasEntry *	ResolveAlias( nsCString& name);
-	void 			ResolveEntries( nsCString& name, nsVoidArray& list, nsVoidArray& result);
+	void 			ResolveEntries( nsCString& name, nsVoidArray& list, nsVoidArray& result, PRBool addResolvedEntries, PRBool wasResolved, PRInt32& numResolved);
 	void			BuildABCards( PRUint32 *pBytes, nsIAddrDatabase *pDb);
 	void			AddSingleCard( CAliasEntry *pEntry, nsVoidArray &emailList, nsIAddrDatabase *pDb);
   nsresult  AddSingleList( CAliasEntry *pEntry, nsVoidArray &emailList, nsIAddrDatabase *pDb);

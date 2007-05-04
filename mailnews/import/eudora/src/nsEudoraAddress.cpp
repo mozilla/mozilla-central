@@ -81,9 +81,10 @@ public:
 	PRBool Process( const char *pLine, PRInt32 len);
 	
 public:
-	nsCString	m_nickName;
-	nsCString	m_realName;
-	nsCString	m_email;
+    nsCString   m_fullEntry;
+    nsCString   m_nickName;
+    nsCString   m_realName;
+    nsCString   m_email;
 };
 
 class CAliasEntry {
@@ -458,6 +459,16 @@ PRBool CAliasData::Process( const char *pLine, PRInt32 len)
 	PRInt32		cnt = 0;
 	PRInt32		max = len;
 	PRBool		endCollect = PR_FALSE;
+
+    // Keep track of the full entry without any processing for potential alias
+    // nickname resolution. Previously alias resolution was done with m_email,
+    // but unfortunately that doesn't work for nicknames with spaces.
+    // For example for the nickname "Joe Smith", "Smith" was being interpreted
+    // as the potential email address and placed in m_email, but routines like
+    // ResolveAlias were failing because "Smith" is not the full nickname.
+    // Now we just stash the full entry for nickname resolution before processing
+    // the line as a potential entry in its own right.
+    m_fullEntry.Append(pLine, len);
 	
 	while (max) {
 		if (*pLine == '"') {
@@ -600,30 +611,37 @@ CAliasEntry *nsEudoraAddress::ResolveAlias( nsCString& name)
 	return( nsnull);
 }
 
-void nsEudoraAddress::ResolveEntries( nsCString& name, nsVoidArray& list, nsVoidArray& result)
+void nsEudoraAddress::ResolveEntries( nsCString& name, nsVoidArray& list,
+                                     nsVoidArray& result, PRBool addResolvedEntries, 
+                                     PRBool wasResolved, PRInt32& numResolved)
 {
-	/* a safe-guard against recursive entries */
-	if (result.Count() > m_alias.Count())
-		return;
-		
-	PRInt32			max = list.Count();
-	PRInt32			i;
-	CAliasData *	pData;
-	CAliasEntry *	pEntry;
-	for (i = 0; i < max; i++) {
-		pData = (CAliasData *)list.ElementAt( i);
-		// resolve the email to an existing alias!
-		if (!name.Equals( pData->m_email,
-                          nsCaseInsensitiveCStringComparator()) &&
-            ((pEntry = ResolveAlias( pData->m_email)) != nsnull)) {
-			// This new entry has all of the entries for this puppie.
-			// Resolve all of it's entries!
-			ResolveEntries( pEntry->m_name, pEntry->m_list, result);
-		}
-		else {
-			result.AppendElement( pData);
-		}
-	}
+    /* a safe-guard against recursive entries */
+    if (result.Count() > m_alias.Count())
+        return;
+    
+    PRInt32         max = list.Count();
+    PRInt32         i;
+    CAliasData *    pData;
+    CAliasEntry *   pEntry;
+    for (i = 0; i < max; i++) {
+        pData = (CAliasData *)list.ElementAt( i);
+        // resolve the email to an existing alias!
+        if ( !name.Equals(pData->m_email, nsCaseInsensitiveCStringComparator()) &&
+             ((pEntry = ResolveAlias( pData->m_fullEntry)) != nsnull) ) {
+            // This new entry has all of the entries for this puppie.
+            // Resolve all of it's entries!
+            numResolved++;  // Track the number of entries resolved
+
+            // We pass in PR_TRUE for the 5th parameter so that we know that we're
+            // calling ourselves recursively.
+            ResolveEntries( pEntry->m_name, pEntry->m_list, result, addResolvedEntries, PR_TRUE, numResolved);
+        }
+        else if (addResolvedEntries || !wasResolved) {
+            // This is either an ordinary entry (i.e. just contains the info) or we were told
+            // to add resolved alias entries.
+            result.AppendElement( pData);
+        }
+    }
 }
 
 PRInt32 nsEudoraAddress::FindAlias( nsCString& name)
@@ -632,7 +650,6 @@ PRInt32 nsEudoraAddress::FindAlias( nsCString& name)
 	PRInt32			max = m_alias.Count();
 	PRInt32			i;
 	
-	// First off, run through the list and build person cards - groups/lists have to be done later
 	for (i = 0; i < max; i++) {
 		pEntry = (CAliasEntry *) m_alias.ElementAt( i);
 		if (pEntry->m_name == name)
@@ -653,9 +670,21 @@ void nsEudoraAddress::BuildABCards( PRUint32 *pBytes, nsIAddrDatabase *pDb)
 	
 	// First off, run through the list and build person cards - groups/lists have to be done later
 	for (i = 0; i < max; i++) {
-		pEntry = (CAliasEntry *) m_alias.ElementAt( i);
-		ResolveEntries( pEntry->m_name, pEntry->m_list, emailList);		
-    if (emailList.Count() > 1)
+    PRInt32   numResolved = 0;
+    pEntry = (CAliasEntry *) m_alias.ElementAt( i);
+
+    // PR_FALSE for 4th parameter tells ResolveEntries not to add resolved entries (avoids
+    // duplicates as mailing lists are being resolved to other cards - the other cards that
+    // are found have already been added and don't need to be added again).
+    //
+    // PR_FALSE for 5th parameter tells ResolveEntries that we're calling it - it's not being
+    // called recursively by itself.
+    ResolveEntries( pEntry->m_name, pEntry->m_list, emailList, PR_FALSE, PR_FALSE, numResolved);
+
+    // Treat it as a group if there's more than one email address or if we
+    // needed to resolve one or more aliases. We treat single aliases to
+    // other aliases as a mailing list because there's no better equivalent.
+    if ( (emailList.Count() > 1) || (numResolved > 0) )
     {
       // Remember group members uniquely and add them to db later.
       RememberGroupMembers(membersArray, emailList);
@@ -682,8 +711,15 @@ void nsEudoraAddress::BuildABCards( PRUint32 *pBytes, nsIAddrDatabase *pDb)
   max = groupsArray.Count();
   for (i = 0; i < max; i++)
   {
+    PRInt32   numResolved = 0;
     pEntry = (CAliasEntry *) groupsArray.ElementAt(i);
-    ResolveEntries( pEntry->m_name, pEntry->m_list, emailList);
+
+    // PR_FALSE for 4th parameter tells ResolveEntries to add resolved entries so that we
+    // can create the mailing list with references to all entries correctly.
+    //
+    // PR_FALSE for 5th parameter tells ResolveEntries that we're calling it - it's not being
+    // called recursively by itself.
+    ResolveEntries( pEntry->m_name, pEntry->m_list, emailList, PR_TRUE, PR_FALSE, numResolved);
     AddSingleList(pEntry, emailList, pDb);
     emailList.Clear();
   }
