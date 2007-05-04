@@ -48,6 +48,9 @@
 #include "nsReadableUtils.h"
 #include "nsMsgI18N.h"
 #include "nsNativeCharsetUtils.h"
+#include "nsTextFormatter.h"
+#include "nsEudoraStringBundle.h"
+#include "nsIStringBundle.h"
 #include "nsNetUtil.h"
 #include "nsILineInputStream.h"
 #include "EudoraDebugLog.h"
@@ -716,9 +719,20 @@ void nsEudoraAddress::ExtractNoteField( nsCString& note, nsCString& value, const
 	}
 }
 
+void nsEudoraAddress::FormatExtraDataInNoteField(PRInt32 labelStringID, nsIStringBundle* bundle, nsCString& extraData, nsString& noteUTF16)
+{
+  nsAutoString    label;
+  nsEudoraStringBundle::GetStringByID(labelStringID, label, bundle);
+
+  noteUTF16.Append(label);
+  noteUTF16.AppendLiteral("\n");
+  noteUTF16.Append( NS_ConvertASCIItoUTF16(extraData) );
+  noteUTF16.AppendLiteral("\n\n");
+}
+
 void nsEudoraAddress::SanitizeValue( nsCString& val)
 {
-	val.ReplaceSubstring( "\x0D\x0A", ", ");
+	val.ReplaceSubstring( "\n", ", ");
 	val.ReplaceChar( 13, ',');
 	val.ReplaceChar( 10, ',');
 }
@@ -747,31 +761,39 @@ void nsEudoraAddress::SplitString( nsCString& val1, nsCString& val2)
 void nsEudoraAddress::AddSingleCard( CAliasEntry *pEntry, nsVoidArray &emailList, nsIAddrDatabase *pDb)
 {
   // We always have a nickname and everything else is optional.
-  // Map both home and work related fiedls to our address card. Eudora
+  // Map both home and work related fields to our address card. Eudora
   // fields that can't be mapped will be left in the 'note' field!
-	nsIMdbRow* newRow = nsnull;
-	pDb->GetNewRow( &newRow); 
+  nsIMdbRow* newRow = nsnull;
+  pDb->GetNewRow( &newRow); 
   if (!newRow)
     return;
 
-	nsCString	displayName, name, firstName, lastName;
-	nsCString	fax, phone, mobile, webLink;
-	nsCString	address, address2, city, state, zip, country;
-	nsCString	phoneWK, webLinkWK, title, company;
-  nsCString	addressWK, address2WK, cityWK, stateWK, zipWK, countryWK;
-	nsCString	note(pEntry->m_notes);
+  nsCString                   displayName, name, firstName, lastName;
+  nsCString                   fax, secondaryFax, phone, mobile, secondaryMobile, webLink;
+  nsCString                   address, address2, city, state, zip, country;
+  nsCString                   phoneWK, webLinkWK, title, company;
+  nsCString                   addressWK, address2WK, cityWK, stateWK, zipWK, countryWK;
+  nsCString                   primaryLocation, otherPhone, otherWeb;
+  nsCString                   additionalEmail, stillMoreEmail;
+  nsCString                   note(pEntry->m_notes);
+  nsString                    noteUTF16;
+  PRBool                      isSecondaryMobileWorkNumber = PR_TRUE;
+  PRBool                      isSecondaryFaxWorkNumber = PR_TRUE;
+  nsCOMPtr<nsIStringBundle>   bundle( dont_AddRef(nsEudoraStringBundle::GetStringBundleProxy()) );
 
-	if (!note.IsEmpty())
+  if (!note.IsEmpty())
   {
-		ExtractNoteField( note, fax, "fax");
-		ExtractNoteField( note, phone, "phone");
+    ExtractNoteField( note, fax, "fax");
+    ExtractNoteField( note, secondaryFax, "fax2");
+    ExtractNoteField( note, phone, "phone");
     ExtractNoteField( note, mobile, "mobile");
-		ExtractNoteField( note, address, "address");
+    ExtractNoteField( note, secondaryMobile, "mobile2");
+    ExtractNoteField( note, address, "address");
     ExtractNoteField( note, city, "city");
     ExtractNoteField( note, state, "state");
     ExtractNoteField( note, zip, "zip");
     ExtractNoteField( note, country, "country");
-		ExtractNoteField( note, name, "name");
+    ExtractNoteField( note, name, "name");
     ExtractNoteField( note, firstName, "first");
     ExtractNoteField( note, lastName, "last");
     ExtractNoteField( note, webLink, "web");
@@ -781,45 +803,104 @@ void nsEudoraAddress::AddSingleCard( CAliasEntry *pEntry, nsVoidArray &emailList
     ExtractNoteField( note, stateWK, "state2");
     ExtractNoteField( note, zipWK, "zip2");
     ExtractNoteField( note, countryWK, "country2");
-		ExtractNoteField( note, phoneWK, "phone2");
+    ExtractNoteField( note, phoneWK, "phone2");
     ExtractNoteField( note, title, "title");
     ExtractNoteField( note, company, "company");
     ExtractNoteField( note, webLinkWK, "web2");
-	}
+
+    ExtractNoteField( note, primaryLocation, "primary");
+    ExtractNoteField( note, additionalEmail, "otheremail");
+    ExtractNoteField( note, otherPhone, "otherphone");
+    ExtractNoteField( note, otherWeb, "otherweb");
+
+    // Is there any "extra" data that we may want to format nicely and place
+    // in the notes field?
+    if ( !additionalEmail.IsEmpty() || !otherPhone.IsEmpty() || !otherWeb.IsEmpty() )
+    {
+      nsCString     otherNotes(note);
+
+      if ( !additionalEmail.IsEmpty() )
+      {
+        // Reconstitute line breaks for additional email
+        additionalEmail.ReplaceSubstring( "\x03", "\n");
+
+        // Try to figure out if there are multiple email addresses in additionalEmail
+        PRInt32     idx = additionalEmail.FindCharInSet("\t\r\n,; ");
+
+        if (idx != -1)
+        {
+          // We found a character that indicates that there's more than one email address here.
+          // Separate out the addresses after the first one.
+          additionalEmail.Right(stillMoreEmail, additionalEmail.Length() - idx - 1);
+          stillMoreEmail.Trim(kWhitespace);
+
+          // Separate out the first address.
+          nsCString   tempStashEmail(additionalEmail);
+          tempStashEmail.Left(additionalEmail, idx);
+        }
+
+        // If there were more than one additional email addresses store all the extra
+        // ones in the notes field, labeled nicely.
+        if ( !stillMoreEmail.IsEmpty() )
+          FormatExtraDataInNoteField(EUDORAIMPORT_ADDRESS_LABEL_OTHEREMAIL, bundle, stillMoreEmail, noteUTF16);
+      }
+
+      if ( !otherPhone.IsEmpty() )
+      {
+        // Reconstitute line breaks for other phone numbers
+        otherPhone.ReplaceSubstring( "\x03", "\n");
+
+        // Store other phone numbers in the notes field, labeled nicely
+        FormatExtraDataInNoteField(EUDORAIMPORT_ADDRESS_LABEL_OTHERPHONE, bundle, otherPhone, noteUTF16);
+      }
+
+      if ( !otherWeb.IsEmpty() )
+      {
+        // Reconstitute line breaks for other web sites
+        otherWeb.ReplaceSubstring( "\x03", "\n");
+
+        // Store other web sites in the notes field, labeled nicely
+        FormatExtraDataInNoteField(EUDORAIMPORT_ADDRESS_LABEL_OTHERWEB, bundle, otherWeb, noteUTF16);
+      }
+
+      noteUTF16.Append( NS_ConvertASCIItoUTF16(note) );
+    }
+  }
 
   CAliasData *pData = emailList.Count() ? (CAliasData *)emailList.ElementAt(0) : nsnull;
 
   if (pData && !pData->m_realName.IsEmpty())
     displayName = pData->m_realName;
-	else if (!name.IsEmpty())
-		displayName = name;
-	else
-		displayName = pEntry->m_name;
-	
-	address.ReplaceSubstring( "\x03", "\x0D\x0A");
-	SplitString( address, address2);
-	note.ReplaceSubstring( "\x03", "\x0D\x0A");
-	fax.ReplaceSubstring( "\x03", " ");
-	phone.ReplaceSubstring( "\x03", " ");
-	name.ReplaceSubstring( "\x03", " ");
+  else if (!name.IsEmpty())
+    displayName = name;
+  else
+    displayName = pEntry->m_name;
+  
+  address.ReplaceSubstring( "\x03", "\n");
+  SplitString( address, address2);
+  note.ReplaceSubstring( "\x03", "\n");
+  fax.ReplaceSubstring( "\x03", " ");
+  secondaryFax.ReplaceSubstring( "\x03", " ");
+  phone.ReplaceSubstring( "\x03", " ");
+  name.ReplaceSubstring( "\x03", " ");
   city.ReplaceSubstring( "\x03", " ");
-	state.ReplaceSubstring( "\x03", " ");
+  state.ReplaceSubstring( "\x03", " ");
   zip.ReplaceSubstring( "\x03", " ");
   country.ReplaceSubstring( "\x03", " ");
 
-  addressWK.ReplaceSubstring( "\x03", "\x0D\x0A");
+  addressWK.ReplaceSubstring( "\x03", "\n");
   SplitString( addressWK, address2WK);
-	phoneWK.ReplaceSubstring( "\x03", " ");
+  phoneWK.ReplaceSubstring( "\x03", " ");
   cityWK.ReplaceSubstring( "\x03", " ");
-	stateWK.ReplaceSubstring( "\x03", " ");
+  stateWK.ReplaceSubstring( "\x03", " ");
   zipWK.ReplaceSubstring( "\x03", " ");
   countryWK.ReplaceSubstring( "\x03", " ");
   title.ReplaceSubstring( "\x03", " ");
   company.ReplaceSubstring( "\x03", " ");
-	
-	if (newRow)
+  
+  if (newRow)
   {
-		nsAutoString uniStr;
+    nsAutoString uniStr;
 
     // Home related fields.
     ADD_FIELD_TO_DB_ROW(pDb, AddDisplayName, newRow, displayName, uniStr);
@@ -829,7 +910,6 @@ void nsEudoraAddress::AddSingleCard( CAliasEntry *pEntry, nsVoidArray &emailList
     ADD_FIELD_TO_DB_ROW(pDb, AddFirstName, newRow, firstName, uniStr);
     ADD_FIELD_TO_DB_ROW(pDb, AddLastName, newRow, lastName, uniStr);
     ADD_FIELD_TO_DB_ROW(pDb, AddWebPage2, newRow, webLink, uniStr);
-    ADD_FIELD_TO_DB_ROW(pDb, AddFaxNumber, newRow, fax, uniStr);
     ADD_FIELD_TO_DB_ROW(pDb, AddHomePhone, newRow, phone, uniStr);
     ADD_FIELD_TO_DB_ROW(pDb, AddHomeAddress, newRow, address, uniStr);
     ADD_FIELD_TO_DB_ROW(pDb, AddHomeAddress2, newRow, address2, uniStr);
@@ -837,7 +917,6 @@ void nsEudoraAddress::AddSingleCard( CAliasEntry *pEntry, nsVoidArray &emailList
     ADD_FIELD_TO_DB_ROW(pDb, AddHomeZipCode, newRow, zip, uniStr);
     ADD_FIELD_TO_DB_ROW(pDb, AddHomeState, newRow, state, uniStr);
     ADD_FIELD_TO_DB_ROW(pDb, AddHomeCountry, newRow, country, uniStr);
-    ADD_FIELD_TO_DB_ROW(pDb, AddCellularNumber, newRow, mobile, uniStr);
 
     // Work related fields.
     ADD_FIELD_TO_DB_ROW(pDb, AddJobTitle, newRow, title, uniStr);
@@ -851,13 +930,80 @@ void nsEudoraAddress::AddSingleCard( CAliasEntry *pEntry, nsVoidArray &emailList
     ADD_FIELD_TO_DB_ROW(pDb, AddWorkState, newRow, stateWK, uniStr);
     ADD_FIELD_TO_DB_ROW(pDb, AddWorkCountry, newRow, countryWK, uniStr);
 
+    if ( (primaryLocation.IsEmpty() || primaryLocation.LowerCaseEqualsASCII("home")) &&
+         !mobile.IsEmpty() )
+    {
+      // Primary location field is either specified to be "home" or is not
+      // specified and there is a home mobile number, so use that as the mobile number.
+      ADD_FIELD_TO_DB_ROW(pDb, AddCellularNumber, newRow, mobile, uniStr);
+
+      isSecondaryMobileWorkNumber = PR_TRUE;
+    }
+    else
+    {
+      // Primary location field is either specified to be "work" or there is no
+      // home mobile number, so use work mobile number.
+      ADD_FIELD_TO_DB_ROW(pDb, AddCellularNumber, newRow, secondaryMobile, uniStr);
+
+      // Home mobile number (if any) is the secondary mobile number
+      secondaryMobile = mobile;
+      isSecondaryMobileWorkNumber = PR_FALSE;
+    }
+
+    if ( (primaryLocation.IsEmpty() || primaryLocation.LowerCaseEqualsASCII("home")) &&
+         !fax.IsEmpty() )
+    {
+      // Primary location field is either specified to be "home" or is not
+      // specified and there is a home fax number, so use that as the fax number.
+      ADD_FIELD_TO_DB_ROW(pDb, AddFaxNumber, newRow, fax, uniStr);
+
+      isSecondaryFaxWorkNumber = PR_TRUE;
+    }
+    else
+    {
+      // Primary location field is either specified to be "work" or there is no
+      // home fax number, so use work fax number.
+      ADD_FIELD_TO_DB_ROW(pDb, AddFaxNumber, newRow, secondaryFax, uniStr);
+
+      // Home fax number (if any) is the secondary fax number
+      secondaryFax = fax;
+      isSecondaryFaxWorkNumber = PR_FALSE;
+    }
+
+    ADD_FIELD_TO_DB_ROW(pDb, Add2ndEmail, newRow, additionalEmail, uniStr);
+
+    // Extra info fields
+    PRInt32         stringID;
+    nsString        pFormat;
+    nsString        pCustomData;
+
+    // Add second mobile number, if any, to the Custom 1 field
+    if ( !secondaryMobile.IsEmpty() )
+    {
+      stringID = isSecondaryMobileWorkNumber ?
+                 EUDORAIMPORT_ADDRESS_LABEL_WORKMOBILE : EUDORAIMPORT_ADDRESS_LABEL_HOMEMOBILE;
+      pFormat.Adopt( nsEudoraStringBundle::GetStringByID(stringID, bundle) );
+      pCustomData.Adopt( nsTextFormatter::smprintf(pFormat.get(), NS_ConvertASCIItoUTF16(secondaryMobile).get()) );
+      pDb->AddCustom1( newRow, NS_ConvertUTF16toUTF8(pCustomData).get() );
+    }
+
+    // Add second fax number, if any, to the Custom 2 field
+    if ( !secondaryFax.IsEmpty() )
+    {
+      stringID = isSecondaryFaxWorkNumber ?
+                 EUDORAIMPORT_ADDRESS_LABEL_WORKFAX : EUDORAIMPORT_ADDRESS_LABEL_HOMEFAX;
+      pFormat.Adopt( nsEudoraStringBundle::GetStringByID(stringID, bundle) );
+      pCustomData.Adopt( nsTextFormatter::smprintf(pFormat.get(), NS_ConvertASCIItoUTF16(secondaryFax).get()) );
+      pDb->AddCustom2( newRow, NS_ConvertUTF16toUTF8(pCustomData).get() );
+    }
+
     // Lastly, note field.
-    ADD_FIELD_TO_DB_ROW(pDb, AddNotes, newRow, note, uniStr);
+    pDb->AddNotes( newRow, NS_ConvertUTF16toUTF8(noteUTF16).get() );
 
-		pDb->AddCardRowToDB( newRow);
+    pDb->AddCardRowToDB( newRow);
 
-		IMPORT_LOG1( "Added card to db: %s\n", displayName.get());
-	}		
+    IMPORT_LOG1( "Added card to db: %s\n", displayName.get());
+  }
 }
 
 //
