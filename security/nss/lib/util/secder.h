@@ -41,7 +41,7 @@
  * secder.h - public data structures and prototypes for the DER encoding and
  *	      decoding utilities library
  *
- * $Id: secder.h,v 1.7 2004-04-25 15:03:18 gerv%gerv.net Exp $
+ * $Id: secder.h,v 1.8 2007-05-04 00:22:32 julien.pierre.bugs%sun.com Exp $
  */
 
 #if defined(_WIN32_WCE)
@@ -137,8 +137,10 @@ extern unsigned long DER_GetUInteger(SECItem *src);
 ** Convert a "UNIX" time value to a der encoded time value.
 **	"result" is the der encoded time (memory is allocated)
 **	"time" is the "UNIX" time value (Since Jan 1st, 1970).
+**      time must be on or after January 1, 1950, and
+**      before January 1, 2050
 ** The caller is responsible for freeing up the buffer which
-** result->data points to upon a successfull operation.
+** result->data points to upon a successful operation.
 */
 extern SECStatus DER_TimeToUTCTime(SECItem *result, int64 time);
 extern SECStatus DER_TimeToUTCTimeArena(PRArenaPool* arenaOpt,
@@ -179,6 +181,8 @@ extern char *DER_TimeChoiceDayToAscii(SECItem *timechoice);
 
 /*
 ** Convert a int64 time to a DER encoded Generalized time
+** gmttime must be on or after January 1, year 1 and
+** before January 1, 10000.
 */
 extern SECStatus DER_TimeToGeneralizedTime(SECItem *dst, int64 gmttime);
 extern SECStatus DER_TimeToGeneralizedTimeArena(PRArenaPool* arenaOpt,
