@@ -52,7 +52,6 @@ MOZILLA_INTERNAL_API = 1
 MODULE_NAME	= nsImportServiceModule
 
 REQUIRES	= xpcom \
-		  xpcom_obsolete \
 		  string \
 		  mailnews \
 		  addrbook \
@@ -140,7 +139,6 @@ EXTRA_DSO_LDOPTS += \
 	$(MOZ_UNICHARUTIL_LIBS) \
 	$(DEPTH)/modules/libreg/src/$(LIB_PREFIX)mozreg_s.$(LIB_SUFFIX) \
 	$(MOZ_COMPONENT_LIBS) \
-	$(MOZ_XPCOM_OBSOLETE_LIBS) \
 	$(NULL)
 
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))

@@ -63,8 +63,6 @@ MODULE_NAME	= nsMailModule
 
 REQUIRES	= xpcom \
 		  alerts \
-		  xpcom_obsolete \
-		  xpobsolete \
 		  addrbook \
 		  appcomps \
 		  appshell \
@@ -140,7 +138,6 @@ EXTRA_DSO_LDOPTS = \
 		$(MOZ_JS_LIBS) \
 		$(MOZ_UNICHARUTIL_LIBS) \
 		$(MOZ_COMPONENT_LIBS) \
-		$(MOZ_XPCOM_OBSOLETE_LIBS) \
 		$(NULL)
 
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))

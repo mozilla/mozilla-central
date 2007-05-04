@@ -107,7 +107,6 @@ endif
 EXTRA_DSO_LDOPTS= \
         ../../../addrbook/src/$(LIB_PREFIX)addrbook_s.$(LIB_SUFFIX) \
         $(EXTRA_DSO_LIBS) \
-        $(MOZ_XPCOM_OBSOLETE_LIBS) \
         $(XPCOM_LIBS) \
         $(MOZ_UNICHARUTIL_LIBS) \
         $(NSPR_LIBS) \

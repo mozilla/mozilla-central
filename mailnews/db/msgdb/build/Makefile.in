@@ -53,7 +53,6 @@ MOZILLA_INTERNAL_API = 1
 PACKAGE_FILE = msgdb.pkg
 
 REQUIRES	= xpcom \
-                  xpcom_obsolete \
 		  string \
 		  mailnews \
 		  locale \
@@ -78,7 +77,6 @@ EXTRA_DSO_LDOPTS = \
 		$(LIBS_DIR) \
 		$(EXTRA_DSO_LIBS) \
 		$(MOZ_COMPONENT_LIBS) \
-		$(MOZ_XPCOM_OBSOLETE_LIBS) \
 		$(NULL)
 
 include $(topsrcdir)/config/rules.mk

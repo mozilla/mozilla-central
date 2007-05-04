@@ -53,7 +53,6 @@ MOZILLA_INTERNAL_API = 1
 PACKAGE_FILE = msgnews.pkg
 
 REQUIRES	= xpcom \
-		  xpcom_obsolete \
 		  string \
 		  mailnews \
 		  msgbase \
@@ -92,7 +91,6 @@ EXTRA_DSO_LDOPTS = \
 		$(MOZ_JS_LIBS) \
 		$(MOZ_COMPONENT_LIBS) \
 		$(MOZ_UNICHARUTIL_LIBS) \
-		$(MOZ_XPCOM_OBSOLETE_LIBS) \
 		$(NULL)
 
 include $(topsrcdir)/config/rules.mk

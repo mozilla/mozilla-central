@@ -54,7 +54,6 @@
 #include "nsMessengerBootstrap.h"
 #include "nsMessenger.h"
 
-#include "nsIRegistry.h"
 #include "nsIContentViewer.h"
 
 /* Include all of the interfaces our factory can generate components for */
