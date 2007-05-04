@@ -24,6 +24,7 @@ use lib ".";
 
 use Bugzilla;
 use Bugzilla::Constants;
+use Bugzilla::Config;
 use Bugzilla::Error;
 use Bugzilla::Util;
 use JSON;
