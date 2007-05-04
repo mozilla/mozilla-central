@@ -901,39 +901,83 @@ void nsEudoraWin32::SetSmtpServer( nsIMsgAccountManager *pMgr, nsIMsgAccount *pA
 
 nsresult nsEudoraWin32::GetAttachmentInfo( const char *pFileName, nsIFile *pFile, nsCString& mimeType, nsCString& aAttachmentName)
 {
-	nsresult	rv;
-	mimeType.Truncate();
-        nsCOMPtr <nsILocalFile> pLocalFile = do_QueryInterface(pFile, &rv);
-        NS_ENSURE_SUCCESS(rv, rv);
-	pLocalFile->InitWithNativePath(nsDependentCString(pFileName));
-	PRBool		isFile = PR_FALSE;
-	PRBool		exists = PR_FALSE;
-	if (NS_FAILED( rv = pFile->Exists( &exists)))
-		return( rv);
-	if (NS_FAILED( rv = pFile->IsFile( &isFile)))
-		return( rv);
-	if (exists && isFile) {
-		nsCAutoString name;
-		pFile->GetNativeLeafName(name);
-		if (name.IsEmpty())
-			return( NS_ERROR_FAILURE);
-		if (name.Length() > 4) {
-			nsCString ext;
-			PRInt32 idx = name.RFindChar( '.');
-			if (idx != -1) {
-				name.Right( ext, name.Length() - idx);
-				GetMimeTypeFromExtension( ext, mimeType);
-			}
-		}
-		if (mimeType.IsEmpty())
-			mimeType = "application/octet-stream";
+  nsresult	rv;
+  mimeType.Truncate();
+  nsCOMPtr <nsILocalFile> pLocalFile = do_QueryInterface(pFile, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  pLocalFile->InitWithNativePath(nsDependentCString(pFileName));
+  PRBool		isFile = PR_FALSE;
+  PRBool		exists = PR_FALSE;
+  if (NS_FAILED( rv = pFile->Exists( &exists)))
+    return( rv);
+  if (NS_FAILED( rv = pFile->IsFile( &isFile)))
+    return( rv);
+
+  if (!exists || !isFile) {
+    // Windows Eudora writes the full path to the attachment when the message
+    // is received, but doesn't update that path if the attachment directory
+    // changes (e.g. if email directory is moved). When operating on an
+    // attachment (opening, etc.) Eudora will first check the full path
+    // and then if the file doesn't exist there Eudora will check the
+    // current attachment directory for a file with the same name.
+    //
+    // Check to see if we have any better luck looking for the attachment
+    // in the current attachment directory.
+    nsCAutoString name;
+    pFile->GetNativeLeafName(name);
+    if (name.IsEmpty())
+      return( NS_ERROR_FAILURE);
+
+    nsCOMPtr <nsIFile> altFile;
+    rv = m_mailImportLocation->Clone(getter_AddRefs(altFile));
+    NS_ENSURE_SUCCESS(rv, rv);
+    // For now, we'll do that using a hard coded name and location for the
+    // attachment directory on Windows (the default location) "attach" inside
+    // of the Eudora mail directory. Once settings from Eudora are imported
+    // better, we'll want to check where the settings say attachments are stored.
+    altFile->AppendNative(NS_LITERAL_CSTRING("attach"));
+    altFile->AppendNative(name);
+
+    // Did we come up with a different path or was the original path already
+    // in the current attachment directory?
+    PRBool	isSamePath = PR_TRUE;
+    rv = altFile->Equals(pFile, &isSamePath);
+
+    if (NS_SUCCEEDED(rv) && !isSamePath) {
+      // We came up with a different path - check the new path.
+      if (NS_FAILED( rv = altFile->Exists( &exists)))
+        return( rv);
+      if (NS_FAILED( rv = altFile->IsFile( &isFile)))
+        return( rv);
+
+      // Keep the new path if it helped us.
+      if (exists && isFile)
+        pFile = altFile;
+    }
+  }
+
+  if (exists && isFile) {
+    nsCAutoString name;
+    pFile->GetNativeLeafName(name);
+    if (name.IsEmpty())
+      return( NS_ERROR_FAILURE);
+    if (name.Length() > 4) {
+      nsCString ext;
+      PRInt32 idx = name.RFindChar( '.');
+      if (idx != -1) {
+        name.Right( ext, name.Length() - idx);
+        GetMimeTypeFromExtension( ext, mimeType);
+      }
+    }
+    if (mimeType.IsEmpty())
+      mimeType = "application/octet-stream";
 
     aAttachmentName = name; // use the leaf name of the attachment file url as the attachment name
 
-		return( NS_OK);
-	}
+    return( NS_OK);
+  }
 
-	return( NS_ERROR_FAILURE);
+  return( NS_ERROR_FAILURE);
 }
 
 PRBool nsEudoraWin32::FindMimeIniFile( nsIFile *pFile)
