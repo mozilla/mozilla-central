@@ -40,7 +40,7 @@
 /*
  * secoidt.h - public data structures for ASN.1 OID functions
  *
- * $Id: secoidt.h,v 1.21 2007-02-28 19:47:36 rrelyea%redhat.com Exp $
+ * $Id: secoidt.h,v 1.22 2007-05-04 05:15:43 nelson%bolyard.com Exp $
  */
 
 #include "secitem.h"
@@ -414,10 +414,19 @@ typedef enum {
     SEC_OID_ANSIX962_ECDSA_SHA384_SIGNATURE = 279,
     SEC_OID_ANSIX962_ECDSA_SHA512_SIGNATURE = 280,
 
+    /* More id-ce and id-pe OIDs from RFC 3280 */
+    SEC_OID_X509_HOLD_INSTRUCTION_CODE      = 281,
+    SEC_OID_X509_DELTA_CRL_INDICATOR        = 282,
+    SEC_OID_X509_ISSUING_DISTRIBUTION_POINT = 283,
+    SEC_OID_X509_CERT_ISSUER                = 284,
+    SEC_OID_X509_FRESHEST_CRL               = 285,
+    SEC_OID_X509_INHIBIT_ANY_POLICY         = 286,
+    SEC_OID_X509_SUBJECT_INFO_ACCESS        = 287,
+
     /* Camellia OIDs (RFC3657)*/
-    SEC_OID_CAMELLIA_128_CBC = 281,
-    SEC_OID_CAMELLIA_192_CBC = 282,
-    SEC_OID_CAMELLIA_256_CBC = 283,
+    SEC_OID_CAMELLIA_128_CBC                = 288,
+    SEC_OID_CAMELLIA_192_CBC                = 289,
+    SEC_OID_CAMELLIA_256_CBC                = 290,
 
     SEC_OID_TOTAL
 } SECOidTag;

@@ -36,7 +36,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: nss.h,v 1.50 2006-12-06 19:51:30 wtchang%redhat.com Exp $ */
+/* $Id: nss.h,v 1.51 2007-05-04 05:15:43 nelson%bolyard.com Exp $ */
 
 #ifndef __nss_h_
 #define __nss_h_
@@ -56,6 +56,13 @@ SEC_BEGIN_PROTOS
 #define _NSS_ECC_STRING ""
 #endif
 
+/* The private macro _NSS_CUSTOMIZED is for NSS internal use only. */
+#if defined(NSS_ALLOW_UNSUPPORTED_CRITICAL)
+#define _NSS_CUSTOMIZED " (Customized build)"
+#else
+#define _NSS_CUSTOMIZED 
+#endif
+
 /*
  * NSS's major version, minor version, patch level, and whether
  * this is a beta release.
@@ -63,7 +70,7 @@ SEC_BEGIN_PROTOS
  * The format of the version string should be
  *     "<major version>.<minor version>[.<patch level>][ <ECC>][ <Beta>]"
  */
-#define NSS_VERSION  "3.12" _NSS_ECC_STRING " Beta"
+#define NSS_VERSION  "3.12" _NSS_ECC_STRING " Beta" _NSS_CUSTOMIZED
 #define NSS_VMAJOR   3
 #define NSS_VMINOR   12
 #define NSS_VPATCH   0
