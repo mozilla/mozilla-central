@@ -58,7 +58,7 @@
 }
 
 #addAccountButton, #setDefaultButton, #removeButton {
-	-moz-appearance: button-small;
+	min-height: 19px; /* aqua size for small buttons */
 }
 
 .dialog-button[dlgtype="help"] {
@@ -70,7 +70,7 @@
 }
 
 page button {
-	-moz-appearance: button-small;
+	min-height: 19px; /* aqua size for small buttons */
 }
 
 page > description {
