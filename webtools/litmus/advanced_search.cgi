@@ -154,15 +154,29 @@ if ($c->param) {
             $defaults->{locale} =  $c->param($param);
         } elsif ($param eq 'product') {
             my $value = $c->param($param);
-            push @where, {field => $param,
-                          value => $value};
-            $where_criteria .= "Product is \'".$c->param($param)."\'<br/>";
+            if ($value =~ /^\d+$/) {
+              push @where, {field => $param,
+                            value => $value};
+              my $product = Litmus::DB::Product->retrieve($value);
+              $where_criteria .= "Product is \'".$product->{'name'}."\'<br/>";
+            } else {
+              push @where, {field => 'product_name',
+                            value => $value};
+              $where_criteria .= "Product is \'".$c->param($param)."\'<br/>";
+            }
             $defaults->{product} = $c->param($param);
         } elsif ($param eq 'branch') {
             my $value = $c->param($param);
-            push @where, {field => $param,
-                          value => $value};
-            $where_criteria .= "Branch is \'".$c->param($param)."\'<br/>";
+            if ($value =~ /^\d+$/) {
+              push @where, {field => $param,
+                            value => $value};
+              my $branch = Litmus::DB::Branch->retrieve($value);
+              $where_criteria .= "Branch is \'".$branch->{'name'}."\'<br/>";
+            } else {
+              push @where, {field => 'branch_name',
+                            value => $value};
+              $where_criteria .= "Branch is \'".$c->param($param)."\'<br/>";
+            }
             $defaults->{branch} =  $c->param($param);
         } elsif ($param eq 'test_run') {
             my $value = $c->param($param);
@@ -172,15 +186,29 @@ if ($c->param) {
             $defaults->{testgroup} = $c->param($param);
         } elsif ($param eq 'testgroup' or $param eq 'test_group') {
             my $value = $c->param($param);
-            push @where, {field => $param,
-                          value => $value};
-            $where_criteria .= "Testgroup is \'".$c->param($param)."\'<br/>";
+            if ($value =~ /^\d+$/) {
+              push @where, {field => $param,
+                            value => $value};
+              my $testgroup = Litmus::DB::Testgroup->retrieve($value);
+              $where_criteria .= "Testgroup is \'".$testgroup->{'name'}."\'<br/>";
+            } else {
+              push @where, {field => 'testgroup_name',
+                            value => $value};
+              $where_criteria .= "Testgroup is \'".$c->param($param)."\'<br/>";
+            }
             $defaults->{testgroup} = $c->param($param);
         } elsif ($param eq 'subgroup') {
             my $value = $c->param($param);
-            push @where, {field => $param,
-                          value => $value};
-            $where_criteria .= "Subgroup is \'".$c->param($param)."\'<br/>";
+            if ($value =~ /^\d+$/) {
+              push @where, {field => $param,
+                            value => $value};
+              my $subgroup = Litmus::DB::Subgroup->retrieve($value);
+              $where_criteria .= "Subgroup is \'".$subgroup->{'name'}."\'<br/>";
+            } else {
+              push @where, {field => 'subgroup_name',
+                            value => $value};
+              $where_criteria .= "Subgroup is \'".$c->param($param)."\'<br/>";
+            }
             $defaults->{subgroup} = $c->param($param);
         } elsif ($param eq 'testcase' or $param eq 'test_id') {
             my $value = $c->param($param);
@@ -190,15 +218,29 @@ if ($c->param) {
             $defaults->{testcase_id} = $c->param($param);
         } elsif ($param eq 'platform') {
             my $value = $c->param($param);
-            push @where, {field => $param,
-                          value => $value};
-            $where_criteria .= "Platform is \'".$c->param($param)."\'<br/>";
+            if ($value =~ /^\d+$/) {
+              push @where, {field => $param,
+                            value => $value};
+              my $platform = Litmus::DB::Platform->retrieve($value);
+              $where_criteria .= "Platform is \'".$platform->{'name'}."\'<br/>";
+            } else {
+              push @where, {field => 'platform_name',
+                            value => $value};
+              $where_criteria .= "Platform is \'".$c->param($param)."\'<br/>";
+            }
             $defaults->{platform} = $c->param($param);
         } elsif ($param eq 'opsys') {
             my $value = $c->param($param);
-            push @where, {field => $param,
-                          value => $value};
-            $where_criteria .= "Operating System is \'".$c->param($param)."\'<br/>";
+            if ($value =~ /^\d+$/) {
+              push @where, {field => $param,
+                            value => $value};
+              my $opsys = Litmus::DB::Opsys->retrieve($value);
+              $where_criteria .= "Operating System is \'".$opsys->{'name'}."\'<br/>";
+            } else {
+              push @where, {field => 'opsys_name',
+                            value => $value};
+              $where_criteria .= "Operating System is \'".$c->param($param)."\'<br/>";
+            }
             $defaults->{platform} = $c->param($param);
         } elsif ($param eq 'summary') {
             my $value = $c->param($param);

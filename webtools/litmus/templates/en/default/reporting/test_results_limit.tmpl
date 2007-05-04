@@ -26,8 +26,15 @@
 #%]
 
 <script type="text/javascript">
+var products=[% IF products_js %][% products_js %][% ELSE %]{}[% END %];
+var branches=[% IF branches_js %][% branches_js %][% ELSE %]{}[% END %];
+
+formName="search_results"
+
 function init()
 {
+    FormInit(document.forms['search_results'], document.location.search);
+    changeProduct();
     FormInit(document.forms['search_results'], document.location.search);
 }
 
@@ -46,7 +53,7 @@ function checkSearchForm(f)
 }
 </script>
 
-<form name="search_results" method="get" action="search_results.cgi" onSubmit="return checkSearchForm(this);">
+<form id="search_results" name="search_results" method="get" action="search_results.cgi" onSubmit="return checkSearchForm(this);">
 
 <!--# Add a row to order the results by each field. -->
 <tr class="search">
@@ -108,9 +115,9 @@ function checkSearchForm(f)
   <td class="search"></td>
   <td class="search">[% INCLUDE form_widgets/input_summary.tmpl %]</td>
   [% IF show_admin==1 %]<td class="search">[% INCLUDE form_widgets/input_email.tmpl %]</td>[% END %]
-  <td class="search">[% INCLUDE form_widgets/select_product.tmpl name="product" placeholder=1 %]</td>
-  <td class="search">[% INCLUDE form_widgets/select_unique_platform.tmpl name="platform" placeholder=1 %]</td>
-  <td class="search">[% INCLUDE form_widgets/select_branch.tmpl name="branch" placeholder=1 %]</td>
+  <td class="search">[% INCLUDE form_widgets/select_product_id.tmpl name="product" placeholder=1 display_id=1 onchange="changeProduct();" %]</td>
+  <td class="search">[% INCLUDE form_widgets/select_platform_id.tmpl name="platform" placeholder=1 display_id=1 %]</td>
+  <td class="search">[% INCLUDE form_widgets/select_branch_id.tmpl name="branch" placeholder=1 display_id=1 %]</td>
   <td class="search">[% INCLUDE form_widgets/select_locale.tmpl name="locale" placeholder=1 %]</td>
 </tr>
 

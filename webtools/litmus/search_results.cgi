@@ -36,6 +36,7 @@ use Litmus::DB::Testresult;
 use Litmus::FormWidget;
 
 use CGI;
+use JSON;
 use Time::Piece::MySQL;
 
 Litmus->init();
@@ -63,9 +64,16 @@ if ($c->param) {
             $order_by_criteria .= "Order by $order_by_proto $order_by_direction<br/>";
         } elsif ($param eq 'branch') {
             my $value = quotemeta($c->param($param));
-            push @where, {field => $param,
-                          value => $value};
-            $where_criteria .= "Branch is \'".$c->param($param)."\'<br/>";
+           if ($value =~ /^\d+$/) {
+                push @where, {field => $param,
+                              value => $value};
+                my $branch = Litmus::DB::Branch->retrieve($value);
+                $where_criteria .= "Branch is \'".$branch->{'name'}."\'<br/>";
+           } else {
+                push @where, {field => 'branch_name',
+                              value => $value};
+                $where_criteria .= "Branch is \'".$c->param($param)."\'<br/>";
+           }
         } elsif ($param eq 'locale') {
             my $value = quotemeta($c->param($param));
             push @where, {field => 'locale',
@@ -73,14 +81,28 @@ if ($c->param) {
             $where_criteria .= "Locale is \'".$c->param($param)."\'<br/>";
         } elsif ($param eq 'product') {
             my $value = quotemeta($c->param($param));
-            push @where, {field => $param,
-                          value => $value};
-            $where_criteria .= "Product is \'".$c->param($param)."\'<br/>";
+            if ($value =~ /^\d+$/) {
+                push @where, {field => $param,
+                              value => $value};
+                my $product = Litmus::DB::Product->retrieve($value);
+                $where_criteria .= "Product is \'".$product->{'name'}."\'<br/>";
+            } else {
+                push @where, {field => 'product_name',
+                              value => $value};
+                $where_criteria .= "Product is \'".$c->param($param)."\'<br/>";                
+            }
         } elsif ($param eq 'platform') {
             my $value = quotemeta($c->param($param));
-            push @where, {field => $param,
-                          value => $value};
-            $where_criteria .= "Platform is \'".$c->param($param)."\'<br/>";
+            if ($value =~ /^\d+$/) {
+                push @where, {field => $param,
+                              value => $value};
+                my $platform = Litmus::DB::Platform->retrieve($value);
+                $where_criteria .= "Platform is \'".$platform->{'name'}."\'<br/>";
+            } else {
+                push @where, {field => 'platform_name',
+                              value => $value};
+                $where_criteria .= "Platform is \'".$c->param($param)."\'<br/>";
+            }
         } elsif ($param =~ /^test_run/) {
             my $value = $c->param($param);
             push @where, {field => 'test_run',
@@ -170,12 +192,19 @@ my $result_statuses = Litmus::FormWidget->getResultStatuses;
 my $branches = Litmus::FormWidget->getBranches;
 my $locales = Litmus::FormWidget->getLocales;
 
+my $json = JSON->new(skipinvalid => 1, convblessed => 1);
+my $products_js = $json->objToJson($products);
+my $branches_js = $json->objToJson($branches);
+
 my $title = 'Search Test Results';
 
 my $vars = {
     title => $title,
     criteria => $criteria,
     products => $products,
+    branches => $branches,
+    products_js => $products_js,
+    branches_js => $branches_js,
     platforms => $platforms,
     test_groups => $test_groups,
     result_statuses => $result_statuses,

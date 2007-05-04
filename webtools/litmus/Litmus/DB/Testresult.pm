@@ -196,18 +196,30 @@ sub getTestResults($\@\@$) {
          $criterion->{'value'} =~ s/'/\\\'/g;
         if ($criterion->{'field'} eq 'product') {
             $where .= " AND pr.product_id=" . $criterion->{'value'};
+        } elsif ($criterion->{'field'} eq 'product_name') {
+            $where .= " AND pr.name='" . $criterion->{'value'} . "'";
         } elsif ($criterion->{'field'} eq 'branch') {
             $where .= " AND b.branch_id=" . $criterion->{'value'};
+        } elsif ($criterion->{'field'} eq 'branch_name') {
+            $where .= " AND b.name='" . $criterion->{'value'} . "'";
         } elsif ($criterion->{'field'} eq 'testgroup') {
             $where .= " AND tg.testgroup_id=" . $criterion->{'value'};
+        } elsif ($criterion->{'field'} eq 'testgroup_name') {
+            $where .= " AND tg.name='" . $criterion->{'value'} . "'";
         } elsif ($criterion->{'field'} eq 'subgroup') {
             $where .= " AND sg.subgroup_id=" . $criterion->{'value'};
+        } elsif ($criterion->{'field'} eq 'subgroup_name') {
+            $where .= " AND sg.name='" . $criterion->{'value'} . "'";
         } elsif ($criterion->{'field'} eq 'testcase') {
             $where .= " AND tr.testcase_id=" . $criterion->{'value'};
         } elsif ($criterion->{'field'} eq 'platform') {
             $where .= " AND pl.platform_id=" . $criterion->{'value'};
+        } elsif ($criterion->{'field'} eq 'platform_name') {
+            $where .= " AND pl.name='" . $criterion->{'value'} . "'";
         } elsif ($criterion->{'field'} eq 'opsys') {
             $where .= " AND o.opsys_id=" . $criterion->{'value'};
+        } elsif ($criterion->{'field'} eq 'opsys_name') {
+            $where .= " AND o.name='" . $criterion->{'value'} . "'";
         } elsif ($criterion->{'field'} eq 'locale') {
             $where .= " AND tr.locale_abbrev='" . $criterion->{'value'} . "'";
         } elsif ($criterion->{'field'} eq 'result_status') {
