@@ -112,8 +112,9 @@ elsif ($type eq 'bugcounts'){
           INNER JOIN test_cases ON test_cases.case_id = test_case_bugs.case_id
           INNER JOIN test_case_plans ON test_case_plans.case_id = test_cases.case_id
           INNER JOIN test_plans ON test_case_plans.plan_id = test_plans.plan_id
-          WHERE test_plans.plan_id = ?
-          GROUP BY test_cases.case_id", {'Slice'=>{}}, $plan->id);
+          WHERE test_plans.plan_id = ? " .
+          $dbh->sql_group_by("test_cases.case_id", "test_case_bugs.bug_id"),
+          {'Slice'=>{}}, $plan->id);
 
     $vars->{'bug_table'} = $ref;
     $vars->{'plan'} = $plan;

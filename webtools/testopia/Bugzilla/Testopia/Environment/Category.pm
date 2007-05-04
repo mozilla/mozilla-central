@@ -243,8 +243,8 @@ sub get_env_product_list{
                   ON p.id = tec.product_id ";
     $query .= "WHERE group_id IS NULL ";
     $query .= "AND classification_id = ? " if $class_id;  
-    $query .= "GROUP BY p.id
-               ORDER BY p.name";
+    $query .= $dbh->sql_group_by("p.id", "p.name");
+    $query .= " ORDER BY p.name";
     
     
     my $ref;
