@@ -106,6 +106,18 @@ static char *p_test_body =
 
 #define kWhitespace	"\b\t\r\n "
 
+// The identity that we use in SendTheMessage is now a static. Previously the
+// identity was being created and destroyed for every Eudora message imported.
+// Now we create the identity when needed and keep it around until ReleaseIdentity
+// is called (after Eudora email importing is complete - currently called in
+// ~ImportEudoraMailImpl).
+// 
+// This change was identified via profiling and has sped up importing email
+// from Eudora over 5x on my computer (test importing of my email went from
+// 6.5 hours to less than 1.2 hours). Importing from Eudora is still slow
+// in my opinion, but bearably slow now.
+nsIMsgIdentity *		nsEudoraCompose::s_pIdentity = nsnull;
+
 
 // First off, a listener
 class EudoraSendListener : public nsIMsgSendListener
@@ -185,7 +197,7 @@ nsEudoraCompose::nsEudoraCompose()
 	m_pMsgSend = nsnull;
 	m_pSendProxy = nsnull;
 	m_pMsgFields = nsnull;
-	m_pIdentity = nsnull;
+	s_pIdentity = nsnull;
 	m_pHeaders = p_test_headers;
 	if (m_pHeaders)
 		m_headerLen = strlen( m_pHeaders);
@@ -203,47 +215,60 @@ nsEudoraCompose::nsEudoraCompose()
 
 nsEudoraCompose::~nsEudoraCompose()
 {
-	NS_IF_RELEASE( m_pSendProxy);
-	NS_IF_RELEASE( m_pIOService);
-	NS_IF_RELEASE( m_pMsgSend);
-	NS_IF_RELEASE( m_pListener);
-	NS_IF_RELEASE( m_pMsgFields);
-
-	if (m_pIdentity) {	
-		nsresult rv = m_pIdentity->ClearAllValues();
-        NS_ASSERTION(NS_SUCCEEDED(rv),"failed to clear values");
+	if (s_pIdentity) {	
+		nsresult rv = s_pIdentity->ClearAllValues();
+		NS_ASSERTION(NS_SUCCEEDED(rv),"failed to clear values");
 		if (NS_FAILED(rv)) return;
 
 		NS_WITH_PROXIED_SERVICE(nsIMsgAccountManager, accMgr, NS_MSGACCOUNTMANAGER_CONTRACTID, NS_PROXY_TO_MAIN_THREAD, &rv);
-        NS_ASSERTION(NS_SUCCEEDED(rv) && accMgr,"failed to get account manager");
+		NS_ASSERTION(NS_SUCCEEDED(rv) && accMgr,"failed to get account manager");
 		if (NS_FAILED(rv) || !accMgr) return;
 
-		rv = accMgr->RemoveIdentity(m_pIdentity);
-        NS_ASSERTION(NS_SUCCEEDED(rv),"failed to remove identity");
+		rv = accMgr->RemoveIdentity(s_pIdentity);
+		NS_ASSERTION(NS_SUCCEEDED(rv),"failed to remove identity");
 		if (NS_FAILED(rv)) return;
 
-	    NS_RELEASE(m_pIdentity);
+		NS_RELEASE(s_pIdentity);
 	}
-
 }
 
 nsresult nsEudoraCompose::CreateIdentity( void)
 {
-  if (m_pIdentity)
+  if (s_pIdentity)
     return( NS_OK);
 
   nsresult  rv;
   NS_WITH_PROXIED_SERVICE(nsIMsgAccountManager, accMgr, NS_MSGACCOUNTMANAGER_CONTRACTID, NS_PROXY_TO_MAIN_THREAD, &rv);
   if (NS_FAILED(rv)) return( rv);
-  rv = accMgr->CreateIdentity( &m_pIdentity);
+  rv = accMgr->CreateIdentity( &s_pIdentity);
   nsString name(NS_LITERAL_STRING("Import Identity"));
-  if (m_pIdentity) {
-    m_pIdentity->SetFullName(name);
-    m_pIdentity->SetIdentityName(name);
-    m_pIdentity->SetEmail(NS_LITERAL_CSTRING("import@import.service"));
+  if (s_pIdentity) {
+    s_pIdentity->SetFullName(name);
+    s_pIdentity->SetIdentityName(name);
+    s_pIdentity->SetEmail(NS_LITERAL_CSTRING("import@import.service"));
   }
   return( rv);
 }
+
+void nsEudoraCompose::ReleaseIdentity( void)
+{
+	if (s_pIdentity) {	
+		nsresult rv = s_pIdentity->ClearAllValues();
+		NS_ASSERTION(NS_SUCCEEDED(rv),"failed to clear values");
+		if (NS_FAILED(rv)) return;
+
+		NS_WITH_PROXIED_SERVICE(nsIMsgAccountManager, accMgr, NS_MSGACCOUNTMANAGER_CONTRACTID, NS_PROXY_TO_MAIN_THREAD, &rv);
+		NS_ASSERTION(NS_SUCCEEDED(rv) && accMgr,"failed to get account manager");
+		if (NS_FAILED(rv) || !accMgr) return;
+
+		rv = accMgr->RemoveIdentity(s_pIdentity);
+		NS_ASSERTION(NS_SUCCEEDED(rv),"failed to remove identity");
+		if (NS_FAILED(rv)) return;
+
+		NS_RELEASE(s_pIdentity);
+	}
+}
+
 
 nsresult nsEudoraCompose::CreateComponents( void)
 {
@@ -693,7 +718,7 @@ nsresult nsEudoraCompose::SendTheMessage( nsIFile **pMsg)
 
 		rv = m_pSendProxy->CreateAndSendMessage(
                     nsnull,			                  // no editor shell
-										m_pIdentity,	                // dummy identity
+										s_pIdentity,	                // dummy identity
                                                                                 nsnull,                         // account key
 										m_pMsgFields,	                // message fields
 										PR_FALSE,		                  // digest = NO
@@ -717,7 +742,7 @@ nsresult nsEudoraCompose::SendTheMessage( nsIFile **pMsg)
 	else {
 		rv = m_pSendProxy->CreateAndSendMessage(
                     nsnull,			                  // no editor shell
-										m_pIdentity,	                // dummy identity
+										s_pIdentity,	                // dummy identity
                                                                                 nsnull,                         // account key
 										m_pMsgFields,	                // message fields
 										PR_FALSE,		                  // digest = NO

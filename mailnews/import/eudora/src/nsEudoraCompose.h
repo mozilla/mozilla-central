@@ -143,10 +143,11 @@ public:
 	nsresult	CopyComposedMessage( nsCString& fromLine, nsIFile *pSrc, nsIOutputStream *pDst, SimpleBufferTonyRCopiedOnce& copy);
 
 	static nsresult	FillMailBuffer( ReadFileState *pState, SimpleBufferTonyRCopiedOnce& read);
+	static void		ReleaseIdentity( void);
 
 private:
 	nsresult	CreateComponents( void);
-	nsresult	CreateIdentity( void);
+	static nsresult		CreateIdentity( void);
 	
 	void		GetNthHeader( const char *pData, PRInt32 dataLen, PRInt32 n, nsCString& header, nsCString& val, PRBool unwrap);
 	void		GetHeaderValue( const char *pData, PRInt32 dataLen, const char *pHeader, nsCString& val, PRBool unwrap = PR_TRUE);
@@ -170,12 +171,13 @@ private:
 	PRBool		IsReplaceHeader( const char *pHeader);
 
 private:
+	static nsIMsgIdentity *		s_pIdentity;
+
 	nsVoidArray *			m_pAttachments;
 	nsIMsgSendListener *	m_pListener;
 	nsIMsgSend *			m_pMsgSend;
 	nsIMsgSend *			m_pSendProxy;
 	nsIMsgCompFields *		m_pMsgFields;
-	nsIMsgIdentity *		m_pIdentity;
 	nsIIOService *			m_pIOService;
 	PRInt32					m_headerLen;
 	const char *			m_pHeaders;

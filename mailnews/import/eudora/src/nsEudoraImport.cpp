@@ -71,6 +71,7 @@
 #include "nsTextFormatter.h"
 #include "nsEudoraStringBundle.h"
 #include "nsIStringBundle.h"
+#include "nsEudoraCompose.h"
 #include "nsEudoraSettings.h"
 #include "nsReadableUtils.h"
 #include "nsUnicharUtils.h"
@@ -364,6 +365,9 @@ ImportEudoraMailImpl::ImportEudoraMailImpl()
 
 ImportEudoraMailImpl::~ImportEudoraMailImpl()
 {
+	// We're done importing mail, so nsEudoraCompose no longer needs the identity
+	// that it creates when we import any mail.
+	nsEudoraCompose::ReleaseIdentity();
 }
 
 
