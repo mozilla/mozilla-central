@@ -183,17 +183,6 @@ function delayedOnLoadAddressBook()
 
   InitCommonJS();
 
-  //This migrates the LDAPServer Preferences from 4.x to mozilla format.
-  var ldapPrefs = null;
-  try {
-    ldapPrefs = Components.classes["@mozilla.org/ldapprefs-service;1"]
-                          .getService(Components.interfaces.nsILDAPPrefsService);
-  } catch (ex) {Components.utils.reportError("ERROR: Cannot get the LDAP service\n" + ex + "\n");}
-
-  if (ldapPrefs) {
-    ldapPrefs.migratePrefsIfNeeded();
-  }
-
   GetCurrentPrefs();
 
   AddPrefObservers();

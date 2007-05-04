@@ -52,10 +52,6 @@ var gComposePane = {
     if (kLDAPPrefContractID in Components.classes)
       this.mLDAPPrefsService = Components.classes[kLDAPPrefContractID].getService(Components.interfaces.nsILDAPPrefsService);
 
-    if (this.mLDAPPrefsService) {
-      this.mLDAPPrefsService.migratePrefsIfNeeded();
-    }
-
     this.createDirectoriesList();
 
     // build the local address book menu list. We do this by hand instead of using the xul template

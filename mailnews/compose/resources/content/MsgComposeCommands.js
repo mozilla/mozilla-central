@@ -86,7 +86,6 @@ var gMsgCompose;
 var gAccountManager;
 var gIOService;
 var gPromptService;
-var gLDAPPrefsService;
 var gWindowLocked;
 var gContentChanged;
 var gAutoSaving;
@@ -132,18 +131,6 @@ function InitializeGlobalVariables()
   gIOService = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
   gPromptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
   
-  //This migrates the LDAPServer Preferences from 4.x to mozilla format.
-  gLDAPPrefsService = Components.classes["@mozilla.org/ldapprefs-service;1"];
-  if (gLDAPPrefsService) {
-    try {
-      gLDAPPrefsService = gLDAPPrefsService
-          .getService(Components.interfaces.nsILDAPPrefsService);
-    } catch (ex) {Components.utils.reportError("ERROR: Cannot get the LDAP prefs service\n" + ex + "\n");}
-    if (gLDAPPrefsService) {
-      gLDAPPrefsService.migratePrefsIfNeeded();
-    }
-  }
-
   gMsgCompose = null;
   gWindowLocked = false;
   gContentChanged = false;
@@ -181,7 +168,6 @@ function ReleaseGlobalVariables()
   gAccountManager = null;
   gIOService = null;
   gPromptService = null;
-  gLDAPPrefsService = null;
   gCurrentIdentity = null;
   gCurrentAutocompleteDirectory = null;
   gAutocompleteSession = null;

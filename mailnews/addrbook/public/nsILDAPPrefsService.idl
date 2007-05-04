@@ -43,20 +43,10 @@
 #include "nsIPrefBranch.idl"
 
 /**
- * this service implements migrating ldap prefs from 4.x format
- * to mozilla format.
+ * This service is obsolete and expected to go away very soon.
  */
-[scriptable, uuid(37418e42-b5fc-442c-a599-4c8b3131205e)]
+[scriptable, uuid(667f6ab8-dbaf-49cb-be43-45ffa032b3de)]
 interface nsILDAPPrefsService: nsISupports {
-   
-   /**
-     * Convert 4.x ldap prefs to mozilla format
-     * hostname, dn, scope, port are converted to uri
-     * Also converts the autocompletion preference from 4.x format 
-     * (ldap_2.servers.<server-name>.autocomplete.enabled)
-     * to mozilla format (ldap_2.servers.directoryServer)
-     */
-    void migratePrefsIfNeeded();
 
     /**
       * This will create an array with entries 
