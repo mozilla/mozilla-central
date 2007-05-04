@@ -193,7 +193,7 @@ sub getTestResults($\@\@$) {
     my $limit = 'LIMIT ';
 
     foreach my $criterion (@$where_criteria) {
-         $criterion->{'value'} =~ s/'/\\\'/g;
+        $criterion->{'value'} =~ s/'/\\\'/g;
         if ($criterion->{'field'} eq 'product') {
             $where .= " AND pr.product_id=" . $criterion->{'value'};
         } elsif ($criterion->{'field'} eq 'product_name') {
@@ -229,19 +229,28 @@ sub getTestResults($\@\@$) {
         } elsif ($criterion->{'field'} eq 'email') {
             $where .= ' AND u.email LIKE \'%%' . $criterion->{'value'} . '%%\'';
         } elsif ($criterion->{'field'} eq 'trusted_only') {            
-            if ($from !~ /users u/) {
-                $from .= ", users u";
+            if ($criterion->{'value'} ne 'all') {
+                if ($from !~ /users u/) {
+                    $from .= ", users u";
+                }
             }
-            $where .= " AND u.user_id=tr.user_id AND u.is_admin=1";
+            $where .= " AND u.user_id=tr.user_id AND u.is_admin=";
+            $where .= $criterion->{'value'} == 1 ? '1' : '0';
         } elsif ($criterion->{'field'} eq 'vetted_only') {
-            $where .= " AND tr.vetted=1";
+            if ($criterion->{'value'} ne 'all') {
+                $where .= " AND tr.vetted=";
+                $where .= $criterion->{'value'} == 1 ? '1' : '0';
+            }
         } elsif ($criterion->{'field'} eq 'valid_only') {        
-            $where .= " AND tr.valid=1";
+            if ($criterion->{'value'} ne 'all') {
+                $where .= " AND tr.valid=";
+                $where .= $criterion->{'value'} == 1 ? '1' : '0';
+            }
         } elsif ($criterion->{'field'} eq 'user_id') {        
             if ($from !~ /users u/) {
                 $from .= ", users u";
             }
-            $where .= " AND u.user_id=tr.user_id AND u.user_id=" . $criterion->{'value'};
+            $where .= " AND u.user_id=tr.user_id AND u.user_id=" . $criterion->{'value'};            
         } elsif ($criterion->{'field'} eq 'start_date') {
             my $start_timestamp = &Date::Manip::UnixDate(&Date::Manip::ParseDateString($criterion->{'value'}),"%q");
             if ($start_timestamp !~ /^\d\d\d\d\d\d\d\d\d\d\d\d\d\d$/) {

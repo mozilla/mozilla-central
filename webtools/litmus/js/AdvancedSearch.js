@@ -70,3 +70,5 @@ function repopulateTestcases(data) {
   enableForm(formName);
 }
 
+var vettingHelpTitle = "What is vetting?";
+var vettingHelpText = "<h2>vet:</h2>verb (<strong>vet&bull;ted</strong>, <strong>vet&bull;ting</strong>) [trans.]<br/><p>make careful examination of (something): <em>Someone should vet this report before it goes out.</em></p><p>In the Litmus context, to vet a test result means to examine it to make sure that the status (pass, fail, unclear) and configuration information are accurate and correct.</p><p>By default, new test results are marked as valid. Litmus admin users can then vet those results, marking them invalid if necessary.</em>"

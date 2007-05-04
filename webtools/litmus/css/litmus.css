@@ -1476,3 +1476,8 @@ a.test_run {
 a.test_run:link, a.test_run:visited {
     color: #006633;
 }
+
+a.help {
+    text-transform: none;
+    color: #003366;
+}

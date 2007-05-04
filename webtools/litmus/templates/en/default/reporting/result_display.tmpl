@@ -79,7 +79,7 @@ Not provided
 [% IF show_admin %]
 <tr class="even">
 <td>Valid?</td>
-<td><input id="valid" name="valid" type="checkbox"[% IF result.valid %] checked[% END %]> <input id="vet_result" name="vet_result" class="button" type="submit" value="Vet Result"></td>
+<td><input id="valid" name="valid" type="checkbox"[% IF result.valid %] checked[% END %]> <input id="vet_result" name="vet_result" class="button" type="submit" value="Vet Result"> &lArr; <a class='help' name="showVettingHelpText" onclick="toggleHelp(vettingHelpTitle,vettingHelpText);">What is vetting? <img class="inline" src="images/info.png" alt="What is vetting?" /></a></td>
 </tr>
 <tr class="odd">
 <td>Vetted By:</td>

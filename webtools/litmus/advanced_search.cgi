@@ -121,17 +121,44 @@ if ($c->param) {
                            value => $end_date};
             $where_criteria .= "Date between '$start_date' and '$end_date'<br/>";
         } elsif ($param eq 'trusted_only') {
-            push @where, {field => 'trusted_only',
-                          value => 1};            
-            $limit_criteria .= "Display trusted results only<br/>";
+            my $value = $c->param($param);
+            if ($value ne 'all') {
+              if ($value eq '1') {
+                push @where, {field => 'trusted_only',
+                            value => 1};            
+                $limit_criteria .= "Display trusted results only<br/>";
+              } else {
+                push @where, {field => 'trusted_only',
+                            value => '0E0'};            
+                $limit_criteria .= "Display untrusted results only<br/>";
+              }
+            }
         } elsif ($param eq 'valid_only') {
-            push @where, {field => 'valid_only',
-                          value => 1};            
-            $limit_criteria .= "Display valid results only<br/>";
+            my $value = $c->param($param);
+            if ($value ne 'all') {
+              if ($value eq '1') {
+                push @where, {field => 'valid_only',
+                              value => 1};
+               $limit_criteria .= "Display valid results only<br/>";
+              } else {
+                push @where, {field => 'valid_only',
+                              value => '0E0'};
+               $limit_criteria .= "Display invalid results only<br/>";
+              }
+            }
         } elsif ($param eq 'vetted_only') {
-            push @where, {field => 'vetted_only',
-                          value => 1};            
-            $limit_criteria .= "Display vetted results only<br/>";
+            my $value = $c->param($param);
+            if ($value ne 'all') {
+              if ($value eq '1') {
+                push @where, {field => 'vetted_only',
+                              value => 1};            
+                $limit_criteria .= "Display vetted results only<br/>";
+              } else {
+                push @where, {field => 'vetted_only',
+                              value => '0E0'};            
+                $limit_criteria .= "Display unvetted results only<br/>";
+              }
+            }
         } elsif ($param eq 'my_results_only') {
             push @where, {field => 'user_id',
                           value => $cookie->{'user_id'}};
