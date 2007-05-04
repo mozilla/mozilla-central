@@ -1191,127 +1191,143 @@ PRBool nsEudoraWin32::FindAddressFolder( nsIFile **pFolder)
 nsresult nsEudoraWin32::FindAddressBooks( nsIFile *pRoot, nsISupportsArray **ppArray)
 {
 
-	nsCOMPtr<nsILocalFile>	file;
-        nsCOMPtr<nsILocalFile> localRoot = do_QueryInterface(pRoot);
-	nsresult rv = file->InitWithFile( localRoot);
-	if (NS_FAILED( rv))
-		return( rv);
+  nsCOMPtr<nsILocalFile>	file;
+  nsCOMPtr<nsILocalFile> localRoot = do_QueryInterface(pRoot);
+  nsresult rv = file->InitWithFile( localRoot);
+  if (NS_FAILED( rv))
+    return( rv);
 
-	rv = NS_NewISupportsArray( ppArray);
-	if (NS_FAILED( rv)) {
-		IMPORT_LOG0( "FAILED to allocate the nsISupportsArray\n");
-		return( rv);
-	}
+  rv = NS_NewISupportsArray( ppArray);
+  if (NS_FAILED( rv)) {
+    IMPORT_LOG0( "FAILED to allocate the nsISupportsArray\n");
+    return( rv);
+  }
 
-	nsCOMPtr<nsIImportService> impSvc(do_GetService(NS_IMPORTSERVICE_CONTRACTID, &rv));
-	if (NS_FAILED( rv))
-		return( rv);
-	m_addressImportFolder = pRoot;
-	nsString		displayName;
-	nsEudoraStringBundle::GetStringByID( EUDORAIMPORT_NICKNAMES_NAME, displayName);
+  nsCOMPtr<nsIImportService> impSvc(do_GetService(NS_IMPORTSERVICE_CONTRACTID, &rv));
+  if (NS_FAILED( rv))
+    return( rv);
+  m_addressImportFolder = pRoot;
+  nsString		displayName;
+  nsEudoraStringBundle::GetStringByID( EUDORAIMPORT_NICKNAMES_NAME, displayName);
 
-	// First off, get the default nndbase.txt, then scan the default nicknames subdir,
-	// then look in the .ini file for additional directories to scan for address books!
-	rv = file->AppendNative( NS_LITERAL_CSTRING("nndbase.txt"));
-	PRBool exists = PR_FALSE;
-	PRBool isFile = PR_FALSE;
-	if (NS_SUCCEEDED( rv))
-		rv = file->Exists( &exists);
-	if (NS_SUCCEEDED( rv) && exists)
-		rv = file->IsFile( &isFile);
-	if (exists && isFile) {
-		if (NS_FAILED( rv = FoundAddressBook( file, displayName.get(), *ppArray, impSvc)))
-			return( rv);
-	}
+  // First off, get the default nndbase.txt, then scan the default nicknames subdir,
+  // then look in the .ini file for additional directories to scan for address books!
+  PRBool exists = PR_FALSE;
+  PRBool isFile = PR_FALSE;
 
-	// Try the default directory
-	rv = 	rv = file->InitWithFile( localRoot);
-	if (NS_FAILED( rv))
-		return( rv);
-	rv = file->AppendNative(NS_LITERAL_CSTRING("Nickname"));
-	PRBool isDir = PR_FALSE;
-	exists = PR_FALSE;
-	if (NS_SUCCEEDED( rv))
-		rv = file->Exists( &exists);
-	if (NS_SUCCEEDED( rv) && exists)
-		rv = file->IsDirectory( &isDir);
-	if (exists && isDir) {
-		if (NS_FAILED( rv = ScanAddressDir(file, *ppArray, impSvc)))
-			return( rv);
-	}
+  rv = file->AppendNative(NS_LITERAL_CSTRING("nndbase.txt"));
+  PRBool checkedBoth = PR_FALSE;
+  do 
+  {
+    if (NS_SUCCEEDED(rv))
+      rv = file->Exists(&exists);
+    if (NS_SUCCEEDED(rv) && exists)
+      rv = file->IsFile(&isFile);
 
-	// Try the ini file to find other directories!
-	rv = 	rv = file->InitWithFile( localRoot);
-	if (NS_FAILED( rv))
-		return( rv);
-	rv = file->AppendNative(NS_LITERAL_CSTRING("eudora.ini"));
-	exists = PR_FALSE;
-	isFile = PR_FALSE;
-	if (NS_SUCCEEDED( rv))
-		rv = file->Exists( &exists);
-	if (NS_SUCCEEDED( rv) && exists)
-		rv = file->IsFile( &isFile);
-	
-	if (!isFile || !exists) {
-		rv = file->InitWithFile( localRoot);
-		if (NS_FAILED( rv))
-			return( NS_OK);
-		if (!FindMimeIniFile(file))
-			return( NS_OK);
-	}
+    // Stop if we already checked the second default name possibility or
+    // if we found the default address book name.
+    if (checkedBoth || (exists && isFile))
+      break;
 
-	nsCString fileName;
-	file->GetNativePath(fileName);
-	// This is the supposed ini file name!
-	// Get the extra directories for nicknames and parse it for valid nickname directories
-	// to look into...
-	char *pBuffer = new char[2048];
-	DWORD len = ::GetPrivateProfileString( "Settings", "ExtraNicknameDirs", "", pBuffer, 2048, fileName.get());
-	if (len == 2047) {
-		// If the value is really that large then don't bother!
-		delete [] pBuffer;
-		return( NS_OK);
-	}
-	nsCString	dirs(pBuffer);
-	delete [] pBuffer;
-	dirs.Trim( kWhitespace);
-	PRInt32	idx = 0;
-	nsCString	currentDir;
-	while ((idx = dirs.FindChar( ';')) != -1) {
-		dirs.Left( currentDir, idx);
-		currentDir.Trim( kWhitespace);
-		if (!currentDir.IsEmpty()) {
-			rv = file->InitWithNativePath(currentDir);
-			exists = PR_FALSE;
-			isDir = PR_FALSE;
-			if (NS_SUCCEEDED( rv))
-				rv = file->Exists( &exists);
-			if (NS_SUCCEEDED( rv) && exists)
-				rv = file->IsDirectory( &isDir);
-			if (exists && isDir) {
-				if (NS_FAILED( rv = ScanAddressDir(file, *ppArray, impSvc)))
-					return( rv);
-			}
-		}
-		dirs.Right( currentDir, dirs.Length() - idx - 1);
-		dirs = currentDir;
-		dirs.Trim( kWhitespace);
-	}
-	if (!dirs.IsEmpty()) {
-		rv = file->InitWithNativePath(dirs);
-		exists = PR_FALSE;
-		isDir = PR_FALSE;
-		if (NS_SUCCEEDED( rv))
-			rv = file->Exists( &exists);
-		if (NS_SUCCEEDED( rv) && exists)
-			rv = file->IsDirectory( &isDir);
-		if (exists && isDir) {
-			if (NS_FAILED( rv = ScanAddressDir(file, *ppArray, impSvc)))
-				return( rv);
-		}
-	}
+    // Check for alternate file extension ".nnt" which Windows Eudora uses as an option
+    // to hide from simple minded viruses that scan ".txt" files for addresses.
+    rv = file->SetNativeLeafName(NS_LITERAL_CSTRING("nndbase.nnt"));
+    checkedBoth = PR_TRUE;
+  } while (NS_SUCCEEDED(rv));
 
-	return( NS_OK);
+  if (exists && isFile) {
+    if (NS_FAILED( rv = FoundAddressBook( file, displayName.get(), *ppArray, impSvc)))
+      return( rv);
+  }
+
+  // Try the default directory
+  rv = 	rv = file->InitWithFile( localRoot);
+  if (NS_FAILED( rv))
+    return( rv);
+  rv = file->AppendNative(NS_LITERAL_CSTRING("Nickname"));
+  PRBool isDir = PR_FALSE;
+  exists = PR_FALSE;
+  if (NS_SUCCEEDED( rv))
+    rv = file->Exists( &exists);
+  if (NS_SUCCEEDED( rv) && exists)
+    rv = file->IsDirectory( &isDir);
+  if (exists && isDir) {
+    if (NS_FAILED( rv = ScanAddressDir(file, *ppArray, impSvc)))
+      return( rv);
+  }
+
+  // Try the ini file to find other directories!
+  rv = 	rv = file->InitWithFile( localRoot);
+  if (NS_FAILED( rv))
+    return( rv);
+  rv = file->AppendNative(NS_LITERAL_CSTRING("eudora.ini"));
+  exists = PR_FALSE;
+  isFile = PR_FALSE;
+  if (NS_SUCCEEDED( rv))
+    rv = file->Exists( &exists);
+  if (NS_SUCCEEDED( rv) && exists)
+    rv = file->IsFile( &isFile);
+
+  if (!isFile || !exists) {
+    rv = file->InitWithFile( localRoot);
+    if (NS_FAILED( rv))
+      return( NS_OK);
+    if (!FindMimeIniFile(file))
+      return( NS_OK);
+  }
+
+  nsCString fileName;
+  file->GetNativePath(fileName);
+  // This is the supposed ini file name!
+  // Get the extra directories for nicknames and parse it for valid nickname directories
+  // to look into...
+  char *pBuffer = new char[2048];
+  DWORD len = ::GetPrivateProfileString( "Settings", "ExtraNicknameDirs", "", pBuffer, 2048, fileName.get());
+  if (len == 2047) {
+    // If the value is really that large then don't bother!
+    delete [] pBuffer;
+    return( NS_OK);
+  }
+  nsCString	dirs(pBuffer);
+  delete [] pBuffer;
+  dirs.Trim( kWhitespace);
+  PRInt32	idx = 0;
+  nsCString	currentDir;
+  while ((idx = dirs.FindChar( ';')) != -1) {
+    dirs.Left( currentDir, idx);
+    currentDir.Trim( kWhitespace);
+    if (!currentDir.IsEmpty()) {
+      rv = file->InitWithNativePath(currentDir);
+      exists = PR_FALSE;
+      isDir = PR_FALSE;
+      if (NS_SUCCEEDED( rv))
+        rv = file->Exists( &exists);
+      if (NS_SUCCEEDED( rv) && exists)
+        rv = file->IsDirectory( &isDir);
+      if (exists && isDir) {
+        if (NS_FAILED( rv = ScanAddressDir(file, *ppArray, impSvc)))
+          return( rv);
+      }
+    }
+    dirs.Right( currentDir, dirs.Length() - idx - 1);
+    dirs = currentDir;
+    dirs.Trim( kWhitespace);
+  }
+  if (!dirs.IsEmpty()) {
+    rv = file->InitWithNativePath(dirs);
+    exists = PR_FALSE;
+    isDir = PR_FALSE;
+    if (NS_SUCCEEDED( rv))
+      rv = file->Exists( &exists);
+    if (NS_SUCCEEDED( rv) && exists)
+      rv = file->IsDirectory( &isDir);
+    if (exists && isDir) {
+      if (NS_FAILED( rv = ScanAddressDir(file, *ppArray, impSvc)))
+        return( rv);
+    }
+  }
+
+  return( NS_OK);
 }
 
 
@@ -1372,48 +1388,48 @@ nsresult nsEudoraWin32::ScanAddressDir( nsIFile *pDir, nsISupportsArray *pArray,
 
 nsresult nsEudoraWin32::FoundAddressBook( nsIFile *file, const PRUnichar *pName, nsISupportsArray *pArray, nsIImportService *impSvc)
 {
-	nsCOMPtr<nsIImportABDescriptor>	desc;
-	nsISupports *					pInterface;
-	nsString						name;
-	nsresult						rv;
+  nsCOMPtr<nsIImportABDescriptor> desc;
+  nsISupports *	pInterface;
+  nsString name;
+  nsresult rv;
 
-	if (pName)
-		name = pName;
-	else {
-		nsAutoString leaf;
-		rv = file->GetLeafName(leaf);
-		if (NS_FAILED( rv))
-			return( rv);
-		if (leaf.IsEmpty())
-			return( NS_ERROR_FAILURE);
-		nsString	tStr;
-		leaf.Right( tStr, 4);
-		if (tStr.LowerCaseEqualsLiteral(".txt")) {
-			leaf.Left( tStr, leaf.Length() - 4);
-			leaf = tStr;
-		}
-	}
+  if (pName)
+    name = pName;
+  else {
+    nsAutoString leaf;
+    rv = file->GetLeafName(leaf);
+    if (NS_FAILED( rv))
+      return( rv);
+    if (leaf.IsEmpty())
+      return( NS_ERROR_FAILURE);
+    nsString	tStr;
+    leaf.Right( tStr, 4);
+    if (tStr.LowerCaseEqualsLiteral(".txt")  || tStr.LowerCaseEqualsLiteral(".nnt")) {
+      leaf.Left( tStr, leaf.Length() - 4);
+      leaf = tStr;
+    }
+  }
 
-    nsCOMPtr<nsILocalFile> fileLoc = do_QueryInterface(file, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsILocalFile> fileLoc = do_QueryInterface(file, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-	rv = impSvc->CreateNewABDescriptor( getter_AddRefs( desc));
-	if (NS_SUCCEEDED( rv)) {
-		PRInt64 sz = 0;
-		file->GetFileSize( &sz);	
-		desc->SetPreferredName(name);
-		desc->SetSize((PRUint32) sz);
-		desc->SetAbFile(fileLoc);
-		rv = desc->QueryInterface( kISupportsIID, (void **) &pInterface);
-		pArray->AppendElement( pInterface);
-		pInterface->Release();
-	}
-	if (NS_FAILED( rv)) {
-		IMPORT_LOG0( "*** Error creating address book descriptor for eudora\n");
-		return( rv);
-	}
+  rv = impSvc->CreateNewABDescriptor( getter_AddRefs( desc));
+  if (NS_SUCCEEDED( rv)) {
+    PRInt64 sz = 0;
+    file->GetFileSize( &sz);	
+    desc->SetPreferredName(name);
+    desc->SetSize((PRUint32) sz);
+    desc->SetAbFile(fileLoc);
+    rv = desc->QueryInterface( kISupportsIID, (void **) &pInterface);
+    pArray->AppendElement( pInterface);
+    pInterface->Release();
+  }
+  if (NS_FAILED( rv)) {
+    IMPORT_LOG0( "*** Error creating address book descriptor for eudora\n");
+    return( rv);
+  }
 
-	return( NS_OK);
+  return( NS_OK);
 }
 
 
