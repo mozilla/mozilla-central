@@ -112,8 +112,6 @@ use constant REQUIREMENT_MAX_LENGTH => 255;
 use constant SUMMARY_MAX_LENGTH => 255;
 use constant TAG_MAX_LENGTH => 255;
 
-our $columns = join(", ", DB_COLUMNS);
-
 sub display_columns {
 my $self = shift;
 my @columns = 
@@ -185,6 +183,7 @@ sub _init {
     my $self = shift;
     my ($param) = (@_);
     my $dbh = Bugzilla->dbh;
+    my $columns = join(", ", DB_COLUMNS);
 
     my $id = $param unless (ref $param eq 'HASH');
     my $obj;
@@ -558,12 +557,13 @@ newly created test case. It returns the new ID.
 sub store {
     my $self = shift;
     my $dbh = Bugzilla->dbh;    
+    # Exclude the auto-incremented field from the column list.
+    my $columns = join(", ", grep {$_ ne 'case_id'} DB_COLUMNS);
     my ($timestamp) = Bugzilla::Testopia::Util::get_time_stamp();
-    $dbh->do("INSERT INTO test_cases ($columns)
-              VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+
+    $dbh->do("INSERT INTO test_cases ($columns) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
               undef,                      ## Database Column ##
-              (undef,                        # case_id
-               $self->{'case_status_id'},    # case_status_id 
+              ($self->{'case_status_id'},    # case_status_id
                $self->{'category_id'},       # category_id
                $self->{'priority_id'},       # priority_id 
                $self->{'author_id'},         # author_id 
@@ -702,12 +702,13 @@ sub copy {
     my $self = shift;
     my $dbh = Bugzilla->dbh;
     my ($planid, $author, $copydoc) = @_;
+    # Exclude the auto-incremented field from the column list.
+    my $columns = join(", ", grep {$_ ne 'case_id'} DB_COLUMNS);
     my ($timestamp) = Bugzilla::Testopia::Util::get_time_stamp();
-    $dbh->do("INSERT INTO test_cases ($columns)
-              VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+
+    $dbh->do("INSERT INTO test_cases ($columns) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
               undef, 
-              (undef,                        # case_id
-               $self->{'case_status_id'},    # case_status_id 
+              ($self->{'case_status_id'},    # case_status_id
                $self->{'category_id'},       # category_id
                $self->{'priority_id'},       # priority_id 
                $author,                      # author_id 

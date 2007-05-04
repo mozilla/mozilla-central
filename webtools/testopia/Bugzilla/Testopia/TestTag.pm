@@ -61,9 +61,6 @@ use constant DB_COLUMNS => qw(
 
 );
 
-our $columns = join(", ", DB_COLUMNS);
-
-
 ###############################
 ####       Methods         ####
 ###############################
@@ -94,6 +91,7 @@ sub _init {
     my $self = shift;
     my ($param) = (@_);
     my $dbh = Bugzilla->dbh;
+    my $columns = join(", ", DB_COLUMNS);
 
     my $id = $param unless (ref $param eq 'HASH');
     my $name = $param unless (ref $param eq 'HASH');
@@ -172,9 +170,8 @@ sub store {
         $dbh->bz_unlock_tables();
         return $key;
     }
-    $dbh->do("INSERT INTO test_tags ($columns)
-              VALUES (?,?)",
-              undef, (undef, $self->{'tag_name'}));
+    $dbh->do("INSERT INTO test_tags (tag_name) VALUES (?)",
+              undef, ($self->{'tag_name'}));
     $key = $dbh->bz_last_key( 'test_tags', 'tag_id' );
     $dbh->bz_unlock_tables();
     

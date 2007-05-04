@@ -71,8 +71,6 @@ use constant DB_COLUMNS => qw(
     isactive
 );
 
-our $columns = join(", ", DB_COLUMNS);
-
 our constant $max_depth = 7;
 
 ###############################
@@ -105,7 +103,8 @@ sub _init {
     my $self = shift;
     my ($param) = (@_);
     my $dbh = Bugzilla->dbh;
-	
+    my $columns = join(", ", DB_COLUMNS);
+
     my $id = $param unless (ref $param eq 'HASH' || ref $param eq 'Bugzilla::Testopia::Environment::Xml');
     my $obj;
     
@@ -395,14 +394,15 @@ Serializes this environment to the database
 sub store {
     my $self = shift;
     my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
-    
+    # Exclude the auto-incremented field from the column list.
+    my $columns = join(", ", grep {$_ ne 'environment_id'} DB_COLUMNS);
+
     #Verify Environment isn't already in use.
     return undef if $self->check_environment($self->{'name'}, $self->{'product_id'});
     
     my $dbh = Bugzilla->dbh;
-    $dbh->do("INSERT INTO test_environments ($columns)
-              VALUES (?,?,?,?)",
-              undef, (undef, $self->{'product_id'}, $self->{'name'}, $self->{'isactive'}));
+    $dbh->do("INSERT INTO test_environments ($columns) VALUES (?,?,?)",
+              undef, ($self->{'product_id'}, $self->{'name'}, $self->{'isactive'}));
     my $key = $dbh->bz_last_key( 'test_environments', 'environment_id' );
     
     my $elements = $self->{'elements'};
@@ -442,16 +442,17 @@ Serializes the environment name to the database
 =cut
 
 sub store_environment_name {
-	my $self = shift;
+    my $self = shift;
     my ($name, $product_id) = (@_);
     my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
-	
+    # Exclude the auto-incremented field from the column list.
+    my $columns = join(", ", grep {$_ ne 'environment_id'} DB_COLUMNS);
+
 	return undef if $self->check_environment($name, $product_id);
 	
     my $dbh = Bugzilla->dbh;
-	$dbh->do("INSERT INTO test_environments ($columns)
-              VALUES (?,?,?,?)", undef, 
-             (undef,$product_id,$name,1));     
+    $dbh->do("INSERT INTO test_environments ($columns) VALUES (?,?,?)",
+              undef, ($product_id, $name, 1));
     return $dbh->bz_last_key( 'test_environments', 'environment_id' );
 }
 

@@ -90,8 +90,6 @@ use constant DB_COLUMNS => qw(
 
 use constant NAME_MAX_LENGTH => 255;
 
-our $columns = join(", ", DB_COLUMNS);
-
 sub report_columns {
     my $self = shift;
     my %columns;
@@ -139,6 +137,7 @@ sub _init {
     my $self = shift;
     my ($param) = (@_);
     my $dbh = Bugzilla->dbh;
+    my $columns = join(", ", DB_COLUMNS);
 
     my $id = $param unless (ref $param eq 'HASH');
     my $obj;
@@ -175,10 +174,12 @@ newly created test plan. It returns the new ID.
 sub store {
     my $self = shift;
     my $dbh = Bugzilla->dbh;
+    # Exclude the auto-incremented field from the column list.
+    my $columns = join(", ", grep {$_ ne 'plan_id'} DB_COLUMNS);
     my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
-    $dbh->do("INSERT INTO test_plans ($columns)
-              VALUES (?,?,?,?,?,?,?,?)",
-              undef, (undef, $self->{'product_id'}, $self->{'author_id'}, 
+
+    $dbh->do("INSERT INTO test_plans ($columns) VALUES (?,?,?,?,?,?,?)",
+              undef, ($self->{'product_id'}, $self->{'author_id'},
               $self->{'type_id'}, $self->{'default_product_version'}, $self->{'name'},
               $timestamp, 1));
     my $key = $dbh->bz_last_key( 'test_plans', 'plan_id' );
@@ -244,10 +245,12 @@ sub clone {
     my ($name, $author, $product_id, $version, $store_doc) = @_;
     $store_doc = 1 unless defined($store_doc);
     my $dbh = Bugzilla->dbh;
+    # Exclude the auto-incremented field from the column list.
+    my $columns = join(", ", grep {$_ ne 'plan_id'} DB_COLUMNS);
     my ($timestamp) = Bugzilla::Testopia::Util::get_time_stamp();
-    $dbh->do("INSERT INTO test_plans ($columns)
-              VALUES (?,?,?,?,?,?,?,?)",
-              undef, (undef, $product_id, $author, 
+
+    $dbh->do("INSERT INTO test_plans ($columns) VALUES (?,?,?,?,?,?,?)",
+              undef, ($product_id, $author,
               $self->{'type_id'}, $version, $name,
               $timestamp, 1));
     my $key = $dbh->bz_last_key( 'test_plans', 'plan_id' );

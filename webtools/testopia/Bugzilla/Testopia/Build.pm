@@ -66,9 +66,6 @@ use constant DB_COLUMNS => qw(
     isactive
 );
 
-our $columns = join(", ", DB_COLUMNS);
-
-
 ###############################
 ####       Methods         ####
 ###############################
@@ -99,6 +96,7 @@ sub _init {
     my $self = shift;
     my ($param) = (@_);
     my $dbh = Bugzilla->dbh;
+    my $columns = join(", ", DB_COLUMNS);
 
     my $id = $param unless (ref $param eq 'HASH');
     my $obj;
@@ -128,9 +126,11 @@ Serializes this build to the database
 sub store {
     my $self = shift;
     my $dbh = Bugzilla->dbh;
-    $dbh->do("INSERT INTO test_builds ($columns)
-              VALUES (?,?,?,?,?,?)",
-              undef, (undef, $self->{'product_id'}, $self->{'name'}, 
+    # Exclude the auto-incremented field from the column list.
+    my $columns = join(", ", grep {$_ ne 'build_id'} DB_COLUMNS);
+
+    $dbh->do("INSERT INTO test_builds ($columns) VALUES (?,?,?,?,?)",
+              undef, ($self->{'product_id'}, $self->{'name'},
               $self->{'description'}, $self->{'milestone'}, $self->{'isactive'}));
     my $key = $dbh->bz_last_key( 'test_builds', 'build_id' );
     return $key;

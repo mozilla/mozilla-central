@@ -79,9 +79,6 @@ use constant DB_COLUMNS => qw(
     mime_type
 );
 
-our $columns = join(", ", DB_COLUMNS);
-
-
 ###############################
 ####       Methods         ####
 ###############################
@@ -112,6 +109,7 @@ sub _init {
     my $self = shift;
     my ($param) = (@_);
     my $dbh = Bugzilla->dbh;
+    my $columns = join(", ", DB_COLUMNS);
 
     my $id = $param unless (ref $param eq 'HASH');
     my $obj;
@@ -145,6 +143,9 @@ Serializes this attachment to the database
 
 sub store {
     my ($self) = @_;
+    # Exclude the auto-incremented field from the column list.
+    my $columns = join(", ", grep {$_ ne 'attachment_id'} DB_COLUMNS);
+
     if (!$self->{'case_id'} && !$self->{'plan_id'}){
         ThrowUserError("testopia-missing-attachment-key");
     }
@@ -153,11 +154,8 @@ sub store {
     my $dbh = Bugzilla->dbh;
     my ($timestamp) = Bugzilla::Testopia::Util::get_time_stamp();
 
-         
-    $dbh->do("INSERT INTO test_attachments ($columns)
-              VALUES (?,?,?,?,?,?)",
-              undef, (undef,  
-              $self->{'submitter_id'}, $self->{'description'}, 
+    $dbh->do("INSERT INTO test_attachments ($columns) VALUES (?,?,?,?,?)",
+              undef, ($self->{'submitter_id'}, $self->{'description'},
               $self->{'filename'}, $timestamp, $self->{'mime_type'}));
  
     my $key = $dbh->bz_last_key( 'test_attachments', 'attachment_id' );

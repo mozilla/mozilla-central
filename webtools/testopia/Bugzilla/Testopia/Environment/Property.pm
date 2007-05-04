@@ -67,8 +67,6 @@ use constant DB_COLUMNS => qw(
     validexp
     );
 
-our $columns = join(", ", DB_COLUMNS);
-
 ###############################
 ####       Methods         ####
 ###############################
@@ -99,7 +97,8 @@ sub _init {
     my $self = shift;
     my ($param) = (@_);
     my $dbh = Bugzilla->dbh;
-	
+    my $columns = join(", ", DB_COLUMNS);
+
     my $id = $param unless (ref $param eq 'HASH');
     my $obj;
 
@@ -214,14 +213,16 @@ Serializes the new property to the database
 
 sub store {
     my $self = shift;
+    # Exclude the auto-incremented field from the column list.
+    my $columns = join(", ", grep {$_ ne 'property_id'} DB_COLUMNS);
     my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
  
     # Verify name is available
     return undef if $self->check_property($self->{'name'}, $self->{'element_id'});
 	
     my $dbh = Bugzilla->dbh;
-    $dbh->do("INSERT INTO test_environment_property ($columns)
-             VALUES (?,?,?,?)",undef, (undef, $self->{'element_id'}, $self->{'name'}, $self->{'validexp'}));          
+    $dbh->do("INSERT INTO test_environment_property ($columns) VALUES (?,?,?)",
+             undef, ($self->{'element_id'}, $self->{'name'}, $self->{'validexp'}));
     my $key = $dbh->bz_last_key( 'test_plans', 'plan_id' );
     return $key;
 }

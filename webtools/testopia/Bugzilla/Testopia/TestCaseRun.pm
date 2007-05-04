@@ -97,8 +97,6 @@ use constant DB_COLUMNS => qw(
     sortkey
 );
 
-our $columns = join(", ", DB_COLUMNS);
-
 sub report_columns {
     my $self = shift;
     my %columns;
@@ -155,6 +153,7 @@ sub _init {
     my $self = shift;
     my ($param, $run_id, $build_id, $env_id) = (@_);
     my $dbh = Bugzilla->dbh;
+    my $columns = join(", ", DB_COLUMNS);
 
     my $id = $param unless (ref $param eq 'HASH');
     my $obj;
@@ -207,10 +206,12 @@ to store a newly created test case run. It returns the new id.
 sub store {
     my $self = shift;
     my $dbh = Bugzilla->dbh;    
-    $dbh->do("INSERT INTO test_case_runs ($columns)
-              VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", undef,
-              (undef,                         # case_run_id 
-               $self->{'run_id'},             # run_id
+    # Exclude the auto-incremented field from the column list.
+    my $columns = join(", ", grep {$_ ne 'case_run_id'} DB_COLUMNS);
+
+    $dbh->do("INSERT INTO test_case_runs ($columns) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+              undef,
+              ($self->{'run_id'},             # run_id
                $self->{'case_id'},            # case_id
                $self->{'assignee'},           # assignee
                undef,                         # testedby
@@ -240,12 +241,13 @@ sub clone {
     my ($build_id, $env_id ,$run_id, $case_id) = @_;
     $run_id   ||= $self->{'run_id'};
     $case_id  ||= $self->{'case_id'};
-    
+    # Exclude the auto-incremented field from the column list.
+    my $columns = join(", ", grep {$_ ne 'case_run_id'} DB_COLUMNS);
+
     my $dbh = Bugzilla->dbh;    
-    $dbh->do("INSERT INTO test_case_runs ($columns)
-              VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", undef,
-              (undef,                         # case_run_id 
-               $run_id,                       # run_id
+    $dbh->do("INSERT INTO test_case_runs ($columns) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+              undef,
+              ($run_id,                       # run_id
                $case_id,                      # case_id
                $self->{'assignee'},           # assignee
                undef,                         # testedby

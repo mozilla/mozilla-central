@@ -88,8 +88,6 @@ use constant DB_COLUMNS => qw(
     notes
 );
 
-our $columns = join(", ", DB_COLUMNS);
-
 sub report_columns {
     my $self = shift;
     my %columns;
@@ -139,6 +137,7 @@ sub _init {
     my $self = shift;
     my ($param) = (@_);
     my $dbh = Bugzilla->dbh;
+    my $columns = join(", ", DB_COLUMNS);
 
     my $id = $param unless (ref $param eq 'HASH');
     my $obj;
@@ -303,10 +302,12 @@ newly created test run. It returns the new ID.
 sub store {
     my $self = shift;
     my $dbh = Bugzilla->dbh;
+    # Exclude the auto-incremented field from the column list.
+    my $columns = join(", ", grep {$_ ne 'run_id'} DB_COLUMNS);
     my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
-    $dbh->do("INSERT INTO test_runs ($columns)
-              VALUES (?,?,?,?,?,?,?,?,?,?,?)",
-              undef, (undef, $self->{'plan_id'}, $self->{'environment_id'}, 
+
+    $dbh->do("INSERT INTO test_runs ($columns) VALUES (?,?,?,?,?,?,?,?,?,?)",
+              undef, ($self->{'plan_id'}, $self->{'environment_id'},
               $self->{'product_version'}, $self->{'build_id'}, 
               $self->{'plan_text_version'}, $self->{'manager_id'}, 
               $timestamp, undef, $self->{'summary'}, $self->{'notes'}));
@@ -377,10 +378,12 @@ sub clone {
     my $self = shift;
     my ($summary, $manager, $plan_id, $build) = @_;
     my $dbh = Bugzilla->dbh;
+    # Exclude the auto-incremented field from the column list.
+    my $columns = join(", ", grep {$_ ne 'run_id'} DB_COLUMNS);
     my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
-    $dbh->do("INSERT INTO test_runs ($columns)
-              VALUES (?,?,?,?,?,?,?,?,?,?,?)",
-              undef, (undef, $plan_id, $self->{'environment_id'}, 
+
+    $dbh->do("INSERT INTO test_runs ($columns) VALUES (?,?,?,?,?,?,?,?,?,?)",
+              undef, ($plan_id, $self->{'environment_id'},
               $self->{'product_version'}, $build, 
               $self->{'plan_text_version'}, $manager, 
               $timestamp, undef, $summary, undef));

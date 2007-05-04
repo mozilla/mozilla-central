@@ -70,9 +70,7 @@ use constant DB_COLUMNS => qw(
     isprivate
 );
 
-our $columns = join(", ", DB_COLUMNS);
-
-our constant $max_depth = 5;    
+our constant $max_depth = 5;
 
 ###############################
 ####       Methods         ####
@@ -104,7 +102,8 @@ sub _init {
     my $self = shift;
     my ($param) = (@_);
     my $dbh = Bugzilla->dbh;
-	
+    my $columns = join(", ", DB_COLUMNS);
+
     my $id = $param unless (ref $param eq 'HASH');
     my $obj;
 
@@ -336,16 +335,17 @@ Serializes the new element to the database and returns the primary key or 0
 =cut
 
 sub store {
-	my $self = shift;
+    my $self = shift;
+    # Exclude the auto-incremented field from the column list.
+    my $columns = join(", ", grep {$_ ne 'element_id'} DB_COLUMNS);
     my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
  
     # Verify name is available
     return undef if $self->check_element($self->{'name'},$self->{'env_category_id'});
 
     my $dbh = Bugzilla->dbh;
-    $dbh->do("INSERT INTO test_environment_element ($columns)
-              VALUES (?,?,?,?,?)",
-              undef, (undef, $self->{'env_category_id'}, $self->{'name'},
+    $dbh->do("INSERT INTO test_environment_element ($columns) VALUES (?,?,?,?)",
+              undef, ($self->{'env_category_id'}, $self->{'name'},
               $self->{'parent_id'},$self->{'isprivate'}));          
     my $key = $dbh->bz_last_key('test_environment_element', 'element_id');
     return $key;

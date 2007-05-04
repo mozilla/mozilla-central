@@ -65,8 +65,6 @@ use constant DB_COLUMNS => qw(
     name
     );
 
-our $columns = join(", ", DB_COLUMNS);
-
 ###############################
 ####       Methods         ####
 ###############################
@@ -97,7 +95,8 @@ sub _init {
     my $self = shift;
     my ($param) = (@_);
     my $dbh = Bugzilla->dbh;
-	
+    my $columns = join(", ", DB_COLUMNS);
+
     my $id = $param unless (ref $param eq 'HASH');
     my $obj;
 
@@ -414,14 +413,16 @@ Serializes this category to the database and returns the key or 0
 =cut
 
 sub store {
-	my $self = shift;
+    my $self = shift;
+    # Exclude the auto-incremented field from the column list.
+    my $columns = join(", ", grep {$_ ne 'env_category_id'} DB_COLUMNS);
     my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
     
     return 0 if $self->check_category($self->{'name'},$self->{'product_id'});
 	
     my $dbh = Bugzilla->dbh;
-    $dbh->do("INSERT INTO test_environment_category ($columns)
-              VALUES (?,?,?)",undef, (undef, $self->{'product_id'},$self->{'name'}));          
+    $dbh->do("INSERT INTO test_environment_category ($columns) VALUES (?, ?)",
+             undef, ($self->{'product_id'}, $self->{'name'}));
     my $key = $dbh->bz_last_key( 'test_environment_category', 'env_category_id' );
 
     return $key;
