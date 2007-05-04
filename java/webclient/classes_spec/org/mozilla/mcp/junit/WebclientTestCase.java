@@ -1,5 +1,5 @@
 /*
- * $Id: WebclientTestCase.java,v 1.15 2007-03-03 20:35:14 edburns%acm.org Exp $
+ * $Id: WebclientTestCase.java,v 1.1 2007-05-04 17:10:17 edburns%acm.org Exp $
  */
 
 /* 
@@ -24,7 +24,7 @@
  * Contributor(s): Ed Burns &lt;edburns@acm.org&gt;
  */
 
-package org.mozilla.webclient;
+package org.mozilla.mcp.junit;
 
 // WebclientTestCase.java
 
@@ -38,19 +38,26 @@ import java.util.logging.Logger;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import junit.framework.TestResult;
+import org.mozilla.mcp.CompareFiles;
 
-import org.mozilla.util.THTTPD;
+import org.mozilla.mcp.THTTPD;
+import org.mozilla.webclient.BrowserControlFactory;
 
 /**
  *
- *  <B>WebclientTestCase</B> is a class ...
+ *  <p>WebclientTestCase extends <code>junit.framework.TestCase</code>
+ *  and allows using MCP from a JUnit test.  It makes assertions that
+ *  verify preconditions for running MCP.</p>
  *
- * <B>Lifetime And Scope</B> <P>
+ * <p>This class currently has a number of undocumented and unsupported
+ * features that can be useful if you take the time to look at the
+ * source.  Specifically, it has the ability to capture output from
+ * running the testcase, compare that output with a golden file, and it
+ * has a trivial HTTP server built in so webclient automated tests can
+ * run without any extra server baggage.</p>
  *
- * @version $Id: WebclientTestCase.java,v 1.15 2007-03-03 20:35:14 edburns%acm.org Exp $
+ * @version $Id: WebclientTestCase.java,v 1.1 2007-05-04 17:10:17 edburns%acm.org Exp $
  * 
- * @see	Blah
- * @see	Bloo
  *
  */
 
@@ -63,8 +70,8 @@ public abstract class WebclientTestCase extends TestCase
 public static final String WEBCLIENTSTUB_LOG_MODULE = "webclientstub";
 public static final String WEBCLIENT_LOG_MODULE = "webclient";
 public static String OUTPUT_FILE_ROOT = null;
-public static final String TEST_LOG = "org.mozilla.webclient.test";
-public static final String TEST_LOG_STRINGS = "org.mozilla.webclient.TestLogStrings";
+public static final String TEST_LOG = "org.mozilla.mcp.junit";
+public static final String TEST_LOG_STRINGS = "org.mozilla.mcp.junit.TestLogStrings";
 
 public static final Logger LOGGER = getLogger(TEST_LOG);
 

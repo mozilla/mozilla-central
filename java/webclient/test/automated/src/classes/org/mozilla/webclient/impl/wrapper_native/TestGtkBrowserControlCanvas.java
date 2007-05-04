@@ -1,5 +1,5 @@
 /*
- * $Id: TestGtkBrowserControlCanvas.java,v 1.1 2004-04-23 14:52:21 edburns%acm.org Exp $
+ * $Id: TestGtkBrowserControlCanvas.java,v 1.2 2007-05-04 17:10:35 edburns%acm.org Exp $
  */
 
 /* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
@@ -31,7 +31,7 @@ package org.mozilla.webclient.impl.wrapper_native;
 import org.mozilla.util.Assert;
 import org.mozilla.util.ParameterCheck;
 
-import org.mozilla.webclient.WebclientTestCase;
+import org.mozilla.mcp.junit.WebclientTestCase;
 
 /**
  *
@@ -39,7 +39,7 @@ import org.mozilla.webclient.WebclientTestCase;
  *
  * <B>Lifetime And Scope</B> <P>
  *
- * @version $Id: TestGtkBrowserControlCanvas.java,v 1.1 2004-04-23 14:52:21 edburns%acm.org Exp $
+ * @version $Id: TestGtkBrowserControlCanvas.java,v 1.2 2007-05-04 17:10:35 edburns%acm.org Exp $
  * 
  * @see	Blah
  * @see	Bloo

@@ -1,5 +1,5 @@
 /*
- * $Id: JsfjMakiTest.java,v 1.1 2007-04-21 03:25:36 edburns%acm.org Exp $
+ * $Id: JsfjMakiTest.java,v 1.2 2007-05-04 17:10:16 edburns%acm.org Exp $
  */
 
 /* 
@@ -31,7 +31,8 @@ import java.util.Map;
 import junit.framework.TestFailure;
 import org.mozilla.mcp.AjaxListener;
 import org.mozilla.mcp.MCP;
-import org.mozilla.webclient.WebclientTestCase;
+import org.mozilla.mcp.TimeoutHandler;
+import org.mozilla.mcp.junit.WebclientTestCase;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Document;
@@ -48,9 +49,7 @@ public class JsfjMakiTest extends WebclientTestCase  {
         super(testName);
     }
     
-    private int ajaxTimeOut = 60000;
-    
-    private int ajaxWaitInterval = 5000;
+    private TimeoutHandler timeoutHandler = null;
 
     public void setUp() {
         super.setUp();
@@ -76,8 +75,25 @@ public class JsfjMakiTest extends WebclientTestCase  {
     
     public void testInplace() throws Exception {
         mcp.getRealizedVisibleBrowserWindow();
+        final Thread testThread = Thread.currentThread();
+        timeoutHandler = new TimeoutHandler() {
+            public void timeout() {
+                super.timeout();
+                testThread.interrupt();
+                fail("Action timed out");
+            }
+        };        
+        mcp.setTimeoutHandler(timeoutHandler);
+        
         final BitSet bitSet = new BitSet();
         AjaxListener listener = new AjaxListener() {
+            
+            public void timedOut() {
+                fail("Timed out waiting for ajax transaction to complete.");
+            }
+            public void errorAjax(Map eventMap) {
+                fail("Received error on Ajax transaction");
+            }
             public void endAjax(Map eventMap) {
                 bitSet.flip(TestFeature.RECEIVED_END_AJAX_EVENT.ordinal());
                 if (null != eventMap) {
@@ -126,7 +142,11 @@ public class JsfjMakiTest extends WebclientTestCase  {
         mcp.addAjaxListener(listener);
         
         // Load the main page of the app
-        mcp.blockingLoad("http://localhost:8080/jsf-jmaki/index-demo.jsf");
+        mcp.blockingLoad("http://webdev2.sun.com/jsf-jmaki/index-demo.jsf");
+        
+        if (timeoutHandler.isDidTimeout()) {
+            fail("timed out waiting for load");
+        }
         
         // Choose the inplace test
         mcp.blockingClickElement("inplace-test");
@@ -174,18 +194,19 @@ public class JsfjMakiTest extends WebclientTestCase  {
         Thread.currentThread().sleep(10000);
         
         mcp.deleteBrowserControl();
+
     }
     
     private void makeAjaxAssertions(BitSet bitSet) throws Exception {
         // Artifically wait for the ajax transaction to complete, or the timeout to be reached.
         int i = 0;
-        while (!bitSet.get(TestFeature.STOP_WAITING.ordinal()) ||
-                ((i * getAjaxWaitInterval()) > getAjaxTimeOut())) {
+        while (true) {
+            if (bitSet.get(TestFeature.STOP_WAITING.ordinal())) {
+                break;
+            }
             i++;
-            Thread.currentThread().sleep(getAjaxWaitInterval());
+            Thread.currentThread().sleep(mcp.getTimeoutWaitInterval());
         }
-        // Ensure the timeout was not reached
-        assertFalse(((i * getAjaxWaitInterval()) > getAjaxTimeOut()));
 
         // assert that the ajax transaction succeeded
         assertTrue(bitSet.get(TestFeature.RECEIVED_END_AJAX_EVENT.ordinal()));
@@ -255,22 +276,5 @@ public class JsfjMakiTest extends WebclientTestCase  {
         makeAjaxAssertions(bitSet);
         
     }
-
-    public int getAjaxTimeOut() {
-        return ajaxTimeOut;
-    }
-
-    public void setAjaxTimeOut(int ajaxTimeOut) {
-        this.ajaxTimeOut = ajaxTimeOut;
-    }
-
-    public int getAjaxWaitInterval() {
-        return ajaxWaitInterval;
-    }
-
-    public void setAjaxWaitInterval(int ajaxWaitInterval) {
-        this.ajaxWaitInterval = ajaxWaitInterval;
-    }
-    
     
 }

@@ -1,5 +1,5 @@
 /*
- * $Id: BrowserControlFactoryTest.java,v 1.4 2006-03-05 03:53:26 edburns%acm.org Exp $
+ * $Id: BrowserControlFactoryTest.java,v 1.5 2007-05-04 17:10:18 edburns%acm.org Exp $
  */
 
 /* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
@@ -28,6 +28,7 @@ package org.mozilla.webclient;
 
 import junit.framework.TestSuite;
 import junit.framework.Test;
+import org.mozilla.mcp.junit.WebclientTestCase;
 
 // BrowserControlFactoryTest.java
 

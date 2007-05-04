@@ -1,5 +1,5 @@
 /*
- * $Id: PreferencesTest.java,v 1.2 2004-04-01 14:54:57 edburns%acm.org Exp $
+ * $Id: PreferencesTest.java,v 1.3 2007-05-04 17:10:35 edburns%acm.org Exp $
  */
 
 /* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
@@ -31,6 +31,7 @@ import junit.framework.Test;
 
 import java.util.Properties;
 import java.util.Iterator;
+import org.mozilla.mcp.junit.WebclientTestCase;
 
 // PreferencesTest.java
 

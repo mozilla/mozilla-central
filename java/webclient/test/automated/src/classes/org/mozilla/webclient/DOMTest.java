@@ -1,5 +1,5 @@
 /*
- * $Id: DOMTest.java,v 1.3 2007-03-06 03:28:47 edburns%acm.org Exp $
+ * $Id: DOMTest.java,v 1.4 2007-05-04 17:10:35 edburns%acm.org Exp $
  */
 
 /* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
@@ -37,6 +37,7 @@ import java.awt.Robot;
 
 import java.io.File;
 import java.io.FileInputStream;
+import org.mozilla.mcp.junit.WebclientTestCase;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;

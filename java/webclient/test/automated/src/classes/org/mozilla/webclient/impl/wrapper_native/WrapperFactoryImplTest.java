@@ -1,5 +1,5 @@
 /*
- * $Id: WrapperFactoryImplTest.java,v 1.4 2004-04-20 16:17:43 edburns%acm.org Exp $
+ * $Id: WrapperFactoryImplTest.java,v 1.5 2007-05-04 17:10:35 edburns%acm.org Exp $
  */
 
 /* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
@@ -31,7 +31,7 @@ import junit.framework.Test;
 
 import org.mozilla.webclient.BrowserControl;
 import org.mozilla.webclient.BrowserControlFactory;
-import org.mozilla.webclient.WebclientTestCase;
+import org.mozilla.mcp.junit.WebclientTestCase;
 import org.mozilla.webclient.impl.BrowserControlImpl;
 
 // WrapperFactoryImplTest.java

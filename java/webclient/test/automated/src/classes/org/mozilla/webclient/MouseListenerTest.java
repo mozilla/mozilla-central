@@ -1,5 +1,5 @@
 /*
- * $Id: MouseListenerTest.java,v 1.3 2005-08-20 19:25:52 edburns%acm.org Exp $
+ * $Id: MouseListenerTest.java,v 1.4 2007-05-04 17:10:35 edburns%acm.org Exp $
  */
 
 /* 
@@ -37,6 +37,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.InputEvent;
 import java.awt.BorderLayout;
+import org.mozilla.mcp.junit.WebclientTestCase;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 

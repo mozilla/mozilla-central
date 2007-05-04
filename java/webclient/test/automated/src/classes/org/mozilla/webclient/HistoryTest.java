@@ -1,5 +1,5 @@
 /*
- * $Id: HistoryTest.java,v 1.3 2004-10-26 19:33:15 edburns%acm.org Exp $
+ * $Id: HistoryTest.java,v 1.4 2007-05-04 17:10:35 edburns%acm.org Exp $
  */
 
 /* 
@@ -37,6 +37,7 @@ import java.awt.BorderLayout;
 
 import java.io.File;
 import java.io.FileInputStream;
+import org.mozilla.mcp.junit.WebclientTestCase;
 
 // HistoryTest.java
 

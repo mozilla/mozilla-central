@@ -1,5 +1,5 @@
 /*
- * $Id: NavigationTest.java,v 1.21 2007-02-23 19:03:12 edburns%acm.org Exp $
+ * $Id: NavigationTest.java,v 1.22 2007-05-04 17:10:35 edburns%acm.org Exp $
  */
 
 /* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
@@ -36,6 +36,7 @@ import java.awt.BorderLayout;
 
 import java.io.File;
 import java.io.FileInputStream;
+import org.mozilla.mcp.junit.WebclientTestCase;
 
 // NavigationTest.java
 

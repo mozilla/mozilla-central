@@ -1,5 +1,5 @@
 /*
- * $Id: DocumentLoadListenerTest.java,v 1.5 2006-03-17 00:26:02 edburns%acm.org Exp $
+ * $Id: DocumentLoadListenerTest.java,v 1.6 2007-05-04 17:10:35 edburns%acm.org Exp $
  */
 
 /* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
@@ -42,6 +42,7 @@ import java.io.InputStream;
 
 import java.awt.Robot;
 import java.awt.event.InputEvent;
+import org.mozilla.mcp.junit.WebclientTestCase;
 
 
 // DocumentLoadListenerTest.java

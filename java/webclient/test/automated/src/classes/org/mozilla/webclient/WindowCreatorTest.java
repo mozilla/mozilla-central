@@ -1,5 +1,5 @@
 /*
- * $Id: WindowCreatorTest.java,v 1.4 2007-01-22 12:35:14 edburns%acm.org Exp $
+ * $Id: WindowCreatorTest.java,v 1.5 2007-05-04 17:10:35 edburns%acm.org Exp $
  */
 
 /* 
@@ -43,6 +43,7 @@ import java.awt.BorderLayout;
 
 import java.io.File;
 import java.io.FileInputStream;
+import org.mozilla.mcp.junit.WebclientTestCase;
 
 // WindowCreatorTest.java
 

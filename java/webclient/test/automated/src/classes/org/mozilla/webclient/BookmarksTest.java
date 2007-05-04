@@ -1,5 +1,5 @@
 /*
- * $Id: BookmarksTest.java,v 1.1 2003-09-28 06:29:18 edburns%acm.org Exp $
+ * $Id: BookmarksTest.java,v 1.2 2007-05-04 17:10:18 edburns%acm.org Exp $
  */
 
 /* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
@@ -32,6 +32,7 @@ import junit.framework.Test;
 import java.util.Enumeration;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreeNode;
+import org.mozilla.mcp.junit.WebclientTestCase;
 
 // BookmarksTest.java
 

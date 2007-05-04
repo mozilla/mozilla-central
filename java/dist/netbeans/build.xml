@@ -210,7 +210,7 @@ ${so.prefix}xul.${so.extension}.
 
         <property name="debug.jvm.args" value="" />
         <property name="test.browser.url" 
-                  value="${basedir}/../2_0_alpha_6.html" />
+                  value="${basedir}/../2_0_alpha_8.html" />
         
         <java classname="org.mozilla.webclient.test.TestBrowser" fork="true">
             <jvmarg value="-DNSPR_LOG_MODULES=webclient:4,webclientstub:4,pluglets:4"/>
@@ -340,7 +340,7 @@ ${so.prefix}xul.${so.extension}.
       <echo file="${build.classes.dir}/META-INF/services/org.mozilla.webclient.WebclientFactory">org.mozilla.webclient.impl.WebclientFactoryImpl</echo>
       <echo file="${build.classes.dir}/META-INF/services/org.mozilla.webclient.impl.WrapperFactory">org.mozilla.webclient.impl.wrapper_native.WrapperFactoryImpl</echo>
 
-      <move failonerror="false" file="${file.reference.webclient-2_0_a6.jar}"
+      <move failonerror="false" file="${file.reference.webclient-2_0_a8.jar}"
             tofile="${basedir}/../lib/outofdate-webclient_jar" />
 
     </target>

@@ -1,5 +1,5 @@
 /*
- * $Id: WebclientFactoryImplTest.java,v 1.1 2003-09-28 06:29:19 edburns%acm.org Exp $
+ * $Id: WebclientFactoryImplTest.java,v 1.2 2007-05-04 17:10:35 edburns%acm.org Exp $
  */
 
 /* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
@@ -29,7 +29,7 @@ package org.mozilla.webclient.impl;
 import junit.framework.TestSuite;
 import junit.framework.Test;
 
-import org.mozilla.webclient.WebclientTestCase;
+import org.mozilla.mcp.junit.WebclientTestCase;
 
 // WebclientFactoryImplTest.java
 

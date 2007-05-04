@@ -1,5 +1,5 @@
 /*
- * $Id: CarDemoTest.java,v 1.7 2007-03-15 00:33:10 edburns%acm.org Exp $
+ * $Id: CarDemoTest.java,v 1.8 2007-05-04 17:10:16 edburns%acm.org Exp $
  */
 
 /* 
@@ -30,7 +30,7 @@ import java.util.Map;
 import junit.framework.TestFailure;
 import org.mozilla.mcp.AjaxListener;
 import org.mozilla.mcp.MCP;
-import org.mozilla.webclient.WebclientTestCase;
+import org.mozilla.mcp.junit.WebclientTestCase;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Document;
@@ -121,13 +121,13 @@ public class CarDemoTest extends WebclientTestCase  {
         mcp.addAjaxListener(listener);
         
         // Load the main page of the app
-        mcp.blockingLoad("http://javaserver.org/jsf-ajax-cardemo/faces/chooseLocale.jsp");
+        mcp.blockingLoad("http://webdev1.sun.com/jsf-ajax-cardemo/faces/chooseLocale.jsp");
         // Choose the "German" language button
         mcp.blockingClickElement("j_id_id73:Germany");
         // Choose the roadster
         mcp.blockingClickElement("j_id_id18:j_id_id43");
         // Sample the Basis-Preis and Ihr Preis before the ajax transaction
-        Element pricePanel = mcp.findElement("j_id_id10:zone1");
+        Element pricePanel = mcp.findElement("j_id_id21:zone1");
         assertNotNull(pricePanel);
         String pricePanelText = pricePanel.getTextContent();
         
@@ -137,7 +137,7 @@ public class CarDemoTest extends WebclientTestCase  {
         
         // Choose the "Tempomat" checkbox
         bitSet.clear();
-        mcp.clickElement("j_id_id10:j_id_id63j_id_1");
+        mcp.clickElement("j_id_id21:j_id_id67j_id_1");
         
         while (!bitSet.get(TestFeature.STOP_WAITING.ordinal())) {
             Thread.currentThread().sleep(5000);
@@ -152,7 +152,7 @@ public class CarDemoTest extends WebclientTestCase  {
         bitSet.clear();
         
         // Sample the Basis-Preis and Ihr-Preis after the ajax transaction
-        pricePanel = mcp.findElement("j_id_id10:zone1");
+        pricePanel = mcp.findElement("j_id_id21:zone1");
         assertNotNull(pricePanel);
         pricePanelText = pricePanel.getTextContent();
 

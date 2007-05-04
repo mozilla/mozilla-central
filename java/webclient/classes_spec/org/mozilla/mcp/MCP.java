@@ -1,5 +1,5 @@
 /*
- * $Id: MCP.java,v 1.9 2007-04-21 03:25:37 edburns%acm.org Exp $
+ * $Id: MCP.java,v 1.10 2007-05-04 17:10:17 edburns%acm.org Exp $
  */
 
 /* 
@@ -91,6 +91,8 @@ public class MCP {
     private Robot robot;
     private DOMTreeDumper treeDumper = null;
     private CountDownLatch latch = null;
+    private TimeoutHandler timeoutHandler = null;
+    private long Timeout = 30000L;
     
     private void createLatch() {
         if (null != latch) {
@@ -528,6 +530,7 @@ public class MCP {
                     robot.mouseMove(x, y);
                     robot.mousePress(InputEvent.BUTTON1_MASK);
                     robot.mouseRelease(InputEvent.BUTTON1_MASK);
+                    startTimeoutCheckIfNecessary();
 
                 } catch (NumberFormatException ex) {
                     LOGGER.throwing(this.getClass().getName(), "clickElementGivenId",
@@ -612,6 +615,7 @@ public class MCP {
         Navigation2 nav = getNavigation();
         synchronized (this) {
             nav.loadURL(url);
+            startTimeoutCheckIfNecessary();
             createLatch();
             try {
                 lockLatch();
@@ -652,6 +656,10 @@ public class MCP {
                 case ((int) DocumentLoadEvent.END_AJAX_EVENT_MASK):
                 case ((int) DocumentLoadEvent.END_DOCUMENT_LOAD_EVENT_MASK):
                     openLatch();
+		    if (null != MCP.this.timeoutThread) {
+			MCP.this.abortTimeoutCheck();
+		    }
+
                     break;
                 case ((int) DocumentLoadEvent.START_URL_LOAD_EVENT_MASK):
                     String method = (String) eventData.get("method");
@@ -681,6 +689,167 @@ public class MCP {
             }
         }
         
+    }
+    
+    
+    private void startTimeoutCheckIfNecessary() {
+        // If we are already tracking a timeout...
+        if (null != timeoutThread) {
+            abortTimeoutCheck();
+        }
+        if (null != getTimeoutHandler()) {
+            timeoutRunnable = new TimeoutRunnable();
+            timeoutThread = new Thread(timeoutRunnable,
+                    "TimeoutThread-" + getTimeoutHandler().toString());
+            timeoutThread.start();
+        }
+    }
+    
+    private void abortTimeoutCheck() {
+        assert(null != timeoutThread);
+        assert(null != timeoutRunnable);
+        timeoutRunnable.setRunning(false);
+        timeoutThread.interrupt();
+        timeoutRunnable = null;
+        timeoutThread = null;
+    }
+    
+    private Thread timeoutThread = null;
+    private TimeoutRunnable timeoutRunnable = null;
+
+    /**
+     * <p>Return the currently installed {@link TimeoutHandler}, if
+     * any.</p>
+     */
+
+    public TimeoutHandler getTimeoutHandler() {
+        return timeoutHandler;
+    }
+
+    /**
+     * <p>Install an instance of {@link TimeoutHandler} that will be
+     * used for all subsequent browser interactions (clicks, loads, Ajax
+     * transactions, etc).  To remove the <code>TimeoutHandler</code>,
+     * pass <code>null</code> to this method.  If a handler is
+     * installed, the timer is automatically started when a browser
+     * interaction commences.  If the browser interaction does not
+     * complete within {@link #getTimeout} milliseconds, the {@link
+     * TimeoutHandler#timeout} method is called on the argument
+     * <code>TimeoutHandler</code> instance.</p>
+     */ 
+
+    public void setTimeoutHandler(TimeoutHandler timeoutHandler) {
+        if (null != timeoutThread) {
+            abortTimeoutCheck();
+        }
+        this.timeoutHandler = timeoutHandler;
+    }
+
+    /**
+     * <p>Return the number of milliseconds that must elapse before the
+     * {@link TimeoutHandler} is called.  Note that a
+     * <code>TimeoutHandler</code> is only called if the user has
+     * installed one by calling {@link #setTimeoutHandler}.</p>
+     */
+
+    public long getTimeout() {
+        return Timeout;
+    }
+
+    /**
+     * <p>Set the number of milliseconds that must elapse before the
+     * {@link TimeoutHandler} is called, if such an instance has been
+     * installed via a previous call to {@link @setTimeoutHandler}.</p>
+     */
+
+    public void setTimeout(long Timeout) {
+        this.Timeout = Timeout;
+    }
+    
+        private long waitInterval = 5000L;
+
+        /**
+         * <p>Return the number of milliseconds to wait between timeout
+         * checks.</p>
+         */
+
+        public long getTimeoutWaitInterval() {
+            return waitInterval;
+        }
+
+        /**
+         * <p>Set the number of milliseconds to wait between timeout
+         * checks.</p>
+         */
+
+        public void setTimeoutWaitInterval(long waitInterval) {
+            this.waitInterval = waitInterval;
+        }
+    
+    
+    
+    private class TimeoutRunnable implements Runnable {
+        
+        public void run() {
+            setRunning(true);
+            
+            while (isRunning()) {
+                try {
+                    Thread.currentThread().sleep(MCP.this.getTimeoutWaitInterval());
+                } catch (InterruptedException ex) {
+                    if (LOGGER.isLoggable(Level.WARNING)) {
+                        LOGGER.log(Level.WARNING, "Thread " + 
+                                Thread.currentThread().getName() + 
+                                " interrupted while sleeping.", ex);
+                    }
+                    setRunning(false);
+                    return;
+                }
+                if (isTimedout()) {
+                    setRunning(false);
+                    if (null != MCP.this.getTimeoutHandler()) {
+                        MCP.this.getTimeoutHandler().timeout();
+                    }
+                }
+            }
+            
+        }
+        
+        private long startTime = -1L;
+
+        private boolean running = false;
+
+        public boolean isRunning() {
+            return running;
+        }
+
+        public void setRunning(boolean newValue) {
+            if (newValue) {
+                startTime = System.currentTimeMillis();
+            }
+            else {
+                startTime = -1L;
+            }
+            
+            this.running = newValue;
+        }
+        
+        /**
+         * <p>Returns <code>true</code> if {@link isTiming} returns <code>true</code>
+         * and the elapsed time between when timing commenced and
+         * the current time is greater than the value returned by {@link getTimeout}.
+         * Otherwise, returns <code>false</code>.  This method need not be called
+         * by the user.
+         */
+
+        public boolean isTimedout() {
+            boolean result = false;
+            if (isRunning()) {
+                result = (MCP.this.getTimeout() < (System.currentTimeMillis() - startTime));
+            }
+            return result;
+        }
+
     }
     
 }

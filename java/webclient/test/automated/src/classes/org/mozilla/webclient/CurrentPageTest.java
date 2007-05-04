@@ -1,5 +1,5 @@
 /*
- * $Id: CurrentPageTest.java,v 1.16 2007-02-26 21:32:35 edburns%acm.org Exp $
+ * $Id: CurrentPageTest.java,v 1.17 2007-05-04 17:10:35 edburns%acm.org Exp $
  */
 
 /* 
@@ -43,6 +43,7 @@ import java.awt.datatransfer.DataFlavor;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.BufferedReader;
+import org.mozilla.mcp.junit.WebclientTestCase;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;

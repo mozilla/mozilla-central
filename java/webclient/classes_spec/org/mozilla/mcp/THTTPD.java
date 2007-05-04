@@ -1,5 +1,5 @@
 /*
- * $Id: THTTPD.java,v 1.6 2005-03-13 17:56:16 edburns%acm.org Exp $
+ * $Id: THTTPD.java,v 1.1 2007-05-04 17:10:17 edburns%acm.org Exp $
  */
 
 /* 
@@ -24,7 +24,7 @@
  * Contributor(s): Ed Burns &lt;edburns@acm.org&gt;
  */
 
-package org.mozilla.util;
+package org.mozilla.mcp;
 
 import java.io.File;
 import java.net.ServerSocket;

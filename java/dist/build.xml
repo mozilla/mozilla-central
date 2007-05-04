@@ -32,11 +32,12 @@
   <property name="name" value="webclient"/>
   <property name="major.version" value="2" />
   <property name="minor.version" value="0" />
-  <property name="release.version" value="a6" />
-  <property name="release.version.full" value="alpha_6" />
+  <property name="release.version" value="a8" />
+  <property name="release.version.full" value="alpha_8" />
   <property name="version" 
             value="${major.version}_${minor.version}_${release.version}"/>
   <property name="full.version" value="${major.version}_${minor.version}_${release.version.full}"/>
+  <property name="snapshot" value="-SNAPSHOT" />
 
 <!-- ************ Per user local properties ******************************* -->
 
@@ -54,7 +55,8 @@
   <property name="javadoc.protected"  value="true"/>
   <property name="dist.jar"  value="${dist.home}/lib/${name}-${version}.jar"/>
 
-  <target name="release">
+  <target name="release"
+          description="Build a Webclient Release">
 
     <antcall target="prepare" />
     <antcall target="uptodate" />
@@ -64,6 +66,7 @@
     <antcall target="copy.test.src" />
     <antcall target="copy.core.src" />
     <antcall target="copy.build.support" />
+    <antcall target="copy.release.notes" />
     <antcall target="build.javadocs" />
     <antcall target="build.zip" />
   </target>
@@ -134,6 +137,10 @@
       </and>
     </condition>
 
+    <condition property="has.mozdocdir">
+      <available file="${mozdocdir}" />
+    </condition>
+
   </target>
 
 
@@ -148,9 +155,13 @@
               targetfile="${dist.javadocs}/index.html" >
         <srcfiles dir= "${source.home}">
           <include name="**/webclient/classes_spec/**/*.java" />
+          <include name="**/webclient/webclient/test/automated/src/classes/org/mozilla/webclient/WebclientTestCase.java" />
+          <include name="**/webclient/webclient/test/automated/src/classes/org/mozilla/webclient/CompareFiles.java" />
+          <include name="**/webclient/webclient/test/automated/src/classes/org/mozilla/webclient/TestLogStrings.properties" />
           <include name="**/util/classes/**/*.java" />
           <include name="**/dom/classes/**/*.java" />
         </srcfiles>
+
     </uptodate>
     <echo message="javadoc up to date: ${javadocs.uptodate}" />
 
@@ -160,7 +171,7 @@
     <jar jarfile="${dist.jar}" >
        <manifest>
         <attribute name="Specification-Title" value="${Name}"/>
-        <attribute name="Specification-Version" value="2.0"/>
+        <attribute name="Specification-Version" value="${major.version}.${minor.version}"/>
         <attribute name="Implementation-Title" value="'${name}': ${Name}"/>
         <attribute name="Implementation-Version" value="${version}"/>
         <attribute name="Implementation-Vendor" value="mozilla.org"/>
@@ -169,13 +180,21 @@
        </manifest>
 
        <fileset dir="${dist.classes}" 
-                excludes="**/test/**" />
+                excludes="**/test/**">
+       </fileset>
     </jar>
+  </target>
+
+  <target name="edburns.compile">
+    <ant inheritAll="false" dir="${source.home}/webclient" 
+         target="compile.classes_spec" />
   </target>
 
   <target name="compile.all" unless="core.java.classes.uptodate" 
           depends="uptodate">
     <ant inheritAll="false" dir="${source.home}" />
+    <ant inheritAll="false" dir="${source.home}/webclient" 
+         target="compile.test" />
   </target>
 
   <target name="copy.binaries" depends="prepare">
@@ -239,6 +258,11 @@
       <fileset dir="${source.home}/dom/classes">
         <exclude name="**/*.html" />
       </fileset>
+      <fileset dir="${source.home}/webclient/test/automated/src/classes">
+        <include name="**/CompareFiles.java" />
+        <include name="**/WebclientTestCase.java" />
+        <include name="**/TestLogStrings.properties" />
+      </fileset>
 
     </copy>
 
@@ -252,13 +276,25 @@
     <copy todir="${dist.home}/non-ide">
       <fileset dir="${basedir}/non-ide" />
     </copy>
+  </target>
+
+  <target name="copy.release.notes" depends="prepare" if="has.mozdocdir">
     <copy file="${mozdocdir}/webclient/release-notes/${full.version}.html" todir="${dist.home}" />
     <copy file="${mozdocdir}/webclient/release-notes/${full.version}-detail.html" todir="${dist.home}" />
   </target>
 
+  <target name="deploy.to.local.www" depends="prepare" if="has.mozdocdir"
+          description="After building the release, it can be deployed to the local mozilla-org CVS workarea">
+    <copy file="${dist.jar}"
+          tofile="${mozdocdir}/webclient/bin/maven2/org/mozilla/webclient/${major.version}.${minor.version}${snapshot}/${name}-${major.version}.${minor.version}${snapshot}.jar" />
+    <copy file="${name}-pom.xml"
+          tofile="${mozdocdir}/webclient/bin/maven2/org/mozilla/webclient/${major.version}.${minor.version}${snapshot}/${name}-${major.version}.${minor.version}${snapshot}.pom" />
+    <copy file="${objdir}/${name}_${version}_${platform}.zip"
+          todir="${mozdocdir}/webclient/bin/${platform}" />
+  </target>
+
   <target name="build.javadocs" depends="prepare,uptodate"
-          unless="javadocs.uptodate"
-          description="Create the JavaDoc API documentation">
+          unless="javadocs.uptodate">
     <copy todir="${dist.javadocs}">
       <fileset dir="${source.home}/webclient/classes_spec">
         <include name="**/*.jpg" />
@@ -278,9 +314,11 @@
              bottom="Copyright &#169; 2002-2007 Mozilla.org All Rights Reserved.">
        <fileset dir="${source.home}">
          <include name="**/*.java"/>
+         <include name="**/WebclientTestCase.java"/>
          <exclude name="**/impl/**/*.java" />
          <exclude name="**/*ICE*.java" />
          <exclude name="**/cardemo/**/*.java" />
+         <exclude name="**/jsf_jmaki/**/*.java" />
          <exclude name="**/wrapper_nonnative/**/*.java" />
          <exclude name="**/*Impl.java" />
          <exclude name="**/test*/**/*.java" />
@@ -288,6 +326,8 @@
          <exclude name="xpcom/**/*.*" />
          <exclude name="dom/blackconnect/**/*.*" />
          <exclude name="pluggable-jvm/**/*.*" />
+         <exclude name="**/*THTTPD*.java" />
+         <exclude name="**/*CompareFiles*.java" />
          <exclude name="**/*Bookmark*.java" />
          <exclude name="**/*Preferences*.java" />
          <exclude name="**/PrefChangedCallback.java" />

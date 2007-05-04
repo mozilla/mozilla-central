@@ -1,5 +1,5 @@
 /*
- * $Id: ProfileManagerTest.java,v 1.3 2004-11-05 06:40:27 edburns%acm.org Exp $
+ * $Id: ProfileManagerTest.java,v 1.4 2007-05-04 17:10:35 edburns%acm.org Exp $
  */
 
 /* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
@@ -28,6 +28,7 @@ package org.mozilla.webclient;
 
 import junit.framework.TestSuite;
 import junit.framework.Test;
+import org.mozilla.mcp.junit.WebclientTestCase;
 
 // ProfileManagerTest.java
 

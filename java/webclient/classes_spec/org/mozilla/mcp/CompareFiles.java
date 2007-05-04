@@ -1,5 +1,5 @@
 /*
- * $Id: CompareFiles.java,v 1.4 2004-04-23 14:52:20 edburns%acm.org Exp $
+ * $Id: CompareFiles.java,v 1.1 2007-05-04 17:10:17 edburns%acm.org Exp $
  */
 
 /* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
@@ -24,7 +24,7 @@
  * Contributor(s): Ed Burns &lt;edburns@acm.org&gt;
  */
 
-package org.mozilla.webclient;
+package org.mozilla.mcp;
 
 import java.io.*;
 
