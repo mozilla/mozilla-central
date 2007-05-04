@@ -31,6 +31,9 @@ except ImportError:
 ## for the initial import checkin message ; the import pulls the tag.
 CVS_REPO_IMPORT_TAG = "HG_REPO_INITIAL_IMPORT"
 CVS_REPO_IMPORT_DATE = "22 Mar 2007 10:30 PDT"
+HG_IMPORT_COMMIT_DATE = "2007-03-22 10:30:00"
+HG_INIT_PREP_COMMIT_DATE = "2007-03-22 10:29:00"
+HG_USER = "hg@mozilla.com"
 
 mozilla_files = (
     "Makefile.in",
@@ -258,7 +261,9 @@ def ImportMozillaCVS(directory, cvsroot=None, hg=None, tempdir=None, mode=None, 
                 commitMesg = (commitMesg + "Module %s: tag %s at %s, " % 
                  (cvsModuleName, cvsTagName, cvsDate))
 
-            check_call(['hg', 'commit', '-m', commitMesg], cwd=directory)
+            check_call(['hg', 'commit', '-d', HG_IMPORT_COMMIT_DATE,
+                        '-u', HG_USER, '-m', commitMesg],
+                       cwd=directory)
     
         except Exception, e:
             print "ImportMozillaCVS: Exception hit: %s" % (str(e))
@@ -277,7 +282,8 @@ def InitRepo(directory, hg=None):
     ignoref.close()
 
     check_call([hg, 'add', '.hgignore'], cwd=directory)
-    check_call([hg, 'commit', '-m', 'Set up .hgignore to ignore CVS files.'],
+    check_call([hg, 'commit', '-d', HG_INIT_PREP_COMMIT_DATE, '-u',
+                HG_USER, '-m', 'Set up .hgignore to ignore CVS files.'],
                cwd=directory)
 
 if __name__ == '__main__':
@@ -307,7 +313,7 @@ if __name__ == '__main__':
         print "Initializing hg repository '%s'." % args[0]
         sys.stdout.flush()
         InitRepo(args[0], options.hg)
-        ImportMozillaCVS(args[0], options.hg, options.cvsroot, options.tempdir,
+        ImportMozillaCVS(args[0], options.cvsroot, options.hg, options.tempdir,
          'init')
         print "Initialization successful."
         sys.stdout.flush()
