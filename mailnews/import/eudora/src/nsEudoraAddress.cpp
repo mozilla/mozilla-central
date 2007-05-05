@@ -1113,7 +1113,22 @@ nsresult nsEudoraAddress::AddSingleList(CAliasEntry *pEntry, nsVoidArray &emailL
   if (NS_FAILED(rv) || !newRow)
       return rv;
 
-  rv = pDb->AddListName(newRow, pEntry->m_name.get());
+  // Extract name from notes, if any
+  nsCString     name;
+
+  if ( !pEntry->m_notes.IsEmpty() )
+  {
+    nsCString     note(pEntry->m_notes);
+    ExtractNoteField(note, name, "name");
+  }
+
+  // If we got a name from the notes, use that for the name otherwise use the
+  // name in pEntry (which is the Eudora nickname).
+  rv = pDb->AddListName(newRow, name.IsEmpty() ? pEntry->m_name.get() : name.get());
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // Add the name in pEntry as the list nickname, because it was the Eudora nickname
+  rv = pDb->AddListNickName(newRow, pEntry->m_name.get());
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Now add the members.
