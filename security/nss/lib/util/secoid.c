@@ -395,6 +395,9 @@ CONST_OID pkcs12V1CRLBag[]              	= { PKCS12_V1_BAG_IDS, 0x04 };
 CONST_OID pkcs12V1SecretBag[]           	= { PKCS12_V1_BAG_IDS, 0x05 };
 CONST_OID pkcs12V1SafeContentsBag[]     	= { PKCS12_V1_BAG_IDS, 0x06 };
 
+/* The following encoding is INCORRECT, but correcting it would create a
+ * duplicate OID in the table.  So, we will leave it alone.
+ */
 CONST_OID pkcs12KeyUsageAttr[]          	= { 2, 5, 29, 15 };
 
 CONST_OID ansix9DSASignature[]               	= { ANSI_X9_ALGORITHM, 0x01 };
@@ -1102,8 +1105,8 @@ const static SECOidData oids[] = {
     OD( pkcs9LocalKeyID, SEC_OID_PKCS9_LOCAL_KEY_ID,
 	"PKCS #9 Local Key ID", 
 	CKM_INVALID_MECHANISM, INVALID_CERT_EXTENSION ), 
-    OD( pkcs12KeyUsageAttr, SEC_OID_PKCS12_KEY_USAGE,
-	"PKCS 12 Key Usage", CKM_INVALID_MECHANISM, INVALID_CERT_EXTENSION ),
+    OD( pkcs12KeyUsageAttr, SEC_OID_BOGUS_KEY_USAGE,
+	"Bogus Key Usage", CKM_INVALID_MECHANISM, INVALID_CERT_EXTENSION ),
     OD( dhPublicKey, SEC_OID_X942_DIFFIE_HELMAN_KEY,
 	"Diffie-Helman Public Key", CKM_DH_PKCS_DERIVE,
 	INVALID_CERT_EXTENSION ),

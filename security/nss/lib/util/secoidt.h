@@ -40,7 +40,7 @@
 /*
  * secoidt.h - public data structures for ASN.1 OID functions
  *
- * $Id: secoidt.h,v 1.22 2007-05-04 05:15:43 nelson%bolyard.com Exp $
+ * $Id: secoidt.h,v 1.23 2007-05-05 22:45:16 nelson%bolyard.com Exp $
  */
 
 #include "secitem.h"
@@ -265,7 +265,7 @@ typedef enum {
     SEC_OID_PKCS9_X509_CRL = 170,
     SEC_OID_PKCS9_FRIENDLY_NAME = 171,
     SEC_OID_PKCS9_LOCAL_KEY_ID = 172,
-    SEC_OID_PKCS12_KEY_USAGE = 173,
+    SEC_OID_BOGUS_KEY_USAGE = 173,
 
     /*Diffe Helman OIDS */
     SEC_OID_X942_DIFFIE_HELMAN_KEY = 174,
@@ -433,6 +433,7 @@ typedef enum {
 
 #define SEC_OID_SECG_EC_SECP192R1 SEC_OID_ANSIX962_EC_PRIME192V1
 #define SEC_OID_SECG_EC_SECP256R1 SEC_OID_ANSIX962_EC_PRIME256V1
+#define SEC_OID_PKCS12_KEY_USAGE  SEC_OID_X509_KEY_USAGE
 
 /* fake OID for DSS sign/verify */
 #define SEC_OID_SHA SEC_OID_MISS_DSS
