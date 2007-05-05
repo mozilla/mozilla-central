@@ -292,23 +292,33 @@ P12U_UnicodeConversion(PRArenaPool *arena, SECItem *dest, SECItem *src,
 SECItem *
 P12U_GetP12FilePassword(PRBool confirmPw, secuPWData *p12FilePw)
 {
-    char *p0 = NULL, *p1 = NULL;
+    char *p0 = NULL;
     SECItem *pwItem = NULL;
 
     if (p12FilePw == NULL || p12FilePw->source == PW_NONE) {
+	char *p1 = NULL;
+	int   rc;
 	for (;;) {
 	    p0 = SECU_GetPasswordString(NULL,
 					"Enter password for PKCS12 file: ");
-	    if (!confirmPw)
+	    if (!confirmPw || p0 == NULL)
 		break;
 	    p1 = SECU_GetPasswordString(NULL, "Re-enter password: ");
-	    if (PL_strcmp(p0, p1) == 0)
+	    if (p1 == NULL) {
+		PORT_ZFree(p0, PL_strlen(p0));
+		p0 = NULL;
 		break;
+	    }
+	    rc = PL_strcmp(p0, p1);
+	    PORT_ZFree(p1, PL_strlen(p1));
+	    if (rc == 0)
+		break;
+	    PORT_ZFree(p0, PL_strlen(p0));
 	}
     } else if (p12FilePw->source == PW_FROMFILE) {
 	p0 = SECU_FilePasswd(NULL, PR_FALSE, p12FilePw->data);
     } else { /* Plaintext */
-	p0 = p12FilePw->data;
+	p0 = PORT_Strdup(p12FilePw->data);
     }
 
     if (p0 == NULL) {
@@ -317,11 +327,7 @@ P12U_GetP12FilePassword(PRBool confirmPw, secuPWData *p12FilePw)
     pwItem = SECITEM_AllocItem(NULL, NULL, PL_strlen(p0) + 1);
     memcpy(pwItem->data, p0, pwItem->len);
 
-    PORT_Memset(p0, 0, PL_strlen(p0));
-    PORT_Free(p0);
-
-    PORT_Memset(p1, 0, PL_strlen(p1));
-    PORT_Free(p1);
+    PORT_ZFree(p0, PL_strlen(p0));
 
     return pwItem;
 }
@@ -716,12 +722,6 @@ loser:
         certlist = NULL;
     }    
 
-    if (slotPw)
-        PR_Free(slotPw->data);
-
-    if (p12FilePw)
-        PR_Free(p12FilePw->data);
-
     p12u_DestroyContext(&p12cxt, PR_TRUE);
     if(pwitem) {
         SECITEM_ZfreeItem(pwitem, PR_TRUE);
@@ -976,6 +976,10 @@ main(int argc, char **argv)
     }
 
 done:
+    if (slotPw.data != NULL)
+	PORT_ZFree(slotPw.data, PL_strlen(slotPw.data));
+    if (p12FilePw.data != NULL)
+	PORT_ZFree(p12FilePw.data, PL_strlen(p12FilePw.data));
     if (slot) PK11_FreeSlot(slot);
     if (NSS_Shutdown() != SECSuccess) {
 	pk12uErrno = 1;
