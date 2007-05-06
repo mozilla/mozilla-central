@@ -1053,6 +1053,11 @@ createNewAttachmentInfo.prototype.detachAttachment = function detachAttachment()
 
 function CanDetachAttachments()
 {
+  if (("content-type" in currentHeaderData) &&
+      /application\/x-pkcs7-(mime|signature)/
+      .test(currentHeaderData["content-type"].headerValue))
+    return false;
+
   var uri = GetLoadedMessage();
   return !IsNewsMessage(uri) && (!IsImapMessage(uri) || CheckOnline());
 }
