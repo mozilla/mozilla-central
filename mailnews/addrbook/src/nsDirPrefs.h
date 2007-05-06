@@ -70,25 +70,15 @@ typedef enum
 	idPrefName,
 	idPosition, 
 	idDescription,
-	idServerName,
-	idSearchBase,
 	idFileName,
-	idPort,
 	idUri,
 	idType,	
-	idCSID,
-	idLocale,
 	idPositionLocked,
 	idDeletable,
-	idIsOffline,
-	idIsSecure,
 	idVLVDisabled,
-	idEnableAuth,
-	idSavePassword,
 	idAutoCompleteNever,
 	idAutoCompleteEnabled,
 	idAuthDn,
-	idPassword,
 	idReplNever,
 	idReplEnabled,
 	idReplFilter,
@@ -120,26 +110,16 @@ typedef struct DIR_Server
 
 	/* General purpose fields */
 	char   *description;		/* human readable name                    */
-	char   *serverName;		    /* network host name                      */
-	char   *searchBase;		    /* DN suffix to search at                 */
 	char   *fileName;			/* XP path name of local DB               */
-	PRInt32 port;				/* network port number                    */
 	DirectoryType dirType;	
-	PRInt16   csid;				/* LDAP entries' codeset (normally UTF-8) */
-	char    *locale;			/* the locale associated with the address book or directory */
-    char    *uri;       // URI of the address book
+  char    *uri;       // URI of the address book
 
 	/* Flags */
 	/* TBD: All the PRBool fields should eventually merge into "flags" */
 	PRUint32 flags;               
-	PRPackedBool isOffline;
-	PRPackedBool isSecure;           /* use SSL?                               */
-	PRPackedBool enableAuth;			/* AUTH: Use DN/password when binding?    */
-	PRPackedBool savePassword;		/* AUTH: Remember DN and password?        */
 
 	/* authentication fields */
 	char *authDn;				/* DN to give to authenticate as			*/
-	char *password;				/* Password for the DN						*/
 
 	/* Replication fields */
 	DIR_ReplicationInfo *replInfo;

@@ -132,6 +132,8 @@ ifdef MOZ_LDAP_XPCOM
 REQUIRES    += mozldap \
                $(NULL)
 
+DEFINES += -DMOZ_LDAP_XPCOM
+
 CPPSRCS		+= \
 		nsAbLDAPDirectory.cpp \
 		nsAbLDAPDirFactory.cpp	\

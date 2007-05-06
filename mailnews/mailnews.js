@@ -280,31 +280,6 @@ pref("offline.news.download.days",          30);    // days
 pref("offline.news.download.increments",    3); // 0-yesterday, 1-1 wk ago, 2-2 wk ago,
                                                 // 3-1 month ago, 4-6 month ago, 5-1 year ago
 
-pref("ldap_1.number_of_directories", 6);
-
-pref("ldap_1.directory1.description", "Personal Address Book");
-pref("ldap_1.directory1.dirType", 2);
-pref("ldap_1.directory1.isOffline", false);
-
-pref("ldap_1.directory2.description", "Four11 Directory");
-pref("ldap_1.directory2.serverName", "ldap.four11.com");
-
-pref("ldap_1.directory3.description", "InfoSpace Directory");
-pref("ldap_1.directory3.serverName", "ldap.infospace.com");
-
-pref("ldap_1.directory4.description", "WhoWhere Directory");
-pref("ldap_1.directory4.serverName", "ldap.whowhere.com");
-
-pref("ldap_1.directory5.description", "Bigfoot Directory");
-pref("ldap_1.directory5.serverName", "ldap.bigfoot.com");
-
-pref("ldap_1.directory6.description", "Switchboard Directory");
-pref("ldap_1.directory6.serverName", "ldap.switchboard.com");
-pref("ldap_1.directory6.searchBase", "c=US");
-pref("ldap_1.directory6.attributes.telephoneNumber", "Phone Number:homephone");
-pref("ldap_1.directory6.attributes.street", "State:st");
-pref("ldap_1.directory6.filter1.repeatFilterForWords", false);
-
 pref("ldap_2.autoComplete.interval", 650);
 pref("ldap_2.autoComplete.enabled", true);
 pref("ldap_2.autoComplete.useDirectory", false);
@@ -363,29 +338,8 @@ pref("ldap_2.servers.default.attrmap.Notes", "description,notes");
 pref("ldap_2.servers.default.attrmap.PreferMailFormat", "mozillaUseHtmlMail,xmozillausehtmlmail");
 pref("ldap_2.servers.default.attrmap.LastModifiedDate", "modifytimestamp");
 
-
-// A position of zero is a special value that indicates the directory is deleted.
-// These entries are provided to keep the (obsolete) Four11 directory and the
-// WhoWhere, Bigfoot and Switchboard directories from being migrated.
-pref("ldap_2.servers.four11.position",						0);
-pref("ldap_2.servers.four11.description",						"Four11 Directory");
-pref("ldap_2.servers.four11.serverName",						"ldap.four11.com");
-
-pref("ldap_2.servers.whowhere.position",						0);             
-pref("ldap_2.servers.whowhere.description",						"WhoWhere Directory");
-pref("ldap_2.servers.whowhere.serverName",						"ldap.whowhere.com");
-
-pref("ldap_2.servers.bigfoot.position",							0);             
-pref("ldap_2.servers.bigfoot.description",						"Bigfoot Directory");
-pref("ldap_2.servers.bigfoot.serverName",                       "ldap.bigfoot.com");
-                                                                                 
-pref("ldap_2.servers.switchboard.position",						0);             
-pref("ldap_2.servers.switchboard.description",					"Switchboard Directory");
-pref("ldap_2.servers.switchboard.serverName",					"ldap.switchboard.com");
-
 pref("ldap_2.user_id",											0);
 pref("ldap_2.version",											3); /* Update kCurrentListVersion in include/dirprefs.h if you change this */
-pref("ldap_2.prefs_migrated",      false);
 
 pref("mailnews.confirm.moveFoldersToTrash", true);
 
