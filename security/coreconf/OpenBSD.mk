@@ -37,12 +37,13 @@
 
 include $(CORE_DEPTH)/coreconf/UNIX.mk
 
-DEFAULT_COMPILER	= gcc
-CC			= gcc
-CCC			= g++
+CC			?= gcc
+CXX			?= g++
+DEFAULT_COMPILER	= ${CC}
+CCC			= ${CXX}
 RANLIB			= ranlib
 
-CPU_ARCH		:= $(shell uname -p)
+CPU_ARCH		:= $(shell arch -s)
 ifeq ($(CPU_ARCH),i386)
 OS_REL_CFLAGS		= -Di386
 CPU_ARCH		= x86
@@ -64,8 +65,10 @@ OS_LIBS			=
 ARCH			= openbsd
 
 DSO_CFLAGS		= -fPIC -DPIC
-DSO_LDOPTS		= -shared -Wl,-soname,lib$(LIBRARY_NAME)$(LIBRARY_VERSION).$(DLL_SUFFIX)
+DSO_LDOPTS		= -shared -fPIC -Wl,-soname,lib$(LIBRARY_NAME)$(LIBRARY_VERSION).$(DLL_SUFFIX)
 DSO_LDFLAGS		=
 
 MKSHLIB			= $(CC) $(DSO_LDOPTS)
 
+USE_SYSTEM_ZLIB		= 1
+ZLIB_LIBS		= -lz
