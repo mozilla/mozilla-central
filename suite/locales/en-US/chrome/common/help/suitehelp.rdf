@@ -18,7 +18,7 @@
             <Seq>
                 <li>
                     <Description nc:panelid="toc"
-                        nc:datasources="chrome://help/locale/help-toc.rdf suite-toc.rdf"/>
+                        nc:datasources="suite-toc.rdf"/>
                 </li>
                 <li>
                     <Description nc:panelid="toc" nc:datasources="help-win.rdf" nc:platform="win"/>
