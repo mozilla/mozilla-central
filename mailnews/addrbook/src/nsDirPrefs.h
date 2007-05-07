@@ -73,32 +73,8 @@ typedef enum
 	idFileName,
 	idUri,
 	idType,	
-	idPositionLocked,
-	idDeletable,
-	idVLVDisabled,
-	idAutoCompleteNever,
-	idAutoCompleteEnabled,
 	idAuthDn,
-	idReplNever,
-	idReplEnabled,
-	idReplFilter,
-	idReplLastChangeNumber,
-	idReplDataVersion,
-	idReplSyncURL,
-  idProtocolVersion,
-  idAttributeMap
 } DIR_PrefId;
-
-
-typedef struct _DIR_ReplicationInfo
-
-{
-	char *filter;                /* LDAP filter string which constrains the repl search  */
-	PRInt32 lastChangeNumber;      /* Last change we saw -- start replicating here         */
-	char *syncURL;               /* Points to the server to use for replication          */
-	char *dataVersion;           /* LDAP server's scoping of the lastChangeNumber        */
-	                             /* Changes when the server's DB gets reloaded from LDIF */
-} DIR_ReplicationInfo;
 
 #define DIR_Server_typedef 1     /* this quiets a redeclare warning in libaddr */
 
@@ -114,15 +90,11 @@ typedef struct DIR_Server
 	DirectoryType dirType;	
   char    *uri;       // URI of the address book
 
-	/* Flags */
-	/* TBD: All the PRBool fields should eventually merge into "flags" */
-	PRUint32 flags;               
-
 	/* authentication fields */
 	char *authDn;				/* DN to give to authenticate as			*/
 
-	/* Replication fields */
-	DIR_ReplicationInfo *replInfo;
+  // Set whilst saving the server to avoid updating it again
+  PRBool savingServer;
 } DIR_Server;
 
 /* We are developing a new model for managing DIR_Servers. In the 4.0x world, the FEs managed each list. 

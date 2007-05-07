@@ -61,37 +61,30 @@
 #include "prlog.h"
 #include "prmem.h"
 #include "prprf.h"
+#include "nsQuickSort.h"
 
 /*****************************************************************************
  * Private definitions
  */
 
 /* Default settings for site-configurable prefs */
-#define kDefaultVLVDisabled PR_FALSE
 #define kDefaultPosition 1
-
-#define kDefaultAutoCompleteEnabled PR_FALSE
-#define kDefaultAutoCompleteNever   PR_FALSE
-
-#define kDefaultReplicateNever PR_FALSE
-#define kDefaultReplicaEnabled PR_FALSE
-#define kDefaultReplicaDataVersion nsnull
-#define kDefaultReplicaChangeNumber -1
-#define kDefaultReplicaFilter "(objectclass=*)"
-
 static PRBool dir_IsServerDeleted(DIR_Server * server);
+
 static char *DIR_GetStringPref(const char *prefRoot, const char *prefLeaf, const char *defaultValue);
-static char *DIR_GetLocalizedStringPref(const char *prefRoot, const char *prefLeaf, const char *defaultValue);
 static PRInt32 DIR_GetIntPref(const char *prefRoot, const char *prefLeaf, PRInt32 defaultValue);
-static PRBool DIR_GetBoolPref(const char *prefRoot, const char *prefLeaf, PRBool defaultValue);
+
 static char * dir_ConvertDescriptionToPrefName(DIR_Server * server);
+
 void DIR_SetFileName(char** filename, const char* leafName);
 static void DIR_SetIntPref(const char *prefRoot, const char *prefLeaf, PRInt32 value, PRInt32 defaultValue);
 static DIR_Server *dir_MatchServerPrefToServer(nsVoidArray *wholeList, const char *pref);
 static PRBool dir_ValidateAndAddNewServer(nsVoidArray *wholeList, const char *fullprefname);
 static void DIR_DeleteServerList(nsVoidArray *wholeList);
+
 static char *dir_CreateServerPrefName(DIR_Server *server);
 static void DIR_GetPrefsForOneServer(DIR_Server *server);
+
 static nsresult DIR_InitServerWithType(DIR_Server * server, DirectoryType dirType);
 static nsresult DIR_InitServer(DIR_Server *);
 static DIR_PrefId  DIR_AtomizePrefName(const char *prefname);
@@ -100,47 +93,14 @@ static DIR_PrefId  DIR_AtomizePrefName(const char *prefname);
 #define DIR_POS_DELETE                     0x80000001
 static PRBool DIR_SetServerPosition(nsVoidArray *wholeList, DIR_Server *server, PRInt32 position);
 
-/* Flags manipulation
- */
-#define DIR_AUTO_COMPLETE_ENABLED          0x00000001  /* Directory is configured for autocomplete addressing */
-#define DIR_LDAP_VERSION3                  0x00000040
-#define DIR_LDAP_VLV_DISABLED              0x00000080  /* not used by the FEs */
-#define DIR_LDAP_ROOTDSE_PARSED            0x00000200  /* not used by the FEs */
-#define DIR_AUTO_COMPLETE_NEVER            0x00000400  /* Directory is never to be used for autocompletion */
-#define DIR_REPLICATION_ENABLED            0x00000800  /* Directory is configured for offline use */
-#define DIR_REPLICATE_NEVER                0x00001000  /* Directory is never to be replicated */
-#define DIR_UNDELETABLE                    0x00002000
-#define DIR_POSITION_LOCKED                0x00004000
-
-/* The following flags are not used by the FEs.  The are operational flags
- * that get set in occasionally to keep track of special states.
- */
-/* Set when a DIR_Server is being saved.  Keeps the pref callback code from
- * reinitializing the DIR_Server structure, which in this case would always
- * be a waste of time.
- */
-#define DIR_SAVING_SERVER                  0x40000000
-/* Set by back end when all traces of the DIR_Server need to be removed (i.e.
- * destroying the file) when the last reference to to the DIR_Server is
- * released.  This is used primarily when the user decides to delete the
- * DIR_Server but it is referenced by other objects.  When no one is using the
- * dir server anymore, we destroy the file and clear the server
- */
-#define DIR_CLEAR_SERVER				   0x80000000  
-
-PRBool DIR_TestFlag  (DIR_Server *server, PRUint32 flag);
-void    DIR_SetFlag   (DIR_Server *server, PRUint32 flag);
-void    DIR_ClearFlag (DIR_Server *server, PRUint32 flag);
-void    DIR_ForceFlag (DIR_Server *server, PRUint32 flag, PRBool forceOnOrOff);
-
 /* These two routines should be called to initialize and save 
  * directory preferences from the XP Java Script preferences
  */
 static nsresult DIR_GetServerPreferences(nsVoidArray** list);
 static nsresult DIR_SaveServerPreferences(nsVoidArray *wholeList);
 
-static PRInt32      dir_UserId = 0;
-nsVoidArray  *dir_ServerList = nsnull;
+static PRInt32 dir_UserId = 0;
+nsVoidArray *dir_ServerList = nsnull;
 
 /*****************************************************************************
  * Functions for creating the new back end managed DIR_Server list.
@@ -175,13 +135,8 @@ NS_IMETHODIMP DirPrefObserver::Observe(nsISupports *aSubject, const char *aTopic
     /* If the server is in the process of being saved, just ignore this
      * change.  The DIR_Server structure is not really changing.
      */
-    if (DIR_TestFlag(server, DIR_SAVING_SERVER))
+    if (server->savingServer)
       return NS_OK;
-
-    /* Reparse the root DSE if one of the following attributes changed.
-     */
-    if (id == idAuthDn)
-      DIR_ClearFlag(server, DIR_LDAP_ROOTDSE_PARSED);
 
     /* If the pref that changed is the position, read it in.  If the new
      * position is zero, remove the server from the list.
@@ -351,9 +306,6 @@ nsresult DIR_AddNewAddressBook(const PRUnichar *dirName, const char *fileName, P
         server->uri = nsCRT::strdup(uri);
       if (authDn)
         server->authDn = nsCRT::strdup(authDn);
-      // force new LDAP directories to be treated as v3 this includes the case when 
-      // we are migrating directories.
-      DIR_ForceFlag(server, DIR_LDAP_VERSION3, PR_TRUE);
     }
 
     dir_ServerList->AppendElement(server);
@@ -411,6 +363,7 @@ static nsresult DIR_InitServer(DIR_Server *server)
   memset(server, 0, sizeof(DIR_Server));
   server->position = kDefaultPosition;
   server->uri = nsnull;
+  server->savingServer = PR_FALSE;
   return NS_OK;
 }
 
@@ -454,33 +407,8 @@ static PRBool DIR_SetServerPosition(nsVoidArray *wholeList, DIR_Server *server, 
      */
      if (count > 0)
      {
-     /* Exception to the rule: if the last server is a locked server,
-     * find the position of last unlocked server.  If there are no
-     * unlocked servers, set the position to 1; otherwise, set it to
-     * the position of the last unlocked server plus one.  In either
-     * case the list must be resorted (to find the correct position).
-       */
        s = (DIR_Server *)wholeList->ElementAt(count - 1);
-       if (DIR_TestFlag(s, DIR_POSITION_LOCKED))
-       {
-         DIR_Server *sLast = nsnull;
-         
-         for (i= 0; i < count; i++)
-         {
-           if  ((s = (DIR_Server *)wholeList->ElementAt(i)) != nsnull)
-             if (!DIR_TestFlag(s, DIR_POSITION_LOCKED))
-               sLast = s;
-         }
-         
-         if (sLast)
-           server->position = sLast->position + 1;
-         else
-           server->position = 1;
-         
-         resort = PR_TRUE;
-       }
-       else
-         server->position = s->position + 1;
+       server->position = s->position + 1;
      }
      else
        server->position = 1;
@@ -489,11 +417,6 @@ static PRBool DIR_SetServerPosition(nsVoidArray *wholeList, DIR_Server *server, 
      break;
      
    case DIR_POS_DELETE:
-   /* Undeletable servers cannot be deleted.
-     */
-     if (DIR_TestFlag(server, DIR_UNDELETABLE))
-       return PR_FALSE;
-     
        /* Remove the prefs corresponding to the given server.  If the prefName
        * value is nsnull, the server has never been saved and there are no
        * prefs to remove.
@@ -552,11 +475,6 @@ static PRBool DIR_SetServerPosition(nsVoidArray *wholeList, DIR_Server *server, 
        resort = PR_TRUE;
      }
      
-     /* Servers with locked position values cannot be moved.
-     */
-     else if (DIR_TestFlag(server, DIR_POSITION_LOCKED))
-       return PR_FALSE;
-     
        /* Don't re-sort if the server is already in the requested position.
      */
      else if (server->position != position)
@@ -575,7 +493,6 @@ static PRBool DIR_SetServerPosition(nsVoidArray *wholeList, DIR_Server *server, 
         
         return resort;
 }
-
 
 /*****************************************************************************
  * DIR_Server Callback Notification Functions
@@ -675,33 +592,11 @@ static DIR_PrefId DIR_AtomizePrefName(const char *prefname)
 			prefname = prefname + 1;
 	}
 
-
 	switch (prefname[0]) {
 	case 'a':
-		if (PL_strstr(prefname, "autoComplete.") == prefname)
-		{
-			switch (prefname[13]) {
-			case 'e': /* autoComplete.enabled */
-				rc = idAutoCompleteEnabled;
-				break;
-			case 'n':
-				rc = idAutoCompleteNever;
-				break;
-			}
-		}
-		else if (PL_strstr(prefname, "auth.") == prefname)
-		{
-			switch (prefname[5]) {
-			case 'd': /* auth.dn */
-				rc = idAuthDn;
-				break;
-			}
-		}
-    else if (PL_strstr(prefname, "attrmap.") == prefname)
-    {
-      rc = idAttributeMap;
-    }
-		break;
+		if (PL_strstr(prefname, "auth.dn") == prefname)
+      rc = idAuthDn;
+    break;
 
 	case 'd':
 		switch (prefname[1]) {
@@ -727,45 +622,11 @@ static DIR_PrefId DIR_AtomizePrefName(const char *prefname)
 				break;
 			}
 			break;
-                case  'r': /* protocolVersion */
-                    rc = idProtocolVersion;
-		}
-		break;
-
-	case 'r':
-		if (PL_strstr(prefname, "replication.") == prefname)
-		{
-			switch (prefname[12]) {
-			case 'd':
-        rc = idReplDataVersion;
-        break;
-			case 'e':
-        if (prefname[13] == 'n') {
-					rc = idReplEnabled;
-				}
-				break;
-			case 'f':
-        rc = idReplFilter;
-        break;
-			case 'l': /* replication.lastChangeNumber */
-				rc = idReplLastChangeNumber;
-				break;
-			case 'n': /* replication.never */
-				rc = idReplNever;
-				break;
-			case 's': /* replication.syncURL */
-				rc = idReplSyncURL;
-				break;
-			}
 		}
 		break;
 
 	case 'u': /* uri */
 		rc = idUri;
-		break;
-
-	case 'v': /* vlvDisabled */
-		rc = idVLVDisabled;
 		break;
 	}
 
@@ -803,14 +664,6 @@ static void dir_DeleteServerContents (DIR_Server *server)
 		PR_FREEIF (server->fileName);
 		PR_FREEIF (server->authDn);
     PR_FREEIF (server->uri);
-
-    if (server->replInfo)
-    {
-      PR_FREEIF(server->replInfo->dataVersion);
-      PR_FREEIF(server->replInfo->syncURL);
-      PR_FREEIF(server->replInfo->filter);
-      PR_Free(server->replInfo);
-    }
 	}
 }
 
@@ -897,8 +750,6 @@ static void DIR_DeleteServerList(nsVoidArray *wholeList)
 /*****************************************************************************
  * Functions for managing JavaScript prefs for the DIR_Servers 
  */
-
-#include "nsQuickSort.h"
 
 PR_STATIC_CALLBACK(int)
 comparePrefArrayMembers(const void* aElement1, const void* aElement2, void* aData)
@@ -1018,6 +869,7 @@ static char *DIR_GetStringPref(const char *prefRoot, const char *prefLeaf, const
 	"ldap_2.servers.pab.description"
 	"ldap_2.servers.history.description"
 */
+
 static char *DIR_GetLocalizedStringPref
 (const char *prefRoot, const char *prefLeaf, const char *defaultValue)
 {
@@ -1069,57 +921,6 @@ static PRInt32 DIR_GetIntPref(const char *prefRoot, const char *prefLeaf, PRInt3
 
 	return value;
 }
-
-
-static PRBool DIR_GetBoolPref(const char *prefRoot, const char *prefLeaf, PRBool defaultValue)
-{
-  nsresult rv;
-  nsCOMPtr<nsIPrefBranch> pPref(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-  if (NS_FAILED(rv))
-    return defaultValue;
-
-	PRBool value;
-  nsCAutoString prefLocation(prefRoot);
-  prefLocation.Append('.');
-  prefLocation.Append(prefLeaf);
-
-  if (NS_FAILED(pPref->GetBoolPref(prefLocation.get(), &value)))
-		value = defaultValue;
-	return value;
-}
-
-static void dir_GetReplicationInfo(const char *prefstring, DIR_Server *server)
-{
-  PR_ASSERT(server->replInfo == nsnull);
-
-  server->replInfo = (DIR_ReplicationInfo *)PR_Calloc(1, sizeof (DIR_ReplicationInfo));
-  if (server->replInfo)
-  {
-    PRBool prefBool;
-    nsCAutoString replPrefName(prefstring);
-
-    replPrefName.AppendLiteral(".replication");
-
-    prefBool = DIR_GetBoolPref(replPrefName.get(), "never", kDefaultReplicateNever);
-    DIR_ForceFlag(server, DIR_REPLICATE_NEVER, prefBool);
-
-    prefBool = DIR_GetBoolPref(replPrefName.get(), "enabled", kDefaultReplicaEnabled);
-    DIR_ForceFlag(server, DIR_REPLICATION_ENABLED, prefBool);
-
-    server->replInfo->syncURL = DIR_GetStringPref(replPrefName.get(), "syncURL", nsnull);
-    server->replInfo->filter = DIR_GetStringPref(replPrefName.get(), "filter", kDefaultReplicaFilter);
-
-    /* The file name and data version must be set or we ignore the
-     * remaining replication prefs.
-     */
-    server->replInfo->dataVersion = DIR_GetStringPref(replPrefName.get(), "dataVersion", kDefaultReplicaDataVersion);
-    if (server->fileName && server->replInfo->dataVersion)
-    {
-      server->replInfo->lastChangeNumber = DIR_GetIntPref(replPrefName.get(), "lastChangeNumber", kDefaultReplicaChangeNumber);
-    }
-  }
-}
-
 
 /* This will convert from the old preference that was a path and filename */
 /* to a just a filename */
@@ -1333,17 +1134,11 @@ static void DIR_GetPrefsForOneServer(DIR_Server *server)
   if (NS_FAILED(rv))
     return;
   
-  PRBool  prefBool;
   char    *prefstring = server->prefName;
 
   // this call fills in tempstring with the position pref, and
   // we then check to see if it's locked.
   server->position = DIR_GetIntPref (prefstring, "position", kDefaultPosition);
-  PRBool bIsLocked;
-  nsCAutoString tempString(prefstring);
-  tempString.AppendLiteral(".position");
-  pPref->PrefIsLocked(tempString.get(), &bIsLocked);
-  DIR_ForceFlag(server, DIR_UNDELETABLE | DIR_POSITION_LOCKED, bIsLocked);
 
   if (0 == PL_strcmp(prefstring, "ldap_2.servers.pab") || 
     0 == PL_strcmp(prefstring, "ldap_2.servers.history")) 
@@ -1374,22 +1169,8 @@ static void DIR_GetPrefsForOneServer(DIR_Server *server)
   s.Append (server->fileName);
   server->uri = DIR_GetStringPref (prefstring, "uri", s.get ());
 
-  dir_GetReplicationInfo (prefstring, server);
-
   /* Get authentication prefs */
   server->authDn = DIR_GetStringPref (prefstring, "auth.dn", nsnull);
-  
-  char *versionString = DIR_GetStringPref(prefstring, "protocolVersion", "3");
-  DIR_ForceFlag(server, DIR_LDAP_VERSION3, !strcmp(versionString, "3"));
-  nsCRT::free(versionString);
-
-  prefBool = DIR_GetBoolPref (prefstring, "autoComplete.enabled", kDefaultAutoCompleteEnabled);
-  DIR_ForceFlag (server, DIR_AUTO_COMPLETE_ENABLED, prefBool);
-  prefBool = DIR_GetBoolPref (prefstring, "autoComplete.never", kDefaultAutoCompleteNever);
-  DIR_ForceFlag (server, DIR_AUTO_COMPLETE_NEVER, prefBool);
-  
-  prefBool = DIR_GetBoolPref (prefstring, "vlvDisabled", kDefaultVLVDisabled);
-  DIR_ForceFlag (server, DIR_LDAP_VLV_DISABLED | DIR_LDAP_ROOTDSE_PARSED, prefBool);
 }
 
 static nsresult dir_GetPrefs(nsVoidArray **list)
@@ -1473,7 +1254,6 @@ void DIR_SortServersByPosition(nsVoidArray *serverList)
   }
 }
 
-
 static nsresult DIR_GetServerPreferences(nsVoidArray** list)
 {
   nsresult err;
@@ -1549,7 +1329,6 @@ static void DIR_SetStringPref(const char *prefRoot, const char *prefLeaf, const 
   NS_ASSERTION(NS_SUCCEEDED(rv), "Could not set pref in DIR_SetStringPref");
 }
 
-
 static void DIR_SetIntPref(const char *prefRoot, const char *prefLeaf, PRInt32 value, PRInt32 defaultValue)
 {
   nsresult rv;
@@ -1588,82 +1367,18 @@ static void DIR_SetIntPref(const char *prefRoot, const char *prefLeaf, PRInt32 v
   NS_ASSERTION(NS_SUCCEEDED(rv), "Could not set pref in DIR_SetIntPref");
 }
 
-
-static void DIR_SetBoolPref(const char *prefRoot, const char *prefLeaf, PRBool value, PRBool defaultValue)
-{
-  nsresult rv;
-  nsCOMPtr<nsIPrefBranch> pPref(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv)); 
-  if (NS_FAILED(rv)) 
-    return;
-
-  PRBool defaultPref;
-  nsCAutoString prefLocation(prefRoot);
-
-  prefLocation.Append('.');
-  prefLocation.Append(prefLeaf);
-
-  if (NS_SUCCEEDED(pPref->GetBoolPref(prefLocation.get(), &defaultPref)))
-  {
-    /* solve the problem where reordering user prefs must override default prefs */
-    rv = pPref->SetBoolPref(prefLocation.get(), value);
-  }
-  else
-  {
-    PRBool userPref;
-    if (NS_SUCCEEDED(pPref->GetBoolPref(prefLocation.get(), &userPref)))
-    {
-      if (value != defaultValue)
-        rv = pPref->SetBoolPref(prefLocation.get(), value);
-      else
-        rv = pPref->ClearUserPref(prefLocation.get());
-    }
-    else
-    {
-      if (value != defaultValue)
-        rv = pPref->SetBoolPref(prefLocation.get(), value);
-    }
-  }
-
-  NS_ASSERTION(NS_SUCCEEDED(rv), "Could not set pref in DIR_SetBoolPref");
-}
-
-
-static nsresult dir_SaveReplicationInfo(const char *prefRoot, DIR_Server *server)
-{
-  nsresult err = NS_OK;
-  nsCAutoString prefLocation(prefRoot);
-  prefLocation.AppendLiteral(".replication");
-
-  DIR_SetBoolPref(prefLocation.get(), "never", DIR_TestFlag (server, DIR_REPLICATE_NEVER), kDefaultReplicateNever);
-  DIR_SetBoolPref(prefLocation.get(), "enabled", DIR_TestFlag (server, DIR_REPLICATION_ENABLED), kDefaultReplicaEnabled);
-
-	if (server->replInfo)
-	{
-    DIR_SetStringPref(prefLocation.get(), "filter", server->replInfo->filter, kDefaultReplicaFilter);
-    DIR_SetIntPref(prefLocation.get(), "lastChangeNumber", server->replInfo->lastChangeNumber, kDefaultReplicaChangeNumber);
-    DIR_SetStringPref(prefLocation.get(), "syncURL", server->replInfo->syncURL, nsnull);
-    DIR_SetStringPref(prefLocation.get(), "dataVersion", server->replInfo->dataVersion, kDefaultReplicaDataVersion);
-	}
-  else if (DIR_TestFlag(server, DIR_REPLICATION_ENABLED))
-    server->replInfo = (DIR_ReplicationInfo *) PR_Calloc (1, sizeof(DIR_ReplicationInfo));
-
-  return err;
-}
-
-
 void DIR_SavePrefsForOneServer(DIR_Server *server)
 {
   if (!server)
     return;
 
   char *prefstring;
-  char * csidAsString = nsnull;
 
   if (server->prefName == nsnull)
     server->prefName = dir_CreateServerPrefName(server);
   prefstring = server->prefName;
 
-  DIR_SetFlag(server, DIR_SAVING_SERVER);
+  server->savingServer = PR_TRUE;
 
   DIR_SetIntPref (prefstring, "position", server->position, kDefaultPosition);
 
@@ -1678,40 +1393,10 @@ void DIR_SavePrefsForOneServer(DIR_Server *server)
   if (server->dirType == LDAPDirectory)
     DIR_SetStringPref(prefstring, "uri", server->uri, "");
 
-  DIR_SetBoolPref(prefstring, "autoComplete.enabled", DIR_TestFlag(server, DIR_AUTO_COMPLETE_ENABLED), kDefaultAutoCompleteEnabled);
-  DIR_SetBoolPref(prefstring, "autoComplete.never", DIR_TestFlag(server, DIR_AUTO_COMPLETE_NEVER), kDefaultAutoCompleteNever);
-
-  /* save the I18N information for the directory */
-	
-  /* I18N folks want us to save out the csid as a string.....*/
-/* csidAsString = (char *) INTL_CsidToCharsetNamePt(server->csid);*/ /* this string is actually static we should not free it!!! */
-  csidAsString = NULL; /* this string is actually static we should not free it!!! */
-  if (csidAsString)
-    DIR_SetStringPref(prefstring, "csid", csidAsString, nsnull);
-	
-  /* this is dirty but it works...this is how we assemble the pref name in all of the DIR_SetString/bool/intPref functions */
-  nsCAutoString tempPref(prefstring);
-  tempPref.AppendLiteral(".charset");
-
-  /* now clear the pref */
-  nsresult rv;
-  nsCOMPtr<nsIPrefBranch> pPref(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-  if (NS_FAILED(rv))
-    return;
-
-  pPref->ClearUserPref(tempPref.get());
-
   /* Save authentication prefs */
-  DIR_SetStringPref (prefstring, "auth.dn", server->authDn, "");
-  DIR_SetBoolPref (prefstring, "vlvDisabled", DIR_TestFlag(server, DIR_LDAP_VLV_DISABLED), kDefaultVLVDisabled);
+  DIR_SetStringPref(prefstring, "auth.dn", server->authDn, "");
 
-  DIR_SetStringPref(prefstring, "protocolVersion",
-                    DIR_TestFlag(server, DIR_LDAP_VERSION3) ? "3" : "2",
-                    "3");
-
-  dir_SaveReplicationInfo (prefstring, server);
-	
-  DIR_ClearFlag(server, DIR_SAVING_SERVER);
+  server->savingServer = PR_FALSE;
 }
 
 static nsresult DIR_SaveServerPreferences (nsVoidArray *wholeList)
@@ -1737,38 +1422,4 @@ static nsresult DIR_SaveServerPreferences (nsVoidArray *wholeList)
 	}
 
 	return NS_OK;
-}
-
-PRBool DIR_TestFlag (DIR_Server *server, PRUint32 flag)
-{
-	if (server)
-		return NS_OK != (server->flags & flag);
-	return PR_FALSE;
-}
-
-void DIR_SetFlag (DIR_Server *server, PRUint32 flag)
-{
-	PR_ASSERT(server);
-	if (server)
-		server->flags |= flag;
-}
-
-void DIR_ClearFlag (DIR_Server *server, PRUint32 flag)
-{
-	PR_ASSERT(server);
-	if (server)
-		server->flags &= ~flag;
-}
-
-
-void DIR_ForceFlag (DIR_Server *server, PRUint32 flag, PRBool setIt)
-{
-	PR_ASSERT(server);
-	if (server)
-	{
-		if (setIt)
-			server->flags |= flag;
-		else
-			server->flags &= ~flag;
-	}
 }
