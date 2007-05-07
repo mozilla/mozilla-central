@@ -73,7 +73,7 @@ typedef enum
 	idFileName,
 	idUri,
 	idType,	
-	idAuthDn,
+	idAuthDn
 } DIR_PrefId;
 
 #define DIR_Server_typedef 1     /* this quiets a redeclare warning in libaddr */
