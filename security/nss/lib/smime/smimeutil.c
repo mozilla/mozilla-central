@@ -37,7 +37,7 @@
 /*
  * Stuff specific to S/MIME policy and interoperability.
  *
- * $Id: smimeutil.c,v 1.18 2006-08-25 22:26:18 alexei.volkov.bugs%sun.com Exp $
+ * $Id: smimeutil.c,v 1.19 2007-05-07 22:44:07 nelson%bolyard.com Exp $
  */
 
 #include "secmime.h"
@@ -351,10 +351,14 @@ nss_SMIME_FindCipherForSMIMECap(NSSSMIMECapability *cap)
 	 * 2 NULLs as equal and NULL and non-NULL as not equal), we could
 	 * use that here instead of all of the following comparison code.
 	 */
-	if (cap->parameters.data == NULL && smime_cipher_map[i].parms == NULL)
-	    break;	/* both empty: bingo */
-
-	if (cap->parameters.data != NULL && smime_cipher_map[i].parms != NULL &&
+	if (!smime_cipher_map[i].parms) { 
+	    if (!cap->parameters.data || !cap->parameters.len)
+		break;	/* both empty: bingo */
+	    if (cap->parameters.len     == 2  &&
+	        cap->parameters.data[0] == SEC_ASN1_NULL &&
+		cap->parameters.data[1] == 0) 
+		break;  /* DER NULL == NULL, bingo */
+	} else if (cap->parameters.data != NULL && 
 	    cap->parameters.len == smime_cipher_map[i].parms->len &&
 	    PORT_Memcmp (cap->parameters.data, smime_cipher_map[i].parms->data,
 			     cap->parameters.len) == 0)
@@ -365,8 +369,7 @@ nss_SMIME_FindCipherForSMIMECap(NSSSMIMECapability *cap)
 
     if (i == smime_cipher_map_count)
 	return 0;				/* no match found */
-    else
-	return smime_cipher_map[i].cipher;	/* match found, point to cipher */
+    return smime_cipher_map[i].cipher;	/* match found, point to cipher */
 }
 
 /*
