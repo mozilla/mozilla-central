@@ -24,7 +24,7 @@ use Config;         # for $Config{sig_name} and $Config{sig_num}
 use File::Find ();
 use File::Copy;
 
-$::UtilsVersion = '$Revision: 1.356 $ ';
+$::UtilsVersion = '$Revision: 1.357 $ ';
 
 package TinderUtils;
 
@@ -2128,6 +2128,12 @@ sub run_all_tests {
                 # Suppress seamonkey's popup blocking
                 set_pref($pref_file, 'privacy.popups.first_popup', 'false');
                 set_pref($pref_file, 'dom.disable_open_during_load', 'false');
+            }
+
+            if ($Settings::BinaryName =~ /^seamonkey/ ||
+                $Settings::BinaryName =~ /^thunderbird/) {
+                # Suppress seamonkey's palm sync conduit installer
+                set_pref($pref_file, 'extensions.palmsync.conduitRegistered', 'true');
             }
 
             # Suppress security warnings for QA test.
