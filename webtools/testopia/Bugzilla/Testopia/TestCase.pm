@@ -226,7 +226,7 @@ sub get_selectable_components {
             push @exclusions, $e->{'id'};
         }
     }
-    my $query = "SELECT DISTINCT id FROM components
+    my $query = "SELECT id FROM components
                  WHERE product_id IN (" . join(",", @{$self->get_product_ids}) . ") ";
     if (@exclusions){
         $query .= "AND id NOT IN(". join(",", @exclusions) .") ";
