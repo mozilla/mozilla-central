@@ -235,7 +235,11 @@ sub getTestResults($\@\@$) {
                 }
             }
             $where .= " AND u.user_id=tr.user_id AND u.is_admin=";
-            $where .= $criterion->{'value'} == 1 ? '1' : '0';
+            if ($criterion->{'value'} == 1 or $criterion->{'value'} eq 'on') {
+                $where .= '1';
+            } else {
+                $where .= '0';
+            }
         } elsif ($criterion->{'field'} eq 'vetted_only') {
             if ($criterion->{'value'} ne 'all') {
                 $where .= " AND tr.vetted=";

@@ -123,7 +123,7 @@ if ($c->param) {
         } elsif ($param eq 'trusted_only') {
             my $value = $c->param($param);
             if ($value ne 'all') {
-              if ($value eq '1') {
+              if ($value eq '1' or $value eq 'on') {
                 push @where, {field => 'trusted_only',
                             value => 1};            
                 $limit_criteria .= "Display trusted results only<br/>";
