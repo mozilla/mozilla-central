@@ -810,8 +810,9 @@ nsresult nsMsgSearchTerm::MatchBody (nsIMsgSearchScopeTerm *scope, PRUint32 offs
       {
         softLineBreak = StringEndsWith(buf, NS_LITERAL_CSTRING("="));
         MsgStripQuotedPrintable ((unsigned char*)buf.get());
-        if (softLineBreak)
-          buf.Truncate(buf.Length() - 1);
+        // in case the string shrunk, reset the length. If soft line break,
+        // chop off the last char as well.
+        buf.SetLength(strlen(buf.get()) - (softLineBreak ? 1 : 0));
       }
       compare.Append(buf);
       // If this line ends with a soft line break, loop around
