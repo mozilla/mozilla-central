@@ -91,7 +91,7 @@ use Text::Diff;
 
 use constant DB_COLUMNS => qw(
     case_id
-    test_cases.case_status_id
+    case_status_id
     category_id
     priority_id
     author_id
