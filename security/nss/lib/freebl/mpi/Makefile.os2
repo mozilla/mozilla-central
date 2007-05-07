@@ -39,7 +39,7 @@
 # ***** END LICENSE BLOCK *****
 
 #
-# $Id: Makefile.os2,v 1.3 2005-02-02 22:28:22 gerv%gerv.net Exp $
+# $Id: Makefile.os2,v 1.4 2007-05-07 21:36:04 neil.williams%sun.com Exp $
 #
 
 ## Define CC to be the C compiler you wish to use.  The GNU cc
@@ -55,7 +55,7 @@ AS=alp.exe
 ## might work ... I haven't tested it.
 ##
 #PERL=/usr/bin/perl
-PERL=perl
+#PERL=perl
 
 ##
 ## Define CFLAGS to contain any local options your compiler
