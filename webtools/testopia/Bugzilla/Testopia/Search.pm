@@ -1048,6 +1048,7 @@ sub init {
                     $name = trim($name);
                     if ($name) {
                         login_to_id($name);
+                        trick_taint($name);
                     }
                 }
             }

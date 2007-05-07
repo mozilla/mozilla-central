@@ -263,6 +263,7 @@ elsif ($action eq 'update_assignee'){
         print "Error - Invalid assignee";
         exit;
     }
+    trick_taint($assignee_id);
     $caserun->set_assignee($assignee_id);
 }
 elsif ($action eq 'update_sortkey'){
@@ -362,6 +363,7 @@ sub do_update {
     detaint_natural($build);
     detaint_natural($status);
     trick_taint($notes);
+    trick_taint($assignee);
 
     # Switch to the record representing this build and environment combo.
     # If there is not one, it will create it and switch to that.

@@ -94,6 +94,7 @@ if ($action eq 'Commit'){
             next;
         }
         my $manager = login_to_id(trim($cgi->param('manager')));
+        trick_taint($manager);
         if ($cgi->param('manager') && !$manager){
             print $cgi->multipart_end if $serverpush;
             ThrowUserError("invalid_username", { name => $cgi->param('manager') }) if $cgi->param('manager');

@@ -110,7 +110,7 @@ if ($action eq 'Add'){
     trick_taint($summary);
     trick_taint($notes);
     trick_taint($prodver);
-    
+    trick_taint($manager);
     
     if ($cgi->param('new_build')){
         my $new_build   = $cgi->param('new_build');

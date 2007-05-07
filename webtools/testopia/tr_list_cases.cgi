@@ -131,6 +131,7 @@ if ($action eq 'Commit'){
         trick_taint($requirement) if $requirement;
         trick_taint($arguments) if $arguments;
         trick_taint($script) if $script;
+        trick_taint($tester);
         
         detaint_natural($status);
         detaint_natural($priority);

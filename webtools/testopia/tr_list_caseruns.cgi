@@ -131,6 +131,7 @@ if ($action eq 'Commit'){
            ThrowUserError("invalid_username", { name => $cgi->param('assignee') });
         }
         detaint_natural($status);
+        trick_taint($assignee);
         
         $caserun->set_status($status)     if ($caserun->status_id != $status);
         $caserun->set_assignee($assignee) if ($caserun->assignee->id != $assignee);

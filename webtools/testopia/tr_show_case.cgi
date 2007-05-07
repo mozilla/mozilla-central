@@ -386,6 +386,7 @@ sub do_update{
     trick_taint($newtcsetup);
     trick_taint($tcdependson);
     trick_taint($tcblocks);
+    trick_taint($tester);
 
     validate_selection($category, 'category_id', 'test_case_categories');
     validate_selection($status, 'case_status_id', 'test_case_status');

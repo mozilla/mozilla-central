@@ -273,6 +273,7 @@ elsif ($action eq 'addcc'){
     my %ccids;
     foreach my $email (@cclist){
         my $ccid = login_to_id($email) || ThrowUserError("invalid_username", { name => $email });
+        trick_taint($ccid);
         if ($ccid && !$ccids{$ccid}) {
            $ccids{$ccid} = 1;
         }
@@ -383,6 +384,7 @@ sub do_update {
     trick_taint($summary);
     trick_taint($planver);
     trick_taint($notes);
+    trick_taint($manager);
     
     detaint_natural($build);
     detaint_natural($env);

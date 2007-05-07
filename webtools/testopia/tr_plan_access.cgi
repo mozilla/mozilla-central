@@ -76,6 +76,7 @@ elsif ($action eq 'Add User'){
     $perms |= TR_READ | TR_WRITE | TR_DELETE | TR_ADMIN  if $cgi->param("na");
     
     detaint_natural($perms);
+    trick_taint($userid);
     $plan->add_tester($userid, $perms); 
 
     display();
