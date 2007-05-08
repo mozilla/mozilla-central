@@ -133,7 +133,7 @@ description {
 }
 
 prefpane button {
-    -moz-appearance: button-small;
+    min-height: 19px; /* aqua size for small buttons */
 }
 
 prefpane .groupbox-body {
