@@ -3,6 +3,7 @@
 from twisted.trial import unittest
 from buildbot.changes.bonsaipoller import FileNode, CiNode, BonsaiResult, \
      BonsaiParser, BonsaiPoller, InvalidResultError, EmptyResult
+from buildbot.changes.changes import ChangeMaster
 
 from StringIO import StringIO
 from copy import deepcopy
@@ -107,9 +108,18 @@ badResultMsgs = { 'badUnparsedResult':
     "BonsaiParser did not raise an exception when there was no <ci> tags"
 }
 
+class FakeChangeMaster(ChangeMaster):
+    def __init__(self):
+        ChangeMaster.__init__(self)
+
+    def addChange(self, change):
+        pass
+
+
 class FakeBonsaiPoller(BonsaiPoller):
     def __init__(self):
         BonsaiPoller.__init__(self, "fake url", "fake module", "fake branch")
+        self.parent = FakeChangeMaster()
 
 class TestBonsaiPoller(unittest.TestCase):
     def testFullyFormedResult(self):
@@ -170,3 +180,18 @@ class TestBonsaiPoller(unittest.TestCase):
         poller._process_changes(StringIO(badUnparsedResult))
         # self.lastChange will not be updated if the change was not submitted
         self.failUnlessEqual(lastChangeBefore, poller.lastChange)
+
+    def testParserWorksAfterInvalidResult(self):
+        """Make sure the BonsaiPoller still works after catching an
+        InvalidResultError"""
+
+        poller = FakeBonsaiPoller()
+
+        lastChangeBefore = poller.lastChange
+        # generate an exception first
+        poller._process_changes(StringIO(badUnparsedResult))
+        # now give it a valid one...
+        poller._process_changes(StringIO(goodUnparsedResult))
+        # if poller.lastChange has not been updated then the good result
+        # was not parsed
+        self.failIfEqual(lastChangeBefore, poller.lastChange)
