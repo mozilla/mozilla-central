@@ -75,6 +75,9 @@
 #include "nsEudoraSettings.h"
 #include "nsReadableUtils.h"
 #include "nsUnicharUtils.h"
+#include "nsIMsgTagService.h"
+#include "nsMsgBaseCID.h"
+
 
 #if defined(XP_WIN) || defined(XP_OS2)
 #include "nsEudoraWin32.h"
@@ -360,6 +363,59 @@ nsresult ImportEudoraMailImpl::Create(nsIImportMail** aImport)
 
 ImportEudoraMailImpl::ImportEudoraMailImpl()
 {
+	// Create keys to support the default Eudora label colors.
+	// Ideally importing the settings will have already created these,
+	// in which case we won't bother (we'll detect that each key already
+	// exists). But to be sure we need to create the keys here, at
+	// least until the infrastructure is improved in some fashion so
+	// that we can rely on settings *always* being imported before mail.
+	nsresult						rv;
+	nsCOMPtr<nsIMsgTagService>		pTagService = do_GetService(NS_MSGTAGSERVICE_CONTRACTID, &rv);
+
+	if ( NS_SUCCEEDED(rv) ) {
+		struct EudoraDefaultLabels
+		{
+			char *		key;
+			nsString	tag;
+			char *		color;
+		};
+
+#if defined(XP_MAC) || defined(XP_MACOSX)
+		// For now default to no labels on Mac
+		#define		kNumEudoraLabels		0
+		
+		// Use one dummy entry for now as a placeholder to keep the Mac code valid,
+		// until we enter actual reasonable defaults for Mac builds.
+		EudoraDefaultLabels		defaultEudoraLabels[1] =
+										{ "eudoralabel1", NS_LITERAL_STRING("Label 1"), "#FF6600" };
+#else
+		// These aren't the actual default Windows Eudora colors. Rather they're the closest
+		// equivalents that I could find that Thunderbird supports. When importing actual
+		// label settings, we'll need to map Eudora colors to ones that are supported.
+		#define		kNumEudoraLabels		7
+		EudoraDefaultLabels		defaultEudoraLabels[kNumEudoraLabels] =
+										{ "eudoralabel1", NS_LITERAL_STRING("Label 1"), "#FF6600",
+										  "eudoralabel2", NS_LITERAL_STRING("Label 2"), "#FF0000",
+										  "eudoralabel3", NS_LITERAL_STRING("Label 3"), "#CC66CC",
+										  "eudoralabel4", NS_LITERAL_STRING("Label 4"), "#3366FF",
+										  "eudoralabel5", NS_LITERAL_STRING("Label 5"), "#000099",
+										  "eudoralabel6", NS_LITERAL_STRING("Label 6"), "#009900",
+										  "eudoralabel7", NS_LITERAL_STRING("Label 7"), "#663333" };
+#endif
+
+		nsCString			eudoraKey;
+		nsString			eudoraTag;
+		nsCString			eudoraColor;
+
+		for (PRInt16 i = 0; i < kNumEudoraLabels; i++) {
+			eudoraKey = defaultEudoraLabels[i].key;
+			rv = pTagService->GetTagForKey(eudoraKey, eudoraTag);
+			if ( NS_FAILED(rv) || eudoraTag.IsEmpty() ) {
+				eudoraColor = defaultEudoraLabels[i].color;
+				rv = pTagService->AddTagForKey( eudoraKey, defaultEudoraLabels[i].tag, eudoraColor, EmptyCString() );
+			}
+		}
+	}
 }
 
 

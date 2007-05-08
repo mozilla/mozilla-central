@@ -37,12 +37,17 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#include "msgCore.h"
 #include "nsCOMPtr.h"
 #include "nsReadableUtils.h"
 #include "nsEudoraMailbox.h"
 #include "nsDirectoryServiceDefs.h"
 #include "nsEudoraCompose.h"
 #include "nspr.h"
+#include "nsMsgMessageFlags.h"
+#include "nsMailHeaders.h"
+#include "nsMsgLocalFolderHdrs.h"
+ 
 #include "nsMsgUtils.h"
 #include "nsNetUtil.h"
 #include "EudoraDebugLog.h"
@@ -107,6 +112,89 @@ static char *eudoraMonths[12] = {
 };
 
 
+PRUint16 EudoraTOCEntry::GetMozillaStatusFlags()
+{
+	// Return the mozilla equivalent of flags that Eudora supports.
+	PRUint16	flags = 0;
+
+#if defined(XP_MAC) || defined(XP_MACOSX)
+
+#else
+	switch (m_State)
+	{
+		case MS_UNREAD:
+			flags = 0;
+			break;
+
+		case MS_READ:
+			flags = MSG_FLAG_READ;
+			break;
+
+		case MS_REPLIED:
+			flags = MSG_FLAG_READ | MSG_FLAG_REPLIED;
+			break;
+
+		case MS_FORWARDED:
+			flags = MSG_FLAG_READ | MSG_FLAG_FORWARDED;
+			break;
+
+		case MS_REDIRECT:
+			// Redirect doesn't really mean forwarded, but forwarded
+			// seems to be the closest equivalent for now.
+			flags = MSG_FLAG_READ | MSG_FLAG_FORWARDED;
+			break;
+
+		case MS_UNSENDABLE:
+		case MS_SENDABLE:
+		case MS_QUEUED:
+		case MS_SENT:
+		case MS_UNSENT:
+		case MS_TIME_QUEUED:
+		case MS_SPOOLED:
+			// To do: Add more sent message flag handling.
+			flags = 0;
+			break;
+
+		case MS_RECOVERED:
+			flags = MSG_FLAG_READ;
+			break;
+	}
+
+	// Range check priority just to be sure
+	if (m_Priority < MSP_HIGHEST)
+		m_Priority = MSP_HIGHEST;
+	if (m_Priority > MSP_LOWEST)
+		m_Priority = MSP_LOWEST;
+
+	// Translate priority into format used in mozilla status flags
+	// (which is reversed for some reason)
+	flags |= (7-m_Priority) << 13;
+#endif
+
+	return flags;
+}
+
+
+PRUint32 EudoraTOCEntry::GetMozillaStatus2Flags()
+{
+#if defined(XP_MAC) || defined(XP_MACOSX)
+	return 0;
+#else
+
+	// Return the mozilla equivalent of flags that Eudora supports.
+	PRUint32	flags = 0;
+
+	if (m_Imflags & IMFLAGS_DELETED)
+		flags |= MSG_FLAG_IMAP_DELETED;
+
+	if (m_Flags & MSF_READ_RECEIPT)
+		flags |= MSG_FLAG_MDN_REPORT_NEEDED;
+
+	return flags;
+#endif
+}
+
+
 nsEudoraMailbox::nsEudoraMailbox()
 {
 	m_fromLen = 0;
@@ -154,13 +242,12 @@ nsresult nsEudoraMailbox::ImportMailbox( PRUint32 *pBytes, PRBool *pAbort, const
 {
 	nsCOMPtr<nsIFile>   tocFile;
         nsCOMPtr <nsIInputStream> srcInputStream;
+        nsCOMPtr <nsIInputStream> tocInputStream;
         nsCOMPtr <nsIOutputStream> mailOutputStream;
+ 	PRBool              importWithoutToc = PR_TRUE;
 	PRBool              deleteToc = PR_FALSE;
 	nsresult            rv;
 	nsCOMPtr<nsIFile>   mailFile;
-	PRBool              deleteMailFile = PR_FALSE;
-	PRUint32            div = 1;
-	PRUint32            mul = 1;
 
 	if (pMsgCount)
 	  *pMsgCount = 0;
@@ -175,186 +262,93 @@ nsresult nsEudoraMailbox::ImportMailbox( PRUint32 *pBytes, PRBool *pAbort, const
 
 	// First, get the index file for this mailbox
 	rv = FindTOCFile( pSrc, getter_AddRefs( tocFile), &deleteToc);
-	if (NS_SUCCEEDED( rv) && tocFile) {
+	if (NS_SUCCEEDED( rv) && tocFile) 
+        {
 		IMPORT_LOG0( "Reading euroda toc file: ");
 		DUMP_FILENAME( tocFile, PR_TRUE);
 
-		rv = CreateTempFile(getter_AddRefs( mailFile));
-		deleteMailFile = PR_TRUE;
-		if (NS_SUCCEEDED( rv)) {
-			// Read the TOC and compact the mailbox file into a temp file
-			if (NS_SUCCEEDED( rv)) {
-                          rv = NS_NewLocalFileOutputStream(getter_AddRefs(mailOutputStream),
-                                                   mailFile,
-                                                   PR_CREATE_FILE | PR_WRONLY | PR_TRUNCATE,
-                                                   0644);
-				if (NS_SUCCEEDED( rv)) {
-					// Read the toc and compact the mailbox into mailFile
-					rv = CompactMailbox( pBytes, pAbort, pSrc, tocFile, mailOutputStream);
-					div = 4;
-					mul = 3;
-				}
-			}
-		}
-		
+                rv = NS_NewLocalFileOutputStream(getter_AddRefs(mailOutputStream), pDst);
+                NS_ENSURE_SUCCESS(rv, rv);
+		// Read the toc and import the messages
+		rv = ImportMailboxUsingTOC( pBytes, pAbort, srcInputStream, tocFile, mailOutputStream, pMsgCount);
+
 		// clean up
 		if (deleteToc)
-                  DeleteFile( tocFile);
-		if (NS_FAILED( rv)) {
-			DeleteFile( mailFile);
-			mailFile = pSrc;
-			deleteMailFile = PR_FALSE;
-			IMPORT_LOG0( "*** Error compacting mailbox.\n");
-		}
-		
-		IMPORT_LOG0( "Compacted mailbox: "); DUMP_FILENAME( mailFile, PR_TRUE);
+			DeleteFile( tocFile);
 
-		if (NS_SUCCEEDED( rv)) {
-			mailFile = pSrc;
-
-			IMPORT_LOG0( "Compacting mailbox was successful\n");
+		// If we were able to import with the TOC, then we don't need to bother
+		// importing without the TOC.
+		if ( NS_SUCCEEDED(rv) ) {
+			importWithoutToc = PR_FALSE;
+			IMPORT_LOG0( "Imported mailbox: "); DUMP_FILENAME( pSrc, PR_FALSE);
+			IMPORT_LOG0( "  Using TOC: "); DUMP_FILENAME(tocFile, PR_TRUE);
 		}
 		else {
-			DeleteFile( mailFile);
-			deleteMailFile = PR_FALSE;
-			IMPORT_LOG0( "*** Error accessing compacted mailbox\n");
+			IMPORT_LOG0( "*** Error importing with TOC - will import without TOC.\n");
 		}
 	}
-	
-	// So, where we are now, is we have the mail file to import in pSrc
-	// It may need deleting if deleteMailFile is PR_TRUE.
+
 	// pSrc must be Released before returning
-	
-	// The source file contains partially constructed mail messages,
-	// and attachments.  We should first investigate if we can use the mailnews msgCompose
-	// stuff to do the work for us.  If not we have to scan the mailboxes and do TONS
-	// of work to properly reconstruct the message - Eudora is so nice that it strips things
-	// like MIME headers, character encoding, and attachments - beautiful!
-	
-	rv = pSrc->GetFileSize( &m_mailSize);
-        NS_ENSURE_SUCCESS(rv, rv);
 
-	nsCOMPtr<nsIFile>	compositionFile;
-	SimpleBufferTonyRCopiedOnce			readBuffer;
-	SimpleBufferTonyRCopiedOnce			headers;
-	SimpleBufferTonyRCopiedOnce			body;
-	SimpleBufferTonyRCopiedOnce			copy;
-	PRUint32					written;
-	nsCString				fromLine(eudoraFromLine);
-	
-	headers.m_convertCRs = PR_TRUE;
-	body.m_convertCRs = PR_TRUE;
-	
-	copy.Allocate( kCopyBufferSize);
-	readBuffer.Allocate( kMailReadBufferSize);
-	ReadFileState state;
-	state.offset = 0;
-	state.size = m_mailSize;
-	state.pFile = pSrc;
-        rv = NS_NewLocalFileInputStream(getter_AddRefs(state.pInputStream), pSrc);
+	if (importWithoutToc) {
+		// The source file contains partially constructed mail messages,
+		// and attachments.  We should first investigate if we can use the mailnews msgCompose
+		// stuff to do the work for us.  If not we have to scan the mailboxes and do TONS
+		// of work to properly reconstruct the message - Eudora is so nice that it strips things
+		// like MIME headers, character encoding, and attachments - beautiful!
 
-	IMPORT_LOG0( "Reading mailbox\n");
+		rv = pSrc->GetFileSize( &m_mailSize);
 
-	if (NS_SUCCEEDED(rv))
-        {
-		nsEudoraCompose		compose;
-                nsCString defaultDate;
-                nsCAutoString bodyType;
-		
-		/*
-		IMPORT_LOG0( "Calling compose.SendMessage\n");
-		rv = compose.SendMessage( compositionFile);
-		if (NS_SUCCEEDED( rv)) {
-			IMPORT_LOG0( "Composed message in file: "); DUMP_FILENAME( compositionFile, PR_TRUE);
+		SimpleBufferTonyRCopiedOnce		readBuffer;
+		SimpleBufferTonyRCopiedOnce		headers;
+		SimpleBufferTonyRCopiedOnce		body;
+		SimpleBufferTonyRCopiedOnce		copy;
+		nsCString						fromLine(eudoraFromLine);
+
+		headers.m_convertCRs = PR_TRUE;
+		body.m_convertCRs = PR_TRUE;
+
+		copy.Allocate( kCopyBufferSize);
+		readBuffer.Allocate( kMailReadBufferSize);
+		ReadFileState			state;
+		state.offset = 0;
+		state.size = m_mailSize;
+		state.pFile = pSrc;
+
+		IMPORT_LOG0( "Reading mailbox\n");
+
+		if (NS_SUCCEEDED( rv ))
+                {
+			nsEudoraCompose		compose;
+			nsCString defaultDate;
+			nsCAutoString bodyType;
+
+			IMPORT_LOG0( "Reading first message\n");
+
+			while (!*pAbort && NS_SUCCEEDED( rv = ReadNextMessage( &state, readBuffer, headers, body, defaultDate, bodyType, NULL))) {
+
+				if (pBytes) {
+					*pBytes += body.m_writeOffset - 1 + headers.m_writeOffset - 1;
+				}
+
+				rv = ImportMessage(headers, body, defaultDate, bodyType, mailOutputStream, pMsgCount);
+
+				if (!readBuffer.m_bytesInBuf && (state.offset >= state.size))
+					break;
+			}
+
 		}
 		else {
-			IMPORT_LOG0( "*** Error composing message\n");
+			IMPORT_LOG0( "*** Error creating file spec for composition\n");
 		}
-		*/
-
-		IMPORT_LOG0( "Reading first message\n");
-
-
-    nsCOMPtr <nsIOutputStream> dstOutputStream;
-    rv = NS_NewLocalFileOutputStream(getter_AddRefs(dstOutputStream),
-                             pDst,
-                             PR_CREATE_FILE | PR_WRONLY | PR_TRUNCATE,
-                             0644);
-    NS_ENSURE_SUCCESS(rv, rv);
-    while (!*pAbort && NS_SUCCEEDED( rv = ReadNextMessage( &state, readBuffer, headers, body, defaultDate, bodyType))) {
-			
-			if (pBytes) {
-				*pBytes += (((body.m_writeOffset - 1 + headers.m_writeOffset - 1) / div) * mul);
-			}
-
-      // Unfortunately Eudora stores HTML messages in the sent folder
-      // without any content type header at all. If the first line of the message body is <html>
-      // then mark the message as html internally...See Bug #258489
-      if (body.m_pBuffer && (body.m_writeOffset > strlen(kHTMLTag)) && (strncmp(body.m_pBuffer, kHTMLTag, strlen(kHTMLTag)) == 0 ))
-        bodyType = "text/html"; // ignore whatever body type we were given...force html
-
-      compose.SetBody( body.m_pBuffer, body.m_writeOffset - 1, bodyType);
-			compose.SetHeaders( headers.m_pBuffer, headers.m_writeOffset - 1);
-			compose.SetAttachments( &m_attachments);
-      compose.SetDefaultDate(defaultDate);
-
-			rv = compose.SendTheMessage( getter_AddRefs(compositionFile));
-			if (NS_SUCCEEDED( rv)) {
-				/* IMPORT_LOG0( "Composed message in file: "); DUMP_FILENAME( compositionFile, PR_TRUE); */
-				// copy the resulting file into the destination file!
-				rv = compose.CopyComposedMessage( fromLine, compositionFile, dstOutputStream, copy);
-				DeleteFile( compositionFile);
-				if (NS_FAILED( rv)) {
-					IMPORT_LOG0( "*** Error copying composed message to destination mailbox\n");
-					break;
-				}
-				if (pMsgCount)
-					(*pMsgCount)++;
-			}
-			else {
-				IMPORT_LOG0( "*** Error composing message, writing raw message\n");
-				rv = WriteFromSep( dstOutputStream);
-				
-				rv = dstOutputStream->Write( kComposeErrorStr,
-									strlen( kComposeErrorStr),
-									&written );
-				
-				if (NS_SUCCEEDED( rv))
-					rv = dstOutputStream->Write( headers.m_pBuffer, headers.m_writeOffset - 1, &written);
-				if (NS_SUCCEEDED( rv) && (written == (headers.m_writeOffset - 1)))
-					rv = dstOutputStream->Write( "\x0D\x0A" "\x0D\x0A", 4, &written);
-				if (NS_SUCCEEDED( rv) && (written == 4))
-					rv = dstOutputStream->Write( body.m_pBuffer, body.m_writeOffset - 1, &written);
-				if (NS_SUCCEEDED( rv) && (written == (body.m_writeOffset - 1))) {
-					rv = dstOutputStream->Write( "\x0D\x0A", 2, &written);
-					if (written != 2)
-						rv = NS_ERROR_FAILURE;
-				}
-				
-				if (NS_FAILED( rv)) {
-					IMPORT_LOG0( "*** Error writing to destination mailbox\n");
-					break;
-				}
-			}
-
-			if (!readBuffer.m_bytesInBuf && (state.offset >= state.size))
-				break;
-		}
-		
-	}
-	else {
-		IMPORT_LOG0( "*** Error creating file spec for composition\n");
 	}
 
-	if (deleteMailFile)
-		DeleteFile( pSrc);
-	
 	pSrc->Release();
 
 	return( rv);
 }
 
-#ifdef XP_MACOSX
+#if defined(XP_MAC) || defined(XP_MACOSX)
 #define kMsgHeaderSize		220
 #define	kMsgFirstOffset		278
 #else
@@ -362,99 +356,266 @@ nsresult nsEudoraMailbox::ImportMailbox( PRUint32 *pBytes, PRBool *pAbort, const
 #define kMsgFirstOffset		104
 #endif
 
-nsresult nsEudoraMailbox::CompactMailbox( PRUint32 *pBytes, PRBool *pAbort, nsIFile *pMail, nsIFile *pToc, nsIOutputStream *pDstOutputStream)
+
+nsresult nsEudoraMailbox::ImportMailboxUsingTOC(
+	PRUint32 *pBytes,
+	PRBool *pAbort,
+	nsIInputStream *pInputStream,
+	nsIFile *tocFile,
+	nsIOutputStream *pDst,
+	PRInt32 *pMsgCount)
 {
-	PRInt64	mailSize = m_mailSize;
-	PRInt64	tocSize = 0;
-  PRUint32	msgCount = 0;
-	nsresult	rv;
+  nsresult				rv = NS_OK;
 
-	rv = pToc->GetFileSize( &tocSize);
+  PRInt64	mailSize = m_mailSize;
+  PRInt64	tocSize = 0;
+  PRUint32	saveBytes = pBytes ? *pBytes : 0;
+  nsCOMPtr <nsIInputStream> tocInputStream;
 
-		// if the index or the mail file is empty then just
-		// use the original mail file.
-	if (!mailSize || !tocSize)
-		return( NS_ERROR_FAILURE);
+  rv = tocFile->GetFileSize( &tocSize);
 
-	SimpleBufferTonyRCopiedOnce	copy;
-	PRBool			done = PR_FALSE;
-	PRInt32			tocOffset = kMsgFirstOffset;
-	PRInt32			data[2];
-	PRInt32			count;
-	PRUint32		read;
-	PRUint32		written;
-	char *			pBuffer;
-	char			lastChar;
+  // if the index or the mail file is empty then just
+  // use the original mail file.
+  if (!mailSize || !tocSize)
+    return NS_ERROR_FAILURE;
+  rv = NS_NewLocalFileInputStream(getter_AddRefs(tocInputStream), tocFile);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-	copy.Allocate( kCopyBufferSize);
+  SimpleBufferTonyRCopiedOnce readBuffer;
+  SimpleBufferTonyRCopiedOnce headers;
+  SimpleBufferTonyRCopiedOnce body;
+  SimpleBufferTonyRCopiedOnce copy;
+  PRInt32 tocOffset = kMsgFirstOffset;
+  EudoraTOCEntry tocEntry;
 
-	IMPORT_LOG0( "Compacting mailbox: ");
-        nsCOMPtr <nsIInputStream> tocStream;
-        rv = NS_NewLocalFileInputStream(getter_AddRefs(tocStream), pToc);
+  copy.Allocate( kCopyBufferSize);
+  readBuffer.Allocate(kMailReadBufferSize);
 
-        nsCOMPtr <nsISeekableStream> seekTOCStream = do_QueryInterface(tocStream, &rv);
-        NS_ENSURE_SUCCESS(rv, rv);
-        nsCOMPtr <nsIInputStream> mailInputStream;
-        rv = NS_NewLocalFileInputStream(getter_AddRefs(mailInputStream), pMail);
-        nsCOMPtr <nsISeekableStream> seekMailStream = do_QueryInterface(mailInputStream, &rv);
-        NS_ENSURE_SUCCESS(rv, rv);
+  IMPORT_LOG0( "Importing mailbox using TOC: ");
+  DUMP_FILENAME( tocFile, PR_TRUE);
 
-	while (!*pAbort && (tocOffset < (PRInt32)tocSize)) {
-		if (NS_FAILED( rv = seekTOCStream->Seek(nsISeekableStream::NS_SEEK_SET, tocOffset))) return( rv);
-		pBuffer = (char *)data;
-		if (NS_FAILED( rv = tocStream->Read( pBuffer, 8, &read)) || (read != 8)) 
-			return( NS_ERROR_FAILURE);
-		// data[0] is the message offset, data[1] is the message size
-		if (NS_FAILED( rv = seekMailStream->Seek(nsISeekableStream::NS_SEEK_SET, data[0]))) return( rv);
-		count = kCopyBufferSize;
-		if (count > data[1])
-			count = data[1];
-		pBuffer = copy.m_pBuffer;
-		if (NS_FAILED( rv = mailInputStream->Read( pBuffer, count, &read)) || (read != count))
-			return( NS_ERROR_FAILURE);
-		if (count < 6)
-			return( NS_ERROR_FAILURE);
-		if ((copy.m_pBuffer[0] != 'F') || (copy.m_pBuffer[1] != 'r') ||
-			(copy.m_pBuffer[2] != 'o') || (copy.m_pBuffer[3] != 'm') ||
-			(copy.m_pBuffer[4] != ' '))
-			return( NS_ERROR_FAILURE);
-		
-		if (pBytes)
-			*pBytes += (data[1] / 4);
-		// Looks like everything is cool, we have a message that appears to start with a separator
-		while (data[1]) {
-			lastChar = copy.m_pBuffer[count - 1];
-			if (NS_FAILED( rv = pDstOutputStream->Write( copy.m_pBuffer, count, &written)) || (written != count))
-				return( NS_ERROR_FAILURE);
-			data[1] -= count;
-			if (data[1]) {
-				pBuffer = copy.m_pBuffer;
-				count = kCopyBufferSize;
-				if (count > data[1])
-					count = data[1];
-				if (NS_FAILED( rv = mailInputStream->Read( pBuffer, count, &read)) || (read != count))
-					return( NS_ERROR_FAILURE);
-			}
+  nsCOMPtr <nsISeekableStream> seekableStream = do_QueryInterface(tocInputStream);
+  while (!*pAbort && (tocOffset < (PRInt32)tocSize)) {
+    if ( NS_FAILED(rv = seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, tocOffset)) )
+      break;
+
+    if ( NS_FAILED(rv = ReadTOCEntry(tocInputStream, tocEntry)) )
+      break;
+
+    // Quick and dirty way to read in and parse the message the way the rest
+    // of the code expects.
+    nsCString							defaultDate;
+    nsCAutoString						bodyType;
+    ReadFileState						state;
+
+    // We're fudging the data to make ReadNextMessage happy. In particular
+    // state.size is meant to be the size of the entire file, because it's
+    // assumed that ReadNextMessage will actually have to parse. We know
+    // exactly how big the message is, so we simply set the "size" to be
+    // immediately where the message ends.
+    state.offset = tocEntry.m_Offset;
+    state.pInputStream = pInputStream;
+    state.size = state.offset + tocEntry.m_Length;
+
+    if ( NS_SUCCEEDED(rv = ReadNextMessage(&state, readBuffer, headers, body, defaultDate, bodyType, &tocEntry) ) )
+    {
+      rv = ImportMessage(headers, body, defaultDate, bodyType, pDst, pMsgCount);
+
+      if (pBytes)
+        *pBytes += tocEntry.m_Length;
+    }
+
+    // We currently don't consider an error from ReadNextMessage or ImportMessage to be fatal.
+    // Reset the error back to no error in case this is the last time through the loop.
+    rv = NS_OK;
+
+    tocOffset += kMsgHeaderSize;
+  }
+
+  if ( NS_SUCCEEDED(rv) ) {
+    IMPORT_LOG0( " finished\n");
+  }
+  else {
+    // We failed somewhere important enough that we kept the error.
+    // Bail on all that we imported since we'll be importing everything
+    // again using just the mailbox.
+    IMPORT_LOG0( "*** Error importing mailbox using TOC: ");
+//    DUMP_FILENAME(pMail, PR_TRUE);
+
+    // Close the destination and truncate it. We don't need to bother
+    // to reopen it because the nsIFileSpec implementation will open
+    // before writing if necessary (and yes legacy importing code already
+    // relies on this behavior).
+//    pDst->CloseStream();
+//    pDst->Truncate(0);
+
+    // Reset pBytes back to where it was before we imported this mailbox.
+    // This will likely result in a funky progress bar which will move
+    // backwards, but that's probably the best we can do to keep the
+    // progress accurate since we'll be re-importing the same mailbox.
+    if (pBytes)
+      *pBytes = saveBytes;
+
+    // Set the message count back to 0.
+    if (pMsgCount)
+      *pMsgCount = 0;
+  }
+
+  return rv;
+}
+
+nsresult nsEudoraMailbox::ReadTOCEntry(nsIInputStream *pToc, EudoraTOCEntry& tocEntry)
+{
+#define READ_TOC_FIELD(entry) pBuffer = (char *)&entry;\
+  if ( NS_FAILED(pToc->Read(pBuffer, sizeof(entry), &bytesRead)) || (bytesRead != sizeof(entry)) )\
+    return NS_ERROR_FAILURE
+
+	PRUint32 bytesRead = 0;
+	char * pBuffer;
+
+	// Here we'll read any initial data that's in the same format on both Mac and Windows
+	READ_TOC_FIELD(tocEntry.m_Offset);
+	READ_TOC_FIELD(tocEntry.m_Length);
+
+#if defined(XP_MAC) || defined(XP_MACOSX)
+	// Read Mac specific data
+
+#else
+	// Read Windows specific data
+	PRInt16			x1 = 0, y1 = 0, x2 = 400, y2 = 300, tzm = 0;
+	PRInt8			nIgnoreChar;
+	PRUint8			cJunkInfo = 0;
+	PRUint32		ulJunkPluginID;
+
+	READ_TOC_FIELD(tocEntry.m_Seconds);
+	READ_TOC_FIELD(tocEntry.m_State);
+	READ_TOC_FIELD(tocEntry.m_Flags);
+	READ_TOC_FIELD(tocEntry.m_Priority);
+	READ_TOC_FIELD(nIgnoreChar);
+	READ_TOC_FIELD(tocEntry.m_Date);
+	READ_TOC_FIELD(tocEntry.m_lArrivalSeconds);
+	READ_TOC_FIELD(tocEntry.m_From);
+	READ_TOC_FIELD(tocEntry.m_Subject);
+
+	// We'll read but ignore window position
+	READ_TOC_FIELD(x1);
+	READ_TOC_FIELD(y1);
+	READ_TOC_FIELD(x2);
+	READ_TOC_FIELD(y2);
+
+	READ_TOC_FIELD(tocEntry.m_Label);
+	READ_TOC_FIELD(tocEntry.m_Hash);
+	READ_TOC_FIELD(tocEntry.m_UniqueMessageId);
+	READ_TOC_FIELD(tocEntry.m_FlagsEx);
+	READ_TOC_FIELD(tocEntry.m_PersonaHash);
+
+	READ_TOC_FIELD(tzm);
+	tocEntry.m_TimeZoneMinutes = tzm;
+
+	// IMAP specific info (present, but not useful when POP mailbox)
+	READ_TOC_FIELD(tocEntry.m_Imflags);
+	READ_TOC_FIELD(tocEntry.m_MsgSize);
+
+	// Moodwatch info - may never be worth importing
+	READ_TOC_FIELD(tocEntry.m_nMood);
+
+	// Get the junk score byte
+	READ_TOC_FIELD(cJunkInfo);
+	if (cJunkInfo & 0x80)
+	{
+		// If the high bit is set note that this message was manually junked
+		// and unset the high bit.
+		tocEntry.m_bManuallyJunked = PR_TRUE;
+		cJunkInfo &= 0x7F;
+	}
+	else
+	{
+		tocEntry.m_bManuallyJunked = PR_FALSE;
+	}
+	tocEntry.m_ucJunkScore = cJunkInfo;
+
+	READ_TOC_FIELD(ulJunkPluginID);
+#endif
+
+	return NS_OK;
+}
+
+
+nsresult nsEudoraMailbox::ImportMessage(
+	SimpleBufferTonyRCopiedOnce &headers,
+	SimpleBufferTonyRCopiedOnce &body,
+	nsCString& defaultDate,
+	nsCAutoString& bodyType,
+	nsIOutputStream *pDst,
+	PRInt32	*pMsgCount)
+{
+	nsresult rv = NS_OK;
+	PRUint32 written = 0;
+	nsEudoraCompose compose;
+	
+	// Unfortunately Eudora stores HTML messages in the sent folder
+	// without any content type header at all. If the first line of the message body is <html>
+	// then mark the message as html internally...See Bug #258489
+	if (body.m_pBuffer && (body.m_writeOffset > (PRInt32)strlen(kHTMLTag)) && (strncmp(body.m_pBuffer, kHTMLTag, strlen(kHTMLTag)) == 0 ))
+		bodyType = "text/html"; // ignore whatever body type we were given...force html
+
+	compose.SetBody( body.m_pBuffer, body.m_writeOffset - 1, bodyType);
+	compose.SetHeaders( headers.m_pBuffer, headers.m_writeOffset - 1);
+	compose.SetAttachments( &m_attachments);
+	compose.SetDefaultDate(defaultDate);
+
+        nsCOMPtr <nsIFile> compositionFile;
+	rv = compose.SendTheMessage(getter_AddRefs(compositionFile));
+	if (NS_SUCCEEDED( rv)) {
+		nsCString						fromLine(eudoraFromLine);
+		SimpleBufferTonyRCopiedOnce		copy;
+
+		copy.Allocate( kCopyBufferSize);
+
+		/* IMPORT_LOG0( "Composed message in file: "); DUMP_FILENAME( compositionFile, PR_TRUE); */
+		// copy the resulting file into the destination file!
+		rv = compose.CopyComposedMessage( fromLine, compositionFile, pDst, copy);
+		DeleteFile(compositionFile);
+		if (NS_FAILED( rv)) {
+			IMPORT_LOG0( "*** Error copying composed message to destination mailbox\n");
 		}
-		if ((lastChar != 0x0D) && (lastChar != 0x0A)) {
-			if (NS_FAILED( rv = pDstOutputStream->Write( "\x0D\x0A", 2, &written)) || (written != 2))
-				return( rv);
-		}
-		
-		IMPORT_LOG1( "  Message #%d processed.", ++msgCount);
+		if (pMsgCount)
+			(*pMsgCount)++;
+	}
+	else {
+		IMPORT_LOG0( "*** Error composing message, writing raw message\n");
+		rv = WriteFromSep( pDst);
 
-		tocOffset += kMsgHeaderSize;
+		rv = pDst->Write( kComposeErrorStr,
+			strlen( kComposeErrorStr),
+			&written );
+
+		if (NS_SUCCEEDED( rv))
+			rv = pDst->Write( headers.m_pBuffer, headers.m_writeOffset - 1, &written);
+		if (NS_SUCCEEDED( rv) && (written == (headers.m_writeOffset - 1)))
+			rv = pDst->Write( "\x0D\x0A" "\x0D\x0A", 4, &written);
+		if (NS_SUCCEEDED( rv) && (written == 4))
+			rv = pDst->Write( body.m_pBuffer, body.m_writeOffset - 1, &written);
+		if (NS_SUCCEEDED( rv) && (written == (body.m_writeOffset - 1))) {
+			rv = pDst->Write( "\x0D\x0A", 2, &written);
+			if (written != 2)
+				rv = NS_ERROR_FAILURE;
+		}
+
+		if (NS_FAILED( rv)) {
+			IMPORT_LOG0( "*** Error writing to destination mailbox\n");
+		}
 	}
 
-	IMPORT_LOG0( " finished\n");
-
-	return( NS_OK);
+	return rv;
 }
 
 
 
 
-nsresult nsEudoraMailbox::ReadNextMessage( ReadFileState *pState, SimpleBufferTonyRCopiedOnce& copy, SimpleBufferTonyRCopiedOnce& header, SimpleBufferTonyRCopiedOnce& body, nsCString& defaultDate, nsCString& bodyType)
+nsresult nsEudoraMailbox::ReadNextMessage( ReadFileState *pState, SimpleBufferTonyRCopiedOnce& copy, 
+                                          SimpleBufferTonyRCopiedOnce& header, SimpleBufferTonyRCopiedOnce& body, 
+                                          nsCString& defaultDate, nsCString& bodyType, EudoraTOCEntry *pTocEntry)
 {
 	header.m_writeOffset = 0;
 	body.m_writeOffset = 0;
@@ -543,6 +704,28 @@ nsresult nsEudoraMailbox::ReadNextMessage( ReadFileState *pState, SimpleBufferTo
 		IMPORT_LOG0( "*** Error writing final headers\n");
 		return( NS_ERROR_FAILURE);
 	}
+	
+	if (pTocEntry) {
+		// This is not the prettiest spot to stick this code, but it works and it was convenient.
+		char		header_str[128];
+
+		// Write X-Mozilla-Status header
+		PR_snprintf( header_str, 128, MSG_LINEBREAK X_MOZILLA_STATUS_FORMAT MSG_LINEBREAK, pTocEntry->GetMozillaStatusFlags() );
+		header.Write( header_str, strlen(header_str) );
+
+		// Write X-Mozilla-Status2 header
+		PR_snprintf( header_str, 128, X_MOZILLA_STATUS2_FORMAT MSG_LINEBREAK, pTocEntry->GetMozillaStatus2Flags() );
+		header.Write( header_str, strlen(header_str) );
+
+		// Format and write X-Mozilla-Keys header
+		nsCString	keywordHdr(X_MOZILLA_KEYWORDS);
+		if ( pTocEntry->HasEudoraLabel() ) {
+			PR_snprintf( header_str, 128, "eudoralabel%d", pTocEntry->GetLabelNumber() );
+			keywordHdr.Replace(sizeof(HEADER_X_MOZILLA_KEYWORDS) + 1, strlen(header_str), header_str);
+		}
+		header.Write( keywordHdr.get(), keywordHdr.Length() );
+	}
+
 	if (!header.Write( &endBuffer, 1)) {
 		IMPORT_LOG0( "*** Error writing header trailing null\n");
 		return( NS_ERROR_FAILURE);
