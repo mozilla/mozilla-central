@@ -248,17 +248,24 @@ class BonsaiPoller(base.ChangeSource):
             self.working = True
             d = self._get_changes()
             d.addCallback(self._process_changes)
-            d.addBoth(self._finished)
+            d.addCallbacks(self._finished_ok, self._finished_failure)
         return
 
-    def _finished(self, res):
+    def _finished_ok(self, res):
         assert self.working
         self.working = False
 
-        # check for failure
+        # check for failure -- this is probably never hit but the twisted docs
+        # are not clear enough to be sure. it is being kept "just in case"
         if isinstance(res, failure.Failure):
             log.msg("Bonsai poll failed: %s" % res)
         return res
+
+    def _finished_failure(self, res):
+        log.msg("Bonsai poll failed: %s" % res)
+        assert self.working
+        self.working = False
+        return None # eat the failure
 
     def _make_url(self):
         args = ["treeid=%s" % self.tree, "module=%s" % self.module,
