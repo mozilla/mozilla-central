@@ -56,7 +56,7 @@ import org.mozilla.jss.provider.java.security.JSSMessageDigestSpi;
  * Initialization is done with static methods, and must be done before
  * an instance can be created.  All other operations are done with instance
  * methods.
- * @version $Revision: 1.47 $ $Date: 2007-02-15 01:32:44 $
+ * @version $Revision: 1.48 $ $Date: 2007-05-09 00:28:30 $
  */
 public final class CryptoManager implements TokenSupplier
 {
@@ -1309,24 +1309,24 @@ public final class CryptoManager implements TokenSupplier
     /* files everytime a new release of JSS is generated:               */
     /*                                                                  */
     /* org/mozilla/jss/CryptoManager.java                               */
-    /* org/mozilla/jss/CryptoManager.c                                  */
     /* org/mozilla/jss/JSSProvider.java                                 */
     /* org/mozilla/jss/util/jssver.h                                    */
     /* lib/manifest.mn                                                  */
+    /* mozilla/security/jss/manifest.mn                                 */
     /*                                                                  */
     /********************************************************************/
 
 
     public static final String
-    JAR_JSS_VERSION     = "JSS_VERSION = JSS_4_2_5";
+    JAR_JSS_VERSION     = "JSS_VERSION = JSS_4_2_5_RTM";
     public static final String
     JAR_JDK_VERSION     = "JDK_VERSION = N/A";
     public static final String
-    JAR_NSS_VERSION     = "NSS_VERSION = NSS_3_11_6_RTM";
+    JAR_NSS_VERSION     = "NSS_VERSION = NSS_3_11_7_RTM";
     public static final String
     JAR_DBM_VERSION     = "DBM_VERSION = N/A";
     public static final String
-    JAR_NSPR_VERSION    = "NSPR_VERSION = NSPR_4_6_6_RTM";
+    JAR_NSPR_VERSION    = "NSPR_VERSION = NSPR_4_6_7_RTM";
 
     /**
      * Loads the JSS dynamic library if necessary.

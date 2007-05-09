@@ -82,10 +82,10 @@ const char * jss_sccsid() {
 /* files everytime a new release of JSS is generated:               */
 /*                                                                  */
 /* org/mozilla/jss/CryptoManager.java                               */
-/* org/mozilla/jss/CryptoManager.c                                  */
 /* org/mozilla/jss/JSSProvider.java                                 */
 /* org/mozilla/jss/util/jssver.h                                    */
 /* lib/manifest.mn                                                  */
+/* mozilla/security/jss/manifest.mn                                 */
 /*                                                                  */
 /********************************************************************/
 
