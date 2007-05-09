@@ -6,6 +6,7 @@ repository. It omits certain parts of tree, including NSPR, NSS, and Tamarin."""
 from sys import exit
 from os import environ, makedirs, listdir, rename, unlink
 from os.path import isdir
+from os.path import exists
 from shutil import rmtree
 from tempfile import mkdtemp
 from datetime import datetime
@@ -80,7 +81,18 @@ mozilla_files = (
     "jpeg",
     "js",
     "layout",
-    "modules",
+    "modules/libbz2",
+    "modules/libimg",
+    "modules/libjar",
+    "modules/libmar",
+    "modules/libpr0n",
+    "modules/libpref",
+    "modules/libreg",
+    "modules/libutil",
+    "modules/oji",
+    "modules/plugin",
+    "modules/staticmod",
+    "modules/zlib",
     "netwerk",
     "other-licenses/7zstub",
     "other-licenses/atk-1.0",
@@ -131,7 +143,20 @@ mozilla_files = (
     )
 
 MOZILLA_EXCEPTIONS = (
-    "js/tamarin",
+    "db/tripledb",
+    "js/benchmarks",
+    "js/docs",
+    "js/jsd/classes",
+    "js/jsd/corba",
+    "js/jsd/java",
+    "js/jsd/javawrap",
+    "js/jsd/jsdb",
+    "js/jsdj",
+    "js/jsj",
+    "js/perf",
+    "js/ref",
+    "js/rhino",
+    "js/tamarin"
     )
 
 nspr_files = ("nsprpub",)
@@ -158,6 +183,9 @@ def ensurevalue(val, envvar, default = None):
     raise ValueError("No %s found." % envvar)
 
 def rmfileortree(path):
+    if not exists(path):
+        return
+    
     print "Removing %s" % path
     sys.stdout.flush()
     if isdir(path):
@@ -177,6 +205,7 @@ def CheckoutDirs(directory, cvsroot, dirlist, date=None, branch=None):
 
 def ImportMozillaCVS(directory, cvsroot=None, hg=None, tempdir=None, mode=None, importDate=None):
     cvsroot = ensurevalue(cvsroot, "CVSROOT", ":ext:cltbld@cvs.mozilla.org:/cvsroot")
+    hg = ensurevalue(hg, "HG", "hg")
     
     tempd = mkdtemp("cvsimport", dir=tempdir)
 
@@ -237,8 +266,8 @@ def ImportMozillaCVS(directory, cvsroot=None, hg=None, tempdir=None, mode=None, 
                 sys.stdout.flush()
                 rename(source, dest)
 
-            check_call(['hg', 'add'], cwd=directory)
-            check_call(['hg', 'remove', '--after'], cwd=directory)
+            check_call([hg, 'add'], cwd=directory)
+            check_call([hg, 'remove', '--after'], cwd=directory)
 
             commitMesg = "Automatic merge from CVS: " 
 
@@ -261,7 +290,7 @@ def ImportMozillaCVS(directory, cvsroot=None, hg=None, tempdir=None, mode=None, 
                 commitMesg = (commitMesg + "Module %s: tag %s at %s, " % 
                  (cvsModuleName, cvsTagName, cvsDate))
 
-            check_call(['hg', 'commit', '-d', HG_IMPORT_COMMIT_DATE,
+            check_call([hg, 'commit', '-d', HG_IMPORT_COMMIT_DATE,
                         '-u', HG_USER, '-m', commitMesg],
                        cwd=directory)
     
@@ -320,7 +349,7 @@ if __name__ == '__main__':
     else:
         print "Importing CVS to repository '%s'." % args[0]
         sys.stdout.flush()
-        ImportMozillaCVS(args[0], options.hg, options.cvsroot, options.tempdir,
+        ImportMozillaCVS(args[0], options.cvsroot, options.hg, options.tempdir,
          'import', options.importdate)
         print "Import successful."
         sys.stdout.flush()
