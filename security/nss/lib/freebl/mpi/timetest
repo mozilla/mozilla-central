@@ -44,12 +44,13 @@
 # ***** END LICENSE BLOCK *****
 
 # 
-# $Id: timetest,v 1.8 2007-05-08 01:31:22 neil.williams%sun.com Exp $
+# $Id: timetest,v 1.9 2007-05-09 00:09:37 neil.williams%sun.com Exp $
 #
 
 # Avoid using built-in shell echoes
 ECHO=/bin/echo
 MAKE=gmake
+PERL=perl
 
 # Use a fixed seed so timings will be more consistent
 # This one is the 11th-18th decimal digits of 'e'
@@ -122,7 +123,7 @@ for size in $sizes ; do
     $ECHO "- Gathering statistics for $size bits ... "
     ./primegen $size $ntests | grep ticks | awk '{print $7}' | tr -d '(' > tt$$.tmp
     $ECHO "$size:" >> timing-results.txt
-    perl stats tt$$.tmp >> timing-results.txt
+    $PERL stats tt$$.tmp >> timing-results.txt
     tail -1 timing-results.txt
     rm -f tt$$.tmp
 done

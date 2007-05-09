@@ -75,7 +75,7 @@ endif
 
 import::
 	@echo "== import.pl =="
-	@perl -I$(CORE_DEPTH)/coreconf $(CORE_DEPTH)/coreconf/import.pl \
+	@$(PERL) -I$(CORE_DEPTH)/coreconf $(CORE_DEPTH)/coreconf/import.pl \
 		"RELEASE_TREE=$(RELEASE_TREE)"   \
 		"IMPORTS=$(IMPORTS)"             \
 		"VERSION=$(VERSION)" \
@@ -159,7 +159,7 @@ release:: release_clean release_export release_classes release_policy release_md
 
 release_cpdistdir::
 	@echo "== cpdist.pl =="
-	@perl -I$(CORE_DEPTH)/coreconf $(CORE_DEPTH)/coreconf/cpdist.pl \
+	@$(PERL) -I$(CORE_DEPTH)/coreconf $(CORE_DEPTH)/coreconf/cpdist.pl \
 		"RELEASE_TREE=$(RELEASE_TREE)" \
 		"CORE_DEPTH=$(CORE_DEPTH)" \
 		"MODULE=${MODULE}" \
@@ -185,7 +185,7 @@ release_cpdistdir::
 
 release_jars::
 	@echo "== release.pl =="
-	@perl -I$(CORE_DEPTH)/coreconf $(CORE_DEPTH)/coreconf/release.pl \
+	@$(PERL) -I$(CORE_DEPTH)/coreconf $(CORE_DEPTH)/coreconf/release.pl \
 		"RELEASE_TREE=$(RELEASE_TREE)" \
 		"PLATFORM=$(PLATFORM)" \
 		"OS_ARCH=$(OS_ARCH)" \
@@ -584,7 +584,7 @@ ifdef NETLIBDEPTH
 	CORE_DEPTH := $(NETLIBDEPTH)
 endif
 
-JAVA_EXPORT_SRCS=$(shell perl $(CORE_DEPTH)/coreconf/outofdate.pl $(PERLARG)	-d $(JAVA_DESTPATH)/$(PACKAGE) $(JSRCS) $(PRIVATE_JSRCS))
+JAVA_EXPORT_SRCS=$(shell $(PERL) $(CORE_DEPTH)/coreconf/outofdate.pl $(PERLARG)	-d $(JAVA_DESTPATH)/$(PACKAGE) $(JSRCS) $(PRIVATE_JSRCS))
 
 export:: $(JAVA_DESTPATH) $(JAVA_DESTPATH)/$(PACKAGE)
 ifneq ($(JAVA_EXPORT_SRCS),)
@@ -627,7 +627,7 @@ export:: $(JAVA_DESTPATH) $(JAVA_DESTPATH)/$(PACKAGE)
 		if test -d $$d; then						\
 			set $(EXIT_ON_ERROR);					\
 			files=`echo $$d/*.java`;				\
-			list=`perl $(CORE_DEPTH)/coreconf/outofdate.pl $(PERLARG)	\
+			list=`$(PERL) $(CORE_DEPTH)/coreconf/outofdate.pl $(PERLARG)	\
 				    -d $(JAVA_DESTPATH)/$(PACKAGE) $$files`;	\
 			if test "$${list}x" != "x"; then			\
 			    echo Building all java files in $$d;		\
@@ -756,7 +756,7 @@ export::
 		$(JAVAH) -jni -d $(JNI_GEN_DIR) $(JNI_GEN);				\
 	else										\
 		echo "Checking for out of date header files" ;                          \
-		perl $(CORE_DEPTH)/coreconf/jniregen.pl $(PERLARG)			\
+		$(PERL) $(CORE_DEPTH)/coreconf/jniregen.pl $(PERLARG)			\
 		 -d $(JAVA_DESTPATH) -j "$(JAVAH) -jni -d $(JNI_GEN_DIR)" $(JNI_GEN);\
 	fi
 endif
@@ -855,7 +855,7 @@ TESTS_DIR = $(RESULTS_DIR)/$(RESULTS_SUBDIR)/$(OS_TARGET)$(OS_RELEASE)$(CPU_TAG)
 ifneq ($(REGRESSION_SPEC),)
 
 ifneq ($(BUILD_OPT),)
-REGDATE = $(subst \ ,, $(shell perl  $(CORE_DEPTH)/$(MODULE)/scripts/now))
+REGDATE = $(subst \ ,, $(shell $(PERL)  $(CORE_DEPTH)/$(MODULE)/scripts/now))
 endif
 
 tests:: $(REGRESSION_SPEC) 
@@ -931,7 +931,7 @@ PERL_DEPENDENCIES_PROGRAM =                                                   \
 	    }
 
 .DEFAULT:
-	@perl -e '$(PERL_DEPENDENCIES_PROGRAM)'
+	@$(PERL) -e '$(PERL_DEPENDENCIES_PROGRAM)'
 endif
 
 #############################################################################

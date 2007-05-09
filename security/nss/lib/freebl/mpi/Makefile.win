@@ -39,7 +39,7 @@
 # ***** END LICENSE BLOCK *****
 
 #
-# $Id: Makefile.win,v 1.5 2007-05-08 01:31:22 neil.williams%sun.com Exp $
+# $Id: Makefile.win,v 1.6 2007-05-09 00:09:37 neil.williams%sun.com Exp $
 #
 
 ## Define CC to be the C compiler you wish to use.  The GNU cc
@@ -55,7 +55,7 @@ AS=ml.exe
 ## might work ... I haven't tested it.
 ##
 #PERL=/usr/bin/perl
-PERL=perl
+#PERL=perl
 
 ##
 ## Define CFLAGS to contain any local options your compiler

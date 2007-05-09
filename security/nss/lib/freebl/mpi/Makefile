@@ -41,7 +41,7 @@
 # ***** END LICENSE BLOCK *****
 
 #
-# $Id: Makefile,v 1.25 2007-05-08 01:31:22 neil.williams%sun.com Exp $
+# $Id: Makefile,v 1.26 2007-05-09 00:09:37 neil.williams%sun.com Exp $
 #
 
 ## Define CC to be the C compiler you wish to use.  The GNU cc
@@ -55,7 +55,7 @@
 ## might work ... I haven't tested it.
 ##
 #PERL=/usr/bin/perl
-PERL=perl
+#PERL=perl
 
 include target.mk
 

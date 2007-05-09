@@ -34,7 +34,7 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
-MAKEFILE_CVS_ID = "@(#) $RCSfile: Makefile,v $ $Revision: 1.9 $ $Date: 2007-05-08 01:31:22 $"
+MAKEFILE_CVS_ID = "@(#) $RCSfile: Makefile,v $ $Revision: 1.10 $ $Date: 2007-05-09 00:09:36 $"
 
 include manifest.mn
 include $(CORE_DEPTH)/coreconf/config.mk
@@ -44,7 +44,7 @@ include $(CORE_DEPTH)/coreconf/rules.mk
 # Generate oiddata.h and oiddata.c.
 oidgen: oidgen.perl oids.txt
 	rm -f oiddata.c oiddata.h
-	perl oidgen.perl oiddata.c oiddata.h oids.txt
+	$(PERL) oidgen.perl oiddata.c oiddata.h oids.txt
 
 export::  private_export 
 
