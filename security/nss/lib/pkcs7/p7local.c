@@ -40,7 +40,7 @@
  * encoding/creation side *and* the decoding/decryption side.  Anything
  * else should be static routines in the appropriate file.
  *
- * $Id: p7local.c,v 1.8 2005-10-03 22:01:56 relyea%netscape.com Exp $
+ * $Id: p7local.c,v 1.9 2007-05-09 19:02:18 rrelyea%redhat.com Exp $
  */
 
 #include "p7local.h"
@@ -278,6 +278,8 @@ sec_PKCS7CreateEncryptObject (PRArenaPool *poolp, PK11SymKey *key,
     if (needToEncodeAlgid) {
 	rv = PK11_ParamToAlgid(algtag,param,poolp,algid);
 	if(rv != SECSuccess) {
+	    PORT_Free (result);
+            SECITEM_FreeItem(param,PR_TRUE);
 	    return NULL;
 	}
     }
