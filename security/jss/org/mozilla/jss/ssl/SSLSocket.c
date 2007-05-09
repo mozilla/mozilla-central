@@ -91,6 +91,24 @@ finish:
     return;
 }
 
+JNIEXPORT jboolean JNICALL
+Java_org_mozilla_jss_ssl_SSLSocket_isFipsCipherSuiteNative(JNIEnv *env,
+                                            jobject self, jint suite)
+{
+    SECStatus status;
+    PRBool bOption = PR_FALSE;
+    SSLCipherSuiteInfo info;
+
+    status = SSL_GetCipherSuiteInfo(suite, &info, sizeof info);
+    if( status != SECSuccess ) {
+        JSSL_throwSSLSocketException(env, "ciphersuite invalid");
+    }
+
+    if (info.isFIPS == 1) bOption = PR_TRUE;
+
+    return bOption;
+}
+
 JNIEXPORT jint JNICALL
 Java_org_mozilla_jss_ssl_SSLSocket_getSSLDefaultOption(JNIEnv *env,
                                             jobject self, jint joption)

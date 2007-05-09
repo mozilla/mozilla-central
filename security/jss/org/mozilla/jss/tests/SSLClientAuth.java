@@ -55,9 +55,11 @@ import java.io.PrintWriter;
 import java.io.BufferedWriter;
 import java.io.OutputStreamWriter;
 import java.io.*;
+import java.net.SocketException;
 
 public class SSLClientAuth implements Runnable {
 
+    private CryptoManager cm;
     public static final SignatureAlgorithm sigAlg = 
             SignatureAlgorithm.RSASignatureWithSHA1Digest;
 
@@ -141,7 +143,7 @@ public class SSLClientAuth implements Runnable {
         }
 
         CryptoManager.initialize(args[0]);
-        CryptoManager cm = CryptoManager.getInstance();
+        cm = CryptoManager.getInstance();
         CryptoToken tok = cm.getInternalKeyStorageToken();
 
         PasswordCallback cb = new FilePasswordCallback(args[1]);
@@ -207,13 +209,7 @@ public class SSLClientAuth implements Runnable {
         clientCertNick = "clientcertnick"+rand;
         nssClientCert = cm.importCertPackage(
             ASN1Util.encode(clientCert), clientCertNick);
-        //Disable SSL2 and SSL3 ciphers
-        SSLSocket.enableSSL2Default(false);
-        SSLSocket.enableSSL3Default(false);
-        //The cipher TLS_RSA_WITH_AES_128_CBC_SHA is chosen since 
-        //it works when the NSS database is FIPS mode and also non FIPS mode
-        SSLSocket.setCipherPreferenceDefault(
-            SSLSocket.TLS_RSA_WITH_AES_128_CBC_SHA, true);
+        configureDefaultSSLoptions();
 
         useNickname = false;
         testConnection();
@@ -229,6 +225,38 @@ public class SSLClientAuth implements Runnable {
     }
 
     private boolean useNickname;
+    
+    private void configureDefaultSSLoptions() {
+        try {
+            //Disable SSL2 and SSL3 ciphers
+            SSLSocket.enableSSL2Default(false);
+            SSLSocket.enableSSL3Default(false);
+            /* TLS is enabled by default */
+            
+            /* if FIPS is enabled, configure only FIPS ciphersuites */
+            if (cm.FIPSEnabled()) {
+                System.out.println("The NSS database is confirued in FIPS" +
+                    "mode.");
+                System.out.println("Enable ony FIPS ciphersuites.");
+                int ciphers[] =
+                org.mozilla.jss.ssl.SSLSocket.getImplementedCipherSuites();
+                for (int i = 0; i < ciphers.length;  ++i) {
+                    if (SSLSocket.isFipsCipherSuite(ciphers[i])) {
+                        /* enable the FIPS ciphersuite */
+                        SSLSocket.setCipherPreferenceDefault(ciphers[i], true);
+                    } else if (SSLSocket.getCipherPreferenceDefault(
+                            ciphers[i])) {
+                        /* disable the non fips ciphersuite */
+                        SSLSocket.setCipherPreferenceDefault(ciphers[i], false);
+                    }
+                }
+            }
+        } catch (SocketException ex) {
+            System.out.println("Error configuring default SSL options.");
+            ex.printStackTrace();
+            System.exit(1);
+        }
+    }
 
     private void testConnection() throws Exception {
         serverReady = false;
@@ -260,7 +288,8 @@ public class SSLClientAuth implements Runnable {
 
         // force the handshake
         sock.forceHandshake();
-        System.out.println("client forced handshake");
+        String cipher = sock.getStatus().getCipher();
+        System.out.println("client forced handshake. ciphersuite: " + cipher);
         sock.close();
 
         // wait for the server to finish

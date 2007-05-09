@@ -312,6 +312,7 @@ Java_org_mozilla_jss_pkcs11_PK11KeyPairGenerator_generateECKeyPair;
 ;+    global:
 Java_org_mozilla_jss_ssl_SSLSocket_setSSLDefaultOptionMode;
 Java_org_mozilla_jss_ssl_SocketBase_setSSLOptionMode;
+Java_org_mozilla_jss_ssl_SSLSocket_isFipsCipherSuiteNative;
 ;+    local:
 ;+       *;
 ;+};

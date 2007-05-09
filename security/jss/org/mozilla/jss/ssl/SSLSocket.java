@@ -1131,6 +1131,18 @@ public class SSLSocket extends java.net.Socket {
         }
     }
 
+     /**
+     * isFipsCipherSuite 
+     *
+     *@return true if the ciphersuite isFIPS, false otherwise 
+     */
+    public static boolean isFipsCipherSuite(int ciphersuite) throws SocketException {
+        return isFipsCipherSuiteNative(ciphersuite);
+    }
+
+    private static native boolean isFipsCipherSuiteNative(int ciphersuite)
+        throws SocketException;
+
     /**
      * Returns a list of cipher suites that are implemented by NSS.
      * Each element in the array will be one of the cipher suite constants
@@ -1138,6 +1150,13 @@ public class SSLSocket extends java.net.Socket {
      * <tt>TLS_RSA_WITH_AES_128_CBC_SHA</tt>).
      */
     public static native int[] getImplementedCipherSuites();
+
+    /**
+     *
+     * Note the following cipher-suites constants are not all implemented.
+     * You need to call getImplementedCiphersuites.
+     *
+     */
 
     public final static int SSL2_RC4_128_WITH_MD5                  = 0xFF01;
     public final static int SSL2_RC4_128_EXPORT40_WITH_MD5         = 0xFF02;
@@ -1212,6 +1231,50 @@ public class SSLSocket extends java.net.Socket {
     public final static int TLS_DHE_DSS_WITH_AES_256_CBC_SHA      =  0x0038;
     public final static int TLS_DHE_RSA_WITH_AES_256_CBC_SHA      =  0x0039;
     public final static int TLS_DH_ANON_WITH_AES_256_CBC_SHA      =  0x003A;
+
+    public final static int TLS_RSA_WITH_CAMELLIA_128_CBC_SHA     =  0x0041;
+    public final static int TLS_DH_DSS_WITH_CAMELLIA_128_CBC_SHA  =  0x0042;
+    public final static int TLS_DH_RSA_WITH_CAMELLIA_128_CBC_SHA  =  0x0043;
+    public final static int TLS_DHE_DSS_WITH_CAMELLIA_128_CBC_SHA =  0x0044;
+    public final static int TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA =  0x0045;
+    public final static int TLS_DH_ANON_WITH_CAMELLIA_128_CBC_SHA =  0x0046;
+
+    public final static int TLS_RSA_WITH_CAMELLIA_256_CBC_SHA     =  0x0084;
+    public final static int TLS_DH_DSS_WITH_CAMELLIA_256_CBC_SHA  =  0x0085;
+    public final static int TLS_DH_RSA_WITH_CAMELLIA_256_CBC_SHA  =  0x0086;
+    public final static int TLS_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA =  0x0087;
+    public final static int TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA =  0x0088;
+    public final static int TLS_DH_ANON_WITH_CAMELLIA_256_CBC_SHA =  0x0089;
+
+    public final static int TLS_ECDH_ECDSA_WITH_NULL_SHA          =  0xc001;
+    public final static int TLS_ECDH_ECDSA_WITH_RC4_128_SHA       =  0xc002;
+    public final static int TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA  =  0xc003;
+    public final static int TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA   =  0xc004;
+    public final static int TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA   =  0xc005;
+
+    public final static int TLS_ECDHE_ECDSA_WITH_NULL_SHA         =  0xc006;
+    public final static int TLS_ECDHE_ECDSA_WITH_RC4_128_SHA      =  0xc007;
+    public final static int TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA =  0xc008;
+    public final static int TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA  =  0xc009;
+    public final static int TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA  =  0xc00a;
+
+    public final static int TLS_ECDH_RSA_WITH_NULL_SHA            =  0xc00b;
+    public final static int TLS_ECDH_RSA_WITH_RC4_128_SHA         =  0xc00c;
+    public final static int TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA    =  0xc00d;
+    public final static int TLS_ECDH_RSA_WITH_AES_128_CBC_SHA     =  0xc00e;
+    public final static int TLS_ECDH_RSA_WITH_AES_256_CBC_SHA     =  0xc00f;
+
+    public final static int TLS_ECDHE_RSA_WITH_NULL_SHA           =  0xc010;
+    public final static int TLS_ECDHE_RSA_WITH_RC4_128_SHA        =  0xc011;
+    public final static int TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA   =  0xc012;
+    public final static int TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA    =  0xc013;
+    public final static int TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA    =  0xc014;
+
+    public final static int TLS_ECDH_anon_WITH_NULL_SHA           =  0xc015;
+    public final static int TLS_ECDH_anon_WITH_RC4_128_SHA        =  0xc016;
+    public final static int TLS_ECDH_anon_WITH_3DES_EDE_CBC_SHA   =  0xc017;
+    public final static int TLS_ECDH_anon_WITH_AES_128_CBC_SHA    =  0xc018;
+    public final static int TLS_ECDH_anon_WITH_AES_256_CBC_SHA    =  0xc019;
 
 }
 
