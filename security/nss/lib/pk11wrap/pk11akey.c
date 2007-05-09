@@ -674,8 +674,9 @@ PK11_LoadPrivKey(PK11SlotInfo *slot,SECKEYPrivateKey *privKey,
  * Use the token to generate a key pair.
  */
 SECKEYPrivateKey *
-PK11_GenerateKeyPairWithFlags(PK11SlotInfo *slot,CK_MECHANISM_TYPE type, 
-   void *param, SECKEYPublicKey **pubKey, PK11AttrFlags attrFlags, void *wincx)
+PK11_GenerateKeyPairWithOpFlags(PK11SlotInfo *slot,CK_MECHANISM_TYPE type, 
+   void *param, SECKEYPublicKey **pubKey, PK11AttrFlags attrFlags, 
+   CK_FLAGS opFlags, CK_FLAGS opFlagsMask, void *wincx)
 {
     /* we have to use these native types because when we call PKCS 11 modules
      * we have to make sure that we are using the correct sizes for all the
@@ -750,6 +751,7 @@ PK11_GenerateKeyPairWithFlags(PK11SlotInfo *slot,CK_MECHANISM_TYPE type,
     SECKEYDHParams * dhParams;
     CK_MECHANISM mechanism;
     CK_MECHANISM test_mech;
+    CK_MECHANISM test_mech2;
     CK_SESSION_HANDLE session_handle;
     CK_RV crv;
     CK_OBJECT_HANDLE privID,pubID;
@@ -776,6 +778,20 @@ PK11_GenerateKeyPairWithFlags(PK11SlotInfo *slot,CK_MECHANISM_TYPE type,
 	PORT_SetError( SEC_ERROR_INVALID_ARGS );
 	return NULL;
     }
+
+    /*
+     * The opFlags and opFlagMask parameters allow us to control the
+     * settings of the key usage attributes (CKA_ENCRYPT and friends).
+     * opFlagMask is set to one if the flag is specified in opFlags and 
+     *  zero if it is to take on a default value calculated by 
+     *  PK11_GenerateKeyPairWithOpFlags.
+     * opFlags specifies the actual value of the flag 1 or 0. 
+     *   Bits not corresponding to one bits in opFlagMask should be zero.
+     */
+
+    /* if we are trying to turn on a flag, it better be in the mask */
+    PORT_Assert ((opFlags & ~opFlagsMask) == 0);
+    opFlags &= opFlagsMask;
 
     PORT_Assert(slot != NULL);
     if (slot == NULL) {
@@ -826,6 +842,9 @@ PK11_GenerateKeyPairWithFlags(PK11SlotInfo *slot,CK_MECHANISM_TYPE type,
     mechanism.ulParameterLen = 0;
     test_mech.pParameter = NULL;
     test_mech.ulParameterLen = 0;
+    test_mech2.mechanism = CKM_INVALID_MECHANISM;
+    test_mech2.pParameter = NULL;
+    test_mech2.ulParameterLen = 0;
 
     /* set up the private key template */
     privattrs = privTemplate;
@@ -894,12 +913,28 @@ PK11_GenerateKeyPairWithFlags(PK11SlotInfo *slot,CK_MECHANISM_TYPE type,
 	              ecParams->len);   attrs++;
         pubTemplate = ecPubTemplate;
         keyType = ecKey;
-	/* XXX An EC key can be used for other mechanisms too such
-	 * as CKM_ECDSA and CKM_ECDSA_SHA1. How can we reflect
-	 * that in test_mech.mechanism so the CKA_SIGN, CKA_VERIFY
-	 * attributes are set correctly? 
+	/*
+	 * ECC supports 2 different mechanism types (unlike RSA, which
+	 * supports different usages with the same mechanism).
+	 * We may need to query both mechanism types and or the results
+	 * together -- but we only do that if either the user has
+	 * requested both usages, or not specified any usages.
 	 */
-        test_mech.mechanism = CKM_ECDH1_DERIVE;
+	if ((opFlags & (CKF_SIGN|CKF_DERIVE)) == (CKF_SIGN|CKF_DERIVE)) {
+	    /* We've explicitly turned on both flags, use both mechanism */
+	    test_mech.mechanism = CKM_ECDH1_DERIVE;
+	    test_mech2.mechanism = CKM_ECDSA;
+	} else if (opFlags & CKF_SIGN) {
+	    /* just do signing */
+	    test_mech.mechanism = CKM_ECDSA;
+	} else if (opFlags & CKF_DERIVE) {
+	    /* just do ECDH */
+	    test_mech.mechanism = CKM_ECDH1_DERIVE;
+	} else {
+	    /* neither was specified default to both */
+	    test_mech.mechanism = CKM_ECDH1_DERIVE;
+	    test_mech2.mechanism = CKM_ECDSA;
+	}
         break;
     default:
 	PORT_SetError( SEC_ERROR_BAD_KEY );
@@ -910,31 +945,57 @@ PK11_GenerateKeyPairWithFlags(PK11SlotInfo *slot,CK_MECHANISM_TYPE type,
     if (!slot->isThreadSafe) PK11_EnterSlotMonitor(slot);
     crv = PK11_GETTAB(slot)->C_GetMechanismInfo(slot->slotID,
 				test_mech.mechanism,&mechanism_info);
+    /*
+     * EC keys are used in multiple different types of mechanism, if we
+     * are using dual use keys, we need to query the second mechanism
+     * as well.
+     */
+    if (test_mech2.mechanism != CKM_INVALID_MECHANISM) {
+	CK_MECHANISM_INFO mechanism_info2;
+	CK_RV crv2;
+
+	if (crv != CKR_OK) {
+	    /* the first failed, make sure there is no trash in the
+	     * mechanism flags when we or it below */
+	    mechanism_info.flags = 0;
+	}
+	crv2 = PK11_GETTAB(slot)->C_GetMechanismInfo(slot->slotID,
+				test_mech2.mechanism, &mechanism_info2);
+	if (crv2 == CKR_OK) {
+	    crv = CKR_OK; /* succeed if either mechnaism info succeeds */
+	    /* combine the 2 sets of mechnanism flags */
+	    mechanism_info.flags |= mechanism_info2.flags;
+	}
+    }
     if (!slot->isThreadSafe) PK11_ExitSlotMonitor(slot);
     if ((crv != CKR_OK) || (mechanism_info.flags == 0)) {
 	/* must be old module... guess what it should be... */
 	switch (test_mech.mechanism) {
 	case CKM_RSA_PKCS:
-		mechanism_info.flags = (CKF_SIGN | CKF_DECRYPT | 
-			CKF_WRAP | CKF_VERIFY_RECOVER | CKF_ENCRYPT | CKF_WRAP);;
-		break;
+	    mechanism_info.flags = (CKF_SIGN | CKF_DECRYPT | 
+		CKF_WRAP | CKF_VERIFY_RECOVER | CKF_ENCRYPT | CKF_WRAP);
+	    break;
 	case CKM_DSA:
-		mechanism_info.flags = CKF_SIGN | CKF_VERIFY;
-		break;
+	    mechanism_info.flags = CKF_SIGN | CKF_VERIFY;
+	    break;
 	case CKM_DH_PKCS_DERIVE:
-		mechanism_info.flags = CKF_DERIVE;
-		break;
+	    mechanism_info.flags = CKF_DERIVE;
+	    break;
 	case CKM_ECDH1_DERIVE:
-		mechanism_info.flags = CKF_DERIVE;
-		break;
+	    mechanism_info.flags = CKF_DERIVE;
+	    if (test_mech2.mechanism == CKM_ECDSA) {
+		mechanism_info.flags |= CKF_SIGN | CKF_VERIFY;
+	    }
+	    break;
 	case CKM_ECDSA:
-	case CKM_ECDSA_SHA1:
-		mechanism_info.flags = CKF_SIGN | CKF_VERIFY;
-		break;
+	    mechanism_info.flags =  CKF_SIGN | CKF_VERIFY;
+	    break;
 	default:
-	       break;
+	    break;
 	}
     }
+    /* now adjust our flags according to the user's key usage passed to us */
+    mechanism_info.flags = (mechanism_info.flags & (~opFlagsMask)) | opFlags;
     /* set the public key attributes */
     attrs += pk11_AttrFlagsToAttributes(pubKeyAttrFlags, attrs,
 						&cktrue, &ckfalse);
@@ -1080,6 +1141,14 @@ PK11_GenerateKeyPairWithFlags(PK11SlotInfo *slot,CK_MECHANISM_TYPE type,
     }
 
     return privKey;
+}
+
+SECKEYPrivateKey *
+PK11_GenerateKeyPairWithFlags(PK11SlotInfo *slot,CK_MECHANISM_TYPE type, 
+   void *param, SECKEYPublicKey **pubKey, PK11AttrFlags attrFlags, void *wincx)
+{
+    return PK11_GenerateKeyPairWithOpFlags(slot,type,param,pubKey,attrFlags,
+					   0, 0, wincx);
 }
 
 /*
