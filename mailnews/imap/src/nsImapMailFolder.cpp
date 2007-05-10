@@ -7602,7 +7602,7 @@ NS_IMETHODIMP nsImapMailFolder::MatchName(nsString *name, PRBool *matches)
 
 nsresult nsImapMailFolder::CreateBaseMessageURI(const char *aURI)
 {
-  return nsCreateImapBaseMessageURI(aURI, &mBaseMessageURI);
+  return nsCreateImapBaseMessageURI(aURI, mBaseMessageURI);
 }
 
 NS_IMETHODIMP nsImapMailFolder::GetFolderURL(char **aFolderURL)

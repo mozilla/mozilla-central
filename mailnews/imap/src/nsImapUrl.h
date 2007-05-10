@@ -48,7 +48,6 @@
 #include "nsIImapMessageSink.h"
 
 #include "nsWeakPtr.h"
-#include "nsXPIDLString.h"
 #include "nsIFile.h"
 
 class nsImapUrl : public nsIImapUrl, public nsMsgMailNewsUrl, public nsIMsgMessageUrl, public nsIMsgI18NUrl

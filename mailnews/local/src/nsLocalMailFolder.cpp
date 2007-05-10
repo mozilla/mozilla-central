@@ -3161,7 +3161,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::SelectDownloadMsg()
   if (mDownloadState == DOWNLOAD_STATE_GOTMSG && mDownloadWindow)
   {
     nsCAutoString newuri;
-    nsBuildLocalMessageURI(mBaseMessageURI, mDownloadSelectKey, newuri);
+    nsBuildLocalMessageURI(mBaseMessageURI.get(), mDownloadSelectKey, newuri);
     nsCOMPtr<nsIMsgWindowCommands> windowCommands;
     mDownloadWindow->GetWindowCommands(getter_AddRefs(windowCommands));
     if (windowCommands)
@@ -3291,7 +3291,7 @@ nsMsgLocalMailFolder::GetIncomingServerType()
 
 nsresult nsMsgLocalMailFolder::CreateBaseMessageURI(const char *aURI)
 {
-  return nsCreateLocalBaseMessageURI(aURI, &mBaseMessageURI);
+  return nsCreateLocalBaseMessageURI(aURI, mBaseMessageURI);
 }
 
 NS_IMETHODIMP
@@ -3308,7 +3308,7 @@ nsMsgLocalMailFolder::OnStartRunningUrl(nsIURI * aUrl)
       nsCOMPtr<nsIPop3Sink> popsink;
       rv = popurl->GetPop3Sink(getter_AddRefs(popsink));
       if (NS_SUCCEEDED(rv))
-        popsink->SetBaseMessageUri(mBaseMessageURI);
+        popsink->SetBaseMessageUri(mBaseMessageURI.get());
     }
   }
   return nsMsgDBFolder::OnStartRunningUrl(aUrl);

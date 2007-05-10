@@ -219,23 +219,16 @@ nsresult nsBuildImapMessageURI(const char *baseURI, PRUint32 key, nsCString& uri
   return NS_OK;
 }
 
-nsresult nsCreateImapBaseMessageURI(const char *baseURI, char **baseMessageURI)
+nsresult nsCreateImapBaseMessageURI(const char *baseURI, nsCString &baseMessageURI)
 {
-  if(!baseMessageURI)
-    return NS_ERROR_NULL_POINTER;
-  
   nsCAutoString tailURI(baseURI);
   
-  // chop off mailbox:/
+  // chop off imap:/
   if (tailURI.Find(kImapRootURI) == 0)
     tailURI.Cut(0, PL_strlen(kImapRootURI));
   
-  nsCAutoString baseURIStr(kImapMessageRootURI);
-  baseURIStr += tailURI;
-  
-  *baseMessageURI = ToNewCString(baseURIStr);
-  if(!*baseMessageURI)
-    return NS_ERROR_OUT_OF_MEMORY;
+  baseMessageURI = kImapMessageRootURI;
+  baseMessageURI += tailURI;
   
   return NS_OK;
 }

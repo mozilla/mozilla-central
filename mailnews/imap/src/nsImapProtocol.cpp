@@ -70,7 +70,6 @@
 #include "nsIStreamListenerTee.h"
 #include "nsXPCOMCIDInternal.h"
 #include "nsNetUtil.h"
-#include "nsXPIDLString.h"
 #include "nsReadableUtils.h"
 #include "nsIPipe.h"
 #include "nsIMsgFolder.h"
@@ -343,9 +342,9 @@ nsresult nsImapProtocol::GlobalInitialization()
     prefBranch->GetBoolPref("mail.imap.expunge_after_delete", &gExpungeAfterDelete);
     prefBranch->GetBoolPref("mail.imap.check_deleted_before_expunge", &gCheckDeletedBeforeExpunge);
     prefBranch->GetIntPref("mailnews.tcptimeout", &gResponseTimeout);
-    nsXPIDLCString customDBHeaders;
+    nsCString customDBHeaders;
     prefBranch->GetCharPref("mailnews.customDBHeaders", getter_Copies(customDBHeaders));
-    gCustomDBHeaders.ParseString(customDBHeaders, " ");
+    gCustomDBHeaders.ParseString(customDBHeaders.get(), " ");
     return NS_OK;
 }
 
@@ -726,9 +725,8 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
                   && socketType == nsIMsgIncomingServer::useSSL)
            ? SECURE_IMAP_PORT :IMAP_PORT;
       }
-
-      nsCString hostName;
-      nsCOMPtr<nsISocketTransportService> socketService =
+      nsCAutoString hostName;
+      nsCOMPtr<nsISocketTransportService> socketService = 
                do_GetService(NS_SOCKETTRANSPORTSERVICE_CONTRACTID, &rv);
       if (NS_SUCCEEDED(rv) && aURL)
       {
@@ -1949,7 +1947,7 @@ char *nsImapProtocol::GetServerCommandTag()
 
 void nsImapProtocol::ProcessSelectedStateURL()
 {
-  nsXPIDLCString mailboxName;
+  nsCString mailboxName;
   PRBool          bMessageIdsAreUids = PR_TRUE;
   imapMessageFlagsType  msgFlags = 0;
   nsCString       urlHost;
@@ -1973,20 +1971,20 @@ void nsImapProtocol::ProcessSelectedStateURL()
     {
       if (GetServerStateParser().GetSelectedMailboxName() &&
         PL_strcmp(GetServerStateParser().GetSelectedMailboxName(),
-        mailboxName))
+        mailboxName.get()))
       {       // we are selected in another folder
         if (m_closeNeededBeforeSelect)
           Close();
         if (GetServerStateParser().LastCommandSuccessful())
         {
           selectIssued = PR_TRUE;
-          AutoSubscribeToMailboxIfNecessary(mailboxName);
-          SelectMailbox(mailboxName);
+          AutoSubscribeToMailboxIfNecessary(mailboxName.get());
+          SelectMailbox(mailboxName.get());
         }
       }
       else if (!GetServerStateParser().GetSelectedMailboxName())
       {       // why are we in the selected state with no box name?
-        SelectMailbox(mailboxName);
+        SelectMailbox(mailboxName.get());
         selectIssued = PR_TRUE;
       }
       else
@@ -2007,13 +2005,13 @@ void nsImapProtocol::ProcessSelectedStateURL()
     else
     {
       // go to selected state
-      AutoSubscribeToMailboxIfNecessary(mailboxName);
-      SelectMailbox(mailboxName);
+      AutoSubscribeToMailboxIfNecessary(mailboxName.get());
+      SelectMailbox(mailboxName.get());
       selectIssued = GetServerStateParser().LastCommandSuccessful();
     }
 
     if (selectIssued)
-      RefreshACLForFolderIfNecessary(mailboxName);
+      RefreshACLForFolderIfNecessary(mailboxName.get());
 
     PRBool uidValidityOk = PR_TRUE;
     if (GetServerStateParser().LastCommandSuccessful() && selectIssued &&
@@ -2083,7 +2081,7 @@ void nsImapProtocol::ProcessSelectedStateURL()
       case nsIImapUrl::nsImapMsgDownloadForOffline:
       case nsIImapUrl::nsImapMsgPreview:
         {
-          nsXPIDLCString messageIdString;
+          nsCString messageIdString;
           m_runningUrl->CreateListOfMessageIdsString(getter_Copies(messageIdString));
           // we don't want to send the flags back in a group
           // GetServerStateParser().ResetFlagInfo(0);
@@ -2094,7 +2092,7 @@ void nsImapProtocol::ProcessSelectedStateURL()
             SetProgressString(IMAP_FOLDER_RECEIVING_MESSAGE_OF);
 
             m_progressIndex = 0;
-            m_progressCount = CountMessagesInIdString(messageIdString);
+            m_progressCount = CountMessagesInIdString(messageIdString.get());
 
             // we need to set this so we'll get the msg from the memory cache.
             if (m_imapAction == nsIImapUrl::nsImapMsgFetchPeek)
@@ -2130,7 +2128,7 @@ void nsImapProtocol::ProcessSelectedStateURL()
 
                 nsIMAPBodyShell *foundShell = nsnull;
                 res = m_hostSessionList->FindShellInCacheForHost(GetImapServerKey(),
-                  GetServerStateParser().GetSelectedMailboxName(), messageIdString, modType, &foundShell);
+                  GetServerStateParser().GetSelectedMailboxName(), messageIdString.get(), modType, &foundShell);
                 if (!foundShell)
                 {
                   // The shell wasn't in the cache.  Deal with this case later.
@@ -2148,7 +2146,7 @@ void nsImapProtocol::ProcessSelectedStateURL()
                   foundShell->SetConnection(this);
                   GetServerStateParser().UseCachedShell(foundShell);
                   //Set the current uid in server state parser (in case it was used for new mail msgs earlier).
-                  GetServerStateParser().SetCurrentResponseUID((PRUint32)atoi(messageIdString));
+                  GetServerStateParser().SetCurrentResponseUID((PRUint32)atoi(messageIdString.get()));
                   foundShell->Generate(imappart);
                   GetServerStateParser().UseCachedShell(NULL);
                 }
@@ -2163,7 +2161,7 @@ void nsImapProtocol::ProcessSelectedStateURL()
             else
             {
               // downloading a single message: try to do it by bodystructure, and/or do it by chunks
-              PRUint32 messageSize = GetMessageSize(messageIdString, bMessageIdsAreUids);
+              PRUint32 messageSize = GetMessageSize(messageIdString.get(), bMessageIdsAreUids);
               // We need to check the format_out bits to see if we are allowed to leave out parts,
               // or if we are required to get the whole thing.  Some instances where we are allowed
               // to do it by parts:  when viewing a message, replying to a message, or viewing its source
@@ -2206,7 +2204,7 @@ void nsImapProtocol::ProcessSelectedStateURL()
                 if (bMessageIdsAreUids)
                 {
                   res = m_hostSessionList->FindShellInCacheForHost(GetImapServerKey(),
-                    GetServerStateParser().GetSelectedMailboxName(), messageIdString, modType, &foundShell);
+                    GetServerStateParser().GetSelectedMailboxName(), messageIdString.get(), modType, &foundShell);
                   if (foundShell)
                   {
                     Log("SHELL",NULL,"Loading message, using cached shell.");
@@ -2214,7 +2212,7 @@ void nsImapProtocol::ProcessSelectedStateURL()
                     foundShell->SetConnection(this);
                     GetServerStateParser().UseCachedShell(foundShell);
                     //Set the current uid in server state parser (in case it was used for new mail msgs earlier).
-                    GetServerStateParser().SetCurrentResponseUID((PRUint32)atoi(messageIdString));
+                    GetServerStateParser().SetCurrentResponseUID((PRUint32)atoi(messageIdString.get()));
                     foundShell->Generate(NULL);
                     GetServerStateParser().UseCachedShell(NULL);
                   }
@@ -2236,7 +2234,7 @@ void nsImapProtocol::ProcessSelectedStateURL()
                 && m_imapAction != nsIImapUrl::nsImapMsgPreview
                 && m_imapAction != nsIImapUrl::nsImapMsgFetchPeek)
             {
-              PRUint32 uid = atoi(messageIdString);
+              PRUint32 uid = atoi(messageIdString.get()); 
               PRInt32 index;
               PRBool foundIt;
               imapMessageFlagsType flags = m_flagState->GetMessageFlagsFromUID(uid, &foundIt, &index);
@@ -2259,7 +2257,7 @@ void nsImapProtocol::ProcessSelectedStateURL()
         break;
       case nsIImapUrl::nsImapMsgHeader:
         {
-          nsXPIDLCString messageIds;
+          nsCString messageIds;
           m_runningUrl->CreateListOfMessageIdsString(getter_Copies(messageIds));
 
           // we don't want to send the flags back in a group
@@ -2275,27 +2273,27 @@ void nsImapProtocol::ProcessSelectedStateURL()
         break;
       case nsIImapUrl::nsImapSearch:
         {
-          nsXPIDLCString searchCriteriaString;
+          nsCAutoString searchCriteriaString;
           m_runningUrl->CreateSearchCriteriaString(getter_Copies(searchCriteriaString));
-          Search(searchCriteriaString, bMessageIdsAreUids);
+          Search(searchCriteriaString.get(), bMessageIdsAreUids);
           // drop the results on the floor for now
         }
         break;
       case nsIImapUrl::nsImapUserDefinedMsgCommand:
         {
-          nsXPIDLCString messageIdString;
-          nsXPIDLCString command;
-
+          nsCString messageIdString;
+          nsCString command;
+          
           m_runningUrl->GetCommand(getter_Copies(command));
           m_runningUrl->CreateListOfMessageIdsString(getter_Copies(messageIdString));
-          IssueUserDefinedMsgCommand(command, messageIdString);
+          IssueUserDefinedMsgCommand(command.get(), messageIdString.get());
         }
         break;
       case nsIImapUrl::nsImapUserDefinedFetchAttribute:
         {
-          nsXPIDLCString messageIdString;
-          nsXPIDLCString attribute;
-
+          nsCString messageIdString;
+          nsCString attribute;
+          
           m_runningUrl->GetCustomAttributeToFetch(getter_Copies(attribute));
           m_runningUrl->CreateListOfMessageIdsString(getter_Copies(messageIdString));
           FetchMsgAttribute(messageIdString, attribute);
@@ -2308,10 +2306,10 @@ void nsImapProtocol::ProcessSelectedStateURL()
           GetSupportedUserFlags(&userFlags);
           if (! (userFlags & kImapMsgSupportUserFlag))
             break;
-          nsXPIDLCString messageIdString;
-          nsXPIDLCString addFlags;
-          nsXPIDLCString subtractFlags;
-
+          nsCString messageIdString;
+          nsCString addFlags;
+          nsCString subtractFlags;
+          
           m_runningUrl->CreateListOfMessageIdsString(getter_Copies(messageIdString));
           m_runningUrl->GetCustomAddFlags(getter_Copies(addFlags));
           m_runningUrl->GetCustomSubtractFlags(getter_Copies(subtractFlags));
@@ -2333,14 +2331,12 @@ void nsImapProtocol::ProcessSelectedStateURL()
         break;
       case nsIImapUrl::nsImapDeleteMsg:
         {
-          nsXPIDLCString messageIdString;
-
+          nsCString messageIdString;
           m_runningUrl->CreateListOfMessageIdsString(getter_Copies(messageIdString));
-          if (HandlingMultipleMessages(messageIdString))
-            ProgressEventFunctionUsingId (IMAP_DELETING_MESSAGES);
-          else
-            ProgressEventFunctionUsingId(IMAP_DELETING_MESSAGE);
-
+          
+          ProgressEventFunctionUsingId (HandlingMultipleMessages(messageIdString) ? 
+                                      IMAP_DELETING_MESSAGES :IMAP_DELETING_MESSAGE);
+          
           Store(messageIdString, "+FLAGS (\\Deleted)",  bMessageIdsAreUids);
 
           if (GetServerStateParser().LastCommandSuccessful())
@@ -2360,7 +2356,7 @@ void nsImapProtocol::ProcessSelectedStateURL()
             }
 
             if (m_imapMessageSink)
-              m_imapMessageSink->NotifyMessageDeleted(canonicalName, PR_FALSE, messageIdString);
+              m_imapMessageSink->NotifyMessageDeleted(canonicalName, PR_FALSE, messageIdString.get());
             // notice we don't wait for this to finish...
           }
           else
@@ -2368,17 +2364,16 @@ void nsImapProtocol::ProcessSelectedStateURL()
         }
         break;
       case nsIImapUrl::nsImapDeleteFolderAndMsgs:
-        DeleteFolderAndMsgs(mailboxName);
+        DeleteFolderAndMsgs(mailboxName.get());
         break;
       case nsIImapUrl::nsImapDeleteAllMsgs:
         {
           uint32 numberOfMessages = GetServerStateParser().NumberOfMessages();
           if (numberOfMessages)
           {
-
-            Store("1:*", "+FLAGS.SILENT (\\Deleted)",
-              PR_FALSE);  // use sequence #'s
-
+            Store(NS_LITERAL_CSTRING("1:*"), "+FLAGS.SILENT (\\Deleted)",
+              PR_FALSE);  // use sequence #'s  
+            
             if (GetServerStateParser().LastCommandSuccessful())
               Expunge();      // expunge messages with deleted flag
             if (GetServerStateParser().LastCommandSuccessful())
@@ -2402,7 +2397,7 @@ void nsImapProtocol::ProcessSelectedStateURL()
 
           }
           PRBool deleteSelf = PR_FALSE;
-          DeleteSubFolders(mailboxName, deleteSelf);	// don't delete self
+          DeleteSubFolders(mailboxName.get(), deleteSelf);	// don't delete self
         }
         break;
       case nsIImapUrl::nsImapAppendDraftFromFile:
@@ -2412,7 +2407,7 @@ void nsImapProtocol::ProcessSelectedStateURL()
         break;
       case nsIImapUrl::nsImapAddMsgFlags:
         {
-          nsXPIDLCString messageIdString;
+          nsCString messageIdString;
           m_runningUrl->CreateListOfMessageIdsString(getter_Copies(messageIdString));
 
           ProcessStoreFlags(messageIdString, bMessageIdsAreUids,
@@ -2421,7 +2416,7 @@ void nsImapProtocol::ProcessSelectedStateURL()
         break;
       case nsIImapUrl::nsImapSubtractMsgFlags:
         {
-          nsXPIDLCString messageIdString;
+          nsCString messageIdString;
           m_runningUrl->CreateListOfMessageIdsString(getter_Copies(messageIdString));
 
           ProcessStoreFlags(messageIdString, bMessageIdsAreUids,
@@ -2430,7 +2425,7 @@ void nsImapProtocol::ProcessSelectedStateURL()
         break;
       case nsIImapUrl::nsImapSetMsgFlags:
         {
-          nsXPIDLCString messageIdString;
+          nsCString messageIdString;
           m_runningUrl->CreateListOfMessageIdsString(getter_Copies(messageIdString));
 
           ProcessStoreFlags(messageIdString, bMessageIdsAreUids,
@@ -2445,7 +2440,7 @@ void nsImapProtocol::ProcessSelectedStateURL()
       case nsIImapUrl::nsImapOnlineCopy:
       case nsIImapUrl::nsImapOnlineMove:
         {
-          nsXPIDLCString messageIdString;
+          nsCString messageIdString;
           m_runningUrl->CreateListOfMessageIdsString(getter_Copies(messageIdString));
           char *destinationMailbox = OnCreateServerDestinationFolderPathString();
 
@@ -2464,8 +2459,7 @@ void nsImapProtocol::ProcessSelectedStateURL()
               else
                 ProgressEventFunctionUsingIdWithString (IMAP_COPYING_MESSAGE_TO, destinationMailbox);
             }
-
-            Copy(messageIdString, destinationMailbox, bMessageIdsAreUids);
+            Copy(messageIdString.get(), destinationMailbox, bMessageIdsAreUids);
             PR_FREEIF( destinationMailbox);
             ImapOnlineCopyState copyState;
             if (DeathSignalReceived())
@@ -2504,26 +2498,23 @@ void nsImapProtocol::ProcessSelectedStateURL()
       case nsIImapUrl::nsImapOnlineToOfflineCopy:
       case nsIImapUrl::nsImapOnlineToOfflineMove:
         {
-          nsXPIDLCString messageIdString;
+          nsCString messageIdString;
           nsresult rv = m_runningUrl->CreateListOfMessageIdsString(getter_Copies(messageIdString));
           if (NS_SUCCEEDED(rv))
           {
             SetProgressString(IMAP_FOLDER_RECEIVING_MESSAGE_OF);
             m_progressIndex = 0;
-            m_progressCount = CountMessagesInIdString(messageIdString);
-
-            FetchMessage(messageIdString,
-              kEveryThingRFC822Peek,
-              bMessageIdsAreUids);
+            m_progressCount = CountMessagesInIdString(messageIdString.get());
+            
+            FetchMessage(messageIdString, kEveryThingRFC822Peek, bMessageIdsAreUids);
 
             SetProgressString(0);
             if (m_imapMailFolderSink)
             {
               ImapOnlineCopyState copyStatus;
-              if (GetServerStateParser().LastCommandSuccessful())
-                copyStatus = ImapOnlineCopyStateType::kSuccessfulCopy;
-              else
-                copyStatus = ImapOnlineCopyStateType::kFailedCopy;
+              copyStatus = GetServerStateParser().LastCommandSuccessful() ? 
+                ImapOnlineCopyStateType::kSuccessfulCopy : ImapOnlineCopyStateType::kFailedCopy;
+
               m_imapMailFolderSink->OnlineCopyCompleted(this, copyStatus);
               if (GetServerStateParser().LastCommandSuccessful() &&
                 (m_imapAction == nsIImapUrl::nsImapOnlineToOfflineMove))
@@ -2772,7 +2763,7 @@ void nsImapProtocol::SelectMailbox(const char *mailboxName)
 }
 
 // Please call only with a single message ID
-void nsImapProtocol::Bodystructure(const char *messageId, PRBool idIsUid)
+void nsImapProtocol::Bodystructure(const nsCString &messageId, PRBool idIsUid)
 {
   IncrementCommandTagNumber();
 
@@ -2855,7 +2846,7 @@ void nsImapProtocol::PipelinedFetchMessageParts(const char *uid, nsIMAPMessagePa
 }
 
 
-void nsImapProtocol::FetchMsgAttribute(const char * messageIds, const char *attribute)
+void nsImapProtocol::FetchMsgAttribute(const nsCString &messageIds, const nsCString &attribute)
 {
     IncrementCommandTagNumber();
 
@@ -2876,7 +2867,7 @@ void nsImapProtocol::FetchMsgAttribute(const char * messageIds, const char *attr
 // this routine is used to fetch a message or messages, or headers for a
 // message...
 
-void nsImapProtocol::FallbackToFetchWholeMsg(const char *messageId, PRUint32 messageSize)
+void nsImapProtocol::FallbackToFetchWholeMsg(const nsCString &messageId, PRUint32 messageSize)
 {
   if (m_imapMessageSink && m_runningUrl)
   {
@@ -2889,7 +2880,7 @@ void nsImapProtocol::FallbackToFetchWholeMsg(const char *messageId, PRUint32 mes
 }
 
 void
-nsImapProtocol::FetchMessage(const char * messageIds,
+nsImapProtocol::FetchMessage(const nsCString &messageIds, 
                              nsIMAPeFetchFields whatToFetch,
                              PRBool idIsUid,
                              PRUint32 startByte, PRUint32 endByte,
@@ -2989,7 +2980,7 @@ nsImapProtocol::FetchMessage(const char * messageIds,
         char *headersToDL = nsnull;
         char *what = nsnull;
         const char *dbHeaders = (gUseEnvelopeCmd) ? IMAP_DB_HEADERS : IMAP_ENV_AND_DB_HEADERS;
-        nsXPIDLCString arbitraryHeaders;
+        nsCString arbitraryHeaders;
         GetArbitraryHeadersToDownload(getter_Copies(arbitraryHeaders));
         for (PRInt32 i = 0; i < gCustomDBHeaders.Count(); i++)
         {
@@ -3001,7 +2992,7 @@ nsImapProtocol::FetchMessage(const char * messageIds,
           }
         }
         if (arbitraryHeaders.IsEmpty())
-          headersToDL = nsCRT::strdup(dbHeaders);
+          headersToDL = strdup(dbHeaders);
         else
           headersToDL = PR_smprintf("%s %s",dbHeaders, arbitraryHeaders.get());
 
@@ -3099,7 +3090,7 @@ nsImapProtocol::FetchMessage(const char * messageIds,
 
   // since messageIds can be infinitely long, use a dynamic buffer rather than the fixed one
   const char *commandTag = GetServerCommandTag();
-  int protocolStringSize = commandString.Length() + strlen(messageIds) + PL_strlen(commandTag) + 1 +
+  int protocolStringSize = commandString.Length() + messageIds.Length() + PL_strlen(commandTag) + 1 +
     (part ? PL_strlen(part) : 0);
   char *protocolString = (char *) PR_CALLOC( protocolStringSize );
 
@@ -3113,7 +3104,7 @@ nsImapProtocol::FetchMessage(const char * messageIds,
         protocolStringSize,                                      // max size
         cCommandStr,                                   // format string
         commandTag,                          // command tag
-        messageIds,
+        messageIds.get(),
         part);
     }
     else
@@ -3122,7 +3113,7 @@ nsImapProtocol::FetchMessage(const char * messageIds,
         protocolStringSize,                                      // max size
         cCommandStr,                                   // format string
         commandTag,                          // command tag
-        messageIds);
+        messageIds.get());
     }
 
     nsresult rv = SendData(protocolString);
@@ -3140,7 +3131,7 @@ nsImapProtocol::FetchMessage(const char * messageIds,
     HandleMemoryFailure();
 }
 
-void nsImapProtocol::FetchTryChunking(const char * messageIds,
+void nsImapProtocol::FetchTryChunking(const nsCString &messageIds,
                                       nsIMAPeFetchFields whatToFetch,
                                       PRBool idIsUid,
                                       char *part,
@@ -3602,7 +3593,7 @@ void nsImapProtocol::ProcessMailboxUpdate(PRBool handlePossibleUndo)
     if (handlePossibleUndo)
     {
       // undo any delete flags we may have asked to
-      nsXPIDLCString undoIdsStr;
+      nsCString undoIdsStr;
       nsCAutoString undoIds;
 
       GetCurrentUrl()->CreateListOfMessageIdsString(getter_Copies(undoIdsStr));
@@ -3614,10 +3605,10 @@ void nsImapProtocol::ProcessMailboxUpdate(PRBool handlePossibleUndo)
         // if this string started with a '-', then this is an undo of a delete
         // if its a '+' its a redo
         if (firstChar == '-')
-          Store(undoIds.get(), "-FLAGS (\\Deleted)", PR_TRUE);  // most servers will fail silently on a failure, deal with it?
+          Store(undoIds, "-FLAGS (\\Deleted)", PR_TRUE);  // most servers will fail silently on a failure, deal with it?
         else  if (firstChar == '+')
-          Store(undoIds.get(), "+FLAGS (\\Deleted)", PR_TRUE);  // most servers will fail silently on a failure, deal with it?
-        else
+          Store(undoIds, "+FLAGS (\\Deleted)", PR_TRUE);  // most servers will fail silently on a failure, deal with it?
+        else 
           NS_ASSERTION(PR_FALSE, "bogus undo Id's");
       }
     }
@@ -3632,7 +3623,7 @@ void nsImapProtocol::ProcessMailboxUpdate(PRBool handlePossibleUndo)
     if (!added || (added == deleted))
     {
       nsCString idsToFetch("1:*");
-      FetchMessage(idsToFetch.get(), kFlags, PR_TRUE);  // id string shows uids
+      FetchMessage(idsToFetch, kFlags, PR_TRUE);  // id string shows uids
       // lets see if we should expunge during a full sync of flags.
       if (!DeathSignalReceived()) // only expunge if not reading messages manually and before fetching new
       {
@@ -3650,7 +3641,7 @@ void nsImapProtocol::ProcessMailboxUpdate(PRBool handlePossibleUndo)
       fetchStr.Append(":*");
 
       // sprintf(fetchStr, "%ld:*", GetServerStateParser().HighestRecordedUID() + 1);
-      FetchMessage(fetchStr.get(), kFlags, PR_TRUE);      // only new messages please
+      FetchMessage(fetchStr, kFlags, PR_TRUE);      // only new messages please
     }
   }
   else if (!DeathSignalReceived())
@@ -3849,7 +3840,7 @@ void nsImapProtocol::FolderMsgDumpLoop(PRUint32 *msgUids, PRUint32 msgCount, nsI
     PRUint32 msgsToDownload = msgCountLeft;
     AllocateImapUidString(msgUids + msgsDownloaded, msgsToDownload, m_flagState, idString);  // 20 * 200
 
-    FetchMessage(idString.get(),  fields, PR_TRUE);                  // msg ids are uids
+    FetchMessage(idString,  fields, PR_TRUE);                  // msg ids are uids                 
 
     msgsDownloaded += msgsToDownload;
     msgCountLeft -= msgsToDownload;
@@ -3899,9 +3890,8 @@ void nsImapProtocol::PeriodicBiff()
 
       //sprintf(fetchStr, "%ld:%ld", id, id + GetServerStateParser().NumberOfMessages() - fFlagState->GetNumberOfMessages());
       fetchStr.AppendInt(id);
-      fetchStr.Append(":*");
-      FetchMessage(fetchStr.get(), kFlags, PR_TRUE);
-
+      fetchStr.Append(":*"); 
+      FetchMessage(fetchStr, kFlags, PR_TRUE);
       if (((PRUint32) m_flagState->GetHighestNonDeletedUID() >= id) && m_flagState->IsLastMessageUnseen())
         m_currentBiffState = nsIMsgFolder::nsMsgBiffState_NewMail;
       else
@@ -4009,9 +3999,9 @@ void nsImapProtocol::Log(const char *logSubName, const char *extraInfo, const ch
     }
 
     if (extraInfo)
-      PR_LOG(IMAP, PR_LOG_ALWAYS, ("%x:%s:%s:%s:%s: %.400s", this,hostName,stateName,logSubName,extraInfo,logDataToLog));
+      PR_LOG(IMAP, PR_LOG_ALWAYS, ("%x:%s:%s:%s:%s: %.400s", this,hostName.get(),stateName,logSubName,extraInfo,logDataToLog));
     else
-      PR_LOG(IMAP, PR_LOG_ALWAYS, ("%x:%s:%s:%s: %.400s",this,hostName,stateName,logSubName,logDataToLog));
+      PR_LOG(IMAP, PR_LOG_ALWAYS, ("%x:%s:%s:%s: %.400s",this,hostName.get(),stateName,logSubName,logDataToLog));
 
     // dump the rest of the string in < 400 byte chunks
     while (logDataLen > kLogDataChunkSize)
@@ -4075,10 +4065,9 @@ PRUint32 nsImapProtocol::GetMessageSize(const char * messageId,
 }
 
 // message id string utility functions
-/* static */PRBool nsImapProtocol::HandlingMultipleMessages(const char *messageIdString)
+/* static */PRBool nsImapProtocol::HandlingMultipleMessages(const nsCString & messageIdString)
 {
-  return (PL_strchr(messageIdString,',') != nsnull ||
-        PL_strchr(messageIdString,':') != nsnull);
+  return (messageIdString.FindCharInSet(",:") != kNotFound);
 }
 
 PRUint32 nsImapProtocol::CountMessagesInIdString(const char *idString)
@@ -4715,16 +4704,14 @@ nsImapProtocol::ShowProgress()
     PRUnichar *progressString = NULL;
     nsCAutoString cProgressString; cProgressString.AssignWithConversion(m_progressString);
     const char *mailboxName = GetServerStateParser().GetSelectedMailboxName();
-
-    nsXPIDLString unicodeMailboxName;
-
+    nsString unicodeMailboxName;
     nsresult rv = CopyMUTF7toUTF16(nsDependentCString(mailboxName),
                                    unicodeMailboxName);
     if (NS_SUCCEEDED(rv))
     {
       // ### should convert mailboxName to PRUnichar and change %s to %S in msg text
-      progressString = nsTextFormatter::smprintf(m_progressString.get(), (const PRUnichar *) unicodeMailboxName, 
-                                                 ++m_progressIndex, m_progressCount);
+      progressString = nsTextFormatter::smprintf(m_progressString.get(), 
+                                unicodeMailboxName.get(), ++m_progressIndex, m_progressCount);
       if (progressString)
       {
         PercentProgressUpdateEvent(progressString, m_progressIndex, m_progressCount);
@@ -4751,10 +4738,10 @@ nsImapProtocol::ProgressEventFunctionUsingIdWithString(PRUint32 aMsgId, const
 {
   if (m_imapMailFolderSink)
   {
-    nsXPIDLString unicodeStr;
+    nsString unicodeStr;
     nsresult rv = CopyMUTF7toUTF16(nsDependentCString(aExtraInfo), unicodeStr);
     if (NS_SUCCEEDED(rv))
-      m_imapMailFolderSink->ProgressStatus(this, aMsgId, unicodeStr);
+      m_imapMailFolderSink->ProgressStatus(this, aMsgId, unicodeStr.get());
   }
 }
 
@@ -4794,7 +4781,7 @@ nsImapProtocol::PercentProgressUpdateEvent(PRUnichar *message, PRInt32 currentPr
 
   // imap commands issued by the parser
 void
-nsImapProtocol::Store(const char * messageList, const char * messageData,
+nsImapProtocol::Store(const nsCString &messageList, const char * messageData,
                       PRBool idsAreUid)
 {
 
@@ -4803,7 +4790,7 @@ nsImapProtocol::Store(const char * messageList, const char * messageData,
   nsCString messageIdList;
   nsMsgKeyArray msgKeys;
   if (idsAreUid)
-    ParseUidString(messageList, msgKeys);
+    ParseUidString(messageList.get(), msgKeys);
 
   PRInt32 msgCountLeft = msgKeys.GetSize();
   PRUint32 msgsHandled = 0;
@@ -4834,7 +4821,7 @@ nsImapProtocol::Store(const char * messageList, const char * messageData,
 
     const char *commandTag = GetServerCommandTag();
     int protocolStringSize = PL_strlen(formatString) +
-          PL_strlen(messageList) + PL_strlen(messageData) +
+          messageList.Length() + PL_strlen(messageData) +
           PL_strlen(commandTag) + 1;
     char *protocolString = (char *) PR_CALLOC( protocolStringSize );
 
@@ -4897,7 +4884,7 @@ nsImapProtocol::IssueUserDefinedMsgCommand(const char *command, const char * mes
 }
 
 void
-nsImapProtocol::UidExpunge(const char* messageSet)
+nsImapProtocol::UidExpunge(const nsCString &messageSet)
 {
     IncrementCommandTagNumber();
     nsCString command(GetServerCommandTag());
@@ -5069,7 +5056,7 @@ void nsImapProtocol::EscapeUserNamePasswordString(const char *strToEscape, nsCSt
   }
 }
 
-void nsImapProtocol::InsecureLogin(const char *userName, const char *password)
+void nsImapProtocol::InsecureLogin(const char *userName, const nsCString &password)
 {
   ProgressEventFunctionUsingId (IMAP_STATUS_SENDING_LOGIN);
   IncrementCommandTagNumber();
@@ -5083,7 +5070,7 @@ void nsImapProtocol::InsecureLogin(const char *userName, const char *password)
   // if the password contains a \, login will fail
   // turn foo\bar into foo\\bar
   nsCAutoString correctedPassword;
-  EscapeUserNamePasswordString(password, &correctedPassword);
+  EscapeUserNamePasswordString(password.get(), &correctedPassword);
   command.Append(correctedPassword);
   command.Append("\""CRLF);
 
@@ -5093,7 +5080,7 @@ void nsImapProtocol::InsecureLogin(const char *userName, const char *password)
      ParseIMAPandCheckForNewMail();
 }
 
-nsresult nsImapProtocol::AuthLogin(const char *userName, const char *password, eIMAPCapabilityFlag flag)
+nsresult nsImapProtocol::AuthLogin(const char *userName, const nsCString &password, eIMAPCapabilityFlag flag)
 {
   ProgressEventFunctionUsingId (IMAP_STATUS_SENDING_AUTH_LOGIN);
   IncrementCommandTagNumber();
@@ -5115,7 +5102,7 @@ nsresult nsImapProtocol::AuthLogin(const char *userName, const char *password, e
         char * decodedChallenge = PL_Base64Decode(cramDigest,
                                                   strlen(cramDigest), nsnull);
         if (m_imapServerSink)
-          rv = m_imapServerSink->CramMD5Hash(decodedChallenge, password, &digest);
+          rv = m_imapServerSink->CramMD5Hash(decodedChallenge, password.get(), &digest);
 
         PR_Free(decodedChallenge);
         if (NS_SUCCEEDED(rv) && digest)
@@ -5203,7 +5190,7 @@ nsresult nsImapProtocol::AuthLogin(const char *userName, const char *password, e
     if (GetServerStateParser().LastCommandSuccessful())
     {
       nsCAutoString cmd;
-      rv = DoNtlmStep1(userName, password, cmd);
+      rv = DoNtlmStep1(userName, password.get(), cmd);
       if (NS_SUCCEEDED(rv))
       {
         cmd += CRLF;
@@ -5244,9 +5231,8 @@ nsresult nsImapProtocol::AuthLogin(const char *userName, const char *password, e
       PR_snprintf(&plainstr[1], 510, "%s", userName);
       len += PL_strlen(userName);
       len++;  // count for second <NUL> char
-      PR_snprintf(&plainstr[len], 511-len, "%s", password);
-      len += PL_strlen(password);
-
+      PR_snprintf(&plainstr[len], 511-len, "%s", password.get());
+      len += password.Length();
       char *base64Str = PL_Base64Encode(plainstr, len, nsnull);
       if (base64Str)
       {
@@ -5285,7 +5271,7 @@ nsresult nsImapProtocol::AuthLogin(const char *userName, const char *password, e
       }
       if (GetServerStateParser().LastCommandSuccessful())
       {
-        base64Str = PL_Base64Encode((char*)password, PL_strlen(password), nsnull);
+        base64Str = PL_Base64Encode(password.get(), password.Length(), nsnull);
         PR_snprintf(m_dataOutputBuf, OUTPUT_BUFFER_SIZE, "%s" CRLF, base64Str);
         PR_Free(base64Str);
         rv = SendData(m_dataOutputBuf, PR_TRUE /* suppress logging */);
@@ -5346,7 +5332,7 @@ void nsImapProtocol::OnAppendMsgFromFile()
       imapMessageFlagsType flagsToSet = 0;
       PRUint32 msgFlags = 0;
       PRTime date = 0;
-      nsXPIDLCString keywords;
+      nsCString keywords;
       if (m_imapMessageSink)
         m_imapMessageSink->GetCurMoveCopyMessageInfo(m_runningUrl, &date,
                                                     getter_Copies(keywords), &msgFlags);
@@ -5510,7 +5496,7 @@ void nsImapProtocol::UploadMessageFromFile (nsIFile* file,
           if (FolderIsSelected(mailboxName))
               Noop();
 
-          nsXPIDLCString oldMsgId;
+          nsCString oldMsgId;
           rv = m_runningUrl->CreateListOfMessageIdsString(getter_Copies(oldMsgId));
           if (NS_SUCCEEDED(rv) && !oldMsgId.IsEmpty())
           {
@@ -5673,7 +5659,7 @@ void nsImapProtocol::OnEnsureExistsFolder(const char * aSourceMailbox)
                                                      aSourceMailbox, nsForMailbox);
   // NS_ASSERTION (nsForMailbox, "Oops .. null nsForMailbox\n");
 
-  nsXPIDLCString name;
+  nsCString name;
 
   if (nsForMailbox)
     m_runningUrl->AllocateCanonicalPath(aSourceMailbox,
@@ -5784,7 +5770,7 @@ void nsImapProtocol::RefreshACLForFolder(const char *mailboxName)
 
 void nsImapProtocol::RefreshFolderACLView(const char *mailboxName, nsIMAPNamespace *nsForMailbox)
 {
-  nsXPIDLCString canonicalMailboxName;
+  nsCString canonicalMailboxName;
 
   if (nsForMailbox)
     m_runningUrl->AllocateCanonicalPath(mailboxName, nsForMailbox->GetDelimiter(), getter_Copies(canonicalMailboxName));
@@ -6443,7 +6429,7 @@ void nsImapProtocol::RemoveMsgsAndExpunge()
   if (numberOfMessages)
   {
     // Remove all msgs and expunge the folder (ie, compact it).
-    Store("1:*", "+FLAGS.SILENT (\\Deleted)", PR_FALSE);  // use sequence #'s
+    Store(NS_LITERAL_CSTRING("1:*"), "+FLAGS.SILENT (\\Deleted)", PR_FALSE);  // use sequence #'s  
     if (GetServerStateParser().LastCommandSuccessful())
       Expunge();
   }
@@ -7005,7 +6991,7 @@ const char * nsImapProtocol::GetTrashFolderName()
     nsCOMPtr<nsIImapIncomingServer> server = do_QueryReferent(m_server);
     if (server)
     {
-      nsString trashFolderName;
+      nsAutoString trashFolderName;
       if (NS_SUCCEEDED(server->GetTrashFolderName(trashFolderName)))
         CopyUTF16toMUTF7(trashFolderName, m_trashFolderName);
     }
@@ -7456,7 +7442,7 @@ void nsImapProtocol::SetupMessageFlagsString(nsCString& flagString,
         flagString.SetLength(flagString.Length()-1);
 }
 
-void nsImapProtocol::ProcessStoreFlags(const char * messageIdsString,
+void nsImapProtocol::ProcessStoreFlags(const nsCString &messageIdsString,
                                                  PRBool idsAreUids,
                                                  imapMessageFlagsType flags,
                                                  PRBool addFlags)
@@ -7608,8 +7594,8 @@ PRBool nsImapProtocol::TryToLogon()
   PRInt32 logonTries = 0;
   PRBool loginSucceeded = PR_FALSE;
   PRBool clientSucceeded = PR_TRUE;
-  nsCString password;
-  nsCString userName;
+  nsCAutoString password;
+  nsCAutoString userName;
   nsresult rv = NS_OK;
 
   // get the password and user name for the current incoming server...
@@ -7687,38 +7673,38 @@ PRBool nsImapProtocol::TryToLogon()
         // all subsequent login attempts to fail (bug 231303, bug 227560)
         if (m_useSecAuth && GetServerStateParser().GetCapabilityFlag() & kHasAuthGssApiCapability)
         {
-          clientSucceeded = NS_SUCCEEDED(AuthLogin(userName.get(), password.get(), kHasAuthGssApiCapability));
+          clientSucceeded = NS_SUCCEEDED(AuthLogin(userName.get(), password, kHasAuthGssApiCapability));
         }
         else if (m_useSecAuth && GetServerStateParser().GetCapabilityFlag() & kHasCRAMCapability)
         {
-          AuthLogin (userName.get(), password.get(), kHasCRAMCapability);
+          AuthLogin (userName.get(), password, kHasCRAMCapability);
           logonTries++;
         }
         else if (m_useSecAuth && GetServerStateParser().GetCapabilityFlag() & kHasAuthNTLMCapability)
         {
-          AuthLogin (userName.get(), password.get(), kHasAuthNTLMCapability);
+          AuthLogin (userName.get(), password, kHasAuthNTLMCapability);
           logonTries++;
         }
         else if (m_useSecAuth && GetServerStateParser().GetCapabilityFlag() & kHasAuthMSNCapability)
         {
-          AuthLogin (userName.get(), password.get(), kHasAuthMSNCapability);
+          AuthLogin (userName.get(), password, kHasAuthMSNCapability);
           logonTries++;
         }
         else if (GetServerStateParser().GetCapabilityFlag() & kHasAuthPlainCapability)
         {
-          AuthLogin (userName.get(), password.get(), kHasAuthPlainCapability);
+          AuthLogin (userName.get(), password, kHasAuthPlainCapability);
           logonTries++;
         }
         else if (GetServerStateParser().GetCapabilityFlag() & kHasAuthLoginCapability)
         {
-          AuthLogin (userName.get(), password.get(),  kHasAuthLoginCapability);
+          AuthLogin (userName.get(), password,  kHasAuthLoginCapability);
           logonTries++; // This counts as a logon try for most servers
         }
         else if (! (GetServerStateParser().GetCapabilityFlag() & kLoginDisabled))
-          InsecureLogin(userName.get(), password.get());
+          InsecureLogin(userName.get(), password);
       }
       else if (! (GetServerStateParser().GetCapabilityFlag() & kLoginDisabled))
-        InsecureLogin(userName.get(), password.get());
+        InsecureLogin(userName.get(), password);
 
       if (!clientSucceeded || !GetServerStateParser().LastCommandSuccessful())
       {
@@ -7815,7 +7801,7 @@ void nsImapProtocol::GetQuotaDataIfSupported(const char *aBoxName)
   nsCOMPtr<nsIImapIncomingServer> imapServer = do_QueryReferent(m_server, &rv);
   if (NS_FAILED(rv))
     return;
-  nsCString redirectorType;
+  nsCAutoString redirectorType;
   imapServer->GetRedirectorType(redirectorType);
   if (redirectorType.EqualsLiteral("aol") && PL_strcasecmp("Inbox", aBoxName))
     return;
@@ -8312,9 +8298,9 @@ nsresult nsImapMockChannel::ReadFromMemCache(nsICacheEntryDescriptor *entry)
   NS_ENSURE_ARG(entry);
 
   PRUint32 annotationLength = 0;
-  nsXPIDLCString annotation;
+  nsCString annotation;
   nsCAutoString entryKey;
-  nsXPIDLCString contentType;
+  nsCAutoString contentType;
   nsresult rv = NS_OK;
   PRBool shouldUseCacheEntry = PR_FALSE;
 
@@ -8331,12 +8317,9 @@ nsresult nsImapMockChannel::ReadFromMemCache(nsICacheEntryDescriptor *entry)
   {
     // otherwise, we have the whole msg, and we should make sure the content isn't modified.
     rv = entry->GetMetaDataElement("ContentModified", getter_Copies(annotation));
-    if (NS_SUCCEEDED(rv) && (annotation.get()))
-    {
-      annotationLength = strlen(annotation.get());
-      if (annotationLength == strlen("Not Modified") && !nsCRT::strncmp(annotation, "Not Modified", annotationLength))
-        shouldUseCacheEntry = PR_TRUE;
-    }
+    if (NS_SUCCEEDED(rv) && !annotation.IsEmpty())
+      shouldUseCacheEntry = annotation.EqualsLiteral("Not Modified");
+
   }
   if (shouldUseCacheEntry)
   {
@@ -8423,7 +8406,7 @@ PRBool nsImapMockChannel::ReadFromLocalCache()
   mailnewsUrl->GetMsgIsInLocalCache(&useLocalCache);
   if (useLocalCache)
   {
-    nsXPIDLCString messageIdString;
+    nsCAutoString messageIdString;
 
     SetupPartExtractorListener(imapUrl, m_channelListener);
 
@@ -8434,7 +8417,7 @@ PRBool nsImapMockChannel::ReadFromLocalCache()
     {
       // we want to create a file channel and read the msg from there.
       nsCOMPtr<nsIInputStream> fileStream;
-      nsMsgKey msgKey = atoi(messageIdString);
+      nsMsgKey msgKey = atoi(messageIdString.get());
       PRUint32 size, offset;
       rv = folder->GetOfflineFileStream(msgKey, &offset, &size, getter_AddRefs(fileStream));
       // get the file channel from the folder, somehow (through the message or

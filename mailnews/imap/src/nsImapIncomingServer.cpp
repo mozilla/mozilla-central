@@ -67,7 +67,6 @@
 #include "nsMsgFolderFlags.h"
 #include "prmem.h"
 #include "plstr.h"
-#include "nsXPIDLString.h"
 #include "nsIMsgFolder.h"
 #include "nsIMsgWindow.h"
 #include "nsIMsgImapMailFolder.h"
@@ -158,7 +157,7 @@ NS_IMETHODIMP nsImapIncomingServer::SetKey(const nsACString& aKey)  // override 
   hostSession->SetDeleteIsMoveToTrashForHost(key.get(), deleteModel == nsMsgImapDeleteModels::MoveToTrash);
   hostSession->SetShowDeletedMessagesForHost(key.get(), deleteModel == nsMsgImapDeleteModels::IMAPDelete);
 
-  nsCString onlineDir;
+  nsCAutoString onlineDir;
   rv = GetServerDirectory(onlineDir);
   NS_ENSURE_SUCCESS(rv, rv);
   if (!onlineDir.IsEmpty())
@@ -200,9 +199,8 @@ NS_IMETHODIMP nsImapIncomingServer::SetKey(const nsACString& aKey)  // override 
 NS_IMETHODIMP
 nsImapIncomingServer::GetConstructedPrettyName(nsAString& retval)
 {
-
-  nsCString username;
-  nsCString hostName;
+  nsCAutoString username;
+  nsCAutoString hostName;
   nsresult rv;
 
   nsCOMPtr<nsIMsgAccountManager> accountManager =
@@ -360,7 +358,7 @@ nsImapIncomingServer::GetDeleteModel(PRInt32 *retval)
 {
   NS_ENSURE_ARG(retval);
 
-  nsCString redirectorType;
+  nsCAutoString redirectorType;
   GetRedirectorType(redirectorType);
   if (redirectorType.Equals("aol"))
   {
@@ -696,7 +694,7 @@ nsImapIncomingServer::GetImapConnection(nsIEventTarget *aEventTarget,
   nsCOMPtr<nsIImapProtocol> freeConnection;
   PRBool isBusy = PR_FALSE;
   PRBool isInboxConnection = PR_FALSE;
-  nsCString redirectorType;
+  nsCAutoString redirectorType;
 
   PR_CEnterMonitor(this);
 
@@ -740,8 +738,8 @@ nsImapIncomingServer::GetImapConnection(nsIEventTarget *aEventTarget,
       {
         rv = connection->CanHandleUrl(aImapUrl, &canRunUrlImmediately, &canRunButBusy);
 #ifdef DEBUG_bienvenu
-        nsXPIDLCString curSelectedFolderName;
-        if (connection)
+        nsCAutoString curSelectedFolderName;
+        if (connection)    
           connection->GetSelectedMailboxName(getter_Copies(curSelectedFolderName));
         // check that no other connection is in the same selected state.
         if (!curSelectedFolderName.IsEmpty())
@@ -753,7 +751,7 @@ nsImapIncomingServer::GetImapConnection(nsIEventTarget *aEventTarget,
               nsCOMPtr<nsIImapProtocol> otherConnection = do_QueryElementAt(m_connectionCache, j);
               if (otherConnection)
               {
-                nsXPIDLCString otherSelectedFolderName;
+                nsCAutoString otherSelectedFolderName;
                 otherConnection->GetSelectedMailboxName(getter_Copies(otherSelectedFolderName));
                 NS_ASSERTION(!curSelectedFolderName.Equals(otherSelectedFolderName), "two connections selected on same folder");
               }
@@ -785,7 +783,7 @@ nsImapIncomingServer::GetImapConnection(nsIEventTarget *aEventTarget,
             freeConnection = connection;
           else  // check which is the better free connection to use.
           {     // We prefer one not in the selected state.
-            nsCString selectedFolderName;
+            nsCAutoString selectedFolderName;
             connection->GetSelectedMailboxName(getter_Copies(selectedFolderName));
             if (selectedFolderName.IsEmpty())
               freeConnection = connection;
@@ -1041,7 +1039,7 @@ void nsImapIncomingServer::GetPFCName(nsACString& aPfcname)
   {
     if(NS_SUCCEEDED(GetStringBundle()))
     {
-      nsString pfcName;
+      nsAutoString pfcName;
       nsresult res = m_stringBundle->GetStringFromID(IMAP_PERSONAL_FILING_CABINET, getter_Copies(pfcName));
       if (NS_SUCCEEDED(res))
         CopyUTF16toUTF8(pfcName, m_pfcName);
@@ -1083,12 +1081,12 @@ nsresult nsImapIncomingServer::GetPFCForStringId(PRBool createIfMissing, PRInt32
 
   nsresult rv = GetPFC(createIfMissing, getter_AddRefs(pfcParent));
   NS_ENSURE_SUCCESS(rv, rv);
-  nsXPIDLCString pfcURI;
+  nsCString pfcURI;
   pfcParent->GetURI(getter_Copies(pfcURI));
 
   rv = GetStringBundle();
   NS_ENSURE_SUCCESS(rv, rv);
-  nsString pfcName;
+  nsAutoString pfcName;
   rv = m_stringBundle->GetStringFromID(stringId, getter_Copies(pfcName));
   NS_ENSURE_SUCCESS(rv, rv);
   nsCAutoString pfcMailUri(pfcURI);
@@ -1228,7 +1226,7 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
     parentUri.Append('/');
     parentUri.Append(parentName);
   }
-  if (folderPath.LowerCaseEqualsLiteral("INBOX") &&
+  if (folderPath.LowerCaseEqualsLiteral("inbox") &&
     hierarchyDelimiter == kOnlineHierarchySeparatorNil)
   {
     hierarchyDelimiter = '/'; // set to default in this case (as in 4.x)
@@ -1246,7 +1244,7 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
   // nsCString possibleName(aSpec->allocatedPathName);
   uri.Append('/');
   uri.Append(dupFolderPath);
-  PRBool caseInsensitive = dupFolderPath.LowerCaseEqualsLiteral("INBOX");
+  PRBool caseInsensitive = dupFolderPath.LowerCaseEqualsLiteral("inbox");
   a_nsIFolder->GetChildWithURI(uri.get(), PR_TRUE, caseInsensitive, getter_AddRefs(child));
   // if we couldn't find this folder by URI, tell the imap code it's a new folder to us
   *aNewFolder = !child;
@@ -1259,7 +1257,7 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
     {
       nsCOMPtr <nsIMsgFolder> parent;
       PRBool parentIsNew;
-      caseInsensitive = parentName.LowerCaseEqualsLiteral("INBOX");
+      caseInsensitive = parentName.LowerCaseEqualsLiteral("inbox");
       a_nsIFolder->GetChildWithURI(parentUri.get(), PR_TRUE, caseInsensitive, getter_AddRefs(parent));
       if (!parent /* || parentFolder->GetFolderNeedsAdded()*/)
       {
@@ -1269,7 +1267,7 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
       }
     }
     hostFolder->CreateClientSubfolderInfo(dupFolderPath.get(), hierarchyDelimiter,boxFlags, PR_FALSE);
-    caseInsensitive = dupFolderPath.LowerCaseEqualsLiteral("INBOX");
+    caseInsensitive = dupFolderPath.LowerCaseEqualsLiteral("inbox");
     a_nsIFolder->GetChildWithURI(uri.get(), PR_TRUE, caseInsensitive, getter_AddRefs(child));
   }
   if (child)
@@ -1280,9 +1278,9 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
       PRBool isAOLServer = PR_FALSE;
 
       GetIsAOLServer(&isAOLServer);
-
-      nsXPIDLCString onlineName;
-      nsXPIDLString unicodeName;
+     
+      nsCAutoString onlineName;
+      nsAutoString unicodeName;
       imapFolder->SetVerifiedAsOnlineFolder(PR_TRUE);
       imapFolder->SetHierarchyDelimiter(hierarchyDelimiter);
       if (boxFlags & kImapTrash)
@@ -1314,12 +1312,12 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
       if (hierarchyDelimiter != '/')
         nsImapUrl::UnescapeSlashes(folderName.BeginWriting());
       if (NS_SUCCEEDED(CopyMUTF7toUTF16(folderName, unicodeName)))
-        child->SetPrettyName(unicodeName);
+        child->SetPrettyName(unicodeName.get());
       // Call ConvertFolderName() and HideFolderName() to do special folder name
       // mapping and hiding, if configured to do so. For example, need to hide AOL's
       // 'RECYCLE_OUT' & convert a few AOL folder names. Regular imap accounts
       // will do no-op in the calls.
-      nsString convertedName;
+      nsAutoString convertedName;
       PRBool hideFolder;
       rv = HideFolderName(onlineName, &hideFolder);
       if (hideFolder)
@@ -1331,7 +1329,7 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
       {
         rv = ConvertFolderName(onlineName, convertedName);
         //make sure rv value is not crunched, it is used to SetPrettyName
-        nsCString redirectorType;
+        nsCAutoString redirectorType;
         GetRedirectorType(redirectorType); //Sent mail folder as per aol/netscape webmail
         if ((redirectorType.EqualsLiteral("aol") && onlineName.EqualsLiteral("Sent Items"))
           || (redirectorType.EqualsLiteral("netscape") && onlineName.EqualsLiteral("Sent")))
@@ -1438,7 +1436,7 @@ NS_IMETHODIMP nsImapIncomingServer::GetRedirectorType(nsACString& redirectorType
     // redirectory type
     if (redirectorType.LowerCaseEqualsLiteral("aol"))
     {
-      nsCString hostName;
+      nsCAutoString hostName;
       GetHostName(hostName);
       if (hostName.LowerCaseEqualsLiteral("imap.mail.netcenter.com"))
         SetRedirectorType(NS_LITERAL_CSTRING("netscape"));
@@ -1454,7 +1452,7 @@ NS_IMETHODIMP nsImapIncomingServer::GetRedirectorType(nsACString& redirectorType
     rv = CreateHostSpecificPrefName("default_redirector_type", prefName);
     NS_ENSURE_SUCCESS(rv,rv);
 
-    nsCString defaultRedirectorType;
+    nsCAutoString defaultRedirectorType;
     nsCOMPtr <nsIPrefService> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv,rv);
 
@@ -1537,7 +1535,7 @@ NS_IMETHODIMP nsImapIncomingServer::ConvertFolderName(const nsACString& original
   // Get string bundle based on redirector type and convert folder name.
   nsCOMPtr<nsIStringBundle> stringBundle;
   nsCAutoString propertyURL;
-  nsCString redirectorType;
+  nsCAutoString redirectorType;
   GetRedirectorType(redirectorType);
   if (redirectorType.IsEmpty())
     return NS_ERROR_FAILURE; // return if no redirector type
@@ -1748,7 +1746,7 @@ NS_IMETHODIMP nsImapIncomingServer::DiscoveryDone()
 
     if (NS_SUCCEEDED(rv) && numFolders > 1)
     {
-      nsString trashName;
+      nsAutoString trashName;
       if (NS_SUCCEEDED(GetTrashFolderName(trashName)))
       {
         nsIMsgFolder *trashFolders[2];
@@ -1757,7 +1755,7 @@ NS_IMETHODIMP nsImapIncomingServer::DiscoveryDone()
         {
           for (PRUint32 i = 0; i < numFolders; i++)
           {
-            nsString folderName;
+            nsAutoString folderName;
             if (NS_SUCCEEDED(trashFolders[i]->GetName(getter_Copies(folderName))))
             {
               if (!folderName.Equals(trashName))
@@ -2097,7 +2095,7 @@ NS_IMETHODIMP  nsImapIncomingServer::FormatStringWithHostNameByID(PRInt32 aMsgId
   GetStringBundle();
   if (m_stringBundle)
   {
-    nsCString hostName;
+    nsCAutoString hostName;
     res = GetRealHostName(hostName);
     if (NS_SUCCEEDED(res))
     {
@@ -2408,8 +2406,7 @@ nsresult nsImapIncomingServer::RequestOverrideInfo(nsIMsgWindow *aMsgWindow)
 {
   nsresult rv;
   nsCAutoString contractID(NS_MSGLOGONREDIRECTORSERVICE_CONTRACTID);
-  nsCString redirectorType;
-
+  nsCAutoString redirectorType;
   GetRedirectorType(redirectorType);
   contractID.Append('/');
   contractID.Append(redirectorType);
@@ -2420,12 +2417,11 @@ nsresult nsImapIncomingServer::RequestOverrideInfo(nsIMsgWindow *aMsgWindow)
     rv = QueryInterface(NS_GET_IID(nsIMsgLogonRedirectionRequester), getter_AddRefs(logonRedirectorRequester));
     if (NS_SUCCEEDED(rv))
     {
-      nsCString password;
-      nsCString userName;
+      nsCAutoString password;
+      nsCAutoString userName;
       PRBool requiresPassword = PR_TRUE;
       GetRealUsername(userName);
       m_logonRedirector->RequiresPassword(userName.get(), redirectorType.get(), &requiresPassword);
-
       if (requiresPassword)
       {
         GetPassword(password);
@@ -2759,10 +2755,8 @@ nsImapIncomingServer::AddTo(const nsACString &aName, PRBool addAsSubscribed,
 NS_IMETHODIMP
 nsImapIncomingServer::StopPopulating(nsIMsgWindow *aMsgWindow)
 {
-  nsresult rv;
-
   nsCOMPtr<nsISubscribeListener> listener;
-  rv = GetSubscribeListener(getter_AddRefs(listener));
+  nsresult rv = GetSubscribeListener(getter_AddRefs(listener));
   NS_ENSURE_SUCCESS(rv, rv);
 
   rv = listener->OnDonePopulating();
@@ -3025,7 +3019,7 @@ nsImapIncomingServer::CreateHostSpecificPrefName(const char *prefPrefix, nsCAuto
 
   prefName = prefPrefix;
   prefName.Append('.');
-  prefName.Append(hostName.get());
+  prefName.Append(hostName);
   return NS_OK;
 }
 
@@ -3431,7 +3425,7 @@ nsImapIncomingServer::OnUserOrHostNameChanged(const nsACString& oldName, const n
   //    reloaded (ie, DiscoverMailboxList() will be invoked in nsImapProtocol).
   nsCOMPtr<nsIImapHostSessionList> hostSessionList = do_GetService(kCImapHostSessionListCID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  nsCString serverKey;
+  nsCAutoString serverKey;
   rv = GetKey(serverKey);
   NS_ENSURE_SUCCESS(rv, rv);
   hostSessionList->SetHaveWeEverDiscoveredFoldersForHost(serverKey.get(), PR_FALSE);
@@ -3448,10 +3442,9 @@ nsImapIncomingServer::GetUriWithNamespacePrefixIfNecessary(PRInt32 namespaceType
                                                            nsACString& convertedUri)
 {
   nsresult rv = NS_OK;
-  nsCString serverKey;
+  nsCAutoString serverKey;
   rv = GetKey(serverKey);
   NS_ENSURE_SUCCESS(rv, rv);
-  
   nsCOMPtr<nsIImapHostSessionList> hostSessionList = do_GetService(kCImapHostSessionListCID, &rv);
   nsIMAPNamespace *ns = nsnull;
   rv = hostSessionList->GetDefaultNamespaceOfTypeForHost(serverKey.get(), (EIMAPNamespaceType)namespaceType, ns);
@@ -3461,7 +3454,7 @@ nsImapIncomingServer::GetUriWithNamespacePrefixIfNecessary(PRInt32 namespaceType
     if (!namespacePrefix.IsEmpty())
     {
       // check if namespacePrefix is the same as the online directory; if so, ignore it.
-      nsCString onlineDir;
+      nsCAutoString onlineDir;
       rv = GetServerDirectory(onlineDir);
       NS_ENSURE_SUCCESS(rv, rv);
       if (!onlineDir.IsEmpty())
@@ -3501,7 +3494,7 @@ NS_IMETHODIMP nsImapIncomingServer::GetTrashFolderName(nsAString& retval)
 NS_IMETHODIMP nsImapIncomingServer::SetTrashFolderName(const nsAString& chvalue)
 {
   // clear trash flag from the old pref
-  nsString oldTrashName;
+  nsAutoString oldTrashName;
   nsresult rv = GetTrashFolderName(oldTrashName);
   if (NS_SUCCEEDED(rv))
   {

@@ -236,7 +236,7 @@ protected:
   PRBool mIsServer;
   nsString mName;
   nsCOMPtr<nsILocalFile> mPath;
-  char * mBaseMessageURI; //The uri with the message scheme
+  nsCString mBaseMessageURI; //The uri with the message scheme
 
   PRBool mInVFEditSearchScope ; // non persistant state used by the virtual folder UI
 

@@ -52,7 +52,6 @@
 #include "nsIImapIncomingServer.h"
 #include "nsMsgBaseCID.h"
 #include "nsImapUtils.h"
-#include "nsXPIDLString.h"
 #include "nsReadableUtils.h"
 #include "nsAutoLock.h"
 #include "nsIMAPNamespace.h"
@@ -975,10 +974,10 @@ NS_IMETHODIMP nsImapUrl::AllocateServerPath(const char * canonicalPath, char onl
   char *canonicalPath;
   if (onlineDelimiter != '/')
   {
-    nsXPIDLCString escapedPath;
+    nsCString escapedPath;
 
     EscapeSlashes(folderName, getter_Copies(escapedPath));
-    canonicalPath = ReplaceCharsInCopiedString(escapedPath, onlineDelimiter , '/');
+    canonicalPath = ReplaceCharsInCopiedString(escapedPath.get(), onlineDelimiter , '/');
   }
   else
   {
@@ -1283,7 +1282,7 @@ NS_IMETHODIMP nsImapUrl::GetUri(char** aURI)
   {
     *aURI = nsnull;
     PRUint32 key = m_listOfMessageIds ? atoi(m_listOfMessageIds) : 0;
-    nsXPIDLCString canonicalPath;
+    nsCString canonicalPath;
     AllocateCanonicalPath(m_sourceCanonicalFolderPathSubString, m_onlineSubDirSeparator, (getter_Copies(canonicalPath)));
     nsCString fullFolderPath("/");
     fullFolderPath.Append(m_userName);
@@ -1294,14 +1293,12 @@ NS_IMETHODIMP nsImapUrl::GetUri(char** aURI)
     fullFolderPath.Append('/');
     fullFolderPath.Append(canonicalPath);
 
-    char * baseMessageURI;
-    nsCreateImapBaseMessageURI(fullFolderPath.get(), &baseMessageURI);
+    nsCString baseMessageURI;
+    nsCreateImapBaseMessageURI(fullFolderPath.get(), baseMessageURI);
     nsCAutoString uriStr;
-    rv = nsBuildImapMessageURI(baseMessageURI, key, uriStr);
-    nsCRT::free(baseMessageURI);
+    rv = nsBuildImapMessageURI(baseMessageURI.get(), key, uriStr);
     *aURI = ToNewCString(uriStr);
   }
-
   return rv;
 }
 
@@ -1527,12 +1524,12 @@ nsresult nsImapUrl::GetMsgFolder(nsIMsgFolder **msgFolder)
   // if we have a RDF URI, then try to get the folder for that URI and then ask the folder
   // for it's charset....
 
-  nsXPIDLCString uri;
+  nsCString uri;
   GetUri(getter_Copies(uri));
-  NS_ENSURE_TRUE(uri, NS_ERROR_FAILURE);
+  NS_ENSURE_TRUE(!uri.IsEmpty(), NS_ERROR_FAILURE);
 
   nsCOMPtr<nsIMsgDBHdr> msg;
-  GetMsgDBHdrFromURI(uri, getter_AddRefs(msg));
+  GetMsgDBHdrFromURI(uri.get(), getter_AddRefs(msg));
   NS_ENSURE_TRUE(msg, NS_ERROR_FAILURE);
   nsresult rv = msg->GetFolder(msgFolder);
   NS_ENSURE_SUCCESS(rv,rv);
@@ -1591,7 +1588,7 @@ NS_IMETHODIMP nsImapUrl::SetShouldStoreMsgOffline(PRBool aShouldStoreMsgOffline)
 
 NS_IMETHODIMP nsImapUrl::GetMessageHeader(nsIMsgDBHdr ** aMsgHdr)
 {
-  nsXPIDLCString uri;
+  nsCString uri;
   nsresult rv = GetUri(getter_Copies(uri));
   NS_ENSURE_SUCCESS(rv, rv);
   return GetMsgDBHdrFromURI(uri.get(), aMsgHdr);

@@ -40,7 +40,6 @@
 #include "nsMsgImapCID.h"
 #include "nsIMsgHdr.h"
 #include "nsImapUndoTxn.h"
-#include "nsXPIDLString.h"
 #include "nsIIMAPHostSessionList.h"
 #include "nsIMsgIncomingServer.h"
 #include "nsIDBFolderInfo.h"
@@ -69,7 +68,7 @@ nsImapMoveCopyMsgTxn::Init(
     m_urlListener = do_QueryInterface(urlListener, &rv);
   m_srcKeyArray.CopyArray(srcKeyArray);
   m_dupKeyArray.CopyArray(srcKeyArray);
-  nsXPIDLCString uri;
+  nsCString uri;
   rv = srcFolder->GetURI(getter_Copies(uri));
   nsCString protocolType(uri);
   protocolType.SetLength(protocolType.FindChar(':'));
@@ -574,18 +573,18 @@ NS_IMETHODIMP nsImapOfflineTxn::RedoTransaction(void)
       nsCOMPtr<nsIMsgFolder> dstFolder = do_QueryReferent(m_dstFolder, &rv);
       if (dstFolder)
       {
-        nsXPIDLCString folderURI;
+        nsCString folderURI;
         dstFolder->GetURI(getter_Copies(folderURI));
 
 
         if (m_opType == nsIMsgOfflineImapOperation::kMsgMoved)
         {
-          op->SetDestinationFolderURI(folderURI); // offline move
+          op->SetDestinationFolderURI(folderURI.get()); // offline move
         }
         if (m_opType == nsIMsgOfflineImapOperation::kMsgCopy)
         {
           op->SetOperation(nsIMsgOfflineImapOperation::kMsgMoved);
-          op->AddMessageCopyOperation(folderURI); // offline copy
+          op->AddMessageCopyOperation(folderURI.get()); // offline copy
         }
         dstFolder->SummaryChanged();
       }
@@ -606,9 +605,9 @@ NS_IMETHODIMP nsImapOfflineTxn::RedoTransaction(void)
       rv = destDB->GetOfflineOpForKey(hdrKey, PR_TRUE, getter_AddRefs(op));
       if (NS_SUCCEEDED(rv) && op)
       {
-        nsXPIDLCString folderURI;
+        nsCString folderURI;
         srcFolder->GetURI(getter_Copies(folderURI));
-        op->SetSourceFolderURI(folderURI);
+        op->SetSourceFolderURI(folderURI.get());
       }
       dstFolder->SummaryChanged();
       destDB->Close(PR_TRUE);

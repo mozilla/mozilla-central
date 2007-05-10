@@ -73,23 +73,16 @@ nsParseNewsMessageURI(const char* uri, nsCString& folderURI, PRUint32 *key)
 	return NS_ERROR_FAILURE;
 }
 
-nsresult nsCreateNewsBaseMessageURI(const char *baseURI, char **baseMessageURI)
+nsresult nsCreateNewsBaseMessageURI(const char *baseURI, nsCString &baseMessageURI)
 {
-	if(!baseMessageURI)
-		return NS_ERROR_NULL_POINTER;
+  nsCAutoString tailURI(baseURI);
 
-	nsCAutoString tailURI(baseURI);
+  // chop off news:/
+  if (tailURI.Find(kNewsRootURI) == 0)
+    tailURI.Cut(0, PL_strlen(kNewsRootURI));
 
-	// chop off mailbox:/
-	if (tailURI.Find(kNewsRootURI) == 0)
-		tailURI.Cut(0, PL_strlen(kNewsRootURI));
-	
-	nsCAutoString baseURIStr(kNewsMessageRootURI);
-	baseURIStr += tailURI;
+  baseMessageURI = kNewsMessageRootURI;
+  baseMessageURI += tailURI;
 
-	*baseMessageURI = ToNewCString(baseURIStr);
-	if(!*baseMessageURI)
-		return NS_ERROR_OUT_OF_MEMORY;
-
-	return NS_OK;
+  return NS_OK;
 }

@@ -78,7 +78,6 @@
 #include "nsILoadGroup.h"
 #include "nsCOMPtr.h"
 #include "nsIImapIncomingServer.h"
-#include "nsXPIDLString.h"
 #include "nsIMsgWindow.h"
 #include "nsIMsgLogonRedirector.h"
 #include "nsICacheListener.h"
@@ -175,8 +174,7 @@ public:
 
   // message id string utilities.
   PRUint32		CountMessagesInIdString(const char *idString);
-  static	PRBool	HandlingMultipleMessages(const char *messageIdString);
-
+  static	PRBool	HandlingMultipleMessages(const nsCString &messageIdString);
   // escape slashes and double quotes in username/passwords for insecure login.
   static void EscapeUserNamePasswordString(const char *strToEscape, nsCString *resultStr);
 
@@ -184,20 +182,19 @@ public:
   void GetShouldDownloadAllHeaders(PRBool *aResult);
   void GetArbitraryHeadersToDownload(char **aResult);
   virtual void AdjustChunkSize();
-  virtual void FetchMessage(const char * messageIds,
+  virtual void FetchMessage(const nsCString &messageIds, 
     nsIMAPeFetchFields whatToFetch,
     PRBool idAreUid,
     PRUint32 startByte = 0, PRUint32 endByte = 0,
     char *part = 0);
-  void FetchTryChunking(const char * messageIds,
+  void FetchTryChunking(const nsCString &messageIds,
     nsIMAPeFetchFields whatToFetch,
     PRBool idIsUid,
     char *part,
     PRUint32 downloadSize,
     PRBool tryChunking);
   virtual void PipelinedFetchMessageParts(nsCString &uid, nsIMAPMessagePartIDArray *parts);
-  void FallbackToFetchWholeMsg(const char *messageId, PRUint32 messageSize);
-
+  void FallbackToFetchWholeMsg(const nsCString &messageId, PRUint32 messageSize);
   // used when streaming a message fetch
   virtual nsresult BeginMessageDownLoad(PRUint32 totalSize, // for user, headers and body
     const char *contentType);     // some downloads are header only
@@ -266,16 +263,16 @@ public:
   void Search(const char * searchCriteria,  PRBool useUID,
     PRBool notifyHit = PR_TRUE);
   // imap commands issued by the parser
-  void Store(const char * aMessageList, const char * aMessageData, PRBool
+  void Store(const nsCString &aMessageList, const char * aMessageData, PRBool
     aIdsAreUid);
-  void ProcessStoreFlags(const char * messageIds,
+  void ProcessStoreFlags(const nsCString &messageIds,
     PRBool idsAreUids,
     imapMessageFlagsType flags,
     PRBool addFlags);
   void IssueUserDefinedMsgCommand(const char *command, const char * messageList);
-  void FetchMsgAttribute(const char * messageIds, const char *attribute);
+  void FetchMsgAttribute(const nsCString &messageIds, const nsCString &attribute);
   void Expunge();
-  void UidExpunge(const char* messageSet);
+  void UidExpunge(const nsCString &messageSet);
   void Close(PRBool shuttingDown = PR_FALSE, PRBool waitForResponse = PR_TRUE);
   void Check();
   void SelectMailbox(const char *mailboxName);
@@ -289,7 +286,7 @@ public:
   void MailboxData();
   void GetMyRightsForFolder(const char *mailboxName);
   void AutoSubscribeToMailboxIfNecessary(const char *mailboxName);
-  void Bodystructure(const char *messageId, PRBool idIsUid);
+  void Bodystructure(const nsCString &messageId, PRBool idIsUid);
   void PipelinedFetchMessageParts(const char *uid, nsIMAPMessagePartIDArray *parts);
 
 
@@ -458,8 +455,8 @@ private:
   void Capability(); // query host for capabilities.
   void Language(); // set the language on the server if it supports it
   void Namespace();
-  void InsecureLogin(const char *userName, const char *password);
-  nsresult AuthLogin(const char *userName, const char *password, eIMAPCapabilityFlag flag);
+  void InsecureLogin(const char *userName, const nsCString &password);
+  nsresult AuthLogin(const char *userName, const nsCString &password, eIMAPCapabilityFlag flag);
   void ProcessAuthenticatedStateURL();
   void ProcessAfterAuthenticated();
   void ProcessSelectedStateURL();
@@ -570,12 +567,12 @@ private:
   nsCString m_logonHost;
   nsCString m_logonCookie;
   PRInt16 m_logonPort;
-
-  nsXPIDLString mAcceptLanguages;
-
+  
+  nsString mAcceptLanguages;
+  
   // progress stuff
   void SetProgressString(PRInt32 stringId);
-
+  
   nsString m_progressString;
   PRInt32       m_progressStringId;
   PRInt32       m_progressIndex;

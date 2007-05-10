@@ -265,7 +265,7 @@ PRInt32 nsIMAPBodyShell::Generate(char *partNum)
     PRUint32 messageSize = m_protocolConnection->GetMessageSize(GetUID().get(), PR_TRUE);
     m_protocolConnection->SetContentModified(IMAP_CONTENT_NOT_MODIFIED);	// So that when we cache it, we know we have the whole message
     if (!DeathSignalReceived())
-      m_protocolConnection->FallbackToFetchWholeMsg(GetUID().get(), messageSize);
+      m_protocolConnection->FallbackToFetchWholeMsg(GetUID(), messageSize);
     contentLength = (PRInt32) messageSize;	// ugh
   }
   else
@@ -502,7 +502,7 @@ PRInt32 nsIMAPBodypart::GeneratePart(nsIMAPBodyShell *aShell, PRBool stream, PRB
       PRBool fetchingSpecificPart = (generatingPart && !PL_strcmp(generatingPart, m_partNumberString));
       
       aShell->GetConnection()->Log("SHELL","GENERATE-Part-Inline",m_partNumberString);
-      aShell->GetConnection()->FetchTryChunking(aShell->GetUID().get(), kMIMEPart, PR_TRUE, m_partNumberString, m_partLength, !fetchingSpecificPart);
+      aShell->GetConnection()->FetchTryChunking(aShell->GetUID(), kMIMEPart, PR_TRUE, m_partNumberString, m_partLength, !fetchingSpecificPart);
     }
     return m_partLength;	// the part length has been filled in from the BODYSTRUCTURE response
   }

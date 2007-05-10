@@ -1450,7 +1450,7 @@ nsresult nsMsgNewsFolder::CreateBaseMessageURI(const char *aURI)
 {
   nsresult rv;
 
-  rv = nsCreateNewsBaseMessageURI(aURI, &mBaseMessageURI);
+  rv = nsCreateNewsBaseMessageURI(aURI, mBaseMessageURI);
   return rv;
 }
 

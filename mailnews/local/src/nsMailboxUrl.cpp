@@ -199,12 +199,11 @@ NS_IMETHODIMP nsMailboxUrl::GetUri(char ** aURI)
       (void) MsgMailboxGetURI(m_file, baseUri);
       if (baseUri.IsEmpty())
         m_baseURL->GetSpec(baseUri);
-      char * baseMessageURI;
-      nsCreateLocalBaseMessageURI(baseUri.get(), &baseMessageURI);
+      nsCString baseMessageURI;
+      nsCreateLocalBaseMessageURI(baseUri.get(), baseMessageURI);
       char * uri = nsnull;
       nsCAutoString uriStr;
-      nsBuildLocalMessageURI(baseMessageURI, m_messageKey, uriStr);
-      nsCRT::free(baseMessageURI);
+      nsBuildLocalMessageURI(baseMessageURI.get(), m_messageKey, uriStr);
       uri = ToNewCString(uriStr);
       *aURI = uri;
     }

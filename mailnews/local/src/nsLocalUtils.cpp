@@ -259,23 +259,16 @@ nsresult nsBuildLocalMessageURI(const char *baseURI, PRUint32 key, nsCString& ur
   return NS_OK;
 }
 
-nsresult nsCreateLocalBaseMessageURI(const char *baseURI, char **baseMessageURI)
+nsresult nsCreateLocalBaseMessageURI(const char *baseURI, nsCString &baseMessageURI)
 {
-  if(!baseMessageURI)
-    return NS_ERROR_NULL_POINTER;
-
   nsCAutoString tailURI(baseURI);
 
   // chop off mailbox:/
   if (tailURI.Find(kMailboxRootURI) == 0)
     tailURI.Cut(0, PL_strlen(kMailboxRootURI));
   
-  nsCAutoString baseURIStr(kMailboxMessageRootURI);
-  baseURIStr += tailURI;
-
-  *baseMessageURI = ToNewCString(baseURIStr);
-  if(!*baseMessageURI)
-    return NS_ERROR_OUT_OF_MEMORY;
+  baseMessageURI = kMailboxMessageRootURI;
+  baseMessageURI += tailURI;
 
   return NS_OK;
 }

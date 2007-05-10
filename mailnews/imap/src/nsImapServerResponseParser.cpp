@@ -444,7 +444,7 @@ void nsImapServerResponseParser::ProcessOkCommand(const char *commandToken)
     if (!fZeroLengthMessageUidString.IsEmpty())
     {
       // "Deleting zero length message");
-      fServerConnection.Store(fZeroLengthMessageUidString.get(), "+Flags (\\Deleted)", PR_TRUE);
+      fServerConnection.Store(fZeroLengthMessageUidString, "+Flags (\\Deleted)", PR_TRUE);
       if (LastCommandSuccessful())
         fServerConnection.Expunge();
       
@@ -722,7 +722,7 @@ void nsImapServerResponseParser::response_data()
       else 
       {
         // check if custom command
-        nsXPIDLCString customCommand;
+        nsCAutoString customCommand;
         fServerConnection.GetCurrentUrl()->GetCommand(getter_Copies(customCommand));
         if (customCommand.Equals(fNextToken))
         {
@@ -1298,7 +1298,7 @@ void nsImapServerResponseParser::msg_fetch()
         if (!fServerConnection.GetCurrentUrl())
           return;
         fServerConnection.GetCurrentUrl()->GetImapAction(&imapAction);
-        nsXPIDLCString userDefinedFetchAttribute;
+        nsCAutoString userDefinedFetchAttribute;
         fServerConnection.GetCurrentUrl()->GetCustomAttributeToFetch(getter_Copies(userDefinedFetchAttribute));
         if (imapAction == nsIImapUrl::nsImapUserDefinedFetchAttribute && !strcmp(userDefinedFetchAttribute.get(), fNextToken))
         {
@@ -1407,12 +1407,10 @@ void nsImapServerResponseParser::envelope_data()
       PRBool headerNonNil = PR_TRUE;
       if (EnvelopeTable[tableIndex].type == envelopeString)
       {
-        nsXPIDLCString strValue;
+        nsCAutoString strValue;
         strValue.Adopt(CreateNilString());
-        if (strValue)
-        {
+        if (!strValue.IsEmpty())
           headerLine.Append(strValue);
-        }
         else
           headerNonNil = PR_FALSE;
       }
@@ -1444,7 +1442,7 @@ void nsImapServerResponseParser::xaolenvelope_data()
   {
     AdvanceToNextToken();
     fNextToken++; // eat '('
-    nsXPIDLCString subject;
+    nsCAutoString subject;
     subject.Adopt(CreateNilString());
     nsCAutoString subjectLine("Subject: ");
     subjectLine += subject;

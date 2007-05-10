@@ -41,7 +41,6 @@
 #include "nsImapOfflineSync.h"
 #include "nsImapMailFolder.h"
 #include "nsMsgFolderFlags.h"
-#include "nsXPIDLString.h"
 #include "nsIRDFService.h"
 #include "nsMsgBaseCID.h"
 #include "nsRDFCID.h"
@@ -302,7 +301,7 @@ void nsImapOfflineSync::ProcessKeywordOperation(nsIMsgOfflineImapOperation *op)
   nsMsgKeyArray matchingKeywordKeys;
   PRUint32 currentKeyIndex = m_KeyIndex;
 
-  nsXPIDLCString keywords;
+  nsCAutoString keywords;
   if (mCurrentPlaybackOpType == nsIMsgOfflineImapOperation::kAddKeywords)
     currentOp->GetKeywordsToAdd(getter_Copies(keywords));
   else
@@ -323,7 +322,7 @@ void nsImapOfflineSync::ProcessKeywordOperation(nsIMsgOfflineImapOperation *op)
         getter_AddRefs(currentOp));
     if (currentOp)
     {
-      nsXPIDLCString curOpKeywords;
+      nsCAutoString curOpKeywords;
       nsOfflineImapOperationType operation;
       currentOp->GetOperation(&operation);
       if (mCurrentPlaybackOpType == nsIMsgOfflineImapOperation::kAddKeywords)
@@ -394,7 +393,7 @@ nsImapOfflineSync::ProcessAppendMsgOperation(nsIMsgOfflineImapOperation *current
     rv = NS_NewLocalFileOutputStream(getter_AddRefs(outputStream), tmpFile, PR_WRONLY | PR_CREATE_FILE, 00600);
     if (NS_SUCCEEDED(rv) && outputStream)
     {
-      nsXPIDLCString moveDestination;
+      nsCString moveDestination;
       currentOp->GetDestinationFolderURI(getter_Copies(moveDestination));
       nsCOMPtr<nsIRDFService> rdf(do_GetService(kRDFServiceCID, &rv));
       nsCOMPtr<nsIRDFResource> res;
@@ -477,7 +476,7 @@ void nsImapOfflineSync::ProcessMoveOperation(nsIMsgOfflineImapOperation *op)
 {
   nsMsgKeyArray matchingFlagKeys ;
   PRUint32 currentKeyIndex = m_KeyIndex;
-  nsXPIDLCString moveDestination;
+  nsCString moveDestination;
   op->GetDestinationFolderURI(getter_Copies(moveDestination));
   PRBool moveMatches = PR_TRUE;
   nsCOMPtr <nsIMsgOfflineImapOperation> currentOp = op;
@@ -494,7 +493,7 @@ void nsImapOfflineSync::ProcessMoveOperation(nsIMsgOfflineImapOperation *op)
     
     if (++currentKeyIndex < m_CurrentKeys.GetSize())
     {
-      nsXPIDLCString nextDestination;
+      nsCString nextDestination;
       nsresult rv = m_currentDB->GetOfflineOpForKey(m_CurrentKeys[currentKeyIndex], PR_FALSE, getter_AddRefs(currentOp));
       moveMatches = PR_FALSE;
       if (NS_SUCCEEDED(rv) && currentOp)
@@ -504,7 +503,7 @@ void nsImapOfflineSync::ProcessMoveOperation(nsIMsgOfflineImapOperation *op)
         if (opType & nsIMsgOfflineImapOperation::kMsgMoved)
         {
           currentOp->GetDestinationFolderURI(getter_Copies(nextDestination));
-          moveMatches = nsCRT::strcmp(moveDestination, nextDestination) == 0;
+          moveMatches = moveDestination.Equals(nextDestination);
         }
       }
     }
@@ -591,7 +590,7 @@ void nsImapOfflineSync::ProcessCopyOperation(nsIMsgOfflineImapOperation *current
 {
   nsMsgKeyArray matchingFlagKeys;
   PRUint32 currentKeyIndex = m_KeyIndex;
-  nsXPIDLCString copyDestination;
+  nsCString copyDestination;
   currentOp->GetCopyDestination(0, getter_Copies(copyDestination));
   PRBool copyMatches = PR_TRUE;
   
@@ -607,7 +606,7 @@ void nsImapOfflineSync::ProcessCopyOperation(nsIMsgOfflineImapOperation *current
     
     if (++currentKeyIndex < m_CurrentKeys.GetSize())
     {
-      nsXPIDLCString nextDestination;
+      nsCString nextDestination;
       nsresult rv = m_currentDB->GetOfflineOpForKey(m_CurrentKeys[currentKeyIndex], PR_FALSE, &currentOp);
       copyMatches = PR_FALSE;
       if (NS_SUCCEEDED(rv) && currentOp)
@@ -617,7 +616,7 @@ void nsImapOfflineSync::ProcessCopyOperation(nsIMsgOfflineImapOperation *current
         if (opType & nsIMsgOfflineImapOperation::kMsgCopy)
         {
           currentOp->GetCopyDestination(0, getter_Copies(nextDestination));
-          copyMatches = nsCRT::strcmp(copyDestination, nextDestination) == 0;
+          copyMatches = copyDestination.Equals(nextDestination);
         }
       }
     }
@@ -702,7 +701,7 @@ PRBool nsImapOfflineSync::CreateOfflineFolder(nsIMsgFolder *folder)
 
   nsCOMPtr <nsIMsgImapMailFolder> imapFolder = do_QueryInterface(parent);
   nsCOMPtr <nsIURI> createFolderURI;
-   nsXPIDLCString onlineName;
+  nsCString onlineName;
   imapFolder->GetOnlineName(getter_Copies(onlineName));
 
   NS_ConvertASCIItoUTF16 folderName(onlineName);

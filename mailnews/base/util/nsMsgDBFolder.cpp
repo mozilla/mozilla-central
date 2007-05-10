@@ -183,7 +183,6 @@ nsMsgDBFolder::nsMsgDBFolder(void)
   mHaveParsedURI(PR_FALSE),
   mIsServerIsValid(PR_FALSE),
   mIsServer(PR_FALSE),
-  mBaseMessageURI(nsnull),
   mInVFEditSearchScope (PR_FALSE)
 {
   NS_NewISupportsArray(getter_AddRefs(mSubFolders));
@@ -200,8 +199,6 @@ nsMsgDBFolder::nsMsgDBFolder(void)
 
 nsMsgDBFolder::~nsMsgDBFolder(void)
 {
-  CRTFREEIF(mBaseMessageURI);
-
   if (--mInstanceCount == 0) {
     NS_IF_RELEASE(gCollationKeyGenerator);
     CRTFREEIF(kLocalizedInboxName);
@@ -4845,10 +4842,10 @@ NS_IMETHODIMP nsMsgDBFolder::GetBaseMessageURI(char **baseMessageURI)
 {
   NS_ENSURE_ARG_POINTER(baseMessageURI);
 
-  if (!mBaseMessageURI)
+  if (mBaseMessageURI.IsEmpty())
     return NS_ERROR_FAILURE;
 
-  *baseMessageURI = nsCRT::strdup(mBaseMessageURI);
+  *baseMessageURI = ToNewCString(mBaseMessageURI);
   return NS_OK;
 }
 
