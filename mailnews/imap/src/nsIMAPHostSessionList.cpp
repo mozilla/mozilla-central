@@ -619,7 +619,7 @@ NS_IMETHODIMP nsIMAPHostSessionList::CommitNamespacesForHost(nsIImapIncomingServ
       int32 numInNS = host->fNamespaceList->GetNumberOfNamespaces(type);
       if (numInNS == 0)
       {
-        SetNamespacesPrefForHost(aHost, type, NULL);
+        SetNamespacesPrefForHost(aHost, type, "");
       }
       else if (numInNS >= 1)
       {

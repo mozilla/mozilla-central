@@ -560,7 +560,7 @@ const nsCString&
 nsImapProtocol::GetImapUserName()
 {
   nsCOMPtr<nsIMsgIncomingServer> server = do_QueryReferent(m_server);
-  if (!m_userName.IsEmpty() && server)
+  if (m_userName.IsEmpty() && server)
     server->GetUsername(m_userName);
   return m_userName;
 }
@@ -569,7 +569,7 @@ const char*
 nsImapProtocol::GetImapServerKey()
 {
   nsCOMPtr<nsIMsgIncomingServer> server = do_QueryReferent(m_server);
-  if (!m_serverKey.IsEmpty() && server)
+  if (m_serverKey.IsEmpty() && server)
     server->GetKey(m_serverKey);
   return m_serverKey.get();
 }
@@ -4272,7 +4272,7 @@ void nsImapProtocol::AddFolderRightsForUser(const char *mailboxName, const char 
       userName ? (aclRightsInfo->userName != NULL) : PR_TRUE)
     {
       if (m_imapServerSink)
-        m_imapServerSink->AddFolderRights(nsDependentCString(mailboxName), nsDependentCString(userName),
+        m_imapServerSink->AddFolderRights(nsDependentCString(mailboxName), (userName) ? nsDependentCString(userName) : EmptyCString(),
                                           nsDependentCString(rights));
     }
     PR_Free(aclRightsInfo->hostName);
