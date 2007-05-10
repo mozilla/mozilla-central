@@ -269,8 +269,11 @@
 /* The library is not loaded */
 #define PR_LIBRARY_NOT_LOADED_ERROR              (-5926L)
 
+/* The one-time function was previously called and failed. Its error code is no longer available */
+#define PR_CALL_ONCE_ERROR                       (-5925L)
+
 /* Placeholder for the end of the list */
-#define PR_MAX_ERROR                             (-5925L)
+#define PR_MAX_ERROR                             (-5924L)
 
 extern void nspr_InitializePRErrorTable(void);
 #define ERROR_TABLE_BASE_nspr (-6000L)

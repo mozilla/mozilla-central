@@ -824,6 +824,10 @@ PR_IMPLEMENT(PRStatus) PR_CallOnce(
             }
 	    PR_Unlock(mod_init.ml);
 	}
+    } else {
+        if (PR_SUCCESS != once->status) {
+            PR_SetError(PR_CALL_ONCE_ERROR, 0);
+        }
     }
     return once->status;
 }
@@ -849,6 +853,10 @@ PR_IMPLEMENT(PRStatus) PR_CallOnceWithArg(
             }
 	    PR_Unlock(mod_init.ml);
 	}
+    } else {
+        if (PR_SUCCESS != once->status) {
+            PR_SetError(PR_CALL_ONCE_ERROR, 0);
+        }
     }
     return once->status;
 }
