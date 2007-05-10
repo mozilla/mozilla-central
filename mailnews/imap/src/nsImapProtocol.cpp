@@ -4238,54 +4238,11 @@ PRBool nsImapProtocol::GetIOTunnellingEnabled()
 // if userName is NULL, it means "me," or MYRIGHTS.
 void nsImapProtocol::AddFolderRightsForUser(const char *mailboxName, const char *userName, const char *rights)
 {
-  nsIMAPACLRightsInfo *aclRightsInfo = new nsIMAPACLRightsInfo();
-  if (aclRightsInfo)
-  {
-    nsIMAPNamespace *namespaceForFolder = nsnull;
-    NS_ASSERTION (m_hostSessionList, "fatal ... null host session list");
-    if (m_hostSessionList)
-      m_hostSessionList->GetNamespaceForMailboxForHost(
-      GetImapServerKey(), mailboxName,
-      namespaceForFolder);
-
-    aclRightsInfo->hostName = ToNewCString(GetImapHostName());
-
-    if (namespaceForFolder)
-      m_runningUrl->AllocateCanonicalPath(
-      mailboxName,
-      namespaceForFolder->GetDelimiter(),
-      &aclRightsInfo->mailboxName);
-    else
-      m_runningUrl->AllocateCanonicalPath(mailboxName,
-      kOnlineHierarchySeparatorUnknown,
-      &aclRightsInfo->mailboxName);
-
-    if (userName)
-      aclRightsInfo->userName = PL_strdup(userName);
-    else
-      aclRightsInfo->userName = NULL;
-    aclRightsInfo->rights = PL_strdup(rights);
-
-
-    if (aclRightsInfo->hostName &&
-      aclRightsInfo->mailboxName && aclRightsInfo->rights &&
-      userName ? (aclRightsInfo->userName != NULL) : PR_TRUE)
-    {
-      if (!userName)
-        userName = "";
-      if (m_imapServerSink)
-        m_imapServerSink->AddFolderRights(nsDependentCString(mailboxName), nsDependentCString(userName),
-                                          nsDependentCString(rights));
-    }
-    PR_Free(aclRightsInfo->hostName);
-    PR_Free(aclRightsInfo->mailboxName);
-    PR_Free(aclRightsInfo->rights);
-    PR_Free(aclRightsInfo->userName);
-
-    delete aclRightsInfo;
-  }
-  else
-    HandleMemoryFailure();
+  if (!userName)
+    userName = "";
+  if (m_imapServerSink)
+    m_imapServerSink->AddFolderRights(nsDependentCString(mailboxName), nsDependentCString(userName),
+                                      nsDependentCString(rights));
 }
 
 void nsImapProtocol::SetCopyResponseUid(const char *msgIdString)
@@ -4311,37 +4268,10 @@ void nsImapProtocol::CommitCapability()
 
 // rights is a single string of rights, as specified by RFC2086, the IMAP ACL extension.
 // Clears all rights for a given folder, for all users.
-void nsImapProtocol::ClearAllFolderRights(const char *mailboxName,
-                                          nsIMAPNamespace *nsForMailbox)
+void nsImapProtocol::ClearAllFolderRights()
 {
-  NS_ASSERTION (nsForMailbox, "Oops ... null name space");
-    nsIMAPACLRightsInfo *aclRightsInfo = new nsIMAPACLRightsInfo();
-  if (aclRightsInfo)
-  {
-    const nsCString& hostName = GetImapHostName();
-
-    aclRightsInfo->hostName = ToNewCString(hostName);
-    if (nsForMailbox)
-      m_runningUrl->AllocateCanonicalPath(mailboxName,
-                                          nsForMailbox->GetDelimiter(),
-                                          &aclRightsInfo->mailboxName);
-    else
-      m_runningUrl->AllocateCanonicalPath(mailboxName, kOnlineHierarchySeparatorUnknown,
-                                          &aclRightsInfo->mailboxName);
-
-    aclRightsInfo->rights = NULL;
-    aclRightsInfo->userName = NULL;
-
-    if (aclRightsInfo->hostName && aclRightsInfo->mailboxName && m_imapMailFolderSink)
-        m_imapMailFolderSink->ClearFolderRights();
-
-    PR_Free(aclRightsInfo->hostName);
-    PR_Free(aclRightsInfo->mailboxName);
-
-    delete aclRightsInfo;
-  }
-  else
-    HandleMemoryFailure();
+  if (m_imapMailFolderSink)
+    m_imapMailFolderSink->ClearFolderRights();
 }
 
 
@@ -5737,7 +5667,7 @@ void nsImapProtocol::RefreshACLForFolder(const char *mailboxName)
       // so most likely we KNOW that this is a personal, rather than the default, namespace.
 
       // First, clear what we have.
-      ClearAllFolderRights(mailboxName, ns);
+      ClearAllFolderRights();
       // Now, get the new one.
       GetMyRightsForFolder(mailboxName);
       if (m_imapMailFolderSink)
@@ -5755,7 +5685,7 @@ void nsImapProtocol::RefreshACLForFolder(const char *mailboxName)
       // We only want our own rights
 
       // First, clear what we have
-      ClearAllFolderRights(mailboxName, ns);
+      ClearAllFolderRights();
       // Now, get the new one.
       GetMyRightsForFolder(mailboxName);
       // We're all done, refresh the icon/flags for this folder

@@ -44,6 +44,7 @@
 #include "nsIRDFService.h"
 #include "nsMsgBaseCID.h"
 #include "nsRDFCID.h"
+#include "nsIMsgMailNewsUrl.h"
 #include "nsIMsgAccountManager.h"
 #include "nsINntpIncomingServer.h"
 #include "nsIRequestObserver.h"

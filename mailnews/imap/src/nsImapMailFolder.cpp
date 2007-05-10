@@ -5118,9 +5118,6 @@ void nsImapMailFolder::UpdatePendingCounts()
 }
 
 
-
-    // nsIImapExtensionSink methods
-
 NS_IMETHODIMP
 nsImapMailFolder::ClearFolderRights()
 {
@@ -5327,13 +5324,6 @@ nsImapMailFolder::GetMessageId(nsIImapUrl * aUrl,
   return rv;
 }
 
-
-NS_IMETHODIMP
-nsImapMailFolder::AddSearchResult(nsIImapProtocol* aProtocol,
-                                  const char* searchHitLine)
-{
-    return NS_ERROR_FAILURE;
-}
 
 NS_IMETHODIMP
 nsImapMailFolder::HeaderFetchCompleted(nsIImapProtocol* aProtocol)
@@ -7587,18 +7577,6 @@ nsImapMailFolder::OnCopyCompleted(nsISupports *srcSupport, nsresult rv)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsImapMailFolder::MatchName(nsString *name, PRBool *matches)
-{
-  if (!matches)
-    return NS_ERROR_NULL_POINTER;
-    PRBool isInbox = mName.LowerCaseEqualsLiteral("inbox");
-    if (isInbox)
-        *matches = mName.Equals(*name, nsCaseInsensitiveStringComparator());
-    else
-        *matches = mName.Equals(*name);
-
-  return NS_OK;
-}
 
 nsresult nsImapMailFolder::CreateBaseMessageURI(const char *aURI)
 {

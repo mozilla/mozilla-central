@@ -237,14 +237,4 @@ typedef enum
 } EMailboxDiscoverStatus;
 
 
-
-// This class is only used for passing data
-// between the IMAP and mozilla threads 
-class nsIMAPACLRightsInfo
-{ 
-public:
-  char *hostName, *mailboxName, *userName, *rights;
-};
-
-
 #endif

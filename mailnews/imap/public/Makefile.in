@@ -47,8 +47,6 @@ MODULE		= msgimap
 EXPORTS		= \
 		nsMsgImapCID.h \
 		nsIIMAPHostSessionList.h \
-		nsIImapExtensionSink.h \
-		nsIImapMiscellaneousSink.h \
 		$(NULL)
 
 XPIDLSRCS	= \

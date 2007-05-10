@@ -60,8 +60,6 @@
 #include "nsIImapMailFolderSink.h"
 #include "nsIImapServerSink.h"
 #include "nsIImapMessageSink.h"
-#include "nsIImapExtensionSink.h"
-#include "nsIImapMiscellaneousSink.h"
 
 #include "nsImapServerResponseParser.h"
 #include "nsImapFlagAndUidState.h"
@@ -308,8 +306,8 @@ public:
   // if userName is NULL, it means "me," or MYRIGHTS.
   // rights is a single string of rights, as specified by RFC2086, the IMAP ACL extension.
   void AddFolderRightsForUser(const char *mailboxName, const char *userName, const char *rights);
-  // Clears all rights for a given folder, for all users.
-  void ClearAllFolderRights(const char *mailboxName, nsIMAPNamespace *nsForMailbox);
+  // Clears all rights for the current folder, for all users.
+  void ClearAllFolderRights();
   void RefreshFolderACLView(const char *mailboxName, nsIMAPNamespace *nsForMailbox);
 
   nsresult SetFolderAdminUrl(const char *mailboxName);
@@ -371,8 +369,6 @@ private:
 
   nsCOMPtr<nsIImapMailFolderSink>     m_imapMailFolderSink;
   nsCOMPtr<nsIImapMessageSink>	      m_imapMessageSink;
-  nsCOMPtr<nsIImapExtensionSink>      m_imapExtensionSink;
-  nsCOMPtr<nsIImapMiscellaneousSink>  m_imapMiscellaneousSink;
   nsCOMPtr<nsIImapServerSink>         m_imapServerSink;
 
   // helper function to setup imap sink interface proxies

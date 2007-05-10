@@ -314,11 +314,6 @@ public:
   NS_IMETHOD OnStartRunningUrl(nsIURI * aUrl);
   NS_IMETHOD OnStopRunningUrl(nsIURI * aUrl, nsresult aExitCode);
   
-  // nsIImapMiscellaneousSink methods
-  NS_IMETHOD AddSearchResult(nsIImapProtocol* aProtocol, 
-                              const char* searchHitLine);
-  NS_IMETHOD MatchName(nsString *name, PRBool *matches);
-  
   NS_DECL_NSIMSGFILTERHITNOTIFY
   NS_DECL_NSIJUNKMAILCLASSIFICATIONLISTENER
   
