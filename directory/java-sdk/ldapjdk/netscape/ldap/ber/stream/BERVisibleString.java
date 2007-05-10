@@ -98,7 +98,6 @@ public class BERVisibleString extends BERCharacterString {
 
     /**
      * Gets the element type.
-     * @param element type
      */
     public int getType() {
         return BERElement.VISIBLESTRING;

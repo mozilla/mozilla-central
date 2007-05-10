@@ -45,13 +45,12 @@ import java.net.*;
 
 /**
  * This class implements the abandon request. This object
- * is sent to the ldap server.
+ * is sent to the ldap server. See RFC 1777.
  * <pre>
  * AbandonRequest ::= [APPLICATION 16] MessageID
  * </pre>
  *
  * @version 1.0
- * @see RFC1777
  */
 public class JDAPAbandonRequest implements JDAPProtocolOp {
     /**

@@ -87,7 +87,6 @@ public class BERInteger extends BERIntegral {
 
     /**
      * Gets the element type.
-     * @param element type
      */
     public int getType() {
         return BERElement.INTEGER;

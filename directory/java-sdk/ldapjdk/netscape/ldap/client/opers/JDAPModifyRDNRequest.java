@@ -80,7 +80,7 @@ public class JDAPModifyRDNRequest extends JDAPBaseDNRequest
     /**
      * Constructs modify RDN request.
      * @param old_dn old distinguished name
-     * @param new_dn new distinguished name
+     * @param new_rdn new distinguished name
      * @param delete_old_dn delete the old distinguished name
      */
     public JDAPModifyRDNRequest(String old_dn, String new_rdn,
@@ -94,7 +94,7 @@ public class JDAPModifyRDNRequest extends JDAPBaseDNRequest
     /**
      * Constructs modify DN request.
      * @param old_dn old distinguished name
-     * @param new_dn new distinguished name
+     * @param new_rdn new distinguished name
      * @param delete_old_dn delete the old distinguished name
      * @param new_superior parent dn
      */

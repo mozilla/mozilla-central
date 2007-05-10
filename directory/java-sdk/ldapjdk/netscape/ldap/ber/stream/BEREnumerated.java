@@ -82,7 +82,6 @@ public class BEREnumerated extends BERIntegral {
 
     /**
      * Gets the element type.
-     * @param element type
      */
     public int getType() {
         return BERElement.ENUMERATED;

@@ -150,7 +150,6 @@ public class LDAPGetEntries extends LDAPBasePropertySupport implements Serializa
      * @param scope one of LDAPConnection.SCOPE_BASE,
      * LDAPConnection.SCOPE_SUB, LDAPConnection.SCOPE_ONE
      * @param filter search filter
-     * @param attribute name of property to return values for
      * @return Array of values for the property
      */
     public String[] getEntries( String host,

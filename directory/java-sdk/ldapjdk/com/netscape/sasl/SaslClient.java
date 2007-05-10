@@ -150,7 +150,7 @@ public abstract interface SaslClient {
 	 * done by the client object.
      *
      * This method can only be called if isComplete() returns true.
-     * @param is The original output stream for writing to the server.
+     * @param os The original output stream for writing to the server.
      * @return An output stream for writing to the server, which
 	 * may include processing the original stream.
      * @exception IOException If the authentication exchange has not completed

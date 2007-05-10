@@ -92,7 +92,6 @@ public class BERChoice extends BERElement {
 
     /**
      * Gets the value of the chosen type.
-     * @param element type
      */
     public BERElement getValue() {
         return m_value;
@@ -100,7 +99,6 @@ public class BERChoice extends BERElement {
 
     /**
      * Gets the element type.
-     * @param element type
      */
     public int getType() {
         return BERElement.CHOICE;

@@ -43,12 +43,12 @@ import java.io.*;
 
 /**
  * This class implements the filter present.
+ * See RFC 1777.
  * <pre>
  *   present [7] AttributeType
  * </pre>
  *
  * @version 1.0
- * @see RFC1777
  */
 public class JDAPFilterPresent extends JDAPFilter {
     /**

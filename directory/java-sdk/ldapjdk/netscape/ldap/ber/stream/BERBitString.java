@@ -242,7 +242,6 @@ public class BERBitString extends BERElement {
 
     /**
      * Gets the bitstring value.
-     * @param element type
      */
     public BitSet getValue() {
         return m_value;
@@ -258,7 +257,6 @@ public class BERBitString extends BERElement {
 
     /**
      * Gets the element type.
-     * @param element type
      */
     public int getType() {
         return BERElement.BITSTRING;

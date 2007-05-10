@@ -100,7 +100,7 @@ public class NetscapeControlFactory extends ControlFactory {
         
     /**
      * Create a JNDI control from a raw ldapjdk control
-     * @param ctrl A non-null control.
+     * @param rawCtrl A non-null control.
      * @return A possibly null Control.
      * @exception NamingException If ctrl contains invalid data that prevents it from
      * being used to create a control.

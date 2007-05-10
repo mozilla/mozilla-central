@@ -43,12 +43,12 @@ import java.io.*;
 
 /**
  * This class implements the greater or equal filter.
+ * See RFC 1777.
  * <pre>
  * greaterOrEqual [5] AttributeValueAssertion
  * </pre>
  *
  * @version 1.0
- * @see RFC1777
  */
 public class JDAPFilterGreaterOrEqual extends JDAPFilterAVA {
     /**

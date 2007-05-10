@@ -45,13 +45,13 @@ import java.net.*;
 
 /**
  * This class implements the add response. This object
- * is sent from the ldap server to the interface.
+ * is sent from the ldap server to the interface. See
+ * RFC 1777.
  * <pre>
  * AddResponse ::= [APPLICATION 9] LDAPResult
  * </pre>
  *
  * @version 1.0
- * @see RFC1777
  */
 public class JDAPAddResponse extends JDAPResult implements JDAPProtocolOp {
     /**

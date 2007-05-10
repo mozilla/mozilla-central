@@ -60,7 +60,7 @@ public abstract class BERCharacterString extends BERElement {
 
     /**
      * Constructs a character string element containing buffer.
-     * @param buffer a string value
+     * @param string a string value
      */
     public BERCharacterString(String string) {
         m_value = string;
@@ -177,7 +177,6 @@ public abstract class BERCharacterString extends BERElement {
 
     /**
      * Gets the element value.
-     * @param element value
      */
     public String getValue() {
         return m_value;
@@ -185,7 +184,6 @@ public abstract class BERCharacterString extends BERElement {
 
     /**
      * Gets the element type.
-     * @param element type
      */
     public abstract int getType();
 

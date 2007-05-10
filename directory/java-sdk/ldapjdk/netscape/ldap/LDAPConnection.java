@@ -3319,7 +3319,7 @@ public class LDAPConnection
      * argument, an <CODE>LDAPException</CODE> will be thrown.
      * <P>
      *
-     * @param DN current distinguished name of the entry
+     * @param dn current distinguished name of the entry
      * @param newRDN new relative distinguished name for the entry (for example,
      * "cn=newName")
      * @param newParentDN if not null, the distinguished name for the
@@ -3424,7 +3424,6 @@ public class LDAPConnection
      * attributes of the new entry
      * @param listener handler for messages returned from a server in response
      * to this request. If it is null, a listener object is created internally.
-     * @param cons constraints specific to the operation
      * @return LDAPResponseListener handler for messages returned from a server
      * in response to this request.
      * @exception LDAPException Failed to send request.

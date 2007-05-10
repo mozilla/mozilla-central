@@ -44,7 +44,7 @@ import java.io.*;
 
 /**
  * This class implements the ExtendedRequest request. This object
- * is sent to the ldap server and is a v3 request.
+ * is sent to the ldap server and is a v3 request. See RFC 1777.
  * <pre>
  * ExtendedRequest ::= [APPLICATION 23] SEQUENCE {
  *   requestName  [0] LDAPOID,
@@ -53,7 +53,6 @@ import java.io.*;
  * </pre>
  *
  * @version 1.0
- * @see RFC1777
  */
 public class JDAPExtendedRequest implements JDAPProtocolOp {
     /**

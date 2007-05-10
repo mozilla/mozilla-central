@@ -599,7 +599,7 @@ public class LDAPUrl implements java.io.Serializable {
      * Sets the socket factory to be used for ldaps:// URLs.
      * Overrides the default factory assigned by the LDAPUrl
      * class.
-     * @param the socket factory to be used for ldaps:// URLs
+     * @param factory the socket factory to be used for ldaps:// URLs
      * @see netscape.ldap.LDAPUrl#getSocketFactory
      */
     public static void setSocketFactory(LDAPSocketFactory factory) {

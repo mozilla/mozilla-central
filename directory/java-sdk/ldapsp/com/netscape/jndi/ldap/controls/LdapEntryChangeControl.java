@@ -93,7 +93,7 @@ public class LdapEntryChangeControl extends LDAPEntryChangeControl implements Co
     /**
      * Gets the change type, which identifies the type of change
      * that occurred.
-     * @returns Change type identifying the type of change that
+     * @return Change type identifying the type of change that
      * occurred.  This can be one of the following values:
      * <P>
      *
@@ -115,7 +115,7 @@ public class LdapEntryChangeControl extends LDAPEntryChangeControl implements Co
 
     /**
      * Gets the previous DN of the entry (if the entry was renamed).
-     * @returns The previous distinguished name of the entry.
+     * @return The previous distinguished name of the entry.
      */
     public String getPreviousDN() {
         return super.getPreviousDN();

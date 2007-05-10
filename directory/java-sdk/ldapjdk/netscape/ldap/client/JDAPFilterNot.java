@@ -43,12 +43,12 @@ import java.io.*;
 
 /**
  * This class implements the filter not.
+ * See RFC 1777.
  * <pre>
  *   not [2] Filter
  * </pre>
  *
  * @version 1.0
- * @see RFC1777
  */
 public class JDAPFilterNot extends JDAPFilter {
 

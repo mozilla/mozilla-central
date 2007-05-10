@@ -48,7 +48,6 @@ import java.net.*;
  * Each protocol operation must implement this interface.
  *
  * @version 1.0
- * @see RFC1777
  */
 public interface JDAPProtocolOp {
     /**

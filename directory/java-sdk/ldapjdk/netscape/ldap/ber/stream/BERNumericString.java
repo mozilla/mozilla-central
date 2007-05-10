@@ -58,7 +58,7 @@ public class BERNumericString extends BERCharacterString {
 
     /**
      * Constructs a numeric string element from a string
-     * @param buffer string with value of element
+     * @param string string with value of element
      */
     public BERNumericString(String string) {
         m_value = string;

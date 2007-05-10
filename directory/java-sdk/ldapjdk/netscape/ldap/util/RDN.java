@@ -298,7 +298,7 @@ public final class RDN implements java.io.Serializable {
 
     /**
      * Determines if the specified string is a distinguished name component.
-     * @param dn the string to check
+     * @param rdn the string to check
      * @return <code>true</code> if the string is a distinguished name component.
      */
     public static boolean isRDN(String rdn) {

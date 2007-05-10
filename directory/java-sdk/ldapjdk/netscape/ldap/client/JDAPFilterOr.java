@@ -43,12 +43,12 @@ import java.io.*;
 
 /**
  * This class implements the filter And.
+ * See RFC 1777.
  * <pre>
  *   or [1] SET OF Filter
  * </pre>
  *
  * @version 1.0
- * @see RFC1777
  */
 public class JDAPFilterOr extends JDAPFilterSet {
     /**

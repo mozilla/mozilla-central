@@ -58,7 +58,7 @@ public class BERPrintableString extends BERCharacterString {
 
     /**
      * Constructs a printable string element containing buffer.
-     * @param buffer string value
+     * @param string string value
      */
     public BERPrintableString(String string) {
         m_value = string;

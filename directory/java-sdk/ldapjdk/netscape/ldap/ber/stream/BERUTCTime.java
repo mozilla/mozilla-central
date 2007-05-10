@@ -139,7 +139,6 @@ public class BERUTCTime extends BERElement {
     private byte[] byte_buf;
     /**
      * Writes BER to a stream.
-     * @return number of bytes written to stream.
      * @exception IOException failed to write
      */
     public void write(OutputStream stream) throws IOException {
@@ -159,7 +158,6 @@ public class BERUTCTime extends BERElement {
 
     /**
      * Gets the element value.
-     * @param element value
      */
     public String getValue() {
         return m_value;
@@ -167,7 +165,6 @@ public class BERUTCTime extends BERElement {
 
     /**
      * Gets the element type.
-     * @param element type
      */
     public int getType() {
         return BERElement.UTCTIME;

@@ -67,7 +67,6 @@ public interface LDAPTraceWriter {
      * 
      * @param msg An incoming or outgoing LDAP message
      *
-     * @version 1.0
      * @see netscape.ldap.LDAPConnection#setProperty(java.lang.String, java.lang.Object)
      */
     public void write (String msg);

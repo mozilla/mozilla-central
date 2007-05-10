@@ -43,6 +43,7 @@ import java.io.*;
 
 /**
  * This class implements the filter substring.
+ * See RFC 1777.
  * <pre>
  * [4] SEQUENCE {
  *   type AttributeType,
@@ -55,7 +56,6 @@ import java.io.*;
  * </pre>
  *
  * @version 1.0
- * @see RFC1777
  */
 public class JDAPFilterSubString extends JDAPFilter {
     /**

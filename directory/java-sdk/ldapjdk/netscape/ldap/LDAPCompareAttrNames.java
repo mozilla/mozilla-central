@@ -158,7 +158,7 @@ public class LDAPCompareAttrNames
      * <CODE>LDAPException</CODE> is thrown.
      * <P>
      *
-     * @param attribute array of the attribute names to use for comparisons
+     * @param attributes array of the attribute names to use for comparisons
      * @param ascendingFlags array of boolean values specifying ascending
      * or descending order to use for each attribute name. If
      * <CODE>true</CODE>, the attributes are sorted in ascending order.

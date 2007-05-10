@@ -422,7 +422,7 @@ public interface LDAPv2 {
     /**
      * Modifies the attributes of a directory entry.
      * @param DN distinguished name identifying the entry to modify
-     * @param mod list of the modifications to make
+     * @param mods list of the modifications to make
      * @exception LDAPException Failed to modify the specified entry.
      */
     public void modify (String DN, LDAPModificationSet mods ) throws LDAPException;
@@ -430,7 +430,7 @@ public interface LDAPv2 {
     /**
      * Modifies the attributes of a directory entry.
      * @param DN distinguished name identifying the entry to modify
-     * @param mod list of the modifications to make
+     * @param mods list of the modifications to make
      * @param cons the constraints set for the modify operation
      * @exception LDAPException Failed to modify the specified entry.
      */

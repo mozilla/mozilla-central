@@ -320,7 +320,7 @@ public final class ByteBuf implements Serializable {
 
     /**
      * Appends a byte to the end of this byte buffer.
-     * @param ch the byte to append to this buffer
+     * @param b the byte to append to this buffer
      * @return the original <CODE>ByteBuf</CODE> object (not a new object)
      * with the specified byte appended.
      */

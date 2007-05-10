@@ -48,7 +48,8 @@ import java.io.*;
 public class JDAPBERTagDecoder extends BERTagDecoder {
     /**
      * Gets an application specific ber element from the stream.
-     * @param buffer ber encoding buffer
+     * @param decoder ber decoder to use
+     * @param tag ber tag to get
      * @param stream input stream
      * @param bytes_read number of bytes read
      * @param implicit to indicate a tag implicit or not

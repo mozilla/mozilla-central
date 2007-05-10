@@ -73,7 +73,6 @@ public interface LDAPEntryComparator {
      * argument.
      * <P>
      *
-     * @version 1.0
      * @see netscape.ldap.LDAPCompareAttrNames
      * @see netscape.ldap.LDAPSearchResults#sort
      */

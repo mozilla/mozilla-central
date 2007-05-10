@@ -95,7 +95,6 @@ public abstract class BERConstruct extends BERElement {
 
     /**
      * Adds an element to the list.
-     * @return BER encoding of the element.
      */
     public void addElement(BERElement element) {
         m_elements.addElement(element);
@@ -138,7 +137,6 @@ public abstract class BERConstruct extends BERElement {
 
     /**
      * Gets the element type.
-     * @param element type
      */
     public abstract int getType();
 

@@ -209,7 +209,6 @@ public abstract class BERElement implements Serializable {
      * Uses shortform whenever possible.
      * @param stream output stream to write to
      * @param num_content_octets value to be encode into length octets
-     * @return number of bytes sent to stream.
      * @exception IOException failed to read octets
      */
     public static void sendDefiniteLength(OutputStream stream,
@@ -320,7 +319,6 @@ public abstract class BERElement implements Serializable {
     /**
      * Sends the BER encoding directly to a stream.
      * @param stream output stream
-     * @return bytes written to stream.
      */
     public abstract void write(OutputStream stream) throws IOException;
 

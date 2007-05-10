@@ -43,12 +43,12 @@ import java.io.*;
 
 /**
  * This class implements the equality match filter.
+ * See RFC 1777.
  * <pre>
  * equalityMatch [3] AttributeValueAssertion
  * </pre>
  *
  * @version 1.0
- * @see RFC1777
  */
 public class JDAPFilterEqualityMatch extends JDAPFilterAVA {
     /**

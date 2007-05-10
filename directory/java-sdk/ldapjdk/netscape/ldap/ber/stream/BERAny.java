@@ -91,7 +91,6 @@ public class BERAny extends BERElement {
 
     /**
      * Gets the element type.
-     * @param element type
      */
     public int getType() {
         return BERElement.ANY;

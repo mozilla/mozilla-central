@@ -173,7 +173,6 @@ public class BEROctetString extends BERElement {
 
     /**
      * Writes BER to stream
-     * @return number of bytes written to stream.
      * @exception IOException failed to write
      */
     public void write(OutputStream stream) throws IOException {
@@ -188,7 +187,6 @@ public class BEROctetString extends BERElement {
 
     /**
      * Gets the element value.
-     * @param element value
      */
     public byte[] getValue() {
         return m_value;
@@ -196,7 +194,6 @@ public class BEROctetString extends BERElement {
 
     /**
      * Gets the element type.
-     * @param element type
      */
     public int getType() {
         return BERElement.OCTETSTRING;

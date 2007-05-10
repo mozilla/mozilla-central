@@ -491,8 +491,6 @@ public abstract class LDAPSchemaElement implements java.io.Serializable {
      * values of the "attributetypes" attribute are attribute type
      * descriptions in this format.
      * <P>
-     * @param quotingBug <CODE>true</CODE> if single quotes are to be
-     * supplied around the SYNTAX and SUP value
      * @return a formatted String for defining a schema element.
      */
     public String getValue() {

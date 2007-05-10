@@ -96,7 +96,7 @@ public class LDAPIsMember extends LDAPBasePropertySupport
     * @param port port number
     * @param dn fully qualified distinguished name to authenticate
     * @param password password for authenticating the dn
-    * @param group distinguished name of the group
+    * @param theGroup distinguished name of the group
     */
     public LDAPIsMember( String host, int port,
                          String dn, String password, String theGroup ) {
@@ -312,7 +312,6 @@ public class LDAPIsMember extends LDAPBasePropertySupport
     /**
      * Checks if an entity (specified by distinguished name) is a
      * member of a particular group (specified by distinguished name)
-     * @return true if the specified member belongs to the group
      */
     public void isMember(ActionEvent e) {
         isMember();

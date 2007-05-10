@@ -84,7 +84,7 @@ public class JSSESocketFactory implements LDAPTLSSocketFactory,
   
     /**
      * Factory constructor
-     * @param sf the SSL socketfactory to use
+     * @param factory the SSL socketfactory to use
      */
     public JSSESocketFactory( SSLSocketFactory factory) {
         this.factory = factory;
@@ -95,7 +95,7 @@ public class JSSESocketFactory implements LDAPTLSSocketFactory,
      * @param suites Cipher suites to attempt to use with the server;
      * if <code>null</code>, use any cipher suites available in the
      * JSSE package
-     * @param sf the SSL socketfactory to use
+     * @param factory the SSL socketfactory to use
      */
     public JSSESocketFactory( String[] suites, SSLSocketFactory factory) {
         this.suites = suites;

@@ -45,7 +45,7 @@ import java.io.*;
 
 /**
  * This class implements the add request. This object
- * is sent to the ldap server.
+ * is sent to the ldap server. See RFC 1777.
  * <pre>
  * AddRequest ::= [APPLICATION 8] SEQUENCE {
  *   entry LDAPDN,
@@ -57,7 +57,6 @@ import java.io.*;
  * </pre>
  *
  * @version 1.0
- * @see RFC1777
  */
 public class JDAPAddRequest extends JDAPBaseDNRequest
     implements JDAPProtocolOp {

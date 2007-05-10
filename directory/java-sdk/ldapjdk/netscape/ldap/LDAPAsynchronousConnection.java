@@ -55,7 +55,6 @@ public interface LDAPAsynchronousConnection {
      * attributes of the new entry
      * @param listener handler for messages returned from a server in response
      * to this request. If it is null, a listener object is created internally.
-     * @param cons constraints specific to the operation
      * @return LDAPSearchListener handler for messages returned from a server
      * in response to this request.
      * @exception LDAPException Failed to send request.

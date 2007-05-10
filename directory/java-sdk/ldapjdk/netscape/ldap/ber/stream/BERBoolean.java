@@ -106,7 +106,6 @@ public class BERBoolean extends BERElement {
 
     /**
      * Gets the boolean value.
-     * @param element type
      */
     public boolean getValue() {
         return m_value;
@@ -114,7 +113,6 @@ public class BERBoolean extends BERElement {
 
     /**
      * Gets the element type.
-     * @param element type
      */
     public int getType() {
         return BERElement.BOOLEAN;

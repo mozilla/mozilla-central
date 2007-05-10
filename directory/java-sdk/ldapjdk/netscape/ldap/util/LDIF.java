@@ -100,7 +100,7 @@ public class LDIF implements Serializable {
     /**
      * Constructs an <CODE>LDIF</CODE> object to parse the
      * LDIF data read from an input stream.
-     * @param dstThe input stream providing the LDIF data
+     * @param ds The input stream providing the LDIF data
      * @exception IOException An I/O error has occurred.
      */
     public LDIF(DataInputStream ds) throws IOException {

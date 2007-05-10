@@ -46,7 +46,7 @@ import java.net.*;
 /**
  * This class implements the extended response. This object
  * is sent from the ldap server to the interface and is
- * a v3 response.
+ * a v3 response. See RFC 1777.
  * <pre>
  * ExtendedResponse :: [APPLICATION 23] SEQUENCE {
  *   COMPONENTS OF LDAPResult,
@@ -56,7 +56,6 @@ import java.net.*;
  * </pre>
  *
  * @version 1.0
- * @see RFC1777
  */
 public class JDAPExtendedResponse extends JDAPResult
     implements JDAPProtocolOp {

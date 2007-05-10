@@ -44,13 +44,12 @@ import java.io.*;
 import java.net.*;
 
 /**
- * This class implements the search result reference.
+ * This class implements the search result reference. See RFC 1777.
  * <pre>
  * SearchResultReference :: [APPLICATION 19] SEQUENCE OF LDAPURL
  * </pre>
  *
  * @version 1.0
- * @see RFC1777
  */
 public class JDAPSearchResultReference implements JDAPProtocolOp {
 
