@@ -320,7 +320,6 @@ function onAccept()
     var hostname = document.getElementById("hostname").value;
     var port = document.getElementById("port").value;
     var secure = document.getElementById("secure");
-    var dn = document.getElementById("login").value;
     var results = document.getElementById("results").value;
     var errorValue = null;
     if ((!description) || hasOnlyWhitespaces(description))
@@ -355,7 +354,6 @@ function onAccept()
         ldapUrl.options |= ldapUrl.OPT_SECURE;
 
       properties.URI = ldapUrl.spec;
-      properties.authDn = dn;
 
       // the rdf service
       var RDF = Components.classes["@mozilla.org/rdf/rdf-service;1"]
@@ -393,6 +391,7 @@ function onAccept()
         .QueryInterface(Components.interfaces.nsIAbLDAPDirectory);
 
       theDirectory.maxHits = results;
+      theDirectory.authDn = document.getElementById("login").value;
 
       window.opener.gNewServer = description;
       // set window.opener.gUpdate to true so that LDAP Directory Servers

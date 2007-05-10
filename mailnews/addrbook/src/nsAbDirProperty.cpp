@@ -380,12 +380,6 @@ NS_IMETHODIMP nsAbDirProperty::GetDirectoryProperties(nsIAbDirectoryProperties *
   rv = properties->SetURI(prefStringValue.get());
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = GetStringValue("auth.dn", EmptyCString(), prefStringValue);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = properties->SetAuthDn(prefStringValue.get());
-  NS_ENSURE_SUCCESS(rv, rv);
-
   rv = GetPosition(&prefIntValue);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -602,19 +596,6 @@ NS_IMETHODIMP nsAbDirectoryProperties::GetDirType(PRUint32 *aDirType)
 {
   NS_ENSURE_ARG_POINTER(aDirType);
   *aDirType = mDirType;
-  return NS_OK;
-}
-
-NS_IMETHODIMP nsAbDirectoryProperties::SetAuthDn(const char *aAuthDn)
-{
-  mAuthDn = aAuthDn;
-  return NS_OK;
-}
-
-NS_IMETHODIMP nsAbDirectoryProperties::GetAuthDn(char **aAuthDn)
-{
-  NS_ENSURE_ARG_POINTER(aAuthDn);
-  *aAuthDn = ToNewCString(mAuthDn);
   return NS_OK;
 }
 

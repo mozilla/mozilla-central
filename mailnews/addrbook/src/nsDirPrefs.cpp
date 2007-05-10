@@ -282,7 +282,9 @@ nsresult DIR_ContainsServer(DIR_Server* pServer, PRBool *hasDir)
   return NS_OK;
 }
 
-nsresult DIR_AddNewAddressBook(const PRUnichar *dirName, const char *fileName, PRBool migrating, const char * uri, const char * authDn, DirectoryType dirType, DIR_Server** pServer)
+nsresult DIR_AddNewAddressBook(const PRUnichar *dirName, const char *fileName,
+                               PRBool migrating, const char * uri, 
+                               DirectoryType dirType, DIR_Server** pServer)
 {
   DIR_Server * server = (DIR_Server *) PR_Malloc(sizeof(DIR_Server));
   if (!server)
@@ -304,8 +306,6 @@ nsresult DIR_AddNewAddressBook(const PRUnichar *dirName, const char *fileName, P
     if (dirType == LDAPDirectory) {
       if (uri)
         server->uri = nsCRT::strdup(uri);
-      if (authDn)
-        server->authDn = nsCRT::strdup(authDn);
     }
 
     dir_ServerList->AppendElement(server);
@@ -593,11 +593,6 @@ static DIR_PrefId DIR_AtomizePrefName(const char *prefname)
 	}
 
 	switch (prefname[0]) {
-	case 'a':
-		if (PL_strstr(prefname, "auth.dn") == prefname)
-      rc = idAuthDn;
-    break;
-
 	case 'd':
 		switch (prefname[1]) {
 		case 'e': /* description */
@@ -662,7 +657,6 @@ static void dir_DeleteServerContents (DIR_Server *server)
 		PR_FREEIF (server->prefName);
 		PR_FREEIF (server->description);
 		PR_FREEIF (server->fileName);
-		PR_FREEIF (server->authDn);
     PR_FREEIF (server->uri);
 	}
 }
@@ -1168,9 +1162,6 @@ static void DIR_GetPrefsForOneServer(DIR_Server *server)
 #endif
   s.Append (server->fileName);
   server->uri = DIR_GetStringPref (prefstring, "uri", s.get ());
-
-  /* Get authentication prefs */
-  server->authDn = DIR_GetStringPref (prefstring, "auth.dn", nsnull);
 }
 
 static nsresult dir_GetPrefs(nsVoidArray **list)
@@ -1392,9 +1383,6 @@ void DIR_SavePrefsForOneServer(DIR_Server *server)
 
   if (server->dirType == LDAPDirectory)
     DIR_SetStringPref(prefstring, "uri", server->uri, "");
-
-  /* Save authentication prefs */
-  DIR_SetStringPref(prefstring, "auth.dn", server->authDn, "");
 
   server->savingServer = PR_FALSE;
 }

@@ -72,8 +72,7 @@ typedef enum
 	idDescription,
 	idFileName,
 	idUri,
-	idType,	
-	idAuthDn
+	idType
 } DIR_PrefId;
 
 #define DIR_Server_typedef 1     /* this quiets a redeclare warning in libaddr */
@@ -90,9 +89,6 @@ typedef struct DIR_Server
 	DirectoryType dirType;	
   char    *uri;       // URI of the address book
 
-	/* authentication fields */
-	char *authDn;				/* DN to give to authenticate as			*/
-
   // Set whilst saving the server to avoid updating it again
   PRBool savingServer;
 } DIR_Server;
@@ -106,7 +102,9 @@ nsVoidArray* DIR_GetDirectories();
 DIR_Server* DIR_GetServerFromList(const char* prefName);
 nsresult DIR_ShutDown(void);  /* FEs should call this when the app is shutting down. It frees all DIR_Servers regardless of ref count values! */
 
-nsresult DIR_AddNewAddressBook(const PRUnichar *dirName, const char *fileName, PRBool migrating, const char * uri, const char * authDn, DirectoryType dirType, DIR_Server** pServer);
+nsresult DIR_AddNewAddressBook(const PRUnichar *dirName, const char *fileName,
+                               PRBool migrating, const char * uri,
+                               DirectoryType dirType, DIR_Server** pServer);
 nsresult DIR_ContainsServer(DIR_Server* pServer, PRBool *hasDir);
 
 nsresult DIR_DeleteServerFromList (DIR_Server *);
