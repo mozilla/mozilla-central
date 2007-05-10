@@ -4271,8 +4271,10 @@ void nsImapProtocol::AddFolderRightsForUser(const char *mailboxName, const char 
       aclRightsInfo->mailboxName && aclRightsInfo->rights &&
       userName ? (aclRightsInfo->userName != NULL) : PR_TRUE)
     {
+      if (!userName)
+        userName = "";
       if (m_imapServerSink)
-        m_imapServerSink->AddFolderRights(nsDependentCString(mailboxName), (userName) ? nsDependentCString(userName) : EmptyCString(),
+        m_imapServerSink->AddFolderRights(nsDependentCString(mailboxName), nsDependentCString(userName),
                                           nsDependentCString(rights));
     }
     PR_Free(aclRightsInfo->hostName);
