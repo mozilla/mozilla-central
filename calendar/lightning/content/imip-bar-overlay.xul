@@ -67,8 +67,8 @@
                     &lightning.imipbar.description;
                 </description>
                 <spacer flex="1"/>
-                <button id="imip-button1" align="center" pack="end" hidden="true"/>
-                <button id="imip-button2" align="center" pack="end" hidden="true"/>
+                <button id="imip-button1" hidden="true"/>
+                <button id="imip-button2" hidden="true"/>
             </hbox>
         </hbox>
     </vbox>
