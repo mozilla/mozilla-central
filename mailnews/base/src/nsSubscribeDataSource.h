@@ -53,37 +53,37 @@ class nsSubscribeDataSource : public nsIRDFDataSource, public nsISubscribeDataSo
 {
 
 public:
-	nsSubscribeDataSource();
-	virtual ~nsSubscribeDataSource();
+  nsSubscribeDataSource();
+  virtual ~nsSubscribeDataSource();
 
-	nsresult Init();
+  nsresult Init();
 
-	NS_DECL_ISUPPORTS
-    NS_DECL_NSIRDFDATASOURCE
-    NS_DECL_NSISUBSCRIBEDATASOURCE
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSIRDFDATASOURCE
+  NS_DECL_NSISUBSCRIBEDATASOURCE
 
 private:
-    nsCOMPtr <nsIRDFResource>      kNC_Child;
-    nsCOMPtr <nsIRDFResource>      kNC_Name;    
-    nsCOMPtr <nsIRDFResource>      kNC_LeafName;
-    nsCOMPtr <nsIRDFResource>      kNC_Subscribed;
-    nsCOMPtr <nsIRDFResource>      kNC_Subscribable;
-    nsCOMPtr <nsIRDFResource>      kNC_ServerType;
-    nsCOMPtr <nsIRDFLiteral>       kTrueLiteral;
-    nsCOMPtr <nsIRDFLiteral>       kFalseLiteral;
+  nsCOMPtr <nsIRDFResource>      kNC_Child;
+  nsCOMPtr <nsIRDFResource>      kNC_Name;    
+  nsCOMPtr <nsIRDFResource>      kNC_LeafName;
+  nsCOMPtr <nsIRDFResource>      kNC_Subscribed;
+  nsCOMPtr <nsIRDFResource>      kNC_Subscribable;
+  nsCOMPtr <nsIRDFResource>      kNC_ServerType;
+  nsCOMPtr <nsIRDFLiteral>       kTrueLiteral;
+  nsCOMPtr <nsIRDFLiteral>       kFalseLiteral;
 
-    nsCOMPtr <nsIRDFService>       mRDFService;
-    nsCOMPtr <nsISupportsArray>    mObservers;
+  nsCOMPtr <nsIRDFService>       mRDFService;
+  nsCOMPtr <nsISupportsArray>    mObservers;
 
-    nsresult GetChildren(nsISubscribableServer *aServer,
-                         const nsACString &aRelativePath,
-                         nsISimpleEnumerator** aResult);
-    nsresult GetServerAndRelativePathFromResource(nsIRDFResource *source, nsISubscribableServer **server, char **relativePath);
-    nsresult GetServerType(nsISubscribableServer *server, char **serverType);
+  nsresult GetChildren(nsISubscribableServer *aServer,
+                       const nsACString &aRelativePath,
+                       nsISimpleEnumerator** aResult);
+  nsresult GetServerAndRelativePathFromResource(nsIRDFResource *source, nsISubscribableServer **server, char **relativePath);
+  nsresult GetServerType(nsISubscribableServer *server, nsACString& serverType);
 
-    static PRBool assertEnumFunc(nsISupports *aElement, void *aData);
-    static PRBool unassertEnumFunc(nsISupports *aElement, void *aData);
-    static PRBool changeEnumFunc(nsISupports *aElement, void *aData);
+  static PRBool assertEnumFunc(nsISupports *aElement, void *aData);
+  static PRBool unassertEnumFunc(nsISupports *aElement, void *aData);
+  static PRBool changeEnumFunc(nsISupports *aElement, void *aData);
 };
 
 #endif /* nsSubscribedDataSource_h__ */

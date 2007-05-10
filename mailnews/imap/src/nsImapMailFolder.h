@@ -386,8 +386,7 @@ protected:
   nsresult        GetOwnersOnlineFolderName(char **onlineName);
   nsIMAPNamespace *GetNamespaceForFolder();
   void            SetNamespaceForFolder(nsIMAPNamespace *ns);
-  
-  nsresult GetServerAdminUrl(char **aAdminUrl);
+
   nsMsgIMAPFolderACL * GetFolderACL();
   nsresult CreateACLRightsStringForFolder(PRUnichar **rightsString);
   

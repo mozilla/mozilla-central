@@ -361,10 +361,10 @@ nsSmtpServer::GetPassword(char * *aPassword)
                   nsCOMPtr<nsIMsgIncomingServer> server = do_QueryElementAt(allServers, i);
                   if (server)
                   {
-                    nsXPIDLCString serverUserName;
-                    nsXPIDLCString serverHostName;
-                    server->GetRealUsername(getter_Copies(serverUserName));
-                    server->GetRealHostName(getter_Copies(serverHostName));
+                    nsCString serverUserName;
+                    nsCString serverHostName;
+                    server->GetRealUsername(serverUserName);
+                    server->GetRealHostName(serverHostName);
                     if (serverUserName.Equals(userName))
                     {
                       PRInt32 serverDotPos = serverHostName.FindChar('.');
@@ -386,8 +386,12 @@ nsSmtpServer::GetPassword(char * *aPassword)
         }
       }
       if (incomingServerToUse)
-        return incomingServerToUse->GetPassword(aPassword);
-
+      {
+        nsCString tmpPassword;
+        nsresult rv = incomingServerToUse->GetPassword(tmpPassword);
+        *aPassword = ToNewCString(tmpPassword);
+        return rv;
+      }
     }
     *aPassword = ToNewCString(m_password);
     return NS_OK;

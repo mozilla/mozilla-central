@@ -43,7 +43,7 @@ interface nsIMsgFolder;
 interface nsIUrlListener;
 interface nsIMsgWindow;
 
-[scriptable, uuid(dcae2877-b7e7-47e1-80ca-5a67de03ec4c)]
+[scriptable, uuid(FC67F5C9-C8BB-46c1-90CB-1E752ECCEB19)]
 interface nsIPop3IncomingServer : nsISupports {
   attribute boolean leaveMessagesOnServer;
   attribute boolean headersOnly;
@@ -59,7 +59,7 @@ interface nsIPop3IncomingServer : nsISupports {
   void markMessages();
   attribute boolean authenticated;
   /* account to which this server defers storage, for global inbox */
-  attribute string deferredToAccount;
+  attribute ACString deferredToAccount;
   // whether get new mail in deferredToAccount gets
   // new mail with this server.
   attribute boolean deferGetNewMail;

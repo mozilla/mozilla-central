@@ -839,7 +839,7 @@ GetOrCreateFolder(const nsACString &aURI, nsIUrlListener *aListener)
     return NS_ERROR_UNEXPECTED;
 
   nsCOMPtr <nsIMsgFolder> msgFolder;
-  rv = server->GetMsgFolderFromURI(folderResource, nsCAutoString(aURI).get(), getter_AddRefs(msgFolder));
+  rv = server->GetMsgFolderFromURI(folderResource, aURI, getter_AddRefs(msgFolder));
   NS_ENSURE_SUCCESS(rv,rv);
 
   nsCOMPtr <nsIMsgFolder> parent;
@@ -851,8 +851,8 @@ GetOrCreateFolder(const nsACString &aURI, nsIUrlListener *aListener)
     // for imap folders, path needs to have .msf appended to the name
     msgFolder->GetFilePath(getter_AddRefs(folderPath));
 
-    nsXPIDLCString type;
-    rv = server->GetType(getter_Copies(type));
+    nsCString type;
+    rv = server->GetType(type);
     NS_ENSURE_SUCCESS(rv,rv);
 
     PRBool isImapFolder = type.Equals("imap");
@@ -1240,17 +1240,16 @@ nsresult GetSummaryFileLocation(nsILocalFile* fileLocation, nsILocalFile** summa
   nsString fileName;
 
   rv = newSummaryLocation->GetLeafName(fileName);
-  NS_ENSURE_SUCCESS(rv, rv);
+  if (NS_FAILED(rv))
+    return rv;
 
   fileName.Append(NS_LITERAL_STRING(SUMMARY_SUFFIX));
-
   rv = newSummaryLocation->SetLeafName(fileName);
   NS_ENSURE_SUCCESS(rv, rv);
 
   NS_IF_ADDREF(*summaryLocation = newSummaryLocation);
   return NS_OK;
 }
-
 
 void MsgGenerateNowStr(nsACString &nowStr)
 {
@@ -1416,8 +1415,8 @@ nsresult MsgMailboxGetURI(const char *uriPath, nsCString &mailboxUri)
     PRInt32 len = serverPath.Length();
     if (StringBeginsWith(nativePath, serverPath))
     {
-      nsXPIDLCString serverURI;
-      rv = server->GetServerURI(getter_Copies(serverURI));
+      nsCString serverURI;
+      rv = server->GetServerURI(serverURI);
       if (NS_FAILED(rv)) continue;
       
       // the relpath is just past the serverpath

@@ -1901,8 +1901,8 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
   nsresult rv = GetServer(getter_AddRefs(server));
   NS_ENSURE_SUCCESS(rv, rv); 
   
-  nsXPIDLCString serverType; 
-  server->GetType(getter_Copies(serverType));
+  nsCString serverType; 
+  server->GetType(serverType);
   
 
   // if this is the junk folder, or the trash folder
@@ -1915,14 +1915,13 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
   // if it's a public imap folder, or another users
   // imap folder, don't analyze for spam, because
   // it's not ours to analyze
-  if ( !(nsCRT::strcmp(serverType.get(), "rss")) || 
+  if (serverType.EqualsLiteral("rss") || 
        (mFlags & (MSG_FOLDER_FLAG_JUNK | MSG_FOLDER_FLAG_TRASH |
                MSG_FOLDER_FLAG_SENTMAIL | MSG_FOLDER_FLAG_QUEUE |
                MSG_FOLDER_FLAG_DRAFTS | MSG_FOLDER_FLAG_TEMPLATES |
                MSG_FOLDER_FLAG_IMAP_PUBLIC | MSG_FOLDER_FLAG_IMAP_OTHER_USER)
-       && !(mFlags & MSG_FOLDER_FLAG_INBOX)) )
+       && !(mFlags & MSG_FOLDER_FLAG_INBOX)))
     return NS_OK;
-
 
   rv = server->GetSpamSettings(getter_AddRefs(spamSettings));
   nsCOMPtr <nsIMsgFilterPlugin> filterPlugin;
@@ -2131,15 +2130,15 @@ nsresult nsMsgDBFolder::PromptForCachePassword(nsIMsgIncomingServer *server, nsI
   nsCOMPtr <nsIStringBundle> bundle;
   nsresult rv = GetBaseStringBundle(getter_AddRefs(bundle));
   NS_ENSURE_SUCCESS(rv, rv);
-  nsXPIDLCString hostName;
-  nsXPIDLCString userName;
-  nsXPIDLString passwordTemplate;
-  nsXPIDLCString password;
-  nsXPIDLString passwordTitle;
-  nsXPIDLString passwordPromptString;
+  nsCString hostName;
+  nsCString userName;
+  nsString passwordTemplate;
+  nsCString password;
+  nsString passwordTitle;
+  nsString passwordPromptString;
 
-  server->GetRealHostName(getter_Copies(hostName));
-  server->GetRealUsername(getter_Copies(userName));
+  server->GetRealHostName(hostName);
+  server->GetRealUsername(userName);
   bundle->GetStringFromName(NS_LITERAL_STRING("passwordTitle").get(), getter_Copies(passwordTitle));
   bundle->GetStringFromName(NS_LITERAL_STRING("passwordPrompt").get(), getter_Copies(passwordTemplate));
 
@@ -2159,7 +2158,7 @@ nsresult nsMsgDBFolder::PromptForCachePassword(nsIMsgIncomingServer *server, nsI
                                    passwordTitle, 
                                    aWindow,
                                    &userDidntCancel,
-                                   getter_Copies(password));
+                                   password);
     if (rv != NS_MSG_PASSWORD_PROMPT_CANCELLED && !password.IsEmpty()) 
     {
       nsCOMPtr <nsIPasswordManagerInternal> passwordMgrInt = do_GetService(NS_PASSWORDMANAGER_CONTRACTID, &rv);
@@ -2167,8 +2166,8 @@ nsresult nsMsgDBFolder::PromptForCachePassword(nsIMsgIncomingServer *server, nsI
       {
 
         // Get the current server URI
-        nsXPIDLCString currServerUri;
-        rv = server->GetServerURI(getter_Copies(currServerUri));
+        nsCString currServerUri;
+        rv = server->GetServerURI(currServerUri);
         NS_ENSURE_SUCCESS(rv, rv);
 
         currServerUri.Insert('x', 0);
@@ -2186,9 +2185,9 @@ nsresult nsMsgDBFolder::PromptForCachePassword(nsIMsgIncomingServer *server, nsI
           break;
         // compare the user-entered password with the saved password with
         // the munged uri.
-        passwordCorrect = password.Equals(NS_ConvertUTF16toUTF8(passwordFound).get());
+        passwordCorrect = password.Equals(NS_ConvertUTF16toUTF8(passwordFound));
         if (!passwordCorrect)
-          server->SetPassword("");
+          server->SetPassword(EmptyCString());
         else
         {
           nsCOMPtr<nsIMsgAccountManager> accountManager = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID);
@@ -2907,7 +2906,12 @@ NS_IMETHODIMP nsMsgDBFolder::GetName(PRUnichar **name)
     nsCOMPtr<nsIMsgIncomingServer> server;
     rv = GetServer(getter_AddRefs(server));
     if (NS_SUCCEEDED(rv) && server)
-      return server->GetPrettyName(name);
+    {
+      nsString tmpName;
+      rv = server->GetPrettyName(tmpName);
+      *name = ToNewUnicode(tmpName);
+      return rv;
+    }
   }
 
   *name = ToNewUnicode(mName);
@@ -4161,12 +4165,12 @@ NS_IMETHODIMP nsMsgDBFolder::GetUsername(char **userName)
   nsCOMPtr <nsIMsgIncomingServer> server;
 
   rv = GetServer(getter_AddRefs(server));
-  if (NS_FAILED(rv)) return rv;
+  NS_ENSURE_SUCCESS(rv, NS_ERROR_UNEXPECTED);
 
-  if (server)
-    return server->GetUsername(userName);
-
-  return NS_ERROR_UNEXPECTED;
+  nsCString tmpUserName;
+  rv = server->GetUsername(tmpUserName);
+  *userName = ToNewCString(tmpUserName);
+  return rv;
 }
 
 NS_IMETHODIMP nsMsgDBFolder::GetHostname(char **hostName)
@@ -4177,12 +4181,12 @@ NS_IMETHODIMP nsMsgDBFolder::GetHostname(char **hostName)
 
   nsCOMPtr<nsIMsgIncomingServer> server;
   rv = GetServer(getter_AddRefs(server));
-  if (NS_FAILED(rv)) return rv;
+  NS_ENSURE_SUCCESS(rv, NS_ERROR_UNEXPECTED);
 
-  if (server)
-    return server->GetHostName(hostName);
-
-  return NS_ERROR_UNEXPECTED;
+  nsCString tmpHostName;
+  rv = server->GetHostName(tmpHostName);
+  *hostName = ToNewCString(tmpHostName);
+  return rv;
 }
 
 NS_IMETHODIMP nsMsgDBFolder::GetNewMessages(nsIMsgWindow *, nsIUrlListener * /* aListener */)
@@ -4305,8 +4309,8 @@ NS_IMETHODIMP nsMsgDBFolder::GetNewMessagesNotificationDescription(PRUnichar * *
     }
 
     // append the server name
-    nsXPIDLString serverName;
-    rv = server->GetPrettyName(getter_Copies(serverName));
+    nsString serverName;
+    rv = server->GetPrettyName(serverName);
     if (NS_SUCCEEDED(rv)) 
     {
       // put this test here because we don't want to just put "folder name on"

@@ -133,7 +133,7 @@ nsNNTPNewsgroupList::Initialize(nsINntpUrl *runningURL, nsIMsgNewsFolder *newsFo
 }
 
 nsresult
-nsNNTPNewsgroupList::CleanUp() 
+nsNNTPNewsgroupList::CleanUp()
 {
   // here we make sure that there aren't missing articles in the unread set
   // So if an article is the unread set, and the known arts set, but isn't in the
@@ -180,7 +180,7 @@ nsNNTPNewsgroupList::CleanUp()
       }
       if (folderInfo)
         folderInfo->SetUint32Property("lastMissingCheck", lastKnown);
-      
+
       if (foundMissingArticle)
       {
         nsresult rv;
@@ -201,10 +201,10 @@ nsNNTPNewsgroupList::CleanUp()
   }
   if (m_newsFolder)
     m_newsFolder->NotifyFinishedDownloadinghdrs();
-  
+
   m_newsFolder = nsnull;
   m_runningURL = nsnull;
-    
+
   return NS_OK;
 }
 
@@ -214,9 +214,9 @@ void nsNNTPNewsgroupList::OnAnnouncerGoingAway (ChangeAnnouncer *instigator)
 }
 #endif
 
-static nsresult 
+static nsresult
 openWindow(nsIMsgWindow *aMsgWindow, const char *chromeURL,
-           nsINewsDownloadDialogArgs *param) 
+           nsINewsDownloadDialogArgs *param)
 {
     nsresult rv;
 
@@ -244,7 +244,7 @@ openWindow(nsIMsgWindow *aMsgWindow, const char *chromeURL,
                                   ifptr, getter_AddRefs(dialogWindow));
 
     return rv;
-}       
+}
 
 nsresult
 nsNNTPNewsgroupList::GetRangeOfArtsToDownload(nsIMsgWindow *aMsgWindow,
@@ -260,7 +260,7 @@ nsNNTPNewsgroupList::GetRangeOfArtsToDownload(nsIMsgWindow *aMsgWindow,
     NS_ENSURE_ARG_POINTER(first);
     NS_ENSURE_ARG_POINTER(last);
     NS_ENSURE_ARG_POINTER(status);
-    
+
 	*first = 0;
 	*last = 0;
 
@@ -272,15 +272,15 @@ nsNNTPNewsgroupList::GetRangeOfArtsToDownload(nsIMsgWindow *aMsgWindow,
 	if (!m_newsDB) {
       rv = folder->GetMsgDatabase(nsnull /* use m_msgWindow? */, getter_AddRefs(m_newsDB));
 	}
-	
+
     nsCOMPtr<nsINewsDatabase> db(do_QueryInterface(m_newsDB, &rv));
     NS_ENSURE_SUCCESS(rv,rv);
-            
+
 	rv = db->GetReadSet(&m_set);
     if (NS_FAILED(rv) || !m_set) {
        return rv;
     }
-            
+
 	m_set->SetLastMember(last_possible);	// make sure highwater mark is valid.
 
     nsCOMPtr <nsIDBFolderInfo> newsGroupInfo;
@@ -289,7 +289,7 @@ nsNNTPNewsgroupList::GetRangeOfArtsToDownload(nsIMsgWindow *aMsgWindow,
       nsXPIDLCString knownArtsString;
       nsMsgKey mark;
       newsGroupInfo->GetKnownArtsSet(getter_Copies(knownArtsString));
-      
+
       rv = newsGroupInfo->GetHighWater(&mark);
       NS_ENSURE_SUCCESS(rv,rv);
 
@@ -301,7 +301,7 @@ nsNNTPNewsgroupList::GetRangeOfArtsToDownload(nsIMsgWindow *aMsgWindow,
       m_knownArts.set = nsMsgKeySet::Create(knownArtsString.get());
     }
     else
-    {	
+    {
       if (m_knownArts.set) {
         delete m_knownArts.set;
       }
@@ -311,26 +311,26 @@ nsNNTPNewsgroupList::GetRangeOfArtsToDownload(nsIMsgWindow *aMsgWindow,
       NS_ENSURE_SUCCESS(rv,rv);
       rv = m_newsDB->GetHighWaterArticleNum(&high);
       NS_ENSURE_SUCCESS(rv,rv);
-      
+
       m_knownArts.set->AddRange(low,high);
     }
-    
+
     if (m_knownArts.set->IsMember(last_possible)) {
       nsXPIDLString statusString;
       nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
       NS_ENSURE_SUCCESS(rv, rv);
-      
+
       nsCOMPtr<nsIStringBundle> bundle;
       rv = bundleService->CreateBundle(NEWS_MSGS_URL, getter_AddRefs(bundle));
       NS_ENSURE_SUCCESS(rv, rv);
-      
+
       rv = bundle->GetStringFromName(NS_LITERAL_STRING("noNewMessages").get(), getter_Copies(statusString));
       NS_ENSURE_SUCCESS(rv, rv);
 
       SetProgressStatus(statusString);
     }
-    
-    if (maxextra <= 0 || last_possible < first_possible || last_possible < 1) 
+
+    if (maxextra <= 0 || last_possible < first_possible || last_possible < 1)
     {
       *status=0;
       return NS_OK;
@@ -342,138 +342,135 @@ nsNNTPNewsgroupList::GetRangeOfArtsToDownload(nsIMsgWindow *aMsgWindow,
     nsCOMPtr <nsIMsgIncomingServer> server;
     rv = folder->GetServer(getter_AddRefs(server));
     NS_ENSURE_SUCCESS(rv,rv);
-		
+
     nsCOMPtr<nsINntpIncomingServer> nntpServer = do_QueryInterface(server, &rv);
     NS_ENSURE_SUCCESS(rv,rv);
 
-	/* Determine if we only want to get just new articles or more messages.
-	If there are new articles at the end we haven't seen, we always want to get those first.  
-	Otherwise, we get the newest articles we haven't gotten, if we're getting more. 
-	My thought for now is that opening a newsgroup should only try to get new articles.
-	Selecting "More Messages" will first try to get unseen messages, then old messages. */
+  /* Determine if we only want to get just new articles or more messages.
+  If there are new articles at the end we haven't seen, we always want to get those first.
+  Otherwise, we get the newest articles we haven't gotten, if we're getting more.
+  My thought for now is that opening a newsgroup should only try to get new articles.
+  Selecting "More Messages" will first try to get unseen messages, then old messages. */
 
-	if (m_getOldMessages || !m_knownArts.set->IsMember(last_possible)) 
-	{
-		PRBool notifyMaxExceededOn = PR_TRUE;
-		rv = nntpServer->GetNotifyOn(&notifyMaxExceededOn);
-		if (NS_FAILED(rv)) notifyMaxExceededOn = PR_TRUE;
+  if (m_getOldMessages || !m_knownArts.set->IsMember(last_possible))
+  {
+    PRBool notifyMaxExceededOn = PR_TRUE;
+    rv = nntpServer->GetNotifyOn(&notifyMaxExceededOn);
+    if (NS_FAILED(rv)) notifyMaxExceededOn = PR_TRUE;
 
-		// if the preference to notify when downloading more than x headers is not on,
-		// and we're downloading new headers, set maxextra to a very large number.
-		if (!m_getOldMessages && !notifyMaxExceededOn)
-			maxextra = 0x7FFFFFFFL;
+    // if the preference to notify when downloading more than x headers is not on,
+    // and we're downloading new headers, set maxextra to a very large number.
+    if (!m_getOldMessages && !notifyMaxExceededOn)
+      maxextra = 0x7FFFFFFFL;
         int result =
             m_knownArts.set->LastMissingRange(first_possible, last_possible,
                                               first, last);
-		if (result < 0) {
+    if (result < 0) {
             *status=result;
-			return NS_ERROR_NOT_INITIALIZED;
+      return NS_ERROR_NOT_INITIALIZED;
         }
-		if (*first > 0 && *last - *first >= maxextra) 
-		{
-			if (!m_getOldMessages && !m_promptedAlready && notifyMaxExceededOn)
-			{
-				m_downloadAll = PR_FALSE;   
-			
-                nsCOMPtr<nsINewsDownloadDialogArgs> args = do_CreateInstance("@mozilla.org/messenger/newsdownloaddialogargs;1", &rv);
-                if (NS_FAILED(rv)) return rv;
-                NS_ENSURE_SUCCESS(rv,rv);
+    if (*first > 0 && *last - *first >= maxextra)
+    {
+      if (!m_getOldMessages && !m_promptedAlready && notifyMaxExceededOn)
+      {
+        m_downloadAll = PR_FALSE;
+        nsCOMPtr<nsINewsDownloadDialogArgs> args = do_CreateInstance("@mozilla.org/messenger/newsdownloaddialogargs;1", &rv);
+        if (NS_FAILED(rv)) return rv;
+        NS_ENSURE_SUCCESS(rv,rv);
 
-                rv = args->SetArticleCount(*last - *first + 1);
-                NS_ENSURE_SUCCESS(rv,rv);
-        
-                nsXPIDLString groupName;
-                rv = m_newsFolder->GetUnicodeName(groupName);
-                NS_ENSURE_SUCCESS(rv,rv);
+        rv = args->SetArticleCount(*last - *first + 1);
+        NS_ENSURE_SUCCESS(rv,rv);
 
-                rv = args->SetGroupName(groupName);
-                NS_ENSURE_SUCCESS(rv,rv);
+        nsString groupName;
+        rv = m_newsFolder->GetUnicodeName(groupName);
+        NS_ENSURE_SUCCESS(rv,rv);
 
-                // get the server key
-                nsXPIDLCString serverKey;
-                rv = server->GetKey(getter_Copies(serverKey));
-                NS_ENSURE_SUCCESS(rv,rv);
+        rv = args->SetGroupName(groupName);
+        NS_ENSURE_SUCCESS(rv,rv);
 
-                rv = args->SetServerKey((const char *)serverKey);
-                NS_ENSURE_SUCCESS(rv,rv);
+        // get the server key
+        nsCString serverKey;
+        rv = server->GetKey(serverKey);
+        NS_ENSURE_SUCCESS(rv,rv);
 
-                // we many not have a msgWindow if we are running an autosubscribe url from the browser
-                // and there isn't a 3 pane open.
-                //
-                // if we don't have one, bad things will happen when we fail to open up the "download headers dialog"
-                // (we will subscribe to the newsgroup, but it will appear like there are no messages!)
-                //
-                // for now, act like the "download headers dialog" came up, and the user hit cancel.  (very safe)
-                //
-                // TODO, figure out why we aren't opening and using a 3 pane when the autosubscribe url is run.
-                // perhaps we can find an available 3 pane, and use it.
+        rv = args->SetServerKey(serverKey.get());
+        NS_ENSURE_SUCCESS(rv,rv);
 
-                PRBool download = PR_FALSE;  
+        // we many not have a msgWindow if we are running an autosubscribe url from the browser
+        // and there isn't a 3 pane open.
+        //
+        // if we don't have one, bad things will happen when we fail to open up the "download headers dialog"
+        // (we will subscribe to the newsgroup, but it will appear like there are no messages!)
+        //
+        // for now, act like the "download headers dialog" came up, and the user hit cancel.  (very safe)
+        //
+        // TODO, figure out why we aren't opening and using a 3 pane when the autosubscribe url is run.
+        // perhaps we can find an available 3 pane, and use it.
 
-                if (aMsgWindow) {
-			  	  rv = openWindow(aMsgWindow, DOWNLOAD_HEADERS_URL, args);
-                  NS_ENSURE_SUCCESS(rv,rv);
+        PRBool download = PR_FALSE;
 
-                  rv = args->GetHitOK(&download);
-                  NS_ENSURE_SUCCESS(rv,rv);
-                }
+        if (aMsgWindow) {
+          rv = openWindow(aMsgWindow, DOWNLOAD_HEADERS_URL, args);
+          NS_ENSURE_SUCCESS(rv,rv);
 
-				if (download) {
-                    rv = args->GetDownloadAll(&m_downloadAll);
-                    NS_ENSURE_SUCCESS(rv,rv);
+          rv = args->GetHitOK(&download);
+          NS_ENSURE_SUCCESS(rv,rv);
+        }
 
-					m_maxArticles = 0;
+      if (download) {
+         rv = args->GetDownloadAll(&m_downloadAll);
+         NS_ENSURE_SUCCESS(rv,rv);
+         m_maxArticles = 0;
+         rv = nntpServer->GetMaxArticles(&m_maxArticles);
+         NS_ENSURE_SUCCESS(rv,rv);
 
-                    rv = nntpServer->GetMaxArticles(&m_maxArticles); 
-                    NS_ENSURE_SUCCESS(rv,rv);
-                    
-					maxextra = m_maxArticles;
-					if (!m_downloadAll)
-					{
-						PRBool markOldRead = PR_FALSE;
+          maxextra = m_maxArticles;
+          if (!m_downloadAll)
+          {
+            PRBool markOldRead = PR_FALSE;
 
-						rv = nntpServer->GetMarkOldRead(&markOldRead);
-                        if (NS_FAILED(rv)) markOldRead = PR_FALSE;
+            rv = nntpServer->GetMarkOldRead(&markOldRead);
+            if (NS_FAILED(rv)) markOldRead = PR_FALSE;
 
-						if (markOldRead && m_set)
-							m_set->AddRange(*first, *last - maxextra); 
-						*first = *last - maxextra + 1;
-					}
-				}
-				else
-					*first = *last = 0;
-				m_promptedAlready = PR_TRUE;
-			}
-			else if (m_promptedAlready && !m_downloadAll)
-				*first = *last - m_maxArticles + 1;
-			else if (!m_downloadAll)
-				*first = *last - maxextra + 1;
-		}
-	}
+            if (markOldRead && m_set)
+              m_set->AddRange(*first, *last - maxextra);
+            *first = *last - maxextra + 1;
+          }
+        }
+        else
+          *first = *last = 0;
+        m_promptedAlready = PR_TRUE;
+      }
+      else if (m_promptedAlready && !m_downloadAll)
+        *first = *last - m_maxArticles + 1;
+      else if (!m_downloadAll)
+        *first = *last - maxextra + 1;
+    }
+  }
 
-	m_firstMsgToDownload = *first;
-	m_lastMsgToDownload = *last;
-    *status=0;
-	return NS_OK;
+  m_firstMsgToDownload = *first;
+  m_lastMsgToDownload = *last;
+  *status=0;
+  return NS_OK;
 }
 
 nsresult
 nsNNTPNewsgroupList::AddToKnownArticles(PRInt32 first, PRInt32 last)
 {
   int		status;
-  
-  if (!m_knownArts.set) 
+
+  if (!m_knownArts.set)
   {
     m_knownArts.set = nsMsgKeySet::Create();
-    
+
     if (!m_knownArts.set) {
       return NS_ERROR_OUT_OF_MEMORY;
     }
-    
+
   }
-  
+
   status = m_knownArts.set->AddRange(first, last);
-  
+
   if (m_newsDB) {
     nsresult rv = NS_OK;
     nsCOMPtr <nsIDBFolderInfo> newsGroupInfo;
@@ -486,7 +483,7 @@ nsNNTPNewsgroupList::AddToKnownArticles(PRInt32 first, PRInt32 last)
       }
     }
   }
-  
+
   return status;
 }
 
@@ -508,7 +505,7 @@ nsNNTPNewsgroupList::InitXOVER(PRInt32 first_msg, PRInt32 last_msg)
 
 	/* If any XOVER lines from the last time failed to come in, mark those
 	   messages as read. */
-	if (m_lastProcessedNumber < m_lastMsgNumber) 
+	if (m_lastProcessedNumber < m_lastMsgNumber)
 	{
 		m_set->AddRange(m_lastProcessedNumber + 1, m_lastMsgNumber);
 	}
@@ -519,13 +516,13 @@ nsNNTPNewsgroupList::InitXOVER(PRInt32 first_msg, PRInt32 last_msg)
 	return status;
 }
 
-// from RFC 822, don't translate 
+// from RFC 822, don't translate
 #define FROM_HEADER "From: "
 #define SUBECT_HEADER "Subject: "
 #define DATE_HEADER "Date: "
 
 nsresult
-nsNNTPNewsgroupList::ParseLine(char *line, PRUint32 * message_number) 
+nsNNTPNewsgroupList::ParseLine(char *line, PRUint32 * message_number)
 {
   nsresult rv = NS_OK;
   nsCOMPtr <nsIMsgDBHdr> newMsgHdr;
@@ -535,122 +532,122 @@ nsNNTPNewsgroupList::ParseLine(char *line, PRUint32 * message_number)
   if (!line || !message_number) {
     return NS_ERROR_NULL_POINTER;
   }
-  
+
   char *next = line;
-  
+
 #define GET_TOKEN()								\
   line = next;									\
   next = (line ? PL_strchr (line, '\t') : 0);	\
   if (next) *next++ = 0
-  
+
   GET_TOKEN (); /* message number */
   *message_number = atol(line);
-  
+
   if (atol(line) == 0)					/* bogus xover data */
     return NS_ERROR_UNEXPECTED;
-  
-  m_newsDB->CreateNewHdr(*message_number, getter_AddRefs(newMsgHdr));      
-  
+
+  m_newsDB->CreateNewHdr(*message_number, getter_AddRefs(newMsgHdr));
+
   NS_ASSERTION(newMsgHdr, "CreateNewHdr didn't fail, but it returned a null newMsgHdr");
-  if (!newMsgHdr) 
+  if (!newMsgHdr)
     return NS_ERROR_NULL_POINTER;
-  
+
   GET_TOKEN (); /* subject */
   if (line) {
     const char *subject = line;  /* #### const evilness */
     PRUint32 subjectLen = strlen(line);
-    
+
     PRUint32 flags = 0;
     // ### should call IsHeaderRead here...
     /* strip "Re: " */
     nsXPIDLCString modifiedSubject;
     if (NS_MsgStripRE(&subject, &subjectLen, getter_Copies(modifiedSubject)))
       (void) newMsgHdr->OrFlags(MSG_FLAG_HAS_RE, &flags); // this will make sure read flags agree with newsrc
-    
+
     if (! (flags & MSG_FLAG_READ))
       rv = newMsgHdr->OrFlags(MSG_FLAG_NEW, &flags);
-    
+
     rv = newMsgHdr->SetSubject(modifiedSubject.IsEmpty() ? subject : modifiedSubject.get());
-    if (NS_FAILED(rv)) 
+    if (NS_FAILED(rv))
       return rv;
   }
-  
+
   GET_TOKEN ();											/* author */
   if (line) {
     authorStr = line;
     rv = newMsgHdr->SetAuthor(line);
-    if (NS_FAILED(rv)) 
+    if (NS_FAILED(rv))
       return rv;
   }
-  
-  GET_TOKEN ();	
+
+  GET_TOKEN ();
   if (line) {
     dateStr = line;
     PRTime date;
     PRStatus status = PR_ParseTimeString (line, PR_FALSE, &date);
-    if (PR_SUCCESS == status) {      
+    if (PR_SUCCESS == status) {
       rv = newMsgHdr->SetDate(date);					/* date */
-      if (NS_FAILED(rv)) 
+      if (NS_FAILED(rv))
         return rv;
     }
   }
-  
+
   GET_TOKEN ();											/* message id */
   if (line) {
     char *strippedId = line;
-    
+
     if (strippedId[0] == '<')
       strippedId++;
-    
+
     char * lastChar = strippedId + PL_strlen(strippedId) -1;
-    
+
     if (*lastChar == '>')
       *lastChar = '\0';
-    
+
     rv = newMsgHdr->SetMessageId(strippedId);
-    if (NS_FAILED(rv)) 
-      return rv;           
+    if (NS_FAILED(rv))
+      return rv;
   }
-  
+
   GET_TOKEN ();											/* references */
   if (line) {
     rv = newMsgHdr->SetReferences(line);
-    if (NS_FAILED(rv)) 
-      return rv;           
+    if (NS_FAILED(rv))
+      return rv;
   }
-  
+
   GET_TOKEN ();											/* bytes */
   if (line) {
     PRUint32 msgSize = 0;
     msgSize = (line) ? atol (line) : 0;
-    
+
     rv = newMsgHdr->SetMessageSize(msgSize);
-    if (NS_FAILED(rv)) return rv;           
+    if (NS_FAILED(rv)) return rv;
   }
-  
+
   GET_TOKEN ();											/* lines */
   if (line) {
     PRUint32 numLines = 0;
     numLines = line ? atol (line) : 0;
     rv = newMsgHdr->SetLineCount(numLines);
-    if (NS_FAILED(rv)) return rv;           
+    if (NS_FAILED(rv)) return rv;
   }
-  
+
   GET_TOKEN (); /* xref */
-  
+
   // apply filters
   // XXX TODO
   // do spam classification for news
 
   nsCOMPtr <nsIMsgFolder> folder = do_QueryInterface(m_newsFolder, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
-  
-  if (!m_filterList) 
+
+  if (!m_filterList)
   {
     rv = folder->GetFilterList(m_msgWindow, getter_AddRefs(m_filterList));
     NS_ENSURE_SUCCESS(rv,rv);
   }
-  
+
   if (!m_serverFilterList)
   {
     nsCOMPtr<nsIMsgIncomingServer> server;
@@ -679,38 +676,38 @@ nsNNTPNewsgroupList::ParseLine(char *line, PRUint32 * message_number)
   }
 
   // only do this if we have filters
-  if (filterCount || serverFilterCount) 
+  if (filterCount || serverFilterCount)
   {
     // build up a "headers" for filter code
     nsXPIDLCString subject;
     rv = newMsgHdr->GetSubject(getter_Copies(subject));
     NS_ENSURE_SUCCESS(rv,rv);
-    
+
     PRUint32 headersSize = 0;
- 
-    // +1 to separate headers with a null byte 
+
+    // +1 to separate headers with a null byte
     if (authorStr)
       headersSize += strlen(FROM_HEADER) + strlen(authorStr) + 1;
-    
+
     if (!(subject.IsEmpty()))
       headersSize += strlen(SUBECT_HEADER) + subject.Length() + 1;
 
     if (dateStr)
      headersSize += strlen(DATE_HEADER) + strlen(dateStr) + 1;
-    
+
     if (headersSize) {
       char *headers = (char *)PR_Malloc(headersSize);
       char *headerPos = headers;
       if (!headers)
         return NS_ERROR_OUT_OF_MEMORY;
-    
+
       if (authorStr) {
         PL_strcpy(headerPos, FROM_HEADER);
         headerPos += strlen(FROM_HEADER);
-    
+
         PL_strcpy(headerPos, authorStr);
         headerPos += strlen(authorStr);
-    
+
         *headerPos = '\0';
         headerPos++;
       }
@@ -718,41 +715,41 @@ nsNNTPNewsgroupList::ParseLine(char *line, PRUint32 * message_number)
       if (!(subject.IsEmpty())) {
         PL_strcpy(headerPos, SUBECT_HEADER);
         headerPos += strlen(SUBECT_HEADER);
-        
+
         PL_strcpy(headerPos, subject.get());
         headerPos += subject.Length();
-        
+
         *headerPos = '\0';
         headerPos++;
       }
 
-      if (dateStr) {        
+      if (dateStr) {
         PL_strcpy(headerPos, DATE_HEADER);
         headerPos += strlen(DATE_HEADER);
-        
+
         PL_strcpy(headerPos, dateStr);
         headerPos += strlen(dateStr);
-        
+
         *headerPos = '\0';
         headerPos++;
       }
 
-      // on a filter hit (see ApplyFilterHit()), we'll be modifying the header 
+      // on a filter hit (see ApplyFilterHit()), we'll be modifying the header
       // so keep track of the header
       m_newMsgHdr = newMsgHdr;
-      
+
       // the per-newsgroup filters should probably go first. It doesn't matter
       // right now since nothing stops filter execution for newsgroups, but if something
       // does, like adding a "stop execution" action, then users should be able to
       // override the global filters in the per-newsgroup filters.
       if (filterCount)
       {
-        rv = m_filterList->ApplyFiltersToHdr(nsMsgFilterType::NewsRule, newMsgHdr, folder, m_newsDB, 
+        rv = m_filterList->ApplyFiltersToHdr(nsMsgFilterType::NewsRule, newMsgHdr, folder, m_newsDB,
           headers, headersSize, this, m_msgWindow, nsnull);
       }
       if (serverFilterCount)
       {
-        rv = m_serverFilterList->ApplyFiltersToHdr(nsMsgFilterType::NewsRule, newMsgHdr, folder, m_newsDB, 
+        rv = m_serverFilterList->ApplyFiltersToHdr(nsMsgFilterType::NewsRule, newMsgHdr, folder, m_newsDB,
           headers, headersSize, this, m_msgWindow, nsnull);
       }
 
@@ -760,13 +757,13 @@ nsNNTPNewsgroupList::ParseLine(char *line, PRUint32 * message_number)
       NS_ENSURE_SUCCESS(rv,rv);
     }
   }
-  
+
   // if we deleted it, don't add it
   if (m_addHdrToDB) {
     rv = m_newsDB->AddNewHdrToDB(newMsgHdr, PR_TRUE);
     NS_ENSURE_SUCCESS(rv,rv);
   }
-  
+
   return NS_OK;
 }
 
@@ -776,10 +773,10 @@ NS_IMETHODIMP nsNNTPNewsgroupList::ApplyFilterHit(nsIMsgFilter *aFilter, nsIMsgW
   NS_ENSURE_ARG_POINTER(aApplyMore);
   NS_ENSURE_TRUE(m_newMsgHdr, NS_ERROR_UNEXPECTED);
   NS_ENSURE_TRUE(m_newsDB, NS_ERROR_UNEXPECTED);
-   
+
   // you can't move news messages, so applyMore is always true
   *aApplyMore = PR_TRUE;
-  
+
   nsCOMPtr<nsISupportsArray> filterActionList;
   nsresult rv = NS_NewISupportsArray(getter_AddRefs(filterActionList));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -802,10 +799,10 @@ NS_IMETHODIMP nsNNTPNewsgroupList::ApplyFilterHit(nsIMsgFilter *aFilter, nsIMsgW
     filterActionList->QueryElementAt(actionIndex, NS_GET_IID(nsIMsgRuleAction), getter_AddRefs(filterAction));
     if (!filterAction)
       continue;
-    
+
     nsMsgRuleActionType actionType;
     if (NS_SUCCEEDED(filterAction->GetType(&actionType)))
-    {  
+    {
       switch (actionType)
       {
       case nsMsgFilterAction::Delete:
@@ -862,7 +859,7 @@ NS_IMETHODIMP nsNNTPNewsgroupList::ApplyFilterHit(nsIMsgFilter *aFilter, nsIMsgW
       case nsMsgFilterAction::StopExecution:
       {
         // don't apply any more filters
-        *aApplyMore = PR_FALSE; 
+        *aApplyMore = PR_FALSE;
       }
       break;
 
@@ -870,7 +867,7 @@ NS_IMETHODIMP nsNNTPNewsgroupList::ApplyFilterHit(nsIMsgFilter *aFilter, nsIMsgW
         NS_ASSERTION(0, "unexpected action");
         break;
       }
-      
+
       if (loggingEnabled)
         (void) aFilter->LogRuleHit(filterAction, m_newMsgHdr);
     }
@@ -893,7 +890,7 @@ nsNNTPNewsgroupList::ProcessXOVERLINE(const char *line, PRUint32 *status)
   if (m_newsDB)
   {
     char *xoverline = PL_strdup(line);
-    if (!xoverline) 
+    if (!xoverline)
       return NS_ERROR_OUT_OF_MEMORY;
     rv = ParseLine(xoverline, &message_number);
     PL_strfree(xoverline);
@@ -911,7 +908,7 @@ nsNNTPNewsgroupList::ProcessXOVERLINE(const char *line, PRUint32 *status)
   /* There are some articles that XOVER skipped; they must no longer
      exist.  Mark them as read in the newsrc, so we don't include them
      next time in our estimated number of unread messages. */
-    if (m_set->AddRange(m_lastProcessedNumber + 1, message_number - 1)) 
+    if (m_set->AddRange(m_lastProcessedNumber + 1, message_number - 1))
     {
     /* This isn't really an important enough change to warrant causing
        the newsrc file to be saved; we haven't gathered any information
@@ -920,11 +917,11 @@ nsNNTPNewsgroupList::ProcessXOVERLINE(const char *line, PRUint32 *status)
   }
 
   m_lastProcessedNumber = message_number;
-  if (m_knownArts.set) 
+  if (m_knownArts.set)
   {
     int result = m_knownArts.set->Add(message_number);
     if (result < 0) {
-      if (status) 
+      if (status)
         *status = result;
       return NS_ERROR_NOT_INITIALIZED;
     }
@@ -953,7 +950,7 @@ nsNNTPNewsgroupList::ProcessXOVERLINE(const char *line, PRUint32 *status)
 
     LL_SUB(elapsedTime, PR_Now(), m_lastStatusUpdate);
 
-    if (LL_CMP(elapsedTime, >, MIN_STATUS_UPDATE_INTERVAL) || 
+    if (LL_CMP(elapsedTime, >, MIN_STATUS_UPDATE_INTERVAL) ||
         lastIndex == totIndex)
     {
       nsAutoString numDownloadedStr;
@@ -973,7 +970,7 @@ nsNNTPNewsgroupList::ProcessXOVERLINE(const char *line, PRUint32 *status)
       const PRUnichar *formatStrings[2] = { numDownloadedStr.get(), totalToDownloadStr.get() };
       rv = bundle->FormatStringFromName(NS_LITERAL_STRING("downloadingHeaders").get(), formatStrings, 2, getter_Copies(statusString));
       NS_ENSURE_SUCCESS(rv, rv);
-      
+
 #ifdef DEBUG_NEWS
       PRInt32 elapsed;
       LL_L2I(elapsed, elapsedTime);
@@ -1035,12 +1032,12 @@ nsNNTPNewsgroupList::FinishXOVERLINE(int status, int *newstatus)
 
   k = &m_knownArts;
 
-  if (k && k->set) 
+  if (k && k->set)
   {
     PRInt32 n = k->set->FirstNonMember();
-    if (n < k->first_possible || n > k->last_possible) 
+    if (n < k->first_possible || n > k->last_possible)
     {
-      /* We know we've gotten all there is to know.  
+      /* We know we've gotten all there is to know.
          Take advantage of that to update our counts... */
       // ### dmb
     }
@@ -1048,7 +1045,7 @@ nsNNTPNewsgroupList::FinishXOVERLINE(int status, int *newstatus)
 
   if (!m_finishingXover)
   {
-    // turn on m_finishingXover - this is a horrible hack to avoid recursive 
+    // turn on m_finishingXover - this is a horrible hack to avoid recursive
     // calls which happen when the fe selects a message as a result of getting EndingUpdate,
     // which interrupts this url right before it was going to finish and causes FinishXOver
     // to get called again.
@@ -1080,7 +1077,7 @@ nsNNTPNewsgroupList::FinishXOVERLINE(int status, int *newstatus)
     }
   }
 
-  if (newstatus) 
+  if (newstatus)
     *newstatus=0;
 
   return NS_OK;
@@ -1095,7 +1092,7 @@ nsNNTPNewsgroupList::ClearXOVERState()
 void
 nsNNTPNewsgroupList::SetProgressBarPercent(PRInt32 percent)
 {
-  if (!m_runningURL) 
+  if (!m_runningURL)
     return;
 
   nsCOMPtr <nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(m_runningURL);
@@ -1107,12 +1104,12 @@ nsNNTPNewsgroupList::SetProgressBarPercent(PRInt32 percent)
       feedback->ShowProgress(percent);
     }
   }
-} 
+}
 
 void
 nsNNTPNewsgroupList::SetProgressStatus(const PRUnichar *message)
 {
-  if (!m_runningURL) 
+  if (!m_runningURL)
     return;
 
   nsCOMPtr <nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(m_runningURL);
@@ -1124,15 +1121,15 @@ nsNNTPNewsgroupList::SetProgressStatus(const PRUnichar *message)
       feedback->ShowStatusString(message);
     }
   }
-}     
+}
 
-NS_IMETHODIMP nsNNTPNewsgroupList::SetGetOldMessages(PRBool aGetOldMessages) 
+NS_IMETHODIMP nsNNTPNewsgroupList::SetGetOldMessages(PRBool aGetOldMessages)
 {
 	m_getOldMessages = aGetOldMessages;
 	return NS_OK;
 }
 
-NS_IMETHODIMP nsNNTPNewsgroupList::GetGetOldMessages(PRBool *aGetOldMessages) 
+NS_IMETHODIMP nsNNTPNewsgroupList::GetGetOldMessages(PRBool *aGetOldMessages)
 {
 	NS_ENSURE_ARG(aGetOldMessages);
 

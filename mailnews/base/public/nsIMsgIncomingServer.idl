@@ -57,35 +57,35 @@ interface nsILocalFile;
  * often you will want to add extra interfaces that give you server-specific
  * attributes and methods.
  */
-[scriptable, uuid(1e9a61e4-bd3a-4d08-8bc8-27f95ecb88ac)]
+[scriptable, uuid(5A1D6341-E808-4e1c-A587-D65C5898B532)]
 interface nsIMsgIncomingServer : nsISupports {
 
   /**
    * internal pref key - guaranteed to be unique across all servers
    */
-  attribute string key;
+  attribute ACString key;
 
   /**
    * pretty name - should be "userid on hostname"
    * if the pref is not set
    */
-  attribute wstring prettyName;
+  attribute AString prettyName;
 
   /**
   * helper function to construct the pretty name in a server type
   * specific way - e.g., mail for foo@test.com, news on news.mozilla.org
   */
-  readonly attribute wstring constructedPrettyName;
+  readonly attribute AString constructedPrettyName;
 
   /**
    * hostname of the server
    */
-  attribute string hostName;
+  attribute ACString hostName;
   
   /**
    * real hostname of the server (if server name is changed it's stored here)
    */
-  attribute string realHostName;
+  attribute ACString realHostName;
   
   /* port of the server */
   attribute long port;
@@ -93,18 +93,18 @@ interface nsIMsgIncomingServer : nsISupports {
   /**
    * userid to log into the server
    */
-  attribute string username;
+  attribute ACString username;
 
   /**
    * real username of the server (if username is changed it's stored here)
    */
-  attribute string realUsername;
+  attribute ACString realUsername;
 
   /**
    * protocol type, i.e. "pop3", "imap", "nntp", "none", etc
    * used to construct URLs
    */
-  attribute string type;
+  attribute ACString type;
 
   readonly attribute AString accountManagerChrome;
 
@@ -113,19 +113,19 @@ interface nsIMsgIncomingServer : nsISupports {
    * as "mailbox", "imap", or "news"
    * used to construct URIs
    */
-  readonly attribute string localStoreType;
+  readonly attribute ACString localStoreType;
 
   // Perform specific tasks (reset flags, remove files, etc) for account user/server name changes.
-  void OnUserOrHostNameChanged(in string oldName, in string newName);
+  void onUserOrHostNameChanged(in ACString oldName, in ACString newName);
   
   /* should we remember the password? */
   attribute boolean rememberPassword;
 
   /* cleartext version of the password */
-  attribute string password;
+  attribute ACString password;
 
   /* prompt the user for a password */
-  string getPasswordWithUI(in wstring aPromptString, in wstring aPromptTitle, in nsIMsgWindow aMsgWindow, out boolean okayValue);
+  ACString getPasswordWithUI(in AString aPromptString, in AString aPromptTitle, in nsIMsgWindow aMsgWindow, out boolean okayValue);
 
   /* forget the password in memory and in single signon database */
   void forgetPassword();
@@ -159,7 +159,7 @@ interface nsIMsgIncomingServer : nsISupports {
   attribute nsILocalFile localPath;
 
   /* the RDF URI for the root mail folder */
-  readonly attribute string serverURI;
+  readonly attribute ACString serverURI;
 
   /* the root folder for this server, even if server is deferred */
   attribute nsIMsgFolder rootFolder;
@@ -196,7 +196,7 @@ interface nsIMsgIncomingServer : nsISupports {
   readonly attribute boolean isSecureServer;
 
   /* what kind of logon redirector to use for this server, if any */
-  attribute string redirectorType;
+  attribute ACString redirectorType;
 
   /* empty trash on exit */
   attribute boolean emptyTrashOnExit;
@@ -208,10 +208,10 @@ interface nsIMsgIncomingServer : nsISupports {
   void setFilterList(in nsIMsgFilterList aFilterList);
 
   /* we use this to set the default local path.  we use this when migrating prefs */
-  void SetDefaultLocalPath(in nsILocalFile aDefaultLocalPath);
+  void setDefaultLocalPath(in nsILocalFile aDefaultLocalPath);
 
   /* do a biff */
-  void PerformBiff(in nsIMsgWindow aMsgWindow);
+  void performBiff(in nsIMsgWindow aMsgWindow);
   
   /* get new messages */
   void getNewMessages(in nsIMsgFolder aFolder, in nsIMsgWindow aMsgWindow, 
@@ -223,10 +223,10 @@ interface nsIMsgIncomingServer : nsISupports {
   void performExpand(in nsIMsgWindow aMsgWindow);
 
   /* Write out all known folder data to panacea.dat */
-  void WriteToFolderCache(in nsIMsgFolderCache folderCache);
+  void writeToFolderCache(in nsIMsgFolderCache folderCache);
 
   /* close any server connections */
-  void CloseCachedConnections();
+  void closeCachedConnections();
  
   /* ... */
   void shutdown();
@@ -235,11 +235,11 @@ interface nsIMsgIncomingServer : nsISupports {
   boolean getBoolValue(in string attr);
   void setBoolValue(in string attr, in boolean value);
 
-  string getCharValue(in string attr);
-  void setCharValue(in string attr, in string value);
+  ACString getCharValue(in string attr);
+  void setCharValue(in string attr, in ACString value);
 
-  wstring getUnicharValue(in string attr);
-  void setUnicharValue(in string attr, in wstring value);
+  AString getUnicharValue(in string attr);
+  void setUnicharValue(in string attr, in AString value);
   
   long getIntValue(in string attr);
   void setIntValue(in string attr, in long value);
@@ -261,7 +261,7 @@ interface nsIMsgIncomingServer : nsISupports {
   
   attribute boolean valid;
   
-  wstring toString();
+  AString toString();
 
   void displayOfflineMsg(in nsIMsgWindow aWindow);
 
@@ -319,7 +319,7 @@ interface nsIMsgIncomingServer : nsISupports {
   attribute long offlineSupportLevel;
 
   /* create pretty name for migrated accounts */
-  wstring generatePrettyNameForMigration(); 
+  AString generatePrettyNameForMigration(); 
 
   /* does this server have disk space settings? */
   readonly attribute boolean supportsDiskSpace;
@@ -359,11 +359,11 @@ interface nsIMsgIncomingServer : nsISupports {
    * these generic getter / setters, useful for extending mailnews 
    * note, these attributes persist across sessions
    */
-  wstring getUnicharAttribute(in string name);
-  void setUnicharAttribute(in string name, in wstring value);
+  AString getUnicharAttribute(in string name);
+  void setUnicharAttribute(in string name, in AString value);
   
-  string getCharAttribute(in string name);
-  void setCharAttribute(in string name, in string value);
+  ACString getCharAttribute(in string name);
+  void setCharAttribute(in string name, in ACString value);
 
   boolean getBoolAttribute(in string name);
   void setBoolAttribute(in string name, in boolean value);
@@ -405,7 +405,7 @@ interface nsIMsgIncomingServer : nsISupports {
   readonly attribute nsISpamSettings spamSettings;
   readonly attribute nsIMsgFilterPlugin spamFilterPlugin;
 
-  nsIMsgFolder getMsgFolderFromURI(in nsIMsgFolder aFolderResource, in string aURI);
+  nsIMsgFolder getMsgFolderFromURI(in nsIMsgFolder aFolderResource, in ACString aURI);
 
   readonly attribute boolean isDeferredTo;
 
@@ -445,41 +445,40 @@ interface nsIMsgIncomingServer : nsISupports {
 #define PORT_NOT_SET -1
 
 /* some useful macros to implement nsIMsgIncomingServer accessors */
-#define NS_IMPL_SERVERPREF_STR(_class, _postfix, _prefname)	\
-NS_IMETHODIMP								   	\
-_class::Get##_postfix(char **retval)   			\
-{											   	\
-  return GetCharValue(_prefname, retval);		\
-}												\
-NS_IMETHODIMP	   								\
-_class::Set##_postfix(const char *chvalue)			\
-{												\
-  return SetCharValue(_prefname, chvalue);		\
+#define NS_IMPL_SERVERPREF_STR(_class, _postfix, _prefname) \
+NS_IMETHODIMP                              \
+_class::Get##_postfix(nsACString& retval)  \
+{                                          \
+  return GetCharValue(_prefname, retval);  \
+}                                          \
+NS_IMETHODIMP                              \
+_class::Set##_postfix(const nsACString& chvalue) \
+{                                          \
+  return SetCharValue(_prefname, chvalue); \
 }
 
 #define NS_IMPL_SERVERPREF_BOOL(_class, _postfix, _prefname)\
-NS_IMETHODIMP								   	\
-_class::Get##_postfix(PRBool *retval)   		\
-{											   	\
-  return GetBoolValue(_prefname, retval);		\
-}												\
-NS_IMETHODIMP	   								\
-_class::Set##_postfix(PRBool bvalue)			\
-{												\
-  return SetBoolValue(_prefname, bvalue);		\
+NS_IMETHODIMP                                               \
+_class::Get##_postfix(PRBool *retval)                       \
+{                                                           \
+  return GetBoolValue(_prefname, retval);                   \
+}                                                           \
+NS_IMETHODIMP                                               \
+_class::Set##_postfix(PRBool bvalue)                        \
+{                                                           \
+  return SetBoolValue(_prefname, bvalue);                   \
 }
 
 #define NS_IMPL_SERVERPREF_INT(_class, _postfix, _prefname)\
-NS_IMETHODIMP								   	\
-_class::Get##_postfix(PRInt32 *retval)   		\
-{											   	\
-  return GetIntValue(_prefname, retval);			\
-}												\
-NS_IMETHODIMP	   								\
-_class::Set##_postfix(PRInt32 ivalue)			\
-{												\
-  return SetIntValue(_prefname, ivalue);			\
+NS_IMETHODIMP                                              \
+_class::Get##_postfix(PRInt32 *retval)                     \
+{                                                          \
+  return GetIntValue(_prefname, retval);                   \
+}                                                          \
+NS_IMETHODIMP                                              \
+_class::Set##_postfix(PRInt32 ivalue)                      \
+{                                                          \
+  return SetIntValue(_prefname, ivalue);                   \
 }
-
 
 %}

@@ -119,8 +119,8 @@ NS_IMETHODIMP nsMsgDBService::OpenFolderDB(nsIMsgFolder *aFolder, PRBool aCreate
   nsCOMPtr <nsIMsgIncomingServer> incomingServer;
   nsresult rv = aFolder->GetServer(getter_AddRefs(incomingServer));
   NS_ENSURE_SUCCESS(rv, rv);
-  nsXPIDLCString localStoreType;
-  incomingServer->GetLocalStoreType(getter_Copies(localStoreType));
+  nsCString localStoreType;
+  incomingServer->GetLocalStoreType(localStoreType);
   nsCAutoString dbContractID(NS_MSGDB_CONTRACTID);
   dbContractID.Append(localStoreType.get());
   nsCOMPtr <nsIMsgDatabase> msgDB = do_CreateInstance(dbContractID.get(), &rv);

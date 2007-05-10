@@ -40,22 +40,15 @@
 
 #include "nsIImportSettings.h"
 
-
 class nsOESettings : public nsIImportSettings {
 public:
-    nsOESettings();
-    virtual ~nsOESettings();
-
-	static nsresult Create(nsIImportSettings** aImport);
-
-    // nsISupports interface
-    NS_DECL_ISUPPORTS
-
-	// nsIImportSettings interface
-	NS_DECL_NSIIMPORTSETTINGS	  
+  nsOESettings();
+  virtual ~nsOESettings();
+  static nsresult Create(nsIImportSettings** aImport);
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSIIMPORTSETTINGS
 
 private:
-
 };
 
 #endif /* nsOESettings_h___ */

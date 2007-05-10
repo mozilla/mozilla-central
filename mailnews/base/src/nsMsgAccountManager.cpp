@@ -496,10 +496,10 @@ nsMsgAccountManager::createKeyedServer(const nsACString& key,
            do_CreateInstance(serverContractID.get(), &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  server->SetKey(nsCString(key).get());
-  server->SetType(nsCString(type).get());
-  server->SetUsername(nsCString(username).get());
-  server->SetHostName(nsCString(hostname).get());
+  server->SetKey(key);
+  server->SetType(type);
+  server->SetUsername(username);
+  server->SetHostName(hostname);
 
   nsCStringKey hashKey(key);
 
@@ -589,7 +589,7 @@ nsMsgAccountManager::RemoveAccount(nsIMsgAccount *aAccount)
   rv = aAccount->GetIncomingServer(getter_AddRefs(server));
   if (NS_SUCCEEDED(rv) && server) {
     nsCString serverKey;
-    rv = server->GetKey(getter_Copies(serverKey));
+    rv = server->GetKey(serverKey);
     NS_ENSURE_SUCCESS(rv,rv);
 
     LogoutOfServer(server); // close cached connections and forget session password
@@ -597,7 +597,7 @@ nsMsgAccountManager::RemoveAccount(nsIMsgAccount *aAccount)
     // invalidate the FindServer() cache if we are removing the cached server
     if (m_lastFindServerResult) {
       nsCString cachedServerKey;
-      rv = m_lastFindServerResult->GetKey(getter_Copies(cachedServerKey));
+      rv = m_lastFindServerResult->GetKey(cachedServerKey);
       NS_ENSURE_SUCCESS(rv,rv);
 
       if (serverKey.Equals(cachedServerKey)) {
@@ -934,7 +934,7 @@ PRBool PR_CALLBACK nsMsgAccountManager::cleanupOnExit(nsHashKey *aKey, void *aDa
     nsCOMPtr<nsIMsgFolder> root;
     server->GetRootFolder(getter_AddRefs(root));
     nsCString type;
-    server->GetType(getter_Copies(type));
+    server->GetType(type);
     if (root)
     {
       nsCOMPtr<nsIMsgFolder> folder;
@@ -947,7 +947,7 @@ PRBool PR_CALLBACK nsMsgAccountManager::cleanupOnExit(nsHashKey *aKey, void *aDa
          if (isImap)
          {
            server->GetServerRequiresPasswordForBiff(&serverRequiresPasswordForAuthentication);
-           server->GetPassword(getter_Copies(passwd));
+           server->GetPassword(passwd);
          }
          if (!isImap || (isImap && (!serverRequiresPasswordForAuthentication || !passwd.IsEmpty())))
          {
@@ -1540,7 +1540,7 @@ nsMsgAccountManager::FindServerIndex(nsIMsgIncomingServer* server, PRInt32* resu
   nsresult rv;
 
   nsCString key;
-  rv = server->GetKey(getter_Copies(key));
+  rv = server->GetKey(key);
 
   findServerByKeyEntry findEntry;
   findEntry.key = key;
@@ -1573,7 +1573,7 @@ nsMsgAccountManager::findServerIndexByServer(nsISupports *element, void *aData)
     return PR_TRUE;
 
   nsCString key;
-  rv = server->GetKey(getter_Copies(key));
+  rv = server->GetKey(key);
   if (NS_FAILED(rv))
     return PR_TRUE;
 
@@ -1826,7 +1826,7 @@ nsMsgAccountManager::findAccountByServerKey(nsISupports *element,
     return PR_TRUE;
 
   nsCString key;
-  rv = server->GetKey(getter_Copies(key));
+  rv = server->GetKey(key);
   if (NS_FAILED(rv))
     return PR_TRUE;
 
@@ -1854,7 +1854,7 @@ nsMsgAccountManager::FindAccountForServer(nsIMsgIncomingServer *server,
   nsresult rv;
 
   nsCString key;
-  rv = server->GetKey(getter_Copies(key));
+  rv = server->GetKey(key);
   NS_ENSURE_SUCCESS(rv, rv);
 
   findAccountByKeyEntry entry;
@@ -1882,22 +1882,22 @@ nsMsgAccountManager::findServerUrl(nsISupports *aElement, void *data)
 
   nsCString thisHostname;
   if (entry->useRealSetting)
-    rv = server->GetRealHostName(getter_Copies(thisHostname));
+    rv = server->GetRealHostName(thisHostname);
   else
-    rv = server->GetHostName(getter_Copies(thisHostname));
+    rv = server->GetHostName(thisHostname);
   if (NS_FAILED(rv))
     return PR_TRUE;
 
   nsCString thisUsername;
   if (entry->useRealSetting)
-    rv = server->GetRealUsername(getter_Copies(thisUsername));
+    rv = server->GetRealUsername(thisUsername);
   else
-    rv = server->GetUsername(getter_Copies(thisUsername));
+    rv = server->GetUsername(thisUsername);
   if (NS_FAILED(rv))
     return PR_TRUE;
 
   nsCString thisType;
-  rv = server->GetType(getter_Copies(thisType));
+  rv = server->GetType(thisType);
   if (NS_FAILED(rv))
     return PR_TRUE;
 
@@ -1936,22 +1936,22 @@ nsMsgAccountManager::findServer(nsISupports *aElement, void *data)
 
   nsCString thisHostname;
   if (entry->useRealSetting)
-    rv = server->GetRealHostName(getter_Copies(thisHostname));
+    rv = server->GetRealHostName(thisHostname);
   else
-    rv = server->GetHostName(getter_Copies(thisHostname));
+    rv = server->GetHostName(thisHostname);
   if (NS_FAILED(rv))
     return PR_TRUE;
 
   nsCString thisUsername;
   if (entry->useRealSetting)
-    rv = server->GetRealUsername(getter_Copies(thisUsername));
+    rv = server->GetRealUsername(thisUsername);
   else
-    rv = server->GetUsername(getter_Copies(thisUsername));
+    rv = server->GetUsername(thisUsername);
   if (NS_FAILED(rv))
     return PR_TRUE;
 
   nsCString thisType;
-  rv = server->GetType(getter_Copies(thisType));
+  rv = server->GetType(thisType);
   if (NS_FAILED(rv))
     return PR_TRUE;
 
@@ -2046,9 +2046,9 @@ nsMsgAccountManager::findIdentitiesForServer(nsISupports* element, void *aData)
   if (!thisServer || !entry || !(entry->server))
     return PR_TRUE;
 
-  entry->server->GetKey(getter_Copies(serverKey));
+  entry->server->GetKey(serverKey);
   nsCString thisServerKey;
-  thisServer->GetKey(getter_Copies(thisServerKey));
+  thisServer->GetKey(thisServerKey);
   if (serverKey.Equals(thisServerKey))
   {
     // add all these elements to the nsISupports array
@@ -2179,7 +2179,7 @@ NS_IMETHODIMP nsMsgAccountManager::SetLocalFoldersServer(nsIMsgIncomingServer *a
   NS_ENSURE_ARG_POINTER(aServer);
   nsresult rv;
   nsCString key;
-  rv = aServer->GetKey(getter_Copies(key));
+  rv = aServer->GetKey(key);
   NS_ENSURE_SUCCESS(rv, rv);
 
   return m_prefs->SetCharPref(PREF_MAIL_ACCOUNTMANAGER_LOCALFOLDERSSERVER, key.get());
@@ -2236,7 +2236,7 @@ nsMsgAccountManager::CreateLocalMailAccount()
   
   // we don't want "nobody at Local Folders" to show up in the
   // folder pane, so we set the pretty name to "Local Folders"
-  server->SetPrettyName(NS_LITERAL_STRING("Local Folders").get());
+  server->SetPrettyName(NS_LITERAL_STRING("Local Folders"));
   
   nsCOMPtr<nsINoIncomingServer> noServer;
   noServer = do_QueryInterface(server, &rv);

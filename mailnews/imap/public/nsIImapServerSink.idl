@@ -43,34 +43,34 @@ interface nsIMsgMailNewsUrl;
 interface nsIImapProtocol;
 interface nsIImapUrl;
 
-[scriptable, uuid(f61940a5-71d7-455a-8383-940d0b6a964b)]
+[scriptable, uuid(551DE2C4-F932-4ddb-9A14-6CDF7203CDF4)]
 interface nsIImapServerSink : nsISupports {
   /* returns true if it's a new mailbox */
-  boolean possibleImapMailbox(in string folderPath, in wchar hierarchyDelim, in long boxFlags);
-  boolean folderNeedsACLInitialized(in string folderPath);
-  void addFolderRights(in string folderPath, in string userName, in string rights);
-  void refreshFolderRights(in string folderPath);
+  boolean possibleImapMailbox(in ACString folderPath, in wchar hierarchyDelim, in long boxFlags);
+  boolean folderNeedsACLInitialized(in ACString folderPath);
+  void addFolderRights(in ACString folderPath, in ACString userName, in ACString rights);
+  void refreshFolderRights(in ACString folderPath);
   void discoveryDone();
-  void onlineFolderDelete(in string aFolderName);
-  void onlineFolderCreateFailed(in string aFolderName);
-  void onlineFolderRename(in nsIMsgWindow msgWindow, in string oldName, in string newName);
-  void folderIsNoSelect(in string aFolderName, out boolean aResult);
-  void setFolderAdminURL(in string aFolderName, in string adminUrl);
-  boolean folderVerifiedOnline(in string aFolderName);
+  void onlineFolderDelete(in ACString aFolderName);
+  void onlineFolderCreateFailed(in ACString aFolderName);
+  void onlineFolderRename(in nsIMsgWindow msgWindow, in ACString oldName, in ACString newName);
+  boolean folderIsNoSelect(in ACString aFolderName);
+  void setFolderAdminURL(in ACString aFolderName, in ACString adminUrl);
+  boolean folderVerifiedOnline(in ACString aFolderName);
 
   void setCapability(in unsigned long capability);
-  void loadNextQueuedUrl(in nsIImapProtocol aProtocol, out boolean urlRun);
+  boolean loadNextQueuedUrl(in nsIImapProtocol aProtocol);
   void retryUrl(in nsIImapUrl aImapUrl);
   // if previous url failed, this gives server chance to abort urls with same mock channel
   void abortQueuedUrls(); 
-  void getImapStringByID(in long aMsgId, out wstring aString);
-  void formatStringWithHostNameByID(in long aMsgId, out wstring aString);
-  void fEAlert(in wstring aString, in nsIMsgWindow aMsgWindow);
-  void fEAlertFromServer(in string aString, in nsIMsgWindow aMsgWindow);
+  AString getImapStringByID(in long aMsgId);
+  AString formatStringWithHostNameByID(in long aMsgId);
+  void fEAlert(in AString aString, in nsIMsgWindow aMsgWindow);
+  void fEAlertFromServer(in ACString aString, in nsIMsgWindow aMsgWindow);
   void commitNamespaces();
-  void promptForPassword(out string aString, in nsIMsgWindow aMsgWindow);
+  void promptForPassword(out ACString aString, in nsIMsgWindow aMsgWindow);
   attribute boolean userAuthenticated;
-  void setMailServerUrls(in string manageMailAccount, in string manageLists, in string manageFilters);
+  void setMailServerUrls(in ACString manageMailAccount, in ACString manageLists, in ACString manageFilters);
   
   /* this is a bogus method on this interface but i need it until misc. sink is scriptable.. */
   void RemoveChannelFromUrl(in nsIMsgMailNewsUrl aUrl, in unsigned long statusCode);
@@ -79,6 +79,5 @@ interface nsIImapServerSink : nsISupports {
 
   readonly attribute boolean showAttachmentsInline;
   string cramMD5Hash(in string decodedChallenge, in string key);
-
 };
 

@@ -57,7 +57,7 @@ private:
 
 protected:
   nsresult getFolderPref(const char *pref, nsCString&, PRUint32);
-  nsresult setFolderPref(const char *pref, const nsCString&, PRUint32);
+  nsresult setFolderPref(const char *pref, const nsACString&, PRUint32);
 };
 
 
@@ -122,7 +122,7 @@ nsMsgIdentity::Get##_postfix(nsACString& retval)            \
 NS_IMETHODIMP                                               \
 nsMsgIdentity::Set##_postfix(const nsACString& value)       \
 {                                                           \
-  return setFolderPref(_prefname, nsCString(value), _flag); \
+  return setFolderPref(_prefname, value, _flag); \
 }
 
 #endif /* nsMsgIdentity_h___ */

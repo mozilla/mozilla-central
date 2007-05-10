@@ -260,8 +260,8 @@ nsresult nsMsgPurgeService::PerformPurge()
             }
           }
         }
-        nsXPIDLCString type;
-        nsresult rv = server->GetType(getter_Copies(type));
+        nsCString type;
+        nsresult rv = server->GetType(type);
         NS_ENSURE_SUCCESS(rv, rv);
         
         nsCAutoString contractid(NS_MSGPROTOCOLINFO_CONTRACTID_PREFIX);
@@ -271,8 +271,8 @@ nsresult nsMsgPurgeService::PerformPurge()
           do_GetService(contractid.get(), &rv);
         NS_ENSURE_SUCCESS(rv, PR_FALSE);
 
-        nsXPIDLCString realHostName;
-        server->GetRealHostName(getter_Copies(realHostName));
+        nsCString realHostName;
+        server->GetRealHostName(realHostName);
         PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("[%d] %s (%s)", serverIndex, realHostName.get(), type.get()));
 
         nsCOMPtr <nsISpamSettings> spamSettings;

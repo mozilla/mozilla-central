@@ -708,16 +708,13 @@ PRBool nsEudoraMac::BuildPOPAccount( nsIMsgAccountManager *accMgr, nsCString **p
     // Create the incoming server and an account for it?
     rv = accMgr->CreateIncomingServer( *(pStrs[kPopAccountNameStr]), *(pStrs[kPopServerStr]), NS_LITERAL_CSTRING("pop3"), getter_AddRefs( in));
     if (NS_SUCCEEDED( rv) && in) {
-      rv = in->SetType( "pop3");
+      rv = in->SetType(NS_LITERAL_CSTRING("pop3"));
       // rv = in->SetHostName( pStrs[kPopServerStr]->get());
       // rv = in->SetUsername( pStrs[kPopAccountNameStr]->get());
 
       IMPORT_LOG2( "Created POP3 server named: %s, userName: %s\n", pStrs[kPopServerStr]->get(), pStrs[kPopAccountNameStr]->get());
-
-      PRUnichar *pretty = ToNewUnicode(accName);
-      IMPORT_LOG1( "\tSet pretty name to: %S\n", pretty);
-      rv = in->SetPrettyName( pretty);
-      nsCRT::free( pretty);
+      IMPORT_LOG1( "\tSet pretty name to: %S\n", accName.get());
+      rv = in->SetPrettyName( accName);
 
       // We have a server, create an account.
       nsCOMPtr<nsIMsgAccount>	account;
@@ -748,51 +745,45 @@ PRBool nsEudoraMac::BuildPOPAccount( nsIMsgAccountManager *accMgr, nsCString **p
 
 PRBool nsEudoraMac::BuildIMAPAccount( nsIMsgAccountManager *accMgr, nsCString **pStrs, nsIMsgAccount **ppAccount, nsString& accName)
 {
+  if (!pStrs[kPopServerStr]->Length() || !pStrs[kPopAccountNameStr]->Length())
+    return( PR_FALSE);
 
-	if (!pStrs[kPopServerStr]->Length() || !pStrs[kPopAccountNameStr]->Length())
-		return( PR_FALSE);
+  PRBool result = PR_FALSE;
 
-	PRBool	result = PR_FALSE;
+  nsCOMPtr<nsIMsgIncomingServer>	in;
+  nsresult rv = accMgr->FindServer(*(pStrs[kPopAccountNameStr]), *(pStrs[kPopServerStr]), NS_LITERAL_CSTRING("imap"), getter_AddRefs( in));
+  if (NS_FAILED( rv) || (in == nsnull)) {
+    // Create the incoming server and an account for it?
+    rv = accMgr->CreateIncomingServer( *(pStrs[kPopAccountNameStr]), *(pStrs[kPopServerStr]), NS_LITERAL_CSTRING("imap"), getter_AddRefs( in));
+    if (NS_SUCCEEDED( rv) && in) {
+      rv = in->SetType(NS_LITERAL_CSTRING("imap"));
+      // rv = in->SetHostName( pStrs[kPopServerStr]->get());
+      // rv = in->SetUsername( pStrs[kPopAccountNameStr]->get());
 
-	nsCOMPtr<nsIMsgIncomingServer>	in;
-	nsresult rv = accMgr->FindServer(*(pStrs[kPopAccountNameStr]), *(pStrs[kPopServerStr]), NS_LITERAL_CSTRING("imap"), getter_AddRefs( in));
-	if (NS_FAILED( rv) || (in == nsnull)) {
-		// Create the incoming server and an account for it?
-		rv = accMgr->CreateIncomingServer( *(pStrs[kPopAccountNameStr]), *(pStrs[kPopServerStr]), NS_LITERAL_CSTRING("imap"), getter_AddRefs( in));
-		if (NS_SUCCEEDED( rv) && in) {
-			rv = in->SetType( "imap");
-			// rv = in->SetHostName( pStrs[kPopServerStr]->get());
-			// rv = in->SetUsername( pStrs[kPopAccountNameStr]->get());
+      IMPORT_LOG2( "Created IMAP server named: %s, userName: %s\n", pStrs[kPopServerStr]->get(), pStrs[kPopAccountNameStr]->get());
+      IMPORT_LOG1( "\tSet pretty name to: %S\n", accName.get());
+      rv = in->SetPrettyName( accName);
 
-			IMPORT_LOG2( "Created IMAP server named: %s, userName: %s\n", pStrs[kPopServerStr]->get(), pStrs[kPopAccountNameStr]->get());
+      // We have a server, create an account.
+      nsCOMPtr<nsIMsgAccount>	account;
+      rv = accMgr->CreateAccount( getter_AddRefs( account));
+      if (NS_SUCCEEDED( rv) && account) {
+        rv = account->SetIncomingServer( in);
 
-			PRUnichar *pretty = ToNewUnicode(accName);
+        IMPORT_LOG0( "Created an account and set the IMAP server as the incoming server\n");
 
-			IMPORT_LOG1( "\tSet pretty name to: %S\n", pretty);
+        // Fiddle with the identities
+        SetIdentities(accMgr, account, pStrs[kPopAccountNameStr]->get(), pStrs[kPopServerStr]->get(), pStrs);
+        result = PR_TRUE;
+        if (ppAccount)
+          account->QueryInterface( NS_GET_IID(nsIMsgAccount), (void **)ppAccount);
+      }
+    }
+  }
+  else
+    result = PR_TRUE;
 
-			rv = in->SetPrettyName( pretty);
-			nsCRT::free( pretty);
-
-			// We have a server, create an account.
-			nsCOMPtr<nsIMsgAccount>	account;
-			rv = accMgr->CreateAccount( getter_AddRefs( account));
-			if (NS_SUCCEEDED( rv) && account) {
-				rv = account->SetIncomingServer( in);
-
-				IMPORT_LOG0( "Created an account and set the IMAP server as the incoming server\n");
-
-				// Fiddle with the identities
-				SetIdentities(accMgr, account, pStrs[kPopAccountNameStr]->get(), pStrs[kPopServerStr]->get(), pStrs);
-				result = PR_TRUE;
-				if (ppAccount)
-					account->QueryInterface( NS_GET_IID(nsIMsgAccount), (void **)ppAccount);
-			}
-		}
-	}
-	else
-		result = PR_TRUE;
-
-	return( result);
+  return( result);
 }
 
 

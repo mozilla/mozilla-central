@@ -40,11 +40,7 @@
 #include "prmem.h"
 #include "plstr.h"
 #include "prprf.h"
-
-#include "nsXPIDLString.h"
-
 #include "nsNoIncomingServer.h"
-
 #include "nsMsgLocalCID.h"
 #include "nsMsgFolderFlags.h"
 #include "nsIMsgLocalMailFolder.h"
@@ -56,12 +52,10 @@
 NS_IMPL_ISUPPORTS_INHERITED2(nsNoIncomingServer,
                             nsMsgIncomingServer,
                             nsINoIncomingServer,
-			    nsILocalMailIncomingServer)
-
-                            
+                            nsILocalMailIncomingServer)
 
 nsNoIncomingServer::nsNoIncomingServer()
-{    
+{
 }
 
 nsNoIncomingServer::~nsNoIncomingServer()
@@ -69,21 +63,20 @@ nsNoIncomingServer::~nsNoIncomingServer()
 }
 
 nsresult
-nsNoIncomingServer::GetLocalStoreType(char **type)
+nsNoIncomingServer::GetLocalStoreType(nsACString& type)
 {
-  NS_ENSURE_ARG_POINTER(type);
-  *type = nsCRT::strdup("mailbox");
+  type.AssignLiteral("mailbox");
   return NS_OK;
 }
 
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsNoIncomingServer::GetAccountManagerChrome(nsAString& aResult)
 {
   aResult.AssignLiteral("am-serverwithnoidentities.xul");
   return NS_OK;
 }
 
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsNoIncomingServer::SetFlagsOnDefaultMailboxes()
 {
   nsCOMPtr<nsIMsgFolder> rootFolder;
@@ -100,7 +93,7 @@ nsNoIncomingServer::SetFlagsOnDefaultMailboxes()
                           MSG_FOLDER_FLAG_TRASH |
                           MSG_FOLDER_FLAG_JUNK |
                           MSG_FOLDER_FLAG_QUEUE;
- 
+
   // "none" may have a inbox if it is getting deferred to.
   PRBool isDeferredTo;
   if (NS_SUCCEEDED(GetIsDeferredTo(&isDeferredTo)) && isDeferredTo)
@@ -109,24 +102,24 @@ nsNoIncomingServer::SetFlagsOnDefaultMailboxes()
   localFolder->SetFlagsOnDefaultMailboxes(mailboxFlags);
 
   return NS_OK;
-}	
+}
 
 NS_IMETHODIMP nsNoIncomingServer::CopyDefaultMessages(const char *folderNameOnDisk, nsILocalFile *parentDir)
 {
   nsresult rv;
   PRBool exists;
   if (!folderNameOnDisk || !parentDir) return NS_ERROR_NULL_POINTER;
-  
+
   nsCOMPtr<nsIMsgMailSession> mailSession = do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  
-  // Get defaults directory for messenger files. MailSession service appends 'messenger' to the 
+
+  // Get defaults directory for messenger files. MailSession service appends 'messenger' to the
   // the app defaults folder and returns it. Locale will be added to the path, if there is one.
   nsCOMPtr<nsIFile> defaultMessagesFile;
   rv = mailSession->GetDataFilesDir("messenger", getter_AddRefs(defaultMessagesFile));
   NS_ENSURE_SUCCESS(rv,rv);
-  
-  // check if bin/defaults/messenger/<folderNameOnDisk> 
+
+  // check if bin/defaults/messenger/<folderNameOnDisk>
   // (or bin/defaults/messenger/<locale>/<folderNameOnDisk> if we had a locale provide) exists.
   // it doesn't have to exist.  if it doesn't, return
   rv = defaultMessagesFile->AppendNative(nsDependentCString(folderNameOnDisk));
@@ -134,7 +127,7 @@ NS_IMETHODIMP nsNoIncomingServer::CopyDefaultMessages(const char *folderNameOnDi
   rv = defaultMessagesFile->Exists(&exists);
   if (NS_FAILED(rv)) return rv;
   if (!exists) return NS_OK;
-  
+
 
   // check if parentDir/<folderNameOnDisk> exists
   {
@@ -146,9 +139,9 @@ NS_IMETHODIMP nsNoIncomingServer::CopyDefaultMessages(const char *folderNameOnDi
     rv = testDir->Exists(&exists);
     if (NS_FAILED(rv)) return rv;
   }
-  
+
   // if it exists add to the end, else copy
-  if (exists) 
+  if (exists)
   {
 #ifdef DEBUG_sspitzer
     printf("append default %s\n",folderNameOnDisk);
@@ -170,29 +163,29 @@ NS_IMETHODIMP nsNoIncomingServer::CopyDefaultMessages(const char *folderNameOnDi
 
 NS_IMETHODIMP nsNoIncomingServer::CreateDefaultMailboxes(nsIFile *aPath)
 {
-    NS_ENSURE_ARG_POINTER(aPath);
-    nsCOMPtr <nsIFile> path;
-    nsresult rv = aPath->Clone(getter_AddRefs(path));
-    NS_ENSURE_SUCCESS(rv, rv);
-  
+  NS_ENSURE_ARG_POINTER(aPath);
+  nsCOMPtr <nsIFile> path;
+  nsresult rv = aPath->Clone(getter_AddRefs(path));
+  NS_ENSURE_SUCCESS(rv, rv);
+
   // notice, no Inbox, unless we're deferred to...
    // need to have a leaf to start with
-  rv = path->AppendNative(NS_LITERAL_CSTRING("Trash")); 
+  rv = path->AppendNative(NS_LITERAL_CSTRING("Trash"));
   PRBool isDeferredTo;
   if (NS_SUCCEEDED(GetIsDeferredTo(&isDeferredTo)) && isDeferredTo)
-    CreateLocalFolder(path, "Inbox");
-  CreateLocalFolder(path, "Trash");
-  if (NS_FAILED(rv)) return rv;
-  
+    CreateLocalFolder(path, NS_LITERAL_CSTRING("Inbox"));
+  CreateLocalFolder(path, NS_LITERAL_CSTRING("Trash"));
+  NS_ENSURE_SUCCESS(rv, rv);
+
   // copy the default templates into the Templates folder
   nsCOMPtr<nsIFile> parentDir;
   rv = path->GetParent(getter_AddRefs(parentDir));
-  if (NS_FAILED(rv)) return rv;
+  NS_ENSURE_SUCCESS(rv, rv);
   nsCOMPtr <nsILocalFile> parent = do_QueryInterface(parentDir);
   rv = CopyDefaultMessages("Templates", parent);
-  if (NS_FAILED(rv)) return rv;
-  
-  (void ) CreateLocalFolder(path, "Unsent Messages");
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  (void ) CreateLocalFolder(path, NS_LITERAL_CSTRING("Unsent Messages"));
   return NS_OK;
 }
 
@@ -210,7 +203,7 @@ nsNoIncomingServer::GetNewMail(nsIMsgWindow *aMsgWindow, nsIUrlListener *aUrlLis
     if (firstServer)
     {
       rv = firstServer->DownloadMailFromServers(deferredServers, aMsgWindow,
-                              aInbox, 
+                              aInbox,
                               aUrlListener);
     }
   }
@@ -229,7 +222,7 @@ nsNoIncomingServer::GetCanSearchMessages(PRBool *canSearchMessages)
   return NS_OK;
 }
 
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsNoIncomingServer::GetServerRequiresPasswordForBiff(PRBool *aServerRequiresPasswordForBiff)
 {
   NS_ENSURE_ARG_POINTER(aServerRequiresPasswordForBiff);

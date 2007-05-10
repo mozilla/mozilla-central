@@ -289,7 +289,7 @@ nsMsgIdentity::getFolderPref(const char *prefname, nsCString& retval, PRUint32 f
       if (server)
       {
         nsCOMPtr <nsIMsgFolder> msgFolder;
-        server->GetMsgFolderFromURI(folderResource, retval.get(), getter_AddRefs(msgFolder));
+        server->GetMsgFolderFromURI(folderResource, retval, getter_AddRefs(msgFolder));
         return msgFolder->GetURI(getter_Copies(retval));
       }
     }
@@ -303,7 +303,7 @@ nsMsgIdentity::getFolderPref(const char *prefname, nsCString& retval, PRUint32 f
 }
 
 nsresult
-nsMsgIdentity::setFolderPref(const char *prefname, const nsCString& value, PRUint32 folderflag)
+nsMsgIdentity::setFolderPref(const char *prefname, const nsACString& value, PRUint32 folderflag)
 {
   nsCString oldpref;
   nsresult rv;

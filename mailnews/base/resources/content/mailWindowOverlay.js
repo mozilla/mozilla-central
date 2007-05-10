@@ -845,7 +845,7 @@ function MsgGetMessagesForAllServers(defaultServer)
                 else
                 {
                     // Check to see if there are new messages on the server
-                    currentServer.PerformBiff(msgWindow);
+                    currentServer.performBiff(msgWindow);
                 }
             }
         }

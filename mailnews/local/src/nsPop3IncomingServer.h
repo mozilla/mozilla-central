@@ -49,37 +49,37 @@
 class nsPop3IncomingServer : public nsMsgIncomingServer,
                              public nsIPop3IncomingServer,
                              public nsILocalMailIncomingServer
-                             
+
 {
 public:
-    NS_DECL_ISUPPORTS_INHERITED
-    NS_DECL_NSIPOP3INCOMINGSERVER
-    NS_DECL_NSILOCALMAILINCOMINGSERVER
+  NS_DECL_ISUPPORTS_INHERITED
+  NS_DECL_NSIPOP3INCOMINGSERVER
+  NS_DECL_NSILOCALMAILINCOMINGSERVER
 
-    nsPop3IncomingServer();
-    virtual ~nsPop3IncomingServer();
+  nsPop3IncomingServer();
+  virtual ~nsPop3IncomingServer();
 
-    NS_IMETHOD GetLocalStoreType(char **);
-    NS_IMETHOD PerformBiff(nsIMsgWindow *aMsgWindow);
-    NS_IMETHOD GetDownloadMessagesAtStartup(PRBool *getMessages);
-    NS_IMETHOD GetCanBeDefaultServer(PRBool *canBeDefaultServer);
-    NS_IMETHOD GetCanSearchMessages(PRBool *canSearchMessages);
-    NS_IMETHOD GetOfflineSupportLevel(PRInt32 *aSupportLevel);
-    NS_IMETHOD GetRootMsgFolder(nsIMsgFolder **aRootMsgFolder);
-    NS_IMETHOD GetCanFileMessagesOnServer(PRBool *aCanFileMessagesOnServer);
-    NS_IMETHOD GetCanCreateFoldersOnServer(PRBool *aCanCreateFoldersOnServer);
-    NS_IMETHOD GetNewMessages(nsIMsgFolder *aFolder, nsIMsgWindow *aMsgWindow, 
-                      nsIUrlListener *aUrlListener);
+  NS_IMETHOD GetLocalStoreType(nsACString& type);
+  NS_IMETHOD PerformBiff(nsIMsgWindow *aMsgWindow);
+  NS_IMETHOD GetDownloadMessagesAtStartup(PRBool *getMessages);
+  NS_IMETHOD GetCanBeDefaultServer(PRBool *canBeDefaultServer);
+  NS_IMETHOD GetCanSearchMessages(PRBool *canSearchMessages);
+  NS_IMETHOD GetOfflineSupportLevel(PRInt32 *aSupportLevel);
+  NS_IMETHOD GetRootMsgFolder(nsIMsgFolder **aRootMsgFolder);
+  NS_IMETHOD GetCanFileMessagesOnServer(PRBool *aCanFileMessagesOnServer);
+  NS_IMETHOD GetCanCreateFoldersOnServer(PRBool *aCanCreateFoldersOnServer);
+  NS_IMETHOD GetNewMessages(nsIMsgFolder *aFolder, nsIMsgWindow *aMsgWindow,
+                    nsIUrlListener *aUrlListener);
 
 protected:
-    nsresult GetInbox(nsIMsgWindow *msgWindow, nsIMsgFolder **inbox);
+  nsresult GetInbox(nsIMsgWindow *msgWindow, nsIMsgFolder **inbox);
 
-private:    
-    PRUint32 m_capabilityFlags;
-    PRBool m_authenticated;
-    nsCOMPtr <nsIPop3Protocol> m_runningProtocol;
-    nsCOMPtr <nsIMsgFolder> m_rootMsgFolder;
-    nsVoidArray m_uidlsToMark;
+private:
+  PRUint32 m_capabilityFlags;
+  PRBool m_authenticated;
+  nsCOMPtr <nsIPop3Protocol> m_runningProtocol;
+  nsCOMPtr <nsIMsgFolder> m_rootMsgFolder;
+  nsVoidArray m_uidlsToMark;
 };
 
 #endif

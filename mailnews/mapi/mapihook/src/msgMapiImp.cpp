@@ -311,13 +311,12 @@ nsresult CMapiImp::GetDefaultInbox(nsIMsgFolder **inboxFolder)
   rv = account->GetIncomingServer(getter_AddRefs(server));
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsXPIDLCString type;
-  rv = server->GetType(getter_Copies(type));
+  nsCString type;
+  rv = server->GetType(type);
   NS_ENSURE_SUCCESS(rv,rv);
 
   // we only care about imap and pop3
-  if (!(nsCRT::strcmp(type.get(), "imap")) ||
-      !(nsCRT::strcmp(type.get(), "pop3"))) 
+  if (type.EqualsLiteral("imap") || type.EqualsLiteral("pop3"))
   {
     // imap and pop3 account should have an Inbox
     nsCOMPtr<nsIMsgFolder> rootMsgFolder;

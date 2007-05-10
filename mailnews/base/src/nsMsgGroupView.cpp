@@ -123,8 +123,8 @@ NS_IMETHODIMP nsMsgGroupView::Close()
 
 nsHashKey *nsMsgGroupView::AllocHashKeyForHdr(nsIMsgDBHdr *msgHdr)
 {
-  static nsXPIDLCString cStringKey;
-  static nsXPIDLString stringKey;
+  static nsCString cStringKey;
+  static nsString stringKey;
   nsresult rv;
 
   switch (m_sortType)
@@ -148,7 +148,7 @@ nsHashKey *nsMsgGroupView::AllocHashKeyForHdr(nsIMsgDBHdr *msgHdr)
           GetDBForViewIndex(0, getter_AddRefs(dbToUse));
 
         rv = (m_sortType == nsMsgViewSortType::byAccount) 
-          ? FetchAccount(msgHdr, getter_Copies(stringKey))
+          ? FetchAccount(msgHdr, stringKey)
           : FetchTags(msgHdr, getter_Copies(stringKey));
         return NS_SUCCEEDED(rv) ? new nsStringKey(stringKey.get()) : nsnull;
 
@@ -685,8 +685,7 @@ NS_IMETHODIMP nsMsgGroupView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsA
           aValue.Assign(valueText);
           break;
         case nsMsgViewSortType::byAccount:
-          FetchAccount(msgHdr, getter_Copies(valueText));
-          aValue.Assign(valueText);
+          FetchAccount(msgHdr, aValue);
           break;
         case nsMsgViewSortType::byRecipient:
           FetchRecipients(msgHdr, getter_Copies(valueText));

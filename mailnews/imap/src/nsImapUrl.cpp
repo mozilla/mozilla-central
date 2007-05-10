@@ -92,8 +92,8 @@ nsImapUrl::nsImapUrl()
   m_contentModified = IMAP_CONTENT_NOT_MODIFIED;
   m_validUrl = PR_TRUE;	// assume the best.
   m_flags = 0;
-  m_onlineSubDirSeparator = '/'; 
-  
+  m_onlineSubDirSeparator = '/';
+
   // ** jt - the following are not ref counted
   m_copyState = nsnull;
   m_file = nsnull;
@@ -117,7 +117,7 @@ NS_IMETHODIMP nsImapUrl::InitializeURIforMockChannel()
     m_mockChannel->SetURI(this);
   return NS_OK;
 }
- 
+
 NS_IMETHODIMP nsImapUrl::SetMsgWindow(nsIMsgWindow *aMsgWindow)
 {
   if (aMsgWindow)
@@ -149,7 +149,7 @@ nsImapUrl::~nsImapUrl()
   PR_FREEIF(m_sourceCanonicalFolderPathSubString);
   PR_FREEIF(m_searchCriteriaString);
 }
-  
+
 NS_IMPL_ADDREF_INHERITED(nsImapUrl, nsMsgMailNewsUrl)
 
 NS_IMPL_RELEASE_INHERITED(nsImapUrl, nsMsgMailNewsUrl)
@@ -168,15 +168,15 @@ NS_IMETHODIMP nsImapUrl::GetRequiredImapState(nsImapState * aImapUrlState)
 {
   if (aImapUrlState)
   {
-    // the imap action determines the state we must be in...check the 
+    // the imap action determines the state we must be in...check the
     // the imap action.
-    
+
     if (m_imapAction & 0x10000000)
       *aImapUrlState = nsImapSelectedState;
     else
       *aImapUrlState = nsImapAuthenticatedState;
   }
-  
+
   return NS_OK;
 }
 
@@ -211,7 +211,7 @@ NS_IMETHODIMP nsImapUrl::SetFolder(nsIMsgFolder  * aMsgFolder)
     nsCOMPtr <nsIMsgIncomingServer> incomingServer;
     aMsgFolder->GetServer(getter_AddRefs(incomingServer));
     if (incomingServer)
-      incomingServer->GetKey(getter_Copies(m_serverKey));
+      incomingServer->GetKey(m_serverKey);
   }
   return rv;
 }
@@ -235,7 +235,7 @@ NS_IMETHODIMP nsImapUrl::SetImapMailFolderSink(nsIImapMailFolderSink  * aImapMai
     m_imapMailFolderSink = do_GetWeakReference(aImapMailFolderSink, &rv);
     return rv;
 }
- 
+
 NS_IMETHODIMP nsImapUrl::GetImapMessageSink(nsIImapMessageSink ** aImapMessageSink)
 {
     NS_ENSURE_ARG_POINTER(aImapMessageSink);
@@ -272,7 +272,7 @@ NS_IMETHODIMP nsImapUrl::SetImapServerSink(nsIImapServerSink  * aImapServerSink)
   return rv;
 }
 
-        
+
 ////////////////////////////////////////////////////////////////////////////////////
 // End nsIImapUrl specific support
 ////////////////////////////////////////////////////////////////////////////////////
@@ -301,7 +301,7 @@ nsresult nsImapUrl::ParseUrl()
   nsresult rv = NS_OK;
   // extract the user name
   GetUserPass(m_userName);
-  
+
   nsCAutoString imapPartOfUrl;
   rv = GetPath(imapPartOfUrl);
   NS_UnescapeURL(imapPartOfUrl);
@@ -309,7 +309,7 @@ nsresult nsImapUrl::ParseUrl()
   {
     ParseImapPart(imapPartOfUrl.BeginWriting()+1);  // GetPath leaves leading '/' in the path!!!
   }
-  
+
   return NS_OK;
 }
 
@@ -317,22 +317,22 @@ NS_IMETHODIMP nsImapUrl::CreateSearchCriteriaString(char ** aResult)
 {
   // this method should only be called from the imap thread...
   // o.t. add lock protection..
-  if (nsnull == aResult || !m_searchCriteriaString) 
+  if (nsnull == aResult || !m_searchCriteriaString)
     return  NS_ERROR_NULL_POINTER;
   *aResult = strdup(m_searchCriteriaString);
   return NS_OK;
 }
 
 // this method gets called from the UI thread and the imap thread
-NS_IMETHODIMP nsImapUrl::CreateListOfMessageIdsString(char ** aResult) 
+NS_IMETHODIMP nsImapUrl::CreateListOfMessageIdsString(char ** aResult)
 {
   nsAutoCMonitor mon(this);
   nsCAutoString newStr;
-  if (nsnull == aResult || !m_listOfMessageIds) 
+  if (nsnull == aResult || !m_listOfMessageIds)
     return  NS_ERROR_NULL_POINTER;
-  
+
   PRInt32 bytesToCopy = strlen(m_listOfMessageIds);
-  
+
   // mime may have glommed a "&part=" for a part download
   // we return the entire message and let mime extract
   // the part. Pop and news work this way also.
@@ -342,13 +342,13 @@ NS_IMETHODIMP nsImapUrl::CreateListOfMessageIdsString(char ** aResult)
     currentChar++;
   if (*currentChar == '?')
     bytesToCopy = currentChar - m_listOfMessageIds;
-  
+
   // we should also strip off anything after "/;section="
   // since that can specify an IMAP MIME part
   char *wherePart = PL_strstr(m_listOfMessageIds, "/;section=");
   if (wherePart)
     bytesToCopy = PR_MIN(bytesToCopy, wherePart - m_listOfMessageIds);
-  
+
   newStr.Assign(m_listOfMessageIds, bytesToCopy);
   *aResult = ToNewCString(newStr);
   return NS_OK;
@@ -410,7 +410,7 @@ NS_IMETHODIMP nsImapUrl::GetCustomSubtractFlags(char **aResult)
 }
 
 
-NS_IMETHODIMP nsImapUrl::GetImapPartToFetch(char **result) 
+NS_IMETHODIMP nsImapUrl::GetImapPartToFetch(char **result)
 {
   //  here's the old code....
 
@@ -488,20 +488,20 @@ void nsImapUrl::ParseImapPart(char *imapPartOfUrl)
 {
   m_tokenPlaceHolder = imapPartOfUrl;
   m_urlidSubString = m_tokenPlaceHolder ? nsCRT::strtok(m_tokenPlaceHolder, IMAP_URL_TOKEN_SEPARATOR, &m_tokenPlaceHolder) : (char *)NULL;
-  
+
   if (!m_urlidSubString)
   {
     m_validUrl = PR_FALSE;
     return;
   }
-  
+
   if (!nsCRT::strcasecmp(m_urlidSubString, "fetch"))
   {
     m_imapAction  = nsImapMsgFetch;
     ParseUidChoice();
     PR_FREEIF(m_sourceCanonicalFolderPathSubString);
     ParseFolderPath(&m_sourceCanonicalFolderPathSubString);
-    ParseListOfMessageIds(); 
+    ParseListOfMessageIds();
     // if fetched by spam filter, the action will be changed to nsImapMsgFetchPeek
   }
   else /* if (fInternal) no concept of internal - not sure there will be one */
@@ -784,7 +784,7 @@ void nsImapUrl::ParseImapPart(char *imapPartOfUrl)
     }
     else
     {
-      m_validUrl = PR_FALSE;	
+      m_validUrl = PR_FALSE;
     }
   }
 }
@@ -797,23 +797,23 @@ NS_IMETHODIMP nsImapUrl::AddOnlineDirectoryIfNecessary(const char *onlineMailbox
   nsresult rv;
   nsString aString;
   char *newOnlineName = nsnull;
-  
-  nsCOMPtr<nsIImapHostSessionList> hostSessionList = 
+
+  nsCOMPtr<nsIImapHostSessionList> hostSessionList =
     do_GetService(kCImapHostSessionListCID, &rv);
   if (NS_FAILED(rv)) return rv;
-  rv = hostSessionList->GetOnlineDirForHost(m_serverKey, aString);
+  rv = hostSessionList->GetOnlineDirForHost(m_serverKey.get(), aString);
   nsCAutoString onlineDir;
   onlineDir.AssignWithConversion(aString);
-  
+
   // If this host has an online server directory configured
   if (onlineMailboxName && !onlineDir.IsEmpty())
   {
     nsIMAPNamespace *ns = nsnull;
-    rv = hostSessionList->GetNamespaceForMailboxForHost(m_serverKey,
-      onlineMailboxName, ns); 
+    rv = hostSessionList->GetNamespaceForMailboxForHost(m_serverKey.get(),
+      onlineMailboxName, ns);
     if (!ns)
-       hostSessionList->GetDefaultNamespaceOfTypeForHost(m_serverKey, kPersonalNamespace, ns);
-    
+       hostSessionList->GetDefaultNamespaceOfTypeForHost(m_serverKey.get(), kPersonalNamespace, ns);
+
     if (PL_strcasecmp(onlineMailboxName, "INBOX"))
     {
       NS_ASSERTION(ns, "couldn't find namespace for host");
@@ -884,7 +884,7 @@ NS_IMETHODIMP nsImapUrl::AllocateServerPath(const char * canonicalPath, char onl
     rv = ReplaceCharsInCopiedString(canonicalPath, '/', delimiterToUse);
   else
     rv = strdup("");
-  
+
   if (delimiterToUse != '/')
     UnescapeSlashes(rv);
   char *onlineNameAdded = nsnull;
@@ -894,12 +894,12 @@ NS_IMETHODIMP nsImapUrl::AllocateServerPath(const char * canonicalPath, char onl
     nsCRT::free(rv);
     rv = onlineNameAdded;
   }
-  
+
   if (aAllocatedPath)
     *aAllocatedPath = rv;
   else
     nsCRT::free(rv);
-  
+
   return retVal;
 }
 
@@ -927,7 +927,7 @@ NS_IMETHODIMP nsImapUrl::AllocateServerPath(const char * canonicalPath, char onl
   for (i = 0; i < len; i++)
   {
     unsigned char c = *src++;
-    if (c == '/') 
+    if (c == '/')
       *dst++ = '^';
     else if (c == '^')
     {
@@ -994,7 +994,7 @@ NS_IMETHODIMP nsImapUrl::AllocateServerPath(const char * canonicalPath, char onl
 // result is hierarchy is indicated by '/' and all real slashes ('/') are escaped.
 // The caller has already converted m-utf-7 to 8 bit ascii, which is a problem.
 // this method is only called from the imap thread
-NS_IMETHODIMP nsImapUrl::AllocateCanonicalPath(const char *serverPath, char onlineDelimiter, char **allocatedPath ) 
+NS_IMETHODIMP nsImapUrl::AllocateCanonicalPath(const char *serverPath, char onlineDelimiter, char **allocatedPath )
 {
   nsresult rv = NS_ERROR_NULL_POINTER;
   char delimiterToUse = onlineDelimiter;
@@ -1003,27 +1003,27 @@ NS_IMETHODIMP nsImapUrl::AllocateCanonicalPath(const char *serverPath, char onli
   char *currentPath = (char *) serverPath;
   nsCAutoString onlineDir;
   nsCOMPtr<nsIMsgIncomingServer> server;
-  
-  nsCOMPtr<nsIImapHostSessionList> hostSessionList = 
+
+  nsCOMPtr<nsIImapHostSessionList> hostSessionList =
     do_GetService(kCImapHostSessionListCID, &rv);
-  
+
   *allocatedPath = nsnull;
-  
+
   if (onlineDelimiter == kOnlineHierarchySeparatorUnknown ||
     onlineDelimiter == 0)
     GetOnlineSubDirSeparator(&delimiterToUse);
-  
+
   NS_ASSERTION (serverPath, "Oops... null serverPath");
-  
+
   if (!serverPath || NS_FAILED(rv))
     goto done;
-  
-  hostSessionList->GetOnlineDirForHost(m_serverKey, aString); 
+
+  hostSessionList->GetOnlineDirForHost(m_serverKey.get(), aString);
   // First we have to check to see if we should strip off an online server
-  // subdirectory 
+  // subdirectory
   // If this host has an online server directory configured
   onlineDir = (char *)(!aString.IsEmpty() ? ToNewCString(aString) : nsnull);
-  
+
   if (currentPath && !onlineDir.IsEmpty())
   {
     // By definition, the online dir must be at the root.
@@ -1040,22 +1040,22 @@ NS_IMETHODIMP nsImapUrl::AllocateCanonicalPath(const char *serverPath, char onli
     {
       // This online path begins with the server sub directory
       currentPath += len;
-      
+
       // This might occur, but it's most likely something not good.
       // Basically, it means we're doing something on the online sub directory itself.
       NS_ASSERTION (*currentPath, "Oops ... null currentPath");
       // Also make sure that the first character in the mailbox name is not '/'.
-      NS_ASSERTION (*currentPath != '/', 
+      NS_ASSERTION (*currentPath != '/',
         "Oops ... currentPath starts with a slash");
     }
   }
-  
-  
+
+
   if (!currentPath)
     goto done;
-  
+
   rv = ConvertToCanonicalFormat(currentPath, delimiterToUse, allocatedPath);
-  
+
 done:
   PR_Free(serverKey);
   return rv;
@@ -1179,7 +1179,7 @@ NS_IMETHODIMP nsImapUrl::GetCopyState(nsISupports** copyState)
   nsAutoCMonitor mon(this);
   *copyState = m_copyState;
   NS_IF_ADDREF(*copyState);
- 
+
   return NS_OK;
 }
 
@@ -1188,7 +1188,7 @@ nsImapUrl::SetMsgFile(nsIFile* aFile)
 {
   nsresult rv = NS_OK;
   nsAutoCMonitor mon(this);
-  m_file = aFile; 
+  m_file = aFile;
   return rv;
 }
 
@@ -1204,12 +1204,12 @@ nsImapUrl::GetMsgFile(nsIFile** aFile)
 
 // this method is called from the UI thread..
 NS_IMETHODIMP nsImapUrl::GetMockChannel(nsIImapMockChannel ** aChannel)
-{    
+{
   NS_ENSURE_ARG_POINTER(aChannel);
 
   *aChannel = m_mockChannel;
   NS_IF_ADDREF(*aChannel);
-  
+
   return NS_OK;
 }
 
@@ -1226,11 +1226,11 @@ NS_IMETHODIMP nsImapUrl::AddChannelToLoadGroup()
 	if (m_mockChannel)
 	{
 		m_mockChannel->GetLoadGroup(getter_AddRefs(loadGroup));
-    // if the mock channel wasn't initialized with a load group then 
+    // if the mock channel wasn't initialized with a load group then
     // use our load group (they may differ)
     if (!loadGroup)
       GetLoadGroup(getter_AddRefs(loadGroup));
-		
+
     if (loadGroup)
 		{
             nsCOMPtr<nsIRequest> request = do_QueryInterface(m_mockChannel);
@@ -1246,7 +1246,7 @@ NS_IMETHODIMP nsImapUrl::RemoveChannel(nsresult status)
   if (m_mockChannel)
   {
     m_mockChannel->GetLoadGroup(getter_AddRefs(loadGroup));
-    // if the mock channel wasn't initialized with a load group then 
+    // if the mock channel wasn't initialized with a load group then
     // use our load group (they may differ)
     if (!loadGroup)
       GetLoadGroup(getter_AddRefs(loadGroup));
@@ -1264,8 +1264,8 @@ NS_IMETHODIMP nsImapUrl::RemoveChannel(nsresult status)
 NS_IMETHODIMP nsImapUrl::GetAllowContentChange(PRBool *result)
 {
   NS_ENSURE_ARG_POINTER(result);
-	*result = m_allowContentChange;
-	return NS_OK;
+  *result = m_allowContentChange;
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsImapUrl::SetUri(const char * aURI)
@@ -1280,18 +1280,18 @@ NS_IMETHODIMP nsImapUrl::GetUri(char** aURI)
   if (!mURI.IsEmpty())
     *aURI = ToNewCString(mURI);
   else
-	{
+  {
     *aURI = nsnull;
     PRUint32 key = m_listOfMessageIds ? atoi(m_listOfMessageIds) : 0;
     nsXPIDLCString canonicalPath;
     AllocateCanonicalPath(m_sourceCanonicalFolderPathSubString, m_onlineSubDirSeparator, (getter_Copies(canonicalPath)));
     nsCString fullFolderPath("/");
-    fullFolderPath += (const char *) m_userName;
+    fullFolderPath.Append(m_userName);
     nsCAutoString hostName;
     rv = GetHost(hostName);
-    fullFolderPath += '@';
-    fullFolderPath += hostName;
-    fullFolderPath += '/';
+    fullFolderPath.Append('@');
+    fullFolderPath.Append(hostName);
+    fullFolderPath.Append('/');
     fullFolderPath.Append(canonicalPath);
 
     char * baseMessageURI;
@@ -1301,7 +1301,7 @@ NS_IMETHODIMP nsImapUrl::GetUri(char** aURI)
     nsCRT::free(baseMessageURI);
     *aURI = ToNewCString(uriStr);
   }
-  
+
   return rv;
 }
 
@@ -1349,12 +1349,12 @@ NS_IMETHODIMP nsImapUrl::IsUrlType(PRUint32 type, PRBool *isType)
 				(m_imapAction == nsIImapUrl::nsImapOfflineToOnlineMove));
 			break;
     case nsIMsgMailNewsUrl::eDisplay:
-      *isType = (m_imapAction == nsIImapUrl::nsImapMsgFetch || 
+      *isType = (m_imapAction == nsIImapUrl::nsImapMsgFetch ||
         m_imapAction == nsIImapUrl::nsImapMsgFetchPeek);
       break;
 		default:
 			*isType = PR_FALSE;
-	};				
+	};
 
 	return NS_OK;
 
@@ -1373,14 +1373,14 @@ nsImapUrl::SetOriginalSpec(const char *aSpec)
 }
 
 char *nsImapUrl::ReplaceCharsInCopiedString(const char *stringToCopy, char oldChar, char newChar)
-{	
+{
 	char oldCharString[2];
 	*oldCharString = oldChar;
 	*(oldCharString+1) = 0;
-	
+
 	char *translatedString = PL_strdup(stringToCopy);
 	char *currentSeparator = PL_strstr(translatedString, oldCharString);
-	
+
 	while(currentSeparator)
 	{
 		*currentSeparator = newChar;
@@ -1398,7 +1398,7 @@ char *nsImapUrl::ReplaceCharsInCopiedString(const char *stringToCopy, char oldCh
 void nsImapUrl::ParseFolderPath(char **resultingCanonicalPath)
 {
 	char *resultPath = m_tokenPlaceHolder ? nsCRT::strtok(m_tokenPlaceHolder, IMAP_URL_TOKEN_SEPARATOR, &m_tokenPlaceHolder) : (char *)NULL;
-	
+
 	if (!resultPath)
 	{
 		m_validUrl = PR_FALSE;
@@ -1415,11 +1415,11 @@ void nsImapUrl::ParseFolderPath(char **resultingCanonicalPath)
 	// delimiter from the folder's namespace when creating the URL.
 	if (dirSeparator != kOnlineHierarchySeparatorUnknown)
 		SetOnlineSubDirSeparator( dirSeparator);
-	
+
 	// if dirSeparator == kOnlineHierarchySeparatorUnknown, then this must be a create
 	// of a top level imap box.  If there is an online subdir, we will automatically
 	// use its separator.  If there is not an online subdir, we don't need a separator.
-	
+
 }
 
 
@@ -1432,11 +1432,11 @@ void nsImapUrl::ParseSearchCriteriaString()
 		//skip initial separator
 		while (*m_tokenPlaceHolder == *IMAP_URL_TOKEN_SEPARATOR)
 			m_tokenPlaceHolder++;
-		
+
      char *saveTokenPlaceHolder = m_tokenPlaceHolder;
 
 //		m_searchCriteriaString = m_tokenPlaceHolder;
-		
+
 		//looking for another separator outside quoted string
 		while (*m_tokenPlaceHolder)
 		{
@@ -1480,9 +1480,9 @@ void nsImapUrl::ParseMsgFlags()
 	char *flagsPtr = m_tokenPlaceHolder ? nsCRT::strtok(m_tokenPlaceHolder, IMAP_URL_TOKEN_SEPARATOR, &m_tokenPlaceHolder) : (char *)NULL;
 	if (flagsPtr)
 	{
-		// the url is encodes the flags byte as ascii 
+		// the url is encodes the flags byte as ascii
 		int intFlags = atoi(flagsPtr);
-		m_flags = (imapMessageFlagsType) intFlags;	// cast here 
+		m_flags = (imapMessageFlagsType) intFlags;	// cast here
 	}
 	else
 		m_flags = 0;
@@ -1497,11 +1497,11 @@ void nsImapUrl::ParseListOfMessageIds()
   {
     m_listOfMessageIds = strdup(m_listOfMessageIds);
     m_mimePartSelectorDetected = PL_strstr(m_listOfMessageIds, "&part=") != 0 || PL_strstr(m_listOfMessageIds, "?part=") != 0;
-    
+
     // if we're asking for just the body, don't download the whole message. see
     // nsMsgQuote::QuoteMessage() for the "header=" settings when replying to msgs.
     if (!m_fetchPartsOnDemand)
-      m_fetchPartsOnDemand = (PL_strstr(m_listOfMessageIds, "?header=quotebody") != 0 || 
+      m_fetchPartsOnDemand = (PL_strstr(m_listOfMessageIds, "?header=quotebody") != 0 ||
       PL_strstr(m_listOfMessageIds, "?header=only") != 0);
     // if it's a spam filter trying to fetch the msg, don't let it get marked read.
     if (PL_strstr(m_listOfMessageIds,"?header=filter") != 0)
@@ -1531,7 +1531,7 @@ nsresult nsImapUrl::GetMsgFolder(nsIMsgFolder **msgFolder)
   GetUri(getter_Copies(uri));
   NS_ENSURE_TRUE(uri, NS_ERROR_FAILURE);
 
-  nsCOMPtr<nsIMsgDBHdr> msg; 
+  nsCOMPtr<nsIMsgDBHdr> msg;
   GetMsgDBHdrFromURI(uri, getter_AddRefs(msg));
   NS_ENSURE_TRUE(msg, NS_ERROR_FAILURE);
   nsresult rv = msg->GetFolder(msgFolder);
@@ -1564,7 +1564,7 @@ NS_IMETHODIMP nsImapUrl::GetFolderCharsetOverride(PRBool * aCharacterSetOverride
 NS_IMETHODIMP nsImapUrl::GetCharsetOverRide(char ** aCharacterSet)
 {
   if (!mCharsetOverride.IsEmpty())
-    *aCharacterSet = ToNewCString(mCharsetOverride); 
+    *aCharacterSet = ToNewCString(mCharsetOverride);
   else
     *aCharacterSet = nsnull;
   return NS_OK;

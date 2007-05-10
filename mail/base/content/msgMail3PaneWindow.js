@@ -1005,7 +1005,7 @@ function loadStartFolder(initialUri)
         if (!initialUri && isLoginAtStartUpEnabled && gLoadStartFolder
             && !defaultServer.isDeferredTo && !gNewAccountToLoad &&
             defaultServer.rootFolder == defaultServer.rootMsgFolder)
-          defaultServer.PerformBiff(msgWindow);        
+          defaultServer.performBiff(msgWindow);        
 
         SelectFolder(startFolder.URI);
     }

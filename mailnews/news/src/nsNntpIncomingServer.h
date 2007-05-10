@@ -79,11 +79,11 @@ public:
     nsNntpIncomingServer();
     virtual ~nsNntpIncomingServer();
     
-    NS_IMETHOD GetLocalStoreType(char * *type);
+    NS_IMETHOD GetLocalStoreType(nsACString& type);
     NS_IMETHOD CloseCachedConnections();
     NS_IMETHOD PerformBiff(nsIMsgWindow *aMsgWindow);
     NS_IMETHOD PerformExpand(nsIMsgWindow *aMsgWindow);
-    NS_IMETHOD OnUserOrHostNameChanged(const char *oldName, const char *newName);
+    NS_IMETHOD OnUserOrHostNameChanged(const nsACString& oldName, const nsACString& newName);
 
     // for nsMsgLineBuffer
     virtual PRInt32 HandleLine(const char *line, PRUint32 line_size);

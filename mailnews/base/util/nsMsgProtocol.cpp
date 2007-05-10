@@ -96,7 +96,7 @@ nsMsgProtocol::nsMsgProtocol(nsIURI * aURL)
 nsresult nsMsgProtocol::InitFromURI(nsIURI *aUrl)
 {
   m_url = aUrl;
-  
+
   nsCOMPtr <nsIMsgMailNewsUrl> mailUrl = do_QueryInterface(aUrl);
   if (mailUrl)
   {
@@ -127,7 +127,7 @@ nsMsgProtocol::OpenNetworkSocketWithInfo(const char * aHostName,
   nsresult rv = NS_OK;
   nsCOMPtr<nsISocketTransportService> socketService (do_GetService(NS_SOCKETTRANSPORTSERVICE_CONTRACTID));
   NS_ENSURE_TRUE(socketService, NS_ERROR_FAILURE);
-  
+
   // with socket connections we want to read as much data as arrives
   m_readCount = -1;
 
@@ -155,8 +155,8 @@ nsMsgProtocol::OpenNetworkSocketWithInfo(const char * aHostName,
       gGotTimeoutPref = PR_TRUE;
     }
   }
-  strans->SetTimeout(nsISocketTransport::TIMEOUT_CONNECT, gSocketTimeout + 60);  
-  strans->SetTimeout(nsISocketTransport::TIMEOUT_READ_WRITE, gSocketTimeout);  
+  strans->SetTimeout(nsISocketTransport::TIMEOUT_CONNECT, gSocketTimeout + 60);
+  strans->SetTimeout(nsISocketTransport::TIMEOUT_READ_WRITE, gSocketTimeout);
 
 
   return SetupTransportState();
@@ -165,7 +165,7 @@ nsMsgProtocol::OpenNetworkSocketWithInfo(const char * aHostName,
 // open a connection on this url
 nsresult
 nsMsgProtocol::OpenNetworkSocket(nsIURI * aURL, const char *connectionType,
-                                 nsIInterfaceRequestor* callbacks) 
+                                 nsIInterfaceRequestor* callbacks)
 {
   NS_ENSURE_ARG(aURL);
 
@@ -182,7 +182,7 @@ nsMsgProtocol::OpenNetworkSocket(nsIURI * aURL, const char *connectionType,
 
   NS_ASSERTION(pps, "Couldn't get the protocol proxy service!");
 
-  if (pps) 
+  if (pps)
   {
       nsresult rv = NS_OK;
 
@@ -196,11 +196,11 @@ nsMsgProtocol::OpenNetworkSocket(nsIURI * aURL, const char *connectionType,
       // do _NOT_ copy this to use in your own code - bbaetz
       nsCOMPtr<nsIURI> proxyUri = aURL;
       PRBool isSMTP = PR_FALSE;
-      if (NS_SUCCEEDED(aURL->SchemeIs("smtp", &isSMTP)) && isSMTP) 
+      if (NS_SUCCEEDED(aURL->SchemeIs("smtp", &isSMTP)) && isSMTP)
       {
           nsCAutoString spec;
           rv = aURL->GetSpec(spec);
-          if (NS_SUCCEEDED(rv)) 
+          if (NS_SUCCEEDED(rv))
               proxyUri = do_CreateInstance(NS_STANDARDURL_CONTRACTID, &rv);
 
           if (NS_SUCCEEDED(rv))
@@ -279,13 +279,13 @@ nsresult nsMsgProtocol::SetupTransportState()
   if (!m_socketIsOpen && m_transport)
   {
     nsresult rv;
-    
+
     // open buffered, blocking output stream
     rv = m_transport->OpenOutputStream(nsITransport::OPEN_BLOCKING, 0, 0, getter_AddRefs(m_outputStream));
     if (NS_FAILED(rv)) return rv;
-    // we want to open the stream 
+    // we want to open the stream
   } // if m_transport
-  
+
   return NS_OK;
 }
 
@@ -312,7 +312,7 @@ nsresult nsMsgProtocol::CloseSocket()
     m_transport->Close(NS_BINDING_ABORTED);
     m_transport = 0;
   }
-  
+
   return rv;
 }
 
@@ -327,18 +327,18 @@ nsresult nsMsgProtocol::CloseSocket()
 
 PRInt32 nsMsgProtocol::SendData(nsIURI * aURL, const char * dataBuffer, PRBool aSuppressLogging)
 {
-  PRUint32 writeCount = 0; 
-  PRInt32 status = 0; 
-  
+  PRUint32 writeCount = 0;
+  PRInt32 status = 0;
+
   //	NS_PRECONDITION(m_outputStream, "oops....we don't have an output stream...how did that happen?");
   if (dataBuffer && m_outputStream)
     status = m_outputStream->Write(dataBuffer, PL_strlen(dataBuffer), &writeCount);
-  
+
   return status;
 }
 
 // Whenever data arrives from the connection, core netlib notifices the protocol by calling
-// OnDataAvailable. We then read and process the incoming data from the input stream. 
+// OnDataAvailable. We then read and process the incoming data from the input stream.
 NS_IMETHODIMP nsMsgProtocol::OnDataAvailable(nsIRequest *request, nsISupports *ctxt, nsIInputStream *inStr, PRUint32 sourceOffset, PRUint32 count)
 {
   // right now, this really just means turn around and churn through the state machine
@@ -356,7 +356,7 @@ NS_IMETHODIMP nsMsgProtocol::OnStartRequest(nsIRequest *request, nsISupports *ct
     if (m_loadGroup)
       m_loadGroup->AddRequest(NS_STATIC_CAST(nsIRequest *, this), nsnull /* context isupports */);
   }
-  
+
   // if we are set up as a channel, we should notify our channel listener that we are starting...
   // so pass in ourself as the channel and not the underlying socket or file channel the protocol
   // happens to be using
@@ -366,17 +366,17 @@ NS_IMETHODIMP nsMsgProtocol::OnStartRequest(nsIRequest *request, nsISupports *ct
       m_channelContext = do_QueryInterface(ctxt);
     rv = m_channelListener->OnStartRequest(this, m_channelContext);
   }
-  
+
   nsCOMPtr<nsISocketTransport> strans = do_QueryInterface(m_transport);
 
   if (strans)
-    strans->SetTimeout(nsISocketTransport::TIMEOUT_READ_WRITE, gSocketTimeout);  
+    strans->SetTimeout(nsISocketTransport::TIMEOUT_READ_WRITE, gSocketTimeout);
 
   NS_ENSURE_SUCCESS(rv, rv);
   return rv;
 }
 
-// stop binding is a "notification" informing us that the stream associated with aURL is going away. 
+// stop binding is a "notification" informing us that the stream associated with aURL is going away.
 NS_IMETHODIMP nsMsgProtocol::OnStopRequest(nsIRequest *request, nsISupports *ctxt, nsresult aStatus)
 {
   nsresult rv = NS_OK;
@@ -393,19 +393,19 @@ NS_IMETHODIMP nsMsgProtocol::OnStopRequest(nsIRequest *request, nsISupports *ctx
     rv = msgUrl->SetUrlState(PR_FALSE, aStatus);
     if (m_loadGroup)
       m_loadGroup->RemoveRequest(NS_STATIC_CAST(nsIRequest *, this), nsnull, aStatus);
-    
-    // !NS_BINDING_ABORTED because we don't want to see an alert if the user 
+
+    // !NS_BINDING_ABORTED because we don't want to see an alert if the user
     // cancelled the operation.  also, we'll get here because we call Cancel()
     // to force removal of the nsSocketTransport.  see CloseSocket()
     // bugs #30775 and #30648 relate to this
-    if (NS_FAILED(aStatus) && (aStatus != NS_BINDING_ABORTED)) 
+    if (NS_FAILED(aStatus) && (aStatus != NS_BINDING_ABORTED))
     {
       nsCOMPtr<nsIPrompt> msgPrompt;
       GetPromptDialogFromUrl(msgUrl , getter_AddRefs(msgPrompt));
       NS_ENSURE_TRUE(msgPrompt, NS_ERROR_FAILURE);
 
       PRInt32 errorID;
-      switch (aStatus) 
+      switch (aStatus)
       {
           case NS_ERROR_UNKNOWN_HOST:
           case NS_ERROR_UNKNOWN_PROXY_HOST:
@@ -418,16 +418,16 @@ NS_IMETHODIMP nsMsgProtocol::OnStopRequest(nsIRequest *request, nsISupports *ctx
           case NS_ERROR_NET_TIMEOUT:
              errorID = NET_TIMEOUT_ERROR;
              break;
-          default: 
+          default:
              errorID = UNKNOWN_ERROR;
              break;
       }
-      
+
       NS_ASSERTION(errorID != UNKNOWN_ERROR, "unknown error, but don't alert user.");
-      if (errorID != UNKNOWN_ERROR) 
+      if (errorID != UNKNOWN_ERROR)
       {
         PRUnichar *errorMsg = FormatStringWithHostNameByID(errorID, msgUrl);
-        if (errorMsg == nsnull) 
+        if (errorMsg == nsnull)
         {
           nsAutoString resultString(NS_LITERAL_STRING("[StringID "));
           resultString.AppendInt(errorID);
@@ -443,9 +443,9 @@ NS_IMETHODIMP nsMsgProtocol::OnStopRequest(nsIRequest *request, nsISupports *ctx
   // Drop notification callbacks to prevent cycles.
   mCallbacks = 0;
   mProgressEventSink = 0;
-  // Call CloseSocket(), in case we got here because the server dropped the 
-  // connection while reading, and we never get a chance to get back into 
-  // the protocol state machine via OnDataAvailable. 
+  // Call CloseSocket(), in case we got here because the server dropped the
+  // connection while reading, and we never get a chance to get back into
+  // the protocol state machine via OnDataAvailable.
   if (m_socketIsOpen)
     CloseSocket();
 
@@ -472,14 +472,14 @@ nsresult nsMsgProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer)
   // our first state is a process state so drive the state machine...
   nsresult rv = NS_OK;
   nsCOMPtr <nsIMsgMailNewsUrl> aMsgUrl = do_QueryInterface(aURL, &rv);
-  
+
   if (NS_SUCCEEDED(rv) && aMsgUrl)
   {
     PRBool msgIsInLocalCache;
     aMsgUrl->GetMsgIsInLocalCache(&msgIsInLocalCache);
-    
+
     rv = aMsgUrl->SetUrlState(PR_TRUE, NS_OK); // set the url as a url currently being run...
-    
+
     // if the url is given a stream consumer then we should use it to forward calls to...
     if (!m_channelListener && aConsumer) // if we don't have a registered listener already
     {
@@ -487,7 +487,7 @@ nsresult nsMsgProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer)
       if (!m_channelContext)
         m_channelContext = do_QueryInterface(aURL);
     }
-    
+
     if (!m_socketIsOpen)
     {
       nsCOMPtr<nsISupports> urlSupports = do_QueryInterface(aURL);
@@ -500,14 +500,14 @@ nsresult nsMsgProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer)
           rv = m_transport->OpenInputStream(0, 0, 0, getter_AddRefs(m_inputStream));
           if (NS_FAILED(rv)) return rv;
         }
-        
+
         nsCOMPtr<nsIInputStreamPump> pump;
         rv = NS_NewInputStreamPump(getter_AddRefs(pump),
           m_inputStream, nsInt64(-1), m_readCount);
         if (NS_FAILED(rv)) return rv;
-        
+
         m_request = pump; // keep a reference to the pump so we can cancel it
-        
+
         // put us in a state where we are always notified of incoming data
         rv = pump->AsyncRead(this, urlSupports);
         NS_ASSERTION(NS_SUCCEEDED(rv), "AsyncRead failed");
@@ -515,9 +515,9 @@ nsresult nsMsgProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer)
       }
     } // if we got an event queue service
     else if (!msgIsInLocalCache) // the connection is already open so we should begin processing our new url...
-      rv = ProcessProtocolState(aURL, nsnull, 0, 0); 
+      rv = ProcessProtocolState(aURL, nsnull, 0, 0);
   }
-  
+
   return rv;
 }
 
@@ -543,20 +543,20 @@ NS_IMETHODIMP nsMsgProtocol::GetOriginalURI(nsIURI* *aURI)
     NS_IF_ADDREF(*aURI);
     return NS_OK;
 }
- 
+
 NS_IMETHODIMP nsMsgProtocol::SetOriginalURI(nsIURI* aURI)
 {
     m_originalUrl = aURI;
     return NS_OK;
 }
- 
+
 NS_IMETHODIMP nsMsgProtocol::GetURI(nsIURI* *aURI)
 {
     *aURI = m_url;
     NS_IF_ADDREF(*aURI);
     return NS_OK;
 }
- 
+
 NS_IMETHODIMP nsMsgProtocol::Open(nsIInputStream **_retval)
 {
   return NS_ImplementChannelOpen(this, _retval);
@@ -568,12 +568,12 @@ NS_IMETHODIMP nsMsgProtocol::AsyncOpen(nsIStreamListener *listener, nsISupports 
     nsresult rv = m_url->GetPort(&port);
     if (NS_FAILED(rv))
         return rv;
-    
+
     nsCAutoString scheme;
     rv = m_url->GetScheme(scheme);
     if (NS_FAILED(rv))
         return rv;
-    
+
 
     rv = NS_CheckPortSafety(port, scheme.get());
     if (NS_FAILED(rv))
@@ -601,7 +601,7 @@ NS_IMETHODIMP nsMsgProtocol::GetContentType(nsACString &aContentType)
 {
   // as url dispatching matures, we'll be intelligent and actually start
   // opening the url before specifying the content type. This will allow
-  // us to optimize the case where the message url actual refers to  
+  // us to optimize the case where the message url actual refers to
   // a part in the message that has a content type that is not message/rfc822
 
   if (m_ContentType.IsEmpty())
@@ -652,7 +652,7 @@ nsMsgProtocol::SetContentLength(PRInt32 aContentLength)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
- 
+
 NS_IMETHODIMP nsMsgProtocol::GetOwner(nsISupports * *aPrincipal)
 {
   *aPrincipal = mOwner;
@@ -711,17 +711,12 @@ nsMsgProtocol::OnTransportStatus(nsITransport *transport, nsresult status,
   m_url->GetHost(host);
 
   nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(m_url);
-  if (mailnewsUrl) 
+  if (mailnewsUrl)
   {
     nsCOMPtr<nsIMsgIncomingServer> server;
     mailnewsUrl->GetServer(getter_AddRefs(server));
     if (server)
-    {
-      char *realHostName = nsnull;
-      server->GetRealHostName(&realHostName);
-      if (realHostName)
-        host.Adopt(realHostName);
-    }
+      server->GetRealHostName(host);
   }
   mProgressEventSink->OnStatus(this, nsnull, status,
                                NS_ConvertUTF8toUTF16(host).get());
@@ -736,7 +731,7 @@ nsMsgProtocol::OnTransportStatus(nsITransport *transport, nsresult status,
 NS_IMETHODIMP nsMsgProtocol::IsPending(PRBool *result)
 {
     *result = m_channelListener != nsnull;
-    return NS_OK; 
+    return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgProtocol::GetStatus(nsresult *status)
@@ -753,7 +748,7 @@ NS_IMETHODIMP nsMsgProtocol::Cancel(nsresult status)
   NS_ASSERTION(m_request,"no channel");
   if (!m_request)
     return NS_ERROR_FAILURE;
-  
+
   return m_request->Cancel(status);
 }
 
@@ -788,23 +783,23 @@ nsresult nsMsgProtocol::PostMessage(nsIURI* url, nsIFile *postFile)
   NS_ENSURE_SUCCESS(rv, rv);
   nsCOMPtr<nsILineInputStream> lineInputStream(do_QueryInterface(inputStream, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   PRBool more = PR_TRUE;
   nsXPIDLCString line;
   nsCString outputBuffer;
 
-  do 
+  do
   {
     lineInputStream->ReadLine(line, &more);
-    
-    /* escape starting periods 
+
+    /* escape starting periods
      */
     if (line.CharAt(0) == '.')
       line.Insert('.', 0);
     line.Append(NS_LITERAL_CSTRING(CRLF));
     outputBuffer.Append(line);
     // test hack by mscott. If our buffer is almost full, then
-    // send it off & reset ourselves 
+    // send it off & reset ourselves
     // to make more room.
     if (outputBuffer.Length() > POST_DATA_BUFFER_SIZE || !more)
     {
@@ -836,7 +831,7 @@ nsresult nsMsgProtocol::DoGSSAPIStep1(const char *service, const char *username,
         char *base64Str = PL_Base64Encode((char *)outBuf, outBufLen, nsnull);
         if (base64Str)
             response.Adopt(base64Str);
-        else 
+        else
             rv = NS_ERROR_OUT_OF_MEMORY;
         nsMemory::Free(outBuf);
     }
@@ -880,19 +875,19 @@ nsresult nsMsgProtocol::DoGSSAPIStep2(nsCString &commandResponse, nsCString &res
 
         nsMemory::Free(inBuf);
     }
-    else 
+    else
     {
         rv = m_authModule->GetNextToken(NULL, 0, &outBuf, &outBufLen);
     }
-    if (NS_SUCCEEDED(rv)) 
+    if (NS_SUCCEEDED(rv))
     {
         // And in return, we may need to send Cyrus zero length tokens back
-        if (outBuf) 
+        if (outBuf)
         {
             char *base64Str = PL_Base64Encode((char *)outBuf, outBufLen, nsnull);
             if (base64Str)
                 response.Adopt(base64Str);
-            else 
+            else
                 rv = NS_ERROR_OUT_OF_MEMORY;
         }
         else
@@ -922,7 +917,7 @@ nsresult nsMsgProtocol::DoNtlmStep1(const char *username, const char *password, 
         char *base64Str = PL_Base64Encode((char *)outBuf, outBufLen, nsnull);
         if (base64Str)
           response.Adopt(base64Str);
-        else 
+        else
           rv = NS_ERROR_OUT_OF_MEMORY;
         nsMemory::Free(outBuf);
     }
@@ -958,7 +953,7 @@ nsresult nsMsgProtocol::DoNtlmStep2(nsCString &commandResponse, nsCString &respo
         char *base64Str = PL_Base64Encode((char *)outBuf, outBufLen, nsnull);
         if (base64Str)
           response.Adopt(base64Str);
-        else 
+        else
           rv = NS_ERROR_OUT_OF_MEMORY;
     }
 
@@ -972,7 +967,7 @@ nsresult nsMsgProtocol::DoNtlmStep2(nsCString &commandResponse, nsCString &respo
 // nsMsgAsyncWriteProtocol subclass and related helper classes
 /////////////////////////////////////////////////////////////////////
 
-class nsMsgProtocolStreamProvider : public nsIOutputStreamCallback 
+class nsMsgProtocolStreamProvider : public nsIOutputStreamCallback
 {
 public:
     NS_DECL_ISUPPORTS
@@ -990,7 +985,7 @@ public:
     // nsIOutputStreamCallback implementation ...
     //
     NS_IMETHODIMP OnOutputStreamReady(nsIAsyncOutputStream *aOutStream)
-    { 
+    {
         NS_ASSERTION(mInStream, "not initialized");
 
         nsresult rv;
@@ -1003,7 +998,7 @@ public:
         rv = mInStream->Available(&avail);
         if (NS_FAILED(rv)) return rv;
 
-        if (avail == 0) 
+        if (avail == 0)
         {
           // ok, stop writing...
           mMsgProtocol->mSuspendedWrite = PR_TRUE;
@@ -1027,7 +1022,7 @@ public:
         return NS_OK;
     }
 
-    
+
 protected:
   nsMsgAsyncWriteProtocol * mMsgProtocol;
   nsCOMPtr<nsIInputStream>  mInStream;
@@ -1037,7 +1032,7 @@ protected:
 NS_IMPL_THREADSAFE_ISUPPORTS1(nsMsgProtocolStreamProvider,
                               nsIOutputStreamCallback)
 
-class nsMsgFilePostHelper : public nsIStreamListener 
+class nsMsgFilePostHelper : public nsIStreamListener
 {
 public:
   NS_DECL_ISUPPORTS
@@ -1091,7 +1086,7 @@ NS_IMETHODIMP nsMsgFilePostHelper::OnStartRequest(nsIRequest * aChannel, nsISupp
 
 NS_IMETHODIMP nsMsgFilePostHelper::OnStopRequest(nsIRequest * aChannel, nsISupports *ctxt, nsresult aStatus)
 {
-  if (!mProtInstance) return NS_OK; 
+  if (!mProtInstance) return NS_OK;
 
   if (!mSuspendedPostFileRead)
     mProtInstance->PostDataFinished();
@@ -1103,7 +1098,7 @@ NS_IMETHODIMP nsMsgFilePostHelper::OnStopRequest(nsIRequest * aChannel, nsISuppo
 
 NS_IMETHODIMP nsMsgFilePostHelper::OnDataAvailable(nsIRequest * /* aChannel */, nsISupports *ctxt, nsIInputStream *inStr, PRUint32 sourceOffset, PRUint32 count)
 {
-  if (!mProtInstance) return NS_OK; 
+  if (!mProtInstance) return NS_OK;
 
   if (mSuspendedPostFileRead)
   {
@@ -1113,7 +1108,7 @@ NS_IMETHODIMP nsMsgFilePostHelper::OnDataAvailable(nsIRequest * /* aChannel */, 
 
   mProtInstance->ProcessIncomingPostData(inStr, count);
 
-  if (mProtInstance->mSuspendedWrite) 
+  if (mProtInstance->mSuspendedWrite)
   {
     // if we got here then we had suspended the write 'cause we didn't have anymore
     // data to write (i.e. the pipe went empty). So resume the channel to kick
@@ -1121,7 +1116,7 @@ NS_IMETHODIMP nsMsgFilePostHelper::OnDataAvailable(nsIRequest * /* aChannel */, 
     mProtInstance->mSuspendedWrite = PR_FALSE;
     mProtInstance->mAsyncOutStream->AsyncWait(mProtInstance->mProvider, 0, 0,
                                               mProtInstance->mProviderThread);
-  } 
+  }
 
   return NS_OK;
 }
@@ -1205,19 +1200,19 @@ nsresult nsMsgAsyncWriteProtocol::ResumePostFileRead()
   }
   else // we must be done with the download so send the '.'
   {
-    PostDataFinished(); 
+    PostDataFinished();
   }
-  
+
   return NS_OK;
 }
 
 nsresult nsMsgAsyncWriteProtocol::UpdateSuspendedReadBytes(PRUint32 aNewBytes, PRBool aAddToPostPeriodByteCount)
 {
   // depending on our current state, we'll either add aNewBytes to mSuspendedReadBytes
-  // or mSuspendedReadBytesAfterPeriod. 
+  // or mSuspendedReadBytesAfterPeriod.
 
   mSuspendedRead = PR_TRUE;
-  if (aAddToPostPeriodByteCount) 
+  if (aAddToPostPeriodByteCount)
     mSuspendedReadBytesPostPeriod += aNewBytes;
   else
     mSuspendedReadBytes += aNewBytes;
@@ -1239,7 +1234,7 @@ nsresult nsMsgAsyncWriteProtocol::ProcessIncomingPostData(nsIInputStream *inStr,
 
   // We need to quote any '.' that occur at the beginning of a line.
   // but I don't want to waste time reading out the data into a buffer and searching
-  // let's try to leverage nsIBufferedInputStream and see if we can "peek" into the 
+  // let's try to leverage nsIBufferedInputStream and see if we can "peek" into the
   // current contents for this particular case.
 
   nsCOMPtr<nsISearchableInputStream> bufferInputStr = do_QueryInterface(inStr);
@@ -1249,7 +1244,7 @@ nsresult nsMsgAsyncWriteProtocol::ProcessIncomingPostData(nsIInputStream *inStr,
   if (!mPostDataStream) mPostDataStream = inStr;
 
   if (bufferInputStr)
-  { 
+  {
     PRUint32 amountWritten;
 
     while (count > 0)
@@ -1305,7 +1300,7 @@ nsresult nsMsgAsyncWriteProtocol::ProcessIncomingPostData(nsIInputStream *inStr,
 nsresult nsMsgAsyncWriteProtocol::UnblockPostReader()
 {
   PRUint32 amountWritten = 0;
-  
+
   if (!m_socketIsOpen) return NS_OK; // kick out if the socket was canceled
 
   if (mSuspendedRead)
@@ -1344,7 +1339,7 @@ nsresult nsMsgAsyncWriteProtocol::UnblockPostReader()
       // these bytes actually need processed for extra '.''s.....
       PRUint32 postbytes = mSuspendedReadBytesPostPeriod;
       mSuspendedReadBytesPostPeriod = 0;
-      ProcessIncomingPostData(mPostDataStream, postbytes);      
+      ProcessIncomingPostData(mPostDataStream, postbytes);
     }
 
     // (4) determine if we are out of the suspended read state...
@@ -1362,34 +1357,34 @@ nsresult nsMsgAsyncWriteProtocol::UnblockPostReader()
 nsresult nsMsgAsyncWriteProtocol::SetupTransportState()
 {
   nsresult rv = NS_OK;
-  
+
   if (!m_outputStream && m_transport)
   {
     // first create a pipe which we'll use to write the data we want to send
-    // into. 
+    // into.
     rv = NS_NewPipe(getter_AddRefs(mInStream), getter_AddRefs(m_outputStream),
       1024,  // segmentSize
       1024*8, // maxSize
-      PR_TRUE, 
+      PR_TRUE,
       PR_TRUE);
-    
+
     rv = NS_GetCurrentThread(getter_AddRefs(mProviderThread));
     if (NS_FAILED(rv)) return rv;
-    
+
     nsMsgProtocolStreamProvider *provider;
     NS_NEWXPCOM(provider, nsMsgProtocolStreamProvider);
     if (!provider) return NS_ERROR_OUT_OF_MEMORY;
-    
+
     provider->Init(this, mInStream);
     mProvider = provider; // ADDREF
-    
+
     nsCOMPtr<nsIOutputStream> stream;
     rv = m_transport->OpenOutputStream(0, 0, 0, getter_AddRefs(stream));
     if (NS_FAILED(rv)) return rv;
-    
+
     mAsyncOutStream = do_QueryInterface(stream, &rv);
     if (NS_FAILED(rv)) return rv;
-    
+
     // wait for the output stream to become writable
     rv = mAsyncOutStream->AsyncWait(mProvider, 0, 0, mProviderThread);
 	} // if m_transport
@@ -1403,7 +1398,7 @@ nsresult nsMsgAsyncWriteProtocol::CloseSocket()
   if (mAsyncOutStream)
     mAsyncOutStream->CloseWithStatus(NS_BINDING_ABORTED);
 
-  nsMsgProtocol::CloseSocket(); 
+  nsMsgProtocol::CloseSocket();
 
   if (mFilePostHelper)
   {
@@ -1440,23 +1435,22 @@ void nsMsgAsyncWriteProtocol::UpdateProgress(PRUint32 aNewBytes)
 
   return;
 }
-    
 
 PRInt32 nsMsgAsyncWriteProtocol::SendData(nsIURI * aURL, const char * dataBuffer, PRBool aSuppressLogging)
 {
   PRUint32 len = strlen(dataBuffer);
   PRUint32 cnt;
   nsresult rv = m_outputStream->Write(dataBuffer, len, &cnt);
-  if (NS_SUCCEEDED(rv) && len==cnt) 
+  if (NS_SUCCEEDED(rv) && len==cnt)
   {
-    if (mSuspendedWrite) 
+    if (mSuspendedWrite)
     {
       // if we got here then we had suspended the write 'cause we didn't have anymore
       // data to write (i.e. the pipe went empty). So resume the channel to kick
       // things off again.
       mSuspendedWrite = PR_FALSE;
       mAsyncOutStream->AsyncWait(mProvider, 0, 0, mProviderThread);
-    } 
+    }
     return NS_OK;
   }
   else
@@ -1473,28 +1467,27 @@ PRUnichar *FormatStringWithHostNameByID(PRInt32 stringID, nsIMsgMailNewsUrl *msg
   nsresult rv;
   nsCOMPtr <nsIStringBundle> sBundle = nsnull;
 
-  nsCOMPtr<nsIStringBundleService> sBundleService = 
+  nsCOMPtr<nsIStringBundleService> sBundleService =
           do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-  if (NS_FAILED(rv) || (! sBundleService)) 
+  if (NS_FAILED(rv) || (! sBundleService))
     return nsnull;
 
   rv = sBundleService->CreateBundle(MSGS_URL, getter_AddRefs(sBundle));
-  if (NS_FAILED(rv)) 
+  if (NS_FAILED(rv))
     return nsnull;
 
   PRUnichar *ptrv = nsnull;
-  nsXPIDLCString hostName;
+  nsCString hostName;
   nsCOMPtr<nsIMsgIncomingServer> server;
   rv = msgUri->GetServer(getter_AddRefs(server));
 
   if (NS_SUCCEEDED(rv) && server)
-   rv = server->GetRealHostName(getter_Copies(hostName));
+    rv = server->GetRealHostName(hostName);
 
-  nsAutoString hostStr;
-  hostStr.AssignWithConversion(hostName.get());
+  NS_ConvertASCIItoUTF16 hostStr (hostName);
   const PRUnichar *params[] = { hostStr.get() };
   rv = sBundle->FormatStringFromID(stringID, params, 1, &ptrv);
-  if (NS_FAILED(rv)) 
+  if (NS_FAILED(rv))
     return nsnull;
 
   return (ptrv);

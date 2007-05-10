@@ -143,7 +143,7 @@ nsMsgAccount::SetIncomingServer(nsIMsgIncomingServer * aIncomingServer)
   nsresult rv;
 
   nsCString key;
-  rv = aIncomingServer->GetKey(getter_Copies(key));
+  rv = aIncomingServer->GetKey(key);
 
   if (NS_SUCCEEDED(rv)) {
     nsCAutoString serverPrefName("mail.account.");

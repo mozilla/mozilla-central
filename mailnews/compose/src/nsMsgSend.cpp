@@ -2975,9 +2975,8 @@ nsMsgComposeAndSend::InitCompositionFields(nsMsgCompFields *fields,
                 rv = folder->GetServer(getter_AddRefs(incomingServer));
                 if (NS_SUCCEEDED(rv))
                 {
-                  nsXPIDLCString incomingServerType;
-                  rv = incomingServer->GetCharValue("type",
-                           getter_Copies(incomingServerType));
+                  nsCString incomingServerType;
+                  rv = incomingServer->GetCharValue("type", incomingServerType);
                   // Exclude RSS accounts, as they falsely report
                   // 'canFileMessages' = true
                   if (NS_SUCCEEDED(rv) && !incomingServerType.Equals("rss"))
@@ -3007,10 +3006,7 @@ nsMsgComposeAndSend::InitCompositionFields(nsMsgCompFields *fields,
       {
         nsCString uri;
         GetFolderURIFromUserPrefs(nsMsgDeliverNow, mUserIdentity, uri);
-        if (!uri.IsEmpty())
-          mCompFields->SetFcc(uri.LowerCaseEqualsLiteral("nocopy://") ? "" : uri.get());
-        else
-          mCompFields->SetFcc("");
+        mCompFields->SetFcc(uri.LowerCaseEqualsLiteral("nocopy://") ? "" : uri.get());
       }
     }
   }

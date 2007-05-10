@@ -52,51 +52,51 @@ interface nsISubscribeDataSource : nsISupports {
 
 [scriptable, uuid(f337b84a-1dd1-11b2-97c7-fb8b2e3f2280)]
 interface nsISubscribeListener : nsISupports {
-	void OnDonePopulating();
+  void OnDonePopulating();
 };
 
 [scriptable, uuid(4afd3d64-f7e9-4eb6-98bf-8200a7dab60f)]
 interface nsISubscribableServer : nsISupports {
-	attribute nsISubscribeListener subscribeListener;
-	attribute char delimiter;
+  attribute nsISubscribeListener subscribeListener;
+  attribute char delimiter;
 
-	void startPopulating(in nsIMsgWindow aMsgWindow, in boolean forceToServer);
-	void startPopulatingWithUri(in nsIMsgWindow aMsgWindow, in boolean forceToServer, in string uri);
-    void stopPopulating(in nsIMsgWindow aMsgWindow);
+  void startPopulating(in nsIMsgWindow aMsgWindow, in boolean forceToServer);
+  void startPopulatingWithUri(in nsIMsgWindow aMsgWindow, in boolean forceToServer, in string uri);
+  void stopPopulating(in nsIMsgWindow aMsgWindow);
 
-    // return true if state changed, false otherwise
-    boolean setState(in AUTF8String path, in boolean state);
+  // return true if state changed, false otherwise
+  boolean setState(in AUTF8String path, in boolean state);
 
-	void subscribeCleanup();
+  void subscribeCleanup();
 
-	void subscribe(in wstring name);
-	void unsubscribe(in wstring name);
+  void subscribe(in wstring name);
+  void unsubscribe(in wstring name);
 
     void commitSubscribeChanges();
 
     // other stuff
-	void setIncomingServer(in nsIMsgIncomingServer server);
-    void addTo(in AUTF8String aName, in boolean addAsSubscribed,
-               in boolean aSubscribable, in boolean aChangeIfExists);
-    void setAsSubscribed(in AUTF8String path);
-	void updateSubscribed();
-	void setShowFullName(in boolean showFullName);
- 
-    // if path is null, use the root
-    boolean hasChildren(in AUTF8String path);
-    // if path is null, use the root
-    boolean isSubscribed(in AUTF8String path);
-    // if path is null, use the root
-    boolean isSubscribable(in AUTF8String path);
-    // if path is null, use the root
-    AString getLeafName(in AUTF8String path);
-    // if path is null, use the root
-    void getChildren(in AUTF8String path, in nsISupportsArray array);
-    // if path is null, use the root
-    AUTF8String getFirstChildURI(in AUTF8String path);
+  void setIncomingServer(in nsIMsgIncomingServer server);
+  void addTo(in AUTF8String aName, in boolean addAsSubscribed,
+            in boolean aSubscribable, in boolean aChangeIfExists);
+  void setAsSubscribed(in AUTF8String path);
+  void updateSubscribed();
+  void setShowFullName(in boolean showFullName);
 
-    // for searching
-    void setSearchValue(in AString searchValue);
-    readonly attribute boolean supportsSubscribeSearch;
+  // if path is null, use the root
+  boolean hasChildren(in AUTF8String path);
+  // if path is null, use the root
+  boolean isSubscribed(in AUTF8String path);
+  // if path is null, use the root
+  boolean isSubscribable(in AUTF8String path);
+  // if path is null, use the root
+  AString getLeafName(in AUTF8String path);
+  // if path is null, use the root
+  void getChildren(in AUTF8String path, in nsISupportsArray array);
+  // if path is null, use the root
+  AUTF8String getFirstChildURI(in AUTF8String path);
+
+  // for searching
+  void setSearchValue(in AString searchValue);
+  readonly attribute boolean supportsSubscribeSearch;
 };
 

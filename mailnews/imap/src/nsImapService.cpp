@@ -2626,25 +2626,29 @@ NS_IMETHODIMP nsImapService::NewChannel(nsIURI *aURI, nsIChannel **_retval)
       nsCOMPtr <nsIMsgFolder> parent;
       if (aFolder)
         aFolder->GetParent(getter_AddRefs(parent));
-      nsXPIDLCString serverKey;
+      nsCString serverKey;
       nsCAutoString userPass;
       rv = mailnewsUrl->GetUserPass(userPass);
-      server->GetKey(getter_Copies(serverKey));
-      char *fullFolderName = nsnull;
+      server->GetKey(serverKey);
+      nsCString fullFolderName;
       if (parent)
-        fullFolderName = ToNewCString(folderName);
+        fullFolderName = folderName;
       if (!parent && !folderName.IsEmpty())// check if this folder is another user's folder
       {
-        fullFolderName = nsIMAPNamespaceList::GenerateFullFolderNameWithDefaultNamespace(serverKey.get(), folderName.get(), userPass.get(), kOtherUsersNamespace, nsnull);
+        fullFolderName = nsIMAPNamespaceList::GenerateFullFolderNameWithDefaultNamespace(serverKey.get(), 
+                                                                                         folderName.get(),
+                                                                                         userPass.get(),
+                                                                                         kOtherUsersNamespace,
+                                                                                         nsnull);
         // if this is another user's folder, let's see if we're already subscribed to it.
-        rv = imapRoot->FindOnlineSubFolder(fullFolderName, getter_AddRefs(subFolder));
+        rv = imapRoot->FindOnlineSubFolder(fullFolderName.get(), getter_AddRefs(subFolder));
         aFolder = do_QueryInterface(subFolder);
         if (aFolder)
           aFolder->GetParent(getter_AddRefs(parent));
       }
       // if we couldn't get the fullFolderName, then we probably couldn't find
       // the other user's namespace, in which case, we shouldn't try to subscribe to it.
-      if (!parent && !folderName.IsEmpty() && fullFolderName)
+      if (!parent && !folderName.IsEmpty() && !fullFolderName.IsEmpty())
       {
         // this folder doesn't exist - check if the user wants to subscribe to this folder.
         nsCOMPtr<nsIPrompt> dialog;
@@ -2658,8 +2662,8 @@ NS_IMETHODIMP nsImapService::NewChannel(nsIURI *aURI, nsIChannel **_retval)
         NS_ENSURE_SUCCESS(rv, rv);
         // need to convert folder name from mod-utf7 to unicode
         nsAutoString unescapedName;
-        if (NS_FAILED(CopyMUTF7toUTF16(nsDependentCString(fullFolderName), unescapedName)))
-            CopyASCIItoUTF16(nsDependentCString(fullFolderName), unescapedName);
+        if (NS_FAILED(CopyMUTF7toUTF16(fullFolderName, unescapedName)))
+            CopyASCIItoUTF16(fullFolderName, unescapedName);
         const PRUnichar *formatStrings[1] = { unescapedName.get() };
 
         rv = bundle->FormatStringFromID(IMAP_SUBSCRIBE_PROMPT,
@@ -2682,8 +2686,8 @@ NS_IMETHODIMP nsImapService::NewChannel(nsIURI *aURI, nsIChannel **_retval)
             // We need to convert this to unicode because that's what subscribe wants :-(
             // It's already in mod-utf7.
             nsAutoString unicodeName;
-            unicodeName.AssignWithConversion(fullFolderName);
-            rv = imapServer->SubscribeToFolder(unicodeName.get(), PR_TRUE, getter_AddRefs(subscribeURI));
+            CopyASCIItoUTF16(fullFolderName, unicodeName);
+            rv = imapServer->SubscribeToFolder(unicodeName, PR_TRUE, getter_AddRefs(subscribeURI));
             if (NS_SUCCEEDED(rv) && subscribeURI)
             {
               nsCOMPtr <nsIImapUrl> imapSubscribeUrl = do_QueryInterface(subscribeURI);
@@ -2710,9 +2714,8 @@ NS_IMETHODIMP nsImapService::NewChannel(nsIURI *aURI, nsIChannel **_retval)
         // error out this channel, so it'll stop trying to run the url.
         rv = NS_ERROR_FAILURE;
         *_retval = nsnull;
-        PR_Free(fullFolderName);
       }
-      else if (fullFolderName)// this folder exists - check if this is a click on a link to the folder
+      else if (!fullFolderName.IsEmpty())// this folder exists - check if this is a click on a link to the folder
       {     // in which case, we'll select it.
         nsCOMPtr <nsIMsgFolder> imapFolder;
         nsCOMPtr <nsIImapServerSink> serverSink;

@@ -51,17 +51,17 @@ nsrefcnt nsRssIncomingServer::gInstanceCount    = 0;
 NS_IMPL_ISUPPORTS_INHERITED3(nsRssIncomingServer,
                              nsMsgIncomingServer,
                              nsIRssIncomingServer,
-                             nsIFolderListener, 
+                             nsIFolderListener,
                              nsILocalMailIncomingServer)
 
-nsRssIncomingServer::nsRssIncomingServer() 
+nsRssIncomingServer::nsRssIncomingServer()
 {
   m_canHaveFilters = PR_TRUE;
 
-  if (gInstanceCount == 0) 
+  if (gInstanceCount == 0)
   {
     nsresult rv;
-    nsCOMPtr<nsIMsgMailSession> mailSession = do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv); 
+    nsCOMPtr<nsIMsgMailSession> mailSession = do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
 
     if (NS_SUCCEEDED(rv))
       mailSession->AddFolderListener(this, nsIFolderListener::added);
@@ -73,9 +73,9 @@ nsRssIncomingServer::nsRssIncomingServer()
 nsRssIncomingServer::~nsRssIncomingServer()
 {
   gInstanceCount--;
-  
+
   // I used to have code here which unregistered the global rss folder listener with the
-  // mail session. But the rss incoming server is held until shutdown when we shut down the 
+  // mail session. But the rss incoming server is held until shutdown when we shut down the
   // account datasource. And at shutdown the mail session explicitly releases all of its folder listeners
   // anyway so this was effectively a no-op...
 }
@@ -107,41 +107,41 @@ NS_IMETHODIMP nsRssIncomingServer::GetFeedItemsDataSourcePath(nsILocalFile ** aL
 
 NS_IMETHODIMP nsRssIncomingServer::CreateDefaultMailboxes(nsIFile *aPath)
 {
-    NS_ENSURE_ARG_POINTER(aPath);
-    nsCOMPtr <nsIFile> path;
-    nsresult rv = aPath->Clone(getter_AddRefs(path));
-    NS_ENSURE_SUCCESS(rv, rv);
-    // for RSS, all we have is Trash
-    // XXX or should we be use Local Folders/Trash?
-    rv = path->AppendNative(NS_LITERAL_CSTRING("Trash"));
-    NS_ENSURE_SUCCESS(rv, rv);
-    
-    PRBool exists;
-    rv = path->Exists(&exists);
-    if (!exists) 
-      rv = path->Create(nsIFile::NORMAL_FILE_TYPE, 0644);
-    return rv;
+  NS_ENSURE_ARG_POINTER(aPath);
+  nsCOMPtr <nsIFile> path;
+  nsresult rv = aPath->Clone(getter_AddRefs(path));
+  NS_ENSURE_SUCCESS(rv, rv);
+  // for RSS, all we have is Trash
+  // XXX or should we be use Local Folders/Trash?
+  rv = path->AppendNative(NS_LITERAL_CSTRING("Trash"));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  PRBool exists;
+  rv = path->Exists(&exists);
+  if (!exists)
+    rv = path->Create(nsIFile::NORMAL_FILE_TYPE, 0644);
+  return rv;
 }
 
 NS_IMETHODIMP nsRssIncomingServer::SetFlagsOnDefaultMailboxes()
 {
-    nsCOMPtr<nsIMsgFolder> rootFolder;
-    nsresult rv = GetRootFolder(getter_AddRefs(rootFolder));
-    NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIMsgFolder> rootFolder;
+  nsresult rv = GetRootFolder(getter_AddRefs(rootFolder));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCOMPtr<nsIMsgLocalMailFolder> localFolder =
-        do_QueryInterface(rootFolder, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIMsgLocalMailFolder> localFolder =
+      do_QueryInterface(rootFolder, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    localFolder->SetFlagsOnDefaultMailboxes(MSG_FOLDER_FLAG_TRASH);
-    return NS_OK;
+  localFolder->SetFlagsOnDefaultMailboxes(MSG_FOLDER_FLAG_TRASH);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsRssIncomingServer::PerformBiff(nsIMsgWindow *aMsgWindow)
 {
   // do we need to do anything here besides download articles
   // for each feed? I don't think we have a way to check a feed for new articles without actually
-  // getting the articles. Do we need to SetPerformingBiff to true for this server? 
+  // getting the articles. Do we need to SetPerformingBiff to true for this server?
   nsresult rv;
   nsCOMPtr<nsIMsgFolder> rootRSSFolder;
   GetRootMsgFolder(getter_AddRefs(rootRSSFolder));
@@ -151,8 +151,8 @@ NS_IMETHODIMP nsRssIncomingServer::PerformBiff(nsIMsgWindow *aMsgWindow)
   NS_NewISupportsArray(getter_AddRefs(allDescendents));
   rv = rootRSSFolder->ListDescendents(allDescendents);
   NS_ENSURE_SUCCESS(rv, rv);
-  
-  PRUint32 cnt =0;  
+
+  PRUint32 cnt =0;
   allDescendents->Count(&cnt);
 
   nsCOMPtr<nsISupports> supports;
@@ -184,7 +184,7 @@ NS_IMETHODIMP nsRssIncomingServer::GetNewMail(nsIMsgWindow *aMsgWindow, nsIUrlLi
   aFolder->GetIsServer(&rootFolder);
   if (rootFolder)
     return PerformBiff(aMsgWindow);
-  
+
   PRBool valid = PR_FALSE;
   nsCOMPtr <nsIMsgDatabase> db;
   nsresult rv;
@@ -206,7 +206,7 @@ NS_IMETHODIMP nsRssIncomingServer::GetNewMail(nsIMsgWindow *aMsgWindow, nsIUrlLi
         aFolder->GetName(getter_Copies(folderName));
         folderInfo->GetCharPtrProperty("feedUrl", getter_Copies(url));
 
-        rv = rssDownloader->DownloadFeed(url.get(), 
+        rv = rssDownloader->DownloadFeed(url.get(),
                                          aFolder, PR_FALSE, folderName.get(), aUrlListener, aMsgWindow);
       }
     }
@@ -214,17 +214,16 @@ NS_IMETHODIMP nsRssIncomingServer::GetNewMail(nsIMsgWindow *aMsgWindow, nsIUrlLi
   return NS_OK;
 }
 
-NS_IMETHODIMP nsRssIncomingServer::GetLocalStoreType(char **type)
+NS_IMETHODIMP nsRssIncomingServer::GetLocalStoreType(nsACString& type)
 {
-    NS_ENSURE_ARG_POINTER(type);
-    *type = strdup("mailbox");
-    return NS_OK;
+  type.AssignLiteral("mailbox");
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsRssIncomingServer::GetAccountManagerChrome(nsAString& aResult)
 {
-    aResult.AssignLiteral("am-newsblog.xul");
-    return NS_OK;
+  aResult.AssignLiteral("am-newsblog.xul");
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsRssIncomingServer::GetOfflineSupportLevel(PRInt32 *aSupportLevel)
@@ -266,16 +265,16 @@ NS_IMETHODIMP nsRssIncomingServer::OnItemAdded(nsIRDFResource *parentItem, nsISu
   nsresult rv = folder->GetServer(getter_AddRefs(server));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsXPIDLCString type; 
-  rv = server->GetType(getter_Copies(type));
+  nsCString type;
+  rv = server->GetType(type);
   NS_ENSURE_SUCCESS(rv, rv);
- 
-  if (type.Equals("rss"))
+
+  if (type.EqualsLiteral("rss"))
   {
     nsCOMPtr <nsINewsBlogFeedDownloader> rssDownloader = do_GetService("@mozilla.org/newsblog-feed-downloader;1", &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    // did the user just delete this folder (adding it to trash?) 
+    // did the user just delete this folder (adding it to trash?)
     nsCOMPtr<nsIMsgFolder> rootMsgFolder;
     nsCOMPtr<nsIMsgFolder> trashFolder;
     rv = GetRootFolder(getter_AddRefs(rootMsgFolder));
@@ -283,7 +282,7 @@ NS_IMETHODIMP nsRssIncomingServer::OnItemAdded(nsIRDFResource *parentItem, nsISu
 
     PRUint32 numFolders;
     rv = rootMsgFolder->GetFoldersWithFlag(MSG_FOLDER_FLAG_TRASH, 1, &numFolders, getter_AddRefs(trashFolder));
-    
+
     PRBool unsubscribe = PR_FALSE;
     if (trashFolder)
       trashFolder->IsAncestorOf(folder, &unsubscribe);
@@ -299,7 +298,7 @@ NS_IMETHODIMP nsRssIncomingServer::OnItemAdded(nsIRDFResource *parentItem, nsISu
     rv = folder->ListDescendents(allDescendents);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    PRUint32 cnt =0;  
+    PRUint32 cnt =0;
     allDescendents->Count(&cnt);
 
     nsCOMPtr<nsISupports> supports;
@@ -313,7 +312,7 @@ NS_IMETHODIMP nsRssIncomingServer::OnItemAdded(nsIRDFResource *parentItem, nsISu
         rssDownloader->UpdateSubscriptionsDS(rssFolder, unsubscribe);
     }
   }
-         
+
   return rv;
 }
 
@@ -341,7 +340,6 @@ NS_IMETHODIMP nsRssIncomingServer::OnItemUnicharPropertyChanged(nsIRDFResource *
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
-
 
 NS_IMETHODIMP nsRssIncomingServer::OnItemPropertyFlagChanged(nsIMsgDBHdr *item, nsIAtom *property, PRUint32 oldFlag, PRUint32 newFlag)
 {

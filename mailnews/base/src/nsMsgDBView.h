@@ -177,7 +177,7 @@ protected:
   nsresult FetchLabel(nsIMsgDBHdr *aHdr, PRUnichar ** aLabelString);
   nsresult FetchTags(nsIMsgDBHdr *aHdr, PRUnichar ** aTagString);
   nsresult FetchKeywords(nsIMsgDBHdr *aHdr, char ** keywordString);
-  nsresult FetchAccount(nsIMsgDBHdr * aHdr, PRUnichar ** aAccount);
+  nsresult FetchAccount(nsIMsgDBHdr * aHdr, nsAString& aAccount);
   nsresult CycleThreadedColumn(nsIDOMElement * aElement);
 
   // Save and Restore Selection are a pair of routines you should

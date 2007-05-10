@@ -378,9 +378,9 @@ nsresult nsMsgDBView::FetchAuthor(nsIMsgDBHdr * aHdr, PRUnichar ** aSenderString
   return (*aSenderString) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
 }
 
-nsresult nsMsgDBView::FetchAccount(nsIMsgDBHdr * aHdr, PRUnichar ** aAccount)
+nsresult nsMsgDBView::FetchAccount(nsIMsgDBHdr * aHdr, nsAString& aAccount)
 {
-  nsXPIDLCString accountKey;
+  nsCString accountKey;
 
   nsresult rv = aHdr->GetAccountKey(getter_Copies(accountKey));
 
@@ -388,13 +388,8 @@ nsresult nsMsgDBView::FetchAccount(nsIMsgDBHdr * aHdr, PRUnichar ** aAccount)
   nsCOMPtr <nsIMsgAccountManager> accountManager = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
   nsCOMPtr <nsIMsgAccount> account;
-  if (accountKey.IsEmpty())
-  {
-  }
-  else
-  {
+  if (!accountKey.IsEmpty())
     rv = accountManager->GetAccount(accountKey, getter_AddRefs(account));
-  }
   if (account)
   {
     nsCOMPtr <nsIMsgIncomingServer> server;
@@ -403,15 +398,9 @@ nsresult nsMsgDBView::FetchAccount(nsIMsgDBHdr * aHdr, PRUnichar ** aAccount)
       server->GetPrettyName(aAccount);
   }
   else
-  {
-    *aAccount = ToNewUnicode(accountKey);
-  }
-  
-  if (!*aAccount)
-    *aAccount = nsCRT::strdup(NS_LITERAL_STRING("").get());
+    CopyASCIItoUTF16(accountKey, aAccount);
   return NS_OK;
 }
-
 
 nsresult nsMsgDBView::FetchRecipients(nsIMsgDBHdr * aHdr, PRUnichar ** aRecipientsString)
 {
@@ -1695,7 +1684,7 @@ NS_IMETHODIMP nsMsgDBView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsAStr
 
   aValue.SetCapacity(0);
   // XXX fix me by making Fetch* take an nsAString& parameter
-  nsXPIDLString valueText;
+  nsString valueText;
   nsCOMPtr <nsIMsgThread> thread;
 
   const PRUnichar* colID;
@@ -1706,8 +1695,8 @@ NS_IMETHODIMP nsMsgDBView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsAStr
       
   if (colHandler) 
   {
-  	colHandler->GetCellText(aRow, aCol, aValue);
-  	return NS_OK;
+    colHandler->GetCellText(aRow, aCol, aValue);
+    return NS_OK;
   }
   
   switch (colID[0])
@@ -1754,10 +1743,7 @@ NS_IMETHODIMP nsMsgDBView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsAStr
     break;
   case 'a': // account
     if (colID[1] == 'c') // account
-    {
-      rv = FetchAccount(msgHdr, getter_Copies(valueText));
-      aValue.Assign(valueText);
-    }
+      rv = FetchAccount(msgHdr, aValue);
     break;
   case 't':   
     // total msgs in thread column
@@ -1967,20 +1953,20 @@ NS_IMETHODIMP nsMsgDBView::Open(nsIMsgFolder *folder, nsMsgViewSortTypeValue sor
     nsCOMPtr <nsIMsgIncomingServer> server;
     rv = folder->GetServer(getter_AddRefs(server));
     NS_ENSURE_SUCCESS(rv,rv);
-    nsXPIDLCString type;
-    rv = server->GetType(getter_Copies(type));
+    nsCString type;
+    rv = server->GetType(type);
     NS_ENSURE_SUCCESS(rv,rv);
 
     // turn the redirector type into an atom
-    nsXPIDLCString redirectorType;
-    rv = server->GetRedirectorType(getter_Copies(redirectorType));
+    nsCString redirectorType;
+    rv = server->GetRedirectorType(redirectorType);
     NS_ENSURE_SUCCESS(rv,rv);
     if (redirectorType.IsEmpty())
       mRedirectorTypeAtom = nsnull;
     else
       mRedirectorTypeAtom = do_GetAtom(redirectorType.get());
 
-    mIsNews = !strcmp("nntp",type.get());
+    mIsNews = type.LowerCaseEqualsLiteral("nntp");
 
     if (type.IsEmpty())
       mMessageTypeAtom = nsnull;
@@ -3558,14 +3544,14 @@ nsMsgDBView::GetCollationKey(nsIMsgDBHdr *msgHdr, nsMsgViewSortTypeValue sortTyp
     case nsMsgViewSortType::byAccount:
     case nsMsgViewSortType::byTags:
       {
-        nsXPIDLString str;
+        nsString str;
         nsCOMPtr <nsIMsgDatabase> dbToUse = m_db;
     
         if (!dbToUse) // probably search view
           GetDBForViewIndex(0, getter_AddRefs(dbToUse));
 
         rv = (sortType == nsMsgViewSortType::byAccount)
-            ? FetchAccount(msgHdr, getter_Copies(str))
+            ? FetchAccount(msgHdr, str)
             : FetchTags(msgHdr, getter_Copies(str));
 
         if (NS_SUCCEEDED(rv) && dbToUse)

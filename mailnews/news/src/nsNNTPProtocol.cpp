@@ -494,11 +494,11 @@ NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI * aURL, nsIMsgWindow *aMsgWindow
     // call base class to set up the transport
 
     PRInt32 port = 0;
-    nsXPIDLCString hostName;
+    nsCString hostName;
     m_url->GetPort(&port);
     nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(m_nntpServer);
     if (server)
-      server->GetRealHostName(getter_Copies(hostName));
+      server->GetRealHostName(hostName);
 
     nsCOMPtr<nsIProxyInfo> proxyInfo;
     rv = NS_ExamineForProxy("nntp", hostName.get(), port, getter_AddRefs(proxyInfo));
@@ -3820,8 +3820,8 @@ nsNNTPProtocol::SetCheckingForNewNewsStatus(PRInt32 current, PRInt32 total)
     nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(m_nntpServer, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsXPIDLCString hostName;
-    rv = server->GetHostName(getter_Copies(hostName));
+    nsCString hostName;
+    rv = server->GetHostName(hostName);
     NS_ENSURE_SUCCESS(rv, rv);
 
     nsAutoString thisGroupStr;

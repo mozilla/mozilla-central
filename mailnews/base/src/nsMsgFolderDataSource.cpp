@@ -1218,8 +1218,8 @@ nsMsgFolderDataSource::createFolderServerTypeNode(nsIMsgFolder* folder,
   rv = folder->GetServer(getter_AddRefs(server));
   if (NS_FAILED(rv) || !server) return NS_ERROR_FAILURE;
 
-  nsXPIDLCString serverType;
-  rv = server->GetType(getter_Copies(serverType));
+  nsCString serverType;
+  rv = server->GetType(serverType);
   if (NS_FAILED(rv)) return rv;
 
   createNode(NS_ConvertASCIItoUTF16(serverType).get(), target, getRDFService());
@@ -1238,8 +1238,8 @@ nsMsgFolderDataSource::createServerIsDeferredNode(nsIMsgFolder* folder,
     nsCOMPtr <nsIPop3IncomingServer> pop3Server = do_QueryInterface(incomingServer);
     if (pop3Server)
     {
-      nsXPIDLCString deferredToServer;
-      pop3Server->GetDeferredToAccount(getter_Copies(deferredToServer));
+      nsCString deferredToServer;
+      pop3Server->GetDeferredToAccount(deferredToServer);
       isDeferred = !deferredToServer.IsEmpty();
     }
   }
@@ -1257,8 +1257,8 @@ nsMsgFolderDataSource::createFolderRedirectorTypeNode(nsIMsgFolder* folder,
   rv = folder->GetServer(getter_AddRefs(server));
   if (NS_FAILED(rv) || !server) return NS_ERROR_FAILURE;
 
-  nsXPIDLCString redirectorType;
-  rv = server->GetRedirectorType(getter_Copies(redirectorType));
+  nsCString redirectorType;
+  rv = server->GetRedirectorType(redirectorType);
   if (NS_FAILED(rv)) return rv;
 
   createNode(NS_ConvertASCIItoUTF16(redirectorType).get(), target, getRDFService());
@@ -1413,17 +1413,12 @@ nsMsgFolderDataSource::createFolderSyncDisabledNode(nsIMsgFolder* folder,
   rv = folder->GetServer(getter_AddRefs(server));
   if (NS_FAILED(rv) || !server) return NS_ERROR_FAILURE;
 
-  nsXPIDLCString serverType;
-  rv = server->GetType(getter_Copies(serverType));
+  nsCString serverType;
+  rv = server->GetType(serverType);
   if (NS_FAILED(rv)) return rv;
 
-  *target = nsnull;
-
-  if (nsCRT::strcasecmp(serverType, "none")==0 || nsCRT::strcasecmp(serverType, "pop3")==0
-      || isServer)
-    *target = kTrueLiteral;
-  else
-    *target = kFalseLiteral;
+  *target = isServer || serverType.LowerCaseEqualsLiteral("none") || serverType.LowerCaseEqualsLiteral("pop3") ?
+            kTrueLiteral : kFalseLiteral;
   NS_IF_ADDREF(*target);
   return NS_OK;
 }
@@ -2456,8 +2451,8 @@ nsresult nsMsgFlatFolderDataSource::GetFolderDisplayName(nsIMsgFolder *folder, P
       folder->GetServer(getter_AddRefs(server));
       if (server)
       {
-        nsXPIDLString serverName;
-        server->GetPrettyName(getter_Copies(serverName));
+        nsString serverName;
+        server->GetPrettyName(serverName);
         curFolderName.Append(NS_LITERAL_STRING(" - "));
         curFolderName.Append(serverName);
         *folderName = ToNewUnicode(curFolderName);

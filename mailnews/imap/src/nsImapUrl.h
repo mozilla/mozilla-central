@@ -61,7 +61,7 @@ public:
   NS_IMETHOD SetSpec(const nsACString &aSpec);
   NS_IMETHOD SetQuery(const nsACString &aQuery);
 
-  ////////////////////////////////////////////////////////////////////////////// 
+  //////////////////////////////////////////////////////////////////////////////
   // we support the nsIImapUrl interface
   //////////////////////////////////////////////////////////////////////////////
   NS_DECL_NSIIMAPURL
@@ -74,41 +74,41 @@ public:
   // nsIMsgMessageUrl
   NS_DECL_NSIMSGMESSAGEURL
   NS_DECL_NSIMSGI18NURL
-  
+
   // nsImapUrl
   nsImapUrl();
   virtual ~nsImapUrl();
-  
+
   static nsresult ConvertToCanonicalFormat(const char *folderName, char onlineDelimiter, char **resultingCanonicalPath);
   static nsresult EscapeSlashes(const char *sourcePath, char **resultPath);
   static nsresult UnescapeSlashes(char *path);
   static char *	ReplaceCharsInCopiedString(const char *stringToCopy, char oldChar, char newChar);
-  
+
 protected:
   virtual nsresult ParseUrl();
-  virtual const char * GetUserName() { return m_userName;}
-  
-  char		*m_listOfMessageIds;
-  
+  virtual const char * GetUserName() { return m_userName.get();}
+
+  char *m_listOfMessageIds;
+
   // handle the imap specific parsing
-  void		ParseImapPart(char *imapPartOfUrl);
-  
-  void		ParseFolderPath(char **resultingCanonicalPath);
-  void		ParseSearchCriteriaString();
-  void		ParseUidChoice();
-  void		ParseMsgFlags();
-  void		ParseListOfMessageIds();
-  void          ParseCustomMsgFetchAttribute();
-  void          ParseNumBytes();
+  void ParseImapPart(char *imapPartOfUrl);
+
+  void ParseFolderPath(char **resultingCanonicalPath);
+  void ParseSearchCriteriaString();
+  void ParseUidChoice();
+  void ParseMsgFlags();
+  void ParseListOfMessageIds();
+  void ParseCustomMsgFetchAttribute();
+  void ParseNumBytes();
 
   nsresult GetMsgFolder(nsIMsgFolder **msgFolder);
-  
+
   char        *m_sourceCanonicalFolderPathSubString;
   char        *m_destinationCanonicalFolderPathSubString;
-  char		*m_tokenPlaceHolder;
-  char		*m_urlidSubString;
-  char		m_onlineSubDirSeparator;
-  char		*m_searchCriteriaString;	// should we use m_search, or is this special?
+  char        *m_tokenPlaceHolder;
+  char        *m_urlidSubString;
+  char        m_onlineSubDirSeparator;
+  char        *m_searchCriteriaString;	// should we use m_search, or is this special?
   nsCString     m_command;       // for custom commands
   nsCString     m_msgFetchAttribute; // for fetching custom msg attributes
   nsCString     m_customAttributeResult; // for fetching custom msg attributes
@@ -128,8 +128,8 @@ protected:
   PRPackedBool m_rerunningUrl; // first attempt running this failed with connection error; retrying
   nsImapContentModifiedType	m_contentModified;
 
-  nsXPIDLCString  m_userName;
-  nsXPIDLCString  m_serverKey;
+  nsCString  m_userName;
+  nsCString  m_serverKey;
   // event sinks
   imapMessageFlagsType	m_flags;
   nsImapAction	m_imapAction;
@@ -149,7 +149,7 @@ protected:
   nsCOMPtr<nsIFile> m_messageFile;
   PRBool                m_addDummyEnvelope;
   PRBool                m_canonicalLineEnding; // CRLF
-  
+
   nsCString mURI; // the RDF URI associated with this url.
   nsCString mCharsetOverride; // used by nsIMsgI18NUrl...
 };

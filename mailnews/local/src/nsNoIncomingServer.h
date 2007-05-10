@@ -47,20 +47,20 @@
 class nsNoIncomingServer : public nsMsgIncomingServer,
                              public nsINoIncomingServer,
                              public nsILocalMailIncomingServer
-                             
+
 {
 public:
-    NS_DECL_ISUPPORTS_INHERITED
-    NS_DECL_NSINOINCOMINGSERVER
-    NS_DECL_NSILOCALMAILINCOMINGSERVER
+  NS_DECL_ISUPPORTS_INHERITED
+  NS_DECL_NSINOINCOMINGSERVER
+  NS_DECL_NSILOCALMAILINCOMINGSERVER
 
-    nsNoIncomingServer();
-    virtual ~nsNoIncomingServer();
-    
-    NS_IMETHOD GetLocalStoreType(char * *type);
-    NS_IMETHOD GetCanSearchMessages(PRBool *canSearchMessages);
-    NS_IMETHOD GetServerRequiresPasswordForBiff(PRBool *aServerRequiresPasswordForBiff);
-    NS_IMETHOD GetAccountManagerChrome(nsAString& aResult);
+  nsNoIncomingServer();
+  virtual ~nsNoIncomingServer();
+
+  NS_IMETHOD GetLocalStoreType(nsACString& type);
+  NS_IMETHOD GetCanSearchMessages(PRBool *canSearchMessages);
+  NS_IMETHOD GetServerRequiresPasswordForBiff(PRBool *aServerRequiresPasswordForBiff);
+  NS_IMETHOD GetAccountManagerChrome(nsAString& aResult);
 };
 
 

@@ -369,9 +369,9 @@ nsMessengerOSXIntegration::OnItemIntPropertyChanged(nsIRDFResource *aItem, nsIAt
       {
         PRBool performingBiff = PR_FALSE;
         nsCOMPtr<nsIMsgIncomingServer> server;
-		folder->GetServer(getter_AddRefs(server));
+        folder->GetServer(getter_AddRefs(server));
         if (server)
-		  server->GetPerformingBiff(&performingBiff);
+          server->GetPerformingBiff(&performingBiff);
         if (!performingBiff) 
           return NS_OK; // kick out right now...
       }

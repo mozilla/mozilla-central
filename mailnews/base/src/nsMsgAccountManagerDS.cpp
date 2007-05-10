@@ -88,7 +88,7 @@ typedef struct _serverCreationParams {
 } serverCreationParams;
 
 typedef struct {
-  const char* serverKey;
+  nsCString serverKey;
   PRBool found;
 } findServerByKeyEntry;
 
@@ -503,12 +503,12 @@ nsMsgAccountManagerDataSource::GetTarget(nsIRDFResource *source,
         if (NS_FAILED(rv)) return rv;
 
         // this is a hack for now - hardcode server order by type
-        nsXPIDLCString serverType;
-        server->GetType(getter_Copies(serverType));
+        nsCString serverType;
+        server->GetType(serverType);
 
-        if (nsCRT::strcasecmp(serverType, "none")==0)
+        if (serverType.LowerCaseEqualsLiteral("none"))
           accountNum += 2000;
-        else if (nsCRT::strcasecmp(serverType, "nntp")==0)
+        else if (serverType.LowerCaseEqualsLiteral("nntp"))
           accountNum += 3000;
         else
           accountNum += 1000;     // default is to appear at the top
@@ -804,8 +804,8 @@ nsMsgAccountManagerDataSource::createSettingsResources(nsIRDFResource *aSource,
     }
 
     // junk settings apply for all server types except for news
-    nsXPIDLCString serverType;
-    server->GetType(getter_Copies(serverType));
+    nsCString serverType;
+    server->GetType(serverType);
     if (!serverType.LowerCaseEqualsLiteral("nntp"))
       aNodeArray->AppendElement(kNC_PageTitleJunk);
 
@@ -1096,8 +1096,8 @@ nsMsgAccountManagerDataSource::supportsFilters(nsIMsgIncomingServer *aServer)
 PRBool
 nsMsgAccountManagerDataSource::canGetMessages(nsIMsgIncomingServer *aServer)
 {
-  nsXPIDLCString type;
-  nsresult rv = aServer->GetType(getter_Copies(type));
+  nsCString type;
+  nsresult rv = aServer->GetType(type);
   NS_ENSURE_SUCCESS(rv, PR_FALSE);
 
   nsCAutoString contractid(NS_MSGPROTOCOLINFO_CONTRACTID_PREFIX);
@@ -1115,8 +1115,8 @@ nsMsgAccountManagerDataSource::canGetMessages(nsIMsgIncomingServer *aServer)
 PRBool
 nsMsgAccountManagerDataSource::canGetIncomingMessages(nsIMsgIncomingServer *aServer)
 {
-  nsXPIDLCString type;
-  nsresult rv = aServer->GetType(getter_Copies(type));
+  nsCString type;
+  nsresult rv = aServer->GetType(type);
   NS_ENSURE_SUCCESS(rv, PR_FALSE);
 
   nsCAutoString contractid(NS_MSGPROTOCOLINFO_CONTRACTID_PREFIX);
@@ -1150,8 +1150,8 @@ nsMsgAccountManagerDataSource::HasAssertionAccountRoot(nsIRDFResource *aProperty
     rv = getServerForFolderNode(aTarget, getter_AddRefs(server));
     if (NS_FAILED(rv) || !server) return rv;
 
-    nsXPIDLCString serverKey;
-    server->GetKey(getter_Copies(serverKey));
+    nsCString serverKey;
+    server->GetKey(serverKey);
 
     nsCOMPtr<nsIMsgAccountManager> am = do_QueryReferent(mAccountManager, &rv);
     if (NS_FAILED(rv)) return rv;
@@ -1166,7 +1166,6 @@ nsMsgAccountManagerDataSource::HasAssertionAccountRoot(nsIRDFResource *aProperty
 
     serverArray->EnumerateForwards(findServerByKey, &entry);
     (*_retval) = entry.found;
-
   }
 
   return NS_OK;
@@ -1209,9 +1208,9 @@ nsMsgAccountManagerDataSource::findServerByKey(nsISupports *aElement,
   nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(aElement, &rv);
   if (NS_FAILED(rv)) return PR_TRUE;
 
-  nsXPIDLCString key;
-  server->GetKey(getter_Copies(key));
-  if (nsCRT::strcmp(key, entry->serverKey)==0) 
+  nsCString key;
+  server->GetKey(key);
+  if (key.Equals(entry->serverKey))
   {
     entry->found = PR_TRUE;
     return PR_FALSE;        // stop when found
@@ -1391,11 +1390,10 @@ nsMsgAccountManagerDataSource::IsIncomingServerForFakeAccount(nsIMsgIncomingServ
     return NS_OK;
   }
 
-  nsXPIDLCString hostname;
-  rv = aServer->GetHostName(getter_Copies(hostname));
+  nsCString hostname;
+  rv = aServer->GetHostName(hostname);
   NS_ENSURE_SUCCESS(rv,rv);
-
-  *aResult = (strcmp(hostname.get(), fakeAccountHostName.get()) == 0);
+  *aResult = hostname.Equals(fakeAccountHostName);
   return NS_OK;
 }
 

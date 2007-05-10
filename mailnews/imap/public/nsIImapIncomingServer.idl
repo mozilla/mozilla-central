@@ -51,30 +51,30 @@ typedef long nsMsgImapDeleteModel;
 [scriptable, uuid(bbfc33de-fe89-11d3-a564-0060b0fc04b7)]
 interface nsMsgImapDeleteModels
 {
-	const long IMAPDelete = 0;	/* delete with a big red x */
-	const long MoveToTrash = 1; /* delete moves message to the trash */
-	const long DeleteNoTrash = 2; /* delete is shift delete - don't create or use trash */
+  const long IMAPDelete = 0;    /* delete with a big red x */
+  const long MoveToTrash = 1;   /* delete moves message to the trash */
+  const long DeleteNoTrash = 2; /* delete is shift delete - don't create or use trash */
 };
 
-[scriptable, uuid(e2edee9e-5660-46d5-965b-b824cc81a335)]
+[scriptable, uuid(D74FA1F8-8D28-43a5-AF13-797ED29F2D1F)]
 interface nsIImapIncomingServer : nsISupports {
 
   attribute long maximumConnectionsNumber;
   attribute long timeOutLimits;
-  attribute string adminUrl;
-  attribute string serverDirectory;
+  attribute ACString adminUrl;
+  attribute ACString serverDirectory;
   attribute long capabilityPref;
   attribute boolean cleanupInboxOnExit;
   attribute nsMsgImapDeleteModel deleteModel;
   attribute boolean dualUseFolders;
   attribute long emptyTrashThreshhold;
-  attribute string personalNamespace;
-  attribute string publicNamespace;
-  attribute string otherUsersNamespace;
+  attribute ACString personalNamespace;
+  attribute ACString publicNamespace;
+  attribute ACString otherUsersNamespace;
   attribute boolean offlineDownload;
   attribute boolean overrideNamespaces;
   attribute boolean usingSubscription;
-  attribute string manageMailAccountUrl;
+  attribute ACString manageMailAccountUrl;
   attribute boolean fetchByChunks;
   attribute boolean mimePartsOnDemand;
   attribute boolean isAOLServer;       
@@ -82,9 +82,9 @@ interface nsIImapIncomingServer : nsISupports {
   attribute boolean storeReadMailInPFC;
   attribute boolean storeSentMailInPFC;
   attribute boolean useIdle;
-  attribute wstring trashFolderName;
+  attribute AString trashFolderName;
 
-  boolean getIsPFC(in string folderName);
+  boolean getIsPFC(in ACString folderName);
   nsIMsgFolder getPFC(in boolean createIfMissing);
   attribute boolean downloadBodiesOnGetNewMail;
   attribute boolean autoSyncOfflineStores;
@@ -95,10 +95,10 @@ interface nsIImapIncomingServer : nsISupports {
   void RemoveConnection(in nsIImapProtocol aImapConnection);
   void ResetNamespaceReferences();
   void pseudoInterruptMsgLoad(in nsIMsgFolder aImapFolder, in nsIMsgWindow aMsgWindow, out boolean interrupted);
-  void ResetConnection(in string folderName);
+  void ResetConnection(in ACString folderName);
   void CloseConnectionForFolder(in nsIMsgFolder aMsgFolder);
   void reDiscoverAllFolders();
-  nsIURI subscribeToFolder(in wstring name, in boolean subscribe);
+  nsIURI subscribeToFolder(in AString name, in boolean subscribe);
   nsIMsgFolder GetReadMailPFC(in boolean createIfMissing);
   nsIMsgFolder GetSentMailPFC(in boolean createIfMissing);
   void GetNewMessagesForNonInboxFolders(in nsIMsgFolder aRootFolder,
@@ -107,11 +107,11 @@ interface nsIImapIncomingServer : nsISupports {
                                         in boolean performingBiff);
   attribute boolean doingLsub;
   void allowFolderConversion(out boolean allowConversion);
-  void convertFolderName(in string originalName, out wstring convertedName);
-  void hideFolderName(in string originalName, out boolean hideFolder);
-  string getTrashFolderByRedirectorType();
-  attribute string redirectorType;
+  void convertFolderName(in ACString originalName, out AString convertedName);
+  void hideFolderName(in ACString originalName, out boolean hideFolder);
+  ACString getTrashFolderByRedirectorType();
+  attribute ACString redirectorType;
 
-  string getUriWithNamespacePrefixIfNecessary(in long namespaceType, in string originalUri);
+  ACString getUriWithNamespacePrefixIfNecessary(in long namespaceType, in ACString originalUri);
   attribute boolean shuttingDown;
 };

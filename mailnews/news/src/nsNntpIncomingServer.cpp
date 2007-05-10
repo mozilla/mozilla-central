@@ -180,20 +180,19 @@ nsNntpIncomingServer::GetNewsrcFilePath(nsILocalFile **aNewsrcFilePath)
   rv = GetNewsrcRootPath(getter_AddRefs(mNewsrcFilePath));
   if (NS_FAILED(rv)) return rv;
 
-  nsXPIDLCString hostname;
-  rv = GetHostName(getter_Copies(hostname));
-  if (NS_FAILED(rv)) return rv;
+  nsCString hostname;
+  rv = GetHostName(hostname);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  if (NS_FAILED(rv)) return rv;
   nsCAutoString newsrcFileName(NEWSRC_FILE_PREFIX);
   newsrcFileName.Append(hostname);
   newsrcFileName.Append(NEWSRC_FILE_SUFFIX);
   rv = mNewsrcFilePath->AppendNative(newsrcFileName);
   rv = mNewsrcFilePath->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 0644);
-  if (NS_FAILED(rv)) return rv;
+  NS_ENSURE_SUCCESS(rv, rv);
 
   rv = SetNewsrcFilePath(mNewsrcFilePath);
-  if (NS_FAILED(rv)) return rv;
+  NS_ENSURE_SUCCESS(rv, rv);
 
   NS_ADDREF(*aNewsrcFilePath = mNewsrcFilePath);
   return NS_OK;
@@ -215,11 +214,10 @@ nsNntpIncomingServer::SetNewsrcFilePath(nsILocalFile *aFile)
 }          
 
 NS_IMETHODIMP
-nsNntpIncomingServer::GetLocalStoreType(char **type)
+nsNntpIncomingServer::GetLocalStoreType(nsACString& type)
 {
-    NS_ENSURE_ARG_POINTER(type);
-    *type = nsCRT::strdup("news");
-    return NS_OK;
+  type.AssignLiteral("news");
+  return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -260,61 +258,49 @@ nsNntpIncomingServer::GetNewsrcRootPath(nsILocalFile **aNewsrcRootPath)
 
 /* static */ void nsNntpIncomingServer::OnNewsrcSaveTimer(nsITimer *timer, void *voidIncomingServer)
 {
-	nsNntpIncomingServer *incomingServer = (nsNntpIncomingServer*)voidIncomingServer;
-	incomingServer->WriteNewsrcFile();		
+  nsNntpIncomingServer *incomingServer = (nsNntpIncomingServer*)voidIncomingServer;
+  incomingServer->WriteNewsrcFile();		
 }
-
 
 nsresult nsNntpIncomingServer::SetupNewsrcSaveTimer()
 {
-	nsInt64 ms(300000);   // hard code, 5 minutes.
-	//Convert biffDelay into milliseconds
-	PRUint32 timeInMSUint32 = (PRUint32)ms;
-	//Can't currently reset a timer when it's in the process of
-	//calling Notify. So, just release the timer here and create a new one.
-	if(mNewsrcSaveTimer)
-	{
-		mNewsrcSaveTimer->Cancel();
-	}
-    mNewsrcSaveTimer = do_CreateInstance("@mozilla.org/timer;1");
-	mNewsrcSaveTimer->InitWithFuncCallback(OnNewsrcSaveTimer, (void*)this, timeInMSUint32, 
+  nsInt64 ms(300000);   // hard code, 5 minutes.
+  //Convert biffDelay into milliseconds
+  PRUint32 timeInMSUint32 = (PRUint32)ms;
+  //Can't currently reset a timer when it's in the process of
+  //calling Notify. So, just release the timer here and create a new one.
+  if(mNewsrcSaveTimer)
+    mNewsrcSaveTimer->Cancel();
+  mNewsrcSaveTimer = do_CreateInstance("@mozilla.org/timer;1");
+  mNewsrcSaveTimer->InitWithFuncCallback(OnNewsrcSaveTimer, (void*)this, timeInMSUint32, 
                                            nsITimer::TYPE_REPEATING_SLACK);
-
-    return NS_OK;
+  return NS_OK;
 }
 
 NS_IMETHODIMP
 nsNntpIncomingServer::SetCharset(const nsACString & aCharset)
 {
-	nsresult rv;
-	rv = SetCharValue("charset", PromiseFlatCString(aCharset).get());
-	return rv;
+  return SetCharValue("charset", aCharset);
 }
 
 NS_IMETHODIMP
 nsNntpIncomingServer::GetCharset(nsACString & aCharset)
 {
-    nsresult rv; 
-    nsXPIDLCString serverCharset;
-    //first we get the per-server settings mail.server.<serverkey>.charset
-    rv = GetCharValue("charset",getter_Copies(serverCharset));
+  nsresult rv; 
+  //first we get the per-server settings mail.server.<serverkey>.charset
+  rv = GetCharValue("charset", aCharset);
 
-    //if the per-server setting is empty,we get the default charset from 
-    //mailnews.view_default_charset setting and set it as per-server preference.
-    if(serverCharset.IsEmpty()){
-        nsXPIDLString defaultCharset;
-        rv = NS_GetLocalizedUnicharPreferenceWithDefault(nsnull,
-             PREF_MAILNEWS_VIEW_DEFAULT_CHARSET,
-             NS_LITERAL_STRING("ISO-8859-1"), defaultCharset);
-        LossyCopyUTF16toASCII(defaultCharset,serverCharset);
-        SetCharset(serverCharset);
-    }
-#ifdef DEBUG_holywen
-        printf("default charset for the server is %s\n", 
-               (const char *)serverCharset);
-#endif
-    aCharset = serverCharset;
-    return NS_OK;
+  //if the per-server setting is empty,we get the default charset from 
+  //mailnews.view_default_charset setting and set it as per-server preference.
+  if(aCharset.IsEmpty()){
+    nsString defaultCharset;
+    rv = NS_GetLocalizedUnicharPreferenceWithDefault(nsnull,
+         PREF_MAILNEWS_VIEW_DEFAULT_CHARSET,
+         NS_LITERAL_STRING("ISO-8859-1"), defaultCharset);
+    LossyCopyUTF16toASCII(defaultCharset, aCharset);
+    SetCharset(aCharset);
+  }
+  return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -826,55 +812,54 @@ void nsNntpIncomingServer::WriteLine(nsIOutputStream *stream, nsCString &str)
 nsresult
 nsNntpIncomingServer::WriteHostInfoFile()
 {
-    if (!mHostInfoHasChanged)
-        return NS_OK;
-    PRInt32 firstnewdate;
-
-    LL_L2I(firstnewdate, mFirstNewDate);
-
-    nsXPIDLCString hostname;
-    nsresult rv = GetHostName(getter_Copies(hostname));
-    NS_ENSURE_SUCCESS(rv,rv);
-    
-    if (!mHostInfoFile) 
-        return NS_ERROR_UNEXPECTED;
-    nsCOMPtr<nsIOutputStream> hostInfoStream;
-    rv = NS_NewLocalFileOutputStream(getter_AddRefs(hostInfoStream), mHostInfoFile, -1, 00600);
-    if (NS_FAILED(rv))
-      return rv;
-
-    // todo, missing some formatting, see the 4.x code
-    nsCAutoString header("# News host information file.");
-    WriteLine(hostInfoStream, header);
-    header.Assign("# This is a generated file!  Do not edit.");
-    WriteLine(hostInfoStream, header);
-    header.Truncate();
-    WriteLine(hostInfoStream, header);
-    nsCAutoString version("version=");
-    version.AppendInt(VALID_VERSION);
-    WriteLine(hostInfoStream, version);
-    nsCAutoString newsrcname("newsrcname=");
-    newsrcname.Append(hostname);
-    WriteLine(hostInfoStream, hostname);
-    nsCAutoString dateStr("lastgroupdate=");
-    dateStr.AppendInt(mLastGroupDate);
-    WriteLine(hostInfoStream, dateStr);
-    dateStr ="firstnewdate=";
-    dateStr.AppendInt(firstnewdate);
-    WriteLine(hostInfoStream, dateStr);
-    dateStr = "uniqueid=";
-    dateStr.AppendInt(mUniqueId);
-    WriteLine(hostInfoStream, dateStr);
-    header.Assign(MSG_LINEBREAK"begingroups");
-    WriteLine(hostInfoStream, header);
-
-    // XXX todo, sort groups first?
-
-    mGroupsOnServer.EnumerateForwards((nsCStringArrayEnumFunc)writeGroupToHostInfoFile, (void *)hostInfoStream);
-
-    hostInfoStream->Close();
-    mHostInfoHasChanged = PR_FALSE;
+  if (!mHostInfoHasChanged)
     return NS_OK;
+  PRInt32 firstnewdate;
+
+  LL_L2I(firstnewdate, mFirstNewDate);
+
+  nsCString hostname;
+  nsresult rv = GetHostName(hostname);
+  NS_ENSURE_SUCCESS(rv,rv);
+  
+  if (!mHostInfoFile) 
+    return NS_ERROR_UNEXPECTED;
+  nsCOMPtr<nsIOutputStream> hostInfoStream;
+  rv = NS_NewLocalFileOutputStream(getter_AddRefs(hostInfoStream), mHostInfoFile, -1, 00600);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // todo, missing some formatting, see the 4.x code
+  nsCAutoString header("# News host information file.");
+  WriteLine(hostInfoStream, header);
+  header.Assign("# This is a generated file!  Do not edit.");
+  WriteLine(hostInfoStream, header);
+  header.Truncate();
+  WriteLine(hostInfoStream, header);
+  nsCAutoString version("version=");
+  version.AppendInt(VALID_VERSION);
+  WriteLine(hostInfoStream, version);
+  nsCAutoString newsrcname("newsrcname=");
+  newsrcname.Append(hostname);
+  WriteLine(hostInfoStream, hostname);
+  nsCAutoString dateStr("lastgroupdate=");
+  dateStr.AppendInt(mLastGroupDate);
+  WriteLine(hostInfoStream, dateStr);
+  dateStr ="firstnewdate=";
+  dateStr.AppendInt(firstnewdate);
+  WriteLine(hostInfoStream, dateStr);
+  dateStr = "uniqueid=";
+  dateStr.AppendInt(mUniqueId);
+  WriteLine(hostInfoStream, dateStr);
+  header.Assign(MSG_LINEBREAK"begingroups");
+  WriteLine(hostInfoStream, header);
+
+  // XXX todo, sort groups first?
+
+  mGroupsOnServer.EnumerateForwards((nsCStringArrayEnumFunc)writeGroupToHostInfoFile, (void *)hostInfoStream);
+
+  hostInfoStream->Close();
+  mHostInfoHasChanged = PR_FALSE;
+  return NS_OK;
 }
 
 nsresult
@@ -1613,8 +1598,8 @@ nsNntpIncomingServer::GroupNotFound(nsIMsgWindow *aMsgWindow,
   rv = bundleService->CreateBundle(NEWS_MSGS_URL, getter_AddRefs(bundle));
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsXPIDLCString hostname;
-  rv = GetHostName(getter_Copies(hostname));
+  nsCString hostname;
+  rv = GetHostName(hostname);
   NS_ENSURE_SUCCESS(rv,rv);
 
   NS_ConvertUTF8toUTF16 hostStr(hostname); 
@@ -2067,7 +2052,7 @@ nsNntpIncomingServer::GetSearchScope(nsMsgSearchScopeValue *searchScope)
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::OnUserOrHostNameChanged(const char *oldName, const char *newName)
+nsNntpIncomingServer::OnUserOrHostNameChanged(const nsACString& oldName, const nsACString& newName)
 {
   nsresult rv;
   // 1. Do common things in the base class.
@@ -2096,7 +2081,7 @@ nsNntpIncomingServer::OnUserOrHostNameChanged(const char *oldName, const char *n
   NS_ENSURE_SUCCESS(rv,rv);
 
   nsStringArray groupList;
-  nsXPIDLString folderName;
+  nsString folderName;
   nsCOMPtr<nsISupports> aItem;
   nsCOMPtr <nsIMsgFolder> newsgroupFolder;
 

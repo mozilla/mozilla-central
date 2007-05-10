@@ -89,7 +89,7 @@ nsSpamSettings::~nsSpamSettings()
 
 NS_IMPL_ISUPPORTS2(nsSpamSettings, nsISpamSettings, nsIUrlListener)
 
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsSpamSettings::GetLevel(PRInt32 *aLevel)
 {
   NS_ENSURE_ARG_POINTER(aLevel);
@@ -104,7 +104,7 @@ NS_IMETHODIMP nsSpamSettings::SetLevel(PRInt32 aLevel)
   return NS_OK;
 }
 
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsSpamSettings::GetMoveTargetMode(PRInt32 *aMoveTargetMode)
 {
   NS_ENSURE_ARG_POINTER(aMoveTargetMode);
@@ -250,20 +250,20 @@ nsSpamSettings::GetLogStream(nsIOutputStream **aLogStream)
     PRInt64 fileSize;
     rv = logFile->GetFileSize(&fileSize);
     NS_ENSURE_SUCCESS(rv, rv);
-    
+
     PRUint32 fileLen;
     LL_L2UI(fileLen, fileSize);
     // write the header at the start
     if (fileLen == 0)
     {
       PRUint32 writeCount;
-      
+
       rv = mLogStream->Write(LOG_HEADER, LOG_HEADER_LEN, &writeCount);
       NS_ENSURE_SUCCESS(rv, rv);
       NS_ASSERTION(writeCount == LOG_HEADER_LEN, "failed to write out log header");
     }
   }
- 
+
   NS_ADDREF(*aLogStream = mLogStream);
   return NS_OK;
 }
@@ -289,17 +289,17 @@ NS_IMETHODIMP nsSpamSettings::Initialize(nsIMsgIncomingServer *aServer)
   NS_ENSURE_SUCCESS(rv, rv);
   rv = SetMoveTargetMode(moveTargetMode);
   NS_ENSURE_SUCCESS(rv, rv);
-    
-  nsXPIDLCString spamActionTargetAccount;
-  rv = aServer->GetCharValue("spamActionTargetAccount", getter_Copies(spamActionTargetAccount));
+
+  nsCString spamActionTargetAccount;
+  rv = aServer->GetCharValue("spamActionTargetAccount", spamActionTargetAccount);
   NS_ENSURE_SUCCESS(rv, rv);
-  rv = SetActionTargetAccount(spamActionTargetAccount);    
+  rv = SetActionTargetAccount(spamActionTargetAccount.get());
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsXPIDLCString spamActionTargetFolder;
-  rv = aServer->GetCharValue("spamActionTargetFolder", getter_Copies(spamActionTargetFolder));
+  nsCString spamActionTargetFolder;
+  rv = aServer->GetCharValue("spamActionTargetFolder", spamActionTargetFolder);
   NS_ENSURE_SUCCESS(rv, rv);
-  rv = SetActionTargetFolder(spamActionTargetFolder);
+  rv = SetActionTargetFolder(spamActionTargetFolder.get());
   NS_ENSURE_SUCCESS(rv, rv);
 
   PRBool useWhiteList;
@@ -308,10 +308,10 @@ NS_IMETHODIMP nsSpamSettings::Initialize(nsIMsgIncomingServer *aServer)
   rv = SetUseWhiteList(useWhiteList);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsXPIDLCString whiteListAbURI;
-  rv = aServer->GetCharValue("whiteListAbURI", getter_Copies(whiteListAbURI));
+  nsCString whiteListAbURI;
+  rv = aServer->GetCharValue("whiteListAbURI", whiteListAbURI);
   NS_ENSURE_SUCCESS(rv, rv);
-  rv = SetWhiteListAbURI(whiteListAbURI);
+  rv = SetWhiteListAbURI(whiteListAbURI.get());
   NS_ENSURE_SUCCESS(rv, rv);
 
   PRBool purgeSpam;
@@ -332,8 +332,8 @@ NS_IMETHODIMP nsSpamSettings::Initialize(nsIMsgIncomingServer *aServer)
   rv = SetUseServerFilter(useServerFilter);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsXPIDLCString serverFilterName;
-  rv = aServer->GetCharValue("serverFilterName", getter_Copies(serverFilterName));
+  nsCString serverFilterName;
+  rv = aServer->GetCharValue("serverFilterName", serverFilterName);
   if (NS_SUCCEEDED(rv))
     SetServerFilterName(serverFilterName);
   PRInt32 serverFilterTrustFlags = 0;
@@ -359,7 +359,7 @@ nsresult nsSpamSettings::UpdateJunkFolderState()
   {
     nsCOMPtr<nsIMsgFolder> oldJunkFolder;
     rv = GetExistingFolder(mCurrentJunkFolderURI.get(), getter_AddRefs(oldJunkFolder));
-    if (NS_SUCCEEDED(rv) && oldJunkFolder) 
+    if (NS_SUCCEEDED(rv) && oldJunkFolder)
     {
       // remove the MSG_FOLDER_FLAG_JUNK on the old junk folder
       // XXX TODO
@@ -388,34 +388,34 @@ NS_IMETHODIMP nsSpamSettings::Clone(nsISpamSettings *aSpamSettings)
 {
   NS_ENSURE_ARG_POINTER(aSpamSettings);
 
-  nsresult rv = aSpamSettings->GetUseWhiteList(&mUseWhiteList); 
+  nsresult rv = aSpamSettings->GetUseWhiteList(&mUseWhiteList);
   NS_ENSURE_SUCCESS(rv,rv);
 
   (void)aSpamSettings->GetMoveOnSpam(&mMoveOnSpam);
-  (void)aSpamSettings->GetPurge(&mPurge); 
+  (void)aSpamSettings->GetPurge(&mPurge);
   (void)aSpamSettings->GetUseServerFilter(&mUseServerFilter);
 
-  rv = aSpamSettings->GetPurgeInterval(&mPurgeInterval); 
+  rv = aSpamSettings->GetPurgeInterval(&mPurgeInterval);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  rv = aSpamSettings->GetLevel(&mLevel); 
+  rv = aSpamSettings->GetLevel(&mLevel);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  rv = aSpamSettings->GetMoveTargetMode(&mMoveTargetMode); 
+  rv = aSpamSettings->GetMoveTargetMode(&mMoveTargetMode);
   NS_ENSURE_SUCCESS(rv,rv);
 
   nsXPIDLCString actionTargetAccount;
-  rv = aSpamSettings->GetActionTargetAccount(getter_Copies(actionTargetAccount)); 
+  rv = aSpamSettings->GetActionTargetAccount(getter_Copies(actionTargetAccount));
   NS_ENSURE_SUCCESS(rv,rv);
   mActionTargetAccount = actionTargetAccount;
 
   nsXPIDLCString actionTargetFolder;
-  rv = aSpamSettings->GetActionTargetFolder(getter_Copies(actionTargetFolder)); 
+  rv = aSpamSettings->GetActionTargetFolder(getter_Copies(actionTargetFolder));
   NS_ENSURE_SUCCESS(rv,rv);
   mActionTargetFolder = actionTargetFolder;
 
   nsXPIDLCString whiteListAbURI;
-  rv = aSpamSettings->GetWhiteListAbURI(getter_Copies(whiteListAbURI)); 
+  rv = aSpamSettings->GetWhiteListAbURI(getter_Copies(whiteListAbURI));
   NS_ENSURE_SUCCESS(rv,rv);
   mWhiteListAbURI = whiteListAbURI;
 
@@ -446,7 +446,7 @@ NS_IMETHODIMP nsSpamSettings::GetSpamFolderURI(char **aSpamFolderURI)
 
   nsCOMPtr<nsIRDFService> rdf(do_GetService("@mozilla.org/rdf/rdf-service;1", &rv));
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   nsCOMPtr<nsIRDFResource> folderResource;
   rv = rdf->GetResource(folderURI, getter_AddRefs(folderResource));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -461,7 +461,7 @@ NS_IMETHODIMP nsSpamSettings::GetSpamFolderURI(char **aSpamFolderURI)
 
   // see nsMsgFolder::SetPrettyName() for where the pretty name is set.
   folderURI.Append("/Junk");
-  
+
   // XXX todo
   // better not to make base depend in imap
   // but doing it here, like in nsMsgCopy.cpp
@@ -470,8 +470,9 @@ NS_IMETHODIMP nsSpamSettings::GetSpamFolderURI(char **aSpamFolderURI)
   if (imapServer) {
     // Make sure an specific IMAP folder has correct personal namespace
     // see bug #197043
-    nsXPIDLCString folderUriWithNamespace;
-    (void)imapServer->GetUriWithNamespacePrefixIfNecessary(kPersonalNamespace, folderURI.get(), getter_Copies(folderUriWithNamespace));
+    nsCString folderUriWithNamespace;
+    (void)imapServer->GetUriWithNamespacePrefixIfNecessary(kPersonalNamespace, folderURI,
+                                                           folderUriWithNamespace);
     if (!folderUriWithNamespace.IsEmpty())
       folderURI = folderUriWithNamespace;
   }
@@ -479,7 +480,7 @@ NS_IMETHODIMP nsSpamSettings::GetSpamFolderURI(char **aSpamFolderURI)
   *aSpamFolderURI = ToNewCString(folderURI);
   if (!*aSpamFolderURI)
     return NS_ERROR_OUT_OF_MEMORY;
-  else 
+  else
     return rv;
 }
 
@@ -516,7 +517,7 @@ NS_IMETHODIMP nsSpamSettings::GetServerFilterFile(nsIFile ** aFile)
 
     PRBool hasMore;
     nsCOMPtr<nsIFile> file;
-    while (NS_SUCCEEDED(ispDirectories->HasMoreElements(&hasMore)) && hasMore) 
+    while (NS_SUCCEEDED(ispDirectories->HasMoreElements(&hasMore)) && hasMore)
     {
       nsCOMPtr<nsISupports> elem;
       ispDirectories->GetNext(getter_AddRefs(elem));
@@ -559,11 +560,11 @@ NS_IMETHODIMP nsSpamSettings::LogJunkHit(nsIMsgDBHdr *aMsgHdr, PRBool aMoveMessa
     return NS_OK;
 
   PRTime date;
-  
+
   nsXPIDLString authorValue;
   nsXPIDLString subjectValue;
   nsXPIDLString dateValue;
-  
+
   (void)aMsgHdr->GetDate(&date);
   PRExplodedTime exploded;
   PR_ExplodeTime(date, PR_LocalTimeParameters, &exploded);
@@ -578,26 +579,26 @@ NS_IMETHODIMP nsSpamSettings::LogJunkHit(nsIMsgDBHdr *aMsgHdr, PRBool aMoveMessa
     }
   }
   mDateFormatter->FormatPRExplodedTime(nsnull, kDateFormatShort,
-                                      kTimeFormatSeconds, &exploded, 
+                                      kTimeFormatSeconds, &exploded,
                                       dateValue);
-  
+
   (void)aMsgHdr->GetMime2DecodedAuthor(getter_Copies(authorValue));
   (void)aMsgHdr->GetMime2DecodedSubject(getter_Copies(subjectValue));
-  
+
   nsCString buffer;
-  // this is big enough to hold a log entry.  
+  // this is big enough to hold a log entry.
   // do this so we avoid growing and copying as we append to the log.
-  buffer.SetCapacity(512);  
-  
+  buffer.SetCapacity(512);
+
   nsCOMPtr<nsIStringBundleService> bundleService =
     do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   nsCOMPtr<nsIStringBundle> bundle;
   rv = bundleService->CreateBundle("chrome://messenger/locale/filter.properties",
     getter_AddRefs(bundle));
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   const PRUnichar *junkLogDetectFormatStrings[3] = { authorValue.get(), subjectValue.get(), dateValue.get() };
   nsXPIDLString junkLogDetectStr;
   rv = bundle->FormatStringFromName(
@@ -608,18 +609,18 @@ NS_IMETHODIMP nsSpamSettings::LogJunkHit(nsIMsgDBHdr *aMsgHdr, PRBool aMoveMessa
 
   buffer += NS_ConvertUTF16toUTF8(junkLogDetectStr);
   buffer +=  "\n";
-  
+
   if (aMoveMessage) {
     nsXPIDLCString msgId;
     aMsgHdr->GetMessageId(getter_Copies(msgId));
-    
+
     nsXPIDLCString junkFolderURI;
     rv = GetSpamFolderURI(getter_Copies(junkFolderURI));
     NS_ENSURE_SUCCESS(rv, rv);
 
     NS_ConvertASCIItoUTF16 msgIdValue(msgId);
     NS_ConvertASCIItoUTF16 junkFolderURIValue(junkFolderURI);
-    
+
     const PRUnichar *logMoveFormatStrings[2] = { msgIdValue.get(), junkFolderURIValue.get() };
     nsXPIDLString logMoveStr;
     rv = bundle->FormatStringFromName(
@@ -627,7 +628,7 @@ NS_IMETHODIMP nsSpamSettings::LogJunkHit(nsIMsgDBHdr *aMsgHdr, PRBool aMoveMessa
       logMoveFormatStrings, 2,
       getter_Copies(logMoveStr));
     NS_ENSURE_SUCCESS(rv, rv);
-    
+
     buffer += NS_ConvertUTF16toUTF8(logMoveStr);
     buffer += "\n";
   }
@@ -647,26 +648,26 @@ NS_IMETHODIMP nsSpamSettings::LogJunkString(const char *string)
   nsCOMPtr <nsIOutputStream> logStream;
   rv = GetLogStream(getter_AddRefs(logStream));
   NS_ENSURE_SUCCESS(rv,rv);
-  
+
   PRUint32 writeCount;
-  
+
   rv = logStream->Write(LOG_ENTRY_START_TAG, LOG_ENTRY_START_TAG_LEN, &writeCount);
   NS_ENSURE_SUCCESS(rv,rv);
   NS_ASSERTION(writeCount == LOG_ENTRY_START_TAG_LEN, "failed to write out start log tag");
-  
+
   // html escape the log for security reasons.
   // we don't want some to send us a message with a subject with
   // html tags, especially <script>
   char *escapedBuffer = nsEscapeHTML(string);
   if (!escapedBuffer)
     return NS_ERROR_OUT_OF_MEMORY;
-  
+
   PRUint32 escapedBufferLen = strlen(escapedBuffer);
   rv = logStream->Write(escapedBuffer, escapedBufferLen, &writeCount);
   PR_Free(escapedBuffer);
   NS_ENSURE_SUCCESS(rv,rv);
   NS_ASSERTION(writeCount == escapedBufferLen, "failed to write out log hit");
-  
+
   rv = logStream->Write(LOG_ENTRY_END_TAG, LOG_ENTRY_END_TAG_LEN, &writeCount);
   NS_ENSURE_SUCCESS(rv,rv);
   NS_ASSERTION(writeCount == LOG_ENTRY_END_TAG_LEN, "failed to write out end log tag");

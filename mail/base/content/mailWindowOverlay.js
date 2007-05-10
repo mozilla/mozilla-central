@@ -955,9 +955,9 @@ function MsgGetMessagesForAllServers(defaultServer)
                     pop3Server = currentServer.QueryInterface(Components.interfaces.nsIPop3IncomingServer);
                 }
                 else
-                {		 
+                {
                     // Check to see if there are new messages on the server
-                    currentServer.PerformBiff(msgWindow);
+                    currentServer.performBiff(msgWindow);
                 }
             }
         }

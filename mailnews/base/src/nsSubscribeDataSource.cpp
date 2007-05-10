@@ -215,8 +215,8 @@ nsSubscribeDataSource::GetTarget(nsIRDFResource *source,
         return NS_OK;
     }
     else if (property == kNC_ServerType.get()) {
-        nsXPIDLCString serverTypeStr;
-        rv = GetServerType(server, getter_Copies(serverTypeStr));
+        nsCString serverTypeStr;
+        rv = GetServerType(server, serverTypeStr);
         NS_ENSURE_SUCCESS(rv,rv);
 
         nsCOMPtr<nsIRDFLiteral> serverType;
@@ -224,8 +224,10 @@ nsSubscribeDataSource::GetTarget(nsIRDFResource *source,
                                      getter_AddRefs(serverType));
         NS_ENSURE_SUCCESS(rv,rv);
 
-        if (!serverType) rv = NS_RDF_NO_VALUE;
-        if (rv == NS_RDF_NO_VALUE)	return(rv);
+        if (!serverType)
+          rv = NS_RDF_NO_VALUE;
+        if (rv == NS_RDF_NO_VALUE) 
+          return rv;
         return serverType->QueryInterface(NS_GET_IID(nsIRDFNode), (void**) target);
     }
     else if (property == kNC_LeafName.get()) {
@@ -237,15 +239,17 @@ nsSubscribeDataSource::GetTarget(nsIRDFResource *source,
         rv = mRDFService->GetLiteral(leafNameStr, getter_AddRefs(leafName));
         NS_ENSURE_SUCCESS(rv,rv);
 
-        if (!leafName) rv = NS_RDF_NO_VALUE;
-        if (rv == NS_RDF_NO_VALUE)	return(rv);
+        if (!leafName)
+          rv = NS_RDF_NO_VALUE;
+        if (rv == NS_RDF_NO_VALUE)
+          return rv;
         return leafName->QueryInterface(NS_GET_IID(nsIRDFNode), (void**) target);
     }
     else {
         // do nothing
     }
 
-	return(NS_RDF_NO_VALUE);
+  return(NS_RDF_NO_VALUE);
 }
 
 nsresult
@@ -345,8 +349,8 @@ nsSubscribeDataSource::GetTargets(nsIRDFResource *source,
         return NS_NewSingletonEnumerator(targets, name);
     }
     else if (property == kNC_ServerType.get()) {
-        nsXPIDLCString serverTypeStr;
-        rv = GetServerType(server, getter_Copies(serverTypeStr));
+        nsCString serverTypeStr;
+        rv = GetServerType(server, serverTypeStr);
         NS_ENSURE_SUCCESS(rv,rv);
 
         nsCOMPtr<nsIRDFLiteral> serverType;
@@ -379,45 +383,39 @@ nsSubscribeDataSource::Unassert(nsIRDFResource *source,
                          nsIRDFResource *property,
                          nsIRDFNode *target)
 {
-	return NS_RDF_ASSERTION_REJECTED;
+  return NS_RDF_ASSERTION_REJECTED;
 }
 
 
 
 NS_IMETHODIMP
 nsSubscribeDataSource::Change(nsIRDFResource* aSource,
-							 nsIRDFResource* aProperty,
-							 nsIRDFNode* aOldTarget,
-							 nsIRDFNode* aNewTarget)
+                              nsIRDFResource* aProperty,
+                              nsIRDFNode* aOldTarget,
+                              nsIRDFNode* aNewTarget)
 {
-	return NS_RDF_ASSERTION_REJECTED;
+  return NS_RDF_ASSERTION_REJECTED;
 }
 
 
 
 NS_IMETHODIMP
 nsSubscribeDataSource::Move(nsIRDFResource* aOldSource,
-						   nsIRDFResource* aNewSource,
-						   nsIRDFResource* aProperty,
-						   nsIRDFNode* aTarget)
+                            nsIRDFResource* aNewSource,
+                            nsIRDFResource* aProperty,
+                            nsIRDFNode* aTarget)
 {
-	return NS_RDF_ASSERTION_REJECTED;
+  return NS_RDF_ASSERTION_REJECTED;
 }
 
 nsresult
-nsSubscribeDataSource::GetServerType(nsISubscribableServer *server, char **serverType)
+nsSubscribeDataSource::GetServerType(nsISubscribableServer *server, nsACString& serverType)
 {
-    nsresult rv;
-
-    if (!server || !serverType) return NS_ERROR_NULL_POINTER;
-    nsCOMPtr<nsIMsgIncomingServer> incomingServer(do_QueryInterface(server, &rv));
-    NS_ENSURE_SUCCESS(rv,rv);
-    if (!incomingServer) return NS_ERROR_FAILURE;
-
-    rv = incomingServer->GetType(serverType);
-    NS_ENSURE_SUCCESS(rv,rv);
-    
-    return NS_OK;
+  NS_ENSURE_ARG_POINTER(server);
+  nsresult rv;
+  nsCOMPtr<nsIMsgIncomingServer> incomingServer(do_QueryInterface(server, &rv));
+  NS_ENSURE_SUCCESS(rv,rv);
+  return incomingServer->GetType(serverType);
 }
 
 nsresult
@@ -431,31 +429,28 @@ nsSubscribeDataSource::GetServerAndRelativePathFromResource(nsIRDFResource *sour
 
     nsCOMPtr<nsIMsgFolder> folder(do_QueryInterface(source, &rv));
     // we expect this to fail sometimes, so don't assert
-    if (NS_FAILED(rv)) return rv;
-    if (!folder) return NS_ERROR_FAILURE;
+    if (NS_FAILED(rv))
+      return rv;
 
     nsCOMPtr<nsIMsgIncomingServer> incomingServer;
     rv = folder->GetServer(getter_AddRefs(incomingServer));
     NS_ENSURE_SUCCESS(rv,rv);
-    if (!incomingServer) return NS_ERROR_FAILURE;
 
     rv = incomingServer->QueryInterface(NS_GET_IID(nsISubscribableServer), (void**)server);
     NS_ENSURE_SUCCESS(rv,rv);
-    if (!*server) return NS_ERROR_FAILURE;
 
-    nsXPIDLCString serverURI;
-    rv = incomingServer->GetServerURI(getter_Copies(serverURI));
+    nsCString serverURI;
+    rv = incomingServer->GetServerURI(serverURI);
     NS_ENSURE_SUCCESS(rv,rv);
  
-    PRUint32 serverURILen = strlen((const char *)serverURI);   
-    if (serverURILen == strlen(sourceURI)) {
-        *relativePath = nsnull;
-    }
+    PRUint32 serverURILen = serverURI.Length();
+    if (serverURILen == strlen(sourceURI))
+      *relativePath = nsnull;
     else {
-        // XXX : perhaps, have to unescape before returning 
-        *relativePath = nsCRT::strdup(sourceURI + serverURILen + 1);
-        NS_ASSERTION(*relativePath,"no relative path");
-        if (!*relativePath) return NS_ERROR_OUT_OF_MEMORY;
+      // XXX : perhaps, have to unescape before returning 
+      *relativePath = nsCRT::strdup(sourceURI + serverURILen + 1);
+      if (!*relativePath)
+        return NS_ERROR_OUT_OF_MEMORY;
     }
 
     return NS_OK;

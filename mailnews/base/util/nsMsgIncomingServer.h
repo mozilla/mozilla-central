@@ -58,7 +58,7 @@ class nsIMsgProtocolInfo;
 /*
  * base class for nsIMsgIncomingServer - derive your class from here
  * if you want to get some free implementation
- * 
+ *
  * this particular implementation is not meant to be used directly.
  */
 
@@ -80,23 +80,18 @@ protected:
 
   nsresult ConfigureTemporaryReturnReceiptsFilter(nsIMsgFilterList *filterList);
   nsresult ConfigureTemporaryServerSpamFilters(nsIMsgFilterList *filterList);
+  PRBool PasswordProtectLocalCache();
 
-  // these are private pref getters and setters for the password
-  // field. Callers should be using Get/Set Password
-  NS_IMETHOD GetPrefPassword(char * *aPassword);
-  NS_IMETHOD SetPrefPassword(const char * aPassword);
-  PRBool     PasswordProtectLocalCache();
-  
   nsCOMPtr <nsIMsgFolder> m_rootFolder;
   nsCOMPtr <nsIMsgRetentionSettings> m_retentionSettings;
   nsCOMPtr <nsIMsgDownloadSettings> m_downloadSettings;
-  
-  nsresult CreateLocalFolder(nsIFile *path, const char *folderName);
+
+  nsresult CreateLocalFolder(nsIFile *path, const nsACString& folderName);
   nsresult GetDeferredServers(nsIMsgIncomingServer *server, nsISupportsArray **_retval);
 
   nsresult CreateRootFolder();
 
-  nsresult InternalSetHostName(const char *aHostname, const char *prefName);
+  nsresult InternalSetHostName(const nsACString& aHostname, const char * prefName);
 
   nsresult getProtocolInfo(nsIMsgProtocolInfo **aResult);
   nsCOMPtr <nsILocalFile> mFilterFile;

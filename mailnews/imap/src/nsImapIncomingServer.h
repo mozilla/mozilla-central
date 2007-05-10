@@ -57,11 +57,11 @@ class nsIEventTarget;
 /* get some implementation from nsMsgIncomingServer */
 class nsImapIncomingServer : public nsMsgIncomingServer,
                              public nsIImapIncomingServer,
-							              public nsIImapServerSink,
-							              public nsIMsgLogonRedirectionRequester,
-										  public nsISubscribableServer,
-										  public nsIUrlListener
-                             
+                             public nsIImapServerSink,
+                             public nsIMsgLogonRedirectionRequester,
+                             public nsISubscribableServer,
+                             public nsIUrlListener
+
 {
 public:
     NS_DECL_ISUPPORTS_INHERITED
@@ -70,19 +70,19 @@ public:
     virtual ~nsImapIncomingServer();
 
     // overriding nsMsgIncomingServer methods
-	NS_IMETHOD SetKey(const char * aKey);  // override nsMsgIncomingServer's implementation...
-	NS_IMETHOD GetLocalStoreType(char * *type);
+  NS_IMETHOD SetKey(const nsACString& aKey);  // override nsMsgIncomingServer's implementation...
+  NS_IMETHOD GetLocalStoreType(nsACString& type);
 
-	NS_DECL_NSIIMAPINCOMINGSERVER
-	NS_DECL_NSIIMAPSERVERSINK
-	NS_DECL_NSIMSGLOGONREDIRECTIONREQUESTER
+  NS_DECL_NSIIMAPINCOMINGSERVER
+  NS_DECL_NSIIMAPSERVERSINK
+  NS_DECL_NSIMSGLOGONREDIRECTIONREQUESTER
   NS_DECL_NSISUBSCRIBABLESERVER
-	NS_DECL_NSIURLLISTENER
+  NS_DECL_NSIURLLISTENER
 
-	NS_IMETHOD PerformBiff(nsIMsgWindow *aMsgWindow);
-	NS_IMETHOD PerformExpand(nsIMsgWindow *aMsgWindow);
+  NS_IMETHOD PerformBiff(nsIMsgWindow *aMsgWindow);
+  NS_IMETHOD PerformExpand(nsIMsgWindow *aMsgWindow);
   NS_IMETHOD CloseCachedConnections();
-  NS_IMETHOD GetConstructedPrettyName(PRUnichar **retval);
+  NS_IMETHOD GetConstructedPrettyName(nsAString& retval);
   NS_IMETHOD GetCanBeDefaultServer(PRBool *canBeDefaultServer);
   NS_IMETHOD GetCanCompactFoldersOnServer(PRBool *canCompactFoldersOnServer);
   NS_IMETHOD GetCanUndoDeleteOnServer(PRBool *canUndoDeleteOnServer);
@@ -90,51 +90,51 @@ public:
   NS_IMETHOD GetCanEmptyTrashOnExit(PRBool *canEmptyTrashOnExit);
   NS_IMETHOD GetIsSecureServer(PRBool *isSecureServer);
   NS_IMETHOD GetOfflineSupportLevel(PRInt32 *aSupportLevel);
-  NS_IMETHOD GeneratePrettyNameForMigration(PRUnichar **aPrettyName);
+  NS_IMETHOD GeneratePrettyNameForMigration(nsAString& aPrettyName);
   NS_IMETHOD GetSupportsDiskSpace(PRBool *aSupportsDiskSpace);
   NS_IMETHOD GetCanCreateFoldersOnServer(PRBool *aCanCreateFoldersOnServer);
   NS_IMETHOD GetCanFileMessagesOnServer(PRBool *aCanFileMessagesOnServer);
   NS_IMETHOD GetFilterScope(nsMsgSearchScopeValue *filterScope);
   NS_IMETHOD GetSearchScope(nsMsgSearchScopeValue *searchScope);
   NS_IMETHOD GetServerRequiresPasswordForBiff(PRBool *aServerRequiresPasswordForBiff);
-  NS_IMETHOD OnUserOrHostNameChanged(const char *oldName, const char *newName);
+  NS_IMETHOD OnUserOrHostNameChanged(const nsACString& oldName, const nsACString& newName);
   NS_IMETHOD GetNumIdleConnections(PRInt32 *aNumIdleConnections);
   NS_IMETHOD ForgetSessionPassword();
-  NS_IMETHOD GetMsgFolderFromURI(nsIMsgFolder *aFolderResource, const char *aURI, nsIMsgFolder **aFolder);
+  NS_IMETHOD GetMsgFolderFromURI(nsIMsgFolder *aFolderResource, const nsACString& aURI, nsIMsgFolder **aFolder);
   NS_IMETHOD SetSocketType(PRInt32 aSocketType);
 
 protected:
-	nsresult GetFolder(const char* name, nsIMsgFolder** pFolder);
+  nsresult GetFolder(const nsACString& name, nsIMsgFolder** pFolder);
   nsresult ResetFoldersToUnverified(nsIMsgFolder *parentFolder);
   nsresult GetUnverifiedSubFolders(nsIMsgFolder *parentFolder, nsISupportsArray *aFoldersArray, PRInt32 *aNumUnverifiedFolders);
-	nsresult GetUnverifiedFolders(nsISupportsArray *aFolderArray, PRInt32 *aNumUnverifiedFolders);
+  nsresult GetUnverifiedFolders(nsISupportsArray *aFolderArray, PRInt32 *aNumUnverifiedFolders);
 
   nsresult DeleteNonVerifiedFolders(nsIMsgFolder *parentFolder);
   PRBool NoDescendentsAreVerified(nsIMsgFolder *parentFolder);
   PRBool AllDescendentsAreNoSelect(nsIMsgFolder *parentFolder);
 
   nsresult GetStringBundle();
-  const char *GetPFCName();
+  void     GetPFCName(nsACString&); 
   nsresult GetPFCForStringId(PRBool createIfMissing, PRInt32 stringId, nsIMsgFolder **aFolder);
 private:
   nsresult SubscribeToFolder(const PRUnichar *aName, PRBool subscribe);
   nsresult GetImapConnection (nsIEventTarget* aEventTarget,
                                    nsIImapUrl* aImapUrl,
                                    nsIImapProtocol** aImapConnection);
-  nsresult CreateProtocolInstance(nsIEventTarget *aEventTarget, 
+  nsresult CreateProtocolInstance(nsIEventTarget *aEventTarget,
                                            nsIImapProtocol ** aImapConnection);
   nsresult RequestOverrideInfo(nsIMsgWindow *aMsgWindow);
   nsresult CreateHostSpecificPrefName(const char *prefPrefix, nsCAutoString &prefName);
 
   nsresult DoomUrlIfChannelHasError(nsIImapUrl *aImapUrl, PRBool *urlDoomed);
   PRBool ConnectionTimeOut(nsIImapProtocol* aImapConnection);
-  nsresult GetFormattedStringFromID(const PRUnichar *aValue, PRInt32 aID, PRUnichar **aResult);  
-  nsresult CreatePrefNameWithRedirectorType(const char *prefSuffix, nsCAutoString &prefName);
+  nsresult GetFormattedStringFromID(const nsAString& aValue, PRInt32 aID, nsAString& aResult);
+  nsresult CreatePrefNameWithRedirectorType(const char *prefSuffix, nsCString &prefName);
   nsresult GetPrefForServerAttribute(const char *prefSuffix, PRBool *prefValue);
 
   nsCOMPtr<nsISupportsArray> m_connectionCache;
   nsCOMPtr<nsISupportsArray> m_urlQueue;
-	nsCOMPtr<nsIStringBundle>	m_stringBundle;
+  nsCOMPtr<nsIStringBundle>	m_stringBundle;
   nsCOMArray<nsIMsgFolder> m_subscribeFolders; // used to keep folder resources around while subscribe UI is up.
   nsCOMArray<nsIMsgImapMailFolder> m_foldersToStat; // folders to check for new mail with Status
   nsVoidArray       m_urlConsumers;
@@ -143,22 +143,20 @@ private:
   PRPackedBool      m_readPFCName;
   PRPackedBool      m_readRedirectorType;
   PRPackedBool      m_userAuthenticated;
-  PRPackedBool	    m_waitingForConnectionInfo;
-  PRPackedBool	    mDoingSubscribeDialog;
-  PRPackedBool	    mDoingLsub;
+  PRPackedBool      m_waitingForConnectionInfo;
+  PRPackedBool      mDoingSubscribeDialog;
+  PRPackedBool      mDoingLsub;
   PRPackedBool      m_shuttingDown;
   nsCString         m_pfcName;
   nsCString         m_redirectorType;
-  PRInt32						m_redirectedLogonRetries;
+  PRInt32           m_redirectedLogonRetries;
   nsCOMPtr<nsIMsgLogonRedirector> m_logonRedirector;
-  
+
   // subscribe dialog stuff
   nsresult AddFolderToSubscribeDialog(const char *parentUri, const char *uri,const char *folderName);
-
   nsCOMPtr <nsISubscribableServer> mInner;
-    nsresult EnsureInner();
-    nsresult ClearInner();
+  nsresult EnsureInner();
+  nsresult ClearInner();
 };
-
 
 #endif

@@ -740,14 +740,10 @@ nsNntpService::FindServerWithNewsgroup(nsCString &host, nsCString &groupName)
   if (serverInfo.server)
   {
     nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(serverInfo.server);
-    nsXPIDLCString thisHostname;
-    rv = server->GetRealHostName(getter_Copies(thisHostname));
-    NS_ENSURE_SUCCESS(rv,rv);
-
-    host = (const char *)thisHostname;
+    rv = server->GetRealHostName(host);
   }
 
-  return NS_OK;
+  return rv;
 }
 
 nsresult nsNntpService::FindHostFromGroup(nsCString &host, nsCString &groupName)
@@ -769,20 +765,19 @@ nsNntpService::SetUpNntpUrlForPosting(const char *aAccountKey, char **newsUrlSpe
 {
   nsresult rv = NS_OK;
 
-  nsXPIDLCString host;
+  nsCString host;
   PRInt32 port;
 
   nsCOMPtr<nsIMsgIncomingServer> nntpServer;
   rv = GetNntpServerByAccount(aAccountKey, getter_AddRefs(nntpServer));
   if (NS_SUCCEEDED(rv) && nntpServer)
   {
-    nntpServer->GetRealHostName(getter_Copies(host));
+    nntpServer->GetRealHostName(host);
     nntpServer->GetPort(&port);
   }
 
   *newsUrlSpec = PR_smprintf("%s/%s:%d",kNewsRootURI, host.IsEmpty() ? "news" : host.get(), port);
   if (!*newsUrlSpec) return NS_ERROR_FAILURE;
-
   return NS_OK;
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -1144,10 +1139,8 @@ nsNntpService::GetProtocolForUri(nsIURI *aUri, nsIMsgWindow *aMsgWindow, nsINNTP
     {
         // step 2, set the uri's hostName and the local variable hostName
         // to be the host name of the server we found
-        nsXPIDLCString hostBuf;
-        rv = server->GetHostName(getter_Copies(hostBuf));
+        rv = server->GetHostName(hostName);
         NS_ENSURE_SUCCESS(rv,rv);
-        hostName = hostBuf;
 
         rv = aUri->SetHost(hostName);
         NS_ENSURE_SUCCESS(rv,rv);
@@ -1157,7 +1150,7 @@ nsNntpService::GetProtocolForUri(nsIURI *aUri, nsIMsgWindow *aMsgWindow, nsINNTP
   if (NS_FAILED(rv) || !server)
   {
     PRBool isSecure = PR_FALSE;
-    if (PL_strcasecmp("snews",scheme.get()) == 0)
+    if (PL_strcasecmp("snews", scheme.get()) == 0)
     {
       isSecure = PR_TRUE;
       if ((port == 0) || (port == -1))
@@ -1221,7 +1214,7 @@ nsNntpService::GetProtocolForUri(nsIURI *aUri, nsIMsgWindow *aMsgWindow, nsINNTP
 
 PRBool nsNntpService::WeAreOffline()
 {
-	nsresult rv = NS_OK;
+  nsresult rv = NS_OK;
   PRBool offline = PR_FALSE;
 
   nsCOMPtr<nsIIOService> netService(do_GetService(NS_IOSERVICE_CONTRACTID, &rv));
@@ -1598,24 +1591,18 @@ nsNntpService::UpdateCounts(nsINntpIncomingServer *aNntpServer, nsIMsgWindow *aM
 
   nsCOMPtr<nsIURI> url;
   nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(aNntpServer, &rv);
-  if (NS_FAILED(rv)) return rv;
-  if (!server) return NS_ERROR_FAILURE;
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  nsXPIDLCString serverUri;
-  rv = server->GetServerURI(getter_Copies(serverUri));
-  if (NS_FAILED(rv)) return rv;
+  nsCString serverUri;
+  rv = server->GetServerURI(serverUri);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = ConstructNntpUrl((const char *)serverUri, nsnull, aMsgWindow, nsnull, nsINntpUrl::ActionUpdateCounts, getter_AddRefs(url));
-  if (NS_FAILED(rv)) return rv;
+  rv = ConstructNntpUrl(serverUri.get(), nsnull, aMsgWindow, nsnull, nsINntpUrl::ActionUpdateCounts, getter_AddRefs(url));
+  NS_ENSURE_SUCCESS(rv, rv);
 
   // run the url to update the counts
   rv = RunNewsUrl(url, aMsgWindow, nsnull);
-
-  // being offline is not an error.
-  if (NS_SUCCEEDED(rv) || (rv == NS_MSG_ERROR_OFFLINE))
-    return NS_OK;
-
-  return rv;
+  return NS_SUCCEEDED(rv) || (rv == NS_MSG_ERROR_OFFLINE) ? NS_OK : rv;
 }
 
 NS_IMETHODIMP
@@ -1629,30 +1616,19 @@ nsNntpService::GetListOfGroupsOnServer(nsINntpIncomingServer *aNntpServer, nsIMs
   if (NS_FAILED(rv)) return rv;
   if (!server) return NS_ERROR_FAILURE;
 
-  nsXPIDLCString serverUri;
-  rv = server->GetServerURI(getter_Copies(serverUri));
-
-  nsCAutoString uriStr;
-  uriStr += (const char *)serverUri;
-  uriStr += "/*";
+  nsCString serverUri;
+  rv = server->GetServerURI(serverUri);
+  serverUri.AppendLiteral("/*");
 
   nsCOMPtr <nsIUrlListener> listener = do_QueryInterface(aNntpServer, &rv);
-  if (NS_FAILED(rv))
-    return rv;
-  if (!listener)
-    return NS_ERROR_FAILURE;
+  NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIURI> url;
-  rv = ConstructNntpUrl(uriStr.get(), listener, aMsgWindow, nsnull, nsINntpUrl::ActionListGroups, getter_AddRefs(url));
-  if (NS_FAILED(rv))
-    return rv;
+  rv = ConstructNntpUrl(serverUri.get(), listener, aMsgWindow, nsnull, nsINntpUrl::ActionListGroups, getter_AddRefs(url));
+  NS_ENSURE_SUCCESS(rv, rv);
 
   // now run the url to add the rest of the groups
-  rv = RunNewsUrl(url, aMsgWindow, nsnull);
-  if (NS_FAILED(rv))
-    return rv;
-
-  return NS_OK;
+  return RunNewsUrl(url, aMsgWindow, nsnull);
 }
 
 

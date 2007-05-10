@@ -614,53 +614,53 @@ nsresult
 nsSubscribableServer::FindAndCreateNode(const nsACString &aPath,
                                         SubscribeTreeNode **aResult)
 {
-    nsresult rv = NS_OK;
-    NS_ASSERTION(aResult, "no result");
-    if (!aResult) return NS_ERROR_NULL_POINTER;
+  nsresult rv = NS_OK;
+  NS_ASSERTION(aResult, "no result");
+  if (!aResult) return NS_ERROR_NULL_POINTER;
 
-    if (!mTreeRoot) {
-        nsXPIDLCString serverUri;
-        rv = mIncomingServer->GetServerURI(getter_Copies(serverUri));
-        NS_ENSURE_SUCCESS(rv,rv);
-        // the root has no parent, and its name is server uri
-        rv = CreateNode(nsnull, (const char *)serverUri, &mTreeRoot);
-        NS_ENSURE_SUCCESS(rv,rv);
-    }
+  if (!mTreeRoot) {
+      nsCString serverUri;
+      rv = mIncomingServer->GetServerURI(serverUri);
+      NS_ENSURE_SUCCESS(rv,rv);
+      // the root has no parent, and its name is server uri
+      rv = CreateNode(nsnull, serverUri.get(), &mTreeRoot);
+      NS_ENSURE_SUCCESS(rv,rv);
+  }
 
-    if (aPath.IsEmpty()) {
-        *aResult = mTreeRoot;
-        return NS_OK;
-    }
+  if (aPath.IsEmpty()) {
+      *aResult = mTreeRoot;
+      return NS_OK;
+  }
 
-    char *pathStr = nsCRT::strdup(PromiseFlatCString(aPath).get());
-    char *token = nsnull;
-    char *rest = pathStr;
-    
-    // todo do this only once
-    char delimstr[2];
-    delimstr[0] = mDelimiter;
-    delimstr[1] = '\0';
-    
-    *aResult = nsnull;
+  char *pathStr = nsCRT::strdup(PromiseFlatCString(aPath).get());
+  char *token = nsnull;
+  char *rest = pathStr;
+  
+  // todo do this only once
+  char delimstr[2];
+  delimstr[0] = mDelimiter;
+  delimstr[1] = '\0';
+  
+  *aResult = nsnull;
 
-    SubscribeTreeNode *parent = mTreeRoot;
-    SubscribeTreeNode *child = nsnull;
+  SubscribeTreeNode *parent = mTreeRoot;
+  SubscribeTreeNode *child = nsnull;
 
-    token = nsCRT::strtok(rest, delimstr, &rest);
-    while (token && *token) {
-        rv = AddChildNode(parent, token, &child);
-        if (NS_FAILED(rv)) {
-            CRTFREEIF(pathStr);
-            return rv;
-        }
-        token = nsCRT::strtok(rest, delimstr, &rest);
-        parent = child;
-    }   
-    CRTFREEIF(pathStr);
+  token = nsCRT::strtok(rest, delimstr, &rest);
+  while (token && *token) {
+      rv = AddChildNode(parent, token, &child);
+      if (NS_FAILED(rv)) {
+          CRTFREEIF(pathStr);
+          return rv;
+      }
+      token = nsCRT::strtok(rest, delimstr, &rest);
+      parent = child;
+  }   
+  CRTFREEIF(pathStr);
 
-    // the last child we add is the result
-    *aResult = child;
-    return rv;
+  // the last child we add is the result
+  *aResult = child;
+  return rv;
 }
 
 NS_IMETHODIMP

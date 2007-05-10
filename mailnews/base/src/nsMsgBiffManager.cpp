@@ -365,8 +365,8 @@ nsresult nsMsgBiffManager::PerformBiff()
       // and make sure the server isn't already in the middle of downloading new messages
       if(!serverBusy && (!serverRequiresPassword || !passwordPromptRequired) && targetFolderIndex == kNotFound)
       {
-        nsXPIDLCString serverKey;
-        current->server->GetKey(getter_Copies(serverKey));
+        nsCString serverKey;
+        current->server->GetKey(serverKey);
         nsresult rv = current->server->PerformBiff(nsnull);
         PR_LOG(MsgBiffLogModule, PR_LOG_ALWAYS, ("biffing server %s rv = %x\n", serverKey.get(), rv));
       }
