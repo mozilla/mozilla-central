@@ -1402,7 +1402,7 @@ calICSService::GetTimezoneLongitude(const nsACString& tzid, nsACString& _retval)
 NS_IMETHODIMP
 calICSService::GetTzIdPrefix(nsACString& _retval)
 {
-    _retval.Assign(gTzIdPrefix);
+    _retval.Assign(kTzIdPrefix);
 
     return NS_OK;
 }
@@ -1472,13 +1472,14 @@ calICSService::LatestTzId(const nsACString& tzid, nsACString& _retval) {
     // If the zone's locale was not changed and the zone was not
     // deleted (i.e. we haven't already created _retVal, then
     // we just need to update the timestamp.
+    const nsCAutoString tzIdPrefix(kTzIdPrefix);
     if ((_retval.Length() == 0) &&
-        (gTzIdPrefix != Substring(tzid, 0, prefixEnd + 1))) {
+        (tzIdPrefix != Substring(tzid, 0, prefixEnd + 1))) {
         // TODO: This assumes that new zones will always be later. If we are
         // ever going to support mixing our TZID headers, then this needs to
         // be a date comparison.
-        _retval = gTzIdPrefix + Substring(tzid, prefixEnd + 1,
-                                          tzid.Length() - (prefixEnd + 1));
+        _retval = tzIdPrefix + Substring(tzid, prefixEnd + 1,
+                                         tzid.Length() - (prefixEnd + 1));
     }
     return NS_OK;
 }

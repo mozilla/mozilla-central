@@ -167,7 +167,7 @@ print TZDATA <<EOF
 };
 
 // needed for implementing calIICSService.tzIdPrefix
-NS_NAMED_LITERAL_CSTRING(gTzIdPrefix, "${TZ_PREFIX}/");
+const char kTzIdPrefix[] = "${TZ_PREFIX}/";
 EOF
 ;
 
