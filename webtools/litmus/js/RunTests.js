@@ -86,7 +86,7 @@ function addRowToTable(tblName,position,buildID,platformID,opsysID) {
     el.setAttribute('type', 'text');
     el.setAttribute('name', 'build_id_new');
     el.setAttribute('id', 'build_id_new');
-    el.setAttribute('size', '10');
+    el.setAttribute('size', '12');
     if (appBuildID) {
       el.setAttribute('value', appBuildID);
     }
