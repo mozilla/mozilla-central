@@ -356,10 +356,11 @@ sub do_update{
     my $requirement = $cgi->param("requirement")|| '';
     my $tcdependson = $cgi->param("tcdependson")|| '';
     my $tcblocks    = $cgi->param("tcblocks")|| '';
-    my $tester      = $cgi->param("tester") || '';
-    my $est_time    = $cgi->param("estimated_time") || '';
+    my $tester      = $cgi->param("tester") || undef;
+    my $est_time    = $cgi->param("estimated_time") || undef;
     if ($tester){
         $tester = login_to_id(trim($cgi->param('tester'))) || ThrowUserError("invalid_username", { name => $cgi->param('tester') });
+        trick_taint($tester);
     }
 
     ThrowUserError('testopia-missing-required-field', {'field' => 'summary'})  if $summary  eq '';
@@ -368,12 +369,12 @@ sub do_update{
     detaint_natural($category);
     detaint_natural($priority);
     detaint_natural($isautomated);
-    
-    $est_time =~ m/(\d+)[:\s](\d+)[:\s](\d+)/;
-    ThrowUserError('testopia-format-error', {'field' => 'Estimated Time' })
-      unless ($1 < 24 && $2 < 60 && $3 < 60);
-    $est_time = "$1:$2:$3";
-    
+    if ($est_time){
+        $est_time =~ m/(\d+)[:\s](\d+)[:\s](\d+)/;
+        ThrowUserError('testopia-format-error', {'field' => 'Estimated Time' })
+          unless ($1 < 24 && $2 < 60 && $3 < 60);
+        $est_time = "$1:$2:$3";
+    }    
     # All inserts are done with placeholders so this is OK
     trick_taint($alias);
     trick_taint($script);
@@ -386,7 +387,6 @@ sub do_update{
     trick_taint($newtcsetup);
     trick_taint($tcdependson);
     trick_taint($tcblocks);
-    trick_taint($tester);
 
     validate_selection($category, 'category_id', 'test_case_categories');
     validate_selection($status, 'case_status_id', 'test_case_status');
