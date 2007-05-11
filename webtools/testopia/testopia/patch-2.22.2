@@ -636,7 +636,7 @@ RCS file: /cvsroot/mozilla/webtools/bugzilla/editusers.cgi,v
 retrieving revision 1.113.2.1
 diff -u -r1.113.2.1 editusers.cgi
 --- editusers.cgi	14 Oct 2006 22:05:54 -0000	1.113.2.1
-+++ editusers.cgi	27 Mar 2007 20:19:49 -0000
++++ editusers.cgi	11 May 2007 18:49:20 -0000
 @@ -190,6 +190,8 @@
      # Lock tables during the check+creation session.
      $dbh->bz_lock_tables('profiles WRITE',
@@ -646,11 +646,12 @@ diff -u -r1.113.2.1 editusers.cgi
                           'groups READ',
                           'user_group_map WRITE',
                           'email_setting WRITE',
-@@ -242,6 +244,7 @@
+@@ -242,6 +244,8 @@
      # Lock tables during the check+update session.
      $dbh->bz_lock_tables('profiles WRITE',
                           'profiles_activity WRITE',
 +                         'test_plan_permissions WRITE',
++                         'test_plan_permissions_regexp READ',
                           'fielddefs READ',
                           'namedqueries READ',
                           'whine_queries READ',

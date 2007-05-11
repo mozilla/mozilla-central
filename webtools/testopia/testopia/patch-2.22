@@ -115,11 +115,12 @@ diff -u -r1.113 editusers.cgi
                           'groups READ',
                           'user_group_map WRITE',
                           'email_setting WRITE',
-@@ -232,6 +234,7 @@
+@@ -232,6 +234,8 @@
      # Lock tables during the check+update session.
      $dbh->bz_lock_tables('profiles WRITE',
                           'profiles_activity WRITE',
 +                         'test_plan_permissions WRITE',
++                         'test_plan_permissions_regexp READ',
                           'fielddefs READ',
                           'namedqueries READ',
                           'whine_queries READ',
