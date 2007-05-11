@@ -65,6 +65,7 @@
 #include "nsIDOM3EventTarget.h"
 #include "nsIDOMEventGroup.h"
 #include "nsPIDOMWindow.h"
+#include "nsIDOMEventReceiver.h"
 
 #include "nsIDOMEvent.h"
 #include "nsIDOMNSEvent.h"
@@ -743,15 +744,15 @@ nsSoftKeyBoard::Init(nsIDOMWindow *aWindow)
     return NS_ERROR_UNEXPECTED;
   
   nsIChromeEventHandler *chromeEventHandler = privateWindow->GetChromeEventHandler();
-  nsCOMPtr<nsIDOMEventTarget> target(do_QueryInterface(chromeEventHandler));
-  if (!target)
+  nsCOMPtr<nsIDOMEventReceiver> receiver(do_QueryInterface(chromeEventHandler));
+  if (!receiver)
     return NS_ERROR_UNEXPECTED;
   
-  target->AddEventListener(NS_LITERAL_STRING("focus"), this, PR_TRUE);
-  target->AddEventListener(NS_LITERAL_STRING("blur"), this, PR_TRUE);
-  target->AddEventListener(NS_LITERAL_STRING("keypress"), this, PR_TRUE);
+  receiver->AddEventListener(NS_LITERAL_STRING("focus"), this, PR_TRUE);
+  receiver->AddEventListener(NS_LITERAL_STRING("blur"), this, PR_TRUE);
+  receiver->AddEventListener(NS_LITERAL_STRING("keypress"), this, PR_TRUE);
 
-  target->AddEventListener(NS_LITERAL_STRING("click"), this, PR_TRUE);
+  receiver->AddEventListener(NS_LITERAL_STRING("click"), this, PR_TRUE);
   
   return NS_OK;
 }
@@ -765,14 +766,14 @@ nsSoftKeyBoard::Shutdown()
     return NS_ERROR_UNEXPECTED;
   
   nsIChromeEventHandler *chromeEventHandler = privateWindow->GetChromeEventHandler();
-  nsCOMPtr<nsIDOMEventTarget> target(do_QueryInterface(chromeEventHandler));
-  if (!target)
+  nsCOMPtr<nsIDOMEventReceiver> receiver(do_QueryInterface(chromeEventHandler));
+  if (!receiver)
     return NS_ERROR_UNEXPECTED;
 
-  target->RemoveEventListener(NS_LITERAL_STRING("focus"), this, PR_TRUE);
-  target->RemoveEventListener(NS_LITERAL_STRING("blur"), this, PR_TRUE);
-  target->RemoveEventListener(NS_LITERAL_STRING("keypress"), this, PR_TRUE);
-  target->RemoveEventListener(NS_LITERAL_STRING("click"), this, PR_TRUE);
+  receiver->RemoveEventListener(NS_LITERAL_STRING("focus"), this, PR_TRUE);
+  receiver->RemoveEventListener(NS_LITERAL_STRING("blur"), this, PR_TRUE);
+  receiver->RemoveEventListener(NS_LITERAL_STRING("keypress"), this, PR_TRUE);
+  receiver->RemoveEventListener(NS_LITERAL_STRING("click"), this, PR_TRUE);
 
   mTopWindow = nsnull;
 

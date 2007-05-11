@@ -44,7 +44,7 @@
 #include "nsMemory.h"
 #include "nsXFormsAtoms.h"
 #include "nsString.h"
-#include "nsIDOMEventTarget.h"
+#include "nsIDOMEventReceiver.h"
 #include "nsIDOMDOMImplementation.h"
 #include "nsIXTFElementWrapper.h"
 #include "nsXFormsUtils.h"

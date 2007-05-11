@@ -53,7 +53,7 @@
 #include "nsIDOMEvent.h"
 #include "nsIDOMDOMImplementation.h"
 #include "nsIDOMXMLDocument.h"
-#include "nsIDOMEventTarget.h"
+#include "nsIDOMEventReceiver.h"
 #include "nsIDOMXPathResult.h"
 #include "nsIDOMXPathEvaluator.h"
 #include "nsIXPathEvaluatorInternal.h"
