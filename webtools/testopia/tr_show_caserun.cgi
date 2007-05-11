@@ -35,8 +35,6 @@ use Bugzilla::Testopia::TestRun;
 use Bugzilla::Testopia::TestCase;
 use Bugzilla::Testopia::TestCaseRun;
 
-require 'globals.pl';
-
 use vars qw($vars);
 my $template = Bugzilla->template;
 my $query_limit = 15000;

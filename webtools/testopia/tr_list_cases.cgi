@@ -37,8 +37,6 @@ use Bugzilla::Testopia::Table;
 
 use vars qw($vars);
 
-require "globals.pl";
-
 my $cgi = Bugzilla->cgi;
 my $template = Bugzilla->template;
 my $query_limit = 10000;
@@ -399,7 +397,7 @@ if ($cgi->param('plan_id')){
 else{
     $vars->{'dotweak'} = Bugzilla->user->in_group('Testers');
     $vars->{'candelete'} = Bugzilla->user->in_group('admin') 
-        || (Bugzilla->user->in_group('Testers') && Param('testopia-allow-group-member-deletes'));
+        || (Bugzilla->user->in_group('Testers') && Bugzilla->params->{"testopia-allow-group-member-deletes"});
 }
 my $contenttype;
 

@@ -35,7 +35,6 @@ use Bugzilla::Testopia::Table;
 use Bugzilla::Testopia::Constants;
 
 use vars qw($vars);
-require 'globals.pl';
 
 my $cgi = Bugzilla->cgi;
 my $template = Bugzilla->template;
@@ -306,7 +305,7 @@ if ($vars->{'run'}) {
 else {
     $vars->{'dotweak'} = Bugzilla->user->in_group('Testers');
     $vars->{'candelete'} = Bugzilla->user->in_group('admin') 
-        || (Bugzilla->user->in_group('Testers') && Param('testopia-allow-group-member-deletes'));
+        || (Bugzilla->user->in_group('Testers') && Bugzilla->params->{"testopia-allow-group-member-deletes"});
 }
 if ($serverpush && !$cgi->param('debug')) {
     print $cgi->multipart_end;

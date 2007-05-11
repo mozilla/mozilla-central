@@ -771,8 +771,8 @@ Returns true if the logged in user has rights to delete this test run.
 sub candelete {
     my $self = shift;
     return 1 if Bugzilla->user->in_group('admin');
-    return 0 unless Param("allow-test-deletion");
-    return 1 if Bugzilla->user->in_group('Testers') && Param("testopia-allow-group-member-deletes");
+    return 0 unless Bugzilla->params->{"allow-test-deletion"};
+    return 1 if Bugzilla->user->in_group('Testers') && Bugzilla->params->{"testopia-allow-group-member-deletes"};
     return 1 if $self->plan->get_user_rights(Bugzilla->user->id) & TR_DELETE;
     return 0;
 }

@@ -676,7 +676,7 @@ sub update_bugs {
         else{
             $resolution = $oldresolution;
         }
-        my $comment  = "Status updated by Testopia:  ". Param('urlbase');
+        my $comment  = "Status updated by Testopia:  ". Bugzilla->params->{"urlbase"};
            $comment .= "tr_show_caserun.cgi?caserun_id=" . $self->id;
           
         $dbh->bz_lock_tables("bugs WRITE, fielddefs READ, longdescs WRITE, bugs_activity WRITE");
@@ -1058,8 +1058,8 @@ Returns true if the logged in user has rights to delete this case-run.
 sub candelete {
     my $self = shift;
     return 1 if Bugzilla->user->in_group('admin');
-    return 0 unless Param("allow-test-deletion");
-    return 1 if Bugzilla->user->in_group('Testers') && Param("testopia-allow-group-member-deletes");
+    return 0 unless Bugzilla->params->{"allow-test-deletion"};
+    return 1 if Bugzilla->user->in_group('Testers') && Bugzilla->params->{"testopia-allow-group-member-deletes"};
     return 1 if $self->run->plan->get_user_rights(Bugzilla->user->id) & TR_DELETE;
     return 0;
 }

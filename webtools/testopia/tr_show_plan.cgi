@@ -39,8 +39,6 @@ use Bugzilla::Testopia::Search;
 use Bugzilla::Testopia::Table;
 use JSON;
 
-require 'globals.pl';
-
 use vars qw($vars);
 my $template = Bugzilla->template;
 my $run_query_limit = 5000;
@@ -151,8 +149,8 @@ elsif ($action eq 'do_clone'){
     else {
         # Give the author admin rights
         $newplan->add_tester($author, TR_READ | TR_WRITE | TR_DELETE | TR_ADMIN );
-        $newplan->set_tester_regexp( Param('testopia-default-plan-testers-regexp'), 3)
-            if Param('testopia-default-plan-testers-regexp');
+        $newplan->set_tester_regexp( Bugzilla->params->{"testopia-default-plan-testers-regexp"}, 3)
+            if Bugzilla->params->{"testopia-default-plan-testers-regexp"};
         $newplan->derive_regexp_testers(Param('testopia-default-plan-testers-regexp'))
     } 
     if ($cgi->param('copy_cases')){

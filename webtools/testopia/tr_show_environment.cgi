@@ -43,8 +43,6 @@ use Bugzilla::Testopia::Environment::Property;
 use Data::Dumper;
 use JSON;
 
-require 'globals.pl';
-
 Bugzilla->login(LOGIN_REQUIRED);
 
 my $cgi = Bugzilla->cgi;

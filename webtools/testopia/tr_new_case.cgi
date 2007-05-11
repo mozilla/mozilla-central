@@ -33,8 +33,6 @@ use JSON;
 
 use vars qw($vars);
 
-require "globals.pl";
-
 Bugzilla->login(LOGIN_REQUIRED);
    
 my $cgi = Bugzilla->cgi;
@@ -225,9 +223,9 @@ else {
         my $description = ${$bug->GetComments}[0];
         my $short_desc = $bug->short_desc; 
         
-        $summary   = Param('bug-to-test-case-summary');
-        my $action = Param('bug-to-test-case-action');
-        my $effect = Param('bug-to-test-case-results');
+        $summary   = Bugzilla->params->{"bug-to-test-case-summary"};
+        my $action = Bugzilla->params->{"bug-to-test-case-action"};
+        my $effect = Bugzilla->params->{"bug-to-test-case-results"};
         
         $summary =~ s/%id%/$bug_id/g;
         $summary =~ s/%summary%/$short_desc/g;
@@ -240,8 +238,8 @@ else {
         $text = {'action' => $action, 'effect' => $effect};
     }
     else {
-        $text = {'action' => Param('new-case-action-template'), 
-                 'effect' => Param('new-case-results-template')};
+        $text = {'action' => Bugzilla->params->{"new-case-action-template"}, 
+                 'effect' => Bugzilla->params->{"new-case-results-template"}};
     }
         
     my $case = Bugzilla::Testopia::TestCase->new(

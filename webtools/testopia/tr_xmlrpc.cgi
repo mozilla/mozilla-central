@@ -26,8 +26,6 @@ sub BEGIN
 use strict;
 use lib qw(.);
 
-require "globals.pl";
-
 use XMLRPC::Transport::HTTP;
 use Bugzilla;
 use Bugzilla::Constants;

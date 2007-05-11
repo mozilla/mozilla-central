@@ -57,13 +57,13 @@ if ($term){
     SWITCH: for ($term){
         /^(tag)?[\s:-]+(.*)$/i && do{
             my $text = trim($2);
-            print "Location: " . Param('urlbase') . "tr_tags.cgi?tag=" . $text . "\n\n";
+            print "Location: " . Bugzilla->params->{'urlbase'} . "tr_tags.cgi?tag=" . $text . "\n\n";
             last SWITCH;
         };
         /^(plan|TP|p)?[\s:-]+(.*)$/i && do{
             my $text = trim($2);
             if ($text =~ /^\d+$/){
-                print "Location: " . Param('urlbase') . "tr_show_plan.cgi?plan_id=" . $text . "\n\n";
+                print "Location: " . Bugzilla->params->{'urlbase'} . "tr_show_plan.cgi?plan_id=" . $text . "\n\n";
             }
             else{
                 $cgi->param('current_tab', 'plan');
@@ -73,10 +73,10 @@ if ($term){
                 my $search = Bugzilla::Testopia::Search->new($cgi);
                 my $table = Bugzilla::Testopia::Table->new('plan', 'tr_list_plans.cgi', $cgi, undef, $search->query);
                 if ($table->list_count == 1){
-                    print "Location: " . Param('urlbase') . "tr_show_plan.cgi?plan_id=" . ${$table->list}[0]->id . "\n\n";
+                    print "Location: " . Bugzilla->params->{'urlbase'} . "tr_show_plan.cgi?plan_id=" . ${$table->list}[0]->id . "\n\n";
                 }
                 else{
-                    print "Location: " . Param('urlbase') . "tr_list_plans.cgi?" . $table->get_query_part . "\n\n";
+                    print "Location: " . Bugzilla->params->{'urlbase'} . "tr_list_plans.cgi?" . $table->get_query_part . "\n\n";
                 }
                 
             }
@@ -85,7 +85,7 @@ if ($term){
         /^(run|TR|r)?[\s:-]+(.*)$/i && do{
             my $text = trim($2);
             if ($text =~ /^\d+$/){
-                print "Location: " . Param('urlbase') . "tr_show_run.cgi?run_id=" . $text . "\n\n";
+                print "Location: " . Bugzilla->params->{'urlbase'} . "tr_show_run.cgi?run_id=" . $text . "\n\n";
             }
             else{
                 $cgi->param('current_tab', 'run');
@@ -95,10 +95,10 @@ if ($term){
                 my $search = Bugzilla::Testopia::Search->new($cgi);
                 my $table = Bugzilla::Testopia::Table->new('run', 'tr_list_runs.cgi', $cgi, undef, $search->query);
                 if ($table->list_count == 1){
-                    print "Location: " . Param('urlbase') . "tr_show_run.cgi?run_id=" . ${$table->list}[0]->id . "\n\n";
+                    print "Location: " . Bugzilla->params->{'urlbase'} . "tr_show_run.cgi?run_id=" . ${$table->list}[0]->id . "\n\n";
                 }
                 else{
-                    print "Location: " . Param('urlbase') . "tr_list_runs.cgi?" . $table->get_query_part . "\n\n";
+                    print "Location: " . Bugzilla->params->{'urlbase'} . "tr_list_runs.cgi?" . $table->get_query_part . "\n\n";
                 }
                 
             }
@@ -107,7 +107,7 @@ if ($term){
         /^(environment|TE|e|env)?[\s:-]+(.*)$/i && do{
             my $text = trim($2);
             if ($text =~ /^\d+$/){
-                print "Location: " . Param('urlbase') . "tr_show_environment.cgi?env_id=" . $text . "\n\n";
+                print "Location: " . Bugzilla->params->{'urlbase'} . "tr_show_environment.cgi?env_id=" . $text . "\n\n";
             }
             else{
                 $cgi->param('current_tab', 'environment');
@@ -117,10 +117,10 @@ if ($term){
                 my $search = Bugzilla::Testopia::Search->new($cgi);
                 my $table = Bugzilla::Testopia::Table->new('environment', 'tr_list_runs.cgi', $cgi, undef, $search->query);
                 if ($table->list_count == 1){
-                    print "Location: " . Param('urlbase') . "tr_show_environment.cgi?env_id=" . ${$table->list}[0]->id . "\n\n";
+                    print "Location: " . Bugzilla->params->{'urlbase'} . "tr_show_environment.cgi?env_id=" . ${$table->list}[0]->id . "\n\n";
                 }
                 else{
-                    print "Location: " . Param('urlbase') . "tr_list_environments.cgi?" . $table->get_query_part . "\n\n";
+                    print "Location: " . Bugzilla->params->{'urlbase'} . "tr_list_environments.cgi?" . $table->get_query_part . "\n\n";
                 }
                 
             }
@@ -129,7 +129,7 @@ if ($term){
         /^(caserun|TCR|cr)?[\s:-]+(.*)$/i && do{
             my $text = trim($2);
             if ($text =~ /^\d+$/){
-                print "Location: " . Param('urlbase') . "tr_show_caserun.cgi?caserun_id=" . $text . "\n\n";
+                print "Location: " . Bugzilla->params->{'urlbase'} . "tr_show_caserun.cgi?caserun_id=" . $text . "\n\n";
             }
             else{
                 $cgi->param('current_tab', 'case_run');
@@ -139,10 +139,10 @@ if ($term){
                 my $search = Bugzilla::Testopia::Search->new($cgi);
                 my $table = Bugzilla::Testopia::Table->new('run', 'tr_list_runs.cgi', $cgi, undef, $search->query);
                 if ($table->list_count == 1){
-                    print "Location: " . Param('urlbase') . "tr_show_caserun.cgi?caserun_id=" . ${$table->list}[0]->id . "\n\n";
+                    print "Location: " . Bugzilla->params->{'urlbase'} . "tr_show_caserun.cgi?caserun_id=" . ${$table->list}[0]->id . "\n\n";
                 }
                 else{
-                    print "Location: " . Param('urlbase') . "tr_list_caseruns.cgi?" . $table->get_query_part . "\n\n";
+                    print "Location: " . Bugzilla->params->{'urlbase'} . "tr_list_caseruns.cgi?" . $table->get_query_part . "\n\n";
                 }
                 
             }
@@ -151,7 +151,7 @@ if ($term){
         do{
             $term =~ s/^(case|TC|c)?[\s:-]+(.*)$/$2/gi;
             if ($term =~ /^\d+$/){
-                print "Location: " . Param('urlbase') . "tr_show_case.cgi?case_id=" . $term . "\n\n";
+                print "Location: " . Bugzilla->params->{'urlbase'} . "tr_show_case.cgi?case_id=" . $term . "\n\n";
             }
             else{
                 $cgi->param('current_tab', 'case');
@@ -161,10 +161,10 @@ if ($term){
                 my $search = Bugzilla::Testopia::Search->new($cgi);
                 my $table = Bugzilla::Testopia::Table->new('case', 'tr_list_cases.cgi', $cgi, undef, $search->query);
                 if ($table->list_count == 1){
-                    print "Location: " . Param('urlbase') . "tr_show_case.cgi?case_id=" . ${$table->list}[0]->id . "\n\n";
+                    print "Location: " . Bugzilla->params->{'urlbase'} . "tr_show_case.cgi?case_id=" . ${$table->list}[0]->id . "\n\n";
                 }
                 else{
-                    print "Location: " . Param('urlbase') . "tr_list_cases.cgi?" . $table->get_query_part . "\n\n";
+                    print "Location: " . Bugzilla->params->{'urlbase'} . "tr_list_cases.cgi?" . $table->get_query_part . "\n\n";
                 }
                 
             }
@@ -233,13 +233,13 @@ else{
         my $dbh = Bugzilla->dbh;
 
         my $query  = "SELECT DISTINCT login_name, realname,";
-        if (&::Param('usevisibilitygroups')) {
+        if (Bugzilla->params->{'usevisibilitygroups'}) {
             $query .= " COUNT(group_id) ";
         } else {
             $query .= " 1 ";
         }
         $query     .= "FROM profiles ";
-        if (&::Param('usevisibilitygroups')) {
+        if (Bugzilla->params->{'usevisibilitygroups'}) {
             $query .= "LEFT JOIN user_group_map " .
                       "ON user_group_map.user_id = userid AND isbless = 0 " .
                       "AND group_id IN(" .

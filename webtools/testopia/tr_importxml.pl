@@ -59,8 +59,6 @@ use XML::Twig;
 use Getopt::Long;
 use Pod::Usage;
 
-require "globals.pl";
-
 my $debug = 0;
 my $help = 0;
 

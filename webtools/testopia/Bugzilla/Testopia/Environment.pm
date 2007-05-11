@@ -667,9 +667,9 @@ Returns true if the logged in user has rights to delete this environment.
 sub candelete {
     my $self = shift;
     return 1 if Bugzilla->user->in_group("admin");
-    return 0 unless Param("allow-test-deletion");
+    return 0 unless Bugzilla->params->{"allow-test-deletion"};
     return 0 unless Bugzilla->user->can_see_product($self->product->name);
-    return 1 if Bugzilla->user->in_group("Testers") && Param('testopia-allow-group-member-deletes'); 
+    return 1 if Bugzilla->user->in_group("Testers") && Bugzilla->params->{"testopia-allow-group-member-deletes"}; 
     return 0;
 }
 

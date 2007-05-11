@@ -186,7 +186,7 @@ limit is not exceeded and converts uncompressed BMP to PNG
 
 sub _validate_data {
     my $self = shift;
-    my $maxsize = Param('maxattachmentsize');
+    my $maxsize = Bugzilla->params->{"maxattachmentsize"};
     $maxsize *= 1024; # Convert from K
     
     # Windows screenshots are usually uncompressed BMP files which
@@ -461,7 +461,7 @@ Returns true if the logged in user has rights to delete this attachment
 sub candelete {
     my $self = shift;
     return 1 if Bugzilla->user->in_group("admin");
-    return 0 unless $self->canedit && Param("allow-test-deletion");
+    return 0 unless $self->canedit && Bugzilla->params->{"allow-test-deletion"};
     return 1 if Bugzilla->user->id == $self->submitter->id;
     foreach my $i (@{$self->cases}){
         return 0 unless $i->canedit;
