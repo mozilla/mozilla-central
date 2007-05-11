@@ -66,7 +66,7 @@
 #include "nsISound.h"
 
 #define TYPEAHEADFIND_BUNDLE_URL \
-        "chrome://global/locale/typeaheadfind.properties"
+        "chrome://communicator/locale/typeaheadfind.properties"
 #define TYPEAHEADFIND_NOTFOUND_WAV_URL \
         "chrome://global/content/notfound.wav"
 
