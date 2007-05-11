@@ -2275,7 +2275,7 @@ nsTypeAheadFind::RemoveWindowListeners(nsIDOMWindow *aDOMWin)
   nsCOMPtr<nsPIDOMEventTarget> piTarget(do_QueryInterface(chromeEventHandler));
   nsCOMPtr<nsIDOMEventGroup> systemGroup;
   piTarget->GetSystemEventGroup(getter_AddRefs(systemGroup));
-  nsCOMPtr<nsIDOM3EventTarget> target(do_QueryInterface(receiver));
+  nsCOMPtr<nsIDOM3EventTarget> target(do_QueryInterface(piTarget));
 
   target->RemoveGroupedEventListener(NS_LITERAL_STRING("keypress"),
                                      NS_STATIC_CAST(nsIDOMKeyListener*, this),
