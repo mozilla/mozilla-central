@@ -647,7 +647,7 @@ static int BookmarkItemSort(id firstItem, id secondItem, void* context)
   return [[self addBookmark] readCaminoXML:aTreeRef settingToolbar:NO];
 }
 
-- (Bookmark *)addBookmark:(NSString *)aTitle url:(NSString *)aURL inPosition:(unsigned)aIndex isSeparator:(BOOL)aBool
+- (Bookmark *)addBookmark:(NSString *)aTitle url:(NSString *)aURL inPosition:(unsigned)aIndex
 {
   if ([aTitle length] == 0)
     aTitle = aURL;
@@ -657,8 +657,7 @@ static int BookmarkItemSort(id firstItem, id secondItem, void* context)
                        url:aURL
                description:@""
                  lastVisit:[NSDate date]
-                    status:kBookmarkOKStatus
-               isSeparator:aBool];
+                    status:kBookmarkOKStatus];
 }
 
 // full bodied addition
@@ -669,7 +668,6 @@ static int BookmarkItemSort(id firstItem, id secondItem, void* context)
               description:(NSString *)aDescription
                 lastVisit:(NSDate *)aDate
                    status:(unsigned)aStatus
-              isSeparator:(BOOL)aSeparator
 {
   if (![self isRoot]) {
     Bookmark *theBookmark = [[Bookmark alloc] init];
@@ -679,7 +677,6 @@ static int BookmarkItemSort(id firstItem, id secondItem, void* context)
     [theBookmark setItemDescription:aDescription];
     [theBookmark setLastVisit:aDate];
     [theBookmark setStatus:aStatus];
-    [theBookmark setIsSeparator:aSeparator];
     [self insertChild:theBookmark atIndex:aPosition isMove:NO];
     [theBookmark release];
     return theBookmark;

@@ -708,7 +708,7 @@ static void VerticalGrayGradient(void* inInfo, float const* inData, float* outDa
 
     // Add in reverse order to preserve order
     for (int i = [urls count] - 1; i >= 0; --i)
-      [toolbar addBookmark:[titles objectAtIndex:i] url:[urls objectAtIndex:i] inPosition:index isSeparator:NO];
+      [toolbar addBookmark:[titles objectAtIndex:i] url:[urls objectAtIndex:i] inPosition:index];
     dropHandled = YES;
   }
 

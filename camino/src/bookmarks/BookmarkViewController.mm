@@ -1040,7 +1040,7 @@ const int kOutlineViewLeftMargin = 19; // determined empirically, since it doesn
       if ([title length] == 0)
         title = [urls objectAtIndex:i];
 
-      [newBookmarks addObject:[dropFolder addBookmark:title url:[urls objectAtIndex:i] inPosition:(index + i) isSeparator:NO]];
+      [newBookmarks addObject:[dropFolder addBookmark:title url:[urls objectAtIndex:i] inPosition:(index + i)]];
     }
   NS_HANDLER
   NS_ENDHANDLER

@@ -2864,7 +2864,7 @@ enum BWCOpenDest {
   NSString* itemURL = [browserWrapper currentURI];
 
   NS_ASSERTION([browserWrapper isBookmarkable], "Bookmarking an innappropriate URI");
-  [parentFolder addBookmark:itemTitle url:itemURL inPosition:[parentFolder count] isSeparator:NO];
+  [parentFolder addBookmark:itemTitle url:itemURL inPosition:[parentFolder count]];
   [bookmarkManager setLastUsedBookmarkFolder:parentFolder];
 }
 

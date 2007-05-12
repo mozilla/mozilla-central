@@ -99,15 +99,14 @@ enum {
 
 // ways to add a new bookmark
 - (Bookmark *)addBookmark; //adds to end
-- (Bookmark *)addBookmark:(NSString *)aTitle url:(NSString *)aURL inPosition:(unsigned)aIndex isSeparator:(BOOL)aBool;
+- (Bookmark *)addBookmark:(NSString *)aTitle url:(NSString *)aURL inPosition:(unsigned)aIndex;
 - (Bookmark *)addBookmark:(NSString *)aTitle
                inPosition:(unsigned)aIndex
                   keyword:(NSString *)aKeyword
                       url:(NSString *)aURL
               description:(NSString *)aDescription
                 lastVisit:(NSDate *)aDate
-                   status:(unsigned)aStatus
-              isSeparator:(BOOL)aBool;
+                   status:(unsigned)aStatus;
 
 // ways to add a new bookmark array
 - (BookmarkFolder *)addBookmarkFolder; //adds to end
