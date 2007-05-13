@@ -2110,7 +2110,7 @@
                 var msgSubject = msgHdr.mime2DecodedSubject;
                 const kMsgFlagHasRe = 0x0010; // MSG_FLAG_HAS_RE
                 if(msgHdr.flags & kMsgFlagHasRe)
-                  msgSubject = "Re: " + msgSubject;
+                  msgSubject = (msgSubject) ? "Re: " + msgSubject : "Re: ";
 
                 msgPopup.setAttribute('subject', msgSubject);
 
