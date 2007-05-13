@@ -258,7 +258,7 @@ net_pop3_load_state(const char* searchhost,
   NS_ENSURE_SUCCESS(rv, result);
 
   PRBool more = PR_TRUE;
-  nsXPIDLCString line;
+  nsCString line;
 
   while (more && NS_SUCCEEDED(rv))
   {
@@ -272,7 +272,7 @@ net_pop3_load_state(const char* searchhost,
       /* It's a host&user line. */
       current = NULL;
       nsCStringArray lineElems;
-      lineElems.ParseString(line, " \t");
+      lineElems.ParseString(line.get(), " \t");
       if (lineElems.Count() != 2)
         continue;
       nsCString *host = lineElems[0];
@@ -317,7 +317,7 @@ net_pop3_load_state(const char* searchhost,
       if (current)
       {
         nsCStringArray lineElems;
-        lineElems.ParseString(line, " \t");
+        lineElems.ParseString(line.get(), " \t");
         if (lineElems.Count() < 2)
           continue;
         nsCString *flags = lineElems[0];
@@ -945,9 +945,12 @@ nsPop3Protocol::WaitForStartOfConnectionResponse(nsIInputStream* aInputStream,
   char * line = nsnull;
   PRUint32 line_length = 0;
   PRBool pauseForMoreData = PR_FALSE;
-  line = m_lineStreamBuffer->ReadNextLine(aInputStream, line_length, pauseForMoreData);
+  nsresult rv;
+  line = m_lineStreamBuffer->ReadNextLine(aInputStream, line_length, pauseForMoreData, &rv);
 
   PR_LOG(POP3LOGMODULE, PR_LOG_ALWAYS,("RECV: %s", line));
+  if (NS_FAILED(rv))
+    return -1;
 
   if(pauseForMoreData || !line)
   {
@@ -994,7 +997,10 @@ nsPop3Protocol::WaitForResponse(nsIInputStream* inputStream, PRUint32 length)
   char * line;
   PRUint32 ln = 0;
   PRBool pauseForMoreData = PR_FALSE;
-  line = m_lineStreamBuffer->ReadNextLine(inputStream, ln, pauseForMoreData);
+  nsresult rv;
+  line = m_lineStreamBuffer->ReadNextLine(inputStream, ln, pauseForMoreData, &rv);
+  if (NS_FAILED(rv))
+    return -1;
 
   if(pauseForMoreData || !line)
   {
@@ -1173,7 +1179,9 @@ PRInt32 nsPop3Protocol::AuthResponse(nsIInputStream* inputStream,
     }
 
     PRBool pauseForMoreData = PR_FALSE;
-    line = m_lineStreamBuffer->ReadNextLine(inputStream, ln, pauseForMoreData);
+    line = m_lineStreamBuffer->ReadNextLine(inputStream, ln, pauseForMoreData, &rv);
+    if (NS_FAILED(rv))
+      return -1;
 
     if(pauseForMoreData || !line)
     {
@@ -1260,7 +1268,10 @@ PRInt32 nsPop3Protocol::CapaResponse(nsIInputStream* inputStream,
     }
 
     PRBool pauseForMoreData = PR_FALSE;
-    line = m_lineStreamBuffer->ReadNextLine(inputStream, ln, pauseForMoreData);
+    nsresult rv;
+    line = m_lineStreamBuffer->ReadNextLine(inputStream, ln, pauseForMoreData, &rv);
+    if (NS_FAILED(rv))
+      return -1;
 
     if(pauseForMoreData || !line)
     {
@@ -2079,7 +2090,7 @@ PRInt32 nsPop3Protocol::SendList()
     // potentially allowing the server to make us overwrite memory outside our heap
     // block.
 
-    if (m_pop3ConData->number_of_messages > (0xFFFFF000 / sizeof(Pop3MsgInfo)))
+    if (m_pop3ConData->number_of_messages > (int) (0xFFFFF000 / sizeof(Pop3MsgInfo)))
         return MK_OUT_OF_MEMORY;
 
 
@@ -2111,7 +2122,10 @@ nsPop3Protocol::GetList(nsIInputStream* inputStream,
     return(Error(POP3_LIST_FAILURE));
 
   PRBool pauseForMoreData = PR_FALSE;
-  line = m_lineStreamBuffer->ReadNextLine(inputStream, ln, pauseForMoreData);
+  nsresult rv;
+  line = m_lineStreamBuffer->ReadNextLine(inputStream, ln, pauseForMoreData, &rv);
+  if (NS_FAILED(rv))
+    return -1;
 
   if(pauseForMoreData || !line)
   {
@@ -2202,6 +2216,7 @@ PRInt32 nsPop3Protocol::GetFakeUidlTop(nsIInputStream* inputStream,
 {
   char * line, *newStr;
   PRUint32 ln = 0;
+  nsresult rv;
 
   /* check list response
   * This will get called multiple times
@@ -2210,7 +2225,6 @@ PRInt32 nsPop3Protocol::GetFakeUidlTop(nsIInputStream* inputStream,
   */
   if(!m_pop3ConData->command_succeeded)
   {
-    nsresult rv;
 
     /* UIDL, XTND and TOP are all unsupported for this mail server.
        Tell the user to join the 20th century.
@@ -2255,8 +2269,10 @@ PRInt32 nsPop3Protocol::GetFakeUidlTop(nsIInputStream* inputStream,
   }
 
   PRBool pauseForMoreData = PR_FALSE;
-  line = m_lineStreamBuffer->ReadNextLine(inputStream, ln, pauseForMoreData);
-
+  line = m_lineStreamBuffer->ReadNextLine(inputStream, ln, pauseForMoreData, &rv);
+  if (NS_FAILED(rv))
+    return -1;
+  
   if(pauseForMoreData || !line)
   {
     m_pop3ConData->pause_for_read = PR_TRUE;
@@ -2465,7 +2481,10 @@ nsPop3Protocol::GetXtndXlstMsgid(nsIInputStream* inputStream,
   }
 
   PRBool pauseForMoreData = PR_FALSE;
-  line = m_lineStreamBuffer->ReadNextLine(inputStream, ln, pauseForMoreData);
+  nsresult rv;
+  line = m_lineStreamBuffer->ReadNextLine(inputStream, ln, pauseForMoreData, &rv);
+  if (NS_FAILED(rv))
+    return -1;
 
   if(pauseForMoreData || !line)
   {
@@ -2579,7 +2598,10 @@ PRInt32 nsPop3Protocol::GetUidlList(nsIInputStream* inputStream,
     }
 
     PRBool pauseForMoreData = PR_FALSE;
-    line = m_lineStreamBuffer->ReadNextLine(inputStream, ln, pauseForMoreData);
+    nsresult rv;
+    line = m_lineStreamBuffer->ReadNextLine(inputStream, ln, pauseForMoreData, &rv);
+    if (NS_FAILED(rv))
+      return -1;
 
     if(pauseForMoreData || !line)
     {
@@ -3171,6 +3193,9 @@ nsPop3Protocol::RetrResponse(nsIInputStream* inputStream,
     PRBool pauseForMoreData = PR_FALSE;
     char *line = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData, &rv, PR_TRUE);
     PR_LOG(POP3LOGMODULE, PR_LOG_ALWAYS,("RECV: %s", line));
+    if (NS_FAILED(rv))
+      return -1;
+
     buffer_size = status;
 
     if (status == 0 && !line)  // no bytes read in...
@@ -3199,6 +3224,9 @@ nsPop3Protocol::RetrResponse(nsIInputStream* inputStream,
         PR_Free(line);
         line = m_lineStreamBuffer->ReadNextLine(inputStream, buffer_size,
                                                 pauseForMoreData, &rv, PR_TRUE);
+        if (NS_FAILED(rv))
+          return -1;
+
         PR_LOG(POP3LOGMODULE, PR_LOG_ALWAYS,("RECV: %s", line));
         // buffer_size already includes MSG_LINEBREAK_LEN so
         // subtract and add CRLF
