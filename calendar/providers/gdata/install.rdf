@@ -38,9 +38,9 @@
 <RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
      xmlns:em="http://www.mozilla.org/2004/em-rdf#">
 
-  <description about="urn:mozilla:install-manifest">
+  <Description about="urn:mozilla:install-manifest">
     <em:id>{a62ef8ec-5fdc-40c2-873c-223b8a6925cc}</em:id>
-    <em:version>0.1</em:version>
+    <em:version>0.2</em:version>
     <em:type>2</em:type>
 
     <!-- Target Application this extension can install into,
@@ -49,15 +49,15 @@
       <Description>
         <!-- sunbird -->
         <em:id>{718e30fb-e89b-41dd-9da7-e25a45638b28}</em:id>
-        <em:minVersion>0.5pre</em:minVersion>
-        <em:maxVersion>0.6a*</em:maxVersion>
+        <em:minVersion>0.4a1</em:minVersion>
+        <em:maxVersion>0.6a1</em:maxVersion>
       </Description>
     </em:targetApplication>
     <em:targetApplication>
       <Description>
         <!-- Thunderbird -->
         <em:id>{3550f703-e582-4d05-9a08-453d09bdfdc6}</em:id>
-        <em:minVersion>2.0*</em:minVersion>
+        <em:minVersion>2.0a1</em:minVersion>
         <em:maxVersion>3.0a1</em:maxVersion>
       </Description>
     </em:targetApplication>
@@ -76,5 +76,5 @@
     <em:creator>Philipp Kewisch</em:creator>
     <em:homepageURL>http://mozilla.kewis.ch/</em:homepageURL>
     <em:iconURL>chrome://gdata-provider/content/gcal.png</em:iconURL>
-  </description>
+  </Description>
 </RDF>
