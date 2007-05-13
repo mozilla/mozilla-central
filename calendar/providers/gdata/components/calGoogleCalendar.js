@@ -296,6 +296,9 @@ calGoogleCalendar.prototype = {
                 this.findSession();
             }
 
+            // Add the calendar to the item, for later use.
+            aItem.calendar = this;
+
             this.mSession.addItem(this,
                                   aItem,
                                   this.addItem_response,
