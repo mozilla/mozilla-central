@@ -9,6 +9,13 @@ comm.jar:
 % overlay chrome://help/content/help.xul chrome://communicator/content/helpOverlay.xul
 % overlay chrome://communicator/content/tasksOverlay.xul chrome://communicator/content/emOverlay.xul
 % overlay chrome://communicator/content/pref/preftree.xul chrome://pippki/content/PrefOverlay.xul
+% overlay chrome://editor/content/EdAdvancedEdit.xul chrome://communicator/content/helpEditorOverlay.xul
+% overlay chrome://editor/content/EdImageProps.xul chrome://communicator/content/helpEditorOverlay.xul
+% overlay chrome://editor/content/EditorPublish.xul chrome://communicator/content/helpEditorOverlay.xul
+% overlay chrome://editor/content/EditorPublishProgress.xul chrome://communicator/content/helpEditorOverlay.xul
+% overlay chrome://editor/content/EditorPublishSettings.xul chrome://communicator/content/helpEditorOverlay.xul
+% overlay chrome://editor/content/EdLinkProps.xul chrome://communicator/content/helpEditorOverlay.xul
+% overlay chrome://editor/content/EdTableProps.xul chrome://communicator/content/helpEditorOverlay.xul
 % overlay chrome://pippki/content/certManager.xul chrome://communicator/content/helpSecurityOverlay.xul
 % overlay chrome://pippki/content/certViewer.xul chrome://communicator/content/helpSecurityOverlay.xul
 % overlay chrome://pippki/content/changepassword.xul chrome://communicator/content/helpSecurityOverlay.xul
@@ -62,6 +69,7 @@ comm.jar:
    content/communicator/editorBindings.xul
    content/communicator/emOverlay.xul
    content/communicator/findUtils.js
+   content/communicator/helpEditorOverlay.xul
    content/communicator/helpMessengerOverlay.xul
    content/communicator/helpSecurityOverlay.xul
    content/communicator/helpOverlay.js
