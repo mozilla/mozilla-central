@@ -759,7 +759,7 @@ nsresult
 MIME_detect_charset(const char *aBuf, PRInt32 aLength, const char** aCharset)
 {
   nsresult res = NS_ERROR_UNEXPECTED;
-  nsXPIDLString detector_name;
+  nsString detector_name;
   *aCharset = nsnull;
 
   NS_GetLocalizedUnicharPreferenceWithDefault(nsnull, "intl.charset.detector", EmptyString(), detector_name);

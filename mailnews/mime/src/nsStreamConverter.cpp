@@ -55,7 +55,6 @@
 #include "nsReadableUtils.h"
 #include "nsUnicharUtils.h"
 #include "nsIServiceManager.h"
-#include "nsXPIDLString.h"
 #include "nsMemory.h"
 #include "nsIPipe.h"
 #include "nsMimeStringResources.h"
@@ -174,7 +173,7 @@ bridge_new_new_uri(void *bridgeStream, nsIURI *aURI, PRInt32 aOutputType)
         nsCOMPtr<nsIMsgI18NUrl> i18nUrl (do_QueryInterface(aURI));
         if (i18nUrl)
         {
-          nsXPIDLCString charset;
+          nsCString charset;
 
           // check to see if we have a charset override...and if we do, set that field appropriately too...
           nsresult rv = i18nUrl->GetCharsetOverRide(getter_Copies(charset));
@@ -610,7 +609,7 @@ NS_IMETHODIMP nsStreamConverter::Init(nsIURI *aURI, nsIStreamListener * aOutList
   
   // the following output channel stream is used to fake the content type for people who later
   // call into us..
-  nsXPIDLCString contentTypeToUse;
+  nsCString contentTypeToUse;
   GetContentType(getter_Copies(contentTypeToUse));
   // mscott --> my theory is that we don't need this fake outgoing channel. Let's use the
   // original channel and just set our content type ontop of the original channel...
@@ -640,7 +639,7 @@ NS_IMETHODIMP nsStreamConverter::Init(nsIURI *aURI, nsIStreamListener * aOutList
     nsCOMPtr<nsICategoryManager> catman = do_GetService(NS_CATEGORYMANAGER_CONTRACTID, &rv);
     if (NS_SUCCEEDED(rv))
     {
-      nsXPIDLCString contractID;
+      nsCString contractID;
       catman->GetCategoryEntry("mime-emitter", categoryName.get(), getter_Copies(contractID));
       if (!contractID.IsEmpty())
         categoryName = contractID;
@@ -941,7 +940,7 @@ nsStreamConverter::OnStartRequest(nsIRequest *request, nsISupports *ctxt)
     nsCOMPtr<nsIChannel> channel = do_QueryInterface(request);
     if (channel)
     {
-      nsXPIDLCString contentType;
+      nsCString contentType;
       GetContentType(getter_Copies(contentType));
 
       channel->SetContentType(contentType);

@@ -37,7 +37,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "msgCore.h"    // precompiled header...
-#include "nsXPIDLString.h"
 #include "nsReadableUtils.h"
 #include "nsMsgHeaderParser.h"
 #include "nsISimpleEnumerator.h"   
@@ -120,18 +119,18 @@ nsresult FillResultsArray(const char * aName, const char *aAddress, PRUnichar **
     PR_FREEIF(result);
   }
 
-  nsXPIDLCString fullAddress;
-  nsXPIDLCString unquotedAddress;
+  nsCString fullAddress;
+  nsCString unquotedAddress;
   rv = aParser->MakeFullAddress("UTF-8", aName, aAddress, getter_Copies(fullAddress));
-  if (NS_SUCCEEDED(rv) && (const char*)fullAddress)
+  if (NS_SUCCEEDED(rv) && !fullAddress.IsEmpty())
   {
-    result = MIME_DecodeMimeHeader(fullAddress, nsnull, PR_FALSE, PR_TRUE);
+    result = MIME_DecodeMimeHeader(fullAddress.get(), nsnull, PR_FALSE, PR_TRUE);
     if (result)
       fullAddress.Adopt(result);
-    aParser->UnquotePhraseOrAddr(fullAddress, PR_TRUE, getter_Copies(unquotedAddress));
+    aParser->UnquotePhraseOrAddr(fullAddress.get(), PR_TRUE, getter_Copies(unquotedAddress));
     if (!unquotedAddress.IsEmpty())
       fullAddress = unquotedAddress;
-    *aOutgoingFullName = ToNewUnicode(NS_ConvertUTF8toUTF16(fullAddress.get()));
+    *aOutgoingFullName = ToNewUnicode(NS_ConvertUTF8toUTF16(fullAddress));
   }
   else
     *aOutgoingFullName = nsnull;
@@ -263,7 +262,7 @@ nsresult nsMsgHeaderParser::MakeFullAddress (const char *charset, const char* na
 
 nsresult nsMsgHeaderParser::MakeFullAddressWString (const PRUnichar* name, const PRUnichar* addr, PRUnichar ** fullAddress)
 {
-  nsXPIDLCString utf8Str;
+  nsCString utf8Str;
   nsresult rv = MakeFullAddress(nsnull, NS_ConvertUTF16toUTF8(name).get(), 
                                 NS_ConvertUTF16toUTF8(addr).get(), getter_Copies(utf8Str));
   if (NS_SUCCEEDED(rv))
@@ -284,7 +283,7 @@ nsresult nsMsgHeaderParser::UnquotePhraseOrAddr (const char *line, PRBool preser
 
 nsresult nsMsgHeaderParser::UnquotePhraseOrAddrWString (const PRUnichar *line, PRBool preserveIntegrity, PRUnichar ** result)
 {
-  nsXPIDLCString utf8Str;
+  nsCString utf8Str;
   nsresult rv = msg_unquote_phrase_or_addr(NS_ConvertUTF16toUTF8(line).get(), preserveIntegrity, getter_Copies(utf8Str));
   if (NS_SUCCEEDED(rv))
   {

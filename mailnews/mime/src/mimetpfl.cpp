@@ -362,7 +362,7 @@ MimeInlineTextPlainFlowed_parse_line (const char *aLine, PRInt32 length, MimeObj
                           (obj->options && obj->options->force_user_charset);
 
   nsAutoString lineSource;
-  nsXPIDLString lineResult;
+  nsString lineResult;
     
   char *mailCharset = NULL;
   nsresult rv;

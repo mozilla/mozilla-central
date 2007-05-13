@@ -126,7 +126,7 @@ MimeExternalObject_parse_begin (MimeObject *obj)
     char *id = 0;
     char *id_url = 0;
     char *id_name = 0;
-    nsXPIDLCString id_imap;
+    nsCString id_imap;
     PRBool all_headers_p = obj->options->headers == MimeHeadersAll;
     
     id = mime_part_address (obj);
@@ -137,7 +137,7 @@ MimeExternalObject_parse_begin (MimeObject *obj)
     if (obj->options && obj->options->url)
     {
       const char *url = obj->options->url;
-      if (id_imap && id)
+      if (!id_imap.IsEmpty() && id)
       {
         // if this is an IMAP part. 
         id_url = mime_set_url_imap_part(url, id_imap.get(), id);

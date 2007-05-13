@@ -167,7 +167,7 @@ PRBool MimeEncryptedCMS_encrypted_p (MimeObject *obj)
 
 // extern MimeMessageClass mimeMessageClass;      /* gag */
 
-static void ParseRFC822Addresses (const char *line, nsXPIDLCString &names, nsXPIDLCString &addresses)
+static void ParseRFC822Addresses (const char *line, nsCString &names, nsCString &addresses)
 {
   PRUint32 numAddresses;
   nsresult res;
@@ -187,7 +187,7 @@ PRBool MimeCMSHeadersAndCertsMatch(nsICMSMessage *content_info,
                                    const char *sender_name,
                                    PRBool *signing_cert_without_email_address)
 {
-  nsXPIDLCString cert_addr;
+  nsCString cert_addr;
   PRBool match = PR_TRUE;
   PRBool foundFrom = PR_FALSE;
   PRBool foundSender = PR_FALSE;
@@ -202,9 +202,7 @@ PRBool MimeCMSHeadersAndCertsMatch(nsICMSMessage *content_info,
   }
 
   if (signing_cert_without_email_address)
-  {
-    *signing_cert_without_email_address = (!cert_addr);
-  }
+    *signing_cert_without_email_address = cert_addr.IsEmpty();
 
   /* Now compare them --
    consider it a match if the address in the cert matches either the
@@ -212,7 +210,7 @@ PRBool MimeCMSHeadersAndCertsMatch(nsICMSMessage *content_info,
    */
 
   /* If there is no addr in the cert at all, it can not match and we fail. */
-  if (!cert_addr)
+  if (cert_addr.IsEmpty())
   {
     match = PR_FALSE;
   }
@@ -264,10 +262,10 @@ protected:
   nsCOMPtr<nsIMsgSMIMEHeaderSink> mHeaderSink;
   PRInt32 mMimeNestingLevel;
 
-  nsXPIDLCString mFromAddr;
-  nsXPIDLCString mFromName;
-  nsXPIDLCString mSenderAddr;
-  nsXPIDLCString mSenderName;
+  nsCString mFromAddr;
+  nsCString mFromName;
+  nsCString mSenderAddr;
+  nsCString mSenderName;
 };
 
 NS_IMPL_ISUPPORTS1(nsSMimeVerificationListener, nsISMimeVerificationListener)
@@ -514,10 +512,10 @@ MimeCMS_write (const char *buf, PRInt32 buf_size, void *closure)
 }
 
 void MimeCMSGetFromSender(MimeObject *obj,
-                          nsXPIDLCString &from_addr,
-                          nsXPIDLCString &from_name,
-                          nsXPIDLCString &sender_addr,
-                          nsXPIDLCString &sender_name)
+                          nsCString &from_addr,
+                          nsCString &from_name,
+                          nsCString &sender_addr,
+                          nsCString &sender_name)
 {
   MimeHeaders *msg_headers = 0;
 
@@ -654,18 +652,18 @@ MimeCMS_eof (void *crypto_closure, PRBool abort_p)
         return 0;
       }
 
-      nsXPIDLCString from_addr;
-      nsXPIDLCString from_name;
-      nsXPIDLCString sender_addr;
-      nsXPIDLCString sender_name;
+      nsCString from_addr;
+      nsCString from_name;
+      nsCString sender_addr;
+      nsCString sender_name;
 
       MimeCMSGetFromSender(data->self, 
                            from_addr, from_name,
                            sender_addr, sender_name);
 
       MimeCMSRequestAsyncSignatureVerification(data->content_info, 
-                                               from_addr, from_name,
-                                               sender_addr, sender_name,
+                                               from_addr.get(), from_name.get(),
+                                               sender_addr.get(), sender_name.get(),
                                                data->smimeHeaderSink, aRelativeNestLevel, 
                                                nsnull, 0);
     }

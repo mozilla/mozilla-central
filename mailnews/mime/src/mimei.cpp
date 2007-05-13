@@ -239,10 +239,10 @@ mime_locate_external_content_handler(const char *content_type,
     if (NS_FAILED(rv))
       return nsnull;
 
-    nsXPIDLCString value;
+    nsCString value;
     rv = catman->GetCategoryEntry(NS_SIMPLEMIMECONVERTERS_CATEGORY,
                                   content_type, getter_Copies(value));
-    if (NS_FAILED(rv) || !value)
+    if (NS_FAILED(rv) || value.IsEmpty())
       return nsnull;
     rv = MIME_NewSimpleMimeConverterStub(content_type,
                                          getter_AddRefs(ctHandler));
@@ -427,12 +427,12 @@ void getMsgHdrForCurrentURL(MimeDisplayOptions *opts, nsIMsgDBHdr ** aMsgHdr)
         msgURI->GetMessageHeader(aMsgHdr);
         if (*aMsgHdr)
           return;
-        nsXPIDLCString rdfURI;
+        nsCString rdfURI;
         msgURI->GetUri(getter_Copies(rdfURI));
-        if (rdfURI.get())
+        if (!rdfURI.IsEmpty())
         {
           nsCOMPtr<nsIMsgDBHdr> msgHdr;
-          GetMsgDBHdrFromURI(rdfURI, getter_AddRefs(msgHdr));
+          GetMsgDBHdrFromURI(rdfURI.get(), getter_AddRefs(msgHdr));
           NS_IF_ADDREF(*aMsgHdr = msgHdr);
         }
       }
@@ -497,7 +497,7 @@ mime_find_class (const char *content_type, MimeHeaders *hdrs,
     getMsgHdrForCurrentURL(opts, getter_AddRefs(msgHdr));
     if (msgHdr)
     {
-      nsXPIDLCString junkScoreStr;
+      nsCString junkScoreStr;
       (void) msgHdr->GetStringProperty("junkscore", getter_Copies(junkScoreStr));
       if (html_as == 0 && junkScoreStr.get() && atoi(junkScoreStr.get()) > 50)
         html_as = 3; // 3 == Simple HTML

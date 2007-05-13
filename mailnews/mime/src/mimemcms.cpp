@@ -145,10 +145,10 @@ typedef struct MimeMultCMSdata
         incestuous, dysfunctional relationship. */
 extern PRBool MimeEncryptedCMS_encrypted_p (MimeObject *obj);
 extern void MimeCMSGetFromSender(MimeObject *obj,
-                                 nsXPIDLCString &from_addr,
-                                 nsXPIDLCString &from_name,
-                                 nsXPIDLCString &sender_addr,
-                                 nsXPIDLCString &sender_name);
+                                 nsCString &from_addr,
+                                 nsCString &from_name,
+                                 nsCString &sender_addr,
+                                 nsCString &sender_name);
 extern PRBool MimeCMSHeadersAndCertsMatch(MimeObject *obj,
                                           nsICMSMessage *,
                                           PRBool *signing_cert_without_email_address);
@@ -454,18 +454,18 @@ MimeMultCMS_generate (void *crypto_closure)
      return nsnull;
   }
   
-  nsXPIDLCString from_addr;
-  nsXPIDLCString from_name;
-  nsXPIDLCString sender_addr;
-  nsXPIDLCString sender_name;
+  nsCString from_addr;
+  nsCString from_name;
+  nsCString sender_addr;
+  nsCString sender_name;
   
   MimeCMSGetFromSender(data->self, 
                        from_addr, from_name,
                        sender_addr, sender_name);
 
   MimeCMSRequestAsyncSignatureVerification(data->content_info, 
-                                           from_addr, from_name,
-                                           sender_addr, sender_name,
+                                           from_addr.get(), from_name.get(),
+                                           sender_addr.get(), sender_name.get(),
                                            data->smimeHeaderSink, aRelativeNestLevel, 
                                            data->item_data, data->item_len);
 

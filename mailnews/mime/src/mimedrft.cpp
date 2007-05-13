@@ -74,7 +74,6 @@
 #include "nsDirectoryServiceDefs.h"
 #include "nsIMsgMessageService.h"
 #include "nsMsgUtils.h"
-#include "nsXPIDLString.h"
 #include "nsReadableUtils.h"
 #include "nsCExternalHandlerService.h"
 #include "nsIMIMEService.h"

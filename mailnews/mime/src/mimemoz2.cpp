@@ -294,8 +294,8 @@ nsresult
 GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayOptions *options,
                        PRBool isAnAppleDoublePart, nsMsgAttachmentData *aAttachData)
 {
-  nsXPIDLCString imappart;
-  nsXPIDLCString part;
+  nsCString imappart;
+  nsCString part;
   PRBool isIMAPPart;
   PRBool isExternalAttachment = PR_FALSE;
 
@@ -2029,7 +2029,7 @@ MimeGetStringByID(PRInt32 stringID)
 
   if (stringBundle)
   {
-    nsXPIDLString v;
+    nsString v;
     res = stringBundle->GetStringFromID(stringID, getter_Copies(v));
 
     if (NS_SUCCEEDED(res)) 
@@ -2037,7 +2037,7 @@ MimeGetStringByID(PRInt32 stringID)
   }
 
   if (!tempString)
-    tempString = nsCRT::strdup(resultString);
+    tempString = strdup(resultString);
 
   return tempString;
 }

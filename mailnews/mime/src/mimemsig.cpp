@@ -386,7 +386,7 @@ MimeMultipartSigned_parse_line (const char *line, PRInt32 length, MimeObject *ob
 	   */
 	  {
 		MimeDecoderData *(*fn) (nsresult (*) (const char*, PRInt32,void*), void*) = 0;
-    nsXPIDLCString encoding;
+    nsCString encoding;
     encoding.Adopt(MimeHeaders_get (sig->sig_hdrs,
                    HEADER_CONTENT_TRANSFER_ENCODING,
                    PR_TRUE, PR_FALSE));

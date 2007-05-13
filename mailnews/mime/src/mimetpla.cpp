@@ -44,7 +44,6 @@
 #include "nsCOMPtr.h"
 #include "nsIComponentManager.h"
 #include "nsString.h"
-#include "nsXPIDLString.h"
 #include "nsReadableUtils.h"
 #include "nsMimeStringResources.h"
 #include "mimemoz2.h"
@@ -253,7 +252,7 @@ MimeInlineTextPlain_parse_eof (MimeObject *obj, PRBool abort_p)
   // In that case return.
   if (obj->closed_p) return 0;
 
-  nsXPIDLCString citationColor;
+  nsCString citationColor;
   MimeInlineTextPlain *text = (MimeInlineTextPlain *) obj;
   if (text && text->mCitationColor)
     citationColor.Adopt(text->mCitationColor);
@@ -435,7 +434,7 @@ MimeInlineTextPlain_parse_line (const char *line, PRInt32 length, MimeObject *ob
       lineSourceStr.Mid(citeTagsSource, 0, logicalLineStart);
 
       // Convert to HTML
-      nsXPIDLString citeTagsResultUnichar;
+      nsString citeTagsResultUnichar;
       rv = conv->ScanTXT(citeTagsSource.get(), 0 /* no recognition */,
                          getter_Copies(citeTagsResultUnichar));
       if (NS_FAILED(rv)) return -1;
@@ -460,7 +459,7 @@ MimeInlineTextPlain_parse_line (const char *line, PRInt32 length, MimeObject *ob
 
     /* This is the main TXT to HTML conversion:
        escaping (very important), eventually recognizing etc. */
-    nsXPIDLString lineResultUnichar;
+    nsString lineResultUnichar;
 
     rv = conv->ScanTXT(lineSourceStr.get() + logicalLineStart,
                        whattodo, getter_Copies(lineResultUnichar));

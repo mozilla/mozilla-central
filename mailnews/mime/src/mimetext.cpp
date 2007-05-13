@@ -160,7 +160,7 @@ static int MimeInlineText_initializeCharset(MimeObject *obj)
         {
           if (NS_SUCCEEDED(res))
           {
-            nsXPIDLString value;
+            nsString value;
             NS_GetLocalizedUnicharPreferenceWithDefault(prefBranch, "mailnews.view_default_charset", EmptyString(), value);
             text->charset = ToNewUTF8String(value);
           }
