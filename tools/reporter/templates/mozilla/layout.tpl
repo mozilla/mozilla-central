@@ -74,10 +74,10 @@
 </div>
 <div id="footer">
 <ul>
-<li><a href="../sitemap.html">Site Map</a></li>
-<li><a href="../security/">Security Updates</a></li>
-<li><a href="../contact/">Contact Us</a></li>
-<li><a href="../foundation/donate.html">Donate</a></li>
+<li><a href="http://www.mozilla.org/sitemap.html">Site Map</a></li>
+<li><a href="http://www.mozilla.org/security/">Security Updates</a></li>
+<li><a href="http://www.mozilla.org/contact/">Contact Us</a></li>
+<li><a href="http://www.mozilla.org/foundation/donate.html">Donate</a></li>
 </ul>
 
 <p class="copyright">
