@@ -10,7 +10,7 @@ RewriteRule ^app/report(/)?(.*)$ report.php$2 [QSA,L]
 RewriteRule ^app/stats(/)?(.*)$ stats.php$2 [QSA,L]
 RewriteRule ^app/login(/)?(.*)$ login.php$2 [QSA,L]
 RewriteRule ^app/logout(/)?(.*)$ logout.php$2 [QSA,L]
-RewriteRule ^app/privacy(/)? privacy.php$1 [QSA,L]
+RewriteRule ^privacy(/)? privacy.php$1 [QSA,L]
 RewriteRule ^app index.php [QSA,L]
 
 #Static Content
