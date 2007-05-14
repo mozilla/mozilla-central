@@ -59,8 +59,9 @@ void _PR_CleanupDtoa(void)
     /* FIXME: deal with freelist and p5s. */
 }
 
-#if defined(__arm) || defined(__arm__) || defined(__arm26__) \
-    || defined(__arm32__)
+#if !defined(__ARM_EABI__) \
+    && (defined(__arm) || defined(__arm__) || defined(__arm26__) \
+    || defined(__arm32__))
 #define IEEE_ARM
 #elif defined(IS_LITTLE_ENDIAN)
 #define IEEE_8087
