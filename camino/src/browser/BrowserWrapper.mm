@@ -77,6 +77,7 @@
 #include "nsIDOMHTMLDocument.h"
 #include "nsPIDOMEventTarget.h"
 #include "nsPIDOMWindow.h"
+#include "nsIDOMEventTarget.h"
 #include "nsIWebProgressListener.h"
 #include "nsIBrowserDOMWindow.h"
 #include "nsIPermissionManager.h"

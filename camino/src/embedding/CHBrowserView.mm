@@ -56,6 +56,7 @@
 #include "nsIDOMWindow.h"
 #include "nsPIDOMWindow.h"
 #include "nsPIDOMEventTarget.h"
+#include "nsIDOMEventTarget.h"
 #include "nsIWidget.h"
 #include "nsIPrefBranch.h"
 
