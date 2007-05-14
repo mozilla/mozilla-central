@@ -7309,9 +7309,9 @@ void nsImapProtocol::ProcessAfterAuthenticated()
       XServerInfo();
       if (GetServerStateParser().LastCommandSuccessful() && m_imapServerSink)
       {
-        m_imapServerSink->SetMailServerUrls(nsDependentCString(GetServerStateParser().GetMailAccountUrl()),
-          nsDependentCString(GetServerStateParser().GetManageListsUrl()),
-          nsDependentCString(GetServerStateParser().GetManageFiltersUrl()));
+        m_imapServerSink->SetMailServerUrls(GetServerStateParser().GetMailAccountUrl(),
+          GetServerStateParser().GetManageListsUrl(),
+          GetServerStateParser().GetManageFiltersUrl());
         // we've tried to ask for it, so don't try again this session.
         m_hostSessionList->SetHostHasAdminURL(GetImapServerKey(), PR_TRUE);
       }

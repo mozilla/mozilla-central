@@ -79,9 +79,6 @@ nsImapServerResponseParser::nsImapServerResponseParser(nsImapProtocol &imapProto
     fHostSessionList(nsnull)
 {
   fSearchResults = nsImapSearchResultSequence::CreateSearchResultSequence();
-  fMailAccountUrl = nsnull;
-  fManageFiltersUrl = nsnull;
-  fManageListsUrl = nsnull;
   fFolderAdminUrl = nsnull;
   fNetscapeServerVersionString = nsnull;
   fXSenderInfo = nsnull;
@@ -104,13 +101,10 @@ nsImapServerResponseParser::~nsImapServerResponseParser()
 {
   PR_Free( fCurrentCommandTag );
   delete fSearchResults; 
-  PR_Free( fMailAccountUrl );
   PR_Free( fFolderAdminUrl );
   PR_Free( fNetscapeServerVersionString );
   PR_Free( fXSenderInfo );
   PR_Free( fLastAlert );
-  PR_Free( fManageListsUrl );
-  PR_Free( fManageFiltersUrl );
   PR_Free( fSelectedMailboxName );
   PR_Free(fAuthChallenge);
 
@@ -700,13 +694,13 @@ void nsImapServerResponseParser::response_data()
       }
       else if (!PL_strcasecmp(fNextToken, "ACCOUNT-URL"))
       {
-        PR_FREEIF(fMailAccountUrl);
+        fMailAccountUrl.Truncate();
         AdvanceToNextToken();
         if (! fNextToken) 
           SetSyntaxError(PR_TRUE);
         else
         {
-          fMailAccountUrl = CreateAstring();
+          fMailAccountUrl.Adopt(CreateAstring());
           AdvanceToNextToken();
         }
       } 
@@ -2236,17 +2230,17 @@ void nsImapServerResponseParser::xserverinfo_data()
     if (!PL_strcmp("MANAGEACCOUNTURL", fNextToken))
     {
       AdvanceToNextToken();
-      fMailAccountUrl = CreateNilString();
+      fMailAccountUrl.Adopt(CreateNilString());
     }
     else if (!PL_strcmp("MANAGELISTSURL", fNextToken))
     {
       AdvanceToNextToken();
-      fManageListsUrl = CreateNilString();
+      fManageListsUrl.Adopt(CreateNilString());
     }
     else if (!PL_strcmp("MANAGEFILTERSURL", fNextToken))
     {
       AdvanceToNextToken();
-      fManageFiltersUrl = CreateNilString();
+      fManageFiltersUrl.Adopt(CreateNilString());
     }
   } while (fNextToken && !fAtEndOfLine && ContinueParse());
 }

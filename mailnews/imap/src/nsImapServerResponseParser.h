@@ -55,23 +55,23 @@ class nsCString;
 
 #include "nsIMAPGenericParser.h"
 
-class nsImapServerResponseParser : public nsIMAPGenericParser 
+class nsImapServerResponseParser : public nsIMAPGenericParser
 {
 public:
-    nsImapServerResponseParser(nsImapProtocol &imapConnection);
-    virtual ~nsImapServerResponseParser();
+  nsImapServerResponseParser(nsImapProtocol &imapConnection);
+  virtual ~nsImapServerResponseParser();
 
   // Overridden from the base parser class
   virtual PRBool     LastCommandSuccessful();
-  virtual void		HandleMemoryFailure();
+  virtual void HandleMemoryFailure();
 
   // aignoreBadAndNOResponses --> don't throw a error dialog if this command results in a NO or Bad response
   // from the server..in other words the command is "exploratory" and we don't really care if it succeeds or fails.
-  // This value is typically FALSE for almost all cases. 
-  virtual void		ParseIMAPServerResponse(const char *currentCommand, PRBool aIgnoreBadAndNOResponses);
-  virtual void		InitializeState();
-  PRBool		CommandFailed();
-    
+  // This value is typically FALSE for almost all cases.
+  virtual void ParseIMAPServerResponse(const char *currentCommand, PRBool aIgnoreBadAndNOResponses);
+  virtual void InitializeState();
+  PRBool  CommandFailed();
+
     enum eIMAPstate {
         kNonAuthenticated,
         kAuthenticated,
@@ -80,12 +80,11 @@ public:
 
   virtual eIMAPstate GetIMAPstate();
   virtual PRBool WaitingForMoreClientInput() { return fWaitingForMoreClientInput; };
-    
   const char *GetSelectedMailboxName();   // can be NULL
 
   // if we get a PREAUTH greeting from the server, initialize the parser to begin in
   // the kAuthenticated state
-  void		PreauthSetAuthenticatedState();
+  void PreauthSetAuthenticatedState();
 
   // these functions represent the state of the currently selected
   // folder
@@ -101,19 +100,19 @@ public:
   PRInt32    SizeOfMostRecentMessage();
   void       SetTotalDownloadSize(PRInt32 newSize) { fTotalDownloadSize = newSize; }
   void       SetFetchingEverythingRFC822(PRBool fetchingEverythingRFC822) { fFetchEverythingRFC822 = fetchingEverythingRFC822;}
-  
+
   nsImapSearchResultIterator *CreateSearchResultIterator();
   void ResetSearchResultSequence() {fSearchResults->ResetSequence();}
-  
+
   // create a struct mailbox_spec from our info, used in
   // libmsg c interface
   nsImapMailboxSpec *CreateCurrentMailboxSpec(const char *mailboxName = nsnull);
-  
+
   // zero stops a list recording of flags and causes the flags for
-  // each individual message to be sent back to libmsg 
+  // each individual message to be sent back to libmsg
   void ResetFlagInfo(int numberOfInterestingMessages);
-  
-  // set this to false if you don't want to alert the user to server 
+
+  // set this to false if you don't want to alert the user to server
   // error messages
   void SetReportingErrors(PRBool reportThem) { fReportingErrors=reportThem;}
   PRBool GetReportingErrors() { return fReportingErrors; }
@@ -129,26 +128,26 @@ public:
   void SetFetchingFlags(PRBool aFetchFlags) { fFetchingAllFlags = aFetchFlags;}
   void ResetCapabilityFlag() ;
 
-  const char *GetMailAccountUrl() { return fMailAccountUrl; }
+  nsCString& GetMailAccountUrl() { return fMailAccountUrl; }
   const char *GetXSenderInfo() { return fXSenderInfo; }
   void FreeXSenderInfo() { PR_FREEIF(fXSenderInfo); }
-  const char *GetManageListsUrl() { return fManageListsUrl; }
-  const char *GetManageFiltersUrl() {return fManageFiltersUrl;}
+  nsCString& GetManageListsUrl() { return fManageListsUrl; }
+  nsCString& GetManageFiltersUrl() {return fManageFiltersUrl;}
   const char *GetManageFolderUrl() {return fFolderAdminUrl;}
 
 
   // Call this when adding a pipelined command to the session
   void IncrementNumberOfTaggedResponsesExpected(const char *newExpectedTag);
-    
+
   // Interrupt a Fetch, without really Interrupting (through netlib)
-  PRBool GetLastFetchChunkReceived(); 
-  void ClearLastFetchChunkReceived(); 
+  PRBool GetLastFetchChunkReceived();
+  void ClearLastFetchChunkReceived();
   virtual PRUint16	SupportsUserFlags() { return fSupportsUserDefinedFlags; };
   virtual PRUint16  SettablePermanentFlags() { return fSettablePermanentFlags;};
   void SetFlagState(nsIImapFlagAndUidState *state);
   PRBool GetDownloadingHeaders();
   PRBool GetFillingInShell();
-  void	UseCachedShell(nsIMAPBodyShell *cachedShell);
+  void UseCachedShell(nsIMAPBodyShell *cachedShell);
   void SetHostSessionList(nsIImapHostSessionList *aHostSession);
   nsIImapHostSessionList *GetHostSessionList();
   char  *fAuthChallenge;    // the challenge returned by the server in
@@ -156,10 +155,10 @@ public:
 
 protected:
   virtual void    flags();
-  virtual void	  envelope_data();
-  virtual void	  xaolenvelope_data();
-  virtual void	  parse_address(nsCAutoString &addressLine);
-  virtual void	  internal_date();
+  virtual void    envelope_data();
+  virtual void    xaolenvelope_data();
+  virtual void    parse_address(nsCAutoString &addressLine);
+  virtual void    internal_date();
   virtual nsresult BeginMessageDownload(const char *content_type);
 
   virtual void    response_data();
@@ -178,28 +177,28 @@ protected:
   virtual void    mailbox_data();
   virtual void    numeric_mailbox_data();
   virtual void    capability_data();
-  virtual void	  xserverinfo_data();
-  virtual void	  xmailboxinfo_data();
-  virtual void	  namespace_data();
-  virtual void	  myrights_data();
-  virtual void	  acl_data();
-  virtual void	  bodystructure_data();
+  virtual void    xserverinfo_data();
+  virtual void    xmailboxinfo_data();
+  virtual void    namespace_data();
+  virtual void    myrights_data();
+  virtual void    acl_data();
+  virtual void    bodystructure_data();
   nsIMAPBodypart  *bodystructure_part(char *partNum, nsIMAPBodypart *parentPart);
   nsIMAPBodypart  *bodystructure_leaf(char *partNum, nsIMAPBodypart *parentPart);
   nsIMAPBodypart  *bodystructure_multipart(char *partNum, nsIMAPBodypart *parentPart);
-  virtual void	  mime_data();
-  virtual void	  mime_part_data();
-  virtual void	  mime_header_data();
+  virtual void    mime_data();
+  virtual void    mime_part_data();
+  virtual void    mime_header_data();
   virtual void    quota_data();
   virtual void    msg_fetch();
   virtual void    msg_obsolete();
-  virtual void	  msg_fetch_headers(const char *partNum);
+  virtual void    msg_fetch_headers(const char *partNum);
   virtual void    msg_fetch_content(PRBool chunk, PRInt32 origin, const char *content_type);
   virtual PRBool  msg_fetch_quoted(PRBool chunk, PRInt32 origin);
   virtual PRBool  msg_fetch_literal(PRBool chunk, PRInt32 origin);
   virtual void    mailbox_list(PRBool discoveredFromLsub);
   virtual void    mailbox(nsImapMailboxSpec *boxSpec);
-  
+
   virtual void    ProcessOkCommand(const char *commandToken);
   virtual void    ProcessBadCommand(const char *commandToken);
   virtual void    PreProcessCommandToken(const char *commandToken,
@@ -216,8 +215,8 @@ private:
   PRPackedBool    fProcessingTaggedResponse;
   PRPackedBool    fCurrentCommandFailed;
   PRPackedBool    fReportingErrors;
-  
-  
+
+
   PRPackedBool    fCurrentFolderReadOnly;
   PRPackedBool    fCurrentLineContainedFlagInfo;
   PRPackedBool    fFetchingAllFlags;
@@ -225,11 +224,11 @@ private:
   // when issuing a fetch command, are we fetching everything or just a part?
   PRPackedBool    fFetchEverythingRFC822;
   // Is the server a Netscape 3.x Messaging Server?
-  PRPackedBool	  fServerIsNetscape3xServer;
+  PRPackedBool    fServerIsNetscape3xServer;
   PRPackedBool    fDownloadingHeaders;
   PRPackedBool    fCurrentCommandIsSingleMessageFetch;
   PRPackedBool    fGotPermanentFlags;
-  imapMessageFlagsType	  fSavedFlagInfo;
+  imapMessageFlagsType   fSavedFlagInfo;
   nsCStringArray  fCustomFlags;
 
   PRUint16  fSupportsUserDefinedFlags;
@@ -245,7 +244,7 @@ private:
   PRUint32          fReceivedHeaderOrSizeForUID;
   PRInt32           fSizeOfMostRecentMessage;
   PRInt32           fTotalDownloadSize;
-  
+
   PRInt32           fStatusUnseenMessages;
   PRInt32           fStatusRecentMessages;
   PRUint32          fStatusNextUID;
@@ -265,17 +264,17 @@ private:
 
   eIMAPstate               fIMAPstate;
 
-  PRUint32      fCapabilityFlag; 
-  char          *fMailAccountUrl;
+  PRUint32      fCapabilityFlag;
+  nsCString     fMailAccountUrl;
   char          *fNetscapeServerVersionString;
   char          *fXSenderInfo; /* changed per message download */
-  char          *fLastAlert;	/* used to avoid displaying the same alert over and over */
-  char          *fManageListsUrl;
-  char          *fManageFiltersUrl;
+  char          *fLastAlert; /* used to avoid displaying the same alert over and over */
+  nsCString     fManageListsUrl;
+  nsCString    fManageFiltersUrl;
   char          *fFolderAdminUrl;
-  
-  PRInt32	fUidOfSingleMessageFetch;
-  PRInt32	fFetchResponseIndex;
+
+  PRInt32 fUidOfSingleMessageFetch;
+  PRInt32 fFetchResponseIndex;
 
   // used for aborting a fetch stream when we're pseudo-Interrupted
   PRInt32 numberOfCharsInThisChunk;
