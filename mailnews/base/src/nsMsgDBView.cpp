@@ -3638,7 +3638,7 @@ NS_IMETHODIMP nsMsgDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgViewSortOr
 {
   nsresult rv;
   
-  if (m_sortType == sortType && m_sortValid) 
+  if (m_sortType == sortType && m_sortValid && sortType != nsMsgViewSortType::byCustom) 
   {
     if (m_sortOrder == sortOrder) 
     {
