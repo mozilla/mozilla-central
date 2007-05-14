@@ -433,13 +433,13 @@ static const float kScrollButtonInterval = 0.15;  // time (in seconds) between f
 
 - (void)handleWindowResignKey:(NSWindow *)inWindow
 {
-   // the mouse isn't tracked when the window isn't key, so update the tab hover
-   // state manually if the mouse is in a tab
-   BrowserTabViewItem *tab = [self tabViewItemUnderMouse];
-   if (tab) {
-     [mTabView refreshTab:tab];
-     [[tab tabButtonCell] updateHoverState:NO];
-   }
+  // the mouse isn't tracked when the window isn't key, so update the tab hover
+  // state manually if the mouse is in a tab
+  BrowserTabViewItem *tab = [self tabViewItemUnderMouse];
+  if (tab) {
+    [mTabView refreshTab:tab];
+    [[tab tabButtonCell] updateHoverState:NO];
+  }
 }
   
 // returns the height the tab bar should be if drawn
