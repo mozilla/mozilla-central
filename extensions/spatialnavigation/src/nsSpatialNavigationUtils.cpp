@@ -252,14 +252,13 @@ nsresult getEventTargetFromWindow(nsIDOMWindow* aWindow, nsIDOM3EventTarget** aE
     return NS_ERROR_UNEXPECTED; // assert
   
   nsPIDOMEventTarget *chromeEventHandler = privateWindow->GetChromeEventHandler();
-  
-  nsCOMPtr<nsIDOMEventReceiver> receiver(do_QueryInterface(chromeEventHandler));
-  if (!receiver)
+
+  if (!chromeEventHandler)
     return NS_ERROR_UNEXPECTED; // assert
   
   nsCOMPtr<nsIDOMEventGroup> systemGroup;
-  receiver->GetSystemEventGroup(getter_AddRefs(systemGroup));
-  nsCOMPtr<nsIDOM3EventTarget> target(do_QueryInterface(receiver));
+  chromeEventHandler->GetSystemEventGroup(getter_AddRefs(systemGroup));
+  nsCOMPtr<nsIDOM3EventTarget> target(do_QueryInterface(chromeEventHandler));
   
   if (!target || !systemGroup)
     return NS_ERROR_FAILURE;

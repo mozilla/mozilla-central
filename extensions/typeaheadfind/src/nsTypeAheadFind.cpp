@@ -97,7 +97,8 @@
 #include "nsIPrivateTextEvent.h"
 #include "nsIPrivateCompositionEvent.h"
 #include "nsGUIEvent.h"
-#include "nsIDOMEventReceiver.h"
+#include "nsPIDOMEventTarget.h"
+#include "nsIDOMEventTarget.h"
 #include "nsIDOM3EventTarget.h"
 #include "nsIDOMEventGroup.h"
 
@@ -2271,10 +2272,10 @@ nsTypeAheadFind::RemoveWindowListeners(nsIDOMWindow *aDOMWin)
   }
 
   // Use capturing, otherwise the normal find next will get activated when ours should
-  nsCOMPtr<nsIDOMEventReceiver> receiver(do_QueryInterface(chromeEventHandler));
+  nsCOMPtr<nsPIDOMEventTarget> piTarget(do_QueryInterface(chromeEventHandler));
   nsCOMPtr<nsIDOMEventGroup> systemGroup;
-  receiver->GetSystemEventGroup(getter_AddRefs(systemGroup));
-  nsCOMPtr<nsIDOM3EventTarget> target(do_QueryInterface(receiver));
+  piTarget->GetSystemEventGroup(getter_AddRefs(systemGroup));
+  nsCOMPtr<nsIDOM3EventTarget> target(do_QueryInterface(piTarget));
 
   target->RemoveGroupedEventListener(NS_LITERAL_STRING("keypress"),
                                      NS_STATIC_CAST(nsIDOMKeyListener*, this),
@@ -2309,11 +2310,9 @@ nsTypeAheadFind::RemoveWindowListeners(nsIDOMWindow *aDOMWin)
                                           PR_TRUE);
 
   // Remove DOM Text listener for IME text events
-  nsCOMPtr<nsIDOMEventReceiver> chromeEventReceiver = 
-    do_QueryInterface(chromeEventHandler);
-  chromeEventReceiver->RemoveEventListenerByIID(NS_STATIC_CAST(nsIDOMTextListener*, this), 
+  piTarget->RemoveEventListenerByIID(NS_STATIC_CAST(nsIDOMTextListener*, this), 
     NS_GET_IID(nsIDOMTextListener));
-  chromeEventReceiver->RemoveEventListenerByIID(NS_STATIC_CAST(nsIDOMCompositionListener*, this), 
+  piTarget->RemoveEventListenerByIID(NS_STATIC_CAST(nsIDOMCompositionListener*, this), 
     NS_GET_IID(nsIDOMCompositionListener));
 }
 
@@ -2328,10 +2327,10 @@ nsTypeAheadFind::AttachWindowListeners(nsIDOMWindow *aDOMWin)
   }
 
   // Use capturing, otherwise the normal find next will get activated when ours should
-  nsCOMPtr<nsIDOMEventReceiver> receiver(do_QueryInterface(chromeEventHandler));
+  nsCOMPtr<nsPIDOMEventTarget> piTarget(do_QueryInterface(chromeEventHandler));
   nsCOMPtr<nsIDOMEventGroup> systemGroup;
-  receiver->GetSystemEventGroup(getter_AddRefs(systemGroup));
-  nsCOMPtr<nsIDOM3EventTarget> target(do_QueryInterface(receiver));
+  piTarget->GetSystemEventGroup(getter_AddRefs(systemGroup));
+  nsCOMPtr<nsIDOM3EventTarget> target(do_QueryInterface(piTarget));
 
   target->AddGroupedEventListener(NS_LITERAL_STRING("keypress"),
                                   NS_STATIC_CAST(nsIDOMKeyListener*, this),
@@ -2362,11 +2361,9 @@ nsTypeAheadFind::AttachWindowListeners(nsIDOMWindow *aDOMWin)
                                        PR_TRUE);
 
   // Add DOM Text listener for IME text events
-  nsCOMPtr<nsIDOMEventReceiver> chromeEventReceiver =
-    do_QueryInterface(chromeEventHandler);
-  chromeEventReceiver->AddEventListenerByIID(NS_STATIC_CAST(nsIDOMTextListener*, this), 
+  piTarget->AddEventListenerByIID(NS_STATIC_CAST(nsIDOMTextListener*, this),
     NS_GET_IID(nsIDOMTextListener));
-  chromeEventReceiver->AddEventListenerByIID(NS_STATIC_CAST(nsIDOMCompositionListener*, this), 
+  piTarget->AddEventListenerByIID(NS_STATIC_CAST(nsIDOMCompositionListener*, this),
     NS_GET_IID(nsIDOMCompositionListener));
 }
 

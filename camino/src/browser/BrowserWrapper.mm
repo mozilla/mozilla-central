@@ -77,7 +77,6 @@
 #include "nsIDOMHTMLDocument.h"
 #include "nsPIDOMEventTarget.h"
 #include "nsPIDOMWindow.h"
-#include "nsIDOMEventReceiver.h"
 #include "nsIWebProgressListener.h"
 #include "nsIBrowserDOMWindow.h"
 #include "nsIPermissionManager.h"
@@ -423,9 +422,8 @@ enum StatusPriority {
     nsCOMPtr<nsIDOMWindow> contentWindow = [[self getBrowserView] getContentWindow];
     nsCOMPtr<nsPIDOMWindow> piWindow(do_QueryInterface(contentWindow));
     nsPIDOMEventTarget *chromeHandler = piWindow->GetChromeEventHandler();
-    nsCOMPtr<nsIDOMEventReceiver> rec(do_QueryInterface(chromeHandler));
-    if ( rec )
-      rec->AddEventListenerByIID(clickListener, NS_GET_IID(nsIDOMMouseListener));
+    if (chromeHandler)
+      chromeHandler->AddEventListenerByIID(clickListener, NS_GET_IID(nsIDOMMouseListener));
   }
 }
 

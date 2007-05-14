@@ -56,7 +56,6 @@
 #include "nsIDOMWindow.h"
 #include "nsPIDOMWindow.h"
 #include "nsPIDOMEventTarget.h"
-#include "nsIDOMEventReceiver.h"
 #include "nsIWidget.h"
 #include "nsIPrefBranch.h"
 
@@ -240,13 +239,12 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
     nsCOMPtr<nsIDOMWindow> contentWindow = [self getContentWindow];
     nsCOMPtr<nsPIDOMWindow> piWindow(do_QueryInterface(contentWindow));
     nsPIDOMEventTarget *chromeHandler = piWindow->GetChromeEventHandler();
-    nsCOMPtr<nsIDOMEventReceiver> rec(do_QueryInterface(chromeHandler));
-    if ( rec )
-      rec->AddEventListenerByIID(clickListener, NS_GET_IID(nsIDOMMouseListener));
+    if (chromeHandler)
+      chromeHandler->AddEventListenerByIID(clickListener, NS_GET_IID(nsIDOMMouseListener));
     
     // register the CHBrowserListener as an event listener for popup-blocking events,
     // and link-added events.
-    nsCOMPtr<nsIDOMEventTarget> eventTarget = do_QueryInterface(rec);
+    nsCOMPtr<nsIDOMEventTarget> eventTarget = do_QueryInterface(chromeHandler);
     if (eventTarget)
     {
       rv = eventTarget->AddEventListener(NS_LITERAL_STRING("DOMPopupBlocked"), 

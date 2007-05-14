@@ -62,7 +62,7 @@
 #include "nsIDOMElementCSSInlineStyle.h"
 #include "nsIDOMEvent.h"
 #include "nsIDOMEventGroup.h"
-#include "nsIDOMEventReceiver.h"
+#include "nsIDOMEventTarget.h"
 #include "nsIDOMHTMLAnchorElement.h"
 #include "nsIDOMHTMLAreaElement.h"
 #include "nsIDOMHTMLCollection.h"
