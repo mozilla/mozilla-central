@@ -733,14 +733,19 @@ nsMsgIncomingServer::GetPasswordWithUI(const nsAString& aPromptMessage, const
       rv = GetServerURI(serverUri);
       NS_ENSURE_SUCCESS(rv, rv);
 
-      nsString uniPassword;
+      // we pass in the previously used password, if any, into PromptPassword
+      // so that it will appear as ******. This means we can't use an nsString
+      // and getter_Copies.
+      PRUnichar *uniPassword = nsnull;
       if (!aPassword.IsEmpty())
-        CopyASCIItoUTF16(aPassword, uniPassword);
+        uniPassword = ToNewUnicode(NS_ConvertASCIItoUTF16(aPassword));
 
       PRUint32 savePasswordType = PasswordProtectLocalCache() ? nsIAuthPrompt::SAVE_PASSWORD_FOR_SESSION : nsIAuthPrompt::SAVE_PASSWORD_PERMANENTLY;
       rv = dialog->PromptPassword(PromiseFlatString(aPromptTitle).get(), PromiseFlatString(aPromptMessage).get(),
         NS_ConvertASCIItoUTF16(serverUri).get(), savePasswordType,
-        getter_Copies(uniPassword), okayValue);
+        &uniPassword, okayValue);
+      nsAutoString uniPasswordAdopted;
+      uniPasswordAdopted.Adopt(uniPassword);
       NS_ENSURE_SUCCESS(rv, rv);
 
       if (!*okayValue) // if the user pressed cancel, just return an empty string;
@@ -750,7 +755,7 @@ nsMsgIncomingServer::GetPasswordWithUI(const nsAString& aPromptMessage, const
       }
 
       // we got a password back...so remember it
-      rv = SetPassword(NS_LossyConvertUTF16toASCII(uniPassword));
+      rv = SetPassword(NS_LossyConvertUTF16toASCII(uniPasswordAdopted));
       NS_ENSURE_SUCCESS(rv, rv);
     } // if we got a prompt dialog
   } // if the password is empty
