@@ -49,15 +49,15 @@ Litmus->init();
 my $c = Litmus->cgi(); 
 
 if ($c->param('data')) {
-	# we're getting XML result data from an automated testing provider, 
-	# so pass that off to XML.pm for processing
-	my $x = Litmus::XML->new();
-	$x->processResults($c->param('data'));
-	
-	# return whatever response was generated:
-	print $c->header('text/plain');
-	print $x->response();
-	exit; # that's all folks!
+  # we're getting XML result data from an automated testing provider, 
+  # so pass that off to XML.pm for processing
+  my $x = Litmus::XML->new();
+  $x->processResults($c->param('data'));
+
+  # return whatever response was generated:
+  print $c->header('text/plain');
+  print $x->response();
+  exit; # that's all folks!
 }
 
 Litmus::Auth::requireLogin("process_test.cgi");

@@ -55,6 +55,10 @@ if ($c->param && $c->param('id')) {
     internalError("There is no test result corresponding to id#: " . $c->param('id') . ".");
     exit 1;
   }
+
+  if ($result->is_automated_result) {
+    $vars->{'title'} = "Automated " . $title;
+  }
   
   my $time = &Date::Manip::UnixDate("now","%q");
   my $cookie =  Litmus::Auth::getCookie();

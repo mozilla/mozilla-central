@@ -249,6 +249,11 @@ sub getTestResults($\@\@$) {
             if ($criterion->{'value'} ne 'all') {
                 $where .= " AND tr.valid=";
                 $where .= $criterion->{'value'} == 1 ? '1' : '0';
+            }   
+        } elsif ($criterion->{'field'} eq 'automated') {        
+            if ($criterion->{'value'} ne 'all') {
+                $where .= " AND tr.is_automated_result=";
+                $where .= $criterion->{'value'} == 1 ? '1' : '0';
             }
         } elsif ($criterion->{'field'} eq 'user_id') {        
             if ($from !~ /users u/) {

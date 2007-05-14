@@ -159,6 +159,19 @@ if ($c->param) {
                 $limit_criteria .= "Display unvetted results only<br/>";
               }
             }
+        } elsif ($param eq 'automated') {
+            my $value = $c->param($param);
+            if ($value ne 'all') {
+              if ($value eq '1') {
+                push @where, {field => 'automated',
+                              value => 1};            
+                $limit_criteria .= "Display automated results only<br/>";
+              } else {
+                push @where, {field => 'automated',
+                              value => '0E0'};            
+                $limit_criteria .= "Display manual results only<br/>";
+              }
+            }
         } elsif ($param eq 'my_results_only') {
             push @where, {field => 'user_id',
                           value => $cookie->{'user_id'}};
