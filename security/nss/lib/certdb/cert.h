@@ -37,7 +37,7 @@
 /*
  * cert.h - public data structures and prototypes for the certificate library
  *
- * $Id: cert.h,v 1.55 2007-03-01 00:30:18 alexei.volkov.bugs%sun.com Exp $
+ * $Id: cert.h,v 1.56 2007-05-15 23:15:28 julien.pierre.bugs%sun.com Exp $
  */
 
 #ifndef _CERT_H_
@@ -730,16 +730,6 @@ typedef SECStatus (PR_CALLBACK *CERTImportCertificateFunc)
 extern SECStatus
 CERT_DecodeCertPackage(char *certbuf, int certlen, CERTImportCertificateFunc f,
 		       void *arg);
-
-/*
-** Pretty print a certificate in HTML
-**	"cert" is the certificate to print
-**	"showImages" controls whether or not to use about:security URLs
-**		for subject and issuer images.  This should only be true
-**		in the browser.
-*/
-extern char *CERT_HTMLCertInfo(CERTCertificate *cert, PRBool showImages,
-			       PRBool showIssuer);
 
 /* 
 ** Returns the value of an AVA.  This was a formerly static 
