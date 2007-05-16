@@ -44,8 +44,8 @@
 
   <!-- Project Properties -->
     <property name="name"                value="java-sdk" />
-    <property name="year"                value="2002" />
-    <property name="version"             value="4.17" />
+    <property name="year"                value="2007" />
+    <property name="version"             value="4.18" />
     <property name="sdkjarfilename"      value="ldapjdk.jar" />
     <property name="filtjarfilename"     value="ldapfilt.jar" />
     <property name="jdnijarfilename"     value="ldapsp.jar" />
@@ -236,7 +236,7 @@
         </javadoc>
       </target>
 
-    <target name="clean" depends="clean-builds,clean-dists"/>
+    <target name="clean" depends="clean-dists,clean-builds"/>
 
     <target name="clean-dists">
         <!-- Delete the jar and zip files -->
@@ -248,7 +248,7 @@
     <target name="clean-builds">
         <!-- Delete the .class and javadoc files built up from builds -->
         <delete includeEmptyDirs="true">
-            <fileset dir="${basedir}/dist" excludes="*.jar *.zip"/>
+            <fileset dir="${basedir}/dist" excludes="**/*.jar **/*.zip"/>
         </delete>
     </target>
 
