@@ -44,16 +44,14 @@ interface nsIMsgDBHdr;
 interface nsIMsgDatabase;
 interface nsIMsgSearchScopeTerm;
 
-native nsCStringRef(nsCString&);
-
-[scriptable, uuid(cde583fe-9add-4adb-9e1a-9cfe050d8a26)]
+[scriptable, uuid(2B753A24-DAB4-4DA0-B9B1-6655C2F1D352)]
 interface nsIMsgSearchTerm : nsISupports {
     attribute nsMsgSearchAttribValue attrib;
     attribute nsMsgSearchOpValue op;
     attribute nsIMsgSearchValue value;
 
     attribute boolean booleanAnd;
-    attribute string arbitraryHeader;
+    attribute ACString arbitraryHeader;
 
     attribute boolean beginsGrouping;
     attribute boolean endsGrouping;

@@ -43,7 +43,6 @@
 #include "nsIMsgFilter.h"
 #include "nsIMsgFilterList.h"
 
-#include "nsXPIDLString.h"
 #include "nsReadableUtils.h"
 
 #define NC_RDF_ENABLED NC_NAMESPACE_URI "Enabled"
@@ -306,8 +305,8 @@ nsMsgFilterDataSource::getFilterListTargets(nsIMsgFilterList *aFilterList,
         if (isTemporary)
           continue;
 
-        nsXPIDLString filterName;
-        rv = filter->GetFilterName(getter_Copies(filterName));
+        nsString filterName;
+        rv = filter->GetFilterName(filterName);
         if (NS_FAILED(rv)) return rv;
 
         nsAutoString filterString(filterName);
@@ -350,9 +349,9 @@ nsMsgFilterDataSource::getFilterTarget(nsIMsgFilter *aFilter,
 {
 
     if (aProperty == kNC_Name.get()) {
-        nsXPIDLString filterName;
-        aFilter->GetFilterName(getter_Copies(filterName));
-        return createNode((const PRUnichar*)filterName, aResult,
+        nsString filterName;
+        aFilter->GetFilterName(filterName);
+        return createNode(filterName.get(), aResult,
                           getRDFService());
         
     } else if (aProperty == kNC_Enabled.get()) {

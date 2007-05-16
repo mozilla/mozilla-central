@@ -97,7 +97,7 @@ protected:
   PRPackedBool m_startWritingToBuffer; //tells us when to start writing one whole filter to m_unparsedBuffer
   nsCOMPtr <nsIMsgFolder> m_folder;
   nsMsgFilter *m_curFilter; // filter we're filing in or out(?)
-  const char *m_filterFileName;
+  nsCString m_filterFileName;
   nsCOMPtr<nsISupportsArray> m_filters;
   nsCString m_arbitraryHeaders;
   nsCOMPtr<nsILocalFile> m_defaultFile;

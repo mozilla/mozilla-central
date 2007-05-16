@@ -47,7 +47,6 @@
 #include "nsIMsgFilterHitNotify.h"
 #include "nsMsgUtils.h"
 #include "nsMsgSearchTerm.h"
-#include "nsXPIDLString.h"
 #include "nsReadableUtils.h"
 #include "nsMsgBaseCID.h"
 #include "nsIMsgFilterService.h"
@@ -85,7 +84,7 @@ NS_IMPL_ADDREF(nsMsgFilterList)
 NS_IMPL_RELEASE(nsMsgFilterList)
 NS_IMPL_QUERY_INTERFACE1(nsMsgFilterList, nsIMsgFilterList)
 
-NS_IMETHODIMP nsMsgFilterList::CreateFilter(const PRUnichar *name,class nsIMsgFilter **aFilter)
+NS_IMETHODIMP nsMsgFilterList::CreateFilter(const nsAString &name,class nsIMsgFilter **aFilter)
 {
   NS_ENSURE_ARG_POINTER(aFilter);
 
@@ -238,21 +237,16 @@ nsMsgFilterList::GetLogFile(nsILocalFile **aFile)
 }
 
 NS_IMETHODIMP
-nsMsgFilterList::GetLogURL(char **aLogURL)
+nsMsgFilterList::GetLogURL(nsACString &aLogURL)
 {
-  NS_ENSURE_ARG_POINTER(aLogURL);
-
   nsCOMPtr <nsILocalFile> file;
   nsresult rv = GetLogFile(getter_AddRefs(file));
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsCString url;
-  rv = NS_GetURLSpecFromFile(file, url);
+  rv = NS_GetURLSpecFromFile(file, aLogURL);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  *aLogURL = ToNewCString(url);
-
-  return *aLogURL ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
+  return !aLogURL.IsEmpty() ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
 }
 
 NS_IMETHODIMP
@@ -320,7 +314,7 @@ nsMsgFilterList::ApplyFiltersToHdr(nsMsgFilterTypeType filterType,
                                    nsIMsgDBHdr *msgHdr,
                                    nsIMsgFolder *folder,
                                    nsIMsgDatabase *db,
-                                   const char *headers,
+                                   const char*headers,
                                    PRUint32 headersSize,
                                    nsIMsgFilterHitNotify *listener,
                                    nsIMsgWindow *msgWindow,
@@ -545,7 +539,7 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
   // We'd really like to move lot's of these into the objects that they refer to.
   do
   {
-    nsCAutoString	value;
+    nsCAutoString value;
     PRInt32 intToStringResult;
 
     char curChar;
@@ -586,7 +580,7 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
           m_curFilter->GetUnparseable(&unparseableFilter);
           if (unparseableFilter)
           {
-            m_curFilter->SetUnparsedBuffer(m_unparsedFilterBuffer.get());
+            m_curFilter->SetUnparsedBuffer(m_unparsedFilterBuffer);
             m_curFilter->SetEnabled(PR_FALSE); //disable the filter because we don't know how to apply it
           }
           m_unparsedFilterBuffer = nextFilterPart;
@@ -606,13 +600,14 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
           if (NS_FAILED(err))
               break;
 
-          filter->SetFilterName(unicodeStr.get());
+          filter->SetFilterName(unicodeStr);
         }
         else
         {
+          // ### fix me - this is silly.
           PRUnichar *unicodeString =
             nsTextFormatter::smprintf(unicodeFormatter, value.get());
-          filter->SetFilterName(unicodeString);
+          filter->SetFilterName(nsDependentString(unicodeString));
           nsTextFormatter::smprintf_free(unicodeString);
         }
         m_curFilter = filter;
@@ -625,7 +620,7 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
       break;
     case nsIMsgFilterList::attribDescription:
       if (m_curFilter)
-        m_curFilter->SetFilterDesc(value.get());
+        m_curFilter->SetFilterDesc(value);
       break;
     case nsIMsgFilterList::attribType:
       if (m_curFilter)
@@ -677,7 +672,7 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
             nsCAutoString keyword("$label");
             keyword.Append('0' + labelInt);
             currentFilterAction->SetType(nsMsgFilterAction::AddTag);
-            currentFilterAction->SetStrValue(keyword.get());
+            currentFilterAction->SetStrValue(keyword);
           }
         }
         else if (type == nsMsgFilterAction::JunkScore)
@@ -690,7 +685,7 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
         else if (type == nsMsgFilterAction::Forward || type == nsMsgFilterAction::Reply
           || type == nsMsgFilterAction::AddTag)
         {
-          currentFilterAction->SetStrValue(value.get());
+          currentFilterAction->SetStrValue(value);
         }
       }
       break;
@@ -724,7 +719,7 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
     m_curFilter->GetUnparseable(&unparseableFilter);
     if (unparseableFilter)
     {
-      m_curFilter->SetUnparsedBuffer(m_unparsedFilterBuffer.get());
+      m_curFilter->SetUnparsedBuffer(m_unparsedFilterBuffer);
       m_curFilter->SetEnabled(PR_FALSE);  //disable the filter because we don't know how to apply it
     }
   }
@@ -842,16 +837,16 @@ nsresult nsMsgFilterList::WriteIntAttr(nsMsgFilterFileAttribValue attrib, int va
   return rv;
 }
 
-nsresult
+NS_IMETHODIMP
 nsMsgFilterList::WriteStrAttr(nsMsgFilterFileAttribValue attrib,
-                              const char *str, nsIOutputStream *aStream)
+                              const char *aStr, nsIOutputStream *aStream)
 {
   nsresult rv = NS_OK;
-  if (str && str[0] && aStream) // only proceed if we actually have a string to write out.
+  if (aStr && *aStr && aStream) // only proceed if we actually have a string to write out.
   {
     char *escapedStr = nsnull;
-    if (PL_strchr(str, '"'))
-      escapedStr = nsMsgSearchTerm::EscapeQuotesInStr(str);
+    if (PL_strchr(aStr, '"'))
+      escapedStr = nsMsgSearchTerm::EscapeQuotesInStr(aStr);
 
     const char *attribStr = GetStringForAttrib(attrib);
     if (attribStr)
@@ -859,7 +854,7 @@ nsMsgFilterList::WriteStrAttr(nsMsgFilterFileAttribValue attrib,
       PRUint32 bytesWritten;
       nsCAutoString writeStr(attribStr);
       writeStr.AppendLiteral("=\"");
-      writeStr.Append((escapedStr) ? escapedStr : (const char *) str);
+      writeStr.Append((escapedStr) ? escapedStr : aStr);
       writeStr.AppendLiteral("\"" MSG_LINEBREAK);
       rv = aStream->Write(writeStr.get(), writeStr.Length(), &bytesWritten);
     }
@@ -965,10 +960,9 @@ nsresult nsMsgFilterList::GetFilterAt(PRUint32 filterIndex, nsIMsgFilter **filte
 }
 
 nsresult
-nsMsgFilterList::GetFilterNamed(const PRUnichar *aName, nsIMsgFilter **aResult)
+nsMsgFilterList::GetFilterNamed(const nsAString &aName, nsIMsgFilter **aResult)
 {
     nsresult rv;
-    NS_ENSURE_ARG_POINTER(aName);
     NS_ENSURE_ARG_POINTER(aResult);
     PRUint32 count=0;
     m_filters->Count(&count);
@@ -982,9 +976,10 @@ nsMsgFilterList::GetFilterNamed(const PRUnichar *aName, nsIMsgFilter **aResult)
 
         // cast is safe because array is private
         nsIMsgFilter *filter = (nsIMsgFilter *)filterSupports.get();
-        nsXPIDLString filterName;
-        filter->GetFilterName(getter_Copies(filterName));
-        if (nsCRT::strcmp(filterName, aName) == 0) {
+        nsString filterName;
+        filter->GetFilterName(filterName);
+        if (filterName.Equals(aName))
+        {
             *aResult = filter;
             break;
         }
@@ -996,15 +991,15 @@ nsMsgFilterList::GetFilterNamed(const PRUnichar *aName, nsIMsgFilter **aResult)
 
 nsresult nsMsgFilterList::SetFilterAt(PRUint32 filterIndex, nsIMsgFilter *filter)
 {
-	m_filters->ReplaceElementAt(filter, filterIndex);
-	return NS_OK;
+  m_filters->ReplaceElementAt(filter, filterIndex);
+  return NS_OK;
 }
 
 
 nsresult nsMsgFilterList::RemoveFilterAt(PRUint32 filterIndex)
 {
-	m_filters->RemoveElementAt(filterIndex);
-	return NS_OK;
+  m_filters->RemoveElementAt(filterIndex);
+  return NS_OK;
 }
 
 nsresult
@@ -1079,14 +1074,14 @@ nsMsgFilterList::GetVersion(PRInt16 *aResult)
     return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgFilterList::MatchOrChangeFilterTarget(const char *oldFolderUri, const char *newFolderUri, PRBool caseInsensitive, PRBool *found)
+NS_IMETHODIMP nsMsgFilterList::MatchOrChangeFilterTarget(const nsACString &oldFolderUri, const nsACString &newFolderUri, PRBool caseInsensitive, PRBool *found)
 {
   nsresult rv = NS_OK;
   PRUint32 numFilters;
   rv = m_filters->Count(&numFilters);
   NS_ENSURE_SUCCESS(rv,rv);
   nsCOMPtr <nsIMsgFilter> filter;
-  nsXPIDLCString folderUri;
+  nsCString folderUri;
   for (PRUint32 index = 0; index < numFilters; index++)
   {
     filter = do_QueryElementAt(m_filters, index, &rv);
@@ -1110,13 +1105,13 @@ NS_IMETHODIMP nsMsgFilterList::MatchOrChangeFilterTarget(const char *oldFolderUr
       if (actionType == nsMsgFilterAction::MoveToFolder ||
           actionType == nsMsgFilterAction::CopyToFolder)
       {
-        rv = filterAction->GetTargetFolderUri(getter_Copies(folderUri));
-        if (NS_SUCCEEDED(rv) && folderUri)
+        rv = filterAction->GetTargetFolderUri(folderUri);
+        if (NS_SUCCEEDED(rv) && !folderUri.IsEmpty())
            if (caseInsensitive)
           {
-            if (PL_strcasecmp(folderUri,oldFolderUri) == 0 ) //local
+             if (folderUri.Equals(oldFolderUri, nsCaseInsensitiveCStringComparator())) //local
             {
-              if (newFolderUri)  //if we just want to match the uri's, newFolderUri will be null
+              if (!newFolderUri.IsEmpty())  //if we just want to match the uri's, newFolderUri will be null
                 rv = filterAction->SetTargetFolderUri(newFolderUri);
               NS_ENSURE_SUCCESS(rv,rv);
               *found =PR_TRUE;
@@ -1124,9 +1119,9 @@ NS_IMETHODIMP nsMsgFilterList::MatchOrChangeFilterTarget(const char *oldFolderUr
           }
           else
           {
-            if (PL_strcmp(folderUri,oldFolderUri) == 0 )  //imap
+            if (folderUri.Equals(oldFolderUri))  //imap
             {
-              if (newFolderUri) //if we just want to match the uri's, newFolderUri will be null
+              if (!newFolderUri.IsEmpty()) //if we just want to match the uri's, newFolderUri will be null
                 rv = filterAction->SetTargetFolderUri(newFolderUri);
               NS_ENSURE_SUCCESS(rv,rv);
               *found =PR_TRUE;
@@ -1158,7 +1153,7 @@ nsresult nsMsgFilterList::ComputeArbitraryHeaders()
     NS_ENSURE_SUCCESS(rv,rv);
     nsCOMPtr <nsIMsgFilter> filter;
     nsMsgSearchAttribValue attrib;
-    nsXPIDLCString arbitraryHeader;
+    nsCString arbitraryHeader;
     for (PRUint32 index = 0; index < numFilters; index++)
     {
       filter = do_QueryElementAt(m_filters, index, &rv);
@@ -1171,12 +1166,12 @@ nsresult nsMsgFilterList::ComputeArbitraryHeaders()
           searchTerms->Count(&numSearchTerms);
         for (PRUint32 i=0; i< numSearchTerms;i++)
         {
-          filter->GetTerm(i, &attrib, nsnull,nsnull,nsnull, getter_Copies(arbitraryHeader));
-          if (arbitraryHeader && arbitraryHeader[0])
+          filter->GetTerm(i, &attrib, nsnull, nsnull, nsnull, arbitraryHeader);
+          if (!arbitraryHeader.IsEmpty())
           {
             if (m_arbitraryHeaders.IsEmpty())
               m_arbitraryHeaders.Assign(arbitraryHeader);
-            else if (PL_strncasecmp(m_arbitraryHeaders.get(), arbitraryHeader, arbitraryHeader.Length()))
+            else if (PL_strncasecmp(m_arbitraryHeaders.get(), arbitraryHeader.get(), arbitraryHeader.Length()))
             {
               m_arbitraryHeaders.Append(" ");
               m_arbitraryHeaders.Append(arbitraryHeader);
@@ -1189,10 +1184,10 @@ nsresult nsMsgFilterList::ComputeArbitraryHeaders()
   return rv;
 }
 
-NS_IMETHODIMP nsMsgFilterList::GetArbitraryHeaders(char **aResult)
+NS_IMETHODIMP nsMsgFilterList::GetArbitraryHeaders(nsACString &aResult)
 {
   ComputeArbitraryHeaders();
-  *aResult = ToNewCString(m_arbitraryHeaders);
+  aResult = m_arbitraryHeaders;
   return NS_OK;
 }
 

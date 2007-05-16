@@ -49,7 +49,6 @@
 #include "nsMsgUtils.h"
 #include "nsMsgLocalSearch.h"
 #include "nsMsgSearchTerm.h"
-#include "nsXPIDLString.h"
 #include "nsIMsgAccountManager.h"
 #include "nsIMsgIncomingServer.h"
 #include "nsMsgSearchValue.h"
@@ -113,9 +112,8 @@ nsMsgRuleAction::GetLabel(nsMsgLabelValue *aResult)
 }
 
 NS_IMETHODIMP
-nsMsgRuleAction::SetTargetFolderUri(const char *aUri)
+nsMsgRuleAction::SetTargetFolderUri(const nsACString &aUri)
 {
-  NS_ENSURE_ARG_POINTER(aUri);
   NS_ENSURE_TRUE(m_type == nsMsgFilterAction::MoveToFolder ||
                  m_type == nsMsgFilterAction::CopyToFolder,
                  NS_ERROR_ILLEGAL_VALUE);
@@ -124,13 +122,12 @@ nsMsgRuleAction::SetTargetFolderUri(const char *aUri)
 }
 
 NS_IMETHODIMP
-nsMsgRuleAction::GetTargetFolderUri(char** aResult)
+nsMsgRuleAction::GetTargetFolderUri(nsACString &aResult)
 {
-  NS_ENSURE_ARG_POINTER(aResult);
   NS_ENSURE_TRUE(m_type == nsMsgFilterAction::MoveToFolder ||
                  m_type == nsMsgFilterAction::CopyToFolder,
                  NS_ERROR_ILLEGAL_VALUE);
-  *aResult = ToNewCString(m_folderUri);
+  aResult = m_folderUri;
   return NS_OK;
 }
 
@@ -153,17 +150,16 @@ nsMsgRuleAction::GetJunkScore(PRInt32 *aResult)
 }
 
 NS_IMETHODIMP
-nsMsgRuleAction::SetStrValue(const char *aStrValue)
+nsMsgRuleAction::SetStrValue(const nsACString &aStrValue)
 {
   m_strValue = aStrValue;
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsMsgRuleAction::GetStrValue(char **aStrValue)
+nsMsgRuleAction::GetStrValue(nsACString &aStrValue)
 {
-  NS_ENSURE_ARG_POINTER(aStrValue);
-  *aStrValue = ToNewCString(m_strValue);
+  aStrValue = m_strValue;
   return NS_OK;
 }
 
@@ -191,40 +187,37 @@ NS_IMPL_GETSET(nsMsgFilter, Enabled, PRBool, m_enabled)
 NS_IMPL_GETSET(nsMsgFilter, Temporary, PRBool, m_temporary)
 NS_IMPL_GETSET(nsMsgFilter, Unparseable, PRBool, m_unparseable)
 
-NS_IMETHODIMP nsMsgFilter::GetFilterName(PRUnichar **name)
+NS_IMETHODIMP nsMsgFilter::GetFilterName(nsAString &name)
 {
-  NS_ENSURE_ARG_POINTER(name);  
-  *name = ToNewUnicode(m_filterName);
+  name = m_filterName;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgFilter::SetFilterName(const PRUnichar *name)
+NS_IMETHODIMP nsMsgFilter::SetFilterName(const nsAString &name)
 {
   m_filterName.Assign(name);
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgFilter::GetFilterDesc(char **description)
+NS_IMETHODIMP nsMsgFilter::GetFilterDesc(nsACString &description)
 {
-  NS_ENSURE_ARG_POINTER(description);
-  *description = ToNewCString(m_description);
+  description = m_description;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgFilter::SetFilterDesc(const char *description)
+NS_IMETHODIMP nsMsgFilter::SetFilterDesc(const nsACString &description)
 {
   m_description.Assign(description);
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgFilter::GetUnparsedBuffer(char **unparsedBuffer)
+NS_IMETHODIMP nsMsgFilter::GetUnparsedBuffer(nsACString &unparsedBuffer)
 {
-  NS_ENSURE_ARG_POINTER(unparsedBuffer);
-  *unparsedBuffer = ToNewCString(m_unparsedBuffer);
+  unparsedBuffer = m_unparsedBuffer;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgFilter::SetUnparsedBuffer(const char *unparsedBuffer)
+NS_IMETHODIMP nsMsgFilter::SetUnparsedBuffer(const nsACString &unparsedBuffer)
 {
   m_unparsedBuffer.Assign(unparsedBuffer);
   return NS_OK;
@@ -236,7 +229,7 @@ NS_IMETHODIMP nsMsgFilter::AddTerm(
                                    nsIMsgSearchValue *value,        /* value e.g. "Dogbert"               */
                                   PRBool BooleanAND, 	    /* PR_TRUE if AND is the boolean operator.
                                                             PR_FALSE if OR is the boolean operators */
-                                  const char * arbitraryHeader)  /* arbitrary header specified by user.
+                                  const nsACString & arbitraryHeader)  /* arbitrary header specified by user.
                                   ignored unless attrib = attribOtherHeader */
 {
   return NS_OK;
@@ -398,7 +391,7 @@ NS_IMETHODIMP nsMsgFilter::GetTerm(PRInt32 termIndex,
                                    nsMsgSearchOpValue *op,         /* operator e.g. opContains           */
                                    nsIMsgSearchValue **value,         /* value e.g. "Dogbert"               */
                                    PRBool *booleanAnd, /* PR_TRUE if AND is the boolean operator. PR_FALSE if OR is the boolean operator */
-                                   char ** arbitraryHeader) /* arbitrary header specified by user.ignore unless attrib = attribOtherHeader */
+                                   nsACString &arbitraryHeader) /* arbitrary header specified by user.ignore unless attrib = attribOtherHeader */
 {
   nsresult rv;
   nsCOMPtr<nsIMsgSearchTerm> term;
@@ -414,7 +407,7 @@ NS_IMETHODIMP nsMsgFilter::GetTerm(PRInt32 termIndex,
       term->GetValue(value);
     if(booleanAnd)
       term->GetBooleanAnd(booleanAnd);
-    if (attrib && arbitraryHeader 
+    if (attrib && !arbitraryHeader.IsEmpty() 
         && *attrib > nsMsgSearchAttrib::OtherHeader 
         && *attrib < nsMsgSearchAttrib::kNumMsgSearchAttributes)
       term->GetArbitraryHeader(arbitraryHeader);
@@ -468,12 +461,12 @@ NS_IMETHODIMP nsMsgFilter::LogRuleHit(nsIMsgRuleAction *aFilterAction, nsIMsgDBH
     PRTime date;
     nsMsgRuleActionType actionType;
     
-    nsXPIDLString authorValue;
-    nsXPIDLString subjectValue;
-    nsXPIDLString filterName;
-    nsXPIDLString dateValue;
+    nsString authorValue;
+    nsString subjectValue;
+    nsString filterName;
+    nsString dateValue;
 
-    GetFilterName(getter_Copies(filterName));
+    GetFilterName(filterName);
     aFilterAction->GetType(&actionType);
     (void)aMsgHdr->GetDate(&date);
     PRExplodedTime exploded;
@@ -510,7 +503,7 @@ NS_IMETHODIMP nsMsgFilter::LogRuleHit(nsIMsgRuleAction *aFilterAction, nsIMsgDBH
     NS_ENSURE_SUCCESS(rv, rv);
     
     const PRUnichar *filterLogDetectFormatStrings[4] = { filterName.get(), authorValue.get(), subjectValue.get(), dateValue.get() };
-    nsXPIDLString filterLogDetectStr;
+    nsString filterLogDetectStr;
     rv = bundle->FormatStringFromName(
       NS_LITERAL_STRING("filterLogDetectStr").get(),
       filterLogDetectFormatStrings, 4,
@@ -523,16 +516,16 @@ NS_IMETHODIMP nsMsgFilter::LogRuleHit(nsIMsgRuleAction *aFilterAction, nsIMsgDBH
     if (actionType == nsMsgFilterAction::MoveToFolder ||
         actionType == nsMsgFilterAction::CopyToFolder)
     {
-      nsXPIDLCString actionFolderUri;
-      aFilterAction->GetTargetFolderUri(getter_Copies(actionFolderUri));
+      nsCString actionFolderUri;
+      aFilterAction->GetTargetFolderUri(actionFolderUri);
       NS_ConvertASCIItoUTF16 actionFolderUriValue(actionFolderUri);
          
-      nsXPIDLCString msgId;
+      nsCString msgId;
       aMsgHdr->GetMessageId(getter_Copies(msgId));
       NS_ConvertASCIItoUTF16 msgIdValue(msgId);
 
       const PRUnichar *logMoveFormatStrings[2] = { msgIdValue.get(), actionFolderUriValue.get() };
-      nsXPIDLString logMoveStr;
+      nsString logMoveStr;
       rv = bundle->FormatStringFromName(
         (actionType == nsMsgFilterAction::MoveToFolder) ?
           NS_LITERAL_STRING("logMoveStr").get() :
@@ -545,7 +538,7 @@ NS_IMETHODIMP nsMsgFilter::LogRuleHit(nsIMsgRuleAction *aFilterAction, nsIMsgDBH
     }
     else 
     {
-      nsXPIDLString actionValue;
+      nsString actionValue;
       nsAutoString filterActionID;
       filterActionID = NS_LITERAL_STRING("filterAction");
       filterActionID.AppendInt(actionType);
@@ -588,7 +581,7 @@ nsMsgFilter::MatchHdr(nsIMsgDBHdr *msgHdr, nsIMsgFolder *folder,
 {
   NS_ENSURE_ARG_POINTER(folder);
   // use offlineMail because
-  nsXPIDLCString folderCharset;
+  nsCString folderCharset;
   folder->GetCharset(getter_Copies(folderCharset));
   nsresult rv = nsMsgSearchOfflineMail::MatchTermsForFilter(msgHdr, m_termList,
                   folderCharset.get(),  m_scope,  db,  headers,  headersSize, &m_expressionTree, pResult);
@@ -624,7 +617,7 @@ nsresult nsMsgFilter::ConvertMoveOrCopyToFolderValue(nsIMsgRuleAction *filterAct
   if (filterVersion <= k60Beta1Version)
   {
     nsCOMPtr <nsIMsgFolder> rootFolder;
-    nsXPIDLCString folderUri;
+    nsCString folderUri;
 
     m_filterList->GetFolder(getter_AddRefs(rootFolder));
 
@@ -661,13 +654,13 @@ nsresult nsMsgFilter::ConvertMoveOrCopyToFolderValue(nsIMsgRuleAction *filterAct
 	  else
     {
       // start off leaving the value the same.
-      filterAction->SetTargetFolderUri(moveValue.get());
+      filterAction->SetTargetFolderUri(moveValue);
       nsresult rv = NS_OK;
       nsCOMPtr <nsIMsgFolder> localMailRoot;
       rootFolder->GetURI(getter_Copies(folderUri));
       // if the root folder is not imap, than the local mail root is the server root.
       // otherwise, it's the migrated local folders.
-      if (nsCRT::strncmp("imap:", folderUri, 5))
+      if (!StringBeginsWith(folderUri, NS_LITERAL_CSTRING("imap:")))
       {
         localMailRoot = rootFolder;
       }
@@ -687,7 +680,7 @@ nsresult nsMsgFilter::ConvertMoveOrCopyToFolderValue(nsIMsgRuleAction *filterAct
       }
       if (NS_SUCCEEDED(rv) && localMailRoot)
       {
-        nsXPIDLCString localRootURI;
+        nsCString localRootURI;
         nsCOMPtr <nsIMsgFolder> destIMsgFolder;
         nsCOMPtr <nsIMsgFolder> localMailRootMsgFolder = do_QueryInterface(localMailRoot);
         localMailRoot->GetURI(getter_Copies(localRootURI));
@@ -725,7 +718,7 @@ nsresult nsMsgFilter::ConvertMoveOrCopyToFolderValue(nsIMsgRuleAction *filterAct
     }
   }
   else
-    filterAction->SetTargetFolderUri(moveValue.get());
+    filterAction->SetTargetFolderUri(moveValue);
     
   return NS_OK;
 	// set m_action.m_value.m_folderUri
@@ -782,8 +775,8 @@ nsresult nsMsgFilter::SaveRule(nsIOutputStream *aStream)
       case nsMsgFilterAction::MoveToFolder:
       case nsMsgFilterAction::CopyToFolder:
       {
-        nsXPIDLCString imapTargetString;
-        action->GetTargetFolderUri(getter_Copies(imapTargetString));
+        nsCString imapTargetString;
+        action->GetTargetFolderUri(imapTargetString);
         err = filterList->WriteStrAttr(nsIMsgFilterList::attribActionValue, imapTargetString.get(), aStream);
       }
       break;
@@ -815,8 +808,8 @@ nsresult nsMsgFilter::SaveRule(nsIOutputStream *aStream)
       case nsMsgFilterAction::Reply:
       case nsMsgFilterAction::Forward:
       {
-        nsXPIDLCString strValue;
-        action->GetStrValue(getter_Copies(strValue));
+        nsCString strValue;
+        action->GetStrValue(strValue);
         // strValue is e-mail address
         err = filterList->WriteStrAttr(nsIMsgFilterList::attribActionValue, strValue.get(), aStream);
       }

@@ -88,35 +88,29 @@ nsMsgSearchValueImpl::SetFolder(nsIMsgFolder* aValue)
 }
 
 NS_IMETHODIMP
-nsMsgSearchValueImpl::GetStr(PRUnichar** aResult)
+nsMsgSearchValueImpl::GetStr(nsAString &aResult)
 {
-    NS_ENSURE_ARG_POINTER(aResult);
     NS_ENSURE_TRUE(IS_STRING_ATTRIBUTE(mValue.attribute), NS_ERROR_ILLEGAL_VALUE);
-    *aResult = ToNewUnicode(NS_ConvertUTF8toUTF16(mValue.string));
+    CopyUTF8toUTF16(mValue.string, aResult);
     return NS_OK;
 }
 
 NS_IMETHODIMP
-nsMsgSearchValueImpl::SetStr(const PRUnichar* aValue)
+nsMsgSearchValueImpl::SetStr(const nsAString &aValue)
 {
-    if (!aValue)
-      return NS_ERROR_NULL_POINTER;
     NS_ENSURE_TRUE(IS_STRING_ATTRIBUTE(mValue.attribute), NS_ERROR_ILLEGAL_VALUE);
     if (mValue.string)
         nsCRT::free(mValue.string);
-    mValue.string = ToNewUTF8String(nsDependentString(aValue));
+    mValue.string = ToNewUTF8String(aValue);
     return NS_OK;
 }
 
 NS_IMETHODIMP
-nsMsgSearchValueImpl::ToString(PRUnichar **aResult)
+nsMsgSearchValueImpl::ToString(nsAString &aResult)
 {
-    NS_ENSURE_ARG_POINTER(aResult);
-
-    nsAutoString resultStr;
-    resultStr.AssignLiteral("[nsIMsgSearchValue: ");
+    aResult.AssignLiteral("[nsIMsgSearchValue: ");
     if (IS_STRING_ATTRIBUTE(mValue.attribute)) {
-        AppendUTF8toUTF16(mValue.string, resultStr);
+        AppendUTF8toUTF16(mValue.string, aResult);
         return NS_OK;
     }
 
@@ -132,15 +126,19 @@ nsMsgSearchValueImpl::ToString(PRUnichar **aResult)
     case nsMsgSearchAttrib::FolderInfo:
     case nsMsgSearchAttrib::Label:
     case nsMsgSearchAttrib::JunkStatus:
-        resultStr.AppendLiteral("type=");
-        resultStr.AppendInt(mValue.attribute);
+    {
+      nsAutoString tempInt;
+      tempInt.AppendInt(mValue.attribute);
+      
+        aResult.AppendLiteral("type=");
+        aResult.Append(tempInt);
+    }
         break;
     default:
         NS_ASSERTION(0, "Unknown search value type");
     }        
 
-    resultStr.AppendLiteral("]");
+    aResult.AppendLiteral("]");
 
-    *aResult = ToNewUnicode(resultStr);
     return NS_OK;
 }

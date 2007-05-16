@@ -59,7 +59,6 @@
 #include "nsString.h"
 #include "nsUnicharUtils.h"
 #include "nsIProxyObjectManager.h"
-#include "nsXPIDLString.h"
 
 #include "nsIMsgAccountManager.h"
 #include "nsIMsgMailSession.h"
@@ -474,7 +473,7 @@ void nsImportGenericMail::GetMailboxName( PRUint32 index, nsISupportsString *pSt
 	if (m_pMailboxes) {
 		nsCOMPtr<nsIImportMailboxDescriptor> box(do_QueryElementAt(m_pMailboxes, index));
 		if (box) {
-			nsXPIDLString name;
+			nsAutoString name;
 			box->GetDisplayName(getter_Copies(name));
 			if (!name.IsEmpty()) {
 				pStr->SetData(name);
@@ -883,7 +882,7 @@ ImportMailThread( void *stuff)
             // with this name. Don't create a unique subfolder name. Otherwise you end up with "Inbox, Inbox0" 
             // or "Unsent Folders, UnsentFolders0"
             if (exists && !pData->performingMigration) {
-				nsXPIDLString subName;
+				nsString subName;
 				curProxy->GenerateUniqueSubfolderName( lastName.get(), nsnull, getter_Copies(subName));
 				if (!subName.IsEmpty()) 
 					lastName.Assign(subName);
@@ -981,7 +980,7 @@ PRBool nsImportGenericMail::CreateFolder( nsIMsgFolder **ppFolder)
   rv = bundleService->CreateBundle(IMPORT_MSGS_URL, getter_AddRefs(bundle));
   if (NS_FAILED(rv)) 
       return PR_FALSE;
-  nsXPIDLString folderName;
+  nsString folderName;
   if (!m_pName.IsEmpty()) {
     const PRUnichar *moduleName[] = { m_pName.get() };
     rv = bundle->FormatStringFromName(NS_LITERAL_STRING("ModuleFolderName").get(),
@@ -1029,7 +1028,7 @@ PRBool nsImportGenericMail::CreateFolder( nsIMsgFolder **ppFolder)
         PRBool exists = PR_FALSE;
         rv = localRootFolder->ContainsChildNamed(folderName.get(), &exists);
         if (exists) {
-          nsXPIDLString name;
+          nsString name;
           localRootFolder->GenerateUniqueSubfolderName(folderName.get(), nsnull, getter_Copies(name));
           if (!name.IsEmpty())
             folderName.Assign(name);

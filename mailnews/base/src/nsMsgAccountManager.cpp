@@ -2461,7 +2461,7 @@ nsresult VirtualFolderChangeListener::Init()
     rv = filterService->GetTempFilterList(m_virtualFolder, getter_AddRefs(filterList));
     NS_ENSURE_SUCCESS(rv, rv);
     nsCOMPtr <nsIMsgFilter> tempFilter;
-    filterList->CreateFilter(NS_LITERAL_STRING("temp").get(), getter_AddRefs(tempFilter));
+    filterList->CreateFilter(NS_LITERAL_STRING("temp"), getter_AddRefs(tempFilter));
     NS_ENSURE_SUCCESS(rv, rv);
     filterList->ParseCondition(tempFilter, searchTermString.get());
     NS_ENSURE_SUCCESS(rv, rv);

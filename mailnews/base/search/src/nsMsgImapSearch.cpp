@@ -36,7 +36,6 @@
  * ***** END LICENSE BLOCK ***** */
 #include "msgCore.h"
 #include "nsMsgSearchAdapter.h"
-#include "nsXPIDLString.h"
 #include "nsReadableUtils.h"
 #include "nsMsgSearchScopeTerm.h"
 #include "nsMsgResultElement.h"
@@ -64,8 +63,8 @@ nsresult nsMsgSearchOnlineMail::ValidateTerms ()
   {
       // ### mwelch Figure out the charsets to use 
       //            for the search terms and targets.
-      nsXPIDLString srcCharset, dstCharset;
-      GetSearchCharsets(getter_Copies(srcCharset), getter_Copies(dstCharset));
+      nsAutoString srcCharset, dstCharset;
+      GetSearchCharsets(srcCharset, dstCharset);
 
       // do IMAP specific validation
       err = Encode (m_encoding, m_searchTerms, dstCharset.get());
@@ -111,7 +110,7 @@ nsresult nsMsgSearchOnlineMail::Encode (nsCString& pEncoding,
                                         nsISupportsArray *searchTerms,
                                         const PRUnichar *destCharset)
 {
-  nsXPIDLCString imapTerms;
+  nsCString imapTerms;
   
   //check if searchTerms are ascii only
   PRBool asciiOnly = PR_TRUE;
@@ -133,7 +132,7 @@ nsresult nsMsgSearchOnlineMail::Encode (nsCString& pEncoding,
       pTerm->GetAttrib(&attribute);
       if (IsStringAttribute(attribute))
       {
-        nsXPIDLString pchar;
+        nsString pchar;
         nsCOMPtr <nsIMsgSearchValue> searchValue;
         
         nsresult rv = pTerm->GetValue(getter_AddRefs(searchValue));
@@ -141,8 +140,8 @@ nsresult nsMsgSearchOnlineMail::Encode (nsCString& pEncoding,
           continue;
         
         
-        rv = searchValue->GetStr(getter_Copies(pchar));
-        if (NS_FAILED(rv) || !pchar)
+        rv = searchValue->GetStr(pchar);
+        if (NS_FAILED(rv) || pchar.IsEmpty())
           continue;
         asciiOnly = nsCRT::IsAscii(pchar.get());
       }

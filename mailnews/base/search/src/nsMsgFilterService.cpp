@@ -184,7 +184,7 @@ NS_IMETHODIMP	nsMsgFilterService::SaveFilterList(nsIMsgFilterList *filterList, n
   if (NS_SUCCEEDED(ret))
   {
     
-    nsXPIDLCString finalLeafName;
+    nsCString finalLeafName;
     filterFile->GetNativeLeafName(finalLeafName);
     ret = tmpFiltersFile->MoveToNative(parentDir, finalLeafName);
   }
@@ -255,17 +255,17 @@ nsMsgFilterService::GetFilterStringBundle(nsIStringBundle **aBundle)
 nsresult
 nsMsgFilterService::ThrowAlertMsg(const char*aMsgName, nsIMsgWindow *aMsgWindow)
 {
-  nsXPIDLString alertString;
+  nsString alertString;
   nsresult rv = GetStringFromBundle(aMsgName, getter_Copies(alertString));
-  if (NS_SUCCEEDED(rv) && alertString && aMsgWindow)
+  if (NS_SUCCEEDED(rv) && !alertString.IsEmpty() && aMsgWindow)
   {
     nsCOMPtr <nsIDocShell> docShell;
     aMsgWindow->GetRootDocShell(getter_AddRefs(docShell));
     if (docShell)
     {
       nsCOMPtr<nsIPrompt> dialog(do_GetInterface(docShell));
-      if (dialog && alertString)
-        dialog->Alert(nsnull, alertString);
+      if (dialog && !alertString.IsEmpty())
+        dialog->Alert(nsnull, alertString.get());
     }
   }
   return rv;
@@ -485,11 +485,11 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter()
       else
         continue;
       
-      nsXPIDLCString actionTargetFolderUri;
+      nsCString actionTargetFolderUri;
       if (actionType == nsMsgFilterAction::MoveToFolder ||
           actionType == nsMsgFilterAction::CopyToFolder)
       {
-        filterAction->GetTargetFolderUri(getter_Copies(actionTargetFolderUri));
+        filterAction->GetTargetFolderUri(actionTargetFolderUri);
         if (actionTargetFolderUri.IsEmpty())
         {
           NS_ASSERTION(PR_FALSE, "actionTargetFolderUri is empty");
@@ -526,11 +526,11 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter()
       case nsMsgFilterAction::CopyToFolder:
       {
         // if moving or copying to a different file, do it.
-        nsXPIDLCString uri;
+        nsCString uri;
         rv = m_curFolder->GetURI(getter_Copies(uri));
 
-        if ((const char*)actionTargetFolderUri &&
-            nsCRT::strcmp(uri, actionTargetFolderUri))
+        if (!actionTargetFolderUri.IsEmpty() &&
+            !uri.Equals(actionTargetFolderUri))
         {
           nsCOMPtr<nsIRDFService> rdf = do_GetService("@mozilla.org/rdf/rdf-service;1",&rv);
           nsCOMPtr<nsIRDFResource> res;
@@ -625,8 +625,8 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter()
         break;
       case nsMsgFilterAction::AddTag:
         {
-            nsXPIDLCString keyword;
-            filterAction->GetStrValue(getter_Copies(keyword));
+            nsCString keyword;
+            filterAction->GetStrValue(keyword);
             m_curFolder->AddKeywordsToMessages(m_searchHitHdrs, keyword.get());
         }
         break;
@@ -641,8 +641,8 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter()
       }
       case nsMsgFilterAction::Forward:
         {
-          nsXPIDLCString forwardTo;
-          filterAction->GetStrValue(getter_Copies(forwardTo));
+          nsCString forwardTo;
+          filterAction->GetStrValue(forwardTo);
           nsCOMPtr <nsIMsgIncomingServer> server;
           rv = m_curFolder->GetServer(getter_AddRefs(server));
           NS_ENSURE_SUCCESS(rv, rv);
@@ -668,8 +668,8 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter()
         break;
       case nsMsgFilterAction::Reply:
         {
-          nsXPIDLCString replyTemplateUri;
-          filterAction->GetStrValue(getter_Copies(replyTemplateUri));
+          nsCString replyTemplateUri;
+          filterAction->GetStrValue(replyTemplateUri);
           nsCOMPtr <nsIMsgIncomingServer> server;
           rv = m_curFolder->GetServer(getter_AddRefs(server));
           NS_ENSURE_SUCCESS(rv, rv);
@@ -683,7 +683,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter()
                 nsCOMPtr <nsIMsgDBHdr> msgHdr;
                 m_searchHitHdrs->QueryElementAt(msgIndex, NS_GET_IID(nsIMsgDBHdr), getter_AddRefs(msgHdr));
                 if (msgHdr)
-                  rv = compService->ReplyWithTemplate(msgHdr, replyTemplateUri, m_msgWindow, server);
+                  rv = compService->ReplyWithTemplate(msgHdr, replyTemplateUri.get(), m_msgWindow, server);
               }
             }
           }
@@ -834,19 +834,19 @@ PRBool nsMsgFilterAfterTheFact::ContinueExecutionPrompt()
                                  getter_AddRefs(bundle));
   if (NS_SUCCEEDED(rv) && bundle)
   {
-    nsXPIDLString filterName;
-    m_curFilter->GetFilterName(getter_Copies(filterName));
-    nsXPIDLString formatString;
-    nsXPIDLString confirmText;
+    nsString filterName;
+    m_curFilter->GetFilterName(filterName);
+    nsString formatString;
+    nsString confirmText;
     const PRUnichar *formatStrings[] =
     {
-      filterName
+      filterName.get()
     };
     rv = bundle->FormatStringFromName(NS_LITERAL_STRING("continueFilterExecution").get(),
                                       formatStrings, 1, getter_Copies(confirmText));
     if (NS_SUCCEEDED(rv))
     {
-      rv = DisplayConfirmationPrompt(m_msgWindow, confirmText, &returnVal);
+      rv = DisplayConfirmationPrompt(m_msgWindow, confirmText.get(), &returnVal);
     }
   }
   return returnVal;

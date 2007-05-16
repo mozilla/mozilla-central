@@ -3302,7 +3302,7 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
       if (actionType == nsMsgFilterAction::MoveToFolder ||
           actionType == nsMsgFilterAction::CopyToFolder)
       {
-        filterAction->GetTargetFolderUri(getter_Copies(actionTargetFolderUri));
+        filterAction->GetTargetFolderUri(actionTargetFolderUri);
         if (actionTargetFolderUri.IsEmpty())
         {
           NS_ASSERTION(PR_FALSE, "actionTargetFolderUri is empty");
@@ -3449,8 +3449,8 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
         break;
         case nsMsgFilterAction::AddTag:
         {
-          nsXPIDLCString keyword;
-          filterAction->GetStrValue(getter_Copies(keyword));
+          nsCString keyword;
+          filterAction->GetStrValue(keyword);
           nsCOMPtr<nsISupportsArray> messageArray;
           NS_NewISupportsArray(getter_AddRefs(messageArray));
           messageArray->AppendElement(msgHdr);
@@ -3478,8 +3478,8 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
         break;
       case nsMsgFilterAction::Forward:
         {
-          nsXPIDLCString forwardTo;
-          filterAction->GetStrValue(getter_Copies(forwardTo));
+          nsCString forwardTo;
+          filterAction->GetStrValue(forwardTo);
           nsCOMPtr <nsIMsgIncomingServer> server;
           rv = GetServer(getter_AddRefs(server));
           NS_ENSURE_SUCCESS(rv, rv);
@@ -3498,8 +3498,8 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
 
       case nsMsgFilterAction::Reply:
         {
-          nsXPIDLCString replyTemplateUri;
-          filterAction->GetStrValue(getter_Copies(replyTemplateUri));
+          nsCString replyTemplateUri;
+          filterAction->GetStrValue(replyTemplateUri);
           nsCOMPtr <nsIMsgIncomingServer> server;
           GetServer(getter_AddRefs(server));
           NS_ENSURE_SUCCESS(rv, rv);
@@ -3507,7 +3507,7 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
           {
             nsCOMPtr <nsIMsgComposeService> compService = do_GetService (NS_MSGCOMPOSESERVICE_CONTRACTID) ;
             if (compService)
-              rv = compService->ReplyWithTemplate(msgHdr, replyTemplateUri, msgWindow, server);
+              rv = compService->ReplyWithTemplate(msgHdr, replyTemplateUri.get(), msgWindow, server);
           }
         }
         break;

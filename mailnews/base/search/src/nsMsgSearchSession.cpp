@@ -46,7 +46,6 @@
 #include "nsMsgSearchScopeTerm.h"
 #include "nsIMsgMessageService.h"
 #include "nsMsgUtils.h"
-#include "nsXPIDLString.h"
 #include "nsIMsgSearchNotify.h"
 #include "nsIMsgMailSession.h"
 #include "nsMsgBaseCID.h"
@@ -467,11 +466,11 @@ nsresult nsMsgSearchSession::BuildUrlQueue ()
       (scope->m_attribute != nsMsgSearchScope::news && scope->m_searchServer))
       break;
     nsCOMPtr <nsIMsgSearchAdapter> adapter = do_QueryInterface((m_scopeList.ElementAt(i))->m_adapter);
-    nsXPIDLCString url;
+    nsCString url;
     if (adapter)
     {
       adapter->GetEncoding(getter_Copies(url));
-      AddUrl (url);
+      AddUrl (url.get());
     }
   }
   
@@ -501,7 +500,7 @@ nsresult nsMsgSearchSession::GetNextUrl()
   nsCOMPtr <nsIMsgFolder> folder = currentTerm->m_folder;
   if (folder)
   {
-    nsXPIDLCString folderUri;
+    nsCString folderUri;
     folder->GetURI(getter_Copies(folderUri));
     nsresult rv = GetMessageServiceFromURI(folderUri.get(), getter_AddRefs(msgService));
 
@@ -753,8 +752,8 @@ nsMsgSearchSession::MatchHdr(nsIMsgDBHdr *aMsgHdr, nsIMsgDatabase *aDatabase, PR
       scope->InitializeAdapter(m_termList);
     if (scope->m_adapter)
     {  
-      nsXPIDLString nullCharset, folderCharset;
-      scope->m_adapter->GetSearchCharsets(getter_Copies(nullCharset), getter_Copies(folderCharset));
+      nsAutoString nullCharset, folderCharset;
+      scope->m_adapter->GetSearchCharsets(nullCharset, folderCharset);
       NS_ConvertUTF16toUTF8 charset(folderCharset.get());
       nsMsgSearchOfflineMail::MatchTermsForSearch(aMsgHdr, m_termList, charset.get(), scope, aDatabase, &m_expressionTree, aResult);
     }

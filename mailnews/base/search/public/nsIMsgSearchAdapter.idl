@@ -51,10 +51,10 @@ interface nsIMsgSearchAdapter : nsISupports {
     void ValidateTerms();
     void Search(out boolean done);
     void SendUrl();
-	void CurrentUrlDone(in long exitCode);
+    void CurrentUrlDone(in long exitCode);
 
-	void AddHit(in nsMsgKey key);
-	void AddResultElement(in nsIMsgDBHdr aHdr);
+    void AddHit(in nsMsgKey key);
+    void AddResultElement(in nsIMsgDBHdr aHdr);
 
     [noscript] void OpenResultElement(in nsMsgResultElement element);
     [noscript] void ModifyResultElement(in nsMsgResultElement element,
@@ -65,6 +65,6 @@ interface nsIMsgSearchAdapter : nsISupports {
     [noscript] nsIMsgFolder FindTargetFolder([const] in nsMsgResultElement
                                              element);
     void Abort();
-    void getSearchCharsets(out wstring srcCharset, out wstring destCharset);
+    void getSearchCharsets(out AString srcCharset, out AString destCharset);
 };
 

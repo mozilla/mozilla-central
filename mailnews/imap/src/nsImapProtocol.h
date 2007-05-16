@@ -178,7 +178,7 @@ public:
 
   // used to start fetching a message.
   void GetShouldDownloadAllHeaders(PRBool *aResult);
-  void GetArbitraryHeadersToDownload(char **aResult);
+  void GetArbitraryHeadersToDownload(nsCString &aResult);
   virtual void AdjustChunkSize();
   virtual void FetchMessage(const nsCString &messageIds, 
     nsIMAPeFetchFields whatToFetch,

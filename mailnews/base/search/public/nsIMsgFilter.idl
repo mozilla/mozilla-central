@@ -45,7 +45,7 @@
 
 interface nsOutputStream;
 
-[scriptable, uuid(09aa663b-ab04-457d-9557-319e4cc7884e)]
+[scriptable, uuid(FFC5D40D-7527-4286-9765-136617D32624)]
 interface nsIMsgRuleAction : nsISupports {
 
   attribute nsMsgRuleActionType type;
@@ -54,18 +54,18 @@ interface nsIMsgRuleAction : nsISupports {
   attribute nsMsgPriorityValue priority;
 
   // target folder.. throws an exception if the action is not move to folder
-  attribute string targetFolderUri;
+  attribute ACString targetFolderUri;
 
   // target label. throws an exception if the action is not label
   attribute nsMsgLabelValue label;
 
   attribute long junkScore; 
 
-  attribute string strValue;
+  attribute ACString strValue;
 
 };
 
-[scriptable, uuid(605db0f8-04a1-11d3-a50a-0060b0fc04b7)]
+[scriptable, uuid(346C8CC6-35EA-4F44-B348-94E84D7C03E0)]
 interface nsIMsgFilter : nsISupports {
     attribute nsMsgFilterTypeType filterType;
     /**
@@ -76,9 +76,9 @@ interface nsIMsgFilter : nsISupports {
      */
     attribute boolean temporary;
     attribute boolean enabled;
-    attribute wstring filterName;
-    attribute string filterDesc;
-    attribute string unparsedBuffer; //holds the entire filter if we don't know how to handle it
+    attribute AString filterName;
+    attribute ACString filterDesc;
+    attribute ACString unparsedBuffer; //holds the entire filter if we don't know how to handle it
     attribute boolean unparseable;  //whether we could parse the filter or not
 
     readonly attribute nsIMsgFilterList filterList; // owning filter list
@@ -87,14 +87,14 @@ interface nsIMsgFilter : nsISupports {
                  in nsMsgSearchOpValue op,
                  in nsIMsgSearchValue value,
                  in boolean BooleanAND,
-                 in string arbitraryHeader);
+                 in ACString arbitraryHeader);
 
     void GetTerm(in long termIndex,
                  out nsMsgSearchAttribValue attrib,
                  out nsMsgSearchOpValue op,
                  out nsIMsgSearchValue value, // bad! using shared structure
                  out boolean BooleanAND,
-                 out string arbitraryHeader);
+                 out ACString arbitraryHeader);
 
     void appendTerm(in nsIMsgSearchTerm term);
 

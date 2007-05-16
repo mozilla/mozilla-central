@@ -2673,7 +2673,7 @@ nsImapProtocol::GetShouldDownloadAllHeaders(PRBool *aResult)
 }
 
 void
-nsImapProtocol::GetArbitraryHeadersToDownload(char **aResult)
+nsImapProtocol::GetArbitraryHeadersToDownload(nsCString &aResult)
 {
   if (m_imapServerSink)
     m_imapServerSink->GetArbitraryHeaders(aResult);
@@ -2981,7 +2981,7 @@ nsImapProtocol::FetchMessage(const nsCString &messageIds,
         char *what = nsnull;
         const char *dbHeaders = (gUseEnvelopeCmd) ? IMAP_DB_HEADERS : IMAP_ENV_AND_DB_HEADERS;
         nsCString arbitraryHeaders;
-        GetArbitraryHeadersToDownload(getter_Copies(arbitraryHeaders));
+        GetArbitraryHeadersToDownload(arbitraryHeaders);
         for (PRInt32 i = 0; i < gCustomDBHeaders.Count(); i++)
         {
           if (arbitraryHeaders.Find(* (gCustomDBHeaders[i]), PR_TRUE) == kNotFound)

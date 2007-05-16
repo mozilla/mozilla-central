@@ -910,13 +910,13 @@ PR_STATIC_CALLBACK( void) ImportAddressThread( void *stuff)
 				rv = book->GetSize( &size);
 			
 			if (size && import) {
-				nsXPIDLString name;
+				nsString name;
 				book->GetPreferredName(name);
 				if (destDB) {
 					pDestDB = destDB;
 				}
 				else {
-					pDestDB = GetAddressBook(name, PR_TRUE);
+					pDestDB = GetAddressBook(name.get(), PR_TRUE);
 				}
 
 				nsCOMPtr<nsIAddrDatabase> proxyAddrDatabase;
@@ -966,7 +966,7 @@ PR_STATIC_CALLBACK( void) ImportAddressThread( void *stuff)
 					}
 				}
 				else {
-          nsImportGenericAddressBooks::ReportError(name, &error, pBundle);
+          nsImportGenericAddressBooks::ReportError(name.get(), &error, pBundle);
 				}
 
 				pData->currentSize = 0;

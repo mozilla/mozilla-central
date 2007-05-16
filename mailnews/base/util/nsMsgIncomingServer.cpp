@@ -1661,11 +1661,11 @@ nsMsgIncomingServer::ConfigureTemporaryServerSpamFilters(nsIMsgFilterList *filte
   noFilterName.AppendLiteral("No");
 
   nsCOMPtr<nsIMsgFilter> newFilter;
-  (void) filterList->GetFilterNamed(yesFilterName.get(),
+  (void) filterList->GetFilterNamed(yesFilterName,
                                   getter_AddRefs(newFilter));
 
   if (!newFilter)
-    (void) filterList->GetFilterNamed(noFilterName.get(),
+    (void) filterList->GetFilterNamed(noFilterName,
                                   getter_AddRefs(newFilter));
   if (newFilter)
     return NS_OK;
@@ -1685,7 +1685,7 @@ nsMsgIncomingServer::ConfigureTemporaryServerSpamFilters(nsIMsgFilterList *filte
   rv = filterService->OpenFilterList(localFile, NULL, NULL, getter_AddRefs(serverFilterList));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = serverFilterList->GetFilterNamed(yesFilterName.get(),
+  rv = serverFilterList->GetFilterNamed(yesFilterName,
                                   getter_AddRefs(newFilter));
   if (newFilter && serverFilterTrustFlags & nsISpamSettings::TRUST_POSITIVES)
   {
@@ -1705,7 +1705,7 @@ nsMsgIncomingServer::ConfigureTemporaryServerSpamFilters(nsIMsgFilterList *filte
         if (NS_SUCCEEDED(rv))
         {
           moveAction->SetType(nsMsgFilterAction::MoveToFolder);
-          moveAction->SetTargetFolderUri(spamFolderURI.get());
+          moveAction->SetTargetFolderUri(spamFolderURI);
           newFilter->AppendAction(moveAction);
         }
       }
@@ -1724,7 +1724,7 @@ nsMsgIncomingServer::ConfigureTemporaryServerSpamFilters(nsIMsgFilterList *filte
     filterList->InsertFilterAt(0, newFilter);
   }
 
-  rv = serverFilterList->GetFilterNamed(noFilterName.get(),
+  rv = serverFilterList->GetFilterNamed(noFilterName,
                                   getter_AddRefs(newFilter));
   if (newFilter && serverFilterTrustFlags & nsISpamSettings::TRUST_NEGATIVES)
   {
@@ -1769,7 +1769,7 @@ nsMsgIncomingServer::ConfigureTemporaryReturnReceiptsFilter(nsIMsgFilterList *fi
   NS_NAMED_LITERAL_STRING(internalReturnReceiptFilterName, "mozilla-temporary-internal-MDN-receipt-filter");
 
   nsCOMPtr<nsIMsgFilter> newFilter;
-  rv = filterList->GetFilterNamed(internalReturnReceiptFilterName.get(),
+  rv = filterList->GetFilterNamed(internalReturnReceiptFilterName,
                                   getter_AddRefs(newFilter));
   if (newFilter)
     newFilter->SetEnabled(enable);
@@ -1779,7 +1779,7 @@ nsMsgIncomingServer::ConfigureTemporaryReturnReceiptsFilter(nsIMsgFilterList *fi
     rv = identity->GetFccFolder(actionTargetFolderUri);
     if (!actionTargetFolderUri.IsEmpty())
     {
-      filterList->CreateFilter(internalReturnReceiptFilterName.get(),
+      filterList->CreateFilter(internalReturnReceiptFilterName,
                                getter_AddRefs(newFilter));
       if (newFilter)
       {
@@ -1800,11 +1800,11 @@ nsMsgIncomingServer::ConfigureTemporaryReturnReceiptsFilter(nsIMsgFilterList *fi
             // we need to use OtherHeader + 1 so nsMsgFilter::GetTerm will
             // return our custom header.
             value->SetAttrib(nsMsgSearchAttrib::OtherHeader + 1);
-            value->SetStr(NS_LITERAL_STRING("multipart/report").get());
+            value->SetStr(NS_LITERAL_STRING("multipart/report"));
             term->SetAttrib(nsMsgSearchAttrib::OtherHeader + 1);
             term->SetOp(nsMsgSearchOp::Contains);
             term->SetBooleanAnd(PR_TRUE);
-            term->SetArbitraryHeader("Content-Type");
+            term->SetArbitraryHeader(NS_LITERAL_CSTRING("Content-Type"));
             term->SetValue(value);
             newFilter->AppendTerm(term);
           }
@@ -1819,11 +1819,11 @@ nsMsgIncomingServer::ConfigureTemporaryReturnReceiptsFilter(nsIMsgFilterList *fi
             // determine if ::OtherHeader is the best way to do this.
             // see nsMsgSearchOfflineMail::MatchTerms()
             value->SetAttrib(nsMsgSearchAttrib::OtherHeader + 1);
-            value->SetStr(NS_LITERAL_STRING("disposition-notification").get());
+            value->SetStr(NS_LITERAL_STRING("disposition-notification"));
             term->SetAttrib(nsMsgSearchAttrib::OtherHeader + 1);
             term->SetOp(nsMsgSearchOp::Contains);
             term->SetBooleanAnd(PR_TRUE);
-            term->SetArbitraryHeader("Content-Type");
+            term->SetArbitraryHeader(NS_LITERAL_CSTRING("Content-Type"));
             term->SetValue(value);
             newFilter->AppendTerm(term);
           }
@@ -1831,7 +1831,7 @@ nsMsgIncomingServer::ConfigureTemporaryReturnReceiptsFilter(nsIMsgFilterList *fi
         nsCOMPtr<nsIMsgRuleAction> filterAction;
         newFilter->CreateAction(getter_AddRefs(filterAction));
         filterAction->SetType(nsMsgFilterAction::MoveToFolder);
-        filterAction->SetTargetFolderUri(actionTargetFolderUri.get());
+        filterAction->SetTargetFolderUri(actionTargetFolderUri);
         newFilter->AppendAction(filterAction);
         filterList->InsertFilterAt(0, newFilter);
       }
@@ -1846,7 +1846,7 @@ nsMsgIncomingServer::ClearTemporaryReturnReceiptsFilter()
   if (mFilterList)
   {
     nsCOMPtr<nsIMsgFilter> mdnFilter;
-    nsresult rv = mFilterList->GetFilterNamed(NS_LITERAL_STRING("mozilla-temporary-internal-MDN-receipt-filter").get(),
+    nsresult rv = mFilterList->GetFilterNamed(NS_LITERAL_STRING("mozilla-temporary-internal-MDN-receipt-filter"),
                                               getter_AddRefs(mdnFilter));
    if (NS_SUCCEEDED(rv) && mdnFilter)
      return mFilterList->RemoveFilter(mdnFilter);

@@ -837,7 +837,7 @@ NS_IMETHODIMP nsNNTPNewsgroupList::ApplyFilterHit(nsIMsgFilter *aFilter, nsIMsgW
       case nsMsgFilterAction::AddTag:
       {
         nsXPIDLCString keyword;
-        filterAction->GetStrValue(getter_Copies(keyword));
+        filterAction->GetStrValue(keyword);
         nsCOMPtr<nsISupportsArray> messageArray;
         NS_NewISupportsArray(getter_AddRefs(messageArray));
         messageArray->AppendElement(m_newMsgHdr);

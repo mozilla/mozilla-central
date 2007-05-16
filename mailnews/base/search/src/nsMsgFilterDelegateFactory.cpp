@@ -39,7 +39,6 @@
 #include "nsMsgFilterDelegateFactory.h"
 
 #include "nsCOMPtr.h"
-#include "nsXPIDLString.h"
 #include "nsTextFormatter.h"
 
 #include "nsIRDFService.h"
@@ -138,12 +137,12 @@ nsMsgFilterDelegateFactory::getFilterDelegate(nsIRDFResource *aOuter,
 {
     nsresult rv;
     // now try to find ";filterName="
-    nsXPIDLCString uri;
+    nsCString uri;
     rv = aOuter->GetValue(getter_Copies(uri));
     if (NS_FAILED(rv)) return rv;
     
     PRInt32 separatorPosition = 0;
-    const char *filterTag = uri;
+    const char *filterTag = uri.get();
     while (filterTag && *filterTag != ';') {
         separatorPosition++;
         filterTag++;
@@ -157,7 +156,7 @@ nsMsgFilterDelegateFactory::getFilterDelegate(nsIRDFResource *aOuter,
     const char *filterName = getFilterName(filterTag);
 
     nsCOMPtr<nsIMsgFilterList> filterList;
-    rv = getFilterList(uri, separatorPosition, getter_AddRefs(filterList));
+    rv = getFilterList(uri.get(), separatorPosition, getter_AddRefs(filterList));
 
         // now that we have the filter list and index, retrieve the filter.
 
@@ -172,7 +171,7 @@ nsMsgFilterDelegateFactory::getFilterDelegate(nsIRDFResource *aOuter,
     nsTextFormatter::smprintf_free(unicodeString);
     
     nsCOMPtr<nsIMsgFilter> filter;
-    rv = filterList->GetFilterNamed(filterString.get(), getter_AddRefs(filter));
+    rv = filterList->GetFilterNamed(filterString, getter_AddRefs(filter));
     if (NS_FAILED(rv)) return rv;
 
     *aResult = filter;

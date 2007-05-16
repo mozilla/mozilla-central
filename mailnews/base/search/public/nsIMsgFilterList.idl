@@ -52,7 +52,7 @@ interface nsIOutputStream;
 
 typedef long nsMsgFilterFileAttribValue;
 
-[scriptable, uuid(a5cf1698-251a-4c5a-9fcd-9ae518fda452)]
+[scriptable, uuid(BC32C05E-4E4E-4F08-BF01-157A0CE71874)]
 interface nsIMsgFilterList : nsISupports {
 
     const nsMsgFilterFileAttribValue attribNone = 0;
@@ -69,11 +69,11 @@ interface nsIMsgFilterList : nsISupports {
 
     attribute nsIMsgFolder folder;
     readonly attribute short version;
-    readonly attribute string arbitraryHeaders;
+    readonly attribute ACString arbitraryHeaders;
     readonly attribute boolean shouldDownloadAllHeaders;
     readonly attribute unsigned long filterCount;
     nsIMsgFilter getFilterAt(in unsigned long filterIndex);
-    nsIMsgFilter getFilterNamed(in wstring filterName);
+    nsIMsgFilter getFilterNamed(in AString filterName);
 
     void setFilterAt(in unsigned long filterIndex, in nsIMsgFilter filter);
     void removeFilter(in nsIMsgFilter filter);
@@ -88,7 +88,7 @@ interface nsIMsgFilterList : nsISupports {
 
     attribute boolean loggingEnabled;
 
-    nsIMsgFilter createFilter(in wstring name);
+    nsIMsgFilter createFilter(in AString name);
 
     void saveToFile(in nsIOutputStream stream);
 
@@ -119,14 +119,14 @@ interface nsIMsgFilterList : nsISupports {
     void writeStrAttr(in nsMsgFilterFileAttribValue attrib, in string value, in nsIOutputStream stream);
     void writeWstrAttr(in nsMsgFilterFileAttribValue attrib, in wstring value, in nsIOutputStream stream);
     void writeBoolAttr(in nsMsgFilterFileAttribValue attrib, in boolean value, in nsIOutputStream stream);
-    boolean matchOrChangeFilterTarget(in string oldUri, in string newUri, in boolean caseInsensitive);
+    boolean matchOrChangeFilterTarget(in ACString oldUri, in ACString newUri, in boolean caseInsensitive);
  
     // for filter logging
     attribute nsIOutputStream logStream;
-    readonly attribute string logURL;
+    readonly attribute ACString logURL;
     void clearLog();
     void ensureLogFile();
-	void flushLogIfNecessary();
+    void flushLogIfNecessary();
 };
 
 

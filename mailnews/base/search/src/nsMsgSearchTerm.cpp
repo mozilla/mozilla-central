@@ -39,7 +39,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "msgCore.h"
-#include "nsXPIDLString.h"
 #include "nsReadableUtils.h"
 
 #include "nsMsgSearchCore.h"
@@ -142,7 +141,7 @@ nsresult NS_MsgGetAttributeFromString(const char *string, PRInt16 *attrib)
     rv = prefService->GetBranch(nsnull, getter_AddRefs(prefBranch));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsXPIDLCString headers;
+    nsCString headers;
     prefBranch->GetCharPref(MAILNEWS_CUSTOM_HEADERS, getter_Copies(headers));
 
     if (!headers.IsEmpty())
@@ -852,7 +851,7 @@ nsresult nsMsgSearchTerm::InitializeAddressBook()
 
   if (mDirectory)
   {
-    nsXPIDLCString dirURI;
+    nsCString dirURI;
     mDirectory->GetDirUri(getter_Copies(dirURI));
     if (strcmp(dirURI.get(), m_value.string))
       mDirectory = nsnull; // clear out the directory....we are no longer pointing to the right one
@@ -894,7 +893,7 @@ nsresult nsMsgSearchTerm::MatchInAddressBook(const char * aAddress, PRBool *pRes
 }
 
 // *pResult is PR_FALSE when strings don't match, PR_TRUE if they do.
-nsresult nsMsgSearchTerm::MatchRfc2047String (const char *rfc2047string,
+nsresult nsMsgSearchTerm::MatchRfc2047String (const char * rfc2047string,
                                        const char *charset,
                                        PRBool charsetOverride,
                                        PRBool *pResult)
@@ -1431,15 +1430,14 @@ nsMsgSearchTerm::SetBooleanAnd(PRBool aValue)
 }
 
 NS_IMETHODIMP
-nsMsgSearchTerm::GetArbitraryHeader(char* *aResult)
+nsMsgSearchTerm::GetArbitraryHeader(nsACString &aResult)
 {
-    NS_ENSURE_ARG_POINTER(aResult);
-    *aResult = ToNewCString(m_arbitraryHeader);
+    aResult = m_arbitraryHeader;
     return NS_OK;
 }
 
 NS_IMETHODIMP
-nsMsgSearchTerm::SetArbitraryHeader(const char* aValue)
+nsMsgSearchTerm::SetArbitraryHeader(const nsACString &aValue)
 {
     m_arbitraryHeader = aValue;
     return NS_OK;
@@ -1662,8 +1660,8 @@ nsresult nsMsgResultElement::AssignValues (nsIMsgSearchValue *src, nsMsgSearchVa
     if (dst->attribute < nsMsgSearchAttrib::kNumMsgSearchAttributes)
     {
       NS_ASSERTION(IS_STRING_ATTRIBUTE(dst->attribute), "assigning non-string result");
-      nsXPIDLString unicodeString;
-      err = src->GetStr(getter_Copies(unicodeString));
+      nsString unicodeString;
+      err = src->GetStr(unicodeString);
       dst->string = ToNewUTF8String(unicodeString);
     }
     else

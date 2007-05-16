@@ -36,7 +36,6 @@
  * ***** END LICENSE BLOCK ***** */
 #include "msgCore.h"
 #include "nsMsgSearchAdapter.h"
-#include "nsXPIDLString.h"
 #include "nsUnicharUtils.h"
 #include "nsReadableUtils.h"
 #include "nsMsgSearchScopeTerm.h"
@@ -189,12 +188,12 @@ char *nsMsgSearchNews::EncodeTerm (nsIMsgSearchTerm *term)
     return nsnull;
 
 
-  nsXPIDLString intlNonRFC1522Value;
-  rv = searchValue->GetStr(getter_Copies(intlNonRFC1522Value));
-	if (NS_FAILED(rv) || !intlNonRFC1522Value)
+  nsString intlNonRFC1522Value;
+  rv = searchValue->GetStr(intlNonRFC1522Value);
+	if (NS_FAILED(rv) || intlNonRFC1522Value.IsEmpty())
 		return nsnull;
 		
-	PRUnichar *caseInsensitiveValue = EncodeToWildmat (intlNonRFC1522Value);
+	PRUnichar *caseInsensitiveValue = EncodeToWildmat (intlNonRFC1522Value.get());
 	if (!caseInsensitiveValue)
 		return nsnull;
 

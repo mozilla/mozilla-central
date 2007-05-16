@@ -432,10 +432,10 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
 											PRBool *pResult) 
 {
     nsresult err = NS_OK;
-    nsXPIDLCString  recipients;
-    nsXPIDLCString  ccList;
-    nsXPIDLCString  matchString;
-    nsXPIDLCString  msgCharset;
+    nsCString  recipients;
+    nsCString  ccList;
+    nsCString  matchString;
+    nsCString  msgCharset;
     const char *charset;
     PRBool charsetOverride = PR_FALSE; /* XXX BUG 68706 */
     PRUint32 msgFlags;
@@ -455,7 +455,7 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
     nsMsgSearchAttribValue attrib;
     aTerm->GetAttrib(&attrib);
     msgToMatch->GetCharset(getter_Copies(msgCharset));
-    charset = (const char*)msgCharset;
+    charset = msgCharset.get();
     if (!charset || !*charset)
       charset = (const char*)defaultCharset;
     msgToMatch->GetFlags(&msgFlags);
@@ -464,7 +464,7 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
     {
       case nsMsgSearchAttrib::Sender:
         msgToMatch->GetAuthor(getter_Copies(matchString));
-        err = aTerm->MatchRfc822String (matchString, charset, charsetOverride, &result);
+        err = aTerm->MatchRfc822String (matchString.get(), charset, charsetOverride, &result);
         break;
       case nsMsgSearchAttrib::Subject:
       {
@@ -472,13 +472,13 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
         if (msgFlags & MSG_FLAG_HAS_RE)
         { 
           // Make sure we pass along the "Re: " part of the subject if this is a reply.
-          nsXPIDLCString reString;
+          nsCString reString;
           reString.Assign("Re: ");
           reString.Append(matchString);
-          err = aTerm->MatchRfc2047String(reString, charset, charsetOverride, &result);
+          err = aTerm->MatchRfc2047String(reString.get(), charset, charsetOverride, &result);
         }
         else
-          err = aTerm->MatchRfc2047String (matchString, charset, charsetOverride, &result);
+          err = aTerm->MatchRfc2047String (matchString.get(), charset, charsetOverride, &result);
         break;
       }
       case nsMsgSearchAttrib::ToOrCC:
@@ -486,11 +486,11 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
         PRBool boolKeepGoing;
         aTerm->GetMatchAllBeforeDeciding(&boolKeepGoing);
         msgToMatch->GetRecipients(getter_Copies(recipients));
-        err = aTerm->MatchRfc822String (recipients, charset, charsetOverride, &result);
+        err = aTerm->MatchRfc822String (recipients.get(), charset, charsetOverride, &result);
         if (boolKeepGoing == result)
         {
           msgToMatch->GetCcList(getter_Copies(ccList));
-          err = aTerm->MatchRfc822String (ccList, charset, charsetOverride, &result);
+          err = aTerm->MatchRfc822String (ccList.get(), charset, charsetOverride, &result);
         }
         break;
       }
@@ -531,11 +531,11 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
       }
       case nsMsgSearchAttrib::To:
         msgToMatch->GetRecipients(getter_Copies(recipients));
-        err = aTerm->MatchRfc822String(recipients, charset, charsetOverride, &result);
+        err = aTerm->MatchRfc822String(recipients.get(), charset, charsetOverride, &result);
         break;
       case nsMsgSearchAttrib::CC:
         msgToMatch->GetCcList(getter_Copies(ccList));
-        err = aTerm->MatchRfc822String (ccList, charset, charsetOverride, &result);
+        err = aTerm->MatchRfc822String (ccList.get(), charset, charsetOverride, &result);
         break;
       case nsMsgSearchAttrib::AgeInDays:
       {
@@ -553,7 +553,7 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
       }    
       case nsMsgSearchAttrib::Keywords:
       {
-          nsXPIDLCString keywords;
+          nsCString keywords;
           nsMsgLabelValue label;
           msgToMatch->GetStringProperty("keywords", getter_Copies(keywords));
           msgToMatch->GetLabel(&label);
@@ -569,9 +569,9 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
       }
       case nsMsgSearchAttrib::JunkStatus:
       {
-         nsXPIDLCString junkScoreStr;
+         nsCString junkScoreStr;
          msgToMatch->GetStringProperty("junkscore", getter_Copies(junkScoreStr));
-         err = aTerm->MatchJunkStatus(junkScoreStr, &result);
+         err = aTerm->MatchJunkStatus(junkScoreStr.get(), &result);
          break; 
       }
       default:
@@ -675,8 +675,8 @@ nsresult nsMsgSearchOfflineMail::Search (PRBool *aDone)
         else
         {
           PRBool match = PR_FALSE;
-          nsXPIDLString nullCharset, folderCharset;
-          GetSearchCharsets(getter_Copies(nullCharset), getter_Copies(folderCharset));
+          nsAutoString nullCharset, folderCharset;
+          GetSearchCharsets(nullCharset, folderCharset);
           NS_ConvertUTF16toUTF8 charset(folderCharset);
           // Is this message a hit?
           err = MatchTermsForSearch (msgDBHdr, m_searchTerms, charset.get(), m_scope, m_db, &expressionTree, &match);

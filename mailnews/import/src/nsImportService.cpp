@@ -59,7 +59,6 @@
 #include "nsIImportGeneric.h"
 #include "nsImportFieldMap.h"
 #include "nsICategoryManager.h"
-#include "nsXPIDLString.h"
 #include "nsXPCOM.h"
 #include "nsISupportsPrimitives.h"
 #include "plstr.h"
@@ -350,191 +349,186 @@ NS_IMETHODIMP nsImportService::GetModule( const char *filter, PRInt32 index, nsI
 
 nsresult nsImportService::DoDiscover( void)
 {	
-	if (m_didDiscovery)
-		return( NS_OK);
-	
-	if (m_pModules != nsnull)
-		m_pModules->ClearList();
-		    
-    nsresult rv;
-	
-	nsCOMPtr<nsICategoryManager> catMan = do_GetService( NS_CATEGORYMANAGER_CONTRACTID, &rv);
-	if (NS_FAILED( rv)) return( rv);
-    
-	nsCOMPtr<nsISimpleEnumerator> e;
-	rv = catMan->EnumerateCategory( "mailnewsimport", getter_AddRefs( e));
-	if (NS_FAILED( rv)) return( rv);
-	nsCOMPtr<nsISupportsCString> contractid;
-	rv = e->GetNext( getter_AddRefs( contractid));
-	while (NS_SUCCEEDED( rv) && contractid) {
-		nsXPIDLCString	contractIdStr;
-		contractid->ToString( getter_Copies( contractIdStr));
-		nsXPIDLCString	supportsStr;
-		rv = catMan->GetCategoryEntry( "mailnewsimport", contractIdStr, getter_Copies( supportsStr));
-		if (NS_SUCCEEDED( rv)) {
-			LoadModuleInfo( contractIdStr, supportsStr);
-		}
-		rv = e->GetNext( getter_AddRefs( contractid));
-	}
-
-	m_didDiscovery = PR_TRUE;
-	
-    return NS_OK;
+  if (m_didDiscovery)
+    return( NS_OK);
+  
+  if (m_pModules != nsnull)
+    m_pModules->ClearList();
+  
+  nsresult rv;
+  
+  nsCOMPtr<nsICategoryManager> catMan = do_GetService( NS_CATEGORYMANAGER_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  nsCOMPtr<nsISimpleEnumerator> e;
+  rv = catMan->EnumerateCategory( "mailnewsimport", getter_AddRefs( e));
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsISupportsCString> contractid;
+  rv = e->GetNext( getter_AddRefs( contractid));
+  while (NS_SUCCEEDED( rv) && contractid)
+  {
+    nsCString contractIdStr;
+    contractid->ToString( getter_Copies( contractIdStr));
+    nsCString supportsStr;
+    rv = catMan->GetCategoryEntry( "mailnewsimport", contractIdStr.get(), getter_Copies( supportsStr));
+    if (NS_SUCCEEDED( rv))
+      LoadModuleInfo( contractIdStr.get(), supportsStr.get());
+    rv = e->GetNext( getter_AddRefs( contractid));
+  }
+  
+  m_didDiscovery = PR_TRUE;
+  
+  return NS_OK;
 }
 
 nsresult nsImportService::LoadModuleInfo( const char *pClsId, const char *pSupports)
 {
-	if (!pClsId || !pSupports)
-		return( NS_OK);
-
-	if (m_pModules == nsnull)
-		m_pModules = new nsImportModuleList();
+  if (!pClsId || !pSupports)
+    return( NS_OK);
+  
+  if (m_pModules == nsnull)
+    m_pModules = new nsImportModuleList();
 		
-	// load the component and get all of the info we need from it....
-	// then call AddModule
-	nsresult	rv;
-
-	nsCID				clsId;
-	clsId.Parse( pClsId);
-	nsIImportModule *	module;
-	rv = CallCreateInstance( clsId, &module);
-	if (NS_FAILED(rv)) return rv;
-	
-	nsString	theTitle;	
-	nsString	theDescription;
-	PRUnichar *	pName;
-	rv = module->GetName( &pName);
-	if (NS_SUCCEEDED( rv)) {
-		theTitle = pName;
-                nsMemory::Free(pName);
-	}
-	else
-		theTitle.AssignLiteral("Unknown");
+  // load the component and get all of the info we need from it....
+  // then call AddModule
+  nsresult	rv;
+  
+  nsCID				clsId;
+  clsId.Parse( pClsId);
+  nsIImportModule *	module;
+  rv = CallCreateInstance( clsId, &module);
+  if (NS_FAILED(rv)) return rv;
+  
+  nsString	theTitle;	
+  nsString	theDescription;
+  rv = module->GetName(getter_Copies(theTitle));
+  if (NS_FAILED( rv))
+    theTitle.AssignLiteral("Unknown");
 		
-	rv = module->GetDescription( &pName);
-	if (NS_SUCCEEDED( rv)) {
-		theDescription = pName;
-                nsMemory::Free(pName);
-	}
-	else
-		theDescription.AssignLiteral("Unknown description");
-	
-	// call the module to get the info we need
-	m_pModules->AddModule( clsId, pSupports, theTitle.get(), theDescription.get());
-	
-	module->Release();
-	
-	return NS_OK;
+  rv = module->GetDescription(getter_Copies(theDescription));
+  if (NS_FAILED( rv)) 
+    theDescription.AssignLiteral("Unknown description");
+  
+  // call the module to get the info we need
+  m_pModules->AddModule( clsId, pSupports, theTitle.get(), theDescription.get());
+  
+  module->Release();
+  
+  return NS_OK;
 }
 
 
 nsIImportModule *ImportModuleDesc::GetModule( PRBool keepLoaded)
 {
-	if (m_pModule) {
-		m_pModule->AddRef();
-		return( m_pModule);
-	}
-	
-	nsresult	rv;
-	rv = CallCreateInstance( m_cid, &m_pModule);
-	if (NS_FAILED(rv)) {
-		m_pModule = nsnull;
-		return nsnull;
-	}
-	
-	if (keepLoaded) {
-		m_pModule->AddRef();
-		return( m_pModule);
-	}
-	else {
-		nsIImportModule *pModule = m_pModule;
-		m_pModule = nsnull;
-		return( pModule);
-	}
+  if (m_pModule)
+  {
+    m_pModule->AddRef();
+    return( m_pModule);
+  }
+  
+  nsresult	rv;
+  rv = CallCreateInstance( m_cid, &m_pModule);
+  if (NS_FAILED(rv))
+  {
+    m_pModule = nsnull;
+    return nsnull;
+  }
+  
+  if (keepLoaded) 
+  {
+    m_pModule->AddRef();
+    return( m_pModule);
+  }
+  else
+  {
+    nsIImportModule *pModule = m_pModule;
+    m_pModule = nsnull;
+    return( pModule);
+  }
 }
 
 void ImportModuleDesc::ReleaseModule( void)
 {
-	if (m_pModule) {
-		m_pModule->Release();
-		m_pModule = nsnull;
-	}
+  if (m_pModule)
+  {
+    m_pModule->Release();
+    m_pModule = nsnull;
+  }
 }
 
 PRBool ImportModuleDesc::SupportsThings( const char *pThings)
 {
-	if (!pThings)
-		return( PR_TRUE);
-	if (!(*pThings))
-		return( PR_TRUE);
-
-	nsCString	thing(pThings);
-	nsCString	item;
-	PRInt32		idx;
-	
-	while ((idx = thing.FindChar( ',')) != -1) {
-		thing.Left( item, idx);
-		item.Trim( kWhitespace);
-		ToLowerCase(item);
-		if (item.Length() && (m_supports.Find( item) == -1))
-			return( PR_FALSE);
-		thing.Right( item, thing.Length() - idx - 1);
-		thing = item;
-	}
-	thing.Trim( kWhitespace);
-	ToLowerCase(thing);
-	if (thing.Length() && (m_supports.Find( thing) == -1))
-		return( PR_FALSE);
-	
-	return( PR_TRUE);
+  if (!pThings || !*pThings)
+    return PR_TRUE;
+  
+  nsCString thing(pThings);
+  nsCString item;
+  PRInt32 idx;
+  
+  while ((idx = thing.FindChar( ',')) != kNotFound) 
+  {
+    thing.Left( item, idx);
+    item.Trim( kWhitespace);
+    ToLowerCase(item);
+    if (item.Length() && (m_supports.Find( item) == kNotFound))
+      return PR_FALSE;
+    thing.Right( item, thing.Length() - idx - 1);
+    thing = item;
+  }
+  thing.Trim( kWhitespace);
+  ToLowerCase(thing);
+  return thing.IsEmpty() || (m_supports.Find(thing) != kNotFound);
 }
 
 void nsImportModuleList::ClearList( void)
 {
-	if (m_pList != nsnull) {
-		for (int i = 0; i < m_count; i++) {
-			if (m_pList[i] != nsnull)
-				delete m_pList[i];	
-			m_pList[i] = nsnull;
-		}
-		m_count = 0;
-		delete [] m_pList;
-		m_pList = nsnull;
-		m_alloc = 0;
-	}
-	
+  if (m_pList)
+  {
+    for (int i = 0; i < m_count; i++)
+    {
+      delete m_pList[i];	
+      m_pList[i] = nsnull;
+    }
+    m_count = 0;
+    delete [] m_pList;
+    m_pList = nsnull;
+    m_alloc = 0;
+  }
+  
 }
 
 void nsImportModuleList::AddModule( const nsCID& cid, const char *pSupports, const PRUnichar *pName, const PRUnichar *pDesc)
 {
-	if (m_pList == nsnull) {
-		m_alloc = 10;
-		m_pList = new ImportModuleDesc *[m_alloc];
-		m_count = 0;
-		memset( m_pList, 0, sizeof( ImportModuleDesc *) * m_alloc);
-	}
-	
-	if (m_count == m_alloc) {
-		ImportModuleDesc **pList = new ImportModuleDesc *[m_alloc + 10];
-		memset( &(pList[m_alloc]), 0, sizeof( ImportModuleDesc *) * 10);
-		memcpy( pList, m_pList, sizeof( ImportModuleDesc *) * m_alloc);
+  if (!m_pList)
+  {
+    m_alloc = 10;
+    m_pList = new ImportModuleDesc *[m_alloc];
+    m_count = 0;
+    memset( m_pList, 0, sizeof( ImportModuleDesc *) * m_alloc);
+  }
+  
+  if (m_count == m_alloc) 
+  {
+    ImportModuleDesc **pList = new ImportModuleDesc *[m_alloc + 10];
+    memset( &(pList[m_alloc]), 0, sizeof( ImportModuleDesc *) * 10);
+    memcpy( pList, m_pList, sizeof( ImportModuleDesc *) * m_alloc);
     for(int i = 0; i < m_count; i++)
       delete m_pList[i];
     delete [] m_pList;
-		m_pList = pList;
-		m_alloc += 10;
-	}
-	
-	m_pList[m_count] = new ImportModuleDesc();
-	m_pList[m_count]->SetCID( cid);
-	m_pList[m_count]->SetSupports( pSupports);
-	m_pList[m_count]->SetName( pName);
-	m_pList[m_count]->SetDescription( pDesc);
-	
-	m_count++;
+    m_pList = pList;
+    m_alloc += 10;
+  }
+  
+  m_pList[m_count] = new ImportModuleDesc();
+  m_pList[m_count]->SetCID( cid);
+  m_pList[m_count]->SetSupports( pSupports);
+  m_pList[m_count]->SetName( pName);
+  m_pList[m_count]->SetDescription( pDesc);
+  
+  m_count++;
 #ifdef IMPORT_DEBUG
-	nsCString 	name; name.AssignWithConversion( pName);
-	nsCString	desc; desc.AssignWithConversion( pDesc);
-	IMPORT_LOG3( "* nsImportService registered import module: %s, %s, %s\n", name.get(), desc.get(), pSupports);
+  nsCString 	name; name.AssignWithConversion( pName);
+  nsCString	desc; desc.AssignWithConversion( pDesc);
+  IMPORT_LOG3( "* nsImportService registered import module: %s, %s, %s\n", name.get(), desc.get(), pSupports);
 #endif
 }

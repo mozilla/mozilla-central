@@ -1834,7 +1834,7 @@ NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWi
       if (actionType == nsMsgFilterAction::MoveToFolder ||
           actionType == nsMsgFilterAction::CopyToFolder)
       {
-        filterAction->GetTargetFolderUri(getter_Copies(actionTargetFolderUri));
+        filterAction->GetTargetFolderUri(actionTargetFolderUri);
         if (actionTargetFolderUri.IsEmpty())
         {
           NS_ASSERTION(PR_FALSE, "actionTargetFolderUri is empty");
@@ -1953,7 +1953,7 @@ NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWi
       case nsMsgFilterAction::AddTag:
       {
         nsXPIDLCString keyword;
-        filterAction->GetStrValue(getter_Copies(keyword));
+        filterAction->GetStrValue(keyword);
         nsCOMPtr<nsISupportsArray> messageArray;
         NS_NewISupportsArray(getter_AddRefs(messageArray));
         messageArray->AppendElement(msgHdr);
@@ -1983,16 +1983,16 @@ NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWi
       }
       case nsMsgFilterAction::Forward:
         {
-          nsXPIDLCString forwardTo;
-          filterAction->GetStrValue(getter_Copies(forwardTo));
+          nsCString forwardTo;
+          filterAction->GetStrValue(forwardTo);
           m_forwardTo.AppendCString(forwardTo);
           m_msgToForwardOrReply = msgHdr;
         }
         break;
       case nsMsgFilterAction::Reply:
         {
-          nsXPIDLCString replyTemplateUri;
-          filterAction->GetStrValue(getter_Copies(replyTemplateUri));
+          nsCString replyTemplateUri;
+          filterAction->GetStrValue(replyTemplateUri);
           m_replyTemplateUri.AppendCString(replyTemplateUri);
           m_msgToForwardOrReply = msgHdr;
         }

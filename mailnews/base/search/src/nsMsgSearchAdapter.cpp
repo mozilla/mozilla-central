@@ -45,7 +45,6 @@
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
 #include "nsIPrefLocalizedString.h"
-#include "nsXPIDLString.h"
 #include "nsReadableUtils.h"
 #include "nsMsgSearchTerm.h"
 #include "nsMsgSearchBoolExpression.h"
@@ -326,12 +325,9 @@ char *nsMsgSearchAdapter::UnEscapeSearchUrl (const char *commandSpecificData)
 
 
 nsresult 
-nsMsgSearchAdapter::GetSearchCharsets(PRUnichar **srcCharset, PRUnichar **dstCharset)
+nsMsgSearchAdapter::GetSearchCharsets(nsAString &srcCharset, nsAString &dstCharset)
 {
   nsresult rv;
-  nsAutoString destination;
-  NS_ENSURE_ARG(srcCharset);
-  NS_ENSURE_ARG(dstCharset);
   
   if (m_defaultCharset.IsEmpty())
   {
@@ -348,8 +344,8 @@ nsMsgSearchAdapter::GetSearchCharsets(PRUnichar **srcCharset, PRUnichar **dstCha
       prefs->GetBoolPref("mailnews.force_ascii_search", &m_forceAsciiSearch);
     }
   }
-  *srcCharset = m_defaultCharset.IsEmpty() ? 
-    ToNewUnicode(NS_LITERAL_STRING("ISO-8859-1")) : ToNewUnicode(m_defaultCharset);
+  srcCharset = m_defaultCharset.IsEmpty() ? 
+    NS_LITERAL_STRING("ISO-8859-1") : m_defaultCharset;
   
   if (m_scope)
   {
@@ -361,14 +357,14 @@ nsMsgSearchAdapter::GetSearchCharsets(PRUnichar **srcCharset, PRUnichar **dstCha
     // Ask the newsgroup/folder for its csid.
     if (NS_SUCCEEDED(rv) && folder)
     {
-      nsXPIDLCString folderCharset;
+      nsCString folderCharset;
       folder->GetCharset(getter_Copies(folderCharset));
-      AppendASCIItoUTF16(folderCharset, destination);
+      AppendASCIItoUTF16(folderCharset, dstCharset);
     }
   }
   else
   {
-    destination.Assign(*srcCharset);
+    dstCharset.Assign(srcCharset);
   }
   
   
@@ -377,9 +373,9 @@ nsMsgSearchAdapter::GetSearchCharsets(PRUnichar **srcCharset, PRUnichar **dstCha
   // the source. (CS_DEFAULT is an indication that the charset
   // was undefined or unavailable.)
   // ### well, it's not really anymore. Is there an equivalent?
-  if (destination.Equals(m_defaultCharset))
+  if (dstCharset.Equals(m_defaultCharset))
   {
-    destination.Assign(*srcCharset);
+    dstCharset.Assign(srcCharset);
   }
   
   if (m_forceAsciiSearch)
@@ -391,10 +387,9 @@ nsMsgSearchAdapter::GetSearchCharsets(PRUnichar **srcCharset, PRUnichar **dstCha
     // If the dest csid is ISO Latin 1 or MacRoman, attempt to convert the 
     // source text to US-ASCII. (Not for now.)
     // if ((dst_csid == CS_LATIN1) || (dst_csid == CS_MAC_ROMAN))
-    destination.AssignLiteral("us-ascii");
+    dstCharset.AssignLiteral("us-ascii");
   }
 
-  *dstCharset = ToNewUnicode(destination);
   return NS_OK;
 }
 
@@ -530,8 +525,8 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, PRBool real
     default:
       if ( attrib > nsMsgSearchAttrib::OtherHeader && attrib < nsMsgSearchAttrib::kNumMsgSearchAttributes)
       {
-        nsXPIDLCString arbitraryHeaderTerm;
-        term->GetArbitraryHeader(getter_Copies(arbitraryHeaderTerm));
+        nsCString arbitraryHeaderTerm;
+        term->GetArbitraryHeader(arbitraryHeaderTerm);
         if (!arbitraryHeaderTerm.IsEmpty())
         {
           arbitraryHeader.AssignLiteral(" \"");
@@ -635,8 +630,8 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, PRBool real
       if (IsStringAttribute(attrib))
       {
         PRUnichar *convertedValue; // = reallyDredd ? MSG_EscapeSearchUrl (term->m_value.u.string) : msg_EscapeImapSearchProtocol(term->m_value.u.string);
-        nsXPIDLString searchTermValue;
-        searchValue->GetStr(getter_Copies(searchTermValue));
+        nsString searchTermValue;
+        searchValue->GetStr(searchTermValue);
         // Ugly switch for Korean mail/news charsets.
         // We want to do this here because here is where
         // we know what charset we want to use.
@@ -648,8 +643,8 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, PRBool real
 #endif
 
         // do all sorts of crazy escaping
-        convertedValue = reallyDredd ? EscapeSearchUrl (searchTermValue) :
-        EscapeImapSearchProtocol(searchTermValue);
+        convertedValue = reallyDredd ? EscapeSearchUrl (searchTermValue.get()) :
+        EscapeImapSearchProtocol(searchTermValue.get());
         useQuotes = ((!reallyDredd || 
                     (nsDependentString(convertedValue).FindChar(PRUnichar(' ')) != -1)) &&
            (attrib != nsMsgSearchAttrib::Keywords));
@@ -1058,7 +1053,7 @@ NS_IMETHODIMP nsMsgSearchValidityManager::GetTable (int whichTable, nsIMsgSearch
   *ppOutTable = nsnull;
   
   nsCOMPtr<nsIPrefBranch> pref(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-  nsXPIDLCString customHeaders;
+  nsCString customHeaders;
   if (NS_SUCCEEDED(rv))
     pref->GetCharPref(PREF_CUSTOM_HEADERS, getter_Copies(customHeaders));
   

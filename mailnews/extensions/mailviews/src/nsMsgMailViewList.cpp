@@ -230,7 +230,7 @@ nsresult nsMsgMailViewList::ConvertMailViewListToFilterList()
   m_mailViews->Count(&mailViewCount);
   nsCOMPtr<nsIMsgMailView> mailView;
   nsCOMPtr<nsIMsgFilter> newMailFilter;
-  nsXPIDLString mailViewName;
+  nsString mailViewName;
   for (PRUint32 index = 0; index < mailViewCount; index++)
   {
       GetMailViewAt(index, getter_AddRefs(mailView));
@@ -315,9 +315,9 @@ nsresult nsMsgMailViewList::ConvertFilterListToMailView(nsIMsgFilterList * aFilt
         nsCOMPtr<nsIMsgMailView> newMailView; 
         rv = CreateMailView(getter_AddRefs(newMailView));
         NS_ENSURE_SUCCESS(rv, rv);
-        nsXPIDLString filterName;
-        msgFilter->GetFilterName(getter_Copies(filterName));
-        newMailView->SetMailViewName(filterName);
+        nsString filterName;
+        msgFilter->GetFilterName(filterName);
+        newMailView->SetMailViewName(filterName.get());
 
         nsCOMPtr<nsISupportsArray> filterSearchTerms;
         msgFilter->GetSearchTerms(getter_AddRefs(filterSearchTerms));
