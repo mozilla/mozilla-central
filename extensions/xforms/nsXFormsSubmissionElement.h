@@ -98,6 +98,7 @@ public:
   NS_HIDDEN_(nsresult) LoadReplaceInstance(nsIChannel *);
   NS_HIDDEN_(nsresult) LoadReplaceAll(nsIChannel *);
   NS_HIDDEN_(nsresult) Submit();
+  NS_HIDDEN_(nsresult) GetSubmissionURI(nsACString& aURI);
   NS_HIDDEN_(PRBool)   GetBooleanAttr(const nsAString &attrName,
                                       PRBool defaultVal = PR_FALSE);
   NS_HIDDEN_(void)     GetDefaultInstanceData(nsIDOMNode **result);

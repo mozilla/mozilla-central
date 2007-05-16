@@ -681,10 +681,9 @@ nsXFormsSubmissionElement::Submit()
   NS_ENSURE_STATE(mFormat != 0);
 
   nsCOMPtr<nsIInputStream> stream;
-  nsCAutoString uri, contentType;
-  nsAutoString action;
-  mElement->GetAttribute(NS_LITERAL_STRING("action"), action);
-  CopyUTF16toUTF8(action, uri);
+  nsCAutoString contentType;
+  nsCAutoString uri;
+  GetSubmissionURI(uri);
 
   rv = SerializeData(submissionDoc, uri, getter_AddRefs(stream), contentType);
   if (NS_FAILED(rv)) {
@@ -701,6 +700,102 @@ nsXFormsSubmissionElement::Submit()
                                mElement, nsIScriptError::warningFlag);
     return rv;
   }
+
+  return rv;
+}
+
+nsresult
+nsXFormsSubmissionElement::GetSubmissionURI(nsACString& aURI)
+{
+  // Precedence:
+  // 1. If the submission element has a resource element as its first child,
+  // the URI can be specifed by either the 'value' attribute or the string
+  // content of the resource element. The resource element has precedence over
+  // both the 'resource' and 'action' attributes.
+  //
+  // 2. If there is no resource element as the first child, the URI may be
+  // specified by either the 'resource' or 'action' attributes with 'resource'
+  // having precedence over 'action'.
+  //
+  // If no URI is specified via any of the above mechanisms we write a warning
+  // message to the error console.
+
+  nsresult rv = NS_OK;
+  nsAutoString uri;
+
+  // First check if the first child element of submission is a resource.
+  nsCOMPtr<nsIDOMNode> currentNode, node, resourceNode;
+  mElement->GetFirstChild(getter_AddRefs(currentNode));
+
+  PRUint16 nodeType;
+
+  while (currentNode) {
+    currentNode->GetNodeType(&nodeType);
+    if (nodeType == nsIDOMNode::ELEMENT_NODE) {
+      // Make sure the element is a resource element.
+      nsAutoString localName, namespaceURI;
+      currentNode->GetLocalName(localName);
+      currentNode->GetNamespaceURI(namespaceURI);
+      if (localName.EqualsLiteral("resource") &&
+          namespaceURI.EqualsLiteral(NS_NAMESPACE_XFORMS)) {
+        // First child element is a resource.
+        resourceNode = currentNode;
+      }
+
+      // The resource element must be the first child, so we
+      // bail out as soon as we find any element.
+      break;
+    }
+
+    currentNode->GetNextSibling(getter_AddRefs(node));
+    currentNode.swap(node);
+  }
+
+  if (resourceNode) {
+    PRBool hasAttributes = PR_FALSE;
+    resourceNode->HasAttributes(&hasAttributes);
+    if (hasAttributes) {
+      nsCOMPtr<nsIDOMElement> resourceElement(do_QueryInterface(currentNode));
+      if (resourceElement) {
+        resourceElement->GetAttribute(NS_LITERAL_STRING("value"), uri);
+        if (!uri.IsEmpty()) {
+          nsCOMPtr<nsIModelElementPrivate> model;
+          nsCOMPtr<nsIDOMXPathResult> xpRes;
+          PRBool usesModelBind = PR_FALSE;
+          rv = nsXFormsUtils::EvaluateNodeBinding(resourceElement, 0,
+                                                  NS_LITERAL_STRING("value"),
+                                                  EmptyString(),
+                                                  nsIDOMXPathResult::STRING_TYPE,
+                                                  getter_AddRefs(model),
+                                                  getter_AddRefs(xpRes),
+                                                  &usesModelBind);
+          NS_ENSURE_SUCCESS(rv, rv);
+
+          if (xpRes) {
+            rv = xpRes->GetStringValue(uri);
+            NS_ENSURE_SUCCESS(rv, rv);
+          }
+        }
+      }
+    } else {
+      // No value attribute. Get the string content of the resource element.
+      nsXFormsUtils::GetNodeValue(resourceNode, uri);
+    }
+  } else {
+    // No resource element so check first for the resource attribute and then
+    // the action attribute.
+    mElement->GetAttribute(NS_LITERAL_STRING("resource"), uri);
+    if (uri.IsEmpty()) {
+      mElement->GetAttribute(NS_LITERAL_STRING("action"), uri);
+    }
+  }
+
+  // If no URI is specified, write a warning to the console.
+  if (uri.IsEmpty())
+    nsXFormsUtils::ReportError(NS_LITERAL_STRING("warnSubmitURI"), mElement,
+                               nsIScriptError::warningFlag);
+  else
+    CopyUTF16toUTF8(uri, aURI);
 
   return rv;
 }
