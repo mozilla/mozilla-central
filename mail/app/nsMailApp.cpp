@@ -45,7 +45,7 @@
 #include "prtypes.h"
 
 static const nsXREAppData kAppData = {
-  offsetof(nsXREAppData, xreDirectory),
+  sizeof(nsXREAppData),
   nsnull,
   nsnull,
   "Thunderbird",
@@ -54,7 +54,11 @@ static const nsXREAppData kAppData = {
   "{3550f703-e582-4d05-9a08-453d09bdfdc6}",
   "Copyright (c) 1998-2007 mozilla.org",
   NS_XRE_ENABLE_PROFILE_MIGRATOR |
-  NS_XRE_ENABLE_EXTENSION_MANAGER
+  NS_XRE_ENABLE_EXTENSION_MANAGER,
+  nsnull, // xreDirectory
+  nsnull, // minVersion
+  nsnull, // maxVersion
+  "https://crash-reports.mozilla.com/submit"
 };
 
 int main(int argc, char* argv[])
