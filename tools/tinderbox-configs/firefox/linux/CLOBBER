@@ -1,2 +1,1 @@
-Triggering a clobber for a new nightly now that Gmail is fixed (bug 375931)
-Trigger a new build to make sure "bustage" is fixed from bug 373253
+Bug 374723: Clobber to pick up installer manifest changes that we forgot with the initial checkin, and that are horking today's builds
