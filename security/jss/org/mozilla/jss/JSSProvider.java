@@ -125,7 +125,7 @@ public final class JSSProvider extends java.security.Provider {
         put("Signature.SHA512withEC",
             "org.mozilla.jss.provider.java.security.JSSSignatureSpi$SHA512EC");
         put("Alg.Alias.Signature.SHA512/EC", "SHA512withEC");
-        put("Alg.Alias.Signature.SHA-512/EC", "SHA384withEC");
+        put("Alg.Alias.Signature.SHA-512/EC", "SHA512withEC");
 
         /////////////////////////////////////////////////////////////
         // Message Digesting
