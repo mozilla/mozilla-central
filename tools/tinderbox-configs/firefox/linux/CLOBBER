@@ -1,1 +1,1 @@
-Bug 374723: Clobber to pick up installer manifest changes that we forgot with the initial checkin, and that are horking today's builds
+CLOBBER to see if it will make a unit test pass
