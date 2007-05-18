@@ -377,7 +377,7 @@ enum {
 {
   if (!mIsFileSave && !mUserCancelled && !mDownloadFailed) {
     if ([[PreferenceManager sharedInstance] getBooleanPref:"browser.download.autoDispatch" withSuccess:NULL]) {
-      [[NSWorkspace sharedWorkspace] openFile:mDestPath withApplication:nil andDeactivate:NO];
+      [[NSWorkspace sharedWorkspace] openFile:mDestPath];
     }
   }
 }
