@@ -681,8 +681,7 @@ nsXFormsSubmissionElement::Submit()
   NS_ENSURE_STATE(mFormat != 0);
 
   nsCOMPtr<nsIInputStream> stream;
-  nsCAutoString contentType;
-  nsCAutoString uri;
+  nsCAutoString uri, contentType;
   GetSubmissionURI(uri);
 
   rv = SerializeData(submissionDoc, uri, getter_AddRefs(stream), contentType);
@@ -772,6 +771,9 @@ nsXFormsSubmissionElement::GetSubmissionURI(nsACString& aURI)
           NS_ENSURE_SUCCESS(rv, rv);
 
           if (xpRes) {
+            // Truncate uri so GetStringValue replaces the contents with the
+            // xpath result rather than appending to it.
+            uri.Truncate();
             rv = xpRes->GetStringValue(uri);
             NS_ENSURE_SUCCESS(rv, rv);
           }
@@ -794,8 +796,8 @@ nsXFormsSubmissionElement::GetSubmissionURI(nsACString& aURI)
   if (uri.IsEmpty())
     nsXFormsUtils::ReportError(NS_LITERAL_STRING("warnSubmitURI"), mElement,
                                nsIScriptError::warningFlag);
-  else
-    CopyUTF16toUTF8(uri, aURI);
+
+  CopyUTF16toUTF8(uri, aURI);
 
   return rv;
 }
