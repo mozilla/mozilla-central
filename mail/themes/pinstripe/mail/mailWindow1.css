@@ -104,11 +104,11 @@ treechildren::-moz-tree-twisty {
 }
 
 #folderTree treechildren::-moz-tree-row(selected, focus) {
-  background-color: -moz-mac-alternateprimaryhighlight !important;
+  background-color: Highlight !important;
 }
 
 #folderTree treechildren::-moz-tree-cell-text(selected, focus), #folderTree treechildren::-moz-tree-cell-text(selected) {
-  color: #FFFFFF;
+  color: HighlightText;
 }
 
 treecol,
