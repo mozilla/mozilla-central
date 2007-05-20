@@ -82,7 +82,7 @@
     </hbox>
 
     <spacer style="height:1em"/>
-    <label value="&AddressTitle.label;"/>
+    <label control="addressingWidget" value="&AddressTitle.label;"/>
     <spacer style="height:0.1em"/>
 
     <listbox id="addressingWidget" style="height: 15em;" onclick="awClickEmptySpace(event.target, true)">

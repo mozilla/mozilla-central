@@ -42,7 +42,7 @@
 <!DOCTYPE overlay SYSTEM "chrome://messenger/locale/addressbook/abMailListDialog.dtd">
 
 <overlay id="editListOverlay"
-		 xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <stringbundleset id="stringbundleset">
     <stringbundle id="bundle_addressBook" src="chrome://messenger/locale/addressbook/addressBook.properties"/>
@@ -53,53 +53,56 @@
   <script type="application/x-javascript" src="chrome://global/content/dialogOverlay.js"/>
 
 <vbox id="editlist">
+  <vbox>
+    <hbox>
+      <spacer flex="1"/>
+      <label control="ListName" value="&ListName.label;"
+             accesskey="&ListName.accesskey;" class="CardEditLabel"/>
+      <hbox class="CardEditWidth">
+        <textbox id="ListName" flex="1"/>
+      </hbox>
+    </hbox>
+    <hbox>
+      <spacer flex="1"/>
+      <label control="ListNickName" value="&ListNickName.label;"
+             accesskey="&ListNickName.accesskey;" class="CardEditLabel"/>
+      <hbox class="CardEditWidth">
+        <textbox id="ListNickName" flex="1"/>
+      </hbox>
+    </hbox>
+    <hbox>
+      <spacer flex="1"/>
+      <label control="ListDescription" value="&ListDescription.label;"
+             accesskey="&ListDescription.accesskey;" class="CardEditLabel"/>
+      <hbox class="CardEditWidth">
+        <textbox id="ListDescription" flex="1"/>
+      </hbox>
+    </hbox>
+  </vbox>
 
-	<vbox>
-		<hbox>
-			<spacer flex="1"/>
-			<label control="ListName" value="&ListName.label;" accesskey="&ListName.accesskey;" class="CardEditLabel"/>
-			<hbox class="CardEditWidth">
-				<textbox id="ListName" flex="1"/>
-			</hbox>
-		</hbox>
-		<hbox>
-			<spacer flex="1"/>
-			<label control="ListNickName" value="&ListNickName.label;" accesskey="&ListNickName.accesskey;" class="CardEditLabel"/>
-			<hbox class="CardEditWidth">
-				<textbox id="ListNickName" flex="1"/>
-			</hbox>
-		</hbox>
-		<hbox>
-			<spacer flex="1"/>
-			<label control="ListDescription" value="&ListDescription.label;" accesskey="&ListDescription.accesskey;" class="CardEditLabel"/>
-			<hbox class="CardEditWidth">
-				<textbox id="ListDescription" flex="1"/>
-			</hbox>
-		</hbox>
-	</vbox>
+  <spacer style="height:1em"/>
+  <label control="addressingWidget" value="&AddressTitle.label;"/>
+  <spacer style="height:0.1em"/>
 
-	<spacer style="height:1em"/>
-	<label value="&AddressTitle.label;"/>
-	<spacer style="height:0.1em"/>
+  <listbox id="addressingWidget" style="height: 15em;"
+           onclick="awClickEmptySpace(event.target, true)">
 
-	<listbox id="addressingWidget" style="height: 15em;"
-			onclick="awClickEmptySpace(event.target, true)">
-
-  	<listitem class="addressingWidgetItem">
+    <listitem class="addressingWidgetItem">
       <listcell class="addressingWidgetCell">
-        <textbox id="addressCol1#1" class="plain textbox-addressingWidget uri-element"
-                  type="autocomplete" allowevents="true" flex="1"
-                  searchSessions="addrbook" timeout="300" maxrows="4" 
-                  autoFill="true" autoFillAfterMatch="true" forceComplete="true"
-                  minResultsForPopup="3"
-                  ontextentered="awRecipientTextCommand(eventParam, this)"
-                  onkeypress="handleKeyPress(this, event);"
-                  onkeydown="awRecipientKeyDown(event, this);"
-                  onclick="awNotAnEmptyArea(event);">
+        <textbox id="addressCol1#1"
+                 class="plain textbox-addressingWidget uri-element"
+                 type="autocomplete" allowevents="true" flex="1"
+                 searchSessions="addrbook" timeout="300" maxrows="4" 
+                 autoFill="true" autoFillAfterMatch="true" forceComplete="true"
+                 minResultsForPopup="3"
+                 ontextentered="awRecipientTextCommand(eventParam, this)"
+                 onkeypress="handleKeyPress(this, event);"
+                 onkeydown="awRecipientKeyDown(event, this);"
+                 onclick="awNotAnEmptyArea(event);">
           <image onclick="awNotAnEmptyArea(event)" class="person-icon"/>
         </textbox>
       </listcell>            
-  	</listitem>
+    </listitem>
   </listbox>
 </vbox>
 
