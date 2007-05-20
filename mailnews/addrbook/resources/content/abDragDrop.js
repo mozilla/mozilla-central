@@ -144,11 +144,15 @@ var abDirTreeObserver = {
     if (!dragSession)
       return false;
 
+    // XXX Due to bug 373125/bug 349044 we can't specify a default action,
+    // so we default to move and this means that the user would have to press
+    // ctrl to copy which most users don't realise.
+    //
     // If target directory is a mailing list, then only allow copies.
-    if (targetDirectory.isMailList &&
-         dragSession.dragAction != Components.interfaces.
-                                   nsIDragService.DRAGDROP_ACTION_COPY)
-      return false;
+    //    if (targetDirectory.isMailList &&
+    //   dragSession.dragAction != Components.interfaces.
+    //                             nsIDragService.DRAGDROP_ACTION_COPY)
+    //return false;
 
     var srcDirectory = GetDirectoryFromURI(srcURI);
 
