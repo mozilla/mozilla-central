@@ -34,6 +34,7 @@
 
   <script type="application/x-javascript">
     <![CDATA[
+      document.getElementById("panelFrame").addEventListener("load", initPanel, true);
       document.getElementById("panelFrame").setAttribute("src", "chrome://communicator-region/locale/wallet/WalletName.xul");
       document.getElementById("panelFrame").setAttribute("tag", "" );
     ]]>

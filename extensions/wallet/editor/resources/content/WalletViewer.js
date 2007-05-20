@@ -239,7 +239,7 @@ nsWalletViewer.prototype =
       onpageload:
         function(aPageTag) {
           if ('Startup' in window.frames[ this.contentFrame ]) {
-            window.frames[ this.contentFrame ].Startup();
+            window.frames[ this.contentFrame ].Startup(schemaToValue);
           }
 
           /* restore the list of menuItem labels */
@@ -265,7 +265,7 @@ nsWalletViewer.prototype =
 
               var strings = schemaToValue[aPageTag+elementIDs[i]].split(BREAK);
               for (var j = 0; j<strings.length-1; j++) {
-                var menuItem = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "menuitem");
+                var menuItem = window.frames[this.contentFrame].document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "menuitem");
                 if (menuItem) {
                   menuItem.setAttribute("label", strings[j]);
                   menuItem.setAttribute("len", strings[j].length);
@@ -349,7 +349,7 @@ nsWalletViewer.prototype =
     }
 
     /* add menu item */
-    var menuItem = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "menuitem");
+    var menuItem = thisMenuPopup.ownerDocument.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "menuitem");
     if (!menuItem) {
       return;
     }

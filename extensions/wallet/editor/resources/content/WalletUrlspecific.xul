@@ -46,16 +46,15 @@
 %walletviewerDTD;
 ]>
 
-<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-      onload="parent.initPanel();">
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <script type="application/x-javascript">
   <![CDATA[
     var _elementIDs = [];
 
-  function Startup() {
+  function Startup(schemaToValue) {
     var colonIndex;
-    for (var schema in parent.schemaToValue) {
+    for (var schema in schemaToValue) {
       colonIndex = schema.indexOf(":");
       if (colonIndex != -1) {
         var list = document.getElementById("list");
