@@ -39,11 +39,15 @@
 #include "nsIGenericFactory.h"
 #include "nsSuiteDirectoryProvider.h"
 #include "nsProfileMigrator.h"
+#include "nsSeamonkeyProfileMigrator.h"
+#include "nsThunderbirdProfileMigrator.h"
 
 /////////////////////////////////////////////////////////////////////////////
 
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsSuiteDirectoryProvider)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsProfileMigrator)
+NS_GENERIC_FACTORY_CONSTRUCTOR(nsSeamonkeyProfileMigrator)
+NS_GENERIC_FACTORY_CONSTRUCTOR(nsThunderbirdProfileMigrator)
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -58,7 +62,17 @@ static const nsModuleComponentInfo components[] = {
   { "Profile Migrator",
     NS_SUITEPROFILEMIGRATOR_CID,
     NS_PROFILEMIGRATOR_CONTRACTID,
-    nsProfileMigratorConstructor }
+    nsProfileMigratorConstructor },
+  
+  { "SeaMonkey Profile Migrator",
+    NS_SEAMONKEYPROFILEMIGRATOR_CID,
+    NS_SUITEPROFILEMIGRATOR_CONTRACTID_PREFIX "seamonkey",
+    nsSeamonkeyProfileMigratorConstructor },
+
+  { "Thunderbird Profile Migrator",
+    NS_THUNDERBIRDPROFILEMIGRATOR_CID,
+    NS_SUITEPROFILEMIGRATOR_CONTRACTID_PREFIX "thunderbird",
+    nsThunderbirdProfileMigratorConstructor }
 };
 
 NS_IMPL_NSGETMODULE(SuiteModule, components)

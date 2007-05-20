@@ -34,32 +34,46 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
- 
-#ifndef ProfileMigrator_h__
-#define ProfileMigrator_h__
+
+#ifndef SeamonkeyProfileMigrator_h__
+#define SeamonkeyProfileMigrator_h__
 
 #include "nsISuiteProfileMigrator.h"
-#include "nsIProfileMigrator.h"
-#include "nsCOMPtr.h"
+#include "nsILocalFile.h"
+#include "nsISupportsArray.h"
+#include "nsNetscapeProfileMigratorBase.h"
+#include "nsString.h"
 
-#define NS_SUITEPROFILEMIGRATOR_CID \
-{ 0x4ca3c946, 0x5408, 0x49f0, { 0x9e, 0xca, 0x3a, 0x97, 0xd5, 0xc6, 0x77, 0x50 } }
+class nsIFile;
+class nsIPrefBranch;
+class nsIPrefService;
 
-#define NS_SUITEPROFILEMIGRATOR_CONTRACTID_PREFIX "@mozilla.org/profile/migrator;1?app=suite&type="
+#define NS_SEAMONKEYPROFILEMIGRATOR_CID \
+{ 0x9a28ffa7, 0xe6ef, 0x4b52, { 0xa1, 0x27, 0x6a, 0xd9, 0x51, 0xde, 0x8e, 0x9b } }
 
-class nsProfileMigrator : public nsIProfileMigrator
+class nsSeamonkeyProfileMigrator : public nsNetscapeProfileMigratorBase
 {
 public:
-  NS_DECL_NSIPROFILEMIGRATOR
   NS_DECL_ISUPPORTS
 
-  nsProfileMigrator() { }
+  nsSeamonkeyProfileMigrator();
+  virtual ~nsSeamonkeyProfileMigrator();
+
+  // nsISuiteProfileMigrator methods
+  NS_IMETHOD Migrate(PRUint16 aItems, nsIProfileStartup *aStartup,
+                     const PRUnichar *aProfile);
+  NS_IMETHOD GetMigrateData(const PRUnichar *aProfile, PRBool aDoingStartup,
+                            PRUint16 *_retval);
+  NS_IMETHOD GetSupportedItems(PRUint16 *aSupportedItems);
 
 protected:
-  ~nsProfileMigrator() { }
+  nsresult FillProfileDataFromRegistry();
+  nsresult CopyPreferences(PRBool aReplace);
+  nsresult TransformPreferences(const nsAString& aSourcePrefFileName,
+                                const nsAString& aTargetPrefFileName);
 
-  nsresult GetDefaultSuiteMigratorKey(nsACString& key,
-                                      nsISuiteProfileMigrator** spm);
+  nsresult CopyHistory(PRBool aReplace);
+  nsresult LocateSignonsFile(char** aResult);
 };
-
+ 
 #endif

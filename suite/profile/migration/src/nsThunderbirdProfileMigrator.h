@@ -34,32 +34,47 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
- 
-#ifndef ProfileMigrator_h__
-#define ProfileMigrator_h__
+
+#ifndef ThunderbirdProfileMigrator_h__
+#define ThunderbirdProfileMigrator_h__
 
 #include "nsISuiteProfileMigrator.h"
-#include "nsIProfileMigrator.h"
-#include "nsCOMPtr.h"
+#include "nsILocalFile.h"
+#include "nsIObserverService.h"
+#include "nsISupportsArray.h"
+#include "nsNetscapeProfileMigratorBase.h"
+#include "nsString.h"
+#include "nsITimer.h"
 
-#define NS_SUITEPROFILEMIGRATOR_CID \
-{ 0x4ca3c946, 0x5408, 0x49f0, { 0x9e, 0xca, 0x3a, 0x97, 0xd5, 0xc6, 0x77, 0x50 } }
+class nsIFile;
+class nsIPrefBranch;
+class nsIPrefService;
 
-#define NS_SUITEPROFILEMIGRATOR_CONTRACTID_PREFIX "@mozilla.org/profile/migrator;1?app=suite&type="
+#define NS_THUNDERBIRDPROFILEMIGRATOR_CID \
+{ 0x6ba91adb, 0xa4ed, 0x405f, { 0xbd, 0x6c, 0xe9, 0x04, 0xa9, 0x9d, 0x9a, 0xd8 } }
 
-class nsProfileMigrator : public nsIProfileMigrator
+class nsThunderbirdProfileMigrator : public nsNetscapeProfileMigratorBase
 {
 public:
-  NS_DECL_NSIPROFILEMIGRATOR
   NS_DECL_ISUPPORTS
 
-  nsProfileMigrator() { }
+  nsThunderbirdProfileMigrator();
+  virtual ~nsThunderbirdProfileMigrator();
+
+  // nsISuiteProfileMigrator methods
+  NS_IMETHOD Migrate(PRUint16 aItems, nsIProfileStartup *aStartup,
+                     const PRUnichar *aProfile);
+  NS_IMETHOD GetMigrateData(const PRUnichar *aProfile, PRBool aDoingStartup,
+                            PRUint16 *_retval);
+  NS_IMETHOD GetSupportedItems(PRUint16 *aSupportedItems);
 
 protected:
-  ~nsProfileMigrator() { }
-
-  nsresult GetDefaultSuiteMigratorKey(nsACString& key,
-                                      nsISuiteProfileMigrator** spm);
+  nsresult FillProfileDataFromRegistry();
+  nsresult CopyPreferences(PRBool aReplace);
+  nsresult TransformPreferences(const nsAString& aSourcePrefFileName,
+                                const nsAString& aTargetPrefFileName);
+  nsresult CopyHistory(PRBool aReplace);
+  nsresult LocateSignonsFile(char** aResult);
 };
-
+ 
 #endif

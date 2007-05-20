@@ -69,8 +69,6 @@ CPPSRCS 	= \
 		nsSuiteModule.cpp \
 		$(NULL)
 
-EXTRA_DSO_LDOPTS = $(MOZ_COMPONENT_LIBS)
-
 LOCAL_INCLUDES += \
 		-I$(topsrcdir)/suite/profile \
 		-I$(topsrcdir)/suite/profile/migration/src \
@@ -78,7 +76,7 @@ LOCAL_INCLUDES += \
 
 SHARED_LIBRARY_LIBS = \
 	../profile/$(LIB_PREFIX)suiteprofile_s.$(LIB_SUFFIX) \
-	../profile/migration/src/$(LIB_PREFIX)suitemigration_s.$(LIB_SUFFIX)
+	../profile/migration/src/$(LIB_PREFIX)suitemigration_s.$(LIB_SUFFIX) \
         $(NULL)
 
 # Link to gkgfx for GNOME shell service
