@@ -493,6 +493,7 @@ function ItemToXMLEntry(aItem, aAuthorEmail, aAuthorName) {
     if (aItem.alarmOffset) {
         var gdReminder = <gd:reminder xmlns:gd={gd}/>;
         var alarmOffset = aItem.alarmOffset.clone();
+
         if (aItem.alarmRelated == Ci.calIItemBase.ALARM_RELATED_END) {
             // Google always uses an alarm offset related to the start time
             alarmOffset.addDuration(duration);
@@ -500,7 +501,7 @@ function ItemToXMLEntry(aItem, aAuthorEmail, aAuthorName) {
 
         // Google only accepts certain alarm values. Snap to them. See
         // http://code.google.com/p/google-gdata/issues/detail?id=55
-        var alarmValues = [ 300, 600, 900, 1200, 1500, 1800, 2700, 3600, 7200,
+        const alarmValues = [ 300, 600, 900, 1200, 1500, 1800, 2700, 3600, 7200,
                             10800, 86400, 172800, 604800 ];
         var discreteValue = alarmValues[alarmValues.length - 1] / 60;
 
@@ -512,42 +513,25 @@ function ItemToXMLEntry(aItem, aAuthorEmail, aAuthorName) {
         }
 
         gdReminder.@minutes = discreteValue;
+        gdReminder.@method = "alert";
         entry.gd::when.gd::reminder += gdReminder;
     }
 
-    if (!aItem.calendar.isDefaultCalendar) {
-        // On non-default calendars, alarms do not work as expected. This is
-        // an error on Google's side. We are going to work around with an
-        // extended property. After Google crippled alarm support,
-        // non-default calendars will work even better regarding alarms - at
-        // least in sunbird/lightning. See
-        // http://code.google.com/p/google-gdata/issues/detail?id=20
-
-        var gdExtendedReminder = <gd:extendedProperty xmlns:gd={gd}/>;
-        var alarmTime;
-        if (aItem.alarmOffset) {
-            alarmTime = aItem.startDate.clone();
-            alarmTime.addDuration(aItem.alarmOffset);
-        }
-
-        gdExtendedReminder.@name = "X-MOZ-ALARM-WORKAROUND";
-        gdExtendedReminder.@value = toRFC3339(alarmTime);
-
-        // Google has a bug where extendedProperty tags are not unset if the tag
-        // is missing from the event feed. Therefore, set the tag in any case.
-        entry.gd::extendedProperty += gdExtendedReminder;
+    // saved alarms
+    var otherAlarms = aItem.getProperty("X-GOOGLE-OTHERALARMS");
+    for each (var alarm in otherAlarms) {
+        entry.gd::when.gd::reminder += new XML(alarm);
     }
-
-    // XXX Google currently only supports one reminder. Nevertheless, according
-    // to the Google Calendar API docs, snoozed events should be implemented by
-    // a second gd:reminder element with an absolute time. This issue is tracked
-    // at http://code.google.com/p/google-gdata/issues/detail?id=44
 
     // gd:extendedProperty (alarmLastAck)
     var gdAlarmLastAck = <gd:extendedProperty xmlns:gd={gd}/>;
     gdAlarmLastAck.@name = "X-MOZ-LASTACK";
     gdAlarmLastAck.@value = toRFC3339(aItem.alarmLastAck);
     entry.gd::extendedProperty += gdAlarmLastAck;
+
+    // XXX Google now supports multiple alarms, but since the valid alarms are
+    // restricted to discrete values, using a normal alarm to snooze is pretty
+    // pointless.
 
     // gd:extendedProperty (snooze time)
     var gdAlarmSnoozeTime = <gd:extendedProperty xmlns:gd={gd}/>;
@@ -658,10 +642,9 @@ function getItemEditURI(aItem) {
  *
  * @param aXMLEntry     The xml data of the item
  * @param aTimezone     The timezone the event is most likely in
- * @param aCalendar     The calendar the event will be added to. Can be null.
  * @return              The calIEvent with the item data.
  */
-function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar) {
+function XMLEntryToItem(aXMLEntry, aTimezone) {
 
     if (aXMLEntry == null) {
         throw new Components.Exception("", Cr.NS_ERROR_DOM_SYNTAX_ERR);
@@ -730,49 +713,68 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar) {
             }
 
             // gd:reminder
-            var alarmOffset = Cc["@mozilla.org/calendar/duration;1"]
-                                     .createInstance(Ci.calIDuration);
             if (aXMLEntry.gd::originalEvent.toString().length > 0) {
                 // If the item is an occurrence, we cannot change it until bug
                 // 362650 has been fixed. For now, don't set alarms on
                 // occurrences.
                 continue;
-            } else if (when.gd::reminder.@absoluteTime.toString()) {
-                var absolute = fromRFC3339(when.gd::reminder.@absoluteTime,
-                                           aTimezone);
-                alarmOffset = startDate.subtractDate(absolute);
-            } else if (when.gd::reminder.@days.toString()) {
-                alarmOffset.days = -when.gd::reminder.@days;
-            } else if (when.gd::reminder.@hours.toString()) {
-                alarmOffset.hours = -when.gd::reminder.@hours;
-            } else if (when.gd::reminder.@minutes.toString()) {
-                // There is a bug in the Google API that always sets an alarm,
-                // even if you didn't specify it. The value is always -1. See
-                // http://code.google.com/p/google-gdata/issues/detail?id=43
-                // As a workaround, ignore such reminders
-                if (when.gd::reminder.@minutes == "-1") {
-                    continue;
-                }
-                alarmOffset.minutes = -when.gd::reminder.@minutes;
-            } else {
-                continue;
             }
-            alarmOffset.normalize();
-            item.alarmOffset = alarmOffset;
-            item.alarmRelated = Ci.calIItemBase.ALARM_RELATED_START;
-        }
 
-        // gd:extendedProperty (alarm workaround)
-        if (!aCalendar.isDefaultCalendar) {
-            var alarmTime = fromRFC3339(aXMLEntry.gd::extendedProperty
-                                        .(@name == "X-MOZ-ALARM-WORKAROUND")
-                                        .@value.toString(), aTimezone);
-            if (alarmTime) {
-                item.alarmOffset = alarmTime.subtractDate(item.startDate);
-                item.alarmRelated = Ci.calIItemBase.ALARM_RELATED_START;
-            } else {
-                item.alarmOffset = null;
+            // Google's alarms are always related to the start
+            item.alarmRelated = Ci.calIItemBase.ALARM_RELATED_START;
+
+            var lastAlarm;
+            var otherAlarms = [];
+            for each (var reminder in when.gd::reminder) {
+                // We are only intrested in "alert" reminders. Other types
+                // include sms and email alerts, but thats not the point here.
+                if (reminder.@method == "alert") {
+                    var alarmOffset = Cc["@mozilla.org/calendar/duration;1"]
+                                        .createInstance(Ci.calIDuration);
+
+                    if (reminder.@absoluteTime.toString()) {
+                        var absolute = fromRFC3339(reminder.@absoluteTime,
+                                                   aTimezone);
+                        alarmOffset = startDate.subtractDate(absolute);
+                    } else if (reminder.@days.toString()) {
+                        alarmOffset.days = -reminder.@days;
+                    } else if (reminder.@hours.toString()) {
+                        alarmOffset.hours = -reminder.@hours;
+                    } else if (reminder.@minutes.toString()) {
+                        alarmOffset.minutes = -reminder.@minutes;
+                    } else {
+                        continue;
+                    }
+                    alarmOffset.normalize();
+
+                    // If there is more than one alarm, we could either take the
+                    // alarm closest to the event or the alarm furthest to the
+                    // event. Let the user decide (use a property)
+                    var useClosest = getPrefSafe("calendar.google.alarmClosest",
+                                                 true);
+                    if (!item.alarmOffset ||
+                        (useClosest &&
+                         alarmOffset.compare(item.alarmOffset) > 0) ||
+                        (!useClosest &&
+                         alarmOffset.compare(item.alarmOffset) < 0)) {
+
+                        item.alarmOffset = alarmOffset;
+                        if (lastAlarm) {
+                            // If there was already an alarm, then it is now one
+                            // of the other alarms.
+                            otherAlarms.push(lastAlarm.toXMLString());
+                        }
+                        lastAlarm = reminder;
+                        // Don't push the reminder below, since we might be
+                        // keeping this one as our item's alarmOffset.
+                        continue;
+                    }
+                }
+                otherAlarms.push(reminder.toXMLString());
             }
+
+            // Save other alarms that were set so we don't loose them
+            item.setProperty("X-GOOGLE-OTHERALARMS", otherAlarms);
         }
 
         // gd:extendedProperty (alarmLastAck)
@@ -860,14 +862,6 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar) {
                                        "private").toUpperCase();
         }
 
-        // updated
-        item.setProperty("LAST-MODIFIED", fromRFC3339(aXMLEntry.updated,
-                                                      aTimezone));
-
-        // published
-        item.setProperty("CREATED", fromRFC3339(aXMLEntry.published,
-                                                aTimezone));
-
         // category
         var categories = new Array();
         for each (var label in aXMLEntry.category.@label) {
@@ -878,6 +872,14 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar) {
         // gd:originalEvent
         item.setProperty("X-GOOGLE-ITEM-IS-OCCURRENCE",
                          aXMLEntry.gd::originalEvent.toString().length > 0);
+
+        // published
+        item.setProperty("CREATED", fromRFC3339(aXMLEntry.published,
+                                                aTimezone));
+
+        // updated (This must be set last!)
+        item.setProperty("LAST-MODIFIED", fromRFC3339(aXMLEntry.updated,
+                                                      aTimezone));
 
         // TODO gd:recurrenceException: Enhancement tracked in bug 362650
         // TODO gd:comments: Enhancement tracked in bug 362653

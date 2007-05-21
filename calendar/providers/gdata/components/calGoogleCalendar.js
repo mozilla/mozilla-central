@@ -106,19 +106,6 @@ calGoogleCalendar.prototype = {
     },
 
     /**
-     * readonly attribute isDefaultCalendar
-     * Returns true if this is the default calendar of the user.
-     */
-    get isDefaultCalendar() {
-        // If there is no session, use the non-default calendar identifier as a
-        // fallback.
-        return ((this.mSession &&
-                 this.mCalendarName == this.mSession.googleUser) ||
-                (!this.mSession &&
-                 this.mCalendarName.indexOf("group.calendar.google.com") < 0));
-    },
-
-    /**
      * attribute session
      * An calGoogleSession Object that handles the session requests.
      */
@@ -695,7 +682,7 @@ calGoogleCalendar.prototype = {
 
             // Parse all <entry> tags
             for each (var entry in xml.entry) {
-                var item = XMLEntryToItem(entry, timezone, this);
+                var item = XMLEntryToItem(entry, timezone);
 
                 if (item) {
                     var itemReturnOccurrences =
@@ -782,7 +769,7 @@ calGoogleCalendar.prototype = {
             var timezone = getPrefSafe("calendar.timezone.local");
 
             // Parse the Item with the given timezone
-            var item = XMLEntryToItem(xml, timezone, this);
+            var item = XMLEntryToItem(xml, timezone);
 
             LOGitem(item);
             item.calendar = this;
