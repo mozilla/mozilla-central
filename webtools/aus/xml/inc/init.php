@@ -46,8 +46,6 @@
  * This script reads config and includes core libraries.
  * At no point should this ever output or modify data.
  */
-ini_set('display_errors',1);
-ini_set('error_reporting',E_ALL);
 require_once('config.php');   // Read config file.
 require_once('aus.class.php');    // Generic object definition.
 require_once('xml.class.php');    // XML class for output generation.
