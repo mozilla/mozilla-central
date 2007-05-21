@@ -3,3 +3,4 @@ Edit this file and include an explanation of why you're respinning. - #build
 2007-03-02 16:56 UTC - Respin to pick up fix for bug 372366
 2007-03-28 14:40 UTC - Respinning to pick up tinder-config changes
 2007-03-30 15:40 UTC - Respinning to try and fix bustage from bug 359716
+2007-05-21 18:30 UTC - Respinning to pick up fix from bug 377437
