@@ -6417,9 +6417,14 @@ nsImapMailFolder::CopyMessages(nsIMsgFolder* srcFolder,
       return NS_ERROR_OUT_OF_MEMORY;
     }
     if (isMove)
-      undoMsgTxn->SetTransactionType(mFlags & MSG_FOLDER_FLAG_TRASH ? nsIMessenger::eDeleteMsg : nsIMessenger::eMoveMsg);
+    {
+      if (mFlags & MSG_FOLDER_FLAG_TRASH)
+        undoMsgTxn->SetTransactionType(nsIMessenger::eDeleteMsg);
+      else
+        undoMsgTxn->SetTransactionType(nsIMessenger::eMoveMsg);
+    }
     else
-     undoMsgTxn->SetTransactionType(nsIMessenger::eCopyMsg);
+      undoMsgTxn->SetTransactionType(nsIMessenger::eCopyMsg);
     rv = undoMsgTxn->QueryInterface(NS_GET_IID(nsImapMoveCopyMsgTxn), getter_AddRefs(m_copyState->m_undoMsgTxn) );
   }
 
