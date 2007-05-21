@@ -75,7 +75,7 @@ private:
 #ifndef MOZ_THUNDERBIRD
   nsresult ShowAlertMessage(const PRUnichar * aAlertTitle, const PRUnichar * aAlertText, const char * aFolderURI);
 #endif
-  nsresult GetFirstFolderWithNewMail(char ** aFolderURI);
+  nsresult GetFirstFolderWithNewMail(nsACString& aFolderURI);
   nsresult GetStringBundle(nsIStringBundle **aBundle);
   nsresult AlertFinished();
   nsresult AlertClicked();
