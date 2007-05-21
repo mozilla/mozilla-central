@@ -11,15 +11,15 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is the Mozilla build system.
+# The Original Code is the SeaMonkey code.
 #
 # The Initial Developer of the Original Code is
-# the Mozilla Foundation <http://www.mozilla.org/>.
-# Portions created by the Initial Developer are Copyright (C) 2006
+# The SeaMonkey project at mozilla.org.
+# Portions created by the Initial Developer are Copyright (C) 2007
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#   Benjamin Smedberg <benjamin@smedbergs.us> (Initial Code)
+#  Robert Kaiser <kairo@kairo.at>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,46 +35,22 @@
 #
 # ***** END LICENSE BLOCK *****
 
-ifndef LIBXUL_SDK
-include $(topsrcdir)/toolkit/toolkit-tiers.mk
-endif
+DEPTH		= ../..
+topsrcdir	= @top_srcdir@
+srcdir		= @srcdir@
+VPATH		= @srcdir@
 
-TIERS += app
+include $(DEPTH)/config/autoconf.mk
 
-ifdef MOZ_EXTENSIONS
-tier_app_dirs += extensions
-endif
-
-ifdef MOZ_BRANDING_DIRECTORY
-tier_app_dirs += $(MOZ_BRANDING_DIRECTORY)
-endif
-
-ifdef MOZ_MAIL_NEWS
-tier_app_dirs += mailnews
-endif
-
-ifdef MOZ_COMPOSER
-tier_app_dirs += editor/ui
-endif
-
-tier_app_dirs += \
-	xpfe/components/search \
-	xpfe/components/bookmarks \
+NO_PKG_FILES = \
+	$(MOZ_APP_NAME)-config \
 	$(NULL)
 
-# When Suite becomes a full MOZ_XUL_APP we can remove this ifdef
-ifdef MOZ_XUL_APP
-tier_app_dirs += themes
-endif
+include $(topsrcdir)/config/rules.mk
 
-tier_app_dirs += suite
-
-ifndef MOZ_XUL_APP
-tier_app_dirs += xpfe/bootstrap
-endif
+include $(topsrcdir)/toolkit/mozapps/installer/packager.mk
 
 installer:
-	@$(MAKE) -C suite/installer installer
-
-package:
-	@$(MAKE) -C suite/installer
+ifdef INSTALLER_DIR
+	$(MAKE) -C $(INSTALLER_DIR)
+endif
