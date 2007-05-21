@@ -40,20 +40,18 @@ topsrcdir	= @top_srcdir@
 srcdir		= @srcdir@
 VPATH		= @srcdir@
 
-README  = palm.html
-
 include $(DEPTH)/config/autoconf.mk
 
 MODULE =  palmsync
 
-DIRS		= build public src
+DIRS		= build public src installer
 
 ifdef MOZ_XUL_APP
 XPI_NAME               = palmsync
 USE_EXTENSION_MANIFEST = 1
 NO_JAR_AUTO_REG        = 1
 # make this id as short as possible due to a bug with the palm deskop and long path names.
-# Change xpinstall/wizard/windows/palmsync/Makefile.in and nsPalmSyncSupport.cpp if this changes.
+# Change installer/Makefile.in and nsPalmSyncSupport.cpp if this changes.
 INSTALL_EXTENSION_ID   = p@m
 XPI_PKGNAME            = palmsync-$(MOZ_APP_VERSION)
 DIST_FILES = install.rdf
@@ -77,7 +75,6 @@ ifdef PALM_CDK_DIR
 DIRS		+= conduit
 
 PACKAGE_FILE = palmsync.pkg
-
 else
 libs::
 	@echo " "
@@ -86,4 +83,3 @@ libs::
 endif
 
 include $(topsrcdir)/config/rules.mk
-
