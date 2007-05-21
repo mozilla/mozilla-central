@@ -784,8 +784,10 @@ nsImapService::CopyMessages(nsMsgKeyArray *keys, nsIMsgFolder *srcFolder, nsIStr
       PRUnichar hierarchySeparator = GetHierarchyDelimiter(folder);
       rv = CreateStartOfImapUrl(uri.get(), getter_AddRefs(imapUrl), folder.get(), aUrlListener, urlSpec, hierarchySeparator);
       nsImapAction action;
-      action = (moveMessage) ? nsIImapUrl::nsImapOnlineToOfflineMove : nsIImapUrl::nsImapOnlineToOfflineCopy;
-      imapUrl->SetCopyState(aMailboxCopy);
+      if (moveMessage) // don't use ?: syntax here, it seems to break the Mac.
+        action = nsIImapUrl::nsImapOnlineToOfflineMove;
+      else
+        imapUrl->SetCopyState(aMailboxCopy);
       // now try to display the message
       rv = FetchMessage(imapUrl, action, folder, imapMessageSink,
         aMsgWindow, streamSupport, messageIds.get(), PR_FALSE, nsnull, aURL);
