@@ -536,11 +536,11 @@ nsMsgPrintEngine::FireThatLoadOperation(nsString *uri)
   // if this is a message part (or .eml file on disk)
   // skip it, because we don't want to print the parent message
   // we want to print the part.
-  // example:  imap://sspitzer@nsmail-1:143/fetch%3EUID%3E/INBOX%3E180958?part=1.1.2&type=x-message-display&filename=test"
+  // example:  imap://sspitzer@nsmail-1:143/fetch%3EUID%3E/INBOX%3E180958?part=1.1.2&type=application/x-message-display&filename=test"
   if (strncmp(tString, DATA_URL_PREFIX, DATA_URL_PREFIX_LEN) && 
       strncmp(tString, ADDBOOK_URL_PREFIX, ADDBOOK_URL_PREFIX_LEN) && 
       strcmp(tString, "about:blank") &&
-      !strstr(tString, "type=x-message-display")) {
+      !strstr(tString, "type=application/x-message-display")) {
     rv = GetMessageServiceFromURI(tString, getter_AddRefs(messageService));
   }
 
