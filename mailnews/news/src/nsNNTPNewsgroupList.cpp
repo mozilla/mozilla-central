@@ -99,20 +99,20 @@
 
 nsNNTPNewsgroupList::nsNNTPNewsgroupList()
   : m_finishingXover(PR_FALSE),
-    m_getOldMessages(PR_FALSE),
-    m_promptedAlready(PR_FALSE),
-    m_downloadAll(PR_FALSE),
-    m_maxArticles(0),
-    m_lastPercent(-1),
-    m_lastProcessedNumber(0),
-    m_firstMsgNumber(0),
-    m_lastMsgNumber(0),
-    m_firstMsgToDownload(0),
-    m_lastMsgToDownload(0),
-    m_set(nsnull)
+  m_getOldMessages(PR_FALSE),
+  m_promptedAlready(PR_FALSE),
+  m_downloadAll(PR_FALSE),
+  m_maxArticles(0),
+  m_lastPercent(-1),
+  m_lastProcessedNumber(0),
+  m_firstMsgNumber(0),
+  m_lastMsgNumber(0),
+  m_firstMsgToDownload(0),
+  m_lastMsgToDownload(0),
+  m_set(nsnull)
 {
-    memset(&m_knownArts, 0, sizeof(m_knownArts));
-    m_lastStatusUpdate = LL_Zero();
+  memset(&m_knownArts, 0, sizeof(m_knownArts));
+  m_lastStatusUpdate = LL_Zero();
 }
 
 nsNNTPNewsgroupList::~nsNNTPNewsgroupList()
@@ -218,32 +218,29 @@ static nsresult
 openWindow(nsIMsgWindow *aMsgWindow, const char *chromeURL,
            nsINewsDownloadDialogArgs *param)
 {
-    nsresult rv;
+  nsresult rv;
+  NS_ENSURE_ARG_POINTER(aMsgWindow);
+  nsCOMPtr<nsIDocShell> docShell;
+  rv = aMsgWindow->GetRootDocShell(getter_AddRefs(docShell));
+  if (NS_FAILED(rv))
+      return rv;
 
-    NS_ENSURE_ARG_POINTER(aMsgWindow);
+  nsCOMPtr<nsIDOMWindowInternal> parentWindow(do_GetInterface(docShell));
+  NS_ENSURE_TRUE(parentWindow, NS_ERROR_FAILURE);
 
-	nsCOMPtr<nsIDocShell> docShell;
-	rv = aMsgWindow->GetRootDocShell(getter_AddRefs(docShell));
-    if (NS_FAILED(rv))
-        return rv;
+  nsCOMPtr<nsISupportsInterfacePointer> ifptr = do_CreateInstance(NS_SUPPORTS_INTERFACE_POINTER_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-   	nsCOMPtr<nsIDOMWindowInternal> parentWindow(do_GetInterface(docShell));
-	NS_ENSURE_TRUE(parentWindow, NS_ERROR_FAILURE);
+  ifptr->SetData(param);
+  ifptr->SetDataIID(&NS_GET_IID(nsINewsDownloadDialogArgs));
 
-    nsCOMPtr<nsISupportsInterfacePointer> ifptr =
-        do_CreateInstance(NS_SUPPORTS_INTERFACE_POINTER_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIDOMWindow> dialogWindow;
+  rv = parentWindow->OpenDialog(NS_ConvertASCIItoUTF16(chromeURL),
+                                NS_LITERAL_STRING("_blank"),
+                                NS_LITERAL_STRING("centerscreen,chrome,modal,titlebar"),
+                                ifptr, getter_AddRefs(dialogWindow));
 
-    ifptr->SetData(param);
-    ifptr->SetDataIID(&NS_GET_IID(nsINewsDownloadDialogArgs));
-
-    nsCOMPtr<nsIDOMWindow> dialogWindow;
-    rv = parentWindow->OpenDialog(NS_ConvertASCIItoUTF16(chromeURL),
-                                  NS_LITERAL_STRING("_blank"),
-                                  NS_LITERAL_STRING("centerscreen,chrome,modal,titlebar"),
-                                  ifptr, getter_AddRefs(dialogWindow));
-
-    return rv;
+  return rv;
 }
 
 nsresult
@@ -255,96 +252,89 @@ nsNNTPNewsgroupList::GetRangeOfArtsToDownload(nsIMsgWindow *aMsgWindow,
                                               PRInt32 *last,
                                               PRInt32 *status)
 {
-	nsresult rv = NS_OK;
+  nsresult rv = NS_OK;
 
-    NS_ENSURE_ARG_POINTER(first);
-    NS_ENSURE_ARG_POINTER(last);
-    NS_ENSURE_ARG_POINTER(status);
+  NS_ENSURE_ARG_POINTER(first);
+  NS_ENSURE_ARG_POINTER(last);
+  NS_ENSURE_ARG_POINTER(status);
+  *first = 0;
+  *last = 0;
 
-	*first = 0;
-	*last = 0;
+  nsCOMPtr <nsIMsgFolder> folder = do_QueryInterface(m_newsFolder, &rv);
+  NS_ENSURE_SUCCESS(rv,rv);
+  m_msgWindow = aMsgWindow;
 
-    nsCOMPtr <nsIMsgFolder> folder = do_QueryInterface(m_newsFolder, &rv);
+  if (!m_newsDB)
+    rv = folder->GetMsgDatabase(nsnull /* use m_msgWindow? */, getter_AddRefs(m_newsDB));
+
+  nsCOMPtr<nsINewsDatabase> db(do_QueryInterface(m_newsDB, &rv));
+  NS_ENSURE_SUCCESS(rv,rv);
+
+  rv = db->GetReadSet(&m_set);
+  if (NS_FAILED(rv) || !m_set)
+    return rv;
+
+  m_set->SetLastMember(last_possible); // make sure highwater mark is valid.
+
+  nsCOMPtr <nsIDBFolderInfo> newsGroupInfo;
+  rv = m_newsDB->GetDBFolderInfo(getter_AddRefs(newsGroupInfo));
+  if (NS_SUCCEEDED(rv) && newsGroupInfo) {
+    nsXPIDLCString knownArtsString;
+    nsMsgKey mark;
+    newsGroupInfo->GetKnownArtsSet(getter_Copies(knownArtsString));
+
+    rv = newsGroupInfo->GetHighWater(&mark);
     NS_ENSURE_SUCCESS(rv,rv);
 
-    m_msgWindow = aMsgWindow;
-
-	if (!m_newsDB) {
-      rv = folder->GetMsgDatabase(nsnull /* use m_msgWindow? */, getter_AddRefs(m_newsDB));
-	}
-
-    nsCOMPtr<nsINewsDatabase> db(do_QueryInterface(m_newsDB, &rv));
+    if (last_possible < ((PRInt32)mark))
+      newsGroupInfo->SetHighWater(last_possible, PR_TRUE);
+    if (m_knownArts.set)
+      delete m_knownArts.set;
+    m_knownArts.set = nsMsgKeySet::Create(knownArtsString.get());
+  }
+  else
+  {
+    if (m_knownArts.set)
+      delete m_knownArts.set;
+    m_knownArts.set = nsMsgKeySet::Create();
+    nsMsgKey low, high;
+    rv = m_newsDB->GetLowWaterArticleNum(&low);
     NS_ENSURE_SUCCESS(rv,rv);
-
-	rv = db->GetReadSet(&m_set);
-    if (NS_FAILED(rv) || !m_set) {
-       return rv;
-    }
-
-	m_set->SetLastMember(last_possible);	// make sure highwater mark is valid.
-
-    nsCOMPtr <nsIDBFolderInfo> newsGroupInfo;
-	rv = m_newsDB->GetDBFolderInfo(getter_AddRefs(newsGroupInfo));
-	if (NS_SUCCEEDED(rv) && newsGroupInfo) {
-      nsXPIDLCString knownArtsString;
-      nsMsgKey mark;
-      newsGroupInfo->GetKnownArtsSet(getter_Copies(knownArtsString));
-
-      rv = newsGroupInfo->GetHighWater(&mark);
-      NS_ENSURE_SUCCESS(rv,rv);
-
-      if (last_possible < ((PRInt32)mark))
-        newsGroupInfo->SetHighWater(last_possible, PR_TRUE);
-      if (m_knownArts.set) {
-        delete m_knownArts.set;
-      }
-      m_knownArts.set = nsMsgKeySet::Create(knownArtsString.get());
-    }
-    else
-    {
-      if (m_knownArts.set) {
-        delete m_knownArts.set;
-      }
-      m_knownArts.set = nsMsgKeySet::Create();
-      nsMsgKey low, high;
-      rv = m_newsDB->GetLowWaterArticleNum(&low);
-      NS_ENSURE_SUCCESS(rv,rv);
-      rv = m_newsDB->GetHighWaterArticleNum(&high);
-      NS_ENSURE_SUCCESS(rv,rv);
-
-      m_knownArts.set->AddRange(low,high);
-    }
-
-    if (m_knownArts.set->IsMember(last_possible)) {
-      nsXPIDLString statusString;
-      nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-      NS_ENSURE_SUCCESS(rv, rv);
-
-      nsCOMPtr<nsIStringBundle> bundle;
-      rv = bundleService->CreateBundle(NEWS_MSGS_URL, getter_AddRefs(bundle));
-      NS_ENSURE_SUCCESS(rv, rv);
-
-      rv = bundle->GetStringFromName(NS_LITERAL_STRING("noNewMessages").get(), getter_Copies(statusString));
-      NS_ENSURE_SUCCESS(rv, rv);
-
-      SetProgressStatus(statusString);
-    }
-
-    if (maxextra <= 0 || last_possible < first_possible || last_possible < 1)
-    {
-      *status=0;
-      return NS_OK;
-    }
-
-    m_knownArts.first_possible = first_possible;
-    m_knownArts.last_possible = last_possible;
-
-    nsCOMPtr <nsIMsgIncomingServer> server;
-    rv = folder->GetServer(getter_AddRefs(server));
+    rv = m_newsDB->GetHighWaterArticleNum(&high);
     NS_ENSURE_SUCCESS(rv,rv);
+    m_knownArts.set->AddRange(low,high);
+  }
 
-    nsCOMPtr<nsINntpIncomingServer> nntpServer = do_QueryInterface(server, &rv);
-    NS_ENSURE_SUCCESS(rv,rv);
+  if (m_knownArts.set->IsMember(last_possible)) {
+    nsXPIDLString statusString;
+    nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCOMPtr<nsIStringBundle> bundle;
+    rv = bundleService->CreateBundle(NEWS_MSGS_URL, getter_AddRefs(bundle));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    rv = bundle->GetStringFromName(NS_LITERAL_STRING("noNewMessages").get(), getter_Copies(statusString));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    SetProgressStatus(statusString);
+  }
+
+  if (maxextra <= 0 || last_possible < first_possible || last_possible < 1)
+  {
+    *status=0;
+    return NS_OK;
+  }
+
+  m_knownArts.first_possible = first_possible;
+  m_knownArts.last_possible = last_possible;
+
+  nsCOMPtr <nsIMsgIncomingServer> server;
+  rv = folder->GetServer(getter_AddRefs(server));
+  NS_ENSURE_SUCCESS(rv,rv);
+
+  nsCOMPtr<nsINntpIncomingServer> nntpServer = do_QueryInterface(server, &rv);
+  NS_ENSURE_SUCCESS(rv,rv);
 
   /* Determine if we only want to get just new articles or more messages.
   If there are new articles at the end we haven't seen, we always want to get those first.
@@ -457,16 +447,13 @@ nsNNTPNewsgroupList::GetRangeOfArtsToDownload(nsIMsgWindow *aMsgWindow,
 nsresult
 nsNNTPNewsgroupList::AddToKnownArticles(PRInt32 first, PRInt32 last)
 {
-  int		status;
+  int status;
 
   if (!m_knownArts.set)
   {
     m_knownArts.set = nsMsgKeySet::Create();
-
-    if (!m_knownArts.set) {
+    if (!m_knownArts.set)
       return NS_ERROR_OUT_OF_MEMORY;
-    }
-
   }
 
   status = m_knownArts.set->AddRange(first, last);
@@ -483,37 +470,32 @@ nsNNTPNewsgroupList::AddToKnownArticles(PRInt32 first, PRInt32 last)
       }
     }
   }
-
   return status;
 }
-
-
-
 
 nsresult
 nsNNTPNewsgroupList::InitXOVER(PRInt32 first_msg, PRInt32 last_msg)
 {
-	int		status = 0;
+  int status = 0;
 
-	// Tell the FE to show the GetNewMessages progress dialog
+  // Tell the FE to show the GetNewMessages progress dialog
 #ifdef HAVE_PANES
-	FE_PaneChanged (m_pane, PR_FALSE, MSG_PanePastPasswordCheck, 0);
+  FE_PaneChanged (m_pane, PR_FALSE, MSG_PanePastPasswordCheck, 0);
 #endif
-	/* Consistency checks, not that I know what to do if it fails (it will
-	 probably handle it OK...) */
-	NS_ASSERTION(first_msg <= last_msg, "first > last");
+  /* Consistency checks, not that I know what to do if it fails (it will
+   probably handle it OK...) */
+  NS_ASSERTION(first_msg <= last_msg, "first > last");
 
-	/* If any XOVER lines from the last time failed to come in, mark those
-	   messages as read. */
-	if (m_lastProcessedNumber < m_lastMsgNumber)
-	{
-		m_set->AddRange(m_lastProcessedNumber + 1, m_lastMsgNumber);
-	}
-	m_firstMsgNumber = first_msg;
-	m_lastMsgNumber = last_msg;
-	m_lastProcessedNumber = first_msg > 1 ? first_msg - 1 : 1;
-
-	return status;
+  /* If any XOVER lines from the last time failed to come in, mark those
+     messages as read. */
+  if (m_lastProcessedNumber < m_lastMsgNumber)
+  {
+    m_set->AddRange(m_lastProcessedNumber + 1, m_lastMsgNumber);
+  }
+  m_firstMsgNumber = first_msg;
+  m_lastMsgNumber = last_msg;
+  m_lastProcessedNumber = first_msg > 1 ? first_msg - 1 : 1;
+  return status;
 }
 
 // from RFC 822, don't translate
@@ -535,15 +517,15 @@ nsNNTPNewsgroupList::ParseLine(char *line, PRUint32 * message_number)
 
   char *next = line;
 
-#define GET_TOKEN()								\
-  line = next;									\
-  next = (line ? PL_strchr (line, '\t') : 0);	\
+#define GET_TOKEN()                           \
+  line = next;                                \
+  next = (line ? PL_strchr (line, '\t') : 0); \
   if (next) *next++ = 0
 
   GET_TOKEN (); /* message number */
   *message_number = atol(line);
 
-  if (atol(line) == 0)					/* bogus xover data */
+  if (atol(line) == 0) /* bogus xover data */
     return NS_ERROR_UNEXPECTED;
 
   m_newsDB->CreateNewHdr(*message_number, getter_AddRefs(newMsgHdr));
@@ -572,7 +554,7 @@ nsNNTPNewsgroupList::ParseLine(char *line, PRUint32 * message_number)
       return rv;
   }
 
-  GET_TOKEN ();											/* author */
+  GET_TOKEN (); /* author */
   if (line) {
     authorStr = line;
     rv = newMsgHdr->SetAuthor(line);
@@ -586,19 +568,17 @@ nsNNTPNewsgroupList::ParseLine(char *line, PRUint32 * message_number)
     PRTime date;
     PRStatus status = PR_ParseTimeString (line, PR_FALSE, &date);
     if (PR_SUCCESS == status) {
-      rv = newMsgHdr->SetDate(date);					/* date */
+      rv = newMsgHdr->SetDate(date); /* date */
       if (NS_FAILED(rv))
         return rv;
     }
   }
 
-  GET_TOKEN ();											/* message id */
+  GET_TOKEN (); /* message id */
   if (line) {
     char *strippedId = line;
-
     if (strippedId[0] == '<')
       strippedId++;
-
     char * lastChar = strippedId + PL_strlen(strippedId) -1;
 
     if (*lastChar == '>')
@@ -609,14 +589,14 @@ nsNNTPNewsgroupList::ParseLine(char *line, PRUint32 * message_number)
       return rv;
   }
 
-  GET_TOKEN ();											/* references */
+  GET_TOKEN (); /* references */
   if (line) {
     rv = newMsgHdr->SetReferences(line);
     if (NS_FAILED(rv))
       return rv;
   }
 
-  GET_TOKEN ();											/* bytes */
+  GET_TOKEN (); /* bytes */
   if (line) {
     PRUint32 msgSize = 0;
     msgSize = (line) ? atol (line) : 0;
@@ -625,7 +605,7 @@ nsNNTPNewsgroupList::ParseLine(char *line, PRUint32 * message_number)
     if (NS_FAILED(rv)) return rv;
   }
 
-  GET_TOKEN ();											/* lines */
+  GET_TOKEN (); /* lines */
   if (line) {
     PRUint32 numLines = 0;
     numLines = line ? atol (line) : 0;
@@ -665,13 +645,13 @@ nsNNTPNewsgroupList::ParseLine(char *line, PRUint32 * message_number)
 
   PRUint32 filterCount = 0;
   if (m_filterList) {
-  	rv = m_filterList->GetFilterCount(&filterCount);
+    rv = m_filterList->GetFilterCount(&filterCount);
     NS_ENSURE_SUCCESS(rv,rv);
   }
 
   PRUint32 serverFilterCount = 0;
   if (m_serverFilterList) {
-  	rv = m_serverFilterList->GetFilterCount(&serverFilterCount);
+    rv = m_serverFilterList->GetFilterCount(&serverFilterCount);
     NS_ENSURE_SUCCESS(rv,rv);
   }
 
@@ -836,14 +816,14 @@ NS_IMETHODIMP nsNNTPNewsgroupList::ApplyFilterHit(nsIMsgFilter *aFilter, nsIMsgW
         break;
       case nsMsgFilterAction::AddTag:
       {
-        nsXPIDLCString keyword;
+        nsCString keyword;
         filterAction->GetStrValue(keyword);
         nsCOMPtr<nsISupportsArray> messageArray;
         NS_NewISupportsArray(getter_AddRefs(messageArray));
         messageArray->AppendElement(m_newMsgHdr);
         nsCOMPtr <nsIMsgFolder> folder = do_QueryInterface(m_newsFolder, &rv);
         if (folder)
-          folder->AddKeywordsToMessages(messageArray, keyword.get());
+          folder->AddKeywordsToMessages(messageArray, keyword);
         break;
       }
       case nsMsgFilterAction::Label:
@@ -1125,14 +1105,14 @@ nsNNTPNewsgroupList::SetProgressStatus(const PRUnichar *message)
 
 NS_IMETHODIMP nsNNTPNewsgroupList::SetGetOldMessages(PRBool aGetOldMessages)
 {
-	m_getOldMessages = aGetOldMessages;
-	return NS_OK;
+  m_getOldMessages = aGetOldMessages;
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsNNTPNewsgroupList::GetGetOldMessages(PRBool *aGetOldMessages)
 {
-	NS_ENSURE_ARG(aGetOldMessages);
+  NS_ENSURE_ARG(aGetOldMessages);
 
-	*aGetOldMessages = m_getOldMessages;
-	return NS_OK;
+  *aGetOldMessages = m_getOldMessages;
+  return NS_OK;
 }

@@ -46,12 +46,12 @@ interface nsIMsgParseMailMsgState;
 // this is a simple interface which allows the imap folder to update some values
 // that the folder props js code will use to update the sharing and quota tabs in the folder props.
 
-[scriptable, uuid(C3011608-84C2-11DB-959B-000A95CC2952)] 
+[scriptable, uuid(09D99F2C-3E23-4f8c-A536-5C277BAA9585)] 
 interface nsIMsgImapFolderProps : nsISupports {
 
-    void setFolderType(in wstring folderType);
-    void setFolderTypeDescription(in wstring folderTypeDescription);
-    void setFolderPermissions(in wstring permissions);
+    void setFolderType(in AString folderType);
+    void setFolderTypeDescription(in AString folderTypeDescription);
+    void setFolderPermissions(in AString permissions);
     void serverDoesntSupportACL();
 
     /**
@@ -75,41 +75,40 @@ interface nsIMsgImapFolderProps : nsISupports {
     void setQuotaData(in ACString quotaroot, in unsigned long usedKB, in unsigned long maxKB);
 };
 
-
-[scriptable, uuid(7bf6ecd1-dc71-4472-8ea1-a081511ee17f)]
+[scriptable, uuid(578B22E3-D9F8-4039-92D7-FF273F53D885)]
 interface nsIMsgImapMailFolder : nsISupports {
   void removeSubFolder(in nsIMsgFolder folder);
-  void createClientSubfolderInfo(in string folderName, in wchar hierarchyDelimiter, in long flags, in boolean suppressNotification);
+  void createClientSubfolderInfo(in ACString folderName, in wchar hierarchyDelimiter, in long flags, in boolean suppressNotification);
   void list();
-  void renameLocal(in string newname, in nsIMsgFolder parent);
+  void renameLocal(in ACString newname, in nsIMsgFolder parent);
   void prepareToRename();
   void performExpand(in nsIMsgWindow aMsgWindow);
   void recursiveCloseActiveConnections(in nsIImapIncomingServer aImapServer);
-  void renameClient(in nsIMsgWindow msgWindow, in nsIMsgFolder msgFolder, in string oldName, in string newName);
+  void renameClient(in nsIMsgWindow msgWindow, in nsIMsgFolder msgFolder, in ACString oldName, in ACString newName);
 
   // these are used for offline synchronization
   void storeImapFlags(in long aFlags, in boolean aAddFlags, [array, size_is (aNumKeys)] 
       in nsMsgKey aKeysToFlag, in unsigned long aNumKeys, in nsIUrlListener aUrlListener);
-  void setImapFlags(in string uids, in long flags, out nsIURI url);
+  nsIURI setImapFlags(in string uids, in long flags);
   void replayOfflineMoveCopy([array, size_is (numKeys)] in nsMsgKey keys, in unsigned long numKeys, in boolean isMove, in nsIMsgFolder aDstFolder,
                          in nsIUrlListener aUrlListener, in nsIMsgWindow aWindow);
-  void playbackOfflineFolderCreate(in wstring folderName, in nsIMsgWindow aWindow, out nsIURI url);
+  nsIURI playbackOfflineFolderCreate(in AString folderName, in nsIMsgWindow aWindow);
   void liteSelect(in nsIUrlListener aUrlListener);
   void fillInFolderProps(in nsIMsgImapFolderProps aFolderProps);
   void resetNamespaceReferences();
   void folderPrivileges(in nsIMsgWindow aWindow);
-  nsIMsgImapMailFolder findOnlineSubFolder(in string onlineName);
-  void addFolderRights(in string userName, in string rights);
+  nsIMsgImapMailFolder findOnlineSubFolder(in ACString onlineName);
+  void addFolderRights(in ACString userName, in ACString rights);
   void refreshFolderRights();
 
   void updateStatus(in nsIUrlListener aListener, in nsIMsgWindow aMsgWindow);
   // this is used to issue an arbitrary imap command on the passed in msgs.
   // It assumes the command needs to be run in the selected state.
-  nsIURI issueCommandOnMsgs(in string command, in string uids, in nsIMsgWindow aWindow);
-  nsIURI fetchCustomMsgAttribute(in string msgAttribute, in string uids, in nsIMsgWindow aWindow);
+  nsIURI issueCommandOnMsgs(in ACString command, in string uids, in nsIMsgWindow aWindow);
+  nsIURI fetchCustomMsgAttribute(in ACString msgAttribute, in string uids, in nsIMsgWindow aWindow);
   nsIURI storeCustomKeywords(in nsIMsgWindow aMsgWindow,
-                      in string aFlagsToAdd,
-                      in string aFlagsToSubtract,
+                      in ACString aFlagsToAdd,
+                      in ACString aFlagsToSubtract,
                       [array, size_is (aNumKeys)] in nsMsgKey aKeysToStore,
                       in unsigned long aNumKeys);
 
@@ -119,10 +118,10 @@ interface nsIMsgImapMailFolder : nsISupports {
   attribute boolean explicitlyVerify;
   attribute wchar hierarchyDelimiter;
   attribute long boxFlags;
-  attribute string onlineName;
+  attribute ACString onlineName;
   attribute boolean isNamespace;
   readonly attribute boolean canOpenFolder;
-  attribute string adminUrl;
+  attribute ACString adminUrl;
   readonly attribute boolean hasAdminUrl;
   attribute boolean performingBiff;
   readonly attribute nsIMsgParseMailMsgState hdrParser;

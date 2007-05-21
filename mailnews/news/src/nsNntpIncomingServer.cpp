@@ -39,7 +39,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsNntpIncomingServer.h"
-#include "nsXPIDLString.h"
 #include "nsIPrefBranch.h"
 #include "nsIPrefService.h"
 #include "nsIMsgNewsFolder.h"
@@ -313,18 +312,18 @@ nsNntpIncomingServer::WriteNewsrcFile()
     if (NS_FAILED(rv)) return rv;
 
 #ifdef DEBUG_NEWS
-	nsXPIDLCString hostname;
-	rv = GetHostName(getter_Copies(hostname));
-	if (NS_FAILED(rv)) return rv;
+  nsCString hostname;
+  rv = GetHostName(hostname);
+  if (NS_FAILED(rv)) return rv;
 #endif /* DEBUG_NEWS */
 
     if (newsrcHasChanged) {        
 #ifdef DEBUG_NEWS
-        printf("write newsrc file for %s\n", (const char *)hostname);
+        printf("write newsrc file for %s\n", hostname.get());
 #endif
         nsCOMPtr <nsILocalFile> newsrcFile;
         rv = GetNewsrcFilePath(getter_AddRefs(newsrcFile));
-	    if (NS_FAILED(rv)) return rv;
+        if (NS_FAILED(rv)) return rv;
 
         nsCOMPtr<nsIOutputStream> newsrcStream;
         nsresult rv = NS_NewLocalFileOutputStream(getter_AddRefs(newsrcStream), newsrcFile, -1, 00600);
@@ -340,12 +339,12 @@ nsNntpIncomingServer::WriteNewsrcFile()
         if (NS_FAILED(rv)) return rv;
 
         PRUint32 bytesWritten;
-        nsXPIDLCString optionLines;
-        rv = newsFolder->GetOptionLines(getter_Copies(optionLines));
-        if (NS_SUCCEEDED(rv) && ((const char *)optionLines)) {
-          newsrcStream->Write((const char *)optionLines, optionLines.Length(), &bytesWritten);
+        nsCString optionLines;
+        rv = newsFolder->GetOptionLines(optionLines);
+        if (NS_SUCCEEDED(rv) && !optionLines.IsEmpty()) {
+          newsrcStream->Write(optionLines.get(), optionLines.Length(), &bytesWritten);
 #ifdef DEBUG_NEWS
-               printf("option lines:\n%s",(const char *)optionLines);
+               printf("option lines:\n%s", optionLines.get());
 #endif /* DEBUG_NEWS */
         }
 #ifdef DEBUG_NEWS
@@ -354,12 +353,12 @@ nsNntpIncomingServer::WriteNewsrcFile()
         }
 #endif /* DEBUG_NEWS */
 
-        nsXPIDLCString unsubscribedLines;
-        rv = newsFolder->GetUnsubscribedNewsgroupLines(getter_Copies(unsubscribedLines));
-        if (NS_SUCCEEDED(rv) && ((const char *)unsubscribedLines)) {
-          newsrcStream->Write((const char *)unsubscribedLines, unsubscribedLines.Length(), &bytesWritten);
+        nsCString unsubscribedLines;
+        rv = newsFolder->GetUnsubscribedNewsgroupLines(unsubscribedLines);
+        if (NS_SUCCEEDED(rv) && !unsubscribedLines.IsEmpty()) {
+          newsrcStream->Write(unsubscribedLines.get(), unsubscribedLines.Length(), &bytesWritten);
 #ifdef DEBUG_NEWS
-               printf("unsubscribedLines:\n%s",(const char *)unsubscribedLines);
+               printf("unsubscribedLines:\n%s", unsubscribedLines.get());
 #endif /* DEBUG_NEWS */
         }
 #ifdef DEBUG_NEWS
@@ -382,11 +381,11 @@ nsNntpIncomingServer::WriteNewsrcFile()
             if (NS_SUCCEEDED(rv) && child) {
                 newsFolder = do_QueryInterface(child, &rv);
                 if (NS_SUCCEEDED(rv) && newsFolder) {
-                    nsXPIDLCString newsrcLine;
-                    rv = newsFolder->GetNewsrcLine(getter_Copies(newsrcLine));
-                    if (NS_SUCCEEDED(rv) && ((const char *)newsrcLine)) {
+                    nsCString newsrcLine;
+                    rv = newsFolder->GetNewsrcLine(newsrcLine);
+                    if (NS_SUCCEEDED(rv) && !newsrcLine.IsEmpty()) {
                         // write the line to the newsrc file
-                        newsrcStream->Write((const char *)newsrcLine, newsrcLine.Length(), &bytesWritten);
+                        newsrcStream->Write(newsrcLine.get(), newsrcLine.Length(), &bytesWritten);
                     }
                 }
             }
@@ -396,11 +395,11 @@ nsNntpIncomingServer::WriteNewsrcFile()
         newsrcStream->Close();
         
         rv = SetNewsrcHasChanged(PR_FALSE);
-		if (NS_FAILED(rv)) return rv;
+        if (NS_FAILED(rv)) return rv;
     }
 #ifdef DEBUG_NEWS
     else {
-        printf("no need to write newsrc file for %s, it was not dirty\n", (const char *)hostname);
+        printf("no need to write newsrc file for %s, it was not dirty\n", (hostname.get());
     }
 #endif /* DEBUG_NEWS */
 
@@ -780,7 +779,7 @@ nsNntpIncomingServer::SubscribeToNewsgroup(const nsACString &aName)
     if (NS_FAILED(rv)) return rv;
     if (!msgfolder) return NS_ERROR_FAILURE;
 
-    rv = msgfolder->CreateSubfolder(NS_ConvertUTF8toUTF16(aName).get(), nsnull);
+    rv = msgfolder->CreateSubfolder(NS_ConvertUTF8toUTF16(aName), nsnull);
     if (NS_FAILED(rv)) return rv;
 
     return NS_OK;
@@ -866,23 +865,22 @@ nsresult
 nsNntpIncomingServer::LoadHostInfoFile()
 {
   nsresult rv;
-	
   // we haven't loaded it yet
   mHostInfoLoaded = PR_FALSE;
 
-	rv = GetLocalPath(getter_AddRefs(mHostInfoFile));
-	if (NS_FAILED(rv)) return rv;
-	if (!mHostInfoFile) return NS_ERROR_FAILURE;
+  rv = GetLocalPath(getter_AddRefs(mHostInfoFile));
+  if (NS_FAILED(rv)) return rv;
+  if (!mHostInfoFile) return NS_ERROR_FAILURE;
 
-	rv = mHostInfoFile->AppendNative(NS_LITERAL_CSTRING(HOSTINFO_FILE_NAME));
-	if (NS_FAILED(rv)) return rv;
+  rv = mHostInfoFile->AppendNative(NS_LITERAL_CSTRING(HOSTINFO_FILE_NAME));
+  if (NS_FAILED(rv)) return rv;
 
-	PRBool exists;
-	rv = mHostInfoFile->Exists(&exists);
-	if (NS_FAILED(rv)) return rv;
+  PRBool exists;
+  rv = mHostInfoFile->Exists(&exists);
+  if (NS_FAILED(rv)) return rv;
 
-	// it is ok if the hostinfo.dat file does not exist.
-	if (!exists) return NS_OK;
+  // it is ok if the hostinfo.dat file does not exist.
+  if (!exists) return NS_OK;
 
   nsCOMPtr<nsIInputStream> fileStream;
   rv = NS_NewLocalFileInputStream(getter_AddRefs(fileStream), mNewsrcFilePath);
@@ -892,7 +890,7 @@ nsNntpIncomingServer::LoadHostInfoFile()
   NS_ENSURE_SUCCESS(rv, nsnull);
   
   PRBool more = PR_TRUE;
-  nsXPIDLCString line;
+  nsCString line;
 
   while (more && NS_SUCCEEDED(rv))
   {
@@ -2092,7 +2090,7 @@ nsNntpIncomingServer::OnUserOrHostNameChanged(const nsACString& oldName, const n
     NS_ENSURE_SUCCESS(rv,rv);
     newsgroupFolder = do_QueryInterface(aItem, &rv);
     NS_ENSURE_SUCCESS(rv,rv);
-    rv = newsgroupFolder->GetName(getter_Copies(folderName));
+    rv = newsgroupFolder->GetName(folderName);
     NS_ENSURE_SUCCESS(rv,rv);
     groupList.AppendString(folderName);
     if (! NS_SUCCEEDED(subFolders->Next()))

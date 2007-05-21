@@ -2986,8 +2986,8 @@ nsMsgComposeAndSend::InitCompositionFields(nsMsgCompFields *fields,
                              &fccReplyFollowsParent);
                     if (NS_SUCCEEDED(rv) && fccReplyFollowsParent)
                     {
-                      nsXPIDLCString folderURI;
-                      rv = folder->GetURI(getter_Copies(folderURI));
+                      nsCString folderURI;
+                      rv = folder->GetURI(folderURI);
                       if (NS_SUCCEEDED(rv))
                       {
                         mCompFields->SetFcc(folderURI.get());
@@ -4380,8 +4380,8 @@ nsMsgComposeAndSend::MimeDoFCC(nsIFile          *input_file,
   PRBool        folderIsLocal = PR_TRUE;
   nsCString     turi;
   PRUnichar     *printfString = nsnull;
-  nsXPIDLString folderName;
-  nsXPIDLString msg; 
+  nsString folderName;
+  nsString msg; 
   nsCOMPtr<nsIMsgFolder> folder;
 
   // Before continuing, just check the user has not cancel the operation
@@ -4482,7 +4482,7 @@ nsMsgComposeAndSend::MimeDoFCC(nsIFile          *input_file,
 
   // Tell the user we are copying the message... 
   mComposeBundle->GetStringByID(NS_MSG_START_COPY_MESSAGE, getter_Copies(msg));
-  if (msg)
+  if (!msg.IsEmpty())
   {
     nsCOMPtr<nsIRDFService> rdfService = do_GetService(kRDFServiceCID);
     if (rdfService)
@@ -4491,12 +4491,12 @@ nsMsgComposeAndSend::MimeDoFCC(nsIFile          *input_file,
       rdfService->GetResource(turi, getter_AddRefs(res));
       nsCOMPtr<nsIMsgFolder> folder = do_QueryInterface(res);
       if (folder)
-        folder->GetName(getter_Copies(folderName));
+        folder->GetName(folderName);
     }
     if (!folderName.IsEmpty())
-      printfString = nsTextFormatter::smprintf(msg, folderName.get());
+      printfString = nsTextFormatter::smprintf(msg.get(), folderName.get());
     else
-      printfString = nsTextFormatter::smprintf(msg, "?");
+      printfString = nsTextFormatter::smprintf(msg.get(), "?");
     if (printfString)
     {
       SetStatusMessage(printfString); 

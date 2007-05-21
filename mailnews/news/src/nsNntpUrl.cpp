@@ -345,11 +345,11 @@ nsNntpUrl::GetFolderCharset(char **aCharacterSet)
   nsresult rv = GetFolder(getter_AddRefs(folder));
   // don't assert here.  this can happen if there is no message folder
   // like when we display a news://host/message-id url
-  if (NS_FAILED(rv)) return rv;
-
-  NS_ENSURE_TRUE(folder, NS_ERROR_FAILURE);
-  rv = folder->GetCharset(aCharacterSet);
-  NS_ENSURE_SUCCESS(rv,rv);
+  if (NS_FAILED(rv) || !folder)
+    return rv;
+  nsCString tmpStr;
+  rv = folder->GetCharset(tmpStr);
+  *aCharacterSet = ToNewCString(tmpStr);
   return rv;
 }
 

@@ -200,7 +200,7 @@ NS_IMETHODIMP nsPop3IncomingServer::SetDeferredToAccount(const nsACString& aAcco
                   rv = server->GetRootFolder(getter_AddRefs(rootFolder));
                   NS_ENSURE_SUCCESS(rv, rv);
                   // this will fail if it already exists, which is fine.
-                  rootFolder->CreateSubfolder(NS_LITERAL_STRING("Inbox").get(), nsnull);
+                  rootFolder->CreateSubfolder(NS_LITERAL_STRING("Inbox"), nsnull);
                 }
               }
             }

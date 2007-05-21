@@ -202,8 +202,8 @@ nsNntpService::CreateMessageIDURL(nsIMsgFolder *folder, nsMsgKey key, char **url
     nsCOMPtr <nsIMsgNewsFolder> newsFolder = do_QueryInterface(folder, &rv);
     NS_ENSURE_SUCCESS(rv,rv);
 
-    nsXPIDLCString messageID;
-    rv = newsFolder->GetMessageIdForKey(key, getter_Copies(messageID));
+    nsCString messageID;
+    rv = newsFolder->GetMessageIdForKey(key, messageID);
     NS_ENSURE_SUCCESS(rv,rv);
 
     // we need to escape the message ID,
@@ -217,8 +217,8 @@ nsNntpService::CreateMessageIDURL(nsIMsgFolder *folder, nsMsgKey key, char **url
     rv = folder->GetRootFolder(getter_AddRefs(rootFolder));
     NS_ENSURE_SUCCESS(rv,rv);
 
-    nsXPIDLCString rootFolderURI;
-    rv = rootFolder->GetURI(getter_Copies(rootFolderURI));
+    nsCString rootFolderURI;
+    rv = rootFolder->GetURI(rootFolderURI);
     NS_ENSURE_SUCCESS(rv,rv);
 
     nsCAutoString uri;
@@ -369,9 +369,8 @@ nsNntpService::DisplayMessage(const char* aMessageURI, nsISupports * aDisplayCon
 NS_IMETHODIMP
 nsNntpService::FetchMessage(nsIMsgFolder *folder, nsMsgKey key, nsIMsgWindow *aMsgWindow, nsISupports * aConsumer, nsIUrlListener * aUrlListener, nsIURI ** aURL)
 {
-  nsresult rv = NS_OK;
   NS_ENSURE_ARG_POINTER(folder);
-
+  nsresult rv;
   nsCOMPtr<nsIMsgNewsFolder> msgNewsFolder = do_QueryInterface(folder, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -379,27 +378,23 @@ nsNntpService::FetchMessage(nsIMsgFolder *folder, nsMsgKey key, nsIMsgWindow *aM
   rv = folder->GetMessageHeader(key, getter_AddRefs(hdr));
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsXPIDLCString originalMessageUri;
-  rv = folder->GetUriForMsg(hdr, getter_Copies(originalMessageUri));
+  nsCString originalMessageUri;
+  rv = folder->GetUriForMsg(hdr, originalMessageUri);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsXPIDLCString messageIdURL;
+  nsCString messageIdURL;
   rv = CreateMessageIDURL(folder, key, getter_Copies(messageIdURL));
   NS_ENSURE_SUCCESS(rv,rv);
 
   nsCOMPtr<nsIURI> url;
-  rv = ConstructNntpUrl((const char *)messageIdURL, aUrlListener, aMsgWindow, originalMessageUri.get(), nsINntpUrl::ActionFetchArticle, getter_AddRefs(url));
+  rv = ConstructNntpUrl(messageIdURL.get(), aUrlListener, aMsgWindow, originalMessageUri.get(),
+                        nsINntpUrl::ActionFetchArticle, getter_AddRefs(url));
   NS_ENSURE_SUCCESS(rv,rv);
 
   rv = RunNewsUrl(url, aMsgWindow, aConsumer);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  if (aURL)
-  {
-    *aURL = url;
-    NS_IF_ADDREF(*aURL);
-  }
-
+  url.swap(*aURL);
   return rv;
 }
 
@@ -652,7 +647,7 @@ nsNntpService::GetFolderFromUri(const char *aUri, nsIMsgFolder **aFolder)
   nsUnescape(unescapedPath);
 
   nsCOMPtr<nsISupports> subFolder;
-  rv = rootFolder->GetChildNamed(NS_ConvertUTF8toUTF16(unescapedPath).get() ,
+  rv = rootFolder->GetChildNamed(NS_ConvertUTF8toUTF16(unescapedPath),
                                  getter_AddRefs(subFolder));
   PL_strfree(unescapedPath);
   NS_ENSURE_SUCCESS(rv,rv);
@@ -662,7 +657,7 @@ nsNntpService::GetFolderFromUri(const char *aUri, nsIMsgFolder **aFolder)
 
 NS_IMETHODIMP
 nsNntpService::CopyMessage(const char * aSrcMessageURI, nsIStreamListener * aMailboxCopyHandler, PRBool moveMessage,
-						   nsIUrlListener * aUrlListener, nsIMsgWindow *aMsgWindow, nsIURI **aURL)
+                           nsIUrlListener * aUrlListener, nsIMsgWindow *aMsgWindow, nsIURI **aURL)
 {
   NS_ENSURE_ARG_POINTER(aSrcMessageURI);
   NS_ENSURE_ARG_POINTER(aMailboxCopyHandler);
@@ -1560,14 +1555,13 @@ NS_IMETHODIMP nsNntpService::Search(nsIMsgSearchSession *aSearchSession, nsIMsgW
 
   nsresult rv;
 
-  nsXPIDLCString folderUri;
-  rv = aMsgFolder->GetURI(getter_Copies(folderUri));
+  nsCString searchUrl;
+  rv = aMsgFolder->GetURI(searchUrl);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsCAutoString searchUrl((const char *)folderUri);
-  searchUrl += aSearchUri;
-  nsCOMPtr <nsIUrlListener> urlListener = do_QueryInterface(aSearchSession);
+  searchUrl.Append(aSearchUri);
 
+  nsCOMPtr <nsIUrlListener> urlListener = do_QueryInterface(aSearchSession);
   nsCOMPtr<nsIURI> url;
   rv = ConstructNntpUrl(searchUrl.get(), urlListener, aMsgWindow, nsnull, nsINntpUrl::ActionSearch, getter_AddRefs(url));
   NS_ENSURE_SUCCESS(rv,rv);
@@ -1577,11 +1571,8 @@ NS_IMETHODIMP nsNntpService::Search(nsIMsgSearchSession *aSearchSession, nsIMsgW
     msgurl->SetSearchSession(aSearchSession);
 
   // run the url to update the counts
-  rv = RunNewsUrl(url, nsnull, nsnull);
-  NS_ENSURE_SUCCESS(rv,rv);
-  return NS_OK;
+  return RunNewsUrl(url, nsnull, nsnull);
 }
-
 
 NS_IMETHODIMP
 nsNntpService::UpdateCounts(nsINntpIncomingServer *aNntpServer, nsIMsgWindow *aMsgWindow)
@@ -1707,13 +1698,13 @@ nsNntpService::HandleContent(const char * aContentType, nsIInterfaceRequestor* a
     NS_ENSURE_SUCCESS(rv, rv);
     if (uri)
     {
-      nsXPIDLCString uriStr;
+      nsCString uriStr;
       nsCOMPtr <nsIMsgFolder> msgFolder;
       nsCOMPtr <nsINNTPProtocol> protocol = do_QueryInterface(aChannel);
       if (protocol)
         protocol->GetCurrentFolder(getter_AddRefs(msgFolder));
       if (msgFolder)
-        msgFolder->GetURI(getter_Copies(uriStr));
+        msgFolder->GetURI(uriStr);
 
       if (!uriStr.IsEmpty())
       {
@@ -1731,18 +1722,14 @@ nsNntpService::HandleContent(const char * aContentType, nsIInterfaceRequestor* a
               nsCOMPtr <nsIMsgWindowCommands> windowCommands;
               msgWindow->GetWindowCommands(getter_AddRefs(windowCommands));
               if (windowCommands)
-                windowCommands->SelectFolder(uriStr);
+                windowCommands->SelectFolder(uriStr.get());
             }
           }
         }
       }
     }
-  } else
-  {
-    // The content-type was not x-application-newsgroup.
-    return NS_ERROR_WONT_HANDLE_CONTENT;
-  }
-
+  } else // The content-type was not x-application-newsgroup.
+    rv = NS_ERROR_WONT_HANDLE_CONTENT;
   return rv;
 }
 

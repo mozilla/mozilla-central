@@ -2566,7 +2566,7 @@ NS_IMETHODIMP VirtualFolderChangeListener::OnHdrChange(nsIMsgDBHdr *aHdrChanged,
     if (totalDelta)
     {
       nsCString searchUri;
-      m_virtualFolder->GetURI(getter_Copies(searchUri));
+      m_virtualFolder->GetURI(searchUri);
       msgDB->UpdateHdrInCache(searchUri.get(), aHdrChanged, totalDelta == 1);
     }
 
@@ -2609,7 +2609,7 @@ NS_IMETHODIMP VirtualFolderChangeListener::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted
     }
     
     nsCString searchUri;
-    m_virtualFolder->GetURI(getter_Copies(searchUri));
+    m_virtualFolder->GetURI(searchUri);
     msgDB->UpdateHdrInCache(searchUri.get(), aHdrDeleted, PR_FALSE);
 
     m_virtualFolder->UpdateSummaryTotals(PR_TRUE); // force update from db.
@@ -2648,7 +2648,7 @@ NS_IMETHODIMP VirtualFolderChangeListener::OnHdrAdded(nsIMsgDBHdr *aNewHdr, nsMs
       m_virtualFolder->SetNumNewMessages(numNewMessages + 1);
     }
     nsCString searchUri;
-    m_virtualFolder->GetURI(getter_Copies(searchUri));
+    m_virtualFolder->GetURI(searchUri);
     msgDB->UpdateHdrInCache(searchUri.get(), aNewHdr, PR_TRUE);
     dbFolderInfo->ChangeNumMessages(1);
     m_virtualFolder->UpdateSummaryTotals(true); // force update from db.

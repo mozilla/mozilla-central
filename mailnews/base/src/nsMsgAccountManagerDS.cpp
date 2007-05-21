@@ -335,7 +335,7 @@ nsMsgAccountManagerDataSource::GetTarget(nsIRDFResource *source,
     rv = getStringBundle();
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsXPIDLString pageTitle;
+    nsString pageTitle;
     if (source == kNC_PageTitleServer)
       mStringBundle->GetStringFromName(NS_LITERAL_STRING("prefPanel-server").get(),
                                        getter_Copies(pageTitle));
@@ -385,7 +385,7 @@ nsMsgAccountManagerDataSource::GetTarget(nsIRDFResource *source,
         PRBool isServer;
         rv = folder->GetIsServer(&isServer);
         if (NS_SUCCEEDED(rv) && isServer)
-          rv = folder->GetPrettyName(getter_Copies(pageTitle));
+          rv = folder->GetPrettyName(pageTitle);
       }
       else {
         // allow for the accountmanager to be dynamically extended.

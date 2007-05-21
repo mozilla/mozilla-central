@@ -215,7 +215,7 @@ protected:
   nsresult GetFolderSizeNode(PRInt32 folderSize, nsIRDFNode **node);
   nsresult CreateLiterals(nsIRDFService *rdf);
 
-  virtual nsresult GetFolderDisplayName(nsIMsgFolder *folder, PRUnichar **folderName);
+  virtual nsresult GetFolderDisplayName(nsIMsgFolder *folder, nsString& folderName);
 
   static nsIRDFResource* kNC_Child;
   static nsIRDFResource* kNC_Folder;
@@ -326,7 +326,7 @@ public:
                             PRBool tv,
                             PRBool* hasAssertion);
 protected:
-  virtual nsresult GetFolderDisplayName(nsIMsgFolder *folder, PRUnichar **folderName);
+  virtual nsresult GetFolderDisplayName(nsIMsgFolder *folder, nsString& folderName);
   virtual PRBool WantsThisFolder(nsIMsgFolder *folder);
           PRBool ResourceIsOurRoot(nsIRDFResource *resource);
   virtual nsresult OnItemAddedOrRemoved(nsIRDFResource *parentItem, nsISupports *item, PRBool added);

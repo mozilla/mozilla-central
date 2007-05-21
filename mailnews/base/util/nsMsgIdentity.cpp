@@ -290,7 +290,7 @@ nsMsgIdentity::getFolderPref(const char *prefname, nsCString& retval, PRUint32 f
       {
         nsCOMPtr <nsIMsgFolder> msgFolder;
         server->GetMsgFolderFromURI(folderResource, retval, getter_AddRefs(msgFolder));
-        return msgFolder->GetURI(getter_Copies(retval));
+        return msgFolder->GetURI(retval);
       }
     }
   }

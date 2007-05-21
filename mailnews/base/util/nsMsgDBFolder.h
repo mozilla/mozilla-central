@@ -101,8 +101,6 @@ public:
   void ChangeNumPendingUnread(PRInt32 delta);
   void ChangeNumPendingTotalMessages(PRInt32 delta);
 
-  NS_IMETHOD MatchName(nsString *name, PRBool *matches);
-
   nsresult CreateDirectoryForFolder(nsILocalFile **result);
   nsresult GetMsgPreviewTextFromStream(nsIMsgDBHdr *msgHdr, nsIInputStream *stream);
 protected:
@@ -111,9 +109,9 @@ protected:
   // we use it to get the IID of the incoming server for the derived folder.
   // w/out a function like this we would have to implement GetServer in each
   // derived folder class.
-  virtual const char* GetIncomingServerType() = 0;
+  virtual void GetIncomingServerType(nsCString& serverType) = 0;
 
-  virtual nsresult CreateBaseMessageURI(const char *aURI);
+  virtual nsresult CreateBaseMessageURI(const nsACString& aURI);
 
   nsresult convertMsgSnippetToPlainText(nsAString& aMessageText);
   void compressQuotesInMsgSnippet(const nsString& aMessageText, nsAString& aCompressedQuotesStr);
@@ -122,12 +120,11 @@ protected:
   // helper routine to parse the URI and update member variables
   nsresult parseURI(PRBool needServer=PR_FALSE);
   nsresult GetBaseStringBundle(nsIStringBundle **aBundle);
-  nsresult GetStringFromBundle(const char* msgName, PRUnichar **aResult);
-  nsresult ThrowConfirmationPrompt(nsIMsgWindow *msgWindow, const PRUnichar *confirmString, PRBool *confirmed);
+  nsresult GetStringFromBundle(const char* msgName, nsString& aResult);
+  nsresult ThrowConfirmationPrompt(nsIMsgWindow *msgWindow, const nsAString& confirmString, PRBool *confirmed);
   nsresult GetWarnFilterChanged(PRBool *aVal);
   nsresult SetWarnFilterChanged(PRBool aVal);
   nsresult CreateCollationKey(const nsString &aSource,  PRUint8 **aKey, PRUint32 *aLength);
-
   nsresult ListFoldersWithFlag(PRUint32 flag, nsISupportsArray *array);
 
 protected:
@@ -138,13 +135,12 @@ protected:
   nsresult CheckWithNewMessagesStatus(PRBool messageAdded);
   void     UpdateNewMessages();
   nsresult OnHdrAddedOrDeleted(nsIMsgDBHdr *hdrChanged, PRBool added);
-  nsresult CreateFileForDB(const char *userLeafName, nsILocalFile *baseDir, nsILocalFile **dbFile);
+  nsresult CreateFileForDB(const nsACString& userLeafName, nsILocalFile *baseDir, nsILocalFile **dbFile);
 
   nsresult GetFolderCacheKey(nsILocalFile **aFile, PRBool createDBIfMissing = PR_FALSE);
   nsresult GetFolderCacheElemFromFile(nsILocalFile *file, nsIMsgFolderCacheElement **cacheElement);
   nsresult AddDirectorySeparator(nsILocalFile *path);
-  nsresult CheckIfFolderExists(const PRUnichar *newFolderName, nsIMsgFolder *parentFolder, nsIMsgWindow *msgWindow);
-
+  nsresult CheckIfFolderExists(const nsAString& newFolderName, nsIMsgFolder *parentFolder, nsIMsgWindow *msgWindow);
 
   nsresult PromptForCachePassword(nsIMsgIncomingServer *server, nsIMsgWindow *aWindow, PRBool &passwordCorrect);
   // offline support methods.
@@ -164,8 +160,8 @@ protected:
 
   virtual nsresult SpamFilterClassifyMessage(const char *aURI, nsIMsgWindow *aMsgWindow, nsIJunkMailPlugin *aJunkMailPlugin);
   virtual nsresult SpamFilterClassifyMessages(const char **aURIArray, PRUint32 aURICount, nsIMsgWindow *aMsgWindow, nsIJunkMailPlugin *aJunkMailPlugin);
-
   void    SetMRUTime();
+
 protected:
   nsCOMPtr<nsIMsgDatabase> mDatabase;
   nsCString mCharset;
@@ -177,7 +173,7 @@ protected:
 
   nsCOMPtr <nsIMsgDBHdr> m_offlineHeader;
   PRInt32 m_numOfflineMsgLines;
-	// this is currently used when we do a save as of an imap or news message..
+  // this is currently used when we do a save as of an imap or news message..
   nsCOMPtr<nsIOutputStream> m_tempMessageStream;
 
   nsCOMPtr <nsIMsgRetentionSettings> m_retentionSettings;
@@ -191,9 +187,7 @@ protected:
 protected:
   PRUint32 mFlags;
   nsWeakPtr mParent;     //This won't be refcounted for ownership reasons.
-  PRInt32 mNumUnreadMessages;        /* count of unread messages (-1 means
-                                         unknown; -2 means unknown but we already
-                                         tried to find out.) */
+  PRInt32 mNumUnreadMessages;        /* count of unread messages (-1 means unknown; -2 means unknown but we already tried to find out.) */
   PRInt32 mNumTotalMessages;         /* count of existing messages. */
   PRBool mNotifyCountChanges;
   PRUint32 mExpungedBytes;
@@ -203,7 +197,7 @@ protected:
 
   PRBool mInitializedFromCache;
   nsISupports *mSemaphoreHolder; // set when the folder is being written to
-								//Due to ownership issues, this won't be AddRef'd.
+                                 //Due to ownership issues, this won't be AddRef'd.
 
   nsWeakPtr mServer;
 

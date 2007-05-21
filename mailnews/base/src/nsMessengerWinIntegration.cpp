@@ -259,7 +259,6 @@ nsMessengerWinIntegration::nsMessengerWinIntegration()
   mTotalUnreadMessagesAtom = do_GetAtom("TotalUnreadMessages");
 
   mUnreadTimerActive = PR_FALSE;
-  mInboxURI = nsnull;
   mStoreUnreadCounts = PR_FALSE;
 
   mBiffStateAtom = do_GetAtom("BiffState");
@@ -281,8 +280,6 @@ nsMessengerWinIntegration::~nsMessengerWinIntegration()
   // one last attempt, update the registry
   nsresult rv = UpdateRegistryWithCurrent();
   NS_ASSERTION(NS_SUCCEEDED(rv), "failed to update registry on shutdown");
-
-  CRTFREEIF(mInboxURI);
   DestroyBiffIcon();
 }
 
@@ -300,7 +297,6 @@ NS_INTERFACE_MAP_END
 nsresult
 nsMessengerWinIntegration::ResetCurrent()
 {
-  CRTFREEIF(mInboxURI);
   mEmail.Truncate();
 
   mCurrentUnreadCount = -1;
@@ -634,11 +630,9 @@ nsresult nsMessengerWinIntegration::AlertClicked()
 #else
   // make sure we don't insert the icon in the system tray since the user clicked on the alert.
   mSuppressBiffIcon = PR_TRUE;
-
-  nsXPIDLCString folderURI;
-  GetFirstFolderWithNewMail(getter_Copies(folderURI));
-
-  openMailWindow(NS_LITERAL_STRING("mail:3pane").get(), folderURI);
+  nsCString folderURI;
+  GetFirstFolderWithNewMail(folderURI);
+  openMailWindow(NS_LITERAL_STRING("mail:3pane").get(), folderURI.get());
 #endif
   return NS_OK;
 }
@@ -658,8 +652,8 @@ nsMessengerWinIntegration::Observe(nsISupports* aSubject, const char* aTopic, co
 void nsMessengerWinIntegration::FillToolTipInfo()
 {
   // iterate over all the folders in mFoldersWithNewMail
-  nsXPIDLString accountName;
-  nsXPIDLCString hostName;
+  nsString accountName;
+  nsCString hostName;
   nsAutoString toolTipText;
   nsAutoString animatedAlertText;
   nsCOMPtr<nsIMsgFolder> folder;
@@ -676,7 +670,7 @@ void nsMessengerWinIntegration::FillToolTipInfo()
     folder = do_QueryReferent(weakReference);
     if (folder)
     {
-      folder->GetPrettiestName(getter_Copies(accountName));
+      folder->GetPrettiestName(accountName);
 
       numNewMessages = 0;
       folder->GetNumNewMessages(PR_TRUE, &numNewMessages);
@@ -721,7 +715,7 @@ void nsMessengerWinIntegration::FillToolTipInfo()
   if (!mBiffIconVisible)
   {
 #ifndef MOZ_THUNDERBIRD
-    ShowAlertMessage(accountName, animatedAlertText.get(), "");
+    ShowAlertMessage(accountName.get(), animatedAlertText.get(), "");
 #else
     ShowNewAlertNotification(PR_FALSE);
 #endif
@@ -732,7 +726,7 @@ void nsMessengerWinIntegration::FillToolTipInfo()
 
 // get the first top level folder which we know has new mail, then enumerate over all the subfolders
 // looking for the first real folder with new mail. Return the folderURI for that folder.
-nsresult nsMessengerWinIntegration::GetFirstFolderWithNewMail(char ** aFolderURI)
+nsresult nsMessengerWinIntegration::GetFirstFolderWithNewMail(nsACString& aFolderURI)
 {
   nsresult rv;
   NS_ENSURE_TRUE(mFoldersWithNewMail, NS_ERROR_FAILURE);
@@ -889,7 +883,7 @@ nsMessengerWinIntegration::OnItemBoolPropertyChanged(nsIRDFResource *aItem,
     // mInboxURI to null, so we use that
     // to prevent us from attempting to remove
     // something from the registry that has already been removed
-    if (mInboxURI && !mEmail.IsEmpty()) {
+    if (!mInboxURI.IsEmpty() && !mEmail.IsEmpty()) {
       rv = RemoveCurrentFromRegistry();
       NS_ENSURE_SUCCESS(rv,rv);
     }
@@ -971,9 +965,8 @@ nsMessengerWinIntegration::OnItemIntPropertyChanged(nsIRDFResource *aItem, nsIAt
     rv = aItem->GetValueConst(&itemURI);
     NS_ENSURE_SUCCESS(rv,rv);
 
-    if (itemURI && mInboxURI && !strcmp(itemURI, mInboxURI)) {
+    if (itemURI && mInboxURI.Equals(itemURI))
       mCurrentUnreadCount = aNewValue;
-    }
 
     // If the timer isn't running yet, then we immediately update the
     // registry and then start a one-shot timer. If the Unread counter
@@ -1058,7 +1051,7 @@ nsMessengerWinIntegration::UpdateRegistryWithCurrent()
 {
   if (!mStoreUnreadCounts) return NS_OK; // don't do anything here if we aren't storing unread counts...
 
-  if (!mInboxURI || mEmail.IsEmpty())
+  if (mInboxURI.IsEmpty() || mEmail.IsEmpty())
     return NS_OK;
 
   // only update the registry if the count has changed
@@ -1197,7 +1190,7 @@ nsMessengerWinIntegration::SetupInbox()
     if (!inboxFolder)
      return NS_ERROR_FAILURE;
 
-    rv = inboxFolder->GetURI(&mInboxURI);
+    rv = inboxFolder->GetURI(mInboxURI);
     NS_ENSURE_SUCCESS(rv,rv);
 
     rv = inboxFolder->GetNumUnread(PR_FALSE, &mCurrentUnreadCount);
@@ -1220,7 +1213,7 @@ nsMessengerWinIntegration::UpdateUnreadCount()
   nsresult rv;
   if (!mStoreUnreadCounts) return NS_OK; // don't do anything here if we aren't storing unread counts...
 
-  if (mDefaultAccountMightHaveAnInbox && !mInboxURI) {
+  if (mDefaultAccountMightHaveAnInbox && mInboxURI.IsEmpty()) {
     rv = SetupInbox();
     NS_ENSURE_SUCCESS(rv,rv);
   }

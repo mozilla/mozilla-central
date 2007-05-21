@@ -221,19 +221,20 @@ PRBool nsNewsDownloader::GetNextHdrToRetrieve()
     firstStr.AppendInt(m_numwrote);
     nsAutoString totalStr;
     totalStr.AppendInt(m_keysToDownload.GetSize());
-    nsXPIDLString prettiestName;
-    nsXPIDLString statusString;
+    nsString prettiestName;
+    nsString statusString;
     
-    m_folder->GetPrettiestName(getter_Copies(prettiestName));
+    m_folder->GetPrettiestName(prettiestName);
     
-    const PRUnichar *formatStrings[3] = { firstStr.get(), totalStr.get(), (const PRUnichar *) prettiestName };
-    rv = bundle->FormatStringFromName(NS_LITERAL_STRING("downloadingArticlesForOffline").get(), formatStrings, 3, getter_Copies(statusString));
+    const PRUnichar *formatStrings[3] = { firstStr.get(), totalStr.get(), prettiestName.get() };
+    rv = bundle->FormatStringFromName(NS_LITERAL_STRING("downloadingArticlesForOffline").get(),
+                                      formatStrings, 3, getter_Copies(statusString));
     NS_ENSURE_SUCCESS(rv, rv);
-    ShowProgress(statusString, percent);
+    ShowProgress(statusString.get(), percent);
     return PR_TRUE;
   }
   NS_ASSERTION(PR_FALSE, "shouldn't get here if we're not downloading from keys.");
-  return PR_FALSE;	// shouldn't get here if we're not downloading from keys.
+  return PR_FALSE;  // shouldn't get here if we're not downloading from keys.
 }
 
 nsresult nsNewsDownloader::ShowProgress(const PRUnichar *progressString, PRInt32 percent)

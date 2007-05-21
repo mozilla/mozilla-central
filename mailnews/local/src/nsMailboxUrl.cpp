@@ -200,7 +200,7 @@ NS_IMETHODIMP nsMailboxUrl::GetUri(char ** aURI)
       if (baseUri.IsEmpty())
         m_baseURL->GetSpec(baseUri);
       nsCString baseMessageURI;
-      nsCreateLocalBaseMessageURI(baseUri.get(), baseMessageURI);
+      nsCreateLocalBaseMessageURI(baseUri, baseMessageURI);
       char * uri = nsnull;
       nsCAutoString uriStr;
       nsBuildLocalMessageURI(baseMessageURI.get(), m_messageKey, uriStr);
@@ -446,38 +446,17 @@ nsresult nsMailboxUrl::GetFolder(nsIMsgFolder **msgFolder)
   nsCOMPtr<nsIMsgDBHdr> msg; 
   GetMsgDBHdrFromURI(uri, getter_AddRefs(msg));
   NS_ENSURE_TRUE(msg, NS_ERROR_FAILURE);
-  nsresult rv = msg->GetFolder(msgFolder);
-  NS_ENSURE_SUCCESS(rv,rv);
-  NS_ENSURE_TRUE(msgFolder, NS_ERROR_FAILURE);
-
-  return NS_OK;
+  return msg->GetFolder(msgFolder);
 }
 
 NS_IMETHODIMP nsMailboxUrl::GetFolderCharset(char ** aCharacterSet)
 {
   nsCOMPtr<nsIMsgFolder> folder;
   nsresult rv = GetFolder(getter_AddRefs(folder));
-#if 0
-  if (NS_FAILED(rv))
-  {
-    nsCOMPtr<nsIPrefLocalizedString> pls;
-    nsCOMPtr<nsIPrefBranch> prefBranch = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv,rv);
-    rv = prefBranch->GetComplexValue("mailnews.view_default_charset",
-      NS_GET_IID(nsIPrefLocalizedString), getter_AddRefs(pls));
-    if (NS_SUCCEEDED(rv)) 
-    {
-      nsXPIDLString ucsval;
-      pls->ToString(getter_Copies(ucsval));
-      if (ucsval)
-        *aCharacterSet = ToNewCString(ucsval);
-      return rv;
-    }
-  }
-#endif
-  NS_ENSURE_SUCCESS(rv,rv);
-  NS_ENSURE_TRUE(folder, NS_ERROR_FAILURE);
-  folder->GetCharset(aCharacterSet);
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCString tmpStr;
+  folder->GetCharset(tmpStr);
+  *aCharacterSet = ToNewCString(tmpStr);
   return NS_OK;
 }
 

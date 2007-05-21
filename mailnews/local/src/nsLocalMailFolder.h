@@ -35,11 +35,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-/********************************************************************************************************
- 
+/**
    Interface for representing Local Mail folders.
- 
-*********************************************************************************************************/
+*/
 
 #ifndef nsMsgLocalMailFolder_h__
 #define nsMsgLocalMailFolder_h__
@@ -109,7 +107,7 @@ struct nsLocalFolderScanState
   nsCOMPtr<nsILineInputStream> m_fileLineStream;
   nsCString m_header;
   nsCString m_accountKey;
-  const char *m_uidl;	// memory is owned by m_header
+  const char *m_uidl; // memory is owned by m_header
 };
 
 class nsMsgLocalMailFolder : public nsMsgDBFolder,
@@ -143,7 +141,7 @@ public:
   NS_IMETHOD GetMessages(nsIMsgWindow *aMsgWindow, nsISimpleEnumerator* *result);
   NS_IMETHOD UpdateFolder(nsIMsgWindow *aWindow);
 
-  NS_IMETHOD CreateSubfolder(const PRUnichar *folderName ,nsIMsgWindow *msgWindow);
+  NS_IMETHOD CreateSubfolder(const nsAString& folderName ,nsIMsgWindow *msgWindow);
   NS_IMETHOD AddSubfolder(const nsAString& folderName, nsIMsgFolder** newFolder);
 
   NS_IMETHOD Compact(nsIUrlListener *aListener, nsIMsgWindow *aMsgWindow);
@@ -152,13 +150,13 @@ public:
   NS_IMETHOD Delete ();
   NS_IMETHOD DeleteSubFolders(nsISupportsArray *folders, nsIMsgWindow *msgWindow);
   NS_IMETHOD CreateStorageIfMissing(nsIUrlListener* urlListener);
-  NS_IMETHOD Rename (const PRUnichar *aNewName, nsIMsgWindow *msgWindow);
+  NS_IMETHOD Rename (const nsAString& aNewName, nsIMsgWindow *msgWindow);
   NS_IMETHOD RenameSubFolders (nsIMsgWindow *msgWindow, nsIMsgFolder *oldFolder);
 
-  NS_IMETHOD GetPrettyName(PRUnichar** prettyName);	// Override of the base, for top-level mail folder
-  NS_IMETHOD SetPrettyName(const PRUnichar *aName);
+  NS_IMETHOD GetPrettyName(nsAString& prettyName); // Override of the base, for top-level mail folder
+  NS_IMETHOD SetPrettyName(const nsAString& aName);
 
-  NS_IMETHOD GetFolderURL(char **url);
+  NS_IMETHOD GetFolderURL(nsACString& url);
 
   NS_IMETHOD UpdateSummaryTotals(PRBool force) ;
 
@@ -191,15 +189,15 @@ public:
   NS_IMETHOD WriteToFolderCacheElem(nsIMsgFolderCacheElement *element);
   NS_IMETHOD ReadFromFolderCacheElem(nsIMsgFolderCacheElement *element);
 
-  NS_IMETHOD GetName(PRUnichar **aName);
+  NS_IMETHOD GetName(nsAString& aName);
 
   // Used when headers_only is TRUE
   NS_IMETHOD DownloadMessagesForOffline(nsISupportsArray *aMessages, nsIMsgWindow *aWindow);
   NS_IMETHOD FetchMsgPreviewText(nsMsgKey *aKeysToFetch, PRUint32 aNumKeys,
                                                  PRBool aLocalOnly, nsIUrlListener *aUrlListener, 
                                                  PRBool *aAsyncResults);
-  NS_IMETHOD AddKeywordsToMessages(nsISupportsArray *aMessages, const char *aKeywords);
-  NS_IMETHOD RemoveKeywordsFromMessages(nsISupportsArray *aMessages, const char *aKeywords);
+  NS_IMETHOD AddKeywordsToMessages(nsISupportsArray *aMessages, const nsACString& aKeywords);
+  NS_IMETHOD RemoveKeywordsFromMessages(nsISupportsArray *aMessages, const nsACString& aKeywords);
 
 protected:
   nsresult CopyFolderAcrossServer(nsIMsgFolder *srcFolder, nsIMsgWindow *msgWindow,nsIMsgCopyServiceListener* listener);
@@ -226,19 +224,19 @@ protected:
   nsresult CopyMessagesTo(nsISupportsArray *messages, nsIMsgWindow *aMsgWindow,
                                        nsIMsgFolder *dstFolder,
                                        PRBool isMove);
-  virtual const char* GetIncomingServerType();
+  virtual void GetIncomingServerType(nsCString& serverType);
   nsresult InitCopyState(nsISupports* aSupport, nsISupportsArray* messages,
                          PRBool isMove, nsIMsgCopyServiceListener* listener, nsIMsgWindow *msgWindow, PRBool isMoveFolder, PRBool allowUndo);
   void CopyPropertiesToMsgHdr(nsIMsgDBHdr *destHdr, nsIMsgDBHdr *srcHdr);
-  virtual nsresult CreateBaseMessageURI(const char *aURI);
+  virtual nsresult CreateBaseMessageURI(const nsACString& aURI);
   virtual nsresult SpamFilterClassifyMessage(const char *aURI, nsIMsgWindow *aMsgWindow, nsIJunkMailPlugin *aJunkMailPlugin);
   virtual nsresult SpamFilterClassifyMessages(const char **aURIArray, PRUint32 aURICount, nsIMsgWindow *aMsgWindow, nsIJunkMailPlugin *aJunkMailPlugin);
-  nsresult ChangeKeywordForMessages(nsISupportsArray *aMessages, const char *aKeyword, PRBool add);
+  nsresult ChangeKeywordForMessages(nsISupportsArray *aMessages, const nsACString& aKeyword, PRBool add);
   PRBool GetDeleteFromServerOnMove();
 
 protected:
   nsLocalMailCopyState *mCopyState; //We only allow one of these at a time
-  const char *mType;
+  nsCString mType;
   PRPackedBool mHaveReadNameFromDB;
   PRPackedBool mInitialized;
   PRPackedBool mCheckForNewMessagesAfterParsing;
@@ -248,8 +246,7 @@ protected:
   PRInt32 mNumFilterClassifyRequests;
   nsMsgKeyArray mSpamKeysToMove;
   nsCString mSpamFolderURI;
-  nsresult setSubfolderFlag(const PRUnichar *aFolderName, PRUint32 flags);
-
+  nsresult setSubfolderFlag(const nsAString& aFolderName, PRUint32 flags);
 
   // state variables for DownloadMessagesForOffline
 
@@ -259,17 +256,17 @@ protected:
 #define DOWNLOAD_NOTIFY_LAST  2
 
 #ifndef DOWNLOAD_NOTIFY_STYLE
-#define DOWNLOAD_NOTIFY_STYLE	DOWNLOAD_NOTIFY_FIRST
+#define DOWNLOAD_NOTIFY_STYLE DOWNLOAD_NOTIFY_FIRST
 #endif
 
   nsCOMPtr<nsISupportsArray> mDownloadMessages;
   nsCOMPtr<nsIMsgWindow> mDownloadWindow;
   nsMsgKey mDownloadSelectKey;
   PRUint32 mDownloadState;
-#define DOWNLOAD_STATE_NONE	0
-#define DOWNLOAD_STATE_INITED	1
-#define DOWNLOAD_STATE_GOTMSG	2
-#define DOWNLOAD_STATE_DIDSEL	3
+#define DOWNLOAD_STATE_NONE 0
+#define DOWNLOAD_STATE_INITED 1
+#define DOWNLOAD_STATE_GOTMSG 2
+#define DOWNLOAD_STATE_DIDSEL 3
 
 #if DOWNLOAD_NOTIFY_STYLE == DOWNLOAD_NOTIFY_LAST
   nsMsgKey mDownloadOldKey;

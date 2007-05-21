@@ -212,24 +212,20 @@ nsresult nsParseImapMessageURI(const char* uri, nsCString& folderURI, PRUint32 *
 
 nsresult nsBuildImapMessageURI(const char *baseURI, PRUint32 key, nsCString& uri)
 {
-  
   uri.Append(baseURI);
   uri.Append('#');
   uri.AppendInt(key);
   return NS_OK;
 }
 
-nsresult nsCreateImapBaseMessageURI(const char *baseURI, nsCString &baseMessageURI)
+nsresult nsCreateImapBaseMessageURI(const nsACString& baseURI, nsCString &baseMessageURI)
 {
   nsCAutoString tailURI(baseURI);
-  
   // chop off imap:/
   if (tailURI.Find(kImapRootURI) == 0)
     tailURI.Cut(0, PL_strlen(kImapRootURI));
-  
   baseMessageURI = kImapMessageRootURI;
   baseMessageURI += tailURI;
-  
   return NS_OK;
 }
 

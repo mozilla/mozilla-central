@@ -564,7 +564,7 @@ nsresult
 nsMsgSendLater::StartNextMailFileSend()
 {
   nsresult      rv = NS_OK;
-  nsXPIDLCString  messageURI;
+  nsCString  messageURI;
 
   if ( (!mEnumerator) || (mEnumerator->IsDone() == NS_OK) )
   {
@@ -592,20 +592,13 @@ nsMsgSendLater::StartNextMailFileSend()
   if(NS_FAILED(rv) || (!myRDFNode))
     return NS_ERROR_NOT_AVAILABLE;
 
-  mMessageFolder->GetUriForMsg(mMessage, getter_Copies(messageURI));
-
-#ifdef NS_DEBUG
-  nsXPIDLCString      subject;
-  mMessage->GetSubject(getter_Copies(subject));
-  printf("Sending message: [%s]\n", (const char*)subject);
-#endif
-
+  mMessageFolder->GetUriForMsg(mMessage, messageURI);
 
   rv = nsMsgCreateTempFile("nsqmail.tmp", getter_AddRefs(mTempFile)); 
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr <nsIMsgMessageService> messageService;
-	rv = GetMessageServiceFromURI(messageURI, getter_AddRefs(messageService));
+  rv = GetMessageServiceFromURI(messageURI.get(), getter_AddRefs(messageService));
   if (NS_FAILED(rv) && !messageService)
     return NS_ERROR_FACTORY_NOT_LOADED;
 
@@ -631,7 +624,7 @@ nsMsgSendLater::StartNextMailFileSend()
   if (convertedListener)
   {
     // Now, just plug the two together and get the hell out of the way!
-    rv = messageService->DisplayMessage(messageURI, convertedListener, nsnull, nsnull, nsnull, nsnull);
+    rv = messageService->DisplayMessage(messageURI.get(), convertedListener, nsnull, nsnull, nsnull, nsnull);
   }
   else
     rv = NS_ERROR_FAILURE;

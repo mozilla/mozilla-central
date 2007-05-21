@@ -41,10 +41,10 @@
 interface nsIMsgWindow;
 interface nsINntpIncomingServer;
 
-[scriptable, uuid(5731576B-617B-462E-9270-19599510C602)]
+[scriptable, uuid(A6C471E3-2F99-4737-AC0C-40A2ABFF42D2)]
 interface nsIMsgNewsFolder : nsISupports {
-  attribute string groupUsername;
-  attribute string groupPassword;
+  attribute ACString groupUsername;
+  attribute ACString groupPassword;
 
   readonly attribute AString unicodeName;
   /**|rawName| is an 8-bit string to represent the name of a newsgroup used by 
@@ -61,26 +61,26 @@ interface nsIMsgNewsFolder : nsISupports {
   readonly attribute nsINntpIncomingServer nntpServer;
   attribute boolean saveArticleOffline;
    
-  string getGroupPasswordWithUI(in wstring aPromptString, in wstring aPromptTitle, in nsIMsgWindow aMsgWindow);
-  string getGroupUsernameWithUI(in wstring aPromptString, in wstring aPromptTitle, in nsIMsgWindow aMsgWindow);
+  ACString getGroupPasswordWithUI(in AString aPromptString, in AString aPromptTitle, in nsIMsgWindow aMsgWindow);
+  ACString getGroupUsernameWithUI(in AString aPromptString, in AString aPromptTitle, in nsIMsgWindow aMsgWindow);
 
   void forgetGroupUsername();
   void forgetGroupPassword();
 
-  nsIMsgFolder addNewsgroup(in AUTF8String newsgroupName, in string setStr);
+  nsIMsgFolder addNewsgroup(in AUTF8String newsgroupName, in ACString setStr);
 
-  void setReadSetFromStr(in string setStr);
+  void setReadSetFromStr(in ACString setStr);
 
-  readonly attribute string newsrcLine;
-  readonly attribute string optionLines;
-  readonly attribute string unsubscribedNewsgroupLines;
+  readonly attribute ACString newsrcLine;
+  readonly attribute ACString optionLines;
+  readonly attribute ACString unsubscribedNewsgroupLines;
   void SetNewsrcHasChanged(in boolean newsrcHasChanged);
   void updateSummaryFromNNTPInfo(in long oldest, in long youngest, in long total);
   void removeMessage(in nsMsgKey key); 
   void cancelComplete();
   void cancelFailed();
 
-  string getMessageIdForKey(in nsMsgKey key);
+  ACString getMessageIdForKey(in nsMsgKey key);
 
   void getNextNMessages(in nsIMsgWindow aMsgWindow);
   void notifyDownloadedLine(in string line, in nsMsgKey key);

@@ -213,8 +213,8 @@ protected:
   void                FreeBuffers();
 
   // data
-  nsXPIDLString   m_folderName;
-  nsXPIDLCString  m_inboxUri;
+  nsString        m_folderName;
+  nsCString       m_inboxUri;
   nsByteArray     m_inputStream;
   PRInt32         m_obuffer_size;
   char            *m_obuffer;

@@ -38,7 +38,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-// this file implements the nsMsgFilterService interface 
+// this file implements the nsMsgFilterService interface
 
 #include "msgCore.h"
 #include "nsMsgFilterService.h"
@@ -99,10 +99,10 @@ NS_IMETHODIMP nsMsgFilterService::OpenFilterList(nsILocalFile *aFilterFile, nsIM
 		return NS_ERROR_OUT_OF_MEMORY;
 	NS_ADDREF(filterList);
     filterList->SetFolder(rootFolder);
-    
+
     // temporarily tell the filter where it's file path is
     filterList->SetDefaultFile(aFilterFile);
-    
+
     PRInt64 size;
     rv = aFilterFile->GetFileSize(&size);
 	if (NS_SUCCEEDED(rv) && size > 0)
@@ -161,13 +161,13 @@ NS_IMETHODIMP	nsMsgFilterService::SaveFilterList(nsIMsgFilterList *filterList, n
 
 
   NS_ASSERTION(NS_SUCCEEDED(ret),"writing filters file: failed to append filename");
-  if (NS_FAILED(ret)) 
+  if (NS_FAILED(ret))
     return ret;
 
   nsCOMPtr <nsILocalFile> tmpFiltersFile = do_QueryInterface(tmpFile);
   ret = tmpFiltersFile->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);  //need a unique tmp file to prevent dataloss in multiuser environment
   NS_ENSURE_SUCCESS(ret, ret);
-  
+
   if (NS_SUCCEEDED(ret))
     ret = filterFile->GetParent(getter_AddRefs(parentDir));
 
@@ -180,10 +180,10 @@ NS_IMETHODIMP	nsMsgFilterService::SaveFilterList(nsIMsgFilterList *filterList, n
   ret = filterList->SaveToFile(tmpFileStream);
   tmpFileStream->Close();
   tmpFileStream = nsnull;
-  
+
   if (NS_SUCCEEDED(ret))
   {
-    
+
     nsCString finalLeafName;
     filterFile->GetNativeLeafName(finalLeafName);
     ret = tmpFiltersFile->MoveToNative(parentDir, finalLeafName);
@@ -193,7 +193,7 @@ NS_IMETHODIMP	nsMsgFilterService::SaveFilterList(nsIMsgFilterList *filterList, n
 }
 
 NS_IMETHODIMP nsMsgFilterService::CancelFilterList(nsIMsgFilterList *filterList)
-{ 
+{
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -206,7 +206,7 @@ nsresult nsMsgFilterService::BackUpFilterFile(nsILocalFile *aFilterFile, nsIMsgW
   rv = aFilterFile->GetParent(getter_AddRefs(localParentDir));
   NS_ENSURE_SUCCESS(rv,rv);
 
-  //if back-up file exists delete the back up file otherwise copy fails. 
+  //if back-up file exists delete the back up file otherwise copy fails.
   nsCOMPtr <nsIFile> backupFile;
   rv = localParentDir->Clone(getter_AddRefs(backupFile));
   NS_ENSURE_SUCCESS(rv,rv);
@@ -226,7 +226,7 @@ nsresult nsMsgFilterService::AlertBackingUpFilterFile(nsIMsgWindow *aMsgWindow)
 
 nsresult //Do not use this routine if you have to call it very often because it creates a new bundle each time
 nsMsgFilterService::GetStringFromBundle(const char *aMsgName, PRUnichar **aResult)
-{ 
+{
   nsresult rv=NS_OK;
   NS_ENSURE_ARG_POINTER(aResult);
   nsCOMPtr <nsIStringBundle> bundle;
@@ -234,7 +234,7 @@ nsMsgFilterService::GetStringFromBundle(const char *aMsgName, PRUnichar **aResul
   if (NS_SUCCEEDED(rv) && bundle)
     rv=bundle->GetStringFromName(NS_ConvertASCIItoUTF16(aMsgName).get(), aResult);
   return rv;
-  
+
 }
 
 nsresult
@@ -277,17 +277,17 @@ nsMsgFilterService::ThrowAlertMsg(const char*aMsgName, nsIMsgWindow *aMsgWindow)
 // 2. Apply multiple filters on a single imap or pop3 folder.
 // 3. Apply a single filter on multiple imap or pop3 folders in the same account.
 // 4. Apply multiple filters on multiple imap or pop3 folders in the same account.
-// This will be called from the front end js code in the case of the apply filters to folder menu code, 
+// This will be called from the front end js code in the case of the apply filters to folder menu code,
 // and from the filter dialog js code with the run filter now command.
 
 
 // this class holds the list of filters and folders, and applies them in turn, first iterating
-// over all the filters on one folder, and then advancing to the next folder and repeating. 
+// over all the filters on one folder, and then advancing to the next folder and repeating.
 // For each filter,we take the filter criteria and create a search term list. Then, we execute the search.
-// We are a search listener so that we can build up the list of search hits. 
-// Then, when the search is done, we will apply the filter action(s) en-masse, so, for example, if the action is a move, 
+// We are a search listener so that we can build up the list of search hits.
+// Then, when the search is done, we will apply the filter action(s) en-masse, so, for example, if the action is a move,
 // we calls one method to move all the messages to the destination folder. Or, mark all the messages read.
-// In the case of imap operations, or imap/local  moves, the action will be asynchronous, so we'll need to be a url listener 
+// In the case of imap operations, or imap/local  moves, the action will be asynchronous, so we'll need to be a url listener
 // as well, and kick off the next filter when the action completes.
 class nsMsgFilterAfterTheFact : public nsIUrlListener, public nsIMsgSearchNotify, public nsIMsgCopyServiceListener
 {
@@ -484,7 +484,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter()
         filterAction->GetType(&actionType);
       else
         continue;
-      
+
       nsCString actionTargetFolderUri;
       if (actionType == nsMsgFilterAction::MoveToFolder ||
           actionType == nsMsgFilterAction::CopyToFolder)
@@ -497,14 +497,14 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter()
         }
       }
 
-      if (loggingEnabled) 
+      if (loggingEnabled)
       {
           for (PRUint32 msgIndex = 0; msgIndex < m_searchHits.GetSize(); msgIndex++)
           {
             nsCOMPtr <nsIMsgDBHdr> msgHdr;
             m_searchHitHdrs->QueryElementAt(msgIndex, NS_GET_IID(nsIMsgDBHdr), getter_AddRefs(msgHdr));
             if (msgHdr)
-              (void)m_curFilter->LogRuleHit(filterAction, msgHdr); 
+              (void)m_curFilter->LogRuleHit(filterAction, msgHdr);
           }
       }
       // all actions that pass "this" as a listener in order to chain filter execution
@@ -516,7 +516,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter()
         // we can't pass ourselves in as a copy service listener because the copy service
         // listener won't get called in several situations (e.g., the delete model is imap delete)
         // and we rely on the listener getting called to continue the filter application.
-        // This means we're going to end up firing off the delete, and then subsequently 
+        // This means we're going to end up firing off the delete, and then subsequently
         // issuing a search for the next filter, which will block until the delete finishes.
         m_curFolder->DeleteMessages(m_searchHitHdrs, m_msgWindow, PR_FALSE, PR_FALSE, nsnull, PR_FALSE /*allow Undo*/ );
         //if we are deleting then we couldn't care less about applying remaining filter actions
@@ -527,8 +527,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter()
       {
         // if moving or copying to a different file, do it.
         nsCString uri;
-        rv = m_curFolder->GetURI(getter_Copies(uri));
-
+        rv = m_curFolder->GetURI(uri);
         if (!actionTargetFolderUri.IsEmpty() &&
             !uri.Equals(actionTargetFolderUri))
         {
@@ -552,7 +551,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter()
             // we need to explicitly save the filter file.
             m_filters->SaveToDefaultFile();
             // In the case of applying multiple filters
-            // we might want to remove the filter from the list, but 
+            // we might want to remove the filter from the list, but
             // that's a bit evil since we really don't know that we own
             // the list. Disabling it doesn't do a lot of good since
             // we still apply disabled filters. Currently, we don't
@@ -568,7 +567,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter()
         if (actionType == nsMsgFilterAction::MoveToFolder)
           applyMoreActions = PR_FALSE;
       }
-        
+
         break;
       case nsMsgFilterAction::MarkRead:
           // crud, no listener support here - we'll probably just need to go on and apply
@@ -627,7 +626,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter()
         {
             nsCString keyword;
             filterAction->GetStrValue(keyword);
-            m_curFolder->AddKeywordsToMessages(m_searchHitHdrs, keyword.get());
+            m_curFolder->AddKeywordsToMessages(m_searchHitHdrs, keyword);
         }
         break;
       case nsMsgFilterAction::JunkScore:
@@ -636,7 +635,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter()
         PRInt32 junkScore;
         filterAction->GetJunkScore(&junkScore);
         junkScoreStr.AppendInt(junkScore);
-        m_curFolder->SetJunkScoreForMessages(m_searchHitHdrs, junkScoreStr.get());
+        m_curFolder->SetJunkScoreForMessages(m_searchHitHdrs, junkScoreStr);
         break;
       }
       case nsMsgFilterAction::Forward:
@@ -755,7 +754,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter()
       case nsMsgFilterAction::StopExecution:
       {
         // don't apply any more filters
-        applyMoreActions = PR_FALSE; 
+        applyMoreActions = PR_FALSE;
       }
       break;
 

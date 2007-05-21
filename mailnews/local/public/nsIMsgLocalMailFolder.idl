@@ -48,13 +48,12 @@ interface nsIMsgCopyServiceListener;
 
 %{C++
 /* flags for markMsgsOnPop3Server */
-#define POP3_NONE	0
-#define POP3_DELETE	1
-#define POP3_FETCH_BODY	2
-#define POP3_FORCE_DEL	3
+#define POP3_NONE 0
+#define POP3_DELETE 1
+#define POP3_FETCH_BODY 2
+#define POP3_FORCE_DEL 3
 
 struct nsLocalFolderScanState;
-
 %}
 
 [scriptable, uuid(260398bd-9152-4b10-af4e-3126dcd37837)]

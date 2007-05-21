@@ -133,26 +133,17 @@ NS_IMETHODIMP nsMsgSearchDBView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, 
   const PRUnichar* colID;
   aCol->GetIdConst(&colID);
   if (colID[0] == 'l' && colID[1] == 'o') // location, need to check for "lo" not just "l" to avoid "label" column
-  {
-    // XXX fix me by converting Fetch* to take an nsAString& parameter
-    nsXPIDLString valueText;
-    nsresult rv = FetchLocation(aRow, getter_Copies(valueText));
-    aValue.Assign(valueText);
-    return rv;
-  }
+    return FetchLocation(aRow, aValue);
   else
     return nsMsgDBView::GetCellText(aRow, aCol, aValue);
 }
 
-nsresult nsMsgSearchDBView::FetchLocation(PRInt32 aRow, PRUnichar ** aLocationString)
+nsresult nsMsgSearchDBView::FetchLocation(PRInt32 aRow, nsAString& aLocationString)
 {
   nsCOMPtr <nsIMsgFolder> folder;
   nsresult rv = GetFolderForViewIndex(aRow, getter_AddRefs(folder));
   NS_ENSURE_SUCCESS(rv,rv);
-
-  rv = folder->GetPrettiestName(aLocationString);
-  NS_ENSURE_SUCCESS(rv,rv);
-  return NS_OK;
+  return folder->GetPrettiestName(aLocationString);
 }
 
 nsresult nsMsgSearchDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, PRBool /*ensureListed*/)

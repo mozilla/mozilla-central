@@ -582,7 +582,7 @@ nsMsgFilter::MatchHdr(nsIMsgDBHdr *msgHdr, nsIMsgFolder *folder,
   NS_ENSURE_ARG_POINTER(folder);
   // use offlineMail because
   nsCString folderCharset;
-  folder->GetCharset(getter_Copies(folderCharset));
+  folder->GetCharset(folderCharset);
   nsresult rv = nsMsgSearchOfflineMail::MatchTermsForFilter(msgHdr, m_termList,
                   folderCharset.get(),  m_scope,  db,  headers,  headersSize, &m_expressionTree, pResult);
   return rv;
@@ -620,8 +620,7 @@ nsresult nsMsgFilter::ConvertMoveOrCopyToFolderValue(nsIMsgRuleAction *filterAct
     nsCString folderUri;
 
     m_filterList->GetFolder(getter_AddRefs(rootFolder));
-
-	  // if relative path starts with kImap, this is a move to folder on the same server
+    // if relative path starts with kImap, this is a move to folder on the same server
     if (moveValue.Find(kImapPrefix) == 0)
     {
       PRInt32 prefixLen = PL_strlen(kImapPrefix);
@@ -645,45 +644,39 @@ nsresult nsMsgFilter::ConvertMoveOrCopyToFolderValue(nsIMsgRuleAction *filterAct
         rootFolder->FindSubFolder(originalServerPath, getter_AddRefs(destIFolder));
         if (destIFolder)
         {
-          destIFolder->GetURI(getter_Copies(folderUri));
+          destIFolder->GetURI(folderUri);
           filterAction->SetTargetFolderUri(folderUri);
           moveValue.Assign(folderUri);
         }
       }
     }
-	  else
+    else
     {
       // start off leaving the value the same.
       filterAction->SetTargetFolderUri(moveValue);
       nsresult rv = NS_OK;
       nsCOMPtr <nsIMsgFolder> localMailRoot;
-      rootFolder->GetURI(getter_Copies(folderUri));
+      rootFolder->GetURI(folderUri);
       // if the root folder is not imap, than the local mail root is the server root.
       // otherwise, it's the migrated local folders.
       if (!StringBeginsWith(folderUri, NS_LITERAL_CSTRING("imap:")))
-      {
         localMailRoot = rootFolder;
-      }
       else
       {
         nsCOMPtr<nsIMsgAccountManager> accountManager = 
                  do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
-        if (NS_SUCCEEDED(rv))
-        {
-          nsCOMPtr <nsIMsgIncomingServer> server; 
-          rv = accountManager->GetLocalFoldersServer(getter_AddRefs(server)); 
-          if (NS_SUCCEEDED(rv) && server)
-          {
-            rv = server->GetRootFolder(getter_AddRefs(localMailRoot));
-          }
-        }
+        NS_ENSURE_SUCCESS(rv, rv);
+        nsCOMPtr <nsIMsgIncomingServer> server; 
+        rv = accountManager->GetLocalFoldersServer(getter_AddRefs(server)); 
+        if (NS_SUCCEEDED(rv) && server)
+          rv = server->GetRootFolder(getter_AddRefs(localMailRoot));
       }
       if (NS_SUCCEEDED(rv) && localMailRoot)
       {
         nsCString localRootURI;
         nsCOMPtr <nsIMsgFolder> destIMsgFolder;
         nsCOMPtr <nsIMsgFolder> localMailRootMsgFolder = do_QueryInterface(localMailRoot);
-        localMailRoot->GetURI(getter_Copies(localRootURI));
+        localMailRoot->GetURI(localRootURI);
         nsCString destFolderUri;
         destFolderUri.Assign( localRootURI);
         // need to remove ".sbd" from moveValue, and perhaps escape it.
@@ -692,8 +685,7 @@ nsresult nsMsgFilter::ConvertMoveOrCopyToFolderValue(nsIMsgRuleAction *filterAct
 #ifdef XP_MACOSX
         char *unescapedMoveValue = ToNewCString(moveValue);
         nsUnescape(unescapedMoveValue);
-        moveValue.Assign(unescapedMoveValue);
-        nsCRT::free(unescapedMoveValue);
+        moveValue.Adopt(unescapedMoveValue);
 #endif
         destFolderUri.Append('/');
         if (filterVersion == k45Version)
@@ -702,16 +694,15 @@ nsresult nsMsgFilter::ConvertMoveOrCopyToFolderValue(nsIMsgRuleAction *filterAct
           rv = nsMsgI18NConvertToUnicode(nsMsgI18NFileSystemCharset(),
                                          moveValue, unicodeStr);
           NS_ENSURE_SUCCESS(rv, rv);
-
           rv = NS_MsgEscapeEncodeURLPath(unicodeStr, moveValue);
         }
         destFolderUri.Append(moveValue);
-        localMailRootMsgFolder->GetChildWithURI (destFolderUri.get(), PR_TRUE, PR_FALSE /*caseInsensitive*/, getter_AddRefs(destIMsgFolder));
+        localMailRootMsgFolder->GetChildWithURI (destFolderUri, PR_TRUE, PR_FALSE /*caseInsensitive*/, getter_AddRefs(destIMsgFolder));
 
         if (destIMsgFolder)
         {
-          destIMsgFolder->GetURI(getter_Copies(folderUri));
-		      filterAction->SetTargetFolderUri(folderUri);
+          destIMsgFolder->GetURI(folderUri);
+          filterAction->SetTargetFolderUri(folderUri);
           moveValue.Assign(folderUri);
         }
       }
@@ -721,7 +712,7 @@ nsresult nsMsgFilter::ConvertMoveOrCopyToFolderValue(nsIMsgRuleAction *filterAct
     filterAction->SetTargetFolderUri(moveValue);
     
   return NS_OK;
-	// set m_action.m_value.m_folderUri
+  // set m_action.m_value.m_folderUri
 }
 
 nsresult nsMsgFilter::SaveToTextFile(nsIOutputStream *aStream)

@@ -222,8 +222,8 @@ nsresult nsMsgPurgeService::PerformPurge()
               if (folderFlags & MSG_FOLDER_FLAG_VIRTUAL)
                 continue;
               nsTime curFolderLastPurgeTime=0;
-              nsXPIDLCString curFolderLastPurgeTimeString, curFolderUri;
-              rv = childFolder->GetStringProperty("LastPurgeTime", getter_Copies(curFolderLastPurgeTimeString));
+              nsCString curFolderLastPurgeTimeString, curFolderUri;
+              rv = childFolder->GetStringProperty("LastPurgeTime", curFolderLastPurgeTimeString);
               if (NS_FAILED(rv))  
                 continue; // it is ok to fail, go on to next folder
                 
@@ -234,7 +234,7 @@ nsresult nsMsgPurgeService::PerformPurge()
                 curFolderLastPurgeTime = theTime;
               }
   
-              childFolder->GetURI(getter_Copies(curFolderUri));
+              childFolder->GetURI(curFolderUri);
               PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("%s curFolderLastPurgeTime=%s (if blank, then never)", curFolderUri.get(), curFolderLastPurgeTimeString.get()));
 
               // check if this folder is due to purge
@@ -315,8 +315,8 @@ nsresult nsMsgPurgeService::PerformPurge()
           continue;  
     
         nsTime curJunkFolderLastPurgeTime=0;
-        nsXPIDLCString curJunkFolderLastPurgeTimeString;
-        rv = junkFolder->GetStringProperty("curJunkFolderLastPurgeTime", getter_Copies(curJunkFolderLastPurgeTimeString));
+        nsCString curJunkFolderLastPurgeTimeString;
+        rv = junkFolder->GetStringProperty("curJunkFolderLastPurgeTime", curJunkFolderLastPurgeTimeString);
         if (NS_FAILED(rv))  
           continue; // it is ok to fail, junk folder may not exist
                 
@@ -405,7 +405,7 @@ nsresult nsMsgPurgeService::SearchFolderToPurge(nsIMsgFolder *folder, PRInt32 pu
   PRExplodedTime exploded;
   PR_ExplodeTime(PR_Now(), PR_LocalTimeParameters, &exploded);
   PR_FormatTimeUSEnglish(dateBuf, sizeof(dateBuf), "%a %b %d %H:%M:%S %Y", &exploded);
-  folder->SetStringProperty("curJunkFolderLastPurgeTime", dateBuf);
+  folder->SetStringProperty("curJunkFolderLastPurgeTime", nsDependentCString(dateBuf));
   PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("curJunkFolderLastPurgeTime is now %s", dateBuf));
 
   nsCOMPtr<nsIMsgIncomingServer> server;

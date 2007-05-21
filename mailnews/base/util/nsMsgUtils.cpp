@@ -867,16 +867,16 @@ GetOrCreateFolder(const nsACString &aURI, nsIUrlListener *aListener)
       // Hack to work around a localization bug with the Junk Folder.
       // Please see Bug #270261 for more information...
       nsString localizedJunkName; 
-      msgFolder->GetName(getter_Copies(localizedJunkName));
+      msgFolder->GetName(localizedJunkName);
 
       // force the junk folder name to be Junk so it gets created on disk correctly...
-      msgFolder->SetName(NS_LITERAL_STRING("Junk").get());
+      msgFolder->SetName(NS_LITERAL_STRING("Junk"));
 
       rv = msgFolder->CreateStorageIfMissing(aListener);
       NS_ENSURE_SUCCESS(rv,rv);
 
       // now restore the localized folder name...
-      msgFolder->SetName(localizedJunkName.get());
+      msgFolder->SetName(localizedJunkName);
 
       // XXX TODO
       // JUNK MAIL RELATED
@@ -918,7 +918,7 @@ nsresult IsRSSArticle(nsIURI * aMsgURI, PRBool *aIsRSSArticle)
   *aIsRSSArticle = PR_FALSE;
 
   nsCOMPtr<nsIMsgMessageUrl> msgUrl = do_QueryInterface(aMsgURI, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
+  if (NS_FAILED(rv)) return rv;
 
   nsXPIDLCString resourceURI;
   msgUrl->GetUri(getter_Copies(resourceURI));

@@ -3358,19 +3358,19 @@ nsMsgComposeSendListener::RemoveCurrentDraftMessage(nsIMsgCompose *compObj, PRBo
   if (NS_FAILED(rv) || !compFields)
     return rv;
 
-  nsXPIDLCString curDraftIdURL;
+  nsCString curDraftIdURL;
   nsMsgKey newUid = 0;
-  nsXPIDLCString newDraftIdURL;
+  nsCString newDraftIdURL;
   nsCOMPtr<nsIMsgFolder> msgFolder;
 
   rv = compFields->GetDraftId(getter_Copies(curDraftIdURL));
-  NS_ASSERTION((NS_SUCCEEDED(rv) && (curDraftIdURL)), "RemoveCurrentDraftMessage can't get draft id");
+  NS_ASSERTION((NS_SUCCEEDED(rv) && !curDraftIdURL.IsEmpty()), "RemoveCurrentDraftMessage can't get draft id");
 
   // Skip if no draft id (probably a new draft msg).
-  if (NS_SUCCEEDED(rv) && curDraftIdURL.get() && strlen(curDraftIdURL.get()))
+  if (NS_SUCCEEDED(rv) && !curDraftIdURL.IsEmpty())
   { 
     nsCOMPtr <nsIMsgDBHdr> msgDBHdr;
-    rv = GetMsgDBHdrFromURI(curDraftIdURL, getter_AddRefs(msgDBHdr));
+    rv = GetMsgDBHdrFromURI(curDraftIdURL.get(), getter_AddRefs(msgDBHdr));
     NS_ASSERTION(NS_SUCCEEDED(rv), "RemoveCurrentDraftMessage can't get msg header DB interface pointer.");
     if (NS_SUCCEEDED(rv) && msgDBHdr)
     { // get the folder for the message resource
@@ -3390,7 +3390,8 @@ nsMsgComposeSendListener::RemoveCurrentDraftMessage(nsIMsgCompose *compObj, PRBo
           //nsCOMPtr<nsISupports> msgSupport = do_QueryInterface(msgDBHdr, &rv);
           //NS_ASSERTION(NS_SUCCEEDED(rv), "RemoveCurrentDraftMessage can't get msg header interface pointer.");
           if (NS_SUCCEEDED(rv) && messageArray)
-          {   // ready to delete the msg
+          { 
+            // ready to delete the msg
             rv = messageArray->AppendElement(msgDBHdr);
             NS_ASSERTION(NS_SUCCEEDED(rv), "RemoveCurrentDraftMessage can't append msg header to array.");
             if (NS_SUCCEEDED(rv))
@@ -3471,7 +3472,7 @@ nsMsgComposeSendListener::RemoveCurrentDraftMessage(nsIMsgCompose *compObj, PRBo
       savedToFolder->GetFlags(&folderFlags);
       if (folderFlags & MSG_FOLDER_FLAG_DRAFTS)
       {
-        rv = savedToFolder->GenerateMessageURI(newUid, getter_Copies(newDraftIdURL));
+        rv = savedToFolder->GenerateMessageURI(newUid, newDraftIdURL);
         NS_ENSURE_SUCCESS(rv, rv);
         compFields->SetDraftId(newDraftIdURL.get());
       }

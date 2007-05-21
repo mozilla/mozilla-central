@@ -4414,7 +4414,7 @@ NS_IMETHODIMP nsMsgDatabase::ApplyRetentionSettings(nsIMsgRetentionSettings *aMs
     PRExplodedTime exploded;
     PR_ExplodeTime(PR_Now(), PR_LocalTimeParameters, &exploded);
     PR_FormatTimeUSEnglish(dateBuf, sizeof(dateBuf), "%a %b %d %H:%M:%S %Y", &exploded);
-    m_folder->SetStringProperty("LastPurgeTime", dateBuf);
+    m_folder->SetStringProperty("LastPurgeTime", nsDependentCString(dateBuf));
   }
   if (msgHdrsToDelete)
   {

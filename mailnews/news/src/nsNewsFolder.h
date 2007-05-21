@@ -36,16 +36,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-/********************************************************************************************************
- 
+/**
    Interface for representing News folders.
- 
-*********************************************************************************************************/
+*/
 
 #ifndef nsMsgNewsFolder_h__
 #define nsMsgNewsFolder_h__
 
-#include "nsMsgDBFolder.h" 
+#include "nsMsgDBFolder.h"
 #include "nsILocalFile.h"
 #include "nsINntpIncomingServer.h" // need this for the IID
 #include "nsNewsUtils.h"
@@ -73,26 +71,26 @@ public:
   NS_IMETHOD GetMessages(nsIMsgWindow *aMsgWindow, nsISimpleEnumerator* *result);
   NS_IMETHOD UpdateFolder(nsIMsgWindow *aWindow);
 
-  NS_IMETHOD CreateSubfolder(const PRUnichar *folderName,nsIMsgWindow *msgWindow);
+  NS_IMETHOD CreateSubfolder(const nsAString& folderName,nsIMsgWindow *msgWindow);
 
   NS_IMETHOD Delete ();
-  NS_IMETHOD Rename (const PRUnichar *newName, nsIMsgWindow *msgWindow);
+  NS_IMETHOD Rename (const nsAString& newName, nsIMsgWindow *msgWindow);
 
-  NS_IMETHOD GetAbbreviatedName(PRUnichar * *aAbbreviatedName);
+  NS_IMETHOD GetAbbreviatedName(nsAString& aAbbreviatedName);
 
-  NS_IMETHOD GetFolderURL(char **url);
+  NS_IMETHOD GetFolderURL(nsACString& url);
 
   NS_IMETHOD UpdateSummaryTotals(PRBool force) ;
 
   NS_IMETHOD GetExpungedBytesCount(PRUint32 *count);
-  NS_IMETHOD GetDeletable (PRBool *deletable); 
+  NS_IMETHOD GetDeletable (PRBool *deletable);
   NS_IMETHOD GetRequiresCleanup(PRBool *requiresCleanup);
 
   NS_IMETHOD GetSizeOnDisk(PRUint32 *size);
 
   NS_IMETHOD GetDBFolderInfoAndDB(nsIDBFolderInfo **folderInfo, nsIMsgDatabase **db);
 
-  NS_IMETHOD DeleteMessages(nsISupportsArray *messages, 
+  NS_IMETHOD DeleteMessages(nsISupportsArray *messages,
                       nsIMsgWindow *msgWindow, PRBool deleteStorage, PRBool isMove,
                       nsIMsgCopyServiceListener* listener, PRBool allowUndo);
   NS_IMETHOD GetNewMessages(nsIMsgWindow *aWindow, nsIUrlListener *aListener);
@@ -112,28 +110,28 @@ public:
   NS_IMETHOD SetSortOrder(PRInt32 order);
 
   NS_IMETHOD Shutdown(PRBool shutdownChildren);
-  
+
   NS_IMETHOD GetFilterList(nsIMsgWindow *aMsgWindow, nsIMsgFilterList **aFilterList);
   NS_IMETHOD SetFilterList(nsIMsgFilterList *aFilterList);
   NS_IMETHOD ApplyRetentionSettings();
 
 protected:
   // helper routine to parse the URI and update member variables
-  nsresult AbbreviatePrettyName(PRUnichar ** prettyName, PRInt32 fullwords);
+  nsresult AbbreviatePrettyName(nsAString& prettyName, PRInt32 fullwords);
   nsresult ParseFolder(nsILocalFile *path);
   nsresult CreateSubFolders(nsILocalFile *path);
   nsresult AddDirectorySeparator(nsILocalFile *path);
   nsresult GetDatabase(nsIMsgWindow *aMsgWindow);
 
   nsresult LoadNewsrcFileAndCreateNewsgroups();
-  PRInt32 RememberLine(const char *line);
-  nsresult RememberUnsubscribedGroup(const char *newsgroup, const char *setStr);
+  PRInt32 RememberLine(const nsACString& line);
+  nsresult RememberUnsubscribedGroup(const nsACString& newsgroup, const nsACString& setStr);
   nsresult ForgetLine(void);
   nsresult GetNewsMessages(nsIMsgWindow *aMsgWindow, PRBool getOld, nsIUrlListener *aListener);
 
-  PRInt32 HandleNewsrcLine(const char *line, PRUint32 line_size);
-  virtual const char *GetIncomingServerType() {return "nntp";}
-  virtual nsresult CreateBaseMessageURI(const char *aURI);
+  PRInt32 HandleNewsrcLine(const char * line, PRUint32 line_size);
+  virtual void GetIncomingServerType(nsCString& serverType) { serverType.AssignLiteral("nntp");}
+  virtual nsresult CreateBaseMessageURI(const nsACString& aURI);
 
 protected:
   PRUint32  mExpungedBytes;
@@ -144,27 +142,26 @@ protected:
 
   nsCString mOptionLines;
   nsCString mUnsubscribedNewsgroupLines;
-  nsMsgKeySet *mReadSet; 
+  nsMsgKeySet *mReadSet;
 
-  nsCOMPtr<nsILocalFile> mNewsrcFilePath; 
+  nsCOMPtr<nsILocalFile> mNewsrcFilePath;
 
   // used for auth news
-  char 		*mGroupUsername;
-  char		*mGroupPassword;
+  nsCString mGroupUsername;
+  nsCString mGroupPassword;
 
   nsCString mPrevUsername;
   nsCString mPrevPassword;
 
   // the name of the newsgroup.
-  nsCString	mRawName;
+  nsCString mRawName;
   PRInt32 mSortOrder;
 
 private:
-    nsresult CreateNewsgroupUsernameUrlForSignon(const char *inUriStr, char **result);
-    nsresult CreateNewsgroupPasswordUrlForSignon(const char *inUriStr, char **result);
-    nsresult CreateNewsgroupUrlForSignon(const char *inUriStr, const char *ref, char **result);
-
-    nsCOMPtr <nsIMsgFilterList> mFilterList;
+  nsresult CreateNewsgroupUsernameUrlForSignon(const nsACString& inUriStr, nsACString& result);
+  nsresult CreateNewsgroupPasswordUrlForSignon(const nsACString& inUriStr, nsACString& result);
+  nsresult CreateNewsgroupUrlForSignon(const nsACString& inUriStr, const char * ref, nsACString& result);
+  nsCOMPtr <nsIMsgFilterList> mFilterList;
 };
 
 #endif // nsMsgNewsFolder_h__

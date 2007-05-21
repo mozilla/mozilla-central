@@ -45,7 +45,7 @@
 #include "nsMsgBaseCID.h"
 
 // ******************** nsCopySource ******************
-// 
+//
 
 nsCopySource::nsCopySource() : m_processed(PR_FALSE)
 {
@@ -76,7 +76,7 @@ void nsCopySource::AddMessage(nsIMsgDBHdr* aMsg)
 }
 
 // ************ nsCopyRequest *****************
-// 
+//
 
 nsCopyRequest::nsCopyRequest() :
     m_requestType(nsCopyMessagesType),
@@ -93,7 +93,7 @@ nsCopyRequest::~nsCopyRequest()
 
   PRInt32 j;
   nsCopySource* ncs;
-  
+
   j = m_copySourceArray.Count();
   while(j-- > 0)
   {
@@ -121,21 +121,21 @@ nsCopyRequest::Init(nsCopyRequestType type, nsISupports* aSupport,
   {
     m_msgWindow = msgWindow;
     if (m_allowUndo)
-			msgWindow->GetTransactionManager(getter_AddRefs(m_txnMgr));
-	}
+      msgWindow->GetTransactionManager(getter_AddRefs(m_txnMgr));
+  }
   if (type == nsCopyFoldersType)
   {
-    // To support multiple copy folder operations to the same destination, we 
+    // To support multiple copy folder operations to the same destination, we
     // need to save the leaf name of the src file spec so that FindRequest() is
     // able to find the right request when copy finishes.
     nsCOMPtr<nsIMsgFolder> srcFolder = do_QueryInterface(aSupport, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
-    nsXPIDLString folderName;
-    rv = srcFolder->GetName(getter_Copies(folderName));
+    nsString folderName;
+    rv = srcFolder->GetName(folderName);
     NS_ENSURE_SUCCESS(rv, rv);
     m_dstFolderName = folderName;
   }
-  
+
   return rv;
 }
 
@@ -153,7 +153,7 @@ nsCopyRequest::AddNewCopySource(nsIMsgFolder* srcFolder)
 }
 
 // ************* nsMsgCopyService ****************
-// 
+//
 
 
 nsMsgCopyService::nsMsgCopyService()
@@ -165,7 +165,7 @@ nsMsgCopyService::~nsMsgCopyService()
 
   PRInt32 i;
   nsCopyRequest* copyRequest;
-  
+
   i = m_copyRequests.Count();
 
   while(i-- > 0)
@@ -175,14 +175,14 @@ nsMsgCopyService::~nsMsgCopyService()
   }
 }
 
-                              
+
 nsresult
 nsMsgCopyService::ClearRequest(nsCopyRequest* aRequest, nsresult rv)
 {
   if (aRequest)
   {
     // Send notifications to nsIGlobalMsgFolderNotificationService
-    
+
     if (aRequest->m_requestType == nsCopyFoldersType)
     {
       nsCOMPtr <nsIMsgFolderNotificationService> notifier = do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID);
@@ -209,22 +209,22 @@ nsMsgCopyService::ClearRequest(nsCopyRequest* aRequest, nsresult rv)
         }
       }
     }
-    
+
     // undo stuff
-    if (aRequest->m_allowUndo && aRequest->m_copySourceArray.Count() > 1 && 
+    if (aRequest->m_allowUndo && aRequest->m_copySourceArray.Count() > 1 &&
         aRequest->m_txnMgr)
         aRequest->m_txnMgr->EndBatch();
-        
+
     m_copyRequests.RemoveElement(aRequest);
     if (aRequest->m_listener)
         aRequest->m_listener->OnStopCopy(rv);
     delete aRequest;
   }
-  
+
   return rv;
 }
 
-nsresult 
+nsresult
 nsMsgCopyService::QueueRequest(nsCopyRequest* aRequest, PRBool *aCopyImmediately)
 {
   NS_ENSURE_ARG_POINTER(aRequest);
@@ -256,8 +256,8 @@ nsMsgCopyService::QueueRequest(nsCopyRequest* aRequest, PRBool *aCopyImmediately
   }
   return NS_OK;
 }
-  
-nsresult 
+
+nsresult
 nsMsgCopyService::DoCopy(nsCopyRequest* aRequest)
 {
   NS_ENSURE_ARG(aRequest);
@@ -291,7 +291,7 @@ nsMsgCopyService::DoNextCopy()
       scnt = copyRequest->m_copySourceArray.Count();
       if (!copyRequest->m_processed)
       {
-        // if the target folder of this request already has an active 
+        // if the target folder of this request already has an active
         // copy request, skip this request for now.
         if (activeTargets.IndexOfObject(copyRequest->m_dstFolder) != kNotFound)
         {
@@ -324,7 +324,7 @@ nsMsgCopyService::DoNextCopy()
                   (copySource->m_msgFolder, copySource->m_messageArray,
                    copyRequest->m_isMoveOrDraftOrTemplate,
                    copyRequest->m_msgWindow, copyRequest->m_listener, PR_FALSE, copyRequest->m_allowUndo);   //isFolder operation PR_FALSE
-                                                              
+
           }
           else if (copyRequest->m_requestType == nsCopyFoldersType )
           {
@@ -382,7 +382,7 @@ nsMsgCopyService::FindRequest(nsISupports* aSupport,
     copyRequest = (nsCopyRequest*) m_copyRequests.ElementAt(i);
     if (copyRequest->m_requestType == nsCopyFoldersType)
     {
-        // If the src is different then check next request. 
+        // If the src is different then check next request.
         if (copyRequest->m_srcSupport.get() != aSupport)
         {
           copyRequest = nsnull;
@@ -404,8 +404,8 @@ nsMsgCopyService::FindRequest(nsISupports* aSupport,
         }
 
         // Now checks if the folder name is the same.
-        nsXPIDLString folderName;
-        rv = dstFolder->GetName(getter_Copies(folderName));
+        nsString folderName;
+        rv = dstFolder->GetName(folderName);
         if (NS_FAILED(rv))
         {
           copyRequest = nsnull;
@@ -448,26 +448,26 @@ nsMsgCopyService::CopyMessages(nsIMsgFolder* srcFolder, /* UI src folder */
   nsCOMPtr<nsIMsgFolder> curFolder;
   nsCOMPtr<nsISupports> aSupport;
   nsresult rv;
-    
-  // XXX TODO 
+
+  // XXX TODO
   // JUNK MAIL RELATED
   // make sure dest folder exists
   // and has proper flags, before we start copying?
 
   copyRequest = new nsCopyRequest();
-  if (!copyRequest) 
+  if (!copyRequest)
     return NS_ERROR_OUT_OF_MEMORY;
 
   aSupport = do_QueryInterface(srcFolder, &rv);
 
-  rv = copyRequest->Init(nsCopyMessagesType, aSupport, dstFolder, isMove, 
-                        0 /* new msg flags, not used */, listener, 
+  rv = copyRequest->Init(nsCopyMessagesType, aSupport, dstFolder, isMove,
+                        0 /* new msg flags, not used */, listener,
                          window, allowUndo);
-  if (NS_FAILED(rv)) 
+  if (NS_FAILED(rv))
     goto done;
 
   rv = NS_NewISupportsArray(getter_AddRefs(msgArray));
-  if (NS_FAILED(rv)) 
+  if (NS_FAILED(rv))
     goto done;
 
   messages->Count(&cnt);
@@ -477,19 +477,19 @@ nsMsgCopyService::CopyMessages(nsIMsgFolder* srcFolder, /* UI src folder */
   msgArray->AppendElements(messages);
 
   rv = msgArray->Count(&cnt);
-  if (NS_FAILED(rv)) 
+  if (NS_FAILED(rv))
     goto done;
 
   while (cnt-- > 0)
   {
     msg = do_QueryElementAt(msgArray, cnt, &rv);
 
-    if (NS_FAILED(rv)) 
+    if (NS_FAILED(rv))
       goto done;
 
     rv = msg->GetFolder(getter_AddRefs(curFolder));
 
-    if (NS_FAILED(rv)) 
+    if (NS_FAILED(rv))
       goto done;
     if (!copySource)
     {
@@ -522,12 +522,12 @@ nsMsgCopyService::CopyMessages(nsIMsgFolder* srcFolder, /* UI src folder */
     copyRequest->m_txnMgr->BeginBatch();
 
 done:
-    
+
     if (NS_FAILED(rv))
       delete copyRequest;
     else
       rv = DoCopy(copyRequest);
-    
+
     msgArray->Clear();
 
     return rv;
@@ -546,29 +546,29 @@ nsMsgCopyService::CopyFolders( nsISupportsArray* folders,
   PRUint32 cnt;
   nsCOMPtr<nsIMsgFolder> curFolder;
   nsCOMPtr<nsISupports> support;
-  
+
   if (!folders || !dstFolder) return rv;
-  
+
   rv = folders->Count(&cnt);   //if cnt is zero it cannot to get this point, will be detected earlier
   if ( cnt > 1)
     NS_ASSERTION((NS_SUCCEEDED(rv)),"More than one folders to copy");
-  
+
   support = getter_AddRefs(folders->ElementAt(0));
-  
+
   copyRequest = new nsCopyRequest();
   if (!copyRequest) return NS_ERROR_OUT_OF_MEMORY;
-  
-  rv = copyRequest->Init(nsCopyFoldersType, support, dstFolder, 
+
+  rv = copyRequest->Init(nsCopyFoldersType, support, dstFolder,
     isMove, 0 /* new msg flags, not used */ , listener, window, PR_FALSE);
   NS_ENSURE_SUCCESS(rv,rv);
-  
+
   curFolder = do_QueryInterface(support, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   copySource = copyRequest->AddNewCopySource(curFolder);
   if (!copySource)
     rv = NS_ERROR_OUT_OF_MEMORY;
-  
+
   if (NS_FAILED(rv))
   {
     delete copyRequest;
@@ -576,7 +576,7 @@ nsMsgCopyService::CopyFolders( nsISupportsArray* folders,
   }
   else
     rv = DoCopy(copyRequest);
-  
+
   return rv;
 }
 
@@ -661,12 +661,12 @@ nsMsgCopyService::NotifyCompletion(nsISupports* aSupport,
             break;
       }
       // if all sources processed, mark the request as processed
-      if (sourceIndex >= sourceCount) 
+      if (sourceIndex >= sourceCount)
         copyRequest->m_processed = PR_TRUE;
     // if this request is done, or failed, clear it.
       if (copyRequest->m_processed || NS_FAILED(result))
         ClearRequest(copyRequest, result);
-      else 
+      else
         break;
     }
     else

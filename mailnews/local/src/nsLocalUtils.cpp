@@ -259,7 +259,7 @@ nsresult nsBuildLocalMessageURI(const char *baseURI, PRUint32 key, nsCString& ur
   return NS_OK;
 }
 
-nsresult nsCreateLocalBaseMessageURI(const char *baseURI, nsCString &baseMessageURI)
+nsresult nsCreateLocalBaseMessageURI(const nsACString& baseURI, nsCString &baseMessageURI)
 {
   nsCAutoString tailURI(baseURI);
 

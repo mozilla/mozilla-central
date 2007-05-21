@@ -2268,10 +2268,10 @@ PRInt32 nsNNTPProtocol::SendFirstNNTPCommandResponse()
       char outputBuffer[OUTPUT_BUFFER_SIZE];
 
       if ((m_key != nsMsgKey_None) && m_newsFolder) {
-        nsXPIDLCString messageID;
-        rv = m_newsFolder->GetMessageIdForKey(m_key, getter_Copies(messageID));
+        nsCString messageID;
+        rv = m_newsFolder->GetMessageIdForKey(m_key, messageID);
         if (NS_SUCCEEDED(rv)) {
-          PR_snprintf(outputBuffer,OUTPUT_BUFFER_SIZE,"<P>&lt;%.512s&gt; (%lu)", (const char *)messageID, m_key);
+          PR_snprintf(outputBuffer, OUTPUT_BUFFER_SIZE,"<P>&lt;%.512s&gt; (%lu)", messageID.get(), m_key);
           errorHtml.AppendWithConversion(outputBuffer);
         }
       }
@@ -2279,10 +2279,10 @@ PRInt32 nsNNTPProtocol::SendFirstNNTPCommandResponse()
       if (m_newsFolder) {
         nsCOMPtr <nsIMsgFolder> folder = do_QueryInterface(m_newsFolder, &rv);
         if (NS_SUCCEEDED(rv) && folder) {
-          nsXPIDLCString folderURI;
-          rv = folder->GetURI(getter_Copies(folderURI));
+          nsCString folderURI;
+          rv = folder->GetURI(folderURI);
           if (NS_SUCCEEDED(rv)) {
-            PR_snprintf(outputBuffer,OUTPUT_BUFFER_SIZE,"<P> <A HREF=\"%s?list-ids\">", (const char *)folderURI);
+            PR_snprintf(outputBuffer,OUTPUT_BUFFER_SIZE,"<P> <A HREF=\"%s?list-ids\">", folderURI.get());
           }
         }
       }
@@ -2628,10 +2628,8 @@ void nsNNTPProtocol::ParseHeaderForCancel(char *buf)
 PRInt32 nsNNTPProtocol::BeginAuthorization()
 {
   char * command = 0;
-  nsXPIDLCString username;
   nsresult rv = NS_OK;
   PRInt32 status = 0;
-  nsXPIDLCString cachedUsername;
 
   if (!m_newsFolder && m_nntpServer) {
     nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(m_nntpServer);
@@ -2645,32 +2643,28 @@ PRInt32 nsNNTPProtocol::BeginAuthorization()
   }
 
   NS_ASSERTION(m_newsFolder, "no m_newsFolder");
+  nsCString cachedUsername;
+  nsCString username;
   if (m_newsFolder)
-    rv = m_newsFolder->GetGroupUsername(getter_Copies(cachedUsername));
+    rv = m_newsFolder->GetGroupUsername(cachedUsername);
 
-  if (NS_FAILED(rv) || !cachedUsername) {
+  if (NS_FAILED(rv) || cachedUsername.IsEmpty()) {
     rv = NS_OK;
     NNTP_LOG_NOTE("ask for the news username");
 
-    nsXPIDLString usernamePromptText;
+    nsString usernamePromptText;
     GetNewsStringByName("enterUsername", getter_Copies(usernamePromptText));
     if (m_newsFolder) {
       if (!m_msgWindow) {
         nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL);
-        if (mailnewsurl) {
+        if (mailnewsurl)
           rv = mailnewsurl->GetMsgWindow(getter_AddRefs(m_msgWindow));
-        }
       }
 
-      rv = m_newsFolder->GetGroupUsernameWithUI(usernamePromptText, nsnull, m_msgWindow, getter_Copies(username));
+      rv = m_newsFolder->GetGroupUsernameWithUI(usernamePromptText, EmptyString(), m_msgWindow, username);
     }
-    else {
-#ifdef DEBUG_sspitzer
-      printf("we don't know the folder\n");
-      printf("this can happen if someone gives us just an article url\n");
-#endif
+    else
       return(MK_NNTP_AUTH_FAILED);
-    }
 
     if (NS_FAILED(rv)) {
       AlertError(MK_NNTP_AUTH_FAILED, "Aborted by user");
@@ -2678,18 +2672,17 @@ PRInt32 nsNNTPProtocol::BeginAuthorization()
     }
   } // !username
 
-  if (NS_FAILED(rv) || (!username && !cachedUsername)) {
-		  return(MK_NNTP_AUTH_FAILED);
-  }
+  if (NS_FAILED(rv) || (username.IsEmpty() && cachedUsername.IsEmpty()))
+    return(MK_NNTP_AUTH_FAILED);
 
   NS_MsgSACopy(&command, "AUTHINFO user ");
-  if (cachedUsername) {
-    PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) use %s as the username",this, (const char *)cachedUsername));
-    NS_MsgSACat(&command, (const char *)cachedUsername);
+  if (!cachedUsername.IsEmpty()) {
+    PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) use %s as the username",this, cachedUsername.get()));
+    NS_MsgSACat(&command, cachedUsername.get());
   }
   else {
-    PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) use %s as the username",this, (const char *)username));
-    NS_MsgSACat(&command, (const char *)username);
+    PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) use %s as the username",this, username.get()));
+    NS_MsgSACat(&command, username.get());
   }
   NS_MsgSACat(&command, CRLF);
 
@@ -2747,32 +2740,32 @@ PRInt32 nsNNTPProtocol::AuthorizationResponse()
   {
     /* password required */
     char * command = 0;
-    nsXPIDLCString password;
-    nsXPIDLCString cachedPassword;
+    nsCString password;
+    nsCString cachedPassword;
 
     NS_ASSERTION(m_newsFolder, "no newsFolder");
-    if (m_newsFolder) {
-      rv = m_newsFolder->GetGroupPassword(getter_Copies(cachedPassword));
-    }
-    if (NS_FAILED(rv) || !cachedPassword) {
+    if (m_newsFolder)
+      rv = m_newsFolder->GetGroupPassword(cachedPassword);
+
+    if (NS_FAILED(rv) || cachedPassword.IsEmpty()) {
       rv = NS_OK;
       NNTP_LOG_NOTE("ask for the news password");
 
-      nsXPIDLString passwordPromptText;
+      nsString passwordPromptText;
       GetNewsStringByName("enterPassword", getter_Copies(passwordPromptText));
-      nsXPIDLString passwordPromptTitleText;
+      nsString passwordPromptTitleText;
       GetNewsStringByName("enterPasswordTitle", getter_Copies(passwordPromptTitleText));
 
       NS_ASSERTION(m_newsFolder, "no newsFolder");
       if (m_newsFolder) {
         if (!m_msgWindow) {
           nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL);
-          if (mailnewsurl) {
+          if (mailnewsurl)
             rv = mailnewsurl->GetMsgWindow(getter_AddRefs(m_msgWindow));
-          }
         }
 
-        rv = m_newsFolder->GetGroupPasswordWithUI(passwordPromptText, passwordPromptTitleText, m_msgWindow, getter_Copies(password));
+        rv = m_newsFolder->GetGroupPasswordWithUI(passwordPromptText, passwordPromptTitleText,
+                                                  m_msgWindow, password);
       }
       else {
         NNTP_LOG_NOTE("we don't know the folder");
@@ -2786,18 +2779,17 @@ PRInt32 nsNNTPProtocol::AuthorizationResponse()
       }
     }
 
-    if(NS_FAILED(rv) || (!password && !cachedPassword)) {
+    if(NS_FAILED(rv) || (password.IsEmpty() && cachedPassword.IsEmpty()))
       return(MK_NNTP_AUTH_FAILED);
-    }
 
     NS_MsgSACopy(&command, "AUTHINFO pass ");
-    if (cachedPassword) {
+    if (!cachedPassword.IsEmpty()) {
       PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) use cached password", this));
-      NS_MsgSACat(&command, (const char *)cachedPassword);
+      NS_MsgSACat(&command, cachedPassword.get());
     }
     else {
       // *don't log the password!* PR_LOG(NNTP,PR_LOG_ALWAYS,("use %s as the password",(const char *)password));
-      NS_MsgSACat(&command, (const char *)password);
+      NS_MsgSACat(&command, password.get());
     }
     NS_MsgSACat(&command, CRLF);
 

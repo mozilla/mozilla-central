@@ -249,8 +249,8 @@ nsMsgQuickSearchDBView::OnSearchDone(nsresult status)
   if (m_viewFolder)
   {
     nsMsgKeyArray keyArray;
-    nsXPIDLCString searchUri;
-    m_viewFolder->GetURI(getter_Copies(searchUri));
+    nsCString searchUri;
+    m_viewFolder->GetURI(searchUri);
     PRUint32 count = m_hdrHits.Count();
     // build up message keys.
     PRUint32 i;
@@ -264,7 +264,7 @@ nsMsgQuickSearchDBView::OnSearchDone(nsresult status)
     PRUint32 numBadHits;
     if (m_db)
     {
-      m_db->RefreshCache(searchUri, m_hdrHits.Count(), keyArray.GetArray(), &numBadHits, &staleHits);
+      m_db->RefreshCache(searchUri.get(), m_hdrHits.Count(), keyArray.GetArray(), &numBadHits, &staleHits);
       for (i = 0; i < numBadHits; i++)
       {
         nsMsgViewIndex staleHitIndex = FindKey(staleHits[i], PR_TRUE);
@@ -307,9 +307,9 @@ nsMsgQuickSearchDBView::OnNewSearch()
   if (folderFlags & MSG_FOLDER_FLAG_VIRTUAL)
   {
     nsCOMPtr<nsISimpleEnumerator> cachedHits;
-    nsXPIDLCString searchUri;
-    m_viewFolder->GetURI(getter_Copies(searchUri));
-    m_db->GetCachedHits(searchUri, getter_AddRefs(cachedHits));
+    nsCString searchUri;
+    m_viewFolder->GetURI(searchUri);
+    m_db->GetCachedHits(searchUri.get(), getter_AddRefs(cachedHits));
     if (cachedHits)
     {
       PRBool hasMore;

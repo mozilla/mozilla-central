@@ -69,7 +69,7 @@ nsImapMoveCopyMsgTxn::Init(
   m_srcKeyArray.CopyArray(srcKeyArray);
   m_dupKeyArray.CopyArray(srcKeyArray);
   nsCString uri;
-  rv = srcFolder->GetURI(getter_Copies(uri));
+  rv = srcFolder->GetURI(uri);
   nsCString protocolType(uri);
   protocolType.SetLength(protocolType.FindChar(':'));
   // ** jt -- only do this for mailbox protocol
@@ -574,8 +574,7 @@ NS_IMETHODIMP nsImapOfflineTxn::RedoTransaction(void)
       if (dstFolder)
       {
         nsCString folderURI;
-        dstFolder->GetURI(getter_Copies(folderURI));
-
+        dstFolder->GetURI(folderURI);
 
         if (m_opType == nsIMsgOfflineImapOperation::kMsgMoved)
         {
@@ -606,7 +605,7 @@ NS_IMETHODIMP nsImapOfflineTxn::RedoTransaction(void)
       if (NS_SUCCEEDED(rv) && op)
       {
         nsCString folderURI;
-        srcFolder->GetURI(getter_Copies(folderURI));
+        srcFolder->GetURI(folderURI);
         op->SetSourceFolderURI(folderURI.get());
       }
       dstFolder->SummaryChanged();

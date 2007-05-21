@@ -107,7 +107,7 @@ private:
 #ifndef MOZ_THUNDERBIRD
   nsresult ShowAlertMessage(const PRUnichar * aAlertTitle, const PRUnichar * aAlertText, const char * aFolderURI);
 #endif
-  nsresult GetFirstFolderWithNewMail(char ** aFolderURI);
+  nsresult GetFirstFolderWithNewMail(nsACString& aFolderURI);
 
   nsresult GetStringBundle(nsIStringBundle **aBundle);
   nsCOMPtr<nsISupportsArray> mFoldersWithNewMail;  // keep track of all the root folders with pending new mail
@@ -146,7 +146,7 @@ private:
   fnSHSetUnreadMailCount mSHSetUnreadMailCount;
   fnSHEnumerateUnreadMailAccounts mSHEnumerateUnreadMailAccounts;
 
-  char *mInboxURI;
+  nsCString mInboxURI;
   nsCString mEmail;
 
   nsString  mAppName;

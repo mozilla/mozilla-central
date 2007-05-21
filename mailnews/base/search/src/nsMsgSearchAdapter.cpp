@@ -53,7 +53,7 @@
 #include "prprf.h"
 #include "nsAutoPtr.h"
 
-// This stuff lives in the base class because the IMAP search syntax 
+// This stuff lives in the base class because the IMAP search syntax
 // is used by the Dredd SEARCH command as well as IMAP itself
 
 // km - the NOT and HEADER strings are not encoded with a trailing
@@ -82,8 +82,8 @@ const char *nsMsgSearchAdapter::m_kImapNotAnswered = " UNANSWERED ";
 const char *nsMsgSearchAdapter::m_kImapCharset = " CHARSET ";
 const char *nsMsgSearchAdapter::m_kImapSizeSmaller = " SMALLER ";
 const char *nsMsgSearchAdapter::m_kImapSizeLarger = " LARGER ";
-const char *nsMsgSearchAdapter::m_kImapNew = " NEW "; 
-const char *nsMsgSearchAdapter::m_kImapNotNew = " OLD SEEN "; 
+const char *nsMsgSearchAdapter::m_kImapNew = " NEW ";
+const char *nsMsgSearchAdapter::m_kImapNotNew = " OLD SEEN ";
 const char *nsMsgSearchAdapter::m_kImapFlagged = " FLAGGED ";
 const char *nsMsgSearchAdapter::m_kImapNotFlagged = " UNFLAGGED ";
 
@@ -106,7 +106,7 @@ NS_IMETHODIMP nsMsgSearchAdapter::OpenResultElement(nsMsgResultElement *)
 
 NS_IMPL_ISUPPORTS1(nsMsgSearchAdapter, nsIMsgSearchAdapter)
 
-nsMsgSearchAdapter::nsMsgSearchAdapter(nsIMsgSearchScopeTerm *scope, nsISupportsArray *searchTerms) 
+nsMsgSearchAdapter::nsMsgSearchAdapter(nsIMsgSearchScopeTerm *scope, nsISupportsArray *searchTerms)
 	: m_searchTerms(searchTerms)
 {
   m_scope = scope;
@@ -127,14 +127,14 @@ NS_IMETHODIMP nsMsgSearchAdapter::Abort ()
 	return NS_ERROR_NOT_IMPLEMENTED;
 
 }
-NS_IMETHODIMP nsMsgSearchAdapter::Search (PRBool *aDone) 
+NS_IMETHODIMP nsMsgSearchAdapter::Search (PRBool *aDone)
 {
-  return NS_OK; 
+  return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgSearchAdapter::SendUrl () 
+NS_IMETHODIMP nsMsgSearchAdapter::SendUrl ()
 {
-  return NS_OK; 
+  return NS_OK;
 }
 
 /* void CurrentUrlDone (in long exitCode); */
@@ -144,9 +144,9 @@ NS_IMETHODIMP nsMsgSearchAdapter::CurrentUrlDone(PRInt32 exitCode)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgSearchAdapter::GetEncoding (char **encoding) 
+NS_IMETHODIMP nsMsgSearchAdapter::GetEncoding (char **encoding)
 {
-  return NS_OK; 
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgSearchAdapter::AddResultElement (nsIMsgDBHdr *pHeaders)
@@ -175,7 +175,7 @@ nsMsgSearchAdapter::GetImapCharsetParam(const PRUnichar *destCharset)
 	return result;
 }
 
-/* 
+/*
    09/21/2000 - taka@netscape.com
    This method is bogus. Escape must be done against char * not PRUnichar *
    should be rewritten later.
@@ -215,7 +215,7 @@ PRUnichar *nsMsgSearchAdapter::EscapeSearchUrl (const PRUnichar *nntpCommand)
 #endif
 }
 
-/* 
+/*
    09/21/2000 - taka@netscape.com
    This method is bogus. Escape must be done against char * not PRUnichar *
    should be rewritten later.
@@ -254,7 +254,7 @@ nsMsgSearchAdapter::EscapeImapSearchProtocol(const PRUnichar *imapCommand)
 #endif
 }
 
-/* 
+/*
    09/21/2000 - taka@netscape.com
    This method is bogus. Escape must be done against char * not PRUnichar *
    should be rewritten later.
@@ -324,11 +324,11 @@ char *nsMsgSearchAdapter::UnEscapeSearchUrl (const char *commandSpecificData)
 }
 
 
-nsresult 
+nsresult
 nsMsgSearchAdapter::GetSearchCharsets(nsAString &srcCharset, nsAString &dstCharset)
 {
   nsresult rv;
-  
+
   if (m_defaultCharset.IsEmpty())
   {
     m_forceAsciiSearch = PR_FALSE;  // set the default value in case of error
@@ -337,38 +337,35 @@ nsMsgSearchAdapter::GetSearchCharsets(nsAString &srcCharset, nsAString &dstChars
     {
       nsCOMPtr<nsIPrefLocalizedString> localizedstr;
       rv = prefs->GetComplexValue("mailnews.view_default_charset", NS_GET_IID(nsIPrefLocalizedString),
-                                  getter_AddRefs(localizedstr)); 
+                                  getter_AddRefs(localizedstr));
       if (NS_SUCCEEDED(rv))
         localizedstr->GetData(getter_Copies(m_defaultCharset));
 
       prefs->GetBoolPref("mailnews.force_ascii_search", &m_forceAsciiSearch);
     }
   }
-  srcCharset = m_defaultCharset.IsEmpty() ? 
+  srcCharset = m_defaultCharset.IsEmpty() ?
     NS_LITERAL_STRING("ISO-8859-1") : m_defaultCharset;
-  
+
   if (m_scope)
   {
     // ### DMB is there a way to get the charset for the "window"?
-    
+
     nsCOMPtr<nsIMsgFolder> folder;
     rv = m_scope->GetFolder(getter_AddRefs(folder));
-    
+
     // Ask the newsgroup/folder for its csid.
     if (NS_SUCCEEDED(rv) && folder)
     {
       nsCString folderCharset;
-      folder->GetCharset(getter_Copies(folderCharset));
+      folder->GetCharset(folderCharset);
       AppendASCIItoUTF16(folderCharset, dstCharset);
     }
   }
   else
-  {
     dstCharset.Assign(srcCharset);
-  }
-  
-  
-  // If 
+
+  // If
   // the destination is still CS_DEFAULT, make the destination match
   // the source. (CS_DEFAULT is an indication that the charset
   // was undefined or unavailable.)
@@ -377,14 +374,14 @@ nsMsgSearchAdapter::GetSearchCharsets(nsAString &srcCharset, nsAString &dstChars
   {
     dstCharset.Assign(srcCharset);
   }
-  
+
   if (m_forceAsciiSearch)
   {
     // Special cases to use in order to force US-ASCII searching with Latin1
     // or MacRoman text. Eurgh. This only has to happen because IMAP
     // and Dredd servers currently (4/23/97) only support US-ASCII.
-    // 
-    // If the dest csid is ISO Latin 1 or MacRoman, attempt to convert the 
+    //
+    // If the dest csid is ISO Latin 1 or MacRoman, attempt to convert the
     // source text to US-ASCII. (Not for now.)
     // if ((dst_csid == CS_LATIN1) || (dst_csid == CS_MAC_ROMAN))
     dstCharset.AssignLiteral("us-ascii");
@@ -511,9 +508,9 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, PRBool real
       case MSG_FLAG_REPLIED:
         whichMnemonic = op == nsMsgSearchOp::Is ? m_kImapAnswered : m_kImapNotAnswered;
         break;
-      case MSG_FLAG_NEW:                         
+      case MSG_FLAG_NEW:
         whichMnemonic = op == nsMsgSearchOp::Is ? m_kImapNew : m_kImapNotNew;
-        break; 
+        break;
       case MSG_FLAG_MARKED:
         whichMnemonic = op == nsMsgSearchOp::Is ? m_kImapFlagged : m_kImapNotFlagged;
         break;
@@ -584,7 +581,7 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, PRBool real
     {
       if (attrib == nsMsgSearchAttrib::AgeInDays)
       {
-        // okay, take the current date, subtract off the age in days, then do an appropriate Date search on 
+        // okay, take the current date, subtract off the age in days, then do an appropriate Date search on
         // the resulting day.
         PRUint32 ageInDays;
 
@@ -599,7 +596,7 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, PRBool real
         LL_UI2L(secondsInDays, 60 * 60 * 24 * ageInDays);
         LL_MUL(microSecondsInDay, secondsInDays, microSecondsPerSecond);
 
-        LL_SUB(matchDay, now, microSecondsInDay); // = now - term->m_value.u.age * 60 * 60 * 24; 
+        LL_SUB(matchDay, now, microSecondsInDay); // = now - term->m_value.u.age * 60 * 60 * 24;
         PRExplodedTime exploded;
         PR_ExplodeTime(matchDay, PR_LocalTimeParameters, &exploded);
         PR_FormatTimeUSEnglish(dateBuf, sizeof(dateBuf), "%d-%b-%Y", &exploded);
@@ -626,7 +623,7 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, PRBool real
         valueWasAllocated = PR_TRUE;
       }
       else
-        
+
       if (IsStringAttribute(attrib))
       {
         PRUnichar *convertedValue; // = reallyDredd ? MSG_EscapeSearchUrl (term->m_value.u.string) : msg_EscapeImapSearchProtocol(term->m_value.u.string);
@@ -645,7 +642,7 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, PRBool real
         // do all sorts of crazy escaping
         convertedValue = reallyDredd ? EscapeSearchUrl (searchTermValue.get()) :
         EscapeImapSearchProtocol(searchTermValue.get());
-        useQuotes = ((!reallyDredd || 
+        useQuotes = ((!reallyDredd ||
                     (nsDependentString(convertedValue).FindChar(PRUnichar(' ')) != -1)) &&
            (attrib != nsMsgSearchAttrib::Keywords));
         // now convert to char* and escape quoted_specials
@@ -718,7 +715,7 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, PRBool real
           err = EncodeImapValue(encoding, value, useQuotes, reallyDredd);
       }
 
-      // kmcentee, don't let the encoding end with whitespace, 
+      // kmcentee, don't let the encoding end with whitespace,
       // this throws off later url STRCMP
       if (*encoding && *(encoding + strlen(encoding) - 1) == ' ')
         *(encoding + strlen(encoding) - 1) = '\0';
@@ -741,7 +738,7 @@ nsresult nsMsgSearchAdapter::EncodeImapValue(char *encoding, const char *value, 
     if (!value || !value[0])
       return NS_ERROR_NULL_POINTER;
   }
-  
+
   if (!nsCRT::IsAscii(value))
   {
     nsCAutoString lengthStr;
@@ -757,7 +754,7 @@ nsresult nsMsgSearchAdapter::EncodeImapValue(char *encoding, const char *value, 
   PL_strcat (encoding, value);
   if (useQuotes)
     PL_strcat(encoding, "\"");
-  
+
   return NS_OK;
 }
 
@@ -766,19 +763,19 @@ nsresult nsMsgSearchAdapter::EncodeImap (char **ppOutEncoding, nsISupportsArray 
 {
   // i've left the old code (before using CBoolExpression for debugging purposes to make sure that
   // the new code generates the same encoding string as the old code.....
-  
+
   nsresult err = NS_OK;
   *ppOutEncoding = nsnull;
-  
+
   PRUint32 termCount;
   searchTerms->Count(&termCount);
   PRUint32 i = 0;
-  
+
   // create our expression
   nsMsgSearchBoolExpression * expression = new nsMsgSearchBoolExpression();
   if (!expression)
     return NS_ERROR_OUT_OF_MEMORY;
-  
+
   for (i = 0; i < termCount && NS_SUCCEEDED(err); i++)
   {
     char *termEncoding;
@@ -792,21 +789,21 @@ nsresult nsMsgSearchAdapter::EncodeImap (char **ppOutEncoding, nsISupportsArray 
       delete [] termEncoding;
     }
   }
-  
-  if (NS_SUCCEEDED(err)) 
+
+  if (NS_SUCCEEDED(err))
   {
     // Catenate the intermediate encodings together into a big string
     nsCAutoString encodingBuff;
-    
+
     if (!reallyDredd)
       encodingBuff.Append(m_kImapUnDeleted);
 
     expression->GenerateEncodeStr(&encodingBuff);
     *ppOutEncoding = ToNewCString(encodingBuff);
   }
-  
+
   delete expression;
-  
+
   return err;
 }
 
@@ -814,7 +811,7 @@ nsresult nsMsgSearchAdapter::EncodeImap (char **ppOutEncoding, nsISupportsArray 
 char *nsMsgSearchAdapter::TransformSpacesToStars (const char *spaceString, msg_TransformType transformType)
 {
 	char *starString;
-	
+
 	if (transformType == kOverwrite)
 	{
 		if ((starString = nsCRT::strdup(spaceString)) != nsnull)
@@ -967,7 +964,7 @@ nsMsgSearchValidityTable::GetAvailableAttributes(PRUint32 *length,
     nsMsgSearchAttribValue *array = (nsMsgSearchAttribValue*)
         nsMemory::Alloc(sizeof(nsMsgSearchAttribValue) * totalAttributes);
     NS_ENSURE_TRUE(array, NS_ERROR_OUT_OF_MEMORY);
-    
+
     PRUint32 numStored=0;
     for (i = 0; i< nsMsgSearchAttrib::kNumMsgSearchAttributes; i++) {
         for (j=0; j< nsMsgSearchOp::kNumMsgSearchOperators; j++) {
@@ -1006,7 +1003,7 @@ nsMsgSearchValidityTable::GetAvailableOperators(nsMsgSearchAttribValue aAttribut
     nsMsgSearchOpValue *array = (nsMsgSearchOpValue*)
         nsMemory::Alloc(sizeof(nsMsgSearchOpValue) * totalOperators);
     NS_ENSURE_TRUE(array, NS_ERROR_OUT_OF_MEMORY);
-    
+
     PRUint32 numStored = 0;
     for (i=0; i<nsMsgSearchOp::kNumMsgSearchOperators;i++) {
         if (m_table[attr][i].bitAvailable)
@@ -1048,15 +1045,15 @@ NS_IMPL_ISUPPORTS1(nsMsgSearchValidityManager, nsIMsgSearchValidityManager)
 NS_IMETHODIMP nsMsgSearchValidityManager::GetTable (int whichTable, nsIMsgSearchValidityTable **ppOutTable)
 {
   NS_ENSURE_ARG_POINTER(ppOutTable);
-  
+
   nsresult rv;
   *ppOutTable = nsnull;
-  
+
   nsCOMPtr<nsIPrefBranch> pref(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   nsCString customHeaders;
   if (NS_SUCCEEDED(rv))
     pref->GetCharPref(PREF_CUSTOM_HEADERS, getter_Copies(customHeaders));
-  
+
   switch (whichTable)
   {
   case nsMsgSearchScope::offlineMail:
@@ -1121,14 +1118,14 @@ NS_IMETHODIMP nsMsgSearchValidityManager::GetTable (int whichTable, nsIMsgSearch
     break;
   case nsMsgSearchScope::LocalABAnd:
     if (!m_localABAndTable)
-      rv = InitLocalABAndTable ();    
+      rv = InitLocalABAndTable ();
     *ppOutTable = m_localABAndTable;
     break;
-  default:                 
+  default:
     NS_ASSERTION(PR_FALSE, "invalid table type");
     rv = NS_MSG_ERROR_INVALID_SEARCH_TERM;
   }
-  
+
   NS_IF_ADDREF(*ppOutTable);
   return rv;
 }
@@ -1146,7 +1143,7 @@ nsMsgSearchValidityManager::NewTable(nsIMsgSearchValidityTable **aTable)
   return NS_OK;
 }
 
-nsresult 
+nsresult
 nsMsgSearchValidityManager::SetOtherHeadersInTable (nsIMsgSearchValidityTable *aTable, const char *customHeaders)
 {
   PRUint32 customHeadersLength = strlen(customHeaders);
@@ -1174,7 +1171,7 @@ nsMsgSearchValidityManager::SetOtherHeadersInTable (nsIMsgSearchValidityTable *a
   for (PRUint32 i=nsMsgSearchAttrib::OtherHeader+1;i< maxHdrs;i++)
   {
     aTable->SetAvailable (i, nsMsgSearchOp::Contains, 1);   // added for arbitrary headers
-    aTable->SetEnabled   (i, nsMsgSearchOp::Contains, 1); 
+    aTable->SetEnabled   (i, nsMsgSearchOp::Contains, 1);
     aTable->SetAvailable (i, nsMsgSearchOp::DoesntContain, 1);
     aTable->SetEnabled   (i, nsMsgSearchOp::DoesntContain, 1);
     aTable->SetAvailable (i, nsMsgSearchOp::Is, 1);
@@ -1182,10 +1179,10 @@ nsMsgSearchValidityManager::SetOtherHeadersInTable (nsIMsgSearchValidityTable *a
     aTable->SetAvailable (i, nsMsgSearchOp::Isnt, 1);
     aTable->SetEnabled   (i, nsMsgSearchOp::Isnt, 1);
   }
-   //because custom headers can change; so reset the table for those which are no longer used. 
-  for (PRUint32 j=maxHdrs; j < nsMsgSearchAttrib::kNumMsgSearchAttributes; j++) 
+   //because custom headers can change; so reset the table for those which are no longer used.
+  for (PRUint32 j=maxHdrs; j < nsMsgSearchAttrib::kNumMsgSearchAttributes; j++)
   {
-    for (PRUint32 k=0; k < nsMsgSearchOp::kNumMsgSearchOperators; k++) 
+    for (PRUint32 k=0; k < nsMsgSearchOp::kNumMsgSearchOperators; k++)
     {
       aTable->SetAvailable(j,k,0);
       aTable->SetEnabled(j,k,0);
@@ -1277,7 +1274,7 @@ nsMsgSearchValidityManager::SetUpABTable(nsIMsgSearchValidityTable *aTable, PRBo
 
   rv = EnableDirectoryAttribute(aTable, nsMsgSearchAttrib::DisplayName);
   NS_ENSURE_SUCCESS(rv,rv);
- 
+
   rv = EnableDirectoryAttribute(aTable, nsMsgSearchAttrib::Email);
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -1286,19 +1283,19 @@ nsMsgSearchValidityManager::SetUpABTable(nsIMsgSearchValidityTable *aTable, PRBo
 
   rv = EnableDirectoryAttribute(aTable, nsMsgSearchAttrib::ScreenName);
   NS_ENSURE_SUCCESS(rv,rv);
-  
+
   rv = EnableDirectoryAttribute(aTable, nsMsgSearchAttrib::Street);
   NS_ENSURE_SUCCESS(rv,rv);
 
   rv = EnableDirectoryAttribute(aTable, nsMsgSearchAttrib::City);
   NS_ENSURE_SUCCESS(rv,rv);
-  
+
   rv = EnableDirectoryAttribute(aTable, nsMsgSearchAttrib::Title);
   NS_ENSURE_SUCCESS(rv,rv);
 
   rv = EnableDirectoryAttribute(aTable, nsMsgSearchAttrib::Organization);
   NS_ENSURE_SUCCESS(rv,rv);
-  
+
   rv = EnableDirectoryAttribute(aTable, nsMsgSearchAttrib::Department);
   NS_ENSURE_SUCCESS(rv,rv);
 

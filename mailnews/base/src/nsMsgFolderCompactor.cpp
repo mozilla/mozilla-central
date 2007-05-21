@@ -196,7 +196,7 @@ nsFolderCompactState::Compact(nsIMsgFolder *folder, PRBool aOfflineStore, nsIMsg
    nsCOMPtr<nsIDBFolderInfo> folderInfo;
    nsCOMPtr<nsIMsgDatabase> mailDBFactory;
    nsCOMPtr<nsILocalFile> path;
-   nsXPIDLCString baseMessageURI;
+   nsCString baseMessageURI;
 
    nsCOMPtr <nsIMsgLocalMailFolder> localFolder = do_QueryInterface(folder, &rv);
    if (NS_SUCCEEDED(rv) && localFolder)
@@ -234,10 +234,10 @@ nsFolderCompactState::Compact(nsIMsgFolder *folder, PRBool aOfflineStore, nsIMsg
    rv = folder->GetFilePath(getter_AddRefs(path));
    NS_ENSURE_SUCCESS(rv,rv);
 
-   rv = folder->GetBaseMessageURI(getter_Copies(baseMessageURI));
+   rv = folder->GetBaseMessageURI(baseMessageURI);
    NS_ENSURE_SUCCESS(rv,rv);
     
-   rv = Init(folder, baseMessageURI, db, path, m_window);
+   rv = Init(folder, baseMessageURI.get(), db, path, m_window);
    NS_ENSURE_SUCCESS(rv,rv);
 
    PRBool isLocked;
@@ -260,14 +260,14 @@ nsFolderCompactState::Compact(nsIMsgFolder *folder, PRBool aOfflineStore, nsIMsg
    }
 }
 
-nsresult nsFolderCompactState::ShowStatusMsg(const PRUnichar *aMsg)
+nsresult nsFolderCompactState::ShowStatusMsg(const nsString& aMsg)
 {
   nsCOMPtr <nsIMsgStatusFeedback> statusFeedback;
   if (m_window)
   {
     m_window->GetStatusFeedback(getter_AddRefs(statusFeedback));
-    if (statusFeedback && aMsg)
-      return statusFeedback->SetStatusString (aMsg);
+    if (statusFeedback && !aMsg.IsEmpty())
+      return statusFeedback->SetStatusString (aMsg.get());
   }
   return NS_OK;
 }
@@ -312,9 +312,9 @@ nsFolderCompactState::Init(nsIMsgFolder *folder, const char *baseMsgUri, nsIMsgD
 
 void nsFolderCompactState::ShowCompactingStatusMsg()
 {
-  nsXPIDLString statusString;
-  nsresult rv = m_folder->GetStringWithFolderNameFromBundle("compactingFolder", getter_Copies(statusString));
-  if (statusString && NS_SUCCEEDED(rv))
+  nsString statusString;
+  nsresult rv = m_folder->GetStringWithFolderNameFromBundle("compactingFolder", statusString);
+  if (!statusString.IsEmpty() && NS_SUCCEEDED(rv))
     ShowStatusMsg(statusString);
 }
 
@@ -481,9 +481,9 @@ void nsFolderCompactState::ShowDoneStatus()
 {
   if (m_folder)
   {
-    nsXPIDLString statusString;
-    nsresult rv = m_folder->GetStringWithFolderNameFromBundle("doneCompacting", getter_Copies(statusString));
-    if (statusString && NS_SUCCEEDED(rv))
+    nsString statusString;
+    nsresult rv = m_folder->GetStringWithFolderNameFromBundle("doneCompacting", statusString);
+    if (!statusString.IsEmpty() && NS_SUCCEEDED(rv))
       ShowStatusMsg(statusString);
   }
 }
@@ -943,7 +943,7 @@ nsOfflineStoreCompactState::FinishCompact()
   m_file->MoveToNative((nsIFile *) nsnull, leafName);
 
   PRUnichar emptyStr = 0;
-  ShowStatusMsg(&emptyStr);
+  ShowStatusMsg(EmptyString());
   if (m_compactAll)
     rv = CompactNextFolder();
   return rv;

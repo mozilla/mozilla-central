@@ -111,7 +111,7 @@ nsresult nsMailboxService::ParseMailbox(nsIMsgWindow *aMsgWindow, nsILocalFile *
   
   return rv;
 }
-						 
+
 nsresult nsMailboxService::CopyMessage(const char * aSrcMailboxURI,
                               nsIStreamListener * aMailboxCopyHandler,
                               PRBool moveMessage,
@@ -149,9 +149,9 @@ nsresult nsMailboxService::CopyMessages(nsMsgKeyArray *msgKeys,
     db->GetMsgHdrForKey(msgKeys->GetAt(0), getter_AddRefs(msgHdr));
     if (msgHdr)
     {
-      nsXPIDLCString uri;
-      srcFolder->GetUriForMsg(msgHdr, getter_Copies(uri));
-      rv = PrepareMessageUrl(uri, aUrlListener, actionToUse , getter_AddRefs(mailboxurl), aMsgWindow);
+      nsCString uri;
+      srcFolder->GetUriForMsg(msgHdr, uri);
+      rv = PrepareMessageUrl(uri.get(), aUrlListener, actionToUse , getter_AddRefs(mailboxurl), aMsgWindow);
 
       if (NS_SUCCEEDED(rv))
       {

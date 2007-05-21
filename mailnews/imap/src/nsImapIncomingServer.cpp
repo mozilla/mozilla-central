@@ -913,7 +913,7 @@ NS_IMETHODIMP nsImapIncomingServer::CloseConnectionForFolder(nsIMsgFolder *aMsgF
   rv = m_connectionCache->Count(&cnt);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  imapFolder->GetOnlineName(getter_Copies(inFolderName));
+  imapFolder->GetOnlineName(inFolderName);
   PR_CEnterMonitor(this);
 
   for (PRUint32 i=0; i < cnt; i++)
@@ -1082,7 +1082,7 @@ nsresult nsImapIncomingServer::GetPFCForStringId(PRBool createIfMissing, PRInt32
   nsresult rv = GetPFC(createIfMissing, getter_AddRefs(pfcParent));
   NS_ENSURE_SUCCESS(rv, rv);
   nsCString pfcURI;
-  pfcParent->GetURI(getter_Copies(pfcURI));
+  pfcParent->GetURI(pfcURI);
 
   rv = GetStringBundle();
   NS_ENSURE_SUCCESS(rv, rv);
@@ -1093,7 +1093,7 @@ nsresult nsImapIncomingServer::GetPFCForStringId(PRBool createIfMissing, PRInt32
 //  pfcMailUri.Append(".sbd");
   pfcMailUri.Append('/');
   AppendUTF16toUTF8(pfcName, pfcMailUri);
-  pfcParent->GetChildWithURI(pfcMailUri.get(), PR_FALSE, PR_FALSE /* caseInsensitive*/, aFolder);
+  pfcParent->GetChildWithURI(pfcMailUri, PR_FALSE, PR_FALSE /* caseInsensitive*/, aFolder);
   if (!*aFolder && createIfMissing)
   {
     // get the URI from the incoming server
@@ -1245,7 +1245,7 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
   uri.Append('/');
   uri.Append(dupFolderPath);
   PRBool caseInsensitive = dupFolderPath.LowerCaseEqualsLiteral("inbox");
-  a_nsIFolder->GetChildWithURI(uri.get(), PR_TRUE, caseInsensitive, getter_AddRefs(child));
+  a_nsIFolder->GetChildWithURI(uri, PR_TRUE, caseInsensitive, getter_AddRefs(child));
   // if we couldn't find this folder by URI, tell the imap code it's a new folder to us
   *aNewFolder = !child;
   if (child)
@@ -1258,7 +1258,7 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
       nsCOMPtr <nsIMsgFolder> parent;
       PRBool parentIsNew;
       caseInsensitive = parentName.LowerCaseEqualsLiteral("inbox");
-      a_nsIFolder->GetChildWithURI(parentUri.get(), PR_TRUE, caseInsensitive, getter_AddRefs(parent));
+      a_nsIFolder->GetChildWithURI(parentUri, PR_TRUE, caseInsensitive, getter_AddRefs(parent));
       if (!parent /* || parentFolder->GetFolderNeedsAdded()*/)
       {
         PossibleImapMailbox(parentName, hierarchyDelimiter, kNoselect | // be defensive
@@ -1266,9 +1266,9 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
           (kPublicMailbox | kOtherUsersMailbox | kPersonalMailbox))), &parentIsNew);
       }
     }
-    hostFolder->CreateClientSubfolderInfo(dupFolderPath.get(), hierarchyDelimiter,boxFlags, PR_FALSE);
+    hostFolder->CreateClientSubfolderInfo(dupFolderPath, hierarchyDelimiter,boxFlags, PR_FALSE);
     caseInsensitive = dupFolderPath.LowerCaseEqualsLiteral("inbox");
-    a_nsIFolder->GetChildWithURI(uri.get(), PR_TRUE, caseInsensitive, getter_AddRefs(child));
+    a_nsIFolder->GetChildWithURI(uri, PR_TRUE, caseInsensitive, getter_AddRefs(child));
   }
   if (child)
   {
@@ -1292,7 +1292,7 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
       }
       imapFolder->SetBoxFlags(boxFlags);
       imapFolder->SetExplicitlyVerify(explicitlyVerify);
-      imapFolder->GetOnlineName(getter_Copies(onlineName));
+      imapFolder->GetOnlineName(onlineName);
       if (boxFlags & kNewlyCreatedFolder)
       {
         PRBool setNewFoldersForOffline = PR_FALSE;
@@ -1306,13 +1306,12 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
       if (hierarchyDelimiter != '/')
         nsImapUrl::UnescapeSlashes(dupFolderPath.BeginWriting());
 
-      if (onlineName.IsEmpty()
-        || nsCRT::strcmp(onlineName.get(), dupFolderPath.get()))
-        imapFolder->SetOnlineName(dupFolderPath.get());
+      if (onlineName.IsEmpty() || !onlineName.Equals(dupFolderPath))
+        imapFolder->SetOnlineName(dupFolderPath);
       if (hierarchyDelimiter != '/')
         nsImapUrl::UnescapeSlashes(folderName.BeginWriting());
       if (NS_SUCCEEDED(CopyMUTF7toUTF16(folderName, unicodeName)))
-        child->SetPrettyName(unicodeName.get());
+        child->SetPrettyName(unicodeName);
       // Call ConvertFolderName() and HideFolderName() to do special folder name
       // mapping and hiding, if configured to do so. For example, need to hide AOL's
       // 'RECYCLE_OUT' & convert a few AOL folder names. Regular imap accounts
@@ -1343,7 +1342,7 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
           child->SetFlag(MSG_FOLDER_FLAG_TRASH);
 
         if (NS_SUCCEEDED(rv))
-          child->SetPrettyName(convertedName.get());
+          child->SetPrettyName(convertedName);
       }
     }
   }
@@ -1363,9 +1362,9 @@ NS_IMETHODIMP nsImapIncomingServer::AddFolderRights(const nsACString& mailboxNam
     if (imapRoot)
     {
       nsCOMPtr <nsIMsgImapMailFolder> foundFolder;
-      rv = imapRoot->FindOnlineSubFolder(nsPromiseFlatCString(mailboxName).get(), getter_AddRefs(foundFolder));
+      rv = imapRoot->FindOnlineSubFolder(mailboxName, getter_AddRefs(foundFolder));
       if (NS_SUCCEEDED(rv) && foundFolder)
-        return foundFolder->AddFolderRights(nsPromiseFlatCString(userName).get(), nsPromiseFlatCString(rights).get());
+        return foundFolder->AddFolderRights(userName, rights);
     }
   }
   return rv;
@@ -1383,7 +1382,7 @@ NS_IMETHODIMP nsImapIncomingServer::FolderNeedsACLInitialized(const nsACString& 
     if (imapRoot)
     {
       nsCOMPtr <nsIMsgImapMailFolder> foundFolder;
-      rv = imapRoot->FindOnlineSubFolder(nsPromiseFlatCString(folderPath).get(), getter_AddRefs(foundFolder));
+      rv = imapRoot->FindOnlineSubFolder(folderPath, getter_AddRefs(foundFolder));
       if (NS_SUCCEEDED(rv) && foundFolder)
       {
         nsCOMPtr <nsIImapMailFolderSink> folderSink = do_QueryInterface(foundFolder);
@@ -1406,7 +1405,7 @@ NS_IMETHODIMP nsImapIncomingServer::RefreshFolderRights(const nsACString& folder
     if (imapRoot)
     {
       nsCOMPtr <nsIMsgImapMailFolder> foundFolder;
-      rv = imapRoot->FindOnlineSubFolder(nsPromiseFlatCString(folderPath).get(), getter_AddRefs(foundFolder));
+      rv = imapRoot->FindOnlineSubFolder(folderPath, getter_AddRefs(foundFolder));
       if (NS_SUCCEEDED(rv) && foundFolder)
         return foundFolder->RefreshFolderRights();
     }
@@ -1593,7 +1592,7 @@ nsresult nsImapIncomingServer::GetFolder(const nsACString& name, nsIMsgFolder** 
   if (NS_SUCCEEDED(rv) && rootFolder)
   {
     nsCString uri;
-    rv = rootFolder->GetURI(getter_Copies(uri));
+    rv = rootFolder->GetURI(uri);
     if (NS_SUCCEEDED(rv) && uri.IsEmpty())
     {
       nsCAutoString uriString(uri);
@@ -1652,11 +1651,11 @@ NS_IMETHODIMP nsImapIncomingServer::OnlineFolderRename(nsIMsgWindow *msgWindow, 
       folder = do_QueryInterface(me, &rv);
       if (NS_SUCCEEDED(rv))
       {
-        folder->RenameLocal(tmpNewName.get(), parent);
+        folder->RenameLocal(tmpNewName, parent);
         nsCOMPtr<nsIMsgImapMailFolder> parentImapFolder = do_QueryInterface(parent);
 
         if (parentImapFolder)
-          parentImapFolder->RenameClient(msgWindow, me, nsPromiseFlatCString(oldName).get(), tmpNewName.get());
+          parentImapFolder->RenameClient(msgWindow, me, oldName, tmpNewName);
 
         nsCOMPtr <nsIMsgFolder> newFolder;
         rv = GetFolder(tmpNewName, getter_AddRefs(newFolder));
@@ -1698,9 +1697,9 @@ NS_IMETHODIMP nsImapIncomingServer::SetFolderAdminURL(const nsACString& aFolderN
     if (imapRoot)
     {
       nsCOMPtr <nsIMsgImapMailFolder> foundFolder;
-      rv = imapRoot->FindOnlineSubFolder(nsPromiseFlatCString(aFolderName).get(), getter_AddRefs(foundFolder));
+      rv = imapRoot->FindOnlineSubFolder(aFolderName, getter_AddRefs(foundFolder));
       if (NS_SUCCEEDED(rv) && foundFolder)
-        return foundFolder->SetAdminUrl(nsPromiseFlatCString(aFolderAdminUrl).get());
+        return foundFolder->SetAdminUrl(aFolderAdminUrl);
     }
   }
   return rv;
@@ -1756,11 +1755,9 @@ NS_IMETHODIMP nsImapIncomingServer::DiscoveryDone()
           for (PRUint32 i = 0; i < numFolders; i++)
           {
             nsAutoString folderName;
-            if (NS_SUCCEEDED(trashFolders[i]->GetName(getter_Copies(folderName))))
-            {
+            if (NS_SUCCEEDED(trashFolders[i]->GetName(folderName)))
               if (!folderName.Equals(trashName))
                 trashFolders[i]->ClearFlag(MSG_FOLDER_FLAG_TRASH);
-            }
             NS_RELEASE(trashFolders[i]);
           }
         }
@@ -3523,7 +3520,7 @@ nsImapIncomingServer::GetMsgFolderFromURI(nsIMsgFolder *aFolderResource, const n
 
   // Check if the folder exists as is...Even if we have a personal namespace,
   // it might be in another namespace (e.g., shared) and this will catch that.
-  rv = rootMsgFolder->GetChildWithURI(PromiseFlatCString(aURI).get(), PR_TRUE, PR_FALSE, getter_AddRefs(msgFolder));
+  rv = rootMsgFolder->GetChildWithURI(aURI, PR_TRUE, PR_FALSE, getter_AddRefs(msgFolder));
 
   // If we couldn't find the folder as is, check if we need to prepend the
   // personal namespace
@@ -3533,10 +3530,10 @@ nsImapIncomingServer::GetMsgFolderFromURI(nsIMsgFolder *aFolderResource, const n
     if (!folderUriWithNamespace.IsEmpty())
     {
       namespacePrefixAdded = PR_TRUE;
-      rv = rootMsgFolder->GetChildWithURI(PromiseFlatCString(folderUriWithNamespace).get(), PR_TRUE, PR_FALSE, getter_AddRefs(msgFolder));
+      rv = rootMsgFolder->GetChildWithURI(folderUriWithNamespace, PR_TRUE, PR_FALSE, getter_AddRefs(msgFolder));
     }
     else
-      rv = rootMsgFolder->GetChildWithURI(PromiseFlatCString(aURI).get(), PR_TRUE, PR_FALSE, getter_AddRefs(msgFolder));
+      rv = rootMsgFolder->GetChildWithURI(aURI, PR_TRUE, PR_FALSE, getter_AddRefs(msgFolder));
   }
 
   if (NS_FAILED(rv) || !msgFolder) {

@@ -333,11 +333,8 @@ NS_IMETHODIMP
 nsMsgIncomingServer::GetServerURI(nsACString& aResult)
 {
   nsresult rv;
-  nsCString localStoreType;
-  rv = GetLocalStoreType(localStoreType);
+  rv = GetLocalStoreType(aResult);
   NS_ENSURE_SUCCESS(rv, rv);
-
-  aResult.Append(localStoreType);
   aResult.AppendLiteral("://");
 
   nsCString username;
@@ -515,7 +512,7 @@ nsMsgIncomingServer::GetCharValue(const char *prefname,
 {
   nsCString tmpVal;
   if (NS_FAILED(mPrefBranch->GetCharPref(prefname, getter_Copies(tmpVal))))
-    mDefPrefBranch->GetCharPref(prefname,getter_Copies(tmpVal));
+    mDefPrefBranch->GetCharPref(prefname, getter_Copies(tmpVal));
   val = tmpVal;
   return NS_OK;
 }
@@ -534,6 +531,7 @@ nsMsgIncomingServer::GetUnicharValue(const char *prefname,
 
   if (supportsString)
     return supportsString->GetData(val);
+  val.Truncate();
   return NS_OK;
 }
 
@@ -606,7 +604,7 @@ nsMsgIncomingServer::SetPrettyName(const nsAString& value)
   nsCOMPtr<nsIMsgFolder> rootFolder;
   GetRootFolder(getter_AddRefs(rootFolder));
   if (rootFolder)
-    rootFolder->SetPrettyName(nsPromiseFlatString(value).get());
+    rootFolder->SetPrettyName(value);
   return NS_OK;
 }
 
@@ -633,8 +631,9 @@ nsMsgIncomingServer::GetConstructedPrettyName(nsAString& retval)
 }
 
 NS_IMETHODIMP
-nsMsgIncomingServer::ToString(nsAString& aResult) {
-  aResult.AppendLiteral("[nsIMsgIncomingServer: ");
+nsMsgIncomingServer::ToString(nsAString& aResult)
+{
+  aResult.AssignLiteral("[nsIMsgIncomingServer: ");
   aResult.Append(NS_ConvertASCIItoUTF16(m_serverKey));
   aResult.AppendLiteral("]");
   return NS_OK;
@@ -1862,7 +1861,7 @@ nsMsgIncomingServer::GetMsgFolderFromURI(nsIMsgFolder *aFolderResource, const ns
   NS_ENSURE_TRUE(rootMsgFolder, NS_ERROR_UNEXPECTED);
 
   nsCOMPtr <nsIMsgFolder> msgFolder;
-  rv = rootMsgFolder->GetChildWithURI(nsPromiseFlatCString(aURI).get(), PR_TRUE, PR_TRUE /*caseInsensitive*/, getter_AddRefs(msgFolder));
+  rv = rootMsgFolder->GetChildWithURI(aURI, PR_TRUE, PR_TRUE /*caseInsensitive*/, getter_AddRefs(msgFolder));
   if (NS_FAILED(rv) || !msgFolder)
     msgFolder = aFolderResource;
   NS_IF_ADDREF(*aFolder = msgFolder);

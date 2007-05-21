@@ -76,7 +76,7 @@ public:
   virtual nsresult GetFolderFromMsgURI(const char *aMsgURI, nsIMsgFolder **aFolder);
 
 protected:
-  nsresult FetchLocation(PRInt32 aRow, PRUnichar ** aLocationString);
+  nsresult FetchLocation(PRInt32 aRow, nsAString& aLocationString);
   virtual nsresult AddHdrFromFolder(nsIMsgDBHdr *msgHdr, nsISupports *folder);
   virtual nsresult GetDBForViewIndex(nsMsgViewIndex index, nsIMsgDatabase **db);
   virtual nsresult RemoveByIndex(nsMsgViewIndex index);

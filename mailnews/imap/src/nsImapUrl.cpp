@@ -1294,7 +1294,7 @@ NS_IMETHODIMP nsImapUrl::GetUri(char** aURI)
     fullFolderPath.Append(canonicalPath);
 
     nsCString baseMessageURI;
-    nsCreateImapBaseMessageURI(fullFolderPath.get(), baseMessageURI);
+    nsCreateImapBaseMessageURI(fullFolderPath, baseMessageURI);
     nsCAutoString uriStr;
     rv = nsBuildImapMessageURI(baseMessageURI.get(), key, uriStr);
     *aURI = ToNewCString(uriStr);
@@ -1543,8 +1543,9 @@ NS_IMETHODIMP nsImapUrl::GetFolderCharset(char ** aCharacterSet)
   nsCOMPtr<nsIMsgFolder> folder;
   nsresult rv = GetMsgFolder(getter_AddRefs(folder));
   NS_ENSURE_SUCCESS(rv,rv);
-  NS_ENSURE_TRUE(folder, NS_ERROR_FAILURE);
-  folder->GetCharset(aCharacterSet);
+  nsCString tmpStr;
+  folder->GetCharset(tmpStr);
+  *aCharacterSet = ToNewCString(tmpStr);
   return NS_OK;
 }
 

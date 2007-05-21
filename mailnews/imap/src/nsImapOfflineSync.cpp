@@ -348,8 +348,8 @@ void nsImapOfflineSync::ProcessKeywordOperation(nsIMsgOfflineImapOperation *op)
       if (imapFolder)
       {
         rv = imapFolder->StoreCustomKeywords(m_window, 
-                    (mCurrentPlaybackOpType == nsIMsgOfflineImapOperation::kAddKeywords) ? keywords.get() : nsnull, 
-                    (mCurrentPlaybackOpType == nsIMsgOfflineImapOperation::kRemoveKeywords) ? keywords.get() : nsnull, 
+                    (mCurrentPlaybackOpType == nsIMsgOfflineImapOperation::kAddKeywords) ? keywords : EmptyCString(), 
+                    (mCurrentPlaybackOpType == nsIMsgOfflineImapOperation::kRemoveKeywords) ? keywords : EmptyCString(), 
                     matchingKeywordKeys.GetArray(), 
                     matchingKeywordKeys.GetSize(), getter_AddRefs(uriToStoreCustomKeywords));
         if (NS_SUCCEEDED(rv) && uriToStoreCustomKeywords)
@@ -703,10 +703,10 @@ PRBool nsImapOfflineSync::CreateOfflineFolder(nsIMsgFolder *folder)
   nsCOMPtr <nsIMsgImapMailFolder> imapFolder = do_QueryInterface(parent);
   nsCOMPtr <nsIURI> createFolderURI;
   nsCString onlineName;
-  imapFolder->GetOnlineName(getter_Copies(onlineName));
+  imapFolder->GetOnlineName(onlineName);
 
   NS_ConvertASCIItoUTF16 folderName(onlineName);
-  nsresult rv = imapFolder->PlaybackOfflineFolderCreate(folderName.get(), nsnull,  getter_AddRefs(createFolderURI));
+  nsresult rv = imapFolder->PlaybackOfflineFolderCreate(folderName, nsnull,  getter_AddRefs(createFolderURI));
   if (createFolderURI && NS_SUCCEEDED(rv))
   {
     nsCOMPtr <nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(createFolderURI);

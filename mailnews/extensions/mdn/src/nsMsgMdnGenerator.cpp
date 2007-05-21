@@ -964,7 +964,7 @@ nsresult nsMsgMdnGenerator::InitAndProcess()
         }
     }
 
-    rv = m_folder->GetCharset(getter_Copies(m_charset));
+    rv = m_folder->GetCharset(m_charset);
 
     if (m_mdnEnabled)
     {

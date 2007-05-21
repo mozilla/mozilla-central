@@ -73,7 +73,7 @@ protected:
                             nsILocalFile *aPath, nsIMsgWindow *aMsgWindow);
   nsresult GetMessage(nsIMsgDBHdr **message);
   nsresult BuildMessageURI(const char *baseURI, PRUint32 key, nsCString& uri);  
-  nsresult ShowStatusMsg(const PRUnichar *aMsg);
+  nsresult ShowStatusMsg(const nsString& aMsg);
   nsresult ReleaseFolderLock();
   void     ShowCompactingStatusMsg();
   void     ShowDoneStatus();

@@ -167,20 +167,17 @@ nsImapService::GetFolderName(nsIMsgFolder* aImapFolder,
   if (NS_FAILED(rv)) return rv;
   nsCString onlineName;
   // online name is in imap utf-7 - leave it that way
-  rv = aFolder->GetOnlineName(getter_Copies(onlineName));
-  
+  rv = aFolder->GetOnlineName(onlineName);
   if (NS_FAILED(rv)) return rv;
   if (onlineName.IsEmpty())
   {
-    char *uri = nsnull;
-    rv = aImapFolder->GetURI(&uri);
+    nsCString uri;
+    rv = aImapFolder->GetURI(uri);
     if (NS_FAILED(rv)) return rv;
-    char * hostname = nsnull;
-    rv = aImapFolder->GetHostname(&hostname);
+    nsCString hostname;
+    rv = aImapFolder->GetHostname(hostname);
     if (NS_FAILED(rv)) return rv;
-    rv = nsImapURI2FullName(kImapRootURI, hostname, uri, getter_Copies(onlineName));
-    PR_Free(uri);
-    PR_Free(hostname);
+    rv = nsImapURI2FullName(kImapRootURI, hostname.get(), uri.get(), getter_Copies(onlineName));
   }
   // if the hierarchy delimiter is not '/', then we want to escape slashes;
   // otherwise, we do want to escape slashes.
@@ -777,7 +774,7 @@ nsImapService::CopyMessages(nsMsgKeyArray *keys, nsIMsgFolder *srcFolder, nsIStr
       // GetMessage in nsCopyMessageStreamListener will get an unescaped username
       // and be able to find the msg hdr. See bug 259656 for details
       nsCString uri;
-      srcFolder->GenerateMessageURI(keys->GetAt(0), getter_Copies(uri));
+      srcFolder->GenerateMessageURI(keys->GetAt(0), uri);
 
       nsCString messageIds;
       PRUint32 numKeys = keys->GetSize();
@@ -1154,19 +1151,16 @@ nsImapService::CreateStartOfImapUrl(const char * aImapURI, nsIImapUrl ** imapUrl
                                     PRUnichar &hierarchyDelimiter)
 {
   nsresult rv = NS_OK;
-  char *hostname = nsnull;
-  nsCAutoString username;
-  nsCAutoString escapedUsername;
+  nsCString hostname;
+  nsCString username;
+  nsCString escapedUsername;
   
-  rv = aImapMailFolder->GetHostname(&hostname);
+  rv = aImapMailFolder->GetHostname(hostname);
   if (NS_FAILED(rv)) return rv;
-  rv = aImapMailFolder->GetUsername(getter_Copies(username));
+  rv = aImapMailFolder->GetUsername(username);
   if (NS_FAILED(rv))
-  {
-    PR_Free(hostname);
     return rv;
-  }
-  
+
   if (!username.IsEmpty())
     *((char **)getter_Copies(escapedUsername)) = nsEscape(username.get(), url_XAlphas);
   
@@ -1208,8 +1202,6 @@ nsImapService::CreateStartOfImapUrl(const char * aImapURI, nsIImapUrl ** imapUrl
     if (imapFolder)
       imapFolder->GetHierarchyDelimiter(&hierarchyDelimiter);
   }
-  
-  PR_Free(hostname);
   return rv;
 }
 
@@ -1922,8 +1914,7 @@ nsresult nsImapService::OfflineAppendFromFile(nsIFile* aFile,
     if (NS_SUCCEEDED(rv) && op)
     {
       nsCString destFolderUri;
-
-      aDstFolder->GetURI(getter_Copies(destFolderUri));
+      aDstFolder->GetURI(destFolderUri);
       op->SetOperation(nsIMsgOfflineImapOperation::kAppendDraft); // ### do we care if it's a template?
       op->SetDestinationFolderURI(destFolderUri.get());
       nsCOMPtr <nsIOutputStream> offlineStore;
@@ -2516,7 +2507,7 @@ NS_IMETHODIMP nsImapService::NewURI(const nsACString &aSpec,
       nsCOMPtr <nsIMsgImapMailFolder> subFolder;
       if (imapRoot)
       {
-        imapRoot->FindOnlineSubFolder(folderName.get(), getter_AddRefs(subFolder));
+        imapRoot->FindOnlineSubFolder(folderName, getter_AddRefs(subFolder));
         folder = do_QueryInterface(subFolder, &rv);
       }
       if (NS_SUCCEEDED(rv))
@@ -2606,7 +2597,7 @@ NS_IMETHODIMP nsImapService::NewChannel(nsIURI *aURI, nsIChannel **_retval)
       nsCOMPtr <nsIMsgImapMailFolder> subFolder;
       if (imapRoot)
       {
-        imapRoot->FindOnlineSubFolder(folderName.get(), getter_AddRefs(subFolder));
+        imapRoot->FindOnlineSubFolder(folderName, getter_AddRefs(subFolder));
         aFolder = do_QueryInterface(subFolder);
       }
       nsCOMPtr <nsIMsgFolder> parent;
@@ -2627,7 +2618,7 @@ NS_IMETHODIMP nsImapService::NewChannel(nsIURI *aURI, nsIChannel **_retval)
                                                                                          kOtherUsersNamespace,
                                                                                          nsnull);
         // if this is another user's folder, let's see if we're already subscribed to it.
-        rv = imapRoot->FindOnlineSubFolder(fullFolderName.get(), getter_AddRefs(subFolder));
+        rv = imapRoot->FindOnlineSubFolder(fullFolderName, getter_AddRefs(subFolder));
         aFolder = do_QueryInterface(subFolder);
         if (aFolder)
           aFolder->GetParent(getter_AddRefs(parent));
@@ -2719,7 +2710,7 @@ NS_IMETHODIMP nsImapService::NewChannel(nsIURI *aURI, nsIChannel **_retval)
           if (NS_SUCCEEDED(rv) && msgWindow)
           {
             nsCString uri;
-            rootFolder->GetURI(getter_Copies(uri));
+            rootFolder->GetURI(uri);
             uri.Append('/');
             uri.Append(fullFolderName);
             nsCOMPtr<nsIMsgWindowCommands> windowCommands;

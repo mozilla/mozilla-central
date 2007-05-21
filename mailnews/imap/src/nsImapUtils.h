@@ -62,7 +62,7 @@ extern nsresult
 nsBuildImapMessageURI(const char *baseURI, PRUint32 key, nsCString& uri);
 
 extern nsresult
-nsCreateImapBaseMessageURI(const char *baseURI, nsCString &baseMessageURI);
+nsCreateImapBaseMessageURI(const nsACString& baseURI, nsCString& baseMessageURI);
 
 void AllocateImapUidString(PRUint32 *msgUids, PRUint32 &msgCount, nsImapFlagAndUidState *flagState, nsCString &returnString);
 void ParseUidString(const char *uidString, nsMsgKeyArray &keys);

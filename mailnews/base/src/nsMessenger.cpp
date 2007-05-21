@@ -545,7 +545,7 @@ void nsMessenger::AddMsgUrlToNavigateHistory(const char *aURL)
   if (!mNavigatingToUri.Equals(aURL) && (mCurHistoryPos < 0 || !mLoadedMsgHistory[mCurHistoryPos]->Equals(aURL)))
   {
     mNavigatingToUri = aURL;
-    nsXPIDLCString curLoadedFolderUri;
+    nsCString curLoadedFolderUri;
     nsCOMPtr <nsIMsgFolder> curLoadedFolder;
     
     mMsgWindow->GetOpenFolder(getter_AddRefs(curLoadedFolder));
@@ -553,7 +553,7 @@ void nsMessenger::AddMsgUrlToNavigateHistory(const char *aURL)
     // which isn't the same as the folder specified in the msg uri.
     // So add the uri for the currently loaded folder to the history list.
     if (curLoadedFolder)
-      curLoadedFolder->GetURI(getter_Copies(curLoadedFolderUri));
+      curLoadedFolder->GetURI(curLoadedFolderUri);
     
     mLoadedMsgHistory.InsertCStringAt(mNavigatingToUri, mCurHistoryPos++ + 2);
     mLoadedMsgHistory.InsertCStringAt(curLoadedFolderUri, mCurHistoryPos++ + 2);
@@ -2348,13 +2348,13 @@ NS_IMETHODIMP nsMessenger::OnItemRemoved(nsIRDFResource *parentItem, nsISupports
     msgHdr->GetFolder(getter_AddRefs(folder));
     if (folder)
     {
-      nsXPIDLCString msgUri;
+      nsCString msgUri;
       nsMsgKey msgKey;
       msgHdr->GetMessageKey(&msgKey);
-      folder->GenerateMessageURI(msgKey, getter_Copies(msgUri));
+      folder->GenerateMessageURI(msgKey, msgUri);
       // need to remove the correspnding folder entry, and
       // adjust the current history pos.
-      PRInt32 uriPos = mLoadedMsgHistory.IndexOf(nsDependentCString(msgUri));
+      PRInt32 uriPos = mLoadedMsgHistory.IndexOf(msgUri);
       if (uriPos != kNotFound)
       {
         mLoadedMsgHistory.RemoveCStringAt(uriPos);
@@ -2797,19 +2797,19 @@ nsresult nsDelAttachListener::DeleteOriginalMessage()
 
 void nsDelAttachListener::SelectNewMessage()
 {
-  nsXPIDLCString displayUri;
+  nsCString displayUri;
   // all attachments refer to the same message
   const char * messageUri = mAttach->mAttachmentArray[0].mMessageUri;
   mMessenger->GetLastDisplayedMessageUri(getter_Copies(displayUri));
   if (displayUri.Equals(messageUri))
   {
-    mMessageFolder->GenerateMessageURI(mNewMessageKey, getter_Copies(displayUri));
-    if (displayUri && mMsgWindow)
+    mMessageFolder->GenerateMessageURI(mNewMessageKey, displayUri);
+    if (!displayUri.IsEmpty() && mMsgWindow)
     {
       nsCOMPtr<nsIMsgWindowCommands> windowCommands;
       mMsgWindow->GetWindowCommands(getter_AddRefs(windowCommands));
       if (windowCommands)
-        windowCommands->SelectMessage(displayUri);
+        windowCommands->SelectMessage(displayUri.get());
     }
   }
   mNewMessageKey = PR_UINT32_MAX;

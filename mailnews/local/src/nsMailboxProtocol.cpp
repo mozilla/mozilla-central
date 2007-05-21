@@ -289,7 +289,7 @@ NS_IMETHODIMP nsMailboxProtocol::OnStopRequest(nsIRequest *request, nsISupports 
         {
           if (!mSuppressListenerNotifications && m_channelListener)
           {
-       	    nsCOMPtr<nsICopyMessageStreamListener> listener = do_QueryInterface(m_channelListener, &rv);
+            nsCOMPtr<nsICopyMessageStreamListener> listener = do_QueryInterface(m_channelListener, &rv);
             if (listener)
             {
               listener->EndCopy(ctxt, aStatus);
@@ -307,13 +307,13 @@ NS_IMETHODIMP nsMailboxProtocol::OnStopRequest(nsIRequest *request, nsISupports 
             nextMsg->GetFolder(getter_AddRefs(msgFolder));
             if (msgFolder)
             {
-              nsXPIDLCString uri;
-              msgFolder->GetUriForMsg(nextMsg, getter_Copies(uri));
+              nsCString uri;
+              msgFolder->GetUriForMsg(nextMsg, uri);
               nsCOMPtr<nsIMsgMessageUrl> msgUrl = do_QueryInterface(m_runningUrl);
               if (msgUrl)
               {
-                msgUrl->SetOriginalSpec(uri);
-                msgUrl->SetUri(uri);
+                msgUrl->SetOriginalSpec(uri.get());
+                msgUrl->SetUri(uri.get());
                 
                 nextMsg->GetMessageKey(&msgKey);
                 nextMsg->GetMessageSize(&msgSize);

@@ -941,26 +941,26 @@ NS_IMETHODIMP nsMsgTemplateReplyHelper::OnStopRunningUrl(nsIURI *aUrl, nsresult 
   compFields->SetSubject(templateSubject);
   body.AssignWithConversion(mTemplateBody);
   compFields->SetBody(body);
-  nsXPIDLCString msgUri;
 
+  nsCString msgUri;
   nsCOMPtr <nsIMsgFolder> folder;
   mHdrToReplyTo->GetFolder(getter_AddRefs(folder));
-  folder->GetUriForMsg(mHdrToReplyTo, getter_Copies(msgUri));
+  folder->GetUriForMsg(mHdrToReplyTo, msgUri);
   // populate the compose params
    // we use type new instead of reply - we might need to add a reply with template type.
   pMsgComposeParams->SetType(nsIMsgCompType::New);
   pMsgComposeParams->SetFormat(nsIMsgCompFormat::Default);
   pMsgComposeParams->SetIdentity(identity);
   pMsgComposeParams->SetComposeFields(compFields); 
-  pMsgComposeParams->SetOriginalMsgURI(msgUri);
+  pMsgComposeParams->SetOriginalMsgURI(msgUri.get());
   // create the nsIMsgCompose object to send the object
   nsCOMPtr<nsIMsgCompose> pMsgCompose (do_CreateInstance(NS_MSGCOMPOSE_CONTRACTID, &rv));
-  if (NS_FAILED(rv) || (!pMsgCompose) ) return rv ;
+  NS_ENSURE_SUCCESS(rv, rv);
 
   /** initialize nsIMsgCompose, Send the message, wait for send completion response **/
 
   rv = pMsgCompose->Initialize(parentWindow, pMsgComposeParams) ;
-  if (NS_FAILED(rv)) return rv ;
+  NS_ENSURE_SUCCESS(rv,rv);
 
   Release();
 
@@ -1062,125 +1062,122 @@ NS_IMETHODIMP nsMsgComposeService::ReplyWithTemplate(nsIMsgDBHdr *aMsgHdr, const
   // For imap, we could make adding a reply-to filter append
   // reply-to to the custom headers...
 
-    nsMsgTemplateReplyHelper *helper = new nsMsgTemplateReplyHelper;
-    if (!helper)
-      return NS_ERROR_OUT_OF_MEMORY;
+  nsMsgTemplateReplyHelper *helper = new nsMsgTemplateReplyHelper;
+  if (!helper)
+    return NS_ERROR_OUT_OF_MEMORY;
 
-    NS_ADDREF(helper);
+  NS_ADDREF(helper);
 
-    helper->mHdrToReplyTo = aMsgHdr;
-    helper->mMsgWindow = aMsgWindow;
-    helper->mServer = aServer;
+  helper->mHdrToReplyTo = aMsgHdr;
+  helper->mMsgWindow = aMsgWindow;
+  helper->mServer = aServer;
 
-    nsCOMPtr <nsIMsgFolder> templateFolder;
-    nsCOMPtr <nsIMsgDatabase> templateDB;
-    nsXPIDLCString templateMsgHdrUri;
-    const char * query = PL_strstr(templateUri, "?messageId=");
-    if (!query)
-      return NS_ERROR_FAILURE;
+  nsCOMPtr <nsIMsgFolder> templateFolder;
+  nsCOMPtr <nsIMsgDatabase> templateDB;
+  nsCString templateMsgHdrUri;
+  const char * query = PL_strstr(templateUri, "?messageId=");
+  if (!query)
+    return NS_ERROR_FAILURE;
 
-    nsCAutoString folderUri(Substring(templateUri, query)); 
-    nsresult rv = GetExistingFolder(folderUri.get(), getter_AddRefs(templateFolder));
-    NS_ENSURE_SUCCESS(rv, rv);
-    rv = templateFolder->GetMsgDatabase(aMsgWindow, getter_AddRefs(templateDB));
-    NS_ENSURE_SUCCESS(rv, rv);
+  nsCAutoString folderUri(Substring(templateUri, query)); 
+  nsresult rv = GetExistingFolder(folderUri.get(), getter_AddRefs(templateFolder));
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = templateFolder->GetMsgDatabase(aMsgWindow, getter_AddRefs(templateDB));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    const char *subject = PL_strstr(templateUri, "&subject=");
-    if (subject)
-    {
-      const char *subjectEnd = subject + strlen(subject);
-      nsCAutoString messageId(Substring(query + 11, subject));
-      nsCAutoString subjectString(Substring(subject + 9, subjectEnd));
-      templateDB->GetMsgHdrForMessageID(messageId.get(), getter_AddRefs(helper->mTemplateHdr));
-      if (helper->mTemplateHdr)
-        templateFolder->GetUriForMsg(helper->mTemplateHdr, getter_Copies(templateMsgHdrUri));
-      // to use the subject, we'd need to expose a method to find a message by subject,
-      // or painfully iterate through messages...We'll try to make the message-id
-      // not change when saving a template first.
-    }
-    if (templateMsgHdrUri.IsEmpty())
-    {
-      // ### probably want to return a specific error and 
-      // have the calling code disable the filter.
-      NS_ASSERTION(PR_FALSE, "failed to get msg hdr");
-      return NS_ERROR_FAILURE;
-    }
-    // we need to convert the template uri, which is of the form
-    // <folder uri>?messageId=<messageId>&subject=<subject>
-    nsCOMPtr <nsIMsgMessageService> msgService;
-    rv = GetMessageServiceFromURI(templateMsgHdrUri, getter_AddRefs(msgService));
-    NS_ENSURE_SUCCESS(rv, rv);
+  const char *subject = PL_strstr(templateUri, "&subject=");
+  if (subject)
+  {
+    const char *subjectEnd = subject + strlen(subject);
+    nsCAutoString messageId(Substring(query + 11, subject));
+    nsCAutoString subjectString(Substring(subject + 9, subjectEnd));
+    templateDB->GetMsgHdrForMessageID(messageId.get(), getter_AddRefs(helper->mTemplateHdr));
+    if (helper->mTemplateHdr)
+      templateFolder->GetUriForMsg(helper->mTemplateHdr, templateMsgHdrUri);
+    // to use the subject, we'd need to expose a method to find a message by subject,
+    // or painfully iterate through messages...We'll try to make the message-id
+    // not change when saving a template first.
+  }
+  if (templateMsgHdrUri.IsEmpty())
+  {
+    // ### probably want to return a specific error and 
+    // have the calling code disable the filter.
+    NS_ASSERTION(PR_FALSE, "failed to get msg hdr");
+    return NS_ERROR_FAILURE;
+  }
+  // we need to convert the template uri, which is of the form
+  // <folder uri>?messageId=<messageId>&subject=<subject>
+  nsCOMPtr <nsIMsgMessageService> msgService;
+  rv = GetMessageServiceFromURI(templateMsgHdrUri.get(), getter_AddRefs(msgService));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCOMPtr<nsISupports> listenerSupports;
-    helper->QueryInterface(NS_GET_IID(nsISupports), getter_AddRefs(listenerSupports));
+  nsCOMPtr<nsISupports> listenerSupports;
+  helper->QueryInterface(NS_GET_IID(nsISupports), getter_AddRefs(listenerSupports));
 
-    return msgService->StreamMessage(templateMsgHdrUri, listenerSupports, aMsgWindow,
-						helper, PR_FALSE /* convert data */, 
-                                                "", nsnull);
+  return msgService->StreamMessage(templateMsgHdrUri.get(), listenerSupports, aMsgWindow,
+          helper, PR_FALSE /* convert data */,"", nsnull);
 }
 
 
 NS_IMETHODIMP nsMsgComposeService::ForwardMessage(const nsAString &forwardTo, nsIMsgDBHdr *aMsgHdr, 
                                              nsIMsgWindow *aMsgWindow, nsIMsgIncomingServer *aServer)
 {
-
-    nsresult rv;
-    nsCOMPtr<nsIDOMWindowInternal> parentWindow;
-    if (aMsgWindow)
-    {
-      nsCOMPtr<nsIDocShell> docShell;
-      rv = aMsgWindow->GetRootDocShell(getter_AddRefs(docShell));
-      NS_ENSURE_SUCCESS(rv, rv);
-      parentWindow = do_GetInterface(docShell);
-      NS_ENSURE_TRUE(parentWindow, NS_ERROR_FAILURE);
-    }
-    if ( NS_FAILED(rv) ) return rv ;
-    // get the MsgIdentity for the above key using AccountManager
-    nsCOMPtr <nsIMsgAccountManager> accountManager = do_GetService (NS_MSGACCOUNTMANAGER_CONTRACTID) ;
-    if (NS_FAILED(rv) || (!accountManager) ) return rv ;
-
-    nsCOMPtr <nsIMsgAccount> account;
-    nsCOMPtr <nsIMsgIdentity> identity;
-
-    rv = accountManager->FindAccountForServer(aServer, getter_AddRefs(account));
+  nsresult rv;
+  nsCOMPtr<nsIDOMWindowInternal> parentWindow;
+  if (aMsgWindow)
+  {
+    nsCOMPtr<nsIDocShell> docShell;
+    rv = aMsgWindow->GetRootDocShell(getter_AddRefs(docShell));
     NS_ENSURE_SUCCESS(rv, rv);
-    account->GetDefaultIdentity(getter_AddRefs(identity));
-    NS_ENSURE_SUCCESS(rv, rv);
+    parentWindow = do_GetInterface(docShell);
+    NS_ENSURE_TRUE(parentWindow, NS_ERROR_FAILURE);
+  }
+  if ( NS_FAILED(rv) ) return rv ;
+  // get the MsgIdentity for the above key using AccountManager
+  nsCOMPtr <nsIMsgAccountManager> accountManager = do_GetService (NS_MSGACCOUNTMANAGER_CONTRACTID) ;
+  if (NS_FAILED(rv) || (!accountManager) ) return rv ;
 
-    // create the compose params object 
-    nsCOMPtr<nsIMsgComposeParams> pMsgComposeParams (do_CreateInstance(NS_MSGCOMPOSEPARAMS_CONTRACTID, &rv));
-    if (NS_FAILED(rv) || (!pMsgComposeParams) ) return rv ;
-    nsCOMPtr<nsIMsgCompFields> compFields = do_CreateInstance(NS_MSGCOMPFIELDS_CONTRACTID, &rv) ;
+  nsCOMPtr <nsIMsgAccount> account;
+  nsCOMPtr <nsIMsgIdentity> identity;
 
-    compFields->SetTo(forwardTo);
-    nsXPIDLCString msgUri;
-    PRInt32 forwardType = 0; 
+  rv = accountManager->FindAccountForServer(aServer, getter_AddRefs(account));
+  NS_ENSURE_SUCCESS(rv, rv);
+  account->GetDefaultIdentity(getter_AddRefs(identity));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
-    if (prefBranch)
-      prefBranch->GetIntPref("mail.forward_message_mode", &forwardType);
+  // create the compose params object 
+  nsCOMPtr<nsIMsgComposeParams> pMsgComposeParams (do_CreateInstance(NS_MSGCOMPOSEPARAMS_CONTRACTID, &rv));
+  if (NS_FAILED(rv) || (!pMsgComposeParams) ) return rv ;
+  nsCOMPtr<nsIMsgCompFields> compFields = do_CreateInstance(NS_MSGCOMPFIELDS_CONTRACTID, &rv) ;
 
-    nsCOMPtr <nsIMsgFolder> folder;
-    aMsgHdr->GetFolder(getter_AddRefs(folder));
-    folder->GetUriForMsg(aMsgHdr, getter_Copies(msgUri));
-    // populate the compose params
-    // right now, forward inline won't work, since that requires opening a compose window,
-    // and would require major whackage of the compose code.
-    pMsgComposeParams->SetType(/* forwardType ? nsIMsgCompType::ForwardInline : */nsIMsgCompType::ForwardAsAttachment);
-    pMsgComposeParams->SetFormat(nsIMsgCompFormat::Default);
-    pMsgComposeParams->SetIdentity(identity);
-    pMsgComposeParams->SetComposeFields(compFields); 
-    pMsgComposeParams->SetOriginalMsgURI(msgUri);
-    // create the nsIMsgCompose object to send the object
-    nsCOMPtr<nsIMsgCompose> pMsgCompose (do_CreateInstance(NS_MSGCOMPOSE_CONTRACTID, &rv));
-    if (NS_FAILED(rv) || (!pMsgCompose) ) return rv ;
+  compFields->SetTo(forwardTo);
+  nsCString msgUri;
+  PRInt32 forwardType = 0; 
 
-    /** initialize nsIMsgCompose, Send the message, wait for send completion response **/
+  nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
+  if (prefBranch)
+    prefBranch->GetIntPref("mail.forward_message_mode", &forwardType);
 
-    rv = pMsgCompose->Initialize(parentWindow, pMsgComposeParams) ;
-    if (NS_FAILED(rv)) return rv ;
+  nsCOMPtr <nsIMsgFolder> folder;
+  aMsgHdr->GetFolder(getter_AddRefs(folder));
+  folder->GetUriForMsg(aMsgHdr, msgUri);
+  // populate the compose params
+  // right now, forward inline won't work, since that requires opening a compose window,
+  // and would require major whackage of the compose code.
+  pMsgComposeParams->SetType(/* forwardType ? nsIMsgCompType::ForwardInline : */nsIMsgCompType::ForwardAsAttachment);
+  pMsgComposeParams->SetFormat(nsIMsgCompFormat::Default);
+  pMsgComposeParams->SetIdentity(identity);
+  pMsgComposeParams->SetComposeFields(compFields); 
+  pMsgComposeParams->SetOriginalMsgURI(msgUri.get());
+  // create the nsIMsgCompose object to send the object
+  nsCOMPtr<nsIMsgCompose> pMsgCompose (do_CreateInstance(NS_MSGCOMPOSE_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv,rv);
 
-    return pMsgCompose->SendMsg(nsIMsgSend::nsMsgDeliverNow, identity, nsnull, nsnull, nsnull) ;
+  /** initialize nsIMsgCompose, Send the message, wait for send completion response **/
+  rv = pMsgCompose->Initialize(parentWindow, pMsgComposeParams) ;
+  NS_ENSURE_SUCCESS(rv,rv);
+
+  return pMsgCompose->SendMsg(nsIMsgSend::nsMsgDeliverNow, identity, nsnull, nsnull, nsnull) ;
 }
 
 
