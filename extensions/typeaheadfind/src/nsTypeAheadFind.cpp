@@ -101,6 +101,7 @@
 #include "nsIDOMEventTarget.h"
 #include "nsIDOM3EventTarget.h"
 #include "nsIDOMEventGroup.h"
+#include "nsPresShellIterator.h"
 
 // Header for this class
 #include "nsTypeAheadFind.h"
@@ -554,11 +555,11 @@ nsTypeAheadFind::HandleEvent(nsIDOMEvent* aEvent)
       return NS_ERROR_FAILURE;
     }
 
-    PRUint32 numShells = doc->GetNumberOfShells();
     PRBool cancelFind = PR_FALSE;
 
-    for (PRUint32 count = 0; count < numShells; count ++) {
-      nsIPresShell *shellToBeDestroyed = doc->GetShellAt(count);
+    nsPresShellIterator iter(doc);
+    nsCOMPtr<nsIPresShell> shellToBeDestroyed;
+    while ((shellToBeDestroyed = iter.GetNextShell())) {
       if (shellToBeDestroyed == focusedShell) {
         cancelFind = PR_TRUE;
         break;
