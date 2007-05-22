@@ -50,11 +50,11 @@ NS_IMPL_THREADSAFE_ADDREF(nsMsgProgress)
 NS_IMPL_THREADSAFE_RELEASE(nsMsgProgress)
 
 NS_INTERFACE_MAP_BEGIN(nsMsgProgress)
-   NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIMsgStatusFeedback)
-   NS_INTERFACE_MAP_ENTRY(nsIMsgProgress)
-   NS_INTERFACE_MAP_ENTRY(nsIMsgStatusFeedback)
-   NS_INTERFACE_MAP_ENTRY(nsIWebProgressListener)
-   NS_INTERFACE_MAP_ENTRY(nsIProgressEventSink)
+  NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIMsgStatusFeedback)
+  NS_INTERFACE_MAP_ENTRY(nsIMsgProgress)
+  NS_INTERFACE_MAP_ENTRY(nsIMsgStatusFeedback)
+  NS_INTERFACE_MAP_ENTRY(nsIWebProgressListener)
+  NS_INTERFACE_MAP_ENTRY(nsIProgressEventSink)
 NS_INTERFACE_MAP_END_THREADSAFE
 
 
@@ -72,13 +72,13 @@ nsMsgProgress::~nsMsgProgress()
 }
 
 /* void openProgressDialog (in nsIDOMWindowInternal parent, in nsIMsgWindow aMsgWindow,
-  in string dialogURL, in nsISupports parameters); 
+   in string dialogURL, in nsISupports parameters); 
 */
 NS_IMETHODIMP nsMsgProgress::OpenProgressDialog(nsIDOMWindowInternal *parent, nsIMsgWindow *aMsgWindow,
                                                 const char *dialogURL,
                                                 nsISupports *parameters)
 {
-  nsresult rv = NS_ERROR_FAILURE;
+  nsresult rv;
 
   if (aMsgWindow)
   {
@@ -86,37 +86,31 @@ NS_IMETHODIMP nsMsgProgress::OpenProgressDialog(nsIDOMWindowInternal *parent, ns
     aMsgWindow->SetStatusFeedback(this);
   }
 
-  if (m_dialog)
-    return NS_ERROR_ALREADY_INITIALIZED;
-  
-  if (!dialogURL || !*dialogURL)
-    return NS_ERROR_INVALID_ARG;
+  NS_ENSURE_TRUE(!m_dialog, NS_ERROR_ALREADY_INITIALIZED);
+  NS_ENSURE_ARG_POINTER(dialogURL);
+  NS_ENSURE_ARG_POINTER(parent);
 
-  if (parent)
-  {
-    // Set up window.arguments[0]...
-    nsCOMPtr<nsISupportsArray> array;
-    rv = NS_NewISupportsArray(getter_AddRefs(array));
-    NS_ENSURE_SUCCESS(rv, rv);
+  // Set up window.arguments[0]...
+  nsCOMPtr<nsISupportsArray> array;
+  rv = NS_NewISupportsArray(getter_AddRefs(array));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCOMPtr<nsISupportsInterfacePointer> ifptr =
-      do_CreateInstance(NS_SUPPORTS_INTERFACE_POINTER_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsISupportsInterfacePointer> ifptr =
+    do_CreateInstance(NS_SUPPORTS_INTERFACE_POINTER_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
     
-    ifptr->SetData(NS_STATIC_CAST(nsIMsgProgress*, this));
-    ifptr->SetDataIID(&NS_GET_IID(nsIMsgProgress));
+  ifptr->SetData(NS_STATIC_CAST(nsIMsgProgress*, this));
+  ifptr->SetDataIID(&NS_GET_IID(nsIMsgProgress));
 
-    array->AppendElement(ifptr);
+  array->AppendElement(ifptr);
+  array->AppendElement(parameters);
 
-    array->AppendElement(parameters);
-
-    // Open the dialog.
-    nsCOMPtr<nsIDOMWindow> newWindow;
-    rv = parent->OpenDialog(NS_ConvertASCIItoUTF16(dialogURL),
-                            NS_LITERAL_STRING("_blank"),
-                            NS_LITERAL_STRING("chrome,titlebar,dependent"),
-                            array, getter_AddRefs(newWindow));
-  }
+  // Open the dialog.
+  nsCOMPtr<nsIDOMWindow> newWindow;
+  rv = parent->OpenDialog(NS_ConvertASCIItoUTF16(dialogURL),
+                          NS_LITERAL_STRING("_blank"),
+                          NS_LITERAL_STRING("chrome,titlebar,dependent"),
+                          array, getter_AddRefs(newWindow));
 
   return rv;
 }
@@ -133,11 +127,7 @@ NS_IMETHODIMP nsMsgProgress::GetPrompter(nsIPrompt **_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
   *_retval = nsnull;
-
-  if (! m_closeProgress && m_dialog)
-    return m_dialog->GetPrompter(_retval);
-    
-  return NS_ERROR_FAILURE;
+  return (! m_closeProgress && m_dialog) ? m_dialog->GetPrompter(_retval) : NS_ERROR_FAILURE;
 }
 
 /* attribute boolean processCanceledByUser; */
@@ -157,30 +147,30 @@ NS_IMETHODIMP nsMsgProgress::SetProcessCanceledByUser(PRBool aProcessCanceledByU
 /* void RegisterListener (in nsIWebProgressListener listener); */
 NS_IMETHODIMP nsMsgProgress::RegisterListener(nsIWebProgressListener * listener)
 {
-  nsresult rv = NS_OK;
+  nsresult rv;
   
   if (!listener) //Nothing to do with a null listener!
     return NS_OK;
-
+  
   if (this == listener) //Check for self-reference (see bug 271700)
     return NS_ERROR_INVALID_ARG;
   
   if (!m_listenerList)
-    rv = NS_NewISupportsArray(getter_AddRefs(m_listenerList));
-  
-  if (NS_SUCCEEDED(rv) && m_listenerList)
   {
-    m_listenerList->AppendElement(listener);
-    if (m_closeProgress || m_processCanceled)
-      listener->OnStateChange(nsnull, nsnull, nsIWebProgressListener::STATE_STOP, 0);
-    else
-    {
-      listener->OnStatusChange(nsnull, nsnull, 0, m_pendingStatus.get());
-      if (m_pendingStateFlags != -1)
-        listener->OnStateChange(nsnull, nsnull, m_pendingStateFlags, m_pendingStateValue);
-    }
+    rv = NS_NewISupportsArray(getter_AddRefs(m_listenerList));
+    NS_ENSURE_SUCCESS(rv, rv);
   }
-    
+  
+  m_listenerList->AppendElement(listener);
+  if (m_closeProgress || m_processCanceled)
+    listener->OnStateChange(nsnull, nsnull, nsIWebProgressListener::STATE_STOP, 0);
+  else
+  {
+    listener->OnStatusChange(nsnull, nsnull, 0, m_pendingStatus.get());
+    if (m_pendingStateFlags != -1)
+      listener->OnStateChange(nsnull, nsnull, m_pendingStateFlags, m_pendingStateValue);
+  }
+
   return NS_OK;
 }
 
@@ -216,14 +206,11 @@ NS_IMETHODIMP nsMsgProgress::OnStateChange(nsIWebProgress *aWebProgress, nsIRequ
     rv = m_listenerList->Count(&count);
     NS_ASSERTION(NS_SUCCEEDED(rv), "m_listenerList->Count() failed");
   
-    nsCOMPtr<nsISupports> aSupports;
-    nsCOMPtr<nsIWebProgressListener> aProgressListener;
     for (i = count - 1; i >= 0; i --)
     {
-      m_listenerList->GetElementAt(i, getter_AddRefs(aSupports));
-      aProgressListener = do_QueryInterface(aSupports);
-      if (aProgressListener)
-        aProgressListener->OnStateChange(aWebProgress, aRequest, aStateFlags, aStatus);
+      nsCOMPtr<nsIWebProgressListener> progressListener(do_QueryElementAt(m_listenerList, i, &rv));
+      if (progressListener)
+        progressListener->OnStateChange(aWebProgress, aRequest, aStateFlags, aStatus);
     }
   }
   
@@ -243,14 +230,11 @@ NS_IMETHODIMP nsMsgProgress::OnProgressChange(nsIWebProgress *aWebProgress, nsIR
     rv = m_listenerList->Count(&count);
     NS_ASSERTION(NS_SUCCEEDED(rv), "m_listenerList->Count() failed");
   
-    nsCOMPtr<nsISupports> aSupports;
-    nsCOMPtr<nsIWebProgressListener> aProgressListener;
     for (i = count - 1; i >= 0; i --)
     {
-      m_listenerList->GetElementAt(i, getter_AddRefs(aSupports));
-      aProgressListener = do_QueryInterface(aSupports);
-      if (aProgressListener)
-        aProgressListener->OnProgressChange(aWebProgress, aRequest, aCurSelfProgress, aMaxSelfProgress, aCurTotalProgress, aMaxTotalProgress);
+      nsCOMPtr<nsIWebProgressListener> progressListener(do_QueryElementAt(m_listenerList, i, &rv));
+      if (progressListener)
+        progressListener->OnProgressChange(aWebProgress, aRequest, aCurSelfProgress, aMaxSelfProgress, aCurTotalProgress, aMaxTotalProgress);
     }
   }
   
@@ -260,7 +244,7 @@ NS_IMETHODIMP nsMsgProgress::OnProgressChange(nsIWebProgress *aWebProgress, nsIR
 /* void onLocationChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in nsIURI location); */
 NS_IMETHODIMP nsMsgProgress::OnLocationChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, nsIURI *location)
 {
-    return NS_OK;
+  return NS_OK;
 }
 
 /* void onStatusChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in nsresult aStatus, in wstring aMessage); */
@@ -269,7 +253,7 @@ NS_IMETHODIMP nsMsgProgress::OnStatusChange(nsIWebProgress *aWebProgress, nsIReq
   nsresult rv;
 
   if (aMessage && *aMessage)
-  m_pendingStatus = aMessage;
+    m_pendingStatus = aMessage;
   if (m_listenerList)
   {
     PRUint32 count = 0;
@@ -277,15 +261,12 @@ NS_IMETHODIMP nsMsgProgress::OnStatusChange(nsIWebProgress *aWebProgress, nsIReq
 
     rv = m_listenerList->Count(&count);
     NS_ASSERTION(NS_SUCCEEDED(rv), "m_listenerList->Count() failed");
-  
-    nsCOMPtr<nsISupports> aSupports;
-    nsCOMPtr<nsIWebProgressListener> aProgressListener;
+    nsCOMPtr<nsIWebProgressListener> progressListener;
     for (i = count - 1; i >= 0; i --)
     {
-      m_listenerList->GetElementAt(i, getter_AddRefs(aSupports));
-      aProgressListener = do_QueryInterface(aSupports);
-      if (aProgressListener)
-        aProgressListener->OnStatusChange(aWebProgress, aRequest, aStatus, aMessage);
+      progressListener = do_QueryElementAt(m_listenerList, i, &rv);
+      if (NS_SUCCEEDED(rv) && progressListener)
+        progressListener->OnStatusChange(aWebProgress, aRequest, aStatus, aMessage);
     }
   }
   
@@ -295,7 +276,7 @@ NS_IMETHODIMP nsMsgProgress::OnStatusChange(nsIWebProgress *aWebProgress, nsIReq
 /* void onSecurityChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in unsigned long state); */
 NS_IMETHODIMP nsMsgProgress::OnSecurityChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, PRUint32 state)
 {
-    return NS_OK;
+  return NS_OK;
 }
 
 nsresult nsMsgProgress::ReleaseListeners()
@@ -359,7 +340,7 @@ NS_IMETHODIMP nsMsgProgress::SetMsgWindow(nsIMsgWindow *aMsgWindow)
 NS_IMETHODIMP nsMsgProgress::GetMsgWindow(nsIMsgWindow **aMsgWindow)
 {
   NS_ENSURE_ARG_POINTER(aMsgWindow);
-  
+
   if (m_msgWindow) 
     CallQueryReferent(m_msgWindow.get(), aMsgWindow);
   else 
@@ -369,7 +350,7 @@ NS_IMETHODIMP nsMsgProgress::GetMsgWindow(nsIMsgWindow **aMsgWindow)
 }
 
 NS_IMETHODIMP nsMsgProgress::OnProgress(nsIRequest *request, nsISupports* ctxt, 
-                                          PRUint64 aProgress, PRUint64 aProgressMax)
+                                        PRUint64 aProgress, PRUint64 aProgressMax)
 {
   // XXX: What should the nsIWebProgress be?
   // XXX: This truncates 64-bit to 32-bit
@@ -378,14 +359,13 @@ NS_IMETHODIMP nsMsgProgress::OnProgress(nsIRequest *request, nsISupports* ctxt,
 }
 
 NS_IMETHODIMP nsMsgProgress::OnStatus(nsIRequest *request, nsISupports* ctxt, 
-                                            nsresult aStatus, const PRUnichar* aStatusArg)
+                                      nsresult aStatus, const PRUnichar* aStatusArg)
 {
   nsresult rv;
   nsCOMPtr<nsIStringBundleService> sbs = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-  if (NS_FAILED(rv)) return rv;
-  nsXPIDLString str;
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsString str;
   rv = sbs->FormatStatusMessage(aStatus, aStatusArg, getter_Copies(str));
-  if (NS_FAILED(rv)) return rv;
-  nsAutoString msg(NS_STATIC_CAST(const PRUnichar*, str));
-  return ShowStatusString(msg.get());
+  NS_ENSURE_SUCCESS(rv, rv);
+  return ShowStatusString(str.get());
 }
