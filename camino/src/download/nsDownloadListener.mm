@@ -204,7 +204,7 @@ nsDownloadListener::GetTargetFile(nsILocalFile ** aTargetFile)
 }
 
 NS_IMETHODIMP
-nsDownloadListener::GetId(PRUint64 *aId)
+nsDownloadListener::GetId(PRUint32 *aId)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
