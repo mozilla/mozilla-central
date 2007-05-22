@@ -2247,18 +2247,18 @@ PRInt32 nsNNTPProtocol::SendFirstNNTPCommandResponse()
       FinishMemCacheEntry(PR_FALSE);  // cleanup mem cache entry
 
     if (NS_SUCCEEDED(rv) && group_name && !savingArticleOffline) {
-      nsXPIDLString titleStr;
+      nsString titleStr;
       rv = GetNewsStringByName("htmlNewsErrorTitle", getter_Copies(titleStr));
       NS_ENSURE_SUCCESS(rv,rv);
 
-      nsXPIDLString newsErrorStr;
+      nsString newsErrorStr;
       rv = GetNewsStringByName("htmlNewsError", getter_Copies(newsErrorStr));
       NS_ENSURE_SUCCESS(rv,rv);
       nsAutoString errorHtml;
       errorHtml.Append(newsErrorStr);
 
       errorHtml.Append(NS_LITERAL_STRING("<b>").get());
-      errorHtml.AppendWithConversion(m_responseText);
+      AppendASCIItoUTF16(m_responseText, errorHtml);
       errorHtml.Append(NS_LITERAL_STRING("</b><p>").get());
 
       rv = GetNewsStringByName("articleExpired", getter_Copies(newsErrorStr));
@@ -2308,7 +2308,7 @@ PRInt32 nsNNTPProtocol::SendFirstNNTPCommandResponse()
       // call nsDocShell::Stop(STOP_NETWORK), which will eventually
       // call nsNNTPProtocol::Cancel(), which will close the socket.
       // we need to fix this, since the connection is still valid.
-      rv = m_msgWindow->DisplayHTMLInMessagePane((const PRUnichar *)titleStr, errorHtml.get(), PR_TRUE);
+      rv = m_msgWindow->DisplayHTMLInMessagePane(titleStr, errorHtml, PR_TRUE);
       NS_ENSURE_SUCCESS(rv,rv);
     }
     // let's take the opportunity of removing the hdr from the db so we don't try to download

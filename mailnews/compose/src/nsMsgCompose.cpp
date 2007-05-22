@@ -191,7 +191,7 @@ static void TranslateLineEnding(nsString& data)
   data.SetLength(wPtr - sPtr);
 }
 
-static void GetTopmostMsgWindowCharacterSet(nsXPIDLCString& charset, PRBool* charsetOverride)
+static void GetTopmostMsgWindowCharacterSet(nsCString& charset, PRBool* charsetOverride)
 {
   // HACK: if we are replying to a message and that message used a charset over ride
   // (as specified in the top most window (assuming the reply originated from that window)
@@ -203,7 +203,7 @@ static void GetTopmostMsgWindowCharacterSet(nsXPIDLCString& charset, PRBool* cha
     mailSession->GetTopmostMsgWindow(getter_AddRefs(msgWindow));
     if (msgWindow)
     {
-      msgWindow->GetMailCharacterSet(getter_Copies(charset));
+      msgWindow->GetMailCharacterSet(charset);
       msgWindow->GetCharsetOverride(charsetOverride);
     }
   }
@@ -1680,9 +1680,9 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
 
   nsCOMPtr<nsIMimeConverter> mimeConverter = do_GetService(NS_MIME_CONVERTER_CONTRACTID);
 
-  nsXPIDLCString charset;
+  nsCString charset;
   // use a charset of the original message
-  nsXPIDLCString mailCharset;
+  nsCString mailCharset;
   PRBool charsetOverride = PR_FALSE;
   GetTopmostMsgWindowCharacterSet(mailCharset, &mCharsetOverride);
   if (!mailCharset.IsEmpty())
@@ -1769,7 +1769,7 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
 
       // get an original charset, used for a label, UTF-8 is used for the internal processing
       if (isFirstPass && !charset.IsEmpty())
-        m_compFields->SetCharacterSet(charset);
+        m_compFields->SetCharacterSet(charset.get());
 
       nsXPIDLCString subjectCStr;
       (void) msgHdr->GetSubject(getter_Copies(subjectCStr));

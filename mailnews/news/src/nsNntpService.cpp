@@ -1722,7 +1722,7 @@ nsNntpService::HandleContent(const char * aContentType, nsIInterfaceRequestor* a
               nsCOMPtr <nsIMsgWindowCommands> windowCommands;
               msgWindow->GetWindowCommands(getter_AddRefs(windowCommands));
               if (windowCommands)
-                windowCommands->SelectFolder(uriStr.get());
+                windowCommands->SelectFolder(uriStr);
             }
           }
         }

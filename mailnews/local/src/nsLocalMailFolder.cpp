@@ -2983,7 +2983,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::SelectDownloadMsg()
     nsCOMPtr<nsIMsgWindowCommands> windowCommands;
     mDownloadWindow->GetWindowCommands(getter_AddRefs(windowCommands));
     if (windowCommands)
-      windowCommands->SelectMessage(newuri.get());
+      windowCommands->SelectMessage(newuri);
     mDownloadState = DOWNLOAD_STATE_DIDSEL;
   }
   return NS_OK;
@@ -3161,7 +3161,7 @@ nsMsgLocalMailFolder::OnStopRunningUrl(nsIURI * aUrl, nsresult aExitCode)
               nsCOMPtr<nsIMsgWindowCommands> windowCommands;
               msgWindow->GetWindowCommands(getter_AddRefs(windowCommands));
               if (windowCommands)
-                windowCommands->SelectMessage(newMessageUri.get());
+                windowCommands->SelectMessage(newMessageUri);
             }
           }
         }

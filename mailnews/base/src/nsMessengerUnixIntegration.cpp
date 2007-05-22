@@ -79,7 +79,7 @@
 #define NEW_MAIL_ALERT_ICON "chrome://messenger/skin/icons/new-mail-alert.png"
 #define SHOW_ALERT_PREF "mail.biff.show_alert"
 
-static void openMailWindow(const PRUnichar * aMailWindowName, const char * aFolderUri)
+static void openMailWindow(const nsACString& aFolderUri)
 {
   nsresult rv;
   nsCOMPtr<nsIMsgMailSession> mailSession ( do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv));
@@ -90,7 +90,7 @@ static void openMailWindow(const PRUnichar * aMailWindowName, const char * aFold
   rv = mailSession->GetTopmostMsgWindow(getter_AddRefs(topMostMsgWindow));
   if (topMostMsgWindow)
   {
-    if (aFolderUri)
+    if (!aFolderUri.IsEmpty())
     {
       nsCOMPtr<nsIMsgWindowCommands> windowCommands;
       topMostMsgWindow->GetWindowCommands(getter_AddRefs(windowCommands));
@@ -112,7 +112,7 @@ static void openMailWindow(const PRUnichar * aMailWindowName, const char * aFold
     // (and add code to the messenger window service to make that work)
     if (messengerWindowService)
       messengerWindowService->OpenMessengerWindowWithUri(
-                                "mail:3pane", aFolderUri, nsMsgKey_None);
+                                "mail:3pane", PromiseFlatCString(aFolderUri).get(), nsMsgKey_None);
   }
 }
 
@@ -132,11 +132,7 @@ nsMessengerUnixIntegration::Init()
 
   nsCOMPtr<nsIMsgMailSession> mailSession = do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
-
-  rv = mailSession->AddFolderListener(this, nsIFolderListener::intPropertyChanged);
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  return NS_OK;
+  return mailSession->AddFolderListener(this, nsIFolderListener::intPropertyChanged);
 }
 
 NS_IMETHODIMP
@@ -165,12 +161,12 @@ nsresult nsMessengerUnixIntegration::GetStringBundle(nsIStringBundle **aBundle)
   nsCOMPtr<nsIStringBundle> bundle;
   if (bundleService && NS_SUCCEEDED(rv))
     bundleService->CreateBundle("chrome://messenger/locale/messenger.properties", getter_AddRefs(bundle));
-  NS_IF_ADDREF(*aBundle = bundle);
+  bundle.swap(*aBundle);
   return rv;
 }
 
 #ifndef MOZ_THUNDERBIRD
-nsresult nsMessengerUnixIntegration::ShowAlertMessage(const PRUnichar * aAlertTitle, const PRUnichar * aAlertText, const char * aFolderURI)
+nsresult nsMessengerUnixIntegration::ShowAlertMessage(const nsAString& aAlertTitle, const nsAString& aAlertText, const nsACString& aFolderURI)
 {
   nsresult rv;
   
@@ -179,18 +175,18 @@ nsresult nsMessengerUnixIntegration::ShowAlertMessage(const PRUnichar * aAlertTi
     return NS_OK; 
 
   nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
   PRBool showAlert = PR_TRUE;
-  
-  if (prefBranch)
-    prefBranch->GetBoolPref(SHOW_ALERT_PREF, &showAlert);
+  prefBranch->GetBoolPref(SHOW_ALERT_PREF, &showAlert);
   
   if (showAlert)
   {
     nsCOMPtr<nsIAlertsService> alertsService (do_GetService(NS_ALERTSERVICE_CONTRACTID, &rv));
     if (NS_SUCCEEDED(rv))
     {
-      rv = alertsService->ShowAlertNotification(NS_LITERAL_STRING(NEW_MAIL_ALERT_ICON), nsDependentString(aAlertTitle),
-                                                nsDependentString(aAlertText), PR_TRUE, 
+      rv = alertsService->ShowAlertNotification(NS_LITERAL_STRING(NEW_MAIL_ALERT_ICON), aAlertTitle,
+                                                aAlertText, PR_TRUE, 
                                                 NS_ConvertASCIItoUTF16(aFolderURI), this); 
       mAlertInProgress = PR_TRUE;
     }
@@ -214,10 +210,10 @@ nsresult nsMessengerUnixIntegration::ShowNewAlertNotification(PRBool aUserInitia
     return NS_OK;
 
   nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-  PRBool showAlert = PR_TRUE;
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  if (prefBranch)
-    prefBranch->GetBoolPref(SHOW_ALERT_PREF, &showAlert);
+  PRBool showAlert = PR_TRUE;
+  prefBranch->GetBoolPref(SHOW_ALERT_PREF, &showAlert);
 
   if (showAlert)
   {
@@ -288,9 +284,8 @@ nsresult nsMessengerUnixIntegration::AlertClicked()
   }
 #else
   nsCString folderURI;
-  GetFirstFolderWithNewMail(getter_Copies(folderURI));
-
-  openMailWindow(NS_LITERAL_STRING("mail:3pane").get(), folderURI.get());
+  GetFirstFolderWithNewMail(folderURI);
+  openMailWindow(folderURI);
 #endif
   return NS_OK;
 }
@@ -299,10 +294,10 @@ NS_IMETHODIMP
 nsMessengerUnixIntegration::Observe(nsISupports* aSubject, const char* aTopic, const PRUnichar* aData)
 {
   if (strcmp(aTopic, "alertfinished") == 0)
-      return AlertFinished();
+    return AlertFinished();
 
   if (strcmp(aTopic, "alertclickcallback") == 0)
-      return AlertClicked();
+    return AlertClicked();
 
   return NS_OK;
 }
@@ -337,7 +332,7 @@ void nsMessengerUnixIntegration::FillToolTipInfo()
         bundle->FormatStringFromName(NS_LITERAL_STRING("biffNotification_messages").get(), formatStrings, 1, getter_Copies(finalText));
 
 #ifndef MOZ_THUNDERBIRD
-      ShowAlertMessage(accountName.get(), finalText.get(), "");
+      ShowAlertMessage(accountName, finalText, EmptyCString());
 #else
       ShowNewAlertNotification(PR_FALSE);
 #endif
@@ -347,7 +342,7 @@ void nsMessengerUnixIntegration::FillToolTipInfo()
 
 // get the first top level folder which we know has new mail, then enumerate over all the subfolders
 // looking for the first real folder with new mail. Return the folderURI for that folder.
-nsresult nsMessengerUnixIntegration::GetFirstFolderWithNewMail(char ** aFolderURI)
+nsresult nsMessengerUnixIntegration::GetFirstFolderWithNewMail(nsACString& aFolderURI)
 {
   nsresult rv;
   NS_ENSURE_TRUE(mFoldersWithNewMail, NS_ERROR_FAILURE); 
@@ -399,11 +394,7 @@ nsresult nsMessengerUnixIntegration::GetFirstFolderWithNewMail(char ** aFolderUR
     }  // if enumerator
     
     if (msgFolder)
-    {
-      nsCString tmpStr;
-      msgFolder->GetURI(tmpStr);
-      *aFolderURI = ToNewCString(tmpStr);
-    }
+      msgFolder->GetURI(aFolderURI);
   }
 
   return NS_OK;

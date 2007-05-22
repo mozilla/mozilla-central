@@ -2718,7 +2718,7 @@ NS_IMETHODIMP nsImapService::NewChannel(nsIURI *aURI, nsIChannel **_retval)
             nsCOMPtr<nsIMsgWindowCommands> windowCommands;
             msgWindow->GetWindowCommands(getter_AddRefs(windowCommands));
             if (windowCommands)
-              windowCommands->SelectFolder(uri.get());
+              windowCommands->SelectFolder(uri);
             // error out this channel, so it'll stop trying to run the url.
             *_retval = nsnull;
             rv = NS_ERROR_FAILURE;

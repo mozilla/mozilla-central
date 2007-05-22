@@ -212,7 +212,7 @@ bridge_new_new_uri(void *bridgeStream, nsIURI *aURI, PRInt32 aOutputType)
                 msgurl->GetMsgWindow(getter_AddRefs(msgWindow));
                 if (msgWindow)
                 {
-                  msgWindow->SetMailCharacterSet(*default_charset);
+                  msgWindow->SetMailCharacterSet(nsDependentCString(*default_charset));
                   msgWindow->SetCharsetOverride(*override_charset);
                 }
               }

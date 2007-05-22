@@ -4663,7 +4663,7 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
                   nsCOMPtr<nsIMsgWindowCommands> windowCommands;
                   msgWindow->GetWindowCommands(getter_AddRefs(windowCommands));
                   if (windowCommands)
-                    windowCommands->SelectFolder(uri.get());
+                    windowCommands->SelectFolder(uri);
                 }
               }
             }

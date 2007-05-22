@@ -204,7 +204,7 @@ nsresult nsMsgComposeService::Init()
   mOpenComposeWindows.Init();
   Reset();
 
-  AddGlobalHtmlDomains();	
+  AddGlobalHtmlDomains();
   return rv;
 }
 
@@ -1459,13 +1459,13 @@ nsMsgComposeService::LoadDraftOrTemplate(const nsACString& aMsgURI, nsMimeOutput
 
   // if we are forwarding a message and that message used a charset over ride
   // then use that over ride charset instead of the charset specified in the message
-  nsXPIDLCString mailCharset;
+  nsCString mailCharset;
   if (aMsgWindow)
   {
     PRBool charsetOverride;
     if (NS_SUCCEEDED(aMsgWindow->GetCharsetOverride(&charsetOverride)) && charsetOverride)
     {
-      if (NS_SUCCEEDED(aMsgWindow->GetMailCharacterSet(getter_Copies(mailCharset))))
+      if (NS_SUCCEEDED(aMsgWindow->GetMailCharacterSet(mailCharset)))
       {
         nsCOMPtr<nsIMsgI18NUrl> i18nUrl(do_QueryInterface(url));
         if (i18nUrl)
@@ -1484,7 +1484,8 @@ nsMsgComposeService::LoadDraftOrTemplate(const nsACString& aMsgURI, nsMimeOutput
 
   // Now, just plug the two together and get the hell out of the way!
   nsCOMPtr<nsIStreamListener> streamListener = do_QueryInterface(mimeConverter); 
-  return messageService->DisplayMessage(nsPromiseFlatCString(aMsgURI).get(), streamListener, aMsgWindow, nsnull, mailCharset, nsnull);;
+  return messageService->DisplayMessage(nsPromiseFlatCString(aMsgURI).get(), streamListener,
+                                        aMsgWindow, nsnull, mailCharset.get(), nsnull);;
 }
 
 #ifdef MOZ_XUL_APP

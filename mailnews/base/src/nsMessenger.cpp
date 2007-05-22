@@ -2809,7 +2809,7 @@ void nsDelAttachListener::SelectNewMessage()
       nsCOMPtr<nsIMsgWindowCommands> windowCommands;
       mMsgWindow->GetWindowCommands(getter_AddRefs(windowCommands));
       if (windowCommands)
-        windowCommands->SelectMessage(displayUri.get());
+        windowCommands->SelectMessage(displayUri);
     }
   }
   mNewMessageKey = PR_UINT32_MAX;

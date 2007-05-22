@@ -1412,7 +1412,7 @@ NS_IMETHODIMP nsMsgIncomingServer::DisplayOfflineMsg(nsIMsgWindow *aMsgWindow)
     nsString errorMsgBody;
     bundle->GetStringFromName(NS_LITERAL_STRING("nocachedbodybody").get(), getter_Copies(errorMsgBody));
     bundle->GetStringFromName(NS_LITERAL_STRING("nocachedbodytitle").get(),  getter_Copies(errorMsgTitle));
-    aMsgWindow->DisplayHTMLInMessagePane(errorMsgTitle.get(), errorMsgBody.get(), PR_TRUE);
+    aMsgWindow->DisplayHTMLInMessagePane(errorMsgTitle, errorMsgBody, PR_TRUE);
   }
   
   return NS_OK;

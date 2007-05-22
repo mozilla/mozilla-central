@@ -139,7 +139,7 @@ static void activateWindow( nsIDOMWindowInternal *win )
 }
 // end shameless copying from nsNativeAppWinSupport.cpp
 
-static void openMailWindow(const PRUnichar * aMailWindowName, const char * aFolderUri)
+static void openMailWindow(const nsACString& aFolderUri)
 {
   nsresult rv;
   nsCOMPtr<nsIMsgMailSession> mailSession ( do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv));
@@ -150,7 +150,7 @@ static void openMailWindow(const PRUnichar * aMailWindowName, const char * aFold
   rv = mailSession->GetTopmostMsgWindow(getter_AddRefs(topMostMsgWindow));
   if (topMostMsgWindow)
   {
-    if (aFolderUri)
+    if (!aFolderUri.IsEmpty())
     {
       nsCOMPtr<nsIMsgWindowCommands> windowCommands;
       topMostMsgWindow->GetWindowCommands(getter_AddRefs(windowCommands));
@@ -172,7 +172,7 @@ static void openMailWindow(const PRUnichar * aMailWindowName, const char * aFold
     // (and add code to the messenger window service to make that work)
     if (messengerWindowService)
       messengerWindowService->OpenMessengerWindowWithUri(
-                                "mail:3pane", aFolderUri, nsMsgKey_None);
+                                "mail:3pane", PromiseFlatCString(aFolderUri).get(), nsMsgKey_None);
   }
 }
 
@@ -210,8 +210,7 @@ static long CALLBACK MessageWindowProc( HWND msgWindow, UINT msg, WPARAM wp, LPA
     else if (lp == WM_LBUTTONDBLCLK)
     {
       ::KillTimer(msgWindow, 1);
-      NS_NAMED_LITERAL_STRING(mailName, "mail:3pane");
-      openMailWindow(mailName.get(), nsnull);
+      openMailWindow(EmptyCString());
     }
   }
 
@@ -297,6 +296,7 @@ NS_INTERFACE_MAP_END
 nsresult
 nsMessengerWinIntegration::ResetCurrent()
 {
+  mInboxURI.Truncate();
   mEmail.Truncate();
 
   mCurrentUnreadCount = -1;
@@ -477,7 +477,8 @@ nsresult nsMessengerWinIntegration::GetStringBundle(nsIStringBundle **aBundle)
 }
 
 #ifndef MOZ_THUNDERBIRD
-nsresult nsMessengerWinIntegration::ShowAlertMessage(const PRUnichar * aAlertTitle, const PRUnichar * aAlertText, const char * aFolderURI)
+nsresult nsMessengerWinIntegration::ShowAlertMessage(const nsAString& aAlertTitle, const nsAString& aAlertText,
+                                                     const nsACString& aFolderURI)
 {
   nsresult rv;
 
@@ -486,18 +487,18 @@ nsresult nsMessengerWinIntegration::ShowAlertMessage(const PRUnichar * aAlertTit
     return NS_OK;
 
   nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-  PRBool showAlert = PR_TRUE;
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  if (prefBranch)
-    prefBranch->GetBoolPref(SHOW_ALERT_PREF, &showAlert);
+  PRBool showAlert = PR_TRUE;
+  prefBranch->GetBoolPref(SHOW_ALERT_PREF, &showAlert);
 
   if (showAlert)
   {
     nsCOMPtr<nsIAlertsService> alertsService (do_GetService(NS_ALERTSERVICE_CONTRACTID, &rv));
     if (NS_SUCCEEDED(rv))
     {
-      rv = alertsService->ShowAlertNotification(NS_LITERAL_STRING(NEW_MAIL_ALERT_ICON), nsDependentString(aAlertTitle),
-                                                nsDependentString(aAlertText), PR_TRUE,
+      rv = alertsService->ShowAlertNotification(NS_LITERAL_STRING(NEW_MAIL_ALERT_ICON), aAlertTitle,
+                                                aAlertText, PR_TRUE,
                                                 NS_ConvertASCIItoUTF16(aFolderURI), this);
       mAlertInProgress = PR_TRUE;
     }
@@ -632,7 +633,7 @@ nsresult nsMessengerWinIntegration::AlertClicked()
   mSuppressBiffIcon = PR_TRUE;
   nsCString folderURI;
   GetFirstFolderWithNewMail(folderURI);
-  openMailWindow(NS_LITERAL_STRING("mail:3pane").get(), folderURI.get());
+  openMailWindow(folderURI);
 #endif
   return NS_OK;
 }
@@ -686,7 +687,7 @@ void nsMessengerWinIntegration::FillToolTipInfo()
           numNewMsgsText.get(),
         };
 
-        nsXPIDLString finalText;
+        nsString finalText;
         if (numNewMessages == 1)
           bundle->FormatStringFromName(NS_LITERAL_STRING("biffNotification_message").get(), formatStrings, 1, getter_Copies(finalText));
         else
@@ -700,11 +701,11 @@ void nsMessengerWinIntegration::FillToolTipInfo()
         // only add this new string if it will fit without truncation....
         if (maxTooltipSize >= toolTipText.Length() + accountName.Length() + finalText.Length() + 2)
         {
-    	    if (index > 0)
-            toolTipText.Append(NS_LITERAL_STRING("\n").get());
+          if (index > 0)
+            toolTipText.Append(PRUnichar('\n'));
           toolTipText.Append(accountName);
-          toolTipText.AppendLiteral(" ");
-		      toolTipText.Append(finalText);
+          toolTipText.Append(' ');
+          toolTipText.Append(finalText);
         }
       } // if we got a bundle
     } // if we got a folder
@@ -715,7 +716,7 @@ void nsMessengerWinIntegration::FillToolTipInfo()
   if (!mBiffIconVisible)
   {
 #ifndef MOZ_THUNDERBIRD
-    ShowAlertMessage(accountName.get(), animatedAlertText.get(), "");
+    ShowAlertMessage(accountName, animatedAlertText, EmptyCString());
 #else
     ShowNewAlertNotification(PR_FALSE);
 #endif
@@ -857,8 +858,6 @@ void nsMessengerWinIntegration::RevertToNonUnicodeShellAPI()
 NS_IMETHODIMP
 nsMessengerWinIntegration::OnItemPropertyFlagChanged(nsIMsgDBHdr *item, nsIAtom *property, PRUint32 oldFlag, PRUint32 newFlag)
 {
-  nsresult rv = NS_OK;
-
   return NS_OK;
 }
 
@@ -1013,7 +1012,7 @@ nsMessengerWinIntegration::RemoveCurrentFromRegistry()
     currentUnreadMailCountKey.Append(NS_ConvertASCIItoUTF16(mEmail));
   }
   else
-    currentUnreadMailCountKey.AssignWithConversion(mEmail);
+    CopyASCIItoUTF16(mEmail, currentUnreadMailCountKey);
 
   WCHAR registryUnreadMailCountKey[_MAX_PATH] = {0};
   // Enumerate through registry entries to delete the key matching
@@ -1056,9 +1055,8 @@ nsMessengerWinIntegration::UpdateRegistryWithCurrent()
 
   // only update the registry if the count has changed
   // and if the unread count is valid
-  if ((mCurrentUnreadCount < 0) || (mCurrentUnreadCount == mLastUnreadCountWrittenToRegistry)) {
+  if ((mCurrentUnreadCount < 0) || (mCurrentUnreadCount == mLastUnreadCountWrittenToRegistry))
     return NS_OK;
-  }
 
   // commandliner has to be built in the form of statement
   // which can be open the mailer app to the default user account
@@ -1089,7 +1087,7 @@ nsMessengerWinIntegration::UpdateRegistryWithCurrent()
       pBuffer.Append(NS_ConvertASCIItoUTF16(mEmail));
     }
     else
-      pBuffer.AssignWithConversion(mEmail);
+      CopyASCIItoUTF16(mEmail, pBuffer);
 
     // Write the info into the registry
     HRESULT hr = mSHSetUnreadMailCount(pBuffer.get(),
@@ -1218,10 +1216,7 @@ nsMessengerWinIntegration::UpdateUnreadCount()
     NS_ENSURE_SUCCESS(rv,rv);
   }
 
-  rv = UpdateRegistryWithCurrent();
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  return NS_OK;
+  return UpdateRegistryWithCurrent();
 }
 
 nsresult
@@ -1229,17 +1224,13 @@ nsMessengerWinIntegration::SetupUnreadCountUpdateTimer()
 {
   if (!mStoreUnreadCounts) return NS_OK; // don't do anything here if we aren't storing unread counts...
   mUnreadTimerActive = PR_TRUE;
-  if (mUnreadCountUpdateTimer) {
+  if (mUnreadCountUpdateTimer)
     mUnreadCountUpdateTimer->Cancel();
-  }
   else
-  {
     mUnreadCountUpdateTimer = do_CreateInstance("@mozilla.org/timer;1");
-  }
 
   mUnreadCountUpdateTimer->InitWithFuncCallback(OnUnreadCountUpdateTimer,
     (void *)this, UNREAD_UPDATE_INTERVAL, nsITimer::TYPE_ONE_SHOT);
 
   return NS_OK;
 }
-

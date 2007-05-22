@@ -105,7 +105,7 @@ private:
 
   PRUint32 GetToolTipSize(); // available space for the tooltip string
 #ifndef MOZ_THUNDERBIRD
-  nsresult ShowAlertMessage(const PRUnichar * aAlertTitle, const PRUnichar * aAlertText, const char * aFolderURI);
+  nsresult ShowAlertMessage(const nsAString& aAlertTitle, const nsAString& aAlertText, const nsACString& aFolderURI);
 #endif
   nsresult GetFirstFolderWithNewMail(nsACString& aFolderURI);
 
@@ -157,7 +157,7 @@ private:
 #ifdef MOZ_XUL_APP
   nsString mProfilePath;
 #else
-  nsXPIDLString mProfileName;
+  nsString mProfileName;
 #endif
 
 
