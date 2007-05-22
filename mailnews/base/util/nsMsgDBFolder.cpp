@@ -509,7 +509,7 @@ nsresult nsMsgDBFolder::GetFolderCacheElemFromFile(nsILocalFile *file, nsIMsgFol
     {
       nsCString persistentPath;
       file->GetPersistentDescriptor(persistentPath);
-      result = folderCache->GetCacheElement(persistentPath.get(), PR_FALSE, cacheElement);
+      result = folderCache->GetCacheElement(persistentPath, PR_FALSE, cacheElement);
     }
   }
   return result;
@@ -1056,7 +1056,7 @@ NS_IMETHODIMP nsMsgDBFolder::ReadFromFolderCacheElem(nsIMsgFolderCacheElement *e
   element->GetInt32Property("pendingMsgs", &mNumPendingTotalMessages);
   element->GetInt32Property("expungedBytes", (PRInt32 *) &mExpungedBytes);
   element->GetInt32Property("folderSize", (PRInt32 *) &mFolderSize);
-  element->GetStringProperty("charset", getter_Copies(mCharset));
+  element->GetStringProperty("charset", mCharset);
 
 #ifdef DEBUG_bienvenu1
   nsCString uri;
@@ -1135,7 +1135,7 @@ NS_IMETHODIMP nsMsgDBFolder::WriteToFolderCache(nsIMsgFolderCache *folderCache, 
     {
       nsCString persistentPath;
       dbPath->GetPersistentDescriptor(persistentPath);
-      rv = folderCache->GetCacheElement(persistentPath.get(), PR_TRUE, getter_AddRefs(cacheElement));
+      rv = folderCache->GetCacheElement(persistentPath, PR_TRUE, getter_AddRefs(cacheElement));
       if (NS_SUCCEEDED(rv) && cacheElement)
         rv = WriteToFolderCacheElem(cacheElement);
     }
@@ -1188,7 +1188,7 @@ NS_IMETHODIMP nsMsgDBFolder::WriteToFolderCacheElem(nsIMsgFolderCacheElement *el
   element->SetInt32Property("pendingMsgs", mNumPendingTotalMessages);
   element->SetInt32Property("expungedBytes", mExpungedBytes);
   element->SetInt32Property("folderSize", mFolderSize);
-  element->SetStringProperty("charset", mCharset.get());
+  element->SetStringProperty("charset", mCharset);
 
 #ifdef DEBUG_bienvenu1
   nsCString uri;
@@ -1737,11 +1737,7 @@ nsMsgDBFolder::GetStringProperty(const char *propertyName, nsACString& propertyV
     nsCOMPtr <nsIMsgFolderCacheElement> cacheElement;
     rv = GetFolderCacheElemFromFile(dbPath, getter_AddRefs(cacheElement));
     if (cacheElement)  //try to get from cache
-    {
-      nsCString tmpStr;
-      rv = cacheElement->GetStringProperty(propertyName, getter_Copies(tmpStr));
-      propertyValue.Assign(tmpStr);
-    }
+      rv = cacheElement->GetStringProperty(propertyName, propertyValue);
     if (NS_FAILED(rv))  //if failed, then try to get from db
     {
       nsCOMPtr<nsIDBFolderInfo> folderInfo;
@@ -1773,7 +1769,7 @@ nsMsgDBFolder::SetStringProperty(const char *propertyName, const nsACString& pro
     nsCOMPtr <nsIMsgFolderCacheElement> cacheElement;
     GetFolderCacheElemFromFile(dbPath, getter_AddRefs(cacheElement));
     if (cacheElement)  //try to set in the cache
-      cacheElement->SetStringProperty(propertyName, nsPromiseFlatCString(propertyValue).get());
+      cacheElement->SetStringProperty(propertyName, propertyValue);
   }
   nsCOMPtr<nsIDBFolderInfo> folderInfo;
   nsCOMPtr<nsIMsgDatabase> db;
@@ -2949,7 +2945,7 @@ NS_IMETHODIMP nsMsgDBFolder::RecursiveDelete(PRBool deleteStorage, nsIMsgWindow 
     {
       nsCString persistentPath;
       dbPath->GetPersistentDescriptor(persistentPath);
-      folderCache->RemoveElement(persistentPath.get());
+      folderCache->RemoveElement(persistentPath);
     }
   }
 

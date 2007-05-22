@@ -38,12 +38,12 @@
 
 #include "nsISupports.idl"
 
-[scriptable, uuid(c3096590-3983-11d3-8d76-00805f8a6617)]
+[scriptable, uuid(D7ED2508-A608-46cd-AA01-FBB019B0FA44)]
 interface nsIMsgFolderCacheElement : nsISupports 
 {
-	attribute string Key;
-	string GetStringProperty(in string propertyName);
-	long GetInt32Property(in string propertyName);
-	void SetStringProperty(in string propertyName, in string propertyValue);
-	void SetInt32Property(in string propertyName, in long propertyValue);
+  attribute ACString key;
+  ACString getStringProperty(in string propertyName);
+  long getInt32Property(in string propertyName);
+  void setStringProperty(in string propertyName, in ACString propertyValue);
+  void setInt32Property(in string propertyName, in long propertyValue);
 };

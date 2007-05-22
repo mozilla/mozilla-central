@@ -55,30 +55,28 @@ public:
   virtual ~nsMsgFolderCache();
 
   NS_DECL_ISUPPORTS
-    NS_DECL_NSIMSGFOLDERCACHE
+  NS_DECL_NSIMSGFOLDERCACHE
 
 protected:
   static nsIMdbFactory *GetMDBFactory();
-  nsresult AddCacheElement(const char *key, nsIMdbRow *row, nsIMsgFolderCacheElement **result);
-  nsresult RowCellColumnToCharPtr(nsIMdbRow *hdrRow, mdb_token columnToken, char **resultPtr);
+  nsresult AddCacheElement(const nsACString& key, nsIMdbRow *row, nsIMsgFolderCacheElement **result);
+  nsresult RowCellColumnToCharPtr(nsIMdbRow *hdrRow, mdb_token columnToken, nsACString& resultPtr);
   nsresult InitMDBInfo();
   nsresult InitNewDB();
   nsresult InitExistingDB();
-  nsresult OpenMDB(const char *dbName, PRBool create);
+  nsresult OpenMDB(const nsACString& dbName, PRBool create);
   nsIMdbEnv *GetEnv() {return m_mdbEnv;}
   nsIMdbStore *GetStore() {return m_mdbStore;}
 
   nsSupportsHashtable *m_cacheElements;
   // mdb stuff
-  nsIMdbEnv           *m_mdbEnv;	// to be used in all the db calls.
+  nsIMdbEnv           *m_mdbEnv; // to be used in all the db calls.
   nsIMdbStore         *m_mdbStore;
   nsIMdbTable         *m_mdbAllFoldersTable;
   mdb_token           m_folderRowScopeToken;
   mdb_token           m_folderTableKindToken;
 
   struct mdbOid       m_allFoldersTableOID;
-
 };
-
 
 #endif

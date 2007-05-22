@@ -1400,7 +1400,7 @@ NS_IMETHODIMP nsMsgDatabase::Commit(nsMsgDBCommit commitType)
     if (NS_SUCCEEDED(rv) && folderCache)
     {
       nsCOMPtr <nsIMsgFolderCacheElement> cacheElement;
-      rv = folderCache->GetCacheElement(m_dbName.get(), PR_FALSE, getter_AddRefs(cacheElement));
+      rv = folderCache->GetCacheElement(m_dbName, PR_FALSE, getter_AddRefs(cacheElement));
       if (NS_SUCCEEDED(rv) && cacheElement && m_dbFolderInfo)
       {
         PRInt32 totalMessages, unreadMessages, pendingMessages, pendingUnreadMessages;

@@ -526,7 +526,7 @@ nsresult nsImapMailFolder::CreateSubFolders(nsILocalFile *path)
           currentFolderPath->Remove(PR_FALSE);
           continue; // blow away .msf files for folders with unknown delimiter.
         }
-        rv = cacheElement->GetStringProperty("onlineName", getter_Copies(onlineFullUtf7Name));
+        rv = cacheElement->GetStringProperty("onlineName", onlineFullUtf7Name);
         if (NS_SUCCEEDED(rv) && !onlineFullUtf7Name.IsEmpty())
         {
           // Call ConvertFolderName() and HideFolderName() to do special folder name
@@ -1809,7 +1809,7 @@ NS_IMETHODIMP nsImapMailFolder::ReadFromFolderCacheElem(nsIMsgFolderCacheElement
   if (NS_SUCCEEDED(element->GetInt32Property("hierDelim", &hierarchyDelimiter))
       && hierarchyDelimiter != kOnlineHierarchySeparatorUnknown)
     m_hierarchyDelimiter = (PRUnichar) hierarchyDelimiter;
-  rv = element->GetStringProperty("onlineName", getter_Copies(onlineName));
+  rv = element->GetStringProperty("onlineName", onlineName);
   if (NS_SUCCEEDED(rv) && +onlineName.IsEmpty())
     m_onlineFolderName.Assign(onlineName);
 
@@ -1823,7 +1823,7 @@ NS_IMETHODIMP nsImapMailFolder::WriteToFolderCacheElem(nsIMsgFolderCacheElement 
   nsresult rv = nsMsgDBFolder::WriteToFolderCacheElem(element);
   element->SetInt32Property("boxFlags", m_boxFlags);
   element->SetInt32Property("hierDelim", (PRInt32) m_hierarchyDelimiter);
-  element->SetStringProperty("onlineName", m_onlineFolderName.get());
+  element->SetStringProperty("onlineName", m_onlineFolderName);
   element->SetInt32Property("aclFlags", (PRInt32) m_aclFlags);
   return rv;
 }
