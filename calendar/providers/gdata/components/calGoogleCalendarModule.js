@@ -71,8 +71,8 @@ var calGoogleCalendarModule = {
         if (this.mUtilsLoaded)
             return;
 
-        const scripts = ["calGoogleCalendar.js", "calGoogleSession.js",
-                         "calUtils.js", "calGoogleRequest.js",
+        const scripts = ["calUtils.js","calGoogleCalendar.js",
+                         "calGoogleSession.js", "calGoogleRequest.js",
                          "calGoogleUtils.js"];
 
         var loader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
