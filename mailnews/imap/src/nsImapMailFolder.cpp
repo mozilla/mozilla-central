@@ -1226,7 +1226,7 @@ NS_IMETHODIMP nsImapMailFolder::CompactAll(nsIUrlListener *aListener,  nsIMsgWin
   }
   nsCOMPtr <nsIMsgFolderCompactor> folderCompactor =  do_CreateInstance(NS_MSGLOCALFOLDERCOMPACTOR_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  return folderCompactor->CompactAll(aFolderArray ? aFolderArray : folderArray, aMsgWindow,
+  return folderCompactor->CompactAll(aFolderArray ? aFolderArray : folderArray.get(), aMsgWindow,
                                      aCompactOfflineAlso, aOfflineFolderArray);
 }
 
