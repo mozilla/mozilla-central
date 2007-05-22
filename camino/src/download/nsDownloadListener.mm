@@ -167,7 +167,7 @@ nsDownloadListener::GetSize(PRUint64 *aSize)
 
 /* attribute wstring displayName; */
 NS_IMETHODIMP
-nsDownloadListener::GetDisplayName(PRUnichar * *aDisplayName)
+nsDownloadListener::GetDisplayName(nsAString &aDisplayName)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -201,6 +201,18 @@ nsDownloadListener::GetTargetFile(nsILocalFile ** aTargetFile)
   NS_ENSURE_ARG_POINTER(aTargetFile);
   NS_IF_ADDREF(*aTargetFile = mDestinationFile);
   return NS_OK;
+}
+
+NS_IMETHODIMP
+nsDownloadListener::GetId(PRUint64 *aId)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP
+nsDownloadListener::GetState(PRInt16 *aState)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 #pragma mark -
