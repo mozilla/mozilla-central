@@ -5884,7 +5884,12 @@ nsImapMailFolder::CopyMessagesWithStream(nsIMsgFolder* srcFolder,
       return NS_ERROR_OUT_OF_MEMORY;
     }
     if (isMove)
-      undoMsgTxn->SetTransactionType(mFlags & MSG_FOLDER_FLAG_TRASH ? nsIMessenger::eDeleteMsg : nsIMessenger::eMoveMsg);
+    {
+      if (mFlags & MSG_FOLDER_FLAG_TRASH)
+        undoMsgTxn->SetTransactionType(nsIMessenger::eDeleteMsg);
+      else
+        undoMsgTxn->SetTransactionType(nsIMessenger::eMoveMsg);
+    }
     else
       undoMsgTxn->SetTransactionType(nsIMessenger::eCopyMsg);
     rv = undoMsgTxn->QueryInterface(NS_GET_IID(nsImapMoveCopyMsgTxn), getter_AddRefs(m_copyState->m_undoMsgTxn));
@@ -6166,7 +6171,10 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
                 m_thread, urlListener);
             if (undoMsgTxn)
             {
-              undoMsgTxn->SetTransactionType(isMove ? nsIMessenger::eMoveMsg :nsIMessenger::eCopyMsg);
+              if (isMove)
+                undoMsgTxn->SetTransactionType(nsIMessenger::eMoveMsg);
+              else
+                undoMsgTxn->SetTransactionType(nsIMessenger::eCopyMsg);
               // we're adding this undo action before the delete is successful. This is evil,
               // but 4.5 did it as well.
               if (txnMgr)
@@ -6253,7 +6261,12 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
             if (undoMsgTxn)
             {
               if (isMove)
-                undoMsgTxn->SetTransactionType(mFlags & MSG_FOLDER_FLAG_TRASH ? nsIMessenger::eDeleteMsg : nsIMessenger::eMoveMsg);
+              {
+                if (mFlags & MSG_FOLDER_FLAG_TRASH)
+                  undoMsgTxn->SetTransactionType(nsIMessenger::eDeleteMsg);
+                else
+                  undoMsgTxn->SetTransactionType(nsIMessenger::eMoveMsg);
+              }
               else
                 undoMsgTxn->SetTransactionType(nsIMessenger::eCopyMsg);
               if (txnMgr)
