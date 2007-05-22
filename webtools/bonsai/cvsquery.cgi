@@ -368,6 +368,7 @@ elsif( $show_xml ) {
         my $ci_log = "";
         my $ci_who = $ci->[$::CI_WHO];
         my $ci_date = $ci->[$::CI_DATE];
+        my $ci_branch = $ci->[$::CI_BRANCH];
 
         # combine adjacent entries with the same log entry
         my $j = $k+1;
@@ -381,8 +382,10 @@ elsif( $show_xml ) {
 
         $ci_who = &html_log($ci_who);
         $ci_log = &html_log($ci_log);
+        $ci_branch = &html_log($ci_branch);
 
-        print "<ci who=\"$ci_who\" date=\"$ci_date\">\n";
+        print "<ci who=\"$ci_who\" date=\"$ci_date\"" .
+         " branch=\"$ci_branch\">\n";
         print " <log>$ci_log</log>\n";
         if (!$xml_nofiles) {
             print " <files>\n";
