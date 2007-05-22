@@ -320,10 +320,10 @@ DWORD WINAPI DoFastSync(LPVOID lpParameter)
     CONDUIT_LOG0(gFD, "Getting moz AB List ... ");
     if(!retval)
         retval = sync->m_dbPC->GetPCABList(&mozABCount, &mozCatIndexList, &mozABNameList, &mozABUrlList, &mozDirFlagsList);
+    CONDUIT_LOG1(gFD, "done getting moz AB List. retval = %d\n", retval);
 
     if (retval)
       return retval;
-    CONDUIT_LOG0(gFD, "Done getting moz AB List. \n");
     
     // Create an array to help us identify addrbooks that have been deleted on Palm.
     DWORD *mozABSeen = (DWORD *) CoTaskMemAlloc(sizeof(DWORD) * mozABCount);
@@ -644,14 +644,23 @@ DWORD WINAPI DoFastSync(LPVOID lpParameter)
 
 long CMozABConduitSync::PerformFastSync()
 {
+    CONDUIT_LOG0(gFD, "-- SYNC Palm -> PerformFastSync --\n");
+
     DWORD ThreadId;
+    DWORD threadExitCode;
     HANDLE hThread = CreateThread(NULL, 0, DoFastSync, this, 0, &ThreadId);
     while (WaitForSingleObject(hThread, 1000) == WAIT_TIMEOUT) {
         SyncYieldCycles(1); // every sec call this for feedback & keep Palm connection alive 
         continue;
     }
     
-    return 0;
+    // get and return thread's return code if available
+    BOOL ret = GetExitCodeThread(hThread, &threadExitCode);
+    if (!ret)
+        return GetLastError();
+    // thread failed
+    CONDUIT_LOG1(gFD, "GetExitCodeThread failed return code = %d\n", threadExitCode);
+    return threadExitCode;
 }
 
 
