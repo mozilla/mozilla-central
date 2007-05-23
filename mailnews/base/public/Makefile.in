@@ -68,7 +68,6 @@ XPIDLSRCS	= \
 		nsIMsgIncomingServer.idl \
 		nsIMsgMailSession.idl \
 		nsIMsgMessageService.idl \
-		nsIMsgSignature.idl \
 		nsIMsgTagService.idl \
 		nsIMsgThread.idl \
 		nsIUrlListener.idl \

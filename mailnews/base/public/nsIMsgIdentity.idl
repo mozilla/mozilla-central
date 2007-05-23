@@ -36,7 +36,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsISupports.idl"
-#include "nsIMsgSignature.idl"
 #include "nsILocalFile.idl"
 
 /*
@@ -91,8 +90,6 @@ interface nsIMsgIdentity : nsISupports {
   attribute boolean sigBottom;
 
   /* the current signature */
-  /*  after PR1, let's make this a real object */
-  /*  attribute nsIMsgSignature signature; */
   attribute nsILocalFile signature;
   attribute long signatureDate;
 
