@@ -1,1 +1,1 @@
-Bug 374723: Clobber to pick up installer manifest changes that we forgot with the initial checkin, and that are horking today's builds
+Bug 381719: clobbering mac to get nightly updates; we fixed the problem, but want to make sure the fix sticks across a nightly build.
