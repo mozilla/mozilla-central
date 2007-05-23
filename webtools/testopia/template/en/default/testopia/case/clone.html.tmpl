@@ -35,7 +35,8 @@
 [%# Page Header                                                              #%]
 [%############################################################################%]
 
-[% PROCESS global/header.html.tmpl %]
+[% PROCESS global/header.html.tmpl
+   style_urls = ['testopia.css'] %]
 
 [% PROCESS testopia/style.none.tmpl %]
 <form action="tr_show_case.cgi" method="POST">

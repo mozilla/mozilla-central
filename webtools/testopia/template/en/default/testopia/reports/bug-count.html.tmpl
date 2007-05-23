@@ -23,7 +23,8 @@
   #%]
   
 [% title = "Bug Impact Report for Plan $plan.id - $plan.name" %]
-[% PROCESS global/header.html.tmpl %]
+[% PROCESS global/header.html.tmpl
+   style_urls = ['testopia.css'] %]
 
 <p>This report details the bugs detected in this test plan and the number of test cases that each bug is attached to.
 Those bugs impacting the most test cases appear at the top. 

@@ -24,7 +24,8 @@
   [% title = "Edit Build $build.name for $product.name" %]
 [% END %]
 
-[% PROCESS global/header.html.tmpl %]
+[% PROCESS global/header.html.tmpl
+   style_urls = ['testopia.css'] %]
 [% PROCESS testopia/blocks.html.tmpl %]
 
 <form method="POST" action="tr_builds.cgi" name="form">

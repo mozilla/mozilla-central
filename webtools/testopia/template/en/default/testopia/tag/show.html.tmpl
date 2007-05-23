@@ -19,7 +19,8 @@
   #%]
   
 
-[% PROCESS global/header.html.tmpl 
+[% PROCESS global/header.html.tmpl
+   style_urls = ['testopia.css'] 
    title = "Tags" %]
 [% PROCESS testopia/messages.html.tmpl %]
 [% PROCESS testopia/blocks.html.tmpl %]

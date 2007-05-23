@@ -65,7 +65,8 @@
   [% col_field_disp FILTER html %]
 [% END %]
 
-[% PROCESS global/header.html.tmpl 
+[% PROCESS global/header.html.tmpl
+   style_urls = ['testopia.css'] 
   style = "
     .t1     { background-color: #ffffff } /* white       */
     .t2     { background-color: #dfefff } /* light blue  */

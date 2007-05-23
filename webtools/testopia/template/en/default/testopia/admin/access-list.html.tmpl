@@ -19,7 +19,8 @@
   #%]
 
 <link href="testopia/css/default.css" rel="stylesheet" type="text/css" />
-[% PROCESS global/header.html.tmpl %]
+[% PROCESS global/header.html.tmpl
+   style_urls = ['testopia.css'] %]
 
 <script type="text/javascript">
   djConfig = {

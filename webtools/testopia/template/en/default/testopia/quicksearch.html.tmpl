@@ -18,7 +18,8 @@
   # Contributor(s): Greg Hendricks <ghendricks@novell.com>
   #%]
 
-[% PROCESS global/header.html.tmpl %]
+[% PROCESS global/header.html.tmpl
+   style_urls = ['testopia.css'] %]
 
 <form action="tr_quicksearch.cgi"><b>Testopia Quick Search:</b> <input
   name="query"> <input type="submit"></form>
