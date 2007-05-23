@@ -34,6 +34,13 @@
     actionDM    = new DocumentManager("tcaction",    "[% action FILTER html %]", ["tcactionHeading"]);
     effectDM    = new DocumentManager("tceffect",    "[% action FILTER html %]", ["tceffectHeading"]);
     
+  [% IF action =='Add' %]
+    setupDM.setDirectEdit(true);
+    breakdownDM.setDirectEdit(true);
+    actionDM.setDirectEdit(true);
+    effectDM.setDirectEdit(true);
+  [% END %]
+    
     function checkAddruns(status){
       if (status == 2){
         document.getElementById('addruns').disabled = false;
