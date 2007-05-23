@@ -39,18 +39,17 @@ use Bugzilla::Testopia::Search;
 use Bugzilla::Testopia::Table;
 use JSON;
 
-use vars qw($vars);
-my $template = Bugzilla->template;
-my $run_query_limit = 5000;
-my $case_query_limit = 10000;
+local our $vars = {};
+local our $template = Bugzilla->template;
+local our $run_query_limit = 5000;
+local our $case_query_limit = 10000;
 
 Bugzilla->login(LOGIN_REQUIRED);
 
-my $dbh = Bugzilla->dbh;
-my $cgi = Bugzilla->cgi;
+local our $cgi = Bugzilla->cgi;
 
 my $plan_id = trim(Bugzilla->cgi->param('plan_id') || '');
-my $action = $cgi->param('action') || '';
+local our $action = $cgi->param('action') || '';
 unless ($plan_id){
   $vars->{'form_action'} = 'tr_show_plan.cgi';
   print $cgi->header;
@@ -59,8 +58,6 @@ unless ($plan_id){
   exit;
 }
 validate_test_id($plan_id, 'plan');
-
-push @{$::vars->{'style_urls'}}, 'testopia/css/default.css';
 
 my $serverpush = support_server_push($cgi);
 

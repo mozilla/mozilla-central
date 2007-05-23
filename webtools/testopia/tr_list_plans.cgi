@@ -31,7 +31,7 @@ use Bugzilla::Testopia::Util;
 use Bugzilla::Testopia::Search;
 use Bugzilla::Testopia::Table;
 
-use vars qw($vars);
+my $vars = {};
 
 my $cgi = Bugzilla->cgi;
 my $template = Bugzilla->template;

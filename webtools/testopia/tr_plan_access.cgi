@@ -34,8 +34,8 @@ use vars qw($vars);
 
 require 'globals.pl';
 
-my $template = Bugzilla->template;
-my $cgi = Bugzilla->cgi;
+local our $template = Bugzilla->template;
+local our $cgi = Bugzilla->cgi;
 
 Bugzilla->login(LOGIN_REQUIRED);
 print $cgi->header;
@@ -51,7 +51,7 @@ unless (detaint_natural($plan_id)){
 }
 
 validate_test_id($plan_id, 'plan');
-my $plan = Bugzilla::Testopia::TestPlan->new($plan_id);
+local our $plan = Bugzilla::Testopia::TestPlan->new($plan_id);
 
 unless ($plan->canadmin){
      ThrowUserError('testopia-plan-acl-denied', {plan_id => $plan->id});

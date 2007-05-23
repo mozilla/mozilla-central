@@ -27,7 +27,7 @@ use Bugzilla::Constants;
 use Bugzilla::Error;
 
 Bugzilla->login(LOGIN_REQUIRED);
-use vars qw($vars);
+my $vars = {};
 
 my $template = Bugzilla->template;
 my $cgi = Bugzilla->cgi;

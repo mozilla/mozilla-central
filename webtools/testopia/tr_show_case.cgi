@@ -38,15 +38,14 @@ use Bugzilla::Testopia::Search;
 use Bugzilla::Testopia::Table;
 use JSON;
 
-use vars qw($vars);
-my $template = Bugzilla->template;
-my $query_limit = 15000;
+local our $vars = {};
+local our $template = Bugzilla->template;
+local our $query_limit = 15000;
 
 
 Bugzilla->login(LOGIN_REQUIRED);
 
-my $dbh = Bugzilla->dbh;
-my $cgi = Bugzilla->cgi;
+local our $cgi = Bugzilla->cgi;
 
 my $case_id = trim(Bugzilla->cgi->param('case_id')) || '';
 
@@ -60,7 +59,7 @@ validate_test_id($case_id, 'case');
 my $action = $cgi->param('action') || '';
 
 $cgi->param('ctype' , 'print') if ($action eq 'Print');
-my $format = $template->get_format("testopia/case/show", scalar $cgi->param('format'), scalar $cgi->param('ctype'));
+local our $format = $template->get_format("testopia/case/show", scalar $cgi->param('format'), scalar $cgi->param('ctype'));
 my $disp = "inline";
 # We set CSV files to be downloaded, as they are designed for importing
 # into other programs.

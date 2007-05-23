@@ -30,7 +30,7 @@ use Bugzilla::Testopia::Util;
 use Bugzilla::Testopia::Constants;
 use Bugzilla::Testopia::Report;
 
-use vars qw($vars);
+my $vars = {};
 my $template = Bugzilla->template;
 my $cgi = Bugzilla->cgi;
 

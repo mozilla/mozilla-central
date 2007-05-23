@@ -31,14 +31,12 @@ use Bugzilla::Testopia::Attachment;
 use Bugzilla::Testopia::Search;
 use Bugzilla::Testopia::Table;
 
-use vars qw($vars);
+my $vars = {};
 my $template = Bugzilla->template;
 my $cgi = Bugzilla->cgi;
 my $dbh = Bugzilla->dbh;
 
 Bugzilla->login(LOGIN_REQUIRED);
-
-push @{$::vars->{'style_urls'}}, 'testopia/css/default.css';
 
 my $action     = $cgi->param('action') || '';
 my $attach_id  = $cgi->param('attach_id');

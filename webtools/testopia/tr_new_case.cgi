@@ -31,7 +31,7 @@ use Bugzilla::Testopia::Util;
 use Bugzilla::Testopia::TestCase;
 use JSON;
 
-use vars qw($vars);
+my $vars = {};
 
 Bugzilla->login(LOGIN_REQUIRED);
    
@@ -39,8 +39,6 @@ my $cgi = Bugzilla->cgi;
 my $template = Bugzilla->template;
 
 print $cgi->header;
-
-push @{$::vars->{'style_urls'}}, 'testopia/css/default.css';
 
 my $action = $cgi->param('action') || '';
 my @plan_id = $cgi->param('plan_id');

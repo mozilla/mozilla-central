@@ -33,14 +33,12 @@ use Bugzilla::Testopia::TestRun;
 use Bugzilla::Testopia::Search;
 use Bugzilla::Testopia::Table;
 
-use vars qw($vars);
+my $vars = {};
 my $template = Bugzilla->template;
 my $query_limit = 10000;
 
 Bugzilla->login(LOGIN_REQUIRED);
 my $cgi = Bugzilla->cgi;
-
-push @{$::vars->{'style_urls'}}, 'testopia/css/default.css';
 
 my $action = $cgi->param('action') || '';
 my $plan_id = $cgi->param('plan_id');

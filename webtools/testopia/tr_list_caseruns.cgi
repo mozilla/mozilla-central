@@ -34,13 +34,11 @@ use Bugzilla::Testopia::TestCaseRun;
 use Bugzilla::Testopia::Table;
 use Bugzilla::Testopia::Constants;
 
-use vars qw($vars);
+my $vars = {};
 
 my $cgi = Bugzilla->cgi;
 my $template = Bugzilla->template;
 my $query_limit = 15000;
-
-push @{$::vars->{'style_urls'}}, 'testopia/css/default.css';
 
 $cgi->send_cookie(-name => "TEST_LAST_ORDER",
                   -value => $cgi->param('order'),

@@ -45,10 +45,9 @@ use Data::Dumper;
 
 Bugzilla->login(LOGIN_REQUIRED);
 
-my $cgi = Bugzilla->cgi;
-my $template = Bugzilla->template;
-
-use vars qw($vars);
+local our $cgi = Bugzilla->cgi;
+local our $template = Bugzilla->template;
+local our $vars = {};
 
 print $cgi->header;
 

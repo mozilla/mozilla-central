@@ -39,7 +39,7 @@ Bugzilla->login(LOGIN_REQUIRED);
 
 my $cgi = Bugzilla->cgi;
 
-use vars qw($vars);
+my $vars = {};
 my $template = Bugzilla->template;
 
 print $cgi->header;

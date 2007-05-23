@@ -32,7 +32,7 @@ use Bugzilla::Testopia::Util;
 use Bugzilla::Testopia::Constants;
 use Bugzilla::Testopia::Report;
 
-use vars qw($vars);
+my $vars = {};
 my $template = Bugzilla->template;
 my $cgi = Bugzilla->cgi;
 
@@ -50,7 +50,6 @@ if ($type eq 'status-breakdown'){
       exit;
     }
     validate_test_id($case_id, 'case');
-    push @{$::vars->{'style_urls'}}, 'testopia/css/default.css';
     
     my $case = Bugzilla::Testopia::TestCase->new($case_id);
     exit unless $case->canview;

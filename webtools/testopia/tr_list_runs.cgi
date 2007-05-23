@@ -33,8 +33,7 @@ use Bugzilla::Testopia::Search;
 use Bugzilla::Testopia::Table;
 use Bugzilla::Testopia::TestRun;
 
-use vars qw($vars);
-
+my $vars = {};
 my $cgi = Bugzilla->cgi;
 my $template = Bugzilla->template;
 my $query_limit = 5000;

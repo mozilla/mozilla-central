@@ -36,10 +36,9 @@ use Bugzilla::Testopia::TestCase;
 
 Bugzilla->login(LOGIN_REQUIRED);
 
-my $cgi = Bugzilla->cgi;
-
-use vars qw($vars $template);
-my $template = Bugzilla->template;
+local our $cgi = Bugzilla->cgi;
+local our $vars = {};
+local our $template = Bugzilla->template;
 
 print $cgi->header;
 

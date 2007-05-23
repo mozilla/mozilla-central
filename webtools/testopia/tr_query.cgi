@@ -36,11 +36,11 @@ use Bugzilla::Testopia::Environment::Element;
 use Bugzilla::Testopia::Environment::Property;
 use JSON;
 
-use vars qw($vars $template);
+local our $vars = {};
 
 my $dbh = Bugzilla->dbh;
-my $cgi = Bugzilla->cgi;
-my $template = Bugzilla->template;
+local our $cgi = Bugzilla->cgi;
+local our $template = Bugzilla->template;
 
 push @{$::vars->{'style_urls'}}, 'testopia/css/default.css';
 

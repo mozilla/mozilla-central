@@ -35,14 +35,13 @@ use Bugzilla::Testopia::TestRun;
 use Bugzilla::Testopia::TestCase;
 use Bugzilla::Testopia::TestCaseRun;
 
-use vars qw($vars);
-my $template = Bugzilla->template;
-my $query_limit = 15000;
+local our $vars = {};
+local our $template = Bugzilla->template;
+local our $query_limit = 15000;
 
 Bugzilla->login(LOGIN_REQUIRED);
    
-my $dbh = Bugzilla->dbh;
-my $cgi = Bugzilla->cgi;
+local our $cgi = Bugzilla->cgi;
 
 print $cgi->header;
 
@@ -50,7 +49,6 @@ my $caserun_id = $cgi->param('caserun_id');
 validate_test_id($caserun_id, 'case_run');
 
 ThrowUserError('testopia-missing-parameter', {'param' => 'caserun_id'}) unless ($caserun_id);
-push @{$::vars->{'style_urls'}}, 'testopia/css/default.css';
 $vars->{'fullwidth'} = 1;
 my $action = $cgi->param('action') || '';
 

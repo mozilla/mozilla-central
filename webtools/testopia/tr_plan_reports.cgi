@@ -29,7 +29,7 @@ use Bugzilla::Util;
 use Bugzilla::Testopia::Util;
 use Bugzilla::Testopia::Report;
 
-use vars qw($vars);
+my $vars = {};
 my $template = Bugzilla->template;
 my $cgi = Bugzilla->cgi;
 
@@ -49,8 +49,6 @@ if ($type eq 'build_coverage'){
       exit;
     }
     validate_test_id($plan_id, 'plan');
-    push @{$::vars->{'style_urls'}}, 'testopia/css/default.css';
-    
     my $action = $cgi->param('action') || '';
     my $plan = Bugzilla::Testopia::TestPlan->new($plan_id);
     ThrowUserError("testopia-permission-denied", {'object' => $plan}) unless $plan->canview;

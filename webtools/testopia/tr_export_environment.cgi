@@ -47,13 +47,12 @@ use Bugzilla::Error;
 use Bugzilla::Testopia::Util;
 use Bugzilla::Testopia::Environment;
 use Bugzilla::Testopia::Environment::Xml;
-use vars qw($vars);
 
-#************************************ Variable Declarations/Initialization **********************************# 
+#************************************ Variable Declarations/Initialization **********************************#
+my $vars = {}; 
 Bugzilla->login(LOGIN_REQUIRED);
 my $cgi = Bugzilla->cgi;
 my $template = Bugzilla->template;
-push @{$::vars->{'style_urls'}}, 'testopia/css/default.css';
 my $env_id = $cgi->param('env_id');
 
 #*********************************************   UI Logic    ************************************************#

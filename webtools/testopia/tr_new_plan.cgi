@@ -33,7 +33,7 @@ use Bugzilla::Testopia::Util;
 use Bugzilla::Testopia::TestPlan;
 use Bugzilla::Testopia::Product;
 
-use vars qw($vars);
+my $vars = {};
 my $template = Bugzilla->template;
 
 Bugzilla->login(LOGIN_REQUIRED);
@@ -42,8 +42,6 @@ my $dbh = Bugzilla->dbh;
 my $cgi = Bugzilla->cgi;
 
 print $cgi->header;
-
-push @{$::vars->{'style_urls'}}, 'testopia/css/default.css';
 
 my $action = $cgi->param('action') || '';
 

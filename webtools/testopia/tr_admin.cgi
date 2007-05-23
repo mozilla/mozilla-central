@@ -29,7 +29,7 @@ use Bugzilla::Util;
 use Bugzilla::Testopia::TestPlan;
 use Bugzilla::Testopia::Util;
 
-my $template = Bugzilla->template;
+local our $template = Bugzilla->template;
 my $dbh = Bugzilla->dbh;
 my $cgi = Bugzilla->cgi;
 
@@ -40,7 +40,7 @@ Bugzilla->login(LOGIN_REQUIRED);
 print $cgi->header;
 ThrowUserError("testopia-read-only") unless Bugzilla->user->in_group('admin');   
 
-my $plan = Bugzilla::Testopia::TestPlan->new({});
+local our $plan = Bugzilla::Testopia::TestPlan->new({});
 my $action = $cgi->param('action') || '';
 my $item = $cgi->param('item') || '';
 
@@ -97,7 +97,7 @@ else {
 }
 
 sub display {
-       $vars->{'plan'} = $plan;
-        $template->process("testopia/admin/plantypes/show.html.tmpl", $vars) 
-            || ThrowTemplateError($template->error());
+    $vars->{'plan'} = $plan;
+    $template->process("testopia/admin/plantypes/show.html.tmpl", $vars) 
+        || ThrowTemplateError($template->error());
 }

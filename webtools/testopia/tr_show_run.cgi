@@ -37,16 +37,16 @@ use Bugzilla::Testopia::Search;
 use Bugzilla::Testopia::Table;
 use Bugzilla::Testopia::Product;
 
-use vars qw($vars);
-my $template = Bugzilla->template;
-my $query_limit = 15000;
+local our $vars = {};
+local our $template = Bugzilla->template;
+local our $query_limit = 15000;
 
 Bugzilla->login(LOGIN_REQUIRED);
    
 my $dbh = Bugzilla->dbh;
-my $cgi = Bugzilla->cgi;
+local our $cgi = Bugzilla->cgi;
 
-my $run_id = trim($cgi->param('run_id') || '');
+local our $run_id = trim($cgi->param('run_id') || '');
 
 unless ($run_id){
   print $cgi->header;
@@ -55,11 +55,9 @@ unless ($run_id){
   exit;
 }
 validate_test_id($run_id, 'run');
-push @{$::vars->{'style_urls'}}, 'testopia/css/default.css';
-
 my $serverpush = support_server_push($cgi);
 
-my $action = $cgi->param('action') || '';
+local our $action = $cgi->param('action') || '';
 
 ####################
 ### Edit Actions ###
@@ -99,7 +97,6 @@ elsif ($action =~ /^Clone/){
         push @ids, $id;
     }
     
-    my $dbh = Bugzilla->dbh;
     my $ref;
     if ($case_list){ 
         $ref = $dbh->selectcol_arrayref(

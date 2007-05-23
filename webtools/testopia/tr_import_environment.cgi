@@ -47,23 +47,23 @@ use Bugzilla::Testopia::Util;
 use Bugzilla::Testopia::Environment;
 use Bugzilla::Testopia::Environment::Xml;
 use Data::Dumper;
-use vars qw($vars);
+
 
 #************************************ Variable Declarations/Initialization **********************************# 
 Bugzilla->login(LOGIN_REQUIRED);
-my $cgi = Bugzilla->cgi;
-my $template = Bugzilla->template;
-push @{$::vars->{'style_urls'}}, 'testopia/css/default.css';
-my $upload_dir = "testopia/temp";
-my $env_filename = $cgi->param('env_file');
-my $env_fh = $cgi->upload('env_file');
-my $action = $cgi->param('action') || '';
-my $xml = $cgi->param('xml');
-my $submit = $cgi->param('submit');
-my $environment = Bugzilla::Testopia::Environment->new({'environment_id' => 0});
-my $user_can_edit = $environment->canedit;
+local our $cgi = Bugzilla->cgi;
+local our $template = Bugzilla->template;
+local our $vars = {};
+local our $upload_dir = "testopia/temp";
+local our $env_filename = $cgi->param('env_file');
+local our $env_fh = $cgi->upload('env_file');
+local our $action = $cgi->param('action') || '';
+local our $xml = $cgi->param('xml');
+local our $submit = $cgi->param('submit');
+local our $environment = Bugzilla::Testopia::Environment->new({'environment_id' => 0});
+local our $user_can_edit = $environment->canedit;
 #my $user_can_edit = 0;                                                     # Remove on production <- used to toggle user's rights.
-my $message = '';
+our $message = '';
 $CGI::POST_MAX = 1024 * 500;        # max file size 500K
 
 #***************************************** UI Logic ************************************************************#

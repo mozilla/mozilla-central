@@ -47,13 +47,13 @@ Bugzilla->login(LOGIN_REQUIRED);
 
 my $cgi = Bugzilla->cgi;
 
-use vars qw($vars);
-my $template = Bugzilla->template;
+local our $vars = {};
+local our $template = Bugzilla->template;
 
 print $cgi->header;
 
 my $action = $cgi->param('action') || '';
-my $env_id = trim(Bugzilla->cgi->param('env_id')) || '';
+local our $env_id = trim(Bugzilla->cgi->param('env_id')) || '';
 
 unless ($env_id || $action){
   $template->process("testopia/environment/choose.html.tmpl", $vars) 
