@@ -89,10 +89,11 @@ No test cases
   [% END %]
 [% END %]
 found.</b>
-</p>
 [% IF candelete %]
-<p style="float: right;"><input type="submit" name="action" value="Delete Selected"></p>
+<span style="float: right;"><input type="submit" name="action" value="Delete Selected"></span>
+<br><br>
 [% END %]
+</p>
 [% IF dotweak AND table.list_count %]
 <h3>Update Selected Test Cases</h3>
 

@@ -927,11 +927,12 @@ sub init {
         if ($obj eq 'case'){
             push(@specialchart, ["case_plan_id", $type, join(',', $cgi->param('plan_id'))]);
             if ($cgi->param('exclude')){
-                my @exclusions = split(/,/, $cgi->param('exclude'));
-                foreach (@exclusions){
+                my @runs = split(/,/, $cgi->param('exclude'));
+                foreach (@runs){
                     detaint_natural($_);
                 }
-                push @wherepart, 'test_cases.case_id NOT IN ('. join(',', @exclusions) .')';
+                my $exclusions = $dbh->selectcol_arrayref('SELECT DISTINCT case_id FROM test_case_runs WHERE run_id IN ('. join(',', @runs) .')');
+                push @wherepart, 'test_cases.case_id NOT IN ('. join(',', @$exclusions) .')';
             }
         }
         elsif ($obj eq 'run'){
