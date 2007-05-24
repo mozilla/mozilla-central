@@ -182,17 +182,10 @@ else{
 
 # Environment Lookup
     if ($action eq 'getenv'){
-        Bugzilla->batch(1);
         my $search = $cgi->param('search');
-        my $run_id = $cgi->param('run_id');
-        eval {
-            detaint_natural($run_id);
-            trick_taint($search);
-            validate_test_id($run_id, 'run');
-        };
-        exit if $@;
+        my $prod_id = $cgi->param('prod_id');
+        trick_taint($search);
         
-        my $run = Bugzilla::Testopia::TestRun->new($run_id);
         $search = "%$search%";
         my $dbh = Bugzilla->dbh;
         
@@ -201,19 +194,13 @@ else{
         # as a select list in the ComboBox widget.
         my $ref;
             
-        if ($run_id){
+        if ($prod_id){
             $ref = $dbh->selectall_arrayref(
                 "SELECT test_environments.name AS name, test_environments.environment_id 
                    FROM test_environments 
                   WHERE name like ? AND product_id = ? AND isactive = 1
-           UNION SELECT test_environments.name AS name, test_environments.environment_id
-                   FROM test_case_runs
-                  INNER JOIN test_environments ON test_case_runs.environment_id = test_environments.environment_id
-                  WHERE name like ? AND test_case_runs.run_id = ?
-                    AND isactive = 1
                   ORDER BY name",
-                  undef, ($search, $run->plan->product_id, 
-                          $search, $run_id));
+                  undef, ($search, $prod_id));
         }
         else{
             $ref = $dbh->selectall_arrayref(

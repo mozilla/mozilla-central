@@ -254,6 +254,7 @@ elsif ($action eq 'update_assignee'){
         print "Error - You don't have permission";
         exit;
     }
+    
     my $assignee_id = login_to_id(trim($cgi->param('assignee')));
     if ($assignee_id == 0){
         print "Error - Invalid assignee";
@@ -291,10 +292,13 @@ elsif ($action eq 'attach_bug'){
     }
     my @buglist;
     foreach my $bug (split(/[\s,]+/, $cgi->param('bugs'))){
-        Bugzilla->batch(1);
+        
+        my $error_mode_cache = Bugzilla->error_mode;
+        Bugzilla->error_mode(ERROR_MODE_DIE);
         eval{
             ValidateBugID($bug);
         };
+        Bugzilla->error_mode($error_mode_cache);
         if ($@){
             print "<span style='font-weight:bold; color:#FF0000;'>Error - Invalid bug id or alias</span>";
             exit;
@@ -305,7 +309,7 @@ elsif ($action eq 'attach_bug'){
         $caserun->attach_bug($bug);
     }
     foreach my $bug (@{$caserun->case->bugs}){
-        print &::GetBugLink($bug->bug_id, $bug->bug_id) ." ";
+        print Bugzilla::Template::get_bug_link($bug->bug_id, $bug->bug_id) ." ";
     }
 }
 elsif ($action eq 'detach_bug'){

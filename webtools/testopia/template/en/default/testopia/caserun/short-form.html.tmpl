@@ -127,7 +127,7 @@
         <div style="float:left;"><input type="text" size="6" value="" id="mbg[% index %]" [% enabled %]/></div>
         <div class="cc_i"><input type="button" value="Attach Bug" id="sk[% index %]" [% 'disabled="true"' UNLESS caserun.canedit %] onclick="attch([% index %], [% caserun.id FILTER none %], document.getElementById('mbg[% index %]').value);"/></div>
   [%##### Assignee #####%]
-        <div class="cc_i"><input value="[% user.login FILTER html %]" id="assignee_[% index %]" /><input type="button" value="Assign" [% 'disabled="true"' UNLESS caserun.canedit %] onclick="chNote([% index %], [% caserun.id FILTER none %], document.getElementById('notes[% index %]').value); chOwn([% index %], [% caserun.id FILTER none %], document.getElementById('assignee_[% index %]').value)">
+        <div class="cc_i"><input value="[% user.login FILTER html %]" id="assignee_[% index %]" /><input type="button" value="Assign" [% 'disabled="true"' UNLESS caserun.canedit %] onclick="chOwn([% index %], [% caserun.id FILTER none %], document.getElementById('assignee_[% index %]').value)">
       </div>
       <div style="float:right; margin-right:20px;">
         <a href="tr_show_caserun.cgi?caserun_id=[% caserun.id FILTER none %]">Classic interface...</a>
