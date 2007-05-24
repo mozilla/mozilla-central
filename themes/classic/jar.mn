@@ -543,7 +543,11 @@ classic.jar:
   skin/classic/navigator/navigator.css                                  (navigator/navigator.css)
   skin/classic/navigator/linkToolbar.css                                (navigator/linkToolbar.css)
   skin/classic/navigator/pageInfo.css                                   (navigator/pageInfo.css)
-  skin/classic/navigator/tabbrowser.css                                 (navigator/tabbrowser.css)
+#ifdef XP_MACOSX
+  skin/classic/navigator/tabbrowser.css                                 (navigator/mac/tabbrowser.css)
+#else
+  skin/classic/navigator/tabbrowser.css                                 (navigator/win/tabbrowser.css)
+#endif
   skin/classic/navigator/btn1/first.gif                                 (navigator/btn1/first.gif)
   skin/classic/navigator/btn1/first-disabled.gif                        (navigator/btn1/first-disabled.gif)
   skin/classic/navigator/btn1/first-hover.gif                           (navigator/btn1/first-hover.gif)

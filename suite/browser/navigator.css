@@ -15,7 +15,7 @@ tabbrowser {
 }
 
 .tabbrowser-tabs > .tabbrowser-tab {
-  -moz-binding: url("chrome://global/content/bindings/tabbox.xml#tab");
+  -moz-binding: url("chrome://navigator/content/tabbrowser.xml#tabbrowser-tab");
 }
 
 .tabs-closebutton-box > .tabs-closebutton {
