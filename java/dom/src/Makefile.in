@@ -61,9 +61,9 @@ EXTRA_LIBS		+= \
 include $(topsrcdir)/config/config.mk
 
 ifeq ($(OS_ARCH),Darwin)
- INCLUDES += -I$(MOZ_JDKHOME)/include -I.
- DSO_LDOPTS += -L/System/Library/Frameworks/JavaVM.Framework/Libraries -ljvm_compat
- DLL_SUFFIX = .jnilib
+ INCLUDES := -I$(MOZ_JDKHOME)/include -I. $(INCLUDES)
+ DSO_LDOPTS += -framework JavaVM -flat_namespace -undefined suppress -L/System/Library/Frameworks/JavaVM.Framework/Libraries -ljvm_compat
+ DLL_SUFFIX = .dylib
 endif #DARWIN
 
 ifeq ($(OS_ARCH),Linux)

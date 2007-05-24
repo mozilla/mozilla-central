@@ -80,8 +80,8 @@ include $(topsrcdir)/config/config.mk
 DEFINES += -DMOZILLA_INTERNAL_API -DFORCE_PR_LOG
 
 ifeq ($(OS_ARCH),Darwin)
- INCLUDES += -I$(MOZ_JDKHOME)/include
- DSO_LDOPTS += -L/System/Library/Frameworks/JavaVM.Framework/Libraries -ljvm_compat
+ INCLUDES := -I$(MOZ_JDKHOME)/include $(INCLUDES)
+ DSO_LDOPTS += -framework JavaVM -flat_namespace -undefined suppress -L/System/Library/Frameworks/JavaVM.Framework/Libraries -ljvm_compat
  DLL_SUFFIX = .jnilib
 else
 ifeq ($(OS_ARCH),Linux)

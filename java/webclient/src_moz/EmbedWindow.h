@@ -112,7 +112,7 @@ public:
     
 private:
 
-    UINT                     GetFormat(const char* aMimeStr);
+    PRUint32                 GetFormat(const char* aMimeStr);
     NS_IMETHOD               GetText(JNIEnv * env, nsITransferable *aTransferable, 
                                      const nsACString & aDataFlavor, jstring *result);
     NS_IMETHOD               SendTextToJava(JNIEnv *env, 

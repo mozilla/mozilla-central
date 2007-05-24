@@ -790,7 +790,7 @@ NS_IMETHODIMP EmbedWindow::OnCopyOrDrag(nsIDOMEvent *aEvent,
         nsXPIDLCString flavorStr;
         if ( currentFlavor ) {
             currentFlavor->ToString(getter_Copies(flavorStr));
-            UINT format = GetFormat(flavorStr);
+            PRUint32 format = GetFormat(flavorStr);
 
             // Do various things internal to the implementation, like
             // map one flavor to another or add additional flavors based
@@ -854,8 +854,9 @@ NS_IMETHODIMP EmbedWindow::OnPasteOrDrop(nsIDOMEvent *event, nsITransferable *tr
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-UINT EmbedWindow::GetFormat(const char* aMimeStr)
+PRUint32 EmbedWindow::GetFormat(const char* aMimeStr)
 {
+#ifdef _WIN32
   UINT format;
 
   if (strcmp(aMimeStr, kTextMime) == 0)
@@ -879,6 +880,8 @@ UINT EmbedWindow::GetFormat(const char* aMimeStr)
     format = ::RegisterClipboardFormat(aMimeStr);
 
   return format;
+#endif
+  return (PRUint32) 0;
 }
 
 NS_IMETHODIMP
