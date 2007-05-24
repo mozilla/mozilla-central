@@ -39,7 +39,7 @@ sub user_visible_products {
     my $query = "SELECT id FROM products " .
                 "LEFT JOIN group_control_map " .
                 "ON group_control_map.product_id = products.id ";
-    if (Bugzilla->params->{'useentrygroupdefault')} {
+    if (Bugzilla->params->{'useentrygroupdefault'}) {
        $query .= "AND group_control_map.entry != 0 ";
     } else {
        $query .= "AND group_control_map.membercontrol = " .

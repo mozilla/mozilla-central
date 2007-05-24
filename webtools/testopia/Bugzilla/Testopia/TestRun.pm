@@ -281,10 +281,11 @@ sub add_case_run {
     return 0 if $self->check_case($case_id);
     my $case = Bugzilla::Testopia::TestCase->new($case_id);
     return 0 if $case->status ne 'CONFIRMED';
+    my $assignee = $case->default_tester ? $case->default_tester->id : undef;
     my $caserun = Bugzilla::Testopia::TestCaseRun->new({
         'run_id' => $self->{'run_id'},
         'case_id' => $case_id,
-        'assignee' => $case->default_tester->id,
+        'assignee' => $asignee,
         'case_text_version' => $case->version,
         'build_id' => $self->build->id,
         'environment_id' => $self->environment_id,
