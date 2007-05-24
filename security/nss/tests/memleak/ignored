@@ -31,7 +31,9 @@
 
 #367376
 /main/launch_threads/PR_CreateThread/_PR_CreateThread/pthread_create@@GLIBC_2.1/**
+/main/launch_threads/_PR_CreateThread/pthread_create@@GLIBC_2.1/**
 /main/client_main/launch_thread/PR_CreateThread/_PR_CreateThread/pthread_create@@GLIBC_2.1/**
+/main/client_main/launch_thread/_PR_CreateThread/pthread_create@@GLIBC_2.1/**
 
 #367384
 /main/NSS_Initialize/nss_Init/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/secmod_ModuleInit/NSC_Initialize/nsc_CommonInitialize/RNG_RNGInit/freebl_RunLoaderOnce/PR_CallOnce/freebl_LoadDSO/bl_LoadLibrary/bl_LoadFreeblLibInSoftokenDir/PR_LoadLibraryWithFlags/pr_LoadLibraryByPathname/dlopen@@GLIBC_2.1/**
