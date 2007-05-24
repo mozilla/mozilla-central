@@ -185,7 +185,7 @@ else{
 
 sub display{
     my $category = Bugzilla::Testopia::Environment::Category->new({'id' => 0});
-    if (Param('useclassification')){
+    if (Bugzilla->params->{'useclassification'}){
         $vars->{'allhaschild'} = $category->get_all_child_count;
         $vars->{'toplevel'} = Bugzilla->user->get_selectable_classifications;
         $vars->{'type'} = 'classification';
@@ -327,10 +327,12 @@ sub do_edit_category{
     
     trick_taint($name);
     detaint_natural($product_id);
-    Bugzilla->batch(1);
+    my $error_mode_cache = Bugzilla->error_mode;
+    Bugzilla->error_mode(ERROR_MODE_DIE);
     eval{
         validate_selection($product_id, 'id', 'products');
     };
+    Bugzilla->error_mode($error_mode_cache);
     if ($@ && $product_id != 0){
         print '{error:"Invalid product"}';
         exit;
@@ -402,10 +404,12 @@ sub do_edit_property{
     
     trick_taint($name);
     detaint_natural($element_id);
-    Bugzilla->batch(1);
+    my $error_mode_cache = Bugzilla->error_mode;
+    Bugzilla->error_mode(ERROR_MODE_DIE);
     eval{
         validate_selection($element_id, 'element_id', 'test_environment_element');
     };
+    Bugzilla->error_mode($error_mode_cache);
     if ($@){
         print '{error:"Invalid element"}';
         exit;

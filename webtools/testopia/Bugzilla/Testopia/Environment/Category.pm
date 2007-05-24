@@ -228,7 +228,7 @@ sub get_env_product_list{
           		   LEFT JOIN group_control_map
           		     ON group_control_map.product_id = p.id ";
     
-    if (Param('useentrygroupdefault')) {
+    if (Bugzilla->params->{'useentrygroupdefault'}) {
        $query .= "AND group_control_map.entry != 0 ";
     } else {
        $query .= "AND group_control_map.membercontrol = " .

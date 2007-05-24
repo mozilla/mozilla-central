@@ -691,7 +691,7 @@ sub update_bugs {
         LogActivityEntry($bug->bug_id, 'resolution', $bug->resolution, '', 
                          Bugzilla->user->id, $timestamp) if ($status eq 'REOPENED');
         AppendComment($bug->bug_id, Bugzilla->user->id, $comment, 
-                      !Bugzilla->user->in_group(Param('insidergroup')), $timestamp);
+                      !Bugzilla->user->in_group(Bugzilla->params->{'insidergroup'}), $timestamp);
         
         $dbh->bz_unlock_tables();
     }

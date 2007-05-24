@@ -148,7 +148,7 @@ elsif ($action eq 'do_clone'){
         $newplan->add_tester($author, TR_READ | TR_WRITE | TR_DELETE | TR_ADMIN );
         $newplan->set_tester_regexp( Bugzilla->params->{"testopia-default-plan-testers-regexp"}, 3)
             if Bugzilla->params->{"testopia-default-plan-testers-regexp"};
-        $newplan->derive_regexp_testers(Param('testopia-default-plan-testers-regexp'))
+        $newplan->derive_regexp_testers(Bugzilla->params->{'testopia-default-plan-testers-regexp'})
     } 
     if ($cgi->param('copy_cases')){
         my @case_ids;

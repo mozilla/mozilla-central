@@ -684,7 +684,7 @@ sub get_distinct_builds {
                   "JOIN products ON build.product_id = products.id " .
              "LEFT JOIN group_control_map " .
               "ON group_control_map.product_id = products.id ";
-    if (Param('useentrygroupdefault')) {
+    if (Bugzilla->params->{'useentrygroupdefault'}) {
         $query .= "AND group_control_map.entry != 0 ";
     } else {
         $query .= "AND group_control_map.membercontrol = " .

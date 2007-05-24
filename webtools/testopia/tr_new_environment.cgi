@@ -69,7 +69,7 @@ if ($action eq 'Add'){
     
     $env = Bugzilla::Testopia::Environment->new($success);
     my $category = Bugzilla::Testopia::Environment::Category->new({'id' => 0});
-    if (Param('useclassification')){
+    if (Bugzilla->params->{'useclassification'}){
         $vars->{'allhaschild'} = $category->get_all_child_count;
         $vars->{'toplevel'} = Bugzilla->user->get_selectable_classifications;
         $vars->{'type'} = 'classification';

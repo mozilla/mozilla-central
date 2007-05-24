@@ -188,9 +188,9 @@ sub store {
     
     # Add permissions for the plan
     $self->add_tester($self->{'author_id'},15);
-    if (Param('testopia-default-plan-testers-regexp')) {
+    if (Bugzilla->params->{'testopia-default-plan-testers-regexp'}) {
         $self->set_tester_regexp( Bugzilla->params->{"testopia-default-plan-testers-regexp"}, 3);
-        $self->derive_regexp_testers(Param('testopia-default-plan-testers-regexp'));
+        $self->derive_regexp_testers(Bugzilla->params->{'testopia-default-plan-testers-regexp'});
     }
     
     # Create default category

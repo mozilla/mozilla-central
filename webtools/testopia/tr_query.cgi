@@ -145,7 +145,7 @@ if ($action eq 'getversions'){
 
 elsif ($action eq 'get_products'){
     my @prod;
-    if (Param('useclassification')){
+    if (Bugzilla->params->{'useclassification'}){
         my @classes = $cgi->param('class_ids');
         foreach my $id (@classes){
             my $class = Bugzilla::Classification->new($id);

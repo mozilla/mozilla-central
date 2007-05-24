@@ -32,9 +32,7 @@ use Bugzilla::Constants;
 use Bugzilla::WebService;
 
 # To be used in version 2.23/3.0 of Bugzilla
-# Bugzilla->usage_mode(Bugzilla::Constants::USAGE_MODE_WEBSERVICE);
-
-Bugzilla->batch(1);
+Bugzilla->usage_mode(Bugzilla::Constants::USAGE_MODE_WEBSERVICE);
 
 die 'Content-Type must be "text/xml" when using API' unless
     $ENV{'CONTENT_TYPE'} eq 'text/xml';

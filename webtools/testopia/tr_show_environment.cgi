@@ -101,12 +101,16 @@ elsif ($action eq 'edit'){
 
     my $name = $cgi->param('name');
     my $product_id = $cgi->param('product_id');
-    Bugzilla->batch(1);
+
     trick_taint($name);
     detaint_natural($product_id);
+
+    my $error_mode_cache = Bugzilla->error_mode;
+    Bugzilla->error_mode(ERROR_MODE_DIE);
     eval{
         validate_selection( $product_id, 'id', 'products');
     };
+    Bugzilla->error_mode($error_mode_cache);    
     if ($@){
         print "{error: 'Invalid product'}";
         exit;
@@ -258,7 +262,7 @@ sub display {
     }
     ThrowUserError("testopia-read-only", {'object' => $env}) unless $env->canview;
     my $category = Bugzilla::Testopia::Environment::Category->new({'id' => 0});
-    if (Param('useclassification')){
+    if (Bugzilla->params->{'useclassification'}){
         $vars->{'allhaschild'} = $category->get_all_child_count;
         $vars->{'toplevel'} = Bugzilla->user->get_selectable_classifications;
         $vars->{'type'} = 'classification';

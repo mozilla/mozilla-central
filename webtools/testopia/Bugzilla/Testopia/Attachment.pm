@@ -193,7 +193,7 @@ sub _validate_data {
     # makes for a quick way to eat up disk space. Let's compress them. 
     # We do this before we check the size since the uncompressed version
     # could easily be greater than maxattachmentsize.
-    if (Param('convert_uncompressed_images') 
+    if (Bugzilla->params->{'convert_uncompressed_images'} 
           && $self->{'mime_type'} eq 'image/bmp'){
       require Image::Magick; 
       my $img = Image::Magick->new(magick=>'bmp');
