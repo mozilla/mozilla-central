@@ -92,8 +92,19 @@ if ($action eq 'Commit'){
             push @uneditable, $run;
             next;
         }
+
+        my $error_mode_cache = Bugzilla->error_mode;
+        Bugzilla->error_mode(ERROR_MODE_DIE);
+        eval{
+            login_to_id(trim($cgi->param('manager')));
+        };
+        Bugzilla->error_mode($error_mode_cache);
+        if ($@){
+            print $cgi->multipart_end if $serverpush;
+        }
         my $manager = login_to_id(trim($cgi->param('manager')));
         trick_taint($manager);
+
         if ($cgi->param('manager') && !$manager){
             print $cgi->multipart_end if $serverpush;
             ThrowUserError("invalid_username", { name => $cgi->param('manager') }) if $cgi->param('manager');

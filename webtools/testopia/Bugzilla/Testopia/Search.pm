@@ -1297,7 +1297,7 @@ sub init {
             push(@groupby, $field) if !grep($_ eq $field, @groupby);
         }
     }
-    #unshift(@groupby, "test_${obj}s.${obj}_id");
+    unshift(@groupby, "test_${obj}s.${obj}_id");
     $query .= " " . $dbh->sql_group_by(join(', ', @groupby)) if @groupby;
 
 

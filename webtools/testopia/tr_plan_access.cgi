@@ -27,12 +27,11 @@ use Bugzilla::Constants;
 use Bugzilla::Testopia::Constants;
 use Bugzilla::Error;
 use Bugzilla::Util;
+use Bugzilla::User;
 use Bugzilla::Testopia::Util;
 use Bugzilla::Testopia::Product;
 
 use vars qw($vars);
-
-require 'globals.pl';
 
 local our $template = Bugzilla->template;
 local our $cgi = Bugzilla->cgi;
@@ -124,6 +123,7 @@ sub do_update {
         detaint_natural($perms);
         $plan->update_tester($row->{'user'}->id, $perms);
     }
+    $vars->{'tr_message'} = " Access updated";
 }
 
 sub display {

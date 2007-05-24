@@ -44,7 +44,7 @@
    [% url = "javascript:page(" %]
    [% pc  = ")" %]
 [% ELSE %]
-   [% url = "$table.get_page_url&page="%]
+   [% url = "$table.get_page_url&pagesize=$table.page_size&page="%]
    [%# url = "$table.url_loc?direction=$direction&getlist=1&page="%]
 [% END %]
 [% pagesizelist = [{name => 25, id => 25},
@@ -67,7 +67,7 @@
     }
   };
   function adjustPageSize(psize) {
-    document.location = "[% url %]&pagesize=" + psize;
+    document.location = "[% table.get_page_url %]&pagesize=" + psize;
   }
 </script>
 

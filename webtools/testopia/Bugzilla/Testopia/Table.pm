@@ -371,8 +371,8 @@ Returns an ineger representing how many items should appear on a page
 sub page_size    {
     my $self = shift;
     my $cgi = $self->{'cgi'};
-    return $cgi->param('pagesize') if $cgi->param('pagesize');
-    return 25;  
+    my $size = $cgi->param('pagesize') || 25;
+    return $size;
 }
 
 =head2 get_order_url
@@ -384,7 +384,7 @@ column headers to produce a sort order
 
 sub get_order_url {
     my $self = shift;
-    return $self->get_url('(page|order)');
+    return $self->get_url('page','order');
 }
 
 =head2 get_page_url
@@ -396,26 +396,14 @@ the page navigation links to move from page to page.
 
 sub get_page_url {
     my $self = shift;
-    return $self->get_url('page');
+    my $cgi = $self->{'cgi'};
+    return $self->{'url_loc'} ."?". $cgi->canonicalise_query('page', 'pagesize');
 }
 
 sub get_url {
-    my ($self, $regxp) = @_;
+    my ($self, @drops) = @_;
     my $cgi = $self->{'cgi'};
-    my @keys = $cgi->param;
-    my $qstring ='';
-    foreach my $key (@keys){
-        if ((defined $regxp) && ($key =~ $regxp)){
-            next;
-        }
-        my @vals = $cgi->param($key);
-        foreach my $val (@vals){
-            $qstring .= $key ."=". url_quote($val) ."&";
-        }
-    }
-    chop $qstring;
-    $qstring = $self->{'url_loc'} ."?". $qstring;
-    $self->{'url'} = $qstring;
+    $self->{'url'} = $self->{'url_loc'} ."?". $cgi->canonicalise_query(@drops);
     return $self->{'url'};
 }
 

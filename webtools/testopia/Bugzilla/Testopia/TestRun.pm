@@ -1003,7 +1003,14 @@ Returns a count of the test cases associated with this run
 
 sub case_count {
     my $self = shift;
-    return scalar @{$self->cases};
+    my $dbh = Bugzilla->dbh;
+    
+    my ($count) = $dbh->selectrow_array(
+                    "SELECT COUNT(case_run_id) FROM test_case_runs
+                      WHERE run_id=? AND iscurrent=1", undef,
+                      $self->{'run_id'});
+
+    return scalar $count;
 }
 
 sub case_run_count {
