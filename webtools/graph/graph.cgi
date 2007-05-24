@@ -239,22 +239,22 @@ sub show_graph {
   my $cmds = qq{
 				reset
                 $graph_size
-				set term png color
+				set terminal png color
 				set output "$PNGFILE"
-				set title  "$TBOX $TESTNAME"
+				set title "$TBOX $TESTNAME"
 				set key graph 0.1,0.95 reverse spacing .75 width -18
-				set linestyle 1 lt 3 lw 1 pt 7 ps .5
-				set linestyle 2 lt 3 lw 1 pt 7 ps 1
-				set linestyle 3 lt 3 lw 1
-				set linestyle 4 lt 8 lw 1 pt 7 ps 3
-				set data style points
+				set style line 1 lt 3 lw 1 pt 7 ps .5
+				set style line 2 lt 3 lw 1 pt 7 ps 1
+				set style line 3 lt 3 lw 1
+				set style line 4 lt 8 lw 1 pt 7 ps 3
+				set style data points
 				set timefmt "%Y:%m:%d:%H:%M:%S"
 				set xdata time
 				$xscale
 				$yscale
 				set ylabel "$TESTNAME ($UNITS)"
 				set timestamp "Generated: %d/%b/%y %H:%M" 0,-1
-				set nokey
+				unset key
 				set grid
 				$plot_cmd
                 $plot_cmd2
