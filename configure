@@ -12606,7 +12606,7 @@ echo $ac_n "checking if app-specific confvars.sh exists""... $ac_c" 1>&6
 echo "configure:12607: checking if app-specific confvars.sh exists" >&5
 if test -f "${srcdir}/${MOZ_BUILD_APP}/confvars.sh" ; then
   echo "$ac_t""${srcdir}/${MOZ_BUILD_APP}/confvars.sh" 1>&6
-  source "${srcdir}/${MOZ_BUILD_APP}/confvars.sh"
+  . "${srcdir}/${MOZ_BUILD_APP}/confvars.sh"
 else
   echo "$ac_t""no" 1>&6
 fi
