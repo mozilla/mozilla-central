@@ -134,7 +134,7 @@ nsHashKey *nsMsgGroupView::AllocHashKeyForHdr(nsIMsgDBHdr *msgHdr)
       return new nsCStringKey(cStringKey.get());
       break;
     case nsMsgViewSortType::byAuthor:
-      rv = nsMsgDBView::FetchAuthor(msgHdr, getter_Copies(stringKey));
+      rv = nsMsgDBView::FetchAuthor(msgHdr, stringKey);
       return NS_SUCCEEDED(rv) ? new nsStringKey(stringKey.get()) : nsnull;
     case nsMsgViewSortType::byRecipient:
       (void) msgHdr->GetRecipients(getter_Copies(cStringKey));
@@ -149,7 +149,7 @@ nsHashKey *nsMsgGroupView::AllocHashKeyForHdr(nsIMsgDBHdr *msgHdr)
 
         rv = (m_sortType == nsMsgViewSortType::byAccount) 
           ? FetchAccount(msgHdr, stringKey)
-          : FetchTags(msgHdr, getter_Copies(stringKey));
+          : FetchTags(msgHdr, stringKey);
         return NS_SUCCEEDED(rv) ? new nsStringKey(stringKey.get()) : nsnull;
 
       }
@@ -352,8 +352,6 @@ NS_IMETHODIMP nsMsgGroupView::OpenWithHdrs(nsISimpleEnumerator *aHeaders, nsMsgV
   nsCOMPtr <nsIMsgDBHdr> msgHdr;
   while (NS_SUCCEEDED(rv) && NS_SUCCEEDED(rv = aHeaders->HasMoreElements(&hasMore)) && hasMore)
   {
-    nsXPIDLCString cStringKey;
-    nsXPIDLString stringKey;
     rv = aHeaders->GetNext(getter_AddRefs(supports));
     if (NS_SUCCEEDED(rv) && supports)
     {
@@ -624,7 +622,6 @@ NS_IMETHODIMP nsMsgGroupView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsA
     if (colID[0] == 's'  && colID[1] == 'u' )
     {
       aValue.SetCapacity(0);
-      nsXPIDLString valueText;
       switch (m_sortType)
       {
         case nsMsgViewSortType::byDate:
@@ -663,45 +660,38 @@ NS_IMETHODIMP nsMsgGroupView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsA
           break;
         } 
         case nsMsgViewSortType::byAuthor:
-          FetchAuthor(msgHdr, getter_Copies(valueText));
-          aValue.Assign(valueText.get());
+          FetchAuthor(msgHdr, aValue);
           break;
         case nsMsgViewSortType::byStatus:      
-          rv = FetchStatus(m_flags[aRow], getter_Copies(valueText));
-          if (!valueText)
-            valueText.Adopt(GetString(NS_LITERAL_STRING("messagesWithNoStatus").get()));
-          aValue.Assign(valueText);
+          rv = FetchStatus(m_flags[aRow], aValue);
+          if (aValue.IsEmpty())
+            aValue.Adopt(GetString(NS_LITERAL_STRING("messagesWithNoStatus").get()));
           break;
         case nsMsgViewSortType::byTags:
-          rv = FetchTags(msgHdr, getter_Copies(valueText));
-          if (valueText.IsEmpty())
-            valueText.Adopt(GetString(NS_LITERAL_STRING("untaggedMessages").get()));
-          aValue.Assign(valueText);
+          rv = FetchTags(msgHdr, aValue);
+          if (aValue.IsEmpty())
+            aValue.Adopt(GetString(NS_LITERAL_STRING("untaggedMessages").get()));
           break;
         case nsMsgViewSortType::byPriority:
-          FetchPriority(msgHdr, getter_Copies(valueText));
-          if (!valueText)
-            valueText.Adopt(GetString(NS_LITERAL_STRING("noPriority").get()));
-          aValue.Assign(valueText);
+          FetchPriority(msgHdr, aValue);
+          if (aValue.IsEmpty())
+            aValue.Adopt(GetString(NS_LITERAL_STRING("noPriority").get()));
           break;
         case nsMsgViewSortType::byAccount:
           FetchAccount(msgHdr, aValue);
           break;
         case nsMsgViewSortType::byRecipient:
-          FetchRecipients(msgHdr, getter_Copies(valueText));
-          aValue.Assign(valueText);
+          FetchRecipients(msgHdr, aValue);
           break;
         case nsMsgViewSortType::byAttachments:
-          valueText.Adopt(GetString(((nsPRUint32Key *)hashKey)->GetValue()
+          aValue.Adopt(GetString(((nsPRUint32Key *)hashKey)->GetValue()
             ? NS_LITERAL_STRING("attachments").get()
             : NS_LITERAL_STRING("noAttachments").get()));
-          aValue.Assign(valueText);
           break;
         case nsMsgViewSortType::byFlagged:
-          valueText.Adopt(GetString(((nsPRUint32Key *)hashKey)->GetValue()
+          aValue.Adopt(GetString(((nsPRUint32Key *)hashKey)->GetValue()
             ? NS_LITERAL_STRING("groupFlagged").get()
             : NS_LITERAL_STRING("notFlagged").get()));
-          aValue.Assign(valueText);
           break;
 
         default:

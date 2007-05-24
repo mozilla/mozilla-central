@@ -82,10 +82,10 @@ protected:
   PRBool m_dayChanged;
 
 private:
-  nsXPIDLString m_kTodayString;
-  nsXPIDLString m_kYesterdayString;
-  nsXPIDLString m_kLastWeekString;
-  nsXPIDLString m_kTwoWeeksAgoString;
-  nsXPIDLString m_kOldMailString;
+  nsString m_kTodayString;
+  nsString m_kYesterdayString;
+  nsString m_kLastWeekString;
+  nsString m_kTwoWeeksAgoString;
+  nsString m_kOldMailString;
 };
 

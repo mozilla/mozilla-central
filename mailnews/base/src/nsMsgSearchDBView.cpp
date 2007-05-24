@@ -42,7 +42,6 @@
 #include "nsIMsgThread.h"
 #include "nsQuickSort.h"
 #include "nsIDBFolderInfo.h"
-#include "nsXPIDLString.h"
 #include "nsMsgBaseCID.h"
 #include "nsIMsgCopyService.h"
 #include "nsICopyMsgStreamListener.h"

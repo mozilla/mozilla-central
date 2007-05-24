@@ -139,11 +139,11 @@ NS_IMETHODIMP nsMsgQuickSearchDBView::OnHdrChange(nsIMsgDBHdr *aHdrChanged, PRUi
   {
     if (aHdrChanged)
     {
-      nsXPIDLCString junkScoreStr;
+      nsCString junkScoreStr;
       (void) aHdrChanged->GetStringProperty("junkscore", getter_Copies(junkScoreStr));
       if (atoi(junkScoreStr.get()) > 50)
       {
-        nsXPIDLCString originStr;
+        nsCString originStr;
         (void) aHdrChanged->GetStringProperty("junkscoreorigin", 
                                        getter_Copies(originStr));
 

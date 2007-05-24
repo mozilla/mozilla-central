@@ -166,17 +166,17 @@ protected:
   PRPackedBool  mGoBackEnabled;
   
   virtual const char * GetViewName(void) {return "MsgDBView"; }
-  nsresult FetchAuthor(nsIMsgDBHdr * aHdr, PRUnichar ** aAuthorString);
-  nsresult FetchRecipients(nsIMsgDBHdr * aHdr, PRUnichar ** aRecipientsString);
-  nsresult FetchSubject(nsIMsgDBHdr * aMsgHdr, PRUint32 aFlags, PRUnichar ** aValue);
+  nsresult FetchAuthor(nsIMsgDBHdr * aHdr, nsAString &aAuthorString);
+  nsresult FetchRecipients(nsIMsgDBHdr * aHdr, nsAString &aRecipientsString);
+  nsresult FetchSubject(nsIMsgDBHdr * aMsgHdr, PRUint32 aFlags, nsAString &aValue);
   nsresult FetchPreviewText(nsIMsgDBHdr * aMsgHdr, nsAString& aValue);
-  nsresult FetchDate(nsIMsgDBHdr * aHdr, PRUnichar ** aDateString);
-  nsresult FetchStatus(PRUint32 aFlags, PRUnichar ** aStatusString);
-  nsresult FetchSize(nsIMsgDBHdr * aHdr, PRUnichar ** aSizeString);
-  nsresult FetchPriority(nsIMsgDBHdr *aHdr, PRUnichar ** aPriorityString);
-  nsresult FetchLabel(nsIMsgDBHdr *aHdr, PRUnichar ** aLabelString);
-  nsresult FetchTags(nsIMsgDBHdr *aHdr, PRUnichar ** aTagString);
-  nsresult FetchKeywords(nsIMsgDBHdr *aHdr, char ** keywordString);
+  nsresult FetchDate(nsIMsgDBHdr * aHdr, nsAString & aDateString);
+  nsresult FetchStatus(PRUint32 aFlags, nsAString &aStatusString);
+  nsresult FetchSize(nsIMsgDBHdr * aHdr, nsAString & aSizeString);
+  nsresult FetchPriority(nsIMsgDBHdr *aHdr, nsAString & aPriorityString);
+  nsresult FetchLabel(nsIMsgDBHdr *aHdr, nsAString & aLabelString);
+  nsresult FetchTags(nsIMsgDBHdr *aHdr, nsAString & aTagString);
+  nsresult FetchKeywords(nsIMsgDBHdr *aHdr, nsACString & keywordString);
   nsresult FetchAccount(nsIMsgDBHdr * aHdr, nsAString& aAccount);
   nsresult CycleThreadedColumn(nsIDOMElement * aElement);
 
@@ -198,7 +198,7 @@ protected:
   nsresult AdjustRowCount(PRInt32 rowCountBeforeSort, PRInt32 rowCountAfterSort);
 
   nsresult GetSelectedIndices(nsUInt32Array *selection);
-  nsresult GenerateURIForMsgKey(nsMsgKey aMsgKey, nsIMsgFolder *folder, char ** aURI);
+  nsresult GenerateURIForMsgKey(nsMsgKey aMsgKey, nsIMsgFolder *folder, nsACString &aURI);
 // routines used in building up view
   virtual PRBool WantsThisThread(nsIMsgThread * thread);
   virtual nsresult	AddHdr(nsIMsgDBHdr *msgHdr);

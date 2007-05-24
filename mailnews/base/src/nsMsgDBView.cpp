@@ -48,7 +48,6 @@
 #include "nsIMsgFolder.h"
 #include "MailNewsTypes2.h"
 #include "nsMsgUtils.h"
-#include "nsXPIDLString.h"
 #include "nsQuickSort.h"
 #include "nsIMsgImapMailFolder.h"
 #include "nsImapCore.h"
@@ -305,7 +304,7 @@ nsresult nsMsgDBView::GetPrefLocalizedString(const char *aPrefName, nsString& aR
   nsresult rv = NS_OK;
   nsCOMPtr<nsIPrefBranch> prefBranch;
   nsCOMPtr<nsIPrefLocalizedString> pls;
-  nsXPIDLString ucsval;
+  nsString ucsval;
 
   prefBranch = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -352,9 +351,9 @@ nsresult nsMsgDBView::AppendKeywordProperties(const char *keywords, nsISupportsA
 // nsITreeView Implementation Methods (and helper methods)
 ///////////////////////////////////////////////////////////////////////////
 
-nsresult nsMsgDBView::FetchAuthor(nsIMsgDBHdr * aHdr, PRUnichar ** aSenderString)
+nsresult nsMsgDBView::FetchAuthor(nsIMsgDBHdr * aHdr, nsAString &aSenderString)
 {
-  nsXPIDLString unparsedAuthor;
+  nsString unparsedAuthor;
   if (!mHeaderParser)
     mHeaderParser = do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID);
 
@@ -365,17 +364,17 @@ nsresult nsMsgDBView::FetchAuthor(nsIMsgDBHdr * aHdr, PRUnichar ** aSenderString
   // unicode again.
   if (mHeaderParser)
   {
-    nsXPIDLCString name;
+    nsCString name;
     rv = mHeaderParser->ExtractHeaderAddressName("UTF-8", NS_ConvertUTF16toUTF8(unparsedAuthor).get(), getter_Copies(name));
     if (NS_SUCCEEDED(rv) && !name.IsEmpty())
     {
-      *aSenderString = nsCRT::strdup(NS_ConvertUTF8toUTF16(name).get());
-      return (*aSenderString) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
+      CopyUTF8toUTF16(name, aSenderString);
+      return NS_OK;
     }
   }
   // if we got here then just return the original string
-  *aSenderString = nsCRT::strdup(unparsedAuthor.IsEmpty() ? NS_LITERAL_STRING("").get() : unparsedAuthor.get());
-  return (*aSenderString) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
+  aSenderString = unparsedAuthor;
+  return NS_OK;
 }
 
 nsresult nsMsgDBView::FetchAccount(nsIMsgDBHdr * aHdr, nsAString& aAccount)
@@ -402,9 +401,9 @@ nsresult nsMsgDBView::FetchAccount(nsIMsgDBHdr * aHdr, nsAString& aAccount)
   return NS_OK;
 }
 
-nsresult nsMsgDBView::FetchRecipients(nsIMsgDBHdr * aHdr, PRUnichar ** aRecipientsString)
+nsresult nsMsgDBView::FetchRecipients(nsIMsgDBHdr * aHdr, nsAString &aRecipientsString)
 {
-  nsXPIDLString unparsedRecipients;
+  nsString unparsedRecipients;
   if (!mHeaderParser)
     mHeaderParser = do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID);
 
@@ -415,32 +414,30 @@ nsresult nsMsgDBView::FetchRecipients(nsIMsgDBHdr * aHdr, PRUnichar ** aRecipien
   // unicode again.
   if (mHeaderParser)
   {
-    nsXPIDLCString names;
+    nsCString names;
     rv = mHeaderParser->ExtractHeaderAddressNames("UTF-8", NS_ConvertUTF16toUTF8(unparsedRecipients).get(), getter_Copies(names));
-    if (NS_SUCCEEDED(rv) && (const char*)names)
+    if (NS_SUCCEEDED(rv) && !names.IsEmpty())
     {
-      *aRecipientsString = nsCRT::strdup(NS_ConvertUTF8toUTF16(names).get());
+      CopyUTF8toUTF16(names, aRecipientsString);
       return NS_OK;
     }
   }
 
-  *aRecipientsString = nsCRT::strdup(unparsedRecipients.IsEmpty() ? NS_LITERAL_STRING("").get() : unparsedRecipients.get());
-  return (*aRecipientsString) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
+  aRecipientsString = unparsedRecipients;
+  return NS_OK;
 }
 
-nsresult nsMsgDBView::FetchSubject(nsIMsgDBHdr * aMsgHdr, PRUint32 aFlags, PRUnichar ** aValue)
+nsresult nsMsgDBView::FetchSubject(nsIMsgDBHdr * aMsgHdr, PRUint32 aFlags, nsAString &aValue)
 {
   if (aFlags & MSG_FLAG_HAS_RE)
   {
-    nsXPIDLString subject;
+    nsString subject;
     aMsgHdr->GetMime2DecodedSubject(getter_Copies(subject));
-    nsAutoString reSubject;
-    reSubject.AssignLiteral("Re: ");
-    reSubject.Append(subject);
-    *aValue = ToNewUnicode(reSubject);
+    aValue.AssignLiteral("Re: ");
+    aValue.Append(subject);
   }
   else
-    aMsgHdr->GetMime2DecodedSubject(aValue);
+    aMsgHdr->GetMime2DecodedSubject(getter_Copies(aValue));
 
   return NS_OK;
 }
@@ -448,7 +445,7 @@ nsresult nsMsgDBView::FetchSubject(nsIMsgDBHdr * aMsgHdr, PRUint32 aFlags, PRUni
 nsresult nsMsgDBView::FetchPreviewText(nsIMsgDBHdr * aMsgHdr, nsAString& aValue)
 {
   nsresult rv;
-  nsXPIDLCString utf8PreviewText;
+  nsCString utf8PreviewText;
   rv = aMsgHdr->GetStringProperty("preview", getter_Copies(utf8PreviewText));
   if (NS_SUCCEEDED(rv) && utf8PreviewText.get())
     // convert to unicode
@@ -459,11 +456,10 @@ nsresult nsMsgDBView::FetchPreviewText(nsIMsgDBHdr * aMsgHdr, nsAString& aValue)
 
 // in case we want to play around with the date string, I've broken it out into
 // a separate routine.
-nsresult nsMsgDBView::FetchDate(nsIMsgDBHdr * aHdr, PRUnichar ** aDateString)
+nsresult nsMsgDBView::FetchDate(nsIMsgDBHdr * aHdr, nsAString &aDateString)
 {
   PRTime dateOfMsg;
   PRTime dateOfMsgLocal;
-  nsAutoString formattedDateString;
 
   if (!mDateFormater)
     mDateFormater = do_CreateInstance(NS_DATETIMEFORMAT_CONTRACTID);
@@ -543,36 +539,26 @@ nsresult nsMsgDBView::FetchDate(nsIMsgDBHdr * aHdr, PRUnichar ** aDateString)
                                       dateFormat,
                                       kTimeFormatNoSeconds,
                                       dateOfMsg,
-                                      formattedDateString);
-
-  if (NS_SUCCEEDED(rv))
-    *aDateString = ToNewUnicode(formattedDateString);
+                                      aDateString);
 
   return rv;
 }
 
-nsresult nsMsgDBView::FetchStatus(PRUint32 aFlags, PRUnichar ** aStatusString)
+nsresult nsMsgDBView::FetchStatus(PRUint32 aFlags, nsAString &aStatusString)
 {
-  const PRUnichar * statusString = nsnull;
-
   if(aFlags & MSG_FLAG_REPLIED)
-    statusString = kRepliedString;
+    aStatusString = kRepliedString;
   else if(aFlags & MSG_FLAG_FORWARDED)
-    statusString = kForwardedString;
+    aStatusString = kForwardedString;
   else if(aFlags & MSG_FLAG_NEW)
-    statusString = kNewString;
+    aStatusString = kNewString;
   else if(aFlags & MSG_FLAG_READ)
-    statusString = kReadString;
-
-  if (statusString)
-    *aStatusString = nsCRT::strdup(statusString);
-  else
-    *aStatusString = nsnull;
+    aStatusString = kReadString;
 
   return NS_OK;
 }
 
-nsresult nsMsgDBView::FetchSize(nsIMsgDBHdr * aHdr, PRUnichar ** aSizeString)
+nsresult nsMsgDBView::FetchSize(nsIMsgDBHdr * aHdr, nsAString &aSizeString)
 {
   nsAutoString formattedSizeString;
   PRUint32 msgSize = 0;
@@ -606,43 +592,43 @@ nsresult nsMsgDBView::FetchSize(nsIMsgDBHdr * aHdr, PRUnichar ** aSizeString)
                               sizeInKB);
   }
 
-  *aSizeString = ToNewUnicode(formattedSizeString);
-  return (*aSizeString) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
+  aSizeString = formattedSizeString;
+  // the formattingString Length includes the null terminator byte!
+  if (!formattedSizeString.Last())
+    aSizeString.SetLength(formattedSizeString.Length() - 1);
+  return NS_OK;
 }
 
-nsresult nsMsgDBView::FetchPriority(nsIMsgDBHdr *aHdr, PRUnichar ** aPriorityString)
+nsresult nsMsgDBView::FetchPriority(nsIMsgDBHdr *aHdr, nsAString & aPriorityString)
 {
   nsMsgPriorityValue priority = nsMsgPriority::notSet;
-  const PRUnichar * priorityString = nsnull;
   aHdr->GetPriority(&priority);
 
   switch (priority)
   {
   case nsMsgPriority::highest:
-    priorityString = kHighestPriorityString;
+    aPriorityString = kHighestPriorityString;
     break;
   case nsMsgPriority::high:
-    priorityString = kHighPriorityString;
+    aPriorityString = kHighPriorityString;
     break;
   case nsMsgPriority::low:
-    priorityString = kLowPriorityString;
+    aPriorityString = kLowPriorityString;
     break;
   case nsMsgPriority::lowest:
-    priorityString = kLowestPriorityString;
+    aPriorityString = kLowestPriorityString;
     break;
   case nsMsgPriority::normal:
-    priorityString = kNormalPriorityString;
+    aPriorityString = kNormalPriorityString;
     break;
   default:
     break;
   }
 
-  *aPriorityString = (priorityString) ? nsCRT::strdup(priorityString) : nsnull;
-
   return NS_OK;
 }
 
-nsresult nsMsgDBView::FetchKeywords(nsIMsgDBHdr *aHdr, char ** keywordString)
+nsresult nsMsgDBView::FetchKeywords(nsIMsgDBHdr *aHdr, nsACString &keywordString)
 {
   nsresult rv = NS_OK;
   if (!mTagService)
@@ -653,7 +639,7 @@ nsresult nsMsgDBView::FetchKeywords(nsIMsgDBHdr *aHdr, char ** keywordString)
   nsMsgLabelValue label = 0;
 
   rv = aHdr->GetLabel(&label);
-  nsXPIDLCString keywords;
+  nsCString keywords;
   aHdr->GetStringProperty("keywords", getter_Copies(keywords));
   if (label > 0)
   {
@@ -666,11 +652,11 @@ nsresult nsMsgDBView::FetchKeywords(nsIMsgDBHdr *aHdr, char ** keywordString)
       keywords.Append(labelStr);
     }
   }
-  *keywordString = ToNewCString(keywords);
-  return (*keywordString) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
+  keywordString = keywords;
+  return NS_OK;
 }
 
-nsresult nsMsgDBView::FetchTags(nsIMsgDBHdr *aHdr, PRUnichar ** aTagString)
+nsresult nsMsgDBView::FetchTags(nsIMsgDBHdr *aHdr, nsAString &aTagString)
 {
   nsresult rv = NS_OK;
   if (!mTagService)
@@ -679,8 +665,8 @@ nsresult nsMsgDBView::FetchTags(nsIMsgDBHdr *aHdr, PRUnichar ** aTagString)
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
-  nsXPIDLString tags;
-  nsXPIDLCString keywords;
+  nsString tags;
+  nsCString keywords;
   aHdr->GetStringProperty("keywords", getter_Copies(keywords));
 
   nsMsgLabelValue label = 0;
@@ -690,7 +676,7 @@ nsresult nsMsgDBView::FetchTags(nsIMsgDBHdr *aHdr, PRUnichar ** aTagString)
     nsCAutoString labelStr("$label");
     labelStr.Append((char) (label + '0'));
     if (!FindInReadable(labelStr, keywords, nsCaseInsensitiveCStringComparator()))
-      FetchLabel(aHdr, getter_Copies(tags));
+      FetchLabel(aHdr, tags);
   }
 
   nsCStringArray keywordsArray;
@@ -708,17 +694,16 @@ nsresult nsMsgDBView::FetchTags(nsIMsgDBHdr *aHdr, PRUnichar ** aTagString)
     }
   }
 
-  *aTagString = ToNewUnicode(tags);
+  aTagString = tags;
   return NS_OK;
 }
 
-nsresult nsMsgDBView::FetchLabel(nsIMsgDBHdr *aHdr, PRUnichar ** aLabelString)
+nsresult nsMsgDBView::FetchLabel(nsIMsgDBHdr *aHdr, nsAString &aLabelString)
 {
   nsresult rv = NS_OK;
   nsMsgLabelValue label = 0;
 
   NS_ENSURE_ARG_POINTER(aHdr);
-  NS_ENSURE_ARG_POINTER(aLabelString);
 
   rv = aHdr->GetLabel(&label);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -726,17 +711,12 @@ nsresult nsMsgDBView::FetchLabel(nsIMsgDBHdr *aHdr, PRUnichar ** aLabelString)
   // we don't care if label is not between 1 and PREF_LABELS_MAX inclusive.
   if ((label < 1) || (label > PREF_LABELS_MAX))
   {
-    *aLabelString = nsnull;
+    aLabelString.SetLength(0);
     return NS_OK;
   }
 
   // We need to subtract 1 because mLabelPrefDescriptions is 0 based.
-  if(!mLabelPrefDescriptions[label - 1].IsEmpty())
-  {
-    *aLabelString = nsCRT::strdup(mLabelPrefDescriptions[label - 1].get());
-    if (!*aLabelString)
-       return NS_ERROR_OUT_OF_MEMORY;
-  }
+  aLabelString = mLabelPrefDescriptions[label - 1];
   return NS_OK;
 }
 
@@ -837,14 +817,10 @@ nsresult nsMsgDBView::RestoreSelection(nsMsgKey aCurrentMsgKey, nsMsgKeyArray *a
   return NS_OK;
 }
 
-nsresult nsMsgDBView::GenerateURIForMsgKey(nsMsgKey aMsgKey, nsIMsgFolder *folder, char ** aURI)
+nsresult nsMsgDBView::GenerateURIForMsgKey(nsMsgKey aMsgKey, nsIMsgFolder *folder, nsACString & aURI)
 {
   NS_ENSURE_ARG(folder);
-  NS_ENSURE_ARG_POINTER(aURI);
-  nsCString tmpStr;
-  nsresult rv = folder->GenerateMessageURI(aMsgKey, tmpStr);
-  *aURI = ToNewCString(tmpStr);
-  return rv;
+  return folder->GenerateMessageURI(aMsgKey, aURI);
 }
 
 nsresult nsMsgDBView::CycleThreadedColumn(nsIDOMElement * aElement)
@@ -948,10 +924,10 @@ nsresult nsMsgDBView::UpdateDisplayMessage(nsMsgViewIndex viewPosition)
       rv = GetMsgHdrForViewIndex(viewPosition, getter_AddRefs(msgHdr));
       NS_ENSURE_SUCCESS(rv,rv);
 
-      nsXPIDLString subject;
-      FetchSubject(msgHdr, m_flags[viewPosition], getter_Copies(subject));
+      nsString subject;
+      FetchSubject(msgHdr, m_flags[viewPosition], subject);
 
-      nsXPIDLCString keywords;
+      nsCString keywords;
       rv = msgHdr->GetStringProperty("keywords", getter_Copies(keywords));
       NS_ENSURE_SUCCESS(rv,rv);
 
@@ -980,13 +956,13 @@ NS_IMETHODIMP nsMsgDBView::LoadMessageByViewIndex(nsMsgViewIndex aViewIndex)
   NS_ASSERTION(aViewIndex != nsMsgViewIndex_None,"trying to load nsMsgViewIndex_None");
   if (aViewIndex == nsMsgViewIndex_None) return NS_ERROR_UNEXPECTED;
 
-  nsXPIDLCString uri;
-  nsresult rv = GetURIForViewIndex(aViewIndex, getter_Copies(uri));
+  nsCString uri;
+  nsresult rv = GetURIForViewIndex(aViewIndex, uri);
   if (!mSuppressMsgDisplay && !m_currentlyDisplayedMsgUri.Equals(uri))
   {
     NS_ENSURE_SUCCESS(rv,rv);
 
-    mMessengerInstance->OpenURL(uri);
+    mMessengerInstance->OpenURL(uri.get());
     m_currentlyDisplayedMsgKey = m_keys[aViewIndex];
     m_currentlyDisplayedMsgUri = uri;
     m_currentlyDisplayedViewIndex = aViewIndex;
@@ -1150,8 +1126,8 @@ NS_IMETHODIMP nsMsgDBView::GetRowProperties(PRInt32 index, nsISupportsArray *pro
     return NS_MSG_INVALID_DBVIEW_INDEX;
   }
 
-  nsXPIDLCString keywordProperty;
-  FetchKeywords(msgHdr, getter_Copies(keywordProperty));
+  nsCString keywordProperty;
+  FetchKeywords(msgHdr, keywordProperty);
   if (!keywordProperty.IsEmpty())
     AppendKeywordProperties(keywordProperty.get(), properties, PR_FALSE);
 
@@ -1220,14 +1196,14 @@ NS_IMETHODIMP nsMsgDBView::GetCellProperties(PRInt32 aRow, nsITreeColumn *col, n
   if (mMessageTypeAtom)
     properties->AppendElement(mMessageTypeAtom);
 
-  nsXPIDLCString imageSize;
+  nsCString imageSize;
   msgHdr->GetStringProperty("imageSize", getter_Copies(imageSize));
   if (!imageSize.IsEmpty())
   {
     properties->AppendElement(kHasImageAtom);
   }
 
-  nsXPIDLCString junkScoreStr;
+  nsCString junkScoreStr;
   msgHdr->GetStringProperty("junkscore", getter_Copies(junkScoreStr));
   if (!junkScoreStr.IsEmpty())
   {
@@ -1237,9 +1213,9 @@ NS_IMETHODIMP nsMsgDBView::GetCellProperties(PRInt32 aRow, nsITreeColumn *col, n
     properties->AppendElement(atoi(junkScoreStr.get()) > 50 ? kJunkMsgAtom : kNotJunkMsgAtom);
   }
 
-  nsXPIDLCString keywords;
+  nsCString keywords;
 
-  FetchKeywords(msgHdr, getter_Copies(keywords));
+  FetchKeywords(msgHdr, keywords);
   if (!keywords.IsEmpty())
     AppendKeywordProperties(keywords.get(), properties, PR_TRUE);
 
@@ -1247,7 +1223,7 @@ NS_IMETHODIMP nsMsgDBView::GetCellProperties(PRInt32 aRow, nsITreeColumn *col, n
   // it for the tags - do we want to do this?
   // I'm not sure anyone uses the kw- property, though it could be nice
   // for people wanting to extend the thread pane.
-  nsXPIDLCString keywordProperty;
+  nsCString keywordProperty;
   msgHdr->GetStringProperty("keywords", getter_Copies(keywordProperty));
   if (!keywordProperty.IsEmpty())
   {
@@ -1541,7 +1517,7 @@ NS_IMETHODIMP nsMsgDBView::GetCellValue(PRInt32 aRow, nsITreeColumn* aCol, nsASt
     case 'j': // junk column
       if (!mIsNews)
       {
-        nsXPIDLCString junkScoreStr;
+        nsCString junkScoreStr;
         msgHdr->GetStringProperty("junkscore", getter_Copies(junkScoreStr));
         aValue.Assign(GetString((!junkScoreStr.IsEmpty() && (atoi(junkScoreStr.get()) > 50)) ?
          NS_LITERAL_STRING("messageJunk").get() : NS_LITERAL_STRING("messageNotJunk").get()));
@@ -1699,42 +1675,36 @@ NS_IMETHODIMP nsMsgDBView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsAStr
   case 's':
     if (colID[1] == 'u') // subject
     {
-      rv = FetchSubject(msgHdr, m_flags[aRow], getter_Copies(valueText));
+      rv = FetchSubject(msgHdr, m_flags[aRow], aValue);
       nsAutoString previewText;
       nsresult rv2 = FetchPreviewText(msgHdr, previewText);
       // We should append the preview text only when it was succeeded.
       // So, even if it was failed, we should return the subject.
       if (NS_SUCCEEDED(rv2) && !previewText.IsEmpty())
       {
-        valueText.Append(NS_LITERAL_STRING(" - "));
-        valueText.Append(previewText);
+        aValue.Append(NS_LITERAL_STRING(" - "));
+        aValue.Append(previewText);
       }
     }
     else if (colID[1] == 'e') // sender
-      rv = FetchAuthor(msgHdr, getter_Copies(valueText));
+      rv = FetchAuthor(msgHdr, aValue);
     else if (colID[1] == 'i') // size
-      rv = FetchSize(msgHdr, getter_Copies(valueText));
+      rv = FetchSize(msgHdr, aValue);
     else if (colID[1] == 't') // status
     {
       PRUint32 flags;
       msgHdr->GetFlags(&flags);
-      rv = FetchStatus(flags, getter_Copies(valueText));
+      rv = FetchStatus(flags, aValue);
     }
-    if (NS_SUCCEEDED(rv))
-      aValue.Assign(valueText);
     break;
   case 'r': // recipient
-    rv = FetchRecipients(msgHdr, getter_Copies(valueText));
-    if (NS_SUCCEEDED(rv))
-      aValue.Assign(valueText);
+    rv = FetchRecipients(msgHdr, aValue);
     break;
   case 'd':  // date
-    rv = FetchDate(msgHdr, getter_Copies(valueText));
-    aValue.Assign(valueText);
+    rv = FetchDate(msgHdr, aValue);
     break;
   case 'p': // priority
-    rv = FetchPriority(msgHdr, getter_Copies(valueText));
-    aValue.Assign(valueText);
+    rv = FetchPriority(msgHdr, aValue);
     break;
   case 'a': // account
     if (colID[1] == 'c') // account
@@ -1759,8 +1729,7 @@ NS_IMETHODIMP nsMsgDBView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsAStr
     }
     else if (colID[1] == 'a') // tags
     {
-      rv = FetchTags(msgHdr, getter_Copies(valueText));
-      aValue.Assign(valueText);
+      rv = FetchTags(msgHdr, aValue);
     }
     break;
   case 'u':
@@ -1786,7 +1755,7 @@ NS_IMETHODIMP nsMsgDBView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsAStr
     break;
   case 'j':
     {
-      nsXPIDLCString junkScoreStr;
+      nsCString junkScoreStr;
       msgHdr->GetStringProperty("junkscore", getter_Copies(junkScoreStr));
       CopyASCIItoUTF16(junkScoreStr, aValue);
     }
@@ -1880,7 +1849,7 @@ NS_IMETHODIMP nsMsgDBView::CycleCell(PRInt32 row, nsITreeColumn* col)
       nsresult rv = GetMsgHdrForViewIndex(row, getter_AddRefs(msgHdr));
       if (NS_SUCCEEDED(rv) && msgHdr)
       {
-        nsXPIDLCString junkScoreStr;
+        nsCString junkScoreStr;
         rv = msgHdr->GetStringProperty("junkscore", getter_Copies(junkScoreStr));
         if (junkScoreStr.IsEmpty() || (atoi(junkScoreStr.get()) < 50))
           ApplyCommandToIndices(nsMsgViewCommandType::junk, (nsMsgViewIndex *) &row, 1);
@@ -2126,11 +2095,14 @@ NS_IMETHODIMP nsMsgDBView::GetURIsForSelection(char ***uris, PRUint32 *length)
   for (PRUint32 i=0;i<numIndicies;i++)
   {
     nsMsgViewIndex selectedIndex = selection.GetAt(i);
+    nsCString tmpUri;
     if (!m_folder) // must be a cross folder view, like search results
       GetFolderForViewIndex(selectedIndex, getter_AddRefs(folder));
-    rv = GenerateURIForMsgKey(m_keys[selectedIndex], folder, next);
+    rv = GenerateURIForMsgKey(m_keys[selectedIndex], folder, tmpUri);
     NS_ENSURE_SUCCESS(rv,rv);
+    *next = ToNewCString(tmpUri);
     if (!*next) return NS_ERROR_OUT_OF_MEMORY;
+    
     next++;
   }
 
@@ -2138,7 +2110,7 @@ NS_IMETHODIMP nsMsgDBView::GetURIsForSelection(char ***uris, PRUint32 *length)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgDBView::GetURIForViewIndex(nsMsgViewIndex index, char **result)
+NS_IMETHODIMP nsMsgDBView::GetURIForViewIndex(nsMsgViewIndex index, nsACString &result)
 {
   nsresult rv;
   nsCOMPtr <nsIMsgFolder> folder = m_folder;
@@ -2841,12 +2813,12 @@ nsresult nsMsgDBView::SetAsJunkByIndex(nsIJunkMailPlugin *aJunkPlugin,
 
     // get the old junk score
     //
-    nsXPIDLCString junkScoreStr;
+    nsCString junkScoreStr;
     rv = msgHdr->GetStringProperty("junkscore", getter_Copies(junkScoreStr));
 
     // and the old origin
     //
-    nsXPIDLCString oldOriginStr;
+    nsCString oldOriginStr;
     rv = msgHdr->GetStringProperty("junkscoreorigin",
                                    getter_Copies(oldOriginStr));
 
@@ -2860,7 +2832,7 @@ nsresult nsMsgDBView::SetAsJunkByIndex(nsIJunkMailPlugin *aJunkPlugin,
         //
         if (junkScoreStr.IsEmpty()) {
             oldUserClassification = nsIJunkMailPlugin::UNCLASSIFIED;
-        } else if (atoi(junkScoreStr) > 50) {
+        } else if (atoi(junkScoreStr.get()) > 50) {
             oldUserClassification = nsIJunkMailPlugin::JUNK;
         } else {
             oldUserClassification = nsIJunkMailPlugin::GOOD;
@@ -2869,15 +2841,15 @@ nsresult nsMsgDBView::SetAsJunkByIndex(nsIJunkMailPlugin *aJunkPlugin,
 
     // get the URI for this message so we can pass it to the plugin
     //
-    nsXPIDLCString uri;
-    rv = GetURIForViewIndex(aIndex, getter_Copies(uri));
+    nsCString uri;
+    rv = GetURIForViewIndex(aIndex, uri);
     NS_ENSURE_SUCCESS(rv, rv);
 
     // tell the plugin about this change, so that it can (potentially)
     // adjust its database appropriately
     //
     rv = aJunkPlugin->SetMessageClassification(
-        uri, oldUserClassification, aNewClassification, mMsgWindow, this);
+        uri.get(), oldUserClassification, aNewClassification, mMsgWindow, this);
     NS_ENSURE_SUCCESS(rv, rv);
 
     // this routine is only reached if the user someone touched the UI
@@ -3091,7 +3063,7 @@ nsMsgDBView::DetermineActionsForJunkMsgs(PRBool* movingJunkMessages, PRBool* mar
     if (folderFlags & MSG_FOLDER_FLAG_JUNK)
       return NS_OK;
 
-    nsXPIDLCString spamFolderURI;
+    nsCString spamFolderURI;
     rv = spamSettings->GetSpamFolderURI(getter_Copies(spamFolderURI));
     NS_ENSURE_SUCCESS(rv,rv);
 
@@ -3464,7 +3436,7 @@ nsresult nsMsgDBView::GetLongField(nsIMsgDBHdr *msgHdr, nsMsgViewSortTypeValue s
         break;
     case nsMsgViewSortType::byJunkStatus:
       {
-        nsXPIDLCString junkScoreStr;
+        nsCString junkScoreStr;
         rv = msgHdr->GetStringProperty("junkscore", getter_Copies(junkScoreStr));
         // unscored messages should come before messages that are scored
         // junkScoreStr is "", and "0" - "100"
@@ -3547,7 +3519,7 @@ nsMsgDBView::GetCollationKey(nsIMsgDBHdr *msgHdr, nsMsgViewSortTypeValue sortTyp
 
         rv = (sortType == nsMsgViewSortType::byAccount)
             ? FetchAccount(msgHdr, str)
-            : FetchTags(msgHdr, getter_Copies(str));
+            : FetchTags(msgHdr, str);
 
         if (NS_SUCCEEDED(rv) && dbToUse)
           rv = dbToUse->CreateCollationKey(str, result, len);
@@ -5773,10 +5745,8 @@ nsMsgDBView::GetHdrForFirstSelectedMessage(nsIMsgDBHdr **hdr)
 
 // if nothing selected, return an NS_ERROR
 NS_IMETHODIMP
-nsMsgDBView::GetURIForFirstSelectedMessage(char **uri)
+nsMsgDBView::GetURIForFirstSelectedMessage(nsACString &uri)
 {
-  NS_ENSURE_ARG_POINTER(uri);
-
   nsresult rv;
   nsMsgViewIndex viewIndex;
   rv = GetViewIndexForFirstSelectedMsg(&viewIndex);
@@ -5982,6 +5952,28 @@ NS_IMETHODIMP nsMsgDBView::Drop(PRInt32 row, PRInt32 orient)
 NS_IMETHODIMP nsMsgDBView::IsSorted(PRBool *_retval)
 {
   *_retval = PR_FALSE;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgDBView::SelectFolderMsgByKey(nsIMsgFolder *aFolder, nsMsgKey aKey)
+{
+  NS_ENSURE_ARG_POINTER(aFolder);
+  if (aKey == nsMsgKey_None)
+    return NS_ERROR_FAILURE;
+
+  // this is OK for non search views.
+
+  nsMsgViewIndex viewIndex = FindKey(aKey, PR_TRUE /* expand */);
+
+  mTreeSelection->Select(viewIndex);
+
+  if (mTree)
+    mTreeSelection->SetCurrentIndex(viewIndex);
+
+  // make sure the current message is once again visible in the thread pane
+  // so we don't have to go search for it in the thread pane
+  if (mTree && viewIndex != nsMsgViewIndex_None)
+    mTree->EnsureRowIsVisible(viewIndex);
   return NS_OK;
 }
 

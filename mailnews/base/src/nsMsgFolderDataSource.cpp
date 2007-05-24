@@ -2588,8 +2588,8 @@ PRBool nsMsgRecentFoldersDataSource::WantsThisFolder(nsIMsgFolder *folder)
               {
                 for (PRUint32 index = 0; index < m_folders.Count(); index++)
                 {
-                  nsXPIDLCString curFaveFolderDateStr;
-                  m_folders[index]->GetStringProperty(MRU_TIME_PROPERTY, getter_Copies(curFaveFolderDateStr));
+                  nsCString curFaveFolderDateStr;
+                  m_folders[index]->GetStringProperty(MRU_TIME_PROPERTY, curFaveFolderDateStr);
                   PRUint32 curFaveFolderDate = (PRUint32) curFaveFolderDateStr.ToInteger(&err);
                   NS_ASSERTION(curFaveFolderDate > curFolderDate, "folder newer then faves but not added");
                 }
