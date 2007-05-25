@@ -451,7 +451,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetDatabaseWOReparse(nsIMsgDatabase **aDatab
   if (m_parsingFolder)
     return NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE;
 
-  nsresult rv;
+  nsresult rv = NS_OK;
   if (!mDatabase)
   {
     nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
