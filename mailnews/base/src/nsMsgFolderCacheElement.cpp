@@ -130,7 +130,8 @@ NS_IMETHODIMP nsMsgFolderCacheElement::SetStringProperty(const char *propertyNam
       yarn.mYarn_Grow = NULL;
       if (m_mdbRow)
       {
-        yarn.mYarn_Buf = (void *) nsCString(propertyValue).get();
+        nsCString propertyVal (propertyValue);
+        yarn.mYarn_Buf = (void *) propertyVal.get();
         yarn.mYarn_Size = strlen((const char *) yarn.mYarn_Buf) + 1;
         yarn.mYarn_Fill = yarn.mYarn_Size - 1;
         yarn.mYarn_Form = 0; // what to do with this? we're storing csid in the msg hdr...

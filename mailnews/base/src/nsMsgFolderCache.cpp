@@ -264,10 +264,9 @@ nsresult nsMsgFolderCache::OpenMDB(const nsACString& dbName, PRBool exists)
 NS_IMETHODIMP nsMsgFolderCache::Init(nsIFile *aFile)
 {
   NS_ENSURE_ARG_POINTER(aFile);
-  nsresult rv;
 
   m_cacheElements = new nsSupportsHashtable;
-  NS_ENSURE_SUCCESS(rv, NS_ERROR_OUT_OF_MEMORY);
+  NS_ENSURE_TRUE(m_cacheElements, NS_ERROR_OUT_OF_MEMORY);
 
   PRBool exists;
   aFile->Exists(&exists);
@@ -275,7 +274,7 @@ NS_IMETHODIMP nsMsgFolderCache::Init(nsIFile *aFile)
   nsCAutoString dbPath;
   aFile->GetNativePath(dbPath);
   // ### evil cast until MDB supports file streams.
-  rv = OpenMDB(dbPath, exists);
+  nsresult rv = OpenMDB(dbPath, exists);
   // if this fails and panacea.dat exists, try blowing away the db and recreating it
   if (NS_FAILED(rv) && exists)
   {
@@ -291,7 +290,7 @@ NS_IMETHODIMP nsMsgFolderCache::GetCacheElement(const nsACString& pathKey, PRBoo
                                                 nsIMsgFolderCacheElement **result)
 {
   NS_ENSURE_ARG_POINTER(result);
-  NS_ENSURE_TRUE(m_cacheElements, NS_ERROR_FAILURE);
+  NS_ENSURE_TRUE(m_cacheElements && !pathKey.IsEmpty(), NS_ERROR_FAILURE);
 
   nsCStringKey hashKey(nsCString(pathKey).get());
   *result = (nsIMsgFolderCacheElement *) m_cacheElements->Get(&hashKey);
