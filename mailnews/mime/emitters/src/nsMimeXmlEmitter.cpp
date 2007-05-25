@@ -117,7 +117,7 @@ nsMimeXmlEmitter::WriteXMLTag(const char *tagName, const char *value)
     return NS_OK;
 
   nsString  newTagName;
-  LossyCopyUTF16toASCII(tagName, newTagName);
+  CopyASCIItoUTF16(tagName, newTagName);
   newTagName.CompressWhitespace(PR_TRUE, PR_TRUE);
 
   ToUpperCase(newTagName);
