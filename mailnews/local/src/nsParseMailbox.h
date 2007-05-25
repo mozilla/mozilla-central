@@ -48,7 +48,6 @@
 #include "nsIMsgDatabase.h"
 #include "nsIMsgHdr.h"
 #include "nsIMsgStatusFeedback.h"
-#include "nsXPIDLString.h"
 #include "nsLocalStringBundle.h"
 #include "nsCOMPtr.h"
 #include "nsCOMArray.h"

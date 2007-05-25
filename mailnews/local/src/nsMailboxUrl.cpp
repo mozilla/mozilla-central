@@ -52,7 +52,6 @@
 #include "nsMsgBaseCID.h"
 #include "nsIMsgHdr.h"
 
-#include "nsXPIDLString.h"
 #include "nsIRDFService.h"
 #include "rdf.h"
 #include "nsIMsgFolder.h"
@@ -196,7 +195,7 @@ NS_IMETHODIMP nsMailboxUrl::GetUri(char ** aURI)
       nsCAutoString baseUri;
       // we blow off errors here so that we can open attachments
       // in .eml files.
-      (void) MsgMailboxGetURI(m_file, baseUri);
+      (void) MsgMailboxGetURI(m_file.get(), baseUri);
       if (baseUri.IsEmpty())
         m_baseURL->GetSpec(baseUri);
       nsCString baseMessageURI;
@@ -263,9 +262,10 @@ NS_IMPL_GETSET(nsMailboxUrl, CanonicalLineEnding, PRBool, m_canonicalLineEnding)
 NS_IMETHODIMP
 nsMailboxUrl::GetOriginalSpec(char **aSpec)
 {
-    if (!aSpec || !m_originalSpec) return NS_ERROR_NULL_POINTER;
-    *aSpec = nsCRT::strdup(m_originalSpec);
-    return NS_OK;
+  if (!aSpec || m_originalSpec.IsEmpty()) 
+    return NS_ERROR_NULL_POINTER;
+  *aSpec = ToNewCString(m_originalSpec);
+  return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -356,7 +356,7 @@ nsresult nsMailboxUrl::ParseUrl()
   // ### fix me.
   // this hack is to avoid asserting on every local message loaded because the security manager
   // is creating an empty "mailbox://" uri for every message.
-  if (strlen(m_file) < 2)
+  if (m_file.Length() < 2)
     m_filePath = nsnull;
   else
   {
@@ -439,12 +439,11 @@ nsresult nsMailboxUrl::GetFolder(nsIMsgFolder **msgFolder)
 {
   // if we have a RDF URI, then try to get the folder for that URI and then ask the folder
   // for it's charset....
-
-  nsXPIDLCString uri;
+  nsCString uri;
   GetUri(getter_Copies(uri));
-  NS_ENSURE_TRUE(uri, NS_ERROR_FAILURE);
+  NS_ENSURE_TRUE(!uri.IsEmpty(), NS_ERROR_FAILURE);
   nsCOMPtr<nsIMsgDBHdr> msg; 
-  GetMsgDBHdrFromURI(uri, getter_AddRefs(msg));
+  GetMsgDBHdrFromURI(uri.get(), getter_AddRefs(msg));
   NS_ENSURE_TRUE(msg, NS_ERROR_FAILURE);
   return msg->GetFolder(msgFolder);
 }

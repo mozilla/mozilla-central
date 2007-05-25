@@ -40,10 +40,7 @@
 #include "prprf.h"
 
 #include "nsCOMPtr.h"
-
-#include "nsXPIDLString.h"
 #include "nsIStringBundle.h"
-
 #include "nsIPop3IncomingServer.h"
 #include "nsPop3IncomingServer.h"
 #include "nsIPop3Service.h"

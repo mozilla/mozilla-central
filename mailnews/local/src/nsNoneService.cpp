@@ -47,7 +47,6 @@
 
 #include "nsMsgLocalCID.h"
 #include "nsMsgBaseCID.h"
-#include "nsXPIDLString.h"
 #include "nsILocalFile.h"
 #include "nsCOMPtr.h"
 #include "nsMsgUtils.h"

@@ -63,7 +63,6 @@
 #include "nsPop3Protocol.h"
 #include "MailNewsTypes.h"
 #include "nsString.h"
-#include "nsXPIDLString.h"
 #include "nsIPrompt.h"
 #include "nsIMsgIncomingServer.h"
 #include "nsLocalStringBundle.h"
@@ -1078,7 +1077,7 @@ nsPop3Protocol::Error(PRInt32 err_code)
             rv = msgWindow->GetPromptDialog(getter_AddRefs(dialog));
             if (NS_SUCCEEDED(rv))
             {
-              nsXPIDLString alertString;
+              nsString alertString;
               mStringService->GetStringByID(err_code, getter_Copies(alertString));
               if (m_pop3ConData->command_succeeded)  //not a server error message
                 dialog->Alert(nsnull, alertString.get());
@@ -1103,7 +1102,7 @@ nsPop3Protocol::Error(PRInt32 err_code)
 
                 nsAutoString message(alertString + NS_LITERAL_STRING(" ") +
                                      serverSaidPrefix + NS_LITERAL_STRING(" "));
-                AppendASCIItoUTF16(m_commandResponse, message);
+                message.Append(NS_ConvertASCIItoUTF16(m_commandResponse));
                 dialog->Alert(nsnull,message.get());
               }
             }
@@ -2255,17 +2254,14 @@ PRInt32 nsPop3Protocol::GetFakeUidlTop(nsIInputStream* inputStream,
     rv = mStringService->GetBundle(getter_AddRefs(bundle));
     NS_ENSURE_SUCCESS(rv, -1);
 
-    nsXPIDLString statusString;
+    nsString statusString;
     rv = bundle->FormatStringFromID(POP3_SERVER_DOES_NOT_SUPPORT_UIDL_ETC,
       formatStrings, 1,
       getter_Copies(statusString));
     NS_ENSURE_SUCCESS(rv, -1);
 
-
-    UpdateStatusWithString(statusString);
-
+    UpdateStatusWithString(statusString.get());
     return -1;
-
   }
 
   PRBool pauseForMoreData = PR_FALSE;
@@ -3091,14 +3087,14 @@ nsPop3Protocol::SendRetr()
             reallyNewMessages.get(),
         };
 
-        nsXPIDLString finalString;
+        nsString finalString;
         rv = bundle->FormatStringFromID(LOCAL_STATUS_RECEIVING_MESSAGE_OF,
           formatStrings, 2,
           getter_Copies(finalString));
         NS_ASSERTION(NS_SUCCEEDED(rv), "couldn't format string");
 
         if (m_statusFeedback)
-          m_statusFeedback->ShowStatusString(finalString);
+          m_statusFeedback->ShowStatusString(finalString.get());
       }
     }
 

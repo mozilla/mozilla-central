@@ -55,7 +55,6 @@
 #include "nsNetUtil.h"
 #include "nsMsgFolderFlags.h"
 #include "nsIMsgFolder.h"
-#include "nsXPIDLString.h"
 #include "nsIURL.h"
 #include "nsIMsgMailNewsUrl.h"
 #include "nsLocalStringBundle.h"
@@ -483,13 +482,13 @@ nsParseMailMessageState::nsParseMailMessageState()
   // a mail message with the X-Spam-Score header, we'll set the
   // "x-spam-score" property of nsMsgHdr to the value of the header.
   m_customDBHeaderValues = nsnull;
-  nsXPIDLCString customDBHeaders;
+  nsCString customDBHeaders;
   nsCOMPtr<nsIPrefBranch> pPrefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
   if (pPrefBranch)
   {
      pPrefBranch->GetCharPref("mailnews.customDBHeaders",  getter_Copies(customDBHeaders));
      ToLowerCase(customDBHeaders);
-     m_customDBHeaders.ParseString(customDBHeaders, " ");
+     m_customDBHeaders.ParseString(customDBHeaders.get(), " ");
      if (m_customDBHeaders.Count())
      {
        m_customDBHeaderValues = new struct message_header [m_customDBHeaders.Count()];
@@ -499,7 +498,6 @@ nsParseMailMessageState::nsParseMailMessageState()
      pPrefBranch->GetBoolPref("mailnews.use_received_date", &m_useReceivedDate);
   }
   Clear();
-
   m_HeaderAddressParser = do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID);
 }
 
@@ -1126,12 +1124,14 @@ int nsParseMailMessageState::InternSubject (struct message_header *header)
   PRUint32 flags;
   (void)m_newMsgHdr->GetFlags(&flags);
   /* strip "Re: " */
-  /* We trust the X-Mozilla-Status line to be the smartest in almost
-	 all things.  One exception, however, is the HAS_RE flag.  Since
+  /**
+        We trust the X-Mozilla-Status line to be the smartest in almost
+        all things.  One exception, however, is the HAS_RE flag.  Since
          we just parsed the subject header anyway, we expect that parsing
          to be smartest.  (After all, what if someone just went in and
-	 edited the subject line by hand?) */
-  nsXPIDLCString modifiedSubject;
+        edited the subject line by hand?)
+     */
+  nsCString modifiedSubject;
   if (NS_MsgStripRE((const char **) &key, &L, getter_Copies(modifiedSubject)))
     flags |= MSG_FLAG_HAS_RE;
   else
@@ -1946,7 +1946,7 @@ NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWi
         break;
       case nsMsgFilterAction::AddTag:
       {
-        nsXPIDLCString keyword;
+        nsCString keyword;
         filterAction->GetStrValue(keyword);
         nsCOMPtr<nsISupportsArray> messageArray;
         NS_NewISupportsArray(getter_AddRefs(messageArray));
@@ -2081,8 +2081,7 @@ nsresult nsParseNewMailState::ApplyForwardAndReplyFilter(nsIMsgWindow *msgWindow
     if (!m_forwardTo[i]->IsEmpty())
     {
       nsAutoString forwardStr;
-      forwardStr.AssignWithConversion(m_forwardTo[i]->get());
-
+      CopyASCIItoUTF16(m_forwardTo[i]->get(), forwardStr);
       rv = m_rootFolder->GetServer(getter_AddRefs(server));
       NS_ENSURE_SUCCESS(rv, rv);
       {
@@ -2335,7 +2334,7 @@ nsresult nsParseNewMailState::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
       newHdr->GetFlags(&newFlags);
       if (! (newFlags & MSG_FLAG_READ))
       {
-        nsXPIDLCString junkScoreStr;
+        nsCString junkScoreStr;
         (void) newHdr->GetStringProperty("junkscore", getter_Copies(junkScoreStr));
         if (atoi(junkScoreStr.get()) < 50)
         {

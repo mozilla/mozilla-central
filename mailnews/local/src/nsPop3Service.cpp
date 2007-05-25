@@ -48,7 +48,6 @@
 #include "nsPop3Protocol.h"
 #include "nsMsgLocalCID.h"
 #include "nsMsgBaseCID.h"
-#include "nsXPIDLString.h"
 #include "nsCOMPtr.h"
 #include "nsIMsgWindow.h"
 
@@ -306,9 +305,9 @@ NS_IMETHODIMP nsPop3Service::NewURI(const nsACString &aSpec,
     nsCOMPtr<nsIRDFResource> resource;
     PRInt32 offset = folderUri.Find("?");
     if (offset != -1)
-        folderUri.Truncate(offset);
+        folderUri.SetLength(offset);
 
-    const nsCString &flatSpec = PromiseFlatCString(aSpec);
+    const nsCString &flatSpec = nsDependentCString(aSpec);
     const char *uidl = PL_strstr(flatSpec.get(), "uidl=");
     if (!uidl) return NS_ERROR_FAILURE;
 
@@ -403,7 +402,7 @@ NS_IMETHODIMP nsPop3Service::NewURI(const nsACString &aSpec,
           messageUri.ReplaceSubstring("?number=", "#");
           offset = messageUri.Find("&");
           if (offset != -1)
-            messageUri.Truncate(offset);
+            messageUri.SetLength(offset);
           popurl->SetMessageUri(messageUri.get());
           nsCOMPtr<nsIPop3Sink> pop3Sink;
           rv = popurl->GetPop3Sink(getter_AddRefs(pop3Sink));
@@ -425,7 +424,7 @@ void nsPop3Service::AlertServerBusy(nsIMsgMailNewsUrl *url)
     rv = msgWindow->GetPromptDialog(getter_AddRefs(dialog));
     if (NS_SUCCEEDED(rv))
     {
-      nsXPIDLString alertString;
+      nsString alertString;
       stringService->GetStringByID(POP3_MESSAGE_FOLDER_BUSY, getter_Copies(alertString));
       if (!alertString.IsEmpty())
         dialog->Alert(nsnull, alertString.get());

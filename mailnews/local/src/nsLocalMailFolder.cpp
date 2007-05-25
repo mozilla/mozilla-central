@@ -675,7 +675,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::CreateStorageIfMissing(nsIUrlListener* aUrlL
     {
       // If there is a hierarchy, there is a parent.
       // Don't strip off slash if it's the first character
-      parentName.Truncate(leafPos);
+      parentName.SetLength(leafPos);
       // get the corresponding RDF resource
       // RDF will create the folder resource if it doesn't already exist
       nsCOMPtr<nsIRDFService> rdf = do_GetService("@mozilla.org/rdf/rdf-service;1", &rv);
@@ -3742,7 +3742,7 @@ nsresult nsMsgLocalMailFolder::ChangeKeywordForMessages(nsISupportsArray *aMessa
       PRUint32 desiredOffset = messageOffset + statusOffset;
 
       nsCStringArray keywordArray;
-      keywordArray.ParseString(nsPromiseFlatCString(aKeywords).get(), " ");
+      keywordArray.ParseString(nsCString(aKeywords).get(), " ");
       for (PRInt32 j = 0; j < keywordArray.Count(); j++)
       {
         nsCAutoString header;

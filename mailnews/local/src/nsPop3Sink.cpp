@@ -732,7 +732,7 @@ nsresult nsPop3Sink::HandleTempDownloadFailed(nsIMsgWindow *msgWindow)
 {
 
   nsCOMPtr<nsIMsgStringService> stringService = do_GetService(NS_MSG_POPSTRINGSERVICE_CONTRACTID);
-  nsXPIDLString fromStr, subjectStr, confirmString;
+  nsString fromStr, subjectStr, confirmString;
   m_newMailParser->m_newMsgHdr->GetMime2DecodedSubject(getter_Copies(subjectStr));
   m_newMailParser->m_newMsgHdr->GetMime2DecodedAuthor(getter_Copies(fromStr));
   const PRUnichar *params[] = { fromStr.get(), subjectStr.get() };
@@ -749,10 +749,10 @@ nsresult nsPop3Sink::HandleTempDownloadFailed(nsIMsgWindow *msgWindow)
     (void) msgWindow->GetRootDocShell(getter_AddRefs(docShell));
     parentWindow = do_QueryInterface(docShell);
   }
-  if (promptService && confirmString)
+  if (promptService && !confirmString.IsEmpty())
   {
     PRInt32 dlgResult  = -1;
-    rv = promptService->ConfirmEx(parentWindow, nsnull, confirmString,
+    rv = promptService->ConfirmEx(parentWindow, nsnull, confirmString.get(),
                       nsIPromptService::STD_YES_NO_BUTTONS,
                       nsnull,
                       nsnull,
@@ -854,7 +854,7 @@ nsPop3Sink::IncorporateComplete(nsIMsgWindow *aMsgWindow, PRInt32 aSize)
             hdr->GetFlags(&newFlags);
             if (! (newFlags & MSG_FLAG_READ))
             {
-              nsXPIDLCString junkScoreStr;
+              nsCString junkScoreStr;
               (void) hdr->GetStringProperty("junkscore", getter_Copies(junkScoreStr));
               if (atoi(junkScoreStr.get()) < 50)
               {

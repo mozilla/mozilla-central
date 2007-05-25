@@ -42,7 +42,6 @@
 #include "nsMsgMailNewsUrl.h"
 #include "nsIFile.h"
 #include "nsCOMPtr.h"
-#include "nsXPIDLString.h"
 #include "nsMsgKeyArray.h"
 #include "nsISupportsObsolete.h"
 
@@ -53,21 +52,21 @@ public:
   NS_IMETHOD SetSpec(const nsACString &aSpec);
   NS_IMETHOD SetQuery(const nsACString &aQuery);
 
-	// from nsIMailboxUrl:
-	NS_IMETHOD SetMailboxParser(nsIStreamListener * aConsumer);
-	NS_IMETHOD GetMailboxParser(nsIStreamListener ** aConsumer);
-	NS_IMETHOD SetMailboxCopyHandler(nsIStreamListener *  aConsumer);
-	NS_IMETHOD GetMailboxCopyHandler(nsIStreamListener ** aConsumer);
-	
-	NS_IMETHOD GetMessageKey(nsMsgKey* aMessageKey);
+  // from nsIMailboxUrl:
+  NS_IMETHOD SetMailboxParser(nsIStreamListener * aConsumer);
+  NS_IMETHOD GetMailboxParser(nsIStreamListener ** aConsumer);
+  NS_IMETHOD SetMailboxCopyHandler(nsIStreamListener *  aConsumer);
+  NS_IMETHOD GetMailboxCopyHandler(nsIStreamListener ** aConsumer);
+
+  NS_IMETHOD GetMessageKey(nsMsgKey* aMessageKey);
   NS_IMETHOD GetMessageSize(PRUint32 *aMessageSize);
-	NS_IMETHOD SetMessageSize(PRUint32 aMessageSize);
-	NS_IMPL_CLASS_GETSET(MailboxAction, nsMailboxAction, m_mailboxAction);
-	NS_IMETHOD IsUrlType(PRUint32 type, PRBool *isType);
+  NS_IMETHOD SetMessageSize(PRUint32 aMessageSize);
+  NS_IMPL_CLASS_GETSET(MailboxAction, nsMailboxAction, m_mailboxAction);
+  NS_IMETHOD IsUrlType(PRUint32 type, PRBool *isType);
   NS_IMETHOD SetMoveCopyMsgKeys(nsMsgKey *keysToFlag, PRInt32 numKeys);
   NS_IMETHOD GetMoveCopyMsgHdrForIndex(PRUint32 msgIndex, nsIMsgDBHdr **msgHdr);
   NS_IMETHOD GetNumMoveCopyMsgs(PRUint32 *numMsgs);
-	NS_IMPL_CLASS_GETSET(CurMoveCopyMsgIndex, PRUint32, m_curMsgIndex);
+  NS_IMPL_CLASS_GETSET(CurMoveCopyMsgIndex, PRUint32, m_curMsgIndex);
 
   NS_IMETHOD GetFolder(nsIMsgFolder **msgFolder);
 
@@ -82,34 +81,34 @@ public:
   NS_DECL_NSIMSGI18NURL
 
 protected:
-	// protocol specific code to parse a url...
+  // protocol specific code to parse a url...
   virtual nsresult ParseUrl();
-	virtual const char * GetUserName() { return nsnull;}
+  virtual const char * GetUserName() { return nsnull;}
   nsresult GetMsgHdrForKey(nsMsgKey  msgKey, nsIMsgDBHdr ** aMsgHdr);
 
-	// mailboxurl specific state
-	nsCOMPtr<nsIStreamListener> m_mailboxParser;
-	nsCOMPtr<nsIStreamListener> m_mailboxCopyHandler;
+  // mailboxurl specific state
+  nsCOMPtr<nsIStreamListener> m_mailboxParser;
+  nsCOMPtr<nsIStreamListener> m_mailboxCopyHandler;
 
-	nsMailboxAction m_mailboxAction; // the action this url represents...parse mailbox, display messages, etc.
-	nsCOMPtr <nsILocalFile>	m_filePath; 
-	char		*m_messageID;
-	PRUint32	m_messageSize;
-	nsMsgKey	m_messageKey;
-	nsXPIDLCString m_file;
+  nsMailboxAction m_mailboxAction; // the action this url represents...parse mailbox, display messages, etc.
+  nsCOMPtr <nsILocalFile>	m_filePath;
+  char *m_messageID;
+  PRUint32 m_messageSize;
+  nsMsgKey m_messageKey;
+  nsCString m_file;
 
-	// used by save message to disk
-	nsCOMPtr<nsIFile> m_messageFile;
+  // used by save message to disk
+  nsCOMPtr<nsIFile> m_messageFile;
   PRBool                m_addDummyEnvelope;
   PRBool                m_canonicalLineEnding;
-	nsresult ParseSearchPart();
+  nsresult ParseSearchPart();
 
   // for multiple msg move/copy
   nsMsgKeyArray m_keys;
   PRInt32 m_curMsgIndex;
 
   // truncated message support
-  nsXPIDLCString m_originalSpec;  
+  nsCString m_originalSpec;
   nsCString mURI; // the RDF URI associated with this url.
   nsCString mCharsetOverride; // used by nsIMsgI18NUrl...
 };

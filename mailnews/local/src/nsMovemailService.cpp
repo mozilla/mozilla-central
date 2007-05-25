@@ -64,7 +64,6 @@
 
 #include "nsMsgLocalCID.h"
 #include "nsMsgBaseCID.h"
-#include "nsXPIDLString.h"
 #include "nsCOMPtr.h"
 #include "nsMsgFolderFlags.h"
 
@@ -139,7 +138,7 @@ nsMovemailService::Error(PRInt32 errorCode,
     if (NS_FAILED(rv))
         return;
 
-    nsXPIDLString errStr;
+    nsString errStr;
 
     // Format the error string if necessary
     if (params) {

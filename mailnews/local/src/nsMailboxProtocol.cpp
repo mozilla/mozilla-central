@@ -64,7 +64,6 @@ PRLogModuleInfo *MAILBOX;
 #include "nsIStreamTransportService.h"
 #include "nsIStreamConverterService.h"
 #include "nsIIOService.h"
-#include "nsXPIDLString.h"
 #include "nsNetUtil.h"
 #include "nsIMsgWindow.h"
 #include "nsIMimeHeaders.h"
