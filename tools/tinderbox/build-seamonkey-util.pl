@@ -24,7 +24,7 @@ use Config;         # for $Config{sig_name} and $Config{sig_num}
 use File::Find ();
 use File::Copy;
 
-$::UtilsVersion = '$Revision: 1.357 $ ';
+$::UtilsVersion = '$Revision: 1.358 $ ';
 
 package TinderUtils;
 
@@ -1114,7 +1114,12 @@ sub BuildIt {
             }
 
             # Make sure we have an ObjDir if we need one.
-            mkdir $Settings::ObjDir, 0777 if ($Settings::ObjDir && ! -e $Settings::ObjDir);
+            if ($Settings::ObjDir && ! -e $Settings::ObjDir) {
+                $status = run_shell_command "mkdir -p -m 0777 $Settings::ObjDir";
+                if ($status != 0) {
+                    $build_status = 'busted';
+                }
+            }
 
             if ($Settings::ObjDir && $Settings::MacUniversalBinary) {
               # Point dist to this architecture's dist for a native build, so
