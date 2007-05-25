@@ -39,7 +39,7 @@
  * Implementation of OCSP services, for both client and server.
  * (XXX, really, mostly just for client right now, but intended to do both.)
  *
- * $Id: ocsp.c,v 1.40 2007-04-17 17:17:16 kaie%kuix.de Exp $
+ * $Id: ocsp.c,v 1.41 2007-05-25 03:27:43 alexei.volkov.bugs%sun.com Exp $
  */
 
 #include "prerror.h"
@@ -3724,9 +3724,9 @@ CERT_VerifyOCSPResponseSignature(CERTOCSPResponse *response,
         rv = SECSuccess;
     } else {
         if (CERT_IsCACert(signerCert, NULL)) {
-            rv = CERT_VerifyCACertForUsage(handle, signerCert, PR_TRUE,
-                                           certUsageStatusResponder,
-                                           producedAt, pwArg, NULL);
+            rv = CERT_VerifyCert(handle, signerCert, PR_TRUE,
+                                 certUsageVerifyCA,
+                                 producedAt, pwArg, NULL);
         } else {
             rv = CERT_VerifyCert(handle, signerCert, PR_TRUE,
                                  certUsageStatusResponder,
