@@ -277,7 +277,7 @@ pkix_pl_GeneralName_Create(
         /*
          * We use CERT_CreateGeneralNameList to create just one CERTGeneralName
          * item for memory allocation reason. If we want to just create one
-         * item, we have to use the calling path cert_NewGeneralName, then
+         * item, we have to use the calling path CERT_NewGeneralName, then
          * CERT_CopyOneGeneralName. With this calling path, if we pass
          * the arena argument as NULL, in CERT_CopyOneGeneralName's subsequent
          * call to CERT_CopyName, it assumes arena should be valid, hence
@@ -854,8 +854,8 @@ PKIX_PL_GeneralName_Create(
         if (arena == NULL) {
                 PKIX_ERROR(PKIX_PORTNEWARENAFAILED);
         }
-        PKIX_GENERALNAME_DEBUG("\t\tCalling cert_NewGeneralName).\n");
-        nssGenName = cert_NewGeneralName(arena, nameType);
+        PKIX_GENERALNAME_DEBUG("\t\tCalling CERT_NewGeneralName).\n");
+        nssGenName = CERT_NewGeneralName(arena, nameType);
         if (nssGenName == NULL) {
                 PKIX_ERROR(PKIX_ALLOCATENEWCERTGENERALNAMEFAILED);
         }

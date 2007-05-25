@@ -36,7 +36,7 @@
 /*
  * certt.h - public data structures for the certificate library
  *
- * $Id: certt.h,v 1.35 2007-03-01 00:30:18 alexei.volkov.bugs%sun.com Exp $
+ * $Id: certt.h,v 1.36 2007-05-25 07:28:31 alexei.volkov.bugs%sun.com Exp $
  */
 #ifndef _CERTT_H_
 #define _CERTT_H_
@@ -627,6 +627,20 @@ struct CERTBasicConstraintsStr {
 #define RF_CESSATION_OF_OPERATION	(0x04)  /* bit 5 */
 #define RF_CERTIFICATE_HOLD		(0x02)  /* bit 6 */
 
+/* enum for CRL Entry Reason Code */
+typedef enum CERTCRLEntryReasonCodeEnum {
+    crlEntryReasonUnspecified = 0,
+    crlEntryReasonKeyCompromise = 1,
+    crlEntryReasonCaCompromise = 2,
+    crlEntryReasonAffiliationChanged = 3,
+    crlEntryReasonSuperseded = 4,
+    crlEntryReasonCessationOfOperation = 5,
+    crlEntryReasoncertificatedHold = 6,
+    crlEntryReasonRemoveFromCRL = 8,
+    crlEntryReasonPrivilegeWithdrawn = 9,
+    crlEntryReasonAaCompromise = 10
+} CERTCRLEntryReasonCode;
+
 /* If we needed to extract the general name field, use this */
 /* General Name types */
 typedef enum CERTGeneralNameTypeEnum {
@@ -839,6 +853,33 @@ typedef struct {
     SECItem **oids;
 } CERTOidSequence;
 
+/*
+ * these types are for the PKIX Policy Mappings extension
+ */
+typedef struct {
+    SECItem issuerDomainPolicy;
+    SECItem subjectDomainPolicy;
+} CERTPolicyMap;
+
+typedef struct {
+    PRArenaPool *arena;
+    CERTPolicyMap **policyMaps;
+} CERTCertificatePolicyMappings;
+
+/*
+ * these types are for the PKIX inhibitAnyPolicy extension
+ */
+typedef struct {
+    SECItem inhibitAnySkipCerts;
+} CERTCertificateInhibitAny;
+
+/*
+ * these types are for the PKIX Policy Constraints extension
+ */
+typedef struct {
+    SECItem explicitPolicySkipCerts;
+    SECItem inhibitMappingSkipCerts;
+} CERTCertificatePolicyConstraints;
 
 /* XXX Lisa thinks the template declarations belong in cert.h, not here? */
 

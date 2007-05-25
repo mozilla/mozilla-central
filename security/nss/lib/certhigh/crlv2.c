@@ -37,7 +37,7 @@
 /*
  * Code for dealing with x.509 v3 crl and crl entries extensions.
  *
- * $Id: crlv2.c,v 1.4 2005-06-30 20:53:57 wtchang%redhat.com Exp $
+ * $Id: crlv2.c,v 1.5 2007-05-25 07:28:32 alexei.volkov.bugs%sun.com Exp $
  */
 
 #include "cert.h"
@@ -92,29 +92,79 @@ CERT_StartCRLEntryExtensions(CERTCrl *crl, CERTCrlEntry *entry)
     return (cert_StartExtensions (entry, crl->arena, SetCrlEntryExts));
 }
 
-SECStatus CERT_FindCRLNumberExten (CERTCrl *crl, CERTCrlNumber *value)
+SECStatus CERT_FindCRLNumberExten (PRArenaPool *arena, CERTCrl *crl,
+                                   SECItem *value)
 {
     SECItem encodedExtenValue;
+    SECItem *tmpItem = NULL;
     SECStatus rv;
+    void *mark = NULL;
 
     encodedExtenValue.data = NULL;
     encodedExtenValue.len = 0;
 
-    rv = cert_FindExtension
-	 (crl->extensions, SEC_OID_X509_CRL_NUMBER, &encodedExtenValue);
+    rv = cert_FindExtension(crl->extensions, SEC_OID_X509_CRL_NUMBER,
+			  &encodedExtenValue);
     if ( rv != SECSuccess )
 	return (rv);
 
-    rv = SEC_ASN1DecodeItem (NULL, value, SEC_IntegerTemplate,
-			     &encodedExtenValue);
+    mark = PORT_ArenaMark(arena);
+
+    tmpItem = SECITEM_ArenaDupItem(arena, &encodedExtenValue);
+    if (tmpItem) {
+        rv = SEC_QuickDERDecodeItem (arena, value, SEC_IntegerTemplate,
+                                     tmpItem);
+    } else {
+        rv = SECFailure;
+    }
+
     PORT_Free (encodedExtenValue.data);
+    if (rv == SECFailure) {
+        PORT_ArenaRelease(arena, mark);
+    } else {
+        PORT_ArenaUnmark(arena, mark);
+    }
     return (rv);
 }
 
-SECStatus CERT_FindCRLReasonExten (CERTCrl *crl, SECItem *value)
+SECStatus CERT_FindCRLEntryReasonExten (CERTCrlEntry *crlEntry,
+                                        CERTCRLEntryReasonCode *value)
 {
-    return (CERT_FindBitStringExtension
-	    (crl->extensions, SEC_OID_X509_REASON_CODE, value));    
+    SECItem wrapperItem = {siBuffer,0};
+    SECItem tmpItem = {siBuffer,0};
+    SECStatus rv;
+    PRArenaPool *arena = NULL;
+
+    arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);   
+    if ( ! arena ) {
+	return(SECFailure);
+    }
+    
+    rv = cert_FindExtension(crlEntry->extensions, SEC_OID_X509_REASON_CODE, 
+                            &wrapperItem);
+    if ( rv != SECSuccess ) {
+	goto loser;
+    }
+
+    rv = SEC_QuickDERDecodeItem(arena, &tmpItem, SEC_EnumeratedTemplate,
+                                &wrapperItem);
+
+    if ( rv != SECSuccess ) {
+	goto loser;
+    }
+
+    *value = (CERTCRLEntryReasonCode) DER_GetInteger(&tmpItem);
+
+loser:
+    if ( arena ) {
+	PORT_FreeArena(arena, PR_FALSE);
+    }
+    
+    if ( wrapperItem.data ) {
+	PORT_Free(wrapperItem.data);
+    }
+
+    return (rv);
 }
 
 SECStatus CERT_FindInvalidDateExten (CERTCrl *crl, int64 *value)

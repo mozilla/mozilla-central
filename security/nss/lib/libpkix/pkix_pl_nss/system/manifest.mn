@@ -75,5 +75,5 @@ CSRCS = \
 
 REQUIRES = dbm
 
-LIBRARY_NAME = system
+LIBRARY_NAME = pkixsystem
 

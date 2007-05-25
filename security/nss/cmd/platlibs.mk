@@ -89,6 +89,19 @@ ifdef MOZILLA_BSAFE_BUILD
 	CRYPTOLIB+=$(DIST)/lib/freebl.lib
 endif
 
+PKIXLIB = \
+	$(DIST)/lib/$(LIB_PREFIX)pkixcertsel.$(LIB_SUFFIX) \
+	$(DIST)/lib/$(LIB_PREFIX)pkixchecker.$(LIB_SUFFIX) \
+	$(DIST)/lib/$(LIB_PREFIX)pkixparams.$(LIB_SUFFIX) \
+	$(DIST)/lib/$(LIB_PREFIX)pkixresults.$(LIB_SUFFIX) \
+	$(DIST)/lib/$(LIB_PREFIX)pkixtop.$(LIB_SUFFIX) \
+	$(DIST)/lib/$(LIB_PREFIX)pkixutil.$(LIB_SUFFIX) \
+	$(DIST)/lib/$(LIB_PREFIX)pkixcrlsel.$(LIB_SUFFIX) \
+	$(DIST)/lib/$(LIB_PREFIX)pkixstore.$(LIB_SUFFIX) \
+	$(DIST)/lib/$(LIB_PREFIX)pkixpki.$(LIB_SUFFIX) \
+	$(DIST)/lib/$(LIB_PREFIX)pkixsystem.$(LIB_SUFFIX) \
+	$(DIST)/lib/$(LIB_PREFIX)pkixmodule.$(LIB_SUFFIX)
+
 EXTRA_LIBS += \
 	$(DIST)/lib/$(LIB_PREFIX)smime.$(LIB_SUFFIX) \
 	$(DIST)/lib/$(LIB_PREFIX)ssl.$(LIB_SUFFIX) \
@@ -107,6 +120,7 @@ EXTRA_LIBS += \
 	$(DIST)/lib/$(LIB_PREFIX)nsspki.$(LIB_SUFFIX) \
 	$(DIST)/lib/$(LIB_PREFIX)nssdev.$(LIB_SUFFIX) \
 	$(DIST)/lib/$(LIB_PREFIX)nssb.$(LIB_SUFFIX) \
+	$(PKIXLIB) \
 	$(DIST)/lib/$(LIB_PREFIX)dbm.$(LIB_SUFFIX) \
 	$(NSPR_LIB_DIR)/$(NSPR31_LIB_PREFIX)plc4.$(LIB_SUFFIX) \
 	$(NSPR_LIB_DIR)/$(NSPR31_LIB_PREFIX)plds4.$(LIB_SUFFIX) \
@@ -129,6 +143,21 @@ ifdef MOZILLA_BSAFE_BUILD
 	CRYPTOLIB+=$(DIST)/lib/$(LIB_PREFIX)bsafe.$(LIB_SUFFIX)
 	CRYPTOLIB+=$(DIST)/lib/$(LIB_PREFIX)freebl.$(LIB_SUFFIX)
 endif
+
+PKIXLIB = \
+	$(DIST)/lib/$(LIB_PREFIX)pkixtop.$(LIB_SUFFIX) \
+	$(DIST)/lib/$(LIB_PREFIX)pkixsystem.$(LIB_SUFFIX) \
+	$(DIST)/lib/$(LIB_PREFIX)pkixutil.$(LIB_SUFFIX) \
+	$(DIST)/lib/$(LIB_PREFIX)pkixcrlsel.$(LIB_SUFFIX) \
+	$(DIST)/lib/$(LIB_PREFIX)pkixmodule.$(LIB_SUFFIX) \
+	$(DIST)/lib/$(LIB_PREFIX)pkixstore.$(LIB_SUFFIX) \
+	$(DIST)/lib/$(LIB_PREFIX)pkixparams.$(LIB_SUFFIX) \
+	$(DIST)/lib/$(LIB_PREFIX)pkixchecker.$(LIB_SUFFIX) \
+	$(DIST)/lib/$(LIB_PREFIX)pkixpki.$(LIB_SUFFIX) \
+	$(DIST)/lib/$(LIB_PREFIX)pkixtop.$(LIB_SUFFIX) \
+	$(DIST)/lib/$(LIB_PREFIX)pkixresults.$(LIB_SUFFIX) \
+	$(DIST)/lib/$(LIB_PREFIX)pkixcertsel.$(LIB_SUFFIX)
+
 EXTRA_LIBS += \
 	$(DIST)/lib/$(LIB_PREFIX)smime.$(LIB_SUFFIX) \
 	$(DIST)/lib/$(LIB_PREFIX)ssl.$(LIB_SUFFIX) \
@@ -151,6 +180,8 @@ EXTRA_LIBS += \
 	$(CRYPTOLIB) \
 	$(DIST)/lib/$(LIB_PREFIX)secutil.$(LIB_SUFFIX) \
 	$(DIST)/lib/$(LIB_PREFIX)dbm.$(LIB_SUFFIX) \
+	$(PKIXLIB) \
+	$(DIST)/lib/$(LIB_PREFIX)certhi.$(LIB_SUFFIX) \
 	$(NULL)
 
 ifeq ($(OS_ARCH), AIX) 

@@ -37,7 +37,7 @@
 /*
  * Support for various policy related extensions
  *
- * $Id: polcyxtn.c,v 1.6 2004-04-25 15:03:03 gerv%gerv.net Exp $
+ * $Id: polcyxtn.c,v 1.7 2007-05-25 07:28:32 alexei.volkov.bugs%sun.com Exp $
  */
 
 #include "seccomon.h"
@@ -99,6 +99,39 @@ const SEC_ASN1Template CERT_CertificatePoliciesTemplate[] = {
 	  CERT_PolicyInfoTemplate, sizeof(CERTCertificatePolicies)  }
 };
 
+const SEC_ASN1Template CERT_PolicyMapTemplate[] = {
+    { SEC_ASN1_SEQUENCE,
+	  0, NULL, sizeof(CERTPolicyMap) },
+    { SEC_ASN1_OBJECT_ID,
+	  offsetof(CERTPolicyMap, issuerDomainPolicy) },
+    { SEC_ASN1_OBJECT_ID,
+	  offsetof(CERTPolicyMap, subjectDomainPolicy) },
+    { 0 }
+};
+
+const SEC_ASN1Template CERT_PolicyMappingsTemplate[] = {
+    { SEC_ASN1_SEQUENCE_OF,
+	  offsetof(CERTCertificatePolicyMappings, policyMaps),
+	  CERT_PolicyMapTemplate, sizeof(CERTPolicyMap)  }
+};
+
+const SEC_ASN1Template CERT_PolicyConstraintsTemplate[] = {
+    { SEC_ASN1_SEQUENCE, 0, NULL, sizeof(CERTCertificatePolicyConstraints) },
+    { SEC_ASN1_OPTIONAL | SEC_ASN1_CONTEXT_SPECIFIC | 0,
+	  offsetof(CERTCertificatePolicyConstraints, explicitPolicySkipCerts),
+	  SEC_IntegerTemplate },
+    { SEC_ASN1_OPTIONAL | SEC_ASN1_CONTEXT_SPECIFIC | 1,
+	  offsetof(CERTCertificatePolicyConstraints, inhibitMappingSkipCerts),
+	  SEC_IntegerTemplate },
+    { 0 }
+};
+
+const SEC_ASN1Template CERT_InhibitAnyTemplate[] = {
+    { SEC_ASN1_INTEGER,
+	  offsetof(CERTCertificateInhibitAny, inhibitAnySkipCerts),
+	  NULL, sizeof(CERTCertificateInhibitAny)  }
+};
+
 static void
 breakLines(char *string)
 {
@@ -150,7 +183,7 @@ CERT_DecodeCertificatePoliciesExtension(SECItem *extnValue)
 	goto loser;
     }
 
-    /* allocate the certifiate policies structure */
+    /* allocate the certificate policies structure */
     policies = (CERTCertificatePolicies *)
 	PORT_ArenaZAlloc(arena, sizeof(CERTCertificatePolicies));
     
@@ -209,6 +242,151 @@ CERT_DestroyCertificatePoliciesExtension(CERTCertificatePolicies *policies)
     return;
 }
 
+CERTCertificatePolicyMappings *
+CERT_DecodePolicyMappingsExtension(SECItem *extnValue)
+{
+    PRArenaPool *arena = NULL;
+    SECStatus rv;
+    CERTCertificatePolicyMappings *mappings;
+    SECItem newExtnValue;
+    
+    /* make a new arena */
+    arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
+    if ( !arena ) {
+        goto loser;
+    }
+
+    /* allocate the policy mappings structure */
+    mappings = (CERTCertificatePolicyMappings *)
+        PORT_ArenaZAlloc(arena, sizeof(CERTCertificatePolicyMappings));
+    if ( mappings == NULL ) {
+        goto loser;
+    }
+    mappings->arena = arena;
+
+    /* copy the DER into the arena, since Quick DER returns data that points
+       into the DER input, which may get freed by the caller */
+    rv = SECITEM_CopyItem(arena, &newExtnValue, extnValue);
+    if ( rv != SECSuccess ) {
+        goto loser;
+    }
+
+    /* decode the policy mappings */
+    rv = SEC_QuickDERDecodeItem
+        (arena, mappings, CERT_PolicyMappingsTemplate, &newExtnValue);
+    if ( rv != SECSuccess ) {
+        goto loser;
+    }
+
+    return(mappings);
+    
+loser:
+    if ( arena != NULL ) {
+        PORT_FreeArena(arena, PR_FALSE);
+    }
+    
+    return(NULL);
+}
+
+SECStatus
+CERT_DestroyPolicyMappingsExtension(CERTCertificatePolicyMappings *mappings)
+{
+    if ( mappings != NULL ) {
+        PORT_FreeArena(mappings->arena, PR_FALSE);
+    }
+    return SECSuccess;
+}
+
+SECStatus
+CERT_DecodePolicyConstraintsExtension
+                             (CERTCertificatePolicyConstraints *decodedValue,
+                              SECItem *encodedValue)
+{
+    CERTCertificatePolicyConstraints decodeContext;
+    PRArenaPool *arena = NULL;
+    SECStatus rv = SECSuccess;
+
+    /* initialize so we can tell when an optional component is omitted */
+    PORT_Memset(&decodeContext, 0, sizeof(decodeContext));
+
+    /* make a new arena */
+    arena = PORT_NewArena(SEC_ASN1_DEFAULT_ARENA_SIZE);
+    if (!arena) {
+        return SECFailure;
+    }
+
+    do {
+        /* decode the policy constraints */
+        rv = SEC_QuickDERDecodeItem(arena,
+                &decodeContext, CERT_PolicyConstraintsTemplate, encodedValue);
+
+        if ( rv != SECSuccess ) {
+            break;
+        }
+
+        if (decodeContext.explicitPolicySkipCerts.len == 0) {
+            *(PRInt32 *)decodedValue->explicitPolicySkipCerts.data = -1;
+        } else {
+            *(PRInt32 *)decodedValue->explicitPolicySkipCerts.data =
+                    DER_GetInteger(&decodeContext.explicitPolicySkipCerts);
+        }
+
+        if (decodeContext.inhibitMappingSkipCerts.len == 0) {
+            *(PRInt32 *)decodedValue->inhibitMappingSkipCerts.data = -1;
+        } else {
+            *(PRInt32 *)decodedValue->inhibitMappingSkipCerts.data =
+                    DER_GetInteger(&decodeContext.inhibitMappingSkipCerts);
+        }
+
+        if ((*(PRInt32 *)decodedValue->explicitPolicySkipCerts.data ==
+                PR_INT32_MIN) ||
+            (*(PRInt32 *)decodedValue->explicitPolicySkipCerts.data ==
+                PR_INT32_MAX) ||
+            (*(PRInt32 *)decodedValue->inhibitMappingSkipCerts.data ==
+                PR_INT32_MIN) ||
+            (*(PRInt32 *)decodedValue->inhibitMappingSkipCerts.data ==
+                PR_INT32_MAX)) {
+            rv = SECFailure;
+        }
+    
+    } while (0);
+
+    PORT_FreeArena(arena, PR_FALSE);
+    return(rv);
+}
+
+SECStatus CERT_DecodeInhibitAnyExtension
+        (CERTCertificateInhibitAny *decodedValue, SECItem *encodedValue)
+{
+    CERTCertificateInhibitAny decodeContext;
+    PRArenaPool *arena = NULL;
+    SECStatus rv = SECSuccess;
+
+    /* make a new arena */
+    arena = PORT_NewArena(SEC_ASN1_DEFAULT_ARENA_SIZE);
+    if ( !arena ) {
+        return SECFailure;
+    }
+
+    do {
+
+        /* decode the policy mappings */
+        decodeContext.inhibitAnySkipCerts.type = siUnsignedInteger;
+        rv = SEC_QuickDERDecodeItem(arena,
+                &decodeContext, CERT_InhibitAnyTemplate, encodedValue);
+
+        if ( rv != SECSuccess ) {
+            break;
+        }
+
+        *(PRInt32 *)decodedValue->inhibitAnySkipCerts.data =
+                DER_GetInteger(&decodeContext.inhibitAnySkipCerts);
+
+    } while (0);
+
+    PORT_FreeArena(arena, PR_FALSE);
+    return(rv);
+}
 
 CERTUserNotice *
 CERT_DecodeUserNotice(SECItem *noticeItem)

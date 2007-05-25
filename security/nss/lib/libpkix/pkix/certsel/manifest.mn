@@ -55,5 +55,5 @@ CSRCS = \
 
 REQUIRES = dbm
 
-LIBRARY_NAME = certsel
+LIBRARY_NAME = pkixcertsel
 

@@ -79,5 +79,5 @@ CSRCS = \
 
 REQUIRES = dbm
 
-LIBRARY_NAME = pki
+LIBRARY_NAME = pkixpki
 

@@ -37,7 +37,7 @@
 /*
  * cert.h - public data structures and prototypes for the certificate library
  *
- * $Id: cert.h,v 1.56 2007-05-15 23:15:28 julien.pierre.bugs%sun.com Exp $
+ * $Id: cert.h,v 1.57 2007-05-25 07:28:31 alexei.volkov.bugs%sun.com Exp $
  */
 
 #ifndef _CERT_H_
@@ -257,7 +257,7 @@ void *
 CERT_StartCertificateRequestAttributes(CERTCertificateRequest *req);
 
 /*
-** Reformat the certifcate extension list into a CertificateRequest
+** Reformat the certificate extension list into a CertificateRequest
 ** attribute list.
 */
 SECStatus
@@ -1016,7 +1016,11 @@ extern CERTCertNicknames *CERT_GetCertNicknames (CERTCertDBHandle *handle,
 /*
 ** Finds the crlNumber extension and decodes its value into 'value'
 */
-extern SECStatus CERT_FindCRLNumberExten (CERTCrl *crl, CERTCrlNumber *value);
+extern SECStatus CERT_FindCRLNumberExten (PRArenaPool *arena, CERTCrl *crl,
+                                          SECItem *value);
+
+extern SECStatus CERT_FindCRLEntryReasonExten (CERTCrlEntry *crlEntry,
+					       CERTCRLEntryReasonCode *value);
 
 extern void CERT_FreeNicknames(CERTCertNicknames *nicknames);
 
@@ -1134,6 +1138,19 @@ CERT_DecodeCertificatePoliciesExtension(SECItem *extnValue);
 
 void
 CERT_DestroyCertificatePoliciesExtension(CERTCertificatePolicies *policies);
+
+CERTCertificatePolicyMappings *
+CERT_DecodePolicyMappingsExtension(SECItem *encodedCertPolicyMaps);
+
+SECStatus
+CERT_DestroyPolicyMappingsExtension(CERTCertificatePolicyMappings *mappings);
+
+SECStatus
+CERT_DecodePolicyConstraintsExtension(
+    CERTCertificatePolicyConstraints *decodedValue, SECItem *encodedValue);
+
+SECStatus CERT_DecodeInhibitAnyExtension
+    (CERTCertificateInhibitAny *decodedValue, SECItem *extnValue);
 
 CERTUserNotice *
 CERT_DecodeUserNotice(SECItem *noticeItem);
@@ -1513,6 +1530,46 @@ extern SECStatus cert_GetCertType(CERTCertificate *cert);
 SECStatus CERT_CheckCRL(CERTCertificate* cert, CERTCertificate* issuer,
                         SECItem* dp, int64 t, void* wincx);
 
+
+/*
+ * Add a CERTNameConstraint to the CERTNameConstraint list
+ */
+extern CERTNameConstraint *
+CERT_AddNameConstraint(CERTNameConstraint *list, 
+		       CERTNameConstraint *constraint);
+
+/*
+ * Allocate space and copy CERTNameConstraint from src to dest.
+ * Arena is used to allocate result(if dest eq NULL) and its members
+ * SECItem data.
+ */
+extern CERTNameConstraint *
+CERT_CopyNameConstraint(PRArenaPool         *arena, 
+			CERTNameConstraint  *dest, 
+			CERTNameConstraint  *src);
+
+/*
+ * Verify name against all the constraints relevant to that type of
+ * the name.
+ */
+extern SECStatus
+CERT_CheckNameSpace(PRArenaPool          *arena,
+		    CERTNameConstraints  *constraints,
+		    CERTGeneralName      *currentName);
+
+/*
+ * Extract and allocate the name constraints extension from the CA cert.
+ */
+extern SECStatus
+CERT_FindNameConstraintsExten(PRArenaPool      *arena,
+			      CERTCertificate  *cert,
+			      CERTNameConstraints **constraints);
+
+/*
+ * Initialize a new GERTGeneralName fields (link)
+ */
+extern CERTGeneralName *
+CERT_NewGeneralName(PLArenaPool *arena, CERTGeneralNameType type);
 
 SEC_END_PROTOS
 

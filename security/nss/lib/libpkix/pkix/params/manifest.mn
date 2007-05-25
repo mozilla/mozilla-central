@@ -57,5 +57,5 @@ CSRCS = \
 
 REQUIRES = dbm
 
-LIBRARY_NAME = params
+LIBRARY_NAME = pkixparams
 

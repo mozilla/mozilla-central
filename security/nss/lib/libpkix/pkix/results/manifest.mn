@@ -57,5 +57,5 @@ CSRCS = \
 
 REQUIRES = dbm
 
-LIBRARY_NAME = results
+LIBRARY_NAME = pkixresults
 

@@ -607,7 +607,7 @@ pkix_pl_Cert_DecodeInhibitAnyPolicy(
         /* get InhibitAny as a SECItem */
         PKIX_CERT_DEBUG("\t\tCalling CERT_FindCertExtension).\n");
         rv = CERT_FindCertExtension
-                (nssCert, SEC_OID_X509_INHIBIT_ANY, &encodedCertInhibitAny);
+                (nssCert, SEC_OID_X509_INHIBIT_ANY_POLICY, &encodedCertInhibitAny);
 
         if (rv == SECSuccess) {
                 inhibitAny.inhibitAnySkipCerts.data =

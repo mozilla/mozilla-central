@@ -71,5 +71,5 @@ CSRCS = \
 
 REQUIRES = dbm
 
-LIBRARY_NAME = top
+LIBRARY_NAME = pkixtop
 

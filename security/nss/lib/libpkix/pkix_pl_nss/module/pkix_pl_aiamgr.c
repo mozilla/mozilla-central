@@ -277,7 +277,7 @@ pkix_pl_AIAMgr_GetHTTPCerts(
                        PKIX_INFOACCESSGETLOCATIONFAILED);
 
                 /* find or create httpClient = default client */
-		httpClient = GetRegisteredHttpClient();
+		httpClient = SEC_GetRegisteredHttpClient();
 		aiaMgr->client.hdata.httpClient = httpClient;
 
 		if (httpClient->version == 1) {

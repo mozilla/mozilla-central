@@ -974,7 +974,7 @@ cleanup:
  *
  *  This function allocates and copies data to a NSS CERTNameConstraints from
  *  the NameConstraints given by "srcNC" and stores the result at "pDestNC". It
- *  copies items on both the permited and excluded lists, but not the
+ *  copies items on both the permitted and excluded lists, but not the
  *  DERPermited and DERExcluded.
  *
  * PARAMETERS

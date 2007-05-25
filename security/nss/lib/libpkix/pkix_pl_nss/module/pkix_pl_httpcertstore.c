@@ -1441,7 +1441,7 @@ pkix_pl_HttpCertStore_CreateWithAsciiName(
         PKIX_NULLCHECK_TWO(locationAscii, pCertStore);
 
         if (client == NULL) {
-                clientFcn = GetRegisteredHttpClient();
+                clientFcn = SEC_GetRegisteredHttpClient();
                 if (clientFcn == NULL) {
                         PKIX_ERROR(PKIX_NOREGISTEREDHTTPCLIENT);
                 }

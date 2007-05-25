@@ -563,7 +563,7 @@ pkix_pl_OcspResponse_Create(
                         PKIX_PL_NSSCALLRV
                                 (OCSPRESPONSE,
                                 responder,
-                                (void *)GetRegisteredHttpClient,
+                                (void *)SEC_GetRegisteredHttpClient,
                                 ());
                 }
 

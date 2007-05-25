@@ -42,6 +42,7 @@ DEPTH      = ../..
 #
 #  softoken and prereqs.
 #  stan (not a separate dll yet)
+#  libpkix (not a separate dll)
 #  nss base (traditional)
 #  ssl
 #  smime
@@ -49,6 +50,7 @@ DEPTH      = ../..
 #  crmf jar (not dll's)
 DIRS =  util freebl softoken \
 	base asn1 dev pki pki1 \
+	libpkix \
 	certdb certhigh pk11wrap cryptohi nss \
 	ssl \
 	pkcs12 pkcs7 smime \

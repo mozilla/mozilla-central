@@ -94,6 +94,17 @@ SHARED_LIBRARY_LIBS = \
 	$(DIST)/lib/$(LIB_PREFIX)nsspki.$(LIB_SUFFIX) \
 	$(DIST)/lib/$(LIB_PREFIX)nssdev.$(LIB_SUFFIX) \
 	$(DIST)/lib/$(LIB_PREFIX)nssb.$(LIB_SUFFIX) \
+	$(DIST)/lib/$(LIB_PREFIX)certsel.$(LIB_SUFFIX) \
+	$(DIST)/lib/$(LIB_PREFIX)checker.$(LIB_SUFFIX) \
+	$(DIST)/lib/$(LIB_PREFIX)params.$(LIB_SUFFIX) \
+	$(DIST)/lib/$(LIB_PREFIX)results.$(LIB_SUFFIX) \
+	$(DIST)/lib/$(LIB_PREFIX)top.$(LIB_SUFFIX) \
+	$(DIST)/lib/$(LIB_PREFIX)util.$(LIB_SUFFIX) \
+	$(DIST)/lib/$(LIB_PREFIX)crlsel.$(LIB_SUFFIX) \
+	$(DIST)/lib/$(LIB_PREFIX)store.$(LIB_SUFFIX) \
+	$(DIST)/lib/$(LIB_PREFIX)pki.$(LIB_SUFFIX) \
+	$(DIST)/lib/$(LIB_PREFIX)system.$(LIB_SUFFIX) \
+	$(DIST)/lib/$(LIB_PREFIX)module.$(LIB_SUFFIX) \
 	$(NULL)
 
 SHARED_LIBRARY_DIRS = \
@@ -105,6 +116,17 @@ SHARED_LIBRARY_DIRS = \
 	../pki \
 	../dev \
 	../base \
+	../libpkix/pkix/certsel \
+	../libpkix/pkix/checker \
+	../libpkix/pkix/params \
+	../libpkix/pkix/results \
+	../libpkix/pkix/top \
+	../libpkix/pkix/util \
+	../libpkix/pkix/crlsel \
+	../libpkix/pkix/store \
+	../libpkix/pkix_pl_nss/pki \
+	../libpkix/pkix_pl_nss/system \
+	../libpkix/pkix_pl_nss/module \
 	$(NULL)
 
 

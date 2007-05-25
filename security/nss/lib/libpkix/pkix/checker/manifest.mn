@@ -57,5 +57,5 @@ CSRCS = \
 
 REQUIRES = dbm
 
-LIBRARY_NAME = checker
+LIBRARY_NAME = pkixchecker
 

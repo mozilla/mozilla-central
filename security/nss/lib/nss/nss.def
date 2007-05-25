@@ -901,8 +901,13 @@ DER_TimeToGeneralizedTimeArena;
 ;+};
 ;+NSS_3.12 { 	# NSS 3.12 release
 ;+    global:
+CERT_CheckNameSpace;
+CERT_FindCRLEntryReasonExten;
+CERT_FindCRLNumberExten;
+CERT_FindNameConstraintsExten;
 PK11_GetAllSlotsForCert;
 PK11_GenerateKeyPairWithOpFlags;
+SEC_GetRegisteredHttpClient;
 SECKEY_ECParamsToKeySize;
 SECKEY_ECParamsToBasePointOrderLen;
 SECMOD_DeleteModuleEx;

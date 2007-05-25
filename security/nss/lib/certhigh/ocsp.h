@@ -37,7 +37,7 @@
 /*
  * Interface to the OCSP implementation.
  *
- * $Id: ocsp.h,v 1.10 2007-03-23 06:57:57 kaie%kuix.de Exp $
+ * $Id: ocsp.h,v 1.11 2007-05-25 07:28:32 alexei.volkov.bugs%sun.com Exp $
  */
 
 #ifndef _OCSP_H_
@@ -57,7 +57,7 @@ SEC_BEGIN_PROTOS
 
 /*
  * This function registers the HttpClient with whose functions the
- * HttpClientFcn structure have been populated as the default Http
+ * HttpClientFcn structure has been populated as the default Http
  * client.
  *
  * The function table must be a global object.
@@ -66,6 +66,13 @@ SEC_BEGIN_PROTOS
  */
 extern SECStatus
 SEC_RegisterDefaultHttpClient(const SEC_HttpClientFcn *fcnTable);
+
+/*
+ * This function obtains the HttpClient which has been registered
+ * by an earlier call to SEC_RegisterDefaultHttpClient.
+ */
+extern const SEC_HttpClientFcn *
+SEC_GetRegisteredHttpClient(void);
 
 /*
  * Sets parameters that control NSS' internal OCSP cache.
@@ -442,6 +449,29 @@ CERT_VerifyOCSPResponseSignature(CERTOCSPResponse *response,
  */
 extern char *
 CERT_GetOCSPAuthorityInfoAccessLocation(CERTCertificate *cert);
+
+/*
+ * FUNCTION: CERT_ParseURL
+ *   Parse the URI of a OCSP responder into hostname, port, and path.
+ * INPUTS:
+ *   const char *location
+ *     The URI to be parsed
+ * OUTPUTS:
+ *   char *pHostname
+ *     Pointer to store the hostname obtained from the URI.
+ *     This result should be freed (via PORT_Free) when no longer in use.
+ *   PRUint16 *pPort
+ *     Pointer to store the port number obtained from the URI.
+ *   char *pPath
+ *     Pointer to store the path obtained from the URI.
+ *     This result should be freed (via PORT_Free) when no longer in use.
+ * RETURN:
+ *   Returns SECSuccess when parsing was successful. Anything else means
+ *   problems were encountered.
+ *     
+ */
+extern SECStatus
+CERT_ParseURL(const char *url, char **pHostname, PRUint16 *pPort, char **pPath);
 
 /*
  * FUNCTION: CERT_CheckOCSPStatus

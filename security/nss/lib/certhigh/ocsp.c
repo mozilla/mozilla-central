@@ -39,7 +39,7 @@
  * Implementation of OCSP services, for both client and server.
  * (XXX, really, mostly just for client right now, but intended to do both.)
  *
- * $Id: ocsp.c,v 1.41 2007-05-25 03:27:43 alexei.volkov.bugs%sun.com Exp $
+ * $Id: ocsp.c,v 1.42 2007-05-25 07:28:32 alexei.volkov.bugs%sun.com Exp $
  */
 
 #include "prerror.h"
@@ -896,7 +896,7 @@ SECStatus OCSP_ShutdownCache(void)
  * A return value of NULL means: 
  *   The application did not register it's own HTTP client.
  */
-static const SEC_HttpClientFcn *GetRegisteredHttpClient()
+const SEC_HttpClientFcn *SEC_GetRegisteredHttpClient()
 {
     const SEC_HttpClientFcn *retval;
 
@@ -2654,7 +2654,7 @@ CERT_DestroyOCSPResponse(CERTOCSPResponse *response)
  * of hostname and path, which are copies of the values found in the url.
  */
 static SECStatus
-ocsp_ParseURL(char *url, char **pHostname, PRUint16 *pPort, char **pPath)
+ocsp_ParseURL(const char *url, char **pHostname, PRUint16 *pPort, char **pPath)
 {
     unsigned short port = 80;		/* default, in case not in url */
     char *hostname = NULL;
@@ -3175,6 +3175,12 @@ ocsp_GetEncodedResponse(PRArenaPool *arena, PRFileDesc *sock)
     return result;
 }
 
+SECStatus
+CERT_ParseURL(const char *url, char **pHostname, PRUint16 *pPort, char **pPath)
+{
+    return ocsp_ParseURL(url, pHostname, pPort, pPath);
+}
+
 /*
  * Limit the size of http responses we are willing to accept.
  */
@@ -3366,7 +3372,7 @@ ocsp_GetEncodedOCSPResponseFromRequest(PRArenaPool *arena,
     if (encodedRequest == NULL)
 	goto loser;
 
-    registeredHttpClient = GetRegisteredHttpClient();
+    registeredHttpClient = SEC_GetRegisteredHttpClient();
 
     if (registeredHttpClient
             &&
