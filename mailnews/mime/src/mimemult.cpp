@@ -140,8 +140,7 @@ MimeMultipart_finalize (MimeObject *object)
 
 int MimeWriteAString(MimeObject *obj, const nsACString &string)
 {
-  const nsCString &flatString = PromiseFlatCString(string);
-  return MimeObject_write(obj, flatString.get(), flatString.Length(), PR_TRUE);
+  return MimeObject_write(obj, nsCString(string).get(), string.Length(), PR_TRUE);
 }
 
 static int

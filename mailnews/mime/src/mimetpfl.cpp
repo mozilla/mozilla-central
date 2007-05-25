@@ -396,7 +396,7 @@ MimeInlineTextPlainFlowed_parse_line (const char *aLine, PRInt32 length, MimeObj
           ((MimeInlineTextClass*)&mimeInlineTextClass)->initialize_charset(obj);
         mailCharset = inlinetext->charset;
         if (mailCharset && *mailCharset) {
-          rv = nsMsgI18NConvertToUnicode(mailCharset, nsPromiseFlatCString(inputStr), lineSource);
+          rv = nsMsgI18NConvertToUnicode(mailCharset, nsDependentCString(inputStr), lineSource);
           NS_ENSURE_SUCCESS(rv, -1);
         }
         else // this probably never happens...

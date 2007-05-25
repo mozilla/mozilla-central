@@ -767,8 +767,7 @@ MIME_detect_charset(const char *aBuf, PRInt32 aLength, const char** aCharset)
   if (!detector_name.IsEmpty()) {
     nsCAutoString detector_contractid;
     detector_contractid.AssignLiteral(NS_STRCDETECTOR_CONTRACTID_BASE);
-
-    AppendUTF16toUTF8(detector_name, detector_contractid);
+    detector_contractid.Append(NS_ConvertUTF16toUTF8(detector_name));
     nsCOMPtr<nsIStringCharsetDetector> detector = do_CreateInstance(detector_contractid.get(), &res);
     if (NS_SUCCEEDED(res)) {
       nsDetectionConfident oConfident;

@@ -585,8 +585,7 @@ nsMimeBaseEmitter::StartHeader(PRBool rootMailHeader, PRBool headerOnly, const c
   // If the main doc, check on updated character set
   if (mDocHeader)
     UpdateCharacterSet(outCharset);
-
-  mCharset.AssignWithConversion(outCharset);
+  CopyASCIItoUTF16(outCharset, mCharset);
   return NS_OK; 
 }
 

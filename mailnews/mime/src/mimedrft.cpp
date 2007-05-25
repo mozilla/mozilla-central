@@ -1856,7 +1856,7 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
     nsCAutoString contentType (newAttachment->type);
     PRInt32 pos = contentType.FindChar(';');
     if (pos > 0)
-      contentType.Truncate(pos);
+      contentType.SetLength(pos);
     nsresult  rv = NS_OK;
     nsCOMPtr<nsIMIMEService> mimeFinder (do_GetService(NS_MIMESERVICE_CONTRACTID, &rv));
     if (NS_SUCCEEDED(rv) && mimeFinder)

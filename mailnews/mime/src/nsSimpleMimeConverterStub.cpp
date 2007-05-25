@@ -133,7 +133,7 @@ EndGather(MimeObject *obj, PRBool abort_p)
     }
 
     // MimeObject_write wants a non-const string for some reason, but it doesn't mutate it
-    status = MimeObject_write(obj, (char *)PromiseFlatCString(asHTML).get(),
+    status = MimeObject_write(obj, asHTML.get(),
                               asHTML.Length(), PR_TRUE);
     if (status < 0)
         return status;

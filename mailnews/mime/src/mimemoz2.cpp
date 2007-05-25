@@ -269,7 +269,7 @@ ValidateRealName(nsMsgAttachmentData *aAttach, MimeHeaders *aHdrs)
     nsCAutoString contentType (aAttach->real_type);
     PRInt32 pos = contentType.FindChar(';');
     if (pos > 0)
-      contentType.Truncate(pos);
+      contentType.SetLength(pos);
 
     nsCOMPtr<nsIMIMEService> mimeFinder (do_GetService(NS_MIMESERVICE_CONTRACTID, &rv));
     if (NS_SUCCEEDED(rv)) 

@@ -273,7 +273,7 @@ printf("Can't output: %s\n", line);
   nsCString linestr(line, length);
   NS_ConvertUTF8toUTF16 line_ucs2(linestr.get());
   if (length && line_ucs2.IsEmpty())
-    line_ucs2.AssignWithConversion(linestr.get());
+    CopyASCIItoUTF16(linestr, line_ucs2);
   (textHTMLSan->complete_buffer)->Append(line_ucs2);
 
 #ifdef DEBUG_BenB
