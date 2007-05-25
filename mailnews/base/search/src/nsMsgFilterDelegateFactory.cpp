@@ -202,7 +202,7 @@ nsMsgFilterDelegateFactory::getFilterList(const char *aUri,
     // now we actually need the filter list, so we truncate the string
     // and use getdelegate to get the filter delegate
     nsCAutoString folderUri((const char*)aUri);
-    folderUri.Truncate(aTagPosition);
+    folderUri.SetLength(aTagPosition);
     
     // convert URI to resource
     nsCOMPtr<nsIRDFService> rdf(do_GetService(kRDFServiceCID, &rv));

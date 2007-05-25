@@ -322,7 +322,7 @@ nsMsgFilterDataSource::getFilterListTargets(nsIMsgFilterList *aFilterList,
             aResult->AppendElement(filterResource);
 
         // now reduce the URI back to the base uri
-        filterUri.Truncate(baseFilterUriLength);
+        filterUri.SetLength(baseFilterUriLength);
     }
     
     return NS_OK;

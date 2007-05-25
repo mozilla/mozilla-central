@@ -37,8 +37,6 @@
 
 #include "msgCore.h"
 
-#include "nsXPIDLString.h"
-
 #include "nsIWebProgress.h"
 #include "nsIXULBrowserWindow.h"
 #include "nsMsgStatusFeedback.h"
@@ -131,11 +129,11 @@ nsMsgStatusFeedback::OnStateChange(nsIWebProgress* aWebProgress,
       NS_TIMELINE_ENTER("Start Msg Loading in progress");
       m_lastPercent = 0;
       StartMeteors();
-      nsXPIDLString loadingDocument;
+      nsString loadingDocument;
       rv = mBundle->GetStringFromName(NS_LITERAL_STRING("documentLoading").get(),
                                       getter_Copies(loadingDocument));
       if (NS_SUCCEEDED(rv))
-        ShowStatusString(loadingDocument);
+        ShowStatusString(loadingDocument.get());
     }
     else if (aProgressStateFlags & STATE_STOP)
     {
@@ -175,7 +173,6 @@ nsMsgStatusFeedback::OnStateChange(nsIWebProgress* aWebProgress,
             // using NotifyPropertyFlagChanged. To be completely consistent,
             // we'd send a similar notification that the old message was
             // unloaded.
-            nsXPIDLCString spec;
             nsCOMPtr <nsIMsgDBHdr> msgHdr;
             nsCOMPtr <nsIMsgFolder> msgFolder;
             mailnewsUrl->GetFolder(getter_AddRefs(msgFolder));
@@ -191,11 +188,11 @@ nsMsgStatusFeedback::OnStateChange(nsIWebProgress* aWebProgress,
         }
       }
       StopMeteors();
-      nsXPIDLString documentDone;
+      nsString documentDone;
       rv = mBundle->GetStringFromName(NS_LITERAL_STRING("documentDone").get(),
                                       getter_Copies(documentDone));
       if (NS_SUCCEEDED(rv))
-        ShowStatusString(documentDone);
+        ShowStatusString(documentDone.get());
     }
   }
   return NS_OK;
@@ -317,10 +314,9 @@ NS_IMETHODIMP nsMsgStatusFeedback::OnStatus(nsIRequest *request, nsISupports* ct
 {
   nsresult rv;
   nsCOMPtr<nsIStringBundleService> sbs = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-  if (NS_FAILED(rv)) return rv;
-  nsXPIDLString str;
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsString str;
   rv = sbs->FormatStatusMessage(aStatus, aStatusArg, getter_Copies(str));
-  if (NS_FAILED(rv)) return rv;
-  nsAutoString msg(NS_STATIC_CAST(const PRUnichar*, str));
-  return ShowStatusString(msg.get());
+  NS_ENSURE_SUCCESS(rv, rv);
+  return ShowStatusString(str.get());
 }

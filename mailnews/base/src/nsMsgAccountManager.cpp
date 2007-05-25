@@ -1440,7 +1440,7 @@ nsMsgAccountManager::UnloadAccounts()
   m_identities.Reset(hashElementRelease, nsnull);
   m_incomingServers.Reset(hashElementRelease, nsnull);
   m_accountsLoaded = PR_FALSE;
-  mAccountKeyList.Truncate(0);
+  mAccountKeyList.Truncate();
   SetLastServerFound(nsnull, EmptyCString(), EmptyCString(), 0, EmptyCString());
   return NS_OK;
 }
@@ -2784,7 +2784,7 @@ NS_IMETHODIMP nsMsgAccountManager::LoadVirtualFolders()
                 // has its parent set.
                 parentFolder->GetParent(getter_AddRefs(grandParent));
                 parentFolder->GetIsServer(&isServer);
-                buffer.Truncate(lastSlash);
+                buffer.SetLength(lastSlash);
               }
               else
                 break;

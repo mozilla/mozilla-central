@@ -47,7 +47,6 @@
 #include "nsIServiceManager.h"
 #include "nsIStringStream.h"
 #include "nsEscape.h"
-#include "nsXPIDLString.h"
 #include "nsReadableUtils.h"
 #include "nsILocalFile.h"
 #include "nsDirectoryServiceDefs.h"
@@ -456,7 +455,7 @@ nsMessenger::PromptIfFileExists(nsILocalFile *file)
         if (!dialog) return rv;
         nsAutoString path;
         PRBool dialogResult = PR_FALSE;
-        nsXPIDLString errorMessage;
+        nsString errorMessage;
 
         file->GetPath(path);
         const PRUnichar *pathFormatStrings[] = { path.get() };
@@ -470,7 +469,7 @@ nsMessenger::PromptIfFileExists(nsILocalFile *file)
                                                  pathFormatStrings, 1,
                                                  getter_Copies(errorMessage));
         if (NS_FAILED(rv)) return rv;
-        rv = dialog->Confirm(nsnull, errorMessage, &dialogResult);
+        rv = dialog->Confirm(nsnull, errorMessage.get(), &dialogResult);
         if (NS_FAILED(rv)) return rv;
 
         if (dialogResult)
@@ -828,7 +827,7 @@ nsMessenger::SaveAttachmentToFolder(const char * contentType, const char * url, 
 
   nsCOMPtr<nsILocalFile> attachmentDestination = do_QueryInterface(clone);
 
-  nsXPIDLCString unescapedFileName;
+  nsCString unescapedFileName;
   rv = ConvertAndSanitizeFileName(displayName, nsnull, getter_Copies(unescapedFileName));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -836,7 +835,6 @@ nsMessenger::SaveAttachmentToFolder(const char * contentType, const char * url, 
   NS_ENSURE_SUCCESS(rv, rv);
 
   rv = SaveAttachment(attachmentDestination, url, messageUri, contentType, nsnull);
-
   attachmentDestination.swap(*aOutFile);
   return rv;
 }
@@ -860,10 +858,8 @@ nsMessenger::SaveAttachment(const char * contentType, const char * url,
   PRInt16 dialogResult;
   nsCOMPtr<nsILocalFile> localFile;
   nsCOMPtr<nsILocalFile> lastSaveDir;
-  nsXPIDLCString filePath;
-
-  
-  nsXPIDLString defaultDisplayString;
+  nsCString filePath;
+  nsString defaultDisplayString;
   rv = ConvertAndSanitizeFileName(displayName, getter_Copies(defaultDisplayString), nsnull);
   if (NS_FAILED(rv)) goto done;
 
@@ -918,7 +914,7 @@ nsMessenger::SaveAllAttachments(PRUint32 count,
         do_CreateInstance("@mozilla.org/filepicker;1", &rv);
     nsCOMPtr<nsILocalFile> localFile;
     nsCOMPtr<nsILocalFile> lastSaveDir;
-    nsXPIDLCString dirName;
+    nsCString dirName;
     nsSaveAllAttachmentsState *saveState = nsnull;
     PRInt16 dialogResult;
 
@@ -952,9 +948,9 @@ nsMessenger::SaveAllAttachments(PRUint32 count,
                                               urlArray,
                                               displayNameArray,
                                               messageUriArray, 
-                                              (const char*) dirName, detaching);
+                                              dirName.get(), detaching);
     {
-        nsXPIDLCString unescapedName;
+        nsCString unescapedName;
         rv = ConvertAndSanitizeFileName(displayNameArray[0], nsnull, getter_Copies(unescapedName));
         if (NS_FAILED(rv))
           goto done;
@@ -2015,7 +2011,7 @@ nsSaveMsgListener::OnStopRequest(nsIRequest* request, nsISupports* aSupport,
       {
           nsSaveAllAttachmentsState *state = m_saveAllAttachmentsState;
           PRUint32 i = state->m_curIndex;
-          nsXPIDLCString unescapedName;
+          nsCString unescapedName;
           nsCOMPtr<nsILocalFile> localFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
           if (NS_FAILED(rv)) goto done;
           rv = localFile->InitWithNativePath(nsDependentCString(state->m_directoryName));
@@ -2110,8 +2106,7 @@ nsSaveMsgListener::OnDataAvailable(nsIRequest* request,
       if (NS_SUCCEEDED(rv))
       {
         if ( (m_doCharsetConversion) && (m_outputFormat == ePlainText) )
-          AppendUTF8toUTF16(Substring(m_dataBuffer, m_dataBuffer + readCount),
-                            m_msgBuffer);
+          m_msgBuffer.Append(NS_ConvertUTF8toUTF16(Substring(m_dataBuffer, m_dataBuffer + readCount)));
         else
           rv = m_outputStream->Write(m_dataBuffer, readCount, &writeCount);
 
@@ -3153,8 +3148,8 @@ nsMessenger::PromptIfDeleteAttachments(PRBool aSaveFirst,
   }
 
   // create the list of attachments we are removing
-  nsXPIDLString displayString;
-  nsXPIDLString attachmentList;
+  nsString displayString;
+  nsString attachmentList;
   for (PRUint32 u = 0; u < aCount; ++u)
   {
     rv = ConvertAndSanitizeFileName(aDisplayNameArray[u], getter_Copies(displayString), nsnull);
@@ -3165,14 +3160,14 @@ nsMessenger::PromptIfDeleteAttachments(PRBool aSaveFirst,
   const PRUnichar *formatStrings[] = { attachmentList.get() };
 
   // format the message and display
-  nsXPIDLString promptMessage;
+  nsString promptMessage;
   const PRUnichar * propertyName = aSaveFirst ? 
     NS_LITERAL_STRING("detachAttachments").get() : NS_LITERAL_STRING("deleteAttachments").get();
   rv = mStringBundle->FormatStringFromName(propertyName, formatStrings, 1,getter_Copies(promptMessage));
   NS_ENSURE_SUCCESS(rv, rv);
 
   PRBool dialogResult = PR_FALSE;
-  rv = dialog->Confirm(nsnull, promptMessage, &dialogResult);
+  rv = dialog->Confirm(nsnull, promptMessage.get(), &dialogResult);
   NS_ENSURE_SUCCESS(rv, rv);
   
   return dialogResult ? NS_OK : NS_ERROR_FAILURE;

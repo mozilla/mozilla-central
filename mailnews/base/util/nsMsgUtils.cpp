@@ -427,7 +427,7 @@ nsresult NS_MsgHashIfNecessary(nsAutoString &name)
 
   if (keptLength >= 0) {
     PR_snprintf(hashedname, 9, "%08lx", (unsigned long) StringHash(name));
-    name.Truncate(keptLength);
+    name.SetLength(keptLength);
     AppendASCIItoUTF16(hashedname, name);
   }
 
@@ -513,7 +513,7 @@ PRBool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSub
 
   // get localizedRe pref
   nsresult rv;
-  nsXPIDLCString localizedRe;
+  nsCString localizedRe;
   nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   if (NS_SUCCEEDED(rv))
     prefBranch->GetCharPref("mailnews.localizedRe", getter_Copies(localizedRe));
@@ -524,7 +524,7 @@ PRBool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSub
     checkString.Append(NS_LITERAL_CSTRING(",") + localizedRe);
 
   // decode the string
-  nsXPIDLCString decodedString;
+  nsCString decodedString;
   nsCOMPtr<nsIMimeConverter> mimeConverter;
   // we cannot strip "Re:" for MIME encoded subject without modifying the original
   if (modifiedSubject && strstr(*stringP, "=?"))
@@ -534,7 +534,7 @@ PRBool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSub
       rv = mimeConverter->DecodeMimeHeader(*stringP, getter_Copies(decodedString));
   }
 
-  s = decodedString ? decodedString.get() : *stringP;
+  s = !decodedString.IsEmpty() ? decodedString.get() : *stringP;
   L = lengthP ? *lengthP : strlen(s);
 
   s_end = s + L;
@@ -585,7 +585,7 @@ PRBool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSub
       tokPtr++;
   }
   
-  if (decodedString)
+  if (!decodedString.IsEmpty())
   {
     // encode the string back if any modification is made
     if (s != decodedString.get())
@@ -683,7 +683,7 @@ nsresult NS_MsgDecodeUnescapeURLPath(const nsACString& aPath,
                                      nsAString& aResult)
 {
   nsCAutoString unescapedName;
-  NS_UnescapeURL(PromiseFlatCString(aPath), 
+  NS_UnescapeURL(nsCString(aPath), 
                  esc_FileBaseName|esc_Forced|esc_AlwaysCopy,
                  unescapedName);
   CopyUTF8toUTF16(unescapedName, aResult);
@@ -920,7 +920,7 @@ nsresult IsRSSArticle(nsIURI * aMsgURI, PRBool *aIsRSSArticle)
   nsCOMPtr<nsIMsgMessageUrl> msgUrl = do_QueryInterface(aMsgURI, &rv);
   if (NS_FAILED(rv)) return rv;
 
-  nsXPIDLCString resourceURI;
+  nsCString resourceURI;
   msgUrl->GetUri(getter_Copies(resourceURI));
   
   // get the msg service for this URI
@@ -929,7 +929,7 @@ nsresult IsRSSArticle(nsIURI * aMsgURI, PRBool *aIsRSSArticle)
   NS_ENSURE_SUCCESS(rv, rv);
   
   nsCOMPtr<nsIMsgDBHdr> msgHdr;
-  rv = msgService->MessageURIToMsgHdr(resourceURI, getter_AddRefs(msgHdr));
+  rv = msgService->MessageURIToMsgHdr(resourceURI.get(), getter_AddRefs(msgHdr));
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(aMsgURI, &rv);
@@ -1407,7 +1407,7 @@ nsresult MsgMailboxGetURI(const char *uriPath, nsCString &mailboxUri)
     nsCOMPtr<nsIFileURL> theFileURL = do_QueryInterface(fileURI, &rv);
     NS_ENSURE_SUCCESS(rv,rv);
     
-    nsXPIDLCString serverPath;
+    nsCString serverPath;
     NS_ENSURE_SUCCESS(rv, rv);
     fileURI->GetSpec(serverPath);
 

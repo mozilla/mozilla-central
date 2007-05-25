@@ -54,7 +54,6 @@
 
 #include "nsString.h"
 #include "nsCOMPtr.h"
-#include "nsXPIDLString.h"
 #include "nsReadableUtils.h"
 
 #include "nsIMsgMailSession.h"
@@ -435,23 +434,7 @@ NS_IMETHODIMP nsMsgFolderDataSource::GetTarget(nsIRDFResource* source,
 
   nsCOMPtr<nsIMsgFolder> folder(do_QueryInterface(source));
   if (folder)
-  {
     rv = createFolderNode(folder, property, target);
-#if 0
-    nsXPIDLCString srcval;
-    nsXPIDLCString propval;
-    nsXPIDLCString targetval;
-    source->GetValue(getter_Copies(srcval));
-    property->GetValue(getter_Copies(propval));
-    //    (*target)->GetValue(getter_Copies(targetval));
-
-    printf("nsMsgFolderDataSource::GetTarget(%s, %s, %s, (%s))\n",
-           (const char*)srcval,
-           (const char*)propval, tv ? "TRUE" : "FALSE",
-           (const char*)"");
-#endif
-
-  }
   else
     return NS_RDF_NO_VALUE;
   return rv;
@@ -475,19 +458,6 @@ NS_IMETHODIMP nsMsgFolderDataSource::GetTargets(nsIRDFResource* source,
   if(!targets)
     return NS_ERROR_NULL_POINTER;
 
-#if 0
-  nsXPIDLCString srcval;
-  nsXPIDLCString propval;
-  nsXPIDLCString targetval;
-  source->GetValue(getter_Copies(srcval));
-  property->GetValue(getter_Copies(propval));
-  //    (*target)->GetValue(getter_Copies(targetval));
-
-  printf("nsMsgFolderDataSource::GetTargets(%s, %s, %s, (%s))\n",
-    (const char*)srcval,
-    (const char*)propval, tv ? "TRUE" : "FALSE",
-    (const char*)"");
-#endif
   *targets = nsnull;
 
   nsCOMPtr<nsIMsgFolder> folder(do_QueryInterface(source, &rv));
@@ -577,16 +547,6 @@ NS_IMETHODIMP nsMsgFolderDataSource::HasAssertion(nsIRDFResource* source,
                             PRBool* hasAssertion)
 {
   nsresult rv;
-#if 0
-  nsXPIDLCString sourceval;
-  nsXPIDLCString propval;
-  nsXPIDLCString targetval;
-  source->GetValue(getter_Copies(sourceval));
-  property->GetValue(getter_Copies(propval));
-  /*  target->GetValue(getter_Copies(targetval)); */
-  printf("HasAssertion(%s, %s, ??...)\n", (const char*)sourceval, (const char*)propval);
-#endif
-
   nsCOMPtr<nsIMsgFolder> folder(do_QueryInterface(source, &rv));
   if(NS_SUCCEEDED(rv))
     return DoFolderHasAssertion(folder, property, target, tv, hasAssertion);
@@ -2108,8 +2068,7 @@ nsresult nsMsgFolderDataSource::DoDeleteFromFolder(
         NS_ENSURE_ARG_POINTER(msgWindow);
         nsCOMPtr<nsIStringBundleService> sBundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
         nsCOMPtr<nsIStringBundle> sMessengerStringBundle;
-        nsXPIDLString confirmMsg;
-
+        nsString confirmMsg;
         if (NS_SUCCEEDED(rv) && sBundleService)
           rv = sBundleService->CreateBundle(MESSENGER_STRING_URL, getter_AddRefs(sMessengerStringBundle));
         NS_ENSURE_SUCCESS(rv, rv);
@@ -2120,7 +2079,7 @@ nsresult nsMsgFolderDataSource::DoDeleteFromFolder(
         if (NS_SUCCEEDED(rv))
         {
           PRBool dialogResult;
-          rv = dialog->Confirm(nsnull, confirmMsg, &dialogResult);
+          rv = dialog->Confirm(nsnull, confirmMsg.get(), &dialogResult);
           if (!dialogResult)
             return NS_OK;
         }
@@ -2137,11 +2096,9 @@ nsresult nsMsgFolderDataSource::DoNewFolder(nsIMsgFolder *folder, nsISupportsArr
   nsCOMPtr<nsIRDFLiteral> literal = do_QueryElementAt(arguments, 0, &rv);
   if(NS_SUCCEEDED(rv))
   {
-    nsXPIDLString name;
+    nsString name;
     literal->GetValue(getter_Copies(name));
-
     rv = folder->CreateSubfolder(name, window);
-
   }
   return rv;
 }

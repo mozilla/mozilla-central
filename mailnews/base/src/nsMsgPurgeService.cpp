@@ -296,7 +296,7 @@ nsresult nsMsgPurgeService::PerformPurge()
         
         // check if the spam folder uri is set for this server
         // if not skip it.
-        nsXPIDLCString junkFolderURI;
+        nsCString junkFolderURI;
         rv = spamSettings->GetSpamFolderURI(getter_Copies(junkFolderURI));
         NS_ENSURE_SUCCESS(rv,rv);
 
@@ -468,9 +468,9 @@ NS_IMETHODIMP nsMsgPurgeService::OnSearchHit(nsIMsgDBHdr* aMsgHdr, nsIMsgFolder 
 {
   NS_ENSURE_ARG_POINTER(aMsgHdr);
 
-  nsXPIDLCString messageId;
-  nsXPIDLCString author;
-  nsXPIDLCString subject;
+  nsCString messageId;
+  nsCString author;
+  nsCString subject;
   
   aMsgHdr->GetMessageId(getter_Copies(messageId));
   PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("messageId=%s", messageId.get()));
@@ -488,7 +488,7 @@ NS_IMETHODIMP nsMsgPurgeService::OnSearchHit(nsIMsgDBHdr* aMsgHdr, nsIMsgFolder 
   // so the junk status would be in the message db.
   //
   // see bug #194090
-  nsXPIDLCString junkScoreStr;
+  nsCString junkScoreStr;
   nsresult rv = aMsgHdr->GetStringProperty("junkscore", getter_Copies(junkScoreStr));
   NS_ENSURE_SUCCESS(rv,rv);
 

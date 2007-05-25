@@ -42,16 +42,12 @@
  */
 
 #include "nsMsgAccountManagerDS.h"
-
-
 #include "rdf.h"
 #include "nsRDFCID.h"
 #include "nsIRDFDataSource.h"
 #include "nsEnumeratorUtils.h"
 #include "nsIServiceManager.h"
 #include "nsIMsgMailSession.h"
-#include "nsXPIDLString.h"
-
 #include "nsMsgRDFUtils.h"
 #include "nsIMsgFolder.h"
 #include "nsMsgBaseCID.h"
@@ -549,7 +545,7 @@ nsMsgAccountManagerDataSource::GetTarget(nsIRDFResource *source,
           // allow for the accountmanager to be dynamically extended
           // all the other pages come after the standard ones
           // server, copies, addressing, disk space (or offline & disk space)
-          str.AssignWithConversion(sourceValue);
+          CopyASCIItoUTF16(sourceValue, str);
         }
       }
       else {
@@ -640,19 +636,6 @@ nsMsgAccountManagerDataSource::GetTargets(nsIRDFResource *source,
   rv = NS_NewArrayEnumerator(_retval, nodes);
   if (NS_FAILED(rv)) return rv;
 
-#ifdef DEBUG_amds
-  nsXPIDLCString source_value;
-  rv = source->GetValue(getter_Copies(source_value));
-
-  nsXPIDLCString property_arc;
-  rv = property->GetValue(getter_Copies(property_arc));
-  if (NS_FAILED(rv)) return rv;
-
-  printf("GetTargets(%s with arc %s...)\n",
-         (const char*)source_value,
-         (const char*)property_arc);
-#endif
-
   if (source == kNC_AccountRoot)
     rv = createRootResources(property, nodes);
   else if (property == kNC_Settings)
@@ -730,7 +713,7 @@ nsMsgAccountManagerDataSource::appendGenericSettingsResources(nsIMsgIncomingServ
       if (NS_FAILED(rv))
         break;
 
-      nsXPIDLCString contractidString;
+      nsCString contractidString;
       rv = catman->GetCategoryEntry(MAILNEWS_ACCOUNTMANAGER_EXTENSIONS, entryString.get(), getter_Copies(contractidString));
       if (NS_FAILED(rv))
         break;
@@ -1244,12 +1227,6 @@ nsMsgAccountManagerDataSource::OnServerLoaded(nsIMsgIncomingServer* aServer)
   nsCOMPtr<nsIRDFResource> serverResource = do_QueryInterface(serverFolder,&rv);
   if (NS_FAILED(rv)) return rv;
 
-#ifdef DEBUG_alecf_
-  nsXPIDLCString serverUri;
-  serverResource->GetValue(getter_Copies(serverUri));
-  printf("nsMsgAccountmanagerDataSource::OnServerLoaded(%s)\n", (const char*)serverUri);
-#endif
-
   NotifyObservers(kNC_AccountRoot, kNC_Child, serverResource, nsnull, PR_TRUE, PR_FALSE);
   NotifyObservers(kNC_AccountRoot, kNC_Settings, serverResource, nsnull, PR_TRUE, PR_FALSE);
 
@@ -1354,7 +1331,7 @@ nsMsgAccountManagerDataSource::IsFakeAccountRequired()
   if (!showFakeAccount)
     return PR_FALSE;
 
-  nsXPIDLCString fakeHostName;
+  nsCString fakeHostName;
   rv = GetFakeAccountHostName(getter_Copies(fakeHostName));
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -1380,7 +1357,7 @@ nsMsgAccountManagerDataSource::IsIncomingServerForFakeAccount(nsIMsgIncomingServ
   NS_ENSURE_ARG_POINTER(aResult);
 
   nsresult rv;
-  nsXPIDLCString fakeAccountHostName;
+  nsCString fakeAccountHostName;
   rv = GetFakeAccountHostName(getter_Copies(fakeAccountHostName));
   NS_ENSURE_SUCCESS(rv,rv);
 

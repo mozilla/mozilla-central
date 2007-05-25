@@ -264,7 +264,7 @@ NS_IMETHODIMP nsMessengerBootstrap::OpenMessengerWindowWithUri(const char *windo
 #ifdef MOZ_XUL_APP
   NS_NAMED_LITERAL_CSTRING(chromeurl, "chrome://messenger/content/");
 #else
-  nsXPIDLCString chromeurl;
+  nsCString chromeurl;
   rv = GetChromeUrlForTask(getter_Copies(chromeurl));
   if (NS_FAILED(rv)) return rv;
 #endif

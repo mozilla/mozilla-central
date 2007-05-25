@@ -44,7 +44,6 @@
 #include "nsIRDFNode.h"
 #include "nsRDFCID.h"
 #include "nsIMsgImapMailFolder.h"
-#include "nsXPIDLString.h"
 #include "nsIMsgMessageService.h"
 #include "nsMsgUtils.h"
 #include "netCore.h"
@@ -73,15 +72,15 @@ static nsresult GetMessage(nsIURI *aURL, nsIMsgDBHdr **message)
 
   // get the uri.  first try and use the original message spec
   // if that fails, use the spec of nsIURI that we're called with
-  nsXPIDLCString uri;
+  nsCString uri;
   rv = uriURL->GetOriginalSpec(getter_Copies(uri));
   if (NS_FAILED(rv) || uri.IsEmpty()) {
     rv = uriURL->GetUri(getter_Copies(uri));
-	  NS_ENSURE_SUCCESS(rv,rv);
+    NS_ENSURE_SUCCESS(rv,rv);
   }
 
   nsCOMPtr <nsIMsgMessageService> msgMessageService;
-  rv = GetMessageServiceFromURI(uri, getter_AddRefs(msgMessageService));
+  rv = GetMessageServiceFromURI(uri.get(), getter_AddRefs(msgMessageService));
   NS_ENSURE_SUCCESS(rv,rv);
   if (!msgMessageService) 
     return NS_ERROR_FAILURE;

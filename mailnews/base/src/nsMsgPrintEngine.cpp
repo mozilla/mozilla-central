@@ -46,7 +46,6 @@
 
 #include "nsIURI.h"
 #include "nsEscape.h"
-#include "nsXPIDLString.h"
 #include "nsReadableUtils.h"
 #include "nsIDocShell.h"
 #include "nsIDOMDocument.h"

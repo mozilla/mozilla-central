@@ -41,7 +41,6 @@
 #include "nsIRDFService.h"
 #include "nsRDFCID.h"
 #include "nsIComponentManager.h"
-#include "nsXPIDLString.h"
 #include "rdf.h"
 #include "nsIServiceManager.h"
 #include "nsEnumeratorUtils.h"
@@ -169,12 +168,10 @@ nsSubscribeDataSource::GetTarget(nsIRDFResource *source,
 	if (! tv) return NS_RDF_NO_VALUE;
 
     nsCOMPtr<nsISubscribableServer> server;
-    nsXPIDLCString relativePath;
-
+    nsCString relativePath;
     rv = GetServerAndRelativePathFromResource(source, getter_AddRefs(server), getter_Copies(relativePath));
-    if (NS_FAILED(rv) || !server) {
+    if (NS_FAILED(rv) || !server)
         return NS_RDF_NO_VALUE;
-    }
 
     if (property == kNC_Name.get()) {
         nsCOMPtr<nsIRDFLiteral> name;
@@ -187,7 +184,7 @@ nsSubscribeDataSource::GetTarget(nsIRDFResource *source,
         return name->QueryInterface(NS_GET_IID(nsIRDFNode), (void**) target);
     }
     else if (property == kNC_Child.get()) {
-        nsXPIDLCString childUri;
+        nsCString childUri;
         rv = server->GetFirstChildURI(relativePath, childUri);
         if (NS_FAILED(rv)) return NS_RDF_NO_VALUE;
         if (childUri.IsEmpty()) return NS_RDF_NO_VALUE;
@@ -231,12 +228,12 @@ nsSubscribeDataSource::GetTarget(nsIRDFResource *source,
         return serverType->QueryInterface(NS_GET_IID(nsIRDFNode), (void**) target);
     }
     else if (property == kNC_LeafName.get()) {
-        nsXPIDLString leafNameStr;
+        nsString leafNameStr;
         rv = server->GetLeafName(relativePath, leafNameStr); 
         NS_ENSURE_SUCCESS(rv,rv);
    
         nsCOMPtr<nsIRDFLiteral> leafName;
-        rv = mRDFService->GetLiteral(leafNameStr, getter_AddRefs(leafName));
+        rv = mRDFService->GetLiteral(leafNameStr.get(), getter_AddRefs(leafName));
         NS_ENSURE_SUCCESS(rv,rv);
 
         if (!leafName)
@@ -299,7 +296,7 @@ nsSubscribeDataSource::GetTargets(nsIRDFResource *source,
 	if (!tv) return NS_RDF_NO_VALUE;
 
     nsCOMPtr<nsISubscribableServer> server;
-    nsXPIDLCString relativePath;  // UTF-8
+    nsCString relativePath;  // UTF-8
 
     rv = GetServerAndRelativePathFromResource(source, getter_AddRefs(server), getter_Copies(relativePath));
     if (NS_FAILED(rv) || !server) {
@@ -314,12 +311,12 @@ nsSubscribeDataSource::GetTargets(nsIRDFResource *source,
         return rv;
     }
     else if (property == kNC_LeafName.get()) {
-        nsXPIDLString leafNameStr;
+        nsString leafNameStr;
         rv = server->GetLeafName(relativePath, leafNameStr);
         NS_ENSURE_SUCCESS(rv,rv);
     
         nsCOMPtr<nsIRDFLiteral> leafName;
-        rv = mRDFService->GetLiteral(leafNameStr, getter_AddRefs(leafName));
+        rv = mRDFService->GetLiteral(leafNameStr.get(), getter_AddRefs(leafName));
         NS_ENSURE_SUCCESS(rv,rv);
 
         return NS_NewSingletonEnumerator(targets, leafName);
@@ -488,7 +485,7 @@ nsSubscribeDataSource::HasAssertion(nsIRDFResource *source,
 
 	if (property == kNC_Child.get()) {
     nsCOMPtr<nsISubscribableServer> server;
-    nsXPIDLCString relativePath;
+    nsCString relativePath;
 
     rv = GetServerAndRelativePathFromResource(source, getter_AddRefs(server), getter_Copies(relativePath));
     if (NS_FAILED(rv) || !server) {
@@ -540,7 +537,7 @@ nsSubscribeDataSource::HasArcOut(nsIRDFResource *source, nsIRDFResource *aArc, P
     nsresult rv = NS_OK;
 
     nsCOMPtr<nsISubscribableServer> server;
-    nsXPIDLCString relativePath;
+    nsCString relativePath;
 
     if (aArc == kNC_Child.get()) {
     rv = GetServerAndRelativePathFromResource(source, getter_AddRefs(server), getter_Copies(relativePath));
@@ -593,7 +590,7 @@ nsSubscribeDataSource::ArcLabelsOut(nsIRDFResource *source,
 	return NS_ERROR_NULL_POINTER;
 
     nsCOMPtr<nsISubscribableServer> server;
-    nsXPIDLCString relativePath;
+    nsCString relativePath;
 
     rv = GetServerAndRelativePathFromResource(source, getter_AddRefs(server), getter_Copies(relativePath));
     if (NS_FAILED(rv) || !server) {

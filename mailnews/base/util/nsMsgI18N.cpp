@@ -56,7 +56,6 @@
 #include "nsIEntityConverter.h"
 #include "nsISaveAsCharset.h"
 #include "nsHankakuToZenkakuCID.h"
-#include "nsXPIDLString.h"
 #include "nsString.h"
 #include "nsReadableUtils.h"
 #include "prmem.h"
@@ -323,7 +322,7 @@ PRBool nsMsgI18Ncheck_data_in_charset_range(const char *charset, const PRUnichar
 
   // if the conversion was not successful then try fallback to other charsets
   if (!result && fallbackCharset) {
-    nsXPIDLCString convertedString;
+    nsCString convertedString;
     res = nsMsgI18NSaveAsCharset("text/plain", charset, inString, 
                                  getter_Copies(convertedString), fallbackCharset);
     result = (NS_SUCCEEDED(res) && NS_ERROR_UENC_NOMAPPING != res);
@@ -510,7 +509,7 @@ nsresult nsMsgI18NSaveAsCharset(const char* contentType, const char *charset,
 
     nsCAutoString prefString("intl.fallbackCharsetList.");
     prefString.Append(charset);
-    nsXPIDLCString fallbackList;
+    nsCString fallbackList;
     res = prefBranch->GetCharPref(prefString.get(), getter_Copies(fallbackList));
     // do the fallback only if there is a pref for the charset
     if (NS_FAILED(res) || fallbackList.IsEmpty())
@@ -546,6 +545,7 @@ nsresult nsMsgI18NFormatNNTPXPATInNonRFC1522Format(const nsCString& aCharset,
                                                    const nsString& inString, 
                                                    nsCString& outString)
 {
+  LossyCopyUTF16toASCII(inString, outString);
   outString.AssignWithConversion(inString);
   return NS_OK;
 }
@@ -563,7 +563,7 @@ nsMsgI18NGetAcceptLanguage(void)
                                 getter_AddRefs(prefString));
     if (prefString)
     {
-      nsXPIDLString ucsval;
+      nsString ucsval;
       prefString->ToString(getter_Copies(ucsval));
       if (!ucsval.IsEmpty())
       {

@@ -574,7 +574,7 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
           PRInt32 nextFilterStartPos = m_unparsedFilterBuffer.RFind("name");
           nsCAutoString nextFilterPart;
           nextFilterPart = Substring(m_unparsedFilterBuffer, nextFilterStartPos, m_unparsedFilterBuffer.Length());
-          m_unparsedFilterBuffer.Truncate(nextFilterStartPos);
+          m_unparsedFilterBuffer.SetLength(nextFilterStartPos);
 
           PRBool unparseableFilter;
           m_curFilter->GetUnparseable(&unparseableFilter);

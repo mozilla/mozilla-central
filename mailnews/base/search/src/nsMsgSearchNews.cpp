@@ -229,7 +229,7 @@ char *nsMsgSearchNews::EncodeTerm (nsIMsgSearchTerm *term)
     
 	if (leadingStar)
       pattern.Append('*');
-    AppendUTF16toUTF8(escapedValue, pattern);
+    pattern.Append(NS_ConvertUTF16toUTF8(escapedValue));
 	if (trailingStar)
       pattern.Append('*');
 

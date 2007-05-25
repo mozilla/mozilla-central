@@ -37,8 +37,7 @@
 
 #include "msgCore.h"    // precompiled header...
 #include "nsCOMPtr.h"
-#include "nsXPIDLString.h"
-#include "nsIMsgFolder.h"	
+#include "nsIMsgFolder.h"
 #include "nsILocalFile.h"
 #include "nsNetUtil.h"
 #include "nsIMsgHdr.h"
@@ -376,7 +375,7 @@ nsFolderCompactState::FinishCompact()
   folderPath->SetFollowLinks(PR_TRUE);
   GetSummaryFileLocation(folderPath, getter_AddRefs(summaryFile));
   
-  nsXPIDLCString leafName;
+  nsCString leafName;
   summaryFile->GetNativeLeafName(leafName);
   nsCAutoString dbName(leafName);
 
@@ -607,7 +606,7 @@ nsFolderCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
   PRBool addKeywordHdr = PR_FALSE;
   PRUint32 needToGrowKeywords = 0;
   PRUint32 statusOffset;
-  nsXPIDLCString msgHdrKeywords;
+  nsCString msgHdrKeywords;
 
   if (m_startOfMsg)
   {
@@ -915,8 +914,7 @@ nsOfflineStoreCompactState::FinishCompact()
   m_folder->GetFlags(&flags);
   rv = m_folder->GetFilePath(getter_AddRefs(path));
 
-  nsXPIDLCString leafName;
-
+  nsCString leafName;
   path->GetNativeLeafName(leafName);
 
     // close down the temp file stream; preparing for deleting the old folder

@@ -351,7 +351,7 @@ nsresult nsSpamSettings::UpdateJunkFolderState()
 
   // if the spam folder uri changed on us, we need to unset the junk flag
   // on the old spam folder
-  nsXPIDLCString newJunkFolderURI;
+  nsCString newJunkFolderURI;
   rv = GetSpamFolderURI(getter_Copies(newJunkFolderURI));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -404,17 +404,17 @@ NS_IMETHODIMP nsSpamSettings::Clone(nsISpamSettings *aSpamSettings)
   rv = aSpamSettings->GetMoveTargetMode(&mMoveTargetMode);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsXPIDLCString actionTargetAccount;
+  nsCString actionTargetAccount;
   rv = aSpamSettings->GetActionTargetAccount(getter_Copies(actionTargetAccount));
   NS_ENSURE_SUCCESS(rv,rv);
   mActionTargetAccount = actionTargetAccount;
 
-  nsXPIDLCString actionTargetFolder;
+  nsCString actionTargetFolder;
   rv = aSpamSettings->GetActionTargetFolder(getter_Copies(actionTargetFolder));
   NS_ENSURE_SUCCESS(rv,rv);
   mActionTargetFolder = actionTargetFolder;
 
-  nsXPIDLCString whiteListAbURI;
+  nsCString whiteListAbURI;
   rv = aSpamSettings->GetWhiteListAbURI(getter_Copies(whiteListAbURI));
   NS_ENSURE_SUCCESS(rv,rv);
   mWhiteListAbURI = whiteListAbURI;
@@ -434,7 +434,7 @@ NS_IMETHODIMP nsSpamSettings::GetSpamFolderURI(char **aSpamFolderURI)
 
   // if the mode is nsISpamSettings::MOVE_TARGET_MODE_ACCOUNT
   // the spam folder URI = account uri + "/Junk"
-  nsXPIDLCString folderURI;
+  nsCString folderURI;
   nsresult rv = GetActionTargetAccount(getter_Copies(folderURI));
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -561,9 +561,9 @@ NS_IMETHODIMP nsSpamSettings::LogJunkHit(nsIMsgDBHdr *aMsgHdr, PRBool aMoveMessa
 
   PRTime date;
 
-  nsXPIDLString authorValue;
-  nsXPIDLString subjectValue;
-  nsXPIDLString dateValue;
+  nsString authorValue;
+  nsString subjectValue;
+  nsString dateValue;
 
   (void)aMsgHdr->GetDate(&date);
   PRExplodedTime exploded;
@@ -600,7 +600,7 @@ NS_IMETHODIMP nsSpamSettings::LogJunkHit(nsIMsgDBHdr *aMsgHdr, PRBool aMoveMessa
   NS_ENSURE_SUCCESS(rv, rv);
 
   const PRUnichar *junkLogDetectFormatStrings[3] = { authorValue.get(), subjectValue.get(), dateValue.get() };
-  nsXPIDLString junkLogDetectStr;
+  nsString junkLogDetectStr;
   rv = bundle->FormatStringFromName(
     NS_LITERAL_STRING("junkLogDetectStr").get(),
     junkLogDetectFormatStrings, 3,
@@ -611,10 +611,10 @@ NS_IMETHODIMP nsSpamSettings::LogJunkHit(nsIMsgDBHdr *aMsgHdr, PRBool aMoveMessa
   buffer +=  "\n";
 
   if (aMoveMessage) {
-    nsXPIDLCString msgId;
+    nsCString msgId;
     aMsgHdr->GetMessageId(getter_Copies(msgId));
 
-    nsXPIDLCString junkFolderURI;
+    nsCString junkFolderURI;
     rv = GetSpamFolderURI(getter_Copies(junkFolderURI));
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -622,7 +622,7 @@ NS_IMETHODIMP nsSpamSettings::LogJunkHit(nsIMsgDBHdr *aMsgHdr, PRBool aMoveMessa
     NS_ConvertASCIItoUTF16 junkFolderURIValue(junkFolderURI);
 
     const PRUnichar *logMoveFormatStrings[2] = { msgIdValue.get(), junkFolderURIValue.get() };
-    nsXPIDLString logMoveStr;
+    nsString logMoveStr;
     rv = bundle->FormatStringFromName(
       NS_LITERAL_STRING("logMoveStr").get(),
       logMoveFormatStrings, 2,
@@ -683,7 +683,7 @@ NS_IMETHODIMP nsSpamSettings::OnStartRunningUrl(nsIURI* aURL)
 
 NS_IMETHODIMP nsSpamSettings::OnStopRunningUrl(nsIURI* aURL, nsresult exitCode)
 {
-  nsXPIDLCString junkFolderURI;
+  nsCString junkFolderURI;
   nsresult rv = GetSpamFolderURI(getter_Copies(junkFolderURI));
   NS_ENSURE_SUCCESS(rv,rv);
 

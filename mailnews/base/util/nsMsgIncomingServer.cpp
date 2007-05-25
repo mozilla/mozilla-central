@@ -740,7 +740,7 @@ nsMsgIncomingServer::GetPasswordWithUI(const nsAString& aPromptMessage, const
         uniPassword = ToNewUnicode(NS_ConvertASCIItoUTF16(aPassword));
 
       PRUint32 savePasswordType = PasswordProtectLocalCache() ? nsIAuthPrompt::SAVE_PASSWORD_FOR_SESSION : nsIAuthPrompt::SAVE_PASSWORD_PERMANENTLY;
-      rv = dialog->PromptPassword(PromiseFlatString(aPromptTitle).get(), PromiseFlatString(aPromptMessage).get(),
+      rv = dialog->PromptPassword(nsString(aPromptTitle).get(), nsString(aPromptMessage).get(),
         NS_ConvertASCIItoUTF16(serverUri).get(), savePasswordType,
         &uniPassword, okayValue);
       nsAutoString uniPasswordAdopted;

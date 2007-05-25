@@ -53,7 +53,6 @@
 #include "nsNetCID.h"
 #include "nsMsgNewsCID.h"
 #include "nsINntpService.h"
-#include "nsXPIDLString.h"
 
 static NS_DEFINE_CID(kMsgSendLaterCID, NS_MSGSENDLATER_CID); 
 
@@ -284,11 +283,11 @@ nsresult nsMsgOfflineManager::ShowStatus(const char *statusMsgName)
   }
   if (mStringBundle)
   {
-    nsXPIDLString statusString;
-		res = mStringBundle->GetStringFromName(NS_ConvertASCIItoUTF16(statusMsgName).get(), getter_Copies(statusString));
+    nsString statusString;
+    res = mStringBundle->GetStringFromName(NS_ConvertASCIItoUTF16(statusMsgName).get(), getter_Copies(statusString));
 
     if ( NS_SUCCEEDED(res))
-      OnStatus(statusString);
+      OnStatus(statusString.get());
   }
   return res;
 }

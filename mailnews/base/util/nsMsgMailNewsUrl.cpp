@@ -40,7 +40,6 @@
 #include "nsMsgBaseCID.h"
 #include "nsIMsgMailSession.h"
 #include "nsIMsgAccountManager.h"
-#include "nsXPIDLString.h"
 #include "nsReadableUtils.h"
 #include "nsILoadGroup.h"
 #include "nsIDocShell.h"

@@ -83,7 +83,7 @@ NS_MSG_BASE PRBool nsMsgI18Nmultibyte_charset(const char *charset);
  * @param fallbackCharset [OUT]
  *                         null if fallback charset is not needed.
  *                         Otherwise, a fallback charset name may be set if that was used for the conversion. 
- *                         Caller is responsible for freeing the memory (or use nsXPIDLCString).
+ *                         Caller is responsible for freeing the memory.
  * @return            True if the string can be converted within the charset range.
  *                    False if one or more characters cannot be converted to the target charset.
  */
@@ -165,7 +165,7 @@ NS_MSG_BASE nsresult nsMsgI18NConvertToEntity(const nsString& inString, nsString
  * @param fallbackCharset [OUT]
  *                         null if fallback charset is not needed.
  *                         Otherwise, a fallback charset name may be set if that was used for the conversion. 
- *                         Caller is responsible for freeing the memory (or use nsXPIDLCString).
+ *                         Caller is responsible for freeing the memory.
  * @param isAsciiOnly [OUT]
  *                         null if non ASCII info is not needed.
  *                         Otherwise, true is set if the input data is ASCII only false otherwise. 

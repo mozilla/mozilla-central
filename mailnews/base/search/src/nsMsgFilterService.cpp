@@ -656,9 +656,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter()
                 m_searchHitHdrs->QueryElementAt(msgIndex, NS_GET_IID(nsIMsgDBHdr), getter_AddRefs(msgHdr));
                 if (msgHdr)
                 {
-                  nsAutoString forwardStr;
-                  forwardStr.AssignWithConversion(forwardTo.get());
-                  rv = compService->ForwardMessage(forwardStr, msgHdr, m_msgWindow, server);
+                  rv = compService->ForwardMessage(NS_ConvertASCIItoUTF16(forwardTo), msgHdr, m_msgWindow, server);
                 }
               }
             }

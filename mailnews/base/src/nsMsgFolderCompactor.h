@@ -39,8 +39,7 @@
 #define _nsMsgFolderCompactor_h
 
 #include "nsCOMPtr.h"
-#include "nsXPIDLString.h"
-#include "nsIMsgFolder.h"	 
+#include "nsIMsgFolder.h"
 #include "nsIStreamListener.h"
 #include "nsIMsgFolderCompactor.h"
 #include "nsICopyMsgStreamListener.h"

@@ -41,7 +41,6 @@
 #include "nsCOMPtr.h"
 
 #include "nsCRT.h"
-#include "nsXPIDLString.h"
 #include "nsReadableUtils.h"
 #include "prmem.h"
 
@@ -632,7 +631,7 @@ nsSubscribableServer::FindAndCreateNode(const nsACString &aPath,
       return NS_OK;
   }
 
-  char *pathStr = nsCRT::strdup(PromiseFlatCString(aPath).get());
+  char *pathStr = ToNewCString(aPath);
   char *token = nsnull;
   char *rest = pathStr;
   

@@ -39,7 +39,6 @@
 #include "nsRDFCID.h"
 #include "rdf.h"
 #include "plstr.h"
-#include "nsXPIDLString.h"
 #include "nsMsgRDFUtils.h"
 #include "nsEnumeratorUtils.h"
 #include "nsIObserverService.h"

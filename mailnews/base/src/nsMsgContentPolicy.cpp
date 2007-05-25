@@ -144,15 +144,15 @@ nsresult nsMsgContentPolicy::AllowRemoteContentForSender(nsIMsgDBHdr * aMsgHdr, 
   *aAllowForSender = PR_FALSE;  
 
   // extract the e-mail address from the msg hdr
-  nsXPIDLCString author;
+  nsCString author;
   rv = aMsgHdr->GetAuthor(getter_Copies(author));
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIMsgHeaderParser> headerParser = do_GetService("@mozilla.org/messenger/headerparser;1", &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsXPIDLCString emailAddress; 
-  rv = headerParser->ExtractHeaderAddressMailboxes(nsnull, author, getter_Copies(emailAddress));
+  nsCString emailAddress; 
+  rv = headerParser->ExtractHeaderAddressMailboxes(nsnull, author.get(), getter_Copies(emailAddress));
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Use the RDF service to walk through the list of local directories
@@ -181,7 +181,7 @@ nsresult nsMsgContentPolicy::AllowRemoteContentForSender(nsIMsgDBHdr * aMsgHdr, 
     NS_ENSURE_SUCCESS(rv, rv);
     mdbDirectory = do_QueryInterface(supports);
     if (mdbDirectory)
-      mdbDirectory->CardForEmailAddress(emailAddress, getter_AddRefs(cardForAddress));
+      mdbDirectory->CardForEmailAddress(emailAddress.get(), getter_AddRefs(cardForAddress));
   }
   
   // if we found a card from the sender, 
@@ -424,7 +424,7 @@ nsresult nsMsgContentPolicy::MailShouldLoad(nsIURI * aRequestingLocation, nsIURI
   nsCOMPtr<nsIMsgMessageUrl> msgUrl = do_QueryInterface(aRequestingLocation, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsXPIDLCString resourceURI;
+  nsCString resourceURI;
   msgUrl->GetUri(getter_Copies(resourceURI));
 
   // get the msg service for this URI
@@ -433,7 +433,7 @@ nsresult nsMsgContentPolicy::MailShouldLoad(nsIURI * aRequestingLocation, nsIURI
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIMsgDBHdr> msgHdr;
-  rv = msgService->MessageURIToMsgHdr(resourceURI, getter_AddRefs(msgHdr));
+  rv = msgService->MessageURIToMsgHdr(resourceURI.get(), getter_AddRefs(msgHdr));
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(aRequestingLocation, &rv);
@@ -480,7 +480,7 @@ nsresult nsMsgContentPolicy::ComposeShouldLoad(nsIDocShell * aRootDocShell, nsIS
   rv = composeService->GetMsgComposeForWindow(window, getter_AddRefs(msgCompose));
   NS_ENSURE_SUCCESS(rv, NS_OK);
 
-  nsXPIDLCString originalMsgURI;
+  nsCString originalMsgURI;
   msgCompose->GetOriginalMsgURI(getter_Copies(originalMsgURI));
   NS_ENSURE_SUCCESS(rv, NS_OK);
 

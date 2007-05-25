@@ -438,7 +438,6 @@ nsresult nsMsgDBView::FetchSubject(nsIMsgDBHdr * aMsgHdr, PRUint32 aFlags, nsASt
   }
   else
     aMsgHdr->GetMime2DecodedSubject(getter_Copies(aValue));
-
   return NS_OK;
 }
 

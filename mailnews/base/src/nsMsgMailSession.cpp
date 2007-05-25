@@ -44,7 +44,6 @@
 #include "nsIMsgMessageService.h"
 #include "nsMsgUtils.h"
 #include "nsIURI.h"
-#include "nsXPIDLString.h"
 #include "nsIMsgAccountManager.h"
 #include "nsIChromeRegistry.h"
 #include "nsIDirectoryService.h"

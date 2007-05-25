@@ -39,8 +39,6 @@
 #include "nsMsgServiceProvider.h"
 #include "nsIServiceManager.h"
 
-#include "nsXPIDLString.h"
-
 #include "nsRDFCID.h"
 #include "nsIRDFService.h"
 #include "nsIRDFRemoteDataSource.h"

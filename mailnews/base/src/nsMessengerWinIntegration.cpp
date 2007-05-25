@@ -172,7 +172,7 @@ static void openMailWindow(const nsACString& aFolderUri)
     // (and add code to the messenger window service to make that work)
     if (messengerWindowService)
       messengerWindowService->OpenMessengerWindowWithUri(
-                                "mail:3pane", PromiseFlatCString(aFolderUri).get(), nsMsgKey_None);
+                                "mail:3pane", nsCString(aFolderUri).get(), nsMsgKey_None);
   }
 }
 

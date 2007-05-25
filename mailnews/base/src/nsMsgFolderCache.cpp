@@ -182,7 +182,7 @@ nsresult nsMsgFolderCache::OpenMDB(const nsACString& dbName, PRBool exists)
         mdbYarn outFormatVersion;
 
         nsIMdbFile* oldFile = 0;
-        ret = myMDBFactory->OpenOldFile(m_mdbEnv, dbHeap, PromiseFlatCString(dbName).get(),
+        ret = myMDBFactory->OpenOldFile(m_mdbEnv, dbHeap, nsCString(dbName).get(),
           dbFrozen, &oldFile);
         if ( oldFile )
         {
@@ -235,7 +235,7 @@ nsresult nsMsgFolderCache::OpenMDB(const nsACString& dbName, PRBool exists)
       else // ### need error code saying why open file store failed
       {
         nsIMdbFile* newFile = 0;
-        ret = myMDBFactory->CreateNewFile(m_mdbEnv, dbHeap, PromiseFlatCString(dbName).get(), &newFile);
+        ret = myMDBFactory->CreateNewFile(m_mdbEnv, dbHeap, nsCString(dbName).get(), &newFile);
         if ( newFile )
         {
           if (NS_SUCCEEDED(ret))
@@ -293,7 +293,7 @@ NS_IMETHODIMP nsMsgFolderCache::GetCacheElement(const nsACString& pathKey, PRBoo
   NS_ENSURE_ARG_POINTER(result);
   NS_ENSURE_TRUE(m_cacheElements, NS_ERROR_FAILURE);
 
-  nsCStringKey hashKey(PromiseFlatCString(pathKey).get());
+  nsCStringKey hashKey(nsCString(pathKey).get());
   *result = (nsIMsgFolderCacheElement *) m_cacheElements->Get(&hashKey);
 
   // nsHashTable already does an address on *result
@@ -323,7 +323,7 @@ NS_IMETHODIMP nsMsgFolderCache::GetCacheElement(const nsACString& pathKey, PRBoo
 
 NS_IMETHODIMP nsMsgFolderCache::RemoveElement(const nsACString& key)
 {
-  nsCStringKey hashKey(PromiseFlatCString(key).get());
+  nsCStringKey hashKey(nsCString(key).get());
   nsCOMPtr <nsISupports> supports = getter_AddRefs(m_cacheElements->Get(&hashKey));
   if (!supports)
     return NS_ERROR_FAILURE;

@@ -199,7 +199,7 @@ RegisterMailnewsContentPolicy(nsIComponentManager *aCompMgr, nsIFile *aPath,
   nsCOMPtr<nsICategoryManager> catman =
       do_GetService(NS_CATEGORYMANAGER_CONTRACTID, &rv);
   if (NS_FAILED(rv)) return rv;
-  nsXPIDLCString previous;
+  nsCString previous;
   return catman->AddCategoryEntry("content-policy",
                                   NS_MSGCONTENTPOLICY_CONTRACTID,
                                   NS_MSGCONTENTPOLICY_CONTRACTID,

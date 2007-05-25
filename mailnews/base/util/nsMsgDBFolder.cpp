@@ -51,7 +51,6 @@
 #include "nsIMsgMailNewsUrl.h"
 #include "nsMsgDatabase.h"
 #include "nsIMsgAccountManager.h"
-#include "nsXPIDLString.h"
 #include "nsISeekableStream.h"
 #include "nsEscape.h"
 #include "nsNativeCharsetUtils.h"
@@ -351,7 +350,7 @@ NS_IMETHODIMP nsMsgDBFolder::SetCharset(const nsACString& aCharset)
   rv = GetDBFolderInfoAndDB(getter_AddRefs(folderInfo), getter_AddRefs(db));
   if(NS_SUCCEEDED(rv))
   {
-    rv = folderInfo->SetCharacterSet(nsPromiseFlatCString(aCharset).get());
+    rv = folderInfo->SetCharacterSet(nsCString(aCharset).get());
     db->Commit(nsMsgDBCommitType::kLargeCommit);
     mCharset = aCharset;
   }
@@ -753,7 +752,7 @@ nsresult nsMsgDBFolder::CreateFileForDB(const nsACString& userLeafName, nsILocal
     dbPath->GetNativeLeafName(proposedDBName);
   }
   // now, take the ".msf" off
-  proposedDBName.Truncate(proposedDBName.Length() - NS_LITERAL_CSTRING(SUMMARY_SUFFIX).Length());
+  proposedDBName.SetLength(proposedDBName.Length() - NS_LITERAL_CSTRING(SUMMARY_SUFFIX).Length());
   dbPath->SetNativeLeafName(proposedDBName);
 
   dbPath.swap(*dbFile);
@@ -1776,7 +1775,7 @@ nsMsgDBFolder::SetStringProperty(const char *propertyName, const nsACString& pro
   nsresult rv = GetDBFolderInfoAndDB(getter_AddRefs(folderInfo), getter_AddRefs(db));
   if(NS_SUCCEEDED(rv))
   {
-    folderInfo->SetCharPtrProperty(propertyName, nsPromiseFlatCString(propertyValue).get());
+    folderInfo->SetCharPtrProperty(propertyName, nsCString(propertyValue).get());
     db->Commit(nsMsgDBCommitType::kLargeCommit);  //commiting the db also commits the cache
   }
   return NS_OK;
@@ -1934,8 +1933,8 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
     rv = mDatabase->GetMsgHdrForKey(msgKey, getter_AddRefs(msgHdr));
     if (!NS_SUCCEEDED(rv))
       continue;
-    nsXPIDLCString author;
-    nsXPIDLCString authorEmailAddress;
+    nsCString author;
+    nsCString authorEmailAddress;
     if (whiteListDirArray.Count() != 0 || !trustedMailDomains.IsEmpty())
     {
       msgHdr->GetAuthor(getter_Copies(author));
@@ -1969,7 +1968,7 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
         if (!authorEmailAddress.IsEmpty())
         {
           for (PRInt32 index = 0; index < whiteListDirArray.Count() && !cardExists; index++)
-            rv = whiteListDirArray[index]->HasCardForEmailAddress(authorEmailAddress, &cardExists);
+            rv = whiteListDirArray[index]->HasCardForEmailAddress(authorEmailAddress.get(), &cardExists);
             if (NS_FAILED(rv))
               cardExists = PR_FALSE;
         }
@@ -4534,7 +4533,7 @@ nsMsgDBFolder::ThrowConfirmationPrompt(nsIMsgWindow *msgWindow, const nsAString&
     {
       nsCOMPtr<nsIPrompt> dialog(do_GetInterface(docShell));
       if (dialog && !confirmString.IsEmpty())
-        dialog->Confirm(nsnull, nsPromiseFlatString(confirmString).get(), confirmed);
+        dialog->Confirm(nsnull, nsString(confirmString).get(), confirmed);
     }
   }
   return NS_OK;
@@ -4901,9 +4900,9 @@ NS_IMETHODIMP nsMsgDBFolder::GetMsgTextFromStream(nsIMsgDBHdr *msgHdr, nsIInputS
   // finally, truncate the string based on aMaxOutputLen
   if (aMsgText.Length() > aMaxOutputLen) {
     if (IsASCII(aMsgText))
-      aMsgText.Truncate(aMaxOutputLen);
+      aMsgText.SetLength(aMaxOutputLen);
     else
-      nsMsgI18NShrinkUTF8Str(nsPromiseFlatCString(aMsgText),
+      nsMsgI18NShrinkUTF8Str(nsCString(aMsgText),
                              aMaxOutputLen, aMsgText);
   }
   return rv;
@@ -4938,7 +4937,7 @@ void nsMsgDBFolder::decodeMsgSnippet(const nsACString& aEncodingType, PRBool aIs
   {
     // giant hack - decode in place, and truncate string.
     MsgStripQuotedPrintable((unsigned char *) aMsgSnippet.get());
-    aMsgSnippet.Truncate(strlen(aMsgSnippet.get()));
+    aMsgSnippet.SetLength(strlen(aMsgSnippet.get()));
   }
 }
 
@@ -5064,7 +5063,7 @@ NS_IMETHODIMP nsMsgDBFolder::AddKeywordsToMessages(nsISupportsArray *aMessages, 
 
       message->GetStringProperty("keywords", getter_Copies(keywords));
       nsCStringArray keywordArray;
-      keywordArray.ParseString(nsPromiseFlatCString(aKeywords).get(), " ");
+      keywordArray.ParseString(nsCString(aKeywords).get(), " ");
       for (PRInt32 j = 0; j < keywordArray.Count(); j++)
       {
         nsACString::const_iterator start, end;
@@ -5108,7 +5107,7 @@ NS_IMETHODIMP nsMsgDBFolder::RemoveKeywordsFromMessages(nsISupportsArray *aMessa
       (void) message->GetMessageKey(&msgKey);
       rv = message->GetStringProperty("keywords", getter_Copies(keywords));
       nsCStringArray keywordArray;
-      keywordArray.ParseString(nsPromiseFlatCString(aKeywords).get(), " ");
+      keywordArray.ParseString(nsCString(aKeywords).get(), " ");
       for (PRInt32 j = 0; j < keywordArray.Count(); j++)
       {
         PRBool keywordIsLabel = (StringBeginsWith(*(keywordArray[j]), NS_LITERAL_CSTRING("$label"))

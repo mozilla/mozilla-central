@@ -79,7 +79,7 @@ public:
   nsCOMPtr<nsISupportsArray>  m_searchTerms;       /* linked list of criteria terms */
 
   PRBool m_abortCalled;
-  nsXPIDLString  m_defaultCharset;
+  nsString  m_defaultCharset;
   PRBool m_forceAsciiSearch;
 
   static nsresult EncodeImap (char **ppEncoding, 

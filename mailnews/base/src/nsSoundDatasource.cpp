@@ -41,7 +41,6 @@
 #include "nsIRDFService.h"
 #include "nsRDFCID.h"
 #include "nsIComponentManager.h"
-#include "nsXPIDLString.h"
 #include "rdf.h"
 #include "nsIServiceManager.h"
 #include "nsEnumeratorUtils.h"
@@ -141,22 +140,21 @@ nsSoundDatasource::GetTarget(nsIRDFResource *source,
 	if (!tv) 
     return NS_RDF_NO_VALUE;
 
-  nsXPIDLCString value;
+  nsCString value;
   rv = source->GetValue(getter_Copies(value));
   NS_ENSURE_SUCCESS(rv,rv);
 
   if (property == kNC_Name.get()) {
     nsCOMPtr<nsIRDFLiteral> name;
-    if (strcmp(value.get(), DEFAULT_SOUND_URL)) {
+    if (!value.Equals(DEFAULT_SOUND_URL)) {
       const char *lastSlash = strrchr(value.get(), '/');
       // turn "file://C|/winnt/media/foo.wav" into "foo".
       nsCAutoString soundName(lastSlash + 1);
-      soundName.Truncate(soundName.Length() - WAV_EXTENSION_LENGTH);
+      soundName.SetLength(soundName.Length() - WAV_EXTENSION_LENGTH);
       rv = mRDFService->GetLiteral(NS_ConvertASCIItoUTF16(soundName).get(), getter_AddRefs(name));
     }
-    else {
+    else
       rv = mRDFService->GetLiteral(NS_ConvertASCIItoUTF16(DEFAULT_SOUND_URL_NAME).get(), getter_AddRefs(name));
-    }
     NS_ENSURE_SUCCESS(rv,rv);
     
     if (!name) 
@@ -230,12 +228,12 @@ nsSoundDatasource::GetTargets(nsIRDFResource *source,
 	if (!tv) 
     return NS_RDF_NO_VALUE;
 
-  nsXPIDLCString value;
+  nsCString value;
   rv = source->GetValue(getter_Copies(value));
   NS_ENSURE_SUCCESS(rv,rv);
 
   if (property == kNC_Child.get()) {
-    if (strcmp(value.get(), SOUND_ROOT))
+    if (!value.Equals(SOUND_ROOT))
       return NS_NewEmptyEnumerator(targets);
 
     nsCOMPtr<nsISupportsArray> children;
@@ -290,7 +288,7 @@ nsSoundDatasource::GetTargets(nsIRDFResource *source,
           rv = theFileURL->SetFile(theFile);
           NS_ENSURE_SUCCESS(rv,rv);
           
-          nsXPIDLCString theFileSpec;
+          nsCString theFileSpec;
           rv = theFileURL->GetSpec(theFileSpec);
           NS_ENSURE_SUCCESS(rv,rv);
           
@@ -314,11 +312,10 @@ nsSoundDatasource::GetTargets(nsIRDFResource *source,
     nsCOMPtr<nsIPrefBranch> prefBranch = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv,rv);
 
-    nsXPIDLCString soundURLSpec;
-    rv = prefBranch->GetCharPref(PREF_NEW_MAIL_URL,getter_Copies(soundURLSpec));
+    nsCString soundURLSpec;
+    rv = prefBranch->GetCharPref(PREF_NEW_MAIL_URL, getter_Copies(soundURLSpec));
     NS_ENSURE_SUCCESS(rv,rv);
-
-    if (!strncmp(soundURLSpec.get(), FILE_SCHEME, FILE_SCHEME_LEN)) {
+    if (soundURLSpec.StringBeginsWith(FILE_SCHEME)) {
       rv = mRDFService->GetResource(soundURLSpec, getter_AddRefs(res));
       NS_ENSURE_SUCCESS(rv,rv);
       rv = children->AppendElement(res);
@@ -350,7 +347,7 @@ nsSoundDatasource::GetTargets(nsIRDFResource *source,
       const char *lastSlash = strrchr(value.get(), '/');
       // turn "file://C|/winnt/media/foo.wav" into "foo".
       nsCAutoString soundName(lastSlash + 1);
-      soundName.Truncate(soundName.Length() - WAV_EXTENSION_LENGTH);
+      soundName.SetLength(soundName.Length() - WAV_EXTENSION_LENGTH);
       rv = mRDFService->GetLiteral(NS_ConvertASCIItoUTF16(soundName).get(), getter_AddRefs(name));
     }
     else {
@@ -427,11 +424,11 @@ nsSoundDatasource::HasAssertion(nsIRDFResource *source,
     return NS_OK;
 
 	if (property == kNC_Child.get()) {
-    nsXPIDLCString value;
+    nsCString value;
     nsresult rv = source->GetValue(getter_Copies(value));
     NS_ENSURE_SUCCESS(rv,rv);
     // only root has children
-    *hasAssertion = (strcmp(value.get(), SOUND_ROOT) == 0);
+    *hasAssertion = value.Equals(SOUND_ROOT);
     return NS_OK;
   }
   else if (property == kNC_Name.get() || property == kNC_SoundURL.get()) {
@@ -458,7 +455,7 @@ nsSoundDatasource::HasArcOut(nsIRDFResource *source, nsIRDFResource *aArc, PRBoo
   nsresult rv = NS_OK;
   
   if (aArc == kNC_Child.get()) {
-    nsXPIDLCString value;
+    nsCString value;
     rv = source->GetValue(getter_Copies(value));
     // only root has children
     *result = (strcmp(value.get(), SOUND_ROOT) == 0);
@@ -498,14 +495,13 @@ nsSoundDatasource::ArcLabelsOut(nsIRDFResource *source,
   array->AppendElement(kNC_Name);
   array->AppendElement(kNC_SoundURL);
 
-  nsXPIDLCString value;
+  nsCString value;
   rv = source->GetValue(getter_Copies(value));
   // only root has children
-  PRBool hasChildren = (strcmp(value.get(), SOUND_ROOT) == 0);
+  PRBool hasChildren = value.Equals(SOUND_ROOT);
 
-  if (hasChildren) {
+  if (hasChildren)
    array->AppendElement(kNC_Child);
-  }
 
   nsISimpleEnumerator* result = new nsArrayEnumerator(array);
   if (!result) 

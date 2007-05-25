@@ -42,7 +42,6 @@
 #include "nsIStreamTransportService.h"
 #include "nsISocketTransportService.h"
 #include "nsISocketTransport.h"
-#include "nsXPIDLString.h"
 #include "nsILoadGroup.h"
 #include "nsIIOService.h"
 #include "nsNetUtil.h"
@@ -785,7 +784,7 @@ nsresult nsMsgProtocol::PostMessage(nsIURI* url, nsIFile *postFile)
   NS_ENSURE_SUCCESS(rv, rv);
 
   PRBool more = PR_TRUE;
-  nsXPIDLCString line;
+  nsCString line;
   nsCString outputBuffer;
 
   do

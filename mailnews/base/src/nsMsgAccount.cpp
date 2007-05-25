@@ -301,7 +301,7 @@ nsMsgAccount::AddIdentity(nsIMsgIdentity *identity)
     identitiesKeyPref.Append(m_accountKey);
     identitiesKeyPref.Append(".identities");
 
-    nsXPIDLCString identityList;
+    nsCString identityList;
     m_prefs->GetCharPref(identitiesKeyPref.get(),
                          getter_Copies(identityList));
 

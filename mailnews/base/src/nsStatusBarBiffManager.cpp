@@ -54,7 +54,6 @@
 #include "nsIFileChannel.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
-#include "nsXPIDLString.h"
 #include "nsIURL.h"
 #include "nsNetUtil.h"
 #include "nsIFileURL.h"
@@ -125,7 +124,7 @@ nsresult nsStatusBarBiffManager::PlayBiffSound()
   PRBool customSoundPlayed = PR_FALSE;
 
   if (newMailSoundType == CUSTOM_SOUND_TYPE) {
-    nsXPIDLCString soundURLSpec;
+    nsCString soundURLSpec;
     rv = pref->GetCharPref(PREF_NEW_MAIL_SOUND_URL, getter_Copies(soundURLSpec));
     if (NS_SUCCEEDED(rv) && !soundURLSpec.IsEmpty()) {
       if (!strncmp(soundURLSpec.get(), "file://", 7)) {

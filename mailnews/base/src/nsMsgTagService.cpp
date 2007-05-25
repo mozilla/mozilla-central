@@ -304,7 +304,7 @@ NS_IMETHODIMP nsMsgTagService::GetColorForKey(const nsACString &key, nsACString 
   if (!gMigratingKeys)
     ToLowerCase(prefName);
   prefName.AppendLiteral(TAG_PREF_SUFFIX_COLOR);
-  nsXPIDLCString color;
+  nsCString color;
   nsresult rv = m_tagPrefBranch->GetCharPref(prefName.get(), getter_Copies(color));
   if (NS_SUCCEEDED(rv))
     _retval = color;
@@ -322,7 +322,7 @@ NS_IMETHODIMP nsMsgTagService::SetColorForKey(const nsACString & key, const nsAC
     m_tagPrefBranch->ClearUserPref(prefName.get());
     return NS_OK;
   }
-  return m_tagPrefBranch->SetCharPref(prefName.get(), PromiseFlatCString(color).get());
+  return m_tagPrefBranch->SetCharPref(prefName.get(), nsCString(color).get());
 }
 
 /* ACString getOrdinalForKey (in ACString key); */
@@ -332,7 +332,7 @@ NS_IMETHODIMP nsMsgTagService::GetOrdinalForKey(const nsACString & key, nsACStri
   if (!gMigratingKeys)
     ToLowerCase(prefName);
   prefName.AppendLiteral(TAG_PREF_SUFFIX_ORDINAL);
-  nsXPIDLCString ordinal;
+  nsCString ordinal;
   nsresult rv = m_tagPrefBranch->GetCharPref(prefName.get(), getter_Copies(ordinal));
   _retval = ordinal;
   return rv;
@@ -349,7 +349,7 @@ NS_IMETHODIMP nsMsgTagService::SetOrdinalForKey(const nsACString & key, const ns
     m_tagPrefBranch->ClearUserPref(prefName.get());
     return NS_OK;
   }
-  return m_tagPrefBranch->SetCharPref(prefName.get(), PromiseFlatCString(ordinal).get());
+  return m_tagPrefBranch->SetCharPref(prefName.get(), nsCString(ordinal).get());
 }
 
 /* void deleteTag (in wstring tag); */
@@ -510,7 +510,7 @@ nsresult nsMsgTagService::MigrateLabelsToTags()
   {
     nsCOMPtr<nsIPrefBranch> prefRoot(do_GetService(NS_PREFSERVICE_CONTRACTID));
     nsCOMPtr<nsIPrefLocalizedString> pls;
-    nsXPIDLString ucsval;
+    nsString ucsval;
     nsCAutoString labelKey("$label1");
     for(PRInt32 i = 0; i < PREF_LABELS_MAX; )
     {
@@ -524,7 +524,7 @@ nsresult nsMsgTagService::MigrateLabelsToTags()
 
       prefString.Assign(PREF_LABELS_COLOR);
       prefString.AppendInt(i + 1);
-      nsXPIDLCString csval;
+      nsCString csval;
       rv = prefRoot->GetCharPref(prefString.get(), getter_Copies(csval));
       NS_ENSURE_SUCCESS(rv, rv);
 
