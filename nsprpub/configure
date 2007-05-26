@@ -4377,6 +4377,7 @@ EOF
     DSO_CFLAGS=-fPIC
     MDCPUCFG_H=_openbsd.cfg
     PR_MD_CSRCS=openbsd.c
+    OS_LIBS="-lc"
     if test -z "$USE_NSPR_THREADS"; then
         USE_PTHREADS=1
     fi
