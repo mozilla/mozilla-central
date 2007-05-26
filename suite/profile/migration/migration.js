@@ -50,6 +50,7 @@ var MigrationWizard = {
   _autoMigrate: null,           // Whether or not we are actually migrating.
   _singleItem: false,           // Are we choosing just to import a single
                                 // item into the current profile?
+  _newHomePage: null,           // Are we setting a new home page - what to?
 
   init: function() {
     var os = Components.classes["@mozilla.org/observer-service;1"]
@@ -441,22 +442,19 @@ var MigrationWizard = {
     case "Migration:Ended":
       if (this._autoMigrate) {
         if (this._newHomePage) {
-          var prefSvc;
           try {
             // set homepage properly - we must also ensure the pref branch
             // saves the file in the correct place, because the migrating code
             // sometimes changes it to be able to load old pref files.
-            prefSvc = Components.classes["@mozilla.org/preferences-service;1"]
-                                .getService(Components.interfaces
-                                                      .nsIPrefService);
+            var prefSvc = Components.classes["@mozilla.org/preferences-service;1"]
+                                    .getService(Components.interfaces.nsIPrefService);
             var prefBranch = prefSvc.getBranch(null);
             var str = Components.classes["@mozilla.org/supports-string;1"]
                                 .createInstance(nsISupportsString);
 
             str.data = this._newHomePage;
             prefBranch.setComplexValue("browser.startup.homepage",
-                                       nsISupportsString,
-                                       str);
+                                       nsISupportsString, str);
 
             var dirSvc = Components.classes["@mozilla.org/file/directory_service;1"]
                                    .getService(Components.interfaces.nsIProperties);

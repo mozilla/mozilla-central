@@ -250,9 +250,6 @@ nsNetscapeProfileMigratorBase::GetSourceHomePageURL(nsACString& aResult)
     }
   }
 
-  psvc->ResetPrefs();
-  psvc->ReadUserPrefs(nsnull);
-
   return NS_OK;
 }
 
@@ -849,15 +846,14 @@ nsNetscapeProfileMigratorBase::GetSchemaValueFileName(PRBool aReplace,
     // Find out what the signons file was called, this is stored in a pref
     // in Seamonkey.
     nsCOMPtr<nsIPrefService> psvc(do_GetService(NS_PREFSERVICE_CONTRACTID));
-    psvc->ResetPrefs();
 
-    nsCOMPtr<nsIFile> sourcePrefsName;
-    mSourceProfile->Clone(getter_AddRefs(sourcePrefsName));
-    sourcePrefsName->Append(FILE_NAME_PREFS);
-    psvc->ReadUserPrefs(sourcePrefsName);
+    if (psvc) {
+      nsCOMPtr<nsIPrefBranch> branch(do_QueryInterface(psvc));
 
-    nsCOMPtr<nsIPrefBranch> branch(do_QueryInterface(psvc));
-    return branch->GetCharPref("wallet.SchemaValueFileName", aFileName);
+      if (NS_SUCCEEDED(branch->GetCharPref("wallet.SchemaValueFileName",
+                                           aFileName)))
+        return NS_OK;
+    }
   }
   return LocateWalletFile("w", aFileName);
 }
@@ -870,15 +866,14 @@ nsNetscapeProfileMigratorBase::GetSignonFileName(PRBool aReplace,
     // Find out what the signons file was called, this is stored in a pref
     // in Seamonkey.
     nsCOMPtr<nsIPrefService> psvc(do_GetService(NS_PREFSERVICE_CONTRACTID));
-    psvc->ResetPrefs();
 
-    nsCOMPtr<nsIFile> sourcePrefsName;
-    mSourceProfile->Clone(getter_AddRefs(sourcePrefsName));
-    sourcePrefsName->Append(FILE_NAME_PREFS);
-    psvc->ReadUserPrefs(sourcePrefsName);
+    if (psvc) {
+      nsCOMPtr<nsIPrefBranch> branch(do_QueryInterface(psvc));
 
-    nsCOMPtr<nsIPrefBranch> branch(do_QueryInterface(psvc));
-    return branch->GetCharPref("signon.SignonFileName", aFileName);
+      if (NS_SUCCEEDED(branch->GetCharPref("signon.SignonFileName",
+                                           aFileName)))
+        return NS_OK;
+    }
   }
   return LocateWalletFile("s", aFileName);
 }

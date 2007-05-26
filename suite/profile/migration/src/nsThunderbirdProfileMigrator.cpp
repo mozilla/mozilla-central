@@ -584,7 +584,10 @@ nsThunderbirdProfileMigrator::TransformPreferences(
   psvc->SavePrefFile(targetPrefsFile);
 
   psvc->ResetPrefs();
-  psvc->ReadUserPrefs(nsnull);
+  // Don't use nsnull here as we're too early in the cycle for the prefs
+  // service to get its default file (because the NS_GetDirectoryService items
+  // aren't fully set up yet).
+  psvc->ReadUserPrefs(targetPrefsFile);
 
   return NS_OK;
 }
