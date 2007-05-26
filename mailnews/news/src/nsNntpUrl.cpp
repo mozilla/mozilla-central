@@ -55,7 +55,6 @@
 #include "nntpCore.h"
 
 #include "nsCOMPtr.h"
-#include "nsXPIDLString.h"
 #include "nsIMsgDatabase.h"
 #include "nsMsgDBCID.h"
 #include "nsMsgNewsCID.h"

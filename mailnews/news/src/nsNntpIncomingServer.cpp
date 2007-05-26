@@ -759,7 +759,7 @@ nsNntpIncomingServer::ContainsNewsgroup(const nsACString &name,
 {
     if (name.IsEmpty()) return NS_ERROR_FAILURE;
     nsCAutoString unescapedName;
-    NS_UnescapeURL(PromiseFlatCString(name), 
+    NS_UnescapeURL(nsCString(name), 
                    esc_FileBaseName|esc_Forced|esc_AlwaysCopy, unescapedName);
 
     *containsGroup = !(mSubscribedNewsgroups.EnumerateForwards(
@@ -1602,9 +1602,9 @@ nsNntpIncomingServer::GroupNotFound(nsIMsgWindow *aMsgWindow,
 
   NS_ConvertUTF8toUTF16 hostStr(hostname); 
 
-  nsAFlatString groupName = PromiseFlatString(aName);
+  nsString groupName(aName);
   const PRUnichar *formatStrings[2] = { groupName.get(), hostStr.get() };
-  nsXPIDLString confirmText;
+  nsString confirmText;
   rv = bundle->FormatStringFromName(
                     NS_LITERAL_STRING("autoUnsubscribeText").get(),
                     formatStrings, 2,
@@ -1612,7 +1612,7 @@ nsNntpIncomingServer::GroupNotFound(nsIMsgWindow *aMsgWindow,
   NS_ENSURE_SUCCESS(rv,rv);
 
   PRBool confirmResult = PR_FALSE;
-  rv = prompt->Confirm(nsnull, confirmText, &confirmResult);
+  rv = prompt->Confirm(nsnull, confirmText.get(), &confirmResult);
   NS_ENSURE_SUCCESS(rv,rv);
 
   if (confirmResult) {

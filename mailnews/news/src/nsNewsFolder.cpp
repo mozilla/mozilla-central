@@ -76,8 +76,6 @@
 #include "nsIPrompt.h"
 #include "nsIWindowWatcher.h"
 
-#include "nsXPIDLString.h"
-
 #include "nsIObserverService.h"
 #include "nsNetUtil.h"
 #include "nsIAuthPrompt.h"
@@ -1225,7 +1223,7 @@ nsMsgNewsFolder::GetGroupPasswordWithUI(const nsAString& aPromptMessage,
       if (!mPrevPassword.IsEmpty())
         uniGroupPassword = ToNewUnicode(NS_ConvertASCIItoUTF16(mPrevPassword));
 
-      rv = dialog->PromptPassword(nsPromiseFlatString(aPromptTitle).get(), nsPromiseFlatString(aPromptMessage).get(),
+      rv = dialog->PromptPassword(nsString(aPromptTitle).get(), nsString(aPromptMessage).get(),
                                   NS_ConvertASCIItoUTF16(signonURL).get(),
                                   nsIAuthPrompt::SAVE_PASSWORD_PERMANENTLY,
                                   &uniGroupPassword, &okayValue);
@@ -1285,7 +1283,7 @@ nsMsgNewsFolder::GetGroupUsernameWithUI(const nsAString& aPromptMessage,
     rv = CreateNewsgroupUsernameUrlForSignon(mURI, signonURL);
     if (NS_FAILED(rv)) return rv;
 
-    rv = dialog->Prompt(nsPromiseFlatString(aPromptTitle).get(), nsPromiseFlatString(aPromptMessage).get(),
+    rv = dialog->Prompt(nsString(aPromptTitle).get(), nsString(aPromptMessage).get(),
                         NS_ConvertASCIItoUTF16(signonURL).get(),
                         nsIAuthPrompt::SAVE_PASSWORD_PERMANENTLY, NS_ConvertASCIItoUTF16(mPrevUsername).get(),
                         getter_Copies(uniGroupUsername), &okayValue);
@@ -1310,7 +1308,7 @@ nsMsgNewsFolder::GetGroupUsernameWithUI(const nsAString& aPromptMessage,
 
 nsresult nsMsgNewsFolder::CreateBaseMessageURI(const nsACString& aURI)
 {
-  return nsCreateNewsBaseMessageURI(nsPromiseFlatCString(aURI).get(), mBaseMessageURI);
+  return nsCreateNewsBaseMessageURI(nsCString(aURI).get(), mBaseMessageURI);
 }
 
 NS_IMETHODIMP
@@ -1341,7 +1339,7 @@ nsMsgNewsFolder::GetNewsrcLine(nsACString& newsrcLine)
 NS_IMETHODIMP nsMsgNewsFolder::SetReadSetFromStr(const nsACString& newsrcLine)
 {
   delete mReadSet;
-  mReadSet = nsMsgKeySet::Create(nsPromiseFlatCString(newsrcLine).get());
+  mReadSet = nsMsgKeySet::Create(nsCString(newsrcLine).get());
   NS_ENSURE_TRUE(mReadSet, NS_ERROR_OUT_OF_MEMORY);
 
   // Now that mReadSet is recreated, make sure it's stored in the db as well.

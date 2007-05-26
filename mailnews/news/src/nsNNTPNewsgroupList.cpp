@@ -55,7 +55,6 @@
 #include "nsCOMPtr.h"
 #include "nsIDOMWindowInternal.h"
 
-#include "nsXPIDLString.h"
 #include "nsIMsgAccountManager.h"
 #include "nsIMsgIncomingServer.h"
 #include "nsINntpIncomingServer.h"
@@ -279,7 +278,7 @@ nsNNTPNewsgroupList::GetRangeOfArtsToDownload(nsIMsgWindow *aMsgWindow,
   nsCOMPtr <nsIDBFolderInfo> newsGroupInfo;
   rv = m_newsDB->GetDBFolderInfo(getter_AddRefs(newsGroupInfo));
   if (NS_SUCCEEDED(rv) && newsGroupInfo) {
-    nsXPIDLCString knownArtsString;
+    nsCString knownArtsString;
     nsMsgKey mark;
     newsGroupInfo->GetKnownArtsSet(getter_Copies(knownArtsString));
 
@@ -306,7 +305,7 @@ nsNNTPNewsgroupList::GetRangeOfArtsToDownload(nsIMsgWindow *aMsgWindow,
   }
 
   if (m_knownArts.set->IsMember(last_possible)) {
-    nsXPIDLString statusString;
+    nsString statusString;
     nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -317,7 +316,7 @@ nsNNTPNewsgroupList::GetRangeOfArtsToDownload(nsIMsgWindow *aMsgWindow,
     rv = bundle->GetStringFromName(NS_LITERAL_STRING("noNewMessages").get(), getter_Copies(statusString));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    SetProgressStatus(statusString);
+    SetProgressStatus(statusString.get());
   }
 
   if (maxextra <= 0 || last_possible < first_possible || last_possible < 1)
@@ -463,11 +462,10 @@ nsNNTPNewsgroupList::AddToKnownArticles(PRInt32 first, PRInt32 last)
     nsCOMPtr <nsIDBFolderInfo> newsGroupInfo;
     rv = m_newsDB->GetDBFolderInfo(getter_AddRefs(newsGroupInfo));
     if (NS_SUCCEEDED(rv) && newsGroupInfo) {
-      nsXPIDLCString output;
+      nsCString output;
       status = m_knownArts.set->Output(getter_Copies(output));
-      if (output) {
-        newsGroupInfo->SetKnownArtsSet(output);
-      }
+      if (!output.IsEmpty())
+        newsGroupInfo->SetKnownArtsSet(output.get());
     }
   }
   return status;
@@ -542,7 +540,7 @@ nsNNTPNewsgroupList::ParseLine(char *line, PRUint32 * message_number)
     PRUint32 flags = 0;
     // ### should call IsHeaderRead here...
     /* strip "Re: " */
-    nsXPIDLCString modifiedSubject;
+    nsCString modifiedSubject;
     if (NS_MsgStripRE(&subject, &subjectLen, getter_Copies(modifiedSubject)))
       (void) newMsgHdr->OrFlags(MSG_FLAG_HAS_RE, &flags); // this will make sure read flags agree with newsrc
 
@@ -659,7 +657,7 @@ nsNNTPNewsgroupList::ParseLine(char *line, PRUint32 * message_number)
   if (filterCount || serverFilterCount)
   {
     // build up a "headers" for filter code
-    nsXPIDLCString subject;
+    nsCString subject;
     rv = newMsgHdr->GetSubject(getter_Copies(subject));
     NS_ENSURE_SUCCESS(rv,rv);
 
@@ -939,7 +937,7 @@ nsNNTPNewsgroupList::ProcessXOVERLINE(const char *line, PRUint32 *status)
       nsAutoString totalToDownloadStr;
       totalToDownloadStr.AppendInt(totalToDownload);
 
-      nsXPIDLString statusString;
+      nsString statusString;
       nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
       NS_ENSURE_SUCCESS(rv, rv);
 
@@ -957,7 +955,7 @@ nsNNTPNewsgroupList::ProcessXOVERLINE(const char *line, PRUint32 *status)
       printf("usecs elapsed since last update: %d\n", elapsed);
 #endif
 
-      SetProgressStatus(statusString);
+      SetProgressStatus(statusString.get());
       m_lastStatusUpdate = PR_Now();
 
       // only update the progress meter if it has changed
@@ -1041,7 +1039,7 @@ nsNNTPNewsgroupList::FinishXOVERLINE(int status, int *newstatus)
       nsAutoString lastStr;
       lastStr.AppendInt(m_lastMsgNumber - m_firstMsgNumber + 1);
 
-      nsXPIDLString statusString;
+      nsString statusString;
       nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
       NS_ENSURE_SUCCESS(rv, rv);
 
@@ -1053,7 +1051,7 @@ nsNNTPNewsgroupList::FinishXOVERLINE(int status, int *newstatus)
       rv = bundle->FormatStringFromName(NS_LITERAL_STRING("downloadingArticles").get(), formatStrings, 2, getter_Copies(statusString));
       NS_ENSURE_SUCCESS(rv, rv);
 
-      SetProgressStatus(statusString);
+      SetProgressStatus(statusString.get());
     }
   }
 

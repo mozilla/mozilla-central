@@ -38,7 +38,6 @@
 #include "msgCore.h"
 #include "nntpCore.h"
 #include "netCore.h"
-#include "nsXPIDLString.h"
 #include "nsIMsgNewsFolder.h"
 #include "nsIStringBundle.h"
 #include "nsNewsDownloader.h"

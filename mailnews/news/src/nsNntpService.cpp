@@ -149,7 +149,7 @@ nsNntpService::SaveMessageToDisk(const char *aMessageURI,
     rv = DecomposeNewsMessageURI(aMessageURI, getter_AddRefs(folder), &key);
     NS_ENSURE_SUCCESS(rv,rv);
 
-    nsXPIDLCString messageIdURL;
+    nsCString messageIdURL;
     rv = CreateMessageIDURL(folder, key, getter_Copies(messageIdURL));
     NS_ENSURE_SUCCESS(rv,rv);
 
@@ -256,11 +256,8 @@ nsNntpService::DisplayMessage(const char* aMessageURI, nsISupports * aDisplayCon
   // we'll use that to look up in the cache, so if
   // you are reading a message that you've already read, you
   // (from a cross post) it would be in your cache.
-  nsXPIDLCString messageIdURL;
-  rv = CreateMessageIDURL(folder, key, getter_Copies(messageIdURL));
+  rv = CreateMessageIDURL(folder, key, getter_Copies(urlStr));
   NS_ENSURE_SUCCESS(rv,rv);
-
-  urlStr = messageIdURL.get();
 
   // rhp: If we are displaying this message for the purposes of printing, append
   // the magic operand.
@@ -485,7 +482,7 @@ NS_IMETHODIMP nsNntpService::GetUrlForUri(const char *aMessageURI, nsIURI **aURL
   rv = DecomposeNewsMessageURI(aMessageURI, getter_AddRefs(folder), &key);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsXPIDLCString messageIdURL;
+  nsCString messageIdURL;
   rv = CreateMessageIDURL(folder, key, getter_Copies(messageIdURL));
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -948,7 +945,7 @@ nsNntpService::PostMessage(nsIFile *aFileToPost, const char *newsgroupsNames, co
   rv = nntpUrl->SetNewsAction(nsINntpUrl::ActionPostArticle);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsXPIDLCString newsUrlSpec;
+  nsCString newsUrlSpec;
   rv = SetUpNntpUrlForPosting(aAccountKey, getter_Copies(newsUrlSpec));
   NS_ENSURE_SUCCESS(rv,rv);
 

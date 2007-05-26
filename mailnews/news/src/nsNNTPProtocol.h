@@ -55,7 +55,6 @@
 #include "nsIMsgWindow.h"
 
 #include "nsMsgLineBuffer.h"
-#include "nsXPIDLString.h"
 #include "nsIStringBundle.h"
 #include "nsITimer.h"
 #include "nsICacheListener.h"
