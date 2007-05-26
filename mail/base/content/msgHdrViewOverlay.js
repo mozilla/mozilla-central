@@ -916,11 +916,11 @@ function OutputEmailAddresses(headerEntry, emailAddresses)
 function updateEmailAddressNode(emailAddressNode, address)
 {
   emailAddressNode.setAttribute("label", address.fullAddress || address.displayName);
-  emailAddressNode.removeAttribute("tooltiptext");
   emailAddressNode.setAttribute("emailAddress", address.emailAddress);
   emailAddressNode.setAttribute("fullAddress", address.fullAddress);
   emailAddressNode.setAttribute("displayName", address.displayName);
-
+  emailAddressNode.removeAttribute("tooltiptext");
+  
   AddExtraAddressProcessing(address.emailAddress, emailAddressNode);
 }
 
@@ -932,23 +932,22 @@ function updateEmailAddressNode(emailAddressNode, address)
 function AddExtraAddressProcessing(emailAddress, addressNode)
 {
   var displayName = addressNode.getAttribute("displayName");  
-  var mailAddress = addressNode.getAttribute("emailAddress");
-
-  // always show the address for the from and reply-to fields
-  var parentElementId = addressNode.parentNode.id;
-  var condenseName = true;
-  if (parentElementId == "expandedfromBox" || parentElementId == "expandedreply-toBox")
-    condenseName = false;
-
-  if (condenseName && gShowCondensedEmailAddresses && displayName)
+  
+  if (gShowCondensedEmailAddresses && displayName)
   {
-    if (useDisplayNameForAddress(emailAddress))
+    // always show the address for the from and reply-to fields
+    var parentElementId = addressNode.parentNode.id;
+    var condenseName = true;
+    
+    if (parentElementId == "expandedfromBox" || parentElementId == "expandedreply-toBox")
+      condenseName = false;
+
+    if (condenseName && useDisplayNameForAddress(emailAddress))
+    {
       addressNode.setAttribute("label", displayName);
-    addressNode.setAttribute("tooltiptext", mailAddress);
-    addressNode.setAttribute("tooltip", "emailAddressTooltip");
+      addressNode.setAttribute("tooltiptext", emailAddress);
+    }
   }
-  else
-    addressNode.removeAttribute("tooltiptext");
 } 
 
 function fillEmailAddressPopup(emailAddressNode)
@@ -957,16 +956,6 @@ function fillEmailAddressPopup(emailAddressNode)
   var emailAddress = emailAddressNode.getAttribute('emailAddress');
 
   emailAddressPlaceHolder.setAttribute('label', emailAddress);
-}
-
-
-// Public method called to generate a tooltip over a condensed display name
-function fillInEmailAddressTooltip(addressNode)
-{
-  var emailAddress = addressNode.getAttribute('emailAddress');
-  var tooltipNode = document.getElementById("attachmentListTooltip");
-  tooltipNode.setAttribute("label", attachmentName);
-  return true;
 }
 
 // returns true if we should use the display name for this address
@@ -1266,7 +1255,7 @@ function displayAttachmentsForExpandedView()
         attachmentView.setAttribute("largeView", "true");
 
       setApplicationIconForAttachment(attachment, attachmentView, gShowLargeAttachmentView);
-      attachmentView.setAttribute("tooltip", "attachmentListTooltip");
+      attachmentView.setAttribute("tooltiptext", attachment.displayName);
       attachmentView.setAttribute("context", "attachmentListContext");      
 
       attachmentView.attachment = cloneAttachment(attachment);
@@ -1302,15 +1291,6 @@ function setApplicationIconForAttachment(attachment, listitem, largeView)
     listitem.setAttribute('image', 'chrome://messenger/skin/icons/message-mail-attach-del.png');
   else
     listitem.setAttribute('image', "moz-icon:" + "//" + attachment.displayName + "?size=" + iconSize + "&contentType=" + attachment.contentType);
-}
-
-// Public method called to generate a tooltip over an attachment
-function FillInAttachmentTooltip(cellNode)
-{
-  var attachmentName = cellNode.getAttribute("label");
-  var tooltipNode = document.getElementById("attachmentListTooltip");
-  tooltipNode.setAttribute("label", attachmentName);
-  return true;
 }
 
 // Public method called when we create the attachments file menu

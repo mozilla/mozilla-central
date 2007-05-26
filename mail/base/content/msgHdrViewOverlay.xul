@@ -87,12 +87,6 @@
   <menuitem label="&copyLinkCmd.label;" accesskey="&copyLinkCmd.accesskey;" oncommand="CopyWebsiteAddress(document.popupNode)"/>
 </popup>
 
-<tooltip id="attachmentListTooltip"
-         onpopupshowing="return FillInAttachmentTooltip(document.tooltipNode);"/> 
-
-<tooltip id="emailAddressTooltip"
-         onpopupshowing="return fillInEmailAddressTooltip(document.tooltipNode);"/> 
-
 <hbox id="msgHeaderView" collapsed="true">
   <deck id="msgHeaderViewDeck" persist="selectedIndex" selectedIndex="1" flex="1">
     <!-- the message pane consists of 3 'boxes'. Box #1 is a grid, showing a brief view of the headers -->
