@@ -237,7 +237,9 @@ PKIX_PL_Initialize(
         pkix_OcspChecker_RegisterSelf(plContext);
         pkix_pl_OcspRequest_RegisterSelf(plContext);
         pkix_pl_OcspResponse_RegisterSelf(plContext);
+#ifdef BUG_382078_IS_RESOVED
         pkix_pl_HttpDefaultClient_RegisterSelf(plContext);
+#endif
         pkix_VerifyNode_RegisterSelf(plContext);
 
         PKIX_CHECK(PKIX_PL_NssContext_Create
