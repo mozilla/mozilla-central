@@ -106,7 +106,6 @@ public:
       char*       stringValue;
       PRInt32     intValue;
       PRBool      boolValue;
-      PRUnichar*  wstringValue;
     };
   };
 
