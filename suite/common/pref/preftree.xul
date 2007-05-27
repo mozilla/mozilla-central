@@ -84,12 +84,11 @@
         </treeitem>
       </treechildren>
     </treeitem>
-    <!-- XXX remove this when overlays.rdf works for navigator -->
     <treeitem container="true" id="navigator">
       <treerow>
         <treecell url="chrome://communicator/content/pref/pref-navigator.xul" label="&navigator.label;"/> 
       </treerow>
-      <treechildren>
+      <treechildren id="navigatorChildren">
         <treeitem>
           <treerow>
             <treecell url="chrome://communicator/content/pref/pref-history.xul" label="&history.label;"/> 

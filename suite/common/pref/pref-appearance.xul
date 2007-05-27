@@ -61,11 +61,9 @@
           
   <groupbox id="generalStartupPreferences" align="start">
     <caption label="&onStartLegend.label;"/>
-    <!-- XXX remove when navigator overlays.rdf works -->
     <checkbox id="generalStartupBrowser"
               label="&navCheck.label;" accesskey="&navCheck.accesskey;"
               prefstring="general.startup.browser"/>
-    <!-- XXX -->
   </groupbox>
   
   <groupbox id="toolbarStyleBox">
