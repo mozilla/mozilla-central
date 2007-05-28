@@ -592,15 +592,15 @@ nsSeamonkeyProfileMigrator::TransformPreferences(const nsAString& aSourcePrefFil
 #endif
     "browser.urlbar.",
     "editor.",
-    "extensions.irc."
-    "extensions.venkman."
+    "extensions.irc.",
+    "extensions.venkman.",
     "font.",
     "general.startup.",
     "inspector.",
     "mail.account.",
     "mail.addr_book.",
     "mail.imap.",
-    "mail.mdn."
+    "mail.mdn.",
     "mail.smtpserver.",
     "mail.spam.",
     "mail.toolbars.",
