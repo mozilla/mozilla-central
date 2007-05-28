@@ -185,14 +185,11 @@ pref("mailnews.attachments.display.largeView", true);
 pref("mail.pane_config.dynamic",            0);
 pref("mailnews.reuse_thread_window2",     true);
 pref("mail.spam.display.sanitize", true); // sanitize the HTML in spam messages
-pref("mail.standalone", true); 
 pref("editor.singleLine.pasteNewlines", 4);  // substitute commas for new lines in single line text boxes
 
 // hidden pref to ensure a certain number of headers in the message pane
 // to avoid the height of the header area from changing when headers are present / not present
 pref("mailnews.headers.minNumHeaders", 0); // 0 means we ignore this pref
-
-pref("mail.compose.dontWarnMail2Newsgroup", false);
 
 pref("network.cookie.cookieBehavior", 3); // 0-Accept, 1-dontAcceptForeign, 2-dontUse, 3-p3p
 

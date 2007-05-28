@@ -201,8 +201,7 @@ pref("mail.compose.other.header",	    "");
 pref("mail.compose.autosave", true);
 pref("mail.compose.autosaveinterval", 5); // in minutes
 pref("mail.fcc_folder",                     "");
-pref("mail.encrypt_outgoing_mail",          false);
-pref("mail.crypto_sign_outgoing_mail",      false);
+
 pref("mail.default_html_action", 0);          // 0=ask, 1=plain, 2=html, 3=both
 pref("mail.smtp.ssl",0);                      // 0 = no, 1 = try, 2 = must use SSL
 
@@ -266,19 +265,12 @@ pref("mailnews.search_date_format",        "chrome://messenger/locale/messenger.
 pref("mailnews.search_date_separator",     "chrome://messenger/locale/messenger.properties");
 pref("mailnews.search_date_leading_zeros", "chrome://messenger/locale/messenger.properties");
 
-pref("mailnews.language_sensitive_font",    true);
-
 pref("mailnews.quotingPrefs.version",       0);  // used to decide whether to migrate global quoting prefs
 
 // the first time, we'll warn the user about the blind send, and they can disable the warning if they want.
 pref("mapi.blind-send.enabled",             true);  
 
 pref("offline.autoDetect",                  false); // automatically move the user offline or online based on the network connection
-pref("offline.news.download.unread_only",   true);
-pref("offline.news.download.by_date",       true);
-pref("offline.news.download.days",          30);    // days
-pref("offline.news.download.increments",    3); // 0-yesterday, 1-1 wk ago, 2-2 wk ago,
-                                                // 3-1 month ago, 4-6 month ago, 5-1 year ago
 
 pref("ldap_2.autoComplete.interval", 650);
 pref("ldap_2.autoComplete.enabled", true);
@@ -657,6 +649,7 @@ pref("mail.compose.add_undisclosed_recipients", true);
 // Set this preference to true to tell mail not to attach the source of a link to a local
 // network file (file://///<network name>/<path>/<file name>). Windows only
 pref("mail.compose.dont_attach_source_of_local_network_links", false);
+pref("mail.compose.dontWarnMail2Newsgroup", false);
 
 // these prefs (in minutes) are here to help QA test this feature
 // "mail.purge.min_delay", never purge a junk folder more than once every 480 minutes (60 mins/hour * 8 hours)
@@ -670,9 +663,6 @@ pref("mailnews.mark_message_read.delay.interval", 5); // measured in seconds
 
 // require a password before showing imap or local headers in thread pane
 pref("mail.password_protect_local_cache", false);
-// to reduce forking in the js / C++
-// overridden by stand alone mail
-pref("mail.standalone", false);
 
 // import option to skip the first record, recorded so that we can save
 // the users last used preference.
@@ -683,24 +673,15 @@ pref("mail.enable_automatic_image_resizing", true);
 
 #ifdef XP_MACOSX
 pref("mail.notification.sound",             "");
-pref("mail.close_message_window.on_delete", true);
-pref("mail.close_message_window.on_file", true);
-
-pref("mail.server_type_on_restart",         -1);
 #endif
 
 #ifndef XP_MACOSX
 #ifdef XP_UNIX
-pref("mail.empty_trash", false);
-
 pref("mail.check_new_mail", true);
 pref("mail.signature_file", "~/.signature");
 pref("mail.default_fcc", "~/nsmail/Sent");
 pref("news.default_fcc", "~/nsmail/Sent");
 pref("mailnews.reply_with_extra_lines", 0);
-pref("mail.use_builtin_movemail", true);
-pref("mail.movemail_program", "");
-pref("mail.movemail_warn", false);
 pref("mail.sash_geometry", "");
 pref("news.cache_xover", false);
 pref("news.show_first_unread", false);
