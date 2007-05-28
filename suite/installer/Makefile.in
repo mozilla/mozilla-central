@@ -55,24 +55,24 @@ MOZ_PKG_MANIFEST_P = $(srcdir)/windows/packages
 endif
 
 MOZ_NONLOCALIZED_PKG_LIST = \
-        xpcom \
-        browser \
-        mail \
-        chatzilla \
-        venkman \
-        chatzilla \
-        reporter \
-        sroaming \
-        $(NULL)
+	xpcom \
+	browser \
+	mail \
+	chatzilla \
+	venkman \
+	chatzilla \
+	reporter \
+	sroaming \
+	$(NULL)
 
 MOZ_LOCALIZED_PKG_LIST = \
-        $(AB_CD) \
-        $(NULL)
+	$(AB_CD) \
+	$(NULL)
 
 MOZ_OPTIONAL_PKG_LIST = \
-        inspector \
-        talkback \
-        $(NULL)
+	inspector \
+	talkback \
+	$(NULL)
 
 DEFINES += -DAB_CD=$(AB_CD)
 
@@ -80,7 +80,7 @@ ifdef MOZ_PKG_MANIFEST_P
 MOZ_PKG_MANIFEST = packages
 
 $(MOZ_PKG_MANIFEST): $(MOZ_PKG_MANIFEST_P)
-        $(PERL) $(topsrcdir)/config/preprocessor.pl $(DEFINES) $(ACDEFINES) $< > $@
+	$(PERL) $(topsrcdir)/config/preprocessor.pl $(DEFINES) $(ACDEFINES) $< > $@
 endif
 
 include $(topsrcdir)/toolkit/mozapps/installer/packager.mk
