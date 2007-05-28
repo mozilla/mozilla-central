@@ -319,6 +319,7 @@ nsThunderbirdProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("javascript.options.strict",               Bool),
 
   MAKESAMETYPEPREFTRANSFORM("layout.spellcheckDefault",                Int),
+  MAKESAMETYPEPREFTRANSFORM("ldap_2.user_id",                          Int),
 
   MAKESAMETYPEPREFTRANSFORM("mail.accountmanager.accounts",            String),
   MAKESAMETYPEPREFTRANSFORM("mail.accountmanager.defaultaccount",      String),
