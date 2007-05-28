@@ -1,1 +1,2 @@
 CLOBBER requested to try and get it to pull directory/c-sdk after having changed the version tag in client.mk (Bug 359716).
+2007-05-28 19:30 UTC CLOBBER requested to try and clear Tp crashes (possible bugs to have caused it are: 365130,376568,382237,306482).
