@@ -28,10 +28,6 @@
     <RDF:li>chrome://communicator/content/permissions/imageContextOverlay.xul</RDF:li>
   </RDF:Seq>
 
-  <RDF:Seq about="chrome://communicator/content/pref/preftree.xul">
-    <RDF:li>chrome://communicator/content/pref/permissionsPrefsOverlay.xul</RDF:li>
-  </RDF:Seq>
-  
   <RDF:Seq about="chrome://navigator/content/navigatorOverlay.xul">
     <RDF:li>chrome://communicator/content/permissions/permissionsNavigatorOverlay.xul</RDF:li>
     <RDF:li>chrome://communicator/content/permissions/cookieTasksOverlay.xul</RDF:li>

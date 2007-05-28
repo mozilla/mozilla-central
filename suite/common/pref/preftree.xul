@@ -138,7 +138,27 @@
       <treerow>
         <treecell url="chrome://communicator/content/pref/pref-security.xul" label="&security.label;" />
       </treerow>
-      <treechildren id="securityChildren"/>
+      <treechildren id="securityChildren">
+        <treeitem>
+          <treerow>
+            <treecell url="chrome://communicator/content/pref/pref-cookies.xul"
+                      label="&cookies.label;"
+                      id="cookiesCell"/> 
+          </treerow>
+        </treeitem>
+        <treeitem>
+          <treerow>
+            <treecell url="chrome://communicator/content/pref/pref-images.xul"
+                      label="&images.label;"/> 
+          </treerow>
+        </treeitem>
+        <treeitem id="popupspref">
+          <treerow>
+            <treecell url="chrome://communicator/content/pref/pref-popups.xul"
+                      label="&popups.label;"/> 
+          </treerow>
+        </treeitem>
+      </treechildren>
     </treeitem>
 
     <treeitem container="true" id="advancedItem">

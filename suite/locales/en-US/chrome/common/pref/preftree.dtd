@@ -20,6 +20,9 @@
 <!ENTITY publish.label "Publish">
 <!ENTITY offline.label "Offline">
 <!ENTITY security.label "Privacy &amp; Security">
+<!ENTITY cookies.label "Cookies">
+<!ENTITY images.label "Images">
+<!ENTITY popups.label "Popup Windows">
 <!ENTITY advance.label "Advanced">
 <!ENTITY down.label "Download">
 <!ENTITY cache.label "Cache">

@@ -43,13 +43,13 @@
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <treechildren id="securityChildren">
-    <treeitem position="1">
+    <treeitem insertafter="popupspref">
       <treerow>
         <treecell url="chrome://wallet/content/pref-wallet.xul"
                       label="&wallet.label;"/> 
       </treerow>
     </treeitem>
-    <treeitem position="2">
+    <treeitem>
       <treerow>
         <treecell url="chrome://wallet/content/pref-passwords.xul"
                       label="&passwords.label;"/> 

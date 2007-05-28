@@ -157,7 +157,6 @@
   locale/@AB_CD@/communicator/pref/autocomplete-autofill-off.gif            (%chrome/common/pref/autocomplete-autofill-off.gif)
   locale/@AB_CD@/communicator/pref/autocomplete-showpopup.gif               (%chrome/common/pref/autocomplete-showpopup.gif)
   locale/@AB_CD@/communicator/pref/autocomplete-showsearch.gif              (%chrome/common/pref/autocomplete-showsearch.gif)
-  locale/@AB_CD@/communicator/pref/permissionsPrefsOverlay.dtd              (%chrome/common/pref/permissionsPrefsOverlay.dtd)
   locale/@AB_CD@/communicator/pref/pref.dtd                                 (%chrome/common/pref/pref.dtd)
   locale/@AB_CD@/communicator/pref/prefutilities.properties                 (%chrome/common/pref/prefutilities.properties)
   locale/@AB_CD@/communicator/pref/preftree.dtd                             (%chrome/common/pref/preftree.dtd)

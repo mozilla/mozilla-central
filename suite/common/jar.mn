@@ -2,7 +2,6 @@ comm.jar:
 #ifdef MOZ_XUL_APP
 % content communicator %content/communicator/ xpcnativewrappers=yes
 % overlay chrome://communicator/content/contentAreaContextOverlay.xul chrome://communicator/content/permissions/imageContextOverlay.xul
-% overlay chrome://communicator/content/pref/preftree.xul chrome://communicator/content/pref/permissionsPrefsOverlay.xul
 % overlay chrome://navigator/content/navigatorOverlay.xul chrome://communicator/content/permissions/permissionsNavigatorOverlay.xul
 % overlay chrome://navigator/content/navigatorOverlay.xul chrome://communicator/content/permissions/cookieTasksOverlay.xul
 % overlay chrome://global/content/console.xul chrome://communicator/content/consoleOverlay.xul
@@ -150,7 +149,6 @@ comm.jar:
    content/communicator/pref/nsPrefWindow.js                        (pref/nsPrefWindow.js)
    content/communicator/pref/nsWidgetStateManager.js                (/xpfe/global/resources/content/nsWidgetStateManager.js)
    content/communicator/pref/overrideHandler.js                     (pref/overrideHandler.js)
-   content/communicator/pref/permissionsPrefsOverlay.xul            (pref/permissionsPrefsOverlay.xul)
    content/communicator/pref/pref.xul                               (pref/pref.xul)
    content/communicator/pref/preftree.xul                           (pref/preftree.xul)
    content/communicator/pref/pref-advanced.xul                      (pref/pref-advanced.xul)
