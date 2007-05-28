@@ -319,7 +319,6 @@ nsThunderbirdProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("javascript.options.strict",               Bool),
 
   MAKESAMETYPEPREFTRANSFORM("layout.spellcheckDefault",                Int),
-  MAKESAMETYPEPREFTRANSFORM("ldap_2.user_id",                          Int),
 
   MAKESAMETYPEPREFTRANSFORM("mail.accountmanager.accounts",            String),
   MAKESAMETYPEPREFTRANSFORM("mail.accountmanager.defaultaccount",      String),
@@ -542,15 +541,23 @@ nsThunderbirdProfileMigrator::TransformPreferences(
   // etc.
   static const char* branchNames[] =
   {
-    "mail.account.",
+    // Keep the three below first, or change the indexes below
     "mail.identity.",
     "mail.server.",
-    "mail.smtpserver.",
-    "ldap_2.servers.",
-    "mailnews.labels.",
+    "ldap_2.",
+    "editor.",
     "font.",
+    "mail.account.",
+    "mail.addr_book.",
+    "mail.imap.",
+    "mail.mdn.",
+    "mail.smtpserver.",
+    "mail.spam.",
+    "mail.toolbars.",
+    "mailnews.labels.",
+    "mailnews.reply_",
     "privacy.",
-    "wallet.",
+    "wallet."
   };
 
   PBStructArray branches[NS_ARRAY_LENGTH(branchNames)];
@@ -561,14 +568,14 @@ nsThunderbirdProfileMigrator::TransformPreferences(
   // the signature file prefs may be paths to files in the thunderbird profile
   // path so we need to copy them over and fix these paths up before we write
   // them out to the new prefs.js
-  CopySignatureFiles(branches[1], psvc);
+  CopySignatureFiles(branches[0], psvc);
 
   // certain mail prefs may actually be absolute paths instead of profile
   // relative paths we need to fix these paths up before we write them out to
   // the new prefs.js
-  CopyMailFolderPrefs(branches[2], psvc);
+  CopyMailFolderPrefs(branches[1], psvc);
 
-  CopyAddressBookDirectories(branches[4], psvc);
+  CopyAddressBookDirectories(branches[2], psvc);
 
   // Now that we have all the pref data in memory, load the target pref file,
   // and write it back out

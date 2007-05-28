@@ -359,7 +359,6 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("javascript.options.strict",               Bool),
 
   MAKESAMETYPEPREFTRANSFORM("layout.spellcheckDefault",                Int),
-  MAKESAMETYPEPREFTRANSFORM("ldap_2.user_id",                          Int),
 
   MAKESAMETYPEPREFTRANSFORM("mail.accountmanager.accounts",            String),
   MAKESAMETYPEPREFTRANSFORM("mail.accountmanager.defaultaccount",      String),
@@ -585,7 +584,7 @@ nsSeamonkeyProfileMigrator::TransformPreferences(const nsAString& aSourcePrefFil
     // Keep the three below first, or change the indexes below
     "mail.identity.",
     "mail.server.",
-    "ldap_2.servers.",
+    "ldap_2.",
   // XXX Bug 381159 When suite uses Toolkit's DM backend, we need to
   // activate this code.
 #ifndef SUITE_USING_TOOLKIT_DM
