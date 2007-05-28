@@ -391,7 +391,8 @@ nsNntpService::FetchMessage(nsIMsgFolder *folder, nsMsgKey key, nsIMsgWindow *aM
   rv = RunNewsUrl(url, aMsgWindow, aConsumer);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  url.swap(*aURL);
+  if (aURL)
+    url.swap(*aURL);
   return rv;
 }
 
