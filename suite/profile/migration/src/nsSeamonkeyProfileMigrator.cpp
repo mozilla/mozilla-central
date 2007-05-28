@@ -316,6 +316,7 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("browser.send_pings",                      Bool),
   MAKESAMETYPEPREFTRANSFORM("browser.sessionhistory.max_entries",      Int),
   MAKESAMETYPEPREFTRANSFORM("browser.sessionhistory.max_total_viewers",Int),
+  MAKESAMETYPEPREFTRANSFORM("browser.startup.page",                    Int),
   MAKESAMETYPEPREFTRANSFORM("browser.toolbars.showbutton.bookmarks",   Bool),
   MAKESAMETYPEPREFTRANSFORM("browser.toolbars.showbutton.go",          Bool),
   MAKESAMETYPEPREFTRANSFORM("browser.toolbars.showbutton.home",        Bool),
