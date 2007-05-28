@@ -74,7 +74,6 @@ DESKTOP_ICONS = \
 	messengerWindow \
 	msgcomposeWindow \
 	venkman-window \
-	winInspectorMain \
 	$(NULL) 
 
 ifeq (windows,$(MOZ_WIDGET_TOOLKIT))
