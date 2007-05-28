@@ -134,10 +134,10 @@
         <separator/>
       </row>
       <row>
-        <description>&filterHeader.label;</description>
+        <description control="filterTree">&filterHeader.label;</description>
       </row>
-      
-      
+
+
       <row flex="1">
         <vbox>
           <tree id="filterTree" flex="1" hidecolumnpicker="true"
