@@ -276,10 +276,8 @@ nsSeamonkeyProfileMigrator::FillProfileDataFromRegistry()
 
 static
 nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
-  MAKESAMETYPEPREFTRANSFORM("accessibility.typeaheadfind.autostart",   Bool),
-  MAKESAMETYPEPREFTRANSFORM("accessibility.typeaheadfind.linksonly",   Bool),
-
   MAKESAMETYPEPREFTRANSFORM("addressbook.throbber.url",                String),
+  MAKESAMETYPEPREFTRANSFORM("application.use_ns_plugin_finder",        Bool),
 
   MAKESAMETYPEPREFTRANSFORM("alerts.slideIncrement",                   Int),
   MAKESAMETYPEPREFTRANSFORM("alerts.slideIncrementTime",               Int),
@@ -287,16 +285,11 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
 
   MAKESAMETYPEPREFTRANSFORM("browser.anchor_color",                    String),
   MAKESAMETYPEPREFTRANSFORM("browser.backspace_action",                Int),
+  MAKESAMETYPEPREFTRANSFORM("browser.blink_allowed",                   Bool),
   MAKESAMETYPEPREFTRANSFORM("browser.chrome.favicons",                 Bool),
   MAKESAMETYPEPREFTRANSFORM("browser.chrome.image_icons.max_size",     Int),
   MAKESAMETYPEPREFTRANSFORM("browser.chrome.load_toolbar_icons",       Int),
   MAKESAMETYPEPREFTRANSFORM("browser.chrome.site_icons",               Bool),
-
-  MAKESAMETYPEPREFTRANSFORM("browser.display.background_color",        String),
-  MAKESAMETYPEPREFTRANSFORM("browser.display.foreground_color",        String),
-  MAKESAMETYPEPREFTRANSFORM("browser.display.use_system_colors",       Bool),
-  MAKESAMETYPEPREFTRANSFORM("browser.display.use_document_colors",     Bool),
-  MAKESAMETYPEPREFTRANSFORM("browser.display.use_document_fonts",      Bool),
 
   // XXX Bug 381159 When suite uses Toolkit's DM backend, we need to
   // activate this code.
@@ -308,6 +301,11 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
                     DownloadManager),
 #endif
 
+  MAKESAMETYPEPREFTRANSFORM("browser.fixup.alternate.enabled",         Bool),
+  MAKESAMETYPEPREFTRANSFORM("browser.fixup.alternate.prefix",          String),
+  MAKESAMETYPEPREFTRANSFORM("browser.fixup.alternate.suffix",          String),
+  MAKESAMETYPEPREFTRANSFORM("browser.fixup.hide_user_pass",            Bool),
+  MAKESAMETYPEPREFTRANSFORM("browser.frames.enabled",                  Bool),
   MAKESAMETYPEPREFTRANSFORM("browser.history.grouping",                String),
   MAKESAMETYPEPREFTRANSFORM("browser.enable_automatic_image_resizing", Bool),
   MAKESAMETYPEPREFTRANSFORM("browser.history_expire_days",             Int),
@@ -317,21 +315,16 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("browser.related.provider",                String),
   MAKESAMETYPEPREFTRANSFORM("browser.send_pings",                      Bool),
   MAKESAMETYPEPREFTRANSFORM("browser.sessionhistory.max_entries",      Int),
-  MAKESAMETYPEPREFTRANSFORM("browser.tabs.autoHide",                   Bool),
-  MAKESAMETYPEPREFTRANSFORM("browser.tabs.loadDivertedInBackground",   Bool),
-  MAKESAMETYPEPREFTRANSFORM("browser.tabs.loadInBackground",           Bool),
-  MAKESAMETYPEPREFTRANSFORM("browser.tabs.opentabfor.middleclick",     Bool),
-  MAKESAMETYPEPREFTRANSFORM("browser.tabs.opentabfor.urlbar",          Bool),
-  MAKESAMETYPEPREFTRANSFORM("browser.tabs.tooltippreview.enable",      Bool),
-  MAKESAMETYPEPREFTRANSFORM("browser.tabs.tooltippreview.width",       Int),
-  MAKESAMETYPEPREFTRANSFORM("browser.tabs.undoclose.depth",            Int),
+  MAKESAMETYPEPREFTRANSFORM("browser.sessionhistory.max_total_viewers",Int),
   MAKESAMETYPEPREFTRANSFORM("browser.toolbars.showbutton.bookmarks",   Bool),
   MAKESAMETYPEPREFTRANSFORM("browser.toolbars.showbutton.go",          Bool),
   MAKESAMETYPEPREFTRANSFORM("browser.toolbars.showbutton.home",        Bool),
   MAKESAMETYPEPREFTRANSFORM("browser.toolbars.showbutton.print",       Bool),
   MAKESAMETYPEPREFTRANSFORM("browser.toolbars.showbutton.search",      Bool),
+  MAKESAMETYPEPREFTRANSFORM("browser.triple_click_selects_paragraph",  Bool),
   MAKESAMETYPEPREFTRANSFORM("browser.underline_anchors",               Bool),
   MAKESAMETYPEPREFTRANSFORM("browser.visited_color",                   String),
+  MAKESAMETYPEPREFTRANSFORM("browser.windows.loadOnNewWindow",         Bool),
 
   MAKESAMETYPEPREFTRANSFORM("compose.throbber.url",                    String),
 
@@ -344,10 +337,13 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("dom.disable_window_open_feature.status",  Bool),
   MAKESAMETYPEPREFTRANSFORM("dom.disable_window_status_change",        Bool),
 
+  MAKESAMETYPEPREFTRANSFORM("extensions.spellcheck.inline.max-misspellings",Int),
+
   MAKESAMETYPEPREFTRANSFORM("general.autoScroll",                      Bool),
   MAKESAMETYPEPREFTRANSFORM("general.open_location.last_url",          String),
   MAKESAMETYPEPREFTRANSFORM("general.open_location.last_window_choice",Int),
   MAKESAMETYPEPREFTRANSFORM("general.smoothScroll",                    Bool),
+  MAKESAMETYPEPREFTRANSFORM("general.warnOnAboutConfig",               Bool),
 
   MAKESAMETYPEPREFTRANSFORM("intl.accept_charsets",                    String),
   MAKESAMETYPEPREFTRANSFORM("intl.accept_languages",                   String),
@@ -355,8 +351,12 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
 
   MAKESAMETYPEPREFTRANSFORM("javascript.allow.mailnews",               Bool),
   MAKESAMETYPEPREFTRANSFORM("javascript.enabled",                      Bool),
+  MAKESAMETYPEPREFTRANSFORM("javascript.options.relimit",              Bool),
   MAKESAMETYPEPREFTRANSFORM("javascript.options.showInConsole",        Bool),
   MAKESAMETYPEPREFTRANSFORM("javascript.options.strict",               Bool),
+
+  MAKESAMETYPEPREFTRANSFORM("keyword.URL",                             String),
+  MAKESAMETYPEPREFTRANSFORM("keyword.enabled",                         Bool),
 
   MAKESAMETYPEPREFTRANSFORM("layout.spellcheckDefault",                Int),
 
@@ -430,6 +430,7 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("mail.smtp.useMatchingDomainServer",       Bool),
   MAKESAMETYPEPREFTRANSFORM("mail.smtp.useMatchingHostNameServer",     Bool),
   MAKESAMETYPEPREFTRANSFORM("mail.smtp.defaultserver",                 String),
+  MAKESAMETYPEPREFTRANSFORM("mail.smtpservers",                        String),
   MAKESAMETYPEPREFTRANSFORM("mail.spellcheck.inline",                  Bool),
   MAKESAMETYPEPREFTRANSFORM("mail.SpellCheckBeforeSend",               Bool),
   MAKESAMETYPEPREFTRANSFORM("mail.startup.enabledMailCheckOnce",       Bool),
@@ -530,6 +531,7 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("network.proxy.ssl",                       String),
   MAKESAMETYPEPREFTRANSFORM("network.proxy.ssl_port",                  Int),
   MAKESAMETYPEPREFTRANSFORM("network.proxy.type",                      Int),
+  MAKESAMETYPEPREFTRANSFORM("nglayout.enable_drag_images",             Bool),
 
   MAKESAMETYPEPREFTRANSFORM("offline.autodetect",                      Bool),
   MAKESAMETYPEPREFTRANSFORM("offline.download.download_messages",      Int),
@@ -554,7 +556,10 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("signon.rememberSignons",                  Bool),
   MAKESAMETYPEPREFTRANSFORM("signon.expireMasterPassword",             Bool),
 
-  MAKESAMETYPEPREFTRANSFORM("ui.click_hold_context_menus",             Bool)
+  MAKESAMETYPEPREFTRANSFORM("ui.click_hold_context_menus",             Bool),
+
+  MAKESAMETYPEPREFTRANSFORM("view_source.syntax_highlight",            Bool),
+  MAKESAMETYPEPREFTRANSFORM("view_source.wrap_long_lines",             Bool)
 };
 
 nsresult
@@ -585,17 +590,24 @@ nsSeamonkeyProfileMigrator::TransformPreferences(const nsAString& aSourcePrefFil
     "mail.identity.",
     "mail.server.",
     "ldap_2.",
+    "accessibility.",
+    "applications.",
+    "bidi.",
+    "browser.display.",
   // XXX Bug 381159 When suite uses Toolkit's DM backend, we need to
   // activate this code.
 #ifndef SUITE_USING_TOOLKIT_DM
     "browser.download.",
 #endif
+    "browser.tabs.",
     "browser.urlbar.",
+    "dom.",
     "editor.",
     "extensions.irc.",
     "extensions.venkman.",
     "font.",
     "general.startup.",
+    "helpers.",
     "inspector.",
     "mail.account.",
     "mail.addr_book.",
@@ -606,7 +618,11 @@ nsSeamonkeyProfileMigrator::TransformPreferences(const nsAString& aSourcePrefFil
     "mail.toolbars.",
     "mailnews.labels.",
     "mailnews.reply_",
+    "middlemouse.",
+    "mousewheel.",
+    "print.",
     "privacy.",
+    "ui.key.",
     "wallet."
   };
 

@@ -309,12 +309,17 @@ nsThunderbirdProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("dom.disable_window_open_feature.status",  Bool),
   MAKESAMETYPEPREFTRANSFORM("dom.disable_window_status_change",        Bool),
 
+  MAKESAMETYPEPREFTRANSFORM("extensions.spellcheck.inline.max-misspellings",Int),
+
+  MAKESAMETYPEPREFTRANSFORM("general.warnOnAboutConfig",               Bool),
+
   MAKESAMETYPEPREFTRANSFORM("intl.accept_charsets",                    String),
   MAKESAMETYPEPREFTRANSFORM("intl.accept_languages",                   String),
   MAKESAMETYPEPREFTRANSFORM("intl.charset.default",                    String),
 
   MAKESAMETYPEPREFTRANSFORM("javascript.allow.mailnews",               Bool),
   MAKESAMETYPEPREFTRANSFORM("javascript.enabled",                      Bool),
+  MAKESAMETYPEPREFTRANSFORM("javascript.options.relimit",              Bool),
   MAKESAMETYPEPREFTRANSFORM("javascript.options.showInConsole",        Bool),
   MAKESAMETYPEPREFTRANSFORM("javascript.options.strict",               Bool),
 
@@ -389,6 +394,7 @@ nsThunderbirdProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("mail.smtp.useMatchingDomainServer",       Bool),
   MAKESAMETYPEPREFTRANSFORM("mail.smtp.useMatchingHostNameServer",     Bool),
   MAKESAMETYPEPREFTRANSFORM("mail.smtp.defaultserver",                 String),
+  MAKESAMETYPEPREFTRANSFORM("mail.smtpservers",                        String),
   MAKESAMETYPEPREFTRANSFORM("mail.spellcheck.inline",                  Bool),
   MAKESAMETYPEPREFTRANSFORM("mail.SpellCheckBeforeSend",               Bool),
   MAKESAMETYPEPREFTRANSFORM("mail.startup.enabledMailCheckOnce",       Bool),
@@ -545,8 +551,13 @@ nsThunderbirdProfileMigrator::TransformPreferences(
     "mail.identity.",
     "mail.server.",
     "ldap_2.",
+    "accessibility.",
+    "applications.",
+    "bidi.",
+    "dom.",
     "editor.",
     "font.",
+    "helpers.",
     "mail.account.",
     "mail.addr_book.",
     "mail.imap.",
@@ -556,7 +567,11 @@ nsThunderbirdProfileMigrator::TransformPreferences(
     "mail.toolbars.",
     "mailnews.labels.",
     "mailnews.reply_",
+    "middlemouse.",
+    "mousewheel.",
+    "print.",
     "privacy.",
+    "ui.key.",
     "wallet."
   };
 
