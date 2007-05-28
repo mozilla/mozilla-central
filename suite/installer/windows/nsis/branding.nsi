@@ -11,15 +11,14 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is the SeaMonkey code.
+# The Original Code is the Mozilla Installer code.
 #
-# The Initial Developer of the Original Code is
-# The SeaMonkey project at mozilla.org.
-# Portions created by the Initial Developer are Copyright (C) 2007
+# The Initial Developer of the Original Code is Mozilla Foundation
+# Portions created by the Initial Developer are Copyright (C) 2006
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#  Robert Kaiser <kairo@kairo.at>
+#  Robert Strong <robert.bugzilla@gmail.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,20 +34,13 @@
 #
 # ***** END LICENSE BLOCK *****
 
-add_makefiles "
-  suite/Makefile
-  suite/app/Makefile
-  suite/branding/Makefile
-  suite/browser/Makefile
-  suite/build/Makefile
-  suite/common/Makefile
-  suite/components/Makefile
-  suite/components/xulappinfo/Makefile
-  suite/installer/Makefile
-  suite/installer/windows/Makefile
-  suite/locales/Makefile
-  suite/profile/Makefile
-  suite/profile/migration/Makefile
-  suite/profile/migration/public/Makefile
-  suite/profile/migration/src/Makefile
-"
+#NSIS defines
+!define BrandShortName          "SeaMonkey"
+!define BrandFullName           "SeaMonkey"
+!define BrandFullNameInternal   "SeaMonkey"
+!define CompanyName             "mozilla.org"
+!define URLInfoAbout            "http://www.mozilla.org"
+!define URLUpdateInfo           "http://www.mozilla.org/projects/seamonkey"
+
+# Percentage of new "Standard" installs to enable talkback for
+!define RandomPercent           "100"

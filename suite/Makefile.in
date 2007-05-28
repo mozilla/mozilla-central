@@ -60,6 +60,12 @@ DIRS += \
 		build \
 		app \
 		$(NULL)
+
+ifeq ($(OS_ARCH),WINNT)
+ifdef MOZ_INSTALLER
+DIRS += installer/windows
+endif
+endif
 else
 # XXX This should completely go away in the future but still holds the
 # xulappinfo component needed as long as suite is not a fully fledged
@@ -83,5 +89,14 @@ endif
 
 include $(topsrcdir)/config/rules.mk
 
+# For Windows build the uninstaller during the application build since the
+# uninstaller is included with the application for mar file generation.
 libs::
 	$(INSTALL) $(README_FILE) $(DIST)/bin
+ifeq ($(OS_ARCH),WINNT)
+ifdef MOZ_XUL_APP
+ifdef MOZ_INSTALLER
+	$(MAKE) -C installer/windows uninstaller
+endif
+endif
+endif
