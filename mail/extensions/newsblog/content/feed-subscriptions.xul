@@ -73,7 +73,7 @@
   <stringbundle id="bundle_newsblog" src="chrome://messenger-newsblog/locale/newsblog.properties"/>
 
   <vbox flex="1" id="contentPane">
-    <description>&subscriptionDesc.label;</description>
+    <description control="rssSubscriptionsList">&subscriptionDesc.label;</description>
 
     <separator class="thin"/>
 
@@ -98,11 +98,11 @@
           </columns>
           <rows>
             <row align="center">
-              <hbox pack="end"><label id="nameLabel" value="&feedTitle.label;"/></hbox>
+              <hbox pack="end"><label id="nameLabel" control="nameValue" value="&feedTitle.label;"/></hbox>
               <textbox id="nameValue" readonly="true" class="plain"/>
             </row>
             <row align="center">
-              <hbox pack="end"><label id="locationLabel" value="&location.label;"/></hbox>
+              <hbox pack="end"><label id="locationLabel" control="locationValue" value="&location.label;"/></hbox>
               <textbox id="locationValue" readonly="true" class="plain"/>
             </row>
           </rows>
