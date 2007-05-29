@@ -620,7 +620,21 @@ nsresult nsSeamonkeyProfileMigrator::CopyMailFolders(nsVoidArray* aMailServers, 
     PrefBranchStruct* pref = (PrefBranchStruct*)aMailServers->ElementAt(i);
     nsDependentCString prefName (pref->prefName);
 
-    if (StringEndsWith(prefName, nsDependentCString(".directory")))
+    if (StringEndsWith(prefName, NS_LITERAL_CSTRING(".directory-rel"))) {
+      // When the directories are modified below, we may change the .directory
+      // pref. As we don't have a pref branch to modify at this stage and set
+      // up the relative folders properly, we'll just remove all the
+      // *.directory-rel prefs. Mailnews will cope with this, creating them
+      // when it first needs them.
+      if (pref->type == nsIPrefBranch::PREF_STRING)
+        NS_Free(pref->stringValue);
+
+      aMailServers->RemoveElementAt(i);
+      // Now decrease i and count to match the removed element
+      --i;
+      --count;
+    }
+    else if (StringEndsWith(prefName, nsDependentCString(".directory")))
     {
       // let's try to get a branch for this particular server to simplify things
       prefName.Cut( prefName.Length() - strlen("directory"), strlen("directory"));
@@ -655,36 +669,24 @@ nsresult nsSeamonkeyProfileMigrator::CopyMailFolders(nsVoidArray* aMailServers, 
       {
         mTargetProfile->Clone(getter_AddRefs(targetMailFolder));
         targetMailFolder->Append(NEWS_DIR_50_NAME); 
-        
-        nsCAutoString alteredHost;
-        alteredHost = "host-";
-
-        nsXPIDLCString hostName; 
-        serverBranch->GetCharPref("hostname", getter_Copies(hostName)); 
-        alteredHost += hostName;
-
-        NS_MsgHashIfNecessary(alteredHost); 
-        targetMailFolder->Append(NS_ConvertASCIItoUTF16(alteredHost)); 
       }
 
       if (targetMailFolder)
       {
         // for all of our server types, append the host name to the directory as part of the new location
-        if (!serverType.Equals("nntp"))
-        {
-          nsXPIDLCString hostName; 
-          serverBranch->GetCharPref("hostname", getter_Copies(hostName));
-          targetMailFolder->Append(NS_ConvertASCIItoUTF16(hostName));  
+        nsCString hostName;
+        serverBranch->GetCharPref("hostname", getter_Copies(hostName));
+        targetMailFolder->Append(NS_ConvertASCIItoUTF16(hostName));
 
-          // we should make sure the host name based directory we are going to migrate 
-          // the accounts into is unique. This protects against the case where the user
-          // has multiple servers with the same host name.
-          targetMailFolder->CreateUnique(nsIFile::DIRECTORY_TYPE, 0777);
-        }
+        // we should make sure the host name based directory we are going to migrate 
+        // the accounts into is unique. This protects against the case where the user
+        // has multiple servers with the same host name.
+        targetMailFolder->CreateUnique(nsIFile::DIRECTORY_TYPE, 0777);
 
         rv = RecursiveCopy(sourceMailFolder, targetMailFolder);
-        // now we want to make sure the actual directory pref that gets transformed
-        // into the new profile's pref.js has the right file location. 
+        // now we want to make sure the actual directory pref that gets
+        // transformed into the new profile's pref.js has the right file
+        // location.
         nsCAutoString descriptorString;
         nsCOMPtr<nsILocalFile> localFile = do_QueryInterface(targetMailFolder);
         localFile->GetPersistentDescriptor(descriptorString);
