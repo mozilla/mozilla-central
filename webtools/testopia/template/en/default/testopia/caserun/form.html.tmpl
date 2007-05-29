@@ -98,7 +98,7 @@
     </td>
     <th align="right">Environment</th>
     <td><input dojoType="select" 
-               dataUrl="tr_quicksearch.cgi?action=getenv&run_id=[% caserun.run.id FILTER none %]&search=%{searchString}" 
+               dataUrl="tr_quicksearch.cgi?action=getenv&run_id=[% caserun.run.id FILTER none %]&search=${searchString}" 
                mode="remote"
                autoComplete="false"
                id="caserun_env"
@@ -119,7 +119,7 @@
   <tr>
     <th align="right">Assignee</th>
     <td><input dojoType="Select" 
-                 dataUrl="tr_quicksearch.cgi?action=getuser&search=%{searchString}" 
+                 dataUrl="tr_quicksearch.cgi?action=getuser&search=${searchString}" 
                  mode="remote"
                  autoComplete="true"
                  id="assignee"

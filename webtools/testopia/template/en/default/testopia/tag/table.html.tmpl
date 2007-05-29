@@ -34,7 +34,7 @@
 [% IF item.canedit %]
 <input id="newtag" name="newtag"
        dojoType="combobox" 
-       dataUrl="tr_quicksearch.cgi?action=gettag&product_id=[% product_id %]&search=%{searchString}" 
+       dataUrl="tr_quicksearch.cgi?action=gettag&product_id=[% product_id %]&search=${searchString}" 
        mode="remote"
        maxListLength="10">
 

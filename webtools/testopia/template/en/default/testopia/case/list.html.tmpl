@@ -50,7 +50,7 @@
 <script src="testopia/js/util.js" type="text/javascript"></script>
 <script src="testopia/dojo/dojo.js" type="text/javascript"></script>
 <script type="text/javascript">
-  dojo.require("dojo.io");
+  dojo.require('dojo.io.*');
   dojo.require("dojo.widget.ComboBox");
   function getProdComps(product){
       document.getElementById("components").disabled = true;
@@ -105,7 +105,7 @@ found.</b>
     <td align="right"><b>Add Tags</b></td>
     <td><input id="addtags" name="addtags"
                    dojoType="combobox" 
-                   dataUrl="tr_quicksearch.cgi?action=gettag&search=%{searchString}" 
+                   dataUrl="tr_quicksearch.cgi?action=gettag&search=${searchString}" 
                    mode="remote"
                    maxListLength="10"></td>
     <td rowspan="5">

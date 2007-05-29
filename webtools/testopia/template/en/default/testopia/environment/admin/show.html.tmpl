@@ -70,6 +70,10 @@ tree. Changes are applied immediately unless prompted.</p>
 </div>
 <div>[% PROCESS testopia/messages.html.tmpl %]</div>
 
+  [% IF user.in_group('Testers') %]
+    <a href="tr_new_environment.cgi">Create a New Environment</a></td>
+  [% END %]
+
 [% PROCESS testopia/environment/admin/tree.html.tmpl %]
 
 [% PROCESS global/footer.html.tmpl %]

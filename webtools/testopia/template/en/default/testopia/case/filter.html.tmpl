@@ -74,7 +74,7 @@
             <input id="tags" name="tags"
                    autocomplete="false"
                    dojoType="combobox" 
-                   dataUrl="tr_quicksearch.cgi?action=gettag&product_id=[% plan.product_id FILTER none %]&search=%{searchString}" 
+                   dataUrl="tr_quicksearch.cgi?action=gettag&product_id=[% plan.product_id FILTER none %]&search=${searchString}" 
                    mode="remote"
                    maxListLength="10"></td>
       </tr>

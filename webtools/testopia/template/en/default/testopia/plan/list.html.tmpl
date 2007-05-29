@@ -46,7 +46,7 @@
 <script src="testopia/dojo/dojo.js" type="text/javascript"></script>
 <script src="testopia/js/util.js" type="text/javascript"></script>
 <script type="text/javascript">
-    dojo.require("dojo.io");  
+    dojo.require('dojo.io.*');
     dojo.require("dojo.widget.ComboBox");  
 </script>
 <form id="table" action="tr_list_plans.cgi" method="POST">
@@ -102,7 +102,7 @@ found.
     <td align="right"><b>Add Tags</b></td>
     <td><input id="addtags" name="addtags"
                    dojoType="combobox" 
-                   dataUrl="tr_quicksearch.cgi?action=gettag&search=%{searchString}" 
+                   dataUrl="tr_quicksearch.cgi?action=gettag&search=${searchString}" 
                    mode="remote"
                    maxListLength="10"></td>
   </tr>

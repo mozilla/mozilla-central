@@ -73,7 +73,7 @@
       if (prod.options[i].selected == true)
         ids.push(prod.options[i].value);
     }
-    dojo.require("dojo.io");
+    dojo.require('dojo.io.*');
     dojo.io.bind({
         url:     "tr_query.cgi",
         content: {  current_tab: "[% current_tab FILTER none %]", prod_ids: ids.join(","), action: "getversions" },

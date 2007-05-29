@@ -106,7 +106,7 @@ elsif ($action eq 'delete'){
 elsif ($action eq 'do_delete'){
     my $caserun = Bugzilla::Testopia::TestCaseRun->new($caserun_id);
     ThrowUserError("testopia-no-delete", {'object' => $caserun}) unless $caserun->candelete;
-    $caserun->obliterate;
+    $caserun->obliterate($cgi->param('single'));
 
     # See if there is a saved filter
     if ($cgi->cookie('TESTOPIA-FILTER-RUN-' . $caserun->run->id) && $action ne 'Filter' && $action ne 'clear_filter'){

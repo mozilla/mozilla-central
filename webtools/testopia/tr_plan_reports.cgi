@@ -119,6 +119,40 @@ elsif ($type eq 'bugcounts'){
     $template->process("testopia/reports/bug-count.html.tmpl", $vars)
        || ThrowTemplateError($template->error());
 }
+elsif ($type eq 'untested'){
+    my $plan_id = trim(Bugzilla->cgi->param('plan_id') || '');
+    unless ($plan_id){
+      $vars->{'form_action'} = 'tr_plan_reports.cgi';
+      $vars->{'type'} = 'bugcounts';
+      print $cgi->header;
+      $template->process("testopia/plan/choose.html.tmpl", $vars) 
+          || ThrowTemplateError($template->error());
+      exit;
+    }
+    validate_test_id($plan_id, 'plan');
+    my $plan = Bugzilla::Testopia::TestPlan->new($plan_id);
+    ThrowUserError("testopia-permission-denied", {'object' => $plan}) unless $plan->canview;
+    
+    my $dbh = Bugzilla->dbh;
+    my $ref = $dbh->selectcol_arrayref(
+            "SELECT test_cases.case_id 
+               FROM test_cases 
+         INNER JOIN test_case_plans ON test_cases.case_id = test_case_plans.case_id 
+              WHERE test_cases.case_id NOT IN (
+                    SELECT DISTINCT test_case_runs.case_id 
+                      FROM test_case_runs 
+                INNER JOIN test_runs ON test_case_runs.run_id = test_runs.run_id 
+                     WHERE test_runs.plan_id = ?) 
+                AND test_case_plans.plan_id = ?", undef, ($plan_id, $plan_id));
+    
+    $vars->{'case_ids'} = join(",", @$ref);
+    $vars->{'case_count'} = scalar @$ref;
+    $vars->{'plan_id'} = $plan_id;
+    
+    print $cgi->header;
+    $template->process("testopia/reports/untested.html.tmpl", $vars)
+       || ThrowTemplateError($template->error());
+}
 else{
     $cgi->param('current_tab', 'plan');
     $cgi->param('viewall', 1);
