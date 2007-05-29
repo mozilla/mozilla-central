@@ -84,7 +84,7 @@ NS_IMETHODIMP	nsImapMailDatabase::SetSummaryValid(PRBool valid)
 }
 
 // IMAP does not set local file flags, override does nothing
-void	nsImapMailDatabase::UpdateFolderFlag(nsIMsgDBHdr * /* msgHdr */, PRBool /* bSet */, 
+void	nsImapMailDatabase::UpdateFolderFlag(nsIMsgDBHdr * /* msgHdr */, PRBool /* bSet */,
                                               MsgFlags /* flag */, nsIOutputStream ** /* ppFileStream */)
 {
 }
@@ -165,15 +165,15 @@ NS_IMETHODIMP nsImapMailDatabase::AddNewHdrToDB(nsIMsgDBHdr *newHdr, PRBool noti
       mdbYarn messageIdYarn;
       nsCOMPtr <nsIMdbRow> pendingRow;
       mdbOid  outRowId;
-  
-      nsXPIDLCString messageId;
+
+      nsCString messageId;
       newHdr->GetMessageId(getter_Copies(messageId));
       messageIdYarn.mYarn_Buf = (void*)messageId.get();
       messageIdYarn.mYarn_Fill = messageId.Length();
       messageIdYarn.mYarn_Form = 0;
       messageIdYarn.mYarn_Size = messageIdYarn.mYarn_Fill;
-  
-      m_mdbStore->FindRow(GetEnv(), m_pendingHdrsRowScopeToken, 
+
+      m_mdbStore->FindRow(GetEnv(), m_pendingHdrsRowScopeToken,
                 m_messageIdColumnToken, &messageIdYarn, &outRowId, getter_AddRefs(pendingRow));
       if (pendingRow)
       {
@@ -207,7 +207,7 @@ NS_IMETHODIMP nsImapMailDatabase::AddNewHdrToDB(nsIMsgDBHdr *newHdr, PRBool noti
   return rv;
 }
 
-NS_IMETHODIMP nsImapMailDatabase::SetAttributesOnPendingHdr(nsIMsgDBHdr *pendingHdr, const char *property, 
+NS_IMETHODIMP nsImapMailDatabase::SetAttributesOnPendingHdr(nsIMsgDBHdr *pendingHdr, const char *property,
                                   const char *propertyVal, PRInt32 flags)
 {
   NS_ENSURE_ARG_POINTER(pendingHdr);
@@ -219,14 +219,14 @@ NS_IMETHODIMP nsImapMailDatabase::SetAttributesOnPendingHdr(nsIMsgDBHdr *pending
   nsIMdbRow *newHdrRow;
   mdbOid  outRowId;
   mdb_err err;
-  nsXPIDLCString messageId;
+  nsCString messageId;
   pendingHdr->GetMessageId(getter_Copies(messageId));
   messageIdYarn.mYarn_Buf = (void*)messageId.get();
   messageIdYarn.mYarn_Fill = messageId.Length();
   messageIdYarn.mYarn_Form = 0;
   messageIdYarn.mYarn_Size = messageIdYarn.mYarn_Fill;
 
-  err = m_mdbStore->FindRow(GetEnv(), m_pendingHdrsRowScopeToken, 
+  err = m_mdbStore->FindRow(GetEnv(), m_pendingHdrsRowScopeToken,
             m_messageIdColumnToken, &messageIdYarn, &outRowId, getter_AddRefs(pendingRow));
 
   if (!pendingRow)
@@ -237,10 +237,11 @@ NS_IMETHODIMP nsImapMailDatabase::SetAttributesOnPendingHdr(nsIMsgDBHdr *pending
   NS_ENSURE_SUCCESS(err, err);
   if (pendingRow)
   {
-    // now we need to add cells to the row to remember the messageid, property and property value, and flags. 
+    // now we need to add cells to the row to remember the messageid, property and property value, and flags.
     // Then, when hdrs are added to the db, we'll check if they have a matching message-id, and if so,
     // set the property and flags
-    nsXPIDLCString messageId;
+    // XXX we already fetched messageId from the pending hdr, could it have changed by the time we get here? 
+    nsCString messageId;
     pendingHdr->GetMessageId(getter_Copies(messageId));
     // we're just going to ignore messages without a message-id. They should be rare. If SPAM messages often
     // didn't have message-id's, they'd be filtered on the server, most likely, and spammers would then
@@ -255,8 +256,8 @@ NS_IMETHODIMP nsImapMailDatabase::SetAttributesOnPendingHdr(nsIMsgDBHdr *pending
       (void) SetProperty(pendingRow, property, propertyVal);
       (void) SetUint32Property(pendingRow, kFlagsName, (PRUint32) flags);
     }
-    else 
-      return NS_ERROR_FAILURE; 
+    else
+      return NS_ERROR_FAILURE;
   }
   return rv;
 }

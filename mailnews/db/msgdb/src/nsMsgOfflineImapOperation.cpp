@@ -73,7 +73,7 @@ nsMsgOfflineImapOperation::nsMsgOfflineImapOperation(nsMsgDatabase *db, nsIMdbRo
   m_operationFlags = 0;
   m_messageKey = nsMsgKey_None;
   m_sourceMessageKey = nsMsgKey_None;
-  m_mdb = db; 
+  m_mdb = db;
   NS_ADDREF(m_mdb);
   m_mdbRow = row;
   m_newFlags = 0;
@@ -116,7 +116,7 @@ NS_IMETHODIMP nsMsgOfflineImapOperation::ClearOperation(nsOfflineImapOperationTy
   case kMsgMoved:
   case kAppendTemplate:
   case kAppendDraft:
-    m_moveDestination.Adopt(nsCRT::strdup(""));
+    m_moveDestination.Truncate();
     break;
   case kMsgCopy:
     m_copyDestinations.RemoveCStringAt(0);
@@ -183,7 +183,7 @@ NS_IMETHODIMP nsMsgOfflineImapOperation::GetDestinationFolderURI(char * *aDestin
 {
   NS_ENSURE_ARG(aDestinationFolderURI);
   (void) m_mdb->GetProperty(m_mdbRow, PROP_MOVE_DEST_FOLDER_URI, getter_Copies(m_moveDestination));
-  *aDestinationFolderURI = nsCRT::strdup(m_moveDestination);
+  *aDestinationFolderURI = ToNewCString(m_moveDestination);
   return (*aDestinationFolderURI) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
 }
 
@@ -191,7 +191,7 @@ NS_IMETHODIMP nsMsgOfflineImapOperation::SetDestinationFolderURI(const char * aD
 {
   if (PR_LOG_TEST(IMAPOffline, PR_LOG_ALWAYS))
     PR_LOG(IMAPOffline, PR_LOG_ALWAYS, ("msg id %x SetDestinationFolderURI to %s", m_messageKey, aDestinationFolderURI));
-  m_moveDestination.Adopt(aDestinationFolderURI ? nsCRT::strdup(aDestinationFolderURI) : 0);
+  m_moveDestination = aDestinationFolderURI ? aDestinationFolderURI : 0;
   return m_mdb->SetProperty(m_mdbRow, PROP_MOVE_DEST_FOLDER_URI, aDestinationFolderURI);
 }
 
@@ -200,13 +200,13 @@ NS_IMETHODIMP nsMsgOfflineImapOperation::GetSourceFolderURI(char * *aSourceFolde
 {
   NS_ENSURE_ARG(aSourceFolderURI);
   nsresult rv = m_mdb->GetProperty(m_mdbRow, PROP_SRC_FOLDER_URI, getter_Copies(m_sourceFolder));
-  *aSourceFolderURI = nsCRT::strdup(m_sourceFolder);
+  *aSourceFolderURI = ToNewCString(m_sourceFolder);
   return rv;
 }
 
 NS_IMETHODIMP nsMsgOfflineImapOperation::SetSourceFolderURI(const char * aSourceFolderURI)
 {
-  m_sourceFolder.Adopt(aSourceFolderURI ? nsCRT::strdup(aSourceFolderURI) : 0);
+  m_sourceFolder = aSourceFolderURI ? aSourceFolderURI : 0;
   SetOperation(kMoveResult);
 
   return m_mdb->SetProperty(m_mdbRow, PROP_SRC_FOLDER_URI, aSourceFolderURI);
@@ -217,7 +217,7 @@ NS_IMETHODIMP nsMsgOfflineImapOperation::GetKeywordsToAdd(char * *aKeywords)
 {
   NS_ENSURE_ARG(aKeywords);
   nsresult rv = m_mdb->GetProperty(m_mdbRow, PROP_KEYWORD_ADD, getter_Copies(m_keywordsToAdd));
-  *aKeywords = nsCRT::strdup(m_keywordsToAdd);
+  *aKeywords = ToNewCString(m_keywordsToAdd);
   return rv;
 }
 
@@ -241,7 +241,7 @@ NS_IMETHODIMP nsMsgOfflineImapOperation::AddKeywordToAdd(const char * aKeyword)
     m_keywordsToRemove.Cut(Distance(saveStart, removeStart), Distance(removeStart, removeEnd));
     m_mdb->SetProperty(m_mdbRow, PROP_KEYWORD_REMOVE, m_keywordsToRemove.get());
   }
-  SetOperation(kAddKeywords); 
+  SetOperation(kAddKeywords);
   return m_mdb->SetProperty(m_mdbRow, PROP_KEYWORD_ADD, m_keywordsToAdd.get());
 }
 
@@ -249,7 +249,7 @@ NS_IMETHODIMP nsMsgOfflineImapOperation::GetKeywordsToRemove(char * *aKeywords)
 {
   NS_ENSURE_ARG(aKeywords);
   nsresult rv = m_mdb->GetProperty(m_mdbRow, PROP_KEYWORD_REMOVE, getter_Copies(m_keywordsToRemove));
-  *aKeywords = nsCRT::strdup(m_keywordsToRemove);
+  *aKeywords = ToNewCString(m_keywordsToRemove);
   return rv;
 }
 
@@ -298,12 +298,11 @@ NS_IMETHODIMP nsMsgOfflineImapOperation::AddMessageCopyOperation(const char *des
 
 nsresult nsMsgOfflineImapOperation::GetCopiesFromDB()
 {
-  nsXPIDLCString copyDests;
+  nsCString copyDests;
   m_copyDestinations.Clear();
   nsresult rv = m_mdb->GetProperty(m_mdbRow, PROP_COPY_DESTS, getter_Copies(copyDests));
-  nsCAutoString copyDestsCString((const char *) copyDests);
   // use 0x1 as the delimiter between folder names since it's not a legal character
-  if (NS_SUCCEEDED(rv) && !copyDestsCString.IsEmpty())
+  if (NS_SUCCEEDED(rv) && !copyDests.IsEmpty())
   {
     PRInt32 curCopyDestStart = 0;
     PRInt32 nextCopyDestPos = 0;
@@ -311,11 +310,11 @@ nsresult nsMsgOfflineImapOperation::GetCopiesFromDB()
     while (nextCopyDestPos != -1)
     {
       nsCString curDest;
-      nextCopyDestPos = copyDestsCString.FindChar(FOLDER_SEP_CHAR, curCopyDestStart);
+      nextCopyDestPos = copyDests.FindChar(FOLDER_SEP_CHAR, curCopyDestStart);
       if (nextCopyDestPos > 0)
-        copyDestsCString.Mid(curDest, curCopyDestStart, nextCopyDestPos - curCopyDestStart);
+        copyDests.Mid(curDest, curCopyDestStart, nextCopyDestPos - curCopyDestStart);
       else
-        copyDestsCString.Mid(curDest, curCopyDestStart, copyDestsCString.Length() - curCopyDestStart);
+        copyDests.Mid(curDest, curCopyDestStart, copyDests.Length() - curCopyDestStart);
       curCopyDestStart = nextCopyDestPos + 1;
       m_copyDestinations.AppendCString(curDest);
     }
@@ -382,42 +381,31 @@ void nsMsgOfflineImapOperation::Log(PRLogModuleInfo *logFile)
     IMAPOffline = PR_NewLogModule("IMAPOFFLINE");
   if (!PR_LOG_TEST(IMAPOffline, PR_LOG_ALWAYS))
     return;
-//  const long kMoveResult			= 0x8;
-//  const long kAppendDraft        = 0x10;
-//  const long kAddedHeader		= 0x20;
-//  const long kDeletedMsg			= 0x40;
-//  const long kMsgMarkedDeleted	= 0x80;
-//  const long kAppendTemplate     = 0x100;
-//  const long kDeleteAllMsgs		= 0x200;
+  //  const long kMoveResult              = 0x8;
+  //  const long kAppendDraft           = 0x10;
+  //  const long kAddedHeader           = 0x20;
+  //  const long kDeletedMsg              = 0x40;
+  //  const long kMsgMarkedDeleted = 0x80;
+  //  const long kAppendTemplate      = 0x100;
+  //  const long kDeleteAllMsgs          = 0x200;
   if (m_operation & nsIMsgOfflineImapOperation::kFlagsChanged)
-  {
-      PR_LOG(IMAPOffline, PR_LOG_ALWAYS, ("msg id %x changeFlag:%x", m_messageKey, m_newFlags));
-  }
+    PR_LOG(IMAPOffline, PR_LOG_ALWAYS, ("msg id %x changeFlag:%x", m_messageKey, m_newFlags));
   if (m_operation & nsIMsgOfflineImapOperation::kMsgMoved)
   {
-    nsXPIDLCString moveDestFolder;
+    nsCString moveDestFolder;
     GetDestinationFolderURI(getter_Copies(moveDestFolder));
-
     PR_LOG(IMAPOffline, PR_LOG_ALWAYS, ("msg id %x moveTo:%s", m_messageKey, moveDestFolder.get()));
   }
   if (m_operation & nsIMsgOfflineImapOperation::kMsgCopy)
   {
-    nsXPIDLCString copyDests;
+    nsCString copyDests;
     m_mdb->GetProperty(m_mdbRow, PROP_COPY_DESTS, getter_Copies(copyDests));
-
     PR_LOG(IMAPOffline, PR_LOG_ALWAYS, ("msg id %x moveTo:%s", m_messageKey, copyDests.get()));
   }
   if (m_operation & nsIMsgOfflineImapOperation::kAppendDraft)
-  {
     PR_LOG(IMAPOffline, PR_LOG_ALWAYS, ("msg id %x append draft", m_messageKey));
-  }
   if (m_operation & nsIMsgOfflineImapOperation::kAddKeywords)
-  {
     PR_LOG(IMAPOffline, PR_LOG_ALWAYS, ("msg id %x add keyword:%s", m_messageKey, m_keywordsToAdd.get()));
-  }
   if (m_operation & nsIMsgOfflineImapOperation::kRemoveKeywords)
-  {
     PR_LOG(IMAPOffline, PR_LOG_ALWAYS, ("msg id %x remove keyword:%s", m_messageKey, m_keywordsToRemove.get()));
-  }
-
 }

@@ -57,24 +57,24 @@ nsNewsDatabase::~nsNewsDatabase()
 }
 
 NS_IMPL_ADDREF_INHERITED(nsNewsDatabase, nsMsgDatabase)
-NS_IMPL_RELEASE_INHERITED(nsNewsDatabase, nsMsgDatabase)  
+NS_IMPL_RELEASE_INHERITED(nsNewsDatabase, nsMsgDatabase)
 
 NS_IMETHODIMP nsNewsDatabase::QueryInterface(REFNSIID aIID, void** aInstancePtr)
 {
   if (!aInstancePtr) return NS_ERROR_NULL_POINTER;
-  *aInstancePtr = nsnull;   
-  
+  *aInstancePtr = nsnull;
+
   if (aIID.Equals(NS_GET_IID(nsINewsDatabase)))
   {
     *aInstancePtr = NS_STATIC_CAST(nsINewsDatabase *, this);
   }
-  
+
   if(*aInstancePtr)
   {
     AddRef();
     return NS_OK;
-  }     
-  
+  }
+
   return nsMsgDatabase::QueryInterface(aIID, aInstancePtr);
 }
 
@@ -94,7 +94,7 @@ nsresult nsNewsDatabase::Commit(nsMsgDBCommit commitType)
   {
     // let's write out our idea of the read set so we can compare it with that of
     // the .rc file next time we start up.
-    nsXPIDLCString readSet;
+    nsCString readSet;
     m_readSet->Output(getter_Copies(readSet));
     m_dbFolderInfo->SetCharPtrProperty("readSet", readSet.get());
   }
@@ -113,7 +113,7 @@ NS_IMETHODIMP nsNewsDatabase::IsRead(nsMsgKey key, PRBool *pRead)
   if (!pRead) return NS_ERROR_NULL_POINTER;
 
   if (!m_readSet) return NS_ERROR_FAILURE;
-  
+
   *pRead = m_readSet->IsMember(key);
   return NS_OK;
 }
@@ -136,9 +136,9 @@ nsresult nsNewsDatabase::IsHeaderRead(nsIMsgDBHdr *msgHdr, PRBool *pRead)
 NS_IMETHODIMP nsNewsDatabase::GetHighWaterArticleNum(nsMsgKey *key)
 {
   NS_ASSERTION(m_dbFolderInfo, "null db folder info");
-  if (!m_dbFolderInfo) 
+  if (!m_dbFolderInfo)
     return NS_ERROR_FAILURE;
-  return m_dbFolderInfo->GetHighWater(key);    
+  return m_dbFolderInfo->GetHighWater(key);
 }
 
 // return the key of the first article number we know about.
@@ -161,12 +161,12 @@ NS_IMETHODIMP nsNewsDatabase::GetLowWaterArticleNum(nsMsgKey *key)
 
   rv = hdrs->GetNext((nsISupports**)&pHeader);
   NS_ASSERTION(NS_SUCCEEDED(rv), "nsMsgDBEnumerator broken");
-  if (NS_FAILED(rv)) 
+  if (NS_FAILED(rv))
     return rv;
-  
+
   return pHeader->GetMessageKey(key);
 }
- 
+
 nsresult  nsNewsDatabase::ExpireUpTo(nsMsgKey expireKey)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
@@ -192,25 +192,25 @@ NS_IMETHODIMP nsNewsDatabase::SetReadSet(nsMsgKeySet *pSet)
   {
     // compare this read set with the one in the db folder info.
     // If not equivalent, sync with this one.
-    nsXPIDLCString dbReadSet;
+    nsCString dbReadSet;
     if (m_dbFolderInfo)
       m_dbFolderInfo->GetCharPtrProperty("readSet", getter_Copies(dbReadSet));
-    nsXPIDLCString newsrcReadSet;
+    nsCString newsrcReadSet;
     m_readSet->Output(getter_Copies(newsrcReadSet));
     if (!dbReadSet.Equals(newsrcReadSet))
       SyncWithReadSet();
   }
   return NS_OK;
 }
- 
- 
+
+
 PRBool nsNewsDatabase::SetHdrReadFlag(nsIMsgDBHdr *msgHdr, PRBool bRead)
 {
     nsresult rv;
     PRBool isRead;
     rv = IsHeaderRead(msgHdr, &isRead);
-    
-    if (isRead == bRead) 
+
+    if (isRead == bRead)
     {
       // give the base class a chance to update m_flags.
       nsMsgDatabase::SetHdrReadFlag(msgHdr, bRead);
@@ -256,11 +256,11 @@ PRBool nsNewsDatabase::SetHdrReadFlag(nsIMsgDBHdr *msgHdr, PRBool bRead)
 NS_IMETHODIMP nsNewsDatabase::MarkAllRead(nsMsgKeyArray *thoseMarked)
 {
   nsMsgKey lowWater = nsMsgKey_None, highWater;
-  nsXPIDLCString knownArts;
+  nsCString knownArts;
   if (m_dbFolderInfo)
   {
     m_dbFolderInfo->GetKnownArtsSet(getter_Copies(knownArts));
-    nsMsgKeySet *knownKeys = nsMsgKeySet::Create(knownArts);
+    nsMsgKeySet *knownKeys = nsMsgKeySet::Create(knownArts.get());
     if (knownKeys)
       lowWater = knownKeys->GetFirstMember();
 
@@ -273,8 +273,8 @@ NS_IMETHODIMP nsNewsDatabase::MarkAllRead(nsMsgKeyArray *thoseMarked)
     m_readSet->AddRange(1, lowWater - 1);
   nsresult err = nsMsgDatabase::MarkAllRead(thoseMarked);
   if (NS_SUCCEEDED(err) && 1 <= highWater)
-    m_readSet->AddRange(1, highWater);	// mark everything read in newsrc.
-  
+    m_readSet->AddRange(1, highWater); // mark everything read in newsrc.
+
   return err;
 }
 
@@ -303,32 +303,32 @@ nsresult nsNewsDatabase::SyncWithReadSet()
 
       rv = nsMsgDatabase::IsHeaderRead(header, &isReadInDB);
       NS_ENSURE_SUCCESS(rv, rv);
-  
+
       header->GetMessageKey(&messageKey);
       IsRead(messageKey,&readInNewsrc);
 
       numMessages++;
-      if (!readInNewsrc) 
+      if (!readInNewsrc)
         numUnreadMessages++;
 
       // If DB and readSet disagree on Read/Unread, fix DB
-      if (readInNewsrc!=isReadInDB) 
+      if (readInNewsrc!=isReadInDB)
       {
         MarkHdrRead(header, readInNewsrc, nsnull);
         changed = PR_TRUE;
       }
   }
-  
+
   // Update FolderInfo Counters
   PRInt32 oldMessages, oldUnreadMessages;
   rv = m_dbFolderInfo->GetNumMessages(&oldMessages);
-  if (NS_SUCCEEDED(rv) && oldMessages!=numMessages) 
+  if (NS_SUCCEEDED(rv) && oldMessages!=numMessages)
   {
       changed = PR_TRUE;
       m_dbFolderInfo->ChangeNumMessages(numMessages-oldMessages);
   }
   rv = m_dbFolderInfo->GetNumUnreadMessages(&oldUnreadMessages);
-  if (NS_SUCCEEDED(rv) && oldUnreadMessages!=numUnreadMessages) 
+  if (NS_SUCCEEDED(rv) && oldUnreadMessages!=numUnreadMessages)
   {
       changed = PR_TRUE;
       m_dbFolderInfo->ChangeNumUnreadMessages(numUnreadMessages-oldUnreadMessages);
@@ -353,7 +353,7 @@ nsresult nsNewsDatabase::AdjustExpungedBytesOnDelete(nsIMsgDBHdr *msgHdr)
   return NS_OK;
 }
 
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsNewsDatabase::GetDefaultViewFlags(nsMsgViewFlagsTypeValue *aDefaultViewFlags)
 {
   NS_ENSURE_ARG_POINTER(aDefaultViewFlags);
@@ -368,7 +368,7 @@ nsNewsDatabase::GetDefaultViewFlags(nsMsgViewFlagsTypeValue *aDefaultViewFlags)
   return NS_OK;
 }
 
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsNewsDatabase::GetDefaultSortType(nsMsgViewSortTypeValue *aDefaultSortType)
 {
   NS_ENSURE_ARG_POINTER(aDefaultSortType);

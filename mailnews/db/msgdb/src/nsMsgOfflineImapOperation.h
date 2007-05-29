@@ -39,7 +39,6 @@
 #include "nsIMsgOfflineImapOperation.h"
 #include "mdb.h"
 #include "nsMsgDatabase.h"
-#include "nsXPIDLString.h"
 #include "prlog.h"
 
 class nsMsgOfflineImapOperation : public nsIMsgOfflineImapOperation
@@ -51,7 +50,7 @@ public:
   NS_DECL_ISUPPORTS
   NS_DECL_NSIMSGOFFLINEIMAPOPERATION
 
-	
+
   nsIMdbRow   *GetMDBRow() {return m_mdbRow;}
   nsresult    GetCopiesFromDB();
   nsresult    SetCopiesToDB();
@@ -61,19 +60,19 @@ protected:
                       nsCString &removeList, const char *removeProp);
 
   nsOfflineImapOperationType m_operation;
-  nsMsgKey          m_messageKey; 	
-  nsMsgKey          m_sourceMessageKey; 	
-  PRUint32          m_operationFlags;	// what to do on sync
-  imapMessageFlagsType	m_newFlags;			// used for kFlagsChanged
-	
+  nsMsgKey          m_messageKey;
+  nsMsgKey          m_sourceMessageKey;
+  PRUint32          m_operationFlags; // what to do on sync
+  imapMessageFlagsType m_newFlags; // used for kFlagsChanged
+
   // these are URI's, and are escaped. Thus, we can use a delimter like ' '
   // because the real spaces should be escaped.
-  nsXPIDLCString      m_sourceFolder;
-  nsXPIDLCString      m_moveDestination;	
-  nsCStringArray      m_copyDestinations;
+  nsCString  m_sourceFolder;
+  nsCString  m_moveDestination;
+  nsCStringArray  m_copyDestinations;
 
-  nsXPIDLCString      m_keywordsToAdd;
-  nsXPIDLCString      m_keywordsToRemove;
+  nsCString      m_keywordsToAdd;
+  nsCString      m_keywordsToRemove;
 
   // nsMsgOfflineImapOperation will have to know what db and row they belong to, since they are really
   // just a wrapper around the offline operation row in the mdb.
@@ -81,7 +80,7 @@ protected:
   nsMsgDatabase    *m_mdb;
   nsCOMPtr <nsIMdbRow> m_mdbRow;
 };
-	
+
 
 
 #endif /* _nsMsgOfflineImapOperation_H_ */
