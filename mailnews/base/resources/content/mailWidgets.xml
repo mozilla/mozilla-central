@@ -851,8 +851,8 @@
             // clear out our local state
             this.mAddresses = new Array;
             this.toggleIcon.removeAttribute("open");
+            this.toggleIcon.collapsed = true;
             this.longEmailAddresses.setAttribute("singleline", "true");
-
             // remove anything inside of each of our labels....
             this.clearChildNodes(this.emailAddresses);
           ]]>
