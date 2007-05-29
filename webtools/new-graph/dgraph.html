@@ -32,10 +32,21 @@
 
     <!-- Take your damn divs and floats and clears and shove 'em! -->
 
+    <div style="width: 710px; height:20px; margin-left:10px ">
+      <span id="loading" class="loading"></span>
+    </div>
     <form action="javascript:;">
       <table class="graphconfig-no" width="100%">
 
         <tr style="vertical-align: top">
+          <td class="graphconfig-list">
+            <div id="graphforms"></div>
+
+          </td>
+          <td class="graphconfig-test-list">
+            <div id="graphforms-test-list"></div>
+          </td>
+
           <td class="dgraphconfig">
 <!-- 
             <div id="baseline">
@@ -45,24 +56,12 @@
             <br>
 
             <div id="formend">
-              <input type="submit" onclick="onGraph()" value="Graph It!">
+              <input id="graphbutton" type="submit" onclick="onGraph()" value="Graph It!">
               <!--        <label for="baseline">No baseline</label><input type="radio" name="baseline" checked onclick="onNoBaseLineClick()"> -->
               </br> </br>
               <div><a id="linktothis" href="dgraph.html">Link to this graph</a> </div>
             </div>
 
-            <br>
-
-            <input style="display:none" id="bonsaibutton" type="button" onclick="onUpdateBonsai()" value="Refresh Bonsai Data">
-          </td>
-
-          <td class="graphconfig-list">
-            <div id="graphforms"></div>
-
-            <div id="addone">
-              <img src="js/img/plus.png" class="plusminus" onclick="addDiscreteGraphForm()">
-            </div>
-          </td>
         </tr>
 
     </table>
@@ -88,11 +87,11 @@
       <canvas style="clear: left; border: 1px solid #888;" id="graph" height="300" width="650"></canvas>
       <div id="graph-labels-x" style="position: relative; left: 50px; margin-left: 1px; margin-right: 1px; height: 50px; width: 700px"></div>
     </div>
-
     <div id="graph-label-container" style="float:left;margin-top:30px;">
       <span id="graph-label-list" class="graph-label-list-member" align="left"></span>
-    </div> </div>
+    </div> 
 
+    </div>
   </body>
 </html>
 

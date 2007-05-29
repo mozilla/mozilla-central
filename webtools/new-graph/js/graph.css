@@ -41,12 +41,12 @@
 
 select.tinderbox, select.testname {
   font-family: monospace;
-  width: 200px
+  width: 350px;
 }
 
 select.other {
   font-family: monospace;
-  width: 100px
+  width: 225px;
 }
 
 .plusminus {

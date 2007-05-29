@@ -39,9 +39,11 @@
 var GraphFormModules = [];
 var GraphFormModuleCount = 0;
 
-function DiscreteGraphFormModule(userConfig) {
+function DiscreteGraphFormModule(userConfig, userName) {
     GraphFormModuleCount++;
-    this.__proto__.__proto__.constructor.call(this, "graphForm" + GraphFormModuleCount, userConfig);
+    //log("userName: " + userName);
+    //this.__proto__.__proto__.constructor.call(this, "graphForm" + GraphFormModuleCount, userConfig, userName);
+    this.init("graphForm" + GraphFormModuleCount, userConfig, userName);
 }
 
 DiscreteGraphFormModule.prototype = {
@@ -50,16 +52,20 @@ DiscreteGraphFormModule.prototype = {
     imageRoot: "",
 
     testId: null,
+    testIds: null,
     testText: "",
     baseline: false,
     average: false,
-    color: "#000000",
+    name: "",
     limitDays: null,
     isLimit: null,
+    onLoadingDone : new YAHOO.util.CustomEvent("onloadingdone"),
+    onLoading : new YAHOO.util.CustomEvent("onloading"),
+    addedInitialInfo : new YAHOO.util.CustomEvent("addedinitialinfo"),
 
-    init: function (el, userConfig) {
+    init: function (el, userConfig, userName) {
         var self = this;
-
+        //log("el " + el + " userConfig " + userConfig + " userName " + userName);
         this.__proto__.__proto__.init.call(this, el/*, userConfig*/);
         
         this.cfg = new YAHOO.util.Config(this);
@@ -76,33 +82,18 @@ DiscreteGraphFormModule.prototype = {
         var tbl_col;
         tbl = new TABLE({});
         tbl_row = new TR({});
+        tbl_col = new TD({colspan: 2});
+        appendChildNodes(tbl_col,"Limit selection list by:");
+        appendChildNodes(tbl_row, tbl_col);
+        tbl_col = new TD({});
+        appendChildNodes(tbl_col,"Choose test(s) to graph:");
+        appendChildNodes(tbl_row, tbl_col);
+        tbl.appendChild(tbl_row);
+        
+        
+        tbl_row = new TR({});
 
         form = new DIV({ class: "graphform-line" });
-
-        tbl_col = new TD({}); 
-        el = new IMG({ src: "js/img/minus.png", class: "plusminus",
-                       onclick: function(event) { self.remove(); } });
-        tbl_col.appendChild(el);
-        tbl_row.appendChild(tbl_col);
-
-        tbl_col = new TD({}); 
-        el = new DIV({ id: "whee", style: "display: inline; border: 1px solid black; height: 15; " +
-                              "padding-right: 15; vertical-align: middle; margin: 3px;" });
-        this.colorDiv = el;
-        tbl_col.appendChild(el);
-        tbl_row.appendChild(tbl_col);
-
-        tbl_col = new TD({}); 
-        el = new SELECT({ name: "testname",
-                          class: "testname",
-                          onchange: function(event) { self.onChangeTest(); } });
-        this.testSelect = el;
-        tbl_col.appendChild(el);
-        tbl_row.appendChild(tbl_col);
-
-        tbl_col = new TD({}); 
-        appendChildNodes(tbl_col, "List: ")
-        tbl_row.appendChild(tbl_col);
 
         tbl_col = new TD({});
         el = new INPUT({ name: "dataload" + GraphFormModules.length,
@@ -132,19 +123,20 @@ DiscreteGraphFormModule.prototype = {
         appendChildNodes(tbl_col, " days");
 
         tbl_row.appendChild(tbl_col);
-        tbl.appendChild(tbl_row);
 
         tbl_col = new TD({});
         appendChildNodes(tbl_col, "Branch: ");
+        appendChildNodes(tbl_col, new BR({}));
         el = new SELECT({ name: "branchname",
                           class: "other",
+                          size: 5,
                           onchange: function(event) { if (self.isLimit.checked) {
                                                           self.update(self.limitDays.value, self.branchSelect.value, self.machineSelect.value, self.testtypeSelect.value);}
                                                       else self.update(null, self.branchSelect.value, self.machineSelect.value, self.testtypeSelect.value); } });
         this.branchSelect = el;
         Tinderbox.requestSearchList(1, null, null, function (list) {
                                                         var opts = [];
-                                                        opts.push(new OPTION({value: null}, "all"));
+                                                        opts.push(new OPTION({value: null, selected: true}, "all"));
                                                         for each (var listvalue in list)  {
                                                             opts.push(new OPTION({ value: listvalue.value}, listvalue.value));
                                                         }
@@ -152,18 +144,35 @@ DiscreteGraphFormModule.prototype = {
                                                         });
         tbl_col.appendChild(el);
         tbl_row.appendChild(tbl_col);
+        tbl_col = new TD({rowspan: 2, colspan: 2}); 
+        span = new SPAN({id: "listname"});
+        appendChildNodes(tbl_col, span);
+        appendChildNodes(tbl_col, new BR({}));
+        el = new SELECT({ name: "testname",
+                          class: "testname",
+                          multiple: true,
+                          center: true,
+                          size: 20,
+                          onchange: function(event) { self.onChangeTest(); } });
+        this.testSelect = el;
+        tbl_col.appendChild(el);
+        tbl_row.appendChild(tbl_col);
+        tbl.appendChild(tbl_row);
+        tbl_row = new TR({});
 
         tbl_col = new TD({});
         appendChildNodes(tbl_col, "Machine: ");
+        appendChildNodes(tbl_col, new BR({}));
         el = new SELECT({ name: "machinename",
                           class: "other",
+                          size: 5,
                           onchange: function(event) { if (self.isLimit.checked) {
                                                           self.update(self.limitDays.value, self.branchSelect.value, self.machineSelect.value, self.testtypeSelect.value);}
                                                       else self.update(null, self.branchSelect.value, self.machineSelect.value, self.testtypeSelect.value); } });
         this.machineSelect = el;
         Tinderbox.requestSearchList(null, 1, null, function (list) {
                                                         var opts = [];
-                                                        opts.push(new OPTION({value: null}, "all"));
+                                                        opts.push(new OPTION({value: null, selected: true}, "all"));
                                                         for each (var listvalue in list)  {
                                                             opts.push(new OPTION({ value: listvalue.value}, listvalue.value));
                                                         }
@@ -174,67 +183,106 @@ DiscreteGraphFormModule.prototype = {
 
         tbl_col = new TD({});
         appendChildNodes(tbl_col, "Test name: ");
+        appendChildNodes(tbl_col, new BR({}));
         el = new SELECT({ name: "testtypename",
                           class: "other",
+                          size: 5,
                           onchange: function(event) { if (self.isLimit.checked) {
                                                           self.update(self.limitDays.value, self.branchSelect.value, self.machineSelect.value, self.testtypeSelect.value);}
                                                       else self.update(null, self.branchSelect.value, self.machineSelect.value, self.testtypeSelect.value); } });
         this.testtypeSelect = el;
+
+        var forceTestIds = null;
+        this.average = false;
+        if (userConfig) {
+            forceTestIds = userConfig;
+        }
+        //log ("userName: " + userName);
+
         Tinderbox.requestSearchList(null, null, 1, function (list) {
                                                         var opts = [];
-                                                        opts.push(new OPTION({value: null}, "all"));
+                                                        //opts.push(new OPTION({value: null, selected: true}, "all"));
                                                         for each (var listvalue in list)  {
-                                                            opts.push(new OPTION({ value: listvalue.value}, listvalue.value));
+                                                            if ((userName) && (userName == listvalue.value)) {
+                                                                opts.push(new OPTION({ value: listvalue.value, selected : true}, listvalue.value));
+                                                            }
+                                                            else {
+                                                                opts.push(new OPTION({ value: listvalue.value}, listvalue.value));
+                                                            }
                                                         }
                                                         replaceChildNodes(self.testtypeSelect, opts);
+                                                        if (forceTestIds == null) {
+                                                            self.testtypeSelect.options[0].selected = true;
+                                                            self.update(null, null, null, self.testtypeSelect.value, forceTestIds);
+                                                        }
+                                                        else {
+                                                            self.update(null, null, null, userName, forceTestIds);
+                                                        }
                                                         });
         tbl_col.appendChild(el);
         tbl_row.appendChild(tbl_col);
-
+/*
+        tbl_col = new TD({rowspan: 2, colspan: 2}); 
+        el = new SELECT({ name: "testname",
+                          class: "testname",
+                          multiple: true,
+                          size: 20,
+                          onchange: function(event) { self.onChangeTest(); } });
+        this.testSelect = el;
+        tbl_col.appendChild(el);
+        tbl_row.appendChild(tbl_col);
+*/
+        tbl.appendChild(tbl_row);
         form.appendChild(tbl);
 
-        this.setBody (form);
 
-        var forceTestId = null;
+
+        this.setBody (form);
+/*
+        var forceTestIds = null;
         this.average = false;
         if (userConfig) {
-            forceTestId = this.cfg.getProperty("testid");
-            /*
-            avg = this.cfg.getProperty("average");
-            baseline = this.cfg.getProperty("baseline");
-            if (avg == 1) {
-                this.averageCheckbox.checked = true;
-                this.average = true;
-            }
-            if (baseline == 1)
-                this.onBaseLineRadioClick();
-            */
+            forceTestIds = userConfig;
         }
-
-        self.update(null, null, null, null, forceTestId);
+*/
+        //self.update(null, null, null, null, forceTestIds);
         GraphFormModules.push(this);
     },
 
     getQueryString: function (prefix) {
-        return prefix + "tid=" + this.testId + "&" + prefix + "bl=" + (this.baseline ? "1" : "0")
-            + "&" + prefix + "avg=" + (this.average? "1" : "0");
+        var qstring = '';
+        ctr = 1;
+        for each (var opt in this.testSelect.options) {
+          if (opt.selected) {
+            prefixed = prefix + ctr; 
+            qstring += "&" + prefixed + "tid=" + opt.value + "&" + prefixed + "bl=" + (this.baseline ? "1" : "0")
+            + "&" + prefixed + "avg=" + (this.average? "1" : "0");
+            ctr++
+          }
+        }
+        return qstring;
     },
 
-    onChangeTest: function (forceTestId) {
+    onChangeTest: function (forceTestIds) {
         this.testId = this.testSelect.value;
         //log("setting testId: " + this.testId);
+        this.testIds = [];
+        for each (var opt in this.testSelect.options) {
+            if (opt.selected) {   
+              //log("opt: " + opt.value);
+              this.testIds.push([opt.value, opt.text]);
+            }
+        }
+        //log("testIDs: " + this.testIds);
         //log(this.testSelect.options[this.testSelect.selectedIndex].text);
         this.testText = this.testSelect.options[this.testSelect.selectedIndex];
+        this.addedInitialInfo.fire();
+        this.name = this.testtypeSelect.value;
     },
 
     onBaseLineRadioClick: function () {
         GraphFormModules.forEach(function (g) { g.baseline = false; });
         this.baseline = true;
-    },
-
-    setColor: function (newcolor) {
-        this.color = newcolor;
-        this.colorDiv.style.backgroundColor = colorToRgbString(newcolor);
     },
 
     remove: function () {
@@ -247,12 +295,21 @@ DiscreteGraphFormModule.prototype = {
         this.destroy();
     },
     
-    update: function (limitD, branch, machine, testname, forceTestId) {
+    update: function (limitD, branch, machine, testname, forceTestIds) {
         var self = this;
-        //log ("attempting to update graphformmodule, forceTestId " + forceTestId);
+        this.onLoading.fire("updating test list");
+        //log ("attempting to update graphformmodule, forceTestIds " + forceTestIds);
         Tinderbox.requestTestList(limitD, branch, machine, testname, function (tests) {
                                       var opts = [];
                                       var branch_opts = [];
+                                      if (tests == '') {
+                                        log("empty test list"); 
+                                        self.onLoadingDone.fire();
+                                        replaceChildNodes(self.testSelect, null);
+                                        btn = getElement("graphbutton");
+                                        btn.disabled = true;
+                                        return;
+                                      }
                                       // let's sort by machine name
                                       var sortedTests = Array.sort(tests, function (a, b) {
                                                                        if (a.machine < b.machine) return -1;
@@ -261,31 +318,49 @@ DiscreteGraphFormModule.prototype = {
                                                                        if (a.test > b.test) return 1;
                                                                        if (a.test_type < b.test_type) return -1;
                                                                        if (a.test_type > b.test_type) return 1;
+                                                                       if (a.date < b.date) return -1;
+                                                                       if (a.date > b.date) return 1;
                                                                        return 0;
                                                                    });
 
                                       for each (var test in sortedTests) {
                                           var d = new Date(test.date*1000);
-                                          var s1 = d.getHours() + (d.getMinutes() < 10 ? ":0" : ":") + d.getMinutes() +
-                                                                  (d.getSeconds() < 10 ? ":0" : ":") + d.getSeconds() +
+                                          var s1 = (d.getHours() < 10 ? "0" : "") + d.getHours() + (d.getMinutes() < 10 ? ":0" : ":") + d.getMinutes() +
+                                                                  //(d.getSeconds() < 10 ? ":0" : ":") + d.getSeconds() +
                                                                   " " + (d.getDate() < 10 ? "0" : "") + d.getDate();
-                                          s1 +=  " " + MONTH_ABBREV[d.getMonth()] + " " + (d.getYear() + 1900);
+                                          s1 +=  "/" + MONTH_ABBREV[d.getMonth()] + "/" + (d.getFullYear() -2000 < 10 ? "0" : "") + (d.getFullYear() - 2000);
+//(d.getYear() + 1900);
                                           var padstr = "--------------------";
-                                          var tstr = test.test + padstr.substr(0, 20-test.test.length) + 
-                                              "-" + test.branch.toString() + padstr.substr(0, 7-test.branch.toString().length) + 
-                                              "-" + test.machine + padstr.substr(0, 20-test.machine.length) + 
+                                          var tstr = "" + //test.test + padstr.substr(0, 20-test.test.length) + 
+                                              test.branch.toString() + padstr.substr(0, 6-test.branch.toString().length) + 
+                                              "-" + test.machine + padstr.substr(0, 10-test.machine.length) + 
                                               "-" + s1;
-                                          opts.push(new OPTION({ value: test.id }, tstr));
+                                          startSelected = false;
+                                          if (forceTestIds != null) { 
+                                            if ((forceTestIds == test.id) || (forceTestIds.indexOf(Number(test.id)) > -1)) {
+                                              startSelected = true;
+                                            }
+                                          } 
+                                          if (startSelected) {
+                                              //log("starting with an initial selection");
+                                              opts.push(new OPTION({ value: test.id, selected: true}, tstr));
+                                          }
+                                          else {
+                                              opts.push(new OPTION({ value: test.id}, tstr));
+                                          }
                                       }
                                       replaceChildNodes(self.testSelect, opts);
-                                      self.testSelect.options[0].selected = true;
 
-                                      if (forceTestId != null) {
-                                          self.testSelect.value = forceTestId;
-                                      } else {
-                                          self.testSelect.value = sortedTests[0].id;
+                                      if (forceTestIds == null) {
+                                          self.testSelect.options[0].selected = true;
+                                          //self.testSelect.value = sortedTests[0].id;
                                       }
-                                      setTimeout(function () { self.onChangeTest(forceTestId); }, 0);
+                                      replaceChildNodes("listname", null);
+                                      appendChildNodes("listname","Select from " + testname + ":");
+                                      btn = getElement("graphbutton");
+                                      btn.disabled = false;
+                                      setTimeout(function () { self.onChangeTest(forceTestIds); }, 0);
+                                      self.onLoadingDone.fire();
                                   });
     },
 

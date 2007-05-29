@@ -186,10 +186,17 @@ function loadingDone(graphTypePref) {
     }
 }
 
-function addDiscreteGraphForm(config) {
-    var m = new DiscreteGraphFormModule(config);
+function addDiscreteGraphForm(config, name) {
+    showLoadingAnimation("populating lists");
+    //log("name: " + name);
+    var m = new DiscreteGraphFormModule(config, name);
+    m.onLoading.subscribe (function(type,args,obj) { showLoadingAnimation(args[0]);});
+    m.onLoadingDone.subscribe (function(type,args,obj) { clearLoadingAnimation();});
+    if (config) {
+        m.addedInitialInfo.subscribe(function(type,args,obj) { graphInitial();});
+    }
     m.render (getElement("graphforms"));
-    m.setColor(randomColor());
+    //m.setColor(randomColor());
     return m;
 }
 
@@ -231,6 +238,9 @@ function onUpdateBonsai() {
 
 
 function onGraph()  {
+    if (graphType == DISCRETE_GRAPH) {
+      showLoadingAnimation("building graph");
+    }
     for each (var g in [BigPerfGraph, SmallPerfGraph]) {
         g.clearDataSets();
         g.setTimeRange(null, null);
@@ -245,7 +255,7 @@ function onGraph()  {
         Tinderbox.requestDataSetFor (baselineModule.testId,
                                      function (testid, ds) {
                                          try {
-                                             log ("Got results for baseline: '" + testid + "' ds: " + ds);
+                                             //log ("Got results for baseline: '" + testid + "' ds: " + ds);
                                              ds.color = baselineModule.color;
                                              onGraphLoadRemainder(ds);
                                          } catch(e) { log(e); }
@@ -257,7 +267,7 @@ function onGraph()  {
 
 function onGraphLoadRemainder(baselineDataSet) {
     for each (var graphModule in GraphFormModules) {
-        log ("onGraphLoadRemainder: ", graphModule.id, graphModule.testId, "color:", graphModule.color, "average:", graphModule.average);
+        //log ("onGraphLoadRemainder: ", graphModule.id, graphModule.testId, "color:", graphModule.color, "average:", graphModule.average);
 
         // this would have been loaded earlier
         if (graphModule.baseline)
@@ -281,15 +291,18 @@ function onGraphLoadRemainder(baselineDataSet) {
 
         // we need a new closure here so that we can get the right value
         // of graphModule in our closure
-        var makeCallback = function (module) {
+        var makeCallback = function (module, color, title) {
             return function (testid, ds) {
                 try {
-                    ds.color = module.color;
+                    ds.color = color;
+                    if (title) {
+                        ds.title = title;
+                    }
 
                     if (baselineDataSet)
                         ds = ds.createRelativeTo(baselineDataSet);
 
-                    log ("got ds: (", module.id, ")", ds.firstTime, ds.lastTime, ds.data.length);
+                    //log ("got ds: (", module.id, ")", ds.firstTime, ds.lastTime, ds.data.length);
                     var avgds = null;
                     if (baselineDataSet == null &&
                         module.average)
@@ -322,7 +335,16 @@ function onGraphLoadRemainder(baselineDataSet) {
             };
         };
 
-        Tinderbox.requestDataSetFor (graphModule.testId, makeCallback(graphModule));
+        if (graphModule.testIds) {  
+          for each (var testId in graphModule.testIds) { 
+           // log ("working with testId: " + testId);
+            Tinderbox.requestDataSetFor (testId[0], makeCallback(graphModule, randomColor(), testId[1]));
+          }
+        }
+        else {
+           // log ("working with standard, single testId");
+            Tinderbox.requestDataSetFor (graphModule.testId, makeCallback(graphModule, graphModule.color));
+        }
     }
 }
 
@@ -381,10 +403,19 @@ function updateLinkToThis() {
     qs += "&";
     qs += BigPerfGraph.getQueryString("bp");
 
-    var ctr = 1;
-    for each (var gm in GraphFormModules) {
-        qs += "&" + gm.getQueryString("m" + ctr);
-        ctr++;
+    if (graphType == CONTINUOUS_GRAPH) {
+        var ctr = 1;
+        for each (var gm in GraphFormModules) {
+            qs += "&" + gm.getQueryString("m" + ctr);
+            ctr++;
+        }
+    }
+    else {
+        qs += "&";
+        qs += "name=" + GraphFormModules[0].name;
+        for each (var gm in GraphFormModules) {
+            qs += gm.getQueryString("m");
+        }
     }
 
     getElement("linktothis").href = document.location.pathname + "#" + qs;
@@ -397,18 +428,25 @@ function handleHash(hash) {
         qsdata[q[0]] = q[1];
     }
 
-    var ctr = 1;
-    while (("m" + ctr + "tid") in qsdata) {
-        var prefix = "m" + ctr;
-        if (graphType == CONTINUOUS_GRAPH) {
+    if (graphType == CONTINUOUS_GRAPH) {
+        var ctr = 1;
+        while (("m" + ctr + "tid") in qsdata) {
+            var prefix = "m" + ctr;
             addGraphForm({testid: qsdata[prefix + "tid"],
                       average: qsdata[prefix + "avg"]});
+            ctr++;
         }
-        else {
-            addDiscreteGraphForm({testid: qsdata[prefix + "tid"],
-                      average: qsdata[prefix + "avg"]});
+    }
+    else {
+        var ctr=1;
+        testids = [];
+        while (("m" + ctr + "tid") in qsdata) {
+            var prefix = "m" + ctr;
+            testids.push(Number(qsdata[prefix + "tid"]));       
+            ctr++;
         }
-        ctr++;
+       // log("qsdata[name] " + qsdata["name"]);
+        addDiscreteGraphForm(testids, qsdata["name"]);
     }
 
     SmallPerfGraph.handleQueryStringData("sp", qsdata);
@@ -424,27 +462,43 @@ function handleHash(hash) {
             setTimeout (onGraph, 0); // let the other handlers do their thing
         });
     }
-    else {
-        Tinderbox.requestTestList(null, null, null, null, function (tests) {
-            setTimeout (onGraph, 0); // let the other handlers do their thing
-        });
-    }
+}
 
+function graphInitial() {
+    GraphFormModules[0].addedInitialInfo.unsubscribeAll();
+    Tinderbox.requestTestList(null, null, null, null, function (tests) { 
+        setTimeout(onGraph, 0); 
+    });
 }
 
 function showStatus(s) {
     replaceChildNodes("status", s);
 }
 
+function showLoadingAnimation(message) {
+   // log("starting loading animation");
+    td = new SPAN();
+    el = new IMG({ src: "js/img/Throbber-small.gif"}); 
+    appendChildNodes(td, el);
+    appendChildNodes(td, " loading: " + message + " ");
+    replaceChildNodes("loading", td);
+}
+
+function clearLoadingAnimation() {
+   // log("ending loading animation");
+    replaceChildNodes("loading", null);
+}
+
 function showGraphList(s) {
     replaceChildNodes("graph-label-list",null);
-    log("s: " +s);
+   // log("s: " +s);
     var tbl = new TABLE({});
     var tbl_tr = new TR();
     appendChildNodes(tbl_tr, new TD(""));
     appendChildNodes(tbl_tr, new TD("avg"));
     appendChildNodes(tbl_tr, new TD("max"));
     appendChildNodes(tbl_tr, new TD("min"));
+    appendChildNodes(tbl_tr, new TD("test name"));
     appendChildNodes(tbl, tbl_tr);
     for each (var ds in s) {
        var tbl_tr = new TR();
@@ -452,14 +506,18 @@ function showGraphList(s) {
        var colorDiv = new DIV({ id: "whee", style: "display: inline; border: 1px solid black; height: 15; " +
                               "padding-right: 15; vertical-align: middle; margin: 3px;" });
        colorDiv.style.backgroundColor = colorToRgbString(ds.color);
-       log("ds.stats" + ds.stats);
+      // log("ds.stats" + ds.stats);
        appendChildNodes(tbl_tr, colorDiv);
        for each (var val in ds.stats) {
          appendChildNodes(tbl_tr, new TD(val.toFixed(2)));
        }
        appendChildNodes(tbl, tbl_tr);
+       appendChildNodes(tbl_tr, new TD(ds.title));
     } 
     appendChildNodes("graph-label-list", tbl);
+    if (s.length == GraphFormModules[0].testIds.length) {
+      clearLoadingAnimation();
+    }
     //replaceChildNodes("graph-label-list",rstring);
 }
 
@@ -502,6 +560,7 @@ function lighterColor(col) {
 }
 
 function colorToRgbString(col) {
+   // log ("in colorToRgbString");
     if (col[3] < 1) {
         return "rgba("
             + Math.floor(col[0]*255) + ","

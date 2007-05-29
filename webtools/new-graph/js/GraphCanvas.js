@@ -990,27 +990,33 @@ DiscreteGraph.prototype = {
     getTimeAxisLabels: function () {
         if (!this.dirty)
             return this.xAxisLabels;
-
+/*
         // x axis is an interval
 
         // duration is in seconds
         var duration = this.endTime - this.startTime + this.offsetTime;
+        log("duration: " + duration);
 
         // we know the pixel size and we know the time, we can
         // compute the seconds per pixel
         var secondsPerPixel = Math.ceil(duration / this.frontBuffer.width);
+        secondsPerPixel = Math.ceil(this.frontBuffer.width/duration);
+        log("secondsPerPixel " + secondsPerPixel);
 
         // so what's the exact duration of one label of our desired size?
         var labelDuration = this.xLabelWidth * secondsPerPixel;
+        log("labelDuration " + labelDuration);
 
         // how many labels max can we fit?
         var numLabels = (this.frontBuffer.width / this.xLabelWidth);
+        log("numLabels " + numLabels);
 
         var labels = [];
 
         // we want our first label to land on a multiple of the label duration;
         // figure out where that lies.
         var firstLabelOffsetSeconds = (labelDuration - (this.startTime % labelDuration));
+        log("firstLabelOffsetSeconds " + firstLabelOffsetSeconds);
 
         //log ("sps", secondsPerPixel, "ldur", labelDuration, "nl", numLabels, "flo", firstLabelOffsetSeconds);
 
@@ -1019,7 +1025,8 @@ DiscreteGraph.prototype = {
             var ltime = this.startTime + firstLabelOffsetSeconds + i*labelDuration;
             if (ltime > this.endTime)
                 break;
-
+            log("ltime " + ltime);
+            log("firstLabelOffsetSeconds " + firstLabelOffsetSeconds);
             // the first number is at what px position to place the label;
             // the second number is the actual value of the label
             // the third is an array of strings that go into the label
@@ -1027,7 +1034,8 @@ DiscreteGraph.prototype = {
             //log ("ltime", ltime, "lpos", lval[0], "end", this.endTime);
             labels.push(lval);
         }
-
+*/
+        labels= [];
         this.xAxisLabels = labels;
         return labels;
     },

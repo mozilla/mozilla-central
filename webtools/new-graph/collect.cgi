@@ -24,7 +24,7 @@ def checkString(var):
     return reString.match(var)
 
 print "Content-type: text/plain\n\n"
-link_format = "RETURN:%.2f:%s#spst=range&spstart=%d&spend=%d&bpst=cursor&bpstart=%d&bpend=%d&m1tid=%d&m1bl=0&m1avg=0\n"
+link_format = "RETURN:%.2f:%sspst=range&spstart=%d&spend=%d&bpst=cursor&bpstart=%d&bpend=%d&m1tid=%d&m1bl=0&m1avg=0\n"
 link_str = ""
 
 DBPATH = "db/data.sqlite"
@@ -128,10 +128,10 @@ cur.close()
 tstart = res[0][0]
 tend = res[0][1]
 if type == "discrete":
-    link_str += (link_format % (float(-1), "dgraph.html",tstart, tend, tstart, tend, setid,))
+    link_str += (link_format % (float(-1), "dgraph.html#name=" + testname + "&", tstart, tend, tstart, tend, setid,))
 else:
     tstart = 0
-    link_str += (link_format % (float(-1), "graph.html",tstart, tend, tstart, tend, setid,))
+    link_str += (link_format % (float(-1), "graph.html#",tstart, tend, tstart, tend, setid,))
 
 
 #this code auto-adds a set of continuous data for each series of discrete data sets - creating an overview of the data
@@ -178,7 +178,7 @@ if  type == "discrete" :
         cur.close()
         tstart = 0
         tend = res[0][1]
-        link_str += (link_format % (float(avg), "graph.html", tstart, tend, tstart, tend, setid,))
+        link_str += (link_format % (float(avg), "graph.html#", tstart, tend, tstart, tend, setid,))
 
 db.commit()
 print "Inserted."

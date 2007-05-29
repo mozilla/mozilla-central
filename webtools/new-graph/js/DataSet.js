@@ -93,6 +93,7 @@ TimeValueDataSet.prototype = {
     relativeTo: null,
 
     color: "black",
+    title: '',
 
     minMaxValueForTimeRange: function (startTime, endTime) {
         var minValue = Number.POSITIVE_INFINITY;
