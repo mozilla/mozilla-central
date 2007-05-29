@@ -74,11 +74,6 @@
         </treeitem>
         <treeitem>
           <treerow>
-            <treecell url="chrome://communicator/content/pref/pref-themes.xul" label="&themes.label;"/> 
-          </treerow>
-        </treeitem>
-        <treeitem>
-          <treerow>
             <treecell url="chrome://communicator/content/pref/pref-locales.xul" label="&locales.label;"/>
           </treerow>
         </treeitem>

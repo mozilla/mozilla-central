@@ -200,8 +200,6 @@ comm.jar:
    content/communicator/pref/pref-smart_browsing-ac.xul             (pref/pref-smart_browsing-ac.xul)
    content/communicator/pref/pref-smartupdate.xul                   (pref/pref-smartupdate.xul)
    content/communicator/pref/pref-tabs.xul                          (pref/pref-tabs.xul)
-   content/communicator/pref/pref-themes.js                         (pref/pref-themes.js)
-   content/communicator/pref/pref-themes.xul                        (pref/pref-themes.xul)
    content/communicator/pref/pref-winhooks.js                       (pref/pref-winhooks.js)
    content/communicator/pref/pref-winhooks.xul                      (pref/pref-winhooks.xul)
 #ifdef XP_MACOSX
