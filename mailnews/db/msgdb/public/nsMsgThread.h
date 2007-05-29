@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -56,10 +56,10 @@ public:
   friend class nsMsgThreadEnumerator;
   
   NS_DECL_ISUPPORTS
-    NS_DECL_NSIMSGTHREAD
+  NS_DECL_NSIMSGTHREAD
     
-    // non-interface methods
-    nsIMdbTable		*GetMDBTable() {return m_mdbTable;}
+  // non-interface methods
+  nsIMdbTable   *GetMDBTable() {return m_mdbTable;}
   nsIMdbRow		*GetMetaRow() {return m_metaRow;}
   nsMsgDatabase	*m_mdbDB ;
 
@@ -72,12 +72,12 @@ protected:
   nsresult              RemoveChild(nsMsgKey msgKey);
   nsresult              SetThreadRootKey(nsMsgKey threadRootKey);
   nsresult              GetChildHdrForKey(nsMsgKey desiredKey, 
-    nsIMsgDBHdr **result, PRInt32 *resultIndex); 
+                                          nsIMsgDBHdr **result, PRInt32 *resultIndex); 
   nsresult              RerootThread(nsIMsgDBHdr *newParentOfOldRoot, nsIMsgDBHdr *oldRoot, nsIDBChangeAnnouncer *announcer);
   nsresult              ReparentChildrenOf(nsMsgKey oldParent, nsMsgKey newParent, nsIDBChangeAnnouncer *announcer);
   
   nsresult              ReparentNonReferenceChildrenOf(nsIMsgDBHdr *topLevelHdr, nsMsgKey newParentKey,
-    nsIDBChangeAnnouncer *announcer);
+                                                       nsIDBChangeAnnouncer *announcer);
   nsresult              ReparentMsgsWithInvalidParent(PRUint32 numChildren, nsMsgKey threadParentKey);
   
   nsMsgKey              m_threadKey; 

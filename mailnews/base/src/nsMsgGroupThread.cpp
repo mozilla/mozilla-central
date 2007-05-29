@@ -62,11 +62,9 @@ void nsMsgGroupThread::Init()
   m_dummy = PR_FALSE;
 }
 
-
 nsMsgGroupThread::~nsMsgGroupThread()
 {
 }
-
 
 NS_IMETHODIMP nsMsgGroupThread::SetThreadKey(nsMsgKey threadKey)
 {
@@ -96,13 +94,13 @@ NS_IMETHODIMP nsMsgGroupThread::SetFlags(PRUint32 aFlags)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgGroupThread::SetSubject(const char *subject)
+NS_IMETHODIMP nsMsgGroupThread::SetSubject(const nsACString& aSubject)
 {
   NS_ASSERTION(PR_FALSE, "shouldn't call this");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsMsgGroupThread::GetSubject(char **result)
+NS_IMETHODIMP nsMsgGroupThread::GetSubject(nsACString& result)
 {
   NS_ASSERTION(PR_FALSE, "shouldn't call this");
   return NS_ERROR_NOT_IMPLEMENTED;

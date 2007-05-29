@@ -3669,7 +3669,7 @@ nsIMsgThread *	nsMsgDatabase::GetThreadForSubject(nsCString &subject)
             // thread object assumes ref for table.
             NS_ADDREF(pThread);
             nsCString curSubject;
-            (void)pThread->GetSubject(getter_Copies(curSubject));
+            pThread->GetSubject(curSubject);
             if (subject.Equals(curSubject))
             {
               NS_ASSERTION(PR_FALSE, "thread with subject exists, but FindRow didn't find it\n");

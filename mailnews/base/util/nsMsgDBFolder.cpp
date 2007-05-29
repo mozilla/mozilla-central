@@ -4430,7 +4430,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetMessageHeader(nsMsgKey msgKey, nsIMsgDBHdr **aMs
   rv = GetMsgDatabase(nsnull, getter_AddRefs(database));
   if (NS_SUCCEEDED(rv) && database) // did we get a db back?
     rv = database->GetMsgHdrForKey(msgKey, aMsgHdr);
-  return rv;
+  return NS_OK;
 }
 
 // this gets the deep sub-folders too, e.g., the children of the children
