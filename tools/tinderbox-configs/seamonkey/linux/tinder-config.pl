@@ -54,7 +54,7 @@ $DisplayServer = ':0.0';
 $CleanProfile             = 1;
 #$ResetHomeDirForTests     = 1;
 $ProductName              = "SeaMonkey";
-$VendorName               = '';
+$VendorName               = 'mozilla.org';
 
 $RunMozillaTests          = 1;  # Allow turning off of all tests if needed.
 #$RegxpcomTest             = 1;
@@ -193,7 +193,7 @@ $shiptalkback  = 1;
 #$ReleaseToLatest = 1; # Push the release to latest-<milestone>?
 #$ReleaseToDated = 1; # Push the release to YYYY-MM-DD-HH-<milestone>?
 $build_hour    = "1";
-#$package_creation_path = "/xpinstall/packager";
+$package_creation_path = "/suite/installer";
 # needs setting for mac + talkback: $mac_bundle_path = "/browser/app";
 $ssh_version   = "2";
 $ssh_user      = "cltbld";
@@ -204,10 +204,10 @@ $tbox_ftp_path = "/home/ftp/pub/seamonkey/tinderbox-builds";
 $tbox_url_path = "http://ftp.mozilla.org/pub/mozilla.org/seamonkey/tinderbox-builds";
 $milestone     = "trunk";
 $notify_list   = "build-announce\@mozilla.org";
-$stub_installer = 1;
-$sea_installer = 1;
+$stub_installer = 0;
+$sea_installer = 0;
 $archive       = 1;
-$push_raw_xpis = 1;
+#$push_raw_xpis = 1;
 
 # Reboot the OS at the end of build-and-test cycle. This is primarily
 # intended for Win9x, which can't last more than a few cycles before
