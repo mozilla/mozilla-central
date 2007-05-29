@@ -439,7 +439,8 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("mail.accountmanager.accounts",             String),
   MAKESAMETYPEPREFTRANSFORM("mail.accountmanager.defaultaccount",       String),
   MAKESAMETYPEPREFTRANSFORM("mail.accountmanager.localfoldersserver",   String), 
-  MAKESAMETYPEPREFTRANSFORM("mail.smtp.defaultserver",   String), 
+  MAKESAMETYPEPREFTRANSFORM("mail.smtp.defaultserver",                  String),
+  MAKESAMETYPEPREFTRANSFORM("mail.smtpservers",                         String),
 
   MAKESAMETYPEPREFTRANSFORM("msgcompose.font_face",                     String),
   MAKESAMETYPEPREFTRANSFORM("msgcompose.font_size",                     String),
