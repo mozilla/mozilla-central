@@ -110,7 +110,7 @@ $pageload_server          = "axolotl.mozilla.org";  # localhost
 #$DHTMLPerformanceTestTimeout      = 1200;  # entire test, seconds
 #$QATestTimeout                    = 1200;   # entire test, seconds
 #$LayoutPerformanceTestPageTimeout = 30000; # each page, ms
-#$StartupPerformanceTestTimeout    = 15;    # seconds
+$StartupPerformanceTestTimeout    = 20;    # seconds
 #$XULWindowOpenTestTimeout	      = 150;   # seconds
 #$RunUnitTestsTimeout              = 600;   # seconds
 
