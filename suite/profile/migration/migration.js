@@ -153,7 +153,9 @@ var MigrationWizard = {
         window.opener.fromFile = true;
       }
       document.documentElement.cancel();
-      return;
+      // Don't let the wizard migrate to the next page event though we've
+      // called cancel - cancel may not get processed first.
+      return false;
     }
 
     if (!this._migrator || newSource != this._source) {
@@ -185,6 +187,7 @@ var MigrationWizard = {
       else
         this._selectedProfile = "";
     }
+    return true;
   },
 
   // 2 - [Profile Selection]

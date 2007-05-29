@@ -667,6 +667,16 @@ var BookmarksCommand = {
 
   importBookmarks: function ()
   {
+    window.fromFile = false;
+    window.openDialog("chrome://communicator/content/migration/migration.xul",
+                      "", "modal,centerscreen,chrome,resizable=no", "bookmarks");
+
+    if (window.fromFile)
+      this.importBookmarksFromFile();
+  },
+
+  importBookmarksFromFile: function ()
+  {
     ///transaction...
     try {
       const kFilePickerContractID = "@mozilla.org/filepicker;1";

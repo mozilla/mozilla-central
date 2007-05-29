@@ -58,7 +58,7 @@
 
   <wizardpage id="importSource" pageid="importSource" next="selectProfile"
               label="&importSource.title;"
-              onpageadvanced="MigrationWizard.onImportSourcePageAdvanced();">
+              onpageadvanced="return MigrationWizard.onImportSourcePageAdvanced();">
     <description id="importAll"
                  control="importSourceGroup">&importAllFrom.label;</description>
     <description id="importBookmarks" control="importSourceGroup"
