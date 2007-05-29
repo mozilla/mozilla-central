@@ -12,16 +12,23 @@ whence you came.
 If at any point you find that you don't understand these installation
 instructions, it's a good sign you want to turn back as well.
 
-Required Perl Modules: 
+Required Perl Modules:
 
 Apache::DBI
+CGI
 Class::DBI 
 Class::DBI::mysql 
+Data::Dumper
 Data::JavaScript
 Date::Manip
+File::Find
+Getopt::Long;
 HTML::StripScripts
 HTML::StripScripts::Parser
+JSON
+Sys::Hostname
 Template 
+Test::Harness
 Text::Markdown
 Time::HiRes
 Time::Piece 
