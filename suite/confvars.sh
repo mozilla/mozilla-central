@@ -38,15 +38,13 @@
 
 MOZ_APP_NAME=seamonkey
 MOZ_APP_DISPLAYNAME=SeaMonkey
+MOZ_XUL_APP=1
 MOZ_MAIL_NEWS=1
 MOZ_LDAP_XPCOM=1
+MOZ_STATIC_MAIL_BUILD=1
 MOZ_COMPOSER=1
 MOZ_SUITE=1
 MOZ_PROFILESHARING=
 MOZ_APP_VERSION=$SEAMONKEY_VERSION
-if test "$MOZ_XUL_APP"; then
-  MOZ_NO_XPCOM_OBSOLETE=1
-  MOZ_EXTENSIONS_DEFAULT=" wallet xml-rpc venkman inspector irc typeaheadfind gnomevfs reporter"
-else
-  MOZ_EXTENSIONS_DEFAULT=" wallet xml-rpc help venkman inspector irc typeaheadfind gnomevfs sroaming reporter"
-fi
+MOZ_NO_XPCOM_OBSOLETE=1
+MOZ_EXTENSIONS_DEFAULT=" wallet xml-rpc venkman inspector irc typeaheadfind gnomevfs reporter"
