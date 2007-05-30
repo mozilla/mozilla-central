@@ -285,7 +285,7 @@ sub add_case_run {
     my $caserun = Bugzilla::Testopia::TestCaseRun->new({
         'run_id' => $self->{'run_id'},
         'case_id' => $case_id,
-        'assignee' => $asignee,
+        'assignee' => $assignee,
         'case_text_version' => $case->version,
         'build_id' => $self->build->id,
         'environment_id' => $self->environment_id,
