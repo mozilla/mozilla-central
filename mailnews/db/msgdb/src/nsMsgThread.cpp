@@ -878,7 +878,7 @@ NS_IMETHODIMP nsMsgThreadEnumerator::HasMoreElements(PRBool *aResult)
 NS_IMETHODIMP nsMsgThread::EnumerateMessages(nsMsgKey parentKey, nsISimpleEnumerator* *result)
 {
   nsMsgThreadEnumerator* e = new nsMsgThreadEnumerator(this, parentKey, nsnull, nsnull);
-  NS_ENSURE_TRUE(e == nsnull, NS_ERROR_OUT_OF_MEMORY);
+  NS_ENSURE_TRUE(e, NS_ERROR_OUT_OF_MEMORY);
   NS_ADDREF(*result = e);
   return NS_OK;
 }
