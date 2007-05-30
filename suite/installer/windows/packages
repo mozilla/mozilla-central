@@ -43,7 +43,6 @@ bin\mozz.dll
 bin\plc4.dll
 bin\plds4.dll
 bin\xpcom.dll
-bin\xpcom_compat.dll
 bin\xpcom_core.dll
 bin\xpistub.dll
 bin\nspr4.dll
@@ -187,8 +186,6 @@ bin\components\necko_viewsource.xpt
 bin\components\nsprefm.dll
 bin\components\oji.dll
 bin\components\oji.xpt
-bin\components\p3p.dll
-bin\components\p3p.xpt
 bin\components\perms.dll
 bin\components\plugin.xpt
 bin\components\pref.xpt
@@ -208,6 +205,7 @@ bin\components\srchsvc.dll
 bin\components\storage.xpt
 bin\components\strgcmps.dll
 bin\components\suite.dll
+bin\components\suitemigration.xpt
 bin\components\tkitcmps.dll
 bin\components\toolkitprofile.xpt
 bin\components\txmgr.dll
@@ -241,11 +239,9 @@ bin\components\xpautoc.dll
 bin\components\xpautocomplete.xpt
 bin\components\xpc3250.dll
 bin\components\xpcom_base.xpt
-bin\components\xpcom_compat_c.dll
 bin\components\xpcom_components.xpt
 bin\components\xpcom_ds.xpt
 bin\components\xpcom_io.xpt
-bin\components\xpcom_obsolete.xpt
 bin\components\xpcom_thread.xpt
 bin\components\xpcom_xpti.xpt
 bin\components\xpconnect.xpt
@@ -556,15 +552,11 @@ bin\components\talkback.hlp
 bin\extensions\inspector@mozilla.org\install.rdf
 bin\extensions\inspector@mozilla.org\chrome.manifest
 bin\extensions\inspector@mozilla.org\chrome\inspector.jar
-bin\extensions\inspector@mozilla.org\chrome\icons\default\winInspectorMain.ico
+bin\extensions\inspector@mozilla.org\platform\WINNT\chrome\icons\default\winInspectorMain.ico
 bin\extensions\inspector@mozilla.org\components\inspector-cmdline.js
 bin\extensions\inspector@mozilla.org\components\inspector.dll
 bin\extensions\inspector@mozilla.org\components\inspector.xpt
 bin\extensions\inspector@mozilla.org\defaults\preferences\inspector.js
-
-[sroaming]
-bin\components\sroaming.dll
-bin\chrome\sroaming.jar
 
 [reporter]
 bin\chrome\reporter.jar
