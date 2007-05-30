@@ -90,9 +90,9 @@ NS_IMETHODIMP nsAbIPCCard::Copy(nsIAbCard *srcCard)
     nsCOMPtr<nsIAbMDBCard> dbCard;
     dbCard = do_QueryInterface(srcCard, &rv);
     if(NS_SUCCEEDED(rv) && dbCard) {
-        nsXPIDLString palmIDStr;
+        nsString palmIDStr;
         nsresult rv = dbCard->GetStringAttribute(CARD_ATTRIB_PALMID, getter_Copies(palmIDStr));
-        if(NS_SUCCEEDED(rv) && palmIDStr.get()) {
+        if(NS_SUCCEEDED(rv) && !palmIDStr.IsEmpty()) {
             PRFloat64 f = PR_strtod(NS_LossyConvertUTF16toASCII(palmIDStr).get(), nsnull);
             PRInt64 l;
             LL_D2L(l, f);
@@ -572,7 +572,7 @@ NS_IMETHODIMP nsAbIPCCard::Equals(nsIAbCard *card, PRBool *_retval)
     NS_ENSURE_ARG_POINTER(card);
     NS_ENSURE_ARG_POINTER(_retval);
 
-    nsXPIDLString str;
+    nsString str;
     *_retval = PR_FALSE;
 
     card->GetFirstName(str);
@@ -721,7 +721,7 @@ NS_IMETHODIMP nsAbIPCCard::Equals(nsIAbCard *card, PRBool *_retval)
     if (isMailList != m_IsMailList)
         return NS_OK;
 
-    nsXPIDLCString str2;
+    nsCString str2;
     card->GetMailListURI(getter_Copies(str2));
     if (m_MailListURI.Equals(str2, nsCaseInsensitiveCStringComparator()))
         return NS_OK;
@@ -776,7 +776,7 @@ PRBool nsAbIPCCard::Same(nsIAbCard *card)
     dbCard = do_QueryInterface(card, &rv);
     if(NS_SUCCEEDED(rv)) {
         // first check the palmID for the cards if they exist
-        nsXPIDLString palmIDStr;
+        nsString palmIDStr;
         rv = dbCard->GetStringAttribute(CARD_ATTRIB_PALMID, getter_Copies(palmIDStr));
         if(NS_SUCCEEDED(rv) && palmIDStr.get()) {
             PRInt32 palmID=0;
@@ -789,7 +789,7 @@ PRBool nsAbIPCCard::Same(nsIAbCard *card)
         }
     }
 
-    nsXPIDLString str;
+    nsString str;
     card->GetFirstName(str);
     if (Compare(str, m_FirstName, nsCaseInsensitiveStringComparator()))
         return PR_FALSE;

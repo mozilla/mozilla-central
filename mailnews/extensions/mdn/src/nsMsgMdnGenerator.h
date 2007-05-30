@@ -43,7 +43,6 @@
 #include "nsCOMPtr.h"
 #include "nsIMimeConverter.h"
 #include "nsIUrlListener.h"
-#include "nsXPIDLString.h"
 #include "nsIMsgIncomingServer.h"
 #include "nsIOutputStream.h"
 #include "nsIFile.h"
@@ -59,60 +58,60 @@
 class nsMsgMdnGenerator : public nsIMsgMdnGenerator, public nsIUrlListener
 {
 public:
-    NS_DECL_ISUPPORTS 
-    NS_DECL_NSIMSGMDNGENERATOR
-    NS_DECL_NSIURLLISTENER
-    
-    nsMsgMdnGenerator();
-    virtual ~nsMsgMdnGenerator();
-    
-private:
-    // Sanity Check methods
-    PRBool ProcessSendMode(); // must called prior ValidateReturnPath
-    PRBool ValidateReturnPath();
-    PRBool NotInToOrCc();
-    PRBool MailAddrMatch(const char *addr1, const char *addr2);
-    
-    nsresult StoreMDNSentFlag(nsIMsgFolder *folder, nsMsgKey key);
-    
-    nsresult CreateMdnMsg();
-    nsresult CreateFirstPart(); 
-    nsresult CreateSecondPart();
-    nsresult CreateThirdPart();
-    nsresult SendMdnMsg();
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSIMSGMDNGENERATOR
+  NS_DECL_NSIURLLISTENER
 
-    // string bundle helper methods
-    nsresult GetStringFromName(const PRUnichar *aName, PRUnichar **aResultString);
-    nsresult FormatStringFromName(const PRUnichar *aName, 
-                                                 const PRUnichar *aString, 
-                                                 PRUnichar **aResultString);
-    
-    // other helper methods
-    nsresult InitAndProcess();
-    nsresult OutputAllHeaders();
-    nsresult WriteString(const char *str);
-  
+  nsMsgMdnGenerator();
+  virtual ~nsMsgMdnGenerator();
+
 private:
-    EDisposeType m_disposeType;
-    nsCOMPtr<nsIMsgWindow> m_window;
-    nsCOMPtr<nsIOutputStream> m_outputStream;
-    nsCOMPtr<nsIFile> m_file;
-    nsCOMPtr<nsIMsgIdentity> m_identity;
-    nsXPIDLCString m_charset;
-    nsCString m_email;
-    nsXPIDLCString m_mimeSeparator;
-    nsXPIDLCString m_messageId;
-    nsCOMPtr<nsIMsgFolder> m_folder;
-    nsCOMPtr<nsIMsgIncomingServer> m_server;
-    nsCOMPtr<nsIMimeHeaders> m_headers;
-    nsXPIDLCString m_dntRrt;
-    PRInt32 m_notInToCcOp;
-    PRInt32 m_outsideDomainOp;
-    PRInt32 m_otherOp;
-    PRPackedBool m_reallySendMdn;
-    PRPackedBool m_autoSend;
-    PRPackedBool m_autoAction;
-    PRPackedBool m_mdnEnabled;
+  // Sanity Check methods
+  PRBool ProcessSendMode(); // must called prior ValidateReturnPath
+  PRBool ValidateReturnPath();
+  PRBool NotInToOrCc();
+  PRBool MailAddrMatch(const char *addr1, const char *addr2);
+
+  nsresult StoreMDNSentFlag(nsIMsgFolder *folder, nsMsgKey key);
+
+  nsresult CreateMdnMsg();
+  nsresult CreateFirstPart();
+  nsresult CreateSecondPart();
+  nsresult CreateThirdPart();
+  nsresult SendMdnMsg();
+
+  // string bundle helper methods
+  nsresult GetStringFromName(const PRUnichar *aName, PRUnichar **aResultString);
+  nsresult FormatStringFromName(const PRUnichar *aName,
+                                const PRUnichar *aString,
+                                PRUnichar **aResultString);
+
+  // other helper methods
+  nsresult InitAndProcess();
+  nsresult OutputAllHeaders();
+  nsresult WriteString(const char *str);
+
+private:
+  EDisposeType m_disposeType;
+  nsCOMPtr<nsIMsgWindow> m_window;
+  nsCOMPtr<nsIOutputStream> m_outputStream;
+  nsCOMPtr<nsIFile> m_file;
+  nsCOMPtr<nsIMsgIdentity> m_identity;
+  nsCString m_charset;
+  nsCString m_email;
+  nsCString m_mimeSeparator;
+  nsCString m_messageId;
+  nsCOMPtr<nsIMsgFolder> m_folder;
+  nsCOMPtr<nsIMsgIncomingServer> m_server;
+  nsCOMPtr<nsIMimeHeaders> m_headers;
+  nsCString m_dntRrt;
+  PRInt32 m_notInToCcOp;
+  PRInt32 m_outsideDomainOp;
+  PRInt32 m_otherOp;
+  PRPackedBool m_reallySendMdn;
+  PRPackedBool m_autoSend;
+  PRPackedBool m_autoAction;
+  PRPackedBool m_mdnEnabled;
 };
 
 #endif // _nsMsgMdnGenerator_H_

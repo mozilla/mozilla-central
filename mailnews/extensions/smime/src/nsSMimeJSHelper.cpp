@@ -45,7 +45,6 @@
 #include "nsIX509CertDB.h"
 #include "nsIX509CertValidity.h"
 #include "nsIServiceManager.h"
-#include "nsPromiseFlatString.h"
 #include "nsCRT.h"
 
 NS_IMPL_ISUPPORTS1(nsSMimeJSHelper, nsISMimeJSHelper)
@@ -59,18 +58,18 @@ nsSMimeJSHelper::~nsSMimeJSHelper()
 }
 
 NS_IMETHODIMP nsSMimeJSHelper::GetRecipientCertsInfo(
-    nsIMsgCompFields *compFields, 
-    PRUint32 *count, 
-    PRUnichar ***emailAddresses, 
-    PRInt32 **certVerification, 
-    PRUnichar ***certIssuedInfos, 
-    PRUnichar ***certExpiresInfos, 
+    nsIMsgCompFields *compFields,
+    PRUint32 *count,
+    PRUnichar ***emailAddresses,
+    PRInt32 **certVerification,
+    PRUnichar ***certIssuedInfos,
+    PRUnichar ***certExpiresInfos,
     nsIX509Cert ***certs,
     PRBool *canEncrypt)
 {
   NS_ENSURE_ARG_POINTER(count);
   *count = 0;
-  
+
   NS_ENSURE_ARG_POINTER(emailAddresses);
   NS_ENSURE_ARG_POINTER(certVerification);
   NS_ENSURE_ARG_POINTER(certIssuedInfos);
@@ -153,14 +152,14 @@ NS_IMETHODIMP nsSMimeJSHelper::GetRecipientCertsInfo(
         ToLowerCase(email, email_lowercase);
 
         nsCOMPtr<nsIX509Cert> cert;
-        if (NS_SUCCEEDED(certdb->FindCertByEmailAddress(nsnull, email_lowercase.get(), getter_AddRefs(cert))) 
+        if (NS_SUCCEEDED(certdb->FindCertByEmailAddress(nsnull, email_lowercase.get(), getter_AddRefs(cert)))
             && cert)
         {
           *iCert = cert;
           NS_ADDREF(*iCert);
-          
+
           PRUint32 verification_result;
-          
+
           if (NS_FAILED(
               cert->VerifyForUsage(nsIX509Cert::CERT_USAGE_EmailRecipient, &verification_result)))
           {
@@ -170,18 +169,18 @@ NS_IMETHODIMP nsSMimeJSHelper::GetRecipientCertsInfo(
           else
           {
             *iCV = verification_result;
-            
+
             if (verification_result != nsIX509Cert::VERIFIED_OK)
             {
               found_blocker = PR_TRUE;
             }
           }
-          
+
           nsCOMPtr<nsIX509CertValidity> validity;
           rv = cert->GetValidity(getter_AddRefs(validity));
 
           if (NS_SUCCEEDED(rv)) {
-            nsXPIDLString id, ed;
+            nsString id, ed;
 
             if (NS_SUCCEEDED(validity->GetNotBeforeLocalDay(id)))
             {
@@ -238,13 +237,13 @@ NS_IMETHODIMP nsSMimeJSHelper::GetRecipientCertsInfo(
 }
 
 NS_IMETHODIMP nsSMimeJSHelper::GetNoCertAddresses(
-    nsIMsgCompFields *compFields, 
-    PRUint32 *count, 
+    nsIMsgCompFields *compFields,
+    PRUint32 *count,
     PRUnichar ***emailAddresses)
 {
   NS_ENSURE_ARG_POINTER(count);
   *count = 0;
-  
+
   NS_ENSURE_ARG_POINTER(emailAddresses);
 
   NS_ENSURE_ARG_POINTER(compFields);
@@ -300,7 +299,7 @@ NS_IMETHODIMP nsSMimeJSHelper::GetNoCertAddresses(
       ToLowerCase(email, email_lowercase);
 
       nsCOMPtr<nsIX509Cert> cert;
-      if (NS_SUCCEEDED(certdb->FindCertByEmailAddress(nsnull, email_lowercase.get(), getter_AddRefs(cert))) 
+      if (NS_SUCCEEDED(certdb->FindCertByEmailAddress(nsnull, email_lowercase.get(), getter_AddRefs(cert)))
           && cert)
       {
         PRUint32 verification_result;
@@ -355,7 +354,7 @@ NS_IMETHODIMP nsSMimeJSHelper::GetNoCertAddresses(
           ++iEA;
         }
       }
-      
+
       if (memory_failure) {
         NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(missing_count, outEA);
         rv = NS_ERROR_OUT_OF_MEMORY;
@@ -390,7 +389,7 @@ nsresult nsSMimeJSHelper::getMailboxList(nsIMsgCompFields *compFields, PRUint32 
   if (NS_FAILED(res))
     return res;
 
-  nsXPIDLString to, cc, bcc, ng;
+  nsString to, cc, bcc, ng;
 
   res = compFields->GetTo(to);
   if (NS_FAILED(res))
@@ -410,28 +409,27 @@ nsresult nsSMimeJSHelper::getMailboxList(nsIMsgCompFields *compFields, PRUint32 
 
   *mailbox_list = nsnull;
   *mailbox_count = 0;
-  
+
   {
     nsCString all_recipients;
 
     if (!to.IsEmpty()) {
-      AppendUTF16toUTF8(to, all_recipients);
+      all_recipients.Append(NS_ConvertUTF16toUTF8(to));
       all_recipients.Append(',');
     }
 
     if (!cc.IsEmpty()) {
-      AppendUTF16toUTF8(cc, all_recipients);
+      all_recipients.Append(NS_ConvertUTF16toUTF8(cc));
       all_recipients.Append(',');
     }
 
     if (!bcc.IsEmpty()) {
-      AppendUTF16toUTF8(bcc, all_recipients);
+      all_recipients.Append(NS_ConvertUTF16toUTF8(bcc));
       all_recipients.Append(',');
     }
 
-    if (!ng.IsEmpty()) {
-      AppendUTF16toUTF8(ng, all_recipients);
-    }
+    if (!ng.IsEmpty())
+      all_recipients.Append(NS_ConvertUTF16toUTF8(ng));
 
     char *unique_mailboxes = nsnull;
 

@@ -181,8 +181,8 @@ nsresult nsAbPalmHotSync::GetABInterface()
   nsCOMPtr <nsIAbDirectory> directory = do_QueryInterface(resource, &rv);
   if(NS_FAILED(rv)) return E_FAIL;
 
-  nsXPIDLString description;
-  nsXPIDLCString fileName, uri, prefName;
+  nsString description;
+  nsCString fileName, uri, prefName;
   PRUint32 palmSyncTimeStamp;
   PRInt32 dirType, palmCategoryIndex;
   nsCOMPtr<nsISimpleEnumerator> subDirectories;

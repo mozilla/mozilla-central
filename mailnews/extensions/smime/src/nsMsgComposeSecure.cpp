@@ -370,7 +370,7 @@ void nsMsgComposeSecure::SetError(nsIMsgSendReport *sendReport, const PRUnichar 
 
   mErrorAlreadyReported = PR_TRUE;
   
-  nsXPIDLString errorString;
+  nsString errorString;
   nsresult res;
 
   res = GetSMIMEBundleString(bundle_string,
@@ -394,7 +394,7 @@ void nsMsgComposeSecure::SetErrorWithParam(nsIMsgSendReport *sendReport, const P
 
   mErrorAlreadyReported = PR_TRUE;
   
-  nsXPIDLString errorString;
+  nsString errorString;
   nsresult res;
   const PRUnichar *params[1];
 

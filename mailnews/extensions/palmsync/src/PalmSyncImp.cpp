@@ -206,7 +206,7 @@ STDMETHODIMP CPalmSyncImp::nsGetABList(BOOL aIsUnicode, short * aABListCount,
           // We don't have to skip mailing list since there's no mailing lists at the top level.
           nsCAutoString fileName;
           nsCAutoString uri;
-          nsXPIDLString description;
+          nsString description;
           PRUint32 palmSyncTimeStamp;
           PRInt32 dirType, palmCategoryIndex;
 

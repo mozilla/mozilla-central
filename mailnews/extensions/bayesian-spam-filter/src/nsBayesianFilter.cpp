@@ -77,7 +77,7 @@
 #include "nsIContentSerializer.h"
 #include "nsLayoutCID.h"
 #include "nsIHTMLToTextSink.h"
-#include "nsIDocumentEncoder.h" 
+#include "nsIDocumentEncoder.h"
 
 #include "nsIncompleteGamma.h"
 #include <math.h>
@@ -118,7 +118,7 @@ TokenEnumeration::TokenEnumeration(PLDHashTable* table)
     PRUint32 capacity = PL_DHASH_TABLE_SIZE(table);
     mEntryLimit = mEntryAddr + capacity * mEntrySize;
 }
-    
+
 inline PRBool TokenEnumeration::hasMoreTokens()
 {
     return (mEntryOffset < mEntryCount);
@@ -184,7 +184,7 @@ Tokenizer::~Tokenizer()
 
 nsresult Tokenizer::clearTokens()
 {
-    // we re-use the tokenizer when classifying multiple messages, 
+    // we re-use the tokenizer when classifying multiple messages,
     // so this gets called after every message classification.
     PRBool ok = PR_TRUE;
     if (mTokenTable.entryStore)
@@ -307,18 +307,31 @@ void Tokenizer::addTokenForHeader(const char * aTokenPrefix, nsACString& aValue,
   {
     ToLowerCase(aValue);
     if (!aTokenizeValue)
-      add(PromiseFlatCString(nsDependentCString(aTokenPrefix) + NS_LITERAL_CSTRING(":") + aValue).get());
-    else 
+    {
+      nsCString tmpStr;
+      tmpStr.Assign(aTokenPrefix);
+      tmpStr.Append(':');
+      tmpStr.Append(aValue);
+
+      add(tmpStr.get());
+    }
+    else
     {
       char* word;
-      const nsPromiseFlatCString &flatValue = PromiseFlatCString(aValue);
-      char* next = (char *) flatValue.get();
-      while ((word = nsCRT::strtok(next, kBayesianFilterTokenDelimiters, &next)) != NULL) 
+      nsCString str(aValue);
+      char *next = str.BeginWriting();
+      while ((word = nsCRT::strtok(next, kBayesianFilterTokenDelimiters, &next)) != NULL)
       {
-          if (word[0] == '\0') continue;
-          if (isDecimalNumber(word)) continue;
-          if (isASCII(word))
-              add(PromiseFlatCString(nsDependentCString(aTokenPrefix) + NS_LITERAL_CSTRING(":") + nsDependentCString(word)).get());
+        if (word[0] == '\0') continue;
+        if (isDecimalNumber(word)) continue;
+        if (isASCII(word))
+        {
+          nsCString tmpStr;
+          tmpStr.Assign(aTokenPrefix);
+          tmpStr.Append(':');
+          tmpStr.Append(word);
+          add(tmpStr.get());
+        }
       }
     }
   }
@@ -350,7 +363,7 @@ void Tokenizer::tokenizeHeaders(nsIUTF8StringEnumerator * aHeaderNames, nsIUTF8S
   while (hasMore)
   {
     aHeaderNames->GetNext(headerName);
-    ToLowerCase(headerName); 
+    ToLowerCase(headerName);
     aHeaderValues->GetNext(headerValue);
 
     switch (headerName.First())
@@ -359,11 +372,11 @@ void Tokenizer::tokenizeHeaders(nsIUTF8StringEnumerator * aHeaderNames, nsIUTF8S
         if (headerName.Equals("content-type"))
         {
           // extract the charset parameter
-          nsXPIDLCString parameterValue;
+          nsCString parameterValue;
           mimehdrpar->GetParameterInternal(headerValue.get(), "charset", nsnull, nsnull, getter_Copies(parameterValue));
           addTokenForHeader("charset", parameterValue);
 
-          // create a token containing just the content type 
+          // create a token containing just the content type
           mimehdrpar->GetParameterInternal(headerValue.get(), "type", nsnull, nsnull, getter_Copies(parameterValue));
           if (!parameterValue.Length())
             mimehdrpar->GetParameterInternal(headerValue.get(), nsnull /* use first unnamed param */, nsnull, nsnull, getter_Copies(parameterValue));
@@ -380,12 +393,12 @@ void Tokenizer::tokenizeHeaders(nsIUTF8StringEnumerator * aHeaderNames, nsIUTF8S
         // if (FindInReadable(FORGED_RECEIVED_HEADER_HINT, headerValue))
         //   addTokenForHeader(headerName.get(), FORGED_RECEIVED_HEADER_HINT);
       }
-      
+
       // leave out reply-to
       break;
     case 's':
         if (headerName.Equals("subject"))
-        { 
+        {
           // we want to tokenize the subject
           addTokenForHeader(headerName.get(), headerValue, PR_TRUE);
         }
@@ -393,11 +406,11 @@ void Tokenizer::tokenizeHeaders(nsIUTF8StringEnumerator * aHeaderNames, nsIUTF8S
         // important: leave out sender field. Too strong of an indicator
         break;
     case 'x': // (2) X-Mailer / user-agent works best if it is untokenized, just fold the case and any leading/trailing white space
-    case 'u': 
-        addTokenForHeader(headerName.get(), headerValue); 
+    case 'u':
+        addTokenForHeader(headerName.get(), headerValue);
         break;
     default:
-        addTokenForHeader(headerName.get(), headerValue); 
+        addTokenForHeader(headerName.get(), headerValue);
         break;
     } // end switch
 
@@ -423,7 +436,7 @@ void Tokenizer::tokenize_ascii_word(char * aWord)
     // XXX: i think the 40 byte check is just for perf reasons...if the email address is longer than that then forget about it.
     if (wordLength < 40 && strchr(aWord, '.') && word.CountChar('@') == 1)
     {
-      PRInt32 numBytesToSep = word.FindChar('@'); 
+      PRInt32 numBytesToSep = word.FindChar('@');
       if (numBytesToSep < wordLength - 1) // if the @ sign is the last character, it must not be an email address
       {
         // split the john@foo.com into john and foo.com, treat them as separate tokens
@@ -436,8 +449,8 @@ void Tokenizer::tokenize_ascii_word(char * aWord)
 
     // there is value in generating a token indicating the number
     // of characters we are skipping. We'll round to the nearest 10
-    add(nsPrintfCString("skip:%c %d", word[0], (wordLength/10) * 10).get()); 
-  } 
+    add(nsPrintfCString("skip:%c %d", word[0], (wordLength/10) * 10).get());
+  }
 }
 
 // one substract and one conditional jump should be faster than two conditional jump on most recent system.
@@ -493,10 +506,10 @@ static PRBool isJapanese(const char* word)
   nsString text = NS_ConvertUTF8toUTF16(word);
   PRUnichar* p = (PRUnichar*)text.get();
   PRUnichar c;
-    
+
   // it is japanese chunk if it contains any hiragana or katakana.
   while((c = *p++))
-    if( IS_JAPANESE_SPECIFIC(c)) 
+    if( IS_JAPANESE_SPECIFIC(c))
       return PR_TRUE;
 
   return PR_FALSE;
@@ -505,7 +518,7 @@ static PRBool isJapanese(const char* word)
 PRBool isFWNumeral(const PRUnichar* p1, const PRUnichar* p2)
 {
   for(;p1<p2;p1++)
-    if(!IS_JA_FWNUMERAL(*p1)) 
+    if(!IS_JA_FWNUMERAL(*p1))
       return PR_FALSE;
 
   return PR_TRUE;
@@ -515,22 +528,27 @@ PRBool isFWNumeral(const PRUnichar* p1, const PRUnichar* p2)
 void Tokenizer::tokenize_japanese_word(char* chunk)
 {
   PR_LOG(BayesianFilterLogModule, PR_LOG_ALWAYS, ("entering tokenize_japanese_word(%s)", chunk));
-    
+
   nsString srcStr = NS_ConvertUTF8toUTF16(chunk);
   const PRUnichar* p1 = srcStr.get();
   const PRUnichar* p2 = p1;
   if(!*p2) return;
-  
+
   char_class cc = getCharClass(*p2);
   while(*(++p2))
   {
-    if(cc == getCharClass(*p2)) 
+    if(cc == getCharClass(*p2))
       continue;
-   
+
     nsCString token = NS_ConvertUTF16toUTF8(p1, p2-p1);
-    if( (!isDecimalNumber(token.get())) && (!isFWNumeral(p1, p2)))      
-      add(PromiseFlatCString(NS_LITERAL_CSTRING("JA:") + token).get());
-        
+    if( (!isDecimalNumber(token.get())) && (!isFWNumeral(p1, p2)))
+    {
+      nsCString tmpStr;
+      tmpStr.AppendLiteral("JA:");
+      tmpStr.Append(token);
+      add(tmpStr.get());
+    }
+
     cc = getCharClass(*p2);
     p1 = p2;
   }
@@ -549,7 +567,7 @@ nsresult Tokenizer::stripHTML(const nsAString& inString, nsAString& outString)
 
   nsCOMPtr<nsIHTMLToTextSink> textSink(do_QueryInterface(sink));
   NS_ENSURE_TRUE(textSink, NS_ERROR_FAILURE);
-  PRUint32 flags = nsIDocumentEncoder::OutputLFLineBreak 
+  PRUint32 flags = nsIDocumentEncoder::OutputLFLineBreak
                  | nsIDocumentEncoder::OutputNoScriptContent
                  | nsIDocumentEncoder::OutputNoFramesContent
                  | nsIDocumentEncoder::OutputBodyOnly;
@@ -572,7 +590,7 @@ void Tokenizer::tokenize(char* aText)
     nsString text = NS_ConvertUTF8toUTF16(aText);
     nsString strippedUCS2;
     stripHTML(text, strippedUCS2);
-    
+
     // convert 0x3000(full width space) into 0x0020
     nsString::iterator substr_start, substr_end;
     strippedUCS2.BeginWriting(substr_start);
@@ -582,7 +600,7 @@ void Tokenizer::tokenize(char* aText)
             *substr_start = 0x0020;
         ++substr_start;
     }
-    
+
     nsCString strippedStr = NS_ConvertUTF16toUTF8(strippedUCS2);
     char * strippedText = (char *) strippedStr.get(); // bleh
     PR_LOG(BayesianFilterLogModule, PR_LOG_ALWAYS, ("tokenize stripped html: %s", strippedText));
@@ -678,7 +696,7 @@ inline TokenEnumeration Tokenizer::getTokens()
 class TokenAnalyzer {
 public:
     virtual ~TokenAnalyzer() {}
-    
+
     virtual void analyzeTokens(Tokenizer& tokenizer) = 0;
     void setTokenListener(nsIStreamListener *aTokenListener)
     {
@@ -704,7 +722,7 @@ public:
     NS_DECL_NSIREQUESTOBSERVER
     NS_DECL_NSISTREAMLISTENER
     NS_DECL_NSIMSGHEADERSINK
-    
+
     TokenStreamListener(TokenAnalyzer* analyzer);
     virtual ~TokenStreamListener();
 protected:
@@ -799,7 +817,7 @@ NS_IMETHODIMP TokenStreamListener::OnStartRequest(nsIRequest *aRequest, nsISuppo
             return NS_ERROR_OUT_OF_MEMORY;
     }
 
-    // get the url for the channel and set our nsIMsgHeaderSink on it so we get notified 
+    // get the url for the channel and set our nsIMsgHeaderSink on it so we get notified
     // about the headers and attachments
 
     nsCOMPtr<nsIChannel> channel (do_QueryInterface(aRequest));
@@ -827,7 +845,7 @@ NS_IMETHODIMP TokenStreamListener::OnDataAvailable(nsIRequest *aRequest, nsISupp
         } else {
             readCount = aCount;
         }
-        
+
         char* buffer = mBuffer;
         rv = aInputStream->Read(buffer + mLeftOverCount, readCount, &readCount);
         if (NS_FAILED(rv))
@@ -838,9 +856,9 @@ NS_IMETHODIMP TokenStreamListener::OnDataAvailable(nsIRequest *aRequest, nsISupp
             NS_WARNING("failed to tokenize");
             break;
         }
-            
+
         aCount -= readCount;
-        
+
         /* consume the tokens up to the last legal token delimiter in the buffer. */
         totalCount = (readCount + mLeftOverCount);
         buffer[totalCount] = '\0';
@@ -852,7 +870,7 @@ NS_IMETHODIMP TokenStreamListener::OnDataAvailable(nsIRequest *aRequest, nsISupp
                 break;
             }
         }
-        
+
         if (lastDelimiter) {
             *lastDelimiter = '\0';
             mTokenizer.tokenize(buffer);
@@ -875,7 +893,7 @@ NS_IMETHODIMP TokenStreamListener::OnDataAvailable(nsIRequest *aRequest, nsISupp
             }
         }
     }
-    
+
     return rv;
 }
 
@@ -888,12 +906,12 @@ NS_IMETHODIMP TokenStreamListener::OnStopRequest(nsIRequest *aRequest, nsISuppor
         buffer[mLeftOverCount] = '\0';
         mTokenizer.tokenize(buffer);
     }
-    
+
     /* finally, analyze the tokenized message. */
     PR_LOG(BayesianFilterLogModule, PR_LOG_ALWAYS, ("analyze the tokenized message"));
     if (mAnalyzer)
         mAnalyzer->analyzeTokens(mTokenizer);
-    
+
     return NS_OK;
 }
 
@@ -905,7 +923,7 @@ nsBayesianFilter::nsBayesianFilter()
 {
     if (!BayesianFilterLogModule)
       BayesianFilterLogModule = PR_NewLogModule("BayesianFilter");
-    
+
     PRInt32 junkThreshold = 0;
     nsresult rv;
     nsCOMPtr<nsIPrefBranch> pPrefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
@@ -927,11 +945,11 @@ nsBayesianFilter::nsBayesianFilter()
     else {
       PR_LOG(BayesianFilterLogModule, PR_LOG_ALWAYS, ("error allocating tokenizers"));
     }
-    
+
     // get parameters for training data flushing, from the prefs
 
     nsCOMPtr<nsIPrefBranch> prefBranch;
-    
+
     nsCOMPtr<nsIPrefService> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
     NS_ASSERTION(NS_SUCCEEDED(rv),"failed accessing preferences service");
     rv = prefs->GetBranch(nsnull, getter_AddRefs(prefBranch));
@@ -944,10 +962,10 @@ nsBayesianFilter::nsBayesianFilter()
 
     mTimer = do_CreateInstance(NS_TIMER_CONTRACTID, &rv);
     NS_ASSERTION(NS_SUCCEEDED(rv), "unable to create a timer; training data will only be written on exit");
-    
+
     // the timer is not used on object construction, since for
     // the time being there are no dirying messages
-    
+
 }
 
 void
@@ -972,12 +990,12 @@ nsBayesianFilter::~nsBayesianFilter()
     Shutdown();
 }
 
-// this object is used for one call to classifyMessage or classifyMessages(). 
+// this object is used for one call to classifyMessage or classifyMessages().
 // So if we're classifying multiple messages, this object will be used for each message.
 // It's going to hold a reference to itself, basically, to stay in memory.
 class MessageClassifier : public TokenAnalyzer {
 public:
-    MessageClassifier(nsBayesianFilter* aFilter, nsIJunkMailClassificationListener* aListener, 
+    MessageClassifier(nsBayesianFilter* aFilter, nsIJunkMailClassificationListener* aListener,
       nsIMsgWindow *aMsgWindow,
       PRUint32 aNumMessagesToClassify, const char **aMessageURIs)
         :   mFilter(aFilter), mSupports(aFilter), mListener(aListener), mMsgWindow(aMsgWindow)
@@ -989,7 +1007,7 @@ public:
         mMessageURIs[i] = PL_strdup(aMessageURIs[i]);
 
     }
-    
+
     virtual ~MessageClassifier()
     {
        if (mMessageURIs)
@@ -1006,7 +1024,7 @@ public:
 
     virtual void classifyNextMessage()
     {
-      
+
       if (++mCurMessageToClassify < mNumMessagesToClassify && mMessageURIs[mCurMessageToClassify]) {
         PR_LOG(BayesianFilterLogModule, PR_LOG_ALWAYS, ("classifyNextMessage(%s)", mMessageURIs[mCurMessageToClassify]));
         mFilter->tokenizeMessage(mMessageURIs[mCurMessageToClassify], mMsgWindow, this);
@@ -1037,7 +1055,7 @@ nsresult nsBayesianFilter::tokenizeMessage(const char* aMessageURI, nsIMsgWindow
 
     aAnalyzer->setSource(aMessageURI);
     return msgService->StreamMessage(aMessageURI, aAnalyzer->mTokenListener, aMsgWindow,
-						nsnull, PR_TRUE /* convert data */, 
+						nsnull, PR_TRUE /* convert data */,
                                                 "filter", nsnull);
 }
 
@@ -1080,7 +1098,7 @@ void nsBayesianFilter::classifyMessage(Tokenizer& tokenizer, const char* message
 {
     Token* tokens = tokenizer.copyTokens();
     if (!tokens) return;
-  
+
     // the algorithm in "A Plan For Spam" assumes that you have a large good
     // corpus and a large junk corpus.
     // that won't be the case with users who first use the junk mail feature
@@ -1106,7 +1124,7 @@ void nsBayesianFilter::classifyMessage(Tokenizer& tokenizer, const char* message
     PRUint32 i, goodclues=0, count = tokenizer.countTokens();
     double ngood = mGoodCount, nbad = mBadCount, prob;
 
-    for (i = 0; i < count; ++i) 
+    for (i = 0; i < count; ++i)
     {
         Token& token = tokens[i];
         const char* word = token.mWord;
@@ -1115,7 +1133,7 @@ void nsBayesianFilter::classifyMessage(Tokenizer& tokenizer, const char* message
         t = mBadTokens.get(word);
        double spamcount = ((t != NULL) ? t->mCount : 0);
 
-      // if hamcount and spam count are both 0, we could end up with a divide by 0 error, 
+      // if hamcount and spam count are both 0, we could end up with a divide by 0 error,
       // tread carefully here. (Bug #240819)
       double probDenom = (hamcount *nbad + spamcount*ngood);
       if (probDenom == 0.0) // nGood and nbad are known to be non zero or we wouldn't be here
@@ -1125,17 +1143,17 @@ void nsBayesianFilter::classifyMessage(Tokenizer& tokenizer, const char* message
        double n = hamcount + spamcount;
        prob =  (0.225 + n * prob) / (.45 + n);
        double distance = PR_ABS(prob - 0.5);
-       if (distance >= .1) 
+       if (distance >= .1)
        {
          goodclues++;
          token.mDistance = distance;
          token.mProbability = prob;
             PR_LOG(BayesianFilterLogModule, PR_LOG_ALWAYS, ("token.mProbability (%s) is %f", word, token.mProbability));
         }
-      else 
+      else
         token.mDistance = -1; //ignore clue
     }
-    
+
     // sort the array by the token distances
         NS_QuickSort(tokens, count, sizeof(Token), compareTokens, NULL);
     PRUint32 first, last = count;
@@ -1146,20 +1164,20 @@ void nsBayesianFilter::classifyMessage(Tokenizer& tokenizer, const char* message
     goodclues=0;
     int e;
 
-    for (i = first; i < last; ++i) 
+    for (i = first; i < last; ++i)
     {
-      if (tokens[i].mDistance != -1) 
+      if (tokens[i].mDistance != -1)
       {
         goodclues++;
         double value = tokens[i].mProbability;
         S *= (1.0 - value);
         H *= value;
-        if ( S < 1e-200 ) 
+        if ( S < 1e-200 )
         {
           S = frexp(S, &e);
           Sexp += e;
         }
-        if ( H < 1e-200 ) 
+        if ( H < 1e-200 )
         {
           H = frexp(H, &e);
           Hexp += e;
@@ -1170,7 +1188,7 @@ void nsBayesianFilter::classifyMessage(Tokenizer& tokenizer, const char* message
     S = log(S) + Sexp * M_LN2;
     H = log(H) + Hexp * M_LN2;
 
-    if (goodclues > 0) 
+    if (goodclues > 0)
     {
         PRInt32 chi_error;
         S = chi2P(-2.0 * S, 2.0 * goodclues, &chi_error);
@@ -1181,8 +1199,8 @@ void nsBayesianFilter::classifyMessage(Tokenizer& tokenizer, const char* message
             prob = (S-H +1.0) / 2.0;
         else
             prob = 0.5;
-    } 
-    else 
+    }
+    else
         prob = 0.5;
 
     PRBool isJunk = (prob >= mJunkProbabilityThreshold);
@@ -1241,7 +1259,7 @@ public:
             mNewClassification(newClassification)
     {
     }
-    
+
     virtual void analyzeTokens(Tokenizer& tokenizer)
     {
         mFilter->observeMessage(tokenizer, mTokenSource.get(), mOldClassification,
@@ -1261,10 +1279,10 @@ private:
 
 static void forgetTokens(Tokenizer& corpus, TokenEnumeration tokens)
 {
-    // if we are forgetting the tokens for a message, should only 
+    // if we are forgetting the tokens for a message, should only
     // subtract 1 from the occurrence count for that token in the training set
     // because we assume we only bumped the training set count once per messages
-    // containing the token. 
+    // containing the token.
     while (tokens.hasMoreTokens()) {
         Token* token = tokens.nextToken();
         corpus.remove(token->mWord);
@@ -1294,7 +1312,7 @@ void nsBayesianFilter::observeMessage(Tokenizer& tokenizer, const char* messageU
     // What can we do here? Well we can skip the token removal step if the classifications are the same and assume the user is
     // just re-training. But this then allows users to re-classify the same message on the same training set over and over again
     // leading to data skew. But that's all I can think to do right now to address this.....
-    if (oldClassification != newClassification) 
+    if (oldClassification != newClassification)
     {
       // remove the tokens from the token set it is currently in
     switch (oldClassification) {
@@ -1317,7 +1335,7 @@ void nsBayesianFilter::observeMessage(Tokenizer& tokenizer, const char* messageU
     }
     }
 
-    
+
     switch (newClassification) {
     case nsIJunkMailPlugin::JUNK:
         // put tokens into junk corpus.
@@ -1332,10 +1350,10 @@ void nsBayesianFilter::observeMessage(Tokenizer& tokenizer, const char* messageU
         mTrainingDataDirty = PR_TRUE;
         break;
     }
-    
+
     if (listener)
         listener->OnMessageClassified(messageURL, newClassification);
-    
+
     if (mTrainingDataDirty && !trainingDataWasDirty && ( mTimer != nsnull ))
     {
         // if training data became dirty just now, schedule flush
@@ -1393,7 +1411,7 @@ static PRBool writeTokens(FILE* stream, Tokenizer& tokenizer)
                 break;
         }
     }
-    
+
     return PR_TRUE;
 }
 
@@ -1439,9 +1457,9 @@ static PRBool readTokens(FILE* stream, Tokenizer& tokenizer, PRInt64 fileSize)
         buffer[size] = '\0';
         tokenizer.add(buffer, count);
     }
-    
+
     delete[] buffer;
-    
+
     return PR_TRUE;
 }
 
@@ -1455,7 +1473,7 @@ nsresult nsBayesianFilter::getTrainingFile(nsILocalFile ** aTrainingFile)
   NS_ENSURE_SUCCESS(rv, rv);
   rv = profileDir->Append(NS_LITERAL_STRING("training.dat"));
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   return profileDir->QueryInterface(NS_GET_IID(nsILocalFile), (void **) aTrainingFile);
 }
 
@@ -1464,27 +1482,27 @@ static const char kMagicCookie[] = { '\xFE', '\xED', '\xFA', '\xCE' };
 void nsBayesianFilter::writeTrainingData()
 {
   PR_LOG(BayesianFilterLogModule, PR_LOG_ALWAYS, ("writeTrainingData() entered"));
-  if (!mTrainingFile) 
+  if (!mTrainingFile)
     return;
 
   // open the file, and write out training data
   FILE* stream;
   nsresult rv = mTrainingFile->OpenANSIFileDesc("wb", &stream);
-  if (NS_FAILED(rv)) 
+  if (NS_FAILED(rv))
     return;
 
   if (!((fwrite(kMagicCookie, sizeof(kMagicCookie), 1, stream) == 1) &&
         (writeUInt32(stream, mGoodCount) == 1) &&
         (writeUInt32(stream, mBadCount) == 1) &&
          writeTokens(stream, mGoodTokens) &&
-         writeTokens(stream, mBadTokens))) 
+         writeTokens(stream, mBadTokens)))
   {
     NS_WARNING("failed to write training data.");
     fclose(stream);
     // delete the training data file, since it is potentially corrupt.
     mTrainingFile->Remove(PR_FALSE);
-  } 
-  else 
+  }
+  else
   {
     fclose(stream);
     mTrainingDataDirty = PR_FALSE;
@@ -1493,22 +1511,22 @@ void nsBayesianFilter::writeTrainingData()
 
 void nsBayesianFilter::readTrainingData()
 {
-  if (!mTrainingFile) 
+  if (!mTrainingFile)
     return;
-  
+
   PRBool exists;
   nsresult rv = mTrainingFile->Exists(&exists);
-  if (NS_FAILED(rv) || !exists) 
+  if (NS_FAILED(rv) || !exists)
     return;
 
   FILE* stream;
   rv = mTrainingFile->OpenANSIFileDesc("rb", &stream);
-  if (NS_FAILED(rv)) 
+  if (NS_FAILED(rv))
     return;
 
   PRInt64 fileSize;
   rv = mTrainingFile->GetFileSize(&fileSize);
-  if (NS_FAILED(rv)) 
+  if (NS_FAILED(rv))
     return;
 
   // FIXME:  should make sure that the tokenizers are empty.
@@ -1522,7 +1540,7 @@ void nsBayesianFilter::readTrainingData()
       NS_WARNING("failed to read training data.");
       PR_LOG(BayesianFilterLogModule, PR_LOG_ALWAYS, ("failed to read training data."));
   }
-  
+
   fclose(stream);
 }
 
