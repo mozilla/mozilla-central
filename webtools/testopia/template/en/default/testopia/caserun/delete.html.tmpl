@@ -56,10 +56,6 @@ This case has <a href="buglist.cgi?bug_id=[% caserun.bug_list FILTER none %]">[%
     [% FOREACH c = caseruns %]
       <input type="hidden" name="caserun_id" value="[% c.id FILTER none %]" />
     [% END %]
-  <p>
-  <input type="checkbox" name="single" id="single" value="1" /><label for="single">Only remove this case-run for environment <b>[% caseruns.0.environment.name FILTER html %]</b> and build <b>[% caseruns.0.build.name FILTER html %]</b></label><br/>
-  </p>
-    
   [% ELSE %]
   <p>
   <input type="checkbox" name="single" id="single" value="1" /><label for="single">Only remove this case-run for environment <b>[% caserun.environment.name FILTER html %]</b> and build <b>[% caserun.build.name FILTER html %]</b></label><br/>

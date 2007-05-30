@@ -146,8 +146,8 @@ if ($action eq 'Commit'){
     }
     my $run = Bugzilla::Testopia::TestRun->new({});
     $vars->{'run'} = $run;
-    $vars->{'title'} = "Update Successful";
-    $vars->{'tr_message'} = "$i Test Runs Updated";
+    $vars->{'title'} = $i ? "Update Successful" : "Nothing Updated";
+    $vars->{'tr_message'} = "$i Test Runs Updated" if $i;
     $vars->{'current_tab'} = 'run';
     $vars->{'build_list'} = $run->get_distinct_builds();
     $template->process("testopia/search/advanced.html.tmpl", $vars)

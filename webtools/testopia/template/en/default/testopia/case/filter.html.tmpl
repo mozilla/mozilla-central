@@ -46,11 +46,12 @@
                     mult      => 1 } %]
       </td>
       <td style="padding-right: 30px;">
-      [% PROCESS select sel = { name  => 'component_id',
+      [% PROCESS select sel = { name  => 'component',
                     accesskey => 'm', 
                     list      => plan.product.components
                     elements  => 5,
-                    mult      => 1 } %]
+                    mult      => 1,
+                    byname    => 1 } %]
       </td>      
       <td valign="top">
       [% PROCESS select sel = { name  => 'isautomated',

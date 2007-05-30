@@ -247,7 +247,7 @@ elsif ($action eq 'do_delete'){
         print $cgi->multipart_end;
         print $cgi->multipart_start;
     }
-    $vars->{'deleted'} = 1;
+    $vars->{'deleted'} = $i;
     $vars->{'run_id'} = $cgi->param('run_id');
     $template->process("testopia/caserun/delete.html.tmpl", $vars) ||
         ThrowTemplateError($template->error());

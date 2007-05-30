@@ -123,7 +123,7 @@ if ($action eq 'Commit'){
     $vars->{'plan'} = $plan;
     $vars->{'title'} = "Update Successful";
     $vars->{'tr_error'} = "You did not have rights to edit ". scalar @uneditable . "plans" if scalar @uneditable > 0;
-    $vars->{'tr_message'} = "$i Test Plan(s) Updated";
+    $vars->{'tr_message'} = "$i Test Plan(s) Updated" if $i;
     $vars->{'current_tab'} = 'plan';
     $template->process("testopia/search/advanced.html.tmpl", $vars)
         || ThrowTemplateError($template->error()); 

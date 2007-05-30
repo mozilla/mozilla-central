@@ -88,7 +88,7 @@ if ($action eq 'Archive' || $action eq 'Unarchive'){
 #############
 elsif ($action eq 'Clone'){
     print $cgi->header;
-    ThrowUserError("testopia-create-denied", {'object' => 'plans'}) unless Bugzilla->user->in_group('Testers');
+    ThrowUserError("testopia-create-denied", {'object' => 'plan'}) unless Bugzilla->user->in_group('Testers');
     my $plan = Bugzilla::Testopia::TestPlan->new($plan_id);
     do_update($plan);
     $vars->{'plan'} = $plan;
