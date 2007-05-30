@@ -40,6 +40,31 @@ function checkSubmitEnable() {
   document.getElementById("send-feedback").disabled = !enable;
 }
 
+function browserDetect() {
+  var userAgent = navigator.userAgent;
+  
+  var matches = [
+    { regexp: /SeaMonkey/, product: "SeaMonkey" },
+    { regexp: /Camino/, product: "Camino" },
+    { regexp: /\/3\.0[ab]\d+([^p]|$)/, product: "Gran Paradiso" },
+    { regexp: /Minefield/, product: "Minefield" },
+    { regexp: /GranParadiso/, product: "Gran Paradiso" },
+  ];
+  
+  for (var i = 0; i < matches.length; i++) {
+    if (userAgent.match(matches[i]["regexp"])) {
+      var prod = document.getElementById("product");
+      for (var j = 0; j < prod.options.length; j++) {
+        if (prod.options[j].text == matches[i].product) {
+          prod.selectedIndex = j;
+        }
+      }
+      
+      break;
+    }
+  }
+}
+
 function onLoad() {
   /* Add the event listeners, and disable the button initially */
   for (var i = 0; i < ids.length; i++) {
@@ -47,7 +72,8 @@ function onLoad() {
   }
   
   checkSubmitEnable();
-}  
+  browserDetect();
+}
 [% END %]
   
 [% PROCESS header.html.tmpl 

@@ -41,24 +41,26 @@ use Net::RBLClient;
 
 # Map products to destination
 my %product_destination_map = (
-	"Firefox" => "mozilla.feedback",
-	"Thunderbird" => "mozilla.feedback",
-	"Mozilla Suite" => "mozilla.feedback",
-	"SeaMonkey" => "mozilla.feedback",
-	"Sunbird" => "mozilla.feedback",
-	"Camino" => "caminofeedback\@mozilla.org",
-	"Bon Echo" => "mozilla.feedback",
-	"Gran Paradiso" => "mozilla.feedback",
-	"Minefield" => "mozilla.feedback",
-	"eBay Companion" => "mozilla.feedback.companion.ebay",
-	"Other" => "mozilla.feedback"
+	"Firefox"                       => "mozilla.feedback.firefox",
+	"Firefox Release Candidate"     => "mozilla.feedback.firefox.prerelease",
+	"Gran Paradiso"                 => "mozilla.feedback.firefox.prerelease",
+	"Minefield"                     => "mozilla.feedback",
+	"Thunderbird"                   => "mozilla.feedback.thunderbird",
+	"Thunderbird Release Candidate" => "mozilla.feedback.thunderbird.prerelease",
+	"Mozilla Suite"                 => "mozilla.feedback",
+	"SeaMonkey"                     => "mozilla.feedback",
+	"Sunbird"                       => "mozilla.feedback",
+	"Camino"                        => "caminofeedback\@mozilla.org",
+	"eBay Companion"                => "mozilla.feedback.companion.ebay",
+	"Other"                         => "mozilla.feedback"
 );
 
 # List of products to show on the main Hendrix page (in order)
 my @products_list = (
-	"Firefox", "Thunderbird", "Mozilla Suite", 
-	"SeaMonkey", "Sunbird", "Camino", "Bon Echo",
-	"Gran Paradiso", "Minefield", "Other"
+	"Firefox", "Firefox Release Candidate", "Thunderbird", 
+  "Thunderbird Release Candidate", "Gran Paradiso", "Minefield", 
+  "Camino", "SeaMonkey", "Mozilla Suite", "Sunbird", 
+	"Other"
 );
 
 # The default newsgroup if the product isn't in the above map (NNTP only)
