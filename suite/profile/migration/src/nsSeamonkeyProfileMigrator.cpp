@@ -277,6 +277,7 @@ nsSeamonkeyProfileMigrator::FillProfileDataFromRegistry()
 static
 nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("addressbook.throbber.url",                String),
+  MAKESAMETYPEPREFTRANSFORM("advanced.mailftp",                        Bool),
   MAKESAMETYPEPREFTRANSFORM("application.use_ns_plugin_finder",        Bool),
 
   MAKESAMETYPEPREFTRANSFORM("alerts.slideIncrement",                   Int),
@@ -290,6 +291,7 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("browser.chrome.image_icons.max_size",     Int),
   MAKESAMETYPEPREFTRANSFORM("browser.chrome.load_toolbar_icons",       Int),
   MAKESAMETYPEPREFTRANSFORM("browser.chrome.site_icons",               Bool),
+  MAKESAMETYPEPREFTRANSFORM("browser.chrome.toolbar_style",            Int),
 
   // XXX Bug 381159 When suite uses Toolkit's DM backend, we need to
   // activate this code.
@@ -317,6 +319,7 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("browser.sessionhistory.max_entries",      Int),
   MAKESAMETYPEPREFTRANSFORM("browser.sessionhistory.max_total_viewers",Int),
   MAKESAMETYPEPREFTRANSFORM("browser.startup.page",                    Int),
+  MAKESAMETYPEPREFTRANSFORM("browser.throbber.url",                    String),
   MAKESAMETYPEPREFTRANSFORM("browser.toolbars.showbutton.bookmarks",   Bool),
   MAKESAMETYPEPREFTRANSFORM("browser.toolbars.showbutton.go",          Bool),
   MAKESAMETYPEPREFTRANSFORM("browser.toolbars.showbutton.home",        Bool),
@@ -359,6 +362,7 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("keyword.URL",                             String),
   MAKESAMETYPEPREFTRANSFORM("keyword.enabled",                         Bool),
 
+  MAKESAMETYPEPREFTRANSFORM("layout.css.dpi",                          Int),
   MAKESAMETYPEPREFTRANSFORM("layout.spellcheckDefault",                Int),
 
   MAKESAMETYPEPREFTRANSFORM("mail.accountmanager.accounts",            String),
@@ -410,8 +414,8 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("mail.password_protect_local_cache",       Bool),
   MAKESAMETYPEPREFTRANSFORM("mail.phishing.detection.enabled",         Bool),
   MAKESAMETYPEPREFTRANSFORM("mail.pop3.deleteFromServerOnMove",        Bool),
-  MAKESAMETYPEPREFTRANSFORM("mail.prompt_purge_threshold",             Bool),
-  MAKESAMETYPEPREFTRANSFORM("mail.purge_threshold",                    Int),
+  MAKESAMETYPEPREFTRANSFORM("mail.prompt_purge_threshhold",            Bool),
+  MAKESAMETYPEPREFTRANSFORM("mail.purge_threshhold",                   Int),
   MAKESAMETYPEPREFTRANSFORM("mail.purge.ask",                          Bool),
   MAKESAMETYPEPREFTRANSFORM("mail.purge.min_delay",                    Int),
   MAKESAMETYPEPREFTRANSFORM("mail.purge.timer_interval",               Int),
@@ -483,6 +487,7 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("mailnews.open_window_warning",            Int),
   MAKESAMETYPEPREFTRANSFORM("mailnews.plaintext_domains",              String),
   MAKESAMETYPEPREFTRANSFORM("mailnews.remember_selected_message",      Bool),
+  MAKESAMETYPEPREFTRANSFORM("mailnews.reuse_message_window",           Bool),
   MAKESAMETYPEPREFTRANSFORM("mailnews.scroll_to_new_message",          Bool),
   MAKESAMETYPEPREFTRANSFORM("mailnews.search_date_format",             String),
   MAKESAMETYPEPREFTRANSFORM("mailnews.search_date_leading_zeros",      String),
@@ -490,7 +495,7 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("mailnews.send_default_charset",           String),
   MAKESAMETYPEPREFTRANSFORM("mailnews.send_plaintext_flowed",          String),
   MAKESAMETYPEPREFTRANSFORM("mailnews.show_send_progress",             String),
-  MAKESAMETYPEPREFTRANSFORM("mailnews.start_page.enabled",             String),
+  MAKESAMETYPEPREFTRANSFORM("mailnews.start_page.enabled",             Bool),
   MAKESAMETYPEPREFTRANSFORM("mailnews.start_page.url",                 String),
   MAKESAMETYPEPREFTRANSFORM("mailnews.tcptimeout",                     Int),
   MAKESAMETYPEPREFTRANSFORM("mailnews.view_default_charset",           String),
@@ -519,6 +524,7 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("network.cookie.lifetime.behavior",        Int),
   MAKESAMETYPEPREFTRANSFORM("network.cookie.lifetime.enabled",         Bool),
   MAKESAMETYPEPREFTRANSFORM("network.cookie.warnAboutCookies",         Bool),
+  MAKESAMETYPEPREFTRANSFORM("network.ftp.anonymous_password",          String),
   MAKESAMETYPEPREFTRANSFORM("network.proxy.autoconfig_url",            String),
   MAKESAMETYPEPREFTRANSFORM("network.proxy.ftp",                       String),
   MAKESAMETYPEPREFTRANSFORM("network.proxy.ftp_port",                  Int),
@@ -556,6 +562,8 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("signon.SignonFileName",                   String),
   MAKESAMETYPEPREFTRANSFORM("signon.rememberSignons",                  Bool),
   MAKESAMETYPEPREFTRANSFORM("signon.expireMasterPassword",             Bool),
+
+  MAKESAMETYPEPREFTRANSFORM("slider.snapMultiplier",                   Int),
 
   MAKESAMETYPEPREFTRANSFORM("ui.click_hold_context_menus",             Bool),
 
@@ -621,6 +629,7 @@ nsSeamonkeyProfileMigrator::TransformPreferences(const nsAString& aSourcePrefFil
     "mailnews.reply_",
     "middlemouse.",
     "mousewheel.",
+    "network.http.",
     "print.",
     "privacy.",
     "ui.key.",
