@@ -294,26 +294,23 @@
       </method>
 
       <method name="selectBy">
-        <parameter name="aDir"/>
-        <parameter name="aAmount"/>
+        <parameter name="aReverse"/>
+        <parameter name="aPage"/>
         <body><![CDATA[
-          var bx = this.tree.treeBoxObject;
-          var view = bx.view;
           var sel;
-          if (this.selectedIndex == null && aDir < 0) {
-            sel = this.mSearchBox.selectBy(aDir, aAmount);
-            if (sel != null)
+          if (this.selectedIndex == null && aReverse ||
+              this.mSearchBox.selectedIndex != null) {
+            sel = this.mSearchBox.selectBy(aReverse, aPage);
+            if (sel != null || !aReverse)
               return null;
           } 
           
-          sel = this.getNextIndex(aDir, aAmount, this.selectedIndex, view.rowCount-1);
+          sel = this.getNextIndex(aReverse, aPage, this.selectedIndex, this.textbox.view.rowCount - 1);
           this.mSelectedIndex = sel;
-
-          if (sel == null && aDir > 0)
-            this.mSearchBox.selectBy(aDir, aAmount);
+          if (sel == null && !aReverse)
+            this.mSearchBox.selectBy(aReverse, aPage);
           else if (this.mSearchBox.selectedIndex != null)
             this.mSearchBox.selectedIndex = null;
-            
           return sel;
         ]]></body>
       </method>
@@ -399,6 +396,7 @@
             this.parentNode.removeEventListener("mouseover", this.parentMouseoverListener, false);
             this.parentNode.removeEventListener("popuphiding", this.parentDestroyListener, false);
           }
+          return val;
         ]]></setter>
       
       </property>
@@ -420,12 +418,10 @@
       </property>
       
       <method name="selectBy">
-        <parameter name="aDir"/>
-        <parameter name="aAmount"/>
+        <parameter name="aReverse"/>
+        <parameter name="aPage"/>
         <body><![CDATA[
-          var sel = this.parentNode.getNextIndex(aDir, aAmount, this.selectedIndex, this.childNodes.length-1);
-          this.selectedIndex = sel;
-          return sel;
+          return this.selectedIndex = this.parentNode.getNextIndex(aReverse, aPage, this.selectedIndex, this.childNodes.length - 1);
         ]]></body>
       </method>
 
