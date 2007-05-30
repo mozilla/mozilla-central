@@ -64,7 +64,7 @@ nsSetDefaultMail.prototype = {
     }
   },
 
-  helpText : "  -setDefaultMail   Set this app as the default mail client.\n"
+  helpInfo : "  -setDefaultMail   Set this app as the default mail client.\n"
 }
 
 const contractID = "@mozilla.org/mail/default-mail-clh;1";
