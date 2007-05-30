@@ -185,14 +185,15 @@ nsImapMoveCopyMsgTxn::UndoTransaction(void)
         CheckForToggleDelete(srcFolder, m_srcKeyArray.GetAt(0), &deletedMsgs);
 
       if (deletedMsgs)
-        rv = imapService->SubtractMessageFlags(
-             m_eventTarget, srcFolder, srcListener, nsnull,
-             m_srcMsgIdString.get(), kImapMsgDeletedFlag,
+        rv = imapService->SubtractMessageFlags(m_eventTarget, srcFolder, 
+                                               srcListener, nsnull,
+                                               m_srcMsgIdString, 
+                                               kImapMsgDeletedFlag,
              m_idsAreUids);
       else
         rv = imapService->AddMessageFlags(m_eventTarget, srcFolder,
                                           srcListener, nsnull,
-                                          m_srcMsgIdString.get(),
+                                          m_srcMsgIdString,
                                           kImapMsgDeletedFlag,
                                           m_idsAreUids);
       if (NS_FAILED(rv)) 
@@ -201,7 +202,7 @@ nsImapMoveCopyMsgTxn::UndoTransaction(void)
       if (deleteModel != nsMsgImapDeleteModels::IMAPDelete)
         rv = imapService->GetHeaders(m_eventTarget, srcFolder,
         srcListener, nsnull,
-        m_srcMsgIdString.get(),
+                                     m_srcMsgIdString,
         PR_TRUE); 
     }
   }
@@ -221,7 +222,7 @@ nsImapMoveCopyMsgTxn::UndoTransaction(void)
     if (NS_FAILED(rv)) return rv;
     rv = imapService->AddMessageFlags(m_eventTarget, dstFolder,
       dstListener, nsnull,
-      m_dstMsgIdString.get(),
+                                      m_dstMsgIdString,
       kImapMsgDeletedFlag,
       m_idsAreUids);
   }
@@ -272,15 +273,19 @@ nsImapMoveCopyMsgTxn::RedoTransaction(void)
       if (NS_FAILED(rv)) 
         return rv;
       if (deletedMsgs)
+      {
         rv = imapService->SubtractMessageFlags(m_eventTarget, srcFolder, 
                                                 srcListener, nsnull,
-                                                m_srcMsgIdString.get(), kImapMsgDeletedFlag,
+                                                m_srcMsgIdString, kImapMsgDeletedFlag,
                                                 m_idsAreUids);
+      }
       else
+      {
         rv = imapService->AddMessageFlags(m_eventTarget, srcFolder,
-                                          srcListener, nsnull, m_srcMsgIdString.get(),
+                                          srcListener, nsnull, m_srcMsgIdString,
                                           kImapMsgDeletedFlag, m_idsAreUids);
     }
+  }
   }
   if (!m_dstMsgIdString.IsEmpty())
   {
@@ -300,7 +305,7 @@ nsImapMoveCopyMsgTxn::RedoTransaction(void)
       return rv;
     rv = imapService->SubtractMessageFlags(m_eventTarget, dstFolder,
       dstListener, nsnull,
-      m_dstMsgIdString.get(),
+                                           m_dstMsgIdString,
       kImapMsgDeletedFlag,
       m_idsAreUids);
     if (NS_FAILED(rv)) 
@@ -308,10 +313,12 @@ nsImapMoveCopyMsgTxn::RedoTransaction(void)
     nsMsgImapDeleteModel deleteModel;
     rv = GetImapDeleteModel(dstFolder, &deleteModel);
     if (NS_FAILED(rv) || deleteModel == nsMsgImapDeleteModels::MoveToTrash)
+    {
       rv = imapService->GetHeaders(m_eventTarget, dstFolder,
       dstListener, nsnull,
-      m_dstMsgIdString.get(),
+                                   m_dstMsgIdString,
       PR_TRUE);
+  }
   }
   return rv;
 }

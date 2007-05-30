@@ -2538,8 +2538,7 @@ NS_IMETHODIMP nsImapIncomingServer::OnLogonRedirectionReply(const PRUnichar *pHo
   nsresult rv;
   nsCOMPtr <nsIImapProtocol> imapProtocol;
   nsCAutoString cookie(pCookieData, pCookieSize);
-  // we used to logoff the external requestor...we no longer need to do
-  // that.
+  // we used to logoff the external requestor...we no longer need to do that.
 
   m_redirectedLogonRetries = 0; // we got through, so reset this counter.
 
@@ -2613,7 +2612,7 @@ nsImapIncomingServer::StartPopulatingWithUri(nsIMsgWindow *aMsgWindow, PRBool aF
     to get path from uri, skip over imap://user@host + 1 (for the /)
 */
   const char *path = uri + serverUri.Length() + 1;
-  return imapService->GetListOfFoldersWithPath(this, aMsgWindow, path);
+  return imapService->GetListOfFoldersWithPath(this, aMsgWindow, nsDependentCString(path));
 }
 
 NS_IMETHODIMP
@@ -2827,9 +2826,9 @@ nsImapIncomingServer::SubscribeToFolder(const nsAString& aName, PRBool subscribe
   NS_ENSURE_SUCCESS(rv, rv);
 
   if (subscribe)
-    rv = imapService->SubscribeFolder(thread, msgFolder, unicodeName.get(), nsnull, aUri);
+    rv = imapService->SubscribeFolder(thread, msgFolder, unicodeName, nsnull, aUri);
   else
-    rv = imapService->UnsubscribeFolder(thread, msgFolder, unicodeName.get(), nsnull, nsnull);
+    rv = imapService->UnsubscribeFolder(thread, msgFolder, unicodeName, nsnull, nsnull);
   return rv;
 }
 
