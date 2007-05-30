@@ -196,6 +196,8 @@ function CompFields2Recipients(msgCompFields)
     var listBoxColsClone = listbox.firstChild.cloneNode(true);
     newListBoxNode.appendChild(listBoxColsClone);
     var templateNode = listbox.getElementsByTagName("listitem")[0];
+    // dump("replacing child in comp fields 2 recips \n");
+    listbox.parentNode.replaceChild(newListBoxNode, listbox);
     
     top.MAX_RECIPIENTS = 0;
     var msgReplyTo = msgCompFields.replyTo;
@@ -227,9 +229,6 @@ function CompFields2Recipients(msgCompFields)
     //If it's a new message, we need to add an extrat empty recipient.
     if (!msgTo && !msgNewsgroups)
       _awSetInputAndPopup("", "addr_to", newListBoxNode, templateNode);
-    // dump("replacing child in comp fields 2 recips \n");
-    var parent = listbox.parentNode;
-    parent.replaceChild(newListBoxNode, listbox);
     awFitDummyRows(2);
 
     // CompFields2Recipients is called whenever a user replies or edits an existing message. We want to
