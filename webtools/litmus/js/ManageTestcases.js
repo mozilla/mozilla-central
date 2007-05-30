@@ -292,6 +292,6 @@ function checkFormContents(f) {
 }
 
 function generateBugLink(bugID) {
-  return 'https://bugzilla.mozilla.org?show_bug.cgi?id=' + bugID;
+  return 'https://bugzilla.mozilla.org/show_bug.cgi?id=' + bugID;
 }
 
