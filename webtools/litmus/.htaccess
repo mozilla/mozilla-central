@@ -1,3 +1,6 @@
 <FilesMatch ^(.*localconfig.*)$>
   deny from all
 </FilesMatch>
+<FilesMatch ".sql$">
+  deny from all
+</FilesMatch>
