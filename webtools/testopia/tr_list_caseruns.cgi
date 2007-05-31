@@ -122,13 +122,18 @@ if ($action eq 'Commit'){
         $caserun = $caserun->switch($build,$env);
         
         my $status   = $cgi->param('status') == -1 ? $caserun->status_id : $cgi->param('status');
-        my $assignee = $cgi->param('assignee') eq '' ? $caserun->assignee->id : login_to_id(trim($cgi->param('assignee')));       
-        unless ($assignee){
-           print $cgi->multipart_end if $serverpush;
-           ThrowUserError("invalid_username", { name => $cgi->param('assignee') });
+        my $assignee;
+        if ($cgi->param('assignee') eq ''){
+            $assignee = $caserun->assignee->id if $caserun->assignee;  
         }
+        else {
+            $assignee = login_to_id(trim($cgi->param('assignee')));
+            unless ($assignee){
+               print $cgi->multipart_end if $serverpush;
+               ThrowUserError("invalid_username", { name => $cgi->param('assignee') });
+            }
+        }       
         detaint_natural($status);
-        trick_taint($assignee);
         
         $caserun->set_status($status)     if ($caserun->status_id != $status);
         $caserun->set_assignee($assignee) if ($caserun->assignee->id != $assignee);

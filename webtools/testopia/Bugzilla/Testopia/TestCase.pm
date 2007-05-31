@@ -803,7 +803,6 @@ sub update {
         'test_fielddefs READ');
     foreach my $field (keys %{$newvalues}){
         if ($self->{$field} ne $newvalues->{$field}){
-            trick_taint($newvalues->{$field});
             $dbh->do("UPDATE test_cases 
                       SET $field = ? WHERE case_id = ?",
                       undef, $newvalues->{$field}, $self->{'case_id'});
