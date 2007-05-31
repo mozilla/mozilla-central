@@ -1,18 +1,6 @@
-===Litmus Installation Instructions===
+= Litmus Installation Instructions =
 
-First of all, let me convince you that you in fact probbaly do not want
-to install Litmus. Litmus is not 1.0 software. Litmus is not even 0.5
-software. In fact, Litmus doesn't really do any of the things you would
-expect it to do yet.
-
-In summary, if you're not looking to install Litmus because you are or
-want to be a Litmus developer, you'd best turn around and go back from
-whence you came.
-
-If at any point you find that you don't understand these installation
-instructions, it's a good sign you want to turn back as well.
-
-Required Perl Modules:
+== Required Perl Modules ==
 
 Apache::DBI
 CGI
@@ -36,13 +24,16 @@ Time::Piece::MySQL
 Time::Seconds
 XML::XPath
 
-First edit Litmus/Config.pm to give it the information it needs to
-connect to the database.
+== Setting up the database ==
 
-Run populatedb.pl. This will create a template configuration file, 'localconfig,' that contains variables to hold your database configuration information. Edit the newly created 'localconfig' file with your database configuration. Once 'localconfig' is populated with your database information, run the populatedb.pl again to populate the initial products, locales, etc... There is no UI at present for doing this.
+Run populatedb.pl. This will create a template configuration file, 'localconfig,' that contains variables to hold your database configuration information. Edit the newly created 'localconfig' file with your database configuration. Once 'localconfig' is populated with your database information, run the populatedb.pl again to populate the initial products, locales, etc... There is no UI at present for doing this. 
 
 Then just pop the whole thing into a directory where your web server can
 get at it. Have fun!
 
 Note: After upgrading Litmus, it's a good idea to run populatedb.pl
-again to pick up any schema changes that may have occured. 
+again to pick up any schema changes that may have occured.
+
+== Creating the first admin user ==
+
+Click 'Log In' and create a new Litmus account. In the database, set 'is_admin' = 1 for the new user in the users table. That user will now have access to the admin functions of Litmus through the web interface.
