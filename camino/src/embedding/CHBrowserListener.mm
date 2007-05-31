@@ -37,6 +37,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import <Cocoa/Cocoa.h>
+#import <ApplicationServices/ApplicationServices.h>
 
 #import "NSString+Utils.h"
 
@@ -418,16 +419,10 @@ CHBrowserListener::SetDimensions(PRUint32 flags, PRInt32 x, PRInt32 y, PRInt32 c
 
   if (flags & nsIEmbeddingSiteWindow::DIM_FLAGS_POSITION)
   {
-    NSPoint origin;
-    origin.x = (float)x;
-    origin.y = (float)y;
-    
     // websites assume the origin is the topleft of the window and that the screen origin
     // is "topleft" (quickdraw coordinates). As a result, we have to convert it.
-    GDHandle screenDevice = ::GetMainDevice();
-    Rect screenRect = (**screenDevice).gdRect;
-    short screenHeight = screenRect.bottom - screenRect.top;
-    origin.y = screenHeight - origin.y;
+    CGRect screenRect = CGDisplayBounds(CGMainDisplayID());
+    NSPoint origin = NSMakePoint(x, screenRect.size.height - y);
     
     [window setFrameTopLeftPoint:origin];
   }
@@ -475,10 +470,8 @@ CHBrowserListener::GetDimensions(PRUint32 flags,  PRInt32 *x,  PRInt32 *y, PRInt
       // websites (and gecko) expect the |y| value to be in "quickdraw" coordinates 
       // (topleft of window, origin is topleft of main device). Convert from cocoa -> 
       // quickdraw coord system.
-      GDHandle screenDevice = ::GetMainDevice();
-      Rect screenRect = (**screenDevice).gdRect;
-      short screenHeight = screenRect.bottom - screenRect.top;
-      *y = screenHeight - (PRInt32)(frame.origin.y + frame.size.height);
+      CGRect screenRect = CGDisplayBounds(CGMainDisplayID());
+      *y = (PRInt32)(screenRect.size.height - NSMaxY(frame));
     }
   }
   if (flags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_OUTER) {
