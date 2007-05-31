@@ -64,7 +64,10 @@ enum KeychainPromptResult { kSave, kDontRemember, kNeverRemember } ;
 
   BOOL mFormPasswordFillIsEnabled;
 
-  NSMutableDictionary* mAllowedActionHosts; // strong;
+  NSMutableDictionary* mAllowedActionHosts;  // strong
+
+  NSMutableDictionary* mCachedKeychainItems; // strong
+  NSMutableDictionary* mKeychainCacheTimers; // strong
 
   nsIObserver* mFormSubmitObserver;
 }
@@ -111,6 +114,11 @@ enum KeychainPromptResult { kSave, kDontRemember, kNeverRemember } ;
 - (void)setAllowedActionHosts:(NSArray*)actionHosts forHost:(NSString*)host;
 - (NSArray*)allowedActionHostsForHost:(NSString*)host;
 
+// Methods to interact with the temporary keychain item cache.
+- (KeychainItem*)cachedKeychainEntryForKey:(NSString*)key;
+- (void)cacheKeychainEntry:(KeychainItem*)keychainItem forKey:(NSString*)key;
+- (void)expirationTimerFired:(NSTimer*)theTimer;
+
 @end
 
 
@@ -151,7 +159,7 @@ protected:
   
   void PreFill(const PRUnichar *, PRUnichar **, PRUnichar **);
   void ProcessPrompt(const PRUnichar *, bool, PRUnichar *, PRUnichar *);
-  static void ExtractRealmComponents(const PRUnichar* inRealmBlob, NSString** outHost, NSString** outRealm, PRInt32* outPort);
+  static void ExtractRealmComponents(NSString* inRealmBlob, NSString** outHost, NSString** outRealm, PRInt32* outPort);
 
   nsCOMPtr<nsIPrompt>   mPrompt;
 };
