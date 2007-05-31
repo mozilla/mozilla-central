@@ -20,60 +20,37 @@
 #
 # Contributor(s): 
 
-# Figure out which directory tinderbox is in by looking at argv[0]
+use lib "@TINDERBOX_DIR@";
+require 'tbglobals.pl'; # for $gzip
+use strict;
+use Getopt::Std;
 
-use File::Find;
-
-$tinderboxdir = $0;
-$tinderboxdir =~ s:/[^/]*$::;      # Remove last word, and slash before it.
-$tinderboxdir = '.' if $tinderboxdir eq '';
-$now          = time();
-$expire_time  = $now - 7 * 24 * 60 * 60;
-#print "tinderbox = $tinderboxdir\n"; 
-
+my $verbose = 0;
+my $tinderboxdir = "@TINDERBOX_DIR@";
 chdir $tinderboxdir or die "Couldn't chdir to $tinderboxdir"; 
 
-sub files_to_remove {
-  # Remove files older than 7 days
-  unlink if /^\d+\.\d+\.gz$|^tbx.[0-9]+$|^warn\d.*\.html$/ and int(-M $_) > 7;
-  # Remove files older than 1 day
-  unlink if /^\d+\.\d+\.brief\.html$/ and int(-M $_) > 1;
-}
-&find(\&files_to_remove, $tinderboxdir);
+our ($opt_h, $opt_v);
+getopts('hv');
+usage() if (defined($opt_h));
+$verbose++ if (defined($opt_v));
+print "$verbose\n";
 
-# Remove build.dat entries older than 7 days
-#
-sub log_files_to_trim {
-  return unless /^(?:notes.txt|build.dat|scrape.dat|warnings.dat)$/;
-  warn "Cleaning $File::Find::name\n";
-  my $file = $_;
-  my $range_start = 0;
-  my $line = 1;
-  my $ed_cmds = '';
-  open LOG, "<", $file;
-  while (<LOG>) {
-    $log_time = (split /\|/)[0];
-    if ($log_time =~ /(\d+)\.\d+\.gz/) {
-      # Log file name is first column in file. Pull time out of it.
-      $log_time = $1;
-    }
-    if ($range_start == 0 and $log_time < $expire_time) {
-      $range_start = $line;
-    } elsif ($range_start != 0 and $log_time >= $expire_time) {
-      if ($range_start == $line - 1) {
-        $ed_cmds = "${range_start}d\n$ed_cmds";
-      } else {
-        $ed_cmds = "$range_start,".($line - 1)."d\n$ed_cmds";
-      }
-      $range_start = 0;
-    }
-    $line++;
-  }
-  close LOG;
-  next if $ed_cmds eq '';
-  open ED,"| ed $file" or die "died ed'ing: $!\n";
-  print ED "${ed_cmds}w\nq\n";
-  close ED;
+my $days = shift;
+my @trees = @ARGV;
+usage() if !defined($days) || !defined(@trees);
+
+for my $tree (@trees) {
+    tb_trim_logs($tree, $days, $verbose, 0);
 }
-&find(\&log_files_to_trim, $tinderboxdir);
+
+exit(0);
+# end of main
+######################################################################
+
+sub usage() {
+    print "Usage: $0 [-hv] days tree [tree1 .. treeN]\n";
+    print "   days = number of days of builds to keep\n";
+    print "   tree = name of tree to clean\n";
+    exit(1);
+}
 

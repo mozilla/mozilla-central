@@ -79,9 +79,9 @@ doadmin.cgi     Actually do the work to admin a tinderbox tree
                 (change message of the day, turn off displays for a
                 channel)
 
-clean.pl        Run `find . -name \"*.gz\" -mtime +7 -print ` and 
-                unlink those files.  Does not appear to be run from
-                other tools.  It is a good candidate for a cron job.
+clean.pl        Removes log files and build entries from status files
+                for the given tree based upon a given number of days.
+		Intended to be used from a cronjob.
 
 
 
@@ -283,7 +283,7 @@ addnote.cgi	Add a note to a build log.
 admintree.cgi	Lets you perform various admin tasks on a Tinderbox tree.
 		This just prompts for a password and posts to doadmin.cgi.
 
-clean.pl	???
+clean.pl	Cron script used to remove old builds from Tinderbox tree
 copydata.pl	???
 
 doadmin.cgi	Actually do the work to admin a tinderbox tree 

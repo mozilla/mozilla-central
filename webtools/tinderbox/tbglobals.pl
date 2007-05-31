@@ -740,6 +740,88 @@ sub write_treedata() {
     close( F );
 }
 
+sub tb_trim_logs($$$$) {
+    my ($tree, $days, $verbose, $do_html) = (@_);
+
+    # Do nothing if incomplete params are given
+    return if (!defined($days) || !defined($tree) || !defined($verbose) ||
+               !defined($do_html));
+    
+    my $min_date = time - (60*60*24 * $days);
+
+    #
+    # Nuke the old log files
+    #
+    my $i = 0;
+    my $tblocks;
+    opendir( D, &shell_escape($tree) );
+    while( my $fn = readdir( D ) ){
+        if( $fn =~ /\.(?:gz|brief\.html)$/ ||
+            $fn =~ m/^warn.*?\.html$/){
+            my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,
+                $ctime,$blksize,$blocks) = stat("$tree/$fn");
+            if( $mtime && ($mtime < $min_date) ){
+                print "$fn\n" if ($verbose > 1);
+                $tblocks += $blocks;
+                unlink( "$tree/$fn" );
+                $i++;
+            }
+        }
+    }
+    closedir( D );
+    my $k = $tblocks*512/1024;
+    if ($verbose) {
+        print "<br><b>" if ($do_html);
+        print "$i Logfiles ( $k K bytes ) removed";
+        print "</b><br>" if ($do_html);
+        print "\n";
+    }
+
+    #
+    # Trim build.dat
+    #
+    my $builds_removed = 0;
+    open(BD, "<", "$tree/build.dat");
+    open(NBD, ">", "$tree/build.dat.new");
+    while( <BD> ){
+        my ($endtime,$buildtime,$buildname) = split( /\|/ );
+        if( $buildtime >= $min_date ){
+            print NBD $_;
+        }
+        else {
+            $builds_removed++;
+        }
+    }
+    close( BD );
+    close( NBD );
+
+    unlink( "$tree/build.dat.old" );
+    rename( "$tree/build.dat", "$tree/build.dat.old" );
+    rename( "$tree/build.dat.new", "$tree/build.dat" );
+
+    #
+    # Trim scrape.dat & warnings.dat
+    #
+    for my $file ("scrape.dat", "warnings.dat") {
+        open(BD, "<", "$tree/$file");
+        open(NBD, ">", "$tree/$file.new");
+        while (<BD>) {
+            my ($logfile, $junk) = split (/\|/);
+            my ($buildtime, $processtime, $pid) = split (/\./, $logfile);
+            if ($buildtime >= $min_date) {
+                print NBD $_;
+            }
+        }
+        close(BD);
+        close(NBD);
+        unlink("$tree/$file.old");
+        rename("$tree/$file", "$tree/$file.old");
+        rename("$tree/$file.new", "$tree/$file");
+    }
+
+    return $builds_removed;
+}
+
 # end of public functions
 #============================================================
 

@@ -70,78 +70,8 @@ elsif ($command eq 'admin_builds') {
 }
 
 sub trim_logs {
-    my $days = $form{'days'};
-    my $tree = $form{'tree'};
-
-    print "<h2>Trimming Log files for $tree...</h2>\n<p>";
-    
-    my $min_date = time - (60*60*24 * $days);
-
-    #
-    # Nuke the old log files
-    #
-    my $i = 0;
-    my $tblocks;
-    opendir( D, &shell_escape($tree) );
-    while( my $fn = readdir( D ) ){
-        if( $fn =~ /\.(?:gz|brief\.html)$/ ||
-            $fn =~ m/^warn.*?\.html$/){
-            my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,
-                $ctime,$blksize,$blocks) = stat("$tree/$fn");
-            if( $mtime && ($mtime < $min_date) ){
-                print "$fn\n";
-                $tblocks += $blocks;
-                unlink( "$tree/$fn" );
-                $i++;
-            }
-        }
-    }
-    closedir( D );
-    my $k = $tblocks*512/1024;
-    print "<br><b>$i Logfiles ( $k K bytes ) removed</b><br>\n";
-
-    #
-    # Trim build.dat
-    #
-    my $builds_removed = 0;
-    open(BD, "<", "$tree/build.dat");
-    open(NBD, ">", "$tree/build.dat.new");
-    while( <BD> ){
-        my ($endtime,$buildtime,$buildname) = split( /\|/ );
-        if( $buildtime >= $min_date ){
-            print NBD $_;
-        }
-        else {
-            $builds_removed++;
-        }
-    }
-    close( BD );
-    close( NBD );
-
-    unlink( "$tree/build.dat.old" );
-    rename( "$tree/build.dat", "$tree/build.dat.old" );
-    rename( "$tree/build.dat.new", "$tree/build.dat" );
-
-    #
-    # Trim scrape.dat & warnings.dat
-    #
-    for my $file ("scrape.dat", "warnings.dat") {
-        open(BD, "<", "$tree/$file");
-        open(NBD, ">", "$tree/$file.new");
-        while (<BD>) {
-            my ($logfile, $junk) = split (/\|/);
-            my ($buildtime, $processtime, $pid) = split (/\./, $logfile);
-            if ($buildtime >= $min_date) {
-                print NBD $_;
-            }
-        }
-        close(BD);
-        close(NBD);
-        unlink("$tree/$file.old");
-        rename("$tree/$file", "$tree/$file.old");
-        rename("$tree/$file.new", "$tree/$file");
-    }
-
+    print "<h2>Trimming Log files for $form{'tree'}...</h2><p>\n";
+    my $builds_removed = tb_trim_logs($form{'tree'},  $form{'days'}, 1, 1);
     print "<h2>$builds_removed builds removed from build.dat</h2>\n";
     print "<h2><a href=\"showbuilds.cgi?tree=$tree\">Back to tree</a></h2>\n";
 }
