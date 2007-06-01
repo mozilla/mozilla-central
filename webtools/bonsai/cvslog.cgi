@@ -306,9 +306,7 @@ foreach $revision (@revisions)
     next unless $author_arg eq '' || $use_author{$author};
 
     my $log = $::revision_log{$revision};
-    $log =~ s/&/&amp;/g;
-    $log =~ s/</&lt;/g;
-    $log =~ s/>/&gt;/g;
+    $log = html_quote($log);
     $log = MarkUpText($log);
     $log =~ s/\n|\r|\r\n/<BR>/g;
 

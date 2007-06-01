@@ -1286,6 +1286,7 @@ sub html_quote {
     $var =~ s/\&/\&amp;/g;
     $var =~ s/</\&lt;/g;
     $var =~ s/>/\&gt;/g;
+    $var =~ s/\@/\&#64;/g;
     return $var;
 }
 
