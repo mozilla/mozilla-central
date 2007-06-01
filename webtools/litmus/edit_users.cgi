@@ -90,14 +90,37 @@ if (Litmus::Auth::istrusted($cookie)) {
     }
     $user->realname($c->param('realname'));
     $user->irc_nickname($c->param('irc_nickname'));
+
+    my $revoke_sessions = 0;
+    # Check to see whether we are enabling this user.    
     if ($c->param('enabled')) {
       $user->enabled(1);
+    } else {
+      if ($user->enabled) {
+        print STDERR "Trying to revoke enabled status...\n";
+        $user->enabled(0);
+        $revoke_sessions = 1;
+      }
     }
+ 
+    # Check to see whether we are changing the admin status of this user.    
     if ($c->param('is_admin')) {
       $user->is_admin(1);
+    } else {
+      if ($user->is_admin) {
+        print STDERR "Trying to revoke admin status...\n";
+        $user->is_admin(0);
+        $revoke_sessions = 1;
+      }
     }
+
     $user->authtoken($c->param('authtoken'));
     $user->update();
+
+   if ($revoke_sessions) {
+     Litmus::DB::Session->search(user_id => $user->{'user_id'})->delete_all; 
+   }
+
     my $vars = {
 		user => $user,
                 onload => "toggleMessage('success','User information updated successfully.');"
