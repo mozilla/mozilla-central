@@ -66,7 +66,6 @@ bin\jsj3250.dll
 bin\thebes.dll
 bin\gkgfx.dll
 bin\components\gkgfxthebes.dll
-bin\components\gkgfxwin.dll
 bin\components\gkwidget.dll
 bin\components\gfx.xpt
 bin\components\widget.xpt
@@ -126,7 +125,6 @@ bin\components\dom_xbl.xpt
 bin\components\dom_xpath.xpt
 bin\components\dom_xul.xpt
 bin\components\downloadmanager.xpt
-bin\components\editor.dll
 bin\components\editor.xpt
 bin\components\embed_base.xpt
 bin\components\embedcomponents.dll
@@ -149,8 +147,6 @@ bin\components\imglib2.xpt
 bin\components\inspector.xpt
 bin\components\intl.xpt
 bin\components\intlapp.dll
-bin\components\intlcmpt.dll
-bin\components\intlcmpt.xpt
 bin\components\jar.xpt
 bin\components\jsconsole-clhandler.js
 bin\components\jsd3250.dll
@@ -167,8 +163,6 @@ bin\components\mozbrwsr.xpt
 bin\components\mozcomps.xpt
 bin\components\mozfind.dll
 bin\components\mozfind.xpt
-bin\components\mozucth.dll
-bin\components\mozucth.xpt
 bin\components\nativapp.dll
 bin\components\necko.dll
 bin\components\necko.xpt
@@ -183,7 +177,6 @@ bin\components\necko_res.xpt
 bin\components\necko_socket.xpt
 bin\components\necko_strconv.xpt
 bin\components\necko_viewsource.xpt
-bin\components\nsprefm.dll
 bin\components\oji.dll
 bin\components\oji.xpt
 bin\components\perms.dll
@@ -368,6 +361,7 @@ bin\res\html.css
 bin\res\quirk.css
 bin\res\forms.css
 bin\res\viewsource.css
+bin\res\cmessage.txt
 bin\res\effective_tld_names.dat
 bin\res\EditorOverride.css
 bin\res\broken-image.gif
@@ -395,9 +389,13 @@ bin\res\table-remove-row-hover.gif
 bin\res\table-remove-row.gif
 bin\res\charsetalias.properties
 bin\res\charsetData.properties
+bin\res\langGroups.properties
+bin\res\language.properties
 bin\res\wincharset.properties
 bin\res\entityTables\*
 bin\res\dtd\*
+bin\res\fonts\*
+bin\res\html\*
 bin\defaults\wallet\VcardSchema.tbl
 bin\defaults\wallet\FieldSchema.tbl
 bin\defaults\wallet\SchemaConcat.tbl
@@ -405,9 +403,6 @@ bin\defaults\wallet\DistinguishedSchema.tbl
 bin\defaults\wallet\SchemaStrings.tbl
 bin\defaults\wallet\PositionalSchema.tbl
 bin\defaults\wallet\StateSchema.tbl
-bin\res\rdf\folder-closed.gif
-bin\res\rdf\folder-open.gif
-bin\res\rdf\loading.gif
 
 ; MathML, optional for MathML charset conversion
 bin\components\ucvmath.dll
@@ -515,16 +510,13 @@ bin\components\mdn-service.js
 bin\components\nsSetDefaultMail.js
 bin\components\nsUnsetDefaultMail.js
 ;these Palm Sync files are conditionally built so would not exist unless built
-bin\mozABConduit.dll
-bin\PalmSyncProxy.dll
-bin\PalmSyncInstall.exe
-bin\components\palmsync.dll
-bin\components\palmsync.xpt
-bin\components\bayesflt.dll
-bin\components\mailview.dll
-bin\components\mailview.xpt
-bin\components\offlineStartup.js
-bin\palm.html
+bin\extensions\p@m\install.rdf
+bin\extensions\p@m\mozABConduit.dll
+bin\extensions\p@m\PalmSyncInstall.exe
+bin\extensions\p@m\PalmSyncProxy.dll
+bin\extensions\p@m\palmsync.dll
+bin\extensions\p@m\palmsync.xpt
+bin\extensions\p@m\defaults\preferences\palmsync.js
 
 [chatzilla]
 bin\components\chatzilla-service.js
@@ -554,8 +546,6 @@ bin\extensions\inspector@mozilla.org\chrome.manifest
 bin\extensions\inspector@mozilla.org\chrome\inspector.jar
 bin\extensions\inspector@mozilla.org\platform\WINNT\chrome\icons\default\winInspectorMain.ico
 bin\extensions\inspector@mozilla.org\components\inspector-cmdline.js
-bin\extensions\inspector@mozilla.org\components\inspector.dll
-bin\extensions\inspector@mozilla.org\components\inspector.xpt
 bin\extensions\inspector@mozilla.org\defaults\preferences\inspector.js
 
 [reporter]
