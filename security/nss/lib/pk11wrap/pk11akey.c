@@ -2026,7 +2026,7 @@ PK11_ListPublicKeysInSlot(PK11SlotInfo *slot, char *nickname)
     PK11_SETATTRS(attrs, CKA_CLASS, &keyclass, sizeof(keyclass)); attrs++;
     PK11_SETATTRS(attrs, CKA_TOKEN, &ckTrue, sizeof(ckTrue)); attrs++;
     if (nickname) {
-	len = PORT_Strlen(nickname)-1;
+	len = PORT_Strlen(nickname);
 	PK11_SETATTRS(attrs, CKA_LABEL, nickname, len); attrs++;
     }
     tsize = attrs - findTemp;
@@ -2072,7 +2072,7 @@ PK11_ListPrivKeysInSlot(PK11SlotInfo *slot, char *nickname, void *wincx)
     PK11_SETATTRS(attrs, CKA_CLASS, &keyclass, sizeof(keyclass)); attrs++;
     PK11_SETATTRS(attrs, CKA_TOKEN, &ckTrue, sizeof(ckTrue)); attrs++;
     if (nickname) {
-	len = PORT_Strlen(nickname)-1;
+	len = PORT_Strlen(nickname);
 	PK11_SETATTRS(attrs, CKA_LABEL, nickname, len); attrs++;
     }
     tsize = attrs - findTemp;
