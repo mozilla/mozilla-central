@@ -81,7 +81,7 @@ if ($c->param("testcase_id")) {
   my $test_run = Litmus::DB::TestRun->retrieve($test_run_id);
   if ($c->param("coverage")) {
     my $coverage = $test_run->coverage;
-    print '{"test_run_id":' . $test_run_id . ',"coverage":' . $coverage . '}';
+    print '{"test_run_id":' . $test_run_id . ',"coverage":' . ($coverage||0) . '}';
     exit 0;
   } else {
     my @testgroups = Litmus::DB::Testgroup->search_ByTestRun($test_run_id);

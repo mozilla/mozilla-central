@@ -255,26 +255,21 @@ sub update_criteria() {
 sub getTestRuns() {
   my ($self, $in_progress, $recommended, $limit) = @_;
 
-  my $select = "SELECT test_run_id FROM test_runs";
-  my $where = "";
+  my $select = "SELECT tr.test_run_id FROM test_runs tr, products pr";
+  my $where = " WHERE tr.product_id=pr.product_id";
   my $order_by = "";
   if ($in_progress) {
-    $where = " WHERE start_timestamp<=NOW() AND finish_timestamp>NOW()";
+    $where .= " AND tr.start_timestamp<=NOW() AND tr.finish_timestamp>NOW()";
   }
   if ($recommended and $recommended ne 'all') {
-    if ($where eq "") {
-      $where = ' WHERE';
-    } else {
-      $where .= ' AND';
-    }
     if ($recommended eq 'true') {
-      $where .= ' recommended=1';
+      $where .= ' AND tr.recommended=1';
     } else {
-      $where .= ' recommended=0';
+      $where .= ' AND tr.recommended=0';
     }      
-    $order_by = ' ORDER BY finish_timestamp ASC, product_id ASC, branch_id ASC, test_run_id ASC';
+    $order_by = ' ORDER BY pr.product_id ASC, tr.name ASC, tr.finish_timestamp ASC, tr.branch_id ASC, tr.test_run_id ASC';
   } else {
-    $order_by = ' ORDER BY recommended DESC, finish_timestamp ASC, product_id ASC, branch_id ASC, test_run_id ASC';
+    $order_by = ' ORDER BY tr.recommended DESC, pr.product_id ASC, tr.name ASC, tr.finish_timestamp ASC, tr.branch_id ASC, tr.test_run_id ASC';
   }
 
   my $sql = $select . $where . $order_by;
