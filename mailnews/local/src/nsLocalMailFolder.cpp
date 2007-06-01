@@ -530,6 +530,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetDatabaseWithReparse(nsIUrlListener *aRepa
       else if (transferInfo && mDatabase)
       {
         SetDBTransferInfo(transferInfo);
+        mDatabase->SetSummaryValid(PR_FALSE);
       }
     }
 

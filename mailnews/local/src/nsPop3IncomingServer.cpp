@@ -356,7 +356,7 @@ NS_IMETHODIMP nsPop3IncomingServer::PerformBiff(nsIMsgWindow *aMsgWindow)
         PRBool isLocked;
         inbox->GetLocked(&isLocked);
         if (!isLocked)
-          rv = localInbox->ParseFolder(aMsgWindow, urlListener);
+          rv = localInbox->GetDatabaseWithReparse(urlListener, aMsgWindow, getter_AddRefs(db));
         if (NS_SUCCEEDED(rv))
           rv = localInbox->SetCheckForNewMessagesAfterParsing(PR_TRUE);
       }
