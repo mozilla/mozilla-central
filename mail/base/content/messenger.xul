@@ -188,9 +188,9 @@
             datasources="rdf:null"
             statedatasource="rdf:mailnewsfolders"
             flags="dont-build-content"
-            tooltip="folderpopup"
             ondraggesture="BeginDragFolderTree(event);"
             onselect="FolderPaneSelectionChange();">
+        <treechildren tooltip="folderpopup"/>
         <template>
           <rule>
             <conditions>
