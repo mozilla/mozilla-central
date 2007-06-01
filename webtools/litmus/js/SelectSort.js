@@ -366,3 +366,14 @@ function copyToList(from,to)
     }
   }
 }
+
+function sortSelect(formName,title,selectID,index,num) {
+  disableForm(formName);
+  rv = toggleMessage('loading','Sorting ' + title + ' list...');
+  rv = confirm("Depending on the number of " + title + ", this can take a little while during which time the browser may be unresponsive. Proceed with sorting?")
+  if (rv) {
+    listSort(selectID,index,num,0);
+  }
+  rv = toggleMessage('none');
+  enableForm(formName);
+}

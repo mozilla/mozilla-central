@@ -230,7 +230,7 @@ function populateAllTestcases() {
       }
     }  
 
-    var optionText = testcases[i].testcase_id + ': ' + testcases[i].summary;
+    var optionText = testcases[i].summary + ' (' + testcases[i].testcase_id + ')';
     selectBoxAll.options[selectBoxAll.length] = new Option(optionText,
                                                            testcases[i].testcase_id);
     

@@ -174,7 +174,15 @@
             <td align="center" valign="middle"><input id="move_testgroup_up_button" name="move_testgroup_up_button" type="button" value="&uArr;" onClick="up('test_run_testgroups');"><br/><br/><input id="move_testgroup_down_button" name="move_testgroup_down_button" type="button" value="&dArr;" onClick="down('test_run_testgroups');"></td>
             </tr>
             <tr>
-            <td align="right">&uArr;&nbsp;<a name="previewTestgroup" onclick="previewTestgroup('testgroups_for_product');">Preview Testgroup</a></td>
+            <td>
+                <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td align="left">
+                        sort by: <a id="sortByNameHref" name="sortByNameHref" onClick="sortSelect('edit_test_run_form','testgroups','testgroups_for_product',0,0)">Name</a>&nbsp;|&nbsp;<a id="sortByIDHref" id="sortByIDHref" onclick="sortSelect('edit_test_run_form','testgroups','testgroups_for_product',1,1)">ID</a>                    </td>
+                    <td align="right">&uArr;&nbsp;<a name="previewTestgroup" onclick="previewTestgroup('testgroups_for_product');">Preview Testgroup</a></td>
+                </tr>
+                </table>
+            </td>
             <td></td>
             <td align="right">&uArr;&nbsp;<a name="previewTestgroup" onclick="previewTestgroup('test_run_testgroups');">Preview Testgroup</a></td>
             <td></td>
