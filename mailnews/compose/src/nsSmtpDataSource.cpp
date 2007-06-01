@@ -36,7 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsXPIDLString.h"
 #include "nsEnumeratorUtils.h"
 #include "nsRDFCID.h"
 #include "nsIServiceManager.h"
@@ -118,7 +117,7 @@ nsSmtpDataSource::initGlobalObjects()
 /* readonly attribute string URI; */
 NS_IMETHODIMP nsSmtpDataSource::GetURI(char * *aURI)
 {
-    *aURI = nsCRT::strdup("NC:smtpservers");
+    *aURI = strdup("NC:smtpservers");
     return NS_OK;
 }
 
@@ -141,7 +140,7 @@ nsSmtpDataSource::GetTarget(nsIRDFResource *aSource,
                             PRBool aTruthValue, nsIRDFNode **aResult)
 {
     nsresult rv;
-    nsXPIDLCString str;
+    nsCString str;
         
     *aResult = nsnull;
     
@@ -166,7 +165,7 @@ nsSmtpDataSource::GetTarget(nsIRDFResource *aSource,
         NS_ENSURE_SUCCESS(rv, rv);
         
         nsAutoString unicodeString;
-        unicodeString.AssignWithConversion((const char*)str);
+        CopyASCIItoUTF16(str, unicodeString);
         
         nsCOMPtr<nsIRDFLiteral> literalResult;
         rv = rdf->GetLiteral(unicodeString.get(), getter_AddRefs(literalResult));
@@ -265,7 +264,7 @@ nsSmtpDataSource::GetSmtpServerTargets(nsISupportsArray **aResultArray)
                                     (void **)getter_AddRefs(smtpServer));
         if (NS_FAILED(rv)) continue;
         
-        nsXPIDLCString smtpServerUri;
+        nsCString smtpServerUri;
         rv = smtpServer->GetServerURI(getter_Copies(smtpServerUri));
         if (NS_FAILED(rv)) continue;
 
@@ -276,8 +275,7 @@ nsSmtpDataSource::GetSmtpServerTargets(nsISupportsArray **aResultArray)
         rv = smtpServerResources->AppendElement(smtpServerResource);
     }
 
-    *aResultArray = smtpServerResources;
-    NS_ADDREF(*aResultArray);
+    smtpServerResources.swap(*aResultArray);
 
     return NS_OK;
 }

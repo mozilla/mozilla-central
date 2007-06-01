@@ -49,7 +49,7 @@
 #include "nsIURIContentListener.h"
 #include "nsIWebProgressListener.h"
 #include "nsWeakReference.h"
-#include "nsXPIDLString.h"
+#include "nsString.h"
 
 class nsURLFetcher : public nsIURLFetcher,
                      public nsIStreamListener,
@@ -90,13 +90,13 @@ private:
   nsCOMPtr<nsIFileOutputStream>   mOutStream;               // the output file stream
   nsCOMPtr<nsILocalFile>          mLocalFile;               // the output file itself
   nsCOMPtr<nsIStreamListener>     mConverter;               // the stream converter, if needed
-  nsXPIDLCString                  mConverterContentType;    // The content type of the converter
+  nsCString                  mConverterContentType;    // The content type of the converter
   PRBool                          mStillRunning;  // Are we still running?
   PRInt32                         mTotalWritten;  // Size counter variable
   char                            *mBuffer;                 // Buffer used for reading the data
   PRUint32                        mBufferSize;              // Buffer size;
-  nsXPIDLCString                  mContentType;             // The content type retrieved from the server
-  nsXPIDLCString                  mCharset;                 // The charset retrieved from the server
+  nsCString                  mContentType;             // The content type retrieved from the server
+  nsCString                  mCharset;                 // The charset retrieved from the server
   void                            *mTagData;      // Tag data for callback...
   nsAttachSaveCompletionCallback  mCallback;      // Callback to call once the file is saved...
   nsCOMPtr<nsISupports>           mLoadCookie;    // load cookie used by the uri loader when we fetch the url

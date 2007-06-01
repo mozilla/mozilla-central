@@ -42,7 +42,6 @@
 #include "nsSmtpUrl.h"
 #include "nsString.h"
 #include "nsReadableUtils.h"
-#include "nsXPIDLString.h"
 #include "nsEscape.h"
 #include "nsIMimeConverter.h"
 #include "nsMsgMimeCID.h"

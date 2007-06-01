@@ -58,7 +58,6 @@
 #include "nsMsgCompCID.h"
 #include "nsMsgCompose.h"
 #include "nsMsgMailNewsUrl.h"
-#include "nsXPIDLString.h"
 
 NS_IMPL_THREADSAFE_ADDREF(nsMsgQuoteListener)
 NS_IMPL_THREADSAFE_RELEASE(nsMsgQuoteListener)

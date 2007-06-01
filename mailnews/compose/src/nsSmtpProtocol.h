@@ -40,7 +40,6 @@
 
 #include "nsMsgProtocol.h"
 #include "nsIStreamListener.h"
-#include "nsXPIDLString.h"
 #include "nsISmtpUrl.h"
 #include "nsIMsgStatusFeedback.h"
 #include "nsIMsgLogonRedirector.h"
@@ -180,8 +179,8 @@ private:
     char           *m_addresses;
     PRUint32       m_addressesLeft;
     char           *m_verifyAddress;
-    nsXPIDLCString m_mailAddr;
-    nsXPIDLCString m_helloArgument;
+    nsCString m_mailAddr;
+    nsCString m_helloArgument;
     PRInt32        m_sizelimit;
 
     // *** the following should move to the smtp server when we support

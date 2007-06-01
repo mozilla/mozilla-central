@@ -37,7 +37,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "msgCore.h"    // precompiled header...
-#include "nsXPIDLString.h"
 #include "nsReadableUtils.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
@@ -76,8 +75,8 @@ typedef struct _findServerByKeyEntry {
 } findServerByKeyEntry;
 
 typedef struct _findServerByHostnameEntry {
-    const char *hostname;
-    const char *username;
+    nsCString hostname;
+    nsCString username;
     nsISmtpServer *server;
 } findServerByHostnameEntry;
 
@@ -135,8 +134,8 @@ nsresult nsSmtpService::SendMailMessage(nsIFile * aFilePath,
     if (aPassword && *aPassword)
       smtpServer->SetPassword(aPassword);
 
-    nsXPIDLCString smtpHostName;
-    nsXPIDLCString smtpUserName;
+    nsCString smtpHostName;
+    nsCString smtpUserName;
     PRInt32 smtpPort;
     PRInt32 trySSL;
 
@@ -153,9 +152,9 @@ nsresult nsSmtpService::SendMailMessage(nsIFile * aFilePath,
             smtpPort = nsISmtpUrl::DEFAULT_SMTP_PORT;
     }
 
-    if (smtpHostName && smtpHostName.get()[0] && !CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_10)) 
+    if (!smtpHostName.IsEmpty() && !CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_10)) 
     {
-      rv = NS_MsgBuildSmtpUrl(aFilePath, smtpHostName, smtpPort, smtpUserName,
+      rv = NS_MsgBuildSmtpUrl(aFilePath, smtpHostName.get(), smtpPort, smtpUserName.get(),
                               aRecipients, aSenderIdentity, aUrlListener, aStatusFeedback, 
                               aNotificationCallbacks, &urlToRun); // this ref counts urlToRun
       if (NS_SUCCEEDED(rv) && urlToRun)	
@@ -205,16 +204,16 @@ nsresult NS_MsgBuildSmtpUrl(nsIFile * aFilePath,
         nsCAutoString urlSpec("smtp://");
         if (aSmtpUserName) 
         {
-            nsXPIDLCString escapedUsername;
+            nsCString escapedUsername;
             *((char **)getter_Copies(escapedUsername)) = nsEscape(aSmtpUserName, url_XAlphas);
-            urlSpec += escapedUsername;
-            urlSpec += '@';
+            urlSpec.Append(escapedUsername);
+            urlSpec.Append('@');
         }
 
-        urlSpec += aSmtpHostName;
+        urlSpec.Append(aSmtpHostName);
         if (!PL_strchr(aSmtpHostName, ':'))
         {
-            urlSpec += ':';
+            urlSpec.Append(':');
             urlSpec.AppendInt(aSmtpPort);
         }
 
@@ -392,8 +391,8 @@ nsSmtpService::loadSmtpServers()
     prefService->GetBranch(nsnull, getter_AddRefs(prefRootBranch));
     if (NS_FAILED(rv)) return rv;
 
-    nsXPIDLCString tempServerList;
-    nsXPIDLCString serverList;
+    nsCString tempServerList;
+    nsCString serverList;
     rv = prefRootBranch->GetCharPref(PREF_MAIL_SMTPSERVERS, getter_Copies(tempServerList));
 
     //Get the pref in a tempServerList and then parse it to see if it has dupes.
@@ -422,7 +421,7 @@ nsSmtpService::loadSmtpServers()
 
     // We need to check if we have any pre-configured smtp servers so that
     // those servers can be appended to the list. 
-    nsXPIDLCString appendServerList;
+    nsCString appendServerList;
     rv = prefRootBranch->GetCharPref(PREF_MAIL_SMTPSERVERS_APPEND_SERVERS, getter_Copies(appendServerList));
 
     // Get the list of smtp servers (either from regular pref i.e, mail.smtpservers or
@@ -552,10 +551,9 @@ nsSmtpService::createKeyedServer(const char *key, nsISmtpServer** aResult)
         mServerKeyList += key;
     }
 
-    if (aResult) {
-        *aResult = server;
-        NS_IF_ADDREF(*aResult);
-    }
+    if (aResult) 
+       server.swap(*aResult);
+    
     return NS_OK;
 }
 
@@ -567,8 +565,7 @@ nsSmtpService::GetSessionDefaultServer(nsISmtpServer **aServer)
     if (!mSessionDefaultServer)
         return GetDefaultServer(aServer);
 
-    *aServer = mSessionDefaultServer;
-    NS_ADDREF(*aServer);
+    NS_ADDREF(*aServer = mSessionDefaultServer);
     return NS_OK;
 }
 
@@ -595,13 +592,13 @@ nsSmtpService::GetDefaultServer(nsISmtpServer **aServer)
       if (NS_FAILED(rv)) return rv;
 
       // try to get it from the prefs
-      nsXPIDLCString defaultServerKey;
+      nsCString defaultServerKey;
       rv = prefBranch->GetCharPref(PREF_MAIL_SMTP_DEFAULTSERVER, getter_Copies(defaultServerKey));
       if (NS_SUCCEEDED(rv) &&
           !defaultServerKey.IsEmpty()) {
 
           nsCOMPtr<nsISmtpServer> server;
-          rv = GetServerByKey(defaultServerKey,
+          rv = GetServerByKey(defaultServerKey.get(),
                               getter_AddRefs(mDefaultSmtpServer));
       } else {
           // no pref set, so just return the first one, and set the pref
@@ -623,10 +620,10 @@ nsSmtpService::GetDefaultServer(nsISmtpServer **aServer)
           NS_ENSURE_TRUE(mDefaultSmtpServer, NS_ERROR_UNEXPECTED);
           
           // now we have a default server, set the prefs correctly
-          nsXPIDLCString serverKey;
+          nsCString serverKey;
           mDefaultSmtpServer->GetKey(getter_Copies(serverKey));
           if (NS_SUCCEEDED(rv))
-              prefBranch->SetCharPref(PREF_MAIL_SMTP_DEFAULTSERVER, serverKey);
+              prefBranch->SetCharPref(PREF_MAIL_SMTP_DEFAULTSERVER, serverKey.get());
       }
   }
 
@@ -634,8 +631,7 @@ nsSmtpService::GetDefaultServer(nsISmtpServer **aServer)
   // * mDefaultSmtpServer has a valid server
   // * the key has been set in the prefs
     
-  *aServer = mDefaultSmtpServer;
-  NS_IF_ADDREF(*aServer);
+  NS_IF_ADDREF(*aServer = mDefaultSmtpServer);
 
   return NS_OK;
 }
@@ -647,13 +643,13 @@ nsSmtpService::SetDefaultServer(nsISmtpServer *aServer)
 
     mDefaultSmtpServer = aServer;
 
-    nsXPIDLCString serverKey;
+    nsCString serverKey;
     nsresult rv = aServer->GetKey(getter_Copies(serverKey));
     NS_ENSURE_SUCCESS(rv,rv);
     
     nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
     NS_ENSURE_SUCCESS(rv,rv);
-    prefBranch->SetCharPref(PREF_MAIL_SMTP_DEFAULTSERVER, serverKey);
+    prefBranch->SetCharPref(PREF_MAIL_SMTP_DEFAULTSERVER, serverKey.get());
     return NS_OK;
 }
 
@@ -666,11 +662,12 @@ nsSmtpService::findServerByKey (nsISupports *element, void *aData)
     
     findServerByKeyEntry *entry = (findServerByKeyEntry*) aData;
 
-    nsXPIDLCString key;
+    nsCString key;
     rv = server->GetKey(getter_Copies(key));
     if (NS_FAILED(rv)) return PR_TRUE;
 
-    if (nsCRT::strcmp(key, entry->key)==0) {
+    if (key.Equals(entry->key)) 
+    {
         entry->server = server;
         return PR_FALSE;
     }
@@ -686,7 +683,7 @@ nsSmtpService::CreateSmtpServer(nsISmtpServer **aResult)
     loadSmtpServers();
     nsresult rv;
     
-    PRInt32 i=0;
+    PRInt32 i = 0;
     PRBool unique = PR_FALSE;
 
     findServerByKeyEntry entry;
@@ -726,8 +723,7 @@ nsSmtpService::GetServerByKey(const char* aKey, nsISmtpServer **aResult)
     mSmtpServers->EnumerateForwards(findServerByKey, (void *)&entry);
 
     if (entry.server) {
-        (*aResult) = entry.server;
-        NS_ADDREF(*aResult);
+        NS_ADDREF(*aResult = entry.server);
         return NS_OK;
     }
 
@@ -747,7 +743,7 @@ nsSmtpService::DeleteSmtpServer(nsISmtpServer *aServer)
     if (NS_FAILED(rv) || idx==-1)
         return NS_OK;
 
-    nsXPIDLCString serverKey;
+    nsCString serverKey;
     aServer->GetKey(getter_Copies(serverKey));
     
     rv = mSmtpServers->DeleteElementAt(idx);
@@ -764,7 +760,7 @@ nsSmtpService::DeleteSmtpServer(nsISmtpServer *aServer)
     char *token = nsCRT::strtok(rest, ",", &newStr);
     while (token) {
         // only re-add the string if it's not the key
-        if (nsCRT::strcmp(token, serverKey) != 0) {
+        if (strcmp(token, serverKey.get()) != 0) {
             if (newServerList.IsEmpty())
                 newServerList = token;
             else {
@@ -794,19 +790,20 @@ nsSmtpService::findServerByHostname(nsISupports *element, void *aData)
 
     findServerByHostnameEntry *entry = (findServerByHostnameEntry*)aData;
 
-    nsXPIDLCString hostname;
+    nsCString hostname;
     rv = server->GetHostname(getter_Copies(hostname));
     if (NS_FAILED(rv)) return PR_TRUE;
 
-   nsXPIDLCString username;
+   nsCString username;
     rv = server->GetUsername(getter_Copies(username));
     if (NS_FAILED(rv)) return PR_TRUE;
 
-    PRBool checkHostname = entry->hostname && PL_strcmp(entry->hostname, "");
-    PRBool checkUsername = entry->username && PL_strcmp(entry->username, "");
+    PRBool checkHostname = !entry->hostname.IsEmpty();
+    PRBool checkUsername = !entry->username.IsEmpty();
     
-    if ((!checkHostname || (PL_strcasecmp(entry->hostname, hostname)==0)) &&
-        (!checkUsername || (PL_strcmp(entry->username, username)==0))) {
+    if ((!checkHostname || (entry->hostname.Equals(hostname, nsCaseInsensitiveCStringComparator())) &&
+        (!checkUsername || entry->username.Equals(username, nsCaseInsensitiveCStringComparator()))))
+    {
         entry->server = server;
         return PR_FALSE;        // stop when found
     }
@@ -820,7 +817,7 @@ nsSmtpService::FindServer(const char *aUsername,
     NS_ENSURE_ARG_POINTER(aResult);
 
     findServerByHostnameEntry entry;
-    entry.server=nsnull;
+    entry.server = nsnull;
     entry.hostname = aHostname;
     entry.username = aUsername;
 
@@ -828,8 +825,7 @@ nsSmtpService::FindServer(const char *aUsername,
 
     // entry.server may be null, but that's ok.
     // just return null if no server is found
-    *aResult = entry.server;
-    NS_IF_ADDREF(*aResult);
+    NS_IF_ADDREF(*aResult = entry.server);
     
     return NS_OK;
 }
@@ -841,7 +837,8 @@ nsSmtpService::GetSmtpServerByIdentity(nsIMsgIdentity *aSenderIdentity, nsISmtpS
   nsresult rv = NS_ERROR_FAILURE;
 
   // First try the identity's preferred server
-  if (aSenderIdentity) {
+  if (aSenderIdentity) 
+  {
       nsCString smtpServerKey;
       rv = aSenderIdentity->GetSmtpServerKey(smtpServerKey);
       if (NS_SUCCEEDED(rv) && !(smtpServerKey.IsEmpty()))

@@ -48,7 +48,6 @@
 #include "nsISupportsArray.h"
 #include "nsIServiceManager.h"
 #include "nsIObserverService.h"
-#include "nsXPIDLString.h"
 #include "nsIMsgIdentity.h"
 #include "nsISmtpUrl.h"
 #include "nsIURI.h"
@@ -528,14 +527,14 @@ NS_IMETHODIMP nsMsgComposeService::GetParamsForMailto(nsIURI * aURI, nsIMsgCompo
     if (NS_SUCCEEDED(rv))
     {
        MSG_ComposeFormat requestedComposeFormat = nsIMsgCompFormat::Default;
-       nsXPIDLCString aToPart;
-       nsXPIDLCString aCcPart;
-       nsXPIDLCString aBccPart;
-       nsXPIDLCString aSubjectPart;
-       nsXPIDLCString aBodyPart;
-       nsXPIDLCString aNewsgroup;
-       nsXPIDLCString aRefPart;
-       nsXPIDLCString aHTMLBodyPart;
+       nsCString aToPart;
+       nsCString aCcPart;
+       nsCString aBccPart;
+       nsCString aSubjectPart;
+       nsCString aBodyPart;
+       nsCString aNewsgroup;
+       nsCString aRefPart;
+       nsCString aHTMLBodyPart;
 
        // we are explictly not allowing attachments to be specified in mailto: urls
        // as it's a potential security problem.
@@ -570,7 +569,7 @@ NS_IMETHODIMP nsMsgComposeService::GetParamsForMailto(nsIURI * aURI, nsIMsgCompo
         // Create the appropriate output sink
         nsCOMPtr<nsIContentSink> sink = do_CreateInstance(MOZ_SANITIZINGHTMLSERIALIZER_CONTRACTID);
         
-        nsXPIDLCString allowedTags;
+        nsCString allowedTags;
         nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID));
         if (prefs)
           prefs->GetCharPref(MAILNEWS_ROOT_PREF "display.html_sanitizer.allowed_tags", getter_Copies(allowedTags));
@@ -610,7 +609,7 @@ NS_IMETHODIMP nsMsgComposeService::GetParamsForMailto(nsIURI * aURI, nsIMsgCompo
           pMsgCompFields->SetCc(NS_ConvertUTF8toUTF16(aCcPart));
           pMsgCompFields->SetBcc(NS_ConvertUTF8toUTF16(aBccPart));
           pMsgCompFields->SetNewsgroups(NS_ConvertUTF8toUTF16(aNewsgroup));
-          pMsgCompFields->SetReferences(aRefPart);
+          pMsgCompFields->SetReferences(aRefPart.get());
           pMsgCompFields->SetSubject(NS_ConvertUTF8toUTF16(aSubjectPart));
           pMsgCompFields->SetBody(composeHTMLFormat ? sanitizedBody : rawBody);
           pMsgComposeParams->SetComposeFields(pMsgCompFields);
@@ -921,14 +920,14 @@ NS_IMETHODIMP nsMsgTemplateReplyHelper::OnStopRunningUrl(nsIURI *aUrl, nsresult 
   if (NS_FAILED(rv) || (!pMsgComposeParams) ) return rv ;
   nsCOMPtr<nsIMsgCompFields> compFields = do_CreateInstance(NS_MSGCOMPFIELDS_CONTRACTID, &rv) ;
 
-  nsXPIDLCString replyTo;
+  nsCString replyTo;
   mHdrToReplyTo->GetStringProperty("replyTo", getter_Copies(replyTo));
   if (replyTo.IsEmpty())
     mHdrToReplyTo->GetAuthor(getter_Copies(replyTo));
   compFields->SetTo(NS_ConvertUTF8toUTF16(replyTo));
 
-  nsAutoString body;
-  nsXPIDLString templateSubject, replySubject;
+  nsString body;
+  nsString templateSubject, replySubject;
 
   mTemplateHdr->GetMime2DecodedSubject(getter_Copies(templateSubject));
   mHdrToReplyTo->GetMime2DecodedSubject(getter_Copies(replySubject));
@@ -939,7 +938,7 @@ NS_IMETHODIMP nsMsgTemplateReplyHelper::OnStopRunningUrl(nsIURI *aUrl, nsresult 
     templateSubject.Append(NS_LITERAL_STRING(")"));
   }
   compFields->SetSubject(templateSubject);
-  body.AssignWithConversion(mTemplateBody);
+  CopyASCIItoUTF16(mTemplateBody, body);
   compFields->SetBody(body);
 
   nsCString msgUri;
@@ -1293,13 +1292,13 @@ nsresult nsMsgComposeService::AddGlobalHtmlDomains()
   // Update the list as needed
   if (htmlDomainListCurrentVersion <= htmlDomainListDefaultVersion) {
     // Get list of global domains need to be added
-    nsXPIDLCString globalHtmlDomainList;
+    nsCString globalHtmlDomainList;
     rv = prefBranch->GetCharPref(HTMLDOMAINUPDATE_DOMAINLIST_PREF_NAME, getter_Copies(globalHtmlDomainList));
 
     if (NS_SUCCEEDED(rv) && !globalHtmlDomainList.IsEmpty()) {
 
       // Get user's current HTML domain set for send format
-      nsXPIDLCString currentHtmlDomainList;
+      nsCString currentHtmlDomainList;
       rv = prefBranch->GetCharPref(USER_CURRENT_HTMLDOMAINLIST_PREF_NAME, getter_Copies(currentHtmlDomainList));
       NS_ENSURE_SUCCESS(rv,rv);
 
@@ -1310,7 +1309,7 @@ nsresult nsMsgComposeService::AddGlobalHtmlDomains()
         htmlDomainArray.ParseString(currentHtmlDomainList.get(), DOMAIN_DELIMITER);
 
       // Get user's current Plaintext domain set for send format
-      nsXPIDLCString currentPlaintextDomainList;
+      nsCString currentPlaintextDomainList;
       rv = prefBranch->GetCharPref(USER_CURRENT_PLAINTEXTDOMAINLIST_PREF_NAME, getter_Copies(currentPlaintextDomainList));
       NS_ENSURE_SUCCESS(rv,rv);
 

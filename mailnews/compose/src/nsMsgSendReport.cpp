@@ -219,9 +219,9 @@ NS_IMETHODIMP nsMsgSendReport::SetMessage(PRInt32 process, const PRUnichar *mess
   if (!mProcessReport[process])
     return NS_ERROR_NOT_INITIALIZED;
 
-  nsXPIDLString currMessage;
+  nsString currMessage;
   mProcessReport[process]->GetMessage(getter_Copies(currMessage));
-  if (overwriteMessage || (!currMessage) || (const char *)currMessage[0] == 0)
+  if (overwriteMessage || currMessage.IsEmpty())
     return mProcessReport[process]->SetMessage(message);
   else
     return NS_OK;
@@ -237,8 +237,7 @@ NS_IMETHODIMP nsMsgSendReport::GetProcessReport(PRInt32 process, nsIMsgProcessRe
   if (process == process_Current)
     process = mCurrentProcess;
     
-  *_retval = mProcessReport[process];
-  NS_IF_ADDREF(*_retval);
+  NS_IF_ADDREF(*_retval = mProcessReport[process]);
   return NS_OK;
 }
 
@@ -257,7 +256,7 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, PRBool showError
   if (showErrorOnly && NS_SUCCEEDED(currError))
     return NS_OK;
   
-  nsXPIDLString currMessage;
+  nsString currMessage;
   mProcessReport[mCurrentProcess]->GetMessage(getter_Copies(currMessage));
 
 
@@ -269,8 +268,8 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, PRBool showError
     return NS_OK;
   }
 
-  nsXPIDLString dialogTitle;
-  nsXPIDLString dialogMessage;
+  nsString dialogTitle;
+  nsString dialogMessage;
 
   if (NS_SUCCEEDED(currError))
   {
@@ -360,34 +359,29 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, PRBool showError
     
     if (!currMessage.IsEmpty())
     {
-      nsAutoString temp((const PRUnichar *)dialogMessage);  // Because of bug 74726, we cannot use directly an XPIDLString
-
       //Don't need to repeat ourself!
-      if (! currMessage.Equals(temp))
+      if (!currMessage.Equals(dialogMessage))
       {
-        if (! dialogMessage.IsEmpty())
-          temp.AppendLiteral("\n");
-        temp.Append(currMessage);
-        dialogMessage.Assign(temp);
+        if (!dialogMessage.IsEmpty())
+          dialogMessage.Append(PRUnichar('\n'));
+        dialogMessage.Append(currMessage);
       }
     }
       
     if (askToGoBackToCompose)
     {
       PRBool oopsGiveMeBackTheComposeWindow = PR_TRUE;
-      nsXPIDLString text1;
+      nsString text1;
       composebundle->GetStringByID(NS_MSG_ASK_TO_COMEBACK_TO_COMPOSE, getter_Copies(text1));
-      nsAutoString temp((const PRUnichar *)dialogMessage);  // Because of bug 74726, we cannot use directly an XPIDLString
       if (! dialogMessage.IsEmpty())
-        temp.AppendLiteral("\n");
-      temp.Append(text1);
-      dialogMessage.Assign(temp);
-      nsMsgAskBooleanQuestionByString(prompt, dialogMessage, &oopsGiveMeBackTheComposeWindow, dialogTitle);
+        dialogMessage.AppendLiteral("\n");
+      dialogMessage.Append(text1);
+      nsMsgAskBooleanQuestionByString(prompt, dialogMessage.get(), &oopsGiveMeBackTheComposeWindow, dialogTitle.get());
       if (!oopsGiveMeBackTheComposeWindow)
         *_retval = NS_OK;
     }
     else
-      nsMsgDisplayMessageByString(prompt, dialogMessage, dialogTitle);
+      nsMsgDisplayMessageByString(prompt, dialogMessage.get(), dialogTitle.get());
   }
   else
   {
@@ -431,14 +425,12 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, PRBool showError
 
     if (!currMessage.IsEmpty())
     {
-      nsAutoString temp((const PRUnichar *)dialogMessage);  // Because of bug 74726, we cannot use directly an XPIDLString
       if (! dialogMessage.IsEmpty())
-        temp.AppendLiteral("\n");
-      temp.Append(currMessage);
-      dialogMessage.Assign(temp);
+        dialogMessage.AppendLiteral("\n");
+      dialogMessage.Append(currMessage);
     }
 
-    nsMsgDisplayMessageByString(prompt, dialogMessage, dialogTitle);
+    nsMsgDisplayMessageByString(prompt, dialogMessage.get(), dialogTitle.get());
   }
   
   mAlreadyDisplayReport = PR_TRUE;

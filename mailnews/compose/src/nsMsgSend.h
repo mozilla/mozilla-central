@@ -297,7 +297,7 @@ public:
                                                                 // For part processing
 
   NS_DECL_NSIMSGSEND
-  nsresult    SetStatusMessage(const PRUnichar *aMsgString);     // Status message method
+  nsresult    SetStatusMessage(const nsString &aMsgString);     // Status message method
 
   //
   // All vars necessary for this implementation

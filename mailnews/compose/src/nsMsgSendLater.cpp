@@ -62,7 +62,6 @@
 #include "nsIMsgSendLaterListener.h"
 #include "nsMsgCopy.h"
 #include "nsMsgComposeStringBundle.h"
-#include "nsXPIDLString.h"
 #include "nsIPrompt.h"
 #include "nsIURI.h"
 #include "nsISmtpUrl.h"
@@ -475,8 +474,8 @@ nsMsgSendLater::CompleteMailFileSend()
     return NS_ERROR_FAILURE;
 
   // Get the recipients...
-  nsXPIDLCString recips;
-  nsXPIDLCString ccList;
+  nsCString recips;
+  nsCString ccList;
   if (NS_FAILED(mMessage->GetRecipients(getter_Copies(recips))))
     return NS_ERROR_UNEXPECTED;
   else
@@ -494,12 +493,12 @@ nsMsgSendLater::CompleteMailFileSend()
   // Since we have already parsed all of the headers, we are simply going to
   // set the composition fields and move on.
   //
-  nsXPIDLCString author;
+  nsCString author;
   mMessage->GetAuthor(getter_Copies(author));
 
   nsMsgCompFields * fields = (nsMsgCompFields *)compFields.get();
 
-  nsXPIDLCString decodedString;
+  nsCString decodedString;
   // decoded string is null if the input is not MIME encoded
   mimeConverter->DecodeMimeHeader(author.get(), getter_Copies(decodedString));
 
@@ -706,21 +705,18 @@ nsresult nsMsgSendLater::SetOrigMsgDisposition()
   // and see if we need to set replied/forwarded
   // flags for the original message that this message might be a reply to
   // or forward of.
-  nsXPIDLCString originalMsgURIs;
-  nsXPIDLCString queuedDisposition;
+  nsCString originalMsgURIs;
+  nsCString queuedDisposition;
   mMessage->GetStringProperty(ORIG_URI_PROPERTY, getter_Copies(originalMsgURIs));
   mMessage->GetStringProperty(QUEUED_DISPOSITION_PROPERTY, getter_Copies(queuedDisposition));
   if (!queuedDisposition.IsEmpty())
   {
-    char *uriList = PL_strdup(originalMsgURIs.get());
-    if (!uriList)
-      return NS_ERROR_OUT_OF_MEMORY;
-    char *newStr = uriList;
-    char *uri;
-    while (nsnull != (uri = nsCRT::strtok(newStr, ",", &newStr)))
+    nsCStringArray uriArray;
+    uriArray.ParseString(originalMsgURIs.get(), ",");
+    for (PRInt32 i = 0; i < uriArray.Count(); i++)
     {
       nsCOMPtr <nsIMsgDBHdr> msgHdr;
-      nsresult rv = GetMsgDBHdrFromURI(uri, getter_AddRefs(msgHdr));
+      nsresult rv = GetMsgDBHdrFromURI(uriArray[i]->get(), getter_AddRefs(msgHdr));
       NS_ENSURE_SUCCESS(rv,rv);
       if (msgHdr)
       {
@@ -737,7 +733,6 @@ nsresult nsMsgSendLater::SetOrigMsgDisposition()
         }
       }
     }
-    PR_Free(uriList);
   }
   return NS_OK;
 }

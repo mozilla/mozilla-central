@@ -44,7 +44,6 @@
 #include "nsIObserverService.h"
 #include "nsNetUtil.h"
 #include "nsIAuthPrompt.h"
-#include "nsXPIDLString.h"
 #include "nsReadableUtils.h"
 #include "nsISmtpUrl.h"
 #include "nsCRT.h"
@@ -139,7 +138,7 @@ nsSmtpServer::SetHostname(const char * aHostname)
 NS_IMETHODIMP
 nsSmtpServer::GetDescription(nsACString &aDescription)
 {
-    nsXPIDLCString temp;
+    nsCString temp;
     mPrefBranch->GetCharPref("description", getter_Copies(temp));
     aDescription.Assign(temp);
     return NS_OK;
@@ -183,7 +182,7 @@ nsSmtpServer::GetDisplayname(char * *aDisplayname)
     nsresult rv;
     NS_ENSURE_ARG_POINTER(aDisplayname);
 
-    nsXPIDLCString hostname;
+    nsCString hostname;
     rv = mPrefBranch->GetCharPref("hostname", getter_Copies(hostname));
     if (NS_FAILED(rv)) {
         *aDisplayname=nsnull;
@@ -421,9 +420,9 @@ nsSmtpServer::GetPasswordWithUI(const PRUnichar * aPromptMessage, const
         // prompt the user for the password
         if (NS_SUCCEEDED(rv))
         {
-            nsXPIDLString uniPassword;
+            nsString uniPassword;
             PRBool okayValue = PR_TRUE;
-            nsXPIDLCString serverUri;
+            nsCString serverUri;
             rv = GetServerURI(getter_Copies(serverUri));
             if (NS_FAILED(rv))
                 return rv;
@@ -446,7 +445,7 @@ nsSmtpServer::GetPasswordWithUI(const PRUnichar * aPromptMessage, const
             }
 
             // we got a password back...so remember it
-            nsCString aCStr; aCStr.AssignWithConversion(uniPassword);
+            nsCString aCStr; LossyCopyUTF16toASCII(uniPassword, aCStr);
 
             rv = SetPassword(aCStr.get());
             if (NS_FAILED(rv))
@@ -475,10 +474,10 @@ nsSmtpServer::GetUsernamePasswordWithUI(const PRUnichar * aPromptMessage, const
         // prompt the user for the password
         if (NS_SUCCEEDED(rv))
         {
-            nsXPIDLString uniUsername;
-            nsXPIDLString uniPassword;
+            nsString uniUsername;
+            nsString uniPassword;
             PRBool okayValue = PR_TRUE;
-            nsXPIDLCString serverUri;
+            nsCString serverUri;
             rv = GetServerURI(getter_Copies(serverUri));
             if (NS_FAILED(rv))
                 return rv;
@@ -498,12 +497,12 @@ nsSmtpServer::GetUsernamePasswordWithUI(const PRUnichar * aPromptMessage, const
             // we got a userid and password back...so remember it
             nsCString aCStr;
 
-            aCStr.AssignWithConversion(uniUsername);
+            LossyCopyUTF16toASCII(uniUsername, aCStr);
             rv = SetUsername(aCStr.get());
             if (NS_FAILED(rv))
                 return rv;
 
-            aCStr.AssignWithConversion(uniPassword);
+            LossyCopyUTF16toASCII(uniPassword, aCStr);
             rv = SetPassword(aCStr.get());
             if (NS_FAILED(rv))
                 return rv;
@@ -524,7 +523,7 @@ nsSmtpServer::ForgetPassword()
     nsCOMPtr<nsIObserverService> observerService = do_GetService("@mozilla.org/observer-service;1", &rv);
     NS_ENSURE_SUCCESS(rv,rv);
 
-    nsXPIDLCString serverUri;
+    nsCString serverUri;
     rv = GetServerURI(getter_Copies(serverUri));
     if (NS_FAILED(rv))
         return rv;
@@ -554,26 +553,26 @@ nsSmtpServer::GetServerURI(char **aResult)
     uri += "smtp";
     uri += "://";
 
-    nsXPIDLCString username;
+    nsCString username;
     rv = GetUsername(getter_Copies(username));
 
-    if (NS_SUCCEEDED(rv) && ((const char*)username) && username[0]) {
-        nsXPIDLCString escapedUsername;
+    if (NS_SUCCEEDED(rv) && !username.IsEmpty()) {
+        nsCString escapedUsername;
         *((char **)getter_Copies(escapedUsername)) =
-            nsEscape(username, url_XAlphas);
+            nsEscape(username.get(), url_XAlphas);
 //            nsEscape(username, url_Path);
         // not all servers have a username
         uri.Append(escapedUsername);
         uri += '@';
     }
 
-    nsXPIDLCString hostname;
+    nsCString hostname;
     rv = GetHostname(getter_Copies(hostname));
 
-    if (NS_SUCCEEDED(rv) && ((const char*)hostname) && hostname[0]) {
-        nsXPIDLCString escapedHostname;
+    if (NS_SUCCEEDED(rv) && !hostname.IsEmpty()) {
+        nsCString escapedHostname;
         *((char **)getter_Copies(escapedHostname)) =
-            nsEscape(hostname, url_Path);
+            nsEscape(hostname.get(), url_Path);
         // not all servers have a hostname
         uri.Append(escapedHostname);
     }
@@ -606,9 +605,9 @@ nsSmtpServer::GetRedirectorType(char **aResult)
     {
       if (!nsCRT::strcasecmp(*aResult, "aol"))
       {
-        nsXPIDLCString hostName;
+        nsCString hostName;
         rv = GetHostname(getter_Copies(hostName));
-        if (NS_SUCCEEDED(rv) && (hostName.get()) && !nsCRT::strcmp(hostName, "smtp.netscape.net"))
+        if (NS_SUCCEEDED(rv) && hostName.LowerCaseEqualsLiteral("smtp.netscape.net"))
         {
           PL_strfree(*aResult);
           rv = SetRedirectorType("netscape");
@@ -622,7 +621,7 @@ nsSmtpServer::GetRedirectorType(char **aResult)
       // created redirected accounts as regular imap accounts,
       // they won't have redirector type set properly
       // this fixes the redirector type for them automatically
-      nsXPIDLCString hostName;
+      nsCString hostName;
       rv = GetHostname(getter_Copies(hostName));
       NS_ENSURE_SUCCESS(rv,rv);
 
@@ -632,7 +631,7 @@ nsSmtpServer::GetRedirectorType(char **aResult)
 
       nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
       NS_ENSURE_SUCCESS(rv,rv);
-      nsXPIDLCString defaultRedirectorType;
+      nsCString defaultRedirectorType;
       rv = prefBranch->GetCharPref(prefName.get(), getter_Copies(defaultRedirectorType));
       if (NS_SUCCEEDED(rv) && !defaultRedirectorType.IsEmpty())
       {

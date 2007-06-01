@@ -37,7 +37,6 @@
  * ***** END LICENSE BLOCK ***** */
 #include "nsMsgCopy.h"
 
-#include "nsXPIDLString.h"
 #include "nsCOMPtr.h"
 #include "nsMsgBaseCID.h"
 #include "nsMsgFolderFlags.h"

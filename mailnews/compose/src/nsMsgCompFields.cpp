@@ -73,7 +73,7 @@ nsMsgCompFields::nsMsgCompFields()
   m_needToCheckCharset = PR_TRUE;
 
   // Get the default charset from pref, use this as a mail charset.
-  nsXPIDLString charset;
+  nsString charset;
   NS_GetLocalizedUnicharPreferenceWithDefault(nsnull, "mailnews.send_default_charset", 
                                               NS_LITERAL_STRING("ISO-8859-1"), charset);
 
@@ -571,42 +571,42 @@ NS_IMETHODIMP nsMsgCompFields::RemoveAttachments()
 NS_IMETHODIMP nsMsgCompFields::SplitRecipients(const PRUnichar *recipients, PRBool emailAddressOnly, nsIMsgRecipientArray **_retval)
 {
   NS_ASSERTION(recipients, "The recipient list is not supposed to be null -Fix the caller!");
-
+  
   nsresult rv = NS_OK;
-
-	if (! _retval)
-		return NS_ERROR_NULL_POINTER;
-	*_retval = nsnull;
+  
+  if (! _retval)
+    return NS_ERROR_NULL_POINTER;
+  *_retval = nsnull;
 		
-	nsMsgRecipientArray* pAddrArray = new nsMsgRecipientArray;
-	if (! pAddrArray)
-		return NS_ERROR_OUT_OF_MEMORY;
-	
-	rv = pAddrArray->QueryInterface(NS_GET_IID(nsIMsgRecipientArray), (void **)_retval);
-	if (NS_SUCCEEDED(rv))
-	{
-		nsCOMPtr<nsIMsgHeaderParser> parser = do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID);
-		if (parser)
-		{
-			nsCAutoString recipientsStr;
-			char * names;
-			char * addresses;
-			PRUint32 numAddresses;
-
-			CopyUTF16toUTF8(recipients, recipientsStr);
-			
-			rv= parser->ParseHeaderAddresses("UTF-8", recipientsStr.get(), &names, 
-                                        &addresses, &numAddresses);
-			if (NS_SUCCEEDED(rv))
-			{
-				PRUint32 i=0;
-				char * pNames = names;
-				char * pAddresses = addresses;
-				PRBool aBool;
-				
+  nsMsgRecipientArray* pAddrArray = new nsMsgRecipientArray;
+  if (! pAddrArray)
+    return NS_ERROR_OUT_OF_MEMORY;
+  
+  rv = pAddrArray->QueryInterface(NS_GET_IID(nsIMsgRecipientArray), (void **)_retval);
+  if (NS_SUCCEEDED(rv))
+  {
+    nsCOMPtr<nsIMsgHeaderParser> parser = do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID);
+    if (parser)
+    {
+      nsCAutoString recipientsStr;
+      char * names;
+      char * addresses;
+      PRUint32 numAddresses;
+      
+      CopyUTF16toUTF8(recipients, recipientsStr);
+      
+      rv= parser->ParseHeaderAddresses("UTF-8", recipientsStr.get(), &names, 
+                                       &addresses, &numAddresses);
+      if (NS_SUCCEEDED(rv))
+      {
+        PRUint32 i=0;
+        char * pNames = names;
+        char * pAddresses = addresses;
+        PRBool aBool;
+        
         for (i = 0; i < numAddresses; i ++)
         {
-          nsXPIDLCString fullAddress;
+          nsCString fullAddress;
           nsAutoString recipient;
           if (!emailAddressOnly)
             rv = parser->MakeFullAddress("UTF-8", pNames,
@@ -619,24 +619,24 @@ NS_IMETHODIMP nsMsgCompFields::SplitRecipients(const PRUnichar *recipients, PRBo
             rv = ConvertToUnicode("UTF-8", nsDependentCString(pAddresses), recipient);
           if (NS_FAILED(rv))
             break;
-
+          
           rv = pAddrArray->AppendString(recipient.get(), &aBool);
           if (NS_FAILED(rv))
             break;
-						
-					pNames += PL_strlen(pNames) + 1;
-					pAddresses += PL_strlen(pAddresses) + 1;
-				}
-			
-				PR_FREEIF(names);
-				PR_FREEIF(addresses);
-			}
-		}
-		else
-			rv = NS_ERROR_FAILURE;
-	}
+          
+          pNames += PL_strlen(pNames) + 1;
+          pAddresses += PL_strlen(pAddresses) + 1;
+        }
+        
+        PR_FREEIF(names);
+        PR_FREEIF(addresses);
+      }
+    }
+    else
+      rv = NS_ERROR_FAILURE;
+  }
 		
-	return rv;
+  return rv;
 }
 
 
@@ -644,9 +644,9 @@ NS_IMETHODIMP nsMsgCompFields::SplitRecipients(const PRUnichar *recipients, PRBo
 nsresult nsMsgCompFields::SplitRecipientsEx(const PRUnichar *recipients, nsIMsgRecipientArray ** fullAddrsArray, nsIMsgRecipientArray ** emailsArray)
 {
   NS_ASSERTION(recipients, "The recipient list is not supposed to be null -Fix the caller!");
-
+  
   nsresult rv = NS_OK;
-
+  
   nsMsgRecipientArray* pAddrsArray = nsnull;
   if (fullAddrsArray)
   {
@@ -670,49 +670,44 @@ nsresult nsMsgCompFields::SplitRecipientsEx(const PRUnichar *recipients, nsIMsgR
     if (NS_FAILED(rv))
       return rv;
   }
-	
-	if (pAddrsArray || pEmailsArray)
-	{
-		nsCOMPtr<nsIMsgHeaderParser> parser = do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID);
-		if (parser)
-		{
-			nsCAutoString recipientsStr;
-			char * names;
-			char *addresses;
-			PRUint32 numAddresses;
-
-                        CopyUTF16toUTF8(recipients, recipientsStr);
-			rv= parser->ParseHeaderAddresses("UTF-8", recipientsStr.get(), &names,
+  
+  if (pAddrsArray || pEmailsArray)
+  {
+    nsCOMPtr<nsIMsgHeaderParser> parser = do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID);
+    if (parser)
+    {
+      nsCAutoString recipientsStr;
+      char * names;
+      char *addresses;
+      PRUint32 numAddresses;
+      
+      CopyUTF16toUTF8(recipients, recipientsStr);
+      rv= parser->ParseHeaderAddresses("UTF-8", recipientsStr.get(), &names,
                                        &addresses, &numAddresses);
-			if (NS_SUCCEEDED(rv))
-			{
-				PRUint32 i=0;
-				char * pNames = names;
-				char * pAddresses = addresses;
-				nsAutoString recipient;
-				PRBool aBool;
-				
+      if (NS_SUCCEEDED(rv))
+      {
+        PRUint32 i=0;
+        char * pNames = names;
+        char * pAddresses = addresses;
+        nsAutoString recipient;
+        PRBool aBool;
+        
         for (i = 0; i < numAddresses; i ++)
         {
-          nsXPIDLCString fullAddress;
+          nsCString fullAddress;
           if (pAddrsArray)
           {
             rv = parser->MakeFullAddress("UTF-8", pNames, pAddresses, 
                                          getter_Copies(fullAddress));
-            if (NS_SUCCEEDED(rv))
-            {
-              rv = ConvertToUnicode("UTF-8", fullAddress, recipient);
-            }
-            else
-              rv = ConvertToUnicode("UTF-8", pAddresses, recipient);
+            rv = ConvertToUnicode("UTF-8", NS_SUCCEEDED(rv) ? fullAddress.get() : pAddresses, recipient);
             if (NS_FAILED(rv))
               return rv;
-              
+            
             rv = pAddrsArray->AppendString(recipient.get(), &aBool);
             if (NS_FAILED(rv))
               return rv;
           }
-
+          
           if (pEmailsArray)
           {
             rv = ConvertToUnicode("UTF-8", pAddresses, recipient);
@@ -722,19 +717,19 @@ nsresult nsMsgCompFields::SplitRecipientsEx(const PRUnichar *recipients, nsIMsgR
             if (NS_FAILED(rv))
               return rv;
           }
-
+          
           pNames += PL_strlen(pNames) + 1;
           pAddresses += PL_strlen(pAddresses) + 1;
         }
-      
-				PR_FREEIF(names);
-				PR_FREEIF(addresses);
+        
+        PR_FREEIF(names);
+        PR_FREEIF(addresses);
       }
     }
     else
       rv = NS_ERROR_FAILURE;
   }
-    
+  
   return rv;
 }
 

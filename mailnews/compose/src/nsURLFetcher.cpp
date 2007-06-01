@@ -307,7 +307,7 @@ nsURLFetcher::OnStopRequest(nsIRequest *request, nsISupports * ctxt, nsresult aS
     mOutStream = nsnull;
   
     /* In case of multipart/x-mixed-replace, we need to truncate the file to the current part size */
-    if (PL_strcasecmp(mConverterContentType, MULTIPART_MIXED_REPLACE) == 0)
+    if (mConverterContentType.LowerCaseEqualsLiteral(MULTIPART_MIXED_REPLACE))
   {
       PRInt64 fileSize;
       LL_I2L(fileSize, mTotalWritten);
@@ -317,7 +317,7 @@ nsURLFetcher::OnStopRequest(nsIRequest *request, nsISupports * ctxt, nsresult aS
 
   // Now if there is a callback, we need to call it...
   if (mCallback)
-    mCallback (aStatus, (const char *)mContentType, (const char *)mCharset, mTotalWritten, nsnull, mTagData);
+    mCallback (aStatus, mContentType.get(), mCharset.get(), mTotalWritten, nsnull, mTagData);
 
   // Time to return...
   return NS_OK;
@@ -469,7 +469,7 @@ NS_IMETHODIMP nsURLFetcherStreamConsumer::OnStartRequest(nsIRequest *aRequest, n
     return NS_ERROR_FAILURE;
 
   /* In case of multipart/x-mixed-replace, we need to erase the output file content */
-  if (PL_strcasecmp(mURLFetcher->mConverterContentType, MULTIPART_MIXED_REPLACE) == 0)
+  if (mURLFetcher->mConverterContentType.LowerCaseEqualsLiteral(MULTIPART_MIXED_REPLACE))
   {
     nsCOMPtr<nsISeekableStream> seekStream = do_QueryInterface(mURLFetcher->mOutStream);
     if (seekStream)

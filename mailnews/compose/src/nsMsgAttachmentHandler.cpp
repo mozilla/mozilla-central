@@ -49,7 +49,6 @@
 #include "nsIMsgStringService.h"
 #include "nsMsgComposeStringBundle.h"
 #include "nsMsgCompCID.h"
-#include "nsXPIDLString.h"
 #include "nsReadableUtils.h"
 #include "nsIMsgMessageService.h"
 #include "nsMsgUtils.h"
@@ -397,37 +396,22 @@ nsMsgAttachmentHandler::PickEncoding(const char *charset, nsIMsgSend *mime_deliv
   }
   else if (!PL_strcasecmp(m_encoding, ENCODING_UUENCODE))
   {
-    char        *tailName = NULL;
-    nsXPIDLCString turl;
+    nsCString tailName;
+    nsCString turl;
     
     if (mURL)
     {
       mURL->GetSpec(turl);
       
-      tailName = PL_strrchr(turl, '/');
-      if (tailName) 
-      {
-        char * tmp = tailName;
-        tailName = PL_strdup(tailName+1);
-        PR_FREEIF(tmp);
-      }
-    }
+      PRInt32 tailNamePos = turl.RFindChar('/');
+      if (tailNamePos != kNotFound) 
+        turl.Right(tailName, turl.Length() - tailNamePos -1);
+     }
     
-    if (mURL && !tailName)
-    {
-      tailName = PL_strrchr(turl, '/');
-      if (tailName) 
-      {
-        char * tmp = tailName;
-        tailName = PL_strdup(tailName+1);
-        PR_FREEIF(tmp);
-      }
-    }
 
-    m_encoder_data = MIME_UUEncoderInit((char *)(tailName ? tailName : ""),
+    m_encoder_data = MIME_UUEncoderInit((char *)tailName.get(),
       mime_encoder_output_fn,
       mime_delivery_state);
-    PR_FREEIF(tailName);
     if (!m_encoder_data) return NS_ERROR_OUT_OF_MEMORY;
   }
   else if (!PL_strcasecmp(m_encoding, ENCODING_QUOTED_PRINTABLE))
@@ -659,7 +643,7 @@ nsresult
 nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
 {
   nsresult      status = 0;
-  nsXPIDLCString url_string;
+  nsCString url_string;
 
   NS_ASSERTION (! m_done, "Already done");
 
@@ -702,11 +686,11 @@ nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
   mURL->GetSpec(url_string);
 
 #ifdef XP_MACOSX
-  if ( !m_bogus_attachment && nsMsgIsLocalFile(url_string))
+  if ( !m_bogus_attachment && nsMsgIsLocalFile(url_string.get()))
   {
     // convert the apple file to AppleDouble first, and then patch the
     // address in the url.
-    char *src_filename = nsMsgGetLocalFileFromURL (url_string);
+    char *src_filename = nsMsgGetLocalFileFromURL (url_string.get());
     if (!src_filename)
       return NS_ERROR_OUT_OF_MEMORY;
 
@@ -1089,8 +1073,8 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
     // if we should continue without this attachment.
     //
     PRBool            keepOnGoing = PR_TRUE;
-    nsXPIDLCString    turl;
-    nsXPIDLString     msg;
+    nsCString    turl;
+    nsString     msg;
     PRUnichar         *printfString = nsnull;
     nsCOMPtr<nsIMsgStringService> composebundle (do_GetService(NS_MSG_COMPOSESTRINGSERVICE_CONTRACTID));
 
@@ -1102,19 +1086,19 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
       composebundle->GetStringByID(NS_MSG_FAILURE_ON_OBJ_EMBED_WHILE_SENDING, getter_Copies(msg));
  
     if (m_real_name && *m_real_name)
-      printfString = nsTextFormatter::smprintf(msg, m_real_name);
+      printfString = nsTextFormatter::smprintf(msg.get(), m_real_name);
     else
-    if (NS_SUCCEEDED(mURL->GetSpec(turl)) && (turl))
+    if (NS_SUCCEEDED(mURL->GetSpec(turl)) && !turl.IsEmpty())
       {
         nsCAutoString unescapeUrl(turl);
         nsUnescape(unescapeUrl.BeginWriting());
         if (unescapeUrl.IsEmpty())
-          printfString = nsTextFormatter::smprintf(msg, turl.get());
+          printfString = nsTextFormatter::smprintf(msg.get(), turl.get());
         else
-          printfString = nsTextFormatter::smprintf(msg, unescapeUrl.get());
+          printfString = nsTextFormatter::smprintf(msg.get(), unescapeUrl.get());
       }
     else
-      printfString = nsTextFormatter::smprintf(msg, "?");
+      printfString = nsTextFormatter::smprintf(msg.get(), "?");
 
     nsCOMPtr<nsIPrompt> aPrompt;
     if (m_mime_delivery_state)

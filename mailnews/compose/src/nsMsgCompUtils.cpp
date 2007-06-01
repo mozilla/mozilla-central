@@ -50,7 +50,6 @@
 #include "nsINntpService.h"
 #include "nsMimeTypes.h"
 #include "nsMsgComposeStringBundle.h"
-#include "nsXPIDLString.h"
 #include "nsReadableUtils.h"
 #include "nsDirectoryServiceDefs.h"
 #include "nsIDocumentEncoder.h"    // for editor output flags
@@ -154,12 +153,12 @@ nsMsgCreateTempFileName(const char *tFileName)
   if (NS_FAILED(rv))
     return nsnull;
 
-  nsXPIDLCString tempString;
+  nsCString tempString;
   rv = tmpFile->GetNativePath(tempString);
   if (NS_FAILED(rv))
     return nsnull;
 
-  char *tString = (char *)PL_strdup(tempString.get());
+  char *tString = ToNewCString(tempString);
   if (!tString)
     return PL_strdup("mozmail.tmp");  // No need to I18N
 
@@ -486,11 +485,11 @@ mime_generate_headers (nsMsgCompFields *fields,
     nsCAutoString userAgentString;
 #ifdef MOZ_THUNDERBIRD
 
-    nsXPIDLCString userAgentOverride;
+    nsCString userAgentOverride;
     prefs->GetCharPref("general.useragent.override", getter_Copies(userAgentOverride));
 
     // allow a user to override the default UA
-    if (!userAgentOverride)
+    if (userAgentOverride.IsEmpty())
     {
       nsCOMPtr<nsIXULAppInfo> xulAppInfo (do_GetService(XULAPPINFO_SERVICE_CONTRACTID, &rv));
       if (NS_SUCCEEDED(rv))
@@ -573,10 +572,11 @@ mime_generate_headers (nsMsgCompFields *fields,
       return nsnull;
     }
 
-    nsXPIDLCString newsgroupsHeaderVal;
-    nsXPIDLCString newshostHeaderVal;
+    nsCString newsgroupsHeaderVal;
+    nsCString newshostHeaderVal;
     rv = nntpService->GenerateNewsHeaderValsForPosting(n2, getter_Copies(newsgroupsHeaderVal), getter_Copies(newshostHeaderVal));
-    if (NS_FAILED(rv)) {
+    if (NS_FAILED(rv)) 
+    {
       *status = rv;
       return nsnull;
     }
@@ -657,20 +657,26 @@ mime_generate_headers (nsMsgCompFields *fields,
 
   // If we are saving the message as a draft, don't bother inserting the undisclosed recipients field. We'll take care of that when we
   // really send the message.
-  if (!hasDisclosedRecipient && !isDraft) {
+  if (!hasDisclosedRecipient && !isDraft) 
+  {
     PRBool bAddUndisclosedRecipients = PR_TRUE;
     prefs->GetBoolPref("mail.compose.add_undisclosed_recipients", &bAddUndisclosedRecipients);
-    if (bAddUndisclosedRecipients) {
+    if (bAddUndisclosedRecipients)
+    {
       const char* pBcc = fields->GetBcc(); //Do not free me!
-      if (pBcc && *pBcc) {
+      if (pBcc && *pBcc)
+      {
         nsCOMPtr<nsIStringBundleService> stringService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-        if (NS_SUCCEEDED(rv)) {
+        if (NS_SUCCEEDED(rv))
+        {
           nsCOMPtr<nsIStringBundle> composeStringBundle;
           rv = stringService->CreateBundle("chrome://messenger/locale/messengercompose/composeMsgs.properties", getter_AddRefs(composeStringBundle));
-          if (NS_SUCCEEDED(rv)) {
-            nsXPIDLString undisclosedRecipients;
+          if (NS_SUCCEEDED(rv))
+          {
+            nsString undisclosedRecipients;
             rv = composeStringBundle->GetStringFromID(NS_MSG_UNDISCLOSED_RECIPIENTS, getter_Copies(undisclosedRecipients));
-            if (NS_SUCCEEDED(rv) && !undisclosedRecipients.IsEmpty()){
+            if (NS_SUCCEEDED(rv) && !undisclosedRecipients.IsEmpty())
+            {
               char * cstr = ToNewCString(undisclosedRecipients);
               if (cstr) {
                 PUSH_STRING("To: ");
@@ -686,12 +692,12 @@ mime_generate_headers (nsMsgCompFields *fields,
     }
   }
 
-  if (pSubject && *pSubject) {
+  if (pSubject && *pSubject)
     ENCODE_AND_PUSH("Subject: ", PR_FALSE, pSubject, charset, usemime);
-  }
 
   // Skip no or empty priority.
-  if (pPriority && *pPriority) {
+  if (pPriority && *pPriority) 
+  {
     nsMsgPriorityValue priorityValue;
 
     NS_MsgGetPriorityFromString(pPriority, priorityValue);
@@ -835,7 +841,7 @@ mime_generate_attachment_headers (const char *type,
 
   /* Let's encode the real name */
   char *encodedRealName = nsnull;
-  nsXPIDLCString charset;   // actual charset used for MIME encode
+  nsCString charset;   // actual charset used for MIME encode
   nsAutoString realName;
   if (real_name)
   {
@@ -1669,18 +1675,18 @@ msg_pick_real_name (nsMsgAttachmentHandler *attachment, const PRUnichar *propose
   }
   else //Let's extract the name from the URL
   {
-    nsXPIDLCString url;
+    nsCString url;
   attachment->mURL->GetSpec(url);
 
-  s = url;
+  s = url.get();
   s2 = PL_strchr (s, ':');
   if (s2) s = s2 + 1;
   /* If we know the URL doesn't have a sensible file name in it,
    don't bother emitting a content-disposition. */
-  if (!PL_strncasecmp (url, "news:", 5) ||
-    !PL_strncasecmp (url, "snews:", 6) ||
-    !PL_strncasecmp (url, "IMAP:", 5) ||
-    !PL_strncasecmp (url, "mailbox:", 8))
+  if (StringBeginsWith (url, NS_LITERAL_CSTRING("news:"), nsCaseInsensitiveCStringComparator()) ||
+    StringBeginsWith (url, NS_LITERAL_CSTRING("snews:"), nsCaseInsensitiveCStringComparator()) ||
+    StringBeginsWith (url, NS_LITERAL_CSTRING("IMAP:"), nsCaseInsensitiveCStringComparator()) ||
+    StringBeginsWith (url, NS_LITERAL_CSTRING("mailbox:"), nsCaseInsensitiveCStringComparator()))
     return;
 
   /* Take the part of the file name after the last / or \ */
@@ -1836,16 +1842,16 @@ char *
 GenerateFileNameFromURI(nsIURI *aURL)
 {
   nsresult    rv;
-  nsXPIDLCString file;
-  nsXPIDLCString spec;
+  nsCString file;
+  nsCString spec;
   char        *returnString;
   char        *cp = nsnull;
   char        *cp1 = nsnull;
 
   rv = aURL->GetPath(file);
-  if ( NS_SUCCEEDED(rv) && file)
+  if ( NS_SUCCEEDED(rv) && !file.IsEmpty())
   {
-    char *newFile = PL_strdup(file);
+    char *newFile = ToNewCString(file);
     if (!newFile)
       return nsnull;
 
@@ -1877,9 +1883,9 @@ GenerateFileNameFromURI(nsIURI *aURL)
 
 
   rv = aURL->GetSpec(spec);
-  if ( NS_SUCCEEDED(rv) && spec)
+  if ( NS_SUCCEEDED(rv) && !spec.IsEmpty())
   {
-    char *newSpec = PL_strdup(spec);
+    char *newSpec = ToNewCString(spec);
     if (!newSpec)
       return nsnull;
 

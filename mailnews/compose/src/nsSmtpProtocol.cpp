@@ -110,7 +110,7 @@ nsresult nsExplainErrorDetails(nsISmtpUrl * aSmtpUrl, int code, ...)
   NS_ENSURE_TRUE(dialog, NS_ERROR_FAILURE);
 
   PRUnichar *  msg;
-  nsXPIDLString eMsg;
+  nsString eMsg;
   nsCOMPtr<nsIMsgStringService> smtpBundle = do_GetService(NS_MSG_SMTPSTRINGSERVICE_CONTRACTID);
   
   va_start (args, code);
@@ -128,11 +128,11 @@ nsresult nsExplainErrorDetails(nsISmtpUrl * aSmtpUrl, int code, ...)
       case NS_ERROR_SENDING_MESSAGE:
       case NS_ERROR_SMTP_GREETING:
            smtpBundle->GetStringByID(code, getter_Copies(eMsg));
-           msg = nsTextFormatter::vsmprintf(eMsg, args);
+           msg = nsTextFormatter::vsmprintf(eMsg.get(), args);
            break;
       default:
            smtpBundle->GetStringByID(NS_ERROR_COMMUNICATIONS_ERROR, getter_Copies(eMsg));
-           msg = nsTextFormatter::smprintf(eMsg, code);
+           msg = nsTextFormatter::smprintf(eMsg.get(), code);
            break;
   }
   
@@ -435,9 +435,9 @@ void nsSmtpProtocol::UpdateStatus(PRInt32 aStatusID)
 {
   if (m_statusFeedback)
   {
-    nsXPIDLString msg;
+    nsString msg;
     mSmtpBundle->GetStringByID(aStatusID, getter_Copies(msg));
-    UpdateStatusWithString(msg);
+    UpdateStatusWithString(msg.get());
   }
 }
 
@@ -1003,8 +1003,8 @@ PRInt32 nsSmtpProtocol::AuthGSSAPIFirst()
   nsCAutoString command("AUTH GSSAPI ");
   nsCAutoString resp;
   nsCAutoString service("smtp@");
-  nsXPIDLCString hostName;
-  nsXPIDLCString userName;
+  nsCString hostName;
+  nsCString userName;
   nsresult rv;
   nsCOMPtr<nsISmtpServer> smtpServer;
   rv = m_runningURL->GetSmtpServer(getter_AddRefs(smtpServer));
@@ -1016,7 +1016,7 @@ PRInt32 nsSmtpProtocol::AuthGSSAPIFirst()
   if (NS_FAILED(rv)) return NS_ERROR_FAILURE;
 
  service.Append(hostName);
-  rv = DoGSSAPIStep1(service.get(), userName, resp);
+  rv = DoGSSAPIStep1(service.get(), userName.get(), resp);
   if (NS_FAILED(rv))
   {
     m_nextState = SMTP_AUTH_PROCESS_STATE;
@@ -1088,9 +1088,9 @@ PRInt32 nsSmtpProtocol::AuthLoginStep1()
   char buffer[512];
   nsresult rv;
   PRInt32 status = 0;
-  nsXPIDLCString username;
+  nsCString username;
   char *base64Str = nsnull;
-  nsXPIDLCString origPassword;
+  nsCString origPassword;
   nsCAutoString password;
   nsCOMPtr<nsISmtpServer> smtpServer;
   rv = m_runningURL->GetSmtpServer(getter_AddRefs(smtpServer));
@@ -1133,8 +1133,8 @@ PRInt32 nsSmtpProtocol::AuthLoginStep1()
     int len = 1; /* first <NUL> char */
     
     memset(plain_string, 0, 512);
-    PR_snprintf(&plain_string[1], 510, "%s", (const char*)username);
-    len += PL_strlen(username);
+    PR_snprintf(&plain_string[1], 510, "%s", username.get());
+    len += username.Length();
     len++; /* second <NUL> char */
     PR_snprintf(&plain_string[len], 511-len, "%s", password.get());
     len += password.Length();
@@ -1145,8 +1145,8 @@ PRInt32 nsSmtpProtocol::AuthLoginStep1()
   else
   if (TestFlag(SMTP_AUTH_LOGIN_ENABLED))
   {
-    base64Str = PL_Base64Encode((const char *)username, 
-        strlen((const char*)username), nsnull);
+    base64Str = PL_Base64Encode(username.get(), 
+        username.Length(), nsnull);
     PR_snprintf(buffer, sizeof(buffer), "%.256s" CRLF, base64Str);
   } 
   else
@@ -1172,16 +1172,13 @@ PRInt32 nsSmtpProtocol::AuthLoginStep2()
   */
   PRInt32 status = 0;
   nsresult rv;
-  nsXPIDLCString origPassword;
   nsCAutoString password;
   
   if (!TestFlag(SMTP_USE_LOGIN_REDIRECTION))
   {
-    rv = GetPassword(getter_Copies(origPassword));
-    PRInt32 passwordLength = strlen((const char *) origPassword);
-    if (!(const char*) origPassword || passwordLength == 0)
+    rv = GetPassword(getter_Copies(password));
+    if (password.IsEmpty())
       return NS_ERROR_SMTP_PASSWORD_UNDEFINED;
-    password.Assign((const char*) origPassword);
   }
   else
     password.Assign(mLogonCookie);
@@ -1216,7 +1213,7 @@ PRInt32 nsSmtpProtocol::AuthLoginStep2()
         rv = m_runningURL->GetSmtpServer(getter_AddRefs(smtpServer));
         if (NS_FAILED(rv)) return NS_ERROR_FAILURE;
         
-        nsXPIDLCString userName;
+        nsCString userName;
         rv = smtpServer->GetUsername(getter_Copies(userName));
         
         PR_snprintf(buffer, sizeof(buffer), "%s %s", userName.get(), encodedDigest.get());
@@ -1554,14 +1551,14 @@ nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
 				doesn't matter.
 			*/
 
-			nsXPIDLCString addresses;
+			nsCString addresses;
 			nsCOMPtr<nsIMsgHeaderParser> parser = do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID);
 
 			m_runningURL->GetRecipients(getter_Copies(addresses));
 
 			if (NS_SUCCEEDED(rv) && parser)
 			{
-				parser->RemoveDuplicateAddresses(nsnull, addresses, nsnull, PR_FALSE, &addrs1);
+				parser->RemoveDuplicateAddresses(nsnull, addresses.get(), nsnull, PR_FALSE, &addrs1);
 
 				/* Extract just the mailboxes from the full RFC822 address list.
 				   This means that people can post to mailto: URLs which contain
@@ -1800,7 +1797,7 @@ nsSmtpProtocol::GetPassword(char **aPassword)
     nsCRT::free(*aPassword);
     *aPassword = 0;
 
-    nsXPIDLCString redirectorType; 
+    nsCString redirectorType; 
     rv = smtpServer->GetRedirectorType(getter_Copies(redirectorType));
     NS_ENSURE_SUCCESS(rv,rv);
       
@@ -1815,7 +1812,7 @@ nsSmtpProtocol::GetPassword(char **aPassword)
     rv = prefs->GetBranch(nsnull, getter_AddRefs(prefBranch)); 
     NS_ENSURE_SUCCESS(rv,rv);
 
-    nsXPIDLCString username;
+    nsCString username;
     rv = smtpServer->GetUsername(getter_Copies(username));
     NS_ENSURE_SUCCESS(rv, rv);
     
@@ -1833,7 +1830,7 @@ nsSmtpProtocol::GetPassword(char **aPassword)
     nsAutoString hostnameUTF16;
     if (!hideHostnameForPassword) 
     {
-      nsXPIDLCString hostname;      
+      nsCString hostname;      
       rv = smtpServer->GetHostname(getter_Copies(hostname));
       NS_ENSURE_SUCCESS(rv, rv);
       CopyASCIItoUTF16(hostname, hostnameUTF16);
@@ -1855,7 +1852,7 @@ nsSmtpProtocol::PromptForPassword(nsISmtpServer *aSmtpServer, nsISmtpUrl *aSmtpU
   rv = stringService->CreateBundle("chrome://messenger/locale/messengercompose/composeMsgs.properties", getter_AddRefs(composeStringBundle));
   NS_ENSURE_SUCCESS(rv,rv);
   
-  nsXPIDLString passwordPromptString;
+  nsString passwordPromptString;
   if(formatStrings[1])
     rv = composeStringBundle->FormatStringFromID(NS_SMTP_PASSWORD_PROMPT2,
       formatStrings, 2,
@@ -1870,11 +1867,11 @@ nsSmtpProtocol::PromptForPassword(nsISmtpServer *aSmtpServer, nsISmtpUrl *aSmtpU
   rv = aSmtpUrl->GetAuthPrompt(getter_AddRefs(netPrompt));
   NS_ENSURE_SUCCESS(rv, rv);
   
-  nsXPIDLString passwordTitle;
+  nsString passwordTitle;
   rv = composeStringBundle->GetStringFromID(NS_SMTP_PASSWORD_PROMPT_TITLE, getter_Copies(passwordTitle));
   NS_ENSURE_SUCCESS(rv,rv);
   
-  rv = aSmtpServer->GetPasswordWithUI(passwordPromptString.get(), passwordTitle,
+  rv = aSmtpServer->GetPasswordWithUI(passwordPromptString.get(), passwordTitle.get(),
     netPrompt, aPassword);
   NS_ENSURE_SUCCESS(rv,rv);
   return rv;
@@ -1913,7 +1910,7 @@ nsSmtpProtocol::GetUsernamePassword(char **aUsername, char **aPassword)
     nsCRT::free(*aPassword);
     *aPassword = 0;
 
-    nsXPIDLCString hostname;      
+    nsCString hostname;      
     rv = smtpServer->GetHostname(getter_Copies(hostname));
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -1931,40 +1928,38 @@ nsSmtpProtocol::GetUsernamePassword(char **aUsername, char **aPassword)
 nsresult nsSmtpProtocol::RequestOverrideInfo(nsISmtpServer * aSmtpServer)
 {
   NS_ENSURE_ARG(aSmtpServer);
-
-	nsresult rv;
-	nsCAutoString contractID(NS_MSGLOGONREDIRECTORSERVICE_CONTRACTID);
-
+  
+  nsresult rv;
+  nsCAutoString contractID(NS_MSGLOGONREDIRECTORSERVICE_CONTRACTID);
+  
   // go get the redirection type...
-  nsXPIDLCString redirectionTypeStr; 
+  nsCString redirectionTypeStr; 
   aSmtpServer->GetRedirectorType(getter_Copies(redirectionTypeStr));
-
-  const char * redirectionType = (const char *) redirectionTypeStr;
-
+  
   // if we don't have a redirection type, then get out and proceed normally.
-  if (!redirectionType || !*redirectionType )
+  if (redirectionTypeStr.IsEmpty())
     return NS_OK;
-
-	contractID.Append('/');
-	contractID.Append(redirectionTypeStr);
-
-	m_logonRedirector = do_GetService(contractID.get(), &rv);
-	if (m_logonRedirector && NS_SUCCEEDED(rv))
-	{
-		nsXPIDLCString password;
-		nsXPIDLCString userName;
+  
+  contractID.Append('/');
+  contractID.Append(redirectionTypeStr);
+  
+  m_logonRedirector = do_GetService(contractID.get(), &rv);
+  if (m_logonRedirector && NS_SUCCEEDED(rv))
+  {
+    nsCString password;
+    nsCString userName;
     PRBool requiresPassword = PR_TRUE;
-
-		aSmtpServer->GetUsername(getter_Copies(userName));
-    m_logonRedirector->RequiresPassword(userName, redirectionTypeStr.get(), &requiresPassword);
+    
+    aSmtpServer->GetUsername(getter_Copies(userName));
+    m_logonRedirector->RequiresPassword(userName.get(), redirectionTypeStr.get(), &requiresPassword);
     if (requiresPassword)
-		  GetPassword(getter_Copies(password));
-
+      GetPassword(getter_Copies(password));
+    
     nsCOMPtr<nsIPrompt> prompter;
     m_runningURL->GetPrompt(getter_AddRefs(prompter));
-		rv = m_logonRedirector->Logon(userName, password, redirectionType, prompter, NS_STATIC_CAST(nsIMsgLogonRedirectionRequester *, this), nsMsgLogonRedirectionServiceIDs::Smtp);
-	}
-
+    rv = m_logonRedirector->Logon(userName.get(), password.get(), redirectionTypeStr.get(), prompter, NS_STATIC_CAST(nsIMsgLogonRedirectionRequester *, this), nsMsgLogonRedirectionServiceIDs::Smtp);
+  }
+  
   // this protocol instance now needs to wait until
   // we receive the login redirection information so set the appropriate state
   // flag
@@ -1976,11 +1971,11 @@ nsresult nsSmtpProtocol::RequestOverrideInfo(nsISmtpServer * aSmtpServer)
   // information. So start the url as being run.
   nsCOMPtr <nsIMsgMailNewsUrl> mailNewsUrl = do_QueryInterface(m_runningURL);
   // this will cause another dialog to get thrown up....
-	mailNewsUrl->SetUrlState(PR_TRUE /* start running url */, NS_OK);
+  mailNewsUrl->SetUrlState(PR_TRUE /* start running url */, NS_OK);
   UpdateStatus(NS_SMTP_CONNECTING_TO_SERVER);
   // and update the status
-
-	return rv;
+  
+  return rv;
 }
 
 NS_IMETHODIMP nsSmtpProtocol::OnLogonRedirectionError(const PRUnichar *pErrMsg, PRBool aBadPassword)

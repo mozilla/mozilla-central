@@ -41,7 +41,6 @@
 #include "nsIPrompt.h"
 #include "nsIWindowWatcher.h"
 #include "nsMsgComposeStringBundle.h"
-#include "nsXPIDLString.h"
 #include "nsMsgCompCID.h"
 
 nsresult
@@ -50,12 +49,10 @@ nsMsgBuildErrorMessageByID(PRInt32 msgID, nsString& retval, nsString* param0, ns
   nsresult rv;
 
   nsCOMPtr<nsIMsgStringService> composebundle (do_GetService(NS_MSG_COMPOSESTRINGSERVICE_CONTRACTID, &rv));
-  nsXPIDLString msg;
 
   if (composebundle)
   {
-    composebundle->GetStringByID(msgID, getter_Copies(msg));
-    retval = msg;
+    composebundle->GetStringByID(msgID, getter_Copies(retval));
 
     nsString target;
     if (param0)
@@ -78,12 +75,12 @@ nsMsgDisplayMessageByID(nsIPrompt * aPrompt, PRInt32 msgID, const PRUnichar * wi
   nsresult rv;
 
   nsCOMPtr<nsIMsgStringService> composebundle (do_GetService(NS_MSG_COMPOSESTRINGSERVICE_CONTRACTID, &rv));
-  nsXPIDLString msg;
+  nsString msg;
 
   if (composebundle)
   {
     composebundle->GetStringByID(msgID, getter_Copies(msg));
-    rv = nsMsgDisplayMessageByString(aPrompt, msg, windowTitle);
+    rv = nsMsgDisplayMessageByString(aPrompt, msg.get(), windowTitle);
   }
   return rv;
 }
@@ -113,12 +110,12 @@ nsresult
 nsMsgAskBooleanQuestionByID(nsIPrompt * aPrompt, PRInt32 msgID, PRBool *answer, const PRUnichar * windowTitle)
 {
   nsCOMPtr<nsIMsgStringService> composebundle (do_GetService(NS_MSG_COMPOSESTRINGSERVICE_CONTRACTID));
-  nsXPIDLString msg;
+  nsString msg;
 
   if (composebundle)
   {
     composebundle->GetStringByID(msgID, getter_Copies(msg));
-    nsMsgAskBooleanQuestionByString(aPrompt, msg, answer, windowTitle);
+    nsMsgAskBooleanQuestionByString(aPrompt, msg.get(), answer, windowTitle);
   }
 
   return NS_OK;
@@ -179,10 +176,10 @@ nsMsgAskAboutUncoveredCharacters(nsIPrompt * aPrompt)
                                getter_AddRefs(composeBundle));
   NS_ENSURE_TRUE(composeBundle, 0);
 
-  nsXPIDLString title;
-  nsXPIDLString msg;
-  nsXPIDLString sendInUTF8;
-  nsXPIDLString sendAnyway;
+  nsString title;
+  nsString msg;
+  nsString sendInUTF8;
+  nsString sendAnyway;
 
   composeBundle->
     GetStringFromName(NS_LITERAL_STRING("initErrorDlogTitle").get(),
@@ -198,12 +195,12 @@ nsMsgAskAboutUncoveredCharacters(nsIPrompt * aPrompt)
                       getter_Copies(sendAnyway));
 
   nsresult rv = dialog->
-    ConfirmEx(title, msg, 
+    ConfirmEx(title.get(), msg.get(), 
               nsIPrompt::BUTTON_TITLE_IS_STRING * nsIPrompt::BUTTON_POS_0 +
               nsIPrompt::BUTTON_TITLE_CANCEL * nsIPrompt::BUTTON_POS_1 +
               nsIPrompt::BUTTON_TITLE_IS_STRING * nsIPrompt::BUTTON_POS_2 +
               nsIPrompt::BUTTON_POS_0_DEFAULT,
-              sendInUTF8, nsnull, sendAnyway, nsnull, 0, &result);
+              sendInUTF8.get(), nsnull, sendAnyway.get(), nsnull, 0, &result);
 
   NS_ENSURE_SUCCESS(rv, 0);
   return result;
