@@ -786,9 +786,11 @@ NS_IMETHODIMP nsMsgThreadEnumerator::GetNext(nsISupports **aItem)
   nsresult rv;
 
   if (mNeedToPrefetch)
+  {
     rv = Prefetch();
+    NS_ENSURE_SUCCESS(rv, rv);
+  }  
 
-  NS_ENSURE_SUCCESS(rv, rv);
   if (mResultHdr)
   {
     *aItem = mResultHdr;
@@ -816,7 +818,7 @@ nsresult nsMsgThreadEnumerator::Prefetch()
     while (mChildIndex < (PRInt32) numChildren)
     {
       rv  = mThread->GetChildHdrAt(mChildIndex++, getter_AddRefs(mResultHdr));
-      if (NS_SUCCEEDED(rv && mResultHdr))
+      if (NS_SUCCEEDED(rv) && mResultHdr)
       {
         nsMsgKey parentKey;
         nsMsgKey curKey;
