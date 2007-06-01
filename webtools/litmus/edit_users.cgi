@@ -97,7 +97,6 @@ if (Litmus::Auth::istrusted($cookie)) {
       $user->enabled(1);
     } else {
       if ($user->enabled) {
-        print STDERR "Trying to revoke enabled status...\n";
         $user->enabled(0);
         $revoke_sessions = 1;
       }
@@ -108,7 +107,6 @@ if (Litmus::Auth::istrusted($cookie)) {
       $user->is_admin(1);
     } else {
       if ($user->is_admin) {
-        print STDERR "Trying to revoke admin status...\n";
         $user->is_admin(0);
         $revoke_sessions = 1;
       }
