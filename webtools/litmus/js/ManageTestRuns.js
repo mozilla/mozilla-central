@@ -18,14 +18,20 @@ var doFilterList = function(req) {
   var tests = req.responseText.split("\n");
   var testbox = document.getElementById("test_run_id");
   var testsVisible = 0;
+  var alreadySeen = new Object;
   for (var i=1; i<testbox.options.length; i++) {
     var test = testbox.options[i];
-    var hideTest = 0;
+    var hide = 0;
     var id = test.value;
-    if (tests.indexOf(id) == -1) { 
-      hideTest = 1; 
+    if (alreadySeen[id]) {
+      hide = 1;
+    } else {
+      alreadySeen[id] = 1;
+      if (tests.indexOf(id) == -1) { 
+        hide = 1; 
+      }
     }
-    hideTest == 1 ? test.style.display = 'none' : test.style.display = '';
+    hide == 1 ? test.style.display = 'none' : test.style.display = '';
     if (test.style.display != 'none') {
       testsVisible = 1;
     }

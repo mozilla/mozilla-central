@@ -17,11 +17,19 @@ var showAll = function(err) {
 var doFilterList = function(req) {
   var testgroups = req.responseText.split("\n");
   var testgroupbox = document.getElementById("testgroup_id");
+  var alreadySeen = new Object;
   for (var i=0; i<testgroupbox.options.length; i++) {
     var testgroup = testgroupbox.options[i];
     var hide = 0;
     var id = testgroup.value;
-    if (testgroups.indexOf(id) == -1) { hide = 1; }
+    if (alreadySeen[id]) {
+      hide = 1;
+    } else {
+      alreadySeen[id] = 1;
+      if (testgroups.indexOf(id) == -1) {
+        hide = 1;
+      }
+    }
     hide == 1 ? testgroup.style.display = 'none' : testgroup.style.display = '';
   }
   toggleMessage('none');

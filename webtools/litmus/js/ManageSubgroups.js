@@ -15,13 +15,21 @@ var showAll = function(err) {
 };
 
 var doFilterList = function(req) {
-var subgroups = req.responseText.split("\n");
-var subgroupbox = document.getElementById("subgroup_id");
-for (var i=0; i<subgroupbox.options.length; i++) {
-  var subgroup = subgroupbox.options[i];
-  var hide = 0;
-  var id = subgroup.value;
-  if (subgroups.indexOf(id) == -1) { hide = 1; }
+  var subgroups = req.responseText.split("\n");
+  var subgroupbox = document.getElementById("subgroup_id");
+  var alreadySeen = new Object;
+  for (var i=0; i<subgroupbox.options.length; i++) {
+    var subgroup = subgroupbox.options[i];
+    var hide = 0;
+    var id = subgroup.value;
+    if (alreadySeen[id]) {
+      hide = 1;
+    } else {
+      alreadySeen[id] = 1;
+      if (subgroups.indexOf(id) == -1) {
+        hide = 1;
+      }
+    }
     hide == 1 ? subgroup.style.display = 'none' : subgroup.style.display = '';
   }
   toggleMessage('none');

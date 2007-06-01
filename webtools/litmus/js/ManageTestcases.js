@@ -23,11 +23,20 @@ var doFilterList = function(req) {
   var testbox = document.getElementById("testcase_id");
   var l = testbox.options.length;
   var hideTest;
+  var alreadySeen = new Object;
   for (var i=0; i<l; i++) {
     var test = testbox.options[i];
-    if (tests.indexOf(test.value) == -1) { hideTest = 1; }
-    else { hideTest=0 } 
-    hideTest == 1 ? test.style.display = 'none' : test.style.display = '';
+    var hide = 0;
+    var id = test.value;
+    if (alreadySeen[id]) {
+      hide = 1;
+    } else {
+      alreadySeen[id] = 1;
+      if (tests.indexOf(test.value) == -1) {
+        hide = 1;
+      }
+    }
+    hide == 1 ? test.style.display = 'none' : test.style.display = '';
   }
   enableForm(formName);
   toggleMessage('none');
