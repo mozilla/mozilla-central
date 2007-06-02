@@ -43,7 +43,7 @@ Lock();
 
 my $Text = '';
 if (-f $RealFilename) {
-    open(FILE, $ReadFilename);
+    open(FILE, $RealFilename);
     while (<FILE>) {
         $Text .= $_;
     }
