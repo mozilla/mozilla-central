@@ -109,6 +109,13 @@ pref("mail.auth_login", true);
 pref("mail.default_drafts", "");    // empty string use default Drafts name;
 pref("mail.default_templates", ""); // empty string use default Templates name
 
+// set to 0 if you don't want to ignore timestamp differences between
+// local mail folders and the value stored in the corresponding .msf file.
+// 0 was the default up to and including 1.5. I've made the default
+// be greater than one hour so daylight savings time changes don't affect us.
+// We will still always regenerate .msf files if the file size changes.
+pref("mail.db_timestamp_leeway", 4000);
+
 // check all folders for new mail
 pref("mail.check_all_imap_folders_for_new", false);
 
