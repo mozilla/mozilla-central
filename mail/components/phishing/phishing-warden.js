@@ -147,7 +147,7 @@ PROT_PhishingWarden.prototype.maybeToggleUpdateChecking = function() {
  */
 PROT_PhishingWarden.prototype.onPhishWardenEnabledPrefChanged = function(
                                                                     prefName) {
-  this.phishWardenEnabled_ = this.prefs_.getBoolPrefOrDefault(prefName, this.phishWardenEnabled_);
+  this.phishWardenEnabled_ = this.prefs_.getPref(prefName, this.phishWardenEnabled_);
   this.maybeToggleUpdateChecking();
 }
 
