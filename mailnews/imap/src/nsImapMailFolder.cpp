@@ -2267,6 +2267,7 @@ nsImapMailFolder::DeleteSubFolders(nsISupportsArray* folders, nsIMsgWindow *msgW
           rv = imapService->DeleteFolder(m_thread,
                                          curFolder,
                                          urlListener,
+                                         msgWindow,
                                          nsnull);
         else
         {

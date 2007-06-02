@@ -107,6 +107,7 @@ protected:
                          nsIUrlListener *urlListener,
                          const char *aCommand,
                          nsImapAction imapAction,
+                         nsIMsgWindow *msgWindow,
                          nsIURI **url);
   
   nsresult ChangeFolderSubscription(nsIEventTarget *eventTarget, 

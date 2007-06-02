@@ -58,7 +58,7 @@ interface nsIMsgWindow;
 interface nsIImapIncomingServer;
 interface nsICacheSession;
 
-[scriptable, uuid(16d88469-a6ba-4389-ae75-e306373afc2a)]
+[scriptable, uuid(cb905844-b1e1-4850-96c7-407c166319f2)]
 interface nsIImapService : nsISupports
 {
 	// As always, you can pass in null for the url listener and the url if you don't require either.....
@@ -212,7 +212,8 @@ interface nsIImapService : nsISupports
 
   nsIURI deleteFolder(in nsIEventTarget aClientEventTarget, 
                       in nsIMsgFolder aFolder,
-                      in nsIUrlListener aUrlListener);
+                      in nsIUrlListener aUrlListener,
+                      in nsIMsgWindow aMsgWindow);
 
   nsIURI createFolder(in nsIEventTarget aClientEventTarget, 
                       in nsIMsgFolder aParentFolder,
