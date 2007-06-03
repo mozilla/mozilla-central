@@ -3,6 +3,9 @@
 ## uname: CYGWIN_NT-5.2 sea-win32-tbox 1.5.19(0.150/4/2) 2006-01-20 13:28 i686 Cygwin
 #
 
+# package NSIS installer using 7zip
+$ENV{MOZ_INSTALLER_USE_7ZIP} = '1';
+
 # Ship the MSVC8 runtime libs
 $ENV{WIN32_REDIST_DIR} = 'C:\Program Files\Microsoft Visual Studio 8\VC\Redist\x86\Microsoft.VC80.CRT';
 
@@ -190,6 +193,7 @@ $ReleaseBuild  = 1;
 #$shiptalkback  = 1;
 #$ReleaseToLatest = 1; # Push the release to latest-<milestone>?
 #$ReleaseToDated = 1; # Push the release to YYYY-MM-DD-HH-<milestone>?
+$ReleaseGroup = 'seamonkey'; # group to set uploaded files to
 $build_hour    = "1";
 $package_creation_path = "/suite/installer";
 # needs setting for mac + talkback: $mac_bundle_path = "/browser/app";
