@@ -121,7 +121,8 @@ var MigrationWizard = {
 
         // Ensure that we only allow import selections for profile
         // migrators that support the requested action.
-        if (!(migrator.supportedItems & this._itemsFlags)) {
+        if (!migrator.sourceExists ||
+            !(migrator.supportedItems & this._itemsFlags)) {
           group.childNodes[i].hidden = true;
           break;
         }
