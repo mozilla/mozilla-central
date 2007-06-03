@@ -609,8 +609,8 @@ lpnsMapiMessage MsgMapiListContext::GetMessage (nsMsgKey key, unsigned long flFl
   memset(message, 0, sizeof(nsMapiMessage));
   if (message)
   {
-    nsXPIDLCString subject;
-    nsXPIDLCString author;
+    nsCString subject;
+    nsCString author;
     nsCOMPtr <nsIMsgDBHdr> msgHdr;
 
     nsresult rv = m_db->GetMsgHdrForKey (key, getter_AddRefs(msgHdr));
@@ -644,21 +644,21 @@ lpnsMapiMessage MsgMapiListContext::GetMessage (nsMsgKey key, unsigned long flFl
         ConvertRecipientsToMapiFormat (parser, author.get(), message->lpOriginator, MAPI_ORIG);
       }
       // Pull out the To/CC info
-      nsXPIDLCString recipients, ccList;
+      nsCString recipients, ccList;
       msgHdr->GetRecipients(getter_Copies(recipients));
       msgHdr->GetCcList(getter_Copies(ccList));
 
       PRUint32 numToRecips;
       PRUint32 numCCRecips;
-      parser->ParseHeaderAddresses(nsnull, recipients, nsnull, nsnull, &numToRecips);
-      parser->ParseHeaderAddresses(nsnull, ccList, nsnull, nsnull, &numCCRecips);
+      parser->ParseHeaderAddresses(nsnull, recipients.get(), nsnull, nsnull, &numToRecips);
+      parser->ParseHeaderAddresses(nsnull, ccList.get(), nsnull, nsnull, &numCCRecips);
 
       message->lpRecips = (lpnsMapiRecipDesc) CoTaskMemAlloc ((numToRecips + numCCRecips) * sizeof(MapiRecipDesc));
       memset(message->lpRecips, 0, (numToRecips + numCCRecips) * sizeof(MapiRecipDesc));
       if (message->lpRecips)
       {
-        ConvertRecipientsToMapiFormat (parser, recipients, message->lpRecips, MAPI_TO);
-        ConvertRecipientsToMapiFormat (parser, ccList, &message->lpRecips[numToRecips], MAPI_CC);
+        ConvertRecipientsToMapiFormat (parser, recipients.get(), message->lpRecips, MAPI_TO);
+        ConvertRecipientsToMapiFormat (parser, ccList.get(), &message->lpRecips[numToRecips], MAPI_CC);
       }
   
       PR_LOG(MAPI, PR_LOG_DEBUG, ("MsgMapiListContext::GetMessage flags=%x subject %s date %s sender %s\n", 

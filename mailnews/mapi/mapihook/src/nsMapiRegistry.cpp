@@ -44,7 +44,6 @@
 *****************************************************************************/
 
 #include "nsIServiceManager.h"
-#include "nsXPIDLString.h"
 #include "nsIPromptService.h"
 #include "nsIProxyObjectManager.h"
 #include "nsProxiedService.h"
@@ -192,7 +191,7 @@ nsMapiRegistry::ShowMailIntegrationDialog(nsIDOMWindow *aParentWindow) {
         rv = m_registryUtils.MakeMapiStringBundle (getter_AddRefs (bundle)) ;
         if (NS_FAILED(rv)) return NS_ERROR_FAILURE;
 
-        nsXPIDLString dialogTitle;
+        nsString dialogTitle;
         const PRUnichar *brandStrings[] = { m_registryUtils.brandName() };
         NS_NAMED_LITERAL_STRING(dialogTitlePropertyTag, "dialogTitle");
         rv = bundle->FormatStringFromName(dialogTitlePropertyTag.get(),
@@ -200,14 +199,14 @@ nsMapiRegistry::ShowMailIntegrationDialog(nsIDOMWindow *aParentWindow) {
                                           getter_Copies(dialogTitle));
         if (NS_FAILED(rv)) return NS_ERROR_FAILURE;
         
-        nsXPIDLString dialogText;
+        nsString dialogText;
         NS_NAMED_LITERAL_STRING(dialogTextPropertyTag, "dialogText");
         rv = bundle->FormatStringFromName(dialogTextPropertyTag.get(),
                                           brandStrings, 1,
                                           getter_Copies(dialogText));
         if (NS_FAILED(rv)) return NS_ERROR_FAILURE;
 
-        nsXPIDLString checkboxText;
+        nsString checkboxText;
         rv = bundle->GetStringFromName(
                            NS_LITERAL_STRING("checkboxText").get(),
                            getter_Copies(checkboxText));
@@ -216,13 +215,13 @@ nsMapiRegistry::ShowMailIntegrationDialog(nsIDOMWindow *aParentWindow) {
         PRBool checkValue = PR_FALSE;
         PRInt32 buttonPressed = 0;
         rv = promptService->ConfirmEx(aParentWindow,
-                                      dialogTitle,
+                                      dialogTitle.get(),
                                       dialogText.get(),
                                       nsIPromptService::STD_YES_NO_BUTTONS,
                                       nsnull,
                                       nsnull,
                                       nsnull,
-                                      checkboxText,
+                                      checkboxText.get(),
                                       &checkValue,
                                       &buttonPressed);
         if (NS_FAILED(rv)) return NS_ERROR_FAILURE;

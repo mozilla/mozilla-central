@@ -52,13 +52,12 @@
 #include "nsIServiceManager.h"
 #include "nsISupports.h"
 #include "nsIPromptService.h"
-#include "nsIAppStartup.h" 
+#include "nsIAppStartup.h"
 #include "nsIAppShellService.h"
 #include "nsIDOMWindowInternal.h"
 #include "nsINativeAppSupport.h"
 #include "nsIMsgAccountManager.h"
 #include "nsIDOMWindowInternal.h"
-#include "nsXPIDLString.h"
 #include "nsReadableUtils.h"
 #include "nsMsgBaseCID.h"
 #include "nsIStringBundle.h"
@@ -71,7 +70,7 @@
 #include "nsIMsgComposeParams.h"
 #include "nsIMsgCompose.h"
 #include "nsMsgCompCID.h"
-#include "nsXPFEComponentsCID.h" 
+#include "nsXPFEComponentsCID.h"
 #include "nsIMsgSend.h"
 #include "nsIProxyObjectManager.h"
 #include "nsIMsgComposeService.h"
@@ -113,7 +112,7 @@ public:
     NS_IMETHOD OnStatus(const char *aMsgID, const PRUnichar *aMsg) { return NS_OK;}
 
     /* void OnStopSending (in string aMsgID, in nsresult aStatus, in wstring aMsg, in nsIFileSpec returnFileSpec); */
-    NS_IMETHOD OnStopSending(const char *aMsgID, nsresult aStatus, const PRUnichar *aMsg, 
+    NS_IMETHOD OnStopSending(const char *aMsgID, nsresult aStatus, const PRUnichar *aMsg,
                            nsIFile *returnFile) {
         PR_CEnterMonitor(this);
         PR_CNotifyAll(this);
@@ -127,7 +126,7 @@ public:
 	{
 		return OnStopSending(aMsgID, aStatus, nsnull, nsnull) ;
 	}
- 
+
     /* void OnGetDraftFolderURI (); */
     NS_IMETHOD OnGetDraftFolderURI(const char *aFolderURI) {return NS_OK;}
 
@@ -167,12 +166,12 @@ PRBool nsMapiHook::Initialize()
     nsresult rv;
     nsCOMPtr<nsINativeAppSupport> native;
     nsCOMPtr<nsICmdLineService> cmdLineArgs (do_GetService(NS_COMMANDLINESERVICE_CONTRACTID, &rv));
-    if (NS_FAILED(rv)) return PR_FALSE; 
+    if (NS_FAILED(rv)) return PR_FALSE;
 
     nsCOMPtr<nsIAppStartup> appStartup (do_GetService(NS_APPSTARTUP_CONTRACTID, &rv));
-    if (NS_FAILED(rv)) return PR_FALSE; 
+    if (NS_FAILED(rv)) return PR_FALSE;
 
-    rv = appStartup->GetNativeAppSupport(getter_AddRefs(native)); 
+    rv = appStartup->GetNativeAppSupport(getter_AddRefs(native));
     if (NS_FAILED(rv)) return PR_FALSE;
 
     rv = native->EnsureProfile(cmdLineArgs);
@@ -187,131 +186,15 @@ void nsMapiHook::CleanUp()
     // to cleanup mapi related stuff inside mozilla code.
 }
 
-PRBool nsMapiHook::DisplayLoginDialog(PRBool aLogin, PRUnichar **aUsername, 
+PRBool nsMapiHook::DisplayLoginDialog(PRBool aLogin, PRUnichar **aUsername,
                       PRUnichar **aPassword)
 {
-    nsresult rv;
-    PRBool btnResult = PR_FALSE;
-   
-    nsCOMPtr<nsIPromptService> dlgService(do_GetService(NS_PROMPTSERVICE_CONTRACTID, &rv));
-    if (NS_SUCCEEDED(rv) && dlgService)
-    {
-        nsCOMPtr<nsIStringBundleService> bundleService(do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv));
-        if (NS_FAILED(rv) || !bundleService) return PR_FALSE;
+  nsresult rv;
+  PRBool btnResult = PR_FALSE;
 
-        nsCOMPtr<nsIStringBundle> bundle;
-        rv = bundleService->CreateBundle(MAPI_PROPERTIES_CHROME, getter_AddRefs(bundle));
-        if (NS_FAILED(rv) || !bundle) return PR_FALSE;
-
-        nsCOMPtr<nsIStringBundle> brandBundle;
-        rv = bundleService->CreateBundle(
-                        "chrome://branding/locale/brand.properties",
-                        getter_AddRefs(brandBundle));
-        if (NS_FAILED(rv)) return PR_FALSE;
-
-        nsXPIDLString brandName;
-        rv = brandBundle->GetStringFromName(
-                           NS_LITERAL_STRING("brandFullName").get(),
-                           getter_Copies(brandName));
-        if (NS_FAILED(rv)) return PR_FALSE;
-        
-        nsXPIDLString loginTitle;
-        const PRUnichar *brandStrings[] = { brandName.get() };
-        NS_NAMED_LITERAL_STRING(loginTitlePropertyTag, "loginTitle");
-        const PRUnichar *dTitlePropertyTag = loginTitlePropertyTag.get();
-        rv = bundle->FormatStringFromName(dTitlePropertyTag, brandStrings, 1,
-                                          getter_Copies(loginTitle));
-        if (NS_FAILED(rv)) return PR_FALSE;
-        
-        if (aLogin)
-        {
-            nsXPIDLString loginText;
-            rv = bundle->GetStringFromName(NS_LITERAL_STRING("loginTextwithName").get(),
-                                           getter_Copies(loginText));
-            if (NS_FAILED(rv) || !loginText) return PR_FALSE;
-
-            rv = dlgService->PromptUsernameAndPassword(nsnull, loginTitle,
-                                                       loginText, aUsername, aPassword,
-                                                       nsnull, PR_FALSE, &btnResult);
-        }
-        else
-        {
-            //nsString loginString; 
-            nsXPIDLString loginText;
-            const PRUnichar *userNameStrings[] = { *aUsername };
-
-            NS_NAMED_LITERAL_STRING(loginTextPropertyTag, "loginText");
-            const PRUnichar *dpropertyTag = loginTextPropertyTag.get();
-            rv = bundle->FormatStringFromName(dpropertyTag, userNameStrings, 1,
-                                              getter_Copies(loginText));
-            if (NS_FAILED(rv)) return PR_FALSE;
-
-            rv = dlgService->PromptPassword(nsnull, loginTitle, loginText,
-                                            aPassword, nsnull, PR_FALSE, &btnResult);
-        }
-    }            
-
-    return btnResult;
-}
-
-PRBool nsMapiHook::VerifyUserName(const nsString& aUsername, nsCString& aIdKey)
-{
-    nsresult rv;
-
-    if (aUsername.IsEmpty())
-        return PR_FALSE;
-
-    nsCOMPtr<nsIMsgAccountManager> accountManager(do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv));
-    if (NS_FAILED(rv)) return PR_FALSE;
-    nsCOMPtr<nsISupportsArray> identities;
-    rv = accountManager->GetAllIdentities(getter_AddRefs(identities));
-    if (NS_FAILED(rv)) return PR_FALSE;
-    PRUint32 numIndentities;
-    identities->Count(&numIndentities);
-
-    for (PRUint32 i = 0; i < numIndentities; i++)
-    {
-        // convert supports->Identity
-        nsCOMPtr<nsISupports> thisSupports;
-        rv = identities->GetElementAt(i, getter_AddRefs(thisSupports));
-        if (NS_FAILED(rv)) continue;
-        nsCOMPtr<nsIMsgIdentity> thisIdentity(do_QueryInterface(thisSupports, &rv));
-        if (NS_SUCCEEDED(rv) && thisIdentity)
-        {
-            nsCString email;
-            rv = thisIdentity->GetEmail(email);
-            if (NS_FAILED(rv)) continue;
-
-            // get the username from the email and compare with the username
-            PRInt32 index = email.FindChar('@');
-            if (index != -1)
-                email.Truncate(index);
-
-            if (aUsername.Equals(NS_ConvertASCIItoUTF16(email)))
-                return NS_SUCCEEDED(thisIdentity->GetKey(aIdKey));
-        }
-    }
-
-    return PR_FALSE;
-}
-
-PRBool 
-nsMapiHook::IsBlindSendAllowed()
-{
-    PRBool enabled = PR_FALSE;
-    PRBool warn = PR_TRUE;
-    nsCOMPtr<nsIPrefBranch> prefBranch = do_GetService(NS_PREFSERVICE_CONTRACTID);
-    if (prefBranch) {
-        prefBranch->GetBoolPref(PREF_MAPI_WARN_PRIOR_TO_BLIND_SEND, &warn);
-        prefBranch->GetBoolPref(PREF_MAPI_BLIND_SEND_ENABLED, &enabled);
-    } 
-    if (!enabled)
-        return PR_FALSE;
-
-    if (!warn)
-        return PR_TRUE; // Everything is okay.  
-
-    nsresult rv;
+  nsCOMPtr<nsIPromptService> dlgService(do_GetService(NS_PROMPTSERVICE_CONTRACTID, &rv));
+  if (NS_SUCCEEDED(rv) && dlgService)
+  {
     nsCOMPtr<nsIStringBundleService> bundleService(do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv));
     if (NS_FAILED(rv) || !bundleService) return PR_FALSE;
 
@@ -319,211 +202,310 @@ nsMapiHook::IsBlindSendAllowed()
     rv = bundleService->CreateBundle(MAPI_PROPERTIES_CHROME, getter_AddRefs(bundle));
     if (NS_FAILED(rv) || !bundle) return PR_FALSE;
 
-    nsXPIDLString warningMsg;
-    rv = bundle->GetStringFromName(NS_LITERAL_STRING("mapiBlindSendWarning").get(),
-                                        getter_Copies(warningMsg));
-    if (NS_FAILED(rv)) return PR_FALSE;
-    
-	nsXPIDLString dontShowAgainMessage;
-    rv = bundle->GetStringFromName(NS_LITERAL_STRING("mapiBlindSendDontShowAgain").get(),
-                                        getter_Copies(dontShowAgainMessage));
+    nsCOMPtr<nsIStringBundle> brandBundle;
+    rv = bundleService->CreateBundle(
+                    "chrome://branding/locale/brand.properties",
+                    getter_AddRefs(brandBundle));
     if (NS_FAILED(rv)) return PR_FALSE;
 
-    nsCOMPtr<nsIPromptService> dlgService(do_GetService(NS_PROMPTSERVICE_CONTRACTID, &rv));
-    if (NS_FAILED(rv) || !dlgService) return PR_FALSE;
-    
-    PRBool continueToWarn = PR_TRUE;
-    PRBool okayToContinue = PR_FALSE;
-    dlgService->ConfirmCheck(nsnull, nsnull, warningMsg, dontShowAgainMessage, &continueToWarn, &okayToContinue);
-        
-    if (!continueToWarn && okayToContinue && prefBranch)
-        prefBranch->SetBoolPref(PREF_MAPI_WARN_PRIOR_TO_BLIND_SEND, PR_FALSE);
-    
-    return okayToContinue;
+    nsString brandName;
+    rv = brandBundle->GetStringFromName(
+                       NS_LITERAL_STRING("brandFullName").get(),
+                       getter_Copies(brandName));
+    if (NS_FAILED(rv)) return PR_FALSE;
+
+    nsString loginTitle;
+    const PRUnichar *brandStrings[] = { brandName.get() };
+    NS_NAMED_LITERAL_STRING(loginTitlePropertyTag, "loginTitle");
+    const PRUnichar *dTitlePropertyTag = loginTitlePropertyTag.get();
+    rv = bundle->FormatStringFromName(dTitlePropertyTag, brandStrings, 1,
+                                      getter_Copies(loginTitle));
+    if (NS_FAILED(rv)) return PR_FALSE;
+
+    if (aLogin)
+    {
+      nsString loginText;
+      rv = bundle->GetStringFromName(NS_LITERAL_STRING("loginTextwithName").get(),
+                                     getter_Copies(loginText));
+      if (NS_FAILED(rv) || loginText.IsEmpty()) return PR_FALSE;
+
+      rv = dlgService->PromptUsernameAndPassword(nsnull, loginTitle.get(),
+                                                 loginText.get(), aUsername, aPassword,
+                                                 nsnull, PR_FALSE, &btnResult);
+    }
+    else
+    {
+      //nsString loginString;
+      nsString loginText;
+      const PRUnichar *userNameStrings[] = { *aUsername };
+
+      NS_NAMED_LITERAL_STRING(loginTextPropertyTag, "loginText");
+      const PRUnichar *dpropertyTag = loginTextPropertyTag.get();
+      rv = bundle->FormatStringFromName(dpropertyTag, userNameStrings, 1,
+                                        getter_Copies(loginText));
+      if (NS_FAILED(rv)) return PR_FALSE;
+
+      rv = dlgService->PromptPassword(nsnull, loginTitle.get(), loginText.get(),
+                                      aPassword, nsnull, PR_FALSE, &btnResult);
+    }
+  }
+
+  return btnResult;
+}
+
+PRBool nsMapiHook::VerifyUserName(const nsString& aUsername, nsCString& aIdKey)
+{
+  nsresult rv;
+
+  if (aUsername.IsEmpty())
+    return PR_FALSE;
+
+  nsCOMPtr<nsIMsgAccountManager> accountManager(do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv));
+  if (NS_FAILED(rv)) return PR_FALSE;
+  nsCOMPtr<nsISupportsArray> identities;
+  rv = accountManager->GetAllIdentities(getter_AddRefs(identities));
+  if (NS_FAILED(rv)) return PR_FALSE;
+  PRUint32 numIndentities;
+  identities->Count(&numIndentities);
+
+  for (PRUint32 i = 0; i < numIndentities; i++)
+  {
+    // convert supports->Identity
+    nsCOMPtr<nsISupports> thisSupports;
+    rv = identities->GetElementAt(i, getter_AddRefs(thisSupports));
+    if (NS_FAILED(rv)) continue;
+    nsCOMPtr<nsIMsgIdentity> thisIdentity(do_QueryInterface(thisSupports, &rv));
+    if (NS_SUCCEEDED(rv) && thisIdentity)
+    {
+      nsCString email;
+      rv = thisIdentity->GetEmail(email);
+      if (NS_FAILED(rv)) continue;
+
+      // get the username from the email and compare with the username
+      PRInt32 index = email.FindChar('@');
+      if (index != -1)
+        email.SetLength(index);
+
+      if (aUsername.Equals(NS_ConvertASCIItoUTF16(email)))
+        return NS_SUCCEEDED(thisIdentity->GetKey(aIdKey));
+    }
+  }
+
+  return PR_FALSE;
+}
+
+PRBool
+nsMapiHook::IsBlindSendAllowed()
+{
+  PRBool enabled = PR_FALSE;
+  PRBool warn = PR_TRUE;
+  nsCOMPtr<nsIPrefBranch> prefBranch = do_GetService(NS_PREFSERVICE_CONTRACTID);
+  if (prefBranch) {
+      prefBranch->GetBoolPref(PREF_MAPI_WARN_PRIOR_TO_BLIND_SEND, &warn);
+      prefBranch->GetBoolPref(PREF_MAPI_BLIND_SEND_ENABLED, &enabled);
+  }
+  if (!enabled)
+      return PR_FALSE;
+
+  if (!warn)
+      return PR_TRUE; // Everything is okay.
+
+  nsresult rv;
+  nsCOMPtr<nsIStringBundleService> bundleService(do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv));
+  if (NS_FAILED(rv) || !bundleService) return PR_FALSE;
+
+  nsCOMPtr<nsIStringBundle> bundle;
+  rv = bundleService->CreateBundle(MAPI_PROPERTIES_CHROME, getter_AddRefs(bundle));
+  if (NS_FAILED(rv) || !bundle) return PR_FALSE;
+
+  nsString warningMsg;
+  rv = bundle->GetStringFromName(NS_LITERAL_STRING("mapiBlindSendWarning").get(),
+                                      getter_Copies(warningMsg));
+  if (NS_FAILED(rv)) return PR_FALSE;
+
+  nsString dontShowAgainMessage;
+  rv = bundle->GetStringFromName(NS_LITERAL_STRING("mapiBlindSendDontShowAgain").get(),
+                                      getter_Copies(dontShowAgainMessage));
+  if (NS_FAILED(rv)) return PR_FALSE;
+
+  nsCOMPtr<nsIPromptService> dlgService(do_GetService(NS_PROMPTSERVICE_CONTRACTID, &rv));
+  if (NS_FAILED(rv) || !dlgService) return PR_FALSE;
+
+  PRBool continueToWarn = PR_TRUE;
+  PRBool okayToContinue = PR_FALSE;
+  dlgService->ConfirmCheck(nsnull, nsnull, warningMsg.get(), dontShowAgainMessage.get(), &continueToWarn, &okayToContinue);
+
+  if (!continueToWarn && okayToContinue && prefBranch)
+    prefBranch->SetBoolPref(PREF_MAPI_WARN_PRIOR_TO_BLIND_SEND, PR_FALSE);
+
+  return okayToContinue;
 }
 
 // this is used for Send without UI
-nsresult nsMapiHook::BlindSendMail (unsigned long aSession, nsIMsgCompFields * aCompFields) 
+nsresult nsMapiHook::BlindSendMail (unsigned long aSession, nsIMsgCompFields * aCompFields)
 {
-    nsresult rv = NS_OK ;
+  nsresult rv = NS_OK ;
 
-    if (!IsBlindSendAllowed())
-        return NS_ERROR_FAILURE;
+  if (!IsBlindSendAllowed())
+    return NS_ERROR_FAILURE;
 
-    /** create nsIMsgComposeParams obj and other fields to populate it **/    
+  /** create nsIMsgComposeParams obj and other fields to populate it **/
 
-    nsCOMPtr<nsIDOMWindowInternal>  hiddenWindow;
-    // get parent window
-    nsCOMPtr<nsIAppShellService> appService = do_GetService( "@mozilla.org/appshell/appShellService;1", &rv);
-    if (NS_FAILED(rv)|| (!appService) ) return rv ;
+  nsCOMPtr<nsIDOMWindowInternal>  hiddenWindow;
+  // get parent window
+  nsCOMPtr<nsIAppShellService> appService = do_GetService( "@mozilla.org/appshell/appShellService;1", &rv);
+  if (NS_FAILED(rv)|| (!appService) ) return rv ;
 
-    rv = appService->GetHiddenDOMWindow(getter_AddRefs(hiddenWindow));
-    if ( NS_FAILED(rv) ) return rv ;
-    // smtp password and Logged in used IdKey from MapiConfig (session obj)
-    nsMAPIConfiguration * pMapiConfig = nsMAPIConfiguration::GetMAPIConfiguration() ;
-    if (!pMapiConfig) return NS_ERROR_FAILURE ;  // get the singelton obj
-    PRUnichar * password = pMapiConfig->GetPassword(aSession) ;
-    // password
-    nsCAutoString smtpPassword ;
-    smtpPassword.AssignWithConversion (password) ;
-    // Id key
-    nsCString MsgIdKey;
-    pMapiConfig->GetIdKey(aSession, MsgIdKey);
+  rv = appService->GetHiddenDOMWindow(getter_AddRefs(hiddenWindow));
+  if ( NS_FAILED(rv) ) return rv ;
+  // smtp password and Logged in used IdKey from MapiConfig (session obj)
+  nsMAPIConfiguration * pMapiConfig = nsMAPIConfiguration::GetMAPIConfiguration() ;
+  if (!pMapiConfig) return NS_ERROR_FAILURE ;  // get the singelton obj
+  PRUnichar * password = pMapiConfig->GetPassword(aSession) ;
+  // password
+  nsCAutoString smtpPassword;
+  LossyCopyUTF16toASCII(password, smtpPassword);
 
-    // get the MsgIdentity for the above key using AccountManager
-    nsCOMPtr <nsIMsgAccountManager> accountManager = do_GetService (NS_MSGACCOUNTMANAGER_CONTRACTID) ;
-    if (NS_FAILED(rv) || (!accountManager) ) return rv ;
+  // Id key
+  nsCString MsgIdKey;
+  pMapiConfig->GetIdKey(aSession, MsgIdKey);
 
-    nsCOMPtr <nsIMsgIdentity> pMsgId ;
-    rv = accountManager->GetIdentity (MsgIdKey, getter_AddRefs(pMsgId)) ;
-    if (NS_FAILED(rv) ) return rv ;
+  // get the MsgIdentity for the above key using AccountManager
+  nsCOMPtr <nsIMsgAccountManager> accountManager = do_GetService (NS_MSGACCOUNTMANAGER_CONTRACTID) ;
+  if (NS_FAILED(rv) || (!accountManager) ) return rv ;
 
-    // create a send listener to get back the send status
-    nsCOMPtr <nsIMsgSendListener> sendListener ;
-    rv = nsMAPISendListener::CreateMAPISendListener(getter_AddRefs(sendListener)) ; 
-    if (NS_FAILED(rv) || (!sendListener) ) return rv;
+  nsCOMPtr <nsIMsgIdentity> pMsgId ;
+  rv = accountManager->GetIdentity (MsgIdKey, getter_AddRefs(pMsgId)) ;
+  if (NS_FAILED(rv) ) return rv ;
 
-    // create the compose params object 
-    nsCOMPtr<nsIMsgComposeParams> pMsgComposeParams (do_CreateInstance(NS_MSGCOMPOSEPARAMS_CONTRACTID, &rv));
-    if (NS_FAILED(rv) || (!pMsgComposeParams) ) return rv ;
+  // create a send listener to get back the send status
+  nsCOMPtr <nsIMsgSendListener> sendListener ;
+  rv = nsMAPISendListener::CreateMAPISendListener(getter_AddRefs(sendListener)) ;
+  if (NS_FAILED(rv) || (!sendListener) ) return rv;
 
-    // populate the compose params
-    PRBool forcePlainText;
-    aCompFields->GetForcePlainText(&forcePlainText);
-    pMsgComposeParams->SetType(nsIMsgCompType::New);
-    pMsgComposeParams->SetFormat(forcePlainText ? nsIMsgCompFormat::PlainText : nsIMsgCompFormat::HTML);
-    pMsgComposeParams->SetIdentity(pMsgId);
-    pMsgComposeParams->SetComposeFields(aCompFields); 
-    pMsgComposeParams->SetSendListener(sendListener) ;
-    pMsgComposeParams->SetSmtpPassword(smtpPassword.get());
+  // create the compose params object
+  nsCOMPtr<nsIMsgComposeParams> pMsgComposeParams (do_CreateInstance(NS_MSGCOMPOSEPARAMS_CONTRACTID, &rv));
+  if (NS_FAILED(rv) || (!pMsgComposeParams) ) return rv ;
 
-    // create the nsIMsgCompose object to send the object
-    nsCOMPtr<nsIMsgCompose> pMsgCompose (do_CreateInstance(NS_MSGCOMPOSE_CONTRACTID, &rv));
-    if (NS_FAILED(rv) || (!pMsgCompose) ) return rv ;
+  // populate the compose params
+  PRBool forcePlainText;
+  aCompFields->GetForcePlainText(&forcePlainText);
+  pMsgComposeParams->SetType(nsIMsgCompType::New);
+  pMsgComposeParams->SetFormat(forcePlainText ? nsIMsgCompFormat::PlainText : nsIMsgCompFormat::HTML);
+  pMsgComposeParams->SetIdentity(pMsgId);
+  pMsgComposeParams->SetComposeFields(aCompFields);
+  pMsgComposeParams->SetSendListener(sendListener) ;
+  pMsgComposeParams->SetSmtpPassword(smtpPassword.get());
 
-    /** initialize nsIMsgCompose, Send the message, wait for send completion response **/
+  // create the nsIMsgCompose object to send the object
+  nsCOMPtr<nsIMsgCompose> pMsgCompose (do_CreateInstance(NS_MSGCOMPOSE_CONTRACTID, &rv));
+  if (NS_FAILED(rv) || (!pMsgCompose) ) return rv ;
 
-    rv = pMsgCompose->Initialize(hiddenWindow, pMsgComposeParams) ;
-    if (NS_FAILED(rv)) return rv ;
+  /** initialize nsIMsgCompose, Send the message, wait for send completion response **/
 
-    return pMsgCompose->SendMsg(nsIMsgSend::nsMsgDeliverNow, pMsgId, nsnull, nsnull, nsnull) ;
-    if (NS_FAILED(rv)) return rv ;
+  rv = pMsgCompose->Initialize(hiddenWindow, pMsgComposeParams) ;
+  if (NS_FAILED(rv)) return rv ;
 
-    // assign to interface pointer from nsCOMPtr to facilitate typecast below
-    nsIMsgSendListener * pSendListener = sendListener ;  
+  return pMsgCompose->SendMsg(nsIMsgSend::nsMsgDeliverNow, pMsgId, nsnull, nsnull, nsnull) ;
+  if (NS_FAILED(rv)) return rv ;
 
-    // we need to wait here to make sure that we return only after send is completed
-    // so we will have a event loop here which will process the events till the Send IsDone.
-    nsIThread *thread = NS_GetCurrentThread();
-    while ( !((nsMAPISendListener *) pSendListener)->IsDone() )
-    {
-        PR_CEnterMonitor(pSendListener);
-        PR_CWait(pSendListener, PR_MicrosecondsToInterval(1000UL));
-        PR_CExitMonitor(pSendListener);
-        NS_ProcessPendingEvents(thread);
-    }
+  // assign to interface pointer from nsCOMPtr to facilitate typecast below
+  nsIMsgSendListener * pSendListener = sendListener ;
 
-    return rv ;
+  // we need to wait here to make sure that we return only after send is completed
+  // so we will have a event loop here which will process the events till the Send IsDone.
+  nsIThread *thread = NS_GetCurrentThread();
+  while ( !((nsMAPISendListener *) pSendListener)->IsDone() )
+  {
+    PR_CEnterMonitor(pSendListener);
+    PR_CWait(pSendListener, PR_MicrosecondsToInterval(1000UL));
+    PR_CExitMonitor(pSendListener);
+    NS_ProcessPendingEvents(thread);
+  }
+
+  return rv ;
 }
 
 // this is used to populate comp fields with Unicode data
-nsresult nsMapiHook::PopulateCompFields(lpnsMapiMessage aMessage, 
+nsresult nsMapiHook::PopulateCompFields(lpnsMapiMessage aMessage,
                                     nsIMsgCompFields * aCompFields)
 {
-    nsresult rv = NS_OK ;
+  nsresult rv = NS_OK ;
 
-    if (aMessage->lpOriginator)
+  if (aMessage->lpOriginator)
+    aCompFields->SetFrom (NS_ConvertASCIItoUTF16((char *) aMessage->lpOriginator->lpszAddress));
+
+  nsAutoString To ;
+  nsAutoString Cc ;
+  nsAutoString Bcc ;
+
+  NS_NAMED_LITERAL_STRING(Comma, ",");
+
+  if (aMessage->lpRecips)
+  {
+    for (int i=0 ; i < (int) aMessage->nRecipCount ; i++)
     {
-        char * From = aMessage->lpOriginator->lpszAddress ;
-        nsAutoString FromStr; FromStr.AssignWithConversion(From);
-        aCompFields->SetFrom (FromStr) ;
-    }
-
-    nsAutoString To ;
-    nsAutoString Cc ; 
-    nsAutoString Bcc ;
-
-    NS_NAMED_LITERAL_STRING(Comma, ",") ;
-
-    if (aMessage->lpRecips)
-    {
-        for (int i=0 ; i < (int) aMessage->nRecipCount ; i++)
+      if (aMessage->lpRecips[i].lpszAddress || aMessage->lpRecips[i].lpszName)
+      {
+        const char *addressWithoutType = (aMessage->lpRecips[i].lpszAddress)
+          ? aMessage->lpRecips[i].lpszAddress : aMessage->lpRecips[i].lpszName;
+        if (!PL_strncasecmp(addressWithoutType, "SMTP:", 5))
+          addressWithoutType += 5;
+        switch (aMessage->lpRecips[i].ulRecipClass)
         {
-            if (aMessage->lpRecips[i].lpszAddress || aMessage->lpRecips[i].lpszName)
-            {
-                const char *addressWithoutType = (aMessage->lpRecips[i].lpszAddress)
-                  ? aMessage->lpRecips[i].lpszAddress : aMessage->lpRecips[i].lpszName;
-                if (!PL_strncasecmp(addressWithoutType, "SMTP:", 5))
-                  addressWithoutType += 5;
-                switch (aMessage->lpRecips[i].ulRecipClass)
-                {
-                case MAPI_TO :
-                    if (!To.IsEmpty())
-                        To += Comma ;
-                    To.AppendWithConversion(addressWithoutType) ;
-                    break ;
+        case MAPI_TO :
+          if (!To.IsEmpty())
+            To += Comma;
+          To.Append(NS_ConvertASCIItoUTF16(addressWithoutType));
+          break;
 
-                case MAPI_CC :
-                    if (!Cc.IsEmpty())
-                        Cc += Comma ;
-                    Cc.AppendWithConversion(addressWithoutType) ;
-                    break ;
+        case MAPI_CC :
+          if (!Cc.IsEmpty())
+            Cc += Comma;
+          Cc.Append(NS_ConvertASCIItoUTF16(addressWithoutType));
+          break;
 
-                case MAPI_BCC :
-                    if (!Bcc.IsEmpty())
-                        Bcc += Comma ;
-                    Bcc.AppendWithConversion(addressWithoutType) ; 
-                    break ;
-                }
-            }
+        case MAPI_BCC :
+          if (!Bcc.IsEmpty())
+            Bcc += Comma;
+          Bcc.Append(NS_ConvertASCIItoUTF16(addressWithoutType));
+          break;
         }
+      }
     }
+  }
 
-    PR_LOG(MAPI, PR_LOG_DEBUG, ("to: %s cc: %s bcc: %s \n", NS_ConvertUTF16toUTF8(To).get(), NS_ConvertUTF16toUTF8(Cc).get(), NS_ConvertUTF16toUTF8(Bcc).get()));
-    // set To, Cc, Bcc
-    aCompFields->SetTo (To) ;
-    aCompFields->SetCc (Cc) ;
-    aCompFields->SetBcc (Bcc) ;
+  PR_LOG(MAPI, PR_LOG_DEBUG, ("to: %s cc: %s bcc: %s \n", NS_ConvertUTF16toUTF8(To).get(), NS_ConvertUTF16toUTF8(Cc).get(), NS_ConvertUTF16toUTF8(Bcc).get()));
+  // set To, Cc, Bcc
+  aCompFields->SetTo (To) ;
+  aCompFields->SetCc (Cc) ;
+  aCompFields->SetBcc (Bcc) ;
 
-    // set subject
-    if (aMessage->lpszSubject)
-    {
-        nsAutoString Subject;
+  // set subject
+  if (aMessage->lpszSubject)
+    aCompFields->SetSubject(NS_ConvertASCIItoUTF16(aMessage->lpszSubject));
 
-        Subject.AssignWithConversion(aMessage->lpszSubject);
-        aCompFields->SetSubject(Subject) ;
-    }
+  // handle attachments as File URL
+  rv = HandleAttachments (aCompFields, aMessage->nFileCount, aMessage->lpFiles, PR_TRUE) ;
+  if (NS_FAILED(rv)) return rv ;
 
-    // handle attachments as File URL
-    rv = HandleAttachments (aCompFields, aMessage->nFileCount, aMessage->lpFiles, PR_TRUE) ;
-    if (NS_FAILED(rv)) return rv ;    
+  // set body
+  if (aMessage->lpszNoteText)
+  {
+      nsString Body;
+      CopyASCIItoUTF16(aMessage->lpszNoteText, Body);
+      if (Body.Last() != nsCRT::LF)
+        Body.AppendLiteral(CRLF);
 
-    // set body
-    if (aMessage->lpszNoteText)
-    {
-        nsString Body;
-        Body.AssignWithConversion(aMessage->lpszNoteText);
-        if (Body.Last() != nsCRT::LF)
-          Body.AppendLiteral(CRLF); 
+      if (Body.Find("<html>") == kNotFound)
+        aCompFields->SetForcePlainText(PR_TRUE);
 
-        if (Body.Find("<html>") == kNotFound)
-          aCompFields->SetForcePlainText(PR_TRUE);
-
-        rv = aCompFields->SetBody(Body) ;
-    }
-
-#ifdef RAJIV_DEBUG
-    // testing what all was set in CompFields
-    printf ("To : %S \n", To.get()) ;
-    printf ("CC : %S \n", Cc.get() ) ;
-    printf ("BCC : %S \n", Bcc.get() ) ;
-#endif
-
-    return rv ;
-
+      rv = aCompFields->SetBody(Body) ;
+  }
+  return rv ;
 }
 
-nsresult nsMapiHook::HandleAttachments (nsIMsgCompFields * aCompFields, PRInt32 aFileCount, 
+nsresult nsMapiHook::HandleAttachments (nsIMsgCompFields * aCompFields, PRInt32 aFileCount,
                                         lpnsMapiFileDesc aFiles, BOOL aIsUnicode)
 {
     nsresult rv = NS_OK ;
@@ -532,9 +514,9 @@ nsresult nsMapiHook::HandleAttachments (nsIMsgCompFields * aCompFields, PRInt32 
     nsCAutoString TempFiles ;
 
     nsCOMPtr <nsILocalFile> pFile = do_CreateInstance (NS_LOCAL_FILE_CONTRACTID, &rv) ;
-    if (NS_FAILED(rv) || (!pFile) ) return rv ;        
+    if (NS_FAILED(rv) || (!pFile) ) return rv ;
     nsCOMPtr <nsILocalFile> pTempDir = do_CreateInstance (NS_LOCAL_FILE_CONTRACTID, &rv) ;
-    if (NS_FAILED(rv) || (!pTempDir) ) return rv ;        
+    if (NS_FAILED(rv) || (!pTempDir) ) return rv ;
 
     for (int i=0 ; i < aFileCount ; i++)
     {
@@ -543,9 +525,9 @@ nsresult nsMapiHook::HandleAttachments (nsIMsgCompFields * aCompFields, PRInt32 
         {
             // check if attachment exists
             if (aIsUnicode)
-                pFile->InitWithPath (nsDependentString(aFiles[i].lpszPathName)); 
+                pFile->InitWithPath (nsDependentString(aFiles[i].lpszPathName));
             else
-                pFile->InitWithNativePath (nsDependentCString((const char*)aFiles[i].lpszPathName)); 
+                pFile->InitWithNativePath (nsDependentCString((const char*)aFiles[i].lpszPathName));
 
             PRBool bExist ;
             rv = pFile->Exists(&bExist) ;
@@ -567,7 +549,7 @@ nsresult nsMapiHook::HandleAttachments (nsIMsgCompFields * aCompFields, PRInt32 
             }
 
             // rename or copy the existing temp file with the real file name
-            
+
             nsAutoString leafName ;
             // convert to Unicode using Platform charset
             // leafName already contains a unicode leafName from lpszPathName. If we were given
@@ -586,14 +568,14 @@ nsresult nsMapiHook::HandleAttachments (nsIMsgCompFields * aCompFields, PRInt32 
                 else
                   leafName.Assign(wholeFileName);
             }
-            else 
+            else
               pFile->GetLeafName (leafName);
 
              nsCOMPtr <nsIFile> pTempFile;
              rv = pTempDir->Clone(getter_AddRefs(pTempFile));
-             if (NS_FAILED(rv) || (!pTempFile) ) 
+             if (NS_FAILED(rv) || (!pTempFile) )
                return rv;
- 
+
              pTempFile->Append(leafName);
              pTempFile->Exists(&bExist);
              if (bExist)
@@ -605,7 +587,7 @@ nsresult nsMapiHook::HandleAttachments (nsIMsgCompFields * aCompFields, PRInt32 
             // copy the file to its new location and file name
             pFile->CopyTo(pTempDir, leafName);
             // point pFile to the new location of the attachment
-            pFile->InitWithFile(pTempDir); 
+            pFile->InitWithFile(pTempDir);
             pFile->Append(leafName);
 
             // create MsgCompose attachment object
@@ -629,254 +611,252 @@ nsresult nsMapiHook::HandleAttachments (nsIMsgCompFields * aCompFields, PRInt32 
 
 
 // this is used to convert non Unicode data and then populate comp fields
-nsresult nsMapiHook::PopulateCompFieldsWithConversion(lpnsMapiMessage aMessage, 
+nsresult nsMapiHook::PopulateCompFieldsWithConversion(lpnsMapiMessage aMessage,
                                     nsIMsgCompFields * aCompFields)
 {
-    nsresult rv = NS_OK ;
+  nsresult rv = NS_OK;
 
-    if (aMessage->lpOriginator)
+  if (aMessage->lpOriginator)
+  {
+    nsAutoString From;
+    From.Append(NS_ConvertASCIItoUTF16((char *) aMessage->lpOriginator->lpszAddress));
+    aCompFields->SetFrom (From);
+  }
+
+  nsAutoString To;
+  nsAutoString Cc;
+  nsAutoString Bcc;
+  NS_NAMED_LITERAL_STRING(Comma, ",");
+  if (aMessage->lpRecips)
+  {
+    for (int i=0 ; i < (int) aMessage->nRecipCount ; i++)
     {
-        nsAutoString From ;
-        From.AssignWithConversion((char *) aMessage->lpOriginator->lpszAddress);
-        aCompFields->SetFrom (From) ;
-    }
+      if (aMessage->lpRecips[i].lpszAddress || aMessage->lpRecips[i].lpszName)
+      {
+        const char *addressWithoutType = (aMessage->lpRecips[i].lpszAddress)
+          ? aMessage->lpRecips[i].lpszAddress : aMessage->lpRecips[i].lpszName;
+        if (!PL_strncasecmp(addressWithoutType, "SMTP:", 5))
+          addressWithoutType += 5;
 
-    nsAutoString To ;
-    nsAutoString Cc ; 
-    nsAutoString Bcc ;
-
-    NS_NAMED_LITERAL_STRING(Comma, ",") ;
-
-    if (aMessage->lpRecips)
-    {
-        for (int i=0 ; i < (int) aMessage->nRecipCount ; i++)
+        switch (aMessage->lpRecips[i].ulRecipClass)
         {
-            if (aMessage->lpRecips[i].lpszAddress || aMessage->lpRecips[i].lpszName)
-            {
-                const char *addressWithoutType = (aMessage->lpRecips[i].lpszAddress)
-                  ? aMessage->lpRecips[i].lpszAddress : aMessage->lpRecips[i].lpszName;
-                if (!PL_strncasecmp(addressWithoutType, "SMTP:", 5))
-                  addressWithoutType += 5;
+        case MAPI_TO :
+          if (!To.IsEmpty())
+            To += Comma ;
+          To.Append(NS_ConvertASCIItoUTF16(addressWithoutType));
+          break ;
 
-                switch (aMessage->lpRecips[i].ulRecipClass)
-                {
-                case MAPI_TO :
-                    if (!To.IsEmpty())
-                        To += Comma ;
-                    To.AppendWithConversion (addressWithoutType);
-                    break ;
+        case MAPI_CC :
+          if (!Cc.IsEmpty())
+            Cc += Comma ;
+          Cc.Append(NS_ConvertASCIItoUTF16(addressWithoutType));
+          break ;
 
-                case MAPI_CC :
-                    if (!Cc.IsEmpty())
-                        Cc += Comma ;
-                    Cc.AppendWithConversion (addressWithoutType);
-                    break ;
-
-                case MAPI_BCC :
-                    if (!Bcc.IsEmpty())
-                        Bcc += Comma ;
-                    Bcc.AppendWithConversion (addressWithoutType) ; 
-                    break ;
-                }
-            }
+        case MAPI_BCC :
+          if (!Bcc.IsEmpty())
+              Bcc += Comma ;
+          Bcc.Append(NS_ConvertASCIItoUTF16(addressWithoutType));
+          break ;
         }
+      }
     }
-    
-    // set To, Cc, Bcc
-    aCompFields->SetTo (To) ;
-    aCompFields->SetCc (Cc) ;
-    aCompFields->SetBcc (Bcc) ;
+  }
 
-    PR_LOG(MAPI, PR_LOG_DEBUG, ("to: %s cc: %s bcc: %s \n", NS_ConvertUTF16toUTF8(To).get(), NS_ConvertUTF16toUTF8(Cc).get(), NS_ConvertUTF16toUTF8(Bcc).get()));
+  // set To, Cc, Bcc
+  aCompFields->SetTo (To) ;
+  aCompFields->SetCc (Cc) ;
+  aCompFields->SetBcc (Bcc) ;
 
-    nsCAutoString platformCharSet;
-    // set subject
-    if (aMessage->lpszSubject)
-    {
-        nsAutoString Subject ;
-        if (platformCharSet.IsEmpty())
-            platformCharSet.Assign(nsMsgI18NFileSystemCharset());
-        rv = ConvertToUnicode(platformCharSet.get(), (char *) aMessage->lpszSubject, Subject);
-        if (NS_FAILED(rv)) return rv ;         
-        aCompFields->SetSubject(Subject) ;
-    }
+  PR_LOG(MAPI, PR_LOG_DEBUG, ("to: %s cc: %s bcc: %s \n", NS_ConvertUTF16toUTF8(To).get(), NS_ConvertUTF16toUTF8(Cc).get(), NS_ConvertUTF16toUTF8(Bcc).get()));
 
-    // handle attachments as File URL
-    rv = HandleAttachments (aCompFields, aMessage->nFileCount, aMessage->lpFiles, PR_FALSE) ;
-    if (NS_FAILED(rv)) return rv ;    
+  nsCAutoString platformCharSet;
+  // set subject
+  if (aMessage->lpszSubject)
+  {
+    nsAutoString Subject ;
+    if (platformCharSet.IsEmpty())
+      platformCharSet.Assign(nsMsgI18NFileSystemCharset());
+    rv = ConvertToUnicode(platformCharSet.get(), (char *) aMessage->lpszSubject, Subject);
+    if (NS_FAILED(rv)) return rv;
+    aCompFields->SetSubject(Subject);
+  }
 
-    // set body
-    if (aMessage->lpszNoteText)
-    {
-        nsAutoString Body ;
-        if (platformCharSet.IsEmpty())
-            platformCharSet.Assign(nsMsgI18NFileSystemCharset());
-        rv = ConvertToUnicode(platformCharSet.get(), (char *) aMessage->lpszNoteText, Body);
-        if (NS_FAILED(rv)) return rv ;
-        if (Body.Last() != nsCRT::LF)
-          Body.AppendLiteral(CRLF); 
+  // handle attachments as File URL
+  rv = HandleAttachments (aCompFields, aMessage->nFileCount, aMessage->lpFiles, PR_FALSE) ;
+  if (NS_FAILED(rv)) return rv ;
 
-        if (Body.Find("<html>") == kNotFound)
-          aCompFields->SetForcePlainText(PR_TRUE);
+  // set body
+  if (aMessage->lpszNoteText)
+  {
+    nsAutoString Body ;
+    if (platformCharSet.IsEmpty())
+      platformCharSet.Assign(nsMsgI18NFileSystemCharset());
+    rv = ConvertToUnicode(platformCharSet.get(), (char *) aMessage->lpszNoteText, Body);
+    if (NS_FAILED(rv)) return rv ;
+    if (Body.Last() != nsCRT::LF)
+      Body.AppendLiteral(CRLF);
 
-        rv = aCompFields->SetBody(Body) ;
-    }
+    if (Body.Find("<html>") == kNotFound)
+      aCompFields->SetForcePlainText(PR_TRUE);
+
+    rv = aCompFields->SetBody(Body) ;
+  }
 
 #ifdef RAJIV_DEBUG
-    // testing what all was set in CompFields
-    printf ("To : %S \n", To.get()) ;
-    printf ("CC : %S \n", Cc.get() ) ;
-    printf ("BCC : %S \n", Bcc.get() ) ;
+  // testing what all was set in CompFields
+  printf ("To : %S \n", To.get()) ;
+  printf ("CC : %S \n", Cc.get() ) ;
+  printf ("BCC : %S \n", Bcc.get() ) ;
 #endif
 
-    return rv ;
+  return rv ;
 }
 
 // this is used to populate the docs as attachments in the Comp fields for Send Documents
-nsresult nsMapiHook::PopulateCompFieldsForSendDocs(nsIMsgCompFields * aCompFields, ULONG aFlags, 
+nsresult nsMapiHook::PopulateCompFieldsForSendDocs(nsIMsgCompFields * aCompFields, ULONG aFlags,
                             PRUnichar * aDelimChar, PRUnichar * aFilePaths)
 {
-    nsAutoString strDelimChars ;
-    nsString strFilePaths;
-    nsresult rv = NS_OK ;
-    PRBool bExist ;
+  nsAutoString strDelimChars ;
+  nsString strFilePaths;
+  nsresult rv = NS_OK ;
+  PRBool bExist ;
 
-    if (aFlags & MAPI_UNICODE)
+  if (aFlags & MAPI_UNICODE)
+  {
+    if (aDelimChar)
+      strDelimChars.Assign (aDelimChar);
+    if (aFilePaths)
+      strFilePaths.Assign (aFilePaths);
+  }
+  else
+  {
+    if (aDelimChar)
+      strDelimChars.Assign(aDelimChar);
+    if (aFilePaths)
+      strFilePaths.Assign ( aFilePaths);
+  }
+
+  // check for comma in filename
+  if (strDelimChars.Find (",") == kNotFound)  // if comma is not in the delimiter specified by user
+  {
+    if (strFilePaths.Find(",") != kNotFound) // if comma found in filenames return error
+      return NS_ERROR_FILE_INVALID_PATH;
+  }
+
+  nsCString Attachments ;
+
+  // only 1 file is to be sent, no delim specified
+  if (strDelimChars.IsEmpty())
+      strDelimChars.AssignLiteral(";");
+
+  PRInt32 offset = 0 ;
+  PRInt32 FilePathsLen = strFilePaths.Length() ;
+  if (FilePathsLen)
+  {
+    nsAutoString Subject ;
+
+    // multiple files to be sent, delim specified
+    nsCOMPtr <nsILocalFile> pFile = do_CreateInstance (NS_LOCAL_FILE_CONTRACTID, &rv) ;
+    if (NS_FAILED(rv) || (!pFile) ) return rv ;
+
+    PRUnichar * newFilePaths = (PRUnichar *) strFilePaths.get() ;
+    while (offset != kNotFound)
     {
-        if (aDelimChar)
-            strDelimChars.Assign (aDelimChar) ;
-        if (aFilePaths)
-            strFilePaths.Assign (aFilePaths) ;
-    }
-    else
-    {
-        if (aDelimChar)
-            strDelimChars.AssignWithConversion ((char*) aDelimChar) ;
-        if (aFilePaths)
-            strFilePaths.AssignWithConversion ((char *) aFilePaths) ;
-    }
+      //Temp Directory
+      nsCOMPtr <nsIFile> pTempFileDir;
+      NS_GetSpecialDirectory(NS_OS_TEMP_DIR, getter_AddRefs(pTempFileDir));
+      nsCOMPtr <nsILocalFile> pTempDir = do_QueryInterface(pTempFileDir);
 
-    // check for comma in filename 
-    if (strDelimChars.Find (",") == kNotFound)  // if comma is not in the delimiter specified by user
-    {
-        if (strFilePaths.Find(",") != kNotFound) // if comma found in filenames return error
-            return NS_ERROR_FILE_INVALID_PATH ;
-    }
+      // if not already existing, create another temp dir for mapi within Win temp dir
+      // this is windows only so we can do "\\"
+      pTempDir->AppendRelativePath (NS_LITERAL_STRING("moz_mapi"));
+      pTempDir->Exists(&bExist) ;
+      if (!bExist)
+      {
+        rv = pTempDir->Create(nsIFile::DIRECTORY_TYPE, 777) ;
+        if (NS_FAILED(rv)) return rv ;
+      }
 
-    nsCString Attachments ;
+      nsString RemainingPaths ;
+      RemainingPaths.Assign(newFilePaths) ;
+      offset = RemainingPaths.Find (strDelimChars) ;
+      if (offset != kNotFound)
+      {
+        RemainingPaths.SetLength (offset) ;
+        if ((offset + strDelimChars.Length()) < FilePathsLen)
+          newFilePaths += offset + strDelimChars.Length() ;
+        else
+          offset = kNotFound;
+        FilePathsLen -= offset + strDelimChars.Length();
+      }
 
-    // only 1 file is to be sent, no delim specified
-    if (strDelimChars.IsEmpty())
-        strDelimChars.AssignLiteral(";");
-
-    PRInt32 offset = 0 ;
-    PRInt32 FilePathsLen = strFilePaths.Length() ;
-    if (FilePathsLen)
-    {
-        nsAutoString Subject ;
-
-        // multiple files to be sent, delim specified
-        nsCOMPtr <nsILocalFile> pFile = do_CreateInstance (NS_LOCAL_FILE_CONTRACTID, &rv) ;
-        if (NS_FAILED(rv) || (!pFile) ) return rv ;        
-
-        PRUnichar * newFilePaths = (PRUnichar *) strFilePaths.get() ;
-        while (offset != kNotFound)
+      if (RemainingPaths[1] != ':' && RemainingPaths[1] != '\\')
+      {
+        char cwd[MAX_PATH];
+        if (_getdcwd(_getdrive(), cwd, MAX_PATH))
         {
-            //Temp Directory
-            nsCOMPtr <nsIFile> pTempFileDir;
-            NS_GetSpecialDirectory(NS_OS_TEMP_DIR, getter_AddRefs(pTempFileDir));
-            nsCOMPtr <nsILocalFile> pTempDir = do_QueryInterface(pTempFileDir);
-
-            // if not already existing, create another temp dir for mapi within Win temp dir
-            // this is windows only so we can do "\\"
-            pTempDir->AppendRelativePath (NS_LITERAL_STRING("moz_mapi"));
-            pTempDir->Exists(&bExist) ;
-            if (!bExist)
-            {
-                rv = pTempDir->Create(nsIFile::DIRECTORY_TYPE, 777) ;
-                if (NS_FAILED(rv)) return rv ;
-            }
-
-            nsString RemainingPaths ;
-            RemainingPaths.Assign(newFilePaths) ;
-            offset = RemainingPaths.Find (strDelimChars) ;
-            if (offset != kNotFound)
-            {
-                RemainingPaths.SetLength (offset) ;
-                if ((offset + strDelimChars.Length()) < FilePathsLen)
-                    newFilePaths += offset + strDelimChars.Length() ;
-                else
-                  offset = kNotFound;
-                FilePathsLen -= offset + strDelimChars.Length();
-            }
-
-            if (RemainingPaths[1] != ':' && RemainingPaths[1] != '\\') 
-            {
-              char cwd[MAX_PATH];  
-              if (_getdcwd(_getdrive(), cwd, MAX_PATH)) 
-              {
-                nsAutoString cwdStr;
-                CopyASCIItoUTF16(cwd, cwdStr);
-                cwdStr.Append('\\');
-                RemainingPaths.Insert(cwdStr, 0);
-              }
-            }
-
-            pFile->InitWithPath (RemainingPaths) ;
-
-            rv = pFile->Exists(&bExist) ;
-            if (NS_FAILED(rv) || (!bExist) ) return NS_ERROR_FILE_TARGET_DOES_NOT_EXIST ;
-
-            // filename of the file attachment
-            nsAutoString leafName ;
-            pFile->GetLeafName (leafName) ;
-            if(NS_FAILED(rv) || leafName.IsEmpty()) return rv ;
-
-            if (!Subject.IsEmpty()) 
-                Subject.AppendLiteral(", ");
-            Subject += leafName;
-
-            // create MsgCompose attachment object
-            nsCOMPtr<nsIMsgAttachment> attachment = do_CreateInstance(NS_MSGATTACHMENT_CONTRACTID, &rv);
-            NS_ENSURE_SUCCESS(rv, rv);
-
-            nsDependentString fileNameNative(leafName.get());
-            rv = pFile->CopyTo(pTempDir, fileNameNative);
-            if (NS_FAILED(rv)) return rv ;
-
-            // now turn pTempDir into a full file path to the temp file
-            pTempDir->Append(fileNameNative);
-
-            // this one is a temp file so set the flag for MsgCompose
-            attachment->SetTemporary(PR_TRUE) ;
-
-            // now set the attachment object
-            nsCAutoString pURL ;
-            NS_GetURLSpecFromFile(pTempDir, pURL);
-            attachment->SetUrl(pURL.get()) ;
-
-            // add the attachment
-            rv = aCompFields->AddAttachment (attachment);
-            if (NS_FAILED(rv)) return rv ;
+          nsAutoString cwdStr;
+          CopyASCIItoUTF16(cwd, cwdStr);
+          cwdStr.Append('\\');
+          RemainingPaths.Insert(cwdStr, 0);
         }
+      }
 
-        rv = aCompFields->SetBody(Subject) ;
+      pFile->InitWithPath (RemainingPaths) ;
+
+      rv = pFile->Exists(&bExist) ;
+      if (NS_FAILED(rv) || (!bExist) ) return NS_ERROR_FILE_TARGET_DOES_NOT_EXIST ;
+
+      // filename of the file attachment
+      nsAutoString leafName ;
+      pFile->GetLeafName (leafName) ;
+      if(NS_FAILED(rv) || leafName.IsEmpty()) return rv ;
+
+      if (!Subject.IsEmpty())
+          Subject.AppendLiteral(", ");
+      Subject += leafName;
+
+      // create MsgCompose attachment object
+      nsCOMPtr<nsIMsgAttachment> attachment = do_CreateInstance(NS_MSGATTACHMENT_CONTRACTID, &rv);
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      nsDependentString fileNameNative(leafName.get());
+      rv = pFile->CopyTo(pTempDir, fileNameNative);
+      if (NS_FAILED(rv)) return rv ;
+
+      // now turn pTempDir into a full file path to the temp file
+      pTempDir->Append(fileNameNative);
+
+      // this one is a temp file so set the flag for MsgCompose
+      attachment->SetTemporary(PR_TRUE) ;
+
+      // now set the attachment object
+      nsCAutoString pURL ;
+      NS_GetURLSpecFromFile(pTempDir, pURL);
+      attachment->SetUrl(pURL.get()) ;
+
+      // add the attachment
+      rv = aCompFields->AddAttachment (attachment);
+      if (NS_FAILED(rv)) return rv ;
     }
 
-    return rv ;
+    rv = aCompFields->SetBody(Subject) ;
+  }
+
+  return rv ;
 }
 
 // this used for Send with UI
-nsresult nsMapiHook::ShowComposerWindow (unsigned long aSession, nsIMsgCompFields * aCompFields) 
+nsresult nsMapiHook::ShowComposerWindow (unsigned long aSession, nsIMsgCompFields * aCompFields)
 {
     nsresult rv = NS_OK ;
 
     // create a send listener to get back the send status
     nsCOMPtr <nsIMsgSendListener> sendListener ;
-    rv = nsMAPISendListener::CreateMAPISendListener(getter_AddRefs(sendListener)) ; 
+    rv = nsMAPISendListener::CreateMAPISendListener(getter_AddRefs(sendListener)) ;
     if (NS_FAILED(rv) || (!sendListener) ) return rv ;
 
-    // create the compose params object 
+    // create the compose params object
     nsCOMPtr<nsIMsgComposeParams> pMsgComposeParams (do_CreateInstance(NS_MSGCOMPOSEPARAMS_CONTRACTID, &rv));
     if (NS_FAILED(rv) || (!pMsgComposeParams) ) return rv ;
 
@@ -886,7 +866,7 @@ nsresult nsMapiHook::ShowComposerWindow (unsigned long aSession, nsIMsgCompField
     // populate the compose params
     pMsgComposeParams->SetType(nsIMsgCompType::New);
     pMsgComposeParams->SetFormat(nsIMsgCompFormat::Default);
-    pMsgComposeParams->SetComposeFields(aCompFields); 
+    pMsgComposeParams->SetComposeFields(aCompFields);
     pMsgComposeParams->SetSendListener(sendListener) ;
 
     /** get the nsIMsgComposeService object to open the compose window **/

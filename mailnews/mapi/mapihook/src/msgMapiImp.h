@@ -40,8 +40,8 @@
 #include <windows.h>
 #include <mapi.h>
 #include "msgMapi.h"
-#include "nsXPIDLString.h"
 #include "nspr.h"
+#include "nscore.h"
 
 class nsIMsgFolder;
 class MsgMapiListContext;
@@ -56,54 +56,53 @@ class CMapiImp : public nsIMapi
 
 public :
 
-    // IUnknown
+  // IUnknown
 
-    STDMETHODIMP            QueryInterface(const IID& aIid, void** aPpv);
-    STDMETHODIMP_(ULONG)    AddRef();
-    STDMETHODIMP_(ULONG)    Release();
+  STDMETHODIMP            QueryInterface(const IID& aIid, void** aPpv);
+  STDMETHODIMP_(ULONG)    AddRef();
+  STDMETHODIMP_(ULONG)    Release();
 
-    // Interface INsMapi
+  // Interface INsMapi
 
-    STDMETHODIMP Login(unsigned long aUIArg, LOGIN_PW_TYPE aLogin, 
-                       LOGIN_PW_TYPE aPassWord, unsigned long aFlags,
-                       unsigned long *aSessionId);
+  STDMETHODIMP Login(unsigned long aUIArg, LOGIN_PW_TYPE aLogin, 
+                     LOGIN_PW_TYPE aPassWord, unsigned long aFlags,
+                     unsigned long *aSessionId);
 
-    STDMETHODIMP SendMail( unsigned long aSession, lpnsMapiMessage aMessage,
-         short aRecipCount, lpnsMapiRecipDesc aRecips , 
-         short aFileCount, lpnsMapiFileDesc aFiles , 
-         unsigned long aFlags, unsigned long aReserved) ;
+  STDMETHODIMP SendMail( unsigned long aSession, lpnsMapiMessage aMessage,
+       short aRecipCount, lpnsMapiRecipDesc aRecips , 
+       short aFileCount, lpnsMapiFileDesc aFiles , 
+       unsigned long aFlags, unsigned long aReserved) ;
 
-    STDMETHODIMP SendDocuments( unsigned long aSession, LPTSTR aDelimChar,
-                                LPTSTR aFilePaths, LPTSTR aFileNames, ULONG aFlags);
+  STDMETHODIMP SendDocuments( unsigned long aSession, LPTSTR aDelimChar,
+                              LPTSTR aFilePaths, LPTSTR aFileNames, ULONG aFlags);
 
-    STDMETHODIMP FindNext(  unsigned long aSession, unsigned long ulUIParam, LPTSTR lpszMessageType,
-                              LPTSTR lpszSeedMessageID, unsigned long flFlags, unsigned long ulReserved,
-                              unsigned char lpszMessageID[64] );
+  STDMETHODIMP FindNext(  unsigned long aSession, unsigned long ulUIParam, LPTSTR lpszMessageType,
+                            LPTSTR lpszSeedMessageID, unsigned long flFlags, unsigned long ulReserved,
+                            unsigned char lpszMessageID[64] );
 
-    STDMETHODIMP ReadMail(unsigned long lhSession, unsigned long ulUIParam, LPTSTR lpszMessageID,
-                              unsigned long flFlags, unsigned long ulReserved, lpnsMapiMessage *lppMessage);
-    STDMETHODIMP DeleteMail(unsigned long lhSession, unsigned long ulUIParam, LPTSTR lpszMessageID,
-                              unsigned long flFlags, unsigned long ulReserved);
-    STDMETHODIMP SaveMail(unsigned long lhSession, unsigned long ulUIParam, lpnsMapiMessage lppMessage,
-                              unsigned long flFlags, unsigned long ulReserved, LPTSTR lpszMessageID);
+  STDMETHODIMP ReadMail(unsigned long lhSession, unsigned long ulUIParam, LPTSTR lpszMessageID,
+                            unsigned long flFlags, unsigned long ulReserved, lpnsMapiMessage *lppMessage);
+  STDMETHODIMP DeleteMail(unsigned long lhSession, unsigned long ulUIParam, LPTSTR lpszMessageID,
+                            unsigned long flFlags, unsigned long ulReserved);
+  STDMETHODIMP SaveMail(unsigned long lhSession, unsigned long ulUIParam, lpnsMapiMessage lppMessage,
+                            unsigned long flFlags, unsigned long ulReserved, LPTSTR lpszMessageID);
 
-    STDMETHODIMP Initialize();
-    STDMETHODIMP IsValid();
-    STDMETHODIMP IsValidSession(unsigned long aSession);
+  STDMETHODIMP Initialize();
+  STDMETHODIMP IsValid();
+  STDMETHODIMP IsValidSession(unsigned long aSession);
 
-    STDMETHODIMP Logoff (unsigned long aSession);
-    STDMETHODIMP CleanUp();
+  STDMETHODIMP Logoff (unsigned long aSession);
+  STDMETHODIMP CleanUp();
 
-    CMapiImp();
-    ~CMapiImp();
+  CMapiImp();
+  ~CMapiImp();
 
-    LONG InitContext(unsigned long session, MsgMapiListContext **listContext);
-    nsresult GetDefaultInbox(nsIMsgFolder **inboxFolder);
+  LONG InitContext(unsigned long session, MsgMapiListContext **listContext);
+  nsresult GetDefaultInbox(nsIMsgFolder **inboxFolder);
 
 private :
-
-    PRLock *m_Lock;
-    PRInt32 m_cRef;
+  PRLock *m_Lock;
+  PRInt32 m_cRef;
 };
 
 #endif // MSG_MAPI_IMP_H

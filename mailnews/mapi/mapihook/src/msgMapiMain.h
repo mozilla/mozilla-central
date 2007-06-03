@@ -46,7 +46,6 @@
 #define PREF_MAPI_WARN_PRIOR_TO_BLIND_SEND "mapi.blind-send.warn"
 #define PREF_MAPI_BLIND_SEND_ENABLED "mapi.blind-send.enabled"
 
-#include "nsXPIDLString.h"
 #include "nspr.h"
 #include "nsString.h"
 #include "nsHashtable.h"
