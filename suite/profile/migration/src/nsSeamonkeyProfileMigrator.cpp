@@ -285,31 +285,31 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("alerts.totalOpenTime",                    Int),
 
   MAKESAMETYPEPREFTRANSFORM("browser.anchor_color",                    String),
+  MAKESAMETYPEPREFTRANSFORM("browser.active_color",                    String),
   MAKESAMETYPEPREFTRANSFORM("browser.backspace_action",                Int),
   MAKESAMETYPEPREFTRANSFORM("browser.blink_allowed",                   Bool),
-  MAKESAMETYPEPREFTRANSFORM("browser.chrome.favicons",                 Bool),
-  MAKESAMETYPEPREFTRANSFORM("browser.chrome.image_icons.max_size",     Int),
-  MAKESAMETYPEPREFTRANSFORM("browser.chrome.load_toolbar_icons",       Int),
-  MAKESAMETYPEPREFTRANSFORM("browser.chrome.site_icons",               Bool),
-  MAKESAMETYPEPREFTRANSFORM("browser.chrome.toolbar_style",            Int),
+  MAKESAMETYPEPREFTRANSFORM("browser.cache.disk.capacity",             Int),
+  MAKESAMETYPEPREFTRANSFORM("browser.cache.check_doc_frequency",       Int),
 
   // XXX Bug 381159 When suite uses Toolkit's DM backend, we need to
   // activate this code.
 #ifdef SUITE_USING_TOOLKIT_DM
   MAKESAMETYPEPREFTRANSFORM("browser.download.autoDownload",           Bool),
   MAKESAMETYPEPREFTRANSFORM("browser.download.lastLocation",           Bool),
-
   MAKEPREFTRANSFORM("browser.downloadmanager.behavior", 0, Int,
                     DownloadManager),
+#else
+  // Note browser.download.* prefs are covered below.
+  MAKESAMETYPEPREFTRANSFORM("browser.downloadmanager.behavior",        Int),
 #endif
 
+  MAKESAMETYPEPREFTRANSFORM("browser.enable_automatic_image_resizing", Bool),
   MAKESAMETYPEPREFTRANSFORM("browser.fixup.alternate.enabled",         Bool),
   MAKESAMETYPEPREFTRANSFORM("browser.fixup.alternate.prefix",          String),
   MAKESAMETYPEPREFTRANSFORM("browser.fixup.alternate.suffix",          String),
   MAKESAMETYPEPREFTRANSFORM("browser.fixup.hide_user_pass",            Bool),
   MAKESAMETYPEPREFTRANSFORM("browser.frames.enabled",                  Bool),
   MAKESAMETYPEPREFTRANSFORM("browser.history.grouping",                String),
-  MAKESAMETYPEPREFTRANSFORM("browser.enable_automatic_image_resizing", Bool),
   MAKESAMETYPEPREFTRANSFORM("browser.history_expire_days",             Int),
   MAKESAMETYPEPREFTRANSFORM("browser.link.open_external",              Int),
   MAKESAMETYPEPREFTRANSFORM("browser.link.open_newwindow",             Int),
@@ -328,9 +328,11 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("browser.triple_click_selects_paragraph",  Bool),
   MAKESAMETYPEPREFTRANSFORM("browser.underline_anchors",               Bool),
   MAKESAMETYPEPREFTRANSFORM("browser.visited_color",                   String),
-  MAKESAMETYPEPREFTRANSFORM("browser.windows.loadOnNewWindow",         Bool),
+  MAKESAMETYPEPREFTRANSFORM("browser.windows.loadOnNewWindow",         Int),
 
   MAKESAMETYPEPREFTRANSFORM("compose.throbber.url",                    String),
+  MAKESAMETYPEPREFTRANSFORM("config.use_system_prefs",                 Bool),
+  MAKESAMETYPEPREFTRANSFORM("config.use_system_prefs.accessibility",   Bool),
 
   MAKESAMETYPEPREFTRANSFORM("custtoolbar.personal_toolbar_folder",     String),
 
@@ -348,6 +350,8 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("general.open_location.last_window_choice",Int),
   MAKESAMETYPEPREFTRANSFORM("general.smoothScroll",                    Bool),
   MAKESAMETYPEPREFTRANSFORM("general.warnOnAboutConfig",               Bool),
+
+  MAKESAMETYPEPREFTRANSFORM("image.animation_mode",                    String),
 
   MAKESAMETYPEPREFTRANSFORM("intl.accept_charsets",                    String),
   MAKESAMETYPEPREFTRANSFORM("intl.accept_languages",                   String),
@@ -404,7 +408,7 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("mail.fixed_width_messages",               Bool),
   MAKESAMETYPEPREFTRANSFORM("mail.forward_message_mode",               Int),
 
-  MAKESAMETYPEPREFTRANSFORM("mail.incoporate.return_receipt",          Int),
+  MAKESAMETYPEPREFTRANSFORM("mail.incorporate.return_receipt",         Int),
   MAKESAMETYPEPREFTRANSFORM("mail.inline_attachments",                 Bool),
   MAKESAMETYPEPREFTRANSFORM("mail.label_ascii_only_mail_as_us_ascii",  Bool),
   MAKESAMETYPEPREFTRANSFORM("mail.notification.sound",                 String),
@@ -498,6 +502,7 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("mailnews.start_page.enabled",             Bool),
   MAKESAMETYPEPREFTRANSFORM("mailnews.start_page.url",                 String),
   MAKESAMETYPEPREFTRANSFORM("mailnews.tcptimeout",                     Int),
+  MAKESAMETYPEPREFTRANSFORM("mailnews.thread_pane_column_unthreads",   Bool),
   MAKESAMETYPEPREFTRANSFORM("mailnews.view_default_charset",           String),
   MAKESAMETYPEPREFTRANSFORM("mailnews.wraplength",                     Int),
 
@@ -519,12 +524,15 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKEPREFTRANSFORM("network.image.imageBehavior", 0, Int,             Image),
   MAKESAMETYPEPREFTRANSFORM("permissions.default.image",               Int),
 
+  MAKESAMETYPEPREFTRANSFORM("network.cookie.alwaysAcceptSessionCookies",Bool),
   MAKEPREFTRANSFORM("network.cookie.cookieBehavior", 0, Int,           Cookie),
-
   MAKESAMETYPEPREFTRANSFORM("network.cookie.lifetime.behavior",        Int),
+  MAKESAMETYPEPREFTRANSFORM("network.cookie.lifetime.days",            Int),
   MAKESAMETYPEPREFTRANSFORM("network.cookie.lifetime.enabled",         Bool),
+  MAKESAMETYPEPREFTRANSFORM("network.cookie.lifetimePolicy",           Int),
   MAKESAMETYPEPREFTRANSFORM("network.cookie.warnAboutCookies",         Bool),
   MAKESAMETYPEPREFTRANSFORM("network.ftp.anonymous_password",          String),
+  MAKESAMETYPEPREFTRANSFORM("network.prefetch-next",                   Bool),
   MAKESAMETYPEPREFTRANSFORM("network.proxy.autoconfig_url",            String),
   MAKESAMETYPEPREFTRANSFORM("network.proxy.ftp",                       String),
   MAKESAMETYPEPREFTRANSFORM("network.proxy.ftp_port",                  Int),
@@ -544,6 +552,8 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("offline.download.download_messages",      Int),
   MAKESAMETYPEPREFTRANSFORM("offline.send.unsent_messages",            Int),
   MAKESAMETYPEPREFTRANSFORM("offline.startup_state",                   Int),
+
+  MAKESAMETYPEPREFTRANSFORM("permissions.default.image",               Int),
 
   MAKESAMETYPEPREFTRANSFORM("security.default_personal_cert",          String),
   MAKESAMETYPEPREFTRANSFORM("security.enable_ssl2",                    Bool),
@@ -602,12 +612,14 @@ nsSeamonkeyProfileMigrator::TransformPreferences(const nsAString& aSourcePrefFil
     "accessibility.",
     "applications.",
     "bidi.",
+    "browser.chrome.",
     "browser.display.",
   // XXX Bug 381159 When suite uses Toolkit's DM backend, we need to
   // activate this code.
 #ifndef SUITE_USING_TOOLKIT_DM
     "browser.download.",
 #endif
+    "browser.search.",
     "browser.tabs.",
     "browser.urlbar.",
     "dom.",

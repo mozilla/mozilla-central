@@ -290,6 +290,7 @@ nsThunderbirdProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("accessibility.typeaheadfind.linksonly",   Bool),
 
   MAKESAMETYPEPREFTRANSFORM("browser.anchor_color",                    String),
+  MAKESAMETYPEPREFTRANSFORM("browser.active_color",                    String),
   MAKESAMETYPEPREFTRANSFORM("browser.display.background_color",        String),
   MAKESAMETYPEPREFTRANSFORM("browser.display.foreground_color",        String),
   MAKESAMETYPEPREFTRANSFORM("browser.display.use_system_colors",       Bool),
@@ -364,7 +365,7 @@ nsThunderbirdProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("mail.fixed_width_messages",               Bool),
   MAKESAMETYPEPREFTRANSFORM("mail.forward_message_mode",               Int),
 
-  MAKESAMETYPEPREFTRANSFORM("mail.incoporate.return_receipt",          Int),
+  MAKESAMETYPEPREFTRANSFORM("mail.incorporate.return_receipt",         Int),
   MAKESAMETYPEPREFTRANSFORM("mail.inline_attachments",                 Bool),
   MAKESAMETYPEPREFTRANSFORM("mail.label_ascii_only_mail_as_us_ascii",  Bool),
   MAKESAMETYPEPREFTRANSFORM("mail.notification.sound",                 String),
@@ -457,6 +458,7 @@ nsThunderbirdProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("mailnews.start_page.enabled",             Bool),
   MAKESAMETYPEPREFTRANSFORM("mailnews.start_page.url",                 String),
   MAKESAMETYPEPREFTRANSFORM("mailnews.tcptimeout",                     Int),
+  MAKESAMETYPEPREFTRANSFORM("mailnews.thread_pane_column_unthreads",   Bool),
   MAKESAMETYPEPREFTRANSFORM("mailnews.view_default_charset",           String),
   MAKESAMETYPEPREFTRANSFORM("mailnews.wraplength",                     Int),
 
@@ -478,10 +480,13 @@ nsThunderbirdProfileMigrator::PrefTransform gTransforms[] = {
   MAKEPREFTRANSFORM("network.image.imageBehavior", 0, Int,             Image),
   MAKESAMETYPEPREFTRANSFORM("permissions.default.image",               Int),
 
+  MAKESAMETYPEPREFTRANSFORM("network.cookie.alwaysAcceptSessionCookies",Bool),
   MAKEPREFTRANSFORM("network.cookie.cookieBehavior", 0, Int,           Cookie),
 
   MAKESAMETYPEPREFTRANSFORM("network.cookie.lifetime.behavior",        Int),
+  MAKESAMETYPEPREFTRANSFORM("network.cookie.lifetime.days",            Int),
   MAKESAMETYPEPREFTRANSFORM("network.cookie.lifetime.enabled",         Bool),
+  MAKESAMETYPEPREFTRANSFORM("network.cookie.lifetimePolicy",           Int),
   MAKESAMETYPEPREFTRANSFORM("network.cookie.warnAboutCookies",         Bool),
   MAKESAMETYPEPREFTRANSFORM("network.proxy.autoconfig_url",            String),
   MAKESAMETYPEPREFTRANSFORM("network.proxy.ftp",                       String),
