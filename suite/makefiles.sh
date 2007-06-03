@@ -42,8 +42,6 @@ add_makefiles "
   suite/browser/Makefile
   suite/build/Makefile
   suite/common/Makefile
-  suite/components/Makefile
-  suite/components/xulappinfo/Makefile
   suite/installer/Makefile
   suite/installer/windows/Makefile
   suite/locales/Makefile
