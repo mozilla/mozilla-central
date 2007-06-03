@@ -45,7 +45,6 @@
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
 #include "nsString.h"
-#include "nsXPIDLString.h"
 #include "nsEmbedCID.h"
 
 // These Launch Services functions are undocumented. We're using them since

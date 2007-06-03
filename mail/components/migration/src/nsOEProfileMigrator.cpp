@@ -60,7 +60,7 @@ nsOEProfileMigrator::nsOEProfileMigrator()
 }
 
 nsOEProfileMigrator::~nsOEProfileMigrator()
-{           
+{
 
 }
 
@@ -77,11 +77,11 @@ nsOEProfileMigrator::Notify(nsITimer *timer)
 {
   PRInt32 progress;
   mGenericImporter->GetProgress(&progress);
-  
+
   nsAutoString index;
-  index.AppendInt( progress ); 
+  index.AppendInt( progress );
   NOTIFY_OBSERVERS(MIGRATION_PROGRESS, index.get());
- 
+
   if (progress == 100) // are we done yet?
   {
     if (mProcessingMailFolders)
@@ -91,7 +91,7 @@ nsOEProfileMigrator::Notify(nsITimer *timer)
   }
   else
   {
-    // fire a timer to handle the next one. 
+    // fire a timer to handle the next one.
     mFileIOTimer = do_CreateInstance("@mozilla.org/timer;1");
     if (mFileIOTimer)
       mFileIOTimer->InitWithCallback(NS_STATIC_CAST(nsITimerCallback *, this), 100, nsITimer::TYPE_ONE_SHOT);
@@ -109,7 +109,7 @@ nsOEProfileMigrator::Migrate(PRUint16 aItems, nsIProfileStartup* aStartup, const
 
   PRBool aReplace = PR_FALSE;
 
-  if (aStartup) 
+  if (aStartup)
   {
     aReplace = PR_TRUE;
     rv = aStartup->DoStartup();
@@ -122,19 +122,19 @@ nsOEProfileMigrator::Migrate(PRUint16 aItems, nsIProfileStartup* aStartup, const
   // now import address books
   // this routine will asynchronously import address book data and it will then kick off
   // the final migration step, copying the mail folders over.
-  rv = ImportAddressBook(mImportModule);  
+  rv = ImportAddressBook(mImportModule);
 
   // don't broadcast an on end migration here. We aren't done until our asynch import process says we are done.
   return rv;
 }
 
 NS_IMETHODIMP
-nsOEProfileMigrator::GetMigrateData(const PRUnichar* aProfile, 
-                                           PRBool aReplace, 
+nsOEProfileMigrator::GetMigrateData(const PRUnichar* aProfile,
+                                           PRBool aReplace,
                                            PRUint16* aResult)
 {
   // There's no harm in assuming everything is available.
-  *aResult = nsIMailProfileMigrator::ACCOUNT_SETTINGS | nsIMailProfileMigrator::ADDRESSBOOK_DATA | 
+  *aResult = nsIMailProfileMigrator::ACCOUNT_SETTINGS | nsIMailProfileMigrator::ADDRESSBOOK_DATA |
              nsIMailProfileMigrator::MAILDATA;
   return NS_OK;
 }
@@ -143,13 +143,13 @@ NS_IMETHODIMP
 nsOEProfileMigrator::GetSourceExists(PRBool* aResult)
 {
   *aResult = PR_FALSE;
-  
+
   nsCOMPtr<nsIImportSettings> importSettings;
   mImportModule->GetImportInterface(NS_IMPORT_SETTINGS_STR, getter_AddRefs(importSettings));
 
   if (importSettings)
   {
-    nsXPIDLString description;
+    nsString description;
     nsCOMPtr<nsIFile> location;
     importSettings->AutoLocate(getter_Copies(description), getter_AddRefs(location), aResult);
   }

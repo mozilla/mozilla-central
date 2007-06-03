@@ -54,7 +54,6 @@
 #include "nsNetscapeProfileMigratorBase.h"
 #include "nsNetUtil.h"
 #include "nsReadableUtils.h"
-#include "nsXPIDLString.h"
 #include "prtime.h"
 #include "prprf.h"
 #include "nsVoidArray.h"
@@ -104,8 +103,8 @@ nsNetscapeProfileMigratorBase::GetProfileDataFromRegistry(nsILocalFile* aRegistr
     node->GetKey(&profile);
 
     // "migrated" is "yes" for all valid Seamonkey profiles. It is only "no"
-    // for 4.x profiles. 
-    nsXPIDLString isMigrated;
+    // for 4.x profiles.
+    nsString isMigrated;
     reg->GetString(profile, NS_LITERAL_STRING("migrated").get(), getter_Copies(isMigrated));
 
     if (isMigrated.Equals(NS_LITERAL_STRING("no"))) {
@@ -114,11 +113,11 @@ nsNetscapeProfileMigratorBase::GetProfileDataFromRegistry(nsILocalFile* aRegistr
     }
 
     // Get the profile name and add it to the names array
-    nsXPIDLString profileName;
+    nsString profileName;
     node->GetName(getter_Copies(profileName));
 
     // Get the profile location and add it to the locations array
-    nsXPIDLString directory;
+    nsString directory;
     reg->GetString(profile, NS_LITERAL_STRING("directory").get(), getter_Copies(directory));
 
     nsCOMPtr<nsILocalFile> dir;
@@ -159,14 +158,14 @@ nsNetscapeProfileMigratorBase::GetProfileDataFromRegistry(nsILocalFile* aRegistr
   } \
   return NS_OK;
 
-nsresult 
+nsresult
 nsNetscapeProfileMigratorBase::GetString(void* aTransform, nsIPrefBranch* aBranch)
 {
   PrefTransform* xform = (PrefTransform*)aTransform;
   GETPREF(xform, GetCharPref, &xform->stringValue);
 }
 
-nsresult 
+nsresult
 nsNetscapeProfileMigratorBase::SetString(void* aTransform, nsIPrefBranch* aBranch)
 {
   PrefTransform* xform = (PrefTransform*)aTransform;
@@ -178,12 +177,12 @@ nsNetscapeProfileMigratorBase::GetWString(void* aTransform, nsIPrefBranch* aBran
 {
   PrefTransform* xform = (PrefTransform*)aTransform;
   nsCOMPtr<nsIPrefLocalizedString> prefValue;
-  nsresult rv = aBranch->GetComplexValue(xform->sourcePrefName, 
+  nsresult rv = aBranch->GetComplexValue(xform->sourcePrefName,
                                          NS_GET_IID(nsIPrefLocalizedString),
                                          getter_AddRefs(prefValue));
 
   if (NS_SUCCEEDED(rv) && prefValue) {
-    nsXPIDLString data;
+    nsString data;
     prefValue->ToString(getter_Copies(data));
 
     xform->stringValue = ToNewCString(NS_ConvertUTF16toUTF8(data));
@@ -192,14 +191,13 @@ nsNetscapeProfileMigratorBase::GetWString(void* aTransform, nsIPrefBranch* aBran
   return rv;
 }
 
-nsresult 
+nsresult
 nsNetscapeProfileMigratorBase::SetWStringFromASCII(void* aTransform, nsIPrefBranch* aBranch)
 {
   PrefTransform* xform = (PrefTransform*)aTransform;
   if (xform->prefHasValue) {
     nsCOMPtr<nsIPrefLocalizedString> pls(do_CreateInstance("@mozilla.org/pref-localizedstring;1"));
-    nsAutoString data; data.AssignWithConversion(xform->stringValue);
-    pls->SetData(data.get());
+    pls->SetData(NS_ConvertASCIItoUTF16(xform->stringValue).get());
     return aBranch->SetComplexValue(xform->targetPrefName ? xform->targetPrefName : xform->sourcePrefName, NS_GET_IID(nsIPrefLocalizedString), pls);
   }
   return NS_OK;
@@ -219,28 +217,28 @@ nsNetscapeProfileMigratorBase::SetWString(void* aTransform, nsIPrefBranch* aBran
 }
 
 
-nsresult 
+nsresult
 nsNetscapeProfileMigratorBase::GetBool(void* aTransform, nsIPrefBranch* aBranch)
 {
   PrefTransform* xform = (PrefTransform*)aTransform;
   GETPREF(xform, GetBoolPref, &xform->boolValue);
 }
 
-nsresult 
+nsresult
 nsNetscapeProfileMigratorBase::SetBool(void* aTransform, nsIPrefBranch* aBranch)
 {
   PrefTransform* xform = (PrefTransform*)aTransform;
   SETPREF(xform, SetBoolPref, xform->boolValue);
 }
 
-nsresult 
+nsresult
 nsNetscapeProfileMigratorBase::GetInt(void* aTransform, nsIPrefBranch* aBranch)
 {
   PrefTransform* xform = (PrefTransform*)aTransform;
   GETPREF(xform, GetIntPref, &xform->intValue);
 }
 
-nsresult 
+nsresult
 nsNetscapeProfileMigratorBase::SetInt(void* aTransform, nsIPrefBranch* aBranch)
 {
   PrefTransform* xform = (PrefTransform*)aTransform;
@@ -261,7 +259,7 @@ nsNetscapeProfileMigratorBase::CopyFile(const nsAString& aSourceFileName, const 
 
   nsCOMPtr<nsIFile> targetFile;
   mTargetProfile->Clone(getter_AddRefs(targetFile));
-  
+
   targetFile->Append(aTargetFileName);
   targetFile->Exists(&exists);
   if (exists)
@@ -288,7 +286,7 @@ nsNetscapeProfileMigratorBase::GetSignonFileName(PRBool aReplace, char** aFileNa
     nsCOMPtr<nsIPrefBranch> branch(do_QueryInterface(psvc));
     rv = branch->GetCharPref("signon.SignonFileName", aFileName);
   }
-  else 
+  else
     rv = LocateSignonsFile(aFileName);
   return rv;
 }
@@ -339,27 +337,27 @@ nsresult nsNetscapeProfileMigratorBase::RecursiveCopy(nsIFile* srcDir, nsIFile* 
 {
   nsresult rv;
   PRBool isDir;
-  
+
   rv = srcDir->IsDirectory(&isDir);
   if (NS_FAILED(rv)) return rv;
   if (!isDir) return NS_ERROR_INVALID_ARG;
-  
+
   PRBool exists;
   rv = destDir->Exists(&exists);
   if (NS_SUCCEEDED(rv) && !exists)
     rv = destDir->Create(nsIFile::DIRECTORY_TYPE, 0775);
   if (NS_FAILED(rv)) return rv;
-  
+
   PRBool hasMore = PR_FALSE;
   nsCOMPtr<nsISimpleEnumerator> dirIterator;
   rv = srcDir->GetDirectoryEntries(getter_AddRefs(dirIterator));
   if (NS_FAILED(rv)) return rv;
-  
+
   rv = dirIterator->HasMoreElements(&hasMore);
   if (NS_FAILED(rv)) return rv;
-  
+
   nsCOMPtr<nsIFile> dirEntry;
-  
+
   while (hasMore)
   {
     rv = dirIterator->GetNext((nsISupports**)getter_AddRefs(dirEntry));
@@ -394,12 +392,12 @@ nsresult nsNetscapeProfileMigratorBase::RecursiveCopy(nsIFile* srcDir, nsIFile* 
 
           mFileCopyTransactions->AppendElement((void*) fileEntry);
         }
-      }      
+      }
     }
     rv = dirIterator->HasMoreElements(&hasMore);
     if (NS_FAILED(rv)) return rv;
   }
-  
+
   return rv;
 }
 

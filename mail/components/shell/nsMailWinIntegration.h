@@ -88,8 +88,8 @@ private:
   nsCString mAppShortPath;
   nsCString mMapiDLLPath;
   nsCString mUninstallPath;
-  nsXPIDLString mBrandFullName;
-  nsXPIDLString mBrandShortName;
+  nsString mBrandFullName;
+  nsString mBrandShortName;
  };
 
 #endif

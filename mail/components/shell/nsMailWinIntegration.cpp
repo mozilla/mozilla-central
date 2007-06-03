@@ -444,7 +444,7 @@ nsWindowsShellService::setDefaultMail()
   const PRUnichar* brandNameStrings[] = { mBrandShortName.get() };
 
   // Set the Options menu item
-  nsXPIDLString optionsTitle;
+  nsString optionsTitle;
   bundle->FormatStringFromName(NS_LITERAL_STRING("optionsLabel").get(),
                                brandNameStrings, 1, getter_Copies(optionsTitle));
   // Set the registry keys

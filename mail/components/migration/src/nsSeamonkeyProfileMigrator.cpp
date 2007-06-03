@@ -257,11 +257,12 @@ nsSeamonkeyProfileMigrator::GetMigrateData(const PRUnichar* aProfile,
                           aReplace, mSourceProfile, aResult);
 
   // Now locate passwords
-  nsXPIDLCString signonsFileName;
+  nsCString signonsFileName;
   GetSignonFileName(aReplace, getter_Copies(signonsFileName));
 
   if (!signonsFileName.IsEmpty()) {
-    nsAutoString fileName; fileName.AssignWithConversion(signonsFileName);
+    nsAutoString fileName;
+    CopyASCIItoUTF16(signonsFileName, fileName);
     nsCOMPtr<nsIFile> sourcePasswordsFile;
     mSourceProfile->Clone(getter_AddRefs(sourcePasswordsFile));
     sourcePasswordsFile->Append(fileName);
@@ -343,7 +344,7 @@ nsSeamonkeyProfileMigrator::GetSourceProfile(const PRUnichar* aProfile)
   mProfileNames->Count(&count);
   for (PRUint32 i = 0; i < count; ++i) {
     nsCOMPtr<nsISupportsString> str(do_QueryElementAt(mProfileNames, i));
-    nsXPIDLString profileName;
+    nsString profileName;
     str->GetData(profileName);
     if (profileName.Equals(aProfile)) {
       mSourceProfile = do_QueryElementAt(mProfileLocations, i);
@@ -646,7 +647,7 @@ nsresult nsSeamonkeyProfileMigrator::CopyMailFolders(nsVoidArray* aMailServers, 
       if (!serverBranch)
         break; // should we clear out this server pref from aMailServers?
 
-      nsXPIDLCString serverType; 
+      nsCString serverType; 
       serverBranch->GetCharPref("type", getter_Copies(serverType));
 
       nsCOMPtr<nsILocalFile> sourceMailFolder;
@@ -859,13 +860,14 @@ nsSeamonkeyProfileMigrator::CopyPasswords(PRBool aReplace)
 {
   nsresult rv;
 
-  nsXPIDLCString signonsFileName;
+  nsCString signonsFileName;
   GetSignonFileName(aReplace, getter_Copies(signonsFileName));
 
   if (signonsFileName.IsEmpty())
     return NS_ERROR_FILE_NOT_FOUND;
 
-  nsAutoString fileName; fileName.AssignWithConversion(signonsFileName);
+  nsAutoString fileName;
+  CopyASCIItoUTF16(signonsFileName, fileName);
   if (aReplace)
     rv = CopyFile(fileName, fileName);
   else {

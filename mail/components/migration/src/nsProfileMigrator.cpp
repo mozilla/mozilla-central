@@ -126,7 +126,7 @@ nsProfileMigrator::GetDefaultMailMigratorKey(nsACString& aKey, nsCOMPtr<nsIMailP
   nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsXPIDLCString forceMigrationType;
+  nsCString forceMigrationType;
   prefs->GetCharPref("profile.force.migration", getter_Copies(forceMigrationType));
 
   // if we are being forced to migrate to a particular migration type, then create an instance of that migrator
