@@ -105,6 +105,8 @@ a:link[class*="adText"],
 a:link[class*="adHeadline"], 
 a:link[href*="hrtrak.net"] img,
 a:link[href*="specificclick.net"] img,
+a:link[href*="adremote.timeinc.net"] img,
+a:link[href*=".inetinteractive.com/"] img,
 
 embed[src*="/us.yimg.com/a/"],
 embed[type="application/x-shockwave-flash"][src*="/ad."],
@@ -179,8 +181,11 @@ embed[type="application/x-shockwave-flash"][src*="hrtrak.net"],
 embed[type="application/x-shockwave-flash"][src*="adbrite"],
 embed[type="application/x-shockwave-flash"][src*=".cachefly.net"],
 embed[type="application/x-shockwave-flash"][src*=".unicast.com/"],
-embed[type="application/x-shockwave-flash"][src*=".edgesuite.net"],
+embed[type="application/x-shockwave-flash"][src*="content.yieldmanager.edgesuite.net"],
+embed[type="application/x-shockwave-flash"][src^="http://adinterax."],
 embed[type="application/x-shockwave-flash"][src*="pubs.lemonde.fr"],
+embed[type="application/x-shockwave-flash"][src*="timeinc.net/sponsors"],
+embed[type="application/x-shockwave-flash"][src*=".admission.net"],
 
 img[src*="googlesyndication.com"],
 img[src*=".doubleclick.net"],
@@ -240,8 +245,11 @@ img[src*="/images/advertising/"],
 img[src*="hrtrak.net"],
 img[src*=".tribalfusion.com"],
 img[src*="cdn.specificmedia.com"],
-img[src*=".edgesuite.net"],
+img[src*="content.yieldmanager.edgesuite.net"],
 img[src*=".yieldmanager.com"],
+img[src*="phpAds"],
+img[src*=".advertserve.com/advertpro"],
+img[src*="juggler.inetinteractive.com/banners/"],
 
 iframe[src*="/ad."],
 iframe[src*="/ads."],
@@ -333,6 +341,7 @@ iframe[src*="reklam.gittigidiyor.com"],
 iframe[src*=".specificclick.net"],
 iframe[src*="optimizedby.rmxads.com"],
 iframe[src*="oasis.nysun.com"],
+iframe[src*=".overture.com"],
 
 table#overtureLinksWrapper,
 table.adbritetable,
@@ -386,7 +395,9 @@ div[id*="OvertureSponsoredLinksBlock"],
 div[id="googlead"],
 div[id*="reklam"],
 div[id*="Kanoodle"],
-div[class^="adModule"]
+div[class^="adModule"],
+div[id*="loweradswrapper"],
+div[id="bigad"]
 
 { display: none ! important }
 
@@ -406,3 +417,7 @@ img[src*="buttons.googlesyndication.com"],
 iframe[src*="mozilla.org"]
 
 { display: inline ! important }
+
+@-moz-document domain(caminobrowser.org) {
+img[src*="/ad/"] {display: inline !important }
+}
