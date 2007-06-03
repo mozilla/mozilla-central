@@ -60,18 +60,9 @@ endif
 tier_app_dirs += \
 	xpfe/components/search \
 	xpfe/components/bookmarks \
+	themes \
+	suite \
 	$(NULL)
-
-# When Suite becomes a full MOZ_XUL_APP we can remove this ifdef
-ifdef MOZ_XUL_APP
-tier_app_dirs += themes
-endif
-
-tier_app_dirs += suite
-
-ifndef MOZ_XUL_APP
-tier_app_dirs += xpfe/bootstrap
-endif
 
 installer:
 	@$(MAKE) -C suite/installer installer

@@ -1,14 +1,8 @@
 comm.jar:
-#ifdef MOZ_XUL_APP
 % content navigator %content/navigator/ xpcnativewrappers=yes
 % overlay chrome://navigator/content/pageInfo.xul chrome://pippki/content/PageInfoOverlay.xul
 % content navigator-platform %content/navigator-platform/ platform xpcnativewrappers=yes
 % content navigator-region %content/navigator-region/ xpcnativewrappers=yes
-#else
-*  content/navigator/contents.rdf                                   (contents.rdf)
-*  content/navigator-region/contents.rdf                            (contents-region.rdf)
-*  content/navigator-platform/contents.rdf                          (contents-platform.rdf)
-#endif
    content/navigator/aboutAbout.html
    content/navigator/browser.js
    content/navigator/fullScreen.js

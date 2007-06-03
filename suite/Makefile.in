@@ -43,19 +43,13 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
+# if you add DIRS here, care that app is always at the bottom of the list
+# as it packages up the built files on mac...
 DIRS		= \
 		branding \
 		browser \
 		common \
 		locales \
-		$(NULL)
-
-# XXX Once SeaMonkey becomes a fully fledged xul app, we can remove
-# this ifdef.
-ifdef MOZ_XUL_APP
-# if you add DIRS here, care that app is always at the bottom of the list
-# as it packages up the built files on mac...
-DIRS += \
 		profile \
 		build \
 		app \
@@ -65,12 +59,6 @@ ifeq ($(OS_ARCH),WINNT)
 ifdef MOZ_INSTALLER
 DIRS += installer/windows
 endif
-endif
-else
-# XXX This should completely go away in the future but still holds the
-# xulappinfo component needed as long as suite is not a fully fledged
-# MOZ_XUL_APP
-DIRS +=		components
 endif
 
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
@@ -94,9 +82,7 @@ include $(topsrcdir)/config/rules.mk
 libs::
 	$(INSTALL) $(README_FILE) $(DIST)/bin
 ifeq ($(OS_ARCH),WINNT)
-ifdef MOZ_XUL_APP
 ifdef MOZ_INSTALLER
 	$(MAKE) -C installer/windows uninstaller
-endif
 endif
 endif

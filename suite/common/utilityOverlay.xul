@@ -20,10 +20,8 @@
           src="chrome://global/content/strres.js"/>
   <script type="application/x-javascript"
           src="chrome://communicator/content/utilityOverlay.js"/>
-#ifdef MOZ_XUL_APP
   <script type="application/x-javascript"
           src="chrome://help/content/contextHelp.js"/>
-#endif
 
   <!-- online/offline status indicators -->   
   <broadcaster id="Communicator:WorkMode"
@@ -293,7 +291,6 @@
         label="&helpMenu.label;"
         accesskey="&helpMenu.accesskey;">
     <menupopup id="helpPopup">
-#ifdef MOZ_XUL_APP
       <menuitem label="&openHelpCmd.label;"
                 accesskey="&openHelpCmd.accesskey;"
                 id="help"
@@ -315,7 +312,6 @@
       <menuitem label="&helpForIEUsers.label;"
                 accesskey="&helpForIEUsers.accesskey;"
                 oncommand="openHelp('ieusers', 'chrome://communicator/locale/help/suitehelp.rdf');" />
-#endif
 #endif
       <menuitem accesskey="&releaseCmd.accesskey;"
                 label="&releaseCmd.label;"

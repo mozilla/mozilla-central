@@ -1,7 +1,6 @@
 #filter substitution
 
 @AB_CD@.jar:
-#ifdef MOZ_XUL_APP
 % locale branding @AB_CD@ %locale/@AB_CD@/branding/
 % locale communicator @AB_CD@ %locale/@AB_CD@/communicator/
 % locale communicator-platform @AB_CD@ %locale/@AB_CD@/communicator-platform/
@@ -16,26 +15,6 @@
 % locale navigator @AB_CD@ %locale/@AB_CD@/navigator/
 % locale navigator-platform @AB_CD@ %locale/@AB_CD@/navigator-platform/
 % locale navigator-region @AB_CD@ %locale/@AB_CD@/navigator-region/
-#else
-* locale/@AB_CD@/branding/contents.rdf                                      (generic/chrome/branding/contents.rdf)
-* locale/@AB_CD@/communicator/contents.rdf                                  (generic/chrome/common/contents.rdf)
-* locale/@AB_CD@/communicator-platform/win/contents.rdf                     (generic/chrome/common-platform/contents.rdf)
-* locale/@AB_CD@/communicator-platform/unix/contents.rdf                    (generic/chrome/common-platform/contents.rdf)
-* locale/@AB_CD@/communicator-platform/mac/contents.rdf                     (generic/chrome/common-platform/contents.rdf)
-* locale/@AB_CD@/communicator-region/contents.rdf                           (generic/chrome/common-region/contents.rdf)
-* locale/@AB_CD@/messenger/contents.rdf                                     (generic/chrome/mailnews/contents.rdf)
-* locale/@AB_CD@/messenger-mapi/contents.rdf                                (generic/chrome/mailnews-mapi/contents.rdf)
-* locale/@AB_CD@/messenger-region/contents.rdf                              (generic/chrome/mailnews-region/contents.rdf)
-#ifdef MOZ_PSM
-* locale/@AB_CD@/messenger-smime/contents.rdf                               (generic/chrome/mailnews-smime/contents.rdf)
-#endif
-* locale/@AB_CD@/mozldap/contents.rdf                                       (generic/chrome/mozldap/contents.rdf)
-* locale/@AB_CD@/navigator/contents.rdf                                     (generic/chrome/browser/contents.rdf)
-* locale/@AB_CD@/navigator-platform/mac/contents.rdf                        (generic/chrome/browser-platform/contents.rdf)
-* locale/@AB_CD@/navigator-platform/unix/contents.rdf                       (generic/chrome/browser-platform/contents.rdf)
-* locale/@AB_CD@/navigator-platform/win/contents.rdf                        (generic/chrome/browser-platform/contents.rdf)
-* locale/@AB_CD@/navigator-region/contents.rdf                              (generic/chrome/browser-region/contents.rdf)
-#endif
 * locale/@AB_CD@/branding/brand.dtd                                         (%chrome/branding/brand.dtd)
   locale/@AB_CD@/branding/brand.properties                                  (%chrome/branding/brand.properties)
   locale/@AB_CD@/communicator/askViewZoom.dtd                               (%chrome/common/askViewZoom.dtd)
@@ -71,9 +50,7 @@
   locale/@AB_CD@/communicator/help/developer_tools.xhtml                    (%chrome/common/help/developer_tools.xhtml)
   locale/@AB_CD@/communicator/help/forieusers.xhtml                         (%chrome/common/help/forieusers.xhtml)
   locale/@AB_CD@/communicator/help/glossary.xhtml                           (%chrome/common/help/glossary.xhtml)
-#ifdef MOZ_XUL_APP
   locale/@AB_CD@/communicator/help/suitehelp.rdf                            (%chrome/common/help/suitehelp.rdf)
-#endif
   locale/@AB_CD@/communicator/help/helpFileLayout.css                       (%chrome/common/help/helpFileLayout.css)
   locale/@AB_CD@/communicator/help/help-glossary.rdf                        (%chrome/common/help/help-glossary.rdf)
   locale/@AB_CD@/communicator/help/help_help.xhtml                          (%chrome/common/help/help_help.xhtml)
