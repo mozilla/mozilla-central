@@ -109,7 +109,7 @@ nsresult nsTextAddress::ImportAddresses(PRBool *pAbort, const PRUnichar *pName, 
   NS_ENSURE_SUCCESS(rv, rv);
 
   PRBool more = PR_TRUE;
-  nsXPIDLCString line;
+  nsCString line;
 
   // Skip the first record if the user has requested it.
   if (skipRecord)
@@ -134,7 +134,7 @@ nsresult nsTextAddress::ImportAddresses(PRBool *pAbort, const PRUnichar *pName, 
       *pProgress = totalBytes - bytesLeft;
     }
   }
-  
+
   inputStream->Close();
 
   if (NS_FAILED(rv)) {
@@ -150,7 +150,7 @@ nsresult nsTextAddress::ReadRecord(nsILineInputStream *aLineStream, nsCString &a
   PRBool more = PR_TRUE;
   PRUint32 numQuotes = 0;
   nsresult rv;
-  nsXPIDLCString line;
+  nsCString line;
 
   // ensure aLine is empty
   aLine.Truncate();
@@ -186,7 +186,7 @@ nsresult nsTextAddress::ReadRecordNumber(nsIFile *aSrc, nsCString &aLine, char d
     IMPORT_LOG0( "*** Error opening address file for reading\n");
     return rv;
   }
-   
+
   PRInt32 rIndex = 0;
   PRUint32 bytesLeft = 0;
 
@@ -249,12 +249,12 @@ PRInt32 nsTextAddress::CountFields( const char *pLine, PRInt32 maxLen, char deli
                 pChar++;
                 len++;
             }
-        }        
+        }
         while ((len < maxLen) && (*pChar != delim)) {
             len++;
             pChar++;
         }
-        
+
         count++;
         pChar++;
         len++;
@@ -299,12 +299,12 @@ PRBool nsTextAddress::GetField( const char *pLine, PRInt32 maxLen, PRInt32 index
         }
         if (len >= maxLen)
             break;
-        
+
         while ((len < maxLen) && (*pChar != delim)) {
             len++;
             pChar++;
         }
-        
+
         if (len >= maxLen)
             break;
 
@@ -381,7 +381,7 @@ nsresult nsTextAddress::DetermineDelim(nsIFile *aSrc)
     inputStream->Close();
     return rv;
   }
-    
+
   PRUint32 left;
   PRInt32 lineLen = 0;
   PRInt32 lineCount = 0;
@@ -408,11 +408,11 @@ nsresult nsTextAddress::DetermineDelim(nsIFile *aSrc)
     }
     lineCount++;
   }
-   
+
   rv = inputStream->Close();
-    
+
   delete [] pLine;
-    
+
   if (tabLines > commaLines)
     m_delim = 9;
   else
@@ -433,10 +433,10 @@ nsresult nsTextAddress::ProcessLine( const char *pLine, PRInt32 len, nsString& e
     }
 
     nsresult rv;
-    
+
     // Wait until we get our first non-empty field, then create a new row,
     // fill in the data, then add the row to the database.
-        
+
 
     nsIMdbRow *    newRow = nsnull;
     nsString    uVal;
@@ -467,7 +467,7 @@ nsresult nsTextAddress::ProcessLine( const char *pLine, PRInt32 len, nsString& e
             }
             else
                 break;
-            
+
         }
         else {
             if (active) {
@@ -476,7 +476,7 @@ nsresult nsTextAddress::ProcessLine( const char *pLine, PRInt32 len, nsString& e
         }
 
     }
-    
+
     if (NS_SUCCEEDED( rv)) {
         if (newRow) {
             rv = m_database->AddCardRowToDB( newRow);

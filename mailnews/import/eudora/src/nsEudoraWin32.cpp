@@ -689,25 +689,25 @@ void nsEudoraWin32::GetServerAndUserName( const char *pSection, const char *pIni
 
 void nsEudoraWin32::GetAccountName( const char *pSection, nsString& str)
 {
-	str.Truncate();
+  str.Truncate();
 
-	nsCString	s(pSection);
+  nsCString s(pSection);
 
-	if (s.Equals(NS_LITERAL_CSTRING("Settings"), nsCaseInsensitiveCStringComparator())) {
-		str.AssignLiteral("Eudora ");
-		str.AppendWithConversion( pSection);
-	}
-	else {
-		nsCString tStr;
-		str.AssignWithConversion(pSection);
-		if (s.Length() > 8) {
-			s.Left( tStr, 8);
-			if (tStr.Equals(NS_LITERAL_CSTRING("Persona-"), nsCaseInsensitiveCStringComparator())) {
-				s.Right( tStr, s.Length() - 8);
-				str.AssignWithConversion(tStr.get());
-			}
-		}
-	}
+  if (s.Equals(NS_LITERAL_CSTRING("Settings"), nsCaseInsensitiveCStringComparator())) {
+    str.AssignLiteral("Eudora ");
+    str.Append(NS_ConvertASCIItoUTF16(pSection));
+  }
+  else {
+    nsCString tStr;
+    CopyASCIItoUTF16(pSection, str);
+    if (s.Length() > 8) {
+      s.Left( tStr, 8);
+      if (tStr.Equals(NS_LITERAL_CSTRING("Persona-"), nsCaseInsensitiveCStringComparator())) {
+        s.Right( tStr, s.Length() - 8);
+        CopyASCIItoUTF16(tStr, str);
+      }
+    }
+  }
 }
 
 

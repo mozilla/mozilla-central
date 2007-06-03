@@ -602,7 +602,7 @@ PRBool nsOEScanBoxes::Scan50MailboxDir( nsIFile * srcDir)
             pEntry->child = 0;
             pEntry->sibling = index;
             pEntry->type = -1;
-            fName.Truncate(sLen - 4);
+            fName.SetLength(sLen - 4);
             pEntry->fileName = fName.get();
             NS_CopyNativeToUnicode(fName, pEntry->mailName);
             m_entryArray.AppendElement( pEntry);				
@@ -858,24 +858,24 @@ PRBool nsOEScanBoxes::ReadLong( nsIInputStream * stream, PRUint32& val, PRUint32
 #define	kOutlookExpressStringLength	252
 PRBool nsOEScanBoxes::ReadString( nsIInputStream * stream, nsString& str, PRUint32 offset)
 {
-	nsresult	rv;
-        nsCOMPtr <nsISeekableStream> seekStream = do_QueryInterface(stream, &rv);
-        NS_ENSURE_SUCCESS(rv, PR_FALSE);
-	rv = seekStream->Seek(nsISeekableStream::NS_SEEK_SET, offset);
-	if (NS_FAILED( rv))
-		return( PR_FALSE);
-		
+  nsresult rv;
+  nsCOMPtr <nsISeekableStream> seekStream = do_QueryInterface(stream, &rv);
+  NS_ENSURE_SUCCESS(rv, PR_FALSE);
+  rv = seekStream->Seek(nsISeekableStream::NS_SEEK_SET, offset);
+  if (NS_FAILED( rv))
+    return( PR_FALSE);
+    
 
-	PRUint32	cntRead;
-	char	buffer[kOutlookExpressStringLength];
-	char *	pReadTo = buffer;
-	rv = stream->Read( pReadTo, kOutlookExpressStringLength, &cntRead);
-	
-	if (NS_FAILED( rv) || (cntRead != kOutlookExpressStringLength))
-		return( PR_FALSE);
-	buffer[kOutlookExpressStringLength - 1] = 0;
-	str.AssignWithConversion(buffer);
-	return( PR_TRUE);
+  PRUint32 cntRead;
+  char buffer[kOutlookExpressStringLength];
+  char * pReadTo = buffer;
+  rv = stream->Read( pReadTo, kOutlookExpressStringLength, &cntRead);
+
+  if (NS_FAILED( rv) || (cntRead != kOutlookExpressStringLength))
+    return( PR_FALSE);
+  buffer[kOutlookExpressStringLength - 1] = 0;
+  CopyASCIItoUTF16(buffer, str);
+  return( PR_TRUE);
 }
 
 PRBool nsOEScanBoxes::ReadString( nsIInputStream * stream, nsCString& str, PRUint32 offset)

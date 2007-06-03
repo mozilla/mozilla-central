@@ -214,7 +214,7 @@ CMapiApi::~CMapiApi()
 
 void CMapiApi::CStrToUnicode( const char *pStr, nsString& result)
 {
-	result.Truncate( 0);
+	result.Truncate();
 	int wLen = MultiByteToWideChar( CP_ACP, 0, pStr, -1, m_pUniBuff, 0);
 	if (wLen >= m_uniBuffLen) {
 		if (m_pUniBuff)
@@ -1199,34 +1199,31 @@ BOOL CMapiApi::GetEntryIdFromProp( LPSPropValue pVal, ULONG& cbEntryId, LPENTRYI
 
 BOOL CMapiApi::GetStringFromProp( LPSPropValue pVal, nsCString& val, BOOL delVal)
 {
-	BOOL bResult = TRUE;
-	if ( pVal && (PROP_TYPE( pVal->ulPropTag) == PT_STRING8)) {
-		val = pVal->Value.lpszA;
-	}
-	else if ( pVal && (PROP_TYPE( pVal->ulPropTag) == PT_UNICODE)) {
-		val.AssignWithConversion((PRUnichar *) pVal->Value.lpszW);
-	}
-	else if (pVal && (PROP_TYPE( pVal->ulPropTag) == PT_NULL)) {
-		val.Truncate();
-	}
-	else if (pVal && (PROP_TYPE( pVal->ulPropTag) == PT_ERROR)) {
-		val.Truncate();
-		bResult = FALSE;
-	}
-	else {
-		if (pVal) {
-			MAPI_TRACE1( "GetStringFromProp: invalid value, expecting string - %d\n", (int) PROP_TYPE( pVal->ulPropTag));
-		}
-		else {
-			MAPI_TRACE0( "GetStringFromProp: invalid value, expecting string, got null pointer\n");
-		}
-		val.Truncate();
-		bResult = FALSE;
-	}
-	if (pVal && delVal)
-		MAPIFreeBuffer( pVal);
+  BOOL bResult = TRUE;
+  if ( pVal && (PROP_TYPE( pVal->ulPropTag) == PT_STRING8))
+    val = pVal->Value.lpszA;
+  else if ( pVal && (PROP_TYPE( pVal->ulPropTag) == PT_UNICODE))
+    LossyCopyUTF16toASCII((PRUnichar *) pVal->Value.lpszW, val);
+  else if (pVal && (PROP_TYPE( pVal->ulPropTag) == PT_NULL))
+    val.Truncate();
+  else if (pVal && (PROP_TYPE( pVal->ulPropTag) == PT_ERROR)) {
+    val.Truncate();
+    bResult = FALSE;
+  }
+  else {
+    if (pVal) {
+      MAPI_TRACE1( "GetStringFromProp: invalid value, expecting string - %d\n", (int) PROP_TYPE( pVal->ulPropTag));
+    }
+    else {
+      MAPI_TRACE0( "GetStringFromProp: invalid value, expecting string, got null pointer\n");
+    }
+    val.Truncate();
+    bResult = FALSE;
+  }
+  if (pVal && delVal)
+    MAPIFreeBuffer( pVal);
 
-	return( bResult);
+  return( bResult);
 }
 
 BOOL CMapiApi::GetStringFromProp( LPSPropValue pVal, nsString& val, BOOL delVal)

@@ -62,7 +62,6 @@
 #include "nsIImportGeneric.h"
 #include "nsIImportFieldMap.h"
 #include "nsIOutputStream.h"
-#include "nsXPIDLString.h"
 #include "nsTextFormatter.h"
 #include "nsComm4xMailStringBundle.h"
 #include "nsIStringBundle.h"
@@ -96,7 +95,7 @@ nsComm4xMailImport::nsComm4xMailImport()
     m_pBundle = nsnull;
 
     pBundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-    if (NS_SUCCEEDED(rv) && (pBundleService)) 
+    if (NS_SUCCEEDED(rv) && (pBundleService))
            pBundleService->CreateBundle(COMM4XMAIL_MSGS_URL, getter_AddRefs(m_pBundle));
 }
 
@@ -133,14 +132,14 @@ NS_IMETHODIMP nsComm4xMailImport::GetDescription(PRUnichar **name)
 
 NS_IMETHODIMP nsComm4xMailImport::GetSupports(char **supports)
 {
-    NS_ENSURE_ARG_POINTER (supports); 
+    NS_ENSURE_ARG_POINTER (supports);
     *supports = nsCRT::strdup(kComm4xMailSupportsString);
     return NS_OK;
 }
 
 NS_IMETHODIMP nsComm4xMailImport::GetSupportsUpgrade(PRBool *pUpgrade)
 {
-    NS_ENSURE_ARG_POINTER (pUpgrade); 
+    NS_ENSURE_ARG_POINTER (pUpgrade);
     *pUpgrade = PR_FALSE;
     return NS_OK;
 }
@@ -152,7 +151,7 @@ NS_IMETHODIMP nsComm4xMailImport::GetImportInterface(const char *pImportType, ns
     NS_ENSURE_ARG_POINTER (ppInterface);
     *ppInterface = nsnull;
     nsresult    rv;
-    
+
     if (!strcmp(pImportType, "mail")) {
         // create the nsIImportMail interface and return it!
         nsCOMPtr <nsIImportMail> pMail = do_CreateInstance(NS_COMM4XMAILIMPL_CONTRACTID, &rv);
@@ -163,7 +162,7 @@ NS_IMETHODIMP nsComm4xMailImport::GetImportInterface(const char *pImportType, ns
                 rv = impSvc->CreateNewGenericMail(getter_AddRefs(pGeneric));
                 if (NS_SUCCEEDED(rv)) {
                     pGeneric->SetData("mailInterface", pMail);
-                    nsXPIDLString name;
+                    nsString name;
                     rv = m_pBundle->GetStringFromID( COMM4XMAILIMPORT_NAME, getter_Copies(name));
 
                     nsCOMPtr<nsISupportsString> nameString (do_CreateInstance(NS_SUPPORTS_STRING_CONTRACTID, &rv));
@@ -176,7 +175,7 @@ NS_IMETHODIMP nsComm4xMailImport::GetImportInterface(const char *pImportType, ns
         }
         return rv;
     }
-            
+
     return NS_ERROR_NOT_AVAILABLE;
 }
 
@@ -219,11 +218,11 @@ NS_IMETHODIMP ImportComm4xMailImpl::GetDefaultLocation(nsIFile **ppLoc, PRBool *
     NS_ENSURE_ARG_POINTER(found);
     NS_ENSURE_ARG_POINTER(ppLoc);
     NS_ENSURE_ARG_POINTER(userVerify);
-    
+
     *ppLoc = nsnull;
     *found = PR_FALSE;
-    *userVerify = PR_TRUE; 
-    return NS_OK;  
+    *userVerify = PR_TRUE;
+    return NS_OK;
 }
 
 
@@ -251,14 +250,14 @@ NS_IMETHODIMP ImportComm4xMailImpl::FindMailboxes(nsIFile *pLoc, nsISupportsArra
 void ImportComm4xMailImpl::ReportStatus( PRInt32 errorNum, nsString& name, nsString *pStream)
 {
     if (!pStream) return;
-    nsXPIDLString statusStr;
+    nsString statusStr;
     const PRUnichar * fmtStr = name.get();
     nsresult rv = m_pBundleProxy->FormatStringFromID(errorNum, &fmtStr, 1, getter_Copies(statusStr));
     if (NS_SUCCEEDED (rv)) {
         pStream->Append (statusStr.get());
         pStream->Append( PRUnichar(nsCRT::LF));
     }
-    
+
 }
 
 void ImportComm4xMailImpl::SetLogs(nsString& success, nsString& error, PRUnichar **pError, PRUnichar **pSuccess)
@@ -269,8 +268,8 @@ void ImportComm4xMailImpl::SetLogs(nsString& success, nsString& error, PRUnichar
         *pSuccess = ToNewUnicode(success);
 }
 
-NS_IMETHODIMP ImportComm4xMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pSource, 
-                                                nsIFile *pDestination, 
+NS_IMETHODIMP ImportComm4xMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pSource,
+                                                nsIFile *pDestination,
                                                 PRUnichar **pErrorLog,
                                                 PRUnichar **pSuccessLog,
                                                 PRBool *fatalError)
@@ -278,11 +277,11 @@ NS_IMETHODIMP ImportComm4xMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pS
     NS_PRECONDITION(pSource != nsnull, "null ptr");
     NS_PRECONDITION(pDestination != nsnull, "null ptr");
     NS_PRECONDITION(fatalError != nsnull, "null ptr");
-    
+
     nsString    success;
     nsString    error;
     if (!pSource || !pDestination || !fatalError) {
-        nsXPIDLString errorString;
+        nsString errorString;
         m_pBundleProxy->GetStringFromID(COMM4XMAILIMPORT_MAILBOX_BADPARAM, getter_Copies(errorString));
         error = errorString;
         if (fatalError)
@@ -290,13 +289,13 @@ NS_IMETHODIMP ImportComm4xMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pS
         SetLogs(success, error, pErrorLog, pSuccessLog);
         return NS_ERROR_NULL_POINTER;
     }
-      
+
     nsString    name;
     PRUnichar *    pName;
     if (NS_SUCCEEDED(pSource->GetDisplayName(&pName))) {
         name.Adopt(pName);
     }
-    
+
     PRUint32 mailSize = 0;
     pSource->GetSize(&mailSize);
     if (mailSize == 0) {
@@ -304,7 +303,7 @@ NS_IMETHODIMP ImportComm4xMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pS
         SetLogs(success, error, pErrorLog, pSuccessLog);
         return NS_OK;
     }
-    
+
     PRUint32 index = 0;
     pSource->GetIdentifier(&index);
     nsresult rv = NS_OK;
@@ -319,7 +318,7 @@ NS_IMETHODIMP ImportComm4xMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pS
         return NS_ERROR_FAILURE;
     }
 
-    nsXPIDLCString pSrcPath, pDestPath;;
+    nsCString pSrcPath, pDestPath;;
     inFile->GetNativePath(pSrcPath);
     pDestination ->GetNativePath(pDestPath);
     IMPORT_LOG2("ImportComm4xMailImpl::ImportMailbox: Copying folder from '%s' to '%s'.", pSrcPath.get(), pDestPath.get());
@@ -336,7 +335,7 @@ NS_IMETHODIMP ImportComm4xMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pS
     if (exists)
         rv = pDestination->Remove(PR_FALSE);
     rv = inFile->CopyTo(parent, NS_LITERAL_STRING(""));
-      
+
     if (NS_SUCCEEDED(rv)) {
         m_bytesDone = mailSize;
         ReportStatus(COMM4XMAILIMPORT_MAILBOX_SUCCESS, name, &success);
@@ -351,8 +350,8 @@ NS_IMETHODIMP ImportComm4xMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pS
 }
 
 
-NS_IMETHODIMP ImportComm4xMailImpl::GetImportProgress(PRUint32 *pDoneSoFar) 
-{ 
+NS_IMETHODIMP ImportComm4xMailImpl::GetImportProgress(PRUint32 *pDoneSoFar)
+{
     NS_ENSURE_ARG_POINTER(pDoneSoFar);
 
     *pDoneSoFar = m_bytesDone;
@@ -361,6 +360,6 @@ NS_IMETHODIMP ImportComm4xMailImpl::GetImportProgress(PRUint32 *pDoneSoFar)
 
 NS_IMETHODIMP ImportComm4xMailImpl::TranslateFolderName(const nsAString & aFolderName, nsAString & _retval)
 {
-  _retval = aFolderName; 
+  _retval = aFolderName;
   return NS_OK;
 }

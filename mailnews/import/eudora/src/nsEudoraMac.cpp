@@ -795,9 +795,8 @@ void nsEudoraMac::SetIdentities(nsIMsgAccountManager *accMgr, nsIMsgAccount *acc
   rv = accMgr->CreateIdentity( getter_AddRefs( id));
   if (id) {
     nsAutoString fullName;
-    if (pStrs[kFullNameStr]->Length()) {
-      fullName.AssignWithConversion(pStrs[kFullNameStr]->get());
-    }
+    if (pStrs[kFullNameStr]->Length())
+      CopyASCIItoUTF16(pStrs[kFullNameStr]->get(), fullName);
     id->SetFullName(fullName);
     id->SetIdentityName(fullName);
     if (pStrs[kReturnAddressStr]->Length()) {

@@ -863,15 +863,15 @@ void nsImportGenericAddressBooks::ReportError(const PRUnichar *pName,
                                               nsString *pStream,
                                               nsIStringBundle* aBundle)
 {
-	if (!pStream)
-		return;
-	// load the error string
+  if (!pStream)
+    return;
+  // load the error string
   PRUnichar *pFmt = nsImportStringBundle::GetStringByID( IMPORT_ERROR_GETABOOK, aBundle);
-	PRUnichar *pText = nsTextFormatter::smprintf( pFmt, pName);
-	pStream->Append( pText);
-	nsTextFormatter::smprintf_free( pText);
-    nsCRT::free(pFmt);
-	pStream->AppendWithConversion( NS_LINEBREAK);
+  PRUnichar *pText = nsTextFormatter::smprintf( pFmt, pName);
+  pStream->Append( pText);
+  nsTextFormatter::smprintf_free( pText);
+  nsCRT::free(pFmt);
+  pStream->Append(NS_ConvertASCIItoUTF16(NS_LINEBREAK));
 }
 
 PR_STATIC_CALLBACK( void) ImportAddressThread( void *stuff)

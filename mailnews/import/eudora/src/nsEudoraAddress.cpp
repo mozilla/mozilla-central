@@ -77,9 +77,9 @@ class CAliasData {
 public:
 	CAliasData() {}
 	~CAliasData() {}
-	
+
 	PRBool Process( const char *pLine, PRInt32 len);
-	
+
 public:
     nsCString   m_fullEntry;
     nsCString   m_nickName;
@@ -91,7 +91,7 @@ class CAliasEntry {
 public:
 	CAliasEntry( nsCString& name) { m_name = name;}
 	~CAliasEntry() { EmptyList();}
-	
+
 	void EmptyList( void) {
 		CAliasData *pData;
 		for (PRInt32 i = 0; i < m_list.Count(); i++) {
@@ -117,12 +117,12 @@ nsEudoraAddress::~nsEudoraAddress()
 }
 
 
-nsresult nsEudoraAddress::ImportAddresses( PRUint32 *pBytes, PRBool *pAbort, 
+nsresult nsEudoraAddress::ImportAddresses( PRUint32 *pBytes, PRBool *pAbort,
                                           const PRUnichar *pName, nsIFile *pSrc,
                                           nsIAddrDatabase *pDb, nsString& errors)
 {
   // Open the source file for reading, read each line and process it!
-	
+
   EmptyAliases();
   nsCOMPtr<nsIInputStream> inputStream;
   nsresult rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), pSrc);
@@ -130,7 +130,7 @@ nsresult nsEudoraAddress::ImportAddresses( PRUint32 *pBytes, PRBool *pAbort,
     IMPORT_LOG0( "*** Error opening address file for reading\n");
     return rv;
   }
-   
+
   PRUint32 bytesLeft = 0;
 
   rv = inputStream->Available(&bytesLeft);
@@ -149,7 +149,7 @@ nsresult nsEudoraAddress::ImportAddresses( PRUint32 *pBytes, PRBool *pAbort,
   {
     nsCString line;
     rv = lineStream->ReadLine(line, &more);
-    if (NS_SUCCEEDED( rv)) 
+    if (NS_SUCCEEDED( rv))
     {
       PRInt32	len = line.Length();
       ProcessLine( line.get(), len, errors);
@@ -183,7 +183,7 @@ PRInt32 nsEudoraAddress::CountWhiteSpace( const char *pLine, PRInt32 len)
 		pLine++;
 		cnt++;
 	}
-	
+
 	return( cnt);
 }
 
@@ -201,10 +201,10 @@ void nsEudoraAddress::ProcessLine( const char *pLine, PRInt32 len, nsString& err
 {
 	if (len < 6)
 		return;
-	
+
 	PRInt32	cnt;
 	CAliasEntry	*pEntry;
-	
+
 	if (!nsCRT::strncmp( pLine, "alias", 5)) {
 		pLine += 5;
 		len -= 5;
@@ -227,7 +227,7 @@ void nsEudoraAddress::ProcessLine( const char *pLine, PRInt32 len, nsString& err
 			ProcessNote( pLine, len, errors);
 		}
 	}
-		
+
 	// as far as I know everything must be on one line
 	// if not, then I need to add a state variable.
 }
@@ -246,7 +246,7 @@ PRInt32 nsEudoraAddress::GetAliasName( const char *pLine, PRInt32 len, nsCString
 		end[0] = '"';
 		end[1] = 0;
 	}
-	
+
 	PRInt32 cnt = 0;
 	while (len) {
 		if ((*pLine == end[0]) || (*pLine == end[1]))
@@ -255,10 +255,10 @@ PRInt32 nsEudoraAddress::GetAliasName( const char *pLine, PRInt32 len, nsCString
 		pLine++;
 		cnt++;
 	}
-	
+
 	if (cnt)
 		name.Append( pStart, cnt);
-	
+
 	if (end[0] == '"') {
 		cnt++;
 		if (len && (*pLine == '"')) {
@@ -267,9 +267,9 @@ PRInt32 nsEudoraAddress::GetAliasName( const char *pLine, PRInt32 len, nsCString
 			len--;
 		}
 	}
-	
+
 	cnt += CountWhiteSpace( pLine, len);
-	
+
 	return( cnt);
 }
 
@@ -287,22 +287,22 @@ CAliasEntry *nsEudoraAddress::ProcessAlias( const char *pLine, PRInt32 len, nsSt
 	// 3) <email@address>
 	// 4) real name email@address
 	// 5) <email@address> (Real name)
-	
+
 	CAliasEntry *pEntry = new CAliasEntry( name);
 	if (!cnt || !len)
 		return(pEntry);
-	
+
 	// Theoretically, an alias is just an RFC822 email adress, but it may contain
 	// an alias to another alias as the email!  I general, it appears close
 	// but unfortunately not exact so we can't use the nsIMsgHeaderParser to do
 	// the work for us!
-	
+
 	// Very big bummer!
-	
-	const char *pStart;	
+
+	const char *pStart;
 	PRInt32		tLen;
 	nsCString	alias;
-	
+
 	while ( len) {
 		pStart = pLine;
 		cnt = 0;
@@ -339,15 +339,15 @@ CAliasEntry *nsEudoraAddress::ProcessAlias( const char *pLine, PRInt32 len, nsSt
 			else
 				delete pData;
 		}
-		
+
 		if (len && (*pLine == ',')) {
 			pLine++;
 			len--;
 		}
 	}
-	
+
   // Always return the entry even if there's no other attribute associated with the contact.
-  return( pEntry);	
+  return( pEntry);
 }
 
 
@@ -359,10 +359,10 @@ void nsEudoraAddress::ProcessNote( const char *pLine, PRInt32 len, nsString& err
 	len -= cnt;
 	if (!cnt || !len)
 		return;
-	
+
 	// Find the alias for this note and store the note data there!
 	CAliasEntry *pEntry = nsnull;
-	PRInt32	idx = FindAlias( name);	
+	PRInt32	idx = FindAlias( name);
 	if (idx == -1)
 		return;
 
@@ -377,17 +377,17 @@ PRInt32 nsEudoraAddress::CountQuote( const char *pLine, PRInt32 len)
 {
 	if (!len)
 		return( 0);
-		
+
 	PRInt32 cnt = 1;
 	pLine++;
 	len--;
-	
+
 	while (len && (*pLine != '"')) {
 		cnt++;
 		len--;
 		pLine++;
 	}
-	
+
 	if (len)
 		cnt++;
 	return( cnt);
@@ -398,17 +398,17 @@ PRInt32 nsEudoraAddress::CountAngle( const char *pLine, PRInt32 len)
 {
 	if (!len)
 		return( 0);
-		
+
 	PRInt32 cnt = 1;
 	pLine++;
 	len--;
-	
+
 	while (len && (*pLine != '>')) {
 		cnt++;
 		len--;
 		pLine++;
 	}
-	
+
 	if (len)
 		cnt++;
 	return( cnt);
@@ -418,15 +418,15 @@ PRInt32 nsEudoraAddress::CountComment( const char *pLine, PRInt32 len)
 {
 	if (!len)
 		return( 0);
-	
+
 	PRInt32	cCnt;
 	PRInt32 cnt = 1;
 	pLine++;
 	len--;
-	
+
 	while (len && (*pLine != ')')) {
 		if (*pLine == '(') {
-			cCnt = CountComment( pLine, len);	
+			cCnt = CountComment( pLine, len);
 			cnt += cCnt;
 			pLine += cCnt;
 			len -= cCnt;
@@ -437,7 +437,7 @@ PRInt32 nsEudoraAddress::CountComment( const char *pLine, PRInt32 len)
 			pLine++;
 		}
 	}
-	
+
 	if (len)
 		cnt++;
 	return( cnt);
@@ -453,7 +453,7 @@ PRBool CAliasData::Process( const char *pLine, PRInt32 len)
 {
 	// Extract any comments first!
 	nsCString	str;
-	
+
 	const char *pStart = pLine;
 	PRInt32		tCnt = 0;
 	PRInt32		cnt = 0;
@@ -469,7 +469,7 @@ PRBool CAliasData::Process( const char *pLine, PRInt32 len)
     // Now we just stash the full entry for nickname resolution before processing
     // the line as a potential entry in its own right.
     m_fullEntry.Append(pLine, len);
-	
+
 	while (max) {
 		if (*pLine == '"') {
 			if (tCnt && !endCollect) {
@@ -529,19 +529,19 @@ PRBool CAliasData::Process( const char *pLine, PRInt32 len)
 			max--;
 		}
 	}
-	
+
 	if (tCnt) {
 		str.Trim( kWhitespace);
 		if (!str.IsEmpty())
 			str.Append( " ", 1);
 		str.Append( pStart, tCnt);
 	}
-	
+
 	str.Trim( kWhitespace);
-	
+
 	if (!m_realName.IsEmpty() && !m_email.IsEmpty())
 		return( PR_TRUE);
-	
+
 	// now we should have a string with any remaining non-delimitted text
 	// we assume that the last token is the email
 	// anything before that is realName
@@ -549,7 +549,7 @@ PRBool CAliasData::Process( const char *pLine, PRInt32 len)
 		m_realName = str;
 		return( PR_TRUE);
 	}
-	
+
 	tCnt = str.RFindChar( ' ');
 	if (tCnt == -1) {
 		if (!str.IsEmpty()) {
@@ -558,12 +558,12 @@ PRBool CAliasData::Process( const char *pLine, PRInt32 len)
 		}
 		return( PR_FALSE);
 	}
-	
+
 	str.Right( m_email, str.Length() - tCnt - 1);
 	str.Left( m_realName, tCnt);
 	m_realName.Trim( kWhitespace);
 	m_email.Trim( kWhitespace);
-	
+
 	return( !m_email.IsEmpty());
 }
 
@@ -572,7 +572,7 @@ void DumpAliasArray( nsVoidArray& a)
 {
 	CAliasEntry *pEntry;
 	CAliasData *pData;
-	
+
 	PRInt32 cnt = a.Count();
 	IMPORT_LOG1( "Alias list size: %ld\n", cnt);
 	for (PRInt32 i = 0; i < cnt; i++) {
@@ -593,7 +593,7 @@ void DumpAliasArray( nsVoidArray& a)
 			IMPORT_LOG1( "\t\temail: %s\n", pData->m_email.get());
 			IMPORT_LOG1( "\t\trealName: %s\n", pData->m_realName.get());
 			IMPORT_LOG1( "\t\tnickName: %s\n", pData->m_nickName.get());
-		}	
+		}
 	}
 }
 #endif
@@ -607,18 +607,18 @@ CAliasEntry *nsEudoraAddress::ResolveAlias( nsCString& name)
 		if (name.Equals( pEntry->m_name, nsCaseInsensitiveCStringComparator()))
 			return( pEntry);
 	}
-	
+
 	return( nsnull);
 }
 
 void nsEudoraAddress::ResolveEntries( nsCString& name, nsVoidArray& list,
-                                     nsVoidArray& result, PRBool addResolvedEntries, 
+                                     nsVoidArray& result, PRBool addResolvedEntries,
                                      PRBool wasResolved, PRInt32& numResolved)
 {
     /* a safe-guard against recursive entries */
     if (result.Count() > m_alias.Count())
         return;
-    
+
     PRInt32         max = list.Count();
     PRInt32         i;
     CAliasData *    pData;
@@ -649,7 +649,7 @@ PRInt32 nsEudoraAddress::FindAlias( nsCString& name)
 	CAliasEntry *	pEntry;
 	PRInt32			max = m_alias.Count();
 	PRInt32			i;
-	
+
 	for (i = 0; i < max; i++) {
 		pEntry = (CAliasEntry *) m_alias.ElementAt( i);
 		if (pEntry->m_name == name)
@@ -667,7 +667,7 @@ void nsEudoraAddress::BuildABCards( PRUint32 *pBytes, nsIAddrDatabase *pDb)
 	nsVoidArray		emailList;
   nsVoidArray membersArray;// Remember group members.
   nsVoidArray groupsArray; // Remember groups.
-	
+
 	// First off, run through the list and build person cards - groups/lists have to be done later
 	for (i = 0; i < max; i++) {
     PRInt32   numResolved = 0;
@@ -727,32 +727,32 @@ void nsEudoraAddress::BuildABCards( PRUint32 *pBytes, nsIAddrDatabase *pDb)
 
 void nsEudoraAddress::ExtractNoteField( nsCString& note, nsCString& value, const char *pFieldName)
 {
-	value.Truncate( 0);
-	nsCString	field("<");
-	field.Append( pFieldName);
-	field.Append( ':');
+  value.Truncate();
+  nsCString field("<");
+  field.Append( pFieldName);
+  field.Append( ':');
 
-	/* 
-		this is a bit of a cheat, but there's no reason it won't work
-		fine for us, even better than Eudora in some cases!
-	 */
-	
-	PRInt32 idx = note.Find( field);
-	if (idx != -1) {
-		idx += field.Length();
-		PRInt32 endIdx = note.FindChar( '>', idx);
-		if (endIdx == -1)
-			endIdx = note.Length() - 1;
-		note.Mid( value, idx, endIdx - idx);
-		idx -= field.Length();
-		nsCString tempL;
-		if (idx)
-			note.Left( tempL, idx);
-		nsCString tempR;
-		note.Right( tempR, note.Length() - endIdx - 1);
-		note = tempL;
-		note.Append( tempR);
-	}
+/*
+    this is a bit of a cheat, but there's no reason it won't work
+    fine for us, even better than Eudora in some cases!
+*/
+
+  PRInt32 idx = note.Find( field);
+  if (idx != -1) {
+    idx += field.Length();
+    PRInt32 endIdx = note.FindChar( '>', idx);
+    if (endIdx == -1)
+      endIdx = note.Length() - 1;
+    note.Mid( value, idx, endIdx - idx);
+    idx -= field.Length();
+    nsCString tempL;
+    if (idx)
+      note.Left( tempL, idx);
+    nsCString tempR;
+    note.Right( tempR, note.Length() - endIdx - 1);
+    note = tempL;
+    note.Append( tempR);
+  }
 }
 
 void nsEudoraAddress::FormatExtraDataInNoteField(PRInt32 labelStringID, nsIStringBundle* bundle, nsCString& extraData, nsString& noteUTF16)
@@ -800,7 +800,7 @@ void nsEudoraAddress::AddSingleCard( CAliasEntry *pEntry, nsVoidArray &emailList
   // Map both home and work related fields to our address card. Eudora
   // fields that can't be mapped will be left in the 'note' field!
   nsIMdbRow* newRow = nsnull;
-  pDb->GetNewRow( &newRow); 
+  pDb->GetNewRow( &newRow);
   if (!newRow)
     return;
 
@@ -911,7 +911,7 @@ void nsEudoraAddress::AddSingleCard( CAliasEntry *pEntry, nsVoidArray &emailList
     displayName = name;
   else
     displayName = pEntry->m_name;
-  
+
   address.ReplaceSubstring( "\x03", "\n");
   SplitString( address, address2);
   note.ReplaceSubstring( "\x03", "\n");
@@ -933,7 +933,7 @@ void nsEudoraAddress::AddSingleCard( CAliasEntry *pEntry, nsVoidArray &emailList
   countryWK.ReplaceSubstring( "\x03", " ");
   title.ReplaceSubstring( "\x03", " ");
   company.ReplaceSubstring( "\x03", " ");
-  
+
   if (newRow)
   {
     nsAutoString uniStr;
@@ -1086,7 +1086,7 @@ nsresult nsEudoraAddress::AddGroupMembersAsCards(nsVoidArray &membersArray, nsIA
     if (!pData || (pData->m_email.IsEmpty()))
       continue;
 
-    rv = pDb->GetNewRow(getter_AddRefs(newRow)); 
+    rv = pDb->GetNewRow(getter_AddRefs(newRow));
     if (NS_FAILED(rv) || !newRow)
       return rv;
 
@@ -1109,7 +1109,7 @@ nsresult nsEudoraAddress::AddSingleList(CAliasEntry *pEntry, nsVoidArray &emailL
 {
   // Create a list.
   nsCOMPtr <nsIMdbRow> newRow;
-  nsresult rv = pDb->GetNewListRow(getter_AddRefs(newRow)); 
+  nsresult rv = pDb->GetNewListRow(getter_AddRefs(newRow));
   if (NS_FAILED(rv) || !newRow)
       return rv;
 

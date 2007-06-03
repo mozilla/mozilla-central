@@ -34,7 +34,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
- 
+
 #include "nsCOMPtr.h"
 #include "nsComm4xProfile.h"
 #include "nsIFileStreams.h"
@@ -95,7 +95,7 @@ nsComm4xProfile::GetProfileList(PRUint32 *length, PRUnichar ***profileNames)
     rv = NS_GetSpecialDirectory(OLDREG_DIR, getter_AddRefs(regFile));
     NS_ENSURE_SUCCESS(rv, rv);
     regFile->AppendNative(NS_LITERAL_CSTRING(OLDREG_NAME));
-  
+
     nsCAutoString path;
     rv = regFile->GetNativePath(path);
     NS_ENSURE_SUCCESS(rv, rv);
@@ -160,7 +160,7 @@ nsComm4xProfile::GetMailDir(const PRUnichar *aProfile, PRUnichar **_retval)
     if (NS_FAILED(rv)) return rv;
 
     regFile->AppendNative(NS_LITERAL_CSTRING(OLDREG_NAME));
-  
+
     nsCAutoString path;
     rv = regFile->GetNativePath(path);
     if (NS_FAILED(rv)) return rv;
@@ -176,7 +176,7 @@ nsComm4xProfile::GetMailDir(const PRUnichar *aProfile, PRUnichar **_retval)
 
     if (NR_RegGetKey(reg, ROOTKEY_USERS, profileName.get(), &profile))
         goto cleanup;
-  
+
     char profilePath[MAXPATHLEN];
     if (NR_RegGetEntryString(reg, profile, "ProfileLocation", profilePath, MAXPATHLEN))
         goto cleanup;
@@ -194,10 +194,10 @@ nsComm4xProfile::GetMailDir(const PRUnichar *aProfile, PRUnichar **_retval)
         rv = profileLocation->Exists(&exists);
         if (NS_FAILED(rv)) return rv;
         if (exists) {
-            nsXPIDLString prefValue;
+            nsString prefValue;
             rv = GetPrefValue(profileLocation, PREF_NAME, PREF_END, getter_Copies(prefValue));
             if (NS_FAILED(rv)) return rv;
-            if (prefValue) {
+            if (!prefValue.IsEmpty()) {
 #ifdef XP_MACOSX
                 rv = profileLocation->SetPersistentDescriptor(NS_ConvertUTF16toUTF8(prefValue));
                 if (NS_FAILED(rv)) return rv;
@@ -246,7 +246,7 @@ nsresult nsComm4xProfile::GetPrefValue(nsILocalFile *filePath, const char * pref
    rv = fileStream->Init(filePath, -1, -1, PR_FALSE);
    if (NS_FAILED(rv))
      return rv;
- 
+
    nsCOMPtr<nsILineInputStream> lineStream(do_QueryInterface(fileStream, &rv));
    if (NS_FAILED(rv)) {
      return rv;
@@ -273,7 +273,7 @@ nsresult nsComm4xProfile::GetPrefValue(nsILocalFile *filePath, const char * pref
        }
   }
 
-  fileStream->Close(); 
-  return rv; 
+  fileStream->Close();
+  return rv;
 }
 

@@ -48,7 +48,6 @@
 #include "nsIImportMailboxDescriptor.h"
 #include "nsIImportABDescriptor.h"
 #include "nsIImportMimeEncode.h"
-#include "nsXPIDLString.h"
 #include "nsReadableUtils.h"
 #include "nsOutlookStringBundle.h"
 #include "nsABBaseCID.h"
@@ -116,19 +115,19 @@ static MAPIFields	gMapiFields[] = {
 
 #define	kCopyBufferSize		(16 * 1024)
 
-// The email address in Outlook Contacts doesn't have a named 
-// property,  we need to use this mapi name ID to access the email 
+// The email address in Outlook Contacts doesn't have a named
+// property,  we need to use this mapi name ID to access the email
 // The MAPINAMEID for email address has ulKind=MNID_ID
 // Outlook stores each email address in two IDs,  32899/32900 for Email1
 // 32915/32916 for Email2, 32931/32932 for Email3
 // Current we use OUTLOOK_EMAIL1_MAPI_ID1 for primary email
 // OUTLOOK_EMAIL2_MAPI_ID1 for secondary email
-#define	OUTLOOK_EMAIL1_MAPI_ID1 32899    
-#define	OUTLOOK_EMAIL1_MAPI_ID2 32900    
-#define	OUTLOOK_EMAIL2_MAPI_ID1 32915   
-#define	OUTLOOK_EMAIL2_MAPI_ID2 32916   
-#define	OUTLOOK_EMAIL3_MAPI_ID1 32931    
-#define	OUTLOOK_EMAIL3_MAPI_ID2 32932  
+#define	OUTLOOK_EMAIL1_MAPI_ID1 32899
+#define	OUTLOOK_EMAIL1_MAPI_ID2 32900
+#define	OUTLOOK_EMAIL2_MAPI_ID1 32915
+#define	OUTLOOK_EMAIL2_MAPI_ID2 32916
+#define	OUTLOOK_EMAIL3_MAPI_ID1 32931
+#define	OUTLOOK_EMAIL3_MAPI_ID2 32932
 
 nsOutlookMail::nsOutlookMail()
 {
@@ -190,7 +189,7 @@ nsresult nsOutlookMail::GetMailFolders( nsISupportsArray **pArray)
 			}
 		}
 	}
-	
+
 	// Create the mailbox descriptors for the list of folders
 	nsIImportMailboxDescriptor *	pID;
 	nsISupports *					pInterface;
@@ -214,8 +213,8 @@ nsresult nsOutlookMail::GetMailFolders( nsISupportsArray **pArray)
 			pID->Release();
 		}
 	}
-	
-	return( NS_OK);	
+
+	return( NS_OK);
 }
 
 PRBool nsOutlookMail::IsAddressBookNameUnique( nsString& name, nsString& list)
@@ -240,7 +239,7 @@ void nsOutlookMail::MakeAddressBookNameUnique( nsString& name, nsString& list)
 		newName.AppendInt( (PRInt32) idx);
 		idx++;
 	}
-	
+
 	name = newName;
 	list.AppendLiteral("[");
 	list.Append( name);
@@ -265,7 +264,7 @@ nsresult nsOutlookMail::GetAddressBooks( nsISupportsArray **pArray)
 		return( rv);
 
 	m_gotAddresses = PR_TRUE;
-	
+
 	m_addressList.ClearAll();
 	m_mapi.Initialize();
 	m_mapi.LogOn();
@@ -292,7 +291,7 @@ nsresult nsOutlookMail::GetAddressBooks( nsISupportsArray **pArray)
 			}
 		}
 	}
-	
+
 	// Create the mailbox descriptors for the list of folders
 	nsIImportABDescriptor *			pID;
 	nsISupports *					pInterface;
@@ -316,24 +315,24 @@ nsresult nsOutlookMail::GetAddressBooks( nsISupportsArray **pArray)
 			}
 		}
 	}
-	
-	return( NS_OK);	
+
+	return( NS_OK);
 }
 
 
 
 void nsOutlookMail::OpenMessageStore( CMapiFolder *pNextFolder)
-{	
+{
 	// Open the store specified
 	if (pNextFolder->IsStore()) {
 		if (!m_mapi.OpenStore( pNextFolder->GetCBEntryID(), pNextFolder->GetEntryID(), &m_lpMdb)) {
 			m_lpMdb = NULL;
 			IMPORT_LOG0( "CMapiApi::OpenStore failed\n");
 		}
-		
+
 		return;
 	}
-	
+
 	// Check to see if we should open the one and only store
 	if (!m_lpMdb) {
 		if (m_storeList.GetSize() == 1) {
@@ -359,7 +358,7 @@ void nsOutlookMail::SetDefaultContentType(CMapiMessage &msg, nsCString &cType)
   cType.Truncate();
 
   // MAPI doesn't seem to return the entire body data (ie, multiple parts) for
-  // content type "multipart/alternative", instead it only returns the body data 
+  // content type "multipart/alternative", instead it only returns the body data
   // for a particular part. For this reason we'll need to set the content type
   // here. Same thing when conten type is not being set at all.
   if (msg.GetMimeContentLen())
@@ -378,7 +377,7 @@ void nsOutlookMail::SetDefaultContentType(CMapiMessage &msg, nsCString &cType)
     if (!body || !boundary || strstr(body, boundary))
       return;
   }
-  
+
   // Now default the content type to text/html or text/plain
   // depending whether or not the body data is html.
   cType = msg.BodyIsHtml() ? "text/html" : "text/plain";
@@ -539,10 +538,10 @@ nsresult nsOutlookMail::ImportMailbox( PRUint32 *pDoneSoFar, PRBool *pAbort, PRI
 
         // This is the OLD way of writing out the message which uses
         // all kinds of crufty old crap for attachments.
-        // Since we now use Compose to send attachments, 
+        // Since we now use Compose to send attachments,
         // this is only fallback error stuff.
 
-        // Attachments get lost.		
+        // Attachments get lost.
 
         if (attachCount) {
           lostAttach = PR_TRUE;
@@ -590,7 +589,7 @@ BOOL nsOutlookMail::WriteMessage( nsIOutputStream *pDest, CMapiMessage *pMsg, in
 	}
 
   nsCOMPtr<nsIOutputStream> outStream = pDest;
-  
+
 	pData = pMsg->GetHeaders( len);
 	if (pData && len) {
     if (checkStart)
@@ -604,7 +603,7 @@ BOOL nsOutlookMail::WriteMessage( nsIOutputStream *pDest, CMapiMessage *pMsg, in
 	//		If so, then we are OK, but need to make sure we add mime
 	//		header info to the body of the message
 	//	If not AND we have attachments, then we need to add mime headers.
-	
+
 	BOOL needsMimeHeaders = pMsg->IsMultipart();
 	if (!needsMimeHeaders && attachCount) {
 		// if the message already has mime headers
@@ -623,7 +622,7 @@ BOOL nsOutlookMail::WriteMessage( nsIOutputStream *pDest, CMapiMessage *pMsg, in
 
 	if (bResult)
 		bResult = WriteStr( pDest, "\x0D\x0A");
-	
+
 	if (needsMimeHeaders) {
 		if (bResult)
 			bResult = WriteStr( pDest, "This is a MIME formatted message.\x0D\x0A");
@@ -660,7 +659,7 @@ BOOL nsOutlookMail::WriteMessage( nsIOutputStream *pDest, CMapiMessage *pMsg, in
 
 
 BOOL nsOutlookMail::WriteData( nsIOutputStream *pDest, const char *pData, PRInt32 len)
-{	
+{
 	PRUint32		written;
 	nsresult rv = pDest->Write( pData, len, &written);
 	if (NS_FAILED( rv) || (written != len))
@@ -669,7 +668,7 @@ BOOL nsOutlookMail::WriteData( nsIOutputStream *pDest, const char *pData, PRInt3
 }
 
 BOOL nsOutlookMail::WriteStr( nsIOutputStream *pDest, const char *pStr)
-{	
+{
 	PRUint32 written;
 	PRInt32		len = strlen( pStr);
 
@@ -823,7 +822,7 @@ void nsOutlookMail::BuildAttachments( CMapiMessage& msg, int count)
             a->mimeType = nsCRT::strdup( msg.GetMimeType());
             // Init description here so that we cacn tell
             // if defaul tattacchment is needed later.
-            a->description = nsnull;  
+            a->description = nsnull;
 
             const char *fileName = msg.GetFileName();
             if (fileName && fileName[0]) {
@@ -864,7 +863,7 @@ void nsOutlookMail::DumpAttachments( void)
 	IMPORT_LOG1( "#%d attachments\n", (int) count);
 
 	OutlookAttachment *	pAttach;
-	
+
 	for (PRInt32 i = 0; i < count; i++) {
 		IMPORT_LOG1( "\tAttachment #%d ---------------\n", (int) i);
 		pAttach = (OutlookAttachment *) m_attachments.ElementAt( i);
@@ -887,7 +886,7 @@ nsresult nsOutlookMail::ImportAddresses( PRUint32 *pCount, PRUint32 *pTotal, con
 		IMPORT_LOG0( "*** Bad address identifier, unable to import\n");
 		return( NS_ERROR_FAILURE);
 	}
-	
+
 	PRUint32	dummyCount = 0;
 	if (pCount)
 		*pCount = 0;
@@ -914,10 +913,10 @@ nsresult nsOutlookMail::ImportAddresses( PRUint32 *pCount, PRUint32 *pTotal, con
 		IMPORT_LOG1( "*** Unable to obtain mapi message store for address book: %S\n", pName);
 		return( NS_ERROR_FAILURE);
 	}
-	
+
 	if (pFolder->IsStore())
 		return( NS_OK);
-	
+
 	nsresult	rv;
 
 	nsCOMPtr<nsIImportFieldMap>		pFieldMap;
@@ -945,7 +944,7 @@ nsresult nsOutlookMail::ImportAddresses( PRUint32 *pCount, PRUint32 *pTotal, con
 			IMPORT_LOG1( "*** Error iterating address book: %S\n", pName);
 			return( NS_ERROR_FAILURE);
 		}
-		
+
 		if (pTotal && (*pTotal == 0))
 			*pTotal = contents.GetCount();
 
@@ -959,17 +958,17 @@ nsresult nsOutlookMail::ImportAddresses( PRUint32 *pCount, PRUint32 *pTotal, con
 			// ensure that it is IPM.Contact
 			pVal = m_mapi.GetMapiProperty( lpMsg, PR_MESSAGE_CLASS);
 			if (pVal) {
-				type.Truncate( 0);
+				type.Truncate();
 				m_mapi.GetStringFromProp( pVal, type);
 				if (type.EqualsLiteral("IPM.Contact")) {
 					// This is a contact, add it to the address book!
-					subject.Truncate( 0);
+					subject.Truncate();
 					pVal = m_mapi.GetMapiProperty( lpMsg, PR_SUBJECT);
 					if (pVal)
 						m_mapi.GetStringFromProp( pVal, subject);
-					
+
 					nsIMdbRow* newRow = nsnull;
-					pDb->GetNewRow( &newRow); 
+					pDb->GetNewRow( &newRow);
 					// FIXME: Check with Candice about releasing the newRow if it
 					// isn't added to the database.  Candice's code in nsAddressBook
 					// never releases it but that doesn't seem right to me!
@@ -982,13 +981,13 @@ nsresult nsOutlookMail::ImportAddresses( PRUint32 *pCount, PRUint32 *pTotal, con
         else if (type.EqualsLiteral("IPM.DistList"))
         {
           // This is a list/group, add it to the address book!
-          subject.Truncate( 0);
+          subject.Truncate();
           pVal = m_mapi.GetMapiProperty( lpMsg, PR_SUBJECT);
           if (pVal)
             m_mapi.GetStringFromProp( pVal, subject);
           CreateList(subject.get(), pDb, lpMsg, pFieldMap);
         }
-			}			
+			}
 
 			lpMsg->Release();
 		}
@@ -1006,35 +1005,35 @@ nsresult nsOutlookMail::CreateList( const PRUnichar * pName,
   // If no name provided then we're done.
   if (!pName || !(*pName))
     return NS_OK;
-  
+
   nsresult rv = NS_ERROR_FAILURE;
   // Make sure we have db to work with.
   if (!pDb)
     return rv;
-  
+
   nsCOMPtr <nsIMdbRow> newListRow;
   rv = pDb->GetNewListRow(getter_AddRefs(newListRow));
   NS_ENSURE_SUCCESS(rv, rv);
   nsCAutoString column;
-  column.AssignWithConversion(pName);
+  LossyCopyUTF16toASCII(pName, column ); 
   rv = pDb->AddListName(newListRow, column.get());
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   HRESULT             hr;
   LPSPropValue aValue = NULL ;
   ULONG aValueCount = 0 ;
-  
+
   LPSPropTagArray properties = NULL ;
   m_mapi.MAPIAllocateBuffer(CbNewSPropTagArray(1),
     (void **)&properties) ;
   properties->cValues = 1;
   properties->aulPropTag [0] = m_mapi.GetEmailPropertyTag(pUserList, 0x8054);
   hr = pUserList->GetProps(properties, 0, &aValueCount, &aValue) ;
-  
+
   SBinaryArray *sa=(SBinaryArray *)&aValue->Value.bin;
   if (!sa || !sa->lpbin)
     return NS_ERROR_NULL_POINTER;
-  
+
   LPENTRYID    lpEid;
   ULONG        cbEid;
   PRInt32        idx;
@@ -1043,39 +1042,39 @@ nsresult nsOutlookMail::CreateList( const PRUnichar * pName,
   LPSPropValue    pVal;
   nsString        subject;
   PRUint32 total;
-  
-  
+
+
   total=sa->cValues;
   for (idx = 0;idx < sa->cValues ;idx++)
   {
     lpEid= (LPENTRYID) sa->lpbin[idx].lpb;
     cbEid = sa->lpbin[idx].cb;
-    
-    
+
+
     if (!m_mapi.OpenEntry(cbEid, lpEid, (LPUNKNOWN *) &lpMsg))
     {
-      
+
       IMPORT_LOG1( "*** Error opening messages in mailbox: %S\n", pName);
       return( NS_ERROR_FAILURE);
     }
     // This is a contact, add it to the address book!
-    subject.Truncate( 0);
+    subject.Truncate();
     pVal = m_mapi.GetMapiProperty( lpMsg, PR_SUBJECT);
     if (pVal)
       m_mapi.GetStringFromProp( pVal, subject);
-    
+
     nsCOMPtr <nsIMdbRow> newRow;
     nsCOMPtr <nsIMdbRow> oldRow;
     pDb->GetNewRow( getter_AddRefs(newRow));
     if (newRow) {
-      if (BuildCard( subject.get(), pDb, newRow, lpMsg, pFieldMap)) 
+      if (BuildCard( subject.get(), pDb, newRow, lpMsg, pFieldMap))
       {
         nsCOMPtr <nsIAbCard> userCard;
         nsCOMPtr <nsIAbCard> newCard;
         userCard = do_CreateInstance(NS_ABMDBCARD_CONTRACTID, &rv);
         NS_ENSURE_SUCCESS(rv, rv);
         pDb->InitCardFromRow(userCard,newRow);
-        
+
         //add card to db
         PRBool bl=PR_FALSE;
         pDb->FindRowByCard(userCard,getter_AddRefs(oldRow));
@@ -1087,22 +1086,22 @@ nsresult nsOutlookMail::CreateList( const PRUnichar * pName,
         {
           pDb->AddCardRowToDB( newRow);
         }
-        
+
         //add card list
         pDb->AddListCardColumnsToRow(userCard,
           newListRow,idx+1,
           getter_AddRefs(newCard),PR_TRUE);
-        
-        
+
+
       }
     }
-    
-    
+
+
   }
-  
+
   rv = pDb->AddCardRowToDB(newListRow);
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   rv = pDb->SetListAddressTotal(newListRow, total);
   rv = pDb->AddListDirNode(newListRow);
   return rv;
@@ -1140,7 +1139,7 @@ void nsOutlookMail::SplitString( nsString& val1, nsString& val2)
 
 PRBool nsOutlookMail::BuildCard( const PRUnichar *pName, nsIAddrDatabase *pDb, nsIMdbRow *newRow, LPMAPIPROP pUser, nsIImportFieldMap *pFieldMap)
 {
-	
+
 	nsString		lastName;
 	nsString		firstName;
 	nsString		eMail;
@@ -1216,7 +1215,7 @@ PRBool nsOutlookMail::BuildCard( const PRUnichar *pName, nsIAddrDatabase *pDb, n
 			}
 		}
 	}
-	
+
 	// We now have the required fields
 	// write them out followed by any optional fields!
 	if (!displayName.IsEmpty()) {

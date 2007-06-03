@@ -632,16 +632,16 @@ NS_IMETHODIMP nsImportGenericMail::GetProgress(PRInt32 *_retval)
 
 void nsImportGenericMail::ReportError(PRInt32 id, const PRUnichar *pName, nsString *pStream, nsIStringBundle *aBundle)
 {
-	if (!pStream)
-		return;
+  if (!pStream)
+    return;
 
-	// load the error string
+  // load the error string
   PRUnichar *pFmt = nsImportStringBundle::GetStringByID(id, aBundle);
-	PRUnichar *pText = nsTextFormatter::smprintf( pFmt, pName);
-	pStream->Append( pText);
-	nsTextFormatter::smprintf_free( pText);
+  PRUnichar *pText = nsTextFormatter::smprintf( pFmt, pName);
+  pStream->Append( pText);
+  nsTextFormatter::smprintf_free( pText);
   nsCRT::free(pFmt);
-	pStream->AppendWithConversion( NS_LINEBREAK);
+  pStream->Append(NS_ConvertASCIItoUTF16(NS_LINEBREAK));
 }
 
 

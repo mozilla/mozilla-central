@@ -77,13 +77,13 @@ nsShouldIgnoreFile(nsString& name)
     PRUnichar firstChar=name.CharAt(0);
     if (firstChar == '.' || firstChar == '#' || name.CharAt(name.Length() - 1) == '~')
       return PR_TRUE;
- 
+
     if (name.LowerCaseEqualsLiteral("rules.dat") || name.LowerCaseEqualsLiteral("rulesbackup.dat"))
         return PR_TRUE;
- 
- 
+
+
     // don't add summary files to the list of folders;
-    // don't add popstate files to the list either, or rules (sort.dat). 
+    // don't add popstate files to the list either, or rules (sort.dat).
     if (nsStringEndsWith(name, ".snm") ||
         name.LowerCaseEqualsLiteral("popstate.dat") ||
         name.LowerCaseEqualsLiteral("sort.dat") ||
@@ -92,7 +92,7 @@ nsShouldIgnoreFile(nsString& name)
         nsStringEndsWith(name, ".toc")||
         nsStringEndsWith(name,".sbd"))
         return PR_TRUE;
- 
+
     return PR_FALSE;
 }
 
@@ -111,11 +111,11 @@ nsresult nsComm4xMail::FindMailboxes(nsIFile *pRoot, nsISupportsArray **ppArray)
         IMPORT_LOG0("FAILED to allocate the nsISupportsArray\n");
         return rv;
     }
-        
+
     nsCOMPtr<nsIImportService> impSvc(do_GetService(NS_IMPORTSERVICE_CONTRACTID, &rv));
     if (NS_FAILED(rv))
         return rv;
-    
+
     m_depth = 0;
 
     return (ScanMailDir(pRoot, *ppArray, impSvc));
@@ -124,12 +124,12 @@ nsresult nsComm4xMail::FindMailboxes(nsIFile *pRoot, nsISupportsArray **ppArray)
 
 nsresult nsComm4xMail::ScanMailDir(nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport)
 {
-    
+
     m_depth++;
     nsresult rv = IterateMailDir(pFolder, pArray, pImport);
     m_depth--;
 
-    return rv;            
+    return rv;
 }
 
 nsresult nsComm4xMail::IterateMailDir(nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport)
@@ -148,8 +148,8 @@ nsresult nsComm4xMail::IterateMailDir(nsIFile *pFolder, nsISupportsArray *pArray
     directoryEnumerator->HasMoreElements(&hasMore);
 
     PRBool                    isFile;
-    nsXPIDLCString            pName;
-    nsXPIDLCString            dirName;
+    nsCString            pName;
+    nsCString            dirName;
     nsAutoString              currentFolderNameStr;
     PRBool                    isDirectory, exists;
     nsAutoString              ext;
@@ -158,14 +158,14 @@ nsresult nsComm4xMail::IterateMailDir(nsIFile *pFolder, nsISupportsArray *pArray
     rv = currentFolderPath->GetLeafName(currentFolderNameStr);
     isFile = PR_FALSE;
     currentFolderPath->IsFile(&isFile);
-    if (isFile) 
+    if (isFile)
     {
-      if (!nsShouldIgnoreFile(currentFolderNameStr)) 
+      if (!nsShouldIgnoreFile(currentFolderNameStr))
       {
         rv = FoundMailbox(currentFolderPath, &currentFolderNameStr, pArray, pImport);
         if (NS_FAILED(rv))
           return rv;
-        currentFolderNameStr.Append(NS_LITERAL_STRING(".sbd"));
+        currentFolderNameStr.AppendLiteral(".sbd");
         rv = currentFolderPath->SetLeafName(currentFolderNameStr);
         if (NS_FAILED(rv))
           return rv;
@@ -188,7 +188,7 @@ nsresult nsComm4xMail::FoundMailbox(nsIFile *mailFile, nsAutoString *pName, nsIS
 {
     nsCOMPtr<nsIImportMailboxDescriptor>    desc;
 
-    nsXPIDLCString pPath;
+    nsCString pPath;
     mailFile->GetNativePath(pPath);
     if (!pPath.IsEmpty())
       IMPORT_LOG2("Found comm4x mailbox: %s, m_depth = %d\n", pPath.get(), m_depth);
@@ -198,7 +198,7 @@ nsresult nsComm4xMail::FoundMailbox(nsIFile *mailFile, nsAutoString *pName, nsIS
     nsresult rv = pImport->CreateNewMailboxDescriptor(getter_AddRefs(desc));
     if (NS_SUCCEEDED(rv)) {
         PRInt64        sz = 0;
-        mailFile->GetFileSize(&sz);    
+        mailFile->GetFileSize(&sz);
         desc->SetDisplayName(pName->get());
         desc->SetDepth(m_depth);
         desc->SetSize((PRUint32) sz);

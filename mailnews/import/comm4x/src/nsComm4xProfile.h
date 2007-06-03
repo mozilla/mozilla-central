@@ -43,7 +43,6 @@
 #include "nsIFile.h"
 #include "nsILocalFile.h"
 #include "nsIComm4xProfile.h"
-#include "nsXPIDLString.h"
 #include "nsString.h"
 
 /* c66c1060-2bdc-11d6-92a0-0010a4b26cda */

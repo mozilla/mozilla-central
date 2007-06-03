@@ -529,24 +529,24 @@ LPSPropValue CWAB::GetUserProperty( LPMAILUSER pUser, ULONG tag)
 
 void CWAB::CStrToUnicode( const char *pStr, nsString& result)
 {
-	result.Truncate( 0);
-	int wLen = MultiByteToWideChar( CP_ACP, 0, pStr, -1, m_pUniBuff, 0);
-	if (wLen >= m_uniBuffLen) {
-		if (m_pUniBuff)
-			delete [] m_pUniBuff;
-		m_pUniBuff = new PRUnichar[wLen + 64];
-		m_uniBuffLen = wLen + 64;
-	}
-	if (wLen) {
-		MultiByteToWideChar( CP_ACP, 0, pStr, -1, m_pUniBuff, m_uniBuffLen);
-		result = m_pUniBuff;
-	}
+  result.Truncate();
+  int wLen = MultiByteToWideChar( CP_ACP, 0, pStr, -1, m_pUniBuff, 0);
+  if (wLen >= m_uniBuffLen) {
+    if (m_pUniBuff)
+      delete [] m_pUniBuff;
+    m_pUniBuff = new PRUnichar[wLen + 64];
+    m_uniBuffLen = wLen + 64;
+  }
+  if (wLen) {
+    MultiByteToWideChar( CP_ACP, 0, pStr, -1, m_pUniBuff, m_uniBuffLen);
+    result = m_pUniBuff;
+  }
 }
 
 // If the value is a string, get it...
 void CWAB::GetValueString( LPSPropValue pVal, nsString& val)
 {
-	val.Truncate( 0);
+	val.Truncate();
 	
 	if (!pVal)
 		return;
@@ -565,7 +565,7 @@ void CWAB::GetValueString( LPSPropValue pVal, nsString& val)
             for(j = 0; j < pVal->Value.MVszA.cValues; j++) {
 				CStrToUnicode( (const char *) (pVal->Value.MVszA.lppszA[j]), tmp);
                 val += tmp;
-                val.AppendWithConversion(TR_OUTPUT_EOL);
+                val.Append(NS_ConvertASCIItoUTF16(TR_OUTPUT_EOL));
             }
         }
         break;
@@ -573,7 +573,7 @@ void CWAB::GetValueString( LPSPropValue pVal, nsString& val)
             ULONG	j;
             for(j = 0; j < pVal->Value.MVszW.cValues; j++) {
                 val += (PRUnichar *) (pVal->Value.MVszW.lppszW[j]);
-                val.AppendWithConversion(TR_OUTPUT_EOL);
+                val.Append(NS_ConvertASCIItoUTF16(TR_OUTPUT_EOL));
             }
         }
         break;
