@@ -65,7 +65,6 @@
 #include "nsString.h"
 #include "nsIPrompt.h"
 #include "nsIMsgIncomingServer.h"
-#include "nsLocalStringBundle.h"
 #include "nsTextFormatter.h"
 #include "nsCOMPtr.h"
 #include "nsIMsgWindow.h"
@@ -80,6 +79,7 @@
 #include "nsISocketTransport.h"
 #include "nsISSLSocketControl.h"
 #include "nsILineInputStream.h"
+#include "nsLocalStrings.h"
 
 #define EXTRA_SAFETY_SPACE 3096
 
@@ -622,8 +622,9 @@ nsresult nsPop3Protocol::Initialize(nsIURI * aURL)
   if(!m_lineStreamBuffer)
     return NS_ERROR_OUT_OF_MEMORY;
 
-  mStringService = do_GetService(NS_MSG_POPSTRINGSERVICE_CONTRACTID);
-  return rv;
+  nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+  return bundleService->CreateBundle("chrome://messenger/locale/localMsgs.properties", getter_AddRefs(mLocalBundle));
 }
 
 nsPop3Protocol::~nsPop3Protocol()
@@ -659,10 +660,9 @@ void nsPop3Protocol::UpdateStatus(PRInt32 aStatusID)
 {
   if (m_statusFeedback)
   {
-    PRUnichar * statusString = nsnull;
-    mStringService->GetStringByID(aStatusID, &statusString);
-    UpdateStatusWithString(statusString);
-    nsCRT::free(statusString);
+    nsString statusString;
+    mLocalBundle->GetStringFromID(aStatusID, getter_Copies(statusString));
+    UpdateStatusWithString(statusString.get());
   }
 }
 
@@ -739,15 +739,15 @@ nsresult nsPop3Protocol::GetPassword(nsCString& aPassword, PRBool *okayValue)
       if ((!isAuthenticated || m_pop3ConData->logonFailureCount > 2) && msgWindow)
         rv = server->ForgetPassword();
       NS_ENSURE_SUCCESS(rv, rv);
-      mStringService->GetStringByID(POP3_PREVIOUSLY_ENTERED_PASSWORD_IS_INVALID_ETC, getter_Copies(passwordTemplate));
+      mLocalBundle->GetStringFromID(POP3_PREVIOUSLY_ENTERED_PASSWORD_IS_INVALID_ETC, getter_Copies(passwordTemplate));
     } // otherwise this is the first time we've asked about the server's password so show a first time prompt
     else
-      mStringService->GetStringByID(POP3_ENTER_PASSWORD_PROMPT, getter_Copies(passwordTemplate));
+      mLocalBundle->GetStringFromID(POP3_ENTER_PASSWORD_PROMPT, getter_Copies(passwordTemplate));
     if (!passwordTemplate.IsEmpty())
       passwordPromptString = nsTextFormatter::smprintf(passwordTemplate.get(), userName.get(), hostName.get());
     // now go get the password!!!!
     nsString passwordTitle;
-    mStringService->GetStringByID(POP3_ENTER_PASSWORD_PROMPT_TITLE, getter_Copies(passwordTitle));
+    mLocalBundle->GetStringFromID(POP3_ENTER_PASSWORD_PROMPT_TITLE, getter_Copies(passwordTitle));
     if (passwordPromptString)
     {
       if (!passwordTitle.IsEmpty())
@@ -1078,7 +1078,7 @@ nsPop3Protocol::Error(PRInt32 err_code)
             if (NS_SUCCEEDED(rv))
             {
               nsString alertString;
-              mStringService->GetStringByID(err_code, getter_Copies(alertString));
+              mLocalBundle->GetStringFromID(err_code, getter_Copies(alertString));
               if (m_pop3ConData->command_succeeded)  //not a server error message
                 dialog->Alert(nsnull, alertString.get());
               else
@@ -1094,10 +1094,7 @@ nsPop3Protocol::Error(PRInt32 err_code)
                   nsAutoString hostStr;
                   CopyASCIItoUTF16(hostName, hostStr);
                   const PRUnichar *params[] = { hostStr.get() };
-                  nsCOMPtr<nsIStringBundle> bundle;
-                  rv = mStringService->GetBundle(getter_AddRefs(bundle));
-                  if (NS_SUCCEEDED(rv))
-                    bundle->FormatStringFromID(POP3_SERVER_SAID, params, 1, getter_Copies(serverSaidPrefix));
+                  mLocalBundle->FormatStringFromID(POP3_SERVER_SAID, params, 1, getter_Copies(serverSaidPrefix));
                 }
 
                 nsAutoString message(alertString + NS_LITERAL_STRING(" ") +
@@ -2250,16 +2247,11 @@ PRInt32 nsPop3Protocol::GetFakeUidlTop(nsIInputStream* inputStream,
     };
 
     // get the strings for the format
-    nsCOMPtr<nsIStringBundle> bundle;
-    rv = mStringService->GetBundle(getter_AddRefs(bundle));
-    NS_ENSURE_SUCCESS(rv, -1);
-
     nsString statusString;
-    rv = bundle->FormatStringFromID(POP3_SERVER_DOES_NOT_SUPPORT_UIDL_ETC,
+    rv = mLocalBundle->FormatStringFromID(POP3_SERVER_DOES_NOT_SUPPORT_UIDL_ETC,
       formatStrings, 1,
       getter_Copies(statusString));
     NS_ENSURE_SUCCESS(rv, -1);
-
     UpdateStatusWithString(statusString.get());
     return -1;
   }
@@ -3076,26 +3068,18 @@ nsPop3Protocol::SendRetr()
       nsAutoString reallyNewMessages;
       reallyNewMessages.AppendInt(m_pop3ConData->really_new_messages);
 
-      nsCOMPtr<nsIStringBundle> bundle;
-      rv = mStringService->GetBundle(getter_AddRefs(bundle));
-      NS_ASSERTION(NS_SUCCEEDED(rv), "couldn't get bundle");
+      const PRUnichar *formatStrings[] = {
+        realNewString.get(),
+          reallyNewMessages.get(),
+      };
 
-      if (bundle)
-      {
-        const PRUnichar *formatStrings[] = {
-          realNewString.get(),
-            reallyNewMessages.get(),
-        };
-
-        nsString finalString;
-        rv = bundle->FormatStringFromID(LOCAL_STATUS_RECEIVING_MESSAGE_OF,
-          formatStrings, 2,
-          getter_Copies(finalString));
-        NS_ASSERTION(NS_SUCCEEDED(rv), "couldn't format string");
-
-        if (m_statusFeedback)
-          m_statusFeedback->ShowStatusString(finalString.get());
-      }
+      nsString finalString;
+      rv = mLocalBundle->FormatStringFromID(LOCAL_STATUS_RECEIVING_MESSAGE_OF,
+        formatStrings, 2,
+        getter_Copies(finalString));
+      NS_ASSERTION(NS_SUCCEEDED(rv), "couldn't format string");
+      if (m_statusFeedback)
+        m_statusFeedback->ShowStatusString(finalString.get());
     }
 
     status = SendData(m_url, cmd);
@@ -3362,18 +3346,17 @@ nsPop3Protocol::TopResponse(nsIInputStream* inputStream, PRUint32 length)
     PRBool prefBool = PR_FALSE;
     m_pop3ConData->truncating_cur_msg = PR_FALSE;
 
-    PRUnichar * statusTemplate = nsnull;
-    mStringService->GetStringByID(POP3_SERVER_DOES_NOT_SUPPORT_THE_TOP_COMMAND, &statusTemplate);
-    if (statusTemplate)
+    nsString statusTemplate;
+    mLocalBundle->GetStringFromID(POP3_SERVER_DOES_NOT_SUPPORT_THE_TOP_COMMAND, getter_Copies(statusTemplate));
+    if (!statusTemplate.IsEmpty())
     {
       nsCAutoString hostName;
       PRUnichar * statusString = nsnull;
       m_url->GetHost(hostName);
 
-      statusString = nsTextFormatter::smprintf(statusTemplate, hostName.get());
+      statusString = nsTextFormatter::smprintf(statusTemplate.get(), hostName.get());
       UpdateStatusWithString(statusString);
       nsTextFormatter::smprintf_free(statusString);
-      nsCRT::free(statusTemplate);
     }
 
     m_pop3Server->GetAuthLogin(&prefBool);
@@ -3871,17 +3854,15 @@ nsresult nsPop3Protocol::ProcessProtocolState(nsIURI * url, nsIInputStream * aIn
           }
           else
           {
-            PRUnichar * statusTemplate = nsnull;
-            mStringService->GetStringByID(POP3_DOWNLOAD_COUNT, &statusTemplate);
-            if (statusTemplate)
+            nsString statusTemplate;
+            mLocalBundle->GetStringFromID(POP3_DOWNLOAD_COUNT, getter_Copies(statusTemplate));
+            if (!statusTemplate.IsEmpty())
             {
-              PRUnichar * statusString = nsTextFormatter::smprintf(statusTemplate,
+              PRUnichar * statusString = nsTextFormatter::smprintf(statusTemplate.get(),
                 m_pop3ConData->real_new_counter - 1,
                 m_pop3ConData->really_new_messages);
               UpdateStatusWithString(statusString);
               nsTextFormatter::smprintf_free(statusString);
-              nsCRT::free(statusTemplate);
-
             }
           }
         }
@@ -3949,16 +3930,15 @@ nsresult nsPop3Protocol::ProcessProtocolState(nsIURI * url, nsIInputStream * aIn
 
       if(m_pop3ConData->msg_del_started)
       {
-        PRUnichar * statusTemplate = nsnull;
-        mStringService->GetStringByID(POP3_DOWNLOAD_COUNT, &statusTemplate);
-        if (statusTemplate)
+        nsString statusTemplate;
+        mLocalBundle->GetStringFromID(POP3_DOWNLOAD_COUNT, getter_Copies(statusTemplate));
+        if (!statusTemplate.IsEmpty())
         {
-          PRUnichar * statusString = nsTextFormatter::smprintf(statusTemplate,
+          PRUnichar * statusString = nsTextFormatter::smprintf(statusTemplate.get(),
             m_pop3ConData->real_new_counter - 1,
             m_pop3ConData->really_new_messages);
           UpdateStatusWithString(statusString);
           nsTextFormatter::smprintf_free(statusString);
-          nsCRT::free(statusTemplate);
         }
 
         NS_ASSERTION (!TestFlag(POP3_PASSWORD_FAILED), "POP3_PASSWORD_FAILED set when del_started");

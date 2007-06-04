@@ -44,7 +44,6 @@
 
 #include "nsIMovemailService.h"
 #include "nsIMsgProtocolInfo.h"
-#include "nsIMsgStringService.h"
 #include "nsIMsgWindow.h"
 
 class nsParseNewMailState;
@@ -63,8 +62,6 @@ public:
   
 private:
   void Error(PRInt32 errorCode, const PRUnichar **params, PRUint32 length);
-
-  nsCOMPtr<nsIMsgStringService> mStringService;
   nsCOMPtr<nsIMsgWindow> mMsgWindow;
 };
 

@@ -49,7 +49,6 @@
 #include "nsIMsgHeaderParser.h"
 #include "nsINntpService.h"
 #include "nsMimeTypes.h"
-#include "nsMsgComposeStringBundle.h"
 #include "nsReadableUtils.h"
 #include "nsDirectoryServiceDefs.h"
 #include "nsIDocumentEncoder.h"    // for editor output flags
@@ -58,7 +57,7 @@
 #include "nsMsgPrompts.h"
 #include "nsMsgUtils.h"
 #include "nsMsgSimulateError.h"
-
+#include "nsComposeStrings.h"
 #include "nsIMsgCompUtils.h"
 #include "nsIMsgMdnGenerator.h"
 

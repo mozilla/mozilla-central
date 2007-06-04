@@ -59,7 +59,6 @@
 #include "nsIPrefBranch.h"
 #include "nsIPrefService.h"
 #include "nsDirectoryServiceDefs.h"
-#include "nsIMsgStringService.h"
 #include "nsIPrompt.h"
 #include "nsIPromptService.h"
 #include "nsIInterfaceRequestor.h"
@@ -68,6 +67,8 @@
 #include "nsIDOMWindowInternal.h"
 #include "nsEmbedCID.h"
 #include "nsMsgUtils.h"
+#include "nsMsgBaseCID.h"
+#include "nsLocalStrings.h"
 
 NS_IMPL_THREADSAFE_ISUPPORTS1(nsPop3Sink, nsIPop3Sink)
 
@@ -730,19 +731,20 @@ nsresult nsPop3Sink::WriteLineToMailbox(const char *buffer)
 
 nsresult nsPop3Sink::HandleTempDownloadFailed(nsIMsgWindow *msgWindow)
 {
-
-  nsCOMPtr<nsIMsgStringService> stringService = do_GetService(NS_MSG_POPSTRINGSERVICE_CONTRACTID);
+  nsresult rv;
+  nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIStringBundle> bundle;
+  rv = bundleService->CreateBundle("chrome://messenger/locale/localMsgs.properties", getter_AddRefs(bundle));
+  NS_ENSURE_SUCCESS(rv, rv);
   nsString fromStr, subjectStr, confirmString;
+
   m_newMailParser->m_newMsgHdr->GetMime2DecodedSubject(getter_Copies(subjectStr));
   m_newMailParser->m_newMsgHdr->GetMime2DecodedAuthor(getter_Copies(fromStr));
   const PRUnichar *params[] = { fromStr.get(), subjectStr.get() };
-  nsCOMPtr<nsIStringBundle> bundle;
-  nsresult rv = stringService->GetBundle(getter_AddRefs(bundle));
-  if (NS_SUCCEEDED(rv))
-    bundle->FormatStringFromID(POP3_TMP_DOWNLOAD_FAILED, params, 2, getter_Copies(confirmString));
+  bundle->FormatStringFromID(POP3_TMP_DOWNLOAD_FAILED, params, 2, getter_Copies(confirmString));
   nsCOMPtr<nsIDOMWindowInternal> parentWindow;
-  nsCOMPtr<nsIPromptService> promptService =
-      do_GetService(NS_PROMPTSERVICE_CONTRACTID);
+  nsCOMPtr<nsIPromptService> promptService = do_GetService(NS_PROMPTSERVICE_CONTRACTID);
   nsCOMPtr<nsIDocShell> docShell;
   if (msgWindow)
   {

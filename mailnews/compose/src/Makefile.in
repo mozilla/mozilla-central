@@ -102,7 +102,6 @@ CPPSRCS		= \
 		nsMsgCopy.cpp \
 		nsMsgSendLater.cpp \
 		nsMsgDeliveryListener.cpp \
-		nsMsgComposeStringBundle.cpp \
 		nsMsgEncoders.cpp \
 		nsMsgCompUtils.cpp \
 		nsMsgAttachment.cpp \
@@ -122,7 +121,7 @@ CPPSRCS		= \
 		$(NULL)
 
 EXPORTS		= \
-		nsMsgComposeStringBundle.h \
+		nsComposeStrings.h \
 		$(NULL)
 
 # MacOSX requires the MoreFiles module

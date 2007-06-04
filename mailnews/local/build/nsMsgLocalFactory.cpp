@@ -57,7 +57,6 @@
 #include "nsNoneService.h"
 #include "nsPop3IncomingServer.h"
 #include "nsNoIncomingServer.h"
-#include "nsLocalStringBundle.h"
 #include "nsRssService.h"
 #include "nsRssIncomingServer.h"
 #include "nsCOMPtr.h"
@@ -80,7 +79,6 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsPop3IncomingServer)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMovemailIncomingServer)
 #endif /* HAVE_MOVEMAIL */
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsNoIncomingServer)
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsLocalStringService)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsRssService)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsRssIncomingServer)
 
@@ -138,7 +136,7 @@ static const nsModuleComponentInfo gComponents[] = {
     { "Pop3 Incoming Server", NS_POP3INCOMINGSERVER_CID,
       NS_POP3INCOMINGSERVER_CONTRACTID, nsPop3IncomingServerConstructor },
 
-#ifdef HAVE_MOVEMAIL 
+#ifdef HAVE_MOVEMAIL
     { "Movemail Incoming Server", NS_MOVEMAILINCOMINGSERVER_CID,
       NS_MOVEMAILINCOMINGSERVER_CONTRACTID, nsMovemailIncomingServerConstructor },
 #endif /* HAVE_MOVEMAIL */
@@ -149,18 +147,12 @@ static const nsModuleComponentInfo gComponents[] = {
     { "Parse MailMessage State", NS_PARSEMAILMSGSTATE_CID,
       NS_PARSEMAILMSGSTATE_CONTRACTID, nsParseMailMessageStateConstructor },
 
-    { "Mailbox String Bundle Service", NS_MSG_LOCALSTRINGSERVICE_CID,
-      NS_MSG_MAILBOXSTRINGSERVICE_CONTRACTID, nsLocalStringServiceConstructor },
-
-    { "Pop String Bundle Service", NS_MSG_LOCALSTRINGSERVICE_CID,
-      NS_MSG_POPSTRINGSERVICE_CONTRACTID, nsLocalStringServiceConstructor },
-      
     { "RSS Service", NS_RSSSERVICE_CID,
       NS_RSSSERVICE_CONTRACTID, nsRssServiceConstructor },
-    
+
     { "RSS Protocol Information", NS_RSSSERVICE_CID,
       NS_RSSPROTOCOLINFO_CONTRACTID, nsRssServiceConstructor },
-        
+
     { "RSS Incoming Server", NS_RSSINCOMINGSERVER_CID,
       NS_RSSINCOMINGSERVER_CONTRACTID, nsRssIncomingServerConstructor },
 };

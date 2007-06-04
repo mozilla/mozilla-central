@@ -51,7 +51,6 @@
 #include "nsRDFCID.h"
 #include "nsIURL.h"
 #include "nsNetCID.h"
-#include "nsMsgComposeStringBundle.h"
 #include "nsMsgCompUtils.h"
 #include "prcmon.h"
 #include "nsIMsgImapMailFolder.h"
@@ -59,6 +58,7 @@
 #include "nsMsgSimulateError.h"
 #include "nsIMsgWindow.h"
 #include "nsIMsgProgress.h"
+#include "nsComposeStrings.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 

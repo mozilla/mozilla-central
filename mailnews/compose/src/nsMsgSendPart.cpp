@@ -48,12 +48,12 @@
 #include "nsMimeTypes.h"
 #include "prmem.h"
 #include "nsMsgPrompts.h"
-#include "nsMsgComposeStringBundle.h"
 #include "nsNativeCharsetUtils.h"
 #include "nsNetUtil.h"
 #include "nsISeekableStream.h"
 #include "nsReadLine.h"
 #include "nsILineInputStream.h"
+#include "nsComposeStrings.h"
 
 static char *mime_mailto_stream_read_buffer = 0;
 

@@ -39,7 +39,6 @@
 #include "prmem.h"
 #include "nsCOMPtr.h"
 #include "nsIStringBundle.h"
-#include "nsMsgComposeStringBundle.h"
 #include "nsIServiceManager.h"
 #include "nsMsgMimeCID.h"
 #include "nsIMimeConverter.h"

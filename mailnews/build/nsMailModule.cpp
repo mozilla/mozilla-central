@@ -94,7 +94,7 @@
 #include "nsMsgSpecialViews.h"
 #include "nsMsgXFVirtualFolderDBView.h"
 #include "nsMsgQuickSearchDBView.h"
-#include "nsMsgGroupView.h"  
+#include "nsMsgGroupView.h"
 #include "nsMsgOfflineManager.h"
 #include "nsMsgProgress.h"
 #include "nsSpamSettings.h"
@@ -199,7 +199,6 @@
 #include "nsSmtpDataSource.h"
 #include "nsSmtpDelegateFactory.h"
 #include "nsMsgRecipientArray.h"
-#include "nsMsgComposeStringBundle.h"
 #include "nsMsgCompUtils.h"
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -233,7 +232,6 @@
 #include "nsNoneService.h"
 #include "nsPop3IncomingServer.h"
 #include "nsNoIncomingServer.h"
-#include "nsLocalStringBundle.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 // msgdb includes
@@ -407,7 +405,7 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsLDAPAutoCompleteSession)
 
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbDirectoryQueryProxy)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbView)
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgVCardService) 
+NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgVCardService)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbLDIFService)
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -435,7 +433,6 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgQuoteListener)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsSmtpUrl)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMailtoUrl)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgRecipientArray)
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsComposeStringService)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsSmtpDataSource)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsSmtpDelegateFactory)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsURLFetcher)
@@ -471,7 +468,6 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsMovemailIncomingServer)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMovemailService)
 #endif /* HAVE_MOVEMAIL */
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsNoIncomingServer)
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsLocalStringService)
 
 ////////////////////////////////////////////////////////////////////////////////
 // msgdb factories
@@ -500,14 +496,13 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsMimeXmlEmitter)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMimePlainEmitter)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsMimeHtmlDisplayEmitter, Init)
 
-static NS_METHOD RegisterMimeEmitter(nsIComponentManager *aCompMgr, nsIFile *aPath, const char *registryLocation, 
+static NS_METHOD RegisterMimeEmitter(nsIComponentManager *aCompMgr, nsIFile *aPath, const char *registryLocation,
                                      const char *componentType, const nsModuleComponentInfo *info)
 {
   nsresult rv;
   nsCOMPtr<nsICategoryManager> catman = do_GetService(NS_CATEGORYMANAGER_CONTRACTID, &rv);
   if (NS_FAILED(rv)) return rv;
   nsCString previous;
-  
   return catman->AddCategoryEntry("mime-emitter", info->mContractID, info->mContractID,
                                   PR_TRUE, PR_TRUE, getter_Copies(previous));
 }
@@ -535,12 +530,12 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgMailViewList)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgMdnGenerator)
 
 ////////////////////////////////////////////////////////////////////////////////
-// vcard factories 
+// vcard factories
 ////////////////////////////////////////////////////////////////////////////////
 
 // XXX this vcard stuff needs cleaned up to use a generic factory constructor
 extern "C" MimeObjectClass *
-MIME_VCardCreateContentTypeHandlerClass(const char *content_type, 
+MIME_VCardCreateContentTypeHandlerClass(const char *content_type,
                                         contentTypeHandlerInitStruct *initStruct);
 
 static NS_IMETHODIMP nsVCardMimeContentTypeHandlerConstructor(nsISupports *aOuter,
@@ -550,13 +545,13 @@ static NS_IMETHODIMP nsVCardMimeContentTypeHandlerConstructor(nsISupports *aOute
   nsresult rv;
   nsMimeContentTypeHandler *inst = nsnull;
 
-  if (NULL == aResult) 
+  if (NULL == aResult)
   {
     rv = NS_ERROR_NULL_POINTER;
     return rv;
   }
   *aResult = NULL;
-  if (NULL != aOuter) 
+  if (NULL != aOuter)
   {
     rv = NS_ERROR_NO_AGGREGATION;
     return rv;
@@ -643,7 +638,7 @@ UnregisterCommandLineHandlers(nsIComponentManager* compMgr, nsIFile* path,
 
   return NS_OK;
 }
-                            
+
 
 // The list of components we register
 static const nsModuleComponentInfo gComponents[] = {
@@ -742,7 +737,7 @@ static const nsModuleComponentInfo gComponents[] = {
       nsMsgFilterDelegateFactoryConstructor,
     },
     // XXX done temporary registration
-    
+
     { "Messenger Biff Manager", NS_MSGBIFFMANAGER_CID,
       NS_MSGBIFFMANAGER_CONTRACTID,
       nsMsgBiffManagerConstructor,
@@ -847,7 +842,7 @@ static const nsModuleComponentInfo gComponents[] = {
       NS_MSGNOTIFICATIONSERVICE_CONTRACTID,
       nsMsgFolderNotificationServiceConstructor,
     },
-  
+
     { "cid protocol", NS_CIDPROTOCOL_CID,
       NS_CIDPROTOCOLHANDLER_CONTRACTID,
       nsCidProtocolHandlerConstructor,
@@ -889,7 +884,7 @@ static const nsModuleComponentInfo gComponents[] = {
        NS_MESSENGERCONTENTHANDLER_CONTRACTID,
        nsMessengerContentHandlerConstructor
     },
-    { "mail content policy enforcer", 
+    { "mail content policy enforcer",
        NS_MSGCONTENTPOLICY_CID,
        NS_MSGCONTENTPOLICY_CONTRACTID,
        nsMsgContentPolicyConstructor,
@@ -901,7 +896,7 @@ static const nsModuleComponentInfo gComponents[] = {
       nsMsgCookiePolicyConstructor
     },
 #endif
-    
+
     ////////////////////////////////////////////////////////////////////////////////
     // addrbook components
     ////////////////////////////////////////////////////////////////////////////////
@@ -930,7 +925,7 @@ static const nsModuleComponentInfo gComponents[] = {
     { "Address Book Address Collector", NS_ABADDRESSCOLLECTER_CID,
       NS_ABADDRESSCOLLECTER_CONTRACTID, nsAbAddressCollecterConstructor },
     { "The addbook URL Interface", NS_ADDBOOKURL_CID,
-      NS_ADDBOOKURL_CONTRACTID, nsAddbookUrlConstructor },   
+      NS_ADDBOOKURL_CONTRACTID, nsAddbookUrlConstructor },
     { "The addbook Protocol Handler", NS_ADDBOOK_HANDLER_CID,
       NS_NETWORK_PROTOCOL_CONTRACTID_PREFIX "addbook", nsAddbookProtocolHandlerConstructor },
     { "add vCard content handler", NS_ADDRESSBOOK_CID, NS_CONTENT_HANDLER_CONTRACTID_PREFIX"application/x-addvcard", nsAddressBookConstructor },
@@ -949,9 +944,9 @@ static const nsModuleComponentInfo gComponents[] = {
       NS_ABOUTLOOKDIRFACTORY_CONTRACTID, nsAbOutlookDirFactoryConstructor },
 #endif
     { "The addbook query arguments", NS_ABDIRECTORYQUERYARGUMENTS_CID,
-      NS_ABDIRECTORYQUERYARGUMENTS_CONTRACTID, nsAbDirectoryQueryArgumentsConstructor },   
+      NS_ABDIRECTORYQUERYARGUMENTS_CONTRACTID, nsAbDirectoryQueryArgumentsConstructor },
     { "The query boolean condition string", NS_BOOLEANCONDITIONSTRING_CID,
-      NS_BOOLEANCONDITIONSTRING_CONTRACTID, nsAbBooleanConditionStringConstructor },   
+      NS_BOOLEANCONDITIONSTRING_CONTRACTID, nsAbBooleanConditionStringConstructor },
     { "The query n-peer expression", NS_BOOLEANEXPRESSION_CID,
       NS_BOOLEANEXPRESSION_CONTRACTID, nsAbBooleanExpressionConstructor },
 #if defined(MOZ_LDAP_XPCOM)
@@ -963,7 +958,7 @@ static const nsModuleComponentInfo gComponents[] = {
       NS_ABLDAPDIRFACTORY_CONTRACTID, nsAbLDAPDirFactoryConstructor },
     { "Address LDAP Replication Service Interface", NS_ABLDAP_REPLICATIONSERVICE_CID,
       NS_ABLDAP_REPLICATIONSERVICE_CONTRACTID, nsAbLDAPReplicationServiceConstructor },
-    { "Address LDAP Replication Query Interface", NS_ABLDAP_REPLICATIONQUERY_CID, 
+    { "Address LDAP Replication Query Interface", NS_ABLDAP_REPLICATIONQUERY_CID,
       NS_ABLDAP_REPLICATIONQUERY_CONTRACTID, nsAbLDAPReplicationQueryConstructor },
     { "Address LDAP Replication Processor Interface", NS_ABLDAP_PROCESSREPLICATIONDATA_CID,
       NS_ABLDAP_PROCESSREPLICATIONDATA_CONTRACTID, nsAbLDAPProcessReplicationDataConstructor},
@@ -999,9 +994,9 @@ static const nsModuleComponentInfo gComponents[] = {
     ////////////////////////////////////////////////////////////////////////////////
     // compose components
     ////////////////////////////////////////////////////////////////////////////////
-    { "Msg Compose", NS_MSGCOMPOSE_CID, 
+    { "Msg Compose", NS_MSGCOMPOSE_CID,
       NS_MSGCOMPOSE_CONTRACTID,  nsMsgComposeConstructor },
-    { "Msg Compose Service", NS_MSGCOMPOSESERVICE_CID, 
+    { "Msg Compose Service", NS_MSGCOMPOSESERVICE_CID,
       NS_MSGCOMPOSESERVICE_CONTRACTID, nsMsgComposeServiceConstructor },
     { "mailto content handler", NS_MSGCOMPOSECONTENTHANDLER_CID,
       NS_MSGCOMPOSECONTENTHANDLER_CONTRACTID, nsMsgComposeContentHandlerConstructor },
@@ -1011,9 +1006,9 @@ static const nsModuleComponentInfo gComponents[] = {
       NS_MSGCOMPOSESENDLISTENER_CONTRACTID, nsMsgComposeSendListenerConstructor },
     { "Msg Compose Progress Parameters", NS_MSGCOMPOSEPROGRESSPARAMS_CID,
       NS_MSGCOMPOSEPROGRESSPARAMS_CONTRACTID, nsMsgComposeProgressParamsConstructor },
-    { "Msg Compose Fields", NS_MSGCOMPFIELDS_CID, 
+    { "Msg Compose Fields", NS_MSGCOMPFIELDS_CID,
       NS_MSGCOMPFIELDS_CONTRACTID, nsMsgCompFieldsConstructor },
-    { "Msg Compose Attachment", NS_MSGATTACHMENT_CID, 
+    { "Msg Compose Attachment", NS_MSGATTACHMENT_CID,
       NS_MSGATTACHMENT_CONTRACTID, nsMsgAttachmentConstructor },
     { "Msg Send", NS_MSGSEND_CID,
       NS_MSGSEND_CONTRACTID, nsMsgComposeAndSendConstructor },
@@ -1021,7 +1016,7 @@ static const nsModuleComponentInfo gComponents[] = {
       NS_MSGSENDLATER_CONTRACTID, nsMsgSendLaterConstructor },
     { "SMTP Service", NS_SMTPSERVICE_CID,
       NS_SMTPSERVICE_CONTRACTID, nsSmtpServiceConstructor },
-    { "SMTP Service", NS_SMTPSERVICE_CID, 
+    { "SMTP Service", NS_SMTPSERVICE_CID,
       NS_MAILTOHANDLER_CONTRACTID, nsSmtpServiceConstructor },
     { "SMTP Server", NS_SMTPSERVER_CID,
       NS_SMTPSERVER_CONTRACTID, nsSmtpServerConstructor },
@@ -1035,10 +1030,6 @@ static const nsModuleComponentInfo gComponents[] = {
       NS_MSGQUOTELISTENER_CONTRACTID, nsMsgQuoteListenerConstructor },
     { "Msg Recipient Array", NS_MSGRECIPIENTARRAY_CID,
       NS_MSGRECIPIENTARRAY_CONTRACTID, nsMsgRecipientArrayConstructor },
-    { "Compose string bundle", NS_MSG_COMPOSESTRINGSERVICE_CID,
-      NS_MSG_COMPOSESTRINGSERVICE_CONTRACTID, nsComposeStringServiceConstructor },
-    { "SMTP string bundle", NS_MSG_COMPOSESTRINGSERVICE_CID,
-      NS_MSG_SMTPSTRINGSERVICE_CONTRACTID, nsComposeStringServiceConstructor },
     { "SMTP Datasource", NS_SMTPDATASOURCE_CID,
       NS_SMTPDATASOURCE_CONTRACTID, nsSmtpDataSourceConstructor },
     { "SMTP Delegate Factory", NS_SMTPDELEGATEFACTORY_CID,
@@ -1047,14 +1038,14 @@ static const nsModuleComponentInfo gComponents[] = {
       NS_URLFETCHER_CONTRACTID, nsURLFetcherConstructor },
     { "Msg Compose Utils", NS_MSGCOMPUTILS_CID,
       NS_MSGCOMPUTILS_CONTRACTID, nsMsgCompUtilsConstructor },
-    
+
      ////////////////////////////////////////////////////////////////////////////////
     // imap components
     ////////////////////////////////////////////////////////////////////////////////
     { "IMAP URL", NS_IMAPURL_CID,
       nsnull, nsImapUrlConstructor },
     { "IMAP Protocol Channel", NS_IMAPPROTOCOL_CID,
-      nsnull, nsImapProtocolConstructor },    
+      nsnull, nsImapProtocolConstructor },
     { "IMAP Mock Channel", NS_IMAPMOCKCHANNEL_CID,
       nsnull, nsImapMockChannelConstructor },
     { "IMAP Host Session List", NS_IIMAPHOSTSESSIONLIST_CID,
@@ -1062,7 +1053,7 @@ static const nsModuleComponentInfo gComponents[] = {
     { "IMAP Incoming Server", NS_IMAPINCOMINGSERVER_CID,
       NS_IMAPINCOMINGSERVER_CONTRACTID, nsImapIncomingServerConstructor },
     { "Mail/News IMAP Resource Factory", NS_IMAPRESOURCE_CID,
-      NS_RDF_RESOURCE_FACTORY_CONTRACTID_PREFIX "imap", 
+      NS_RDF_RESOURCE_FACTORY_CONTRACTID_PREFIX "imap",
       nsImapMailFolderConstructor },
     { "IMAP Service", NS_IMAPSERVICE_CID,
       "@mozilla.org/messenger/messageservice;1?type=imap-message",
@@ -1123,7 +1114,7 @@ static const nsModuleComponentInfo gComponents[] = {
     { "Pop3 Incoming Server", NS_POP3INCOMINGSERVER_CID,
       NS_POP3INCOMINGSERVER_CONTRACTID, nsPop3IncomingServerConstructor },
 
-#ifdef HAVE_MOVEMAIL 
+#ifdef HAVE_MOVEMAIL
     { "Movemail Service", NS_MOVEMAILSERVICE_CID,
       NS_MOVEMAILSERVICE_CONTRACTID, nsMovemailServiceConstructor },
     { "movemail Protocol Information", NS_MOVEMAILSERVICE_CID,
@@ -1134,22 +1125,14 @@ static const nsModuleComponentInfo gComponents[] = {
 
     { "No Incoming Server", NS_NOINCOMINGSERVER_CID,
       NS_NOINCOMINGSERVER_CONTRACTID, nsNoIncomingServerConstructor },
-
     { "Parse MailMessage State", NS_PARSEMAILMSGSTATE_CID,
       NS_PARSEMAILMSGSTATE_CONTRACTID, nsParseMailMessageStateConstructor },
-
-    { "Mailbox String Bundle Service", NS_MSG_LOCALSTRINGSERVICE_CID,
-      NS_MSG_MAILBOXSTRINGSERVICE_CONTRACTID, nsLocalStringServiceConstructor },
-
-    { "Pop String Bundle Service", NS_MSG_LOCALSTRINGSERVICE_CID,
-      NS_MSG_POPSTRINGSERVICE_CONTRACTID, nsLocalStringServiceConstructor },
-    
     { "RSS Service", NS_RSSSERVICE_CID,
       NS_RSSSERVICE_CONTRACTID, nsRssServiceConstructor },
-    
+
     { "RSS Protocol Information", NS_RSSSERVICE_CID,
       NS_RSSPROTOCOLINFO_CONTRACTID, nsRssServiceConstructor },
-        
+
     { "RSS Incoming Server", NS_RSSINCOMINGSERVER_CID,
       NS_RSSINCOMINGSERVER_CONTRACTID, nsRssIncomingServerConstructor },
     ////////////////////////////////////////////////////////////////////////////////
@@ -1163,7 +1146,7 @@ static const nsModuleComponentInfo gComponents[] = {
       NS_MSG_RETENTIONSETTINGS_CONTRACTID, nsMsgRetentionSettingsConstructor },
     { "Msg Download Settings", NS_MSG_DOWNLOADSETTINGS_CID,
       NS_MSG_DOWNLOADSETTINGS_CONTRACTID, nsMsgDownloadSettingsConstructor },
-    
+
     ////////////////////////////////////////////////////////////////////////////////
     // mime components
     ////////////////////////////////////////////////////////////////////////////////
@@ -1171,7 +1154,7 @@ static const nsModuleComponentInfo gComponents[] = {
       nsnull, nsMimeObjectClassAccessConstructor },
     { "Mime Converter", NS_MIME_CONVERTER_CID,
       NS_MIME_CONVERTER_CONTRACTID, nsMimeConverterConstructor },
-    { "Msg Header Parser", NS_MSGHEADERPARSER_CID, 
+    { "Msg Header Parser", NS_MSGHEADERPARSER_CID,
       NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID, nsMsgHeaderParserConstructor },
     { "Mailnews Mime Stream Converter", NS_MAILNEWS_MIME_STREAM_CONVERTER_CID,
       NS_MAILNEWS_MIME_STREAM_CONVERTER_CONTRACTID, nsStreamConverterConstructor },
@@ -1229,19 +1212,19 @@ static const nsModuleComponentInfo gComponents[] = {
       NS_NNTPARTICLELIST_CONTRACTID, nsNNTPArticleListConstructor },
     { "News download dialog args", NS_NEWSDOWNLOADDIALOGARGS_CID,
       NS_NEWSDOWNLOADDIALOGARGS_CONTRACTID, nsNewsDownloadDialogArgsConstructor },
-    
+
     ////////////////////////////////////////////////////////////////////////////////
     // mail view components
     ////////////////////////////////////////////////////////////////////////////////
     { "Default Mail List View", NS_MSGMAILVIEWLIST_CID,
        NS_MSGMAILVIEWLIST_CONTRACTID, nsMsgMailViewListConstructor },
-    
+
     ////////////////////////////////////////////////////////////////////////////////
     // mdn  components
     ////////////////////////////////////////////////////////////////////////////////
     { "Msg Mdn Generator", NS_MSGMDNGENERATOR_CID,
       NS_MSGMDNGENERATOR_CONTRACTID, nsMsgMdnGeneratorConstructor },
-    
+
     ////////////////////////////////////////////////////////////////////////////////
     // mdn  components
     ////////////////////////////////////////////////////////////////////////////////

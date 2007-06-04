@@ -37,35 +37,31 @@
 #include "nsMsgPrompts.h"
 
 #include "nsMsgCopy.h"
-#include "nsIMsgStringService.h"
 #include "nsIPrompt.h"
 #include "nsIWindowWatcher.h"
-#include "nsMsgComposeStringBundle.h"
 #include "nsMsgCompCID.h"
+#include "nsComposeStrings.h"
+#include "nsIStringBundle.h"
 
 nsresult
 nsMsgBuildErrorMessageByID(PRInt32 msgID, nsString& retval, nsString* param0, nsString* param1)
 {
   nsresult rv;
+  nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIStringBundle> bundle;
+  rv = bundleService->CreateBundle("chrome://messenger/locale/messengercompose/composeMsgs.properties", getter_AddRefs(bundle));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIMsgStringService> composebundle (do_GetService(NS_MSG_COMPOSESTRINGSERVICE_CONTRACTID, &rv));
+  nsString msg;
+  rv = bundle->GetStringFromID(NS_IS_MSG_ERROR(msgID) ? NS_ERROR_GET_CODE(msgID) : msgID,
+                          getter_Copies(retval));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  if (composebundle)
-  {
-    composebundle->GetStringByID(msgID, getter_Copies(retval));
-
-    nsString target;
-    if (param0)
-    {
-      target.AssignLiteral("%P0%");
-      retval.ReplaceSubstring(target, *param0);
-    }
-    if (param1)
-    {
-      target.AssignLiteral("%P1%");
-      retval.ReplaceSubstring(target, *param1);
-    }
-  }
+  if (param0)
+    retval.ReplaceSubstring(NS_LITERAL_STRING("%P0%"), *param0);
+  if (param1)
+    retval.ReplaceSubstring(NS_LITERAL_STRING("%P1%"), *param1);
   return rv;
 }
 
@@ -73,34 +69,31 @@ nsresult
 nsMsgDisplayMessageByID(nsIPrompt * aPrompt, PRInt32 msgID, const PRUnichar * windowTitle)
 {
   nsresult rv;
+  nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIStringBundle> bundle;
+  rv = bundleService->CreateBundle("chrome://messenger/locale/messengercompose/composeMsgs.properties", getter_AddRefs(bundle));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIMsgStringService> composebundle (do_GetService(NS_MSG_COMPOSESTRINGSERVICE_CONTRACTID, &rv));
   nsString msg;
-
-  if (composebundle)
-  {
-    composebundle->GetStringByID(msgID, getter_Copies(msg));
-    rv = nsMsgDisplayMessageByString(aPrompt, msg.get(), windowTitle);
-  }
-  return rv;
+  bundle->GetStringFromID(NS_IS_MSG_ERROR(msgID) ? NS_ERROR_GET_CODE(msgID) : msgID, getter_Copies(msg));
+  return nsMsgDisplayMessageByString(aPrompt, msg.get(), windowTitle);
 }
 
 nsresult
 nsMsgDisplayMessageByString(nsIPrompt * aPrompt, const PRUnichar * msg, const PRUnichar * windowTitle)
 {
+  NS_ENSURE_ARG_POINTER(msg);
   nsresult rv;
   nsCOMPtr<nsIPrompt> prompt = aPrompt;
 
-  if ((!msg) || (!*msg))
-    return NS_ERROR_INVALID_ARG;
-  
   if (!prompt)
   {
     nsCOMPtr<nsIWindowWatcher> wwatch(do_GetService(NS_WINDOWWATCHER_CONTRACTID));
     if (wwatch)
       wwatch->GetNewPrompter(0, getter_AddRefs(prompt));
   }
-  
+
   if (prompt)
     rv = prompt->Alert(windowTitle, msg);
   return NS_OK;
@@ -109,17 +102,17 @@ nsMsgDisplayMessageByString(nsIPrompt * aPrompt, const PRUnichar * msg, const PR
 nsresult
 nsMsgAskBooleanQuestionByID(nsIPrompt * aPrompt, PRInt32 msgID, PRBool *answer, const PRUnichar * windowTitle)
 {
-  nsCOMPtr<nsIMsgStringService> composebundle (do_GetService(NS_MSG_COMPOSESTRINGSERVICE_CONTRACTID));
+  nsresult rv;
+  nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIStringBundle> bundle;
+  rv = bundleService->CreateBundle("chrome://messenger/locale/messengercompose/composeMsgs.properties", getter_AddRefs(bundle));
+  NS_ENSURE_SUCCESS(rv, rv);
+
   nsString msg;
-
-  if (composebundle)
-  {
-    composebundle->GetStringByID(msgID, getter_Copies(msg));
-    nsMsgAskBooleanQuestionByString(aPrompt, msg.get(), answer, windowTitle);
-  }
-
-  return NS_OK;
-}     
+  bundle->GetStringFromID(msgID, getter_Copies(msg));
+  return nsMsgAskBooleanQuestionByString(aPrompt, msg.get(), answer, windowTitle);
+}
 
 nsresult
 nsMsgAskBooleanQuestionByString(nsIPrompt * aPrompt, const PRUnichar * msg, PRBool *answer, const PRUnichar * windowTitle)
@@ -130,7 +123,7 @@ nsMsgAskBooleanQuestionByString(nsIPrompt * aPrompt, const PRUnichar * msg, PRBo
 
   if ((!msg) || (!*msg))
     return NS_ERROR_INVALID_ARG;
-  
+
   if (!dialog)
   {
     nsCOMPtr<nsIWindowWatcher> wwatch(do_GetService(NS_WINDOWWATCHER_CONTRACTID));
@@ -138,17 +131,17 @@ nsMsgAskBooleanQuestionByString(nsIPrompt * aPrompt, const PRUnichar * msg, PRBo
       wwatch->GetNewPrompter(0, getter_AddRefs(dialog));
   }
 
-  if (dialog) 
+  if (dialog)
   {
     rv = dialog->Confirm(windowTitle, msg, &result);
-    if (result == 1) 
+    if (result == 1)
       *answer = PR_TRUE;
-    else 
+    else
       *answer = PR_FALSE;
   }
 
   return NS_OK;
-}     
+}
 
 // returns 0 (send in UTF-8) in case of error
 PRInt32

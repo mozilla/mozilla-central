@@ -55,7 +55,7 @@
 #include "nsIMsgHdr.h"
 #include "nsIOutputStream.h"
 #include "nsITransport.h"
-#include "nsIMsgStringService.h"
+#include "nsIStringBundle.h"
 class nsIMsgFolderCacheElement;
 class nsIJunkMailPlugin;
 class nsICollation;

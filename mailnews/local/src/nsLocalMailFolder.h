@@ -52,7 +52,6 @@
 #include "nsIMsgParseMailMsgState.h"
 #include "nsITransactionManager.h"
 #include "nsIMsgLocalMailFolder.h"
-#include "nsIMsgStringService.h"
 #include "nsIMsgFilterPlugin.h"
 #include "nsISeekableStream.h"
 
@@ -241,7 +240,6 @@ protected:
   PRPackedBool mInitialized;
   PRPackedBool mCheckForNewMessagesAfterParsing;
   PRPackedBool m_parsingFolder;
-  nsCOMPtr<nsIMsgStringService> mMsgStringService;
   nsCOMPtr<nsIUrlListener> mReparseListener;
   PRInt32 mNumFilterClassifyRequests;
   nsMsgKeyArray mSpamKeysToMove;

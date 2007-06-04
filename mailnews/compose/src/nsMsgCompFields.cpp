@@ -39,7 +39,6 @@
 #include "nsMsgCompFields.h"
 #include "nsCRT.h"
 #include "nsMsgI18N.h"
-#include "nsMsgComposeStringBundle.h"
 #include "nsMsgRecipientArray.h"
 #include "nsIMsgHeaderParser.h"
 #include "nsMsgCompUtils.h"

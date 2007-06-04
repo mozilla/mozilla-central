@@ -40,11 +40,12 @@
 
 #include "msgCore.h"
 #include "nsIMsgCompose.h"
-#include "nsMsgComposeStringBundle.h"
 #include "nsMsgCompCID.h"
 #include "nsMsgPrompts.h"
 #include "nsReadableUtils.h"
 #include "nsNetError.h"
+#include "nsComposeStrings.h"
+#include "nsIStringBundle.h"
 
 NS_IMPL_ISUPPORTS1(nsMsgProcessReport, nsIMsgProcessReport)
 
@@ -259,13 +260,16 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, PRBool showError
   nsString currMessage;
   mProcessReport[mCurrentProcess]->GetMessage(getter_Copies(currMessage));
 
-
-  nsCOMPtr<nsIMsgStringService> composebundle (do_GetService(NS_MSG_COMPOSESTRINGSERVICE_CONTRACTID));
-  if (!composebundle)
+  nsresult rv; // don't step on currError.
+  nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIStringBundle> bundle;
+  rv = bundleService->CreateBundle("chrome://messenger/locale/messengercompose/composeMsgs.properties", getter_AddRefs(bundle));
+  if (NS_FAILED(rv))
   {
     //TODO need to display a generic hardcoded message
     mAlreadyDisplayReport = PR_TRUE;
-    return NS_OK;
+    return NS_OK;  
   }
 
   nsString dialogTitle;
@@ -280,30 +284,26 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, PRBool showError
   //Do we have an explanation of the error? if no, try to build one...
   if (currMessage.IsEmpty())
   {
-      switch (currError)
-      {
-        case NS_BINDING_ABORTED:
-        case NS_ERROR_SEND_FAILED:
-        case NS_ERROR_SEND_FAILED_BUT_NNTP_OK:
-        case NS_MSG_FAILED_COPY_OPERATION:
-        case NS_MSG_UNABLE_TO_SEND_LATER:
-        case NS_MSG_UNABLE_TO_SAVE_DRAFT:
-        case NS_MSG_UNABLE_TO_SAVE_TEMPLATE:
-          //Ignore, don't need to repeat ourself.
-          break;
-        case NS_ERROR_MSG_MULTILINGUAL_SEND:
-          // already displayed an alert, no additional message is needed
-          // return to the compose window
-          mAlreadyDisplayReport = PR_TRUE;
-          return NS_OK;
-        default:
-          nsAutoString errorMsg;
-          nsMsgBuildErrorMessageByID(currError, errorMsg);
-
-          if (! errorMsg.IsEmpty())
-            currMessage.Assign(errorMsg);
-          break;
-      }
+    switch (currError)
+    {
+      case NS_BINDING_ABORTED:
+      case NS_ERROR_SEND_FAILED:
+      case NS_ERROR_SEND_FAILED_BUT_NNTP_OK:
+      case NS_MSG_FAILED_COPY_OPERATION:
+      case NS_MSG_UNABLE_TO_SEND_LATER:
+      case NS_MSG_UNABLE_TO_SAVE_DRAFT:
+      case NS_MSG_UNABLE_TO_SAVE_TEMPLATE:
+        //Ignore, don't need to repeat ourself.
+        break;
+      case NS_ERROR_MSG_MULTILINGUAL_SEND:
+        // already displayed an alert, no additional message is needed
+        // return to the compose window
+        mAlreadyDisplayReport = PR_TRUE;
+        return NS_OK;
+      default:
+        nsMsgBuildErrorMessageByID(currError, currMessage);
+        break;
+    }
   }
   
   if (mDeliveryMode == nsIMsgCompDeliverMode::Now || mDeliveryMode == nsIMsgCompDeliverMode::SendUnsent)
@@ -316,7 +316,7 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, PRBool showError
       return NS_OK;
     }
   
-    composebundle->GetStringByID(NS_MSG_SEND_ERROR_TITLE, getter_Copies(dialogTitle));
+    bundle->GetStringFromID(NS_MSG_SEND_ERROR_TITLE, getter_Copies(dialogTitle));
 
     PRInt32 preStrId = NS_ERROR_SEND_FAILED;
     PRBool askToGoBackToCompose = PR_FALSE;
@@ -348,13 +348,13 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, PRBool showError
         askToGoBackToCompose = (mDeliveryMode == nsIMsgCompDeliverMode::Now);
         break;
     }
-    composebundle->GetStringByID(preStrId, getter_Copies(dialogMessage));
+    bundle->GetStringFromID(preStrId, getter_Copies(dialogMessage));
 
     //Do we already have an error message?
     if (!askToGoBackToCompose && currMessage.IsEmpty())
     {
       //we don't have an error description but we can put a generic explanation
-      composebundle->GetStringByID(NS_MSG_GENERIC_FAILURE_EXPLANATION, getter_Copies(currMessage));
+      bundle->GetStringFromID(NS_MSG_GENERIC_FAILURE_EXPLANATION, getter_Copies(currMessage));
     }
     
     if (!currMessage.IsEmpty())
@@ -362,7 +362,7 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, PRBool showError
       //Don't need to repeat ourself!
       if (!currMessage.Equals(dialogMessage))
       {
-        if (!dialogMessage.IsEmpty())
+        if (! dialogMessage.IsEmpty())
           dialogMessage.Append(PRUnichar('\n'));
         dialogMessage.Append(currMessage);
       }
@@ -372,8 +372,8 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, PRBool showError
     {
       PRBool oopsGiveMeBackTheComposeWindow = PR_TRUE;
       nsString text1;
-      composebundle->GetStringByID(NS_MSG_ASK_TO_COMEBACK_TO_COMPOSE, getter_Copies(text1));
-      if (! dialogMessage.IsEmpty())
+      bundle->GetStringFromID(NS_MSG_ASK_TO_COMEBACK_TO_COMPOSE, getter_Copies(text1));
+      if (dialogMessage.IsEmpty())
         dialogMessage.AppendLiteral("\n");
       dialogMessage.Append(text1);
       nsMsgAskBooleanQuestionByString(prompt, dialogMessage.get(), &oopsGiveMeBackTheComposeWindow, dialogTitle.get());
@@ -413,23 +413,23 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, PRBool showError
         break;
     }
 
-    composebundle->GetStringByID(titleID, getter_Copies(dialogTitle));
-    composebundle->GetStringByID(preStrId, getter_Copies(dialogMessage));
+    bundle->GetStringFromID(titleID, getter_Copies(dialogTitle));
+    // preStrId could be a string ID or it could be an error code...yuck.
+    bundle->GetStringFromID(NS_IS_MSG_ERROR(preStrId) ? NS_ERROR_GET_CODE(preStrId) : preStrId, getter_Copies(dialogMessage));
 
     //Do we have an error message...
     if (currMessage.IsEmpty())
     {
       //we don't have an error description but we can put a generic explanation
-      composebundle->GetStringByID(NS_MSG_GENERIC_FAILURE_EXPLANATION, getter_Copies(currMessage));
+      bundle->GetStringFromID(NS_MSG_GENERIC_FAILURE_EXPLANATION, getter_Copies(currMessage));
     }
 
     if (!currMessage.IsEmpty())
     {
-      if (! dialogMessage.IsEmpty())
-        dialogMessage.AppendLiteral("\n");
+      if (!dialogMessage.IsEmpty())
+        dialogMessage.Append(PRUnichar('\n'));
       dialogMessage.Append(currMessage);
     }
-
     nsMsgDisplayMessageByString(prompt, dialogMessage.get(), dialogTitle.get());
   }
   

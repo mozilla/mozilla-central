@@ -57,7 +57,6 @@
 #include "nsIMsgFolder.h"
 #include "nsIURL.h"
 #include "nsIMsgMailNewsUrl.h"
-#include "nsLocalStringBundle.h"
 #include "nsIMsgFilterList.h"
 #include "nsIMsgFilter.h"
 #include "nsIIOService.h"
@@ -88,6 +87,8 @@
 #include "nsIMsgComposeService.h"
 #include "nsIMsgCopyService.h"
 #include "nsICryptoHash.h"
+#include "nsIStringBundle.h"
+#include "nsLocalStrings.h"
 
 static NS_DEFINE_CID(kCMailDB, NS_MAILDB_CID);
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
@@ -258,23 +259,22 @@ void nsMsgMailboxParser::UpdateStatusText (PRUint32 stringID)
   if (m_statusFeedback)
   {
     nsresult rv;
-    if (!mStringService) // if we haven't gotten the serivce yet...
-      mStringService = do_GetService(NS_MSG_MAILBOXSTRINGSERVICE_CONTRACTID);
-
+    nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
+    if (NS_FAILED(rv))
+      return;
+    nsCOMPtr<nsIStringBundle> bundle;
+    rv = bundleService->CreateBundle("chrome://messenger/locale/localMsgs.properties", getter_AddRefs(bundle));
+    if (NS_FAILED(rv))
+      return;
     nsString finalString;
     if (stringID == LOCAL_STATUS_SELECTING_MAILBOX)
     {
-      nsCOMPtr<nsIStringBundle> bundle;
-      rv = mStringService->GetBundle(getter_AddRefs(bundle));
-      NS_ASSERTION(NS_SUCCEEDED(rv), "GetBundle failed");
-      if (NS_FAILED(rv)) return;
-
       const PRUnichar * stringArray[] = { m_folderName.get() };
       rv = bundle->FormatStringFromID(stringID, stringArray, 1,
-                                           getter_Copies(finalString));
+                                      getter_Copies(finalString));
     }
     else
-      mStringService->GetStringByID(stringID, getter_Copies(finalString));
+      bundle->GetStringFromID(stringID, getter_Copies(finalString));
     m_statusFeedback->ShowStatusString(finalString.get());
   }
 }

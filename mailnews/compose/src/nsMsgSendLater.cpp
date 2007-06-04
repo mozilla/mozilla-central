@@ -61,7 +61,6 @@
 #include "nsIMsgSendListener.h"
 #include "nsIMsgSendLaterListener.h"
 #include "nsMsgCopy.h"
-#include "nsMsgComposeStringBundle.h"
 #include "nsIPrompt.h"
 #include "nsIURI.h"
 #include "nsISmtpUrl.h"
@@ -71,6 +70,7 @@
 #include "nsMsgSimulateError.h"
 #include "nsIMimeConverter.h"
 #include "nsMsgMimeCID.h"
+#include "nsComposeStrings.h"
 
 NS_IMPL_ISUPPORTS2(nsMsgSendLater, nsIMsgSendLater, nsIStreamListener)
 

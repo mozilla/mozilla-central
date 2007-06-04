@@ -139,7 +139,7 @@
 // Necessary includes
 //
 #include "nsIMsgSend.h"
-
+#include "nsIStringBundle.h"
 #include "msgCore.h"
 #include "prprf.h"
 #include "nsIOutputStream.h"
@@ -152,7 +152,6 @@
 #include "nsIEditor.h"
 #include "nsIUrlListener.h"
 #include "nsIMsgStatusFeedback.h"
-#include "nsIMsgStringService.h"
 #include "nsIMsgIdentity.h"
 #include "nsIMsgHdr.h"
 #include "nsIMsgIdentity.h"
@@ -408,7 +407,7 @@ public:
   nsCOMPtr<nsIMsgComposeSecure> m_crypto_closure;
 
 protected:
-  nsCOMPtr<nsIMsgStringService> mComposeBundle;
+  nsCOMPtr<nsIStringBundle> mComposeBundle;
   nsresult GetNotificationCallbacks(nsIInterfaceRequestor** aCallbacks);
 private:
   // will set m_attachment1_body & m_attachment1_body_length;

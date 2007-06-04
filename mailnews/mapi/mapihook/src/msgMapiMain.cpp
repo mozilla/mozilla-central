@@ -38,7 +38,7 @@
 #include <mapi.h>
 
 #include "msgCore.h"
-#include "nsMsgComposeStringBundle.h"
+#include "nsComposeStrings.h"
 #include "msgMapiMain.h"
 #include "nsIServiceManager.h"
 #include "nsCOMPtr.h"

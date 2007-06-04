@@ -34,7 +34,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
- 
+
 #include "nsMsgAttachmentHandler.h"
 
 #include "nsMsgCopy.h"
@@ -46,8 +46,6 @@
 #include "nsMsgI18N.h"
 #include "nsURLFetcher.h"
 #include "nsMimeTypes.h"
-#include "nsIMsgStringService.h"
-#include "nsMsgComposeStringBundle.h"
 #include "nsMsgCompCID.h"
 #include "nsReadableUtils.h"
 #include "nsIMsgMessageService.h"
@@ -65,7 +63,7 @@
 #include "nsMsgMimeCID.h"
 #include "nsNetUtil.h"
 #include "nsNativeCharsetUtils.h"
-
+#include "nsComposeStrings.h"
 
 ///////////////////////////////////////////////////////////////////////////
 // Mac Specific Attachment Handling for AppleDouble Encoded Files
@@ -104,7 +102,7 @@ nsMsgAttachmentHandler::nsMsgAttachmentHandler()
   m_content_id = nsnull;
   m_already_encoded_p = PR_FALSE;
   m_decrypted_p = PR_FALSE;
-  
+
   // For analyzing the attachment file...
   m_file_analyzed = PR_FALSE;
   m_ctl_count = 0;
@@ -234,7 +232,7 @@ nsMsgAttachmentHandler::AnalyzeSnarfedFile(void)
     mTmpFile->GetFileSize(&fileSize);
     m_size = (PRUint32) fileSize;
     nsCOMPtr <nsIInputStream> inputFile;
-    nsresult rv = NS_NewLocalFileInputStream(getter_AddRefs(inputFile), mTmpFile);    
+    nsresult rv = NS_NewLocalFileInputStream(getter_AddRefs(inputFile), mTmpFile);
     if (NS_FAILED(rv))
       return;
     {
@@ -262,21 +260,21 @@ int
 nsMsgAttachmentHandler::PickEncoding(const char *charset, nsIMsgSend *mime_delivery_state)
 {
   nsCOMPtr<nsIPrefBranch> pPrefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
-  
+
   // use the boolean so we only have to test for uuencode vs base64 once
   PRBool needsB64 = PR_FALSE;
   PRBool forceB64 = PR_FALSE;
-  
+
   if (m_already_encoded_p)
     goto DONE;
-  
+
   AnalyzeSnarfedFile();
 
   /* Allow users to override our percentage-wise guess on whether
   the file is text or binary */
-  if (pPrefBranch) 
+  if (pPrefBranch)
     pPrefBranch->GetBoolPref ("mail.file_attach_binary", &forceB64);
-  
+
   if (!mMainBody && (forceB64 || mime_type_requires_b64_p (m_type) ||
     m_have_cr+m_have_lf+m_have_crlf != 1 || m_current_column != 0))
   {
@@ -292,10 +290,10 @@ nsMsgAttachmentHandler::PickEncoding(const char *charset, nsIMsgSend *mime_deliv
   /* Otherwise, we need to pick an encoding based on the contents of
   the document.
      */
-    
+
     PRBool encode_p;
     PRBool force_p = PR_FALSE;
-    
+
     /*
       force quoted-printable if the sender does not allow
       conversion to 7bit
@@ -308,18 +306,18 @@ nsMsgAttachmentHandler::PickEncoding(const char *charset, nsIMsgSend *mime_deliv
       if (((nsMsgComposeAndSend *)mime_delivery_state)->mCompFields->GetForceMsgEncoding())
         force_p = PR_TRUE;
     }
-    
+
     if (force_p || (m_max_column > 900))
       encode_p = PR_TRUE;
     else if (UseQuotedPrintable() && m_unprintable_count)
       encode_p = PR_TRUE;
-    
+
       else if (m_null_count)  /* If there are nulls, we must always encode,
         because sendmail will blow up. */
         encode_p = PR_TRUE;
       else
         encode_p = PR_FALSE;
-      
+
         /* MIME requires a special case that these types never be encoded.
       */
       if (!PL_strncasecmp (m_type, "message", 7) ||
@@ -347,7 +345,7 @@ nsMsgAttachmentHandler::PickEncoding(const char *charset, nsIMsgSend *mime_deliv
       {
         needsB64 = PR_TRUE;
       }
-      else if (charset && nsMsgI18Nstateful_charset(charset)) 
+      else if (charset && nsMsgI18Nstateful_charset(charset))
       {
         PR_FREEIF(m_encoding);
         m_encoding = PL_strdup (ENCODING_7BIT);
@@ -372,7 +370,7 @@ nsMsgAttachmentHandler::PickEncoding(const char *charset, nsIMsgSend *mime_deliv
         m_encoding = PL_strdup (ENCODING_7BIT);
       }
   }
-  
+
   if (needsB64)
   {
     //
@@ -384,7 +382,7 @@ nsMsgAttachmentHandler::PickEncoding(const char *charset, nsIMsgSend *mime_deliv
     else
       m_encoding = PL_strdup (ENCODING_BASE64);
   }
-  
+
   /* Now that we've picked an encoding, initialize the filter.
   */
   NS_ASSERTION(!m_encoder_data, "not-null m_encoder_data");
@@ -398,16 +396,13 @@ nsMsgAttachmentHandler::PickEncoding(const char *charset, nsIMsgSend *mime_deliv
   {
     nsCString tailName;
     nsCString turl;
-    
     if (mURL)
     {
       mURL->GetSpec(turl);
-      
       PRInt32 tailNamePos = turl.RFindChar('/');
-      if (tailNamePos != kNotFound) 
+      if (tailNamePos != kNotFound)
         turl.Right(tailName, turl.Length() - tailNamePos -1);
      }
-    
 
     m_encoder_data = MIME_UUEncoderInit((char *)tailName.get(),
       mime_encoder_output_fn,
@@ -423,23 +418,23 @@ nsMsgAttachmentHandler::PickEncoding(const char *charset, nsIMsgSend *mime_deliv
   else
   {
     m_encoder_data = 0;
-  }  
-  
+  }
+
   /* Do some cleanup for documents with unknown content type.
     There are two issues: how they look to MIME users, and how they look to
     non-MIME users.
-    
+
       If the user attaches a "README" file, which has unknown type because it
       has no extension, we still need to send it with no encoding, so that it
       is readable to non-MIME users.
-      
+
         But if the user attaches some random binary file, then base64 encoding
         will have been chosen for it (above), and in this case, it won't be
         immediately readable by non-MIME users.  However, if we type it as
         text/plain instead of application/octet-stream, it will show up inline
         in a MIME viewer, which will probably be ugly, and may possibly have
         bad charset things happen as well.
-        
+
           So, the heuristic we use is, if the type is unknown, then the type is
           set to application/octet-stream for data which needs base64 (binary data)
           and is set to text/plain for data which didn't need base64 (unencoded or
@@ -462,10 +457,10 @@ DONE:
 }
 
 static nsresult
-FetcherURLDoneCallback(nsresult aStatus, 
+FetcherURLDoneCallback(nsresult aStatus,
                        const char *aContentType,
                        const char *aCharset,
-                       PRInt32 totalSize, 
+                       PRInt32 totalSize,
                        const PRUnichar* aMsg, void *tagData)
 {
   nsMsgAttachmentHandler *ma = (nsMsgAttachmentHandler *) tagData;
@@ -481,7 +476,7 @@ FetcherURLDoneCallback(nsresult aStatus,
       if (!ma->mAppleFile)
 #else
         // can't send appledouble on non-macs
-        if (strcmp(aContentType, "multipart/appledouble")) 
+        if (strcmp(aContentType, "multipart/appledouble"))
 #endif
       {
         PR_FREEIF(ma->m_type);
@@ -501,7 +496,7 @@ FetcherURLDoneCallback(nsresult aStatus,
     return NS_OK;
 }
 
-nsresult 
+nsresult
 nsMsgAttachmentHandler::SnarfMsgAttachment(nsMsgCompFields *compFields)
 {
   nsresult rv = NS_ERROR_INVALID_ARG;
@@ -519,7 +514,7 @@ nsMsgAttachmentHandler::SnarfMsgAttachment(nsMsgCompFields *compFields)
     m_type = PL_strdup(MESSAGE_RFC822);
     PR_FREEIF(m_override_type);
     m_override_type = PL_strdup(MESSAGE_RFC822);
-    if (!mTmpFile) 
+    if (!mTmpFile)
     {
       rv = NS_ERROR_FAILURE;
       goto done;
@@ -546,7 +541,7 @@ nsMsgAttachmentHandler::SnarfMsgAttachment(nsMsgCompFields *compFields)
       goto done;
     }
     mOutFile = do_QueryInterface(outputStream);
-    
+
     nsCOMPtr<nsIURLFetcher> fetcher = do_CreateInstance(NS_URLFETCHER_CONTRACTID, &rv);
     if (NS_FAILED(rv) || !fetcher)
     {
@@ -679,7 +674,7 @@ nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
     }
     mTmpFile->Remove(PR_FALSE);
     mTmpFile = nsnull;
-    return NS_MSG_UNABLE_TO_OPEN_TMP_FILE; 
+    return NS_MSG_UNABLE_TO_OPEN_TMP_FILE;
   }
   mOutFile = do_QueryInterface(outputStream);
 
@@ -736,11 +731,11 @@ nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
           // else don't need to use apple double.
           sendResourceFork = HasResourceFork(&fsSpec);
         }
-        
+
         icGaveNeededInfo = PR_TRUE;
       }
     }
-    
+
     if (! icGaveNeededInfo)
     {
       // If InternetConfig cannot help us, then just try our best...
@@ -789,12 +784,12 @@ nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
         PR_FREEIF(src_filename);
         return NS_ERROR_OUT_OF_MEMORY;
       }
-       
+
       nsCOMPtr <nsIFile> tmpFile;
       nsresult rv = nsMsgCreateTempFile("appledouble", getter_AddRefs(tmpFile));
       if (NS_SUCCEEDED(rv))
         mAppleFile = do_QueryInterface(tmpFile);
-      if (!mAppleFile) 
+      if (!mAppleFile)
       {
         PR_FREEIF(separator);
         PR_FREEIF(src_filename);
@@ -804,19 +799,19 @@ nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
       //
       // RICHIE_MAC - ok, here's the deal, we have a file that we need
       // to encode in appledouble encoding for the resource fork and put that
-      // into the mAppleFileSpec location. Then, we need to patch the new file 
+      // into the mAppleFileSpec location. Then, we need to patch the new file
       // spec into the array and send this as part of the 2 part appledouble/mime
-      // encoded mime part. 
-      // 
+      // encoded mime part.
+      //
       AppleDoubleEncodeObject     *obj = new (AppleDoubleEncodeObject);
-      if (obj == NULL) 
+      if (obj == NULL)
       {
         mAppleFile = nsnull;
         PR_FREEIF(src_filename);
         PR_FREEIF(separator);
         return NS_ERROR_OUT_OF_MEMORY;
       }
-   
+
       rv = MsgGetFileStream(mAppleFile, getter_AddRefs(obj->fileStream));
       if (NS_FAILED(rv) || !obj->fileStream)
       {
@@ -845,7 +840,7 @@ nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
       }
 
       obj->buff = working_buff;
-      obj->s_buff = bSize;  
+      obj->s_buff = bSize;
 
       //
       //  Setup all the need information on the apple double encoder.
@@ -857,7 +852,7 @@ nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
       status = noErr;
       m_size = 0;
       while (status == noErr)
-      {      
+      {
         status = ap_encode_next(&(obj->ap_encode_obj), obj->buff, bSize, &count);
         if (status == noErr || status == errDone)
         {
@@ -869,8 +864,8 @@ nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
           if (bytesWritten != (PRUint32) count)
             status = NS_MSG_ERROR_WRITING_FILE;
         }
-      } 
-      
+      }
+
       ap_encode_end(&(obj->ap_encode_obj), (status >= 0)); // if this is true, ok, false abort
       if (obj->fileStream)
         obj->fileStream->Close();
@@ -880,15 +875,15 @@ nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
 
       nsCOMPtr <nsIURI> fileURI;
       NS_NewFileURI(getter_AddRefs(fileURI), mAppleFile);
-      
+
       nsCOMPtr<nsIFileURL> theFileURL = do_QueryInterface(fileURI, &rv);
       NS_ENSURE_SUCCESS(rv,rv);
-      
+
       nsCString newURLSpec;
       NS_ENSURE_SUCCESS(rv, rv);
       fileURI->GetSpec(newURLSpec);
-      
-      if (newURLSpec.IsEmpty()) 
+
+      if (newURLSpec.IsEmpty())
       {
         PR_FREEIF(src_filename);
         PR_FREEIF(separator);
@@ -901,7 +896,7 @@ nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
         PR_FREEIF(separator);
         return NS_ERROR_OUT_OF_MEMORY;
       }
-        
+
       // Now after conversion, also patch the types.
       char        tmp[128];
       PR_snprintf(tmp, sizeof(tmp), MULTIPART_APPLEDOUBLE ";\r\n boundary=\"%s\"", separator);
@@ -969,14 +964,14 @@ nsMsgAttachmentHandler::LoadDataFromFile(nsILocalFile *file, nsString &sigData, 
   char          *readBuf;
 
   nsCOMPtr <nsIInputStream> inputFile;
-  nsresult rv = NS_NewLocalFileInputStream(getter_AddRefs(inputFile), file);    
+  nsresult rv = NS_NewLocalFileInputStream(getter_AddRefs(inputFile), file);
   if (NS_FAILED(rv))
-    return NS_MSG_ERROR_WRITING_FILE;        
-  
+    return NS_MSG_ERROR_WRITING_FILE;
+
   PRInt64 fileSize;
   file->GetFileSize(&fileSize);
   readSize = (PRUint32) fileSize;
-  
+
   readBuf = (char *)PR_Malloc(readSize + 1);
   if (!readBuf)
     return NS_ERROR_OUT_OF_MEMORY;
@@ -1024,7 +1019,7 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
 {
   NS_ASSERTION(m_mime_delivery_state != nsnull, "not-null m_mime_delivery_state");
 
-  // Close the file, but don't delete the disk file (or the file spec.) 
+  // Close the file, but don't delete the disk file (or the file spec.)
   if (mOutFile)
   {
     mOutFile->Close();
@@ -1042,13 +1037,13 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
   mRequest = nsnull;
 
   // First things first, we are now going to see if this is an HTML
-  // Doc and if it is, we need to see if we can determine the charset 
+  // Doc and if it is, we need to see if we can determine the charset
   // for this part by sniffing the HTML file.
   // This is needed only when the charset is not set already.
   // (e.g. a charset may be specified in HTTP header)
   //
   if ( (m_type) &&  (*m_type) &&
-       (!m_charset || !(*m_charset)) ) 
+       (!m_charset || !(*m_charset)) )
   {
     if (PL_strcasecmp(m_type, TEXT_HTML) == 0)
     {
@@ -1063,28 +1058,31 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
 
   nsresult mimeDeliveryStatus;
   m_mime_delivery_state->GetStatus(&mimeDeliveryStatus);
-  
+
   if (mimeDeliveryStatus == NS_ERROR_ABORT)
     status = NS_ERROR_ABORT;
- 
+
   if (NS_FAILED(status) && status != NS_ERROR_ABORT && NS_SUCCEEDED(mimeDeliveryStatus))
   {
-    // At this point, we should probably ask a question to the user 
+    // At this point, we should probably ask a question to the user
     // if we should continue without this attachment.
     //
     PRBool            keepOnGoing = PR_TRUE;
     nsCString    turl;
     nsString     msg;
     PRUnichar         *printfString = nsnull;
-    nsCOMPtr<nsIMsgStringService> composebundle (do_GetService(NS_MSG_COMPOSESTRINGSERVICE_CONTRACTID));
-
+    nsresult rv;
+    nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
+    NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr<nsIStringBundle> bundle;
+    rv = bundleService->CreateBundle("chrome://messenger/locale/messengercompose/composeMsgs.properties", getter_AddRefs(bundle));
+    NS_ENSURE_SUCCESS(rv, rv);
     nsMsgDeliverMode mode = nsIMsgSend::nsMsgDeliverNow;
     m_mime_delivery_state->GetDeliveryMode(&mode);
     if (mode == nsIMsgSend::nsMsgSaveAsDraft || mode == nsIMsgSend::nsMsgSaveAsTemplate)
-      composebundle->GetStringByID(NS_MSG_FAILURE_ON_OBJ_EMBED_WHILE_SAVING, getter_Copies(msg));
+      bundle->GetStringFromID(NS_MSG_FAILURE_ON_OBJ_EMBED_WHILE_SAVING, getter_Copies(msg));
     else
-      composebundle->GetStringByID(NS_MSG_FAILURE_ON_OBJ_EMBED_WHILE_SENDING, getter_Copies(msg));
- 
+      bundle->GetStringFromID(NS_MSG_FAILURE_ON_OBJ_EMBED_WHILE_SENDING, getter_Copies(msg));
     if (m_real_name && *m_real_name)
       printfString = nsTextFormatter::smprintf(msg.get(), m_real_name);
     else
@@ -1126,11 +1124,11 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
   m_done = PR_TRUE;
 
   //
-  // Ok, now that we have the file here on disk, we need to see if there was 
+  // Ok, now that we have the file here on disk, we need to see if there was
   // a need to do conversion to plain text...if so, the magic happens here,
   // otherwise, just move on to other attachments...
   //
-  if (NS_SUCCEEDED(status) && m_type && PL_strcasecmp(m_type, TEXT_PLAIN) ) 
+  if (NS_SUCCEEDED(status) && m_type && PL_strcasecmp(m_type, TEXT_PLAIN) )
   {
     if (m_desired_type && !PL_strcasecmp(m_desired_type, TEXT_PLAIN) )
     {
@@ -1142,15 +1140,15 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
       if (pPrefBranch)
         pPrefBranch->GetIntPref("mailnews.wraplength", &width);
       // Let sanity reign!
-      if (width == 0) 
+      if (width == 0)
         width = 72;
-      else if (width < 10) 
+      else if (width < 10)
         width = 10;
-      else if (width > 30000) 
+      else if (width > 30000)
         width = 30000;
 
       //
-      // Now use the converter service here to do the right 
+      // Now use the converter service here to do the right
       // thing and convert this data to plain text for us!
       //
       nsAutoString      conData;
@@ -1164,8 +1162,8 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
 
           nsCOMPtr<nsIOutputStream> outputStream;
           nsresult rv = NS_NewLocalFileOutputStream(getter_AddRefs(outputStream), mTmpFile,  PR_WRONLY | PR_CREATE_FILE, 00600);
-          
-          if (NS_SUCCEEDED(rv)) 
+
+          if (NS_SUCCEEDED(rv))
           {
             nsCAutoString tData;
             if (NS_FAILED(ConvertFromUnicode(m_charset, conData, tData)))
@@ -1201,7 +1199,7 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
   PRUint32 pendingAttachmentCount = 0;
   m_mime_delivery_state->GetPendingAttachmentCount(&pendingAttachmentCount);
   NS_ASSERTION (pendingAttachmentCount > 0, "no more pending attachment");
-  
+
   m_mime_delivery_state->SetPendingAttachmentCount(pendingAttachmentCount - 1);
 
   PRBool processAttachmentsSynchronously = PR_FALSE;
@@ -1215,18 +1213,18 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
     nsMsgAttachmentHandler *next = 0;
     nsMsgAttachmentHandler *attachments = nsnull;
     PRUint32 attachmentCount = 0;
-    
+
     m_mime_delivery_state->GetAttachmentCount(&attachmentCount);
     if (attachmentCount)
       m_mime_delivery_state->GetAttachmentHandlers(&attachments);
-      
+
     for (i = 0; i < attachmentCount; i++)
     {
       if (!attachments[i].m_done)
       {
         next = &attachments[i];
         //
-        // rhp: We need to get a little more understanding to failed URL 
+        // rhp: We need to get a little more understanding to failed URL
         // requests. So, at this point if most of next is NULL, then we
         // should just mark it fetched and move on! We probably ignored
         // this earlier on in the send process.
@@ -1289,7 +1287,7 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
   else
   {
     // If this is not the last attachment, but it got an error,
-    // then report that error and continue 
+    // then report that error and continue
     if (NS_FAILED(status))
     {
       nsresult ignoreMe;
@@ -1301,7 +1299,7 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
   return NS_OK;
 }
 
-PRBool 
+PRBool
 nsMsgAttachmentHandler::UseUUEncode_p(void)
 {
   if (mCompFields)

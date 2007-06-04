@@ -55,12 +55,13 @@
 #include "nsSmtpProtocol.h"
 #include "nsCOMPtr.h"
 #include "nsIMsgIdentity.h"
-#include "nsMsgComposeStringBundle.h"
 #include "nsIPrompt.h"
 #include "nsIWindowWatcher.h"
 #include "nsMsgSimulateError.h"
 #include "nsIUTF8ConverterService.h"
 #include "nsUConvCID.h"
+
+#include "nsComposeStrings.h"
 
 #define SERVER_DELIMITER ","
 #define APPEND_SERVERS_VERSION_PREF_NAME "append_preconfig_smtpservers.version"

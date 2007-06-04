@@ -43,7 +43,6 @@
 #include "nsISmtpUrl.h"
 #include "nsIMsgStatusFeedback.h"
 #include "nsIMsgLogonRedirector.h"
-#include "nsIMsgStringService.h"
 #include "nsMsgLineBuffer.h"
 #include "nsIAuthModule.h"
 
@@ -216,7 +215,6 @@ private:
     // Communication methods --> Reading and writing protocol
     ////////////////////////////////////////////////////////////////////////////////////////
 
-    nsCOMPtr<nsIMsgStringService> mSmtpBundle;
     void UpdateStatus(PRInt32 aStatusID);
     void UpdateStatusWithString(const PRUnichar * aStatusString);
 

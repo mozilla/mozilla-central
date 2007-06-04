@@ -65,6 +65,7 @@
 #include "nsIMailboxUrl.h"
 #include "nsInt64.h"
 #include "nsIPrompt.h"
+#include "nsLocalStrings.h"
 
 #define POP3_PORT 110 // The IANA port for Pop3
 #define SECURE_POP3_PORT 995 // The port for Pop3 over SSL
@@ -415,17 +416,24 @@ NS_IMETHODIMP nsPop3Service::NewURI(const nsACString &aSpec,
 
 void nsPop3Service::AlertServerBusy(nsIMsgMailNewsUrl *url)
 {
-  nsCOMPtr <nsIMsgStringService> stringService = do_GetService(NS_MSG_POPSTRINGSERVICE_CONTRACTID);
+  nsresult rv;
+  nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
+  if (NS_FAILED(rv))
+    return;
+  nsCOMPtr<nsIStringBundle> bundle;
+  rv = bundleService->CreateBundle("chrome://messenger/locale/localMsgs.properties", getter_AddRefs(bundle));
+  if (NS_FAILED(rv))
+    return;
   nsCOMPtr<nsIMsgWindow> msgWindow;
   nsCOMPtr<nsIPrompt> dialog;
-  nsresult rv = url->GetMsgWindow(getter_AddRefs(msgWindow)); //it is ok to have null msgWindow, for example when biffing
+  rv = url->GetMsgWindow(getter_AddRefs(msgWindow)); //it is ok to have null msgWindow, for example when biffing
   if (NS_SUCCEEDED(rv) && msgWindow)
   {
     rv = msgWindow->GetPromptDialog(getter_AddRefs(dialog));
     if (NS_SUCCEEDED(rv))
     {
       nsString alertString;
-      stringService->GetStringByID(POP3_MESSAGE_FOLDER_BUSY, getter_Copies(alertString));
+      bundle->GetStringFromID(POP3_MESSAGE_FOLDER_BUSY, getter_Copies(alertString));
       if (!alertString.IsEmpty())
         dialog->Alert(nsnull, alertString.get());
     }

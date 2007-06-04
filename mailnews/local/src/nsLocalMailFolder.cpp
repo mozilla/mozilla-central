@@ -95,7 +95,6 @@
 #include "nsIMsgFolderCompactor.h"
 #include "nsNetCID.h"
 #include "nsEscape.h"
-#include "nsLocalStringBundle.h"
 #include "nsIMsgMailNewsUrl.h"
 #include "nsISpamSettings.h"
 #include "nsINoIncomingServer.h"
@@ -109,6 +108,7 @@
 #include "nsNetUtil.h"
 #include "nsIMsgFolderNotificationService.h"
 #include "nsReadLine.h"
+#include "nsLocalStrings.h"
 
 static NS_DEFINE_CID(kMailboxServiceCID,          NS_MAILBOXSERVICE_CID);
 static NS_DEFINE_CID(kCMailDB, NS_MAILDB_CID);
@@ -413,7 +413,7 @@ nsMsgLocalMailFolder::GetSubFolders(nsIEnumerator* *result)
         rv = localMailServer->SetFlagsOnDefaultMailboxes();
         if (NS_FAILED(rv)) return rv;
       }
-      
+
       /* we need to create all the folders at start-up because if a folder having subfolders is
                     closed then the datasource will not ask for subfolders. For IMAP logging onto the
                     server will create imap folders and for news we don't have any 2nd level newsgroup */
@@ -1021,13 +1021,13 @@ nsresult nsMsgLocalMailFolder::ConfirmFolderDeletion(nsIMsgWindow *aMsgWindow, P
     pPrefBranch->GetBoolPref("mailnews.confirm.moveFoldersToTrash", &confirmDeletion);
     if (confirmDeletion)
     {
-      if (!mMsgStringService)
-      {
-        mMsgStringService = do_GetService(NS_MSG_POPSTRINGSERVICE_CONTRACTID);
-        NS_ENSURE_TRUE(mMsgStringService, NS_ERROR_FAILURE);
-      }
+      nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
+      NS_ENSURE_SUCCESS(rv, rv);
+      nsCOMPtr<nsIStringBundle> bundle;
+      rv = bundleService->CreateBundle("chrome://messenger/locale/localMsgs.properties", getter_AddRefs(bundle));
+      NS_ENSURE_SUCCESS(rv, rv);
       nsString alertString;
-      mMsgStringService->GetStringByID(POP3_MOVE_FOLDER_TO_TRASH, getter_Copies(alertString));
+      bundle->GetStringFromID(POP3_MOVE_FOLDER_TO_TRASH, getter_Copies(alertString));
       nsCOMPtr<nsIPrompt> dialog(do_GetInterface(docShell));
       if (dialog)
         dialog->Confirm(nsnull, alertString.get(), aResult);
@@ -2148,7 +2148,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetNewMessages(nsIMsgWindow *aWindow, nsIUrl
     if (NS_SUCCEEDED(rv))
     {
       db->GetSummaryValid(&valid);
-      rv = valid ? localMailServer->GetNewMail(aWindow, aListener, inbox, nsnull) : 
+      rv = valid ? localMailServer->GetNewMail(aWindow, aListener, inbox, nsnull) :
                    localInbox->SetCheckForNewMessagesAfterParsing(PR_TRUE);
     }
   }
@@ -3082,7 +3082,7 @@ nsMsgLocalMailFolder::GetIncomingServerType(nsCString& aServerType)
           rv = accountManager->FindServerByURI(url, PR_FALSE, getter_AddRefs(server));
           if (NS_SUCCEEDED(rv) && server)
             mType.AssignLiteral("movemail");
-#endif /* HAVE_MOVEMAIL */        
+#endif /* HAVE_MOVEMAIL */
         }
       }
     }
@@ -3228,9 +3228,9 @@ nsresult nsMsgLocalMailFolder::DisplayMoveCopyStatusMsg()
 
     if (!mCopyState->m_stringBundle)
     {
-      nsCOMPtr <nsIMsgStringService> stringService = do_GetService(NS_MSG_MAILBOXSTRINGSERVICE_CONTRACTID, &rv);
+      nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
       NS_ENSURE_SUCCESS(rv, rv);
-      rv = stringService->GetBundle(getter_AddRefs(mCopyState->m_stringBundle));
+      rv = bundleService->CreateBundle("chrome://messenger/locale/localMsgs.properties", getter_AddRefs(mCopyState->m_stringBundle));
       NS_ENSURE_SUCCESS(rv, rv);
     }
     if (mCopyState->m_statusFeedback && mCopyState->m_stringBundle)

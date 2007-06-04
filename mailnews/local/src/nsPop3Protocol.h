@@ -47,7 +47,7 @@
 #include "nsMsgProtocol.h"
 #include "nsIPop3Protocol.h"
 #include "MailNewsTypes.h"
-#include "nsLocalStringBundle.h"
+#include "nsIStringBundle.h"
 #include "nsIMsgStatusFeedback.h"
 #include "nsIMsgFolder.h" // TO include biffState enum. Change to bool later...
 #include "nsIAuthModule.h"
@@ -318,7 +318,7 @@ public:
                                       nsVoidArray  &UIDLArray);
 private:
   nsCString m_ApopTimestamp;
-  nsCOMPtr<nsIMsgStringService> mStringService;
+  nsCOMPtr<nsIStringBundle> mLocalBundle;
 
   nsCString m_username;
   nsCString m_senderInfo;

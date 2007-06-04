@@ -48,7 +48,6 @@
 #include "nsIMsgDatabase.h"
 #include "nsIMsgHdr.h"
 #include "nsIMsgStatusFeedback.h"
-#include "nsLocalStringBundle.h"
 #include "nsCOMPtr.h"
 #include "nsCOMArray.h"
 #include "nsTime.h"
@@ -157,16 +156,14 @@ public:
   nsCStringArray        m_customDBHeaders;
   struct message_header *m_customDBHeaderValues;
 protected:
-  nsCOMPtr<nsIMsgStringService> mStringService;
-
 };
 
 // this should go in some utility class.
-inline int	nsParseMailMessageState::msg_UnHex(char C)
+inline int nsParseMailMessageState::msg_UnHex(char C)
 {
-	return ((C >= '0' && C <= '9') ? C - '0' :
-		((C >= 'A' && C <= 'F') ? C - 'A' + 10 :
-		 ((C >= 'a' && C <= 'f') ? C - 'a' + 10 : 0)));
+  return ((C >= '0' && C <= '9') ? C - '0' :
+    ((C >= 'A' && C <= 'F') ? C - 'A' + 10 :
+     ((C >= 'a' && C <= 'f') ? C - 'a' + 10 : 0)));
 }
 
 // This class is part of the mailbox parsing state machine 
@@ -256,7 +253,7 @@ public:
   nsresult AppendMsgFromFile(nsIInputStream *fileStream, PRInt32 offset, 
                              PRUint32 length, nsILocalFile *destFile);
 
-  virtual void	ApplyFilters(PRBool *pMoved, nsIMsgWindow *msgWindow, 
+  virtual void ApplyFilters(PRBool *pMoved, nsIMsgWindow *msgWindow, 
                              PRUint32 msgOffset);
   nsresult    ApplyForwardAndReplyFilter(nsIMsgWindow *msgWindow);
   void        NotifyGlobalListeners(nsIMsgDBHdr *newHdr);
