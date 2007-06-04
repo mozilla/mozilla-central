@@ -2070,13 +2070,9 @@ NS_IMETHODIMP  nsImapIncomingServer::GetImapStringByID(PRInt32 aMsgId, nsAString
   GetStringBundle();
   if (m_stringBundle)
   {
-    nsString tmpStr;
-    res = m_stringBundle->GetStringFromID(aMsgId, getter_Copies(tmpStr));
+    res = m_stringBundle->GetStringFromID(aMsgId, getter_Copies(aString));
     if (NS_SUCCEEDED(res))
-    {
-      aString = tmpStr;
       return res;
-    }
   }
   aString.AssignLiteral("String ID ");
   // mscott: FIX ME
@@ -2098,13 +2094,9 @@ NS_IMETHODIMP  nsImapIncomingServer::FormatStringWithHostNameByID(PRInt32 aMsgId
     {
       NS_ConvertASCIItoUTF16 hostStr (hostName);
       const PRUnichar *params[] = { hostStr.get() };
-      nsString tmpStr;
-      res = m_stringBundle->FormatStringFromID(aMsgId, params, 1, getter_Copies(tmpStr));
+      res = m_stringBundle->FormatStringFromID(aMsgId, params, 1, getter_Copies(aString));
       if (NS_SUCCEEDED(res))
-      {
-        aString = tmpStr;
         return res;
-      }
     }
   }
   aString.AssignLiteral("String ID ");

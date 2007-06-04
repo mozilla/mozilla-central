@@ -47,7 +47,7 @@
 
 #include "TextDebugLog.h"
 #include "plstr.h"
-#include "nsCRT.h"
+#include "msgCore.h"
 
 #define kWhitespace    " \t\b\r\n"
 
@@ -165,7 +165,7 @@ nsresult nsTextAddress::ReadRecord(nsILineInputStream *aLineStream, nsCString &a
       rv = aLineStream->ReadLine(line, &more);
       if (NS_SUCCEEDED(rv)) {
         if (!aLine.IsEmpty())
-          aLine.AppendLiteral(NS_LINEBREAK);
+          aLine.AppendLiteral(MSG_LINEBREAK);
         aLine.Append(line);
 
         numQuotes += line.CountChar('"');

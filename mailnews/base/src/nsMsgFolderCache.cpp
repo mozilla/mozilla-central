@@ -292,7 +292,7 @@ NS_IMETHODIMP nsMsgFolderCache::GetCacheElement(const nsACString& pathKey, PRBoo
   NS_ENSURE_ARG_POINTER(result);
   NS_ENSURE_TRUE(m_cacheElements && !pathKey.IsEmpty(), NS_ERROR_FAILURE);
 
-  nsCStringKey hashKey(nsCString(pathKey).get());
+  nsCStringKey hashKey(pathKey);
   *result = (nsIMsgFolderCacheElement *) m_cacheElements->Get(&hashKey);
 
   // nsHashTable already does an address on *result
@@ -322,7 +322,7 @@ NS_IMETHODIMP nsMsgFolderCache::GetCacheElement(const nsACString& pathKey, PRBoo
 
 NS_IMETHODIMP nsMsgFolderCache::RemoveElement(const nsACString& key)
 {
-  nsCStringKey hashKey(nsCString(key).get());
+  nsCStringKey hashKey(key);
   nsCOMPtr <nsISupports> supports = getter_AddRefs(m_cacheElements->Get(&hashKey));
   if (!supports)
     return NS_ERROR_FAILURE;

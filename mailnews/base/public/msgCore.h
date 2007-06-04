@@ -42,9 +42,7 @@
 #define msgCore_h__
 
 #include "nscore.h"
-
 #include "nsCRT.h"
-#include "nsString.h"
 #include "nsVoidArray.h"
 
 class nsIMsgDBHdr;
@@ -100,7 +98,6 @@ NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_MAILNEWS, value)
 #define IS_SPACE(VAL) NS_IS_SPACE(VAL)
 #define IS_DIGIT(i)   NS_IS_DIGIT(i)
 #define IS_ALPHA(VAL) NS_IS_ALPHA(VAL)
-
 
 /* for retrieving information out of messenger nsresults */
 
@@ -177,8 +174,13 @@ NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_MAILNEWS, value)
 #define NS_ERROR_NNTP_NO_CROSS_POSTING NS_MSG_GENERATE_FAILURE(12554)
 #define NS_MSGCOMP_ERROR_END	12999
 
-#define MSG_LINEBREAK NS_LINEBREAK
-#define MSG_LINEBREAK_LEN NS_LINEBREAK_LEN
+#if defined(XP_WIN) || defined(XP_OS2)
+#define MSG_LINEBREAK "\015\012"
+#define MSG_LINEBREAK_LEN 2
+#else
+#define MSG_LINEBREAK "\012"
+#define MSG_LINEBREAK_LEN 1
+#endif
 
 #ifdef MOZ_STATIC_MAIL_BUILD
 #define NS_MSG_BASE

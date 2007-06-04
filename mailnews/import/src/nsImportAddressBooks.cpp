@@ -67,7 +67,7 @@
 #include "nsTextFormatter.h"
 #include "nsIProxyObjectManager.h"
 #include "nsProxiedService.h"
-
+#include "msgCore.h"
 #include "ImportDebug.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
@@ -871,7 +871,7 @@ void nsImportGenericAddressBooks::ReportError(const PRUnichar *pName,
   pStream->Append( pText);
   nsTextFormatter::smprintf_free( pText);
   nsCRT::free(pFmt);
-  pStream->Append(NS_ConvertASCIItoUTF16(NS_LINEBREAK));
+  pStream->AppendLiteral(MSG_LINEBREAK);
 }
 
 PR_STATIC_CALLBACK( void) ImportAddressThread( void *stuff)

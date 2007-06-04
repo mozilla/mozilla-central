@@ -5447,7 +5447,7 @@ const char *nsMsgIMAPFolderACL::GetRightsStringForUser(const nsACString& inUserN
     server->GetRealUsername(userName);
   }
   ToLowerCase(userName);
-  nsCStringKey userKey(userName.get());
+  nsCStringKey userKey(userName);
   return (const char *)m_rightsHash->Get(&userKey);
 }
 
@@ -5599,12 +5599,7 @@ nsresult nsMsgIMAPFolderACL::CreateACLRightsString(nsAString& aRightsString)
   NS_ENSURE_SUCCESS(rv, rv);
 
   if (GetDoIHaveFullRightsForFolder())
-  {
-    nsString tmpStr;
-    rv = bundle->GetStringFromID(IMAP_ACL_FULL_RIGHTS, getter_Copies(tmpStr));
-    aRightsString = tmpStr;
-    return rv;
-  }
+    return bundle->GetStringFromID(IMAP_ACL_FULL_RIGHTS, getter_Copies(aRightsString));
   else
   {
     if (GetCanIReadFolder())

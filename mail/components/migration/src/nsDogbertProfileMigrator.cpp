@@ -1517,7 +1517,7 @@ nsresult nsDogbertProfileMigrator::DoSpecialUpdates(nsILocalFile  * profilePath)
    * security hole.
    */
   PRUint32 bytesWritten;
-  nsCAutoString headerLine(PREF_FILE_HEADER_STRING NS_LINEBREAK);
+  nsCAutoString headerLine(PREF_FILE_HEADER_STRING MSG_LINEBREAK);
   fsStream->Write(headerLine.get(), headerLine.Length(), &bytesWritten) ;
   fsStream->Close();
 

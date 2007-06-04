@@ -1386,7 +1386,6 @@ nsMsgNewsFolder::GetRawName(nsACString & aRawName)
     NS_ENSURE_SUCCESS(rv,rv);
 
     // convert to the server-side encoding
-    nsCAutoString tmpStr;
     nsCOMPtr <nsINntpIncomingServer> nntpServer;
     rv = GetNntpServer(getter_AddRefs(nntpServer));
     NS_ENSURE_SUCCESS(rv,rv);
@@ -1394,11 +1393,10 @@ nsMsgNewsFolder::GetRawName(nsACString & aRawName)
     nsCAutoString dataCharset;
     rv = nntpServer->GetCharset(dataCharset);
     NS_ENSURE_SUCCESS(rv,rv);
-    rv = nsMsgI18NConvertFromUnicode(dataCharset.get(), name, tmpStr);
+    rv = nsMsgI18NConvertFromUnicode(dataCharset.get(), name, mRawName);
 
     if (NS_FAILED(rv))
-      LossyCopyUTF16toASCII(name,tmpStr);
-    mRawName = tmpStr;
+      LossyCopyUTF16toASCII(name, mRawName);
   }
   aRawName = mRawName;
   return NS_OK;
@@ -1591,10 +1589,7 @@ NS_IMETHODIMP nsMsgNewsFolder::GetMessageIdForKey(nsMsgKey key, nsACString& resu
   nsCOMPtr <nsIMsgDBHdr> hdr;
   rv = mDatabase->GetMsgHdrForKey(key, getter_AddRefs(hdr));
   NS_ENSURE_SUCCESS(rv,rv);
-  nsCString tmpStr;
-  rv = hdr->GetMessageId(getter_Copies(tmpStr));
-  result = tmpStr;
-  return rv;
+  return hdr->GetMessageId(getter_Copies(result));
 }
 
 NS_IMETHODIMP nsMsgNewsFolder::SetSortOrder(PRInt32 order)

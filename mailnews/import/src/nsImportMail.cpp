@@ -641,7 +641,7 @@ void nsImportGenericMail::ReportError(PRInt32 id, const PRUnichar *pName, nsStri
   pStream->Append( pText);
   nsTextFormatter::smprintf_free( pText);
   nsCRT::free(pFmt);
-  pStream->Append(NS_ConvertASCIItoUTF16(NS_LINEBREAK));
+  pStream->Append(NS_ConvertASCIItoUTF16(MSG_LINEBREAK));
 }
 
 

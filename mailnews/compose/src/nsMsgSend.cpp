@@ -1867,13 +1867,13 @@ nsMsgComposeAndSend::EnsureLineBreaks(const char *body, PRUint32 bodyLen)
   // for example, we don't want <a hrLINEBREAKref=""> or <bLINEBREAKr>
   // or "MississLINEBREAKippi"
   for (i = 0; i < bodyLen-1; i++) {
-    if (nsCRT::strncmp(body+i, NS_LINEBREAK, NS_LINEBREAK_LEN)) {
+    if (strncmp(body+i, MSG_LINEBREAK, MSG_LINEBREAK_LEN)) {
       charsSinceLineBreak++;
       if (charsSinceLineBreak == LINE_BREAK_MAX) {
         if (!newBody) {
           // in the worse case, the body will be solid, no linebreaks.
           // that will require us to insert a line break every LINE_BREAK_MAX bytes
-          PRUint32 worstCaseLen = bodyLen+((bodyLen/LINE_BREAK_MAX)*NS_LINEBREAK_LEN)+1;
+          PRUint32 worstCaseLen = bodyLen+((bodyLen/LINE_BREAK_MAX)*MSG_LINEBREAK_LEN)+1;
           newBody = (char *) PR_Calloc(1, worstCaseLen);
           if (!newBody) return NS_ERROR_OUT_OF_MEMORY;
           newBodyPos = newBody;
@@ -1881,8 +1881,8 @@ nsMsgComposeAndSend::EnsureLineBreaks(const char *body, PRUint32 bodyLen)
 
         PL_strncpy(newBodyPos, body+lastPos, i - lastPos + 1);
         newBodyPos += i - lastPos + 1;
-        PL_strncpy(newBodyPos, NS_LINEBREAK, NS_LINEBREAK_LEN);
-        newBodyPos += NS_LINEBREAK_LEN;
+        PL_strncpy(newBodyPos, MSG_LINEBREAK, MSG_LINEBREAK_LEN);
+        newBodyPos += MSG_LINEBREAK_LEN;
 
         lastPos = i+1;
         charsSinceLineBreak = 0;

@@ -333,11 +333,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetCharset(nsACString& aCharset)
   nsCOMPtr<nsIMsgDatabase> db;
   nsresult rv = GetDBFolderInfoAndDB(getter_AddRefs(folderInfo), getter_AddRefs(db));
   if(NS_SUCCEEDED(rv))
-  {
-    nsCString tmpStr;
-    rv = folderInfo->GetCharPtrCharacterSet(getter_Copies(tmpStr));
-    aCharset.Assign(tmpStr);
-  }
+    rv = folderInfo->GetCharPtrCharacterSet(getter_Copies(aCharset));
   return rv;
 }
 
@@ -1747,11 +1743,7 @@ nsMsgDBFolder::GetStringProperty(const char *propertyName, nsACString& propertyV
         return NS_MSG_ERROR_FOLDER_MISSING;
       rv = GetDBFolderInfoAndDB(getter_AddRefs(folderInfo), getter_AddRefs(db));
       if (NS_SUCCEEDED(rv))
-      {
-        nsCString tmpStr;
-        rv = folderInfo->GetCharPtrProperty(propertyName, getter_Copies(tmpStr));
-         propertyValue.Assign(tmpStr);
-      }
+        rv = folderInfo->GetCharPtrProperty(propertyName, getter_Copies(propertyValue));
     }
   }
   return rv;
@@ -2260,10 +2252,7 @@ nsMsgDBFolder::Clear(void)
 NS_IMETHODIMP
 nsMsgDBFolder::GetURI(nsACString& name)
 {
-  nsCString tmpStr;
-  nsresult rv = nsRDFResource::GetValue(getter_Copies(tmpStr));
-  name = tmpStr;
-  return rv;
+  return nsRDFResource::GetValue(getter_Copies(name));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -4514,11 +4503,7 @@ nsMsgDBFolder::GetStringFromBundle(const char *msgName, nsString& aResult)
   nsCOMPtr <nsIStringBundle> bundle;
   rv = GetBaseStringBundle(getter_AddRefs(bundle));
   if (NS_SUCCEEDED(rv) && bundle)
-  {
-    nsString tmpStr;
-    rv = bundle->GetStringFromName(NS_ConvertASCIItoUTF16(msgName).get(), getter_Copies(tmpStr));
-    aResult = tmpStr;
-  }
+    rv = bundle->GetStringFromName(NS_ConvertASCIItoUTF16(msgName).get(), getter_Copies(aResult));
   return rv;
 }
 
@@ -4553,10 +4538,8 @@ nsMsgDBFolder::GetStringWithFolderNameFromBundle(const char * msgName, nsAString
       folderName.get(),
       kLocalizedBrandShortName
     };
-    nsString tmpStr;
     rv = bundle->FormatStringFromName(NS_ConvertASCIItoUTF16(msgName).get(),
-                                      formatStrings, 2, getter_Copies(tmpStr));
-    aResult = tmpStr;
+                                      formatStrings, 2, getter_Copies(aResult));
   }
   return rv;
 }

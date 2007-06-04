@@ -131,14 +131,14 @@ nsHashKey *nsMsgGroupView::AllocHashKeyForHdr(nsIMsgDBHdr *msgHdr)
   {
     case nsMsgViewSortType::bySubject:
       (void) msgHdr->GetSubject(getter_Copies(cStringKey));
-      return new nsCStringKey(cStringKey.get());
+      return new nsCStringKey(cStringKey);
       break;
     case nsMsgViewSortType::byAuthor:
       rv = nsMsgDBView::FetchAuthor(msgHdr, stringKey);
       return NS_SUCCEEDED(rv) ? new nsStringKey(stringKey.get()) : nsnull;
     case nsMsgViewSortType::byRecipient:
       (void) msgHdr->GetRecipients(getter_Copies(cStringKey));
-      return new nsCStringKey(cStringKey.get());
+      return new nsCStringKey(cStringKey);
     case nsMsgViewSortType::byAccount:
     case nsMsgViewSortType::byTags:
       {
