@@ -35,6 +35,7 @@ require 'CGI.pl';
 print "Content-type: text/html\n\n";
 
 my $Filename = FormData('msgname');
+my $EscapedFilename = html_quote($Filename);
 my $RealFilename = DataDir() . "/$Filename";
 
 my $Text = '';
@@ -48,10 +49,10 @@ if (-f $RealFilename) {
 
 LoadTreeConfig();
 PutsHeader("Message Editor", "Message Editor",
-           "$Filename - $::TreeInfo{$::TreeID}{shortdesc}");
+           "$EscapedFilename - $::TreeInfo{$::TreeID}{shortdesc}");
 
 print "
-Below is the template for the <b>$Filename</b> message.  Type the
+Below is the template for the <b>$EscapedFilename</b> message.  Type the
 magic word and edit at will, but be careful to not break anything,
 especially around the headers.
 
@@ -64,7 +65,7 @@ The following magic symbols exist:
 sub PutDoc {
      my ($name, $desc) = @_;
 
-     print "\n<tr>\n<td align=right><tt><b>%$name%</b></tt></td>
+     print "\n<tr>\n<td align=\"right\"><tt><b>%$name%</b></tt></td>
 <td>Replaced by the $desc</td>\n</tr>\n";
 }
 
@@ -78,7 +79,7 @@ if (($Filename eq 'openmessage') || ($Filename eq 'closemessage')) {
          ($Filename eq 'treeclosed')) {
      PutDoc('hooklist', "comma-separated list of e-mail address of people on the hook");
 } else {
-     print "</table><P><font color=red>
+     print "</table><P><font color=\"red\">
 Uh, hey, this isn't a legal file for you to be editing here!</font>\n";
      PutsTrailer();
      exit 0;
@@ -86,13 +87,13 @@ Uh, hey, this isn't a legal file for you to be editing here!</font>\n";
 
 print "
 </TABLE>
-<FORM method=get action=\"doeditmessage.cgi\">
-<INPUT TYPE=HIDDEN NAME=treeid VALUE=$::TreeID>
-<B>Password:</B> <INPUT NAME=password TYPE=password> <BR>
-<INPUT TYPE=HIDDEN NAME=msgname VALUE=$Filename>
-<INPUT TYPE=HIDDEN NAME=origtext VALUE=\"" . &url_quote($Text) . "\">
-<TEXTAREA NAME=text ROWS=40 COLS=80>$Text</TEXTAREA><BR>
-<INPUT TYPE=SUBMIT VALUE=\"Change this message\">
+<FORM method=\"get\" action=\"doeditmessage.cgi\">
+<INPUT TYPE=\"HIDDEN\" NAME=\"treeid\" VALUE=\"$::TreeID\">
+<B>Password:</B> <INPUT NAME=\"password\" TYPE=\"password\"> <BR>
+<INPUT TYPE=\"HIDDEN\" NAME=\"msgname\" VALUE=\"$EscapedFilename\">
+<INPUT TYPE=\"HIDDEN\" NAME=\"origtext\" VALUE=\"" . &url_quote($Text) . "\">
+<TEXTAREA NAME=\"text\" ROWS=\"40\" COLS=\"80\">$Text</TEXTAREA><BR>
+<INPUT TYPE=\"SUBMIT\" VALUE=\"Change this message\">
 </FORM>
 
  ";

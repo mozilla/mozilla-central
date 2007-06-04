@@ -38,6 +38,7 @@ print "Content-type: text/html\n\n";
 &validateReferer('editmessage.cgi');
 CheckPassword(FormData('password'));
 my $Filename = FormData('msgname');
+my $EscapedFilename = html_quote($Filename);
 my $RealFilename = DataDir() . "/$Filename";
 Lock();
 
@@ -73,7 +74,7 @@ Log("$RealFilename set to $Text");
 Unlock();
 
 LoadTreeConfig();
-PutsHeader("New $Filename", "New $Filename",
-           "$Filename - $::TreeInfo{$::TreeID}{shortdesc}");
-print "The file <b>$Filename</b> has been changed.";
+PutsHeader("New $EscapedFilename", "New $EscapedFilename",
+           "$EscapedFilename - $::TreeInfo{$::TreeID}{shortdesc}");
+print "The file <b>$EscapedFilename</b> has been changed.";
 PutsTrailer();
