@@ -1428,7 +1428,7 @@ nsMsgComposeService::LoadDraftOrTemplate(const nsACString& aMsgURI, nsMimeOutput
 {
   nsresult rv;
   nsCOMPtr <nsIMsgMessageService> messageService;
-  rv = GetMessageServiceFromURI(nsPromiseFlatCString(aMsgURI).get(), getter_AddRefs(messageService));
+  rv = GetMessageServiceFromURI(PromiseFlatCString(aMsgURI).get(), getter_AddRefs(messageService));
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Now, we can create a mime parser (nsIStreamConverter)!
@@ -1449,7 +1449,7 @@ nsMsgComposeService::LoadDraftOrTemplate(const nsACString& aMsgURI, nsMimeOutput
   if (fileUrl || FindInReadable(NS_LITERAL_CSTRING("&type=application/x-message-display"), start, end))
     rv = NS_NewURI(getter_AddRefs(url), aMsgURI);
   else
-    rv = messageService->GetUrlForUri(nsPromiseFlatCString(aMsgURI).get(), getter_AddRefs(url), aMsgWindow);
+    rv = messageService->GetUrlForUri(PromiseFlatCString(aMsgURI).get(), getter_AddRefs(url), aMsgWindow);
   NS_ENSURE_SUCCESS(rv, rv);
 
   // ignore errors here - it's not fatal, and in the case of mailbox messages,
@@ -1483,7 +1483,7 @@ nsMsgComposeService::LoadDraftOrTemplate(const nsACString& aMsgURI, nsMimeOutput
 
   // Now, just plug the two together and get the hell out of the way!
   nsCOMPtr<nsIStreamListener> streamListener = do_QueryInterface(mimeConverter); 
-  return messageService->DisplayMessage(nsPromiseFlatCString(aMsgURI).get(), streamListener,
+  return messageService->DisplayMessage(PromiseFlatCString(aMsgURI).get(), streamListener,
                                         aMsgWindow, nsnull, mailCharset.get(), nsnull);;
 }
 

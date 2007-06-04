@@ -150,7 +150,7 @@ NS_IMETHODIMP nsImapIncomingServer::SetKey(const nsACString& aKey)  // override 
   nsCOMPtr<nsIImapHostSessionList> hostSession = do_GetService(kCImapHostSessionListCID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  const nsPromiseFlatCString& key = PromiseFlatCString(aKey);
+  nsCString key(aKey);
   hostSession->AddHostToList(key.get(), this);
   nsMsgImapDeleteModel deleteModel = nsMsgImapDeleteModels::MoveToTrash; // default to trash
   GetDeleteModel(&deleteModel);
@@ -258,7 +258,7 @@ nsImapIncomingServer::SetServerDirectory(const nsACString& serverDirectory)
   {
     nsCOMPtr<nsIImapHostSessionList> hostSession = do_GetService(kCImapHostSessionListCID, &rv);
     if (NS_SUCCEEDED(rv))
-      hostSession->SetOnlineDirForHost(serverKey.get(), nsPromiseFlatCString(serverDirectory).get());
+      hostSession->SetOnlineDirForHost(serverKey.get(), PromiseFlatCString(serverDirectory).get());
   }
   return SetCharValue("server_sub_directory", serverDirectory);
 }
@@ -2003,7 +2003,7 @@ nsImapIncomingServer::FEAlert(const nsAString& aString, nsIMsgWindow * aMsgWindo
   }
 
   if (dialog)
-    rv = dialog->Alert(nsnull, nsPromiseFlatString(aString).get());
+    rv = dialog->Alert(nsnull, PromiseFlatString(aString).get());
   return rv;
 }
 
@@ -2021,8 +2021,8 @@ NS_IMETHODIMP  nsImapIncomingServer::FEAlertFromServer(const nsACString& aString
     {
       // skip over the first two words, I guess.
       // mscott: fix this string code to use nsString APIs!!!
-      const char * charStr = nsPromiseFlatCString(aString).get();
-      char *whereRealMessage = PL_strchr(charStr, ' ');
+      nsCString charStr(aString);
+      char *whereRealMessage = PL_strchr(charStr.get(), ' ');
       if (whereRealMessage)
         whereRealMessage++;
       if (whereRealMessage)
@@ -2040,7 +2040,7 @@ NS_IMETHODIMP  nsImapIncomingServer::FEAlertFromServer(const nsACString& aString
       {
         // the alert string from the server IS UTF-8!!! We must convert it to unicode
         // correctly before appending it to our error message string...
-        AppendUTF8toUTF16(whereRealMessage ? whereRealMessage : nsPromiseFlatCString(aString).get(), message);
+        AppendUTF8toUTF16(whereRealMessage ? whereRealMessage : PromiseFlatCString(aString).get(), message);
         rv = dialog->Alert(nsnull, message.get());
       }
     }
@@ -3195,17 +3195,15 @@ nsImapIncomingServer::GetFormattedStringFromID(const nsAString& aValue, PRInt32 
   rv = GetStringBundle();
   if (m_stringBundle)
   {
-    const nsPromiseFlatString&  tmpVal = nsPromiseFlatString(aValue);
+    nsString tmpVal (aValue);
     const PRUnichar *formatStrings[] =
     {
       tmpVal.get(),
     };
-    
-    nsString tmpStr;
+
     rv = m_stringBundle->FormatStringFromID(aID,
                                 formatStrings, 1,
-                                getter_Copies(tmpStr));
-    aResult = tmpStr;
+                                getter_Copies(aResult));
   }
   return rv;
 }

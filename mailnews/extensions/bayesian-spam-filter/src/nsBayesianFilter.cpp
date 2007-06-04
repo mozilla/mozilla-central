@@ -56,7 +56,6 @@
 #include "nsAppDirectoryServiceDefs.h"
 #include "nsUnicharUtils.h"
 
-#include "nsPrintfCString.h"
 #include "nsIMIMEHeaderParam.h"
 #include "nsNetCID.h"
 #include "nsIMimeHeaders.h"
@@ -440,16 +439,26 @@ void Tokenizer::tokenize_ascii_word(char * aWord)
       if (numBytesToSep < wordLength - 1) // if the @ sign is the last character, it must not be an email address
       {
         // split the john@foo.com into john and foo.com, treat them as separate tokens
-        // if i did my string foo correctly, none of this string magic should cause a heap based allocation...
-        add(nsPrintfCString(256, "email name:%s", PromiseFlatCString(Substring(word, 0, numBytesToSep++)).get()).get());
-        add(nsPrintfCString(256, "email addr:%s", PromiseFlatCString(Substring(word, numBytesToSep, wordLength - numBytesToSep)).get()).get());
+        nsCString emailNameToken;
+        emailNameToken.AssignLiteral("email name:");
+        emailNameToken.Append(Substring(word, 0, numBytesToSep++));
+        add(emailNameToken.get());
+        nsCString emailAddrToken;
+        emailAddrToken.AssignLiteral("email addr:");
+        emailAddrToken.Append(Substring(word, numBytesToSep, wordLength - numBytesToSep));
+        add(emailAddrToken.get());
         return;
       }
     }
 
     // there is value in generating a token indicating the number
     // of characters we are skipping. We'll round to the nearest 10
-    add(nsPrintfCString("skip:%c %d", word[0], (wordLength/10) * 10).get());
+    nsCString skipToken;
+    skipToken.AssignLiteral("skip:");
+    skipToken.Append(word[0]);
+    skipToken.Append(' ');
+    skipToken.AppendInt((wordLength/10) * 10);
+    add(skipToken.get());
   }
 }
 

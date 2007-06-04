@@ -82,7 +82,6 @@
 #include "nsIDocShell.h"
 #include "nsIInterfaceRequestor.h"
 #include "nsIInterfaceRequestorUtils.h"
-#include "nsXPIDLString.h"
 #include "nsReadableUtils.h"
 #include "nsUnicharUtils.h"
 #include "nsIImapFlagAndUidState.h"
@@ -1337,7 +1336,7 @@ NS_IMETHODIMP nsImapMailFolder::EmptyTrash(nsIMsgWindow *aMsgWindow, nsIUrlListe
           rv = aEnumerator->CurrentItem(getter_AddRefs(aSupport));
           if (confirmDeletion)
           {
-            nsXPIDLString statusString, confirmText;
+            nsString confirmText;
             nsCOMPtr <nsIMsgFolder> folder = do_QueryInterface(aSupport);
             nsString folderName;
             folder->GetName(folderName);
@@ -1346,7 +1345,7 @@ NS_IMETHODIMP nsImapMailFolder::EmptyTrash(nsIMsgWindow *aMsgWindow, nsIUrlListe
                                               formatStrings, 1,
                                               getter_Copies(confirmText));
             // Got the text, now show dialog.
-            rv = promptService->ConfirmEx(parentWindow, nsnull, confirmText,
+            rv = promptService->ConfirmEx(parentWindow, nsnull, confirmText.get(),
                                         (nsIPromptService::BUTTON_TITLE_OK * nsIPromptService::BUTTON_POS_0) +
                                         (nsIPromptService::BUTTON_TITLE_CANCEL * nsIPromptService::BUTTON_POS_1),
                                           nsnull, nsnull, nsnull, nsnull, nsnull, &dlgResult);
@@ -3008,7 +3007,7 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
   NS_ENSURE_ARG_POINTER(applyMore);
 
   nsMsgRuleActionType actionType;
-  nsXPIDLCString actionTargetFolderUri;
+  nsCString actionTargetFolderUri;
   PRUint32  newFlags;
   nsresult rv = NS_OK;
 
@@ -3135,7 +3134,7 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
             messageArray->AppendElement(msgHdr);
 
             nsCOMPtr<nsIMsgFolder> dstFolder;
-            rv = GetExistingFolder(actionTargetFolderUri,
+            rv = GetExistingFolder(actionTargetFolderUri.get(),
                                    getter_AddRefs(dstFolder));
             NS_ENSURE_SUCCESS(rv, rv);
 
@@ -4642,7 +4641,7 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
       case nsIImapUrl::nsImapSubscribe:
         if (NS_SUCCEEDED(aExitCode) && msgWindow)
         {
-          nsXPIDLCString canonicalFolderName;
+          nsCString canonicalFolderName;
           imapUrl->CreateCanonicalSourceFolderPathString(getter_Copies(canonicalFolderName));
           nsCOMPtr <nsIMsgFolder> rootFolder;
           nsresult rv = GetRootFolder(getter_AddRefs(rootFolder));
@@ -5694,7 +5693,7 @@ nsresult nsImapMailFolder::DisplayStatusMsg(nsIImapUrl *aImapUrl, const nsAStrin
     {
         nsCOMPtr<nsIRequest> request = do_QueryInterface(mockChannel);
         if (!request) return NS_ERROR_FAILURE;
-      progressSink->OnStatus(request, nsnull, NS_OK, nsPromiseFlatString(msg).get());      // XXX i18n message
+      progressSink->OnStatus(request, nsnull, NS_OK, PromiseFlatString(msg).get());      // XXX i18n message
     }
   }
   return NS_OK;
@@ -7041,7 +7040,8 @@ NS_IMETHODIMP nsImapMailFolder::GetFolderURL(nsACString& aFolderURL)
   rootFolder->GetURI(aFolderURL);
 
   NS_ASSERTION(mURI.Length() > aFolderURL.Length(), "Should match with a folder name!");
-  nsAdoptingCString escapedName(nsEscape(mURI.get() + aFolderURL.Length(), url_Path));
+  nsCString escapedName;
+  escapedName.Adopt(nsEscape(mURI.get() + aFolderURL.Length(), url_Path));
   if (escapedName.IsEmpty())
     return NS_ERROR_OUT_OF_MEMORY;
   aFolderURL.Append(escapedName);
@@ -7463,10 +7463,10 @@ NS_IMETHODIMP nsImapMailFolder::RenameSubFolders(nsIMsgWindow *msgWindow, nsIMsg
 NS_IMETHODIMP nsImapMailFolder::IsCommandEnabled(const nsACString& command, PRBool *result)
 {
   NS_ENSURE_ARG_POINTER(result);
-  *result = !(WeAreOffline() && (command.Equals("cmd_renameFolder") ||
-                                 command.Equals("cmd_compactFolder") ||
-                                 command.Equals("cmd_delete") ||
-                                 command.Equals("button_delete")));
+  *result = !(WeAreOffline() && (command.EqualsLiteral("cmd_renameFolder") ||
+                                 command.EqualsLiteral("cmd_compactFolder") ||
+                                 command.EqualsLiteral("cmd_delete") ||
+                                 command.EqualsLiteral("button_delete")));
   return NS_OK;
 }
 
@@ -7567,9 +7567,9 @@ nsImapMailFolder::StoreCustomKeywords(nsIMsgWindow *aMsgWindow, const nsACString
         if (NS_SUCCEEDED(rv) && op)
         {
           if (!aFlagsToAdd.IsEmpty())
-            op->AddKeywordToAdd(nsPromiseFlatCString(aFlagsToAdd).get());
+            op->AddKeywordToAdd(PromiseFlatCString(aFlagsToAdd).get());
           if (!aFlagsToSubtract.IsEmpty())
-            op->AddKeywordToRemove(nsPromiseFlatCString(aFlagsToSubtract).get());
+            op->AddKeywordToRemove(PromiseFlatCString(aFlagsToSubtract).get());
         }
       }
       mDatabase->Commit(nsMsgDBCommitType::kLargeCommit); // flush offline ops
@@ -7696,7 +7696,7 @@ nsImapMailFolder::OnMessageClassified(const char * aMsgURI, nsMsgJunkStatus aCla
         if (!spamFolderURI.IsEmpty())
         {
           nsCOMPtr<nsIMsgFolder> folder;
-          rv = GetExistingFolder(nsPromiseFlatCString(spamFolderURI).get(), getter_AddRefs(folder));
+          rv = GetExistingFolder(PromiseFlatCString(spamFolderURI).get(), getter_AddRefs(folder));
           if (NS_SUCCEEDED(rv) && folder)
           {
             rv = folder->SetFlag(MSG_FOLDER_FLAG_JUNK);

@@ -57,7 +57,6 @@
 
 #include "nsIStringBundle.h"
 #include "nsVCardStringResources.h"
-#include "nsPrintfCString.h"
 
 #include "nsCRT.h"
 #include "prprf.h"
@@ -106,13 +105,13 @@ typedef struct
 #define     VCARD_URL     "chrome://messenger/locale/vcard.properties"
 #define     MSGVCARDSERVICE_CONTRACT_ID "@mozilla.org/addressbook/msgvcardservice;1"
 
-/* This is the object definition. Note: we will set the superclass 
+/* This is the object definition. Note: we will set the superclass
    to NULL and manually set this on the class creation */
 MimeDefClass(MimeInlineTextVCard, MimeInlineTextVCardClass,
              mimeInlineTextVCardClass, NULL);
 
 extern "C" MimeObjectClass *
-MIME_VCardCreateContentTypeHandlerClass(const char *content_type, 
+MIME_VCardCreateContentTypeHandlerClass(const char *content_type,
                                    contentTypeHandlerInitStruct *initStruct)
 {
   MimeObjectClass *clazz = (MimeObjectClass *)&mimeInlineTextVCardClass;
@@ -127,8 +126,8 @@ MIME_VCardCreateContentTypeHandlerClass(const char *content_type,
   return clazz;
 }
 
-/* 
- * Implementation of VCard clazz 
+/*
+ * Implementation of VCard clazz
  */
 static int
 MimeInlineTextVCardClassInitialize(MimeInlineTextVCardClass *clazz)
@@ -147,17 +146,17 @@ MimeInlineTextVCard_parse_begin (MimeObject *obj)
   int status = ((MimeObjectClass*)COM_GetmimeLeafClass())->parse_begin(obj);
   MimeInlineTextVCardClass *clazz;
   if (status < 0) return status;
-  
+
   if (!obj->output_p) return 0;
   if (!obj->options || !obj->options->write_html_p) return 0;
-  
+
   /* This is a fine place to write out any HTML before the real meat begins.
   In this sample code, we tell it to start a table. */
-  
+
   clazz = ((MimeInlineTextVCardClass *) obj->clazz);
   /* initialize vcard string to empty; */
   NS_MsgSACopy(&(clazz->vCardString), "");
-  
+
   obj->options->state->separator_suppressed_p = PR_TRUE;
   return 0;
 }
@@ -172,27 +171,27 @@ char *strcpySafe (char *dest, const char *src, size_t destLength)
 static int
 MimeInlineTextVCard_parse_line (const char *line, PRInt32 length, MimeObject *obj)
 {
-  // This routine gets fed each line of data, one at a time.    
+  // This routine gets fed each line of data, one at a time.
   char* linestring;
   MimeInlineTextVCardClass *clazz = ((MimeInlineTextVCardClass *) obj->clazz);
-  
+
   if (!obj->output_p) return 0;
   if (!obj->options || !obj->options->output_fn) return 0;
-  if (!obj->options->write_html_p) 
+  if (!obj->options->write_html_p)
   {
     return COM_MimeObject_write(obj, line, length, PR_TRUE);
   }
-  
+
   linestring = (char *) PR_MALLOC (length + 1);
   memset(linestring, 0, (length + 1));
-  
-  if (linestring) 
+
+  if (linestring)
   {
     strcpySafe((char *)linestring, line, length + 1);
     NS_MsgSACat (&clazz->vCardString, linestring);
     PR_Free (linestring);
   }
-  
+
   return 0;
 }
 
@@ -205,8 +204,8 @@ static PRInt32 INTL_ConvertCharset(const char* from_charset, const char* to_char
   nsresult res;
 
   // invalid input
-  if (nsnull == from_charset || nsnull == to_charset || 
-      '\0' == *from_charset || '\0' == *to_charset || nsnull == inBuffer) 
+  if (nsnull == from_charset || nsnull == to_charset ||
+      '\0' == *from_charset || '\0' == *to_charset || nsnull == inBuffer)
     return -1;
 
   // from to identical
@@ -220,7 +219,7 @@ static PRInt32 INTL_ConvertCharset(const char* from_charset, const char* to_char
 
 
   nsAutoString outString;
-  
+
   res = ConvertToUnicode(from_charset, inBuffer, outString);
 
   // known bug in 4.x, it mixes Shift_JIS (or EUC-JP) and ISO-2022-JP in vCard fields
@@ -248,40 +247,40 @@ static PRInt32 INTL_ConvertCharset(const char* from_charset, const char* to_char
 static int
 MimeInlineTextVCard_parse_eof (MimeObject *obj, PRBool abort_p)
 {
-  nsCOMPtr<nsIMsgVCardService> vCardService = 
+  nsCOMPtr<nsIMsgVCardService> vCardService =
              do_GetService(MSGVCARDSERVICE_CONTRACT_ID);
   if (!vCardService)
       return -1;
 
   int status = 0;
   MimeInlineTextVCardClass *clazz = ((MimeInlineTextVCardClass *) obj->clazz);
-  
+
   VObject *t, *v;
-  
+
   if (obj->closed_p) return 0;
-  
+
   /* Run parent method first, to flush out any buffered data. */
   //    status = ((MimeObjectClass*)&MIME_SUPERCLASS)->parse_eof(obj, abort_p);
   status = ((MimeObjectClass*)COM_GetmimeInlineTextClass())->parse_eof(obj, abort_p);
   if (status < 0) return status;
- 
+
   // Don't quote vCards...
-  if (  (obj->options) && 
+  if (  (obj->options) &&
     ((obj->options->format_out == nsMimeOutput::nsMimeMessageQuoting) ||
     (obj->options->format_out == nsMimeOutput::nsMimeMessageBodyQuoting))
     )
     return 0;
 
   if (!clazz->vCardString) return 0;
-  
+
   v = vCardService->Parse_MIME(clazz->vCardString, strlen(clazz->vCardString));
   NS_ASSERTION(v, "parse of vCard failed");
-  
+
   if (clazz->vCardString) {
     PR_Free ((char*) clazz->vCardString);
     clazz->vCardString = NULL;
   }
-  
+
   if (obj->output_p && obj->options && obj->options->write_html_p &&
     obj->options->headers != MimeHeadersCitation) {
     /* This is a fine place to write any closing HTML.  In fact, you may
@@ -295,13 +294,13 @@ MimeInlineTextVCard_parse_eof (MimeObject *obj, PRBool abort_p)
       /* parse next vcard incase they're embedded */
       v = vCardService->NextVObjectInList(v);
     }
-    
+
     (void)vCardService->CleanVObject(t);
   }
-  
-  if (status < 0) 
+
+  if (status < 0)
     return status;
-  
+
   return 0;
 }
 
@@ -388,17 +387,17 @@ static int OutputTable (MimeObject *obj, PRBool endTable, PRBool border, const c
       if (border)
         PL_strcat (htmlLine, " BORDER");
       if (cellspacing)
-      { 
+      {
         PL_strcat (htmlLine, " CELLSPACING=");
         PL_strcat (htmlLine, cellspacing);
       }
       if (cellpadding)
-      { 
+      {
         PL_strcat (htmlLine, " CELLPADDING=");
         PL_strcat (htmlLine, cellpadding);
       }
       if (bgcolor)
-      { 
+      {
         PL_strcat (htmlLine, " BGCOLOR=");
         PL_strcat (htmlLine, bgcolor);
       }
@@ -413,12 +412,12 @@ static int OutputTable (MimeObject *obj, PRBool endTable, PRBool border, const c
     }
     else
       status = VCARD_OUT_OF_MEMORY;
-  } 
+  }
   return status;
 }
 
-static int OutputTableRowOrData(MimeObject *obj, PRBool outputRow, 
-                PRBool end, const char * align, 
+static int OutputTableRowOrData(MimeObject *obj, PRBool outputRow,
+                PRBool end, const char * align,
                 const char* valign, const char* colspan,
                 const char* width)
 {
@@ -453,22 +452,22 @@ static int OutputTableRowOrData(MimeObject *obj, PRBool outputRow,
       else
         PL_strcat (htmlLine, "<TD");
       if (align)
-      { 
+      {
         PL_strcat (htmlLine, " ALIGN=");
         PL_strcat (htmlLine, align);
       }
       if (valign)
-      { 
+      {
         PL_strcat (htmlLine, " VALIGN=");
         PL_strcat (htmlLine, valign);
       }
       if (colspan)
-      { 
+      {
         PL_strcat (htmlLine, " COLSPAN=");
         PL_strcat (htmlLine, colspan);
       }
       if (width)
-      { 
+      {
         PL_strcat (htmlLine, " WIDTH=");
         PL_strcat (htmlLine, width);
       }
@@ -511,12 +510,12 @@ static int OutputFont(MimeObject *obj, PRBool endFont, const char * size, const 
       htmlLine[0] = '\0';
         PL_strcat (htmlLine, "<FONT");
       if (size)
-      { 
+      {
         PL_strcat (htmlLine, " SIZE=");
         PL_strcat (htmlLine, size);
       }
       if (color)
-      { 
+      {
         PL_strcat (htmlLine, " COLOR=");
         PL_strcat (htmlLine, color);
       }
@@ -535,13 +534,13 @@ static int OutputFont(MimeObject *obj, PRBool endFont, const char * size, const 
   return status;
 }
 
-static int OutputVcardAttribute(MimeObject *obj, VObject *v, const char* id) 
+static int OutputVcardAttribute(MimeObject *obj, VObject *v, const char* id)
 {
   int status = 0;
   VObject *prop = NULL;
   char *string = NULL;
 
-  nsCOMPtr<nsIMsgVCardService> vCardService = 
+  nsCOMPtr<nsIMsgVCardService> vCardService =
              do_GetService(MSGVCARDSERVICE_CONTRACT_ID);
   if (!vCardService)
       return -1;
@@ -587,11 +586,11 @@ static int OutputBasicVcard(MimeObject *obj, VObject *v)
   char * namestring = NULL;
   char * emailstring = NULL;
 
-  nsCOMPtr<nsIMsgVCardService> vCardService = 
+  nsCOMPtr<nsIMsgVCardService> vCardService =
       do_GetService(MSGVCARDSERVICE_CONTRACT_ID);
   if (!vCardService)
       return -1;
-  
+
   /* get the name and email */
   prop = vCardService->IsAPropertyOf(v, VCFullNameProp);
   if (prop)
@@ -654,7 +653,7 @@ static int OutputBasicVcard(MimeObject *obj, VObject *v)
 
   status = OutputTable (obj, PR_FALSE, PR_FALSE, "0", "0", NULL);
   if (status < 0) {
-    PR_FREEIF (htmlLine); 
+    PR_FREEIF (htmlLine);
     return status;
   }
   if (htmlLine)
@@ -671,7 +670,7 @@ static int OutputBasicVcard(MimeObject *obj, VObject *v)
     }
 
     status = WriteLineToStream (obj, htmlLine, PR_TRUE);
-    PR_Free (htmlLine); 
+    PR_Free (htmlLine);
     if (status < 0) return status;
     status = OutputTableRowOrData (obj, PR_FALSE, PR_TRUE, NULL, NULL, NULL, NULL);
     if (status < 0) return status;
@@ -723,11 +722,11 @@ static int OutputAdvancedVcard(MimeObject *obj, VObject *v)
   char * emailstring = NULL;
   int numEmail = 0;
 
-  nsCOMPtr<nsIMsgVCardService> vCardService = 
+  nsCOMPtr<nsIMsgVCardService> vCardService =
       do_GetService(MSGVCARDSERVICE_CONTRACT_ID);
   if (!vCardService)
       return -1;
-  
+
   status = OutputTable (obj, PR_FALSE, PR_FALSE, "0", "0", NULL);
   if (status < 0) return status;
   /* beginning of first row */
@@ -742,7 +741,7 @@ static int OutputAdvancedVcard(MimeObject *obj, VObject *v)
   {
     if (VALUE_TYPE(prop))
     {
-      if (VALUE_TYPE(prop) != VCVT_RAW) 
+      if (VALUE_TYPE(prop) != VCVT_RAW)
       {
         namestring = vCardService->FakeCString(prop);
       }
@@ -785,7 +784,7 @@ static int OutputAdvancedVcard(MimeObject *obj, VObject *v)
   if (status < 0) return status;
   status = OutputTableRowOrData(obj, PR_TRUE, PR_TRUE, NULL, NULL, NULL, NULL);
   if (status < 0) return status;
-  
+
   /* beginning of second row */
   status = OutputTableRowOrData(obj, PR_TRUE, PR_FALSE, "LEFT", "TOP", NULL, NULL);
   if (status < 0) return status;
@@ -936,7 +935,7 @@ static int OutputAdvancedVcard(MimeObject *obj, VObject *v)
     prop2 = vCardService->IsAPropertyOf(prop, VCUseServer);
     if (prop2)
     {
-      if (VALUE_TYPE(prop2)) 
+      if (VALUE_TYPE(prop2))
       {
         namestring = vCardService->FakeCString(prop2);
         char *tString1 = NULL;
@@ -944,7 +943,7 @@ static int OutputAdvancedVcard(MimeObject *obj, VObject *v)
         {
           tString1 = VCardGetStringByID(VCARD_ADDR_DEFAULT_DLS);
         }
-        else 
+        else
         {
           if (nsCRT::strcmp (namestring, "1") == 0)
             tString1 = VCardGetStringByID(VCARD_ADDR_SPECIFIC_DLS);
@@ -952,8 +951,8 @@ static int OutputAdvancedVcard(MimeObject *obj, VObject *v)
             if (nsCRT::strcmp (namestring, "2") == 0)
               tString1 = VCardGetStringByID(VCARD_ADDR_HOSTNAMEIP);
         }
-        
-        if (tString1) 
+
+        if (tString1)
         {
           status = WriteLineToStream (obj, tString1, PR_FALSE);
         }
@@ -1015,7 +1014,7 @@ static int OutputAdvancedVcard(MimeObject *obj, VObject *v)
   if (status < 0) return status;
   status = OutputTableRowOrData(obj, PR_TRUE, PR_TRUE, NULL, NULL, NULL, NULL);
   if (status < 0) return status;
-  
+
   /* beginning of remaining rows */
   status = WriteOutVCardProperties (obj, v, &numEmail);
   if (status < 0) return status;
@@ -1035,11 +1034,11 @@ static int OutputButtons(MimeObject *obj, PRBool basic, VObject *v)
   char* vEscCard = NULL;
   int len = 0;
   char* rsrcString = NULL;
-  
+
   if (!obj->options->output_vcard_buttons_p)
     return status;
 
-  nsCOMPtr<nsIMsgVCardService> vCardService = 
+  nsCOMPtr<nsIMsgVCardService> vCardService =
       do_GetService(MSGVCARDSERVICE_CONTRACT_ID);
   if (!vCardService)
       return -1;
@@ -1059,20 +1058,20 @@ static int OutputButtons(MimeObject *obj, PRBool basic, VObject *v)
   if (basic)
   {
     rsrcString = VCardGetStringByID(VCARD_ADDR_VIEW_COMPLETE_VCARD);
-    htmlLine1 = PR_smprintf ("<FORM name=form1><INPUT type=reset value=\\\"%s\\\" onClick=\\\"showAdvanced%d();\\\"></INPUT></FORM>", 
+    htmlLine1 = PR_smprintf ("<FORM name=form1><INPUT type=reset value=\\\"%s\\\" onClick=\\\"showAdvanced%d();\\\"></INPUT></FORM>",
                               rsrcString, s_unique);
   }
-  else 
+  else
   {
     rsrcString = VCardGetStringByID(VCARD_ADDR_VIEW_CONDENSED_VCARD);
-    htmlLine1 = PR_smprintf ("<FORM name=form1><INPUT type=reset value=\\\"%s\\\" onClick=\\\"showBasic%d();\\\"></INPUT></FORM>", 
+    htmlLine1 = PR_smprintf ("<FORM name=form1><INPUT type=reset value=\\\"%s\\\" onClick=\\\"showBasic%d();\\\"></INPUT></FORM>",
                               rsrcString, s_unique);
   }
   PR_FREEIF(rsrcString);
 
   rsrcString = VCardGetStringByID(VCARD_MSG_ADD_TO_ADDR_BOOK);
   htmlLine2 = PR_smprintf("<FORM name=form1 METHOD=get ACTION=\"addbook:add?action=add\"><INPUT TYPE=hidden name=vcard VALUE=\"%s\"><INPUT type=submit value=\"%s\"></INPUT></FORM>",
-                           vEscCard, rsrcString); 
+                           vEscCard, rsrcString);
   PR_FREEIF(rsrcString);
 
   if (!htmlLine1 || !htmlLine2)
@@ -1080,7 +1079,7 @@ static int OutputButtons(MimeObject *obj, PRBool basic, VObject *v)
     status = VCARD_OUT_OF_MEMORY;
     goto FAIL;
   }
-  
+
   status = OutputTableRowOrData (obj, PR_FALSE, PR_FALSE, "LEFT", "TOP", NULL, NULL);
   if (status < 0) goto FAIL;
 
@@ -1122,12 +1121,12 @@ static int BeginLayer(MimeObject *obj, PRBool basic)
 
   if (basic)
   {
-    //CSS: START OF DIV   
+    //CSS: START OF DIV
     captionLine = PR_smprintf ("<DIV ID=basic%d style=\"position: 'absolute';\">", s_unique);
   }
   else
   {
-    //CSS: START OF DIV   
+    //CSS: START OF DIV
     captionLine = PR_smprintf ("<DIV ID=advanced%d style=\"position: 'absolute'; display: none;\">", s_unique);
   }
 
@@ -1201,9 +1200,9 @@ static int EndLayer(MimeObject *obj, PRBool basic, VObject* v)
   status = OutputTable (obj, PR_TRUE, PR_FALSE, NULL, NULL, NULL);
   if (status < 0) return status;
 
-  if (!basic) 
+  if (!basic)
   {
-    //CSS: END OF DIV   
+    //CSS: END OF DIV
     status = WriteEachLineToStream (obj, "</DIV>");
     if (status < 0) return status;
     status = WriteEachLineToStream (obj, "<P><SCRIPT>");
@@ -1223,8 +1222,8 @@ function showBasic%d()\
   var shortDiv = document.getElementById(\"basic%d\");\
   longDiv.setAttribute(\"style\", \"display:none;\");\
   shortDiv.setAttribute(\"style\", \"display:block;\");\
-};", 
-                        s_unique, s_unique, s_unique, 
+};",
+                        s_unique, s_unique, s_unique,
                         s_unique, s_unique, s_unique);
     if (captionLine)
       status = WriteEachLineToStream (obj, captionLine);
@@ -1233,7 +1232,7 @@ function showBasic%d()\
 
 
     status = WriteEachLineToStream (obj, "</SCRIPT></P>");
-  } 
+  }
   else {
     //CSS: END DIV
     status = WriteEachLineToStream (obj, "</DIV>");
@@ -1249,7 +1248,7 @@ static int WriteOutVCard (MimeObject *obj, VObject* v)
 
   status = BeginVCard (obj);
   if (status < 0) return status;
-  
+
   /* write out basic layer */
   status = BeginLayer(obj, PR_TRUE);
   if (status < 0) return status;
@@ -1274,11 +1273,11 @@ static int WriteOutVCard (MimeObject *obj, VObject* v)
 
 static void GetAddressProperties (VObject* o, char ** attribName)
 {
-  nsCOMPtr<nsIMsgVCardService> vCardService = 
+  nsCOMPtr<nsIMsgVCardService> vCardService =
         do_GetService(MSGVCARDSERVICE_CONTRACT_ID);
   if (!vCardService)
     return;
-    
+
   VObject* domProp = vCardService->IsAPropertyOf(o, VCDomesticProp);
   VObject* intlProp = vCardService->IsAPropertyOf(o, VCInternationalProp);
   VObject* postal = vCardService->IsAPropertyOf(o, VCPostalProp);
@@ -1317,7 +1316,7 @@ static void GetAddressProperties (VObject* o, char ** attribName)
 
 static void GetTelephoneProperties (VObject* o, char ** attribName)
 {
-  nsCOMPtr<nsIMsgVCardService> vCardService = 
+  nsCOMPtr<nsIMsgVCardService> vCardService =
     do_GetService(MSGVCARDSERVICE_CONTRACT_ID);
   if (!vCardService)
     return;
@@ -1371,7 +1370,7 @@ static void GetTelephoneProperties (VObject* o, char ** attribName)
 
 static void GetEmailProperties (VObject* o, char ** attribName)
 {
-  nsCOMPtr<nsIMsgVCardService> vCardService = 
+  nsCOMPtr<nsIMsgVCardService> vCardService =
     do_GetService(MSGVCARDSERVICE_CONTRACT_ID);
   if (!vCardService)
     return;
@@ -1453,16 +1452,16 @@ static int WriteOutEachVCardPhoneProperty (MimeObject *obj, VObject* o)
   char *value = NULL;
   int status = 0;
 
-  nsCOMPtr<nsIMsgVCardService> vCardService = 
+  nsCOMPtr<nsIMsgVCardService> vCardService =
       do_GetService(MSGVCARDSERVICE_CONTRACT_ID);
   if (!vCardService)
       return -1;
-  
-  if (vCardService->VObjectName(o)) 
+
+  if (vCardService->VObjectName(o))
   {
-    if (nsCRT::strcasecmp (VCTelephoneProp, vCardService->VObjectName(o)) == 0) 
+    if (nsCRT::strcasecmp (VCTelephoneProp, vCardService->VObjectName(o)) == 0)
     {
-      if (VALUE_TYPE(o)) 
+      if (VALUE_TYPE(o))
       {
         GetTelephoneProperties(o, &attribName);
         if (!attribName)
@@ -1515,7 +1514,7 @@ static int WriteOutVCardPhoneProperties (MimeObject *obj, VObject* v)
   VObjectIterator t;
   VObject *eachProp;
 
-  nsCOMPtr<nsIMsgVCardService> vCardService = 
+  nsCOMPtr<nsIMsgVCardService> vCardService =
     do_GetService(MSGVCARDSERVICE_CONTRACT_ID);
   if (!vCardService)
     return -1;
@@ -1540,11 +1539,11 @@ static int WriteOutEachVCardProperty (MimeObject *obj, VObject* o, int* numEmail
   char *value = NULL;
   int status = 0;
 
-  nsCOMPtr<nsIMsgVCardService> vCardService = 
+  nsCOMPtr<nsIMsgVCardService> vCardService =
       do_GetService(MSGVCARDSERVICE_CONTRACT_ID);
   if (!vCardService)
       return -1;
-  
+
   if (vCardService->VObjectName(o)) {
 
     if (nsCRT::strcasecmp (VCPhotoProp, vCardService->VObjectName(o)) == 0) {
@@ -1704,13 +1703,13 @@ static int WriteOutEachVCardProperty (MimeObject *obj, VObject* o, int* numEmail
       }
     }
 
-    if (!attribName) 
+    if (!attribName)
       return 0;
-  
+
   DOWRITE:
     OutputTableRowOrData(obj, PR_TRUE, PR_FALSE, "LEFT", "TOP", NULL, NULL);
     OutputTableRowOrData (obj, PR_FALSE, PR_FALSE, "LEFT", "TOP", NULL, NULL);
-    if (attribName) { 
+    if (attribName) {
       OutputTableRowOrData (obj, PR_FALSE, PR_FALSE, "LEFT", "TOP", NULL, NULL);
       status = WriteAttribute (obj, attribName);
       PR_Free (attribName);
@@ -1745,7 +1744,7 @@ static int WriteOutVCardProperties (MimeObject *obj, VObject* v, int* numEmail)
   VObjectIterator t;
   VObject *eachProp;
 
-  nsCOMPtr<nsIMsgVCardService> vCardService = 
+  nsCOMPtr<nsIMsgVCardService> vCardService =
     do_GetService(MSGVCARDSERVICE_CONTRACT_ID);
   if (!vCardService)
     return -1;
@@ -1805,7 +1804,7 @@ FindCharacterSet(MimeObject *obj)
 
       while (*ptr)
       {
-        if ( (*ptr == ' ') || (*ptr == ';') || (*ptr == nsCRT::CR) || (*ptr == nsCRT::LF) ) 
+        if ( (*ptr == ' ') || (*ptr == ';') || (*ptr == nsCRT::CR) || (*ptr == nsCRT::LF) )
         {
           *ptr = '\0';
           break;
@@ -1820,9 +1819,9 @@ FindCharacterSet(MimeObject *obj)
   return retCharSet;
 }
 
-static int 
-WriteLineToStream (MimeObject *obj, const char *line, PRBool aDoCharConversion) 
-{                                                                              
+static int
+WriteLineToStream (MimeObject *obj, const char *line, PRBool aDoCharConversion)
+{
   int     status = 0;
   char    *htmlLine;
   int     htmlLen ;
@@ -1856,7 +1855,7 @@ WriteLineToStream (MimeObject *obj, const char *line, PRBool aDoCharConversion)
   }
   else
     converted = (char *)line;
-  
+
   htmlLen = strlen(converted) + strlen("<DT></DT>") + 1;
   htmlLine = (char *) PR_MALLOC (htmlLen);
   if (htmlLine)
@@ -1870,7 +1869,7 @@ WriteLineToStream (MimeObject *obj, const char *line, PRBool aDoCharConversion)
   }
   else
     status = VCARD_OUT_OF_MEMORY;
-  
+
   if (converted != line)
     PR_FREEIF(converted);
 
@@ -1897,7 +1896,7 @@ static int WriteValue (MimeObject *obj, const char *value)
   return status;
 }
 
-extern "C" 
+extern "C"
 char *
 VCardGetStringByID(PRInt32 aMsgId)
 {
@@ -1912,9 +1911,9 @@ nsCOMPtr<nsIStringBundle>   stringBundle = nsnull;
   {
     const char* propertyURL = VCARD_URL;
 
-    nsCOMPtr<nsIStringBundleService> sBundleService = 
-             do_GetService(NS_STRINGBUNDLE_CONTRACTID, &res); 
-    if (NS_SUCCEEDED(res) && (nsnull != sBundleService)) 
+    nsCOMPtr<nsIStringBundleService> sBundleService =
+             do_GetService(NS_STRINGBUNDLE_CONTRACTID, &res);
+    if (NS_SUCCEEDED(res) && (nsnull != sBundleService))
     {
       res = sBundleService->CreateBundle(propertyURL, getter_AddRefs(stringBundle));
     }
@@ -1925,7 +1924,7 @@ nsCOMPtr<nsIStringBundle>   stringBundle = nsnull;
     PRUnichar *ptrv = nsnull;
     res = stringBundle->GetStringFromID(aMsgId, &ptrv);
 
-    if (NS_FAILED(res)) 
+    if (NS_FAILED(res))
       return nsCRT::strdup("???");
     else
     {
@@ -1962,7 +1961,7 @@ static int GenerateVCardData(MimeObject * aMimeObj, VObject* aVcard)
 
   vCardOutput = "<table class=\"moz-vcard-table\"> <tr> ";  // outer table plus the first (and only row) we use for this table
 
-  // we need to get an escaped vCard url to bind to our add to address book button 
+  // we need to get an escaped vCard url to bind to our add to address book button
   nsCOMPtr<nsIMsgVCardService> vCardService = do_GetService(MSGVCARDSERVICE_CONTRACT_ID);
   if (!vCardService)
       return -1;
@@ -1978,7 +1977,7 @@ static int GenerateVCardData(MimeObject * aMimeObj, VObject* aVcard)
   vCardOutput += "<td valign=\"top\"> <a class=\"moz-vcard-badge\" href=\"addbook:add?action=add?vcard=";
   vCardOutput += vEscCard; // the href is the vCard
   vCardOutput += "\"></a></td>";
-  
+
   // the 2nd cell in the outer table row is a nested table containing the actual vCard properties
   vCardOutput += "<td> <table id=\"moz-vcard-properties-table\"> <tr> ";
 
@@ -2008,7 +2007,7 @@ static int OutputBasicVcard(MimeObject *aMimeObj, VObject *aVcard, nsACString& v
   nsCOMPtr<nsIMsgVCardService> vCardService =  do_GetService(MSGVCARDSERVICE_CONTRACT_ID);
   if (!vCardService)
       return -1;
-  
+
   /* get the name and email */
   prop = vCardService->IsAPropertyOf(aVcard, VCFullNameProp);
   if (prop)
@@ -2019,7 +2018,7 @@ static int OutputBasicVcard(MimeObject *aMimeObj, VObject *aVcard, nsACString& v
         namestring.Adopt(vCardService->FakeCString(prop));
       else
         namestring.Adopt(vCardService->VObjectAnyValue(prop));
-      
+
       if (!namestring.IsEmpty())
       {
         vCardOutput += "<td class=\"moz-vcard-title-property\"> ";
@@ -2031,9 +2030,13 @@ static int OutputBasicVcard(MimeObject *aMimeObj, VObject *aVcard, nsACString& v
           if (urlstring.IsEmpty())
             vCardOutput += namestring;
           else
-            vCardOutput += nsPrintfCString(512, "<a href=""%s"" private>%s</a>", urlstring.get(), namestring.get());
+          {
+            char buf[512];
+            PR_snprintf(buf, 512, "<a href=""%s"" private>%s</a>", urlstring.get(), namestring.get());
+            vCardOutput.Append(buf);
+          }
         }
-        else 
+        else
           vCardOutput += namestring;
 
         /* get the email address */
@@ -2043,7 +2046,9 @@ static int OutputBasicVcard(MimeObject *aMimeObj, VObject *aVcard, nsACString& v
           emailstring.Adopt(vCardService->FakeCString(prop));
           if (!emailstring.IsEmpty())
           {
-            vCardOutput += nsPrintfCString(512, "&nbsp;&lt;<a href=""mailto:%s"" private>%s</a>&gt;", emailstring.get(), emailstring.get());
+            char buf[512];
+            PR_snprintf(buf, 512, "&nbsp;&lt;<a href=""mailto:%s"" private>%s</a>&gt;", emailstring.get(), emailstring.get());
+            vCardOutput.Append(buf);
           }
         } // if email address property
 
@@ -2068,7 +2073,7 @@ static int OutputBasicVcard(MimeObject *aMimeObj, VObject *aVcard, nsACString& v
   return 0;
 }
 
-static int OutputVcardAttribute(MimeObject *aMimeObj, VObject *aVcard, const char* id, nsACString& vCardOutput) 
+static int OutputVcardAttribute(MimeObject *aMimeObj, VObject *aVcard, const char* id, nsACString& vCardOutput)
 {
   int status = 0;
   VObject *prop = NULL;
@@ -2086,8 +2091,8 @@ static int OutputVcardAttribute(MimeObject *aMimeObj, VObject *aVcard, const cha
         string.Adopt(vCardService->FakeCString(prop));
       else
         string.Adopt(vCardService->VObjectAnyValue(prop));
-      
-      if (!string.IsEmpty()) 
+
+      if (!string.IsEmpty())
       {
         vCardOutput += "<tr> <td class=\"moz-vcard-property\">";
         vCardOutput += string;

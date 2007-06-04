@@ -506,7 +506,7 @@ static NS_METHOD RegisterMimeEmitter(nsIComponentManager *aCompMgr, nsIFile *aPa
   nsresult rv;
   nsCOMPtr<nsICategoryManager> catman = do_GetService(NS_CATEGORYMANAGER_CONTRACTID, &rv);
   if (NS_FAILED(rv)) return rv;
-  nsXPIDLCString previous;
+  nsCString previous;
   
   return catman->AddCategoryEntry("mime-emitter", info->mContractID, info->mContractID,
                                   PR_TRUE, PR_TRUE, getter_Copies(previous));
@@ -579,7 +579,7 @@ static NS_METHOD RegisterContentPolicy(nsIComponentManager *aCompMgr, nsIFile *a
   nsresult rv;
   nsCOMPtr<nsICategoryManager> catman = do_GetService(NS_CATEGORYMANAGER_CONTRACTID, &rv);
   if (NS_FAILED(rv)) return rv;
-  nsXPIDLCString previous;
+  nsCString previous;
   return catman->AddCategoryEntry("content-policy",
                                   NS_MSGCONTENTPOLICY_CONTRACTID,
                                   NS_MSGCONTENTPOLICY_CONTRACTID,

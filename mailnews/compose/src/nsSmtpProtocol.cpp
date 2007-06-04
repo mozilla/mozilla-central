@@ -74,7 +74,7 @@
 #include "nsIPrefService.h"
 #include "nsISignatureVerifier.h"
 #include "nsISSLSocketControl.h"
-#include "nsPrintfCString.h"
+
 
 #ifndef XP_UNIX
 #include <stdarg.h>
@@ -643,7 +643,10 @@ PRInt32 nsSmtpProtocol::SendHeloResponse(nsIInputStream * inputStream, PRUint32 
       buffer += fullAddress;
       buffer += ">";
       if(TestFlag(SMTP_EHLO_SIZE_ENABLED))
-        buffer += nsPrintfCString(" SIZE=%d", m_totalMessageSize);
+      {
+        buffer.Append(" SIZE=");
+        buffer.AppendInt(m_totalMessageSize);
+      }
       buffer += CRLF;
     }
     PR_Free (fullAddress);

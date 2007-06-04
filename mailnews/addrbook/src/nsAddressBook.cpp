@@ -1186,7 +1186,8 @@ NS_IMETHODIMP nsAddressBook::OnStreamComplete(nsIStreamLoader *aLoader, nsISuppo
     if (vObj)
     {
       PRInt32 len = 0;
-      nsAdoptingCString vCard(vCardService->WriteMemoryVObjects(0, &len, vObj, PR_FALSE));
+      nsCString vCard;
+      vCard.Adopt(vCardService->WriteMemoryVObjects(0, &len, vObj, PR_FALSE));
 
       nsCOMPtr <nsIAbCard> cardFromVCard;
       rv = EscapedVCardToAbCard(vCard.get(), getter_AddRefs(cardFromVCard));

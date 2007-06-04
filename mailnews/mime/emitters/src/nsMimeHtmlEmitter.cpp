@@ -49,7 +49,6 @@
 #include "nsIMimeStreamConverter.h"
 #include "nsIMsgWindow.h"
 #include "nsIMsgMailNewsUrl.h"
-#include "nsXPIDLString.h"
 #include "nsMimeTypes.h"
 #include "prtime.h"
 #include "nsReadableUtils.h"
@@ -161,7 +160,7 @@ nsresult nsMimeHtmlDisplayEmitter::BroadcastHeaders(nsIMsgHeaderSink * aHeaderSi
   // CStringArrays which we can pass into the enumerators
   nsCStringArray headerNameArray;
   nsCStringArray headerValueArray;
-  nsXPIDLCString extraExpandedHeaders;
+  nsCString extraExpandedHeaders;
   nsCStringArray extraExpandedHeadersArray;
   nsCAutoString convertedDateString;
 
@@ -176,7 +175,7 @@ nsresult nsMimeHtmlDisplayEmitter::BroadcastHeaders(nsIMsgHeaderSink * aHeaderSi
     if (!extraExpandedHeaders.IsEmpty())
     {
       ToLowerCase(extraExpandedHeaders);
-      extraExpandedHeadersArray.ParseString(extraExpandedHeaders, " ");
+      extraExpandedHeadersArray.ParseString(extraExpandedHeaders.get(), " ");
     }
 
   }
@@ -394,7 +393,7 @@ nsMimeHtmlDisplayEmitter::StartAttachment(const char *name,
   if (NS_SUCCEEDED(rv) && headerSink)
   {    
     char * escapedUrl = nsEscape(url, url_Path);
-    nsXPIDLCString uriString;
+    nsCString uriString;
 
     nsCOMPtr<nsIMsgMessageUrl> msgurl (do_QueryInterface(mURL, &rv));
     if (NS_SUCCEEDED(rv))
@@ -410,7 +409,7 @@ nsMimeHtmlDisplayEmitter::StartAttachment(const char *name,
 
     // we need to convert the attachment name from UTF-8 to unicode before
     // we emit it...
-    nsXPIDLString unicodeHeaderValue;
+    nsString unicodeHeaderValue;
 
     rv = NS_ERROR_FAILURE;  // use failure to mean that we couldn't decode
     if (mUnicodeConverter)
@@ -428,7 +427,7 @@ nsMimeHtmlDisplayEmitter::StartAttachment(const char *name,
     }
 
     headerSink->HandleAttachment(contentType, url /* was escapedUrl */,
-                                 unicodeHeaderValue, uriString,
+                                 unicodeHeaderValue.get(), uriString.get(),
                                  aIsExternalAttachment);
 
     nsCRT::free(escapedUrl);

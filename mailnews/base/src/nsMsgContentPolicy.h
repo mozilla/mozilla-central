@@ -79,7 +79,7 @@ public:
 protected:
   PRBool   mBlockRemoteImages;
   PRBool   mAllowPlugins;
-  nsAdoptingCString  mTrustedMailDomains;
+  nsCString mTrustedMailDomains;
 
   PRBool IsTrustedDomain(nsIURI * aContentLocation);
   nsresult AllowRemoteContentForSender(nsIMsgDBHdr * aMsgHdr, PRBool * aAllowForSender);
