@@ -58,6 +58,7 @@
 #include "prio.h"
 #include "prenv.h"
 #include "NSReg.h"
+#include "msgCore.h"
 
 // lots of includes required for the nsPrefMigration.cpp code that we copied:
 #include "nsICharsetConverterManager.h"
