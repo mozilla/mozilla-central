@@ -67,7 +67,6 @@
 #include "nsIMsgAccountManager.h"
 #include "nsITreeColumns.h"
 #include "nsTextFormatter.h"
-#include "nsMsgI18N.h"
 
 nsrefcnt nsMsgDBView::gInstanceCount	= 0;
 
@@ -439,18 +438,6 @@ nsresult nsMsgDBView::FetchSubject(nsIMsgDBHdr * aMsgHdr, PRUint32 aFlags, nsASt
   else
     aMsgHdr->GetMime2DecodedSubject(getter_Copies(aValue));
   return NS_OK;
-}
-
-nsresult nsMsgDBView::FetchPreviewText(nsIMsgDBHdr * aMsgHdr, nsAString& aValue)
-{
-  nsresult rv;
-  nsCString utf8PreviewText;
-  rv = aMsgHdr->GetStringProperty("preview", getter_Copies(utf8PreviewText));
-  if (NS_SUCCEEDED(rv) && utf8PreviewText.get())
-    // convert to unicode
-    rv = ConvertToUnicode("UTF-8", utf8PreviewText, aValue);
-
-  return rv;
 }
 
 // in case we want to play around with the date string, I've broken it out into
@@ -1673,18 +1660,7 @@ NS_IMETHODIMP nsMsgDBView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsAStr
   {
   case 's':
     if (colID[1] == 'u') // subject
-    {
       rv = FetchSubject(msgHdr, m_flags[aRow], aValue);
-      nsAutoString previewText;
-      nsresult rv2 = FetchPreviewText(msgHdr, previewText);
-      // We should append the preview text only when it was succeeded.
-      // So, even if it was failed, we should return the subject.
-      if (NS_SUCCEEDED(rv2) && !previewText.IsEmpty())
-      {
-        aValue.Append(NS_LITERAL_STRING(" - "));
-        aValue.Append(previewText);
-      }
-    }
     else if (colID[1] == 'e') // sender
       rv = FetchAuthor(msgHdr, aValue);
     else if (colID[1] == 'i') // size
