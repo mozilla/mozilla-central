@@ -46,7 +46,8 @@
   <property file="../build.properties"/>         <!-- java-supplement local -->
   <property environment="myenv" />
 
-  <property name="dist.home" value="${objdir}/${name}" />
+  <property name="dist.base" value="${objdir}/${name}" />
+  <property name="dist.home" value="${dist.base}/${name}_${version}" />
   <property name="dist.javadocs" value="${dist.home}/javadocs" />
   <property name="source.home" value="${basedir}/.." />
   <property name="moz.dist" value="${objdir}/dist" />
@@ -92,15 +93,16 @@
     </condition>
 
     <zip destfile="${objdir}/${name}_${version}_${platform}.zip" 
-         basedir="${dist.home}" />
+         basedir="${dist.base}" />
   </target>
 
   <target name="clean">
     <delete file="${objdir}/${name}_${version}_${platform}.zip"  />
-    <delete dir="${dist.home}" />
+    <delete dir="${dist.base}" />
   </target>
 
   <target name="prepare">
+    <mkdir dir="${dist.base}" />
     <mkdir dir="${dist.home}" />
     <mkdir dir="${dist.home}/lib" />
     <mkdir dir="${dist.home}/bin" />
