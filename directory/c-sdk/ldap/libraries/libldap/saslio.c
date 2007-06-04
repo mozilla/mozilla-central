@@ -493,7 +493,27 @@ nsldapi_sasl_close_socket(int s, struct lextiof_socket_private *arg )
 	arg = NULL;
 	/* arg is destroyed at this point - do not use it */
 
-	return ( origclose( s, origsock ) );
+	if (origclose )
+		return ( origclose( s, origsock ) );
+	else {
+		/* This is a copy of nsldapi_os_closesocket()
+		 * from os-ip.c. It is declared static there,
+		 * hence the copy of it.
+		 */
+	        int     rc;
+
+#ifdef NSLDAPI_AVOID_OS_SOCKETS
+		rc = -1;
+#else /* NSLDAPI_AVOID_OS_SOCKETS */
+#ifdef _WINDOWS
+		rc = closesocket( s );
+#else /* _WINDOWS */
+		rc = close( s );
+#endif /* _WINDOWS */
+#endif /* NSLDAPI_AVOID_OS_SOCKETS */
+		return( rc );
+	}
+		
 }
 
 /*
@@ -565,31 +585,34 @@ nsldapi_sasl_install( LDAP *ld, LDAPConn *lconn )
                 return( LDAP_LOCAL_ERROR );
         }
 
-        /* Set new values for the ext io funcs if there are any -
+	/* Always set the ext io close fn pointer to ensure we
+	 * clean up our sockarg context */
+	memset( &iofns, 0, sizeof(iofns));
+	/* first, copy struct - sets defaults */
+	iofns = sockarg->sess_io_fns;
+	iofns.lextiof_close = nsldapi_sasl_close_socket;
+	iofns.lextiof_session_arg = sockarg; /* needed for close and poll */
+
+        /* Set new values for the other ext io funcs if there are any -
            when using the native io fns (as opposed to prldap) there
            won't be any */
         if (  sockarg->sess_io_fns.lextiof_read != NULL ||
               sockarg->sess_io_fns.lextiof_write != NULL ||
               sockarg->sess_io_fns.lextiof_poll != NULL ||
-              sockarg->sess_io_fns.lextiof_connect != NULL ||
-              sockarg->sess_io_fns.lextiof_close != NULL ) {
-                memset( &iofns, 0, sizeof(iofns));
-				/* first, copy struct - sets defaults */
-				iofns = sockarg->sess_io_fns;
-				/* next, just reset those functions we want to override */
+              sockarg->sess_io_fns.lextiof_connect != NULL ) {
+		/* next, just reset those functions we want to override */
                 iofns.lextiof_read = nsldapi_sasl_read;
                 iofns.lextiof_write = nsldapi_sasl_write;
                 iofns.lextiof_poll = nsldapi_sasl_poll;
-                iofns.lextiof_close = nsldapi_sasl_close_socket;
-                iofns.lextiof_session_arg = sockarg; /* this is key in nsldapi_sasl_poll */
-                rc = ldap_set_option( ld, LDAP_X_OPT_EXTIO_FN_PTRS,
-                              &iofns );
-                if (rc != 0) {
-                        /* frees everything and resets fns above */
-                        nsldapi_sasl_close(sockarg);
-                        return( LDAP_LOCAL_ERROR );
-                }
         }
+
+	/* set the ext io funcs */
+	rc = ldap_set_option( ld, LDAP_X_OPT_EXTIO_FN_PTRS, &iofns );
+	if (rc != 0) {
+		/* frees everything and resets fns above */
+		nsldapi_sasl_close(sockarg);
+		return( LDAP_LOCAL_ERROR );
+	}
 
         /* set the new ber io funcs and socket arg */
         (void) memset( &fns, 0, LBER_X_EXTIO_FNS_SIZE);
