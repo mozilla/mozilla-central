@@ -1,27 +1,26 @@
-/* -*- Mode: javascript; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
- * Version: NPL 1.1/GPL 2.0/LGPL 2.1
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
- * The contents of this file are subject to the Mozilla Public
- * License Version 1.1 (the "License"); you may not use this file
- * except in compliance with the License. You may obtain a copy of
- * the License at http://www.mozilla.org/MPL/
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
  *
- * Software distributed under the License is distributed on an "AS
- * IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
- * implied. See the License for the specific language governing
- * rights and limitations under the License.
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
  *
- * The Original Code is mozilla.org code.
+ * The Original Code is Sun Microsystems code.
  *
- * The Initial Developer of the Original Code is Sun Microsystems, Inc.
- * Portions created by Sun Microsystems are Copyright (C) 2006 Sun
- * Microsystems, Inc. All Rights Reserved.
- *
- * Original Author: Daniel Boelzle (daniel.boelzle@sun.com)
+ * The Initial Developer of the Original Code is
+ * Sun Microsystems, Inc.
+ * Portions created by the Initial Developer are Copyright (C) 2007
+ * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -29,13 +28,15 @@
  * in which case the provisions of the GPL or the LGPL are applicable instead
  * of those above. If you wish to allow use of your version of this file only
  * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the NPL, indicate your
+ * use your version of this file under the terms of the MPL, indicate your
  * decision by deleting the provisions above and replace them with the notice
  * and other provisions required by the GPL or the LGPL. If you do not delete
  * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the NPL, the GPL or the LGPL.
+ * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
+
+const NS_ERROR_INVALID_ARG = Components.results.NS_ERROR_INVALID_ARG;
 
 //
 // Common netwerk errors:
@@ -115,7 +116,7 @@ const g_nsNetErrorCodes = [
     "The specified socket type could not be created."
     ];
 
-function netErrorToString( rc )
+function netErrorToString(rc)
 {
     if (!isNaN(rc) && getErrorModule(rc) == NS_ERROR_MODULE_NETWORK) {
         var i = 0;
@@ -127,7 +128,8 @@ function netErrorToString( rc )
             i += 2;
         }
     }
-    throw Components.results.NS_ERROR_INVALID_ARG;
+    throw new Components.Exception("No known network error code: " + rc.toString(0x10),
+                                   NS_ERROR_INVALID_ARG);
 }
 
 
@@ -140,11 +142,11 @@ const g_wcapErrorCodes = [
     /*  0 */ NS_OK, "Command successful.",
     /*  1 */ calIWcapErrors.WCAP_LOGIN_FAILED, "Login failed. Invalid session ID.",
     /*  2 */ calIWcapErrors.WCAP_LOGIN_OK_DEFAULT_CALENDAR_NOT_FOUND, "login.wcap was successful, but the default calendar for this user was not found. A new default calendar set to the userid was created.",
-    /*  3 */ Components.results.NS_ERROR_INVALID_ARG, "No WCAP error code.",
-    /*  4 */ Components.results.NS_ERROR_INVALID_ARG, "No WCAP error code.",
-    /*  5 */ Components.results.NS_ERROR_INVALID_ARG, "No WCAP error code.",
+    /*  3 */ NS_ERROR_INVALID_ARG, "No WCAP error code.",
+    /*  4 */ NS_ERROR_INVALID_ARG, "No WCAP error code.",
+    /*  5 */ NS_ERROR_INVALID_ARG, "No WCAP error code.",
     /*  6 */ calIWcapErrors.WCAP_DELETE_EVENTS_BY_ID_FAILED, "WCAP_DELETE_EVENTS_BY_ID_FAILED",
-    /*  7 */ Components.results.NS_ERROR_INVALID_ARG, "No WCAP error code.",
+    /*  7 */ NS_ERROR_INVALID_ARG, "No WCAP error code.",
     /*  8 */ calIWcapErrors.WCAP_SETCALPROPS_FAILED, "WCAP_SETCALPROPS_FAILED",
     /*  9 */ calIWcapErrors.WCAP_FETCH_EVENTS_BY_ID_FAILED, "WCAP_FETCH_EVENTS_BY_ID_FAILED",
     /* 10 */ calIWcapErrors.WCAP_CREATECALENDAR_FAILED, "WCAP_CREATECALENDAR_FAILED",
@@ -233,18 +235,18 @@ const g_wcapErrorCodes = [
     /* 87 */ calIWcapErrors.WCAP_ATTACHMENT_NOT_FOUND,
     "The attachent requested to be fetched or deleted from the server was not found.",
     /* / new by WCAP 4.0 */
-    /* 88 */ Components.results.NS_ERROR_INVALID_ARG, "No WCAP error code.",
-    /* 89 */ Components.results.NS_ERROR_INVALID_ARG, "No WCAP error code.",
-    /* 90 */ Components.results.NS_ERROR_INVALID_ARG, "No WCAP error code.",
-    /* 91 */ Components.results.NS_ERROR_INVALID_ARG, "No WCAP error code.",
-    /* 92 */ Components.results.NS_ERROR_INVALID_ARG, "No WCAP error code.",
-    /* 93 */ Components.results.NS_ERROR_INVALID_ARG, "No WCAP error code.",
-    /* 94 */ Components.results.NS_ERROR_INVALID_ARG, "No WCAP error code.",
-    /* 95 */ Components.results.NS_ERROR_INVALID_ARG, "No WCAP error code.",
-    /* 96 */ Components.results.NS_ERROR_INVALID_ARG, "No WCAP error code.",
-    /* 97 */ Components.results.NS_ERROR_INVALID_ARG, "No WCAP error code.",
-    /* 98 */ Components.results.NS_ERROR_INVALID_ARG, "No WCAP error code.",
-    /* 99 */ Components.results.NS_ERROR_INVALID_ARG, "No WCAP error code.",
+    /* 88 */ NS_ERROR_INVALID_ARG, "No WCAP error code.",
+    /* 89 */ NS_ERROR_INVALID_ARG, "No WCAP error code.",
+    /* 90 */ NS_ERROR_INVALID_ARG, "No WCAP error code.",
+    /* 91 */ NS_ERROR_INVALID_ARG, "No WCAP error code.",
+    /* 92 */ NS_ERROR_INVALID_ARG, "No WCAP error code.",
+    /* 93 */ NS_ERROR_INVALID_ARG, "No WCAP error code.",
+    /* 94 */ NS_ERROR_INVALID_ARG, "No WCAP error code.",
+    /* 95 */ NS_ERROR_INVALID_ARG, "No WCAP error code.",
+    /* 96 */ NS_ERROR_INVALID_ARG, "No WCAP error code.",
+    /* 97 */ NS_ERROR_INVALID_ARG, "No WCAP error code.",
+    /* 98 */ NS_ERROR_INVALID_ARG, "No WCAP error code.",
+    /* 99 */ NS_ERROR_INVALID_ARG, "No WCAP error code.",
     /* 11000 */ calIWcapErrors.WCAP_CDWP_ERR_MAX_CONNECTION_REACHED, "Maximum connections to back-end database reached. As connections are freed up, users can connect to the back-end.",
     /* 11001 */ calIWcapErrors.WCAP_CDWP_ERR_CANNOT_CONNECT, "Cannot connect to back-end server. Back-end machine might be down or DWP server is not up and running.",
     /* 11002 */ calIWcapErrors.WCAP_CDWP_ERR_CANNOT_RESOLVE_CALENDAR, "Front-end can’t resolve calendar to a particular back-end server.",
@@ -256,35 +258,41 @@ const g_wcapErrorCodes = [
     /* 11008 */ calIWcapErrors.WCAP_CDWP_ERR_CHECKVERSION_FAILED, "DWP version check failed."
     ];
 
-function wcapErrorToString( rc )
+function wcapErrorToString(rc)
 {
-    if (isNaN(rc))
-        throw Components.results.NS_ERROR_INVALID_ARG;
+    if (isNaN(rc)) {
+        throw new Components.Exception("No known WCAP error code: " + rc.toString(0x10),
+                                       NS_ERROR_INVALID_ARG);
+    }
     if (rc == calIWcapErrors.WCAP_NO_ERRNO)
         return "No WCAP errno (missing X-NSCP-WCAP-ERRNO).";
     
     var index = (rc - calIWcapErrors.WCAP_ERROR_BASE + 1);
     if (index >= 1 && index <= 108 &&
-        g_wcapErrorCodes[index * 2] != Components.results.NS_ERROR_INVALID_ARG)
+        g_wcapErrorCodes[index * 2] != NS_ERROR_INVALID_ARG)
     {
         return g_wcapErrorCodes[(index * 2) + 1];
     }
-    throw Components.results.NS_ERROR_INVALID_ARG;
+    throw new Components.Exception("No known WCAP error code: " + rc.toString(0x10),
+                                   NS_ERROR_INVALID_ARG);
 }
 
 function getWcapErrorCode(errno)
 {
+    if (errno == -5000) // semantically same error
+        errno = 59;
     var index = -1;
     if (errno >= -1 && errno <= 81)
         index = (errno + 1);
     else if (errno >= 11000 && errno <= 11008)
         index = (errno - 11000 + 100 + 1);
     if (index >= 0 &&
-        g_wcapErrorCodes[index * 2] != Components.results.NS_ERROR_INVALID_ARG)
+        g_wcapErrorCodes[index * 2] != NS_ERROR_INVALID_ARG)
     {
         return g_wcapErrorCodes[index * 2];
     }
-    throw Components.results.NS_ERROR_INVALID_ARG;
+    throw new Components.Exception("No known WCAP error no: " + errno,
+                                   NS_ERROR_INVALID_ARG);
 }
 
 function getWcapXmlErrno(xml)
@@ -315,14 +323,7 @@ function checkWcapErrno(errno, expectedErrno)
     if (expectedErrno === undefined)
         expectedErrno = 0; // i.e. Command successful.
     if (errno !== undefined && errno != expectedErrno) {
-        var rc;
-        try {
-            rc = getWcapErrorCode(errno);
-        }
-        catch (exc) {
-            throw new Components.Exception(
-                "No WCAP error no.", Components.results.NS_ERROR_INVALID_ARG);
-        }
+        var rc = getWcapErrorCode(errno);
         throw new Components.Exception(wcapErrorToString(rc), rc);
     }
 }
@@ -366,7 +367,7 @@ function errorToString(err)
     case null:
     case NS_OK:
         return "NS_OK";
-    case Components.results.NS_ERROR_INVALID_ARG:
+    case NS_ERROR_INVALID_ARG:
         return "NS_ERROR_INVALID_ARG";
     case Components.results.NS_ERROR_NO_INTERFACE:
         return "NS_ERROR_NO_INTERFACE";

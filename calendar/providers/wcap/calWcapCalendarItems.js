@@ -1,27 +1,26 @@
-/* -*- Mode: javascript; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
- * Version: NPL 1.1/GPL 2.0/LGPL 2.1
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
- * The contents of this file are subject to the Mozilla Public
- * License Version 1.1 (the "License"); you may not use this file
- * except in compliance with the License. You may obtain a copy of
- * the License at http://www.mozilla.org/MPL/
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
  *
- * Software distributed under the License is distributed on an "AS
- * IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
- * implied. See the License for the specific language governing
- * rights and limitations under the License.
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
  *
- * The Original Code is mozilla.org code.
+ * The Original Code is Sun Microsystems code.
  *
- * The Initial Developer of the Original Code is Sun Microsystems, Inc.
- * Portions created by Sun Microsystems are Copyright (C) 2006 Sun
- * Microsystems, Inc. All Rights Reserved.
- *
- * Original Author: Daniel Boelzle (daniel.boelzle@sun.com)
+ * The Initial Developer of the Original Code is
+ * Sun Microsystems, Inc.
+ * Portions created by the Initial Developer are Copyright (C) 2007
+ * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -29,11 +28,11 @@
  * in which case the provisions of the GPL or the LGPL are applicable instead
  * of those above. If you wish to allow use of your version of this file only
  * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the NPL, indicate your
+ * use your version of this file under the terms of the MPL, indicate your
  * decision by deleting the provisions above and replace them with the notice
  * and other provisions required by the GPL or the LGPL. If you do not delete
  * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the NPL, the GPL or the LGPL.
+ * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
 
@@ -286,6 +285,12 @@ function diffProperty(newItem, oldItem, propName) {
     return val;
 }
 
+const METHOD_PUBLISH = 1;
+const METHOD_REQUEST = 2;
+const METHOD_REPLY   = 4;
+const METHOD_CANCEL  = 8;
+const METHOD_UPDATE  = 256;
+
 calWcapCalendar.prototype.storeItem =
 function calWcapCalendar_storeItem(bAddItem, item, oldItem, request, netRespFunc)
 {
@@ -293,13 +298,13 @@ function calWcapCalendar_storeItem(bAddItem, item, oldItem, request, netRespFunc
     var bIsEvent = isEvent(item);
     var bIsParent = isParent(item);
     
-    var bAttendeeReply = false;
-    var bOrgRequest = false;
+    var method = METHOD_PUBLISH;
+    var bNoSmtpNotify = false;
     var params = "";
     
     var calId = this.calId;
     if (this.isInvitation(item)) { // REPLY
-        bAttendeeReply = true;
+        method = METHOD_REPLY;
         var att = getAttendeeByCalId(item.getAttendees({}), calId);
         if (att) {
             log("attendee: " + att.icalProperty.icalString, this);
@@ -378,19 +383,30 @@ function calWcapCalendar_storeItem(bAddItem, item, oldItem, request, netRespFunc
             }
         }
         
+        function getOrgId(item) {
+            return (item && item.organizer && item.organizer.id ? item.organizer.id : null);
+        }
+        var orgCalId = getCalId(item.organizer);
+        // xxx todo: mbu initially sets this ownerId:
+        if (!orgCalId) {
+            var orgId = getOrgId(item);
+            if (!orgId || (orgId == this.ownerId))
+                orgCalId = calId; // patch to this calid
+        }
+        
         var attendees = item.getAttendees({});
         if (attendees.length > 0) {
-            // xxx todo: why ever, X-S1CS-EMAIL is unsupported though documented
-            //           for calprops... WTF.
-            bOrgRequest = true;
+            // xxx todo: why ever, X-S1CS-EMAIL is unsupported though documented for calprops... WTF.
             function encodeAttendees(atts) {
-                function stringSort(one, two) {
+                function attendeeSort(one, two) {
+                    one = one.id;
+                    two = two.id;
                     if (one == two)
                         return 0;
                     return (one < two ? -1 : 1);
                 }
                 atts = atts.concat([]);
-                atts.sort(stringSort);
+                atts.sort(attendeeSort);
                 var ret = "";
                 for (var i = 0; i < atts.length; ++i) {
                     if (ret.length > 0)
@@ -401,13 +417,28 @@ function calWcapCalendar_storeItem(bAddItem, item, oldItem, request, netRespFunc
             }
             var attParam = encodeAttendees(attendees);
             if (!oldItem || attParam != encodeAttendees(oldItem.getAttendees({}))) {
-                params += ("&orgCalid=" + encodeURIComponent(calId));
                 params += ("&attendees=" + attParam);
             }
-        }
-        // else using just PUBLISH (method=1)
+            
+            if (orgCalId == calId)
+                method = METHOD_REQUEST;
+            else {
+                method = METHOD_UPDATE;
+                bNoSmtpNotify = true;
+            }
+        } // else using just PUBLISH
         else if (oldItem && oldItem.getAttendees({}).length > 0) {
             params += "&attendees="; // clear attendees
+        }
+        
+        if (orgCalId) {
+            if (!oldItem || (orgCalId != getCalId(oldItem.organizer)))
+                params += ("&orgCalid=" + encodeURIComponent(orgCalId));
+        }
+        else { // might be a copy of an iTIP invitation:
+            var orgEmail = getOrgId(item);
+            if (!oldItem || (getOrgId(oldItem) != orgEmail))
+                params += ("&orgEmail=" + encodeURIComponent(orgEmail));
         }
         
         var val = item.title;
@@ -486,6 +517,8 @@ function calWcapCalendar_storeItem(bAddItem, item, oldItem, request, netRespFunc
                 for each (var att in attachements) {
                     if (typeof(att) == "string")
                         strings.push(encodeURIComponent(att));
+                    else if (att instanceof Components.interfaces.calIAttachment)
+                        strings.push(encodeURIComponent(att.uri.spec));
                     else // xxx todo
                         logError("only URLs supported as attachment, not: " + att, this_);
                 }
@@ -505,9 +538,9 @@ function calWcapCalendar_storeItem(bAddItem, item, oldItem, request, netRespFunc
     
     var alarmParams = this.getAlarmParams(item);
     if (!oldItem || (this.getAlarmParams(oldItem) != alarmParams)) {
-        if (bOrgRequest && params.length == 0) {
+        if ((method == METHOD_REQUEST) && params.length == 0) {
             // assure no email notifications about this change:
-            params += "&smtp=0&smtpNotify=0";
+            bNoSmtpNotify = true;
         }
         params += alarmParams;
     }
@@ -546,12 +579,10 @@ function calWcapCalendar_storeItem(bAddItem, item, oldItem, request, netRespFunc
             params += ("&mod=1&rid=" + getIcalUTC(rid)); // THIS INSTANCE
         }
         
-        if (bOrgRequest)
-            params += "&method=2"; // REQUEST
-        else if (bAttendeeReply)
-            params += "&method=4"; // REPLY
-        // else PUBLISH (default)
-        
+        params += ("&method=" + method);
+        if (bNoSmtpNotify) {
+            params += "&smtp=0&smtpNotify=0&notify=0";
+        }
         params += "&replace=1"; // (update) don't append to any lists    
         params += "&fetch=1&relativealarm=1&compressed=1&recurring=1";
         params += "&emailorcalid=1&fmt-out=text%2Fcalendar";
@@ -747,6 +778,13 @@ function calWcapCalendar_deleteItem(item, listener)
             }
             params += ("&mod=1&rid=" + getIcalUTC(rid));
         }
+        
+        var orgCalId = getCalId(item.organizer);
+        if (!orgCalId || (orgCalId != this.calId)) {
+            // item does not belong to this user, so son't notify:
+            params += "&smtp=0&smtpNotify=0&notify=0";
+        }
+        
         params += "&fmt-out=text%2Fxml";
         
         this.issueNetworkRequest(
@@ -954,79 +992,78 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
     return items;
 };
 
-// calWcapCalendar.prototype.getItem = function( id, listener )
-// {
-//     // xxx todo: test
-//     // xxx todo: howto detect whether to call
-//     //           fetchevents_by_id ot fetchtodos_by_id?
-//     //           currently drag/drop is implemented for events only,
-//     //           try events first, fallback to todos... in the future...
-//     this.log( ">>>>>>>>>>>>>>>> getItem() call!");
-//     try {
-//         this.assureAccess(calIWcapCalendar.AC_COMP_READ);
+calWcapCalendar.prototype.getItem =
+function calWcapCalendar_getItem(id, listener)
+{
+    // xxx todo: test
+    // xxx todo: howto detect whether to call
+    //           fetchevents_by_id ot fetchtodos_by_id?
+    //           currently drag/drop is implemented for events only,
+    //           try events first, fallback to todos... in the future...
+    
+    var this_ = this;
+    var request = new calWcapRequest(
+        function getItem_resp(request, err, item) {
+            if (listener) {
+                listener.onOperationComplete(
+                    this_.superCalendar, getResultCode(err),
+                    calIOperationListener.GET,
+                    item.id, err ? err : item);
+            }
+            if (err)
+                this_.notifyError(err);
+        },
+        log("getItem() call: id=" + id, this));
+    
+    try {
+        if (!id)
+            throw new Components.Exception("no item id!");
+        var params = "&relativealarm=1&compressed=1&recurring=1";
+        params += "&emailorcalid=1&fmt-out=text%2Fcalendar&uid=";
+        params += encodeURIComponent(id);
         
-//         var this_ = this;
-//         var syncResponseFunc = function( wcapResponse ) {
-//             var icalRootComp = wcapResponse.data; // first statement, may throw
-//             var items = this_.parseItems(
-//                 icalRootComp,
-//                 calICalendar.ITEM_FILTER_ALL_ITEMS,
-//                 1, null, null );
-//             if (items.length < 1)
-//                 throw new Components.Exception("no such item!");
-//             if (items.length > 1) {
-//                 this_.notifyError(
-//                     "unexpected number of items: " + items.length );
-//             }
-//             item = items[0];
-//             if (listener) {
-//                 listener.onGetResult(
-//                     this_.superCalendar, NS_OK,
-//                     calIItemBase,
-//                     log("getItem(): success.", this_),
-//                     items.length, items );
-//                 listener.onOperationComplete(
-//                     this_.superCalendar, NS_OK,
-//                     calIOperationListener.GET,
-//                     items.length == 1 ? items[0].id : null, null );
-//                 this_.log( "item delivered." );
-//             }
-//         };
-        
-//         var params = ("&relativealarm=1&compressed=1&recurring=1" +
-//                       "&emailorcalid=1&fmt-out=text%2Fcalendar");
-//         params += ("&uid=" + encodeURIComponent(id));
-//         try {
-//             // xxx todo!!!!
-
-//             // most common: event
-//             this.session.issueSyncRequest(
-//                 this.getCommandUrl( "fetchevents_by_id" ) + params,
-//                 stringToIcal, syncResponseFunc );
-//         }
-//         catch (exc) {
-//             // try again, may be a task:
-//             this.session.issueSyncRequest(
-//                 this.getCommandUrl( "fetchtodos_by_id" ) + params,
-//                 stringToIcal, syncResponseFunc );
-//         }
-//     }
-//     catch (exc) {
-//         if (listener != null) {
-//             listener.onOperationComplete(
-//                 this.superCalendar, Components.results.NS_ERROR_FAILURE,
-//                 calIOperationListener.GET,
-//                 null, exc );
-//         }
-//         if (getResultCode(exc) == calIWcapErrors.WCAP_LOGIN_FAILED) {
-//             // silently ignore login failed, no calIObserver UI:
-//             this.logError( "getItem() ignored: " + errorToString(exc) );
-//         }
-//         else
-//             this.notifyError( exc );
-//     }
-//     this.log( "getItem() returning." );
-// };
+        function notifyResult(icalRootComp) {
+            var items = this_.parseItems(icalRootComp, calICalendar.ITEM_FILTER_ALL_ITEMS, 0, null, null);
+            if (items.length < 1)
+                throw new Components.Exception("no such item!");
+            if (items.length > 1)
+                this_.notifyError("unexpected number of items: " + items.length);
+            if (listener) {
+                listener.onGetResult(
+                    this_.superCalendar, NS_OK,
+                    calIItemBase, log("getItem(): success. id=" + id, this_),
+                    items.length, items);
+            }
+            request.execRespFunc(null, items[0]);
+        };
+        // most common: try events first
+        this.issueNetworkRequest(
+            request,
+            function fetchEventById_resp(err, icalRootComp) {
+                if (err) {
+                    if (getResultCode(err) != calIWcapErrors.WCAP_FETCH_EVENTS_BY_ID_FAILED)
+                        throw err;
+                    // try todos:
+                    this_.issueNetworkRequest(
+                        request,
+                        function fetchTodosById_resp(err, icalRootComp) {
+                            if (err)
+                                throw err;
+                            notifyResult(icalRootComp);
+                        },
+                        stringToIcal, "fetchtodos_by_id", params, calIWcapCalendar.AC_COMP_READ);
+                }
+                else {
+                    notifyResult(icalRootComp);
+                }
+            },
+            stringToIcal, "fetchevents_by_id", params, calIWcapCalendar.AC_COMP_READ);
+    }
+    catch (exc) {
+        request.execRespFunc(exc);
+    }
+    return request;
+};
 
 function getItemFilterParams(itemFilter)
 {

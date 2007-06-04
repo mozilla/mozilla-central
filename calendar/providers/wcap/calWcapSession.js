@@ -1,27 +1,26 @@
-/* -*- Mode: javascript; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
- * Version: NPL 1.1/GPL 2.0/LGPL 2.1
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
- * The contents of this file are subject to the Mozilla Public
- * License Version 1.1 (the "License"); you may not use this file
- * except in compliance with the License. You may obtain a copy of
- * the License at http://www.mozilla.org/MPL/
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
  *
- * Software distributed under the License is distributed on an "AS
- * IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
- * implied. See the License for the specific language governing
- * rights and limitations under the License.
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
  *
- * The Original Code is mozilla.org code.
+ * The Original Code is Sun Microsystems code.
  *
- * The Initial Developer of the Original Code is Sun Microsystems, Inc.
- * Portions created by Sun Microsystems are Copyright (C) 2006 Sun
- * Microsystems, Inc. All Rights Reserved.
- *
- * Original Author: Daniel Boelzle (daniel.boelzle@sun.com)
+ * The Initial Developer of the Original Code is
+ * Sun Microsystems, Inc.
+ * Portions created by the Initial Developer are Copyright (C) 2007
+ * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -29,11 +28,11 @@
  * in which case the provisions of the GPL or the LGPL are applicable instead
  * of those above. If you wish to allow use of your version of this file only
  * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the NPL, indicate your
+ * use your version of this file under the terms of the MPL, indicate your
  * decision by deleting the provisions above and replace them with the notice
  * and other provisions required by the GPL or the LGPL. If you do not delete
  * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the NPL, the GPL or the LGPL.
+ * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
 
@@ -413,7 +412,7 @@ calWcapSession.prototype = {
                         throw new Components.Exception(
                             "missing X-NSCP-WCAP-SESSION-ID in\n" + str);
                     }
-                    sessionId = prop.value;       
+                    sessionId = prop.value;
                     log("login succeeded: " + sessionId, this_);
                 }
                 catch (exc) {
@@ -461,8 +460,7 @@ calWcapSession.prototype = {
             // set BEFORE notification
             // (about to go offline, nsIOService.cpp).
             // WTF.
-            url = (this.sessionUri.spec + "logout.wcap?fmt-out=text%2Fxml&id=" +
-                   encodeURIComponent(this.m_sessionId));
+            url = (this.sessionUri.spec + "logout.wcap?fmt-out=text%2Fxml&id=" + this.m_sessionId);
             this.m_sessionId = null;
         }
         this.m_credentials = null;
@@ -568,42 +566,33 @@ calWcapSession.prototype = {
                         throw err;
                     this_.credentials.userPrefs = data;
                     log("installed user prefs.", this_);
-                    
-                    this_.issueNetworkRequest_(
-                        request,
-                        function calprops_resp(err, data) {
-                            if (err)
-                                throw err;
-                            // string to xml converter func without WCAP errno check:
-                            if (!data || data.length == 0) { // assuming time-out
-                                throw new Components.Exception(
-                                    "Login failed. Invalid session ID.",
-                                    calIWcapErrors.WCAP_LOGIN_FAILED);
-                            }
-                            var xml = getDomParser().parseFromString(data, "text/xml");
-                            var nodeList = xml.getElementsByTagName("iCal");
-                            for (var i = 0; i < nodeList.length; ++i) {
-                                var node = nodeList.item(i);
-                                var ar = filterXmlNodes("X-NSCP-CALPROPS-RELATIVE-CALID", node);
-                                if ((ar.length > 0) && (ar[0] == this_.defaultCalId)) {
-                                    checkWcapXmlErrno(node);
-                                    this_.defaultCalendar.m_calProps = node;
-                                    log("installed default cal props.", this_);
-                                    break;
+
+                    // set of subscribed calendars to be installed:
+                    var calIds = {};
+                    calIds[this_.defaultCalId] = true; // assure default one is included once
+                    if (getPref("calendar.wcap.subscriptions", false)) {
+                        var list = this_.getUserPreferences("X-NSCP-WCAP-PREF-icsSubscribed");
+                        for each (var item in list) {
+                            var ar = item.split(',');
+                            // ',', '$' are not encoded. ',' can be handled here. WTF.
+                            for each (var a in ar) {
+                                var dollar = a.indexOf('$');
+                                if (dollar >= 0) {
+                                    var calId = a.substring(0, dollar);
+                                    if (calId != this_.defaultCalId)
+                                        calIds[calId] = true;
                                 }
                             }
-                            if (!this_.defaultCalendar.m_calProps) {
-                                throw new Components.Exception(
-                                    "Login failed. Invalid session ID.",
-                                    calIWcapErrors.WCAP_LOGIN_FAILED);
-                            }
-                        },
-                        null, "search_calprops",
-                        "&fmt-out=text%2Fxml&searchOpts=3&calid=1&search-string=" +
-                        encodeURIComponent(this_.defaultCalId),
-                        sessionId);
-                    if (getPref("calendar.wcap.subscriptions", false))
-                        this_.installSubscribedCals(sessionId, request);
+                        }
+                    }
+
+                    if (getPref("calendar.wcap.no_get_calprops", false)) {
+                        // hack around the get/search calprops mess:
+                        this_.installCals_search_calprops(sessionId, calIds, request);
+                    }
+                    else {
+                        this_.installCals_get_calprops(sessionId, calIds, request);
+                    }
                 },
                 stringToXml, "get_userprefs",
                 "&fmt-out=text%2Fxml&userid=" + encodeURIComponent(this.credentials.userId),
@@ -670,27 +659,73 @@ calWcapSession.prototype = {
             stringToIcal, "get_all_timezones", "&fmt-out=text%2Fcalendar",
             sessionId);
     },
-    
-    installSubscribedCals:
-    function calWcapSession_installSubscribedCals(sessionId, request)
+
+    installCals_get_calprops:
+    function calWcapSession_installCals_get_calprops(sessionId, calIds, request)
     {
         var this_ = this;
-        // user may have dangling users referred in his subscription list, so
-        // retrieve each by each, don't break:
-        var list = this.getUserPreferences("X-NSCP-WCAP-PREF-icsSubscribed");
-        var calIds = {};
-        for each (var item in list) {
-            var ar = item.split(',');
-            // ',', '$' are not encoded. ',' can be handled here. WTF.
-            for each (var a in ar) {
-                var dollar = a.indexOf('$');
-                if (dollar >= 0) {
-                    var calId = a.substring(0, dollar);
-                    if (calId != this.defaultCalId)
-                        calIds[calId] = true;
+        function calprops_resp(err, data) {
+            if (err)
+                throw err;
+            // string to xml converter func without WCAP errno check:
+            if (!data || data.length == 0) { // assuming time-out
+                throw new Components.Exception(
+                    "Login failed. Invalid session ID.",
+                    calIWcapErrors.WCAP_LOGIN_FAILED);
+            }
+            var xml = getDomParser().parseFromString(data, "text/xml");
+            var nodeList = xml.getElementsByTagName("iCal");
+            for (var i = 0; i < nodeList.length; ++i) {
+                var node = nodeList.item(i);
+                var ar = filterXmlNodes("X-NSCP-CALPROPS-RELATIVE-CALID", node);
+                if (ar.length > 0) {
+                    var calId = ar[0];
+                    var cal = this_.m_subscribedCals[calId];
+                    if (!cal && calIds[calId]) {
+                        try {
+                            checkWcapXmlErrno(node);
+                            if (calId == this_.defaultCalId) {
+                                cal = this_.defaultCalendar;
+                                if (!cal.m_calProps) {
+                                    cal.m_calProps = node;
+                                    log("installed default cal props.", this_);
+                                }
+                            }
+                            else {
+                                cal = createWcapCalendar(this_, node);
+                                this_.m_subscribedCals[calId] = cal;
+                                getCalendarManager().registerCalendar(cal);
+                                log("installed subscribed calendar: " + calId, this_);
+                            }
+                        }
+                        catch (exc) { // ignore but log any errors on subscribed calendars:
+                            logError(exc, this_);
+                        }
+                    }
                 }
             }
+            if (!this_.defaultCalendar.m_calProps) { // fallback to search_calprops:
+                logError("cannot get default calprops, trying search_calprops...", this_);
+                this_.installCals_search_calprops(sessionId, calIds, request);
+            }
         }
+
+        var calidParam = "";
+        for (var calId in calIds) {
+            if (calidParam.length > 0)
+                calidParam += ";";
+            calidParam += encodeURIComponent(calId);
+        }
+        this_.issueNetworkRequest_(request, calprops_resp,
+                                   null, "get_calprops",
+                                   "&fmt-out=text%2Fxml&calid=" + calidParam,
+                                   sessionId);
+    },
+
+    installCals_search_calprops:
+    function calWcapSession_installCals_search_calprops(sessionId, calIds, request)
+    {
+        var this_ = this;
         var issuedSearchRequests = {};
         for (var calId in calIds) {
             if (!this_.m_subscribedCals[calId]) {
@@ -702,12 +737,16 @@ calWcapSession.prototype = {
                             if (result.length < 1)
                                 throw Components.results.NS_ERROR_UNEXPECTED;
                             for each (var cal in result) {
+                                // user may have dangling users referred in his subscription list, so
+                                // retrieve each by each, don't break:
                                 try {
                                     var calId = cal.calId;
                                     if (calIds[calId] && !this_.m_subscribedCals[calId]) {
                                         this_.m_subscribedCals[calId] = cal;
-                                        getCalendarManager().registerCalendar(cal);
-                                        log("installed subscribed calendar: " + calId, this_);
+                                        if (!cal.isDefaultCalendar) {
+                                            getCalendarManager().registerCalendar(cal);
+                                            log("installed subscribed calendar: " + calId, this_);
+                                        }
                                     }
                                 }
                                 catch (exc) { // ignore but log any errors on subscribed calendars:
@@ -750,7 +789,8 @@ calWcapSession.prototype = {
         if (!g_bShutdown) {
             for each (var cal in subscribedCals) {
                 try {
-                    getCalendarManager().unregisterCalendar(cal);
+                    if (!cal.isDefaultCalendar)
+                        getCalendarManager().unregisterCalendar(cal);
                 }
                 catch (exc) {
                     this.notifyError(exc);
@@ -762,9 +802,9 @@ calWcapSession.prototype = {
     getCommandUrl: function calWcapSession_getCommandUrl(wcapCommand, params, sessionId)
     {
         var url = this.sessionUri.spec;
-        url += (wcapCommand + ".wcap?appid=mozilla-calendar");
+        url += (wcapCommand + ".wcap?appid=mozilla-calendar&id=");
+        url += sessionId;
         url += params;
-        url += ("&id=" + encodeURIComponent(sessionId));
         return url;
     },
 
@@ -860,7 +900,14 @@ calWcapSession.prototype = {
     
     get defaultCalId() {
         var list = this.getUserPreferences("X-NSCP-WCAP-PREF-icsCalendar");
-        return (list.length > 0 ? list[0] : this.credentials.userId);
+        var id = null;
+        for each (var item in list) {
+            if (item.length > 0) {
+                id = item;
+                break;
+            }
+        }
+        return (id ? id : this.credentials.userId);
     },
     
     get isLoggedIn() {
@@ -954,8 +1001,13 @@ calWcapSession.prototype = {
                                 var calId = ar[0];
                                 var cal = this_.m_subscribedCals[calId];
                                 if (!cal) {
-                                    if (calId == this_.defaultCalId)
+                                    if (calId == this_.defaultCalId) {
                                         cal = this_.defaultCalendar;
+                                        if (!cal.m_calProps) {
+                                            cal.m_calProps = node;
+                                            log("installed default cal props.", this_);
+                                        }
+                                    }
                                     else
                                         cal = createWcapCalendar(this_, node);
                                 }
