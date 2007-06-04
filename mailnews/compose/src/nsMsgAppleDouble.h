@@ -51,7 +51,7 @@
 #define AppleDouble_h
 
 #include "msgCore.h"
-#include "nsMsgComposeStringBundle.h"
+#include "nsComposeStrings.h"
 #include "nsIOutputStream.h"
 
 #define NOERR			0
