@@ -1068,6 +1068,7 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
                                                  NSFileTypeForHFSTypeCode('ilht'),
                                                  NSFileTypeForHFSTypeCode('ilft'),
                                                  NSFileTypeForHFSTypeCode('LINK'),
+                                                 NSFileTypeForHFSTypeCode('TEXT'),
                                                  nil];
 
   BrowserWindowController* browserController = [self getMainWindowBrowserController];
