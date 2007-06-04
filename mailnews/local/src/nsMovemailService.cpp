@@ -137,7 +137,6 @@ nsMovemailService::Error(PRInt32 errorCode,
   if (NS_FAILED(rv))
     return;
 
-  nsresult rv;
   nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
   if (NS_FAILED(rv))
     return;
@@ -149,9 +148,9 @@ nsMovemailService::Error(PRInt32 errorCode,
   nsString errStr;
   // Format the error string if necessary
   if (params)
-      bundle->FormatStringFromID(errorCode, params, length, getter_Copies(errStr));
+    bundle->FormatStringFromID(errorCode, params, length, getter_Copies(errStr));
   else
-      bundle->GetStringFromID(errorCode, getter_Copies(errStr));
+    bundle->GetStringFromID(errorCode, getter_Copies(errStr));
 
   if (!errStr.IsEmpty()) {
     dialog->Alert(nsnull, errStr.get());
