@@ -566,7 +566,9 @@ int KeychainPrefChangedCallback(const char* inPref, void* unused)
 }
 
 - (void)expirationTimerFired:(NSTimer*)theTimer {
-  [self cacheKeychainEntry:nil forKey:[theTimer userInfo]];
+  // Ensure that the key will survive past the timer invalidation
+  NSString* key = [[[theTimer userInfo] retain] autorelease];
+  [self cacheKeychainEntry:nil forKey:key];
 }
 
 @end
