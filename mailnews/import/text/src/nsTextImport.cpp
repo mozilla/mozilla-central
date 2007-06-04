@@ -403,7 +403,7 @@ void ImportAddressImpl::ReportSuccess(nsString& name, nsString *pStream,
   pStream->Append(pText);
   nsTextFormatter::smprintf_free(pText);
   NS_Free(pFmt);
-  pStream->Append(PRUnichar(nsCRT::LF));
+  pStream->Append(PRUnichar('\n'));
 }
 
 void ImportAddressImpl::ReportError(PRInt32 errorNum, nsString& name,
@@ -418,7 +418,7 @@ void ImportAddressImpl::ReportError(PRInt32 errorNum, nsString& name,
   pStream->Append(pText);
   nsTextFormatter::smprintf_free(pText);
   NS_Free(pFmt);
-  pStream->Append(PRUnichar(nsCRT::LF));
+  pStream->Append(PRUnichar('\n'));
 }
 
 void ImportAddressImpl::SetLogs( nsString& success, nsString& error, PRUnichar **pError, PRUnichar **pSuccess)

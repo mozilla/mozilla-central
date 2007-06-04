@@ -313,7 +313,7 @@ nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, PRBool *pAbort, nsStrin
       if (IsFromLine( pBuffer, size))
       {
         char *pChar = pStart;
-        while ((pChar < pEnd) && (*pChar != nsCRT::CR) && (*(pChar+1) != nsCRT::LF))
+        while ((pChar < pEnd) && (*pChar != '\r') && (*(pChar+1) != '\n'))
           pChar++;
         
         if (pChar < pEnd)
@@ -350,10 +350,10 @@ nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, PRBool *pAbort, nsStrin
         
         // If the buffer doesn't end with CRLF then a line is broken into two blocks,
         // so save the incomplete line for later process when we read the next block.
-        if ( (size > 1) && !(*(pEnd - 2) == nsCRT::CR && *(pEnd - 1) == nsCRT::LF) )
+        if ( (size > 1) && !(*(pEnd - 2) == '\r' && *(pEnd - 1) == '\n') )
         {
           partialLineStart -= 2;
-          while ((partialLineStart >= pStart) && (*partialLineStart != nsCRT::CR) && (*(partialLineStart+1) != nsCRT::LF))
+          while ((partialLineStart >= pStart) && (*partialLineStart != '\r') && (*(partialLineStart+1) != '\n'))
             partialLineStart--;
           if (partialLineStart != (pEnd - 2))
             partialLineStart += 2; // skip over CRLF if we find them.
@@ -386,7 +386,7 @@ nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, PRBool *pAbort, nsStrin
             pEnd = pStart + size;
             if (partialLine.Length())
             {
-              while ((pStart < pEnd) && (*pStart != nsCRT::CR) && (*(pStart+1) != nsCRT::LF))
+              while ((pStart < pEnd) && (*pStart != '\r') && (*(pStart+1) != '\n'))
                 pStart++;
               if (pStart < pEnd)  // if we found a CRLF ..
                 pStart += 2;      // .. then copy that too.

@@ -2902,7 +2902,7 @@ NS_IMETHODIMP nsImapMailFolder::CopyDataToOutputStreamForAppend(nsIInputStream *
   start = m_copyState->m_dataBuffer;
   if (m_copyState->m_eatLF)
   {
-    if (*start == nsCRT::LF)
+    if (*start == '\n')
       start++;
     m_copyState->m_eatLF = PR_FALSE;
   }

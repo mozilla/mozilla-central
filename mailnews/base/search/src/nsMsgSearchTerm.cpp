@@ -823,7 +823,7 @@ nsresult nsMsgSearchTerm::MatchBody (nsIMsgSearchScopeTerm *scope, PRUint32 offs
       if (!compare.IsEmpty())
       {
         char startChar = (char) compare.CharAt(0);
-        if (startChar != nsCRT::CR && startChar != nsCRT::LF)
+        if (startChar != '\r' && startChar != '\n')
         {
           err = MatchString (compare.get(), folderCharset, &result);
           lines++; 

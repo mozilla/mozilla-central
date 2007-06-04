@@ -253,7 +253,7 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
       // If this line is blank, we're now done parsing headers, and should
       // now examine the content-type to create this "body" part.
       //
-      if (*line == nsCRT::CR || *line == nsCRT::LF)
+      if (*line == '\r' || *line == '\n')
       {
         if (obj->options->state->strippingPart)
         {
@@ -687,8 +687,8 @@ MimeMultipart_parse_child_line (MimeObject *obj, const char *line, PRInt32 lengt
    */
 
   /* Remove the trailing newline... */
-  if (length > 0 && line[length-1] == nsCRT::LF) length--;
-  if (length > 0 && line[length-1] == nsCRT::CR) length--;
+  if (length > 0 && line[length-1] == '\n') length--;
+  if (length > 0 && line[length-1] == '\r') length--;
 
   if (!first_line_p)
 	{

@@ -494,7 +494,7 @@ nsresult nsMapiHook::PopulateCompFields(lpnsMapiMessage aMessage,
   {
       nsString Body;
       CopyASCIItoUTF16(aMessage->lpszNoteText, Body);
-      if (Body.Last() != nsCRT::LF)
+      if (Body.Last() != '\n')
         Body.AppendLiteral(CRLF);
 
       if (Body.Find("<html>") == kNotFound)
@@ -693,7 +693,7 @@ nsresult nsMapiHook::PopulateCompFieldsWithConversion(lpnsMapiMessage aMessage,
       platformCharSet.Assign(nsMsgI18NFileSystemCharset());
     rv = ConvertToUnicode(platformCharSet.get(), (char *) aMessage->lpszNoteText, Body);
     if (NS_FAILED(rv)) return rv ;
-    if (Body.Last() != nsCRT::LF)
+    if (Body.Last() != '\n')
       Body.AppendLiteral(CRLF);
 
     if (Body.Find("<html>") == kNotFound)

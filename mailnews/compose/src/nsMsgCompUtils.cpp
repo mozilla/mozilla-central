@@ -1442,7 +1442,7 @@ mime_fix_header_1 (const char *string, PRBool addr_p, PRBool news_p)
   old_size = PL_strlen (string);
   new_size = old_size;
   for (i = 0; i < old_size; i++)
-    if (string[i] == nsCRT::CR || string[i] == nsCRT::LF)
+    if (string[i] == '\r' || string[i] == '\n')
       new_size += 2;
 
   new_string = (char *) PR_Malloc (new_size + 1);
@@ -1458,12 +1458,12 @@ mime_fix_header_1 (const char *string, PRBool addr_p, PRBool news_p)
 
   /* replace CR, LF, or CRLF with CRLF-TAB. */
   while (*in) {
-    if (*in == nsCRT::CR || *in == nsCRT::LF) {
-      if (*in == nsCRT::CR && in[1] == nsCRT::LF)
+    if (*in == '\r' || *in == '\n') {
+      if (*in == '\r' && in[1] == '\n')
         in++;
       in++;
-      *out++ = nsCRT::CR;
-      *out++ = nsCRT::LF;
+      *out++ = '\r';
+      *out++ = '\n';
       *out++ = '\t';
     }
     else
@@ -1637,13 +1637,13 @@ msg_make_filename_qtext(const char *srcText, PRBool stripCRLFs)
       */
     if (*s == '\\' || *s == '"' ||
       (!stripCRLFs &&
-       (*s == nsCRT::CR && (*(s+1) != nsCRT::LF ||
-               (*(s+1) == nsCRT::LF && (s+2) < end && !IS_SPACE(*(s+2)))))))
+       (*s == '\r' && (*(s+1) != '\n' ||
+               (*(s+1) == '\n' && (s+2) < end && !IS_SPACE(*(s+2)))))))
       *d++ = '\\';
 
-    if (*s == nsCRT::CR)
+    if (*s == '\r')
     {
-      if (stripCRLFs && *(s+1) == nsCRT::LF && (s+2) < end && IS_SPACE(*(s+2)))
+      if (stripCRLFs && *(s+1) == '\n' && (s+2) < end && IS_SPACE(*(s+2)))
         s += 2;     // skip CRLFLWSP
     }
     else

@@ -143,23 +143,23 @@ convert_and_send_buffer(char* buf, int length, PRBool convert_newlines_p,
   * terminated by CR then a second line that contains only NULL+LF. We need to ignore this second
   * line. See bug http://bugzilla.mozilla.org/show_bug.cgi?id=61412 for more information.
   ***/
-  if (length == 2 && buf[0] == 0x00 && buf[1] == nsCRT::LF)
+  if (length == 2 && buf[0] == 0x00 && buf[1] == '\n')
     return 0;
 #endif
 
   NS_ASSERTION(buf && length > 0, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
   if (!buf || length <= 0) return -1;
   newline = buf + length;
-  NS_ASSERTION(newline[-1] == nsCRT::CR || newline[-1] == nsCRT::LF, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
-  if (newline[-1] != nsCRT::CR && newline[-1] != nsCRT::LF) return -1;
+  NS_ASSERTION(newline[-1] == '\r' || newline[-1] == '\n', "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
+  if (newline[-1] != '\r' && newline[-1] != '\n') return -1;
 
   if (!convert_newlines_p)
 	{
 	}
 #if (MSG_LINEBREAK_LEN == 1)
   else if ((newline - buf) >= 2 &&
-		   newline[-2] == nsCRT::CR &&
-		   newline[-1] == nsCRT::LF)
+		   newline[-2] == '\r' &&
+		   newline[-1] == '\n')
 	{
 	  /* CRLF -> CR or LF */
 	  buf [length - 2] = MSG_LINEBREAK[0];
@@ -172,8 +172,8 @@ convert_and_send_buffer(char* buf, int length, PRBool convert_newlines_p,
 	  buf [length - 1] = MSG_LINEBREAK[0];
 	}
 #else
-  else if (((newline - buf) >= 2 && newline[-2] != nsCRT::CR) ||
-		   ((newline - buf) >= 1 && newline[-1] != nsCRT::LF))
+  else if (((newline - buf) >= 2 && newline[-2] != '\r') ||
+		   ((newline - buf) >= 1 && newline[-1] != '\n'))
 	{
 	  /* LF -> CRLF or CR -> CRLF */
 	  length++;
@@ -194,8 +194,8 @@ mime_LineBuffer (const char *net_buffer, PRInt32 net_buffer_size,
 				void *closure)
 {
   int status = 0;
-  if (*buffer_fpP > 0 && *bufferP && (*bufferP)[*buffer_fpP - 1] == nsCRT::CR &&
-	  net_buffer_size > 0 && net_buffer[0] != nsCRT::LF) {
+  if (*buffer_fpP > 0 && *bufferP && (*bufferP)[*buffer_fpP - 1] == '\r' &&
+	  net_buffer_size > 0 && net_buffer[0] != '\n') {
 	/* The last buffer ended with a CR.  The new buffer does not start
 	   with a LF.  This old buffer should be shipped out and discarded. */
 	NS_ASSERTION((PRUint32) *buffer_sizeP > *buffer_fpP, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
@@ -222,10 +222,10 @@ mime_LineBuffer (const char *net_buffer, PRInt32 net_buffer_size,
 			 seeing a line terminator.  This is to catch the case of the
 			 buffers splitting a CRLF pair, as in "FOO\r\nBAR\r" "\nBAZ\r\n".
 		   */
-		  if (*s == nsCRT::CR || *s == nsCRT::LF)
+		  if (*s == '\r' || *s == '\n')
 			{
 			  newline = s;
-			  if (newline[0] == nsCRT::CR)
+			  if (newline[0] == '\r')
 				{
 				  if (s == net_buffer_end - 1)
 					{
@@ -233,7 +233,7 @@ mime_LineBuffer (const char *net_buffer, PRInt32 net_buffer_size,
 					  newline = 0;
 					  break;
 					}
-				  else if (newline[1] == nsCRT::LF)
+				  else if (newline[1] == '\n')
 					/* CRLF seen; swallow both. */
 					newline++;
 				}

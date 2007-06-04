@@ -991,7 +991,7 @@ static void writeQPString(OFile *fp, const char *s)
   if (needsQuotedPrintable (s)) 
   {
     while (*p) {
-      if (*p == nsCRT::CR || *p == nsCRT::LF)
+      if (*p == '\r' || *p == '\n')
       {
         /* Whitespace cannot be allowed to occur at the end of the line.
         So we encode " \n" as " =\n\n", that is, the whitespace, a
@@ -1020,7 +1020,7 @@ static void writeQPString(OFile *fp, const char *s)
         }
 
         /* If its CRLF, swallow two chars instead of one. */
-        if (*p == nsCRT::CR && *(p+1) == nsCRT::LF)
+        if (*p == '\r' && *(p+1) == '\n')
           p++;
         white = PR_FALSE;
         current_column = 0;

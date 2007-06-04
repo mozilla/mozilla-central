@@ -394,7 +394,7 @@ NS_IMETHODIMP ImportOEMailImpl::FindMailboxes( nsIFile *pLoc, nsISupportsArray *
 void ImportOEMailImpl::AddLinebreak( nsString *pStream)
 {
   if (pStream)
-    pStream->Append( PRUnichar(nsCRT::LF));
+    pStream->Append( PRUnichar('\n'));
 }
 
 void ImportOEMailImpl::ReportSuccess( nsString& name, PRInt32 count, nsString *pStream)

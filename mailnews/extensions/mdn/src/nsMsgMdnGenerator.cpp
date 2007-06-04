@@ -814,9 +814,9 @@ nsresult nsMsgMdnGenerator::OutputAllHeaders()
         switch (*buf)
         {
         case 0:
-            if (*(buf+1) == nsCRT::LF)
+            if (*(buf+1) == '\n')
             {
-                // *buf = nsCRT::CR;
+                // *buf = '\r';
                 end = buf;
             }
             else if (*(buf+1) == 0)
@@ -825,11 +825,11 @@ nsresult nsMsgMdnGenerator::OutputAllHeaders()
                 *buf = '>';
             }
             break;
-        case nsCRT::CR:
+        case '\r':
             end = buf;
             *buf = 0;
             break;
-        case nsCRT::LF:
+        case '\n':
             if (buf > start && *(buf-1) == 0)
             {
                 start = buf + 1;
@@ -854,7 +854,7 @@ nsresult nsMsgMdnGenerator::OutputAllHeaders()
                 || !PL_strncasecmp(start, "From ", 5))
             {
                 while ( end < buf_end &&
-                        (*end == nsCRT::LF || *end == nsCRT::CR || *end == 0))
+                        (*end == '\n' || *end == '\r' || *end == 0))
                     end++;
                 start = end;
             }
@@ -866,7 +866,7 @@ nsresult nsMsgMdnGenerator::OutputAllHeaders()
                     return rv;
                 rv = WriteString(CRLF);
                 while ( end < buf_end &&
-                        (*end == nsCRT::LF || *end == nsCRT::CR || *end == 0))
+                        (*end == '\n' || *end == '\r' || *end == 0))
                     end++;
                 start = end;
             }

@@ -898,7 +898,7 @@ NS_IMETHODIMP nsMsgSaveAsListener::OnDataAvailable(nsIRequest* request,
       end = PL_strchr(start, '\r');
       if (!end)
           end = PL_strchr(start, '\n');
-      else if (*(end+1) == nsCRT::LF && linebreak_len == 0)
+      else if (*(end+1) == '\n' && linebreak_len == 0)
           linebreak_len = 2;
 
       if (linebreak_len == 0) // not initialize yet

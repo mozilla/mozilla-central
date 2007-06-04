@@ -255,7 +255,7 @@ void ImportComm4xMailImpl::ReportStatus( PRInt32 errorNum, nsString& name, nsStr
     nsresult rv = m_pBundleProxy->FormatStringFromID(errorNum, &fmtStr, 1, getter_Copies(statusStr));
     if (NS_SUCCEEDED (rv)) {
         pStream->Append (statusStr.get());
-        pStream->Append( PRUnichar(nsCRT::LF));
+        pStream->Append( PRUnichar('\n'));
     }
 
 }

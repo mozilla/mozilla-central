@@ -3337,7 +3337,7 @@ void nsImapProtocol::HandleMessageDownLoadLine(const char *line, PRBool isPartia
     if (MSG_LINEBREAK_LEN == 1 && !canonicalLineEnding)
     {
       PRBool lineEndsWithCRorLF = lineLength >= 1 &&
-        (cEndOfLine[-1] == nsCRT::CR || cEndOfLine[-1] == nsCRT::LF);
+        (cEndOfLine[-1] == '\r' || cEndOfLine[-1] == '\n');
       char *endOfLine;
       if (lineCopy && lineEndsWithCRorLF)  // true for most lines
       {
@@ -3356,10 +3356,10 @@ void nsImapProtocol::HandleMessageDownLoadLine(const char *line, PRBool isPartia
       }
 
       if (lineLength >= 2 &&
-        endOfLine[-2] == nsCRT::CR &&
-        endOfLine[-1] == nsCRT::LF)
+        endOfLine[-2] == '\r' &&
+        endOfLine[-1] == '\n')
       {
-        if(lineLength>=3 && endOfLine[-3] == nsCRT::CR) // CRCRLF
+        if(lineLength>=3 && endOfLine[-3] == '\r') // CRCRLF
         {
           endOfLine--;
           lineLength--;
@@ -3370,7 +3370,7 @@ void nsImapProtocol::HandleMessageDownLoadLine(const char *line, PRBool isPartia
         lineLength--;
       }
       else if (lineLength >= 1 &&
-        ((endOfLine[-1] == nsCRT::CR) || (endOfLine[-1] == nsCRT::LF)))
+        ((endOfLine[-1] == '\r') || (endOfLine[-1] == '\n')))
       {
         /* CR -> LF or LF -> CR */
         endOfLine[-1] = MSG_LINEBREAK[0];
@@ -3384,13 +3384,13 @@ void nsImapProtocol::HandleMessageDownLoadLine(const char *line, PRBool isPartia
     }
     else  // enforce canonical CRLF linebreaks
     {
-      if (lineLength==0 || lineLength == 1 && cEndOfLine[-1] == nsCRT::LF)
+      if (lineLength==0 || lineLength == 1 && cEndOfLine[-1] == '\n')
       {
         messageLine = CRLF;
         lineLength = 2;
       }
-      else if (cEndOfLine[-1] != nsCRT::LF || cEndOfLine[-2] != nsCRT::CR ||
-               lineLength >=3 && cEndOfLine[-3] == nsCRT::CR)
+      else if (cEndOfLine[-1] != '\n' || cEndOfLine[-2] != '\r' ||
+               lineLength >=3 && cEndOfLine[-3] == '\r')
       {
         // The line does not end in CRLF (or it ends in CRCRLF).
         // Copy line and leave enough room for two more chars (CR and LF).
@@ -3401,26 +3401,26 @@ void nsImapProtocol::HandleMessageDownLoadLine(const char *line, PRBool isPartia
         char *endOfLine = localMessageLine + lineLength;
         messageLine = localMessageLine;
 
-        if (lineLength>=3 && endOfLine[-1] == nsCRT::LF &&
-            endOfLine[-2] == nsCRT::CR)
+        if (lineLength>=3 && endOfLine[-1] == '\n' &&
+            endOfLine[-2] == '\r')
         {
           // CRCRLF -> CRLF
-          endOfLine[-2] = nsCRT::LF;
+          endOfLine[-2] = '\n';
           endOfLine[-1] = '\0';
           lineLength--;
         }
-        else if ((endOfLine[-1] == nsCRT::CR) || (endOfLine[-1] == nsCRT::LF))
+        else if ((endOfLine[-1] == '\r') || (endOfLine[-1] == '\n'))
         {
           // LF -> CRLF or CR -> CRLF
-          endOfLine[-1] = nsCRT::CR;
-          endOfLine[0]  = nsCRT::LF;
+          endOfLine[-1] = '\r';
+          endOfLine[0]  = '\n';
           endOfLine[1]  = '\0';
           lineLength++;
         }
         else // no eol characters at all
         {
-          endOfLine[0] = nsCRT::CR;
-          endOfLine[1] = nsCRT::LF;
+          endOfLine[0] = '\r';
+          endOfLine[1] = '\n';
           endOfLine[2] = '\0';
           lineLength += 2;
         }

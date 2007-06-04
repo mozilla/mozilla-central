@@ -136,7 +136,7 @@ MimeHeaders_parse_line (const char *buffer, PRInt32 size, MimeHeaders *hdrs)
   NS_ASSERTION(!hdrs->done_p, "1.22 <rhp@netscape.com> 22 Aug 1999 08:48");
   if (hdrs->done_p) return -1;
 
-  if (!buffer || size == 0 || *buffer == nsCRT::CR || *buffer == nsCRT::LF)
+  if (!buffer || size == 0 || *buffer == '\r' || *buffer == '\n')
 	{
 	  /* If this is a blank line, we're done.
 	   */
@@ -247,10 +247,10 @@ MimeHeaders_build_heads_list(MimeHeaders *hdrs)
   end = hdrs->all_headers + hdrs->all_headers_fp;
   for (s = hdrs->all_headers; s <= end-1; s++)
 	{
-	  if (s <= (end-1) && s[0] == nsCRT::CR && s[1] == nsCRT::LF) /* CRLF -> LF */
+	  if (s <= (end-1) && s[0] == '\r' && s[1] == '\n') /* CRLF -> LF */
 		s++;
 
-	  if ((s[0] == nsCRT::CR || s[0] == nsCRT::LF) &&			/* we're at a newline, and */
+	  if ((s[0] == '\r' || s[0] == '\n') &&			/* we're at a newline, and */
 		  (s >= (end-1) ||						/* we're at EOF, or */
 		   !(s[1] == ' ' || s[1] == '\t')))		/* next char is nonwhite */
 		hdrs->heads_size++;
@@ -275,7 +275,7 @@ MimeHeaders_build_heads_list(MimeHeaders *hdrs)
   while (s <= end)
 	{
 	SEARCH_NEWLINE:
-	  while (s <= end-1 && *s != nsCRT::CR && *s != nsCRT::LF)
+	  while (s <= end-1 && *s != '\r' && *s != '\n')
 		s++;
 
 	  if (s+1 >= end)
@@ -283,7 +283,7 @@ MimeHeaders_build_heads_list(MimeHeaders *hdrs)
 
 	  /* If "\r\n " or "\r\n\t" is next, that doesn't terminate the header. */
 	  else if (s+2 < end &&
-			   (s[0] == nsCRT::CR  && s[1] == nsCRT::LF) &&
+			   (s[0] == '\r'  && s[1] == '\n') &&
 			   (s[2] == ' ' || s[2] == '\t'))
 		{
 		  s += 3;
@@ -291,7 +291,7 @@ MimeHeaders_build_heads_list(MimeHeaders *hdrs)
 		}
 	  /* If "\r " or "\r\t" or "\n " or "\n\t" is next, that doesn't terminate
 		 the header either. */
-	  else if ((s[0] == nsCRT::CR  || s[0] == nsCRT::LF) &&
+	  else if ((s[0] == '\r'  || s[0] == '\n') &&
 			   (s[1] == ' ' || s[1] == '\t'))
 		{
 		  s += 2;
@@ -301,8 +301,8 @@ MimeHeaders_build_heads_list(MimeHeaders *hdrs)
 	  /* At this point, `s' points before a header-terminating newline.
 		 Move past that newline, and store that new position in `heads'.
 	   */
-	  if (*s == nsCRT::CR) s++;
-	  if (*s == nsCRT::LF) s++;
+	  if (*s == '\r') s++;
+	  if (*s == '\n') s++;
 
 	  if (s < end)
 		{
@@ -640,7 +640,7 @@ MIME_StripContinuations(char *original)
 	while(*p2)
 	{
 		/* p2 runs ahead at (CR and/or LF) */
-		if ((p2[0] == nsCRT::CR) || (p2[0] == nsCRT::LF))
+		if ((p2[0] == '\r') || (p2[0] == '\n'))
 		{
             p2++;
 		} else {

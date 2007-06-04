@@ -408,7 +408,7 @@ NS_IMETHODIMP ImportOutlookMailImpl::FindMailboxes( nsIFile *pLoc, nsISupportsAr
 void ImportOutlookMailImpl::AddLinebreak( nsString *pStream)
 {
 	if (pStream)
-		pStream->Append( PRUnichar(nsCRT::LF));
+		pStream->Append( PRUnichar('\n'));
 }
 
 void ImportOutlookMailImpl::ReportSuccess( nsString& name, PRInt32 count, nsString *pStream)

@@ -48,7 +48,7 @@
 // needed to search for addresses in address books
 #include "nsIAbMDBDirectory.h"
 
-#define EMPTY_MESSAGE_LINE(buf) (buf[0] == nsCRT::CR || buf[0] == nsCRT::LF || buf[0] == '\0')
+#define EMPTY_MESSAGE_LINE(buf) (buf[0] == '\r' || buf[0] == '\n' || buf[0] == '\0')
 
 class nsMsgSearchTerm : public nsIMsgSearchTerm
 {

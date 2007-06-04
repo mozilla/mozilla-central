@@ -754,7 +754,7 @@ nsresult EscapeFromSpaceLine(nsIOutputStream *outputStream, char *start, const c
   pChar = start;
   while (start < end)
   {
-    while ((pChar < end) && (*pChar != nsCRT::CR) && (*(pChar+1) != nsCRT::LF))
+    while ((pChar < end) && (*pChar != '\r') && (*(pChar+1) != '\n'))
       pChar++;
 
     if (pChar < end)
@@ -762,7 +762,7 @@ nsresult EscapeFromSpaceLine(nsIOutputStream *outputStream, char *start, const c
       // Found a line so check if it's a qualified "From " line.
       if (IsAFromSpaceLine(start, pChar))
         rv = outputStream->Write(">", 1, &written);
-      PRInt32 lineTerminatorCount = (*(pChar + 1) == nsCRT::LF) ? 2 : 1;
+      PRInt32 lineTerminatorCount = (*(pChar + 1) == '\n') ? 2 : 1;
       rv = outputStream->Write(start, pChar - start + lineTerminatorCount, &written);
       NS_ENSURE_SUCCESS(rv,rv);
       pChar += lineTerminatorCount;
@@ -1467,13 +1467,13 @@ NS_MSG_BASE void MsgStripQuotedPrintable (unsigned char *src)
         // first char after '=' isn't hex. check if it's a normal char
         // or a soft line break. If it's a soft line break, eat the
         // CR/LF/CRLF.
-        if (src[srcIdx + 1] == nsCRT::CR || src[srcIdx + 1] == nsCRT::LF)
+        if (src[srcIdx + 1] == '\r' || src[srcIdx + 1] == '\n')
         {
           srcIdx++; // soft line break, ignore the '=';
-          if (src[srcIdx] == nsCRT::CR || src[srcIdx] == nsCRT::LF)
+          if (src[srcIdx] == '\r' || src[srcIdx] == '\n')
           {
             srcIdx++;
-            if (src[srcIdx] == nsCRT::LF)
+            if (src[srcIdx] == '\n')
               srcIdx++;
           }
         }

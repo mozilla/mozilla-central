@@ -1786,7 +1786,7 @@ FindCharacterSet(MimeObject *obj)
     return nsnull;
   }
 
-  while ( (*cTypePtr) && (*cTypePtr != nsCRT::CR) && (*cTypePtr != nsCRT::LF) )
+  while ( (*cTypePtr) && (*cTypePtr != '\r') && (*cTypePtr != '\n') )
   {
     tCharSet  = (char *) PL_strcasestr(cTypePtr, "charset=");
     if (tCharSet )
@@ -1804,7 +1804,7 @@ FindCharacterSet(MimeObject *obj)
 
       while (*ptr)
       {
-        if ( (*ptr == ' ') || (*ptr == ';') || (*ptr == nsCRT::CR) || (*ptr == nsCRT::LF) )
+        if ( (*ptr == ' ') || (*ptr == ';') || (*ptr == '\r') || (*ptr == '\n') )
         {
           *ptr = '\0';
           break;

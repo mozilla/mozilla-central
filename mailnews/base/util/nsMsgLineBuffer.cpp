@@ -119,8 +119,8 @@ nsMsgLineBuffer::SetLookingForCRLF(PRBool b)
 PRInt32	nsMsgLineBuffer::BufferInput(const char *net_buffer, PRInt32 net_buffer_size)
 {
     int status = 0;
-    if (m_bufferPos > 0 && m_buffer && m_buffer[m_bufferPos - 1] == nsCRT::CR &&
-        net_buffer_size > 0 && net_buffer[0] != nsCRT::LF) {
+    if (m_bufferPos > 0 && m_buffer && m_buffer[m_bufferPos - 1] == '\r' &&
+        net_buffer_size > 0 && net_buffer[0] != '\n') {
         /* The last buffer ended with a CR.  The new buffer does not start
            with a LF.  This old buffer should be shipped out and discarded. */
         PR_ASSERT(m_bufferSize > m_bufferPos);
@@ -146,15 +146,15 @@ PRInt32	nsMsgLineBuffer::BufferInput(const char *net_buffer, PRInt32 net_buffer_
                seeing a line terminator.  This is to catch the case of the
                buffers splitting a CRLF pair, as in "FOO\r\nBAR\r" "\nBAZ\r\n".
             */
-            if (*s == nsCRT::CR || *s == nsCRT::LF) {
+            if (*s == '\r' || *s == '\n') {
               newline = s;
-              if (newline[0] == nsCRT::CR) {
+              if (newline[0] == '\r') {
                 if (s == net_buffer_end - 1) {
                   /* CR at end - wait for the next character. */
                   newline = 0;
                   break;
                 }
-                else if (newline[1] == nsCRT::LF) {
+                else if (newline[1] == '\n') {
                   /* CRLF seen; swallow both. */
                   newline++;
                 }
@@ -165,7 +165,7 @@ PRInt32	nsMsgLineBuffer::BufferInput(const char *net_buffer, PRInt32 net_buffer_
           }
           else {
             /* if not looking for a CRLF, stop at CR or LF.  (for example, when parsing the newsrc file).  this fixes #9896, where we'd lose the last line of anything we'd parse that used CR as the line break. */
-            if (*s == nsCRT::CR || *s == nsCRT::LF) {
+            if (*s == '\r' || *s == '\n') {
               newline = s;
               newline++;
               break;
@@ -229,16 +229,16 @@ PRInt32 nsMsgLineBuffer::ConvertAndSendBuffer()
         return -1;
     newline = buf + length;
     
-    PR_ASSERT(newline[-1] == nsCRT::CR || newline[-1] == nsCRT::LF);
-    if (newline[-1] != nsCRT::CR && newline[-1] != nsCRT::LF)
+    PR_ASSERT(newline[-1] == '\r' || newline[-1] == '\n');
+    if (newline[-1] != '\r' && newline[-1] != '\n')
         return -1;
     
     if (m_convertNewlinesP)
     {
 #if (MSG_LINEBREAK_LEN == 1)
       if ((newline - buf) >= 2 &&
-           newline[-2] == nsCRT::CR &&
-           newline[-1] == nsCRT::LF)
+           newline[-2] == '\r' &&
+           newline[-1] == '\n')
       {
         /* CRLF -> CR or LF */
         buf [length - 2] = MSG_LINEBREAK[0];
@@ -251,8 +251,8 @@ PRInt32 nsMsgLineBuffer::ConvertAndSendBuffer()
         buf [length - 1] = MSG_LINEBREAK[0];
       }
 #else
-      if (((newline - buf) >= 2 && newline[-2] != nsCRT::CR) ||
-               ((newline - buf) >= 1 && newline[-1] != nsCRT::LF))
+      if (((newline - buf) >= 2 && newline[-2] != '\r') ||
+               ((newline - buf) >= 1 && newline[-1] != '\n'))
       {
         /* LF -> CRLF or CR -> CRLF */
         length++;

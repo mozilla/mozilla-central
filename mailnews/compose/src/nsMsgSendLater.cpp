@@ -194,7 +194,7 @@ FindEOL(char *inBuf, char *buf_end)
   while (buf <= buf_end)
     if (*buf == 0) 
       return buf;
-    else if ( (*buf == nsCRT::LF) || (*buf == nsCRT::CR) )
+    else if ( (*buf == '\n') || (*buf == '\r') )
     {
       findLoc = buf;
       break;
@@ -207,8 +207,8 @@ FindEOL(char *inBuf, char *buf_end)
   else if ((findLoc + 1) > buf_end)
     return buf;
 
-  if ( (*findLoc == nsCRT::LF && *(findLoc+1) == nsCRT::CR) || 
-       (*findLoc == nsCRT::CR && *(findLoc+1) == nsCRT::LF))
+  if ( (*findLoc == '\n' && *(findLoc+1) == '\r') || 
+       (*findLoc == '\r' && *(findLoc+1) == '\n'))
     findLoc++; // possibly a pair.       
   return findLoc;
 }
@@ -877,14 +877,14 @@ nsMsgSendLater::BuildHeaders()
     value = buf;
 
 SEARCH_NEWLINE:
-    while (*buf != 0 && *buf != nsCRT::CR && *buf != nsCRT::LF)
+    while (*buf != 0 && *buf != '\r' && *buf != '\n')
       buf++;
 
     if (buf+1 >= buf_end)
       ;
     // If "\r\n " or "\r\n\t" is next, that doesn't terminate the header.
     else if (buf+2 < buf_end &&
-         (buf[0] == nsCRT::CR  && buf[1] == nsCRT::LF) &&
+         (buf[0] == '\r'  && buf[1] == '\n') &&
          (buf[2] == ' ' || buf[2] == '\t'))
     {
       buf += 3;
@@ -892,7 +892,7 @@ SEARCH_NEWLINE:
     }
     // If "\r " or "\r\t" or "\n " or "\n\t" is next, that doesn't terminate
     // the header either. 
-    else if ((buf[0] == nsCRT::CR  || buf[0] == nsCRT::LF) &&
+    else if ((buf[0] == '\r'  || buf[0] == '\n') &&
          (buf[1] == ' ' || buf[1] == '\t'))
     {
       buf += 2;
@@ -934,9 +934,9 @@ SEARCH_NEWLINE:
       }
     }
 
-    if (*buf == nsCRT::CR || *buf == nsCRT::LF)
+    if (*buf == '\r' || *buf == '\n')
     {
-      if (*buf == nsCRT::CR && buf[1] == nsCRT::LF)
+      if (*buf == '\r' && buf[1] == '\n')
       buf++;
       buf++;
     }
@@ -953,8 +953,8 @@ SEARCH_NEWLINE:
     }
   }
 
-  m_headers[m_headersFP++] = nsCRT::CR;
-  m_headers[m_headersFP++] = nsCRT::LF;
+  m_headers[m_headersFP++] = '\r';
+  m_headers[m_headersFP++] = '\n';
 
   // Now we have parsed out all of the headers we need and we 
   // can proceed.
@@ -1000,11 +1000,11 @@ nsMsgSendLater::DeliverQueuedLine(char *line, PRInt32 length)
   
 // convert existing newline to CRLF 
 // Don't need this because the calling routine is taking care of it.
-//  if (length > 0 && (line[length-1] == nsCRT::CR || 
-//     (line[length-1] == nsCRT::LF && (length < 2 || line[length-2] != nsCRT::CR))))
+//  if (length > 0 && (line[length-1] == '\r' || 
+//     (line[length-1] == '\n' && (length < 2 || line[length-2] != '\r'))))
 //  {
-//    line[length-1] = nsCRT::CR;
-//    line[length++] = nsCRT::LF;
+//    line[length-1] = '\r';
+//    line[length++] = '\n';
 //  }
 //
   //
@@ -1041,7 +1041,7 @@ nsMsgSendLater::DeliverQueuedLine(char *line, PRInt32 length)
       PR_FREEIF(mIdentityKey);
     }
     
-    if (line[0] == nsCRT::CR || line[0] == nsCRT::LF || line[0] == 0)
+    if (line[0] == '\r' || line[0] == '\n' || line[0] == 0)
     {
       // End of headers.  Now parse them; open the temp file;
       // and write the appropriate subset of the headers out. 

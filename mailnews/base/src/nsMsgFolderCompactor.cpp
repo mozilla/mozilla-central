@@ -582,10 +582,10 @@ void nsFolderCompactState::AdvanceToNextLine(const char *buffer, PRUint32 &buffe
 {
   for (; bufferOffset < maxBufferOffset; bufferOffset++)
   {
-    if (buffer[bufferOffset] == nsCRT::CR || buffer[bufferOffset] == nsCRT::LF)
+    if (buffer[bufferOffset] == '\r' || buffer[bufferOffset] == '\n')
     {
       bufferOffset++;
-      if (buffer[bufferOffset- 1] == nsCRT::CR && buffer[bufferOffset] == nsCRT::LF)
+      if (buffer[bufferOffset- 1] == '\r' && buffer[bufferOffset] == '\n')
         bufferOffset++;
       break;
     }

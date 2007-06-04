@@ -954,7 +954,7 @@ nsMsgNewsFolder::HandleNewsrcLine(const char * line, PRUint32 line_size)
   nsresult rv;
 
   /* guard against blank line lossage */
-  if (line[0] == '#' || line[0] == nsCRT::CR || line[0] == nsCRT::LF) return 0;
+  if (line[0] == '#' || line[0] == '\r' || line[0] == '\n') return 0;
 
   if ((line[0] == 'o' || line[0] == 'O') &&
     !PL_strncasecmp (line, "options", 7))

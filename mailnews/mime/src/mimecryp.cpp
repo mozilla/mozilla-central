@@ -387,7 +387,7 @@ MimeHandleDecryptedOutputLine (char *line, PRInt32 length, MimeObject *obj)
   /* If this line is blank, we're now done parsing headers, and should
 	 examine our content-type to create our "body" part.
    */
-  if (*line == nsCRT::CR || *line == nsCRT::LF)
+  if (*line == '\r' || *line == '\n')
 	{
 	  status = MimeEncrypted_close_headers(obj);
 	  if (status < 0) return status;

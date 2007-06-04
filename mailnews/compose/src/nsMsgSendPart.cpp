@@ -282,24 +282,24 @@ int nsMsgSendPart::PushBody(const char* buffer, PRInt32 length)
     for (; in < end; in++) {
       if (m_just_hit_CR) {
         m_just_hit_CR = PR_FALSE;
-        if (*in == nsCRT::LF) {
+        if (*in == '\n') {
           // The last thing we wrote was a CRLF from hitting a CR.
           // So, we don't want to do anything from a following LF;
           // we want to ignore it.
           continue;
         }
       }
-      if (*in == nsCRT::CR || *in == nsCRT::LF) {
+      if (*in == '\r' || *in == '\n') {
         /* Write out the newline. */
-        *out++ = nsCRT::CR;
-        *out++ = nsCRT::LF;
+        *out++ = '\r';
+        *out++ = '\n';
         
         status = mime_write_message_body(m_state, buffer,
           out - buffer);
         if (status < 0) return status;
         out = buffer;
         
-        if (*in == nsCRT::CR) {
+        if (*in == '\r') {
           m_just_hit_CR = PR_TRUE;
         }
         
@@ -390,11 +390,11 @@ divide_content_headers(const char *headers,
       /* Loop until we reach a newline that is not followed by whitespace.
         */
         if (tail[0] == 0 ||
-          ((tail[0] == nsCRT::CR || tail[0] == nsCRT::LF) &&
-          !(tail[1] == ' ' || tail[1] == '\t' || tail[1] == nsCRT::LF)))
+          ((tail[0] == '\r' || tail[0] == '\n') &&
+          !(tail[1] == ' ' || tail[1] == '\t' || tail[1] == '\n')))
         {
           /* Swallow the whole newline. */
-          if (tail[0] == nsCRT::CR && tail[1] == nsCRT::LF)
+          if (tail[0] == '\r' && tail[1] == '\n')
             tail++;
           if (*tail)
             tail++;
@@ -601,9 +601,9 @@ nsMsgSendPart::Write()
 
       L = PL_strlen(content_type_header);
       
-      if (content_type_header[L-1] == nsCRT::LF)
+      if (content_type_header[L-1] == '\n')
         content_type_header[--L] = 0;
-      if (content_type_header[L-1] == nsCRT::CR)
+      if (content_type_header[L-1] == '\r')
         content_type_header[--L] = 0;
       
       ct2 = PR_smprintf("%s;\r\n boundary=\"%s\"" CRLF, content_type_header, separator);

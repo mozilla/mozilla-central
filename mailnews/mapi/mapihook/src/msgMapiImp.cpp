@@ -744,7 +744,7 @@ char *MsgMapiListContext::ConvertBodyToMapiFormat (nsIMsgDBHdr *hdr)
 {
   const int kBufLen = 64000; // I guess we only return the first 64K of a message.
   int bytesUsed = 0;
-#define EMPTY_MESSAGE_LINE(buf) (buf[0] == nsCRT::CR || buf[0] == nsCRT::LF || buf[0] == '\0')
+#define EMPTY_MESSAGE_LINE(buf) (buf[0] == '\r' || buf[0] == '\n' || buf[0] == '\0')
 
   nsCOMPtr <nsIMsgFolder> folder;
   hdr->GetFolder(getter_AddRefs(folder));

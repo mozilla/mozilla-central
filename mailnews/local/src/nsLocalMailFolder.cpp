@@ -2292,7 +2292,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::CopyData(nsIInputStream *aIStream, PRInt32 a
 
     //need to set the linebreak_len each time
     PRUint32 linebreak_len = 1; //assume CR or LF
-    if (*end == nsCRT::CR && *(end+1) == nsCRT::LF)
+    if (*end == '\r' && *(end+1) == '\n')
       linebreak_len = 2;  //CRLF
 
     if (!mCopyState->m_fromLineSeen)

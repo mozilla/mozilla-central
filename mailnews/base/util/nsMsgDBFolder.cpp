@@ -4815,7 +4815,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetMsgTextFromStream(nsIMsgDBHdr *msgHdr, nsIInputS
         }
         msgText.Append(curLine);
         if (!isBase64) // don't append a LF for base64 encoded text
-          msgText.Append(nsCRT::LF); // put a LF back, we'll strip this out later
+          msgText.Append('\n'); // put a LF back, we'll strip this out later
 
         if (msgText.Length() > bytesToRead)
           break;
@@ -4913,7 +4913,7 @@ void nsMsgDBFolder::decodeMsgSnippet(const nsACString& aEncodingType, PRBool aIs
       aMsgSnippet.Adopt(decodedBody);
 
     // base64 encoded message haven't had line endings converted to LFs yet.
-    aMsgSnippet.ReplaceChar(nsCRT::CR, nsCRT::LF);
+    aMsgSnippet.ReplaceChar('\r', '\n');
 
   }
   else if (aEncodingType.EqualsLiteral("quoted-printable"))
@@ -4938,7 +4938,7 @@ void nsMsgDBFolder::compressQuotesInMsgSnippet(const nsString& aMsgSnippet, nsAS
   PRUint32 lineFeedPos = 0;
   while (offset < msgBodyStrLen)
   {
-    lineFeedPos = aMsgSnippet.FindChar(nsCRT::LF, offset);
+    lineFeedPos = aMsgSnippet.FindChar('\n', offset);
     if (lineFeedPos != kNotFound)
     {
       const nsAString& currentLine = Substring(aMsgSnippet, offset, lineFeedPos - offset);

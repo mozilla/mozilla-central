@@ -1333,8 +1333,8 @@ msg_format_Header_addresses (const char *names, const char *addrs,
     {
       if (out > result && out[-1] == ' ')
         out--;
-      *out++ = nsCRT::CR;
-      *out++ = nsCRT::LF;
+      *out++ = '\r';
+      *out++ = '\n';
       *out++ = '\t';
       column = 8;
     }

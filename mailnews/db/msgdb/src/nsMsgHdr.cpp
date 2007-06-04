@@ -766,7 +766,7 @@ const char *nsMsgHdr::GetNextReference(const char *startNextRef, nsCString &refe
   const char *ptr = startNextRef;
 
   reference.Truncate();
-  while ((*ptr == '<' || *ptr == ' ' || *ptr == nsCRT::CR || *ptr == nsCRT::LF || *ptr == '\t') && *ptr)
+  while ((*ptr == '<' || *ptr == ' ' || *ptr == '\r' || *ptr == '\n' || *ptr == '\t') && *ptr)
     ptr++;
 
   for (int i = 0; *ptr && *ptr != '>'; i++)

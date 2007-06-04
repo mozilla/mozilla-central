@@ -137,10 +137,10 @@ mime_decode_qp_buffer (MimeDecoderData *data, const char *buffer, PRInt32 length
 			c = token[1] - ('A' - 10);
 		  else if (token[1] >= 'a' && token[1] <= 'f')
 			c = token[1] - ('a' - 10);
-		  else if (token[1] == nsCRT::CR || token[1] == nsCRT::LF)
+		  else if (token[1] == '\r' || token[1] == '\n')
 			{
 			  /* =\n means ignore the newline. */
-			  if (token[1] == nsCRT::CR && token[2] == nsCRT::LF)
+			  if (token[1] == '\r' && token[2] == '\n')
 				;		/* swallow all three chars */
 			  else
 				{
@@ -378,13 +378,13 @@ mime_decode_uue_buffer (MimeDecoderData *data,
 			*out++ = *input_buffer++;
 			input_length--;
 
-			if (out[-1] == nsCRT::CR || out[-1] == nsCRT::LF)
+			if (out[-1] == '\r' || out[-1] == '\n')
 			  {
 				/* If we just copied a CR, and an LF is waiting, grab it too.
 				 */
-				if (out[-1] == nsCRT::CR &&
+				if (out[-1] == '\r' &&
 					input_length > 0 &&
-					*input_buffer == nsCRT::LF)
+					*input_buffer == '\n')
 				  input_buffer++, input_length--;
 
 				/* We have a line. */
@@ -395,7 +395,7 @@ mime_decode_uue_buffer (MimeDecoderData *data,
 
 		/* Ignore blank lines.
 		 */
-		if (*line == nsCRT::CR || *line == nsCRT::LF)
+		if (*line == '\r' || *line == '\n')
 		  {
 			*line = 0;
 			continue;
@@ -408,14 +408,14 @@ mime_decode_uue_buffer (MimeDecoderData *data,
 		if (out == line_end)
 		  {
 			out--;
-			out[-1] = nsCRT::CR;
+			out[-1] = '\r';
 			out[0] = 0;
 		  }
 
 		/* If we didn't get a complete line, simply return; we'll be called
 		   with the rest of this line next time.
 		 */
-		if (out[-1] != nsCRT::CR && out[-1] != nsCRT::LF)
+		if (out[-1] != '\r' && out[-1] != '\n')
 		  {
 			NS_ASSERTION (input_length == 0, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
 			break;
@@ -431,8 +431,8 @@ mime_decode_uue_buffer (MimeDecoderData *data,
 		  line[0] == 'e' &&
 		  line[1] == 'n' &&
 		  line[2] == 'd' &&
-		  (line[3] == nsCRT::CR ||
-		   line[3] == nsCRT::LF))
+		  (line[3] == '\r' ||
+		   line[3] == '\n'))
 		{
 		  /* done! */
 		  data->ds_state = DS_END;
@@ -607,12 +607,12 @@ mime_decode_yenc_buffer (MimeDecoderData *data,
         *out++ = *input_buffer++;
         input_length--;
 
-        if (out[-1] == nsCRT::CR || out[-1] == nsCRT::LF)
+        if (out[-1] == '\r' || out[-1] == '\n')
         {
           /* If we just copied a CR, and an LF is waiting, grab it too. */
-          if (out[-1] == nsCRT::CR &&
+          if (out[-1] == '\r' &&
                   input_length > 0 &&
-                  *input_buffer == nsCRT::LF)
+                  *input_buffer == '\n')
             input_buffer++, input_length--;
 
            /* We have a line. */
@@ -622,7 +622,7 @@ mime_decode_yenc_buffer (MimeDecoderData *data,
       *out = 0;
 
       /* Ignore blank lines. */
-      if (*line == nsCRT::CR || *line == nsCRT::LF)
+      if (*line == '\r' || *line == '\n')
       {
         *line = 0;
         continue;
@@ -635,14 +635,14 @@ mime_decode_yenc_buffer (MimeDecoderData *data,
       if (out == line_end)
       {
         out--;
-        out[-1] = nsCRT::CR;
+        out[-1] = '\r';
         out[0] = 0;
       }
 
       /* If we didn't get a complete line, simply return; we'll be called
          with the rest of this line next time.
       */
-      if (out[-1] != nsCRT::CR && out[-1] != nsCRT::LF)
+      if (out[-1] != '\r' && out[-1] != '\n')
       {
         NS_ASSERTION (input_length == 0, "empty buffer!");
         break;
@@ -721,7 +721,7 @@ mime_decode_yenc_buffer (MimeDecoderData *data,
       for (; src < line_end; src ++)
       {
         c = *src;
-        if (!c || c == nsCRT::CR || c == nsCRT::LF)
+        if (!c || c == '\r' || c == '\n')
           break;
 
         if (c == '=')
@@ -886,8 +886,8 @@ mime_uuencode_write_line(MimeEncoderData *data)
 	data->uue_line_buf[0] = ENC(data->line_byte_count);
 
 	/* Tack a CRLF onto the end. */
-	data->uue_line_buf[data->current_column++] = nsCRT::CR;
-	data->uue_line_buf[data->current_column++] = nsCRT::LF;
+	data->uue_line_buf[data->current_column++] = '\r';
+	data->uue_line_buf[data->current_column++] = '\n';
 
 	/* Write the line to output. */
 	data->write_buffer((const char*)data->uue_line_buf, data->current_column,
@@ -1126,7 +1126,7 @@ mime_encode_qp_buffer (MimeEncoderData *data, const char *buffer, PRInt32 size)
   */
   for (; in < end; in++)
   {
-    if (*in == nsCRT::CR || *in == nsCRT::LF)
+    if (*in == '\r' || *in == '\n')
     {
       
     /* Whitespace cannot be allowed to occur at the end of           
@@ -1143,8 +1143,8 @@ mime_encode_qp_buffer (MimeEncoderData *data, const char *buffer, PRInt32 size)
       }                                                   
       
       /* Now write out the newline. */
-      *out++ = nsCRT::CR;
-      *out++ = nsCRT::LF;
+      *out++ = '\r';
+      *out++ = '\n';
       white = PR_FALSE;
       
       status = data->write_buffer (out_buffer, (out - out_buffer),
@@ -1153,7 +1153,7 @@ mime_encode_qp_buffer (MimeEncoderData *data, const char *buffer, PRInt32 size)
       out = out_buffer;
       
       /* If it's CRLF, swallow two chars instead of one. */
-      if (in[0] == nsCRT::CR && in[1] == nsCRT::LF)
+      if (in[0] == '\r' && in[1] == '\n')
         in++;
       
       out = out_buffer;
@@ -1214,8 +1214,8 @@ HEX:
     if (data->current_column >= 73)		/* soft line break: "=\r\n" */
     {
       *out++ = '=';
-      *out++ = nsCRT::CR;
-      *out++ = nsCRT::LF;
+      *out++ = '\r';
+      *out++ = '\n';
       
       status = data->write_buffer (out_buffer, (out - out_buffer),
         data->closure);
@@ -1271,8 +1271,8 @@ MimeEncoderDestroy (MimeEncoderData *data, PRBool abort_p)
 	  if (data->in_buffer_count > 1)
 		n = n | (((PRUint32) data->in_buffer[1]) << 8);
 
-	  buf2[0] = nsCRT::CR;
-	  buf2[1] = nsCRT::LF;
+	  buf2[0] = '\r';
+	  buf2[1] = '\n';
 
 	  for (j = 18; j >= 0; j -= 6)
 		{

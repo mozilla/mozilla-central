@@ -148,7 +148,7 @@ PRInt32 nsMsgBodyHandler::GetNextFilterLine(nsCString &buf)
     // strings. It is possible to have: To NULL CR LF From. We want to skip over these CR/LFs if they start
     // at the beginning of what we think is another header.
     
-    while (m_headersSize > 0 && (m_headers[0] == nsCRT::CR || m_headers[0] == nsCRT::LF || m_headers[0] == ' ' || m_headers[0] == '\0'))
+    while (m_headersSize > 0 && (m_headers[0] == '\r' || m_headers[0] == '\n' || m_headers[0] == ' ' || m_headers[0] == '\0'))
     {
       m_headers++;  // skip over these chars...
       m_headersSize--;
@@ -209,7 +209,7 @@ PRInt32 nsMsgBodyHandler::ApplyTransformations (nsCString &buf, PRInt32 length, 
     if (StringBeginsWith(buf, NS_LITERAL_CSTRING("Content-Type:")) && FindInReadable(buf, NS_LITERAL_CSTRING("text/html")))
       m_messageIsHtml = PR_TRUE;
     
-    m_passedHeaders = buf.IsEmpty() || buf.First() == nsCRT::CR || buf.First() == nsCRT::LF;
+    m_passedHeaders = buf.IsEmpty() || buf.First() == '\r' || buf.First() == '\n';
   }
   else	// buf is a line from the message body
   {

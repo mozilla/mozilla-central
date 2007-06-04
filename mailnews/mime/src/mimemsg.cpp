@@ -171,7 +171,7 @@ MimeMessage_parse_line (const char *aLine, PRInt32 aLength, MimeObject *obj)
         char *tPtr = obj->headers->munged_subject;
         while (*tPtr)
         {
-          if ( (*tPtr == nsCRT::CR) || (*tPtr == nsCRT::LF) )
+          if ( (*tPtr == '\r') || (*tPtr == '\n') )
           {
             *tPtr = '\0';
             break;
@@ -204,7 +204,7 @@ MimeMessage_parse_line (const char *aLine, PRInt32 aLength, MimeObject *obj)
 		 called with a line that doesn't end in a newline is when that line
 		 is the last line.
 	   */
-	  nl = (length > 0 && (line[length-1] == nsCRT::CR || line[length-1] == nsCRT::LF));
+	  nl = (length > 0 && (line[length-1] == '\r' || line[length-1] == '\n'));
 
 #ifdef MIME_DRAFTS
 	  if ( !mime_typep (kid, (MimeObjectClass*) &mimeMessageClass) &&
@@ -280,7 +280,7 @@ MimeMessage_parse_line (const char *aLine, PRInt32 aLength, MimeObject *obj)
   /* If this line is blank, we're now done parsing headers, and should
 	 examine our content-type to create our "body" part.
    */
-  if (*line == nsCRT::CR || *line == nsCRT::LF)
+  if (*line == '\r' || *line == '\n')
 	{
 	  status = MimeMessage_close_headers(obj);
 	  if (status < 0) return status;
