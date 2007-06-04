@@ -317,11 +317,12 @@
   
     <td valign="top" align="center">
 
-    <div id="tagTable" dojoType="ContentPane">
+    [% PROCESS testopia/tag/form.html.tmpl 
+       item = run 
+    %]
     [% PROCESS testopia/tag/table.html.tmpl 
        item = run 
     %]
-    </div>
     </td>
     
   </tr>

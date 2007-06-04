@@ -182,12 +182,14 @@
     </td>
     <td valign="top" align="center" rowspan="2">
 
-    <div id="tagTable" dojoType="ContentPane">
+    [% PROCESS testopia/tag/form.html.tmpl 
+       item = plan 
+    %]
+    
     [% PROCESS testopia/tag/table.html.tmpl 
        item = plan 
-       type = 'plan'
     %]
-    </div>
+    
     </td>
     <td align="right">
     [% PROCESS select sel = { list      => plan.product.builds

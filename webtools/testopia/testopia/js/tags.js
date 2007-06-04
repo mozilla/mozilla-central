@@ -62,7 +62,7 @@ function tagAttached() {
     }
     httpReq = undefined;
     document.getElementById('doAdd').disabled = false;
-    dojo.widget.manager.getWidgetById('newtag').setAllValues = '';
+
     
   }
 
