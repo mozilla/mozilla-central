@@ -100,15 +100,7 @@ if ($action eq 'Commit'){
               || ThrowTemplateError($template->error());
         }
 
-        my $build    = $cgi->param('caserun_build') == -1 ? $caserun->build->id : $cgi->param('caserun_build');
         my $notes    = $cgi->param('notes');
-        my $env      = $cgi->param('caserun_env') eq '' ? $caserun->environment->id : $cgi->param('caserun_env');
-        
-        validate_test_id($build, 'build');
-        validate_test_id($env, 'environment');
-        
-        detaint_natural($env);
-        detaint_natural($build);
         
         trick_taint($notes);
         
@@ -116,10 +108,6 @@ if ($action eq 'Commit'){
             push @uneditable, $caserun;
             next;
         }
-        
-        # Switch to the record representing this build and environment combo.
-        # If there is not one, it will create it and switch to that.
-        $caserun = $caserun->switch($build,$env);
         
         my $status   = $cgi->param('status') == -1 ? $caserun->status_id : $cgi->param('status');
         my $assignee;

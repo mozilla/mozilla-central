@@ -27,8 +27,6 @@
     dojo.require("dojo.widget.Select");
     dojo.addOnLoad(
       function() {
-        dojo.widget.manager.getWidgetById('caserun_env').setValue('[% dotweak ? '' : caserun.environment.id FILTER none %]');
-        dojo.widget.manager.getWidgetById('caserun_env').setLabel('[% dotweak ? '' : caserun.environment.name FILTER none %]');
         dojo.widget.manager.getWidgetById('assignee').setValue('[% dotweak ? '' : caserun.assignee.login FILTER none %]');
         dojo.widget.manager.getWidgetById('assignee').setLabel('[% dotweak ? '' : caserun.assignee.login FILTER none %]');
       }
@@ -87,35 +85,6 @@
 </table>
 
 <table>
-[% IF run %]
-  <tr>
-    <th align="right">Build</th>
-    <td>
-  [% PROCESS select sel = { name => "caserun_build", 
-                            list => build_list, 
-                         default => default_build }
-     %]
-    </td>
-    <th align="right">Environment</th>
-    <td><input dojoType="select" 
-               dataUrl="tr_quicksearch.cgi?action=getenv&run_id=[% caserun.run.id FILTER none %]&search=${searchString}" 
-               mode="remote"
-               autoComplete="false"
-               id="caserun_env"
-               name="caserun_env"
-               maxListLength="10" 
-               style="width:200px; height:15px"
-            [% IF NOT dotweak %]
-               value="[% caserun.environment.id FILTER none %]" 
-            [% END %]>
-    </td>
-  </tr>
-  [% ELSE %]
-  <tr>
-    <td><input type="hidden" name="caserun_build" value="-1"></td>
-    <td><input type="hidden" name="caserun_env" value=""></td>
-  </tr>
-[% END %]
   <tr>
     <th align="right">Assignee</th>
     <td><input dojoType="Select" 

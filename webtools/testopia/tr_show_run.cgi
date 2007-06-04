@@ -71,7 +71,44 @@ if ($action eq 'Commit'){
     $vars->{'backlink'} = $run;
     display($run);    
 }
+elsif ($action =~ /New Case/){
+    print $cgi->header;
+    my $run = Bugzilla::Testopia::TestRun->new($run_id);
+    ThrowUserError("testopia-read-only", {'object' => $run}) unless $run->canedit;
 
+    my $build = $cgi->param('caserun_build');
+    my $env = $cgi->param('caserun_env');
+    
+    detaint_natural($build);
+    detaint_natural($env);
+    
+    validate_test_id($build, 'build');
+    validate_test_id($env, 'environment');
+    
+    foreach my $case_id (split(/[\s,]+/, $cgi->param('newcases'))){
+        detaint_natural($case_id);
+        validate_test_id($case_id, 'case');
+        
+        my $caserun = Bugzilla::Testopia::TestCaseRun->new($case_id, $run->id, $build, $env);
+        if ($caserun){
+            $vars->{'tr_error'} .= "$case_id Already Exists with that build and environment.<br>";
+            next;
+        } 
+        else {
+            my $case = Bugzilla::Testopia::TestCase->new($case_id);
+            $caserun = Bugzilla::Testopia::TestCaseRun->new(
+                {case_id  => $case_id, 
+                 run_id   => $run->id, 
+                 build_id => $build, 
+                 environment_id => $env,
+                 case_text_version => $case->version,
+                 assignee => $case->default_tester->id,
+                 });
+            $caserun->store;
+        } 
+    }
+    display($run);  
+}
 elsif ($action eq 'History'){
     print $cgi->header;
     my $run = Bugzilla::Testopia::TestRun->new($run_id);
@@ -184,11 +221,11 @@ elsif ($action eq 'do_clone'){
                 detaint_natural($s);
             }
             my $ref = $dbh->selectcol_arrayref(
-                "SELECT case_id
+                "SELECT DISTINCT case_id
                    FROM test_case_runs
                   WHERE run_id = ?
-                    AND case_run_status_id IN (". join(",", @status) .")
-                    AND iscurrent = 1", undef, $run->id);
+                    AND case_run_status_id IN (". join(",", @status) .")", 
+                    undef, $run->id);
 
             my $i = 0;
             my $total = scalar @$ref;

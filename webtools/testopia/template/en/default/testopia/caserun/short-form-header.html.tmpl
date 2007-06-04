@@ -41,28 +41,11 @@
                   [% IF caserun.canedit %]
                       <input type="button" value="Change" onclick="chSortKey([% index %], [% caserun.id FILTER none %], document.getElementById('sortkey_[% index %]').value),chNote([% index %], [% caserun.id FILTER none %], document.getElementById('notes[% index %]').value);"></td>
                   [% END %]
-    <td align="right" valign="top">
-    [% IF caserun.canedit %]
-    [% PROCESS select sel = { name => "caserun_build", 
-                              list => caserun.run.plan.product.builds(1), 
-                           default => caserun.build.name 
-                           events  => "onChange='chBld($index, this.value, \"$caserun.status\", $caserun.id)'"}
-     %]
-     [% ELSE %]
+    <td>
        [% caserun.build.name FILTER html %]
-     [% END %]
     </td>
-    <td align="left" valign="top">
+    <td>
       <a href="tr_show_environment.cgi?env_id=[% caserun.environment.id FILTER none %]">[% caserun.environment.name FILTER html %]</a>
-    [% IF caserun.canedit %]
-          <input dojoType="combobox" 
-                 dataUrl="tr_quicksearch.cgi?action=getenv&run_id=[% caserun.run.id FILTER none %]&search=${searchString}" 
-                 mode="remote"
-                 autoComplete="false"
-                 id="env_[% index %]"
-                 maxListLength="10"
-                 onValueChanged='chEnv([% index %], this.comboBoxSelectionValue.value, "[% caserun.status %]", [% caserun.id %], [% caserun.environment_id %])'>
-    [% END %]
     </td>
 
     <td align="left" valign="top"><span id="own[% index %]"><a href="mailto:[% caserun.assignee.login %]">[% caserun.assignee.login %]</a></span></td>
