@@ -247,28 +247,27 @@
     <table align="center">
       <tr>
         <th align="right">Idle:</th>
-        <td class="number_cell"><b>[% run.idle_count FILTER html %]</b></td>
+        <td class="number_cell"><b>[% run.case_run_count(1) FILTER html %]</b></td>
       </tr>
       <tr>
         <th align="right">Passed:</th>
-        <td class="number_cell"><b>[% run.passed_count FILTER html %]</b></td>
+        <td class="number_cell"><b>[% run.case_run_count(2) FILTER html %]</b></td>
       </tr>
       <tr>
         <th align="right">Failed:</th>
-        <td class="number_cell"><b>[% run.failed_count FILTER html %]</b></td>
-        </td>
+        <td class="number_cell"><b>[% run.case_run_count(3) FILTER html %]</b></td>
       </tr>
       <tr>
         <th align="right">Running:</th>
-        <td class="number_cell"><b>[% run.running_count FILTER html %]</b></td>
+        <td class="number_cell"><b>[% run.case_run_count(4) FILTER html %]</b></td>
       </tr>
       <tr>
         <th align="right">Paused:</th>
-        <td class="number_cell"><b>[% run.paused_count FILTER html %]</b></td>
+        <td class="number_cell"><b>[% run.case_run_count(5) FILTER html %]</b></td>
       </tr>
       <tr>
         <th align="right">Blocked:</th>
-        <td class="number_cell"><b>[% run.blocked_count FILTER html %]</b></td>
+        <td class="number_cell"><b>[% run.case_run_count(6) FILTER html %]</b></td>
         </td>
       </tr>
       <tr>

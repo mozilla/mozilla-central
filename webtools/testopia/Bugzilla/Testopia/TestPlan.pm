@@ -58,7 +58,7 @@ use Bugzilla::Bug;
 
 use Text::Diff;
 
-use base qw(Exporter);
+use base qw(Exporter Bugzilla::Object);
 
 ###############################
 ####    Initialization     ####
@@ -77,6 +77,9 @@ use base qw(Exporter);
 
 =cut
 
+use constant DB_TABLE => "test_plans";
+use constant NAME_FIELD => "name";
+use constant ID_FIELD => "plan_id";
 use constant DB_COLUMNS => qw(
     plan_id
     product_id
@@ -87,6 +90,15 @@ use constant DB_COLUMNS => qw(
     creation_date
     isactive
 );
+
+use constant REQUIRED_CREATE_FIELDS => qw(product_id author_id type_id default_product_version name);
+
+use constant VALIDATORS => {
+    product_id => \&_check_product,
+    author_id => \&_check_product,
+    type_id => \&_check_product,
+    default_product_version => \&_check_product,
+};
 
 use constant NAME_MAX_LENGTH => 255;
 

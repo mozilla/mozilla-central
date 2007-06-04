@@ -51,8 +51,7 @@ use Bugzilla::Config;
 use Bugzilla::Testopia::Environment;
 use Bugzilla::Bug;
 
-use base qw(Exporter);
-@Bugzilla::Testopia::TestRun::EXPORT = qw(CalculatePercentCompleted);
+use base qw(Exporter Bugzilla::Object);
 
 ###############################
 ####    Initialization     ####
@@ -74,6 +73,9 @@ use base qw(Exporter);
 
 =cut
 
+use constant DB_TABLE => "test_runs";
+use constant NAME_FIELD => "summary";
+use constant ID_FIELD => "run_id";
 use constant DB_COLUMNS => qw(
     run_id
     plan_id
@@ -106,6 +108,20 @@ sub report_columns {
     return \@result;     
         
 }
+
+use constant REQUIRED_CREATE_FIELDS => qw(plan_id environment_id build_id 
+                                          product_version summary manager_id 
+                                          plan_text_version);
+
+use constant VALIDATORS => {
+    plan_id => \&_check_plan,
+    environment_id => \&_check_env,
+    build_id => \&_check_build,
+    product_version => \&_check_product_version,
+    summary => \&_check_summary,
+    manager_id => \&_check_manager,
+    plan_text_version => \&_check_plan_text_version,
+};
 
 ###############################
 ####       Methods         ####
@@ -174,17 +190,16 @@ and adds them to get a total then takes the percentage.
 
 =cut
 
-sub calculate_percent_completed {
+sub calculate_percent {
 
-  my ($idle, $run) = (@_);
-  my $total = $idle + $run;
+  my ($total, $count) = (@_);
   my $percent;
   if ($total == 0) {
     $percent = 0;
   } else {
-    $percent = $run*100/$total;
+    $percent = $count*100/$total;
     $percent = int($percent + 0.5);
-    if (($percent == 100) && ($idle != 0)) {
+    if (($percent == 100) && ($count != $total)) {
       #I don't want to see 100% unless every test is run
       $percent = 99;
     }
@@ -1020,7 +1035,7 @@ sub case_run_count {
     my $query = 
            "SELECT COUNT(*) 
               FROM test_case_runs 
-             WHERE run_id = ? AND iscurrent = 1";
+             WHERE run_id = ?";
     $query .= " AND case_run_status_id = ?" if $status_id;
     
     my $count;
@@ -1034,144 +1049,20 @@ sub case_run_count {
     return $count;       
 }
 
-#TODO: Replace these with case_run_count
-=head2 idle_count
-
-Returns a count of the number of case-runs in this run with a status
-of IDLE
-
-=cut
-
-sub idle_count {
+sub finished_count {
     my $self = shift;
+    my ($status_id) = @_;
     my $dbh = Bugzilla->dbh;
-
-    my ($count) = $dbh->selectrow_array(
+    my ($count) = $dbh->selectrow_array( 
            "SELECT COUNT(*) 
-              FROM test_case_runs cr 
-              JOIN test_case_run_status cs 
-                ON cr.case_run_status_id = cs.case_run_status_id 
-             WHERE cs.name = ? AND cr.run_id = ? AND cr.iscurrent = 1",
-            undef, ('IDLE', $self->{'run_id'}));
-
-    $self->{'idle_count'}   = $count;
-    return $self->{'idle_count'};
+              FROM test_case_runs 
+             WHERE run_id = ?
+               AND case_run_status_id IN (?,?,?)",undef, ($self->id, FAILED, PASSED, BLOCKED)); 
+        
+    return $count;       
 }
 
-=head2 passed_count
 
-Returns a count of the number of case-runs in this run with a status
-of PASSED
-
-=cut
-
-sub passed_count {
-    my $self = shift;
-    my $dbh = Bugzilla->dbh;
-
-    my ($count) = $dbh->selectrow_array(
-           "SELECT COUNT(*) 
-              FROM test_case_runs cr 
-              JOIN test_case_run_status cs 
-                ON cr.case_run_status_id = cs.case_run_status_id 
-             WHERE cs.name = ? AND cr.run_id = ? AND cr.iscurrent = 1",
-            undef, ('PASSED', $self->{'run_id'}));
-
-    $self->{'passed_count'} = $count;   
-    return $self->{'passed_count'}; 
-}
-
-=head2 failed_count
-
-Returns a count of the number of case-runs in this run with a status
-of FAILED
-
-=cut
-
-sub failed_count {
-    my $self = shift;
-    my $dbh = Bugzilla->dbh;
-
-    my ($count) = $dbh->selectrow_array(
-           "SELECT COUNT(*) 
-              FROM test_case_runs cr 
-              JOIN test_case_run_status cs 
-                ON cr.case_run_status_id = cs.case_run_status_id 
-             WHERE cs.name = ? AND cr.run_id = ? AND cr.iscurrent = 1",
-            undef, ('FAILED', $self->{'run_id'}));
-
-    $self->{'failed_count'} = $count;
-    return $self->{'failed_count'};
-}
-
-=head2 running_count
-
-Returns a count of the number of case-runs in this run with a status
-of RUNNING
-
-=cut
-
-sub running_count {
-    my $self = shift;
-    my $dbh = Bugzilla->dbh;
-
-    my ($count) = $dbh->selectrow_array(
-           "SELECT COUNT(*) 
-              FROM test_case_runs cr 
-              JOIN test_case_run_status cs 
-                ON cr.case_run_status_id = cs.case_run_status_id 
-             WHERE cs.name = ? AND cr.run_id = ? AND cr.iscurrent = 1",
-            undef, ('RUNNING', $self->{'run_id'}));
-
-    $self->{'running_count'} = $count;
-    return $self->{'running_count'}; 
-}
-
-=head2 paused_count
-
-Returns a count of the number of case-runs in this run with a status
-of PAUSED
-
-=cut
-
-sub paused_count {
-    my $self = shift;
-    my $dbh = Bugzilla->dbh;
-
-    my ($count) = $dbh->selectrow_array(
-           "SELECT COUNT(*) 
-              FROM test_case_runs cr 
-              JOIN test_case_run_status cs 
-                ON cr.case_run_status_id = cs.case_run_status_id 
-             WHERE cs.name = ? AND cr.run_id = ? AND cr.iscurrent = 1",
-            undef, ('PAUSED', $self->{'run_id'}));
-
-    $self->{'paused_count'} = $count;
-    return $self->{'paused_count'};
-}
-
-=head2 blocked_count
-
-Returns a count of the number of case-runs in this run with a status
-of BLOCKED
-
-=cut
-
-sub blocked_count {
-    my $self = shift;
-    my $dbh = Bugzilla->dbh;
-
-    my ($count) = $dbh->selectrow_array(
-           "SELECT COUNT(*) 
-              FROM test_case_runs cr 
-              JOIN test_case_run_status cs 
-                ON cr.case_run_status_id = cs.case_run_status_id 
-             WHERE cs.name = ? AND cr.run_id = ? AND cr.iscurrent = 1",
-            undef, ('BLOCKED', $self->{'run_id'}));
-
-    $self->{'blocked_count'} = $count;
-    return $self->{'blocked_count'};
-}
 
 =head2 percent_complete
 
@@ -1182,44 +1073,22 @@ that have a status vs. those with a status of IDLE
 
 sub percent_complete {    
     my $self = shift;
-    my $notrun = $self->idle_count + $self->running_count + $self->paused_count;
-    my $run = $self->passed_count + $self->failed_count + $self->blocked_count;
-    $self->{'percent_complete'} = calculate_percent_completed($notrun, $run); 
+    return $self->{'percent_complete'} if defined $self->{'percent_complete'};
+    $self->{'percent_complete'} = calculate_percent($self->case_run_count,$self->finished_count);
     return $self->{'percent_complete'};
 }
 
-sub percent_passed {    
+sub percent_of_total {
     my $self = shift;
-    my $notrun = $self->idle_count + $self->running_count + $self->paused_count + $self->failed_count + $self->blocked_count;
-    my $run = $self->passed_count;
-    $self->{'percent_passed'} = calculate_percent_completed($notrun, $run); 
-    return $self->{'percent_passed'};
+    my ($status_id) = @_;
+    return calculate_percent($self->case_run_count,$self->case_run_count($status_id));    
 }
 
-sub percent_failed {    
+sub percent_of_finished {
     my $self = shift;
-    my $notrun = $self->idle_count + $self->running_count + $self->paused_count + $self->passed_count + $self->blocked_count;
-    my $run = $self->failed_count;
-    $self->{'percent_failed'} = calculate_percent_completed($notrun, $run); 
-    return $self->{'percent_failed'};
+    my ($status_id) = @_;
+    return calculate_percent($self->finished_count,$self->case_run_count($status_id));        
 }
-
-sub percent_blocked {    
-    my $self = shift;
-    my $notrun = $self->idle_count + $self->running_count + $self->paused_count + $self->passed_count + $self->failed_count;
-    my $run = $self->blocked_count;
-    $self->{'percent_blocked'} = calculate_percent_completed($notrun, $run); 
-    return $self->{'percent_blocked'};
-}
-
-sub percent_not_run {    
-    my $self = shift;
-    my $notrun = $self->failed_count + $self->running_count + $self->paused_count + $self->passed_count;
-    my $run = $self->idle_count + $self->blocked_count;
-    $self->{'percent_not_run'} = calculate_percent_completed($notrun, $run); 
-    return $self->{'percent_not_run'};
-}
-
 
 =head2 current_caseruns
 

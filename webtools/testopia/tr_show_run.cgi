@@ -425,7 +425,7 @@ sub display {
         $vars->{'filtered'} = 1;
         
     }
-        
+
     $cgi->param('current_tab', 'case_run');
     my $search = Bugzilla::Testopia::Search->new($cgi);
     my $table = Bugzilla::Testopia::Table->new('case_run', 'tr_show_run.cgi', $cgi, undef, $search->query);
