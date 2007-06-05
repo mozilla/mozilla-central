@@ -35,12 +35,9 @@ package Litmus::Mailer;
 
 use strict;
 
-#use Litmus;
+use Litmus;
 use Litmus::Error;
-#use Litmus::Config;
-use Email::MIME;
-use Email::MIME::Modifier;
-use Email::Send;
+use Litmus::Config;
 
 our @ISA = qw(Exporter);
 @Litmus::Mailer::EXPORT = qw(
@@ -50,10 +47,8 @@ our @ISA = qw(Exporter);
 # cribbed in part from Bugzilla's MessageToMTA
 sub sendMessage {
 	my $msg = shift;
-	
-	local $ENV{PATH} = $Litmus::Config::sendmail_path;
 
-	open(MAIL, "| sendmail -t -oi") || Litmus::Error::basicError("Could not send email: $!");
+	open(MAIL, "|$Litmus::Config::sendmail_path -t -oi") || Litmus::Error::basicError("Could not send email: $!");
 	print MAIL $msg || Litmus::Error::basicError("Could not send email: $!");
 	close(MAIL) || Litmus::Error::basicError("Could not send email: $!");
 }

@@ -43,7 +43,7 @@ if ($c->param('resetPassword')) {
 	Litmus::Auth::resetPasswordForm($c->param('resetPassword'));
 	exit;
 }
-if ($c->param('login_type') eq 'doResetPassword') {
+if ($c->param('login_type') && $c->param('login_type') eq 'doResetPassword') {
 	# check that the two password fields are equal:
 	if ($c->param('password') ne $c->param('password_confirm')) {
 		invalidInputError("The 'password' and 'confirm password' fields do 
