@@ -88,8 +88,8 @@
                 onget="return this.textbox.view.selectedIndex;">
         <setter>
           this.mSelectedIndex = val;
-          if (val == null)
-            this.mSearchBox.selectedIndex = null;
+          if (val == -1)
+            this.mSearchBox.selectedIndex = -1;
             
           return val;
         </setter>
@@ -162,7 +162,7 @@
       
       <method name="getOverrideValue">
         <body><![CDATA[
-          if (this.mSearchBox.selectedIndex != null) {
+          if (this.mSearchBox.selectedIndex != -1) {
             try {
               if (pref.getBoolPref("browser.search.opensidebarsearchpanel"))
                 RevealSearchPanel();
@@ -298,19 +298,19 @@
         <parameter name="aPage"/>
         <body><![CDATA[
           var sel;
-          if (this.selectedIndex == null && aReverse ||
-              this.mSearchBox.selectedIndex != null) {
+          if (this.selectedIndex == -1 && aReverse ||
+              this.mSearchBox.selectedIndex != -1) {
             sel = this.mSearchBox.selectBy(aReverse, aPage);
-            if (sel != null || !aReverse)
-              return null;
+            if (sel != -1 || !aReverse)
+              return -1;
           } 
           
           sel = this.getNextIndex(aReverse, aPage, this.selectedIndex, this.textbox.view.rowCount - 1);
           this.mSelectedIndex = sel;
-          if (sel == null && !aReverse)
+          if (sel == -1 && !aReverse)
             this.mSearchBox.selectBy(aReverse, aPage);
-          else if (this.mSearchBox.selectedIndex != null)
-            this.mSearchBox.selectedIndex = null;
+          else if (this.mSearchBox.selectedIndex != -1)
+            this.mSearchBox.selectedIndex = -1;
           return sel;
         ]]></body>
       </method>
@@ -355,7 +355,7 @@
         if (text)
           this.searchValue = text;
         
-        this.mSelectedIndex = null;
+        this.mSelectedIndex = -1;
       ]]></constructor>
       
       <field name="parentMouseoverListener">
@@ -363,14 +363,14 @@
         // search selection is cleared
         (function(aEvent) {
           if (aEvent.target.nodeName == "menuitem")
-            this.mSearchBox.selectedIndex = null;
+            this.mSearchBox.selectedIndex = -1;
          })
       </field>
       
       <field name="parentDestroyListener">
         // ensure that if the popup closes, any search selection is cleared
         (function(aEvent) {
-           this.mSearchBox.selectedIndex = null;
+           this.mSearchBox.selectedIndex = -1;
          })
       </field>
       
@@ -381,13 +381,13 @@
         <getter>return this.mSelectedIndex;</getter>
         
         <setter><![CDATA[
-          if (this.mSelectedIndex != null)
+          if (this.mSelectedIndex != -1)
             this.activeChild.removeAttribute("menuactive");
           
           this.mSelectedIndex = val;
 
-          if (val != null) {
-            this.parentNode.mSelectedIndex = null;
+          if (val != -1) {
+            this.parentNode.mSelectedIndex = -1;
             this.parentNode.addEventListener("mouseover", this.parentMouseoverListener, false);
             this.parentNode.addEventListener("popuphiding", this.parentDestroyListener, false);
             if (this.activeChild)
@@ -468,7 +468,7 @@
       </handler>
 
       <handler event="mouseout">
-        this.parentNode.selectedIndex = null;
+        this.parentNode.selectedIndex = -1;
       </handler>
     </handlers>
   </binding>
