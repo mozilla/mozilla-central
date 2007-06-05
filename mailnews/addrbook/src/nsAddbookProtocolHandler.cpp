@@ -37,7 +37,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 #include "msgCore.h"    // precompiled header...
-#include "nsXPIDLString.h"
+#include "nsString.h"
 #include "nsReadableUtils.h"
 #include "nsIIOService.h"
 
@@ -154,7 +154,7 @@ nsAddbookProtocolHandler::NewChannel(nsIURI *aURI, nsIChannel **_retval)
     rv = aURI->GetSpec(spec);
     NS_ENSURE_SUCCESS(rv,rv);
 
-    AppendUTF8toUTF16(spec, errorString);
+     errorString.Append(NS_ConvertUTF8toUTF16(spec));
     rv = GenerateXMLOutputChannel(errorString, addbookUrl, aURI, _retval);
     NS_ENSURE_SUCCESS(rv,rv);
     return NS_OK;
@@ -182,7 +182,7 @@ nsAddbookProtocolHandler::NewChannel(nsIURI *aURI, nsIChannel **_retval)
     nsCAutoString spec;
     rv = aURI->GetSpec(spec);
     NS_ENSURE_SUCCESS(rv,rv);
-    AppendUTF8toUTF16(spec, output);
+    output.Append(NS_ConvertUTF8toUTF16(spec));
   }
  
   rv = GenerateXMLOutputChannel(output, addbookUrl, aURI, _retval);
@@ -225,7 +225,7 @@ nsAddbookProtocolHandler::GeneratePrintOutput(nsIAddbookUrl *addbookUrl,
 	if (pos == kNotFound)
     return NS_ERROR_UNEXPECTED;
 
-  uri.Truncate(pos);
+  uri.SetLength(pos);
 
   /* step 2:  
    turn "moz-abmdbdirectory/abook.mab"
@@ -271,7 +271,7 @@ nsAddbookProtocolHandler::BuildDirectoryXML(nsIAbDirectory *aDirectory,
   if (NS_SUCCEEDED(rv)) {
     rv = stringBundleService->CreateBundle("chrome://messenger/locale/addressbook/addressBook.properties", getter_AddRefs(bundle));
     if (NS_SUCCEEDED(rv)) {
-      nsXPIDLString addrBook;
+      nsString addrBook;
       rv = bundle->GetStringFromName(NS_LITERAL_STRING("addressBook").get(), getter_Copies(addrBook));
       if (NS_SUCCEEDED(rv)) {
         aOutput.AppendLiteral("<title xmlns=\"http://www.w3.org/1999/xhtml\">");
@@ -293,7 +293,7 @@ nsAddbookProtocolHandler::BuildDirectoryXML(nsIAbDirectory *aDirectory,
       if (NS_SUCCEEDED(rv))
       {
         nsCOMPtr <nsIAbCard> card = do_QueryInterface(item);
-        nsXPIDLString xmlSubstr;
+        nsString xmlSubstr;
 
         rv = card->ConvertToXMLPrintData(xmlSubstr);
         NS_ENSURE_SUCCESS(rv,rv);

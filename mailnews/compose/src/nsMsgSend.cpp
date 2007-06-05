@@ -3545,19 +3545,22 @@ nsMsgComposeAndSend::DeliverFileAsMail()
   {
     PL_strcat (buf2, mCompFields->GetTo());
     if (addressCollecter)
-      addressCollecter->CollectAddress(mCompFields->GetTo(), collectAddresses /* create card if one doesn't exist */, sendFormat);
+      addressCollecter->CollectAddress(nsCString(mCompFields->GetTo()), 
+            collectAddresses /* create card if one doesn't exist */, sendFormat);
   }
   if (mCompFields->GetCc() && *mCompFields->GetCc()) {
     if (*buf2) PL_strcat (buf2, ",");
       PL_strcat (buf2, mCompFields->GetCc());
     if (addressCollecter)
-      addressCollecter->CollectAddress(mCompFields->GetCc(), collectAddresses /* create card if one doesn't exist */, sendFormat);
+      addressCollecter->CollectAddress(nsCString(mCompFields->GetCc()), 
+            collectAddresses /* create card if one doesn't exist */, sendFormat);
   }
   if (mCompFields->GetBcc() && *mCompFields->GetBcc()) {
     if (*buf2) PL_strcat (buf2, ",");
       PL_strcat (buf2, mCompFields->GetBcc());
     if (addressCollecter)
-      addressCollecter->CollectAddress(mCompFields->GetBcc(), collectAddresses /* create card if one doesn't exist */, sendFormat);
+      addressCollecter->CollectAddress(nsCString(mCompFields->GetBcc()), 
+            collectAddresses /* create card if one doesn't exist */, sendFormat);
   }
 
   // We need undo groups to keep only the addresses

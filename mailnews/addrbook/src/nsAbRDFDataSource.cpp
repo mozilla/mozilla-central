@@ -50,9 +50,8 @@
 #include "nsEnumeratorUtils.h"
 #include "nsIProxyObjectManager.h"
 
-#include "nsString.h"
 #include "nsCOMPtr.h"
-#include "nsXPIDLString.h"
+#include "nsString.h"
 #include "nsAutoLock.h"
 #include "nsIServiceManager.h"
 #include "nsThreadUtils.h"

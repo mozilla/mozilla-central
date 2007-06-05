@@ -800,7 +800,7 @@ NS_IMETHODIMP nsAbLDIFService::IsLDIFFile(nsIFile *pSrc, PRBool *_retval)
   PRInt32 i;
   PRBool gotLDIF = PR_FALSE;
   PRBool more = PR_TRUE;
-  nsXPIDLCString line;
+  nsCString line;
 
   while (more && NS_SUCCEEDED(rv) && (lineCount < 100))
   {

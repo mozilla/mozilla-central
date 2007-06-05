@@ -826,7 +826,7 @@ static char *DIR_GetStringPref(const char *prefRoot, const char *prefLeaf, const
     if (NS_FAILED(rv))
         return nsnull;
 
-    nsXPIDLCString value;
+    nsCString value;
     nsCAutoString prefLocation(prefRoot);
 
     prefLocation.Append('.');
@@ -877,7 +877,7 @@ static char *DIR_GetLocalizedStringPref
   prefLocation.Append('.');
   prefLocation.Append(prefLeaf);
 
-  nsXPIDLString wvalue;
+  nsString wvalue;
   nsCOMPtr<nsIPrefLocalizedString> locStr;
 
   rv = pPref->GetComplexValue(prefLocation.get(), NS_GET_IID(nsIPrefLocalizedString), getter_AddRefs(locStr));
@@ -885,7 +885,7 @@ static char *DIR_GetLocalizedStringPref
     rv = locStr->ToString(getter_Copies(wvalue));
 
   char *value = nsnull;
-  if ((const PRUnichar*)wvalue)
+  if (!wvalue.IsEmpty())
   {
     NS_ConvertUTF16toUTF8 utf8str(wvalue.get());
     value = ToNewCString(utf8str);
@@ -1281,7 +1281,7 @@ static void DIR_SetStringPref(const char *prefRoot, const char *prefLeaf, const 
   if (NS_FAILED(rv)) 
     return;
 
-  nsXPIDLCString defaultPref;
+  nsCString defaultPref;
   nsCAutoString prefLocation(prefRoot);
 
   prefLocation.Append('.');
@@ -1302,7 +1302,7 @@ static void DIR_SetStringPref(const char *prefRoot, const char *prefLeaf, const 
 		/* If there's no default pref, look for a user pref, and only set our value in
 		 * if the user pref is different than one of them.
 		 */
-    nsXPIDLCString userPref;
+    nsCString userPref;
     if (NS_SUCCEEDED(pPref->GetCharPref (prefLocation.get(), getter_Copies(userPref))))
 		{
       if (value && (defaultValue ? nsCRT::strcasecmp(value, defaultValue) : value != defaultValue))

@@ -109,9 +109,9 @@ NS_IMETHODIMP nsAbMDBDirFactory::CreateDirectory(nsIAbDirectoryProperties *aProp
 
     nsresult rv;
 
-    nsXPIDLCString uri;
+    nsCString uri;
     nsAutoString description;
-    nsXPIDLCString prefName;
+    nsCString prefName;
 
     rv = aProperties->GetDescription(description);
     NS_ENSURE_SUCCESS(rv, rv);

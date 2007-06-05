@@ -40,7 +40,7 @@
 
 #include "nsAbCardProperty.h"	 
 #include "nsIServiceManager.h"
-#include "nsXPIDLString.h"
+#include "nsString.h"
 #include "nsAbBaseCID.h"
 #include "nsCOMPtr.h"
 #include "nsReadableUtils.h"
@@ -818,7 +818,7 @@ NS_IMETHODIMP nsAbCardProperty::Copy(nsIAbCard* srcCard)
 {
   NS_ENSURE_ARG_POINTER(srcCard);
 
-	nsXPIDLString str;
+  nsString str;
   srcCard->GetFirstName(str);
   SetFirstName(str);
 
@@ -942,9 +942,9 @@ NS_IMETHODIMP nsAbCardProperty::Copy(nsIAbCard* srcCard)
   srcCard->GetIsMailList(&isMailList);
   SetIsMailList(isMailList);
 
-  nsXPIDLCString mailListURI;
+  nsCString mailListURI;
   srcCard->GetMailListURI(getter_Copies(mailListURI));
-  SetMailListURI(mailListURI);
+  SetMailListURI(mailListURI.get());
 
   return NS_OK;
 }
@@ -964,7 +964,7 @@ static VObject* myAddPropValue(VObject *o, const char *propName, const PRUnichar
 
 NS_IMETHODIMP nsAbCardProperty::ConvertToEscapedVCard(char **aResult)
 {
-    nsXPIDLString str;
+    nsString str;
     PRBool vCardHasData = PR_FALSE;
     VObject* vObj = newVObject(VCCardProp);
     VObject* t;
@@ -1182,7 +1182,7 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToBase64EncodedXML(char **result)
   if (NS_SUCCEEDED(rv)) {
     rv = stringBundleService->CreateBundle(sAddrbookProperties, getter_AddRefs(bundle));
     if (NS_SUCCEEDED(rv)) {
-      nsXPIDLString addrBook;
+      nsString addrBook;
       rv = bundle->GetStringFromName(NS_LITERAL_STRING("addressBook").get(), getter_Copies(addrBook));
       if (NS_SUCCEEDED(rv)) {
         xmlStr.AppendLiteral("<title xmlns=\"http://www.w3.org/1999/xhtml\">");
@@ -1192,7 +1192,7 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToBase64EncodedXML(char **result)
     }
   }
 
-  nsXPIDLString xmlSubstr;
+  nsString xmlSubstr;
   rv = ConvertToXMLPrintData(xmlSubstr);
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -1216,7 +1216,7 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToXMLPrintData(nsAString &aXMLSubstr)
   nsCOMPtr<nsIAddrBookSession> abSession = do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
   
-  nsXPIDLString generatedName;
+  nsString generatedName;
   rv = abSession->GenerateNameFromCard(this, generatedNameFormat, getter_Copies(generatedName));
   NS_ENSURE_SUCCESS(rv,rv);
   
@@ -1235,7 +1235,7 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToXMLPrintData(nsAString &aXMLSubstr)
   rv = stringBundleService->CreateBundle(sAddrbookProperties, getter_AddRefs(bundle));
   NS_ENSURE_SUCCESS(rv,rv); 
   
-  nsXPIDLString heading;
+  nsString heading;
   rv = bundle->GetStringFromName(NS_LITERAL_STRING("headingCardFor").get(), getter_Copies(heading));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -1243,9 +1243,9 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToXMLPrintData(nsAString &aXMLSubstr)
   xmlStr.Append(PRUnichar(' '));
 
   // use ScanTXT to convert < > & to safe values.
-  nsXPIDLString safeText;
+  nsString safeText;
   if (!generatedName.IsEmpty()) {
-    rv = conv->ScanTXT(generatedName, mozITXTToHTMLConv::kEntities,
+    rv = conv->ScanTXT(generatedName.get(), mozITXTToHTMLConv::kEntities,
                        getter_Copies(safeText));
     NS_ENSURE_SUCCESS(rv,rv);
   }
@@ -1315,7 +1315,7 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToXMLPrintData(nsAString &aXMLSubstr)
           NS_ENSURE_SUCCESS(rv,rv);
 
           // use ScanTXT to convert < > & to safe values.
-          nsXPIDLString safeText;
+          nsString safeText;
           rv = conv->ScanTXT(displayName.get(), mozITXTToHTMLConv::kEntities,
                              getter_Copies(safeText));
           NS_ENSURE_SUCCESS(rv,rv);
@@ -1353,7 +1353,7 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToXMLPrintData(nsAString &aXMLSubstr)
 
 nsresult nsAbCardProperty::AppendData(const char *aAttrName, mozITXTToHTMLConv *aConv, nsString &aResult)
 {
-  nsXPIDLString attrValue;
+  nsString attrValue;
   nsresult rv = GetCardValue(aAttrName, attrValue);
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -1368,8 +1368,8 @@ nsresult nsAbCardProperty::AppendData(const char *aAttrName, mozITXTToHTMLConv *
   aResult.Append(PRUnichar('>'));
   
   // use ScanTXT to convert < > & to safe values.
-  nsXPIDLString safeText;
-  rv = aConv->ScanTXT(attrValue, mozITXTToHTMLConv::kEntities, getter_Copies(safeText));
+  nsString safeText;
+  rv = aConv->ScanTXT(attrValue.get(), mozITXTToHTMLConv::kEntities, getter_Copies(safeText));
   NS_ENSURE_SUCCESS(rv,rv);
   aResult.Append(safeText);
 
@@ -1389,7 +1389,7 @@ nsresult nsAbCardProperty::AppendSection(const AppendItem *aArray, PRInt16 aCoun
 
   aResult.AppendLiteral("<section>");
 
-  nsXPIDLString attrValue;
+  nsString attrValue;
   PRBool sectionIsEmpty = PR_TRUE;
 
   PRInt16 i = 0;
@@ -1400,7 +1400,7 @@ nsresult nsAbCardProperty::AppendSection(const AppendItem *aArray, PRInt16 aCoun
   }
 
   if (!sectionIsEmpty && !aHeading.IsEmpty()) {
-    nsXPIDLString heading;
+    nsString heading;
     rv = aBundle->GetStringFromName(aHeading.get(), getter_Copies(heading));
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -1441,7 +1441,7 @@ nsresult nsAbCardProperty::AppendLine(const AppendItem &aItem,
 {
   NS_ENSURE_ARG_POINTER(aConv);
 
-  nsXPIDLString attrValue;
+  nsString attrValue;
   nsresult rv = GetCardValue(aItem.mColumn, attrValue);
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -1456,8 +1456,8 @@ nsresult nsAbCardProperty::AppendLine(const AppendItem &aItem,
   aResult.Append(PRUnichar('>'));
   
   // use ScanTXT to convert < > & to safe values.
-  nsXPIDLString safeText;
-  rv = aConv->ScanTXT(attrValue, mozITXTToHTMLConv::kEntities, getter_Copies(safeText));
+  nsString safeText;
+  rv = aConv->ScanTXT(attrValue.get(), mozITXTToHTMLConv::kEntities, getter_Copies(safeText));
   NS_ENSURE_SUCCESS(rv,rv);
   aResult.Append(safeText);
 
@@ -1477,9 +1477,9 @@ nsresult nsAbCardProperty::AppendLabel(const AppendItem &aItem,
 
   nsresult rv;
   
-  nsXPIDLString label;
+  nsString label;
   
-  nsXPIDLString attrValue;
+  nsString attrValue;
 
   rv = GetCardValue(aItem.mColumn, attrValue);
   NS_ENSURE_SUCCESS(rv,rv);
@@ -1539,7 +1539,7 @@ nsresult nsAbCardProperty::AppendCityStateZip(const AppendItem &aItem,
   rv = AppendLine(item, aConv, zipResult);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsXPIDLString formattedString;
+  nsString formattedString;
 
   if (!cityResult.IsEmpty() && !stateResult.IsEmpty() && !zipResult.IsEmpty()) {
     const PRUnichar *formatStrings[] = { cityResult.get(), stateResult.get(), zipResult.get() };

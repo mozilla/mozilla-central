@@ -43,7 +43,7 @@
 #include "nsILocalFile.h"
 #include "nsIDirectoryService.h"
 #include "nsAppDirectoryServiceDefs.h"
-#include "nsXPIDLString.h"
+#include "nsString.h"
 
 NS_IMPL_THREADSAFE_ISUPPORTS1(nsAddrBookSession, nsIAddrBookSession)
     
@@ -225,7 +225,7 @@ NS_IMETHODIMP nsAddrBookSession::GenerateNameFromCard(nsIAbCard *card, PRInt32 g
         NS_ENSURE_SUCCESS(rv,rv);
       }
       
-      nsXPIDLString generatedName;
+      nsString generatedName;
       
       if (generateFormat == kLastFirst) {
         const PRUnichar *stringParams[2] = {lastName.get(), firstName.get()};
@@ -263,7 +263,7 @@ NS_IMETHODIMP nsAddrBookSession::GenerateNameFromCard(nsIAbCard *card, PRInt32 g
     card->GetPrimaryEmail(name);
     PRInt32 index = name.FindChar('@');
     if (index != kNotFound)
-      name.Truncate(index);
+      name.SetLength(index);
   }
 
   *aName = ToNewUnicode(name);
@@ -277,6 +277,7 @@ NS_IMETHODIMP nsAddrBookSession::GeneratePhoneticNameFromCard(nsIAbCard *aCard, 
 
   nsAutoString firstName;
   nsAutoString lastName;
+  nsAutoString fullName;
   
   nsresult rv = aCard->GetPhoneticFirstName(firstName);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -285,9 +286,17 @@ NS_IMETHODIMP nsAddrBookSession::GeneratePhoneticNameFromCard(nsIAbCard *aCard, 
   NS_ENSURE_SUCCESS(rv, rv);
 
   if (aLastNameFirst)
-    *aName = ToNewUnicode(lastName + firstName);
+  {
+    fullName  = lastName;
+    fullName += firstName;
+    *aName = ToNewUnicode(fullName);
+  }
   else
-    *aName = ToNewUnicode(firstName + lastName);
+  {
+    fullName  = firstName;
+    fullName += lastName;
+    *aName = ToNewUnicode(fullName);
+  }
 
   return *aName ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
 }

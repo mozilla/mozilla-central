@@ -41,7 +41,6 @@
 #include "nsIComponentManager.h"
 #include "nsIServiceManager.h"
 #include "nsCOMPtr.h"
-#include "nsXPIDLString.h"
 #include "nsString.h"
 #include "nsISupportsArray.h"
 #include "nsITextToSubURI.h"
@@ -102,14 +101,14 @@ nsresult nsAbQueryStringToExpression::ParseExpression (
     {
         // printf ("Case: (*(: %s\n", *index);
 
-        nsXPIDLCString operation;
+        nsCString operation;
         rv = ParseOperationEntry (
             *index, indexBracket,
             getter_Copies (operation));
         NS_ENSURE_SUCCESS(rv, rv);
 
         nsCOMPtr<nsIAbBooleanExpression> e;
-        rv = CreateBooleanExpression(operation,
+        rv = CreateBooleanExpression(operation.get(),
             getter_AddRefs(e));
         NS_ENSURE_SUCCESS(rv, rv);
 
@@ -185,7 +184,7 @@ nsresult nsAbQueryStringToExpression::ParseCondition (
 
     (*index)++;
 
-    nsXPIDLCString entries[3];
+    nsCString entries[3];
     for (int i = 0; i < 3; i++)
     {
         rv = ParseConditionEntry (index, indexBracketClose,
@@ -201,9 +200,9 @@ nsresult nsAbQueryStringToExpression::ParseCondition (
 
     nsCOMPtr<nsIAbBooleanConditionString> c;
     rv = CreateBooleanConditionString (
-        entries[0],
-        entries[1],
-        entries[2],
+        entries[0].get(),
+        entries[1].get(),
+        entries[2].get(),
         getter_AddRefs (c));
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -320,8 +319,8 @@ nsresult nsAbQueryStringToExpression::CreateBooleanConditionString (
     nsCOMPtr<nsITextToSubURI> textToSubURI = do_GetService(NS_ITEXTTOSUBURI_CONTRACTID,&rv); 
     if (NS_SUCCEEDED(rv))
     {
-        nsXPIDLString attributeUCS2;
-        nsXPIDLString valueUCS2;
+        nsString attributeUCS2;
+        nsString valueUCS2;
 
         rv = textToSubURI->UnEscapeAndConvert("UTF-8",
             attribute, getter_Copies(attributeUCS2));
@@ -335,7 +334,7 @@ nsresult nsAbQueryStringToExpression::CreateBooleanConditionString (
 
         rv = cs->SetName (attributeUTF8.get ());
         NS_ENSURE_SUCCESS(rv, rv);
-        rv = cs->SetValue (valueUCS2);
+        rv = cs->SetValue(valueUCS2.get());
         NS_ENSURE_SUCCESS(rv, rv);
     }
     else

@@ -41,7 +41,7 @@
 #include "nsIRDFService.h"
 #include "nsIServiceManager.h"
 #include "nsRDFCID.h"
-#include "nsXPIDLString.h"
+#include "nsString.h"
 #include "nsCOMPtr.h"
 #include "nsAbBaseCID.h"
 #include "nsAddrDatabase.h"
@@ -121,7 +121,7 @@ NS_IMETHODIMP nsAbMDBDirectory::Init(const char *aUri)
     char** childArray;
     PRUint32 childCount, i;
     PRInt32 dotOffset;
-    nsXPIDLCString childValue;
+    nsCString childValue;
     nsDependentCString child;
 
     rv = prefBranch->GetChildList("", &childCount, &childArray);
@@ -233,7 +233,7 @@ NS_IMETHODIMP nsAbMDBDirectory::DeleteDirectory(nsIAbDirectory *directory)
   nsCOMPtr<nsIAbMDBDirectory> dbdirectory(do_QueryInterface(directory, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsXPIDLCString uri;
+  nsCString uri;
   rv = dbdirectory->GetDirUri(getter_Copies(uri));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -646,7 +646,7 @@ NS_IMETHODIMP nsAbMDBDirectory::HasDirectory(nsIAbDirectory *dir, PRBool *hasDir
   dir->GetIsMailList(&bIsMailingList);
   if (bIsMailingList)
   {
-    nsXPIDLCString uri;
+    nsCString uri;
     rv = dbdir->GetDirUri(getter_Copies(uri));
         NS_ENSURE_SUCCESS(rv, rv);
     nsCOMPtr<nsIAddrDatabase> database;
@@ -932,7 +932,7 @@ NS_IMETHODIMP nsAbMDBDirectory::OnListEntryChange
     NS_ENSURE_SUCCESS(rv,rv);
 
     if (bIsMailList) {
-        nsXPIDLString pListName;
+        nsString pListName;
       rv = list->GetDirName(getter_Copies(pListName));
       NS_ENSURE_SUCCESS(rv,rv);
 

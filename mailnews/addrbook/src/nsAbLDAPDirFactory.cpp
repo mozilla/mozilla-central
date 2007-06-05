@@ -70,9 +70,9 @@ NS_IMETHODIMP nsAbLDAPDirFactory::CreateDirectory(nsIAbDirectoryProperties *aPro
 
     nsresult rv;
 
-    nsXPIDLCString uri;
+    nsCString uri;
     nsAutoString description;
-    nsXPIDLCString prefName;
+    nsCString prefName;
     
     rv = aProperties->GetDescription(description);
     NS_ENSURE_SUCCESS(rv, rv);
@@ -90,7 +90,7 @@ NS_IMETHODIMP nsAbLDAPDirFactory::CreateDirectory(nsIAbDirectoryProperties *aPro
 
     if ((strncmp(uri.get(), "ldap:", 5) == 0) ||
         (strncmp(uri.get(), "ldaps:", 6) == 0)) {
-      nsXPIDLCString prefName;
+      nsCString prefName;
       rv = aProperties->GetPrefName(getter_Copies(prefName));
       NS_ENSURE_SUCCESS(rv, rv);
 
@@ -111,7 +111,8 @@ NS_IMETHODIMP nsAbLDAPDirFactory::CreateDirectory(nsIAbDirectoryProperties *aPro
        * note, <prefName> does not change.
        */
       nsCAutoString bridgeURI;
-      bridgeURI = NS_LITERAL_CSTRING(kLDAPDirectoryRoot) + prefName;
+      bridgeURI = NS_LITERAL_CSTRING(kLDAPDirectoryRoot);
+      bridgeURI += prefName;
       rv = rdf->GetResource(bridgeURI, getter_AddRefs(resource));
     }
     else {

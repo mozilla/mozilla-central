@@ -39,7 +39,6 @@
 #include "nsNetCID.h"
 #include "nsAddbookUrl.h"
 #include "nsString.h"
-#include "nsXPIDLString.h"
 #include "nsAbBaseCID.h"
 #include "nsEscape.h"
 

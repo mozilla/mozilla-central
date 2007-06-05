@@ -217,20 +217,20 @@ NS_IMETHODIMP nsAbDirProperty::SetAddressLists(nsISupportsArray * aAddressLists)
 
 NS_IMETHODIMP nsAbDirProperty::CopyMailList(nsIAbDirectory* srcList)
 {
-  nsXPIDLString str;
-	srcList->GetDirName(getter_Copies(str));
-	SetDirName(str);
-	srcList->GetListNickName(getter_Copies(str));
-	SetListNickName(str);
-	srcList->GetDescription(getter_Copies(str));
-	SetDescription(str);
+  nsString str;
+  srcList->GetDirName(getter_Copies(str));
+  SetDirName(str.get());
+  srcList->GetListNickName(getter_Copies(str));
+  SetListNickName(str.get());
+  srcList->GetDescription(getter_Copies(str));
+  SetDescription(str.get());
 
-	SetIsMailList(PR_TRUE);
+  SetIsMailList(PR_TRUE);
 
-	nsCOMPtr <nsISupportsArray> pAddressLists;
-	srcList->GetAddressLists(getter_AddRefs(pAddressLists));
-	SetAddressLists(pAddressLists);
-	return NS_OK;
+  nsCOMPtr <nsISupportsArray> pAddressLists;
+  srcList->GetAddressLists(getter_AddRefs(pAddressLists));
+  SetAddressLists(pAddressLists);
+  return NS_OK;
 }
 
 // nsIAbDirectory NOT IMPLEMENTED methods
@@ -443,7 +443,7 @@ NS_IMETHODIMP nsAbDirProperty::GetStringValue(const char *aName,
   if (!m_DirectoryPrefs && NS_FAILED(InitDirectoryPrefs()))
     return NS_ERROR_NOT_INITIALIZED;
 
-  nsXPIDLCString value;
+  nsCString value;
 
     /* unfortunately, there may be some prefs out there which look like (null) */
   if (NS_SUCCEEDED(m_DirectoryPrefs->GetCharPref(aName, getter_Copies(value))) &&
@@ -468,7 +468,7 @@ NS_IMETHODIMP nsAbDirProperty::GetLocalizedStringValue(const char *aName,
   if (!m_DirectoryPrefs && NS_FAILED(InitDirectoryPrefs()))
     return NS_ERROR_NOT_INITIALIZED;
 
-  nsXPIDLString wvalue;
+  nsString wvalue;
   nsCOMPtr<nsIPrefLocalizedString> locStr;
 
   nsresult rv = m_DirectoryPrefs->GetComplexValue(aName,
@@ -512,7 +512,7 @@ NS_IMETHODIMP nsAbDirProperty::SetStringValue(const char *aName,
   if (!m_DirectoryPrefs && NS_FAILED(InitDirectoryPrefs()))
     return NS_ERROR_NOT_INITIALIZED;
 
-  return m_DirectoryPrefs->SetCharPref(aName, PromiseFlatCString(aValue).get());
+  return m_DirectoryPrefs->SetCharPref(aName, nsCString(aValue).get());
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////

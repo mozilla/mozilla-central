@@ -58,7 +58,7 @@ AppendToString(const NSString *aString, nsString &aResult)
     if (aString) {
         const char *chars = [aString UTF8String];
         if (chars) {
-            AppendUTF8toUTF16(chars, aResult);
+            aResult.Append(NS_ConvertUTF8toUTF16(chars));
         }
     }
 }

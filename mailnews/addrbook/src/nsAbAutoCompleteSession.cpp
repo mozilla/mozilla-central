@@ -43,7 +43,6 @@
 #include "nsIRDFService.h"
 #include "nsIAbDirectory.h"
 #include "nsIAbCard.h"
-#include "nsXPIDLString.h"
 #include "nsReadableUtils.h"
 #include "nsUnicharUtils.h"
 #include "nsMsgBaseCID.h"
@@ -54,6 +53,7 @@
 #include "nsIIOService.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
+#include "nsAbMDBDirectory.h"
 
 NS_IMPL_ISUPPORTS2(nsAbAutoCompleteSession, nsIAbAutoCompleteSession, nsIAutoCompleteSession)
 
@@ -155,8 +155,8 @@ nsAbAutoCompleteSession::AddToResult(const PRUnichar* pNickNameStr,
   {
     if (mParser)
     {
-      nsXPIDLCString fullAddress;
-      nsXPIDLCString utf8Email;
+      nsCString fullAddress;
+      nsCString utf8Email;
       if (bIsMailList)
       {
         if (pNotesStr && pNotesStr[0] != 0)
@@ -168,7 +168,7 @@ nsAbAutoCompleteSession::AddToResult(const PRUnichar* pNickNameStr,
         utf8Email.Adopt(ToNewUTF8String(nsDependentString(pEmailStr)));
 
       mParser->MakeFullAddress(nsnull, NS_ConvertUTF16toUTF8(pDisplayNameStr).get(),
-                               utf8Email, getter_Copies(fullAddress));
+                               utf8Email.get(), getter_Copies(fullAddress));
       if (!fullAddress.IsEmpty())
       {
         /* We need to convert back the result from UTF-8 to Unicode */
@@ -358,12 +358,12 @@ nsresult nsAbAutoCompleteSession::SearchCards(nsIAbDirectory* directory, nsAbAut
         card = do_QueryInterface(item, &rv);
         if (NS_SUCCEEDED(rv))
         {
-          nsXPIDLString pEmailStr[MAX_NUMBER_OF_EMAIL_ADDRESSES]; //[0]=primary email, [1]=secondary email (no available with mailing list)
-          nsXPIDLString pDisplayNameStr;
-          nsXPIDLString pFirstNameStr;
-          nsXPIDLString pLastNameStr;
-          nsXPIDLString pNickNameStr;
-          nsXPIDLString pNotesStr;
+          nsString pEmailStr[MAX_NUMBER_OF_EMAIL_ADDRESSES]; //[0]=primary email, [1]=secondary email (no available with mailing list)
+          nsString pDisplayNameStr;
+          nsString pFirstNameStr;
+          nsString pLastNameStr;
+          nsString pNickNameStr;
+          nsString pNotesStr;
           PRUint32 popularityIndex = 0;
           PRBool bIsMailList;
 
@@ -400,7 +400,7 @@ nsresult nsAbAutoCompleteSession::SearchCards(nsIAbDirectory* directory, nsAbAut
 
               //...and does it looks like a valid address?
               if (pEmailStr[i].FindChar('@') <= 0)
-                pEmailStr[i].SetLength(0);
+                pEmailStr[i].Truncate();
             }
             if (pEmailStr[0].IsEmpty() && pEmailStr[1].IsEmpty())
               continue;
@@ -428,7 +428,7 @@ nsresult nsAbAutoCompleteSession::SearchCards(nsIAbDirectory* directory, nsAbAut
           // instead of just looking for an exact match on "My List", hijack the unused email address field 
           // and use that to test against "My List <My List>"
           if (bIsMailList)
-            mParser->MakeFullAddressWString (pDisplayNameStr, pDisplayNameStr, getter_Copies(pEmailStr[0]));  
+            mParser->MakeFullAddressWString(pDisplayNameStr.get(), pDisplayNameStr.get(), getter_Copies(pEmailStr[0]));  
             
           for (i = 0 ; i < MAX_NUMBER_OF_EMAIL_ADDRESSES; i ++)
           {
@@ -440,7 +440,7 @@ nsresult nsAbAutoCompleteSession::SearchCards(nsIAbDirectory* directory, nsAbAut
                                       pFirstNameStr.get(), 
                                       pLastNameStr.get(), pEmailStr[i].get()))
             {
-              nsXPIDLString pDirName;
+              nsString pDirName;
               if (mAutoCompleteCommentColumn == 1)
               {
                 rv = directory->GetDirName(getter_Copies(pDirName));
@@ -490,7 +490,7 @@ nsAbAutoCompleteSession::SearchReplicatedLDAPDirectories(nsIPrefBranch *aPref, n
 {
   NS_ENSURE_ARG_POINTER(aPref);
 
-  nsXPIDLCString prefName;
+  nsCString prefName;
   nsresult rv = aPref->GetCharPref("ldap_2.autoComplete.directoryServer", getter_Copies(prefName));
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -498,10 +498,10 @@ nsAbAutoCompleteSession::SearchReplicatedLDAPDirectories(nsIPrefBranch *aPref, n
     return NS_OK;
     
   // use the prefName to get the fileName pref
-  nsCAutoString fileNamePref;
-  fileNamePref = prefName + NS_LITERAL_CSTRING(".filename");
+  nsCAutoString fileNamePref(prefName);
+  fileNamePref.AppendLiteral(".filename");
 
-  nsXPIDLCString fileName;
+  nsCString fileName;
   rv = aPref->GetCharPref(fileNamePref.get(), getter_Copies(fileName));
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -510,8 +510,8 @@ nsAbAutoCompleteSession::SearchReplicatedLDAPDirectories(nsIPrefBranch *aPref, n
     return NS_OK;
 
   // use the fileName to create the URI for the replicated directory
-  nsCAutoString URI;
-  URI = NS_LITERAL_CSTRING("moz-abmdbdirectory://") + fileName;
+  nsCAutoString URI(NS_LITERAL_CSTRING(kMDBDirectoryRoot));
+  URI += fileName;
 
   // and then search the replicated directory
   return SearchDirectory(URI, searchStr, searchSubDirectory, results);
@@ -563,7 +563,7 @@ nsresult nsAbAutoCompleteSession::SearchDirectory(const nsACString& aURI, nsAbAu
                 nsCOMPtr<nsIRDFResource> subResource(do_QueryInterface(item, &rv));
                 if (NS_SUCCEEDED(rv))
                 {
-                    nsXPIDLCString URI;
+                    nsCString URI;
                     subResource->GetValue(getter_Copies(URI));
                     rv = SearchDirectory(URI, searchStr, PR_TRUE, results);
                 }
@@ -579,18 +579,18 @@ nsresult nsAbAutoCompleteSession::SearchPreviousResults(nsAbAutoCompleteSearchSt
     if (!previousSearchResult)
         return NS_ERROR_NULL_POINTER;
         
-    nsXPIDLString prevSearchString;
+    nsString prevSearchString;
     nsresult rv;
 
     rv = previousSearchResult->GetSearchString(getter_Copies(prevSearchString));
     NS_ENSURE_SUCCESS(rv, rv);
     
-    if (!(const PRUnichar*)prevSearchString || ((const PRUnichar*)prevSearchString)[0] == 0)
+    if (prevSearchString.IsEmpty())
         return NS_ERROR_FAILURE;
     
-    PRUint32 prevSearchStrLen = nsCRT::strlen(prevSearchString);
+    PRUint32 prevSearchStrLen = prevSearchString.Length();
     if (searchStr->mFullStringLen < prevSearchStrLen ||
-        CommonPrefix(searchStr->mFullString, prevSearchString, prevSearchStrLen))
+        CommonPrefix(searchStr->mFullString, prevSearchString.get(), prevSearchStrLen))
         return NS_ERROR_ABORT;
 
     nsCOMPtr<nsISupportsArray> array;

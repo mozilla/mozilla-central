@@ -54,6 +54,7 @@
 #include "nsArrayEnumerator.h"
 #include "nsEnumeratorUtils.h"
 #include "nsIAbLDAPAttributeMap.h"
+#include "nsAbMDBDirectory.h"
 
 #define kDefaultMaxHits 100
 
@@ -238,7 +239,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetChildCards(nsISimpleEnumerator** result)
       nsCOMPtr <nsIRDFService> rdfService = do_GetService("@mozilla.org/rdf/rdf-service;1",&rv);
       NS_ENSURE_SUCCESS(rv, rv);
 
-      nsXPIDLCString fileName;
+      nsCString fileName;
       rv = GetReplicationFileName(fileName);
       NS_ENSURE_SUCCESS(rv,rv);
       
@@ -247,10 +248,13 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetChildCards(nsISimpleEnumerator** result)
         return NS_OK;
 
       // perform the same query, but on the local directory
-      nsCAutoString localDirectoryURI;
-      localDirectoryURI = NS_LITERAL_CSTRING("moz-abmdbdirectory://") + fileName;
-      if (mIsQueryURI)
-        localDirectoryURI += NS_LITERAL_CSTRING("?") + mQueryString;
+      nsCAutoString localDirectoryURI(NS_LITERAL_CSTRING(kMDBDirectoryRoot));
+      localDirectoryURI.Append(fileName);
+      if (mIsQueryURI) 
+      {
+        localDirectoryURI.AppendLiteral("?");
+        localDirectoryURI.Append(mQueryString);
+      }
       
       nsCOMPtr <nsIRDFResource> resource;
       rv = rdfService->GetResource(localDirectoryURI, getter_AddRefs(resource));

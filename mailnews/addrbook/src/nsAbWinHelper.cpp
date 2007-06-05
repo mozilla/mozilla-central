@@ -572,7 +572,7 @@ BOOL nsAbWinHelper::SetPropertyUString(const nsMapiEntry& aObject, ULONG aProper
 }
 
 BOOL nsAbWinHelper::SetPropertiesUString(const nsMapiEntry& aObject, const ULONG *aPropertiesTag,
-                                         ULONG aNbProperties, nsXPIDLString *aValues) 
+                                         ULONG aNbProperties, nsString *aValues) 
 {
     LPSPropValue values = new SPropValue [aNbProperties] ;
     if (!values)

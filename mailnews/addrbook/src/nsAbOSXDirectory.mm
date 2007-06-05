@@ -292,11 +292,11 @@ MapConditionString(nsIAbBooleanConditionString *aCondition, PRBool aNegate,
   if (!aCanHandle)
     return NS_OK;
   
-  nsXPIDLCString name;
+  nsCString name;
   rv = aCondition->GetName(getter_Copies(name));
   NS_ENSURE_SUCCESS(rv, rv);
   
-  nsXPIDLString value;
+  nsString value;
   rv = aCondition->GetValue(getter_Copies(value));
   NS_ENSURE_SUCCESS(rv, rv);
   

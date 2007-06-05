@@ -84,9 +84,9 @@ NS_IMETHODIMP nsAbDirectoryRDFResource::Init(const char* aURI)
 
   if (!queryString.IsEmpty())
     {
-    mPath.Truncate(path.Length() - queryString.Length() - 1);
+    mPath.SetLength(path.Length() - queryString.Length() - 1);
 
-    mURINoQuery.Truncate(mURINoQuery.Length() - queryString.Length() - 1);
+    mURINoQuery.SetLength(mURINoQuery.Length() - queryString.Length() - 1);
 
         mQueryString = queryString;
 

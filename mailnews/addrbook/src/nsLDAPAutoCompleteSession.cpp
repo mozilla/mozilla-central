@@ -45,7 +45,6 @@
 #include "nsIProxyObjectManager.h"
 #include "nsILDAPURL.h"
 #include "nsILDAPService.h"
-#include "nsXPIDLString.h"
 #include "nsReadableUtils.h"
 #include "nspr.h"
 #include "nsIStringBundle.h"
@@ -156,7 +155,7 @@ nsLDAPAutoCompleteSession::OnStartLookup(const PRUnichar *searchString,
 
         // get the string representing previous search results
         //
-        nsXPIDLString prevSearchStr;
+        nsString prevSearchStr;
 
         rv = previousSearchResult->GetSearchString(
             getter_Copies(prevSearchStr));
@@ -449,7 +448,7 @@ nsLDAPAutoCompleteSession::OnLDAPInit(nsILDAPConnection *aConn, nsresult aStatus
 {
     nsresult rv;        // temp for xpcom return values
     nsCOMPtr<nsILDAPMessageListener> selfProxy;
-    nsXPIDLString passwd;   // passwd to use to connect to server
+    nsString passwd;   // passwd to use to connect to server
 
     // Check the status from the initialization of the LDAP connection
     //
@@ -506,7 +505,7 @@ nsLDAPAutoCompleteSession::OnLDAPInit(nsILDAPConnection *aConn, nsresult aStatus
 
         // get the title for the authentication prompt
         //
-        nsXPIDLString authPromptTitle;
+        nsString authPromptTitle;
         rv = ldapBundle->GetStringFromName(
             NS_LITERAL_STRING("authPromptTitle").get(), 
             getter_Copies(authPromptTitle));
@@ -538,7 +537,7 @@ nsLDAPAutoCompleteSession::OnLDAPInit(nsILDAPConnection *aConn, nsresult aStatus
 
         // format the hostname into the authprompt text string
         //
-        nsXPIDLString authPromptText;
+        nsString authPromptText;
         rv = ldapBundle->FormatStringFromName(
             NS_LITERAL_STRING("authPromptText").get(),
             hostArray, sizeof(hostArray) / sizeof(const PRUnichar *),
@@ -945,10 +944,12 @@ nsLDAPAutoCompleteSession::StartLDAPSearch()
         // the filter works as a term to &
         //
         if (urlFilter[0] != '(') {
-            prefix = NS_LITERAL_CSTRING("(&(") + urlFilter +
-                NS_LITERAL_CSTRING(")");
+            prefix.AssignLiteral("(&(");
+            prefix.Append(urlFilter);
+            prefix.AppendLiteral(")");
         } else {
-            prefix = NS_LITERAL_CSTRING("(&") + urlFilter;
+            prefix.AssignLiteral("(&");
+            prefix.Append(urlFilter);
         }
         
         suffix = ')';

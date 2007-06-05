@@ -59,7 +59,7 @@
 
 #include "nsMorkCID.h"
 #include "nsIMdbFactoryFactory.h"
-#include "nsXPIDLString.h"
+#include "nsString.h"
 #include "nsIRDFService.h"
 #include "nsIProxyObjectManager.h"
 #include "nsProxiedService.h"
@@ -577,12 +577,12 @@ nsresult nsAddrDatabase::DisplayAlert(const PRUnichar *titleName, const PRUnicha
   rv = bundleService->CreateBundle("chrome://messenger/locale/addressbook/addressBook.properties", getter_AddRefs(bundle));
   NS_ENSURE_SUCCESS(rv, rv);
   
-  nsXPIDLString alertMessage;
+  nsString alertMessage;
   rv = bundle->FormatStringFromName(alertStringName, formatStrings, numFormatStrings,
     getter_Copies(alertMessage));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsXPIDLString alertTitle;
+  nsString alertTitle;
   rv = bundle->GetStringFromName(titleName, getter_Copies(alertTitle));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -881,7 +881,7 @@ nsresult nsAddrDatabase::AddRowToDeletedCardsTable(nsIAbCard *card, nsIMdbRow **
     if (NS_SUCCEEDED(rv) && cardRow) {
       mdb_err merror = m_mdbDeletedCardsTable->AddRow(m_mdbEnv, cardRow);
       if (merror != NS_OK) return NS_ERROR_FAILURE;
-      nsXPIDLString unicodeStr;
+      nsString unicodeStr;
       card->GetFirstName(unicodeStr);
       AddFirstName(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
     
@@ -892,22 +892,22 @@ nsresult nsAddrDatabase::AddRowToDeletedCardsTable(nsIAbCard *card, nsIMdbRow **
       AddDisplayName(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
 
       card->GetPrimaryEmail(unicodeStr);
-      if (unicodeStr)
-        AddUnicodeToColumn(cardRow, m_PriEmailColumnToken, m_LowerPriEmailColumnToken, unicodeStr);
+      if (!unicodeStr.IsEmpty())
+        AddUnicodeToColumn(cardRow, m_PriEmailColumnToken, m_LowerPriEmailColumnToken, unicodeStr.get());
 
       PRUint32 nowInSeconds;
       PRTime now = PR_Now();
       PRTime2Seconds(now, &nowInSeconds);
       AddIntColumn(cardRow, m_LastModDateColumnToken, nowInSeconds);
 
-      nsXPIDLString value;
+      nsString value;
       GetCardValue(card, CARD_ATTRIB_PALMID, getter_Copies(value));
-      if (value)
+      if (!value.IsEmpty())
       {
         nsCOMPtr<nsIAbCard> addedCard;
         rv = CreateCardFromDeletedCardsTable(cardRow, 0, getter_AddRefs(addedCard));
         if (NS_SUCCEEDED(rv))
-          SetCardValue(addedCard, CARD_ATTRIB_PALMID, value, PR_FALSE);
+          SetCardValue(addedCard, CARD_ATTRIB_PALMID, value.get(), PR_FALSE);
       }
       NS_IF_ADDREF(*pCardRow = cardRow);
     }
@@ -1320,7 +1320,7 @@ nsresult nsAddrDatabase::AddAttributeColumnsToRow(nsIAbCard *card, nsIMdbRow *ca
   // add the row to the singleton table.
   if (card && cardRow)
   {
-    nsXPIDLString unicodeStr;
+    nsString unicodeStr;
     card->GetFirstName(unicodeStr);
     AddFirstName(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
 
@@ -1340,8 +1340,8 @@ nsresult nsAddrDatabase::AddAttributeColumnsToRow(nsIAbCard *card, nsIMdbRow *ca
     AddNickName(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
 
     card->GetPrimaryEmail(unicodeStr);
-    if (unicodeStr)
-      AddUnicodeToColumn(cardRow, m_PriEmailColumnToken, m_LowerPriEmailColumnToken, unicodeStr);
+    if (!unicodeStr.IsEmpty())
+      AddUnicodeToColumn(cardRow, m_PriEmailColumnToken, m_LowerPriEmailColumnToken, unicodeStr.get());
 
     card->GetSecondEmail(unicodeStr);
     Add2ndEmail(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
@@ -1608,9 +1608,9 @@ NS_IMETHODIMP nsAddrDatabase::AddListCardColumnsToRow
     return NS_ERROR_NULL_POINTER;
   
   nsresult    err = NS_OK;
-  nsXPIDLString email;
+  nsString email;
   pCard->GetPrimaryEmail(email);
-  if (email)
+  if (!email.IsEmpty())
   {
     nsIMdbRow    *pCardRow = nsnull;
     // Please DO NOT change the 3rd param of GetRowFromAttribute() call to 
@@ -1636,7 +1636,7 @@ NS_IMETHODIMP nsAddrDatabase::AddListCardColumnsToRow
     
     NS_ENSURE_TRUE(pCardRow, NS_ERROR_NULL_POINTER);
     
-    nsXPIDLString name;
+    nsString name;
     pCard->GetDisplayName(name);
     if (!name.IsEmpty()) {
       AddDisplayName(pCardRow, NS_ConvertUTF16toUTF8(name).get());
@@ -1696,11 +1696,11 @@ nsresult nsAddrDatabase::AddListAttributeColumnsToRow(nsIAbDirectory *list, nsIM
     // add the row to the singleton table.
     if (NS_SUCCEEDED(err) && listRow)
     {
-        nsXPIDLString unicodeStr;
+        nsString unicodeStr;
 
         list->GetDirName(getter_Copies(unicodeStr));
-        if (unicodeStr)
-            AddUnicodeToColumn(listRow, m_ListNameColumnToken, m_LowerListNameColumnToken, unicodeStr);
+        if (!unicodeStr.IsEmpty())
+            AddUnicodeToColumn(listRow, m_ListNameColumnToken, m_LowerListNameColumnToken, unicodeStr.get());
 
         list->GetListNickName(getter_Copies(unicodeStr));
         AddListNickName(listRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
@@ -1770,9 +1770,9 @@ NS_IMETHODIMP nsAddrDatabase::SetListAddressTotal(nsIMdbRow* aListRow, PRUint32 
 
 NS_IMETHODIMP nsAddrDatabase::FindRowByCard(nsIAbCard * aCard,nsIMdbRow **aRow)
 {
-    nsXPIDLString primaryEmail;
+    nsString primaryEmail;
     aCard->GetPrimaryEmail(primaryEmail);
-    return GetRowForCharColumn(primaryEmail, m_PriEmailColumnToken, PR_TRUE, aRow);
+    return GetRowForCharColumn(primaryEmail.get(), m_PriEmailColumnToken, PR_TRUE, aRow);
 }
 
 nsresult nsAddrDatabase::GetAddressRowByPos(nsIMdbRow* listRow, PRUint16 pos, nsIMdbRow** cardRow)
@@ -3605,7 +3605,7 @@ NS_IMETHODIMP nsAddrDatabase::AddListDirNode(nsIMdbRow * listRow)
         rv = m_dbName->GetLeafName(parentURI);
         NS_ENSURE_SUCCESS(rv, rv);
 
-        parentURI = NS_LITERAL_STRING(kMDBDirectoryRoot) + parentURI;
+        parentURI.Replace(0, 0, NS_LITERAL_STRING(kMDBDirectoryRoot));
 
         rv = rdfService->GetResource(NS_ConvertUTF16toUTF8(parentURI), getter_AddRefs(parentResource));
         nsCOMPtr<nsIAbDirectory> parentDir;

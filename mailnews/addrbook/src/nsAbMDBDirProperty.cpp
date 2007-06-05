@@ -42,7 +42,7 @@
 #include "nsIRDFResource.h"
 #include "nsIServiceManager.h"
 #include "nsRDFCID.h"
-#include "nsXPIDLString.h"
+#include "nsString.h"
 #include "nsCOMPtr.h"
 #include "nsAbBaseCID.h"
 #include "nsAddrDatabase.h"

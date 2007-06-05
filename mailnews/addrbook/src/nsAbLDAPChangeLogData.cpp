@@ -296,18 +296,18 @@ nsresult nsAbLDAPProcessChangeLogData::GetAuthData()
     if (NS_FAILED (rv)) 
         return rv ;
 
-    nsXPIDLString title;
+    nsString title;
     rv = bundle->GetStringFromName(NS_LITERAL_STRING("AuthDlgTitle").get(), getter_Copies(title));
     if (NS_FAILED (rv)) 
         return rv ;
 
-    nsXPIDLString desc;
+    nsString desc;
     rv = bundle->GetStringFromName(NS_LITERAL_STRING("AuthDlgDesc").get(), getter_Copies(desc));
     if (NS_FAILED (rv)) 
         return rv ;
 
-    nsXPIDLString username;
-    nsXPIDLString password;
+    nsString username;
+    nsString password;
     PRBool btnResult = PR_FALSE;
 	rv = dialog->PromptUsernameAndPassword(title, desc, 
                                             NS_ConvertUTF8toUTF16(serverUri).get(), 

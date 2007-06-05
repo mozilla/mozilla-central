@@ -103,7 +103,7 @@ nsAbLDAPAutoCompFormatter::Format(nsILDAPMessage *aMsg,
         return rv;
     }
 
-    nsXPIDLCString value;
+    nsCString value;
     /* As far as I can tell, the documentation in nsIMsgHdrParser that 
      * nsnull means "US-ASCII" is actually wrong, it appears to mean UTF8
      */
@@ -179,7 +179,7 @@ nsAbLDAPAutoCompFormatter::FormatException(PRInt32 aState,
 
     // get the string bundle service
     //
-    nsXPIDLString errMsg, ldapErrMsg, alertMsg, ldapHint;
+    nsString errMsg, ldapErrMsg, alertMsg, ldapHint;
     nsString errCodeNum;
 
     nsCOMPtr<nsIStringBundleService> stringBundleSvc(do_GetService(
@@ -305,8 +305,10 @@ nsAbLDAPAutoCompFormatter::FormatException(PRInt32 aState,
     // stringbundles have already failed us.
     //
     if (errMsg.Length()) {
-        rv = item->SetValue(PromiseFlatString(NS_LITERAL_STRING("<") + errMsg
-                                              + NS_LITERAL_STRING(">")));
+        nsString tErrMsg(NS_LITERAL_STRING("<"));
+        tErrMsg.Append(errMsg);
+        tErrMsg.AppendLiteral(">");
+        rv = item->SetValue(tErrMsg);
     } else {
         rv = item->SetValue(
             NS_LITERAL_STRING("<Unknown LDAP autocompletion error>"));
@@ -554,7 +556,7 @@ nsAbLDAPAutoCompFormatter::ProcessFormat(const nsAString & aFormat,
 
                 // this character gets treated as a literal
                 //
-                AppendUTF16toUTF8(nsDependentString(iter.get(), 1), *aValue); //XXXjag poke me about string generators
+                aValue->Append(NS_ConvertUTF16toUTF8(nsDependentString(iter.get(),1)));
             }
         }
 
@@ -632,7 +634,7 @@ nsAbLDAPAutoCompFormatter::AppendFirstAttrValue(
     PRUnichar **values;
 
     nsresult rv;
-    rv = aMessage->GetValues(PromiseFlatCString(aAttrName).get(), &numVals, 
+    rv = aMessage->GetValues(nsCString(aAttrName).get(), &numVals, 
                              &values);
     if (NS_FAILED(rv)) {
 
@@ -672,7 +674,7 @@ nsAbLDAPAutoCompFormatter::AppendFirstAttrValue(
 
     // append the value to our string; then free the array of results
     //
-    AppendUTF16toUTF8(values[0], aValue);
+    aValue.Append(NS_ConvertUTF16toUTF8(values[0]));
     NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(numVals, values);
 
     // if this attribute wasn't required, we fall through to here, and return 

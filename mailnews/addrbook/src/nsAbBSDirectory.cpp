@@ -85,7 +85,7 @@ nsresult nsAbBSDirectory::CreateDirectoriesFromFactory(
   NS_ENSURE_SUCCESS (rv, rv);
 		
   // Get the directory factory from the URI
-  nsXPIDLCString uri;
+  nsCString uri;
   rv = aProperties->GetURI(getter_Copies(uri));
   NS_ENSURE_SUCCESS(rv,rv);
   
@@ -175,8 +175,11 @@ NS_IMETHODIMP nsAbBSDirectory::GetChildNodes(nsISimpleEnumerator* *aResult)
       nsCAutoString URI (server->uri);
       // This is in case the uri is never set
       // in the nsDirPref.cpp code.
-      if (!server->uri)
-        URI = NS_LITERAL_CSTRING(kMDBDirectoryRoot) + nsDependentCString(server->fileName);
+      if (!server->uri) 
+      {
+        URI = NS_LITERAL_CSTRING(kMDBDirectoryRoot);
+        URI += nsDependentCString(server->fileName);
+      }
       
       /*
       * Check that we are not converting from a
@@ -184,7 +187,7 @@ NS_IMETHODIMP nsAbBSDirectory::GetChildNodes(nsISimpleEnumerator* *aResult)
       * check if the URI ends with ".na2"
       */
       if (StringEndsWith(URI, NS_LITERAL_CSTRING(kABFileName_PreviousSuffix))) 
-        URI.ReplaceSubstring(URI.get() + kMDBDirectoryRootLen, server->fileName);
+        URI.Replace(kMDBDirectoryRootLen, URI.Length() - kMDBDirectoryRootLen, server->fileName);
       
       rv = properties->SetPrefName(server->prefName);
       NS_ENSURE_SUCCESS(rv,rv);
@@ -216,8 +219,8 @@ NS_IMETHODIMP nsAbBSDirectory::CreateNewDirectory(nsIAbDirectoryProperties *aPro
   nsresult rv;
   
   nsAutoString description;
-  nsXPIDLCString fileName;
-  nsXPIDLCString uri;
+  nsCString fileName;
+  nsCString uri;
   
   rv = aProperties->GetDescription(description);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -255,7 +258,9 @@ NS_IMETHODIMP nsAbBSDirectory::CreateNewDirectory(nsIAbDirectoryProperties *aPro
   
   if (dirType != LDAPDirectory) {
     // Add the URI property
-    nsCAutoString URI(NS_LITERAL_CSTRING(kMDBDirectoryRoot) + nsDependentCString(server->fileName));
+    nsCAutoString URI(NS_LITERAL_CSTRING(kMDBDirectoryRoot));
+    URI += nsDependentCString(server->fileName);
+
     rv = aProperties->SetURI(URI.get());
     NS_ENSURE_SUCCESS(rv, rv);
   }
@@ -423,7 +428,7 @@ NS_IMETHODIMP nsAbBSDirectory::ModifyDirectory(nsIAbDirectory *directory, nsIAbD
   mServers.Enumerate (GetDirectories_getDirectory, (void *)&getDirectories);
 
   nsAutoString description;
-  nsXPIDLCString uri;
+  nsCString uri;
 
   rv = aProperties->GetDescription(description);
   NS_ENSURE_SUCCESS(rv, rv);

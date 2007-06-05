@@ -293,10 +293,10 @@ nsresult nsAbLDAPProcessReplicationData::OnLDAPSearchEntry(nsILDAPMessage *aMess
     }
 
 #ifdef DEBUG_rdayal
-        nsXPIDLString firstName;
+        nsString firstName;
         rv = card.GetFirstName(getter_Copies(firstName));
         NS_ENSURE_SUCCESS(rv,rv);
-        nsXPIDLString lastName;
+        nsString lastName;
         rv = card.GetLastName(getter_Copies(lastName));
         NS_ENSURE_SUCCESS(rv,rv);
         nsCAutoString name;

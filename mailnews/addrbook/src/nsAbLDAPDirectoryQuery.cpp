@@ -47,7 +47,7 @@
 #include "nsIAbLDAPAttributeMap.h"
 #include "nsAbUtils.h"
 
-#include "nsXPIDLString.h"
+#include "nsString.h"
 #include "nsAutoLock.h"
 #include "nsIProxyObjectManager.h"
 #include "prprf.h"
@@ -530,9 +530,16 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectoryQueryArguments* argu
       // the filter works as a term to &
       //
       if (urlFilter[0] != '(') 
-        searchFilter = NS_LITERAL_CSTRING("(&(") + urlFilter + NS_LITERAL_CSTRING(")");
-      else
-        searchFilter = NS_LITERAL_CSTRING("(&") + urlFilter;
+      {
+        searchFilter = NS_LITERAL_CSTRING("(&(");
+        searchFilter += urlFilter;
+        searchFilter += NS_LITERAL_CSTRING(")");
+      } 
+      else 
+      {
+        searchFilter = NS_LITERAL_CSTRING("(&");
+        searchFilter += urlFilter;
+      }
 
       searchFilter += filter;
       searchFilter += ')';

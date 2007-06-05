@@ -88,7 +88,7 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
     return NS_ERROR_NULL_POINTER;
 
   nsresult rv;
-  nsXPIDLString passwd;
+  nsString passwd;
 
   // Make sure that the Init() worked properly
   NS_ENSURE_SUCCESS(aStatus, aStatus);
@@ -124,7 +124,7 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
 
     // get the title for the authentication prompt
     //
-    nsXPIDLString authPromptTitle;
+    nsString authPromptTitle;
     rv = ldapBundle->GetStringFromName(NS_LITERAL_STRING("authPromptTitle").get(),
                                        getter_Copies(authPromptTitle));
     if (NS_FAILED(rv))
@@ -150,7 +150,7 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
 
     // format the hostname into the authprompt text string
     //
-    nsXPIDLString authPromptText;
+    nsString authPromptText;
     rv = ldapBundle->FormatStringFromName(NS_LITERAL_STRING("authPromptText").get(),
                                           hostArray,
                                           sizeof(hostArray) / sizeof(const PRUnichar *),
@@ -206,7 +206,7 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
     // wallet to remember the password by / for.
 
     // Get the specification
-    nsXPIDLCString spec;
+    nsCString spec;
     rv = mDirectoryUrl->GetSpec(spec);
     NS_ENSURE_SUCCESS(rv, rv);
 

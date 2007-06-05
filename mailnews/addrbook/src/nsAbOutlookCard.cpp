@@ -76,7 +76,7 @@ static void splitString(nsString& aSource, nsString& aTarget)
             else { aTarget.Append(*source) ; }
             ++ source ;
         }
-        aSource.Truncate(offset) ; 
+        aSource.SetLength(offset); 
     }
 }
 

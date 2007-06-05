@@ -43,7 +43,6 @@
 
 #include "nsString.h"
 #include "nsVoidArray.h"
-#include "nsXPIDLString.h"
  
 struct nsMapiEntry
 {
@@ -112,7 +111,7 @@ public:
                              const PRUnichar *aValue) ;
     // Same as previous, but with a bunch of properties in one call
     BOOL SetPropertiesUString(const nsMapiEntry& aObject, const ULONG *aPropertiesTag,
-                              ULONG aNbProperties, nsXPIDLString *aValues) ;
+                              ULONG aNbProperties, nsString *aValues) ;
     // Set the value of a MAPI property of type SYSTIME
     BOOL SetPropertyDate(const nsMapiEntry& aObject, ULONG aPropertyTag, 
                          WORD aYear, WORD aMonth, WORD aDay) ;

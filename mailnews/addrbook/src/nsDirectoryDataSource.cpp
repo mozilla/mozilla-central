@@ -50,9 +50,8 @@
 #include "nsEnumeratorUtils.h"
 #include "nsIObserverService.h"
 
-#include "nsString.h"
 #include "nsCOMPtr.h"
-#include "nsXPIDLString.h"
+#include "nsString.h"
 
 #include "nsMsgRDFUtils.h"
 #include "nsILocaleService.h"
@@ -524,7 +523,7 @@ nsresult nsAbDirectoryDataSource::createDirectoryNode(nsIAbDirectory* directory,
 nsresult nsAbDirectoryDataSource::createDirectoryNameNode(nsIAbDirectory *directory,
                                                      nsIRDFNode **target)
 {
-  nsXPIDLString name;
+  nsString name;
   nsresult rv = directory->GetDirName(getter_Copies(name));
   NS_ENSURE_SUCCESS(rv, rv);
   rv = createNode(name.get(), target);
@@ -537,7 +536,7 @@ nsresult nsAbDirectoryDataSource::createDirectoryUriNode(nsIAbDirectory *directo
 {
   nsCOMPtr<nsIRDFResource> source(do_QueryInterface(directory));
 
-  nsXPIDLCString uri;
+  nsCString uri;
   nsresult rv = source->GetValue(getter_Copies(uri));
   NS_ENSURE_SUCCESS(rv, rv);
   nsAutoString nameString; nameString.AssignWithConversion(uri);
@@ -637,7 +636,7 @@ nsAbDirectoryDataSource::createDirectorySupportsMailingListsNode(nsIAbDirectory*
 nsresult
 nsAbDirectoryDataSource::createDirectoryTreeNameSortNode(nsIAbDirectory* directory, nsIRDFNode **target)
 {
-  nsXPIDLString name;
+  nsString name;
   nsresult rv = directory->GetDirName(getter_Copies(name));
 	NS_ENSURE_SUCCESS(rv, rv);
 

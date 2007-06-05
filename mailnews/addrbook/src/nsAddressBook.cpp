@@ -55,7 +55,7 @@
 
 #include "plstr.h"
 #include "prmem.h"
-#include "prprf.h" 
+#include "prprf.h"
 
 #include "nsCOMPtr.h"
 #include "nsIRDFCompositeDataSource.h"
@@ -66,7 +66,7 @@
 #include "nsIDOMWindowInternal.h"
 #include "nsIContentViewer.h"
 #include "nsIDocShell.h"
-#include "nsXPIDLString.h"
+#include "nsString.h"
 #include "nsReadableUtils.h"
 #include "nsICategoryManager.h"
 #include "nsIFilePicker.h"
@@ -99,7 +99,7 @@
 // see bugs bug #116692 and #118454
 #define MOZ_AB_OBJECTCLASS "mozillaAbPersonAlpha"
 
-const ExportAttributesTableStruct EXPORT_ATTRIBUTES_TABLE[EXPORT_ATTRIBUTES_TABLE_COUNT] = { 
+const ExportAttributesTableStruct EXPORT_ATTRIBUTES_TABLE[EXPORT_ATTRIBUTES_TABLE_COUNT] = {
   {kFirstNameColumn, 2100},
   {kLastNameColumn, 2101},
   {kDisplayNameColumn, 2102},
@@ -129,8 +129,8 @@ const ExportAttributesTableStruct EXPORT_ATTRIBUTES_TABLE[EXPORT_ATTRIBUTES_TABL
   {kWorkAddress2Column, 2118},
   {kWorkCityColumn, 2119},
   {kWorkStateColumn, 2120},
-  {kWorkZipCodeColumn, 2121}, 
-  {kWorkCountryColumn, 2122}, 
+  {kWorkZipCodeColumn, 2121},
+  {kWorkCountryColumn, 2122},
   {kJobTitleColumn, 2123},
   {kDepartmentColumn, 2124},
   {kCompanyColumn, 2125},
@@ -231,7 +231,7 @@ NS_IMETHODIMP nsAddressBook::DeleteAddressBooks
   NS_ENSURE_ARG_POINTER(aDS);
   NS_ENSURE_ARG_POINTER(aParentDir);
   NS_ENSURE_ARG_POINTER(aResourceArray);
-  
+
   return DoCommand(aDS, NS_LITERAL_CSTRING(NC_RDF_DELETE), aParentDir, aResourceArray);
 }
 
@@ -259,10 +259,10 @@ NS_IMETHODIMP nsAddressBook::GetAbDatabaseFromURI(const char *aURI, nsIAddrDatab
 {
   NS_ENSURE_ARG_POINTER(aURI);
   NS_ENSURE_ARG_POINTER(aDB);
-  
+
   nsresult rv;
-  
-  nsCOMPtr<nsIAddrBookSession> abSession = 
+
+  nsCOMPtr<nsIAddrBookSession> abSession =
     do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -283,18 +283,18 @@ NS_IMETHODIMP nsAddressBook::GetAbDatabaseFromURI(const char *aURI, nsIAddrDatab
   nsCAutoString file(aURI + kMDBDirectoryRootLen);
   PRInt32 pos = file.Find("/");
   if (pos != kNotFound)
-    file.Truncate(pos);
+    file.SetLength(pos);
   rv = dbPath->AppendNative(file);
   NS_ENSURE_SUCCESS(rv,rv);
-  
-  nsCOMPtr<nsIAddrDatabase> addrDBFactory = 
+
+  nsCOMPtr<nsIAddrDatabase> addrDBFactory =
     do_GetService(NS_ADDRDATABASE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
   /* Don't create otherwise we end up re-opening a deleted address book */
   /* bug 66410 */
   rv = addrDBFactory->Open(dbPath, PR_FALSE /* no create */, PR_TRUE, aDB);
-  
+
   return rv;
 }
 
@@ -306,19 +306,19 @@ nsresult nsAddressBook::GetAbDatabaseFromFile(char* pDbFile, nsIAddrDatabase **d
     {
         nsCOMPtr<nsILocalFile> dbPath;
 
-        nsCOMPtr<nsIAddrBookSession> abSession = 
-                 do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv); 
+        nsCOMPtr<nsIAddrBookSession> abSession =
+                 do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
         if(NS_SUCCEEDED(rv))
         {
           rv = abSession->GetUserProfileDirectory(getter_AddRefs(dbPath));
           NS_ENSURE_SUCCESS(rv, rv);
         }
-        
+
         nsCAutoString file(pDbFile);
         rv = dbPath->AppendNative(file);
         NS_ENSURE_SUCCESS(rv,rv);
 
-        nsCOMPtr<nsIAddrDatabase> addrDBFactory = 
+        nsCOMPtr<nsIAddrDatabase> addrDBFactory =
                  do_GetService(NS_ADDRDATABASE_CONTRACTID, &rv);
         if (NS_SUCCEEDED(rv) && addrDBFactory)
             rv = addrDBFactory->Open(dbPath, PR_TRUE, PR_TRUE, getter_AddRefs(database));
@@ -351,12 +351,12 @@ NS_IMETHODIMP nsAddressBook::MailListNameExists(const PRUnichar *name, PRBool *e
       {
         /* check: this is a 4.x file, remove when conversion is done */
         PRUint32 fileNameLen = strlen(server->fileName);
-        if ((fileNameLen > kABFileName_PreviousSuffixLen) && 
+        if ((fileNameLen > kABFileName_PreviousSuffixLen) &&
           strcmp(server->fileName + fileNameLen - kABFileName_PreviousSuffixLen, kABFileName_PreviousSuffix) == 0)
           continue;
-        
+
         nsCOMPtr<nsIAddrDatabase> database;
-        nsresult rv = GetAbDatabaseFromFile(server->fileName, getter_AddRefs(database));                
+        nsresult rv = GetAbDatabaseFromFile(server->fileName, getter_AddRefs(database));
         if (NS_SUCCEEDED(rv) && database)
         {
           database->FindMailListbyUnicodeName(name, exist);
@@ -380,7 +380,7 @@ NS_IMETHODIMP nsAddressBook::MailListNameExists(const PRUnichar *name, PRBool *e
 #define LDIF_FILE_EXTENSION ".ldi"
 #define LDIF_FILE_EXTENSION2 ".ldif"
 
-enum ADDRESSBOOK_EXPORT_FILE_TYPE 
+enum ADDRESSBOOK_EXPORT_FILE_TYPE
 {
  LDIF_EXPORT_TYPE =  0,
  CSV_EXPORT_TYPE = 1,
@@ -400,15 +400,15 @@ NS_IMETHODIMP nsAddressBook::ExportAddressBook(nsIDOMWindow *aParentWin, nsIAbDi
   nsCOMPtr<nsIStringBundle> bundle;
   rv = bundleService->CreateBundle("chrome://messenger/locale/addressbook/addressBook.properties", getter_AddRefs(bundle));
   NS_ENSURE_SUCCESS(rv, rv);
- 
-  nsXPIDLString title;
+
+  nsString title;
   rv = bundle->GetStringFromName(NS_LITERAL_STRING("ExportAddressBookTitle").get(), getter_Copies(title));
   NS_ENSURE_SUCCESS(rv, rv);
 
   rv = filePicker->Init(aParentWin, title, nsIFilePicker::modeSave);
   NS_ENSURE_SUCCESS(rv, rv);
- 
-  nsXPIDLString filterString;
+
+  nsString filterString;
   rv = bundle->GetStringFromName(NS_LITERAL_STRING("LDIFFiles").get(), getter_Copies(filterString));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -436,7 +436,7 @@ NS_IMETHODIMP nsAddressBook::ExportAddressBook(nsIDOMWindow *aParentWin, nsIAbDi
   nsCOMPtr<nsILocalFile> localFile;
   rv = filePicker->GetFile(getter_AddRefs(localFile));
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   if (dialogResult == nsIFilePicker::returnReplace) {
     // be extra safe and only delete when the file is really a file
     PRBool isFile;
@@ -456,7 +456,7 @@ NS_IMETHODIMP nsAddressBook::ExportAddressBook(nsIDOMWindow *aParentWin, nsIAbDi
   nsAutoString fileName;
   rv = localFile->GetLeafName(fileName);
   NS_ENSURE_SUCCESS(rv, rv);
-    
+
   switch ( exportType )
   {
     default:
@@ -495,7 +495,7 @@ NS_IMETHODIMP nsAddressBook::ExportAddressBook(nsIDOMWindow *aParentWin, nsIAbDi
       rv = ExportDirectoryToDelimitedText(aDirectory, TAB_DELIM, TAB_DELIM_LEN, localFile);
       break;
   };
- 
+
   return rv;
 }
 
@@ -528,8 +528,8 @@ nsAddressBook::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const 
   rv = bundleService->CreateBundle("chrome://messenger/locale/importMsgs.properties", getter_AddRefs(bundle));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsXPIDLCString revisedName;
-  nsXPIDLString columnName;
+  nsCString revisedName;
+  nsString columnName;
 
   for (i = 0; i < EXPORT_ATTRIBUTES_TABLE_COUNT; i++) {
     if (EXPORT_ATTRIBUTES_TABLE[i].plainTextStringID != 0) {
@@ -550,7 +550,7 @@ nsAddressBook::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const 
 
       if (revisedName.Length() != writeCount)
         return NS_ERROR_FAILURE;
-      
+
       if (i < EXPORT_ATTRIBUTES_TABLE_COUNT - 1) {
         rv = outputStream->Write(aDelim, aDelimLen, &writeCount);
         NS_ENSURE_SUCCESS(rv,rv);
@@ -574,18 +574,18 @@ nsAddressBook::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const 
       if (NS_SUCCEEDED(rv)) {
         nsCOMPtr <nsIAbCard> card = do_QueryInterface(item, &rv);
         NS_ENSURE_SUCCESS(rv,rv);
-         
+
         PRBool isMailList;
         rv = card->GetIsMailList(&isMailList);
         NS_ENSURE_SUCCESS(rv,rv);
-       
-         
+
+
         if (isMailList) {
           // .tab, .txt and .csv aren't able to export mailing lists
           // use LDIF for that.
         }
         else {
-          nsXPIDLString value;          
+          nsString value;
           nsCString valueCStr;
 
           for (i = 0; i < EXPORT_ATTRIBUTES_TABLE_COUNT; i++) {
@@ -596,7 +596,7 @@ nsAddressBook::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const 
 
               // If a string contains at least one comma, tab or double quote then
               // we need to quote the entire string. Also if double quote is part
-              // of the string we need to quote the double quote(s) as well.  
+              // of the string we need to quote the double quote(s) as well.
               nsAutoString newValue(value);
               PRBool needsQuotes = PR_FALSE;
               if(newValue.FindChar('"') != kNotFound)
@@ -626,7 +626,7 @@ nsAddressBook::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const 
                 NS_ASSERTION(0, "failed to convert string to system charset.  use LDIF");
                 valueCStr = "?";
               }
-              
+
               length = valueCStr.Length();
               if (length) {
                 rv = outputStream->Write(valueCStr.get(), length, &writeCount);
@@ -689,7 +689,7 @@ nsAddressBook::ExportDirectoryToLDIF(nsIAbDirectory *aDirectory, nsILocalFile *a
   // Get the default attribute map for ldap. We use the default attribute
   // map rather than one for a specific server because if people want an
   // ldif export using a servers specific schema, then they can use ldapsearch
-  nsCOMPtr<nsIAbLDAPAttributeMapService> mapSrv = 
+  nsCOMPtr<nsIAbLDAPAttributeMapService> mapSrv =
     do_GetService("@mozilla.org/addressbook/ldap-attribute-map-service;1", &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -701,7 +701,7 @@ nsAddressBook::ExportDirectoryToLDIF(nsIAbDirectory *aDirectory, nsILocalFile *a
   PRUint32 i;
   PRUint32 writeCount;
   PRUint32 length;
-   
+
   rv = aDirectory->GetChildCards(getter_AddRefs(cardsEnumerator));
   if (NS_SUCCEEDED(rv) && cardsEnumerator) {
     nsCOMPtr<nsISupports> item;
@@ -711,11 +711,11 @@ nsAddressBook::ExportDirectoryToLDIF(nsIAbDirectory *aDirectory, nsILocalFile *a
       if (NS_SUCCEEDED(rv)) {
         nsCOMPtr <nsIAbCard> card = do_QueryInterface(item, &rv);
         NS_ENSURE_SUCCESS(rv,rv);
-         
+
         PRBool isMailList;
         rv = card->GetIsMailList(&isMailList);
         NS_ENSURE_SUCCESS(rv,rv);
-       
+
         if (isMailList) {
           nsCString mailListCStr;
 
@@ -729,18 +729,18 @@ nsAddressBook::ExportDirectoryToLDIF(nsIAbDirectory *aDirectory, nsILocalFile *a
             return NS_ERROR_FAILURE;
         }
         else {
-          nsXPIDLString value;          
+          nsString value;
           nsCString valueCStr;
-    
+
           rv = AppendBasicLDIFForCard(card, attrMap, valueCStr);
           NS_ENSURE_SUCCESS(rv,rv);
-          
+
           length = valueCStr.Length();
           rv = outputStream->Write(valueCStr.get(), length, &writeCount);
           NS_ENSURE_SUCCESS(rv,rv);
           if (length != writeCount)
             return NS_ERROR_FAILURE;
-          
+
           valueCStr.Truncate();
 
           nsCAutoString ldapAttribute;
@@ -753,7 +753,7 @@ nsAddressBook::ExportDirectoryToLDIF(nsIAbDirectory *aDirectory, nsILocalFile *a
               rv = card->GetCardValue(EXPORT_ATTRIBUTES_TABLE[i].abColName,
                                       value);
               NS_ENSURE_SUCCESS(rv,rv);
- 
+
               if (!PL_strcmp(EXPORT_ATTRIBUTES_TABLE[i].abColName, kPreferMailFormatColumn)) {
                 if (value.Equals(NS_LITERAL_STRING("html").get()))
                   value.AssignLiteral("true");
@@ -766,12 +766,12 @@ nsAddressBook::ExportDirectoryToLDIF(nsIAbDirectory *aDirectory, nsILocalFile *a
               if (!value.IsEmpty()) {
                 rv = AppendProperty(ldapAttribute.get(), value.get(), valueCStr);
                 NS_ENSURE_SUCCESS(rv,rv);
-                
+
                 valueCStr += MSG_LINEBREAK;
               }
               else
                 valueCStr.Truncate();
-              
+
               length = valueCStr.Length();
               if (length) {
                 rv = outputStream->Write(valueCStr.get(), length, &writeCount);
@@ -786,7 +786,7 @@ nsAddressBook::ExportDirectoryToLDIF(nsIAbDirectory *aDirectory, nsILocalFile *a
               // ldif doesn't export mutliple addresses
             }
           }
-        
+
           // write out the linebreak that separates the cards
           rv = outputStream->Write(MSG_LINEBREAK, MSG_LINEBREAK_LEN, &writeCount);
           NS_ENSURE_SUCCESS(rv,rv);
@@ -808,8 +808,8 @@ nsAddressBook::ExportDirectoryToLDIF(nsIAbDirectory *aDirectory, nsILocalFile *a
 nsresult nsAddressBook::AppendLDIFForMailList(nsIAbCard *aCard, nsIAbLDAPAttributeMap *aAttrMap, nsACString &aResult)
 {
   nsresult rv;
-  nsXPIDLString attrValue;
-  
+  nsString attrValue;
+
   rv = AppendDNForCard("dn", aCard, aAttrMap, aResult);
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -858,18 +858,18 @@ nsresult nsAddressBook::AppendLDIFForMailList(nsIAbCard *aCard, nsIAbLDAPAttribu
 
   nsCOMPtr<nsIRDFService> rdfService = do_GetService("@mozilla.org/rdf/rdf-service;1", &rv);
   NS_ENSURE_SUCCESS(rv,rv);
-  
-  nsXPIDLCString mailListURI;
+
+  nsCString mailListURI;
   rv = aCard->GetMailListURI(getter_Copies(mailListURI));
   NS_ENSURE_SUCCESS(rv,rv);
-  
+
   nsCOMPtr <nsIRDFResource> resource;
   rv = rdfService->GetResource(mailListURI, getter_AddRefs(resource));
   NS_ENSURE_SUCCESS(rv,rv);
-    
+
   nsCOMPtr <nsIAbDirectory> mailList = do_QueryInterface(resource, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
-    
+
   nsCOMPtr<nsISupportsArray> addresses;
   rv = mailList->GetAddressLists(getter_AddRefs(addresses));
   if (addresses) {
@@ -888,15 +888,15 @@ nsresult nsAddressBook::AppendLDIFForMailList(nsIAbCard *aCard, nsIAbLDAPAttribu
       }
     }
   }
-  
+
   aResult += MSG_LINEBREAK;
   return NS_OK;
 }
 
 nsresult nsAddressBook::AppendDNForCard(const char *aProperty, nsIAbCard *aCard, nsIAbLDAPAttributeMap *aAttrMap, nsACString &aResult)
 {
-  nsXPIDLString email;
-  nsXPIDLString displayName;
+  nsString email;
+  nsString displayName;
   nsCAutoString ldapAttributeName;
 
   nsresult rv = aCard->GetCardValue(kPriEmailColumn, email);
@@ -913,7 +913,8 @@ nsresult nsAddressBook::AppendDNForCard(const char *aProperty, nsIAbCard *aCard,
 
   if (!displayName.IsEmpty()) {
     cnStr += NS_ConvertUTF8toUTF16(ldapAttributeName).get();
-    cnStr += NS_LITERAL_STRING("=") + displayName;
+    cnStr.AppendLiteral("=");
+    cnStr.Append(displayName);
     if (!email.IsEmpty()) {
       cnStr.AppendLiteral(",");
     }
@@ -925,7 +926,8 @@ nsresult nsAddressBook::AppendDNForCard(const char *aProperty, nsIAbCard *aCard,
 
   if (!email.IsEmpty()) {
     cnStr += NS_ConvertUTF8toUTF16(ldapAttributeName).get();
-    cnStr += NS_LITERAL_STRING("=") + email;
+    cnStr.AppendLiteral("=");
+    cnStr.Append(email);
   }
 
   rv = AppendProperty(aProperty, cnStr.get(), aResult);
@@ -951,7 +953,7 @@ PRBool nsAddressBook::IsSafeLDIFString(const PRUnichar *aStr)
   // follow RFC 2849 to determine if something is safe "as is" for LDIF
   if (aStr[0] == PRUnichar(' ') ||
       aStr[0] == PRUnichar(':') ||
-      aStr[0] == PRUnichar('<')) 
+      aStr[0] == PRUnichar('<'))
     return PR_FALSE;
 
   PRUint32 i;
@@ -972,18 +974,19 @@ nsresult nsAddressBook::AppendProperty(const char *aProperty, const PRUnichar *a
   NS_ENSURE_ARG_POINTER(aValue);
 
   aResult += aProperty;
- 
+
   // if the string is not safe "as is", base64 encode it
   if (IsSafeLDIFString(aValue)) {
     aResult.AppendLiteral(": ");
-    LossyAppendUTF16toASCII(aValue, aResult);
+    aResult.Append(NS_LossyConvertUTF16toASCII(aValue));
   }
   else {
     char *base64Str = PL_Base64Encode(NS_ConvertUTF16toUTF8(aValue).get(), 0, nsnull);
     if (!base64Str)
       return NS_ERROR_OUT_OF_MEMORY;
 
-    aResult += NS_LITERAL_CSTRING(":: ") + nsDependentCString(base64Str);
+    aResult.AppendLiteral(":: ");
+    aResult.Append(nsDependentCString(base64Str));
     PR_Free(base64Str);
   }
 
@@ -1013,7 +1016,7 @@ static void convertNameValue(VObject *vObj, nsIAbCard *aCard)
       if (isAPropertyOf(vObj, VCFaxProp))
           cardColName = kFaxColumn;
       else if (isAPropertyOf(vObj, VCWorkProp))
-          cardColName = kWorkPhoneColumn; 
+          cardColName = kWorkPhoneColumn;
       else if (isAPropertyOf(vObj, VCHomeProp))
           cardColName = kHomePhoneColumn;
       else if (isAPropertyOf(vObj, VCCellularProp))
@@ -1025,37 +1028,37 @@ static void convertNameValue(VObject *vObj, nsIAbCard *aCard)
   }
   else if (PL_strcasecmp(VCEmailAddressProp, vObjectName(vObj)) == 0)
       cardColName = kPriEmailColumn;
-  else if (PL_strcasecmp(VCFamilyNameProp, vObjectName(vObj)) == 0) 
+  else if (PL_strcasecmp(VCFamilyNameProp, vObjectName(vObj)) == 0)
       cardColName = kLastNameColumn;
   else if (PL_strcasecmp(VCFullNameProp, vObjectName(vObj)) == 0)
       cardColName = kDisplayNameColumn;
   else if (PL_strcasecmp(VCGivenNameProp, vObjectName(vObj)) == 0)
       cardColName = kFirstNameColumn;
-  else if (PL_strcasecmp(VCOrgNameProp, vObjectName(vObj)) == 0) 
+  else if (PL_strcasecmp(VCOrgNameProp, vObjectName(vObj)) == 0)
       cardColName = kCompanyColumn;
   else if (PL_strcasecmp(VCOrgUnitProp, vObjectName(vObj)) == 0)
       cardColName = kDepartmentColumn;
-  else if (PL_strcasecmp(VCPostalCodeProp, vObjectName(vObj)) == 0) 
+  else if (PL_strcasecmp(VCPostalCodeProp, vObjectName(vObj)) == 0)
       cardColName = kWorkZipCodeColumn;
   else if (PL_strcasecmp(VCRegionProp, vObjectName(vObj)) == 0)
       cardColName = kWorkStateColumn;
   else if (PL_strcasecmp(VCStreetAddressProp, vObjectName(vObj)) == 0)
       cardColName = kWorkAddressColumn;
-  else if (PL_strcasecmp(VCPostalBoxProp, vObjectName(vObj)) == 0) 
+  else if (PL_strcasecmp(VCPostalBoxProp, vObjectName(vObj)) == 0)
       cardColName = kWorkAddress2Column;
   else if (PL_strcasecmp(VCCountryNameProp, vObjectName(vObj)) == 0)
       cardColName = kWorkCountryColumn;
-  else if (PL_strcasecmp(VCTitleProp, vObjectName(vObj)) == 0) 
+  else if (PL_strcasecmp(VCTitleProp, vObjectName(vObj)) == 0)
       cardColName = kJobTitleColumn;
-  else if (PL_strcasecmp(VCUseHTML, vObjectName(vObj)) == 0) 
+  else if (PL_strcasecmp(VCUseHTML, vObjectName(vObj)) == 0)
       cardColName = kPreferMailFormatColumn;
-  else if (PL_strcasecmp(VCNoteProp, vObjectName(vObj)) == 0) 
+  else if (PL_strcasecmp(VCNoteProp, vObjectName(vObj)) == 0)
       cardColName = kNotesColumn;
   else if (PL_strcasecmp(VCURLProp, vObjectName(vObj)) == 0)
       cardColName = kWebPage1Column;
   else
       return;
-  
+
   if (!VALUE_TYPE(vObj))
       return;
 
@@ -1072,7 +1075,7 @@ static void convertFromVObject(VObject *vObj, nsIAbCard *aCard)
         VObjectIterator t;
 
         convertNameValue(vObj, aCard);
-        
+
         initPropIterator(&t, vObj);
         while (moreIteration(&t))
         {
@@ -1088,7 +1091,7 @@ NS_IMETHODIMP nsAddressBook::HandleContent(const char * aContentType,
                                            nsIRequest *request)
 {
   NS_ENSURE_ARG_POINTER(request);
-  
+
   nsresult rv = NS_OK;
 
   // First of all, get the content type and make sure it is a content type we know how to handle!
@@ -1108,17 +1111,17 @@ NS_IMETHODIMP nsAddressBook::HandleContent(const char * aContentType,
         if (startOfVCard)
         {
             char *unescapedData = PL_strdup(startOfVCard + strlen("add?vcard="));
-            
+
             // XXX todo, explain why we is escaped twice
             nsUnescape(unescapedData);
-            
-            if (!aWindowContext) 
+
+            if (!aWindowContext)
                 return NS_ERROR_FAILURE;
 
             nsCOMPtr<nsIDOMWindowInternal> parentWindow = do_GetInterface(aWindowContext);
-            if (!parentWindow) 
+            if (!parentWindow)
                 return NS_ERROR_FAILURE;
-            
+
             nsCOMPtr <nsIAbCard> cardFromVCard;
             rv = EscapedVCardToAbCard((const char *)unescapedData, getter_AddRefs(cardFromVCard));
             NS_ENSURE_SUCCESS(rv, rv);
@@ -1126,7 +1129,7 @@ NS_IMETHODIMP nsAddressBook::HandleContent(const char * aContentType,
             nsCOMPtr<nsISupportsInterfacePointer> ifptr =
                 do_CreateInstance(NS_SUPPORTS_INTERFACE_POINTER_CONTRACTID, &rv);
             NS_ENSURE_SUCCESS(rv, rv);
-            
+
             ifptr->SetData(cardFromVCard);
             ifptr->SetDataIID(&NS_GET_IID(nsIAbCard));
 
@@ -1143,13 +1146,13 @@ NS_IMETHODIMP nsAddressBook::HandleContent(const char * aContentType,
         }
         rv = NS_OK;
     }
-  } 
+  }
   else if (nsCRT::strcasecmp(aContentType, "text/x-vcard") == 0) {
     // create a vcard stream listener that can parse the data stream
     // and bring up the appropriate UI
 
     // (1) cancel the current load operation. We'll restart it
-    request->Cancel(NS_ERROR_ABORT); 
+    request->Cancel(NS_ERROR_ABORT);
     // get the url we were trying to open
     nsCOMPtr<nsIURI> uri;
     nsCOMPtr<nsIChannel> channel = do_QueryInterface(request);
@@ -1199,7 +1202,7 @@ NS_IMETHODIMP nsAddressBook::OnStreamComplete(nsIStreamLoader *aLoader, nsISuppo
            NS_LITERAL_STRING("chrome://messenger/content/addressbook/abNewCardDialog.xul"),
            EmptyString(),
            NS_LITERAL_STRING("chrome,resizable=no,titlebar,modal,centerscreen"),
-           cardFromVCard, getter_AddRefs(dialogWindow));      
+           cardFromVCard, getter_AddRefs(dialogWindow));
     }
   }
 
@@ -1210,28 +1213,28 @@ NS_IMETHODIMP nsAddressBook::EscapedVCardToAbCard(const char *aEscapedVCardStr, 
 {
     NS_ENSURE_ARG_POINTER(aEscapedVCardStr);
     NS_ENSURE_ARG_POINTER(aCard);
-    
+
     nsCOMPtr <nsIAbCard> cardFromVCard = do_CreateInstance(NS_ABCARDPROPERTY_CONTRACTID);
     if (!cardFromVCard)
         return NS_ERROR_FAILURE;
 
     // aEscapedVCardStr will be "" the first time, before you have a vCard
-    if (*aEscapedVCardStr != '\0') {   
+    if (*aEscapedVCardStr != '\0') {
         char *unescapedData = PL_strdup(aEscapedVCardStr);
         if (!unescapedData)
             return NS_ERROR_OUT_OF_MEMORY;
-        
+
         nsUnescape(unescapedData);
         VObject *vObj = parse_MIME(unescapedData, strlen(unescapedData));
         PL_strfree(unescapedData);
         NS_ASSERTION(vObj, "Parse of vCard failed");
 
         convertFromVObject(vObj, cardFromVCard);
-        
+
         if (vObj)
             cleanVObject(vObj);
     }
-    
+
     NS_IF_ADDREF(*aCard = cardFromVCard);
     return NS_OK;
 }
@@ -1240,7 +1243,7 @@ NS_IMETHODIMP nsAddressBook::AbCardToEscapedVCard(nsIAbCard *aCard, char **aEsca
 {
     NS_ENSURE_ARG_POINTER(aCard);
     NS_ENSURE_ARG_POINTER(aEscapedVCardStr);
-    
+
     nsresult rv = aCard->ConvertToEscapedVCard(aEscapedVCardStr);
     NS_ENSURE_SUCCESS(rv,rv);
     return rv;
@@ -1250,9 +1253,9 @@ static nsresult addProperty(char **currentVCard, const char *currentRoot, const 
 {
     // keep in mind as we add properties that we want to filter out any begin and end vcard types....because
     // we add those automatically...
-    
+
     const char *beginPhrase = "begin";
-    
+
     nsCOMPtr<nsIPrefBranch> prefBranch = do_GetService(NS_PREFSERVICE_CONTRACTID);
     if (currentVCard && prefBranch)
     {
@@ -1260,21 +1263,21 @@ static nsresult addProperty(char **currentVCard, const char *currentRoot, const 
         char **childArray;
         nsresult rv = prefBranch->GetChildList(currentRoot, &childCount, &childArray);
         NS_ENSURE_SUCCESS(rv, rv);
-        
-        for (PRUint32 i = 0; i < childCount; ++i) 
+
+        for (PRUint32 i = 0; i < childCount; ++i)
         {
             char *child = childArray[i];
 
             if (!strcmp(child, currentRoot))
                 continue;
-                
-            // first iterate over the child in case the child has children    
+
+            // first iterate over the child in case the child has children
             addProperty(currentVCard, child, mask);
-               
+
             // child length should be greater than the mask....
             if (strlen(child) > strlen(mask) + 1)  // + 1 for the '.' in .property
             {
-                nsXPIDLCString value;
+                nsCString value;
                 prefBranch->GetCharPref(child, getter_Copies(value));
                 if (mask)
                     child += strlen(mask) + 1;  // eat up the "mail.identity.vcard" part...
@@ -1285,7 +1288,7 @@ static nsresult addProperty(char **currentVCard, const char *currentRoot, const 
                     *marker = ';';
                     marker = strchr(child, '.');
                 }
-                
+
                 // filter property to make sure it is one we want to add.....
                 if ((PL_strncasecmp(child, beginPhrase, strlen(beginPhrase)) != 0) && (PL_strncasecmp(child, VCEndProp, strlen(VCEndProp)) != 0))
                 {
@@ -1303,9 +1306,9 @@ static nsresult addProperty(char **currentVCard, const char *currentRoot, const 
             else {
                 NS_ASSERTION(0, "child length should be greater than the mask");
             }
-        }     
+        }
         NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(childCount, childArray);
-    } 
+    }
     return NS_OK;
 }
 
@@ -1313,25 +1316,25 @@ NS_IMETHODIMP nsAddressBook::Convert4xVCardPrefs(const char *prefRoot, char **es
 {
     NS_ENSURE_ARG_POINTER(prefRoot);
     NS_ENSURE_ARG_POINTER(escapedVCardStr);
-    
+
     char *vCardString = nsnull;
     vCardString = PL_strdup("begin:vcard \n");
-    
+
     nsresult rv = addProperty(&vCardString, prefRoot, prefRoot);
     NS_ENSURE_SUCCESS(rv,rv);
-    
+
     char *vcard = PR_smprintf("%send:vcard\n", vCardString);
     PR_FREEIF(vCardString);
-    
+
     VObject *vObj = parse_MIME(vcard, strlen(vcard));
     PR_FREEIF(vcard);
-    
+
     nsCOMPtr<nsIAbCard> cardFromVCard = do_CreateInstance(NS_ABCARDPROPERTY_CONTRACTID);
     convertFromVObject(vObj, cardFromVCard);
-    
+
     if (vObj)
         cleanVObject(vObj);
-    
+
     rv = cardFromVCard->ConvertToEscapedVCard(escapedVCardStr);
     NS_ENSURE_SUCCESS(rv,rv);
     return rv;
@@ -1342,7 +1345,7 @@ NS_IMETHODIMP nsAddressBook::Convert4xVCardPrefs(const char *prefRoot, char **es
 NS_IMETHODIMP
 nsAddressBook::Handle(nsICommandLine* aCmdLine)
 {
-  nsresult rv; 
+  nsresult rv;
   PRBool found;
 
   rv = aCmdLine->HandleFlag(NS_LITERAL_STRING("addressbook"), PR_FALSE, &found);

@@ -44,7 +44,7 @@
 
 #include "nsIRDFResource.h"
 
-#include "nsXPIDLString.h"
+#include "nsString.h"
 #include "nsReadableUtils.h"
 #include "nsUnicharUtils.h"
 
@@ -558,7 +558,7 @@ nsresult nsAbDirectoryQuery::matchCardCondition (nsIAbCard* card,
     nsresult rv = condition->GetCondition (&conditionType);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsXPIDLCString name;
+    nsCString name;
     rv = condition->GetName (getter_Copies (name));
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -568,7 +568,7 @@ nsresult nsAbDirectoryQuery::matchCardCondition (nsIAbCard* card,
       return NS_OK;
     }
 
-    nsXPIDLString value;
+    nsString value;
     rv = card->GetCardValue(name.get(), value);
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -579,7 +579,7 @@ nsresult nsAbDirectoryQuery::matchCardCondition (nsIAbCard* card,
       return NS_OK;
     }
 
-    nsXPIDLString matchValue;
+    nsString matchValue;
     rv = condition->GetValue (getter_Copies (matchValue));
     NS_ENSURE_SUCCESS(rv, rv);
 

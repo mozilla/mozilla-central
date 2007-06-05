@@ -83,7 +83,7 @@ static nsresult parseProperties(nsIAbDirectoryProperties *aProperties, nsAbWinTy
 {
     aWinType = nsAbWinType_Unknown ;
 
-    nsXPIDLCString uri;
+    nsCString uri;
     nsresult rv = aProperties->GetURI(getter_Copies(uri));
     NS_ENSURE_SUCCESS(rv,rv);
     

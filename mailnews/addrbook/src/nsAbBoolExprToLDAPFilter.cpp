@@ -39,7 +39,7 @@
 
 #include "nsIAbLDAPAttributeMap.h"
 #include "nsAbBoolExprToLDAPFilter.h"
-#include "nsXPIDLString.h"
+#include "nsString.h"
 
 const int nsAbBoolExprToLDAPFilter::TRANSLATE_CARD_PROPERTY = 1 << 0 ;
 const int nsAbBoolExprToLDAPFilter::ALLOW_NON_CONVERTABLE_CARD_PROPERTY = 1 << 1 ;
@@ -99,7 +99,7 @@ nsresult nsAbBoolExprToLDAPFilter::FilterExpression (
         nsCOMPtr<nsIAbBooleanConditionString> childCondition(do_QueryInterface(item, &rv));
         if (NS_SUCCEEDED(rv))
         {
-            nsXPIDLCString name;
+            nsCString name;
             rv = childCondition->GetName (getter_Copies (name));
             NS_ENSURE_SUCCESS(rv, rv);
 
@@ -175,7 +175,7 @@ nsresult nsAbBoolExprToLDAPFilter::FilterCondition (
     nsCString& filter,
     int flags)
 {
-    nsXPIDLCString name;
+    nsCString name;
     nsresult rv = condition->GetName(getter_Copies (name));
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -192,7 +192,7 @@ nsresult nsAbBoolExprToLDAPFilter::FilterCondition (
     rv = condition->GetCondition(&conditionType);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsXPIDLString value;
+    nsString value;
     rv = condition->GetValue (getter_Copies (value));
     NS_ENSURE_SUCCESS(rv, rv);
     NS_ConvertUTF16toUTF8 vUTF8 (value);
@@ -200,77 +200,77 @@ nsresult nsAbBoolExprToLDAPFilter::FilterCondition (
     switch (conditionType)
     {
         case nsIAbBooleanConditionTypes::DoesNotExist:
-            filter += NS_LITERAL_CSTRING("(!(") +
-                      ldapAttr +
-                      NS_LITERAL_CSTRING("=*))");
+            filter.AppendLiteral("(!("); 
+            filter.Append(ldapAttr);
+            filter.AppendLiteral("=*))");
             break;
         case nsIAbBooleanConditionTypes::Exists:
-            filter += NS_LITERAL_CSTRING("(") +
-                      ldapAttr +
-                      NS_LITERAL_CSTRING("=*)");
+            filter.AppendLiteral("("); 
+            filter.Append(ldapAttr);
+            filter.AppendLiteral("=*)");
             break;
         case nsIAbBooleanConditionTypes::Contains:
-            filter += NS_LITERAL_CSTRING("(") +
-                      ldapAttr +
-                      NS_LITERAL_CSTRING("=*") +
-                      vUTF8 +
-                      NS_LITERAL_CSTRING("*)");
+            filter.AppendLiteral("(");
+            filter.Append(ldapAttr);
+            filter.Append("=*");
+            filter.Append(vUTF8);
+            filter.AppendLiteral("*)");
             break;
         case nsIAbBooleanConditionTypes::DoesNotContain:
-            filter += NS_LITERAL_CSTRING("(!(") +
-                      ldapAttr +
-                      NS_LITERAL_CSTRING("=*") +
-                      vUTF8 +
-                      NS_LITERAL_CSTRING("*))");
+            filter.AppendLiteral("(!(");
+            filter.Append(ldapAttr);
+            filter.AppendLiteral("=*");
+            filter.Append(vUTF8);
+            filter.AppendLiteral("*))");
             break;
         case nsIAbBooleanConditionTypes::Is:
-            filter += NS_LITERAL_CSTRING("(") +
-                      ldapAttr +
-                      NS_LITERAL_CSTRING("=") +
-                      vUTF8 +
-                      NS_LITERAL_CSTRING(")");
+            filter.AppendLiteral("(");
+            filter.Append(ldapAttr);
+            filter.AppendLiteral("=");
+            filter.Append(vUTF8);
+            filter.AppendLiteral(")");
             break;
         case nsIAbBooleanConditionTypes::IsNot:
-            filter += NS_LITERAL_CSTRING("(!(") +
-                      ldapAttr +
-                      NS_LITERAL_CSTRING("=") +
-                      vUTF8 +
-                      NS_LITERAL_CSTRING("))");
+            filter.AppendLiteral("(!(");
+            filter.Append(ldapAttr);
+            filter.AppendLiteral("=");
+            filter.Append(vUTF8);
+            filter.AppendLiteral("))");
             break;
         case nsIAbBooleanConditionTypes::BeginsWith:
-            filter += NS_LITERAL_CSTRING("(") +
-                      ldapAttr +
-                      NS_LITERAL_CSTRING("=") +
-                      vUTF8 +
-                      NS_LITERAL_CSTRING("*)");
+            filter.AppendLiteral("(");
+            filter.Append(ldapAttr);
+            filter.AppendLiteral("=");
+            filter.Append(vUTF8);
+            filter.AppendLiteral("*)");
             break;
         case nsIAbBooleanConditionTypes::EndsWith:
-            filter += NS_LITERAL_CSTRING("(") +
-                      ldapAttr +
-                      NS_LITERAL_CSTRING("=*") +
-                      vUTF8 +
-                      NS_LITERAL_CSTRING(")");
+            filter.AppendLiteral("(");
+            filter.Append(ldapAttr);
+            filter.AppendLiteral("=*");
+            filter.Append(vUTF8);
+            filter.AppendLiteral(")");
             break;
         case nsIAbBooleanConditionTypes::LessThan:
-            filter += NS_LITERAL_CSTRING("(") +
-                      ldapAttr +
-                      NS_LITERAL_CSTRING("<=") +
-                      vUTF8 +
-                      NS_LITERAL_CSTRING(")");
+            filter.AppendLiteral("(");
+            filter.Append(ldapAttr);
+            filter.AppendLiteral("<=");
+            filter.Append(vUTF8);
+            filter.AppendLiteral(")");
             break;
         case nsIAbBooleanConditionTypes::GreaterThan:
-            filter += NS_LITERAL_CSTRING("(") +
-                      ldapAttr +
-                      NS_LITERAL_CSTRING(">=") +
-                      vUTF8 +
-                      NS_LITERAL_CSTRING(")");
+            filter.AppendLiteral("(");
+            filter.Append(ldapAttr);
+            filter.AppendLiteral(">=");
+            filter.Append(vUTF8);
+            filter.AppendLiteral(")");
             break;
         case nsIAbBooleanConditionTypes::SoundsLike:
-            filter += NS_LITERAL_CSTRING("(") +
-                      ldapAttr +
-                      NS_LITERAL_CSTRING("~=") +
-                      vUTF8 +
-                      NS_LITERAL_CSTRING(")");
+            filter.AppendLiteral("(");
+            filter.Append(ldapAttr);
+            filter.AppendLiteral("~=");
+            filter.Append(vUTF8);
+            filter.AppendLiteral(")");
             break;
         case nsIAbBooleanConditionTypes::RegExp:
             break;

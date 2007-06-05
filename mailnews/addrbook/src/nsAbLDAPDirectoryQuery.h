@@ -67,7 +67,7 @@ protected:
         nsIAbDirectoryQueryArguments* arguments,
         nsCString& returnAttributes);
 
-    nsXPIDLCString mLogin; // authenticate to the LDAP server as...
+    nsCString mLogin; // authenticate to the LDAP server as...
     nsCOMPtr<nsILDAPURL> mDirectoryUrl; // the URL for the server
     PRUint32 mProtocolVersion; // version of LDAP (see nsILDAPConnection.idl)
     nsCOMPtr <nsILDAPMessageListener> mListener;

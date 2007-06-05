@@ -245,7 +245,7 @@ NS_IMETHODIMP nsAbView::Init(const char *aURI, PRBool aSearchView, nsIAbViewList
   nsAutoString actualSortColumn;
   if (!generatedNameColumnId.Equals(colID) && mCards.Count()) {
     nsIAbCard *card = ((AbCard *)(mCards.ElementAt(0)))->card;
-    nsXPIDLString value;
+    nsString value;
     // XXX todo
     // need to check if _Generic is valid.  GetCardValue() will always return NS_OK for _Generic
     // we're going to have to ask mDirectory if it is.
@@ -475,7 +475,7 @@ nsresult nsAbView::GetCardValue(nsIAbCard *card, const PRUnichar *colID, PRUnich
     NS_ENSURE_SUCCESS(rv,rv);
   }
   else {
-      nsXPIDLString cardValue;
+      nsString cardValue;
       rv = card->GetCardValue(NS_LossyConvertUTF16toASCII(colID).get(),
                               cardValue);
       *_retval = ToNewUnicode(cardValue);
@@ -525,7 +525,7 @@ NS_IMETHODIMP nsAbView::GetCellText(PRInt32 row, nsITreeColumn* col, nsAString& 
   // XXX fix me by converting GetCardValue to take an nsAString&
   const PRUnichar* colID;
   col->GetIdConst(&colID);
-  nsXPIDLString cellText;
+  nsString cellText;
   nsresult rv = GetCardValue(card, colID, getter_Copies(cellText));
   _retval.Assign(cellText);
   return rv;
@@ -780,7 +780,7 @@ PRInt32 nsAbView::CompareCollationKeys(PRUint8 *key1, PRUint32 len1, PRUint8 *ke
 nsresult nsAbView::GenerateCollationKeysForCard(const PRUnichar *colID, AbCard *abcard)
 {
   nsresult rv;
-  nsXPIDLString value;
+  nsString value;
 
   if (!mCollationKeyGenerator)
   {
@@ -1201,7 +1201,7 @@ NS_IMETHODIMP nsAbView::SwapFirstNameLastName()
                                          NS_GET_IID(nsIPrefLocalizedString), getter_AddRefs(pls));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsXPIDLString str;
+    nsString str;
     pls->ToString(getter_Copies(str));
     displayNameLastnamefirst = str.EqualsLiteral("true");
     nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
@@ -1239,8 +1239,8 @@ NS_IMETHODIMP nsAbView::SwapFirstNameLastName()
           if (displayNameAutoGeneration &&
               !fn.IsEmpty() && !ln.IsEmpty())
           {
-            nsXPIDLString dnLnFn;
-            nsXPIDLString dnFnLn;
+            nsString dnLnFn;
+            nsString dnFnLn;
             const PRUnichar *nameString[2];
             const PRUnichar *formatString;
 
@@ -1327,7 +1327,7 @@ NS_IMETHODIMP nsAbView::GetSelectedAddresses(nsISupportsArray **_retval)
     if (isMailList) {
       nsCOMPtr<nsIRDFService> rdfService = do_GetService(NS_RDF_CONTRACTID "/rdf-service;1", &rv);
       NS_ENSURE_SUCCESS(rv, rv);
-      nsXPIDLCString mailListURI;
+      nsCString mailListURI;
       card->GetMailListURI(getter_Copies(mailListURI));
       nsCOMPtr<nsIRDFResource> resource;
       rv = rdfService->GetResource(mailListURI, getter_AddRefs(resource));

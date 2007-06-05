@@ -44,7 +44,7 @@
 #include "nsAbBaseCID.h"
 #include "nsIAbCard.h"
 #include "nsAbOutlookCard.h"
-#include "nsXPIDLString.h"
+#include "nsString.h"
 #include "nsAbDirectoryQuery.h"
 #include "nsIAbBooleanExpression.h"
 #include "nsIAddressBook.h"
@@ -143,7 +143,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::Init(const char *aUri)
     char** childArray;
     PRUint32 childCount, i;
     PRInt32 dotOffset;
-    nsXPIDLCString childValue;
+    nsCString childValue;
     nsDependentCString child;
 
     rv = prefBranch->GetChildList("", &childCount, &childArray);
@@ -294,7 +294,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::GetChildCards(nsISimpleEnumerator **aCards)
                 if (isMailList) {
                     // We can have mailing lists only in folder, 
                     // we must add the directory to m_AddressList
-                    nsXPIDLCString mailListUri ;
+                    nsCString mailListUri;
 
                     retCode = card->GetMailListURI(getter_Copies(mailListUri)) ;
                     NS_ENSURE_SUCCESS(retCode, retCode) ;
@@ -342,7 +342,7 @@ static nsresult ExtractEntryFromUri(nsIRDFResource *aResource, nsCString &aEntry
 {
     aEntry.Truncate() ;
     if (!aPrefix ) { return NS_ERROR_NULL_POINTER ; }
-    nsXPIDLCString uri ;
+    nsCString uri;
     nsresult retCode = aResource->GetValue(getter_Copies(uri)) ;
     
     NS_ENSURE_SUCCESS(retCode, retCode) ;
@@ -540,7 +540,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::EditMailListToDatabase(const char *aUri, nsI
 {
     if (mIsQueryURI) { return NS_ERROR_NOT_IMPLEMENTED ; }
     nsresult retCode = NS_OK ;
-    nsXPIDLString name ;
+    nsString name;
     nsAbWinHelperGuard mapiAddBook (mAbWinType) ;
 
     if (!mapiAddBook->IsOK()) { return NS_ERROR_FAILURE ; }
@@ -659,8 +659,8 @@ static nsresult BuildRestriction(nsIAbBooleanConditionString *aCondition,
     aSkipItem = PR_FALSE ;
     nsAbBooleanConditionType conditionType = 0 ;
     nsresult retCode = NS_OK ;
-    nsXPIDLCString name ;
-    nsXPIDLString value ;
+    nsCString name;
+    nsString value;
     ULONG propertyTag = 0 ;
     nsCAutoString valueAscii ;
     
@@ -969,7 +969,7 @@ nsresult FillPropertyValues(nsIAbCard *aCard, nsIAbDirectoryQueryArguments *aArg
 			newValue = new nsAbDirectoryQueryPropertyValue (cPropName, bogusInterface) ;
 		}
     else {
-			nsXPIDLString value ;
+			nsString value;
 
       retCode = aCard->GetCardValue(cPropName, value);
 			NS_ENSURE_SUCCESS(retCode, retCode) ;
@@ -1431,7 +1431,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::ModifyCard(nsIAbCard *aModifiedCard)
   NS_ENSURE_ARG_POINTER(aModifiedCard);
 
   nsresult retCode = NS_OK;
-  nsXPIDLString *properties = nsnull;
+  nsString *properties = nsnull;
   nsAutoString utility;
   nsAbWinHelperGuard mapiAddBook(mAbWinType);
 
@@ -1439,7 +1439,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::ModifyCard(nsIAbCard *aModifiedCard)
     return NS_ERROR_FAILURE;
 
   // First, all the standard properties in one go
-  properties = new nsXPIDLString[index_LastProp];
+  properties = new nsString[index_LastProp];
   if (!properties) {
     return NS_ERROR_OUT_OF_MEMORY;
   }
@@ -1500,8 +1500,8 @@ NS_IMETHODIMP nsAbOutlookDirectory::ModifyCard(nsIAbCard *aModifiedCard)
   }
 
   delete [] properties;
-  nsXPIDLString unichar;
-  nsXPIDLString unichar2;
+  nsString unichar;
+  nsString unichar2;
   WORD year = 0;
   WORD month = 0;
   WORD day = 0;
