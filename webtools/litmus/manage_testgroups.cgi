@@ -71,7 +71,7 @@ if ($c->param("searchTestgroupList")) {
 
 # anyone can use this script for its searching capabilities, but if we 
 # get here, then you need to be an admin:
-Litmus::Auth::requireAdmin('manage_testgroups.cgi');
+Litmus::Auth::requireProductAdmin('manage_testgroups.cgi');
 
 if ($c->param("testgroup_id")) {
   $testgroup_id = $c->param("testgroup_id");
@@ -81,6 +81,7 @@ my $defaults;
 if ($c->param("delete_testgroup_button")) {
   my $testgroup = Litmus::DB::Testgroup->retrieve($testgroup_id);
   if ($testgroup) {
+    Litmus::Auth::requireProductAdmin("manage_testgroups.cgi", $testgroup->product());
     $rv = $testgroup->delete_with_refs();
     if ($rv) {
       $status = "success";
@@ -95,6 +96,7 @@ if ($c->param("delete_testgroup_button")) {
   }
 } elsif ($c->param("clone_testgroup_button")) {
   my $testgroup = Litmus::DB::Testgroup->retrieve($testgroup_id);
+  Litmus::Auth::requireProductAdmin("manage_testgroups.cgi", $testgroup->product());
   my $new_testgroup = $testgroup->clone;
   if ($new_testgroup) {
     $status = "success";
@@ -109,6 +111,7 @@ if ($c->param("delete_testgroup_button")) {
   requireField('branch', $c->param('branch'));
   my $enabled = $c->param('enabled') ? 1 : 0;
   if ($c->param("mode") eq "add") {
+    Litmus::Auth::requireProductAdmin("manage_testgroups.cgi", $c->param('product'));
     my %hash = (
                 name => $c->param('name'),
                 product_id => $c->param('product'),
@@ -133,6 +136,7 @@ if ($c->param("delete_testgroup_button")) {
     $testgroup_id = $c->param("editform_testgroup_id");
     my $testgroup = Litmus::DB::Testgroup->retrieve($testgroup_id);
     if ($testgroup) {
+      Litmus::Auth::requireProductAdmin("manage_testgroups.cgi", $testgroup->product());
       $testgroup->product_id($c->param('product'));
       $testgroup->branch_id($c->param('branch'));
       $testgroup->enabled($enabled);
@@ -169,6 +173,41 @@ my $products = Litmus::FormWidget->getProducts();
 my $branches = Litmus::FormWidget->getBranches();
 my $testgroups = Litmus::FormWidget->getTestgroups;
 my $subgroups = Litmus::FormWidget->getSubgroups(0,'name');
+
+# only allow the user access to the products they are product admins for
+my %authorized_products;
+my @tmp_products;
+foreach my $b (@{$products}) {
+	my %cur = %{$b};
+	if (Litmus::Auth::getCurrentUser()->isProductAdmin($cur{product_id})) {
+		push(@tmp_products, $b);
+		$authorized_products{$cur{product_id}} = 1;
+	}
+}
+$products = \@tmp_products;
+
+# likewise for branches:
+my %authorized_branches;
+my @tmp_branches;
+foreach my $b (@{$branches}) {
+	my %cur = %{$b};
+	if ($authorized_products{$cur{product_id}}) {
+		push(@tmp_branches, $b);
+		$authorized_branches{$cur{branch_id}} = 1;
+	}
+}
+$branches = \@tmp_branches;
+
+# and of course limit the testgroups
+my @tmp_testgroups;
+foreach my $b (@{$testgroups}) {
+	my %cur = %{$b};
+	if ($authorized_products{$cur{product_id}}) {
+		push(@tmp_testgroups, $b);
+	}
+}
+$testgroups = \@tmp_testgroups;
+
 
 my $json = JSON->new(skipinvalid => 1, convblessed => 1);
 my $products_js = $json->objToJson($products);

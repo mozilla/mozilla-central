@@ -139,7 +139,7 @@ sub coverage() {
   $sql = "SELECT t.testcase_id, count(tr.testresult_id) AS num_results
           FROM testcase_subgroups tsg JOIN testcases t ON (tsg.testcase_id=t.testcase_id) LEFT JOIN test_results tr ON (tr.testcase_id=t.testcase_id) JOIN opsyses o ON (tr.opsys_id=o.opsys_id)";
   if ($trusted) {
-    $sql .= ", users u";
+    $sql .= ", users u, user_group_map ugm, security_groups sg";
   } 
   $sql .= " WHERE tsg.subgroup_id=? AND tr.build_id=? AND tr.locale_abbrev=? AND o.platform_id=? AND o.opsys_id=?";
   if ($community_only) {
@@ -149,7 +149,8 @@ sub coverage() {
     $sql .= " AND tr.user_id=" . $user->{'user_id'};
   }
   if ($trusted) {
-    $sql .= " AND tr.user_id=u.user_id AND u.is_admin=1";
+    $sql .= " AND tr.user_id=u.user_id AND u.user_id=ugm.user_id AND ugm.group_id=sd.group_id ";
+    $sql .= " AND (sd.grouptype=1 OR sd.grouptype=3)";
   }
   
   $sql .= " GROUP BY tr.testcase_id";

@@ -34,19 +34,23 @@ package Litmus::DB::User;
 
 use strict;
 use Litmus::Config;
+use Litmus::Memoize;
 use base 'Litmus::DBI';
 
 Litmus::DB::User->table('users');
 
-Litmus::DB::User->columns(All => qw/user_id bugzilla_uid email password realname irc_nickname enabled is_admin authtoken/);
-Litmus::DB::User->columns(TEMP => qw/num_results/);
+Litmus::DB::User->columns(All => qw/user_id bugzilla_uid email password realname irc_nickname enabled authtoken/);
+Litmus::DB::User->columns(TEMP => qw/is_admin_old num_results/);
 
-Litmus::DB::User->column_alias("is_trusted", "istrusted");
-Litmus::DB::User->column_alias("is_admin", "is_trusted");
+Litmus::DB::User->column_alias("isSuperUser", "istrusted");
+Litmus::DB::User->column_alias("isSuperUser", "is_trusted");
+Litmus::DB::User->column_alias("isSuperUser", "is_admin");
+
 Litmus::DB::User->column_alias("email", "username");
 
 Litmus::DB::User->has_many(test_results => "Litmus::DB::Testresult");
 Litmus::DB::User->has_many(sessions => "Litmus::DB::Session");
+Litmus::DB::User->has_many(groups => ["Litmus::DB::UserGroupMap" => 'group']);
 
 # ZLL: only load BugzillaUser if Bugzilla Auth is actually enabled
 if ($Litmus::Config::bugzilla_auth_enabled) {
@@ -67,6 +71,63 @@ __PACKAGE__->set_sql(TopTesters => qq{
                                       ORDER BY num_results DESC
                                       LIMIT 15
 });
+
+
+
+#########################################################################
+# search for users by email, irc nick, realname, or group
+sub search_full_text {
+	my $self = shift;
+	my $email = shift;
+	my $nick = shift;
+	my $realname = shift;
+	my @groups = shift; 
+	
+	my $dbh = Litmus::DBI->db_Main();
+	my @args;
+	
+	my $sql = q{
+	SELECT DISTINCT users.user_id, users.email, users.irc_nickname
+	FROM users, user_group_map
+	WHERE 
+	 (
+	};
+	
+	if ($email) {
+	  $sql .= "users.email COLLATE latin1_general_ci like concat('%%',?,'%%') OR ";
+	  push(@args, $email);
+	}
+	if ($nick) {
+	  $sql .= "users.irc_nickname COLLATE latin1_general_ci  like concat('%%',?,'%%') OR ";
+	  push(@args, $nick);
+	}
+	if ($realname) {
+	  $sql .= "users.realname COLLATE latin1_general_ci like concat('%%',?,'%%')";
+	  push(@args, $realname);
+	}
+	# catch all case for no email, nick, or realname
+	if (! ($realname || $nick || $email)) {
+		$sql .= "1=1";
+	}
+
+
+	$sql .= ")";
+	
+	if ($groups[0]) {
+		$sql .= " AND ((user_group_map.user_id = users.user_id) ";
+		foreach my $cur (@groups) {
+			$sql .= "AND user_group_map.group_id = ".$cur->group_id();
+		}
+		$sql .= ") ";
+	}
+	
+	$sql .= "GROUP BY users.user_id ";
+	$sql .= "ORDER BY users.email ASC";
+	
+	my $sth = $dbh->prepare($sql);
+	$sth->execute(@args);
+	return $self->sth_to_objects($sth);
+}
 
 # the COLLATE latin1_general_ci sillyness forces a case-insensitive match
 # removed a LIMIT 300 to work around a mysql bug in the ancient version
@@ -96,6 +157,7 @@ sub getRealPasswd {
 }
 
 #########################################################################
+memoize('getDisplayName');
 sub getDisplayName() {
   my $self = shift;
   
@@ -114,6 +176,96 @@ sub getDisplayName() {
   return undef;
 }
 
+#########################################################################
+# Group functions
+#########################################################################
+__PACKAGE__->set_sql(userInGroup => q{
+	SELECT DISTINCT users.user_id FROM __TABLE__, security_groups, user_group_map 
+	  WHERE
+	   user_group_map.group_id = ? AND users.user_id = user_group_map.user_id
+	   AND users.user_id= ?
+});
+
+__PACKAGE__->set_sql(userInAnyAdminGroup => q{
+	SELECT DISTINCT users.user_id FROM __TABLE__, security_groups, user_group_map 
+	  WHERE
+	   (security_groups.grouptype=1 OR security_groups.grouptype=2 
+	   OR security_groups.grouptype=3) AND 
+	   users.user_id = user_group_map.user_id
+	   AND users.user_id= ?
+});
+
+__PACKAGE__->set_sql(userInProductAdminGroup => q{
+	SELECT DISTINCT users.user_id FROM __TABLE__, security_groups, 
+	  user_group_map, group_product_map
+	  WHERE security_groups.grouptype=3 AND 
+	   users.user_id = user_group_map.user_id AND
+	   user_group_map.group_id=security_groups.group_id AND
+	   users.user_id= ? AND
+	   security_groups.group_id=group_product_map.group_id AND
+	   group_product_map.product_id = ?
+});
+
+# returns true if the user is a member of $group, otherwise false
+memoize('inGroup');
+sub inGroup {
+	my $self = shift;
+	my $group = shift;
+	
+	my @users = __PACKAGE__->search_userInGroup($group, $self);
+	
+	if (@users) { return 1 }
+	return 0;
+}
+
+memoize('isSuperUser');
+sub isSuperUser {
+	my $self = shift;
+	if ($self->inGroup(Litmus::DB::SecurityGroup->getSuperUserGroup)) {
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
+
+memoize('isRunDayAdmin');
+sub isRunDayAdmin {
+	my $self = shift;
+	if ($self->inGroup(Litmus::DB::SecurityGroup->getRunDayGroup()) ||
+	    $self->isSuperUser()) {
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
+
+# returns true if the user is a superuser or a member of any product admin group
+# (to determine whether to show any admin controls)
+memoize('isInAdminGroup');
+sub isInAdminGroup {
+	my $self = shift;
+	my @rows = $self->search_userInAnyAdminGroup($self);
+	if (@rows) {
+		return 1;
+	}
+	return 0;
+}
+
+# returns true if the user is an admin of $product
+memoize('isProductAdmin');
+sub isProductAdmin {
+	my $self = shift;
+	my $product = shift;
+	
+	my @users = $self->search_userInProductAdminGroup($self, $product);
+	if (@users) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
 
 1;
 

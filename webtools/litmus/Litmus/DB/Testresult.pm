@@ -125,13 +125,16 @@ Litmus::DB::Testresult->set_sql(CompletedByUser => qq{
 
 Litmus::DB::Testresult->set_sql(CompletedByTrusted => qq{
     SELECT tr.*
-    FROM test_results tr, users u
+    FROM test_results tr, users u, users u, 
+      user_group_map ugm, security_groups sg
     WHERE tr.testcase_id=? AND 
         tr.build_id=? AND 
         tr.locale_abbrev=? AND
         tr.opsys_id=? AND
         tr.user_id=u.user_id AND
-        u.is_admin=1
+        AND tr.user_id=u.user_id AND u.user_id=ugm.user_id AND
+        ugm.group_id=sd.group_id AND
+        (sd.grouptype=1 OR sd.grouptype=3)
     ORDER BY tr.submission_time DESC
 });
 
@@ -231,14 +234,22 @@ sub getTestResults($\@\@$) {
         } elsif ($criterion->{'field'} eq 'trusted_only') {            
             if ($criterion->{'value'} ne 'all') {
                 if ($from !~ /users u/) {
-                    $from .= ", users u";
+                    $from .= ", users u" 
                 }
+                $from .= ", user_group_map ugm, ";
+                $from .= "security_groups secgps, group_product_map gpm";
             }
-            $where .= " AND u.user_id=tr.user_id AND u.is_admin=";
             if ($criterion->{'value'} == 1 or $criterion->{'value'} eq 'on') {
-                $where .= '1';
+                $where .= qq{ AND u.user_id=tr.user_id AND (
+                u.user_id=ugm.user_id 
+                AND ugm.group_id=secgps.group_id AND
+                 secgps.grouptype=1)  OR 
+                 (gpm.product_id=pr.product_id AND 
+                 gpm.group_id=secgps.group_id AND
+                 secgps.grouptype=3)};
             } else {
-                $where .= '0';
+                $where .= '(secgps.grouptype != 1 AND secgps.grouptype != 2 
+                AND secgps.grouptype != 3)';
             }
         } elsif ($criterion->{'field'} eq 'vetted_only') {
             if ($criterion->{'value'} ne 'all') {

@@ -2,7 +2,7 @@
 
 == Required Perl Modules ==
 
-Apache::DBI
+Apache::DBI - if mod_perl is being used
 CGI
 Class::DBI 
 Class::DBI::mysql 
@@ -24,12 +24,30 @@ Time::Piece::MySQL
 Time::Seconds
 XML::XPath
 
+Also, note that 'sendmail' (or a mailer with a compatible command-line 
+interface) is required.
+
 == Setting up the database ==
 
-Run populatedb.pl. This will create a template configuration file, 'localconfig,' that contains variables to hold your database configuration information. Edit the newly created 'localconfig' file with your database configuration. Once 'localconfig' is populated with your database information, run the populatedb.pl again to populate the initial products, locales, etc... There is no UI at present for doing this. 
+Run populatedb.pl. This will create a template configuration file, 
+'localconfig,' that contains variables to hold your database configuration 
+information. Edit the newly created 'localconfig' file with your database 
+configuration. Once 'localconfig' is populated with your database information, 
+run the populatedb.pl again to populate the initial products, locales, etc... 
+There is no UI at present for doing this.
 
 Then just pop the whole thing into a directory where your web server can
 get at it. Have fun!
+
+To get yourself an administrator account, you'll need to load up Litmus in your 
+web browser and follow the link to create a new account. You'll have been 
+lucky enough to score user id number 1. Grant yourself admin rights by loading 
+up mysql, connecting to your Litmus database, and running the following command:
+
+  insert into user_group_map values ('1', '1');
+
+From there, you can go into "Edit Users" in the web interface and grant 
+rights to any new users. 
 
 Note: After upgrading Litmus, it's a good idea to run populatedb.pl
 again to pick up any schema changes that may have occured.

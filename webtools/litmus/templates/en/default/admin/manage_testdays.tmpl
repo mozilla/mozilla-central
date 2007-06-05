@@ -41,6 +41,18 @@ var testgroups=[% testgroups_js %];
 
   <div id="content">
 
+    [% IF warning %]
+      <div class="error">
+      <h1 class="errorHeading">Warning: Testday Conflict Detected</h1> 
+      <h4>
+      Your recently created testday has dates that overlap one or 
+      more existing testdays. You should check for conflicts and coordinate with 
+      the administrators of the other testdays to ensure that the events are 
+      compatible. 
+      </h4>
+      </div>
+    [% END %]
+
     [% INCLUDE admin/form_widgets/update_testdays.tmpl %]
 
   </div> <!--END content-->

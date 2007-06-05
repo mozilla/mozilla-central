@@ -20,6 +20,7 @@
   
 [%# INTERFACE:
   # $user - the user object to edit
+  # @groups - array of groups available on the system (required only for admins)
 #%]
 
 [% includeselects=1 %]
@@ -78,11 +79,6 @@ function checkFormContents(f) {
     <td><input name="enabled" type="checkbox" value="1" 
       [% IF user.enabled %] checked [% END %] /></td>
   </tr>
-  <tr>
-    <td class="headerleft">Is An Admin?</td>
-    <td><input name="is_admin" type="checkbox" value="1" 
-      [% IF user.is_admin %] checked [% END %] /></td>
-  </tr>
   [% END %]
 
   <tr>
@@ -103,6 +99,26 @@ function checkFormContents(f) {
     <td class="headerleft">Confirm New Password:</td>
     <td><input name="edit_confirm_password" type="password" size="30" value="" /></td>
   </tr>
+  
+  [% IF show_admin %]
+  <tr>
+    <td colspan="3"><hr/></td>
+  </tr>
+  
+   <tr>
+    <td class="headerleft">Group Memberships:</td>
+    <td>
+     <table class="manage">
+       [% FOREACH group=groups %]
+       <tr>
+         <td><input name="group_[%group.id | html %]" type="checkbox" value="1" [% IF user.inGroup(group) %] checked [%END%]></td>
+         <td>[% group.name FILTER html %]</td>
+       </tr>
+       [% END %]
+     </table>
+    </td>
+  </tr>
+  [% END %]
 
 
   [% IF ! show_admin %]

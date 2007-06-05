@@ -72,6 +72,14 @@ function checkNewAccountFormContents(f) {
           comparePasswords(f.password,f.password_confirm)
          );
 }
+
+function forgotPasswordForm(f) {
+    document.getElementById('forgot_email').value = 
+    	document.getElementById('login_email').value;	
+	return (
+		checkEmail(f.email)
+	);
+}
 </script>
 
 <div id="page">
@@ -100,14 +108,20 @@ function checkNewAccountFormContents(f) {
               <table border=0>
     		<tr>
     		  <td>Email:</td>
-                  <td><input name="email" type="text" size="25"></td>
+                  <td><input name="email" type="text" size="25" id="login_email"></td>
     		</tr>
                 <tr>
     		  <td>Password:</td>
     		  <td><input name="password" type="password" size="25"></td>
                 </tr>
               </table>
-              <br /><input type="submit" name="Submit" value="Login">
+              <br />
+              <input type="submit" name="Submit" value="Login"> <br /><br />
+            </form>
+            <form name="litmus_forgot_password" action="[% return_to | none %]" method="post" onSubmit="return forgotPasswordForm(this);">
+              <input name="email" id="forgot_email" type="hidden">
+              <input name="login_type" type="hidden" value="forgot_password">
+              <input type="submit" name="forgot" value="Forgot Password">
             </form>
           </div>
 

@@ -43,6 +43,9 @@ use Litmus::Error;
 use Time::Piece;
 use Time::Seconds;
 use Litmus::DB::User;
+use Litmus::DB::PasswordResets;
+use Litmus::Memoize;
+use Litmus::Mailer;
 
 use CGI;
 
@@ -114,7 +117,7 @@ sub requireLogin {
 }
 
 # Used by a CGI in much the same way as requireLogin() when the user must
-# be an admin to proceed.
+# be a superuser to proceed.
 sub requireAdmin {
   my $return_to = shift;
   my $cgi = Litmus->cgi();
@@ -125,6 +128,48 @@ sub requireAdmin {
     basicError("You must be a Litmus administrator to perform this function.");
   }
   return $user;
+}
+
+# similar to the above, but the user may be a run/day admin
+sub requireRunDayAdmin {
+  my $return_to = shift;
+  my $cgi = Litmus->cgi();
+  
+  my $user = requireLogin($return_to, 1);
+  if (!$user || !$user->isRunDayAdmin()) { 
+  	print $cgi->header();
+    basicError("You must be a Test Run/Test Day administrator to perform this function.");
+  }
+  return $user;
+}
+
+# similar to requireAdmin, but the user may be a product admin as well
+sub requireProductAdmin {
+	my $return_to = shift;
+	my $product = shift; # optional
+	
+	my $cgi = Litmus->cgi();
+  
+    my $user = requireLogin($return_to, 1);
+    if (!$user || !$user->isInAdminGroup()) { 
+    	print $cgi->header();
+        basicError("You must be a Litmus administrator to perform this function.");
+    }
+    # superusers can do anything:
+    if ($user->isSuperUser()) {
+    	return $user;
+    }
+    # otherwise, they must be an admin of $product if $product is specified:
+    if ($product) {
+    	if ($user->isProductAdmin($product)) {
+    		return $user;
+    	} else {
+    		print $cgi->header();
+       	    basicError("You must be an administrator of product ".
+       	      $product->name()." to perform this function.");
+    	}
+    }
+    return $user;
 }
 
 # Returns the current Litmus::DB::Session object corresponding to the current 
@@ -165,6 +210,109 @@ sub getCurrentUser() {
   }
 }
 
+########################################
+# Reset Password					   #
+########################################
+
+# Change the user's forgotten password. This is done in two phases, with an 
+# email confirmation to validate the user's identity before changing the 
+# password.
+sub resetPassword {
+	my $user = shift;
+	
+	# invalidate any pending password reset sessions:
+	my @resets = Litmus::DB::PasswordResets->search(user => $user);
+	foreach my $cur (@resets) {
+		$cur->session()->makeExpire();
+		$cur->delete();
+	}
+	
+	my $session = makeSession($user, 1);
+	Litmus::DB::PasswordResets->create({user => $user, session => $session});
+	
+	my $vars_mail = {
+		user => $user,
+		token => $session->sessioncookie(),
+	};
+	my $output;
+	Litmus->template()->process("auth/passwordreset/message.mail.tmpl", 
+	  $vars_mail, \$output, {POST_CHOMP => 0, PRE_CHOMP => 0}) ||
+        internalError(Litmus->template()->error());
+	
+	# fix weird template nonsense
+	$output =~ s/^.*(To: )/To: /s;
+	
+	Litmus::Mailer::sendMessage($output);
+	
+	my $vars_html = {
+              title => "Reset Password",
+              return_to => "login.cgi",
+             };
+	print Litmus->cgi()->header();
+	Litmus->template()->process("auth/passwordreset/checkEmail.html.tmpl", $vars_html) ||
+      internalError(Litmus->template()->error());
+  
+	exit;	
+}
+
+# after the user follows the link in the email, they end up here to actually
+# reset their password:
+sub resetPasswordForm {
+	my $token = shift;
+	
+	my $reset = validateToken($token);
+	
+	my $vars = {
+		title => "Reset Password",
+		return_to => "login.cgi",
+		user => $reset->user(),
+		token => $token,
+	};
+	print Litmus->cgi()->header();
+	Litmus->template()->process("auth/passwordreset/resetForm.html.tmpl", $vars) ||
+      internalError(Litmus->template()->error());
+}
+
+# and after they complete the reset password from, they come here to 
+# actually change the password:
+sub doResetPassword {
+	my $uid = shift;
+	my $token = shift;
+	my $password = shift;
+	
+	my $reset = validateToken($token);
+	changePassword($reset->user(), $password);
+	
+	my $session = makeSession($reset->user());
+    Litmus->cgi()->storeCookie(makeCookie($session));
+    
+    $reset->session()->makeExpire();
+	$reset->delete();
+}
+
+sub validateToken {
+	my $token = shift;
+	my @sessions = Litmus::DB::Session->search(sessioncookie => $token);
+	my $session = $sessions[0];
+	if (!$session) {
+		invalidInputError("That authentication token is invalid. It may have 
+		  been copied incorrectly from the email, or have already been used. 
+		  Please check that the entire URL was copied correctly.");
+	}
+	
+	if (! $session->isValid()) { 
+		invalidInputError("That authentication token has expired. You'll need to
+		request a new password reset and try again.");
+	}
+	
+	my @resets = Litmus::DB::PasswordResets->search(session => $session);
+	my $reset = $resets[0];
+    if (!$reset) {
+		invalidInputError("That authentication token is invalid. It does not 
+		  belong to a user that has requested a password reset.");
+	}
+	return $reset;
+}
 
 #
 # ONLY NON-PUBLIC API BEYOND THIS POINT
@@ -185,6 +333,22 @@ sub processLoginForm {
     # the accountCreated flag:
     requireLogin("index.cgi");
     return; # we're done here
+  }
+  
+  # the user just reset their password, so no need to do anything
+  if ($c->param('login_type') eq 'doResetPassword') { 
+      return;
+  }
+  
+  # check to see if they have forgotten their password:
+  if ($type eq "forgot_password") {
+    my $username = $c->param("email");
+    my @users = Litmus::DB::User->search(email => $username);
+    if (! $users[0]) {
+    	loginError($c, "Invalid email address entered. Please try again");
+    }
+  	resetPassword($users[0]);
+  	return;
   }
   
   if ($type eq "litmus") {
@@ -390,6 +554,7 @@ sub expireSessions {
 # Given a userobj, process the login and return a session object
 sub makeSession {
   my $userobj = shift;
+  my $dontsetsession = shift;
   my $c = Litmus->cgi();
 
   my $expires = localtime() + ONE_DAY * $cookie_expire_days;
@@ -401,7 +566,9 @@ sub makeSession {
                                              sessioncookie => $sessioncookie,
                                              expires => $expires});
 
-  Litmus->request_cache->{'curSession'} = $session;
+  unless ($dontsetsession) {
+  	Litmus->request_cache->{'curSession'} = $session;
+  }
   return $session;
 }
 
@@ -530,16 +697,12 @@ sub getCookie() {
   return getCurrentUser();
 }
 
+# trusted means "is a super user"
 sub istrusted($) {
   my $userobj = shift;
 
   return 0 if (!$userobj);
-  
-  if ($userobj->istrusted()) {
-    return 1;
-  } else {
-    return 0;
-  }
+  return $userobj->isSuperUser();
 }
 
 sub canEdit($) {

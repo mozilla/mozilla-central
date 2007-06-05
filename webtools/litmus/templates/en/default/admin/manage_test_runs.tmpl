@@ -119,7 +119,11 @@ if (em.selectedIndex >= 0) {
   enableForm('edit_test_run_form');
 } else {
   disableForm('edit_test_run_form');
+  changeProduct();
 }
+var suffix='_filter';
+changeProduct();filterList();
+  
 </script>
 
 [% INCLUDE global/litmus_footer.tmpl %]

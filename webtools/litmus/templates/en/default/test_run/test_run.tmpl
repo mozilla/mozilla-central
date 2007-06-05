@@ -71,7 +71,7 @@
     <div id="finish_timestamp_text[% IF ! show_edit %]_[% test_run.test_run_id | html %][% END %]">[% test_run.finish_timestamp | html %]</div>
     </td>
   </tr>
-[% IF show_admin %]
+[% IF show_edit %]
   <tr>
     <td><b>Enabled?</b></td>
     <td><input id="enabled_display" name="enabled_display" type="checkbox" value="1" [% IF test_run.enabled %] checked[% END %] disabled></td>

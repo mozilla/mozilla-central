@@ -36,7 +36,7 @@ require Apache::DBI;
 use strict;
 use warnings;
 use Litmus::Config;
-use Memoize;
+use Litmus::Memoize;
 
 use base 'Class::DBI::mysql';
 
@@ -60,7 +60,7 @@ sub column_alias {
 # here's where the actual work happens. We consult our alias list 
 # (as created by calls to column_alias()) and substitute the 
 # database column if we find a match
-memoize('find_column');
+memoize('find_column', persist=>1);
 sub find_column {
     my $self = shift;
     my $wanted = shift;

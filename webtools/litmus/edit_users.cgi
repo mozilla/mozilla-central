@@ -44,18 +44,37 @@ my $c = Litmus->cgi();
 Litmus::Auth::requireLogin("edit_users.cgi");
 
 # Only trusted users can edit other users.
-my $cookie = Litmus::Auth::getCookie();
+my $cookie = undef;
+$cookie = Litmus::Auth::getCookie();
 if (Litmus::Auth::istrusted($cookie)) {
   
-  if ($c->param('search_string')) {
+  if ($c->param('submit')) {
     # search for users:
-    my @users = Litmus::DB::User->search_FullTextMatches(
+    
+    # gather group membership bits:
+    my @groups = Litmus::DB::SecurityGroup->retrieve_all(order_by => "grouptype, group_id");
+    my @group_search;
+    my %checked;
+    foreach my $cur (@groups) {
+    	if ($c->param("group_".$cur->group_id())) {
+    		push(@group_search, $cur);
+    		$checked{$cur->group_id()} = 1;
+    	}
+    }
+    
+    
+    my @users = Litmus::DB::User->search_full_text(
                                                          $c->param('search_string'), 
                                                          $c->param('search_string'),
-                                                         $c->param('search_string'));
+                                                         $c->param('search_string'),
+                                                         @group_search);
+                                                        
+    
     my $vars = {
 		users => \@users,
                 search_string => $c->param('search_string'),
+                groups => \@groups,
+                checked => \%checked,
                };
     print $c->header();
     Litmus->template()->process("admin/edit_users/search_results.html.tmpl", $vars) || 
@@ -68,9 +87,11 @@ if (Litmus::Auth::istrusted($cookie)) {
     if (! $user) {
       invalidInputError("Invalid user ID: $uid");
     }
+    my @groups = Litmus::DB::SecurityGroup->retrieve_all();
     my $vars = {
 		user => $user,
-               };
+		groups => \@groups,
+    };
     Litmus->template()->process("admin/edit_users/edit_user.html.tmpl", $vars) || 
       internalError(Litmus->template()->error()); 
   } elsif ($c->param('user_id')) {
@@ -101,16 +122,23 @@ if (Litmus::Auth::istrusted($cookie)) {
         $revoke_sessions = 1;
       }
     }
- 
-    # Check to see whether we are changing the admin status of this user.    
-    if ($c->param('is_admin')) {
-      $user->is_admin(1);
-    } else {
-      if ($user->is_admin) {
-        $user->is_admin(0);
-        $revoke_sessions = 1;
-      }
+    
+    $user->authtoken($c->param('authtoken'));
+    
+    # process changes to group permissions:
+    my @allgroups = Litmus::DB::SecurityGroup->retrieve_all();
+    foreach my $group (@allgroups) {
+    	if ($c->param("group_".$group->group_id())) {
+    		# we're blessing this user
+    		Litmus::DB::UserGroupMap->find_or_create(user=>$user, group=>$group);
+    		$revoke_sessions = 1;
+    	} else {
+    		# unblesing (if previously blessed) the user
+    		Litmus::DB::UserGroupMap->remove($user, $group);
+    		$revoke_sessions = 1;
+    	}
     }
+    
 
     $user->authtoken($c->param('authtoken'));
     $user->update();
@@ -121,13 +149,16 @@ if (Litmus::Auth::istrusted($cookie)) {
 
     my $vars = {
 		user => $user,
-                onload => "toggleMessage('success','User information updated successfully.');"
+                onload => "toggleMessage('success','User information updated successfully.');",
+                groups => \@allgroups,
                };
     Litmus->template()->process("admin/edit_users/search_users.html.tmpl", $vars) || 
       internalError(Litmus->template()->error()); 
   } else {
     # we're here for the first time, so display the search form
+    my @groups = Litmus::DB::SecurityGroup->retrieve_all();
     my $vars = {
+       			groups => \@groups,
                };
     print $c->header();
     Litmus->template()->process("admin/edit_users/search_users.html.tmpl", $vars) || 

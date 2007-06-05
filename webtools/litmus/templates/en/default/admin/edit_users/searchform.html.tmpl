@@ -19,14 +19,25 @@
 #%]
   
 [%# INTERFACE:
-  # 
+  # @groups - all valid security groups
 #%]
 
-<p>You may search by email address, real name, or irc nickname.</p>
+<p>You may search by email address, real name, irc nickname, and group membership.</p>
 
 <form action="edit_users.cgi" method="get" name="form" id="form">
 List users matching 
-<input name="search_string" size="35" value="[% IF search_string %][% search_string | html %][% ELSE %][% user.email %][% END %]"/>
+<input name="search_string" size="35" value="[% IF search_string %][% search_string | html %][% END %]"/>
+<br /><br />
+And belonging to group(s):
+<table class="manage">
+[% FOREACH group=groups %]
+  [% id = group.group_id %]
+       <tr>
+         <td><input name="group_[%group.id | html %]" type="checkbox" value="1" [% IF checked.$id %] checked [%END%]></td>
+         <td>[% group.name FILTER html %]</td>
+       </tr>
+[% END %]
+</table>
 <input type="submit" name="submit" value="Search" />
 </form>
 

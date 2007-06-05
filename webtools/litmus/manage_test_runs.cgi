@@ -70,7 +70,7 @@ if ($c->param("searchTestRunList")) {
 }
 
 
-Litmus::Auth::requireAdmin('manage_test_runs.cgi');
+Litmus::Auth::requireRunDayAdmin('manage_test_runs.cgi');
 
 if ($c->param("test_run_id")) {
   $test_run_id = $c->param("test_run_id");
@@ -79,6 +79,7 @@ my $defaults;
 if ($c->param("delete_test_run_button")) {
   my $test_run = Litmus::DB::TestRun->retrieve($test_run_id);
   if ($test_run) {
+    Litmus::Auth::requireProductAdmin("manage_test_runs.cgi", $test_run->product());
     $rv = $test_run->delete_with_refs();
     if ($rv) {
       $status = "success";
@@ -93,13 +94,20 @@ if ($c->param("delete_test_run_button")) {
   }
 } elsif ($c->param("clone_test_run_button")) {
   my $test_run = Litmus::DB::TestRun->retrieve($test_run_id);
-  my $new_test_run = $test_run->clone;
-  if ($new_test_run) {
-    $status = "success";
-    $message = "Test run cloned successfully. New test_run ID# is " . $new_test_run->test_run_id;
-    $defaults->{'test_run_id'} = $new_test_run->test_run_id;
+  if ($test_run) {
+  	Litmus::Auth::requireProductAdmin("manage_test_runs.cgi", $test_run->product());
+  	my $new_test_run = $test_run->clone;
+  	if ($new_test_run) {
+    	Litmus::Auth::requireProductAdmin("manage_test_runs.cgi", $test_run->product());
+    	$status = "success";
+    	$message = "Test run cloned successfully. New test_run ID# is " . $new_test_run->test_run_id;
+    	$defaults->{'test_run_id'} = $new_test_run->test_run_id;
+  	} else {
+    	$status = "failure";
+    	$message = "Failed to clone Test run ID# $test_run_id.";
+  	}
   } else {
-    $status = "failure";
+  	$status = "failure";
     $message = "Failed to clone Test run ID# $test_run_id.";
   }
 } elsif ($c->param("mode")) {
@@ -108,6 +116,9 @@ if ($c->param("delete_test_run_button")) {
   requireField('branch', $c->param('branch'));
   requireField('start_timestamp', $c->param('start_timestamp'));
   requireField('finish_timestamp', $c->param('finish_timestamp'));
+  
+  Litmus::Auth::requireProductAdmin("manage_test_runs.cgi", $c->param('product'));
+  
   my $enabled = $c->param('enabled') ? 1 : 0;
   my $recommended = $c->param('recommended') ? 1 : 0;
   my $now = &UnixDate("today", "%q");
@@ -149,6 +160,7 @@ if ($c->param("delete_test_run_button")) {
     $test_run_id = $c->param("editform_test_run_id");
     my $test_run = Litmus::DB::TestRun->retrieve($test_run_id);
     if ($test_run) {
+      Litmus::Auth::requireProductAdmin("manage_test_runs.cgi", $test_run->product());
       $test_run->name($c->param('name'));
       $test_run->description($c->param('description'));
       $test_run->product_id($c->param('product'));
@@ -202,6 +214,50 @@ my $testgroups = Litmus::FormWidget->getTestgroups;
 my $platforms = Litmus::FormWidget->getPlatforms();
 my $opsyses = Litmus::FormWidget->getOpsyses();
 my $authors = Litmus::FormWidget->getAuthors();
+
+# only allow the user access to the products they are product admins for
+my %authorized_products;
+my @tmp_products;
+foreach my $b (@{$products}) {
+	my %cur = %{$b};
+	if (Litmus::Auth::getCurrentUser()->isProductAdmin($cur{product_id})) {
+		push(@tmp_products, $b);
+		$authorized_products{$cur{product_id}} = 1;
+	}
+}
+$products = \@tmp_products;
+
+# likewise for branches:
+my %authorized_branches;
+my @tmp_branches;
+foreach my $b (@{$branches}) {
+	my %cur = %{$b};
+	if ($authorized_products{$cur{product_id}}) {
+		push(@tmp_branches, $b);
+		$authorized_branches{$cur{branch_id}} = 1;
+	}
+}
+$branches = \@tmp_branches;
+
+# testgroups
+my @tmp_testgroups;
+foreach my $b (@{$testgroups}) {
+	my %cur = %{$b};
+	if ($authorized_products{$cur{product_id}}) {
+		push(@tmp_testgroups, $b);
+	}
+}
+$testgroups = \@tmp_testgroups;
+
+# and, of course, testruns
+my @tmp_testruns;
+foreach my $b (@{$test_runs}) {
+	my %cur = %{$b};
+	if ($authorized_products{$cur{product_id}}) {
+		push(@tmp_testruns, $b);
+	}
+}
+$test_runs = \@tmp_testruns;
 
 my $json = JSON->new(skipinvalid => 1, convblessed => 1);
 my $products_js = $json->objToJson($products);

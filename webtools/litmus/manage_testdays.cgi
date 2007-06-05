@@ -44,7 +44,8 @@ use JSON;
 use Time::Piece::MySQL;
 
 Litmus->init();
-Litmus::Auth::requireAdmin("manage_testdays.cgi");
+Litmus::Auth::requireRunDayAdmin("manage_testdays.cgi");
+Litmus::Auth::requireProductAdmin("manage_testdays.cgi");
 
 my $c = Litmus->cgi();
 print $c->header();
@@ -54,6 +55,7 @@ my $status;
 my $rv;
 my $rebuild_cache = 0;
 my $defaults;
+my $warning;
 
 if ($c->param) {
   # Process testday changes.
@@ -62,6 +64,7 @@ if ($c->param) {
     my $testday_id = $c->param("testday_id");
     my $testday = Litmus::DB::TestDay->retrieve($testday_id);
     if ($testday) {
+      Litmus::Auth::requireProductAdmin("manage_testdays.cgi", $testday->product());
       $rv = $testday->delete;
       if ($rv) {
         $status = "success";
@@ -82,7 +85,10 @@ if ($c->param) {
                   start_timestamp => $c->param('edit_testday_form_start_timestamp'),
                   finish_timestamp => $c->param('edit_testday_form_finish_timestamp'),
                  );
+      
+      
       if ($c->param('product')) {
+        Litmus::Auth::requireProductAdmin("manage_testdays.cgi", $c->param('product'));
         $hash{product_id} = $c->param('product');
       }
       if ($c->param('branch')) {
@@ -103,6 +109,15 @@ if ($c->param) {
       if ($new_testday) {
         $status = "success";
         $message = "Testday added successfully. New testday ID# is " . $new_testday->testday_id;
+        
+        
+       # search for other testdays that overlap this one and let the user know about them:
+       my @runs = Litmus::DB::TestRun->search_daterange($hash{start_timestamp},
+       		$hash{finish_timestamp});
+       if (@runs) {
+           $warning = 1;
+       }
+        
         $defaults->{'testday_id'} = $new_testday->testday_id;
         $rebuild_cache=1;
       } else {
@@ -113,10 +128,12 @@ if ($c->param) {
       my $testday_id = $c->param("edit_testday_form_testday_id");
       my $testday = Litmus::DB::TestDay->retrieve($testday_id);
       if ($testday) {
+        Litmus::Auth::requireProductAdmin("manage_testdays.cgi", $testday->product());
         $testday->description($c->param('edit_testday_form_desc'));
         $testday->start_timestamp($c->param('edit_testday_form_start_timestamp'));
         $testday->finish_timestamp($c->param('edit_testday_form_finish_timestamp'));
         if ($c->param('product')) {
+          Litmus::Auth::requireProductAdmin("manage_testdays.cgi", $c->param('product'));
           $testday->product_id($c->param('product'));
         }
         if ($c->param('branch')) {
@@ -172,7 +189,8 @@ my $vars = {
             products => $products,
             branches => $branches,
             testdays => $testdays,
-            locales => $locales,
+            locales  => $locales,
+            warning  => $warning,
            };
   
 $vars->{'products_js'} = $products_js;

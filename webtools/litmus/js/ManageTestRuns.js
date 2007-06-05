@@ -169,8 +169,8 @@ function populateTestRun(data) {
 
   setAuthor(test_run.author_id.user_id);
 
-  var enabled_em = document.getElementById('enabled')
-  var enabled_display_em = document.getElementById('enabled_display')
+  var enabled_em = document.getElementById('enabled');
+  var enabled_display_em = document.getElementById('enabled_display');
   if (test_run.enabled == 1) {
     enabled_em.checked = true;
     enabled_display_em.checked = true;

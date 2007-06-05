@@ -295,14 +295,20 @@ sub getTestdays()
 #########################################################################
 sub getAuthors()
 {
-  my $sql = "SELECT user_id, email FROM users WHERE is_admin=1 ORDER BY email";
+  my $sql = "SELECT users.user_id, users.email FROM users, user_group_map, security_groups
+         WHERE 
+           users.user_id=user_group_map.user_id AND 
+           user_group_map.group_id=security_groups.group_id AND
+           (security_groups.grouptype=1 OR security_groups.grouptype=2
+           OR security_groups.grouptype=3)
+         ORDER BY users.email";
   return _getValues($sql);
 }
 
 #########################################################################
 sub getTestRuns() {
   my ($self, $enabled) = @_;
-  my $sql = "SELECT test_run_id, name FROM test_runs";
+  my $sql = "SELECT test_run_id, name, product_id FROM test_runs";
   if ($enabled) {
     $sql .= " WHERE enabled=1";
   }

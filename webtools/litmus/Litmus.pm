@@ -63,11 +63,17 @@ sub init() {
 }
 
 # Global Template object
+our $template;
 sub template() {
-    my $class = shift;
-    request_cache()->{template} ||= Litmus::Template->create();
-    return request_cache()->{template};
+	my $class = shift;
+	$template ||= Litmus::Template->create();
+	return $template;
 }
+#sub template() {
+#    my $class = shift;
+#    request_cache()->{template} ||= Litmus::Template->create();
+#    return request_cache()->{template};
+#}
 
 # Global CGI object
 sub cgi() {

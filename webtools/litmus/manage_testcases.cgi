@@ -78,12 +78,17 @@ if ($c->param("searchTestcaseList")) {
 
 # anyone can use this script for its searching capabilities, but if we 
 # get here, then you need to be an admin:
-Litmus::Auth::requireAdmin('manage_testcases.cgi');
+Litmus::Auth::requireProductAdmin('manage_testcases.cgi');
 
 if ($c->param("testcase_id")) {
   $testcase_id = $c->param("testcase_id");
   if ($c->param("edit")) {
   	  $edit = $testcase_id;
+  	  # show an error if they are not a product admin for that product
+  	  my $testcase = Litmus::DB::Testcase->retrieve($testcase_id);
+  	  if ($testcase) {
+  	  	Litmus::Auth::requireProductAdmin("manage_testcases.cgi", $testcase->product());
+  	  }
   }
 }
 
@@ -91,6 +96,7 @@ my $defaults;
 if ($c->param("delete_testcase_button")) {
   my $testcase = Litmus::DB::Testcase->retrieve($testcase_id);
   if ($testcase) {
+    Litmus::Auth::requireProductAdmin("manage_testcases.cgi", $testcase->product());
     $rv = $testcase->delete_with_refs();
     if ($rv) {
       $status = "success";
@@ -105,6 +111,7 @@ if ($c->param("delete_testcase_button")) {
   }
 } elsif ($c->param("clone_testcase_button")) {
   my $testcase = Litmus::DB::Testcase->retrieve($testcase_id);
+  Litmus::Auth::requireProductAdmin("manage_testcases.cgi", $testcase->product());
   my $new_testcase = $testcase->clone;
   if ($new_testcase) {
     $status = "success";
@@ -123,6 +130,7 @@ if ($c->param("delete_testcase_button")) {
   my $community_enabled = $c->param('communityenabled') ? 1 : 0;
   my $now = &UnixDate("today","%q");
   if ($c->param("mode") eq "add") {
+    Litmus::Auth::requireProductAdmin("manage_testcases.cgi", $c->param('product'));
     my %hash = (
                 summary => $c->param('summary'),
                 steps => $c->param('steps') ? $c->param('steps') : '',
@@ -153,6 +161,7 @@ if ($c->param("delete_testcase_button")) {
     $testcase_id = $c->param("editform_testcase_id");
     my $testcase = Litmus::DB::Testcase->retrieve($testcase_id);
     if ($testcase) {
+      Litmus::Auth::requireProductAdmin("manage_testcases.cgi", $testcase->product());
       $testcase->summary($c->param('summary'));
       $testcase->steps($c->param('steps') ? $c->param('steps') : '');
       $testcase->expected_results($c->param('results') ? $c->param('results') : '');
@@ -197,6 +206,60 @@ my $subgroups = Litmus::FormWidget->getSubgroups(0,'name');
 my $testcases = Litmus::FormWidget->getTestcases(0,'name');
 
 my $authors = Litmus::FormWidget->getAuthors();
+
+# only allow the user access to the products they are product admins for
+my %authorized_products;
+my @tmp_products;
+foreach my $b (@{$products}) {
+	my %cur = %{$b};
+	if (Litmus::Auth::getCurrentUser()->isProductAdmin($cur{product_id})) {
+		push(@tmp_products, $b);
+		$authorized_products{$cur{product_id}} = 1;
+	}
+}
+$products = \@tmp_products;
+
+# likewise for branches:
+my %authorized_branches;
+my @tmp_branches;
+foreach my $b (@{$branches}) {
+	my %cur = %{$b};
+	if ($authorized_products{$cur{product_id}}) {
+		push(@tmp_branches, $b);
+		$authorized_branches{$cur{branch_id}} = 1;
+	}
+}
+$branches = \@tmp_branches;
+
+# testgroups
+my @tmp_testgroups;
+foreach my $b (@{$testgroups}) {
+	my %cur = %{$b};
+	if ($authorized_products{$cur{product_id}}) {
+		push(@tmp_testgroups, $b);
+	}
+}
+$testgroups = \@tmp_testgroups;
+
+# subgroups
+my @tmp_subgroups;
+foreach my $b (@{$subgroups}) {
+	my %cur = %{$b};
+	if ($authorized_products{$cur{product_id}}) {
+		push(@tmp_subgroups, $b);
+	}
+}
+$subgroups = \@tmp_subgroups;
+
+# and, of course, testcases
+my @tmp_testcases;
+foreach my $b (@{$testcases}) {
+	my %cur = %{$b};
+	if ($authorized_products{$cur{product_id}}) {
+		push(@tmp_testcases, $b);
+	}
+}
+$testcases = \@tmp_testcases;
 
 my $json = JSON->new(skipinvalid => 1, convblessed => 1);
 my $products_js = $json->objToJson($products);

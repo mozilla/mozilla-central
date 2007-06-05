@@ -37,14 +37,31 @@ Litmus->init();
 
 my $title = "Log in";
 
+# allow the user to reset their forgotten password
+my $c = Litmus->cgi();
+if ($c->param('resetPassword')) {
+	Litmus::Auth::resetPasswordForm($c->param('resetPassword'));
+	exit;
+}
+if ($c->param('login_type') eq 'doResetPassword') {
+	# check that the two password fields are equal:
+	if ($c->param('password') ne $c->param('password_confirm')) {
+		invalidInputError("The 'password' and 'confirm password' fields do 
+		  not match. Please try again");
+	}
+	Litmus::Auth::doResetPassword($c->param('user'), $c->param('token'), 
+	  $c->param('password'));
+	print $c->header();
+}
+
 Litmus::Auth::requireLogin("index.cgi");
 
 # if we end up here, it means the user was already logged in 
 # for some reason, so we should send a redirect to index.cgi:
-print Litmus->cgi()->start_html(-title=>'Please Wait', 
-								-head=>Litmus->cgi()->meta({-http_equiv=> 'refresh', -content=>'0;url=index.cgi'})
+print $c->start_html(-title=>'Please Wait', 
+								-head=>$c->meta({-http_equiv=> 'refresh', -content=>'0;url=index.cgi'})
 							   );
-print Litmus->cgi()->end_html();	
+print $c->end_html();	
 	
 exit;
 

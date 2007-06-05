@@ -51,6 +51,7 @@ Litmus::DB::Product->has_many(testgroups => "Litmus::DB::Testgroup",
                               { order_by => 'name' });
 Litmus::DB::Product->has_many(branches => "Litmus::DB::Branch",
                               { order_by => 'name' });
+Litmus::DB::Product->has_many(groups => ["Litmus::DB::GroupProductMap" => 'group_id']);
 
 __PACKAGE__->set_sql(ByPlatform => qq{
                                       SELECT pr.* 

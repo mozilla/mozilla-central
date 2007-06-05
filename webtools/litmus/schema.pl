@@ -389,3 +389,30 @@ $table{users} =
 	 index(is_admin),
 	 index contact_info (email, realname, irc_nickname),
 	 fulltext index contact_info_fulltext (email, realname, irc_nickname)';
+	 
+$table{security_groups} = 
+	'group_id mediumint not null primary key auto_increment,
+	 name varchar(255) not null,
+	 description varchar(255) not null,
+	 grouptype tinyint not null,
+	 isactive tinyint not null default 1,
+	 
+	 unique index(name)';
+	 
+$table{user_group_map} =
+	'user_id int(11) not null,
+	 group_id mediumint not null,
+	 
+	 unique(user_id, group_id)';
+
+$table{group_product_map} = 
+	'group_id mediumint not null,
+	 product_id tinyint(4) not null,
+	 
+	 unique(group_id, product_id)';
+	 
+$table{password_resets} =  
+	'user_id int(11) not null,
+	 session_id int(11) not null,
+	 
+	 index(user_id, session_id)';

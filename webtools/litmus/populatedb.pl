@@ -57,6 +57,8 @@ our \$db_pass = "";
 our \$user_cookiename = "litmus_login";
 our \$sysconfig_cookiename = "litmustestingconfiguration";
 
+our \$sendmail_path = "/usr/sbin/sendmail";
+
 our \$tr_host = "";
 our \$tr_name = "";
 our \$tr_user = "";
@@ -131,7 +133,7 @@ if ($reset_db) {
 # and indicies to the schema. To do this, we use the helpful Litmus::DBTools 
 # module.
 #
-# NOTE: anything changed here should also be added to schema.pl for new 
+# NOTE: anything changed here must also be added to schema.pl for new 
 # installations 
 use Litmus::DBTools;
 my $dbtool = Litmus::DBTools->new($dbh);
@@ -256,23 +258,20 @@ $dbtool->AddKey("test_runs", 'version (version)', '');
 $dbtool->AddField("test_run_testgroups", "sort_order", "smallint(6) not null default '1'");
 $dbtool->AddKey("test_run_testgroups", 'sort_order (sort_order)', '');
 
+# zll: upgrade to new-world group permission system
+# do this in a separate package to avoid namespace polution if we're 
+# creating the intial db
+$dbtool->RenameField("users", "is_admin", "is_admin_old");
+package CreateAdminGroups;
+require 'Litmus/DB/SecurityGroup.pm';
+Litmus::DB::SecurityGroup->import();
+Litmus::DB::SecurityGroup->upgradeGroups();
+$dbtool->DropField("users", "is_admin_old");
+
+package main;
+
+
 print "Schema update complete.\n\n";
-print <<EOS;
-Due to the schema changes introduced, and depending on the when you last 
-updated your schema, you may now need to update/normalize your data as 
-well. This will include, but may not be limited to:
-
- * populating the platform_products table;
- * updating/normalizing platforms;
- * updating/normalizing platform_ids in test_results;
- * updating/normalizing opsyses;
- * updating/normalizing opsys_ids in test_results;
- * populating the subgroup_testgroups table;
- * populating the testcase_subgroups table;
- * filling in product_ids for each testcase/subgroup;
- * any appropriate scripts in the migration/ subdir;
-
-EOS
 
 # javascript cache
 print "Rebuilding JS cache...";

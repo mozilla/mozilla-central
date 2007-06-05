@@ -41,9 +41,20 @@ var testgroups=[% testgroups_js %];
 
   <div id="content">
 
-    [% INCLUDE admin/form_widgets/update_products.tmpl %]
-    [% INCLUDE admin/form_widgets/update_platforms.tmpl %]
-    [% INCLUDE admin/form_widgets/update_opsyses.tmpl %]
+	[% IF defaultemail.isSuperUser %]
+      [% INCLUDE admin/form_widgets/update_products.tmpl %]
+      [% INCLUDE admin/form_widgets/update_platforms.tmpl %]
+      [% INCLUDE admin/form_widgets/update_opsyses.tmpl %]
+    [% END %]
+    
+    [% IF ! defaultemail.isSuperUser %]
+      <div class="login_important">
+        Note: as you are not a Litmus super-administrator, you will only be 
+        permitted to edit branches. To manage products, platforms, or operating 
+        systems, please contact an administrator.
+      </div>
+    [% END %]
+    
     [% INCLUDE admin/form_widgets/update_branches.tmpl %]
 
   </div> <!--END content-->

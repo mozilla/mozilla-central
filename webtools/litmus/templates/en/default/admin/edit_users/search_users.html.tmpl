@@ -19,7 +19,7 @@
 #%]
   
 [%# INTERFACE:
-  # 
+  # @groups - all valid security groups
 #%]
 
 [% INCLUDE global/html_header.tmpl js_files=['js/SelectBoxes.js','js/FormValidation.js'] title='Edit Users' %]
@@ -34,7 +34,7 @@
     
 <div class="section-full">
 
-[% INCLUDE admin/edit_users/searchform.html.tmpl %]
+[% INCLUDE admin/edit_users/searchform.html.tmpl groups=groups %]
 
 </div>
 

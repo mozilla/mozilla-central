@@ -70,7 +70,7 @@
     <td><b>Regression Bug ID #:</b></td>
     <td id="regression_bug_id_display[% IF ! show_edit %]_[% testcase.regression_bug_id | html %][% END %]">[% IF testcase.regression_bug_id %]<script>document.write('<a href="' + generateBugLink([% testcase.regression_bug_id %]) + '">[% testcase.regression_bug_id | html %]</a>');</script>[% ELSE %]None specified[% END %]</td>
   </tr>
-[% IF show_admin %]
+[% IF show_edit %]
   <tr>
     <td><b>Enabled?</b></td>
     <td><input id="enabled_display" name="enabled_display" type="checkbox" value="1" [% IF testcase.enabled %] checked[% END %] disabled></td>

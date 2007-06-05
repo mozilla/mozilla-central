@@ -44,7 +44,7 @@ use JSON;
 use Time::Piece::MySQL;
 
 Litmus->init();
-Litmus::Auth::requireAdmin("edit_categories.cgi");
+Litmus::Auth::requireProductAdmin("edit_categories.cgi");
 
 my $c = Litmus->cgi();
 print $c->header();
@@ -56,6 +56,16 @@ my $rebuild_cache = 0;
 my $defaults;
 
 if ($c->param) {
+  # auth:
+  # must be a super user for all changes but branch changes:
+  if ((!Litmus::Auth::getCurrentUser()->isSuperUser()) && 
+  	($c->param("product_id") || $c->param("edit_product_form_mode") ||
+  	$c->param("platform_id") || $c->param("edit_platform_form_mode") ||
+  	$c->param("opsys_id") || $c->param("edit_opsys_form_mode") || 
+  	$c->param("edit_opsys_form_opsys_id"))) {
+  		Litmus::Auth::requireAdmin("manage_categories.cgi");
+  	}
+  	
   # Process product changes.
   if ($c->param("delete_product_button") and 
       $c->param("product_id")) {
@@ -250,6 +260,8 @@ if ($c->param) {
     my $branch_id = $c->param("branch_id");
     my $branch = Litmus::DB::Branch->retrieve($branch_id);
     if ($branch) {
+      # must be a product admin
+      Litmus::Auth::requireProductAdmin("manage_categories.cgi", $branch->product());
       $rv = $branch->delete;
       if ($rv) {
         $status = "success";
@@ -264,6 +276,11 @@ if ($c->param) {
       $message = "Branch ID# $branch_id does not exist. (Already deleted?)";
     }
   } elsif ($c->param("edit_branch_form_mode")) {
+  	# need to be a product admin for the branch's product and for any
+  	# product the branch may be moved into:
+  	Litmus::Auth::requireProductAdmin("manage_categories", 
+  		$c->param('edit_branch_form_product_id'));
+  
     my $enabled = $c->param('edit_branch_form_enabled') ? 1 : 0;
     if ($c->param("edit_branch_form_mode") eq "add") {
       my %hash = ( 
@@ -287,6 +304,10 @@ if ($c->param) {
       my $branch_id = $c->param("edit_branch_form_branch_id");
       my $branch = Litmus::DB::Branch->retrieve($branch_id);
       if ($branch) {
+      	# must be a product admin to edit the branch:
+      	Litmus::Auth::requireProductAdmin('manage_categories.cgi', 
+      		$branch->product());
+      	
         $branch->name($c->param('edit_branch_form_name'));
         $branch->product_id($c->param('edit_branch_form_product_id'));
         $branch->detect_regexp($c->param('edit_branch_form_detect_regexp') ? $c->param('edit_branch_form_detect_regexp') : '');
@@ -320,6 +341,23 @@ my $branches = Litmus::FormWidget->getBranches();
 my $testgroups = Litmus::FormWidget->getTestgroups();
 my $opsyses = Litmus::FormWidget->getOpsyses();
 my $locales = Litmus::FormWidget->getLocales;
+
+# if the user is not a superuser, only allow them access to the 
+# branches they are product admins for
+my $authorized_branches;
+if (Litmus::Auth::getCurrentUser()->isSuperUser()) {
+	$authorized_branches = $branches;
+} else {
+	my @tmp;
+	foreach my $b (@{$branches}) {
+		my %cur = %{$b};
+		if (Litmus::Auth::getCurrentUser()->isProductAdmin($cur{product_id})) {
+			push(@tmp, $b);
+		}
+	}
+	$authorized_branches = \@tmp;
+}
+$branches = $authorized_branches;
 
 my $json = JSON->new(skipinvalid => 1, convblessed => 1);
 my $products_js = $json->objToJson($products);

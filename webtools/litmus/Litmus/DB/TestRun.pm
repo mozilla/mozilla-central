@@ -53,6 +53,14 @@ Litmus::DB::TestRun->has_a(product => "Litmus::DB::Product");
 Litmus::DB::TestRun->has_a(branch => "Litmus::DB::Branch");
 Litmus::DB::TestRun->has_a(author => "Litmus::DB::User");
 
+Litmus::DB::TestRun->set_sql('daterange' => qq {
+	SELECT __ESSENTIAL__ 
+	FROM __TABLE__
+	WHERE
+	  start_timestamp<= ? AND finish_timestamp>?
+	ORDER BY finish_timestamp ASC, product_id ASC, branch_id ASC, test_run_id ASC
+});
+
 #########################################################################
 sub getCriteria() {
   my $self = shift;
@@ -313,8 +321,11 @@ sub coverage {
 
   my $sql = "
 SELECT COUNT(DISTINCT(tr.testcase_id))
-FROM test_runs trun, test_run_testgroups truntg, testgroups tg, subgroup_testgroups sgtg, subgroups sg, testcase_subgroups tcsg, testcases tc, test_results tr, opsyses o, platforms pl, users u
-WHERE
+FROM test_runs trun, test_run_testgroups truntg, testgroups tg, subgroup_testgroups sgtg, subgroups sg, testcase_subgroups tcsg, testcases tc, test_results tr, opsyses o, platforms pl, users u";
+if ($trusted) {
+	$sql .= ", user_group_map ugm, security_groups secgrps";
+}
+$sql .= " WHERE
   trun.test_run_id=? AND
   trun.test_run_id=truntg.test_run_id AND
   truntg.testgroup_id=sgtg.testgroup_id AND
@@ -343,7 +354,8 @@ WHERE
   }
 
   if ($trusted) {
-    $sql .= " AND u.is_admin=1";
+    $sql .= " AND tr.user_id=u.user_id AND u.user_id=ugm.user_id AND 
+      ugm.group_id=sd.group_id AND (secgrps.grouptype=1 OR secgrps.grouptype=3)";
   }
 
   $sql .= $self->getCriteriaSql();
@@ -373,8 +385,11 @@ sub getNumResultsByStatus {
 
   my $sql = "
 SELECT COUNT(DISTINCT(tr.testresult_id))
-FROM test_runs trun, test_run_testgroups truntg, testgroups tg, subgroup_testgroups sgtg, subgroups sg, testcase_subgroups tcsg, testcases tc, test_results tr, opsyses o, platforms pl, users u
-WHERE
+FROM test_runs trun, test_run_testgroups truntg, testgroups tg, subgroup_testgroups sgtg, subgroups sg, testcase_subgroups tcsg, testcases tc, test_results tr, opsyses o, platforms pl, users u";
+if ($trusted) {
+	$sql .= ", user_group_map ugm, security_groups secgrps";
+}
+$sql .= " WHERE
   trun.test_run_id=? AND
   trun.test_run_id=truntg.test_run_id AND
   truntg.testgroup_id=sgtg.testgroup_id AND
@@ -404,7 +419,8 @@ WHERE
   }
 
   if ($trusted) {
-    $sql .= " AND u.is_admin=1";
+    $sql .= " AND tr.user_id=u.user_id AND u.user_id=ugm.user_id AND 
+      ugm.group_id=sd.group_id AND (secgrps.grouptype=1 OR secgrps.grouptype=3)";
   }
 
   $sql .= $self->getCriteriaSql();
@@ -427,8 +443,11 @@ sub getNumResultsWithComments {
 
   my $sql = "
 SELECT COUNT(DISTINCT(tr.testresult_id))
-FROM test_runs trun, test_run_testgroups trtg, testgroups tg, subgroup_testgroups sgtg, subgroups sg, testcase_subgroups tcsg, testcases tc, test_results tr INNER JOIN test_result_comments trc ON tr.testresult_id=trc.test_result_id, opsyses o, platforms pl, users u
-WHERE
+FROM test_runs trun, test_run_testgroups trtg, testgroups tg, subgroup_testgroups sgtg, subgroups sg, testcase_subgroups tcsg, testcases tc, test_results tr INNER JOIN test_result_comments trc ON tr.testresult_id=trc.test_result_id, opsyses o, platforms pl, users u ";
+if ($trusted) {
+	$sql .= ", user_group_map ugm, security_groups secgrps";
+}
+$sql .= " WHERE
   trun.test_run_id=? AND
   trun.test_run_id=trtg.test_run_id AND
   trtg.testgroup_id=sgtg.testgroup_id AND
@@ -457,7 +476,8 @@ WHERE
   }
 
   if ($trusted) {
-    $sql .= " AND u.is_admin=1";
+    $sql .= " AND tr.user_id=u.user_id AND u.user_id=ugm.user_id AND 
+      ugm.group_id=sd.group_id AND (secgrps.grouptype=1 OR secgrps.grouptype=3)";
   }
 
   $sql .= $self->getCriteriaSql();
