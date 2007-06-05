@@ -1096,7 +1096,7 @@ nsNNTPNewsgroupList::SetProgressStatus(const PRUnichar *message)
     mailnewsUrl->GetStatusFeedback(getter_AddRefs(feedback));
 
     if (feedback) {
-      feedback->ShowStatusString(message);
+      feedback->ShowStatusString(nsDependentString(message));
     }
   }
 }

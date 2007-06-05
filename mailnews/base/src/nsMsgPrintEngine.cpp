@@ -590,7 +590,7 @@ nsMsgPrintEngine::SetStatusMessage(const nsString& aMsgString)
   if ( (!mFeedback) || (aMsgString.IsEmpty()) )
     return NS_OK;
 
-  mFeedback->ShowStatusString(aMsgString.get());
+  mFeedback->ShowStatusString(aMsgString);
   return NS_OK;
 }
 

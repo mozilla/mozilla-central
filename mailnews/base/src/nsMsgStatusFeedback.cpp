@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -60,17 +60,17 @@
 nsMsgStatusFeedback::nsMsgStatusFeedback() :
   m_lastPercent(0)
 {
-	LL_I2L(m_lastProgressTime, 0);
+  LL_I2L(m_lastProgressTime, 0);
 
-    nsresult rv;
-    nsCOMPtr<nsIStringBundleService> bundleService =
-        do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
+  nsresult rv;
+  nsCOMPtr<nsIStringBundleService> bundleService =
+    do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
 
-    if (NS_SUCCEEDED(rv))
-        bundleService->CreateBundle("chrome://messenger/locale/messenger.properties",
-                                    getter_AddRefs(mBundle));
+  if (NS_SUCCEEDED(rv))
+    bundleService->CreateBundle("chrome://messenger/locale/messenger.properties",
+                                getter_AddRefs(mBundle));
 
-    m_msgLoadedAtom = do_GetAtom("msgLoaded");
+  m_msgLoadedAtom = do_GetAtom("msgLoaded");
 }
 
 nsMsgStatusFeedback::~nsMsgStatusFeedback()
@@ -82,11 +82,11 @@ NS_IMPL_THREADSAFE_ADDREF(nsMsgStatusFeedback)
 NS_IMPL_THREADSAFE_RELEASE(nsMsgStatusFeedback)
 
 NS_INTERFACE_MAP_BEGIN(nsMsgStatusFeedback)
-   NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIMsgStatusFeedback)
-   NS_INTERFACE_MAP_ENTRY(nsIMsgStatusFeedback)
-   NS_INTERFACE_MAP_ENTRY(nsIProgressEventSink) 
-   NS_INTERFACE_MAP_ENTRY(nsIWebProgressListener) 
-   NS_INTERFACE_MAP_ENTRY(nsISupportsWeakReference)
+  NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIMsgStatusFeedback)
+  NS_INTERFACE_MAP_ENTRY(nsIMsgStatusFeedback)
+  NS_INTERFACE_MAP_ENTRY(nsIProgressEventSink) 
+  NS_INTERFACE_MAP_ENTRY(nsIWebProgressListener) 
+  NS_INTERFACE_MAP_ENTRY(nsISupportsWeakReference)
 NS_INTERFACE_MAP_END
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -133,7 +133,7 @@ nsMsgStatusFeedback::OnStateChange(nsIWebProgress* aWebProgress,
       rv = mBundle->GetStringFromName(NS_LITERAL_STRING("documentLoading").get(),
                                       getter_Copies(loadingDocument));
       if (NS_SUCCEEDED(rv))
-        ShowStatusString(loadingDocument.get());
+        ShowStatusString(loadingDocument);
     }
     else if (aProgressStateFlags & STATE_STOP)
     {
@@ -192,7 +192,7 @@ nsMsgStatusFeedback::OnStateChange(nsIWebProgress* aWebProgress,
       rv = mBundle->GetStringFromName(NS_LITERAL_STRING("documentDone").get(),
                                       getter_Copies(documentDone));
       if (NS_SUCCEEDED(rv))
-        ShowStatusString(documentDone.get());
+        ShowStatusString(documentDone);
     }
   }
   return NS_OK;
@@ -225,54 +225,54 @@ nsMsgStatusFeedback::OnSecurityChange(nsIWebProgress *aWebProgress,
 
 
 NS_IMETHODIMP
-nsMsgStatusFeedback::ShowStatusString(const PRUnichar *status)
+nsMsgStatusFeedback::ShowStatusString(const nsAString& aStatus)
 {
   nsCOMPtr<nsIMsgStatusFeedback> jsStatusFeedback(do_QueryReferent(mJSStatusFeedbackWeak));
   if (jsStatusFeedback)
-    jsStatusFeedback->ShowStatusString(status);
-	return NS_OK;
-}
-
-NS_IMETHODIMP
-nsMsgStatusFeedback::SetStatusString(const PRUnichar *status)
-{
-  nsCOMPtr<nsIMsgStatusFeedback> jsStatusFeedback(do_QueryReferent(mJSStatusFeedbackWeak));
-  nsCOMPtr <nsIXULBrowserWindow> xulBrowserWindow = do_QueryInterface(jsStatusFeedback);
-  if (xulBrowserWindow)
-    xulBrowserWindow->SetJSDefaultStatus(nsDependentString(status));
+    jsStatusFeedback->ShowStatusString(aStatus);
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsMsgStatusFeedback::ShowProgress(PRInt32 percentage)
+nsMsgStatusFeedback::SetStatusString(const nsAString& aStatus)
+{
+  nsCOMPtr<nsIMsgStatusFeedback> jsStatusFeedback(do_QueryReferent(mJSStatusFeedbackWeak));
+  nsCOMPtr <nsIXULBrowserWindow> xulBrowserWindow = do_QueryInterface(jsStatusFeedback);
+  if (xulBrowserWindow)
+    xulBrowserWindow->SetJSDefaultStatus(aStatus);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgStatusFeedback::ShowProgress(PRInt32 aPercentage)
 {
   // if the percentage hasn't changed...OR if we are going from 0 to 100% in one step
   // then don't bother....just fall out....
-	if (percentage == m_lastPercent || (m_lastPercent == 0 && percentage >= 100))
-		return NS_OK;
+  if (aPercentage == m_lastPercent || (m_lastPercent == 0 && aPercentage >= 100))
+    return NS_OK;
   
-  m_lastPercent = percentage;
+  m_lastPercent = aPercentage;
 
-	PRInt64 nowMS;
-	LL_I2L(nowMS, 0);
-	if (percentage < 100)	// always need to do 100%
-	{
-		int64 minIntervalBetweenProgress;
+  PRInt64 nowMS;
+  LL_I2L(nowMS, 0);
+  if (aPercentage < 100)	// always need to do 100%
+  {
+    int64 minIntervalBetweenProgress;
 
-		LL_I2L(minIntervalBetweenProgress, 250);
-		int64 diffSinceLastProgress;
-		LL_I2L(nowMS, PR_IntervalToMilliseconds(PR_IntervalNow()));
-		LL_SUB(diffSinceLastProgress, nowMS, m_lastProgressTime); // r = a - b
-		LL_SUB(diffSinceLastProgress, diffSinceLastProgress, minIntervalBetweenProgress); // r = a - b
-		if (!LL_GE_ZERO(diffSinceLastProgress))
-			return NS_OK;
-	}
+    LL_I2L(minIntervalBetweenProgress, 250);
+    int64 diffSinceLastProgress;
+    LL_I2L(nowMS, PR_IntervalToMilliseconds(PR_IntervalNow()));
+    LL_SUB(diffSinceLastProgress, nowMS, m_lastProgressTime); // r = a - b
+    LL_SUB(diffSinceLastProgress, diffSinceLastProgress, minIntervalBetweenProgress); // r = a - b
+    if (!LL_GE_ZERO(diffSinceLastProgress))
+      return NS_OK;
+  }
 
-	m_lastProgressTime = nowMS;
+  m_lastProgressTime = nowMS;
   nsCOMPtr<nsIMsgStatusFeedback> jsStatusFeedback(do_QueryReferent(mJSStatusFeedbackWeak));
   if (jsStatusFeedback)
-    jsStatusFeedback->ShowProgress(percentage);
-	return NS_OK;
+    jsStatusFeedback->ShowProgress(aPercentage);
+  return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -318,5 +318,5 @@ NS_IMETHODIMP nsMsgStatusFeedback::OnStatus(nsIRequest *request, nsISupports* ct
   nsString str;
   rv = sbs->FormatStatusMessage(aStatus, aStatusArg, getter_Copies(str));
   NS_ENSURE_SUCCESS(rv, rv);
-  return ShowStatusString(str.get());
+  return ShowStatusString(str);
 }

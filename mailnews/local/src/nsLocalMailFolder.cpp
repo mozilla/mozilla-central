@@ -3260,7 +3260,7 @@ nsresult nsMsgLocalMailFolder::DisplayMoveCopyStatusMsg()
         return NS_OK;
 
       mCopyState->m_lastProgressTime = nowMS;
-      mCopyState->m_statusFeedback->ShowStatusString(finalString.get());
+      mCopyState->m_statusFeedback->ShowStatusString(finalString);
       mCopyState->m_statusFeedback->ShowProgress(mCopyState->m_curCopyIndex * 100 / mCopyState->m_totalMsgCount);
     }
   }

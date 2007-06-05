@@ -452,7 +452,7 @@ void nsSmtpProtocol::UpdateStatus(PRInt32 aStatusID)
 void nsSmtpProtocol::UpdateStatusWithString(const PRUnichar * aStatusString)
 {
   if (m_statusFeedback && aStatusString)
-    m_statusFeedback->ShowStatusString(aStatusString);
+    m_statusFeedback->ShowStatusString(nsDependentString(aStatusString));
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////

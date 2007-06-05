@@ -6898,7 +6898,7 @@ nsImapMailFolder::CopyStreamMessage(nsIMsgDBHdr* message,
         m_copyState->m_msgWindow->GetStatusFeedback(getter_AddRefs(statusFeedback));
       if (statusFeedback)
       {
-        statusFeedback->ShowStatusString(progressText.get());
+        statusFeedback->ShowStatusString(progressText);
         PRInt32 percent;
         percent = (100 * m_copyState->m_curIndex) / (PRInt32) m_copyState->m_totalCount;
           statusFeedback->ShowProgress(percent);

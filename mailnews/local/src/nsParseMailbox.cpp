@@ -275,7 +275,7 @@ void nsMsgMailboxParser::UpdateStatusText (PRUint32 stringID)
     }
     else
       bundle->GetStringFromID(stringID, getter_Copies(finalString));
-    m_statusFeedback->ShowStatusString(finalString.get());
+    m_statusFeedback->ShowStatusString(finalString);
   }
 }
 

@@ -401,7 +401,7 @@ NS_IMETHODIMP nsMsgOfflineManager::OnProgress(PRUint32 aCurrentMessage, PRUint32
 NS_IMETHODIMP nsMsgOfflineManager::OnStatus(const PRUnichar *aMsg)
 {
   if (m_statusFeedback && aMsg)
-    return m_statusFeedback->ShowStatusString (aMsg);
+    return m_statusFeedback->ShowStatusString(nsDependentString(aMsg));
   else
     return NS_OK;
 }

@@ -245,7 +245,7 @@ nsresult nsNewsDownloader::ShowProgress(const PRUnichar *progressString, PRInt32
   }
   if (m_statusFeedback)
   {
-    m_statusFeedback->ShowStatusString(progressString);
+    m_statusFeedback->ShowStatusString(nsDependentString(progressString));
     if (percent != m_lastPercent)
     {
       m_statusFeedback->ShowProgress(percent);

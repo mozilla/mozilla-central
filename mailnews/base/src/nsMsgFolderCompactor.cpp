@@ -266,7 +266,7 @@ nsresult nsFolderCompactState::ShowStatusMsg(const nsString& aMsg)
   {
     m_window->GetStatusFeedback(getter_AddRefs(statusFeedback));
     if (statusFeedback && !aMsg.IsEmpty())
-      return statusFeedback->SetStatusString (aMsg.get());
+      return statusFeedback->SetStatusString(aMsg);
   }
   return NS_OK;
 }

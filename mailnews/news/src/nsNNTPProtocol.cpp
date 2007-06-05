@@ -3149,7 +3149,7 @@ PRInt32 nsNNTPProtocol::ReadNewsList(nsIInputStream * inputStream, PRUint32 leng
         formatStrings, 3,
         getter_Copies(statusString));
 
-      rv = msgStatusFeedback->ShowStatusString(statusString.get());
+      rv = msgStatusFeedback->ShowStatusString(statusString);
       if (NS_FAILED(rv)) {
         PR_Free(lineToFree);
         return rv;

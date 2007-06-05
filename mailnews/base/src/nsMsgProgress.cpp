@@ -298,14 +298,14 @@ nsresult nsMsgProgress::ReleaseListeners()
   return rv;
 }
 
-NS_IMETHODIMP nsMsgProgress::ShowStatusString(const PRUnichar *status)
+NS_IMETHODIMP nsMsgProgress::ShowStatusString(const nsAString& aStatus)
 {
-  return OnStatusChange(nsnull, nsnull, NS_OK, status);
+  return OnStatusChange(nsnull, nsnull, NS_OK, PromiseFlatString(aStatus).get());
 }
 
-NS_IMETHODIMP nsMsgProgress::SetStatusString(const PRUnichar *status)
+NS_IMETHODIMP nsMsgProgress::SetStatusString(const nsAString& aStatus)
 {
-  return OnStatusChange(nsnull, nsnull, NS_OK, status);
+  return OnStatusChange(nsnull, nsnull, NS_OK, PromiseFlatString(aStatus).get());
 }
 
 /* void startMeteors (); */
@@ -367,5 +367,5 @@ NS_IMETHODIMP nsMsgProgress::OnStatus(nsIRequest *request, nsISupports* ctxt,
   nsString str;
   rv = sbs->FormatStatusMessage(aStatus, aStatusArg, getter_Copies(str));
   NS_ENSURE_SUCCESS(rv, rv);
-  return ShowStatusString(str.get());
+  return ShowStatusString(str);
 }
