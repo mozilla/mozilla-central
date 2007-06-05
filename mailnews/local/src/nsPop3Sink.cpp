@@ -252,18 +252,19 @@ nsPop3Sink::CheckPartialMessages(nsIPop3Protocol *protocol)
     PRBool found = PR_TRUE;
     partialMsg = NS_STATIC_CAST(partialRecord *,m_partialMsgsArray.ElementAt(i));
     protocol->CheckMessage(partialMsg->m_uidl.get(), &found);
-    if (!found) {
+    if (!found) 
+    {
       m_newMailParser->m_mailDB->DeleteHeader(partialMsg->m_msgDBHdr, nsnull, PR_FALSE, PR_TRUE);
       deleted = PR_TRUE;
     }
     delete partialMsg;
   }
   m_partialMsgsArray.Clear();
-  if (deleted) {
+  if (deleted) 
+  {
     nsCOMPtr<nsIMsgLocalMailFolder> localFolder = do_QueryInterface(m_folder);
-    if (localFolder) {
+    if (localFolder)
       localFolder->NotifyDelete();
-    }
   }
 }
 

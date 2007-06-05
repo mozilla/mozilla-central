@@ -250,8 +250,8 @@ typedef struct _Pop3ConData {
     
     Pop3UidlHost *uidlinfo;
     PLHashTable *newuidl;
-    char *only_uidl;            /* If non-NULL, then load only this UIDL. */
-    
+    char *only_uidl;              /* If non-NULL, then load only this UIDL. */
+
     /* the following three fields support the 
        use of the 'TOP' command instead of UIDL
        for leaving mail on the pop server -km */
