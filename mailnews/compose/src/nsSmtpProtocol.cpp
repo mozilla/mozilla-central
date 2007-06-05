@@ -1070,7 +1070,7 @@ PRInt32 nsSmtpProtocol::AuthGSSAPIStep()
 
 
 // LOGIN and MSN consist of three steps (MSN not through the mechanism
-// but by non-RFC2821 compliant implementation in M$ servers) not two as
+// but by non-RFC2821 compliant implementation in MS servers) not two as
 // PLAIN or CRAM-MD5, so we've to start here and continue with AuthStep1
 // if the server responds with with a 3xx code to "AUTH LOGIN" or "AUTH MSN"
 PRInt32 nsSmtpProtocol::AuthLoginStep0()
