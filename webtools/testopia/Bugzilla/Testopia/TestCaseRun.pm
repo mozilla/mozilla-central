@@ -207,7 +207,7 @@ sub store {
     # Exclude the auto-incremented field from the column list.
     my $columns = join(", ", grep {$_ ne 'case_run_id'} DB_COLUMNS);
 
-    $dbh->do("INSERT INTO test_case_runs ($columns) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+    $dbh->do("INSERT INTO test_case_runs ($columns) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
               undef,
               ($self->{'run_id'},             # run_id
                $self->{'case_id'},            # case_id
@@ -220,7 +220,7 @@ sub store {
                undef,                         # notes
                undef,                         # running_date
                undef,                         # close_date
-               0,                             # sortkey
+               0                              # sortkey
               ));
 
     my $key = $dbh->bz_last_key( 'test_case_runs', 'case_run_id' );
@@ -242,7 +242,7 @@ sub clone {
     my $columns = join(", ", grep {$_ ne 'case_run_id'} DB_COLUMNS);
 
     my $dbh = Bugzilla->dbh;    
-    $dbh->do("INSERT INTO test_case_runs ($columns) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+    $dbh->do("INSERT INTO test_case_runs ($columns) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
               undef,
               ($run_id,                       # run_id
                $case_id,                      # case_id

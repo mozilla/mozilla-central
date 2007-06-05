@@ -155,6 +155,12 @@ elsif ($action eq 'do_clone'){
     if ($serverpush) {
         print $cgi->multipart_init();
         print $cgi->multipart_start();
+
+        # Under mod_perl, flush stdout so that the page actually shows up.
+        if ($ENV{MOD_PERL}) {
+            require Apache2::RequestUtil;
+            Apache2::RequestUtil->request->rflush();
+        }
     
         $template->process("list/server-push.html.tmpl", $vars)
           || ThrowTemplateError($template->error());

@@ -295,7 +295,7 @@ sub add_case_run {
     my ($case_id, $build_id, $env_id) = @_;
     
     $build_id ||= $self->build->id;
-    $env_id ||= $self->envrionment_id;
+    $env_id ||= $self->environment_id;
     
     return 0 if $self->check_case($case_id,$build_id,$env_id);
     my $case = Bugzilla::Testopia::TestCase->new($case_id);
