@@ -257,7 +257,7 @@ char * nsMsgI18NEncodeMimePartIIStr(const char *header, PRBool structured, const
 PRBool nsMsgI18Nstateful_charset(const char *charset)
 {
   //TODO: use charset manager's service
-  return (nsCRT::strcasecmp(charset, "ISO-2022-JP") == 0);
+  return (PL_strcasecmp(charset, "ISO-2022-JP") == 0);
 }
 
 PRBool nsMsgI18Nmultibyte_charset(const char *charset)
@@ -382,8 +382,8 @@ nsMsgI18NParseMetaCharset(nsILocalFile* file)
         // so we can say that the charset label must be incorrect for
         // the .html if we actually see those charsets parsed
         // and we should ignore them
-        if (!nsCRT::strncasecmp("UTF-16", charset, sizeof("UTF-16")-1) || 
-            !nsCRT::strncasecmp("UTF-32", charset, sizeof("UTF-32")-1))
+        if (!PL_strncasecmp("UTF-16", charset, sizeof("UTF-16")-1) || 
+            !PL_strncasecmp("UTF-32", charset, sizeof("UTF-32")-1))
           charset[0] = '\0';
 
         break;
@@ -424,7 +424,7 @@ nsresult nsMsgI18NSaveAsCharset(const char* contentType, const char *charset,
   if (nsCRT::IsAscii(inString)) {
     if (isAsciiOnly)
       *isAsciiOnly = PR_TRUE;
-    *outString = nsCRT::strdup(NS_LossyConvertUTF16toASCII(inString).get());
+    *outString = ToNewCString(NS_LossyConvertUTF16toASCII(inString));
     return (nsnull != *outString) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
   }
   if (isAsciiOnly)
@@ -433,10 +433,10 @@ nsresult nsMsgI18NSaveAsCharset(const char* contentType, const char *charset,
   PRBool bTEXT_HTML = PR_FALSE;
   nsresult res;
 
-  if (!nsCRT::strcasecmp(contentType, TEXT_HTML)) {
+  if (!PL_strcasecmp(contentType, TEXT_HTML)) {
     bTEXT_HTML = PR_TRUE;
   }
-  else if (nsCRT::strcasecmp(contentType, TEXT_PLAIN)) {
+  else if (PL_strcasecmp(contentType, TEXT_PLAIN)) {
     return NS_ERROR_ILLEGAL_VALUE;  // not supported type
   }
 

@@ -239,11 +239,8 @@ NS_IMETHODIMP nsMsgBiffManager::OnServerChanged(nsIMsgIncomingServer *server)
 
 NS_IMETHODIMP nsMsgBiffManager::Observe(nsISupports *aSubject, const char *aTopic, const PRUnichar *someData)
 {
-  if(!nsCRT::strcmp(aTopic, NS_XPCOM_SHUTDOWN_OBSERVER_ID))
-  {
+  if(!strcmp(aTopic, NS_XPCOM_SHUTDOWN_OBSERVER_ID))
     Shutdown();
-  }
-  
   return NS_OK;
 }
 

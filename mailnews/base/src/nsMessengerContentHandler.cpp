@@ -66,7 +66,7 @@ NS_IMETHODIMP nsMessengerContentHandler::HandleContent(const char * aContentType
     return NS_ERROR_NULL_POINTER;
 
   // First of all, get the content type and make sure it is a content type we know how to handle!
-  if (nsCRT::strcasecmp(aContentType, "application/x-message-display") == 0) {
+  if (PL_strcasecmp(aContentType, "application/x-message-display") == 0) {
     nsCOMPtr<nsIURI> aUri;
     nsCOMPtr<nsIChannel> aChannel = do_QueryInterface(request);
     if (!aChannel) return NS_ERROR_FAILURE;

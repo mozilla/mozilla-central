@@ -105,7 +105,7 @@ nsSoundDatasource::Init()
 NS_IMETHODIMP 
 nsSoundDatasource::GetURI(char **aURI)
 {
-  if ((*aURI = nsCRT::strdup("rdf:mailsounds")) == nsnull)
+  if ((*aURI = strdup("rdf:mailsounds")) == nsnull)
     return NS_ERROR_OUT_OF_MEMORY;
   else
     return NS_OK;

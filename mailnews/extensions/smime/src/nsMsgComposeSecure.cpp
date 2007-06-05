@@ -1018,7 +1018,7 @@ NS_IMETHODIMP nsMsgComposeSecure::MimeCryptoWriteBlock (const char *buf, PRInt32
    this function is called a line at a time.  That happens to be the
    case.)
   */
-  if (size >= 5 && buf[0] == 'F' && !nsCRT::strncmp(buf, "From ", 5)) {
+  if (size >= 5 && buf[0] == 'F' && !strncmp(buf, "From ", 5)) {
     char mangle[] = ">";
     status = MimeCryptoWriteBlock (mangle, 1);
     if (status < 0)

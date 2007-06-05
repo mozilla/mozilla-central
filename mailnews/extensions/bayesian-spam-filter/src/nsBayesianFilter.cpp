@@ -588,82 +588,73 @@ nsresult Tokenizer::stripHTML(const nsAString& inString, nsAString& outString)
   return parser->Parse(inString, 0, NS_LITERAL_CSTRING("text/html"), PR_TRUE);
 }
 
-void Tokenizer::tokenize(char* aText)
+void Tokenizer::tokenize(const char* aText)
 {
-    PR_LOG(BayesianFilterLogModule, PR_LOG_ALWAYS, ("tokenize: %s", aText));
+  PR_LOG(BayesianFilterLogModule, PR_LOG_ALWAYS, ("tokenize: %s", aText));
 
-    // strip out HTML tags before we begin processing
-    // uggh but first we have to blow up our string into UCS2
-    // since that's what the document encoder wants. UTF8/UCS2, I wish we all
-    // spoke the same language here..
-    nsString text = NS_ConvertUTF8toUTF16(aText);
-    nsString strippedUCS2;
-    stripHTML(text, strippedUCS2);
+  // strip out HTML tags before we begin processing
+  // uggh but first we have to blow up our string into UCS2
+  // since that's what the document encoder wants. UTF8/UCS2, I wish we all
+  // spoke the same language here..
+  nsString text = NS_ConvertUTF8toUTF16(aText);
+  nsString strippedUCS2;
+  stripHTML(text, strippedUCS2);
 
-    // convert 0x3000(full width space) into 0x0020
-    nsString::iterator substr_start, substr_end;
-    strippedUCS2.BeginWriting(substr_start);
-    strippedUCS2.EndWriting(substr_end);
-    while (substr_start != substr_end) {
-        if (*substr_start == 0x3000)
-            *substr_start = 0x0020;
-        ++substr_start;
-    }
+  // convert 0x3000(full width space) into 0x0020
+  nsString::iterator substr_start, substr_end;
+  strippedUCS2.BeginWriting(substr_start);
+  strippedUCS2.EndWriting(substr_end);
+  while (substr_start != substr_end) {
+    if (*substr_start == 0x3000)
+        *substr_start = 0x0020;
+    ++substr_start;
+  }
 
-    nsCString strippedStr = NS_ConvertUTF16toUTF8(strippedUCS2);
-    char * strippedText = (char *) strippedStr.get(); // bleh
-    PR_LOG(BayesianFilterLogModule, PR_LOG_ALWAYS, ("tokenize stripped html: %s", strippedText));
+  nsCString strippedStr = NS_ConvertUTF16toUTF8(strippedUCS2);
+  char * strippedText = strippedStr.BeginWriting();
+  PR_LOG(BayesianFilterLogModule, PR_LOG_ALWAYS, ("tokenize stripped html: %s", strippedText));
 
-    char* word;
-    char* next = strippedText;
-    while ((word = nsCRT::strtok(next, kBayesianFilterTokenDelimiters, &next)) != NULL) {
-        if (!*word) continue;
-        if (isDecimalNumber(word)) continue;
-        if (isASCII(word))
-            tokenize_ascii_word(word);
-        else if (isJapanese(word))
-            tokenize_japanese_word(word);
-        else {
-            nsresult rv;
-            // use I18N  scanner to break this word into meaningful semantic units.
-            if (!mScanner) {
-                mScanner = do_CreateInstance(NS_SEMANTICUNITSCANNER_CONTRACTID, &rv);
-                NS_ASSERTION(NS_SUCCEEDED(rv), "couldn't create semantic unit scanner!");
-                if (NS_FAILED(rv)) {
-                    return;
-                }
+  char* word;
+  char* next = strippedText;
+  while ((word = nsCRT::strtok(next, kBayesianFilterTokenDelimiters, &next)) != NULL) {
+    if (!*word) continue;
+    if (isDecimalNumber(word)) continue;
+    if (isASCII(word))
+        tokenize_ascii_word(word);
+    else if (isJapanese(word))
+        tokenize_japanese_word(word);
+    else {
+        nsresult rv;
+        // use I18N  scanner to break this word into meaningful semantic units.
+        if (!mScanner) {
+            mScanner = do_CreateInstance(NS_SEMANTICUNITSCANNER_CONTRACTID, &rv);
+            NS_ASSERTION(NS_SUCCEEDED(rv), "couldn't create semantic unit scanner!");
+            if (NS_FAILED(rv)) {
+                return;
             }
-            if (mScanner) {
-                mScanner->Start("UTF-8");
-                // convert this word from UTF-8 into UCS2.
-                NS_ConvertUTF8toUTF16 uword(word);
-                ToLowerCase(uword);
-                const PRUnichar* utext = uword.get();
-                PRInt32 len = uword.Length(), pos = 0, begin, end;
-                PRBool gotUnit;
-                while (pos < len) {
-                    rv = mScanner->Next(utext, len, pos, PR_TRUE, &begin, &end, &gotUnit);
-                    if (NS_SUCCEEDED(rv) && gotUnit) {
-                        NS_ConvertUTF16toUTF8 utfUnit(utext + begin, end - begin);
-                        add(utfUnit.get());
-                        // advance to end of current unit.
-                        pos = end;
-                    } else {
-                        break;
-                    }
+        }
+        if (mScanner) {
+            mScanner->Start("UTF-8");
+            // convert this word from UTF-8 into UCS2.
+            NS_ConvertUTF8toUTF16 uword(word);
+            ToLowerCase(uword);
+            const PRUnichar* utext = uword.get();
+            PRInt32 len = uword.Length(), pos = 0, begin, end;
+            PRBool gotUnit;
+            while (pos < len) {
+                rv = mScanner->Next(utext, len, pos, PR_TRUE, &begin, &end, &gotUnit);
+                if (NS_SUCCEEDED(rv) && gotUnit) {
+                    NS_ConvertUTF16toUTF8 utfUnit(utext + begin, end - begin);
+                    add(utfUnit.get());
+                    // advance to end of current unit.
+                    pos = end;
+                } else {
+                    break;
                 }
             }
         }
     }
-}
-
-void Tokenizer::tokenize(const char* str)
-{
-    char* text = nsCRT::strdup(str);
-    if (text) {
-        tokenize(text);
-        nsCRT::free(text);
-    }
+  }
 }
 
 void Tokenizer::visit(PRBool (*f) (Token*, void*), void* data)
@@ -911,9 +902,8 @@ NS_IMETHODIMP TokenStreamListener::OnStopRequest(nsIRequest *aRequest, nsISuppor
 {
     if (mLeftOverCount) {
         /* assume final buffer is complete. */
-        char* buffer = mBuffer;
-        buffer[mLeftOverCount] = '\0';
-        mTokenizer.tokenize(buffer);
+        mBuffer[mLeftOverCount] = '\0';
+        mTokenizer.tokenize(mBuffer);
     }
 
     /* finally, analyze the tokenized message. */

@@ -1139,17 +1139,13 @@ nsresult nsMsgDatabase::OpenMDB(const char *dbName, PRBool create)
     {
       nsIMdbThumb *thumb = nsnull;
       struct stat st;
-      char	*nativeFileName = nsCRT::strdup(dbName);
       nsIMdbHeap* dbHeap = 0;
       mdb_bool dbFrozen = mdbBool_kFalse; // not readonly, we want modifiable
-
-      if (!nativeFileName)
-        return NS_ERROR_OUT_OF_MEMORY;
 
       if (m_mdbEnv)
         m_mdbEnv->SetAutoClear(PR_TRUE);
       m_dbName = dbName;
-      if (stat(nativeFileName, &st))
+      if (stat(dbName, &st))
         ret = NS_MSG_ERROR_FOLDER_SUMMARY_MISSING;
       else
       {
@@ -1158,7 +1154,7 @@ nsresult nsMsgDatabase::OpenMDB(const char *dbName, PRBool create)
         mdbYarn		outFormatVersion;
 
         nsIMdbFile* oldFile = 0;
-        ret = myMDBFactory->OpenOldFile(m_mdbEnv, dbHeap, nativeFileName,
+        ret = myMDBFactory->OpenOldFile(m_mdbEnv, dbHeap, dbName,
           dbFrozen, &oldFile);
         if ( oldFile )
         {
@@ -1234,7 +1230,6 @@ nsresult nsMsgDatabase::OpenMDB(const char *dbName, PRBool create)
         }
       }
       NS_IF_RELEASE(thumb);
-      nsCRT::free(nativeFileName);
     }
   }
 #ifdef DEBUG_David_Bienvenu
@@ -3341,7 +3336,7 @@ nsresult nsMsgDatabase::RowCellColumnToCharPtr(nsIMdbRow *row, mdb_token columnT
 
     }
     else if (err == NS_OK)	// guarantee a non-null result
-      *result = nsCRT::strdup("");
+      *result = strdup("");
   }
   return err;
 }

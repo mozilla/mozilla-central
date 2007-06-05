@@ -89,12 +89,12 @@ protected:
 
   PRBool      FirePrintEvent();
   PRBool      FireStartNextEvent();
-  NS_IMETHOD  FireThatLoadOperationStartup(nsString *uri);
-  NS_IMETHOD  FireThatLoadOperation(nsString *uri);
+  nsresult    FireThatLoadOperationStartup(const nsString& uri);
+  nsresult    FireThatLoadOperation(const nsString& uri);
   void        InitializeDisplayCharset();
   void        SetupObserver();
-  nsresult    SetStatusMessage(PRUnichar *aMsgString);
-  PRUnichar   *GetString(const PRUnichar *aStringName);
+  nsresult    SetStatusMessage(const nsString& aMsgString);
+  void GetString(const PRUnichar *aStringName, nsString& aOutString);
   nsresult    ShowProgressDialog(PRBool aIsForPrinting, PRBool& aDoNotify);
 
   nsCOMPtr<nsIDocShell>       mDocShell;
@@ -120,5 +120,5 @@ protected:
   nsCOMPtr<nsIWebProgressListener> mPrintProgressListener;
   nsCOMPtr<nsIPrintProgress>       mPrintProgress;
   nsCOMPtr<nsIPrintProgressParams> mPrintProgressParams;
-  nsAutoString                     mLoadURI;
+  nsString                         mLoadURI;
 };

@@ -119,9 +119,9 @@ nsMsgPrintEngine::OnStateChange(nsIWebProgress* aWebProgress,
   if (progressStateFlags & nsIWebProgressListener::STATE_IS_DOCUMENT) {
     if (progressStateFlags & nsIWebProgressListener::STATE_START) {
       // Tell the user we are loading...
-      PRUnichar *msg = GetString(NS_LITERAL_STRING("LoadingMessageToPrint").get());
-      SetStatusMessage( msg );
-      CRTFREEIF(msg)
+      nsString msg;
+      GetString(NS_LITERAL_STRING("LoadingMessageToPrint").get(), msg);
+      SetStatusMessage(msg);
     }
 
     if (progressStateFlags & nsIWebProgressListener::STATE_STOP) {
@@ -162,9 +162,9 @@ nsMsgPrintEngine::OnStateChange(nsIWebProgress* aWebProgress,
           rv = NS_ERROR_FAILURE;
 
           // Tell the user the message is loaded...
-          PRUnichar *msg = GetString(NS_LITERAL_STRING("MessageLoaded").get());
-          SetStatusMessage( msg );
-          if (msg) nsCRT::free(msg);
+          nsString msg;
+          GetString(NS_LITERAL_STRING("MessageLoaded").get(), msg);
+          SetStatusMessage(msg);
 
           NS_ASSERTION(mDocShell,"can't print, there is no docshell");
           if ( (!mDocShell) || (!aRequest) ) 
@@ -416,17 +416,14 @@ nsMsgPrintEngine::ShowProgressDialog(PRBool aIsForPrinting, PRBool& aDoNotify)
           nsIWebProgressListener* wpl = NS_STATIC_CAST(nsIWebProgressListener*, mPrintProgressListener.get());
           NS_ASSERTION(wpl, "nsIWebProgressListener is NULL!");
           NS_ADDREF(wpl);
-          PRUnichar *msg = nsnull;
+          nsString msg;
           if (mIsDoingPrintPreview) {
-            GetString(NS_LITERAL_STRING("LoadingMailMsgForPrintPreview").get());
+            GetString(NS_LITERAL_STRING("LoadingMailMsgForPrintPreview").get(), msg);
           } else {
-            GetString(NS_LITERAL_STRING("LoadingMailMsgForPrint").get());
+            GetString(NS_LITERAL_STRING("LoadingMailMsgForPrint").get(), msg);
           }
-          if (msg) 
-          {
-            mPrintProgressParams->SetDocTitle(msg);
-            nsCRT::free(msg);
-          }
+          if (!msg.IsEmpty()) 
+            mPrintProgressParams->SetDocTitle(msg.get());
         }
       }
     }
@@ -453,10 +450,9 @@ nsMsgPrintEngine::StartNextPrintOperation()
     mWindow->Close();
 
     // Tell the user we are done...
-    PRUnichar *msg = GetString(NS_LITERAL_STRING("PrintingComplete").get());
-    SetStatusMessage( msg );
-    CRTFREEIF(msg)
-    
+    nsString msg;
+    GetString(NS_LITERAL_STRING("PrintingComplete").get(), msg);
+    SetStatusMessage(msg);
     return NS_OK;
   }
 
@@ -464,7 +460,7 @@ nsMsgPrintEngine::StartNextPrintOperation()
     return StartNextPrintOperation();
 
   nsString *uri = mURIArray.StringAt(mCurrentlyPrintingURI);
-  rv = FireThatLoadOperationStartup(uri);
+  rv = FireThatLoadOperationStartup(*uri);
   if (NS_FAILED(rv))
     return StartNextPrintOperation();
   else
@@ -479,49 +475,36 @@ nsMsgPrintEngine::SetStatusFeedback(nsIMsgStatusFeedback *aFeedback)
 }
 
 #define DATA_URL_PREFIX     "data:"
-#define DATA_URL_PREFIX_LEN 5
-
 #define ADDBOOK_URL_PREFIX     "addbook:"
-#define ADDBOOK_URL_PREFIX_LEN 8
 
-NS_IMETHODIMP
-nsMsgPrintEngine::FireThatLoadOperationStartup(nsString *uri)
+nsresult
+nsMsgPrintEngine::FireThatLoadOperationStartup(const nsString& uri)
 {
-  if (uri) 
-  {
-    mLoadURI = *uri;
-  } 
-  else 
-  {
-    mLoadURI.SetLength(0);
-  }
+  if (!uri.IsEmpty()) 
+    mLoadURI = uri;
+  else
+    mLoadURI.Truncate();
 
   PRBool   notify = PR_FALSE;
   nsresult rv     = NS_ERROR_FAILURE;
   // Don't show dialog if we are out of URLs
   //if ( mCurrentlyPrintingURI < mURIArray.Count() && !mIsDoingPrintPreview)
   if ( mCurrentlyPrintingURI < mURIArray.Count())
-  {
     rv = ShowProgressDialog(!mIsDoingPrintPreview, notify);
-  }
   if (NS_FAILED(rv) || !notify) 
-  {
     return FireThatLoadOperation(uri);
-  }
   return NS_OK;
 }
 
-NS_IMETHODIMP
-nsMsgPrintEngine::FireThatLoadOperation(nsString *uri)
+nsresult
+nsMsgPrintEngine::FireThatLoadOperation(const nsString& uri)
 {
-  nsresult rv = NS_OK;
-
-  char  *tString = ToNewCString(*uri);
-  if (!tString)
-    return NS_ERROR_OUT_OF_MEMORY;
+  nsresult rv;
+  
+  nsCString uriCStr;
+  LossyCopyUTF16toASCII(uri, uriCStr);
 
   nsCOMPtr <nsIMsgMessageService> messageService;
-
   // if this is a data: url, skip it, because 
   // we've already got something we can print
   // and we know it is not a message.
@@ -536,30 +519,26 @@ nsMsgPrintEngine::FireThatLoadOperation(nsString *uri)
   // skip it, because we don't want to print the parent message
   // we want to print the part.
   // example:  imap://sspitzer@nsmail-1:143/fetch%3EUID%3E/INBOX%3E180958?part=1.1.2&type=application/x-message-display&filename=test"
-  if (strncmp(tString, DATA_URL_PREFIX, DATA_URL_PREFIX_LEN) && 
-      strncmp(tString, ADDBOOK_URL_PREFIX, ADDBOOK_URL_PREFIX_LEN) && 
-      strcmp(tString, "about:blank") &&
-      !strstr(tString, "type=application/x-message-display")) {
-    rv = GetMessageServiceFromURI(tString, getter_AddRefs(messageService));
+  if (!StringBeginsWith(uriCStr, NS_LITERAL_CSTRING(DATA_URL_PREFIX)) &&
+      !StringBeginsWith(uriCStr, NS_LITERAL_CSTRING(ADDBOOK_URL_PREFIX)) &&
+      !uriCStr.EqualsLiteral("about:blank") && 
+      uriCStr.Find(NS_LITERAL_CSTRING("type=application/x-message-display")) == -1) {
+    rv = GetMessageServiceFromURI(uriCStr.get(), getter_AddRefs(messageService));
   }
 
   if (NS_SUCCEEDED(rv) && messageService)
-  {
-    rv = messageService->DisplayMessageForPrinting(tString, mDocShell, nsnull, nsnull, nsnull);
-  }
+    rv = messageService->DisplayMessageForPrinting(uriCStr.get(), mDocShell, nsnull, nsnull, nsnull);
   //If it's not something we know about, then just load try loading it directly.
   else
   {
     nsCOMPtr<nsIWebNavigation> webNav(do_QueryInterface(mDocShell));
     if (webNav)
-      rv = webNav->LoadURI(uri->get(),                        // URI string
+      rv = webNav->LoadURI(uri.get(),                        // URI string
                            nsIWebNavigation::LOAD_FLAGS_NONE, // Load flags
                            nsnull,                            // Referring URI
                            nsnull,                            // Post data
                            nsnull);                           // Extra headers
   }
-
-  if (tString) nsCRT::free(tString);
   return rv;
 }
 
@@ -606,42 +585,36 @@ nsMsgPrintEngine::SetupObserver()
 }
 
 nsresult
-nsMsgPrintEngine::SetStatusMessage(PRUnichar *aMsgString)
+nsMsgPrintEngine::SetStatusMessage(const nsString& aMsgString)
 {
-  if ( (!mFeedback) || (!aMsgString) )
+  if ( (!mFeedback) || (aMsgString.IsEmpty()) )
     return NS_OK;
 
-  mFeedback->ShowStatusString(aMsgString);
+  mFeedback->ShowStatusString(aMsgString.get());
   return NS_OK;
 }
 
 #define MESSENGER_STRING_URL       "chrome://messenger/locale/messenger.properties"
 
-PRUnichar *
-nsMsgPrintEngine::GetString(const PRUnichar *aStringName)
+void
+nsMsgPrintEngine::GetString(const PRUnichar *aStringName, nsString& outStr)
 {
-	nsresult    res = NS_OK;
-  PRUnichar   *ptrv = nsnull;
+  nsresult    res = NS_OK;
+  outStr.Truncate();
 
-	if (!mStringBundle)
-	{
-		static const char propertyURL[] = MESSENGER_STRING_URL;
+  if (!mStringBundle)
+  {
+    static const char propertyURL[] = MESSENGER_STRING_URL;
 
-		nsCOMPtr<nsIStringBundleService> sBundleService = 
-		         do_GetService(NS_STRINGBUNDLE_CONTRACTID, &res); 
-		if (NS_SUCCEEDED(res) && (nsnull != sBundleService)) 
-		{
-			res = sBundleService->CreateBundle(propertyURL, getter_AddRefs(mStringBundle));
-		}
-	}
+    nsCOMPtr<nsIStringBundleService> sBundleService = 
+             do_GetService(NS_STRINGBUNDLE_CONTRACTID, &res); 
+    if (NS_SUCCEEDED(res) && (nsnull != sBundleService)) 
+      res = sBundleService->CreateBundle(propertyURL, getter_AddRefs(mStringBundle));
+  }
 
-	if (mStringBundle)
-		res = mStringBundle->GetStringFromName(aStringName, &ptrv);
-
-  if ( NS_SUCCEEDED(res) && (ptrv) )
-    return ptrv;
-  else
-    return nsCRT::strdup(aStringName);
+  if (mStringBundle)
+    res = mStringBundle->GetStringFromName(aStringName, getter_Copies(outStr));
+  return;
 }
 
 //-----------------------------------------------------------
@@ -712,9 +685,9 @@ nsMsgPrintEngine::PrintMsgWindow()
       else
       {
         // Tell the user we started printing...
-        PRUnichar *msg = GetString(NS_ConvertASCIItoUTF16(kMsgKeys[mMsgInx]).get());
-        SetStatusMessage( msg );
-        CRTFREEIF(msg)
+        nsString msg;
+        GetString(NS_ConvertASCIItoUTF16(kMsgKeys[mMsgInx]).get(), msg);
+        SetStatusMessage(msg);
       }
     }
   }
@@ -829,5 +802,5 @@ NS_IMETHODIMP nsMsgPrintEngine::SetMsgType(PRInt32 aMsgType)
 /*=============== nsIObserver Interface ======================*/
 NS_IMETHODIMP nsMsgPrintEngine::Observe(nsISupports *aSubject, const char *aTopic, const PRUnichar *aData)
 {
-  return FireThatLoadOperation(&mLoadURI);
+  return FireThatLoadOperation(mLoadURI);
 }

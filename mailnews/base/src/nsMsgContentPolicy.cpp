@@ -583,7 +583,7 @@ nsMsgContentPolicy::ShouldProcess(PRUint32          aContentType,
 
 NS_IMETHODIMP nsMsgContentPolicy::Observe(nsISupports *aSubject, const char *aTopic, const PRUnichar *aData)
 {
-  if (!nsCRT::strcmp(NS_PREFBRANCH_PREFCHANGE_TOPIC_ID, aTopic)) 
+  if (!strcmp(NS_PREFBRANCH_PREFCHANGE_TOPIC_ID, aTopic)) 
   {
     NS_LossyConvertUTF16toASCII pref(aData);
 

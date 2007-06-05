@@ -185,7 +185,7 @@ const char *
 nsMsgFilterDelegateFactory::getFilterName(const char *filterTag)
 {
     
-    if (nsCRT::strncmp(filterTag, MSGFILTER_TAG, MSGFILTER_TAG_LENGTH) != 0)
+    if (strncmp(filterTag, MSGFILTER_TAG, MSGFILTER_TAG_LENGTH) != 0)
         return nsnull;
     
     const char *filterNameStr = filterTag + MSGFILTER_TAG_LENGTH;

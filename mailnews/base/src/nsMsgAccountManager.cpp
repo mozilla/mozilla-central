@@ -267,19 +267,19 @@ nsMsgAccountManager::SetUserNeedsToAuthenticate(PRBool aUserNeedsToAuthenticate)
 
 NS_IMETHODIMP nsMsgAccountManager::Observe(nsISupports *aSubject, const char *aTopic, const PRUnichar *someData)
 {
-  if(!nsCRT::strcmp(aTopic,NS_XPCOM_SHUTDOWN_OBSERVER_ID))
+  if(!strcmp(aTopic,NS_XPCOM_SHUTDOWN_OBSERVER_ID))
   {
     Shutdown();
     return NS_OK;
   }
 
-  if (!nsCRT::strcmp(aTopic,"quit-application"))
+  if (!strcmp(aTopic,"quit-application"))
   {
     m_shutdownInProgress = PR_TRUE;
     return NS_OK;
   }
 
-  if (!nsCRT::strcmp(aTopic, ABOUT_TO_GO_OFFLINE_TOPIC))
+  if (!strcmp(aTopic, ABOUT_TO_GO_OFFLINE_TOPIC))
   {
     nsAutoString dataString(NS_LITERAL_STRING("offline"));
     if (someData)
@@ -291,13 +291,13 @@ NS_IMETHODIMP nsMsgAccountManager::Observe(nsISupports *aSubject, const char *aT
     return NS_OK;
   }
 
-  if (!nsCRT::strcmp(aTopic, "session-logout"))
+  if (!strcmp(aTopic, "session-logout"))
   {
     m_incomingServers.Enumerate(hashLogoutOfServer, nsnull);
     return NS_OK;
   }
 
-  if (!nsCRT::strcmp(aTopic, "profile-before-change"))
+  if (!strcmp(aTopic, "profile-before-change"))
   {
     Shutdown();
     return NS_OK;
@@ -671,9 +671,7 @@ nsMsgAccountManager::removeKeyedAccount(const nsCString& key)
   // the one with 'key'
   nsCAutoString newAccountList;
   char *newStr;
-  char *rest = accountList.BeginWriting();
-
-  char *token = nsCRT::strtok(rest, ",", &newStr);
+  char *token = nsCRT::strtok(accountList.BeginWriting(), ",", &newStr);
   while (token) {
     nsCAutoString testKey(token);
     testKey.StripWhitespace();
@@ -1281,8 +1279,7 @@ nsMsgAccountManager::LoadAccounts()
           // Tokenize the data and add each account if it is not already there
           // in the user's current mailnews account list
           char *newAccountStr;
-          char *preConfigAccountsStr = ToNewCString(appendAccountList);
-          char *token = nsCRT::strtok(preConfigAccountsStr, ACCOUNT_DELIMITER, &newAccountStr);
+          char *token = nsCRT::strtok(appendAccountList.BeginWriting(), ACCOUNT_DELIMITER, &newAccountStr);
 
           nsCAutoString newAccount;
           while (token) {
@@ -1297,7 +1294,6 @@ nsMsgAccountManager::LoadAccounts()
             }
             token = nsCRT::strtok(newAccountStr, ACCOUNT_DELIMITER, &newAccountStr);
           }
-          PR_Free(preConfigAccountsStr);
         }
         else {
           accountList = appendAccountList;
@@ -1320,8 +1316,8 @@ nsMsgAccountManager::LoadAccounts()
   char *rest = accountList.BeginWriting();
   nsCAutoString str;
   for (char *token = nsCRT::strtok(rest, ",", &newStr);
-       token;
-       token = nsCRT::strtok(newStr, ",", &newStr))
+  token;
+  token = nsCRT::strtok(newStr, ",", &newStr))
   {
     str = token;
     str.StripWhitespace();

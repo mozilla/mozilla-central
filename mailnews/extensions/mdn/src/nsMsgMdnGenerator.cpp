@@ -43,7 +43,6 @@
 #include "nsMsgMimeCID.h"
 #include "nsIMsgAccountManager.h"
 #include "nsMsgBaseCID.h"
-#include "nsCRT.h"
 #include "nsMimeTypes.h"
 #include "prmem.h"
 #include "prprf.h"

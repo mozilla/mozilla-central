@@ -146,18 +146,15 @@ nsresult NS_MsgGetAttributeFromString(const char *string, PRInt16 *attrib)
 
     if (!headers.IsEmpty())
     {
-      char *headersString = ToNewCString(headers);
-
-      nsCAutoString hdrStr;
-      hdrStr.Adopt(headersString);
+      nsCAutoString hdrStr(headers);
       hdrStr.StripWhitespace();  //remove whitespace before parsing
 
       char *newStr=nsnull;
-      char *token = nsCRT::strtok(headersString,":", &newStr);
+      char *token = nsCRT::strtok(hdrStr.BeginWriting(), ":", &newStr);
       PRUint32 i=0;
       while (token)
       {
-        if (nsCRT::strcasecmp(token, string) == 0)
+        if (PL_strcasecmp(token, string) == 0)
         {
           *attrib += i; //we found custom header in the pref
           found = PR_TRUE;

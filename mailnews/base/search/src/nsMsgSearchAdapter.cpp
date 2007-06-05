@@ -183,36 +183,7 @@ nsMsgSearchAdapter::GetImapCharsetParam(const PRUnichar *destCharset)
 */
 PRUnichar *nsMsgSearchAdapter::EscapeSearchUrl (const PRUnichar *nntpCommand)
 {
-	return nsCRT::strdup(nntpCommand);
-#if 0
-	PRUnichar *result = nsnull;
-	// max escaped length is two extra characters for every character in the cmd.
-  PRUnichar *scratchBuf = (PRUnichar*) PR_Malloc(sizeof(PRUnichar) * (3*nsCRT::strlen(nntpCommand) + 1));
-	if (scratchBuf)
-	{
-		PRUnichar *scratchPtr = scratchBuf;
-		while (PR_TRUE)
-		{
-			PRUnichar ch = *nntpCommand++;
-			if (!ch)
-				break;
-			if (ch == '#' || ch == '?' || ch == '@' || ch == '\\')
-			{
-				*scratchPtr++ = '\\';
-                nsTextFormatter::snprintf(scratchPtr, 2,
-                                          NS_LITERAL_STRING("%2.2X").get(), ch);
-                                   /* Reviewed 4.51 safe use of sprintf */
-				scratchPtr += 2;
-			}
-			else
-				*scratchPtr++ = ch;
-		}
-		*scratchPtr = '\0';
-		result = nsCRT::strdup (scratchBuf); // realloc down to smaller size
-        nsCRT::free (scratchBuf);
-	}
-	return result;
-#endif
+  return nsCRT::strdup(nntpCommand);
 }
 
 /*
@@ -225,33 +196,6 @@ PRUnichar *
 nsMsgSearchAdapter::EscapeImapSearchProtocol(const PRUnichar *imapCommand)
 {
 	return nsCRT::strdup(imapCommand);
-#if 0
-	PRUnichar *result = nsnull;
-	// max escaped length is one extra character for every character in the cmd.
-    PRUnichar *scratchBuf =
-        (PRUnichar*) PR_Malloc (sizeof(PRUnichar) * (2*nsCRT::strlen(imapCommand) + 1));
-	if (scratchBuf)
-	{
-		PRUnichar *scratchPtr = scratchBuf;
-		while (1)
-		{
-			PRUnichar ch = *imapCommand++;
-			if (!ch)
-				break;
-			if (ch == (PRUnichar)'\\')
-			{
-				*scratchPtr++ = (PRUnichar)'\\';
-				*scratchPtr++ = (PRUnichar)'\\';
-			}
-			else
-				*scratchPtr++ = ch;
-		}
-		*scratchPtr = 0;
-        result = nsCRT::strdup (scratchBuf); // realloc down to smaller size
-        nsCRT::free (scratchBuf);
-	}
-	return result;
-#endif
 }
 
 /*
@@ -264,33 +208,6 @@ PRUnichar *
 nsMsgSearchAdapter::EscapeQuoteImapSearchProtocol(const PRUnichar *imapCommand)
 {
 	return nsCRT::strdup(imapCommand);
-#if 0
-	PRUnichar *result = nsnull;
-	// max escaped length is one extra character for every character in the cmd.
-    PRUnichar *scratchBuf =
-        (PRUnichar*) PR_Malloc (sizeof(PRUnichar) * (2*nsCRT::strlen(imapCommand) + 1));
-	if (scratchBuf)
-	{
-		PRUnichar *scratchPtr = scratchBuf;
-		while (1)
-		{
-			PRUnichar ch = *imapCommand++;
-			if (!ch)
-				break;
-			if (ch == '"')
-			{
-				*scratchPtr++ = '\\';
-				*scratchPtr++ = '"';
-			}
-			else
-				*scratchPtr++ = ch;
-		}
-		*scratchPtr = '\0';
-    result = nsCRT::strdup (scratchBuf); // realloc down to smaller size
-    nsCRT::free (scratchBuf);
-	}
-	return result;
-#endif
 }
 
 
@@ -619,7 +536,7 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, PRBool real
 
         searchTermValue.AppendInt(sizeValue);
 
-        value = nsCRT::strdup(searchTermValue.get());
+        value = ToNewCString(searchTermValue);
         valueWasAllocated = PR_TRUE;
       }
       else
@@ -667,11 +584,11 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, PRBool real
               *p++ = ch;
             }
             *p = '\0';
-            value = nsCRT::strdup(newValue); // realloc down to smaller size
+            value = strdup(newValue); // realloc down to smaller size
           }
         }
         else
-          value = nsCRT::strdup("");
+          value = strdup("");
         nsCRT::free(convertedValue);
         valueWasAllocated = PR_TRUE;
 
@@ -814,7 +731,7 @@ char *nsMsgSearchAdapter::TransformSpacesToStars (const char *spaceString, msg_T
 
 	if (transformType == kOverwrite)
 	{
-		if ((starString = nsCRT::strdup(spaceString)) != nsnull)
+		if ((starString = strdup(spaceString)) != nsnull)
 		{
 			char *star = starString;
 			while ((star = PL_strchr(star, ' ')) != nsnull)
@@ -863,7 +780,7 @@ char *nsMsgSearchAdapter::TransformSpacesToStars (const char *spaceString, msg_T
 			}
 		}
 		else
-			starString = nsCRT::strdup(spaceString);
+			starString = strdup(spaceString);
 	}
 
 	return starString;
@@ -1150,14 +1067,12 @@ nsMsgSearchValidityManager::SetOtherHeadersInTable (nsIMsgSearchValidityTable *a
   PRUint32 numHeaders=0;
   if (customHeadersLength)
   {
-    char *headersString = nsCRT::strdup(customHeaders);
+    char *headersString = strdup(customHeaders);
 
-    nsCAutoString hdrStr;
-    hdrStr.Adopt(headersString);
-    hdrStr.StripWhitespace();  //remove whitespace before parsing
-
+    nsCAutoString hdrStr(customHeaders);
+    hdrStr.StripWhitespace();  //remove whitespace before parsing    
     char *newStr=nsnull;
-    char *token = nsCRT::strtok(headersString,":", &newStr);
+    char *token = nsCRT::strtok(hdrStr.BeginWriting(),":", &newStr);
     while(token)
     {
       numHeaders++;

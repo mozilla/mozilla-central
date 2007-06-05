@@ -52,9 +52,8 @@ nsMsgSearchValueImpl::nsMsgSearchValueImpl(nsMsgSearchValue *aInitialValue)
 
 nsMsgSearchValueImpl::~nsMsgSearchValueImpl()
 {
-    if (IS_STRING_ATTRIBUTE(mValue.attribute))
-        nsCRT::free(mValue.string);
-
+  if (IS_STRING_ATTRIBUTE(mValue.attribute))
+    NS_Free(mValue.string);
 }
 
 NS_IMPL_ISUPPORTS1(nsMsgSearchValueImpl, nsIMsgSearchValue)
@@ -72,19 +71,19 @@ NS_IMPL_GETSET(nsMsgSearchValueImpl, JunkStatus, PRUint32, mValue.u.junkStatus)
 NS_IMETHODIMP
 nsMsgSearchValueImpl::GetFolder(nsIMsgFolder* *aResult)
 {
-    NS_ENSURE_ARG_POINTER(aResult);
-    NS_ENSURE_TRUE(mValue.attribute == nsMsgSearchAttrib::FolderInfo, NS_ERROR_ILLEGAL_VALUE);
-    *aResult = mValue.u.folder;
-    NS_IF_ADDREF(*aResult);
-    return NS_OK;
+  NS_ENSURE_ARG_POINTER(aResult);
+  NS_ENSURE_TRUE(mValue.attribute == nsMsgSearchAttrib::FolderInfo, NS_ERROR_ILLEGAL_VALUE);
+  *aResult = mValue.u.folder;
+  NS_IF_ADDREF(*aResult);
+  return NS_OK;
 }
 
 NS_IMETHODIMP
 nsMsgSearchValueImpl::SetFolder(nsIMsgFolder* aValue)
 {
-    NS_ENSURE_TRUE(mValue.attribute == nsMsgSearchAttrib::FolderInfo, NS_ERROR_ILLEGAL_VALUE);
-    mValue.u.folder = aValue;
-    return NS_OK;
+  NS_ENSURE_TRUE(mValue.attribute == nsMsgSearchAttrib::FolderInfo, NS_ERROR_ILLEGAL_VALUE);
+  mValue.u.folder = aValue;
+  return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -100,7 +99,7 @@ nsMsgSearchValueImpl::SetStr(const nsAString &aValue)
 {
     NS_ENSURE_TRUE(IS_STRING_ATTRIBUTE(mValue.attribute), NS_ERROR_ILLEGAL_VALUE);
     if (mValue.string)
-        nsCRT::free(mValue.string);
+        NS_Free(mValue.string);
     mValue.string = ToNewUTF8String(aValue);
     return NS_OK;
 }

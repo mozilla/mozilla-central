@@ -213,8 +213,7 @@ nsMsgAccount::createIdentities()
   // const-casting because nsCRT::strtok whacks the string,
   // but safe because identityKey is a copy
   char* newStr;
-  char* rest = identityKey.BeginWriting();
-  char* token = nsCRT::strtok(rest, ",", &newStr);
+  char* token = nsCRT::strtok(identityKey.BeginWriting(), ",", &newStr);
 
   // temporaries used inside the loop
   nsCOMPtr<nsIMsgIdentity> identity;
@@ -316,8 +315,7 @@ nsMsgAccount::AddIdentity(nsIMsgIdentity *identity)
       // const-casting because nsCRT::strtok whacks the string,
       // but safe because identityList is a copy
       char *newStr;
-      char *rest = identityList.BeginWriting();
-      char *token = nsCRT::strtok(rest, ",", &newStr);
+      char *token = nsCRT::strtok(identityList.BeginWriting(), ",", &newStr);
 
       // look for the identity key that we're adding
       while (token) {

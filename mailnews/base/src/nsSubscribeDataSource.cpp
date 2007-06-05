@@ -117,7 +117,7 @@ nsSubscribeDataSource::Init()
 NS_IMETHODIMP 
 nsSubscribeDataSource::GetURI(char * *aURI)
 {
-  if ((*aURI = nsCRT::strdup("rdf:subscribe")) == nsnull)
+  if ((*aURI = strdup("rdf:subscribe")) == nsnull)
     return NS_ERROR_OUT_OF_MEMORY;
   else
     return NS_OK;
@@ -445,7 +445,7 @@ nsSubscribeDataSource::GetServerAndRelativePathFromResource(nsIRDFResource *sour
       *relativePath = nsnull;
     else {
       // XXX : perhaps, have to unescape before returning 
-      *relativePath = nsCRT::strdup(sourceURI + serverURILen + 1);
+      *relativePath = strdup(sourceURI + serverURILen + 1);
       if (!*relativePath)
         return NS_ERROR_OUT_OF_MEMORY;
     }

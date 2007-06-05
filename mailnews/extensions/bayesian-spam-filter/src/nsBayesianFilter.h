@@ -100,17 +100,8 @@ public:
      */
     nsresult clearTokens();
 
-    /**
-     * Assumes that text is mutable and
-     * can be nsCRT::strtok'd.
-     */
-    void tokenize(char* text);
-    
-    /**
-     * Copies the string before tokenizing.
-     */
-    void tokenize(const char* str);
-    
+    void tokenize(const char* text);
+
     /**
      *  Creates specific tokens based on the mime headers for the message being tokenized
      */

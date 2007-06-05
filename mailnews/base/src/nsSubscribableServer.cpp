@@ -484,7 +484,7 @@ nsSubscribableServer::CreateNode(SubscribeTreeNode *parent, const char *name, Su
     *result = (SubscribeTreeNode *) PR_Malloc(sizeof(SubscribeTreeNode));
     if (!*result) return NS_ERROR_OUT_OF_MEMORY;
 
-    (*result)->name = nsCRT::strdup(name);
+    (*result)->name = strdup(name);
     if (!(*result)->name) return NS_ERROR_OUT_OF_MEMORY;
 
     (*result)->parent = parent;
@@ -531,7 +531,7 @@ nsSubscribableServer::AddChildNode(SubscribeTreeNode *parent, const char *name, 
     }
     else {
         if (parent->cachedChild) {
-            if (nsCRT::strcmp(parent->cachedChild->name,name) == 0) {
+            if (strcmp(parent->cachedChild->name,name) == 0) {
                 *child = parent->cachedChild;
                 return NS_OK;
             }
@@ -552,7 +552,7 @@ nsSubscribableServer::AddChildNode(SubscribeTreeNode *parent, const char *name, 
          * we can efficiently reverse the order when dumping to hostinfo.dat
          * or to GetTargets()
          */
-        PRInt32 compare = nsCRT::strcmp(current->name, name);
+        PRInt32 compare = strcmp(current->name, name);
 
         while (current && (compare != 0)) {
             if (compare < 0) {
@@ -577,7 +577,7 @@ nsSubscribableServer::AddChildNode(SubscribeTreeNode *parent, const char *name, 
             current = current->nextSibling;
             if (current) {
                 NS_ASSERTION(current->name, "no name!");
-                compare = nsCRT::strcmp(current->name,name);
+                compare = strcmp(current->name,name);
             }
             else {
                 compare = -1; // anything but 0, since that would be a match

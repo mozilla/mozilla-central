@@ -415,44 +415,43 @@ NS_IMETHODIMP nsMsgHdr::SetRecipients(const char *recipients)
 
 nsresult nsMsgHdr::BuildRecipientsFromArray(const char *names, const char *addresses, PRUint32 numAddresses, nsCAutoString& allRecipients)
 {
-	nsresult ret = NS_OK;
-	const char *curName = names;
-	const char *curAddress = addresses;
-	nsIMsgHeaderParser *headerParser = m_mdb->GetHeaderParser();
+  nsresult ret = NS_OK;
+  const char *curName = names;
+  const char *curAddress = addresses;
+  nsIMsgHeaderParser *headerParser = m_mdb->GetHeaderParser();
 
-	for (PRUint32 i = 0; i < numAddresses; i++, curName += strlen(curName) + 1, curAddress += strlen(curAddress) + 1)
-	{
-		if (i > 0)
-			allRecipients += ", ";
+  for (PRUint32 i = 0; i < numAddresses; i++, curName += strlen(curName) + 1, curAddress += strlen(curAddress) + 1)
+  {
+    if (i > 0)
+      allRecipients += ", ";
 
-		if (headerParser)
-		{
-		   char * fullAddress;
-		   ret = headerParser->MakeFullAddress(nsnull, curName, curAddress, &fullAddress);
-		   if (NS_SUCCEEDED(ret) && fullAddress)
-		   {
-		      allRecipients += fullAddress;
-		      nsCRT::free(fullAddress);
-		      continue;
-		   }
-		}
+    if (headerParser)
+    {
+       nsCString fullAddress;
+       ret = headerParser->MakeFullAddress(nsnull, curName, curAddress, getter_Copies(fullAddress));
+       if (NS_SUCCEEDED(ret) && !fullAddress.IsEmpty())
+       {
+          allRecipients += fullAddress;
+          continue;
+       }
+    }
 
         // Just in case the parser failed...
-		if (strlen(curName))
-		{
-			allRecipients += curName;
-			allRecipients += ' ';
-		}
+    if (strlen(curName))
+    {
+      allRecipients += curName;
+      allRecipients += ' ';
+    }
 
-		if (strlen(curAddress))
-		{
-			allRecipients += '<';
-			allRecipients += curAddress;
-			allRecipients += '>';
-		}
-	}
+    if (strlen(curAddress))
+    {
+      allRecipients += '<';
+      allRecipients += curAddress;
+      allRecipients += '>';
+    }
+  }
 
-	return ret;
+  return ret;
 }
 
 NS_IMETHODIMP nsMsgHdr::SetRecipientsArray(const char *names, const char *addresses, PRUint32 numAddresses)

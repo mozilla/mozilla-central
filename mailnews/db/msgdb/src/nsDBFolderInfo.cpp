@@ -108,7 +108,7 @@ NS_IMETHODIMP nsFolderCharsetObserver::Observe(nsISupports *aSubject, const char
   rv = prefs->GetBranch(nsnull, getter_AddRefs(prefBranch));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  if (!nsCRT::strcmp(aTopic, NS_PREFBRANCH_PREFCHANGE_TOPIC_ID))
+  if (!strcmp(aTopic, NS_PREFBRANCH_PREFCHANGE_TOPIC_ID))
   {
     nsDependentString prefName(someData);
 
@@ -134,7 +134,7 @@ NS_IMETHODIMP nsFolderCharsetObserver::Observe(nsISupports *aSubject, const char
       rv = prefBranch->GetBoolPref(kMAILNEWS_DEFAULT_CHARSET_OVERRIDE, &gDefaultCharacterOverride);
     }
   }
-  else if (!nsCRT::strcmp(aTopic, NS_XPCOM_SHUTDOWN_OBSERVER_ID))
+  else if (!strcmp(aTopic, NS_XPCOM_SHUTDOWN_OBSERVER_ID))
   {
     nsCOMPtr<nsIPrefBranch2> pbi = do_QueryInterface(prefBranch);
     if (pbi)
