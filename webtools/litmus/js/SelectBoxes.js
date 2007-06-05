@@ -228,7 +228,7 @@ function populateSubgroups(data) {
     }
   }
   toggleMessage('none');
-  FormInit(document.forms[formName], document.location.search);
+  FormInit(document.forms[formName], document.location.search, 'subgroup'+suffix);
   enableForm(formName);
 }
 
@@ -276,7 +276,7 @@ function populateTestcases(data,mySuffix) {
                                                          subgroup.testcases[i].testcase_id);
   }
   toggleMessage('none');
-  FormInit(document.forms[formName], document.location.search);
+  FormInit(document.forms[formName], document.location.search, 'testcase'+mySuffix);
   enableForm(formName);
 }
 

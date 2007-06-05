@@ -41,7 +41,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-function FormInit(/*HTMLFormElement */ aForm, /* String */ aQueryString)
+function FormInit(/*HTMLFormElement */ aForm, /* String */ aQueryString, /* String */ targetElm)
 {
   var type;
   var options;
@@ -63,7 +63,11 @@ function FormInit(/*HTMLFormElement */ aForm, /* String */ aQueryString)
   {
     var element  = elements[iElm];
     var nodeName = element.nodeName.toLowerCase();
-      
+    if (targetElm &&
+        targetElm != element.id) { 
+      continue;
+    }
+    
     switch(nodeName)
     {
     case 'input':
@@ -108,6 +112,11 @@ function FormInit(/*HTMLFormElement */ aForm, /* String */ aQueryString)
     var parms = parmList[iParm].split('=');
     var name  = parms[0];
     var value;
+
+    if (targetElm &&
+        targetElm != name) { 
+      continue;
+    }
 
     if (parms.length == 1)
     {
