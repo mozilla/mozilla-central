@@ -131,11 +131,9 @@ if (Litmus::Auth::istrusted($cookie)) {
     	if ($c->param("group_".$group->group_id())) {
     		# we're blessing this user
     		Litmus::DB::UserGroupMap->find_or_create(user=>$user, group=>$group);
-    		$revoke_sessions = 1;
     	} else {
     		# unblesing (if previously blessed) the user
     		Litmus::DB::UserGroupMap->remove($user, $group);
-    		$revoke_sessions = 1;
     	}
     }
     
