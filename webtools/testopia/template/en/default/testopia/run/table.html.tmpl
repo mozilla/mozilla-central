@@ -72,9 +72,7 @@ Select:
   [% IF NOT plan %]<td align="left"><a href="tr_show_plan.cgi?plan_id=[% run.plan.id FILTER none %]">[% run.plan.id FILTER html %]</a></td>[% END %]
 </tr>
   [% END %]
-  [% IF NOT table.viewall %]
     [% PROCESS navigation %]
-  [% END %]
 </table>
 
   [% DECORATIVE_BORDER_END %]

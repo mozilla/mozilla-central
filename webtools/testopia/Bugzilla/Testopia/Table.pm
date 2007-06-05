@@ -397,7 +397,7 @@ the page navigation links to move from page to page.
 sub get_page_url {
     my $self = shift;
     my $cgi = $self->{'cgi'};
-    return $self->{'url_loc'} ."?". $cgi->canonicalise_query('page', 'pagesize');
+    return $self->{'url_loc'} ."?". $cgi->canonicalise_query('page', 'pagesize', 'viewall');
 }
 
 sub get_url {

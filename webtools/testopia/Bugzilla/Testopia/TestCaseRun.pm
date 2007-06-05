@@ -369,7 +369,6 @@ sub set_status {
     }
     
     my $note = "Status changed from $oldstatus to $newstatus by ". Bugzilla->user->login;
-    $note .= " for build '". $self->build->name ."' and environment '". $self->environment->name; 
     $self->append_note($note);
     $self->{'case_run_status_id'} = $status_id;
     $self->{'status'} = undef;
@@ -381,8 +380,8 @@ sub set_sortkey {
     my $dbh = Bugzilla->dbh;
     
     $dbh->do("UPDATE test_case_runs SET sortkey = ?
-              WHERE case_id = ? AND run_id = ?",
-              undef, ($sortkey, $self->case_id, $self->run_id));
+              WHERE case_run_id = ?",
+              undef, ($sortkey, $self->id));
     
 }
 
@@ -404,8 +403,6 @@ sub set_assignee {
     
     my $note = "Assignee changed from $oldassignee to ". $newassignee->login;
     $note   .= " by ". Bugzilla->user->login;
-    $note   .= " for build '". $self->build->name;
-    $note   .= "' and environment '". $self->environment->name;
     $self->append_note($note);
 }
 
@@ -761,9 +758,8 @@ sub notes {
     my $notes = $dbh->selectcol_arrayref(
             "SELECT notes
                FROM test_case_runs
-              WHERE case_id = ? AND run_id = ?
-           ORDER BY case_run_id",
-           undef,($self->case_id, $self->run_id));
+              WHERE case_run_id = ?",
+           undef,($self->id));
     
     return join("\n", @$notes);
 }

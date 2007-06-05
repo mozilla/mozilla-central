@@ -92,18 +92,7 @@ if ($action eq 'Commit'){
             push @uneditable, $run;
             next;
         }
-
-        my $error_mode_cache = Bugzilla->error_mode;
-        Bugzilla->error_mode(ERROR_MODE_DIE);
-        eval{
-            login_to_id(trim($cgi->param('manager')));
-        };
-        Bugzilla->error_mode($error_mode_cache);
-        if ($@){
-            print $cgi->multipart_end if $serverpush;
-        }
         my $manager = login_to_id(trim($cgi->param('manager')));
-        trick_taint($manager);
 
         if ($cgi->param('manager') && !$manager){
             print $cgi->multipart_end if $serverpush;
@@ -145,9 +134,11 @@ if ($action eq 'Commit'){
         print $cgi->multipart_start;
     }
     my $run = Bugzilla::Testopia::TestRun->new({});
+    my $updated = $i - scalar @uneditable;
     $vars->{'run'} = $run;
     $vars->{'title'} = $i ? "Update Successful" : "Nothing Updated";
-    $vars->{'tr_message'} = "$i Test Runs Updated" if $i;
+    $vars->{'tr_error'} = "You did not have rights to edit ". scalar @uneditable . "runs" if scalar @uneditable > 0;
+    $vars->{'tr_message'} = "$updated Test Runs Updated";
     $vars->{'current_tab'} = 'run';
     $vars->{'build_list'} = $run->get_distinct_builds();
     $template->process("testopia/search/advanced.html.tmpl", $vars)

@@ -38,6 +38,10 @@
 
 [% END %] 
 
+[%############################################################################%]
+[%# Block for Navigation Links                                               #%]
+[%############################################################################%]
+
 [% BLOCK navigation %]
 [% SET MAX_LIMIT = 10000 %]
 [% IF ajax %]
@@ -47,6 +51,7 @@
    [% url = "$table.get_page_url&pagesize=$table.page_size&page="%]
    [%# url = "$table.url_loc?direction=$direction&getlist=1&page="%]
 [% END %]
+[% IF NOT table.viewall %]
 [% pagesizelist = [{name => 25, id => 25},
                    {name => 50, id => 50},
                    {name => 100, id => 100},
@@ -134,7 +139,7 @@
   [% IF ajax %]
     <a href="[% url %]null,1[% pc %]">View&nbsp;All</a>&nbsp;
   [% ELSE %]
-    [% IF table.list_count < MAX_LIMIT %]
+    [% IF table.list_count < MAX_LIMIT AND table.list_count > table.page_size %]
     <a href="[% url %]&viewall=1">View&nbsp;All</a>&nbsp;
     [% ELSE %]
     <span style="color:gray">View&nbsp;All</span>
@@ -145,4 +150,12 @@
   </tr>
   <tr><th colspan="5" style="font-size: 12pt;">[% table.list_count %] records found [% '(filtered)' IF filtered %]</th></tr>
 </table>
+[% ELSE %]
+<table align="center">
+  <tr style="background-color: #eeeeee; ">
+  <td align="center"><a href="[% url %]0">Paged View</a></td>
+  </tr>
+  <tr><th colspan="5" style="font-size: 12pt;">[% table.list_count %] records found [% '(filtered)' IF filtered %]</th></tr>
+</table>
+[% END %]
 [% END %]

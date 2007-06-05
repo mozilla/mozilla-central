@@ -128,7 +128,7 @@
     </tr>
 
     <tr>
-      <th align="right"><a href="tr_categories.cgi?plan_id=[% case.plans.0.id %]" target="_blank">Category</a></td>
+      <th align="right"><a href="tr_categories.cgi?product_id=[% case.plans.0.product.id %]" target="_blank">Category</a></td>
       <td>
         [% PROCESS select sel = { name      => 'category',
                                   accesskey => 'c', 

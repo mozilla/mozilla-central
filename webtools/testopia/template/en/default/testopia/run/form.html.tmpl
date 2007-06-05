@@ -97,7 +97,6 @@
                  id="environment"
                  name="environment"
                  maxListLength="10" 
-                 style="width:200px; height:15px"
                  value="[% run.environment.id FILTER none %]" >
        [% IF action == 'Add' %]
          <b>or New:</b> <input name="new_env">
@@ -107,13 +106,13 @@
     </tr>
     <tr>
       <th align="right">Summary</th>
-      <td  colspan="3"><input type="text" size="110" name="summary" value="[% run.summary FILTER html %]"></td>
+      <td  colspan="3"><input type="text" name="summary" value="[% run.summary FILTER html %]" style="width: 600px"></td>
     </tr>
 
     <tr>
       <th align="right" valign="top">Notes:</th>
       <td colspan="5">
-<textarea rows="15" cols="80" name="notes">
+<textarea rows="15" cols="80" name="notes" style="width: 600px">
 [% run.notes FILTER none %]
 </textarea> 
       </td>
