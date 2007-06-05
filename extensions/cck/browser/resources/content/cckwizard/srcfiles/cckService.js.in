@@ -614,7 +614,7 @@ Module.registerSelf = function (compMgr, fileSpec, location, type) {
     Components.classes['@mozilla.org/categorymanager;1'].getService(
       Components.interfaces.nsICategoryManager
      ).addCategoryEntry("app-startup",
-        SERVICE_NAME, "service," + SERVICE_CTRID, true, true, null);
+        SERVICE_NAME, "service," + SERVICE_CTRID, true, true);
       
     this.firstTime=false;
   } 
