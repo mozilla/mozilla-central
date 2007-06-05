@@ -109,7 +109,12 @@ if ($action eq 'Commit'){
                 trick_taint($name);
                 my $tag = Bugzilla::Testopia::TestTag->new({'tag_name' => $name});
                 my $tag_id = $tag->store;
-                $plan->add_tag($tag_id);
+                if ($cgi->param('tag_action') eq 'add'){
+                    $plan->add_tag($tag_id);
+                }
+                else {
+                    $plan->remove_tag($tag_id);
+                }
             }
         }     
     }
