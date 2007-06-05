@@ -125,6 +125,7 @@ function populateTestcase(data) {
   testcase=data;
   document.getElementById('editform_testcase_id').value = testcase.testcase_id;
   document.getElementById('testcase_id_display').innerHTML = testcase.testcase_id;
+  document.getElementById('testcase_id_display_edit').innerHTML = testcase.testcase_id;
   document.getElementById('summary').value = testcase.summary;
   document.getElementById('steps').value = testcase.steps;
   document.getElementById('results').value = testcase.expected_results;

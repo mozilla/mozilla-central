@@ -253,11 +253,15 @@ sub isInAdminGroup {
 	return 0;
 }
 
-# returns true if the user is an admin of $product
+# returns true if the user is an admin of $product or is a superuser
 memoize('isProductAdmin');
 sub isProductAdmin {
 	my $self = shift;
 	my $product = shift;
+	
+	if ($self->isSuperUser()) {
+		return 1;
+	}
 	
 	my @users = $self->search_userInProductAdminGroup($self, $product);
 	if (@users) {

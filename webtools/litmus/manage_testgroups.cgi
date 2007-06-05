@@ -62,7 +62,6 @@ if ($c->param("searchTestgroupList")) {
   } else {
     $testgroups = Litmus::DB::Testgroup->retrieve_all;
   }
-
   while (my $tg = $testgroups->next) {
     print $tg->testgroup_id()."\n";
   }
