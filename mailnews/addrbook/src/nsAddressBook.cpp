@@ -747,8 +747,8 @@ nsAddressBook::ExportDirectoryToLDIF(nsIAbDirectory *aDirectory, nsILocalFile *a
 
           for (i = 0; i < EXPORT_ATTRIBUTES_TABLE_COUNT; i++) {
             if (NS_SUCCEEDED(attrMap->GetFirstAttribute(nsDependentCString(EXPORT_ATTRIBUTES_TABLE[i].abColName),
-                                                        ldapAttribute) &&
-                !ldapAttribute.IsEmpty())) {
+                                                        ldapAttribute)) &&
+                !ldapAttribute.IsEmpty()) {
 
               rv = card->GetCardValue(EXPORT_ATTRIBUTES_TABLE[i].abColName,
                                       value);
