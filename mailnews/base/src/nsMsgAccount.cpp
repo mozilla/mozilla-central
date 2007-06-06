@@ -245,6 +245,7 @@ NS_IMETHODIMP
 nsMsgAccount::GetDefaultIdentity(nsIMsgIdentity **aDefaultIdentity)
 {
   NS_ENSURE_ARG_POINTER(aDefaultIdentity);
+  *aDefaultIdentity = nsnull;
   nsresult rv;
   
   if (!m_identities)
@@ -253,7 +254,7 @@ nsMsgAccount::GetDefaultIdentity(nsIMsgIdentity **aDefaultIdentity)
     NS_ENSURE_SUCCESS(rv, rv);
   }
   
-  nsCOMPtr<nsIMsgIdentity> identity( do_QueryElementAt(m_identities, 0));
+  nsCOMPtr<nsIMsgIdentity> identity( do_QueryElementAt(m_identities, 0, &rv));
   identity.swap(*aDefaultIdentity);
   return rv;
 }
