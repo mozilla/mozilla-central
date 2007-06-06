@@ -272,4 +272,20 @@ sub DropIndexes {
     $sth->finish;
 }
 
+#########################################################################
+sub DropPrimaryKey {
+    my ($self, $table) = @_;
+
+    print "Dropping primary key from table $table ...\n";
+    $self->{'dbh'}->do("ALTER TABLE $table DROP PRIMARY KEY");
+}
+
+#########################################################################
+sub AddPrimaryKey {
+    my ($self, $table, $definition) = @_;
+    
+    print "Adding primary key $definition to table $table ...\n";
+    $self->{'dbh'}->do("ALTER TABLE $table ADD PRIMARY KEY $definition");    
+}
+
 1;

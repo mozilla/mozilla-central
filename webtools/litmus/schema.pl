@@ -145,12 +145,13 @@ $table{test_format_lookup} =
 	 index(name)';
 
 $table{test_result_bugs} =
-	'test_result_id int(11) not null primary key auto_increment,
+	'test_result_id int(11) not null,
 	 last_updated datetime not null,
 	 submission_time datetime not null,
 	 user_id int(11),
 	 bug_id int(11) not null,
 	 
+         primary key(test_result_id, bug_id),
 	 index(test_result_id),
 	 index(last_updated),
 	 index(submission_time),

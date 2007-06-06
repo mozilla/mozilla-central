@@ -270,6 +270,9 @@ $dbtool->DropField("users", "is_admin_old");
 
 package main;
 
+$dbtool->ChangeFieldType("test_result_bugs", "test_result_id", 'int(11) NOT NULL');
+$dbtool->DropPrimaryKey('test_result_bugs');
+$dbtool->AddPrimaryKey('test_result_bugs',"(test_result_id,bug_id)");
 
 print "Schema update complete.\n\n";
 
