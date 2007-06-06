@@ -1,1 +1,2 @@
 Force a new nightly for getting a build with a working profile migrator
+- trigger respin to generate talkback (bug 373373)
