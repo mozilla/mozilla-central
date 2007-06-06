@@ -163,7 +163,9 @@ sub mail_locale_finished_message {
 
 sub stagesymbols {
   my $builddir = shift;
-  TinderUtils::run_shell_command("make -C $builddir deliver");
+  if (TinderUtils::is_windows()) {
+    TinderUtils::run_shell_command("make -C $builddir deliver");
+  }
 }
 
 sub makefullsoft {
