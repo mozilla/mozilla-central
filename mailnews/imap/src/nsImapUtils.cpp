@@ -54,6 +54,8 @@
 #include "nsMsgUtils.h"
 #include "nsImapFlagAndUidState.h"
 #include "nsISupportsObsolete.h"
+#include "nsIMAPNamespace.h"
+#include "nsIImapFlagAndUidState.h"
 
 nsresult
 nsImapURI2Path(const char* rootURI, const char* uriStr, nsILocalFile **pathResult)
@@ -70,7 +72,7 @@ nsImapURI2Path(const char* rootURI, const char* uriStr, nsILocalFile **pathResul
     return NS_ERROR_FAILURE;
   
   if ((PL_strcmp(rootURI, kImapRootURI) != 0) &&
-    (PL_strcmp(rootURI, kImapMessageRootURI) != 0)) 
+      (PL_strcmp(rootURI, kImapMessageRootURI) != 0)) 
   {
     *pathResult = nsnull;
     rv = NS_ERROR_FAILURE; 
@@ -146,7 +148,7 @@ nsImapURI2Path(const char* rootURI, const char* uriStr, nsILocalFile **pathResul
 }
 
 nsresult
-nsImapURI2FullName(const char* rootURI, const char* hostname, const char* uriStr,
+nsImapURI2FullName(const char* rootURI, const char* hostName, const char* uriStr,
                    char **name)
 {
     nsAutoString uri; uri.AssignWithConversion(uriStr);
@@ -155,7 +157,7 @@ nsImapURI2FullName(const char* rootURI, const char* hostname, const char* uriStr
       return NS_ERROR_FAILURE;
     uri.Right(fullName, uri.Length() - strlen(rootURI));
     uri = fullName;
-    PRInt32 hostStart = uri.Find(hostname);
+    PRInt32 hostStart = uri.Find(hostName);
     if (hostStart <= 0) 
       return NS_ERROR_FAILURE;
     uri.Right(fullName, uri.Length() - hostStart);
@@ -229,107 +231,116 @@ nsresult nsCreateImapBaseMessageURI(const nsACString& baseURI, nsCString &baseMe
   return NS_OK;
 }
 
-// nsImapMailboxSpec stuff
-
+// nsImapMailboxSpec definition
 NS_IMPL_ISUPPORTS1(nsImapMailboxSpec, nsIMailboxSpec)
 
 nsImapMailboxSpec::nsImapMailboxSpec()
 {
-  folder_UIDVALIDITY = 0;
-  number_of_messages = 0;
-  number_of_unseen_messages = 0;
-  number_of_recent_messages = 0;
+  mFolder_UIDVALIDITY = 0;
+  mNumOfMessages = 0;
+  mNumOfUnseenMessages = 0;
+  mNumOfRecentMessages = 0;
   
-  box_flags = 0;
-  supportedUserFlags = 0;
+  mBoxFlags = 0;
+  mSupportedUserFlags = 0;
   
-  allocatedPathName = nsnull;
-  unicharPathName = nsnull;
-  hierarchySeparator = '\0';
-  hostName = nsnull;
+  mHierarchySeparator = '\0';
   
-  folderSelected = PR_FALSE;
-  discoveredFromLsub = PR_FALSE;
+  mFolderSelected = PR_FALSE;
+  mDiscoveredFromLsub = PR_FALSE;
   
-  onlineVerified = PR_FALSE;
-  namespaceForFolder = nsnull;
+  mOnlineVerified = PR_FALSE;
+  mNamespaceForFolder = nsnull;
 }
 
 nsImapMailboxSpec::~nsImapMailboxSpec()
 {
-  nsCRT::free(allocatedPathName);
-  nsCRT::free(unicharPathName);
-  nsCRT::free(hostName);
 }
 
-NS_IMPL_GETSET(nsImapMailboxSpec, Folder_UIDVALIDITY, PRInt32, folder_UIDVALIDITY)
-NS_IMPL_GETSET(nsImapMailboxSpec, NumMessages, PRInt32, number_of_messages)
-NS_IMPL_GETSET(nsImapMailboxSpec, NumUnseenMessages, PRInt32, number_of_unseen_messages)
-NS_IMPL_GETSET(nsImapMailboxSpec, NumRecentMessages, PRInt32, number_of_recent_messages)
-NS_IMPL_GETSET(nsImapMailboxSpec, HierarchySeparator, char, hierarchySeparator)
-NS_IMPL_GETSET(nsImapMailboxSpec, FolderSelected, PRBool, folderSelected)
-NS_IMPL_GETSET(nsImapMailboxSpec, DiscoveredFromLsub, PRBool, discoveredFromLsub)
-NS_IMPL_GETSET(nsImapMailboxSpec, OnlineVerified, PRBool, onlineVerified)
-NS_IMPL_GETSET_STR(nsImapMailboxSpec, HostName, hostName)
-NS_IMPL_GETSET_STR(nsImapMailboxSpec, AllocatedPathName, allocatedPathName)
-NS_IMPL_GETSET(nsImapMailboxSpec, SupportedUserFlags, PRUint32, supportedUserFlags)
-NS_IMPL_GETSET(nsImapMailboxSpec, Box_flags, PRUint32, box_flags)
-NS_IMPL_GETSET(nsImapMailboxSpec, NamespaceForFolder, nsIMAPNamespace *, namespaceForFolder)
+NS_IMPL_GETSET(nsImapMailboxSpec, Folder_UIDVALIDITY, PRInt32, mFolder_UIDVALIDITY)
+NS_IMPL_GETSET(nsImapMailboxSpec, NumMessages, PRInt32, mNumOfMessages)
+NS_IMPL_GETSET(nsImapMailboxSpec, NumUnseenMessages, PRInt32, mNumOfUnseenMessages)
+NS_IMPL_GETSET(nsImapMailboxSpec, NumRecentMessages, PRInt32, mNumOfRecentMessages)
+NS_IMPL_GETSET(nsImapMailboxSpec, HierarchySeparator, char, mHierarchySeparator)
+NS_IMPL_GETSET(nsImapMailboxSpec, FolderSelected, PRBool, mFolderSelected)
+NS_IMPL_GETSET(nsImapMailboxSpec, DiscoveredFromLsub, PRBool, mDiscoveredFromLsub)
+NS_IMPL_GETSET(nsImapMailboxSpec, OnlineVerified, PRBool, mOnlineVerified)
+NS_IMPL_GETSET(nsImapMailboxSpec, SupportedUserFlags, PRUint32, mSupportedUserFlags)
+NS_IMPL_GETSET(nsImapMailboxSpec, Box_flags, PRUint32, mBoxFlags)
+NS_IMPL_GETSET(nsImapMailboxSpec, NamespaceForFolder, nsIMAPNamespace *, mNamespaceForFolder)
 
-NS_IMETHODIMP nsImapMailboxSpec::GetUnicharPathName(PRUnichar **aUnicharPathName)
+NS_IMETHODIMP nsImapMailboxSpec::GetAllocatedPathName(nsACString &aAllocatedPathName)
 {
-  if (!aUnicharPathName)
-    return NS_ERROR_NULL_POINTER;
-  *aUnicharPathName = (unicharPathName) ? nsCRT::strdup(unicharPathName) : nsnull;
+  aAllocatedPathName = mAllocatedPathName;
   return NS_OK;
-}
+} 
+
+NS_IMETHODIMP nsImapMailboxSpec::SetAllocatedPathName(const nsACString &aAllocatedPathName)
+{
+  mAllocatedPathName = aAllocatedPathName;
+  return NS_OK;
+} 
+
+NS_IMETHODIMP nsImapMailboxSpec::GetUnicharPathName(nsAString &aUnicharPathName)
+{
+  aUnicharPathName = aUnicharPathName;
+  return NS_OK;
+} 
+
+NS_IMETHODIMP nsImapMailboxSpec::SetUnicharPathName(const nsAString &aUnicharPathName)
+{
+  mUnicharPathName = aUnicharPathName;
+  return NS_OK;
+} 
+
+NS_IMETHODIMP nsImapMailboxSpec::GetHostName(nsACString &aHostName)
+{
+  aHostName = mHostName;
+  return NS_OK;
+} 
+
+NS_IMETHODIMP nsImapMailboxSpec::SetHostName(const nsACString &aHostName)
+{
+  mHostName = aHostName;
+  return NS_OK;
+} 
 
 NS_IMETHODIMP nsImapMailboxSpec::GetFlagState(nsIImapFlagAndUidState ** aFlagState)
 {
-  if (!aFlagState)
-    return NS_ERROR_NULL_POINTER;
-  *aFlagState = flagState;
-  NS_IF_ADDREF(*aFlagState);
+  NS_ENSURE_ARG_POINTER(aFlagState);
+  NS_IF_ADDREF(*aFlagState = mFlagState);
   return NS_OK;
 }
 
 NS_IMETHODIMP nsImapMailboxSpec::SetFlagState(nsIImapFlagAndUidState * aFlagState)
 {
-  flagState = aFlagState;
+  NS_ENSURE_ARG_POINTER(aFlagState);
+  mFlagState = aFlagState;
   return NS_OK;
 }
 
-
-NS_IMETHODIMP nsImapMailboxSpec::SetUnicharPathName(const PRUnichar *aUnicharPathName)
+nsImapMailboxSpec& nsImapMailboxSpec::operator= (const nsImapMailboxSpec& aCopy) 
 {
-  PR_Free(unicharPathName);
-  unicharPathName= (aUnicharPathName) ? nsCRT::strdup(aUnicharPathName ) : nsnull;
-  return (unicharPathName) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
-}
-
-nsImapMailboxSpec& nsImapMailboxSpec::operator=(const nsImapMailboxSpec& aCopy) 
-{
-  folder_UIDVALIDITY = aCopy.folder_UIDVALIDITY;
-  number_of_messages = aCopy.number_of_messages;
-  number_of_unseen_messages = aCopy.number_of_unseen_messages;
-  number_of_recent_messages = aCopy.number_of_recent_messages;
+  mFolder_UIDVALIDITY = aCopy.mFolder_UIDVALIDITY;
+  mNumOfMessages = aCopy.mNumOfMessages;
+  mNumOfUnseenMessages = aCopy.mNumOfUnseenMessages;
+  mNumOfRecentMessages = aCopy.mNumOfRecentMessages;
 	
-  box_flags = aCopy.box_flags;
-  supportedUserFlags = aCopy.supportedUserFlags;
+  mBoxFlags = aCopy.mBoxFlags;
+  mSupportedUserFlags = aCopy.mSupportedUserFlags;
   
-  allocatedPathName = (aCopy.allocatedPathName) ? strdup(aCopy.allocatedPathName) : nsnull;
-  unicharPathName = (aCopy.unicharPathName) ? nsCRT::strdup(aCopy.unicharPathName) : nsnull;
-  hierarchySeparator = aCopy.hierarchySeparator;
-  hostName = strdup(aCopy.hostName);
+  mAllocatedPathName.Assign(aCopy.mAllocatedPathName);
+  mUnicharPathName.Assign(aCopy.mUnicharPathName);
+  mHierarchySeparator = mHierarchySeparator;
+  mHostName.Assign(aCopy.mHostName);
 	
-  flagState = aCopy.flagState;
+  mFlagState = aCopy.mFlagState;
+  mNamespaceForFolder = aCopy.mNamespaceForFolder;
 	
-  folderSelected = aCopy.folderSelected;
-  discoveredFromLsub = aCopy.discoveredFromLsub;
+  mFolderSelected = aCopy.mFolderSelected;
+  mDiscoveredFromLsub = aCopy.mDiscoveredFromLsub;
 
-  onlineVerified = aCopy.onlineVerified;
-
-  namespaceForFolder = aCopy.namespaceForFolder;
+  mOnlineVerified = aCopy.mOnlineVerified;
   
   return *this;
 }

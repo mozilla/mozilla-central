@@ -41,8 +41,10 @@
 #include "nsString.h"
 #include "nsIMsgIncomingServer.h"
 #include "nsMsgKeyArray.h"
+#include "nsIMailboxSpec.h"
 
 class nsImapFlagAndUidState;
+class nsImapProtocol;
 
 static const char kImapRootURI[] = "imap:/";
 static const char kImapMessageRootURI[] = "imap-message:/";
@@ -66,5 +68,37 @@ nsCreateImapBaseMessageURI(const nsACString& baseURI, nsCString& baseMessageURI)
 
 void AllocateImapUidString(PRUint32 *msgUids, PRUint32 &msgCount, nsImapFlagAndUidState *flagState, nsCString &returnString);
 void ParseUidString(const char *uidString, nsMsgKeyArray &keys);
+
+
+class nsImapMailboxSpec : public nsIMailboxSpec
+{
+public:
+  nsImapMailboxSpec();
+  virtual ~nsImapMailboxSpec();
+  
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSIMAILBOXSPEC
+    
+  nsImapMailboxSpec& operator= (const nsImapMailboxSpec& aCopy);
+  
+  nsCOMPtr<nsIImapFlagAndUidState> mFlagState;
+  nsIMAPNamespace                  *mNamespaceForFolder;  
+  
+  PRUint32  mBoxFlags;
+  PRUint32  mSupportedUserFlags;
+  PRInt32   mFolder_UIDVALIDITY;
+  PRInt32   mNumOfMessages;
+  PRInt32   mNumOfUnseenMessages;
+  PRInt32   mNumOfRecentMessages;
+  nsCString mAllocatedPathName;
+  nsCString mHostName;
+  nsString  mUnicharPathName;
+  char      mHierarchySeparator;
+  PRBool    mFolderSelected;
+  PRBool    mDiscoveredFromLsub;
+  PRBool    mOnlineVerified;
+  
+  nsImapProtocol *mConnection;	// do we need this? It seems evil
+};
 
 #endif //NS_IMAPUTILS_H

@@ -833,27 +833,27 @@ void nsImapServerResponseParser::mailbox_list(PRBool discoveredFromLsub)
     HandleMemoryFailure();
   else
   {
-    boxSpec->folderSelected = PR_FALSE;
-    boxSpec->box_flags = kNoFlags;
-    boxSpec->allocatedPathName = nsnull;
-    boxSpec->hostName = nsnull;
-    boxSpec->connection = &fServerConnection;
-    boxSpec->flagState = nsnull;
-    boxSpec->discoveredFromLsub = discoveredFromLsub;
-    boxSpec->onlineVerified = PR_TRUE;
-    boxSpec->box_flags &= ~kNameSpace;
+    boxSpec->mFolderSelected = PR_FALSE;
+    boxSpec->mBoxFlags = kNoFlags;
+    boxSpec->mAllocatedPathName.Truncate();
+    boxSpec->mHostName.Truncate();
+    boxSpec->mConnection = &fServerConnection;
+    boxSpec->mFlagState = nsnull;
+    boxSpec->mDiscoveredFromLsub = discoveredFromLsub;
+    boxSpec->mOnlineVerified = PR_TRUE;
+    boxSpec->mBoxFlags &= ~kNameSpace;
     
     PRBool endOfFlags = PR_FALSE;
     fNextToken++;	// eat the first "("
     do {
       if (!PL_strncasecmp(fNextToken, "\\Marked", 7))
-        boxSpec->box_flags |= kMarked;	
+        boxSpec->mBoxFlags |= kMarked;	
       else if (!PL_strncasecmp(fNextToken, "\\Unmarked", 9))
-        boxSpec->box_flags |= kUnmarked;	
+        boxSpec->mBoxFlags |= kUnmarked;	
       else if (!PL_strncasecmp(fNextToken, "\\Noinferiors", 12))
-        boxSpec->box_flags |= kNoinferiors;	
+        boxSpec->mBoxFlags |= kNoinferiors;	
       else if (!PL_strncasecmp(fNextToken, "\\Noselect", 9))
-        boxSpec->box_flags |= kNoselect;	
+        boxSpec->mBoxFlags |= kNoselect;	
       // we ignore flag extensions
       
       endOfFlags = *(fNextToken + strlen(fNextToken) - 1) == ')';
@@ -866,12 +866,12 @@ void nsImapServerResponseParser::mailbox_list(PRBool discoveredFromLsub)
       {
         fNextToken++;
         if (*fNextToken == '\\')	// handle escaped char
-          boxSpec->hierarchySeparator = *(fNextToken + 1);
+          boxSpec->mHierarchySeparator = *(fNextToken + 1);
         else
-          boxSpec->hierarchySeparator = *fNextToken;
+          boxSpec->mHierarchySeparator = *fNextToken;
       }
       else	// likely NIL.  Discovered late in 4.02 that we do not handle literals here (e.g. {10} <10 chars>), although this is almost impossibly unlikely
-        boxSpec->hierarchySeparator = kOnlineHierarchySeparatorNil;
+        boxSpec->mHierarchySeparator = kOnlineHierarchySeparatorNil;
       AdvanceToNextToken();	
       if (ContinueParse())
       {
@@ -909,7 +909,7 @@ void nsImapServerResponseParser::mailbox(nsImapMailboxSpec *boxSpec)
   {
     // should the namespace check go before or after the Utf7 conversion?
     fHostSessionList->SetNamespaceHierarchyDelimiterFromMailboxForHost(
-      serverKey, boxname, boxSpec->hierarchySeparator);
+      serverKey, boxname, boxSpec->mHierarchySeparator);
     
     
     nsIMAPNamespace *ns = nsnull;
@@ -919,18 +919,18 @@ void nsImapServerResponseParser::mailbox(nsImapMailboxSpec *boxSpec)
       switch (ns->GetType())
       {
       case kPersonalNamespace:
-        boxSpec->box_flags |= kPersonalMailbox;
+        boxSpec->mBoxFlags |= kPersonalMailbox;
         break;
       case kPublicNamespace:
-        boxSpec->box_flags |= kPublicMailbox;
+        boxSpec->mBoxFlags |= kPublicMailbox;
         break;
       case kOtherUsersNamespace:
-        boxSpec->box_flags |= kOtherUsersMailbox;
+        boxSpec->mBoxFlags |= kOtherUsersMailbox;
         break;
       default:	// (kUnknownNamespace)
         break;
       }
-      boxSpec->namespaceForFolder = ns;
+      boxSpec->mNamespaceForFolder = ns;
     }
     
     //    	char *convertedName =
@@ -948,18 +948,17 @@ void nsImapServerResponseParser::mailbox(nsImapMailboxSpec *boxSpec)
   }
   else
   {
-    NS_ASSERTION(boxSpec->connection, "box spec has null connection");
-    NS_ASSERTION(boxSpec->connection->GetCurrentUrl(), "box spec has connection with null url");
+    NS_ASSERTION(boxSpec->mConnection, "box spec has null connection");
+    NS_ASSERTION(boxSpec->mConnection->GetCurrentUrl(), "box spec has connection with null url");
     //boxSpec->hostName = nsnull;
     //if (boxSpec->connection && boxSpec->connection->GetCurrentUrl())
-    boxSpec->connection->GetCurrentUrl()->AllocateCanonicalPath(boxname, boxSpec->hierarchySeparator, &boxSpec->allocatedPathName);
-    nsIURI * aURL = nsnull;
-    boxSpec->connection->GetCurrentUrl()->QueryInterface(NS_GET_IID(nsIURI), (void **) &aURL);
-    if (aURL) {
-      nsCAutoString host;
-      aURL->GetHost(host);
-      boxSpec->hostName = ToNewCString(host);
-    }
+    boxSpec->mConnection->GetCurrentUrl()->AllocateCanonicalPath(boxname, boxSpec->mHierarchySeparator,
+                                                                 getter_Copies(boxSpec->mAllocatedPathName));
+    nsIURI *aURL = nsnull;
+    boxSpec->mConnection->GetCurrentUrl()->QueryInterface(NS_GET_IID(nsIURI), (void **) &aURL);
+    if (aURL)
+      aURL->GetHost(boxSpec->mHostName);
+    
     NS_IF_RELEASE(aURL);
     if (boxname)
       PL_strfree( boxname);
@@ -3096,43 +3095,39 @@ nsImapMailboxSpec *nsImapServerResponseParser::CreateCurrentMailboxSpec(const ch
     if (serverKey && fHostSessionList)
       fHostSessionList->GetNamespaceForMailboxForHost(serverKey, mailboxNameToConvert, ns);	// for
       // delimiter
-    returnSpec->hierarchySeparator = (ns) ? ns->GetDelimiter(): '/';
+    returnSpec->mHierarchySeparator = (ns) ? ns->GetDelimiter(): '/';
     
   }
   
-  returnSpec->folderSelected = !mailboxName; // if mailboxName is null, we're doing a Status
-  returnSpec->folder_UIDVALIDITY = fFolderUIDValidity;
-  returnSpec->number_of_messages = (mailboxName) ? fStatusExistingMessages : fNumberOfExistingMessages;
-  returnSpec->number_of_unseen_messages = (mailboxName) ? fStatusUnseenMessages : fNumberOfUnseenMessages;
-  returnSpec->number_of_recent_messages = (mailboxName) ? fStatusRecentMessages : fNumberOfRecentMessages;
+  returnSpec->mFolderSelected = !mailboxName; // if mailboxName is null, we're doing a Status
+  returnSpec->mFolder_UIDVALIDITY = fFolderUIDValidity;
+  returnSpec->mNumOfMessages = (mailboxName) ? fStatusExistingMessages : fNumberOfExistingMessages;
+  returnSpec->mNumOfUnseenMessages = (mailboxName) ? fStatusUnseenMessages : fNumberOfUnseenMessages;
+  returnSpec->mNumOfRecentMessages = (mailboxName) ? fStatusRecentMessages : fNumberOfRecentMessages;
   
-  returnSpec->supportedUserFlags = fSupportsUserDefinedFlags;
+  returnSpec->mSupportedUserFlags = fSupportsUserDefinedFlags;
 
-  returnSpec->box_flags = kNoFlags;	// stub
-  returnSpec->onlineVerified = PR_FALSE;	// we're fabricating this.  The flags aren't verified.
-  returnSpec->allocatedPathName = strdup(mailboxNameToConvert);
-  returnSpec->connection = &fServerConnection;
-  if (returnSpec->connection)
+  returnSpec->mBoxFlags = kNoFlags;	// stub
+  returnSpec->mOnlineVerified = PR_FALSE;	// we're fabricating this.  The flags aren't verified.
+  returnSpec->mAllocatedPathName.Assign(mailboxNameToConvert);
+  returnSpec->mConnection = &fServerConnection;
+  if (returnSpec->mConnection)
   {
     nsIURI * aUrl = nsnull;
     nsresult rv = NS_OK;
-    returnSpec->connection->GetCurrentUrl()->QueryInterface(NS_GET_IID(nsIURI), (void **) &aUrl);
+    returnSpec->mConnection->GetCurrentUrl()->QueryInterface(NS_GET_IID(nsIURI), (void **) &aUrl);
     if (NS_SUCCEEDED(rv) && aUrl) 
-    {
-      nsCAutoString host;
-      aUrl->GetHost(host);
-      returnSpec->hostName = ToNewCString(host);
-    }
-    NS_IF_RELEASE(aUrl);
+      aUrl->GetHost(returnSpec->mHostName);
     
+    NS_IF_RELEASE(aUrl);
   }
   else
-    returnSpec->hostName = nsnull;
+    returnSpec->mHostName.Truncate();
 
   if (fFlagState)
-    returnSpec->flagState = fFlagState; //copies flag state
+    returnSpec->mFlagState = fFlagState; //copies flag state
   else
-    returnSpec->flagState = nsnull;
+    returnSpec->mFlagState = nsnull;
   
   return returnSpec;
   

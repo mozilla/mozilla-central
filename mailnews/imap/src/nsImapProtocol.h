@@ -672,4 +672,23 @@ protected:
   nsresult SetupPartExtractorListener(nsIImapUrl * aUrl, nsIStreamListener * aConsumer);
 };
 
+// This class contains the name of a mailbox and whether or not
+// its children have been listed.
+class nsIMAPMailboxInfo
+{
+public:
+  nsIMAPMailboxInfo(const nsACString &aName, char aDelimiter);
+  virtual ~nsIMAPMailboxInfo();
+  
+  void   SetChildrenListed(PRBool childrenListed);
+  PRBool GetChildrenListed();
+  const  nsACString& GetMailboxName();
+  char   GetDelimiter();
+  
+protected:
+  nsCString mMailboxName;
+  PRBool   mChildrenListed;
+  char     mDelimiter;
+};
+
 #endif  // nsImapProtocol_h___

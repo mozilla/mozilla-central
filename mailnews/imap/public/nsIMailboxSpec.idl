@@ -40,7 +40,7 @@
 
 interface nsIMAPNamespace;
 
-[scriptable, uuid(76cbfa2e-c7f2-11d3-a54e-0060b0fc04b7)]
+[scriptable, uuid(35a2d114-2801-431c-bba5-be8cafa0461b)]
 interface nsIMailboxSpec : nsISupports
 {
   attribute long folder_UIDVALIDITY;
@@ -51,10 +51,10 @@ interface nsIMailboxSpec : nsISupports
   attribute unsigned long	box_flags;
   attribute unsigned long supportedUserFlags;
 	
-  attribute string allocatedPathName;
-  attribute wstring unicharPathName;
+  attribute ACString allocatedPathName;
+  attribute AString unicharPathName;
   attribute char hierarchySeparator;
-  attribute string hostName;
+  attribute ACString hostName;
 
   attribute nsIImapFlagAndUidState flagState;
 

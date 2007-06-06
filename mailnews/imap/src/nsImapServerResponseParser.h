@@ -39,11 +39,11 @@
 #ifndef _nsIMAPServerResponseParser_H_
 #define _nsIMAPServerResponseParser_H_
 
-#include "nsImapCore.h"
 #include "nsIMAPHostSessionList.h"
 #include "nsImapSearchResults.h"
 #include "nsString.h"
 #include "nsMsgKeyArray.h"
+#include "nsImapUtils.h"
 
 class nsIMAPNamespace;
 class nsIMAPNamespaceList;

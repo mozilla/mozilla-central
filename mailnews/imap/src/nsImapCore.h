@@ -101,8 +101,6 @@ typedef enum {
 	IMAP_CONTENT_FORCE_CONTENT_NOT_MODIFIED
 } IMAP_ContentModifiedType;
 
-
-
 // I think this should really go in an imap.h equivalent file
 typedef enum {
     kPersonalNamespace = 0,
@@ -111,7 +109,6 @@ typedef enum {
     kDefaultNamespace,
     kUnknownNamespace
 } EIMAPNamespaceType;
-
 
 typedef enum {
     kCapabilityUndefined = 0x00000000,
@@ -156,61 +153,6 @@ typedef enum {
     kMIMEHeader,
     kBodyStart
 } nsIMAPeFetchFields;
-    
-// This class is currently only used for the one-time upgrade
-// process from a LIST view to the subscribe model.
-// It basically contains the name of a mailbox and whether or not
-// its children have been listed.
-class nsIMAPMailboxInfo
-{
-public:
-  nsIMAPMailboxInfo(const char *name, char delimiter);
-  virtual ~nsIMAPMailboxInfo();
-  void SetChildrenListed(PRBool childrenListed) { m_childrenListed = childrenListed; }
-  PRBool GetChildrenListed() { return m_childrenListed; }
-  const char *GetMailboxName() { return m_mailboxName.get(); }
-  char	GetDelimiter() { return m_delimiter; }
-  
-protected:
-  PRBool m_childrenListed;
-  nsCString m_mailboxName;
-  char m_delimiter;
-};
-
-class nsImapMailboxSpec : public nsIMailboxSpec
-{
-public:
-  NS_DECL_ISUPPORTS
-    
-  nsImapMailboxSpec();
-  virtual ~nsImapMailboxSpec();
-
-  NS_DECL_NSIMAILBOXSPEC
-    
-  nsImapMailboxSpec& operator=(const nsImapMailboxSpec& aCopy);
-  PRInt32 folder_UIDVALIDITY;
-  PRInt32 number_of_messages;
-  PRInt32 number_of_unseen_messages;
-  PRInt32 number_of_recent_messages;
-  
-  PRUint32  box_flags;
-  PRUint32  supportedUserFlags;
-  
-  char          *allocatedPathName;
-  PRUnichar *unicharPathName;
-  char      hierarchySeparator;
-  char     *hostName;
-  
-  nsImapProtocol *connection;	// do we need this? It seems evil.
-  nsCOMPtr <nsIImapFlagAndUidState>     flagState;
-  
-  PRBool    folderSelected;
-  PRBool    discoveredFromLsub;
-  
-  PRBool    onlineVerified;
-  
-  nsIMAPNamespace *namespaceForFolder;
-};
 
 typedef struct _utf_name_struct {
 	PRBool toUtf7Imap;
@@ -218,23 +160,18 @@ typedef struct _utf_name_struct {
 	unsigned char *convertedString;
 } utf_name_struct;
 
-
 typedef struct _ProgressInfo {
   PRUnichar *message;
   PRInt32 currentProgress;
   PRInt32 maxProgress;
 } ProgressInfo;
 
-
-
-typedef enum 
-{
+typedef enum {
     eContinue,
     eContinueNew,
     eListMyChildren,
     eNewServerDirectory,
     eCancelled 
 } EMailboxDiscoverStatus;
-
 
 #endif
