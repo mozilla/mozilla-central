@@ -476,7 +476,7 @@ FetcherURLDoneCallback(nsresult aStatus,
       if (!ma->mAppleFile)
 #else
         // can't send appledouble on non-macs
-        if (strcmp(aContentType, "multipart/appledouble"))
+        if (!strcmp(aContentType, "multipart/appledouble"))
 #endif
       {
         PR_FREEIF(ma->m_type);
