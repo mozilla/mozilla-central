@@ -73,8 +73,6 @@ bin\components\widget.xpt
 bin\components\accessibility.dll
 bin\components\accessibility.xpt
 bin\components\accessibility-msaa.xpt
-bin\components\AcctIdl.dll
-bin\components\AcctIdl.xpt
 bin\components\alerts.xpt
 bin\components\appcomps.dll
 bin\components\appshell.dll
@@ -131,6 +129,7 @@ bin\components\embed_base.xpt
 bin\components\embedcomponents.dll
 bin\components\extensions.xpt
 bin\components\exthandler.xpt
+bin\components\fastfind.xpt
 bin\components\feeds.xpt
 bin\components\find.xpt
 bin\components\gklayout.dll
@@ -139,10 +138,8 @@ bin\components\gkplugin.dll
 bin\components\history.xpt
 bin\components\htmlparser.xpt
 bin\components\i18n.dll
-bin\components\imgbmp.dll
-bin\components\imgxbm.dll
 bin\components\imgicon.dll
-bin\components\imcicon.xpt
+bin\components\imgicon.xpt
 bin\components\imglib2.dll
 bin\components\imglib2.xpt
 bin\components\inspector.xpt
@@ -164,7 +161,6 @@ bin\components\mozbrwsr.xpt
 bin\components\mozcomps.xpt
 bin\components\mozfind.dll
 bin\components\mozfind.xpt
-bin\components\nativapp.dll
 bin\components\necko.dll
 bin\components\necko.xpt
 bin\components\necko_about.xpt
@@ -450,7 +446,6 @@ bin\freebl3.chk
 bin\freebl3.dll
 bin\ssl3.dll
 bin\nssckbi.dll
-bin\chrome\pipnss.jar
 bin\chrome\pippki.jar
 bin\chrome\pippki.manifest
 
@@ -466,6 +461,7 @@ bin\components\mail.dll
 bin\msgbsutl.dll
 bin\components\addrbook.dll
 bin\components\addrbook.xpt
+bin\components\bayesflt.dll
 bin\components\emitter.dll
 bin\components\mailnewspublic.xpt
 bin\components\mime.dll
@@ -498,6 +494,8 @@ bin\chrome\icons\default\abcardWindow.ico
 bin\chrome\icons\default\addressbookWindow.ico
 bin\chrome\icons\default\messengerWindow.ico
 bin\chrome\icons\default\msgcomposeWindow.ico
+bin\components\mailview.dll
+bin\components\mailview.xpt
 bin\components\msgsmime.dll
 bin\components\msgsmime.xpt
 bin\components\smime-service.js
@@ -510,6 +508,7 @@ bin\components\msgmdn.xpt
 bin\components\mdn-service.js
 bin\components\nsSetDefaultMail.js
 bin\components\nsUnsetDefaultMail.js
+bin\components\offlineStartup.js
 ;these Palm Sync files are conditionally built so would not exist unless built
 bin\extensions\p@m\install.rdf
 bin\extensions\p@m\mozABConduit.dll
