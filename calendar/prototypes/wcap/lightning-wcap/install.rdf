@@ -7,7 +7,7 @@
         <!-- nsIUpdateItem type for a Multiple Item Package -->
         <em:type NC:parseType="Integer">32</em:type>
         <em:id>lightning-wcap@calendar.mozilla.org</em:id>
-        <em:version>0.3</em:version>
+        <em:version>@LIGHTNING_VERSION@</em:version>
         <em:targetApplication>
             <Description>
                 <!-- Thunderbird -->
