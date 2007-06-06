@@ -184,11 +184,12 @@ nsThunderbirdProfileMigrator::GetMigrateData(const PRUnichar* aProfile,
                           aReplace, mSourceProfile, aResult);
 
   // Now locate passwords
-  nsXPIDLCString signonsFileName;
+  nsCString signonsFileName;
   GetSignonFileName(aReplace, getter_Copies(signonsFileName));
 
   if (!signonsFileName.IsEmpty()) {
-    nsAutoString fileName; fileName.AssignWithConversion(signonsFileName);
+    nsAutoString fileName;
+    fileName.Assign(NS_ConvertUTF8toUTF16(signonsFileName));
     nsCOMPtr<nsIFile> sourcePasswordsFile;
     mSourceProfile->Clone(getter_AddRefs(sourcePasswordsFile));
     sourcePasswordsFile->Append(fileName);
@@ -200,11 +201,12 @@ nsThunderbirdProfileMigrator::GetMigrateData(const PRUnichar* aProfile,
   }
 
   // Now locate form data
-  nsXPIDLCString formDataFileName;
+  nsCString formDataFileName;
   GetSchemaValueFileName(aReplace, getter_Copies(formDataFileName));
 
   if (!formDataFileName.IsEmpty()) {
-    nsAutoString fileName; fileName.AssignWithConversion(formDataFileName);
+    nsAutoString fileName;
+    fileName.Assign(NS_ConvertUTF8toUTF16(formDataFileName));
     nsCOMPtr<nsIFile> sourceFormDataFile;
     mSourceProfile->Clone(getter_AddRefs(sourceFormDataFile));
     sourceFormDataFile->Append(fileName);
@@ -247,40 +249,58 @@ nsThunderbirdProfileMigrator::FillProfileDataFromRegistry()
   // Find the Thunderbird Registry
   nsCOMPtr<nsIProperties> fileLocator(
     do_GetService("@mozilla.org/file/directory_service;1"));
-  nsCOMPtr<nsILocalFile> thunderbirdRegistry;
+  nsCOMPtr<nsILocalFile> thunderbirdData;
 #ifdef XP_WIN
+#define REGISTRY_FILE "registry.dat"
   fileLocator->Get(NS_WIN_APPDATA_DIR, NS_GET_IID(nsILocalFile),
-                   getter_AddRefs(thunderbirdRegistry));
+                   getter_AddRefs(thunderbirdData));
 
-  thunderbirdRegistry->Append(NS_LITERAL_STRING("Thunderbird"));
-  thunderbirdRegistry->Append(NS_LITERAL_STRING("registry.dat"));
+  thunderbirdData->Append(NS_LITERAL_STRING("Thunderbird"));
+
 #elif defined(XP_MACOSX)
+#define REGISTRY_FILE "Application Registry"
   fileLocator->Get(NS_MAC_USER_LIB_DIR, NS_GET_IID(nsILocalFile),
-                   getter_AddRefs(thunderbirdRegistry));
+                   getter_AddRefs(thunderbirdData));
   
-  thunderbirdRegistry->Append(NS_LITERAL_STRING("Thunderbird"));
-  thunderbirdRegistry->Append(NS_LITERAL_STRING("Application Registry"));
-#elif defined(XP_UNIX)
-  fileLocator->Get(NS_UNIX_HOME_DIR, NS_GET_IID(nsILocalFile),
-                   getter_AddRefs(thunderbirdRegistry));
-  
-  thunderbirdRegistry->Append(NS_LITERAL_STRING(".thunderbird"));
-  thunderbirdRegistry->Append(NS_LITERAL_STRING("appreg"));
-#elif defined(XP_BEOS)
-   fileLocator->Get(NS_BEOS_SETTINGS_DIR, NS_GET_IID(nsILocalFile),
-                    getter_AddRefs(thunderbirdRegistry));
+  thunderbirdData->Append(NS_LITERAL_STRING("Thunderbird"));
 
-   thunderbirdRegistry->Append(NS_LITERAL_STRING("Thunderbird"));
-   thunderbirdRegistry->Append(NS_LITERAL_STRING("appreg"));
-#elif defined(XP_OS2)
-  fileLocator->Get(NS_OS2_HOME_DIR, NS_GET_IID(nsILocalFile),
-                   getter_AddRefs(thunderbirdRegistry));
+#elif defined(XP_UNIX)
+#define REGISTRY_FILE "appreg"
+  fileLocator->Get(NS_UNIX_HOME_DIR, NS_GET_IID(nsILocalFile),
+                   getter_AddRefs(thunderbirdData));
   
-  thunderbirdRegistry->Append(NS_LITERAL_STRING("Thunderbird"));
-  thunderbirdRegistry->Append(NS_LITERAL_STRING("registry.dat"));
+  thunderbirdData->Append(NS_LITERAL_STRING(".thunderbird"));
+
+#elif defined(XP_BEOS)
+#define REGISTRY_FILE "appreg"
+   fileLocator->Get(NS_BEOS_SETTINGS_DIR, NS_GET_IID(nsILocalFile),
+                    getter_AddRefs(thunderbirdData));
+
+   thunderbirdData->Append(NS_LITERAL_STRING("Thunderbird"));
+
+#elif defined(XP_OS2)
+#define REGISTRY_FILE "registry.dat"
+  fileLocator->Get(NS_OS2_HOME_DIR, NS_GET_IID(nsILocalFile),
+                   getter_AddRefs(thunderbirdData));
+  
+  thunderbirdData->Append(NS_LITERAL_STRING("Thunderbird"));
+#else
+  // On other OS just abort
+  return NS_ERROR_FAILURE;
 #endif
 
-  return GetProfileDataFromRegistry(thunderbirdRegistry, mProfileNames,
+  // Try profiles.ini first
+  nsresult rv = GetProfileDataFromProfilesIni(thunderbirdData,
+                                              mProfileNames,
+                                              mProfileLocations);
+
+  if (rv != NS_ERROR_FILE_NOT_FOUND)
+    return rv;
+
+  thunderbirdData->Append(NS_LITERAL_STRING(REGISTRY_FILE));
+
+  // Then try the old registry format
+  return GetProfileDataFromRegistry(thunderbirdData, mProfileNames,
                                     mProfileLocations);
 }
 

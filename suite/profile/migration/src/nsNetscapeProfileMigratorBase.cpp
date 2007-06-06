@@ -57,6 +57,7 @@
 #include "prtime.h"
 #include "prprf.h"
 #include "nsIPasswordManagerInternal.h"
+#include "nsINIParser.h"
 
 #define MAIL_DIR_50_NAME             NS_LITERAL_STRING("Mail")
 #define IMAP_MAIL_DIR_50_NAME        NS_LITERAL_STRING("ImapMail")
@@ -283,64 +284,6 @@ nsNetscapeProfileMigratorBase::SetString(PrefTransform* aTransform,
 }
 
 nsresult
-nsNetscapeProfileMigratorBase::GetWString(PrefTransform* aTransform,
-                                          nsIPrefBranch* aBranch)
-{
-  nsCOMPtr<nsIPrefLocalizedString> prefValue;
-  nsresult rv = aBranch->GetComplexValue(aTransform->sourcePrefName,
-                                         NS_GET_IID(nsIPrefLocalizedString),
-                                         getter_AddRefs(prefValue));
-
-  if (NS_SUCCEEDED(rv) && prefValue) {
-    nsXPIDLString data;
-    prefValue->ToString(getter_Copies(data));
-
-    aTransform->stringValue = ToNewCString(NS_ConvertUTF16toUTF8(data));
-
-    // Check if we had a string before, but not now.
-    if (!aTransform->stringValue && data)
-      return NS_ERROR_OUT_OF_MEMORY;
-  
-    aTransform->prefHasValue = PR_TRUE;
-  }
-  return rv;
-}
-
-nsresult
-nsNetscapeProfileMigratorBase::SetWString(PrefTransform* aTransform,
-                                          nsIPrefBranch* aBranch)
-{
-  if (aTransform->prefHasValue) {
-    nsCOMPtr<nsIPrefLocalizedString> pls(
-      do_CreateInstance("@mozilla.org/pref-localizedstring;1"));
-    pls->SetData(NS_ConvertUTF8toUTF16(aTransform->stringValue).get());
-
-    return aBranch->SetComplexValue(aTransform->targetPrefName ?
-                                    aTransform->targetPrefName :
-                                    aTransform->sourcePrefName,
-                                    NS_GET_IID(nsIPrefLocalizedString), pls);
-  }
-  return NS_OK;
-}
-
-nsresult
-nsNetscapeProfileMigratorBase::SetWStringFromASCII(PrefTransform* aTransform,
-                                                   nsIPrefBranch* aBranch)
-{
-  if (aTransform->prefHasValue) {
-    nsCOMPtr<nsIPrefLocalizedString> pls(
-      do_CreateInstance("@mozilla.org/pref-localizedstring;1"));
-    nsAutoString data;
-    pls->SetData(NS_ConvertUTF8toUTF16(aTransform->stringValue).get());
-    return aBranch->SetComplexValue(aTransform->targetPrefName ?
-                                    aTransform->targetPrefName :
-                                    aTransform->sourcePrefName,
-                                    NS_GET_IID(nsIPrefLocalizedString), pls);
-  }
-  return NS_OK;
-}
-
-nsresult
 nsNetscapeProfileMigratorBase::GetBool(PrefTransform* aTransform,
                                        nsIPrefBranch* aBranch)
 {
@@ -444,6 +387,86 @@ nsNetscapeProfileMigratorBase::GetSourceProfile(const PRUnichar* aProfile)
     }
   }
 
+  return NS_OK;
+}
+
+nsresult
+nsNetscapeProfileMigratorBase::GetProfileDataFromProfilesIni(nsILocalFile* aDataDir,
+                                                             nsISupportsArray* aProfileNames,
+                                                             nsISupportsArray* aProfileLocations)
+{
+  nsresult rv;
+  nsCOMPtr<nsIFile> dataDir;
+  rv = aDataDir->Clone(getter_AddRefs(dataDir));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsILocalFile> profileIni(do_QueryInterface(dataDir, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  profileIni->Append(NS_LITERAL_STRING("profiles.ini"));
+
+  // Does it exist?
+  PRBool profileFileExists = PR_FALSE;
+  rv = profileIni->Exists(&profileFileExists);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (!profileFileExists)
+    return NS_ERROR_FILE_NOT_FOUND;
+
+  nsINIParser parser;
+  rv = parser.Init(profileIni);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCAutoString buffer, filePath;
+  PRBool isRelative;
+
+  unsigned int c = 0;
+  for (c = 0; PR_TRUE; ++c) {
+    nsCAutoString profileID("Profile");
+    profileID.AppendInt(c);
+
+    rv = parser.GetString(profileID.get(), "IsRelative", buffer);
+    if (NS_FAILED(rv))
+      break;
+
+    isRelative = buffer.EqualsLiteral("1");
+
+    rv = parser.GetString(profileID.get(), "Path", filePath);
+    if (NS_FAILED(rv)) {
+      NS_ERROR("Malformed profiles.ini: Path= not found");
+      continue;
+    }
+
+    rv = parser.GetString(profileID.get(), "Name", buffer);
+    if (NS_FAILED(rv)) {
+      NS_ERROR("Malformed profiles.ini: Name= not found");
+      continue;
+    }
+
+    nsCOMPtr<nsILocalFile> rootDir;
+    rv = NS_NewNativeLocalFile(EmptyCString(), PR_TRUE, getter_AddRefs(rootDir));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    if (isRelative)
+      rv = rootDir->SetRelativeDescriptor(aDataDir, filePath);
+    else
+      rv = rootDir->SetPersistentDescriptor(filePath);
+
+    if (NS_FAILED(rv)) continue;
+
+    PRBool exists;
+    rootDir->Exists(&exists);
+
+    if (exists) {
+      aProfileLocations->AppendElement(rootDir);
+
+      nsCOMPtr<nsISupportsString> profileNameString(
+        do_CreateInstance("@mozilla.org/supports-string;1"));
+
+      profileNameString->SetData(NS_ConvertUTF8toUTF16(buffer));
+      aProfileNames->AppendElement(profileNameString);
+    }
+  }
   return NS_OK;
 }
 

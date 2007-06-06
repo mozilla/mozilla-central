@@ -120,10 +120,6 @@ public:
   // Pref Transform Methods - these seem only to be used by the dogbert migrator
   static nsresult GetString(PrefTransform* aTransform, nsIPrefBranch* aBranch);
   static nsresult SetString(PrefTransform* aTransform, nsIPrefBranch* aBranch);
-  static nsresult GetWString(PrefTransform* aTransform, nsIPrefBranch* aBranch);
-  static nsresult SetWString(PrefTransform* aTransform, nsIPrefBranch* aBranch);
-  static nsresult SetWStringFromASCII(PrefTransform* aTransform,
-                                      nsIPrefBranch* aBranch);
   static nsresult GetBool(PrefTransform* aTransform, nsIPrefBranch* aBranch);
   static nsresult SetBool(PrefTransform* aTransform, nsIPrefBranch* aBranch);
   static nsresult GetInt(PrefTransform* aTransform, nsIPrefBranch* aBranch);
@@ -144,6 +140,9 @@ protected:
 
   // General Utility Methods
   nsresult GetSourceProfile(const PRUnichar* aProfile);
+  nsresult GetProfileDataFromProfilesIni(nsILocalFile* aDataDir,
+                                         nsISupportsArray* aProfileNames,
+                                         nsISupportsArray* aProfileLocations);
   nsresult GetProfileDataFromRegistry(nsILocalFile* aRegistryFile,
                                       nsISupportsArray* aProfileNames,
                                       nsISupportsArray* aProfileLocations);
