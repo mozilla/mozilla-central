@@ -46,7 +46,6 @@
 #include "nsAbWinHelper.h"
 #include "nsMapiAddressBook.h"
 #include "nsWabAddressBook.h"
-#include "nsCRT.h"
 
 #include <mapiguid.h>
 
@@ -590,7 +589,7 @@ BOOL nsAbWinHelper::SetPropertiesUString(const nsMapiEntry& aObject, const ULONG
         }
         else if (PROP_TYPE(aPropertiesTag [i]) == PT_STRING8) {
             alternativeValue.AssignWithConversion(aValues [i].get()) ;
-            char *av = nsCRT::strdup(alternativeValue.get()) ;
+            char *av = strdup(alternativeValue.get()) ;
             if (!av) {
                 retCode = FALSE ;
                 break ;
@@ -602,7 +601,7 @@ BOOL nsAbWinHelper::SetPropertiesUString(const nsMapiEntry& aObject, const ULONG
         retCode = SetMAPIProperties(aObject, currentValue, values) ;
     for (i = 0 ; i < currentValue ; ++ i) {
         if (PROP_TYPE(aPropertiesTag [i]) == PT_STRING8) {
-            nsCRT::free(values [i].Value.lpszA) ;
+            NS_Free(values [i].Value.lpszA) ;
         }
     }
     delete [] values ;
@@ -1009,13 +1008,13 @@ nsAbWinType getAbWinType(const char *aScheme, const char *aUri, nsCString& aStub
     aEntry.Truncate() ;
     PRUint32 schemeLength = strlen(aScheme) ;
 
-    if (nsCRT::strncmp(aUri, aScheme, schemeLength) == 0) {
-        if (nsCRT::strncmp(aUri + schemeLength, kOutlookStub, kOutlookStubLength) == 0) {
+    if (strncmp(aUri, aScheme, schemeLength) == 0) {
+        if (strncmp(aUri + schemeLength, kOutlookStub, kOutlookStubLength) == 0) {
             aEntry = aUri + schemeLength + kOutlookStubLength ;
             aStub = kOutlookStub ;
             return nsAbWinType_Outlook ;
         }
-        if (nsCRT::strncmp(aUri + schemeLength, kOutlookExpStub, kOutlookExpStubLength) == 0) {
+        if (strncmp(aUri + schemeLength, kOutlookExpStub, kOutlookExpStubLength) == 0) {
             aEntry = aUri + schemeLength + kOutlookExpStubLength ;
             aStub = kOutlookExpStub ;
             return nsAbWinType_OutlookExp ;

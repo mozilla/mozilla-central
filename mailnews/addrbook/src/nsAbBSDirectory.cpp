@@ -56,7 +56,8 @@
 #include "nsAbDirFactoryService.h"
 #include "nsAbMDBDirFactory.h"
 #include "nsArrayEnumerator.h"
-#include "nsCRT.h"
+
+#include "nsCRTGlue.h"
 
 nsAbBSDirectory::nsAbBSDirectory()
 : nsRDFResource(),
@@ -434,13 +435,13 @@ NS_IMETHODIMP nsAbBSDirectory::ModifyDirectory(nsIAbDirectory *directory, nsIAbD
   NS_ENSURE_SUCCESS(rv, rv);
  
   NS_ConvertUTF8toUTF16 oldValue(server->description);
-  nsCRT::free(server->description);
+  NS_Free(server->description);
   NS_ConvertUTF16toUTF8 utf8str(description.get());
   server->description = ToNewCString(utf8str);
 
   rv = aProperties->GetURI(getter_Copies(uri));
   NS_ENSURE_SUCCESS(rv, rv);
-  nsCRT::free(server->uri);
+  NS_Free(server->uri);
   server->uri = ToNewCString(uri);
 
   DIR_SavePrefsForOneServer(server);

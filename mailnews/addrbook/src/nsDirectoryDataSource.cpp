@@ -197,7 +197,7 @@ NS_IMPL_ISUPPORTS_INHERITED3(nsAbDirectoryDataSource, nsAbRDFDataSource, nsIAbLi
  // nsIRDFDataSource methods
 NS_IMETHODIMP nsAbDirectoryDataSource::GetURI(char* *uri)
 {
-  if ((*uri = nsCRT::strdup("rdf:addressdirectory")) == nsnull)
+  if ((*uri = strdup("rdf:addressdirectory")) == nsnull)
     return NS_ERROR_OUT_OF_MEMORY;
   else
     return NS_OK;

@@ -52,7 +52,7 @@
 #include "nsXPCOM.h"
 #include "nsISupportsPrimitives.h"
 #include "nsITreeColumns.h"
-#include "nsCRT.h"
+#include "nsCRTGlue.h"
 
 #include "nsIPrefService.h"
 #include "nsIPrefBranch2.h"
@@ -668,7 +668,7 @@ static void SetSortClosure(const PRUnichar *sortColumn, const PRUnichar *sortDir
 {
   closure->colID = sortColumn;
   
-  if (sortDirection && !nsCRT::strcmp(sortDirection, NS_LITERAL_STRING("descending").get()))
+  if (sortDirection && !NS_strcmp(sortDirection, NS_LITERAL_STRING("descending").get()))
     closure->factor = DESCENDING_SORT_FACTOR;
   else 
     closure->factor = ASCENDING_SORT_FACTOR;
@@ -700,7 +700,7 @@ NS_IMETHODIMP nsAbView::SortBy(const PRUnichar *colID, const PRUnichar *sortDir)
   // note, we'll call SortBy() with the existing sort column and the
   // existing sort direction, and that needs to do a complete resort.
   // for example, we do that when the PREF_MAIL_ADDR_BOOK_LASTNAMEFIRST changes
-  if (!nsCRT::strcmp(mSortColumn.get(),sortColumn.get()) && nsCRT::strcmp(mSortDirection.get(), sortDir)) {
+  if (!NS_strcmp(mSortColumn.get(),sortColumn.get()) && NS_strcmp(mSortDirection.get(), sortDir)) {
     PRInt32 halfPoint = count / 2;
     for (i=0; i < halfPoint; i++) {
       // swap the elements.
@@ -852,7 +852,7 @@ NS_IMETHODIMP nsAbView::Observe(nsISupports *aSubject, const char *aTopic, const
 {
   nsresult rv;
 
-  if (!nsCRT::strcmp(aTopic, NS_PREFBRANCH_PREFCHANGE_TOPIC_ID)) {
+  if (!strcmp(aTopic, NS_PREFBRANCH_PREFCHANGE_TOPIC_ID)) {
     nsDependentString prefName(someData);
     
     if (prefName.EqualsLiteral(PREF_MAIL_ADDR_BOOK_LASTNAMEFIRST)) {

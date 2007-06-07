@@ -55,11 +55,11 @@
 #include "nsIProxyObjectManager.h"
 #include "nsEnumeratorUtils.h"
 #include "nsServiceManagerUtils.h"
-#include "nsCRT.h"
 #include "prlog.h"
 #include "prthread.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
+#include "nsCRTGlue.h"
 
 #ifdef PR_LOGGING
 static PRLogModuleInfo* gAbOutlookDirectoryLog
@@ -644,7 +644,7 @@ static ULONG findPropertyTag(const char *aName) {
     PRUint32 i = 0 ;
     
     for (i = 0 ; i < OutlookTableNbProps ; ++ i) {
-        if (nsCRT::strcmp(aName, OutlookTableStringToProp [i].mOuterName) == 0) {
+        if (strcmp(aName, OutlookTableStringToProp [i].mOuterName) == 0) {
             return OutlookTableStringToProp [i].mMapiProp ;
         }
     }
@@ -693,7 +693,7 @@ static nsresult BuildRestriction(nsIAbBooleanConditionString *aCondition,
         aRestriction.res.resContent.ulPropTag = propertyTag ;
         aRestriction.res.resContent.lpProp = new SPropValue ;
         aRestriction.res.resContent.lpProp->ulPropTag = propertyTag ;
-        aRestriction.res.resContent.lpProp->Value.lpszA = nsCRT::strdup(valueAscii.get()) ;
+        aRestriction.res.resContent.lpProp->Value.lpszA = strdup(valueAscii.get()) ;
         break ;
     case nsIAbBooleanConditionTypes::DoesNotContain :
         aRestriction.rt = RES_NOT ;
@@ -703,7 +703,7 @@ static nsresult BuildRestriction(nsIAbBooleanConditionString *aCondition,
         aRestriction.res.resNot.lpRes->res.resContent.ulPropTag = propertyTag ;
         aRestriction.res.resNot.lpRes->res.resContent.lpProp = new SPropValue ;
         aRestriction.res.resNot.lpRes->res.resContent.lpProp->ulPropTag = propertyTag ;
-        aRestriction.res.resNot.lpRes->res.resContent.lpProp->Value.lpszA = nsCRT::strdup(valueAscii.get()) ;
+        aRestriction.res.resNot.lpRes->res.resContent.lpProp->Value.lpszA = strdup(valueAscii.get()) ;
         break ;
     case nsIAbBooleanConditionTypes::Is :
         aRestriction.rt = RES_CONTENT ;
@@ -711,7 +711,7 @@ static nsresult BuildRestriction(nsIAbBooleanConditionString *aCondition,
         aRestriction.res.resContent.ulPropTag = propertyTag ;
         aRestriction.res.resContent.lpProp = new SPropValue ;
         aRestriction.res.resContent.lpProp->ulPropTag = propertyTag ;
-        aRestriction.res.resContent.lpProp->Value.lpszA = nsCRT::strdup(valueAscii.get()) ;
+        aRestriction.res.resContent.lpProp->Value.lpszA = strdup(valueAscii.get()) ;
         break ;
     case nsIAbBooleanConditionTypes::IsNot :
         aRestriction.rt = RES_NOT ;
@@ -721,7 +721,7 @@ static nsresult BuildRestriction(nsIAbBooleanConditionString *aCondition,
         aRestriction.res.resNot.lpRes->res.resContent.ulPropTag = propertyTag ;
         aRestriction.res.resNot.lpRes->res.resContent.lpProp = new SPropValue ;
         aRestriction.res.resNot.lpRes->res.resContent.lpProp->ulPropTag = propertyTag ;
-        aRestriction.res.resNot.lpRes->res.resContent.lpProp->Value.lpszA = nsCRT::strdup(valueAscii.get()) ;
+        aRestriction.res.resNot.lpRes->res.resContent.lpProp->Value.lpszA = strdup(valueAscii.get()) ;
         break ;
     case nsIAbBooleanConditionTypes::BeginsWith :
         aRestriction.rt = RES_CONTENT ;
@@ -729,7 +729,7 @@ static nsresult BuildRestriction(nsIAbBooleanConditionString *aCondition,
         aRestriction.res.resContent.ulPropTag = propertyTag ;
         aRestriction.res.resContent.lpProp = new SPropValue ;
         aRestriction.res.resContent.lpProp->ulPropTag = propertyTag ;
-        aRestriction.res.resContent.lpProp->Value.lpszA = nsCRT::strdup(valueAscii.get()) ;
+        aRestriction.res.resContent.lpProp->Value.lpszA = strdup(valueAscii.get()) ;
         break ;
     case nsIAbBooleanConditionTypes::EndsWith :
         // This condition should be implemented through regular expressions,
@@ -740,7 +740,7 @@ static nsresult BuildRestriction(nsIAbBooleanConditionString *aCondition,
         aRestriction.res.resProperty.ulPropTag = propertyTag ;
         aRestriction.res.resProperty.lpProp = new SPropValue ;
         aRestriction.res.resProperty.lpProp->ulPropTag = propertyTag ;
-        aRestriction.res.resProperty.lpProp->Value.lpszA = nsCRT::strdup(valueAscii.get()) ;
+        aRestriction.res.resProperty.lpProp->Value.lpszA = strdup(valueAscii.get()) ;
 #else
         aSkipItem = PR_TRUE ;
 #endif // 0
@@ -758,7 +758,7 @@ static nsresult BuildRestriction(nsIAbBooleanConditionString *aCondition,
         aRestriction.res.resProperty.ulPropTag = propertyTag ;
         aRestriction.res.resProperty.lpProp = new SPropValue ;
         aRestriction.res.resProperty.lpProp->ulPropTag = propertyTag ;
-        aRestriction.res.resProperty.lpProp->Value.lpszA = nsCRT::strdup(valueAscii.get()) ;
+        aRestriction.res.resProperty.lpProp->Value.lpszA = strdup(valueAscii.get()) ;
 #else
         aSkipItem = PR_TRUE ;
 #endif // 0
@@ -769,7 +769,7 @@ static nsresult BuildRestriction(nsIAbBooleanConditionString *aCondition,
         aRestriction.res.resProperty.ulPropTag = propertyTag ;
         aRestriction.res.resProperty.lpProp = new SPropValue ;
         aRestriction.res.resProperty.lpProp->ulPropTag = propertyTag ;
-        aRestriction.res.resProperty.lpProp->Value.lpszA = nsCRT::strdup(valueAscii.get()) ;
+        aRestriction.res.resProperty.lpProp->Value.lpszA = strdup(valueAscii.get()) ;
         break ;
     case nsIAbBooleanConditionTypes::GreaterThan :
         aRestriction.rt = RES_PROPERTY ;
@@ -777,7 +777,7 @@ static nsresult BuildRestriction(nsIAbBooleanConditionString *aCondition,
         aRestriction.res.resProperty.ulPropTag = propertyTag ;
         aRestriction.res.resProperty.lpProp = new SPropValue ;
         aRestriction.res.resProperty.lpProp->ulPropTag = propertyTag ;
-        aRestriction.res.resProperty.lpProp->Value.lpszA = nsCRT::strdup(valueAscii.get()) ;
+        aRestriction.res.resProperty.lpProp->Value.lpszA = strdup(valueAscii.get()) ;
         break ;
     default :
         aSkipItem = PR_TRUE ;
@@ -911,10 +911,10 @@ static void DestroyRestriction(SRestriction& aRestriction)
         break ;
     case RES_CONTENT :
         if (PROP_TYPE(aRestriction.res.resContent.ulPropTag) == PT_UNICODE) {
-            nsCRT::free(aRestriction.res.resContent.lpProp->Value.lpszW) ;
+            NS_Free(aRestriction.res.resContent.lpProp->Value.lpszW) ;
         }
         else if (PROP_TYPE(aRestriction.res.resContent.ulPropTag) == PT_STRING8) {
-            nsCRT::free(aRestriction.res.resContent.lpProp->Value.lpszA) ;
+            NS_Free(aRestriction.res.resContent.lpProp->Value.lpszA) ;
         }
         delete aRestriction.res.resContent.lpProp ;
         break ;
@@ -929,10 +929,10 @@ static void DestroyRestriction(SRestriction& aRestriction)
         break ;
     case RES_PROPERTY :
         if (PROP_TYPE(aRestriction.res.resProperty.ulPropTag) == PT_UNICODE) {
-            nsCRT::free(aRestriction.res.resProperty.lpProp->Value.lpszW) ;
+            NS_Free(aRestriction.res.resProperty.lpProp->Value.lpszW) ;
         }
         else if (PROP_TYPE(aRestriction.res.resProperty.ulPropTag) == PT_STRING8) {
-            nsCRT::free(aRestriction.res.resProperty.lpProp->Value.lpszA) ;
+            NS_Free(aRestriction.res.resProperty.lpProp->Value.lpszA) ;
         }
         delete aRestriction.res.resProperty.lpProp ;
     case RES_SIZE :
@@ -962,7 +962,7 @@ nsresult FillPropertyValues(nsIAbCard *aCard, nsIAbDirectoryQueryArguments *aArg
         const char* cPropName = properties[i] ;
         newValue = nsnull ;
 		
-    if (!nsCRT::strcmp(cPropName, "card:nsIAbCard")) {
+    if (!strcmp(cPropName, "card:nsIAbCard")) {
 			nsCOMPtr<nsISupports> bogusInterface (do_QueryInterface(aCard, &retCode)) ;
 
 			NS_ENSURE_SUCCESS(retCode, retCode) ;
@@ -1511,7 +1511,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::ModifyCard(nsIAbCard *aModifiedCard)
 
   utility.Assign(unichar.get());
   if (!utility.IsEmpty())
-    utility.AppendWithConversion(CRLF);
+    utility.AppendLiteral("\r\n");
 
   utility.Append(unichar2.get());
   if (!mapiAddBook->SetPropertyUString(*mMapiData, PR_HOME_ADDRESS_STREET_W, utility.get())) {
@@ -1523,7 +1523,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::ModifyCard(nsIAbCard *aModifiedCard)
 
   utility.Assign(unichar.get());
   if (!utility.IsEmpty())
-    utility.AppendWithConversion(CRLF);
+    utility.AppendLiteral("\r\n");
 
   utility.Append(unichar2.get());
   if (!mapiAddBook->SetPropertyUString(*mMapiData, PR_BUSINESS_ADDRESS_STREET_W, utility.get())) {

@@ -47,7 +47,7 @@
 #include "plstr.h"
 #include "prmem.h"
 #include "prprf.h"
-#include "nsCRT.h"
+#include "nsCRTGlue.h"
 
 NS_IMPL_ISUPPORTS1(nsAbLDIFService, nsIAbLDIFService)
 
@@ -204,7 +204,7 @@ nsresult nsAbLDIFService::str_parse_line(char *line, char **type, char **value, 
   int    i, b64;
 
   /* skip any leading space */
-  while ( NS_IS_SPACE( *line ) ) {
+  while ( isspace( *line ) ) {
     line++;
   }
   *type = line;
@@ -216,7 +216,7 @@ nsresult nsAbLDIFService::str_parse_line(char *line, char **type, char **value, 
   }
 
   /* trim any space between type and : */
-  for ( p = s - 1; p > line && nsCRT::IsAsciiSpace( *p ); p-- ) {
+  for ( p = s - 1; p > line && isspace( *p ); p-- ) {
     *p = '\0';
   }
   *s++ = '\0';
@@ -231,7 +231,7 @@ nsresult nsAbLDIFService::str_parse_line(char *line, char **type, char **value, 
   }
 
   /* skip space between : and value */
-  while ( NS_IS_SPACE( *s ) ) {
+  while ( isspace( *s ) ) {
     s++;
   }
 
@@ -317,7 +317,7 @@ char* nsAbLDIFService::str_getline(char **next) const
   lineStr = *next;
   while ( (*next = PL_strchr( *next, '\n' )) != NULL ) {
     c = *(*next + 1);
-    if ( NS_IS_SPACE ( c ) && c != '\n' ) {
+    if ( isspace( c ) && c != '\n' ) {
       **next = CONTINUED_LINE_MARKER;
       *(*next+1) = CONTINUED_LINE_MARKER;
     } else {
@@ -836,7 +836,7 @@ NS_IMETHODIMP nsAbLDIFService::IsLDIFFile(nsIFile *pSrc, PRBool *_retval)
           i = 0;
           while (sLDIFFields[i])
           {
-            if (!nsCRT::strcasecmp( sLDIFFields[i], field))
+            if (!PL_strcasecmp( sLDIFFields[i], field))
             {
               ldifFields++;
               gotLDIF = PR_TRUE;

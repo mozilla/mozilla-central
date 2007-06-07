@@ -48,7 +48,7 @@
 #include "nsReadableUtils.h"
 #include "nspr.h"
 #include "nsIStringBundle.h"
-#include "nsCRT.h"
+#include "nsCRTGlue.h"
 #include "nsIObserverService.h"
 #include "nsNetUtil.h"
 #include "nsICategoryManager.h"
@@ -126,8 +126,8 @@ nsLDAPAutoCompleteSession::OnStartLookup(const PRUnichar *searchString,
         nsDependentString(searchString).FindChar(PRUnichar(','), 0) != 
         kNotFound || 
         ( !IS_CJK_CHAR_FOR_LDAP(searchString[0]) ?
-          mMinStringLength && nsCRT::strlen(searchString) < mMinStringLength :
-          mCjkMinStringLength && nsCRT::strlen(searchString) < 
+          mMinStringLength && NS_strlen(searchString) < mMinStringLength :
+          mCjkMinStringLength && NS_strlen(searchString) < 
           mCjkMinStringLength ) ) {
 
         FinishAutoCompleteLookup(nsIAutoCompleteStatus::ignored, 0, mState);

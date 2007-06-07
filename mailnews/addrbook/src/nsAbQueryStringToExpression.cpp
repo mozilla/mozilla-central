@@ -46,7 +46,7 @@
 #include "nsITextToSubURI.h"
 #include "nsAbBooleanExpression.h"
 #include "nsAbBaseCID.h"
-#include "nsCRT.h"
+#include "plstr.h"
 
 nsresult nsAbQueryStringToExpression::Convert (
     const char* queryString,
@@ -222,7 +222,7 @@ nsresult nsAbQueryStringToExpression::ParseConditionEntry (
 
     int entryLength = indexDeliminator - *index;
     if (entryLength)
-        *entry = nsCRT::strndup (*index, entryLength); 
+      *entry = PL_strndup (*index, entryLength); 
     else
         *entry = 0;
 
@@ -241,7 +241,7 @@ nsresult nsAbQueryStringToExpression::ParseOperationEntry (
 {
     int operationLength = indexBracketOpen2 - indexBracketOpen1 - 1;
     if (operationLength)
-        *operation = nsCRT::strndup (indexBracketOpen1 + 1,
+        *operation = PL_strndup (indexBracketOpen1 + 1,
             operationLength); 
     else
         *operation = 0;
@@ -254,11 +254,11 @@ nsresult nsAbQueryStringToExpression::CreateBooleanExpression(
         nsIAbBooleanExpression** expression)
 {
     nsAbBooleanOperationType op;
-    if (nsCRT::strcasecmp (operation, "and") == 0)
+    if (PL_strcasecmp (operation, "and") == 0)
         op = nsIAbBooleanOperationTypes::AND;
-    else if (nsCRT::strcasecmp (operation, "or") == 0)
+    else if (PL_strcasecmp (operation, "or") == 0)
         op = nsIAbBooleanOperationTypes::OR;
-    else if (nsCRT::strcasecmp (operation, "not") == 0)
+    else if (PL_strcasecmp (operation, "not") == 0)
         op = nsIAbBooleanOperationTypes::NOT;
     else
         return NS_ERROR_FAILURE;
@@ -285,25 +285,25 @@ nsresult nsAbQueryStringToExpression::CreateBooleanConditionString (
 
     nsAbBooleanConditionType c;
 
-    if (nsCRT::strcasecmp (condition, "=") == 0)
+    if (PL_strcasecmp (condition, "=") == 0)
         c = nsIAbBooleanConditionTypes::Is;
-    else if (nsCRT::strcasecmp (condition, "!=") == 0)
+    else if (PL_strcasecmp (condition, "!=") == 0)
         c = nsIAbBooleanConditionTypes::IsNot;
-    else if (nsCRT::strcasecmp (condition, "lt") == 0)
+    else if (PL_strcasecmp (condition, "lt") == 0)
         c = nsIAbBooleanConditionTypes::LessThan;
-    else if (nsCRT::strcasecmp (condition, "gt") == 0)
+    else if (PL_strcasecmp (condition, "gt") == 0)
         c = nsIAbBooleanConditionTypes::GreaterThan;
-    else if (nsCRT::strcasecmp (condition, "bw") == 0)
+    else if (PL_strcasecmp (condition, "bw") == 0)
         c = nsIAbBooleanConditionTypes::BeginsWith;
-    else if (nsCRT::strcasecmp (condition, "ew") == 0)
+    else if (PL_strcasecmp (condition, "ew") == 0)
         c = nsIAbBooleanConditionTypes::EndsWith;
-    else if (nsCRT::strcasecmp (condition, "c")== 0)
+    else if (PL_strcasecmp (condition, "c")== 0)
         c = nsIAbBooleanConditionTypes::Contains;
-    else if (nsCRT::strcasecmp (condition, "!c") == 0)
+    else if (PL_strcasecmp (condition, "!c") == 0)
         c = nsIAbBooleanConditionTypes::DoesNotContain;
-    else if (nsCRT::strcasecmp (condition, "~=") == 0)
+    else if (PL_strcasecmp (condition, "~=") == 0)
         c = nsIAbBooleanConditionTypes::SoundsLike;
-    else if (nsCRT::strcasecmp (condition, "regex") == 0)
+    else if (PL_strcasecmp (condition, "regex") == 0)
         c = nsIAbBooleanConditionTypes::RegExp;
     else
         return NS_ERROR_FAILURE;

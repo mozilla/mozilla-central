@@ -143,13 +143,13 @@ public:
   {
     const PRUnichar *empty = EmptyString().get();
 
-    mNickName = nsCRT::strdup(nickName ? nickName : empty);
-    mDisplayName = nsCRT::strdup(displayName ? displayName : empty);
-    mFirstName = nsCRT::strdup(firstName ? firstName : empty);
-    mLastName = nsCRT::strdup(lastName ? lastName : empty);
-    mEmailAddress = nsCRT::strdup(emailAddress ? emailAddress : empty);
-    mNotes = nsCRT::strdup(notes ? notes : empty);
-    mDirName = nsCRT::strdup(dirName ? dirName : empty);
+    mNickName = NS_strdup(nickName ? nickName : empty);
+    mDisplayName = NS_strdup(displayName ? displayName : empty);
+    mFirstName = NS_strdup(firstName ? firstName : empty);
+    mLastName = NS_strdup(lastName ? lastName : empty);
+    mEmailAddress = NS_strdup(emailAddress ? emailAddress : empty);
+    mNotes = NS_strdup(notes ? notes : empty);
+    mDirName = NS_strdup(dirName ? dirName : empty);
     mIsMailList = isMailList;
     mPopularityIndex = aPopularityIndex;
   }

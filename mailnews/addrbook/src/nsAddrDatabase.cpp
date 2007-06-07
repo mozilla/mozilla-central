@@ -2057,7 +2057,7 @@ NS_IMETHODIMP nsAddrDatabase::GetCardValue(nsIAbCard *card, const char *name, PR
     return NS_OK;
   }
   
-  *value = nsCRT::strdup(tempString.get());
+  *value = NS_strdup(tempString.get());
   if (!*value) 
     return NS_ERROR_OUT_OF_MEMORY;
   return NS_OK;

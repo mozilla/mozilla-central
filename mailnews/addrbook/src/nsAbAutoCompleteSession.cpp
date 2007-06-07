@@ -172,7 +172,7 @@ nsAbAutoCompleteSession::AddToResult(const PRUnichar* pNickNameStr,
       if (!fullAddress.IsEmpty())
       {
         /* We need to convert back the result from UTF-8 to Unicode */
-        fullAddrStr = nsCRT::strdup(NS_ConvertUTF8toUTF16(fullAddress.get()).get());
+        fullAddrStr = ToNewUnicode(NS_ConvertUTF8toUTF16(fullAddress));
       }
     }
   
@@ -274,7 +274,7 @@ nsAbAutoCompleteSession::AddToResult(const PRUnichar* pNickNameStr,
 
 static PRBool CommonPrefix(const PRUnichar *aString, const PRUnichar *aSubstr, PRInt32 aSubstrLen)
 {
-  if (!aSubstrLen || (nsCRT::strlen(aString) < NS_STATIC_CAST(PRUint32, aSubstrLen)))
+  if (!aSubstrLen || (NS_strlen(aString) < NS_STATIC_CAST(PRUint32, aSubstrLen)))
     return PR_FALSE;
 
   return (Substring(aString,
@@ -674,7 +674,7 @@ NS_IMETHODIMP nsAbAutoCompleteSession::OnStartLookup(const PRUnichar *uSearchStr
     // strings with commas (commas denote multiple names) should be ignored for 
     // autocomplete purposes
     PRInt32 i;
-    for (i = nsCRT::strlen(uSearchString) - 1; i >= 0; i --)
+    for (i = NS_strlen(uSearchString) - 1; i >= 0; i --)
         if (uSearchString[i] == ',')
         {
             listener->OnAutoComplete(nsnull, nsIAutoCompleteStatus::ignored);
@@ -787,8 +787,8 @@ NS_IMPL_ISUPPORTS1(nsAbAutoCompleteParam, nsISupports)
 
 nsAbAutoCompleteSearchString::nsAbAutoCompleteSearchString(const PRUnichar *uSearchString)
 {
-  mFullString = nsCRT::strdup(uSearchString);
-  mFullStringLen = nsCRT::strlen(mFullString);
+  mFullString = NS_strdup(uSearchString);
+  mFullStringLen = NS_strlen(mFullString);
   
   PRUint32 i;
   PRUnichar * aPtr;
@@ -796,9 +796,9 @@ nsAbAutoCompleteSearchString::nsAbAutoCompleteSearchString(const PRUnichar *uSea
   {
     if (*aPtr == ' ')
     {
-      mFirstPart = nsCRT::strndup(mFullString, i);
+      mFirstPart = NS_strndup(mFullString, i);
       mFirstPartLen = i;
-      mSecondPart = nsCRT::strdup(++aPtr);
+      mSecondPart = NS_strdup(++aPtr);
       mSecondPartLen = mFullStringLen - i - 1;
       return;
     }
@@ -814,9 +814,9 @@ nsAbAutoCompleteSearchString::nsAbAutoCompleteSearchString(const PRUnichar *uSea
 nsAbAutoCompleteSearchString::~nsAbAutoCompleteSearchString()
 {
   if (mFullString)
-     nsCRT::free((PRUnichar*)mFullString);
+     NS_Free((PRUnichar*)mFullString);
   if (mFirstPart)
-     nsCRT::free((PRUnichar*)mFirstPart);
+     NS_Free((PRUnichar*)mFirstPart);
   if (mSecondPart)
-     nsCRT::free((PRUnichar*)mSecondPart);
+     NS_Free((PRUnichar*)mSecondPart);
 }

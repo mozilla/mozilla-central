@@ -50,7 +50,7 @@
 #include "nsIAddrDatabase.h"
 #include "nsAbBaseCID.h"
 #include "nsIAddrBookSession.h"
-#include "nsCRT.h"
+#include "nsCRTGlue.h"
 #include "nsILocalFile.h"
 #include "nsWeakReference.h"
 #include "nsIAbMDBDirectory.h"
@@ -58,9 +58,11 @@
 #include "nsIAbLDAPDirectory.h"
 #endif
 
+#include "ctype.h"
 #include "prlog.h"
 #include "prmem.h"
 #include "prprf.h"
+#include "plstr.h"
 #include "nsQuickSort.h"
 
 /*****************************************************************************
@@ -300,12 +302,12 @@ nsresult DIR_AddNewAddressBook(const PRUnichar *dirName, const char *fileName,
     server->position = kDefaultPosition; // don't set position so alphabetic sort will happen.
     
     if (fileName)
-      server->fileName = nsCRT::strdup(fileName);
+      server->fileName = strdup(fileName);
     else
       DIR_SetFileName(&server->fileName, kPersonalAddressbook);
     if (dirType == LDAPDirectory) {
       if (uri)
-        server->uri = nsCRT::strdup(uri);
+        server->uri = strdup(uri);
     }
 
     dir_ServerList->AppendElement(server);
@@ -318,9 +320,9 @@ nsresult DIR_AddNewAddressBook(const PRUnichar *dirName, const char *fileName,
       // right directory properties. For migration, pref names were already
       // created so no need to get unique ones via dir_CreateServerPrefName().
       if (!strcmp(server->fileName, kPersonalAddressbook))
-        server->prefName = nsCRT::strdup("ldap_2.servers.pab");
+        server->prefName = strdup("ldap_2.servers.pab");
       else if (!strcmp(server->fileName, kCollectedAddressbook))
-        server->prefName = nsCRT::strdup("ldap_2.servers.history");
+        server->prefName = strdup("ldap_2.servers.history");
       else
       {
         char * leafName = dir_ConvertDescriptionToPrefName (server);
@@ -850,7 +852,7 @@ static char *DIR_GetStringPref(const char *prefRoot, const char *prefLeaf, const
     }
     else
     {
-        value = defaultValue ? nsCRT::strdup(defaultValue) : nsnull;
+        value = defaultValue ? strdup(defaultValue) : nsnull;
     }
 
     return ToNewCString(value);
@@ -891,7 +893,7 @@ static char *DIR_GetLocalizedStringPref
     value = ToNewCString(utf8str);
   }
   else
-    value = defaultValue ? nsCRT::strdup(defaultValue) : nsnull;
+    value = defaultValue ? strdup(defaultValue) : nsnull;
 
   return value;
 }
@@ -933,7 +935,7 @@ static void DIR_ConvertServerFileName(DIR_Server* pServer)
 #else
 	newLeafName = strrchr(leafName, '/');
 #endif
-    pServer->fileName = newLeafName ? nsCRT::strdup(newLeafName + 1) : nsCRT::strdup(leafName);
+    pServer->fileName = newLeafName ? strdup(newLeafName + 1) : strdup(leafName);
 	if (leafName) PR_Free(leafName);
 }
 
@@ -993,7 +995,7 @@ static char * dir_ConvertDescriptionToPrefName(DIR_Server * server)
 		numSrcBytes = PL_strlen(descr);
 		while (srcIndex < numSrcBytes && destIndex < MAX_PREF_NAME_SIZE-1)
 		{
-			if (nsCRT::IsAsciiDigit(descr[srcIndex]) || nsCRT::IsAsciiAlpha(descr[srcIndex]) )
+      if (isdigit(descr[srcIndex]) || isalpha(descr[srcIndex]) )
 			{
 				fileNameBuf[destIndex] = descr[srcIndex];
 				destIndex++;
@@ -1006,7 +1008,7 @@ static char * dir_ConvertDescriptionToPrefName(DIR_Server * server)
 	}
 
 	if (destIndex) /* have at least one character in the file name? */
-        fileName = nsCRT::strdup(fileNameBuf);
+  fileName = strdup(fileNameBuf);
 
 	return fileName;
 }
@@ -1027,7 +1029,7 @@ void DIR_SetServerFileName(DIR_Server *server)
 
 		/* set default personal address book file name*/
 		if ((server->position == 1) && (server->dirType == PABDirectory))
-            server->fileName = nsCRT::strdup(kPersonalAddressbook);
+            server->fileName = strdup(kPersonalAddressbook);
 		else
 		{
 			/* now use the pref name as the file name since we know the pref name
@@ -1038,7 +1040,7 @@ void DIR_SetServerFileName(DIR_Server *server)
 				/* extract just the pref name part and not the ldap tree name portion from the string */
 				numHeaderBytes = PL_strlen(PREF_LDAP_SERVER_TREE_NAME) + 1; /* + 1 for the '.' b4 the name */
 				if (PL_strlen(prefName) > numHeaderBytes) 
-                    tempName = nsCRT::strdup(prefName + numHeaderBytes);
+                    tempName = strdup(prefName + numHeaderBytes);
 
 				if (tempName)
 				{
@@ -1071,7 +1073,7 @@ static char *dir_CreateServerPrefName (DIR_Server *server)
   {
     // we need to handle this in case the description has no alphanumeric chars
     // it's very common for cjk users
-    leafName = nsCRT::strdup("_nonascii");
+    leafName = strdup("_nonascii");
   }
 
   if (leafName)
@@ -1091,7 +1093,7 @@ static char *dir_CreateServerPrefName (DIR_Server *server)
         isUnique = PR_TRUE; /* now flip the logic and assume we are unique until we find a match */
         for (PRUint32 i = 0; i < prefCount && isUnique; ++i)
         {
-          if (!nsCRT::strcasecmp(children[i], prefName)) /* are they the same branch? */
+          if (!PL_strcasecmp(children[i], prefName)) /* are they the same branch? */
             isUnique = PR_FALSE;
         }
         if (!isUnique) /* then try generating a new pref name and try again */
@@ -1197,7 +1199,7 @@ static nsresult dir_GetPrefs(nsVoidArray **list)
         if (server)
         {
             DIR_InitServer(server);
-            server->prefName = nsCRT::strdup(children[i]);
+            server->prefName = strdup(children[i]);
             DIR_GetPrefsForOneServer(server);
             if (server->description && server->description[0] && 
                 ((server->dirType == PABDirectory ||
@@ -1305,14 +1307,14 @@ static void DIR_SetStringPref(const char *prefRoot, const char *prefLeaf, const 
     nsCString userPref;
     if (NS_SUCCEEDED(pPref->GetCharPref (prefLocation.get(), getter_Copies(userPref))))
 		{
-      if (value && (defaultValue ? nsCRT::strcasecmp(value, defaultValue) : value != defaultValue))
+      if (value && (defaultValue ? PL_strcasecmp(value, defaultValue) : value != defaultValue))
         rv = pPref->SetCharPref (prefLocation.get(), value);
       else
         rv = pPref->ClearUserPref(prefLocation.get());
 		}
 		else
 		{
-      if (value && (defaultValue ? nsCRT::strcasecmp(value, defaultValue) : value != defaultValue))
+      if (value && (defaultValue ? PL_strcasecmp(value, defaultValue) : value != defaultValue))
         rv = pPref->SetCharPref (prefLocation.get(), value); 
 		}
 	}
