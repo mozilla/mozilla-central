@@ -24,7 +24,7 @@ use Config;         # for $Config{sig_name} and $Config{sig_num}
 use File::Find ();
 use File::Copy;
 
-$::UtilsVersion = '$Revision: 1.358 $ ';
+$::UtilsVersion = '$Revision: 1.359 $ ';
 
 package TinderUtils;
 
@@ -1967,7 +1967,8 @@ sub run_all_tests {
     unlink("$binary_dir/components/compreg.dat") or warn "$binary_dir/components/compreg.dat not removed\n";
     if($Settings::RegxpcomTest) {
         my $args;
-        if ($Settings::BinaryName =~ /^(firefox|thunderbird)/) {
+        if ($Settings::BinaryName =~ /^(firefox|thunderbird)/ || 
+            ($Settings::BinaryName =~ /^seamonkey/ && ($Settings::VendorName))) {
             $args = [$binary, "-register"];
         } else {
             $args = ["$binary_dir/regxpcom"];
