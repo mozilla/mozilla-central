@@ -100,3 +100,14 @@ libs repackage::
 # convenience target for PB script build phases
 echo_srcdir:
 	@echo $(srcdir)
+
+
+# XXX the parts below are a hack to make old tinderbox scripts find a non-zero, executable mozilla-bin
+libs:: $(PROGRAM)
+	mkdir -p $(DIST)/Mozilla.app/Contents/MacOS
+	echo "I'm just fooling an old tinderbox script" > $(DIST)/Mozilla.app/Contents/MacOS/mozilla-bin
+	chmod a+x $(DIST)/Mozilla.app/Contents/MacOS/mozilla-bin
+
+clean clobber::
+	rm -rf $(DIST)/Mozilla.app
+
