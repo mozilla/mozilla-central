@@ -299,6 +299,50 @@ else{
         }
         print objToJson($ref);  
     }
+    elsif ($action eq 'getversions'){
+        my $plan = Bugzilla::Testopia::TestPlan->new({});
+        my $prod_id = $cgi->param("product_id");
+        my @versions;
+        if ($prod_id == -1){
+            # For update multiple from tr_list_plans
+            push @versions, {'id' => "--Do Not Change--", 'name' => "--Do Not Change--"};
+        }
+        else{
+            detaint_natural($prod_id);
+            my $prod = $plan->lookup_product($prod_id);
+            unless (Bugzilla->user->can_see_product($prod)){
+                print '{ERROR:"You do not have permission to view this product"}';
+                exit;
+            }
+            my $product = Bugzilla::Testopia::Product->new($prod_id);
+            @versions = @{$product->versions};
+        }
+        my $json = new JSON;
+        $json->autoconv(0);
+        print $json->objToJson(\@versions);
+    }
+    # For use in new_case and show_case since new_plan does not require an id
+    elsif ($action eq 'getcomps'){
+        my $plan = Bugzilla::Testopia::TestPlan->new({});
+        my $product_id = $cgi->param('product_id');
+    
+        detaint_natural($product_id);
+        my $prod = $plan->lookup_product($product_id);
+        unless (Bugzilla->user->can_see_product($prod)){
+            print '{ERROR:"You do not have permission to view this product"}';
+            exit;
+        }
+        my $product = Bugzilla::Testopia::Product->new($product_id);
+        
+        my @comps;
+        foreach my $c (@{$product->components}){
+            push @comps, {'id' => $c->id, 'name' => $c->name, 'qa_contact' => $c->default_qa_contact->login};
+        }
+        my $json = new JSON;
+        print $json->objToJson(\@comps);
+        exit;
+    }
+    
 
 # If neither is true above, display the quicksearch form and explaination.
     else{

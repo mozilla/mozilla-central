@@ -86,7 +86,7 @@
         document.getElementById("addComp").disabled = true;
         document.getElementById("deleteComp").disabled = true;
         dojo.io.bind({
-            url:   "tr_new_plan.cgi",
+            url:   "tr_quicksearch.cgi",
             content: {  product_id: product, action: "getcomps" },
             load:  function(type, data, evt){
                      var comps = document.getElementById("comp_pick");

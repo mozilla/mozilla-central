@@ -130,10 +130,14 @@ sub update
 	    $self->logout;
         die "User Not Authorized";
 	}
-
-    my $result = $test_plan->update($new_values);
-
-	$test_plan = new Bugzilla::Testopia::TestPlan($test_plan_id);
+    
+    $test_plan->set_name(trim($new_values->{'name'}));
+    $test_plan->set_product_id($new_values->{'product_id'});
+    $test_plan->set_default_product_version($new_values->{'default_product_version'});
+    $test_plan->set_type($new_values->{'type_id'});
+    $test_plan->set_isactive($new_values->{'isactive'});
+    
+    $test_plan->update();
 	
 	$self->logout;
 

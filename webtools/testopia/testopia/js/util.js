@@ -200,10 +200,10 @@ function nb(obj) {
   obj.style.height='20px';
 }
 
-function getProdVers(product, plan){
+function getProdVers(product, default_vers){
     document.getElementById("prod_version").disabled = true;
     dojo.io.bind({
-        url:   "tr_new_plan.cgi",
+        url:   "tr_quicksearch.cgi",
         content: {  product_id: product, action: "getversions" },
         load:  function(type, data, evt){
                  if (data.error){
@@ -216,13 +216,13 @@ function getProdVers(product, plan){
                  for (i in data){
                    var myOp = new Option(data[i].name, data[i].id);
                    addOption(prodvers, myOp);
-                   if (data[i].name == '[% plan.product_version FILTER none %]'){
+                   if (data[i].name == default_vers){
                       prodvers.options[i].selected = true;
                    }
                  }
                  document.getElementById("prod_version").disabled = false;
                },
-        error: function(type, error){ alert("ERROR");},
+        error: function(type, error){ alert(error.message);},
         mimetype: "text/json"
     });
 }

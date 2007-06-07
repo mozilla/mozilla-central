@@ -807,7 +807,7 @@ sub update {
                       SET $field = ? WHERE case_id = ?",
                       undef, $newvalues->{$field}, $self->{'case_id'});
             # Update the history
-            my $field_id = Bugzilla::Testopia::Util::get_field_id($field, "test_cases");
+            my $field_id = Bugzilla::Testopia::Util::get_test_field_id($field, "test_cases");
             $dbh->do("INSERT INTO test_case_activity 
                       (case_id, fieldid, who, changed, oldvalue, newvalue)
                       VALUES(?,?,?,?,?,?)",

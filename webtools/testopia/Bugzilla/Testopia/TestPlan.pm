@@ -33,7 +33,7 @@ to a plan.
 use Bugzilla::Testopia::TestPlan;
 
  $plan = Bugzilla::Testopia::TestPlan->new($plan_id);
- $plan = Bugzilla::Testopia::TestPlan->new(\%plan_hash);
+ $plan = Bugzilla::Testopia::TestPlan->new({});
 
 =cut
 
@@ -46,6 +46,7 @@ use Bugzilla::Util;
 use Bugzilla::Error;
 use Bugzilla::Config;
 use Bugzilla::Constants;
+use Bugzilla::Version;
 use Bugzilla::Testopia::Constants;
 use Bugzilla::Testopia::Util;
 use Bugzilla::Testopia::TestRun;
@@ -92,15 +93,136 @@ use constant DB_COLUMNS => qw(
 );
 
 use constant REQUIRED_CREATE_FIELDS => qw(product_id author_id type_id default_product_version name);
+use constant UPDATE_COLUMNS => qw(product_id type_id default_product_version name isactive);
 
 use constant VALIDATORS => {
     product_id => \&_check_product,
-    author_id => \&_check_product,
-    type_id => \&_check_product,
-    default_product_version => \&_check_product,
+    author_id => \&_check_author,
+    type_id => \&_check_type,
+    isactive => \&_check_isactive,
 };
 
 use constant NAME_MAX_LENGTH => 255;
+
+###############################
+####       Validators      ####
+###############################
+
+sub _check_product {
+    my ($invocant, $product_id) = @_;
+
+    if (ref $invocant){
+        ThrowUserError("plan-has-children") 
+          if (($invocant->test_case_count || $invocant->test_run_count) && $invocant->product_id != $product_id);
+    }
+    
+    $product_id = trim($product_id);
+    my $product = Bugzilla::Testopia::Product->new($product_id);
+    ThrowUserError("testopia-create-denied", {'object' => 'plan'}) unless $product->canedit;
+    if (ref $invocant){
+        $invocant->{'product'} = $product; 
+        return $product->id;
+    } 
+    return $product;
+}
+
+sub _check_author {
+    my ($invocant, $author) = @_;
+    $author = trim($author);
+    if ($author =~ /^\d+$/){
+        $author = Bugzilla::User->new($author);
+    }
+    else {
+        $author = Bugzilla::User->new({name => $author});
+    }
+    return $author->id;
+}
+
+sub _check_type {
+    my ($invocant, $type_id) = @_;
+    $type_id = trim($type_id);
+    detaint_natural($type_id);
+    Bugzilla::Testopia::Util::validate_selection($type_id, 'type_id', 'test_plan_types');
+    return $type_id;
+}
+
+sub _check_product_version {
+    my ($invocant, $version, $product) = @_;
+    if (ref $invocant){
+        $product = $invocant->product;
+    }
+    $version = trim($version);
+    $version = Bugzilla::Version::check_version($product, $version);
+    return $version->name;
+}
+
+sub _check_isactive {
+    my ($invocant, $isactive) = @_;
+    ThrowCodeError('bad_arg', {argument => 'isactive', function => 'set_isactive'}) unless ($isactive =~ /(1|0)/);
+    return $isactive;
+}
+
+sub run_create_validators {
+    my $class  = shift;
+    my $params = $class->SUPER::run_create_validators(@_);
+    my $product = $params->{product_id};
+    
+    $params->{default_product_version} = $class->_check_product_version($params->{default_product_version}, $product);
+    $params->{product_id} = $product->id;
+    
+    return $params;
+}
+
+###############################
+####       Mutators        ####
+###############################
+sub set_name        { $_[0]->set('name', $_[1]); }
+sub set_type        { $_[0]->set('type_id', $_[1]); }
+sub set_isactive    { $_[0]->set('isactive', $_[1]); }
+sub set_product_id  { $_[0]->set('product_id', $_[1]); }
+sub set_default_product_version { $_[0]->set('default_product_version', $_[1]); }
+
+
+sub create {
+    my ($class, $params) = @_;
+
+    $class->SUPER::check_required_create_fields($params);
+    my $field_values = $class->run_create_validators($params);
+    
+    $field_values->{creation_date} = Bugzilla::Testopia::Util::get_time_stamp();
+    $field_values->{isactive}  = 1;
+
+    #We have to handle the plan document text a bit differently since it has its own table.
+    my $plan_document = $field_values->{text};
+    
+    delete $field_values->{text};
+    
+    my $self = $class->SUPER::insert_create_data($field_values);
+
+    $self->store_text($self->id, $field_values->{'author_id'}, $plan_document, $field_values->{creation_date});
+
+    # Add permissions for the plan
+    $self->add_tester($self->{'author_id'},15);
+    if (Bugzilla->params->{'testopia-default-plan-testers-regexp'}) {
+        $self->set_tester_regexp( Bugzilla->params->{"testopia-default-plan-testers-regexp"}, 3);
+        $self->derive_regexp_testers(Bugzilla->params->{'testopia-default-plan-testers-regexp'});
+    }
+    
+    # Create default category
+    unless (scalar @{$self->product->categories}){
+        my $category = Bugzilla::Testopia::Category->new(
+            {'name' => '--default--',
+             'description' => 'Default product category for test cases',
+             'product_id' => $self->product->id });
+        $category->store;
+    }
+    
+    return $self;
+}
+
+###############################
+####       Methods         ####
+###############################
 
 sub report_columns {
     my $self = shift;
@@ -119,10 +241,6 @@ sub report_columns {
         
 }
 
-###############################
-####       Methods         ####
-###############################
-
 =head2 new
 
 Instantiate a new test plan. This takes a single argument 
@@ -134,46 +252,23 @@ identical to a test plan's fields and desired values.
 sub new {
     my $invocant = shift;
     my $class = ref($invocant) || $invocant;
-    my $self = {};
-    bless($self, $class);
-    return $self->_init(@_);
-}
-
-=head2 _init
-
-Private constructor for this object 
-
-=cut
-
-sub _init {
-    my $self = shift;
-    my ($param) = (@_);
-    my $dbh = Bugzilla->dbh;
-    my $columns = join(", ", DB_COLUMNS);
-
-    my $id = $param unless (ref $param eq 'HASH');
-    my $obj;
-
-    if (defined $id && detaint_natural($id)) {
-
-        $obj = $dbh->selectrow_hashref(qq{
-            SELECT $columns FROM test_plans
-            WHERE plan_id = ?}, undef, $id);
-    } elsif (ref $param eq 'HASH'){
-         $obj = $param;   
-
-    } else {
-        ThrowCodeError('bad_arg',
-            {argument => 'param',
-             function => 'Testopia::TestPlan::_init'});
+    my $param = shift;
+    
+    # We want to be able to supply an empty object to the templates for numerous
+    # lists etc. This is much cleaner than exporting a bunch of subroutines and
+    # adding them to $vars one by one. Probably just Laziness shining through.
+    if (ref $param eq 'HASH'){
+        if (keys %$param){
+            ThrowCodeError('non-empty-hash');
+        }
+        bless($param, $class);
+        return $param;
     }
-
-    return undef unless (defined $obj);
-
-    foreach my $field (keys %$obj) {
-        $self->{$field} = $obj->{$field};
-    }
-    return $self;
+    
+    unshift @_, $param;
+    my $self = $class->SUPER::new(@_);
+    
+    return $self; 
 }
 
 =head2 store
@@ -234,15 +329,15 @@ sub store_text {
     }
     $text ||= '';
     trick_taint($text);
+
     my $version = $self->version || 0;
     $dbh->do("INSERT INTO test_plan_texts 
               (plan_id, plan_text_version, who, creation_ts, plan_text)
               VALUES(?,?,?,?,?)",
               undef, $key, ++$version, $author, 
               $timestamp, $text);
+    
     $self->{'version'} = $version;
-    return $self->{'version'};
-
 }
 
 =head2 clone
@@ -284,21 +379,9 @@ sub toggle_archive {
     
     my $oldvalue = $self->isactive;
     my $newvalue = $oldvalue == 1 ? 0 : 1;
-    my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
-
-    $dbh->bz_lock_tables('test_plans WRITE', 'test_plan_activity WRITE',
-            'test_fielddefs READ');
-    $dbh->do("UPDATE test_plans SET isactive = ? 
-               WHERE plan_id = ?", undef, $newvalue, $self->{'plan_id'});
-    my $field_id = Bugzilla::Testopia::Util::get_field_id("isactive", "test_plans");
-    $dbh->do("INSERT INTO test_plan_activity 
-              (plan_id, fieldid, who, changed, oldvalue, newvalue)
-              VALUES(?,?,?,?,?,?)",
-              undef, ($self->{'plan_id'}, $field_id, Bugzilla->user->id,
-              $timestamp, $oldvalue, $newvalue));
-    $dbh->bz_unlock_tables();
-
-    $self->{'isactive'} = $newvalue;
+    
+    $self->set_isactive($newvalue);
+    $self->update;
 }
 
 =head2 add_tag
@@ -570,31 +653,33 @@ of that change is logged in the test_plan_activity table.
 
 sub update {
     my $self = shift;
-    my ($newvalues) = @_;
     my $dbh = Bugzilla->dbh;
     my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
-
     $dbh->bz_lock_tables('test_plans WRITE', 'test_plan_activity WRITE',
             'test_fielddefs READ');
-    foreach my $field (keys %{$newvalues}){
-        if ($self->{$field} ne $newvalues->{$field}){
-            trick_taint($newvalues->{$field});
-            $dbh->do("UPDATE test_plans 
-                         SET $field = ? 
-                       WHERE plan_id = ?",
-                      undef, ($newvalues->{$field}, $self->{'plan_id'}));
-            # Update the history
-            my $field_id = Bugzilla::Testopia::Util::get_field_id($field, "test_plans");
-            $dbh->do("INSERT INTO test_plan_activity 
-                      (plan_id, fieldid, who, changed, oldvalue, newvalue)
-                           VALUES(?,?,?,?,?,?)",
-                      undef, ($self->{'plan_id'}, $field_id, Bugzilla->user->id,
-                      $timestamp, $self->{$field}, $newvalues->{$field}));
-            $self->{$field} = $newvalues->{$field};
-            
-        }
+
+    my $changed = $self->SUPER::update();
+    
+    foreach my $field (keys %$changed){
+        $self->log_activity($field, $timestamp, $changed->{$field}->[0], $changed->{$field}->[1]);
     }
     $dbh->bz_unlock_tables();
+}
+
+sub log_activity {
+    my $self = shift;
+    my ($field, $timestamp, $oldvalue, $newvalue) = @_;
+    my $dbh = Bugzilla->dbh;
+    $timestamp ||= Bugzilla::Testopia::Util::get_time_stamp();
+    
+    trick_taint($newvalue);
+    my $field_id = Bugzilla::Testopia::Util::get_test_field_id($field, "test_plans");
+    $dbh->do("INSERT INTO test_plan_activity 
+              (plan_id, fieldid, who, changed, oldvalue, newvalue)
+                   VALUES(?,?,?,?,?,?)",
+              undef, ($self->{'plan_id'}, $field_id, Bugzilla->user->id,
+              $timestamp, $oldvalue, $newvalue));
+    
 }
 
 =head2 history

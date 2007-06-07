@@ -36,7 +36,7 @@ package Bugzilla::Testopia::Util;
 use strict;
 
 use base qw(Exporter);
-@Bugzilla::Testopia::Util::EXPORT = qw(get_field_id get_time_stamp 
+@Bugzilla::Testopia::Util::EXPORT = qw(get_test_field_id get_time_stamp 
                                        validate_test_id validate_selection
                                        support_server_push
                                        percentage);
@@ -50,14 +50,14 @@ use Bugzilla::Testopia::TestPlan;
 
 ### Methods ###
 
-=head2 get_field_id
+=head2 get_test_field_id
 
 Takes a field name and table and returns the fieldid from the 
 test_fielddefs table.
 
 =cut
 
-sub get_field_id {
+sub get_test_field_id {
     my ($field, $table) = @_;
     my $dbh = Bugzilla->dbh;
 

@@ -360,7 +360,7 @@ sub update {
                       SET $field = ? WHERE run_id = ?",
                       undef, ($newvalues->{$field}, $self->{'run_id'}));
             # Update the history
-            my $field_id = Bugzilla::Testopia::Util::get_field_id($field, "test_runs");
+            my $field_id = Bugzilla::Testopia::Util::get_test_field_id($field, "test_runs");
             $dbh->do("INSERT INTO test_run_activity 
             (run_id, fieldid, who, changed, oldvalue, newvalue)
                       VALUES(?,?,?,?,?,?)",

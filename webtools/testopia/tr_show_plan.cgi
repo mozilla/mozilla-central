@@ -348,40 +348,18 @@ else{
 sub do_update {
     my ($plan) = @_;
 
+    $plan->set_name(trim($cgi->param('plan_name')));
+    $plan->set_product_id($cgi->param('product_id'));
+    $plan->set_default_product_version($cgi->param('prod_version'));
+    $plan->set_type($cgi->param('type'));
+    
     my $newdoc = $cgi->param("plandoc");
-    my $plan_name = trim($cgi->param('plan_name')) || '';
-    my $product = Bugzilla::Testopia::Product->new($cgi->param('product_id'));
-    my $prodver = $cgi->param('prod_version') || '';
-    my $type = $cgi->param('type');
-
-    ThrowUserError('testopia-missing-required-field', 
-        {'field' => 'product'}) unless $product;
-    ThrowUserError('testopia-missing-required-field', 
-        {'field' => 'name'}) if ($plan_name eq '');
-    ThrowUserError('testopia-missing-required-field', 
-        {'field' => 'product version'}) if ($prodver eq '');
-
-    trick_taint($plan_name);
-    trick_taint($prodver);
-
-    detaint_natural($type);
-    
-    validate_selection($type, 'type_id', 'test_plan_types');
-    
-    my $version = Bugzilla::Version::check_version($product, $prodver);
        
     if($plan->diff_plan_doc($newdoc) ne ''){
         $plan->store_text($plan->id, Bugzilla->user->id, $newdoc);
     }
-    
-    my %newvalues = ( 
-        'name'       => $plan_name,
-        'product_id' => $product->id,
-        'default_product_version' => $version->name,
-        'type_id'    => $type
-    );
-    
-    $plan->update(\%newvalues);
+       
+    $plan->update();
     
     # Add new tags 
     foreach my $tag_name (split(/[,]+/, $cgi->param('newtag'))){
