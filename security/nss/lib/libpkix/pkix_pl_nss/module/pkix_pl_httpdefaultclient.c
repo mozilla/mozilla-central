@@ -1417,7 +1417,8 @@ pkix_pl_HttpDefaultClient_TrySendAndReceive(
         PKIX_ENTER
                 (HTTPDEFAULTCLIENT,
                 "pkix_pl_HttpDefaultClient_TrySendAndReceive");
-        PKIX_NULLCHECK_TWO(request, pPollDesc);
+
+        PKIX_NULLCHECK_ONE(request);
 
         PKIX_CHECK(pkix_CheckType
                 ((PKIX_PL_Object *)request,
@@ -1427,7 +1428,13 @@ pkix_pl_HttpDefaultClient_TrySendAndReceive(
 
         client = (PKIX_PL_HttpDefaultClient *)request;
 
-        pollDesc = *pPollDesc;
+        if (!pPollDesc && client->timeout == 0) {
+            PKIX_ERROR_FATAL(PKIX_NULLARGUMENT);
+        }
+
+        if (pPollDesc) {
+            pollDesc = *pPollDesc;
+        }
 
         /* if not continuing from an earlier WOULDBLOCK return... */
         if (pollDesc == NULL) {
@@ -1521,7 +1528,7 @@ pkix_pl_HttpDefaultClient_TrySendAndReceive(
                 case HTTP_SEND_PENDING:
                 case HTTP_RECV_HDR_PENDING:
                 case HTTP_RECV_BODY_PENDING:
-                        *pPollDesc = &(client->pollDesc);
+                        pollDesc = &(client->pollDesc);
                         *pSECReturn = SECWouldBlock;
                         break;
                 case HTTP_ERROR:
@@ -1539,7 +1546,7 @@ pkix_pl_HttpDefaultClient_TrySendAndReceive(
                                 }
                         }
 
-                        *pPollDesc = NULL;
+                        pollDesc = NULL;
                         *pSECReturn = SECFailure;
                         break;
                 case HTTP_COMPLETE:
@@ -1552,7 +1559,7 @@ pkix_pl_HttpDefaultClient_TrySendAndReceive(
                         if (client->rcv_http_data != NULL) {
                                 *(client->rcv_http_data) = client->rcvBuf;
                         }
-                        *pPollDesc = NULL;
+                        pollDesc = NULL;
                         *pSECReturn = SECSuccess;
                         break;
                 case HTTP_NOT_CONNECTED:
@@ -1560,10 +1567,14 @@ pkix_pl_HttpDefaultClient_TrySendAndReceive(
                 case HTTP_RECV_HDR:
                 case HTTP_RECV_BODY:
                 default:
-                        *pPollDesc = NULL;
+                        pollDesc = NULL;
                         *pSECReturn = SECFailure;
                         PKIX_ERROR(PKIX_HTTPCLIENTININVALIDSTATE);
                         break;
+        }
+
+        if (pPollDesc) {
+            *pPollDesc = pollDesc;
         }
 
 cleanup:
