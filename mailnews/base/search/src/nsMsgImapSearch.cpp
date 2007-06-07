@@ -143,7 +143,7 @@ nsresult nsMsgSearchOnlineMail::Encode (nsCString& pEncoding,
         rv = searchValue->GetStr(pchar);
         if (NS_FAILED(rv) || pchar.IsEmpty())
           continue;
-        asciiOnly = isascii(pchar.get());
+        asciiOnly = NS_IsAscii(pchar.get());
       }
     }
   }

@@ -655,7 +655,7 @@ nsresult nsMsgSearchAdapter::EncodeImapValue(char *encoding, const char *value, 
       return NS_ERROR_NULL_POINTER;
   }
 
-  if (!isascii(value))
+  if (!NS_IsAscii(value))
   {
     nsCAutoString lengthStr;
     PL_strcat(encoding, "{");
