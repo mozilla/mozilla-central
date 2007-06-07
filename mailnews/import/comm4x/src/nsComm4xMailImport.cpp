@@ -47,7 +47,6 @@
 #endif
 
 #include "nscore.h"
-#include "nsCRT.h"
 #include "nsString.h"
 #include "nsCOMPtr.h"
 #include "nsIServiceManager.h"
@@ -123,18 +122,18 @@ NS_IMETHODIMP nsComm4xMailImport::GetName(PRUnichar **name)
 
 NS_IMETHODIMP nsComm4xMailImport::GetDescription(PRUnichar **name)
 {
-    NS_ENSURE_ARG_POINTER (name);
-    nsresult rv = NS_ERROR_FAILURE;
-    if (m_pBundle)
-        rv = m_pBundle->GetStringFromID(COMM4XMAILIMPORT_DESCRIPTION, name);
-    return rv;
+  NS_ENSURE_ARG_POINTER (name);
+  nsresult rv = NS_ERROR_FAILURE;
+  if (m_pBundle)
+    rv = m_pBundle->GetStringFromID(COMM4XMAILIMPORT_DESCRIPTION, name);
+  return rv;
 }
 
 NS_IMETHODIMP nsComm4xMailImport::GetSupports(char **supports)
 {
-    NS_ENSURE_ARG_POINTER (supports);
-    *supports = nsCRT::strdup(kComm4xMailSupportsString);
-    return NS_OK;
+  NS_ENSURE_ARG_POINTER (supports);
+  *supports = strdup(kComm4xMailSupportsString);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsComm4xMailImport::GetSupportsUpgrade(PRBool *pUpgrade)

@@ -42,7 +42,6 @@
 #include "nsIModule.h"
 #include "nsIGenericFactory.h"
 #include "nsICategoryManager.h"
-#include "nsCRT.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // core import Include Files
@@ -116,7 +115,7 @@ NS_METHOD TextRegister(nsIComponentManager *aCompMgr,
     nsCString replace;
     char *theCID = kTextImportCID.ToString();
     rv = catMan->AddCategoryEntry( "mailnewsimport", theCID, kTextSupportsString, PR_TRUE, PR_TRUE, getter_Copies( replace));
-    nsCRT::free( theCID);
+    NS_Free( theCID);
   }
 
   return( rv);
@@ -141,7 +140,7 @@ NS_METHOD Comm4xMailRegister(nsIComponentManager *aCompMgr,
         nsCString  replace;
         char *theCID = kComm4xMailImportCID.ToString();
         rv = catMan->AddCategoryEntry("mailnewsimport", theCID, kComm4xMailSupportsString, PR_TRUE, PR_TRUE, getter_Copies(replace));
-        nsCRT::free(theCID);
+        NS_Free(theCID);
     }
 
     return rv;
@@ -165,7 +164,7 @@ NS_METHOD EudoraRegister(nsIComponentManager *aCompMgr,
     nsCString replace;
     char *theCID = kEudoraImportCID.ToString();
     rv = catMan->AddCategoryEntry( "mailnewsimport", theCID, kEudoraSupportsString, PR_TRUE, PR_TRUE, getter_Copies( replace));
-    nsCRT::free( theCID);
+    NS_Free( theCID);
   }
 
   return( rv);
@@ -195,7 +194,7 @@ NS_METHOD OERegister(nsIComponentManager *aCompMgr,
     nsCString replace;
     char *theCID = kOEImportCID.ToString();
     rv = catMan->AddCategoryEntry( "mailnewsimport", theCID, kOESupportsString, PR_TRUE, PR_TRUE, getter_Copies( replace));
-    nsCRT::free( theCID);
+    NS_Free( theCID);
   }
 
     return( rv);
@@ -213,7 +212,7 @@ NS_METHOD OutlookRegister(nsIComponentManager *aCompMgr,
     nsCString replace;
     char *theCID = kOutlookImportCID.ToString();
     rv = catMan->AddCategoryEntry( "mailnewsimport", theCID, kOutlookSupportsString, PR_TRUE, PR_TRUE, getter_Copies( replace));
-    nsCRT::free( theCID);
+    NS_Free( theCID);
   }
 
   return( rv);

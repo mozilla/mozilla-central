@@ -1020,7 +1020,7 @@ PRBool nsEudoraMac::IsValidMailboxFile( nsIFile *pFile)
 		if (NS_FAILED( rv) || (read != 5))
 			return( PR_FALSE);
 		buffer[5] = 0;
-		if (nsCRT::strcmp( buffer, "From "))
+		if (strcmp( buffer, "From "))
 			return( PR_FALSE);
 	}
 

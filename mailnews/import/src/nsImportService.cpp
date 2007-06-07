@@ -46,7 +46,6 @@
 #include "nsIPlatformCharset.h"
 #include "nsICharsetConverterManager.h"
 
-#include "nsCRT.h"
 #include "nsString.h"
 #include "nsIComponentManager.h"
 #include "nsIServiceManager.h"
@@ -66,6 +65,7 @@
 #include "ImportDebug.h"
 #include "nsImportService.h"
 #include "nsImportStringBundle.h"
+#include "nsCRTGlue.h"
 
 PRLogModuleInfo *IMPORTLOGMODULE = nsnull;
 
@@ -234,8 +234,8 @@ NS_IMETHODIMP nsImportService::GetModuleInfo( const char *filter, PRInt32 index,
 		pDesc = m_pModules->GetModuleDesc( i);
 		if (pDesc->SupportsThings( filter)) {
 			if (count == index) {
-				*name = nsCRT::strdup( pDesc->GetName());
-				*moduleDescription = nsCRT::strdup( pDesc->GetDescription());
+				*name = NS_strdup( pDesc->GetName());
+				*moduleDescription = NS_strdup( pDesc->GetDescription());
 				return( NS_OK);
 			}
 			else
@@ -267,7 +267,7 @@ NS_IMETHODIMP nsImportService::GetModuleName(const char *filter, PRInt32 index, 
 		pDesc = m_pModules->GetModuleDesc( i);
 		if (pDesc->SupportsThings( filter)) {
 			if (count == index) {
-				*_retval = nsCRT::strdup( pDesc->GetName());
+				*_retval = NS_strdup( pDesc->GetName());
 				return( NS_OK);
 			}
 			else
@@ -300,7 +300,7 @@ NS_IMETHODIMP nsImportService::GetModuleDescription(const char *filter, PRInt32 
 		pDesc = m_pModules->GetModuleDesc( i);
 		if (pDesc->SupportsThings( filter)) {
 			if (count == index) {
-				*_retval = nsCRT::strdup( pDesc->GetDescription());
+				*_retval = NS_strdup( pDesc->GetDescription());
 				return( NS_OK);
 			}
 			else

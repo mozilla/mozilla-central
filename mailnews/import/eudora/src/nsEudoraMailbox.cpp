@@ -939,7 +939,7 @@ PRBool	nsEudoraMailbox::IsEudoraTag( const char *pChar, PRInt32 maxLen, PRBool &
 {
 	PRInt32	idx = 0;
 	while ((tagLength = eudoraTagLen[idx]) != 0) {
-		if (maxLen >= tagLength && !nsCRT::strncmp( eudoraTag[idx], pChar, tagLength)) {
+		if (maxLen >= tagLength && !strncmp( eudoraTag[idx], pChar, tagLength)) {
 			insideEudoraTags = (pChar[1] != '/');
 			bodyType = TagContentType[idx];
 			return PR_TRUE;
@@ -1063,17 +1063,17 @@ PRInt32	nsEudoraMailbox::IsEudoraFromSeparator( const char *pChar, PRInt32 maxLe
 					return( -1);
 				month = result;
 			}
-			else if ((tokLen == 6) && !nsCRT::strncasecmp( pTok, "remote", 6)) {
+			else if ((tokLen == 6) && !PL_strncasecmp( pTok, "remote", 6)) {
 				if (remote || from)
 					return( -1);
 				remote = PR_TRUE;
 			} 
-			else if ((tokLen == 4) && !nsCRT::strncasecmp( pTok, "from", 4)) {
+			else if ((tokLen == 4) && !PL_strncasecmp( pTok, "from", 4)) {
 				if (!remote || from)
 					return( -1);
 				from = PR_TRUE;
 			}
-			else if ((tokLen == 4) && ((num > 1900) || !nsCRT::strncmp( pTok, "0000", 4))) {
+			else if ((tokLen == 4) && ((num > 1900) || !strncmp( pTok, "0000", 4))) {
 				if (year)
 					return( -1);
 				year = (int)num;
@@ -1197,7 +1197,7 @@ PRInt32 nsEudoraMailbox::AsciiToLong( const char *pChar, PRInt32 len)
 int nsEudoraMailbox::IsWeekDayStr( const char *pStr)
 {
 	for (int i = 0; i < 7; i++) {
-		if (!nsCRT::strncasecmp( pStr, eudoraWeekDays[i], 3))
+		if (!PL_strncasecmp( pStr, eudoraWeekDays[i], 3))
 			return( i + 1);
 	}
 	return( 0);
@@ -1206,7 +1206,7 @@ int nsEudoraMailbox::IsWeekDayStr( const char *pStr)
 int nsEudoraMailbox::IsMonthStr( const char *pStr)
 {
 	for (int i = 0; i < 12; i++) {
-		if (!nsCRT::strncasecmp( pStr, eudoraMonths[i], 3))
+		if (!PL_strncasecmp( pStr, eudoraMonths[i], 3))
 			return( i + 1);
 	}
 	return( 0);
@@ -1230,8 +1230,8 @@ void nsEudoraMailbox::EmptyAttachments( void)
 	for (PRInt32 i = 0; i < max; i++) {
 		pAttach = (ImportAttachment *) m_attachments.ElementAt( i);
 		if (pAttach) {
-			nsCRT::free( pAttach->description);
-			nsCRT::free( pAttach->mimeType);
+			NS_Free( pAttach->description);
+			NS_Free( pAttach->mimeType);
 			delete pAttach;
 		}
 	}
@@ -1269,7 +1269,7 @@ nsresult nsEudoraMailbox::ExamineAttachment( SimpleBufferTonyRCopiedOnce& data)
 	PRInt32	cnt;
 	PRInt32	idx = 0;
 	while ((cnt = eudoraAttachLen[idx]) != 0) {
-		if (!nsCRT::strncmp( eudoraAttachLines[idx], pChar, cnt)) {
+		if (!strncmp( eudoraAttachLines[idx], pChar, cnt)) {
 			pData = pChar + cnt;
 			while (((*pData == ' ') || (*pData == '\t')) && (cnt < len)) {
 				cnt++;
@@ -1317,26 +1317,26 @@ nsresult nsEudoraMailbox::ExamineAttachment( SimpleBufferTonyRCopiedOnce& data)
 
 PRBool nsEudoraMailbox::AddAttachment( nsCString& fileName)
 {
-	IMPORT_LOG1( "Found attachment: %s\n", fileName.get());
+  IMPORT_LOG1( "Found attachment: %s\n", fileName.get());
 
-        nsresult rv;
-	nsCOMPtr <nsILocalFile>	pFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
-	if (NS_FAILED( rv))
-		return( PR_FALSE);
+  nsresult rv;
+  nsCOMPtr <nsILocalFile>	pFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+  if (NS_FAILED( rv))
+    return( PR_FALSE);
 
-	nsCString	mimeType;
-        nsCString attachmentName;
-	if (NS_FAILED( GetAttachmentInfo( fileName.get(), pFile, mimeType, attachmentName)))
-		return( PR_FALSE);
+  nsCString mimeType;
+  nsCString attachmentName;
+  if (NS_FAILED( GetAttachmentInfo( fileName.get(), pFile, mimeType, attachmentName)))
+    return( PR_FALSE);
 
-	ImportAttachment *a = new ImportAttachment;
-	a->mimeType = ToNewCString(mimeType);
-  a->description = !attachmentName.IsEmpty() ? ToNewCString(attachmentName) : nsCRT::strdup( "Attached File");
-	a->pAttachment = pFile;
+  ImportAttachment *a = new ImportAttachment;
+  a->mimeType = ToNewCString(mimeType);
+  a->description = !attachmentName.IsEmpty() ? ToNewCString(attachmentName) : strdup( "Attached File");
+  a->pAttachment = pFile;
 
-	m_attachments.AppendElement( a);
+  m_attachments.AppendElement( a);
 
-	return( PR_TRUE);
+  return( PR_TRUE);
 }
 
 nsresult nsEudoraMailbox::FillMailBuffer( ReadFileState *pState, SimpleBufferTonyRCopiedOnce& read)

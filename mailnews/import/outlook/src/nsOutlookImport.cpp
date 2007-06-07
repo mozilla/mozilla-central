@@ -48,7 +48,6 @@
 #endif
 
 #include "nscore.h"
-#include "nsCRT.h"
 #include "nsString.h"
 #include "nsReadableUtils.h"
 #include "nsIServiceManager.h"
@@ -241,7 +240,7 @@ NS_IMETHODIMP nsOutlookImport::GetSupports( char **supports)
     if (! supports)
         return NS_ERROR_NULL_POINTER;
        
-	*supports = nsCRT::strdup( kOutlookSupportsString);
+	*supports = strdup( kOutlookSupportsString);
 	return( NS_OK);
 }
 
@@ -266,7 +265,7 @@ NS_IMETHODIMP nsOutlookImport::GetImportInterface( const char *pImportType, nsIS
 
 	*ppInterface = nsnull;
 	nsresult	rv;
-	if (!nsCRT::strcmp( pImportType, "mail")) {
+	if (!strcmp( pImportType, "mail")) {
 		// create the nsIImportMail interface and return it!
 		nsIImportMail *	pMail = nsnull;
 		nsIImportGeneric *pGeneric = nsnull;
@@ -293,7 +292,7 @@ NS_IMETHODIMP nsOutlookImport::GetImportInterface( const char *pImportType, nsIS
 		return( rv);
 	}
 	
-	if (!nsCRT::strcmp( pImportType, "addressbook")) {
+	if (!strcmp( pImportType, "addressbook")) {
 		// create the nsIImportMail interface and return it!
 		nsIImportAddressBooks *	pAddress = nsnull;
 		nsIImportGeneric *		pGeneric = nsnull;
@@ -313,7 +312,7 @@ NS_IMETHODIMP nsOutlookImport::GetImportInterface( const char *pImportType, nsIS
 		return( rv);
 	}
 	
-	if (!nsCRT::strcmp( pImportType, "settings")) {
+	if (!strcmp( pImportType, "settings")) {
 		nsIImportSettings *pSettings = nsnull;
 		rv = nsOutlookSettings::Create( &pSettings);
 		if (NS_SUCCEEDED( rv)) {
@@ -477,7 +476,7 @@ NS_IMETHODIMP ImportOutlookMailImpl::ImportMailbox(	nsIImportMailboxDescriptor *
     PRUnichar *	pName;
     if (NS_SUCCEEDED( pSource->GetDisplayName( &pName))) {
     	name = pName;
-    	nsCRT::free( pName);
+    	NS_Free( pName);
     }
     
 	PRUint32 mailSize = 0;

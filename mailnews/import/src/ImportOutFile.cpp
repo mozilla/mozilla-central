@@ -37,7 +37,6 @@
 
 #include "nscore.h"
 #include "nsString.h"
-#include "nsCRT.h"
 #include "prio.h"
 #include "nsNetUtil.h"
 #include "nsISeekableStream.h"

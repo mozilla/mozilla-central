@@ -48,7 +48,6 @@
 #include "nsISupportsPrimitives.h"
 #include "nsIImportABDescriptor.h"
 #include "nsIImportFieldMap.h"
-#include "nsCRT.h"
 #include "nsString.h"
 #include "nsIURL.h"
 #include "nsNetCID.h"
@@ -203,22 +202,22 @@ nsImportGenericAddressBooks::nsImportGenericAddressBooks()
 
 nsImportGenericAddressBooks::~nsImportGenericAddressBooks()
 {
-	if (m_pThreadData) {
-		m_pThreadData->DriverAbort();
-		m_pThreadData = nsnull;
-	}
-	
-	if (m_pDestinationUri)
-		nsCRT::free( m_pDestinationUri);
-	
-	if (m_description)
-		nsCRT::free( m_description);
+  if (m_pThreadData) {
+    m_pThreadData->DriverAbort();
+    m_pThreadData = nsnull;
+  }
 
-	NS_IF_RELEASE( m_pFieldMap);
-	NS_IF_RELEASE( m_pInterface);
-	NS_IF_RELEASE( m_pBooks);
-	NS_IF_RELEASE( m_pSuccessLog);
-	NS_IF_RELEASE( m_pErrorLog);
+  if (m_pDestinationUri)
+    NS_Free( m_pDestinationUri);
+
+  if (m_description)
+    NS_Free( m_description);
+
+  NS_IF_RELEASE( m_pFieldMap);
+  NS_IF_RELEASE( m_pInterface);
+  NS_IF_RELEASE( m_pBooks);
+  NS_IF_RELEASE( m_pSuccessLog);
+  NS_IF_RELEASE( m_pErrorLog);
 }
 
 
@@ -228,90 +227,90 @@ NS_IMPL_THREADSAFE_ISUPPORTS1(nsImportGenericAddressBooks, nsIImportGeneric)
 
 NS_IMETHODIMP nsImportGenericAddressBooks::GetData(const char *dataId, nsISupports **_retval)
 {
-    NS_PRECONDITION(_retval != nsnull, "null ptr");
-	if (!_retval)
-		return NS_ERROR_NULL_POINTER;
-	
-	nsresult	rv;
-	*_retval = nsnull;
-	if (!nsCRT::strcasecmp( dataId, "addressInterface")) {
-		*_retval = m_pInterface;
-		NS_IF_ADDREF( m_pInterface);
-	}
-	
-	if (!nsCRT::strcasecmp( dataId, "addressLocation")) {
-		if (!m_pLocation)
-			GetDefaultLocation();
-		NS_IF_ADDREF(*_retval = m_pLocation);
-	}
-	
-	if (!nsCRT::strcasecmp( dataId, "addressBooks")) {
-		if (!m_pLocation)
-			GetDefaultLocation();
-		if (!m_pBooks)
-			GetDefaultBooks();
-		*_retval = m_pBooks;
-		NS_IF_ADDREF( m_pBooks);
-	}
-	
-	if (!nsCRT::strcasecmp( dataId, "addressDestination")) {
-		if (m_pDestinationUri) {
+  NS_PRECONDITION(_retval != nsnull, "null ptr");
+  if (!_retval)
+    return NS_ERROR_NULL_POINTER;
+
+  nsresult rv;
+  *_retval = nsnull;
+  if (!PL_strcasecmp( dataId, "addressInterface")) {
+    *_retval = m_pInterface;
+    NS_IF_ADDREF( m_pInterface);
+  }
+
+  if (!PL_strcasecmp( dataId, "addressLocation")) {
+    if (!m_pLocation)
+      GetDefaultLocation();
+    NS_IF_ADDREF(*_retval = m_pLocation);
+  }
+
+  if (!PL_strcasecmp( dataId, "addressBooks")) {
+    if (!m_pLocation)
+      GetDefaultLocation();
+    if (!m_pBooks)
+      GetDefaultBooks();
+    *_retval = m_pBooks;
+    NS_IF_ADDREF( m_pBooks);
+  }
+
+  if (!PL_strcasecmp( dataId, "addressDestination")) {
+    if (m_pDestinationUri) {
             nsCOMPtr<nsISupportsCString> abString = do_CreateInstance(NS_SUPPORTS_CSTRING_CONTRACTID, &rv);
             NS_ENSURE_SUCCESS(rv, rv);
             abString->SetData(nsDependentCString(m_pDestinationUri));
             NS_IF_ADDREF( *_retval = abString);
-		}
-	}
+    }
+  }
 
-	if (!nsCRT::strcasecmp( dataId, "fieldMap")) {
-		if (m_pFieldMap) {
-			*_retval = m_pFieldMap;
-			m_pFieldMap->AddRef();
-		}
-		else {
-			if (m_pInterface && m_pLocation) {
-				PRBool	needsIt = PR_FALSE;
-				m_pInterface->GetNeedsFieldMap( m_pLocation, &needsIt);
-				if (needsIt) {
-					GetDefaultFieldMap();
-					if (m_pFieldMap) {
-						*_retval = m_pFieldMap;
-						m_pFieldMap->AddRef();
-					}
-				}
-			}
-		}
-	}
+  if (!PL_strcasecmp( dataId, "fieldMap")) {
+    if (m_pFieldMap) {
+      *_retval = m_pFieldMap;
+      m_pFieldMap->AddRef();
+    }
+    else {
+      if (m_pInterface && m_pLocation) {
+        PRBool needsIt = PR_FALSE;
+        m_pInterface->GetNeedsFieldMap( m_pLocation, &needsIt);
+        if (needsIt) {
+          GetDefaultFieldMap();
+          if (m_pFieldMap) {
+            *_retval = m_pFieldMap;
+            m_pFieldMap->AddRef();
+          }
+        }
+      }
+    }
+  }
 
-	if (!nsCRT::strncasecmp( dataId, "sampleData-", 11)) {
-		// extra the record number
-		const char *pNum = dataId + 11;
-		PRInt32	rNum = 0;
-		while (*pNum) {
-			rNum *= 10;
-			rNum += (*pNum - '0');
-			pNum++;
-		}
-		IMPORT_LOG1( "Requesting sample data #: %ld\n", (long)rNum);
-		if (m_pInterface) {
-			nsCOMPtr<nsISupportsString>	data = do_CreateInstance( NS_SUPPORTS_STRING_CONTRACTID, &rv);
-			if (NS_FAILED( rv))
-				return( rv);
-			PRUnichar *	pData = nsnull;
-			PRBool		found = PR_FALSE;
-			rv = m_pInterface->GetSampleData( rNum, &found, &pData);
-			if (NS_FAILED( rv))
-				return( rv);
-			if (found) {
-				data->SetData(nsDependentString(pData));
-				*_retval = data;
-				NS_ADDREF( *_retval);
-			}
-			nsCRT::free( pData);
-		}
-	}
+  if (!PL_strncasecmp( dataId, "sampleData-", 11)) {
+    // extra the record number
+    const char *pNum = dataId + 11;
+    PRInt32	rNum = 0;
+    while (*pNum) {
+      rNum *= 10;
+      rNum += (*pNum - '0');
+      pNum++;
+    }
+    IMPORT_LOG1( "Requesting sample data #: %ld\n", (long)rNum);
+    if (m_pInterface) {
+      nsCOMPtr<nsISupportsString>	data = do_CreateInstance( NS_SUPPORTS_STRING_CONTRACTID, &rv);
+      if (NS_FAILED( rv))
+        return( rv);
+      PRUnichar *	pData = nsnull;
+      PRBool		found = PR_FALSE;
+      rv = m_pInterface->GetSampleData( rNum, &found, &pData);
+      if (NS_FAILED( rv))
+        return( rv);
+      if (found) {
+        data->SetData(nsDependentString(pData));
+        *_retval = data;
+        NS_ADDREF( *_retval);
+      }
+      NS_Free( pData);
+    }
+  }
 
-	return( NS_OK);
+  return( NS_OK);
 }
 
 
@@ -321,18 +320,18 @@ NS_IMETHODIMP nsImportGenericAddressBooks::SetData( const char *dataId, nsISuppo
     if (!dataId)
         return NS_ERROR_NULL_POINTER;
 
-	if (!nsCRT::strcasecmp( dataId, "addressInterface")) {
+	if (!PL_strcasecmp( dataId, "addressInterface")) {
 		NS_IF_RELEASE( m_pInterface);
 		if (item)
 			item->QueryInterface( NS_GET_IID(nsIImportAddressBooks), (void **) &m_pInterface);
 	}
-	if (!nsCRT::strcasecmp( dataId, "addressBooks")) {
+	if (!PL_strcasecmp( dataId, "addressBooks")) {
 		NS_IF_RELEASE( m_pBooks);
 		if (item)
 			item->QueryInterface( NS_GET_IID(nsISupportsArray), (void **) &m_pBooks);
 	}
 	
-	if (!nsCRT::strcasecmp( dataId, "addressLocation")) {
+	if (!PL_strcasecmp( dataId, "addressLocation")) {
 		m_pLocation = nsnull;
 
     if (item) {
@@ -345,13 +344,13 @@ NS_IMETHODIMP nsImportGenericAddressBooks::SetData( const char *dataId, nsISuppo
       m_pInterface->SetSampleLocation(m_pLocation);
     }
 
-	if (!nsCRT::strcasecmp( dataId, "addressDestination")) {
+	if (!PL_strcasecmp( dataId, "addressDestination")) {
 		if (item) {
 			nsCOMPtr<nsISupportsCString> abString;
 			item->QueryInterface( NS_GET_IID(nsISupportsCString), getter_AddRefs( abString));
 			if (abString) {
 				if (m_pDestinationUri)
-					nsCRT::free( m_pDestinationUri);
+					NS_Free( m_pDestinationUri);
 				m_pDestinationUri = nsnull;
                 nsCAutoString tempUri;
                 abString->GetData(tempUri);
@@ -360,7 +359,7 @@ NS_IMETHODIMP nsImportGenericAddressBooks::SetData( const char *dataId, nsISuppo
 		}
 	}
 
-	if (!nsCRT::strcasecmp( dataId, "fieldMap")) {
+	if (!PL_strcasecmp( dataId, "fieldMap")) {
 		NS_IF_RELEASE( m_pFieldMap);
 		if (item)
 			item->QueryInterface( NS_GET_IID(nsIImportFieldMap), (void **) &m_pFieldMap);
@@ -378,29 +377,29 @@ NS_IMETHODIMP nsImportGenericAddressBooks::GetStatus( const char *statusKind, PR
 	
 	*_retval = 0;
 
-	if (!nsCRT::strcasecmp( statusKind, "isInstalled")) {
+	if (!PL_strcasecmp( statusKind, "isInstalled")) {
 		GetDefaultLocation();
 		*_retval = (PRInt32) m_found;
 	}
 
-	if (!nsCRT::strcasecmp( statusKind, "canUserSetLocation")) {
+	if (!PL_strcasecmp( statusKind, "canUserSetLocation")) {
 		GetDefaultLocation();
 		*_retval = (PRInt32) m_userVerify;
 	}
 	
-	if (!nsCRT::strcasecmp( statusKind, "autoFind")) {
+	if (!PL_strcasecmp( statusKind, "autoFind")) {
 		GetDefaultLocation();
 		*_retval = (PRInt32) m_autoFind;
 	}
 
-	if (!nsCRT::strcasecmp( statusKind, "supportsMultiple")) {
+	if (!PL_strcasecmp( statusKind, "supportsMultiple")) {
 		PRBool		multi = PR_FALSE;
 		if (m_pInterface)
 			m_pInterface->GetSupportsMultiple( &multi);
 		*_retval = (PRInt32) multi;
 	}
 	
-	if (!nsCRT::strcasecmp( statusKind, "needsFieldMap")) {
+	if (!PL_strcasecmp( statusKind, "needsFieldMap")) {
 		PRBool		needs = PR_FALSE;
 		if (m_pInterface && m_pLocation)
 			m_pInterface->GetNeedsFieldMap( m_pLocation, &needs);
@@ -419,7 +418,7 @@ void nsImportGenericAddressBooks::GetDefaultLocation( void)
 		return;
 	
 	if (m_description)
-		nsCRT::free( m_description);
+		NS_Free( m_description);
 	m_description = nsnull;
 	m_pInterface->GetAutoFind( &m_description, &m_autoFind);
 	m_gotLocation = PR_TRUE;
@@ -595,7 +594,7 @@ NS_IMETHODIMP nsImportGenericAddressBooks::BeginImport(nsISupportsString *succes
 	m_pThreadData->successLog = m_pSuccessLog;
 	NS_IF_ADDREF( m_pSuccessLog);
 	if (m_pDestinationUri)
-		m_pThreadData->pDestinationUri = nsCRT::strdup( m_pDestinationUri);
+		m_pThreadData->pDestinationUri = strdup( m_pDestinationUri);
 	m_pThreadData->bAddrLocInput = isAddrLocHome ;
 
     NS_IF_ADDREF(m_pThreadData->stringBundle = m_stringBundle);
@@ -707,7 +706,7 @@ AddressThreadData::AddressThreadData()
 AddressThreadData::~AddressThreadData()
 {
   if (pDestinationUri)
-    nsCRT::free(pDestinationUri);
+    NS_Free(pDestinationUri);
 
   NS_IF_RELEASE(books);
   NS_IF_RELEASE(addressImport);
@@ -870,7 +869,7 @@ void nsImportGenericAddressBooks::ReportError(const PRUnichar *pName,
   PRUnichar *pText = nsTextFormatter::smprintf( pFmt, pName);
   pStream->Append( pText);
   nsTextFormatter::smprintf_free( pText);
-  nsCRT::free(pFmt);
+  NS_Free(pFmt);
   pStream->AppendLiteral(MSG_LINEBREAK);
 }
 
@@ -958,11 +957,11 @@ PR_STATIC_CALLBACK( void) ImportAddressThread( void *stuff)
 																&fatalError);
 					if (pSuccess) {
 						success.Append( pSuccess);
-						nsCRT::free( pSuccess);
+						NS_Free( pSuccess);
 					}
 					if (pError) {
 						error.Append( pError);
-						nsCRT::free( pError);
+						NS_Free( pError);
 					}
 				}
 				else {

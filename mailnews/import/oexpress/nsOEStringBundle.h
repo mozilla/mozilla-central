@@ -37,7 +37,6 @@
 #ifndef _nsOEStringBundle_H__
 #define _nsOEStringBundle_H__
 
-#include "nsCRT.h"
 #include "nsString.h"
 
 class nsIStringBundle;
@@ -47,7 +46,7 @@ public:
 	static PRUnichar     *		GetStringByID(PRInt32 stringID, nsIStringBundle *pBundle = nsnull);
 	static void					GetStringByID(PRInt32 stringID, nsString& result, nsIStringBundle *pBundle = nsnull);
 	static nsIStringBundle *	GetStringBundle( void); // don't release
-	static void					FreeString( PRUnichar *pStr) { nsCRT::free( pStr);}
+	static void					FreeString( PRUnichar *pStr) { NS_Free( pStr);}
 	static void					Cleanup( void);
 	static nsIStringBundle *	GetStringBundleProxy( void); // release
 

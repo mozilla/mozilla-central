@@ -42,7 +42,6 @@
 #define FORCE_PR_LOG /* Allow logging in the release build */
 #endif
 
-#include "nsCRT.h"
 #include "nsBayesianFilter.h"
 #include "nsIInputStream.h"
 #include "nsIStreamListener.h"
@@ -319,7 +318,7 @@ void Tokenizer::addTokenForHeader(const char * aTokenPrefix, nsACString& aValue,
       char* word;
       nsCString str(aValue);
       char *next = str.BeginWriting();
-      while ((word = nsCRT::strtok(next, kBayesianFilterTokenDelimiters, &next)) != NULL)
+      while ((word = NS_strtok(kBayesianFilterTokenDelimiters, &next)) != NULL)
       {
         if (word[0] == '\0') continue;
         if (isDecimalNumber(word)) continue;
@@ -616,7 +615,7 @@ void Tokenizer::tokenize(const char* aText)
 
   char* word;
   char* next = strippedText;
-  while ((word = nsCRT::strtok(next, kBayesianFilterTokenDelimiters, &next)) != NULL) {
+  while ((word = NS_strtok(kBayesianFilterTokenDelimiters, &next)) != NULL) {
     if (!*word) continue;
     if (isDecimalNumber(word)) continue;
     if (isASCII(word))

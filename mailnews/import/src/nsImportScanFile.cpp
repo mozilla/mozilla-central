@@ -37,7 +37,6 @@
 
 #include "nscore.h"
 #include "nsILocalFile.h"
-#include "nsCRT.h"
 #include "nsImportScanFile.h"
 #include "ImportCharSet.h"
 

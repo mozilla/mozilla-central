@@ -417,7 +417,7 @@ void nsEudoraCompose::GetHeaderValue( const char *pData, PRInt32 dataLen, const 
   PRInt32	start = 0;
   PRInt32 len = strlen( pHeader);
   const char *pChar = pData;
-  if (!nsCRT::strncasecmp( pHeader, pData, len)) {
+  if (!PL_strncasecmp( pHeader, pData, len)) {
     start = len;
   }
   else {
@@ -430,7 +430,7 @@ void nsEudoraCompose::GetHeaderValue( const char *pData, PRInt32 dataLen, const 
         start++;
         pChar++;
       }
-      if ((start < dataLen) && !nsCRT::strncasecmp( pChar, pHeader, len))
+      if ((start < dataLen) && !PL_strncasecmp( pChar, pHeader, len))
         break;
     }
     if (start < dataLen)
@@ -538,11 +538,11 @@ void nsEudoraCompose::CleanUpAttach( nsMsgAttachedFile *a, PRInt32 count)
   for (PRInt32 i = 0; i < count; i++) {
     a[i].orig_url=nsnull;
     if (a[i].type)
-      nsCRT::free( a[i].type);
+      NS_Free( a[i].type);
     if (a[i].description)
-      nsCRT::free( a[i].description);
+      NS_Free( a[i].description);
     if (a[i].encoding)
-      nsCRT::free( a[i].encoding);
+      NS_Free( a[i].encoding);
   }
   delete [] a;
 }
@@ -592,9 +592,9 @@ nsMsgAttachedFile * nsEudoraCompose::GetLocalAttachments( void)
       return( nsnull);
     }
 
-    a[i].type = nsCRT::strdup( pAttach->mimeType);
-    a[i].real_name = nsCRT::strdup( pAttach->description);
-    a[i].encoding = nsCRT::strdup( ENCODING_BINARY);
+    a[i].type = strdup( pAttach->mimeType);
+    a[i].real_name = strdup( pAttach->description);
+    a[i].encoding = strdup( ENCODING_BINARY);
   }
 
   return( a);
@@ -793,7 +793,7 @@ nsresult nsEudoraCompose::SendTheMessage( nsIFile **pMsg)
   }
 
   if (pMimeType)
-    nsCRT::free( pMimeType);
+    NS_Free( pMimeType);
 
   if (pListen->m_location) {
     pListen->m_location->Clone(pMsg);
@@ -1058,7 +1058,7 @@ static const char *gReplaceHeaders[kMaxReplaceHeaders] = {
 PRBool nsEudoraCompose::IsReplaceHeader( const char *pHeader)
 {
   for (int i = 0; i < kMaxReplaceHeaders; i++) {
-    if (!nsCRT::strcasecmp( pHeader, gReplaceHeaders[i]))
+    if (!PL_strcasecmp( pHeader, gReplaceHeaders[i]))
       return( PR_TRUE);
   }
 
@@ -1068,7 +1068,7 @@ PRBool nsEudoraCompose::IsReplaceHeader( const char *pHeader)
 PRInt32 nsEudoraCompose::IsSpecialHeader( const char *pHeader)
 {
   for (int i = 0; i < kMaxSpecialHeaders; i++) {
-    if (!nsCRT::strcasecmp( pHeader, gSpecialHeaders[i]))
+    if (!PL_strcasecmp( pHeader, gSpecialHeaders[i]))
       return( (PRInt32) i);
   }
 
@@ -1122,7 +1122,7 @@ nsresult nsEudoraCompose::WriteHeaders(nsIOutputStream *pDst, SimpleBufferTonyRC
       }
       if (!val.IsEmpty()) {
         // See if we're writing out a Date: header.
-        if (!nsCRT::strcasecmp(header.get(), "Date"))
+        if (header.LowerCaseEqualsLiteral("date"))
           hasDateHeader = PR_TRUE;
         rv = pDst->Write( header.get(), header.Length(), &written);
         if (NS_SUCCEEDED( rv))

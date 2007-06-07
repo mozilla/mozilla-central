@@ -37,21 +37,21 @@
 #ifndef _nsOutlookStringBundle_H__
 #define _nsOutlookStringBundle_H__
 
-#include "nsCRT.h"
+#include "nsCRTGlue.h"
 #include "nsString.h"
 
 class nsIStringBundle;
 
 class nsOutlookStringBundle {
 public:
-	static PRUnichar     *		GetStringByID(PRInt32 stringID, nsIStringBundle *pBundle = nsnull);
-	static void					GetStringByID(PRInt32 stringID, nsString& result, nsIStringBundle *pBundle = nsnull);
-	static nsIStringBundle *	GetStringBundle( void); // don't release
-	static nsIStringBundle *	GetStringBundleProxy( void); // release
-	static void					FreeString( PRUnichar *pStr) { nsCRT::free( pStr);}
-	static void					Cleanup( void);
-private:
-	static nsIStringBundle *	m_pBundle;
+  static PRUnichar     * GetStringByID(PRInt32 stringID, nsIStringBundle *pBundle = nsnull);
+  static void GetStringByID(PRInt32 stringID, nsString& result, nsIStringBundle *pBundle = nsnull);
+  static nsIStringBundle * GetStringBundle( void); // don't release
+  static nsIStringBundle * GetStringBundleProxy( void); // release
+  static void FreeString( PRUnichar *pStr) { NS_Free( pStr);}
+  static void Cleanup( void);
+  private:
+  static nsIStringBundle * m_pBundle;
 };
 
 

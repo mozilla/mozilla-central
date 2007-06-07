@@ -55,7 +55,7 @@
 #include "nsXPCOM.h"
 #include "nsISupportsPrimitives.h"
 #include "nsIImportMailboxDescriptor.h"
-#include "nsCRT.h"
+
 #include "nsString.h"
 #include "nsUnicharUtils.h"
 #include "nsIProxyObjectManager.h"
@@ -235,81 +235,79 @@ NS_IMPL_THREADSAFE_ISUPPORTS1(nsImportGenericMail, nsIImportGeneric)
 
 NS_IMETHODIMP nsImportGenericMail::GetData(const char *dataId, nsISupports **_retval)
 {
-	nsresult rv = NS_OK;
+  nsresult rv = NS_OK;
 
-    NS_PRECONDITION(_retval != nsnull, "null ptr");
-	if (!_retval)
-		return NS_ERROR_NULL_POINTER;
-	
-	*_retval = nsnull;
-	if (!nsCRT::strcasecmp( dataId, "mailInterface")) {
-		*_retval = m_pInterface;
-		NS_IF_ADDREF( m_pInterface);
-	}
-	
-	if (!nsCRT::strcasecmp( dataId, "mailBoxes")) {
-		if (!m_pMailboxes)
-			GetDefaultMailboxes();
-		*_retval = m_pMailboxes;
-		NS_IF_ADDREF( m_pMailboxes);
-	}
+  NS_PRECONDITION(_retval != nsnull, "null ptr");
+  if (!_retval)
+    return NS_ERROR_NULL_POINTER;
 
-	if (!nsCRT::strcasecmp( dataId, "mailLocation")) {
-		if (!m_pSrcLocation)
-			GetDefaultLocation();
-		NS_IF_ADDREF(*_retval = m_pSrcLocation);
-	}
-	
-	if (!nsCRT::strcasecmp( dataId, "mailDestination")) {
-		if (!m_pDestFolder)
-			GetDefaultDestination();
-		*_retval = m_pDestFolder;
-		NS_IF_ADDREF( m_pDestFolder);
-	}
-	
-	if (!nsCRT::strcasecmp( dataId, "migration")) {
+  *_retval = nsnull;
+  if (!PL_strcasecmp( dataId, "mailInterface")) {
+    *_retval = m_pInterface;
+    NS_IF_ADDREF( m_pInterface);
+  }
+
+  if (!PL_strcasecmp( dataId, "mailBoxes")) {
+    if (!m_pMailboxes)
+      GetDefaultMailboxes();
+    *_retval = m_pMailboxes;
+    NS_IF_ADDREF( m_pMailboxes);
+  }
+
+  if (!PL_strcasecmp( dataId, "mailLocation")) {
+    if (!m_pSrcLocation)
+      GetDefaultLocation();
+    NS_IF_ADDREF(*_retval = m_pSrcLocation);
+  }
+
+  if (!PL_strcasecmp( dataId, "mailDestination")) {
+    if (!m_pDestFolder)
+      GetDefaultDestination();
+    NS_IF_ADDREF(*_retval = m_pDestFolder);
+  }
+
+  if (!PL_strcasecmp( dataId, "migration")) {
         nsCOMPtr<nsISupportsPRBool> migrationString = do_CreateInstance(NS_SUPPORTS_PRBOOL_CONTRACTID, &rv);
         NS_ENSURE_SUCCESS(rv, rv);
         migrationString->SetData(m_performingMigration);
         NS_IF_ADDREF( *_retval = migrationString);
-	}
-	
-	if (!nsCRT::strcasecmp( dataId, "currentMailbox")) {
-		// create an nsISupportsString, get the current mailbox
-		// name being imported and put it in the string
-		nsCOMPtr<nsISupportsString>	data = do_CreateInstance( NS_SUPPORTS_STRING_CONTRACTID, &rv);
-		if (NS_FAILED( rv))
-			return( rv);
-		if (m_pThreadData) {
-			GetMailboxName( m_pThreadData->currentMailbox, data);
-		}
-		*_retval = data;
-		NS_ADDREF( *_retval);
-	}
+  }
 
-	return( rv);
+  if (!PL_strcasecmp( dataId, "currentMailbox")) {
+    // create an nsISupportsString, get the current mailbox
+    // name being imported and put it in the string
+    nsCOMPtr<nsISupportsString>	data = do_CreateInstance( NS_SUPPORTS_STRING_CONTRACTID, &rv);
+    if (NS_FAILED( rv))
+      return( rv);
+    if (m_pThreadData) {
+      GetMailboxName( m_pThreadData->currentMailbox, data);
+    }
+    NS_ADDREF(*_retval = data);
+  }
+
+  return( rv);
 }
 
 NS_IMETHODIMP nsImportGenericMail::SetData( const char *dataId, nsISupports *item)
 {
-    nsresult rv = NS_OK;
-	NS_PRECONDITION(dataId != nsnull, "null ptr");
-    if (!dataId)
-        return NS_ERROR_NULL_POINTER;
+  nsresult rv = NS_OK;
+  NS_PRECONDITION(dataId != nsnull, "null ptr");
+  if (!dataId)
+    return NS_ERROR_NULL_POINTER;
 
-	if (!nsCRT::strcasecmp( dataId, "mailInterface")) {
-		NS_IF_RELEASE( m_pInterface);
-		if (item)
-			item->QueryInterface( NS_GET_IID(nsIImportMail), (void **) &m_pInterface);
-	}
-	if (!nsCRT::strcasecmp( dataId, "mailBoxes")) {
-		NS_IF_RELEASE( m_pMailboxes);
-		if (item)
-			item->QueryInterface( NS_GET_IID(nsISupportsArray), (void **) &m_pMailboxes);
-	}
-	
-	if (!nsCRT::strcasecmp( dataId, "mailLocation")) {
-		NS_IF_RELEASE( m_pMailboxes);
+  if (!PL_strcasecmp( dataId, "mailInterface")) {
+    NS_IF_RELEASE( m_pInterface);
+    if (item)
+      item->QueryInterface( NS_GET_IID(nsIImportMail), (void **) &m_pInterface);
+  }
+  if (!PL_strcasecmp( dataId, "mailBoxes")) {
+    NS_IF_RELEASE( m_pMailboxes);
+    if (item)
+      item->QueryInterface( NS_GET_IID(nsISupportsArray), (void **) &m_pMailboxes);
+  }
+
+  if (!PL_strcasecmp( dataId, "mailLocation")) {
+    NS_IF_RELEASE( m_pMailboxes);
     m_pSrcLocation = nsnull;
     if (item) {
       nsresult rv;
@@ -317,54 +315,53 @@ NS_IMETHODIMP nsImportGenericMail::SetData( const char *dataId, nsISupports *ite
       NS_ENSURE_SUCCESS(rv,rv);
       m_pSrcLocation = location;
     }
-	}
-	
-	if (!nsCRT::strcasecmp( dataId, "mailDestination")) {
-		NS_IF_RELEASE( m_pDestFolder);
-		if (item)
-			item->QueryInterface( NS_GET_IID(nsIMsgFolder), (void **) &m_pDestFolder);
-		m_deleteDestFolder = PR_FALSE;
-	}
-	
-	if (!nsCRT::strcasecmp( dataId, "name")) {
-		nsCOMPtr<nsISupportsString> nameString;
-		if (item) {
-			item->QueryInterface( NS_GET_IID(nsISupportsString), getter_AddRefs(nameString));
-			rv = nameString->GetData(m_pName);
-		}
-	}
+  }
 
-  if (!nsCRT::strcasecmp( dataId, "migration")) {
-		nsCOMPtr<nsISupportsPRBool> migrationString;
-		if (item) {
-			item->QueryInterface( NS_GET_IID(nsISupportsPRBool), getter_AddRefs(migrationString));
-			rv = migrationString->GetData(&m_performingMigration);
-		}
-	}
+  if (!PL_strcasecmp( dataId, "mailDestination")) {
+    NS_IF_RELEASE( m_pDestFolder);
+    if (item)
+      item->QueryInterface( NS_GET_IID(nsIMsgFolder), (void **) &m_pDestFolder);
+    m_deleteDestFolder = PR_FALSE;
+  }
 
-	return rv;
+  if (!PL_strcasecmp( dataId, "name")) {
+    nsCOMPtr<nsISupportsString> nameString;
+    if (item) {
+      item->QueryInterface( NS_GET_IID(nsISupportsString), getter_AddRefs(nameString));
+      rv = nameString->GetData(m_pName);
+    }
+  }
+
+  if (!PL_strcasecmp( dataId, "migration")) {
+    nsCOMPtr<nsISupportsPRBool> migrationString;
+    if (item) {
+      item->QueryInterface( NS_GET_IID(nsISupportsPRBool), getter_AddRefs(migrationString));
+      rv = migrationString->GetData(&m_performingMigration);
+    }
+  }
+  return rv;
 }
 
 NS_IMETHODIMP nsImportGenericMail::GetStatus( const char *statusKind, PRInt32 *_retval)
 {
-	NS_PRECONDITION(statusKind != nsnull, "null ptr");
-	NS_PRECONDITION(_retval != nsnull, "null ptr");
-	if (!statusKind || !_retval)
-		return( NS_ERROR_NULL_POINTER);
-	
-	*_retval = 0;
+  NS_PRECONDITION(statusKind != nsnull, "null ptr");
+  NS_PRECONDITION(_retval != nsnull, "null ptr");
+  if (!statusKind || !_retval)
+    return( NS_ERROR_NULL_POINTER);
 
-	if (!nsCRT::strcasecmp( statusKind, "isInstalled")) {
-		GetDefaultLocation();
-		*_retval = (PRInt32) m_found;
-	}
+  *_retval = 0;
 
-	if (!nsCRT::strcasecmp( statusKind, "canUserSetLocation")) {
-		GetDefaultLocation();
-		*_retval = (PRInt32) m_userVerify;
-	}
+  if (!PL_strcasecmp( statusKind, "isInstalled")) {
+    GetDefaultLocation();
+    *_retval = (PRInt32) m_found;
+  }
 
-	return( NS_OK);
+  if (!PL_strcasecmp( statusKind, "canUserSetLocation")) {
+    GetDefaultLocation();
+    *_retval = (PRInt32) m_userVerify;
+  }
+
+  return( NS_OK);
 }
 
 
@@ -640,7 +637,7 @@ void nsImportGenericMail::ReportError(PRInt32 id, const PRUnichar *pName, nsStri
   PRUnichar *pText = nsTextFormatter::smprintf( pFmt, pName);
   pStream->Append( pText);
   nsTextFormatter::smprintf_free( pText);
-  nsCRT::free(pFmt);
+  NS_Free(pFmt);
   pStream->Append(NS_ConvertASCIItoUTF16(MSG_LINEBREAK));
 }
 
@@ -865,7 +862,7 @@ ImportMailThread( void *stuff)
 			box->GetDisplayName( &pName);
 			if (pName) {
 				lastName = pName;
-				nsCRT::free( pName);
+				NS_Free( pName);
 			}
 			else
 				lastName.AssignLiteral("Unknown!");
@@ -914,11 +911,11 @@ ImportMailThread( void *stuff)
 				rv = pData->mailImport->ImportMailbox( box, outBox, &pError, &pSuccess, &fatalError);
 				if (pError) {
 					error.Append( pError);
-					nsCRT::free( pError);
+					NS_Free( pError);
 				}
 				if (pSuccess) {
 					success.Append( pSuccess);
-					nsCRT::free( pSuccess);
+					NS_Free( pSuccess);
 				}
 
 				pData->currentSize = 0;

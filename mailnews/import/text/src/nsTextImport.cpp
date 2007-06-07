@@ -50,7 +50,6 @@
 #endif
 
 #include "nscore.h"
-#include "nsCRT.h"
 #include "nsString.h"
 #include "nsReadableUtils.h"
 #include "nsIServiceManager.h"
@@ -218,7 +217,7 @@ NS_IMETHODIMP nsTextImport::GetImportInterface( const char *pImportType, nsISupp
   *ppInterface = nsnull;
   nsresult rv;
 
-  if (!nsCRT::strcmp( pImportType, "addressbook")) {
+  if (!strcmp( pImportType, "addressbook")) {
     // create the nsIImportMail interface and return it!
     nsIImportAddressBooks * pAddress = nsnull;
     nsIImportGeneric * pGeneric = nsnull;
@@ -605,7 +604,7 @@ NS_IMETHODIMP ImportAddressImpl::GetSampleData( PRInt32 index, PRBool *pFound, P
 
   if (!fileExists) {
     *pFound = PR_FALSE;
-    *pStr = nsCRT::strdup(&term);
+    *pStr = NS_strdup(&term);
     return NS_OK;
   }
 
@@ -635,7 +634,7 @@ NS_IMETHODIMP ImportAddressImpl::GetSampleData( PRInt32 index, PRBool *pFound, P
   }
   else {
     *pFound = PR_FALSE;
-    *pStr = nsCRT::strdup( &term);
+    *pStr = NS_strdup( &term);
   }
 
   return NS_OK;

@@ -38,7 +38,6 @@
 
 #include "nscore.h"
 #include "nsString.h"
-#include "nsCRT.h"
 #include "nsImportMimeEncode.h"
 
 #include "ImportCharSet.h"

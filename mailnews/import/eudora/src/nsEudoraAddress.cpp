@@ -205,7 +205,7 @@ void nsEudoraAddress::ProcessLine( const char *pLine, PRInt32 len, nsString& err
 	PRInt32	cnt;
 	CAliasEntry	*pEntry;
 
-	if (!nsCRT::strncmp( pLine, "alias", 5)) {
+	if (!strncmp( pLine, "alias", 5)) {
 		pLine += 5;
 		len -= 5;
 		cnt = CountWhiteSpace( pLine, len);
@@ -217,7 +217,7 @@ void nsEudoraAddress::ProcessLine( const char *pLine, PRInt32 len, nsString& err
 			}
 		}
 	}
-	else if (!nsCRT::strncmp( pLine, "note", 4)) {
+	else if (!strncmp( pLine, "note", 4)) {
 		pLine += 4;
 		len -= 4;
 		cnt = CountWhiteSpace( pLine, len);

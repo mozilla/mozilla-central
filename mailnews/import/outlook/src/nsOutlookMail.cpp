@@ -365,9 +365,9 @@ void nsOutlookMail::SetDefaultContentType(CMapiMessage &msg, nsCString &cType)
   {
     // If content type is not multipart/alternative or mixed or related, return.
     // for a multipart alternative with attachments, we get multipart mixed!
-    if (nsCRT::strcasecmp(msg.GetMimeContent(), "multipart/alternative")
-      && nsCRT::strcasecmp(msg.GetMimeContent(), "multipart/mixed")
-      && nsCRT::strcasecmp(msg.GetMimeContent(), "multipart/related"))
+    if (PL_strcasecmp(msg.GetMimeContent(), "multipart/alternative")
+      && PL_strcasecmp(msg.GetMimeContent(), "multipart/mixed")
+      && PL_strcasecmp(msg.GetMimeContent(), "multipart/related"))
       return;
 
     // For multipart/alternative, if no body or boundary,
@@ -782,8 +782,8 @@ void nsOutlookMail::EmptyAttachments( void)
           DeleteFile( pAttach->pAttachment);
         pAttach->pAttachment = nsnull;
       }
-      nsCRT::free( pAttach->description);
-      nsCRT::free( pAttach->mimeType);
+      NS_Free( pAttach->description);
+      NS_Free( pAttach->mimeType);
       delete pAttach;
     }
   }
@@ -808,8 +808,8 @@ void nsOutlookMail::BuildAttachments( CMapiMessage& msg, int count)
       }
       else {
         if (msg.GetAttachFileLoc( pFile)) {
-          PRBool	isFile = PR_FALSE;
-          PRBool	exists = PR_FALSE;
+          PRBool isFile = PR_FALSE;
+          PRBool exists = PR_FALSE;
           pFile->Exists( &exists);
           pFile->IsFile( &isFile);
 
@@ -819,7 +819,7 @@ void nsOutlookMail::BuildAttachments( CMapiMessage& msg, int count)
           else {
             // We have a file spec, now get the other info
             OutlookAttachment *a = new OutlookAttachment;
-            a->mimeType = nsCRT::strdup( msg.GetMimeType());
+            a->mimeType = strdup( msg.GetMimeType());
             // Init description here so that we cacn tell
             // if defaul tattacchment is needed later.
             a->description = nsnull;

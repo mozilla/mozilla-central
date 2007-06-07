@@ -36,7 +36,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nscore.h"
-#include "nsCRT.h"
 #include "nsImportEncodeScan.h"
 #include "nsNetUtil.h"
 

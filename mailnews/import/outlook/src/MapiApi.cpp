@@ -38,7 +38,6 @@
 #include "MapiDbgLog.h"
 #include "MapiApi.h"
 
-#include "nsCRT.h"
 #include "prprf.h"
 #include "nsReadableUtils.h"
 #include "nsUnicharUtils.h"
@@ -1294,7 +1293,7 @@ void CMapiApi::ReportUIDProp( const char *pTag, LPSPropValue pVal)
 			char *	pStr = uid.ToString();
 			if (pStr) {
 				MAPI_TRACE2( "%s %s\n", pTag, (const char *)pStr);
-				nsCRT::free( pStr);
+				NS_Free( pStr);
 			}
 		}
 	}
@@ -1603,13 +1602,13 @@ void CMapiFolderList::DumpList( void)
 #ifdef MAPI_DEBUG
         char *ansiStr = ToNewCString(str);
 		MAPI_TRACE2( "%s%s: ", prefix, ansiStr);
-		nsCRT::free(ansiStr);
+		NS_Free(ansiStr);
 #endif
 		pFolder->GetFilePath( str);
 #ifdef MAPI_DEBUG
         ansiStr = ToNewCString(str);
 		MAPI_TRACE2( "depth=%d, filePath=%s\n", pFolder->GetDepth(), ansiStr);
-		nsCRT::free(ansiStr);
+		NS_Free(ansiStr);
 #endif
 	}
 	MAPI_TRACE0( "---------------------------------------------\n");

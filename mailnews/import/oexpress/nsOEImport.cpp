@@ -48,7 +48,6 @@
 #endif
 
 #include "nscore.h"
-#include "nsCRT.h"
 #include "nsString.h"
 #include "nsReadableUtils.h"
 #include "nsIServiceManager.h"
@@ -249,7 +248,7 @@ NS_IMETHODIMP nsOEImport::GetImportInterface( const char *pImportType, nsISuppor
 
   *ppInterface = nsnull;
   nsresult rv;
-  if (!nsCRT::strcmp( pImportType, "mail")) {
+  if (!strcmp( pImportType, "mail")) {
     // create the nsIImportMail interface and return it!
     nsIImportMail *	pMail = nsnull;
     nsIImportGeneric *pGeneric = nsnull;
@@ -276,7 +275,7 @@ NS_IMETHODIMP nsOEImport::GetImportInterface( const char *pImportType, nsISuppor
     return( rv);
   }
 
-  if (!nsCRT::strcmp( pImportType, "addressbook")) {
+  if (!strcmp( pImportType, "addressbook")) {
     // create the nsIImportMail interface and return it!
     nsIImportAddressBooks * pAddress = nsnull;
     nsIImportGeneric * pGeneric = nsnull;
@@ -296,7 +295,7 @@ NS_IMETHODIMP nsOEImport::GetImportInterface( const char *pImportType, nsISuppor
     return( rv);
   }
 
-  if (!nsCRT::strcmp( pImportType, "settings")) {
+  if (!strcmp( pImportType, "settings")) {
     nsIImportSettings *pSettings = nsnull;
     rv = nsOESettings::Create( &pSettings);
     if (NS_SUCCEEDED( rv)) {

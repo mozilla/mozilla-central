@@ -36,7 +36,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nscore.h"
-#include "nsCRT.h"
 #include "nsString.h"
 #include "MapiMimeTypes.h"
 

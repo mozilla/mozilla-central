@@ -44,14 +44,13 @@
 #include "nsIServiceManager.h"
 #include "nsIComponentManager.h"
 #include "nsICategoryManager.h"
-#include "nsCRT.h"
 #include "nsIExtensionManager.h"
 #include "nsIFile.h"
 #include "nsILocalFile.h"
 #include "nsIPrefBranch.h"
 #include "nsIPrefService.h"
 #include "nsIXULAppInfo.h"
-
+#include "nsCRTGlue.h"
 #include "PalmSyncImp.h"
 #include "nsPalmSyncSupport.h"
 #include "Registry.h"
@@ -125,7 +124,7 @@ nsPalmSyncSupport::Observe(nsISupports *aSubject, const char *aTopic, const PRUn
     } 
     else if (!strcmp(aTopic, NS_XPCOM_SHUTDOWN_OBSERVER_ID))
         rv = ShutdownPalmSyncSupport();
-    else if (aSubject && !strcmp(aTopic, "em-action-requested") && !nsCRT::strcmp(aData, NS_LITERAL_STRING("item-uninstalled").get()))
+    else if (aSubject && !strcmp(aTopic, "em-action-requested") && !NS_strcmp(aData, NS_LITERAL_STRING("item-uninstalled").get()))
     {
         // make sure the subject is our extension.
         nsCOMPtr<nsIUpdateItem> updateItem (do_QueryInterface(aSubject, &rv));

@@ -36,7 +36,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsOE5File.h"
-#include "nsCRT.h"
 #include "OEDebugLog.h"
 #include "nsMsgUtils.h"
 #include "msgCore.h"
@@ -81,7 +80,7 @@ PRBool nsOE5File::VerifyLocalMailFile( nsIFile *pFile)
 
 	storeName[12] = 0;
 	
-	if (nsCRT::strcasecmp( "LocalStore", storeName))
+	if (PL_strcasecmp( "LocalStore", storeName))
 		result = PR_FALSE;
 	
 	return( result);

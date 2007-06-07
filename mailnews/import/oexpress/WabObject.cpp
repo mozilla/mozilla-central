@@ -36,15 +36,12 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nscore.h"
-#include "nsCRT.h"
 #include "wabobject.h"
-
-
 
 enum {
     ieidPR_DISPLAY_NAME = 0,
     ieidPR_ENTRYID,
-	ieidPR_OBJECT_TYPE,
+    ieidPR_OBJECT_TYPE,
     ieidMax
 };
 

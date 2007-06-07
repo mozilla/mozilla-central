@@ -1125,7 +1125,7 @@ void nsEudoraWin32::GetMimeTypeFromExtension( nsCString& ext, nsCString& mimeTyp
 		tStr.Truncate();
 		tStr.Append( pStart, len);
 		tStr.Trim( kWhitespace);
-		if (!nsCRT::strcasecmp( tStr.get(), pExt)) {
+		if (!PL_strcasecmp( tStr.get(), pExt)) {
 			// skip the mac creator and type
 			pChar++;
 			while (*pChar && (*pChar != ','))

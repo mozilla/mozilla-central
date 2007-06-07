@@ -43,14 +43,10 @@
 #include "nsImportStringBundle.h"
 #include "nsReadableUtils.h"
 #include "nsISupportsObsolete.h"
-
+#include "nsCRTGlue.h"
 #include "ImportDebug.h"
 
-
-
 ////////////////////////////////////////////////////////////////////////
-
-
 
 NS_METHOD nsImportFieldMap::Create(nsIStringBundle *aBundle, nsISupports *aOuter, REFNSIID aIID, void **aResult)
 {
@@ -243,145 +239,145 @@ NS_IMETHODIMP nsImportFieldMap::SetFieldActive(PRInt32 index, PRBool active)
 
 NS_IMETHODIMP nsImportFieldMap::SetFieldValue(nsIAddrDatabase *database, nsIMdbRow *row, PRInt32 fieldNum, const PRUnichar *value)
 {
-    NS_PRECONDITION(database != nsnull, "null ptr");
-    NS_PRECONDITION(row != nsnull, "null ptr");
-    NS_PRECONDITION(value != nsnull, "null ptr");
-	if (!database || !row || !value)
-		return NS_ERROR_NULL_POINTER;
-	
-	// Allow the special value for a null field
-	if (fieldNum == -1)
-		return( NS_OK);
+  NS_PRECONDITION(database != nsnull, "null ptr");
+  NS_PRECONDITION(row != nsnull, "null ptr");
+  NS_PRECONDITION(value != nsnull, "null ptr");
+  if (!database || !row || !value)
+    return NS_ERROR_NULL_POINTER;
 
-	if ((fieldNum < 0) || (fieldNum >= m_mozFieldCount))
-		return( NS_ERROR_FAILURE);
-	
-	// UGGG!!!!! lot's of typing here!
-	nsresult rv;
-	
-	nsString str(value);
-	char *pVal = ToNewUTF8String(str);
+  // Allow the special value for a null field
+  if (fieldNum == -1)
+    return( NS_OK);
 
-	switch( fieldNum) {
-	case 0:
-		rv = database->AddFirstName( row, pVal);
-		break;
-	case 1:
-		rv = database->AddLastName( row, pVal);
-		break;
-	case 2:
-		rv = database->AddDisplayName( row, pVal);
-		break;
-	case 3:
-		rv = database->AddNickName( row, pVal);
-		break;
-	case 4:
-		rv = database->AddPrimaryEmail( row, pVal);
-		break;
-	case 5:
-		rv = database->Add2ndEmail( row, pVal);
-		break;
-	case 6:
-		rv = database->AddWorkPhone( row, pVal);
-		break;
-	case 7:
-		rv = database->AddHomePhone( row, pVal);
-		break;
-	case 8:
-		rv = database->AddFaxNumber( row, pVal);
-		break;
-	case 9:
-		rv = database->AddPagerNumber( row, pVal);
-		break;
-	case 10:
-		rv = database->AddCellularNumber( row, pVal);
-		break;
-	case 11:
-		rv = database->AddHomeAddress( row, pVal);
-		break;
-	case 12:
-		rv = database->AddHomeAddress2( row, pVal);
-		break;
-	case 13:
-		rv = database->AddHomeCity( row, pVal);
-		break;
-	case 14:
-		rv = database->AddHomeState( row, pVal);
-		break;
-	case 15:
-		rv = database->AddHomeZipCode( row, pVal);
-		break;
-	case 16:
-		rv = database->AddHomeCountry( row, pVal);
-		break;
-	case 17:
-		rv = database->AddWorkAddress( row, pVal);
-		break;
-	case 18:
-		rv = database->AddWorkAddress2( row, pVal);
-		break;
-	case 19:
-		rv = database->AddWorkCity( row, pVal);
-		break;
-	case 20:
-		rv = database->AddWorkState( row, pVal);
-		break;
-	case 21:
-		rv = database->AddWorkZipCode( row, pVal);
-		break;
-	case 22:
-		rv = database->AddWorkCountry( row, pVal);
-		break;
-	case 23:
-		rv = database->AddJobTitle(row, pVal);
-		break;
-	case 24:
-		rv = database->AddDepartment(row, pVal);
-		break;
-	case 25:
-		rv = database->AddCompany(row, pVal);
-		break;
-	case 26:
-		rv = database->AddWebPage1(row, pVal);
-		break;
-	case 27:
-		rv = database->AddWebPage2(row, pVal);
-		break;
-	case 28:
-		rv = database->AddBirthYear(row, pVal);
-		break;
-	case 29:
-		rv = database->AddBirthMonth(row, pVal);
-		break;
-	case 30:
-		rv = database->AddBirthDay(row, pVal);
-		break;
-	case 31:
-		rv = database->AddCustom1(row, pVal);
-		break;
-	case 32:
-		rv = database->AddCustom2(row, pVal);
-		break;
-	case 33:
-		rv = database->AddCustom3(row, pVal);
-		break;
-	case 34:
-		rv = database->AddCustom4(row, pVal);
-		break;
-	case 35:
-		rv = database->AddNotes(row, pVal);
-		break;
-	default:
-		/* Get the field description, and add it as an anonymous attr? */
-		/* OR WHAT???? */
-		{
-			rv = NS_ERROR_FAILURE;
-		}
-	}
-	
-	nsCRT::free( pVal);
+  if ((fieldNum < 0) || (fieldNum >= m_mozFieldCount))
+    return( NS_ERROR_FAILURE);
 
-	return( rv);
+  // UGGG!!!!! lot's of typing here!
+  nsresult rv;
+
+  nsString str(value);
+  char *pVal = ToNewUTF8String(str);
+
+  switch( fieldNum) {
+  case 0:
+    rv = database->AddFirstName( row, pVal);
+    break;
+  case 1:
+    rv = database->AddLastName( row, pVal);
+    break;
+  case 2:
+    rv = database->AddDisplayName( row, pVal);
+    break;
+  case 3:
+    rv = database->AddNickName( row, pVal);
+    break;
+  case 4:
+    rv = database->AddPrimaryEmail( row, pVal);
+    break;
+  case 5:
+    rv = database->Add2ndEmail( row, pVal);
+    break;
+  case 6:
+    rv = database->AddWorkPhone( row, pVal);
+    break;
+  case 7:
+    rv = database->AddHomePhone( row, pVal);
+    break;
+  case 8:
+    rv = database->AddFaxNumber( row, pVal);
+    break;
+  case 9:
+    rv = database->AddPagerNumber( row, pVal);
+    break;
+  case 10:
+    rv = database->AddCellularNumber( row, pVal);
+    break;
+  case 11:
+    rv = database->AddHomeAddress( row, pVal);
+    break;
+  case 12:
+    rv = database->AddHomeAddress2( row, pVal);
+    break;
+  case 13:
+    rv = database->AddHomeCity( row, pVal);
+    break;
+  case 14:
+    rv = database->AddHomeState( row, pVal);
+    break;
+  case 15:
+    rv = database->AddHomeZipCode( row, pVal);
+    break;
+  case 16:
+    rv = database->AddHomeCountry( row, pVal);
+    break;
+  case 17:
+    rv = database->AddWorkAddress( row, pVal);
+    break;
+  case 18:
+    rv = database->AddWorkAddress2( row, pVal);
+    break;
+  case 19:
+    rv = database->AddWorkCity( row, pVal);
+    break;
+  case 20:
+    rv = database->AddWorkState( row, pVal);
+    break;
+  case 21:
+    rv = database->AddWorkZipCode( row, pVal);
+    break;
+  case 22:
+    rv = database->AddWorkCountry( row, pVal);
+    break;
+  case 23:
+    rv = database->AddJobTitle(row, pVal);
+    break;
+  case 24:
+    rv = database->AddDepartment(row, pVal);
+    break;
+  case 25:
+    rv = database->AddCompany(row, pVal);
+    break;
+  case 26:
+    rv = database->AddWebPage1(row, pVal);
+    break;
+  case 27:
+    rv = database->AddWebPage2(row, pVal);
+    break;
+  case 28:
+    rv = database->AddBirthYear(row, pVal);
+    break;
+  case 29:
+    rv = database->AddBirthMonth(row, pVal);
+    break;
+  case 30:
+    rv = database->AddBirthDay(row, pVal);
+    break;
+  case 31:
+    rv = database->AddCustom1(row, pVal);
+    break;
+  case 32:
+    rv = database->AddCustom2(row, pVal);
+    break;
+  case 33:
+    rv = database->AddCustom3(row, pVal);
+    break;
+  case 34:
+    rv = database->AddCustom4(row, pVal);
+    break;
+  case 35:
+    rv = database->AddNotes(row, pVal);
+    break;
+  default:
+    /* Get the field description, and add it as an anonymous attr? */
+    /* OR WHAT???? */
+    {
+      rv = NS_ERROR_FAILURE;
+    }
+  }
+
+  NS_Free( pVal);
+
+  return( rv);
 }
 
 
@@ -404,9 +400,9 @@ NS_IMETHODIMP nsImportFieldMap::GetFieldValue(nsIAbCard *card, PRInt32 fieldNum,
 
   if (fieldNum == -1) {
     PRUnichar c = 0;
-    *_retval = nsCRT::strdup(&c);
+    *_retval = NS_strdup(&c);
     return NS_OK;
-	}
+  }
 
   if ((fieldNum < 0) || (fieldNum >= m_mozFieldCount))
     return( NS_ERROR_FAILURE);

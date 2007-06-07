@@ -392,7 +392,7 @@ void nsOutlookCompose::GetHeaderValue( const char *pData, PRInt32 dataLen, const
   PRInt32 start = 0;
   PRInt32 len = strlen( pHeader);
   const char *pChar = pData;
-  if (!nsCRT::strncasecmp( pHeader, pData, len)) {
+  if (!PL_strncasecmp( pHeader, pData, len)) {
     start = len;
   }
   else {
@@ -405,7 +405,7 @@ void nsOutlookCompose::GetHeaderValue( const char *pData, PRInt32 dataLen, const
         start++;
         pChar++;
       }
-      if ((start < dataLen) && !nsCRT::strncasecmp( pChar, pHeader, len))
+      if ((start < dataLen) && !PL_strncasecmp( pChar, pHeader, len))
         break;
     }
     if (start < dataLen)
@@ -514,11 +514,11 @@ void nsOutlookCompose::CleanUpAttach( nsMsgAttachedFile *a, PRInt32 count)
   {
     a[i].orig_url=nsnull;
     if (a[i].type)
-      nsCRT::free( a[i].type);
+      NS_Free( a[i].type);
     if (a[i].description)
-      nsCRT::free( a[i].description);
+      NS_Free( a[i].description);
     if (a[i].encoding)
-      nsCRT::free( a[i].encoding);
+      NS_Free( a[i].encoding);
   }
   delete [] a;
 }
@@ -567,9 +567,9 @@ nsMsgAttachedFile * nsOutlookCompose::GetLocalAttachments( void)
       return( nsnull);
     }
 
-    a[i].type = nsCRT::strdup( pAttach->mimeType);
-    a[i].real_name = nsCRT::strdup( pAttach->description);
-    a[i].encoding = nsCRT::strdup( ENCODING_BINARY);
+    a[i].type = strdup( pAttach->mimeType);
+    a[i].real_name = strdup( pAttach->description);
+    a[i].encoding = strdup( ENCODING_BINARY);
   }
 
   return( a);
@@ -709,7 +709,7 @@ nsresult nsOutlookCompose::SendTheMessage( nsIFile *pMsg, nsMsgDeliverMode mode,
   }
 
   if (pMimeType)
-    nsCRT::free( pMimeType);
+    NS_Free( pMimeType);
 
   if (pListen->m_location) {
                 pListen->m_location->Clone(&pMsg);
@@ -972,7 +972,7 @@ static const char *gReplaceHeaders[kMaxReplaceHeaders] = {
 PRBool nsOutlookCompose::IsReplaceHeader( const char *pHeader)
 {
   for (int i = 0; i < kMaxReplaceHeaders; i++) {
-    if (!nsCRT::strcasecmp( pHeader, gReplaceHeaders[i]))
+    if (!PL_strcasecmp( pHeader, gReplaceHeaders[i]))
       return( PR_TRUE);
   }
 
@@ -982,7 +982,7 @@ PRBool nsOutlookCompose::IsReplaceHeader( const char *pHeader)
 PRInt32 nsOutlookCompose::IsSpecialHeader( const char *pHeader)
 {
   for (int i = 0; i < kMaxSpecialHeaders; i++) {
-    if (!nsCRT::strcasecmp( pHeader, gSpecialHeaders[i]))
+    if (!PL_strcasecmp( pHeader, gSpecialHeaders[i]))
       return( (PRInt32) i);
   }
 

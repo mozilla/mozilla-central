@@ -40,7 +40,6 @@
 
 #include "nscore.h"
 #include "nsString.h"
-#include "nsCRT.h"
 
 class ImportOutFile;
 

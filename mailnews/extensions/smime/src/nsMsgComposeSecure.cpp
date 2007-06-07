@@ -53,9 +53,9 @@
 #include "nsIServiceManager.h"
 #include "nsIMsgIdentity.h"
 #include "nsIMsgCompFields.h"
-#include "nsCRT.h"
 #include "nsReadableUtils.h"
 #include "nsIMutableArray.h"
+#include "msgCore.h"
 
 // String bundle for smime. Class static.
 nsCOMPtr<nsIStringBundle> nsMsgComposeSecure::mSMIMEBundle = nsnull;
