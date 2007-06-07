@@ -45,10 +45,7 @@
 #include "nsIComponentManager.h"
 #include "nsICategoryManager.h"
 #include "nsCRT.h"
-// XXX test for this as long as there are still non-xul-app suite builds
-#ifdef MOZ_XUL_APP
 #include "nsIExtensionManager.h"
-#endif
 #include "nsIFile.h"
 #include "nsILocalFile.h"
 #include "nsIPrefBranch.h"
@@ -121,19 +118,13 @@ nsPalmSyncSupport::Observe(nsISupports *aSubject, const char *aTopic, const PRUn
     // otherwise, take the appropriate action based on the topic
     else if (!strcmp(aTopic, "profile-after-change"))
     {
-// XXX test for this as long as there are still non-xul-app suite builds
-#ifdef MOZ_XUL_APP
         // we can't call installPalmSync in app-startup because the extension manager hasn't been initialized yet. 
         // so we need to wait until the profile-after-change notification has fired. 
         rv = LaunchPalmSyncInstallExe(); 
-#endif
         rv |= InitializePalmSyncSupport();
     } 
     else if (!strcmp(aTopic, NS_XPCOM_SHUTDOWN_OBSERVER_ID))
         rv = ShutdownPalmSyncSupport();
-
-// XXX test for this as long as there are still non-xul-app suite builds
-#ifdef MOZ_XUL_APP
     else if (aSubject && !strcmp(aTopic, "em-action-requested") && !nsCRT::strcmp(aData, NS_LITERAL_STRING("item-uninstalled").get()))
     {
         // make sure the subject is our extension.
@@ -161,7 +152,6 @@ nsPalmSyncSupport::Observe(nsISupports *aSubject, const char *aTopic, const PRUn
             LONG r = (LONG) ::ShellExecuteA( NULL, NULL, nativePath.get(), "/u", NULL, SW_SHOWNORMAL);  // silent uninstall
         }
     }
-#endif
 
     return rv;
 }
@@ -176,8 +166,6 @@ nsPalmSyncSupport::~nsPalmSyncSupport()
 {
 }
 
-// XXX test for this as long as there are still non-xul-app suite builds
-#ifdef MOZ_XUL_APP
 nsresult nsPalmSyncSupport::GetPalmSyncInstall(nsILocalFile ** aLocalFile)
 {
     nsresult rv;
@@ -245,7 +233,6 @@ nsresult nsPalmSyncSupport::LaunchPalmSyncInstallExe()
 
     return rv;
 }
-#endif
 
 NS_IMETHODIMP
 nsPalmSyncSupport::InitializePalmSyncSupport()

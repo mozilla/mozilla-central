@@ -42,42 +42,36 @@ VPATH       = @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE      = palmsync
-LIBRARY_NAME    = $(MODULE)
+MODULE			= palmsync
+LIBRARY_NAME		= $(MODULE)
 # Do not set EXPORT_LIBRARY as we do not want palmsync in the static libs list
-IS_COMPONENT	= 1
-FORCE_SHARED_LIB = 1
+IS_COMPONENT		= 1
+FORCE_SHARED_LIB	= 1
+MOZILLA_INTERNAL_API	= 1
+XPI_NAME		= palmsync
 
-MOZILLA_INTERNAL_API = 1
+REQUIRES = \
+	xpcom \
+	PalmSyncProxy \
+	embedcomponents \
+	pref \
+	string \
+	rdf \
+	rdfutil \
+	mork \
+	unicharutil \
+	MapiProxy \
+	locale \
+	mailnews \
+	msgbase \
+	msgbaseutil \
+	necko \
+	addrbook \
+	xulapp \
+	extensions \
+	$(NULL)
 
-ifdef MOZ_XUL_APP
-XPI_NAME = palmsync
-endif
-
-REQUIRES    = xpcom \
-          PalmSyncProxy \
-          embedcomponents \
-          pref \
-          string \
-          rdf \
-          rdfutil \
-          mork \
-          unicharutil \
-          MapiProxy \
-          locale \
-          mailnews \
-          msgbase \
-          msgbaseutil \
-          necko \
-          addrbook \
-          xulapp \
-          $(NULL)
-
-ifdef MOZ_XUL_APP
-REQUIRES  += extensions
-endif
-
-CPPSRCS     = \
+CPPSRCS = \
         nsPalmSyncSupport.cpp \
         PalmSyncFactory.cpp \
         PalmSyncImp.cpp \
@@ -86,12 +80,12 @@ CPPSRCS     = \
         nsAbPalmSync.cpp \
         $(NULL)
 
-EXPORTS     = \
+EXPORTS = \
         nsAbIPCCard.h \
         nsAbPalmSync.h \
         $(NULL)
 
-LOBJS       = ../build/IPalmSync_i.$(OBJ_SUFFIX)
+LOBJS = ../build/IPalmSync_i.$(OBJ_SUFFIX)
 
 ifndef MOZ_STATIC_MAIL_BUILD
 ifeq ($(USE_SHORT_LIBNAME),1)

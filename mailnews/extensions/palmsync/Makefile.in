@@ -42,27 +42,19 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE =  palmsync
-
-DIRS		= build public src installer
-
-ifdef MOZ_XUL_APP
-XPI_NAME               = palmsync
-USE_EXTENSION_MANIFEST = 1
-NO_JAR_AUTO_REG        = 1
+MODULE			= palmsync
+XPI_NAME		= palmsync
+USE_EXTENSION_MANIFEST	= 1
+NO_JAR_AUTO_REG		= 1
 # make this id as short as possible due to a bug with the palm deskop and long path names.
 # Change installer/Makefile.in and nsPalmSyncSupport.cpp if this changes.
-INSTALL_EXTENSION_ID   = p@m
-XPI_PKGNAME            = palmsync-$(MOZ_APP_VERSION)
-DIST_FILES = install.rdf
-endif
+INSTALL_EXTENSION_ID	= p@m
+XPI_PKGNAME		= palmsync-$(MOZ_APP_VERSION)
+DIST_FILES 		= install.rdf
+
+DIRS	= build public src installer
 
 PREF_JS_EXPORTS = $(srcdir)/palmsync.js
-
-
-# We should really pull THUNDERBIRD_VERSION from
-# mail/config/version.txt but we can't be assured
-# that we've even pulled that file. So we hardcode them.
 
 XULAPP_DEFINES = \
 	-DINSTALL_EXTENSION_ID=$(INSTALL_EXTENSION_ID) \

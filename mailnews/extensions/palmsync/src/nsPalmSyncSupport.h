@@ -67,11 +67,8 @@ class nsPalmSyncSupport : public nsIPalmSyncSupport,
         DWORD   m_dwRegister;
         CPalmSyncFactory *m_nsPalmSyncFactory;
 
-// XXX test for this as long as there are still non-xul-app suite builds
-#ifdef MOZ_XUL_APP
         nsresult LaunchPalmSyncInstallExe();
         nsresult GetPalmSyncInstall(nsILocalFile ** aLocalFile);
-#endif
 };
 
 #endif  // MSG_PALMSYNC_SUPPORT_H_

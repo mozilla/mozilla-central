@@ -53,10 +53,7 @@ EXPORT_LIBRARY	= $(MODULE)
 LIBRARY_NAME	= $(MODULE)
 RESFILE         = MozABConduitGenCond.res
 USE_STATIC_LIBS = 1
-
-ifdef MOZ_XUL_APP
-XPI_NAME = palmsync
-endif
+XPI_NAME	= palmsync
 
 REQUIRES	= PalmSyncProxy \
 		  $(NULL)
