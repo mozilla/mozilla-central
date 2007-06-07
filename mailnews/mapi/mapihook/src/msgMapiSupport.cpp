@@ -44,7 +44,6 @@
 #include "nsIServiceManager.h"
 #include "nsIComponentManager.h"
 #include "nsICategoryManager.h"
-#include "nsCRT.h"
 #include "Registry.h"
 #include "msgMapiSupport.h"
 
@@ -82,10 +81,10 @@ nsMapiSupport::Observe(nsISupports *aSubject, const char *aTopic, const PRUnicha
 {
     nsresult rv = NS_OK ;
 
-    if (!nsCRT::strcmp(aTopic, "profile-after-change"))
+    if (!strcmp(aTopic, "profile-after-change"))
         return InitializeMAPISupport();
 
-    if (!nsCRT::strcmp(aTopic, NS_XPCOM_SHUTDOWN_OBSERVER_ID))
+    if (!strcmp(aTopic, NS_XPCOM_SHUTDOWN_OBSERVER_ID))
         return ShutdownMAPISupport();
 
     nsCOMPtr<nsIObserverService> observerService(do_GetService("@mozilla.org/observer-service;1", &rv));
