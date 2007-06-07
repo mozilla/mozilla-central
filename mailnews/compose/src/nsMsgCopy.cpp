@@ -384,7 +384,7 @@ nsMsgCopy::CreateIfMissing(nsIMsgFolder **folder, PRBool *waitForUrl)
       // for local folders, path is to the berkeley mailbox.
       // for imap folders, path needs to have .msf appended to the name
       (*folder)->GetFilePath(getter_AddRefs(folderPath));
-        PRBool isImapFolder = !nsCRT::strncasecmp(mSavePref, "imap:", 5);
+        PRBool isImapFolder = !PL_strncasecmp(mSavePref, "imap:", 5);
       // if we can't get the path from the folder, then try to create the storage.
       // for imap, it doesn't matter if the .msf file exists - it still might not
       // exist on the server, so we should try to create it

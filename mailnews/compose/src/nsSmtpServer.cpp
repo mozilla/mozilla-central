@@ -46,7 +46,6 @@
 #include "nsIAuthPrompt.h"
 #include "nsReadableUtils.h"
 #include "nsISmtpUrl.h"
-#include "nsCRT.h"
 #include "nsMsgUtils.h"
 #include "nsIMsgAccountManager.h"
 #include "nsMsgBaseCID.h"
@@ -603,7 +602,7 @@ nsSmtpServer::GetRedirectorType(char **aResult)
     // Check if we need to change 'aol' to 'netscape' per #4696
     if (*aResult)
     {
-      if (!nsCRT::strcasecmp(*aResult, "aol"))
+      if (!PL_strcasecmp(*aResult, "aol"))
       {
         nsCString hostName;
         rv = GetHostname(getter_Copies(hostName));
@@ -612,7 +611,7 @@ nsSmtpServer::GetRedirectorType(char **aResult)
           PL_strfree(*aResult);
           rv = SetRedirectorType("netscape");
           NS_ENSURE_SUCCESS(rv,rv);
-          *aResult = nsCRT::strdup("netscape");
+          *aResult = strdup("netscape");
         }
       }
     }

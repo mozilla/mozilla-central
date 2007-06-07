@@ -50,25 +50,25 @@
    - Once that URLs has been saved to a temp file (or, if there were no
      attachments) generate a final temp file, of the actual message:
 
-	 -  Generate a string of the headers.
-	 -  Open the final temp file.
-	 -  Write the headers.
+   -  Generate a string of the headers.
+   -  Open the final temp file.
+   -  Write the headers.
      -  Examine the first part, and decide whether to encode it.
-	 -  Write the first part to the file, possibly encoded.
-	 -  Write the second and subsequent parts to the file, possibly encoded.
+   -  Write the first part to the file, possibly encoded.
+   -  Write the second and subsequent parts to the file, possibly encoded.
         (Open the first temp file and copy it to the final temp file, and so
-		     on, through an encoding filter.)
+         on, through an encoding filter.)
 
    - Delete the attachment temp file(s) as we finish with them.
-	 - Close the final temp file.
-	 - Open the news: url.
-	 - Send the final temp file to NNTP.
-	   If there's an error, run the callback with "failure" status.
-	 - If mail succeeded, open the mailto: url.
-	 - Send the final temp file to SMTP.
-	   If there's an error, run the callback with "failure" status.
-	 - Otherwise, run the callback with "success" status.
-	 - Free everything, delete the final temp file.
+   - Close the final temp file.
+   - Open the news: url.
+   - Send the final temp file to NNTP.
+     If there's an error, run the callback with "failure" status.
+   - If mail succeeded, open the mailto: url.
+   - Send the final temp file to SMTP.
+     If there's an error, run the callback with "failure" status.
+   - Otherwise, run the callback with "success" status.
+   - Free everything, delete the final temp file.
 
   The theory behind the encoding logic:
   =====================================

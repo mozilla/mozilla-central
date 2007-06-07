@@ -133,8 +133,8 @@ nsURLFetcher::CanHandleContent(const char * aContentType,
                                 PRBool * aCanHandleContent)
 
 {
-    if (!mIsFile && nsCRT::strcasecmp(aContentType, MESSAGE_RFC822) == 0)
-      *aDesiredContentType = nsCRT::strdup("text/html");
+    if (!mIsFile && PL_strcasecmp(aContentType, MESSAGE_RFC822) == 0)
+      *aDesiredContentType = strdup("text/html");
 
     // since we explicilty loaded the url, we always want to handle it!
     *aCanHandleContent = PR_TRUE;
@@ -157,14 +157,14 @@ nsURLFetcher::DoContent(const char * aContentType,
   /*
     Check the content-type to see if we need to insert a converter
   */
-  if (nsCRT::strcasecmp(aContentType, UNKNOWN_CONTENT_TYPE) == 0 ||
-        nsCRT::strcasecmp(aContentType, MULTIPART_MIXED_REPLACE) == 0 ||
-        nsCRT::strcasecmp(aContentType, MULTIPART_MIXED) == 0 ||
-        nsCRT::strcasecmp(aContentType, MULTIPART_BYTERANGES) == 0)
+  if (PL_strcasecmp(aContentType, UNKNOWN_CONTENT_TYPE) == 0 ||
+      PL_strcasecmp(aContentType, MULTIPART_MIXED_REPLACE) == 0 ||
+      PL_strcasecmp(aContentType, MULTIPART_MIXED) == 0 ||
+      PL_strcasecmp(aContentType, MULTIPART_BYTERANGES) == 0)
   {
     rv = InsertConverter(aContentType);
     if (NS_SUCCEEDED(rv))
-      mConverterContentType.Adopt(nsCRT::strdup(aContentType));
+      mConverterContentType = aContentType;
   }
 
   return rv;

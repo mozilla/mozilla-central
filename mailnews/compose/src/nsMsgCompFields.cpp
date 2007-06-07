@@ -37,7 +37,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsMsgCompFields.h"
-#include "nsCRT.h"
 #include "nsMsgI18N.h"
 #include "nsMsgRecipientArray.h"
 #include "nsIMsgHeaderParser.h"
@@ -102,7 +101,7 @@ nsresult nsMsgCompFields::SetAsciiHeader(MsgHeaderID header, const char *value)
   {
     if (value)
     {
-        m_headers[header] = nsCRT::strdup(value);
+        m_headers[header] = strdup(value);
         if (!m_headers[header]) 
            rv = NS_ERROR_OUT_OF_MEMORY;
     }
@@ -222,7 +221,7 @@ NS_IMETHODIMP nsMsgCompFields::SetNewshost(const char *value)
 
 NS_IMETHODIMP nsMsgCompFields::GetNewshost(char **_retval)
 {
-  *_retval = nsCRT::strdup(GetAsciiHeader(MSG_NEWSPOSTURL_HEADER_ID));
+  *_retval = strdup(GetAsciiHeader(MSG_NEWSPOSTURL_HEADER_ID));
   return *_retval ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
 }
 
@@ -233,7 +232,7 @@ NS_IMETHODIMP nsMsgCompFields::SetFollowupTo(const char *value)
 
 NS_IMETHODIMP nsMsgCompFields::GetFollowupTo(char **_retval)
 {
-  *_retval = nsCRT::strdup(GetAsciiHeader(MSG_FOLLOWUP_TO_HEADER_ID));
+  *_retval = strdup(GetAsciiHeader(MSG_FOLLOWUP_TO_HEADER_ID));
   return *_retval ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
 }
 
@@ -262,13 +261,13 @@ NS_IMETHODIMP nsMsgCompFields::SetTemporaryFiles(const char *value)
 NS_IMETHODIMP nsMsgCompFields::GetAttachments(char **_retval)
 {
   NS_ASSERTION(0, "nsMsgCompFields::GetAttachments is not supported anymore, please use nsMsgCompFields::GetAttachmentsArray");
-  *_retval = nsCRT::strdup(GetAsciiHeader(MSG_ATTACHMENTS_HEADER_ID));
+  *_retval = strdup(GetAsciiHeader(MSG_ATTACHMENTS_HEADER_ID));
   return *_retval ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
 }
 
 NS_IMETHODIMP nsMsgCompFields::GetTemporaryFiles(char **_retval)
 {
-  *_retval = nsCRT::strdup(GetAsciiHeader(MSG_TEMPORARY_FILES_HEADER_ID));
+  *_retval = strdup(GetAsciiHeader(MSG_TEMPORARY_FILES_HEADER_ID));
   return *_retval ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
 }
 
@@ -289,7 +288,7 @@ NS_IMETHODIMP nsMsgCompFields::SetReferences(const char *value)
 
 NS_IMETHODIMP nsMsgCompFields::GetReferences(char **_retval)
 {
-  *_retval = nsCRT::strdup(GetAsciiHeader(MSG_REFERENCES_HEADER_ID));
+  *_retval = strdup(GetAsciiHeader(MSG_REFERENCES_HEADER_ID));
   return *_retval ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
 }
 
@@ -310,7 +309,7 @@ NS_IMETHODIMP nsMsgCompFields::SetNewspostUrl(const char *value)
 
 NS_IMETHODIMP nsMsgCompFields::GetNewspostUrl(char **_retval)
 {
-  *_retval = nsCRT::strdup(GetAsciiHeader(MSG_NEWSPOSTURL_HEADER_ID));
+  *_retval = strdup(GetAsciiHeader(MSG_NEWSPOSTURL_HEADER_ID));
   return *_retval ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
 }
 
@@ -321,7 +320,7 @@ NS_IMETHODIMP nsMsgCompFields::SetPriority(const char *value)
 
 NS_IMETHODIMP nsMsgCompFields::GetPriority(char **_retval)
 {
-  *_retval = nsCRT::strdup(GetAsciiHeader(MSG_PRIORITY_HEADER_ID));
+  *_retval = strdup(GetAsciiHeader(MSG_PRIORITY_HEADER_ID));
   return *_retval ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
 }
 
@@ -332,7 +331,7 @@ NS_IMETHODIMP nsMsgCompFields::SetCharacterSet(const char *value)
 
 NS_IMETHODIMP nsMsgCompFields::GetCharacterSet(char **_retval)
 {
-  *_retval = nsCRT::strdup(GetAsciiHeader(MSG_CHARACTER_SET_HEADER_ID));
+  *_retval = strdup(GetAsciiHeader(MSG_CHARACTER_SET_HEADER_ID));
   return *_retval ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
 }
 
@@ -343,7 +342,7 @@ NS_IMETHODIMP nsMsgCompFields::SetMessageId(const char *value)
 
 NS_IMETHODIMP nsMsgCompFields::GetMessageId(char **_retval)
 {
-  *_retval = nsCRT::strdup(GetAsciiHeader(MSG_MESSAGE_ID_HEADER_ID));
+  *_retval = strdup(GetAsciiHeader(MSG_MESSAGE_ID_HEADER_ID));
   return *_retval ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
 }
 
@@ -364,7 +363,7 @@ NS_IMETHODIMP nsMsgCompFields::SetDraftId(const char *value)
 
 NS_IMETHODIMP nsMsgCompFields::GetDraftId(char **_retval)
 {
-  *_retval = nsCRT::strdup(GetAsciiHeader(MSG_DRAFT_ID_HEADER_ID));
+  *_retval = strdup(GetAsciiHeader(MSG_DRAFT_ID_HEADER_ID));
   return *_retval ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
 }
 
@@ -767,7 +766,7 @@ NS_IMETHODIMP nsMsgCompFields::SetSecurityInfo(nsISupports * aSecurityInfo)
 NS_IMETHODIMP nsMsgCompFields::GetDefaultCharacterSet(char * *aDefaultCharacterSet)
 {
   NS_ENSURE_ARG_POINTER(aDefaultCharacterSet);
-  *aDefaultCharacterSet = nsCRT::strdup(m_DefaultCharacterSet.get());
+  *aDefaultCharacterSet = ToNewCString(m_DefaultCharacterSet);
   return *aDefaultCharacterSet ? NS_OK : NS_ERROR_OUT_OF_MEMORY; 
 }
 

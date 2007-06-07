@@ -77,7 +77,7 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
 
   if (rest)
   {
-    char *token = nsCRT::strtok(rest, "&", &rest);
+    char *token = NS_strtok("&", &rest);
     while (token && *token)
     {
       char *value = 0;
@@ -88,16 +88,16 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
         *eq = 0;
       }
 
-      switch (nsCRT::ToUpper(*token))
+      switch (toupper(*token))
       {
         /* DO NOT support attachment= in mailto urls. This poses a security fire hole!!! 
-        case 'A':
-        if (!nsCRT::strcasecmp (token, "attachment"))
-        m_attachmentPart = value;
-        break;
-        */
+                          case 'A':
+                          if (!PL_strcasecmp (token, "attachment"))
+                          m_attachmentPart = value;
+                          break;
+                     */
       case 'B':
-        if (!nsCRT::strcasecmp (token, "bcc"))
+        if (!PL_strcasecmp (token, "bcc"))
         {
           if (!m_bccPart.IsEmpty())
           {
@@ -107,7 +107,7 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
           else
             m_bccPart = value; 
         }
-        else if (!nsCRT::strcasecmp (token, "body"))
+        else if (!PL_strcasecmp (token, "body"))
         {
           if (!m_bodyPart.IsEmpty())
           {
@@ -119,7 +119,7 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
         }
         break;
       case 'C': 
-        if (!nsCRT::strcasecmp  (token, "cc"))
+        if (!PL_strcasecmp  (token, "cc"))
         {
           if (!m_ccPart.IsEmpty())
           {
@@ -131,13 +131,13 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
         }
         break;
       case 'F': 
-        if (!nsCRT::strcasecmp (token, "followup-to"))
+        if (!PL_strcasecmp (token, "followup-to"))
           m_followUpToPart = value;
-        else if (!nsCRT::strcasecmp (token, "from"))
+        else if (!PL_strcasecmp (token, "from"))
           m_fromPart = value;
         break;
       case 'H':
-        if (!nsCRT::strcasecmp(token, "html-part") || !nsCRT::strcasecmp (token, "html-body"))
+        if (!PL_strcasecmp(token, "html-part") || !PL_strcasecmp (token, "html-body"))
         {
           // m_htmlPart holds the body for both html-part and html-body.
           m_htmlPart = value;
@@ -145,36 +145,36 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
         }
         break;
       case 'I':
-        if (!nsCRT::strcasecmp (token, "in-reply-to"))
+        if (!PL_strcasecmp (token, "in-reply-to"))
           inReplyToPart = value;
         break;
 
       case 'N':
-        if (!nsCRT::strcasecmp (token, "newsgroups"))
+        if (!PL_strcasecmp (token, "newsgroups"))
           m_newsgroupPart = value;
-        else if (!nsCRT::strcasecmp (token, "newshost"))
+        else if (!PL_strcasecmp (token, "newshost"))
           m_newsHostPart = value;
         break;
       case 'O':
-        if (!nsCRT::strcasecmp (token, "organization"))
+        if (!PL_strcasecmp (token, "organization"))
           m_organizationPart = value;
         break;
       case 'R':
-        if (!nsCRT::strcasecmp (token, "references"))
+        if (!PL_strcasecmp (token, "references"))
           m_referencePart = value;
-        else if (!nsCRT::strcasecmp (token, "reply-to"))
+        else if (!PL_strcasecmp (token, "reply-to"))
           m_replyToPart = value;
         break;
       case 'S':
-        if(!nsCRT::strcasecmp (token, "subject"))
+        if(!PL_strcasecmp (token, "subject"))
           m_subjectPart = value;
         break;
       case 'P':
-        if (!nsCRT::strcasecmp (token, "priority"))
+        if (!PL_strcasecmp (token, "priority"))
           m_priorityPart = PL_strdup(value);
         break;
       case 'T':
-        if (!nsCRT::strcasecmp (token, "to"))
+        if (!PL_strcasecmp (token, "to"))
         {
           if (!m_toPart.IsEmpty())
           {
@@ -191,7 +191,7 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
 
       if (eq)
         *eq = '='; /* put it back */
-      token = nsCRT::strtok(rest, "&", &rest);
+      token = NS_strtok("&", &rest);
     } // while we still have part of the url to parse...
   } // if rest && *rest
 

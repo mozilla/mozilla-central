@@ -38,7 +38,6 @@
  * ***** END LICENSE BLOCK ***** */
 #include "nsMsgSend.h"
 
-#include "nsCRT.h"
 #include "nsMsgLocalFolderHdrs.h"
 #include "nsMsgSendPart.h"
 #include "nsMsgBaseCID.h"
@@ -1242,7 +1241,7 @@ nsMsgComposeAndSend::PreProcessPart(nsMsgAttachmentHandler  *ma,
   if (!ma->mURL)
     {
       if (ma->m_uri)
-        turl.Adopt(nsCRT::strdup(ma->m_uri));
+        turl = ma->m_uri;
     }
   else
     ma->mURL->GetSpec(turl);
@@ -1824,9 +1823,9 @@ nsMsgComposeAndSend::GetBodyFromEditor()
   // just copy what we have as the original body text.
   //
   if (!origHTMLBody)
-    mOriginalHTMLBody = nsCRT::strdup(attachment1_body.get());
+    mOriginalHTMLBody = ToNewCString(attachment1_body);
   else
-    mOriginalHTMLBody = (char *)origHTMLBody;
+    mOriginalHTMLBody = (char *)origHTMLBody; // Whoa, origHTMLBody is declared as a PRUnichar *, what's going on here?
 
   rv = SnarfAndCopyBody(attachment1_body.get(), attachment1_body.Length(),
                         attachment1_type);
@@ -3582,8 +3581,8 @@ nsMsgComposeAndSend::DeliverFileAsMail()
   convbuf = nsEscape(buf, url_Path);
   if (convbuf)
   {
-      nsCRT::free(buf);
-      buf = convbuf;
+    NS_Free(buf);
+    buf = convbuf;
   }
 
   nsCOMPtr<nsISmtpService> smtpService(do_GetService(NS_SMTPSERVICE_CONTRACTID, &rv));

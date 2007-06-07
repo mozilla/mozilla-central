@@ -35,7 +35,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 #include "nsCOMPtr.h"
-#include "nsCRT.h"
 #include "nsMsgCompUtils.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
@@ -1150,8 +1149,8 @@ static PRBool isValidHost( const char* host )
 {
   if ( host )
     for (const char *s = host; *s; ++s)
-      if  (  !nsCRT::IsAsciiAlpha(*s)
-         && !nsCRT::IsAsciiDigit(*s)
+      if  (  !isalpha(*s)
+         && !isdigit(*s)
          && *s != '-'
          && *s != '_'
          && *s != '.'
@@ -2107,9 +2106,5 @@ PRBool UseFormatFlowed(const char *charset)
   //
   // The problem is the SPACE format=flowed inserts at the end of
   // the line. Not all charsets like that.
-  if( nsCRT::strcasecmp(charset, "UTF-8") &&
-      nsMsgI18Nmultibyte_charset(charset))
-    return PR_FALSE;
-
-  return PR_TRUE;
+  return !(PL_strcasecmp(charset, "UTF-8") && nsMsgI18Nmultibyte_charset(charset));
 }

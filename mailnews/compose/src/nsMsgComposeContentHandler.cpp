@@ -41,7 +41,7 @@
 #include "nsMsgCompCID.h"
 #include "nsIChannel.h"
 #include "nsIURI.h"
-#include "nsCRT.h"
+#include "plstr.h"
 
 static NS_DEFINE_CID(kMsgComposeServiceCID, NS_MSGCOMPOSESERVICE_CID);
 
@@ -64,7 +64,7 @@ NS_IMETHODIMP nsMsgComposeContentHandler::HandleContent(const char * aContentTyp
     return NS_ERROR_NULL_POINTER;
 
   // First of all, get the content type and make sure it is a content type we know how to handle!
-  if (nsCRT::strcasecmp(aContentType, "application/x-mailto") == 0) {
+  if (PL_strcasecmp(aContentType, "application/x-mailto") == 0) {
     nsCOMPtr<nsIURI> aUri;
     nsCOMPtr<nsIChannel> aChannel = do_QueryInterface(request);
     if(!aChannel) return NS_ERROR_FAILURE;

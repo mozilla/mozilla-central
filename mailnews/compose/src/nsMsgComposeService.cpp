@@ -139,7 +139,7 @@ static PRUint32 GetMessageSizeFromURI(const char * originalMsgURI)
     if (originalMsgHdr)
     originalMsgHdr->GetMessageSize(&msgSize);
   }
-  
+
   return msgSize;
 }
 #endif
@@ -230,7 +230,7 @@ void nsMsgComposeService::Reset()
     if (!mCachedWindows)
       mMaxRecycledWindows = 0;
   }
-  
+
   rv = prefs->GetBoolPref("mailnews.logComposePerformance", &mLogComposePerformance);
 
   return;
@@ -250,11 +250,11 @@ void nsMsgComposeService::DeleteCachedWindows()
 nsresult nsMsgComposeService::OpenWindow(const char *chrome, nsIMsgComposeParams *params)
 {
   nsresult rv;
-  
+
   NS_ENSURE_ARG_POINTER(params);
-  
+
   //Use default identity if no identity has been specified
-  nsCOMPtr<nsIMsgIdentity> identity; 
+  nsCOMPtr<nsIMsgIdentity> identity;
   params->GetIdentity(getter_AddRefs(identity));
   if (!identity)
   {
@@ -263,7 +263,7 @@ nsresult nsMsgComposeService::OpenWindow(const char *chrome, nsIMsgComposeParams
   }
 
   //if we have a cached window for the default chrome, try to reuse it...
-  if (chrome == nsnull || nsCRT::strcasecmp(chrome, DEFAULT_CHROME) == 0)
+  if (!chrome || PL_strcasecmp(chrome, DEFAULT_CHROME) == 0)
   {
     MSG_ComposeFormat format;
     params->GetFormat(&format);
@@ -291,7 +291,7 @@ nsresult nsMsgComposeService::OpenWindow(const char *chrome, nsIMsgComposeParams
       }
     }
   }
-      
+
   //Else, create a new one...
   nsCOMPtr<nsIWindowWatcher> wwatch(do_GetService(NS_WINDOWWATCHER_CONTRACTID));
   if (!wwatch)
@@ -360,7 +360,7 @@ nsMsgComposeService::Observe(nsISupports *aSubject, const char *aTopic, const PR
     return NS_OK;
   }
 
-  if (!nsCRT::strcmp(aTopic, NS_PREFBRANCH_PREFCHANGE_TOPIC_ID))
+  if (!strcmp(aTopic, NS_PREFBRANCH_PREFCHANGE_TOPIC_ID))
   {
     nsDependentString prefName(someData);
     if (prefName.EqualsLiteral(PREF_MAIL_COMPOSE_MAXRECYCLEDWINDOWS))
@@ -379,18 +379,18 @@ nsMsgComposeService::DetermineComposeHTML(nsIMsgIdentity *aIdentity, MSG_Compose
   *aComposeHTML = PR_TRUE;
   switch (aFormat)
   {
-    case nsIMsgCompFormat::HTML: 
-      *aComposeHTML = PR_TRUE;					
+    case nsIMsgCompFormat::HTML:
+      *aComposeHTML = PR_TRUE;
       break;
     case nsIMsgCompFormat::PlainText:
-      *aComposeHTML = PR_FALSE;					
+      *aComposeHTML = PR_FALSE;
       break;
-      
+
     default:
       nsCOMPtr<nsIMsgIdentity> identity = aIdentity;
       if (!identity)
         GetDefaultIdentity(getter_AddRefs(identity));
-      
+
       if (identity)
       {
         identity->GetComposeHtml(aComposeHTML);
@@ -407,7 +407,7 @@ nsMsgComposeService::DetermineComposeHTML(nsIMsgIdentity *aIdentity, MSG_Compose
           nsresult rv;
           PRBool useHTMLCompose;
           rv = prefs->GetBoolPref(MAIL_ROOT_PREF "html_compose", &useHTMLCompose);
-          if (NS_SUCCEEDED(rv))        
+          if (NS_SUCCEEDED(rv))
             *aComposeHTML = useHTMLCompose;
         }
       }
@@ -426,8 +426,8 @@ nsMsgComposeService::OpenComposeWindow(const char *msgComposeWindowURL, const ch
   nsCOMPtr<nsIMsgIdentity> identity = aIdentity;
   if (!identity)
     GetDefaultIdentity(getter_AddRefs(identity));
-  
-  /* Actually, the only way to implement forward inline is to simulate a template message. 
+
+  /* Actually, the only way to implement forward inline is to simulate a template message.
      Maybe one day when we will have more time we can change that
   */
   if (type == nsIMsgCompType::ForwardInline || type == nsIMsgCompType::Draft || type == nsIMsgCompType::Template
@@ -435,10 +435,10 @@ nsMsgComposeService::OpenComposeWindow(const char *msgComposeWindowURL, const ch
   {
       nsCAutoString uriToOpen(originalMsgURI);
       uriToOpen += (uriToOpen.FindChar('?') == kNotFound) ? "?" : "&";
-      uriToOpen.Append("fetchCompleteMessage=true"); 
+      uriToOpen.Append("fetchCompleteMessage=true");
 
-      return LoadDraftOrTemplate(uriToOpen, type == nsIMsgCompType::ForwardInline || type == nsIMsgCompType::Draft ? 
-                                 nsMimeOutput::nsMimeMessageDraftOrTemplate : nsMimeOutput::nsMimeMessageEditorTemplate,  
+      return LoadDraftOrTemplate(uriToOpen, type == nsIMsgCompType::ForwardInline || type == nsIMsgCompType::Draft ?
+                                 nsMimeOutput::nsMimeMessageDraftOrTemplate : nsMimeOutput::nsMimeMessageEditorTemplate,
                                  identity, originalMsgURI, type == nsIMsgCompType::ForwardInline, aMsgWindow);
   }
 
@@ -451,15 +451,15 @@ nsMsgComposeService::OpenComposeWindow(const char *msgComposeWindowURL, const ch
       pMsgComposeParams->SetType(type);
       pMsgComposeParams->SetFormat(format);
       pMsgComposeParams->SetIdentity(identity);
-      
+
       if (originalMsgURI && *originalMsgURI)
       {
-        if (type == nsIMsgCompType::NewsPost) 
+        if (type == nsIMsgCompType::NewsPost)
         {
           nsCAutoString newsURI(originalMsgURI);
           nsCAutoString group;
           nsCAutoString host;
-          
+
           PRInt32 slashpos = newsURI.RFindChar('/');
           if (slashpos > 0 )
           {
@@ -471,7 +471,7 @@ nsMsgComposeService::OpenComposeWindow(const char *msgComposeWindowURL, const ch
             group = originalMsgURI;
 
           nsCAutoString unescapedName;
-          NS_UnescapeURL(group, 
+          NS_UnescapeURL(group,
                          esc_FileBaseName|esc_Forced|esc_AlwaysCopy,
                          unescapedName);
           pMsgCompFields->SetNewsgroups(NS_ConvertUTF8toUTF16(unescapedName));
@@ -521,7 +521,7 @@ NS_IMETHODIMP nsMsgComposeService::GetParamsForMailto(nsIURI * aURI, nsIMsgCompo
 {
   nsresult rv = NS_OK;
   if (aURI)
-  { 
+  {
     nsCOMPtr<nsIMailtoUrl> aMailtoUrl;
     rv = aURI->QueryInterface(NS_GET_IID(nsIMailtoUrl), getter_AddRefs(aMailtoUrl));
     if (NS_SUCCEEDED(rv))
@@ -539,11 +539,11 @@ NS_IMETHODIMP nsMsgComposeService::GetParamsForMailto(nsIURI * aURI, nsIMsgCompo
        // we are explictly not allowing attachments to be specified in mailto: urls
        // as it's a potential security problem.
        // see bug #99055
-       aMailtoUrl->GetMessageContents(getter_Copies(aToPart), getter_Copies(aCcPart), 
+       aMailtoUrl->GetMessageContents(getter_Copies(aToPart), getter_Copies(aCcPart),
                                     getter_Copies(aBccPart), nsnull /* from part */,
-                                    nsnull /* follow */, nsnull /* organization */, 
+                                    nsnull /* follow */, nsnull /* organization */,
                                     nsnull /* reply to part */, getter_Copies(aSubjectPart),
-                                    getter_Copies(aBodyPart), getter_Copies(aHTMLBodyPart) /* html part */, 
+                                    getter_Copies(aBodyPart), getter_Copies(aHTMLBodyPart) /* html part */,
                                     getter_Copies(aRefPart), nsnull /* attachment part, must always null, see #99055 */,
                                     nsnull /* priority */, getter_Copies(aNewsgroup), nsnull /* host */,
                                     &requestedComposeFormat);
@@ -568,7 +568,7 @@ NS_IMETHODIMP nsMsgComposeService::GetParamsForMailto(nsIURI * aURI, nsIMsgCompo
 
         // Create the appropriate output sink
         nsCOMPtr<nsIContentSink> sink = do_CreateInstance(MOZ_SANITIZINGHTMLSERIALIZER_CONTRACTID);
-        
+
         nsCString allowedTags;
         nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID));
         if (prefs)
@@ -653,9 +653,9 @@ nsresult nsMsgComposeService::OpenComposeWindowWithParams(const char *msgCompose
 // come to the very front of the desktop, even if the mozilla app is not the application
 // with focus. This situation happens when Simple MAPI is used to invoke the compose window.
 
-#ifdef XP_WIN32 
+#ifdef XP_WIN32
 // begin shameless copying from nsNativeAppSupportWin
-HWND hwndForComposeDOMWindow( nsISupports *window ) 
+HWND hwndForComposeDOMWindow( nsISupports *window )
 {
   nsCOMPtr<nsPIDOMWindow> win( do_QueryInterface(window) );
   if ( !win )
@@ -671,18 +671,18 @@ HWND hwndForComposeDOMWindow( nsISupports *window )
   return (HWND)( ppWidget->GetNativeData( NS_NATIVE_WIDGET ) );
 }
 
-static void activateComposeWindow( nsIDOMWindowInternal *win ) 
+static void activateComposeWindow( nsIDOMWindowInternal *win )
 {
   // Try to get native window handle.
   HWND hwnd = hwndForComposeDOMWindow( win );
-  if ( hwnd ) 
+  if ( hwnd )
   {
     // Restore the window if it is minimized.
-    if ( ::IsIconic( hwnd ) ) 
+    if ( ::IsIconic( hwnd ) )
       ::ShowWindow( hwnd, SW_RESTORE );
     // Use the OS call, if possible.
     ::SetForegroundWindow( hwnd );
-  } else // Use internal method.  
+  } else // Use internal method.
     win->Focus();
 }
 // end shameless copying from nsNativeAppWinSupport.cpp
@@ -693,7 +693,7 @@ NS_IMETHODIMP nsMsgComposeService::InitCompose(nsIDOMWindowInternal *aWindow,
                                           nsIMsgCompose **_retval)
 {
   nsresult rv;
-  
+
   /* we need to remove the window from the cache
   */
   PRInt32 i;
@@ -706,7 +706,7 @@ NS_IMETHODIMP nsMsgComposeService::InitCompose(nsIDOMWindowInternal *aWindow,
 
   nsCOMPtr <nsIMsgCompose> msgCompose = do_CreateInstance(NS_MSGCOMPOSE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
-	
+
   rv = msgCompose->Initialize(aWindow, params);
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -748,13 +748,13 @@ NS_IMETHODIMP nsMsgComposeService::TimeStamp(const char * label, PRBool resetTim
 {
   if (!mLogComposePerformance)
     return NS_OK;
-  
+
 #ifdef MSGCOMP_TRACE_PERFORMANCE
 
   PRIntervalTime now;
 
   if (resetTime)
-  {      
+  {
     PR_LOG(MsgComposeLogModule, PR_LOG_ALWAYS, ("\n[process]: [totalTime][deltaTime]\n--------------------\n"));
 
     mStartTime = PR_IntervalNow();
@@ -791,7 +791,7 @@ nsMsgComposeService::IsCachedWindow(nsIDOMWindowInternal *aCachedWindow, PRBool 
       *aIsCachedWindow = PR_TRUE;
       return NS_OK;
     }
-    
+
  *aIsCachedWindow = PR_FALSE;
   return NS_OK;
 }
@@ -807,7 +807,7 @@ nsMsgComposeService::CacheWindow(nsIDOMWindowInternal *aWindow, PRBool aComposeH
   PRInt32 i;
   PRInt32 sameTypeId = -1;
   PRInt32 oppositeTypeId = -1;
-  
+
   for (i = 0; i < mMaxRecycledWindows; i ++)
   {
     if (!mCachedWindows[i].window)
@@ -815,7 +815,7 @@ nsMsgComposeService::CacheWindow(nsIDOMWindowInternal *aWindow, PRBool aComposeH
       rv = ShowCachedComposeWindow(aWindow, PR_FALSE);
       if (NS_SUCCEEDED(rv))
         mCachedWindows[i].Initialize(aWindow, aListener, aComposeHTML);
-      
+
       return rv;
     }
     else
@@ -830,7 +830,7 @@ nsMsgComposeService::CacheWindow(nsIDOMWindowInternal *aWindow, PRBool aComposeH
           oppositeTypeId = i;
       }
   }
-  
+
   /* Looks like the cache is full. In the case we try to cache a type (html or plain text) of compose window which is not
      already cached, we should replace an opposite one with this new one. That would allow users to be able to take advantage
      of the cached compose window when they switch from one type to another one
@@ -839,14 +839,14 @@ nsMsgComposeService::CacheWindow(nsIDOMWindowInternal *aWindow, PRBool aComposeH
   {
     CloseHiddenCachedWindow(mCachedWindows[oppositeTypeId].window);
     mCachedWindows[oppositeTypeId].Clear();
-    
+
     rv = ShowCachedComposeWindow(aWindow, PR_FALSE);
     if (NS_SUCCEEDED(rv))
       mCachedWindows[oppositeTypeId].Initialize(aWindow, aListener, aComposeHTML);
-    
+
     return rv;
   }
-  
+
   return NS_ERROR_NOT_AVAILABLE;
 }
 
@@ -865,7 +865,7 @@ public:
   nsCOMPtr <nsIMsgDBHdr> mTemplateHdr;
   nsCOMPtr <nsIMsgWindow> mMsgWindow;
   nsCOMPtr <nsIMsgIncomingServer> mServer;
-  nsCString mTemplateBody; 
+  nsCString mTemplateBody;
   PRBool mInMsgBody;
   char mLastBlockChars[3];
 };
@@ -915,7 +915,7 @@ NS_IMETHODIMP nsMsgTemplateReplyHelper::OnStopRunningUrl(nsIURI *aUrl, nsresult 
   account->GetDefaultIdentity(getter_AddRefs(identity));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  // create the compose params object 
+  // create the compose params object
   nsCOMPtr<nsIMsgComposeParams> pMsgComposeParams (do_CreateInstance(NS_MSGCOMPOSEPARAMS_CONTRACTID, &rv));
   if (NS_FAILED(rv) || (!pMsgComposeParams) ) return rv ;
   nsCOMPtr<nsIMsgCompFields> compFields = do_CreateInstance(NS_MSGCOMPFIELDS_CONTRACTID, &rv) ;
@@ -950,7 +950,7 @@ NS_IMETHODIMP nsMsgTemplateReplyHelper::OnStopRunningUrl(nsIURI *aUrl, nsresult 
   pMsgComposeParams->SetType(nsIMsgCompType::New);
   pMsgComposeParams->SetFormat(nsIMsgCompFormat::Default);
   pMsgComposeParams->SetIdentity(identity);
-  pMsgComposeParams->SetComposeFields(compFields); 
+  pMsgComposeParams->SetComposeFields(compFields);
   pMsgComposeParams->SetOriginalMsgURI(msgUri.get());
   // create the nsIMsgCompose object to send the object
   nsCOMPtr<nsIMsgCompose> pMsgCompose (do_CreateInstance(NS_MSGCOMPOSE_CONTRACTID, &rv));
@@ -978,16 +978,16 @@ nsMsgTemplateReplyHelper::OnStopRequest(nsIRequest* request, nsISupports* aSuppo
 {
   if (NS_SUCCEEDED(status))
   {
-    // now we've got the message body in mTemplateBody - 
+    // now we've got the message body in mTemplateBody -
     // need to set body in compose params and send the reply.
   }
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsMsgTemplateReplyHelper::OnDataAvailable(nsIRequest* request, 
+nsMsgTemplateReplyHelper::OnDataAvailable(nsIRequest* request,
                                   nsISupports* aSupport,
-                                  nsIInputStream* inStream, 
+                                  nsIInputStream* inStream,
                                   PRUint32 srcOffset,
                                   PRUint32 count)
 {
@@ -1053,8 +1053,8 @@ nsMsgTemplateReplyHelper::OnDataAvailable(nsIRequest* request,
 NS_IMETHODIMP nsMsgComposeService::ReplyWithTemplate(nsIMsgDBHdr *aMsgHdr, const char *templateUri,
                                              nsIMsgWindow *aMsgWindow, nsIMsgIncomingServer *aServer)
 {
-  // to reply with template, we need the message body of the template 
-  // I think we're going to need to stream the template message to ourselves, 
+  // to reply with template, we need the message body of the template
+  // I think we're going to need to stream the template message to ourselves,
   // and construct the body, and call setBody on the compFields.
   // We need the reply-to header of the msg we're replying to, so
   // we're going to add that to the db if it's different from "from:"
@@ -1078,7 +1078,7 @@ NS_IMETHODIMP nsMsgComposeService::ReplyWithTemplate(nsIMsgDBHdr *aMsgHdr, const
   if (!query)
     return NS_ERROR_FAILURE;
 
-  nsCAutoString folderUri(Substring(templateUri, query)); 
+  nsCAutoString folderUri(Substring(templateUri, query));
   nsresult rv = GetExistingFolder(folderUri.get(), getter_AddRefs(templateFolder));
   NS_ENSURE_SUCCESS(rv, rv);
   rv = templateFolder->GetMsgDatabase(aMsgWindow, getter_AddRefs(templateDB));
@@ -1099,7 +1099,7 @@ NS_IMETHODIMP nsMsgComposeService::ReplyWithTemplate(nsIMsgDBHdr *aMsgHdr, const
   }
   if (templateMsgHdrUri.IsEmpty())
   {
-    // ### probably want to return a specific error and 
+    // ### probably want to return a specific error and
     // have the calling code disable the filter.
     NS_ASSERTION(PR_FALSE, "failed to get msg hdr");
     return NS_ERROR_FAILURE;
@@ -1118,7 +1118,7 @@ NS_IMETHODIMP nsMsgComposeService::ReplyWithTemplate(nsIMsgDBHdr *aMsgHdr, const
 }
 
 
-NS_IMETHODIMP nsMsgComposeService::ForwardMessage(const nsAString &forwardTo, nsIMsgDBHdr *aMsgHdr, 
+NS_IMETHODIMP nsMsgComposeService::ForwardMessage(const nsAString &forwardTo, nsIMsgDBHdr *aMsgHdr,
                                              nsIMsgWindow *aMsgWindow, nsIMsgIncomingServer *aServer)
 {
   nsresult rv;
@@ -1144,14 +1144,14 @@ NS_IMETHODIMP nsMsgComposeService::ForwardMessage(const nsAString &forwardTo, ns
   account->GetDefaultIdentity(getter_AddRefs(identity));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  // create the compose params object 
+  // create the compose params object
   nsCOMPtr<nsIMsgComposeParams> pMsgComposeParams (do_CreateInstance(NS_MSGCOMPOSEPARAMS_CONTRACTID, &rv));
   if (NS_FAILED(rv) || (!pMsgComposeParams) ) return rv ;
   nsCOMPtr<nsIMsgCompFields> compFields = do_CreateInstance(NS_MSGCOMPFIELDS_CONTRACTID, &rv) ;
 
   compFields->SetTo(forwardTo);
   nsCString msgUri;
-  PRInt32 forwardType = 0; 
+  PRInt32 forwardType = 0;
 
   nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
   if (prefBranch)
@@ -1166,7 +1166,7 @@ NS_IMETHODIMP nsMsgComposeService::ForwardMessage(const nsAString &forwardTo, ns
   pMsgComposeParams->SetType(/* forwardType ? nsIMsgCompType::ForwardInline : */nsIMsgCompType::ForwardAsAttachment);
   pMsgComposeParams->SetFormat(nsIMsgCompFormat::Default);
   pMsgComposeParams->SetIdentity(identity);
-  pMsgComposeParams->SetComposeFields(compFields); 
+  pMsgComposeParams->SetComposeFields(compFields);
   pMsgComposeParams->SetOriginalMsgURI(msgUri.get());
   // create the nsIMsgCompose object to send the object
   nsCOMPtr<nsIMsgCompose> pMsgCompose (do_CreateInstance(NS_MSGCOMPOSE_CONTRACTID, &rv));
@@ -1200,14 +1200,14 @@ nsresult nsMsgComposeService::ShowCachedComposeWindow(nsIDOMWindowInternal *aCom
   nsCOMPtr <nsIDocShellTreeOwner> treeOwner;
   rv = treeItem->GetTreeOwner(getter_AddRefs(treeOwner));
   NS_ENSURE_SUCCESS(rv,rv);
-  
+
   if (treeOwner) {
 
     // the window need to be sticky before we hide it.
     nsCOMPtr<nsIContentViewer> contentViewer;
     rv = docShell->GetContentViewer(getter_AddRefs(contentViewer));
     NS_ENSURE_SUCCESS(rv,rv);
-    
+
     rv = contentViewer->SetSticky(!aShow);
     NS_ENSURE_SUCCESS(rv,rv);
 
@@ -1222,7 +1222,7 @@ nsresult nsMsgComposeService::ShowCachedComposeWindow(nsIDOMWindowInternal *aCom
     nsCOMPtr <nsIXULWindow> xulWindow = do_GetInterface(treeOwner, &rv);
     NS_ENSURE_SUCCESS(rv,rv);
 
-    nsCOMPtr<nsIWindowMediator> windowMediator = 
+    nsCOMPtr<nsIWindowMediator> windowMediator =
 	         do_GetService(NS_WINDOWMEDIATOR_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv,rv);
 
@@ -1268,7 +1268,7 @@ nsresult nsMsgComposeService::AddGlobalHtmlDomains()
   rv = prefs->GetDefaultBranch(MAILNEWS_ROOT_PREF, getter_AddRefs(defaultsPrefBranch));
   NS_ENSURE_SUCCESS(rv,rv);
 
-  /** 
+  /**
    * Check to see if we need to add any global domains.
    * If so, make sure the following prefs are added to mailnews.js
    *
@@ -1288,7 +1288,7 @@ nsresult nsMsgComposeService::AddGlobalHtmlDomains()
 
   rv = defaultsPrefBranch->GetIntPref(HTMLDOMAINUPDATE_VERSION_PREF_NAME, &htmlDomainListDefaultVersion);
   NS_ENSURE_SUCCESS(rv,rv);
-  
+
   // Update the list as needed
   if (htmlDomainListCurrentVersion <= htmlDomainListDefaultVersion) {
     // Get list of global domains need to be added
@@ -1305,7 +1305,7 @@ nsresult nsMsgComposeService::AddGlobalHtmlDomains()
       nsCAutoString newHtmlDomainList(currentHtmlDomainList);
       // Get the current html domain list into new list var
       nsCStringArray htmlDomainArray;
-      if (!currentHtmlDomainList.IsEmpty()) 
+      if (!currentHtmlDomainList.IsEmpty())
         htmlDomainArray.ParseString(currentHtmlDomainList.get(), DOMAIN_DELIMITER);
 
       // Get user's current Plaintext domain set for send format
@@ -1315,16 +1315,14 @@ nsresult nsMsgComposeService::AddGlobalHtmlDomains()
 
       // Get the current plaintext domain list into new list var
       nsCStringArray plaintextDomainArray;
-      if (!currentPlaintextDomainList.IsEmpty()) 
+      if (!currentPlaintextDomainList.IsEmpty())
         plaintextDomainArray.ParseString(currentPlaintextDomainList.get(), DOMAIN_DELIMITER);
-    
+
       if (htmlDomainArray.Count() || plaintextDomainArray.Count()) {
-        // Tokenize the data and add each html domain if it is not alredy there in 
+        // Tokenize the data and add each html domain if it is not alredy there in
         // the user's current html or plaintext domain lists
-        char *newData;
-        char *globalData = ToNewCString(globalHtmlDomainList);
-  
-        char *token = nsCRT::strtok(globalData, DOMAIN_DELIMITER, &newData);
+        char *newData = globalHtmlDomainList.BeginWriting();
+        char *token = NS_strtok(DOMAIN_DELIMITER, &newData);
 
         nsCAutoString htmlDomain;
         while (token) {
@@ -1332,16 +1330,15 @@ nsresult nsMsgComposeService::AddGlobalHtmlDomains()
             htmlDomain.Assign(token);
             htmlDomain.StripWhitespace();
 
-            if (htmlDomainArray.IndexOf(htmlDomain) == -1  && 
+            if (htmlDomainArray.IndexOf(htmlDomain) == -1  &&
                 plaintextDomainArray.IndexOf(htmlDomain) == -1) {
               if (!newHtmlDomainList.IsEmpty())
                 newHtmlDomainList += DOMAIN_DELIMITER;
               newHtmlDomainList += htmlDomain;
             }
           }
-          token = nsCRT::strtok(newData, DOMAIN_DELIMITER, &newData);
+          token = NS_strtok(DOMAIN_DELIMITER, &newData);
         }
-        PR_FREEIF(globalData);
       }
       else
       {
@@ -1376,7 +1373,7 @@ nsMsgComposeService::RegisterComposeWindow(nsIDOMWindowInternal * aWindow, nsIMs
   nsCOMPtr<nsIWeakReference> weakMsgComposePtr = do_GetWeakReference(aComposeObject);
   NS_ENSURE_SUCCESS(rv,rv);
   mOpenComposeWindows.Put(weakDOMWindow, weakMsgComposePtr);
-  
+
   return rv;
 }
 
@@ -1384,7 +1381,7 @@ NS_IMETHODIMP
 nsMsgComposeService::UnregisterComposeWindow(nsIDOMWindowInternal * aWindow)
 {
   NS_ENSURE_ARG_POINTER(aWindow);
-  
+
   nsresult rv;
   nsCOMPtr<nsIWeakReference> weakDOMWindow = do_GetWeakReference(aWindow, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
@@ -1411,7 +1408,7 @@ nsMsgComposeService::GetMsgComposeForWindow(nsIDOMWindowInternal * aWindow, nsIM
 
   nsCOMPtr<nsIMsgCompose> msgCompose = do_QueryReferent(weakMsgComposePtr, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   NS_IF_ADDREF(*aComposeObject = msgCompose);
   return rv;
 }
@@ -1421,9 +1418,9 @@ nsMsgComposeService::GetMsgComposeForWindow(nsIDOMWindowInternal * aWindow, nsIM
  *   Helper routine used to run msgURI through libmime in order to fetch the contents for a
  *   draft or template.
  */
-nsresult    
-nsMsgComposeService::LoadDraftOrTemplate(const nsACString& aMsgURI, nsMimeOutputType aOutType, 
-                                         nsIMsgIdentity * aIdentity, const char * aOriginalMsgURI, 
+nsresult
+nsMsgComposeService::LoadDraftOrTemplate(const nsACString& aMsgURI, nsMimeOutputType aOutType,
+                                         nsIMsgIdentity * aIdentity, const char * aOriginalMsgURI,
                                          PRBool aAddInlineHeaders, nsIMsgWindow *aMsgWindow)
 {
   nsresult rv;
@@ -1432,10 +1429,10 @@ nsMsgComposeService::LoadDraftOrTemplate(const nsACString& aMsgURI, nsMimeOutput
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Now, we can create a mime parser (nsIStreamConverter)!
-  nsCOMPtr<nsIMimeStreamConverter> mimeConverter = 
+  nsCOMPtr<nsIMimeStreamConverter> mimeConverter =
     do_CreateInstance(NS_MAILNEWS_MIME_STREAM_CONVERTER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   mimeConverter->SetMimeOutputType(aOutType);  // Set the type of output for libmime
   mimeConverter->SetForwardInline(aAddInlineHeaders);
   mimeConverter->SetIdentity(aIdentity);
@@ -1476,13 +1473,13 @@ nsMsgComposeService::LoadDraftOrTemplate(const nsACString& aMsgURI, nsMimeOutput
   nsCOMPtr<nsIChannel> channel;
   rv = NS_NewInputStreamChannel(getter_AddRefs(channel), url, nsnull);
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   nsCOMPtr<nsIStreamConverter> converter = do_QueryInterface(mimeConverter);
   rv = converter->AsyncConvertData(nsnull, nsnull, nsnull, channel);
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Now, just plug the two together and get the hell out of the way!
-  nsCOMPtr<nsIStreamListener> streamListener = do_QueryInterface(mimeConverter); 
+  nsCOMPtr<nsIStreamListener> streamListener = do_QueryInterface(mimeConverter);
   return messageService->DisplayMessage(PromiseFlatCString(aMsgURI).get(), streamListener,
                                         aMsgWindow, nsnull, mailCharset.get(), nsnull);;
 }
@@ -1558,7 +1555,7 @@ nsMsgComposeService::Handle(nsICommandLine* aCmdLine)
       arg = do_CreateInstance(NS_SUPPORTS_STRING_CONTRACTID);
       if (arg)
         arg->SetData(uristr);
-    }    
+    }
 
     nsCOMPtr<nsIDOMWindow> opened;
     wwatch->OpenWindow(nsnull, DEFAULT_CHROME, "_blank",

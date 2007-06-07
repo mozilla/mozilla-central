@@ -1168,7 +1168,7 @@ PRInt32 nsSmtpProtocol::AuthLoginStep1()
   m_nextState = SMTP_RESPONSE;
   m_nextStateAfterResponse = SMTP_AUTH_LOGIN_RESPONSE;
   SetFlag(SMTP_PAUSE_FOR_READ);
-  nsCRT::free(base64Str);
+  NS_Free(base64Str);
 
   return (status);
 }
@@ -1246,7 +1246,7 @@ PRInt32 nsSmtpProtocol::AuthLoginStep2()
     {
       char *base64Str = PL_Base64Encode(password.get(), password.Length(), nsnull);
       PR_snprintf(buffer, sizeof(buffer), "%.256s" CRLF, base64Str);
-      nsCRT::free(base64Str);
+      NS_Free(base64Str);
     }
 
     nsCOMPtr<nsIURI> url = do_QueryInterface(m_runningURL);
@@ -1805,7 +1805,7 @@ nsSmtpProtocol::GetPassword(char **aPassword)
         return rv;
     // empty password
 
-    nsCRT::free(*aPassword);
+    NS_Free(*aPassword);
     *aPassword = 0;
 
     nsCString redirectorType;
@@ -1913,12 +1913,12 @@ nsSmtpProtocol::GetUsernamePassword(char **aUsername, char **aPassword)
             return rv;
 
         // empty username
-        nsCRT::free(*aUsername);
+        NS_Free(*aUsername);
         *aUsername = 0;
     }
     // empty password
 
-    nsCRT::free(*aPassword);
+    NS_Free(*aPassword);
     *aPassword = 0;
 
     nsCString hostname;

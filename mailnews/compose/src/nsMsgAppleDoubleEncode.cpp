@@ -48,7 +48,6 @@
 *		
 */
 #include "nsID.h"
-#include "nsCRT.h"
 #include "nscore.h"
 #include "msgCore.h"
 #include "nsMsgAppleDouble.h"
@@ -89,7 +88,7 @@ MacGetFileType(nsILocalFile   *fs,
   OSErr err = FSpGetFInfo (&fsSpec, &fndrInfo);
 
   if ( (err != noErr) || (fndrInfo.fdType == 'TEXT') )
-    *fileType = nsCRT::strdup(APPLICATION_OCTET_STREAM);
+    *fileType = strdup(APPLICATION_OCTET_STREAM);
   else
   {
     // At this point, we should call the mime service and
@@ -112,7 +111,7 @@ MacGetFileType(nsILocalFile   *fs,
     }
 
     // If we hit here, return something...default to this...
-    *fileType = nsCRT::strdup(APPLICATION_OCTET_STREAM);
+    *fileType = strdup(APPLICATION_OCTET_STREAM);
   }
 }
 
@@ -148,7 +147,7 @@ int ap_encode_init( appledouble_encode_object *p_ap_encode_obj,
 	p_ap_encode_obj->vRefNum = fspec.vRefNum;
 	p_ap_encode_obj->dirId   = fspec.parID;
 	
-	p_ap_encode_obj->boundary = nsCRT::strdup(separator);
+	p_ap_encode_obj->boundary = strdup(separator);
 	return noErr;
 }
 

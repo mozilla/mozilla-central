@@ -133,7 +133,7 @@ int fill_apple_mime_header(
 		
 	status = write_stream(p_ap_encode_obj,
 						p_ap_encode_obj->fname,
-						nsCRT::strlen(p_ap_encode_obj->fname));
+						strlen(p_ap_encode_obj->fname));
 	if (status != noErr)
 		return status;
 		

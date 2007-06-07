@@ -353,20 +353,20 @@ PRBool nsMsgCompose::IsEmbeddedObjectSafe(const char * originalScheme,
     {
       nsCAutoString scheme;
       rv = uri->GetScheme(scheme);
-      if (NS_SUCCEEDED(rv) && (nsCRT::strcasecmp(scheme.get(), originalScheme) == 0))
+      if (NS_SUCCEEDED(rv) && scheme.Equals(originalScheme, nsCaseInsensitiveCStringComparator()))
       {
         nsCAutoString host;
         rv = uri->GetAsciiHost(host);
         // mailbox url don't have a host therefore don't be too strict.
-        if (NS_SUCCEEDED(rv) && (host.IsEmpty() || originalHost || (nsCRT::strcasecmp(host.get(), originalHost) == 0)))
+        if (NS_SUCCEEDED(rv) && (host.IsEmpty() || originalHost || host.Equals(originalHost, nsCaseInsensitiveCStringComparator())))
         {
           nsCAutoString path;
           rv = uri->GetPath(path);
           if (NS_SUCCEEDED(rv))
           {
             const char * query = strrchr(path.get(), '?');
-            if (query && nsCRT::strncasecmp(path.get(), originalPath, query - path.get()) == 0)
-              return PR_TRUE; //This object is a part of the original message, we can send it safely.
+            if (query && PL_strncasecmp(path.get(), originalPath, query - path.get()) == 0)
+                return PR_TRUE; //This object is a part of the original message, we can send it safely.
           }
         }
       }
@@ -2938,12 +2938,10 @@ nsresult nsMsgCompose::ProcessReplyFlags()
   {
     if (!mOriginalMsgURI.IsEmpty())
     {
-      char *uriList = PL_strdup(mOriginalMsgURI.get());
-      if (!uriList)
-        return NS_ERROR_OUT_OF_MEMORY;
-      char *newStr = uriList;
+      nsCString msgUri (mOriginalMsgURI);
+      char *newStr = msgUri.BeginWriting();
       char *uri;
-      while (nsnull != (uri = nsCRT::strtok(newStr, ",", &newStr)))
+      while (nsnull != (uri = NS_strtok(",", &newStr)))
       {
         nsCOMPtr <nsIMsgDBHdr> msgHdr;
         rv = GetMsgDBHdrFromURI(uri, getter_AddRefs(msgHdr));
@@ -2970,7 +2968,6 @@ nsresult nsMsgCompose::ProcessReplyFlags()
           }
         }
       }
-      PR_Free(uriList);
     }
   }
 
@@ -3574,13 +3571,10 @@ nsMsgCompose::ConvertTextToHTML(nsILocalFile *aSigFile, nsString &aSigData)
   if (escaped)
   {
     aSigData.Append(escaped);
-    nsCRT::free(escaped);
+    NS_Free(escaped);
   }
   else
-  {
     aSigData.Append(origBuf);
-  }
-
   return NS_OK;
 }
 

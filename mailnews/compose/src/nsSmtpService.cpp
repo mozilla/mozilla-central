@@ -429,21 +429,21 @@ nsSmtpService::loadSmtpServers()
     // from preconfigured pref mail.smtpservers.appendsmtpservers) and create a keyed 
     // server list.
     if (!serverList.IsEmpty() || !appendServerList.IsEmpty()) {
-      /** 
-       * Check to see if we need to add pre-configured smtp servers.
-       * Following prefs are important to note in understanding the procedure here.
-       *
-       * 1. pref("mailnews.append_preconfig_smtpservers.version", version number);
-       * This pref registers the current version in the user prefs file. A default value 
-       * is stored in mailnews.js file. If a given vendor needs to add more preconfigured 
-       * smtp servers, the default version number can be increased. Comparing version 
-       * number from user's prefs file and the default one from mailnews.js, we
-       * can add new smtp servers and any other version level changes that need to be done.
-       *
-       * 2. pref("mail.smtpservers.appendsmtpservers", <comma separated servers list>);
-       * This pref contains the list of pre-configured smp servers that ISP/Vendor wants to
-       * to add to the existing servers list. 
-       */
+    /** 
+             * Check to see if we need to add pre-configured smtp servers.
+             * Following prefs are important to note in understanding the procedure here.
+             *
+             * 1. pref("mailnews.append_preconfig_smtpservers.version", version number);
+             * This pref registers the current version in the user prefs file. A default value 
+             * is stored in mailnews.js file. If a given vendor needs to add more preconfigured 
+             * smtp servers, the default version number can be increased. Comparing version 
+             * number from user's prefs file and the default one from mailnews.js, we
+             * can add new smtp servers and any other version level changes that need to be done.
+             *
+             * 2. pref("mail.smtpservers.appendsmtpservers", <comma separated servers list>);
+             * This pref contains the list of pre-configured smp servers that ISP/Vendor wants to
+             * to add to the existing servers list. 
+             */
       nsCOMPtr<nsIPrefBranch> defaultsPrefBranch;
       rv = prefService->GetDefaultBranch(MAIL_ROOT_PREF, getter_AddRefs(defaultsPrefBranch));
       NS_ENSURE_SUCCESS(rv,rv);
@@ -452,8 +452,8 @@ nsSmtpService::loadSmtpServers()
       rv = prefService->GetBranch(MAIL_ROOT_PREF, getter_AddRefs(prefBranch));
       NS_ENSURE_SUCCESS(rv,rv);
 
-      PRInt32 appendSmtpServersCurrentVersion=0;
-      PRInt32 appendSmtpServersDefaultVersion=0;
+      PRInt32 appendSmtpServersCurrentVersion = 0;
+      PRInt32 appendSmtpServersDefaultVersion = 0;
       rv = prefBranch->GetIntPref(APPEND_SERVERS_VERSION_PREF_NAME, &appendSmtpServersCurrentVersion);
       NS_ENSURE_SUCCESS(rv,rv);
 
@@ -470,25 +470,21 @@ nsSmtpService::loadSmtpServers()
 
             // Tokenize the data and add each smtp server if it is not already there 
             // in the user's current smtp server list
-            char *newSmtpServerStr;
-            char *preConfigSmtpServersStr = ToNewCString(appendServerList);
-  
-            char *token = nsCRT::strtok(preConfigSmtpServersStr, SERVER_DELIMITER, &newSmtpServerStr);
+            char *newSmtpServerStr = appendServerList.BeginWriting(); 
+            char *token = NS_strtok(SERVER_DELIMITER, &newSmtpServerStr);
 
             nsCAutoString newSmtpServer;
             while (token) {
               if (token && *token) {
                 newSmtpServer.Assign(token);
                 newSmtpServer.StripWhitespace();
-
                 if (existingSmtpServersArray.IndexOf(newSmtpServer) == -1) {
                   serverList += ",";
                   serverList += newSmtpServer;
                 }
               }
-              token = nsCRT::strtok(newSmtpServerStr, SERVER_DELIMITER, &newSmtpServerStr);
+              token = NS_strtok(SERVER_DELIMITER, &newSmtpServerStr);
             }
-            PR_Free(preConfigSmtpServersStr);
           }
           else {
             serverList = appendServerList;
@@ -498,8 +494,8 @@ nsSmtpService::loadSmtpServers()
         }
       }
 
-      char *newStr;
-      char *pref = nsCRT::strtok(serverList.BeginWriting(), ", ", &newStr);
+      char *newStr = serverList.BeginWriting();
+      char *pref = NS_strtok(", ", &newStr);
 
       while (pref) {
         // fix for bug #96207
@@ -512,7 +508,7 @@ nsSmtpService::loadSmtpServers()
         nsCOMPtr<nsISmtpServer> server;
         rv = GetServerByKey(pref, getter_AddRefs(server));
         NS_ASSERTION(NS_SUCCEEDED(rv), "GetServerByKey failed");
-        pref = nsCRT::strtok(newStr, ", ", &newStr);
+        pref = NS_strtok(", ", &newStr);
       }
     }
 
@@ -755,22 +751,20 @@ nsSmtpService::DeleteSmtpServer(nsISmtpServer *aServer)
         mSessionDefaultServer = nsnull;
     
     nsCAutoString newServerList;
-    char *newStr;
-    char *rest = ToNewCString(mServerKeyList);
-    
-    char *token = nsCRT::strtok(rest, ",", &newStr);
+    nsCString tmpStr = mServerKeyList;
+    char *newStr = tmpStr.BeginWriting();
+    char *token = NS_strtok(",", &newStr);
     while (token) {
-        // only re-add the string if it's not the key
-        if (strcmp(token, serverKey.get()) != 0) {
-            if (newServerList.IsEmpty())
-                newServerList = token;
-            else {
-                newServerList += ',';
-                newServerList += token;
-            }
-        }
-
-        token = nsCRT::strtok(newStr, ",", &newStr);
+      // only re-add the string if it's not the key
+      if (strcmp(token, serverKey.get()) != 0) {
+          if (newServerList.IsEmpty())
+              newServerList = token;
+          else {
+            newServerList += ',';
+            newServerList += token;
+          }
+      }
+      token = NS_strtok(",", &newStr);
     }
 
     // make sure the server clears out it's values....
