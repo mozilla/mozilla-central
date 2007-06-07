@@ -541,7 +541,7 @@ nsresult nsMsgI18NSaveAsCharset(const char* contentType, const char *charset,
   // Exclude stateful charset which is 7 bit but not ASCII only.
   else if (isAsciiOnly && bTEXT_HTML && *outString &&
            !nsMsgI18Nstateful_charset(charsetName.get()))
-    *isAsciiOnly = isascii(*outString);
+    *isAsciiOnly = NS_IsAscii(*outString);
 
   return res;
 }
