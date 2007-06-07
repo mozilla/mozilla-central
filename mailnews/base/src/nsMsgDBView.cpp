@@ -245,18 +245,17 @@ nsMsgDBView::~nsMsgDBView()
     NS_IF_RELEASE(kLabelColorWhiteAtom);
     NS_IF_RELEASE(kLabelColorBlackAtom);
 
-    nsCRT::free(kHighestPriorityString);
-    nsCRT::free(kHighPriorityString);
-    nsCRT::free(kLowestPriorityString);
-    nsCRT::free(kLowPriorityString);
-    nsCRT::free(kNormalPriorityString);
+    NS_Free(kHighestPriorityString);
+    NS_Free(kHighPriorityString);
+    NS_Free(kLowestPriorityString);
+    NS_Free(kLowPriorityString);
+    NS_Free(kNormalPriorityString);
 
-    nsCRT::free(kReadString);
-    nsCRT::free(kRepliedString);
-    nsCRT::free(kForwardedString);
-    nsCRT::free(kNewString);
-
-    nsCRT::free(kKiloByteString);
+    NS_Free(kReadString);
+    NS_Free(kRepliedString);
+    NS_Free(kForwardedString);
+    NS_Free(kNewString);
+    NS_Free(kKiloByteString);
   }
 }
 
@@ -294,7 +293,7 @@ PRUnichar * nsMsgDBView::GetString(const PRUnichar *aStringName)
   if ( NS_SUCCEEDED(res) && (ptrv) )
     return ptrv;
   else
-    return nsCRT::strdup(aStringName);
+    return NS_strdup(aStringName);
 }
 
 // helper function used to fetch localized strings from the prefs

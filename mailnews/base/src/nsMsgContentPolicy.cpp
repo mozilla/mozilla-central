@@ -43,7 +43,6 @@
 #include "nsIPrefBranch2.h"
 #include "nsIURI.h"
 #include "nsCOMPtr.h"
-#include "nsCRT.h"
 #include "nsIRDFService.h"
 #include "nsIRDFResource.h"
 #include "nsIMsgHeaderParser.h"

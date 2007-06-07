@@ -44,7 +44,6 @@
 #endif
 
 #include "nsMsgPurgeService.h"
-#include "nsCRT.h"
 #include "nsIMsgAccountManager.h"
 #include "nsMsgBaseCID.h"
 #include "nsMsgUtils.h"
@@ -68,7 +67,7 @@ NS_IMPL_ISUPPORTS2(nsMsgPurgeService, nsIMsgPurgeService, nsIMsgSearchNotify)
 void OnPurgeTimer(nsITimer *timer, void *aPurgeService)
 {
   nsMsgPurgeService *purgeService = (nsMsgPurgeService*)aPurgeService;
-  purgeService->PerformPurge();		
+  purgeService->PerformPurge();
 }
 
 nsMsgPurgeService::nsMsgPurgeService()
@@ -82,7 +81,7 @@ nsMsgPurgeService::~nsMsgPurgeService()
 {
   if (mPurgeTimer)
     mPurgeTimer->Cancel();
-  
+
   if(!mHaveShutdown)
     Shutdown();
 }
@@ -90,7 +89,7 @@ nsMsgPurgeService::~nsMsgPurgeService()
 NS_IMETHODIMP nsMsgPurgeService::Init()
 {
   nsresult rv;
-  
+
   if (!MsgPurgeLogModule)
     MsgPurgeLogModule = PR_NewLogModule("MsgPurge");
 
@@ -100,15 +99,15 @@ NS_IMETHODIMP nsMsgPurgeService::Init()
   {
     PRInt32 min_delay;
     rv = prefBranch->GetIntPref("mail.purge.min_delay", &min_delay);
-    if (NS_SUCCEEDED(rv) &&  min_delay) 
+    if (NS_SUCCEEDED(rv) &&  min_delay)
       mMinDelayBetweenPurges = min_delay;
-    
+
     PRInt32 purge_timer_interval;
     rv = prefBranch->GetIntPref("mail.purge.timer_interval", &purge_timer_interval);
-    if (NS_SUCCEEDED(rv) &&  purge_timer_interval) 
+    if (NS_SUCCEEDED(rv) &&  purge_timer_interval)
       mPurgeTimerInterval = purge_timer_interval;
   }
-  
+
   PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("mail.purge.min_delay=%d minutes",mMinDelayBetweenPurges));
   PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("mail.purge.timer_interval=%d minutes",mPurgeTimerInterval));
 
@@ -123,12 +122,12 @@ NS_IMETHODIMP nsMsgPurgeService::Init()
 
 NS_IMETHODIMP nsMsgPurgeService::Shutdown()
 {
-  if (mPurgeTimer) 
+  if (mPurgeTimer)
   {
     mPurgeTimer->Cancel();
     mPurgeTimer = nsnull;
   }
-  
+
   mHaveShutdown = PR_TRUE;
   return NS_OK;
 }
@@ -144,15 +143,15 @@ nsresult nsMsgPurgeService::SetupNextPurge()
   // calling Notify. So, just release the timer here and create a new one.
   if(mPurgeTimer)
     mPurgeTimer->Cancel();
-  
+
   mPurgeTimer = do_CreateInstance("@mozilla.org/timer;1");
-  mPurgeTimer->InitWithFuncCallback(OnPurgeTimer, (void*)this, timeInMSUint32, 
+  mPurgeTimer->InitWithFuncCallback(OnPurgeTimer, (void*)this, timeInMSUint32,
     nsITimer::TYPE_ONE_SHOT);
-   
+
   return NS_OK;
 }
 
-// This is the function that looks for the first folder to purge. It also 
+// This is the function that looks for the first folder to purge. It also
 // applies retention settings to any folder that hasn't had retention settings
 // applied in mMinDelayBetweenPurges minutes (default, 8 hours).
 // However, if we've spent more than .5 seconds in this loop, don't
@@ -166,7 +165,7 @@ nsresult nsMsgPurgeService::PerformPurge()
   PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("performing purge"));
 
   nsresult rv;
-  
+
   nsCOMPtr <nsIMsgAccountManager> accountManager = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
   PRBool keepApplyingRetentionSettings = PR_TRUE;
@@ -205,7 +204,7 @@ nsresult nsMsgPurgeService::PerformPurge()
           NS_ENSURE_SUCCESS(rv, rv);
           rv = rootFolder->ListDescendents(childFolders);
 
-          PRUint32 cnt =0;  
+          PRUint32 cnt =0;
           childFolders->Count(&cnt);
 
           nsCOMPtr<nsISupports> supports;
@@ -224,16 +223,16 @@ nsresult nsMsgPurgeService::PerformPurge()
               nsTime curFolderLastPurgeTime=0;
               nsCString curFolderLastPurgeTimeString, curFolderUri;
               rv = childFolder->GetStringProperty("LastPurgeTime", curFolderLastPurgeTimeString);
-              if (NS_FAILED(rv))  
+              if (NS_FAILED(rv))
                 continue; // it is ok to fail, go on to next folder
-                
+
               if (!curFolderLastPurgeTimeString.IsEmpty())
               {
                 PRInt64 theTime;
                 PR_ParseTimeString(curFolderLastPurgeTimeString.get(), PR_FALSE, &theTime);
                 curFolderLastPurgeTime = theTime;
               }
-  
+
               childFolder->GetURI(curFolderUri);
               PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("%s curFolderLastPurgeTime=%s (if blank, then never)", curFolderUri.get(), curFolderLastPurgeTimeString.get()));
 
@@ -263,10 +262,10 @@ nsresult nsMsgPurgeService::PerformPurge()
         nsCString type;
         nsresult rv = server->GetType(type);
         NS_ENSURE_SUCCESS(rv, rv);
-        
+
         nsCAutoString contractid(NS_MSGPROTOCOLINFO_CONTRACTID_PREFIX);
         contractid.Append(type);
-        
+
         nsCOMPtr<nsIMsgProtocolInfo> protocolInfo =
           do_GetService(contractid.get(), &rv);
         NS_ENSURE_SUCCESS(rv, PR_FALSE);
@@ -284,7 +283,7 @@ nsresult nsMsgPurgeService::PerformPurge()
         PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("[%d] spamLevel=%d (if 0, don't purge)", serverIndex, spamLevel));
         if (!spamLevel)
           continue;
-        
+
         // check if we are set up to purge for this server
         // if not, skip it.
         PRBool purgeSpam;
@@ -293,7 +292,7 @@ nsresult nsMsgPurgeService::PerformPurge()
         PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("[%d] purgeSpam=%s (if false, don't purge)", serverIndex, purgeSpam ? "true" : "false"));
         if (!purgeSpam)
           continue;
-        
+
         // check if the spam folder uri is set for this server
         // if not skip it.
         nsCString junkFolderURI;
@@ -312,21 +311,21 @@ nsresult nsMsgPurgeService::PerformPurge()
 
         PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("[%d] %s exists? %s (if doesn't exist, don't purge)", serverIndex, junkFolderURI.get(), junkFolder ? "true" : "false"));
         if (!junkFolder)
-          continue;  
-    
+          continue;
+
         nsTime curJunkFolderLastPurgeTime=0;
         nsCString curJunkFolderLastPurgeTimeString;
         rv = junkFolder->GetStringProperty("curJunkFolderLastPurgeTime", curJunkFolderLastPurgeTimeString);
-        if (NS_FAILED(rv))  
+        if (NS_FAILED(rv))
           continue; // it is ok to fail, junk folder may not exist
-                
+
         if (!curJunkFolderLastPurgeTimeString.IsEmpty())
         {
           PRInt64 theTime;
           PR_ParseTimeString(curJunkFolderLastPurgeTimeString.get(), PR_FALSE, &theTime);
           curJunkFolderLastPurgeTime = theTime;
         }
-  
+
         PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("[%d] %s curJunkFolderLastPurgeTime=%s (if blank, then never)", serverIndex, junkFolderURI.get(), curJunkFolderLastPurgeTimeString.get()));
 
         // check if this account is due to purge
@@ -334,14 +333,14 @@ nsresult nsMsgPurgeService::PerformPurge()
         // we don't want to purge the folders all the time
         nsTime nextPurgeTime = curJunkFolderLastPurgeTime + nsInt64(mMinDelayBetweenPurges * 60000000 /* convert mMinDelayBetweenPurges to into microseconds */);
         nsTime currentTime;
-        if (nextPurgeTime < currentTime) 
+        if (nextPurgeTime < currentTime)
         {
           PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("[%d] last purge greater than min delay", serverIndex));
 
           nsCOMPtr <nsIMsgIncomingServer> junkFolderServer;
           rv = junkFolder->GetServer(getter_AddRefs(junkFolderServer));
           NS_ENSURE_SUCCESS(rv,rv);
-          
+
           PRBool serverBusy = PR_FALSE;
           PRBool serverRequiresPassword = PR_TRUE;
           PRBool passwordPromptRequired;
@@ -353,7 +352,7 @@ nsresult nsMsgPurgeService::PerformPurge()
           // Make sure we're logged on before doing the search (assuming we need to be)
           // and make sure the server isn't already in the middle of downloading new messages
           // and make sure a search isn't already going on
-          PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("[%d] (search in progress? %s)", serverIndex, mSearchSession ? "true" : "false")); 
+          PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("[%d] (search in progress? %s)", serverIndex, mSearchSession ? "true" : "false"));
           PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("[%d] (server busy? %s)", serverIndex, serverBusy ? "true" : "false"));
           PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("[%d] (serverRequiresPassword? %s)", serverIndex, serverRequiresPassword ? "true" : "false"));
           PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("[%d] (passwordPromptRequired? %s)", serverIndex, passwordPromptRequired ? "true" : "false"));
@@ -386,7 +385,7 @@ nsresult nsMsgPurgeService::PerformPurge()
     if (folderToPurge)
       rv = SearchFolderToPurge(folderToPurge, purgeIntervalToUse);
   }
-    
+
   // set up timer to check accounts again
   SetupNextPurge();
   return rv;
@@ -398,7 +397,7 @@ nsresult nsMsgPurgeService::SearchFolderToPurge(nsIMsgFolder *folder, PRInt32 pu
   mSearchSession = do_CreateInstance(NS_MSGSEARCHSESSION_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
   mSearchSession->RegisterListener(this);
-  
+
   // update the time we attempted to purge this folder
   char dateBuf[100];
   dateBuf[0] = '\0';
@@ -416,7 +415,7 @@ nsresult nsMsgPurgeService::SearchFolderToPurge(nsIMsgFolder *folder, PRInt32 pu
   server->GetSearchScope(&searchScope);
 
   mSearchSession->AddScopeTerm(searchScope, folder);
-  
+
   // look for messages older than the cutoff
   // you can't also search by junk status, see
   // nsMsgPurgeService::OnSearchHit()
@@ -440,7 +439,7 @@ nsresult nsMsgPurgeService::SearchFolderToPurge(nsIMsgFolder *folder, PRInt32 pu
 
   // we are about to search
   // create mHdrsToDelete array (if not previously created)
-  if (!mHdrsToDelete)  
+  if (!mHdrsToDelete)
   {
     mHdrsToDelete = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
@@ -457,7 +456,7 @@ nsresult nsMsgPurgeService::SearchFolderToPurge(nsIMsgFolder *folder, PRInt32 pu
   mSearchFolder = folder;
   return mSearchSession->Search(nsnull);
 }
-    
+
 NS_IMETHODIMP nsMsgPurgeService::OnNewSearch()
 {
   PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("on new search"));
@@ -471,7 +470,7 @@ NS_IMETHODIMP nsMsgPurgeService::OnSearchHit(nsIMsgDBHdr* aMsgHdr, nsIMsgFolder 
   nsCString messageId;
   nsCString author;
   nsCString subject;
-  
+
   aMsgHdr->GetMessageId(getter_Copies(messageId));
   PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("messageId=%s", messageId.get()));
   aMsgHdr->GetSubject(getter_Copies(subject));
@@ -479,11 +478,11 @@ NS_IMETHODIMP nsMsgPurgeService::OnSearchHit(nsIMsgDBHdr* aMsgHdr, nsIMsgFolder 
   aMsgHdr->GetAuthor(getter_Copies(author));
   PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("author=%s",author.get()));
 
-  // double check that the message is junk before adding to 
+  // double check that the message is junk before adding to
   // the list of messages to delete
   //
   // note, we can't just search for messages that are junk
-  // because not all imap server support keywords 
+  // because not all imap server support keywords
   // (which we use for the junk score)
   // so the junk status would be in the message db.
   //
@@ -505,7 +504,7 @@ NS_IMETHODIMP nsMsgPurgeService::OnSearchHit(nsIMsgDBHdr* aMsgHdr, nsIMsgFolder 
     PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("added message to delete"));
     return mHdrsToDelete->AppendElement(aMsgHdr);
   }
-  else 
+  else
     return NS_OK;
 }
 
@@ -528,7 +527,7 @@ NS_IMETHODIMP nsMsgPurgeService::OnSearchDone(nsresult status)
   // don't cache the session
   // just create another search session next time we search, rather than clearing scopes, terms etc.
   // we also use mSearchSession to determine if the purge service is "busy"
-  mSearchSession = nsnull;  
+  mSearchSession = nsnull;
   mSearchFolder = nsnull;
   return NS_OK;
 }

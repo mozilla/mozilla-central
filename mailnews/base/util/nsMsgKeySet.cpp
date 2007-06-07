@@ -152,7 +152,7 @@ nsMsgKeySet::nsMsgKeySet(const char* numbers /* , MSG_NewsHost* host */)
 		return;
 	}
 
-	while (nsCRT::IsAsciiSpace (*numbers)) numbers++;
+	while (isspace (*numbers)) numbers++;
 	while (*numbers) {
 		PRInt32 from = 0;
 		PRInt32 to;
@@ -170,14 +170,14 @@ nsMsgKeySet::nsMsgKeySet(const char* numbers /* , MSG_NewsHost* host */)
 			end = head + m_data_size;
 		}
 
-		while (nsCRT::IsAsciiSpace(*numbers)) numbers++;
-		if (*numbers && !nsCRT::IsAsciiDigit(*numbers)) {
+		while (isspace(*numbers)) numbers++;
+		if (*numbers && !isdigit(*numbers)) {
 			break;			/* illegal character */
 		}
-		while (nsCRT::IsAsciiDigit (*numbers)) {
+		while (isdigit (*numbers)) {
 			from = (from * 10) + (*numbers++ - '0');
 		}
-		while (nsCRT::IsAsciiSpace (*numbers)) numbers++;
+		while (isspace(*numbers)) numbers++;
 		if (*numbers != '-') {
 			to = from;
 		} else {
@@ -185,7 +185,7 @@ nsMsgKeySet::nsMsgKeySet(const char* numbers /* , MSG_NewsHost* host */)
 			numbers++;
 			while (*numbers >= '0' && *numbers <= '9')
 				to = (to * 10) + (*numbers++ - '0');
-			while (nsCRT::IsAsciiSpace (*numbers)) numbers++;
+			while (isspace(*numbers)) numbers++;
 		}
 
 		if (to < from) to = from; /* illegal */
@@ -209,7 +209,7 @@ nsMsgKeySet::nsMsgKeySet(const char* numbers /* , MSG_NewsHost* host */)
 			tail++;
 		}
 
-		while (*numbers == ',' || nsCRT::IsAsciiSpace (*numbers)) {
+		while (*numbers == ',' || isspace(*numbers)) {
 			numbers++;
 		}
 	}
@@ -1500,7 +1500,7 @@ nsMsgKeySet::test_member(PRBool with_cache)
 // 		  while (*sep != 0 && *sep != ':' && *sep != '!')
 // 			sep++;
 // 		  if (*sep) sep++;
-// 		  while (nsCRT::IsAsciiSpace (*sep)) sep++;
+// 		  while (isspace (*sep)) sep++;
 // 		  fwrite (buf, 1, sep - buf, stdout);
 // 		  if (*sep)
 // 			{

@@ -40,7 +40,6 @@
 
 #include "nsCOMPtr.h"
 
-#include "nsCRT.h"
 #include "nsReadableUtils.h"
 #include "prmem.h"
 
@@ -645,17 +644,17 @@ nsSubscribableServer::FindAndCreateNode(const nsACString &aPath,
   SubscribeTreeNode *parent = mTreeRoot;
   SubscribeTreeNode *child = nsnull;
 
-  token = nsCRT::strtok(rest, delimstr, &rest);
+  token = NS_strtok(delimstr, &rest);
   while (token && *token) {
       rv = AddChildNode(parent, token, &child);
       if (NS_FAILED(rv)) {
           CRTFREEIF(pathStr);
           return rv;
       }
-      token = nsCRT::strtok(rest, delimstr, &rest);
+      token = NS_strtok(delimstr, &rest);
       parent = child;
   }   
-  CRTFREEIF(pathStr);
+  NS_Free(pathStr);
 
   // the last child we add is the result
   *aResult = child;

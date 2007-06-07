@@ -38,7 +38,6 @@
 #define _nsUint8Array_H_
 
 #include "nscore.h"
-#include "nsCRT.h"
 #include "prmem.h"
 #include "msgCore.h"
 

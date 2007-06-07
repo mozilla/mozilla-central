@@ -204,16 +204,14 @@ nsMsgAccount::createIdentities()
 
   m_prefs->GetCharPref(identitiesKeyPref.get(), getter_Copies(identityKey));
   if (identityKey.IsEmpty())    // not an error if no identities, but
-    return NS_OK;               // nsCRT::strtok will be unhappy
+    return NS_OK;               // strtok will be unhappy
   // get the server from the account manager
   nsCOMPtr<nsIMsgAccountManager> accountManager =
            do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  // const-casting because nsCRT::strtok whacks the string,
-  // but safe because identityKey is a copy
-  char* newStr;
-  char* token = nsCRT::strtok(identityKey.BeginWriting(), ",", &newStr);
+  char* newStr = identityKey.BeginWriting();
+  char* token = NS_strtok(",", &newStr);
 
   // temporaries used inside the loop
   nsCOMPtr<nsIMsgIdentity> identity;
@@ -233,7 +231,7 @@ nsMsgAccount::createIdentities()
     }
 
     // advance to next key, if any
-    token = nsCRT::strtok(newStr, ",", &newStr);
+    token = NS_strtok(",", &newStr);
   }
 
   return rv;
@@ -310,13 +308,9 @@ nsMsgAccount::AddIdentity(nsIMsgIdentity *identity)
     nsCAutoString testKey;      // temporary to strip whitespace
     PRBool foundIdentity = PR_FALSE; // if the input identity is found
 
-    // nsCRT::strtok will be unhappy with an empty string
     if (!identityList.IsEmpty()) {
-
-      // const-casting because nsCRT::strtok whacks the string,
-      // but safe because identityList is a copy
-      char *newStr;
-      char *token = nsCRT::strtok(identityList.BeginWriting(), ",", &newStr);
+      char *newStr = identityList.BeginWriting();
+      char *token = NS_strtok(",", &newStr);
 
       // look for the identity key that we're adding
       while (token) {
@@ -326,7 +320,7 @@ nsMsgAccount::AddIdentity(nsIMsgIdentity *identity)
         if (testKey.Equals(key))
           foundIdentity = PR_TRUE;
 
-        token = nsCRT::strtok(newStr, ",", &newStr);
+        token = NS_strtok(",", &newStr);
       }
     }
 

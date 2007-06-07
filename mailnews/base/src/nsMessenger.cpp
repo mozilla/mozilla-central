@@ -2192,16 +2192,16 @@ nsSaveAllAttachmentsState::~nsSaveAllAttachmentsState()
     PRUint32 i;
     for (i = 0; i < m_count; i++)
     {
-      nsCRT::free(m_contentTypeArray[i]);
-      nsCRT::free(m_urlArray[i]);
-      nsCRT::free(m_displayNameArray[i]);
-      nsCRT::free(m_messageUriArray[i]);
+      NS_Free(m_contentTypeArray[i]);
+      NS_Free(m_urlArray[i]);
+      NS_Free(m_displayNameArray[i]);
+      NS_Free(m_messageUriArray[i]);
     }
     delete[] m_contentTypeArray;
     delete[] m_urlArray;
     delete[] m_displayNameArray;
     delete[] m_messageUriArray;
-    nsCRT::free(m_directoryName);
+    NS_Free(m_directoryName);
 }
 
 nsresult

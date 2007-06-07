@@ -439,7 +439,7 @@ char nsMsgFilterList::SkipWhitespace(nsIInputStream *aStream)
   do
   {
     ch = ReadChar(aStream);
-  } while (nsCRT::IsAsciiSpace((PRUnichar)ch));
+  } while (isspace(ch));
   return ch;
 }
 
@@ -458,7 +458,7 @@ char nsMsgFilterList::LoadAttrib(nsMsgFilterFileAttribValue &attrib, nsIInputStr
   int i;
   for (i = 0; i + 1 < (int)(sizeof(attribStr)); )
   {
-    if (curChar == (char) -1 || nsCRT::IsAsciiSpace((PRUnichar)curChar) || curChar == '=')
+    if (curChar == (char) -1 || isspace(curChar) || curChar == '=')
       break;
     attribStr[i++] = curChar;
     curChar = ReadChar(aStream);

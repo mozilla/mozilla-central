@@ -97,13 +97,13 @@ PRUnichar *nsMsgSearchNews::EncodeToWildmat (const PRUnichar *value)
 	// a case-insensitive match by specifying each case possibility for each character
 	// So, "FooBar" is encoded as "[Ff][Oo][Bb][Aa][Rr]"
 
-  PRUnichar *caseInsensitiveValue = (PRUnichar*) nsMemory::Alloc(sizeof(PRUnichar) * ((4 * nsCRT::strlen(value)) + 1));
+  PRUnichar *caseInsensitiveValue = (PRUnichar*) nsMemory::Alloc(sizeof(PRUnichar) * ((4 * NS_strlen(value)) + 1));
 	if (caseInsensitiveValue)
 	{
 		PRUnichar *walkValue = caseInsensitiveValue;
 		while (*value)
 		{
-			if (nsCRT::IsAsciiAlpha(*value))
+			if (isalpha(*value))
 			{
 				*walkValue++ = (PRUnichar)'[';
 				*walkValue++ = ToUpperCase((PRUnichar)*value);
@@ -212,12 +212,12 @@ char *nsMsgSearchNews::EncodeTerm (nsIMsgSearchTerm *term)
 	// And sometimes % in the 7-bit doulbe byte JIS
 	// 
 	PRUnichar * urlEncoded = nsEscape(escapedValue, url_Path);
-	nsCRT::free(escapedValue);
+	NS_Free(escapedValue);
 
 	if (! urlEncoded)
 		return nsnull;
 
-	char *pattern = new char [nsCRT::strlen(urlEncoded) + overhead];
+	char *pattern = new char [NS_strlen(urlEncoded) + overhead];
 	if (!pattern)
 		return nsnull;
 	else 

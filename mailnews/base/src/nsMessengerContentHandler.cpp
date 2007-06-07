@@ -38,7 +38,6 @@
 
 #include "nsMessengerContentHandler.h"
 #include "nsIChannel.h"
-#include "nsCRT.h"
 #include "nsPIDOMWindow.h"
 #include "nsIServiceManager.h"
 #include "nsIWindowWatcher.h"

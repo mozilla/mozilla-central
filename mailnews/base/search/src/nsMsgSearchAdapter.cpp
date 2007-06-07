@@ -169,7 +169,7 @@ nsMsgSearchAdapter::GetImapCharsetParam(const PRUnichar *destCharset)
 	char *result = nsnull;
 
 	// Specify a character set unless we happen to be US-ASCII.
-  if (nsCRT::strcmp(destCharset, NS_LITERAL_STRING("us-ascii").get()))
+  if (NS_strcmp(destCharset, NS_LITERAL_STRING("us-ascii").get()))
 	    result = PR_smprintf("%s%s", nsMsgSearchAdapter::m_kImapCharset, NS_ConvertUTF16toUTF8(destCharset).get());
 
 	return result;
@@ -183,7 +183,7 @@ nsMsgSearchAdapter::GetImapCharsetParam(const PRUnichar *destCharset)
 */
 PRUnichar *nsMsgSearchAdapter::EscapeSearchUrl (const PRUnichar *nntpCommand)
 {
-  return nsCRT::strdup(nntpCommand);
+  return nntpCommand ? NS_strdup(nntpCommand) : nsnull;
 }
 
 /*
@@ -195,7 +195,7 @@ PRUnichar *nsMsgSearchAdapter::EscapeSearchUrl (const PRUnichar *nntpCommand)
 PRUnichar *
 nsMsgSearchAdapter::EscapeImapSearchProtocol(const PRUnichar *imapCommand)
 {
-	return nsCRT::strdup(imapCommand);
+  return imapCommand ? NS_strdup(imapCommand) : nsnull;
 }
 
 /*
@@ -207,9 +207,8 @@ nsMsgSearchAdapter::EscapeImapSearchProtocol(const PRUnichar *imapCommand)
 PRUnichar *
 nsMsgSearchAdapter::EscapeQuoteImapSearchProtocol(const PRUnichar *imapCommand)
 {
-	return nsCRT::strdup(imapCommand);
+  return imapCommand ? NS_strdup(imapCommand) : nsnull;
 }
-
 
 char *nsMsgSearchAdapter::UnEscapeSearchUrl (const char *commandSpecificData)
 {
@@ -589,7 +588,7 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, PRBool real
         }
         else
           value = strdup("");
-        nsCRT::free(convertedValue);
+        NS_Free(convertedValue);
         valueWasAllocated = PR_TRUE;
 
       }
@@ -639,7 +638,7 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, PRBool real
     }
 
     if (value && valueWasAllocated)
-      nsCRT::free (value);
+      NS_Free (value);
 
     *ppOutTerm = encoding;
 
@@ -656,7 +655,7 @@ nsresult nsMsgSearchAdapter::EncodeImapValue(char *encoding, const char *value, 
       return NS_ERROR_NULL_POINTER;
   }
 
-  if (!nsCRT::IsAscii(value))
+  if (!isascii(value))
   {
     nsCAutoString lengthStr;
     PL_strcat(encoding, "{");
@@ -1071,12 +1070,12 @@ nsMsgSearchValidityManager::SetOtherHeadersInTable (nsIMsgSearchValidityTable *a
 
     nsCAutoString hdrStr(customHeaders);
     hdrStr.StripWhitespace();  //remove whitespace before parsing    
-    char *newStr=nsnull;
-    char *token = nsCRT::strtok(hdrStr.BeginWriting(),":", &newStr);
+    char *newStr = hdrStr.BeginWriting();
+    char *token = NS_strtok(":", &newStr);
     while(token)
     {
       numHeaders++;
-      token = nsCRT::strtok(newStr,":", &newStr);
+      token = NS_strtok(":", &newStr);
     }
   }
 

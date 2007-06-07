@@ -62,6 +62,7 @@
 #include "plstr.h"
 #include "nsUTF8Utils.h"
 #include "nsNetUtil.h"
+#include "nsCRTGlue.h"
 //
 // International functions necessary for composition
 //
@@ -295,7 +296,7 @@ PRBool nsMsgI18Ncheck_data_in_charset_range(const char *charset, const PRUnichar
     res = ccm->GetUnicodeEncoderRaw(charset, getter_AddRefs(encoder));
     if(NS_SUCCEEDED(res)) {
       const PRUnichar *originalPtr = inString;
-      PRInt32 originalLen = nsCRT::strlen(inString);
+      PRInt32 originalLen = NS_strlen(inString);
       const PRUnichar *currentSrcPtr = originalPtr;
       char localBuff[512];
       PRInt32 consumedLen = 0;
@@ -371,8 +372,12 @@ nsMsgI18NParseMetaCharset(nsILocalFile* file)
         curLine.Find("CONTENT-TYPE") != kNotFound && 
        curLine.Find("CHARSET") != kNotFound) { 
       char *cp = (char *) PL_strstr(PL_strstr(curLine.get(), "CHARSET"), "=");
-      char *newStr;
-      char *token = cp ? nsCRT::strtok(cp + 1, " \"\'", &newStr) : nsnull;
+      char *token = nsnull;
+      if (cp)
+      {
+        char *newStr = cp + 1;
+        token = NS_strtok(" \"\'", &newStr);
+      }
       if (token) { 
         PL_strncpy(charset, token, sizeof(charset));
         charset[sizeof(charset)-1] = '\0';
@@ -421,7 +426,7 @@ nsresult nsMsgI18NSaveAsCharset(const char* contentType, const char *charset,
 
   *outString = nsnull;
 
-  if (nsCRT::IsAscii(inString)) {
+  if (NS_IsAscii(inString)) {
     if (isAsciiOnly)
       *isAsciiOnly = PR_TRUE;
     *outString = ToNewCString(NS_LossyConvertUTF16toASCII(inString));
@@ -491,7 +496,7 @@ nsresult nsMsgI18NSaveAsCharset(const char* contentType, const char *charset,
       nsCOMPtr <nsITextTransform> textTransform = do_CreateInstance(NS_HANKAKUTOZENKAKU_CONTRACTID, &res);
         
       if (NS_SUCCEEDED(res)) {
-        res = textTransform->Change(inString, nsCRT::strlen(inString), mapped);
+        res = textTransform->Change(inString, NS_strlen(inString), mapped);
         if (NS_SUCCEEDED(res))
           input = mapped.get();
       }
@@ -536,7 +541,7 @@ nsresult nsMsgI18NSaveAsCharset(const char* contentType, const char *charset,
   // Exclude stateful charset which is 7 bit but not ASCII only.
   else if (isAsciiOnly && bTEXT_HTML && *outString &&
            !nsMsgI18Nstateful_charset(charsetName.get()))
-    *isAsciiOnly = nsCRT::IsAscii(*outString);
+    *isAsciiOnly = isascii(*outString);
 
   return res;
 }

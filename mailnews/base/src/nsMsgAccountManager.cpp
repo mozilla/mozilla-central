@@ -58,7 +58,6 @@
 #include "nsUnicharUtils.h"
 #include "nscore.h"
 #include "nsEscape.h"
-#include "nsCRT.h"  // for nsCRT::strtok
 #include "prprf.h"
 #include "nsIMsgFolderCache.h"
 #include "nsMsgUtils.h"
@@ -670,8 +669,8 @@ nsMsgAccountManager::removeKeyedAccount(const nsCString& key)
   // reconstruct the new account list, re-adding all accounts except
   // the one with 'key'
   nsCAutoString newAccountList;
-  char *newStr;
-  char *token = nsCRT::strtok(accountList.BeginWriting(), ",", &newStr);
+  char *newStr = accountList.BeginWriting();
+  char *token = NS_strtok(",", &newStr);
   while (token) {
     nsCAutoString testKey(token);
     testKey.StripWhitespace();
@@ -683,7 +682,7 @@ nsMsgAccountManager::removeKeyedAccount(const nsCString& key)
       newAccountList += testKey;
     }
 
-    token = nsCRT::strtok(newStr, ",", &newStr);
+    token = NS_strtok(",", &newStr);
   }
 
   // Update mAccountKeyList to reflect the deletion
@@ -1278,8 +1277,8 @@ nsMsgAccountManager::LoadAccounts()
 
           // Tokenize the data and add each account if it is not already there
           // in the user's current mailnews account list
-          char *newAccountStr;
-          char *token = nsCRT::strtok(appendAccountList.BeginWriting(), ACCOUNT_DELIMITER, &newAccountStr);
+          char *newAccountStr = appendAccountList.BeginWriting();
+          char *token = NS_strtok(ACCOUNT_DELIMITER, &newAccountStr);
 
           nsCAutoString newAccount;
           while (token) {
@@ -1292,7 +1291,7 @@ nsMsgAccountManager::LoadAccounts()
                 accountList.Append(newAccount);
               }
             }
-            token = nsCRT::strtok(newAccountStr, ACCOUNT_DELIMITER, &newAccountStr);
+            token = NS_strtok(ACCOUNT_DELIMITER, &newAccountStr);
           }
         }
         else {
@@ -1312,12 +1311,11 @@ nsMsgAccountManager::LoadAccounts()
 
   /* parse accountList and run loadAccount on each string, comma-separated */
   nsCOMPtr<nsIMsgAccount> account;
-  char *newStr;
-  char *rest = accountList.BeginWriting();
+  char *newStr = accountList.BeginWriting();
   nsCAutoString str;
-  for (char *token = nsCRT::strtok(rest, ",", &newStr);
+  for (char *token = NS_strtok(",", &newStr);
   token;
-  token = nsCRT::strtok(newStr, ",", &newStr))
+  token = NS_strtok(",", &newStr))
   {
     str = token;
     str.StripWhitespace();
