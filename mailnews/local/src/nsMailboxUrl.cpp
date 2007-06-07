@@ -45,7 +45,6 @@
 #include "nsString.h"
 #include "nsReadableUtils.h"
 #include "nsEscape.h"
-#include "nsCRT.h"
 #include "nsLocalUtils.h"
 #include "nsIMsgDatabase.h"
 #include "nsMsgDBCID.h"
@@ -271,8 +270,8 @@ nsMailboxUrl::GetOriginalSpec(char **aSpec)
 NS_IMETHODIMP
 nsMailboxUrl::SetOriginalSpec(const char *aSpec)
 {
-    m_originalSpec.Adopt(aSpec ? nsCRT::strdup(aSpec) : 0);
-    return NS_OK;
+  m_originalSpec = aSpec;
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMailboxUrl::SetMessageFile(nsIFile * aFile)

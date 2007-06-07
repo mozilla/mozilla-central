@@ -192,7 +192,7 @@ nsLocalURI2Path(const char* rootURI, const char* uriStr,
     while (*curPos && (*curPos)!='/') curPos++;
 
     nsCAutoString newPath("");
-    char *unescaped = nsCRT::strdup(curPos);  
+    char *unescaped = strdup(curPos);  
     // Unescape folder name
     if (unescaped) {
       nsUnescape(unescaped);

@@ -51,7 +51,6 @@
 #include "nsMsgBaseCID.h"
 #include "nsMsgDBCID.h"
 #include "nsIMailboxUrl.h"
-#include "nsCRT.h"
 #include "nsNetUtil.h"
 #include "nsMsgFolderFlags.h"
 #include "nsIMsgFolder.h"
@@ -784,7 +783,7 @@ NS_IMETHODIMP nsParseMailMessageState::GetHeaders(char ** pHeaders)
     curHeader += headerLen + 1;
     headerPos += headerLen + 1;
   }
-  *pHeaders = nsCRT::strdup(crlfHeaders.get());
+  *pHeaders = ToNewCString(crlfHeaders);
   return NS_OK;
 }
 
@@ -887,86 +886,86 @@ int nsParseMailMessageState::ParseHeaders ()
     switch (buf [0])
     {
     case 'C': case 'c':
-      if (!nsCRT::strncasecmp ("CC", buf, end - buf))
+      if (!PL_strncasecmp ("CC", buf, end - buf))
         header = GetNextHeaderInAggregate(m_ccList);
-      else if (!nsCRT::strncasecmp ("Content-Type", buf, end - buf))
+      else if (!PL_strncasecmp ("Content-Type", buf, end - buf))
         header = &m_content_type;
       break;
     case 'D': case 'd':
-      if (!nsCRT::strncasecmp ("Date", buf, end - buf))
+      if (!PL_strncasecmp ("Date", buf, end - buf))
         header = &m_date;
-      else if (!nsCRT::strncasecmp("Disposition-Notification-To", buf, end - buf))
+      else if (!PL_strncasecmp("Disposition-Notification-To", buf, end - buf))
         header = &m_mdn_dnt;
       break;
     case 'F': case 'f':
-      if (!nsCRT::strncasecmp ("From", buf, end - buf))
+      if (!PL_strncasecmp ("From", buf, end - buf))
         header = &m_from;
       break;
     case 'I' : case 'i':
-      if (!nsCRT::strncasecmp ("In-Reply-To", buf, end - buf))
+      if (!PL_strncasecmp ("In-Reply-To", buf, end - buf))
         header = &m_in_reply_to;
       break;
     case 'M': case 'm':
-      if (!nsCRT::strncasecmp ("Message-ID", buf, end - buf))
+      if (!PL_strncasecmp ("Message-ID", buf, end - buf))
         header = &m_message_id;
       break;
     case 'N': case 'n':
-      if (!nsCRT::strncasecmp ("Newsgroups", buf, end - buf))
+      if (!PL_strncasecmp ("Newsgroups", buf, end - buf))
         header = &m_newsgroups;
       break;
     case 'O': case 'o':
-      if (!nsCRT::strncasecmp ("Original-Recipient", buf, end - buf))
+      if (!PL_strncasecmp ("Original-Recipient", buf, end - buf))
         header = &m_mdn_original_recipient;
       break;
     case 'R': case 'r':
-      if (!nsCRT::strncasecmp ("References", buf, end - buf))
+      if (!PL_strncasecmp ("References", buf, end - buf))
         header = &m_references;
-      else if (!nsCRT::strncasecmp ("Return-Path", buf, end - buf))
+      else if (!PL_strncasecmp ("Return-Path", buf, end - buf))
         header = &m_return_path;
       // treat conventional Return-Receipt-To as MDN
       // Disposition-Notification-To
-      else if (!nsCRT::strncasecmp ("Return-Receipt-To", buf, end - buf))
+      else if (!PL_strncasecmp ("Return-Receipt-To", buf, end - buf))
         header = &m_mdn_dnt;
-      else if (!nsCRT::strncasecmp("Reply-To", buf, end - buf))
+      else if (!PL_strncasecmp("Reply-To", buf, end - buf))
         header = &m_replyTo;
-      else if (!nsCRT::strncasecmp("Received", buf, end - buf))
+      else if (!PL_strncasecmp("Received", buf, end - buf))
       {
         header = &receivedBy;
         header->length = 0;
       }
       break;
     case 'S': case 's':
-      if (!nsCRT::strncasecmp ("Subject", buf, end - buf))
+      if (!PL_strncasecmp ("Subject", buf, end - buf))
         header = &m_subject;
-      else if (!nsCRT::strncasecmp ("Sender", buf, end - buf))
+      else if (!PL_strncasecmp ("Sender", buf, end - buf))
         header = &m_sender;
-      else if (!nsCRT::strncasecmp ("Status", buf, end - buf))
+      else if (!PL_strncasecmp ("Status", buf, end - buf))
         header = &m_status;
       break;
     case 'T': case 't':
-      if (!nsCRT::strncasecmp ("To", buf, end - buf))
+      if (!PL_strncasecmp ("To", buf, end - buf))
         header = GetNextHeaderInAggregate(m_toList);
       break;
     case 'X':
       if (X_MOZILLA_STATUS2_LEN == end - buf &&
-        !nsCRT::strncasecmp(X_MOZILLA_STATUS2, buf, end - buf) &&
+        !PL_strncasecmp(X_MOZILLA_STATUS2, buf, end - buf) &&
         !m_IgnoreXMozillaStatus && !m_mozstatus2.length)
         header = &m_mozstatus2;
       else if ( X_MOZILLA_STATUS_LEN == end - buf &&
-        !nsCRT::strncasecmp(X_MOZILLA_STATUS, buf, end - buf) && !m_IgnoreXMozillaStatus
+        !PL_strncasecmp(X_MOZILLA_STATUS, buf, end - buf) && !m_IgnoreXMozillaStatus
         && !m_mozstatus.length)
         header = &m_mozstatus;
-      else if (!nsCRT::strncasecmp(HEADER_X_MOZILLA_ACCOUNT_KEY, buf, end - buf)
+      else if (!PL_strncasecmp(HEADER_X_MOZILLA_ACCOUNT_KEY, buf, end - buf)
         && !m_account_key.length)
         header = &m_account_key;
       // we could very well care what the priority header was when we
       // remember its value. If so, need to remember it here. Also,
       // different priority headers can appear in the same message,
       // but we only rememeber the last one that we see.
-      else if (!nsCRT::strncasecmp("X-Priority", buf, end - buf)
-        || !nsCRT::strncasecmp("Priority", buf, end - buf))
+      else if (!PL_strncasecmp("X-Priority", buf, end - buf)
+        || !PL_strncasecmp("Priority", buf, end - buf))
         header = &m_priority;
-      else if (!nsCRT::strncasecmp(HEADER_X_MOZILLA_KEYWORDS, buf, end - buf)
+      else if (!PL_strncasecmp(HEADER_X_MOZILLA_KEYWORDS, buf, end - buf)
         && !m_keywords.length)
         header = &m_keywords;
       break;
@@ -1093,7 +1092,7 @@ int nsParseMailMessageState::ParseEnvelope (const char *line, PRUint32 line_size
 static char *
 msg_condense_mime2_string(char *sourceStr)
 {
-  char *returnVal = nsCRT::strdup(sourceStr);
+  char *returnVal = strdup(sourceStr);
   if (!returnVal)
     return nsnull;
 

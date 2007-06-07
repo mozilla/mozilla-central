@@ -57,7 +57,6 @@
 #include "msgCore.h"    // precompiled header...
 #include "nsNetUtil.h"
 #include "nspr.h"
-#include "nsCRT.h"
 #include "plbase64.h"
 #include "nsIMsgMailNewsUrl.h"
 #include "nsPop3Protocol.h"
@@ -1951,10 +1950,6 @@ nsPop3Protocol::SendStat()
 PRInt32
 nsPop3Protocol::GetStat()
 {
-  char *num;
-  char* newStr;
-  char* oldStr;
-
     /* check stat response */
   if(!m_pop3ConData->command_succeeded)
     return(Error(POP3_STAT_FAILURE));
@@ -1965,12 +1960,13 @@ nsPop3Protocol::GetStat()
      *
      *  grab the first and second arg of stat response
      */
-  oldStr = ToNewCString(m_commandResponse);
-  num = nsCRT::strtok(oldStr, " ", &newStr);
+  nsCString oldStr (m_commandResponse);
+  char * newStr = oldStr.BeginWriting();
+  char * num = NS_strtok(" ", &newStr);
   if (num)
   {
     m_pop3ConData->number_of_messages = atol(num);
-    num = nsCRT::strtok(newStr, " ", &newStr);
+    num = NS_strtok(" ", &newStr);
     m_commandResponse = newStr;
     if (num)
       m_totalFolderSize = (PRInt32) atol(num);  //we always initialize m_totalFolderSize to 0
@@ -1978,7 +1974,6 @@ nsPop3Protocol::GetStat()
   else
     m_pop3ConData->number_of_messages = 0;
 
-  PR_Free(oldStr);
   m_pop3ConData->really_new_messages = 0;
   m_pop3ConData->real_new_counter = 1;
 
@@ -2145,8 +2140,9 @@ nsPop3Protocol::GetList(nsIInputStream* inputStream,
     return(0);
   }
 
-  char *token, *newStr;
-  token = nsCRT::strtok(line, " ", &newStr);
+  char *token;
+  char *newStr = line;
+  token = NS_strtok(" ", &newStr);
   if (token)
   {
     msg_num = atol(token);
@@ -2154,7 +2150,7 @@ nsPop3Protocol::GetList(nsIInputStream* inputStream,
 
     if(m_listpos <= m_pop3ConData->number_of_messages && m_listpos > 0)
     {
-      token = nsCRT::strtok(newStr, " ", &newStr);
+      token = NS_strtok(" ", &newStr);
       if (token)
       {
         m_pop3ConData->msg_info[m_listpos-1].size = atol(token);
@@ -2328,7 +2324,7 @@ PRInt32 nsPop3Protocol::GetFakeUidlTop(nsIInputStream* inputStream,
         // skip "MESSAGE-ID:"
         newStr = line + 11;
 
-      char *message_id_token = nsCRT::strtok(newStr, " ", &newStr);
+      char *message_id_token = NS_strtok(" ", &newStr);
       if (message_id_token)
       {
         Pop3UidlEntry *uidlEntry = (Pop3UidlEntry *) PL_HashTableLookup(m_pop3ConData->uidlinfo->hash, message_id_token);
@@ -2496,8 +2492,8 @@ nsPop3Protocol::GetXtndXlstMsgid(nsIInputStream* inputStream,
     return(0);
   }
 
-  char *newStr;
-  char *token = nsCRT::strtok(line, " ", &newStr);
+  char *newStr = line;
+  char *token = NS_strtok(" ", &newStr);
   if (token)
   {
     msg_num = atol(token);
@@ -2505,8 +2501,8 @@ nsPop3Protocol::GetXtndXlstMsgid(nsIInputStream* inputStream,
 
     if(m_listpos <= m_pop3ConData->number_of_messages && m_listpos > 0)
     {
-      char *eatMessageIdToken = nsCRT::strtok(newStr, " ", &newStr);
-      char *uidl = nsCRT::strtok(newStr, " ", &newStr); /* not really a uidl but a unique token -km */
+      char *eatMessageIdToken = NS_strtok(" ", &newStr);
+      char *uidl = NS_strtok(" ", &newStr); /* not really a uidl but a unique token -km */
 
       if (!uidl)
         /* This is bad.  The server didn't give us a UIDL for this message.
@@ -2613,8 +2609,8 @@ PRInt32 nsPop3Protocol::GetUidlList(nsIInputStream* inputStream,
         return(0);
     }
 
-    char *newStr;
-    char *token = nsCRT::strtok(line, " ", &newStr);
+    char *newStr = line;
+    char *token = NS_strtok(" ", &newStr);
     if (token)
     {
       msg_num = atol(token);
@@ -2622,7 +2618,7 @@ PRInt32 nsPop3Protocol::GetUidlList(nsIInputStream* inputStream,
 
       if(m_listpos <= m_pop3ConData->number_of_messages && m_listpos > 0)
       {
-        char *uidl = nsCRT::strtok(newStr, " ", &newStr);
+        char *uidl = NS_strtok(" ", &newStr);
 
         if (!uidl)
             /* This is bad.  The server didn't give us a UIDL for this message.
@@ -3098,13 +3094,12 @@ nsPop3Protocol::RetrResponse(nsIInputStream* inputStream,
         }
         else
         {
-          char *newStr;
-          char * oldStr = ToNewCString(m_commandResponse);
-          char *num = nsCRT::strtok(oldStr, " ", &newStr);
+          nsCString cmdResp(m_commandResponse);
+          char *newStr = cmdResp.BeginWriting();
+          char *num = NS_strtok( " ", &newStr);
           if (num)
             m_pop3ConData->cur_msg_size = atol(num);
           m_commandResponse = newStr;
-          PR_Free(oldStr);
         }
 
         /* RETR complete message */
@@ -4033,7 +4028,7 @@ nsresult nsPop3Protocol::GetApopTimestamp()
 
     // now test if sub only consists of chars in ASCII range
     nsCString sub(Substring(m_commandResponse, startMark, endMark - startMark + 1));
-    if (nsCRT::IsAscii(sub.get()))
+    if (NS_IsAscii(sub.get()))
     {
       // set m_ApopTimestamp to the validated substring
       m_ApopTimestamp.Assign(sub);

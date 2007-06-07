@@ -149,7 +149,7 @@ nsPop3Sink::GetMailAccountURL(char* *urlString)
   NS_ASSERTION(urlString, "null getter in getMailAccountURL");
   if (!urlString) return NS_ERROR_NULL_POINTER;
 
-  *urlString = nsCRT::strdup(m_accountUrl);
+  *urlString = strdup(m_accountUrl);
   return NS_OK;
 }
 

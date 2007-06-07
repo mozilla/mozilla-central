@@ -45,7 +45,6 @@
 #include "prmem.h"
 #include "plstr.h"
 #include "prprf.h"
-#include "nsCRT.h"
 
 nsPop3URL::nsPop3URL(): nsMsgMailNewsUrl()
 {
