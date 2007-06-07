@@ -317,7 +317,7 @@ nsURLFetcher::OnStopRequest(nsIRequest *request, nsISupports * ctxt, nsresult aS
 
   // Now if there is a callback, we need to call it...
   if (mCallback)
-    mCallback (aStatus, mContentType.get(), mCharset.get(), mTotalWritten, nsnull, mTagData);
+    mCallback (aStatus, mContentType, mCharset, mTotalWritten, nsnull, mTagData);
 
   // Time to return...
   return NS_OK;

@@ -47,8 +47,8 @@
 //
 // For completion of send/message creation operations...
 typedef nsresult (*nsAttachSaveCompletionCallback) (nsresult aStatus,
-                                                    const char *aContentType,
-                                                    const char *aCharset,
+                                                    nsACString &aContentType,
+                                                    nsACString &aCharset,
                                                     PRInt32 totalSize, const PRUnichar* aMsg, 
                                                     void *tagData);
 
@@ -57,7 +57,7 @@ typedef nsresult (*nsAttachSaveCompletionCallback) (nsresult aStatus,
 native nsAttachSaveCompletionCallback(nsAttachSaveCompletionCallback);
 
 
-[noscript, uuid(01B8A700-2F52-11D5-9DAA-F78DA781A1FC)]
+[noscript, uuid(3ef12571-d41f-48ce-9d55-086e6d3c9bc0)]
 interface nsIURLFetcher : nsISupports
 {
   boolean stillRunning();

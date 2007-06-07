@@ -458,8 +458,8 @@ DONE:
 
 static nsresult
 FetcherURLDoneCallback(nsresult aStatus,
-                       const char *aContentType,
-                       const char *aCharset,
+                       nsACString &aContentType,
+                       nsACString &aCharset,
                        PRInt32 totalSize,
                        const PRUnichar* aMsg, void *tagData)
 {
@@ -469,25 +469,25 @@ FetcherURLDoneCallback(nsresult aStatus,
   if (ma != nsnull)
   {
     ma->m_size = totalSize;
-    if (aContentType)
+    if (!aContentType.IsEmpty())
     {
 #ifdef XP_MACOSX
       //Do not change the type if we are dealing with an apple double file
       if (!ma->mAppleFile)
 #else
         // can't send appledouble on non-macs
-        if (!strcmp(aContentType, "multipart/appledouble"))
+        if (!aContentType.EqualsLiteral("multipart/appledouble"))
 #endif
       {
         PR_FREEIF(ma->m_type);
-        ma->m_type = PL_strdup(aContentType);
+        ma->m_type = ToNewCString(aContentType);
       }
     }
 
-    if (aCharset)
+    if (!aCharset.IsEmpty())
     {
       PR_FREEIF(ma->m_charset);
-      ma->m_charset = PL_strdup(aCharset);
+      ma->m_charset = ToNewCString(aCharset);
     }
 
     return ma->UrlExit(aStatus, aMsg);
