@@ -449,7 +449,7 @@ calGoogleSession.prototype = {
                                       this.googleFullName);
 
         request.type = request.MODIFY;
-        request.uri = getItemEditURI(aNewItem);
+        request.uri = getItemEditURI(aOldItem);
         request.setUploadData("application/atom+xml; charset=UTF-8", xmlEntry);
         request.setResponseListener(aCalendar, aResponseListener);
         request.extraData = aExtraData;

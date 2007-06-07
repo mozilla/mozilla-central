@@ -341,7 +341,7 @@ calGoogleCalendar.prototype = {
             // to google. This saves network traffic.
             if (relevantFieldsMatch(aOldItem, aNewItem)) {
                 LOG("Not requesting item modification for " + aOldItem.id +
-                "(" + aOldItem.title + "), relevant fields match");
+                    "(" + aOldItem.title + "), relevant fields match");
 
                 if (aListener != null) {
                     aListener.onOperationComplete(this,
@@ -555,8 +555,7 @@ calGoogleCalendar.prototype = {
         var item = this.general_response(Ci.calIOperationListener.MODIFY,
                                          aResult,
                                          aStatus,
-                                         aRequest.extraData.listener,
-                                         aRequest);
+                                         aRequest.extraData.listener);
         // Notify Observers
         if (item) {
             this.notifyObservers("onModifyItem",
@@ -630,7 +629,7 @@ calGoogleCalendar.prototype = {
         this.general_response(Ci.calIOperationListener.GET,
                               aResult,
                               aStatus,
-                              aRequest.extraData.listener);
+                              aRequest.extraData);
     },
 
     /**
