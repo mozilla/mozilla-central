@@ -52,11 +52,6 @@ ifdef MOZ_SAFE_BROWSING
 DIRS += phishing 
 endif
 
-#currently, only mac has a search integration component
-ifneq (,$(filter cocoa mac, $(MOZ_WIDGET_TOOLKIT)))
-DIRS += search
-endif
-
 DIRS += build
 
 EXTRA_PP_COMPONENTS = nsMailDefaultHandler.js
