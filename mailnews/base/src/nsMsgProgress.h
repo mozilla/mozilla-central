@@ -39,7 +39,7 @@
 #include "nsIMsgProgress.h"
 
 #include "nsCOMPtr.h"
-#include "nsISupportsArray.h"
+#include "nsCOMArray.h"
 #include "nsIDOMWindowInternal.h"
 #include "nsIMsgStatusFeedback.h"
 #include "nsString.h"
@@ -70,5 +70,5 @@ private:
   PRInt32                           m_pendingStateValue;
   nsCOMPtr<nsIDOMWindowInternal>    m_dialog;
   nsWeakPtr                         m_msgWindow;
-  nsCOMPtr<nsISupportsArray>        m_listenerList;
+  nsCOMArray<nsIWebProgressListener> m_listenerList;
 };
