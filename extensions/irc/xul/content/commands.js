@@ -2223,9 +2223,11 @@ function cmdGotoURL(e)
     }
     catch (ex)
     {
+        // Given "goto-url faq bar", expand to "http://.../faq/#bar"
         var localeURLKey = "msg.localeurl." + e.url;
+        var hash = (("anchor" in e) && e.anchor) ? "#" + e.anchor : "";
         if (localeURLKey != getMsg(localeURLKey))
-            dispatch(e.command.name + " " + getMsg(localeURLKey));
+            dispatch(e.command.name + " " + getMsg(localeURLKey) + hash);
         else
             display(getMsg(MSG_ERR_INVALID_URL, e.url), MT_ERROR);
 

@@ -2029,6 +2029,7 @@ function my_netdisconnect (e)
     /* If we were connected ok, put an error on all tabs. If we were only
      * /trying/ to connect, and failed, just put it on the network tab. 
      */
+    client.munger.getRule(".inline-buttons").enabled = true;
     if (this.state == NET_ONLINE)
     {
         for (var v in client.viewsArray)
@@ -2057,6 +2058,7 @@ function my_netdisconnect (e)
             this.displayHere(msgNetwork, msgType);
         }
     }
+    client.munger.getRule(".inline-buttons").enabled = false;
 
     for (var c in this.primServ.channels)
     {
