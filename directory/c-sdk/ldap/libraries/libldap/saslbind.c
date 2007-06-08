@@ -47,7 +47,7 @@ nsldapi_sasl_fail()
         return( SASL_FAIL );
 }
 
-static sasl_callback_t client_callbacks[] = {
+sasl_callback_t client_callbacks[] = {
         { SASL_CB_GETOPT, nsldapi_sasl_fail, NULL },
         { SASL_CB_GETREALM, NULL, NULL },
         { SASL_CB_USER, NULL, NULL },
@@ -58,35 +58,6 @@ static sasl_callback_t client_callbacks[] = {
         { SASL_CB_NOECHOPROMPT, NULL, NULL },
         { SASL_CB_LIST_END, NULL, NULL }
 };
-
-static int nsldapi_sasl_inited = 0;
-
-static int
-nsldapi_sasl_init( void )
-{
-        if ( nsldapi_sasl_inited ) {
-                return( 0 );
-        }
-
-        sasl_set_alloc(
-                (sasl_malloc_t *)ldap_x_malloc,
-                (sasl_calloc_t *)ldap_x_calloc,
-                (sasl_realloc_t *)ldap_x_realloc,
-                (sasl_free_t *)ldap_x_free );
-
-        if ( sasl_client_init( client_callbacks ) == SASL_OK ) {
-                nsldapi_sasl_inited = 1;
-                return( 0 );
-        }
-
-        return( -1 );
-}
-
-int
-nsldapi_sasl_is_inited()
-{
-        return( nsldapi_sasl_inited );
-}
 
 int
 nsldapi_sasl_cvterrno( LDAP *ld, int err, char *msg )
@@ -796,11 +767,6 @@ ldap_sasl_interactive_bind_ext_s( LDAP *ld, const char *dn,
                 LDAP_MUTEX_UNLOCK(ld, LDAP_SASL_LOCK );
                 return( LDAP_PARAM_ERROR );
 #endif /* LDAP_SASLIO_GET_MECHS_FROM_SERVER */
-        }
-
-        /* initialize SASL library */
-        if ( nsldapi_sasl_init() < 0 ) {
-            return( LDAP_PARAM_ERROR );
         }
 
         rc = nsldapi_sasl_do_bind( ld, dn, saslMechanism,

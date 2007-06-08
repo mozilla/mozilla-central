@@ -52,6 +52,7 @@ static char copyright[] = "@(#) Copyright (c) 1995 Regents of the University of 
 #ifdef LDAP_SASLIO_HOOKS
 /* Valid for any ANSI C compiler */
 #include <limits.h>
+extern sasl_callback_t client_callbacks[];
 #endif
 
 #define VI_PRODUCTVERSION 3
@@ -419,6 +420,27 @@ nsldapi_initialize_defaults( void )
 	nsldapi_ld_defaults.ld_sasl_secprops.maxbufsize = SASL_MAX_BUFF_SIZE;
 	nsldapi_ld_defaults.ld_sasl_secprops.security_flags =
 		SASL_SEC_NOPLAINTEXT | SASL_SEC_NOANONYMOUS;
+
+	/* SASL mutex function callbacks */
+	sasl_set_mutex(
+		(sasl_mutex_alloc_t *)nsldapi_default_thread_fns.ltf_mutex_alloc,
+		(sasl_mutex_lock_t *)nsldapi_default_thread_fns.ltf_mutex_lock,
+		(sasl_mutex_unlock_t *)nsldapi_default_thread_fns.ltf_mutex_unlock,
+		(sasl_mutex_free_t *)nsldapi_default_thread_fns.ltf_mutex_free );
+
+	/* SASL memory allocation function callbacks */
+	sasl_set_alloc(
+		(sasl_malloc_t *)ldap_x_malloc,
+		(sasl_calloc_t *)ldap_x_calloc,
+		(sasl_realloc_t *)ldap_x_realloc,
+		(sasl_free_t *)ldap_x_free );
+
+	/* SASL library initialization */
+	if ( sasl_client_init( client_callbacks ) != SASL_OK ) {
+		nsldapi_initialized = 0;
+		pthread_mutex_unlock( &nsldapi_init_mutex );
+		return;
+	}
 #endif
 
 #if defined( STR_TRANSLATION ) && defined( LDAP_DEFAULT_CHARSET )
