@@ -359,6 +359,7 @@ calGoogleCalendar.prototype = {
             var extradata = { olditem: aOldItem, listener: aListener };
 
             this.mSession.modifyItem(this,
+                                     aOldItem,
                                      aNewItem,
                                      this.modifyItem_response,
                                      extradata);

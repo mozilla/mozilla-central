@@ -431,13 +431,17 @@ calGoogleSession.prototype = {
      *
      * @param   aCalendar               An instance of calIGoogleCalendar this
      *                                  request belongs to.
-     * @param   aNewItem                An instance of calIEvent to modify
+     * @param   aOldItem                The instance of calIEvent before
+     *                                  modification.
+     * @param   aNewItem                The instance of calIEvent after
+     *                                  modification.
      * @param   aResponseListener       The function in aCalendar to call at
      *                                  completion.
      * @param   aExtraData              Extra data to be passed to the response
      *                                  listener
      */
     modifyItem: function cGS_modifyItem(aCalendar,
+                                        aOldItem,
                                         aNewItem,
                                         aResponseListener,
                                         aExtraData) {
