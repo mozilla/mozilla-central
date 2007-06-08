@@ -237,6 +237,7 @@
   if (mTrackingTag != -1) {
     [self removeTrackingRect:mTrackingTag];
     mTrackingTag = -1;
+    [self updateImage:NO];
   }
 }
 
