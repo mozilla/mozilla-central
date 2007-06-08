@@ -1776,20 +1776,17 @@ mips-sony-newsos*)
 	;;
 
 *-openbsd*)
+    LD='$(CC)'
     AC_DEFINE(XP_UNIX)
     AC_DEFINE(OPENBSD)
     AC_DEFINE(HAVE_BSD_FLOCK)
+    AC_DEFINE(HAVE_SOCKLEN_T)
     CFLAGS="$CFLAGS -ansi -Wall"
     CXXFLAGS="$CXXFLAGS -ansi -Wall"
     DLL_SUFFIX=so.1.0
     DSO_CFLAGS=-fPIC
     USE_NSPR_THREADS=1
-    case "$OS_TEST" in
-    alpha|mips|pmax)
-        DSO_LDOPTS=-shared ;;
-    *)
-        DSO_LDOPTS=-Bshareable ;;
-    esac
+    DSO_LDOPTS='-shared -fPIC'
     ;;
 
 *-openvms*)

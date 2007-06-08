@@ -5087,6 +5087,7 @@ EOF
 	;;
 
 *-openbsd*)
+    LD='$(CC)'
     cat >> confdefs.h <<\EOF
 #define XP_UNIX 1
 EOF
@@ -5099,17 +5100,16 @@ EOF
 #define HAVE_BSD_FLOCK 1
 EOF
 
+    cat >> confdefs.h <<\EOF
+#define HAVE_SOCKLEN_T 1
+EOF
+
     CFLAGS="$CFLAGS -ansi -Wall"
     CXXFLAGS="$CXXFLAGS -ansi -Wall"
     DLL_SUFFIX=so.1.0
     DSO_CFLAGS=-fPIC
     USE_NSPR_THREADS=1
-    case "$OS_TEST" in
-    alpha|mips|pmax)
-        DSO_LDOPTS=-shared ;;
-    *)
-        DSO_LDOPTS=-Bshareable ;;
-    esac
+    DSO_LDOPTS='-shared -fPIC'
     ;;
 
 *-openvms*)
