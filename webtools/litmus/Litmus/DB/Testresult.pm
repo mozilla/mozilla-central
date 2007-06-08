@@ -131,8 +131,8 @@ Litmus::DB::Testresult->set_sql(CompletedByTrusted => qq{
         tr.build_id=? AND 
         tr.locale_abbrev=? AND
         tr.opsys_id=? AND
-        tr.user_id=u.user_id AND
-        AND tr.user_id=u.user_id AND u.user_id=ugm.user_id AND
+        tr.user_id=u.user_id AND 
+        u.user_id=ugm.user_id AND
         ugm.group_id=sg.group_id AND
         (sg.grouptype=1 OR sg.grouptype=3)
     ORDER BY tr.submission_time DESC
