@@ -58,7 +58,6 @@ nsAboutBookmarks::NewChannel(nsIURI *aURI, nsIChannel **result)
     static NSString* const kBlankPageHTML = @"<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\"> <html><head><title>%@</title></head><body></body></html>";
 
     nsresult rv;
-    nsIChannel* channel;
 
     NSString* windowTitle = mIsBookmarks ? NSLocalizedString(@"BookmarksWindowTitle", nil)
                                          : NSLocalizedString(@"HistoryWindowTitle", nil);
@@ -72,6 +71,7 @@ nsAboutBookmarks::NewChannel(nsIURI *aURI, nsIChannel **result)
                                   NS_ConvertUTF16toUTF8(pageSource));
     NS_ENSURE_SUCCESS(rv, rv);
 
+    nsIChannel* channel = NULL;
     rv = NS_NewInputStreamChannel(&channel, aURI, in,
                                   NS_LITERAL_CSTRING("text/html"),
                                   NS_LITERAL_CSTRING("UTF8"));

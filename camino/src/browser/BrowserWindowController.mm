@@ -4805,7 +4805,7 @@ enum BWCOpenDest {
   unsigned int bookmarkBarCount = [bookmarkBarChildren count];
   unsigned int i;
   int loadableItemIndex = -1;
-  BookmarkItem* item;
+  BookmarkItem* item = nil;
 
   // We cycle through all the toolbar items.  When we've skipped enough loadable items
   // (i.e., loadableItemIndex == inIndex), we've gotten there and |item| is the bookmark we want to load.

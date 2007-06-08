@@ -600,20 +600,6 @@ static NSString* const kAutosaveSortDirectionKey        = @"sort_descending";
   [super viewWillMoveToWindow:newWindow];
 }
 
-// on jaguar, delegates of NSOutlineView don't receive outlineView:didClickTableColumn messages,
-// so we work around this by overriding an internal NSTableView method
-- (void)_sendDelegateDidClickColumn:(int)column
-{
-  if ([self delegate] != nil && [[self delegate] respondsToSelector:@selector(outlineView:didClickTableColumn:)])
-  {
-    [[self delegate] outlineView:self didClickTableColumn:[[self tableColumns] objectAtIndex:column]];
-  }
-  else
-  {  
-    [super _sendDelegateDidClickColumn:column];
-  }
-}
-
 /*
  * Set up tooltip rects for every row, but only if the frame size or
  * the number of rows changed since the last invocation.

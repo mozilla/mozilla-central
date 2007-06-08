@@ -53,7 +53,7 @@ extern NSString* const RemoteDataLoadRequestResultKey;
 // for 'RemoteDataLoadRequestNotificationName' notifications, and catch all loads
 // that happen that way.
 
-@protocol RemoteLoadListener
+@protocol RemoteLoadListener <NSObject>
 // called when the load completes, or fails. If the status code is a failure code,
 // data may be nil.
 - (void)doneRemoteLoad:(NSString*)inURI forTarget:(id)target withUserData:(id)userData data:(NSData*)data status:(nsresult)status usingNetwork:(BOOL)usingNetwork;
