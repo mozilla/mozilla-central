@@ -133,8 +133,8 @@ Litmus::DB::Testresult->set_sql(CompletedByTrusted => qq{
         tr.opsys_id=? AND
         tr.user_id=u.user_id AND
         AND tr.user_id=u.user_id AND u.user_id=ugm.user_id AND
-        ugm.group_id=sd.group_id AND
-        (sd.grouptype=1 OR sd.grouptype=3)
+        ugm.group_id=sg.group_id AND
+        (sg.grouptype=1 OR sg.grouptype=3)
     ORDER BY tr.submission_time DESC
 });
 

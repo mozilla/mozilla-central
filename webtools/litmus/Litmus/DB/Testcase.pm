@@ -233,7 +233,7 @@ sub coverage() {
     }
     if ($trusted) {
     	$from .= ", user_group_map ugm, security_groups sg";
-        $where .= " AND tr.user_id=u.user_id AND u.user_id=ugm.user_id AND ugm.group_id=sd.group_id AND (sg.grouptype=1 OR sg.grouptype=3)";
+        $where .= " AND tr.user_id=u.user_id AND u.user_id=ugm.user_id AND ugm.group_id=sg.group_id AND (sg.grouptype=1 OR sg.grouptype=3)";
     }
     my $sql = $select . $from . $where . $order_by;
     #print $sql,"<br/>\n";

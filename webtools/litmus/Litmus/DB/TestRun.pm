@@ -355,7 +355,7 @@ $sql .= " WHERE
 
   if ($trusted) {
     $sql .= " AND tr.user_id=u.user_id AND u.user_id=ugm.user_id AND 
-      ugm.group_id=sd.group_id AND (secgrps.grouptype=1 OR secgrps.grouptype=3)";
+      ugm.group_id=secgrps.group_id AND (secgrps.grouptype=1 OR secgrps.grouptype=3)";
   }
 
   $sql .= $self->getCriteriaSql();
@@ -420,7 +420,7 @@ $sql .= " WHERE
 
   if ($trusted) {
     $sql .= " AND tr.user_id=u.user_id AND u.user_id=ugm.user_id AND 
-      ugm.group_id=sd.group_id AND (secgrps.grouptype=1 OR secgrps.grouptype=3)";
+      ugm.group_id=secgrps.group_id AND (secgrps.grouptype=1 OR secgrps.grouptype=3)";
   }
 
   $sql .= $self->getCriteriaSql();
@@ -477,7 +477,7 @@ $sql .= " WHERE
 
   if ($trusted) {
     $sql .= " AND tr.user_id=u.user_id AND u.user_id=ugm.user_id AND 
-      ugm.group_id=sd.group_id AND (secgrps.grouptype=1 OR secgrps.grouptype=3)";
+      ugm.group_id=secgrps.group_id AND (secgrps.grouptype=1 OR secgrps.grouptype=3)";
   }
 
   $sql .= $self->getCriteriaSql();

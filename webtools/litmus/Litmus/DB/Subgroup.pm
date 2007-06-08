@@ -149,8 +149,9 @@ sub coverage() {
     $sql .= " AND tr.user_id=" . $user->{'user_id'};
   }
   if ($trusted) {
-    $sql .= " AND tr.user_id=u.user_id AND u.user_id=ugm.user_id AND ugm.group_id=sd.group_id ";
-    $sql .= " AND (sd.grouptype=1 OR sd.grouptype=3)";
+    
+    $sql .= " AND tr.user_id=u.user_id AND u.user_id=ugm.user_id AND ugm.group_id=sg.group_id ";
+    $sql .= " AND (sg.grouptype=1 OR sg.grouptype=3)";
   }
   
   $sql .= " GROUP BY tr.testcase_id";
