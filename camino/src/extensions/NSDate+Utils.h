@@ -46,9 +46,3 @@
 + (id)dateWithPRTime:(PRTime)microseconds;
 
 @end
-
-@interface NSCalendarDate(ChimeraCalendarDateUtils)
-
-- (NSString*)relativeDateDescription;
-
-@end

@@ -71,6 +71,15 @@ enum
 
 static NSString* const kExpandedHistoryStatesDefaultsKey = @"history_expand_state";
 
+// Custom formatter for relative date formatting
+@interface RelativeDateFormatter : NSDateFormatter
+{
+  CFDateFormatterRef mTimeFormatter;     // strong
+  CFDateFormatterRef mDateTimeFormatter; // strong
+  NSDateFormatter*   mWeekdayFormatter;  // strong
+}
+@end
+
 @interface HistoryOutlineViewDelegate(Private)
 
 - (void)historyChanged:(NSNotification *)notification;
@@ -117,6 +126,11 @@ static NSString* const kExpandedHistoryStatesDefaultsKey = @"history_expand_stat
   [[NSNotificationCenter defaultCenter] addObserver:self
                                         selector:@selector(historyChanged:)
                                         name:kNotificationNameHistoryDataSourceChanged object:[self historyDataSource]];
+
+  // Set up the date column formatting
+  RelativeDateFormatter* dateFormatter = [[[RelativeDateFormatter alloc] init] autorelease];
+  [[[mHistoryOutlineView tableColumnWithIdentifier:@"first_visit"] dataCell] setFormatter:dateFormatter];
+  [[[mHistoryOutlineView tableColumnWithIdentifier:@"last_visit"] dataCell] setFormatter:dateFormatter];
 }
 
 - (void)setBrowserWindowController:(BrowserWindowController*)bwController
@@ -716,6 +730,90 @@ static NSString* const kExpandedHistoryStatesDefaultsKey = @"history_expand_stat
     }
     curRow ++;
   }
+}
+
+@end
+
+#pragma mark -
+
+// TODO: Once we are 10.4+ the CFDateFormatters can be replaced with
+// NSDateFormatters using NSDateFormatterBehavior10_4 behavior.
+@implementation RelativeDateFormatter
+
+- (id)init
+{
+  if ((self = [super init])) {
+    CFLocaleRef userLocale = CFLocaleCopyCurrent();
+    if (userLocale) {
+      mTimeFormatter = CFDateFormatterCreate(NULL,
+                                             userLocale,
+                                             kCFDateFormatterNoStyle,
+                                             kCFDateFormatterShortStyle);
+      mDateTimeFormatter = CFDateFormatterCreate(NULL,
+                                                 userLocale,
+                                                 kCFDateFormatterMediumStyle,
+                                                 kCFDateFormatterShortStyle);
+      mWeekdayFormatter = [[NSDateFormatter alloc] initWithDateFormat:@"%a"
+                                                 allowNaturalLanguage:NO];
+      CFRelease(userLocale);
+    }
+  }
+  return self;
+}
+
+- (void)dealloc
+{
+  if (mTimeFormatter)
+    CFRelease(mTimeFormatter);
+  if (mDateTimeFormatter)
+    CFRelease(mDateTimeFormatter);
+  [mWeekdayFormatter release];
+  [super dealloc];
+}
+
+- (NSString*)stringForObjectValue:(id)anObject
+{
+  if (!anObject)
+    return @"";
+
+  if (mTimeFormatter && mDateTimeFormatter) {
+    int day = [[anObject dateWithCalendarFormat:nil timeZone:nil] dayOfCommonEra];
+    int today = [[NSCalendarDate calendarDate] dayOfCommonEra];
+    
+    NSString* dayPrefix = nil;
+    CFDateFormatterRef dateFormatter;
+    if (day == today) {
+      dayPrefix = NSLocalizedString(@"Today", nil);
+      dateFormatter = mTimeFormatter;
+    }
+    else if (day == (today - 1)) {
+      dayPrefix = NSLocalizedString(@"Yesterday", nil);
+      dateFormatter = mTimeFormatter;
+    }
+    else if (day == (today + 1)) {
+      dayPrefix = NSLocalizedString(@"Tomorrow", nil);
+      dateFormatter = mTimeFormatter;
+    }
+    else if (day > (today - 7)) {
+      // show the shortened weekday for recent dates
+      dayPrefix = [mWeekdayFormatter stringForObjectValue:anObject];
+      dateFormatter = mDateTimeFormatter;
+    }
+    else {
+      dateFormatter = mDateTimeFormatter;
+    }
+    
+    NSString* result = [(NSString*)CFDateFormatterCreateStringWithDate(NULL,
+                                                                       dateFormatter,
+                                                                       (CFDateRef)anObject) autorelease];
+    if (dayPrefix)
+      result = [NSString stringWithFormat:@"%@ %@", dayPrefix, result];
+
+    return result;
+  }
+  
+  // If all else fails, fall back on the standard date formatter
+  return [super stringForObjectValue:anObject];
 }
 
 @end
