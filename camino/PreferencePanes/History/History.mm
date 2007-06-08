@@ -39,6 +39,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "History.h"
+#import "NSString+Utils.h"
 
 #include "nsCOMPtr.h"
 #include "nsIServiceManager.h"
@@ -47,85 +48,64 @@
 
 const int kDefaultExpireDays = 9;
 
-@interface OrgMozillaChimeraPreferenceHistory(Private)
+// A formatter for the history duration that only accepts integers >= 0
+@interface NonNegativeIntegerFormatter : NSFormatter
+{
+}
+@end
 
-- (void)doClearDiskCache;
-- (void)doClearGlobalHistory;
-- (BOOL)historyDaysValid;
+@implementation NonNegativeIntegerFormatter
+
+- (NSString *)stringForObjectValue:(id)anObject
+{
+  return [anObject stringValue];
+}
+
+- (BOOL)getObjectValue:(id *)anObject forString:(NSString *)string errorDescription:(NSString **)error
+{
+  *anObject = [NSNumber numberWithInt:[string intValue]];
+  return YES;
+}
+
+- (BOOL)isPartialStringValid:(NSString *)partialString newEditingString:(NSString **)newString errorDescription:(NSString **)error
+{
+  NSCharacterSet* nonDigitSet = [[NSCharacterSet decimalDigitCharacterSet] invertedSet];
+  if ([partialString rangeOfCharacterFromSet:nonDigitSet].location != NSNotFound) {
+    *newString = [partialString stringByRemovingCharactersInSet:nonDigitSet];
+    return NO;
+  }
+  return YES;
+}
 
 @end
 
+#pragma mark -
+
 @implementation OrgMozillaChimeraPreferenceHistory
-
-- (id)initWithBundle:(NSBundle *)bundle
-{
-  self = [super initWithBundle:bundle];
-  return self;
-}
-
-- (void)dealloc
-{
-  [super dealloc];
-}
 
 - (void)mainViewDidLoad
 {
-  if (!mPrefService)
-    return;
-
   BOOL gotPref;
   int expireDays = [self getIntPref:"browser.history_expire_days" withSuccess:&gotPref];
   if (!gotPref)
     expireDays = kDefaultExpireDays;
   
   [textFieldHistoryDays setIntValue:expireDays];
-}
-
-- (NSPreferencePaneUnselectReply)shouldUnselect
-{
-  // make sure the history days value is numbers only (should use a formatter for this?)
-  if (![self historyDaysValid])
-  {
-    [[textFieldHistoryDays window] makeFirstResponder:textFieldHistoryDays];
-    [textFieldHistoryDays selectText:nil];
-    NSBeep();
-    return NSUnselectCancel;
-  }
-  return NSUnselectNow;
+  [textFieldHistoryDays setFormatter:[[[NonNegativeIntegerFormatter alloc] init] autorelease]];
 }
 
 - (void)didUnselect
 {
-  if (!mPrefService)
-    return;
-  
-  if ([self historyDaysValid])
-    [self setPref:"browser.history_expire_days" toInt:[textFieldHistoryDays intValue]];
+  [self setPref:"browser.history_expire_days" toInt:[textFieldHistoryDays intValue]];
 }
 
 - (IBAction)historyDaysModified:(id)sender
 {
-  if (!mPrefService)
-    return;
-  
-  if ([self historyDaysValid])
-  {
-    [self setPref:"browser.history_expire_days" toInt:[sender intValue]];
-  }
-  else
-  {
-    // If any non-numeric characters were entered make some noise and spit it out.
-    BOOL gotPref;
-    int prefValue = [self getIntPref:"browser.history_expire_days" withSuccess:&gotPref];
-    if (!gotPref)
-      prefValue = kDefaultExpireDays;
-    [textFieldHistoryDays setIntValue:prefValue];
-    NSBeep();
-  }
+  [self setPref:"browser.history_expire_days" toInt:[sender intValue]];
 }
 
 // Clear the user's disk cache
--(IBAction) clearDiskCache:(id)aSender
+- (IBAction)clearDiskCache:(id)aSender
 {
   NSBeginCriticalAlertSheet([self getLocalizedString:@"EmptyCacheTitle"],
                             [self getLocalizedString:@"EmptyButton"],
@@ -158,39 +138,20 @@ const int kDefaultExpireDays = 9;
 
 - (void)clearDiskCacheSheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
 {
-  if (returnCode == NSAlertDefaultReturn)
-  {
-    [self doClearDiskCache];
+  if (returnCode == NSAlertDefaultReturn) {
+    nsCOMPtr<nsICacheService> cacheServ (do_GetService("@mozilla.org/network/cache-service;1"));
+    if (cacheServ)
+      cacheServ->EvictEntries(nsICache::STORE_ANYWHERE);
   }
 }
 
 - (void)clearGlobalHistorySheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
 {
-  if (returnCode == NSAlertDefaultReturn)
-  {
-    [self doClearGlobalHistory];
+  if (returnCode == NSAlertDefaultReturn) {
+    nsCOMPtr<nsIBrowserHistory> hist (do_GetService("@mozilla.org/browser/global-history;2"));
+    if (hist)
+      hist->RemoveAllPages();
   }
-}
-
-- (void)doClearDiskCache
-{
-  nsCOMPtr<nsICacheService> cacheServ ( do_GetService("@mozilla.org/network/cache-service;1") );
-  if ( cacheServ )
-    cacheServ->EvictEntries(nsICache::STORE_ANYWHERE);
-}
-
-- (void)doClearGlobalHistory
-{
-  nsCOMPtr<nsIBrowserHistory> hist ( do_GetService("@mozilla.org/browser/global-history;2") );
-  if ( hist )
-    hist->RemoveAllPages();
-}
-
-- (BOOL)historyDaysValid
-{
-  NSCharacterSet* nonDigitsSet = [[NSCharacterSet decimalDigitCharacterSet] invertedSet];
-  NSRange nonDigitsRange = [[textFieldHistoryDays stringValue] rangeOfCharacterFromSet:nonDigitsSet];
-  return (nonDigitsRange.length == 0);
 }
 
 @end
