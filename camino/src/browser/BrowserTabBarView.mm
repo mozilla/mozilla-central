@@ -68,6 +68,8 @@
 -(BOOL)tabIndexIsVisible:(int)index;
 -(void)setOverflowButtonsVisible:(BOOL)visible;
 -(float)verticalOriginForButtonWithHeight:(float)height;
+-(void)scrollLeft:(id)sender;
+-(void)scrollRight:(id)sender;
 
 @end
 
@@ -589,7 +591,7 @@ static const float kScrollButtonInterval = 0.15;  // time (in seconds) between f
   }
 }
 
-- (IBAction)showOverflowMenu:(id)sender
+- (void)showOverflowMenu:(id)sender
 {
   NSMenu* overflowMenu = [[[NSMenu alloc] init] autorelease];
   int numberOfTabs = [mTabView numberOfTabViewItems];
@@ -609,17 +611,31 @@ static const float kScrollButtonInterval = 0.15;  // time (in seconds) between f
   [popupCell trackMouse:[NSApp currentEvent] inRect:[sender bounds] ofView:sender untilMouseUp:YES];
 }
 
-// When a user clicks on mOverflowLeftButton this method is called to slide the 
-// tabs one place to the right, if possible.
--(IBAction)scrollLeft:(id)aSender
+-(void)scrollWheel:(NSEvent*)theEvent {
+  // Treat vertical scrolling as horizontal (with down == right), since there's
+  // no other meaning for the tab bar, and many mice are vertical-only.
+  float scrollIncrement = 0.0;
+  if ([theEvent deltaX])
+    scrollIncrement = -[theEvent deltaX];
+  else if ([theEvent deltaY])
+    scrollIncrement = -[theEvent deltaY];
+
+  // We don't use the accellation; just scroll one tab per event.
+  if (scrollIncrement > 0.0)
+    [self scrollRight:nil];
+  else if (scrollIncrement < 0.0)
+    [self scrollLeft:nil];
+}
+
+// Scrolls the tab bar one place to the right, if possible.
+-(void)scrollLeft:(id)aSender
 {
   if (mLeftMostVisibleTabIndex > 0)
     [self setLeftMostVisibleTabIndex:(mLeftMostVisibleTabIndex - 1)];
 }
  
-// When a user clicks on mOverflowRightButton this method is called to slide the
-// tabs one place to the left, if possible.
--(IBAction)scrollRight:(id)aSender
+// Scrolls the tab bar one place to the left, if possible.
+-(void)scrollRight:(id)aSender
 {
   if ((mLeftMostVisibleTabIndex + mNumberOfVisibleTabs) < [mTabView numberOfTabViewItems])
     [self setLeftMostVisibleTabIndex:(mLeftMostVisibleTabIndex + 1)];
