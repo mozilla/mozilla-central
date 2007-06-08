@@ -73,7 +73,6 @@
 // return the height the tab bar should be
 -(float)tabBarHeight;
 -(BrowserTabViewItem*)tabViewItemAtPoint:(NSPoint)location;
--(void)windowClosed;
 -(BOOL)isVisible;
 // show or hide tabs- should be called if this view will be hidden, to give it a chance to register or
 // unregister tracking rects as appropriate

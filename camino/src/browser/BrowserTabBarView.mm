@@ -356,9 +356,8 @@ static const float kScrollButtonInterval = 0.15;  // time (in seconds) between f
   [self registerTabButtonsForTracking];
 }
 
-- (void)windowClosed
+- (void)viewWillMoveToWindow:(NSWindow*)window
 {
-  // remove all tracking rects because this view is implicitly retained when they're registered
   [self unregisterTabButtonsForTracking];
 }
 

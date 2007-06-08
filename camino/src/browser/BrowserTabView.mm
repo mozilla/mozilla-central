@@ -328,9 +328,6 @@ NSString* const kTabBarBackgroundDoubleClickedNotification = @"kTabBarBackground
     NSTabViewItem* item = [self tabViewItemAtIndex: i];
     [[item view] windowClosed];
   }
-  
-  // Tell the tab bar the window is closed so it will perform any needed cleanup
-  [mTabBar windowClosed];
 }
 
 - (BOOL)tabsVisible
