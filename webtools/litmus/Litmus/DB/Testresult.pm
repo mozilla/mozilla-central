@@ -125,7 +125,7 @@ Litmus::DB::Testresult->set_sql(CompletedByUser => qq{
 
 Litmus::DB::Testresult->set_sql(CompletedByTrusted => qq{
     SELECT tr.*
-    FROM test_results tr, users u, users u, 
+    FROM test_results tr, users u,
       user_group_map ugm, security_groups sg
     WHERE tr.testcase_id=? AND 
         tr.build_id=? AND 
