@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   David Haas <haasd@cae.wisc.edu>
+ *   Stuart Morgan <stuart.morgan@alumni.case.edu>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -616,16 +617,24 @@ static int BookmarkItemSort(id firstItem, id secondItem, void* context)
 // Adding bookmarks
 //
 
-// XXX fix to nicely autorelease etc.
 - (Bookmark *)addBookmark
 {
-  if (![self isRoot]) {
-    Bookmark* theBookmark = [[Bookmark alloc] init];
-    [self appendChild:theBookmark];
-    [theBookmark release]; //retained on insert
-    return theBookmark;
-  }
-  return nil;
+  if ([self isRoot])
+    return nil;
+
+  Bookmark* theBookmark = [[[Bookmark alloc] init] autorelease];
+  [self appendChild:theBookmark];
+  return theBookmark;
+}
+
+- (Bookmark *)addSeparator
+{
+  if ([self isRoot])
+    return nil;
+
+  Bookmark* separator = [Bookmark separator];
+  [self appendChild:separator];
+  return separator;
 }
 
 // adding from native plist
@@ -648,8 +657,7 @@ static int BookmarkItemSort(id firstItem, id secondItem, void* context)
                    keyword:@""
                        url:aURL
                description:@""
-                 lastVisit:[NSDate date]
-                    status:kBookmarkOKStatus];
+                 lastVisit:[NSDate date]];
 }
 
 // full bodied addition
@@ -659,7 +667,6 @@ static int BookmarkItemSort(id firstItem, id secondItem, void* context)
                       url:(NSString *)aURL
               description:(NSString *)aDescription
                 lastVisit:(NSDate *)aDate
-                   status:(unsigned)aStatus
 {
   if (![self isRoot]) {
     Bookmark *theBookmark = [[Bookmark alloc] init];
@@ -668,7 +675,6 @@ static int BookmarkItemSort(id firstItem, id secondItem, void* context)
     [theBookmark setUrl:aURL];
     [theBookmark setItemDescription:aDescription];
     [theBookmark setLastVisit:aDate];
-    [theBookmark setStatus:aStatus];
     [self insertChild:theBookmark atIndex:aPosition isMove:NO];
     [theBookmark release];
     return theBookmark;

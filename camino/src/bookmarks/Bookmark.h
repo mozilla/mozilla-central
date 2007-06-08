@@ -22,6 +22,7 @@
  * Contributor(s):
  *   David Haas <haasd@cae.wisc.edu>
  *   Josh Aas <josh@mozilla.com>
+ *   Stuart Morgan <stuart.morgan@alumni.case.edu>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -39,41 +40,29 @@
 
 #import "BookmarkItem.h"
 
-//Status Flags
-#define kBookmarkOKStatus 0
-#define kBookmarkSpacerStatus 9
-
 @interface Bookmark : BookmarkItem
 {
   NSString*     mURL;
   NSDate*       mLastVisit;
-  unsigned int  mStatus;
+  BOOL          mIsSeparator;
   unsigned int  mNumberOfVisits;
   NSString*     mFaviconURL;  // only used for <link> favicons
 }
 
++ (Bookmark*)separator;
+
 - (NSString *)url;
 - (NSDate *)lastVisit;
 - (unsigned)numberOfVisits;
-- (unsigned)status;
 
 - (NSString*)faviconURL;
 - (void)setFaviconURL:(NSString*)inURL;
 
 - (void)setUrl:(NSString *)aURL;
 - (void)setLastVisit:(NSDate *)aLastVisit;
-- (void)setStatus:(unsigned)aStatus;
-- (void)setIsSeparator:(BOOL)aSeparatorFlag;
 - (void)setNumberOfVisits:(unsigned)aNumber;
 
 - (void)notePageLoadedWithSuccess:(BOOL)inSuccess;
-
-// methods used for saving to files; are guaranteed never to return nil
-- (id)savedURL;
-- (id)savedLastVisit;
-- (id)savedStatus;
-- (id)savedNumberOfVisits;
-- (id)savedFaviconURL;
 
 @end
 

@@ -393,16 +393,14 @@ const int kOutlineViewLeftMargin = 19; // determined empirically, since it doesn
 
 - (IBAction)addBookmarkSeparator:(id)aSender
 {
-  Bookmark *aBookmark = [[Bookmark alloc] init];
-  [aBookmark setIsSeparator:YES];
+  Bookmark *separator = [Bookmark separator];
 
   int index;
   BookmarkFolder *parentFolder = [self selectedItemFolderAndIndex:&index];
 
-  [parentFolder insertChild:aBookmark atIndex:index isMove:NO];
+  [parentFolder insertChild:separator atIndex:index isMove:NO];
 
-  [self revealItem:aBookmark scrollIntoView:YES selecting:YES byExtendingSelection:NO];
-  [aBookmark release];
+  [self revealItem:separator scrollIntoView:YES selecting:YES byExtendingSelection:NO];
 }
 
 - (IBAction)addBookmarkFolder:(id)aSender

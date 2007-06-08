@@ -1702,8 +1702,7 @@ static BookmarkManager* gBookmarkManager = nil;
         [tokenScanner scanUpToString:@"href=\"" intoString:nil];  // tokenScanner now contains HREF="[URL]">[TITLE]
         // check for a menu spacer, which will look like this: HREF="">&lt;Menu Spacer&gt; (bug 309008)
         if (![tokenScanner isAtEnd] && [[tokenString substringFromIndex:([tokenScanner scanLocation] + 8)] isEqualToString:@"&lt;Menu Spacer&gt;"])  {
-          currentItem = [currentArray addBookmark];
-          [(Bookmark *)currentItem setIsSeparator:YES];
+          currentItem = [currentArray addSeparator];
           [tokenScanner release];
           [tokenTag release];
           [fileScanner setScanLocation:([fileScanner scanLocation] + 1)];
@@ -1824,8 +1823,7 @@ static BookmarkManager* gBookmarkManager = nil;
       }
       // Firefox menu separator
       else if ([tokenTag isEqualToString:@"<HR"]) {
-          currentItem = [currentArray addBookmark];
-          [(Bookmark *)currentItem setIsSeparator:YES];
+          currentItem = [currentArray addSeparator];
           [fileScanner setScanLocation:(scanIndex + 1)];
       }
       else { //beats me.  just close the tag out and continue.
@@ -1888,8 +1886,7 @@ static BookmarkManager* gBookmarkManager = nil;
     //                         ^
     //                     That's funny
     else if ([aLine hasPrefix:@"#SEPERATOR"]) {
-      currentItem = [currentArray addBookmark];
-      [(Bookmark *)currentItem setIsSeparator:YES];
+      currentItem = [currentArray addSeparator];
       currentItem = nil;
     }
     // Or maybe this folder is being closed out.

@@ -22,6 +22,7 @@
  * Contributor(s):
  *   David Haas <haasd@cae.wisc.edu>
  *   Josh Aas <josh@mozilla.com>
+ *   Stuart Morgan <stuart.morgan@alumni.case.edu>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -50,15 +51,41 @@
 NSString* const URLLoadNotification   = @"url_load";
 NSString* const URLLoadSuccessKey     = @"url_bool";
 
+//Status Flags
+#define kBookmarkOKStatus 0
+#define kBookmarkSpacerStatus 9
+
+#pragma mark -
+
+@interface Bookmark (Private)
+
+- (void)setIsSeparator:(BOOL)isSeparator;
+
+// methods used for saving to files; are guaranteed never to return nil
+- (id)savedURL;
+- (id)savedLastVisit;
+- (id)savedStatus;
+- (id)savedNumberOfVisits;
+- (id)savedFaviconURL;
+
+@end
+
 #pragma mark -
 
 @implementation Bookmark
+
++ (Bookmark*)separator
+{
+  Bookmark* separator = [[[Bookmark alloc] init] autorelease];
+  [separator setIsSeparator:YES];
+  return separator;
+}
 
 - (id)init
 {
   if ((self = [super init])) {
     mURL            = [[NSString alloc] init];
-    mStatus         = kBookmarkOKStatus;
+    mIsSeparator    = NO;
     mNumberOfVisits = 0;
     mLastVisit      = [[NSDate date] retain];
   }
@@ -69,7 +96,7 @@ NSString* const URLLoadSuccessKey     = @"url_bool";
 {
   id bookmarkCopy = [super copyWithZone:zone];
   [bookmarkCopy setUrl:[self url]];
-  [bookmarkCopy setStatus:[self status]];
+  [bookmarkCopy setIsSeparator:[self isSeparator]];
   [bookmarkCopy setLastVisit:[self lastVisit]];
   [bookmarkCopy setNumberOfVisits:[self numberOfVisits]];
   return bookmarkCopy;
@@ -78,7 +105,6 @@ NSString* const URLLoadSuccessKey     = @"url_bool";
 - (void)dealloc
 {
   [[NSNotificationCenter defaultCenter] removeObserver:self];
-  mParent = NULL;  // not retained, so just set to null
   [mURL release];
   [mLastVisit release];
   [super dealloc];
@@ -110,11 +136,6 @@ NSString* const URLLoadSuccessKey     = @"url_bool";
   return mLastVisit;
 }
 
-- (unsigned)status
-{
-  return mStatus;
-}
-
 - (unsigned)numberOfVisits
 {
   return mNumberOfVisits;
@@ -122,7 +143,7 @@ NSString* const URLLoadSuccessKey     = @"url_bool";
 
 - (BOOL)isSeparator
 {
-  return (mStatus == kBookmarkSpacerStatus);
+  return mIsSeparator;
 }
 
 - (NSString*)faviconURL
@@ -137,23 +158,6 @@ NSString* const URLLoadSuccessKey     = @"url_bool";
   mFaviconURL = inURL;
 }
 
-- (void)setStatus:(unsigned)aStatus
-{
-  if (aStatus != mStatus) {
-    // There used to be more than two possible status states.
-    // Now we regard everything except kBookmarkSpacerStatus
-    // as kBookmarkOKStatus.
-    if (aStatus != kBookmarkSpacerStatus)
-      aStatus = kBookmarkOKStatus;
-
-    mStatus = aStatus;
-    [self itemUpdatedNote:kBookmarkItemStatusChangedMask];
-
-    if (aStatus == kBookmarkSpacerStatus)
-      [self setTitle:NSLocalizedString(@"<Menu Spacer>", nil)];
-  }
-}
-
 - (void)setUrl:(NSString *)aURL
 {
   if (!aURL)
@@ -163,7 +167,6 @@ NSString* const URLLoadSuccessKey     = @"url_bool";
     [aURL retain];
     [mURL release];
     mURL = aURL;
-    [self setStatus:kBookmarkOKStatus];
 
     // clear the icon, so we'll refresh it next time someone asks for it
     [mIcon release];
@@ -192,12 +195,14 @@ NSString* const URLLoadSuccessKey     = @"url_bool";
   }
 }
 
-- (void)setIsSeparator:(BOOL)aBool
+- (void)setIsSeparator:(BOOL)isSeparator
 {
-  if (aBool)
-    [self setStatus:kBookmarkSpacerStatus];
-  else
-    [self setStatus:kBookmarkOKStatus];
+  if (mIsSeparator != isSeparator) {
+    mIsSeparator = isSeparator;
+    if (isSeparator)
+      [self setTitle:NSLocalizedString(@"<Menu Spacer>", nil)];
+    [self itemUpdatedNote:kBookmarkItemStatusChangedMask];
+  }
 }
 
 - (void)refreshIcon
@@ -253,7 +258,10 @@ NSString* const URLLoadSuccessKey     = @"url_bool";
 
 - (id)savedStatus
 {
-  return [NSNumber numberWithUnsignedInt:mStatus];
+  // There used to be more than two possible status states. Now we regard
+  // everything except kBookmarkSpacerStatus as kBookmarkOKStatus.
+  return [NSNumber numberWithUnsignedInt:(mIsSeparator ? kBookmarkSpacerStatus
+                                                       : kBookmarkOKStatus)];
 }
 
 - (id)savedNumberOfVisits
@@ -284,7 +292,9 @@ NSString* const URLLoadSuccessKey     = @"url_bool";
   [self setUUID:[aDict objectForKey:BMUUIDKey]];
   [self setLastVisit:[aDict objectForKey:BMLastVisitKey]];
   [self setNumberOfVisits:[[aDict objectForKey:BMNumberVisitsKey] unsignedIntValue]];
-  [self setStatus:[[aDict objectForKey:BMStatusKey] unsignedIntValue]];
+  // There used to be more than two possible status states. Now we regard
+  // everything except kBookmarkSpacerStatus as kBookmarkOKStatus.
+  [self setIsSeparator:([[aDict objectForKey:BMStatusKey] unsignedIntValue] == kBookmarkSpacerStatus)];
   [self setFaviconURL:[aDict objectForKey:BMLinkedFaviconURLKey]];
 
   //fire an update notification

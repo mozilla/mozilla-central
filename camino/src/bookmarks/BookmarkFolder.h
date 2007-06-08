@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   David Haas <haasd@cae.wisc.edu>
+ *   Stuart Morgan <stuart.morgan@alumni.case.edu>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -99,14 +100,14 @@ enum {
 
 // ways to add a new bookmark
 - (Bookmark *)addBookmark; //adds to end
+- (Bookmark *)addSeparator; //adds to end
 - (Bookmark *)addBookmark:(NSString *)aTitle url:(NSString *)aURL inPosition:(unsigned)aIndex;
 - (Bookmark *)addBookmark:(NSString *)aTitle
                inPosition:(unsigned)aIndex
                   keyword:(NSString *)aKeyword
                       url:(NSString *)aURL
               description:(NSString *)aDescription
-                lastVisit:(NSDate *)aDate
-                   status:(unsigned)aStatus;
+                lastVisit:(NSDate *)aDate;
 
 // ways to add a new bookmark array
 - (BookmarkFolder *)addBookmarkFolder; //adds to end
