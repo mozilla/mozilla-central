@@ -7,15 +7,14 @@
 
 /* Reset the default CSS rules for #newMailAlertNotification. */
 #newMailAlertNotification {
-  min-height: inherit;
   border: none;
-  background-color: inherit;
 }
 
 /* Apply the default CSS rules of #newMailAlertNotification on #alertContainer instead. */
 #alertContainer {
   min-height: 60px;
   border: ridge #5486DA 4px;
-  background-color: white;
+  background-color: -moz-Dialog;
+  color: -moz-DialogText;
 }
 

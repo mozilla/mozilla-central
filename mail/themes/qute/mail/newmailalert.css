@@ -47,7 +47,8 @@
 #newMailAlertNotification {
   min-height: 60px;
   border: ridge #5486DA 4px;
-  background-color: white;
+  background-color: -moz-Dialog;
+  color: -moz-DialogText;
 }
 
 #alertImage {
