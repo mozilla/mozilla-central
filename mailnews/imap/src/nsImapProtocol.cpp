@@ -4436,7 +4436,7 @@ nsImapProtocol::DiscoverMailboxSpec(nsImapMailboxSpec * adoptedBoxSpec)
         if (GetDeleteIsMoveToTrash() && // don't set the Trash flag
             // if not using the Trash model
             !onlineTrashFolderExists &&
-            adoptedBoxSpec->mAllocatedPathName.Find(GetTrashFolderName()));
+            adoptedBoxSpec->mAllocatedPathName.Find(GetTrashFolderName()))
         {
           PRBool trashExists = PR_FALSE;
           nsCString trashMatch;
@@ -4619,7 +4619,6 @@ nsImapProtocol::ShowProgress()
   if (!m_progressString.IsEmpty() && m_progressStringId)
   {
     PRUnichar *progressString = NULL;
-    nsCAutoString cProgressString; cProgressString.AssignWithConversion(m_progressString);
     const char *mailboxName = GetServerStateParser().GetSelectedMailboxName();
     nsString unicodeMailboxName;
     nsresult rv = CopyMUTF7toUTF16(nsDependentCString(mailboxName),
@@ -4937,7 +4936,7 @@ void nsImapProtocol::Language()
     if (mAcceptLanguages.get())
     {
       nsCAutoString extractedLanguage;
-      extractedLanguage.AssignWithConversion(mAcceptLanguages.get());
+      LossyCopyUTF16toASCII(mAcceptLanguages, extractedLanguage);
       PRInt32 pos = extractedLanguage.FindChar(',');
       if (pos > 0) // we have a comma separated list of languages...
         extractedLanguage.Truncate(pos); // truncate everything after the first comma (including the comma)
@@ -7764,7 +7763,7 @@ nsImapProtocol::GetShowDeletedMessages()
 
 NS_IMETHODIMP nsImapProtocol::OverrideConnectionInfo(const PRUnichar *pHost, PRUint16 pPort, const char *pCookieData)
 {
-  m_logonHost.AssignWithConversion(pHost);
+  LossyCopyUTF16toASCII(pHost, m_logonHost);
   m_logonPort = pPort;
   m_logonCookie = pCookieData;
   m_overRideUrlConnectionInfo = PR_TRUE;
