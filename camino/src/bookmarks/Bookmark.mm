@@ -306,43 +306,6 @@ NSString* const URLLoadSuccessKey     = @"url_bool";
   return YES;
 }
 
-- (BOOL)readCaminoXML:(CFXMLTreeRef)aTreeRef settingToolbar:(BOOL)setupToolbar
-{
-  CFXMLNodeRef myNode;
-  CFXMLElementInfo* elementInfoPtr;
-  myNode = CFXMLTreeGetNode(aTreeRef);
-  if (myNode) {
-    // Process our info
-    if (CFXMLNodeGetTypeCode(myNode)==kCFXMLNodeTypeElement){
-      elementInfoPtr = (CFXMLElementInfo *)CFXMLNodeGetInfoPtr(myNode);
-      if (elementInfoPtr) {
-        NSDictionary* attribDict = (NSDictionary*)elementInfoPtr->attributes;
-        //gather the redundant update notifications
-        [self setAccumulateUpdateNotifications:YES];
-        [self setTitle:[[attribDict objectForKey:CaminoNameKey] stringByRemovingAmpEscapes]];
-        [self setKeyword:[[attribDict objectForKey:CaminoKeywordKey] stringByRemovingAmpEscapes]];
-        [self setItemDescription:[[attribDict objectForKey:CaminoDescKey] stringByRemovingAmpEscapes]];
-        [self setUrl:[[attribDict objectForKey:CaminoURLKey] stringByRemovingAmpEscapes]];
-        //fire an update notification
-        [self setAccumulateUpdateNotifications:NO];
-      }
-      else {
-        NSLog(@"Bookmark:readCaminoXML - elementInfoPtr null, load failed");
-        return NO;
-      }
-    }
-    else {
-      NSLog(@"Bookmark:readCaminoXML - node not kCFXMLNodeTypeElement, load failed");
-      return NO;
-    }
-  }
-  else {
-    NSLog(@"Bookmark:readCaminoXML - urk! CFXMLTreeGetNode null, load failed");
-    return NO;
-  }
-  return YES;
-}
-
 //
 // -writeBookmarksMetaDatatoPath:
 //

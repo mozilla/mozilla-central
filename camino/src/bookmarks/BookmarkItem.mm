@@ -74,19 +74,6 @@ NSString* const SafariURIDictKey = @"URIDictionary";
 NSString* const SafariBookmarkTitleKey = @"title";
 NSString* const SafariURLStringKey = @"URLString";
 
-// camino XML keys
-NSString* const CaminoNameKey = @"name";
-NSString* const CaminoDescKey = @"description";
-NSString* const CaminoTypeKey = @"type";
-NSString* const CaminoKeywordKey = @"id";
-NSString* const CaminoURLKey = @"href";
-NSString* const CaminoToolbarKey = @"toolbar";
-NSString* const CaminoDockMenuKey = @"dockmenu";
-NSString* const CaminoGroupKey = @"group";
-NSString* const CaminoBookmarkKey = @"bookmark";
-NSString* const CaminoFolderKey = @"folder";
-NSString* const CaminoTrueKey = @"true";
-
 @implementation BookmarkKeywordFormatter
 
 - (NSString *)stringForObjectValue:(id)anObject
@@ -369,11 +356,6 @@ NSString* const CaminoTrueKey = @"true";
 }
 
 - (BOOL)readSafariDictionary:(NSDictionary *)aDict
-{
-  return NO;
-}
-
-- (BOOL)readCaminoXML:(CFXMLTreeRef)aTreeRef settingToolbar:(BOOL)setupToolbar
 {
   return NO;
 }

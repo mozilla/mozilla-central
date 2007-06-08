@@ -100,12 +100,10 @@ static int BookmarkItemSort(id firstItem, id secondItem, void* context)
 // ways to add a new bookmark
 - (BOOL)addBookmarkFromNativeDict:(NSDictionary *)aDict;
 - (BOOL)addBookmarkFromSafariDict:(NSDictionary *)aDict;
-- (BOOL)addBookmarkFromXML:(CFXMLTreeRef)aTreeRef;
 
 // ways to add a new bookmark folder
 - (BOOL)addBookmarkFolderFromNativeDict:(NSDictionary *)aDict; //read in - adds sequentially
 - (BOOL)addBookmarkFolderFromSafariDict:(NSDictionary *)aDict;
-- (BOOL)addBookmarkFolderFromXML:(CFXMLTreeRef)aTreeRef settingToolbar:(BOOL)setupToolbar;
 
 // deletes the bookmark or bookmark array
 - (BOOL)deleteBookmark:(Bookmark *)childBookmark;
@@ -641,12 +639,6 @@ static int BookmarkItemSort(id firstItem, id secondItem, void* context)
   return [[self addBookmark] readSafariDictionary:aDict];
 }
 
-// add from camino xml
-- (BOOL)addBookmarkFromXML:(CFXMLTreeRef)aTreeRef
-{
-  return [[self addBookmark] readCaminoXML:aTreeRef settingToolbar:NO];
-}
-
 - (Bookmark *)addBookmark:(NSString *)aTitle url:(NSString *)aURL inPosition:(unsigned)aIndex
 {
   if ([aTitle length] == 0)
@@ -705,11 +697,6 @@ static int BookmarkItemSort(id firstItem, id secondItem, void* context)
 - (BOOL)addBookmarkFolderFromSafariDict:(NSDictionary *)aDict
 {
   return [[self addBookmarkFolder] readSafariDictionary:aDict];
-}
-
-- (BOOL)addBookmarkFolderFromXML:(CFXMLTreeRef)aTreeRef settingToolbar:(BOOL)setupToolbar
-{
-  return [[self addBookmarkFolder] readCaminoXML:aTreeRef settingToolbar:setupToolbar];
 }
 
 // normal add while programming running
@@ -1172,61 +1159,6 @@ static int BookmarkItemSort(id firstItem, id secondItem, void* context)
 
   if ([[aDict objectForKey:SafariAutoTab] boolValue])
     [self setIsGroup:YES];
-
-  return success;
-}
-
-- (BOOL)readCaminoXML:(CFXMLTreeRef)aTreeRef settingToolbar:(BOOL)setupToolbar
-{
-  BOOL success = YES;
-  CFXMLNodeRef myNode = CFXMLTreeGetNode(aTreeRef);
-  if (myNode) {
-    // Process our info - we load info into tempMuteString,
-    // then send a cleaned up version to temp string, which gets
-    // dropped into appropriate variable
-    if (CFXMLNodeGetTypeCode(myNode) == kCFXMLNodeTypeElement) {
-      CFXMLElementInfo* elementInfoPtr = (CFXMLElementInfo*)CFXMLNodeGetInfoPtr(myNode);
-      if (elementInfoPtr) {
-        NSDictionary* attribDict = (NSDictionary*)elementInfoPtr->attributes;
-        [self setTitle:[[attribDict objectForKey:CaminoNameKey] stringByRemovingAmpEscapes]];
-        [self setItemDescription:[[attribDict objectForKey:CaminoDescKey] stringByRemovingAmpEscapes]];
-
-        if ([[attribDict objectForKey:CaminoTypeKey] isEqualToString:CaminoToolbarKey] && setupToolbar) {
-          // we move the toolbar folder to its correct location later
-          [self setIsToolbar:YES];
-        }
-
-        if ([[attribDict objectForKey:CaminoGroupKey] isEqualToString:CaminoTrueKey])
-          [self setIsGroup:YES];
-
-        // Process children
-        unsigned int i = 0;
-        CFXMLTreeRef childTreeRef;
-        while ((childTreeRef = CFTreeGetChildAtIndex(aTreeRef, i++)) && success) {
-          CFXMLNodeRef childNodeRef = CFXMLTreeGetNode(childTreeRef);
-          if (childNodeRef) {
-            NSString *tempString = (NSString *)CFXMLNodeGetString(childNodeRef);
-            if ([tempString isEqualToString:CaminoBookmarkKey])
-              success = [self addBookmarkFromXML:childTreeRef];
-            else if ([tempString isEqualToString:CaminoFolderKey])
-              success = [self addBookmarkFolderFromXML:childTreeRef settingToolbar:setupToolbar];
-          }
-        }
-      }
-      else  {
-        NSLog(@"BookmarkFolder: readCaminoXML- elementInfoPtr null - children not imported");
-        success = NO;
-      }
-    }
-    else {
-      NSLog(@"BookmarkFolder: readCaminoXML - should be, but isn't a CFXMLNodeTypeElement");
-      success = NO;
-    }
-  }
-  else {
-    NSLog(@"BookmarkFolder: readCaminoXML - myNode null - bookmark not imported");
-    success = NO;
-  }
 
   return success;
 }

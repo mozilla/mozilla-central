@@ -130,11 +130,9 @@ enum {
 - (BOOL)readPListBookmarks:(NSString *)pathToFile;    // camino or safari
 - (BOOL)readCaminoPListBookmarks:(NSDictionary *)plist;
 - (BOOL)readSafariPListBookmarks:(NSDictionary *)plist;
-- (BOOL)readCaminoXMLBookmarks:(NSString *)pathToFile;
 
 // these are "import" methods that import into a subfolder.
 - (BOOL)importHTMLFile:(NSString *)pathToFile intoFolder:(BookmarkFolder *)aFolder;
-- (BOOL)importCaminoXMLFile:(NSString *)pathToFile intoFolder:(BookmarkFolder *)aFolder settingToolbarFolder:(BOOL)setToolbarFolder;
 - (BOOL)importPropertyListFile:(NSString *)pathToFile intoFolder:(BookmarkFolder *)aFolder;
 - (void)importBookmarksThreadReturn:(NSDictionary *)aDict;
 
@@ -313,8 +311,7 @@ static BookmarkManager* gBookmarkManager = nil;
     BOOL bookmarksReadOK = [self readBookmarks];
     if (!bookmarksReadOK) {
       // We'll come here either when reading the bookmarks totally failed, or
-      // when we did a partial read of the xml file. The xml reading code already
-      // fixed up the toolbar folder.
+      // when we did a partial read of the bookmark file.
       if ([root count] == 0) {
         // failed to read any folders. make some by hand.
         BookmarkFolder* menuFolder = [[[BookmarkFolder alloc] initWithIdentifier:kBookmarksMenuFolderIdentifier] autorelease];
@@ -1302,8 +1299,7 @@ static BookmarkManager* gBookmarkManager = nil;
   //
   // figure out where Bookmarks.plist is and store it as mPathToBookmarkFile
   // if there is a Bookmarks.plist, read it
-  // if there isn't a Bookmarks.plist, but there is a bookmarks.xml, read it.
-  // if there isn't either, move default Bookmarks.plist to profile dir & read it.
+  // if there isn't, move default Bookmarks.plist to profile dir & read it.
   //
   NSFileManager *fM = [NSFileManager defaultManager];
   NSString *bookmarkPath = [profileDir stringByAppendingPathComponent:@"bookmarks.plist"];
@@ -1347,10 +1343,6 @@ static BookmarkManager* gBookmarkManager = nil;
         }
       }
     }
-  }
-  else if ([fM isReadableFileAtPath:[profileDir stringByAppendingPathComponent:@"bookmarks.xml"]]) {
-    if ([self readCaminoXMLBookmarks:[profileDir stringByAppendingPathComponent:@"bookmarks.xml"]])
-      return YES;
   }
 
   // if we're here, we have either no bookmarks or corrupted bookmarks with no backup; either way,
@@ -1492,37 +1484,6 @@ static BookmarkManager* gBookmarkManager = nil;
   return YES;
 }
 
-- (BOOL)readCaminoXMLBookmarks:(NSString *)pathToFile
-{
-  BookmarkFolder* menuFolder = [[[BookmarkFolder alloc] initWithIdentifier:kBookmarksMenuFolderIdentifier] autorelease];
-  [menuFolder setTitle:NSLocalizedString(@"Bookmark Menu", nil)];
-  [[self rootBookmarks] appendChild:menuFolder];
-
-  BOOL readOK = [self importCaminoXMLFile:pathToFile intoFolder:menuFolder settingToolbarFolder:YES];
-
-  // even if we didn't do a full read, try to fix up the toolbar folder
-  BookmarkFolder* toolbarFolder = nil;
-  NSEnumerator* bookmarksEnum = [[self rootBookmarks] objectEnumerator];
-  BookmarkItem* curItem;
-  while ((curItem = [bookmarksEnum nextObject])) {
-    if ([curItem isKindOfClass:[BookmarkFolder class]]) {
-      BookmarkFolder* curFolder = (BookmarkFolder*)curItem;
-      if ([curFolder isToolbar]) {
-        toolbarFolder = curFolder;
-        break;
-      }
-    }
-  }
-
-  if (toolbarFolder) {
-    [[toolbarFolder parent] moveChild:toolbarFolder toBookmarkFolder:[self rootBookmarks] atIndex:kToolbarContainerIndex];
-    [toolbarFolder setTitle:NSLocalizedString(@"Bookmark Toolbar", nil)];
-    [toolbarFolder setIdentifier:kBookmarksToolbarFolderIdentifier];
-  }
-
-  return readOK;
-}
-
 - (void)startImportBookmarks
 {
   if (!mImportDlgController)
@@ -1558,8 +1519,6 @@ static BookmarkManager* gBookmarkManager = nil;
       success = [self readOperaFile:pathToFile intoFolder:importFolder];
     else if ([extension isEqualToString:@"html"] || [extension isEqualToString:@"htm"])
       success = [self importHTMLFile:pathToFile intoFolder:importFolder];
-    else if ([extension isEqualToString:@"xml"])
-      success = [self importCaminoXMLFile:pathToFile intoFolder:importFolder settingToolbarFolder:NO];
     else if ([extension isEqualToString:@"plist"] || !success)
       success = [self importPropertyListFile:pathToFile intoFolder:importFolder];
     // we don't know the extension, or we failed to load.  we'll take another
@@ -1568,9 +1527,6 @@ static BookmarkManager* gBookmarkManager = nil;
       success = [self readOperaFile:pathToFile intoFolder:importFolder];
       if (!success) {
         success = [self importHTMLFile:pathToFile intoFolder:importFolder];
-        if (!success) {
-          success = [self importCaminoXMLFile:pathToFile intoFolder:importFolder settingToolbarFolder:NO];
-        }
       }
     }
 
@@ -1880,64 +1836,6 @@ static BookmarkManager* gBookmarkManager = nil;
   }
   [fileScanner release];
   return YES;
-}
-
-
-- (BOOL)importCaminoXMLFile:(NSString *)pathToFile intoFolder:(BookmarkFolder *)aFolder settingToolbarFolder:(BOOL)setToolbarFolder
-{
-  NSURL* fileURL = [NSURL fileURLWithPath:pathToFile];
-  if (!fileURL) {
-    NSLog(@"URL creation failed");
-    return NO;
-  }
-  // Thanks, Apple, for example XML parsing code.
-  // Create CFXMLTree from file.  This needs to be released later
-  CFXMLTreeRef xmlFileTree = CFXMLTreeCreateWithDataFromURL (kCFAllocatorDefault,
-                                                             (CFURLRef)fileURL,
-                                                             kCFXMLParserSkipWhitespace,
-                                                             kCFXMLNodeCurrentVersion);
-  if (!xmlFileTree) {
-    NSLog(@"XMLTree creation failed");
-    return NO;
-  }
-
-  // process top level nodes.  I think we'll find DTD
-  // before data - so only need to make 1 pass.
-  int count = CFTreeGetChildCount(xmlFileTree);
-  for (int index = 0; index < count; index++) {
-    CFXMLTreeRef subFileTree = CFTreeGetChildAtIndex(xmlFileTree, index);
-    if (subFileTree) {
-      CFXMLNodeRef bookmarkNode = CFXMLTreeGetNode(subFileTree);
-      if (bookmarkNode) {
-        switch (CFXMLNodeGetTypeCode(bookmarkNode)) {
-          // make sure it's Camino/Chimera DTD
-          case kCFXMLNodeTypeDocumentType:
-            {
-              CFXMLDocumentTypeInfo* docTypeInfo = (CFXMLDocumentTypeInfo *)CFXMLNodeGetInfoPtr(bookmarkNode);
-              CFURLRef dtdURL = docTypeInfo->externalID.systemID;
-              if (![[(NSURL *)dtdURL absoluteString] isEqualToString:@"http://www.mozilla.org/DTDs/ChimeraBookmarks.dtd"]) {
-                NSLog(@"not a ChimeraBookmarks xml file. Bail");
-                CFRelease(xmlFileTree);
-                return NO;
-              }
-              break;
-            }
-
-          case kCFXMLNodeTypeElement:
-            {
-              BOOL readOK = [aFolder readCaminoXML:subFileTree settingToolbar:setToolbarFolder];
-              CFRelease (xmlFileTree);
-              return readOK;
-            }
-          default:
-            break;
-        }
-      }
-    }
-  }
-  CFRelease(xmlFileTree);
-  NSLog(@"run through the tree and didn't find anything interesting.  Bailed out");
-  return NO;
 }
 
 - (BOOL)importPropertyListFile:(NSString *)pathToFile intoFolder:(BookmarkFolder *)aFolder

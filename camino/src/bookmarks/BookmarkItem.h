@@ -134,7 +134,6 @@ enum
   // for reading/writing to disk - unimplemented in BookmarkItem.
 - (BOOL)readNativeDictionary:(NSDictionary *)aDict;
 - (BOOL)readSafariDictionary:(NSDictionary *)aDict;
-- (BOOL)readCaminoXML:(CFXMLTreeRef)aTreeRef settingToolbar:(BOOL)setupToolbar;
 
 - (void)writeBookmarksMetadataToPath:(NSString*)inPath;
 - (void)removeBookmarksMetadataFromPath:(NSString*)inPath;
@@ -191,16 +190,3 @@ extern NSString* const SafariUUIDKey;
 extern NSString* const SafariURIDictKey;
 extern NSString* const SafariBookmarkTitleKey;
 extern NSString* const SafariURLStringKey;
-
-// camino XML keys
-extern NSString* const CaminoNameKey;
-extern NSString* const CaminoDescKey;
-extern NSString* const CaminoTypeKey;
-extern NSString* const CaminoKeywordKey;
-extern NSString* const CaminoURLKey;
-extern NSString* const CaminoToolbarKey;
-extern NSString* const CaminoDockMenuKey;
-extern NSString* const CaminoGroupKey;
-extern NSString* const CaminoBookmarkKey;
-extern NSString* const CaminoFolderKey;
-extern NSString* const CaminoTrueKey;

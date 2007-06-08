@@ -194,7 +194,7 @@
   [openPanel setCanChooseDirectories:NO];
   [openPanel setAllowsMultipleSelection:NO];
   [openPanel setPrompt:@"Import"];
-  NSArray* array = [NSArray arrayWithObjects:@"htm", @"html", @"xml", @"plist", nil];
+  NSArray* array = [NSArray arrayWithObjects:@"htm", @"html", @"plist", nil];
   int result = [openPanel runModalForDirectory:nil
                                           file:nil
                                          types:array];
