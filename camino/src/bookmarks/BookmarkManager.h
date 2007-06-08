@@ -138,7 +138,7 @@ const int kBookmarksContextMenuArrangeSeparatorTag = 100;
 - (void)clearAllVisits;
 
 // Informational things
-- (NSArray *)resolveBookmarksKeyword:(NSString *)keyword;
+- (NSArray *)resolveBookmarksShortcut:(NSString *)shortcut;
 - (NSArray *)searchBookmarksContainer:(BookmarkFolder*)container forString:(NSString *)searchString inFieldWithTag:(int)tag;
 - (BOOL)isDropValid:(NSArray *)items toFolder:(BookmarkFolder *)parent;
 - (NSMenu *)contextMenuForItems:(NSArray*)items fromView:(BookmarkOutlineView *)outlineView target:(id)target;

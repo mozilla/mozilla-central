@@ -834,8 +834,8 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
     return;
   }
 
-  // check to see if it's a bookmark keyword
-  NSArray* resolvedURLs = [[BookmarkManager sharedBookmarkManager] resolveBookmarksKeyword:urlString];
+  // check to see if it's a bookmark shortcut
+  NSArray* resolvedURLs = [[BookmarkManager sharedBookmarkManager] resolveBookmarksShortcut:urlString];
 
   if (resolvedURLs) {
     if ([resolvedURLs count] == 1)

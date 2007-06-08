@@ -287,7 +287,7 @@ NSString* const URLLoadSuccessKey     = @"url_bool";
 
   [self setTitle:[aDict objectForKey:BMTitleKey]];
   [self setItemDescription:[aDict objectForKey:BMDescKey]];
-  [self setKeyword:[aDict objectForKey:BMKeywordKey]];
+  [self setShortcut:[aDict objectForKey:BMShortcutKey]];
   [self setUrl:[aDict objectForKey:BMURLKey]];
   [self setUUID:[aDict objectForKey:BMUUIDKey]];
   [self setLastVisit:[aDict objectForKey:BMLastVisitKey]];
@@ -364,8 +364,8 @@ NSString* const URLLoadSuccessKey     = @"url_bool";
   if ([[self itemDescription] length])
     [itemDict setObject:[self itemDescription] forKey:BMDescKey];
 
-  if ([[self keyword] length])
-    [itemDict setObject:[self keyword] forKey:BMKeywordKey];
+  if ([[self shortcut] length])
+    [itemDict setObject:[self shortcut] forKey:BMShortcutKey];
 
   if ([mUUID length])    // don't call -UUID to avoid generating one
     [itemDict setObject:mUUID forKey:BMUUIDKey];
@@ -411,8 +411,8 @@ NSString* const URLLoadSuccessKey     = @"url_bool";
   if ([self lastVisit])  // if there is a lastVisit, export it
     exportHTMLString = [exportHTMLString stringByAppendingFormat:@" LAST_VISIT=\"%d\"", [[self lastVisit] timeIntervalSince1970]];
 
-  if ([[self keyword] length] > 0)  // if there is a keyword, export it (bug 307743)
-    exportHTMLString = [exportHTMLString stringByAppendingFormat:@" SHORTCUTURL=\"%@\"", [self keyword]];
+  if ([[self shortcut] length] > 0)  // if there is a shortcut, export it (bug 307743)
+    exportHTMLString = [exportHTMLString stringByAppendingFormat:@" SHORTCUTURL=\"%@\"", [self shortcut]];
 
   // close up the attributes, export the title, close the A tag
   exportHTMLString = [exportHTMLString stringByAppendingFormat:@">%@</A>\n", [mTitle stringByAddingAmpEscapes]];
@@ -461,7 +461,7 @@ NSString* const URLLoadSuccessKey     = @"url_bool";
   return [inDescending boolValue] ? (NSComparisonResult)(-1 * (int)result) : result;
 }
 
-// base class does the title, keyword and description compares
+// base class does the title, shortcut and description compares
 
 - (NSComparisonResult)compareType:(BookmarkItem *)aItem sortDescending:(NSNumber*)inDescending
 {

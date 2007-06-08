@@ -2372,13 +2372,13 @@ enum BWCOpenDest {
     return;
   }
 
-  // look for bookmarks keywords match
-  NSArray *resolvedURLs = [[BookmarkManager sharedBookmarkManager] resolveBookmarksKeyword:theURL];
+  // look for bookmarks shortcut match
+  NSArray *resolvedURLs = [[BookmarkManager sharedBookmarkManager] resolveBookmarksShortcut:theURL];
 
   NSString* targetURL = nil;
   if (!resolvedURLs || [resolvedURLs count] == 1) {
     targetURL = resolvedURLs ? [resolvedURLs lastObject] : theURL;
-    BOOL allowPopups = resolvedURLs ? YES : NO; //Allow popups if it's a bookmark keyword
+    BOOL allowPopups = resolvedURLs ? YES : NO; //Allow popups if it's a bookmark shortcut
     if (inDest == kDestinationNewTab)
       [self openNewTabWithURL:targetURL referrer:nil loadInBackground:inLoadInBG allowPopups:allowPopups setJumpback:NO];
     else if (inDest == kDestinationNewWindow)
@@ -2395,7 +2395,7 @@ enum BWCOpenDest {
 
   // global history needs to know the user typed this url so it can present it
   // in autocomplete. We use the URI fixup service to strip whitespace and remove
-  // invalid protocols, etc. Don't save keyword-expanded urls.
+  // invalid protocols, etc. Don't save shortcut-expanded urls.
   if (!resolvedURLs &&
       mDataOwner &&
       mDataOwner->mGlobalHistory &&

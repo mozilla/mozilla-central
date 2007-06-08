@@ -669,22 +669,22 @@ static BookmarkManager* gBookmarkManager = nil;
 }
 
 
-- (NSArray *)resolveBookmarksKeyword:(NSString *)keyword
+- (NSArray *)resolveBookmarksShortcut:(NSString *)shortcut
 {
   NSArray *resolvedArray = nil;
-  if ([keyword length] > 0) {
-    NSRange spaceRange = [keyword rangeOfString:@" "];
+  if ([shortcut length] > 0) {
+    NSRange spaceRange = [shortcut rangeOfString:@" "];
     NSString *firstWord = nil;
     NSString *secondWord = nil;
     if (spaceRange.location != NSNotFound) {
-      firstWord = [keyword substringToIndex:spaceRange.location];
-      secondWord = [keyword substringFromIndex:(spaceRange.location + spaceRange.length)];
+      firstWord = [shortcut substringToIndex:spaceRange.location];
+      secondWord = [shortcut substringFromIndex:(spaceRange.location + spaceRange.length)];
     }
     else {
-      firstWord = keyword;
+      firstWord = shortcut;
       secondWord = @"";
     }
-    resolvedArray = [[self rootBookmarks] resolveKeyword:firstWord withArgs:secondWord];
+    resolvedArray = [[self rootBookmarks] resolveShortcut:firstWord withArgs:secondWord];
   }
   return resolvedArray;
 }
@@ -1728,15 +1728,15 @@ static BookmarkManager* gBookmarkManager = nil;
             [currentItem setTitle:[[tokenString substringFromIndex:([tokenScanner scanLocation] + 1)] stringByRemovingAmpEscapes]];
             justSetTitle = YES;
           }
-          // see if we had a keyword
+          // see if we had a shortcut
           if (isNetscape) {
             tempRange = [tempItem rangeOfString:@"SHORTCUTURL=\"" options:NSCaseInsensitiveSearch];
             if (tempRange.location != NSNotFound) {
-              // throw everything to next " into keyword. A malformed bookmark might not have a closing " which
+              // throw everything to next " into shortcut. A malformed bookmark might not have a closing " which
               // will throw things out of whack slightly, but it's better than crashing.
               keyRange = [tempItem rangeOfString:@"\"" options:0 range:NSMakeRange(tempRange.location + tempRange.length, [tempItem length] - (tempRange.location + tempRange.length))];
               if (keyRange.location != NSNotFound)
-                [currentItem setKeyword:[tempItem substringWithRange:NSMakeRange(tempRange.location + tempRange.length, keyRange.location - (tempRange.location + tempRange.length))]];
+                [currentItem setShortcut:[tempItem substringWithRange:NSMakeRange(tempRange.location + tempRange.length, keyRange.location - (tempRange.location + tempRange.length))]];
             }
           }
         }
@@ -1901,7 +1901,7 @@ static BookmarkManager* gBookmarkManager = nil;
       if (NSNotFound != aRange.location) {
         NSRange sRange = [aLine rangeOfString:@"SHORT NAME="];
         if (NSNotFound != sRange.location) {
-          [currentItem setKeyword:[aLine substringFromIndex:(sRange.location + sRange.length)]];
+          [currentItem setShortcut:[aLine substringFromIndex:(sRange.location + sRange.length)]];
         }
         else {
           [currentItem setTitle:[aLine substringFromIndex:(aRange.location + aRange.length)]];

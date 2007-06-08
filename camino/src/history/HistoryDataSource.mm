@@ -1096,7 +1096,7 @@ NS_IMPL_ISUPPORTS1(nsHistoryObserver, nsIHistoryObserver);
   return [item isKindOfClass:[HistoryCategoryItem class]];
 }
 
-// identifiers: title url description keyword
+// identifiers: title url last_visit first_visit
 - (id)outlineView:(NSOutlineView*)outlineView objectValueForTableColumn:(NSTableColumn*)aTableColumn byItem:(id)item
 {
   if ([[aTableColumn identifier] isEqualToString:@"title"])

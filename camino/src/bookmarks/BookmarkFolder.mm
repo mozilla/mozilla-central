@@ -654,7 +654,7 @@ static int BookmarkItemSort(id firstItem, id secondItem, void* context)
     aTitle = aURL;
   return [self addBookmark:aTitle
                 inPosition:aIndex
-                   keyword:@""
+                  shortcut:@""
                        url:aURL
                description:@""
                  lastVisit:[NSDate date]];
@@ -663,7 +663,7 @@ static int BookmarkItemSort(id firstItem, id secondItem, void* context)
 // full bodied addition
 - (Bookmark *)addBookmark:(NSString *)aTitle
                inPosition:(unsigned)aPosition
-                  keyword:(NSString *)aKeyword
+                 shortcut:(NSString *)aShortcut
                       url:(NSString *)aURL
               description:(NSString *)aDescription
                 lastVisit:(NSDate *)aDate
@@ -671,7 +671,7 @@ static int BookmarkItemSort(id firstItem, id secondItem, void* context)
   if (![self isRoot]) {
     Bookmark *theBookmark = [[Bookmark alloc] init];
     [theBookmark setTitle:aTitle];
-    [theBookmark setKeyword:aKeyword];
+    [theBookmark setShortcut:aShortcut];
     [theBookmark setUrl:aURL];
     [theBookmark setItemDescription:aDescription];
     [theBookmark setLastVisit:aDate];
@@ -969,15 +969,15 @@ static int BookmarkItemSort(id firstItem, id secondItem, void* context)
 }
 
 //
-// searching/keywords processing
+// searching/shortcut processing
 //
-- (NSArray*)resolveKeyword:(NSString *)keyword withArgs:(NSString *)args
+- (NSArray*)resolveShortcut:(NSString *)shortcut withArgs:(NSString *)args
 {
-  if (!keyword)
+  if (!shortcut)
     return nil;
 
   // see if it's us
-  if ([[self keyword] caseInsensitiveCompare:keyword] == NSOrderedSame) {
+  if ([[self shortcut] caseInsensitiveCompare:shortcut] == NSOrderedSame) {
     NSMutableArray *urlArray = (NSMutableArray *)[self childURLs];
     int i, j = [urlArray count];
     for (i = 0; i < j; i++) {
@@ -991,12 +991,12 @@ static int BookmarkItemSort(id firstItem, id secondItem, void* context)
   id aKid;
   while ((aKid = [enumerator nextObject])) {
     if ([aKid isKindOfClass:[Bookmark class]]) {
-      if ([[aKid keyword] caseInsensitiveCompare:keyword] == NSOrderedSame)
+      if ([[aKid shortcut] caseInsensitiveCompare:shortcut] == NSOrderedSame)
         return [NSArray arrayWithObject:[self expandURL:[aKid url] withString:args]];
     }
     else if ([aKid isKindOfClass:[BookmarkFolder class]]) {
       // recurse into sub-folders
-      NSArray *childArray = [aKid resolveKeyword:keyword withArgs:args];
+      NSArray *childArray = [aKid resolveShortcut:shortcut withArgs:args];
       if (childArray)
         return childArray;
     }
@@ -1119,7 +1119,7 @@ static int BookmarkItemSort(id firstItem, id secondItem, void* context)
 {
   [self setTitle:[aDict objectForKey:BMTitleKey]];
   [self setItemDescription:[aDict objectForKey:BMFolderDescKey]];
-  [self setKeyword:[aDict objectForKey:BMFolderKeywordKey]];
+  [self setShortcut:[aDict objectForKey:BMFolderShortcutKey]];
   [self setUUID:[aDict objectForKey:BMUUIDKey]];
 
   unsigned int flag = [[aDict objectForKey:BMFolderTypeKey] unsignedIntValue];
@@ -1228,8 +1228,8 @@ static int BookmarkItemSort(id firstItem, id secondItem, void* context)
   if ([[self itemDescription] length])
     [folderDict setObject:[self itemDescription] forKey:BMFolderDescKey];
 
-  if ([[self keyword] length])
-    [folderDict setObject:[self keyword] forKey:BMFolderKeywordKey];
+  if ([[self shortcut] length])
+    [folderDict setObject:[self shortcut] forKey:BMFolderShortcutKey];
 
   return folderDict;
 }

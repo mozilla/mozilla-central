@@ -104,7 +104,7 @@ enum {
 - (Bookmark *)addBookmark:(NSString *)aTitle url:(NSString *)aURL inPosition:(unsigned)aIndex;
 - (Bookmark *)addBookmark:(NSString *)aTitle
                inPosition:(unsigned)aIndex
-                  keyword:(NSString *)aKeyword
+                 shortcut:(NSString *)aShortcut
                       url:(NSString *)aURL
               description:(NSString *)aDescription
                 lastVisit:(NSDate *)aDate;
@@ -145,7 +145,7 @@ enum {
 - (void)buildFlatFolderList:(NSMenu *)menu depth:(unsigned)pad;
 
 // searching
-- (NSArray*)resolveKeyword:(NSString *)keyword withArgs:(NSString *)args;
+- (NSArray*)resolveShortcut:(NSString *)shortcut withArgs:(NSString *)args;
 - (NSSet *)bookmarksWithString:(NSString *)searchString inFieldWithTag:(int)tag;
 - (BOOL)containsChildItem:(BookmarkItem*)inItem;
 

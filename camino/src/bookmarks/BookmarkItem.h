@@ -47,7 +47,7 @@ enum
 
   kBookmarkItemTitleChangedMask         = (1 << 1),
   kBookmarkItemDescriptionChangedMask   = (1 << 2),
-  kBookmarkItemKeywordChangedMask       = (1 << 3),
+  kBookmarkItemShortcutChangedMask      = (1 << 3),
   kBookmarkItemIconChangedMask          = (1 << 4),
   kBookmarkItemURLChangedMask           = (1 << 5),
   kBookmarkItemLastVisitChangedMask     = (1 << 6),
@@ -60,7 +60,7 @@ enum
   // mask of flags that require a save of the bookmarks
   kBookmarkItemSignificantChangeFlagsMask = kBookmarkItemTitleChangedMask |
                                             kBookmarkItemDescriptionChangedMask |
-                                            kBookmarkItemKeywordChangedMask |
+                                            kBookmarkItemShortcutChangedMask |
                                             kBookmarkItemURLChangedMask |
                                             kBookmarkItemLastVisitChangedMask |
                                             kBookmarkItemStatusChangedMask |
@@ -69,9 +69,9 @@ enum
   kBookmarkItemEverythingChangedMask    = 0xFFFFFFFE
 };
 
-// A formatter for keyword entry fields that prevents whitespace in keywords, since
-// keywords with whitespace don't work.
-@interface BookmarkKeywordFormatter : NSFormatter
+// A formatter for shortcut entry fields that prevents whitespace in shortcuts,
+// since shortcuts with whitespace don't work.
+@interface BookmarkShortcutFormatter : NSFormatter
 {
 }
 @end
@@ -81,7 +81,7 @@ enum
   id              mParent;  //subclasses will use a BookmarkFolder
   NSString*       mTitle;
   NSString*       mDescription;
-  NSString*       mKeyword;
+  NSString*       mShortcut;
   NSString*       mUUID;
   NSImage*        mIcon;
   unsigned int    mPendingChangeFlags;
@@ -94,14 +94,14 @@ enum
 - (id)parent;
 - (NSString *)title;
 - (NSString *)itemDescription;    // don't use "description"
-- (NSString *)keyword;
+- (NSString *)shortcut;
 - (NSImage *)icon;
 - (NSString *)UUID;
 
 - (void)setParent:(id)aParent;    // note that the parent of root items is the BookmarksManager, for some reason
 - (void)setTitle:(NSString *)aString;
 - (void)setItemDescription:(NSString *)aString;
-- (void)setKeyword:(NSString *)aKeyword;
+- (void)setShortcut:(NSString *)aShortcut;
 - (void)setIcon:(NSImage *)aIcon;
 - (void)setUUID:(NSString*)aUUID;
 
@@ -118,7 +118,7 @@ enum
   eBookmarksSearchFieldAll = 1,
   eBookmarksSearchFieldTitle,
   eBookmarksSearchFieldURL,
-  eBookmarksSearchFieldKeyword,
+  eBookmarksSearchFieldShortcut,
   eBookmarksSearchFieldDescription
 };
 
@@ -144,7 +144,7 @@ enum
 // methods used for saving to files; are guaranteed never to return nil
 - (id)savedTitle;
 - (id)savedItemDescription;    // don't use "description"
-- (id)savedKeyword;
+- (id)savedShortcut;
 - (id)savedUUID;    // does not generate a new UUID if UUID is not set
 
 // sorting
@@ -152,7 +152,7 @@ enum
 // we put sort comparators on the base class for convenience
 - (NSComparisonResult)compareURL:(BookmarkItem *)aItem sortDescending:(NSNumber*)inDescending;
 - (NSComparisonResult)compareTitle:(BookmarkItem *)aItem sortDescending:(NSNumber*)inDescending;
-- (NSComparisonResult)compareKeyword:(BookmarkItem *)aItem sortDescending:(NSNumber*)inDescending;
+- (NSComparisonResult)compareShortcut:(BookmarkItem *)aItem sortDescending:(NSNumber*)inDescending;
 - (NSComparisonResult)compareDescription:(BookmarkItem *)aItem sortDescending:(NSNumber*)inDescending;
 - (NSComparisonResult)compareType:(BookmarkItem *)aItem sortDescending:(NSNumber*)inDescending;
 - (NSComparisonResult)compareVisitCount:(BookmarkItem *)aItem sortDescending:(NSNumber*)inDescending;
@@ -171,12 +171,12 @@ extern NSString* const BMChildrenKey;
 // Camino plist keys
 extern NSString* const BMFolderDescKey;
 extern NSString* const BMFolderTypeKey;
-extern NSString* const BMFolderKeywordKey;
+extern NSString* const BMFolderShortcutKey;
 extern NSString* const BMDescKey;
 extern NSString* const BMStatusKey;
 extern NSString* const BMURLKey;
 extern NSString* const BMUUIDKey;
-extern NSString* const BMKeywordKey;
+extern NSString* const BMShortcutKey;
 extern NSString* const BMLastVisitKey;
 extern NSString* const BMNumberVisitsKey;
 extern NSString* const BMLinkedFaviconURLKey;

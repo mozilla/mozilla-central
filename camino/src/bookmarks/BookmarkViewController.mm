@@ -289,16 +289,16 @@ const int kOutlineViewLeftMargin = 19; // determined empirically, since it doesn
 
   [self ensureBookmarks];
 
-  // set a formatter on the keyword column
-  BookmarkKeywordFormatter* keywordFormatter = [[[BookmarkKeywordFormatter alloc] init] autorelease];
-  [[[mBookmarksOutlineView tableColumnWithIdentifier:@"keyword"] dataCell] setFormatter:keywordFormatter];
+  // set a formatter on the shortcut column
+  BookmarkShortcutFormatter* shortcutFormatter = [[[BookmarkShortcutFormatter alloc] init] autorelease];
+  [[[mBookmarksOutlineView tableColumnWithIdentifier:@"shortcut"] dataCell] setFormatter:shortcutFormatter];
 
   // these should be settable in the nib.  however, whenever
   // I try, they disappear as soon as I've saved.  Very annoying.
   [mContainersTableView setAutosaveName:@"BMContainerView"];
   [mContainersTableView setAutosaveTableColumns:YES];
 
-  [mBookmarksOutlineView setAutosaveName:@"BookmarksOutlineView"];
+  [mBookmarksOutlineView setAutosaveName:@"BookmarksOutlineViewV2"];
   [mBookmarksOutlineView setAutosaveTableColumns:YES];
 
   [mHistoryOutlineView setAutosaveName:@"HistoryOutlineView"];
@@ -1748,8 +1748,8 @@ const int kOutlineViewLeftMargin = 19; // determined empirically, since it doesn
     case kArrangeBookmarksByTitleMask:
       return @selector(compareTitle:sortDescending:);
 
-    case kArrangeBookmarksByKeywordMask:
-      return @selector(compareKeyword:sortDescending:);
+    case kArrangeBookmarksByShortcutMask:
+      return @selector(compareShortcut:sortDescending:);
 
     case kArrangeBookmarksByDescriptionMask:
       return @selector(compareDescription:sortDescending:);
@@ -1922,7 +1922,7 @@ const int kOutlineViewLeftMargin = 19; // determined empirically, since it doesn
   const unsigned int kVisibleAttributeChangedFlags = (kBookmarkItemTitleChangedMask |
                                                       kBookmarkItemIconChangedMask |
                                                       kBookmarkItemURLChangedMask |
-                                                      kBookmarkItemKeywordChangedMask |
+                                                      kBookmarkItemShortcutChangedMask |
                                                       kBookmarkItemDescriptionChangedMask |
                                                       kBookmarkItemLastVisitChangedMask |
                                                       kBookmarkItemStatusChangedMask);
