@@ -332,14 +332,9 @@ enum StatusPriority {
   return mIsBusy;
 }
 
-- (NSString*)displayTitle
-{
-  return mDisplayTitle;
-}
-
 - (NSString*)pageTitle
 {
-  return [mBrowserView pageTitle];
+  return mDisplayTitle;
 }
 
 - (NSImage*)siteIcon
@@ -521,7 +516,7 @@ enum StatusPriority {
   [(BrowserTabViewItem*)mTabItem stopLoadAnimation];
 
   NSString *urlString = [self currentURI];
-  NSString *titleString = [self pageTitle];
+  NSString *titleString = [mBrowserView pageTitle];
   
   // If we never got a page title, then the tab title will be stuck at "Loading..."
   // so be sure to set the title here

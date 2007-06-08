@@ -1137,7 +1137,7 @@ enum BWCOpenDest {
 
 - (void)windowDidResize:(NSNotification *)aNotification
 {
-  [self updateWindowTitle:[mBrowserView displayTitle]];
+  [self updateWindowTitle:[mBrowserView pageTitle]];
 
   // Update the cached windowframe unless we are zooming the window
   if (!mShouldZoom)
@@ -2105,7 +2105,7 @@ enum BWCOpenDest {
 
 - (void)updateFromFrontmostTab
 {
-  [self updateWindowTitle:[mBrowserView displayTitle]];
+  [self updateWindowTitle:[mBrowserView pageTitle]];
   [self setLoadingActive:[mBrowserView isBusy]];
   [self setLoadingProgress:[mBrowserView loadingProgress]];
   [self showSecurityState:[mBrowserView securityState]];
