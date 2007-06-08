@@ -600,7 +600,6 @@ enum BWCOpenDest {
     mThrobberImages = nil;
     mThrobberHandler = nil;
     mURLFieldEditor = nil;
-    mProgressSuperview = nil;
   
     // register for services
     NSArray* sendTypes = [NSArray arrayWithObjects:NSStringPboardType, nil];
@@ -824,7 +823,6 @@ enum BWCOpenDest {
   // superclass dealloc takes care of our child NSView's, which include the 
   // BrowserWrappers and their child CHBrowserViews.
   
-  [mProgress release];
   [self stopThrobber];
   [mThrobberImages release];
   [mURLFieldEditor release];
@@ -873,18 +871,6 @@ enum BWCOpenDest {
       mStatus = nil;
     }
     else {
-      // Retain with a single extra refcount. This allows us to remove
-      // the progress meter from its superview without having to worry
-      // about retaining and releasing it. Cache the superview of the
-      // progress. Dynamically fetch the superview so as not to burden
-      // someone rearranging the nib with this detail. Note that this
-      // needs to be in a subview from the status bar because if the
-      // window resizes while it is hidden, its position wouldn't get updated.
-      // Having it in a separate view that stays visible (and is thus
-      // involved in the layout process) solves this.
-      [mProgress retain];
-      mProgressSuperview = [mProgress superview];
-      
       // due to a cocoa issue with it updating the bounding box of two rects
       // that both needing updating instead of just the two individual rects
       // (radar 2194819), we need to make the text area opaque.
@@ -1813,14 +1799,14 @@ enum BWCOpenDest {
   {
     [self startThrobber];
     [mProgress setIndeterminate:YES];
-    [self showProgressIndicator];
+    [mProgress setHidden:NO];
     [mProgress startAnimation:self];
   }
   else
   {
     [self stopThrobber];
     [mProgress stopAnimation:self];
-    [self hideProgressIndicator];
+    [mProgress setHidden:YES];
     [mProgress setIndeterminate:YES];
     [[[self window] toolbar] validateVisibleItems];
   }
@@ -4611,22 +4597,6 @@ enum BWCOpenDest {
 - (BookmarkToolbar*) bookmarkToolbar
 {
   return mPersonalToolbar;
-}
-
-- (NSProgressIndicator*)progressIndicator
-{
-  return mProgress;
-}
-
-- (void)showProgressIndicator
-{
-  // note we do nothing to check if the progress indicator is already there.
-  [mProgressSuperview addSubview:mProgress];
-}
-
-- (void)hideProgressIndicator
-{
-  [mProgress removeFromSuperview];
 }
 
 - (BOOL)windowClosesQuietly

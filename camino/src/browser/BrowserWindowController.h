@@ -114,7 +114,7 @@ typedef enum
   IBOutlet ExtendedSplitView* mLocationToolbarView;     // parent splitter of location and search, strong
   IBOutlet AutoCompleteTextField* mURLBar;
   IBOutlet NSTextField*       mStatus;
-  IBOutlet NSProgressIndicator* mProgress;              // STRONG reference
+  IBOutlet NSProgressIndicator* mProgress;
   IBOutlet NSWindow*          mLocationSheetWindow;
   IBOutlet NSTextField*       mLocationSheetURLField;
   IBOutlet NSView*            mStatusBar;     // contains the status text, progress bar, and lock
@@ -175,11 +175,6 @@ typedef enum
 
   // Funky field editor for URL bar
   NSTextView *mURLFieldEditor;
-  
-  // cached superview for progress meter so we know where to add/remove it. This
-  // could be an outlet, but i figure it's easier to get it at runtime thereby saving
-  // someone from messing up in the nib when making changes.
-  NSView* mProgressSuperview;                // WEAK ptr
 }
 
 - (BrowserTabView*)getTabBrowser;
@@ -337,10 +332,6 @@ typedef enum
 - (IBAction)copyImageLocation:(id)sender;
 
 - (BookmarkToolbar*) bookmarkToolbar;
-
-- (NSProgressIndicator*) progressIndicator;
-- (void) showProgressIndicator;
-- (void) hideProgressIndicator;
 
 - (BOOL)windowClosesQuietly;
 - (void)setWindowClosesQuietly:(BOOL)inClosesQuietly;
