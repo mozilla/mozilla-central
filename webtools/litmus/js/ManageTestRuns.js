@@ -425,3 +425,17 @@ function checkFormContents(f) {
   return false;
 }
 
+function previewTestgroup(selectID) {
+  var selectBox = document.getElementById(selectID);
+  if (selectBox) {
+    if (selectBox.selectedIndex >= 0) {
+      if (selectBox.options[selectBox.selectedIndex].value != '') {
+        window.open('manage_testgroups.cgi?testgroup_id=' + selectBox.options[selectBox.selectedIndex].value,
+                    'testgroup_preview');
+      }
+    } else {
+      toggleMessage('failure','No test run selected!');
+    }
+  }
+}
+
