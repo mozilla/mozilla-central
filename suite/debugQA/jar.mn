@@ -1,0 +1,10 @@
+debugqa.jar:
+% content debugqa %content/debugqa/ xpcnativewrappers=yes
+% overlay chrome://navigator/content/navigatorOverlay.xul chrome://debugqa/content/debugQAMenuOverlay.xul
+% overlay chrome://communicator/content/pref/preftree.xul chrome://debugqa/content/debugQAPrefsOverlay.xul
+  content/debugqa/debugQAMenuOverlay.js                   (content/debugQAMenuOverlay.js)
+  content/debugqa/debugQAMenuOverlay.xul                  (content/debugQAMenuOverlay.xul)
+  content/debugqa/debugQAPrefsOverlay.xul                 (content/debugQAPrefsOverlay.xul)
+  content/debugqa/pref-debug.xul                          (content/pref-debug.xul)
+  content/debugqa/pref-debug1.xul                         (content/pref-debug1.xul)
+  content/debugqa/pref-debug2.xul                         (content/pref-debug2.xul)
