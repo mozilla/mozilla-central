@@ -76,6 +76,7 @@ LIBPLC='-L$(dist_libdir) -lplc$(MOD_MAJOR_VERSION)'
 CYGWIN_WRAPPER=
 MACOS_SDK_DIR=
 NEXT_ROOT=
+MT=
 
 dnl Link in libraries necessary to resolve all symbols for shared libs
 RESOLVE_LINK_SYMBOLS=
@@ -1493,6 +1494,26 @@ tools are selected during the Xcode/Developer Tools installation.])
         _CC_MAJOR_VERSION=`echo $CC_VERSION | awk -F\. '{ print $1 }'`
         _CC_MINOR_VERSION=`echo $CC_VERSION | awk -F\. '{ print $2 }'`
         MSC_VER=${_CC_MAJOR_VERSION}${_CC_MINOR_VERSION}
+
+        # Ensure that mt is Microsoft (R) Manifest Tool and not magnetic
+        # tape manipulation utility (or something else)
+        if test "$MSC_VER" -ge "1400"; then
+            changequote(,)
+            _MSMT_VER_FILTER='s|.* \([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\).*|\1|p'
+            changequote([,])
+
+            MSMT_TOOL=`mt 2>&1|grep 'Microsoft (R) Manifest Tool'`
+            if test -n "$MSMT_TOOL"; then
+                MSMANIFEST_TOOL_VERSION=`echo ${MSMT_TOOL}|sed -ne "$_MSMT_VER_FILTER"`
+                if test -z "$MSMANIFEST_TOOL_VERSION"; then
+                    AC_MSG_WARN([Unknown version of the Microsoft (R) Manifest Tool.])
+                fi
+                MT=mt
+                unset MSMT_TOOL
+            else
+                AC_MSG_ERROR([Microsoft (R) Manifest Tool must be in your \$PATH.])
+            fi
+        fi
         
         CFLAGS="$CFLAGS -W3 -nologo -GF -Gy"
         DLLFLAGS='-OUT:"$@"'
@@ -2794,6 +2815,7 @@ AC_SUBST(VISIBILITY_FLAGS)
 AC_SUBST(WRAP_SYSTEM_INCLUDES)
 AC_SUBST(MACOS_SDK_DIR)
 AC_SUBST(NEXT_ROOT)
+AC_SUBST(MT)
 
 dnl ========================================================
 dnl Generate output files.
