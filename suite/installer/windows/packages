@@ -87,6 +87,7 @@ bin\components\caps.dll
 bin\components\caps.xpt
 bin\components\chrome.dll
 bin\components\chrome.xpt
+bin\components\chardet.dll
 bin\components\chardet.xpt
 bin\components\cmdlines.dll
 bin\components\commandhandler.xpt
