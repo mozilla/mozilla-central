@@ -487,6 +487,12 @@ $(OBJDIR)/%$(PROG_SUFFIX): $(OBJDIR)/%.$(OBJ_SUFFIX)
 	@$(MAKE_OBJDIR)
 ifeq ($(NS_USE_GCC)_$(OS_ARCH),_WINNT)
 	link $(LDOPTS) $(EXTRA_LDOPTS) $< $(LIBPLC) $(LIBNSPR) $(EXTRA_LIBS) -out:$@
+ifdef MT
+	@if test -f $@.manifest; then \
+		$(MT) -NOLOGO -MANIFEST $@.manifest -OUTPUTRESOURCE:$@\;1; \
+		rm -f $@.manifest; \
+	fi
+endif
 else
 ifeq ($(MOZ_OS2_TOOLS),VACPP)
 	$(LD) $(EXEFLAGS) $(LDOPTS) $< $(LIBPLC) $(LIBNSPR) $(OS_LIBS) $(EXTRA_LIBS)
