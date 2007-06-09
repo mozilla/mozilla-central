@@ -51,12 +51,12 @@
 #import "KeychainService.h"
 #import "AutoCompleteTextField.h"
 #import "RolloverImageButton.h"
+#import "CHPermissionManager.h"
 
 #include "CHBrowserService.h"
 #include "ContentClickListener.h"
 
 #include "nsCOMPtr.h"
-#include "nsIServiceManager.h"
 
 #ifdef MOZILLA_1_8_BRANCH
 #include "nsIArray.h"
@@ -80,7 +80,6 @@
 #include "nsIDOMEventTarget.h"
 #include "nsIWebProgressListener.h"
 #include "nsIBrowserDOMWindow.h"
-#include "nsIPermissionManager.h"
 #include "nsIScriptSecurityManager.h"
 
 class nsIDOMPopupBlockedEvent;
@@ -1140,15 +1139,9 @@ enum StatusPriority {
 
 - (BOOL)popupsAreBlacklistedForURL:(NSString*)inURL
 {
-  nsCOMPtr<nsIURI> uri;
-  NS_NewURI(getter_AddRefs(uri), [inURL UTF8String]);
-  nsCOMPtr<nsIPermissionManager> pm(do_GetService(NS_PERMISSIONMANAGER_CONTRACTID));
-  if (pm && uri) {
-    PRUint32 permission;
-    pm->TestPermission(uri, "popup", &permission);
-    return (permission == nsIPermissionManager::DENY_ACTION);
-  }
-  return NO;
+  int policy = [[CHPermissionManager permissionManager] policyForURI:inURL
+                                                                type:CHPermissionTypePopup];
+  return (policy == CHPermissionDeny);
 }
 
 //
