@@ -4564,6 +4564,7 @@ nsMsgComposeAndSend::MimeDoFCC(nsIFile          *input_file,
         goto FAIL;
       }
     }
+    tempOutfile->Write(X_MOZILLA_KEYWORDS, sizeof(X_MOZILLA_KEYWORDS) - 1, &n);
   }
 
   // Write out the FCC and BCC headers.
