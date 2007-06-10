@@ -311,9 +311,12 @@ function fillFolderPaneContextMenu()
   var canSubscribeToFolder = (serverType == "nntp") || (serverType == "imap");
   var isNewsgroup = !isServer && serverType == 'nntp';
   var isMailFolder = !isServer && serverType != 'nntp';
-  var canGetMessages =  (isServer && (serverType != "nntp") && (serverType !="none")) || isNewsgroup;
+  var canGetMessages = (isServer && serverType != "none") || isNewsgroup || (serverType == "rss");
 
   EnableMenuItem("folderPaneContext-properties", true);
+
+  ShowMenuItem("folderPaneContext-getMessages", (numSelected <= 1) && canGetMessages);
+  EnableMenuItem("folderPaneContext-getMessages", true);
 
   SetupNewMenuItem(folderResource, numSelected, isServer, serverType, specialFolder);
   SetupRenameMenuItem(folderResource, numSelected, isServer, serverType, specialFolder);
