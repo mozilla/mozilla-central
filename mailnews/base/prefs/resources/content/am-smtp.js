@@ -138,7 +138,7 @@ var gSmtpServerListWindow =
     document.getElementById('descriptionValue').value = aServer.description || noneSelected;
     document.getElementById('portValue').value = aServer.port;
     document.getElementById('userNameValue').value = aServer.username || noneSelected;
-    document.getElementById('useSecureConnectionValue').value = this.mBundle.getString("smtpServer-SecureConnection-Type-" + 
+    document.getElementById('useSecureConnectionValue').value = this.mBundle.getString("smtpServer-SecureConnection-Type_" +
                                                                 aServer.trySSL);
   },
 
