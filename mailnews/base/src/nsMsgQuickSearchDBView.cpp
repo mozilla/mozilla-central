@@ -72,6 +72,19 @@ NS_IMETHODIMP nsMsgQuickSearchDBView::Open(nsIMsgFolder *folder, nsMsgViewSortTy
   return InitThreadedView(pCount);
 }
 
+nsresult nsMsgQuickSearchDBView::DeleteMessages(nsIMsgWindow *window, nsMsgViewIndex *indices, PRInt32 numIndices, PRBool deleteStorage)
+{
+  for (nsMsgViewIndex i = 0; i < (nsMsgViewIndex) numIndices; i++) 
+  {
+    nsCOMPtr<nsIMsgDBHdr> msgHdr; 
+    (void) GetMsgHdrForViewIndex(indices[i],getter_AddRefs(msgHdr));
+    if (msgHdr)
+      RememberDeletedMsgHdr(msgHdr);
+  }
+
+  return nsMsgDBView::DeleteMessages(window, indices, numIndices, deleteStorage);
+}
+
 NS_IMETHODIMP nsMsgQuickSearchDBView::DoCommand(nsMsgViewCommandTypeValue aCommand)
 {
   if (aCommand == nsMsgViewCommandType::markAllRead)

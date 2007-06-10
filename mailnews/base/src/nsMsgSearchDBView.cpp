@@ -343,10 +343,21 @@ nsresult nsMsgSearchDBView::RemoveByIndex(nsMsgViewIndex index)
 
 nsresult nsMsgSearchDBView::DeleteMessages(nsIMsgWindow *window, nsMsgViewIndex *indices, PRInt32 numIndices, PRBool deleteStorage)
 {
-    nsresult rv;
-    GetFoldersAndHdrsForSelection(indices, numIndices);
-    if (mDeleteModel != nsMsgImapDeleteModels::MoveToTrash)
-      deleteStorage = PR_TRUE;
+   nsresult rv;
+   GetFoldersAndHdrsForSelection(indices, numIndices);
+   if (mDeleteModel != nsMsgImapDeleteModels::MoveToTrash)
+     deleteStorage = PR_TRUE;
+
+   // remember the deleted messages in case the user undoes the delete,
+   // and we want to restore the hdr to the view, even if it no
+   // longer matches the search criteria.
+    for (nsMsgViewIndex i = 0; i < (nsMsgViewIndex) numIndices; i++) 
+    {
+      nsCOMPtr<nsIMsgDBHdr> msgHdr; 
+      (void) GetMsgHdrForViewIndex(indices[i],getter_AddRefs(msgHdr));
+      if (msgHdr)
+        RememberDeletedMsgHdr(msgHdr);
+    }
     if (!deleteStorage)
       rv = ProcessRequestsInOneFolder(window);
     else
@@ -499,7 +510,7 @@ nsMsgSearchDBView::OnStopCopy(nsresult aStatus)
         mCurIndex++;
         PRUint32 numFolders =0;
         rv = m_uniqueFoldersSelected->Count(&numFolders);
-        if ( mCurIndex < numFolders)
+        if ( mCurIndex < (PRUint32) numFolders)
           ProcessRequestsInOneFolder(mMsgWindow);
     }
 

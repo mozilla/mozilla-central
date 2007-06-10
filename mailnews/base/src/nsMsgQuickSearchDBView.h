@@ -73,6 +73,7 @@ protected:
   PRBool    m_cacheEmpty;
   nsCOMArray <nsIMsgDBHdr> m_hdrHits;
   virtual nsresult OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, PRBool ensureListed);
+  virtual nsresult DeleteMessages(nsIMsgWindow *window, nsMsgViewIndex *indices, PRInt32 numIndices, PRBool deleteStorage);
   virtual nsresult SortThreads(nsMsgViewSortTypeValue sortType, nsMsgViewSortOrderValue sortOrder);
   virtual nsresult GetFirstMessageHdrToDisplayInThread(nsIMsgThread *threadHdr, nsIMsgDBHdr **result);
   virtual nsresult ExpansionDelta(nsMsgViewIndex index, PRInt32 *expansionDelta);

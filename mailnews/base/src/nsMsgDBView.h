@@ -388,6 +388,16 @@ protected:
   
   nsUInt32Array mIndicesToNoteChange;
 
+  // the saved search views keep track of the XX most recently deleted msg ids, so that if the 
+  // delete is undone, we can add the msg back to the search results, even if it no longer
+  // matches the search criteria (e.g., a saved search over unread messages).
+  // We use mRecentlyDeletedArrayIndex to treat the array as a list of the XX
+  // most recently deleted msgs.
+  nsCStringArray mRecentlyDeletedMsgIds;
+  PRInt32        mRecentlyDeletedArrayIndex;
+  void RememberDeletedMsgHdr(nsIMsgDBHdr *msgHdr);
+  PRBool WasHdrRecentlyDeleted(nsIMsgDBHdr *msgHdr);
+  
   //these hold pointers (and IDs) for the nsIMsgCustomColumnHandler object that constitutes the custom column handler
   nsCOMArray <nsIMsgCustomColumnHandler> m_customColumnHandlers;
   nsStringArray m_customColumnHandlerIDs;

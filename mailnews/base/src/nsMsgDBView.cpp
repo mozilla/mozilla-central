@@ -156,6 +156,7 @@ nsMsgDBView::nsMsgDBView()
   mCommandsNeedDisablingBecauseOfSelection = PR_FALSE;
   mRemovingRow = PR_FALSE;
   m_saveRestoreSelectionDepth = 0;
+  mRecentlyDeletedArrayIndex = 0;
   // initialize any static atoms or unicode strings
   if (gInstanceCount == 0)
   {
@@ -1539,6 +1540,31 @@ NS_IMETHODIMP nsMsgDBView::GetCellValue(PRInt32 aRow, nsITreeColumn* aCol, nsASt
   return rv;
 }
 
+void nsMsgDBView::RememberDeletedMsgHdr(nsIMsgDBHdr *msgHdr)
+{
+  nsCString messageId;
+  msgHdr->GetMessageId(getter_Copies(messageId));
+  if (mRecentlyDeletedArrayIndex >= mRecentlyDeletedMsgIds.Count())
+    mRecentlyDeletedMsgIds.AppendCString(messageId);
+  else
+    mRecentlyDeletedMsgIds.ReplaceCStringAt(messageId, mRecentlyDeletedArrayIndex);
+  // only remember last 20 deleted msgs.
+  mRecentlyDeletedArrayIndex = ++mRecentlyDeletedArrayIndex % 20;
+}
+
+PRBool nsMsgDBView::WasHdrRecentlyDeleted(nsIMsgDBHdr *msgHdr)
+{
+  nsCString messageId;
+  msgHdr->GetMessageId(getter_Copies(messageId));
+  PRInt32 arrayCount;
+  for (PRInt32 i = 0; i < mRecentlyDeletedMsgIds.Count(); i++)
+  {
+    if (messageId.Equals(*(mRecentlyDeletedMsgIds[i])))
+      return PR_TRUE;
+  }
+  return PR_FALSE;
+
+}
 //add a custom column handler
 NS_IMETHODIMP nsMsgDBView::AddColumnHandler(const nsAString& column, nsIMsgCustomColumnHandler* handler)
 {

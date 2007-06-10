@@ -131,10 +131,12 @@ nsresult nsMsgXFVirtualFolderDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey a
 {
   if (newHdr)
   {
-    PRBool match=PR_FALSE;
+    PRBool match = PR_FALSE;
     nsCOMPtr <nsIMsgSearchSession> searchSession = do_QueryReferent(m_searchSession);
     if (searchSession)
       searchSession->MatchHdr(newHdr, m_db, &match);
+    if (!match)
+      match = WasHdrRecentlyDeleted(newHdr);
     if (match)
     {
       nsCOMPtr <nsIMsgFolder> folder;
