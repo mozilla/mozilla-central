@@ -801,7 +801,8 @@ NS_IMETHODIMP nsImapService::CopyMessages(nsMsgKeyArray *keys,
       if (moveMessage) // don't use ?: syntax here, it seems to break the Mac.
         action = nsIImapUrl::nsImapOnlineToOfflineMove;
       else
-        imapUrl->SetCopyState(aMailboxCopy);
+        action = nsIImapUrl::nsImapOnlineToOfflineCopy;
+      imapUrl->SetCopyState(aMailboxCopy);
       // now try to display the message
       rv = FetchMessage(imapUrl, action, folder, imapMessageSink, aMsgWindow, 
                         streamSupport, messageIds, PR_FALSE, EmptyCString(), aURL);
