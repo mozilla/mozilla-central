@@ -60,8 +60,8 @@ var gNumUnreadMessages;
 // can remember the users last quick search state. If you add values here, you must add
 // them to the end of the list!
 const kQuickSearchSubject = 0;
-const kQuickSearchSender = 1;
-const kQuickSearchSenderOrSubject = 2;
+const kQuickSearchFrom = 1;
+const kQuickSearchFromOrSubject = 2;
 const kQuickSearchBody = 3;
 // const kQuickSearchHighlight = 4; // * We no longer support this quick search mode..*
 const kQuickSearchRecipient = 5;
@@ -427,8 +427,8 @@ function createSearchTerms()
       var term;
       var value;
 
-      // if our search criteria is subject or subject|sender then add a term for the subject
-      if (gSearchInput.searchMode == kQuickSearchSubject || gSearchInput.searchMode == kQuickSearchSenderOrSubject)
+      // if our search criteria is subject or subject|from then add a term for the subject
+      if (gSearchInput.searchMode == kQuickSearchSubject || gSearchInput.searchMode == kQuickSearchFromOrSubject)
       {
         term = gSearchSession.createTerm();
         value = term.value;
@@ -445,7 +445,7 @@ function createSearchTerms()
         // what do we do for news and imap users that aren't configured for offline use?
         // in these cases the body search will never return any matches. Should we try to 
         // see if body is a valid search scope in this particular case before doing the search?
-        // should we switch back to a subject/sender search behind the scenes?
+        // should we switch back to a subject/from search behind the scenes?
         term = gSearchSession.createTerm();
         value = term.value;
         value.str = termList[i];
@@ -456,8 +456,8 @@ function createSearchTerms()
         searchTermsArray.AppendElement(term);       
       }
 
-      // create, fill, and append the sender (or recipient) term
-      if (gSearchInput.searchMode == kQuickSearchSender || gSearchInput.searchMode == kQuickSearchSenderOrSubject)
+      // create, fill, and append the from (or recipient) term
+      if (gSearchInput.searchMode == kQuickSearchFrom || gSearchInput.searchMode == kQuickSearchFromOrSubject)
       {
         term = gSearchSession.createTerm();
         value = term.value;

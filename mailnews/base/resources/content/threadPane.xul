@@ -67,7 +67,7 @@
              label="&junkStatusColumn.label;" tooltiptext="&junkStatusColumn.tooltip;"/>
     <splitter class="tree-splitter"/>
     <treecol id="senderCol" persist="ordinal width hidden swappedhidden" flex="4" hidden="false" swappedhidden="true"
-             label="&senderColumn.label;" tooltiptext="&senderColumn.tooltip;"/>
+             label="&fromColumn.label;" tooltiptext="&fromColumn.tooltip;"/>
     <treecol id="recipientCol" persist="ordinal width hidden swappedhidden" flex="4" hidden="true" swappedhidden="false"
              label="&recipientColumn.label;" tooltiptext="&recipientColumn.tooltip;"/>
     <splitter class="tree-splitter"/>

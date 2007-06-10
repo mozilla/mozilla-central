@@ -1227,7 +1227,7 @@
           <menuitem id="sortByFlagMenuitem" type="radio" name="sortby" label="&sortByFlagCmd.label;" accesskey="&sortByFlagCmd.accesskey;" oncommand="MsgSortByFlagged()"/>
           <menuitem id="sortByOrderReceivedMenuitem" type="radio" name="sortby" label="&sortByOrderReceivedCmd.label;"  accesskey="&sortByOrderReceivedCmd.accesskey;" oncommand="MsgSortByOrderReceived()"/>
           <menuitem id="sortByPriorityMenuitem" type="radio" name="sortby" label="&sortByPriorityCmd.label;" accesskey="&sortByPriorityCmd.accesskey;" oncommand="MsgSortByPriority()"/>
-          <menuitem id="sortBySenderMenuitem" type="radio" name="sortby" label="&sortBySenderCmd.label;" accesskey="&sortBySenderCmd.accesskey;" oncommand="MsgSortBySender()"/>
+          <menuitem id="sortByFromMenuitem" type="radio" name="sortby" label="&sortByFromCmd.label;" accesskey="&sortByFromCmd.accesskey;" oncommand="MsgSortByFrom()"/>
           <menuitem id="sortByRecipientMenuitem" type="radio" name="sortby" label="&sortByRecipientCmd.label;" accesskey="&sortByRecipientCmd.accesskey;" oncommand="MsgSortByRecipient()"/>
           <menuitem id="sortBySizeMenuitem" type="radio" name="sortby" label="&sortBySizeCmd.label;" accesskey="&sortBySizeCmd.accesskey;" oncommand="MsgSortBySize()"/>
           <menuitem id="sortByStatusMenuitem" type="radio" name="sortby" label="&sortByStatusCmd.label;" accesskey="&sortByStatusCmd.accesskey;" oncommand="MsgSortByStatus()"/>
@@ -1912,8 +1912,8 @@
   </hbox>
 
 <hbox id="searchBox" align="center" flex="1">
-  <label id="searchCriteria" value="&SearchSubjectOrSender.label;" control="searchInput" 
-         accesskey="&SearchSubjectOrSender.accesskey;"/>
+  <label id="searchCriteria" value="&SearchSubjectOrFrom.label;" control="searchInput" 
+         accesskey="&SearchSubjectOrFrom.accesskey;"/>
   <textbox id="searchInput" flex="1" onfocus="this.select();" onclick="this.select();" onkeypress="if (event.keyCode == KeyEvent.DOM_VK_RETURN) this.select();" oncommand="onEnterInSearchBar();" type="timed" timeout="800"/>
   <button id="clearButton" label="&clearButton.label;" disabled="true" tooltiptext="&clearButton.tooltip;" oncommand="onClearSearch();" 
           accesskey="&clearButton.accesskey;"/>

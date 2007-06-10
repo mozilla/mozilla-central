@@ -153,7 +153,7 @@
             <splitter class="tree-splitter"/>
             <treecol id="senderCol" persist="hidden swappedhidden ordinal width" flex="4" 
                      hidden="false" swappedhidden="true"
-                     label="&senderColumn.label;" tooltiptext="&senderColumn.tooltip;"/>
+                     label="&fromColumn.label;" tooltiptext="&fromColumn.tooltip;"/>
             <splitter class="tree-splitter"/>
             <treecol id="recipientCol" persist="hidden swappedhidden ordinal width" flex="4" 
                      hidden="true" swappedhidden="false"

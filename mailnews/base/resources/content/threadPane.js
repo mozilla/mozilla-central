@@ -201,7 +201,7 @@ function MsgSortByDate()
     MsgSortThreadPane(nsMsgViewSortType.byDate);
 }
 
-function MsgSortBySender()
+function MsgSortByFrom()
 {
     MsgSortThreadPane(nsMsgViewSortType.byAuthor);
 }

@@ -184,7 +184,7 @@
 <!ENTITY sortByDateCmd.label "Date">
 <!ENTITY sortByDateCmd.accesskey "e">
 <!ENTITY sortByFlagCmd.label "Flag">
-<!ENTITY sortByFlagCmd.accesskey "F">
+<!ENTITY sortByFlagCmd.accesskey "l">
 <!ENTITY sortByPriorityCmd.label "Priority">
 <!ENTITY sortByPriorityCmd.accesskey "P">
 <!ENTITY sortBySizeCmd.label "Size">
@@ -197,8 +197,8 @@
 <!ENTITY sortByJunkStatusCmd.accesskey "J">
 <!ENTITY sortBySubjectCmd.label "Subject">
 <!ENTITY sortBySubjectCmd.accesskey "S">
-<!ENTITY sortBySenderCmd.label "Sender">
-<!ENTITY sortBySenderCmd.accesskey "n">
+<!ENTITY sortByFromCmd.label "From">
+<!ENTITY sortByFromCmd.accesskey "F">
 <!ENTITY sortByRecipientCmd.label "Recipient">
 <!ENTITY sortByRecipientCmd.accesskey "c">
 <!ENTITY sortByUnreadCmd.label "Read">
@@ -557,8 +557,8 @@
 
 <!---SearchBar-->
 <!-- also used by addressbook -->
-<!ENTITY SearchSubjectOrSender.label "Subject or Sender contains:">
-<!ENTITY SearchSubjectOrSender.accesskey "S">
+<!ENTITY SearchSubjectOrFrom.label "Subject or From contains:">
+<!ENTITY SearchSubjectOrFrom.accesskey "S">
 <!ENTITY SearchNameOrEmail.label "Name or Email contains:">
 <!ENTITY SearchNameOrEmail.accesskey "N">
 <!ENTITY advancedButton.label "Advanced...">

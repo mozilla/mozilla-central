@@ -1356,7 +1356,7 @@
             <menuitem id="sortByFlagMenuitem" type="radio" name="sortby" label="&sortByStarCmd.label;" accesskey="&sortByStarCmd.accesskey;" oncommand="MsgSortByFlagged()"/>
             <menuitem id="sortByOrderReceivedMenuitem" type="radio" name="sortby" label="&sortByOrderReceivedCmd.label;"  accesskey="&sortByOrderReceivedCmd.accesskey;" oncommand="MsgSortByOrderReceived()"/>
             <menuitem id="sortByPriorityMenuitem" type="radio" name="sortby" label="&sortByPriorityCmd.label;" accesskey="&sortByPriorityCmd.accesskey;" oncommand="MsgSortByPriority()"/>
-            <menuitem id="sortBySenderMenuitem" type="radio" name="sortby" label="&sortBySenderCmd.label;" accesskey="&sortBySenderCmd.accesskey;" oncommand="MsgSortBySender()"/>
+            <menuitem id="sortByFromMenuitem" type="radio" name="sortby" label="&sortByFromCmd.label;" accesskey="&sortByFromCmd.accesskey;" oncommand="MsgSortByFrom()"/>
             <menuitem id="sortByRecipientMenuitem" type="radio" name="sortby" label="&sortByRecipientCmd.label;" accesskey="&sortByRecipientCmd.accesskey;" oncommand="MsgSortByRecipient()"/>
             <menuitem id="sortBySizeMenuitem" type="radio" name="sortby" label="&sortBySizeCmd.label;" accesskey="&sortBySizeCmd.accesskey;" oncommand="MsgSortBySize()"/>
             <menuitem id="sortByStatusMenuitem" type="radio" name="sortby" label="&sortByStatusCmd.label;" accesskey="&sortByStatusCmd.accesskey;" oncommand="MsgSortByStatus()"/>
@@ -2113,9 +2113,9 @@
             <menupopup id="quick-search-menupopup" value="2" persist="value" onpopupshowing="InitQuickSearchPopup();" popupalign="topleft" popupanchor="bottomleft">
               <menuitem value="0" label="&searchSubjectMenu.label;" type="radio"  
                         oncommand="changeQuickSearchMode(this)"/>
-              <menuitem value="1" label="&searchSenderMenu.label;" type="radio" 
+              <menuitem value="1" label="&searchFromMenu.label;" type="radio" 
                         oncommand="changeQuickSearchMode(this)" />
-              <menuitem value="2" label="&searchSubjectOrSenderMenu.label;" type="radio" 
+              <menuitem value="2" label="&searchSubjectOrFromMenu.label;" type="radio" 
                         oncommand="changeQuickSearchMode(this)"/>
               <menuitem value="5" label="&searchRecipient.label;" type="radio" 
                         oncommand="changeQuickSearchMode(this)"/>

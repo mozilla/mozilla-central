@@ -465,7 +465,7 @@ function SetSentFolderColumns(isSentFolder)
   else
   {
     tree.setAttribute("lastfoldersent", "false");
-    searchCriteria.setAttribute("value", gMessengerBundle.getString("senderSearchCriteria"));
+    searchCriteria.setAttribute("value", gMessengerBundle.getString("fromSearchCriteria"));
   }
 }
 
