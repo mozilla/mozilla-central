@@ -1,1 +1,1 @@
-Clobbering a win32 trunk build to test aus2 migration (see http://wiki.mozilla.org/WeeklyUpdates/2007-05-21#Build and http://weblogs.mozillazine.org/preed/2007/05/aus2s_a_movin_can_you_help_us.html)
+Clobber to see if I can get the backout of the patch for bug 350616 to take effect
