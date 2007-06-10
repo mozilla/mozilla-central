@@ -77,6 +77,9 @@
 - (void)setupFontPopup:(NSPopUpButton*)popupButton forType:(NSString*)fontType fromDict:(NSDictionary*)regionDict;
 - (void)getFontFromPopup:(NSPopUpButton*)popupButton forType:(NSString*)fontType intoDict:(NSDictionary*)regionDict;
 
+- (NSString*)carbonNameForFontFamily:(ATSFontFamilyRef)fontFamily;
+- (NSArray*)sortedCarbonSystemFontFamilies;
+
 @end
 
 #pragma mark -
@@ -125,7 +128,7 @@
   [mRegionMappingTable release];
   [mPropSampleFieldEditor release];
   [mMonoSampleFieldEditor release];
-
+  [mCarbonSystemFontFamilies release];
   [super dealloc];
 }
 
@@ -552,47 +555,41 @@
 // enforce that assumption.
 - (void)setFontSampleOfType:(NSString *)fontType withFont:(NSFont*)font andDict:(NSDictionary*)regionDict
 {
-  // font may be nil here, in which case the font is missing, and we construct
-  // a string to display from the dict.
   NSMutableDictionary *fontTypeDict = [regionDict objectForKey:fontType];
-
-  NSTextField *sampleCell = [self getFontSampleForType:fontType];
+  NSString *fontInformationFormat = @"%@, %dpt";
   NSString *displayString = nil;
-  
-  if (font == nil)
-  {
-    if (regionDict)
-    {
-      NSDictionary *fontSizeDict = [regionDict objectForKey:@"fontsize"];
-      NSString *fontName = [fontTypeDict objectForKey:@"fontfamily"];
-      int fontSize = [[fontSizeDict objectForKey:[self getFontSizeType:fontType]] intValue];
 
-      displayString = [NSString stringWithFormat:@"%@, %dpt %@", fontName, fontSize, [self getLocalizedString:@"Missing"]];
-      font = [NSFont userFontOfSize:14.0];
+  if (font) {
+    displayString = [NSString stringWithFormat:fontInformationFormat, [font familyName], (int)[font pointSize]];
 
-      // set the missing flag in the dict
-      if (![fontTypeDict objectForKey:@"missing"] || ![[fontTypeDict objectForKey:@"missing"] boolValue])
-        [fontTypeDict setObject:[NSNumber numberWithBool:YES] forKey:@"missing"];
-    }
-    else
-    {
-      // should never happen
-      // XXX localize
-      displayString = @"Font missing";
-      font = [NSFont userFontOfSize:16.0];
-    }
-  }
-  else
-  {
-    displayString = [NSString stringWithFormat:@"%@, %dpt", [font familyName], (int)[font pointSize]];
-    
     // make sure we don't have a missing entry
-    [fontTypeDict removeObjectForKey:@"missing"];
+    [fontTypeDict removeObjectForKey:@"missing"]; 
+  }  
+  else {
+    // a nil font either means it's missing entirely or that a carbon name was
+    // chosen from the advanced panel and could not be used to create a NSFont.
+    NSDictionary *fontSizeDict = [regionDict objectForKey:@"fontsize"];
+    NSString *fontName = [fontTypeDict objectForKey:@"fontfamily"];
+    int fontSize = [[fontSizeDict objectForKey:[self getFontSizeType:fontType]] intValue];
+    displayString = [NSString stringWithFormat:fontInformationFormat, fontName, fontSize];
+
+    if ([[self sortedCarbonSystemFontFamilies] containsObject:fontName]) {
+      [fontTypeDict removeObjectForKey:@"missing"];
+    }
+    else { // font is definitely missing
+      displayString = [displayString stringByAppendingFormat:@" %@", [self getLocalizedString:@"Missing"]];
+      [fontTypeDict setObject:[NSNumber numberWithBool:YES] forKey:@"missing"];
+    }
+
+    font = [NSFont userFontOfSize:14.0];
+    if (!regionDict) // Should never happen, but this would mean a displayString with no info
+      displayString = @"Font missing"; // XXX localize
   }
-  
+
   // Set the font of the sample to a font that is not bold, italic etc.
   NSFont* baseFont = [[NSFontManager sharedFontManager] fontWithFamily:[font familyName] traits:0 weight:5 /* normal weight */ size:[font pointSize]];
-  
+
+  NSTextField *sampleCell = [self getFontSampleForType:fontType];
   [sampleCell setFont:baseFont];
   [sampleCell setStringValue:displayString];
 }
@@ -794,21 +791,12 @@ const int kMissingFontPopupItemTag = 9999;
 {
   NSDictionary* fontTypeDict = [regionDict objectForKey:fontType];
   NSString*     defaultValue = [fontTypeDict objectForKey:@"fontfamily"];
-  
-  [self buildFontPopup:popupButton];
 
-  // check to see if the font exists
-  NSFont *foundFont = nil;
-  if (defaultValue)
-    foundFont = [[NSFontManager sharedFontManager] fontWithFamily:defaultValue traits:0 weight:5 size:16.0];
-  else {
-    foundFont = [fontType isEqualToString:@"monospace"]
-                      ? [NSFont userFixedPitchFontOfSize:16.0]
-                      : [NSFont userFontOfSize:16.0];
-    defaultValue = [foundFont familyName];
-  }
+  [self buildFontPopup:popupButton];
   
-  if (!foundFont) {
+  NSArray* systemFontList = [self sortedCarbonSystemFontFamilies];
+  if (![systemFontList containsObject:defaultValue]) {
+    // indicate that the font saved in defaults is missing
     NSMenuItem* missingFontItem = [[popupButton menu] itemWithTag:kMissingFontPopupItemTag];
     if (!missingFontItem) {
       missingFontItem = [[[NSMenuItem alloc] initWithTitle:@"temp" action:NULL keyEquivalent:@""] autorelease];
@@ -846,44 +834,91 @@ const int kMissingFontPopupItemTag = 9999;
   while ([menu numberOfItems] > 0)
     [menu removeItemAtIndex:0];
 
-  NSArray*	fontList = [[NSFontManager sharedFontManager] availableFontFamilies];
-  NSArray*  sortedFontList = [fontList sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
-  
-  for (unsigned int i = 0; i < [sortedFontList count]; i ++) {
-    NSString* fontFamilyName = [sortedFontList objectAtIndex:i];
-    unichar firstChar = [fontFamilyName characterAtIndex:0];
-    
-    if (firstChar == unichar('.') || firstChar == unichar('#'))
-      continue; // skip fonts with ugly names
-    
-    NSString* uiFamilyName = [[NSFontManager sharedFontManager] localizedNameForFamily:fontFamilyName face:nil];
-    NSMenuItem* newItem = [[NSMenuItem alloc] initWithTitle:uiFamilyName action:nil keyEquivalent:@""];
-
-#if SUBMENUS_FOR_VARIANTS
-    NSArray* fontFamilyMembers = [[NSFontManager sharedFontManager] availableMembersOfFontFamily:fontFamilyName];
-    if ([fontFamilyMembers count] > 1) {
-      NSMenu*  familySubmenu = [[NSMenu alloc] initWithTitle:fontFamilyName];
-      [familySubmenu setAutoenablesItems:NO];
-      
-      for (unsigned int j = 0; j < [fontFamilyMembers count]; j ++) {
-        NSArray* fontFamilyItems = [fontFamilyMembers objectAtIndex:j];
-        NSString* fontItemName = [fontFamilyItems objectAtIndex:1];
-
-        NSMenuItem* newSubmenuItem = [[NSMenuItem alloc] initWithTitle:fontItemName action:nil keyEquivalent:@""];
-        [familySubmenu addItem:newSubmenuItem];
-      }
-      
-      [newItem setSubmenu:familySubmenu];
-    } else {
-      // use the name from the font family info?
-    }
-#endif
-
-    [menu addItem:newItem];
+  // Gecko is unable to recognize non-western font names in the
+  // representation returned by NSFontManager.  As a workaround,
+  // use Apple Type Services to supply the names of installed fonts.
+  NSEnumerator* fontNameEnumerator = [[self sortedCarbonSystemFontFamilies] objectEnumerator];
+  NSString* fontName;
+  while (fontName = [fontNameEnumerator nextObject]) {
+    NSMenuItem* newMenuItem = [[[NSMenuItem alloc] initWithTitle:fontName action:nil keyEquivalent:@""] autorelease];
+    [menu addItem:newMenuItem];
   }
 }
 
+#pragma mark -
+
+- (NSString*)carbonNameForFontFamily:(ATSFontFamilyRef)fontFamily
+{
+  OSStatus status = noErr;
+
+  Str255 quickDrawFontName;
+  status = ATSFontFamilyGetQuickDrawName(fontFamily, quickDrawFontName);
+
+  // Fonts with certain prefixes are not useful.
+  if (status != noErr || quickDrawFontName[0] == 0 || quickDrawFontName[1] == '.' || quickDrawFontName[1] == '#')
+    return nil;
+
+  TextEncoding unicodeTextEncoding = CreateTextEncoding(kTextEncodingUnicodeDefault,
+                                                        kTextEncodingDefaultVariant,
+                                                        kUnicode16BitFormat); 
+  TECObjectRef textEncodingConverter = NULL;
+  TextEncoding fontEncoding = ATSFontFamilyGetEncoding(fontFamily);
+  status = TECCreateConverter(&textEncodingConverter, fontEncoding, unicodeTextEncoding);
+  if (status != noErr)
+    return nil;
+
+  // Convert the QuickDraw name to Unicode, allocating a buffer
+  // twice the capacity to ensure ample room for the conversion.
+  UniChar unicodeFontName[(sizeof(quickDrawFontName) * 2)];
+  ByteCount actualInputLength, actualOutputLength;
+  status = TECConvertText(textEncodingConverter, &quickDrawFontName[1], quickDrawFontName[0], &actualInputLength, 
+                          (TextPtr)unicodeFontName , sizeof(unicodeFontName), &actualOutputLength);
+  TECDisposeConverter(textEncodingConverter);
+  if (status != noErr)
+    return nil;
+
+  return [NSString stringWithCharacters:unicodeFontName length:(actualOutputLength / sizeof(UniChar))];
+}
+
+- (NSArray*)sortedCarbonSystemFontFamilies
+{
+  if (!mCarbonSystemFontFamilies) {
+    NSMutableArray* fontFamilies = [NSMutableArray array];
+    OSStatus status = noErr;
+    ATSFontFamilyIterator fontFamilyIterator;
+    status = ATSFontFamilyIteratorCreate(kATSFontContextLocal, NULL, NULL,
+                                         kATSOptionFlagsDefaultScope,
+                                         &fontFamilyIterator);
+    if (status != noErr)
+      return nil;
+
+    ATSFontFamilyRef fontFamily;
+    while (status == noErr) {
+      status = ATSFontFamilyIteratorNext(fontFamilyIterator, &fontFamily);
+      if (status == noErr) {
+        NSString* familyName = [self carbonNameForFontFamily:fontFamily];
+        if (familyName)
+          [fontFamilies addObject:familyName];
+      }
+      else if (status == kATSIterationScopeModified) {
+        // font database has changed; reset the iterator and start over.
+        status = ATSFontFamilyIteratorReset(kATSFontContextLocal, nil, nil,
+                                            kATSOptionFlagsUnRestrictedScope,
+                                            &fontFamilyIterator);
+        [fontFamilies removeAllObjects];
+      }
+    }
+
+    ATSFontFamilyIteratorRelease(&fontFamilyIterator);
+
+    mCarbonSystemFontFamilies = [[fontFamilies sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)] retain];
+  }
+  return mCarbonSystemFontFamilies;
+}
+
 @end
+
+#pragma mark -
 
 @implementation OrgMozillaChimeraPreferenceAppearance (FontManagerDelegate)
 

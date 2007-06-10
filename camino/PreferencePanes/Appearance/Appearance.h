@@ -80,7 +80,9 @@
   IBOutlet NSTextField*   mAdvancedFontsLabel;
 
   IBOutlet NSMatrix*      mDefaultFontMatrix;
-  
+
+  NSArray*                mCarbonSystemFontFamilies;
+
   NSArray*                mRegionMappingTable;
   
   NSButton*               mFontButtonForEditor;
