@@ -21,8 +21,13 @@
 
 package org.mozilla.webclient.impl.wrapper_native;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.mozilla.util.Assert;
 import org.mozilla.util.Log;
+import org.mozilla.util.Utilities;
 import org.mozilla.util.ParameterCheck;
 import org.mozilla.util.ReturnRunnable;
 
@@ -83,6 +88,12 @@ public class WrapperFactoryImpl extends Object implements WrapperFactory {
     //
     // Class Variables
     //
+    
+    public static final String LOG = "org.mozilla.webclient.impl.wrapper_native.CurrentPageImpl";
+
+    public static final Logger LOGGER = Log.getLogger(LOG);
+    
+    
     
     //
     // Instance Variables
@@ -224,7 +235,8 @@ public class WrapperFactoryImpl extends Object implements WrapperFactory {
 			  BrowserControl browserControl) throws ClassNotFoundException {
 	
 	if (BrowserControl.BROWSER_CONTROL_CANVAS_NAME == interfaceName) {
-	    Class bcClass = Class.forName(getPlatformCanvasClassName());
+	    Class bcClass = Utilities.loadClass(getPlatformCanvasClassName(),
+                    this);
 	    BrowserControlCanvas canvas = null;
 	    try {
 		canvas = (BrowserControlCanvas) bcClass.newInstance();
@@ -308,8 +320,35 @@ public class WrapperFactoryImpl extends Object implements WrapperFactory {
 	// 
 	// Do the first initialization call
 	//
+        
+        // Get the NativeEventThread, using reflection
+        try {
+            Class bcCanvasClass = Utilities.loadClass(getPlatformCanvasClassName(),
+                    this);
+            Method newNativeEventThread =
+                    bcCanvasClass.getDeclaredMethod("newNativeEventThread",
+                    WrapperFactory.class);
+            assert(null != newNativeEventThread);
 
-	eventThread = new NativeEventThread("WebclientEventThread", this);
+            eventThread = (NativeEventThread) newNativeEventThread.invoke(null, this);
+        }
+        catch (ClassNotFoundException cnfe) {
+            LOGGER.log(Level.SEVERE, "Unable to find class for " + 
+                    getPlatformCanvasClassName(), cnfe);
+        }
+        catch (IllegalAccessException ise) {
+            LOGGER.log(Level.SEVERE, "Unable to invoke method 'newNativeEventThread' on class " + 
+                    getPlatformCanvasClassName(), ise);
+        }
+        catch (InvocationTargetException ite) {
+            LOGGER.log(Level.SEVERE, "While invokeing method 'newNativeEventThread' on class " +
+                    getPlatformCanvasClassName() + " the method threw an exception: ", 
+                    ite.getCause());
+        }
+        catch (NoSuchMethodException nsme) {
+            LOGGER.log(Level.SEVERE, "Unable to find method 'newNativeEventThread' on class " + 
+                    getPlatformCanvasClassName(), nsme);
+        }
 	
 	final String finalStr = new String(verifiedBinDirAbsolutePath);
 	

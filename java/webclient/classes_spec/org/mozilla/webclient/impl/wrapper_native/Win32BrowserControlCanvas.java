@@ -21,14 +21,8 @@
 
 package org.mozilla.webclient.impl.wrapper_native;
 
-// Win32BrowserControlCanvas.java
-
-import org.mozilla.util.Assert;
-import org.mozilla.util.Log;
-import org.mozilla.util.ParameterCheck;
 
 import org.mozilla.util.ReturnRunnable;
-import org.mozilla.webclient.impl.wrapper_native.NativeEventThread;
 
 /**
 
@@ -39,7 +33,7 @@ import org.mozilla.webclient.impl.wrapper_native.NativeEventThread;
 
  * There is one instance of the BrowserControlCanvas per top level awt Frame.
 
- * @version $Id: Win32BrowserControlCanvas.java,v 1.3 2007-03-12 20:39:22 edburns%acm.org Exp $
+ * @version $Id: Win32BrowserControlCanvas.java,v 1.4 2007-06-10 03:32:24 edburns%acm.org Exp $
  * 
  * @see	org.mozilla.webclient.BrowserControlCanvasFactory
  * 
@@ -50,6 +44,7 @@ import sun.awt.*;
 import sun.awt.windows.*;
 
 import org.mozilla.webclient.BrowserControlCanvas;
+import org.mozilla.webclient.impl.WrapperFactory;
 
 /**
  * Win32BrowserControlCanvas provides a concrete realization
@@ -81,4 +76,12 @@ public class Win32BrowserControlCanvas extends BrowserControlCanvas {
 		});
 	return result.intValue();
     }
+
+    public static NativeEventThread newNativeEventThread(WrapperFactory owner) {
+        NativeEventThread result = new NativeEventThread("WebclientEventThread",
+                owner);
+        return result;
+    }
+    
+    
 }

@@ -365,5 +365,24 @@ public class Utilities extends Object {
         }
         return instance;
     }
+    
+    public static Class loadClass(String name,
+            Object fallbackClass)
+            throws ClassNotFoundException {
+        ClassLoader loader = Utilities.getCurrentLoader(fallbackClass);
+        return Class.forName(name, false, loader);       
+    }
+
+
+    public static ClassLoader getCurrentLoader(Object fallbackClass) {
+        ClassLoader loader =
+                Thread.currentThread().getContextClassLoader();
+        if (loader == null) {
+            loader = fallbackClass.getClass().getClassLoader();
+        }
+        return loader;
+    }
+    
+    
 }
 
