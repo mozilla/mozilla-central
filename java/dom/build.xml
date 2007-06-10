@@ -107,7 +107,7 @@
                      executable="make"/>
     <exec os="Windows 2000" dir="${objdir.native.path}/jni" executable="make" 
                      failonerror="yes"/>
-    <exec os="Mac OS X" dir="${objdir.native.path}/src" failonerror="yes" 
+    <exec os="Mac OS X" dir="${objdir.native.path}/jni" failonerror="yes" 
                      executable="make"/>
 
   </target>
@@ -175,6 +175,12 @@
                      executable="make">
       <arg line="clobber_all"/>
     </exec>
+
+    <exec os="Mac OS X" dir="${objdir.native.path}/jni" failonerror="yes" 
+                     executable="make">
+      <arg line="clobber_all"/>
+    </exec>
+
 
     <delete>
       <fileset dir="" includes="**/*.ilk"/>

@@ -37,6 +37,7 @@
 #include "EmbedEventListener.h"
 #include "NativeBrowserControl.h"
 #include "ns_util.h"
+#include "ns_globals.h"
 
 // all of the crap that we need for event listeners
 // and when chrome windows finish loading
@@ -132,6 +133,10 @@ NativeBrowserControl::Realize(jobject javaBrowserControl,
                               void *parentWinPtr, PRBool *aAlreadyRealized,
                               PRUint32 width, PRUint32 height)
 {
+
+    // parentWinPtr is whatever was returned from
+    // <platform>BrowserControlCanvas.getWindow().
+
     nsresult rv = NS_OK;
     mJavaBrowserControl = javaBrowserControl;
 
@@ -147,10 +152,10 @@ NativeBrowserControl::Realize(jobject javaBrowserControl,
     parentHWnd = ownerAsWidget;
     width = ownerAsWidget->allocation.width;
     height = ownerAsWidget->allocation.height;
-#elif !defined(XP_MACOSX)
+#elif defined(XP_PC)
     parentHWnd = (HWND) parentWinPtr;
-#else
-    parentHWnd = parentWinPtr;
+#elif (defined(XP_MAC) || defined(XP_MACOSX)) && defined(MOZ_WIDGET_COCOA)
+    parentHWnd = (void *) parentWinPtr;
 #endif
 
     // create the window

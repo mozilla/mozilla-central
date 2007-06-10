@@ -97,6 +97,25 @@
   </target>
 
   <target name="clean">
+    <condition property="platform" value="win32">
+      <and>
+        <os family="windows" />
+      </and>
+    </condition>
+
+    <condition property="platform" value="macosx-ppc">
+      <and>
+        <os name="Mac OS X" />
+      </and>
+    </condition>
+
+
+    <condition property="platform" value="linux">
+      <and>
+        <os family="unix" />
+      </and>
+    </condition>
+
     <delete file="${objdir}/${name}_${version}_${platform}.zip"  />
     <delete dir="${dist.base}" />
   </target>
@@ -249,7 +268,7 @@
     <copy todir="${dist.home}/bin" 
          file="${objdir}/java/dom/jni/${so.prefix}javadomjni.${jni.extension}" />
     <copy todir="${dist.home}/bin" 
-          file="${objdir}/java/webclient/src_moz/${so.prefix}${name}.${so.extension}" />
+          file="${objdir}/java/webclient/src_moz/${so.prefix}${name}.${jni.extension}" />
 
   </target>
 

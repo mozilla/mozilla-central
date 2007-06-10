@@ -108,9 +108,9 @@ public:
     
 #if defined(XP_UNIX) &&!defined(XP_MACOSX)
     GtkWidget *                    parentHWnd;
-#elif defined(XP_MAC) || defined(XP_MACOSX)
+#elif (defined(XP_MAC) || defined(XP_MACOSX))
     void *                         parentHWnd;
-#else !defined(XP_MACOSX)
+#else
     HWND                           parentHWnd;
 #endif
     

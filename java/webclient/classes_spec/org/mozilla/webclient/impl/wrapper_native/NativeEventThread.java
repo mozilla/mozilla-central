@@ -93,6 +93,10 @@ public class NativeEventThread extends Thread implements RunnableRunner {
 	runnables = new ConcurrentLinkedQueue<Runnable>();
     }
     
+    public boolean isNativeEventThread() {
+        return (Thread.currentThread() == NativeEventThread.instance);
+    }
+    
     /**
      *
      * This is a very delicate method, and possibly subject to race
@@ -146,6 +150,11 @@ public class NativeEventThread extends Thread implements RunnableRunner {
 
 public void run()
 {
+    // PENDING(edburns): On Mac OS X, the loading of native libraries
+    // should happen on the AppKit thread, at least in the case of embedding
+    // mozilla.  To do this, you need to put the runOnAppKitThread functionality
+    // into its own native library, load that first, *then* on the AppKitThread
+    // load the other native libraries.
     nativeWrapperFactory = wrapperFactory.loadNativeLibrariesIfNecessary();
     
     // our owner must have put an event in the queue 

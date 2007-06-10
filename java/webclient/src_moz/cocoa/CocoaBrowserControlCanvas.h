@@ -31,8 +31,11 @@ class CocoaBrowserControlCanvas {
 public:
 
   static jint cocoaGetHandleToPeer(JNIEnv *env, jobject canvas);
-  static void paintMe(JNIEnv *env, jobject canvas, jobject graphics);
-
+  static void cocoaPaint(JNIEnv *env, jobject canvas, jobject graphics);
+  static jobject runReturnRunnableOnAppKitThread(JNIEnv *env, jobject javaThis,
+                                                 jobject toInvoke);
+  static void runRunnableOnAppKitThread(JNIEnv *env, jobject javaThis,
+                                        jobject toInvoke);
 };
 
 #endif

@@ -371,25 +371,29 @@ public class TestBrowser extends JPanel {
                             //System.out.println("Meta ");
                         }
                         
-                        Node domNode = (Node)
-                        wcMouseEvent.getWebclientEvent().getSource();
-                        Element element = (Element) domNode;
-                        String
-                                href = (String) eventProps.get("href"),
-                                id = element.getAttribute("id"),
-                                name = element.getAttribute("name"),
-                                nodeName = domNode.getNodeName(),
-                                value = domNode.getNodeValue(),
-                                status = "";
-                        if (null != href) {
-                            // PENDING(edburns): take care of relative URL
-                            status = href;
-                        }
-                        if (null != id || null != name || null != nodeName
-                                || null != value) {
-                            status = status + " domNode: " + nodeName + " id: " + id
-                                    + " name: " + name + " value: " + value;
-                            updateStatusInfo(status);
+                        Object source = wcMouseEvent.getWebclientEvent().getSource();
+                        
+                        if (source instanceof Node) {
+                            Node domNode = (Node) source;
+                        
+                            Element element = (Element) domNode;
+                            String
+                                    href = (String) eventProps.get("href"),
+                                    id = element.getAttribute("id"),
+                                    name = element.getAttribute("name"),
+                                    nodeName = domNode.getNodeName(),
+                                    value = domNode.getNodeValue(),
+                                    status = "";
+                            if (null != href) {
+                                // PENDING(edburns): take care of relative URL
+                                status = href;
+                            }
+                            if (null != id || null != name || null != nodeName
+                                    || null != value) {
+                                status = status + " domNode: " + nodeName + " id: " + id
+                                        + " name: " + name + " value: " + value;
+                                updateStatusInfo(status);
+                            }
                         }
                     }
                 }
@@ -440,7 +444,8 @@ public class TestBrowser extends JPanel {
                     // Check if the text value starts with known protocols.
                     if (inputValue.toLowerCase().startsWith("http://")
                             || inputValue.toLowerCase().startsWith("ftp://")
-                            || inputValue.toLowerCase().startsWith("gopher://")) {
+                            || inputValue.toLowerCase().startsWith("gopher://")
+                            || inputValue.toLowerCase().startsWith("file://")) {
                         curUrl = new URL(inputValue);
                     } else {
                         if (inputValue.toLowerCase().startsWith("ftp.")) {

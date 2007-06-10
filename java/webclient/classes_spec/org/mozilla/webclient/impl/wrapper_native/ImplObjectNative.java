@@ -100,7 +100,7 @@ protected int getNativeBrowserControl() {
 }
 
 protected boolean isNativeEventThread() {
-    return (Thread.currentThread() == NativeEventThread.instance);
+    return (NativeEventThread.instance.isNativeEventThread());
 }
     
 

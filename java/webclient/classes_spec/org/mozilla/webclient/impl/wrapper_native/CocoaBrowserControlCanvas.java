@@ -28,10 +28,11 @@ package org.mozilla.webclient.impl.wrapper_native;
 
 import org.mozilla.webclient.BrowserControlCanvas;
 
-import org.mozilla.util.ReturnRunnable;
-import org.mozilla.webclient.impl.wrapper_native.NativeEventThread;
-
 import java.awt.*;
+import java.util.logging.Logger;
+import org.mozilla.util.Log;
+import org.mozilla.util.ReturnRunnable;
+import org.mozilla.webclient.impl.WrapperFactory;
 
 /**
  *
@@ -39,13 +40,20 @@ import java.awt.*;
  */
 public class CocoaBrowserControlCanvas extends BrowserControlCanvas {
     
+    public static final String LOG = "org.mozilla.webclient.impl.wrapper_native.CocoaBrowserControlCanvas";
+
+    public static final Logger LOGGER = Log.getLogger(LOG);
+    
+    
     /** Creates a new instance of CocoaBrowserControlCanvas */
     public CocoaBrowserControlCanvas() {
     }
     
     //New method for obtaining access to the Native Peer handle
     private native int getHandleToPeer();
-    private native void paintMe(Graphics g);
+    
+    private boolean didGetWindow = false;
+    private int nativeView = 0;
     
 	/**
 	 * Obtain the native window handle for this
@@ -54,40 +62,29 @@ public class CocoaBrowserControlCanvas extends BrowserControlCanvas {
 	 * @returns The native window handle. 
 	 */
     protected int getWindow() {
-	Integer result = (Integer)
-	    NativeEventThread.instance.pushBlockingReturnRunnable(new ReturnRunnable(){
-		    public Object run() {
-			Integer result = 
-			    new Integer(CocoaBrowserControlCanvas.this.getHandleToPeer());
-			return result;
-		    }
-                    public String toString() {
-                        return "WCRunnable.getHandleToPeer";
-                    }
+        if (!didGetWindow) {
+            Integer result = (Integer)
+            NativeEventThread.instance.pushBlockingReturnRunnable(new ReturnRunnable(){
+                public Object run() {
+                    Integer result =
+                            new Integer(CocoaBrowserControlCanvas.this.getHandleToPeer());
+                    return result;
+                }
+                public String toString() {
+                    return "WCRunnable.getHandleToPeer";
+                }
 
-		});
-	return result.intValue();
+            });
+            nativeView = result.intValue();
+        }
+	return nativeView;
+        
     }
-    
-    public void paint(Graphics g) {    
-        g.setColor(Color.green);
-        g.fillRect(0, 0, 100, 100);
         
-        g.setColor(Color.blue);
-        g.fillRect(5, 5, 90, 90);
-        
-        // flush any outstanding graphics operations
-        Toolkit.getDefaultToolkit().sync(); 
-        // Call native code to render third (red) rect
-        paintMe(g);
-    
-        g.setColor(Color.yellow);
-        g.fillRect(25, 25, 50, 50);
-        
-        g.setColor(Color.black);
-        g.fillRect(40, 40, 20, 20);
+    public static NativeEventThread newNativeEventThread(WrapperFactory owner) {
+        NativeEventThread result = new CocoaAppKitThreadDelegatingNativeEventThread("WebclientEventThread",
+                owner);
+        return result;
     }
-    
-        
     
 }

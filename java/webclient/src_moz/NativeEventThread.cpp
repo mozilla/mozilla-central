@@ -41,6 +41,11 @@
 #include <windows.h>
 #endif
 
+#if (defined(XP_MAC) || defined(XP_MACOSX)) && defined(MOZ_WIDGET_COCOA)
+#include "CocoaBrowserControlCanvas.h"
+#include "org_mozilla_webclient_impl_wrapper_0005fnative_CocoaAppKitThreadDelegatingNativeEventThread.h"
+#endif
+
 //#include "nsAppShellCIDs.h" // for NS_SESSIONHISTORY_CID
 #include "nsCOMPtr.h" // to get nsIBaseWindow from webshell
 //nsIDocShell is included in ns_util.h
@@ -428,5 +433,43 @@ nsresult InitMozillaStuff (NativeBrowserControl * nativeBrowserControl)
     return rv;
 }
 
+#if (defined(XP_MAC) || defined(XP_MACOSX)) && defined(MOZ_WIDGET_COCOA)
+
+JNIEXPORT jobject JNICALL 
+Java_org_mozilla_webclient_impl_wrapper_1native_CocoaAppKitThreadDelegatingNativeEventThread_runReturnRunnableOnAppKitThread
+(JNIEnv *env, jobject javaThis, jobject toInvoke)
+{
+    jobject result = nsnull;
+    
+    if (nsnull == javaThis || nsnull == toInvoke) {
+        ::util_ThrowExceptionToJava(env, "CocoaAppKitThreadDelegatingNativeEventThread.runReturnRunnableOnAppKitThread: null arguments");
+        return;
+    }
+
+    result = CocoaBrowserControlCanvas::runReturnRunnableOnAppKitThread(env, 
+                                                                  javaThis, 
+                                                                  toInvoke);
+
+    return result;
+}
+
+JNIEXPORT void JNICALL 
+Java_org_mozilla_webclient_impl_wrapper_1native_CocoaAppKitThreadDelegatingNativeEventThread_runRunnableOnAppKitThread
+(JNIEnv *env, jobject javaThis, jobject toInvoke)
+{
+    // Store our pointer to the global vm
+    if (nsnull == gVm) { // declared in ../src_share/jni_util.h
+        ::util_GetJavaVM(env, &gVm);  // save this vm reference
+    }
+
+    if (nsnull == javaThis || nsnull == toInvoke) {
+        ::util_ThrowExceptionToJava(env, "CocoaAppKitThreadDelegatingNativeEventThread.runReturnRunnableOnAppKitThread: null arguments");
+        return;
+    }
+    
+    CocoaBrowserControlCanvas::runRunnableOnAppKitThread(env, javaThis, 
+                                                         toInvoke);
+}
 
 
+#endif
