@@ -52,6 +52,7 @@ my %product_destination_map = (
 	"Sunbird"                       => "mozilla.feedback",
 	"Camino"                        => "caminofeedback\@mozilla.org",
 	"eBay Companion"                => "mozilla.feedback.companion.ebay",
+	"Developer Center"              => "mozilla.dev.mdc.feedback",
 	"Other"                         => "mozilla.feedback"
 );
 
@@ -60,7 +61,7 @@ my @products_list = (
 	"Firefox", "Firefox Release Candidate", "Thunderbird", 
   "Thunderbird Release Candidate", "Gran Paradiso", "Minefield", 
   "Camino", "SeaMonkey", "Mozilla Suite", "Sunbird", 
-	"Other"
+	"Developer Center", "Other"
 );
 
 # The default newsgroup if the product isn't in the above map (NNTP only)

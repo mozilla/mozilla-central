@@ -51,16 +51,23 @@ function browserDetect() {
     { regexp: /GranParadiso/, product: "Gran Paradiso" },
   ];
   
-  for (var i = 0; i < matches.length; i++) {
-    if (userAgent.match(matches[i]["regexp"])) {
-      var prod = document.getElementById("product");
-      for (var j = 0; j < prod.options.length; j++) {
-        if (prod.options[j].text == matches[i].product) {
-          prod.selectedIndex = j;
-        }
+  var defaultProduct = "[% form.product FILTER remove('"') %]";
+  
+  if (!defaultProduct) {
+    for (var i = 0; i < matches.length; i++) {
+      if (userAgent.match(matches[i]["regexp"])) {
+        defaultProduct = matches[i].product;  
+        break;
       }
-      
-      break;
+    }
+  }
+  
+  if (defaultProduct) {
+    var prod = document.getElementById("product");
+    for (var j = 0; j < prod.options.length; j++) {
+      if (prod.options[j].text == defaultProduct) {
+        prod.selectedIndex = j;
+      }
     }
   }
 }
