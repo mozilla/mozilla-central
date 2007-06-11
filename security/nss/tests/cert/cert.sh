@@ -86,6 +86,17 @@ cert_init()
       html_head "Certutil and Crlutil Tests"
   fi
 
+  LIBDIR="${DIST}/${OBJDIR}/lib"
+
+  ROOTCERTSFILE=`ls -1 ${LIBDIR}/*nssckbi* | head -1`
+  if [ ! "${ROOTCERTSFILE}" ] ; then
+      html_failed "<TR><TD>Looking for root certs module." 
+      cert_log "ERROR: Root certs module not found."
+      Exit 5 "Fatal - Root certs module not found."
+  else
+      html_passed "<TR><TD>Looking for root certs module."
+  fi
+
   ################## Generate noise for our CA cert. ######################
   # NOTE: these keys are only suitable for testing, as this whole thing 
   # bypasses the entropy gathering. Don't use this method to generate 
@@ -144,8 +155,6 @@ certu()
         html_passed "<TR><TD>${CU_ACTION}"
     fi
 
-    # echo "Contine?"
-    # cat > /dev/null
     return $RET
 }
 
@@ -169,8 +178,25 @@ crlu()
         html_passed "<TR><TD>${CU_ACTION}"
     fi
 
-    # echo "Contine?"
-    # cat > /dev/null
+    return $RET
+}
+
+modu()
+{
+    echo "$SCRIPTNAME: ${CU_ACTION} --------------------------"
+
+    MODUTIL="modutil"
+    echo "$MODUTIL $*"
+    echo | $MODUTIL $*
+    RET=$?
+    if [ "$RET" -ne 0 ]; then
+        MODFAILED=$RET
+        html_failed "<TR><TD>${CU_ACTION} ($RET) " 
+        cert_log "ERROR: ${CU_ACTION} failed $RET"
+    else
+        html_passed "<TR><TD>${CU_ACTION}"
+    fi
+
     return $RET
 }
 
@@ -190,9 +216,9 @@ cert_init_cert()
         echo "$SCRIPTNAME: WARNING - ${CERTDIR} exists"
     fi
     cd "${CERTDIR}"
-    CERTDIR="." 
+    CERTDIR="."
 
-    PROFILEDIR=${CERTDIR}
+    PROFILEDIR=`cd ${CERTDIR}; pwd`
     if [ -n "${MULTIACCESS_DBM}" ]; then
 	PROFILEDIR="multiaccess:${DOMAIN}"
     fi
@@ -211,7 +237,6 @@ hw_acc()
         echo "creating $CERTNAME s cert with hwaccelerator..."
         #case $ACCELERATOR in
         #rainbow)
-   
 
         echo "modutil -add rainbow -libfile /usr/lib/libcryptoki22.so "
         echo "         -dbdir ${PROFILEDIR} 2>&1 "
@@ -259,13 +284,22 @@ cert_create_cert()
     if [ "$RET" -ne 0 ]; then
         return $RET
     fi
+
+    CU_ACTION="Loading root cert module to ${CERTNAME}'s Cert DB"
+    modu -add "RootCerts" -libfile "${ROOTCERTSFILE}" -dbdir "${PROFILEDIR}" 2>&1   
+    if [ "$RET" -ne 0 ]; then
+        return $RET
+    fi
+
     hw_acc
+
     CU_ACTION="Import Root CA for $CERTNAME"
     certu -A -n "TestCA" -t "TC,TC,TC" -f "${R_PWFILE}" -d "${PROFILEDIR}" \
           -i "${R_CADIR}/root.cert" 2>&1
     if [ "$RET" -ne 0 ]; then
         return $RET
     fi
+
     if [ -n "$NSS_ENABLE_ECC" ] ; then
 	CU_ACTION="Import EC Root CA for $CERTNAME"
 	certu -A -n "TestCA-ec" -t "TC,TC,TC" -f "${R_PWFILE}" \
@@ -274,6 +308,7 @@ cert_create_cert()
             return $RET
 	fi
     fi
+
     cert_add_cert "$5"
     return $?
 }
@@ -453,17 +488,24 @@ cert_CA()
   cd ${CUR_CADIR}
   pwd
 
-  LPROFILE=.
+  LPROFILE=`pwd`
   if [ -n "${MULTIACCESS_DBM}" ]; then
 	LPROFILE="multiaccess:${DOMAIN}"
   fi
 
   if [ "$SIGNER" = "-x" ] ; then # self signed -> create DB
       CU_ACTION="Creating CA Cert DB"
-      certu -N -d ${LPROFILE} -f ${R_PWFILE} 2>&1
+      certu -N -d "${LPROFILE}" -f ${R_PWFILE} 2>&1
       if [ "$RET" -ne 0 ]; then
           Exit 5 "Fatal - failed to create CA $NICKNAME "
       fi
+
+      CU_ACTION="Loading root cert module to CA Cert DB"
+      modu -add "RootCerts" -libfile "${ROOTCERTSFILE}" -dbdir "${LPROFILE}" 2>&1   
+      if [ "$RET" -ne 0 ]; then
+          return $RET
+      fi
+
       echo "$SCRIPTNAME: Certificate initialized ----------"
   fi
 
@@ -685,6 +727,9 @@ cert_extended_ssl()
   CU_ACTION="Initializing ${CERTNAME}'s Cert DB (ext.)"
   certu -N -d "${PROFILEDIR}" -f "${R_PWFILE}" 2>&1
 
+  CU_ACTION="Loading root cert module to ${CERTNAME}'s Cert DB (ext.)"
+  modu -add "RootCerts" -libfile "${ROOTCERTSFILE}" -dbdir "${PROFILEDIR}" 2>&1
+
   CU_ACTION="Generate Cert Request for $CERTNAME (ext)"
   CU_SUBJECT="CN=$CERTNAME, E=${CERTNAME}@bogus.com, O=BOGUS NSS, L=Mountain View, ST=California, C=US"
   certu -R -d "${PROFILEDIR}" -f "${R_PWFILE}" -z "${R_NOISE_FILE}" -o req 2>&1
@@ -769,6 +814,9 @@ cert_extended_ssl()
 
   CU_ACTION="Initializing ${CERTNAME}'s Cert DB (ext.)"
   certu -N -d "${PROFILEDIR}" -f "${R_PWFILE}" 2>&1
+
+  CU_ACTION="Loading root cert module to ${CERTNAME}'s Cert DB (ext.)"
+  modu -add "RootCerts" -libfile "${ROOTCERTSFILE}" -dbdir "${PROFILEDIR}" 2>&1
 
   CU_ACTION="Generate Cert Request for $CERTNAME (ext)"
   CU_SUBJECT="CN=$CERTNAME, E=${CERTNAME}@bogus.com, O=BOGUS NSS, L=Mountain View, ST=California, C=US"
@@ -902,7 +950,7 @@ cert_stresscerts()
   CERTDIR="$CLIENTDIR"
   cd "${CERTDIR}"
 
-  PROFILEDIR=${CERTDIR}
+  PROFILEDIR=`cd ${CERTDIR}; pwd`
   if [ -n "${MULTIACCESS_DBM}" ]; then
      PROFILEDIR="multiaccess:${D_CLIENT}"
   fi
@@ -939,6 +987,9 @@ cert_fips()
   CU_ACTION="Initializing ${CERTNAME}'s Cert DB"
   certu -N -d "${PROFILEDIR}" -f "${R_FIPSPWFILE}" 2>&1
 
+  CU_ACTION="Loading root cert module to ${CERTNAME}'s Cert DB (ext.)"
+  modu -add "RootCerts" -libfile "${ROOTCERTSFILE}" -dbdir "${PROFILEDIR}" 2>&1
+
   echo "$SCRIPTNAME: Enable FIPS mode on database -----------------------"
   CU_ACTION="Enable FIPS mode on database for ${CERTNAME}"
   echo "modutil -dbdir ${PROFILEDIR} -fips true "
@@ -971,12 +1022,18 @@ cert_eccurves()
   if [ -n "$NSS_ENABLE_ECC" ] ; then
     echo "$SCRIPTNAME: Creating Server CA Issued Certificate for "
     echo "             EC Curves Test Certificates ------------------------------------"
-    cert_init_cert ${ECCURVES_DIR} "EC Curves Test Certificates" 1 ${D_ECCURVES}
+
+    cert_init_cert "${ECCURVES_DIR}" "EC Curves Test Certificates" 1 ${D_ECCURVES}
+
     CU_ACTION="Initializing EC Curve's Cert DB"
-    certu -N -d "${ECCURVES_DIR}" -f "${R_PWFILE}" 2>&1
-	CU_ACTION="Import EC Root CA for $CERTNAME"
-	certu -A -n "TestCA-ec" -t "TC,TC,TC" -f "${R_PWFILE}" \
-	    -d "${PROFILEDIR}" -i "${R_CADIR}/ecroot.cert" 2>&1
+    certu -N -d "${PROFILEDIR}" -f "${R_PWFILE}" 2>&1
+
+    CU_ACTION="Loading root cert module to EC Curve's Cert DB"
+    modu -add "RootCerts" -libfile "${ROOTCERTSFILE}" -dbdir "${PROFILEDIR}" 2>&1
+
+    CU_ACTION="Import EC Root CA for $CERTNAME"
+    certu -A -n "TestCA-ec" -t "TC,TC,TC" -f "${R_PWFILE}" \
+        -d "${PROFILEDIR}" -i "${R_CADIR}/ecroot.cert" 2>&1
 
     if [ -n "${NSS_ECC_MORE_THAN_SUITE_B}" ] ; then
       CURVE_LIST="c2pnb163v1 c2pnb163v2 c2pnb163v3 c2pnb176v1 \
@@ -1006,7 +1063,7 @@ cert_eccurves()
 	CERTSERIAL=`expr $CERTSERIAL + 1 `
 	CU_ACTION="Generate EC Cert Request for $CERTNAME"
 	CU_SUBJECT="CN=$CERTNAME, E=${CERTNAME}-ec@bogus.com, O=BOGUS NSS, L=Mountain View, ST=California, C=US"
-	certu -R -k ec -q "${CURVE}" -d "${ECCURVES_DIR}" -f "${R_PWFILE}" \
+	certu -R -k ec -q "${CURVE}" -d "${PROFILEDIR}" -f "${R_PWFILE}" \
 		-z "${R_NOISE_FILE}" -o req  2>&1
 	
 	if [ $RET -eq 0 ] ; then
@@ -1017,7 +1074,7 @@ cert_eccurves()
 	
 	if [ $RET -eq 0 ] ; then
 	  CU_ACTION="Import $CERTNAME's EC Cert"
-	  certu -A -n "${CERTNAME}-ec" -t "u,u,u" -d "${ECCURVES_DIR}" \
+	  certu -A -n "${CERTNAME}-ec" -t "u,u,u" -d "${PROFILEDIR}" \
 		-f "${R_PWFILE}" -i "${CERTNAME}-ec.cert" 2>&1
 	fi
     done
@@ -1111,7 +1168,7 @@ cert_crl_ssl()
 
   cd $CADIR
   
-  PROFILEDIR=${CLIENTDIR}
+  PROFILEDIR=`cd ${CLIENTDIR}; pwd`
   CRL_GRPS_END=`expr ${CRL_GRP_1_BEGIN} + ${TOTAL_CRL_RANGE} - 1`
   echo "$SCRIPTNAME: Creating Client CA Issued Certificates Range $CRL_GRP_1_BEGIN - $CRL_GRPS_END ==="
   CU_ACTION="Creating client test certs"

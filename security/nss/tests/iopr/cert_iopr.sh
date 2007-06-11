@@ -79,8 +79,16 @@ createDBDir() {
     trgDir=$1
 
     if [ -z "`ls $trgDir | grep db`" ]; then
-        CU_ACTION="Initializing DB at $dir"
+        trgDir=`cd ${trgDir}; pwd`
+
+        CU_ACTION="Initializing DB at ${trgDir}"
         certu -N -d "${trgDir}" -f "${R_PWFILE}" 2>&1
+        if [ "$RET" -ne 0 ]; then
+            return $RET
+        fi
+
+        CU_ACTION="Loading root cert module to Cert DB at ${trgDir}"
+        modu -add "RootCerts" -libfile "${ROOTCERTSFILE}" -dbdir "${trgDir}" 2>&1
         if [ "$RET" -ne 0 ]; then
             return $RET
         fi
