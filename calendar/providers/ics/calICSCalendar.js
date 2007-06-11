@@ -170,12 +170,12 @@ calICSCalendar.prototype = {
         this.refresh();
     },
 
-    refresh: function() {
-        // Lock other changes to the item list.
-        this.lock();
-        // set to prevent writing after loading, without any changes
-        this.loading = true;
+    refresh: function calICSCalendar_refresh() {
+        this.queue.push({action: 'refresh'});
+        this.processQueue();
+    },
 
+    doRefresh: function calICSCalendar_doRefresh() {
         var ioService = Components.classes["@mozilla.org/network/io-service;1"]
                                   .getService(Components.interfaces.nsIIOService);
 
@@ -189,6 +189,10 @@ calICSCalendar.prototype = {
 
         var streamLoader = Components.classes["@mozilla.org/network/stream-loader;1"]
                                      .createInstance(Components.interfaces.nsIStreamLoader);
+
+        // Lock other changes to the item list.
+        this.lock();
+
         try {
             if (isOnBranch) {
                 streamLoader.init(channel, this, this);
@@ -268,7 +272,7 @@ calICSCalendar.prototype = {
             this.mObserver.onError(e.result, e.toString());
         }
         this.mObserver.onEndBatch();
-        this.mObserver.onLoad();
+        this.mObserver.onLoad(this);
         
         // Now that all items have been stuffed into the memory calendar
         // we should add ourselves as observer. It is important that this
@@ -358,8 +362,9 @@ calICSCalendar.prototype = {
             listener.serializer.addProperty(prop);
         }
 
-        this.getItems(calICalendar.ITEM_FILTER_TYPE_ALL | calICalendar.ITEM_FILTER_COMPLETED_ALL,
-                      0, null, null, listener);
+        // don't call this.getItems, because we are locked:
+        this.mMemoryCalendar.getItems(calICalendar.ITEM_FILTER_TYPE_ALL | calICalendar.ITEM_FILTER_COMPLETED_ALL,
+                                      0, null, null, listener);
     },
 
     // nsIStreamListener impl
@@ -432,15 +437,18 @@ calICSCalendar.prototype = {
     },
 
     getItem: function (aId, aListener) {
-        return this.mMemoryCalendar.getItem(aId, aListener);
+        this.queue.push({action:'get_item', id:aId, listener:aListener});
+        this.processQueue();
     },
 
     getItems: function (aItemFilter, aCount,
                         aRangeStart, aRangeEnd, aListener)
     {
-        return this.mMemoryCalendar.getItems(aItemFilter, aCount,
-                                             aRangeStart, aRangeEnd,
-                                             aListener);
+        this.queue.push({action:'get_items',
+                         itemFilter:aItemFilter, count:aCount,
+                         rangeStart:aRangeStart, rangeEnd:aRangeEnd,
+                         listener:aListener});
+        this.processQueue();
     },
 
     processQueue: function ()
@@ -448,23 +456,53 @@ calICSCalendar.prototype = {
         if (this.isLocked())
             return;
         var a;
-        var hasItems = this.queue.length;
+        var writeICS = false;
+        var refreshAction = null;
         while ((a = this.queue.shift())) {
             switch (a.action) {
                 case 'add':
                     this.mMemoryCalendar.addItem(a.item, a.listener);
+                    writeICS = true;
                     break;
                 case 'modify':
                     this.mMemoryCalendar.modifyItem(a.newItem, a.oldItem,
                                                     a.listener);
+                    writeICS = true;
                     break;
                 case 'delete':
                     this.mMemoryCalendar.deleteItem(a.item, a.listener);
+                    writeICS = true;
+                    break;
+                case 'get_item':
+                    this.mMemoryCalendar.getItem(a.id, a.listener);
+                    break;
+                case 'get_items':
+                    this.mMemoryCalendar.getItems(a.itemFilter, a.count,
+                                                  a.rangeStart, a.rangeEnd,
+                                                  a.listener);
+                    break;
+                case 'refresh':
+                    refreshAction = a;
                     break;
             }
+            if (refreshAction) {
+                // break queue processing here and wait for refresh to finish
+                // before processing further operations
+                break;
+            }
         }
-        if (hasItems)
+        if (writeICS) {
+            if (refreshAction) {
+                // reschedule the refresh for next round, after the file has been written;
+                // strictly we may not need to refresh once the file has been successfully
+                // written, but we don't know if that write will succeed.
+                this.queue.unshift(refreshAction);
+            }
             this.writeICS();
+        }
+        else if (refreshAction) {
+            this.doRefresh();
+        }
     },
 
     lock: function () {
@@ -740,9 +778,9 @@ calICSObserver.prototype = {
 
         this.mInBatch = false;
     },
-    onLoad: function() {
+    onLoad: function(calendar) {
         for (var i = 0; i < this.mObservers.length; i++)
-            this.mObservers[i].onLoad();
+            this.mObservers[i].onLoad(calendar);
     },
     onAddItem: function(aItem) {
         for (var i = 0; i < this.mObservers.length; i++)

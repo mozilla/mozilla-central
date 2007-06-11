@@ -495,7 +495,7 @@ agendaTreeView.calendarObserver.onEndBatch = function() {
         this.agendaTreeView.refreshCalendarQuery();
     }
 };
-agendaTreeView.calendarObserver.onLoad = function() {
+agendaTreeView.calendarObserver.onLoad = function(calendar) {
     this.agendaTreeView.refreshCalendarQuery();
 };
 

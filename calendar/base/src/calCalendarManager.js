@@ -622,7 +622,7 @@ function errorAnnouncer(calendar) {
         // calIObserver:
         onStartBatch: function() {},
         onEndBatch: function() {},
-        onLoad: function() {},
+        onLoad: function(calendar) {},
         onAddItem: function(aItem) {},
         onModifyItem: function(aNewItem, aOldItem) {},
         onDeleteItem: function(aDeletedItem) {},

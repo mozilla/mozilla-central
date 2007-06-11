@@ -843,7 +843,7 @@ calStorageCalendar.prototype = {
     //
     observeLoad: function () {
         for each (obs in this.mObservers)
-            obs.onLoad ();
+            obs.onLoad (this);
     },
 
     observeBatchChange: function (aNewBatchMode) {

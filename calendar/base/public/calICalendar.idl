@@ -392,7 +392,7 @@ interface calIObserver : nsISupports
 {
   void onStartBatch();
   void onEndBatch();
-  void onLoad();
+  void onLoad( in calICalendar aCalendar );
   void onAddItem( in calIItemBase aItem );
   void onModifyItem( in calIItemBase aNewItem, in calIItemBase aOldItem );
   void onDeleteItem( in calIItemBase aDeletedItem );

@@ -148,7 +148,7 @@ var ltnCompositeCalendarObserver = {
     // calIObserver
     onStartBatch: function() { },
     onEndBatch: function() { },
-    onLoad: function() { },
+    onLoad: function(aCalendar) { },
     onAddItem: function(aItem) { },
     onModifyItem: function(aNewItem, aOldItem) { },
     onDeleteItem: function(aDeletedItem) { },

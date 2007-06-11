@@ -74,8 +74,8 @@ calCompositeCalendarObserverHelper.prototype = {
         this.notifyObservers("onEndBatch");
     },
 
-    onLoad: function() {
-        this.notifyObservers("onLoad");
+    onLoad: function(calendar) {
+        this.notifyObservers("onLoad", [calendar]);
     },
 
     onAddItem: function(aItem) {

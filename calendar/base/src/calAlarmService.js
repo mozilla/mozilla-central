@@ -51,13 +51,22 @@ function newTimerWithCallback(callback, delay, repeating)
 function calAlarmService() {
     this.wrappedJSObject = this;
 
+    this.mLoadedCalendars = {};
+
     this.calendarObserver = {
         alarmService: this,
 
         // calIObserver:
         onStartBatch: function() { },
         onEndBatch: function() { },
-        onLoad: function() { },
+        onLoad: function co_onLoad(calendar) {
+            // ignore any onLoad events until initial getItems() call of startup has finished:
+            if (calendar && this.alarmService.mLoadedCalendars[calendar.id]) {
+                // a refreshed calendar signals that it has been reloaded
+                // (and cannot notify detailed changes), thus reget all alarms of it:
+                this.alarmService.initAlarms([calendar]);
+            }
+        },
         onAddItem: function(aItem) {
             var occs = [];
             if (aItem.recurrenceInfo) {
@@ -95,8 +104,13 @@ function calAlarmService() {
 
         onCalendarRegistered: function(aCalendar) {
             this.alarmService.observeCalendar(aCalendar);
+            // initial refresh of alarms for new calendar:
+            this.alarmService.initAlarms([aCalendar]);
         },
         onCalendarUnregistering: function(aCalendar) {
+            // XXX todo: we need to think about calendar unregistration;
+            // there may still be dangling items (-> alarm dialog),
+            // dismissing those alarms may write data...
             this.alarmService.unobserveCalendar(aCalendar);
         },
         onCalendarDeleting: function(aCalendar) {},
@@ -254,7 +268,6 @@ calAlarmService.prototype = {
         observerSvc.addObserver(this, "xpcom-shutdown", false);
 
         /* Tell people that we're alive so they can start monitoring alarms.
-         * Make sure to do this before calling findAlarms().
          */
         this.notifier = Components.classes["@mozilla.org/embedcomp/appstartup-notifier;1"].getService(Components.interfaces.nsIObserver);
         var notifier = this.notifier;
@@ -269,15 +282,39 @@ calAlarmService.prototype = {
             this.observeCalendar(calendar);
         }
 
-        this.findAlarms();
-
         /* set up a timer to update alarms every N hours */
         var timerCallback = {
             alarmService: this,
-            notify: function(timer) {
-                this.alarmService.findAlarms();
+            notify: function timer_notify() {
+                var now = jsDateToDateTime((new Date())).getInTimezone("UTC");
+                var start;
+                if (!this.alarmService.mRangeEnd) {
+                    // This is our first search for alarms.  We're going to look for
+                    // alarms +/- 1 month from now.  If someone sets an alarm more than
+                    // a month ahead of an event, or doesn't start Sunbird/Lightning
+                    // for a month, they'll miss some, but that's a slim chance
+                    start = now.clone();
+                    start.month -= 1;
+                    start.normalize();
+                } else {
+                    // This is a subsequent search, so we got all the past alarms before
+                    start = this.alarmService.mRangeEnd.clone();
+                }
+                var until = now.clone();
+                until.month += 1;
+                until.normalize();
+                
+                // We don't set timers for every future alarm, only those within 6 hours
+                var end = now.clone();
+                end.hour += kHoursBetweenUpdates;
+                end.normalize();
+                this.alarmService.mRangeEnd = end.getInTimezone("UTC");
+
+                this.alarmService.findAlarms(this.alarmService.calendarManager.getCalendars({}),
+                                             start, until);
             }
         };
+        timerCallback.notify();
 
         this.mUpdateTimer = newTimerWithCallback(timerCallback, kHoursBetweenUpdates * 3600000, true);
 
@@ -430,14 +467,19 @@ dump("alarm is in the past, and unack'd, firing now!\n");
         }
     },
 
-    findAlarms: function() {
+    findAlarms: function cas_findAlarms(calendars, start, until) {
         var getListener = {
             alarmService: this,
             onOperationComplete: function(aCalendar, aStatus, aOperationType, aId, aDetail) {
+                // calendar has been loaded, so until now, onLoad events can be ignored:
+                this.alarmService.mLoadedCalendars[aCalendar.id] = true;
             },
             onGetResult: function(aCalendar, aStatus, aItemType, aDetail, aCount, aItems) {
                 for (var i = 0; i < aCount; ++i) {
                     var item = aItems[i];
+                    // assure we don't fire alarms twice, handle removed alarms as far as we can:
+                    // e.g. we cannot purge removed items from ics files. XXX todo.
+                    this.alarmService.removeAlarm(item);
                     if (this.alarmService.hasAlarm(item)) {
                         this.alarmService.addAlarm(item);
                     }
@@ -445,33 +487,6 @@ dump("alarm is in the past, and unack'd, firing now!\n");
             }
         };
 
-        var now = jsDateToDateTime((new Date())).getInTimezone("UTC");
-
-        var start;
-        if (!this.mRangeEnd) {
-            // This is our first search for alarms.  We're going to look for
-            // alarms +/- 1 month from now.  If someone sets an alarm more than
-            // a month ahead of an event, or doesn't start Sunbird/Lightning
-            // for a month, they'll miss some, but that's a slim chance
-            start = now.clone();
-            start.month -= 1;
-            start.normalize();
-        } else {
-            // This is a subsequent search, so we got all the past alarms before
-            start = this.mRangeEnd.clone();
-        }
-        var until = now.clone();
-        until.month += 1;
-        until.normalize();
-
-        // We don't set timers for every future alarm, only those within 6 hours
-        var end = now.clone();
-        end.hour += kHoursBetweenUpdates;
-        end.normalize();
-        this.mRangeEnd = end.getInTimezone("UTC");
-
-        var calendarManager = this.calendarManager;
-        var calendars = calendarManager.getCalendars({});
         const calICalendar = Components.interfaces.calICalendar;
         var filter = calICalendar.ITEM_FILTER_COMPLETED_ALL |
                      calICalendar.ITEM_FILTER_CLASS_OCCURRENCES |
@@ -480,6 +495,20 @@ dump("alarm is in the past, and unack'd, firing now!\n");
         for each(var calendar in calendars) {
             calendar.getItems(filter, 0, start, until, getListener);
         }
+    },
+
+    initAlarms: function cas_refreshAlarms(calendars) {
+        // Total refresh similar to startup.  We're going to look for
+        // alarms +/- 1 month from now.  If someone sets an alarm more than
+        // a month ahead of an event, or doesn't start Sunbird/Lightning
+        // for a month, they'll miss some, but that's a slim chance
+        var start = jsDateToDateTime((new Date())).getInTimezone("UTC");
+        var until = start.clone();
+        start.month -= 1;
+        start.normalize();
+        until.month += 1;
+        until.normalize();
+        this.findAlarms(calendars, start, until);
     },
 
     alarmFired: function(event) {
