@@ -1640,7 +1640,7 @@ nsresult nsDogbertProfileMigrator::RenameAndMove4xImapFilterFile(nsILocalFile * 
 nsresult nsDogbertProfileMigrator::RenameAndMove4xImapFilterFiles(nsILocalFile * profilePath)
 {
   nsresult rv;
-  nsCString hostList
+  nsCString hostList;
 
   rv = mPrefs->GetCharPref(PREF_4X_NETWORK_HOSTS_IMAP_SERVER, getter_Copies(hostList));
   if (NS_FAILED(rv)) return rv;
