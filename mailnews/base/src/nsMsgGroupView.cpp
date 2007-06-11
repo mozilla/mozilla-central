@@ -629,27 +629,27 @@ NS_IMETHODIMP nsMsgGroupView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsA
           switch (((nsPRUint32Key *)hashKey)->GetValue())
           {
           case 1:
-            if (!m_kTodayString.get())
+            if (m_kTodayString.IsEmpty())
               m_kTodayString.Adopt(GetString(NS_LITERAL_STRING("today").get()));
             aValue.Assign(m_kTodayString);
             break;
           case 2:
-            if (!m_kYesterdayString.get())
+            if (m_kYesterdayString.IsEmpty())
               m_kYesterdayString.Adopt(GetString(NS_LITERAL_STRING("yesterday").get()));
             aValue.Assign(m_kYesterdayString);
             break;
           case 3:
-            if (!m_kLastWeekString.get())
+            if (m_kLastWeekString.IsEmpty())
               m_kLastWeekString.Adopt(GetString(NS_LITERAL_STRING("lastWeek").get()));
             aValue.Assign(m_kLastWeekString);
             break;
           case 4:
-            if (!m_kTwoWeeksAgoString.get())
+            if (m_kTwoWeeksAgoString.IsEmpty())
               m_kTwoWeeksAgoString.Adopt(GetString(NS_LITERAL_STRING("twoWeeksAgo").get()));
             aValue.Assign(m_kTwoWeeksAgoString);
             break;
           case 5:
-            if (!m_kOldMailString.get())
+            if (m_kOldMailString.IsEmpty())
               m_kOldMailString.Adopt(GetString(NS_LITERAL_STRING("older").get()));
             aValue.Assign(m_kOldMailString);
             break;
