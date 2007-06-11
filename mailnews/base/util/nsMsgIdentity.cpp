@@ -289,8 +289,8 @@ nsMsgIdentity::getFolderPref(const char *prefname, nsCString& retval, PRUint32 f
       if (server)
       {
         nsCOMPtr <nsIMsgFolder> msgFolder;
-        server->GetMsgFolderFromURI(folderResource, retval, getter_AddRefs(msgFolder));
-        return msgFolder->GetURI(retval);
+        rv = server->GetMsgFolderFromURI(folderResource, retval, getter_AddRefs(msgFolder));
+        return NS_SUCCEEDED(rv) ? msgFolder->GetURI(retval) : rv;
       }
     }
   }

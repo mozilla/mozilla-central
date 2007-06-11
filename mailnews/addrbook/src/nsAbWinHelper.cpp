@@ -379,12 +379,10 @@ BOOL nsAbWinHelper::GetPropertyString(const nsMapiEntry& aObject,
 
     if (!GetMAPIProperties(aObject, &aPropertyTag, 1, values, valueCount)) { return FALSE ; }
     if (valueCount == 1 && values != NULL) {
-        if (PROP_TYPE(values->ulPropTag) == PT_STRING8) {
+        if (PROP_TYPE(values->ulPropTag) == PT_STRING8)
             aName = values->Value.lpszA ;
-        }
-        else if (PROP_TYPE(values->ulPropTag) == PT_UNICODE) {
-            aName.AssignWithConversion(values->Value.lpszW) ;
-        }
+        else if (PROP_TYPE(values->ulPropTag) == PT_UNICODE)
+            LossyCopyUTF16toASCII(values->Value.lpszW, aName);
     }
     FreeBuffer(values) ;
     return TRUE ;
@@ -399,12 +397,10 @@ BOOL nsAbWinHelper::GetPropertyUString(const nsMapiEntry& aObject, ULONG aProper
 
     if (!GetMAPIProperties(aObject, &aPropertyTag, 1, values, valueCount)) { return FALSE ; }
     if (valueCount == 1 && values != NULL) {
-        if (PROP_TYPE(values->ulPropTag) == PT_UNICODE) {
+        if (PROP_TYPE(values->ulPropTag) == PT_UNICODE)
             aName = values->Value.lpszW ;
-        }
-        else if (PROP_TYPE(values->ulPropTag) == PT_STRING8) {
-            aName.AssignWithConversion(values->Value.lpszA) ;
-        }
+        else if (PROP_TYPE(values->ulPropTag) == PT_STRING8)
+            CopyASCIItoUTF16(values->Value.lpszA, aName);
     }
     FreeBuffer(values) ;
     return TRUE ;
@@ -425,12 +421,8 @@ BOOL nsAbWinHelper::GetPropertiesUString(const nsMapiEntry& aObject, const ULONG
 
         for (i = 0 ; i < valueCount ; ++ i) {
             if (PROP_ID(values [i].ulPropTag) == PROP_ID(aPropertyTags [i])) {
-                if (PROP_TYPE(values [i].ulPropTag) == PT_STRING8) {
-                    nsAutoString temp ;
-
-                    temp.AssignWithConversion (values [i].Value.lpszA) ;
-                    aNames.AppendString(temp) ;
-                }
+                if (PROP_TYPE(values [i].ulPropTag) == PT_STRING8)
+                    aNames.AppendString(NS_ConvertASCIItoUTF16(values [i].Value.lpszA));
                 else if (PROP_TYPE(values [i].ulPropTag) == PT_UNICODE) {
                     aNames.AppendString(nsAutoString (values [i].Value.lpszW)) ;
                 }
@@ -560,7 +552,7 @@ BOOL nsAbWinHelper::SetPropertyUString(const nsMapiEntry& aObject, ULONG aProper
         value.Value.lpszW = NS_CONST_CAST(WCHAR *, aValue) ;
     }
     else if (PROP_TYPE(aPropertyTag) == PT_STRING8) {
-        alternativeValue.AssignWithConversion(aValue) ;
+        LossyCopyUTF16toASCII(aValue, alternativeValue);
         value.Value.lpszA = NS_CONST_CAST(char *, alternativeValue.get()) ;
     }
     else {
@@ -588,7 +580,7 @@ BOOL nsAbWinHelper::SetPropertiesUString(const nsMapiEntry& aObject, const ULONG
             values [currentValue ++].Value.lpszW = NS_CONST_CAST(WCHAR *, aValues [i].get()) ;
         }
         else if (PROP_TYPE(aPropertiesTag [i]) == PT_STRING8) {
-            alternativeValue.AssignWithConversion(aValues [i].get()) ;
+            LossyCopyUTF16toASCII(aValues [i].get(), alternativeValue);
             char *av = strdup(alternativeValue.get()) ;
             if (!av) {
                 retCode = FALSE ;

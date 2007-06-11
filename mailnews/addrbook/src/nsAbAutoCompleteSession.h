@@ -156,13 +156,13 @@ public:
   
   virtual ~nsAbAutoCompleteParam()
   {
-    CRTFREEIF(mNickName);
-    CRTFREEIF(mDisplayName);
-    CRTFREEIF(mFirstName);
-    CRTFREEIF(mLastName);
-    CRTFREEIF(mEmailAddress);
-    CRTFREEIF(mNotes);
-    CRTFREEIF(mDirName);
+    NS_Free(mNickName);
+    NS_Free(mDisplayName);
+    NS_Free(mFirstName);
+    NS_Free(mLastName);
+    NS_Free(mEmailAddress);
+    NS_Free(mNotes);
+    NS_Free(mDirName);
   };
   
 protected:

@@ -2482,10 +2482,10 @@ struct msgAttachment
 
   void Clear()
   {
-    CRTFREEIF(mContentType);
-    CRTFREEIF(mUrl);
-    CRTFREEIF(mDisplayName);
-    CRTFREEIF(mMessageUri);
+    NS_Free(mContentType);
+    NS_Free(mUrl);
+    NS_Free(mDisplayName);
+    NS_Free(mMessageUri);
   }
 
   PRBool Init(const char * aContentType, const char * aUrl,

@@ -292,20 +292,6 @@ nsresult nsAbLDAPProcessReplicationData::OnLDAPSearchEntry(nsILDAPMessage *aMess
         return NS_OK;
     }
 
-#ifdef DEBUG_rdayal
-        nsString firstName;
-        rv = card.GetFirstName(getter_Copies(firstName));
-        NS_ENSURE_SUCCESS(rv,rv);
-        nsString lastName;
-        rv = card.GetLastName(getter_Copies(lastName));
-        NS_ENSURE_SUCCESS(rv,rv);
-        nsCAutoString name;
-        name.AssignWithConversion(firstName);
-        name.Append("  ");
-        name.AppendWithConversion(lastName);
-        printf("\n LDAPReplication :: got card #: %d, name: %s \n", mCount, name.get());
-#endif
-
     rv = mReplicationDB->CreateNewCardAndAddToDB(newCard, PR_FALSE);
     if(NS_FAILED(rv)) {
         Abort();

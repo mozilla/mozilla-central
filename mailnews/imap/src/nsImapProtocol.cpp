@@ -4436,7 +4436,7 @@ nsImapProtocol::DiscoverMailboxSpec(nsImapMailboxSpec * adoptedBoxSpec)
         if (GetDeleteIsMoveToTrash() && // don't set the Trash flag
             // if not using the Trash model
             !onlineTrashFolderExists &&
-            adoptedBoxSpec->mAllocatedPathName.Find(GetTrashFolderName()))
+            adoptedBoxSpec->mAllocatedPathName.Find(GetTrashFolderName()) != -1)
         {
           PRBool trashExists = PR_FALSE;
           nsCString trashMatch;

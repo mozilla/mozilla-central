@@ -551,7 +551,6 @@ nsresult nsMsgI18NFormatNNTPXPATInNonRFC1522Format(const nsCString& aCharset,
                                                    nsCString& outString)
 {
   LossyCopyUTF16toASCII(inString, outString);
-  outString.AssignWithConversion(inString);
   return NS_OK;
 }
 

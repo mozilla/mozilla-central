@@ -419,7 +419,7 @@ nsMsgAccountManagerDataSource::GetTarget(nsIRDFResource *source,
 
         nsAutoString panelTitleName;
         panelTitleName.AssignLiteral("prefPanel-");
-        panelTitleName.AppendWithConversion(sourceValue + strlen(NC_RDF_PAGETITLE_PREFIX));
+        panelTitleName.Append(NS_ConvertASCIItoUTF16(sourceValue + strlen(NC_RDF_PAGETITLE_PREFIX)));
         bundle->GetStringFromName(panelTitleName.get(), getter_Copies(pageTitle));
       }
     }
@@ -464,7 +464,7 @@ nsMsgAccountManagerDataSource::GetTarget(nsIRDFResource *source,
 
         // turn NC#PageTitlefoobar into foobar, so we can get the am-foobar.xul file
         str.AssignLiteral("am-");
-        str.AppendWithConversion((sourceValue + strlen(NC_RDF_PAGETITLE_PREFIX)));
+        str.Append(NS_ConvertASCIItoUTF16(sourceValue + strlen(NC_RDF_PAGETITLE_PREFIX)));
         str.AppendLiteral(".xul");
       }
     }

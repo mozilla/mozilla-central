@@ -539,7 +539,8 @@ nsresult nsAbDirectoryDataSource::createDirectoryUriNode(nsIAbDirectory *directo
   nsCString uri;
   nsresult rv = source->GetValue(getter_Copies(uri));
   NS_ENSURE_SUCCESS(rv, rv);
-  nsAutoString nameString; nameString.AssignWithConversion(uri);
+  nsAutoString nameString;
+  CopyASCIItoUTF16(uri, nameString);
   rv = createNode(nameString.get(), target);
   NS_ENSURE_SUCCESS(rv,rv);
   return rv;

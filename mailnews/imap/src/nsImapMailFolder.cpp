@@ -1901,7 +1901,6 @@ nsImapMailFolder::GetDBFolderInfoAndDB(nsIDBFolderInfo **folderInfo, nsIMsgDatab
   else
   {
     nsAutoString autoOnlineName;
-    // autoOnlineName.AssignWithConversion(name);
     (*folderInfo)->GetMailboxName(autoOnlineName);
     if (autoOnlineName.IsEmpty())
     {
@@ -3230,11 +3229,7 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
           {
             nsCOMPtr <nsIMsgComposeService> compService = do_GetService (NS_MSGCOMPOSESERVICE_CONTRACTID) ;
             if (compService)
-            {
-              nsAutoString forwardStr;
-              forwardStr.AssignWithConversion(forwardTo.get());
-              rv = compService->ForwardMessage(forwardStr, msgHdr, msgWindow, server);
-            }
+              rv = compService->ForwardMessage(NS_ConvertASCIItoUTF16(forwardTo), msgHdr, msgWindow, server);
           }
         }
         break;
@@ -4028,17 +4023,11 @@ nsresult nsImapMailFolder::HandleCustomFlags(nsMsgKey uidOfMessage, nsIMsgDBHdr 
 {
   ToLowerCase(keywords);
   PRBool messageClassified = PR_TRUE;
-  nsCString::const_iterator b, e;
-  if (FindInReadable(NS_LITERAL_CSTRING("NonJunk"), keywords.BeginReading(b),
-                      keywords.EndReading(e), nsCaseInsensitiveCStringComparator()))
-    mDatabase->SetStringProperty(uidOfMessage, "junkscore", "0");
   // Mac Mail uses "NotJunk"
-  else if (FindInReadable(NS_LITERAL_CSTRING("NotJunk"), keywords.BeginReading(b),
-                        keywords.EndReading(e), nsCaseInsensitiveCStringComparator()))
+  if (keywords.Find("NonJunk", PR_TRUE /* ignore case */) != -1 || keywords.Find("NotJunk", PR_TRUE /* ignore case */) != -1)
     mDatabase->SetStringProperty(uidOfMessage, "junkscore", "0");
   // ### TODO: we really should parse the keywords into space delimited keywords before checking
-  else if (FindInReadable(NS_LITERAL_CSTRING("Junk"), keywords.BeginReading(b),
-                          keywords.EndReading(e), nsCaseInsensitiveCStringComparator()))
+  else if (keywords.Find("Junk", PR_TRUE /* ignore case */) != -1)
   {
     PRUint32 newFlags;
     dbHdr->AndFlags(~MSG_FLAG_NEW, &newFlags);

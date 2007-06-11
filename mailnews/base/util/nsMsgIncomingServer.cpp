@@ -1653,10 +1653,10 @@ nsMsgIncomingServer::ConfigureTemporaryServerSpamFilters(nsIMsgFilterList *filte
     return NS_OK;
   // check if filters have been setup already.
   nsAutoString yesFilterName, noFilterName;
-  yesFilterName.AppendWithConversion(serverFilterName);
+  CopyASCIItoUTF16(serverFilterName, yesFilterName);
   yesFilterName.AppendLiteral("Yes");
 
-  noFilterName.AppendWithConversion(serverFilterName);
+  CopyASCIItoUTF16(serverFilterName, noFilterName);
   noFilterName.AppendLiteral("No");
 
   nsCOMPtr<nsIMsgFilter> newFilter;

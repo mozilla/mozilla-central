@@ -151,7 +151,8 @@ nsresult
 nsImapURI2FullName(const char* rootURI, const char* hostName, const char* uriStr,
                    char **name)
 {
-    nsAutoString uri; uri.AssignWithConversion(uriStr);
+    nsAutoString uri;
+    CopyASCIItoUTF16(uriStr, uri);
     nsAutoString fullName;
     if (uri.Find(rootURI) != 0)
       return NS_ERROR_FAILURE;

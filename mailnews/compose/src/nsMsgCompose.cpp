@@ -1083,7 +1083,7 @@ NS_IMETHODIMP nsMsgCompose::SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity 
     if (NS_SUCCEEDED(rv) && !msgBody.IsEmpty())
     {
       // Convert body to mail charset
-      nsCString outCString; 
+      nsCString outCString;
       nsCString fallbackCharset;
       PRBool isAsciiOnly;
       // check if the body text is covered by the current charset.
@@ -1585,8 +1585,6 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
 
   if (m_identity)
   {
-      nsCString::const_iterator start, end;
-
       /* Setup reply-to field */
       nsCString replyTo;
       m_identity->GetReplyTo(replyTo);
@@ -1594,16 +1592,12 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
       {
         nsCString replyToStr;
         replyToStr.Assign(m_compFields->GetReplyTo());
-
-        replyToStr.BeginReading(start);
-        replyToStr.EndReading(end);
-
-        if (FindInReadable(replyTo, start, end) == PR_FALSE) {
+        if (replyToStr.Find(replyTo) == -1) {
           if (replyToStr.Length() > 0)
             replyToStr.Append(',');
           replyToStr.Append(replyTo);
+          m_compFields->SetReplyTo(replyToStr.get());
         }
-        m_compFields->SetReplyTo(replyToStr.get());
       }
 
       /* Setup bcc field */
@@ -1613,19 +1607,14 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
       {
         nsCString bccStr;
         bccStr.Assign(m_compFields->GetBcc());
-
-          bccStr.BeginReading(start);
-          bccStr.EndReading(end);
-
-          nsCString bccList;
-          m_identity->GetDoBccList(bccList);
-          if (FindInReadable(bccList, start, end) == PR_FALSE) {
-            if (bccStr.Length() > 0)
-              bccStr.Append(',');
-            bccStr.Append(bccList);
-          }
-
-        m_compFields->SetBcc(bccStr.get());
+        nsCString bccList;
+        m_identity->GetDoBccList(bccList);
+        if (bccStr.Find(bccList) == -1) {
+          if (bccStr.Length() > 0)
+            bccStr.Append(',');
+          bccStr.Append(bccList);
+          m_compFields->SetBcc(bccStr.get());
+        }
       }
   }
 
@@ -2352,19 +2341,11 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
 
         if (type == nsIMsgCompType::ReplyToList && ! listPost.IsEmpty())
         {
-          nsString::const_iterator mailtoStart, mailtoEnd;
-          listPost.BeginReading(mailtoStart);
-          listPost.EndReading(mailtoEnd);
-          nsAutoString mailtoText(NS_LITERAL_STRING("<mailto:"));
-          PRBool mailtoFound = FindInReadable(mailtoText, mailtoStart, mailtoEnd);
-
           // Strip off the leading "<mailto:" and trailing ">"
-          if (mailtoFound && listPost.Equals(mailtoStart.get()) &&
-              listPost.RFindChar('>') == listPost.Length() - 1)
+          if (StringBeginsWith(listPost, NS_LITERAL_STRING("<mailto:")) && listPost.CharAt(listPost.Length() - 1) == '>')
           {
-            listPost.Cut(0, mailtoText.Length());
+            listPost.Cut(0, strlen("<mailto:"));
             listPost.Cut(listPost.Length() - 1, 1);
-
             compFields->SetTo(listPost);
           }
         }
@@ -3804,7 +3785,7 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsStrin
            /* XXX pp This gives me 4 slashes on Unix, that's at least one to
               much. Better construct the URL with some service. */
       // this isn't right on windows - need to convert to url format...
-      sigOutput.AppendWithConversion(sigNativePath);
+      sigOutput.Append(NS_ConvertASCIItoUTF16(sigNativePath));
       sigOutput.AppendLiteral("\" border=0>");
       sigOutput.AppendLiteral(htmlsigclose);
     }

@@ -2072,7 +2072,7 @@ nsMsgComposeAndSend::ProcessMultipartRelated(PRInt32 *aMailboxCount, PRInt32 *aN
     if (m_attachments[duplicateOf == -1 ? i : duplicateOf].m_content_id)
     {
       nsString   newSpec(NS_LITERAL_STRING("cid:"));
-      newSpec.AppendWithConversion(m_attachments[duplicateOf == -1 ? i : duplicateOf].m_content_id);
+      newSpec.Append(NS_ConvertASCIItoUTF16(m_attachments[duplicateOf == -1 ? i : duplicateOf].m_content_id));
 
       // Now, we know the types of objects this node can be, so we will do
       // our query interface here and see what we come up with

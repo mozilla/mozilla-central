@@ -600,9 +600,8 @@ void Tokenizer::tokenize(const char* aText)
   stripHTML(text, strippedUCS2);
 
   // convert 0x3000(full width space) into 0x0020
-  nsString::iterator substr_start, substr_end;
-  strippedUCS2.BeginWriting(substr_start);
-  strippedUCS2.EndWriting(substr_end);
+  PRUnichar * substr_start = strippedUCS2.BeginWriting();
+  PRUnichar * substr_end = strippedUCS2.EndWriting();
   while (substr_start != substr_end) {
     if (*substr_start == 0x3000)
         *substr_start = 0x0020;

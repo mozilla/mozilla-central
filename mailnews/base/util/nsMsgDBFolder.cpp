@@ -200,14 +200,14 @@ nsMsgDBFolder::~nsMsgDBFolder(void)
 {
   if (--mInstanceCount == 0) {
     NS_IF_RELEASE(gCollationKeyGenerator);
-    CRTFREEIF(kLocalizedInboxName);
-    CRTFREEIF(kLocalizedTrashName);
-    CRTFREEIF(kLocalizedSentName);
-    CRTFREEIF(kLocalizedDraftsName);
-    CRTFREEIF(kLocalizedTemplatesName);
-    CRTFREEIF(kLocalizedUnsentName);
-    CRTFREEIF(kLocalizedJunkName);
-    CRTFREEIF(kLocalizedBrandShortName);
+    NS_Free(kLocalizedInboxName);
+    NS_Free(kLocalizedTrashName);
+    NS_Free(kLocalizedSentName);
+    NS_Free(kLocalizedDraftsName);
+    NS_Free(kLocalizedTemplatesName);
+    NS_Free(kLocalizedUnsentName);
+    NS_Free(kLocalizedJunkName);
+    NS_Free(kLocalizedBrandShortName);
 #ifdef MSG_FASTER_URI_PARSING
     mParsingURL = nsnull;
 #endif

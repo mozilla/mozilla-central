@@ -148,7 +148,7 @@ nsSubscribableServer::AddTo(const nsACString& aName, PRBool aAddAsSubscribed,
                             PRBool aSubscribable, PRBool aChangeIfExists)
 {
     nsresult rv = NS_OK;
-    
+
     if (mStopped) {
 #ifdef DEBUG_seth
         printf("stopped!\n");
@@ -158,7 +158,7 @@ nsSubscribableServer::AddTo(const nsACString& aName, PRBool aAddAsSubscribed,
 
     SubscribeTreeNode *node = nsnull;
 
-    // todo, shouldn't we pass in aAddAsSubscribed, for the 
+    // todo, shouldn't we pass in aAddAsSubscribed, for the
     // default value if we create it?
     rv = FindAndCreateNode(aName, &node);
     NS_ENSURE_SUCCESS(rv,rv);
@@ -244,7 +244,7 @@ nsSubscribableServer::NotifyAssert(SubscribeTreeNode *subjectNode, nsIRDFResourc
     if (!hasObservers) {
         return NS_OK;
     }
-    
+
     nsCAutoString subjectUri;
     BuildURIFromNode(subjectNode, subjectUri);
 
@@ -434,8 +434,8 @@ nsSubscribableServer::SetShowFullName(PRBool showFullName)
 	mShowFullName = showFullName;
 	return NS_OK;
 }
-     
-nsresult 
+
+nsresult
 nsSubscribableServer::FreeSubtree(SubscribeTreeNode *node)
 {
     nsresult rv = NS_OK;
@@ -443,7 +443,7 @@ nsSubscribableServer::FreeSubtree(SubscribeTreeNode *node)
     if (node) {
         // recursively free the children
         if (node->firstChild) {
-            // will free node->firstChild      
+            // will free node->firstChild
             rv = FreeSubtree(node->firstChild);
             NS_ENSURE_SUCCESS(rv,rv);
             node->firstChild = nsnull;
@@ -460,21 +460,21 @@ nsSubscribableServer::FreeSubtree(SubscribeTreeNode *node)
 #ifdef HAVE_SUBSCRIBE_DESCRIPTION
         NS_ASSERTION(node->description == nsnull, "you need to free the description");
 #endif
-        CRTFREEIF(node->name);
-#if 0 
+        NS_Free(node->name);
+#if 0
         node->name = nsnull;
         node->parent = nsnull;
         node->lastChild = nsnull;
         node->cachedChild = nsnull;
 #endif
 
-        PR_Free(node);  
+        PR_Free(node);
     }
 
     return NS_OK;
 }
 
-nsresult 
+nsresult
 nsSubscribableServer::CreateNode(SubscribeTreeNode *parent, const char *name, SubscribeTreeNode **result)
 {
     NS_ASSERTION(result && name, "result or name is null");
@@ -524,7 +524,7 @@ nsSubscribableServer::AddChildNode(SubscribeTreeNode *parent, const char *name, 
         parent->lastChild = *child;
 
         rv = NotifyAssert(parent, kNC_Child, *child);
-        NS_ENSURE_SUCCESS(rv,rv);   
+        NS_ENSURE_SUCCESS(rv,rv);
 
         return NS_OK;
     }
@@ -630,15 +630,15 @@ nsSubscribableServer::FindAndCreateNode(const nsACString &aPath,
       return NS_OK;
   }
 
-  char *pathStr = ToNewCString(aPath);
   char *token = nsnull;
-  char *rest = pathStr;
-  
+  nsCString pathStr(aPath);
+  char *rest = pathStr.BeginWriting();
+
   // todo do this only once
   char delimstr[2];
   delimstr[0] = mDelimiter;
   delimstr[1] = '\0';
-  
+
   *aResult = nsnull;
 
   SubscribeTreeNode *parent = mTreeRoot;
@@ -646,15 +646,12 @@ nsSubscribableServer::FindAndCreateNode(const nsACString &aPath,
 
   token = NS_strtok(delimstr, &rest);
   while (token && *token) {
-      rv = AddChildNode(parent, token, &child);
-      if (NS_FAILED(rv)) {
-          CRTFREEIF(pathStr);
-          return rv;
-      }
-      token = NS_strtok(delimstr, &rest);
-      parent = child;
-  }   
-  NS_Free(pathStr);
+    rv = AddChildNode(parent, token, &child);
+    if (NS_FAILED(rv))
+      return rv;
+    token = NS_strtok(delimstr, &rest);
+    parent = child;
+  }
 
   // the last child we add is the result
   *aResult = child;
@@ -676,7 +673,7 @@ nsSubscribableServer::HasChildren(const nsACString &aPath, PRBool *aHasChildren)
 
     NS_ASSERTION(node,"didn't find the node");
     if (!node) return NS_ERROR_FAILURE;
- 
+
     *aHasChildren = (node->firstChild != nsnull);
     return NS_OK;
 }
@@ -748,7 +745,7 @@ nsSubscribableServer::GetFirstChildURI(const nsACString &aPath,
                                        nsACString &aResult)
 {
     aResult.Truncate();
-    
+
     SubscribeTreeNode *node = nsnull;
     nsresult rv = FindAndCreateNode(aPath, &node);
     NS_ENSURE_SUCCESS(rv,rv);
@@ -758,8 +755,8 @@ nsSubscribableServer::GetFirstChildURI(const nsACString &aPath,
 
     // no children
     if (!node->firstChild) return NS_ERROR_FAILURE;
-    
-    BuildURIFromNode(node->firstChild, aResult); 
+
+    BuildURIFromNode(node->firstChild, aResult);
 
     return NS_OK;
 }
@@ -793,7 +790,7 @@ nsSubscribableServer::GetChildren(const nsACString &aPath,
     // in the subscribe dialog
     SubscribeTreeNode *current = node->lastChild;
     // return failure if there are no children.
-    if (!current) return NS_ERROR_FAILURE;  
+    if (!current) return NS_ERROR_FAILURE;
 
     while (current) {
         nsCAutoString uri;
@@ -809,7 +806,7 @@ nsSubscribableServer::GetChildren(const nsACString &aPath,
         // todo, is this creating nsMsgFolders?
         mRDFService->GetResource(uri, getter_AddRefs(res));
         array->AppendElement(res);
-    
+
         current = current->prevSibling;
     }
 

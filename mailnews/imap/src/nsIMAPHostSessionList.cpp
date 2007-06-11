@@ -209,7 +209,7 @@ NS_IMETHODIMP nsIMAPHostSessionList::GetPasswordForHost(const char *serverKey, n
   PR_EnterMonitor(gCachedHostInfoMonitor);
   nsIMAPHostInfo *host = FindHost(serverKey);
   if (host)
-    result.AssignWithConversion(host->fCachedPassword);
+    CopyASCIItoUTF16(host->fCachedPassword, result);
   PR_ExitMonitor(gCachedHostInfoMonitor);
   return (host == NULL) ? NS_ERROR_ILLEGAL_VALUE : NS_OK;
 }
@@ -657,7 +657,7 @@ NS_IMETHODIMP nsIMAPHostSessionList::GetOnlineInboxPathForHost(const char *serve
     ns = host->fNamespaceList->GetDefaultNamespaceOfType(kPersonalNamespace);
     if (ns)
     {
-      result.AssignWithConversion(ns->GetPrefix());
+      CopyASCIItoUTF16(ns->GetPrefix(), result);
       result.AppendLiteral("INBOX");
     }
   }

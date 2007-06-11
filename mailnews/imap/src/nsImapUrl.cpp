@@ -794,15 +794,15 @@ void nsImapUrl::ParseImapPart(char *imapPartOfUrl)
 NS_IMETHODIMP nsImapUrl::AddOnlineDirectoryIfNecessary(const char *onlineMailboxName, char ** directory)
 {
   nsresult rv;
-  nsString aString;
+  nsString onlineDirString;
   char *newOnlineName = nsnull;
 
   nsCOMPtr<nsIImapHostSessionList> hostSessionList =
     do_GetService(kCImapHostSessionListCID, &rv);
   if (NS_FAILED(rv)) return rv;
-  rv = hostSessionList->GetOnlineDirForHost(m_serverKey.get(), aString);
+  rv = hostSessionList->GetOnlineDirForHost(m_serverKey.get(), onlineDirString);
   nsCAutoString onlineDir;
-  onlineDir.AssignWithConversion(aString);
+  LossyCopyUTF16toASCII(onlineDirString, onlineDir);
 
   // If this host has an online server directory configured
   if (onlineMailboxName && !onlineDir.IsEmpty())

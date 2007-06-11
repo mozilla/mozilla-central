@@ -38,7 +38,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsAbCardProperty.h"	 
+#include "nsAbCardProperty.h"
 #include "nsIServiceManager.h"
 #include "nsString.h"
 #include "nsAbBaseCID.h"
@@ -78,45 +78,45 @@ struct AppendItem {
   EAppendType mAppendType;
 };
 
-static const AppendItem NAME_ATTRS_ARRAY[] = { 
-	{kDisplayNameColumn, "propertyDisplayName", eAppendLabel},   
+static const AppendItem NAME_ATTRS_ARRAY[] = {
+	{kDisplayNameColumn, "propertyDisplayName", eAppendLabel},
 	{kNicknameColumn, "propertyNickname", eAppendLabel},
-	{kPriEmailColumn, "", eAppendLine},       
+	{kPriEmailColumn, "", eAppendLine},
 	{k2ndEmailColumn, "", eAppendLine},
   {kAimScreenNameColumn, "propertyScreenName", eAppendLabel},
 };
 
-static const AppendItem PHONE_ATTRS_ARRAY[] = { 
-	{kWorkPhoneColumn, "propertyWork", eAppendLabel},   
+static const AppendItem PHONE_ATTRS_ARRAY[] = {
+	{kWorkPhoneColumn, "propertyWork", eAppendLabel},
 	{kHomePhoneColumn, "propertyHome", eAppendLabel},
-	{kFaxColumn, "propertyFax", eAppendLabel},       
+	{kFaxColumn, "propertyFax", eAppendLabel},
 	{kPagerColumn, "propertyPager", eAppendLabel},
 	{kCellularColumn, "propertyCellular", eAppendLabel}
 };
 
-static const AppendItem HOME_ATTRS_ARRAY[] = { 
-	{kHomeAddressColumn, "", eAppendLine},   
+static const AppendItem HOME_ATTRS_ARRAY[] = {
+	{kHomeAddressColumn, "", eAppendLine},
 	{kHomeAddress2Column, "", eAppendLine},
-	{kHomeCityColumn, "", eAppendCityStateZip},       
+	{kHomeCityColumn, "", eAppendCityStateZip},
 	{kHomeCountryColumn, "", eAppendLine},
 	{kWebPage2Column, "", eAppendLine}
 };
 
-static const AppendItem WORK_ATTRS_ARRAY[] = { 
-	{kJobTitleColumn, "", eAppendLine},   
+static const AppendItem WORK_ATTRS_ARRAY[] = {
+	{kJobTitleColumn, "", eAppendLine},
 	{kDepartmentColumn, "", eAppendLine},
 	{kCompanyColumn, "", eAppendLine},
-	{kWorkAddressColumn, "", eAppendLine},   
+	{kWorkAddressColumn, "", eAppendLine},
 	{kWorkAddress2Column, "", eAppendLine},
-	{kWorkCityColumn, "", eAppendCityStateZip},       
+	{kWorkCityColumn, "", eAppendCityStateZip},
 	{kWorkCountryColumn, "", eAppendLine},
 	{kWebPage1Column, "", eAppendLine}
 };
 
-static const AppendItem CUSTOM_ATTRS_ARRAY[] = { 
-	{kCustom1Column, "propertyCustom1", eAppendLabel},   
+static const AppendItem CUSTOM_ATTRS_ARRAY[] = {
+	{kCustom1Column, "propertyCustom1", eAppendLabel},
 	{kCustom2Column, "propertyCustom2", eAppendLabel},
-	{kCustom3Column, "propertyCustom3", eAppendLabel},       
+	{kCustom3Column, "propertyCustom3", eAppendLabel},
 	{kCustom4Column, "propertyCustom4", eAppendLabel},
 	{kNotesColumn, "", eAppendLine}
 };
@@ -165,7 +165,7 @@ NS_IMETHODIMP nsAbCardProperty::SetAllowRemoteContent(PRBool aAllowRemoteContent
 
 NS_IMETHODIMP nsAbCardProperty::GetPreferMailFormat(PRUint32 *aFormat)
 {
-  *aFormat = m_PreferMailFormat;	
+  *aFormat = m_PreferMailFormat;
   return NS_OK;
 }
 
@@ -300,11 +300,11 @@ NS_IMETHODIMP nsAbCardProperty::GetCardValue(const char *attrname, nsAString &va
       }
       break;
     case 'D':
-      if (attrname[1] == 'i') 
+      if (attrname[1] == 'i')
         rv = GetDisplayName(value);
       else if (attrname[2] == 'f')
         rv = GetDefaultAddress(value);
-      else 
+      else
         rv = GetDepartment(value);
       break;
     case 'F':
@@ -331,13 +331,13 @@ NS_IMETHODIMP nsAbCardProperty::GetCardValue(const char *attrname, nsAString &va
         case 'A':
           if (attrname[11] == '\0')
             rv = GetHomeAddress(value);
-          else 
+          else
             rv = GetHomeAddress2(value);
           break;
         case 'C':
           if (attrname[5] == 'i')
             rv = GetHomeCity(value);
-          else 
+          else
             rv = GetHomeCountry(value);
           break;
         case 'P':
@@ -362,7 +362,7 @@ NS_IMETHODIMP nsAbCardProperty::GetCardValue(const char *attrname, nsAString &va
       break;
     case 'L':
       if (attrname[1] == 'a') {
-        if (attrname[4] == 'N') 
+        if (attrname[4] == 'N')
           rv = GetLastName(value);
         else {
           // XXX todo
@@ -378,11 +378,11 @@ NS_IMETHODIMP nsAbCardProperty::GetCardValue(const char *attrname, nsAString &va
     case 'N':
       if (attrname[1] == 'o')
         rv = GetNotes(value);
-      else 
+      else
         rv = GetNickName(value);
       break;
     case 'P':
-      switch (attrname[2]) { 
+      switch (attrname[2]) {
         case 'e':
         {
           PRUint32 format;
@@ -428,11 +428,11 @@ NS_IMETHODIMP nsAbCardProperty::GetCardValue(const char *attrname, nsAString &va
       else
         rv = GetSpouseName(value);
       break;
-    case 'W': 
+    case 'W':
       if (attrname[1] == 'e') {
         if (attrname[7] == '1')
           rv = GetWebPage1(value);
-        else 
+        else
           rv = GetWebPage2(value);
       }
       else {
@@ -440,13 +440,13 @@ NS_IMETHODIMP nsAbCardProperty::GetCardValue(const char *attrname, nsAString &va
           case 'A':
             if (attrname[11] == '\0')
               rv = GetWorkAddress(value);
-            else 
+            else
               rv = GetWorkAddress2(value);
             break;
           case 'C':
             if (attrname[5] == 'i')
               rv = GetWorkCity(value);
-            else 
+            else
               rv = GetWorkCountry(value);
             break;
           case 'P':
@@ -473,7 +473,7 @@ NS_IMETHODIMP nsAbCardProperty::GetCardValue(const char *attrname, nsAString &va
   }
 
   // don't assert here, as failure is expected in certain cases
-  // we call GetCardValue() from nsAbView::Init() to determine if the 
+  // we call GetCardValue() from nsAbView::Init() to determine if the
   // saved sortColumn is valid or not.
   return rv;
 }
@@ -564,11 +564,11 @@ NS_IMETHODIMP nsAbCardProperty::SetCardValue(const char *attrname, const nsAStri
       }
       break;
     case 'D':
-      if (attrname[1] == 'i') 
+      if (attrname[1] == 'i')
         rv = SetDisplayName(value);
       else if (attrname[2] == 'f')
         rv = SetDefaultAddress(value);
-      else 
+      else
         rv = SetDepartment(value);
       break;
     case 'F':
@@ -595,13 +595,13 @@ NS_IMETHODIMP nsAbCardProperty::SetCardValue(const char *attrname, const nsAStri
         case 'A':
           if (attrname[11] == '\0')
             rv = SetHomeAddress(value);
-          else 
+          else
             rv = SetHomeAddress2(value);
           break;
         case 'C':
           if (attrname[5] == 'i')
             rv = SetHomeCity(value);
-          else 
+          else
             rv = SetHomeCountry(value);
           break;
         case 'P':
@@ -626,10 +626,10 @@ NS_IMETHODIMP nsAbCardProperty::SetCardValue(const char *attrname, const nsAStri
       break;
     case 'L':
       if (attrname[1] == 'a') {
-        if (attrname[4] == 'N') 
+        if (attrname[4] == 'N')
           rv = SetLastName(value);
         else {
-          // XXX todo 
+          // XXX todo
           // fix me?  LDAP code gets here
           rv = SetLastModifiedDate(0);
         }
@@ -640,11 +640,11 @@ NS_IMETHODIMP nsAbCardProperty::SetCardValue(const char *attrname, const nsAStri
     case 'N':
       if (attrname[1] == 'o')
         rv = SetNotes(value);
-      else 
+      else
         rv = SetNickName(value);
       break;
     case 'P':
-      switch (attrname[2]) { 
+      switch (attrname[2]) {
         case 'e':
           switch (value.First()) {
             case 't':    // "true"
@@ -686,11 +686,11 @@ NS_IMETHODIMP nsAbCardProperty::SetCardValue(const char *attrname, const nsAStri
       else
         rv = SetSpouseName(value);
       break;
-    case 'W': 
+    case 'W':
       if (attrname[1] == 'e') {
         if (attrname[7] == '1')
           rv = SetWebPage1(value);
-        else 
+        else
           rv = SetWebPage2(value);
       }
       else {
@@ -698,13 +698,13 @@ NS_IMETHODIMP nsAbCardProperty::SetCardValue(const char *attrname, const nsAStri
           case 'A':
             if (attrname[11] == '\0')
               rv = SetWorkAddress(value);
-            else 
+            else
               rv = SetWorkAddress2(value);
             break;
           case 'C':
             if (attrname[5] == 'i')
               rv = SetWorkCity(value);
-            else 
+            else
               rv = SetWorkCountry(value);
             break;
           case 'P':
@@ -968,9 +968,9 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToEscapedVCard(char **aResult)
     PRBool vCardHasData = PR_FALSE;
     VObject* vObj = newVObject(VCCardProp);
     VObject* t;
-    
+
     // [comment from 4.x]
-    // Big flame coming....so Vobject is not designed at all to work with  an array of 
+    // Big flame coming....so Vobject is not designed at all to work with  an array of
     // attribute values. It wants you to have all of the attributes easily available. You
     // cannot add one attribute at a time as you find them to the vobject. Why? Because
     // it creates a property for a particular type like phone number and then that property
@@ -978,13 +978,13 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToEscapedVCard(char **aResult)
     // yelling from here.....I have to do a linear search through my attributes array for
     // EACH vcard property we want to set. *sigh* One day I will have time to come back
     // to this function and remedy this O(m*n) function where n = # attribute values and
-    // m = # of vcard properties....  
+    // m = # of vcard properties....
 
     (void)GetDisplayName(str);
     if (!str.IsEmpty()) {
         myAddPropValue(vObj, VCFullNameProp, str.get(), &vCardHasData);
     }
-    
+
     (void)GetLastName(str);
     if (!str.IsEmpty()) {
         t = isAPropertyOf(vObj, VCNameProp);
@@ -992,7 +992,7 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToEscapedVCard(char **aResult)
             t = addProp(vObj, VCNameProp);
         myAddPropValue(t, VCFamilyNameProp, str.get(), &vCardHasData);
     }
-    
+
     (void)GetFirstName(str);
     if (!str.IsEmpty()) {
         t = isAPropertyOf(vObj, VCNameProp);
@@ -1018,14 +1018,14 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToEscapedVCard(char **aResult)
             t = addProp(vObj, VCOrgProp);
         myAddPropValue(t, VCOrgUnitProp, str.get(), &vCardHasData);
     }
- 
+
     (void)GetWorkAddress2(str);
     if (!str.IsEmpty())
     {
         t = isAPropertyOf(vObj, VCAdrProp);
         if  (!t)
             t = addProp(vObj, VCAdrProp);
-        myAddPropValue(t, VCPostalBoxProp, str.get(), &vCardHasData);  
+        myAddPropValue(t, VCPostalBoxProp, str.get(), &vCardHasData);
     }
 
     (void)GetWorkAddress(str);
@@ -1085,10 +1085,10 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToEscapedVCard(char **aResult)
     (void)GetPrimaryEmail(str);
     if (!str.IsEmpty())
     {
-        t = myAddPropValue(vObj, VCEmailAddressProp, str.get(), &vCardHasData);  
+        t = myAddPropValue(vObj, VCEmailAddressProp, str.get(), &vCardHasData);
         addProp(t, VCInternetProp);
     }
- 
+
     (void)GetJobTitle(str);
     if (!str.IsEmpty())
     {
@@ -1115,7 +1115,7 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToEscapedVCard(char **aResult)
         t = myAddPropValue(vObj, VCTelephoneProp, str.get(), &vCardHasData);
         addProp(t, VCPagerProp);
     }
-    
+
     (void)GetHomePhone(str);
     if (!str.IsEmpty())
     {
@@ -1135,7 +1135,7 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToEscapedVCard(char **aResult)
     {
         myAddPropValue(vObj, VCNoteProp, str.get(), &vCardHasData);
     }
-    
+
     PRUint32 format;
     (void)GetPreferMailFormat(&format);
     if (format == nsIAbPreferMailFormat::html) {
@@ -1150,7 +1150,7 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToEscapedVCard(char **aResult)
     {
         myAddPropValue(vObj, VCURLProp, str.get(), &vCardHasData);
     }
-    
+
     myAddPropValue(vObj, VCVersionProp, NS_LITERAL_STRING("2.1").get(), nsnull);
 
     if (!vCardHasData) {
@@ -1178,7 +1178,7 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToBase64EncodedXML(char **result)
 
   // Get Address Book string and set it as title of XML document
   nsCOMPtr<nsIStringBundle> bundle;
-  nsCOMPtr<nsIStringBundleService> stringBundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv); 
+  nsCOMPtr<nsIStringBundleService> stringBundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
   if (NS_SUCCEEDED(rv)) {
     rv = stringBundleService->CreateBundle(sAddrbookProperties, getter_AddRefs(bundle));
     if (NS_SUCCEEDED(rv)) {
@@ -1208,18 +1208,18 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToXMLPrintData(nsAString &aXMLSubstr)
   nsresult rv;
   nsCOMPtr<nsIPrefBranch> prefBranch = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
-  
+
   PRInt32 generatedNameFormat;
   rv = prefBranch->GetIntPref(PREF_MAIL_ADDR_BOOK_LASTNAMEFIRST, &generatedNameFormat);
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   nsCOMPtr<nsIAddrBookSession> abSession = do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
-  
+
   nsString generatedName;
   rv = abSession->GenerateNameFromCard(this, generatedNameFormat, getter_Copies(generatedName));
   NS_ENSURE_SUCCESS(rv,rv);
-  
+
   nsCOMPtr<mozITXTToHTMLConv> conv = do_CreateInstance(MOZ_TXTTOHTMLCONV_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -1229,12 +1229,12 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToXMLPrintData(nsAString &aXMLSubstr)
 
   nsCOMPtr<nsIStringBundle> bundle;
 
-  nsCOMPtr<nsIStringBundleService> stringBundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv); 
+  nsCOMPtr<nsIStringBundleService> stringBundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
   rv = stringBundleService->CreateBundle(sAddrbookProperties, getter_AddRefs(bundle));
-  NS_ENSURE_SUCCESS(rv,rv); 
-  
+  NS_ENSURE_SUCCESS(rv,rv);
+
   nsString heading;
   rv = bundle->GetStringFromName(NS_LITERAL_STRING("headingCardFor").get(), getter_Copies(heading));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -1261,7 +1261,7 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToXMLPrintData(nsAString &aXMLSubstr)
     NS_ENSURE_SUCCESS(rv,rv);
   }
   xmlStr.Append(safeText);
-          
+
   xmlStr.AppendLiteral("</GeneratedName>\n"
                        "<table><tr><td>");
 
@@ -1277,7 +1277,7 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToXMLPrintData(nsAString &aXMLSubstr)
   else {
     rv = AppendSection(CUSTOM_ATTRS_ARRAY, sizeof(CUSTOM_ATTRS_ARRAY)/sizeof(AppendItem), NS_LITERAL_STRING("headingDescription"),
          bundle, conv, xmlStr);
-    
+
     xmlStr.AppendLiteral("<section><sectiontitle>");
 
     rv = bundle->GetStringFromName(NS_LITERAL_STRING("headingAddresses").get(), getter_Copies(heading));
@@ -1288,14 +1288,14 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToXMLPrintData(nsAString &aXMLSubstr)
 
     nsCOMPtr<nsIRDFService> rdfService = do_GetService("@mozilla.org/rdf/rdf-service;1", &rv);
     NS_ENSURE_SUCCESS(rv,rv);
-      
+
     nsCOMPtr <nsIRDFResource> resource;
     rv = rdfService->GetResource(m_MailListURI, getter_AddRefs(resource));
     NS_ENSURE_SUCCESS(rv,rv);
-    
+
     nsCOMPtr <nsIAbDirectory> mailList = do_QueryInterface(resource, &rv);
     NS_ENSURE_SUCCESS(rv,rv);
-    
+
     nsCOMPtr<nsISupportsArray> addresses;
     rv = mailList->GetAddressLists(getter_AddRefs(addresses));
     if (addresses) {
@@ -1322,7 +1322,7 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToXMLPrintData(nsAString &aXMLSubstr)
           xmlStr.Append(safeText);
 
           xmlStr.AppendLiteral(" &lt;");
-          
+
           rv = listCard->GetPrimaryEmail(primaryEmail);
           NS_ENSURE_SUCCESS(rv,rv);
 
@@ -1343,7 +1343,7 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToXMLPrintData(nsAString &aXMLSubstr)
 
   rv = AppendSection(HOME_ATTRS_ARRAY, sizeof(HOME_ATTRS_ARRAY)/sizeof(AppendItem), NS_LITERAL_STRING("headingHome"), bundle, conv, xmlStr);
   rv = AppendSection(WORK_ATTRS_ARRAY, sizeof(WORK_ATTRS_ARRAY)/sizeof(AppendItem), NS_LITERAL_STRING("headingWork"), bundle, conv, xmlStr);
-  
+
   xmlStr.AppendLiteral("</td></tr></table>");
 
   aXMLSubstr = xmlStr;
@@ -1360,13 +1360,10 @@ nsresult nsAbCardProperty::AppendData(const char *aAttrName, mozITXTToHTMLConv *
   if (attrValue.IsEmpty())
     return NS_OK;
 
-  nsAutoString attrNameStr;
-  attrNameStr.AssignWithConversion(aAttrName);
-  
   aResult.Append(PRUnichar('<'));
-  aResult.Append(attrNameStr);
+  aResult.Append(NS_ConvertASCIItoUTF16(aAttrName));
   aResult.Append(PRUnichar('>'));
-  
+
   // use ScanTXT to convert < > & to safe values.
   nsString safeText;
   rv = aConv->ScanTXT(attrValue.get(), mozITXTToHTMLConv::kEntities, getter_Copies(safeText));
@@ -1374,7 +1371,7 @@ nsresult nsAbCardProperty::AppendData(const char *aAttrName, mozITXTToHTMLConv *
   aResult.Append(safeText);
 
   aResult.AppendLiteral("</");
-  aResult.Append(attrNameStr);
+  aResult.Append(NS_ConvertASCIItoUTF16(aAttrName));
   aResult.Append(PRUnichar('>'));
 
   return NS_OK;
@@ -1446,15 +1443,12 @@ nsresult nsAbCardProperty::AppendLine(const AppendItem &aItem,
   NS_ENSURE_SUCCESS(rv,rv);
 
   if (attrValue.IsEmpty())
-    return NS_OK; 
+    return NS_OK;
 
-  nsAutoString attrNameStr;
-  attrNameStr.AssignWithConversion(aItem.mColumn);
-  
   aResult.Append(PRUnichar('<'));
-  aResult.Append(attrNameStr);
+  aResult.Append(NS_ConvertASCIItoUTF16(aItem.mColumn));
   aResult.Append(PRUnichar('>'));
-  
+
   // use ScanTXT to convert < > & to safe values.
   nsString safeText;
   rv = aConv->ScanTXT(attrValue.get(), mozITXTToHTMLConv::kEntities, getter_Copies(safeText));
@@ -1462,7 +1456,7 @@ nsresult nsAbCardProperty::AppendLine(const AppendItem &aItem,
   aResult.Append(safeText);
 
   aResult.AppendLiteral("</");
-  aResult.Append(attrNameStr);
+  aResult.Append(NS_ConvertASCIItoUTF16(aItem.mColumn));
   aResult.Append(PRUnichar('>'));
 
   return NS_OK;
@@ -1476,9 +1470,9 @@ nsresult nsAbCardProperty::AppendLabel(const AppendItem &aItem,
   NS_ENSURE_ARG_POINTER(aBundle);
 
   nsresult rv;
-  
+
   nsString label;
-  
+
   nsString attrValue;
 
   rv = GetCardValue(aItem.mColumn, attrValue);
@@ -1499,14 +1493,14 @@ nsresult nsAbCardProperty::AppendLabel(const AppendItem &aItem,
   NS_ENSURE_SUCCESS(rv,rv);
 
   aResult.AppendLiteral("</labelrow>");
-  
+
   return NS_OK;
 }
 
 nsresult nsAbCardProperty::AppendCityStateZip(const AppendItem &aItem,
                                               nsIStringBundle *aBundle,
                                               mozITXTToHTMLConv *aConv,
-                                              nsString &aResult) 
+                                              nsString &aResult)
 {
   NS_ENSURE_ARG_POINTER(aBundle);
 
@@ -1527,7 +1521,7 @@ nsresult nsAbCardProperty::AppendCityStateZip(const AppendItem &aItem,
 
   rv = AppendLine(aItem, aConv, cityResult);
   NS_ENSURE_SUCCESS(rv,rv);
-  
+
   item.mColumn = stateCol;
   item.mLabel = "";
 
@@ -1558,11 +1552,11 @@ nsresult nsAbCardProperty::AppendCityStateZip(const AppendItem &aItem,
     NS_ENSURE_SUCCESS(rv,rv);
   }
   else {
-    if (!cityResult.IsEmpty()) 
+    if (!cityResult.IsEmpty())
       formattedString = cityResult;
-    else if (!stateResult.IsEmpty()) 
+    else if (!stateResult.IsEmpty())
       formattedString = stateResult;
-    else 
+    else
       formattedString = zipResult;
   }
 

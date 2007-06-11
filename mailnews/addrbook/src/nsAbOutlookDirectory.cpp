@@ -670,7 +670,7 @@ static nsresult BuildRestriction(nsIAbBooleanConditionString *aCondition,
     NS_ENSURE_SUCCESS(retCode, retCode) ;
     retCode = aCondition->GetValue(getter_Copies(value)) ;
     NS_ENSURE_SUCCESS(retCode, retCode) ;
-    valueAscii.AssignWithConversion(value.get()) ;
+    LossyCopyUTF16toASCII(value, valueAscii);
     propertyTag = findPropertyTag(name.get()) ;
     if (propertyTag == 0) {
         aSkipItem = PR_TRUE ;
