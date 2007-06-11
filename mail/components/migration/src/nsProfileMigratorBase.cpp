@@ -36,7 +36,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsMailProfileMigratorUtils.h"
-#include "nsCRT.h"
 #include "nsDirectoryServiceDefs.h"
 #include "nsIObserverService.h"
 #include "nsIPasswordManagerInternal.h"
@@ -63,17 +62,17 @@ nsProfileMigratorBase::nsProfileMigratorBase()
 }
 
 nsProfileMigratorBase::~nsProfileMigratorBase()
-{           
+{
   if (mFileIOTimer)
     mFileIOTimer->Cancel();
 }
 
 nsresult nsProfileMigratorBase::ImportSettings(nsIImportModule * aImportModule)
-{  
-  nsresult rv; 
-  
+{
+  nsresult rv;
+
   nsAutoString index;
-  index.AppendInt(nsIMailProfileMigrator::ACCOUNT_SETTINGS); 
+  index.AppendInt(nsIMailProfileMigrator::ACCOUNT_SETTINGS);
   NOTIFY_OBSERVERS(MIGRATION_ITEMBEFOREMIGRATE, index.get());
 
   nsCOMPtr<nsIImportSettings> importSettings;
@@ -90,11 +89,11 @@ nsresult nsProfileMigratorBase::ImportSettings(nsIImportModule * aImportModule)
 }
 
 nsresult nsProfileMigratorBase::ImportAddressBook(nsIImportModule * aImportModule)
-{  
-  nsresult rv; 
-  
+{
+  nsresult rv;
+
   nsAutoString index;
-  index.AppendInt(nsIMailProfileMigrator::ADDRESSBOOK_DATA); 
+  index.AppendInt(nsIMailProfileMigrator::ADDRESSBOOK_DATA);
   NOTIFY_OBSERVERS(MIGRATION_ITEMBEFOREMIGRATE, index.get());
 
   rv = aImportModule->GetImportInterface(NS_IMPORT_ADDRESS_STR, getter_AddRefs(mGenericImporter));
@@ -123,7 +122,7 @@ nsresult nsProfileMigratorBase::ImportAddressBook(nsIImportModule * aImportModul
 nsresult nsProfileMigratorBase::FinishCopyingAddressBookData()
 {
   nsAutoString index;
-  index.AppendInt(nsIMailProfileMigrator::ADDRESSBOOK_DATA); 
+  index.AppendInt(nsIMailProfileMigrator::ADDRESSBOOK_DATA);
   NOTIFY_OBSERVERS(MIGRATION_ITEMAFTERMIGRATE, index.get());
 
   // now kick off the mail migration code
@@ -134,10 +133,10 @@ nsresult nsProfileMigratorBase::FinishCopyingAddressBookData()
 
 nsresult nsProfileMigratorBase::ImportMailData(nsIImportModule * aImportModule)
 {
-  nsresult rv; 
-  
+  nsresult rv;
+
   nsAutoString index;
-  index.AppendInt(nsIMailProfileMigrator::MAILDATA); 
+  index.AppendInt(nsIMailProfileMigrator::MAILDATA);
   NOTIFY_OBSERVERS(MIGRATION_ITEMBEFOREMIGRATE, index.get());
 
   rv = aImportModule->GetImportInterface(NS_IMPORT_MAIL_STR, getter_AddRefs(mGenericImporter));
@@ -169,7 +168,7 @@ nsresult nsProfileMigratorBase::ImportMailData(nsIImportModule * aImportModule)
 nsresult nsProfileMigratorBase::FinishCopyingMailFolders()
 {
   nsAutoString index;
-  index.AppendInt(nsIMailProfileMigrator::MAILDATA); 
+  index.AppendInt(nsIMailProfileMigrator::MAILDATA);
   NOTIFY_OBSERVERS(MIGRATION_ITEMAFTERMIGRATE, index.get());
 
   // migration is now done...notify the UI.

@@ -38,7 +38,6 @@
 // this file is mostly a copy of nsPrefMigration.cpp.
 
 #include "nsMailProfileMigratorUtils.h"
-#include "nsCRT.h"
 #include "nsDirectoryServiceDefs.h"
 #include "nsIObserverService.h"
 #include "nsIPasswordManagerInternal.h"
@@ -1641,34 +1640,31 @@ nsresult nsDogbertProfileMigrator::RenameAndMove4xImapFilterFile(nsILocalFile * 
 nsresult nsDogbertProfileMigrator::RenameAndMove4xImapFilterFiles(nsILocalFile * profilePath)
 {
   nsresult rv;
-  char *hostList=nsnull;
+  nsCString hostList
 
-  rv = mPrefs->GetCharPref(PREF_4X_NETWORK_HOSTS_IMAP_SERVER, &hostList);
+  rv = mPrefs->GetCharPref(PREF_4X_NETWORK_HOSTS_IMAP_SERVER, getter_Copies(hostList));
   if (NS_FAILED(rv)) return rv;
 
-  if (!hostList || !*hostList) return NS_OK;
+  if (hostList.IsEmpty()) return NS_OK;
 
   char *token = nsnull;
-  char *rest = hostList;
+  char *rest = hostList.BeginWriting();
   nsCAutoString str;
-
-  token = nsCRT::strtok(rest, ",", &rest);
+  token = NS_strtok(",", &rest);
   while (token && *token) {
     str = token;
     str.StripWhitespace();
 
     if (!str.IsEmpty()) {
       // str is the hostname
-      rv = RenameAndMove4xImapFilterFile(profilePath,str.get());
+      rv = RenameAndMove4xImapFilterFile(profilePath, str.get());
       if  (NS_FAILED(rv)) {
         // failed to migrate.  bail.
         return rv;
       }
-      str = "";
     }
-    token = nsCRT::strtok(rest, ",", &rest);
+    token = NS_strtok(",", &rest);
   }
-  PR_FREEIF(hostList);
   return NS_OK;
 }
 #endif /* IMAP_MAIL_FILTER_FILE_NAME_FORMAT_IN_4x */

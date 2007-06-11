@@ -38,7 +38,6 @@
 #include "nsMailWinIntegration.h"
 #include "nsIServiceManager.h"
 #include "nsICategoryManager.h"
-#include "nsCRT.h"
 #include "nsIStringBundle.h"
 #include "nsNativeCharsetUtils.h"
 #include "nsIPrefService.h"
@@ -66,17 +65,17 @@ OpenUserKeyForReading(HKEY aStartKey, const char* aKeyName, HKEY* aKey)
 {
   DWORD result = ::RegOpenKeyEx(aStartKey, aKeyName, 0, KEY_READ, aKey);
 
-  switch (result) 
+  switch (result)
   {
     case ERROR_SUCCESS:
       break;
     case ERROR_ACCESS_DENIED:
       return NS_ERROR_FILE_ACCESS_DENIED;
     case ERROR_FILE_NOT_FOUND:
-      if (aStartKey == HKEY_LOCAL_MACHINE) 
+      if (aStartKey == HKEY_LOCAL_MACHINE)
       {
-        // prevent infinite recursion on the second pass through here if 
-        // ::RegOpenKeyEx fails in the all-users case. 
+        // prevent infinite recursion on the second pass through here if
+        // ::RegOpenKeyEx fails in the all-users case.
         return NS_ERROR_NOT_AVAILABLE;
       }
       return OpenUserKeyForReading(HKEY_LOCAL_MACHINE, aKeyName, aKey);
@@ -94,7 +93,7 @@ static nsresult OpenKeyForWriting(HKEY aStartKey, const char* aKeyName, HKEY* aK
   DWORD rv = ::RegCreateKeyEx(aStartKey, aKeyName, 0, NULL, 0,
                               KEY_READ | KEY_WRITE, NULL, aKey, &dwDisp);
 
-  switch (rv) 
+  switch (rv)
   {
     case ERROR_SUCCESS:
       break;
@@ -108,9 +107,9 @@ static nsresult OpenKeyForWriting(HKEY aStartKey, const char* aKeyName, HKEY* aK
       rv = ::RegCreateKey(aStartKey, aKeyName, aKey);
       if (rv != ERROR_SUCCESS)
       {
-        if (aHKLMOnly || aStartKey == HKEY_CURRENT_USER) 
+        if (aHKLMOnly || aStartKey == HKEY_CURRENT_USER)
         {
-          // prevent infinite recursion on the second pass through here if 
+          // prevent infinite recursion on the second pass through here if
           // ::RegCreateKey fails in the current user case.
           return NS_ERROR_FILE_ACCESS_DENIED;
         }
@@ -139,7 +138,7 @@ typedef enum { NO_SUBSTITUTION    = 0x00,
 #define MOZ_CLIENT_MAIL_KEY "Software\\Clients\\Mail"
 #define MOZ_CLIENT_NEWS_KEY "Software\\Clients\\News"
 #define DI "\\DefaultIcon"
-#define II "\\InstallInfo" 
+#define II "\\InstallInfo"
 
 // APP_REG_NAME_MAIL and APP_REG_NAME_NEWS should be kept in synch with
 // AppRegNameMail and AppRegNameNews in the installer file: defines.nsi.in
@@ -176,15 +175,15 @@ static SETTING gMailSettings[] = {
   // Protocol Handler Class - for Vista and above
   { MAKE_KEY_NAME2(CLS, CLS_MAILTOURL, DI),  "", VAL_ICON, APP_PATH_SUBSTITUTION },
   { MAKE_KEY_NAME2(CLS, CLS_MAILTOURL, SOP), "", "\"%APPPATH%\" -compose \"%1\"", APP_PATH_SUBSTITUTION },
-  
+
   // Protocol Handlers
   { MAKE_KEY_NAME2(CLS, "mailto", DI),  "", VAL_ICON, APP_PATH_SUBSTITUTION},
-  { MAKE_KEY_NAME2(CLS, "mailto", SOP), "", "\"%APPPATH%\" -compose \"%1\"", APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST}, 
+  { MAKE_KEY_NAME2(CLS, "mailto", SOP), "", "\"%APPPATH%\" -compose \"%1\"", APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST},
 
   // Mail Client Keys
-  { MAKE_KEY_NAME1(MAILCLIENTS, "%APPNAME%"),  
-    "DLLPath", 
-    "%MAPIDLLPATH%", 
+  { MAKE_KEY_NAME1(MAILCLIENTS, "%APPNAME%"),
+    "DLLPath",
+    "%MAPIDLLPATH%",
     MAPIDLL_PATH_SUBSTITUTION | HKLM_ONLY | APPNAME_SUBSTITUTION },
   { MAKE_KEY_NAME2(MAILCLIENTS, "%APPNAME%", II),
     "HideIconsCommand",
@@ -198,17 +197,17 @@ static SETTING gMailSettings[] = {
     "ShowIconsCommand",
     "\"%UNINSTPATH%\" /ShowShortcuts",
     UNINST_PATH_SUBSTITUTION | APPNAME_SUBSTITUTION | HKLM_ONLY },
-  { MAKE_KEY_NAME2(MAILCLIENTS, "%APPNAME%", DI),  
-    "", 
-    "%APPPATH%,0", 
+  { MAKE_KEY_NAME2(MAILCLIENTS, "%APPNAME%", DI),
+    "",
+    "%APPPATH%,0",
     APP_PATH_SUBSTITUTION | APPNAME_SUBSTITUTION | HKLM_ONLY },
-  { MAKE_KEY_NAME2(MAILCLIENTS, "%APPNAME%", SOP), 
-    "", 
-    "\"%APPPATH%\" -mail",   
+  { MAKE_KEY_NAME2(MAILCLIENTS, "%APPNAME%", SOP),
+    "",
+    "\"%APPPATH%\" -mail",
     APP_PATH_SUBSTITUTION | APPNAME_SUBSTITUTION | HKLM_ONLY },
   { MAKE_KEY_NAME1(MAILCLIENTS, "%APPNAME%\\shell\\properties\\command"),
-    "", 
-    "\"%APPPATH%\" -options",   
+    "",
+    "\"%APPPATH%\" -options",
     APP_PATH_SUBSTITUTION | APPNAME_SUBSTITUTION | HKLM_ONLY },
 };
 
@@ -221,22 +220,22 @@ static SETTING gNewsSettings[] = {
   { MAKE_KEY_NAME2(CLS, "news", DI),  "", VAL_ICON, APP_PATH_SUBSTITUTION},
   { MAKE_KEY_NAME2(CLS, "news", SOP), "", "\"%APPPATH%\" -mail \"%1\"", APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST},
   { MAKE_KEY_NAME2(CLS, "nntp", DI),  "", VAL_ICON, APP_PATH_SUBSTITUTION},
-  { MAKE_KEY_NAME2(CLS, "nntp", SOP), "", "\"%APPPATH%\" -mail \"%1\"", APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST}, 
+  { MAKE_KEY_NAME2(CLS, "nntp", SOP), "", "\"%APPPATH%\" -mail \"%1\"", APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST},
   { MAKE_KEY_NAME2(CLS, "snews", DI),  "", VAL_ICON, APP_PATH_SUBSTITUTION},
-  { MAKE_KEY_NAME2(CLS, "snews", SOP), "", "\"%APPPATH%\" -mail \"%1\"", APP_PATH_SUBSTITUTION}, 
+  { MAKE_KEY_NAME2(CLS, "snews", SOP), "", "\"%APPPATH%\" -mail \"%1\"", APP_PATH_SUBSTITUTION},
 
   // News Client Keys
-  { MAKE_KEY_NAME1(NEWSCLIENTS, "%APPNAME%"),  
-    "DLLPath", 
-    "%MAPIDLLPATH%", 
+  { MAKE_KEY_NAME1(NEWSCLIENTS, "%APPNAME%"),
+    "DLLPath",
+    "%MAPIDLLPATH%",
     MAPIDLL_PATH_SUBSTITUTION | APPNAME_SUBSTITUTION | HKLM_ONLY },
-  { MAKE_KEY_NAME2(NEWSCLIENTS, "%APPNAME%", DI),  
-    "", 
-    "%APPPATH%,0", 
+  { MAKE_KEY_NAME2(NEWSCLIENTS, "%APPNAME%", DI),
+    "",
+    "%APPPATH%,0",
     APP_PATH_SUBSTITUTION | APPNAME_SUBSTITUTION | HKLM_ONLY },
-  { MAKE_KEY_NAME2(NEWSCLIENTS, "%APPNAME%", SOP), 
-    "", 
-    "\"%APPPATH%\" -mail",   
+  { MAKE_KEY_NAME2(NEWSCLIENTS, "%APPNAME%", SOP),
+    "",
+    "\"%APPPATH%\" -mail",
     APP_PATH_SUBSTITUTION | APPNAME_SUBSTITUTION | HKLM_ONLY },
 };
 
@@ -244,7 +243,7 @@ static SETTING gFeedSettings[] = {
    // Protocol Handler Class - for Vista and above
   { MAKE_KEY_NAME2(CLS, CLS_FEEDURL, DI),  "", VAL_ICON, APP_PATH_SUBSTITUTION },
   { MAKE_KEY_NAME2(CLS, CLS_FEEDURL, SOP), "", VAL_OPEN, APP_PATH_SUBSTITUTION },
-  
+
   // Protocol Handlers
   { MAKE_KEY_NAME2(CLS, "feed", DI),  "", VAL_ICON, APP_PATH_SUBSTITUTION},
   { MAKE_KEY_NAME2(CLS, "feed", SOP), "", "\"%APPPATH%\" -mail \"%1\"", APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST},
@@ -256,7 +255,7 @@ nsresult nsWindowsShellService::Init()
 
   nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   nsCOMPtr<nsIStringBundle> bundle, brandBundle;
   rv = bundleService->CreateBundle("chrome://branding/locale/brand.properties", getter_AddRefs(brandBundle));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -313,7 +312,7 @@ nsWindowsShellService::IsDefaultClient(PRBool aStartupCheck, PRUint16 aApps, PRB
 
   *aIsDefaultClient = PR_TRUE;
 
-  // for each type, 
+  // for each type,
   if (aApps & nsIShellService::MAIL)
     *aIsDefaultClient &= TestForDefault(gMailSettings, sizeof(gMailSettings)/sizeof(SETTING));
   if (aApps & nsIShellService::NEWS)
@@ -322,7 +321,7 @@ nsWindowsShellService::IsDefaultClient(PRBool aStartupCheck, PRUint16 aApps, PRB
     *aIsDefaultClient &= TestForDefault(gFeedSettings, sizeof(gFeedSettings)/sizeof(SETTING));
 
   // If this is the first mail window, maintain internal state that we've
-  // checked this session (so that subsequent window opens don't show the 
+  // checked this session (so that subsequent window opens don't show the
   // default client dialog).
   if (aStartupCheck)
     mCheckedThisSession = PR_TRUE;
@@ -383,7 +382,7 @@ nsWindowsShellService::SetDefaultClient(PRBool aForAllUsers, PRUint16 aApps)
     rv |= setDefaultNews();
 
   if (aApps & nsIShellService::RSS)
-    setKeysForSettings(gFeedSettings, sizeof(gFeedSettings)/sizeof(SETTING), 
+    setKeysForSettings(gFeedSettings, sizeof(gFeedSettings)/sizeof(SETTING),
                        NS_ConvertUTF16toUTF8(mBrandFullName).get());
 
   // Refresh the Shell
@@ -394,7 +393,7 @@ nsWindowsShellService::SetDefaultClient(PRBool aForAllUsers, PRUint16 aApps)
 NS_IMETHODIMP
 nsWindowsShellService::GetShouldCheckDefaultClient(PRBool* aResult)
 {
-  if (mCheckedThisSession) 
+  if (mCheckedThisSession)
   {
     *aResult = PR_FALSE;
     return NS_OK;
@@ -418,7 +417,7 @@ nsWindowsShellService::setDefaultMail()
   NS_ConvertUTF16toUTF8 appName(mBrandFullName);
   setKeysForSettings(gMailSettings, sizeof(gMailSettings)/sizeof(SETTING), appName.get());
 
-  // at least for now, this key needs to be written to HKLM instead of HKCU 
+  // at least for now, this key needs to be written to HKLM instead of HKCU
   // which is where the windows operating system looks (at least on Win XP and earlier)
   SetRegKey(NS_LITERAL_CSTRING(MOZ_CLIENT_MAIL_KEY).get(), "", appName.get(), PR_TRUE);
 
@@ -468,7 +467,7 @@ nsWindowsShellService::setDefaultNews()
   NS_ConvertUTF16toUTF8 appName(mBrandFullName);
   setKeysForSettings(gNewsSettings, sizeof(gNewsSettings)/sizeof(SETTING), appName.get());
 
-  // at least for now, this key needs to be written to HKLM instead of HKCU 
+  // at least for now, this key needs to be written to HKLM instead of HKCU
   // which is where the windows operating system looks (at least on Win XP and earlier)
   SetRegKey(NS_LITERAL_CSTRING(MOZ_CLIENT_NEWS_KEY).get(), "", appName.get(), PR_TRUE);
 
@@ -486,7 +485,7 @@ nsWindowsShellService::setDefaultNews()
 DWORD
 nsWindowsShellService::DeleteRegKey(HKEY baseKey, const char *keyName)
 {
- // Make sure input subkey isn't null. 
+ // Make sure input subkey isn't null.
  if (!keyName || !::strlen(keyName))
    return ERROR_BADKEY;
 
@@ -494,9 +493,9 @@ nsWindowsShellService::DeleteRegKey(HKEY baseKey, const char *keyName)
  // Open subkey.
  HKEY key;
  rc = ::RegOpenKeyEx(baseKey, keyName, 0, KEY_ENUMERATE_SUB_KEYS | DELETE, &key);
- 
+
  // Continue till we get an error or are done.
- while (rc == ERROR_SUCCESS) 
+ while (rc == ERROR_SUCCESS)
  {
    char subkeyName[_MAX_PATH];
    DWORD len = sizeof subkeyName;
@@ -504,26 +503,26 @@ nsWindowsShellService::DeleteRegKey(HKEY baseKey, const char *keyName)
    // first one, then delete it.  So we need to get
    // the first one next time, also.
    rc = ::RegEnumKeyEx(key, 0, subkeyName, &len, 0, 0, 0, 0);
-   if (rc == ERROR_NO_MORE_ITEMS) 
+   if (rc == ERROR_NO_MORE_ITEMS)
    {
      // No more subkeys.  Delete the main one.
      rc = ::RegDeleteKey(baseKey, keyName);
      break;
-   } 
-   if (rc == ERROR_SUCCESS) 
+   }
+   if (rc == ERROR_SUCCESS)
    {
      // Another subkey, delete it, recursively.
      rc = DeleteRegKey(key, subkeyName);
    }
  }
- 
+
  // Close the key we opened.
  ::RegCloseKey(key);
  return rc;
 }
 
 void
-nsWindowsShellService::SetRegKey(const char* aKeyName, const char* aValueName, 
+nsWindowsShellService::SetRegKey(const char* aKeyName, const char* aValueName,
                                  const char* aValue, PRBool aHKLMOnly)
 {
   char buf[MAX_BUF];
@@ -539,16 +538,16 @@ nsWindowsShellService::SetRegKey(const char* aKeyName, const char* aValueName,
 
   // Set the new value
   if (REG_FAILED(result) || strcmp(buf, aValue) != 0)
-    ::RegSetValueEx(theKey, aValueName, 0, REG_SZ, 
+    ::RegSetValueEx(theKey, aValueName, 0, REG_SZ,
                     (LPBYTE)aValue, nsDependentCString(aValue).Length());
-  
+
   // Close the key we opened.
   ::RegCloseKey(theKey);
 }
 
 /* helper routine. Iterate over the passed in settings object,
-   testing each key with the USE_FOR_DEFAULT_TEST to see if 
-   we are handling it. 
+   testing each key with the USE_FOR_DEFAULT_TEST to see if
+   we are handling it.
 */
 PRBool
 nsWindowsShellService::TestForDefault(SETTING aSettings[], PRInt32 aSize)
@@ -557,7 +556,7 @@ nsWindowsShellService::TestForDefault(SETTING aSettings[], PRInt32 aSize)
   NS_ConvertUTF16toUTF8 appName(mBrandFullName);
   char currValue[MAX_BUF];
   SETTING* end = aSettings + aSize;
-  for (SETTING * settings = aSettings; settings < end; ++settings) 
+  for (SETTING * settings = aSettings; settings < end; ++settings)
   {
     if (settings->flags & USE_FOR_DEFAULT_TEST)
     {
@@ -573,9 +572,9 @@ nsWindowsShellService::TestForDefault(SETTING aSettings[], PRInt32 aSize)
         else
           dataShortPath.Replace(offset, 9, mAppShortPath);
       }
-      
+
       nsCAutoString key(settings->keyName);
-      if (settings->flags & APPNAME_SUBSTITUTION) 
+      if (settings->flags & APPNAME_SUBSTITUTION)
       {
         PRInt32 offset = key.Find("%APPNAME%");
         key.Replace(offset, 9, appName);
@@ -584,7 +583,7 @@ nsWindowsShellService::TestForDefault(SETTING aSettings[], PRInt32 aSize)
       ::ZeroMemory(currValue, sizeof(currValue));
       HKEY theKey;
       nsresult rv = OpenUserKeyForReading(HKEY_CURRENT_USER, key.get(), &theKey);
-      if (NS_SUCCEEDED(rv)) 
+      if (NS_SUCCEEDED(rv))
       {
         DWORD len = sizeof currValue;
         DWORD result = ::RegQueryValueEx(theKey, settings->valueName, NULL, NULL, (LPBYTE)currValue, &len);
@@ -608,35 +607,35 @@ nsWindowsShellService::TestForDefault(SETTING aSettings[], PRInt32 aSize)
  * in the windows registry.
 */
 
-void 
+void
 nsWindowsShellService::setKeysForSettings(SETTING aSettings[], PRInt32 aSize, const char * aAppName)
 {
   SETTING* settings;
   SETTING* end = aSettings + aSize;
   PRInt32 offset;
 
-  for (settings = aSettings; settings < end; ++settings) 
+  for (settings = aSettings; settings < end; ++settings)
   {
     nsCAutoString data(settings->valueData);
     nsCAutoString key(settings->keyName);
-    if (settings->flags & APP_PATH_SUBSTITUTION) 
+    if (settings->flags & APP_PATH_SUBSTITUTION)
     {
       offset = data.Find("%APPPATH%");
       data.Replace(offset, 9, mAppLongPath);
     }
-    if (settings->flags & MAPIDLL_PATH_SUBSTITUTION) 
+    if (settings->flags & MAPIDLL_PATH_SUBSTITUTION)
     {
       offset = data.Find("%MAPIDLLPATH%");
       data.Replace(offset, 13, mMapiDLLPath);
     }
-    if (settings->flags & APPNAME_SUBSTITUTION) 
+    if (settings->flags & APPNAME_SUBSTITUTION)
     {
       offset = key.Find("%APPNAME%");
       key.Replace(offset, 9, aAppName);
     }
-    if (settings->flags & UNINST_PATH_SUBSTITUTION) 
+    if (settings->flags & UNINST_PATH_SUBSTITUTION)
     {
-      offset = data.Find("%UNINSTPATH%"); 
+      offset = data.Find("%UNINSTPATH%");
       data.Replace(offset, 12, mUninstallPath);
     }
 
@@ -644,7 +643,7 @@ nsWindowsShellService::setKeysForSettings(SETTING aSettings[], PRInt32 aSize, co
   }
 }
 
-// Support for versions of shlobj.h that don't include the Vista API's 
+// Support for versions of shlobj.h that don't include the Vista API's
 #if !defined(IApplicationAssociationRegistration)
 
 typedef enum tagASSOCIATIONLEVEL
@@ -699,7 +698,7 @@ nsWindowsShellService::IsDefaultClientVista(PRBool aStartupCheck, PRUint16 aApps
                                  CLSCTX_INPROC,
                                  IID_IApplicationAssociationReg,
                                  (void**)&pAAR);
-  
+
   if (SUCCEEDED(hr))
   {
     PRBool isDefaultMail = PR_TRUE;
@@ -709,18 +708,18 @@ nsWindowsShellService::IsDefaultClientVista(PRBool aStartupCheck, PRUint16 aApps
     if (aApps & nsIShellService::NEWS)
       pAAR->QueryAppIsDefaultAll(AL_EFFECTIVE, APP_REG_NAME_NEWS, &isDefaultNews);
 
-    *aIsDefaultClient = isDefaultNews && isDefaultMail;    
-    
+    *aIsDefaultClient = isDefaultNews && isDefaultMail;
+
     // If this is the first mail window, maintain internal state that we've
-    // checked this session (so that subsequent window opens don't show the 
+    // checked this session (so that subsequent window opens don't show the
     // default browser dialog).
     if (aStartupCheck)
       mCheckedThisSession = PR_TRUE;
-    
+
     pAAR->Release();
     return PR_TRUE;
   }
-  
+
   return PR_FALSE;
 }
 
@@ -734,17 +733,17 @@ nsWindowsShellService::SetDefaultClientVista(PRUint16 aApps)
                                  CLSCTX_INPROC,
                                  IID_IApplicationAssociationReg,
                                  (void**)&pAAR);
-  
+
   if (SUCCEEDED(hr))
   {
     if (aApps & nsIShellService::MAIL)
       hr = pAAR->SetAppAsDefaultAll(APP_REG_NAME_MAIL);
     if (aApps & nsIShellService::NEWS)
-      hr = pAAR->SetAppAsDefaultAll(APP_REG_NAME_NEWS);   
-    
+      hr = pAAR->SetAppAsDefaultAll(APP_REG_NAME_NEWS);
+
     pAAR->Release();
     return PR_TRUE;
   }
-  
+
   return PR_FALSE;
 }

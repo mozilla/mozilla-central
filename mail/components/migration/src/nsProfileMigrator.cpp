@@ -51,7 +51,6 @@
 #include "nsProfileMigrator.h"
 #include "nsMailMigrationCID.h"
 
-#include "nsCRT.h"
 #include "NSReg.h"
 #include "nsReadableUtils.h"
 #include "nsString.h"
@@ -87,7 +86,7 @@ nsProfileMigrator::Migrate(nsIProfileStartup* aStartup)
   cstr->SetData(key);
 
   // By opening the Migration FE with a supplied mailMigrator, it will automatically
-  // migrate from it. 
+  // migrate from it.
   nsCOMPtr<nsIWindowWatcher> ww (do_GetService(NS_WINDOWWATCHER_CONTRACTID));
   nsCOMPtr<nsISupportsArray> params;
   NS_NewISupportsArray(getter_AddRefs(params));
@@ -98,7 +97,7 @@ nsProfileMigrator::Migrate(nsIProfileStartup* aStartup)
   params->AppendElement(aStartup);
 
   nsCOMPtr<nsIDOMWindow> migrateWizard;
-  return ww->OpenWindow(nsnull, 
+  return ww->OpenWindow(nsnull,
                         MIGRATION_WIZARD_FE_URL,
                         "_blank",
                         MIGRATION_WIZARD_FE_FEATURES,
@@ -178,7 +177,7 @@ nsProfileMigrator::GetDefaultMailMigratorKey(nsACString& aKey, nsCOMPtr<nsIMailP
       return NS_OK;
     }
   }
- 
+
   return NS_ERROR_NOT_AVAILABLE;
 }
 
@@ -236,7 +235,7 @@ nsProfileMigrator::ImportRegistryProfiles(const nsACString& aAppName)
   nsCAutoString dotAppName;
   ToLowerCase(aAppName, dotAppName);
   dotAppName.Insert('.', 0);
-  
+
   regFile->AppendNative(dotAppName);
   regFile->AppendNative(NS_LITERAL_CSTRING("appreg"));
 #endif

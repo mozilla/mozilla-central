@@ -43,18 +43,17 @@
 #include "nsServiceManagerUtils.h"
 #include "nsAppDirectoryServiceDefs.h"
 #include "nsXPCOMCID.h"
-#include "nsCRT.h"
 
-void SetProxyPref(const nsACString& aHostPort, const char* aPref, 
-                  const char* aPortPref, nsIPrefBranch* aPrefs) 
+void SetProxyPref(const nsACString& aHostPort, const char* aPref,
+                  const char* aPortPref, nsIPrefBranch* aPrefs)
 {
-  nsCAutoString hostPort(aHostPort);  
+  nsCAutoString hostPort(aHostPort);
   PRInt32 portDelimOffset = hostPort.RFindChar(':');
   if (portDelimOffset > 0) {
     nsCAutoString host(Substring(hostPort, 0, portDelimOffset));
-    nsCAutoString port(Substring(hostPort, portDelimOffset + 1, 
+    nsCAutoString port(Substring(hostPort, portDelimOffset + 1,
                                  hostPort.Length() - (portDelimOffset + 1)));
-    
+
     aPrefs->SetCharPref(aPref, host.get());
     PRInt32 stringErr;
     PRInt32 portValue = port.ToInteger(&stringErr);
@@ -67,14 +66,14 @@ void SetProxyPref(const nsACString& aHostPort, const char* aPref,
 void ParseOverrideServers(const char* aServers, nsIPrefBranch* aBranch)
 {
   // Windows (and Opera) formats its proxy override list in the form:
-  // server;server;server where server is a server name or ip address, 
+  // server;server;server where server is a server name or ip address,
   // or "<local>". Mozilla's format is server,server,server, and <local>
   // must be translated to "localhost,127.0.0.1"
   nsCAutoString override(aServers);
   PRInt32 left = 0, right = 0;
   for (;;) {
     right = override.FindChar(';', right);
-    const nsACString& host = Substring(override, left, 
+    const nsACString& host = Substring(override, left,
                                        (right < 0 ? override.Length() : right) - left);
     if (host.Equals("<local>"))
       override.Replace(left, 7, NS_LITERAL_CSTRING("localhost,127.0.0.1"));
@@ -86,16 +85,16 @@ void ParseOverrideServers(const char* aServers, nsIPrefBranch* aBranch)
   aBranch->SetCharPref("network.proxy.no_proxies_on", override.get());
 }
 
-void GetMigrateDataFromArray(MigrationData* aDataArray, PRInt32 aDataArrayLength, 
-                             PRBool aReplace, nsIFile* aSourceProfile, 
+void GetMigrateDataFromArray(MigrationData* aDataArray, PRInt32 aDataArrayLength,
+                             PRBool aReplace, nsIFile* aSourceProfile,
                              PRUint16* aResult)
 {
-  nsCOMPtr<nsIFile> sourceFile; 
+  nsCOMPtr<nsIFile> sourceFile;
   PRBool exists;
   MigrationData* cursor;
   MigrationData* end = aDataArray + aDataArrayLength;
   for (cursor = aDataArray; cursor < end && cursor->fileName; ++cursor) {
-    // When in replace mode, all items can be imported. 
+    // When in replace mode, all items can be imported.
     // When in non-replace mode, only items that do not require file replacement
     // can be imported.
     if (aReplace || !cursor->replaceOnly) {
@@ -105,7 +104,7 @@ void GetMigrateDataFromArray(MigrationData* aDataArray, PRInt32 aDataArrayLength
       if (exists)
         *aResult |= cursor->sourceFlag;
     }
-    nsCRT::free(cursor->fileName);
+    NS_Free(cursor->fileName);
     cursor->fileName = nsnull;
   }
 }
