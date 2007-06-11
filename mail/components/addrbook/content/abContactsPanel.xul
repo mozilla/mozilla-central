@@ -72,8 +72,8 @@
   <script type="application/x-javascript" src="chrome://messenger/content/addressbook/abContactsPanel.js"/>
 
   <popup id="cardProperties">
-    <menuitem label="&deleteAddrBookCard.label;" accesskey="&deleteAddrBookCard.accesskey;" oncommand="AbDelete();"/>
-    <menuitem label="&addrBookCardProperties.label;" accesskey="&addrBookCardProperties.accesskey;" oncommand="AbEditSelectedCard();"/>
+    <menuitem label="&deleteAddrBookCard.label;" oncommand="AbDelete();"/>
+    <menuitem label="&addrBookCardProperties.label;" oncommand="AbEditSelectedCard();"/>
     <menuseparator/>
     <menuitem label="&addtoToFieldMenu.label;" oncommand="addSelectedAddresses('addr_to');"/>
     <menuitem label="&addtoCcFieldMenu.label;" oncommand="addSelectedAddresses('addr_cc');"/>
@@ -82,7 +82,7 @@
       
   <vbox id="results_box" flex="1">   
     <separator class="thin"/>  
-    <label value="&addressbookPicker.label;"/> 
+    <label value="&addressbookPicker.label;" accesskey="&addressbookPicker.accesskey;" control="addressbookList"/> 
     <hbox id="panel-bar" class="toolbar" align="center">
       <menulist id="addressbookList" 
                 oncommand="AddressBookMenuListChange();" flex="1"
@@ -107,7 +107,7 @@
     <separator class="thin"/> 
 
     <vbox>      
-	    <label value="&searchInput.label;"/> 
+      <label value="&searchInput.label;" accesskey="&searchInput.accesskey;" control="searchInput"/>
       <textbox id="searchInput" flex="1" onfocus="onSearchInputFocus(event);" onblur="onSearchInputBlur(event);" 
                onclick="this.select();" oninput="onAbSearchInput(false);"
                onkeypress="onAbSearchKeyPress(event);">
@@ -138,9 +138,9 @@
 
     <hbox>
       <spring flex="1"/>
-      <button id="toButton" label="&toButton.label;" oncommand="addSelectedAddresses('addr_to')"/> 
+      <button id="toButton" label="&toButton.label;" accesskey="&toButton.accesskey;" oncommand="addSelectedAddresses('addr_to')"/> 
       <spacer class="thin"/>
-      <button id="ccButton" label="&ccButton.label;" oncommand="addSelectedAddresses('addr_cc')"/> 
+      <button id="ccButton" label="&ccButton.label;" accesskey="&ccButton.accesskey;" oncommand="addSelectedAddresses('addr_cc')"/> 
       <spring flex="1"/>
     </hbox>
     
