@@ -1911,7 +1911,7 @@ NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWi
             messageArray->AppendElement(msgHdr);
 
             nsCOMPtr<nsIMsgFolder> dstFolder;
-            rv = GetExistingFolder(actionTargetFolderUri.get(),
+            rv = GetExistingFolder(actionTargetFolderUri,
                                    getter_AddRefs(dstFolder));
             NS_ENSURE_SUCCESS(rv, rv);
 

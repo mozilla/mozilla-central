@@ -3133,7 +3133,7 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
             messageArray->AppendElement(msgHdr);
 
             nsCOMPtr<nsIMsgFolder> dstFolder;
-            rv = GetExistingFolder(actionTargetFolderUri.get(),
+            rv = GetExistingFolder(actionTargetFolderUri,
                                    getter_AddRefs(dstFolder));
             NS_ENSURE_SUCCESS(rv, rv);
 
@@ -7680,7 +7680,7 @@ nsImapMailFolder::OnMessageClassified(const char * aMsgURI, nsMsgJunkStatus aCla
         if (!spamFolderURI.IsEmpty())
         {
           nsCOMPtr<nsIMsgFolder> folder;
-          rv = GetExistingFolder(PromiseFlatCString(spamFolderURI).get(), getter_AddRefs(folder));
+          rv = GetExistingFolder(spamFolderURI, getter_AddRefs(folder));
           if (NS_SUCCEEDED(rv) && folder)
           {
             rv = folder->SetFlag(MSG_FOLDER_FLAG_JUNK);

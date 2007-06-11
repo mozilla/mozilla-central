@@ -358,7 +358,7 @@ nsresult nsSpamSettings::UpdateJunkFolderState()
   if (!mCurrentJunkFolderURI.IsEmpty() && !mCurrentJunkFolderURI.Equals(newJunkFolderURI))
   {
     nsCOMPtr<nsIMsgFolder> oldJunkFolder;
-    rv = GetExistingFolder(mCurrentJunkFolderURI.get(), getter_AddRefs(oldJunkFolder));
+    rv = GetExistingFolder(mCurrentJunkFolderURI, getter_AddRefs(oldJunkFolder));
     if (NS_SUCCEEDED(rv) && oldJunkFolder)
     {
       // remove the MSG_FOLDER_FLAG_JUNK on the old junk folder
@@ -692,7 +692,7 @@ NS_IMETHODIMP nsSpamSettings::OnStopRunningUrl(nsIURI* aURL, nsresult exitCode)
 
   // when we get here, the folder should exist.
   nsCOMPtr <nsIMsgFolder> junkFolder;
-  rv = GetExistingFolder(junkFolderURI.get(), getter_AddRefs(junkFolder));
+  rv = GetExistingFolder(junkFolderURI, getter_AddRefs(junkFolder));
   NS_ENSURE_SUCCESS(rv,rv);
   if (!junkFolder)
     return NS_ERROR_UNEXPECTED;

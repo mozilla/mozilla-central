@@ -109,6 +109,7 @@
 #include "nsIMsgHdr.h"
 #include "nsIMsgFolder.h"
 #include "nsComposeStrings.h"
+#include "nsString.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 
@@ -2925,7 +2926,7 @@ nsMsgComposeAndSend::InitCompositionFields(nsMsgCompFields *fields,
       else
       {
         nsCOMPtr<nsIMsgFolder> folder;
-        (void)GetExistingFolder(fieldsFCC, getter_AddRefs(folder));
+        GetExistingFolder(nsDependentCString(fieldsFCC), getter_AddRefs(folder));
         if (folder)
         {
           useDefaultFCC = PR_FALSE;
@@ -4459,7 +4460,7 @@ nsMsgComposeAndSend::MimeDoFCC(nsIFile          *input_file,
   // the file for parsing...
   //
 
-  (void)GetExistingFolder(fcc_header, getter_AddRefs(folder));
+  GetExistingFolder(nsDependentCString(fcc_header), getter_AddRefs(folder));
   if ((mode == nsMsgDeliverNow || mode == nsMsgSendUnsent) && folder)
     turi = fcc_header;
   else

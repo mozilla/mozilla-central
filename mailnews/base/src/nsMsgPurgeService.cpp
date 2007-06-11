@@ -307,7 +307,7 @@ nsresult nsMsgPurgeService::PerformPurge()
         // because the folder pane isn't built yet, for example
         // skip this account
         nsCOMPtr<nsIMsgFolder> junkFolder;
-        GetExistingFolder(junkFolderURI.get(), getter_AddRefs(junkFolder));
+        GetExistingFolder(junkFolderURI, getter_AddRefs(junkFolder));
 
         PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("[%d] %s exists? %s (if doesn't exist, don't purge)", serverIndex, junkFolderURI.get(), junkFolder ? "true" : "false"));
         if (!junkFolder)

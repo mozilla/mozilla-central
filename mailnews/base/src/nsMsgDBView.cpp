@@ -3071,7 +3071,7 @@ nsMsgDBView::DetermineActionsForJunkMsgs(PRBool* movingJunkMessages, PRBool* mar
     if (!spamFolderURI.IsEmpty())
     {
       //nsCOMPtr<nsIMsgFolder> destFolder;
-      rv = GetExistingFolder(spamFolderURI.get(), junkTargetFolder);
+      rv = GetExistingFolder(spamFolderURI, junkTargetFolder);
       NS_ENSURE_SUCCESS(rv,rv);
 
       *movingJunkMessages = true;

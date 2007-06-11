@@ -97,7 +97,7 @@ NS_MSG_BASE nsresult NS_MsgDecodeUnescapeURLPath(const nsACString& aPath,
 NS_MSG_BASE PRBool WeAreOffline();
 
 // Check if a folder with aFolderUri exists
-NS_MSG_BASE nsresult GetExistingFolder(const char *aFolderURI, nsIMsgFolder **aFolder);
+NS_MSG_BASE nsresult GetExistingFolder(const nsCString& aFolderURI, nsIMsgFolder **aFolder);
 
 // Escape lines starting with "From ", ">From ", etc. in a buffer.
 NS_MSG_BASE nsresult EscapeFromSpaceLine(nsIOutputStream *ouputStream, char *start, const char *end);

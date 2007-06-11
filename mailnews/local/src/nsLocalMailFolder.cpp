@@ -3426,7 +3426,7 @@ nsMsgLocalMailFolder::OnMessageClassified(const char *aMsgURI, nsMsgJunkStatus a
         mSpamFolderURI = uriStr;
 
         nsCOMPtr<nsIMsgFolder> folder;
-        rv = GetExistingFolder(mSpamFolderURI.get(), getter_AddRefs(folder));
+        rv = GetExistingFolder(mSpamFolderURI, getter_AddRefs(folder));
         if (NS_SUCCEEDED(rv) && folder)
         {
           rv = folder->SetFlag(MSG_FOLDER_FLAG_JUNK);
@@ -3459,7 +3459,7 @@ nsMsgLocalMailFolder::OnMessageClassified(const char *aMsgURI, nsMsgJunkStatus a
       if (!mSpamFolderURI.IsEmpty())
       {
         nsCOMPtr<nsIMsgFolder> folder;
-        rv = GetExistingFolder(mSpamFolderURI.get(), getter_AddRefs(folder));
+        rv = GetExistingFolder(mSpamFolderURI, getter_AddRefs(folder));
         if (NS_SUCCEEDED(rv) && folder) {
           nsCOMPtr<nsISupportsArray> messages;
           NS_NewISupportsArray(getter_AddRefs(messages));

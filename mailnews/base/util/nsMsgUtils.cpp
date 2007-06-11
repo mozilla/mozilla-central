@@ -702,9 +702,8 @@ PRBool WeAreOffline()
   return offline;
 }
 
-nsresult GetExistingFolder(const char *aFolderURI, nsIMsgFolder **aFolder)
+nsresult GetExistingFolder(const nsCString& aFolderURI, nsIMsgFolder **aFolder)
 {
-  NS_ENSURE_ARG_POINTER(aFolderURI);
   NS_ENSURE_ARG_POINTER(aFolder);
 
   *aFolder = nsnull;
@@ -714,7 +713,7 @@ nsresult GetExistingFolder(const char *aFolderURI, nsIMsgFolder **aFolder)
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIRDFResource> resource;
-  rv = rdf->GetResource(nsDependentCString(aFolderURI), getter_AddRefs(resource));
+  rv = rdf->GetResource(aFolderURI, getter_AddRefs(resource));
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr <nsIMsgFolder> thisFolder;
