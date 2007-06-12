@@ -129,6 +129,9 @@ EmbedWindow::InitNoChrome(NativeBrowserControl *aOwner)
 nsresult
 EmbedWindow::CreateWindow_(PRUint32 width, PRUint32 height)
 {
+    PR_LOG(prLogModuleInfo, PR_LOG_DEBUG, 
+           ("EmbedWindow::CreateWindow: start"));
+    
     nsresult rv;
 #if defined(XP_UNIX) && !defined(XP_MACOSX)
     PR_ASSERT(PR_FALSE);
@@ -148,13 +151,20 @@ EmbedWindow::CreateWindow_(PRUint32 width, PRUint32 height)
                                  nsnull,
                                  0, 0, 
                                  width, height);
-    if (NS_FAILED(rv))
+    if (NS_FAILED(rv)) {
+        PR_LOG(prLogModuleInfo, PR_LOG_DEBUG, 
+               ("EmbedWindow::CreateWindow: nsIBaseWindow::InitWindow returned: %d", rv));
+
         return rv;
+    }
     
     rv = mBaseWindow->Create();
-    if (NS_FAILED(rv))
-    return rv;
-    
+    if (NS_FAILED(rv)) {
+        PR_LOG(prLogModuleInfo, PR_LOG_DEBUG, 
+               ("EmbedWindow::CreateWindow: nsIBaseWindow::Create returned: %d", rv));
+        return rv;
+    }
+
     return NS_OK;
 }
 

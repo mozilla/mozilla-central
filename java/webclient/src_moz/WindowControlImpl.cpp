@@ -44,9 +44,15 @@ JNIEXPORT void JNICALL Java_org_mozilla_webclient_impl_wrapper_1native_WindowCon
     }
     PRBool alreadyRealized;
 
-#ifdef XP_UNIX
+#if defined(XP_UNIX) && !defined(XP_MAC) && !defined(XP_MACOSX)
+    PR_LOG(prLogModuleInfo, PR_LOG_DEBUG, 
+           ("WindowContorImpl_nativeRealize: about to call GetGTKWinPtrFromCanvas"));
+
     int gtkWinPtr = 
         (int)::util_GetGTKWinPtrFromCanvas(env, aBrowserControlImpl);
+    PR_LOG(prLogModuleInfo, PR_LOG_DEBUG, 
+           ("WindowContorImpl_nativeRealize: returned from GetGTKWinPtrFromCanvas: gtkWinPtr: %p", gtkWinPtr));
+
     // PENDING set this into the nativeBrowserControl for use later
 #endif
 

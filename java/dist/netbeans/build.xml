@@ -106,15 +106,15 @@
             </and>
         </condition>
 
-        <condition property="platform" value="unix">
-            <and>
-                <os family="unix" />
-            </and>
-        </condition>
-        
         <condition property="platform" value="mac">
             <and>
                 <os family="mac" />
+            </and>
+        </condition>
+        
+        <condition property="platform" value="unix">
+            <and>
+                <os family="unix" />
             </and>
         </condition>
         
@@ -253,6 +253,11 @@ ${so.prefix}xul.${so.extension}.
                     <customize/>
 
                     <patternset>
+                        <exclude name="**/*Gtk*.java" if="build.mac.classes"/>
+                        <exclude name="**/*Win32*.java" if="build.mac.classes"/>
+                    </patternset>
+                    
+                    <patternset>
                         <exclude name="**/*Win32*.java" if="build.unix.classes"/>
                         <exclude name="**/*Cocoa*.java" if="build.unix.classes"/>
                     </patternset>
@@ -262,11 +267,6 @@ ${so.prefix}xul.${so.extension}.
                         <exclude name="**/*Cocoa*.java" if="build.win32.classes"/>
                     </patternset>
 
-                    <patternset>
-                        <exclude name="**/*Gtk*.java" if="build.mac.classes"/>
-                        <exclude name="**/*Win32*.java" if="build.mac.classes"/>
-                    </patternset>
-                    
                 </javac>
             </sequential>
         </macrodef>

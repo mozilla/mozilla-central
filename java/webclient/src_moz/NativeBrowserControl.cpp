@@ -134,6 +134,9 @@ NativeBrowserControl::Realize(jobject javaBrowserControl,
                               PRUint32 width, PRUint32 height)
 {
 
+    PR_LOG(prLogModuleInfo, PR_LOG_DEBUG, 
+           ("NativeBrowserControl::Realize: start"));
+
     // parentWinPtr is whatever was returned from
     // <platform>BrowserControlCanvas.getWindow().
 
@@ -161,6 +164,8 @@ NativeBrowserControl::Realize(jobject javaBrowserControl,
     // create the window
     rv = mWindow->CreateWindow_(width, height);
     if (NS_FAILED(rv)) {
+        PR_LOG(prLogModuleInfo, PR_LOG_DEBUG, 
+               ("NativeBrowserControl::Realize: EmbedWindow::CreateWindow returned: %d", rv));
         JNIEnv *env = (JNIEnv *) JNU_GetEnv(gVm, JNI_VERSION);
         ::util_ThrowExceptionToJava(env, "Can't CreateWindow");
     }
@@ -185,6 +190,8 @@ NativeBrowserControl::Realize(jobject javaBrowserControl,
         ::util_ThrowExceptionToJava(env, "Can't get EventRegistration from BrowserControl");
     }
 
+    PR_LOG(prLogModuleInfo, PR_LOG_DEBUG, 
+           ("NativeBrowserControl::Realize: succeeded"));
 
     return NS_OK;
 }
