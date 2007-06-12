@@ -519,7 +519,7 @@ nsNetscapeProfileMigratorBase::GetProfileDataFromRegistry(nsILocalFile* aRegistr
 
     // "migrated" is "yes" for all valid Seamonkey profiles. It is only "no"
     // for 4.x profiles.
-    char migratedStr[3];
+    char migratedStr[3] = {0};
     errCode = NR_RegGetEntryString(reg, profileKey, "migrated",
                                    migratedStr, sizeof(migratedStr));
     if ((errCode != REGERR_OK && errCode != REGERR_BUFTOOSMALL) ||
