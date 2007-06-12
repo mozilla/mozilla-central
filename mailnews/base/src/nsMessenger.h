@@ -85,7 +85,7 @@ protected:
                     nsISupportsArray *deletedArray);
   nsresult DoCommand(nsIRDFCompositeDataSource *db, const nsACString& command,
                      nsISupportsArray *srcArray, nsISupportsArray *arguments);
-  const nsAdoptingString GetString(const nsAFlatString& aStringName);
+  void GetString(const nsString& aStringName, nsString& stringValue);
   nsresult InitStringBundle();
   nsresult PromptIfDeleteAttachments(PRBool saveFirst, PRUint32 count, const char **displayNameArray);
 

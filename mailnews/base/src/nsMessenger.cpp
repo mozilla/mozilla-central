@@ -142,7 +142,7 @@
 
 #include "nsILinkHandler.h"
 
-static NS_DEFINE_CID(kRDFServiceCID,	NS_RDFSERVICE_CID);
+static NS_DEFINE_CID(kRDFServiceCID,  NS_RDFSERVICE_CID);
 static NS_DEFINE_CID(kMsgSendLaterCID, NS_MSGSENDLATER_CID);
 
 #define FOUR_K 4096
@@ -262,9 +262,9 @@ public:
     PRBool        m_doCharsetConversion;
     nsString      m_charset;
     enum {
-	    eUnknown,
-	    ePlainText,
-	    eHTML
+      eUnknown,
+      ePlainText,
+      eHTML
     }             m_outputFormat;
     nsString      m_msgBuffer;
 
@@ -311,7 +311,7 @@ nsMessenger::nsMessenger()
   mStringBundle = nsnull;
   mSendingUnsentMsgs = PR_FALSE;
   mCurHistoryPos = -2; // first message selected goes at position 0.
-  //	InitializeFolderRoot();
+  //  InitializeFolderRoot();
 }
 
 nsMessenger::~nsMessenger()
@@ -494,8 +494,10 @@ nsMessenger::PromptIfFileExists(nsILocalFile *file)
             nsCOMPtr<nsIFilePicker> filePicker =
                 do_CreateInstance("@mozilla.org/filepicker;1", &rv);
             if (NS_FAILED(rv)) return rv;
+            nsString saveAttachmentStr;
+            GetString(NS_LITERAL_STRING("SaveAttachment"), saveAttachmentStr);
             filePicker->Init(mWindow,
-                             GetString(NS_LITERAL_STRING("SaveAttachment")),
+                             saveAttachmentStr,
                              nsIFilePicker::modeSave);
             filePicker->SetDefaultString(path);
             filePicker->AppendFilters(nsIFilePicker::filterAll);
@@ -859,11 +861,12 @@ nsMessenger::SaveAttachment(const char * contentType, const char * url,
   nsCOMPtr<nsILocalFile> localFile;
   nsCOMPtr<nsILocalFile> lastSaveDir;
   nsCString filePath;
+  nsString saveAttachmentStr;
   nsString defaultDisplayString;
   rv = ConvertAndSanitizeFileName(displayName, getter_Copies(defaultDisplayString), nsnull);
   if (NS_FAILED(rv)) goto done;
-
-  filePicker->Init(mWindow, GetString(NS_LITERAL_STRING("SaveAttachment")),
+  GetString(NS_LITERAL_STRING("SaveAttachment"), saveAttachmentStr);
+  filePicker->Init(mWindow, saveAttachmentStr,
                    nsIFilePicker::modeSave);
   filePicker->SetDefaultString(defaultDisplayString);
   filePicker->AppendFilters(nsIFilePicker::filterAll);
@@ -917,11 +920,12 @@ nsMessenger::SaveAllAttachments(PRUint32 count,
     nsCString dirName;
     nsSaveAllAttachmentsState *saveState = nsnull;
     PRInt16 dialogResult;
+    nsString saveAttachmentStr;
 
     if (NS_FAILED(rv)) goto done;
-
+    GetString(NS_LITERAL_STRING("SaveAllAttachments"), saveAttachmentStr);
     filePicker->Init(mWindow,
-                     GetString(NS_LITERAL_STRING("SaveAllAttachments")),
+                     saveAttachmentStr,
                      nsIFilePicker::modeGetFolder);
 
     rv = GetLastSaveDirectory(getter_AddRefs(lastSaveDir));
@@ -963,7 +967,6 @@ nsMessenger::SaveAllAttachments(PRUint32 count,
                             contentTypeArray[0], (void *)saveState);
     }
 done:
-
     return rv;
 }
 
@@ -1000,21 +1003,26 @@ nsMessenger::SaveAs(const char *aURI, PRBool aAsFile, nsIMsgIdentity *aIdentity,
     nsCOMPtr<nsIFilePicker> filePicker = do_CreateInstance("@mozilla.org/filepicker;1", &rv);
     if (NS_FAILED(rv))
       goto done;
-
-    filePicker->Init(mWindow, GetString(NS_LITERAL_STRING("SaveMailAs")),
+    nsString saveMailAsStr;
+    GetString(NS_LITERAL_STRING("SaveMailAs"), saveMailAsStr);
+    filePicker->Init(mWindow, saveMailAsStr,
                      nsIFilePicker::modeSave);
 
     // if we have a non-null filename use it, otherwise use default save message one
     if (aMsgFilename)
       filePicker->SetDefaultString(nsDependentString(aMsgFilename));
     else {
-      filePicker->SetDefaultString(GetString(NS_LITERAL_STRING("defaultSaveMessageAsFileName")));
+      nsString saveMsgStr;
+      GetString(NS_LITERAL_STRING("defaultSaveMessageAsFileName"), saveMsgStr);
+      filePicker->SetDefaultString(saveMsgStr);
     }
 
     // because we will be using GetFilterIndex()
     // we must call AppendFilters() one at a time,
     // in MESSENGER_SAVEAS_FILE_TYPE order
-    filePicker->AppendFilter(GetString(NS_LITERAL_STRING("EMLFiles")),
+    nsString emlFilesStr;
+    GetString(NS_LITERAL_STRING("EMLFiles"), emlFilesStr);
+    filePicker->AppendFilter(emlFilesStr,
                              NS_LITERAL_STRING("*.eml"));
     filePicker->AppendFilters(nsIFilePicker::filterHTML);
     filePicker->AppendFilters(nsIFilePicker::filterText);
@@ -1033,9 +1041,7 @@ nsMessenger::SaveAs(const char *aURI, PRBool aAsFile, nsIMsgIdentity *aIdentity,
     nsCOMPtr <nsILocalFile> lastSaveDir;
     rv = GetLastSaveDirectory(getter_AddRefs(lastSaveDir));
     if (NS_SUCCEEDED(rv) && lastSaveDir)
-    {
       filePicker->SetDisplayDirectory(lastSaveDir);
-    }
 
     nsCOMPtr<nsILocalFile> localFile;
     nsAutoString fileName;
@@ -1258,8 +1264,9 @@ nsMessenger::Alert(const char *stringName)
         nsCOMPtr<nsIPrompt> dialog(do_GetInterface(mDocShell));
 
         if (dialog) {
-            rv = dialog->Alert(nsnull,
-                               GetString(NS_ConvertASCIItoUTF16(stringName)).get());
+          nsString alertStr;
+          GetString(NS_ConvertASCIItoUTF16(stringName), alertStr);
+          rv = dialog->Alert(nsnull, alertStr.get());
         }
     }
     return rv;
@@ -1271,20 +1278,20 @@ nsMessenger::DoCommand(nsIRDFCompositeDataSource* db, const nsACString& command,
                        nsISupportsArray *argumentArray)
 {
 
-	nsresult rv;
+  nsresult rv;
 
     nsCOMPtr<nsIRDFService> rdfService(do_GetService(kRDFServiceCID, &rv));
-	if(NS_FAILED(rv))
-		return rv;
+  if(NS_FAILED(rv))
+    return rv;
 
-	nsCOMPtr<nsIRDFResource> commandResource;
-	rv = rdfService->GetResource(command, getter_AddRefs(commandResource));
-	if(NS_SUCCEEDED(rv))
-	{
-		rv = db->DoCommand(srcArray, commandResource, argumentArray);
-	}
+  nsCOMPtr<nsIRDFResource> commandResource;
+  rv = rdfService->GetResource(command, getter_AddRefs(commandResource));
+  if(NS_SUCCEEDED(rv))
+  {
+    rv = db->DoCommand(srcArray, commandResource, argumentArray);
+  }
 
-	return rv;
+  return rv;
 
 }
 
@@ -1292,44 +1299,44 @@ NS_IMETHODIMP nsMessenger::DeleteFolders(nsIRDFCompositeDataSource *db,
                                          nsIRDFResource *parentResource,
                                          nsIRDFResource *deletedFolderResource)
 {
-	nsresult rv;
+  nsresult rv;
 
-	if(!db || !parentResource || !deletedFolderResource)
-		return NS_ERROR_NULL_POINTER;
+  if(!db || !parentResource || !deletedFolderResource)
+    return NS_ERROR_NULL_POINTER;
 
-	nsCOMPtr<nsISupportsArray> parentArray, deletedArray;
+  nsCOMPtr<nsISupportsArray> parentArray, deletedArray;
 
-	rv = NS_NewISupportsArray(getter_AddRefs(parentArray));
+  rv = NS_NewISupportsArray(getter_AddRefs(parentArray));
 
-	if(NS_FAILED(rv))
-	{
-		return NS_ERROR_OUT_OF_MEMORY;
-	}
+  if(NS_FAILED(rv))
+  {
+    return NS_ERROR_OUT_OF_MEMORY;
+  }
 
-	rv = NS_NewISupportsArray(getter_AddRefs(deletedArray));
+  rv = NS_NewISupportsArray(getter_AddRefs(deletedArray));
 
-	if(NS_FAILED(rv))
-	{
-		return NS_ERROR_OUT_OF_MEMORY;
-	}
+  if(NS_FAILED(rv))
+  {
+    return NS_ERROR_OUT_OF_MEMORY;
+  }
 
-	parentArray->AppendElement(parentResource);
-	deletedArray->AppendElement(deletedFolderResource);
+  parentArray->AppendElement(parentResource);
+  deletedArray->AppendElement(deletedFolderResource);
         deletedArray->AppendElement(mMsgWindow);
 
-	rv = DoCommand(db, NS_LITERAL_CSTRING(NC_RDF_DELETE), parentArray, deletedArray);
+  rv = DoCommand(db, NS_LITERAL_CSTRING(NC_RDF_DELETE), parentArray, deletedArray);
 
-	return NS_OK;
+  return NS_OK;
 }
 
 NS_IMETHODIMP
 nsMessenger::CopyMessages(nsIRDFCompositeDataSource *database,
                           nsIRDFResource *srcResource, // folder
-						              nsIRDFResource *dstResource,
+                          nsIRDFResource *dstResource,
                           nsISupportsArray *argumentArray, // nsIMessages
                           PRBool isMove)
 {
-	nsresult rv;
+  nsresult rv;
 
   NS_ENSURE_ARG_POINTER(srcResource);
   NS_ENSURE_ARG_POINTER(dstResource);
@@ -1400,18 +1407,18 @@ nsMessenger::CopyFolders(nsIRDFCompositeDataSource *database,
                           nsISupportsArray *argumentArray, // nsIFolders
                           PRBool isMoveFolder)
 {
-	nsresult rv;
+  nsresult rv;
 
-	if(!dstResource || !argumentArray)
-		return NS_ERROR_NULL_POINTER;
+  if(!dstResource || !argumentArray)
+    return NS_ERROR_NULL_POINTER;
 
-	nsCOMPtr<nsISupportsArray> folderArray;
+  nsCOMPtr<nsISupportsArray> folderArray;
 
-	rv = NS_NewISupportsArray(getter_AddRefs(folderArray));
+  rv = NS_NewISupportsArray(getter_AddRefs(folderArray));
 
-	NS_ENSURE_SUCCESS(rv,rv);
+  NS_ENSURE_SUCCESS(rv,rv);
 
-	folderArray->AppendElement(dstResource);
+  folderArray->AppendElement(dstResource);
 
   if (isMoveFolder)
     return DoCommand(database, NS_LITERAL_CSTRING(NC_RDF_MOVEFOLDER), folderArray, argumentArray);
@@ -1604,7 +1611,7 @@ nsMessenger::GetTransactionManager(nsITransactionManager* *aTxnMgr)
 
 NS_IMETHODIMP nsMessenger::SetDocumentCharset(const char *characterSet)
 {
-	// We want to redisplay the currently selected message (if any) but forcing the
+  // We want to redisplay the currently selected message (if any) but forcing the
   // redisplay to use characterSet
   if (!mLastDisplayURI.IsEmpty())
   {
@@ -1737,8 +1744,8 @@ nsMessenger::SendUnsentMessages(nsIMsgIdentity *aIdentity, nsIMsgWindow *aMsgWin
 
     pMsgSendLater->SendUnsentMessages(aIdentity);
     NS_RELEASE(sendLaterListener);
-	}
-	return NS_OK;
+  }
+  return NS_OK;
 }
 
 nsSaveMsgListener::nsSaveMsgListener(nsIFile* aFile, nsMessenger *aMessenger)
@@ -2124,38 +2131,34 @@ nsSaveMsgListener::OnDataAvailable(nsIRequest* request,
 nsresult
 nsMessenger::InitStringBundle()
 {
-    nsresult res = NS_OK;
-    if (!mStringBundle)
-    {
-		const char propertyURL[] = MESSENGER_STRING_URL;
-
-		nsCOMPtr<nsIStringBundleService> sBundleService =
-		         do_GetService(NS_STRINGBUNDLE_CONTRACTID, &res);
-		if (NS_SUCCEEDED(res) && (nsnull != sBundleService))
-		{
-			res = sBundleService->CreateBundle(propertyURL,
+  nsresult res = NS_OK;
+  if (!mStringBundle)
+  {
+    const char propertyURL[] = MESSENGER_STRING_URL;
+    nsCOMPtr<nsIStringBundleService> sBundleService =
+             do_GetService(NS_STRINGBUNDLE_CONTRACTID, &res);
+    if (NS_SUCCEEDED(res) && (nsnull != sBundleService))
+      res = sBundleService->CreateBundle(propertyURL,
                                                getter_AddRefs(mStringBundle));
-		}
-    }
-    return res;
+  }
+  return res;
 }
 
-const nsAdoptingString
-nsMessenger::GetString(const nsAFlatString& aStringName)
+void
+nsMessenger::GetString(const nsString& aStringName, nsString& aValue)
 {
-    nsresult rv = NS_OK;
-    PRUnichar *ptrv = nsnull;
+  nsresult rv;
+  aValue.Truncate();
 
-    if (!mStringBundle)
-        rv = InitStringBundle();
+  if (!mStringBundle)
+    rv = InitStringBundle();
 
-    if (mStringBundle)
-        rv = mStringBundle->GetStringFromName(aStringName.get(), &ptrv);
+  if (mStringBundle)
+    rv = mStringBundle->GetStringFromName(aStringName.get(), getter_Copies(aValue));
 
-    if (NS_FAILED(rv) || !ptrv)
-        ptrv = ToNewUnicode(aStringName);
-
-    return nsAdoptingString(ptrv);
+  if (NS_FAILED(rv) || aValue.IsEmpty())
+    aValue = aStringName;
+  return;
 }
 
 nsSaveAllAttachmentsState::nsSaveAllAttachmentsState(PRUint32 count,
