@@ -806,12 +806,12 @@ char
 }
 
 static char *
-RFC2231ParmFolding(const char *parmName, const nsAFlatCString& charset,
-                   const char *language, const nsAFlatString& parmValue);
+RFC2231ParmFolding(const char *parmName, const nsCString& charset,
+                   const char *language, const nsString& parmValue);
 
 static char *
-RFC2047ParmFolding(const nsAFlatCString& aCharset,
-                   const nsAFlatCString& aFileName, PRInt32 aParmFolding);
+RFC2047ParmFolding(const nsCString& aCharset,
+                   const nsCString& aFileName, PRInt32 aParmFolding);
 
 char *
 mime_generate_attachment_headers (const char *type,
@@ -1209,7 +1209,7 @@ msg_generate_message_id (nsIMsgIdentity *identity)
 }
 
 
-inline static PRBool is7bitCharset(const nsAFlatCString& charset)
+inline static PRBool is7bitCharset(const nsCString& charset)
 {
   // charset name is canonical (no worry about case-sensitivity)
   return charset.EqualsLiteral("HZ-GB-2312") ||
@@ -1219,8 +1219,8 @@ inline static PRBool is7bitCharset(const nsAFlatCString& charset)
 #define PR_MAX_FOLDING_LEN 75     // this is to gurantee the folded line will
                                   // never be greater than 78 = 75 + CRLFLWSP
 /*static */ char *
-RFC2231ParmFolding(const char *parmName, const nsAFlatCString& charset,
-                   const char *language, const nsAFlatString& parmValue)
+RFC2231ParmFolding(const char *parmName, const nsCString& charset,
+                   const char *language, const nsString& parmValue)
 {
   NS_ENSURE_TRUE(parmName && *parmName && !parmValue.IsEmpty(), nsnull);
 
@@ -1371,8 +1371,8 @@ done:
 }
 
 /*static */ char *
-RFC2047ParmFolding(const nsAFlatCString& aCharset,
-                   const nsAFlatCString& aFileName, PRInt32 aParmFolding)
+RFC2047ParmFolding(const nsCString& aCharset,
+                   const nsCString& aFileName, PRInt32 aParmFolding)
 {
   PRBool usemime = nsMsgMIMEGetConformToStandard();
   char *encodedRealName =

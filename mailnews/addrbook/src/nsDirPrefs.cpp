@@ -206,7 +206,7 @@ nsVoidArray* DIR_GetDirectories()
 {
     if (!dir_ServerList)
         DIR_GetDirServers();
-	return dir_ServerList;
+  return dir_ServerList;
 }
 
 DIR_Server* DIR_GetServerFromList(const char* prefName)
@@ -394,7 +394,7 @@ static PRBool DIR_SetServerPosition(nsVoidArray *wholeList, DIR_Server *server, 
    switch (position) {
    case DIR_POS_APPEND:
    /* Do nothing if the request is to append a server that is already
-		 * in the list.
+     * in the list.
      */
      count = wholeList->Count();
      for (i= 0; i < count; i++)
@@ -507,23 +507,23 @@ static PRBool DIR_SetServerPosition(nsVoidArray *wholeList, DIR_Server *server, 
  */
 static DIR_Server *dir_MatchServerPrefToServer(nsVoidArray *wholeList, const char *pref)
 {
-	DIR_Server *server;
+  DIR_Server *server;
 
-	PRInt32 count = wholeList->Count();
-	PRInt32 i;
-	for (i = 0; i < count; i++)
-	{
-		if ((server = (DIR_Server *)wholeList->ElementAt(i)) != nsnull)
-		{
-			if (server->prefName && PL_strstr(pref, server->prefName) == pref)
-			{
-				char c = pref[PL_strlen(server->prefName)];
-				if (c == 0 || c == '.')
-					return server;
-			}
-		}
-	}
-	return nsnull;
+  PRInt32 count = wholeList->Count();
+  PRInt32 i;
+  for (i = 0; i < count; i++)
+  {
+    if ((server = (DIR_Server *)wholeList->ElementAt(i)) != nsnull)
+    {
+      if (server->prefName && PL_strstr(pref, server->prefName) == pref)
+      {
+        char c = pref[PL_strlen(server->prefName)];
+        if (c == 0 || c == '.')
+          return server;
+      }
+    }
+  }
+  return nsnull;
 }
 
 /* dir_ValidateAndAddNewServer
@@ -556,8 +556,8 @@ static PRBool dir_ValidateAndAddNewServer(nsVoidArray *wholeList, const char *fu
            (t2 = DIR_GetStringPref(prefname, "serverName",  nsnull)) != nsnull)
         {
           DIR_Server *server = (DIR_Server *)PR_Malloc(sizeof(DIR_Server));
-					if (server)
-					{
+          if (server)
+          {
             DIR_InitServerWithType(server, (DirectoryType)dirType);
             server->prefName = prefname;
             DIR_GetPrefsForOneServer(server);
@@ -581,53 +581,53 @@ static DIR_PrefId DIR_AtomizePrefName(const char *prefname)
   if (!prefname)
     return idNone;
 
-	DIR_PrefId rc = idNone;
+  DIR_PrefId rc = idNone;
 
-	/* Skip the "ldap_2.servers.<server-name>." portion of the string.
-	 */
-	if (PL_strstr(prefname, PREF_LDAP_SERVER_TREE_NAME) == prefname)
-	{
-		prefname = PL_strchr(&prefname[PL_strlen(PREF_LDAP_SERVER_TREE_NAME) + 1], '.');
-		if (!prefname)
-			return idNone;
-		else
-			prefname = prefname + 1;
-	}
+  /* Skip the "ldap_2.servers.<server-name>." portion of the string.
+   */
+  if (PL_strstr(prefname, PREF_LDAP_SERVER_TREE_NAME) == prefname)
+  {
+    prefname = PL_strchr(&prefname[PL_strlen(PREF_LDAP_SERVER_TREE_NAME) + 1], '.');
+    if (!prefname)
+      return idNone;
+    else
+      prefname = prefname + 1;
+  }
 
-	switch (prefname[0]) {
-	case 'd':
-		switch (prefname[1]) {
-		case 'e': /* description */
-			rc = idDescription;
-			break;
-		case 'i': /* dirType */
-			rc = idType;
-			break;
-		}
-		break;
+  switch (prefname[0]) {
+  case 'd':
+    switch (prefname[1]) {
+    case 'e': /* description */
+      rc = idDescription;
+      break;
+    case 'i': /* dirType */
+      rc = idType;
+      break;
+    }
+    break;
 
   case 'f':
     rc = idFileName;
     break;
 
-	case 'p':
-		switch (prefname[1]) {
-		case 'o':
-			switch (prefname[2]) {
-			case 's': /* position */
-				rc = idPosition;
-				break;
-			}
-			break;
-		}
-		break;
+  case 'p':
+    switch (prefname[1]) {
+    case 'o':
+      switch (prefname[2]) {
+      case 's': /* position */
+        rc = idPosition;
+        break;
+      }
+      break;
+    }
+    break;
 
-	case 'u': /* uri */
-		rc = idUri;
-		break;
-	}
+  case 'u': /* uri */
+    rc = idUri;
+    break;
+  }
 
-	return rc;
+  return rc;
 }
 
 /*****************************************************************************
@@ -645,48 +645,48 @@ static PRBool dir_IsServerDeleted(DIR_Server * server)
    in the old world, we actually delete the server */
 static void dir_DeleteServerContents (DIR_Server *server)
 {
-	if (server)
-	{
-		/* when destroying the server check its clear flag to see if things need cleared */
+  if (server)
+  {
+    /* when destroying the server check its clear flag to see if things need cleared */
 #ifdef XP_FileRemove
-		if (DIR_TestFlag(server, DIR_CLEAR_SERVER))
-		{
-			if (server->fileName)
-				XP_FileRemove (server->fileName, xpAddrBookNew);
-		}
+    if (DIR_TestFlag(server, DIR_CLEAR_SERVER))
+    {
+      if (server->fileName)
+        XP_FileRemove (server->fileName, xpAddrBookNew);
+    }
 #endif /* XP_FileRemove */
 
-		PR_FREEIF (server->prefName);
-		PR_FREEIF (server->description);
-		PR_FREEIF (server->fileName);
+    PR_FREEIF (server->prefName);
+    PR_FREEIF (server->description);
+    PR_FREEIF (server->fileName);
     PR_FREEIF (server->uri);
-	}
+  }
 }
 
 static void DIR_DeleteServer(DIR_Server *server)
 {
-	if (server)
-	{
-		dir_DeleteServerContents(server);
-		PR_Free(server);
-	}
+  if (server)
+  {
+    dir_DeleteServerContents(server);
+    PR_Free(server);
+  }
 }
 
 nsresult DIR_DeleteServerFromList(DIR_Server *server)
 {
-	if (!server)
-		return NS_ERROR_NULL_POINTER;
+  if (!server)
+    return NS_ERROR_NULL_POINTER;
 
-	nsresult rv = NS_OK;
-	nsCOMPtr<nsILocalFile> dbPath;
+  nsresult rv = NS_OK;
+  nsCOMPtr<nsILocalFile> dbPath;
 
-	nsCOMPtr<nsIAddrBookSession> abSession = 
-	         do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv); 
-	if (NS_SUCCEEDED(rv))
-	  rv = abSession->GetUserProfileDirectory(getter_AddRefs(dbPath));
-	
-	if (NS_SUCCEEDED(rv))
-	{
+  nsCOMPtr<nsIAddrBookSession> abSession = 
+           do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv); 
+  if (NS_SUCCEEDED(rv))
+    rv = abSession->GetUserProfileDirectory(getter_AddRefs(dbPath));
+  
+  if (NS_SUCCEEDED(rv))
+  {
     // close the database, as long as it isn't the special ones 
     // (personal addressbook and collected addressbook)
     // which can never be deleted.  There was a bug where we would slap in
@@ -714,14 +714,14 @@ nsresult DIR_DeleteServerFromList(DIR_Server *server)
       }
     }
 
-		nsVoidArray *dirList = DIR_GetDirectories();
-		DIR_SetServerPosition(dirList, server, DIR_POS_DELETE);
-		DIR_DeleteServer(server);
+    nsVoidArray *dirList = DIR_GetDirectories();
+    DIR_SetServerPosition(dirList, server, DIR_POS_DELETE);
+    DIR_DeleteServer(server);
 
     return SavePrefsFile();
   }
 
-	return NS_ERROR_NULL_POINTER;
+  return NS_ERROR_NULL_POINTER;
 }
 
 static void DIR_DeleteServerList(nsVoidArray *wholeList)
@@ -729,7 +729,7 @@ static void DIR_DeleteServerList(nsVoidArray *wholeList)
   if (wholeList)
   {
     DIR_Server *server = nsnull;
-	
+  
     /* TBD: Send notifications? */
     PRInt32 count = wholeList->Count();
     PRInt32 i;
@@ -760,7 +760,7 @@ comparePrefArrayMembers(const void* aElement1, const void* aElement2, void* aDat
     return strcmp(element1 + offset, element2 + offset);
 }
 
-static nsresult dir_GetChildList(const nsAFlatCString &aBranch,
+static nsresult dir_GetChildList(const nsCString &aBranch,
                                  PRUint32 *aCount, char ***aChildList)
 {
     PRUint32 branchLen = aBranch.Length();
@@ -859,11 +859,11 @@ static char *DIR_GetStringPref(const char *prefRoot, const char *prefLeaf, const
 }
 
 /*
-	Get localized unicode string pref from properties file, convert into an UTF8 string 
-	since address book prefs store as UTF8 strings.  So far there are 2 default 
-	prefs stored in addressbook.properties.
-	"ldap_2.servers.pab.description"
-	"ldap_2.servers.history.description"
+  Get localized unicode string pref from properties file, convert into an UTF8 string 
+  since address book prefs store as UTF8 strings.  So far there are 2 default 
+  prefs stored in addressbook.properties.
+  "ldap_2.servers.pab.description"
+  "ldap_2.servers.history.description"
 */
 
 static char *DIR_GetLocalizedStringPref
@@ -913,30 +913,30 @@ static PRInt32 DIR_GetIntPref(const char *prefRoot, const char *prefLeaf, PRInt3
   prefLocation.Append(prefLeaf);
 
   if (NS_FAILED(pPref->GetIntPref(prefLocation.get(), &value)))
-		value = defaultValue;
+    value = defaultValue;
 
-	return value;
+  return value;
 }
 
 /* This will convert from the old preference that was a path and filename */
 /* to a just a filename */
 static void DIR_ConvertServerFileName(DIR_Server* pServer)
 {
-	char* leafName = pServer->fileName;
-	char* newLeafName = nsnull;
+  char* leafName = pServer->fileName;
+  char* newLeafName = nsnull;
 #if defined(XP_WIN) || defined(XP_OS2)
-	/* jefft -- bug 73349 This is to allow users share same address book.
-	 * It only works if the user specify a full path filename.
-	 */
+  /* jefft -- bug 73349 This is to allow users share same address book.
+   * It only works if the user specify a full path filename.
+   */
 #ifdef XP_FileIsFullPath
-	if (! XP_FileIsFullPath(leafName))
-		newLeafName = XP_STRRCHR (leafName, '\\');
+  if (! XP_FileIsFullPath(leafName))
+    newLeafName = XP_STRRCHR (leafName, '\\');
 #endif /* XP_FileIsFullPath */
 #else
-	newLeafName = strrchr(leafName, '/');
+  newLeafName = strrchr(leafName, '/');
 #endif
     pServer->fileName = newLeafName ? strdup(newLeafName + 1) : strdup(leafName);
-	if (leafName) PR_Free(leafName);
+  if (leafName) PR_Free(leafName);
 }
 
 /* This will generate a correct filename and then remove the path.
@@ -949,29 +949,29 @@ void DIR_SetFileName(char** fileName, const char* defaultName)
   if (!fileName)
     return;
 
-	nsresult rv = NS_OK;
-	nsCOMPtr<nsILocalFile> dbPath;
+  nsresult rv = NS_OK;
+  nsCOMPtr<nsILocalFile> dbPath;
 
-	*fileName = nsnull;
+  *fileName = nsnull;
 
-	nsCOMPtr<nsIAddrBookSession> abSession = 
-	         do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv); 
-	if (NS_SUCCEEDED(rv))
-		rv = abSession->GetUserProfileDirectory(getter_AddRefs(dbPath));
-	if (NS_SUCCEEDED(rv))
-	{
-		rv = dbPath->AppendNative(nsDependentCString(defaultName));
-		if (NS_SUCCEEDED(rv))
-		{
-		  rv = dbPath->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 0664);
+  nsCOMPtr<nsIAddrBookSession> abSession = 
+           do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv); 
+  if (NS_SUCCEEDED(rv))
+    rv = abSession->GetUserProfileDirectory(getter_AddRefs(dbPath));
+  if (NS_SUCCEEDED(rv))
+  {
+    rv = dbPath->AppendNative(nsDependentCString(defaultName));
+    if (NS_SUCCEEDED(rv))
+    {
+      rv = dbPath->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 0664);
 
-		  nsAutoString realFileName;
-		  rv = dbPath->GetLeafName(realFileName);
+      nsAutoString realFileName;
+      rv = dbPath->GetLeafName(realFileName);
 
-		  if (NS_SUCCEEDED(rv))
-		    *fileName = ToNewUTF8String(realFileName);
-		}
-	}
+      if (NS_SUCCEEDED(rv))
+        *fileName = ToNewUTF8String(realFileName);
+    }
+  }
 }
 
 /****************************************************************
@@ -983,81 +983,81 @@ An extension is not applied
 static char * dir_ConvertDescriptionToPrefName(DIR_Server * server)
 {
 #define MAX_PREF_NAME_SIZE 25
-	char * fileName = nsnull;
-	char fileNameBuf[MAX_PREF_NAME_SIZE];
-	PRInt32 srcIndex = 0;
-	PRInt32 destIndex = 0;
-	PRInt32 numSrcBytes = 0;
-	const char * descr = nsnull;
-	if (server && server->description)
-	{
-		descr = server->description;
-		numSrcBytes = PL_strlen(descr);
-		while (srcIndex < numSrcBytes && destIndex < MAX_PREF_NAME_SIZE-1)
-		{
+  char * fileName = nsnull;
+  char fileNameBuf[MAX_PREF_NAME_SIZE];
+  PRInt32 srcIndex = 0;
+  PRInt32 destIndex = 0;
+  PRInt32 numSrcBytes = 0;
+  const char * descr = nsnull;
+  if (server && server->description)
+  {
+    descr = server->description;
+    numSrcBytes = PL_strlen(descr);
+    while (srcIndex < numSrcBytes && destIndex < MAX_PREF_NAME_SIZE-1)
+    {
       if (isdigit(descr[srcIndex]) || isalpha(descr[srcIndex]) )
-			{
-				fileNameBuf[destIndex] = descr[srcIndex];
-				destIndex++;
-			}
+      {
+        fileNameBuf[destIndex] = descr[srcIndex];
+        destIndex++;
+      }
 
-			srcIndex++;
-		}
+      srcIndex++;
+    }
 
-		fileNameBuf[destIndex] = '\0'; /* zero out the last character */
-	}
+    fileNameBuf[destIndex] = '\0'; /* zero out the last character */
+  }
 
-	if (destIndex) /* have at least one character in the file name? */
+  if (destIndex) /* have at least one character in the file name? */
   fileName = strdup(fileNameBuf);
 
-	return fileName;
+  return fileName;
 }
 
 
 void DIR_SetServerFileName(DIR_Server *server)
 {
-	char * tempName = nsnull; 
-	const char * prefName = nsnull;
-	PRUint32 numHeaderBytes = 0; 
+  char * tempName = nsnull; 
+  const char * prefName = nsnull;
+  PRUint32 numHeaderBytes = 0; 
 
-	if (server && (!server->fileName || !(*server->fileName)) )
-	{
+  if (server && (!server->fileName || !(*server->fileName)) )
+  {
           PR_FREEIF(server->fileName); // might be one byte empty string.
-		/* make sure we have a pref name...*/
-		if (!server->prefName || !*server->prefName)
-			server->prefName = dir_CreateServerPrefName(server);
+    /* make sure we have a pref name...*/
+    if (!server->prefName || !*server->prefName)
+      server->prefName = dir_CreateServerPrefName(server);
 
-		/* set default personal address book file name*/
-		if ((server->position == 1) && (server->dirType == PABDirectory))
+    /* set default personal address book file name*/
+    if ((server->position == 1) && (server->dirType == PABDirectory))
             server->fileName = strdup(kPersonalAddressbook);
-		else
-		{
-			/* now use the pref name as the file name since we know the pref name
-			   will be unique */
-			prefName = server->prefName;
-			if (prefName && *prefName)
-			{
-				/* extract just the pref name part and not the ldap tree name portion from the string */
-				numHeaderBytes = PL_strlen(PREF_LDAP_SERVER_TREE_NAME) + 1; /* + 1 for the '.' b4 the name */
-				if (PL_strlen(prefName) > numHeaderBytes) 
+    else
+    {
+      /* now use the pref name as the file name since we know the pref name
+         will be unique */
+      prefName = server->prefName;
+      if (prefName && *prefName)
+      {
+        /* extract just the pref name part and not the ldap tree name portion from the string */
+        numHeaderBytes = PL_strlen(PREF_LDAP_SERVER_TREE_NAME) + 1; /* + 1 for the '.' b4 the name */
+        if (PL_strlen(prefName) > numHeaderBytes) 
                     tempName = strdup(prefName + numHeaderBytes);
 
-				if (tempName)
-				{
-					server->fileName = PR_smprintf("%s%s", tempName, kABFileName_CurrentSuffix);
-					PR_Free(tempName);
-				}
-			}
-		}
+        if (tempName)
+        {
+          server->fileName = PR_smprintf("%s%s", tempName, kABFileName_CurrentSuffix);
+          PR_Free(tempName);
+        }
+      }
+    }
 
-		if (!server->fileName || !*server->fileName) /* when all else has failed, generate a default name */
-		{
-			if (server->dirType == LDAPDirectory)
-				DIR_SetFileName(&(server->fileName), kMainLdapAddressBook); /* generates file name with an ldap prefix */
-			else
-				DIR_SetFileName(&(server->fileName), kPersonalAddressbook);
-		}
-	}
+    if (!server->fileName || !*server->fileName) /* when all else has failed, generate a default name */
+    {
+      if (server->dirType == LDAPDirectory)
+        DIR_SetFileName(&(server->fileName), kMainLdapAddressBook); /* generates file name with an ldap prefix */
+      else
+        DIR_SetFileName(&(server->fileName), kPersonalAddressbook);
+    }
+  }
 }
 
 static char *dir_CreateServerPrefName (DIR_Server *server)
@@ -1291,33 +1291,33 @@ static void DIR_SetStringPref(const char *prefRoot, const char *prefLeaf, const 
 
   if (NS_SUCCEEDED(pPref->GetCharPref(prefLocation.get(), getter_Copies(defaultPref))))
   {
-		/* If there's a default pref, just set ours in and let libpref worry 
-		 * about potential defaults in all.js
-		 */
+    /* If there's a default pref, just set ours in and let libpref worry 
+     * about potential defaults in all.js
+     */
     if (value) /* added this check to make sure we have a value before we try to set it..*/
       rv = pPref->SetCharPref (prefLocation.get(), value);
     else
       rv = pPref->ClearUserPref(prefLocation.get());
-	}
-	else
-	{
-		/* If there's no default pref, look for a user pref, and only set our value in
-		 * if the user pref is different than one of them.
-		 */
+  }
+  else
+  {
+    /* If there's no default pref, look for a user pref, and only set our value in
+     * if the user pref is different than one of them.
+     */
     nsCString userPref;
     if (NS_SUCCEEDED(pPref->GetCharPref (prefLocation.get(), getter_Copies(userPref))))
-		{
+    {
       if (value && (defaultValue ? PL_strcasecmp(value, defaultValue) : value != defaultValue))
         rv = pPref->SetCharPref (prefLocation.get(), value);
       else
         rv = pPref->ClearUserPref(prefLocation.get());
-		}
-		else
-		{
+    }
+    else
+    {
       if (value && (defaultValue ? PL_strcasecmp(value, defaultValue) : value != defaultValue))
         rv = pPref->SetCharPref (prefLocation.get(), value); 
-		}
-	}
+    }
+  }
 
   NS_ASSERTION(NS_SUCCEEDED(rv), "Could not set pref in DIR_SetStringPref");
 }
@@ -1391,25 +1391,25 @@ void DIR_SavePrefsForOneServer(DIR_Server *server)
 
 static nsresult DIR_SaveServerPreferences (nsVoidArray *wholeList)
 {
-	if (wholeList)
-	{
+  if (wholeList)
+  {
     nsresult rv;
     nsCOMPtr<nsIPrefBranch> pPref(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv)); 
     if (NS_FAILED(rv))
       return rv;
 
-		PRInt32  i;
-		PRInt32  count = wholeList->Count();
-		DIR_Server *server;
+    PRInt32  i;
+    PRInt32  count = wholeList->Count();
+    DIR_Server *server;
 
-		for (i = 0; i < count; i++)
-		{
-			server = (DIR_Server *) wholeList->ElementAt(i);
-			if (server)
-				DIR_SavePrefsForOneServer(server);
-		}
-		pPref->SetIntPref(PREF_LDAP_GLOBAL_TREE_NAME".user_id", dir_UserId);
-	}
+    for (i = 0; i < count; i++)
+    {
+      server = (DIR_Server *) wholeList->ElementAt(i);
+      if (server)
+        DIR_SavePrefsForOneServer(server);
+    }
+    pPref->SetIntPref(PREF_LDAP_GLOBAL_TREE_NAME".user_id", dir_UserId);
+  }
 
-	return NS_OK;
+  return NS_OK;
 }

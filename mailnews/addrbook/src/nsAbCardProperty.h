@@ -133,7 +133,7 @@ protected:
 
 private:
   nsresult AppendData(const char *aAttrName, mozITXTToHTMLConv *aConv, nsString &aResult);
-  nsresult AppendSection(const AppendItem *aArray, PRInt16 aCount, const nsAFlatString& aHeading, nsIStringBundle *aBundle, mozITXTToHTMLConv *aConv, nsString &aResult);
+  nsresult AppendSection(const AppendItem *aArray, PRInt16 aCount, const nsString& aHeading, nsIStringBundle *aBundle, mozITXTToHTMLConv *aConv, nsString &aResult);
   nsresult AppendLine(const AppendItem &aItem, mozITXTToHTMLConv *aConv, nsString &aResult);
   nsresult AppendLabel(const AppendItem &aItem, nsIStringBundle *aBundle, mozITXTToHTMLConv *aConv, nsString &aResult);
   nsresult AppendCityStateZip(const AppendItem &aItem, nsIStringBundle *aBundle, mozITXTToHTMLConv *aConv, nsString &aResult);

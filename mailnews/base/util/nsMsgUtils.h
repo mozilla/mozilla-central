@@ -89,7 +89,7 @@ NS_MSG_BASE char * NS_MsgSACopy(char **destination, const char *source);
 NS_MSG_BASE char * NS_MsgSACat(char **destination, const char *source);
 
 NS_MSG_BASE nsresult NS_MsgEscapeEncodeURLPath(const nsAString& aStr,
-                                               nsAFlatCString& aResult);
+                                               nsCString& aResult);
 
 NS_MSG_BASE nsresult NS_MsgDecodeUnescapeURLPath(const nsACString& aPath,
                                                  nsAString& aResult);

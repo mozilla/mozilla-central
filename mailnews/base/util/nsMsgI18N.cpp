@@ -68,7 +68,7 @@
 //
 
 nsresult nsMsgI18NConvertFromUnicode(const char* aCharset,
-                                     const nsAFlatString& inString,
+                                     const nsString& inString,
                                      nsACString& outString,
                                      PRBool aIsCharsetCanonical)
 {
@@ -130,7 +130,7 @@ nsresult nsMsgI18NConvertFromUnicode(const char* aCharset,
 }
 
 nsresult nsMsgI18NConvertToUnicode(const char* aCharset,
-                                   const nsAFlatCString& inString, 
+                                   const nsCString& inString, 
                                    nsAString& outString,
                                    PRBool aIsCharsetCanonical)
 {
@@ -582,7 +582,7 @@ nsMsgI18NGetAcceptLanguage(void)
   return "en";
 }
 
-nsresult nsMsgI18NShrinkUTF8Str(const nsAFlatCString &inString,
+nsresult nsMsgI18NShrinkUTF8Str(const nsCString &inString,
                                 PRUint32 aMaxLength,
                                 nsACString &outString)
 {

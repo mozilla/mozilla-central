@@ -2069,10 +2069,8 @@ nsresult nsMsgDBFolder::PromptForCachePassword(nsIMsgIncomingServer *server, nsI
         nsAutoString userNameFound;
         nsAutoString passwordFound;
 
-        const nsAFlatString& empty = EmptyString();
-
         // Get password entry corresponding to the host URI we are passing in.
-        rv = passwordMgrInt->FindPasswordEntry(currServerUri, empty, empty,
+        rv = passwordMgrInt->FindPasswordEntry(currServerUri, EmptyString(), EmptyString(),
                                                hostFound, userNameFound,
                                                passwordFound);
         if (NS_FAILED(rv))

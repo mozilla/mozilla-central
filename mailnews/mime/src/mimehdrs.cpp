@@ -59,7 +59,7 @@
 PRInt32 MimeHeaders_build_heads_list(MimeHeaders *hdrs);
 
 static void
-MimeHeaders_convert_header_value(MimeDisplayOptions *opt, nsAFlatCString &value)
+MimeHeaders_convert_header_value(MimeDisplayOptions *opt, nsCString &value)
 {
   char        *converted;
 

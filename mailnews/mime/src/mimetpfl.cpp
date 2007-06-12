@@ -71,9 +71,9 @@ extern "C" void MimeTextBuildPrefixCSS(
                        nsACString &style);
 // Definition below
 static
-nsresult Line_convert_whitespace(const nsAFlatString& a_line,
+nsresult Line_convert_whitespace(const nsString& a_line,
                                  const PRBool a_convert_all_whitespace,
-                                 nsAFlatString& a_out_line);
+                                 nsString& a_out_line);
 
 static int
 MimeInlineTextPlainFlowedClassInitialize(MimeInlineTextPlainFlowedClass *clazz)
@@ -578,7 +578,7 @@ static void Update_in_tag_info(PRBool *a_in_tag, /* IN/OUT */
 static void Convert_whitespace(const PRUnichar a_current_char,
                                const PRUnichar a_next_char,
                                const PRBool a_convert_all_whitespace,
-                               nsAFlatString& a_out_string)
+                               nsString& a_out_string)
 {
   NS_ASSERTION('\t' == a_current_char || ' ' == a_current_char,
                "Convert_whitespace got something else than a whitespace!");
@@ -619,9 +619,9 @@ static void Convert_whitespace(const PRUnichar a_current_char,
  * @param out a_out_string, result will be appended.
 */
 static
-nsresult Line_convert_whitespace(const nsAFlatString& a_line,
+nsresult Line_convert_whitespace(const nsString& a_line,
                                  const PRBool a_convert_all_whitespace,
-                                 nsAFlatString& a_out_line)
+                                 nsString& a_out_line)
 {
   PRBool in_tag = PR_FALSE;
   PRBool in_quote_in_tag = PR_FALSE;

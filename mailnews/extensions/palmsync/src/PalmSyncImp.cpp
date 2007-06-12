@@ -432,7 +432,7 @@ STDMETHODIMP CPalmSyncImp::nsRenameAB(BOOL aIsUnicode, long aCategoryIndex, LPTS
   return S_OK;
 }
 
-void CPalmSyncImp::CopyUnicodeString(LPTSTR *destStr, const nsAFlatString& srcStr)
+void CPalmSyncImp::CopyUnicodeString(LPTSTR *destStr, const nsString& srcStr)
 {
   if (!destStr)
     return;
@@ -443,7 +443,7 @@ void CPalmSyncImp::CopyUnicodeString(LPTSTR *destStr, const nsAFlatString& srcSt
   (*destStr)[length-1] = '\0';
 }
 
-void CPalmSyncImp::CopyCString(LPTSTR *destStr, const nsAFlatCString& srcStr)
+void CPalmSyncImp::CopyCString(LPTSTR *destStr, const nsCString& srcStr)
 {
   if (!destStr)
     return;

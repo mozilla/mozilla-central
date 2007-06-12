@@ -121,7 +121,7 @@ NS_MSG_BASE void nsMsgI18NTextFileCharset(nsACString& aCharset);
  * @return            nsresult.
  */
 NS_MSG_BASE nsresult nsMsgI18NConvertFromUnicode(const char* aCharset,
-                                                 const nsAFlatString& inString,
+                                                 const nsString& inString,
                                                  nsACString& outString,
                                                  PRBool aIsCharsetCanonical =
                                                         PR_FALSE);
@@ -134,7 +134,7 @@ NS_MSG_BASE nsresult nsMsgI18NConvertFromUnicode(const char* aCharset,
  * @return            nsresult.
  */
 NS_MSG_BASE nsresult nsMsgI18NConvertToUnicode(const char* aCharset,
-                                               const nsAFlatCString& inString,
+                                               const nsCString& inString,
                                                nsAString& outString,
                                                PRBool aIsCharsetCanonical =
                                                       PR_FALSE);
@@ -197,25 +197,25 @@ NS_MSG_BASE nsresult nsMsgI18NFormatNNTPXPATInNonRFC1522Format(const nsCString& 
  * @param outString  [OUT] Shrunken UTF-8 string
  * @return           nsresult
  */
-NS_MSG_BASE nsresult nsMsgI18NShrinkUTF8Str(const nsAFlatCString &inString,
+NS_MSG_BASE nsresult nsMsgI18NShrinkUTF8Str(const nsCString &inString,
                                             PRUint32 aMaxLength,
                                             nsACString &outString);
 
 // inline forwarders to avoid littering with 'x-imap4-.....'
-inline nsresult CopyUTF16toMUTF7(const nsAFlatString &aSrc, nsACString& aDest)
+inline nsresult CopyUTF16toMUTF7(const nsString &aSrc, nsACString& aDest)
 {
     return nsMsgI18NConvertFromUnicode("x-imap4-modified-utf7", aSrc,
                                        aDest, PR_TRUE);
 }
 
-inline nsresult CopyMUTF7toUTF16(const nsAFlatCString& aSrc, nsAString& aDest)
+inline nsresult CopyMUTF7toUTF16(const nsCString& aSrc, nsAString& aDest)
 {
     return nsMsgI18NConvertToUnicode("x-imap4-modified-utf7", aSrc,
                                      aDest, PR_TRUE);
 }
 
 inline nsresult ConvertToUnicode(const char* charset,
-                                 const nsAFlatCString &aSrc, nsAString& aDest)
+                                 const nsCString &aSrc, nsAString& aDest)
 {
     return nsMsgI18NConvertToUnicode(charset, aSrc, aDest);
 }
@@ -227,7 +227,7 @@ inline nsresult ConvertToUnicode(const char* charset,
 }
 
 inline nsresult ConvertFromUnicode(const char* charset,
-                                   const nsAFlatString &aSrc, nsACString& aDest)
+                                   const nsString &aSrc, nsACString& aDest)
 {
     return nsMsgI18NConvertFromUnicode(charset, aSrc, aDest);
 }

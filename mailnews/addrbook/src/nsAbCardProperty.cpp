@@ -1377,7 +1377,7 @@ nsresult nsAbCardProperty::AppendData(const char *aAttrName, mozITXTToHTMLConv *
   return NS_OK;
 }
 
-nsresult nsAbCardProperty::AppendSection(const AppendItem *aArray, PRInt16 aCount, const nsAFlatString& aHeading,
+nsresult nsAbCardProperty::AppendSection(const AppendItem *aArray, PRInt16 aCount, const nsString& aHeading,
                                          nsIStringBundle *aBundle,
                                          mozITXTToHTMLConv *aConv,
                                          nsString &aResult)

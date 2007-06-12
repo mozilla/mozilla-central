@@ -670,7 +670,7 @@ char * NS_MsgSACat (char **destination, const char *source)
   return *destination;
 }
 
-nsresult NS_MsgEscapeEncodeURLPath(const nsAString& aStr, nsAFlatCString& aResult)
+nsresult NS_MsgEscapeEncodeURLPath(const nsAString& aStr, nsCString& aResult)
 {
   char *escapedString = nsEscape(NS_ConvertUTF16toUTF8(aStr).get(), url_Path); 
   if (!*escapedString)
