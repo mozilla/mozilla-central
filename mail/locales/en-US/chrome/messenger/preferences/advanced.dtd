@@ -14,7 +14,6 @@
 <!ENTITY markAsRead.label              "Wait">
 <!ENTITY markAsRead.accesskey          "W">
 <!ENTITY markAsReadEnd.label           "seconds before marking a message as read">
-<!ENTITY markAsReadEnd.accesskey       "d">
 <!ENTITY showFolderColumns.label       "Show expanded columns in the folder pane">
 <!ENTITY showFolderColumns.accesskey   "l">
 <!ENTITY rememberLastMsg.label         "Remember the last selected message">

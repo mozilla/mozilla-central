@@ -105,7 +105,7 @@
               <checkbox id="autoSave" label="&autoSave.label;" preference="mail.compose.autosave"
                         accesskey="&autoSave.accesskey;"/>
               <textbox  id="autoSaveInterval" size="2" preference="mail.compose.autosaveinterval"/>
-              <label value="&autoSaveEnd.label;" accesskey="&autoSaveEnd.accesskey;" control="autoSaveInterval"/>
+              <label value="&autoSaveEnd.label;"/>
             </hbox>
 
             <checkbox id="strictlyMime" label="&useMIME.label;"

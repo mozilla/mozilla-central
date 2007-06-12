@@ -110,7 +110,7 @@
                       preference="mailnews.mark_message_read.delay"
                       oncommand="gAdvancedPane.updateMarkAsReadTextbox(true);"/>
             <textbox  id="markAsReadDelay" size="2" preference="mailnews.mark_message_read.delay.interval"/>
-            <label value="&markAsReadEnd.label;" accesskey="&markAsReadEnd.accesskey;" control="markAsReadDelay"/>
+            <label value="&markAsReadEnd.label;"/>
           </hbox>
 
           <hbox align="center" pack="start">
