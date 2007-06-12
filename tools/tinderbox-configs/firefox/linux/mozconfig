@@ -25,7 +25,4 @@ ac_add_options --enable-svg
 ac_add_options --enable-pango
 ac_add_options --enable-default-toolkit=cairo-gtk2
 
-ac_add_options --enable-static
-ac_add_options --disable-shared
-
 ac_add_options --enable-codesighs
