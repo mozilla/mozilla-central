@@ -22,6 +22,10 @@ do
       # tree name to compare
       TREE=$OPTARG
     ;;
+    f) 
+      # list of tiers
+      FILENAME=$OPTARG
+    ;;
   esac
 done
 

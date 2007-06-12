@@ -1,5 +1,5 @@
-argo-vm|Depend
-bl-bldlnx01|argo-vm
+fx-linux-tbox|Depend
+bl-bldlnx01|fx-linux-tbox
 bl-bldxp01|fx-win32-tbox
 bm-xserve08|Depend
 fxdbug-linux-tbox|Depend
