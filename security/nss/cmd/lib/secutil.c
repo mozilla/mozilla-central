@@ -363,19 +363,37 @@ secu_InitSlotPassword(PK11SlotInfo *slot, PRBool retry, void *arg)
 SECStatus
 SECU_ChangePW(PK11SlotInfo *slot, char *passwd, char *pwFile)
 {
+    return SECU_ChangePW2(slot, passwd, 0, pwFile, 0);
+}
+
+SECStatus
+SECU_ChangePW2(PK11SlotInfo *slot, char *oldPass, char *newPass,
+			char *oldPwFile, char *newPwFile)
+{
     SECStatus rv;
     secuPWData pwdata, newpwdata;
     char *oldpw = NULL, *newpw = NULL;
 
-    if (passwd) {
+    if (oldPass) {
 	pwdata.source = PW_PLAINTEXT;
-	pwdata.data = passwd;
-    } else if (pwFile) {
+	pwdata.data = oldPass;
+    } else if (oldPwFile) {
 	pwdata.source = PW_FROMFILE;
-	pwdata.data = pwFile;
+	pwdata.data = oldPwFile;
     } else {
 	pwdata.source = PW_NONE;
 	pwdata.data = NULL;
+    }
+
+    if (newPass) {
+	newpwdata.source = PW_PLAINTEXT;
+	newpwdata.data = newPass;
+    } else if (newPwFile) {
+	newpwdata.source = PW_FROMFILE;
+	newpwdata.data = newPwFile;
+    } else {
+	newpwdata.source = PW_NONE;
+	newpwdata.data = NULL;
     }
 
     if (PK11_NeedUserInit(slot)) {
@@ -401,9 +419,6 @@ SECU_ChangePW(PK11SlotInfo *slot, char *passwd, char *pwFile)
 
 	PORT_Free(oldpw);
     }
-
-    newpwdata.source = PW_NONE;
-    newpwdata.data = NULL;
 
     newpw = secu_InitSlotPassword(slot, PR_FALSE, &newpwdata);
 

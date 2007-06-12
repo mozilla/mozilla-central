@@ -264,7 +264,7 @@ atob(SECItem *ascii, SECItem *binary, PRArenaPool *arena)
     binary->len = 0;
     it.item = binary;
     it.arena = arena;
-    len = (strcmp(&ascii->data[ascii->len-2],"\r\n")) ? 
+    len = (strncmp(&ascii->data[ascii->len-2],"\r\n",2)) ? 
            ascii->len : ascii->len-2;
     cx = NSSBase64Decoder_Create(get_binary, &it);
     status = NSSBase64Decoder_Update(cx, (const char *)ascii->data, len);

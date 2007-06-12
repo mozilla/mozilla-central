@@ -92,6 +92,16 @@ typedef struct {
 */
 SECStatus SECU_ChangePW(PK11SlotInfo *slot, char *passwd, char *pwFile);
 
+/*
+** Change a password on a token, or initialize a token with a password
+** if it does not already have one.
+** In this function, you can specify both the old and new passwords
+** as either a string or file. NOTE: any you don't specify will
+** be prompted for
+*/
+SECStatus SECU_ChangePW2(PK11SlotInfo *slot, char *oldPass, char *newPass,
+                        char *oldPwFile, char *newPwFile);
+
 /*  These were stolen from the old sec.h... */
 /*
 ** Check a password for legitimacy. Passwords must be at least 8

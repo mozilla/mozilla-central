@@ -314,6 +314,9 @@ VerifyCertDir(char *dir, char *keyName)
     if (strncmp(dir, "multiaccess:", sizeof("multiaccess:") - 1) == 0) {
 	return;
     }
+    /* this function is truly evil. Tools and applications should not have
+     * any knowledge of actual cert databases! */
+    return;
 
     /* This code is really broken because it makes underlying assumptions about
    * how the NSS profile directory is laid out, but these names can change

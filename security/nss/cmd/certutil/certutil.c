@@ -1523,7 +1523,8 @@ enum {
     opt_RW,
     opt_Exponent,
     opt_NoiseFile,
-    opt_Hash
+    opt_Hash,
+    opt_NewPasswordFile
 };
 
 static int 
@@ -1623,7 +1624,8 @@ secuCommandFlag certutil_options[] =
 	{ /* opt_RW                  */  'X', PR_FALSE, 0, PR_FALSE },
 	{ /* opt_Exponent            */  'y', PR_TRUE,  0, PR_FALSE },
 	{ /* opt_NoiseFile           */  'z', PR_TRUE,  0, PR_FALSE },
-	{ /* opt_Hash                */  'Z', PR_TRUE,  0, PR_FALSE }
+	{ /* opt_Hash                */  'Z', PR_TRUE,  0, PR_FALSE },
+	{ /* opt_NewPasswordFile     */  '@', PR_TRUE,  0, PR_FALSE }
 };
 
 
@@ -1996,7 +1998,8 @@ secuCommandFlag certutil_options[] =
 
     /*  If creating new database, initialize the password.  */
     if (certutil.commands[cmd_NewDBs].activated) {
-	SECU_ChangePW(slot, 0, certutil.options[opt_PasswordFile].arg);
+	SECU_ChangePW2(slot, 0, 0, certutil.options[opt_PasswordFile].arg,
+				certutil.options[opt_NewPasswordFile].arg);
     }
 
     /* The following 8 options are mutually exclusive with all others. */
@@ -2037,13 +2040,21 @@ secuCommandFlag certutil_options[] =
     }
     /*  Modify trust attribute for cert (-M)  */
     if (certutil.commands[cmd_ModifyCertTrust].activated) {
+	if (PK11_IsFIPS() || !PK11_IsFriendly(slot)) {
+	    rv = PK11_Authenticate(slot, PR_TRUE, &pwdata);
+	    if (rv != SECSuccess) {
+		SECU_PrintError(progName, "could not authenticate to token or database");
+		goto shutdown;
+	    }
+	}
 	rv = ChangeTrustAttributes(certHandle, name, 
 	                           certutil.options[opt_Trust].arg);
 	goto shutdown;
     }
     /*  Change key db password (-W) (future - change pw to slot?)  */
     if (certutil.commands[cmd_ChangePassword].activated) {
-	rv = SECU_ChangePW(slot, 0, certutil.options[opt_PasswordFile].arg);
+	rv = SECU_ChangePW2(slot, 0, 0, certutil.options[opt_PasswordFile].arg,
+				certutil.options[opt_NewPasswordFile].arg);
 	goto shutdown;
     }
     /*  Reset the a token */

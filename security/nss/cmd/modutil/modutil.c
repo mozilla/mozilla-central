@@ -581,6 +581,10 @@ verify_params()
  * need them if we aren't going to be verifying signatures).  This is
  * because serverland doesn't always have cert and key database files
  * available.
+ *
+ * This function is ill advised. Names and locations of databases are
+ * private to NSS proper. Such functions only confuse other users.
+ *
  */
 static Error
 check_crypto(PRBool create, PRBool readOnly)
@@ -600,7 +604,7 @@ check_crypto(PRBool create, PRBool readOnly)
 		/* won't attempt to handle the multiaccess case. */
 		return SUCCESS;
 	}
-
+#ifdef notdef
 	/* Make sure db directory exists and is readable */
 	if(PR_Access(dir, PR_ACCESS_EXISTS) != PR_SUCCESS) {
 		PR_fprintf(PR_STDERR, errStrings[DIR_DOESNT_EXIST_ERR], dir);
@@ -655,6 +659,7 @@ check_crypto(PRBool create, PRBool readOnly)
 		PR_fprintf(PR_STDOUT, msgStrings[USING_DBDIR_MSG],
 		  SECU_ConfigDirectory(NULL));
 	}
+#endif
 	retval=SUCCESS;
 loser:
 	if (moddbname) {
