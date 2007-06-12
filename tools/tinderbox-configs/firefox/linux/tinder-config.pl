@@ -1,6 +1,6 @@
 #
-## hostname: argo
-## uname: Linux argo.mozilla.org 2.4.21-32.0.1.ELsmp #1 SMP Tue May 17 17:52:23 EDT 2005 i686 i686 i386 GNU/Linux
+## hostname: fx-linux-tbox
+## uname: Linux fx-linux-tbox.build.mozilla.org 2.6.9-42.ELsmp #1 SMP Sat Aug 12 09:39:11 CDT 2006 i686 i686 i386 GNU/Linux
 #
 
 #- tinder-config.pl - Tinderbox configuration file.
@@ -83,7 +83,7 @@ $DHTMLPerformanceTest     = 0;  # Tdhtml
 $StartupPerformanceTest   = 0;  # Ts
 
 $TestsPhoneHome           = 1;  # Should test report back to server?
-$GraphNameOverride        = 'argo-vm';
+$GraphNameOverride        = 'fx-linux-tbox';
 
 # $results_server
 #----------------------------------------------------------------------------
@@ -174,6 +174,7 @@ $BuildNameExtra = 'Nightly';
 #- Until you get the script working. When it works,
 #- change to the tree you're actually building
 $BuildTree  = 'Firefox';
+#$BuildTree = "MozillaTest";
 
 #$BuildName = '';
 #$BuildTag = '';

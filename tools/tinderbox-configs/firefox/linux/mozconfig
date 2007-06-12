@@ -1,6 +1,6 @@
 #
-## hostname: argo
-## uname: Linux argo.mozilla.org 2.4.21-32.0.1.ELsmp #1 SMP Tue May 17 17:52:23 EDT 2005 i686 i686 i386 GNU/Linux
+## hostname: fx-linux-tbox
+## uname: Linux fx-linux-tbox.build.mozilla.org 2.6.9-42.ELsmp #1 SMP Sat Aug 12 09:39:11 CDT 2006 i686 i686 i386 GNU/Linux
 #
 
 export MOZILLA_OFFICIAL=1
@@ -13,9 +13,7 @@ ac_add_options --enable-application=browser
 ac_add_options --enable-update-channel=nightly
 ac_add_options --enable-update-packaging
 
-# gcc 3.2.3 doesn't have -freorder-blocks or -fno-reorder-functions
-#ac_add_options --enable-optimize="-Os -freorder-blocks -fno-reorder-functions -gstabs+"
-ac_add_options --enable-optimize="-Os -gstabs+"
+ac_add_options --enable-optimize="-Os -freorder-blocks -fno-reorder-functions -gstabs+"
 ac_add_options --disable-debug
 ac_add_options --disable-tests
 #not yet
@@ -25,4 +23,10 @@ ac_add_options --enable-svg
 ac_add_options --enable-pango
 ac_add_options --enable-default-toolkit=cairo-gtk2
 
+ac_add_options --enable-libxul
+ac_add_options --enable-places-bookmarks
+
 ac_add_options --enable-codesighs
+
+CC=/tools/gcc/bin/gcc
+CXX=/tools/gcc/bin/g++
