@@ -1014,7 +1014,7 @@ sub cases {
               FROM test_case_runs 
              WHERE run_id = ?", undef, $self->id);
     foreach my $cr (@$ref){
-        push @cases, Bugzilla::Testopia::TestCase->new($cr->case_id);
+        push @cases, Bugzilla::Testopia::TestCase->new($cr);
     }
     $self->{'cases'} = \@cases;
     return $self->{'cases'};

@@ -842,3 +842,22 @@ diff -u -r1.45 Schema.pm
 +    },
  };
  #--------------------------------------------------------------------------
+Index: createaccount.cgi
+===================================================================
+RCS file: /cvsroot/mozilla/webtools/bugzilla/createaccount.cgi,v
+retrieving revision 1.46
+diff -u -r1.46 createaccount.cgi
+--- createaccount.cgi	20 Dec 2005 22:16:07 -0000	1.46
++++ createaccount.cgi	12 Jun 2007 16:31:57 -0000
+@@ -69,8 +69,8 @@
+ 
+     $vars->{'login'} = $login;
+ 
+-    $dbh->bz_lock_tables('profiles WRITE', 'groups READ',
+-                         'user_group_map WRITE', 'email_setting WRITE',
++    $dbh->bz_lock_tables('profiles WRITE', 'groups READ', 'test_plan_permissions_regexp READ', 
++                         'user_group_map WRITE', 'email_setting WRITE', 'test_plan_permissions READ',
+                          'tokens READ');
+ 
+     if (!is_available_username($login)) {
+ 

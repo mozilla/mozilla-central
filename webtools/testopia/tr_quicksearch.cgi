@@ -185,6 +185,7 @@ else{
         my $search = $cgi->param('search');
         my $prod_id = $cgi->param('prod_id');
         trick_taint($search);
+        detaint_natural($prod_id);
         
         $search = "%$search%";
         my $dbh = Bugzilla->dbh;
@@ -213,6 +214,7 @@ else{
         }
         print objToJson($ref);  
     }
+# user lookup
     elsif ($action eq 'getuser'){
         my $search = $cgi->param('search');
         $search = "%$search%";

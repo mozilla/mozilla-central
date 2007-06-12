@@ -107,6 +107,9 @@ elsif ($action =~ /New Case/){
             $caserun->store;
         } 
     }
+    
+    $cgi->delete_all;
+    $cgi->param('run_id', $run->id);
     display($run);  
 }
 elsif ($action eq 'History'){
