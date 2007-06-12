@@ -143,6 +143,7 @@ NativeWrapperFactory::Init(JNIEnv * env, jobject newNativeEventThread)
         sInitComplete = PR_TRUE;
     }
     mFailureCode = NS_OK;
+    return mFailureCode;
 }
 
 
