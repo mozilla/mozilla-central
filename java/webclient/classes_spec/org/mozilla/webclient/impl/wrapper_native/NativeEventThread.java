@@ -160,17 +160,9 @@ public void run()
     // our owner must have put an event in the queue 
     Assert.assert_it(!runnables.isEmpty());
     ((Runnable)runnables.poll()).run();
-    synchronized (wrapperFactory) {
-	try {
-	    wrapperFactory.notifyAll();
-	}
-	catch (Exception e) {
-            if (LOGGER.isLoggable(Level.SEVERE)) {
-                LOGGER.log(Level.SEVERE, 
-                        "Exception trying to send notifyAll() to WrapperFactoryImpl on startup", e);
-            }
-	}
-    }
+
+    // Tell the wrapper factory we're ready to receive events
+    wrapperFactory.getOneCountLatch().countDown();
 
     //
     // Execute the event-loop.

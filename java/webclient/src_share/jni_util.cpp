@@ -404,6 +404,7 @@ void util_ThrowExceptionToJava (JNIEnv * env, const char * exceptionClass,
                                 const char * message)
 {
     if (env->ExceptionOccurred()) {
+        env->ExceptionDescribe();
       env->ExceptionClear();
     }
     jclass excCls = env->FindClass(exceptionClass);

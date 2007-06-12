@@ -28,7 +28,6 @@ import java.util.logging.Logger;
 import org.mozilla.util.Assert;
 import org.mozilla.util.Log;
 import org.mozilla.util.Utilities;
-import org.mozilla.util.ParameterCheck;
 import org.mozilla.util.ReturnRunnable;
 
 import org.mozilla.webclient.BrowserControl;
@@ -46,6 +45,7 @@ import org.mozilla.dom.DOMAccessor;
 
 import java.util.Map;
 import java.util.HashMap;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * <p>This class is the hub of the startup and shutdown sequence for
@@ -105,6 +105,7 @@ public class WrapperFactoryImpl extends Object implements WrapperFactory {
     protected String profileName = "webclient";
     protected boolean initialized = false;
     protected boolean terminated = false;
+    protected CountDownLatch oneCountLatch = null;
     
     
     // Relationship Instance Variables
@@ -142,6 +143,7 @@ public class WrapperFactoryImpl extends Object implements WrapperFactory {
     {
 	super();
 	browserControls = new HashMap();
+        oneCountLatch = new CountDownLatch(1);
     }
     
     
@@ -152,6 +154,10 @@ public class WrapperFactoryImpl extends Object implements WrapperFactory {
     //
     // Methods from webclient.WrapperFactory
     //
+    
+    public CountDownLatch getOneCountLatch() {
+        return oneCountLatch;
+    }
 
     public BrowserControl newBrowserControl() throws InstantiationException, IllegalAccessException, IllegalStateException {
 	verifyInitialized();
@@ -366,17 +372,19 @@ public class WrapperFactoryImpl extends Object implements WrapperFactory {
 	    });
 	
 	eventThread.start();
-	synchronized (this) {
-	    try {
-		wait();
-	    }
-	    catch (Exception e) {
-		System.out.println("WrapperFactoryImpl.initialize(): interrupted while waiting\n\t for NativeEventThread to notify(): " + e + 
-				   " " + e.getMessage());
-		throw new UnsatisfiedLinkError(e.getMessage());
-	    }
-	}
-	
+        
+        try {
+            getOneCountLatch().await();
+        }
+        catch (Exception e) {
+            if (LOGGER.isLoggable(Level.SEVERE)) {
+                LOGGER.log(Level.SEVERE,
+                        "WrapperFactoryImpl.initialize(): interrupted while waiting\n\t for NativeEventThread to countDown(): ", e);
+            }
+            throw new UnsatisfiedLinkError(e.getMessage());
+        }
+
+
 	//
 	// create app singletons
 	//

@@ -121,7 +121,17 @@ public class CocoaAppKitThreadDelegatingNativeEventThread extends NativeEventThr
                     toInvoke.toString() + ".");
         }
         
-        Object result = toInvoke.run();
+        Object result = null;
+        try {
+            result = toInvoke.run();
+        }
+        catch (RuntimeException e) {
+            if (LOGGER.isLoggable(Level.SEVERE)) {
+                LOGGER.log(Level.SEVERE, "Exception while invoking " + 
+                        toInvoke.toString() + " on AppKit Thread", e);
+            }
+            throw e;
+        }
 
         if (LOGGER.isLoggable(Level.FINEST)) {
             LOGGER.finest("On AppKitThread, returned from calling " +
@@ -140,7 +150,16 @@ public class CocoaAppKitThreadDelegatingNativeEventThread extends NativeEventThr
                     toInvoke.toString() + ".");
         }
         
-        toInvoke.run();
+        try {
+            toInvoke.run();
+        }
+        catch (RuntimeException e) {
+            if (LOGGER.isLoggable(Level.SEVERE)) {
+                LOGGER.log(Level.SEVERE, "Exception while invoking " + 
+                        toInvoke.toString() + " on AppKit Thread", e);
+            }
+            throw e;
+        }
 
         if (LOGGER.isLoggable(Level.FINEST)) {
             LOGGER.finest("On AppKitThread, non-blocking, returned from calling " +

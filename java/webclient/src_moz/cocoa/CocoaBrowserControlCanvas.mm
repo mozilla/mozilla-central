@@ -74,9 +74,10 @@
     jclass clazz = env->GetObjectClass(javaThis);
     jmethodID mid = env->GetMethodID(clazz, "doRunReturnRunnableOnAppKitThread", 
                                      "(Lorg/mozilla/util/ReturnRunnable;)Ljava/lang/Object;");
+    env->ExceptionClear();
     result = env->CallObjectMethod(javaThis, mid, toInvoke);
     if (env->ExceptionOccurred()) {
-        ::util_ThrowExceptionToJava(env, "Cannot call back into Java");
+        ::util_ThrowExceptionToJava(env, "Cannot call back into Java from Objective-C doRunReturnRunnableOnAppKitThread");
     }
     nsValue = [NSValue value:&result withObjCType:@encode(jobject)];
     [args addObject: nsValue];
@@ -99,9 +100,10 @@
     jclass clazz = env->GetObjectClass(javaThis);
     jmethodID mid = env->GetMethodID(clazz, "doRunRunnableOnAppKitThread", 
                                      "(Ljava/lang/Runnable;)V");
+    env->ExceptionClear();
     env->CallVoidMethod(javaThis, mid, toInvoke);
     if (env->ExceptionOccurred()) {
-        ::util_ThrowExceptionToJava(env, "Cannot call back into Java");
+        ::util_ThrowExceptionToJava(env, "Cannot call back into Java from Objective-C doRunRunnableOnAppKitThread");
     }
     return;
 }

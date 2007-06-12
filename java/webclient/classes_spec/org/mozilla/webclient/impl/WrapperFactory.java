@@ -26,6 +26,7 @@
 
 package org.mozilla.webclient.impl;
 
+import java.util.concurrent.CountDownLatch;
 import org.mozilla.webclient.BrowserControl;
 
 /**
@@ -94,4 +95,11 @@ public interface WrapperFactory {
      */
     
     public int getNativeBrowserControl(BrowserControl bc);
+    
+    /**
+     * <p>Used during startup to allow the NativeEventThread to tell the
+     * WrapperFactory that it is ready
+     * to receive events into its queue.</p>
+     */ 
+    public CountDownLatch getOneCountLatch();    
 } 
