@@ -62,6 +62,10 @@ ifeq ($(OS_TARGET), WINCE)
 DIRS := $(filter-out fortcrypt,$(DIRS))
 endif
 
+ifndef NSS_USE_SYSTEM_SQLITE
+DIRS := sqlite $(DIRS)
+endif
+
 #######################################################################
 # (5) Execute "global" rules. (OPTIONAL)                              #
 #######################################################################
