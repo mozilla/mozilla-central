@@ -41,7 +41,6 @@
 #include "mimexpcom.h"
 #include "mimecth.h"
 #include "mimeobj.h"
-#include "nsCRT.h"
 #include "nsReadableUtils.h"
 
 // String bundles...
@@ -57,64 +56,61 @@ static nsCOMPtr<nsIStringBundle> stringBundle = nsnull;
 static char *SMimeGetStringByID(PRInt32 aMsgId)
 {
   char          *tempString = nsnull;
-	nsresult res = NS_OK;
+  nsresult res = NS_OK;
 
 #ifdef XP_MAC
-nsCOMPtr<nsIStringBundle> stringBundle = nsnull;
+  nsCOMPtr<nsIStringBundle> stringBundle = nsnull;
 #endif
 
-	if (!stringBundle)
-	{
-		static const char propertyURL[] = SMIME_PROPERTIES_URL;
+  if (!stringBundle)
+  {
+    static const char propertyURL[] = SMIME_PROPERTIES_URL;
 
-		nsCOMPtr<nsIStringBundleService> sBundleService = 
-		         do_GetService(NS_STRINGBUNDLE_CONTRACTID, &res); 
-		if (NS_SUCCEEDED(res) && (nsnull != sBundleService)) 
-		{
-			res = sBundleService->CreateBundle(propertyURL, getter_AddRefs(stringBundle));
-		}
-	}
+    nsCOMPtr<nsIStringBundleService> sBundleService =
+             do_GetService(NS_STRINGBUNDLE_CONTRACTID, &res);
+    if (NS_SUCCEEDED(res) && (nsnull != sBundleService))
+    {
+      res = sBundleService->CreateBundle(propertyURL, getter_AddRefs(stringBundle));
+    }
+  }
 
-	if (stringBundle)
-	{
-		PRUnichar *ptrv = nsnull;
-		res = stringBundle->GetStringFromID(aMsgId, &ptrv);
+  if (stringBundle)
+  {
+    PRUnichar *ptrv = nsnull;
+    res = stringBundle->GetStringFromID(aMsgId, &ptrv);
 
-		if (NS_FAILED(res)) 
-      return nsCRT::strdup("???");
-		else
+    if (NS_FAILED(res))
+      return strdup("???");
+    else
     {
       nsAutoString v;
       v.Append(ptrv);
-	    PR_FREEIF(ptrv);
+      PR_FREEIF(ptrv);
       tempString = ToNewUTF8String(v);
     }
-	}
+  }
 
   if (!tempString)
-    return nsCRT::strdup("???");
+    return strdup("???");
   else
     return tempString;
 }
-
-
-
 
 static int MimeInlineTextSMIMEStub_parse_line (const char *, PRInt32, MimeObject *);
 static int MimeInlineTextSMIMEStub_parse_eof (MimeObject *, PRBool);
 static int MimeInlineTextSMIMEStub_parse_begin (MimeObject *obj);
 
- /* This is the object definition. Note: we will set the superclass 
+ /* This is the object definition. Note: we will set the superclass
     to NULL and manually set this on the class creation */
 
-MimeDefClass(MimeInlineTextSMIMEStub, MimeInlineTextSMIMEStubClass, mimeInlineTextSMIMEStubClass, NULL);  
+MimeDefClass(MimeInlineTextSMIMEStub, MimeInlineTextSMIMEStubClass, mimeInlineTextSMIMEStubClass, NULL);
 
 extern "C" MimeObjectClass *
-MIME_SMimeCreateContentTypeHandlerClass(const char *content_type, 
+MIME_SMimeCreateContentTypeHandlerClass(const char *content_type,
                                    contentTypeHandlerInitStruct *initStruct)
 {
   MimeObjectClass *clazz = (MimeObjectClass *)&mimeInlineTextSMIMEStubClass;
-  /* 
+  /*
    * Must set the superclass by hand.
    */
   if (!COM_GetmimeInlineTextClass())
@@ -138,7 +134,7 @@ MimeInlineTextSMIMEStubClassInitialize(MimeInlineTextSMIMEStubClass *clazz)
 }
 
 int
-GenerateMessage(char** html) 
+GenerateMessage(char** html)
 {
   nsCString temp;
   temp.Append("<BR><text=\"#000000\" bgcolor=\"#FFFFFF\" link=\"#FF0000\" vlink=\"#800080\" alink=\"#0000FF\">");
@@ -158,16 +154,16 @@ MimeInlineTextSMIMEStub_parse_begin(MimeObject *obj)
 {
   MimeInlineTextSMIMEStubClass *clazz;
   int status = ((MimeObjectClass*)COM_GetmimeLeafClass())->parse_begin(obj);
-  
-  if (status < 0) 
+
+  if (status < 0)
     return status;
-  
-  if (!obj->output_p) 
+
+  if (!obj->output_p)
     return 0;
-  if (!obj->options || !obj->options->write_html_p) 
+  if (!obj->options || !obj->options->write_html_p)
     return 0;
-  
-  /* This is a fine place to write out any HTML before the real meat begins. */  
+
+  /* This is a fine place to write out any HTML before the real meat begins. */
 
   // Initialize the clazz variable...
   clazz = ((MimeInlineTextSMIMEStubClass *) obj->clazz);
@@ -177,20 +173,20 @@ MimeInlineTextSMIMEStub_parse_begin(MimeObject *obj)
 static int
 MimeInlineTextSMIMEStub_parse_line(const char *line, PRInt32 length, MimeObject *obj)
 {
- /* 
+ /*
   * This routine gets fed each line of data, one at a time. We just buffer
-  * it all up, to be dealt with all at once at the end. 
-  */  
-  if (!obj->output_p) 
+  * it all up, to be dealt with all at once at the end.
+  */
+  if (!obj->output_p)
     return 0;
-  if (!obj->options || !obj->options->output_fn) 
+  if (!obj->options || !obj->options->output_fn)
     return 0;
 
-  if (!obj->options->write_html_p) 
+  if (!obj->options->write_html_p)
   {
     return COM_MimeObject_write(obj, line, length, PR_TRUE);
   }
-  
+
   return 0;
 }
 
@@ -199,28 +195,28 @@ MimeInlineTextSMIMEStub_parse_eof (MimeObject *obj, PRBool abort_p)
 {
   int status = 0;
   char* html = NULL;
-  
+
   if (obj->closed_p) return 0;
 
   /* Run parent method first, to flush out any buffered data. */
   status = ((MimeObjectClass*)COM_GetmimeInlineTextClass())->parse_eof(obj, abort_p);
-  if (status < 0) 
+  if (status < 0)
     return status;
 
-  if (  (obj->options) && 
+  if (  (obj->options) &&
         ((obj->options->format_out == nsMimeOutput::nsMimeMessageQuoting) ||
          (obj->options->format_out == nsMimeOutput::nsMimeMessageBodyQuoting))
      )
     return 0;
 
   status = GenerateMessage(&html);
-  if (status < 0) 
+  if (status < 0)
     return status;
-  
+
   status = COM_MimeObject_write(obj, html, PL_strlen(html), PR_TRUE);
   PR_FREEIF(html);
-  if (status < 0) 
+  if (status < 0)
     return status;
- 
+
   return 0;
 }

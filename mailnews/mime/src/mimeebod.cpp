@@ -39,7 +39,6 @@
 #include "nsIURL.h"
 #include "mimeebod.h"
 #include "prmem.h"
-#include "nsCRT.h"
 #include "plstr.h"
 #include "prlog.h"
 #include "prio.h"
@@ -50,7 +49,7 @@
 
 #define MIME_SUPERCLASS mimeObjectClass
 MimeDefClass(MimeExternalBody, MimeExternalBodyClass,
-			 mimeExternalBodyClass, &MIME_SUPERCLASS);
+       mimeExternalBodyClass, &MIME_SUPERCLASS);
 
 #ifdef XP_MACOSX
 extern MimeObjectClass mimeMultipartAppleDoubleClass;
@@ -61,7 +60,7 @@ static void MimeExternalBody_finalize (MimeObject *);
 static int MimeExternalBody_parse_line (const char *, PRInt32, MimeObject *);
 static int MimeExternalBody_parse_eof (MimeObject *, PRBool);
 static PRBool MimeExternalBody_displayable_inline_p (MimeObjectClass *clazz,
-													  MimeHeaders *hdrs);
+                            MimeHeaders *hdrs);
 
 #if 0
 #if defined(DEBUG) && defined(XP_UNIX)
@@ -102,10 +101,10 @@ MimeExternalBody_finalize (MimeObject *object)
 {
   MimeExternalBody *bod = (MimeExternalBody *) object;
   if (bod->hdrs)
-	{
-	  MimeHeaders_free(bod->hdrs);
-	  bod->hdrs = 0;
-	}
+  {
+    MimeHeaders_free(bod->hdrs);
+    bod->hdrs = 0;
+  }
   PR_FREEIF(bod->body);
 
   ((MimeObjectClass*)&MIME_SUPERCLASS)->finalize(object);
@@ -123,46 +122,46 @@ MimeExternalBody_parse_line (const char *line, PRInt32 length, MimeObject *obj)
   if (!obj->output_p) return 0;
 
   /* If we're supposed to write this object, but aren't supposed to convert
-	 it to HTML, simply pass it through unaltered. */
+   it to HTML, simply pass it through unaltered. */
   if (obj->options &&
-	  !obj->options->write_html_p &&
-	  obj->options->output_fn)
-	return MimeObject_write(obj, line, length, PR_TRUE);
+    !obj->options->write_html_p &&
+    obj->options->output_fn)
+  return MimeObject_write(obj, line, length, PR_TRUE);
 
 
   /* If we already have a `body' then we're done parsing headers, and all
-	 subsequent lines get tacked onto the body. */
+   subsequent lines get tacked onto the body. */
   if (bod->body)
-	{
-	  int L = strlen(bod->body);
-	  char *new_str = (char *)PR_Realloc(bod->body, L + length + 1);
-	  if (!new_str) return MIME_OUT_OF_MEMORY;
-	  bod->body = new_str;
-	  memcpy(bod->body + L, line, length);
-	  bod->body[L + length] = 0;
-	  return 0;
-	}
+  {
+    int L = strlen(bod->body);
+    char *new_str = (char *)PR_Realloc(bod->body, L + length + 1);
+    if (!new_str) return MIME_OUT_OF_MEMORY;
+    bod->body = new_str;
+    memcpy(bod->body + L, line, length);
+    bod->body[L + length] = 0;
+    return 0;
+  }
 
   /* Otherwise we don't yet have a body, which means we're not done parsing
-	 our headers.
+   our headers.
    */
   if (!bod->hdrs)
-	{
-	  bod->hdrs = MimeHeaders_new();
-	  if (!bod->hdrs) return MIME_OUT_OF_MEMORY;
-	}
+  {
+    bod->hdrs = MimeHeaders_new();
+    if (!bod->hdrs) return MIME_OUT_OF_MEMORY;
+  }
 
   status = MimeHeaders_parse_line(line, length, bod->hdrs);
   if (status < 0) return status;
 
   /* If this line is blank, we're now done parsing headers, and should
-	 create a dummy body to show that.  Gag.
+   create a dummy body to show that.  Gag.
    */
   if (*line == '\r' || *line == '\n')
-	{
-	  bod->body = nsCRT::strdup("");
-	  if (!bod->body) return MIME_OUT_OF_MEMORY;
-	}
+  {
+    bod->body = strdup("");
+    if (!bod->body) return MIME_OUT_OF_MEMORY;
+  }
 
   return 0;
 }
@@ -170,17 +169,17 @@ MimeExternalBody_parse_line (const char *line, PRInt32 length, MimeObject *obj)
 
 char *
 MimeExternalBody_make_url(const char *ct,
-						  const char *at, const char *lexp, const char *size,
-						  const char *perm, const char *dir, const char *mode,
-						  const char *name, const char *url, const char *site,
-						  const char *svr, const char *subj, const char *body)
+              const char *at, const char *lexp, const char *size,
+              const char *perm, const char *dir, const char *mode,
+              const char *name, const char *url, const char *site,
+              const char *svr, const char *subj, const char *body)
 {
   char *s;
   if (!at)
   {
     return 0;
   }
-  else if (!nsCRT::strcasecmp(at, "ftp") || !nsCRT::strcasecmp(at, "anon-ftp"))
+  else if (!PL_strcasecmp(at, "ftp") || !PL_strcasecmp(at, "anon-ftp"))
   {
     if (!site || !name)
       return 0;
@@ -196,14 +195,14 @@ MimeExternalBody_make_url(const char *ct,
     PL_strcat(s, name);
     return s;
   }
-  else if (!nsCRT::strcasecmp(at, "local-file") || !nsCRT::strcasecmp(at, "afs"))
+  else if (!PL_strcasecmp(at, "local-file") || !PL_strcasecmp(at, "afs"))
   {
     char *s2;
     if (!name)
       return 0;
-    
+
 #ifdef XP_UNIX
-    if (!nsCRT::strcasecmp(at, "afs"))   /* only if there is a /afs/ directory */
+    if (!PL_strcasecmp(at, "afs"))   /* only if there is a /afs/ directory */
     {
       nsCOMPtr <nsILocalFile> fs = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID);
       PRBool exists = PR_FALSE;
@@ -216,7 +215,7 @@ MimeExternalBody_make_url(const char *ct,
         return 0;
     }
 #else  /* !XP_UNIX */
-return 0;						/* never, if not Unix. */
+return 0;            /* never, if not Unix. */
 #endif /* !XP_UNIX */
 
 s = (char *) PR_MALLOC(strlen(name)*3 + 20);
@@ -227,11 +226,11 @@ s2 = nsEscape(name, url_Path);
 if (s2)
 {
   PL_strcat(s, s2);
-  nsCRT::free(s2);
+  NS_Free(s2);
 }
 return s;
-	}
-else if (!nsCRT::strcasecmp(at, "mail-server"))
+  }
+else if (!PL_strcasecmp(at, "mail-server"))
 {
   char *s2;
   if (!svr)
@@ -241,40 +240,40 @@ else if (!nsCRT::strcasecmp(at, "mail-server"))
                          (body ? strlen(body)*4 : 0) + 20);
   if (!s) return 0;
   PL_strcpy(s, "mailto:");
-  
+
   s2 = nsEscape(svr, url_XAlphas);
   if (s2)
   {
     PL_strcat(s, s2);
-    nsCRT::free(s2);
+    NS_Free(s2);
   }
-  
+
   if (subj)
-		{
-		  s2 = nsEscape(subj, url_XAlphas);
-		  PL_strcat(s, "?subject=");
-		  if (s2)
-		  {
+    {
+      s2 = nsEscape(subj, url_XAlphas);
+      PL_strcat(s, "?subject=");
+      if (s2)
+      {
                     PL_strcat(s, s2);
-                    nsCRT::free(s2);
-		  }
-		}
+                    NS_Free(s2);
+      }
+    }
   if (body)
-		{
-		  s2 = nsEscape(body, url_XAlphas);
-		  PL_strcat(s, (subj ? "&body=" : "?body="));
-		  if (s2)
-		  {
+    {
+      s2 = nsEscape(body, url_XAlphas);
+      PL_strcat(s, (subj ? "&body=" : "?body="));
+      if (s2)
+      {
                     PL_strcat(s, s2);
-                    nsCRT::free(s2);
-		  }
-		}
+                    NS_Free(s2);
+      }
+    }
   return s;
 }
-else if (!nsCRT::strcasecmp(at, "url"))	    /* RFC 2017 */
+else if (!PL_strcasecmp(at, "url"))      /* RFC 2017 */
                             {
   if (url)
-    return nsCRT::strdup(url);		   /* it's already quoted and everything */
+    return strdup(url);       /* it's already quoted and everything */
   else
     return 0;
                             }
@@ -287,19 +286,19 @@ MimeExternalBody_parse_eof (MimeObject *obj, PRBool abort_p)
 {
   int status = 0;
   MimeExternalBody *bod = (MimeExternalBody *) obj;
-  
+
   if (obj->closed_p) return 0;
-  
+
   /* Run parent method first, to flush out any buffered data. */
   status = ((MimeObjectClass*)&MIME_SUPERCLASS)->parse_eof(obj, abort_p);
   if (status < 0) return status;
-  
+
 #ifdef XP_MACOSX
-  if (obj->parent && mime_typep(obj->parent, 
+  if (obj->parent && mime_typep(obj->parent,
                                 (MimeObjectClass*) &mimeMultipartAppleDoubleClass))
     goto done;
 #endif /* XP_MACOSX */
-  
+
   if (!abort_p &&
       obj->output_p &&
       obj->options &&
@@ -307,16 +306,16 @@ MimeExternalBody_parse_eof (MimeObject *obj, PRBool abort_p)
   {
     PRBool all_headers_p = obj->options->headers == MimeHeadersAll;
     MimeDisplayOptions *newopt = obj->options;  /* copy it */
-    
+
     char *ct = MimeHeaders_get(obj->headers, HEADER_CONTENT_TYPE,
                                PR_FALSE, PR_FALSE);
     char *at, *lexp, *size, *perm;
     char *url, *dir, *mode, *name, *site, *svr, *subj;
     char *h = 0, *lname = 0, *lurl = 0, *body = 0;
     MimeHeaders *hdrs = 0;
-    
+
     if (!ct) return MIME_OUT_OF_MEMORY;
-    
+
     at   = MimeHeaders_get_parameter(ct, "access-type", NULL, NULL);
     lexp  = MimeHeaders_get_parameter(ct, "expiration", NULL, NULL);
     size = MimeHeaders_get_parameter(ct, "size", NULL, NULL);
@@ -329,11 +328,11 @@ MimeExternalBody_parse_eof (MimeObject *obj, PRBool abort_p)
     subj = MimeHeaders_get_parameter(ct, "subject", NULL, NULL);
     url  = MimeHeaders_get_parameter(ct, "url", NULL, NULL);
     PR_FREEIF(ct);
-    
+
     /* the *internal* content-type */
     ct = MimeHeaders_get(bod->hdrs, HEADER_CONTENT_TYPE,
                          PR_TRUE, PR_FALSE);
-    
+
     h = (char *) PR_MALLOC((at ? strlen(at) : 0) +
                            (lexp ? strlen(lexp) : 0) +
                            (size ? strlen(size) : 0) +
@@ -351,7 +350,7 @@ MimeExternalBody_parse_eof (MimeObject *obj, PRBool abort_p)
       status = MIME_OUT_OF_MEMORY;
       goto FAIL;
     }
-    
+
     /* If there's a URL parameter, remove all whitespace from it.
       (The URL parameter to one of these headers is stored with
        lines broken every 40 characters or less; it's assumed that
@@ -362,18 +361,18 @@ MimeExternalBody_parse_eof (MimeObject *obj, PRBool abort_p)
     {
       char *in, *out;
       for (in = url, out = url; *in; in++)
-        if (!nsCRT::IsAsciiSpace(*in))
+        if (!IS_SPACE(*in))
           *out++ = *in;
       *out = 0;
     }
-    
+
     hdrs = MimeHeaders_new();
     if (!hdrs)
     {
       status = MIME_OUT_OF_MEMORY;
       goto FAIL;
     }
-    
+
 # define FROB(STR,VAR) \
     if (VAR) \
     { \
@@ -383,23 +382,23 @@ MimeExternalBody_parse_eof (MimeObject *obj, PRBool abort_p)
             status = MimeHeaders_parse_line(h, strlen(h), hdrs); \
               if (status < 0) goto FAIL; \
     }
-    FROB("Access-Type",	at);
-    FROB("URL",			url);
-    FROB("Site",			site);
-    FROB("Server",		svr);
-    FROB("Directory",		dir);
-    FROB("Name",			name);
-    FROB("Type",			ct);
-    FROB("Size",			size);
-    FROB("Mode",			mode);
-    FROB("Permission",	perm);
-    FROB("Expiration",	lexp);
-    FROB("Subject",		subj);
+    FROB("Access-Type",  at);
+    FROB("URL",      url);
+    FROB("Site",      site);
+    FROB("Server",    svr);
+    FROB("Directory",    dir);
+    FROB("Name",      name);
+    FROB("Type",      ct);
+    FROB("Size",      size);
+    FROB("Mode",      mode);
+    FROB("Permission",  perm);
+    FROB("Expiration",  lexp);
+    FROB("Subject",    subj);
 # undef FROB
     PL_strcpy(h, MSG_LINEBREAK);
     status = MimeHeaders_parse_line(h, strlen(h), hdrs);
     if (status < 0) goto FAIL;
-    
+
     lurl = MimeExternalBody_make_url(ct, at, lexp, size, perm, dir, mode,
                                      name, url, site, svr, subj, bod->body);
     if (lurl)
@@ -411,20 +410,20 @@ MimeExternalBody_parse_eof (MimeObject *obj, PRBool abort_p)
       lname = MimeGetStringByID(MIME_MSG_DOCUMENT_INFO);
       all_headers_p = PR_TRUE;
     }
-    
+
     all_headers_p = PR_TRUE;  /* #### just do this all the time? */
-    
+
     if (bod->body && all_headers_p)
     {
       char *s = bod->body;
-      while (nsCRT::IsAsciiSpace(*s)) s++;
+      while (IS_SPACE(*s)) s++;
       if (*s)
       {
         char *s2;
         const char *pre = "<P><PRE>";
         const char *suf = "</PRE>";
         PRInt32 i;
-        for(i = strlen(s)-1; i >= 0 && nsCRT::IsAsciiSpace(s[i]); i--)
+        for(i = strlen(s)-1; i >= 0 && IS_SPACE(s[i]); i--)
           s[i] = 0;
         s2 = nsEscapeHTML(s);
         if (!s2) goto FAIL;
@@ -432,7 +431,7 @@ MimeExternalBody_parse_eof (MimeObject *obj, PRBool abort_p)
                                   strlen(suf) + 1);
         if (!body)
         {
-          nsCRT::free(s2);
+          NS_Free(s2);
           goto FAIL;
         }
         PL_strcpy(body, pre);
@@ -440,10 +439,10 @@ MimeExternalBody_parse_eof (MimeObject *obj, PRBool abort_p)
         PL_strcat(body, suf);
       }
     }
-    
+
     newopt->fancy_headers_p = PR_TRUE;
     newopt->headers = (all_headers_p ? MimeHeadersAll : MimeHeadersSome);
-    
+
 FAIL:
       if (hdrs)
         MimeHeaders_free(hdrs);
@@ -464,11 +463,11 @@ FAIL:
     PR_FREEIF(svr);
     PR_FREEIF(subj);
   }
-  
+
 #ifdef XP_MACOSX
 done:
 #endif
-    
+
     return status;
 }
 
@@ -483,24 +482,24 @@ MimeExternalBody_debug_print (MimeObject *obj, PRFileDesc *stream, PRInt32 depth
   char *addr = mime_part_address(obj);
 
   if (obj->headers)
-	ct = MimeHeaders_get (obj->headers, HEADER_CONTENT_TYPE, PR_FALSE, PR_FALSE);
+  ct = MimeHeaders_get (obj->headers, HEADER_CONTENT_TYPE, PR_FALSE, PR_FALSE);
   if (bod->hdrs)
-	ct2 = MimeHeaders_get (bod->hdrs, HEADER_CONTENT_TYPE, PR_FALSE, PR_FALSE);
+  ct2 = MimeHeaders_get (bod->hdrs, HEADER_CONTENT_TYPE, PR_FALSE, PR_FALSE);
 
   for (i=0; i < depth; i++)
-	PR_Write(stream, "  ", 2);
+  PR_Write(stream, "  ", 2);
 /***
   fprintf(stream,
-		  "<%s %s\n"
-		  "\tcontent-type: %s\n"
-		  "\tcontent-type: %s\n"
-		  "\tBody:%s\n\t0x%08X>\n\n",
-		  obj->clazz->class_name,
-		  addr ? addr : "???",
-		  ct ? ct : "<none>",
-		  ct2 ? ct2 : "<none>",
-		  bod->body ? bod->body : "<none>",
-		  (PRUint32) obj);
+      "<%s %s\n"
+      "\tcontent-type: %s\n"
+      "\tcontent-type: %s\n"
+      "\tBody:%s\n\t0x%08X>\n\n",
+      obj->clazz->class_name,
+      addr ? addr : "???",
+      ct ? ct : "<none>",
+      ct2 ? ct2 : "<none>",
+      bod->body ? bod->body : "<none>",
+      (PRUint32) obj);
 ***/
   PR_FREEIF(addr);
   PR_FREEIF(ct);
@@ -512,22 +511,22 @@ MimeExternalBody_debug_print (MimeObject *obj, PRFileDesc *stream, PRInt32 depth
 
 static PRBool
 MimeExternalBody_displayable_inline_p (MimeObjectClass *clazz,
-									   MimeHeaders *hdrs)
+                     MimeHeaders *hdrs)
 {
   char *ct = MimeHeaders_get (hdrs, HEADER_CONTENT_TYPE, PR_FALSE, PR_FALSE);
   char *at = MimeHeaders_get_parameter(ct, "access-type", NULL, NULL);
   PRBool inline_p = PR_FALSE;
 
   if (!at)
-	;
-  else if (!nsCRT::strcasecmp(at, "ftp") ||
-		   !nsCRT::strcasecmp(at, "anon-ftp") ||
-		   !nsCRT::strcasecmp(at, "local-file") ||
-		   !nsCRT::strcasecmp(at, "mail-server") ||
-		   !nsCRT::strcasecmp(at, "url"))
-	inline_p = PR_TRUE;
+  ;
+  else if (!PL_strcasecmp(at, "ftp") ||
+       !PL_strcasecmp(at, "anon-ftp") ||
+       !PL_strcasecmp(at, "local-file") ||
+       !PL_strcasecmp(at, "mail-server") ||
+       !PL_strcasecmp(at, "url"))
+  inline_p = PR_TRUE;
 #ifdef XP_UNIX
-  else if (!nsCRT::strcasecmp(at, "afs"))   /* only if there is a /afs/ directory */
+  else if (!PL_strcasecmp(at, "afs"))   /* only if there is a /afs/ directory */
   {
     nsCOMPtr <nsILocalFile> fs = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID);
     PRBool exists = PR_FALSE;

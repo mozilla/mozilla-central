@@ -42,7 +42,6 @@
 #include "plstr.h"
 #include "prlog.h"
 #include "nsMimeStringResources.h"
-#include "nsCRT.h"
 
 #define MIME_SUPERCLASS mimeObjectClass
 MimeDefClass(MimeLeaf, MimeLeafClass, mimeLeafClass, &MIME_SUPERCLASS);
@@ -55,7 +54,7 @@ static int MimeLeaf_parse_line (const char *, PRInt32, MimeObject *);
 static int MimeLeaf_close_decoder (MimeObject *);
 static int MimeLeaf_parse_eof (MimeObject *, PRBool);
 static PRBool MimeLeaf_displayable_inline_p (MimeObjectClass *clazz,
-											  MimeHeaders *hdrs);
+                        MimeHeaders *hdrs);
 
 static int
 MimeLeafClassInitialize(MimeLeafClass *clazz)
@@ -72,12 +71,12 @@ MimeLeafClassInitialize(MimeLeafClass *clazz)
   clazz->close_decoder = MimeLeaf_close_decoder;
 
   /* Default `parse_buffer' method is one which line-buffers the now-decoded
-	 data and passes it on to `parse_line'.  (We snarf the implementation of
-	 this method from our superclass's implementation of `parse_buffer', which
-	 inherited it from MimeObject.)
+   data and passes it on to `parse_line'.  (We snarf the implementation of
+   this method from our superclass's implementation of `parse_buffer', which
+   inherited it from MimeObject.)
    */
   clazz->parse_decoded_buffer =
-	((MimeObjectClass*)&MIME_SUPERCLASS)->parse_buffer;
+  ((MimeObjectClass*)&MIME_SUPERCLASS)->parse_buffer;
 
   return 0;
 }
@@ -100,12 +99,12 @@ MimeLeaf_finalize (MimeObject *object)
   object->clazz->parse_eof (object, PR_FALSE);
 
   /* Free the decoder data, if it's still around.  It was probably freed
-	 in MimeLeaf_parse_eof(), but just in case... */
+   in MimeLeaf_parse_eof(), but just in case... */
   if (leaf->decoder_data)
-	{
-	  MimeDecoderDestroy(leaf->decoder_data, PR_TRUE);
-	  leaf->decoder_data = 0;
-	}
+  {
+    MimeDecoderDestroy(leaf->decoder_data, PR_TRUE);
+    leaf->decoder_data = 0;
+  }
 
   ((MimeObjectClass*)&MIME_SUPERCLASS)->finalize (object);
 }
@@ -120,34 +119,34 @@ MimeLeaf_parse_begin (MimeObject *obj)
   /* Initialize a decoder if necessary.
    */
   if (!obj->encoding)
-	;
-  else if (!nsCRT::strcasecmp(obj->encoding, ENCODING_BASE64))
-	fn = &MimeB64DecoderInit;
-  else if (!nsCRT::strcasecmp(obj->encoding, ENCODING_QUOTED_PRINTABLE))
-	leaf->decoder_data = 
+  ;
+  else if (!PL_strcasecmp(obj->encoding, ENCODING_BASE64))
+  fn = &MimeB64DecoderInit;
+  else if (!PL_strcasecmp(obj->encoding, ENCODING_QUOTED_PRINTABLE))
+  leaf->decoder_data = 
           MimeQPDecoderInit(((nsresult (*) (const char *, PRInt32, void *))
                         ((MimeLeafClass *)obj->clazz)->parse_decoded_buffer),
                         obj, obj);
-  else if (!nsCRT::strcasecmp(obj->encoding, ENCODING_UUENCODE) ||
-		   !nsCRT::strcasecmp(obj->encoding, ENCODING_UUENCODE2) ||
-		   !nsCRT::strcasecmp(obj->encoding, ENCODING_UUENCODE3) ||
-		   !nsCRT::strcasecmp(obj->encoding, ENCODING_UUENCODE4))
-	fn = &MimeUUDecoderInit;
-  else if (!nsCRT::strcasecmp(obj->encoding, ENCODING_YENCODE))
+  else if (!PL_strcasecmp(obj->encoding, ENCODING_UUENCODE) ||
+       !PL_strcasecmp(obj->encoding, ENCODING_UUENCODE2) ||
+       !PL_strcasecmp(obj->encoding, ENCODING_UUENCODE3) ||
+       !PL_strcasecmp(obj->encoding, ENCODING_UUENCODE4))
+  fn = &MimeUUDecoderInit;
+  else if (!PL_strcasecmp(obj->encoding, ENCODING_YENCODE))
     fn = &MimeYDecoderInit;
 
   if (fn)
-	{
-	  leaf->decoder_data =
-		fn (/* The (nsresult (*) ...) cast is to turn the `void' argument
-			   into `MimeObject'. */
-			((nsresult (*) (const char *, PRInt32, void *))
-			 ((MimeLeafClass *)obj->clazz)->parse_decoded_buffer),
-			obj);
+  {
+    leaf->decoder_data =
+    fn (/* The (nsresult (*) ...) cast is to turn the `void' argument
+         into `MimeObject'. */
+      ((nsresult (*) (const char *, PRInt32, void *))
+       ((MimeLeafClass *)obj->clazz)->parse_decoded_buffer),
+      obj);
 
-	  if (!leaf->decoder_data)
-		return MIME_OUT_OF_MEMORY;
-	}
+    if (!leaf->decoder_data)
+    return MIME_OUT_OF_MEMORY;
+  }
 
   return ((MimeObjectClass*)&MIME_SUPERCLASS)->parse_begin(obj);
 }
@@ -164,18 +163,18 @@ MimeLeaf_parse_buffer (const char *buffer, PRInt32 size, MimeObject *obj)
   /* If we're not supposed to write this object, bug out now.
    */
   if (!obj->output_p ||
-	  !obj->options ||
-	  !obj->options->output_fn)
-	return 0;
+    !obj->options ||
+    !obj->options->output_fn)
+  return 0;
 
   if (leaf->decoder_data &&
       obj->options && 
       obj->options->format_out != nsMimeOutput::nsMimeMessageDecrypt
       && obj->options->format_out != nsMimeOutput::nsMimeMessageAttach)
-	return MimeDecoderWrite (leaf->decoder_data, buffer, size);
+  return MimeDecoderWrite (leaf->decoder_data, buffer, size);
   else
-	return ((MimeLeafClass *)obj->clazz)->parse_decoded_buffer (buffer, size,
-																obj);
+  return ((MimeLeafClass *)obj->clazz)->parse_decoded_buffer (buffer, size,
+                                obj);
 }
 
 static int
@@ -210,7 +209,7 @@ MimeLeaf_parse_eof (MimeObject *obj, PRBool abort_p)
   if (obj->closed_p) return 0;
 
   /* Close off the decoder, to cause it to give up any buffered data that
-	 it is still holding.
+   it is still holding.
    */
   if (leaf->decoder_data)
   {
@@ -219,7 +218,7 @@ MimeLeaf_parse_eof (MimeObject *obj, PRBool abort_p)
   }
 
   /* Now run the superclass's parse_eof, which will force out the line
-	 buffer (which we may have just repopulated, above.)
+   buffer (which we may have just repopulated, above.)
    */
   return ((MimeObjectClass*)&MIME_SUPERCLASS)->parse_eof (obj, abort_p);
 }

@@ -43,7 +43,6 @@
 #include "mimebuf.h"
 #include "mimemoz2.h"
 #include "nsIMimeEmitter.h"
-#include "nsCRT.h"
 #include "nsEscape.h"
 #include "nsMsgMessageFlags.h"
 #include "comi18n.h"
@@ -53,7 +52,7 @@
 #include "mimemoz2.h"
 #include "nsMsgI18N.h"
 #include "mimehdrs.h"
-#include "nsIMIMEHeaderParam.h" 
+#include "nsIMIMEHeaderParam.h"
 #include "nsNetCID.h"
 
 // Forward declares...
@@ -113,10 +112,10 @@ MimeHeaders_free (MimeHeaders *hdrs)
 
 # ifdef DEBUG__
   {
-	int i, size = sizeof(*hdrs);
-	PRUint32 *array = (PRUint32*) hdrs;
-	for (i = 0; i < (size / sizeof(*array)); i++)
-	  array[i] = (PRUint32) 0xDEADBEEF;
+  int i, size = sizeof(*hdrs);
+  PRUint32 *array = (PRUint32*) hdrs;
+  for (i = 0; i < (size / sizeof(*array)); i++)
+    array[i] = (PRUint32) 0xDEADBEEF;
   }
 # endif /* DEBUG */
 
@@ -137,22 +136,22 @@ MimeHeaders_parse_line (const char *buffer, PRInt32 size, MimeHeaders *hdrs)
   if (hdrs->done_p) return -1;
 
   if (!buffer || size == 0 || *buffer == '\r' || *buffer == '\n')
-	{
-	  /* If this is a blank line, we're done.
-	   */
-	  hdrs->done_p = PR_TRUE;
-	  return MimeHeaders_build_heads_list(hdrs);
-	}
+  {
+    /* If this is a blank line, we're done.
+     */
+    hdrs->done_p = PR_TRUE;
+    return MimeHeaders_build_heads_list(hdrs);
+  }
 
   /* Tack this data on to the end of our copy.
    */
   desired_size = hdrs->all_headers_fp + size + 1;
   if (desired_size >= hdrs->all_headers_size)
-	{
-	  status = mime_GrowBuffer (desired_size, sizeof(char), 255,
-							   &hdrs->all_headers, &hdrs->all_headers_size);
-	  if (status < 0) return status;
-	}
+  {
+    status = mime_GrowBuffer (desired_size, sizeof(char), 255,
+                 &hdrs->all_headers, &hdrs->all_headers_size);
+    if (status < 0) return status;
+  }
   memcpy(hdrs->all_headers+hdrs->all_headers_fp, buffer, size);
   hdrs->all_headers_fp += size;
 
@@ -170,39 +169,39 @@ MimeHeaders_copy (MimeHeaders *hdrs)
   memset(hdrs2, 0, sizeof(*hdrs2));
 
   if (hdrs->all_headers)
-	{
-	  hdrs2->all_headers = (char *) PR_MALLOC(hdrs->all_headers_fp);
-	  if (!hdrs2->all_headers)
-		{
-		  PR_Free(hdrs2);
-		  return 0;
-		}
-	  memcpy(hdrs2->all_headers, hdrs->all_headers, hdrs->all_headers_fp);
+  {
+    hdrs2->all_headers = (char *) PR_MALLOC(hdrs->all_headers_fp);
+    if (!hdrs2->all_headers)
+    {
+      PR_Free(hdrs2);
+      return 0;
+    }
+    memcpy(hdrs2->all_headers, hdrs->all_headers, hdrs->all_headers_fp);
 
-	  hdrs2->all_headers_fp   = hdrs->all_headers_fp;
-	  hdrs2->all_headers_size = hdrs->all_headers_fp;
-	}
+    hdrs2->all_headers_fp   = hdrs->all_headers_fp;
+    hdrs2->all_headers_size = hdrs->all_headers_fp;
+  }
 
   hdrs2->done_p = hdrs->done_p;
 
   if (hdrs->heads)
-	{
-	  int i;
-	  hdrs2->heads = (char **) PR_MALLOC(hdrs->heads_size
-										* sizeof(*hdrs->heads));
-	  if (!hdrs2->heads)
-		{
-		  PR_FREEIF(hdrs2->all_headers);
-		  PR_Free(hdrs2);
-		  return 0;
-		}
-	  hdrs2->heads_size = hdrs->heads_size;
-	  for (i = 0; i < hdrs->heads_size; i++)
-		{
-		  hdrs2->heads[i] = (hdrs2->all_headers +
-							 (hdrs->heads[i] - hdrs->all_headers));
-		}
-	}
+  {
+    int i;
+    hdrs2->heads = (char **) PR_MALLOC(hdrs->heads_size
+                    * sizeof(*hdrs->heads));
+    if (!hdrs2->heads)
+    {
+      PR_FREEIF(hdrs2->all_headers);
+      PR_Free(hdrs2);
+      return 0;
+    }
+    hdrs2->heads_size = hdrs->heads_size;
+    for (i = 0; i < hdrs->heads_size; i++)
+    {
+      hdrs2->heads[i] = (hdrs2->all_headers +
+               (hdrs->heads[i] - hdrs->all_headers));
+    }
+  }
   return hdrs2;
 }
 
@@ -217,55 +216,55 @@ MimeHeaders_build_heads_list(MimeHeaders *hdrs)
 
   NS_ASSERTION(hdrs->done_p && !hdrs->heads, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
   if (!hdrs->done_p || hdrs->heads)
-	return -1;
+  return -1;
 
   if (hdrs->all_headers_fp == 0)
-	{
-	  /* Must not have been any headers (we got the blank line right away.) */
-	  PR_FREEIF (hdrs->all_headers);
-	  hdrs->all_headers_size = 0;
-	  return 0;
-	}
+  {
+    /* Must not have been any headers (we got the blank line right away.) */
+    PR_FREEIF (hdrs->all_headers);
+    hdrs->all_headers_size = 0;
+    return 0;
+  }
 
   /* At this point, we might as well realloc all_headers back down to the
-	 minimum size it must be (it could be up to 1k bigger.)  But don't
-	 bother if we're only off by a tiny bit. */
+   minimum size it must be (it could be up to 1k bigger.)  But don't
+   bother if we're only off by a tiny bit. */
   NS_ASSERTION(hdrs->all_headers_fp <= hdrs->all_headers_size, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
   if (hdrs->all_headers_fp + 60 <= hdrs->all_headers_size)
-	{
-	  char *ls = (char *)PR_Realloc(hdrs->all_headers, hdrs->all_headers_fp);
-	  if (ls) /* can this ever fail?  we're making it smaller... */
-		{
-		  hdrs->all_headers = ls;  /* in case it got relocated */
-		  hdrs->all_headers_size = hdrs->all_headers_fp;
-		}
-	}
+  {
+    char *ls = (char *)PR_Realloc(hdrs->all_headers, hdrs->all_headers_fp);
+    if (ls) /* can this ever fail?  we're making it smaller... */
+    {
+      hdrs->all_headers = ls;  /* in case it got relocated */
+      hdrs->all_headers_size = hdrs->all_headers_fp;
+    }
+  }
 
 
   /* First go through and count up the number of headers in the block.
    */
   end = hdrs->all_headers + hdrs->all_headers_fp;
   for (s = hdrs->all_headers; s <= end-1; s++)
-	{
-	  if (s <= (end-1) && s[0] == '\r' && s[1] == '\n') /* CRLF -> LF */
-		s++;
+  {
+    if (s <= (end-1) && s[0] == '\r' && s[1] == '\n') /* CRLF -> LF */
+    s++;
 
-	  if ((s[0] == '\r' || s[0] == '\n') &&			/* we're at a newline, and */
-		  (s >= (end-1) ||						/* we're at EOF, or */
-		   !(s[1] == ' ' || s[1] == '\t')))		/* next char is nonwhite */
-		hdrs->heads_size++;
-	}
-	  
+    if ((s[0] == '\r' || s[0] == '\n') &&      /* we're at a newline, and */
+      (s >= (end-1) ||            /* we're at EOF, or */
+       !(s[1] == ' ' || s[1] == '\t')))    /* next char is nonwhite */
+    hdrs->heads_size++;
+  }
+
   /* Now allocate storage for the pointers to each of those headers.
    */
   hdrs->heads = (char **) PR_MALLOC((hdrs->heads_size + 1) * sizeof(char *));
   if (!hdrs->heads)
-	return MIME_OUT_OF_MEMORY;
+  return MIME_OUT_OF_MEMORY;
   memset(hdrs->heads, 0, (hdrs->heads_size + 1) * sizeof(char *));
 
 
   /* Now make another pass through the headers, and this time, record the
-	 starting position of each header.
+   starting position of each header.
    */
 
   i = 0;
@@ -273,51 +272,51 @@ MimeHeaders_build_heads_list(MimeHeaders *hdrs)
   s = hdrs->all_headers;
 
   while (s <= end)
-	{
-	SEARCH_NEWLINE:
-	  while (s <= end-1 && *s != '\r' && *s != '\n')
-		s++;
+  {
+  SEARCH_NEWLINE:
+    while (s <= end-1 && *s != '\r' && *s != '\n')
+    s++;
 
-	  if (s+1 >= end)
-		break;
+    if (s+1 >= end)
+    break;
 
-	  /* If "\r\n " or "\r\n\t" is next, that doesn't terminate the header. */
-	  else if (s+2 < end &&
-			   (s[0] == '\r'  && s[1] == '\n') &&
-			   (s[2] == ' ' || s[2] == '\t'))
-		{
-		  s += 3;
-		  goto SEARCH_NEWLINE;
-		}
-	  /* If "\r " or "\r\t" or "\n " or "\n\t" is next, that doesn't terminate
-		 the header either. */
-	  else if ((s[0] == '\r'  || s[0] == '\n') &&
-			   (s[1] == ' ' || s[1] == '\t'))
-		{
-		  s += 2;
-		  goto SEARCH_NEWLINE;
-		}
+    /* If "\r\n " or "\r\n\t" is next, that doesn't terminate the header. */
+    else if (s+2 < end &&
+         (s[0] == '\r'  && s[1] == '\n') &&
+         (s[2] == ' ' || s[2] == '\t'))
+    {
+      s += 3;
+      goto SEARCH_NEWLINE;
+    }
+    /* If "\r " or "\r\t" or "\n " or "\n\t" is next, that doesn't terminate
+     the header either. */
+    else if ((s[0] == '\r'  || s[0] == '\n') &&
+         (s[1] == ' ' || s[1] == '\t'))
+    {
+      s += 2;
+      goto SEARCH_NEWLINE;
+    }
 
-	  /* At this point, `s' points before a header-terminating newline.
-		 Move past that newline, and store that new position in `heads'.
-	   */
-	  if (*s == '\r') s++;
-	  if (*s == '\n') s++;
+    /* At this point, `s' points before a header-terminating newline.
+     Move past that newline, and store that new position in `heads'.
+     */
+    if (*s == '\r') s++;
+    if (*s == '\n') s++;
 
-	  if (s < end)
-		{
-		  NS_ASSERTION(! (i > hdrs->heads_size), "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
-		  if (i > hdrs->heads_size) return -1;
-		  hdrs->heads[i++] = s;
-		}
-	}
+    if (s < end)
+    {
+      NS_ASSERTION(! (i > hdrs->heads_size), "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
+      if (i > hdrs->heads_size) return -1;
+      hdrs->heads[i++] = s;
+    }
+  }
 
   return 0;
 }
 
 char *
 MimeHeaders_get (MimeHeaders *hdrs, const char *header_name,
-				 PRBool strip_p, PRBool all_p)
+         PRBool strip_p, PRBool all_p)
 {
   int i;
   int name_length;
@@ -332,177 +331,177 @@ MimeHeaders_get (MimeHeaders *hdrs, const char *header_name,
   NS_ASSERTION(!(strip_p && all_p), "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
 
   /* One shouldn't be trying to read headers when one hasn't finished
-	 parsing them yet... but this can happen if the message ended
-	 prematurely, and has no body at all (as opposed to a null body,
-	 which is more normal.)   So, if we try to read from the headers,
-	 let's assume that the headers are now finished.  If they aren't
-	 in fact finished, then a later attempt to write to them will assert.
+   parsing them yet... but this can happen if the message ended
+   prematurely, and has no body at all (as opposed to a null body,
+   which is more normal.)   So, if we try to read from the headers,
+   let's assume that the headers are now finished.  If they aren't
+   in fact finished, then a later attempt to write to them will assert.
    */
   if (!hdrs->done_p)
-	{
-	  int status;
-	  hdrs->done_p = PR_TRUE;
-	  status = MimeHeaders_build_heads_list(hdrs);
-	  if (status < 0) return 0;
-	}
+  {
+    int status;
+    hdrs->done_p = PR_TRUE;
+    status = MimeHeaders_build_heads_list(hdrs);
+    if (status < 0) return 0;
+  }
 
-  if (!hdrs->heads)	  /* Must not have been any headers. */
-	{
-	  NS_ASSERTION(hdrs->all_headers_fp == 0, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
-	  return 0;
-	}
+  if (!hdrs->heads)    /* Must not have been any headers. */
+  {
+    NS_ASSERTION(hdrs->all_headers_fp == 0, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
+    return 0;
+  }
 
   name_length = strlen(header_name);
 
   for (i = 0; i < hdrs->heads_size; i++)
-	{
-	  char *head = hdrs->heads[i];
-	  char *end = (i == hdrs->heads_size-1
-				   ? hdrs->all_headers + hdrs->all_headers_fp
-				   : hdrs->heads[i+1]);
-	  char *colon, *ocolon;
+  {
+    char *head = hdrs->heads[i];
+    char *end = (i == hdrs->heads_size-1
+           ? hdrs->all_headers + hdrs->all_headers_fp
+           : hdrs->heads[i+1]);
+    char *colon, *ocolon;
 
-	  NS_ASSERTION(head, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
-	  if (!head) continue;
+    NS_ASSERTION(head, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
+    if (!head) continue;
 
-	  /* Quick hack to skip over BSD Mailbox delimiter. */
-	  if (i == 0 && head[0] == 'F' && !strncmp(head, "From ", 5))
-		continue;
+    /* Quick hack to skip over BSD Mailbox delimiter. */
+    if (i == 0 && head[0] == 'F' && !strncmp(head, "From ", 5))
+    continue;
 
-	  /* Find the colon. */
-	  for (colon = head; colon < end; colon++)
-		if (*colon == ':') break;
+    /* Find the colon. */
+    for (colon = head; colon < end; colon++)
+    if (*colon == ':') break;
 
-	  if (colon >= end) continue;
+    if (colon >= end) continue;
 
-	  /* Back up over whitespace before the colon. */
-	  ocolon = colon;
-	  for (; colon > head && nsCRT::IsAsciiSpace(colon[-1]); colon--)
-		;
+    /* Back up over whitespace before the colon. */
+    ocolon = colon;
+    for (; colon > head && IS_SPACE(colon[-1]); colon--)
+    ;
 
-	  /* If the strings aren't the same length, it doesn't match. */
-	  if (name_length != colon - head )
-		continue;
+    /* If the strings aren't the same length, it doesn't match. */
+    if (name_length != colon - head )
+    continue;
 
-	  /* If the strings differ, it doesn't match. */
-	  if (nsCRT::strncasecmp(header_name, head, name_length))
-		continue;
+    /* If the strings differ, it doesn't match. */
+    if (PL_strncasecmp(header_name, head, name_length))
+    continue;
 
-	  /* Otherwise, we've got a match. */
-	  {
-		char *contents = ocolon + 1;
-		char *s;
+    /* Otherwise, we've got a match. */
+    {
+    char *contents = ocolon + 1;
+    char *s;
 
-		/* Skip over whitespace after colon. */
-		while (contents <= end && nsCRT::IsAsciiSpace(*contents))
-		  contents++;
+    /* Skip over whitespace after colon. */
+    while (contents <= end && IS_SPACE(*contents))
+      contents++;
 
-		/* If we're supposed to strip at the first token, pull `end' back to
-		   the first whitespace or ';' after the first token.
-		 */
-		if (strip_p)
-		  {
-			for (s = contents;
-				 s <= end && *s != ';' && *s != ',' && !nsCRT::IsAsciiSpace(*s);
-				 s++)
-			  ;
-			end = s;
-		  }
+    /* If we're supposed to strip at the first token, pull `end' back to
+       the first whitespace or ';' after the first token.
+     */
+    if (strip_p)
+      {
+      for (s = contents;
+         s <= end && *s != ';' && *s != ',' && !IS_SPACE(*s);
+         s++)
+        ;
+      end = s;
+      }
 
-		/* Now allocate some storage.
-		   If `result' already has a value, enlarge it.
-		   Otherwise, just allocate a block.
-		   `s' gets set to the place where the new data goes.
-		 */
-		if (!result)
-		  {
-			result = (char *) PR_MALLOC(end - contents + 1);
-			if (!result)
-			  return 0;
-			s = result;
-		  }
-		else
-		  {
-			PRInt32 L = strlen(result);
-			s = (char *) PR_Realloc(result, (L + (end - contents + 10)));
-			if (!s)
-			  {
-				PR_Free(result);
-				return 0;
-			  }
-			result = s;
-			s = result + L;
+    /* Now allocate some storage.
+       If `result' already has a value, enlarge it.
+       Otherwise, just allocate a block.
+       `s' gets set to the place where the new data goes.
+     */
+    if (!result)
+      {
+      result = (char *) PR_MALLOC(end - contents + 1);
+      if (!result)
+        return 0;
+      s = result;
+      }
+    else
+      {
+      PRInt32 L = strlen(result);
+      s = (char *) PR_Realloc(result, (L + (end - contents + 10)));
+      if (!s)
+        {
+        PR_Free(result);
+        return 0;
+        }
+      result = s;
+      s = result + L;
 
-			/* Since we are tacking more data onto the end of the header
-			   field, we must make it be a well-formed continuation line,
+      /* Since we are tacking more data onto the end of the header
+         field, we must make it be a well-formed continuation line,
                           by separating the old and new data with CR-LF-TAB.
-			 */
-			*s++ = ',';				/* #### only do this for addr headers? */
-			*s++ = MSG_LINEBREAK[0];
+       */
+      *s++ = ',';        /* #### only do this for addr headers? */
+      *s++ = MSG_LINEBREAK[0];
 # if (MSG_LINEBREAK_LEN == 2)
-			*s++ = MSG_LINEBREAK[1];
+      *s++ = MSG_LINEBREAK[1];
 # endif
-			*s++ = '\t';
-		  }
+      *s++ = '\t';
+      }
 
-		/* Take off trailing whitespace... */
-		while (end > contents && nsCRT::IsAsciiSpace(end[-1]))
-		  end--;
+    /* Take off trailing whitespace... */
+    while (end > contents && IS_SPACE(end[-1]))
+      end--;
 
-		if (end > contents)
-		  {
-		    /* Now copy the header's contents in...
-		     */
-		    memcpy(s, contents, end - contents);
-		    s[end - contents] = 0;
-		  }
-		else
-		  {
-		    s[0] = 0;
-		  }
+    if (end > contents)
+      {
+        /* Now copy the header's contents in...
+         */
+        memcpy(s, contents, end - contents);
+        s[end - contents] = 0;
+      }
+    else
+      {
+        s[0] = 0;
+      }
 
-		/* If we only wanted the first occurence of this header, we're done. */
-		if (!all_p) break;
-	  }
-	}
+    /* If we only wanted the first occurence of this header, we're done. */
+    if (!all_p) break;
+    }
+  }
 
   if (result && !*result)  /* empty string */
-	{
-	  PR_Free(result);
-	  return 0;
-	}
+  {
+    PR_Free(result);
+    return 0;
+  }
 
   return result;
 }
 
 char *
-MimeHeaders_get_parameter (const char *header_value, const char *parm_name, 
+MimeHeaders_get_parameter (const char *header_value, const char *parm_name,
                            char **charset, char **language)
 {
   if (!header_value || !parm_name || !*header_value || !*parm_name)
     return nsnull;
 
   nsresult rv;
-  nsCOMPtr <nsIMIMEHeaderParam> mimehdrpar = 
+  nsCOMPtr <nsIMIMEHeaderParam> mimehdrpar =
     do_GetService(NS_MIMEHEADERPARAM_CONTRACTID, &rv);
 
   if (NS_FAILED(rv))
     return nsnull;
 
   nsCString result;
-  rv = mimehdrpar->GetParameterInternal(header_value, parm_name, charset, 
+  rv = mimehdrpar->GetParameterInternal(header_value, parm_name, charset,
                                         language, getter_Copies(result));
-  return NS_SUCCEEDED(rv) ? PL_strdup(result.get()) : nsnull; 
+  return NS_SUCCEEDED(rv) ? PL_strdup(result.get()) : nsnull;
 }
 
 #define MimeHeaders_write(OPT,DATA,LENGTH) \
-  	MimeOptions_write((OPT), (DATA), (LENGTH), PR_TRUE);
+    MimeOptions_write((OPT), (DATA), (LENGTH), PR_TRUE);
 
 
 #define MimeHeaders_grow_obuffer(hdrs, desired_size) \
   ((((long) (desired_size)) >= ((long) (hdrs)->obuffer_size)) ? \
    mime_GrowBuffer ((desired_size), sizeof(char), 255, \
-				   &(hdrs)->obuffer, &(hdrs)->obuffer_size) \
+           &(hdrs)->obuffer, &(hdrs)->obuffer_size) \
    : 0)
 
 int
@@ -513,7 +512,7 @@ MimeHeaders_write_all_headers (MimeHeaders *hdrs, MimeDisplayOptions *opt, PRBoo
   PRBool wrote_any_p = PR_FALSE;
 
   NS_ASSERTION(hdrs, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
-  if (!hdrs) 
+  if (!hdrs)
     return -1;
 
   /* One shouldn't be trying to read headers when one hasn't finished
@@ -552,7 +551,7 @@ MimeHeaders_write_all_headers (MimeHeaders *hdrs, MimeDisplayOptions *opt, PRBoo
                       : hdrs->heads[i+1]);
     char *colon, *ocolon;
     char *contents = end;
-    
+
     /* Hack for BSD Mailbox delimiter. */
     if (i == 0 && head[0] == 'F' && !strncmp(head, "From ", 5))
     {
@@ -566,23 +565,23 @@ MimeHeaders_write_all_headers (MimeHeaders *hdrs, MimeDisplayOptions *opt, PRBoo
       /* Find the colon. */
       for (colon = head; colon < end && *colon != ':'; colon++)
         ;
-        
+
         /* Back up over whitespace before the colon. */
         ocolon = colon;
-        for (; colon > head && nsCRT::IsAsciiSpace(colon[-1]); colon--)
+        for (; colon > head && IS_SPACE(colon[-1]); colon--)
           ;
-        
+
         contents = ocolon + 1;
     }
-    
+
     /* Skip over whitespace after colon. */
-    while (contents < end && nsCRT::IsAsciiSpace(*contents))
+    while (contents < end && IS_SPACE(*contents))
       contents++;
-    
+
     /* Take off trailing whitespace... */
-    while (end > contents && nsCRT::IsAsciiSpace(end[-1]))
+    while (end > contents && IS_SPACE(end[-1]))
       end--;
-    
+
     nsCAutoString name(Substring(head, colon));
     nsCAutoString hdr_value;
 
@@ -590,7 +589,7 @@ MimeHeaders_write_all_headers (MimeHeaders *hdrs, MimeDisplayOptions *opt, PRBoo
     {
       hdr_value = Substring(contents, end);
     }
-    
+
     MimeHeaders_convert_header_value(opt, hdr_value);
     // if we're saving as html, we need to convert headers from utf8 to message charset, if any
     if (opt->format_out == nsMimeOutput::nsMimeMessageSaveAs && charset)
@@ -607,9 +606,9 @@ MimeHeaders_write_all_headers (MimeHeaders *hdrs, MimeDisplayOptions *opt, PRBoo
       status = mimeEmitterAddAttachmentField(opt, name.get(), hdr_value.get());
     else
       status = mimeEmitterAddHeaderField(opt, name.get(), hdr_value.get());
-    
+
     if (status < 0) return status;
-    if (!wrote_any_p) 
+    if (!wrote_any_p)
       wrote_any_p = (status > 0);
   }
   mimeEmitterAddAllHeaders(opt, hdrs->all_headers, hdrs->all_headers_fp);
@@ -629,39 +628,39 @@ HG99401
 extern "C" char *
 MIME_StripContinuations(char *original)
 {
-	char *p1, *p2;
+  char *p1, *p2;
 
-	/* If we were given a null string, return it as is */
-	if (!original) return NULL;
+  /* If we were given a null string, return it as is */
+  if (!original) return NULL;
 
-	/* Start source and dest pointers at the beginning */
-	p1 = p2 = original;
+  /* Start source and dest pointers at the beginning */
+  p1 = p2 = original;
 
-	while(*p2)
-	{
-		/* p2 runs ahead at (CR and/or LF) */
-		if ((p2[0] == '\r') || (p2[0] == '\n'))
-		{
+  while(*p2)
+  {
+    /* p2 runs ahead at (CR and/or LF) */
+    if ((p2[0] == '\r') || (p2[0] == '\n'))
+    {
             p2++;
-		} else {
+    } else {
             *p1++ = *p2++;
         }
-	}
-	*p1 = '\0';
+  }
+  *p1 = '\0';
 
-	return original;
+  return original;
 }
 
 extern PRInt16 INTL_DefaultMailToWinCharSetID(PRInt16 csid);
 
 /* Given text purporting to be a qtext header value, strip backslashes that
-	may be escaping other chars in the string. */
+  may be escaping other chars in the string. */
 char *
 mime_decode_filename(char *name, const char *charset,
                      MimeDisplayOptions *opt)
 {
   nsresult rv;
-  nsCOMPtr <nsIMIMEHeaderParam> mimehdrpar = 
+  nsCOMPtr <nsIMIMEHeaderParam> mimehdrpar =
     do_GetService(NS_MIMEHEADERPARAM_CONTRACTID, &rv);
 
   if (NS_FAILED(rv))
@@ -670,7 +669,7 @@ mime_decode_filename(char *name, const char *charset,
   rv = mimehdrpar->DecodeParameter(nsDependentCString(name), charset,
                                    opt->default_charset,
                                    opt->override_charset, result);
-  return NS_SUCCEEDED(rv) ? PL_strdup(result.get()) : nsnull; 
+  return NS_SUCCEEDED(rv) ? PL_strdup(result.get()) : nsnull;
 }
 
 /* Pull the name out of some header or another.  Order is:
@@ -706,7 +705,7 @@ MimeHeaders_get_name(MimeHeaders *hdrs, MimeDisplayOptions *opt)
 
   if (! name)
     name = MimeHeaders_get (hdrs, HEADER_CONTENT_NAME, PR_FALSE, PR_FALSE);
-  
+
   if (! name)
     name = MimeHeaders_get (hdrs, HEADER_X_SUN_DATA_NAME, PR_FALSE, PR_FALSE);
 
@@ -714,8 +713,8 @@ MimeHeaders_get_name(MimeHeaders *hdrs, MimeDisplayOptions *opt)
   {
     /* First remove continuation delimiters (CR+LF+space), then
        remove escape ('\\') characters, then attempt to decode
-       mime-2 encoded-words. The latter two are done in 
-       mime_decode_filename. 
+       mime-2 encoded-words. The latter two are done in
+       mime_decode_filename.
     */
     MIME_StripContinuations(name);
 
@@ -756,9 +755,9 @@ MimeHeaders_do_unix_display_hook_hack(MimeHeaders *hdrs)
     if (!cmd)
       cmd = "";
   }
-  
+
   /* Invoke "cmd" at the end of a pipe, and give it the headers on stdin.
-	 The command is expected to be safe from hostile input!!
+   The command is expected to be safe from hostile input!!
   */
   if (cmd && *cmd)
   {
@@ -794,54 +793,54 @@ MimeHeaders_compact (MimeHeaders *hdrs)
  */
 int
 MimeHeaders_write_raw_headers (MimeHeaders *hdrs, MimeDisplayOptions *opt,
-							   PRBool dont_write_content_type)
+                 PRBool dont_write_content_type)
 {
   int status;
 
   if (hdrs && !hdrs->done_p)
-	{
-	  hdrs->done_p = PR_TRUE;
-	  status = MimeHeaders_build_heads_list(hdrs);
-	  if (status < 0) return 0;
-	}
+  {
+    hdrs->done_p = PR_TRUE;
+    status = MimeHeaders_build_heads_list(hdrs);
+    if (status < 0) return 0;
+  }
 
   if (!dont_write_content_type)
-	{
-	  char nl[] = MSG_LINEBREAK;
-	  if (hdrs)
-		{
-		  status = MimeHeaders_write(opt, hdrs->all_headers,
-									 hdrs->all_headers_fp);
-		  if (status < 0) return status;
-		}
-	  status = MimeHeaders_write(opt, nl, strlen(nl));
-	  if (status < 0) return status;
-	}
+  {
+    char nl[] = MSG_LINEBREAK;
+    if (hdrs)
+    {
+      status = MimeHeaders_write(opt, hdrs->all_headers,
+                   hdrs->all_headers_fp);
+      if (status < 0) return status;
+    }
+    status = MimeHeaders_write(opt, nl, strlen(nl));
+    if (status < 0) return status;
+  }
   else if (hdrs)
-	{
-	  PRInt32 i;
-	  for (i = 0; i < hdrs->heads_size; i++)
-		{
-		  char *head = hdrs->heads[i];
-		  char *end = (i == hdrs->heads_size-1
-					   ? hdrs->all_headers + hdrs->all_headers_fp
-					   : hdrs->heads[i+1]);
+  {
+    PRInt32 i;
+    for (i = 0; i < hdrs->heads_size; i++)
+    {
+      char *head = hdrs->heads[i];
+      char *end = (i == hdrs->heads_size-1
+             ? hdrs->all_headers + hdrs->all_headers_fp
+             : hdrs->heads[i+1]);
 
-		  NS_ASSERTION(head, "1.22 <rhp@netscape.com> 22 Aug 1999 08:48");
-		  if (!head) continue;
+      NS_ASSERTION(head, "1.22 <rhp@netscape.com> 22 Aug 1999 08:48");
+      if (!head) continue;
 
-		  /* Don't write out any Content- header. */
-		  if (!nsCRT::strncasecmp(head, "Content-", 8))
-			continue;
+      /* Don't write out any Content- header. */
+      if (!PL_strncasecmp(head, "Content-", 8))
+      continue;
 
-		  /* Write out this (possibly multi-line) header. */
-		  status = MimeHeaders_write(opt, head, end - head);
-		  if (status < 0) return status;
-		}
-	}
+      /* Write out this (possibly multi-line) header. */
+      status = MimeHeaders_write(opt, head, end - head);
+      if (status < 0) return status;
+    }
+  }
 
   if (hdrs)
-  	MimeHeaders_compact (hdrs);
+    MimeHeaders_compact (hdrs);
 
   return 0;
 }

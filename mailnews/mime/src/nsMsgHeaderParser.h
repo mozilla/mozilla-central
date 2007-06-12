@@ -58,11 +58,10 @@ class nsMsgHeaderParser: public nsIMsgHeaderParser
 {
 public: 
   nsMsgHeaderParser();
-	virtual ~nsMsgHeaderParser();
+  virtual ~nsMsgHeaderParser();
 
-	/* this macro defines QueryInterface, AddRef and Release for this class */
-	NS_DECL_ISUPPORTS
-
+  /* this macro defines QueryInterface, AddRef and Release for this class */
+  NS_DECL_ISUPPORTS
   NS_DECL_NSIMSGHEADERPARSER
 }; 
 

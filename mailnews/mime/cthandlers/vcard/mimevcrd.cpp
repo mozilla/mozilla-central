@@ -58,7 +58,6 @@
 #include "nsIStringBundle.h"
 #include "nsVCardStringResources.h"
 
-#include "nsCRT.h"
 #include "prprf.h"
 
 // String bundles...
@@ -209,12 +208,12 @@ static PRInt32 INTL_ConvertCharset(const char* from_charset, const char* to_char
     return -1;
 
   // from to identical
-  if (!nsCRT::strcasecmp(from_charset, to_charset))
+  if (!PL_strcasecmp(from_charset, to_charset))
     return -1;
 
   // us-ascii is a subset of utf-8
-  if ((!nsCRT::strcasecmp(from_charset, "us-ascii") && !nsCRT::strcasecmp(to_charset, "UTF-8")) ||
-      (!nsCRT::strcasecmp(from_charset, "UTF-8") && !nsCRT::strcasecmp(to_charset, "us-ascii")))
+  if ((!PL_strcasecmp(from_charset, "us-ascii") && !PL_strcasecmp(to_charset, "UTF-8")) ||
+      (!PL_strcasecmp(from_charset, "UTF-8") && !PL_strcasecmp(to_charset, "us-ascii")))
     return -1;
 
 
@@ -224,7 +223,7 @@ static PRInt32 INTL_ConvertCharset(const char* from_charset, const char* to_char
 
   // known bug in 4.x, it mixes Shift_JIS (or EUC-JP) and ISO-2022-JP in vCard fields
   if (NS_ERROR_MODULE_UCONV == NS_ERROR_GET_MODULE(res)) {
-    if (!nsCRT::strcasecmp("ISO-2022-JP", from_charset)) {
+    if (!PL_strcasecmp("ISO-2022-JP", from_charset)) {
       res = ConvertToUnicode("Shift_JIS", inBuffer, outString);
       if (NS_ERROR_MODULE_UCONV == NS_ERROR_GET_MODULE(res)) {
         res = ConvertToUnicode("EUC-JP", inBuffer, outString);
@@ -860,7 +859,7 @@ static int OutputAdvancedVcard(MimeObject *obj, VObject *v)
       {
         namestring = vCardService->FakeCString(prop);
         if (namestring)
-          if (nsCRT::strcasecmp (namestring, "TRUE") == 0)
+          if (PL_strcasecmp (namestring, "TRUE") == 0)
           {
             PR_FREEIF (namestring);
             status = OutputFont(obj, PR_FALSE, "-1", NULL);
@@ -939,16 +938,16 @@ static int OutputAdvancedVcard(MimeObject *obj, VObject *v)
       {
         namestring = vCardService->FakeCString(prop2);
         char *tString1 = NULL;
-        if (nsCRT::strcmp (namestring, "0") == 0)
+        if (strcmp (namestring, "0") == 0)
         {
           tString1 = VCardGetStringByID(VCARD_ADDR_DEFAULT_DLS);
         }
         else
         {
-          if (nsCRT::strcmp (namestring, "1") == 0)
+          if (strcmp (namestring, "1") == 0)
             tString1 = VCardGetStringByID(VCARD_ADDR_SPECIFIC_DLS);
           else
-            if (nsCRT::strcmp (namestring, "2") == 0)
+            if (strcmp (namestring, "2") == 0)
               tString1 = VCardGetStringByID(VCARD_ADDR_HOSTNAMEIP);
         }
 
@@ -1459,7 +1458,7 @@ static int WriteOutEachVCardPhoneProperty (MimeObject *obj, VObject* o)
 
   if (vCardService->VObjectName(o))
   {
-    if (nsCRT::strcasecmp (VCTelephoneProp, vCardService->VObjectName(o)) == 0)
+    if (PL_strcasecmp (VCTelephoneProp, vCardService->VObjectName(o)) == 0)
     {
       if (VALUE_TYPE(o))
       {
@@ -1546,7 +1545,7 @@ static int WriteOutEachVCardProperty (MimeObject *obj, VObject* o, int* numEmail
 
   if (vCardService->VObjectName(o)) {
 
-    if (nsCRT::strcasecmp (VCPhotoProp, vCardService->VObjectName(o)) == 0) {
+    if (PL_strcasecmp (VCPhotoProp, vCardService->VObjectName(o)) == 0) {
       VObject* urlProp = vCardService->IsAPropertyOf(o, VCURLProp);
       if (urlProp) {
         attribName = VCardGetStringByID(VCARD_LDAP_PHOTOGRAPH);
@@ -1560,7 +1559,7 @@ static int WriteOutEachVCardProperty (MimeObject *obj, VObject* o, int* numEmail
       }
     }
 
-    if (nsCRT::strcasecmp (VCBirthDateProp, vCardService->VObjectName(o)) == 0) {
+    if (PL_strcasecmp (VCBirthDateProp, vCardService->VObjectName(o)) == 0) {
       if (VALUE_TYPE(o)) {
         attribName = VCardGetStringByID(VCARD_LDAP_BIRTHDAY);
         value = vCardService->FakeCString(o);
@@ -1568,14 +1567,14 @@ static int WriteOutEachVCardProperty (MimeObject *obj, VObject* o, int* numEmail
       }
     }
 
-    if (nsCRT::strcasecmp (VCDeliveryLabelProp, vCardService->VObjectName(o)) == 0) {
+    if (PL_strcasecmp (VCDeliveryLabelProp, vCardService->VObjectName(o)) == 0) {
       attribName = VCardGetStringByID(VCARD_LDAP_LABEL);
       GetAddressProperties(o, &attribName);
       value = vCardService->FakeCString(o);
       goto DOWRITE;
     }
 
-    if (nsCRT::strcasecmp (VCEmailAddressProp, vCardService->VObjectName(o)) == 0) {
+    if (PL_strcasecmp (VCEmailAddressProp, vCardService->VObjectName(o)) == 0) {
       if ((*numEmail) != 1)
       {
         if (VALUE_TYPE(o)) {
@@ -1588,7 +1587,7 @@ static int WriteOutEachVCardProperty (MimeObject *obj, VObject* o, int* numEmail
       }
     }
 
-    if (nsCRT::strcasecmp (VCFamilyNameProp, vCardService->VObjectName(o)) == 0) {
+    if (PL_strcasecmp (VCFamilyNameProp, vCardService->VObjectName(o)) == 0) {
       if (VALUE_TYPE(o)) {
         attribName = VCardGetStringByID(VCARD_LDAP_SURNAME);
         value = vCardService->FakeCString(o);
@@ -1596,7 +1595,7 @@ static int WriteOutEachVCardProperty (MimeObject *obj, VObject* o, int* numEmail
       }
     }
 
-    if (nsCRT::strcasecmp (VCGivenNameProp, vCardService->VObjectName(o)) == 0) {
+    if (PL_strcasecmp (VCGivenNameProp, vCardService->VObjectName(o)) == 0) {
       if (VALUE_TYPE(o)) {
         attribName = VCardGetStringByID(VCARD_LDAP_GIVEN_NAME);
         value = vCardService->FakeCString(o);
@@ -1604,7 +1603,7 @@ static int WriteOutEachVCardProperty (MimeObject *obj, VObject* o, int* numEmail
       }
     }
 
-    if (nsCRT::strcasecmp (VCNamePrefixesProp, vCardService->VObjectName(o)) == 0) {
+    if (PL_strcasecmp (VCNamePrefixesProp, vCardService->VObjectName(o)) == 0) {
       if (VALUE_TYPE(o)) {
         attribName = VCardGetStringByID(VCARD_LDAP_NAME_PREFIX);
         value = vCardService->FakeCString(o);
@@ -1612,7 +1611,7 @@ static int WriteOutEachVCardProperty (MimeObject *obj, VObject* o, int* numEmail
       }
     }
 
-    if (nsCRT::strcasecmp (VCNameSuffixesProp, vCardService->VObjectName(o)) == 0) {
+    if (PL_strcasecmp (VCNameSuffixesProp, vCardService->VObjectName(o)) == 0) {
       if (VALUE_TYPE(o)) {
         attribName = VCardGetStringByID(VCARD_LDAP_NAME_SUFFIX);
         value = vCardService->FakeCString(o);
@@ -1620,7 +1619,7 @@ static int WriteOutEachVCardProperty (MimeObject *obj, VObject* o, int* numEmail
       }
     }
 
-    if (nsCRT::strcasecmp (VCAdditionalNamesProp, vCardService->VObjectName(o)) == 0) {
+    if (PL_strcasecmp (VCAdditionalNamesProp, vCardService->VObjectName(o)) == 0) {
       if (VALUE_TYPE(o)) {
         attribName = VCardGetStringByID(VCARD_LDAP_MIDDLE_NAME);
         value = vCardService->FakeCString(o);
@@ -1628,7 +1627,7 @@ static int WriteOutEachVCardProperty (MimeObject *obj, VObject* o, int* numEmail
       }
     }
 
-    if (nsCRT::strcasecmp (VCMailerProp, vCardService->VObjectName(o)) == 0) {
+    if (PL_strcasecmp (VCMailerProp, vCardService->VObjectName(o)) == 0) {
       if (VALUE_TYPE(o)) {
         attribName = VCardGetStringByID(VCARD_LDAP_MAILER);
         value = vCardService->FakeCString(o);
@@ -1636,7 +1635,7 @@ static int WriteOutEachVCardProperty (MimeObject *obj, VObject* o, int* numEmail
       }
     }
 
-    if (nsCRT::strcasecmp (VCTimeZoneProp, vCardService->VObjectName(o)) == 0) {
+    if (PL_strcasecmp (VCTimeZoneProp, vCardService->VObjectName(o)) == 0) {
       if (VALUE_TYPE(o)) {
         attribName = VCardGetStringByID(VCARD_LDAP_TZ);
         value = vCardService->FakeCString(o);
@@ -1644,7 +1643,7 @@ static int WriteOutEachVCardProperty (MimeObject *obj, VObject* o, int* numEmail
       }
     }
 
-    if (nsCRT::strcasecmp (VCGeoProp, vCardService->VObjectName(o)) == 0) {
+    if (PL_strcasecmp (VCGeoProp, vCardService->VObjectName(o)) == 0) {
       if (VALUE_TYPE(o)) {
         attribName = VCardGetStringByID(VCARD_LDAP_GEO);
         value = vCardService->FakeCString(o);
@@ -1652,7 +1651,7 @@ static int WriteOutEachVCardProperty (MimeObject *obj, VObject* o, int* numEmail
       }
     }
 
-    if (nsCRT::strcasecmp (VCBusinessRoleProp, vCardService->VObjectName(o)) == 0) {
+    if (PL_strcasecmp (VCBusinessRoleProp, vCardService->VObjectName(o)) == 0) {
       if (VALUE_TYPE(o)) {
         attribName = VCardGetStringByID(VCARD_LDAP_ROLE);
         value = vCardService->FakeCString(o);
@@ -1660,7 +1659,7 @@ static int WriteOutEachVCardProperty (MimeObject *obj, VObject* o, int* numEmail
       }
     }
 
-    if (nsCRT::strcasecmp (VCLogoProp, vCardService->VObjectName(o)) == 0) {
+    if (PL_strcasecmp (VCLogoProp, vCardService->VObjectName(o)) == 0) {
       VObject* urlProp = vCardService->IsAPropertyOf(o, VCURLProp);
       if (urlProp) {
         attribName = VCardGetStringByID(VCARD_LDAP_LOGO);
@@ -1673,12 +1672,12 @@ static int WriteOutEachVCardProperty (MimeObject *obj, VObject* o, int* numEmail
       }
     }
 
-    if (nsCRT::strcasecmp (VCAgentProp, vCardService->VObjectName(o)) == 0) {
+    if (PL_strcasecmp (VCAgentProp, vCardService->VObjectName(o)) == 0) {
       attribName = VCardGetStringByID(VCARD_LDAP_SECRETARY);
       goto DOWRITE;
     }
 
-    if (nsCRT::strcasecmp (VCLastRevisedProp, vCardService->VObjectName(o)) == 0) {
+    if (PL_strcasecmp (VCLastRevisedProp, vCardService->VObjectName(o)) == 0) {
       if (VALUE_TYPE(o)) {
         attribName = VCardGetStringByID(VCARD_LDAP_REVISION);
         value = vCardService->FakeCString(o);
@@ -1686,7 +1685,7 @@ static int WriteOutEachVCardProperty (MimeObject *obj, VObject* o, int* numEmail
       }
     }
 
-    if (nsCRT::strcasecmp (VCPronunciationProp, vCardService->VObjectName(o)) == 0) {
+    if (PL_strcasecmp (VCPronunciationProp, vCardService->VObjectName(o)) == 0) {
       if (VALUE_TYPE(o)) {
         attribName = VCardGetStringByID(VCARD_LDAP_SOUND);
         value = vCardService->FakeCString(o);
@@ -1695,7 +1694,7 @@ static int WriteOutEachVCardProperty (MimeObject *obj, VObject* o, int* numEmail
     }
 
 
-    if (nsCRT::strcasecmp (VCVersionProp, vCardService->VObjectName(o)) == 0) {
+    if (PL_strcasecmp (VCVersionProp, vCardService->VObjectName(o)) == 0) {
       if (VALUE_TYPE(o)) {
         attribName = VCardGetStringByID(VCARD_LDAP_VERSION);
         value = vCardService->FakeCString(o);
@@ -1840,10 +1839,10 @@ WriteLineToStream (MimeObject *obj, const char *line, PRBool aDoCharConversion)
     if (!charset)
       charset = FindCharacterSet(obj);
 
-    if ( (!charset) || ( (charset) && (!nsCRT::strcasecmp(charset, "us-ascii"))) )
+    if ( (!charset) || ( (charset) && (!PL_strcasecmp(charset, "us-ascii"))) )
     {
       PR_Free(charset);
-      charset = nsCRT::strdup("ISO-8859-1");
+      charset = strdup("ISO-8859-1");
     }
     // convert from the resource charset.
     res = INTL_ConvertCharset(charset, "UTF-8", line, strlen(line),
@@ -1925,7 +1924,7 @@ nsCOMPtr<nsIStringBundle>   stringBundle = nsnull;
     res = stringBundle->GetStringFromID(aMsgId, &ptrv);
 
     if (NS_FAILED(res))
-      return nsCRT::strdup("???");
+      return strdup("???");
     else
     {
       nsAutoString v;
@@ -1936,7 +1935,7 @@ nsCOMPtr<nsIStringBundle>   stringBundle = nsnull;
   }
 
   if (!tempString)
-    return nsCRT::strdup("???");
+    return strdup("???");
   else
     return tempString;
 }

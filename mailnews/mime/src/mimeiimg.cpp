@@ -42,12 +42,11 @@
 #include "prlog.h"
 #include "nsMimeTypes.h"
 #include "nsMimeStringResources.h"
-#include "nsCRT.h"
 #include "nsEscape.h"
 
 #define MIME_SUPERCLASS mimeLeafClass
 MimeDefClass(MimeInlineImage, MimeInlineImageClass,
-			 mimeInlineImageClass, &MIME_SUPERCLASS);
+       mimeInlineImageClass, &MIME_SUPERCLASS);
 
 static int MimeInlineImage_initialize (MimeObject *);
 static void MimeInlineImage_finalize (MimeObject *);
@@ -114,7 +113,7 @@ MimeInlineImage_parse_begin (MimeObject *obj)
 
     part = mime_part_address(obj);
     if (!part) return MIME_OUT_OF_MEMORY;
-    
+
       char *no_part_url = nsnull;
       if (obj->options->part_to_load && obj->options->format_out == nsMimeOutput::nsMimeMessageBodyDisplay)
         no_part_url = mime_get_base_url(obj->options->url);
@@ -129,15 +128,15 @@ MimeInlineImage_parse_begin (MimeObject *obj)
 
     if (!image_url)
     {
-		  PR_Free(part);
+      PR_Free(part);
       return MIME_OUT_OF_MEMORY;
     }
     PR_Free(part);
-    
+
     ct = obj->content_type;
     if (!ct) ct = IMAGE_GIF;  /* Can't happen?  Close enough. */
 
-	  // Fill in content type and attachment name here.
+    // Fill in content type and attachment name here.
     nsCAutoString url_with_filename(image_url);
     url_with_filename += "&type=";
     url_with_filename += ct;
@@ -148,14 +147,14 @@ MimeInlineImage_parse_begin (MimeObject *obj)
       if (!escapedName) return MIME_OUT_OF_MEMORY;
       url_with_filename += "&filename=";
       url_with_filename += escapedName;
-      nsCRT::free(escapedName);
+      NS_Free(escapedName);
       PR_Free(filename);
     }
 
     // We need to separate images with HR's...
     MimeObject_write_separator(obj);
 
-	  img->image_data =
+    img->image_data =
       obj->options->image_begin(url_with_filename.get(), ct, obj->options->stream_closure);
     PR_Free(image_url);
 
@@ -169,7 +168,7 @@ MimeInlineImage_parse_begin (MimeObject *obj)
     if (status < 0) return status;
   }
 
-  // 
+  //
   // Now we are going to see if we should set the content type in the
   // URI for the url being run...
   //
@@ -198,11 +197,11 @@ MimeInlineImage_parse_eof (MimeObject *obj, PRBool abort_p)
   if (status < 0) abort_p = PR_TRUE;
 
   if (img->image_data)
-	{
-	  obj->options->image_end(img->image_data,
-							  (status < 0 ? status : (abort_p ? -1 : 0)));
-	  img->image_data = 0;
-	}
+  {
+    obj->options->image_end(img->image_data,
+                (status < 0 ? status : (abort_p ? -1 : 0)));
+    img->image_data = 0;
+  }
 
   return status;
 }
@@ -212,55 +211,55 @@ static int
 MimeInlineImage_parse_decoded_buffer (const char *buf, PRInt32 size, MimeObject *obj)
 {
   /* This is called (by MimeLeafClass->parse_buffer) with blocks of data
-	 that have already been base64-decoded.  Pass this raw image data
-	 along to the backend-specific image display code.
+   that have already been base64-decoded.  Pass this raw image data
+   along to the backend-specific image display code.
    */
   MimeInlineImage *img  = (MimeInlineImage *) obj;
   int status;
 
   if (obj->output_p &&
-	  obj->options &&
-	  !obj->options->write_html_p)
-	{
-	  /* in this case, we just want the raw data...
-		 Make the stream, if it's not made, and dump the data out.
-	   */
+    obj->options &&
+    !obj->options->write_html_p)
+  {
+    /* in this case, we just want the raw data...
+     Make the stream, if it's not made, and dump the data out.
+     */
 
-	  if (!obj->options->state->first_data_written_p)
-		{
-		  status = MimeObject_output_init(obj, 0);
-		  if (status < 0) return status;
-		  NS_ASSERTION(obj->options->state->first_data_written_p, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
-		}
-	  
-	  return MimeObject_write(obj, buf, size, PR_TRUE);
-	}
+    if (!obj->options->state->first_data_written_p)
+    {
+      status = MimeObject_output_init(obj, 0);
+      if (status < 0) return status;
+      NS_ASSERTION(obj->options->state->first_data_written_p, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
+    }
+
+    return MimeObject_write(obj, buf, size, PR_TRUE);
+  }
 
 
   if (!obj->options ||
-	  !obj->options->image_write_buffer)
-	return 0;
+    !obj->options->image_write_buffer)
+  return 0;
 
   /* If we don't have any image data, the image_end method must have already
-	 been called, so don't call image_write_buffer again. */
+   been called, so don't call image_write_buffer again. */
   if (!img->image_data) return 0;
 
   /* Hand this data off to the backend-specific image display stream.
    */
   status = obj->options->image_write_buffer (buf, size, img->image_data);
-  
+
   /* If the image display stream fails, then close the stream - but do not
-	 return the failure status, and do not give up on parsing this object.
-	 Just because the image data was corrupt doesn't mean we need to give up
-	 on the whole document; we can continue by just skipping over the rest of
-	 this part, and letting our parent continue.
+   return the failure status, and do not give up on parsing this object.
+   Just because the image data was corrupt doesn't mean we need to give up
+   on the whole document; we can continue by just skipping over the rest of
+   this part, and letting our parent continue.
    */
   if (status < 0)
-	{
-	  obj->options->image_end (img->image_data, status);
-	  img->image_data = 0;
-	  status = 0;
-	}
+  {
+    obj->options->image_end (img->image_data, status);
+    img->image_data = 0;
+    status = 0;
+  }
 
   return status;
 }

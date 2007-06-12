@@ -19,7 +19,7 @@
  * Portions created by the Initial Developer are Copyright (C) 2001
  * the Initial Developer. All Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *   Kai Engert <kengert@redhat.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
@@ -114,7 +114,7 @@ typedef struct MimeMultCMSdata
   PRBool parent_is_encrypted_p;
   PRBool parent_holds_stamp_p;
   nsCOMPtr<nsIMsgSMIMEHeaderSink> smimeHeaderSink;
-  
+
   MimeMultCMSdata()
   :hash_type(0),
   sender_addr(nsnull),
@@ -125,7 +125,7 @@ typedef struct MimeMultCMSdata
   parent_holds_stamp_p(PR_FALSE)
   {
   }
-  
+
   ~MimeMultCMSdata()
   {
     PR_FREEIF(sender_addr);
@@ -177,16 +177,16 @@ MimeMultCMS_init (MimeObject *obj)
   ct = 0;
   if (!micalg) return 0; /* #### bogus message?  out of memory? */
 
-  if (!nsCRT::strcasecmp(micalg, PARAM_MICALG_MD5) ||
-      !nsCRT::strcasecmp(micalg, PARAM_MICALG_MD5_2))
+  if (!PL_strcasecmp(micalg, PARAM_MICALG_MD5) ||
+      !PL_strcasecmp(micalg, PARAM_MICALG_MD5_2))
     hash_type = nsICryptoHash::MD5;
-  else if (!nsCRT::strcasecmp(micalg, PARAM_MICALG_SHA1) ||
-       !nsCRT::strcasecmp(micalg, PARAM_MICALG_SHA1_2) ||
-       !nsCRT::strcasecmp(micalg, PARAM_MICALG_SHA1_3) ||
-       !nsCRT::strcasecmp(micalg, PARAM_MICALG_SHA1_4) ||
-       !nsCRT::strcasecmp(micalg, PARAM_MICALG_SHA1_5))
+  else if (!PL_strcasecmp(micalg, PARAM_MICALG_SHA1) ||
+       !PL_strcasecmp(micalg, PARAM_MICALG_SHA1_2) ||
+       !PL_strcasecmp(micalg, PARAM_MICALG_SHA1_3) ||
+       !PL_strcasecmp(micalg, PARAM_MICALG_SHA1_4) ||
+       !PL_strcasecmp(micalg, PARAM_MICALG_SHA1_5))
     hash_type = nsICryptoHash::SHA1;
-  else if (!nsCRT::strcasecmp(micalg, PARAM_MICALG_MD2))
+  else if (!PL_strcasecmp(micalg, PARAM_MICALG_MD2))
     hash_type = nsICryptoHash::MD2;
   else
     hash_type = -1;
@@ -255,7 +255,7 @@ MimeMultCMS_init (MimeObject *obj)
         //
         // If we do not find header=filter, we assume the result of the
         // processing will be shown in the UI.
-        
+
         if (!strstr(urlSpec.get(), "?header=filter") &&
             !strstr(urlSpec.get(), "&header=filter")&&
             !strstr(urlSpec.get(), "?header=attach") &&
@@ -304,11 +304,11 @@ MimeMultCMS_data_eof (void *crypto_closure, PRBool abort_p)
   nsCAutoString hashString;
   data->data_hash_context->Finish(PR_FALSE, hashString);
   PR_SetError(0, 0);
-  
+
   data->item_len  = hashString.Length();
   data->item_data = new unsigned char[data->item_len];
   if (!data->item_data) return MIME_OUT_OF_MEMORY;
-  
+
   memcpy(data->item_data, hashString.get(), data->item_len);
 
   // Release our reference to nsICryptoHash //
@@ -340,8 +340,8 @@ MimeMultCMS_sig_init (void *crypto_closure,
 
   /* Verify that the signature object is of the right type. */
   if (!ct || /* is not a signature type */
-             (nsCRT::strcasecmp(ct, APPLICATION_XPKCS7_SIGNATURE) != 0
-              && nsCRT::strcasecmp(ct, APPLICATION_PKCS7_SIGNATURE) != 0)) {
+             (PL_strcasecmp(ct, APPLICATION_XPKCS7_SIGNATURE) != 0
+              && PL_strcasecmp(ct, APPLICATION_PKCS7_SIGNATURE) != 0)) {
     status = -1; /* #### error msg about bogus message */
   }
   PR_FREEIF(ct);
@@ -436,10 +436,10 @@ MimeMultCMS_generate (void *crypto_closure)
   {
     // We were not given all parts of the message.
     // We are therefore unable to verify correctness of the signature.
-    
+
     if (data->smimeHeaderSink)
-      data->smimeHeaderSink->SignedStatus(aRelativeNestLevel, 
-                                          nsICMSMessageErrors::VERIFY_NOT_YET_ATTEMPTED, 
+      data->smimeHeaderSink->SignedStatus(aRelativeNestLevel,
+                                          nsICMSMessageErrors::VERIFY_NOT_YET_ATTEMPTED,
                                           nsnull);
     return nsnull;
   }
@@ -453,20 +453,20 @@ MimeMultCMS_generate (void *crypto_closure)
      */
      return nsnull;
   }
-  
+
   nsCString from_addr;
   nsCString from_name;
   nsCString sender_addr;
   nsCString sender_name;
-  
-  MimeCMSGetFromSender(data->self, 
+
+  MimeCMSGetFromSender(data->self,
                        from_addr, from_name,
                        sender_addr, sender_name);
 
-  MimeCMSRequestAsyncSignatureVerification(data->content_info, 
+  MimeCMSRequestAsyncSignatureVerification(data->content_info,
                                            from_addr.get(), from_name.get(),
                                            sender_addr.get(), sender_name.get(),
-                                           data->smimeHeaderSink, aRelativeNestLevel, 
+                                           data->smimeHeaderSink, aRelativeNestLevel,
                                            data->item_data, data->item_len);
 
   if (data->content_info)

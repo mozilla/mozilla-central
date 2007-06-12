@@ -135,7 +135,7 @@ MimeInlineTextPlainFlowed_parse_begin (MimeObject *obj)
     (content_type_row
      ? MimeHeaders_get_parameter(content_type_row, "delsp", NULL,NULL)
      : 0);
-  ((MimeInlineTextPlainFlowed *)obj)->delSp = content_type_delsp && !nsCRT::strcasecmp(content_type_delsp, "yes");
+  ((MimeInlineTextPlainFlowed *)obj)->delSp = content_type_delsp && !PL_strcasecmp(content_type_delsp, "yes");
   PR_Free(content_type_delsp);
   PR_Free(content_type_row);
 
@@ -343,7 +343,7 @@ MimeInlineTextPlainFlowed_parse_line (const char *aLine, PRInt32 length, MimeObj
           (quote marks and) a space count as empty */
   {
     flowed = PR_TRUE;
-    sigSeparator = (index - (linep - line) + 1 == 3) && !nsCRT::strncmp(linep, "-- ", 3);
+    sigSeparator = (index - (linep - line) + 1 == 3) && !strncmp(linep, "-- ", 3);
     if (((MimeInlineTextPlainFlowed *) obj)->delSp && ! sigSeparator)
        /* If line is flowed and DelSp=yes, logically
           delete trailing space. Line consisting of
@@ -396,7 +396,7 @@ MimeInlineTextPlainFlowed_parse_line (const char *aLine, PRInt32 length, MimeObj
           ((MimeInlineTextClass*)&mimeInlineTextClass)->initialize_charset(obj);
         mailCharset = inlinetext->charset;
         if (mailCharset && *mailCharset) {
-          rv = nsMsgI18NConvertToUnicode(mailCharset, nsDependentCString(inputStr), lineSource);
+          rv = nsMsgI18NConvertToUnicode(mailCharset, PromiseFlatCString(inputStr), lineSource);
           NS_ENSURE_SUCCESS(rv, -1);
         }
         else // this probably never happens...

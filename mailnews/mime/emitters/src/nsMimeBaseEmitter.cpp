@@ -327,7 +327,7 @@ nsMimeBaseEmitter::LocalizeHeaderName(const char *aHeaderName, const char *aDefa
   if (retVal)
     return retVal;
   else
-    return nsCRT::strdup(aDefaultName);
+    return strdup(aDefaultName);
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -396,9 +396,9 @@ nsMimeBaseEmitter::StartAttachment(const char *name, const char *contentType, co
   {
     ++mAttachCount;
 
-    mCurrentAttachment->displayName = nsCRT::strdup(name);
-    mCurrentAttachment->urlSpec = nsCRT::strdup(url);
-    mCurrentAttachment->contentType = nsCRT::strdup(contentType);
+    mCurrentAttachment->displayName = strdup(name);
+    mCurrentAttachment->urlSpec = strdup(url);
+    mCurrentAttachment->contentType = strdup(contentType);
     mCurrentAttachment->isExternalAttachment = aIsExternalAttachment;
   }
 
@@ -544,7 +544,7 @@ nsMimeBaseEmitter::GetHeaderValue(const char  *aHeaderName)
     if ( (!headerInfo) || (!headerInfo->name) || (!(*headerInfo->name)) )
       continue;
 
-    if (!nsCRT::strcasecmp(aHeaderName, headerInfo->name))
+    if (!PL_strcasecmp(aHeaderName, headerInfo->name))
     {
       retVal = headerInfo->value;
       break;
@@ -656,8 +656,8 @@ nsMimeBaseEmitter::AddHeaderField(const char *field, const char *value)
   headerInfoType  *ptr = (headerInfoType *) PR_NEWZAP(headerInfoType);
   if ( (ptr) && tPtr)
   {
-    ptr->name = nsCRT::strdup(field);
-    ptr->value = nsCRT::strdup(value);
+    ptr->name = strdup(field);
+    ptr->value = strdup(value);
     tPtr->AppendElement(ptr);
   }
 
@@ -716,7 +716,7 @@ nsMimeBaseEmitter::WriteHeaderFieldHTML(const char *field, const char *value)
   }
   else
   {
-    newValue = nsCRT::strdup(value);
+    newValue = strdup(value);
   }
 
   if (!newValue)
@@ -879,11 +879,11 @@ nsMimeBaseEmitter::DumpRestOfHeaders()
       (!headerInfo->value) || (!(*headerInfo->value)))
       continue;
 
-    if ( (!nsCRT::strcasecmp(HEADER_SUBJECT, headerInfo->name)) ||
-      (!nsCRT::strcasecmp(HEADER_DATE, headerInfo->name)) ||
-      (!nsCRT::strcasecmp(HEADER_FROM, headerInfo->name)) ||
-      (!nsCRT::strcasecmp(HEADER_TO, headerInfo->name)) ||
-      (!nsCRT::strcasecmp(HEADER_CC, headerInfo->name)) )
+    if ( (!PL_strcasecmp(HEADER_SUBJECT, headerInfo->name)) ||
+      (!PL_strcasecmp(HEADER_DATE, headerInfo->name)) ||
+      (!PL_strcasecmp(HEADER_FROM, headerInfo->name)) ||
+      (!PL_strcasecmp(HEADER_TO, headerInfo->name)) ||
+      (!PL_strcasecmp(HEADER_CC, headerInfo->name)) )
       continue;
 
     WriteHeaderFieldHTML(headerInfo->name, headerInfo->value);

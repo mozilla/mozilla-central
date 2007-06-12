@@ -40,7 +40,6 @@
 #include "prmem.h"
 #include "prio.h"
 #include "plstr.h"
-#include "nsCRT.h"
 #include "nsMimeStringResources.h"
 #include "nsNetUtil.h"
 //

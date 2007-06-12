@@ -43,7 +43,6 @@
 #include "nsString.h"
 #include "nsReadableUtils.h"
 #include "nsCategoryManagerUtils.h"
-#include "nsCRT.h"
 #include "nsCOMPtr.h"
 #include "nsAutoPtr.h"
 #include "nsISimpleMimeConverter.h"

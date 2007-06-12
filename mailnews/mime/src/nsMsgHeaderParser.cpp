@@ -39,11 +39,11 @@
 #include "msgCore.h"    // precompiled header...
 #include "nsReadableUtils.h"
 #include "nsMsgHeaderParser.h"
-#include "nsISimpleEnumerator.h"   
+#include "nsISimpleEnumerator.h"
 #include "comi18n.h"
 #include "prmem.h"
 
-nsresult FillResultsArray(const char * aName, const char *aAddress, PRUnichar ** aOutgoingEmailAddress, PRUnichar ** aOutgoingName, 
+nsresult FillResultsArray(const char * aName, const char *aAddress, PRUnichar ** aOutgoingEmailAddress, PRUnichar ** aOutgoingName,
                           PRUnichar ** aOutgoingFullName, nsIMsgHeaderParser *aParser);
 
 /*
@@ -58,7 +58,7 @@ nsresult FillResultsArray(const char * aName, const char *aAddress, PRUnichar **
                                                 memcpy(_D,_S,_LEN); _D += _LEN; } } while (0)
 //#define NEXT_CHAR(_STR)             (_STR = (* (char *) _STR < 128) ? (char *) _STR + 1 : NextChar_UTF8((char *)_STR))
 #define NEXT_CHAR(_STR)             (_STR = NextChar_UTF8((char *)_STR))
-#define TRIM_WHITESPACE(_S,_E,_T)   do { while (_E > _S && nsCRT::IsAsciiSpace(_E[-1])) _E--;\
+#define TRIM_WHITESPACE(_S,_E,_T)   do { while (_E > _S && IS_SPACE(_E[-1])) _E--;\
                                          *_E++ = _T; } while (0)
 
 /*
@@ -98,7 +98,7 @@ nsMsgHeaderParser::~nsMsgHeaderParser()
 NS_IMPL_ISUPPORTS1(nsMsgHeaderParser, nsIMsgHeaderParser)
 
 // helper function called by ParseHeadersWithArray
-nsresult FillResultsArray(const char * aName, const char *aAddress, PRUnichar ** aOutgoingEmailAddress, PRUnichar ** aOutgoingName, 
+nsresult FillResultsArray(const char * aName, const char *aAddress, PRUnichar ** aOutgoingEmailAddress, PRUnichar ** aOutgoingName,
                           PRUnichar ** aOutgoingFullName, nsIMsgHeaderParser *aParser)
 {
   NS_ENSURE_ARG(aParser);
@@ -111,7 +111,7 @@ nsresult FillResultsArray(const char * aName, const char *aAddress, PRUnichar **
     *aOutgoingEmailAddress = ToNewUnicode(NS_ConvertUTF8toUTF16(result ? result : aAddress));
     PR_FREEIF(result);
   }
-  
+
   if (aName)
   {
     result = MIME_DecodeMimeHeader(aName, NULL, PR_FALSE, PR_TRUE);
@@ -151,7 +151,7 @@ NS_IMETHODIMP nsMsgHeaderParser::ParseHeadersWithArray(const PRUnichar * aLine, 
   char * utf8String = ToNewUTF8String(tempString);
 
   rv = ParseHeaderAddresses("UTF-8", utf8String, &names, &addresses, &numAddresses);
-  nsCRT::free(utf8String);
+  NS_Free(utf8String);
   if (NS_SUCCEEDED(rv) && numAddresses)
   {
     // allocate space for our arrays....
@@ -165,7 +165,7 @@ NS_IMETHODIMP nsMsgHeaderParser::ParseHeadersWithArray(const PRUnichar * aLine, 
     PRUnichar ** outgoingFullNames = *aFullNames;
 
     // iterate over the results and fill in our arrays....
-    PRUint32 index = 0; 
+    PRUint32 index = 0;
     const char * currentName = names;
     const char * currentAddress = addresses;
     char * unquotedName = nsnull;
@@ -175,7 +175,7 @@ NS_IMETHODIMP nsMsgHeaderParser::ParseHeadersWithArray(const PRUnichar * aLine, 
         rv = FillResultsArray(unquotedName, currentAddress, &outgoingEmailAddresses[index], &outgoingNames[index], &outgoingFullNames[index], this);
       else
         rv = FillResultsArray(currentName, currentAddress, &outgoingEmailAddresses[index], &outgoingNames[index], &outgoingFullNames[index], this);
-      
+
       PR_FREEIF(unquotedName);
       currentName += strlen(currentName) + 1;
       currentAddress += strlen(currentAddress) + 1;
@@ -255,7 +255,7 @@ nsresult nsMsgHeaderParser::RemoveDuplicateAddresses (const char *charset, const
 nsresult nsMsgHeaderParser::MakeFullAddress (const char *charset, const char* name, const char* addr, char ** fullAddress)
 {
   NS_ENSURE_ARG_POINTER(fullAddress);
-  
+
   *fullAddress = msg_make_full_address(name, addr);
   return NS_OK;
 }
@@ -263,7 +263,7 @@ nsresult nsMsgHeaderParser::MakeFullAddress (const char *charset, const char* na
 nsresult nsMsgHeaderParser::MakeFullAddressWString (const PRUnichar* name, const PRUnichar* addr, PRUnichar ** fullAddress)
 {
   nsCString utf8Str;
-  nsresult rv = MakeFullAddress(nsnull, NS_ConvertUTF16toUTF8(name).get(), 
+  nsresult rv = MakeFullAddress(nsnull, NS_ConvertUTF16toUTF8(name).get(),
                                 NS_ConvertUTF16toUTF8(addr).get(), getter_Copies(utf8Str));
   if (NS_SUCCEEDED(rv))
   {
@@ -313,7 +313,7 @@ nsresult nsMsgHeaderParser::ReformatUnquotedAddresses (const PRUnichar *line, PR
   char *writePtr = outputStr;
   const char *endOutputPtr = outputStr + outputMaxLen;
   const char *endPtr = readPtr + lineLen;
- 
+
   const char *startRecipient = readPtr;
   char* reformated;
   PRBool openQuoteLevel1 = PR_FALSE;
@@ -343,7 +343,7 @@ nsresult nsMsgHeaderParser::ReformatUnquotedAddresses (const PRUnichar *line, PR
         */
         char * tempEnd = NS_CONST_CAST(char *, readPtr);
         *tempEnd = 0;
-        
+
         reformated = msg_reformat_Header_addresses(startRecipient);
         if (reformated)
         {
@@ -415,9 +415,9 @@ nsresult NS_NewHeaderParser(nsIMsgHeaderParser ** aInstancePtrResult)
     return NS_ERROR_NULL_POINTER; /* aInstancePtrResult was NULL....*/
 }
 
- 
+
 /*
- * The remainder of this file is the actual parsing code and it was extracted verbatim from addrutils.cpp 
+ * The remainder of this file is the actual parsing code and it was extracted verbatim from addrutils.cpp
  */
 
 /* msg_parse_Header_addresses
@@ -478,10 +478,10 @@ static int msg_parse_Header_addresses (const char *line, char **names, char **ad
   name_start = name_buf;
   addr_start = addr_buf;
   this_start = line;
-  
+
   /* Skip over extra whitespace or commas before addresses.
    */
-  while (*line_end && (nsCRT::IsAsciiSpace(*line_end) || *line_end == ','))
+  while (*line_end && (IS_SPACE(*line_end) || *line_end == ','))
     NEXT_CHAR(line_end);
 
   while (*line_end)
@@ -501,7 +501,7 @@ static int msg_parse_Header_addresses (const char *line, char **names, char **ad
         if (!*line_end) /* otherwise, we walk off end of line, right? */
           break;
       }
-      else if (*line_end == '\"') 
+      else if (*line_end == '\"')
       {
         int leave_quotes = 0;
 
@@ -572,18 +572,17 @@ static int msg_parse_Header_addresses (const char *line, char **names, char **ad
         {
           const char *s = oparen + 1;
 
-          /* Copy the chars inside the parens onto the "name" buffer.
-           */
+          /* Copy the chars inside the parens onto the "name" buffer. */
 
           /* Push out some whitespace before the paren, if
-           * there is non-whitespace there already.
-           */
-          if (name_out > name_start && !nsCRT::IsAsciiSpace(name_out [-1]))
+                             * there is non-whitespace there already.
+                             */
+          if (name_out > name_start && !IS_SPACE(name_out [-1]))
             *name_out++ = ' ';
 
           /* Skip leading whitespace.
            */
-          while (nsCRT::IsAsciiSpace(*s) && s < line_end)
+          while (IS_SPACE(*s) && s < line_end)
             s++;
 
           while (s < line_end)
@@ -599,7 +598,7 @@ static int msg_parse_Header_addresses (const char *line, char **names, char **ad
             if (*s == '\\') /* remove one \ */
               s++;
 
-            if (nsCRT::IsAsciiSpace(*s) && name_out > name_start && nsCRT::IsAsciiSpace(name_out[-1]))
+            if (IS_SPACE(*s) && name_out > name_start && IS_SPACE(name_out[-1]))
               /* collapse consecutive whitespace */;
             else
               COPY_CHAR(name_out, s);
@@ -619,8 +618,8 @@ static int msg_parse_Header_addresses (const char *line, char **names, char **ad
           /* Eat whitespace at the beginning of the line,
            * and eat consecutive whitespace within the line.
            */
-          if (   nsCRT::IsAsciiSpace(*line_end)
-              && (addr_out == addr_start || nsCRT::IsAsciiSpace(addr_out[-1])))
+          if (IS_SPACE(*line_end)
+              && (addr_out == addr_start || IS_SPACE(addr_out[-1])))
             /* skip it */;
           else
             COPY_CHAR(addr_out, line_end);
@@ -630,7 +629,7 @@ static int msg_parse_Header_addresses (const char *line, char **names, char **ad
         NEXT_CHAR(line_end);
     }
 
-    /* Now we have extracted a single address from the comma-separated
+  /* Now we have extracted a single address from the comma-separated
      * list of addresses.  The characters have been divided among the
      * various buffers: the parts inside parens have been placed in the
      * name_buf, and everything else has been placed in the addr_buf.
@@ -659,7 +658,7 @@ static int msg_parse_Header_addresses (const char *line, char **names, char **ad
 
       /* Skip leading whitespace.
        */
-      while (nsCRT::IsAsciiSpace(*s) && s < mailbox_start)
+      while (IS_SPACE(*s) && s < mailbox_start)
         s++;
 
       /* Copy up to (not including) the <
@@ -678,7 +677,7 @@ static int msg_parse_Header_addresses (const char *line, char **names, char **ad
             *name_out++ = *s++;
           continue;
         }
-        if (nsCRT::IsAsciiSpace(*s) && name_out > name_start && nsCRT::IsAsciiSpace(name_out[-1]))
+        if (IS_SPACE(*s) && name_out > name_start && IS_SPACE(name_out[-1]))
           /* collapse consecutive whitespace */;
         else
           COPY_CHAR(name_out, s);
@@ -693,7 +692,7 @@ static int msg_parse_Header_addresses (const char *line, char **names, char **ad
 
       /* Skip whitespace after >
        */
-      while (nsCRT::IsAsciiSpace(*s) && s < line_end)
+      while (IS_SPACE(*s) && s < line_end)
         s++;
 
       /* Copy from just after > to the end.
@@ -712,7 +711,7 @@ static int msg_parse_Header_addresses (const char *line, char **names, char **ad
             *name_out++ = *s++;
           continue;
         }
-        if (nsCRT::IsAsciiSpace (*s) && name_out > name_start && nsCRT::IsAsciiSpace (name_out[-1]))
+        if (IS_SPACE(*s) && name_out > name_start && IS_SPACE(name_out[-1]))
           /* collapse consecutive whitespace */;
         else
           COPY_CHAR(name_out, s);
@@ -730,7 +729,7 @@ static int msg_parse_Header_addresses (const char *line, char **names, char **ad
 
       /* Skip leading whitespace.
        */
-      while (nsCRT::IsAsciiSpace(*s) && s < mailbox_end)
+      while (IS_SPACE(*s) && s < mailbox_end)
         s++;
 
       /* Copy up to (not including) the >
@@ -774,7 +773,7 @@ static int msg_parse_Header_addresses (const char *line, char **names, char **ad
       L = msg_quote_phrase_or_addr(name_start, L, PR_FALSE);
       name_out = name_start + L + 1;
     }
-#endif 
+#endif
 
     if (quote_addrs_p && addresses)
     {
@@ -794,7 +793,7 @@ static int msg_parse_Header_addresses (const char *line, char **names, char **ad
       NEXT_CHAR(line_end);
 
     /* Skip over extra whitespace or commas between addresses. */
-    while (*line_end && (nsCRT::IsAsciiSpace(*line_end) || *line_end == ','))
+    while (*line_end && (IS_SPACE(*line_end) || *line_end == ','))
       line_end++;
 
     this_start = line_end;
@@ -808,10 +807,10 @@ static int msg_parse_Header_addresses (const char *line, char **names, char **ad
   {
     char *s;
     for (s = name_buf; s < name_out; NEXT_CHAR(s))
-      if (nsCRT::IsAsciiSpace(*s) && *s != ' ')
+      if (IS_SPACE(*s) && *s != ' ')
         *s = ' ';
     for (s = addr_buf; s < addr_out; NEXT_CHAR(s))
-      if (nsCRT::IsAsciiSpace(*s) && *s != ' ')
+      if (IS_SPACE(*s) && *s != ' ')
         *s = ' ';
   }
 
@@ -862,7 +861,7 @@ msg_quote_phrase_or_addr(char *address, PRInt32 length, PRBool addr_p)
         address = in;
         break;
       }
-      else if (!nsCRT::IsAsciiDigit(*in) && !nsCRT::IsAsciiAlpha(*in) && *in != '@' && *in != '.')
+      else if (!IS_DIGIT(*in) && !IS_ALPHA(*in) && *in != '@' && *in != '.')
         break;
     }
   }
@@ -904,7 +903,7 @@ msg_quote_phrase_or_addr(char *address, PRInt32 length, PRBool addr_p)
 
         else if (  /* *in >= 127 || *in < 0  ducarroz: 8bits characters will be mime encoded therefore they are not a problem
              ||*/ (*in == ';' && !addr_p) || *in == '$' || *in == '(' || *in == ')'
-                 || *in == '<' || *in == '>' || *in == '@' || *in == ',') 
+                 || *in == '<' || *in == '>' || *in == '@' || *in == ',')
             /* If the name contains control chars or Header specials, it needs to
              * be enclosed in quotes.  Double-quotes and backslashes will be dealt
              * with separately.
@@ -1032,7 +1031,7 @@ msg_unquote_phrase_or_addr(const char *line, PRBool preserveIntegrity, char **li
    */
   if (*line != '\"')
   {
-    *lineout = nsCRT::strdup(line);
+    *lineout = strdup(line);
     if (!*lineout)
       return NS_ERROR_OUT_OF_MEMORY;
     else
@@ -1072,7 +1071,7 @@ msg_unquote_phrase_or_addr(const char *line, PRBool preserveIntegrity, char **li
 
     if (comma && at_sign)
     {
-      *lineout = nsCRT::strdup(line);
+      *lineout = strdup(line);
       if (!*lineout)
         return NS_ERROR_OUT_OF_MEMORY;
       else
@@ -1082,11 +1081,11 @@ msg_unquote_phrase_or_addr(const char *line, PRBool preserveIntegrity, char **li
 
   /* Don't copy the first double quote
    */
-  *lineout = nsCRT::strdup(line + 1);
+  *lineout = strdup(line + 1);
   if (!*lineout)
     return NS_ERROR_OUT_OF_MEMORY;
 
-  const char *lineptr = line + 1; 
+  const char *lineptr = line + 1;
   char *outptr = *lineout;
   PRBool escaped = PR_FALSE;
 
@@ -1111,7 +1110,7 @@ msg_unquote_phrase_or_addr(const char *line, PRBool preserveIntegrity, char **li
     }
   }
   *outptr = '\0';
-  
+
   return NS_OK;
 }
 
@@ -1242,7 +1241,7 @@ msg_extract_Header_address_names(const char *line)
 /* msg_extract_Header_address_name
  *
  * Like MSG_ExtractHeaderAddressNames(), but only returns the first name
- * in the list, if there is more than one. 
+ * in the list, if there is more than one.
  */
 static char *
 msg_extract_Header_address_name(const char *line)
@@ -1296,7 +1295,7 @@ msg_format_Header_addresses (const char *names, const char *addrs,
     len2 = strlen(s2);
     s1 += len1 + 1;
     s2 += len2 + 1;
-    
+
     len1 = (len1 * 2) + 2;  //(N*2) + 2 in case we need to quote it
     len2 = (len2 * 2) + 2;
     name_maxlen = PR_MAX(name_maxlen, len1);
@@ -1322,7 +1321,7 @@ msg_format_Header_addresses (const char *names, const char *addrs,
   for (i = 0; (int)i < count; i++)
   {
     char *o;
-    
+
     PL_strncpy(aName, s1, name_maxlen);
     PL_strncpy(anAddr, s2, addr_maxlen);
     len1 = msg_quote_phrase_or_addr(aName, strlen(s1), PR_FALSE);
@@ -1364,10 +1363,10 @@ msg_format_Header_addresses (const char *names, const char *addrs,
     column += (out - o);
   }
   *out = 0;
-  
+
   PR_FREEIF(aName);
   PR_FREEIF(anAddr);
-  
+
   return result;
 }
 
@@ -1429,7 +1428,7 @@ msg_remove_duplicate_addresses(const char *addrs, const char *other_addrs,
   if (count1 < 0) goto FAIL;
   if (count1 == 0)
   {
-    result = nsCRT::strdup("");
+    result = strdup("");
     goto FAIL;
   }
   if (other_addrs)
@@ -1501,7 +1500,7 @@ msg_remove_duplicate_addresses(const char *addrs, const char *other_addrs,
   {
     PRBool found = PR_FALSE;
     for (j = 0; j < count2; j++)
-      if (!nsCRT::strcasecmp (a_array1[i], a_array2[j]))
+      if (!PL_strcasecmp (a_array1[i], a_array2[j]))
       {
         found = PR_TRUE;
         break;
@@ -1509,7 +1508,7 @@ msg_remove_duplicate_addresses(const char *addrs, const char *other_addrs,
 
     if (!found)
       for (j = 0; j < count3; j++)
-        if (!nsCRT::strcasecmp(a_array1[i], a_array3[j]))
+        if (!PL_strcasecmp(a_array1[i], a_array3[j]))
         {
           found = PR_TRUE;
           break;

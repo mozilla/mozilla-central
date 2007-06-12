@@ -86,7 +86,7 @@ nsresult nsMimeHtmlDisplayEmitter::Init()
 PRBool nsMimeHtmlDisplayEmitter::BroadCastHeadersAndAttachments()
 {
   // try to get a header sink if there is one....
-  nsCOMPtr<nsIMsgHeaderSink> headerSink; 
+  nsCOMPtr<nsIMsgHeaderSink> headerSink;
   nsresult rv = GetHeaderSink(getter_AddRefs(headerSink));
   if (NS_SUCCEEDED(rv) && headerSink && mDocHeader)
     return PR_TRUE;
@@ -94,7 +94,7 @@ PRBool nsMimeHtmlDisplayEmitter::BroadCastHeadersAndAttachments()
     return PR_FALSE;
 }
 
-nsresult 
+nsresult
 nsMimeHtmlDisplayEmitter::WriteHeaderFieldHTMLPrefix()
 {
   if (!BroadCastHeadersAndAttachments() || (mFormat == nsMimeOutput::nsMimeMessagePrintOutput))
@@ -189,34 +189,34 @@ nsresult nsMimeHtmlDisplayEmitter::BroadcastHeaders(nsIMsgHeaderSink * aHeaderSi
     const char * headerValue = headerInfo->value;
 
     // optimization: if we aren't in view all header view mode, we only show a small set of the total # of headers.
-    // don't waste time sending those out to the UI since the UI is going to ignore them anyway. 
-    if (aHeaderMode != VIEW_ALL_HEADERS && (mFormat != nsMimeOutput::nsMimeMessageFilterSniffer)) 
+    // don't waste time sending those out to the UI since the UI is going to ignore them anyway.
+    if (aHeaderMode != VIEW_ALL_HEADERS && (mFormat != nsMimeOutput::nsMimeMessageFilterSniffer))
     {
       nsDependentCString headerStr(headerInfo->name);
-      if (nsCRT::strcasecmp("to", headerInfo->name) && nsCRT::strcasecmp("from", headerInfo->name) &&
-          nsCRT::strcasecmp("cc", headerInfo->name) && nsCRT::strcasecmp("newsgroups", headerInfo->name) &&
-          nsCRT::strcasecmp("bcc", headerInfo->name) && nsCRT::strcasecmp("followup-to", headerInfo->name) &&
-          nsCRT::strcasecmp("reply-to", headerInfo->name) && nsCRT::strcasecmp("subject", headerInfo->name) &&
-          nsCRT::strcasecmp("organization", headerInfo->name) && nsCRT::strcasecmp("user-agent", headerInfo->name) &&
-          nsCRT::strcasecmp("content-base", headerInfo->name) && nsCRT::strcasecmp("sender", headerInfo->name) &&
-          nsCRT::strcasecmp("date", headerInfo->name) && nsCRT::strcasecmp("x-mailer", headerInfo->name) &&
-          nsCRT::strcasecmp("content-type", headerInfo->name) && nsCRT::strcasecmp("message-id", headerInfo->name) &&
-          nsCRT::strcasecmp("x-newsreader", headerInfo->name) && nsCRT::strcasecmp("x-mimeole", headerInfo->name) &&
+      if (PL_strcasecmp("to", headerInfo->name) && PL_strcasecmp("from", headerInfo->name) &&
+          PL_strcasecmp("cc", headerInfo->name) && PL_strcasecmp("newsgroups", headerInfo->name) &&
+          PL_strcasecmp("bcc", headerInfo->name) && PL_strcasecmp("followup-to", headerInfo->name) &&
+          PL_strcasecmp("reply-to", headerInfo->name) && PL_strcasecmp("subject", headerInfo->name) &&
+          PL_strcasecmp("organization", headerInfo->name) && PL_strcasecmp("user-agent", headerInfo->name) &&
+          PL_strcasecmp("content-base", headerInfo->name) && PL_strcasecmp("sender", headerInfo->name) &&
+          PL_strcasecmp("date", headerInfo->name) && PL_strcasecmp("x-mailer", headerInfo->name) &&
+          PL_strcasecmp("content-type", headerInfo->name) && PL_strcasecmp("message-id", headerInfo->name) &&
+          PL_strcasecmp("x-newsreader", headerInfo->name) && PL_strcasecmp("x-mimeole", headerInfo->name) &&
           // make headerStr lower case because IndexOf is case-sensitive
          (!extraExpandedHeadersArray.Count() || (ToLowerCase(headerStr),
             extraExpandedHeadersArray.IndexOf(headerStr) == kNotFound)))
             continue;
     }
 
-    if (!nsCRT::strcasecmp("Date", headerInfo->name) && !displayOriginalDate) 
+    if (!PL_strcasecmp("Date", headerInfo->name) && !displayOriginalDate)
     {
-      GenerateDateString(headerValue, convertedDateString); 
+      GenerateDateString(headerValue, convertedDateString);
       headerValueArray.AppendCString(convertedDateString);
     }
     else // append the header value as is
       headerValueArray.AppendCString(nsCString(headerValue));
 
-    // XXX: TODO If nsCStringArray were converted over to take nsACStrings instead of nsCStrings, we can just 
+    // XXX: TODO If nsCStringArray were converted over to take nsACStrings instead of nsCStrings, we can just
     // wrap these strings with a nsDependentCString which would avoid making a duplicate copy of the string
     // like we are doing here....
     headerNameArray.AppendCString(nsCString(headerInfo->name));
@@ -249,7 +249,7 @@ NS_IMETHODIMP nsMimeHtmlDisplayEmitter::WriteHTMLHeaders()
   }
   else
     mFirstHeaders = PR_FALSE;
- 
+
   PRBool bFromNewsgroups = PR_FALSE;
   for (PRInt32 j=0; j < mHeaderArray->Count(); j++)
   {
@@ -257,7 +257,7 @@ NS_IMETHODIMP nsMimeHtmlDisplayEmitter::WriteHTMLHeaders()
     if (!(headerInfo && headerInfo->name && *headerInfo->name))
       continue;
 
-    if (!nsCRT::strcasecmp("Newsgroups", headerInfo->name))
+    if (!PL_strcasecmp("Newsgroups", headerInfo->name))
     {
       bFromNewsgroups = PR_TRUE;
 	  break;
@@ -265,7 +265,7 @@ NS_IMETHODIMP nsMimeHtmlDisplayEmitter::WriteHTMLHeaders()
   }
 
   // try to get a header sink if there is one....
-  nsCOMPtr<nsIMsgHeaderSink> headerSink; 
+  nsCOMPtr<nsIMsgHeaderSink> headerSink;
   nsresult rv = GetHeaderSink(getter_AddRefs(headerSink));
 
   if (headerSink)
@@ -311,10 +311,10 @@ nsresult nsMimeHtmlDisplayEmitter::GenerateDateString(const char * dateString, n
   {
     // same day...
     dateFormat = kDateFormatNone;
-  } 
+  }
   // the following chunk of code causes us to show a day instead of a number if the message was received
   // within the last 7 days. i.e. Mon 5:10pm. We need to add a preference so folks to can enable this behavior
-  // if they want it. 
+  // if they want it.
 /*
   else if (LL_CMP(currentTime, >, dateOfMsg))
   {
@@ -325,12 +325,12 @@ nsresult nsMimeHtmlDisplayEmitter::GenerateDateString(const char * dateString, n
 
     PRInt64 diff;
     LL_SUB(diff, currentTime, dateOfMsg);
-    if (LL_CMP(diff, <=, microSecondsInDays)) // within the same week 
+    if (LL_CMP(diff, <=, microSecondsInDays)) // within the same week
       dateFormat = kDateFormatWeekday;
   }
 */
 
-  if (NS_SUCCEEDED(rv)) 
+  if (NS_SUCCEEDED(rv))
     rv = mDateFormater->FormatPRTime(nsnull /* nsILocale* locale */,
                                       dateFormat,
                                       kTimeFormatNoSeconds,
@@ -387,11 +387,11 @@ nsMimeHtmlDisplayEmitter::StartAttachment(const char *name,
                                           PRBool aIsExternalAttachment)
 {
   nsresult rv = NS_OK;
-  nsCOMPtr<nsIMsgHeaderSink> headerSink; 
+  nsCOMPtr<nsIMsgHeaderSink> headerSink;
   rv = GetHeaderSink(getter_AddRefs(headerSink));
-  
+
   if (NS_SUCCEEDED(rv) && headerSink)
-  {    
+  {
     char * escapedUrl = nsEscape(url, url_Path);
     nsCString uriString;
 
@@ -430,7 +430,7 @@ nsMimeHtmlDisplayEmitter::StartAttachment(const char *name,
                                  unicodeHeaderValue.get(), uriString.get(),
                                  aIsExternalAttachment);
 
-    nsCRT::free(escapedUrl);
+    NS_Free(escapedUrl);
     mSkipAttachment = PR_TRUE;
   }
   else if (mFormat == nsMimeOutput::nsMimeMessagePrintOutput)
@@ -450,7 +450,7 @@ nsMimeHtmlDisplayEmitter::StartAttachment(const char *name,
 }
 
 // Attachment handling routines
-// Ok, we are changing the way we handle these now...It used to be that we output 
+// Ok, we are changing the way we handle these now...It used to be that we output
 // HTML to make a clickable link, etc... but now, this should just be informational
 // and only show up during printing
 // XXX should they also show up during quoting?
@@ -553,7 +553,7 @@ nsresult
 nsMimeHtmlDisplayEmitter::EndAllAttachments()
 {
   nsresult rv = NS_OK;
-  nsCOMPtr<nsIMsgHeaderSink> headerSink; 
+  nsCOMPtr<nsIMsgHeaderSink> headerSink;
   rv = GetHeaderSink(getter_AddRefs(headerSink));
   if (headerSink)
 	  headerSink->OnEndAllAttachments();
@@ -575,7 +575,7 @@ nsMimeHtmlDisplayEmitter::EndBody()
   UtilityWriteCRLF("</body>");
   UtilityWriteCRLF("</html>");
   }
-  nsCOMPtr<nsIMsgHeaderSink> headerSink; 
+  nsCOMPtr<nsIMsgHeaderSink> headerSink;
   nsresult rv = GetHeaderSink(getter_AddRefs(headerSink));
   nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl (do_QueryInterface(mURL, &rv));
   if (headerSink)

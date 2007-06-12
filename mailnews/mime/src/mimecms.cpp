@@ -42,7 +42,6 @@
 #include "nsICMSDecoder.h"
 #include "mimecms.h"
 #include "mimemsig.h"
-#include "nsCRT.h"
 #include "nspr.h"
 #include "nsEscape.h"
 #include "mimemsg.h"

@@ -49,7 +49,6 @@
 #include "prlog.h"
 #include "prprf.h"
 #include "plstr.h"
-#include "nsCRT.h"
 #include "comi18n.h"
 #include "nsIServiceManager.h"
 #include "nsIStringCharsetDetector.h"
@@ -214,7 +213,7 @@ PRInt32 generate_encodedwords(char *pUTF8, const char *charset, char method, cha
     {
       nsCOMPtr <nsICharsetAlias> calias = do_GetService(NS_CHARSETALIAS_CONTRACTID, &rv);
       nsCOMPtr <nsIAtom> charsetAtom;
-      charset = !nsCRT::strcasecmp(charset, "us-ascii") ? "ISO-8859-1" : charset;
+      charset = !PL_strcasecmp(charset, "us-ascii") ? "ISO-8859-1" : charset;
       rv = calias->GetPreferred(nsDependentCString(charset),
                                 _charset);
       if (NS_FAILED(rv)) {
@@ -236,7 +235,7 @@ PRInt32 generate_encodedwords(char *pUTF8, const char *charset, char method, cha
     encodedword_headlen = strlen(encodedword_head);
 
     // Load HANKAKU-KANA prefrence and cache it.
-    if (!nsCRT::strcasecmp("ISO-2022-JP", charset)) {
+    if (!PL_strcasecmp("ISO-2022-JP", charset)) {
       static PRInt32  conv_kana = -1;
       if (conv_kana < 0) {
         nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
@@ -252,7 +251,7 @@ PRInt32 generate_encodedwords(char *pUTF8, const char *charset, char method, cha
             do_CreateInstance(NS_HANKAKUTOZENKAKU_CONTRACTID, &rv);
         if (NS_SUCCEEDED(rv)) {
           nsString text(pUCS2), result;
-          rv = textTransform->Change(pUCS2, nsCRT::strlen(pUCS2), result);
+          rv = textTransform->Change(pUCS2, NS_strlen(pUCS2), result);
           if (NS_SUCCEEDED(rv)) {
             if (_pUCS2)
               nsMemory::Free(_pUCS2);
@@ -267,8 +266,8 @@ PRInt32 generate_encodedwords(char *pUTF8, const char *charset, char method, cha
     // Create an instance of charset converter and initialize it
     conv = do_CreateInstance(NS_SAVEASCHARSET_CONTRACTID, &rv);
     if(NS_SUCCEEDED(rv)) {
-      rv = conv->Init(charset, 
-                       nsISaveAsCharset::attr_FallbackQuestionMark + nsISaveAsCharset::attr_EntityAfterCharsetConv, 
+      rv = conv->Init(charset,
+                       nsISaveAsCharset::attr_FallbackQuestionMark + nsISaveAsCharset::attr_EntityAfterCharsetConv,
                        nsIEntityConverter::transliterate);
     }
     if (NS_FAILED(rv)) {
@@ -489,7 +488,7 @@ RFC822AddressList * construct_addresslist(char *s)
           if (--comment == 0) {
             *s = '\0';
             PR_FREEIF(list->displayname);
-            list->displayname = nsCRT::strdup(displayname);
+            list->displayname = strdup(displayname);
             list->asciionly = intlmime_only_ascii_str(displayname);
             *s = ')';
           }
@@ -506,7 +505,7 @@ RFC822AddressList * construct_addresslist(char *s)
           char tmp = *(s+1);
           *(s+1) = '\0';
           PR_FREEIF(list->displayname);
-          list->displayname = nsCRT::strdup(displayname);
+          list->displayname = strdup(displayname);
           list->asciionly = intlmime_only_ascii_str(displayname);
           *(s+1) = tmp;
         }
@@ -525,7 +524,7 @@ RFC822AddressList * construct_addresslist(char *s)
             tmp = *++e;
             *e = '\0';
             PR_FREEIF(list->displayname);
-            list->displayname = nsCRT::strdup(displayname);
+            list->displayname = strdup(displayname);
             list->asciionly = intlmime_only_ascii_str(displayname);
             *e = tmp;
           }
@@ -536,7 +535,7 @@ RFC822AddressList * construct_addresslist(char *s)
           tmp = *(s+1);
           *(s+1) = '\0';
           PR_FREEIF(list->addrspec);
-          list->addrspec = nsCRT::strdup(addrspec);
+          list->addrspec = strdup(addrspec);
           *(s+1) = tmp;
         }
         continue;
@@ -548,7 +547,7 @@ RFC822AddressList * construct_addresslist(char *s)
         /* deal with addr-spec only address */
         if (!addrspec && displayname) {
           *s = '\0';
-          list->addrspec = nsCRT::strdup(displayname);
+          list->addrspec = strdup(displayname);
           /* and don't forget to free the display name in the list, in that case it's bogus */
           PR_FREEIF(list->displayname);
         }
@@ -574,7 +573,7 @@ RFC822AddressList * construct_addresslist(char *s)
   /* deal with addr-spec only address comes at last */
   if (!addrspec && displayname)
   {
-    list->addrspec = nsCRT::strdup(displayname);
+    list->addrspec = strdup(displayname);
     /* and don't forget to free the display name in the list, in that case it's bogus */
     PR_FREEIF(list->displayname);
   }
@@ -582,7 +581,7 @@ RFC822AddressList * construct_addresslist(char *s)
   return listhead;
 }
 
-static 
+static
 char * apply_rfc2047_encoding(const char *_src, PRBool structured, const char *charset, PRInt32 cursor, PRInt32 foldlen)
 {
   RFC822AddressList  *listhead, *list;
@@ -596,7 +595,7 @@ char * apply_rfc2047_encoding(const char *_src, PRBool structured, const char *c
   //<TAB>=?<charset>?<B/Q>?...?=<CRLF>
   PRInt32 perLineOverhead = strlen(charset) + 10;
 
-  if (perLineOverhead > foldlen || (src = src_head = nsCRT::strdup(_src)) == nsnull)
+  if (perLineOverhead > foldlen || (src = src_head = strdup(_src)) == nsnull)
     return nsnull;
 
   /* allocate enough buffer for conversion, this way it can avoid
@@ -680,7 +679,7 @@ char * apply_rfc2047_encoding(const char *_src, PRBool structured, const char *c
   }
   else {
     char *spacepos = nsnull, *org_output = output;
-    /* show some mercy to stupid ML systems which don't know 
+    /* show some mercy to stupid ML systems which don't know
        how to respect MIME encoded subject */
     for (char *p = src; *p && !(*p & 0x80); p++) {
       if (*p == 0x20 || *p == TAB)
@@ -725,7 +724,7 @@ extern "C" {
 #define PUBLIC
 
 
-extern "C" char *MIME_DecodeMimeHeader(const char *header, 
+extern "C" char *MIME_DecodeMimeHeader(const char *header,
                                        const char *default_charset,
                                        PRBool override_charset,
                                        PRBool eatContinuations)
@@ -735,12 +734,12 @@ extern "C" char *MIME_DecodeMimeHeader(const char *header,
   if (NS_FAILED(rv))
     return nsnull;
   nsCAutoString result;
-  rv = mimehdrpar->DecodeRFC2047Header(header, default_charset, override_charset, 
+  rv = mimehdrpar->DecodeRFC2047Header(header, default_charset, override_charset,
                                        eatContinuations, result);
   if (NS_SUCCEEDED(rv))
-    return nsCRT::strdup(result.get());
+    return ToNewCString(result);
   return nsnull;
-}  
+}
 
 char *MIME_EncodeMimePartIIStr(const char* header, PRBool structured, const char* mailCharset, const PRInt32 fieldNameLen, const PRInt32 encodedWordSize)
 {
@@ -781,40 +780,40 @@ MIME_detect_charset(const char *aBuf, PRInt32 aLength, const char** aCharset)
 }
 
 //Get unicode decoder(from inputcharset to unicode) for aInputCharset
-nsresult 
+nsresult
 MIME_get_unicode_decoder(const char* aInputCharset, nsIUnicodeDecoder **aDecoder)
 {
   nsresult res;
 
   // get charset converters.
-  nsCOMPtr<nsICharsetConverterManager> ccm = 
-           do_GetService(NS_CHARSETCONVERTERMANAGER_CONTRACTID, &res); 
+  nsCOMPtr<nsICharsetConverterManager> ccm =
+           do_GetService(NS_CHARSETCONVERTERMANAGER_CONTRACTID, &res);
   if (NS_SUCCEEDED(res)) {
 
     // create a decoder (conv to unicode), ok if failed if we do auto detection
-    if (!*aInputCharset || !nsCRT::strcasecmp("us-ascii", aInputCharset))
+    if (!*aInputCharset || !PL_strcasecmp("us-ascii", aInputCharset))
       res = ccm->GetUnicodeDecoderRaw("ISO-8859-1", aDecoder);
     else
       res = ccm->GetUnicodeDecoder(aInputCharset, aDecoder);
   }
-   
+
   return res;
 }
 
 //Get unicode encoder(from unicode to inputcharset) for aOutputCharset
-nsresult 
+nsresult
 MIME_get_unicode_encoder(const char* aOutputCharset, nsIUnicodeEncoder **aEncoder)
 {
   nsresult res;
 
   // get charset converters.
-  nsCOMPtr<nsICharsetConverterManager> ccm = 
-           do_GetService(NS_CHARSETCONVERTERMANAGER_CONTRACTID, &res); 
+  nsCOMPtr<nsICharsetConverterManager> ccm =
+           do_GetService(NS_CHARSETCONVERTERMANAGER_CONTRACTID, &res);
   if (NS_SUCCEEDED(res) && *aOutputCharset) {
       // create a encoder (conv from unicode)
       res = ccm->GetUnicodeEncoder(aOutputCharset, aEncoder);
   }
-   
+
   return res;
 }
 

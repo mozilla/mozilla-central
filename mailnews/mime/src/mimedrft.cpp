@@ -59,7 +59,6 @@
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
 #include "msgCore.h"
-#include "nsCRT.h"
 #include "nsEscape.h"
 #include "nsIMsgSend.h"
 #include "nsMimeStringResources.h"
@@ -294,7 +293,7 @@ CreateCompositionFields(const char        *from,
   NS_ENSURE_TRUE(cFields, NS_ERROR_OUT_OF_MEMORY);
 
   // Now set all of the passed in stuff...
-  cFields->SetCharacterSet(!nsCRT::strcasecmp("us-ascii", charset) ? "ISO-8859-1" : charset);
+  cFields->SetCharacterSet(!PL_strcasecmp("us-ascii", charset) ? "ISO-8859-1" : charset);
 
   char *val;
 
@@ -543,7 +542,7 @@ mime_draft_process_attachments(mime_draft_data *mdd)
   {
     if (tmpFile->type)
     {
-      if (nsCRT::strcasecmp ( tmpFile->type, "text/x-vcard") == 0)
+      if (PL_strcasecmp ( tmpFile->type, "text/x-vcard") == 0)
         NS_MsgSACopy (&(tmp->real_name), tmpFile->description);
     }
 
@@ -783,18 +782,18 @@ mime_insert_all_headers(char            **body,
 
       /* Back up over whitespace before the colon. */
       ocolon = colon;
-      for (; colon > head && nsCRT::IsAsciiSpace(colon[-1]); colon--)
+      for (; colon > head && IS_SPACE(colon[-1]); colon--)
       ;
 
       contents = ocolon + 1;
     }
 
     /* Skip over whitespace after colon. */
-    while (contents <= end && nsCRT::IsAsciiSpace(*contents))
+    while (contents <= end && IS_SPACE(*contents))
     contents++;
 
     /* Take off trailing whitespace... */
-    while (end > contents && nsCRT::IsAsciiSpace(end[-1]))
+    while (end > contents && IS_SPACE(end[-1]))
     end--;
 
     name = (char *)PR_MALLOC(colon - head + 1);
@@ -815,15 +814,15 @@ mime_insert_all_headers(char            **body,
     /* Do not reveal bcc recipients when forwarding a message!
        See http://bugzilla.mozilla.org/show_bug.cgi?id=41150
     */
-    if (nsCRT::strcasecmp(name, "bcc") != 0)
+    if (PL_strcasecmp(name, "bcc") != 0)
     {
       if (htmlEdit)
         mime_fix_up_html_address(&c2);
 
-      if (!nsCRT::strcasecmp(name, "resent-from") || !nsCRT::strcasecmp(name, "from") ||
-          !nsCRT::strcasecmp(name, "resent-to") || !nsCRT::strcasecmp(name, "to") ||
-          !nsCRT::strcasecmp(name, "resent-cc") || !nsCRT::strcasecmp(name, "cc") ||
-          !nsCRT::strcasecmp(name, "reply-to"))
+      if (!PL_strcasecmp(name, "resent-from") || !PL_strcasecmp(name, "from") ||
+          !PL_strcasecmp(name, "resent-to") || !PL_strcasecmp(name, "to") ||
+          !PL_strcasecmp(name, "resent-cc") || !PL_strcasecmp(name, "cc") ||
+          !PL_strcasecmp(name, "reply-to"))
         UnquoteMimeAddress(parser, &c2);
 
       mime_intl_insert_message_header_1(&newBody, &c2, name, name, mailcharset, htmlEdit);
@@ -1273,7 +1272,7 @@ mime_parse_stream_complete (nsMIMESession *stream)
       if ((!mdd->mailcharset || charsetOverride) && mdd->options->default_charset)
       {
         PR_Free(mdd->mailcharset);
-        mdd->mailcharset = nsCRT::strdup(mdd->options->default_charset);
+        mdd->mailcharset = strdup(mdd->options->default_charset);
       }
 
       // mscott: aren't we leaking a bunch of strings here like the charset strings and such?
@@ -1360,12 +1359,12 @@ mime_parse_stream_complete (nsMIMESession *stream)
     {
       char *parm = 0;
       parm = MimeHeaders_get_parameter(draftInfo, "vcard", NULL, NULL);
-      fields->SetAttachVCard(parm && !nsCRT::strcmp(parm, "1"));
+      fields->SetAttachVCard(parm && !strcmp(parm, "1"));
 
       fields->SetMessageId(id); // keep same message id for editing template.
       PR_FREEIF(parm);
       parm = MimeHeaders_get_parameter(draftInfo, "receipt", NULL, NULL);
-      if (parm && !nsCRT::strcmp(parm, "0"))
+      if (parm && !strcmp(parm, "0"))
         fields->SetReturnReceipt(PR_FALSE);
       else
       {
@@ -1380,7 +1379,7 @@ mime_parse_stream_complete (nsMIMESession *stream)
       }
       PR_FREEIF(parm);
       parm = MimeHeaders_get_parameter(draftInfo, "uuencode", NULL, NULL);
-      fields->SetUuEncodeAttachments(parm && !nsCRT::strcmp(parm, "1"));
+      fields->SetUuEncodeAttachments(parm && !strcmp(parm, "1"));
       PR_FREEIF(parm);
       parm = MimeHeaders_get_parameter(draftInfo, "html", NULL, NULL);
       if (parm)
@@ -1748,7 +1747,7 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
     // if we've been told to use an override charset then do so....otherwise use the charset
     // inside the message header...
     if (mdd->options && mdd->options->override_charset)
-        mdd->mailcharset = nsCRT::strdup(mdd->options->default_charset);
+        mdd->mailcharset = strdup(mdd->options->default_charset);
     else
     {
       char *contentType = NULL;
@@ -1807,9 +1806,9 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
       contLoc = MimeHeaders_get( headers, HEADER_CONTENT_BASE, PR_FALSE, PR_FALSE );
 
   if ( (!contLoc) && (newAttachment->real_name) )
-    workURLSpec = nsCRT::strdup(newAttachment->real_name);
+    workURLSpec = strdup(newAttachment->real_name);
   if ( (contLoc) && (!workURLSpec) )
-    workURLSpec = nsCRT::strdup(contLoc);
+    workURLSpec = strdup(contLoc);
 
   PR_FREEIF(contLoc);
 
@@ -1843,7 +1842,7 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
   // If we came up empty for description or the orig URL, we should do something about it.
   //
   if  ( ( (!newAttachment->description) || (!*newAttachment->description) ) && (workURLSpec) )
-    newAttachment->description = nsCRT::strdup(workURLSpec);
+    newAttachment->description = strdup(workURLSpec);
 
   nsCOMPtr <nsIFile> tmpFile = nsnull;
   {
@@ -1916,9 +1915,9 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
     //
     if (!newAttachment->encoding)
       ;
-    else if (!nsCRT::strcasecmp(newAttachment->encoding, ENCODING_BASE64))
+    else if (!PL_strcasecmp(newAttachment->encoding, ENCODING_BASE64))
       fn = &MimeB64DecoderInit;
-    else if (!nsCRT::strcasecmp(newAttachment->encoding, ENCODING_QUOTED_PRINTABLE))
+    else if (!PL_strcasecmp(newAttachment->encoding, ENCODING_QUOTED_PRINTABLE))
     {
       mdd->decoder_data = MimeQPDecoderInit (/* The (nsresult (*) ...) cast is to turn the `void' argument into `MimeObject'. */
                               ((nsresult (*) (const char *, PRInt32, void *))
@@ -1926,12 +1925,12 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
       if (!mdd->decoder_data)
         return MIME_OUT_OF_MEMORY;
     }
-    else if (!nsCRT::strcasecmp(newAttachment->encoding, ENCODING_UUENCODE) ||
-             !nsCRT::strcasecmp(newAttachment->encoding, ENCODING_UUENCODE2) ||
-             !nsCRT::strcasecmp(newAttachment->encoding, ENCODING_UUENCODE3) ||
-             !nsCRT::strcasecmp(newAttachment->encoding, ENCODING_UUENCODE4))
+    else if (!PL_strcasecmp(newAttachment->encoding, ENCODING_UUENCODE) ||
+             !PL_strcasecmp(newAttachment->encoding, ENCODING_UUENCODE2) ||
+             !PL_strcasecmp(newAttachment->encoding, ENCODING_UUENCODE3) ||
+             !PL_strcasecmp(newAttachment->encoding, ENCODING_UUENCODE4))
       fn = &MimeUUDecoderInit;
-    else if (!nsCRT::strcasecmp(newAttachment->encoding, ENCODING_YENCODE))
+    else if (!PL_strcasecmp(newAttachment->encoding, ENCODING_YENCODE))
       fn = &MimeYDecoderInit;
 
     if (fn)
@@ -2058,7 +2057,7 @@ mime_bridge_create_draft_stream(
   if (!mdd->options)
     goto FAIL;
 
-  mdd->options->url = nsCRT::strdup(mdd->url_name);
+  mdd->options->url = strdup(mdd->url_name);
   mdd->options->format_out = format_out;     // output format
   mdd->options->decompose_file_p = PR_TRUE; /* new field in MimeDisplayOptions */
   mdd->options->stream_closure = mdd;

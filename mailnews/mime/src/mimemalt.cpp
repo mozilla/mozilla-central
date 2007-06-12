@@ -44,7 +44,6 @@
 #include "nsMimeStringResources.h"
 #include "nsIPrefBranch.h"
 #include "mimemoz2.h" // for prefs
-#include "nsCRT.h"
 
 extern "C" MimeObjectClass mimeMultipartRelatedClass;
 
@@ -132,7 +131,7 @@ MimeMultipartAlternative_parse_eof (MimeObject *obj, PRBool abort_p)
 
   /* If there's a cached part we haven't written out yet, do it now.
    */
-  if (malt->buffered_hdrs && !abort_p && 
+  if (malt->buffered_hdrs && !abort_p &&
       obj->options->format_out != nsMimeOutput::nsMimeMessageAttach)
   {
     status = MimeMultipartAlternative_display_cached_part(obj);
@@ -240,16 +239,16 @@ MimeMultipartAlternative_display_part_p(MimeObject *self,
    */
 
   // prefer_plaintext pref
-  nsIPrefBranch *prefBranch = GetPrefBranch(self->options); 
+  nsIPrefBranch *prefBranch = GetPrefBranch(self->options);
   PRBool prefer_plaintext = PR_FALSE;
   if (prefBranch)
     prefBranch->GetBoolPref("mailnews.display.prefer_plaintext",
                             &prefer_plaintext);
   if (prefer_plaintext
       && self->options->format_out != nsMimeOutput::nsMimeMessageSaveAs
-      && (!nsCRT::strncasecmp(ct, "text/html", 9) ||
-          !nsCRT::strncasecmp(ct, "text/enriched", 13) ||
-          !nsCRT::strncasecmp(ct, "text/richtext", 13))
+      && (!PL_strncasecmp(ct, "text/html", 9) ||
+          !PL_strncasecmp(ct, "text/enriched", 13) ||
+          !PL_strncasecmp(ct, "text/richtext", 13))
      )
     // if the user prefers plaintext and this is the "rich" (e.g. HTML) part...
   {
@@ -270,7 +269,7 @@ MimeMultipartAlternative_display_part_p(MimeObject *self,
   return result;
 }
 
-static int 
+static int
 MimeMultipartAlternative_discard_cached_part(MimeObject *obj)
 {
   MimeMultipartAlternative *malt = (MimeMultipartAlternative *) obj;
@@ -286,7 +285,7 @@ MimeMultipartAlternative_discard_cached_part(MimeObject *obj)
   return 0;
 }
 
-static int 
+static int
 MimeMultipartAlternative_display_cached_part(MimeObject *obj)
 {
   MimeMultipartAlternative *malt = (MimeMultipartAlternative *) obj;

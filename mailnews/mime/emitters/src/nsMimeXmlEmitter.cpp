@@ -47,7 +47,6 @@
 #include "nsCOMPtr.h"
 #include "nsReadableUtils.h"
 #include "nsUnicharUtils.h"
-#include "nsCRT.h"
 
 /*
  * nsMimeXmlEmitter definitions....
@@ -87,11 +86,11 @@ nsMimeXmlEmitter::WriteXMLHeader(const char *msgID)
 {
   if ( (!msgID) || (!*msgID) )
     msgID = "none";
-    
+
   char  *newValue = nsEscapeHTML(msgID);
   if (!newValue)
     return NS_ERROR_OUT_OF_MEMORY;
-    
+
   UtilityWrite("<?xml version=\"1.0\"?>");
 
   UtilityWriteCRLF("<?xml-stylesheet href=\"chrome://messenger/skin/messageBody.css\" type=\"text/css\"?>");
@@ -113,7 +112,7 @@ nsMimeXmlEmitter::WriteXMLTag(const char *tagName, const char *value)
 
   char  *upCaseTag = NULL;
   char  *newValue = nsEscapeHTML(value);
-  if (!newValue) 
+  if (!newValue)
     return NS_OK;
 
   nsString  newTagName;
@@ -149,7 +148,7 @@ nsMimeXmlEmitter::WriteXMLTag(const char *tagName, const char *value)
   UtilityWrite(newValue);
   UtilityWrite("</header>");
 
-  nsCRT::free(upCaseTag);
+  NS_Free(upCaseTag);
   PR_FREEIF(newValue);
 
   return NS_OK;
@@ -164,7 +163,7 @@ nsMimeXmlEmitter::StartHeader(PRBool rootMailHeader, PRBool headerOnly, const ch
   WriteXMLHeader(msgID);
   UtilityWrite("<mailheader>");
 
-  return NS_OK; 
+  return NS_OK;
 }
 
 nsresult
@@ -181,7 +180,7 @@ nsresult
 nsMimeXmlEmitter::EndHeader()
 {
   UtilityWrite("</mailheader>");
-  return NS_OK; 
+  return NS_OK;
 }
 
 

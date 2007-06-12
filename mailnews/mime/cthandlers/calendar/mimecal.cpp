@@ -34,13 +34,13 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
+
 #include "mimecal.h"
 #include "prmem.h"
 #include "plstr.h"
 #include "mimexpcom.h"
 #include "mimecth.h"
 #include "mimeobj.h"
-#include "nsCRT.h"
 
 static int MimeInlineTextCalendar_parse_line (char *, PRInt32, MimeObject *);
 static int MimeInlineTextCalendar_parse_eof (MimeObject *, PRBool);
@@ -84,7 +84,7 @@ MimeInlineTextCalendarClassInitialize(MimeInlineTextCalendarClass *clazz)
 int
 mime_TranslateCalendar(char* caldata, char** html) 
 {
-  *html = nsCRT::strdup("\
+  *html = strdup("\
 <text=\"#000000\" bgcolor=\"#FFFFFF\" link=\"#FF0000\" vlink=\"#800080\" alink=\"#0000FF\">\
 <center><table BORDER=1 BGCOLOR=\"#CCFFFF\" ><tr>\
 <td>This libmime Content Type Handler plugin for the Content-Type <b>text/calendar\

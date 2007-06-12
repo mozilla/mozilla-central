@@ -51,7 +51,6 @@
 #include "prlog.h"
 #include "prmem.h"
 #include "plstr.h"
-#include "nsCRT.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
 #include "nsIServiceManager.h"
@@ -62,7 +61,7 @@
 
 #define MIME_SUPERCLASS mimeLeafClass
 MimeDefClass(MimeInlineText, MimeInlineTextClass, mimeInlineTextClass,
-			 &MIME_SUPERCLASS);
+       &MIME_SUPERCLASS);
 
 static int MimeInlineText_initialize (MimeObject *);
 static void MimeInlineText_finalize (MimeObject *);
@@ -115,7 +114,7 @@ static int MimeInlineText_initializeCharset(MimeObject *obj)
   {
     if (obj->options && obj->options->override_charset)
     {
-      text->charset = nsCRT::strdup(obj->options->default_charset);
+      text->charset = strdup(obj->options->default_charset);
     }
     else
     {
@@ -155,7 +154,7 @@ static int MimeInlineText_initializeCharset(MimeObject *obj)
         }
         
         if (obj->options && obj->options->default_charset)
-          text->charset = nsCRT::strdup(obj->options->default_charset);
+          text->charset = strdup(obj->options->default_charset);
         else
         {
           if (NS_SUCCEEDED(res))
@@ -165,7 +164,7 @@ static int MimeInlineText_initializeCharset(MimeObject *obj)
             text->charset = ToNewUTF8String(value);
           }
           else
-            text->charset = nsCRT::strdup("");
+            text->charset = strdup("");
         }
       } 
     }
@@ -269,10 +268,10 @@ MimeInlineText_parse_end (MimeObject *obj, PRBool abort_p)
   MimeInlineText *text = (MimeInlineText *) obj;
 
   if (obj->parsed_p)
-	{
-	  PR_ASSERT(obj->closed_p);
-	  return 0;
-	}
+  {
+    PR_ASSERT(obj->closed_p);
+    return 0;
+  }
 
   /* We won't be needing this buffer any more; nuke it. */
   PR_FREEIF(text->cbuffer);
@@ -312,10 +311,10 @@ MimeInlineText_rot13_line (MimeObject *obj, char *line, PRInt32 length)
   s = (unsigned char *) line;
   end = s + length;
   while (s < end)
-	{
-	  *s = MimeInlineText_rot13_table[*s];
-	  s++;
-	}
+  {
+    *s = MimeInlineText_rot13_table[*s];
+    s++;
+  }
   return 0;
 }
 
@@ -331,28 +330,28 @@ MimeInlineText_parse_decoded_buffer (const char *buf, PRInt32 size, MimeObject *
   if (!obj->options) return -1;
 
   /* If we're supposed to write this object, but aren't supposed to convert
-	 it to HTML, simply pass it through unaltered. */
+   it to HTML, simply pass it through unaltered. */
   if (!obj->options->write_html_p && obj->options->format_out != nsMimeOutput::nsMimeMessageAttach)
-	return MimeObject_write(obj, buf, size, PR_TRUE);
+  return MimeObject_write(obj, buf, size, PR_TRUE);
 
   /* This is just like the parse_decoded_buffer method we inherit from the
-	 MimeLeaf class, except that we line-buffer to our own wrapper on the
-	 `parse_line' method instead of calling the `parse_line' method directly.
+   MimeLeaf class, except that we line-buffer to our own wrapper on the
+   `parse_line' method instead of calling the `parse_line' method directly.
    */
   return mime_LineBuffer (buf, size,
-						 &obj->ibuffer, &obj->ibuffer_size, &obj->ibuffer_fp,
-						 PR_TRUE,
-						 ((int (*PR_CALLBACK) (char *, PRInt32, void *))
-						  /* This cast is to turn void into MimeObject */
-						  MimeInlineText_rotate_convert_and_parse_line),
-						 obj);
+             &obj->ibuffer, &obj->ibuffer_size, &obj->ibuffer_fp,
+             PR_TRUE,
+             ((int (*PR_CALLBACK) (char *, PRInt32, void *))
+              /* This cast is to turn void into MimeObject */
+              MimeInlineText_rotate_convert_and_parse_line),
+             obj);
 }
 
 
 #define MimeInlineText_grow_cbuffer(text, desired_size) \
   (((desired_size) >= (text)->cbuffer_size) ? \
    mime_GrowBuffer ((desired_size), sizeof(char), 100, \
-				   &(text)->cbuffer, &(text)->cbuffer_size) \
+           &(text)->cbuffer, &(text)->cbuffer_size) \
    : 0)
 
 static int 
@@ -371,13 +370,13 @@ MimeInlineText_convert_and_parse_line(char *line, PRInt32 length, MimeObject *ob
       MimeInlineTextHTML  *textHTML = (MimeInlineTextHTML *) obj;
       if (textHTML->charset && 
           *textHTML->charset &&
-          nsCRT::strcmp(textHTML->charset, text->charset))
+          strcmp(textHTML->charset, text->charset))
       {
         //if meta tag specified charset is different from our detected result, use meta charset.
         //but we don't want to redo previous lines
         MIME_get_unicode_decoder(textHTML->charset, getter_AddRefs(text->inputDecoder));
         PR_FREEIF(text->charset);
-        text->charset = nsCRT::strdup(textHTML->charset);
+        text->charset = strdup(textHTML->charset);
 
         //update MsgWindow charset if we are instructed to do so
         if (text->needUpdateMsgWinCharset && *text->charset)
@@ -396,22 +395,22 @@ MimeInlineText_convert_and_parse_line(char *line, PRInt32 length, MimeObject *ob
   if (text->utf8Encoder == nsnull)
     MIME_get_unicode_encoder("UTF-8", getter_AddRefs(text->utf8Encoder));
 
-  PRBool useInputCharsetConverter = obj->options->m_inputCharsetToUnicodeDecoder && !nsCRT::strcasecmp(text->charset, obj->options->charsetForCachedInputDecoder.get());
+  PRBool useInputCharsetConverter = obj->options->m_inputCharsetToUnicodeDecoder && !PL_strcasecmp(text->charset, obj->options->charsetForCachedInputDecoder.get());
 
   if (useInputCharsetConverter)
     status = obj->options->charset_conversion_fn(line, length,
                          text->charset,
-												 "UTF-8",
-												 &converted,
-												 &converted_len,
+                         "UTF-8",
+                         &converted,
+                         &converted_len,
                          obj->options->stream_closure, obj->options->m_inputCharsetToUnicodeDecoder,
                        obj->options->m_unicodeToUTF8Encoder);
   else
     status = obj->options->charset_conversion_fn(line, length,
                          text->charset,
-												 "UTF-8",
-												 &converted,
-												 &converted_len,
+                       "UTF-8",
+                         &converted,
+                         &converted_len,
                          obj->options->stream_closure, (nsIUnicodeDecoder*)text->inputDecoder,
                          (nsIUnicodeEncoder*)text->utf8Encoder);
 
@@ -428,7 +427,7 @@ MimeInlineText_convert_and_parse_line(char *line, PRInt32 length, MimeObject *ob
   }
 
   /* Now that the line has been converted, call the subclass's parse_line
-	 method with the decoded data. */
+   method with the decoded data. */
   status = obj->clazz->parse_line(line, length, obj);
   PR_FREEIF(converted);
 
@@ -459,7 +458,7 @@ MimeInlineText_open_dam(char *line, PRInt32 length, MimeObject *obj)
   //set the charset for this obj
   if (NS_SUCCEEDED(res) && detectedCharset && *detectedCharset)  {
     PR_FREEIF(text->charset);
-    text->charset = nsCRT::strdup(detectedCharset);
+    text->charset = strdup(detectedCharset);
 
     //update MsgWindow charset if we are instructed to do so
     if (text->needUpdateMsgWinCharset && *text->charset)
@@ -496,7 +495,7 @@ MimeInlineText_open_dam(char *line, PRInt32 length, MimeObject *obj)
 
 static int
 MimeInlineText_rotate_convert_and_parse_line(char *line, PRInt32 length,
-											 MimeObject *obj)
+                       MimeObject *obj)
 {
   int status = 0;
   MimeInlineTextClass *textc = (MimeInlineTextClass *) obj->clazz;
@@ -505,12 +504,12 @@ MimeInlineText_rotate_convert_and_parse_line(char *line, PRInt32 length,
   if (obj->closed_p) return -1;
 
   /* Rotate the line, if desired (this happens on the raw data, before any
-	 charset conversion.) */
+   charset conversion.) */
   if (obj->options && obj->options->rot13_p)
-	{
-	  status = textc->rot13_line(obj, line, length);
-	  if (status < 0) return status;
-	}
+  {
+    status = textc->rot13_line(obj, line, length);
+    if (status < 0) return status;
+  }
 
   // Now convert to the canonical charset, if desired.
   //
@@ -526,7 +525,7 @@ MimeInlineText_rotate_convert_and_parse_line(char *line, PRInt32 length,
        (!obj->options->force_user_charset) &&
        (doConvert)       
      )
-	{
+  {
     MimeInlineText  *text = (MimeInlineText *) obj;
 
     if (!text->initializeCharset)
@@ -558,7 +557,7 @@ MimeInlineText_rotate_convert_and_parse_line(char *line, PRInt32 length,
     }
     else 
       status = MimeInlineText_convert_and_parse_line(line, length, obj);
-	}
+  }
   else
     status = obj->clazz->parse_line(line, length, obj);
 

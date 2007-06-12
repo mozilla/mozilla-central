@@ -238,7 +238,7 @@ bridge_new_new_uri(void *bridgeStream, nsIURI *aURI, PRInt32 aOutputType)
         {
           if (!urlString.IsEmpty())
           {
-            CRTFREEIF(*url_name);
+            NS_Free(*url_name);
             *url_name = ToNewCString(urlString);
             if (!(*url_name))
               return NS_ERROR_OUT_OF_MEMORY;
@@ -712,14 +712,12 @@ NS_IMETHODIMP nsStreamConverter::GetContentType(char **aOutputContentType)
     return NS_ERROR_NULL_POINTER;
 
   // since this method passes a string through an IDL file we need to use nsMemory to allocate it 
-  // and not nsCRT::strdup!
+  // and not strdup!
   //  (1) check to see if we have a real content type...use it first...
   if (!mRealContentType.IsEmpty())
     *aOutputContentType = ToNewCString(mRealContentType);
   else if (mOutputFormat.LowerCaseEqualsLiteral("raw"))
-  {
     *aOutputContentType = (char *) nsMemory::Clone(UNKNOWN_CONTENT_TYPE, sizeof(UNKNOWN_CONTENT_TYPE));
-  }
   else
     *aOutputContentType = ToNewCString(mOutputFormat);
   return NS_OK;

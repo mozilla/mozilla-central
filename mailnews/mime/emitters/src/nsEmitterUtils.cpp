@@ -44,12 +44,12 @@
 #include "nsIIOService.h"
 #include "nsIURI.h"
 #include "prprf.h"
-#include "nsCRT.h"
+
 
 extern "C" PRBool
 EmitThisHeaderForPrefSetting(PRInt32 dispType, const char *header)
 {
-	if (nsMimeHeaderDisplayTypes::AllHeaders == dispType)
+  if (nsMimeHeaderDisplayTypes::AllHeaders == dispType)
     return PR_TRUE;
 
   if ((!header) || (!*header))
@@ -58,9 +58,9 @@ EmitThisHeaderForPrefSetting(PRInt32 dispType, const char *header)
   if (nsMimeHeaderDisplayTypes::MicroHeaders == dispType)
   {
     if (
-          (!nsCRT::strcmp(header, HEADER_SUBJECT)) ||
-          (!nsCRT::strcmp(header, HEADER_FROM)) ||
-          (!nsCRT::strcmp(header, HEADER_DATE))
+          (!strcmp(header, HEADER_SUBJECT)) ||
+          (!strcmp(header, HEADER_FROM)) ||
+          (!strcmp(header, HEADER_DATE))
        )
       return PR_TRUE;
     else
@@ -70,24 +70,24 @@ EmitThisHeaderForPrefSetting(PRInt32 dispType, const char *header)
   if (nsMimeHeaderDisplayTypes::NormalHeaders == dispType)
   {
     if (
-        (!nsCRT::strcmp(header, HEADER_DATE)) ||
-        (!nsCRT::strcmp(header, HEADER_TO)) ||
-        (!nsCRT::strcmp(header, HEADER_SUBJECT)) ||
-        (!nsCRT::strcmp(header, HEADER_SENDER)) ||
-        (!nsCRT::strcmp(header, HEADER_RESENT_TO)) ||
-        (!nsCRT::strcmp(header, HEADER_RESENT_SENDER)) ||
-        (!nsCRT::strcmp(header, HEADER_RESENT_FROM)) ||
-        (!nsCRT::strcmp(header, HEADER_RESENT_CC)) ||
-        (!nsCRT::strcmp(header, HEADER_REPLY_TO)) ||
-        (!nsCRT::strcmp(header, HEADER_REFERENCES)) ||
-        (!nsCRT::strcmp(header, HEADER_NEWSGROUPS)) ||
-        (!nsCRT::strcmp(header, HEADER_MESSAGE_ID)) ||
-        (!nsCRT::strcmp(header, HEADER_FROM)) ||
-        (!nsCRT::strcmp(header, HEADER_FOLLOWUP_TO)) ||
-        (!nsCRT::strcmp(header, HEADER_CC)) ||
-        (!nsCRT::strcmp(header, HEADER_ORGANIZATION)) ||
-        (!nsCRT::strcmp(header, HEADER_REPLY_TO)) ||
-        (!nsCRT::strcmp(header, HEADER_BCC))
+        (!strcmp(header, HEADER_DATE)) ||
+        (!strcmp(header, HEADER_TO)) ||
+        (!strcmp(header, HEADER_SUBJECT)) ||
+        (!strcmp(header, HEADER_SENDER)) ||
+        (!strcmp(header, HEADER_RESENT_TO)) ||
+        (!strcmp(header, HEADER_RESENT_SENDER)) ||
+        (!strcmp(header, HEADER_RESENT_FROM)) ||
+        (!strcmp(header, HEADER_RESENT_CC)) ||
+        (!strcmp(header, HEADER_REPLY_TO)) ||
+        (!strcmp(header, HEADER_REFERENCES)) ||
+        (!strcmp(header, HEADER_NEWSGROUPS)) ||
+        (!strcmp(header, HEADER_MESSAGE_ID)) ||
+        (!strcmp(header, HEADER_FROM)) ||
+        (!strcmp(header, HEADER_FOLLOWUP_TO)) ||
+        (!strcmp(header, HEADER_CC)) ||
+        (!strcmp(header, HEADER_ORGANIZATION)) ||
+        (!strcmp(header, HEADER_REPLY_TO)) ||
+        (!strcmp(header, HEADER_BCC))
        )
        return PR_TRUE;
     else

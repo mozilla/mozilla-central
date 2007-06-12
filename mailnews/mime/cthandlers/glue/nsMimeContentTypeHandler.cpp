@@ -41,11 +41,10 @@
 #include "prtypes.h"
 //#include "mimecth.h"
 #include "nsMimeContentTypeHandler.h"
-#include "nsCRT.h"
 
-/* 
- * The following macros actually implement addref, release and 
- * query interface for our component. 
+/*
+ * The following macros actually implement addref, release and
+ * query interface for our component.
  */
 NS_IMPL_ISUPPORTS1(nsMimeContentTypeHandler, nsIMimeContentTypeHandler)
 
@@ -80,8 +79,8 @@ nsMimeContentTypeHandler::GetContentType(char **contentType)
 
 // Set the output stream for processed data.
 nsresult
-nsMimeContentTypeHandler::CreateContentTypeHandlerClass(const char *content_type, 
-                                                contentTypeHandlerInitStruct *initStruct, 
+nsMimeContentTypeHandler::CreateContentTypeHandlerClass(const char *content_type,
+                                                contentTypeHandlerInitStruct *initStruct,
                                                 MimeObjectClass **objClass)
 {
   *objClass = realCreateContentTypeHandlerClass(content_type, initStruct);

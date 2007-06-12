@@ -134,7 +134,7 @@ MimeInlineTextHTML_parse_begin (MimeObject *obj)
       
       for (in = base_hdr; *in; in++)
         /* ignore whitespace and quotes */
-        if (!nsCRT::IsAsciiSpace(*in) && *in != '"')
+        if (!IS_SPACE(*in) && *in != '"')
           *out++ = *in;
         
         /* Close the tag and argument. */
@@ -193,8 +193,8 @@ MimeInlineTextHTML_parse_line (const char *line, PRInt32 length, MimeObject *obj
         // 6 == strlen("UTF-16") or strlen("UTF-32"), this will cover
         // UTF-16, UTF-16BE, UTF-16LE, UTF-32, UTF-32BE, UTF-32LE
         if ((charset != nsnull) &&
-            nsCRT::strncasecmp(charset, "UTF-16", 6) &&
-            nsCRT::strncasecmp(charset, "UTF-32", 6))
+            PL_strncasecmp(charset, "UTF-16", 6) &&
+            PL_strncasecmp(charset, "UTF-32", 6))
         {
           textHTML->charset = charset; 
 
