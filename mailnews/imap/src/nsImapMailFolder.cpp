@@ -4877,11 +4877,7 @@ nsImapMailFolder::GetMessageId(nsIImapUrl * aUrl,
     nsCOMPtr<nsImapMailCopyState> mailCopyState = do_QueryInterface(copyState, &rv);
     if (NS_FAILED(rv)) return rv;
     if (mailCopyState->m_listener)
-    {
-      nsCAutoString tempMessageId;
-      rv = mailCopyState->m_listener->GetMessageId(&tempMessageId);
-      messageId.Assign(tempMessageId);
-    }
+      rv = mailCopyState->m_listener->GetMessageId(messageId);
   }
   if (NS_SUCCEEDED(rv) && messageId.Length() > 0)
   {
@@ -6626,7 +6622,7 @@ NS_IMETHODIMP nsImapFolderCopyState::SetMessageKey(PRUint32 aKey)
 }
 
 /* [noscript] void GetMessageId (in nsCString aMessageId); */
-NS_IMETHODIMP nsImapFolderCopyState::GetMessageId(nsCString * aMessageId)
+NS_IMETHODIMP nsImapFolderCopyState::GetMessageId(nsACString& messageId)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }

@@ -495,11 +495,11 @@ nsMsgSearchDBView::SetMessageKey(PRUint32 aMessageKey)
 }
 
 NS_IMETHODIMP
-nsMsgSearchDBView::GetMessageId(nsCString* aMessageId)
+nsMsgSearchDBView::GetMessageId(nsACString& messageId)
 {
   return NS_OK;
 }
-  
+
 NS_IMETHODIMP
 nsMsgSearchDBView::OnStopCopy(nsresult aStatus)
 {

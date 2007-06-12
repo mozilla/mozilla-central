@@ -805,8 +805,7 @@ NS_IMETHODIMP nsMsgFilterAfterTheFact::SetMessageKey(PRUint32 /* aKey */)
   return NS_OK;
 }
 
-/* [noscript] void GetMessageId (in nsCString aMessageId); */
-NS_IMETHODIMP nsMsgFilterAfterTheFact::GetMessageId(nsCString * /* aMessageId */)
+NS_IMETHODIMP nsMsgFilterAfterTheFact::GetMessageId(nsACString& messageId)
 {
   return NS_OK;
 }

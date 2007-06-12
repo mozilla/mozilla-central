@@ -1192,7 +1192,7 @@ NS_IMETHODIMP nsImapOfflineSync::SetMessageKey(PRUint32 aKey)
 }
 
 /* [noscript] void GetMessageId (in nsCString aMessageId); */
-NS_IMETHODIMP nsImapOfflineSync::GetMessageId(nsCString * aMessageId)
+NS_IMETHODIMP nsImapOfflineSync::GetMessageId(nsACString& messageId)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }

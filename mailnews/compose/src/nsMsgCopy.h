@@ -73,7 +73,7 @@ public:
 
   NS_IMETHOD SetMessageKey(PRUint32 aMessageKey);
   
-  NS_IMETHOD GetMessageId(nsCString* aMessageId);
+  NS_IMETHOD GetMessageId(nsACString& aMessageId);
   
   NS_IMETHOD OnStopCopy(nsresult aStatus);
 

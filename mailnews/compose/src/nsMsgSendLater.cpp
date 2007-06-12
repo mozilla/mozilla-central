@@ -431,8 +431,8 @@ SendOperationListener::SetMessageKey(PRUint32 aKey)
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-nsresult
-SendOperationListener::GetMessageId(nsCString * aMessageId)
+NS_IMETHODIMP
+SendOperationListener::GetMessageId(nsACString& messageId)
 {
   NS_NOTREACHED("SendOperationListener::GetMessageId()\n");
   return NS_ERROR_NOT_IMPLEMENTED;

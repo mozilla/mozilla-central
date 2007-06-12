@@ -1326,19 +1326,19 @@ nsresult nsMsgComposeAndSend::BeginCryptoEncapsulation ()
       // bah i'd like to move the following blurb into the implementation of BeginCryptoEncapsulation; however
       // the apis for nsIMsgComposeField just aren't rich enough. It requires the implementor to jump through way
       // too many string conversions....
-	    char * recipients = (char *)
+      char * recipients = (char *)
       PR_MALLOC((mCompFields->GetTo()  ? strlen(mCompFields->GetTo())  : 0) +
-				 (mCompFields->GetCc()  ? strlen(mCompFields->GetCc())  : 0) +
-				 (mCompFields->GetBcc() ? strlen(mCompFields->GetBcc()) : 0) +
-				 (mCompFields->GetNewsgroups() ? strlen(mCompFields->GetNewsgroups()) : 0) + 20);
-	    if (!recipients) return NS_ERROR_OUT_OF_MEMORY;
+         (mCompFields->GetCc()  ? strlen(mCompFields->GetCc())  : 0) +
+         (mCompFields->GetBcc() ? strlen(mCompFields->GetBcc()) : 0) +
+         (mCompFields->GetNewsgroups() ? strlen(mCompFields->GetNewsgroups()) : 0) + 20);
+      if (!recipients) return NS_ERROR_OUT_OF_MEMORY;
 
       *recipients = 0;
 
-	    FROB(mCompFields->GetTo())
-	    FROB(mCompFields->GetCc())
-	    FROB(mCompFields->GetBcc())
-	    FROB(mCompFields->GetNewsgroups())
+      FROB(mCompFields->GetTo())
+      FROB(mCompFields->GetCc())
+      FROB(mCompFields->GetBcc())
+      FROB(mCompFields->GetNewsgroups())
 
       // end section of code I'd like to move to the implementor.....
       rv = m_crypto_closure->BeginCryptoEncapsulation(mOutputFile,
@@ -2710,19 +2710,19 @@ nsMsgComposeAndSend::HackAttachments(const nsMsgAttachmentData *attachments,
 
       /* Count up attachments which are going to come from mail folders
       and from NNTP servers. */
-	  if (m_attachments[i].mURL)
-	  {
-		nsIURI *uri = m_attachments[i].mURL;
-		PRBool match = PR_FALSE;
-		if ((NS_SUCCEEDED(uri->SchemeIs("mailbox", &match)) && match) ||
-			(NS_SUCCEEDED(uri->SchemeIs("imap", &match)) && match))
-		  mailbox_count++;
-		else if ((NS_SUCCEEDED(uri->SchemeIs("news", &match)) && match) ||
-			     (NS_SUCCEEDED(uri->SchemeIs("snews", &match)) && match))
-	      news_count++;
+    if (m_attachments[i].mURL)
+    {
+    nsIURI *uri = m_attachments[i].mURL;
+    PRBool match = PR_FALSE;
+    if ((NS_SUCCEEDED(uri->SchemeIs("mailbox", &match)) && match) ||
+      (NS_SUCCEEDED(uri->SchemeIs("imap", &match)) && match))
+      mailbox_count++;
+    else if ((NS_SUCCEEDED(uri->SchemeIs("news", &match)) && match) ||
+           (NS_SUCCEEDED(uri->SchemeIs("snews", &match)) && match))
+        news_count++;
 
-	    if (uri)
-	      msg_pick_real_name(&m_attachments[i], nsnull, mCompFields->GetCharacterSet());
+      if (uri)
+        msg_pick_real_name(&m_attachments[i], nsnull, mCompFields->GetCharacterSet());
       }
     }
   }
@@ -3987,16 +3987,14 @@ nsMsgComposeAndSend::GetMessageKey(PRUint32 *aMessageKey)
 }
 
 NS_IMETHODIMP
-nsMsgComposeAndSend::GetMessageId(nsCString* aMessageId)
+nsMsgComposeAndSend::GetMessageId(nsACString& aMessageId)
 {
-  NS_ENSURE_ARG(aMessageId);
-
+  nsresult rv = NS_OK;
   if (mCompFields)
-  {
-    *aMessageId = mCompFields->GetMessageId();
-    return NS_OK;
-  }
-  return NS_ERROR_NULL_POINTER;
+    aMessageId = mCompFields->GetMessageId();
+  else
+    rv = NS_ERROR_NULL_POINTER;
+  return rv;
 }
 
 NS_IMETHODIMP

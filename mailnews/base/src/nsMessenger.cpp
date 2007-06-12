@@ -1846,7 +1846,7 @@ nsSaveMsgListener::SetMessageKey(PRUint32 aKey)
 }
 
 NS_IMETHODIMP
-nsSaveMsgListener::GetMessageId(nsCString* aMessageId)
+nsSaveMsgListener::GetMessageId(nsACString& aMessageId)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -2854,7 +2854,7 @@ nsDelAttachListener::SetMessageKey(PRUint32 aKey)
 }
 
 NS_IMETHODIMP
-nsDelAttachListener::GetMessageId(nsCString * aMessageId)
+nsDelAttachListener::GetMessageId(nsACString& aMessageId)
 {
   // never called?
   return NS_ERROR_NOT_IMPLEMENTED;

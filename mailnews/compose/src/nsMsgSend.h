@@ -275,7 +275,7 @@ public:
   // Attachment processing...
   //
   nsresult    HackAttachments(const struct nsMsgAttachmentData *attachments,
-					                    const struct nsMsgAttachedFile *preloaded_attachments);
+                              const struct nsMsgAttachedFile *preloaded_attachments);
   nsresult    CountCompFieldAttachments();
   nsresult    AddCompFieldLocalAttachments();
   nsresult    AddCompFieldRemoteAttachments(PRUint32  aStartLocation, PRInt32 *aMailboxCount, PRInt32 *aNewsCount);
@@ -288,7 +288,7 @@ public:
 
   // Body processing
   nsresult    SnarfAndCopyBody(const char  *attachment1_body,
-						                   PRUint32    attachment1_body_length,
+                               PRUint32    attachment1_body_length,
                                const char  *attachment1_type);
 
   PRInt32     PreProcessPart(nsMsgAttachmentHandler  *ma,
@@ -311,7 +311,7 @@ public:
   PRUint32                  mMessageWarningSize; // Warn if a message is over this size!
 
   PRBool                    m_dont_deliver_p;    // If set, we just return the nsFileSpec of the file
-							                                   // created, instead of actually delivering message.
+                                                 // created, instead of actually delivering message.
   nsMsgDeliverMode          m_deliver_mode;      // nsMsgDeliverNow, nsMsgQueueForLater, nsMsgSaveAsDraft,
                                                  // nsMsgSaveAsTemplate and nsMsgSendUnsent
   nsCOMPtr<nsIMsgDBHdr>     mMsgToReplace;       // If the mode is nsMsgSaveAsDraft, this is the message it will
@@ -355,7 +355,7 @@ public:
   // The plaintext form of the first attachment, if needed.
   nsMsgAttachmentHandler  *m_plaintext;
 
-	// The multipart/related save object for HTML text.
+  // The multipart/related save object for HTML text.
   nsMsgSendPart           *m_related_part;
   nsMsgSendPart           *m_related_body_part;
 
@@ -378,27 +378,27 @@ public:
   // attachment states and other info...
   //
   PRBool                  m_attachments_only_p;         // If set, then we don't construct a complete
-								                                        // MIME message; instead, we just retrieve the
-								                                        // attachments from the network, store them in
-								                                        // tmp files, and return a list of
-								                                        // nsMsgAttachedFile structs which describe them.
+                                                        // MIME message; instead, we just retrieve the
+                                                        // attachments from the network, store them in
+                                                        // tmp files, and return a list of
+                                                        // nsMsgAttachedFile structs which describe them.
 
-  PRBool                  m_pre_snarfed_attachments_p;	// If true, then the attachments were
-										                                    // loaded by in the background and therefore
+  PRBool                  m_pre_snarfed_attachments_p;  // If true, then the attachments were
+                                                        // loaded by in the background and therefore
                                                         // we shouldn't delete the tmp files (but should
                                                         // leave that to the caller.)
 
   PRBool                  m_digest_p;                   // Whether to be multipart/digest instead of
-								                                        // multipart/mixed.
+                                                        // multipart/mixed.
 
-  PRBool                  m_be_synchronous_p;	          // If true, we will load one URL after another,
-								                                        // rather than starting all URLs going at once
-								                                        // and letting them load in parallel.  This is
-								                                        // more efficient if (for example) all URLs are
-								                                        // known to be coming from the same news server
-								                                        // or mailbox: loading them in parallel would
-								                                        // cause multiple connections to the news
-								                                        // server to be opened, or would cause much seek()ing.
+  PRBool                  m_be_synchronous_p;            // If true, we will load one URL after another,
+                                                        // rather than starting all URLs going at once
+                                                        // and letting them load in parallel.  This is
+                                                        // more efficient if (for example) all URLs are
+                                                        // known to be coming from the same news server
+                                                        // or mailbox: loading them in parallel would
+                                                        // cause multiple connections to the news
+                                                        // server to be opened, or would cause much seek()ing.
 
   PRBool                  mGUINotificationEnabled;      // Should we throw up the GUI alerts on errors?
   PRBool                  mLastErrorReported;           // Last error reported to the user.

@@ -116,11 +116,11 @@ CopyListener::SetMessageKey(PRUint32 aMessageKey)
   return NS_OK;
 }
 
-nsresult
-CopyListener::GetMessageId(nsCString *aMessageId)
+NS_IMETHODIMP
+CopyListener::GetMessageId(nsACString& aMessageId)
 {
   if (mComposeAndSend)
-      mComposeAndSend->GetMessageId(aMessageId);
+    mComposeAndSend->GetMessageId(aMessageId);
   return NS_OK;
 }
 

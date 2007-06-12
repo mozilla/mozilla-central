@@ -38,14 +38,7 @@
 #include "nsrootidl.idl"
 #include "nsISupports.idl"
 
-%{C++
-#include "nsString.h"
-%}
-      
-[ptr] native nsCString(nsCString);
-/* [ptr] native nsString(nsString); */
-
-[scriptable, uuid(1caa10b6-29a6-11d3-afb2-001083002da8)]
+[scriptable, uuid(CA620E0E-927F-4fbe-A108-9ECF31A7ECC7)]
 interface nsIMsgCopyServiceListener : nsISupports {
 
     /**
@@ -81,7 +74,7 @@ interface nsIMsgCopyServiceListener : nsISupports {
      * uniqueness.
      * aMessageId -
      */
-    [noscript] void GetMessageId(in nsCString aMessageId);
+    void GetMessageId(out ACString aMessageId);
 
     /**
      * Notify the observer that the message copied operation has completed.  
@@ -90,6 +83,5 @@ interface nsIMsgCopyServiceListener : nsISupports {
      * aStatus - indicate whether the operation was succeeded
      */
     void OnStopCopy(in nsresult aStatus);
-
 };
 

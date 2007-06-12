@@ -266,8 +266,8 @@ NS_IMETHODIMP nsMoveCoalescerCopyListener::SetMessageKey(PRUint32 aKey)
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-/* [noscript] void GetMessageId (in nsCString aMessageId); */
-NS_IMETHODIMP nsMoveCoalescerCopyListener::GetMessageId(nsCString * aMessageId)
+/* void GetMessageId (in nsACString aMessageId); */
+NS_IMETHODIMP nsMoveCoalescerCopyListener::GetMessageId(nsACString& messageId)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
