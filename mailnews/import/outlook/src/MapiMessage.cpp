@@ -136,8 +136,8 @@ void CMapiMessage::FormatDateTime( SYSTEMTIME & tm, nsCString& s, BOOL includeTZ
 
 // Headers - fetch will get PR_TRANSPORT_MESSAGE_HEADERS
 // or if they do not exist will build a header from
-//	PR_DISPLAY_TO, _CC, _BCC
-//	PR_SUBJECT
+//  PR_DISPLAY_TO, _CC, _BCC
+//  PR_SUBJECT
 //  PR_MESSAGE_RECIPIENTS
 // and PR_CREATION_TIME if needed?
 void CMapiMessage::BuildHeaders( void)

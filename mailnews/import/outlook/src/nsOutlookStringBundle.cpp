@@ -46,75 +46,75 @@
 
 #define OUTLOOK_MSGS_URL       "chrome://messenger/locale/outlookImportMsgs.properties"
 
-nsIStringBundle *	nsOutlookStringBundle::m_pBundle = nsnull;
+nsIStringBundle *  nsOutlookStringBundle::m_pBundle = nsnull;
 
 nsIStringBundle *nsOutlookStringBundle::GetStringBundle( void)
 {
-	if (m_pBundle)
-		return( m_pBundle);
+  if (m_pBundle)
+    return( m_pBundle);
 
-	nsresult			rv;
-	char*				propertyURL = OUTLOOK_MSGS_URL;
-	nsIStringBundle*	sBundle = nsnull;
+  nsresult      rv;
+  char*        propertyURL = OUTLOOK_MSGS_URL;
+  nsIStringBundle*  sBundle = nsnull;
 
 
-	nsCOMPtr<nsIStringBundleService> sBundleService = 
-	         do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv); 
-	if (NS_SUCCEEDED(rv) && (nsnull != sBundleService)) {
-		rv = sBundleService->CreateBundle(propertyURL, &sBundle);
-	}
-	
-	m_pBundle = sBundle;
+  nsCOMPtr<nsIStringBundleService> sBundleService =
+           do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
+  if (NS_SUCCEEDED(rv) && (nsnull != sBundleService)) {
+    rv = sBundleService->CreateBundle(propertyURL, &sBundle);
+  }
 
-	return( sBundle);
+  m_pBundle = sBundle;
+
+  return( sBundle);
 }
 
 nsIStringBundle *nsOutlookStringBundle::GetStringBundleProxy( void)
 {
-	if (!m_pBundle)
-		return( nsnull);
+  if (!m_pBundle)
+    return( nsnull);
 
-	nsIStringBundle *strProxy = nsnull;
-	// create a proxy object if we aren't on the same thread?
-	NS_GetProxyForObject( NS_PROXY_TO_MAIN_THREAD, NS_GET_IID(nsIStringBundle),
-										   m_pBundle, NS_PROXY_SYNC | NS_PROXY_ALWAYS, (void **) &strProxy);
+  nsIStringBundle *strProxy = nsnull;
+  // create a proxy object if we aren't on the same thread?
+  NS_GetProxyForObject( NS_PROXY_TO_MAIN_THREAD, NS_GET_IID(nsIStringBundle),
+                       m_pBundle, NS_PROXY_SYNC | NS_PROXY_ALWAYS, (void **) &strProxy);
 
-	return( strProxy);
+  return( strProxy);
 }
 
 void nsOutlookStringBundle::GetStringByID( PRInt32 stringID, nsString& result, nsIStringBundle *pBundle)
 {
-	
-	PRUnichar *ptrv = GetStringByID( stringID, pBundle);	
-	result = ptrv;
-	FreeString( ptrv);
+
+  PRUnichar *ptrv = GetStringByID( stringID, pBundle);
+  result = ptrv;
+  FreeString( ptrv);
 }
 
 PRUnichar *nsOutlookStringBundle::GetStringByID(PRInt32 stringID, nsIStringBundle *pBundle)
 {
-	if (!pBundle) {
-		pBundle = GetStringBundle();
-	}
-	
-	if (pBundle) {
-		PRUnichar *ptrv = nsnull;
-		nsresult rv = pBundle->GetStringFromID(stringID, &ptrv);
-				
-		if (NS_SUCCEEDED( rv) && ptrv)
-			return( ptrv);
-	}
+  if (!pBundle) {
+    pBundle = GetStringBundle();
+  }
 
-	nsString resultString;
-	resultString.AppendLiteral("[StringID ");
-	resultString.AppendInt(stringID);
-	resultString.AppendLiteral("?]");
+  if (pBundle) {
+    PRUnichar *ptrv = nsnull;
+    nsresult rv = pBundle->GetStringFromID(stringID, &ptrv);
 
-	return ToNewUnicode(resultString);
+    if (NS_SUCCEEDED( rv) && ptrv)
+      return( ptrv);
+  }
+
+  nsString resultString;
+  resultString.AppendLiteral("[StringID ");
+  resultString.AppendInt(stringID);
+  resultString.AppendLiteral("?]");
+
+  return ToNewUnicode(resultString);
 }
 
 void nsOutlookStringBundle::Cleanup( void)
 {
-	if (m_pBundle)
-		m_pBundle->Release();
-	m_pBundle = nsnull;
+  if (m_pBundle)
+    m_pBundle->Release();
+  m_pBundle = nsnull;
 }

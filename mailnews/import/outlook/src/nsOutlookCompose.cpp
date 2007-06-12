@@ -289,9 +289,9 @@ void nsOutlookCompose::GetNthHeader( const char *pData, PRInt32 dataLen, PRInt32
   if (!pData)
     return;
 
-  PRInt32	index = 0;
-  PRInt32	len;
-  PRInt32	start = 0;
+  PRInt32  index = 0;
+  PRInt32  len;
+  PRInt32  start = 0;
   const char *pChar = pData;
   const char *pStart;
   if (n == 0) {
@@ -731,7 +731,7 @@ PRBool SimpleBufferTonyRCopiedTwice::SpecialMemCpy( PRInt32 offset, const char *
   // Arg!!!!!  Mozilla can't handle plain CRs in any mail messages.  Particularly a
   // problem with Eudora since it doesn't give a rats a**
   *pWritten = len;
-  PRInt32	sz = offset + len;
+  PRInt32  sz = offset + len;
   if (offset) {
     if ((m_pBuffer[offset - 1] == 0x0D) && (*pData != 0x0A)) {
       sz++;
@@ -819,7 +819,7 @@ PRInt32 nsOutlookCompose::FindNextEndLine( SimpleBufferTonyRCopiedTwice& data)
   PRInt32 len = data.m_bytesInBuf - data.m_writeOffset;
   if (!len)
     return( -1);
-  PRInt32	count = 0;
+  PRInt32  count = 0;
   const char *pData = data.m_pBuffer + data.m_writeOffset;
   while (((*pData == 0x0D) || (*pData == 0x0A)) && (count < len)) {
     pData++;
@@ -859,7 +859,7 @@ nsresult nsOutlookCompose::CopyComposedMessage( nsCString& fromLine, nsIFile *pS
 {
   copy.m_bytesInBuf = 0;
   copy.m_writeOffset = 0;
-  ReadFileState	state;
+  ReadFileState  state;
   state.pFile = pSrc;
   state.offset = 0;
   state.size = 0;
@@ -935,7 +935,7 @@ nsresult nsOutlookCompose::FillMailBuffer( ReadFileState *pState, SimpleBufferTo
     read.m_writeOffset = 0;
   }
 
-  PRInt32	count = read.m_size - read.m_bytesInBuf;
+  PRInt32  count = read.m_size - read.m_bytesInBuf;
   if (((PRUint32)count + pState->offset) > pState->size)
     count = pState->size - pState->offset;
   if (count) {
@@ -952,7 +952,7 @@ nsresult nsOutlookCompose::FillMailBuffer( ReadFileState *pState, SimpleBufferTo
 }
 
 
-#define kMaxSpecialHeaders	3
+#define kMaxSpecialHeaders  3
 static const char *gSpecialHeaders[kMaxSpecialHeaders] = {
   "Content-type",
   "MIME-Version",
@@ -960,7 +960,7 @@ static const char *gSpecialHeaders[kMaxSpecialHeaders] = {
 };
 // consider "X-Accept-Language"?
 
-#define kMaxReplaceHeaders	5
+#define kMaxReplaceHeaders  5
 static const char *gReplaceHeaders[kMaxReplaceHeaders] = {
   "From",
   "To",

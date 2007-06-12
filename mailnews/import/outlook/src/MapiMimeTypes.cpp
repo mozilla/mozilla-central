@@ -44,84 +44,78 @@ PRUint8 CMimeTypes::m_mimeBuffer[kMaxMimeTypeSize];
 
 BOOL CMimeTypes::GetKey( HKEY root, LPCTSTR pName, PHKEY pKey)
 {
-	LONG result = RegOpenKeyEx( root, pName, 0, KEY_QUERY_VALUE | KEY_ENUMERATE_SUB_KEYS, pKey);
-	return (result == ERROR_SUCCESS);
+  LONG result = RegOpenKeyEx( root, pName, 0, KEY_QUERY_VALUE | KEY_ENUMERATE_SUB_KEYS, pKey);
+  return (result == ERROR_SUCCESS);
 }
 
 BOOL CMimeTypes::GetValueBytes( HKEY rootKey, LPCTSTR pValName, LPBYTE *ppBytes)
 {
-	LONG	err;
-	DWORD	bufSz;
-	
-	*ppBytes = NULL;
-	// Get the installed directory
-	err = RegQueryValueEx( rootKey, pValName, NULL, NULL, NULL, &bufSz); 
-	if (err == ERROR_SUCCESS) {
-		*ppBytes = new BYTE[bufSz];
-		err = RegQueryValueEx( rootKey, pValName, NULL, NULL, *ppBytes, &bufSz);
-		if (err == ERROR_SUCCESS) {
-			return( TRUE);
-		}
-		delete *ppBytes;
-		*ppBytes = NULL;
-	}
-	return( FALSE);
+  LONG  err;
+  DWORD  bufSz;
+
+  *ppBytes = NULL;
+  // Get the installed directory
+  err = RegQueryValueEx( rootKey, pValName, NULL, NULL, NULL, &bufSz);
+  if (err == ERROR_SUCCESS) {
+    *ppBytes = new BYTE[bufSz];
+    err = RegQueryValueEx( rootKey, pValName, NULL, NULL, *ppBytes, &bufSz);
+    if (err == ERROR_SUCCESS) {
+      return( TRUE);
+    }
+    delete *ppBytes;
+    *ppBytes = NULL;
+  }
+  return( FALSE);
 }
 
 void CMimeTypes::ReleaseValueBytes( LPBYTE pBytes)
 {
-	if (pBytes)
-		delete pBytes;
+  if (pBytes)
+    delete pBytes;
 }
 
 BOOL CMimeTypes::GetMimeTypeFromReg( const nsCString& ext, LPBYTE *ppBytes)
 {
-	HKEY	extensionKey;
-	BOOL	result = FALSE;
+  HKEY  extensionKey;
+  BOOL  result = FALSE;
+  *ppBytes = NULL;
+  if (GetKey( HKEY_CLASSES_ROOT, ext.get(), &extensionKey)) {
+    result = GetValueBytes( extensionKey, "Content Type", ppBytes);
+    RegCloseKey( extensionKey);
+  }
 
-
-	*ppBytes = NULL;
-	if (GetKey( HKEY_CLASSES_ROOT, ext.get(), &extensionKey)) {
-		result = GetValueBytes( extensionKey, "Content Type", ppBytes);
-		RegCloseKey( extensionKey);
-	}
-	
-	return( result);
+  return( result);
 }
-
-
 
 PRUint8 * CMimeTypes::GetMimeType( nsCString& theExt)
 {
-	nsCString	ext = theExt;
-	if (ext.Length()) {
-		if (ext.First() != '.') {
-			ext = ".";
-			ext += theExt;
-		}
-	}
-	
-	
-	BOOL	result = FALSE;  
-	int		len;
+  nsCString  ext = theExt;
+  if (ext.Length()) {
+    if (ext.First() != '.') {
+      ext = ".";
+      ext += theExt;
+    }
+  }
 
-	if (!ext.Length())
-		return( NULL);
-	LPBYTE	pByte;
-	if (GetMimeTypeFromReg( ext, &pByte)) {
-		len = strlen( (const char *) pByte);
-		if (len && (len < kMaxMimeTypeSize)) {
-			memcpy( m_mimeBuffer, pByte, len);
-			m_mimeBuffer[len] = 0;
-			result = TRUE;
-		}
-		ReleaseValueBytes( pByte);
-	}
 
-	if (result)
-		return( m_mimeBuffer);
+  BOOL  result = FALSE;
+  int    len;
 
-	return( NULL);
+  if (!ext.Length())
+    return( NULL);
+  LPBYTE  pByte;
+  if (GetMimeTypeFromReg( ext, &pByte)) {
+    len = strlen( (const char *) pByte);
+    if (len && (len < kMaxMimeTypeSize)) {
+      memcpy( m_mimeBuffer, pByte, len);
+      m_mimeBuffer[len] = 0;
+      result = TRUE;
+    }
+    ReleaseValueBytes( pByte);
+  }
+
+  if (result)
+    return( m_mimeBuffer);
+
+  return( NULL);
 }
-
-

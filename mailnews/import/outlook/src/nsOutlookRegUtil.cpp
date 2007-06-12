@@ -40,26 +40,26 @@
 
 BYTE * nsOutlookRegUtil::GetValueBytes( HKEY hKey, const char *pValueName)
 {
-	LONG	err;
-	DWORD	bufSz;
-	LPBYTE	pBytes = NULL;
+  LONG  err;
+  DWORD  bufSz;
+  LPBYTE  pBytes = NULL;
 
-	err = ::RegQueryValueEx( hKey, pValueName, NULL, NULL, NULL, &bufSz); 
-	if (err == ERROR_SUCCESS) {
-		pBytes = new BYTE[bufSz];
-		err = ::RegQueryValueEx( hKey, pValueName, NULL, NULL, pBytes, &bufSz);
-		if (err != ERROR_SUCCESS) {
-			delete [] pBytes;
-			pBytes = NULL;
-		}
-	}
+  err = ::RegQueryValueEx( hKey, pValueName, NULL, NULL, NULL, &bufSz); 
+  if (err == ERROR_SUCCESS) {
+    pBytes = new BYTE[bufSz];
+    err = ::RegQueryValueEx( hKey, pValueName, NULL, NULL, pBytes, &bufSz);
+    if (err != ERROR_SUCCESS) {
+      delete [] pBytes;
+      pBytes = NULL;
+    }
+  }
 
-	return( pBytes);
+  return( pBytes);
 }
 
 void nsOutlookRegUtil::FreeValueBytes( BYTE *pBytes)
 {
-	if (pBytes)
-		delete [] pBytes;
+  if (pBytes)
+    delete [] pBytes;
 }
 
