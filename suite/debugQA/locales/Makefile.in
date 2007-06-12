@@ -45,6 +45,6 @@ relativesrcdir=suite/debugQA/locales
 
 include $(DEPTH)/config/autoconf.mk
 
-DEFINES += -DAB_CD=$(AB_CD)
+DEFINES += -DAB_CD=en-US
 
 include $(topsrcdir)/config/rules.mk
