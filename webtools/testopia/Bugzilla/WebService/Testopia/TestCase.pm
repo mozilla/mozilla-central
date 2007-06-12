@@ -243,6 +243,35 @@ sub get_plans
 	return $result;
 }
 
+sub get_bugs
+{
+    my $self = shift;
+    my ($test_case_id) = @_;
+
+    $self->login;
+
+    my $test_case = new Bugzilla::Testopia::TestCase($test_case_id);
+
+	if (not defined $test_case)
+	{
+    	$self->logout;
+        die "Testcase, " . $test_case_id . ", not found"; 
+	}
+	
+	if (not $test_case->canview)
+	{
+	    $self->logout;
+        die "User Not Authorized";
+	}
+    
+    my $result = $test_case->bugs;
+
+	$self->logout;
+	
+	# Result is list of bugs for the given test case
+	return $result;
+}
+
 sub add_component
 {
 	my $self =shift;

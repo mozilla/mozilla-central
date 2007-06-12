@@ -32,7 +32,10 @@ DocumentManager.prototype.setDirectEdit = function( bool ) {
     this.directEdit = bool;
 }
 DocumentManager.prototype.handleLoad = function() {
-    this.div = document.getElementById(this.prefix + "Div");
+    this.div = document.getElementById(this.prefix + "Div");    
+    this.t = document.getElementById(this.prefix + "Text");
+    this.t.style.display = "none";
+    this.t.disabled = "true";
     var f = dojo.dom.getFirstAncestorByTag(this.div, "form");
     dojo.event.connect(f, "onsubmit", this, "handleSubmit");
     this.helpPar = document.createElement("p");
@@ -43,6 +46,7 @@ DocumentManager.prototype.handleLoad = function() {
     } else {
 	var l = document.createElement("a");
 	l.setAttribute("title", "Click here to edit, or double-click document text.");
+	l.setAttribute("style", "cursor: pointer; color: blue");
 	var t = document.createTextNode("Edit Document");
 	l.appendChild(t);
 	this.helpPar.appendChild(l);
@@ -75,6 +79,8 @@ DocumentManager.prototype.gotoEditMode = function(evt) {
     if (this.widget) {
 	return;
     } else {
+    this.div.style.border = "1px solid #000";
+    this.div.style.padding = "0px 0px 10px 0px";
 	dojo.dom.removeChildren(this.helpPar);
 	var b = document.createElement("input");
 	b.setAttribute("type", "SUBMIT");
@@ -83,6 +89,6 @@ DocumentManager.prototype.gotoEditMode = function(evt) {
 	b.setAttribute("class", "tr_button");
 	b.setAttribute("value", this.action);
 	this.helpPar.appendChild(b);
-	this.widget = dojo.widget.createWidget("Editor2", {}, this.div);
+	this.widget = dojo.widget.createWidget("Editor2", {saveName: this.prefix, minHeight: "3em"}, this.div);
     }
 }

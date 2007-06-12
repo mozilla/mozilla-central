@@ -103,6 +103,11 @@ sub create
     my $result = $environment->store(); 
     
     $self->logout;
+
+    if (not defined $result)
+    {
+        die "Environment already exists"; 
+    }
     
     # Result is new environment id
     return $result;

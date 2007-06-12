@@ -29,7 +29,7 @@
   [% PROCESS testopia/tag/list.html.tmpl %]
 [% END %]
 
-[% IF UserInGroup('admin') %]
+[% IF user.in_group('admin') %]
 <a href="tr_tags.cgi?action=show_all">Show All Tags</a>
 [% END %]
 

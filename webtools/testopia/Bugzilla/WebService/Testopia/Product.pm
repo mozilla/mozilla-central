@@ -63,6 +63,35 @@ sub lookup_id_by_name
   return $result;
 }
 
+sub get_milestones
+{
+    my $self = shift;
+    my ($product_id) = @_;
+
+    $self->login;
+
+    my $product = new Bugzilla::Testopia::Product($product_id);
+
+	if (not defined $product)
+	{
+    	$self->logout;
+        die "Product, " . $product_id . ", not found"; 
+	}
+	
+	if (not $product->canedit)
+	{
+	    $self->logout;
+        die "User Not Authorized";
+	}
+    
+    my $result = $product->milestones;
+
+	$self->logout;
+	
+	# Result is list of milestones for the given product
+	return $result;
+}
+
 #sub get_product 
 #{
 #    my $self = shift;

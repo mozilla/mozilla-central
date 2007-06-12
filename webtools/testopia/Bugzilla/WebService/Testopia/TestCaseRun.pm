@@ -79,6 +79,35 @@ sub get
     
 }
 
+sub get_bugs
+{
+    my $self = shift;
+    my ($test_case_run_id) = @_;
+
+    $self->login;
+
+    my $test_case_run = new Bugzilla::Testopia::TestCaseRun($test_case_run_id);
+
+	if (not defined $test_case_run)
+	{
+    	$self->logout;
+        die "TestcaseRun, " . $test_case_run_id . ", not found"; 
+	}
+	
+	if (not $test_case_run->canview)
+	{
+	    $self->logout;
+        die "User Not Authorized";
+	}
+    
+    my $result = $test_case_run->bugs;
+
+	$self->logout;
+	
+	# Result is list of bugs for the given test case run
+	return $result;
+}
+
 sub list
 {
     my $self = shift;
@@ -144,12 +173,12 @@ sub update
     # Changed so that we can switch to the right record first.
     if (defined($$new_values{build_id}))
     {
-        $test_case_run = $test_case_run->switch($newvalues->{'build_id'}, $environment_id ,$run_id, $case_id);
+        $test_case_run = $test_case_run->switch($$new_values{build_id}, $environment_id ,$run_id, $case_id);
     }
 
     if (defined($$new_values{environment_id}))
     {
-        $test_case_run = $test_case_run->switch($build_id, $newvalues->{'environment_id'} ,$run_id, $case_id);
+        $test_case_run = $test_case_run->switch($build_id, $$new_values{environment_id} ,$run_id, $case_id);
     }
 
     if (defined($$new_values{assignee}))
@@ -159,7 +188,7 @@ sub update
 
     if (defined($$new_values{case_run_status_id}))
     {
-        $test_case_run->set_status($$new_values{case_run_status_id}, $new_values->{'update_bugs'});
+        $test_case_run->set_status($$new_values{case_run_status_id}, $$new_values{update_bugs});
     }
 
     if (defined($$new_values{notes}))

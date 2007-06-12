@@ -27,7 +27,7 @@
   [% ELSIF error == "testopia-no-delete" %]
     [% title = "Insufficient Permissions" %]
     You are not authorized to delete [% object.type FILTER html %]&nbsp;[% object.id FILTER html %]
-    [% IF UserInGroup('admin') %]
+    [% IF user.in_group('admin') %]
     If you are the administrator, you can check that your installation
     allows deletion of Testopia objects in the 
     <a href="editparams.cgi">paramaters </a>.

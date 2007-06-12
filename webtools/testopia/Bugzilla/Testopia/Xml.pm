@@ -76,7 +76,7 @@ use Bugzilla::Util;
 
 use constant AUTOMATIC => "AUTOMATIC";
 use constant BLOCKS => "blocks";
-our $DATABASE_DESCRIPTION = "Database_descripiton";
+our $DATABASE_DESCRIPTION = "Database_description";
 our $DATABASE_ID = "Database_id";
 use constant IGNORECASE => 1;
 use constant DEPENDSON => "dependson";
@@ -96,7 +96,7 @@ our $XML_GT = "&[Gg][Tt];";
 our $XML_LT = "&[Ll][Tt];";
 our $XML_QUOT = "&[Qq][Uu][Oo][Tt];";
 
-use constant XMLREFERENCES_FIELDS => "Database_descripiton Database_id Xml_description";
+use constant XMLREFERENCES_FIELDS => "Database_description Database_id Xml_description";
 @Bugzilla::Testopia::Xml::EXPORT = qw($DATABASE_DESCRIPTION $DATABASE_ID $XML_DESCRIPTION);
 
 use Class::Struct;
@@ -463,7 +463,7 @@ sub parse()
     			$self->error("Do not know how to handle test plan of type '" 
     			             . $twig_testplan_reference->att('type') 
     			             . "' in test case '" . $twig_testcase->field('summary') . "'." 
-    			             . "\nKnow types are: (" . uc XMLREFERENCES_FIELDS . ").");
+    			             . "\nKnown types are: (" . uc XMLREFERENCES_FIELDS . ").");
     		}
     	}
     	# Keep track of this testcase's alias.  Used during verification to insure aliases are unique.

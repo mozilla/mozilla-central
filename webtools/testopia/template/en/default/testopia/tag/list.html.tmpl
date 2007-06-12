@@ -28,7 +28,7 @@
     <th>Cases</a></th>
     <th>Plans</a></th>
     <th>Runs</a></th>
-  [% IF UserInGroup("admin") %]
+  [% IF user.in_group("admin") %]
     <th>Actions</th>
   [% END %]
   </tr>
@@ -42,7 +42,7 @@
   [% IF item AND item.type != 'product' %]
       <a href="tr_tags.cgi?tagid=[% tag.id FILTER none %]&action=removetag&id=[% item.id FILTER none %]&type=[% item.type FILTER url_quote %]&method=html">Remove</a>
   [% END %]
-  [% IF UserInGroup("admin") %]
+  [% IF user.in_group("admin") %]
       <a href="tr_tags.cgi?tagid=[% tag.id FILTER none %]&action=delete" title="Remove tag from all objects and delete from system">Delete</a>
   [% END %]
     </td>
@@ -59,7 +59,7 @@
   <input type="hidden" name="action" value="addtag">
   <input type="hidden" name="method" value="html">
 </form>
-  [% IF UserInGroup('admin') %]
+  [% IF user.in_group('admin') %]
 <p><a href="tr_tags.cgi?action=show_all">Show All Tags</a></p>
   [% END %]
 

@@ -225,7 +225,7 @@ Returns the description of this object
 
 =head2 milestone
 
-Returns the Bugzilla taget milestone associated with this build
+Returns the Bugzilla target milestone associated with this build
 
 =cut
 
