@@ -72,7 +72,7 @@ $EmbedCodesizeTest        = 0;  # mZ, require mozilla/tools/codesigns
 #$MailBloatTest            = 0;
 #$EmbedTest                = 0;  # Assumes you wanted $BuildEmbed=1
 $LayoutPerformanceTest    = 1;  # Tp
-$LayoutPerformanceLocalTest   = 1;  # Tp2
+$LayoutPerformanceLocalTest   = 0;  # Tp2
 $DHTMLPerformanceTest     = 1;  # Tdhtml
 #$QATest                   = 0;  
 $XULWindowOpenTest        = 1;  # Txul
