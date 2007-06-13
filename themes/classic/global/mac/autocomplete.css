@@ -119,11 +119,11 @@ textbox {
   padding-left: 8px;
 }
 
-.autocomplete-treebody::-moz-tree-row(menuactive) {
+.autocomplete-treebody::-moz-tree-row(selected) {
   background-color: -moz-mac-alternateprimaryhighlight;
 }
 
-.autocomplete-treebody::-moz-tree-cell-text(menuactive)  {
+.autocomplete-treebody::-moz-tree-cell-text(selected)  {
   color: #FFFFFF !important;
 }
 
