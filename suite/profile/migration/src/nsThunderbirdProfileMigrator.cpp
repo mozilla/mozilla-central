@@ -455,8 +455,8 @@ nsThunderbirdProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("mailnews.mark_message_read.delay",        Bool),
   MAKESAMETYPEPREFTRANSFORM("mailnews.mark_message_read.delay.interval", Int),
 
-  MAKESAMETYPEPREFTRANSFORM("mailnews.message.display.allow.plugins",  Bool),
-  MAKESAMETYPEPREFTRANSFORM("mailnews.message.display.disable_remote_image", Bool),
+  MAKESAMETYPEPREFTRANSFORM("mailnews.message_display.allow.plugins",  Bool),
+  MAKESAMETYPEPREFTRANSFORM("mailnews.message_display.disable_remote_image", Bool),
 
   MAKESAMETYPEPREFTRANSFORM("mailnews.nav_crosses_folders",            Int),
 
@@ -467,6 +467,7 @@ nsThunderbirdProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("mailnews.open_window_warning",            Int),
   MAKESAMETYPEPREFTRANSFORM("mailnews.plaintext_domains",              String),
   MAKESAMETYPEPREFTRANSFORM("mailnews.remember_selected_message",      Bool),
+  MAKESAMETYPEPREFTRANSFORM("mailnews.reply_in_default_charset",       Bool),
   MAKESAMETYPEPREFTRANSFORM("mailnews.reuse_message_window",           Bool),
   MAKESAMETYPEPREFTRANSFORM("mailnews.scroll_to_new_message",          Bool),
   MAKESAMETYPEPREFTRANSFORM("mailnews.search_date_format",             String),
@@ -550,6 +551,9 @@ nsThunderbirdProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("slider.snapMultiplier",                   Int),
   MAKESAMETYPEPREFTRANSFORM("startup.homepage_override_url",           String),
 
+#ifdef XP_UNIX
+  MAKESAMETYPEPREFTRANSFORM("ui.allow_platform_file_picker",           Bool),
+#endif
   MAKESAMETYPEPREFTRANSFORM("ui.click_hold_context_menus",             Bool)
 };
 
