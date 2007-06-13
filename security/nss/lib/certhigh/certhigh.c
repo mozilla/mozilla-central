@@ -1051,8 +1051,8 @@ loser:
     nssUsage.anyUsage = PR_FALSE;
     nssUsage.nss3usage = usage;
     nssUsage.nss3lookingForCA = PR_FALSE;
-    stanChain = NSSCertificate_BuildChain(stanCert, NULL, &nssUsage, NULL,
-					  NULL, 0, NULL, NULL, td, cc);
+    stanChain = NSSCertificate_BuildChain(stanCert, NULL, &nssUsage, NULL, NULL,
+					  CERT_MAX_CERT_CHAIN, NULL, NULL, td, cc);
     if (!stanChain) {
 	PORT_SetError(SEC_ERROR_UNKNOWN_ISSUER);
 	return NULL;
