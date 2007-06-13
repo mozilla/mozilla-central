@@ -96,7 +96,7 @@
 <table>
 [% FOREACH plan = case.plans %]
   <tr>
-    <td><input type="checkbox" name="plan_id" value="[% plan.id FILTER none %]" checked="checked"></td>
+    <td><input type="checkbox" style="border: none" name="plan_id" value="[% plan.id FILTER none %]" checked="checked"></td>
     <td>[% plan.name FILTER html %]</td>
   </tr>
 [% END %]

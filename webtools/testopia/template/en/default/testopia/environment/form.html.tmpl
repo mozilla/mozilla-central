@@ -83,7 +83,7 @@ values for each of the properties.
   [% END %]
   </tr>
   <tr>
-    <th>Archive</th><td><input type="checkbox" name="isactive" id="isactive" value="1" [% 'checked="checked"' IF NOT environment.isactive %]></td>
+    <th>Archive</th><td><input type="checkbox" style="border: none" name="isactive" id="isactive" value="1" [% 'checked="checked"' IF NOT environment.isactive %]></td>
 [% IF environment.candelete %]    
     <td><a href="tr_show_environment.cgi?env_id=[% environment.id FILTER none %]&action=delete">Delete this Environment</a></td>
 [% END %]

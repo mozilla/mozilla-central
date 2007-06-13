@@ -395,8 +395,8 @@ sub get_cc_xml {
     my $ret = "<cclist>";
     foreach my $c (@{$run->cc}){
         $ret .= "<user>";
-        $ret .= "<id>". $c->{'id'} ."</id>";
-        $ret .= "<name>". $c->{'login'} ."</name>";
+        $ret .= "<id>". $c->id ."</id>";
+        $ret .= "<name>". $c->login ."</name>";
         $ret .= "</user>";
     }
     $ret .= "</cclist>";

@@ -48,7 +48,7 @@ Select:
 [% FOREACH  plan = table.list %]
   
 <tr class="[% loop.count % 2 == 1 ? "bz_row_odd" : "bz_row_even" %]">
-    [% IF dotweak %]<td align="center"><input type="checkbox" id="p_[% plan.id FILTER none %]" name="p_[% plan.id FILTER none %]"</td> [% END %]
+    [% IF dotweak %]<td align="center"><input type="checkbox" style="border: none" id="p_[% plan.id FILTER none %]" name="p_[% plan.id FILTER none %]"</td> [% END %]
 
   <td><a href="tr_show_plan.cgi?plan_id=[% plan.plan_id FILTER none %]">[% plan.id FILTER html %]</a></td>
   <td><a href="tr_show_plan.cgi?plan_id=[% plan.plan_id FILTER none %]">[% plan.name FILTER html %]</a></td>

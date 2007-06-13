@@ -156,6 +156,7 @@ elsif ($action eq 'do_clone'){
             my $plan = Bugzilla::Testopia::TestPlan->new($p);
             unless ($plan->canedit){
                 $vars->{'tr_error'} = "Could not link to at least one plan";
+                $count--;
                 next;
             }
             $case->link_plan($p);
@@ -168,7 +169,7 @@ elsif ($action eq 'do_clone'){
         ThrowUserError('testopia-missing-parameter', {'param' => 'copymethod'});
     }
             
-    $vars->{'tr_message'} = "Case $method to $count plans.";
+    $vars->{'tr_message'} = "Case $method to $count plans." if $count;
     display($case);
 }
 

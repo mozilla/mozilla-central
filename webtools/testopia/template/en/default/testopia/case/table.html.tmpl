@@ -71,7 +71,7 @@ Select:
     <td class="cc_trg" valign="top" width="24">
       <table style="border-spacing:0px;border-collapse:collapse;" width="24">
         <tr>
-          <td style="padding:0;border-width:0;">[% IF dotweak %]<input type="checkbox" id="c_[% case.id FILTER none %]" name="c_[% case.id FILTER none %]" onclick="[% IF canedit %]ck(this);[% ELSE %]_disable_sr=true;[% END %]">[% END %]</td>
+          <td style="padding:0;border-width:0;">[% IF dotweak %]<input type="checkbox" style="border: none" id="c_[% case.id FILTER none %]" name="c_[% case.id FILTER none %]" onclick="[% IF canedit %]ck(this);[% ELSE %]_disable_sr=true;[% END %]">[% END %]</td>
           <td style="padding:0;border-width:0;">[% IF loop.size < MAX_LIMIT %]<img id="id[% index FILTER none %]" src="testopia/img/tr.gif" width="11" height="11">[% END %]</td>
         </tr>
       </table>

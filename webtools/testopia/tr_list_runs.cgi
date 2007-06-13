@@ -149,7 +149,7 @@ if ($action eq 'Commit'){
     $vars->{'run'} = $run;
     $vars->{'title'} = $i ? "Update Successful" : "Nothing Updated";
     $vars->{'tr_error'} = "You did not have rights to edit ". scalar @uneditable . "runs" if scalar @uneditable > 0;
-    $vars->{'tr_message'} = "$updated Test Runs Updated";
+    $vars->{'tr_message'} = "$updated Test Runs Updated" if $updated;
     $vars->{'current_tab'} = 'run';
     $vars->{'build_list'} = $run->get_distinct_builds();
     $template->process("testopia/search/advanced.html.tmpl", $vars)

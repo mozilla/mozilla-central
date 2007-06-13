@@ -99,7 +99,7 @@
     </td>
     <th align="right">Attach [% terms.Bugs %]</th>
     <td><input name="bugs">&nbsp;<a href="enter_bug.cgi?product=[% caserun.run.plan.product.name FILTER url_quote %]&caserun_id=[% caserun.id FILTER none %]" target="_blank"><img src="testopia/img/snew.gif" alt="Log a New Bug" title="Log a New Bug" style="vertical-align:text-bottom;" /></a>
-        <br><input type="checkbox" value="1" name="update_bug" id="update_bug">Update [% terms.bug %] status </td>
+        <br><input type="checkbox" style="border: none" value="1" name="update_bug" id="update_bug">Update [% terms.bug %] status </td>
   </tr>
 </table>
 <table>
@@ -112,14 +112,14 @@
     [% FOREACH status = caserun.get_status_list %]
     <tr>
       <td><label for="[% status.name FILTER none %]"><img src="testopia/img/[% status.name FILTER none %].gif" alt="[% status.name FILTER none %]"></label></td>
-      <td align="right"><input type="radio" name="status" id="[% status.name FILTER none %]" value="[% status.id FILTER none %]" [% 'checked="checked"' IF caserun.status == status.name AND NOT dotweak %]></td>
+      <td align="right"><input type="radio" style="border: none" name="status" id="[% status.name FILTER none %]" value="[% status.id FILTER none %]" [% 'checked="checked"' IF caserun.status == status.name AND NOT dotweak %]></td>
       <th align="left"><label for="[% status.name FILTER none %]">[% status.name FILTER html %]</label></th>
     </tr>
     [% END %]
     [% IF dotweak %]
     <tr>
       <td>&nbsp;</td>
-      <td align="right"><input type="radio" name="status" value="-1" [% 'checked="checked"' IF dotweak %]></td>
+      <td align="right"><input type="radio" style="border: none" name="status" value="-1" [% 'checked="checked"' IF dotweak %]></td>
       <th align="left"><label for="[% status.name FILTER none %]">No Change</label></th>
     </tr>
     [% END %]
