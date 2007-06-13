@@ -664,17 +664,9 @@ var gThreePaneIncomingServerListener = {
     }
 }
 
-function GetMailPaneConfig() {
-  try {
-    return pref.getIntPref("mail.pane_config.dynamic");
-  } catch (e) {
-    return pref.getIntPref("mail.pane_config");
-  }
-}
-
 function UpdateMailPaneConfig() {
   const dynamicIds = ["messagesBox", "mailContent", "threadPaneBox"]
-  var desiredId = dynamicIds[GetMailPaneConfig()];
+  var desiredId = dynamicIds[pref.getIntPref("mail.pane_config.dynamic")];
   var messagePane = GetMessagePane();
   if (messagePane.parentNode.id != desiredId) {
     ClearAttachmentList();

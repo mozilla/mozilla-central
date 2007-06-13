@@ -202,7 +202,7 @@ function hideShowDownloadMsgsUI(isPop)
   if (isPop) {
     var ioService = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
     if (!ioService.offline) {
-      if ((window.opener.location.href == "chrome://messenger/content/messenger.xul") || (window.opener.location.href == "chrome://messenger/content/mail3PaneWindowVertLayout.xul")) {
+      if (window.opener.location.href == "chrome://messenger/content/messenger.xul") {
         downloadMsgs.hidden = false;
         return;
       }

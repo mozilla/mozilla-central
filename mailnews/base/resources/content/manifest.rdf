@@ -22,7 +22,6 @@
     <RDF:li resource="chrome://communicator/content/tasksOverlay.xul"/>
     <RDF:li resource="chrome://navigator/content/navigatorOverlay.xul"/>
     <RDF:li resource="chrome://messenger/content/messenger.xul"/>
-    <RDF:li resource="chrome://messenger/content/mail3PaneWindowVertLayout.xul"/>
     <RDF:li resource="chrome://messenger/content/messengercompose/messengercompose.xul"/>
     <RDF:li resource="chrome://messenger/content/addressbook/addressbook.xul"/>
     <RDF:li resource="chrome://messenger/content/addressbook/abSelectAddressesDialog.xul"/>
@@ -57,9 +56,6 @@
 
   <!-- messenger items for Messenger -->
   <RDF:Seq about="chrome://messenger/content/messenger.xul">
-    <RDF:li>chrome://messenger/content/mailMessengerOverlay.xul</RDF:li>
-  </RDF:Seq>
-  <RDF:Seq about="chrome://messenger/content/mail3PaneWindowVertLayout.xul">
     <RDF:li>chrome://messenger/content/mailMessengerOverlay.xul</RDF:li>
   </RDF:Seq>
 

@@ -234,24 +234,7 @@ CMDLINEHANDLER3_IMPL(nsMessengerBootstrap,"-mail","general.startup.mail","Start 
 NS_IMETHODIMP nsMessengerBootstrap::GetChromeUrlForTask(char **aChromeUrlForTask) 
 { 
   if (!aChromeUrlForTask) return NS_ERROR_FAILURE; 
-  nsCOMPtr<nsIPrefBranch> pPrefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
-  if (pPrefBranch)
-  {
-    nsresult rv;
-    PRInt32 layout;
-    rv = pPrefBranch->GetIntPref("mail.pane_config", &layout);		
-    if(NS_SUCCEEDED(rv))
-    {
-      if(layout == 0)
-        *aChromeUrlForTask = PL_strdup("chrome://messenger/content/messenger.xul");
-      else
-        *aChromeUrlForTask = PL_strdup("chrome://messenger/content/mail3PaneWindowVertLayout.xul");
-      
-      return NS_OK;
-      
-    }	
-  }
-  *aChromeUrlForTask = PL_strdup("chrome://messenger/content/messenger.xul"); 
+  *aChromeUrlForTask = PL_strdup("chrome://messenger/content/"); 
 
   return NS_OK; 
 }
@@ -260,14 +243,6 @@ NS_IMETHODIMP nsMessengerBootstrap::GetChromeUrlForTask(char **aChromeUrlForTask
 NS_IMETHODIMP nsMessengerBootstrap::OpenMessengerWindowWithUri(const char *windowType, const char * aFolderURI, nsMsgKey aMessageKey)
 {
   nsresult rv;
-
-#ifdef MOZ_XUL_APP
-  NS_NAMED_LITERAL_CSTRING(chromeurl, "chrome://messenger/content/");
-#else
-  nsCString chromeurl;
-  rv = GetChromeUrlForTask(getter_Copies(chromeurl));
-  if (NS_FAILED(rv)) return rv;
-#endif
 
   nsCOMPtr<nsISupportsArray> argsArray;
   rv = NS_NewISupportsArray(getter_AddRefs(argsArray));
@@ -294,10 +269,7 @@ NS_IMETHODIMP nsMessengerBootstrap::OpenMessengerWindowWithUri(const char *windo
   // we need to use the "mailnews.reuse_thread_window2" pref
   // to determine if we should open a new window, or use an existing one.
   nsCOMPtr<nsIDOMWindow> newWindow;
-  rv = wwatch->OpenWindow(0, chromeurl.get(), "_blank",
-                 "chrome,extrachrome,menubar,resizable,scrollbars,status,toolbar,dialog=no",
-                 argsArray,
-                 getter_AddRefs(newWindow));
-
-  return NS_OK;
+  return wwatch->OpenWindow(0, "chrome://messenger/content/", "_blank",
+                            "chrome,all,dialog=no", argsArray,
+                             getter_AddRefs(newWindow));
 }

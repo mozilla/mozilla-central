@@ -175,7 +175,7 @@ pref("mail.strictly_mime.parm_folding",     3);
 pref("mail.label_ascii_only_mail_as_us_ascii", false); 
 pref("mail.file_attach_binary",             false);
 pref("mail.show_headers",                   1); // some
-pref("mail.pane_config",                    0);
+pref("mail.pane_config.dynamic",            0);
 pref("mail.addr_book.mapit_url.format", "chrome://messenger-region/locale/region.properties");
 #ifdef MOZ_SUITE
 pref("mailnews.start_page.url", "chrome://messenger-region/locale/region.properties");

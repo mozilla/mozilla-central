@@ -10,7 +10,6 @@ messenger.jar:
 % overlay chrome://editor/content/editorTasksOverlay.xul                       chrome://messenger/content/mailTasksOverlay.xul
 % overlay chrome://navigator/content/navigatorOverlay.xul                      chrome://messenger/content/mailOverlay.xul
 % overlay chrome://messenger/content/messenger.xul                             chrome://messenger/content/mailMessengerOverlay.xul
-% overlay chrome://messenger/content/mail3PaneWindowVertLayout.xul             chrome://messenger/content/mailMessengerOverlay.xul
 % overlay chrome://messenger/content/messengercompose/messengercompose.xul     chrome://messenger/content/mailMessengerComposeOverlay.xul
 % overlay chrome://messenger/content/addressbook/addressbook.xul               chrome://messenger/content/mailABOverlay.xul
 % overlay chrome://messenger/content/addressbook/abSelectAddressesDialog.xul   chrome://messenger/content/mailOverlay.xul
@@ -110,7 +109,6 @@ messenger.jar:
     content/messenger/mailPrefsOverlay.xul                                     (base/prefs/resources/content/mailPrefsOverlay.xul)
     content/messenger/messenger.css                                            (base/resources/content/messenger.css)
     content/messenger/messenger.xul                                            (base/resources/content/messenger.xul)
-    content/messenger/mail3PaneWindowVertLayout.xul                            (base/resources/content/mail3PaneWindowVertLayout.xul)
     content/messenger/mailWindowExtrasOverlay.xul                              (base/resources/content/mailWindowExtrasOverlay.xul)
     content/messenger/mailWindowOverlay.xul                                    (base/resources/content/mailWindowOverlay.xul)
     content/messenger/mailWindowOverlay.js                                     (base/resources/content/mailWindowOverlay.js)

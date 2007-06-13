@@ -1657,24 +1657,7 @@ CMDLINEHANDLER3_IMPL(nsNntpService,"-news","general.startup.news","Start with ne
 NS_IMETHODIMP nsNntpService::GetChromeUrlForTask(char **aChromeUrlForTask)
 {
   if (!aChromeUrlForTask) return NS_ERROR_FAILURE;
-  nsresult rv;
-  nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-  if (NS_SUCCEEDED(rv))
-  {
-    PRInt32 layout;
-    rv = prefBranch->GetIntPref("mail.pane_config", &layout);
-    if(NS_SUCCEEDED(rv))
-    {
-      if(layout == 0)
-        *aChromeUrlForTask = PL_strdup("chrome://messenger/content/messenger.xul");
-      else
-        *aChromeUrlForTask = PL_strdup("chrome://messenger/content/mail3PaneWindowVertLayout.xul");
-
-      return NS_OK;
-
-    }
-  }
-  *aChromeUrlForTask = PL_strdup("chrome://messenger/content/messenger.xul");
+  *aChromeUrlForTask = PL_strdup("chrome://messenger/content/");
   return NS_OK;
 }
 #endif // MOZ_XUL_APP
