@@ -45,7 +45,7 @@ endif
 
 EXTRA_LIBS += \
 	$(CRYPTOLIB) \
-	$(DIST)/lib/$(LIB_PREFIX)secutil.$(LIB_SUFFIX) 
+	$(DIST)/lib/$(LIB_PREFIX)secutil.$(LIB_SUFFIX) \
 	$(DIST)/lib/$(LIB_PREFIX)dbm.$(LIB_SUFFIX) \
 	$(NULL)
 
