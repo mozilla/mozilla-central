@@ -36,7 +36,7 @@
 /*
  * certt.h - public data structures for the certificate library
  *
- * $Id: pcertt.h,v 1.14 2006-01-19 02:09:37 nelsonb%netscape.com Exp $
+ * $Id: pcertt.h,v 1.2 2007-06-13 00:24:57 rrelyea%redhat.com Exp $
  */
 #ifndef _PCERTT_H_
 #define _PCERTT_H_
@@ -146,6 +146,7 @@ struct NSSLOWCERTCertificateStr {
     SECItem validity;
     certDBEntryCert *dbEntry;		/* database entry struct */
     SECItem subjectKeyID;	/* x509v3 subject key identifier */
+    SECItem extensions;
     char *nickname;
     char *emailAddr;
     NSSLOWCERTCertTrust *trust;
@@ -156,6 +157,7 @@ struct NSSLOWCERTCertificateStr {
     int referenceCount;
 
     char nicknameSpace[200];
+    char emailAddrSpace[200];
     unsigned char certKeySpace[512];
 };
 

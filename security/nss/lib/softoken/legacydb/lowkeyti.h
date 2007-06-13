@@ -44,6 +44,29 @@
 #include "secasn1t.h"
 #include "secoidt.h"
 
+
+/*
+ * a key in/for the data base
+ */
+struct NSSLOWKEYDBKeyStr {
+    PLArenaPool *arena;
+    int version;
+    char *nickname;
+    SECItem salt;
+    SECItem derPK;
+};
+typedef struct NSSLOWKEYDBKeyStr NSSLOWKEYDBKey;
+
+typedef struct NSSLOWKEYDBHandleStr NSSLOWKEYDBHandle;
+
+#ifdef NSS_USE_KEY4_DB
+#define NSSLOWKEY_DB_FILE_VERSION 4
+#else
+#define NSSLOWKEY_DB_FILE_VERSION 3
+#endif
+
+#define NSSLOWKEY_VERSION	    0	/* what we *create* */
+
 /*
 ** Typedef for callback to get a password "key".
 */
@@ -83,6 +106,17 @@ struct NSSLOWKEYPrivateKeyInfoStr {
 };
 typedef struct NSSLOWKEYPrivateKeyInfoStr NSSLOWKEYPrivateKeyInfo;
 #define NSSLOWKEY_PRIVATE_KEY_INFO_VERSION	0	/* what we *create* */
+
+/*
+** A PKCS#8 private key info object
+*/
+struct NSSLOWKEYEncryptedPrivateKeyInfoStr {
+    PLArenaPool *arena;
+    SECAlgorithmID algorithm;
+    SECItem encryptedData;
+};
+typedef struct NSSLOWKEYEncryptedPrivateKeyInfoStr NSSLOWKEYEncryptedPrivateKeyInfo;
+
 
 typedef enum { 
     NSSLOWKEYNullKey = 0, 

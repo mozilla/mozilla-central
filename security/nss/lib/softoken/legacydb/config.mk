@@ -45,8 +45,8 @@ endif
 
 EXTRA_LIBS += \
 	$(CRYPTOLIB) \
-	$(DIST)/lib/$(LIB_PREFIX)secutil.$(LIB_SUFFIX) \
-	-lsqlite3 \
+	$(DIST)/lib/$(LIB_PREFIX)secutil.$(LIB_SUFFIX) 
+	$(DIST)/lib/$(LIB_PREFIX)dbm.$(LIB_SUFFIX) \
 	$(NULL)
 
 # can't do this in manifest.mn because OS_TARGET isn't defined there.

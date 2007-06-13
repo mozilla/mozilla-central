@@ -44,7 +44,8 @@
 #include "secoidt.h"
 #include "lowkeyti.h"
 #include "pkcs11t.h"
-#include "pcertt.h"
+
+#include "sftkdbt.h"
 
 
 /* 
@@ -348,7 +349,6 @@ struct SFTKSlotStr {
     unsigned long	sessionLockMask;	/* invariant */
     PZLock		*objectLock;		/* invariant */
     PRLock		*pwCheckLock;		/* invariant */
-    SECItem		*password;		/* variable - reset */
     PRBool		present;		/* variable -set */
     PRBool		hasTokens;		/* per load */
     PRBool		isLoggedIn;		/* variable - reset */
@@ -357,8 +357,8 @@ struct SFTKSlotStr {
     PRBool		DB_loaded;		/* per load */
     PRBool		readOnly;		/* per load */
     PRBool		optimizeSpace;		/* invariant */
-    NSSLOWCERTCertDBHandle *certDB;		/* per load */
-    NSSLOWKEYDBHandle	*keyDB;			/* per load */
+    SFTKDBHandle	*certDB;		/* per load */
+    SFTKDBHandle	*keyDB;			/* per load */
     int			minimumPinLen;		/* per load */
     PRInt32		sessionIDCount;		/* atomically incremented */
                                         	/* (preserved) */
@@ -367,7 +367,7 @@ struct SFTKSlotStr {
     int			sessionCount;           /* variable - reset */
     PRInt32             rwSessionCount;    	/* set by atomic operations */
                                           	/* (reset) */
-    PRUint32		sessionObjectHandleCount; /* variable - preserved */
+    int			sessionObjectHandleCount;/* variable - perserved */
     int			index;			/* invariant */
     PLHashTable		*tokObjHashTable;	/* invariant */
     SFTKObject		**sessObjHashTable;	/* variable - reset */
@@ -650,52 +650,12 @@ extern void sftk_FormatDESKey(unsigned char *key, int length);
 extern PRBool sftk_CheckDESKey(unsigned char *key);
 extern PRBool sftk_IsWeakKey(unsigned char *key,CK_KEY_TYPE key_type);
 
-extern CK_RV secmod_parseParameters(char *param, sftk_parameters *parsed,
-								PRBool isFIPS);
-extern void secmod_freeParams(sftk_parameters *params);
-extern char *secmod_getSecmodName(char *params, char **domain, 
-						char **filename, PRBool *rw);
-extern char ** secmod_ReadPermDB(const char *domain, const char *filename, 
-			const char *dbname, char *params, PRBool rw);
-extern SECStatus secmod_DeletePermDB(const char *domain, const char *filename,
-			const char *dbname, char *args, PRBool rw);
-extern SECStatus secmod_AddPermDB(const char *domain, const char *filename,
-			const char *dbname, char *module, PRBool rw);
-extern SECStatus secmod_ReleasePermDBData(const char *domain, 
-	const char *filename, const char *dbname, char **specList, PRBool rw);
 /* mechanism allows this operation */
 extern CK_RV sftk_MechAllowsOperation(CK_MECHANISM_TYPE type, CK_ATTRIBUTE_TYPE op);
-/*
- * OK there are now lots of options here, lets go through them all:
- *
- * configdir - base directory where all the cert, key, and module datbases live.
- * certPrefix - prefix added to the beginning of the cert database example: "
- *                      "https-server1-"
- * keyPrefix - prefix added to the beginning of the key database example: "
- *                      "https-server1-"
- * secmodName - name of the security module database (usually "secmod.db").
- * readOnly - Boolean: true if the databases are to be openned read only.
- * nocertdb - Don't open the cert DB and key DB's, just initialize the
- *                      Volatile certdb.
- * nomoddb - Don't open the security module DB, just initialize the
- *                      PKCS #11 module.
- * forceOpen - Continue to force initializations even if the databases cannot
- *                      be opened.
- */
-CK_RV sftk_DBInit(const char *configdir, const char *certPrefix,
-	 	const char *keyPrefix, PRBool readOnly, PRBool noCertDB, 
-		PRBool noKeyDB, PRBool forceOpen, 
-		NSSLOWCERTCertDBHandle **certDB, NSSLOWKEYDBHandle **keyDB);
-NSSLOWCERTCertDBHandle *sftk_getCertDB(SFTKSlot *slot);
-NSSLOWKEYDBHandle *sftk_getKeyDB(SFTKSlot *slot);
-void sftk_freeCertDB(NSSLOWCERTCertDBHandle *certHandle);
-void sftk_freeKeyDB(NSSLOWKEYDBHandle *keyHandle);
 
 /* helper function which calls nsslowkey_FindKeyByPublicKey after safely
  * acquiring a reference to the keydb from the slot */
 NSSLOWKEYPrivateKey *sftk_FindKeyByPublicKey(SFTKSlot *slot, SECItem *dbKey);
-
-const char *sftk_EvaluateConfigDir(const char *configdir, char **domain);
 
 /*
  * narrow objects
@@ -709,10 +669,6 @@ SFTKTokenObject * sftk_narrowToTokenObject(SFTKObject *);
 void sftk_addHandle(SFTKSearchResults *search, CK_OBJECT_HANDLE handle);
 PRBool sftk_poisonHandle(SFTKSlot *slot, SECItem *dbkey, 
 						CK_OBJECT_HANDLE handle);
-PRBool sftk_tokenMatch(SFTKSlot *slot, SECItem *dbKey, CK_OBJECT_HANDLE class,
-                                        CK_ATTRIBUTE_PTR theTemplate,int count);
-CK_OBJECT_HANDLE sftk_mkHandle(SFTKSlot *slot, 
-					SECItem *dbKey, CK_OBJECT_HANDLE class);
 SFTKObject * sftk_NewTokenObject(SFTKSlot *slot, SECItem *dbKey, 
 						CK_OBJECT_HANDLE handle);
 SFTKTokenObject *sftk_convertSessionToToken(SFTKObject *so);

@@ -34,19 +34,14 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-#include "lowkeyi.h"
-#include "secoid.h"
+#include "lowkeyi.h" 
+#include "secoid.h" 
 #include "secitem.h"
-#include "secder.h"
-#include "base64.h"
+#include "secder.h" 
 #include "secasn1.h"
-#include "secerr.h"
+#include "secerr.h" 
 
-#ifdef NSS_ENABLE_ECC
-#include "softoken.h"
-#endif
-
-const SEC_ASN1Template nsslowkey_AttributeTemplate[] = {
+static const SEC_ASN1Template nsslowkey_AttributeTemplate[] = {
     { SEC_ASN1_SEQUENCE, 
 	0, NULL, sizeof(NSSLOWKEYAttribute) },
     { SEC_ASN1_OBJECT_ID, offsetof(NSSLOWKEYAttribute, attrType) },
@@ -55,7 +50,7 @@ const SEC_ASN1Template nsslowkey_AttributeTemplate[] = {
     { 0 }
 };
 
-const SEC_ASN1Template nsslowkey_SetOfAttributeTemplate[] = {
+static const SEC_ASN1Template nsslowkey_SetOfAttributeTemplate[] = {
     { SEC_ASN1_SET_OF, 0, nsslowkey_AttributeTemplate },
 };
 /* ASN1 Templates for new decoder/encoder */
@@ -165,6 +160,75 @@ const SEC_ASN1Template nsslowkey_ECPrivateKeyTemplate[] = {
       SEC_BitStringTemplate }, 
     { 0, }
 };
+
+
+/*
+ * smaller version of EC_FillParams. In this code, we only need
+ * oid and DER data.
+ */
+SECStatus
+LGEC_FillParams(PRArenaPool *arena, const SECItem *encodedParams, 
+    ECParams *params)
+{
+    SECOidTag tag;
+    SECItem oid = { siBuffer, NULL, 0};
+
+#if EC_DEBUG
+    int i;
+
+    printf("Encoded params in EC_DecodeParams: ");
+    for (i = 0; i < encodedParams->len; i++) {
+	    printf("%02x:", encodedParams->data[i]);
+    }
+    printf("\n");
+#endif
+
+    oid.len = encodedParams->len - 2;
+    oid.data = encodedParams->data + 2;
+    if ((encodedParams->data[0] != SEC_ASN1_OBJECT_ID) ||
+	((tag = SECOID_FindOIDTag(&oid)) == SEC_OID_UNKNOWN)) { 
+	    PORT_SetError(SEC_ERROR_UNSUPPORTED_ELLIPTIC_CURVE);
+	    return SECFailure;
+    }
+
+    params->arena = arena;
+
+    /* For named curves, fill out curveOID */
+    params->curveOID.len = oid.len;
+    params->curveOID.data = (unsigned char *) PORT_ArenaAlloc(arena, oid.len);
+    if (params->curveOID.data == NULL)  {
+	return SECFailure;
+    }
+    memcpy(params->curveOID.data, oid.data, oid.len);
+
+    return SECSuccess;
+}
+
+/* Copy all of the fields from srcParams into dstParams
+ */
+SECStatus
+LGEC_CopyParams(PRArenaPool *arena, ECParams *dstParams,
+	      const ECParams *srcParams)
+{
+    SECStatus rv = SECFailure;
+
+    dstParams->arena = arena;
+    rv = SECITEM_CopyItem(arena, &dstParams->DEREncoding,
+				 &srcParams->DEREncoding);
+    if (rv != SECSuccess) {
+	goto loser;
+    }
+    rv =SECITEM_CopyItem(arena, &dstParams->curveOID,
+				&srcParams->curveOID);
+    if (rv != SECSuccess) {
+	goto loser;
+    }
+
+    return SECSuccess;
+
+loser:
+    return SECFailure;
+}
 #endif /* NSS_ENABLE_ECC */
 /*
  * See bugzilla bug 125359
@@ -380,7 +444,7 @@ nsslowkey_ConvertToPublicKey(NSSLOWKEYPrivateKey *privk)
 	    if (rv != SECSuccess) break;
 	    pubk->u.ec.ecParams.arena = arena;
 	    /* Copy the rest of the params */
-	    rv = EC_CopyParams(arena, &(pubk->u.ec.ecParams),
+	    rv = LGEC_CopyParams(arena, &(pubk->u.ec.ecParams),
 			       &(privk->u.ec.ecParams));
 	    if (rv == SECSuccess) return pubk;
 	}
@@ -396,122 +460,3 @@ nsslowkey_ConvertToPublicKey(NSSLOWKEYPrivateKey *privk)
     return NULL;
 }
 
-NSSLOWKEYPrivateKey *
-nsslowkey_CopyPrivateKey(NSSLOWKEYPrivateKey *privKey)
-{
-    NSSLOWKEYPrivateKey *returnKey = NULL;
-    SECStatus rv = SECFailure;
-    PLArenaPool *poolp;
-
-    if(!privKey) {
-	return NULL;
-    }
-
-    poolp = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
-    if(!poolp) {
-	return NULL;
-    }
-
-    returnKey = (NSSLOWKEYPrivateKey*)PORT_ArenaZAlloc(poolp, sizeof(NSSLOWKEYPrivateKey));
-    if(!returnKey) {
-	rv = SECFailure;
-	goto loser;
-    }
-
-    returnKey->keyType = privKey->keyType;
-    returnKey->arena = poolp;
-
-    switch(privKey->keyType) {
-	case NSSLOWKEYRSAKey:
-	    rv = SECITEM_CopyItem(poolp, &(returnKey->u.rsa.modulus), 
-	    				&(privKey->u.rsa.modulus));
-	    if(rv != SECSuccess) break;
-	    rv = SECITEM_CopyItem(poolp, &(returnKey->u.rsa.version), 
-	    				&(privKey->u.rsa.version));
-	    if(rv != SECSuccess) break;
-	    rv = SECITEM_CopyItem(poolp, &(returnKey->u.rsa.publicExponent), 
-	    				&(privKey->u.rsa.publicExponent));
-	    if(rv != SECSuccess) break;
-	    rv = SECITEM_CopyItem(poolp, &(returnKey->u.rsa.privateExponent), 
-	    				&(privKey->u.rsa.privateExponent));
-	    if(rv != SECSuccess) break;
-	    rv = SECITEM_CopyItem(poolp, &(returnKey->u.rsa.prime1), 
-	    				&(privKey->u.rsa.prime1));
-	    if(rv != SECSuccess) break;
-	    rv = SECITEM_CopyItem(poolp, &(returnKey->u.rsa.prime2), 
-	    				&(privKey->u.rsa.prime2));
-	    if(rv != SECSuccess) break;
-	    rv = SECITEM_CopyItem(poolp, &(returnKey->u.rsa.exponent1), 
-	    				&(privKey->u.rsa.exponent1));
-	    if(rv != SECSuccess) break;
-	    rv = SECITEM_CopyItem(poolp, &(returnKey->u.rsa.exponent2), 
-	    				&(privKey->u.rsa.exponent2));
-	    if(rv != SECSuccess) break;
-	    rv = SECITEM_CopyItem(poolp, &(returnKey->u.rsa.coefficient), 
-	    				&(privKey->u.rsa.coefficient));
-	    if(rv != SECSuccess) break;
-	    break;
-	case NSSLOWKEYDSAKey:
-	    rv = SECITEM_CopyItem(poolp, &(returnKey->u.dsa.publicValue),
-	    				&(privKey->u.dsa.publicValue));
-	    if(rv != SECSuccess) break;
-	    rv = SECITEM_CopyItem(poolp, &(returnKey->u.dsa.privateValue),
-	    				&(privKey->u.dsa.privateValue));
-	    if(rv != SECSuccess) break;
-	    returnKey->u.dsa.params.arena = poolp;
-	    rv = SECITEM_CopyItem(poolp, &(returnKey->u.dsa.params.prime),
-					&(privKey->u.dsa.params.prime));
-	    if(rv != SECSuccess) break;
-	    rv = SECITEM_CopyItem(poolp, &(returnKey->u.dsa.params.subPrime),
-					&(privKey->u.dsa.params.subPrime));
-	    if(rv != SECSuccess) break;
-	    rv = SECITEM_CopyItem(poolp, &(returnKey->u.dsa.params.base),
-					&(privKey->u.dsa.params.base));
-	    if(rv != SECSuccess) break;
-	    break;
-	case NSSLOWKEYDHKey:
-	    rv = SECITEM_CopyItem(poolp, &(returnKey->u.dh.publicValue),
-	    				&(privKey->u.dh.publicValue));
-	    if(rv != SECSuccess) break;
-	    rv = SECITEM_CopyItem(poolp, &(returnKey->u.dh.privateValue),
-	    				&(privKey->u.dh.privateValue));
-	    if(rv != SECSuccess) break;
-	    returnKey->u.dsa.params.arena = poolp;
-	    rv = SECITEM_CopyItem(poolp, &(returnKey->u.dh.prime),
-					&(privKey->u.dh.prime));
-	    if(rv != SECSuccess) break;
-	    rv = SECITEM_CopyItem(poolp, &(returnKey->u.dh.base),
-					&(privKey->u.dh.base));
-	    if(rv != SECSuccess) break;
-	    break;
-#ifdef NSS_ENABLE_ECC
-	case NSSLOWKEYECKey:
-	    rv = SECITEM_CopyItem(poolp, &(returnKey->u.ec.version),
-	    				&(privKey->u.ec.version));
-	    if(rv != SECSuccess) break;
-	    rv = SECITEM_CopyItem(poolp, &(returnKey->u.ec.publicValue),
-	    				&(privKey->u.ec.publicValue));
-	    if(rv != SECSuccess) break;
-	    rv = SECITEM_CopyItem(poolp, &(returnKey->u.ec.privateValue),
-	    				&(privKey->u.ec.privateValue));
-	    if(rv != SECSuccess) break;
-	    returnKey->u.ec.ecParams.arena = poolp;
-	    /* Copy the rest of the params */
-	    rv = EC_CopyParams(poolp, &(returnKey->u.ec.ecParams),
-			       &(privKey->u.ec.ecParams));
-	    if (rv != SECSuccess) break;
-	    break;
-#endif /* NSS_ENABLE_ECC */
-	default:
-	    rv = SECFailure;
-    }
-
-loser:
-
-    if(rv != SECSuccess) {
-	PORT_FreeArena(poolp, PR_TRUE);
-	returnKey = NULL;
-    }
-
-    return returnKey;
-}

@@ -34,7 +34,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: lowkeyi.h,v 1.11 2007-06-13 00:24:56 rrelyea%redhat.com Exp $ */
+/* $Id: lowkeyi.h,v 1.2 2007-06-13 00:24:57 rrelyea%redhat.com Exp $ */
 
 #ifndef _LOWKEYI_H_
 #define _LOWKEYI_H_
@@ -42,7 +42,9 @@
 #include "prtypes.h"
 #include "seccomon.h"
 #include "secoidt.h"
+#include "pcertt.h"
 #include "lowkeyti.h"
+#include "sdb.h" 
 
 SEC_BEGIN_PROTOS
 
@@ -63,6 +65,51 @@ extern void prepare_low_dh_priv_key_for_asn1(NSSLOWKEYPrivateKey *key);
 extern void prepare_low_ec_priv_key_for_asn1(NSSLOWKEYPrivateKey *key);
 extern void prepare_low_ecparams_for_asn1(ECParams *params);
 #endif /* NSS_ENABLE_ECC */
+
+typedef char * (* NSSLOWKEYDBNameFunc)(void *arg, int dbVersion);
+    
+/*
+** Open a key database.
+*/
+extern NSSLOWKEYDBHandle *nsslowkey_OpenKeyDB(PRBool readOnly,
+					   const char *domain,
+					   const char *prefix,
+					   NSSLOWKEYDBNameFunc namecb,
+					   void *cbarg);
+
+/*
+** Close the specified key database.
+*/
+extern void nsslowkey_CloseKeyDB(NSSLOWKEYDBHandle *handle);
+
+/*
+ * Get the version number of the database
+ */
+extern int nsslowkey_GetKeyDBVersion(NSSLOWKEYDBHandle *handle);
+
+/*
+** Delete a key from the database
+*/
+extern SECStatus nsslowkey_DeleteKey(NSSLOWKEYDBHandle *handle, 
+				  const SECItem *pubkey);
+
+/*
+** Store a key in the database, indexed by its public key modulus.
+**	"pk" is the private key to store
+**	"f" is a the callback function for getting the password
+**	"arg" is the argument for the callback
+*/
+extern SECStatus nsslowkey_StoreKeyByPublicKey(NSSLOWKEYDBHandle *handle, 
+					    NSSLOWKEYPrivateKey *pk,
+					    SECItem *pubKeyData,
+					    char *nickname,
+					    SDB *sdb);
+
+/* does the key for this cert exist in the database filed by modulus */
+extern PRBool nsslowkey_KeyForCertExists(NSSLOWKEYDBHandle *handle,
+					 NSSLOWCERTCertificate *cert);
+/* does a key with this ID already exist? */
+extern PRBool nsslowkey_KeyForIDExists(NSSLOWKEYDBHandle *handle, SECItem *id);
 
 /*
 ** Destroy a private key object.
@@ -96,13 +143,56 @@ extern unsigned int nsslowkey_PrivateModulusLen(NSSLOWKEYPrivateKey *privKey);
 extern NSSLOWKEYPublicKey 
 		*nsslowkey_ConvertToPublicKey(NSSLOWKEYPrivateKey *privateKey);
 
-/* Make a copy of a low private key in it's own arena.
- * a return of NULL indicates an error.
+
+SECStatus
+nsslowkey_UpdateNickname(NSSLOWKEYDBHandle *handle,
+                           NSSLOWKEYPrivateKey *privkey,
+                           SECItem *pubKeyData,
+                           char *nickname,
+                           SDB *sdb);
+
+/* Store key by modulus and specify an encryption algorithm to use.
+ *   handle is the pointer to the key database,
+ *   privkey is the private key to be stored,
+ *   f and arg are the function and arguments to the callback
+ *       to get a password,
+ *   algorithm is the algorithm which the privKey is to be stored.
+ * A return of anything but SECSuccess indicates failure.
+ */
+extern SECStatus 
+nsslowkey_StoreKeyByPublicKeyAlg(NSSLOWKEYDBHandle *handle, 
+			      NSSLOWKEYPrivateKey *privkey, 
+			      SECItem *pubKeyData,
+			      char *nickname,
+			      SDB *sdb,
+                              PRBool update); 
+
+/* Find key by modulus.  This function is the inverse of store key
+ * by modulus.  An attempt to locate the key with "modulus" is 
+ * performed.  If the key is found, the private key is returned,
+ * else NULL is returned.
+ *   modulus is the modulus to locate
  */
 extern NSSLOWKEYPrivateKey *
-nsslowkey_CopyPrivateKey(NSSLOWKEYPrivateKey *privKey);
+nsslowkey_FindKeyByPublicKey(NSSLOWKEYDBHandle *handle, SECItem *modulus, 
+			  SDB *sdb);
 
+extern char *
+nsslowkey_FindKeyNicknameByPublicKey(NSSLOWKEYDBHandle *handle,
+                                        SECItem *modulus, SDB *sdb);
 
+#ifdef NSS_ENABLE_ECC
+/*
+ * smaller version of EC_FillParams. In this code, we only need
+ * oid and DER data.
+ */
+SECStatus LGEC_FillParams(PRArenaPool *arena, const SECItem *encodedParams, 
+    ECParams *params);
+
+/* Copy all of the fields from srcParams into dstParams */
+SECStatus LGEC_CopyParams(PRArenaPool *arena, ECParams *dstParams,
+	      const ECParams *srcParams);
+#endif
 SEC_END_PROTOS
 
 #endif /* _LOWKEYI_H_ */

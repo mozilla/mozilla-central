@@ -36,7 +36,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: fipstest.c,v 1.21 2006-09-22 18:33:25 wtchang%redhat.com Exp $ */
+/* $Id: fipstest.c,v 1.22 2007-06-13 00:24:56 rrelyea%redhat.com Exp $ */
 
 #include "softoken.h"   /* Required for RC2-ECB, RC2-CBC, RC4, DES-ECB,  */
                         /*              DES-CBC, DES3-ECB, DES3-CBC, RSA */
@@ -49,11 +49,6 @@
 #ifdef NSS_ENABLE_ECC
 #include "secdert.h"    /* Required for ECDSA */
 #include "ec.h"         /* Required for ECDSA */
-extern SECStatus
-EC_DecodeParams(const SECItem *encodedParams, ECParams **ecparams);
-extern SECStatus
-EC_CopyParams(PRArenaPool *arena, ECParams *dstParams,
-              const ECParams *srcParams);
 #endif
 
 

@@ -38,21 +38,17 @@
 /*
  * Certificate handling code
  *
- * $Id: lowcert.c,v 1.23 2006-03-21 19:33:52 rrelyea%redhat.com Exp $
+ * $Id: lowcert.c,v 1.2 2007-06-13 00:24:57 rrelyea%redhat.com Exp $
  */
 
 #include "seccomon.h"
 #include "secder.h"
 #include "nssilock.h"
-#include "prmon.h"
-#include "prtime.h"
 #include "lowkeyi.h"
-#include "pcert.h"
 #include "secasn1.h"
 #include "secoid.h"
 #include "secerr.h"
-#include "softoken.h"
-
+#include "pcert.h"
 
 static const SEC_ASN1Template nsslowcert_SubjectPublicKeyInfoTemplate[] = {
     { SEC_ASN1_SEQUENCE, 0, NULL, sizeof(NSSLOWCERTSubjectPublicKeyInfo) },
@@ -109,26 +105,6 @@ prepare_low_dh_pub_key_for_asn1(NSSLOWKEYPublicKey *pubk)
     pubk->u.dh.prime.type = siUnsignedInteger;
     pubk->u.dh.base.type = siUnsignedInteger;
     pubk->u.dh.publicValue.type = siUnsignedInteger;
-}
-
-/*
- * Allow use of default cert database, so that apps(such as mozilla) don't
- * have to pass the handle all over the place.
- */
-static NSSLOWCERTCertDBHandle *default_pcert_db_handle = 0;
-
-void
-nsslowcert_SetDefaultCertDB(NSSLOWCERTCertDBHandle *handle)
-{
-    default_pcert_db_handle = handle;
-    
-    return;
-}
-
-NSSLOWCERTCertDBHandle *
-nsslowcert_GetDefaultCertDB(void)
-{
-    return(default_pcert_db_handle);
 }
 
 /*
@@ -211,7 +187,7 @@ nsslowcert_GetValidityFields(unsigned char *buf,int buf_length,
 static int
 nsslowcert_GetCertFields(unsigned char *cert,int cert_length,
 	SECItem *issuer, SECItem *serial, SECItem *derSN, SECItem *subject,
-	SECItem *valid, SECItem *subjkey)
+	SECItem *valid, SECItem *subjkey, SECItem *extensions)
 {
     unsigned char *buf;
     unsigned int buf_length;
@@ -269,10 +245,25 @@ nsslowcert_GetCertFields(unsigned char *cert,int cert_length,
     if (subjkey->data == NULL) return SECFailure;
     buf_length -= (subjkey->data-buf) + subjkey->len;
     buf = subjkey->data + subjkey->len;
+
+    extensions->data = NULL;
+    extensions->len = 0;
+    while (buf_length > 0) {
+	/* EXTENSIONS */
+	if (buf[0] == 0xa3) {
+	    extensions->data = nsslowcert_dataStart(buf,buf_length, 
+					&extensions->len, PR_FALSE, NULL);
+	    break;
+	}
+	dummy = nsslowcert_dataStart(buf,buf_length,&dummylen,PR_FALSE,NULL);
+	if (dummy == NULL) return SECFailure;
+	buf_length -= (dummy - buf) + dummylen;
+	buf = dummy + dummylen;
+    }
     return SECSuccess;
 }
 
-SECStatus
+static SECStatus
 nsslowcert_GetCertTimes(NSSLOWCERTCertificate *c, PRTime *notBefore, PRTime *notAfter)
 {
     int rv;
@@ -412,6 +403,196 @@ loser:
 }
 
 
+static char *
+nsslowcert_EmailName(SECItem *derDN, char *space, unsigned int len)
+{
+    unsigned char *buf;
+    unsigned int buf_length;
+
+    /* unwrap outer sequence */
+    buf=nsslowcert_dataStart(derDN->data,derDN->len,&buf_length,PR_FALSE,NULL);
+    if (buf == NULL) return NULL;
+
+    /* Walk each RDN */
+    while (buf_length > 0) {
+	unsigned char *rdn;
+	unsigned int rdn_length;
+
+	/* grab next rdn */
+	rdn=nsslowcert_dataStart(buf, buf_length, &rdn_length, PR_FALSE, NULL);
+	if (rdn == NULL) { return NULL; }
+	buf_length -= (rdn - buf) + rdn_length;
+	buf = rdn+rdn_length;
+
+	while (rdn_length > 0) {
+	    unsigned char *ava;
+	    unsigned int ava_length;
+	    unsigned char *oid;
+	    unsigned int oid_length;
+	    unsigned char *name;
+	    unsigned int name_length;
+	    SECItem oidItem;
+	    SECOidTag type;
+
+	    /* unwrap the ava */
+	    ava=nsslowcert_dataStart(rdn, rdn_length, &ava_length, PR_FALSE, 
+					NULL);
+	    if (ava == NULL) return NULL;
+	    rdn_length -= (ava-rdn)+ava_length;
+	    rdn = ava + ava_length;
+
+	    oid=nsslowcert_dataStart(ava, ava_length, &oid_length, PR_FALSE, 
+					NULL);
+	    if (oid == NULL) { return NULL; }
+	    ava_length -= (oid-ava)+oid_length;
+	    ava = oid+oid_length;
+
+	    name=nsslowcert_dataStart(ava, ava_length, &name_length, PR_FALSE, 
+					NULL);
+	    if (oid == NULL) { return NULL; }
+	    ava_length -= (name-ava)+name_length;
+	    ava = name+name_length;
+
+	    oidItem.data = oid;
+	    oidItem.len = oid_length;
+	    type = SECOID_FindOIDTag(&oidItem);
+	    if ((type == SEC_OID_PKCS9_EMAIL_ADDRESS) || 
+					(type == SEC_OID_RFC1274_MAIL)) {
+		/* Email is supposed to be IA5String, so no 
+		 * translation necessary */
+		char *emailAddr;
+		emailAddr = (char *)pkcs11_copyStaticData(name,name_length+1,
+					(unsigned char *)space,len);
+		if (emailAddr) {
+		    emailAddr[name_length] = 0;
+		}
+		return emailAddr;
+	    }
+	}
+    }
+    return NULL;
+}
+
+static char *
+nsslowcert_EmailAltName(NSSLOWCERTCertificate *cert, char *space, 
+			unsigned int len)
+{
+    unsigned char *exts;
+    unsigned int exts_length;
+
+    /* unwrap the sequence */
+    exts = nsslowcert_dataStart(cert->extensions.data, cert->extensions.len,
+				 &exts_length, PR_FALSE, NULL);
+    /* loop through extension */
+    while (exts && exts_length > 0) {
+	unsigned char * ext;
+	unsigned int ext_length;
+	unsigned char *oid;	
+	unsigned int oid_length;
+	unsigned char *nameList;
+	unsigned int nameList_length;
+	SECItem oidItem;
+	SECOidTag type;
+
+	ext = nsslowcert_dataStart(exts, exts_length, &ext_length, 
+					PR_FALSE, NULL);
+	if (ext == NULL) { break; }
+	exts_length -= (ext - exts) + ext_length;
+	exts = ext+ext_length;
+
+	oid=nsslowcert_dataStart(ext, ext_length, &oid_length, PR_FALSE, NULL);
+	if (oid == NULL) { break; }
+	ext_length -= (oid - ext) + oid_length;
+	ext = oid+oid_length;
+	oidItem.data = oid;
+	oidItem.len = oid_length;
+	type = SECOID_FindOIDTag(&oidItem);
+
+	/* get Alt Extension */
+	if (type != SEC_OID_X509_SUBJECT_ALT_NAME) {
+		continue;
+	}
+
+	/* skip passed the critical flag */
+	if (ext[0] == 0x01) { /* BOOLEAN */
+	    unsigned char *dummy;
+	    unsigned int dummy_length;
+	    dummy = nsslowcert_dataStart(ext, ext_length, &dummy_length, 
+					PR_FALSE, NULL);
+	    if (dummy == NULL) { break; } 
+	    ext_length -= (dummy - ext) + dummy_length;
+	    ext = dummy+dummy_length;
+	}
+
+	   
+	/* unwrap the name list */ 
+	nameList = nsslowcert_dataStart(ext, ext_length, &nameList_length, 
+					PR_FALSE, NULL);
+	if (nameList == NULL) { break; }
+	ext_length -= (nameList - ext) + nameList_length;
+	ext = nameList+nameList_length;
+	nameList = nsslowcert_dataStart(nameList, nameList_length,
+					&nameList_length, PR_FALSE, NULL);
+	/* loop through the name list */
+	while (nameList && nameList_length > 0) {
+	    unsigned char *thisName;
+	    unsigned int thisName_length;
+
+	    thisName = nsslowcert_dataStart(nameList, nameList_length,
+					&thisName_length, PR_FALSE, NULL);
+	    if (thisName == NULL) { break; }
+	    if (nameList[0] == 0xa2) { /* DNS Name */
+		SECItem dn;
+	        char *emailAddr;
+
+		dn.data = thisName;
+		dn.len = thisName_length;
+		emailAddr = nsslowcert_EmailName(&dn, space, len);
+		if (emailAddr) {
+		    return emailAddr;
+		}
+	    }
+	    if (nameList[0] == 0x81) { /* RFC 822name */
+		char *emailAddr;
+		emailAddr = (char *)pkcs11_copyStaticData(thisName,
+			thisName_length+1, (unsigned char *)space,len);
+		if (emailAddr) {
+		    emailAddr[thisName_length] = 0;
+		}
+		return emailAddr;
+	    }
+	    nameList_length -= (thisName-nameList) + thisName_length;
+	    nameList = thisName + thisName_length;
+	}
+	break;
+    }
+    return NULL;
+}
+
+static char *
+nsslowcert_GetCertificateEmailAddress(NSSLOWCERTCertificate *cert)
+{
+    char *emailAddr = NULL;
+    char *str;
+
+    emailAddr = nsslowcert_EmailName(&cert->derSubject,cert->emailAddrSpace,
+					sizeof(cert->emailAddrSpace));
+    /* couldn't find the email address in the DN, check the subject Alt name */
+    if (!emailAddr && cert->extensions.data) {
+	emailAddr = nsslowcert_EmailAltName(cert, cert->emailAddrSpace,
+					sizeof(cert->emailAddrSpace));
+    }
+
+
+    /* make it lower case */
+    str = emailAddr;
+    while ( str && *str ) {
+	*str = tolower( *str );
+	str++;
+    }
+    return emailAddr;
+
+}
 
 /*
  * take a DER certificate and decode it into a certificate structure
@@ -438,7 +619,7 @@ nsslowcert_DecodeDERCertificate(SECItem *derSignedCert, char *nickname)
     /* decode the certificate info */
     rv = nsslowcert_GetCertFields(cert->derCert.data, cert->derCert.len,
 	&cert->derIssuer, &cert->serialNumber, &cert->derSN, &cert->derSubject,
-	&cert->validity, &cert->derSubjKeyInfo);
+	&cert->validity, &cert->derSubjKeyInfo, &cert->extensions);
 
     /* cert->subjectKeyID;	 x509v3 subject key identifier */
     cert->subjectKeyID.data = NULL;
@@ -470,11 +651,11 @@ nsslowcert_DecodeDERCertificate(SECItem *derSignedCert, char *nickname)
     if ( rv != SECSuccess ) {
 	goto loser;
     }
+#endif
 
     /* set the email address */
-    cert->emailAddr = CERT_GetCertificateEmailAddress(cert);
+    cert->emailAddr = nsslowcert_GetCertificateEmailAddress(cert);
     
-#endif
     
     cert->referenceCount = 1;
     
@@ -527,7 +708,8 @@ nsslowcert_KeyFromDERCert(PRArenaPool *arena, SECItem *derCert, SECItem *key)
     PORT_Memset(&certkey, 0, sizeof(NSSLOWCERTCertKey));    
 
     rv = nsslowcert_GetCertFields(derCert->data, derCert->len,
-	&certkey.derIssuer, &certkey.serialNumber, NULL, NULL, NULL, NULL);
+	&certkey.derIssuer, &certkey.serialNumber, NULL, NULL, 
+	NULL, NULL, NULL);
 
     if ( rv ) {
 	goto loser;
@@ -623,7 +805,7 @@ nsslowcert_ExtractPublicKey(NSSLOWCERTCertificate *cert)
 	/* Fill out the rest of the ecParams structure 
 	 * based on the encoded params
 	 */
-	if (EC_FillParams(arena, &pubk->u.ec.ecParams.DEREncoding,
+	if (LGEC_FillParams(arena, &pubk->u.ec.ecParams.DEREncoding,
 	    &pubk->u.ec.ecParams) != SECSuccess) 
 	    break;
 

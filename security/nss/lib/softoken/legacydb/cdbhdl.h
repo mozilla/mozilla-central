@@ -1,7 +1,4 @@
-/*
- * private.h - Private data structures for the software token library
- *
- * ***** BEGIN LICENSE BLOCK *****
+/* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -36,51 +33,53 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: keydbi.h,v 1.7 2005-09-28 17:12:17 relyea%netscape.com Exp $ */
-
-#ifndef _KEYDBI_H_
-#define _KEYDBI_H_
+/*
+ * cdbhdl.h - certificate database handle
+ *   private to the certdb module
+ *
+ * $Id: cdbhdl.h,v 1.2 2007-06-13 00:24:57 rrelyea%redhat.com Exp $
+ */
+#ifndef _CDBHDL_H_
+#define _CDBHDL_H_
 
 #include "nspr.h"
-#include "seccomon.h"
 #include "mcom_db.h"
+#include "pcertt.h"
+#include "prtypes.h"
 
 /*
- * Handle structure for open key databases
+ * Handle structure for open certificate databases
  */
-struct NSSLOWKEYDBHandleStr {
-    DB *db;
-    DB *updatedb;		/* used when updating an old version */
-    SECItem *global_salt;	/* password hashing salt for this db */
-    int version;		/* version of the database */
-    char *appname;		/* multiaccess app name */
-    char *dbname;		/* name of the openned DB */
-    PRBool readOnly;		/* is the DB read only */
-    PRLock *lock;
-    PRInt32 ref;		/* reference count */
+struct NSSLOWCERTCertDBHandleStr {
+    DB *permCertDB;
+    PZMonitor *dbMon;
+    PRBool dbVerify;
+    PRInt32  ref; /* reference count */
 };
 
-/*
-** Typedef for callback for traversing key database.
-**      "key" is the key used to index the data in the database (nickname)
-**      "data" is the key data
-**      "pdata" is the user's data 
-*/
-typedef SECStatus (* NSSLOWKEYTraverseKeysFunc)(DBT *key, DBT *data, void *pdata);
+#ifdef DBM_USING_NSPR
+#define NO_RDONLY	PR_RDONLY
+#define NO_RDWR		PR_RDWR
+#define NO_CREATE	(PR_RDWR | PR_CREATE_FILE | PR_TRUNCATE)
+#else
+#define NO_RDONLY	O_RDONLY
+#define NO_RDWR		O_RDWR
+#define NO_CREATE	(O_RDWR | O_CREAT | O_TRUNC)
+#endif
 
+typedef DB * (*rdbfunc)(const char *appName, const char *prefix, 
+				const char *type, int flags);
+typedef int (*rdbstatusfunc)(void);
 
-SEC_BEGIN_PROTOS
+#define RDB_FAIL 1
+#define RDB_RETRY 2
 
-/*
-** Traverse the entire key database, and pass the nicknames and keys to a 
-** user supplied function.
-**      "f" is the user function to call for each key
-**      "udata" is the user's data, which is passed through to "f"
-*/
-extern SECStatus nsslowkey_TraverseKeys(NSSLOWKEYDBHandle *handle, 
-				NSSLOWKEYTraverseKeysFunc f,
-				void *udata);
+DB * rdbopen(const char *appName, const char *prefix, 
+				const char *type, int flags, int *status);
 
-SEC_END_PROTOS
+DB *dbsopen (const char *dbname , int flags, int mode, DBTYPE type, 
+						const void * appData);
+SECStatus db_Copy(DB *dest,DB *src);
+int db_InitComplete(DB *db);
 
-#endif /* _KEYDBI_H_ */
+#endif

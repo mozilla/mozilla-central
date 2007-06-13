@@ -39,7 +39,7 @@
 #define _PKCS11N_H_
 
 #ifdef DEBUG
-static const char CKT_CVS_ID[] = "@(#) $RCSfile: pkcs11n.h,v $ $Revision: 1.15 $ $Date: 2005-09-28 17:12:17 $";
+static const char CKT_CVS_ID[] = "@(#) $RCSfile: pkcs11n.h,v $ $Revision: 1.16 $ $Date: 2007-06-13 00:24:56 $";
 #endif /* DEBUG */
 
 /*
@@ -50,10 +50,10 @@ static const char CKT_CVS_ID[] = "@(#) $RCSfile: pkcs11n.h,v $ $Revision: 1.15 $
  */
 
 /*
- * NSSCK_VENDOR_NETSCAPE
+ * NSSCK_VENDOR_NSS
  *
  * Cryptoki reserves the high half of all the number spaces for
- * vendor-defined use.  I'd like to keep all of our Netscape-
+ * vendor-defined use.  I'd like to keep all of our NSS-
  * specific values together, but not in the oh-so-obvious
  * 0x80000001, 0x80000002, etc. area.  So I've picked an offset,
  * and constructed values for the beginnings of our spaces.
@@ -61,54 +61,56 @@ static const char CKT_CVS_ID[] = "@(#) $RCSfile: pkcs11n.h,v $ $Revision: 1.15 $
  * Note that some "historical" Netscape values don't fall within
  * this range.
  */
-#define NSSCK_VENDOR_NETSCAPE 0x4E534350 /* NSCP */
+#define NSSCK_VENDOR_NSS 0x4E534350 /* NSCP */
 
 /*
- * Netscape-defined object classes
+ * NSS-defined object classes
  * 
  */
-#define CKO_NETSCAPE (CKO_VENDOR_DEFINED|NSSCK_VENDOR_NETSCAPE)
+#define CKO_NSS (CKO_VENDOR_DEFINED|NSSCK_VENDOR_NSS)
 
-#define CKO_NETSCAPE_CRL                (CKO_NETSCAPE + 1)
-#define CKO_NETSCAPE_SMIME              (CKO_NETSCAPE + 2)
-#define CKO_NETSCAPE_TRUST              (CKO_NETSCAPE + 3)
-#define CKO_NETSCAPE_BUILTIN_ROOT_LIST  (CKO_NETSCAPE + 4)
-#define CKO_NETSCAPE_NEWSLOT            (CKO_NETSCAPE + 5)
-#define CKO_NETSCAPE_DELSLOT            (CKO_NETSCAPE + 6)
+#define CKO_NSS_CRL                (CKO_NSS + 1)
+#define CKO_NSS_SMIME              (CKO_NSS + 2)
+#define CKO_NSS_TRUST              (CKO_NSS + 3)
+#define CKO_NSS_BUILTIN_ROOT_LIST  (CKO_NSS + 4)
+#define CKO_NSS_NEWSLOT            (CKO_NSS + 5)
+#define CKO_NSS_DELSLOT            (CKO_NSS + 6)
 
-/*
- * Netscape-defined key types
- *
- */
-#define CKK_NETSCAPE (CKK_VENDOR_DEFINED|NSSCK_VENDOR_NETSCAPE)
-
-#define CKK_NETSCAPE_PKCS8              (CKK_NETSCAPE + 1)
-/*
- * Netscape-defined certificate types
- *
- */
-#define CKC_NETSCAPE (CKC_VENDOR_DEFINED|NSSCK_VENDOR_NETSCAPE)
 
 /*
- * Netscape-defined object attributes
+ * NSS-defined key types
  *
  */
-#define CKA_NETSCAPE (CKA_VENDOR_DEFINED|NSSCK_VENDOR_NETSCAPE)
+#define CKK_NSS (CKK_VENDOR_DEFINED|NSSCK_VENDOR_NSS)
 
-#define CKA_NETSCAPE_URL                (CKA_NETSCAPE +  1)
-#define CKA_NETSCAPE_EMAIL              (CKA_NETSCAPE +  2)
-#define CKA_NETSCAPE_SMIME_INFO         (CKA_NETSCAPE +  3)
-#define CKA_NETSCAPE_SMIME_TIMESTAMP    (CKA_NETSCAPE +  4)
-#define CKA_NETSCAPE_PKCS8_SALT         (CKA_NETSCAPE +  5)
-#define CKA_NETSCAPE_PASSWORD_CHECK     (CKA_NETSCAPE +  6)
-#define CKA_NETSCAPE_EXPIRES            (CKA_NETSCAPE +  7)
-#define CKA_NETSCAPE_KRL                (CKA_NETSCAPE +  8)
+#define CKK_NSS_PKCS8              (CKK_NSS + 1)
+/*
+ * NSS-defined certificate types
+ *
+ */
+#define CKC_NSS (CKC_VENDOR_DEFINED|NSSCK_VENDOR_NSS)
 
-#define CKA_NETSCAPE_PQG_COUNTER        (CKA_NETSCAPE +  20)
-#define CKA_NETSCAPE_PQG_SEED           (CKA_NETSCAPE +  21)
-#define CKA_NETSCAPE_PQG_H              (CKA_NETSCAPE +  22)
-#define CKA_NETSCAPE_PQG_SEED_BITS      (CKA_NETSCAPE +  23)
-#define CKA_NETSCAPE_MODULE_SPEC        (CKA_NETSCAPE +  24)
+/*
+ * NSS-defined object attributes
+ *
+ */
+#define CKA_NSS (CKA_VENDOR_DEFINED|NSSCK_VENDOR_NSS)
+
+#define CKA_NSS_URL                (CKA_NSS +  1)
+#define CKA_NSS_EMAIL              (CKA_NSS +  2)
+#define CKA_NSS_SMIME_INFO         (CKA_NSS +  3)
+#define CKA_NSS_SMIME_TIMESTAMP    (CKA_NSS +  4)
+#define CKA_NSS_PKCS8_SALT         (CKA_NSS +  5)
+#define CKA_NSS_PASSWORD_CHECK     (CKA_NSS +  6)
+#define CKA_NSS_EXPIRES            (CKA_NSS +  7)
+#define CKA_NSS_KRL                (CKA_NSS +  8)
+
+#define CKA_NSS_PQG_COUNTER        (CKA_NSS +  20)
+#define CKA_NSS_PQG_SEED           (CKA_NSS +  21)
+#define CKA_NSS_PQG_H              (CKA_NSS +  22)
+#define CKA_NSS_PQG_SEED_BITS      (CKA_NSS +  23)
+#define CKA_NSS_MODULE_SPEC        (CKA_NSS +  24)
+#define CKA_NSS_OVERRIDE_EXTENSIONS (CKA_NSS +  25)
 
 /*
  * Trust attributes:
@@ -117,7 +119,7 @@ static const char CKT_CVS_ID[] = "@(#) $RCSfile: pkcs11n.h,v $ $Revision: 1.15 $
  * put them all in one place.
  */
 
-#define CKA_TRUST (CKA_NETSCAPE + 0x2000)
+#define CKA_TRUST (CKA_NSS + 0x2000)
 
 /* "Usage" key information */
 #define CKA_TRUST_DIGITAL_SIGNATURE     (CKA_TRUST +  1)
@@ -142,7 +144,7 @@ static const char CKT_CVS_ID[] = "@(#) $RCSfile: pkcs11n.h,v $ $Revision: 1.15 $
 #define CKA_CERT_SHA1_HASH	        (CKA_TRUST + 100)
 #define CKA_CERT_MD5_HASH		(CKA_TRUST + 101)
 
-/* Netscape trust stuff */
+/* NSS trust stuff */
 /* XXX fgmr new ones here-- step-up, etc. */
 
 /* HISTORICAL: define used to pass in the database key for DSA private keys */
@@ -150,13 +152,13 @@ static const char CKT_CVS_ID[] = "@(#) $RCSfile: pkcs11n.h,v $ $Revision: 1.15 $
 #define CKA_NETSCAPE_TRUST              0x80000001L
 
 /*
- * Netscape-defined crypto mechanisms
+ * NSS-defined crypto mechanisms
  *
  */
-#define CKM_NETSCAPE (CKM_VENDOR_DEFINED|NSSCK_VENDOR_NETSCAPE)
+#define CKM_NSS (CKM_VENDOR_DEFINED|NSSCK_VENDOR_NSS)
 
-#define CKM_NETSCAPE_AES_KEY_WRAP      (CKM_NETSCAPE + 1)
-#define CKM_NETSCAPE_AES_KEY_WRAP_PAD  (CKM_NETSCAPE + 2)
+#define CKM_NSS_AES_KEY_WRAP      (CKM_NSS + 1)
+#define CKM_NSS_AES_KEY_WRAP_PAD  (CKM_NSS + 2)
 
 /*
  * HISTORICAL:
@@ -178,13 +180,13 @@ static const char CKT_CVS_ID[] = "@(#) $RCSfile: pkcs11n.h,v $ $Revision: 1.15 $
 #define CKM_TLS_PRF_GENERAL                     0x80000373L
 
 /*
- * Netscape-defined return values
+ * NSS-defined return values
  *
  */
-#define CKR_NETSCAPE (CKM_VENDOR_DEFINED|NSSCK_VENDOR_NETSCAPE)
+#define CKR_NSS (CKM_VENDOR_DEFINED|NSSCK_VENDOR_NSS)
 
-#define CKR_NETSCAPE_CERTDB_FAILED      (CKR_NETSCAPE + 1)
-#define CKR_NETSCAPE_KEYDB_FAILED       (CKR_NETSCAPE + 2)
+#define CKR_NSS_CERTDB_FAILED      (CKR_NSS + 1)
+#define CKR_NSS_KEYDB_FAILED       (CKR_NSS + 2)
 
 /*
  * Trust info
@@ -192,7 +194,7 @@ static const char CKT_CVS_ID[] = "@(#) $RCSfile: pkcs11n.h,v $ $Revision: 1.15 $
  * This isn't part of the Cryptoki standard (yet), so I'm putting
  * all the definitions here.  Some of this would move to nssckt.h
  * if trust info were made part of the standard.  In view of this
- * possibility, I'm putting my (Netscape) values in the netscape
+ * possibility, I'm putting my (NSS) values in the NSS
  * vendor space, like everything else.
  */
 
@@ -201,22 +203,55 @@ typedef CK_ULONG          CK_TRUST;
 /* The following trust types are defined: */
 #define CKT_VENDOR_DEFINED     0x80000000
 
-#define CKT_NETSCAPE (CKT_VENDOR_DEFINED|NSSCK_VENDOR_NETSCAPE)
+#define CKT_NSS (CKT_VENDOR_DEFINED|NSSCK_VENDOR_NSS)
 
 /* If trust goes standard, these'll probably drop out of vendor space. */
-#define CKT_NETSCAPE_TRUSTED            (CKT_NETSCAPE + 1)
-#define CKT_NETSCAPE_TRUSTED_DELEGATOR  (CKT_NETSCAPE + 2)
-#define CKT_NETSCAPE_UNTRUSTED          (CKT_NETSCAPE + 3)
-#define CKT_NETSCAPE_MUST_VERIFY        (CKT_NETSCAPE + 4)
-#define CKT_NETSCAPE_TRUST_UNKNOWN      (CKT_NETSCAPE + 5) /* default */
+#define CKT_NSS_TRUSTED            (CKT_NSS + 1)
+#define CKT_NSS_TRUSTED_DELEGATOR  (CKT_NSS + 2)
+#define CKT_NSS_UNTRUSTED          (CKT_NSS + 3)
+#define CKT_NSS_MUST_VERIFY        (CKT_NSS + 4)
+#define CKT_NSS_TRUST_UNKNOWN      (CKT_NSS + 5) /* default */
 
 /* 
- * These may well remain Netscape-specific; I'm only using them
+ * These may well remain NSS-specific; I'm only using them
  * to cache resolution data.
  */
-#define CKT_NETSCAPE_VALID              (CKT_NETSCAPE + 10)
-#define CKT_NETSCAPE_VALID_DELEGATOR    (CKT_NETSCAPE + 11)
+#define CKT_NSS_VALID              (CKT_NSS + 10)
+#define CKT_NSS_VALID_DELEGATOR    (CKT_NSS + 11)
 
+/* don't leave old programs in a lurch just yet, give them the old NETSCAPE
+ * synonym */
+#define CKO_NETSCAPE_CRL                CKO_NSS_CRL
+#define CKO_NETSCAPE_SMIME              CKO_NSS_SMIME
+#define CKO_NETSCAPE_TRUST              CKO_NSS_TRUST
+#define CKO_NETSCAPE_BUILTIN_ROOT_LIST  CKO_NSS_BUILTIN_ROOT_LIST
+#define CKO_NETSCAPE_NEWSLOT            CKO_NSS_NEWSLOT
+#define CKO_NETSCAPE_DELSLOT            CKO_NSS_DELSLOT
+#define CKK_NETSCAPE_PKCS8              CKK_NSS_PKCS8
+#define CKA_NETSCAPE_URL                CKA_NSS_URL
+#define CKA_NETSCAPE_EMAIL              CKA_NSS_EMAIL
+#define CKA_NETSCAPE_SMIME_INFO         CKA_NSS_SMIME_INFO
+#define CKA_NETSCAPE_SMIME_TIMESTAMP    CKA_NSS_SMIME_TIMESTAMP
+#define CKA_NETSCAPE_PKCS8_SALT         CKA_NSS_PKCS8_SALT
+#define CKA_NETSCAPE_PASSWORD_CHECK     CKA_NSS_PASSWORD_CHECK
+#define CKA_NETSCAPE_EXPIRES            CKA_NSS_EXPIRES
+#define CKA_NETSCAPE_KRL                CKA_NSS_KRL
+#define CKA_NETSCAPE_PQG_COUNTER        CKA_NSS_PQG_COUNTER
+#define CKA_NETSCAPE_PQG_SEED           CKA_NSS_PQG_SEED
+#define CKA_NETSCAPE_PQG_H              CKA_NSS_PQG_H
+#define CKA_NETSCAPE_PQG_SEED_BITS      CKA_NSS_PQG_SEED_BITS
+#define CKA_NETSCAPE_MODULE_SPEC        CKA_NSS_MODULE_SPEC
+#define CKM_NETSCAPE_AES_KEY_WRAP	CKM_NSS_AES_KEY_WRAP
+#define CKM_NETSCAPE_AES_KEY_WRAP_PAD	CKM_NSS_AES_KEY_WRAP_PAD
+#define CKR_NETSCAPE_CERTDB_FAILED      CKR_NSS_CERTDB_FAILED
+#define CKR_NETSCAPE_KEYDB_FAILED       CKR_NSS_KEYDB_FAILED
+#define CKT_NETSCAPE_TRUSTED            CKT_NSS_TRUSTED
+#define CKT_NETSCAPE_TRUSTED_DELEGATOR  CKT_NSS_TRUSTED_DELEGATOR
+#define CKT_NETSCAPE_UNTRUSTED          CKT_NSS_UNTRUSTED
+#define CKT_NETSCAPE_MUST_VERIFY        CKT_NSS_MUST_VERIFY
+#define CKT_NETSCAPE_TRUST_UNKNOWN      CKT_NSS_TRUST_UNKNOWN
+#define CKT_NETSCAPE_VALID              CKT_NSS_VALID
+#define CKT_NETSCAPE_VALID_DELEGATOR    CKT_NSS_VALID_DELEGATOR
 
 /*
  * These are not really PKCS #11 values specifically. They are the 'loadable'

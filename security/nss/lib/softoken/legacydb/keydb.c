@@ -34,26 +34,21 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: keydb.c,v 1.49 2006-10-09 22:28:07 alexei.volkov.bugs%sun.com Exp $ */
+/* $Id: keydb.c,v 1.2 2007-06-13 00:24:57 rrelyea%redhat.com Exp $ */
 
 #include "lowkeyi.h"
-#include "seccomon.h"
-#include "sechash.h"
-#include "secder.h"
 #include "secasn1.h"
+#include "secder.h"
 #include "secoid.h"
 #include "blapi.h"
 #include "secitem.h"
 #include "pcert.h"
 #include "mcom_db.h"
-#include "lowpbe.h"
 #include "secerr.h"
-#include "cdbhdl.h"
 #include "nsslocks.h"
 
 #include "keydbi.h"
-#include "softoken.h"
-
+#include "lgdb.h"
 
 /*
  * Record keys for keydb
@@ -67,39 +62,6 @@
 
 /* Size of the global salt for key database */
 #define SALT_LENGTH     16
-
-const SEC_ASN1Template nsslowkey_AttributeTemplate[] = {
-    { SEC_ASN1_SEQUENCE, 
-	0, NULL, sizeof(NSSLOWKEYAttribute) },
-    { SEC_ASN1_OBJECT_ID, offsetof(NSSLOWKEYAttribute, attrType) },
-    { SEC_ASN1_SET_OF, offsetof(NSSLOWKEYAttribute, attrValue), 
-	SEC_AnyTemplate },
-    { 0 }
-};
-
-const SEC_ASN1Template nsslowkey_SetOfAttributeTemplate[] = {
-    { SEC_ASN1_SET_OF, 0, nsslowkey_AttributeTemplate },
-};
-/* ASN1 Templates for new decoder/encoder */
-const SEC_ASN1Template nsslowkey_PrivateKeyInfoTemplate[] = {
-    { SEC_ASN1_SEQUENCE,
-	0, NULL, sizeof(NSSLOWKEYPrivateKeyInfo) },
-    { SEC_ASN1_INTEGER,
-	offsetof(NSSLOWKEYPrivateKeyInfo,version) },
-    { SEC_ASN1_INLINE,
-	offsetof(NSSLOWKEYPrivateKeyInfo,algorithm),
-	SECOID_AlgorithmIDTemplate },
-    { SEC_ASN1_OCTET_STRING,
-	offsetof(NSSLOWKEYPrivateKeyInfo,privateKey) },
-    { SEC_ASN1_OPTIONAL | SEC_ASN1_CONSTRUCTED | SEC_ASN1_CONTEXT_SPECIFIC | 0,
-	offsetof(NSSLOWKEYPrivateKeyInfo, attributes),
-	nsslowkey_SetOfAttributeTemplate },
-    { 0 }
-};
-
-const SEC_ASN1Template nsslowkey_PointerToPrivateKeyInfoTemplate[] = {
-    { SEC_ASN1_POINTER, 0, nsslowkey_PrivateKeyInfoTemplate }
-};
 
 const SEC_ASN1Template nsslowkey_EncryptedPrivateKeyInfoTemplate[] = {
     { SEC_ASN1_SEQUENCE,
@@ -118,26 +80,6 @@ const SEC_ASN1Template nsslowkey_PointerToEncryptedPrivateKeyInfoTemplate[] = {
 
 
 /* ====== Default key databse encryption algorithm ====== */
-
-static SECOidTag defaultKeyDBAlg = SEC_OID_PKCS12_PBE_WITH_SHA1_AND_TRIPLE_DES_CBC;
-
-/*
- * Default algorithm for encrypting data in the key database
- */
-SECOidTag
-nsslowkey_GetDefaultKeyDBAlg(void)
-{
-    return(defaultKeyDBAlg);
-}
-
-void
-nsslowkey_SetDefaultKeyDBAlg(SECOidTag alg)
-{
-    defaultKeyDBAlg = alg;
-
-    return;
-}
-
 static void
 sec_destroy_dbkey(NSSLOWKEYDBKey *dbkey)
 {
@@ -443,6 +385,7 @@ nsslowkey_TraverseKeys(NSSLOWKEYDBHandle *handle,
     return(SECSuccess);
 }
 
+#ifdef notdef
 typedef struct keyNode {
     struct keyNode *next;
     DBT key;
@@ -485,6 +428,7 @@ sec_add_key_to_list(DBT *key, DBT *data, void *arg)
     
     return(SECSuccess);
 }
+#endif
 
 static SECItem *
 decodeKeyDBGlobalSalt(DBT *saltData)
@@ -527,7 +471,7 @@ GetKeyDBGlobalSalt(NSSLOWKEYDBHandle *handle)
 }
 
 static SECStatus
-StoreKeyDBGlobalSalt(NSSLOWKEYDBHandle *handle)
+StoreKeyDBGlobalSalt(NSSLOWKEYDBHandle *handle, SECItem *salt)
 {
     DBT saltKey;
     DBT saltData;
@@ -536,8 +480,8 @@ StoreKeyDBGlobalSalt(NSSLOWKEYDBHandle *handle)
     saltKey.data = SALT_STRING;
     saltKey.size = sizeof(SALT_STRING) - 1;
 
-    saltData.data = (void *)handle->global_salt->data;
-    saltData.size = handle->global_salt->len;
+    saltData.data = (void *)salt->data;
+    saltData.size = salt->len;
 
     /* put global salt into the database now */
     status = keydb_Put(handle, &saltKey, &saltData, 0);
@@ -580,18 +524,13 @@ makeGlobalSalt(NSSLOWKEYDBHandle *handle)
     DBT saltData;
     unsigned char saltbuf[16];
     int status;
-    SECStatus rv;
     
     saltKey.data = SALT_STRING;
     saltKey.size = sizeof(SALT_STRING) - 1;
 
     saltData.data = (void *)saltbuf;
     saltData.size = sizeof(saltbuf);
-    rv = RNG_GenerateGlobalRandomBytes(saltbuf, sizeof(saltbuf));
-    if ( rv != SECSuccess ) {
-	sftk_fatalError = PR_TRUE;
-	return(rv);
-    }
+    RNG_GenerateGlobalRandomBytes(saltbuf, sizeof(saltbuf));
 
     /* put global salt into the database now */
     status = keydb_Put(handle, &saltKey, &saltData, 0);
@@ -600,24 +539,6 @@ makeGlobalSalt(NSSLOWKEYDBHandle *handle)
     }
 
     return(SECSuccess);
-}
-
-static SECStatus
-ChangeKeyDBPasswordAlg(NSSLOWKEYDBHandle *handle,
-		       SECItem *oldpwitem, SECItem *newpwitem,
-		       SECOidTag new_algorithm);
-/*
- * Second pass of updating the key db.  This time we have a password.
- */
-static SECStatus
-nsslowkey_UpdateKeyDBPass2(NSSLOWKEYDBHandle *handle, SECItem *pwitem)
-{
-    SECStatus rv;
-    
-    rv = ChangeKeyDBPasswordAlg(handle, pwitem, pwitem,
-			     nsslowkey_GetDefaultKeyDBAlg());
-    
-    return(rv);
 }
 
 static SECStatus
@@ -918,17 +839,10 @@ openNewDB(const char *appName, const char *prefix, const char *dbname,
 	return (status == RDB_RETRY) ? SECWouldBlock: SECFailure;
     }
 
-    rv = db_BeginTransaction(handle->db);
-    if (rv != SECSuccess) {
-	db_InitComplete(handle->db);
-	return rv;
-    }
-
     /* force a transactional read, which will verify that one and only one
      * process attempts the update. */
     if (nsslowkey_version(handle) == NSSLOWKEY_DB_FILE_VERSION) {
 	/* someone else has already updated the database for us */
-	db_FinishTransaction(handle->db, PR_FALSE);
 	db_InitComplete(handle->db);
 	return SECSuccess;
     }
@@ -962,7 +876,6 @@ openNewDB(const char *appName, const char *prefix, const char *dbname,
 	/* copy the new DB from the old one */
 	db_Copy(handle->db, updatedb);
 	nsslowkey_CloseKeyDB(updateHandle);
-	db_FinishTransaction(handle->db,PR_FALSE);
 	db_InitComplete(handle->db);
 	return SECSuccess;
     }
@@ -1014,7 +927,6 @@ noupdate:
     rv = SECSuccess;
 
 loser:
-    db_FinishTransaction(handle->db, rv != SECSuccess);
     db_InitComplete(handle->db);
     return rv;
 }
@@ -1082,10 +994,6 @@ nsslowkey_OpenKeyDB(PRBool readOnly, const char *appName, const char *prefix,
 
 
     handle = nsslowkey_NewHandle(NULL);
-    if (!handle) {
-        /* error code is set */
-        return NULL;
-    }
 
     openflags = readOnly ? NO_RDONLY : NO_RDWR;
 
@@ -1181,7 +1089,7 @@ nsslowkey_GetKeyDBVersion(NSSLOWKEYDBHandle *handle)
  * Delete a private key that was stored in the database
  */
 SECStatus
-nsslowkey_DeleteKey(NSSLOWKEYDBHandle *handle, SECItem *pubkey)
+nsslowkey_DeleteKey(NSSLOWKEYDBHandle *handle, const SECItem *pubkey)
 {
     DBT namekey;
     int ret;
@@ -1220,10 +1128,10 @@ nsslowkey_StoreKeyByPublicKey(NSSLOWKEYDBHandle *handle,
 			   NSSLOWKEYPrivateKey *privkey,
 			   SECItem *pubKeyData,
 			   char *nickname,
-			   SECItem *arg)
+			   SDB *sdb)
 {
     return nsslowkey_StoreKeyByPublicKeyAlg(handle, privkey, pubKeyData, 
-	     nickname, arg, nsslowkey_GetDefaultKeyDBAlg(),PR_FALSE);
+	     nickname, sdb, PR_FALSE);
 }
 
 SECStatus
@@ -1231,10 +1139,10 @@ nsslowkey_UpdateNickname(NSSLOWKEYDBHandle *handle,
 			   NSSLOWKEYPrivateKey *privkey,
 			   SECItem *pubKeyData,
 			   char *nickname,
-			   SECItem *arg)
+			   SDB *sdb)
 {
     return nsslowkey_StoreKeyByPublicKeyAlg(handle, privkey, pubKeyData, 
-	     nickname, arg, nsslowkey_GetDefaultKeyDBAlg(),PR_TRUE);
+	     nickname, sdb, PR_TRUE);
 }
 
 /* see if the symetric CKA_ID already Exists.
@@ -1327,217 +1235,271 @@ nsslowkey_KeyForCertExists(NSSLOWKEYDBHandle *handle, NSSLOWCERTCertificate *cer
     return PR_TRUE;
 }
 
+typedef struct NSSLowPasswordDataParamStr {
+    SECItem salt;
+    SECItem iter;
+} NSSLowPasswordDataParam;
+
+static const SEC_ASN1Template NSSLOWPasswordParamTemplate[] =
+{
+    {SEC_ASN1_SEQUENCE, 0, NULL, sizeof(NSSLowPasswordDataParam) },
+    {SEC_ASN1_OCTET_STRING, offsetof(NSSLowPasswordDataParam, salt) },
+    {SEC_ASN1_INTEGER, offsetof(NSSLowPasswordDataParam, iter) },
+    {0}
+};
+struct LGEncryptedDataInfoStr {
+    SECAlgorithmID algorithm;
+    SECItem encryptedData;
+};
+typedef struct LGEncryptedDataInfoStr LGEncryptedDataInfo;
+
+const SEC_ASN1Template lg_EncryptedDataInfoTemplate[] = {
+    { SEC_ASN1_SEQUENCE,
+        0, NULL, sizeof(LGEncryptedDataInfo) },
+    { SEC_ASN1_INLINE,
+        offsetof(LGEncryptedDataInfo,algorithm),
+        SECOID_AlgorithmIDTemplate },
+    { SEC_ASN1_OCTET_STRING,
+        offsetof(LGEncryptedDataInfo,encryptedData) },
+    { 0 }
+};
+static const unsigned char def_iter_data[] = { SEC_ASN1_INTEGER, 0x01, 0x01 };
+static const SECItem def_iter = { siBuffer , 
+				(unsigned char *)def_iter_data, 
+				sizeof(def_iter_data) };
+
+static SECItem *
+nsslowkey_EncodePW(SECOidTag alg, const SECItem *salt, SECItem *data)
+{
+    NSSLowPasswordDataParam param;
+    LGEncryptedDataInfo edi;
+    PLArenaPool *arena;
+    unsigned char one = 1;
+    SECItem *epw = NULL;
+    SECItem *encParam;
+    SECStatus rv;
+
+    param.salt = *salt;
+    param.iter.data = &one;
+    param.iter.len = 1;
+    edi.encryptedData = *data;
+
+    arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
+    if (arena == NULL) {
+	return NULL;
+    }
+
+    encParam = SEC_ASN1EncodeItem(arena, NULL, &param,
+				  NSSLOWPasswordParamTemplate);
+    if (encParam == NULL) {
+	goto loser;
+    }
+    rv = SECOID_SetAlgorithmID(arena, &edi.algorithm, alg, encParam);
+    if (rv != SECSuccess) {
+	goto loser;
+    }
+    epw = SEC_ASN1EncodeItem(NULL, NULL, &edi, lg_EncryptedDataInfoTemplate);
+
+loser:
+    PORT_FreeArena(arena, PR_FALSE);
+    return epw;
+}
+
+static SECItem *
+nsslowkey_DecodePW(const SECItem *derData, SECOidTag *alg, SECItem *salt)
+{
+    NSSLowPasswordDataParam param;
+    LGEncryptedDataInfo edi;
+    PLArenaPool *arena;
+    SECItem *pwe = NULL;
+    SECStatus rv;
+
+    salt->data = NULL;
+
+    arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
+    if (arena == NULL) {
+	return NULL;
+    }
+
+    rv = SEC_QuickDERDecodeItem(arena, &edi, lg_EncryptedDataInfoTemplate, 
+						derData);
+    if (rv != SECSuccess) {
+	goto loser;
+    }
+    *alg = SECOID_GetAlgorithmTag(&edi.algorithm);
+    rv = SEC_QuickDERDecodeItem(arena, &param, NSSLOWPasswordParamTemplate,
+						&edi.algorithm.parameters);
+    if (rv != SECSuccess) {
+	goto loser;
+    }
+    if (SECITEM_ItemsAreEqual(&param.iter, &def_iter) ) {
+	goto loser;
+    }
+    rv = SECITEM_CopyItem(NULL, salt, &param.salt);
+    if (rv != SECSuccess) {
+	goto loser;
+    }
+    pwe = SECITEM_DupItem(&edi.encryptedData);
+
+loser:
+    if (!pwe && salt->data) {
+	PORT_Free(salt->data);
+	salt->data = NULL;
+    }
+    PORT_FreeArena(arena, PR_FALSE);
+    return pwe;
+}
+
+
 /*
  * check to see if the user has a password
  */
-SECStatus
-nsslowkey_HasKeyDBPassword(NSSLOWKEYDBHandle *handle)
+static SECStatus
+nsslowkey_GetPWCheckEntry(NSSLOWKEYDBHandle *handle,SDBPasswordEntry *entry)
 {
-    DBT checkkey, checkdata;
-    int ret;
+    DBT checkkey; /*, checkdata; */
+    NSSLOWKEYDBKey *dbkey = NULL;
+    SECItem   *global_salt = NULL; 
+    SECItem   *item = NULL; 
+    SECItem   entryData, oid;
+    SECStatus rv = SECFailure;
+    SECOidTag algorithm;
 
     if (handle == NULL) {
+	/* PORT_SetError */
+	return(SECFailure);
+    }
+
+    global_salt = GetKeyDBGlobalSalt(handle);
+    if (!global_salt) {
+	return SECFailure;
+    }
+    if (global_salt->len > sizeof(entry->data)) {
+	/* PORT_SetError */
+	goto loser;
+    }
+	
+    PORT_Memcpy(entry->data, global_salt->data, global_salt->len);
+    entry->salt.data = entry->data;
+    entry->salt.len = global_salt->len;
+    entry->value.data = &entry->data[entry->salt.len];
+
+    checkkey.data = KEYDB_PW_CHECK_STRING;
+    checkkey.size = KEYDB_PW_CHECK_LEN;
+    dbkey = get_dbkey(handle, &checkkey);
+    if (dbkey == NULL) {
+	/* handle 'FAKE' check here */
+	goto loser;
+    }
+
+    oid.len = dbkey->derPK.data[0];
+    oid.data = &dbkey->derPK.data[1];
+
+    if (dbkey->derPK.len < (KEYDB_PW_CHECK_LEN + 1 +oid.len)) {
+	goto loser;
+    }
+    algorithm = SECOID_FindOIDTag(&oid);
+    entryData.len = dbkey->derPK.len - (oid.len+1);
+    entryData.data = &dbkey->derPK.data[oid.len+1];
+
+    item = nsslowkey_EncodePW(algorithm, &dbkey->salt, &entryData);
+    if (!item || (item->len + entry->salt.len) > sizeof(entry->data)) {
+	goto loser;
+    }
+    PORT_Memcpy(entry->value.data, item->data, item->len);
+    entry->value.len = item->len;
+    rv = SECSuccess;
+
+loser:
+    if (item) {
+	SECITEM_FreeItem(item, PR_TRUE);
+    }
+    if (dbkey) {
+ 	sec_destroy_dbkey(dbkey);
+    }
+    if (global_salt) {
+	SECITEM_FreeItem(global_salt,PR_TRUE);
+    }
+    return rv;
+}
+
+/*
+ * check to see if the user has a password
+ */
+static SECStatus
+nsslowkey_PutPWCheckEntry(NSSLOWKEYDBHandle *handle,SDBPasswordEntry *entry)
+{
+    DBT checkkey;
+    NSSLOWKEYDBKey *dbkey = NULL;
+    SECItem   *item = NULL; 
+    SECItem   salt; 
+    SECOidTag algid;
+    SECStatus rv = SECFailure;
+    PLArenaPool *arena;
+
+    if (handle == NULL) {
+	/* PORT_SetError */
 	return(SECFailure);
     }
 
     checkkey.data = KEYDB_PW_CHECK_STRING;
     checkkey.size = KEYDB_PW_CHECK_LEN;
-    
-    ret = keydb_Get(handle, &checkkey, &checkdata, 0 );
-    if ( ret ) {
-	/* see if this was an updated DB first */
-	checkkey.data = KEYDB_FAKE_PW_CHECK_STRING;
-	checkkey.size = KEYDB_FAKE_PW_CHECK_LEN;
-	ret = keydb_Get(handle, &checkkey, &checkdata, 0 );
-    	if ( ret ) {
-	    return(SECFailure);
-	}
+
+    salt.data = NULL;
+    arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
+    if (arena == NULL) {
+	return SECFailure;
     }
 
-    return(SECSuccess);
+    item = nsslowkey_DecodePW(&entry->value, &algid, &salt);
+    if (item == NULL) {
+	goto loser;
+    }
+
+    dbkey = PORT_ArenaZNew(arena, NSSLOWKEYDBKey);
+    if (dbkey == NULL) {
+	goto loser;
+    }
+
+    dbkey->arena = arena;
+
+    rv = SECITEM_CopyItem(arena, &dbkey->salt, &salt);
+    if (rv != SECSuccess) {
+	goto loser;
+    }
+
+    rv = encodePWCheckEntry(arena, &dbkey->derPK, algid, item);
+    if (rv != SECSuccess) {
+	goto loser;
+    }
+
+    rv = put_dbkey(handle, &checkkey, dbkey, PR_TRUE);
+    if (rv != SECSuccess) {
+	goto loser;
+    }
+
+    if (handle->global_salt) {
+	SECITEM_FreeItem(handle->global_salt, PR_TRUE);
+	handle->global_salt = NULL;
+    }
+    rv = StoreKeyDBGlobalSalt(handle, &entry->salt);
+    if (rv != SECSuccess) {
+	goto loser;
+    }
+    handle->global_salt = GetKeyDBGlobalSalt(handle);
+
+loser:
+    if (item) {
+	SECITEM_FreeItem(item, PR_TRUE);
+    }
+    if (arena) {
+	PORT_FreeArena(arena, PR_TRUE);
+    }
+    if (salt.data) {
+	PORT_Free(salt.data);
+    }
+    return rv;
 }
-
-/*
- * Set up the password checker in the key database.
- * This is done by encrypting a known plaintext with the user's key.
- */
-SECStatus
-nsslowkey_SetKeyDBPassword(NSSLOWKEYDBHandle *handle, SECItem *pwitem)
-{
-    return nsslowkey_SetKeyDBPasswordAlg(handle, pwitem,
-				      nsslowkey_GetDefaultKeyDBAlg());
-}
-
-static SECStatus
-HashPassword(unsigned char *hashresult, char *pw, SECItem *salt)
-{
-    SHA1Context *cx;
-    unsigned int outlen;
-    cx = SHA1_NewContext();
-    if ( cx == NULL ) {
-	return(SECFailure);
-    }
-    
-    SHA1_Begin(cx);
-    if ( ( salt != NULL ) && ( salt->data != NULL ) ) {
-	SHA1_Update(cx, salt->data, salt->len);
-    }
-    
-    SHA1_Update(cx, (unsigned char *)pw, PORT_Strlen(pw));
-    SHA1_End(cx, hashresult, &outlen, SHA1_LENGTH);
-    
-    SHA1_DestroyContext(cx, PR_TRUE);
-    
-    return(SECSuccess);
-}
-
-SECItem *
-nsslowkey_HashPassword(char *pw, SECItem *salt)
-{
-    SECItem *pwitem;
-    SECStatus rv;
-    
-    pwitem = (SECItem *)PORT_ZAlloc(sizeof(SECItem));
-    if ( pwitem == NULL ) {
-	return(NULL);
-    }
-    pwitem->len = SHA1_LENGTH;
-    pwitem->data = (unsigned char *)PORT_ZAlloc(SHA1_LENGTH);
-    if ( pwitem->data == NULL ) {
-	PORT_Free(pwitem);
-	return(NULL);
-    }
-    if ( pw ) {
-	rv = HashPassword(pwitem->data, pw, salt);
-	if ( rv != SECSuccess ) {
-	    SECITEM_ZfreeItem(pwitem, PR_TRUE);
-	    return(NULL);
-	}
-    }
-    
-    return(pwitem);
-}
-
-/* Derive the actual password value for the database from a pw string */
-SECItem *
-nsslowkey_DeriveKeyDBPassword(NSSLOWKEYDBHandle *keydb, char *pw)
-{
-    PORT_Assert(keydb != NULL);
-    PORT_Assert(pw != NULL);
-    if (keydb == NULL || pw == NULL) return(NULL);
-
-    return nsslowkey_HashPassword(pw, keydb->global_salt);
-}
-
-/*
- * Derive an RC4 key from a password key and a salt.  This
- * was the method to used to encrypt keys in the version 2?
- * database
- */
-SECItem *
-seckey_create_rc4_key(SECItem *pwitem, SECItem *salt)
-{
-    MD5Context *md5 = NULL;
-    unsigned int part;
-    SECStatus rv = SECFailure;
-    SECItem *key = NULL;
-
-    key = (SECItem *)PORT_ZAlloc(sizeof(SECItem));
-    if(key != NULL)
-    {
-	key->data = (unsigned char *)PORT_ZAlloc(sizeof(unsigned char) *
-		MD5_LENGTH);
-	key->len = MD5_LENGTH;
-	if(key->data != NULL)
-	{
-	    md5 = MD5_NewContext();
-	    if ( md5 != NULL ) 
-	    {
-		MD5_Begin(md5);
-		MD5_Update(md5, salt->data, salt->len);
-		MD5_Update(md5, pwitem->data, pwitem->len);
-		MD5_End(md5, key->data, &part, MD5_LENGTH);
-		MD5_DestroyContext(md5, PR_TRUE);
-		rv = SECSuccess;
-	    }
-	}
-	
-	if(rv != SECSuccess)
-	{
-	    SECITEM_FreeItem(key, PR_TRUE);
-	    key = NULL;
-	}
-    }
-
-    return key;
-}
-
-SECItem *
-seckey_create_rc4_salt(void)
-{
-    SECItem *salt = NULL;
-    SECStatus rv = SECFailure;
-
-    salt = (SECItem *)PORT_ZAlloc(sizeof(SECItem));
-    if(salt == NULL)
-	return NULL;
-
-    salt->data = (unsigned char *)PORT_ZAlloc(sizeof(unsigned char) *
-	SALT_LENGTH);
-    if(salt->data != NULL)
-    {
-	salt->len = SALT_LENGTH;
-	rv = RNG_GenerateGlobalRandomBytes(salt->data, salt->len);
-	if(rv != SECSuccess)
-	    sftk_fatalError = PR_TRUE;
-    }
-	
-    if(rv != SECSuccess)
-    {
-	SECITEM_FreeItem(salt, PR_TRUE);
-	salt = NULL;
-    }
-
-    return salt;
-}
-
-SECItem *
-seckey_rc4_decode(SECItem *key, SECItem *src)
-{
-    SECItem *dest = NULL;
-    RC4Context *ctxt = NULL;
-    SECStatus rv = SECFailure;
-
-    if((key == NULL) || (src == NULL))
-	return NULL;
-
-    dest = (SECItem *)PORT_ZAlloc(sizeof(SECItem));
-    if(dest == NULL)
-	return NULL;
-
-    dest->data = (unsigned char *)PORT_ZAlloc(sizeof(unsigned char) *
-	(src->len + 64));  /* TNH - padding? */
-    if(dest->data != NULL)
-    {
-	ctxt = RC4_CreateContext(key->data, key->len);
-	if(ctxt != NULL)
-	{
-	    rv = RC4_Decrypt(ctxt, dest->data, &dest->len,
-		    src->len + 64, src->data, src->len);
-	    RC4_DestroyContext(ctxt, PR_TRUE);
-	}
-    }
-
-    if(rv == SECFailure)
-	if(dest != NULL)
-	{
-	    SECITEM_FreeItem(dest, PR_TRUE);
-	    dest = NULL;
-	}
-
-    return dest;
-}
-
 
 #ifdef EC_DEBUG
 #define SEC_PRINT(str1, str2, num, sitem) \
@@ -1551,46 +1513,33 @@ seckey_rc4_decode(SECItem *key, SECItem *src)
 #define SEC_PRINT(a, b, c, d) 
 #endif /* EC_DEBUG */
 
-/* TNH - keydb is unused */
-/* TNH - the pwitem should be the derived key for RC4 */
-NSSLOWKEYEncryptedPrivateKeyInfo *
-seckey_encrypt_private_key(
-        NSSLOWKEYPrivateKey *pk, SECItem *pwitem, NSSLOWKEYDBHandle *keydb,
-	SECOidTag algorithm, SECItem **salt)
+
+SECStatus 
+seckey_encrypt_private_key( PLArenaPool *permarena, NSSLOWKEYPrivateKey *pk, 
+			    SDB *sdbpw, SECItem *result)
 {
-    NSSLOWKEYEncryptedPrivateKeyInfo *epki = NULL;
     NSSLOWKEYPrivateKeyInfo *pki = NULL;
     SECStatus rv = SECFailure;
-    PLArenaPool *temparena = NULL, *permarena = NULL;
+    PLArenaPool *temparena = NULL;
     SECItem *der_item = NULL;
-    NSSPKCS5PBEParameter *param = NULL;
-    SECItem *dummy = NULL, *dest = NULL;
-    SECAlgorithmID *algid;
+    SECItem *cipherText = NULL;
+    SECItem *dummy = NULL;
 #ifdef NSS_ENABLE_ECC
     SECItem *fordebug = NULL;
     int savelen;
-    int i;
 #endif
-
-    *salt = NULL;
-    permarena = PORT_NewArena(SEC_ASN1_DEFAULT_ARENA_SIZE);
-    if(permarena == NULL)
-	return NULL;
 
     temparena = PORT_NewArena(SEC_ASN1_DEFAULT_ARENA_SIZE);
     if(temparena == NULL)
 	goto loser;
 
     /* allocate structures */
-    epki = (NSSLOWKEYEncryptedPrivateKeyInfo *)PORT_ArenaZAlloc(permarena,
-	sizeof(NSSLOWKEYEncryptedPrivateKeyInfo));
     pki = (NSSLOWKEYPrivateKeyInfo *)PORT_ArenaZAlloc(temparena, 
 	sizeof(NSSLOWKEYPrivateKeyInfo));
     der_item = (SECItem *)PORT_ArenaZAlloc(temparena, sizeof(SECItem));
-    if((epki == NULL) || (pki == NULL) || (der_item == NULL))
+    if((pki == NULL) || (der_item == NULL))
 	goto loser;
 
-    epki->arena = permarena;
 
     /* setup private key info */
     dummy = SEC_ASN1EncodeInteger(temparena, &(pki->version), 
@@ -1713,72 +1662,30 @@ seckey_encrypt_private_key(
 	goto loser;
     }
 
-    rv = SECFailure; /* assume failure */
-    *salt = seckey_create_rc4_salt();
-    if (*salt == NULL) {
-	goto loser;
-    }
-
-    param = nsspkcs5_NewParam(algorithm,*salt,1);
-    if (param == NULL) {
-	goto loser;
-    }
-
-    dest = nsspkcs5_CipherData(param, pwitem, der_item, PR_TRUE, NULL);
-    if (dest == NULL) {
-	goto loser;
-    }
-
-    rv = SECITEM_CopyItem(permarena, &epki->encryptedData, dest);
+    rv = lg_util_encrypt(temparena, sdbpw, dummy, &cipherText);
     if (rv != SECSuccess) {
 	goto loser;
     }
 
-    algid = nsspkcs5_CreateAlgorithmID(permarena, algorithm, param);
-    if (algid == NULL) {
-	rv = SECFailure;
-	goto loser;
-    }
-
-    rv = SECOID_CopyAlgorithmID(permarena, &epki->algorithm, algid);
-    SECOID_DestroyAlgorithmID(algid, PR_TRUE);
+    rv = SECITEM_CopyItem ( permarena, result, cipherText);
 
 loser:
-    if(dest != NULL)
-	SECITEM_FreeItem(dest, PR_TRUE);
-
-    if(param != NULL)
-       nsspkcs5_DestroyPBEParameter(param);
-
-    /* let success fall through */
-
-    if(rv == SECFailure)
-    {
-	PORT_FreeArena(permarena, PR_TRUE);
-	epki = NULL;
-	if(*salt != NULL)
-	    SECITEM_FreeItem(*salt, PR_TRUE);
-    }
 
     if(temparena != NULL)
 	PORT_FreeArena(temparena, PR_TRUE);
 
-    return epki;
+    return rv;
 }
 
 static SECStatus 
-seckey_put_private_key(NSSLOWKEYDBHandle *keydb, DBT *index, SECItem *pwitem,
-		       NSSLOWKEYPrivateKey *pk, char *nickname, PRBool update,
-		       SECOidTag algorithm)
+seckey_put_private_key(NSSLOWKEYDBHandle *keydb, DBT *index, SDB *sdbpw,
+		       NSSLOWKEYPrivateKey *pk, char *nickname, PRBool update)
 {
     NSSLOWKEYDBKey *dbkey = NULL;
-    NSSLOWKEYEncryptedPrivateKeyInfo *epki = NULL;
-    PLArenaPool  *arena = NULL;
-    SECItem *dummy = NULL;
-    SECItem *salt = NULL;
+    PLArenaPool *arena = NULL;
     SECStatus rv = SECFailure;
 
-    if((keydb == NULL) || (index == NULL) || (pwitem == NULL) ||
+    if((keydb == NULL) || (index == NULL) || (sdbpw == NULL) ||
 	(pk == NULL))
 	return SECFailure;
 	
@@ -1792,31 +1699,16 @@ seckey_put_private_key(NSSLOWKEYDBHandle *keydb, DBT *index, SECItem *pwitem,
     dbkey->arena = arena;
     dbkey->nickname = nickname;
 
-    /* TNH - for RC4, the salt should be created here */
-	
-    epki = seckey_encrypt_private_key(pk, pwitem, keydb, algorithm, &salt);
-    if(epki == NULL)
+    rv = seckey_encrypt_private_key(arena, pk, sdbpw, &dbkey->derPK);
+    if(rv != SECSuccess)
 	goto loser;
 
-    if(salt != NULL)
-    {
-	rv = SECITEM_CopyItem(arena, &(dbkey->salt), salt);
-	SECITEM_ZfreeItem(salt, PR_TRUE);
-    }
-
-    dummy = SEC_ASN1EncodeItem(arena, &(dbkey->derPK), epki, 
-	nsslowkey_EncryptedPrivateKeyInfoTemplate);
-    if(dummy == NULL)
-	rv = SECFailure;
-    else
-	rv = put_dbkey(keydb, index, dbkey, update);
+    rv = put_dbkey(keydb, index, dbkey, update);
 
     /* let success fall through */
 loser:
     if(arena != NULL)
-        PORT_FreeArena(arena, PR_TRUE);
-    if(epki != NULL)
-        PORT_FreeArena(epki->arena, PR_TRUE);
+	PORT_FreeArena(arena, PR_TRUE);
 
     return rv;
 }
@@ -1830,8 +1722,7 @@ nsslowkey_StoreKeyByPublicKeyAlg(NSSLOWKEYDBHandle *handle,
 			      NSSLOWKEYPrivateKey *privkey,
 			      SECItem *pubKeyData,
 			      char *nickname,
-			      SECItem *pwitem,
-			      SECOidTag algorithm,
+			      SDB *sdbpw,
                               PRBool update)
 {
     DBT namekey;
@@ -1847,30 +1738,26 @@ nsslowkey_StoreKeyByPublicKeyAlg(NSSLOWKEYDBHandle *handle,
     namekey.size = pubKeyData->len;
 
     /* encrypt the private key */
-    rv = seckey_put_private_key(handle, &namekey, pwitem, privkey, nickname,
-				update, algorithm);
+    rv = seckey_put_private_key(handle, &namekey, sdbpw, privkey, nickname,
+				update);
     
     return(rv);
 }
 
-NSSLOWKEYPrivateKey *
-seckey_decrypt_private_key(NSSLOWKEYEncryptedPrivateKeyInfo *epki,
-			   SECItem *pwitem)
+static NSSLOWKEYPrivateKey *
+seckey_decrypt_private_key(SECItem*epki,
+			   SDB *sdbpw)
 {
     NSSLOWKEYPrivateKey *pk = NULL;
     NSSLOWKEYPrivateKeyInfo *pki = NULL;
     SECStatus rv = SECFailure;
-    SECOidTag algorithm;
     PLArenaPool *temparena = NULL, *permarena = NULL;
-    SECItem *salt = NULL, *dest = NULL, *key = NULL;
-    NSSPKCS5PBEParameter *param;
+    SECItem *dest = NULL;
 #ifdef NSS_ENABLE_ECC
-    ECPrivateKey *ecpriv;
     SECItem *fordebug = NULL;
-    int i;
 #endif
 
-    if((epki == NULL) || (pwitem == NULL))
+    if((epki == NULL) || (sdbpw == NULL))
 	goto loser;
 
     temparena = PORT_NewArena(SEC_ASN1_DEFAULT_ARENA_SIZE);
@@ -1890,39 +1777,12 @@ seckey_decrypt_private_key(NSSLOWKEYEncryptedPrivateKeyInfo *epki,
 	goto loser;
 
     pk->arena = permarena;
-	
-    algorithm = SECOID_GetAlgorithmTag(&(epki->algorithm));
-    switch(algorithm)
-    {
-	case SEC_OID_RC4:
-	    salt = SECITEM_DupItem(&epki->algorithm.parameters);
-	    if(salt != NULL)
-	    {
-		key = seckey_create_rc4_key(pwitem, salt);
-		if(key != NULL)
-		{
-		    dest = seckey_rc4_decode(key, &epki->encryptedData);
-		}
-	    }	
-	    if(salt != NULL)
-		SECITEM_ZfreeItem(salt, PR_TRUE);
-	    if(key != NULL)
-		SECITEM_ZfreeItem(key, PR_TRUE);
-	    break;
-	default:
-	    /* we depend on the fact that if this key was encoded with
-	     * DES, that the pw was also encoded with DES, so we don't have
-	     * to do the update here, the password code will handle it. */
-	    param = nsspkcs5_AlgidToParam(&epki->algorithm);
-	    if (param == NULL) {
-		break;
-	    }
-	    dest = nsspkcs5_CipherData(param, pwitem, &epki->encryptedData, 
-							PR_FALSE, NULL);
-	    nsspkcs5_DestroyPBEParameter(param);
-	    break;
-    }
 
+    rv = lg_util_decrypt(sdbpw, epki, &dest);
+    if (rv != SECSuccess) {
+	goto loser;
+    }
+	
     if(dest != NULL)
     {
         SECItem newPrivateKey;
@@ -1998,32 +1858,13 @@ seckey_decrypt_private_key(NSSLOWKEYEncryptedPrivateKeyInfo *epki,
 		    goto loser;
 
 		/* Fill out the rest of EC params */
-		rv = EC_FillParams(permarena, &pk->u.ec.ecParams.DEREncoding,
+		rv = LGEC_FillParams(permarena, &pk->u.ec.ecParams.DEREncoding,
 				   &pk->u.ec.ecParams);
 
 		if (rv != SECSuccess)
 		    goto loser;
 
-		/* 
-		 * NOTE: Encoding of the publicValue is optional
-		 * so we need to be able to regenerate the publicValue
-		 * from the base point and the private key.
-		 *
-		 * XXX This part of the code needs more testing.
-		 */
-		if (pk->u.ec.publicValue.len == 0) {
-		    rv = EC_NewKeyFromSeed(&pk->u.ec.ecParams, 
-				      &ecpriv, pk->u.ec.privateValue.data,
-				      pk->u.ec.privateValue.len);
-		    if (rv == SECSuccess) {
-			SECITEM_CopyItem(permarena, &pk->u.ec.publicValue,
-					 &(ecpriv->publicValue));
-			PORT_FreeArena(ecpriv->ecParams.arena, PR_TRUE);
-		    }
-		} else {
-		    /* If publicValue was filled as part of DER decoding,
-		     * change length in bits to length in bytes.
-		     */
+		if (pk->u.ec.publicValue.len != 0) {
 		    pk->u.ec.publicValue.len >>= 3;
 		}
 
@@ -2059,67 +1900,23 @@ loser:
 }
 
 static NSSLOWKEYPrivateKey *
-seckey_decode_encrypted_private_key(NSSLOWKEYDBKey *dbkey, SECItem *pwitem)
+seckey_decode_encrypted_private_key(NSSLOWKEYDBKey *dbkey, SDB *sdbpw)
 {
-    NSSLOWKEYPrivateKey *pk = NULL;
-    NSSLOWKEYEncryptedPrivateKeyInfo *epki;
-    PLArenaPool *temparena = NULL;
-    SECStatus rv;
-    SECOidTag algorithm;
-
-    if( ( dbkey == NULL ) || ( pwitem == NULL ) ) {
+    if( ( dbkey == NULL ) || ( sdbpw == NULL ) ) {
 	return NULL;
     }
 
-    temparena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
-    if(temparena == NULL) {
-	return NULL;
-    }
-
-    epki = (NSSLOWKEYEncryptedPrivateKeyInfo *)
-	PORT_ArenaZAlloc(temparena, sizeof(NSSLOWKEYEncryptedPrivateKeyInfo));
-
-    if(epki == NULL) {
-	goto loser;
-    }
-
-    rv = SEC_QuickDERDecodeItem(temparena, epki,
-			    nsslowkey_EncryptedPrivateKeyInfoTemplate,
-			    &(dbkey->derPK)); 
-    if(rv != SECSuccess) {
-	goto loser;
-    }
-
-    algorithm = SECOID_GetAlgorithmTag(&(epki->algorithm));
-    switch(algorithm)
-    {
-      case SEC_OID_RC4:
-	/* TNH - this code should derive the actual RC4 key from salt and
-           pwitem */
-	rv = SECITEM_CopyItem(temparena, &(epki->algorithm.parameters),
-			      &(dbkey->salt));
-	break;
-      default:
-	break;
-    }
-
-    pk = seckey_decrypt_private_key(epki, pwitem);
-
-    /* let success fall through */
-loser:
-
-    PORT_FreeArena(temparena, PR_TRUE);
-    return pk;
+    return seckey_decrypt_private_key(&(dbkey->derPK), sdbpw);
 }
 
-NSSLOWKEYPrivateKey *
+static NSSLOWKEYPrivateKey *
 seckey_get_private_key(NSSLOWKEYDBHandle *keydb, DBT *index, char **nickname,
-		       SECItem *pwitem)
+		       SDB *sdbpw)
 {
     NSSLOWKEYDBKey *dbkey = NULL;
     NSSLOWKEYPrivateKey *pk = NULL;
 
-    if( ( keydb == NULL ) || ( index == NULL ) || ( pwitem == NULL ) ) {
+    if( ( keydb == NULL ) || ( index == NULL ) || ( sdbpw == NULL ) ) {
 	return NULL;
     }
 
@@ -2136,7 +1933,7 @@ seckey_get_private_key(NSSLOWKEYDBHandle *keydb, DBT *index, char **nickname,
 	}
     }
     
-    pk = seckey_decode_encrypted_private_key(dbkey, pwitem);
+    pk = seckey_decode_encrypted_private_key(dbkey, sdbpw);
     
     /* let success fall through */
 loser:
@@ -2149,16 +1946,6 @@ loser:
 }
 
 /*
- * used by pkcs11 to import keys into it's object format... In the future
- * we really need a better way to tie in...
- */
-NSSLOWKEYPrivateKey *
-nsslowkey_DecryptKey(DBT *key, SECItem *pwitem,
-					 NSSLOWKEYDBHandle *handle) {
-    return seckey_get_private_key(handle,key,NULL,pwitem);
-}
-
-/*
  * Find a key in the database, indexed by its public key modulus
  * This is used to find keys that have been stored before their
  * certificate arrives.  Once the certificate arrives the key
@@ -2167,7 +1954,7 @@ nsslowkey_DecryptKey(DBT *key, SECItem *pwitem,
  */
 NSSLOWKEYPrivateKey *
 nsslowkey_FindKeyByPublicKey(NSSLOWKEYDBHandle *handle, SECItem *modulus,
-			  				 SECItem *pwitem)
+			  				 SDB *sdbpw)
 {
     DBT namekey;
     NSSLOWKEYPrivateKey *pk = NULL;
@@ -2181,7 +1968,7 @@ nsslowkey_FindKeyByPublicKey(NSSLOWKEYDBHandle *handle, SECItem *modulus,
     namekey.data = modulus->data;
     namekey.size = modulus->len;
 
-    pk = seckey_get_private_key(handle, &namekey, NULL, pwitem);
+    pk = seckey_get_private_key(handle, &namekey, NULL, sdbpw);
     
     /* no need to free dbkey, since its on the stack, and the data it
      * points to is owned by the database
@@ -2191,7 +1978,7 @@ nsslowkey_FindKeyByPublicKey(NSSLOWKEYDBHandle *handle, SECItem *modulus,
 
 char *
 nsslowkey_FindKeyNicknameByPublicKey(NSSLOWKEYDBHandle *handle, 
-					SECItem *modulus, SECItem *pwitem)
+					SECItem *modulus, SDB *sdbpw)
 {
     DBT namekey;
     NSSLOWKEYPrivateKey *pk = NULL;
@@ -2206,7 +1993,7 @@ nsslowkey_FindKeyNicknameByPublicKey(NSSLOWKEYDBHandle *handle,
     namekey.data = modulus->data;
     namekey.size = modulus->len;
 
-    pk = seckey_get_private_key(handle, &namekey, &nickname, pwitem);
+    pk = seckey_get_private_key(handle, &namekey, &nickname, sdbpw);
     if (pk) {
 	nsslowkey_DestroyPrivateKey(pk);
     }
@@ -2255,428 +2042,13 @@ encodePWCheckEntry(PLArenaPool *arena, SECItem *entry, SECOidTag alg,
 loser:
     return(SECFailure);
 }
-
-/*
- * Set up the password checker in the key database.
- * This is done by encrypting a known plaintext with the user's key.
- */
-SECStatus
-nsslowkey_SetKeyDBPasswordAlg(NSSLOWKEYDBHandle *handle, 
-			   SECItem *pwitem, SECOidTag algorithm)
-{
-    DBT checkkey;
-    NSSPKCS5PBEParameter *param = NULL;
-    SECStatus rv = SECFailure;
-    NSSLOWKEYDBKey *dbkey = NULL;
-    PLArenaPool *arena;
-    SECItem *salt = NULL;
-    SECItem *dest = NULL, test_key;
-    
-    if (handle == NULL) {
-	return(SECFailure);
-    }
-
-    arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
-    if ( arena == NULL ) {
-	rv = SECFailure;
-	goto loser;
-    }
-    
-    dbkey = (NSSLOWKEYDBKey *)PORT_ArenaZAlloc(arena, sizeof(NSSLOWKEYDBKey));
-    if ( dbkey == NULL ) {
-	rv = SECFailure;
-	goto loser;
-    }
-    
-    dbkey->arena = arena;
-
-    /* encrypt key */
-    checkkey.data = test_key.data = (unsigned char *)KEYDB_PW_CHECK_STRING;
-    checkkey.size = test_key.len = KEYDB_PW_CHECK_LEN;
-
-    salt = seckey_create_rc4_salt();
-    if(salt == NULL) {
-	rv = SECFailure;
-	goto loser;
-    }
-
-    param = nsspkcs5_NewParam(algorithm, salt, 1);
-    if (param == NULL) {
-	rv = SECFailure;
-	goto loser;
-    }
-
-    dest = nsspkcs5_CipherData(param, pwitem, &test_key, PR_TRUE, NULL);
-    if (dest == NULL)
-    {
-	rv = SECFailure;
-	goto loser;
-    }
-
-    rv = SECITEM_CopyItem(arena, &dbkey->salt, salt);
-    if (rv == SECFailure) {
-	goto loser;
-    }
-   
-    rv = encodePWCheckEntry(arena, &dbkey->derPK, algorithm, dest);
-	
-    if ( rv != SECSuccess ) {
-	goto loser;
-    }
-	
-    rv = put_dbkey(handle, &checkkey, dbkey, PR_TRUE);
-    
-    /* let success fall through */
-loser: 
-    if ( arena != NULL ) {
-	PORT_FreeArena(arena, PR_TRUE);
-    }
-    
-    if ( dest != NULL ) {
-	SECITEM_ZfreeItem(dest, PR_TRUE);
-    }
-    
-    if ( salt != NULL ) {
-	SECITEM_ZfreeItem(salt, PR_TRUE);
-    }
-
-    if (param != NULL) {
-	nsspkcs5_DestroyPBEParameter(param);
-    }
-	
-    return(rv);
-}
-
-static SECStatus
-seckey_CheckKeyDB1Password(NSSLOWKEYDBHandle *handle, SECItem *pwitem)
-{
-    SECStatus rv = SECFailure;
-    keyList keylist;
-    keyNode *node = NULL;
-    NSSLOWKEYPrivateKey *privkey = NULL;
-
-
-    /*
-     * first find a key
-     */
-
-    /* traverse the database, collecting the keys of all records */
-    keylist.arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
-    if ( keylist.arena == NULL ) 
-    {
-	PORT_SetError(SEC_ERROR_NO_MEMORY);
-	return(SECFailure);
-    }
-    keylist.head = NULL;
-    
-    /* TNH - TraverseKeys should not be public, since it exposes
-       the underlying DBT data type. */
-    rv = nsslowkey_TraverseKeys(handle, sec_add_key_to_list, (void *)&keylist);
-    if ( rv != SECSuccess ) 
-	goto done;
-
-    /* just get the first key from the list */
-    node = keylist.head;
-
-    /* no private keys, accept any password */
-    if (node == NULL) {
-	rv = SECSuccess;
-	goto done;
-    }
-    privkey = seckey_get_private_key(handle, &node->key, NULL, pwitem);
-    if (privkey == NULL) {
-	 rv = SECFailure;
-	 goto done;
-    }
-
-    /* if we can decrypt the private key, then we had the correct password */
-    rv = SECSuccess;
-    nsslowkey_DestroyPrivateKey(privkey);
-
-done:
-
-    /* free the arena */
-    if ( keylist.arena ) {
-	PORT_FreeArena(keylist.arena, PR_FALSE);
-    }
-    
-    return(rv);
-}
-
-/*
- * check to see if the user has typed the right password
- */
-SECStatus
-nsslowkey_CheckKeyDBPassword(NSSLOWKEYDBHandle *handle, SECItem *pwitem)
-{
-    DBT checkkey;
-    DBT checkdata;
-    NSSPKCS5PBEParameter *param = NULL;
-    SECStatus rv = SECFailure;
-    NSSLOWKEYDBKey *dbkey = NULL;
-    SECItem *key = NULL;
-    SECItem *dest = NULL;
-    SECOidTag algorithm;
-    SECItem oid;
-    SECItem encstring;
-    PRBool update = PR_FALSE;
-    int ret;
-    
-    if (handle == NULL) {
-	goto loser;
-    }
-
-    checkkey.data = KEYDB_PW_CHECK_STRING;
-    checkkey.size = KEYDB_PW_CHECK_LEN;
-    
-    dbkey = get_dbkey(handle, &checkkey);
-    
-    if ( dbkey == NULL ) {
-	checkkey.data = KEYDB_FAKE_PW_CHECK_STRING;
-	checkkey.size = KEYDB_FAKE_PW_CHECK_LEN;
-	ret = keydb_Get(handle, &checkkey, &checkdata, 0 );
-	if (ret) {
-	    goto loser;
-	}
-	/* if we have the fake PW_CHECK, then try to decode the key
-	 * rather than the pwcheck item.
-	 */
-	rv = seckey_CheckKeyDB1Password(handle,pwitem);
-	if (rv == SECSuccess) {
-	    /* OK we have enough to complete our conversion */
-	    nsslowkey_UpdateKeyDBPass2(handle,pwitem);
-	}
-	return rv;
-    }
-
-    /* build the oid item */
-    oid.len = dbkey->derPK.data[0];
-    oid.data = &dbkey->derPK.data[1];
-    
-    /* make sure entry is the correct length
-     * since we are probably using a block cipher, the block will be
-     * padded, so we may get a bit more than the exact size we need.
-     */
-    if ( dbkey->derPK.len < (KEYDB_PW_CHECK_LEN + 1 + oid.len ) ) {
-	goto loser;
-    }
-
-    /* find the algorithm tag */
-    algorithm = SECOID_FindOIDTag(&oid);
-
-    /* make a secitem of the encrypted check string */
-    encstring.len = dbkey->derPK.len - ( oid.len + 1 );
-    encstring.data = &dbkey->derPK.data[oid.len+1];
-    encstring.type = 0;
-    
-    switch(algorithm)
-    {
-	case SEC_OID_RC4:
-	    key = seckey_create_rc4_key(pwitem, &dbkey->salt);
-	    if(key != NULL) {
-		dest = seckey_rc4_decode(key, &encstring);
-		SECITEM_FreeItem(key, PR_TRUE);
-	    }
-	    break;
-	default:
-	    param = nsspkcs5_NewParam(algorithm, &dbkey->salt, 1);
-	    if (param != NULL) {
-                /* Decrypt - this function implements a workaround for
-                 * a previous coding error.  It will decrypt values using
-                 * DES rather than 3DES, if the initial try at 3DES
-                 * decryption fails.  In this case, the update flag is
-                 * set to TRUE.  This indication is used later to force
-                 * an update of the database to "real" 3DES encryption.
-                 */
-		dest = nsspkcs5_CipherData(param, pwitem, 
-					   &encstring, PR_FALSE, &update);
-		nsspkcs5_DestroyPBEParameter(param);
-	    }	
-	    break;
-    }
-
-    if(dest == NULL) {
-	goto loser;
-    }
-
-    if ((dest->len == KEYDB_PW_CHECK_LEN) &&
-	(PORT_Memcmp(dest->data, 
-		     KEYDB_PW_CHECK_STRING, KEYDB_PW_CHECK_LEN) == 0)) {
-	rv = SECSuccess;
-	/* we succeeded */
-	if ( algorithm == SEC_OID_RC4 ) {
-	    /* partially updated database */
-	    nsslowkey_UpdateKeyDBPass2(handle, pwitem);
-	}
-        /* Force an update of the password to remove the incorrect DES
-         * encryption (see the note above)
-         */
-	if (update && 
-	     (algorithm == SEC_OID_PKCS12_PBE_WITH_SHA1_AND_TRIPLE_DES_CBC)) {
-	    /* data base was encoded with DES not triple des, fix it */
-	    nsslowkey_UpdateKeyDBPass2(handle,pwitem);
-	}
-    }
-			
-loser:
-    sec_destroy_dbkey(dbkey);
-    if(dest != NULL) {
-    	SECITEM_ZfreeItem(dest, PR_TRUE);
-    }
-
-    return(rv);
-}
-
-/*
- *  Change the database password and/or algorithm.  This internal
- *  routine does not check the old password.  That must be done by 
- *  the caller.
- */
-static SECStatus
-ChangeKeyDBPasswordAlg(NSSLOWKEYDBHandle *handle,
-		       SECItem *oldpwitem, SECItem *newpwitem,
-		       SECOidTag new_algorithm)
-{
-    SECStatus rv;
-    keyList keylist;
-    keyNode *node = NULL;
-    NSSLOWKEYPrivateKey *privkey = NULL;
-    char *nickname;
-    DBT newkey;
-    int ret;
-
-    /* traverse the database, collecting the keys of all records */
-    keylist.arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
-    if ( keylist.arena == NULL ) 
-    {
-	PORT_SetError(SEC_ERROR_NO_MEMORY);
-	return(SECFailure);
-    }
-    keylist.head = NULL;
-
-    rv = db_BeginTransaction(handle->db);
-    if (rv != SECSuccess) {
-	goto loser;
-    }
-    
-    /* TNH - TraverseKeys should not be public, since it exposes
-       the underlying DBT data type. */
-    rv = nsslowkey_TraverseKeys(handle, sec_add_key_to_list, (void *)&keylist);
-    if ( rv != SECSuccess ) 
-	goto loser;
-
-    /* walk the list, re-encrypting each entry */
-    node = keylist.head;
-    while ( node != NULL ) 
-    {
-	privkey = seckey_get_private_key(handle, &node->key, &nickname,
-					 oldpwitem);
-	
-	if (privkey == NULL) {
-	    PORT_SetError(SEC_ERROR_BAD_DATABASE);
-	    rv = SECFailure;
-	    goto loser;
-	}
-
-	/* delete the old record */
-	ret = keydb_Del(handle, &node->key, 0);
-	if ( ret ) {
-	    PORT_SetError(SEC_ERROR_BAD_DATABASE);
-	    rv = SECFailure;
-	    goto loser;
-	}
-	
-	/* get the public key, which we use as the database index */
-
-	switch (privkey->keyType) {
-	  case NSSLOWKEYRSAKey:
-	    newkey.data = privkey->u.rsa.modulus.data;
-	    newkey.size = privkey->u.rsa.modulus.len;
-	    break;
-	  case NSSLOWKEYDSAKey:
-	    newkey.data = privkey->u.dsa.publicValue.data;
-	    newkey.size = privkey->u.dsa.publicValue.len;
-	    break;
-	  case NSSLOWKEYDHKey:
-	    newkey.data = privkey->u.dh.publicValue.data;
-	    newkey.size = privkey->u.dh.publicValue.len;
-	    break;
-#ifdef NSS_ENABLE_ECC
-	  case NSSLOWKEYECKey:
-	    newkey.data = privkey->u.ec.publicValue.data;
-	    newkey.size = privkey->u.ec.publicValue.len;
-	    break;
-#endif /* NSS_ENABLE_ECC */
-	  default:
-	    /* should we continue here and loose the key? */
-	    PORT_SetError(SEC_ERROR_BAD_DATABASE);
-	    rv = SECFailure;
-	    goto loser;
-	}
-
-	rv = seckey_put_private_key(handle, &newkey, newpwitem, privkey,
-				    nickname, PR_TRUE, new_algorithm);
-	
-	if ( rv != SECSuccess ) 
-	{
-	    PORT_SetError(SEC_ERROR_BAD_DATABASE);
-	    rv = SECFailure;
-	    goto loser;
-	}
-
-	/* next node */
-	node = node->next;
-    }
-
-    rv = nsslowkey_SetKeyDBPasswordAlg(handle, newpwitem, new_algorithm);
-
-loser:
-
-    db_FinishTransaction(handle->db,rv != SECSuccess);
-
-    /* free the arena */
-    if ( keylist.arena ) {
-	PORT_FreeArena(keylist.arena, PR_FALSE);
-    }
-    
-    return(rv);
-}
-
-/*
- * Re-encrypt the entire key database with a new password.
- * NOTE: The really  should create a new database rather than doing it
- * in place in the original
- */
-SECStatus
-nsslowkey_ChangeKeyDBPassword(NSSLOWKEYDBHandle *handle,
-			      SECItem *oldpwitem, SECItem *newpwitem)
-{
-    SECStatus rv;
-    
-    if (handle == NULL) {
-	PORT_SetError(SEC_ERROR_BAD_DATABASE);
-	rv = SECFailure;
-	goto loser;
-    }
-
-    rv = nsslowkey_CheckKeyDBPassword(handle, oldpwitem);
-    if ( rv != SECSuccess ) {
-	return(SECFailure);  /* return rv? */
-    }
-
-    rv = ChangeKeyDBPasswordAlg(handle, oldpwitem, newpwitem, 
-				nsslowkey_GetDefaultKeyDBAlg());
-
-loser:
-    return(rv);
-}
     
 
 #define MAX_DB_SIZE 0xffff 
 /*
  * Clear out all the keys in the existing database
  */
-SECStatus
+static SECStatus
 nsslowkey_ResetKeyDB(NSSLOWKEYDBHandle *handle)
 {
     SECStatus rv;
@@ -2715,7 +2087,7 @@ nsslowkey_ResetKeyDB(NSSLOWKEYDBHandle *handle)
     }
 
     if (handle->global_salt) {
-	rv = StoreKeyDBGlobalSalt(handle);
+	rv = StoreKeyDBGlobalSalt(handle, handle->global_salt);
     } else {
 	rv = makeGlobalSalt(handle);
 	if ( rv == SECSuccess ) {
@@ -2839,5 +2211,60 @@ keydb_Close(NSSLOWKEYDBHandle *kdb)
     prstat = PZ_Unlock(kdbLock);
 
     return;
+}
+
+/*
+ * SDB Entry Points for the Key DB 
+ */
+
+CK_RV
+lg_GetPWEntry(SDB *sdb, SDBPasswordEntry *entry)
+{
+    NSSLOWKEYDBHandle *keydb;
+    SECStatus rv;
+
+    keydb = lg_getKeyDB(sdb);
+    if (keydb == NULL) {
+        return CKR_TOKEN_WRITE_PROTECTED;
+    }
+    rv = nsslowkey_GetPWCheckEntry(keydb, entry);
+    if (rv != SECSuccess) {
+        return CKR_GENERAL_ERROR;
+    }
+    return CKR_OK;
+}
+
+CK_RV
+lg_PutPWEntry(SDB *sdb, SDBPasswordEntry *entry)
+{
+    NSSLOWKEYDBHandle *keydb;
+    SECStatus rv;
+
+    keydb = lg_getKeyDB(sdb);
+    if (keydb == NULL) {
+        return CKR_TOKEN_WRITE_PROTECTED;
+    }
+    rv = nsslowkey_PutPWCheckEntry(keydb, entry);
+    if (rv != SECSuccess) {
+        return CKR_GENERAL_ERROR;
+    }
+    return CKR_OK;
+}
+
+CK_RV
+lg_Reset(SDB *sdb)
+{
+    NSSLOWKEYDBHandle *keydb;
+    SECStatus rv;
+
+    keydb = lg_getKeyDB(sdb);
+    if (keydb == NULL) {
+        return CKR_TOKEN_WRITE_PROTECTED;
+    }
+    rv = nsslowkey_ResetKeyDB(keydb);
+    if (rv != SECSuccess) {
+        return CKR_GENERAL_ERROR;
+    }
+    return CKR_OK;
 }
 

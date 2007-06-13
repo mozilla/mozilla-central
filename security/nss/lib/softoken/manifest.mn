@@ -37,6 +37,7 @@
 CORE_DEPTH = ../../..
 
 MODULE = nss
+DIRS = legacydb
 
 REQUIRES = dbm
 
@@ -44,7 +45,7 @@ LIBRARY_NAME = softokn
 LIBRARY_VERSION = 3
 MAPFILE = $(OBJDIR)/softokn.def
 
-DEFINES += -DSHLIB_SUFFIX=\"$(DLL_SUFFIX)\" -DSHLIB_PREFIX=\"$(DLL_PREFIX)\" -DSOFTOKEN_LIB_NAME=\"$(notdir $(SHARED_LIBRARY))\"
+DEFINES += -DSHLIB_SUFFIX=\"$(DLL_SUFFIX)\" -DSHLIB_PREFIX=\"$(DLL_PREFIX)\" -DSOFTOKEN_LIB_NAME=\"$(notdir $(SHARED_LIBRARY))\" -DSHLIB_VERSION=\"$(LIBRARY_VERSION)\"
 
 
 EXPORTS = \
@@ -54,42 +55,44 @@ EXPORTS = \
 	pkcs11t.h \
 	pkcs11n.h \
 	pkcs11u.h \
+	sdb.h \
+	sftkdbt.h \
 	$(NULL)
 
 PRIVATE_EXPORTS = \
+	lgglue.h  \
 	pk11pars.h \
 	pkcs11ni.h \
-	lowkeyi.h \
-	lowkeyti.h \
-	pcertt.h \
 	softoken.h \
 	softoknt.h \
 	softkver.h \
 	$(NULL)
 
 CSRCS = \
-	dbinit.c \
-	dbmshim.c \
 	ecdecode.c \
 	fipsaudt.c \
 	fipstest.c \
 	fipstokn.c \
-	keydb.c    \
-	lowcert.c  \
+	lgglue.c   \
 	lowkey.c   \
 	lowpbe.c   \
 	padbuf.c   \
-	pcertdb.c \
-	pk11db.c \
 	pkcs11.c   \
 	pkcs11c.c  \
 	pkcs11u.c  \
 	rsawrapr.c  \
+	sdb.c  \
+	sftkdb.c  \
+	sftkpars.c  \
 	softkver.c  \
 	tlsprf.c   \
 	$(NULL)
 
 ifdef NSS_ENABLE_ECC
 DEFINES += -DNSS_ENABLE_ECC
+endif
+
+ifdef SQLITE_UNSAFE_THREADS
+DEFINES += -DSQLITE_UNSAFE_THREADS
 endif
 
