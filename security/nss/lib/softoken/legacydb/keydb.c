@@ -34,7 +34,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: keydb.c,v 1.2 2007-06-13 00:24:57 rrelyea%redhat.com Exp $ */
+/* $Id: keydb.c,v 1.3 2007-06-13 06:21:12 rrelyea%redhat.com Exp $ */
 
 #include "lowkeyi.h"
 #include "secasn1.h"
@@ -1436,6 +1436,7 @@ nsslowkey_PutPWCheckEntry(NSSLOWKEYDBHandle *handle,SDBPasswordEntry *entry)
     SECOidTag algid;
     SECStatus rv = SECFailure;
     PLArenaPool *arena;
+    int ret;
 
     if (handle == NULL) {
 	/* PORT_SetError */
@@ -1484,6 +1485,11 @@ nsslowkey_PutPWCheckEntry(NSSLOWKEYDBHandle *handle,SDBPasswordEntry *entry)
     }
     rv = StoreKeyDBGlobalSalt(handle, &entry->salt);
     if (rv != SECSuccess) {
+	goto loser;
+    }
+    ret = keydb_Sync(handle, 0);
+    if ( ret ) {
+	rv = SECFailure;
 	goto loser;
     }
     handle->global_salt = GetKeyDBGlobalSalt(handle);
