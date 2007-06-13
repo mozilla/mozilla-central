@@ -48,7 +48,7 @@
 #include "nsComponentManagerUtils.h"
 #include "nsServiceManagerUtils.h"
 #include "NSReg.h"
-#include "nsString.h"
+#include "nsStringAPI.h"
 #include "nsIProperties.h"
 #ifdef XP_WIN
 #include <windows.h>
@@ -88,7 +88,8 @@ nsProfileMigrator::Migrate(nsIProfileStartup* aStartup)
   if (!spm)
   {
     nsCAutoString contractID =
-      NS_LITERAL_CSTRING(NS_SUITEPROFILEMIGRATOR_CONTRACTID_PREFIX) + key;
+      NS_LITERAL_CSTRING(NS_SUITEPROFILEMIGRATOR_CONTRACTID_PREFIX);
+    contractID.Append(key);
 
     spm = do_CreateInstance(contractID.get());
 
@@ -202,20 +203,21 @@ nsProfileMigrator::GetDefaultSuiteMigratorKey(nsACString& aKey,
   if (NS_FAILED(regKey->ReadStringValue(EmptyString(), value)))
     return NS_ERROR_FAILURE;
 
-  nsAString::const_iterator start, end;
-  value.BeginReading(start);
-  value.EndReading(end);
-  nsAString::const_iterator tmp = start;
-
-  if (!FindInReadable(NS_LITERAL_STRING(".exe"), tmp, end,
-                      nsCaseInsensitiveStringComparator()))
+  PRInt32 len = value.Find(NS_LITERAL_STRING(".exe"), CaseInsensitiveCompare);
+  if (len == -1)
     return NS_ERROR_FAILURE;
 
-  // skip an opening quotation mark if present
-  if (value.CharAt(0) == '"')
-    ++start;
+  // Move past ".exe"
+  len += 4;
 
-  nsDependentSubstring filePath(start, end);
+  PRUint32 start = 0;
+  // skip an opening quotation mark if present
+  if (value.get()[1] != ':') {
+    start = 1;
+    --len;
+  }
+
+  const nsDependentSubstring filePath(Substring(value, start, len)); 
 
   // We want to find out what the default browser is but the path in and of
   // itself isn't enough. Why? Because sometimes on Windows paths get truncated

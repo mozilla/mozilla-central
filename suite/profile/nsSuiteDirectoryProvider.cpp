@@ -40,6 +40,7 @@
 #include "nsAppDirectoryServiceDefs.h"
 #include "nsCategoryManagerUtils.h"
 #include "nsXULAppAPI.h"
+#include "nsDirectoryServiceUtils.h"
 
 NS_IMPL_ISUPPORTS2(nsSuiteDirectoryProvider,
                    nsIDirectoryServiceProvider,

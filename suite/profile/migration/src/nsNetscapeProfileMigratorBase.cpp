@@ -52,8 +52,6 @@
 #include "nsIURL.h"
 #include "nsNetscapeProfileMigratorBase.h"
 #include "nsNetUtil.h"
-#include "nsReadableUtils.h"
-#include "nsXPIDLString.h"
 #include "prtime.h"
 #include "prprf.h"
 #include "nsIPasswordManagerInternal.h"
@@ -76,6 +74,24 @@ StringHash(const char *ubuf)
   }
   return h;
 }
+/// @see nsString::FindCharInSet
+PRInt32 nsString_FindCharInSet(const nsACString& aString,
+                               const char *aPattern, PRInt32 aOffset = 0)
+{
+  const char *begin, *end;
+  aString.BeginReading(&begin, &end);
+  for (const char *current = begin + aOffset; current < end; ++current)
+  {
+    for (const char *pattern = aPattern; *pattern; ++pattern)
+    {
+      if (NS_UNLIKELY(*current == *pattern))
+      {
+        return current - begin;
+      }
+    }
+  }
+  return -1;
+}
 
 nsresult
 NS_MsgHashIfNecessary(nsCString &name)
@@ -91,14 +107,12 @@ NS_MsgHashIfNecessary(nsCString &name)
 #else
   #error need_to_define_your_max_filename_length
 #endif
-  nsCAutoString illegalChars(FILE_PATH_SEPARATOR FILE_ILLEGAL_CHARACTERS);
   nsCAutoString str(name);
 
   // Given a filename, make it safe for filesystem certain filenames require
   // hashing because they are too long or contain illegal characters.
-  PRInt32 illegalCharacterIndex = str.FindCharInSet(illegalChars);
   char hashedname[MAX_LEN + 1];
-  if (illegalCharacterIndex == kNotFound) {
+  if (nsString_FindCharInSet(str, FILE_PATH_SEPARATOR FILE_ILLEGAL_CHARACTERS) == -1) {
     // no illegal chars, it's just too long
     // keep the initial part of the string, but hash to make it fit
     if (str.Length() > MAX_LEN) {
@@ -561,14 +575,11 @@ nsNetscapeProfileMigratorBase::GetProfileDataFromRegistry(nsILocalFile* aRegistr
     if (exists) {
       aProfileLocations->AppendElement(dir);
 
-      // Get the profile name and add it to the names array
-      nsString profileName;
-      CopyUTF8toUTF16(profileStr, profileName);
-
+      // Add the profile name to the names array
       nsCOMPtr<nsISupportsString> profileNameString(
         do_CreateInstance("@mozilla.org/supports-string;1"));
 
-      profileNameString->SetData(profileName);
+      profileNameString->SetData(NS_ConvertUTF8toUTF16(profileStr));
       aProfileNames->AppendElement(profileNameString);
     }
   }
@@ -794,7 +805,7 @@ nsNetscapeProfileMigratorBase::CopyFormData(PRBool aReplace)
     return NS_ERROR_FILE_NOT_FOUND;
 
   nsAutoString fileName;
-  fileName.AssignWithConversion(svFileName);
+  fileName.Append(NS_ConvertUTF8toUTF16(svFileName));
 
   if (aReplace)
     return CopyFile(fileName, fileName);
@@ -820,7 +831,7 @@ nsNetscapeProfileMigratorBase::CopyPasswords(PRBool aReplace)
     return NS_ERROR_FILE_NOT_FOUND;
 
   nsAutoString fileName;
-  fileName.AssignWithConversion(signonsFileName);
+  fileName.Assign(NS_ConvertUTF8toUTF16(signonsFileName));
 
   if (aReplace)
     return CopyFile(fileName, fileName);
@@ -920,7 +931,6 @@ nsNetscapeProfileMigratorBase::ImportNetscapeCookies(nsIFile* aCookiesFile)
   PRBool isMore = PR_TRUE;
   PRInt32 hostIndex = 0, isDomainIndex, pathIndex, secureIndex;
   PRInt32 expiresIndex, nameIndex, cookieIndex;
-  nsASingleFragmentCString::char_iterator iter;
   PRInt32 numInts;
   PRInt64 expires;
   PRBool isDomain;
@@ -961,7 +971,7 @@ nsNetscapeProfileMigratorBase::ImportNetscapeCookies(nsIFile* aCookiesFile)
 
     // check the expirytime first - if it's expired, ignore
     // nullstomp the trailing tab, to avoid copying the string
-    buffer.BeginWriting(iter);
+    char* iter = buffer.BeginWriting();
     *(iter += nameIndex - 1) = char(0);
     numInts = PR_sscanf(buffer.get() + expiresIndex, "%lld", &expires);
     if (numInts != 1 || nsInt64(expires) < currentTime)
@@ -969,12 +979,12 @@ nsNetscapeProfileMigratorBase::ImportNetscapeCookies(nsIFile* aCookiesFile)
 
     isDomain = Substring(buffer, isDomainIndex,
                          pathIndex - isDomainIndex - 1).Equals(kTrue);
-    const nsASingleFragmentCString &host =
+    const nsDependentCSubstring &host =
       Substring(buffer, hostIndex, isDomainIndex - hostIndex - 1);
     // check for bad legacy cookies (domain not starting with a dot,
     // or containing a port), and discard
     if (isDomain && !host.IsEmpty() && host.First() != '.' ||
-        host.FindChar(':') != kNotFound)
+        host.FindChar(':') != -1)
       continue;
 
     // create a new nsCookie and assign the data.
@@ -1027,7 +1037,7 @@ nsNetscapeProfileMigratorBase::LocateWalletFile(const char* aExtension,
     nsCAutoString extn;
     url->GetFileExtension(extn);
 
-    if (extn.EqualsIgnoreCase(aExtension)) {
+    if (extn.Equals(aExtension, CaseInsensitiveCompare)) {
       url->GetFileName(fileName);
       break;
     }
@@ -1232,11 +1242,6 @@ nsNetscapeProfileMigratorBase::CopyMailFolderPrefs(PBStructArray &aMailServers,
       }
 
       if (targetMailFolder) {
-        // Find out the target folder - we'll need it later for getting the
-        // relative path;
-        nsCString targetFolderPath;
-        targetMailFolder->GetNativePath(targetFolderPath);
-
         // for all of our server types, append the host name to the directory
         // as part of the new location
         nsCString hostName;

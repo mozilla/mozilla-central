@@ -40,7 +40,8 @@
 #include "nsIDirectoryService.h"
 #include "nsIFile.h"
 #include "nsISimpleEnumerator.h"
-#include "nsString.h"
+#include "nsStringAPI.h"
+#include "nsCOMPtr.h"
 
 struct nsModuleComponentInfo;
 

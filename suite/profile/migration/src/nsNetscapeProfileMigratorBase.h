@@ -40,7 +40,7 @@
 
 #include "nsILocalFile.h"
 #include "nsISupportsArray.h"
-#include "nsString.h"
+#include "nsStringAPI.h"
 #include "nsTArray.h"
 #include "nsITimer.h"
 #include "nsIObserverService.h"

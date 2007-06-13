@@ -90,7 +90,7 @@ void SetProxyPref(const nsAString& aHostPort, const char* aPref,
     if (portDelimOffset > 0) {
       SetUnicharPref(aPref, Substring(hostPort, 0, portDelimOffset), aPrefs);
       nsAutoString port(Substring(hostPort, portDelimOffset + 1));
-      PRInt32 error;
+      nsresult error;
       portValue = port.ToInteger(&error);
       aPrefs->SetIntPref(aPortPref, portValue);
     }

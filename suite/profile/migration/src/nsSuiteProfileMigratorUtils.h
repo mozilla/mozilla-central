@@ -60,7 +60,7 @@
   NS_LITERAL_CSTRING("http://home.netscape.com/NC-rdf#"#property)
 
 
-#include "nsString.h"
+#include "nsStringAPI.h"
 #include "nscore.h"
 #include "nsCOMPtr.h"
 

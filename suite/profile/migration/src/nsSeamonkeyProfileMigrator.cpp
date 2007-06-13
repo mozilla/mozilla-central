@@ -186,14 +186,13 @@ nsSeamonkeyProfileMigrator::GetMigrateData(const PRUnichar* aProfile,
                           aReplace, mSourceProfile, aResult);
 
   // Now locate passwords
-  nsXPIDLCString signonsFileName;
+  nsCString signonsFileName;
   GetSignonFileName(aReplace, getter_Copies(signonsFileName));
 
   if (!signonsFileName.IsEmpty()) {
-    nsAutoString fileName; fileName.AssignWithConversion(signonsFileName);
     nsCOMPtr<nsIFile> sourcePasswordsFile;
     mSourceProfile->Clone(getter_AddRefs(sourcePasswordsFile));
-    sourcePasswordsFile->Append(fileName);
+    sourcePasswordsFile->AppendNative(signonsFileName);
     
     PRBool exists;
     sourcePasswordsFile->Exists(&exists);
@@ -202,14 +201,13 @@ nsSeamonkeyProfileMigrator::GetMigrateData(const PRUnichar* aProfile,
   }
 
   // Now locate form data
-  nsXPIDLCString formDataFileName;
+  nsCString formDataFileName;
   GetSchemaValueFileName(aReplace, getter_Copies(formDataFileName));
 
   if (!formDataFileName.IsEmpty()) {
-    nsAutoString fileName; fileName.AssignWithConversion(formDataFileName);
     nsCOMPtr<nsIFile> sourceFormDataFile;
     mSourceProfile->Clone(getter_AddRefs(sourceFormDataFile));
-    sourceFormDataFile->Append(fileName);
+    sourceFormDataFile->AppendNative(formDataFileName);
     
     PRBool exists;
     sourceFormDataFile->Exists(&exists);
