@@ -226,7 +226,7 @@ lg_GetULongAttribute(CK_ATTRIBUTE_TYPE type, const CK_ATTRIBUTE *templ,
     attribute = lg_FindAttribute(type, templ, count);
     if (attribute == NULL) return CKR_TEMPLATE_INCOMPLETE;
 
-    if (attribute->ulValueLen != sizeof(CK_ULONG)) {
+    if (attribute->ulValueLen != 4) {
 	return CKR_ATTRIBUTE_VALUE_INVALID;
     }
     data = (const unsigned char *)attribute->pValue;

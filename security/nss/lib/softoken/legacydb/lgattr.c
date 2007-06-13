@@ -85,6 +85,8 @@ lg_NewObjectCache(SDB *sdb, const SECItem *dbKey, CK_OBJECT_HANDLE handle)
     obj->sdb = sdb;
     obj->objectInfo = NULL;
     obj->infoFree = NULL;
+    obj->dbKey.data = NULL;
+    obj->dbKey.len = 0;
     lg_DBLock(sdb);
     if (dbKey == NULL) {
 	dbKey = lg_lookupTokenKeyByHandle(sdb,handle);

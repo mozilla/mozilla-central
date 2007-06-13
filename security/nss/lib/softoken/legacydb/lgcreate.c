@@ -66,6 +66,7 @@ lg_createCertObject(SDB *sdb, CK_OBJECT_HANDLE *handle,
     char *label = NULL;
     char *email = NULL;
     SECStatus rv;
+    CK_RV crv;
     PRBool inDB = PR_TRUE;
     NSSLOWCERTCertDBHandle *certHandle = lg_getCertDB(sdb);
     NSSLOWKEYDBHandle *keyHandle = NULL;
@@ -78,9 +79,10 @@ lg_createCertObject(SDB *sdb, CK_OBJECT_HANDLE *handle,
     }
 	
     /* We only support X.509 Certs for now */
-    attribute = lg_FindAttribute(CKA_CERTIFICATE_TYPE, templ, count);
-    if (attribute == NULL) return CKR_TEMPLATE_INCOMPLETE;
-    type = *(CK_CERTIFICATE_TYPE *)attribute->pValue;
+    crv = lg_GetULongAttribute(CKA_CERTIFICATE_TYPE, templ, count, &type);
+    if (crv != CKR_OK) {
+	return crv;
+    }
 
     if (type != CKC_X_509) {
 	return CKR_ATTRIBUTE_VALUE_INVALID;
