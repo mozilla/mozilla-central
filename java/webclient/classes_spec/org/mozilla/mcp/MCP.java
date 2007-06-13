@@ -1,5 +1,5 @@
 /*
- * $Id: MCP.java,v 1.10 2007-05-04 17:10:17 edburns%acm.org Exp $
+ * $Id: MCP.java,v 1.11 2007-06-13 16:57:17 edburns%acm.org Exp $
  */
 
 /* 
@@ -71,7 +71,7 @@ public class MCP {
     private static final String MCP_LOG = "org.mozilla.mcp";
     private static final String MCP_LOG_STRINGS = "org.mozilla.mcp.MCPLogStrings";
 
-    private static final Logger LOGGER = getLogger(MCP_LOG);
+    static final Logger LOGGER = getLogger(MCP_LOG);
     
     private static Logger getLogger( String loggerName ) {
         return Logger.getLogger(loggerName, MCP_LOG_STRINGS );

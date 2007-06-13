@@ -1,5 +1,5 @@
 /*
- * $Id: THTTPD.java,v 1.1 2007-05-04 17:10:17 edburns%acm.org Exp $
+ * $Id: THTTPD.java,v 1.2 2007-06-13 16:57:17 edburns%acm.org Exp $
  */
 
 /* 
@@ -27,6 +27,7 @@
 package org.mozilla.mcp;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.FileInputStream;
@@ -34,7 +35,8 @@ import java.io.InputStreamReader;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
+import java.net.SocketException;
+import java.util.logging.Level;
 
 
 // THTTPD.java
@@ -42,6 +44,22 @@ import java.io.BufferedWriter;
 public class THTTPD extends Object {
 
     public final static int PORT = 5243;
+
+    public static InputStream newRandomHtmlInputStream(int yourNumReads,
+            boolean yourRandomExceptions) {
+        InputStream result = new RandomHTMLInputStream(yourNumReads,
+                yourRandomExceptions);
+        return result;
+    }
+
+    public static InputStream newRandomHtmlInputStream(int yourNumReads, 
+						       int yourSize, 
+						       boolean yourRandomExceptions) {
+        InputStream result = new RandomHTMLInputStream(yourNumReads,
+						       yourSize,
+						       yourRandomExceptions);
+        return result;
+    }
 
     public static class ServerThread extends Thread {
 
@@ -55,7 +73,7 @@ public class THTTPD extends Object {
 	public final static int REQUEST_POST = 3;
 
 	protected StringBuffer requestData = null;
-
+        
 	public ServerThread(String name, File root,
 			    int maxRequests) {
 	    super(name);
@@ -96,7 +114,7 @@ public class THTTPD extends Object {
 		responseReader = null,
 		requestReader = null;
 	    InputStream socketInputStream = null;
-	    BufferedWriter 
+	    OutputStreamWriter 
 		responseWriter = null;
 	    String 
 		requestLine = null,
@@ -139,19 +157,37 @@ public class THTTPD extends Object {
 			System.out.println("THTTPD: POST");
 			// intentional fall through!
 		    case REQUEST_GET:
-			responseWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-			if (null != 
-			    (responseFile = getFileForRequestURI(getRequestURI(requestLine)))) {
-			    curLine = "HTTP/1.0 200 OK\r\n";
+			responseWriter = new OutputStreamWriter(socket.getOutputStream(), "US-ASCII");
+                        curLine = "HTTP/1.0 200 OK\r\nServer: THTTPD\r\n";
+                        responseWriter.write(curLine, 0, curLine.length());
+                        String requestURI = getRequestURI(requestLine);
+                        responseReader = null;
+                        if (requestURI.equals("/randomHtml")) {
+                            curLine = "Content-type: text/html\r\n\r\n";
 			    responseWriter.write(curLine, 0, 
 						 curLine.length());
+                            RandomHTMLInputStream instance = new RandomHTMLInputStream(100, 65380, false);
+                            InputStreamReader isr = new InputStreamReader(instance,
+                                    "US-ASCII");
+                            int n;
+                            char [] line = new char[2048];
+                            while (-1 != (n = isr.read(line, 0, 2048))) {
+                                curLine = new String(line, 0, n);
+                                responseWriter.write(curLine, 0, curLine.length());
+                                responseWriter.flush();
+                            }
+                            if (-1 == n) {
+                                responseWriter.close();
+                            }
+                            
+                        } else if (null != (responseFile = 
+                                getFileForRequestURI(requestURI))) {
 			    responseReader = new BufferedReader(new InputStreamReader(new FileInputStream(responseFile)));
-			    responseString = new StringBuffer();
+                            responseString = new StringBuffer();
 			    while (null != (curLine = responseReader.readLine())) {
 				responseString.append(curLine);
 			    }
-			    curLine = "Server: THTTPD\r\n" + 
-				"Content-type: " + 
+			    curLine = "Content-type: " + 
 				getContentTypeForFile(responseFile) + 
 				"\r\nContent-Length: " + 
 				responseString.length() + "\r\n\r\n";
@@ -168,9 +204,30 @@ public class THTTPD extends Object {
 		    socket.close();
 		    serverSocket.close();
 		}
+                catch (SocketException se) {
+                    if (MCP.LOGGER.isLoggable(Level.SEVERE)) {
+                        MCP.LOGGER.log(Level.SEVERE, 
+                                "Error while writing response", se);
+                    }
+                    try {
+                        socket.close();
+                        serverSocket.close();
+                    } catch (IOException ex) {
+                        if (MCP.LOGGER.isLoggable(Level.SEVERE)) {
+                            MCP.LOGGER.log(Level.SEVERE, 
+                                    "Error while trying to clean up after SocketException.  Exiting Server.", 
+                                    ex);
+                        }
+                        stopRunning();
+                    }
+		    
+                }
 		catch (Exception e) {
-		    System.out.println("Exception: " + e + " " + 
-				       e.getMessage());
+                    if (MCP.LOGGER.isLoggable(Level.SEVERE)) {
+                        MCP.LOGGER.log(Level.SEVERE,
+                                "Error serving response.  Exiting Server.",
+                                e);
+                        }
 		    stopRunning();
 		}
 	    }

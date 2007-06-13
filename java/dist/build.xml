@@ -72,6 +72,20 @@
     <antcall target="build.zip" />
   </target>
 
+  <target name="test-release"
+          description="Build a Webclient Release">
+
+    <antcall target="prepare" />
+    <antcall target="uptodate" />
+    <antcall target="compile.all" />
+    <antcall target="build.dist.jar" />
+    <antcall target="copy.binaries" />
+    <antcall target="copy.test.src" />
+    <antcall target="copy.core.src" />
+    <antcall target="copy.build.support" />
+  </target>
+
+
   <target name="build.zip">
     <condition property="platform" value="win32">
       <and>

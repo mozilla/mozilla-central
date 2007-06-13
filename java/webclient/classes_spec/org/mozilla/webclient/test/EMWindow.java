@@ -44,6 +44,7 @@ import javax.swing.*;
 import java.util.Enumeration;
 import java.util.Properties;
 import java.util.*;
+import org.mozilla.mcp.RandomHTMLInputStream;
 
 import org.mozilla.webclient.*;
 import org.mozilla.util.Assert;
@@ -59,7 +60,7 @@ import java.io.FileInputStream;
  * This is a test application for using the BrowserControl.
 
  *
- * @version $Id: EMWindow.java,v 1.45 2004-09-09 20:17:16 edburns%acm.org Exp $
+ * @version $Id: EMWindow.java,v 1.46 2007-06-13 16:57:17 edburns%acm.org Exp $
  *
  * @see org.mozilla.webclient.BrowserControlFactory
 

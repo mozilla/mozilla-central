@@ -1,5 +1,5 @@
 /*
- * $Id: NavigationTest.java,v 1.22 2007-05-04 17:10:35 edburns%acm.org Exp $
+ * $Id: NavigationTest.java,v 1.23 2007-06-13 16:57:17 edburns%acm.org Exp $
  */
 
 /* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
@@ -26,6 +26,7 @@
 
 package org.mozilla.webclient;
 
+import java.io.InputStream;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
@@ -36,6 +37,7 @@ import java.awt.BorderLayout;
 
 import java.io.File;
 import java.io.FileInputStream;
+import org.mozilla.mcp.THTTPD;
 import org.mozilla.mcp.junit.WebclientTestCase;
 
 // NavigationTest.java
@@ -83,8 +85,7 @@ public class NavigationTest extends WebclientTestCase {
 
 	assertNotNull(canvas);
 	Frame frame = new Frame();
-	frame.setUndecorated(true);
-	frame.setBounds(0, 0, 640, 480);
+	frame.setBounds(0, 30, 640, 480);
 	frame.add(canvas, BorderLayout.CENTER);
 	frame.setVisible(true);
 	canvas.setVisible(true);
@@ -129,7 +130,7 @@ public class NavigationTest extends WebclientTestCase {
 	//
 	// try loading from the dreaded RandomHTMLInputStream
 	//
-	RandomHTMLInputStream rhis = new RandomHTMLInputStream(10, false);
+	InputStream rhis = THTTPD.newRandomHtmlInputStream(10, 13320, false);
 	
 	eventRegistration.addDocumentLoadListener(listener = new DocumentLoadListenerImpl() {
 		public void doEndCheck() {
@@ -189,8 +190,7 @@ public class NavigationTest extends WebclientTestCase {
 
 	assertNotNull(canvas);
 	Frame frame = new Frame();
-	frame.setUndecorated(true);
-	frame.setBounds(0, 0, 640, 480);
+	frame.setBounds(0, 30, 640, 480);
 	frame.add(canvas, BorderLayout.CENTER);
 	frame.setVisible(true);
 	canvas.setVisible(true);
@@ -202,23 +202,18 @@ public class NavigationTest extends WebclientTestCase {
           firstBrowserControl.queryInterface(BrowserControl.CURRENT_PAGE_NAME);
 
 	NavigationTest.keepWaiting = true;
-	//
-	// try loading from the dreaded RandomHTMLInputStream
-	//
-	RandomHTMLInputStream rhis = new RandomHTMLInputStream(10, false);
 	
 	eventRegistration.addDocumentLoadListener(listener = new DocumentLoadListenerImpl() {
 		private int progressCalls = 0;
 
 		public void doProgressCheck() {
-		    if (5 == ++progressCalls) {
+		    if (2 == ++progressCalls) {
 			nav.stop();
 			NavigationTest.keepWaiting = false; 
 		    }
 		}
 	    });
-	nav.loadFromStream(rhis, "http://randomstream.com/",
-			   "text/html", -1, null);
+	nav.loadURL("http://localhost:5243/randomHtml");
 	
 	// keep waiting until the previous load completes
 	while (NavigationTest.keepWaiting) {
@@ -249,7 +244,6 @@ public class NavigationTest extends WebclientTestCase {
 
 	assertNotNull(canvas);
 	Frame frame = new Frame();
-	frame.setUndecorated(true);
 	frame.setBounds(0, 0, 640, 480);
 	frame.add(canvas, BorderLayout.CENTER);
 	frame.setVisible(true);
@@ -267,8 +261,40 @@ public class NavigationTest extends WebclientTestCase {
 	// try loading a file over HTTP
 	//
 	
-	NavigationTest.keepWaiting = true;
+        // clear cache listener
 
+	listener = new DocumentLoadListenerImpl() {
+		public void doEndCheck() {
+		    NavigationTest.keepWaiting = false;
+		}
+	    };
+	    
+	eventRegistration.addDocumentLoadListener(listener);
+	
+	String url = "http://localhost:5243/HttpNavigationTest.txt";
+
+	Thread.currentThread().sleep(3000);
+	NavigationTest.keepWaiting = true;
+        
+	nav.loadURL(url);
+
+        // keep waiting until the previous load completes
+	while (NavigationTest.keepWaiting) {
+	    Thread.currentThread().sleep(1000);
+	}
+        
+        NavigationTest.keepWaiting = true;
+	nav.loadURL(url);
+
+        // keep waiting until the previous load completes
+	while (NavigationTest.keepWaiting) {
+	    Thread.currentThread().sleep(1000);
+	}
+        
+        
+        
+        eventRegistration.removeDocumentLoadListener(listener);
+	
 	listener = new DocumentLoadListenerImpl() {
 		public void doEndCheck() {
 		    currentPage.selectAll();
@@ -282,13 +308,15 @@ public class NavigationTest extends WebclientTestCase {
 	    
 	eventRegistration.addDocumentLoadListener(listener);
 	
-	String url = "http://localhost:5243/HttpNavigationTest.txt";
+	url = "http://localhost:5243/HttpNavigationTest.txt";
 
 	Thread.currentThread().sleep(3000);
 	
-	nav.loadURL(url);
-	
-	// keep waiting until the previous load completes
+	NavigationTest.keepWaiting = true;
+
+        nav.loadURL(url);
+
+        // keep waiting until the previous load completes
 	while (NavigationTest.keepWaiting) {
 	    Thread.currentThread().sleep(1000);
 	}
@@ -320,7 +348,6 @@ public class NavigationTest extends WebclientTestCase {
 
 	assertNotNull(canvas);
 	Frame frame = new Frame();
-	frame.setUndecorated(true);
 	frame.setBounds(0, 0, 640, 480);
 	frame.add(canvas, BorderLayout.CENTER);
 	frame.setVisible(true);
@@ -381,7 +408,6 @@ public class NavigationTest extends WebclientTestCase {
 
 	assertNotNull(canvas);
 	Frame frame = new Frame();
-	frame.setUndecorated(true);
 	frame.setBounds(0, 0, 640, 480);
 	frame.add(canvas, BorderLayout.CENTER);
 	frame.setVisible(true);
