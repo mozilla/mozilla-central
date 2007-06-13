@@ -128,7 +128,7 @@ if ($action eq 'Commit'){
         print $cgi->multipart_end;
         print $cgi->multipart_start;
     }
-    my $plan = Bugzilla::Testopia::TestPlan->new({ 'plan_id' => 0 });
+    my $plan = Bugzilla::Testopia::TestPlan->new({});
     my $updated = $i - scalar @uneditable;
     
     $vars->{'plan'} = $plan;

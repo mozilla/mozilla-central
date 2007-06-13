@@ -181,7 +181,7 @@ if ($action eq 'Commit'){
         detaint_natural($build);
         detaint_natural($env);
         
-        validate_test_id($build, 'build');
+        validate_test_id($build, 'build') if $build;
         validate_test_id($env, 'environment') if $env;
 
         foreach my $runid (split(/[\s,]+/, $cgi->param('addruns'))){
@@ -409,6 +409,11 @@ $vars->{'urlquerypart'} = $cgi->canonicalise_query('cmdtype');
 if ($cgi->param('plan_id')){
     my $plan_id = $cgi->param('plan_id');
     my $plan = Bugzilla::Testopia::TestPlan->new($plan_id);
+    unless ($plan){
+         print $cgi->multipart_end if $serverpush;
+        ThrowUserError("invalid-test-id-non-existent", 
+                      {'id' => $cgi->param('plan_id'), 'type' => 'plan'});
+    }
     $vars->{'dotweak'} = $plan->canedit;
     $vars->{'candelete'} = $plan->candelete;
 }
