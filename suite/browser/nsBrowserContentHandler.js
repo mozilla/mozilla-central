@@ -392,6 +392,8 @@ var nsBrowserContentHandler = {
           }
         }
       }
+
+      this.realCmdLine = null;
     }
 
     if (!cmdLine.preventDefault) {
