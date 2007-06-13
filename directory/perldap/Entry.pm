@@ -1,5 +1,5 @@
 #############################################################################
-# $Id: Entry.pm,v 1.13 2000-10-05 19:47:28 leif%netscape.com Exp $
+# $Id: Entry.pm,v 1.14 2007-06-13 22:48:07 nkinder%redhat.com Exp $
 #
 # The contents of this file are subject to the Mozilla Public License
 # Version 1.1 (the "License"); you may not use this file except in
@@ -188,10 +188,22 @@ sub exists
 #
 sub FIRSTKEY
 {
-  my ($self) = ($_[$[]);
+  my ($self, $idx) = ($_[$[], 0);
+  my (@attrs, $key);
 
-  $self->{"_oc_keyidx_"} = 0;
-  return $self->NEXTKEY();
+  return unless defined($self->{"_oc_order_"});
+
+  @attrs =  @{$self->{"_oc_order_"}};
+  while ($idx < $self->{"_oc_numattr_"})
+    {
+      $key = $attrs[$idx++];
+      next if ($key =~ /^_.+_$/);
+      next if defined($self->{"_${key}_deleted_"});
+      $self->{"_oc_keyidx_"} = $idx;
+      return $key;
+    }
+  $self->{"_oc_keyidx_"} = $idx;
+  return;
 }
 
 
