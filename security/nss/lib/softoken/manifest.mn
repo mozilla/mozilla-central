@@ -61,6 +61,8 @@ EXPORTS = \
 
 PRIVATE_EXPORTS = \
 	lgglue.h  \
+	lowkeyi.h \
+	lowkeyti.h \
 	pk11pars.h \
 	pkcs11ni.h \
 	softoken.h \
