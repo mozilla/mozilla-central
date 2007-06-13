@@ -194,7 +194,7 @@ found.</b>
 
     <td><input name="addruns" value="[% addrun FILTER html %]" />(comma-separated list of ids)</td>
 [% IF plan %]
-    <td align="right" valign="top">With build:
+    <th align="right" valign="top">With build:
       [% PROCESS select sel = { name => "caserun_build", 
                                 list => plan.product.builds(1), 
                               }
@@ -207,11 +207,11 @@ found.</b>
              name="caserun_env"
              id="caserun_env"
              maxListLength="10">
-    </td>
+    </th>
 [% END %]
   </tr>
   <tr>
-    <th colspan="3">Clone selected cases to the following plans 
+    <th colspan="3" valign="top">Clone selected cases to the following plans 
                 (comma-separated list of ids):</th>
     <td><input name="linkplans" />
         <input type="radio" style="border: none" name="copymethod" value="copy" checked="checked">Copy

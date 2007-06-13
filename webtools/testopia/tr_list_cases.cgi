@@ -189,6 +189,8 @@ if ($action eq 'Commit'){
             push @runs, Bugzilla::Testopia::TestRun->new($runid);
         }
         foreach my $run (@runs){
+            $build ||= $run->build->id;
+            $env ||= $run->environment->id;
             $run->add_case_run($case->id, $build, $env) if $run->canedit;
         }
         # Clone
