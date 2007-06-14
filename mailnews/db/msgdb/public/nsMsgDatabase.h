@@ -52,7 +52,6 @@
 #include "nsIMimeConverter.h"
 #include "nsCOMPtr.h"
 #include "nsCOMArray.h"
-#include "nsHashtable.h"
 #include "pldhash.h"
 class ListContext;
 class nsMsgKeyArray;
