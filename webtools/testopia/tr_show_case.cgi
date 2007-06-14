@@ -112,7 +112,11 @@ elsif ($action eq 'do_clone'){
         foreach my $pid (@planids){
             $count++;
             my $plan = Bugzilla::Testopia::TestPlan->new($pid);
-            next unless $plan->canedit;
+            unless ($plan->canedit){
+                $count--;
+                $vars->{'tr_error'} = "Could not link to at least one plan";
+                next;
+            }
             my $newcaseid = $case->copy($pid, $author, $cgi->param('copy_doc'));
             $case->link_plan($pid, $newcaseid);
             $newcase = Bugzilla::Testopia::TestCase->new($newcaseid);

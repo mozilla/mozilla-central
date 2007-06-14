@@ -840,6 +840,8 @@ sub set_tester_regexp {
 sub derive_regexp_testers {
     my $self = shift;
     my $regexp = shift;
+    eval{ "" =~ $regexp; };
+    ThrowUserError('invalid_regexp') if $@;
     my $dbh = Bugzilla->dbh;
     # Get the permissions of the regexp testers so we can set it later.
     my ($permissions) = $dbh->selectrow_array(
