@@ -647,7 +647,7 @@ sub link_plan {
     
     # Update the plans array to include new plan added.
         
-   	push @{$self->{'plans'}}, Bugzilla::Testopia::TestPlan->new($plan_id);
+       push @{$self->{'plans'}}, Bugzilla::Testopia::TestPlan->new($plan_id);
 
 }
 
@@ -688,7 +688,7 @@ sub unlink_plan {
     # Update the plans array.
     delete $self->{'plans'}; 
 
-  	return 1;    
+      return 1;    
 }
 
 =head2 copy
@@ -1504,9 +1504,9 @@ sub components {
     
     my @comps;
     foreach my $id (@$comps){
-		my $comp = Bugzilla::Component->new($id);
-		my $prod = Bugzilla::Product->new($comp->product_id);
-		$comp->{'product_name'} = $prod->name;
+        my $comp = Bugzilla::Component->new($id);
+        my $prod = Bugzilla::Product->new($comp->product_id);
+        $comp->{'product_name'} = $prod->name;
         push @comps, $comp;
     }
     $self->{'components'} = \@comps;

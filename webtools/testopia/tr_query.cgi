@@ -174,7 +174,7 @@ elsif ($action eq 'get_categories'){
         my $cats_ref = $cat->get_element_categories_by_product($prod_id);
         
         foreach my $e (@{$cats_ref}){
-         	$ret .= $e->id.'||'.$e->name.'|||';
+             $ret .= $e->id.'||'.$e->name.'|||';
         }
     }
     chop($ret);
@@ -230,13 +230,13 @@ elsif ($action eq 'get_valid_exp'){
         my $prop = Bugzilla::Testopia::Environment::Property->new($prop_id);
         my $exp = $prop->validexp;
     
-    	my @exps = split /\|/, $exp;
-	    foreach my $exp (@exps){
-	        $ret .=$exp.'|||';
-	    }
+        my @exps = split /\|/, $exp;
+        foreach my $exp (@exps){
+            $ret .=$exp.'|||';
+        }
     }
-    chop($ret);	
-	print $ret;
+    chop($ret);    
+    print $ret;
 }
 elsif ($action eq 'save_query'){
     ;

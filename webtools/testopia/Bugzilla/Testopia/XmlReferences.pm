@@ -40,7 +40,7 @@ package Bugzilla::Testopia::XmlReferences;
 
 use constant IGNORECASE => "ignorecase";
 
-#use strict;
+use strict;
 
 sub new
 {
@@ -49,10 +49,10 @@ sub new
     my $class = ref($invocant) || $invocant;
     my $self = {};
     bless($self, $class);
-    $self{IGNORECASE} = $ignorecase;
+    $self->{IGNORECASE} = $ignorecase;
     for my $field ( split(/ /, $fields) )
     {
-        $field = uc $field if ( $self{IGNORECASE} );
+        $field = uc $field if ( $self->{IGNORECASE} );
         $self->{$field} = [];
     }
     return $self;
@@ -62,7 +62,7 @@ sub add
 {
     my ($self, $type, $object) = @_;
     
-    $type = uc $type if ( $self{IGNORECASE} );
+    $type = uc $type if ( $self->{IGNORECASE} );
 
     return 0 if ( ! exists $self->{$type} );
 
@@ -74,7 +74,7 @@ sub display
     my ($self) = @_;
     
     print "display() self=" . $self . "\n";
-    foreach $key (keys %$self)
+    foreach my $key (keys %$self)
     {
         if ( defined $self->{$key} )
         {
@@ -91,7 +91,7 @@ sub get
 {
         my ($self, $type) = @_;
         
-        $type = uc $type if ( $self{IGNORECASE} );
+        $type = uc $type if ( $self->{IGNORECASE} );
         
         return 0 if ( ! exists $self->{$type} );
         

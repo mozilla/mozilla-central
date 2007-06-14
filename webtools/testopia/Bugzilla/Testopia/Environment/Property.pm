@@ -137,9 +137,9 @@ sub check_property{
     }
 
     my ($used) = $dbh->selectrow_array(qq{
-    	SELECT property_id 
-		  FROM test_environment_property
-		  WHERE name = ? AND element_id = ?},undef,$name,$element_id);
+        SELECT property_id 
+          FROM test_environment_property
+          WHERE name = ? AND element_id = ?},undef,$name,$element_id);
 
     return $used;             
 }
@@ -156,9 +156,9 @@ sub check_for_validexp{
     my $dbh = Bugzilla->dbh;
 
     my ($used) = $dbh->selectrow_array(qq{
-    	SELECT 1 
-		  FROM test_environment_property
-		  WHERE property_id = ? AND (validexp IS NOT NULL AND validexp <> '')},undef,$self->{'property_id'});
+        SELECT 1 
+          FROM test_environment_property
+          WHERE property_id = ? AND (validexp IS NOT NULL AND validexp <> '')},undef,$self->{'property_id'});
 
     return $used;             
 }
@@ -197,9 +197,9 @@ sub get_validexp{
     my $dbh = Bugzilla->dbh;
 
     my $validexp = $dbh->selectrow_arrayref(qq{
-    	SELECT validexp 
-		  FROM test_environment_property
-		  WHERE property_id = ? },undef,$self->{'property_id'});
+        SELECT validexp 
+          FROM test_environment_property
+          WHERE property_id = ? },undef,$self->{'property_id'});
 
     return $validexp;     
 }
@@ -219,7 +219,7 @@ sub store {
  
     # Verify name is available
     return undef if $self->check_property($self->{'name'}, $self->{'element_id'});
-	
+    
     my $dbh = Bugzilla->dbh;
     $dbh->do("INSERT INTO test_environment_property ($columns) VALUES (?,?,?)",
              undef, ($self->{'element_id'}, $self->{'name'}, $self->{'validexp'}));
@@ -234,7 +234,7 @@ Updates the property name in the database
 =cut
 
 sub set_name {
-	my $self = shift;
+    my $self = shift;
     my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
     
     my ($name) = (@_);
@@ -253,7 +253,7 @@ Updates the elmnt_id in the database
 =cut
 
 sub set_element {
-	my $self = shift;
+    my $self = shift;
     my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
     
     my ($id) = (@_);
@@ -321,7 +321,7 @@ Completely removes the element property entry from the database.
 sub obliterate {
     my $self = shift;
     my $dbh = Bugzilla->dbh;
-	
+    
     $dbh->do("DELETE FROM test_environment_map
                WHERE property_id = ?", undef, $self->id);
     $dbh->do("DELETE FROM test_environment_property 

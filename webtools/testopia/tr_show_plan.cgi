@@ -436,24 +436,24 @@ sub display {
     $vars->{'plan'} = $plan;
     
     my $format = $template->get_format("testopia/plan/show", scalar $cgi->param('format'), scalar $cgi->param('ctype'));
-  	my $disp = "inline";
-	# We set CSV files to be downloaded, as they are designed for importing
+    my $disp = "inline";
+    # We set CSV files to be downloaded, as they are designed for importing
     # into other programs.
     if ( $format->{'extension'} eq "csv" || $format->{'extension'} eq "xml" )
     {
-		$disp = "attachment";
-		$vars->{'displaycolumns'} = \@Bugzilla::Testopia::Constants::TESTCASE_EXPORT;
+        $disp = "attachment";
+        $vars->{'displaycolumns'} = \@Bugzilla::Testopia::Constants::TESTCASE_EXPORT;
     }
-	
-	# Suggest a name for the file if the user wants to save it as a file.
+    
+    # Suggest a name for the file if the user wants to save it as a file.
     my @time = localtime(time());
     my $date = sprintf "%04d-%02d-%02d", 1900+$time[5],$time[4]+1,$time[3];
-	my $filename = "testcases-$date.$format->{extension}";
+    my $filename = "testcases-$date.$format->{extension}";
     print $cgi->header(-type => $format->{'ctype'},
-					   -content_disposition => "$disp; filename=$filename") 
-					   unless ($action eq 'do_clone');
-	
-    $vars->{'percentage'} = \&percentage;			   	  
+                       -content_disposition => "$disp; filename=$filename") 
+                       unless ($action eq 'do_clone');
+    
+    $vars->{'percentage'} = \&percentage;                     
     $template->process($format->{'template'}, $vars) ||
         ThrowTemplateError($template->error());
 

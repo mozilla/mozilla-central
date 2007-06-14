@@ -50,9 +50,9 @@ local our $cgi = Bugzilla->cgi;
 my $case_id = trim(Bugzilla->cgi->param('case_id')) || '';
 
 unless ($case_id){
-	print $cgi->header();
-	$template->process("testopia/case/choose.html.tmpl", $vars) 
-		|| ThrowTemplateError($template->error());
+    print $cgi->header();
+    $template->process("testopia/case/choose.html.tmpl", $vars) 
+        || ThrowTemplateError($template->error());
   exit;
 }
 validate_test_id($case_id, 'case');
@@ -65,8 +65,8 @@ my $disp = "inline";
 # into other programs.
 if ( $format->{'extension'} eq "csv" || $format->{'extension'} eq "xml" )
 {
-	$disp = "attachment";
-	$vars->{'displaycolumns'} = \@Bugzilla::Testopia::Constants::TESTCASE_EXPORT;
+    $disp = "attachment";
+    $vars->{'displaycolumns'} = \@Bugzilla::Testopia::Constants::TESTCASE_EXPORT;
 }
 
 # Suggest a name for the file if the user wants to save it as a file.
@@ -74,7 +74,7 @@ my @time = localtime(time());
 my $date = sprintf "%04d-%02d-%02d", 1900+$time[5],$time[4]+1,$time[3];
 my $filename = "testcase-$case_id-$date.$format->{extension}";
 print $cgi->header(-type => $format->{'ctype'},
-				   -content_disposition => "$disp; filename=$filename");
+                   -content_disposition => "$disp; filename=$filename");
 
 $vars->{'action'} = "Commit";
 $vars->{'form_action'} = "tr_show_case.cgi";
@@ -103,7 +103,7 @@ elsif ($action eq 'do_clone'){
         }
         if ($cgi->param('existing')){
             foreach my $p (@{$case->plans}){
-		        $planseen{$p->id} = 1;
+                $planseen{$p->id} = 1;
             }
         }
         my $author = $cgi->param('keepauthor') ? $case->author->id : Bugzilla->user->id;
@@ -457,6 +457,6 @@ sub display {
     $vars->{'case'} = $case;
     $vars->{'table'} = $table;
     $vars->{'user'} = Bugzilla->user;
-	$template->process($format->{'template'}, $vars) ||
-		ThrowTemplateError($template->error());
+    $template->process($format->{'template'}, $vars) ||
+        ThrowTemplateError($template->error());
 }

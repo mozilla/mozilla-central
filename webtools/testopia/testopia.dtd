@@ -1,6 +1,6 @@
 <!ELEMENT testopia (testplan, testcase*, testenvironment*, category*, build*)>
 <!ATTLIST testopia
-	version CDATA #REQUIRED
+    version CDATA #REQUIRED
 >
 <!ELEMENT action (#PCDATA)>
 <!ELEMENT alias (#PCDATA)>
@@ -12,31 +12,31 @@
 <!ELEMENT automated (#PCDATA)>
 <!ELEMENT blocks (#PCDATA)>
 <!ATTLIST blocks 
-	type (Database_id|Database_description|Xml_description) #REQUIRED
+    type (Database_id|Database_description|Xml_description) #REQUIRED
 >
 <!ELEMENT breakdown (#PCDATA)>
 <!ELEMENT bugs (#PCDATA)>
 <!ELEMENT build (name, milestone, description?)>
 <!ATTLIST build
-	product CDATA #REQUIRED
+    product CDATA #REQUIRED
 >
 <!ELEMENT buildname (#PCDATA)>
 <!ELEMENT category (name, description?)>
 <!ATTLIST category
-	product CDATA #REQUIRED
+    product CDATA #REQUIRED
 >
 <!ELEMENT categoryname (#PCDATA)>
 <!ELEMENT cclist (#PCDATA)>
 <!ELEMENT closedate (#PCDATA)>
 <!ELEMENT component (#PCDATA)>
 <!ATTLIST component
-	product CDATA #REQUIRED
+    product CDATA #REQUIRED
 >
 <!ELEMENT data (#PCDATA)>
 <!ELEMENT defaulttester (#PCDATA)>
 <!ELEMENT dependson (#PCDATA)>
 <!ATTLIST dependson 
-	type (Database_id|Database_description|Xml_description) #REQUIRED
+    type (Database_id|Database_description|Xml_description) #REQUIRED
 >
 <!ELEMENT description (#PCDATA)>
 <!ELEMENT document (#PCDATA)>
@@ -64,26 +64,26 @@
 <!ELEMENT tag (#PCDATA)>
 <!ELEMENT testcase (summary, testplan_reference+, alias?, requirement?, defaulttester, categoryname?, script?, arguments*, component*, tag*, attachment*, dependson*, blocks*, setup?, breakdown?, action, expectedresults?)>
 <!ATTLIST testcase 
-	author CDATA #REQUIRED 
-	priority (P0|P1|P2|P3|P4|p5) "P5" 
-	automated (Manual|Automatic) "Manual" 
-	status (PROPOSED|CONFIRMED|DISABLED) "CONFIRMED"
+    author CDATA #REQUIRED 
+    priority (P0|P1|P2|P3|P4|p5) "P5" 
+    automated (Manual|Automatic) "Manual" 
+    status (PROPOSED|CONFIRMED|DISABLED) "CONFIRMED"
 >
 <!ELEMENT testedby (#PCDATA)>
 <!ELEMENT testcase_reference (#PCDATA)>
 <!ATTLIST testcase_reference 
-	type (Database_id|Database_description|Xml_description) #REQUIRED
+    type (Database_id|Database_description|Xml_description) #REQUIRED
 >
 <!ELEMENT testenvironment (name, os, platform)>
 <!ELEMENT testplan (name, product, productversion, build*, category*, tag*, attachment*, document?)>
 <!ATTLIST testplan
-	author CDATA #REQUIRED
-	type (Acceptance|Function|Installation|Integration|Interoperability|Performance|Product|System|Unit) #REQUIRED
-	archived (True|False) "False"
+    author CDATA #REQUIRED
+    type (Acceptance|Function|Installation|Integration|Interoperability|Performance|Product|System|Unit) #REQUIRED
+    archived (True|False) "False"
 >
 <!ELEMENT testplan_reference (#PCDATA)>
 <!ATTLIST testplan_reference 
-	type (Database_id|Database_description|Xml_description) #REQUIRED
+    type (Database_id|Database_description|Xml_description) #REQUIRED
 >
 <!ELEMENT testrun (summary, manager, testplan_reference, product, productversion, environment, buildname, status?, startdate?, stopdate?, cclist*, tag*, testrunlog*)>
 <!ELEMENT testrunlog (testcase_reference, buildname, assignedto, testedby, closedate, status?, note?, bugs*)>

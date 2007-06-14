@@ -111,8 +111,8 @@ sub _init {
 
         $obj = $dbh->selectrow_hashref(
             "SELECT $columns
-			  FROM test_environment_element 
-			  WHERE element_id  = ?", undef, $id);
+              FROM test_environment_element 
+              WHERE element_id  = ?", undef, $id);
     } elsif (ref $param eq 'HASH'){
          $obj = $param;   
     }
@@ -136,7 +136,7 @@ gets all of their children until exhausted.
 =cut
 
 sub get_children{
-	my $dbh = Bugzilla->dbh;
+    my $dbh = Bugzilla->dbh;
     my $self = shift;
     
     return $self->{'children'} if exists $self->{'children'};
@@ -146,7 +146,7 @@ sub get_children{
      
     if(%newvalues)
     {
-    	$depth = $newvalues{'depth'};
+        $depth = $newvalues{'depth'};
     }
     
     $depth--;
@@ -157,20 +157,20 @@ sub get_children{
     my $id = $self->{'element_id'};
     
     my $ref = $dbh->selectcol_arrayref(qq{
-    		SELECT tee.element_id 
-			  FROM test_environment_element as tee
-			  WHERE tee.parent_id = ?},undef,$id);
+            SELECT tee.element_id 
+              FROM test_environment_element as tee
+              WHERE tee.parent_id = ?},undef,$id);
     
     my @children;
     
-	foreach my $val  (@$ref){
-		my $child = Bugzilla::Testopia::Environment::Element->new($val);
-		$child->get_children('depth'=>$depth);
-		push(@children,$child);	
-	}
-	
-	$self->{'children'} = \@children;
-		
+    foreach my $val  (@$ref){
+        my $child = Bugzilla::Testopia::Environment::Element->new($val);
+        $child->get_children('depth'=>$depth);
+        push(@children,$child);    
+    }
+    
+    $self->{'children'} = \@children;
+        
 }
 
 =head2 get_properties
@@ -180,24 +180,24 @@ Returns an array of the property objects for an element.
 =cut
 
 sub get_properties{
-	my $dbh = Bugzilla->dbh;
+    my $dbh = Bugzilla->dbh;
     my $self = shift;
     
     my $ref = $dbh->selectcol_arrayref(qq{
-    		SELECT tep.property_id 
-			  FROM test_environment_property as tep
-			  WHERE tep.element_id = ?},undef,($self->{'element_id'}));
+            SELECT tep.property_id 
+              FROM test_environment_property as tep
+              WHERE tep.element_id = ?},undef,($self->{'element_id'}));
     
     my @properties;
     
-	foreach my $val  (@$ref){
-		my $property = Bugzilla::Testopia::Environment::Property->new($val);
-		push(@properties,$property);	
-	}
-	
-	$self->{'properties'} = \@properties;
-	return $self->{'properties'};
-	
+    foreach my $val  (@$ref){
+        my $property = Bugzilla::Testopia::Environment::Property->new($val);
+        push(@properties,$property);    
+    }
+    
+    $self->{'properties'} = \@properties;
+    return $self->{'properties'};
+    
 }
 
 =head2 check_element
@@ -210,8 +210,8 @@ sub check_element{
     my $dbh = Bugzilla->dbh;
     my $self = shift;
     my ($name, $cat_id) = @_;
-	
-	# Since categories are uniquely identified by product_id we don't have to check by join on the product_id.
+    
+    # Since categories are uniquely identified by product_id we don't have to check by join on the product_id.
     my ($used) = $dbh->selectrow_array(
         "SELECT element_id
            FROM test_environment_element
@@ -233,13 +233,13 @@ sub check_for_children{
     my $self = shift;
     
     my ($has_element) = $dbh->selectrow_array(
-    	"SELECT 1 
+        "SELECT 1 
            FROM test_environment_element 
           WHERE parent_id = ?",
          undef, $self->{'element_id'});
 
     my ($has_property) = $dbh->selectrow_array(
-    	"SELECT 1 
+        "SELECT 1 
            FROM test_environment_property 
           WHERE element_id = ?",
          undef, $self->{'element_id'});
@@ -320,7 +320,7 @@ sub check_for_properties{
     my $self = shift;
     
     my ($used) = $dbh->selectrow_array(qq{
-    	SELECT 1 
+        SELECT 1 
           FROM test_environment_property 
          WHERE element_id = ? },undef,$self->{'element_id'});
 
@@ -361,7 +361,7 @@ Updates the element in the database
 
 sub update_element_name {
     my $self = shift;
-	my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
+    my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
     
     my ($name) = (@_);
     
@@ -381,7 +381,7 @@ Updates the category of the element in the database
 
 sub update_element_category {
     my $self = shift;
-	my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
+    my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
     
     my ($catid) = (@_);
     
@@ -400,7 +400,7 @@ Updates the parent_id of the element in the database
 
 sub update_element_parent {
     my $self = shift;
-	my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
+    my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
     
     my ($parent_id) = (@_);
     
@@ -419,12 +419,12 @@ Completely removes the element entry from the database.
 sub obliterate {
     my $self = shift;
     my $dbh = Bugzilla->dbh;
-	
-	foreach my $p (@{$self->get_properties}){
-	   $p->obliterate;
-	}
-	
-	$dbh->do("DELETE FROM test_environment_map
+    
+    foreach my $p (@{$self->get_properties}){
+       $p->obliterate;
+    }
+    
+    $dbh->do("DELETE FROM test_environment_map
                WHERE element_id = ?", undef, $self->id);
     $dbh->do("DELETE FROM test_environment_element 
               WHERE element_id = ?", undef, $self->{'element_id'});

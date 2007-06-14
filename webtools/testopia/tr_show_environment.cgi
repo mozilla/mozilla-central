@@ -248,17 +248,17 @@ else {
 
 
 sub display {
-	detaint_natural($env_id);
+    detaint_natural($env_id);
     validate_test_id($env_id, 'environment');
     my $env = Bugzilla::Testopia::Environment->new($env_id);
     
     if(!defined($env)){
-    	my $env = Bugzilla::Testopia::Environment->new({'environment_id' => 0});
-	    $vars->{'environment'} = $env;
-	    $vars->{'action'} = 'do_add';
-	    $template->process("testopia/environment/add.html.tmpl", $vars)
-	        || print $template->error();
-	        exit;
+        my $env = Bugzilla::Testopia::Environment->new({'environment_id' => 0});
+        $vars->{'environment'} = $env;
+        $vars->{'action'} = 'do_add';
+        $template->process("testopia/environment/add.html.tmpl", $vars)
+            || print $template->error();
+            exit;
     }
     ThrowUserError("testopia-read-only", {'object' => $env}) unless $env->canview;
     my $category = Bugzilla::Testopia::Environment::Category->new({'id' => 0});

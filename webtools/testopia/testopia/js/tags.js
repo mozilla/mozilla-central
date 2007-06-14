@@ -33,7 +33,7 @@ function addTag(id, type){
 function removeTag(tagid, id, type){
   var q = 'action=removetag&id=' + id + '&tagid=' + tagid + '&type=' + type;
   makeCall(q);
-	
+    
 }
 
 function tagAttached() {

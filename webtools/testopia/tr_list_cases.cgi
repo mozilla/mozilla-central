@@ -438,22 +438,22 @@ if ($serverpush && !$cgi->param('debug')) {
     print $cgi->multipart_start;
 }                              
 else {
-	my @time = localtime(time());
-	my $date = sprintf "%04d-%02d-%02d", 1900+$time[5],$time[4]+1,$time[3];
-	my $filename = "testcases-$date.$format->{extension}";
-	
-	my $disp = "inline";
-	# We set CSV files to be downloaded, as they are designed for importing
+    my @time = localtime(time());
+    my $date = sprintf "%04d-%02d-%02d", 1900+$time[5],$time[4]+1,$time[3];
+    my $filename = "testcases-$date.$format->{extension}";
+    
+    my $disp = "inline";
+    # We set CSV files to be downloaded, as they are designed for importing
     # into other programs.
     if ( $format->{'extension'} eq "csv" || $format->{'extension'} eq "xml" )
     {
-		$disp = "attachment";
-		$vars->{'displaycolumns'} = \@Bugzilla::Testopia::Constants::TESTCASE_EXPORT;
+        $disp = "attachment";
+        $vars->{'displaycolumns'} = \@Bugzilla::Testopia::Constants::TESTCASE_EXPORT;
     }
 
     # Suggest a name for the bug list if the user wants to save it as a file.
     print $cgi->header(-type => $contenttype,
-					   -content_disposition => "$disp; filename=$filename");
+                       -content_disposition => "$disp; filename=$filename");
 } 
                                        
 $template->process($format->{'template'}, $vars)

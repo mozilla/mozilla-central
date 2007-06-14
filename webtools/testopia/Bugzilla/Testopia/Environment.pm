@@ -169,17 +169,17 @@ sub get_environment_elements{
     my $id = $self->{'environment_id'};
     
     my $ref = $dbh->selectcol_arrayref(qq{
-    		SELECT DISTINCT tee.element_id 
-    		  FROM test_environment_map as tem
-    		  JOIN test_environment_element as tee
-    		  ON tem.element_id = tee.element_id
-    		  WHERE tem.environment_id = ?},undef,$id);
+            SELECT DISTINCT tee.element_id 
+              FROM test_environment_map as tem
+              JOIN test_environment_element as tee
+              ON tem.element_id = tee.element_id
+              WHERE tem.environment_id = ?},undef,$id);
     
     my @elements;
 
-	foreach my $val  (@$ref){
-		push @elements, Bugzilla::Testopia::Environment::Element->new($val);
-	}   
+    foreach my $val  (@$ref){
+        push @elements, Bugzilla::Testopia::Environment::Element->new($val);
+    }   
     $self->{'elements'} = \@elements;
      
    return \@elements;             
@@ -222,18 +222,18 @@ Returns a selected value for the specified environment element property instance
 =cut
 
 sub get_value_selected{
-	my $dbh = Bugzilla->dbh;
+    my $dbh = Bugzilla->dbh;
     my $self = shift;
     
     my ($environment,$element,$property) = (@_);
     
     my ($var) = $dbh->selectrow_array(
-    		"SELECT value_selected 
-			  FROM test_environment_map
-			 WHERE environment_id = ?
-			   AND element_id = ?
-			   AND property_id = ?",
-			   undef,($environment,$element,$property));
+            "SELECT value_selected 
+              FROM test_environment_map
+             WHERE environment_id = ?
+               AND element_id = ?
+               AND property_id = ?",
+               undef,($environment,$element,$property));
     
     return $var;
 }
@@ -249,8 +249,8 @@ sub get_environments{
     my $self = shift;
    
     my $ref = $dbh->selectall_arrayref(
-    		"SELECT environment_id, name 
-    		   FROM test_environments");
+            "SELECT environment_id, name 
+               FROM test_environments");
              
    return $ref;             
 }
@@ -325,20 +325,20 @@ sub get_all_elements{
     my $dbh = Bugzilla->dbh;
     my $self = shift;
     
-	my $ref = $dbh->selectcol_arrayref(
-    		"SELECT tee.element_id 
-    		   FROM test_environment_map as tem
-    		   JOIN test_environment_element as tee
-    		     ON tem.element_id = tee.element_id",
-    		     undef);
+    my $ref = $dbh->selectcol_arrayref(
+            "SELECT tee.element_id 
+               FROM test_environment_map as tem
+               JOIN test_environment_element as tee
+                 ON tem.element_id = tee.element_id",
+                 undef);
     
     my @elements;
 
-	foreach my $val  (@$ref){
-		push @elements, Bugzilla::Testopia::Environment::Element->new($val);
-	}   
+    foreach my $val  (@$ref){
+        push @elements, Bugzilla::Testopia::Environment::Element->new($val);
+    }   
              
-   	return \@elements;             
+       return \@elements;             
 }
 
 =head2 check environment name
@@ -354,10 +354,10 @@ sub check_environment{
     my $dbh = Bugzilla->dbh;
 
     my ($used) = $dbh->selectrow_array(
-    	"SELECT environment_id 
-		   FROM test_environments
-		  WHERE name = ? AND product_id = ?",
-		  undef, ($name, $product_id));
+        "SELECT environment_id 
+           FROM test_environments
+          WHERE name = ? AND product_id = ?",
+          undef, ($name, $product_id));
 
     return $used;             
 }
@@ -412,7 +412,7 @@ sub store {
         $self->persist_environment_element_and_children(1, $element, "store");            
     }    
     
-	return $key;
+    return $key;
 }
 
 
@@ -423,7 +423,7 @@ Serializes the property values to the database
 =cut
 
 sub store_property_value {
-	my $self = shift;
+    my $self = shift;
  
     my ($prop_id,$elem_id,$value_selected) = @_;
     
@@ -448,8 +448,8 @@ sub store_environment_name {
     # Exclude the auto-incremented field from the column list.
     my $columns = join(", ", grep {$_ ne 'environment_id'} DB_COLUMNS);
 
-	return undef if $self->check_environment($name, $product_id);
-	
+    return undef if $self->check_environment($name, $product_id);
+    
     my $dbh = Bugzilla->dbh;
     $dbh->do("INSERT INTO test_environments ($columns) VALUES (?,?,?)",
               undef, ($product_id, $name, 1));
@@ -545,7 +545,7 @@ Updates the property of the element in the database
 
 sub update_property_value {
     
-	my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
+    my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
     my $self = shift;
     my ($propID, $elemID, $valueSelected) = (@_);
     
@@ -688,7 +688,7 @@ Returns the name of this object
 
 sub id              { return $_[0]->{'environment_id'};  }
 sub product_id      { return $_[0]->{'product_id'};  }
-sub isactive	    { return $_[0]->{'isactive'};  }
+sub isactive        { return $_[0]->{'isactive'};  }
 sub name            { return $_[0]->{'name'};            }
 
 =head2 product

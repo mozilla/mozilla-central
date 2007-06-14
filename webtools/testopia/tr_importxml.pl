@@ -83,17 +83,17 @@ my $xml;
 my $filename;
 if ( $#ARGV == -1 )
 {
-	# Read STDIN in slurp mode. VERY dangerous, but we live on the wild side ;-)
-	local($/);
-	$xml = <>;
+    # Read STDIN in slurp mode. VERY dangerous, but we live on the wild side ;-)
+    local($/);
+    $xml = <>;
 }
 elsif ( $#ARGV == 0 )
 {
-	$filename = $ARGV[0];
+    $filename = $ARGV[0];
 }
 else
 {
-	pod2usage(0);
+    pod2usage(0);
 }
 
 Debug("Parsing tree", DEBUG_LEVEL);

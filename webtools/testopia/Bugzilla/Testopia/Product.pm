@@ -120,9 +120,9 @@ sub check_product_by_name {
     my ($name) = @_;
     my $dbh = Bugzilla->dbh;
     my ($used) = $dbh->selectrow_array(qq{
-    	SELECT id 
-		  FROM products
-		  WHERE name = ?},undef,$name);
+        SELECT id 
+          FROM products
+          WHERE name = ?},undef,$name);
     return $used;  
 }
 

@@ -8,14 +8,14 @@
 }
 
 #header li.tr_find {
-	position:absolute;
-	top:0px;
-	right:10px;
+    position:absolute;
+    top:0px;
+    right:10px;
 }
 #header li.tr_saved_search {
     position:absolute;
     top:2px;
-	right:185px;
+    right:185px;
 }
 
 #header .testopia_btn {
@@ -27,15 +27,15 @@
 }
 
 #footer li.tr_find {
-	position:absolute;
-	top:2px;
-	right:10px;
+    position:absolute;
+    top:2px;
+    right:10px;
 }
 
 #footer li.tr_saved_search {
     position:absolute;
     top:4px;
-	right:185px;
+    right:185px;
 }
 #footer .tr_btn {
     background-color: #808285;

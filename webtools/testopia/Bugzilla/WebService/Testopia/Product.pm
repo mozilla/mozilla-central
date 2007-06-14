@@ -72,24 +72,24 @@ sub get_milestones
 
     my $product = new Bugzilla::Testopia::Product($product_id);
 
-	if (not defined $product)
-	{
-    	$self->logout;
+    if (not defined $product)
+    {
+        $self->logout;
         die "Product, " . $product_id . ", not found"; 
-	}
-	
-	if (not $product->canedit)
-	{
-	    $self->logout;
+    }
+    
+    if (not $product->canedit)
+    {
+        $self->logout;
         die "User Not Authorized";
-	}
+    }
     
     my $result = $product->milestones;
 
-	$self->logout;
-	
-	# Result is list of milestones for the given product
-	return $result;
+    $self->logout;
+    
+    # Result is list of milestones for the given product
+    return $result;
 }
 
 #sub get_product 

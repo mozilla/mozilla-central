@@ -39,7 +39,7 @@
     <td align="left"><a href="tr_show_case.cgi?case_id=[% caserun.case.id FILTER none %]" title="[% caserun.case.summary FILTER html %]">[% caserun.case.id FILTER html %]</a></td>
     <td align="right"><input name="sortkey_[% index %]" id="sortkey_[% index %]" value="[% caserun.sortkey FILTER html %]" size="5">
                   [% IF caserun.canedit %]
-                      <input type="button" value="Change" onclick="chSortKey([% index %], [% caserun.id FILTER none %], document.getElementById('sortkey_[% index %]').value),chNote([% index %], [% caserun.id FILTER none %], document.getElementById('notes[% index %]').value);"></td>
+                      <input type="button" value="Change" onclick="chSortKey([% index %], [% caserun.id FILTER none %], document.getElementById('sortkey_[% index %]').value);"></td>
                   [% END %]
     <td>
        [% caserun.build.name FILTER html %]

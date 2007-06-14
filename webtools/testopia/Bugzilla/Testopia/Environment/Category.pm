@@ -126,21 +126,21 @@ Returns an array of element objects for a category
 =cut
 
 sub get_elements_by_category{
-	my $self = shift;
-	
+    my $self = shift;
+    
     my $dbh = Bugzilla->dbh;
     
     my $ref = $dbh->selectcol_arrayref(qq{
-    		SELECT element_id 
+            SELECT element_id 
               FROM test_environment_element 
-			  WHERE env_category_id = ?}, undef, $self->{'env_category_id'});
-	
-	my @elements;
+              WHERE env_category_id = ?}, undef, $self->{'env_category_id'});
+    
+    my @elements;
 
-	foreach my $val  (@$ref){
-		push @elements, Bugzilla::Testopia::Environment::Element->new($val);
-	};
-	         
+    foreach my $val  (@$ref){
+        push @elements, Bugzilla::Testopia::Environment::Element->new($val);
+    };
+             
    return \@elements;             
 }
 
@@ -151,15 +151,15 @@ Returns an array of parent elements by category
 =cut
 
 sub get_parent_elements{
-	my $self = shift;
-	
+    my $self = shift;
+    
     my $dbh = Bugzilla->dbh;
     
 ################## original 
 #                Matches null for parent id
 #
 #    my $ref = $dbh->selectcol_arrayref(qq{
-#    		SELECT element_id 
+#            SELECT element_id 
 #              FROM test_environment_element 
 #              WHERE env_category_id = ? AND parent_id is null }, undef, $self->{'env_category_id'});
 #
@@ -170,7 +170,7 @@ sub get_parent_elements{
 #                 Matches 0 for parent id
 #
 #    my $ref = $dbh->selectcol_arrayref(qq{
-#    		SELECT element_id 
+#            SELECT element_id 
 #              FROM test_environment_element 
 #              WHERE env_category_id = ? AND parent_id = 0 }, undef, $self->{'env_category_id'});
 #
@@ -178,19 +178,19 @@ sub get_parent_elements{
 
 
 ########### temp fix to address issues with 0 or null in test_envrionment_element parent_id column
-#####        matching null OR 0	
-	 my $ref = $dbh->selectcol_arrayref(qq{
-    		SELECT element_id 
+#####        matching null OR 0    
+     my $ref = $dbh->selectcol_arrayref(qq{
+            SELECT element_id 
               FROM test_environment_element 
               WHERE env_category_id = ? AND (parent_id is null or parent_id = 0) }, undef, $self->{'env_category_id'});
-########### end temp fix.... delete when ready	
+########### end temp fix.... delete when ready    
 
-	my @elements;
+    my @elements;
 
-	foreach my $val  (@$ref){
-		push @elements, Bugzilla::Testopia::Environment::Element->new($val);
-	};
-	         
+    foreach my $val  (@$ref){
+        push @elements, Bugzilla::Testopia::Environment::Element->new($val);
+    };
+             
    return \@elements;             
 }
 
@@ -201,14 +201,14 @@ Returns 1 if a category has any elements
 =cut
 
 sub check_for_elements{
-	my $self = shift;
-	my $dbh = Bugzilla->dbh;
+    my $self = shift;
+    my $dbh = Bugzilla->dbh;
     
     my $ref = $dbh->selectrow_array(qq{
-    		SELECT 1 
+            SELECT 1 
               FROM test_environment_element 
-			  WHERE env_category_id = ?}, undef, $self->{'env_category_id'});
-		         
+              WHERE env_category_id = ?}, undef, $self->{'env_category_id'});
+                 
    return $ref;             
 }
 
@@ -219,14 +219,14 @@ Returns the product_id, product name, and count of categories
 =cut
 
 sub get_env_product_list{
-	my $self = shift;
-	my ($class_id) = @_;
+    my $self = shift;
+    my ($class_id) = @_;
     
     my $dbh = Bugzilla->dbh;
     my $query = "SELECT p.id, p.name, COUNT(tec.env_category_id) AS cat_count 
-          		   FROM products p
-          		   LEFT JOIN group_control_map
-          		     ON group_control_map.product_id = p.id ";
+                     FROM products p
+                     LEFT JOIN group_control_map
+                       ON group_control_map.product_id = p.id ";
     
     if (Bugzilla->params->{'useentrygroupdefault'}) {
        $query .= "AND group_control_map.entry != 0 ";
@@ -238,7 +238,7 @@ sub get_env_product_list{
        $query .= "AND group_id NOT IN(" . 
               join(',', values(%{Bugzilla->user->groups})) . ") ";
     }
-          		      
+                        
     $query .=  "LEFT OUTER JOIN test_environment_category AS tec
                   ON p.id = tec.product_id ";
     $query .= "WHERE group_id IS NULL ";
@@ -267,7 +267,7 @@ sub get_all_child_count {
            FROM test_environment_category 
           WHERE product_id = 0");
           
-	return $all_count;
+    return $all_count;
 }
 
 sub product_categories_to_json {
@@ -373,15 +373,15 @@ Returns category id if a category exists
 sub check_category{
     my $dbh = Bugzilla->dbh;
     my $self = shift;
-	my ($name, $prodID) = (@_);
-	
-	$prodID ||= $self->product_id;
-	
+    my ($name, $prodID) = (@_);
+    
+    $prodID ||= $self->product_id;
+    
     my ($used) = $dbh->selectrow_array(
        "SELECT env_category_id 
-		  FROM test_environment_category
-	     WHERE name = ? AND product_id = ?",
-	     undef,($name,$prodID));
+          FROM test_environment_category
+         WHERE name = ? AND product_id = ?",
+         undef,($name,$prodID));
 
     return $used;             
 }
@@ -394,13 +394,13 @@ Returns category name if a category id exists
 
 sub check_category_by_id{
     my $dbh = Bugzilla->dbh;
-	my $self = shift;
+    my $self = shift;
     my ($id) = (@_);
 
-	my ($used) = $dbh->selectrow_arrayref(qq{
-    	SELECT name 
-		  FROM test_environment_category
-		  WHERE env_category_id = ?},undef,$id);
+    my ($used) = $dbh->selectrow_arrayref(qq{
+        SELECT name 
+          FROM test_environment_category
+          WHERE env_category_id = ?},undef,$id);
 
     return $used;             
 }
@@ -419,7 +419,7 @@ sub store {
     my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
     
     return 0 if $self->check_category($self->{'name'},$self->{'product_id'});
-	
+    
     my $dbh = Bugzilla->dbh;
     $dbh->do("INSERT INTO test_environment_category ($columns) VALUES (?, ?)",
              undef, ($self->{'product_id'}, $self->{'name'}));
@@ -474,11 +474,11 @@ Completely removes the element category entry from the database.
 
 sub obliterate {
     my $self = shift;
-	my $dbh = Bugzilla->dbh;
-	my $children = $dbh->selectcol_arrayref(
-	   "SELECT element_id FROM test_environment_element 
-	     WHERE env_category_id = ?", undef, $self->id);
-	     
+    my $dbh = Bugzilla->dbh;
+    my $children = $dbh->selectcol_arrayref(
+       "SELECT element_id FROM test_environment_element 
+         WHERE env_category_id = ?", undef, $self->id);
+         
     foreach my $id (@$children){
         my $element = Bugzilla::Testopia::Environment::Element->new($id);
         $element->obliterate;

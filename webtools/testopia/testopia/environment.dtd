@@ -1,15 +1,15 @@
 <!ELEMENT environment (category+)>
 <!ATTLIST environment
-	name CDATA #REQUIRED>
+    name CDATA #REQUIRED>
 
 <!ELEMENT category (element+)>
 <!ATTLIST category
-	name CDATA #REQUIRED>
+    name CDATA #REQUIRED>
 
 <!ELEMENT element (property|element)*>
 <!ATTLIST element
-	name CDATA #REQUIRED>
+    name CDATA #REQUIRED>
 
 <!ELEMENT property #PCDATA>
 <!ATTLIST property
-	name CDATA #REQUIRED>
+    name CDATA #REQUIRED>
