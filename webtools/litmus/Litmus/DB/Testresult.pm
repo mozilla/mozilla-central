@@ -232,24 +232,20 @@ sub getTestResults($\@\@$) {
         } elsif ($criterion->{'field'} eq 'email') {
             $where .= ' AND u.email LIKE \'%%' . $criterion->{'value'} . '%%\'';
         } elsif ($criterion->{'field'} eq 'trusted_only') {            
-            if ($criterion->{'value'} ne 'all') {
-                if ($from !~ /users u/) {
-                    $from .= ", users u" 
-                }
+            if ($criterion->{'value'} == 1 or $criterion->{'value'} eq 'on') {
                 $from .= ", user_group_map ugm, ";
                 $from .= "security_groups secgps, group_product_map gpm";
-            }
-            if ($criterion->{'value'} == 1 or $criterion->{'value'} eq 'on') {
-                $where .= qq{ AND u.user_id=tr.user_id AND (
+                
+                $where .= qq{ AND ((
                 u.user_id=ugm.user_id 
                 AND ugm.group_id=secgps.group_id AND
                  secgps.grouptype=1)  OR 
                  (gpm.product_id=pr.product_id AND 
                  gpm.group_id=secgps.group_id AND
-                 secgps.grouptype=3)};
-            } else {
-                $where .= '(secgps.grouptype != 1 AND secgps.grouptype != 2 
-                AND secgps.grouptype != 3)';
+                 secgps.grouptype=3))};
+            } if ($criterion->{'value'} == 0 or $criterion->{'value'} eq 'off') {
+            	$from .= ", user_group_map ugm, security_groups secgps";
+                $where .= ' AND (ugm.group_id != secgps.group_ida)';
             }
         } elsif ($criterion->{'field'} eq 'vetted_only') {
             if ($criterion->{'value'} ne 'all') {
@@ -270,7 +266,7 @@ sub getTestResults($\@\@$) {
             if ($from !~ /users u/) {
                 $from .= ", users u";
             }
-            $where .= " AND u.user_id=tr.user_id AND u.user_id=" . $criterion->{'value'};            
+            $where .= " AND u.user_id=" . $criterion->{'value'};            
         } elsif ($criterion->{'field'} eq 'start_date') {
             my $start_timestamp = &Date::Manip::UnixDate(&Date::Manip::ParseDateString($criterion->{'value'}),"%q");
             if ($start_timestamp !~ /^\d\d\d\d\d\d\d\d\d\d\d\d\d\d$/) {
