@@ -237,7 +237,7 @@ sub getTestResults($\@\@$) {
                 $from .= "security_groups secgps, group_product_map gpm";
                 
                 $where .= qq{ AND u.user_id=ugm.user_id AND ((
-                AND ugm.group_id=secgps.group_id AND
+                ugm.group_id=secgps.group_id AND
                  secgps.grouptype=1)  OR 
                  (gpm.product_id=pr.product_id AND 
                  gpm.group_id=secgps.group_id AND
