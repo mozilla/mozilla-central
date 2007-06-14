@@ -47,6 +47,9 @@ IMPORT_LIBRARY = $(OBJDIR)/$(IMPORT_LIB_PREFIX)$(LIBRARY_NAME)$(LIBRARY_VERSION)
 #RESNAME = $(LIBRARY_NAME).rc
 endif
 
+ifeq ($(OS_TARGET),AIX)
+EXTRA_LIBS += -lpthreads
+endif
 
 ifeq ($(OS_TARGET),SunOS)
 # The -R '$ORIGIN' linker option instructs this library to search for its
