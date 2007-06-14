@@ -245,7 +245,7 @@ sub getTestResults($\@\@$) {
                  secgps.grouptype=3))};
             } if ($criterion->{'value'} == 0 or $criterion->{'value'} eq 'off') {
             	$from .= ", user_group_map ugm, security_groups secgps";
-                $where .= ' AND (ugm.group_id != secgps.group_ida)';
+                $where .= ' AND (ugm.group_id != secgps.group_id)';
             }
         } elsif ($criterion->{'field'} eq 'vetted_only') {
             if ($criterion->{'value'} ne 'all') {
