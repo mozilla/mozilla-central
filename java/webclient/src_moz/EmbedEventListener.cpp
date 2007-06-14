@@ -372,7 +372,8 @@ nsresult EmbedEventListener::PopulatePropertiesFromEvent(nsIDOMEvent *event)
     }
 
     // Store a Long into the properties under the key: NODE_LONG_KEY
-    jlong longVal = (jlong) currentNode.get();
+    PRUint32 longVal = (PRUint32) currentNode.get();
+    memset(buf, 0, 20);
     WC_ITOA(longVal, buf, 10);
     strVal = ::util_NewStringUTF(env, buf);
     
@@ -422,6 +423,7 @@ nsresult EmbedEventListener::addMouseEventDataToProperties(nsCOMPtr<nsIDOMMouseE
     // PENDING(edburns): perhaps use a macro to speed this up?
     rv = mouseEvent->GetScreenX(&intVal);
     if (NS_SUCCEEDED(rv)) {
+	memset(buf, 0, 20);
         WC_ITOA(intVal, buf, 10);
         strVal = ::util_NewStringUTF(env, buf);
         ::util_StoreIntoPropertiesObject(env, mProperties, SCREEN_X_KEY,
@@ -432,6 +434,10 @@ nsresult EmbedEventListener::addMouseEventDataToProperties(nsCOMPtr<nsIDOMMouseE
     
     rv = mouseEvent->GetScreenY(&intVal);
     if (NS_SUCCEEDED(rv)) {
+#if (defined(XP_MAC) || defined(XP_MACOSX)) && defined(MOZ_WIDGET_COCOA)
+	intVal -=5;
+#endif
+	memset(buf, 0, 20);
         WC_ITOA(intVal, buf, 10);
         strVal = ::util_NewStringUTF(env, buf);
         ::util_StoreIntoPropertiesObject(env, mProperties, SCREEN_Y_KEY,
@@ -442,6 +448,7 @@ nsresult EmbedEventListener::addMouseEventDataToProperties(nsCOMPtr<nsIDOMMouseE
     
     rv = mouseEvent->GetClientX(&intVal);
     if (NS_SUCCEEDED(rv)) {
+	memset(buf, 0, 20);
         WC_ITOA(intVal, buf, 10);
         strVal = ::util_NewStringUTF(env, buf);
         ::util_StoreIntoPropertiesObject(env, mProperties, CLIENT_X_KEY,
@@ -452,6 +459,7 @@ nsresult EmbedEventListener::addMouseEventDataToProperties(nsCOMPtr<nsIDOMMouseE
     
     rv = mouseEvent->GetClientY(&intVal);
     if (NS_SUCCEEDED(rv)) {
+	memset(buf, 0, 20);
         WC_ITOA(intVal, buf, 10);
         strVal = ::util_NewStringUTF(env, buf);
         ::util_StoreIntoPropertiesObject(env, mProperties, CLIENT_Y_KEY,
@@ -463,6 +471,7 @@ nsresult EmbedEventListener::addMouseEventDataToProperties(nsCOMPtr<nsIDOMMouseE
     int16Val = 0;
     rv = mouseEvent->GetButton(&int16Val);
     if (NS_SUCCEEDED(rv)) {
+	memset(buf, 0, 20);
         WC_ITOA(int16Val, buf, 10);
         strVal = ::util_NewStringUTF(env, buf);
         ::util_StoreIntoPropertiesObject(env, mProperties, BUTTON_KEY,
@@ -539,6 +548,7 @@ nsresult EmbedEventListener::addKeyEventDataToProperties(nsCOMPtr<nsIDOMKeyEvent
 
     rv = keyEvent->GetKeyCode(&int32Val);
     if (NS_SUCCEEDED(rv)) {
+	memset(buf, 0, 20);
         WC_ITOA(int32Val, buf, 10);
 	strVal = ::util_NewStringUTF(env, buf);
         ::util_StoreIntoPropertiesObject(env, mProperties, KEY_CODE,

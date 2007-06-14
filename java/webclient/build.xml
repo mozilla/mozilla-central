@@ -94,7 +94,9 @@
   </target>
 
   <target name="main" 
-          depends="prepare,compile.classes_spec,compile.src_share,compile.src_moz,compile.src_ie,create.webclient.scripts"/>
+          depends="prepare,compile.classes_spec,compile.binaries,create.webclient.scripts"/>
+
+  <target name="compile.binaries" depends="compile.src_share,compile.src_moz,compile.src_ie" />
 
   <target name="compile.classes_spec">
 

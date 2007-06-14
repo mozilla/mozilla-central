@@ -227,6 +227,7 @@ AjaxListener::ObserveAjax(nsIRequest *request,
     PRUint32 responseStatus = 0;
     PRInt32 readyState  = 0;
     char buf[20];
+    memset(buf, 0, 20);
     jstring jStr = nsnull;
     nsCOMPtr<nsIDOMDocument> domDocument;
     jlong documentLong = nsnull;

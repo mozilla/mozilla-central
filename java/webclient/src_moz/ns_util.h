@@ -61,8 +61,7 @@
 #endif
 //
 
-#if defined(XP_UNIX) || defined(XP_MAC) || defined(XP_BEOS)
-
+#if defined(XP_UNIX) || defined(XP_MACOSX)
 #define WC_ITOA(intVal, buf, radix) sprintf(buf, "%d", intVal)
 #else
 #define WC_ITOA(intVal, buf, radix) itoa(intVal, buf, radix)

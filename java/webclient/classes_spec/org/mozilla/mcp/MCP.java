@@ -1,5 +1,5 @@
 /*
- * $Id: MCP.java,v 1.11 2007-06-13 16:57:17 edburns%acm.org Exp $
+ * $Id: MCP.java,v 1.12 2007-06-14 02:03:33 edburns%acm.org Exp $
  */
 
 /* 
@@ -516,16 +516,16 @@ public class MCP {
     */
     
     public void clickElement(Element element) {
-        String clientX = null, clientY = null;
+        String screenX = null, screenY = null;
         String id = element.getAttribute("id");
         if (null != element) {
-            clientX = element.getAttribute("clientX");
-            clientY = element.getAttribute("clientY");
+            screenX = element.getAttribute("screenX");
+            screenY = element.getAttribute("screenY");
             int x,y;
-            if (null != clientX && null != clientY) {
+            if (null != screenX && null != screenY) {
                 try {
-                    x = Integer.valueOf(clientX).intValue();
-                    y = Integer.valueOf(clientY).intValue();
+                    x = Integer.valueOf(screenX).intValue();
+                    y = Integer.valueOf(screenY).intValue() - 5;
                     Robot robot = getRobot();
                     robot.mouseMove(x, y);
                     robot.mousePress(InputEvent.BUTTON1_MASK);
@@ -540,7 +540,7 @@ public class MCP {
                 }
             }
         }
-        if (null == element || null == clientX || null == clientY) {
+        if (null == element || null == screenX || null == screenY) {
             throw new IllegalStateException("Unable to click element " + id);
         }
     }

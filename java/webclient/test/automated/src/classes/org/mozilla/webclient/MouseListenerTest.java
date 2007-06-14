@@ -1,5 +1,5 @@
 /*
- * $Id: MouseListenerTest.java,v 1.4 2007-05-04 17:10:35 edburns%acm.org Exp $
+ * $Id: MouseListenerTest.java,v 1.5 2007-06-14 02:03:34 edburns%acm.org Exp $
  */
 
 /* 
@@ -26,6 +26,7 @@
 
 package org.mozilla.webclient;
 
+import java.awt.Rectangle;
 import junit.framework.TestSuite;
 import junit.framework.Test;
 import java.util.Map;
@@ -38,6 +39,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.InputEvent;
 import java.awt.BorderLayout;
 import org.mozilla.mcp.junit.WebclientTestCase;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -61,17 +63,15 @@ public class MouseListenerTest extends WebclientTestCase {
 	return (result);
     }
 
-    static final int IN_X = 20;
-    static final int IN_Y = 117;
-
-    static final int OUT_X = 700;
-    static final int OUT_Y = 500;
-
     static EventRegistration2 eventRegistration;
 
     static CurrentPage2 currentPage = null;
 
     static boolean keepWaiting;
+    
+    int x;
+    
+    int y;
 
     //
     // Constants
@@ -96,15 +96,14 @@ public class MouseListenerTest extends WebclientTestCase {
 	assertNotNull(firstBrowserControl);
 	History history = (History) 
 	    firstBrowserControl.queryInterface(BrowserControl.HISTORY_NAME);
-	BrowserControlCanvas canvas = (BrowserControlCanvas)
+	final BrowserControlCanvas canvas = (BrowserControlCanvas)
 	    firstBrowserControl.queryInterface(BrowserControl.BROWSER_CONTROL_CANVAS_NAME);
 	eventRegistration = (EventRegistration2)
 	    firstBrowserControl.queryInterface(BrowserControl.EVENT_REGISTRATION_NAME);
 
 	assertNotNull(canvas);
-	Frame frame = new Frame();
-	frame.setUndecorated(true);
-	frame.setBounds(0, 0, 640, 480);
+	final Frame frame = new Frame();
+	frame.setBounds(0, 30, 640, 480);
 	frame.add(canvas, BorderLayout.CENTER);
 	frame.setVisible(true);
 	canvas.setVisible(true);
@@ -127,8 +126,13 @@ public class MouseListenerTest extends WebclientTestCase {
 	// PENDING(edburns): flesh this out with more content
 	MouseListener mouseListener = new MouseListener() {
 		public void mouseEntered(MouseEvent e) {
-		    assertEquals(IN_X, e.getX());
-		    assertEquals(IN_Y, e.getY());
+                    Rectangle 
+                            frameBounds = frame.getBounds(),
+                            canvasBounds = canvas.getBounds();
+		    assertEquals(MouseListenerTest.this.x, e.getX() + 
+                            frameBounds.x + canvasBounds.x);
+		    assertEquals(MouseListenerTest.this.y, e.getY() + 
+                            frameBounds.y + canvasBounds.y);
 
 		    assertTrue(e instanceof WCMouseEvent);
 		    WCMouseEvent wcMouseEvent = (WCMouseEvent) e;
@@ -175,15 +179,6 @@ public class MouseListenerTest extends WebclientTestCase {
 		}
 	    };
 	
-	if (addToCanvas) {
-	    canvas.addMouseListener(mouseListener);
-	}
-	else {
-	    eventRegistration.addMouseListener(mouseListener);
-	}
-	
-	Thread.currentThread().sleep(3000);
-	
 
 	//
 	// load four files.
@@ -198,18 +193,57 @@ public class MouseListenerTest extends WebclientTestCase {
 	}
 
 	Robot robot = new Robot();
-	
-	robot.mouseMove(IN_X, IN_Y);
+        
+        Document dom = currentPage.getDOM();
+        assertNotNull(dom);
+        Element toClick = dom.getElementById("HistoryTest0");
+        assertNotNull(toClick);
+        String 
+                screenX = toClick.getAttribute("screenX"),
+                screenY = toClick.getAttribute("screenY");
+        assertNotNull(screenX);
+        assertNotNull(screenY);
+        
+        x = Integer.valueOf(screenX).intValue();
+        y = Integer.valueOf(screenY).intValue() - 5;
+
+        // Click the H1 just to ensure the window has focus.
+        robot.mouseMove(x,y);
 	robot.mousePress(InputEvent.BUTTON1_MASK);
 	robot.mouseRelease(InputEvent.BUTTON1_MASK);
 
+	
+        // Now, add our test listener
+	if (addToCanvas) {
+	    canvas.addMouseListener(mouseListener);
+	}
+	else {
+	    eventRegistration.addMouseListener(mouseListener);
+	}
+	
+	Thread.currentThread().sleep(3000);
+        
+        toClick = dom.getElementById("HistoryTest1.html");
+        assertNotNull(toClick);
+        screenX = toClick.getAttribute("screenX");
+        screenY = toClick.getAttribute("screenY");
+        assertNotNull(screenX);
+        assertNotNull(screenY);
+
+        x = Integer.valueOf(screenX).intValue();
+        y = Integer.valueOf(screenY).intValue() - 5;
 
 	MouseListenerTest.keepWaiting = true;
+
+        robot.mouseMove(x, y);
+	robot.mousePress(InputEvent.BUTTON1_MASK);
+	robot.mouseRelease(InputEvent.BUTTON1_MASK);
+
 	while (MouseListenerTest.keepWaiting) {
 	    Thread.currentThread().sleep(1000);
 	}
 
-	robot.mouseMove(OUT_X, OUT_Y);
+	robot.mouseMove(x + 50, y + 50);
 
 	Thread.currentThread().sleep(3000);
 

@@ -1619,6 +1619,7 @@ void JNICALL CBrowserContainer::addMouseEventDataToProperties(nsIDOMEvent *aMous
     // PENDING(edburns): perhaps use a macro to speed this up?
     rv = mouseEvent->GetScreenX(&intVal);
     if (NS_SUCCEEDED(rv)) {
+        memset(buf, 0, 20);
         WC_ITOA(intVal, buf, 10);
         strVal = ::util_NewStringUTF(env, buf);
         ::util_StoreIntoPropertiesObject(env, properties, SCREEN_X_KEY,
@@ -1629,6 +1630,7 @@ void JNICALL CBrowserContainer::addMouseEventDataToProperties(nsIDOMEvent *aMous
     
     rv = mouseEvent->GetScreenY(&intVal);
     if (NS_SUCCEEDED(rv)) {
+        memset(buf, 0, 20);
         WC_ITOA(intVal, buf, 10);
         strVal = ::util_NewStringUTF(env, buf);
         ::util_StoreIntoPropertiesObject(env, properties, SCREEN_Y_KEY,
@@ -1639,6 +1641,7 @@ void JNICALL CBrowserContainer::addMouseEventDataToProperties(nsIDOMEvent *aMous
     
     rv = mouseEvent->GetClientX(&intVal);
     if (NS_SUCCEEDED(rv)) {
+        memset(buf, 0, 20);
         WC_ITOA(intVal, buf, 10);
         strVal = ::util_NewStringUTF(env, buf);
         ::util_StoreIntoPropertiesObject(env, properties, CLIENT_X_KEY,
@@ -1649,6 +1652,7 @@ void JNICALL CBrowserContainer::addMouseEventDataToProperties(nsIDOMEvent *aMous
     
     rv = mouseEvent->GetClientY(&intVal);
     if (NS_SUCCEEDED(rv)) {
+        memset(buf, 0, 20);
         WC_ITOA(intVal, buf, 10);
         strVal = ::util_NewStringUTF(env, buf);
         ::util_StoreIntoPropertiesObject(env, properties, CLIENT_Y_KEY,
@@ -1660,6 +1664,7 @@ void JNICALL CBrowserContainer::addMouseEventDataToProperties(nsIDOMEvent *aMous
     int16Val = 0;
     rv = mouseEvent->GetButton(&int16Val);
     if (NS_SUCCEEDED(rv)) {
+        memset(buf, 0, 20);
         WC_ITOA(int16Val, buf, 10);
         strVal = ::util_NewStringUTF(env, buf);
         ::util_StoreIntoPropertiesObject(env, properties, BUTTON_KEY,

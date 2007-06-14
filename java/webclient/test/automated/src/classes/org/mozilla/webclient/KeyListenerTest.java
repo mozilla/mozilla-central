@@ -1,5 +1,5 @@
 /*
- * $Id: KeyListenerTest.java,v 1.5 2007-05-04 17:10:35 edburns%acm.org Exp $
+ * $Id: KeyListenerTest.java,v 1.6 2007-06-14 02:03:34 edburns%acm.org Exp $
  */
 
 /* 
@@ -37,6 +37,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.InputEvent;
 import java.awt.BorderLayout;
 import org.mozilla.mcp.junit.WebclientTestCase;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -96,7 +97,6 @@ public class KeyListenerTest extends WebclientTestCase {
 
 	assertNotNull(canvas);
 	Frame frame = new Frame();
-	frame.setUndecorated(true);
 	frame.setBounds(0, 0, 640, 480);
 	frame.add(canvas, BorderLayout.CENTER);
 	frame.setVisible(true);
@@ -154,8 +154,7 @@ public class KeyListenerTest extends WebclientTestCase {
                         id = element.getAttribute("id"),
                         name = element.getAttribute("name"),
                         nodeName = domNode.getNodeName(),
-                        value = domNode.getNodeValue();
-                    assertEquals("field1", id);
+                        value = domNode.getNodeValue();                    assertEquals("field1", id);
                     assertEquals("field1", name);
                     assertEquals("INPUT", nodeName);
                     assertEquals("", value);
@@ -182,23 +181,33 @@ public class KeyListenerTest extends WebclientTestCase {
 	while (KeyListenerTest.keepWaiting) {
 	    Thread.currentThread().sleep(1000);
 	}
+        
+        Document dom = currentPage.getDOM();
+        assertNotNull(dom);
+        Element textField = dom.getElementById("field1");
+        assertNotNull(textField);
+        
+        String screenX = textField.getAttribute("screenX");
+        String screenY = textField.getAttribute("screenY");
+        assertNotNull(screenX);
+        assertNotNull(screenY);
+        int x = Integer.valueOf(screenX).intValue();
+        int y = Integer.valueOf(screenY).intValue() - 5;
 
 	Robot robot = new Robot();
-	
-	robot.mouseMove(IN_X, IN_Y);
+	robot.mouseMove(x, y);
 	robot.mousePress(InputEvent.BUTTON1_MASK);
 	robot.mouseRelease(InputEvent.BUTTON1_MASK);
 
-
+        /****
 	// uncomment to enable manual testing
-	/*************
 	KeyListenerTest.keepWaiting = true;
 	
 	// keep waiting until the previous load completes
 	while (KeyListenerTest.keepWaiting) {
 	    Thread.currentThread().sleep(1000);
 	}
-	******************/
+         ****/
 
 	robot.keyPress(KeyEvent.VK_A);
 	robot.keyRelease(KeyEvent.VK_A);

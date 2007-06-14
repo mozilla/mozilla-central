@@ -383,7 +383,11 @@ public class TestBrowser extends JPanel {
                                     name = element.getAttribute("name"),
                                     nodeName = domNode.getNodeName(),
                                     value = domNode.getNodeValue(),
-                                    status = "";
+                                    status = "",
+                                    clientX = element.getAttribute("clientX"),
+                                    clientY = element.getAttribute("clientY"),
+                                    screenX = element.getAttribute("screenX"),
+                                    screenY = element.getAttribute("screenY");
                             if (null != href) {
                                 // PENDING(edburns): take care of relative URL
                                 status = href;
@@ -391,7 +395,10 @@ public class TestBrowser extends JPanel {
                             if (null != id || null != name || null != nodeName
                                     || null != value) {
                                 status = status + " domNode: " + nodeName + " id: " + id
-                                        + " name: " + name + " value: " + value;
+                                        + " name: " + name + " value: " + 
+                                        value + "client(" + clientX + "," +
+                                        clientY + ") screen(" + screenX + "," +
+                                        screenY + ")";
                                 updateStatusInfo(status);
                             }
                         }

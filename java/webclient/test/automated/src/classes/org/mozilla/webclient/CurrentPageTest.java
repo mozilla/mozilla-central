@@ -1,5 +1,5 @@
 /*
- * $Id: CurrentPageTest.java,v 1.18 2007-06-12 14:21:02 edburns%acm.org Exp $
+ * $Id: CurrentPageTest.java,v 1.19 2007-06-14 02:03:34 edburns%acm.org Exp $
  */
 
 /* 
@@ -193,7 +193,7 @@ public class CurrentPageTest extends WebclientTestCase implements ClipboardOwner
             buf.append(contentLine);
             System.out.println(contentLine);
         }
-	assertEquals("    <h1>HistoryTest0</h1><p>This is page 0 of the history test.</p><p><a id=\"HistoryTest1.html\" href=\"http://localhost:5243/HistoryTest1.html\">next</a></p>    <hr>  ",
+	assertEquals("    <h1 id=\"HistoryTest0\">HistoryTest0</h1><p>This is page 0 of the history test.</p><p><a id=\"HistoryTest1.html\" href=\"http://localhost:5243/HistoryTest1.html\">next</a></p>    <hr>  ",
 		     buf.toString());
 
         
