@@ -5047,8 +5047,8 @@ NS_IMETHODIMP nsMsgDBFolder::AddKeywordsToMessages(nsISupportsArray *aMessages, 
       keywordArray.ParseString(nsCString(aKeywords).get(), " ");
       for (PRInt32 j = 0; j < keywordArray.Count(); j++)
       {
-        nsACString::const_iterator start, end;
-        if (!MsgFindKeyword(*(keywordArray[j]), keywords, start, end))
+        PRInt32 start, length;
+        if (!MsgFindKeyword(*(keywordArray[j]), keywords, &start, &length))
         {
           if (!keywords.IsEmpty())
             keywords.Append(' ');
@@ -5102,13 +5102,10 @@ NS_IMETHODIMP nsMsgDBFolder::RemoveKeywordsFromMessages(nsISupportsArray *aMessa
           if (labelValue == (nsMsgLabelValue) (keywordArray[j]->CharAt(6) - '0'))
             message->SetLabel((nsMsgLabelValue) 0);
         }
-
-        nsACString::const_iterator start, end;
-        nsACString::const_iterator saveStart;
-        keywords.BeginReading(saveStart);
-        if (MsgFindKeyword(*(keywordArray[j]), keywords, start, end))
+        PRInt32 startOffset, length;
+        if (MsgFindKeyword(*(keywordArray[j]), keywords, &startOffset,&length))
         {
-          keywords.Cut(Distance(saveStart, start), Distance(start, end));
+          keywords.Cut(startOffset, length);
           NS_ASSERTION(keywords.IsEmpty() || keywords.CharAt(0) != ' ', "space only keyword");
         }
       }

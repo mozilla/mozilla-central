@@ -167,9 +167,7 @@ NS_MSG_BASE nsresult MsgReopenFileStream(nsILocalFile *file, nsIInputStream *fil
 
 // fills in the position of the passed in keyword in the passed in keyword list
 // and returns false if the keyword isn't present
-NS_MSG_BASE PRBool MsgFindKeyword(const nsACString &keyword, nsACString &keywords, 
-                                  nsACString::const_iterator &start, 
-                                  nsACString::const_iterator &end);
+NS_MSG_BASE PRBool MsgFindKeyword(const nsCString &keyword, nsCString &keywords, PRInt32 *aStartOfKeyword, PRInt32 *aLength);
 
 NS_MSG_BASE PRBool MsgHostDomainIsTrusted(nsCString &host, nsCString &trustedMailDomains);
 

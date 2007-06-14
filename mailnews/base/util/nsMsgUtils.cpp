@@ -1292,20 +1292,26 @@ nsresult MsgReopenFileStream(nsILocalFile *file, nsIInputStream *fileStream)
     return NS_ERROR_FAILURE;
 }
 
-PRBool MsgFindKeyword(const nsACString &keyword, nsACString &keywords, nsACString::const_iterator &start, nsACString::const_iterator &end)
+PRBool MsgFindKeyword(const nsCString &keyword, nsCString &keywords, PRInt32 *aStartOfKeyword, PRInt32 *aLength)
 {
-  keywords.BeginReading(start);
-  keywords.EndReading(end);
+  const char * start = keywords.BeginReading();
+  const char * end = keywords.EndReading();
+
   if (*start == ' ')
     start++;
-  nsACString::const_iterator saveStart(start), saveEnd(end);
+  const char * saveStart = start;
+  const char * saveEnd = end;
+  PRInt32 offset = 0;
   while (PR_TRUE)
   {
-    if (FindInReadable(keyword, start, end))
+    offset = keywords.Find(keyword, offset);
+    if (offset >= 0)
     {
+      start += offset;
+      end = start + keyword.Length();
       PRBool beginMatches = start == saveStart;
       PRBool endMatches = end == saveEnd;
-      nsACString::const_iterator beforeStart(start);
+      const char * beforeStart = start;
       beforeStart--;
       // start and end point to the beginning and end of the match
       if (beginMatches && (end == saveEnd || *end == ' ')
@@ -1316,14 +1322,19 @@ PRBool MsgFindKeyword(const nsACString &keyword, nsACString &keywords, nsACStrin
           end++;
         if (*beforeStart == ' ' && endMatches)
           start--;
+        *aStartOfKeyword = start - saveStart;
+        *aLength = end - start;
         return PR_TRUE;
       }
       else 
         start = end; // advance past bogus match.
     }
     else
-      break;
+      break; 
   }
+  
+  *aStartOfKeyword = -1;
+  *aLength = 0;
   return PR_FALSE;
 }
 

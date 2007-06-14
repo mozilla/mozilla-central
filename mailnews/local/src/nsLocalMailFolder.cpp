@@ -3782,20 +3782,16 @@ nsresult nsMsgLocalMailFolder::ChangeKeywordForMessages(nsISupportsArray *aMessa
               break;
             else
               continue;
-
             PRInt32 keywordHdrLength = keywordHeaders.Length();
-            nsACString::const_iterator start, end;
-            nsACString::const_iterator keywordHdrStart;
-            keywordHeaders.BeginReading(keywordHdrStart);
+            PRInt32 startOffset, keywordLength;
             // check if we have the keyword
-            if (MsgFindKeyword(*(keywordArray[j]), keywordHeaders, start, end))
+            if (MsgFindKeyword(*(keywordArray[j]), keywordHeaders, &startOffset, &keywordLength))
             {
               foundKeyword = PR_TRUE;
               if (!add) // if we're removing, remove it, and break;
               {
-                PRInt32 keywordStartOffset = Distance(keywordHdrStart, start);
-                keywordHeaders.Cut(keywordStartOffset, Distance(start, end));
-                for (PRInt32 i = Distance(start, end); i > 0; i--)
+                keywordHeaders.Cut(startOffset, keywordLength);
+                for (PRInt32 i = keywordLength; i > 0; i--)
                   keywordHeaders.Append(' ');
                 seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, lineStartPos);
                 fileStream->Write(keywordHeaders.get(), keywordHeaders.Length(), &bytesWritten);

@@ -224,25 +224,6 @@ NS_IMETHODIMP nsMsgOfflineImapOperation::GetKeywordsToAdd(char * *aKeywords)
 NS_IMETHODIMP nsMsgOfflineImapOperation::AddKeywordToAdd(const char * aKeyword)
 {
   return AddKeyword(aKeyword, m_keywordsToAdd, PROP_KEYWORD_ADD, m_keywordsToRemove, PROP_KEYWORD_REMOVE);
-  nsACString::const_iterator start, end;
-  if (!MsgFindKeyword(nsDependentCString(aKeyword), m_keywordsToAdd, start, end))
-  {
-    if (!m_keywordsToAdd.IsEmpty())
-      m_keywordsToAdd.Append(' ');
-    m_keywordsToAdd.Append(aKeyword);
-  }
-  // if the keyword we're adding was in the list of keywords to remove,
-  // cut it from that list.
-  nsACString::const_iterator removeStart, removeEnd;
-  if (MsgFindKeyword(nsDependentCString(aKeyword), m_keywordsToRemove, removeStart, removeEnd))
-  {
-    nsACString::const_iterator saveStart;
-    m_keywordsToRemove.BeginReading(saveStart);
-    m_keywordsToRemove.Cut(Distance(saveStart, removeStart), Distance(removeStart, removeEnd));
-    m_mdb->SetProperty(m_mdbRow, PROP_KEYWORD_REMOVE, m_keywordsToRemove.get());
-  }
-  SetOperation(kAddKeywords);
-  return m_mdb->SetProperty(m_mdbRow, PROP_KEYWORD_ADD, m_keywordsToAdd.get());
 }
 
 NS_IMETHODIMP nsMsgOfflineImapOperation::GetKeywordsToRemove(char * *aKeywords)
@@ -256,8 +237,8 @@ NS_IMETHODIMP nsMsgOfflineImapOperation::GetKeywordsToRemove(char * *aKeywords)
 nsresult nsMsgOfflineImapOperation::AddKeyword(const char *aKeyword, nsCString &addList, const char *addProp,
                                                nsCString &removeList, const char *removeProp)
 {
-  nsACString::const_iterator start, end;
-  if (!MsgFindKeyword(nsDependentCString(aKeyword), addList, start, end))
+  PRInt32 startOffset, keywordLength;
+  if (!MsgFindKeyword(nsDependentCString(aKeyword), addList, &startOffset, &keywordLength))
   {
     if (!addList.IsEmpty())
       addList.Append(' ');
@@ -265,12 +246,9 @@ nsresult nsMsgOfflineImapOperation::AddKeyword(const char *aKeyword, nsCString &
   }
   // if the keyword we're removing was in the list of keywords to add,
   // cut it from that list.
-  nsACString::const_iterator addStart, addEnd;
-  if (MsgFindKeyword(nsDependentCString(aKeyword), removeList, addStart, addEnd))
+  if (MsgFindKeyword(nsDependentCString(aKeyword), removeList, &startOffset, &keywordLength))
   {
-    nsACString::const_iterator saveStart;
-    removeList.BeginReading(saveStart);
-    removeList.Cut(Distance(saveStart, addStart), Distance(addStart, addEnd));
+    removeList.Cut(startOffset, keywordLength);
     m_mdb->SetProperty(m_mdbRow, removeProp, removeList.get());
   }
   SetOperation(kRemoveKeywords);
