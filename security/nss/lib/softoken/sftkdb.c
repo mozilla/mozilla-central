@@ -1690,7 +1690,7 @@ sftkdb_encrypt(PLArenaPool *arena, SECItem *passKey, SECItem *plainText,
 
 loser:
     if (cipher) {
-	SECITEM_FreeItem(cipher, PR_FALSE);
+	SECITEM_FreeItem(cipher, PR_TRUE);
     }
     if (param) {
 	nsspkcs5_DestroyPBEParameter(param);
