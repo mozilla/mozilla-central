@@ -72,7 +72,6 @@
 #include "prmem.h"
 #include "prprf.h"
 
-#include "nsCRT.h"
 #include "nsMsgUtils.h"
 
 #include "nsMsgDatabase.h"

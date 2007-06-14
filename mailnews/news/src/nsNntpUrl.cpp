@@ -48,7 +48,6 @@
 #include "prmem.h"
 #include "plstr.h"
 #include "prprf.h"
-#include "nsCRT.h"
 #include "nsNewsUtils.h"
 #include "nsISupportsObsolete.h"
 

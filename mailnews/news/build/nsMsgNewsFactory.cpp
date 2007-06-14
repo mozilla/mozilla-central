@@ -44,7 +44,6 @@
 #include "pratom.h"
 #include "nsIComponentManager.h"
 #include "nsIServiceManager.h"
-#include "nsCRT.h"
 #include "nsCOMPtr.h"
 
 #include "nsNewsFolder.h"

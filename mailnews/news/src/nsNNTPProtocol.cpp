@@ -66,8 +66,6 @@
 
 #include "nsINntpUrl.h"
 
-#include "nsCRT.h"
-
 #include "prtime.h"
 #include "prlog.h"
 #include "prerror.h"
@@ -1359,9 +1357,9 @@ nsNNTPProtocol::ParseURL(nsIURI * aURL, char ** aGroup, char ** aMessageID,
   PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) fullPath = %s",this, fullPath.get()));
 
   if (fullPath.First() == '/')
-    group = nsCRT::strdup(fullPath.get()+1);
+    group = NS_strdup(fullPath.get()+1);
   else
-    group = nsCRT::strdup(fullPath.get());
+    group = ToNewCString(fullPath);
 
   // more to do here, but for now, this works.
   // only escape if we are doing a search
@@ -1369,11 +1367,11 @@ nsNNTPProtocol::ParseURL(nsIURI * aURL, char ** aGroup, char ** aMessageID,
     nsUnescape(group);
   }
   else if (strchr(group, '@') || strstr(group,"%40")) {
-      message_id = nsUnescape(group);
+    message_id = nsUnescape(group);
     group = 0;
   }
-    else if (!*group) {
-      nsCRT::free(group);
+  else if (!*group) {
+    NS_Free(group);
     group = 0;
   }
 
@@ -1400,13 +1398,13 @@ nsNNTPProtocol::ParseURL(nsIURI * aURL, char ** aGroup, char ** aMessageID,
       break;
 
     if (*s) {
-      command_specific_data = nsCRT::strdup (s);
+      command_specific_data = NS_strdup(s);
       *s = 0;
       if (!command_specific_data) {
         status = MK_OUT_OF_MEMORY;
         goto FAIL;
           }
-      }
+    }
 
     /* Discard any now-empty strings. */
     if (message_id && !*message_id) {
@@ -1848,7 +1846,7 @@ PRInt32 nsNNTPProtocol::GetPropertiesResponse(nsIInputStream * inputStream, PRUi
 
 	if ('.' != line[0])
 	{
-		char *propertyName = nsCRT::strdup(line);
+		char *propertyName = NS_strdup(line);
 		if (propertyName)
 		{
 			char *space = PL_strchr(propertyName, ' ');
@@ -2565,7 +2563,7 @@ PRInt32 nsNNTPProtocol::ReadArticle(nsIInputStream * inputStream, PRUint32 lengt
       /* Don't send content-type to mime parser if we're doing a cancel
       because it confuses mime parser into not parsing.
 		  */
-    if (m_typeWanted != CANCEL_WANTED || nsCRT::strncmp(outputBuffer, "Content-Type:", 13))
+    if (m_typeWanted != CANCEL_WANTED || strncmp(outputBuffer, "Content-Type:", 13))
     {
       // if we are attempting to cancel, we want to snarf the headers and save the aside, which is what
       // ParseHeaderForCancel() does.
@@ -3138,13 +3136,11 @@ PRInt32 nsNNTPProtocol::ReadNewsList(nsIInputStream * inputStream, PRUint32 leng
       char rate_buf[RATE_STR_BUF_LEN];
       PR_snprintf(rate_buf,RATE_STR_BUF_LEN,"%.1f", rate);
 
-      nsAutoString rateStr;
-      rateStr.Append(NS_ConvertASCIItoUTF16(rate_buf));
-
       nsAutoString numGroupsStr;
       numGroupsStr.AppendInt(mNumGroupsListed);
+      NS_ConvertASCIItoUTF16 rateStr(rate_buf);
 
-      const PRUnichar *formatStrings[3] = { numGroupsStr.get(), bytesStr.get(), rateStr.get() };
+      const PRUnichar *formatStrings[3] = { numGroupsStr.get(), bytesStr.get(), rateStr.get()};
       rv = bundle->FormatStringFromName(NS_LITERAL_STRING("bytesReceived").get(),
         formatStrings, 3,
         getter_Copies(statusString));

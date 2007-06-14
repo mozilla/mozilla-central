@@ -57,7 +57,6 @@
 #include "nsMsgBaseCID.h"
 #include "nsIPrefBranch.h"
 #include "nsIPrefService.h"
-#include "nsCRT.h"  // for nsCRT::strtok
 #include "nsNntpService.h"
 #include "nsIChannel.h"
 #include "nsILoadGroup.h"
@@ -225,7 +224,7 @@ nsNntpService::CreateMessageIDURL(nsIMsgFolder *folder, nsMsgKey key, char **url
     uri = rootFolderURI.get();
     uri += '/';
     uri += escapedMessageID;
-    *url = nsCRT::strdup(uri.get());
+    *url = ToNewCString(uri);
 
     PR_FREEIF(escapedMessageID);
 
@@ -509,7 +508,7 @@ nsNntpService::DecomposeNewsURI(const char *uri, nsIMsgFolder **folder, nsMsgKey
 {
   nsresult rv;
   // if we fix DecomposeNewsMessage to handle news message scheme, we could use it exclusively
-  if (nsCRT::strncmp(uri, kNewsMessageRootURI, kNewsMessageRootURILen) == 0)
+  if (strncmp(uri, kNewsMessageRootURI, kNewsMessageRootURILen) == 0)
   {
     rv = DecomposeNewsMessageURI(uri, folder, aMsgKey);
     NS_ENSURE_SUCCESS(rv,rv);
@@ -796,42 +795,33 @@ nsNntpService::GenerateNewsHeaderValsForPosting(const char *newsgroupsList, char
   // we are not going to allow the user to cross post to multiple hosts.
   // if we detect that, we stop and return error.
 
-  // nsCRT::strtok is going destroy what we pass to it, so we need to make a copy of newsgroupsNames.
-  char *list = nsCRT::strdup(newsgroupsList);
-  char *token = nsnull;
-  char *rest = list;
   nsCAutoString host;
   nsCAutoString str;
   nsCAutoString newsgroups;
 
-  token = nsCRT::strtok(rest, ",", &rest);
-  while (token && *token)
+  nsCStringArray list;
+  list.ParseString(newsgroupsList, ",");
+  for (PRInt32 index = 0; index < list.Count(); index++)
   {
-    str = token;
-    str.StripWhitespace();
-
-    if (!str.IsEmpty())
+    list[index]->StripWhitespace();
+    if (!list[index]->IsEmpty())
     {
       nsCAutoString currentHost;
       nsCAutoString theRest;
-
       // does str start with "news:/"?
-      if (str.Find(kNewsRootURI) == 0)
+      if (StringBeginsWith(*list[index], NS_LITERAL_CSTRING(kNewsRootURI)))
       {
         // we have news://group or news://host/group
         // set theRest to what's after news://
-        str.Right(theRest, str.Length() - kNewsRootURILen /* for news:/ */ - 1 /* for the slash */);
+        list[index]->Right(theRest, list[index]->Length() - kNewsRootURILen /* for news:/ */ - 1 /* for the slash */);
       }
-      else if (str.Find(":/") != -1)
+      else if (list[index]->Find(":/") != -1)
       {
         // we have x:/y where x != news. this is bad, return failure
-        CRTFREEIF(list);
         return NS_ERROR_FAILURE;
       }
       else
-      {
-        theRest = str;
-      }
+        theRest = *list[index];
 
       // theRest is "group" or "host/group"
       PRInt32 slashpos = theRest.FindChar('/');
@@ -847,10 +837,7 @@ nsNntpService::GenerateNewsHeaderValsForPosting(const char *newsgroupsList, char
 
         NS_ASSERTION(!currentGroup.IsEmpty(), "currentGroup is empty");
         if (currentGroup.IsEmpty())
-        {
-          CRTFREEIF(list);
           return NS_ERROR_FAILURE;
-        }
 
         // build up the newsgroups
         if (!newsgroups.IsEmpty())
@@ -862,39 +849,26 @@ nsNntpService::GenerateNewsHeaderValsForPosting(const char *newsgroupsList, char
         // str is "group"
         rv = FindHostFromGroup(currentHost, str);
         if (NS_FAILED(rv))
-        {
-          CRTFREEIF(list);
           return rv;
-        }
-
         // build up the newsgroups
         if (!newsgroups.IsEmpty())
           newsgroups += ",";
-        newsgroups += str;
+        newsgroups += *list[index];
       }
 
       if (!currentHost.IsEmpty())
       {
         if (host.IsEmpty())
-        {
           host = currentHost;
-        }
         else
         {
           if (!host.Equals(currentHost))
-          {
-            CRTFREEIF(list);
             return NS_ERROR_NNTP_NO_CROSS_POSTING;
-          }
         }
       }
-
-      str = "";
       currentHost = "";
     }
-    token = nsCRT::strtok(rest, ",", &rest);
   }
-  CRTFREEIF(list);
 
   *newshostHeaderVal = ToNewCString(host);
   if (!*newshostHeaderVal) return NS_ERROR_OUT_OF_MEMORY;
@@ -1248,7 +1222,7 @@ NS_IMETHODIMP nsNntpService::GetNewNews(nsINntpIncomingServer *nntpServer, const
   server = do_QueryInterface(nntpServer);
 
   /* double check that it is a "news:/" url */
-  if (nsCRT::strncmp(uri, kNewsRootURI, kNewsRootURILen) == 0)
+  if (strncmp(uri, kNewsRootURI, kNewsRootURILen) == 0)
   {
     nsCOMPtr<nsIURI> aUrl;
     rv = ConstructNntpUrl(uri, aUrlListener, aMsgWindow, nsnull, nsINntpUrl::ActionGetNewNews, getter_AddRefs(aUrl));

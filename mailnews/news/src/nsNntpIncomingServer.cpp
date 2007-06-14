@@ -1252,7 +1252,7 @@ nsNntpIncomingServer::HandleLine(const char* line, PRUint32 line_size)
     }
   }
   else {
-		if (nsCRT::strncmp(line,"begingroups", 11) == 0) {
+		if (strncmp(line,"begingroups", 11) == 0) {
 			mHasSeenBeginGroups = PR_TRUE;
 		}
 		char*equalPos = (char *) PL_strchr(line, '=');	
