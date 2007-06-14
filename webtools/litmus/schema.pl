@@ -398,6 +398,8 @@ $table{security_groups} =
 	 grouptype tinyint not null,
 	 isactive tinyint not null default 1,
 	 
+	 index(grouptype),
+	 index idtype (group_id, grouptype),
 	 unique index(name)';
 	 
 $table{user_group_map} =

@@ -274,6 +274,9 @@ $dbtool->ChangeFieldType("test_result_bugs", "test_result_id", 'int(11) NOT NULL
 $dbtool->DropPrimaryKey('test_result_bugs');
 $dbtool->AddPrimaryKey('test_result_bugs',"(test_result_id,bug_id)");
 
+$dbtool->AddKey('security_groups', '(grouptype)', '');
+$dbtool->AddKey('security_groups', 'idtype (group_id, grouptype)', '');
+
 print "Schema update complete.\n\n";
 
 # javascript cache
