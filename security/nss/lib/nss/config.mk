@@ -129,6 +129,10 @@ SHARED_LIBRARY_DIRS = \
 	../libpkix/pkix_pl_nss/module \
 	$(NULL)
 
+ifeq ($(OS_ARCH), Darwin)
+EXTRA_SHARED_LIBS += -dylib_file @executable_path/libsqlite3.dylib:$(DIST)/lib/libsqlite3.dylib
+endif
+
 
 ifeq ($(OS_TARGET),SunOS)
 ifeq ($(BUILD_SUN_PKG), 1)
