@@ -24,7 +24,7 @@ use Config;         # for $Config{sig_name} and $Config{sig_num}
 use File::Find ();
 use File::Copy;
 
-$::UtilsVersion = '$Revision: 1.359 $ ';
+$::UtilsVersion = '$Revision: 1.360 $ ';
 
 package TinderUtils;
 
@@ -321,6 +321,9 @@ sub GetSystemInfo {
         $os_ver = $2;
         $host =~ tr/A-Z/a-z/;
     }
+    if ($Settings::OS =~ /^MINGW/) {
+      $Settings::OS = 'WINNT';
+    }
     if ($Settings::OS =~ /^WIN/) {
         $host =~ tr/A-Z/a-z/;
         $Settings::TieStderr = "" if $Settings::OS eq 'WIN98';
@@ -427,7 +430,7 @@ sub SetupEnv {
     if ($Settings::ReleaseBuild) {
         $ENV{BUILD_OFFICIAL}   = 1;
         $ENV{MOZILLA_OFFICIAL} = 1;
-      if ($Settings::OS =~ /^WIN/) {
+      if (is_windows()) {
         if ($Settings::shiptalkback || $Settings::crashreporter_buildsymbols) {
             $ENV{MOZ_DEBUG_SYMBOLS}      = 1;
         }
@@ -621,7 +624,7 @@ sub SetupPath {
             }
         }
     }
-    if ($Settings::OS =~ /^WIN/) {
+    if (is_windows()) {
         $Settings::use_blat = 1;
         $Settings::Compiler = 'cl';
     }
@@ -703,7 +706,7 @@ sub mail_build_started_message {
 
     PrintUsage() if $Settings::BuildTree =~ /^\s+$/i;
 
-    my $platform = $Settings::OS =~ /^WIN/ ? 'windows' : 'unix';
+    my $platform = is_windows() ? 'windows' : 'unix';
 
     print_log "\n";
     print_log "tinderbox: tree: $Settings::BuildTree\n";
@@ -738,7 +741,7 @@ sub mail_build_failed_message {
 
     PrintUsage() if $Settings::BuildTree =~ /^\s+$/i;
 
-    my $platform = $Settings::OS =~ /^WIN/ ? 'windows' : 'unix';
+    my $platform = is_windows() ? 'windows' : 'unix';
 
     print_log "Subject: tinderbox bustage: $Settings::BuildName";
     print_log "\n";
@@ -800,7 +803,7 @@ sub mail_build_finished_message {
     # Rewrite LOG to OUTLOG, shortening lines.
     open OUTLOG, ">$logfile.last" or die "Unable to open logfile, $logfile: $!";
 
-    my $platform = $Settings::OS =~ /^WIN/ ? 'windows' : 'unix';
+    my $platform = is_windows() ? 'windows' : 'unix';
 
     # Put the status at the top of the log, so the server will not
     # have to search through the entire log to find it.
@@ -868,8 +871,10 @@ sub BuildIt {
 
     my $build_dir = get_system_cwd();
 
-    if ($Settings::OS =~ /^WIN/ && $build_dir !~ m/^.:\//) {
-        chomp($build_dir = `cygpath -w $build_dir`);
+    if (is_windows() && $build_dir !~ m/^.:\//) {
+        if ($^O eq 'cygwin') {
+            chomp($build_dir = `cygpath -w $build_dir`);
+        }
         $build_dir =~ s/\\/\//g;
     }
 
@@ -1034,7 +1039,7 @@ sub BuildIt {
           
           # Build it
           if (!$Settings::TestOnly && $build_status ne 'busted') { # Do not build if testing smoke tests.
-            if ($Settings::OS =~ /^WIN/) {
+            if (is_windows()) {
               DeleteBinaryDir($binary_dir);
             } else {
               # Delete binary so we can test for it to determine success after building.
@@ -1316,21 +1321,16 @@ sub get_profile_dir {
     #   ($profile_dir) = <$profile_dir . "...">;
     # doesn't overwrite $profile_dir when the <> gives a 0-length list.
 
-    if ($Settings::OS =~ /^WIN/) {
-        if ($Settings::OS =~ /^WIN9/) { # 98 [but what does uname say on Me?]
-            $profile_dir = $ENV{winbootdir} || $ENV{windir} || "C:\\WINDOWS";
-            $profile_dir .= "\\Application Data";
-        } elsif ($Settings::OS =~ /^WINNT/) { # NT 4, 2K, XP
-            # try %APPDATA% first as it works even on localized OS versions
-            if ($ENV{APPDATA}) {
-                $profile_dir = $ENV{APPDATA};
-            }
-            elsif ($ENV{USERPROFILE}) {
-                # afaict, %USERPROFILE% should always be there, NT 4.0 and up
-                $profile_dir = $ENV{USERPROFILE} . "\\Application Data";
-            } else { # prepare to fail
-                $profile_dir = "C:\\_UNKNOWN_";
-            }
+    if (is_windows()) {
+        # try %APPDATA% first as it works even on localized OS versions
+        if ($ENV{APPDATA}) {
+            $profile_dir = $ENV{APPDATA};
+        }
+        elsif ($ENV{USERPROFILE}) {
+            # afaict, %USERPROFILE% should always be there, NT 4.0 and up
+            $profile_dir = $ENV{USERPROFILE} . "\\Application Data";
+        } else { # prepare to fail
+            $profile_dir = "C:\\_UNKNOWN_";
         }
         if ($Settings::VendorName) {
           $profile_dir .= "\\$Settings::VendorName";
@@ -1955,9 +1955,11 @@ sub run_all_tests {
 
     # Windows needs this for file: urls.
     my $win32_build_dir = $build_dir;
-    if ($Settings::OS =~ /^WIN/ && $win32_build_dir !~ m/^.:\//) {
+    if (is_windows()) {
+      if ($^O eq "cygwin" && $win32_build_dir !~ m/^.:\//) {
         chomp($win32_build_dir = `cygpath -w $win32_build_dir`);
-        $win32_build_dir =~ s/\\/\//g;
+      }
+      $win32_build_dir =~ s/\\/\//g;
     }
 
     #
@@ -2477,7 +2479,7 @@ sub run_all_tests {
 
       # Win32 needs to do some url magic for file: urls.
       my $startup_build_dir = $build_dir;
-      if ($Settings::OS =~ /^WIN/) {
+      if (is_windows()) {
         $startup_build_dir = "/".$win32_build_dir;
       }
 
@@ -3010,7 +3012,7 @@ sub CodesizeTest {
   if ($Settings::CodesizeManifest ne '') {
     $type = '';
   }
-  if ($Settings::OS =~ /^WIN/ && $Settings::Compiler ne "gcc") {
+  if (is_windows() && $Settings::Compiler ne "gcc") {
     $bash_cmd .= $type . "summary.win.bash";
   } else {
     # Assume Linux for non-windows for now.
@@ -3257,7 +3259,7 @@ sub BloatTest {
         return 'testfailed';
     }
 
-    my $platform = $Settings::OS =~ /^WIN/ ? 'windows' : 'unix';
+    my $platform = is_windows() ? 'windows' : 'unix';
     # If on Windows, make sure the urls file has dos lineendings, or
     # mozilla won't parse the file correctly
     if ($platform eq 'windows') {
@@ -3502,8 +3504,10 @@ sub BloatTest2 {
     my $binary_basename = File::Basename::basename($binary);
     my $binary_dir = File::Basename::dirname($binary);
     my $PERL = $^X;
-    if ($Settings::OS =~ /^WIN/ && $build_dir !~ m/^.:\//) {
-        chomp($build_dir = `cygpath -w $build_dir`);
+    if (is_windows() && $build_dir !~ m/^.:\//) {
+        if ($^O eq 'cygwin') {
+            chomp($build_dir = `cygpath -w $build_dir`);
+          }
         $build_dir =~ s/\\/\//g;
         $PERL = "perl";
     }
@@ -3521,7 +3525,7 @@ sub BloatTest2 {
         return 'testfailed';
     }
 
-    my $platform = $Settings::OS =~ /^WIN/ ? 'windows' : 'unix';
+    my $platform = is_windows() ? 'windows' : 'unix';
     # If on Windows, make sure the urls file has dos lineendings, or
     # mozilla won't parse the file correctly
     if ($platform eq 'windows') {
@@ -3555,7 +3559,7 @@ sub BloatTest2 {
     }
 
     # win32 builds crash on multiple runs when --shutdown-leaks is used
-    @args = (@args, "--shutdown-leaks", $sdleak_log) unless $Settings::OS =~ /^WIN/;
+    @args = (@args, "--shutdown-leaks", $sdleak_log) unless is_windows();
     my $result = run_cmd($build_dir, $binary_dir, \@args, $binary_log,
                          $timeout_secs);
 
@@ -3573,7 +3577,7 @@ sub BloatTest2 {
 
     rename($leakstats_log, $old_leakstats_log);
 
-    if ($Settings::OS =~ /^WIN/) {
+    if (is_windows()) {
         @args = ("leakstats", $malloc_log);
     } else {
         @args = ("./leakstats", $malloc_log);
@@ -3648,7 +3652,9 @@ sub download_prebuilt() {
 
   if (is_windows()) {
     if ($build_dir !~ m/^.:\//) {
-      chomp($build_dir = `cygpath -w $build_dir`);
+      if ($^O eq 'cygwin') {
+        chomp($build_dir = `cygpath -w $build_dir`);
+      }
       $build_dir =~ s/\\/\//g;
     }
     $unpack_build = "cd $prebuilt && unzip -qq -o $build_dir/$Settings::DownloadBuildFile";

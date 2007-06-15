@@ -171,7 +171,7 @@ sub stagesymbols {
 sub makefullsoft {
   my $builddir = shift;
   my $srcdir = shift;
-  if (TinderUtils::is_windows()) {
+  if ($^O eq "cygwin") {
     # need to convert the path in case we're using activestate perl
     $builddir = `cygpath -u $builddir`;
   }
@@ -233,7 +233,7 @@ sub packit {
   my ($packaging_dir, $package_location, $url, $stagedir, $builddir, $cachebuild) = @_;
   my $status = 0;
 
-  if (TinderUtils::is_windows()) {
+  if ($^O eq "cygwin") {
     # need to convert the path in case we're using activestate perl
     $builddir = `cygpath -u $builddir`;
   }
@@ -492,7 +492,7 @@ sub update_create_package {
     $distdir = "$objdir/dist" if !defined($distdir);
     $locale = "en-US" if !defined($locale);
 
-    if (TinderUtils::is_windows()) {
+    if ($^O eq "cygwin") {
       # need to convert paths for use by Cygwin utilities which treat
       # "drive:/path" interpret drive as a host.
       $objdir = `cygpath -u $objdir`;
@@ -562,7 +562,7 @@ sub update_create_package {
 
     my $up_temp_stagedir = $temp_stagedir;
     my $up_distdir = $distdir;
-    if (TinderUtils::is_windows()) {
+    if ($^O eq "cygwin") {
       # need to convert paths for use by the mar utility, which doesn't know
       # how to handle non-Windows paths.
       $up_temp_stagedir = `cygpath -m $up_temp_stagedir`;
@@ -587,7 +587,7 @@ sub update_create_package {
       return $status;
     }
 
-    TinderUtils::run_shell_command("rsync -av $temp_stagedir/$update_file $stagedir/");
+    TinderUtils::run_shell_command("cp -p $temp_stagedir/$update_file $stagedir/");
 
     my $update_path = "$stagedir/$update_file";
     my $update_fullurl = "$url/$update_file";
@@ -627,8 +627,8 @@ sub update_create_package {
           my $ssh_opts = "";
           my $scp_opts = "";
           if ($Settings::ssh_user eq 'cltbld') {
-	      $ssh_opts = "-i $ENV{HOME}/.ssh/aus";
-	      $scp_opts = $ssh_opts;
+             $ssh_opts = "-i $ENV{'HOME'}/.ssh/aus";
+             $scp_opts = $ssh_opts;
           }
 
           TinderUtils::run_shell_command("ssh $ssh_opts $Settings::ssh_user\@$update_aus_host mkdir -p $path");
@@ -953,7 +953,7 @@ sub pushit {
     return 0;
   }
 
-  if (TinderUtils::is_windows()) {
+  if ($^O eq "cygwin") {
     # need to convert the path in case we're using activestate perl
     $upload_directory = `cygpath -u $upload_directory`;
   }
@@ -993,7 +993,7 @@ sub pushit {
       $makedirs .= " $remote_path/latest-$Settings::milestone";
     }
     push(@cmds,"ssh $ssh_opts -l $Settings::ssh_user $ssh_server mkdir -p $makedirs");
-    push(@cmds,"rsync -av -e \"ssh $ssh_opts\" $upload_directory/ $Settings::ssh_user\@$ssh_server:$remote_path/$short_ud/");
+    push(@cmds,"scp -r -p $scp_opts $upload_directory/. $Settings::ssh_user\@$ssh_server:$remote_path/$short_ud/");
     push(@cmds,"ssh $ssh_opts -l $Settings::ssh_user $ssh_server chmod -R 775 $remote_path/$short_ud");
     if ($Settings::ReleaseGroup ne '') {
       push(@cmds,"ssh $ssh_opts -l $Settings::ssh_user $ssh_server chgrp -R $Settings::ReleaseGroup $remote_path/$short_ud");
@@ -1004,7 +1004,7 @@ sub pushit {
     }
   } elsif ( $Settings::ReleaseToLatest ) {
     push(@cmds,"ssh $ssh_opts -l $Settings::ssh_user $ssh_server mkdir -p $remote_path/latest-$Settings::milestone");
-    push(@cmds,"scp $scp_opts -r $upload_directory/* $Settings::ssh_user\@$ssh_server:$remote_path/latest-$Settings::milestone/");
+    push(@cmds,"scp $scp_opts -r $upload_directory/. $Settings::ssh_user\@$ssh_server:$remote_path/latest-$Settings::milestone/");
     push(@cmds,"ssh $ssh_opts -l $Settings::ssh_user $ssh_server chmod -R 775 $remote_path/latest-$Settings::milestone/");
     if ($Settings::ReleaseGroup ne '') {
       push(@cmds,"ssh $ssh_opts -l $Settings::ssh_user $ssh_server chgrp -R $Settings::ReleaseGroup $remote_path/latest-$Settings::milestone/");
@@ -1188,7 +1188,20 @@ sub PreBuild {
   }
 }
 
+sub unix2dos {
+  my ($path) = @_;
+  -e $path or return;
 
+  local($/, *FH);
+  open(FH, "+<$path") || die("Couldn't open file $path for unix2dos");
+  binmode(FH);
+  my $data = <FH>;
+  $data =~ s/(?<!\r)\n/\r\n/g;
+  seek(FH, 0, 0);
+  print FH $data || die("Couldn't write to file $path during unix2dos");
+  close FH || die("Couldn't close file $path during unix2dos");
+}
+  
 sub main {
   # Get build directory from caller.
   my ($mozilla_build_dir) = @_;
@@ -1196,7 +1209,7 @@ sub main {
 
   chdir $mozilla_build_dir;
 
-  if (0 and TinderUtils::is_windows()) {
+  if (0 and $^O eq "cygwin") {
     $mozilla_build_dir = `cygpath -m $mozilla_build_dir`; # cygnusify the path
     chomp($mozilla_build_dir); # remove whitespace
   
@@ -1267,10 +1280,10 @@ sub main {
 
   if (TinderUtils::is_windows()) {
     # hack for cygwin installs with "unix" filetypes
-    TinderUtils::run_shell_command("unix2dos $mozilla_build_dir/mozilla/LICENSE");
-    TinderUtils::run_shell_command("unix2dos $mozilla_build_dir/mozilla/mail/LICENSE.txt");
-    TinderUtils::run_shell_command("unix2dos $mozilla_build_dir/mozilla/README.txt");
-    TinderUtils::run_shell_command("unix2dos $mozilla_build_dir/mozilla/browser/EULA");
+    unix2dos("$mozilla_build_dir/mozilla/LICENSE");
+    unix2dos("$mozilla_build_dir/mozilla/mail/LICENSE.txt");
+    unix2dos("$mozilla_build_dir/mozilla/README.txt");
+    unix2dos("$mozilla_build_dir/mozilla/browser/EULA");
   }
 
   my($package_dir, $store_name, $local_build_dir);
@@ -1332,7 +1345,7 @@ sub main {
   my $store_home;
   $store_home = "$mozilla_build_dir/$store_name";
 
-  if (TinderUtils::is_windows()) {
+  if ($^O eq "cygwin") {
     # need to convert the path in case we're using activestate perl or
     # cygwin rsync
     $local_build_dir = `cygpath -u $local_build_dir`;
@@ -1349,7 +1362,7 @@ sub main {
 
   # save the current build in the appropriate store directory
   TinderUtils::run_shell_command("mkdir -p $store_home/packages");
-  TinderUtils::run_shell_command("rsync -avz $local_build_dir/ $store_home/packages/");
+  TinderUtils::run_shell_command("cp -r -p -v $local_build_dir/. $store_home/packages/");
 
   if ($cachebuild) { 
     # remove saved builds older than a week and save current build
