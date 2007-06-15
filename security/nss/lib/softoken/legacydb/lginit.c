@@ -36,7 +36,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: lginit.c,v 1.4 2007-06-15 03:10:57 rrelyea%redhat.com Exp $ */
+/* $Id: lginit.c,v 1.5 2007-06-15 03:51:08 rrelyea%redhat.com Exp $ */
 
 #include "lowkeyi.h"
 #include "pcert.h"
@@ -460,7 +460,6 @@ CK_RV
 lg_Close(SDB *sdb)
 {
     LGPrivate *lgdb_p = (LGPrivate *)sdb->private;
-    lg_ClearTokenKeyHashTable(sdb);
     if (lgdb_p) {
     	if (lgdb_p->certDB) {
 	    nsslowcert_ClosePermCertDB(lgdb_p->certDB);
