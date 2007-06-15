@@ -72,6 +72,7 @@ if ($help) {
   exit 0;
 }
 
+# Check first for mandatory command-line opts.
 if (!$results_file or $results_file eq '') {
     print STDERR "You must specify a results file.\n";
     &usage();
@@ -95,6 +96,23 @@ if (!$authtoken or $authtoken eq '') {
     exit 1;
 }
 
+if (!$build_type or $build_type eq '') {
+    $build_type = 'Nightly';
+}
+
+# Parse the results file to check that:
+# 1) We have results to submit; and,
+# 2) Any params not set on the command-line are defined in the log.
+
+my @results = &parseResultsFile($results_file);
+
+if (scalar @results <= 0) {
+    print STDERR "No results found. Exiting.\n";
+    exit 1;
+}
+
+# Check for params that must be set *either* on the command line or in the
+# results file
 if (!$product or $product eq '') {
     print STDERR "You must specify a product.\n";
     &usage();
@@ -139,14 +157,11 @@ if (!$machinename or $machinename eq '') {
     $machinename = hostname;
 }
 
-if (!$build_type or $build_type eq '') {
-    $build_type = 'Nightly';
-}
-
+# Create a new test container object.
 my $t = Test::Litmus->new(-server => $server,
-                          -machinename => $machinename,
                           -username => $username,
                           -authtoken => $authtoken,
+                          -machinename => $machinename,
                          );
 
 $t->sysconfig(-product => $product,
@@ -157,7 +172,9 @@ $t->sysconfig(-product => $product,
               -buildtype => $build_type,
               -locale => $locale);
 
-my $num_results_added = &parseResultsFile($t, $results_file);
+foreach my $result (@results) {
+   $t->addResult($result);
+}
 
 # add log information that should be linked with 
 # all results (i.e. env variables, config info)
@@ -222,11 +239,17 @@ server:        the hostname of your Litmus server, suffixed with
                process_test.cgi. Defaults to:
                http://litmus.mozilla.org/process_test.cgi
 machinename:   the hostname of the machine you are testing on
-build_type:    
+build_type:    Nightly|Release|CVS Debug|CVS Optimized|Other
+               (defaults to Nightly)
 
 help:          displays this message and then exits
 validate_only: confirms that you have all the necessary parameters set and that
                the results file is parsable, but doesn't submit any results
+
+NOTE: product, branch, platform, opsys, locale, build_id, and machinename can
+      also be defined within the results file. Only product, branch, platform,
+      and opsys are mandatory, i.e. must be supplied either on the command
+      line or in the results file.
 
 EOUSAGE
 }
@@ -238,13 +261,46 @@ sub createFakeBuildID() {
 
 #########################################################################
 sub parseResultsFile {
-    my ($t, $results_file) = @_;
+    my ($results_file) = @_;
             
     my ($short_name, $result_status, $testcase_id, $duration);
     my @results;
     open(RESULTSFILE, $results_file) or die "Can't open $results_file: $!";
+    my $in_header = 1;
     while (<RESULTSFILE>) {
+        if ($in_header) {
+          if (/^product : (.*)$/) {
+              $product = $1;
+              next;
+          }
+          if (/^branch : (.*)$/) {
+              $branch = $1;
+              next;
+          }
+          if (/^platform : (.*)$/) {
+              $platform = $1;
+              next;
+          }
+          if (/^opsys : (.*)$/) {
+              $opsys = $1;
+              next;
+          }
+          if (/^locale : (.*)$/) {
+              $locale = $1;
+              next;
+          }
+          if (/^build_id : (\d+)$/) {
+              $build_id = $1;
+              next;
+          }
+          if (/^machinename : (.*)$/) {
+              $machinename = $1;
+              next;
+          }
+        }
+        
         if (/^Test Case : (.*)$/) {
+            $in_header = 0;
             if ($result_status and
                 $testcase_id) {
                 my %hash = (
@@ -304,6 +360,7 @@ sub parseResultsFile {
         undef $duration;
     }
     
+    my @result_objs;
     my $now = &UnixDate("now","%q");
     foreach my $current_result (@results) {
         my $result_obj = Test::Litmus::Result->new(
@@ -314,9 +371,10 @@ sub parseResultsFile {
                 -duration => $current_result->{'duration'} || 0,
                 -timestamp => $now,
                 );
-        
-        $t->addResult($result_obj);
+        push @result_objs, $result_obj;
     }
+
+    return @result_objs;
 }
 
 #########################################################################
