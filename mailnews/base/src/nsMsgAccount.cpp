@@ -251,6 +251,12 @@ nsMsgAccount::GetDefaultIdentity(nsIMsgIdentity **aDefaultIdentity)
     rv = Init();
     NS_ENSURE_SUCCESS(rv, rv);
   }
+
+  PRUint32 count;
+  rv = m_identities->Count(&count);
+  NS_ENSURE_SUCCESS(rv, rv);
+  if (count == 0)
+    return NS_OK;
   
   nsCOMPtr<nsIMsgIdentity> identity( do_QueryElementAt(m_identities, 0, &rv));
   identity.swap(*aDefaultIdentity);
