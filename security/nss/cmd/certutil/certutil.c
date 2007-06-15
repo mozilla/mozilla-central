@@ -856,13 +856,13 @@ Usage(char *progName)
 	progName);
     FPS "\t%s -O -n cert-name [-X] [-d certdir] [-P dbprefix]\n", progName);
     FPS "\t%s -R -s subj -o cert-request-file [-d certdir] [-P dbprefix] [-p phone] [-a]\n"
-	"\t\t [-y emailAddrs] [-k key-type] [-h token-name] [-f pwfile] [-g key-size]\n",
+	"\t\t [-y emailAddrs] [-k key-type-or-id] [-h token-name] [-f pwfile] [-g key-size]\n",
 	progName);
     FPS "\t%s -V -n cert-name -u usage [-b time] [-e] \n"
 	"\t\t[-X] [-d certdir] [-P dbprefix]\n",
 	progName);
     FPS "\t%s -S -n cert-name -s subj [-c issuer-name | -x]  -t trustargs\n"
-	"\t\t [-k key-type] [-q key-params] [-h token-name] [-g key-size]\n"
+	"\t\t [-k key-type-or-id] [-q key-params] [-h token-name] [-g key-size]\n"
         "\t\t [-m serial-number] [-w warp-months] [-v months-valid]\n"
 	"\t\t [-f pwfile] [-d certdir] [-P dbprefix]\n"
         "\t\t [-p phone] [-1] [-2] [-3] [-4] [-5] [-6] [-7 emailAddrs]\n"
@@ -1107,11 +1107,12 @@ static void LongUsage(char *progName)
 	"   -o output-req");
 #ifdef NSS_ENABLE_ECC
     FPS "%-20s Type of key pair to generate (\"dsa\", \"ec\", \"rsa\" (default))\n",
-	"   -k key-type");
 #else
     FPS "%-20s Type of key pair to generate (\"dsa\", \"rsa\" (default))\n",
-	"   -k key-type");
 #endif /* NSS_ENABLE_ECC */
+	"   -k key-type-or-id");
+    FPS "%-20s or nickname of the cert key to use \n",
+	"");
     FPS "%-20s Name of token in which to generate key (default is internal)\n",
 	"   -h token-name");
     FPS "%-20s Key size in bits, RSA keys only (min %d, max %d, default %d)\n",
@@ -1172,11 +1173,10 @@ static void LongUsage(char *progName)
 	"   -t trustargs");
 #ifdef NSS_ENABLE_ECC
     FPS "%-20s Type of key pair to generate (\"dsa\", \"ec\", \"rsa\" (default))\n",
-	"   -k key-type");
 #else
     FPS "%-20s Type of key pair to generate (\"dsa\", \"rsa\" (default))\n",
-	"   -k key-type");
 #endif /* NSS_ENABLE_ECC */
+	"   -k key-type-or-id");
     FPS "%-20s Name of token in which to generate key (default is internal)\n",
 	"   -h token-name");
     FPS "%-20s Key size in bits, RSA keys only (min %d, max %d, default %d)\n",
@@ -1541,6 +1541,7 @@ certutil_main(int argc, char **argv, PRBool initialize)
     char *      certPrefix      = "";
     KeyType     keytype         = rsaKey;
     char *      name            = NULL;
+    char *	keysource	= NULL;
     SECOidTag   hashAlgTag      = SEC_OID_UNKNOWN;
     int	        keysize	        = DEFAULT_KEY_BITS;
     int         publicExponent  = 0x010001;
@@ -1703,9 +1704,8 @@ secuCommandFlag certutil_options[] =
 	} else if (PL_strcmp(arg, "all") == 0) {
 	    keytype = nullKey;
 	} else {
-	    PR_fprintf(PR_STDERR, "%s -k:  %s is not a recognized type.\n",
-	               progName, arg);
-	    return 255;
+	    /* use an existing private/public key pair */
+	    keysource = arg;
 	}
     }
 
@@ -2088,22 +2088,44 @@ secuCommandFlag certutil_options[] =
      *  Key generation
      */
 
-    /*  These commands require keygen.  */
+    /*  These commands may require keygen.  */
     if (certutil.commands[cmd_CertReq].activated ||
         certutil.commands[cmd_CreateAndAddCert].activated ||
 	certutil.commands[cmd_GenKeyPair].activated) {
-	/*  XXX Give it a nickname.  */
-	privkey = 
-	    CERTUTIL_GeneratePrivateKey(keytype, slot, keysize,
-	                                publicExponent, 
-	                                certutil.options[opt_NoiseFile].arg,
-	                                &pubkey, 
-	                                certutil.options[opt_PQGFile].arg,
-	                                &pwdata);
-	if (privkey == NULL) {
-	    SECU_PrintError(progName, "unable to generate key(s)\n");
-	    rv = SECFailure;
-	    goto shutdown;
+	if (keysource) {
+	    CERTCertificate *keycert;
+	    keycert = CERT_FindCertByNicknameOrEmailAddr(certHandle, keysource);
+	    if (!keycert) {
+		keycert = PK11_FindCertFromNickname(keysource, NULL);
+		if (!keycert) {
+		    SECU_PrintError(progName,
+			    "%s is neither a key-type nor a nickname", keysource);
+		    return SECFailure;
+		}
+	    }
+	    privkey = PK11_FindKeyByDERCert(slot, keycert, &pwdata);
+	    if (privkey)
+		pubkey = CERT_ExtractPublicKey(keycert);
+	    CERT_DestroyCertificate(keycert);
+	    if (!pubkey) {
+		SECU_PrintError(progName,
+				"Could not get keys from cert %s", keysource);
+		rv = SECFailure;
+		goto shutdown;
+	    }
+	} else {
+	    privkey = 
+		CERTUTIL_GeneratePrivateKey(keytype, slot, keysize,
+					    publicExponent, 
+					    certutil.options[opt_NoiseFile].arg,
+					    &pubkey, 
+					    certutil.options[opt_PQGFile].arg,
+					    &pwdata);
+	    if (privkey == NULL) {
+		SECU_PrintError(progName, "unable to generate key(s)\n");
+		rv = SECFailure;
+		goto shutdown;
+	    }
 	}
 	privkey->wincx = &pwdata;
 	PORT_Assert(pubkey != NULL);
