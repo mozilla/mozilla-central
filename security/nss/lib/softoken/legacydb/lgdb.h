@@ -96,7 +96,7 @@ extern unsigned int lg_MapTrust(CK_TRUST trust, PRBool clientAuth);
 
 /* clear out all the existing object ID to database key mappings.
  * used to reinit a token */
-extern CK_RV SFTK_ClearTokenKeyHashTable(SDB *sdb);
+extern CK_RV lg_ClearTokenKeyHashTable(SDB *sdb);
 
 
 extern void lg_FreeSearch(SDBFind *search);

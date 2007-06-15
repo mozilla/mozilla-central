@@ -172,9 +172,12 @@ sftkdb_LoadLibrary(const char *libname)
 	PORT_Free(trueParentLibPath);
     }
 #endif
-    PORT_Free(parentLibPath);
 
 done:
+    if (parentLibPath) {
+	PORT_Free(parentLibPath);
+    }
+
     /* still couldn't load it, try the generic path */
     if (!lib) {
 	PRLibSpec libSpec;
@@ -322,7 +325,7 @@ CK_RV
 sftkdbCall_Shutdown(void)
 {
     CK_RV crv = CKR_OK;
-    if (legacy_glue_lib) {
+    if (!legacy_glue_lib) {
 	return CKR_OK;
     }
     if (legacy_glue_shutdown) {
