@@ -557,7 +557,6 @@ sftkdb_GetAttributeValue(SFTKDBHandle *handle, CK_OBJECT_HANDLE object_id,
     CK_ATTRIBUTE *ntemplate;
     unsigned char *data = NULL;
     SDB *db;
-    int i;
 
     if (handle == NULL) {
 	return CKR_GENERAL_ERROR;
@@ -696,6 +695,9 @@ sftkdb_CloseDB(SFTKDBHandle *handle)
     }
     if (handle->db) {
 	(*handle->db->sdb_Close)(handle->db);
+    }
+    if (handle->passwordLock) {
+	PZ_DestroyLock(handle->passwordLock);
     }
     PORT_Free(handle);
     return CKR_OK;

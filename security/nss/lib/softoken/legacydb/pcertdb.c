@@ -37,7 +37,7 @@
 /*
  * Permanent Certificate database handling code 
  *
- * $Id: pcertdb.c,v 1.4 2007-06-15 03:51:08 rrelyea%redhat.com Exp $
+ * $Id: pcertdb.c,v 1.5 2007-06-15 20:37:56 rrelyea%redhat.com Exp $
  */
 #include "lowkeyti.h"
 #include "pcert.h"
@@ -4462,6 +4462,7 @@ nsslowcert_ClosePermCertDB(NSSLOWCERTCertDBHandle *handle)
     	    PZ_DestroyMonitor(handle->dbMon);
 	    handle->dbMon = NULL;
 	}
+	PORT_Free(handle);
     }
     return;
 }
@@ -5263,6 +5264,9 @@ nsslowcert_SaveSMimeProfile(NSSLOWCERTCertDBHandle *dbhandle, char *emailAddr,
 void
 nsslowcert_DestroyFreeLists(void)
 {
+    if (freeListLock == NULL) {
+	return;
+    }
     DestroyCertEntryFreeList();
     DestroyTrustFreeList();
     DestroyCertFreeList();

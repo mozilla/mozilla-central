@@ -590,8 +590,9 @@ sftk_getSecmodName(char *param, SDBType *dbType, char **appName,
    }
 
    *rw = PR_TRUE;
-   if (sftk_argHasFlag("flags","readOnly",save_params) ||
-	sftk_argHasFlag("flags","noModDB",save_params)) *rw = PR_FALSE;
+   if (sftk_argHasFlag("flags","readOnly",save_params)) {
+	*rw = PR_FALSE;
+   }
 
    if (!secmodName || *secmodName == '\0') {
 	if (secmodName) PORT_Free(secmodName);
@@ -600,6 +601,12 @@ sftk_getSecmodName(char *param, SDBType *dbType, char **appName,
 
    *filename = secmodName;
    lconfigdir = sftk_EvaluateConfigDir(configdir, dbType, appName);
+
+   if (sftk_argHasFlag("flags","noModDB",save_params)) {
+	/* there isn't a module db, don't load the legacy support */
+	*dbType = SDB_SQL;
+        *rw = PR_FALSE;
+   }
 
    /* only use the renamed secmod for legacy databases */
    if ((*dbType != SDB_LEGACY) && (*dbType != SDB_MULTIACCESS)) {
