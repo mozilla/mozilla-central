@@ -1,0 +1,375 @@
+Index: editusers.cgi
+===================================================================
+RCS file: /cvsroot/mozilla/webtools/bugzilla/editusers.cgi,v
+retrieving revision 1.141
+diff -u -r1.141 editusers.cgi
+--- editusers.cgi	10 Nov 2006 16:51:27 -0000	1.141
++++ editusers.cgi	15 Jun 2007 22:57:19 -0000
+@@ -229,6 +229,8 @@
+     # Lock tables during the check+update session.
+     $dbh->bz_lock_tables('profiles WRITE',
+                          'profiles_activity WRITE',
++                         'test_plan_permissions WRITE',
++                         'test_plan_permissions_regexp READ',
+                          'fielddefs READ',
+                          'tokens WRITE',
+                          'logincookies WRITE',
+Index: Bugzilla.pm
+===================================================================
+RCS file: /cvsroot/mozilla/webtools/bugzilla/Bugzilla.pm,v
+retrieving revision 1.55.2.1
+diff -u -r1.55.2.1 Bugzilla.pm
+--- Bugzilla.pm	16 Mar 2007 20:17:49 -0000	1.55.2.1
++++ Bugzilla.pm	15 Jun 2007 22:57:19 -0000
+@@ -54,6 +54,7 @@
+     'editparams.cgi',
+     'checksetup.pl',
+     'recode.pl',
++    'tr_install.pl',
+ ];
+ 
+ # Non-cgi scripts that should silently exit.
+Index: enter_bug.cgi
+===================================================================
+RCS file: /cvsroot/mozilla/webtools/bugzilla/enter_bug.cgi,v
+retrieving revision 1.154
+diff -u -r1.154 enter_bug.cgi
+--- enter_bug.cgi	14 Jan 2007 01:42:40 -0000	1.154
++++ enter_bug.cgi	15 Jun 2007 22:57:19 -0000
+@@ -572,6 +572,8 @@
+ 
+ $vars->{'default'} = \%default;
+ 
++$vars->{'caserun_id'} = $cgi->param('caserun_id');
++
+ my $format = $template->get_format("bug/create/create",
+                                    scalar $cgi->param('format'), 
+                                    scalar $cgi->param('ctype'));
+Index: Bugzilla/DB/Schema/Pg.pm
+===================================================================
+RCS file: /cvsroot/mozilla/webtools/bugzilla/Bugzilla/DB/Schema/Pg.pm,v
+retrieving revision 1.13.2.1
+diff -u -r1.13.2.1 Pg.pm
+--- Bugzilla/DB/Schema/Pg.pm	15 Apr 2007 01:34:58 -0000	1.13.2.1
++++ Bugzilla/DB/Schema/Pg.pm	15 Jun 2007 22:57:20 -0000
+@@ -69,6 +69,7 @@
+         INT3 =>         'integer',
+         INT4 =>         'integer',
+ 
++        TINYSERIAL =>   'serial unique',
+         SMALLSERIAL =>  'serial unique',
+         MEDIUMSERIAL => 'serial unique',
+         INTSERIAL =>    'serial unique',
+Index: Bugzilla/DB/Schema/Mysql.pm
+===================================================================
+RCS file: /cvsroot/mozilla/webtools/bugzilla/Bugzilla/DB/Schema/Mysql.pm,v
+retrieving revision 1.14
+diff -u -r1.14 Mysql.pm
+--- Bugzilla/DB/Schema/Mysql.pm	18 Nov 2006 15:10:11 -0000	1.14
++++ Bugzilla/DB/Schema/Mysql.pm	15 Jun 2007 22:57:20 -0000
+@@ -103,9 +103,10 @@
+         INT3 =>         'mediumint',
+         INT4 =>         'integer',
+ 
+-        SMALLSERIAL =>  'smallint auto_increment',
+-        MEDIUMSERIAL => 'mediumint auto_increment',
+-        INTSERIAL =>    'integer auto_increment',
++        TINYSERIAL =>    'tinyint unsigned auto_increment',
++        SMALLSERIAL =>   'smallint unsigned auto_increment',
++        MEDIUMSERIAL =>  'mediumint unsigned auto_increment',
++        INTSERIAL =>     'integer unsigned auto_increment',
+ 
+         TINYTEXT =>     'tinytext',
+         MEDIUMTEXT =>   'mediumtext',
+Index: Bugzilla/WebService.pm
+===================================================================
+RCS file: /cvsroot/mozilla/webtools/bugzilla/Bugzilla/WebService.pm,v
+retrieving revision 1.5.2.1
+diff -u -r1.5.2.1 WebService.pm
+--- Bugzilla/WebService.pm	26 Mar 2007 07:57:32 -0000	1.5.2.1
++++ Bugzilla/WebService.pm	15 Jun 2007 22:57:20 -0000
+@@ -14,14 +14,17 @@
+ #
+ # Contributor(s): Marc Schumann <wurblzap@gmail.com>
+ #                 Max Kanat-Alexander <mkanat@bugzilla.org>
++#                 Dallas Harken <dharken@novell.com>
+ 
+ package Bugzilla::WebService;
+ 
+ use strict;
++use Bugzilla::Config;
+ use Bugzilla::WebService::Constants;
+ use Date::Parse;
+ 
+-sub fail_unimplemented {
++sub fail_unimplemented 
++{
+     my $this = shift;
+ 
+     die SOAP::Fault
+@@ -48,12 +51,61 @@
+     Bugzilla->login;
+ }
+ 
++sub login
++{
++    my $self = shift;
++    
++    # Check for use of iChain first
++    if (Bugzilla->params->{'user_verify_class'} ne 'iChain')
++    {
++        #
++        # Check for use of Basic Authorization
++        #
++        # WARNING - Your must modify your Apache server's configuration
++        # to allow the HTTP_AUTHORIZATION env parameter to be passed through!
++        # This requires using the rewrite module.
++        #
++        if (defined($ENV{'HTTP_AUTHORIZATION'})) 
++        {
++            if ($ENV{'HTTP_AUTHORIZATION'} =~ /^Basic +(.*)$/os) 
++            {
++                # HTTP Basic Authentication
++                my($login, $password) = split(/:/, MIME::Base64::decode_base64($1), 2);
++            
++                my $cgi = Bugzilla->cgi;
++                $cgi->param("Bugzilla_login", $login);
++                $cgi->param("Bugzilla_password", $password);
++            }
++        }
++    }
++    
++    Bugzilla->login; 
++}
++
++sub logout
++{
++# Testopia's method does not persist anything so logout in unneccessary.
++#    my $self = shift;
++#    
++#    Bugzilla->logout;
++}
++
+ package Bugzilla::WebService::XMLRPC::Transport::HTTP::CGI;
+ 
+ use strict;
++use Bugzilla::WebService::Constants;
+ eval 'use base qw(XMLRPC::Transport::HTTP::CGI)';
+ 
+-sub make_response {
++sub make_fault 
++{
++    my $self = shift;
++
++    # RPC Fault Code must be an integer
++    $self->SUPER::make_fault(ERROR_FAULT_SERVER, $_[1]);
++}
++
++sub make_response 
++{
+     my $self = shift;
+ 
+     $self->SUPER::make_response(@_);
+@@ -131,4 +183,4 @@
+ 
+ Sometimes a function will throw an error that doesn't have a specific
+ error code. In this case, the code will be C<-32000> if it's a "fatal"
+-error, and C<32000> if it's a "transient" error.
++error, and C<32000> if it's a "transient" error.
+\ No newline at end of file
+Index: Bugzilla/Template.pm
+===================================================================
+RCS file: /cvsroot/mozilla/webtools/bugzilla/Bugzilla/Template.pm,v
+retrieving revision 1.68.2.1
+diff -u -r1.68.2.1 Template.pm
+--- Bugzilla/Template.pm	10 Mar 2007 11:43:14 -0000	1.68.2.1
++++ Bugzilla/Template.pm	15 Jun 2007 22:57:19 -0000
+@@ -738,6 +738,14 @@
+                 return $var;
+             },
+ 
++            # Prevent XSS attacks in WYSIWYG fields. 
++            xss => sub{
++                my ($var) = @_;
++                $var =~ s/(&lt;|<)script/_script/ig;
++                $var =~ s/(&lt;|<)\/script(>|&gt;)/script_/gi;
++                return $var;
++            },
++
+             html_light => \&Bugzilla::Util::html_light_quote,
+ 
+             # iCalendar contentline filter
+Index: template/en/default/global/common-links.html.tmpl
+===================================================================
+RCS file: /cvsroot/mozilla/webtools/bugzilla/template/en/default/global/common-links.html.tmpl,v
+retrieving revision 1.7
+diff -u -r1.7 common-links.html.tmpl
+--- template/en/default/global/common-links.html.tmpl	28 Dec 2006 16:48:06 -0000	1.7
++++ template/en/default/global/common-links.html.tmpl	15 Jun 2007 22:57:20 -0000
+@@ -103,3 +103,4 @@
+     [% END %]
+   [% END %]
+ </ul>
++[% Hook.process("links") %]
+\ No newline at end of file
+Index: template/en/default/global/header.html.tmpl
+===================================================================
+RCS file: /cvsroot/mozilla/webtools/bugzilla/template/en/default/global/header.html.tmpl,v
+retrieving revision 1.49
+diff -u -r1.49 header.html.tmpl
+--- template/en/default/global/header.html.tmpl	10 Feb 2007 21:55:22 -0000	1.49
++++ template/en/default/global/header.html.tmpl	15 Jun 2007 22:57:20 -0000
+@@ -96,6 +96,7 @@
+     [% IF user.settings.skin.value != 'standard' %]
+       [% user_skin = user.settings.skin.value %]
+     [% END %]
++    [% style_urls.unshift('skins/standard/testopia.css') %]
+     [% style_urls.unshift('skins/standard/global.css') %]
+ 
+     [%# CSS cascade, part 1: Standard Bugzilla stylesheet set (persistent).
+Index: Bugzilla/DB/Schema.pm
+===================================================================
+RCS file: /cvsroot/mozilla/webtools/bugzilla/Bugzilla/DB/Schema.pm,v
+retrieving revision 1.86
+diff -u -r1.86 Schema.pm
+--- Bugzilla/DB/Schema.pm	17 May 2007 15:10:52 -0000	1.86
++++ Bugzilla/DB/Schema.pm	24 May 2007 21:14:12 -0000
+@@ -1331,22 +1331,26 @@
+     my $self = shift;
+     my $abstract_schema = shift;
+ 
+-    $abstract_schema ||= ABSTRACT_SCHEMA;
+-
+-    # Let extensions add tables, but make sure they can't modify existing 
+-    # tables. If we don't lock/unlock keys, lock_value complains.
+-    lock_keys(%$abstract_schema);
+-    lock_value(%$abstract_schema, $_) foreach (keys %$abstract_schema);
+-    unlock_keys(%$abstract_schema);
+-    Bugzilla::Hook::process('db_schema-abstract_schema', 
+-                            { schema => $abstract_schema });
+-    unlock_hash(%$abstract_schema);
++    if (!$abstract_schema) {
++        # While ABSTRACT_SCHEMA cannot be modified, $abstract_schema can be.
++        # So, we dclone it to prevent anything from mucking with the constant.
++        $abstract_schema = dclone(ABSTRACT_SCHEMA);
++
++        # Let extensions add tables, but make sure they can't modify existing
++        # tables. If we don't lock/unlock keys, lock_value complains.
++        lock_keys(%$abstract_schema);
++        foreach my $table (keys %{ABSTRACT_SCHEMA()}) {
++            lock_value(%$abstract_schema, $table) 
++                if exists $abstract_schema->{$table};
++        }
++        unlock_keys(%$abstract_schema);
++        Bugzilla::Hook::process('db_schema-abstract_schema', 
++                                { schema => $abstract_schema });
++        unlock_hash(%$abstract_schema);
++    }
+ 
+     $self->{schema} = dclone($abstract_schema);
+-    # While ABSTRACT_SCHEMA cannot be modified, 
+-    # $self->{abstract_schema} can be. So, we dclone it to prevent
+-    # anything from mucking with the constant.
+-    $self->{abstract_schema} = dclone($abstract_schema);
++    $self->{abstract_schema} = $abstract_schema;
+ 
+     return $self;
+ Index: User.pm
+===================================================================
+RCS file: /cvsroot/mozilla/webtools/bugzilla/Bugzilla/User.pm,v
+retrieving revision 1.148
+diff -u -r1.148 User.pm
+--- User.pm	5 Feb 2007 21:34:20 -0000	1.148
++++ User.pm	15 Jun 2007 23:20:35 -0000
+@@ -330,6 +330,16 @@
+     return $self->{queries_available};
+ }
+ 
++sub testopia_queries {
++    my $self = shift;
++    my $dbh = Bugzilla->dbh;
++    my $ref = $dbh->selectall_arrayref(
++        "SELECT name, query FROM test_named_queries
++         WHERE userid = ? AND isvisible = 1",
++         {'Slice' =>{}}, $self->id);
++    return $ref;
++}
++
+ sub settings {
+     my ($self) = @_;
+ 
+@@ -632,7 +642,7 @@
+     my $class_restricted = Bugzilla->params->{'useclassification'} && $class_id;
+ 
+     if (!defined $self->{selectable_products}) {
+-        my $query = "SELECT id " .
++        my $query = "(SELECT id, name AS pname " .
+                     "  FROM products " .
+                  "LEFT JOIN group_control_map " .
+                     "    ON group_control_map.product_id = products.id ";
+@@ -642,10 +652,17 @@
+             $query .= " AND group_control_map.membercontrol = " . CONTROLMAPMANDATORY;
+         }
+         $query .= "     AND group_id NOT IN(" . $self->groups_as_string . ") " .
+-                  "   WHERE group_id IS NULL " .
+-                  "ORDER BY name";
++                  "   WHERE group_id IS NULL) " ;
++                  
+ 
+-        my $prod_ids = Bugzilla->dbh->selectcol_arrayref($query);
++        $query .= "UNION (SELECT id, tr_products.name AS pname FROM products AS tr_products ".
++                  "INNER JOIN test_plans ON tr_products.id = test_plans.product_id ".
++                  "INNER JOIN test_plan_permissions ON test_plan_permissions.plan_id = test_plans.plan_id ".
++                  "WHERE test_plan_permissions.userid = ?)";
++        
++        $query .= "ORDER BY pname ";    
++
++        my $prod_ids = Bugzilla->dbh->selectcol_arrayref($query,undef,$self->id);
+         $self->{selectable_products} = Bugzilla::Product->new_from_list($prod_ids);
+     }
+ 
+@@ -908,6 +925,33 @@
+             $group_delete->execute($id, $group, GRANT_REGEXP) if $present;
+         }
+     }
++    # Now do the same for Testopia test plans.
++    $sth = $dbh->prepare("SELECT test_plan_permissions_regexp.plan_id, 
++                                 user_regexp, test_plan_permissions_regexp.permissions, 
++                                 test_plan_permissions.plan_id
++                          FROM test_plan_permissions_regexp
++                     LEFT JOIN test_plan_permissions 
++                            ON test_plan_permissions_regexp.plan_id = test_plan_permissions.plan_id
++                           AND test_plan_permissions.userid = ?
++                           AND test_plan_permissions.grant_type = ?");
++    
++    $sth->execute($id, GRANT_REGEXP);
++    my $plan_insert = $dbh->prepare(q{INSERT INTO test_plan_permissions
++                                       (userid, plan_id, permissions, grant_type)
++                                       VALUES (?, ?, ?, ?)});
++    my $plan_delete = $dbh->prepare(q{DELETE FROM test_plan_permissions
++                                       WHERE userid = ?
++                                         AND plan_id = ?
++                                         AND grant_type = ?});
++    
++    while (my ($planid, $regexp, $perms, $present) = $sth->fetchrow_array()) {
++        if (($regexp ne '') && ($self->{login} =~ m/$regexp/i)) {
++            $plan_insert->execute($id, $planid, $perms, GRANT_REGEXP) unless $present;
++        } else {
++            $plan_delete->execute($id, $planid, GRANT_REGEXP) if $present;
++        }
++    }
++    
+ }
+ 
+ sub product_responsibilities {
+@@ -1532,7 +1576,8 @@
+ 
+     $dbh->bz_lock_tables('profiles WRITE', 'profiles_activity WRITE',
+         'user_group_map WRITE', 'email_setting WRITE', 'groups READ', 
+-        'tokens READ', 'fielddefs READ');
++        'tokens READ', 'fielddefs READ', 'test_plan_permissions_regexp READ',
++        'test_plan_permissions READ');
+ 
+     my $user = $class->SUPER::create(@_);
+ 
+ 
