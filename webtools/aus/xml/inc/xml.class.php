@@ -145,5 +145,13 @@ endUpdate;
         $this->xmlOutput .= $this->xmlFooter;
         return $this->xmlOutput; 
     }
+
+    /**
+     * Print XML output with header.
+     */
+    function printXml() {
+        header('Content-type: text/xml;');
+        echo $this->getOutput();
+    }
 }
 ?>

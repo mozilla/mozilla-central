@@ -53,6 +53,13 @@ require_once('./inc/init.php');
 // Instantiate XML object.
 $xml = new Xml();
 
+// Before we get started check throttle and see if we want to randomly serve an
+// update for this request.
+if (defined('THROTTLE') && THROTTLE && defined('THROTTLE_LEVEL') && mt_rand(0,100) > THROTTLE_LEVEL) {
+    $xml->printXml();
+    exit;
+}
+
 // Find everything between our CWD and 255 in QUERY_STRING.
 $rawPath = substr(urldecode($_SERVER['QUERY_STRING']),5,255);
 
@@ -245,8 +252,6 @@ if ( defined('DEBUG') && DEBUG == true ) {
 }
 
 // Set header and send info.
-// Default output will be a blank document (no updates available).
-header('Content-type: text/xml;');
-echo $xml->getOutput();
+$xml->printXml();
 exit;
 ?>

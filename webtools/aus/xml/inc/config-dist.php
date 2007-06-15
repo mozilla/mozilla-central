@@ -58,6 +58,16 @@ define('UPDATE_TYPE','minor');
 define('UPDATE_VERSION','1.0+');
 define('UPDATE_EXTENSION_VERSION','1.0+');
 
+// Turns throttling on and off.
+define('THROTTLE',false);
+
+// Define the throttle -- think gas pedal.  This determines how much the AUS application will
+// stagger updates.  Pedal to the floor means we're serving all updates.  Examples:
+//  10  = Updates offered only 10% of the time.
+//  80  = Updates offered 80% of the time.
+//  100 = Updates always offered.
+define('THROTTLE_LEVEL',100);
+
 // These are channels that have access to nightly updates.
 // All other channels only have access to the OVERRIDE_DIR for update info.
 $nightlyChannels = array(
@@ -84,7 +94,8 @@ $productBranchVersions = array(
         '0.4a1'   =>  'branch',
         '0.5*'    =>  'branch',
         '0.6a1'   =>  'trunk'
-    )
+    ),
+    'Synthetic' => array('1.5.0.*'=>'1.5.0.x')
 );
 
 // Array that defines which %OS_VERSION% values are no longer supported.
