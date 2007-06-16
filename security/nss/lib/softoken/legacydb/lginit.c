@@ -36,12 +36,13 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: lginit.c,v 1.6 2007-06-15 20:37:56 rrelyea%redhat.com Exp $ */
+/* $Id: lginit.c,v 1.7 2007-06-16 05:18:34 rrelyea%redhat.com Exp $ */
 
 #include "lowkeyi.h"
 #include "pcert.h"
 #include "keydbi.h"
 #include "lgdb.h"
+#include "secoid.h"
 
 typedef struct LGPrivateStr {
     NSSLOWCERTCertDBHandle *certDB;
@@ -650,5 +651,6 @@ legacy_Shutdown(void)
 {
     nsslowcert_DestroyFreeLists();
     nsslowcert_DestroyGlobalLocks();
+    SECOID_Shutdown();
     return CKR_OK;
 }
