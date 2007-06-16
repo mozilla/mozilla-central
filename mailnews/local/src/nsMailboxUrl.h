@@ -61,12 +61,12 @@ public:
   NS_IMETHOD GetMessageKey(nsMsgKey* aMessageKey);
   NS_IMETHOD GetMessageSize(PRUint32 *aMessageSize);
   NS_IMETHOD SetMessageSize(PRUint32 aMessageSize);
-  NS_IMPL_CLASS_GETSET(MailboxAction, nsMailboxAction, m_mailboxAction);
+  NS_IMPL_CLASS_GETSET(MailboxAction, nsMailboxAction, m_mailboxAction)
   NS_IMETHOD IsUrlType(PRUint32 type, PRBool *isType);
   NS_IMETHOD SetMoveCopyMsgKeys(nsMsgKey *keysToFlag, PRInt32 numKeys);
   NS_IMETHOD GetMoveCopyMsgHdrForIndex(PRUint32 msgIndex, nsIMsgDBHdr **msgHdr);
   NS_IMETHOD GetNumMoveCopyMsgs(PRUint32 *numMsgs);
-  NS_IMPL_CLASS_GETSET(CurMoveCopyMsgIndex, PRUint32, m_curMsgIndex);
+  NS_IMPL_CLASS_GETSET(CurMoveCopyMsgIndex, PRUint32, m_curMsgIndex)
 
   NS_IMETHOD GetFolder(nsIMsgFolder **msgFolder);
 

@@ -380,7 +380,7 @@ private:
   PRMonitor *GetDataMemberMonitor();
   nsCString m_currentCommand;
   nsImapServerResponseParser m_parser;
-  nsImapServerResponseParser& GetServerStateParser() { return m_parser; };
+  nsImapServerResponseParser& GetServerStateParser() { return m_parser; }
 
   void HandleIdleResponses();
   virtual PRBool ProcessCurrentURL();

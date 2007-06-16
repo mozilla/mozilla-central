@@ -73,18 +73,18 @@ public:
     Core();
 
     // Is a roaming profile (if not, then nothing to do)
-    inline PRBool IsRoaming() { return mIsRoaming; };
+    inline PRBool IsRoaming() { return mIsRoaming; }
 
     // Which profile files should be stored on the server
     // @return pointer to the internal nsDeque object. Do not free it.
-    inline const nsCStringArray* GetFilesToRoam()  { return &mFiles; };
+    inline const nsCStringArray* GetFilesToRoam()  { return &mFiles; }
 
     // Local profile directory
     nsresult GetProfileDir(nsIFile** result);
 
     // Method used to store remote files
     // 0=unknown, 1=HTTP, 2=Copy
-    inline PRInt32 GetMethod() { return mMethod; };
+    inline PRInt32 GetMethod() { return mMethod; }
 
     /* If we'd normally overwrite a newer file. Ask user, which file to keep.
      * @param download  direction: true = download, false = upload
@@ -113,8 +113,8 @@ public:
                      either "profile-change-net-restore"
                      or "profile-change-net-teardown"
     */
-    inline nsresult RestoreNet() { return RestoreCloseNet(PR_TRUE); };
-    inline nsresult CloseNet() { return RestoreCloseNet(PR_FALSE); };
+    inline nsresult RestoreNet() { return RestoreCloseNet(PR_TRUE); }
+    inline nsresult CloseNet() { return RestoreCloseNet(PR_FALSE); }
 
 protected:
     // Data (see getters above)

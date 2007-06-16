@@ -51,8 +51,8 @@
 class Protocol
 {
 public:
-    Protocol() {};
-    virtual ~Protocol() {};
+    Protocol() {}
+    virtual ~Protocol() {}
 
     /**
      * If the class reads any prefs,

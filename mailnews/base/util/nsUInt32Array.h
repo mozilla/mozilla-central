@@ -65,7 +65,7 @@ public:
     nsresult rv = SetSize(nNewSize);
     m_nSize = saveSize;
     return rv;
-  };
+  }
   
   // Accessor member functions
   PRUint32            &ElementAt(PRUint32 nIndex);

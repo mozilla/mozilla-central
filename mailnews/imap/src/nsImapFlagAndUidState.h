@@ -62,7 +62,7 @@ public:
     PRBool                IsLastMessageUnseen(void);
     
     PRUint32              GetHighestNonDeletedUID();
-    PRUint16              GetSupportedUserFlags() { return fSupportedUserFlags; };
+    PRUint16              GetSupportedUserFlags() { return fSupportedUserFlags; }
 
 private:
     

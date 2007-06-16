@@ -79,7 +79,7 @@ public:
     } ;
 
   virtual eIMAPstate GetIMAPstate();
-  virtual PRBool WaitingForMoreClientInput() { return fWaitingForMoreClientInput; };
+  virtual PRBool WaitingForMoreClientInput() { return fWaitingForMoreClientInput; }
   const char *GetSelectedMailboxName();   // can be NULL
 
   // if we get a PREAUTH greeting from the server, initialize the parser to begin in
@@ -142,8 +142,8 @@ public:
   // Interrupt a Fetch, without really Interrupting (through netlib)
   PRBool GetLastFetchChunkReceived();
   void ClearLastFetchChunkReceived();
-  virtual PRUint16	SupportsUserFlags() { return fSupportsUserDefinedFlags; };
-  virtual PRUint16  SettablePermanentFlags() { return fSettablePermanentFlags;};
+  virtual PRUint16	SupportsUserFlags() { return fSupportsUserDefinedFlags; }
+  virtual PRUint16  SettablePermanentFlags() { return fSettablePermanentFlags;}
   void SetFlagState(nsIImapFlagAndUidState *state);
   PRBool GetDownloadingHeaders();
   PRBool GetFillingInShell();

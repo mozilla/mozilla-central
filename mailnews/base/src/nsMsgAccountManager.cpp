@@ -2421,7 +2421,7 @@ class VirtualFolderChangeListener : public nsIDBChangeListener
 {
 public:
   VirtualFolderChangeListener();
-  ~VirtualFolderChangeListener() {};
+  ~VirtualFolderChangeListener() {}
 
   NS_DECL_ISUPPORTS
   NS_DECL_NSIDBCHANGELISTENER

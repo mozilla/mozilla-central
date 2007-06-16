@@ -163,7 +163,7 @@ public:
     NS_Free(mEmailAddress);
     NS_Free(mNotes);
     NS_Free(mDirName);
-  };
+  }
   
 protected:
     PRUnichar* mNickName;
