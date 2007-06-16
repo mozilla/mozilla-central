@@ -7,7 +7,7 @@ pref
 caps
 rdf
 htmlpars
-gfx_gtk
+gkgfxthebes
 imglib2
 gkplugin
 widget_gtk2

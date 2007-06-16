@@ -7,7 +7,7 @@ nsPrefModule
 nsSecurityManagerModule
 nsRDFModule
 nsParserModule
-nsGfxGTKModule
+nsGfxModule
 nsImageLib2Module
 nsPluginModule
 nsWidgetGtk2Module
