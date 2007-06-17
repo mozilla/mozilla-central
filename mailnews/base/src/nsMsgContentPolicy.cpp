@@ -69,7 +69,6 @@
 // needed for the cookie policy manager
 #include "nsNetUtil.h"
 #include "nsICookie2.h"
-#include "nsICookieManager2.h"
 
 // needed for mailnews content load policy manager
 #include "nsIDocShell.h"

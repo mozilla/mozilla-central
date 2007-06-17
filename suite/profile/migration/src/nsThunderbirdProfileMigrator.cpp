@@ -38,7 +38,6 @@
 #include "nsSuiteProfileMigratorUtils.h"
 #include "nsCRT.h"
 #include "nsDirectoryServiceDefs.h"
-#include "nsICookieManager2.h"
 #include "nsIObserverService.h"
 #include "nsIPasswordManagerInternal.h"
 #include "nsIPrefLocalizedString.h"
