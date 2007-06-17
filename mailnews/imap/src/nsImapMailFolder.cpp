@@ -4500,7 +4500,7 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
                 ParseUidString(keyString, keyArray);
                 MarkMessagesImapDeleted(&keyArray, PR_FALSE, db);
                 db->Commit(nsMsgDBCommitType::kLargeCommit);
-                nsCRT::free(keyString);
+                NS_Free(keyString);
               }
             }
           }
@@ -4528,7 +4528,7 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
                   db->DeleteMessages(&keyArray, nsnull);
                   db->SetSummaryValid(PR_TRUE);
                   db->Commit(nsMsgDBCommitType::kLargeCommit);
-                  nsCRT::free(keyString);
+                  NS_Free(keyString);
                 }
               }
             }
@@ -4788,51 +4788,43 @@ nsImapMailFolder::NotifySearchHit(nsIMsgMailNewsUrl * aUrl,
   nsresult rv = GetDatabase(nsnull /* don't need msg window, that's more for local mbox parsing */);
   if (!mDatabase || NS_FAILED(rv))
     return rv;
+  
   // expect search results in the form of "* SEARCH <hit> <hit> ..."
-                // expect search results in the form of "* SEARCH <hit> <hit> ..."
-  char *tokenString = nsCRT::strdup(searchHitLine);
-  if (tokenString)
+  // expect search results in the form of "* SEARCH <hit> <hit> ..."
+  nsCString tokenString(searchHitLine);
+  char *currentPosition = PL_strcasestr(tokenString.get(), "SEARCH");
+  if (currentPosition)
   {
-      char *currentPosition = PL_strcasestr(tokenString, "SEARCH");
-      if (currentPosition)
+    currentPosition += strlen("SEARCH");
+    PRBool shownUpdateAlert = PR_FALSE;
+    char *hitUidToken = NS_strtok(WHITESPACE, &currentPosition);
+    while (hitUidToken)
+    {
+      long naturalLong; // %l is 64 bits on OSF1
+      sscanf(hitUidToken, "%ld", &naturalLong);
+      nsMsgKey hitUid = (nsMsgKey) naturalLong;
+
+      nsCOMPtr <nsIMsgDBHdr> hitHeader;
+      rv = mDatabase->GetMsgHdrForKey(hitUid, getter_AddRefs(hitHeader));
+      if (NS_SUCCEEDED(rv) && hitHeader)
       {
-        currentPosition += strlen("SEARCH");
-        char *newStr;
-
-        PRBool shownUpdateAlert = PR_FALSE;
-        char *hitUidToken = nsCRT::strtok(currentPosition, WHITESPACE, &newStr);
-        while (hitUidToken)
+        nsCOMPtr <nsIMsgSearchSession> searchSession;
+        nsCOMPtr <nsIMsgSearchAdapter> searchAdapter;
+        aUrl->GetSearchSession(getter_AddRefs(searchSession));
+        if (searchSession)
         {
-          long naturalLong; // %l is 64 bits on OSF1
-          sscanf(hitUidToken, "%ld", &naturalLong);
-          nsMsgKey hitUid = (nsMsgKey) naturalLong;
-
-          nsCOMPtr <nsIMsgDBHdr> hitHeader;
-          rv = mDatabase->GetMsgHdrForKey(hitUid, getter_AddRefs(hitHeader));
-          if (NS_SUCCEEDED(rv) && hitHeader)
-          {
-            nsCOMPtr <nsIMsgSearchSession> searchSession;
-            nsCOMPtr <nsIMsgSearchAdapter> searchAdapter;
-            aUrl->GetSearchSession(getter_AddRefs(searchSession));
-            if (searchSession)
-            {
-              searchSession->GetRunningAdapter(getter_AddRefs(searchAdapter));
-              if (searchAdapter)
-                searchAdapter->AddResultElement(hitHeader);
-            }
-          }
-          else if (!shownUpdateAlert)
-          {
-          }
-
-          hitUidToken = nsCRT::strtok(newStr, WHITESPACE, &newStr);
+          searchSession->GetRunningAdapter(getter_AddRefs(searchAdapter));
+          if (searchAdapter)
+            searchAdapter->AddResultElement(hitHeader);
         }
-    }
+      }
+      else if (!shownUpdateAlert)
+      {
+      }
 
-    nsCRT::free(tokenString);
-  }
-  else
-    return NS_ERROR_OUT_OF_MEMORY;
+      hitUidToken = NS_strtok(WHITESPACE, &currentPosition);
+    }
+}
   return NS_OK;
 }
 
@@ -5271,25 +5263,17 @@ NS_IMETHODIMP nsImapMailFolder::GetCanOpenFolder(PRBool *aBool)
 // This string is defined in the ACL RFC to be "anyone"
 #define IMAP_ACL_ANYONE_STRING "anyone"
 
-/* static */PRBool nsMsgIMAPFolderACL::FreeHashRights(nsHashKey *aKey, void *aData, void *closure)
-{
-  PR_FREEIF(aData);
-  return PR_TRUE;
-}
-
 nsMsgIMAPFolderACL::nsMsgIMAPFolderACL(nsImapMailFolder *folder)
 {
   NS_ASSERTION(folder, "need folder");
   m_folder = folder;
-  m_rightsHash = new nsHashtable(24);
+  m_rightsHash.Init(24);
   m_aclCount = 0;
   BuildInitialACLFromCache();
 }
 
 nsMsgIMAPFolderACL::~nsMsgIMAPFolderACL()
 {
-  m_rightsHash->Reset(FreeHashRights, nsnull);
-  delete m_rightsHash;
 }
 
 // We cache most of our own rights in the MSG_FOLDER_PREF_* flags
@@ -5391,32 +5375,25 @@ PRBool nsMsgIMAPFolderACL::SetFolderRightsForUser(const nsACString& userName, co
     return ret;
 
   ToLowerCase(ourUserName);
-  char *rightsWeOwn = ToNewCString(rights);
-  nsCStringKey hashKey(ourUserName);
-  if (rightsWeOwn)
+  nsCString oldValue;
+  m_rightsHash.Get(ourUserName, &oldValue);
+  if (!oldValue.IsEmpty())
   {
-    char *oldValue = (char *) m_rightsHash->Get(&hashKey);
-    if (oldValue)
-    {
-      PR_Free(oldValue);
-      m_rightsHash->Remove(&hashKey);
-      m_aclCount--;
-      NS_ASSERTION(m_aclCount >= 0, "acl count can't go negative");
-    }
-    m_aclCount++;
-    ret = (m_rightsHash->Put(&hashKey, rightsWeOwn) == 0);
+    m_rightsHash.Remove(ourUserName);
+    m_aclCount--;
+    NS_ASSERTION(m_aclCount >= 0, "acl count can't go negative");
   }
+  m_aclCount++;
+  ret = (m_rightsHash.Put(ourUserName, PromiseFlatCString(rights)) == 0);
 
   if (myUserName.Equals(ourUserName) || ourUserName.EqualsLiteral(IMAP_ACL_ANYONE_STRING))
-  {
     // if this is setting an ACL for me, cache it in the folder pref flags
     UpdateACLCache();
-  }
 
   return ret;
 }
 
-const char *nsMsgIMAPFolderACL::GetRightsStringForUser(const nsACString& inUserName)
+nsresult nsMsgIMAPFolderACL::GetRightsStringForUser(const nsACString& inUserName, nsCString &rights)
 {
   nsCString userName;
   userName.Assign(inUserName);
@@ -5425,32 +5402,34 @@ const char *nsMsgIMAPFolderACL::GetRightsStringForUser(const nsACString& inUserN
     nsCOMPtr <nsIMsgIncomingServer> server;
 
     nsresult rv = m_folder->GetServer(getter_AddRefs(server));
-    NS_ASSERTION(NS_SUCCEEDED(rv), "error getting server");
-    if (NS_FAILED(rv)) return nsnull;
+    NS_ENSURE_SUCCESS(rv, rv);
     // we need the real user name to match with what the imap server returns
     // in the acl response.
     server->GetRealUsername(userName);
   }
   ToLowerCase(userName);
-  nsCStringKey userKey(userName);
-  return (const char *)m_rightsHash->Get(&userKey);
+  m_rightsHash.Get(userName, &rights);
+  return NS_OK;
 }
 
 // First looks for individual user;  then looks for 'anyone' if the user isn't found.
 // Returns defaultIfNotFound, if neither are found.
 PRBool nsMsgIMAPFolderACL::GetFlagSetInRightsForUser(const nsACString& userName, char flag, PRBool defaultIfNotFound)
 {
-  const char *flags = GetRightsStringForUser(userName);
-  if (!flags)
+  nsCString flags;
+  nsresult rv = GetRightsStringForUser(userName, flags);
+  NS_ENSURE_SUCCESS(rv, defaultIfNotFound);
+  if (flags.IsEmpty())
   {
-    const char *anyoneFlags = GetRightsStringForUser(NS_LITERAL_CSTRING(IMAP_ACL_ANYONE_STRING));
-    if (!anyoneFlags)
+    nsCString anyoneFlags;
+    GetRightsStringForUser(NS_LITERAL_CSTRING(IMAP_ACL_ANYONE_STRING), anyoneFlags);
+    if (anyoneFlags.IsEmpty())
       return defaultIfNotFound;
     else
-      return (strchr(anyoneFlags, flag) != nsnull);
+      return (anyoneFlags.FindChar(flag) != kNotFound);
   }
   else
-    return (strchr(flags, flag) != nsnull);
+    return (flags.FindChar(flag) != kNotFound);
 }
 
 PRBool nsMsgIMAPFolderACL::GetCanUserLookupFolder(const nsACString& userName)
@@ -5557,9 +5536,9 @@ PRBool nsMsgIMAPFolderACL::GetIsFolderShared()
     return PR_TRUE;
 
   // Or, if "anyone" has rights to it, it is shared.
-  nsCStringKey hashKey(IMAP_ACL_ANYONE_STRING);
-  const char *anyonesRights = (const char *)m_rightsHash->Get(&hashKey);
-  return (anyonesRights != nsnull);
+  nsCString anyonesRights;
+  m_rightsHash.Get(NS_LITERAL_CSTRING(IMAP_ACL_ANYONE_STRING), &anyonesRights);
+  return (!anyonesRights.IsEmpty());
 }
 
 PRBool nsMsgIMAPFolderACL::GetDoIHaveFullRightsForFolder()

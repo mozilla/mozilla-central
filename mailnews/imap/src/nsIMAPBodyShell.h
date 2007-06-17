@@ -44,6 +44,7 @@ nsIMAPBodyShell and associated classes
 
 #include "nsImapCore.h"
 #include "nsString.h"
+#include "nsClassHashtable.h"
 
 class nsImapProtocol;
 
@@ -56,7 +57,6 @@ typedef enum _nsIMAPBodypartType {
 
 class nsIMAPBodyShell;
 class nsIMAPBodypartMessage;
-class nsHashtable;
 
 class nsIMAPBodypart
 {
@@ -328,7 +328,7 @@ protected:
 
 protected:
 	nsVoidArray		*m_shellList;	// For maintenance
-	nsHashtable		*m_shellHash;	// For quick lookup based on UID
+	nsClassHashtable <nsCStringHashKey, nsIMAPBodyShell> m_shellHash;	// For quick lookup based on UID
 
 };
 

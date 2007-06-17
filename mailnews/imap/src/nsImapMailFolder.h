@@ -62,9 +62,9 @@
 #include "nsIMsgFilterPlugin.h"
 #include "nsIEventTarget.h"
 #include "nsIThread.h"
+#include "nsDataHashtable.h"
+
 class nsImapMoveCoalescer;
-class nsHashtable;
-class nsHashKey;
 class nsIMsgIdentity;
 
 #define COPY_BUFFER_SIZE 16384
@@ -180,14 +180,13 @@ public:
   nsresult CreateACLRightsString(nsAString& rightsString);
 
 protected:
-  const char *GetRightsStringForUser(const nsACString& userName);
+  nsresult GetRightsStringForUser(const nsACString& userName, nsCString &rights);
   PRBool GetFlagSetInRightsForUser(const nsACString& userName, char flag, PRBool defaultIfNotFound);
   void BuildInitialACLFromCache();
   void UpdateACLCache();
-  static PRBool PR_CALLBACK FreeHashRights(nsHashKey *aKey, void *aData, void *closure);
 
 protected:
-  nsHashtable    *m_rightsHash; // Hash table, mapping username strings to rights strings.
+  nsDataHashtable <nsCStringHashKey, nsCString> m_rightsHash; // Hash table, mapping username strings to rights strings.
   nsImapMailFolder *m_folder;
   PRInt32        m_aclCount;
 

@@ -40,7 +40,6 @@
 #include "nsIMAPBodyShell.h"
 #include "nsImapProtocol.h"
 
-#include "nsHashtable.h"
 #include "nsMimeTypes.h"
 #include "nsIPrefBranch.h"
 #include "nsIPrefService.h"
@@ -107,7 +106,7 @@ nsIMAPBodyShell::nsIMAPBodyShell(nsImapProtocol *protocolConnection, nsIMAPBodyp
 #endif
   if (!folderName)
     return;
-  m_folderName = nsCRT::strdup(folderName);
+  m_folderName = NS_strdup(folderName);
   if (!m_folderName)
     return;
   
@@ -974,12 +973,10 @@ nsIMAPBodypart(partNum, parentPart)
       m_partNumberString = PR_smprintf("0");
     }
     else
-    {
-      m_partNumberString = nsCRT::strdup(m_parentPart->GetPartNumberString());
-    }
+      m_partNumberString = NS_strdup(m_parentPart->GetPartNumberString());
   }
   m_partList = new nsVoidArray();
-  m_bodyType = nsCRT::strdup("multipart");
+  m_bodyType = NS_strdup("multipart");
   if (m_partList && m_parentPart && m_bodyType)
     SetIsValid(PR_TRUE);
   else
@@ -1148,7 +1145,7 @@ nsIMAPBodypart(partNum, parentPart)
     SetIsValid(PR_FALSE);
     return;
   }
-  m_partNumberString = nsCRT::strdup(partNum);
+  m_partNumberString = NS_strdup(partNum);
   if (!m_partNumberString)
   {
     SetIsValid(PR_FALSE);
@@ -1218,14 +1215,14 @@ imap_shell_cache_strcmp (const void *a, const void *b)
 
 nsIMAPBodyShellCache::nsIMAPBodyShellCache()
 {
-  m_shellHash = new nsHashtable(20); /* , XP_StringHash, imap_shell_cache_strcmp); */
+  m_shellHash.Init(20);
   m_shellList = new nsVoidArray();
 }
 
 /* static */ nsIMAPBodyShellCache *nsIMAPBodyShellCache::Create()
 {
   nsIMAPBodyShellCache *cache = new nsIMAPBodyShellCache();
-  if (!cache || !cache->m_shellHash || !cache->m_shellList)
+  if (!cache || !cache->m_shellList)
     return NULL;
   
   return cache;
@@ -1234,7 +1231,6 @@ nsIMAPBodyShellCache::nsIMAPBodyShellCache()
 nsIMAPBodyShellCache::~nsIMAPBodyShellCache()
 {
   while (EjectEntry()) ;
-  delete m_shellHash;
   delete m_shellList;
 }
 
@@ -1251,9 +1247,7 @@ PRBool nsIMAPBodyShellCache::EjectEntry()
 	nsIMAPBodyShell *removedShell = (nsIMAPBodyShell *) (m_shellList->ElementAt(0));
 
 	m_shellList->RemoveElementAt(0);
-	nsCStringKey hashKey (removedShell->GetUID());
-	m_shellHash->Remove(&hashKey);
-	delete removedShell;
+	m_shellHash.Remove(removedShell->GetUID());
 
 	return PR_TRUE;
 }
@@ -1271,20 +1265,18 @@ PRBool	nsIMAPBodyShellCache::AddShellToCache(nsIMAPBodyShell *shell)
 	// First, for safety sake, remove any entry with the given UID,
 	// just in case we have a collision between two messages in different
 	// folders with the same UID.
-	nsCStringKey hashKey1(shell->GetUID());
-	nsIMAPBodyShell *foundShell = (nsIMAPBodyShell *) m_shellHash->Get(&hashKey1);
+	nsIMAPBodyShell *foundShell = nsnull;
+        m_shellHash.Get(shell->GetUID(), &foundShell);
 	if (foundShell)
 	{
-		nsCStringKey hashKey(foundShell->GetUID());
-		m_shellHash->Remove(&hashKey);
+		m_shellHash.Remove(foundShell->GetUID());
 		m_shellList->RemoveElement(foundShell);
 	}
 
 	// Add the new one to the cache
 	m_shellList->AppendElement(shell);
 	
-	nsCStringKey hashKey2 (shell->GetUID());
-	m_shellHash->Put(&hashKey2, shell);
+	m_shellHash.Put(shell->GetUID(), shell);
 	shell->SetIsCached(PR_TRUE);
 
 	// while we're not over our size limit, eject entries
@@ -1301,8 +1293,8 @@ PRBool	nsIMAPBodyShellCache::AddShellToCache(nsIMAPBodyShell *shell)
 nsIMAPBodyShell *nsIMAPBodyShellCache::FindShellForUID(nsCString &UID, const char *mailboxName,
                                                        IMAP_ContentModifiedType modType)
 {
-	nsCStringKey hashKey(UID);
-	nsIMAPBodyShell *foundShell = (nsIMAPBodyShell *) m_shellHash->Get(&hashKey);
+	nsIMAPBodyShell *foundShell = nsnull;
+        m_shellHash.Get(UID, &foundShell);
 
 	if (!foundShell)
 		return nsnull;

@@ -124,11 +124,11 @@ nsImapFlagAndUidState::nsImapFlagAndUidState(PRInt32 numberOfMessages, PRUint16 
   memset(fFlags, 0, sizeof(imapMessageFlagsType) * fNumberOfMessageSlotsAllocated);
   fSupportedUserFlags = flags;
   fNumberDeleted = 0;
-  m_customFlagsHash = nsnull;
+  m_customFlagsHash.Init(10);
 }
 
 nsImapFlagAndUidState::nsImapFlagAndUidState(const nsImapFlagAndUidState& state, 
-										   uint16 flags)
+                                             uint16 flags)
 {
   fNumberOfMessagesAdded = state.fNumberOfMessagesAdded;
   
@@ -139,24 +139,21 @@ nsImapFlagAndUidState::nsImapFlagAndUidState(const nsImapFlagAndUidState& state,
   memcpy(fFlags, state.fFlags, sizeof(imapMessageFlagsType) * fNumberOfMessageSlotsAllocated);
   fSupportedUserFlags = flags;
   fNumberDeleted = 0;
-  m_customFlagsHash = nsnull;
+  m_customFlagsHash.Init(10);
 }
 
-/* static */PRBool PR_CALLBACK nsImapFlagAndUidState::FreeCustomFlags(nsHashKey *aKey, void *aData,
+/* static */PLDHashOperator nsImapFlagAndUidState::FreeCustomFlags(const PRUint32 &aKey, char *aData,
                                         void *closure)
 {
   PR_Free(aData);
-  return PR_TRUE;
+  return PL_DHASH_NEXT;
 }
 
 nsImapFlagAndUidState::~nsImapFlagAndUidState()
 {
   PR_Free(fFlags);
-  if (m_customFlagsHash)
-  {
-    m_customFlagsHash->Reset(FreeCustomFlags, nsnull);
-    delete m_customFlagsHash;
-  }
+  if (m_customFlagsHash.IsInitialized())
+    m_customFlagsHash.EnumerateRead(FreeCustomFlags, nsnull);
 }
 	
 NS_IMETHODIMP
@@ -175,8 +172,9 @@ NS_IMETHODIMP nsImapFlagAndUidState::Reset(PRUint32 howManyLeft)
   PR_CEnterMonitor(this);
   if (!howManyLeft)
     fNumberOfMessagesAdded = fNumberDeleted = 0; // used space is still here
-  if (m_customFlagsHash)
-    m_customFlagsHash->Reset(FreeCustomFlags, nsnull);
+  if (m_customFlagsHash.IsInitialized())
+    m_customFlagsHash.EnumerateRead(FreeCustomFlags, nsnull);
+  m_customFlagsHash.Clear();
   PR_CExitMonitor(this);
   return NS_OK;
 }
@@ -330,13 +328,11 @@ imapMessageFlagsType nsImapFlagAndUidState::GetMessageFlagsFromUID(PRUint32 uid,
 NS_IMETHODIMP nsImapFlagAndUidState::AddUidCustomFlagPair(PRUint32 uid, const char *customFlag)
 {
   nsAutoCMonitor mon(this);
-  if (!m_customFlagsHash)
-    m_customFlagsHash = new nsHashtable(10);
-  if (!m_customFlagsHash)
+  if (!m_customFlagsHash.IsInitialized())
     return NS_ERROR_OUT_OF_MEMORY;
-  nsPRUint32Key hashKey(uid);
   char *ourCustomFlags;
-  char *oldValue = (char *) m_customFlagsHash->Get(&hashKey);
+  char *oldValue = nsnull;
+  m_customFlagsHash.Get(uid, &oldValue);
   if (oldValue)
   {
   // we'll store multiple keys as space-delimited since space is not
@@ -357,27 +353,27 @@ NS_IMETHODIMP nsImapFlagAndUidState::AddUidCustomFlagPair(PRUint32 uid, const ch
     strcat(ourCustomFlags, " ");
     strcat(ourCustomFlags, customFlag);
     PR_Free(oldValue);
-    m_customFlagsHash->Remove(&hashKey);
+    m_customFlagsHash.Remove(uid);
   }
   else
   {
-    ourCustomFlags = nsCRT::strdup(customFlag);
+    ourCustomFlags = NS_strdup(customFlag);
     if (!ourCustomFlags)
       return NS_ERROR_OUT_OF_MEMORY;
   }
-  return (m_customFlagsHash->Put(&hashKey, ourCustomFlags) == 0) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
+  return (m_customFlagsHash.Put(uid, ourCustomFlags) == 0) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
 }
 
 NS_IMETHODIMP nsImapFlagAndUidState::GetCustomFlags(PRUint32 uid, char **customFlags)
 {
   nsAutoCMonitor mon(this);
-  if (m_customFlagsHash)
+  if (m_customFlagsHash.IsInitialized())
   {
-    nsPRUint32Key hashKey(uid);
-    char *value = (char *) m_customFlagsHash->Get(&hashKey);
+    char *value = nsnull;
+    m_customFlagsHash.Get(uid, &value);
     if (value)
     {
-      *customFlags = nsCRT::strdup(value);
+      *customFlags = NS_strdup(value);
       return (*customFlags) ? NS_OK : NS_ERROR_FAILURE;
     }
   }
@@ -388,11 +384,7 @@ NS_IMETHODIMP nsImapFlagAndUidState::GetCustomFlags(PRUint32 uid, char **customF
 NS_IMETHODIMP nsImapFlagAndUidState::ClearCustomFlags(PRUint32 uid)
 {
   nsAutoCMonitor mon(this);
-  if (m_customFlagsHash)
-  {
-    nsPRUint32Key hashKey(uid);
-    m_customFlagsHash->Remove(&hashKey);
-  }
+  m_customFlagsHash.Remove(uid);
   return NS_OK;
 }
 
