@@ -49,7 +49,6 @@ const char *kFoldersTableKind = "ns:msg:db:table:kind:folders";
 
 nsMsgFolderCache::nsMsgFolderCache()
 {
-  m_cacheElements = nsnull;
   m_mdbEnv = nsnull;
   m_mdbStore = nsnull;
   m_mdbAllFoldersTable = nsnull;
@@ -60,7 +59,7 @@ static nsIMdbFactory *gMDBFactory = nsnull;
 
 nsMsgFolderCache::~nsMsgFolderCache()
 {
-  delete m_cacheElements;
+  m_cacheElements.Clear(); // make sure the folder cache elements are released before we release our m_mdb objects...
   if (m_mdbAllFoldersTable)
     m_mdbAllFoldersTable->Release();
   if (m_mdbStore)
@@ -265,8 +264,7 @@ NS_IMETHODIMP nsMsgFolderCache::Init(nsIFile *aFile)
 {
   NS_ENSURE_ARG_POINTER(aFile);
 
-  m_cacheElements = new nsSupportsHashtable;
-  NS_ENSURE_TRUE(m_cacheElements, NS_ERROR_OUT_OF_MEMORY);
+  m_cacheElements.Init();
 
   PRBool exists;
   aFile->Exists(&exists);
@@ -290,12 +288,12 @@ NS_IMETHODIMP nsMsgFolderCache::GetCacheElement(const nsACString& pathKey, PRBoo
                                                 nsIMsgFolderCacheElement **result)
 {
   NS_ENSURE_ARG_POINTER(result);
-  NS_ENSURE_TRUE(m_cacheElements && !pathKey.IsEmpty(), NS_ERROR_FAILURE);
+  NS_ENSURE_TRUE(!pathKey.IsEmpty(), NS_ERROR_FAILURE);
 
-  nsCStringKey hashKey(pathKey);
-  *result = (nsIMsgFolderCacheElement *) m_cacheElements->Get(&hashKey);
+  nsCOMPtr<nsIMsgFolderCacheElement> folderCacheEl;
+  m_cacheElements.Get(pathKey, getter_AddRefs(folderCacheEl));
+  folderCacheEl.swap(*result);
 
-  // nsHashTable already does an address on *result
   if (*result)
     return NS_OK;
   else if (createIfMissing)
@@ -322,21 +320,19 @@ NS_IMETHODIMP nsMsgFolderCache::GetCacheElement(const nsACString& pathKey, PRBoo
 
 NS_IMETHODIMP nsMsgFolderCache::RemoveElement(const nsACString& key)
 {
-  nsCStringKey hashKey(key);
-  nsCOMPtr <nsISupports> supports = getter_AddRefs(m_cacheElements->Get(&hashKey));
-  if (!supports)
+  nsCOMPtr<nsIMsgFolderCacheElement> folderCacheEl;
+  m_cacheElements.Get(key, getter_AddRefs(folderCacheEl));
+  if (!folderCacheEl)
     return NS_ERROR_FAILURE;
-  nsCOMPtr <nsIMsgFolderCacheElement> cacheElement = do_QueryInterface(supports);
-  nsMsgFolderCacheElement *element = NS_STATIC_CAST(nsMsgFolderCacheElement *, NS_STATIC_CAST(nsISupports *, cacheElement.get()));
+  nsMsgFolderCacheElement *element = NS_STATIC_CAST(nsMsgFolderCacheElement *, NS_STATIC_CAST(nsISupports *, folderCacheEl.get())); // why the double cast??
   m_mdbAllFoldersTable->CutRow(GetEnv(), element->m_mdbRow);
-  m_cacheElements->Remove(&hashKey);
+  m_cacheElements.Remove(key);
   return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgFolderCache::Clear()
 {
-  if (m_cacheElements)
-    m_cacheElements->Reset();
+  m_cacheElements.Clear();
   if (m_mdbAllFoldersTable)
     m_mdbAllFoldersTable->CutAllRows(GetEnv());
   return NS_OK;
@@ -379,28 +375,18 @@ nsresult nsMsgFolderCache::AddCacheElement(const nsACString& key, nsIMdbRow *row
 {
   nsMsgFolderCacheElement *cacheElement = new nsMsgFolderCacheElement;
   NS_ENSURE_TRUE(cacheElement, NS_ERROR_OUT_OF_MEMORY);
+  nsCOMPtr<nsIMsgFolderCacheElement> folderCacheEl(do_QueryInterface(cacheElement));
 
   cacheElement->SetMDBRow(row);
   cacheElement->SetOwningCache(this);
   nsCString hashStrKey(key);
   // if caller didn't pass in key, try to get it from row.
   if (key.IsEmpty())
-  {
-    nsCString existingKey;
-    cacheElement->GetStringProperty("key", existingKey);
-    cacheElement->SetKey(existingKey);
-    hashStrKey = existingKey;
-  }
-  else
-    cacheElement->SetKey(key);
-  nsCOMPtr<nsISupports> supports(do_QueryInterface(cacheElement));
-  if(supports)
-  {
-    nsCStringKey hashKey(hashStrKey);
-    m_cacheElements->Put(&hashKey, supports);
-  }
+    folderCacheEl->GetStringProperty("key", hashStrKey);
+  folderCacheEl->SetKey(hashStrKey);
+  m_cacheElements.Put(hashStrKey, folderCacheEl);
   if (result)
-    NS_IF_ADDREF(*result = cacheElement);
+    folderCacheEl.swap(*result);
   return NS_OK;
 }
 

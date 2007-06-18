@@ -40,10 +40,9 @@
 
 #include "nsIMsgFolderCache.h"
 #include "nsIMsgFolderCacheElement.h"
-
+#include "nsInterfaceHashtable.h"
 #include "nsCOMPtr.h"
 #include "mdb.h"
-#include "nsHashtable.h"
 
 class nsMsgFolderCache : public nsIMsgFolderCache
 {
@@ -67,8 +66,7 @@ protected:
   nsresult OpenMDB(const nsACString& dbName, PRBool create);
   nsIMdbEnv *GetEnv() {return m_mdbEnv;}
   nsIMdbStore *GetStore() {return m_mdbStore;}
-
-  nsSupportsHashtable *m_cacheElements;
+  nsInterfaceHashtable<nsCStringHashKey, nsIMsgFolderCacheElement> m_cacheElements;
   // mdb stuff
   nsIMdbEnv           *m_mdbEnv; // to be used in all the db calls.
   nsIMdbStore         *m_mdbStore;
