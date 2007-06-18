@@ -46,7 +46,6 @@
 #include "nscore.h"
 #include "nsIMsgAccountManager.h"
 #include "nsCOMPtr.h"
-#include "nsHashtable.h"
 #include "nsISmtpServer.h"
 #include "nsIPrefBranch.h"
 #include "nsIMsgFolderCache.h"
@@ -55,6 +54,7 @@
 #include "nsWeakReference.h"
 #include "nsIUrlListener.h"
 #include "nsCOMArray.h"
+#include "nsInterfaceHashtable.h"
 
 class nsIRDFService;
 
@@ -80,6 +80,7 @@ public:
 
   nsresult Init();
   nsresult Shutdown();
+  void LogoutOfServer(nsIMsgIncomingServer *aServer);
 
 private:
 
@@ -87,8 +88,8 @@ private:
   nsCOMPtr <nsIMsgFolderCache>	m_msgFolderCache;
   nsCOMPtr<nsIAtom> kDefaultServerAtom;
   nsCOMPtr<nsISupportsArray> m_accounts;
-  nsHashtable m_identities;
-  nsHashtable m_incomingServers;
+  nsInterfaceHashtable<nsCStringHashKey, nsIMsgIdentity> m_identities;
+  nsInterfaceHashtable<nsCStringHashKey, nsIMsgIncomingServer> m_incomingServers;
   nsCOMPtr<nsIMsgAccount> m_defaultAccount;
   nsCOMArray<nsIIncomingServerListener> m_incomingServerListeners;
   nsCOMArray<nsIDBChangeListener> m_virtualFolderListeners;
@@ -137,28 +138,8 @@ private:
   nsresult notifyDefaultServerChange(nsIMsgAccount *aOldAccount,
                                      nsIMsgAccount *aNewAccount);
     
-  static void LogoutOfServer(nsIMsgIncomingServer *aServer);
-  // hash table enumerators
+  PR_STATIC_CALLBACK(PLDHashOperator) hashUnloadServer(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer>& aServer, void* aClosure);
 
-  // add each member of a hash table to an nsISupports array
-  static PRBool hashElementToArray(nsHashKey *aKey, void *aData,
-                                   void *closure);
-
-  // called by EnumerateRemove to release all elements
-  static PRBool PR_CALLBACK hashElementRelease(nsHashKey *aKey, void *aData,
-                                   void *closure);
-
-  // Send unload server notification.
-  static PRBool PR_CALLBACK hashUnloadServer(nsHashKey *aKey, void *aData,
-                                     void *closure);
-
-  // shutdown server and forget cached password
-  static PRBool PR_CALLBACK hashLogoutOfServer(nsHashKey *aKey, void *aData,
-                                     void *closure);
-
-  // clean up on exit
-  static PRBool PR_CALLBACK cleanupOnExit(nsHashKey *aKey, void *aData,
-                                     void *closure);
   //
   // account enumerators
   // ("element" is always an account)
@@ -187,19 +168,11 @@ private:
   // ("element" is always a server)
   //
   
-  // load up the servers into the given nsISupportsArray
-  static PRBool PR_CALLBACK getServersToArray(nsHashKey* aKey, void *element, void *aData);
-
   // find the server given by {username, hostname, type}
   static PRBool findServer(nsISupports *aElement, void *data);
 
   // find the server given by {username, hostname, port, type}
   static PRBool findServerUrl(nsISupports *aElement, void *data);
-
-  // write out the server's cache through the given folder cache
-  static PRBool PR_CALLBACK writeFolderCache(nsHashKey *aKey, void *aData, void *closure);
-  static PRBool PR_CALLBACK shutdown(nsHashKey *aKey, void *aData, void *closure);
-  static PRBool PR_CALLBACK closeCachedConnections(nsHashKey *aKey, void *aData, void *closure);
 
   // handle virtual folders
   nsresult GetVirtualFoldersFile(nsCOMPtr<nsILocalFile>& file);
@@ -209,9 +182,6 @@ private:
                                nsIRDFService *rdf,
                                nsIMsgDBService *msgDBService);
 
-  static void getUniqueKey(const char * prefix,
-                           nsHashtable *hashTable,
-                           nsCString& aResult);
   static void getUniqueAccountKey(const char * prefix,
                                   nsISupportsArray *accounts,
                                   nsCString& aResult);
@@ -233,10 +203,6 @@ private:
   // When a new listener is added, it should be added to all root folders.
   // similar for when servers are deleted or listeners removed
   nsCOMPtr<nsISupportsArray> mFolderListeners;
-  
-  // add and remove listeners from the given server
-  static PRBool PR_CALLBACK addListener(nsHashKey *aKey, void *element, void *aData);
-  static PRBool PR_CALLBACK removeListener(nsHashKey *aKey, void *element, void *aData);
   
   // folder listener enumerators
   static PRBool addListenerToFolder(nsISupports *element, void *data);

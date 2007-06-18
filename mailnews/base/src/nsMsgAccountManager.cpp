@@ -184,6 +184,9 @@ nsresult nsMsgAccountManager::Init()
 {
   nsresult rv;
 
+  m_identities.Init();
+  m_incomingServers.Init();
+
   rv = NS_NewISupportsArray(getter_AddRefs(m_accounts));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -264,6 +267,14 @@ nsMsgAccountManager::SetUserNeedsToAuthenticate(PRBool aUserNeedsToAuthenticate)
   return NS_OK;
 }
 
+PR_STATIC_CALLBACK(PLDHashOperator)
+hashLogoutOfServer(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer>& aServer, void* aClosure)
+{
+  nsMsgAccountManager *accountManager = (nsMsgAccountManager*) aClosure;
+  accountManager->LogoutOfServer(aServer);
+  return PL_DHASH_NEXT;
+}
+
 NS_IMETHODIMP nsMsgAccountManager::Observe(nsISupports *aSubject, const char *aTopic, const PRUnichar *someData)
 {
   if(!strcmp(aTopic,NS_XPCOM_SHUTDOWN_OBSERVER_ID))
@@ -314,22 +325,6 @@ nsMsgAccountManager::getPrefService()
   return rv;
 }
 
-void
-nsMsgAccountManager::getUniqueKey(const char * prefix,
-                                  nsHashtable *hashTable,
-                                  nsCString& aResult)
-{
-  PRInt32 i=1;
-  PRBool unique=PR_FALSE;
-
-  do {
-    aResult = prefix;
-    aResult.AppendInt(i++);
-    nsCStringKey hashKey(aResult);
-    void* hashElement = hashTable->Get(&hashKey);
-    if (!hashElement) unique=PR_TRUE;
-  } while (!unique);
-}
 
 void
 nsMsgAccountManager::getUniqueAccountKey(const char * prefix,
@@ -355,7 +350,15 @@ nsMsgAccountManager::CreateIdentity(nsIMsgIdentity **_retval)
   NS_ENSURE_ARG_POINTER(_retval);
   nsresult rv;
   nsCAutoString key;
-  getUniqueKey(ID_PREFIX, &m_identities, key);
+  nsCOMPtr<nsIMsgIdentity> identity;
+  PRInt32 i = 1;
+  PRBool unique=PR_FALSE;
+  do {
+    key.AssignLiteral(ID_PREFIX);
+    key.AppendInt(i++);
+    m_identities.Get(key, getter_AddRefs(identity));
+  } while (identity);
+
   rv = createKeyedIdentity(key, _retval);
   return rv;
 }
@@ -369,12 +372,9 @@ nsMsgAccountManager::GetIdentity(const nsACString& key, nsIMsgIdentity **_retval
 
   if (!key.IsEmpty())
   {
-    // check for the identity in the hash table
-    nsCStringKey hashKey(key);
-    nsISupports *idsupports = (nsISupports*)m_identities.Get(&hashKey);
-    nsCOMPtr<nsIMsgIdentity> identity = do_QueryInterface(idsupports, &rv);
-
-    if (NS_SUCCEEDED(rv))
+    nsCOMPtr<nsIMsgIdentity> identity;
+    m_identities.Get(key, getter_AddRefs(identity));
+    if (identity)
       identity.swap(*_retval);
     else // identity doesn't exist. create it.
       rv = createKeyedIdentity(key, _retval);
@@ -397,12 +397,7 @@ nsMsgAccountManager::createKeyedIdentity(const nsACString& key,
   NS_ENSURE_SUCCESS(rv, rv);
 
   identity->SetKey(key);
-
-  nsCStringKey hashKey(key);
-  // addref for the hash table`
-  nsISupports* idsupports = identity;
-  NS_ADDREF(idsupports);
-  m_identities.Put(&hashKey, (void *)idsupports);
+  m_identities.Put(key, identity);
   identity.swap(*aIdentity);
   return NS_OK;
 }
@@ -419,7 +414,14 @@ nsMsgAccountManager::CreateIncomingServer(const nsACString&  username,
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCAutoString key;
-  getUniqueKey(SERVER_PREFIX, &m_incomingServers, key);
+  nsCOMPtr<nsIMsgIncomingServer> server;
+  PRInt32 i = 1;
+  PRBool unique=PR_FALSE;
+  do {
+    key.AssignLiteral(SERVER_PREFIX);
+    key.AppendInt(i++);
+    m_incomingServers.Get(key, getter_AddRefs(server));
+  } while (server);
   return createKeyedServer(key, username, hostname, type, _retval);
 }
 
@@ -430,11 +432,10 @@ nsMsgAccountManager::GetIncomingServer(const nsACString& key,
   NS_ENSURE_ARG_POINTER(_retval);
   nsresult rv = NS_OK;
 
-  nsCStringKey hashKey(key);
-  nsCOMPtr<nsIMsgIncomingServer> server =
-    do_QueryInterface((nsISupports*)m_incomingServers.Get(&hashKey), &rv);
+  nsCOMPtr<nsIMsgIncomingServer> server;
+  m_incomingServers.Get(key, _retval);
 
-  if (NS_SUCCEEDED(rv)) {
+  if (server) {
     server.swap(*_retval);
     return NS_OK;
   }
@@ -485,6 +486,7 @@ nsMsgAccountManager::createKeyedServer(const nsACString& key,
                                        nsIMsgIncomingServer ** aServer)
 {
   nsresult rv;
+  *aServer = nsnull;
 
   //construct the contractid
   nsCAutoString serverContractID(NS_MSGINCOMINGSERVER_CONTRACTID_PREFIX);
@@ -500,12 +502,7 @@ nsMsgAccountManager::createKeyedServer(const nsACString& key,
   server->SetUsername(username);
   server->SetHostName(hostname);
 
-  nsCStringKey hashKey(key);
-
-  // addref for the hashtable
-  nsISupports* serversupports = server;
-  NS_ADDREF(serversupports);
-  m_incomingServers.Put(&hashKey, serversupports);
+  m_incomingServers.Put(key, server);
 
   // now add all listeners that are supposed to be
   // waiting on root folders
@@ -605,10 +602,7 @@ nsMsgAccountManager::RemoveAccount(nsIMsgAccount *aAccount)
       }
     }
 
-    nsCStringKey hashKey(serverKey);
-    nsIMsgIncomingServer* removedServer =
-      (nsIMsgIncomingServer*) m_incomingServers.Remove(&hashKey);
-    NS_IF_RELEASE(removedServer); // remove reference from hashtable
+    m_incomingServers.Remove(serverKey);
 
     nsCOMPtr<nsIMsgFolder> rootFolder;
     server->GetRootFolder(getter_AddRefs(rootFolder));
@@ -618,7 +612,7 @@ nsMsgAccountManager::RemoveAccount(nsIMsgAccount *aAccount)
     PRUint32 cnt =0;
     rv = allDescendents->Count(&cnt);
     NS_ENSURE_SUCCESS(rv, rv);
-    for (PRUint32 i=0; i < cnt;i++)
+    for (PRUint32 i = 0; i < cnt;i++)
     {
       nsCOMPtr<nsIMsgFolder> folder = do_QueryElementAt(allDescendents, i, &rv);
       folder->ForceDBClosed();
@@ -835,20 +829,15 @@ nsMsgAccountManager::setDefaultAccountPref(nsIMsgAccount* aDefaultAccount)
 }
 
 // enumaration for sending unload notifications
-PRBool
-nsMsgAccountManager::hashUnloadServer(nsHashKey *aKey, void *aData, void *closure)
+PLDHashOperator
+nsMsgAccountManager::hashUnloadServer(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer>& aServer, void* aClosure)
 {
   nsresult rv;
-  nsCOMPtr<nsIMsgIncomingServer> server =
-    do_QueryInterface((nsISupports*)aData, &rv);
-  if (NS_FAILED(rv))
-    return PR_TRUE;
-
-  nsMsgAccountManager *accountManager = (nsMsgAccountManager*)closure;
-  accountManager->NotifyServerUnloaded(server);
+  nsMsgAccountManager *accountManager = (nsMsgAccountManager*) aClosure;
+  accountManager->NotifyServerUnloaded(aServer);
 
   nsCOMPtr<nsIMsgFolder> rootFolder;
-  rv = server->GetRootFolder(getter_AddRefs(rootFolder));
+  rv = aServer->GetRootFolder(getter_AddRefs(rootFolder));
 
   accountManager->mFolderListeners->EnumerateForwards(removeListenerFromFolder,
                                       (void *)(nsIMsgFolder*)rootFolder);
@@ -856,25 +845,15 @@ nsMsgAccountManager::hashUnloadServer(nsHashKey *aKey, void *aData, void *closur
   if(NS_SUCCEEDED(rv))
     rootFolder->Shutdown(PR_TRUE);
 
-  return PR_TRUE;
+  return PL_DHASH_NEXT;
 }
 
-/* static */ void nsMsgAccountManager::LogoutOfServer(nsIMsgIncomingServer *aServer)
+void nsMsgAccountManager::LogoutOfServer(nsIMsgIncomingServer *aServer)
 {
   nsresult rv = aServer->Shutdown();
   NS_ASSERTION(NS_SUCCEEDED(rv), "Shutdown of server failed");
   rv = aServer->ForgetSessionPassword();
   NS_ASSERTION(NS_SUCCEEDED(rv), "failed to remove the password associated with server");
-}
-
-/* static */ PRBool
-nsMsgAccountManager::hashLogoutOfServer(nsHashKey *aKey, void *aData, void *closure)
-{
-  nsresult rv;
-  nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface((nsISupports*)aData, &rv);
-  if (NS_SUCCEEDED(rv))
-    LogoutOfServer(server);
-  return PR_TRUE;
 }
 
 NS_IMETHODIMP nsMsgAccountManager::GetFolderCache(nsIMsgFolderCache* *aFolderCache)
@@ -897,30 +876,26 @@ NS_IMETHODIMP nsMsgAccountManager::GetFolderCache(nsIMsgFolderCache* *aFolderCac
   return rv;
 }
 
-
-// enumaration for writing out accounts to folder cache.
-PRBool nsMsgAccountManager::writeFolderCache(nsHashKey *aKey, void *aData, void *closure)
+PR_STATIC_CALLBACK(PLDHashOperator)
+hashWriteFolderCache(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer>& aServer, void* aClosure)
 {
-  nsIMsgIncomingServer *server = (nsIMsgIncomingServer*) aData;
-  nsIMsgFolderCache *folderCache = (nsIMsgFolderCache *) closure;
-
-  server->WriteToFolderCache(folderCache);
-  return PR_TRUE;
+  nsIMsgFolderCache *folderCache = (nsIMsgFolderCache *) aClosure;
+  aServer->WriteToFolderCache(folderCache);
+  return PL_DHASH_NEXT;
 }
 
-// enumeration for empty trash on exit
-PRBool PR_CALLBACK nsMsgAccountManager::cleanupOnExit(nsHashKey *aKey, void *aData, void *closure)
+PR_STATIC_CALLBACK(PLDHashOperator)
+hashCleanupOnExit(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer>& aServer, void* aClosure)
 {
-  nsIMsgIncomingServer *server = (nsIMsgIncomingServer*) aData;
   PRBool emptyTrashOnExit = PR_FALSE;
   PRBool cleanupInboxOnExit = PR_FALSE;
   nsresult rv;
 
   if (WeAreOffline())
-    return PR_TRUE;
+    return PL_DHASH_STOP;
 
-  server->GetEmptyTrashOnExit(&emptyTrashOnExit);
-  nsCOMPtr <nsIImapIncomingServer> imapserver = do_QueryInterface(server);
+  aServer->GetEmptyTrashOnExit(&emptyTrashOnExit);
+  nsCOMPtr <nsIImapIncomingServer> imapserver = do_QueryInterface(aServer);
   if (imapserver)
   {
     imapserver->GetCleanupInboxOnExit(&cleanupInboxOnExit);
@@ -929,9 +904,9 @@ PRBool PR_CALLBACK nsMsgAccountManager::cleanupOnExit(nsHashKey *aKey, void *aDa
   if (emptyTrashOnExit || cleanupInboxOnExit)
   {
     nsCOMPtr<nsIMsgFolder> root;
-    server->GetRootFolder(getter_AddRefs(root));
+    aServer->GetRootFolder(getter_AddRefs(root));
     nsCString type;
-    server->GetType(type);
+    aServer->GetType(type);
     if (root)
     {
       nsCOMPtr<nsIMsgFolder> folder;
@@ -943,29 +918,29 @@ PRBool PR_CALLBACK nsMsgAccountManager::cleanupOnExit(nsHashKey *aKey, void *aDa
          PRBool isImap = type.EqualsLiteral("imap");
          if (isImap)
          {
-           server->GetServerRequiresPasswordForBiff(&serverRequiresPasswordForAuthentication);
-           server->GetPassword(passwd);
+           aServer->GetServerRequiresPasswordForBiff(&serverRequiresPasswordForAuthentication);
+           aServer->GetPassword(passwd);
          }
          if (!isImap || (isImap && (!serverRequiresPasswordForAuthentication || !passwd.IsEmpty())))
          {
            nsCOMPtr<nsIUrlListener> urlListener;
            nsCOMPtr<nsIMsgAccountManager> accountManager =
                     do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
-           NS_ENSURE_SUCCESS(rv, rv);
+           NS_ENSURE_SUCCESS(rv, PL_DHASH_NEXT);
            
            if (isImap)
              urlListener = do_QueryInterface(accountManager, &rv);
 
            if (isImap && cleanupInboxOnExit)
            {
-             nsCOMPtr<nsIEnumerator> aEnumerator;
-             folder->GetSubFolders(getter_AddRefs(aEnumerator));
-             nsCOMPtr<nsISupports> aSupport;
-             rv = aEnumerator->First();
+             nsCOMPtr<nsIEnumerator> enumerator;
+             folder->GetSubFolders(getter_AddRefs(enumerator));
+             nsCOMPtr<nsISupports> supports;
+             rv = enumerator->First();
              while (NS_SUCCEEDED(rv))
              {
-               rv = aEnumerator->CurrentItem(getter_AddRefs(aSupport));
-               nsCOMPtr<nsIMsgFolder> inboxFolder = do_QueryInterface(aSupport);
+               rv = enumerator->CurrentItem(getter_AddRefs(supports));
+               nsCOMPtr<nsIMsgFolder> inboxFolder = do_QueryInterface(supports);
                PRUint32 flags;
                inboxFolder->GetFlags(&flags);
                if (flags & MSG_FOLDER_FLAG_INBOX)
@@ -976,7 +951,7 @@ PRBool PR_CALLBACK nsMsgAccountManager::cleanupOnExit(nsHashKey *aKey, void *aDa
                  break;
                 }
                 else
-                  rv = aEnumerator->Next();
+                  rv = enumerator->Next();
              }
            }
 
@@ -1023,21 +998,21 @@ PRBool PR_CALLBACK nsMsgAccountManager::cleanupOnExit(nsHashKey *aKey, void *aDa
        }
      }
    }
-   return PR_TRUE;
+   return PL_DHASH_NEXT;
 }
 
-PRBool nsMsgAccountManager::closeCachedConnections(nsHashKey *aKey, void *aData, void *closure)
+PR_STATIC_CALLBACK(PLDHashOperator)
+hashCloseCachedConnections(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer>& aServer, void* aClosure)
 {
-  nsIMsgIncomingServer *server = (nsIMsgIncomingServer*)aData;
-  server->CloseCachedConnections();
-  return PR_TRUE;
+  aServer->CloseCachedConnections();
+  return PL_DHASH_NEXT;
 }
 
-PRBool nsMsgAccountManager::shutdown(nsHashKey *aKey, void *aData, void *closure)
+PR_STATIC_CALLBACK(PLDHashOperator)
+hashShutdown(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer>& aServer, void* aClosure)
 {
-  nsIMsgIncomingServer *server = (nsIMsgIncomingServer*)aData;
-  server->Shutdown();
-  return PR_TRUE;
+  aServer->Shutdown();
+  return PL_DHASH_NEXT;
 }
 
 /* readonly attribute nsISupportsArray accounts; */
@@ -1053,24 +1028,6 @@ nsMsgAccountManager::GetAccounts(nsISupportsArray **_retval)
   accounts->AppendElements(m_accounts);
   accounts.swap(*_retval);
   return NS_OK;
-}
-
-PRBool
-nsMsgAccountManager::hashElementToArray(nsHashKey *aKey, void *aData, void *closure)
-{
-  nsISupports* element = (nsISupports*) aData;
-  nsISupportsArray* array = (nsISupportsArray*) closure;
-
-  array->AppendElement(element);
-  return PR_TRUE;
-}
-
-PRBool
-nsMsgAccountManager::hashElementRelease(nsHashKey *aKey, void *aData, void *closure)
-{
-  nsISupports* element = (nsISupports*)aData;
-  NS_RELEASE(element);
-  return PR_TRUE; // return true to remove this element
 }
 
 /* nsISupportsArray GetAllIdentities (); */
@@ -1153,6 +1110,15 @@ nsMsgAccountManager::getIdentitiesToArray(nsISupports *element, void *aData)
   return PR_TRUE;
 }
 
+PR_STATIC_CALLBACK(PLDHashOperator)
+hashGetServersToArray(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer>& aServer, void* aClosure)
+{
+  nsISupportsArray *array = (nsISupportsArray*) aClosure;
+  nsCOMPtr<nsISupports> serverSupports = do_QueryInterface(aServer);
+  array->AppendElement(aServer);
+  return PL_DHASH_NEXT;
+}
+
 /* nsISupportsArray GetAllServers (); */
 NS_IMETHODIMP
 nsMsgAccountManager::GetAllServers(nsISupportsArray **_retval)
@@ -1167,28 +1133,10 @@ nsMsgAccountManager::GetAllServers(nsISupportsArray **_retval)
 
   // enumerate by going through the list of accounts, so that we
   // get the order correct
-  m_incomingServers.Enumerate(getServersToArray,
+  m_incomingServers.Enumerate(hashGetServersToArray,
                               (void *)(nsISupportsArray*)servers);
   servers.swap(*_retval);
   return rv;
-}
-
-PRBool PR_CALLBACK
-nsMsgAccountManager::getServersToArray(nsHashKey *aKey,
-                                       void *element,
-                                       void *aData)
-{
-  nsresult rv;
-  nsCOMPtr<nsIMsgIncomingServer> server =
-    do_QueryInterface((nsISupports*)element, &rv);
-  if (NS_FAILED(rv))
-    return PR_TRUE;
-
-  nsISupportsArray *array = (nsISupportsArray*) aData;
-  nsCOMPtr<nsISupports> serverSupports = do_QueryInterface(server);
-  if (NS_SUCCEEDED(rv))
-    array->AppendElement(serverSupports);
-  return PR_TRUE;
 }
 
 nsresult
@@ -1431,8 +1379,8 @@ nsMsgAccountManager::UnloadAccounts()
   m_incomingServers.Enumerate(hashUnloadServer, this);
 
   m_accounts->Clear();          // will release all elements
-  m_identities.Reset(hashElementRelease, nsnull);
-  m_incomingServers.Reset(hashElementRelease, nsnull);
+  m_identities.Clear();
+  m_incomingServers.Clear();
   m_accountsLoaded = PR_FALSE;
   mAccountKeyList.Truncate();
   SetLastServerFound(nsnull, EmptyCString(), EmptyCString(), 0, EmptyCString());
@@ -1442,28 +1390,28 @@ nsMsgAccountManager::UnloadAccounts()
 NS_IMETHODIMP
 nsMsgAccountManager::ShutdownServers()
 {
-  m_incomingServers.Enumerate(shutdown, nsnull);
+  m_incomingServers.Enumerate(hashShutdown, nsnull);
   return NS_OK;
 }
 
 NS_IMETHODIMP
 nsMsgAccountManager::CloseCachedConnections()
 {
-  m_incomingServers.Enumerate(closeCachedConnections, nsnull);
+  m_incomingServers.Enumerate(hashCloseCachedConnections, nsnull);
   return NS_OK;
 }
 
 NS_IMETHODIMP
 nsMsgAccountManager::CleanupOnExit()
 {
-  m_incomingServers.Enumerate(cleanupOnExit, nsnull);
+  m_incomingServers.Enumerate(hashCleanupOnExit, nsnull);
   return NS_OK;
 }
 
 NS_IMETHODIMP
 nsMsgAccountManager::WriteToFolderCache(nsIMsgFolderCache *folderCache)
 {
-  m_incomingServers.Enumerate(writeFolderCache, folderCache);
+  m_incomingServers.Enumerate(hashWriteFolderCache, folderCache);
   return folderCache->Close();
 }
 
@@ -2119,12 +2067,38 @@ nsMsgAccountManager::findServersForIdentity(nsISupports *element, void *aData)
   return PR_TRUE;
 }
 
+PR_STATIC_CALLBACK(PLDHashOperator)
+hashAddListener(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer>& aServer, void* aClosure)
+{
+  nsIFolderListener* listener = (nsIFolderListener *) aClosure;
+  nsresult rv;
+  nsCOMPtr<nsIMsgFolder> rootFolder;
+  rv = aServer->GetRootFolder(getter_AddRefs(rootFolder));
+  NS_ENSURE_SUCCESS(rv, PL_DHASH_NEXT);
+  rv = rootFolder->AddFolderListener(listener);
+  return PL_DHASH_NEXT;
+}
+
+PR_STATIC_CALLBACK(PLDHashOperator)
+hashRemoveListener(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer>& aServer, void* aClosure)
+{
+  nsIFolderListener* listener = (nsIFolderListener *) aClosure;
+
+  nsresult rv;
+  nsCOMPtr<nsIMsgFolder> rootFolder;
+  rv = aServer->GetRootFolder(getter_AddRefs(rootFolder));
+  NS_ENSURE_SUCCESS(rv, PL_DHASH_NEXT);
+
+  rv = rootFolder->RemoveFolderListener(listener);
+  return PL_DHASH_NEXT;
+}
+
 NS_IMETHODIMP
 nsMsgAccountManager::AddRootFolderListener(nsIFolderListener *aListener)
 {
   NS_ENSURE_TRUE(aListener, NS_OK);
-  nsresult rv = mFolderListeners->AppendElement(aListener);
-  m_incomingServers.Enumerate(addListener, (void *)aListener);
+  mFolderListeners->AppendElement(aListener);
+  m_incomingServers.Enumerate(hashAddListener, (void *)aListener);
   return NS_OK;
 }
 
@@ -2132,40 +2106,9 @@ NS_IMETHODIMP
 nsMsgAccountManager::RemoveRootFolderListener(nsIFolderListener *aListener)
 {
   NS_ENSURE_TRUE(aListener, NS_OK);
-  nsresult rv = mFolderListeners->RemoveElement(aListener);
-  m_incomingServers.Enumerate(removeListener, (void *)aListener);
+  mFolderListeners->RemoveElement(aListener);
+  m_incomingServers.Enumerate(hashRemoveListener, (void *)aListener);
   return NS_OK;
-}
-
-// enumeration functions
-PRBool
-nsMsgAccountManager::addListener(nsHashKey *aKey, void *element, void *aData)
-{
-  nsIMsgIncomingServer *server = (nsIMsgIncomingServer *) element;
-  nsIFolderListener* listener = (nsIFolderListener *) aData;
-
-  nsresult rv;
-  nsCOMPtr<nsIMsgFolder> rootFolder;
-  rv = server->GetRootFolder(getter_AddRefs(rootFolder));
-  NS_ENSURE_SUCCESS(rv, PR_TRUE);
-
-  rv = rootFolder->AddFolderListener(listener);
-  return PR_TRUE;
-}
-
-PRBool
-nsMsgAccountManager::removeListener(nsHashKey *aKey, void *element, void *aData)
-{
-  nsIMsgIncomingServer *server = (nsIMsgIncomingServer *)element;
-  nsIFolderListener* listener = (nsIFolderListener *)aData;
-
-  nsresult rv;
-  nsCOMPtr<nsIMsgFolder> rootFolder;
-  rv = server->GetRootFolder(getter_AddRefs(rootFolder));
-  NS_ENSURE_SUCCESS(rv, PR_TRUE);
-
-  rv = rootFolder->RemoveFolderListener(listener);
-  return PR_TRUE;
 }
 
 NS_IMETHODIMP nsMsgAccountManager::SetLocalFoldersServer(nsIMsgIncomingServer *aServer)
