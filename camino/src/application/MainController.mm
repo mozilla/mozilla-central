@@ -470,7 +470,7 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
   // for non-nightly builds, show a special start page
   PreferenceManager* prefManager = [PreferenceManager sharedInstance];
   NSString* vendorSubString = [prefManager getStringPref:"general.useragent.vendorSub" withSuccess:NULL];
-  if (![vendorSubString hasSuffix:@"+"]) {
+  if ([vendorSubString rangeOfString:@"pre"].location == NSNotFound) {
     // has the user seen this already?
     NSString* startPageRev = [prefManager getStringPref:"browser.startup_page_override.version" withSuccess:NULL];
     if (![vendorSubString isEqualToString:startPageRev]) {
