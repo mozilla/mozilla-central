@@ -46,7 +46,7 @@
 #include "nsILDAPOperation.h"
 #include "nsIAbLDAPAttributeMap.h"
 #include "nsAbUtils.h"
-
+#include "nsAbBaseCID.h"
 #include "nsString.h"
 #include "nsAutoLock.h"
 #include "nsIProxyObjectManager.h"
@@ -325,9 +325,7 @@ nsresult nsAbQueryLDAPMessageListener::OnLDAPMessageSearchEntry (nsILDAPMessage 
         rv = aMessage->GetDn (dn);
         NS_ENSURE_SUCCESS(rv, rv);
 
-        nsCOMPtr<nsIAbCard> card;
-        rv = mDirectoryQuery->CreateCard(mSearchUrl, dn.get(),
-                                         getter_AddRefs(card));
+        nsCOMPtr<nsIAbCard> card = do_CreateInstance(NS_ABLDAPCARD_CONTRACTID, &rv);
         NS_ENSURE_SUCCESS(rv, rv);
 
         rv = map->SetCardPropertiesFromLDAPMessage(aMessage, card);
@@ -414,7 +412,6 @@ nsresult nsAbQueryLDAPMessageListener::QueryResultStatus(nsISupportsArray* prope
 NS_IMPL_THREADSAFE_ISUPPORTS1(nsAbLDAPDirectoryQuery, nsIAbDirectoryQuery)
 
 nsAbLDAPDirectoryQuery::nsAbLDAPDirectoryQuery() :
-    mProtocolVersion (nsILDAPConnection::VERSION3),
     mInitialized(PR_FALSE)
 {
 }
@@ -437,181 +434,238 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectoryQueryArguments* argu
   PRInt32 timeOut,
   PRInt32* _retval)
 {
-    PRBool alreadyInitialized = mInitialized;
-    mInitialized = PR_TRUE;
+  // Ensure existing query is stopped. Context id doesn't matter here
+  nsresult rv = StopQuery(0);
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  mInitialized = PR_TRUE;
+  
+  // Get the current directory as LDAP specific - we'll need this later
+  nsCOMPtr<nsIAbLDAPDirectory> directory(do_QueryInterface(this, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  // We also need the current URL to check as well...
+  nsCOMPtr<nsILDAPURL> currentUrl;
+  rv = directory->GetLDAPURL(getter_AddRefs(currentUrl));
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  nsCAutoString login;
+  rv = directory->GetAuthDn(login);
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  PRUint32 protocolVersion;
+  rv = directory->GetProtocolVersion(&protocolVersion);
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  // To do:
+  // Ensure query is stopped
+  // If connection params have changed re-create connection
+  // else reuse existing connection
+  
+  PRBool redoConnection = PR_FALSE;
+  
+  if (!mConnection || !mDirectoryUrl)
+  {
+    mDirectoryUrl = currentUrl;
+    mCurrentLogin = login;
+    mCurrentProtocolVersion = protocolVersion;
+    redoConnection = PR_TRUE;
+  }
+  else
+  {
+    PRBool equal;
+    rv = mDirectoryUrl->Equals(currentUrl, &equal);
+      NS_ENSURE_SUCCESS(rv, rv);
+  
+    nsXPIDLCString spec;
+    mDirectoryUrl->GetSpec(spec);
+    currentUrl->GetSpec(spec);
 
-    // Get the scope
-    nsCAutoString scope;
-    PRBool doSubDirectories;
-    nsresult rv = arguments->GetQuerySubDirectories (&doSubDirectories);
-    NS_ENSURE_SUCCESS(rv, rv);
-    scope = (doSubDirectories) ? "sub" : "one";
-
-    // Get the return attributes
-    nsCAutoString returnAttributes;
-    rv = getLdapReturnAttributes (arguments, returnAttributes);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-
-    // Get the filter
-    nsCOMPtr<nsISupports> supportsExpression;
-    rv = arguments->GetExpression (getter_AddRefs (supportsExpression));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    nsCOMPtr<nsIAbBooleanExpression> expression (do_QueryInterface (supportsExpression, &rv));
-    nsCAutoString filter;
-
-    // figure out how we map attribute names to addressbook fields for this
-    // query
-    nsCOMPtr<nsISupports> iSupportsMap;
-    rv = arguments->GetTypeSpecificArg(getter_AddRefs(iSupportsMap));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    nsCOMPtr<nsIAbLDAPAttributeMap> map = do_QueryInterface(iSupportsMap, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    rv = nsAbBoolExprToLDAPFilter::Convert (map, expression, filter);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    /*
-     * Mozilla itself cannot arrive here with a blank filter
-     * as the nsAbLDAPDirectory::StartSearch() disallows it.
-     * But 3rd party LDAP query integration with Mozilla begins 
-     * in this method.
-     *
-     * Default the filter string if blank, otherwise it gets
-     * set to (objectclass=*) which returns everything. Set 
-     * the default to (objectclass=inetorgperson) as this 
-     * is the most appropriate default objectclass which is 
-     * central to the makeup of the mozilla ldap address book 
-     * entries.
-    */
-    if(filter.IsEmpty())
+    if (!equal)
     {
-        filter.AssignLiteral("(objectclass=inetorgperson)");
+      mDirectoryUrl = currentUrl;
+      mCurrentLogin = login;
+      mCurrentProtocolVersion = protocolVersion;
+      redoConnection = PR_TRUE;
     }
-
-    // Set up the search ldap url
-    nsCOMPtr<nsIAbLDAPDirectory> directory(do_QueryInterface(this, &rv));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    rv = directory->GetLDAPURL(getter_AddRefs(mDirectoryUrl));
-    NS_ENSURE_SUCCESS(rv, rv);
-    
-    nsCAutoString host;
-    rv = mDirectoryUrl->GetAsciiHost(host);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    PRInt32 port;
-    rv = mDirectoryUrl->GetPort(&port);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    nsCAutoString dn;
-    rv = mDirectoryUrl->GetDn(dn);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    PRUint32 options;
-    rv = mDirectoryUrl->GetOptions(&options);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    // get the directoryFilter from the directory url and merge it with the user's
-    // search filter
-    nsCAutoString urlFilter;
-    rv = mDirectoryUrl->GetFilter(urlFilter);
-
-    // if urlFilter is unset (or set to the default "objectclass=*"), there's
-    // no need to AND in an empty search term, so leave prefix and suffix empty
-
-    nsCAutoString searchFilter;
-    if (urlFilter.Length() && !urlFilter.Equals(NS_LITERAL_CSTRING("(objectclass=*)"))) 
-    {
-
-      // if urlFilter isn't parenthesized, we need to add in parens so that
-      // the filter works as a term to &
-      //
-      if (urlFilter[0] != '(') 
-      {
-        searchFilter = NS_LITERAL_CSTRING("(&(");
-        searchFilter += urlFilter;
-        searchFilter += NS_LITERAL_CSTRING(")");
-      } 
-      else 
-      {
-        searchFilter = NS_LITERAL_CSTRING("(&");
-        searchFilter += urlFilter;
-      }
-
-      searchFilter += filter;
-      searchFilter += ')';
-    } 
     else
-      searchFilter = filter;
-
-    nsCString ldapSearchUrlString;
-    char* _ldapSearchUrlString = 
-        PR_smprintf ("ldap%s://%s:%d/%s?%s?%s?%s",
-                     (options & nsILDAPURL::OPT_SECURE) ? "s" : "",
-                     host.get (),
-                     port,
-                     dn.get (),
-                     returnAttributes.get (),
-                     scope.get (),
-                     searchFilter.get ());
-    if (!_ldapSearchUrlString)
-        return NS_ERROR_OUT_OF_MEMORY;
-    ldapSearchUrlString = _ldapSearchUrlString;
-    PR_smprintf_free (_ldapSearchUrlString);
-
-    nsCOMPtr<nsILDAPURL> url;
-    url = do_CreateInstance(NS_LDAPURL_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    rv = url->SetSpec(ldapSearchUrlString);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    // Get the ldap connection
-    nsCOMPtr<nsILDAPConnection> ldapConnection;
-    rv = GetLDAPConnection (getter_AddRefs (ldapConnection));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    // too soon? Do we need a new listener?
-    if (alreadyInitialized)
     {
-      nsAbQueryLDAPMessageListener *msgListener = 
-        NS_STATIC_CAST(nsAbQueryLDAPMessageListener *, 
-        NS_STATIC_CAST(nsILDAPMessageListener *, mListener.get()));
-      if (msgListener)
+      // Has login or version changed?
+      if (login != mCurrentLogin || protocolVersion != mCurrentProtocolVersion)
       {
-        msgListener->mDirectoryUrl = mDirectoryUrl;
-        msgListener->mSearchUrl = url;
-        return msgListener->DoTask();
+        redoConnection = PR_TRUE;
+        mCurrentLogin = login;
+        mCurrentProtocolVersion = protocolVersion;
       }
     }
+  }
+  
+  // Now formulate the search string
+  
+  // Get the scope
+  nsCAutoString scope;
+  PRBool doSubDirectories;
+  rv = arguments->GetQuerySubDirectories (&doSubDirectories);
+  NS_ENSURE_SUCCESS(rv, rv);
+  scope = (doSubDirectories) ? "sub" : "one";
+  
+  // Get the return attributes
+  nsCAutoString returnAttributes;
+  rv = getLdapReturnAttributes (arguments, returnAttributes);
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  // Get the filter
+  nsCOMPtr<nsISupports> supportsExpression;
+  rv = arguments->GetExpression (getter_AddRefs (supportsExpression));
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  nsCOMPtr<nsIAbBooleanExpression> expression (do_QueryInterface (supportsExpression, &rv));
+  nsCAutoString filter;
+  
+  // figure out how we map attribute names to addressbook fields for this
+  // query
+  nsCOMPtr<nsISupports> iSupportsMap;
+  rv = arguments->GetTypeSpecificArg(getter_AddRefs(iSupportsMap));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    // Initiate LDAP message listener
-    nsAbQueryLDAPMessageListener* _messageListener =
-        new nsAbQueryLDAPMessageListener (
-                this,
-                mDirectoryUrl,
-                url,
-                ldapConnection,
-                arguments,
-                listener,
-                mLogin,
-                resultLimit,
-                timeOut);
-    if (_messageListener == NULL)
-            return NS_ERROR_OUT_OF_MEMORY;
-    mListener = _messageListener;
-    *_retval = 1;
+  nsCOMPtr<nsIAbLDAPAttributeMap> map = do_QueryInterface(iSupportsMap, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    // Now lets initialize the LDAP connection properly. We'll kick
-    // off the bind operation in the callback function, |OnLDAPInit()|.
-    rv = ldapConnection->Init(host.get(), port, options, mLogin,
-                              mListener, nsnull, mProtocolVersion);
-    NS_ENSURE_SUCCESS(rv, rv);
+  rv = nsAbBoolExprToLDAPFilter::Convert(map, expression, filter);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    return rv;
+  /*
+   * Mozilla itself cannot arrive here with a blank filter
+   * as the nsAbLDAPDirectory::StartSearch() disallows it.
+   * But 3rd party LDAP query integration with Mozilla begins 
+   * in this method.
+   *
+   * Default the filter string if blank, otherwise it gets
+   * set to (objectclass=*) which returns everything. Set 
+   * the default to (objectclass=inetorgperson) as this 
+   * is the most appropriate default objectclass which is 
+   * central to the makeup of the mozilla ldap address book 
+   * entries.
+   */
+  if(filter.IsEmpty())
+  {
+    filter.AssignLiteral("(objectclass=inetorgperson)");
+  }
+  
+  nsCAutoString host;
+  rv = mDirectoryUrl->GetAsciiHost(host);
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  PRInt32 port;
+  rv = mDirectoryUrl->GetPort(&port);
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  nsCAutoString dn;
+  rv = mDirectoryUrl->GetDn(dn);
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  PRUint32 options;
+  rv = mDirectoryUrl->GetOptions(&options);
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  // get the directoryFilter from the directory url and merge it with the user's
+  // search filter
+  nsCAutoString urlFilter;
+  rv = mDirectoryUrl->GetFilter(urlFilter);
+  
+  // if urlFilter is unset (or set to the default "objectclass=*"), there's
+  // no need to AND in an empty search term, so leave prefix and suffix empty
+  
+  nsCAutoString searchFilter;
+  if (urlFilter.Length() && !urlFilter.Equals(NS_LITERAL_CSTRING("(objectclass=*)"))) 
+  {
+    // if urlFilter isn't parenthesized, we need to add in parens so that
+    // the filter works as a term to &
+    //
+    if (urlFilter[0] != '(')
+    {
+      searchFilter = NS_LITERAL_CSTRING("(&(");
+      searchFilter.Append(urlFilter);
+      searchFilter.AppendLiteral(")");
+    }
+    else
+    {
+      searchFilter = NS_LITERAL_CSTRING("(&");
+      searchFilter.Append(urlFilter);
+    }
+  
+    searchFilter += filter;
+    searchFilter += ')';
+  } 
+  else
+    searchFilter = filter;
+
+  nsCString ldapSearchUrlString;
+  char* _ldapSearchUrlString = 
+    PR_smprintf("ldap%s://%s:%d/%s?%s?%s?%s",
+                (options & nsILDAPURL::OPT_SECURE) ? "s" : "",
+                host.get(),
+                port,
+                dn.get(),
+                returnAttributes.get(),
+                scope.get(),
+                searchFilter.get());
+
+  if (!_ldapSearchUrlString)
+    return NS_ERROR_OUT_OF_MEMORY;
+
+  ldapSearchUrlString = _ldapSearchUrlString;
+  PR_smprintf_free(_ldapSearchUrlString);
+
+  nsCOMPtr<nsILDAPURL> url;
+  url = do_CreateInstance(NS_LDAPURL_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = url->SetSpec(ldapSearchUrlString);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // too soon? Do we need a new listener?
+  // If we already have a connection, and don't need to re-do it, give it the
+  // new search details and go for it...
+  if (!redoConnection)
+  {
+    nsAbQueryLDAPMessageListener *msgListener = 
+      NS_STATIC_CAST(nsAbQueryLDAPMessageListener *, 
+                     NS_STATIC_CAST(nsILDAPMessageListener *, mListener.get()));
+    if (msgListener)
+    {
+      // Ensure the urls are correct
+      msgListener->mDirectoryUrl = mDirectoryUrl;
+      msgListener->mSearchUrl = url;
+      // Also ensure we set the correct result limit
+      msgListener->mResultLimit = resultLimit;
+      return msgListener->DoTask();
+    }
+  }
+  
+  // Create the new connection (which cause the old one to be dropped if necessary)
+  mConnection = do_CreateInstance(NS_LDAPCONNECTION_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  // Initiate LDAP message listener
+  nsAbQueryLDAPMessageListener* _messageListener =
+    new nsAbQueryLDAPMessageListener(this, mDirectoryUrl, url,
+                                     mConnection, arguments,
+                                     listener, mCurrentLogin,
+                                     resultLimit, timeOut);
+  if (_messageListener == NULL)
+    return NS_ERROR_OUT_OF_MEMORY;
+  
+  mListener = _messageListener;
+  *_retval = 1;
+
+  // Now lets initialize the LDAP connection properly. We'll kick
+  // off the bind operation in the callback function, |OnLDAPInit()|.
+  rv = mConnection->Init(host.get(), port, options, mCurrentLogin,
+                         mListener, nsnull, mCurrentProtocolVersion);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return rv;
 }
 
 /* void stopQuery (in long contextID); */

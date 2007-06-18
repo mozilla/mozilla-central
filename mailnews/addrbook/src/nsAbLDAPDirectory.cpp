@@ -59,28 +59,25 @@
 #define kDefaultMaxHits 100
 
 nsAbLDAPDirectory::nsAbLDAPDirectory() :
-    nsAbDirectoryRDFResource(),
-    nsAbLDAPDirectoryQuery (),
-    mInitialized(PR_FALSE),
-    mInitializedConnection(PR_FALSE),
-    mPerformingQuery(PR_FALSE),
-    mContext(0),
-    mLock(0)
+  nsAbDirectoryRDFResource(),
+  nsAbLDAPDirectoryQuery(),
+  mPerformingQuery(PR_FALSE),
+  mContext(0),
+  mLock(0)
 {
 }
 
 nsAbLDAPDirectory::~nsAbLDAPDirectory()
 {
-    if (mLock)
-        PR_DestroyLock (mLock);
+  if (mLock)
+    PR_DestroyLock (mLock);
 }
 
-NS_IMPL_ISUPPORTS_INHERITED4(nsAbLDAPDirectory, nsAbDirectoryRDFResource, nsIAbDirectory, nsIAbDirectoryQuery, nsIAbDirectorySearch, nsIAbLDAPDirectory)
+NS_IMPL_ISUPPORTS_INHERITED4(nsAbLDAPDirectory, nsAbDirectoryRDFResource, nsIAbDirectory,
+                             nsIAbDirectoryQuery, nsIAbDirectorySearch, nsIAbLDAPDirectory)
 
 NS_IMETHODIMP nsAbLDAPDirectory::Init(const char* aURI)
 {
-  mInitialized = PR_FALSE;
-
   // We need to ensure that the m_DirPrefId is initialized properly
   nsCAutoString uri(aURI);
 
@@ -98,99 +95,16 @@ NS_IMETHODIMP nsAbLDAPDirectory::Init(const char* aURI)
   return nsAbDirectoryRDFResource::Init(aURI);
 }
 
-nsresult nsAbLDAPDirectory::Initiate ()
+nsresult nsAbLDAPDirectory::Initiate()
 {
-    if (!mIsQueryURI)
-        return NS_ERROR_FAILURE;
+  if (!mIsQueryURI)
+    return NS_ERROR_FAILURE;
 
-    if (mInitialized)
-        return NS_OK;
+  if (!mLock)
+    mLock = PR_NewLock();
 
-    nsresult rv;
-
-    mLock = PR_NewLock ();
-    if(!mLock)
-    {
-        return NS_ERROR_OUT_OF_MEMORY;
-    }
-
-    rv = nsAbQueryStringToExpression::Convert (mQueryString.get (),
-        getter_AddRefs(mExpression));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    rv = InitiateConnection ();
-
-    mInitialized = PR_TRUE;
-    return rv;
+  return mLock ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
 }
-
-nsresult nsAbLDAPDirectory::InitiateConnection ()
-{
-    if (mInitializedConnection)
-        return NS_OK;
-
-    nsresult rv;
-
-    mURL = do_CreateInstance(NS_LDAPURL_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    // Rather than using GetURI here we call GetStringValue directly so
-    // we can handle the case where the URI isn't specified (see comments
-    // below)
-    nsCAutoString URI;
-    rv = GetStringValue("uri", EmptyCString(), URI);
-    if (NS_FAILED(rv) || URI.IsEmpty())
-    {
-        /*
-         * A recent change in Mozilla now means that the LDAP Address Book
-         * RDF Resource URI is based on the unique preference name value i.e.  
-         * [moz-abldapdirectory://prefName]
-         * Prior to this valid change it was based on the actual uri i.e. 
-         * [moz-abldapdirectory://host:port/basedn]
-         * Basing the resource on the prefName allows these attributes to 
-         * change. 
-         *
-         * But the uri value was also the means by which third-party
-         * products could integrate with Mozilla's LDAP Address Books
-         * without necessarily having an entry in the preferences file
-         * or more importantly needing to be able to change the
-         * preferences entries. Thus to set the URI Spec now, it is
-         * only necessary to read the uri pref entry, while in the
-         * case where it is not a preference, we need to replace the
-         * "moz-abldapdirectory".
-         */
-        nsCAutoString tempLDAPURL(mURINoQuery);
-        tempLDAPURL.ReplaceSubstring("moz-abldapdirectory:", "ldap:");
-        rv = mURL->SetSpec(tempLDAPURL);
-    }
-    else
-    {
-        rv = mURL->SetSpec(URI);
-    }
-    NS_ENSURE_SUCCESS(rv,rv);
-
-    // get the login information, if there is any 
-    //
-    rv = GetAuthDn(mLogin);
-    if (NS_FAILED(rv)) {
-        mLogin.Truncate();  // zero out mLogin
-    }
-
-    // get the protocol version, if there is any.  using a string pref
-    // here instead of an int, as protocol versions sometimes have names like
-    // "4bis".
-    //
-    GetProtocolVersion(&mProtocolVersion);
-    // otherwise we leave mProtocolVersion as the default (see the initializers
-    // for the nsAbLDAPDirectoryQuery class).
-
-    mConnection = do_CreateInstance(NS_LDAPCONNECTION_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    mInitializedConnection = PR_TRUE;
-    return rv;
-}
-
 
 /* 
  *
@@ -214,14 +128,14 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetURI(nsACString &aURI)
 
 NS_IMETHODIMP nsAbLDAPDirectory::GetOperations(PRInt32 *aOperations)
 {
-    *aOperations = nsIAbDirectory::opSearch;
-    return NS_OK;
+  *aOperations = nsIAbDirectory::opSearch;
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsAbLDAPDirectory::GetChildNodes(nsISimpleEnumerator* *aResult)
 {
-    nsCOMArray<nsIAbDirectory> children;
-    return NS_NewArrayEnumerator(aResult, children);
+  nsCOMArray<nsIAbDirectory> children;
+  return NS_NewArrayEnumerator(aResult, children);
 }
 
 NS_IMETHODIMP nsAbLDAPDirectory::GetChildCards(nsISimpleEnumerator** result)
@@ -279,60 +193,66 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetChildCards(nsISimpleEnumerator** result)
 
 NS_IMETHODIMP nsAbLDAPDirectory::HasCard(nsIAbCard* card, PRBool* hasCard)
 {
-    nsresult rv;
+  nsresult rv = Initiate ();
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    rv = Initiate ();
-    NS_ENSURE_SUCCESS(rv, rv);
+  nsVoidKey key (NS_STATIC_CAST(void* ,card));
 
-    nsVoidKey key (NS_STATIC_CAST(void* ,card));
+  // Enter lock
+  nsAutoLock lock (mLock);
 
-    // Enter lock
-    nsAutoLock lock (mLock);
+  *hasCard = mCache.Exists (&key);
+  if (!*hasCard && mPerformingQuery)
+    return NS_ERROR_NOT_AVAILABLE;
 
-    *hasCard = mCache.Exists (&key);
-    if (!*hasCard && mPerformingQuery)
-            return NS_ERROR_NOT_AVAILABLE;
-
-    return NS_OK;
+  return NS_OK;
 }
 
-/* 
- *
- * nsAbLDAPDirectoryQuery methods
- *
- */
-
-nsresult nsAbLDAPDirectory::GetLDAPConnection (nsILDAPConnection** connection)
+nsresult nsAbLDAPDirectory::GetLDAPURL(nsILDAPURL** url)
 {
-    nsresult rv;
+  NS_ENSURE_ARG_POINTER(url);
 
-    rv = InitiateConnection ();
-    NS_ENSURE_SUCCESS(rv, rv);
+  nsresult rv;
+  nsCOMPtr<nsILDAPURL> result = do_CreateInstance(NS_LDAPURL_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    NS_IF_ADDREF(*connection = mConnection);
-    return rv;
-}
+  // Rather than using GetURI here we call GetStringValue directly so
+  // we can handle the case where the URI isn't specified (see comments
+  // below)
+  nsCAutoString URI;
+  rv = GetStringValue("uri", EmptyCString(), URI);
+  if (NS_FAILED(rv) || URI.IsEmpty())
+  {
+    /*
+     * A recent change in Mozilla now means that the LDAP Address Book
+     * RDF Resource URI is based on the unique preference name value i.e.  
+     * [moz-abldapdirectory://prefName]
+     * Prior to this valid change it was based on the actual uri i.e. 
+     * [moz-abldapdirectory://host:port/basedn]
+     * Basing the resource on the prefName allows these attributes to 
+     * change. 
+     *
+     * But the uri value was also the means by which third-party
+     * products could integrate with Mozilla's LDAP Address Books
+     * without necessarily having an entry in the preferences file
+     * or more importantly needing to be able to change the
+     * preferences entries. Thus to set the URI Spec now, it is
+     * only necessary to read the uri pref entry, while in the
+     * case where it is not a preference, we need to replace the
+     * "moz-abldapdirectory".
+     */
+    nsCAutoString tempLDAPURL(mURINoQuery);
+    tempLDAPURL.ReplaceSubstring("moz-abldapdirectory:", "ldap:");
+    rv = result->SetSpec(tempLDAPURL);
+  }
+  else
+  {
+    rv = result->SetSpec(URI);
+  }
+  NS_ENSURE_SUCCESS(rv, rv);
 
-nsresult nsAbLDAPDirectory::GetLDAPURL (nsILDAPURL** url)
-{
-    nsresult rv;
-
-    rv = InitiateConnection ();
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    NS_IF_ADDREF(*url = mURL);
-    return rv;
-}
-
-nsresult nsAbLDAPDirectory::CreateCard (nsILDAPURL* uri, const char* dn, nsIAbCard** result)
-{
-    nsresult rv;
-
-    nsCOMPtr <nsIAbCard> card = do_CreateInstance(NS_ABLDAPCARD_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    NS_IF_ADDREF(*result = card);
-    return NS_OK;
+  result.swap(*url);
+  return rv;
 }
 
 /* 
@@ -343,30 +263,33 @@ nsresult nsAbLDAPDirectory::CreateCard (nsILDAPURL* uri, const char* dn, nsIAbCa
 
 NS_IMETHODIMP nsAbLDAPDirectory::StartSearch ()
 {
-    nsresult rv;
-    
     if (!mIsQueryURI || mQueryString.IsEmpty())
         return NS_OK;
 
-    rv = Initiate ();
+    nsresult rv = Initiate();
     NS_ENSURE_SUCCESS(rv, rv);
 
-    rv = StopSearch ();
+    rv = StopSearch();
     NS_ENSURE_SUCCESS(rv, rv);
 
     nsCOMPtr<nsIAbDirectoryQueryArguments> arguments = do_CreateInstance(NS_ABDIRECTORYQUERYARGUMENTS_CONTRACTID,&rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    rv = arguments->SetExpression (mExpression);
+    nsCOMPtr<nsIAbBooleanExpression> expression;
+    rv = nsAbQueryStringToExpression::Convert(mQueryString.get(),
+                                              getter_AddRefs(expression));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    rv = arguments->SetExpression(expression);
     NS_ENSURE_SUCCESS(rv, rv);
 
     // Set the return properties to
     // return nsIAbCard interfaces
     const char *arr = "card:nsIAbCard";
-    rv = arguments->SetReturnProperties (1, &arr);
+    rv = arguments->SetReturnProperties(1, &arr);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    rv = arguments->SetQuerySubDirectories (PR_TRUE);
+    rv = arguments->SetQuerySubDirectories(PR_TRUE);
     NS_ENSURE_SUCCESS(rv, rv);
 
     // Set the the query listener
@@ -407,64 +330,55 @@ NS_IMETHODIMP nsAbLDAPDirectory::StartSearch ()
 
 NS_IMETHODIMP nsAbLDAPDirectory::StopSearch ()
 {
-    nsresult rv;
+  nsresult rv = Initiate();
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    rv = Initiate ();
-    NS_ENSURE_SUCCESS(rv, rv);
+  // Enter lock
+  {
+    nsAutoLock lockGuard(mLock);
+    if (!mPerformingQuery)
+      return NS_OK;
+    mPerformingQuery = PR_FALSE;
+  }
+  // Exit lock
 
-    // Enter lock
-    {
-        nsAutoLock lockGuard (mLock);
-        if (!mPerformingQuery)
-            return NS_OK;
-        mPerformingQuery = PR_FALSE;
-    }
-    // Exit lock
-
-    rv = StopQuery (mContext);
-
-    return rv;
+  return StopQuery(mContext);
 }
-
 
 /* 
  *
  * nsAbDirSearchListenerContext methods
  *
  */
-nsresult nsAbLDAPDirectory::OnSearchFinished (PRInt32 result)
+nsresult nsAbLDAPDirectory::OnSearchFinished(PRInt32 result)
 {
-    nsresult rv;
+  nsresult rv = Initiate();
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    rv = Initiate ();
-    NS_ENSURE_SUCCESS(rv, rv);
+  nsAutoLock lock(mLock);
+  mPerformingQuery = PR_FALSE;
 
-    nsAutoLock lock (mLock);
-    mPerformingQuery = PR_FALSE;
-
-    return NS_OK;
+  return NS_OK;
 }
 
-nsresult nsAbLDAPDirectory::OnSearchFoundCard (nsIAbCard* card)
+nsresult nsAbLDAPDirectory::OnSearchFoundCard(nsIAbCard* card)
 {
-    nsresult rv;
+  nsresult rv = Initiate();
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    rv = Initiate ();
-    NS_ENSURE_SUCCESS(rv, rv);
+  nsVoidKey key (NS_STATIC_CAST(void* ,card));
+  // Enter lock
+  {
+    nsAutoLock lock(mLock);
+    mCache.Put(&key, card);
+  }
+  // Exit lock
 
-    nsVoidKey key (NS_STATIC_CAST(void* ,card));
-    // Enter lock
-    {
-        nsAutoLock lock (mLock);
-        mCache.Put (&key, card);
-    }
-    // Exit lock
+  nsCOMPtr<nsIAddrBookSession> abSession = do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
+  if(NS_SUCCEEDED(rv))
+    abSession->NotifyDirectoryItemAdded(this, card);
 
-    nsCOMPtr<nsIAddrBookSession> abSession = do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
-    if(NS_SUCCEEDED(rv))
-        abSession->NotifyDirectoryItemAdded(this, card);
-
-    return NS_OK;
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsAbLDAPDirectory::GetSupportsMailingLists(PRBool *aSupportsMailingsLists)
@@ -508,29 +422,29 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetSearchDuringLocalAutocomplete(PRBool *aSearc
 NS_IMETHODIMP
 nsAbLDAPDirectory::GetSearchClientControls(nsIMutableArray **aControls)
 {
-    NS_IF_ADDREF(*aControls = mSearchClientControls);
-    return NS_OK;
+  NS_IF_ADDREF(*aControls = mSearchClientControls);
+  return NS_OK;
 }
 
 NS_IMETHODIMP
 nsAbLDAPDirectory::SetSearchClientControls(nsIMutableArray *aControls)
 {
-    mSearchClientControls = aControls;
-    return NS_OK;
+  mSearchClientControls = aControls;
+  return NS_OK;
 }
 
 NS_IMETHODIMP
 nsAbLDAPDirectory::GetSearchServerControls(nsIMutableArray **aControls)
 {
-    NS_IF_ADDREF(*aControls = mSearchServerControls);
-    return NS_OK;
+  NS_IF_ADDREF(*aControls = mSearchServerControls);
+  return NS_OK;
 }
 
 NS_IMETHODIMP
 nsAbLDAPDirectory::SetSearchServerControls(nsIMutableArray *aControls)
 {
-    mSearchServerControls = aControls;
-    return NS_OK;
+  mSearchServerControls = aControls;
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsAbLDAPDirectory::GetProtocolVersion(PRUint32 *aProtocolVersion)

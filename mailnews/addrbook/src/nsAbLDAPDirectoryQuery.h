@@ -51,29 +51,24 @@
 class nsAbLDAPDirectoryQuery : public nsIAbDirectoryQuery
 {
 public:
-    NS_DECL_ISUPPORTS
-    NS_DECL_NSIABDIRECTORYQUERY
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSIABDIRECTORYQUERY
 
-    nsAbLDAPDirectoryQuery();
-    virtual ~nsAbLDAPDirectoryQuery();
-
-    void setLdapUrl (const char* aldapUrl);
-
-    virtual nsresult GetLDAPConnection (nsILDAPConnection** connection) = 0;
-    virtual nsresult CreateCard (nsILDAPURL* url, const char* dn, nsIAbCard** card) = 0;
+  nsAbLDAPDirectoryQuery();
+  virtual ~nsAbLDAPDirectoryQuery();
 
 protected:
-    nsresult getLdapReturnAttributes (
-        nsIAbDirectoryQueryArguments* arguments,
-        nsCString& returnAttributes);
-
-    nsCString mLogin; // authenticate to the LDAP server as...
-    nsCOMPtr<nsILDAPURL> mDirectoryUrl; // the URL for the server
-    PRUint32 mProtocolVersion; // version of LDAP (see nsILDAPConnection.idl)
-    nsCOMPtr <nsILDAPMessageListener> mListener;
+  nsresult getLdapReturnAttributes(nsIAbDirectoryQueryArguments* arguments,
+                                   nsCString& returnAttributes);
+  nsCOMPtr<nsILDAPMessageListener> mListener;
 
 private:
-    PRBool mInitialized;
+  nsCOMPtr<nsILDAPConnection> mConnection;
+  nsCOMPtr<nsILDAPURL> mDirectoryUrl;
+  nsCString mCurrentLogin;
+  PRUint32 mCurrentProtocolVersion;
+
+  PRBool mInitialized;
 };
 
 #endif // nsAbLDAPDirectoryQuery_h__

@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
  * 
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -42,12 +42,12 @@
 #include "nsReadableUtils.h"
 #include "netCore.h"
 #include "plstr.h"
+#include "nsCOMPtr.h"
 
 // The two schemes we support, LDAP and LDAPS
 //
 static const char kLDAPScheme[] = "ldap";
 static const char kLDAPSSLScheme[] = "ldaps";
-
 
 // Constructor and destructor
 //
@@ -363,10 +363,33 @@ NS_IMETHODIMP nsLDAPURL::GetOriginCharset(nsACString &result)
 }
 
 // boolean equals (in nsIURI other)
-//
+// (based on nsSimpleURI::Equals)
 NS_IMETHODIMP nsLDAPURL::Equals(nsIURI *other, PRBool *_retval)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+  *_retval = PR_FALSE;
+  if (other)
+  {
+    nsresult rv;
+    nsCOMPtr<nsILDAPURL> otherURL(do_QueryInterface(other, &rv));
+    if (NS_SUCCEEDED(rv))
+    {
+      nsCAutoString thisSpec, otherSpec;
+      PRUint32 otherOptions;
+
+      rv = GetSpec(thisSpec);
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      rv = otherURL->GetSpec(otherSpec);
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      rv = otherURL->GetOptions(&otherOptions);
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      if (thisSpec == otherSpec && mOptions == otherOptions)
+        *_retval = PR_TRUE;
+    }
+  }
+  return NS_OK;
 }
 
 // boolean schemeIs(in const char * scheme);
@@ -513,11 +536,7 @@ NS_IMETHODIMP nsLDAPURL::HasAttribute(const char *aAttribute, PRBool *_retval)
     }
 
     str = nsDependentCString(aAttribute);
-    if (mAttributes->IndexOfIgnoreCase(str) >= 0) {
-        *_retval = PR_TRUE;
-    } else {
-        *_retval = PR_FALSE;
-    }
+    *_retval = mAttributes->IndexOfIgnoreCase(str) >= 0;
     
     return NS_OK;
 }

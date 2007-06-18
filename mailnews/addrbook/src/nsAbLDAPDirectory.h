@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -49,64 +49,54 @@
 #include "nsHashtable.h"
 
 class nsAbLDAPDirectory :
-    public nsAbDirectoryRDFResource,    // nsIRDFResource
-    public nsAbDirProperty,            // nsIAbDirectory
-    public nsAbLDAPDirectoryQuery,        // nsIAbDirectoryQuery
-    public nsIAbDirectorySearch,
-    public nsAbDirSearchListenerContext,
-    public nsIAbLDAPDirectory
+  public nsAbDirectoryRDFResource,    // nsIRDFResource
+  public nsAbDirProperty,             // nsIAbDirectory
+  public nsAbLDAPDirectoryQuery,      // nsIAbDirectoryQuery
+  public nsIAbDirectorySearch,
+  public nsAbDirSearchListenerContext,
+  public nsIAbLDAPDirectory
 {
 public:
-    NS_DECL_ISUPPORTS_INHERITED
+  NS_DECL_ISUPPORTS_INHERITED
 
-    nsAbLDAPDirectory();
-    virtual ~nsAbLDAPDirectory();
+  nsAbLDAPDirectory();
+  virtual ~nsAbLDAPDirectory();
 
-    NS_IMETHOD Init(const char *aUri);
+  NS_IMETHOD Init(const char *aUri);
 
   // nsIAbDirectory methods
   NS_IMETHOD GetURI(nsACString &aURI);
-    NS_IMETHOD GetOperations(PRInt32 *aOperations);
-    NS_IMETHOD GetChildNodes(nsISimpleEnumerator* *result);
-    NS_IMETHOD GetChildCards(nsISimpleEnumerator* *result);
-     NS_IMETHOD HasCard(nsIAbCard *cards, PRBool *hasCard);
-    NS_IMETHOD GetSupportsMailingLists(PRBool *aSupportsMailingsLists);
-    NS_IMETHOD GetIsRemote(PRBool *aIsRemote);
-    NS_IMETHOD GetIsSecure(PRBool *aIsRemote);
-    NS_IMETHOD GetSearchDuringLocalAutocomplete(PRBool *aSearchDuringLocalAutocomplete);
+  NS_IMETHOD GetOperations(PRInt32 *aOperations);
+  NS_IMETHOD GetChildNodes(nsISimpleEnumerator* *result);
+  NS_IMETHOD GetChildCards(nsISimpleEnumerator* *result);
+  NS_IMETHOD HasCard(nsIAbCard *cards, PRBool *hasCard);
+  NS_IMETHOD GetSupportsMailingLists(PRBool *aSupportsMailingsLists);
+  NS_IMETHOD GetIsRemote(PRBool *aIsRemote);
+  NS_IMETHOD GetIsSecure(PRBool *aIsRemote);
+  NS_IMETHOD GetSearchDuringLocalAutocomplete(PRBool *aSearchDuringLocalAutocomplete);
 
-    // nsAbLDAPDirectoryQuery methods
-    nsresult GetLDAPConnection (nsILDAPConnection** connection);
-    nsresult CreateCard (nsILDAPURL* uri, const char* dn, nsIAbCard** card);
+  // nsIAbDirectorySearch methods
+  NS_DECL_NSIABDIRECTORYSEARCH
 
-    // nsIAbDirectorySearch methods
-    NS_DECL_NSIABDIRECTORYSEARCH
+  // nsAbDirSearchListenerContext methods
+  nsresult OnSearchFinished(PRInt32 result);
+  nsresult OnSearchFoundCard(nsIAbCard* card);
 
-    // nsAbDirSearchListenerContext methods
-    nsresult OnSearchFinished (PRInt32 result);
-    nsresult OnSearchFoundCard (nsIAbCard* card);
-
-    NS_DECL_NSIABLDAPDIRECTORY
+  NS_DECL_NSIABLDAPDIRECTORY
 
 protected:
-    nsresult Initiate();
-    nsresult InitiateConnection();
+  nsresult Initiate();
 
-    PRPackedBool mInitialized;
-    PRPackedBool mInitializedConnection;
-    PRPackedBool mPerformingQuery;
-    PRInt32 mContext;
-    PRInt32 mMaxHits;
-    nsCOMPtr<nsILDAPURL> mURL;
-    nsCOMPtr<nsILDAPConnection> mConnection;
+  PRPackedBool mPerformingQuery;
+  PRInt32 mContext;
+  PRInt32 mMaxHits;
 
-    nsCOMPtr<nsIAbBooleanExpression> mExpression;
-    nsSupportsHashtable mCache;
+  nsSupportsHashtable mCache;
 
-    PRLock* mLock;
+  PRLock* mLock;
 
-    nsCOMPtr<nsIMutableArray> mSearchServerControls;
-    nsCOMPtr<nsIMutableArray> mSearchClientControls;
+  nsCOMPtr<nsIMutableArray> mSearchServerControls;
+  nsCOMPtr<nsIMutableArray> mSearchClientControls;
 };
 
 #endif
