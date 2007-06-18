@@ -1361,6 +1361,11 @@ FindUsernamePasswordFields(nsIDOMHTMLFormElement* inFormElement, nsIDOMHTMLInput
     if (NS_FAILED(rv))
       continue;
 
+    PRBool isDisabled = PR_FALSE;
+    rv = inputElement->HasAttribute(NS_LITERAL_STRING("disabled"), &isDisabled);
+    if (NS_FAILED(rv) || isDisabled)
+      continue;
+
     bool isText = (type.IsEmpty() || type.Equals(NS_LITERAL_STRING("text"), nsCaseInsensitiveStringComparator()));
     bool isPassword = type.Equals(NS_LITERAL_STRING("password"), nsCaseInsensitiveStringComparator());
     inputElement->GetAttribute(NS_LITERAL_STRING("autocomplete"), autocomplete);
