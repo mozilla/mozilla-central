@@ -97,9 +97,7 @@ enum KeychainPromptResult { kSave, kDontRemember, kNeverRemember } ;
                isForm:(BOOL)isForm;
 - (KeychainItem*)updateKeychainEntry:(KeychainItem*)keychainItem
                         withUsername:(NSString*)username
-                            password:(NSString*)password
-                              scheme:(NSString*)scheme
-                              isForm:(BOOL)isForm;
+                            password:(NSString*)password;
 - (void)removeAllUsernamesAndPasswords;
 
 - (void)addListenerToView:(CHBrowserView*)view;

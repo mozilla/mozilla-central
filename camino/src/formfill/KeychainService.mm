@@ -353,17 +353,7 @@ int KeychainPrefChangedCallback(const char* inPref, void* unused)
 - (KeychainItem*)updateKeychainEntry:(KeychainItem*)keychainItem
                         withUsername:(NSString*)username
                             password:(NSString*)password
-                              scheme:(NSString*)scheme
-                              isForm:(BOOL)isForm
 {
-  // If this is one of our old items, upgrade it to the new format. We do this here instead of when
-  // we first find the item so that users trying out 1.1 previews won't be missing the passwords of
-  // all the sites they visit if/when they go back to 1.0.x, as well as to prevent passwords from accidentally
-  // being associated with the wrong type (e.g., if a user has a password stored for a site's web form,
-  // but hits the http auth dialog first).
-  if ([keychainItem authenticationType] == kSecAuthenticationTypeHTTPDigest)
-    [self upgradeLegacyKeychainEntry:keychainItem withScheme:scheme isForm:isForm];
-  
   if ([username isEqualToString:[keychainItem username]] || [keychainItem creator] == kCaminoKeychainCreatorCode) {
     [keychainItem setUsername:username password:password];
   }
@@ -806,14 +796,16 @@ KeychainPrompt::ProcessPrompt(const PRUnichar* realmBlob, bool checked, PRUnicha
                        isForm:NO];
     }
     else {
+      // If it's an old-style entry, upgrade it now that we know what it goes with.
+      if ([keychainEntry authenticationType] == kSecAuthenticationTypeHTTPDigest)
+        [keychain upgradeLegacyKeychainEntry:keychainEntry withScheme:scheme isForm:NO];
+
       if (![[keychainEntry username] isEqualToString:username] ||
           ![[keychainEntry password] isEqualToString:password])
       {
         keychainEntry = [keychain updateKeychainEntry:keychainEntry
                                          withUsername:username
-                                             password:password
-                                               scheme:scheme
-                                               isForm:NO];
+                                             password:password];
       }
       // TODO: this is just to upgrade pre-1.1 HTTPAuth items; at some point in
       // the future remove from here...
@@ -1007,15 +999,17 @@ KeychainFormSubmitObserver::Notify(nsIDOMHTMLFormElement* formNode, nsIDOMWindow
     // it as necessary. If there's no entry, ask if they want to remember it
     // and then put it into the keychain
     if (keychainEntry) {
+      // If it's an old-style entry, upgrade it now that we know what it goes with.
+      if ([keychainEntry authenticationType] == kSecAuthenticationTypeHTTPDigest)
+        [keychain upgradeLegacyKeychainEntry:keychainEntry withScheme:scheme isForm:YES];
+
       if ((![[keychainEntry username] isEqualToString:username] ||
            ![[keychainEntry password] isEqualToString:password]) &&
           [keychain confirmChangePassword:GetNSWindow(window)])
       {
         keychainEntry = [keychain updateKeychainEntry:keychainEntry
                                          withUsername:username
-                                             password:password
-                                               scheme:scheme
-                                               isForm:YES];
+                                             password:password];
       }
       // This is just to fix items touched in the pre-1.1 nightlies, before we
       // discovered that using securityDomain for the action hosts broke Safari.
