@@ -164,8 +164,6 @@
   GetFullPathName $6 "$INSTDIR\mozMapi32.dll"
 
   StrCpy $0 "Software\Clients\Mail\${BrandFullNameInternal}"
-  ; Remove existing keys so we only have our settings
-  DeleteRegKey HKLM "$0"
 
   WriteRegStr HKLM "$0" "" "${BrandFullNameInternal}"
   WriteRegStr HKLM "$0\DefaultIcon" "" "$8,0"
@@ -238,8 +236,6 @@
   ; News
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   StrCpy $0 "Software\Clients\News\${BrandFullNameInternal}"
-  ; Remove existing keys so we only have our settings
-  DeleteRegKey HKLM "$0"
 
   WriteRegStr HKLM "$0" "" "${BrandFullNameInternal}"
   WriteRegStr HKLM "$0\DefaultIcon" "" "$8,0"
