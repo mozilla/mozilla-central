@@ -12214,7 +12214,7 @@ if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
   SYSTEM_PNG=1 PNG_LIBS="-lpng $PNG_LIBS"
 else
   echo "$ac_t""no" 1>&6
-SYSTEM_PNG=
+{ echo "configure: error: --with-system-png requested but no working libpng found" 1>&2; exit 1; }
 fi
 
     echo $ac_n "checking for png_get_acTL in -lpng""... $ac_c" 1>&6
@@ -12262,7 +12262,7 @@ EOF
 
 else
   echo "$ac_t""no" 1>&6
-SYSTEM_PNG= PNG_LIBS=$_SAVE_PNG_LIBS
+{ echo "configure: error: --with-system-png won't work because the system's libpng doesn't have APNG support" 1>&2; exit 1; }
 fi
 
 fi
@@ -12290,9 +12290,9 @@ else
   echo "configure: failed program was:" >&5
   cat conftest.$ac_ext >&5
   rm -rf conftest*
-  SYSTEM_PNG= PNG_CFLAGS= PNG_LIBS=
+  { echo "configure: error: --with-system-png requested but no working libpng found" 1>&2; exit 1; }
 fi
-rm -f conftest* 
+rm -f conftest*
 fi
 CFLAGS=$_SAVE_CFLAGS
 LDFLAGS=$_SAVE_LDFLAGS
