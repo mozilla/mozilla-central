@@ -98,7 +98,10 @@ else
 	else
 		OPTIMIZER = -xO4
 	endif
-
+	ifdef USE_TCOV
+		CC += -xprofile=tcov
+		CCC += -xprofile=tcov
+	endif
 endif
 
 INCLUDES   += -I/usr/dt/include -I/usr/openwin/include
