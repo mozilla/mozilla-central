@@ -34,7 +34,7 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
-MAKEFILE_CVS_ID = "@(#) $RCSfile: Makefile,v $ $Revision: 1.13 $ $Date: 2007-05-09 00:09:38 $"
+MAKEFILE_CVS_ID = "@(#) $RCSfile: Makefile,v $ $Revision: 1.14 $ $Date: 2007-06-19 08:03:45 $"
 
 include manifest.mn
 include $(CORE_DEPTH)/coreconf/config.mk
@@ -67,6 +67,6 @@ DIRS += capi
 endif
 endif
 
-ifeq ($(OS_ARCH), Darwin)
-DIRS += nssmkey
-endif
+#ifeq ($(OS_ARCH), Darwin)
+#DIRS += nssmkey
+#endif
