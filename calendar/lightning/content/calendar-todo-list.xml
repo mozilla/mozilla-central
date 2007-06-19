@@ -188,6 +188,12 @@
         <method name="addTodo">
             <parameter name="aTodo"/>
             <body><![CDATA[
+                for (var i=0; i < this.childNodes.length; i++) {
+                    var elem = this.childNodes[i];
+                    if (elem.todo.hasSameIds(aTodo)) {
+                        return;
+                    }
+                }
                 void("adding new todo " + aTodo.title + "\n");
                 var newTodoElt = document.createElement("calendar-todo-item");
                 newTodoElt.setAttribute("item-calendar", aTodo.calendar.uri.spec);
