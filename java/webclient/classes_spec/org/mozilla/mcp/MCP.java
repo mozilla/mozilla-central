@@ -1,5 +1,5 @@
 /*
- * $Id: MCP.java,v 1.12 2007-06-14 02:03:33 edburns%acm.org Exp $
+ * $Id: MCP.java,v 1.13 2007-06-19 20:18:12 edburns%acm.org Exp $
  */
 
 /* 
@@ -83,10 +83,10 @@ public class MCP {
     private BrowserControlCanvas canvas = null;
     private PageInfoListener pageInfoListener = null;
     private Frame frame = null;
-    private int x = 0;
-    private int y = 0;
-    private int width = 1280;
-    private int height = 960;
+    private int x = 30;
+    private int y = 30;
+    private int width = 960;
+    private int height = 720;
     private boolean initialized = false;
     private Robot robot;
     private DOMTreeDumper treeDumper = null;
@@ -344,7 +344,6 @@ public class MCP {
             }
             if (null != canvas) {
                 frame = new Frame();
-                frame.setUndecorated(true);
                 frame.setBounds(x, y, width, height);
                 frame.add(canvas, BorderLayout.CENTER);
                 frame.setVisible(true);
@@ -524,8 +523,9 @@ public class MCP {
             int x,y;
             if (null != screenX && null != screenY) {
                 try {
+                    requestFocus();
                     x = Integer.valueOf(screenX).intValue();
-                    y = Integer.valueOf(screenY).intValue() - 5;
+                    y = Integer.valueOf(screenY).intValue();
                     Robot robot = getRobot();
                     robot.mouseMove(x, y);
                     robot.mousePress(InputEvent.BUTTON1_MASK);
@@ -625,6 +625,21 @@ public class MCP {
                 }
             }
         }
+        requestFocus();
+    }
+    
+    private void requestFocus() {
+        boolean result = getBrowserControlCanvas().doRequestFocus(false);
+        if (result) {
+            try {
+                Thread.currentThread().sleep(2000);
+            } catch (InterruptedException ex) {
+                if (LOGGER.isLoggable(Level.WARNING)) {
+                    LOGGER.log(Level.WARNING, "requestFocus", ex);
+                }
+            }
+        }
+
     }
     
     private Robot getRobot() {

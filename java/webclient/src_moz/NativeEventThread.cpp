@@ -443,7 +443,7 @@ Java_org_mozilla_webclient_impl_wrapper_1native_CocoaAppKitThreadDelegatingNativ
     
     if (nsnull == javaThis || nsnull == toInvoke) {
         ::util_ThrowExceptionToJava(env, "CocoaAppKitThreadDelegatingNativeEventThread.runReturnRunnableOnAppKitThread: null arguments");
-        return;
+        return nsnull;
     }
 
     result = CocoaBrowserControlCanvas::runReturnRunnableOnAppKitThread(env, 

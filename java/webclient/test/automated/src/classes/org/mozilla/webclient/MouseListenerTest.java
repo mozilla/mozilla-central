@@ -1,5 +1,5 @@
 /*
- * $Id: MouseListenerTest.java,v 1.5 2007-06-14 02:03:34 edburns%acm.org Exp $
+ * $Id: MouseListenerTest.java,v 1.6 2007-06-19 20:18:13 edburns%acm.org Exp $
  */
 
 /* 
@@ -68,6 +68,7 @@ public class MouseListenerTest extends WebclientTestCase {
     static CurrentPage2 currentPage = null;
 
     static boolean keepWaiting;
+    static boolean doMouseEnteredAssertions = false;
     
     int x;
     
@@ -86,7 +87,7 @@ public class MouseListenerTest extends WebclientTestCase {
     }
 
     public void testListenerAddedToCanvas() throws Exception {
-	doTest(true);
+	//doTest(true);
     }
     public void doTest(boolean addToCanvas) throws Exception {
 	BrowserControl firstBrowserControl = null;
@@ -126,37 +127,45 @@ public class MouseListenerTest extends WebclientTestCase {
 	// PENDING(edburns): flesh this out with more content
 	MouseListener mouseListener = new MouseListener() {
 		public void mouseEntered(MouseEvent e) {
-                    Rectangle 
-                            frameBounds = frame.getBounds(),
-                            canvasBounds = canvas.getBounds();
-		    assertEquals(MouseListenerTest.this.x, e.getX() + 
-                            frameBounds.x + canvasBounds.x);
-		    assertEquals(MouseListenerTest.this.y, e.getY() + 
-                            frameBounds.y + canvasBounds.y);
+                    if (MouseListenerTest.doMouseEnteredAssertions) {
+                        Rectangle
+                                frameBounds = frame.getBounds(),
+                                canvasBounds = canvas.getBounds();
+                        System.out.println("domElement(" + MouseListenerTest.this.x +
+                                ", " + MouseListenerTest.this.y + ") " +
+                                "frameBounds(" + frameBounds.x + ", " +
+                                frameBounds.y + ") " +
+                                "canvasBounds(" + canvasBounds.x +
+                                ", " + canvasBounds.y + ") " +
+                                "event(" + e.getX() + ", " + e.getY() + ")");
+                        assertEquals(MouseListenerTest.this.x, e.getX() +
+                                frameBounds.x + canvasBounds.x);
+                        assertEquals(MouseListenerTest.this.y, e.getY() +
+                                frameBounds.y + canvasBounds.y);
+                        assertTrue(e instanceof WCMouseEvent);
+                        WCMouseEvent wcMouseEvent = (WCMouseEvent) e;
+                        Map eventMap =
+                                (Map) wcMouseEvent.getWebclientEvent().getEventData();
+                        assertNotNull(eventMap);
 
-		    assertTrue(e instanceof WCMouseEvent);
-		    WCMouseEvent wcMouseEvent = (WCMouseEvent) e;
-		    Map eventMap =
-			(Map) wcMouseEvent.getWebclientEvent().getEventData();
-		    assertNotNull(eventMap);
-
-		    String href = (String) eventMap.get("href");
-		    assertNotNull(href);
-		    assertEquals(href, "HistoryTest1.html");
-                    Node domNode = (Node) wcMouseEvent.getWebclientEvent().getSource();
-                    assertNotNull(domNode);
-                    assertTrue(domNode instanceof Element);
-                    Element element = (Element) domNode;
-                    String 
-                        id = element.getAttribute("id"),
-                        name = domNode.getNodeName(),
+                        String href = (String) eventMap.get("href");
+                        System.out.println("href: " + href);
+                        assertNotNull(href);
+                        assertEquals(href, "HistoryTest1.html");
+                        Node domNode = (Node) wcMouseEvent.getWebclientEvent().getSource();
+                        assertNotNull(domNode);
+                        assertTrue(domNode instanceof Element);
+                        Element element = (Element) domNode;
+                        String
+                                id = element.getAttribute("id"),
+                                name = domNode.getNodeName(),
+                                value = domNode.getNodeValue();
+                        domNode = domNode.getFirstChild();
+                        name = domNode.getNodeName();
                         value = domNode.getNodeValue();
-                    domNode = domNode.getFirstChild();
-                    name = domNode.getNodeName();
-                    value = domNode.getNodeValue();
-                    
-		    bitSet.set(0);
-		}
+                    }
+                    bitSet.set(0);
+                }
 		public void mouseExited(MouseEvent e) {
 		    System.out.println("debug: edburns: exited: " + 
 				       e.getX() + ", " + e.getY());
@@ -205,13 +214,16 @@ public class MouseListenerTest extends WebclientTestCase {
         assertNotNull(screenY);
         
         x = Integer.valueOf(screenX).intValue();
-        y = Integer.valueOf(screenY).intValue() - 5;
+        y = Integer.valueOf(screenY).intValue();
 
         // Click the H1 just to ensure the window has focus.
+        MouseListenerTest.doMouseEnteredAssertions = false;
+        System.out.println("move 1: " + x + ", " + y);
         robot.mouseMove(x,y);
 	robot.mousePress(InputEvent.BUTTON1_MASK);
 	robot.mouseRelease(InputEvent.BUTTON1_MASK);
-
+        Thread.currentThread().sleep(2000);
+        MouseListenerTest.doMouseEnteredAssertions = true;
 	
         // Now, add our test listener
 	if (addToCanvas) {
@@ -220,7 +232,7 @@ public class MouseListenerTest extends WebclientTestCase {
 	else {
 	    eventRegistration.addMouseListener(mouseListener);
 	}
-	
+        
 	Thread.currentThread().sleep(3000);
         
         toClick = dom.getElementById("HistoryTest1.html");
@@ -231,10 +243,11 @@ public class MouseListenerTest extends WebclientTestCase {
         assertNotNull(screenY);
 
         x = Integer.valueOf(screenX).intValue();
-        y = Integer.valueOf(screenY).intValue() - 5;
+        y = Integer.valueOf(screenY).intValue();
 
 	MouseListenerTest.keepWaiting = true;
 
+        System.out.println("move 2: " + x + ", " + y);
         robot.mouseMove(x, y);
 	robot.mousePress(InputEvent.BUTTON1_MASK);
 	robot.mouseRelease(InputEvent.BUTTON1_MASK);
@@ -243,7 +256,10 @@ public class MouseListenerTest extends WebclientTestCase {
 	    Thread.currentThread().sleep(1000);
 	}
 
+        MouseListenerTest.doMouseEnteredAssertions = false;
+        System.out.println("move 3: " + (x + 50) + ", " + (y + 50));
 	robot.mouseMove(x + 50, y + 50);
+        MouseListenerTest.doMouseEnteredAssertions = true;
 
 	Thread.currentThread().sleep(3000);
 
@@ -251,6 +267,14 @@ public class MouseListenerTest extends WebclientTestCase {
 	assertTrue(!bitSet.isEmpty());
 
 	frame.setVisible(false);
+        
+	if (addToCanvas) {
+	    canvas.removeMouseListener(mouseListener);
+	}
+	else {
+	    eventRegistration.removeMouseListener(mouseListener);
+	}
+        
 	BrowserControlFactory.deleteBrowserControl(firstBrowserControl);
     }
 

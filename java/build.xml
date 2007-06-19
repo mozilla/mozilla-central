@@ -91,6 +91,8 @@
 
     <ant dir="${basedir}/dist" target="clean"/>
 
+    <delete dir="${objdir}/dist/classes" />
+
   </target>
 
   <target name="dist">

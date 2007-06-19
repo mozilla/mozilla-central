@@ -817,10 +817,22 @@ static jstring handleInterceptableAttr(nsIDOMElement *element,
     nsCOMPtr<nsIBoxObject> boxObject = nsnull;
     nsresult rv = NS_OK;
     PRInt32 coord = 0;
-    PRBool hasValue = PR_FALSE;
+    PRBool 
+	hasValue = PR_FALSE,
+	isScreenX = PR_FALSE,
+	isScreenY = PR_FALSE;
     const PRInt32 bufLen = 20;
     char buf[bufLen];
     memset(buf, 0, bufLen);
+    nsString attrValue;
+
+    rv = element->GetAttribute(*attrName, attrValue);
+    if (NS_SUCCEEDED(rv)) {
+	PR_LOG(JavaDOMGlobals::log, PR_LOG_DEBUG, 
+	       ("handleInterceptableAttr name: %s value: %s", 
+		NS_LossyConvertUTF16toASCII((*attrName)).get(), 
+		NS_LossyConvertUTF16toASCII(attrValue).get()));
+    }
 
     rv = element->GetOwnerDocument(getter_AddRefs(ownerDocument));
     if (NS_SUCCEEDED(rv)){
@@ -845,19 +857,40 @@ static jstring handleInterceptableAttr(nsIDOMElement *element,
 		    rv = boxObject->GetScreenX(&coord);
 		    if (NS_SUCCEEDED(rv)) {
 			hasValue = PR_TRUE;
+			isScreenX = PR_TRUE;
 		    }
 		}
 		else if (attrName->Equals(NS_LITERAL_STRING("screenY"))) {
 		    rv = boxObject->GetScreenY(&coord);
 		    if (NS_SUCCEEDED(rv)) {
 			hasValue = PR_TRUE;
+			isScreenY = PR_TRUE;
 		    }
 		}
 	    }
 	}
     }
     if (hasValue) {
+	if (isScreenY) {
+#if (defined(XP_MAC) || defined(XP_MACOSX)) && defined(MOZ_WIDGET_COCOA)
+	    coord -= 10;
+#elif defined(XP_PC)
+	    coord += 10;
+#endif
+	}
+	if (isScreenX) {
+#if (defined(XP_MAC) || defined(XP_MACOSX)) && defined(MOZ_WIDGET_COCOA)
+	    coord += 4;
+#elif defined(XP_PC)
+#endif
+	}
+
 	DOM_ITOA(coord, buf, 10);
+
+	PR_LOG(JavaDOMGlobals::log, PR_LOG_DEBUG, 
+	       ("handleInterceptableAttr name: %s boxObject value: %s", 
+		NS_LossyConvertUTF16toASCII(*attrName).get(), buf));
+
 	result = env->NewStringUTF(buf);
     }
 

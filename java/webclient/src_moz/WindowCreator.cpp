@@ -113,6 +113,9 @@ WindowCreator::CreateChromeWindow2(nsIWebBrowserChrome *parent,
         if (NS_FAILED(rv) || !eventRegistration) {
             return rv;
         }
+
+        PR_LOG(prLogModuleInfo, PR_LOG_DEBUG, 
+               ("WindowCreater::CreateChromeWindow2: About to call back to Java to get new native window.\n"));
         
         // send this event to allow the user to create the new BrowserControl
         newNativeBCPtr = util_SendEventToJava(nsnull,
@@ -120,6 +123,10 @@ WindowCreator::CreateChromeWindow2(nsIWebBrowserChrome *parent,
                                               NEW_WINDOW_LISTENER_CLASSNAME,
                                               chromeFlags, nsnull);
         newNativeBrowserControl = (NativeBrowserControl *) newNativeBCPtr;
+
+        PR_LOG(prLogModuleInfo, PR_LOG_DEBUG, 
+               ("WindowCreater::CreateChromeWindow2: nativeBrowserControl: %p new nsIWebBrowserChrome: %p.\n", newNativeBrowserControl, newNativeBrowserControl->mWindow));
+
         PR_ASSERT(nsnull != newNativeBrowserControl);
 
         nsCOMPtr<nsIWebBrowserChrome> webChrome(newNativeBrowserControl->mWindow);

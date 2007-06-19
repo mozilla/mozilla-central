@@ -236,7 +236,7 @@ nsresult nsJavaDOMImpl::GetDocument(nsIWebProgress* aWebProgress,
 
   fprintf(stderr, 
 	  "nsJavaDOMImpl::GetDocument: failed: "
-	  "webProgress=%x, domWin=%x, domDoc=%x, "
+	  "webProgress=%p, domWin=%p, domDoc=%p, "
 	  "error=%d\n",
 	  aWebProgress,
 	  domWin.get(),
@@ -549,7 +549,7 @@ JNIEnv* nsJavaDOMImpl::GetJNIEnv() {
    if (!jvm) {
 	StartJVM();
    }
-   jvm->AttachCurrentThread(&env,NULL);
+   jvm->AttachCurrentThread((void **) &env,NULL);
 #endif /* JAVA_DOM_OJI_ENABLE */
    return env;
 }

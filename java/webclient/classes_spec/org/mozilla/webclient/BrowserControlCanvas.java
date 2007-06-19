@@ -27,12 +27,10 @@ package org.mozilla.webclient;
 
 // BrowserControlCanvas.java
 
+import java.util.logging.Level;
 import org.mozilla.util.Assert;
 import org.mozilla.util.Log;
 import org.mozilla.util.ParameterCheck;
-
-import java.awt.*;
-import java.awt.event.*;
 
 /**
  *
@@ -53,7 +51,7 @@ import java.awt.event.*;
 
  * See concrete subclasses for scope info.
 
- * @version $Id: BrowserControlCanvas.java,v 1.10 2007-06-10 16:24:11 edburns%acm.org Exp $
+ * @version $Id: BrowserControlCanvas.java,v 1.11 2007-06-19 20:18:13 edburns%acm.org Exp $
 
  * @see	org.mozilla.webclient.win32.Win32BrowserControlCanvas
 
@@ -64,6 +62,7 @@ import java.awt.event.*;
 import java.awt.*;
 import java.awt.Canvas;
 import java.awt.event.*;
+import java.util.logging.Logger;
 import sun.awt.*;
 
 public abstract class BrowserControlCanvas extends Canvas 
@@ -72,24 +71,25 @@ public abstract class BrowserControlCanvas extends Canvas
 //
 // Class Variables
 //
+    
+public static final String LOG = "org.mozilla.webclient.BrowserControlCanvas";
 
-private static int		webShellCount = 0;
-
+public static final Logger LOGGER = Log.getLogger(LOG);
+    
 //
 // Instance Variables
 //
 
 // Attribute Instance Variables
 
-private boolean		initializeOK;
+protected boolean	initializeOK;
 private boolean		boundsValid;
 private boolean		hasFocus;
 
 // Relationship Instance Variables
 
 
-private BrowserControl	webShell;
-private int			nativeWindow;
+protected BrowserControl	webShell;
 private Rectangle		windowRelativeBounds;
 
 // PENDING(edburns): Is this needed: // private BrowserControlIdleThread	idleThread;
@@ -107,7 +107,6 @@ private Rectangle		windowRelativeBounds;
  */
 protected BrowserControlCanvas () 
 {
-	nativeWindow = 0;
 	webShell = null;
 	initializeOK = false;
 	boundsValid = false;
@@ -122,12 +121,6 @@ public void initialize(BrowserControl controlImpl)
     webShell = controlImpl;
 }
 
-/**
-  * Create the Native gtk window and get it's handle
-  */
-
-abstract protected int getWindow();
-
 //
 // Methods from Canvas
 //
@@ -138,37 +131,21 @@ abstract protected int getWindow();
   */
 public void addNotify () 
 {
-	super.addNotify();
+    if (initializeOK) {
+        return;
+    }
+    super.addNotify();
 
-	windowRelativeBounds = new Rectangle();
-        if (0 != nativeWindow) {
-            return;
-        }
-        
-        synchronized (getTreeLock()) {
-            //Create the Native gtkWindow and it's container and
-            //get a handle to this widget
-            nativeWindow = getWindow();
+    windowRelativeBounds = new Rectangle();
 
-            try {
-                Rectangle r = new Rectangle(getBoundsRelativeToWindow());
-                Assert.assert_it(null != webShell);
 
-                WindowControl wc = (WindowControl)
-                webShell.queryInterface(BrowserControl.WINDOW_CONTROL_NAME);
-                //This createWindow call sets in motion the creation of the
-                //nativeInitContext and the creation of the Mozilla embedded
-                //webBrowser
-                wc.createWindow(nativeWindow, r);
-            } catch (Exception e) {
-                System.out.println(e.toString());
-                return;
-            }
-        }
-
-	initializeOK = true;
-	webShellCount++;
 } // addNotify()
+
+public boolean doRequestFocus(boolean temporary) {
+    boolean result = this.requestFocus(temporary);
+    return result;
+}
+
 
 public BrowserControl getWebShell () 
 {
@@ -329,8 +306,6 @@ public void removeKeyListener(KeyListener listener) {
         
     }
 }
-
-        
 
 } // class BrowserControlCanvas
 

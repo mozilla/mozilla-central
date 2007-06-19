@@ -1,5 +1,5 @@
 /*
- * $Id: KeyListenerTest.java,v 1.6 2007-06-14 02:03:34 edburns%acm.org Exp $
+ * $Id: KeyListenerTest.java,v 1.7 2007-06-19 20:18:13 edburns%acm.org Exp $
  */
 
 /* 
@@ -192,7 +192,7 @@ public class KeyListenerTest extends WebclientTestCase {
         assertNotNull(screenX);
         assertNotNull(screenY);
         int x = Integer.valueOf(screenX).intValue();
-        int y = Integer.valueOf(screenY).intValue() - 5;
+        int y = Integer.valueOf(screenY).intValue();
 
 	Robot robot = new Robot();
 	robot.mouseMove(x, y);

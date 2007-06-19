@@ -1,5 +1,5 @@
 /*
- * $Id: WindowCreatorTest.java,v 1.5 2007-05-04 17:10:35 edburns%acm.org Exp $
+ * $Id: WindowCreatorTest.java,v 1.6 2007-06-19 20:18:13 edburns%acm.org Exp $
  */
 
 /* 
@@ -27,23 +27,17 @@
 package org.mozilla.webclient;
 
 import junit.framework.TestSuite;
-import junit.framework.TestResult;
 import junit.framework.Test;
-
-import java.util.Enumeration;
-import java.util.Map;
 import java.util.BitSet;
 
 import java.awt.Frame;
 import java.awt.Robot;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseEvent;
 import java.awt.event.InputEvent;
 import java.awt.BorderLayout;
-
-import java.io.File;
-import java.io.FileInputStream;
+import java.awt.Container;
 import org.mozilla.mcp.junit.WebclientTestCase;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 // WindowCreatorTest.java
 
@@ -64,12 +58,6 @@ public class WindowCreatorTest extends WebclientTestCase {
 	result.addTestSuite(WindowCreatorTest.class);
 	return (result);
     }
-
-    static final int IN_X = 20;
-    static final int IN_Y = 117;
-
-    static final int OUT_X = 700;
-    static final int OUT_Y = 500;
 
     static EventRegistration2 eventRegistration;
 
@@ -100,10 +88,11 @@ public class WindowCreatorTest extends WebclientTestCase {
 	    firstBrowserControl.queryInterface(BrowserControl.BROWSER_CONTROL_CANVAS_NAME);
 	eventRegistration = (EventRegistration2)
 	    firstBrowserControl.queryInterface(BrowserControl.EVENT_REGISTRATION_NAME);
+        CurrentPage2 currentPage = (CurrentPage2)
+            firstBrowserControl.queryInterface(BrowserControl.CURRENT_PAGE_NAME);
 
 	assertNotNull(canvas);
 	Frame frame = new Frame();
-	frame.setUndecorated(true);
 	frame.setBounds(0, 0, 640, 480);
 	frame.add(canvas, BorderLayout.CENTER);
 	frame.setVisible(true);
@@ -123,22 +112,18 @@ public class WindowCreatorTest extends WebclientTestCase {
 		    bitSet.set(0);
 		    NewWindowEvent event = (NewWindowEvent) wcEvent;
 		    BrowserControl secondBrowserControl = null;
-		    BrowserControlCanvas secondCanvas = null;
 		    EventRegistration2 secondEventRegistration = null;
-                    CurrentPage2 secondCurrentPage = null;
+                    Frame parentContainer = new Frame();
+                    parentContainer.setBounds(100, 100, 540, 380);
 		    
 		    try {
 			secondBrowserControl = 
 			    BrowserControlFactory.newBrowserControl();
-			secondCanvas = (BrowserControlCanvas)
-			    secondBrowserControl.queryInterface(BrowserControl.BROWSER_CONTROL_CANVAS_NAME);
 			secondEventRegistration = 
 			    (EventRegistration2)
 			    secondBrowserControl.queryInterface(BrowserControl.EVENT_REGISTRATION_NAME);
-			secondCurrentPage = (CurrentPage2) 
-			    secondBrowserControl.queryInterface(BrowserControl.CURRENT_PAGE_NAME);
 			
-			assertNotNull(secondCurrentPage);
+			assertNotNull(secondEventRegistration);
 
 		    } catch (Throwable e) {
 			System.out.println(e.getMessage());
@@ -150,12 +135,12 @@ public class WindowCreatorTest extends WebclientTestCase {
                         }
                     });
 		    event.setBrowserControl(secondBrowserControl);
+                    event.setParentContainer(parentContainer);
                     
                     // Pass the content of the new window back to the 
                     // main Thread.
+                    secondBrowser.setParentContainer(parentContainer);
                     secondBrowser.setBrowserControl(secondBrowserControl);
-                    secondBrowser.setCanvas(secondCanvas);
-                    secondBrowser.setCurrentPage(secondCurrentPage);
                     secondBrowser.setEventRegistration(secondEventRegistration);
                     secondBrowser.setKeepWaiting(false);
 
@@ -178,31 +163,51 @@ public class WindowCreatorTest extends WebclientTestCase {
         secondBrowser.setKeepWaiting(true);
 
 	Robot robot = new Robot();
+        
+        Document dom = currentPage.getDOM();
+        Element toClick = dom.getElementById("WindowCreator0");
+        String 
+                screenX = toClick.getAttribute("screenX"),
+                screenY = toClick.getAttribute("screenY");
+        int 
+                x = Integer.valueOf(screenX).intValue(),
+                y = Integer.valueOf(screenY).intValue();
 	
-	robot.mouseMove(IN_X, IN_Y);
+        // Make sure to give the window focus
+	robot.mouseMove(x, y);
 	robot.mousePress(InputEvent.BUTTON1_MASK);
 	robot.mouseRelease(InputEvent.BUTTON1_MASK);
+
+        toClick = dom.getElementById("newWindow");
+        screenX = toClick.getAttribute("screenX");
+        screenY = toClick.getAttribute("screenY");
+        x = Integer.valueOf(screenX).intValue();
+        y = Integer.valueOf(screenY).intValue();
+	
+        // Make sure to give the window focus
+	robot.mouseMove(x, y);
+	robot.mousePress(InputEvent.BUTTON1_MASK);
+	robot.mouseRelease(InputEvent.BUTTON1_MASK);
+        
         
 	// keep waiting until the second window is ready to make visible
 	while (secondBrowser.isKeepWaiting()) {
 	    Thread.currentThread().sleep(1000);
 	}
         
-        Frame newFrame = new Frame();
-        newFrame.setUndecorated(true);
-        newFrame.setBounds(100, 100, 540, 380);
-        newFrame.add(secondBrowser.getCanvas(), BorderLayout.CENTER);
-        newFrame.setVisible(true);
-        secondBrowser.getCanvas().setVisible(true);
-
+        BrowserControlCanvas secondCanvas = (BrowserControlCanvas)
+                secondBrowser.getBrowserControl().queryInterface(BrowserControl.BROWSER_CONTROL_CANVAS_NAME);
+        CurrentPage2 secondCurrentPage = (CurrentPage2)
+                secondBrowser.getBrowserControl().queryInterface(BrowserControl.CURRENT_PAGE_NAME);
+        
         assertTrue(!bitSet.isEmpty());
         
-	assertNotNull(secondBrowser.getCurrentPage());
-	secondBrowser.getCurrentPage().selectAll();
-	selection = secondBrowser.getCurrentPage().getSelection();
+	assertNotNull(secondCurrentPage);
+	secondCurrentPage.selectAll();
+	selection = secondCurrentPage.getSelection();
 	assertTrue(-1 !=selection.toString().indexOf("This is page 1 of the WindowCreatorTest."));
         
-        newFrame.setVisible(false);
+        secondBrowser.getParentContainer().setVisible(false);
         BrowserControlFactory.deleteBrowserControl(secondBrowser.getBrowserControl());
 
 	frame.setVisible(false);
@@ -217,8 +222,8 @@ class WebclientWrapper {
     private boolean keepWaiting = true;
     private BrowserControl browserControl = null;
     private BrowserControlCanvas canvas = null;
-    private CurrentPage2 currentPage = null;
     private EventRegistration2 eventRegistration = null;
+    private Container parentContainer;
 
     public BrowserControl getBrowserControl() {
         return browserControl;
@@ -226,26 +231,6 @@ class WebclientWrapper {
 
     public void setBrowserControl(BrowserControl browserControl) {
         this.browserControl = browserControl;
-    }
-
-    public BrowserControlCanvas getCanvas() {
-        return canvas;
-    }
-
-    public void setCanvas(BrowserControlCanvas canvas) {
-        this.canvas = canvas;
-    }
-
-    public CurrentPage2 getCurrentPage() {
-        return currentPage;
-    }
-
-    public void setCurrentPage(CurrentPage2 currentPage) {
-        this.currentPage = currentPage;
-    }
-
-    public EventRegistration2 getEventRegistration() {
-        return eventRegistration;
     }
 
     public void setEventRegistration(EventRegistration2 eventRegistration) {
@@ -258,6 +243,14 @@ class WebclientWrapper {
 
     public void setKeepWaiting(boolean keepWaiting) {
         this.keepWaiting = keepWaiting;
+    }
+
+    public Container getParentContainer() {
+        return parentContainer;
+    }
+
+    public void setParentContainer(Container parentContainer) {
+        this.parentContainer = parentContainer;
     }
 
 }

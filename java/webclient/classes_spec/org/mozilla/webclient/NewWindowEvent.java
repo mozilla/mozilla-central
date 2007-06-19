@@ -22,6 +22,8 @@
 
 package org.mozilla.webclient;
 
+import java.awt.Container;
+
 public class NewWindowEvent extends WebclientEvent
 {
 
@@ -43,6 +45,16 @@ public BrowserControl getBrowserControl() {
 public void setBrowserControl(BrowserControl newBrowserControl) {
 	browserControl = newBrowserControl;
 }
+
+private Container parentContainer;
+
+    public Container getParentContainer() {
+        return parentContainer;
+    }
+
+    public void setParentContainer(Container parentContainer) {
+        this.parentContainer = parentContainer;
+    }
     
 
 } // end of class NewWindowEvent

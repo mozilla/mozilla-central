@@ -33,7 +33,7 @@ import org.mozilla.util.ReturnRunnable;
 
  * There is one instance of the BrowserControlCanvas per top level awt Frame.
 
- * @version $Id: Win32BrowserControlCanvas.java,v 1.4 2007-06-10 03:32:24 edburns%acm.org Exp $
+ * @version $Id: Win32BrowserControlCanvas.java,v 1.5 2007-06-19 20:18:11 edburns%acm.org Exp $
  * 
  * @see	org.mozilla.webclient.BrowserControlCanvasFactory
  * 
@@ -50,7 +50,7 @@ import org.mozilla.webclient.impl.WrapperFactory;
  * Win32BrowserControlCanvas provides a concrete realization
  * of the RaptorCanvas.
  */
-public class Win32BrowserControlCanvas extends BrowserControlCanvas {
+public class Win32BrowserControlCanvas extends NativeBrowserControlCanvas {
 
     //New method for obtaining access to the Native Peer handle
     private native int getHandleToPeer();

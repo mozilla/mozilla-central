@@ -21,6 +21,8 @@
  */
 
 package org.mozilla.webclient.impl.wrapper_native;
+import java.awt.BorderLayout;
+import java.awt.Container;
 import org.mozilla.util.ParameterCheck;
 
 import java.util.ArrayList;
@@ -38,12 +40,15 @@ import java.awt.event.MouseListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.Component;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.mozilla.dom.DOMAccessor;
+import org.mozilla.util.Log;
 import org.mozilla.util.ReturnRunnable;
 
 import org.mozilla.webclient.BrowserControl;
-import org.mozilla.webclient.BrowserControlCanvas;
 import org.mozilla.webclient.EventRegistration2;
+import org.mozilla.webclient.impl.BrowserControlImpl;
 import org.mozilla.webclient.impl.WrapperFactory;
 import org.mozilla.webclient.DocumentLoadEvent;
 import org.mozilla.webclient.DocumentLoadListener;
@@ -65,6 +70,10 @@ public class EventRegistrationImpl extends ImplObjectNative implements EventRegi
 //
 // Class Variables
 //
+    
+    public static final String LOG = "org.mozilla.webclient.impl.wrapper_native.EventRegistrationImpl";
+
+    public static final Logger LOGGER = Log.getLogger(LOG);
 
 //
 // Instance Variables
@@ -74,7 +83,7 @@ public class EventRegistrationImpl extends ImplObjectNative implements EventRegi
 
 // Relationship Instance Variables
 
-    private BrowserControlCanvas browserControlCanvas = null;
+    private NativeBrowserControlCanvas browserControlCanvas = null;
 
     private List documentLoadListeners;
 
@@ -98,7 +107,7 @@ public EventRegistrationImpl(WrapperFactory yourFactory,
     super(yourFactory, yourBrowserControl);
     
     try {
-	browserControlCanvas = (BrowserControlCanvas)
+	browserControlCanvas = (NativeBrowserControlCanvas)
 	    yourBrowserControl.queryInterface(BrowserControl.BROWSER_CONTROL_CANVAS_NAME);
     }
     catch (ClassNotFoundException e) {
@@ -318,7 +327,6 @@ int nativeEventOccurred(String targetClassName, long eventType,
 	NewWindowEvent newWindowEvent = new NewWindowEvent(this, eventType, 
 							   eventData);
 	newWindowListener.eventDispatched(newWindowEvent);
-        NativeEventThread.instance.runUntilEventOfType(WindowControlImpl.NativeRealizeWCRunnable.class);
 	return getNativeBrowserControlFromNewWindowEvent(newWindowEvent);
     }
     // else...
@@ -544,29 +552,59 @@ private EventObject createKeyEvent(long eventType, Object eventData) {
 }
 
 private int getNativeBrowserControlFromNewWindowEvent(NewWindowEvent event) {
-    BrowserControl newBrowserControl = null;
-    BrowserControlCanvas newCanvas = null;
+    NativeBrowserControlCanvas 
+            currentCanvas = null,
+            newCanvas = null;
+    BrowserControlImpl newBrowserControl = null;
     EventRegistration2 newEventRegistration = null;
+    Container parentContainer = null;
+    int result = 0;
 
-    if (null == (newBrowserControl = event.getBrowserControl())) {
+    if (null == (newBrowserControl = 
+            (BrowserControlImpl) event.getBrowserControl())) {
 	return 0;
     }
-
+    if (null == (parentContainer = 
+            event.getParentContainer())) {
+        return 0;
+    }
+    
+    currentCanvas = browserControlCanvas;
+    try {
+        newCanvas =
+                (NativeBrowserControlCanvas)
+                newBrowserControl.queryInterface(BrowserControl.BROWSER_CONTROL_CANVAS_NAME);
+    } catch (ClassNotFoundException cnfe) {
+        if (LOGGER.isLoggable(Level.SEVERE)) {
+            LOGGER.log(Level.SEVERE,
+                    "Exception creating new BrowserControlCanvas in response to NewWindowEvent", cnfe);
+        }
+        throw new IllegalStateException(cnfe);
+    }
+    
+    parentContainer.add(newCanvas, BorderLayout.CENTER);
+    parentContainer.setVisible(true);
+    newCanvas.setVisible(true);
+    
     try {
 	newEventRegistration = (EventRegistration2)
 	    newBrowserControl.queryInterface(BrowserControl.EVENT_REGISTRATION_NAME);
     }
-    catch (ClassNotFoundException cnf) {
-	// PENDING(edburns): correct logging story of root cause stack
-	// trace.
-	throw new IllegalStateException("Can't create new browser control in response to NewWindow event");
+    catch (ClassNotFoundException cnfe) {
+        if (LOGGER.isLoggable(Level.SEVERE)) {
+            LOGGER.log(Level.SEVERE,
+                    "Can't create new browser control in response to NewWindow event");
+        }
+        throw new IllegalStateException(cnfe);
     }
 
     if (null == newEventRegistration) {
 	return 0;
     }
     
-    return ((ImplObjectNative)newEventRegistration).getNativeBrowserControl();
+    result = ((ImplObjectNative)newEventRegistration).getNativeBrowserControl();
+    
+    return result;
 }
 
 private native void nativeSetCapturePageInfo(int webShellPtr, 

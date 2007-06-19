@@ -1,5 +1,5 @@
 /*
- * $Id: DOMTest.java,v 1.5 2007-06-12 14:50:51 edburns%acm.org Exp $
+ * $Id: DOMTest.java,v 1.6 2007-06-19 20:18:13 edburns%acm.org Exp $
  */
 
 /* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
@@ -139,22 +139,24 @@ public class DOMTest extends WebclientTestCase {
         assertNotNull(strY);
         int x, y;
         x = Integer.valueOf(strX).intValue();
-        assertEquals(8, x);
         // On Mac OS X, these are different than windows
         // therefore, we allow +-20 pixels allowance
+        assertTrue(7 < x);
+        assertTrue(x < 20);
         y = Integer.valueOf(strY).intValue();
         assertTrue(83 < y);
-        assertTrue(y < 113);
+        assertTrue(y < 119);
 
         strX = element.getAttribute("screenX");
         strY = element.getAttribute("screenY");
         assertNotNull(strX);
         assertNotNull(strY);
         x = Integer.valueOf(strX).intValue();
-        assertEquals(8, x);
+        assertTrue(7 < x);
+        assertTrue(x < 20);
         y = Integer.valueOf(strY).intValue();
         assertTrue(92 < y);
-        assertTrue(y < 112);
+        assertTrue(y < 118);
         
 	Node node = element.getFirstChild();
 	assertEquals("next", node.getNodeValue());

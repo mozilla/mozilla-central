@@ -24,6 +24,7 @@
 
 package org.mozilla.webclient.impl.wrapper_native;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.mozilla.util.Log;
@@ -79,6 +80,9 @@ public class CocoaAppKitThreadDelegatingNativeEventThread extends NativeEventThr
                   LOGGER.finest("On NativeEventThread, blocking, returned from calling  " +
                           finalToInvoke.toString() + " on AppKit Thread.");
               }
+              if (finalToInvoke.getResult() instanceof RuntimeException) {
+                  throw ((RuntimeException) result);
+              }
               return result;
           }  
           public String toString() {
@@ -124,13 +128,12 @@ public class CocoaAppKitThreadDelegatingNativeEventThread extends NativeEventThr
         Object result = null;
         try {
             result = toInvoke.run();
-        }
-        catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             if (LOGGER.isLoggable(Level.SEVERE)) {
                 LOGGER.log(Level.SEVERE, "Exception while invoking " + 
                         toInvoke.toString() + " on AppKit Thread", e);
             }
-            throw e;
+            toInvoke.setResult(null != e.getCause() ? e.getCause() : e);
         }
 
         if (LOGGER.isLoggable(Level.FINEST)) {

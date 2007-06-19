@@ -38,7 +38,7 @@ import org.mozilla.webclient.impl.WrapperFactory;
  *
  * @author edburns
  */
-public class CocoaBrowserControlCanvas extends BrowserControlCanvas {
+public class CocoaBrowserControlCanvas extends NativeBrowserControlCanvas {
     
     public static final String LOG = "org.mozilla.webclient.impl.wrapper_native.CocoaBrowserControlCanvas";
 
