@@ -78,12 +78,33 @@
 #
 ########################################################################
 
+run_tests()
+{
+  for i in ${TESTS}
+    do
+      SCRIPTNAME=${i}.sh
+      if [ "$O_CRON" = "ON" ]
+      then
+        echo "Running tests for $i" >> ${LOGFILE}
+        echo "TIMESTAMP $i BEGIN: `date`" >> ${LOGFILE}
+        (cd ${QADIR}/$i ; . ./$SCRIPTNAME all file >> ${LOGFILE} 2>&1)
+        echo "TIMESTAMP $i END: `date`" >> ${LOGFILE}
+      else
+        echo "Running tests for $i" | tee -a ${LOGFILE}
+        echo "TIMESTAMP $i BEGIN: `date`" | tee -a ${LOGFILE}
+        (cd ${QADIR}/$i ; . ./$SCRIPTNAME all file 2>&1 | tee -a ${LOGFILE})
+        echo "TIMESTAMP $i END: `date`" | tee -a ${LOGFILE}
+      fi
+    done
+}
+
 LIBPKIX=
 if [ -n "$BUILD_LIBPKIX_TESTS" ] ; then
     LIBPKIX=libpkix
 fi
 
 tests="cipher perf ${LIBPKIX} cert dbtests tools fips sdr crmf smime ssl ocsp"
+NSS_DEFAULT_DB_TYPE="dbm"
 TESTS=${TESTS:-$tests}
 SCRIPTNAME=all.sh
 CLEANUP="${SCRIPTNAME}"
@@ -95,22 +116,110 @@ if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
     . ./init.sh
 fi
 
-for i in ${TESTS}
+# test the old DATABASE
+run_tests
+
+# 'reset' the databases to initial values
+echo "Reset databases to their initial values:" | tee -a ${LOGFILE}
+cd ${HOSTDIR}
+certutil -D -n objsigner -d alicedir 2>&1 | tee -a ${LOGFILE} 
+certutil -M -n FIPS_PUB_140_Test_Certificate -t "C,C,C" -d fips -f ${FIPSPWFILE} 2>&1 | tee -a ${LOGFILE} 
+certutil -L -d fips 2>&1 | tee -a ${LOGFILE} 
+rm -f smime/alicehello.env
+
+# test upgrade to the new database
+echo "nss" > ${PWFILE}
+TABLE_ARGS="bgcolor=pink"
+html_head "Legacy to shared Library update"
+dirs="alicedir bobdir CA cert_extensions client clientCA dave eccurves eve ext_client ext_server SDR server serverCA tools/copydir"
+for i in $dirs
 do
-    SCRIPTNAME=${i}.sh
-    if [ "$O_CRON" = "ON" ]
-    then
-        echo "Running tests for $i" >> ${LOGFILE}
-        echo "TIMESTAMP $i BEGIN: `date`" >> ${LOGFILE}
-        (cd ${QADIR}/$i ; . ./$SCRIPTNAME all file >> ${LOGFILE} 2>&1)
-        echo "TIMESTAMP $i END: `date`" >> ${LOGFILE}
-    else
-        echo "Running tests for $i" | tee -a ${LOGFILE}
-        echo "TIMESTAMP $i BEGIN: `date`" | tee -a ${LOGFILE}
-        (cd ${QADIR}/$i ; . ./$SCRIPTNAME all file 2>&1 | tee -a ${LOGFILE})
-        echo "TIMESTAMP $i END: `date`" | tee -a ${LOGFILE}
-    fi
+   echo $i
+   if [ -d $i ]; then
+	echo "upgrading db $i"  | tee -a ${LOGFILE}
+	certutil -G -g 512 -d sql:$i -f ${PWFILE} -z ${NOISE_FILE} 2>&1 | tee -a ${LOGFILE} 
+	html_msg $? 0 "Upgrading $i"
+   else
+	echo "skipping db $i" | tee -a ${LOGFILE}
+	html_msg 0 0 "No directory $i"
+   fi
 done
+
+if [ -d fips ]; then
+   echo "upgrading db fips" | tee -a ${LOGFILE}
+   certutil -S -g 512 -n tmprsa -t "u,u,u" -s "CN=tmprsa, C=US" -x -d sql:fips -f ${FIPSPWFILE} -z ${NOISE_FILE} 2&>1 | tee -a ${LOGFILE}
+   html_msg $? 0 "Upgrading fips"
+   # remove our temp certificate we created in the fist token
+   certutil -F -n tmprsa -d sql:fips -f ${FIPSPWFILE} 2&>1 | tee -a ${LOGFILE}
+   certutil -L -d sql:fips 2&>1 | tee -a ${LOGFILE} 
+fi
+
+html "</TABLE><BR>"
+
+NSS_DEFAULT_DB_TYPE="sql"
+export NSS_DEFAULT_DB_TYPE
+
+# run run the subset of tests with the upgraded database
+old_tests=${TESTS}
+TESTS="tools fips sdr crmf smime ssl ocsp"
+run_tests
+
+# test the new DATABASE
+TESTS=${old_tests}
+#TESTS="cert"
+mkdir -p ${HOSTDIR}/sharedb
+saveHostDIR=${HOSTDIR}
+
+# need a function in init.sh to rebase the directories!
+HOSTDIR=${HOSTDIR}/sharedb
+
+TMP=${HOSTDIR}
+TEMP=${TMP}
+TMPDIR=${TMP}
+
+CADIR=${HOSTDIR}/CA
+SERVERDIR=${HOSTDIR}/server
+CLIENTDIR=${HOSTDIR}/client
+ALICEDIR=${HOSTDIR}/alicedir
+BOBDIR=${HOSTDIR}/bobdir
+DAVEDIR=${HOSTDIR}/dave
+EVEDIR=${HOSTDIR}/eve
+FIPSDIR=${HOSTDIR}/fips
+DBPASSDIR=${HOSTDIR}/dbpass
+ECCURVES_DIR=${HOSTDIR}/eccurves
+
+SERVER_CADIR=${HOSTDIR}/serverCA
+CLIENT_CADIR=${HOSTDIR}/clientCA
+EXT_SERVERDIR=${HOSTDIR}/ext_server
+EXT_CLIENTDIR=${HOSTDIR}/ext_client
+
+IOPR_CADIR=${HOSTDIR}/CA_iopr
+IOPR_SERVERDIR=${HOSTDIR}/server_iopr
+IOPR_CLIENTDIR=${HOSTDIR}/client_iopr
+
+P_SERVER_CADIR=${SERVER_CADIR}
+P_CLIENT_CADIR=${CLIENT_CADIR}
+
+CERT_EXTENSIONS_DIR=${HOSTDIR}/cert_extensions
+
+PWFILE=${TMP}/tests.pw.$$
+NOISE_FILE=${TMP}/tests_noise.$$
+CORELIST_FILE=${TMP}/clist.$$
+
+FIPSPWFILE=${TMP}/tests.fipspw.$$
+FIPSBADPWFILE=${TMP}/tests.fipsbadpw.$$
+FIPSP12PWFILE=${TMP}/tests.fipsp12pw.$$
+
+echo "fIps140" > ${FIPSPWFILE}
+echo "fips104" > ${FIPSBADPWFILE}
+echo "pKcs12fips140" > ${FIPSP12PWFILE}
+
+
+# run the tests for native sharedb support
+TABLE_ARGS="bgcolor=yellow"
+html_head "Testing with shared Library"
+html "</TABLE><BR>"
+run_tests
 
 SCRIPTNAME=all.sh
 
