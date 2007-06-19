@@ -47,72 +47,72 @@
 #define PREF_MAPI_BLIND_SEND_ENABLED "mapi.blind-send.enabled"
 
 #include "nspr.h"
+#include "nsDataHashtable.h"
+#include "nsClassHashtable.h"
 #include "nsString.h"
-#include "nsHashtable.h"
+
+class nsMAPISession;
 
 class nsMAPIConfiguration
 {
 private :
 
-    static PRUint32 session_generator;
-    static PRUint32 sessionCount;
-    static nsMAPIConfiguration *m_pSelfRef;
-    PRLock *m_Lock;
-    PRUint32  m_nMaxSessions;
+  static PRUint32 session_generator;
+  static PRUint32 sessionCount;
+  static nsMAPIConfiguration *m_pSelfRef;
+  PRLock *m_Lock;
+  PRUint32  m_nMaxSessions;
 
-
-    nsHashtable m_ProfileMap;
-    nsHashtable m_SessionMap;
-    nsMAPIConfiguration();
+  nsDataHashtable<nsStringHashKey, PRUint32> m_ProfileMap;
+  nsClassHashtable<nsUint32HashKey, nsMAPISession> m_SessionMap;
+  nsMAPIConfiguration();
 
 public :
-    static nsMAPIConfiguration *GetMAPIConfiguration();
-    void OpenConfiguration();
-    PRInt16 RegisterSession(PRUint32 aHwnd, const PRUnichar *aUserName, \
-                            const PRUnichar *aPassword, PRBool aForceDownLoad, \
-                            PRBool aNewSession, PRUint32 *aSession, const char *aIdKey);
-    PRBool IsSessionValid(PRUint32 aSessionID);
-    PRBool UnRegisterSession(PRUint32 aSessionID);
-    PRUnichar *GetPassword(PRUint32 aSessionID);
-    void GetIdKey(PRUint32 aSessionID, nsCString& aKey);
-    void *GetMapiListContext(PRUint32 aSessionID);
-    void SetMapiListContext(PRUint32 aSessionID, void *mapiListContext);
-    ~nsMAPIConfiguration();
+  static nsMAPIConfiguration *GetMAPIConfiguration();
+  void OpenConfiguration();
+  PRInt16 RegisterSession(PRUint32 aHwnd, const PRUnichar *aUserName, \
+                          const PRUnichar *aPassword, PRBool aForceDownLoad, \
+                          PRBool aNewSession, PRUint32 *aSession, const char *aIdKey);
+  PRBool IsSessionValid(PRUint32 aSessionID);
+  PRBool UnRegisterSession(PRUint32 aSessionID);
+  PRUnichar *GetPassword(PRUint32 aSessionID);
+  void GetIdKey(PRUint32 aSessionID, nsCString& aKey);
+  void *GetMapiListContext(PRUint32 aSessionID);
+  void SetMapiListContext(PRUint32 aSessionID, void *mapiListContext);
+  ~nsMAPIConfiguration();
 
-    // a util func
-    static HRESULT GetMAPIErrorFromNSError (nsresult res) ;
+  // a util func
+  static HRESULT GetMAPIErrorFromNSError (nsresult res) ;
 };
 
 class nsMAPISession
 {
-    friend class nsMAPIConfiguration;
+  friend class nsMAPIConfiguration;
 
-    private :
+  private :
+    PRBool   m_bIsForcedDownLoad;
+    PRBool   m_bApp_or_Service;
+    PRUint32 m_hAppHandle;
+    PRUint32 m_nShared;
+    nsCString m_pIdKey;
+    nsString m_pProfileName;
+    nsString m_pPassword;
+    PRInt32 m_messageIndex;
+    void   *m_listContext; // used by findNext
 
-        PRBool   m_bIsForcedDownLoad;
-        PRBool   m_bApp_or_Service;
-        PRUint32 m_hAppHandle;
-        PRUint32 m_nShared;
-        nsCString m_pIdKey;
-        nsString m_pProfileName;
-        nsString m_pPassword;
-        PRInt32 m_messageIndex;
-        void   *m_listContext; // used by findNext
-
-    public :
-
-        nsMAPISession(PRUint32 aHwnd, const PRUnichar *aUserName, \
-                      const PRUnichar *aPassword, \
-                      PRBool aForceDownLoad, const char *aKey);
-        PRUint32 IncrementSession();
-        PRUint32 DecrementSession();
-        PRUint32 GetSessionCount();
-        PRUnichar *nsMAPISession::GetPassword();
-        void GetIdKey(nsCString& aKey);
-        ~nsMAPISession();
-        // For enumerating Messages...
-        void SetMapiListContext( void *listContext) { m_listContext = listContext; } 
-        void *GetMapiListContext( ) { return m_listContext; }
+  public :
+    nsMAPISession(PRUint32 aHwnd, const PRUnichar *aUserName, \
+                  const PRUnichar *aPassword, \
+                  PRBool aForceDownLoad, const char *aKey);
+    PRUint32 IncrementSession();
+    PRUint32 DecrementSession();
+    PRUint32 GetSessionCount();
+    PRUnichar *nsMAPISession::GetPassword();
+    void GetIdKey(nsCString& aKey);
+    ~nsMAPISession();
+    // For enumerating Messages...
+    void SetMapiListContext( void *listContext) { m_listContext = listContext; } 
+    void *GetMapiListContext( ) { return m_listContext; }
 };
 
 #endif    // MSG_MAPI_MAIN_H_

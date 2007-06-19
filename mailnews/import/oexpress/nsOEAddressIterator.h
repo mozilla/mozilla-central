@@ -43,24 +43,25 @@
 #include "mdb.h"
 #include "nsString.h"
 #include "nsHashtable.h"
+#include "nsInterfaceHashtable.h"
 
 class nsOEAddressIterator : public CWabIterator {
 public:
-	nsOEAddressIterator( CWAB *pWab, nsIAddrDatabase *database);
-	~nsOEAddressIterator();
-	
-	virtual nsresult  EnumUser( const PRUnichar * pName, LPENTRYID pEid, ULONG cbEid);
-	virtual nsresult  EnumList( const PRUnichar * pName, LPENTRYID pEid, ULONG cbEid, LPMAPITABLE table);
+  nsOEAddressIterator( CWAB *pWab, nsIAddrDatabase *database);
+  ~nsOEAddressIterator();
+  
+  virtual nsresult  EnumUser( const PRUnichar * pName, LPENTRYID pEid, ULONG cbEid);
+  virtual nsresult  EnumList( const PRUnichar * pName, LPENTRYID pEid, ULONG cbEid, LPMAPITABLE table);
         void FindListRow(nsString &eMail, nsIMdbRow **cardRow);
 
 private:
-	PRBool		BuildCard( const PRUnichar * pName, nsIMdbRow *card, LPMAILUSER pUser);
-	void		SanitizeValue( nsString& val);
-	void		SplitString( nsString& val1, nsString& val2);
+  PRBool    BuildCard( const PRUnichar * pName, nsIMdbRow *card, LPMAILUSER pUser);
+  void    SanitizeValue( nsString& val);
+  void    SplitString( nsString& val1, nsString& val2);
 
-	CWAB *                m_pWab;
-	nsIAddrDatabase	*     m_database;
-	nsSupportsHashtable m_listRows;
+  CWAB *                m_pWab;
+  nsCOMPtr<nsIAddrDatabase>     m_database;
+  nsInterfaceHashtable <nsStringHashKey, nsIMdbRow> m_listRows;
 };
 
 #endif 
