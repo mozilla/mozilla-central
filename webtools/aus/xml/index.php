@@ -1,4 +1,8 @@
 <?php
+echo '<pre>';
+print_r($_GET);
+print_r($_SERVER);
+echo '</pre>';
 // ***** BEGIN LICENSE BLOCK *****
 //
 // Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -56,6 +60,18 @@ $xml = new Xml();
 // Before we get started check throttle and see if we want to randomly serve an
 // update for this request.
 if (defined('THROTTLE') && THROTTLE && defined('THROTTLE_LEVEL') && mt_rand(0,100) > THROTTLE_LEVEL) {
+
+    if (defined('THROTTLE_LOGGING') && THROTTLE_LOGGING) {
+
+        //Are we behind a proxy and given the IP via an alternate enviroment variable? If so, use it.
+        if (!empty($_SERVER["HTTP_X_FORWARDED_FOR"])) {
+            $ip = $_SERVER["HTTP_X_FORWARDED_FOR"];
+        } else {
+            $ip = $_SERVER["REMOTE_ADDR"];
+        }
+        error_log('AUS2 THROTTLE: '.$ip.' '.$_SERVER['REQUEST_URI']);
+    }
+
     $xml->printXml();
     exit;
 }

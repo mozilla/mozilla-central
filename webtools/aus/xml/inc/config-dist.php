@@ -68,6 +68,9 @@ define('THROTTLE',false);
 //  100 = Updates always offered.
 define('THROTTLE_LEVEL',100);
 
+// Turns logging throttled hits on and off.
+define('THROTTLE_LOGGING',false);
+
 // These are channels that have access to nightly updates.
 // All other channels only have access to the OVERRIDE_DIR for update info.
 $nightlyChannels = array(
@@ -94,8 +97,7 @@ $productBranchVersions = array(
         '0.4a1'   =>  'branch',
         '0.5*'    =>  'branch',
         '0.6a1'   =>  'trunk'
-    ),
-    'Synthetic' => array('1.5.0.*'=>'1.5.0.x')
+    )
 );
 
 // Array that defines which %OS_VERSION% values are no longer supported.
