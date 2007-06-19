@@ -79,6 +79,7 @@ var gMessengerBundle;
 var gProfileDirURL;
 var gIOService;
 var gFileHandler;
+var gExtraExpandedHeaders;
 
 var msgHeaderParser = Components.classes[msgHeaderParserContractID].getService(Components.interfaces.nsIMsgHeaderParser);
 var abAddressCollector = null;
@@ -210,6 +211,15 @@ function initializeHeaderViewTables()
     gExpandedHeaderView[headerName] = new createHeaderEntry('expanded', gExpandedHeaderList[index]);
   }
   
+  var extraHeaders = gExtraExpandedHeaders.match(/[^ ]+/g);
+  if (extraHeaders) {
+    for (index = 0; index < extraHeaders.length; index++)
+    {
+      var extraHeader = extraHeaders[index];
+      gExpandedHeaderView[extraHeader.toLowerCase()] = new createNewHeaderView(extraHeader, extraHeader + ':');
+    }
+  }
+
   if (gShowOrganization)
   {
     var organizationEntry = {name:"organization", outputFunction:updateHeaderValue};
@@ -237,6 +247,7 @@ function OnLoadMsgHeaderPane()
   gCollectOutgoing = pref.getBoolPref("mail.collect_email_address_outgoing");
   gShowUserAgent = pref.getBoolPref("mailnews.headers.showUserAgent");
   gShowOrganization = pref.getBoolPref("mailnews.headers.showOrganization");
+  gExtraExpandedHeaders = pref.getCharPref("mailnews.headers.extraExpandedHeaders");
   initializeHeaderViewTables();
 
   var toggleHeaderView = document.getElementById("msgHeaderView");
@@ -729,12 +740,12 @@ function updateHeaderValueInTextNode(headerEntry, headerValue)
   headerEntry.textNode.value = headerValue;
 }
 
-function createNewHeaderView(headerName)
+function createNewHeaderView(headerName, label)
 {
   var idName = 'expanded' + headerName + 'Box';
   var newHeader = document.createElement("mail-headerfield");
   newHeader.setAttribute('id', idName);
-  newHeader.setAttribute('label', currentHeaderData[headerName].headerName + ':');
+  newHeader.setAttribute('label', label);
   // all mail-headerfield elements are keyword related
   newHeader.setAttribute('keywordrelated','true');
   newHeader.collapsed = true;
@@ -791,7 +802,7 @@ function UpdateMessageHeaders()
       {
         // for view all headers, if we don't have a header field for this value....cheat and create one....then
         // fill in a headerEntry
-        gExpandedHeaderView[headerName] = new createNewHeaderView(headerName);
+        gExpandedHeaderView[headerName] = new createNewHeaderView(headerName, currentHeaderData[headerName].headerName + ':');
         headerEntry = gExpandedHeaderView[headerName];
       }
     } // if we are in expanded view....
