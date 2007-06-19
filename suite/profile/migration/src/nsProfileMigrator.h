@@ -58,8 +58,7 @@ public:
 protected:
   ~nsProfileMigrator() { }
 
-  nsresult GetDefaultSuiteMigratorKey(nsACString& key,
-                                      nsISuiteProfileMigrator** spm);
+  nsresult GetSuiteMigratorKey(nsACString& key, nsISuiteProfileMigrator** spm);
 };
 
 #endif

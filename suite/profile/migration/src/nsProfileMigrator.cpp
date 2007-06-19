@@ -50,6 +50,7 @@
 #include "NSReg.h"
 #include "nsStringAPI.h"
 #include "nsIProperties.h"
+#include "nsMemory.h"
 #ifdef XP_WIN
 #include <windows.h>
 #include "nsIWindowsRegKey.h"
@@ -79,48 +80,12 @@ nsProfileMigrator::Migrate(nsIProfileStartup* aStartup)
   nsCAutoString key;
   nsCOMPtr<nsISuiteProfileMigrator> spm;
 
-  // The purpose of this section is to find the current default browser to
-  // select the default option in the migration dialog.
-  nsresult rv = GetDefaultSuiteMigratorKey(key, getter_AddRefs(spm));
+  // Get the migration key/profile to use as default. If it returns failure,
+  // we haven't got any profiles avaiable to us, so just return and let the
+  // app start.
+  nsresult rv = GetSuiteMigratorKey(key, getter_AddRefs(spm));
   if (NS_FAILED(rv))
     return rv;
-
-  if (!spm)
-  {
-    nsCAutoString contractID =
-      NS_LITERAL_CSTRING(NS_SUITEPROFILEMIGRATOR_CONTRACTID_PREFIX);
-    contractID.Append(key);
-
-    spm = do_CreateInstance(contractID.get());
-
-    // If we don't have a default for this, fallback to one we do know that
-    // we have a contract id for - the migration.js code will sort out the
-    // rest of it for us.
-    if (!spm)
-    {
-      key.AssignLiteral("seamonkey");
-      spm = do_CreateInstance(NS_SUITEPROFILEMIGRATOR_CONTRACTID_PREFIX "seamonkey");
-      // If we don't have it here, we really are in trouble.
-      if (!spm)
-        return NS_ERROR_FAILURE;
-    }
-  }
-
-  PRBool sourceExists;
-  spm->GetSourceExists(&sourceExists);
-  if (!sourceExists)
-  {
-#ifdef XP_WIN
-    // The "Default Browser" key in the registry was set to a browser for which
-    // no profile data exists. On Windows, this means the Default Browser
-    // settings in the registry are bad, and we should just fall back to IE
-    // in this case.
-    spm = do_CreateInstance(NS_SUITEPROFILEMIGRATOR_CONTRACTID_PREFIX "ie");
-    key.AssignLiteral("ie");
-#else
-    return NS_ERROR_FAILURE;
-#endif
-  }
 
   nsCOMPtr<nsISupportsCString> cstr
     (do_CreateInstance("@mozilla.org/supports-cstring;1"));
@@ -167,24 +132,42 @@ nsProfileMigrator::Import()
 
 NS_IMPL_ISUPPORTS1(nsProfileMigrator, nsIProfileMigrator)
 
-#ifdef XP_WIN
+struct sInternalNameToMigratorName {
+  const char* internalName;
+  const char* key;
+};
 
-#define INTERNAL_NAME_FIREBIRD        "firebird"
-#define INTERNAL_NAME_FIREFOX         "firefox"
-#define INTERNAL_NAME_PHOENIX         "phoenix"
-#define INTERNAL_NAME_IEXPLORE        "iexplore"
-#define INTERNAL_NAME_MOZILLA_SUITE   "apprunner"
-#define INTERNAL_NAME_SEAMONKEY       "seamonkey"
-#define INTERNAL_NAME_DOGBERT         "netscape"
-#define INTERNAL_NAME_OPERA           "opera"
-#endif
+static const sInternalNameToMigratorName nameMap[] = {
+  // Possiblities for migrators when/if we have them
+  // ("iexplore", "ie"),
+  // ("opera", "opera"),
+  // ("firebird", "firefox"), Note: Internally the firebird->firefox migrator
+  // ("firefox", "firefox"),  in firefox is known as phoenix.
+  // ("phoenix", "firefox"),
+  {"seamonkey", "seamonkey"},
+  {"apprunner", "seamonkey"}
+};
 
+static const char* migratorNames[] = {
+  "seamonkey",
+  "thunderbird"
+};
+
+// The purpose of this function is to attempt to get the default item
+// to migrate from the default browser key. If for some reason we haven't
+// got a default browser (e.g. wrong os) or we haven't got a migrator for
+// the default browser, then we'll just return a migrator which has profiles
+// that we can migrate.
 nsresult
-nsProfileMigrator::GetDefaultSuiteMigratorKey(nsACString& aKey,
-                                              nsISuiteProfileMigrator** spm)
+nsProfileMigrator::GetSuiteMigratorKey(nsACString& aKey,
+                                       nsISuiteProfileMigrator** spm)
 {
   *spm = nsnull;
 
+  // Declare these here because of the #if - we need them in both bits
+  PRBool exists = PR_FALSE;
+  nsCString migratorID;
+  nsCOMPtr<nsISuiteProfileMigrator> result;
 #if XP_WIN
 
   nsCOMPtr<nsIWindowsRegKey> regKey =
@@ -255,56 +238,48 @@ nsProfileMigrator::GetDefaultSuiteMigratorKey(nsACString& aKey,
   if (NS_FAILED(lfw->GetVersionInfoField("InternalName", internalName)))
     return NS_ERROR_FAILURE;
 
-  if (internalName.LowerCaseEqualsLiteral(INTERNAL_NAME_IEXPLORE)) {
-    aKey.AssignLiteral("ie");
-    return NS_OK;
-  }
-  if (internalName.LowerCaseEqualsLiteral(INTERNAL_NAME_MOZILLA_SUITE) ||
-      internalName.LowerCaseEqualsLiteral(INTERNAL_NAME_SEAMONKEY)) {
-    aKey.AssignLiteral("seamonkey");
-    return NS_OK;
-  }
-  if (internalName.LowerCaseEqualsLiteral(INTERNAL_NAME_DOGBERT)) {
-    aKey.AssignLiteral("dogbert");
-    return NS_OK;
-  }
-  if (internalName.LowerCaseEqualsLiteral(INTERNAL_NAME_OPERA)) {
-    aKey.AssignLiteral("opera");
-    return NS_OK;
+  if (!internalName.IsEmpty()) {
+    PRUint32 i;
+    for (i = 0; i < NS_ARRAY_LENGTH(nameMap); ++i) {
+      if (internalName.LowerCaseEquals(nameMap[i].internalName)) {
+        aKey.Assign(nameMap[i].key);
+        break;
+      }
+    }
   }
 
-  // Migrate data from any existing Application Data\Phoenix\* installations.
-  if (internalName.LowerCaseEqualsLiteral(INTERNAL_NAME_FIREBIRD) ||
-      internalName.LowerCaseEqualsLiteral(INTERNAL_NAME_FIREFOX) ||
-      internalName.LowerCaseEqualsLiteral(INTERNAL_NAME_PHOENIX)) {
-    aKey.AssignLiteral("phoenix");
-    return NS_OK;
-  }
-#else
-  nsCOMPtr<nsISuiteProfileMigrator> result;
+  if (!aKey.IsEmpty()) {
+    migratorID.AssignLiteral(NS_SUITEPROFILEMIGRATOR_CONTRACTID_PREFIX);
+    migratorID.Append(aKey);
+    result = do_CreateInstance(migratorID.get());
 
-  // XXX - until we figure out what to do here with default browsers on
-  // MacOS and GNOME, simply copy data from a previous Seamonkey install.
-  PRBool exists = PR_FALSE;
-  result =
-    do_CreateInstance(NS_SUITEPROFILEMIGRATOR_CONTRACTID_PREFIX "seamonkey");
-  if (result)
-    result->GetSourceExists(&exists);
-  if (exists) {
-    aKey.AssignLiteral("seamonkey");
-    result.swap(*spm);
-    return NS_OK;
-  }
+    if (result)
+      result->GetSourceExists(&exists);
 
-  result =
-    do_CreateInstance(NS_SUITEPROFILEMIGRATOR_CONTRACTID_PREFIX "thunderbird");
-  if (result)
-    result->GetSourceExists(&exists);
-  if (exists) {
-    aKey.AssignLiteral("thunderbird");
-    result.swap(*spm);
-    return NS_OK;
+    if (exists) {
+      result.swap(*spm);
+      return NS_OK;
+    }
   }
 #endif
+
+  // We can't get the default migrator (either wrong OS or we don't have a
+  // migrator for the default browser), so fall back to finding a valid
+  // profile to migrator manually - first try what we've been given.
+  for (PRUint32 j = 0; j < NS_ARRAY_LENGTH(migratorNames); ++j) {
+    migratorID.AssignLiteral(NS_SUITEPROFILEMIGRATOR_CONTRACTID_PREFIX);
+    migratorID.Append(migratorNames[j]);
+
+    result = do_CreateInstance(migratorID.get());
+
+    if (result)
+      result->GetSourceExists(&exists);
+
+    if (exists) {
+      aKey.Assign(migratorNames[j]);
+      result.swap(*spm);
+      return NS_OK;
+    }
+  }
   return NS_ERROR_FAILURE;
 }
