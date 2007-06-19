@@ -254,7 +254,7 @@ ac_help="$ac_help
 ac_help="$ac_help
   --enable-places        Enable 'places' bookmark/history implementation"
 ac_help="$ac_help
-  --enable-places_bookmarks        Enable 'places' for bookmarks backend"
+  --enable-places-bookmarks        Enable 'places' for bookmarks backend"
 ac_help="$ac_help
   --disable-feeds        Disable feed handling and processing components"
 ac_help="$ac_help
