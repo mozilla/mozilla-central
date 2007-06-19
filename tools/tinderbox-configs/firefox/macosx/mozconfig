@@ -23,4 +23,3 @@ ac_add_options --enable-svg
 ac_add_options --enable-canvas
 
 ac_add_options --enable-codesighs
-ac_add_options --enable-static
