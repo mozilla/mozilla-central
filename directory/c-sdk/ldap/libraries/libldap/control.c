@@ -280,7 +280,8 @@ free_and_return:;
 int
 nsldapi_find_controls( BerElement *ber, LDAPControl ***controlsp )
 {
-	unsigned long tag, len;
+	ber_tag_t tag;
+	ber_len_t len;
 
 	if ( ber == NULLBER ) {
 		return( LDAP_DECODING_ERROR );
