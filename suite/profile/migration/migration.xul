@@ -45,7 +45,7 @@
         title="&migrationWizard.title;"
         onload="MigrationWizard.init()"
         onunload="MigrationWizard.uninit()"
-        style="width: 40em; height: 30em;"
+        style="width: 40em; height: 32em;"
         buttons="accept,cancel"
         xmlns:xhtml2="http://www.w3.org/TR/xhtml2"
         xmlns:wairole="http://www.w3.org/2005/01/wai-rdf/GUIRoleTaxonomy#">
