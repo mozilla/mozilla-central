@@ -46,7 +46,7 @@
   <binding id="printpreviewtoolbar" 
            extends="chrome://global/content/bindings/toolbar.xml#toolbar">
     <resources>
-      <stylesheet src="chrome://global/skin/printing.css"/>
+      <stylesheet src="chrome://global/skin/printPreview.css"/>
     </resources>
 
     <content>
@@ -61,7 +61,7 @@
       </xul:vbox>
       <xul:toolbarbutton class="toolbarbutton-icon home-arrow"
         oncommand="parentNode.navigate(0, 0, 'home');" tooltiptext="&homearrow.tooltip;"/>
-      <xul:toolbarbutton class="toolbarbutton-icon last-arrow" 
+      <xul:toolbarbutton class="toolbarbutton-icon left-arrow" 
         oncommand="parentNode.navigate(-1, 0, 0);" tooltiptext="&leftarrow.tooltip;"/>
       <xul:hbox align="center" pack="center">
         <xul:textbox id="pageNumber" size="3" value="1" lastvalid="1"
@@ -69,7 +69,7 @@
         <xul:label value="&of.label;"/>
         <xul:label value="1"/>
       </xul:hbox>
-      <xul:toolbarbutton class="toolbarbutton-icon next-arrow" 
+      <xul:toolbarbutton class="toolbarbutton-icon right-arrow" 
         oncommand="parentNode.navigate(1, 0, 0);" tooltiptext="&rightarrow.tooltip;"/>
       <xul:toolbarbutton class="toolbarbutton-icon end-arrow"
         oncommand="parentNode.navigate(0, 0, 'end');" tooltiptext="&endarrow.tooltip;"/>
