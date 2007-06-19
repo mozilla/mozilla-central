@@ -85,6 +85,7 @@
     MODULE(nsComposerModule) \
     MODULE(xpAutoComplete) \
     MODULE(mozSpellCheckerModule) \
+    MODULE(mozStorageModule) \
     MODULE(nsAuthModule) \
     MODULE(BOOT) \
     MODULE(NSS) \

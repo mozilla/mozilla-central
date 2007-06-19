@@ -1687,6 +1687,7 @@
 				3F44AD2A05BDFB9F00CB4B08,
 				3F44AD2B05BDFB9F00CB4B08,
 				0F518833088592020091F3FB,
+				DEC87B100C2882DC002EB106,
 			);
 			isa = PBXCopyFilesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1885,6 +1886,7 @@
 				A7D88E680465D94000A80196,
 				0F5187C308858E620091F3FB,
 				DE62E42F0B72B3D200142851,
+				DEC87B0F0C2882DC002EB106,
 			);
 			isa = PBXGroup;
 			name = Components;
@@ -1938,6 +1940,7 @@
 				F6BD641F01B3156701A962F7,
 				F6BD642001B3156701A962F7,
 				E4C7D99E0A32109D00B455AD,
+				DEC87B110C288337002EB106,
 				82CE28C80736633900B4DE07,
 				F6BD63B301B3131201A962F7,
 				A7D88E6A0465D9F800A80196,
@@ -5734,6 +5737,7 @@
 				3F44AD1305BDFB9F00CB4B08,
 				3F44AD1505BDFB9F00CB4B08,
 				3F44AD1605BDFB9F00CB4B08,
+				DEC87B120C288337002EB106,
 				3F44AD1705BDFB9F00CB4B08,
 				3F44AD1805BDFB9F00CB4B08,
 				3F44AD1905BDFB9F00CB4B08,
@@ -9607,6 +9611,7 @@
 				3F44AF3305BDFBA000CB4B08,
 				3F44AF3505BDFBA000CB4B08,
 				3F44AF3605BDFBA000CB4B08,
+				DEC87B130C288337002EB106,
 				3F44AF3705BDFBA000CB4B08,
 				3F44AF3805BDFBA000CB4B08,
 				3F44AF3905BDFBA000CB4B08,
@@ -10557,6 +10562,7 @@
 				7BB332F40A7E99BC0075521C,
 				DEB968310B0D8E9F0023F8B1,
 				DE62E4320B72B50C00142851,
+				DEC87B150C288403002EB106,
 			);
 			isa = PBXFrameworksBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -14200,6 +14206,54 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
+		DEC87B0F0C2882DC002EB106 = {
+			isa = PBXFileReference;
+			lastKnownFileType = "compiled.mach-o.bundle";
+			name = libstoragecomps.dylib;
+			path = ../dist/bin/components/libstoragecomps.dylib;
+			refType = 2;
+			sourceTree = SOURCE_ROOT;
+		};
+		DEC87B100C2882DC002EB106 = {
+			fileRef = DEC87B0F0C2882DC002EB106;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		DEC87B110C288337002EB106 = {
+			isa = PBXFileReference;
+			lastKnownFileType = file;
+			name = storage.xpt;
+			path = ../dist/bin/components/storage.xpt;
+			refType = 2;
+			sourceTree = SOURCE_ROOT;
+		};
+		DEC87B120C288337002EB106 = {
+			fileRef = DEC87B110C288337002EB106;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		DEC87B130C288337002EB106 = {
+			fileRef = DEC87B110C288337002EB106;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		DEC87B140C288403002EB106 = {
+			isa = PBXFileReference;
+			lastKnownFileType = archive.ar;
+			name = libstoragecomps.a;
+			path = ../staticlib/components/libstoragecomps.a;
+			refType = 2;
+			sourceTree = SOURCE_ROOT;
+		};
+		DEC87B150C288403002EB106 = {
+			fileRef = DEC87B140C288403002EB106;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 		DEDDE22D0ABFB21A00D415F2 = {
 			isa = PBXFileReference;
 			lastKnownFileType = "compiled.mach-o.bundle";
@@ -16656,6 +16710,7 @@
 				4DC28F5D099184B80081939B,
 				7B9E1BFE09DD966F003256C9,
 				DE62E4310B72B50C00142851,
+				DEC87B140C288403002EB106,
 			);
 			isa = PBXGroup;
 			name = "Gecko Static Components";
