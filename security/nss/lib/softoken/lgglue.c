@@ -199,7 +199,7 @@ sftkdbLoad_Legacy()
 	return SECSuccess;
     }
 
-    lib = sftkdb_LoadLibrary(SHLIB_PREFIX"legacydb"SHLIB_VERSION"."SHLIB_SUFFIX);
+    lib = sftkdb_LoadLibrary(SHLIB_PREFIX"nssdbm"SHLIB_VERSION"."SHLIB_SUFFIX);
     if (lib == NULL) {
 	return SECFailure;
     }
