@@ -1087,6 +1087,11 @@ sub init {
             push @wherepart, 'test_plans.isactive = 1';
         }
     }
+    if ($obj eq 'case_run'){
+        unless ($cgi->param('isactive')){
+            push @wherepart, 'test_case_runs.iscurrent = 1';
+        }
+    }
 
     my @funcnames;
     while (@funcdefs) {

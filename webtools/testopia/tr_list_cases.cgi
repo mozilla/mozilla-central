@@ -175,23 +175,12 @@ if ($action eq 'Commit'){
         }
         # Add to runs
         my @runs;
-        my $build = $cgi->param('caserun_build');
-        my $env = $cgi->param('caserun_env');
-    
-        detaint_natural($build);
-        detaint_natural($env);
-        
-        validate_test_id($build, 'build') if $build;
-        validate_test_id($env, 'environment') if $env;
-
         foreach my $runid (split(/[\s,]+/, $cgi->param('addruns'))){
             validate_test_id($runid, 'run');
             push @runs, Bugzilla::Testopia::TestRun->new($runid);
         }
         foreach my $run (@runs){
-            $build ||= $run->build->id;
-            $env ||= $run->environment->id;
-            $run->add_case_run($case->id, $build, $env) if $run->canedit;
+            $run->add_case_run($case->id) if $run->canedit;
         }
         # Clone
         my %planseen;

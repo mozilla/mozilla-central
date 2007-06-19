@@ -292,12 +292,8 @@ the test_case_runs table
 
 sub add_case_run {
     my $self = shift;
-    my ($case_id, $build_id, $env_id) = @_;
-    
-    $build_id ||= $self->build->id;
-    $env_id ||= $self->environment_id;
-    
-    return 0 if $self->check_case($case_id,$build_id,$env_id);
+    my ($case_id) = @_;
+    return 0 if $self->check_case($case_id);
     my $case = Bugzilla::Testopia::TestCase->new($case_id);
     return 0 if $case->status ne 'CONFIRMED';
     my $assignee = $case->default_tester ? $case->default_tester->id : undef;
@@ -306,8 +302,8 @@ sub add_case_run {
         'case_id' => $case_id,
         'assignee' => $assignee,
         'case_text_version' => $case->version,
-        'build_id' => $build_id,
-        'environment_id' => $env_id,
+        'build_id' => $self->build->id,
+        'environment_id' => $self->environment_id,
     });
     $caserun->store;    
 }
@@ -494,15 +490,13 @@ Checks if the given test case is already associated with this run
 
 sub check_case {
     my $self = shift;
-    my ($case_id, $build_id, $env_id) = @_;
-
+    my ($case_id) = @_;
     my $dbh = Bugzilla->dbh;
     my ($value) = $dbh->selectrow_array(
             "SELECT case_run_id 
                FROM test_case_runs
-              WHERE case_id = ? AND run_id = ? AND build_id = ? AND environment_id = ?",
-              undef, ($case_id, $self->{'run_id'}, $build_id, $env_id));
-    
+              WHERE case_id = ? AND run_id = ?",
+              undef, ($case_id, $self->{'run_id'}));
     return $value;
 }
 
@@ -1007,13 +1001,8 @@ associated with this run
 sub cases {
     my $self = shift;
     return $self->{'cases'} if exists $self->{'cases'};
-    my $dbh = Bugzilla->dbh;
     my @cases;
-    my $ref = $dbh->selectcol_arrayref(
-            "SELECT DISTINCT case_id 
-              FROM test_case_runs 
-             WHERE run_id = ?", undef, $self->id);
-    foreach my $cr (@$ref){
+    foreach my $cr (@{$self->current_caseruns}){
         push @cases, Bugzilla::Testopia::TestCase->new($cr);
     }
     $self->{'cases'} = \@cases;
@@ -1033,7 +1022,7 @@ sub case_count {
     
     my ($count) = $dbh->selectrow_array(
                     "SELECT COUNT(case_run_id) FROM test_case_runs
-                      WHERE run_id=?", undef,
+                      WHERE run_id=? AND iscurrent=1", undef,
                       $self->{'run_id'});
 
     return scalar $count;
@@ -1046,7 +1035,7 @@ sub case_run_count {
     my $query = 
            "SELECT COUNT(*) 
               FROM test_case_runs 
-             WHERE run_id = ?";
+             WHERE run_id = ? AND iscurrent = 1";
     $query .= " AND case_run_status_id = ?" if $status_id;
     
     my $count;
@@ -1067,7 +1056,7 @@ sub finished_count {
     my ($count) = $dbh->selectrow_array( 
            "SELECT COUNT(*) 
               FROM test_case_runs 
-             WHERE run_id = ?
+             WHERE run_id = ? AND iscurrent = 1
                AND case_run_status_id IN (?,?,?)",undef, ($self->id, FAILED, PASSED, BLOCKED)); 
         
     return $count;       
@@ -1101,6 +1090,30 @@ sub percent_of_finished {
     return calculate_percent($self->finished_count,$self->case_run_count($status_id));        
 }
 
+=head2 current_caseruns
+
+Returns a reference to a list of TestCaseRun objects that are the
+current case-runs on this run
+
+=cut
+
+sub current_caseruns {
+    my $self = shift;
+    my $dbh = Bugzilla->dbh;
+    return $self->{'current_caseruns'} if exists $self->{'current_caseruns'};
+    my $ref = $dbh->selectcol_arrayref(
+        "SELECT case_run_id FROM test_case_runs
+         WHERE run_id=? AND iscurrent=1", undef,
+         $self->{'run_id'});
+    my @caseruns;
+    
+    foreach my $id (@{$ref}){
+        push @caseruns, Bugzilla::Testopia::TestCaseRun->new($id);
+    }
+    $self->{'current_caseruns'} = \@caseruns;
+    return $self->{'current_caseruns'};
+}
+
 =head2 caseruns
 
 Returns a reference to a list of TestCaseRun objects that belong
@@ -1132,13 +1145,12 @@ Returns a list of case_id's from the current case runs.
 
 sub case_id_list {
     my $self = shift;
-    my $dbh = Bugzilla->dbh;
-    my $ref = $dbh->selectcol_arrayref(
-            "SELECT DISTINCT case_id 
-              FROM test_case_runs 
-             WHERE run_id = ?", undef, $self->id);
+    my @ids;
+    foreach my $c (@{$self->current_caseruns}){
+        push @ids, $c->case_id;
+    }
     
-    return join(",", @$ref);
+    return join(",", @ids);
 }
 
 =head1 SEE ALSO

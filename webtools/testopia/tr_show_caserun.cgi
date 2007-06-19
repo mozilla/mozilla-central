@@ -339,6 +339,8 @@ sub do_update {
     
     my $status   = $cgi->param('status');
     my $notes    = $cgi->param('notes');
+    my $build    = $cgi->param('caserun_build');
+    my $env      = $cgi->param('caserun_env');
     my $assignee;
     if ($cgi->param('assignee')) {
         $assignee = login_to_id(trim($cgi->param('assignee')));
@@ -346,16 +348,27 @@ sub do_update {
     ThrowUserError("invalid_username", { name => $cgi->param('assignee') }) unless $assignee;
     
     ThrowUserError('testopia-missing-required-field', {field => 'Status'}) unless defined $status;
+    ThrowUserError('testopia-missing-required-field', {field => 'build'}) unless defined $build;
+    ThrowUserError('testopia-missing-required-field', {field => 'environment'}) unless defined $env;
     
+    validate_test_id($build, 'build');
+    validate_test_id($env, 'environment');
     my @buglist;
     foreach my $bug (split(/[\s,]+/, $cgi->param('bugs'))){
         ValidateBugID($bug);
         push @buglist, $bug;
     }
+    
+    detaint_natural($env);
+    detaint_natural($build);
     detaint_natural($status);
     trick_taint($notes);
     trick_taint($assignee);
 
+    # Switch to the record representing this build and environment combo.
+    # If there is not one, it will create it and switch to that.
+    $caserun = $caserun->switch($build,$env);
+    
     $caserun->set_status($status, $cgi->param('update_bug'))     if ($caserun->status_id != $status);
     $caserun->set_assignee($assignee) if ($caserun->assignee && $caserun->assignee->id != $assignee);
     $caserun->append_note($notes)     if ($notes && $caserun->notes !~ /$notes/);

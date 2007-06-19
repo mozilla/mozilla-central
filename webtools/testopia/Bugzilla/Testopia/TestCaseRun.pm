@@ -75,6 +75,7 @@ use Date::Parse;
     notes
     running_date
     close_date
+    iscurrent
     sortkey
 
 =cut
@@ -92,6 +93,7 @@ use constant DB_COLUMNS => qw(
     notes
     running_date
     close_date
+    iscurrent
     sortkey
 );
 
@@ -207,7 +209,7 @@ sub store {
     # Exclude the auto-incremented field from the column list.
     my $columns = join(", ", grep {$_ ne 'case_run_id'} DB_COLUMNS);
 
-    $dbh->do("INSERT INTO test_case_runs ($columns) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+    $dbh->do("INSERT INTO test_case_runs ($columns) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
               undef,
               ($self->{'run_id'},             # run_id
                $self->{'case_id'},            # case_id
@@ -220,7 +222,8 @@ sub store {
                undef,                         # notes
                undef,                         # running_date
                undef,                         # close_date
-               0                              # sortkey
+               1,                             # iscurrent
+               0,                             # sortkey
               ));
 
     my $key = $dbh->bz_last_key( 'test_case_runs', 'case_run_id' );
@@ -229,7 +232,7 @@ sub store {
 
 =head2 clone
 
-Creates a copy of this caserun
+Creates a copy of this caserun and sets it as the current record
 
 =cut
 
@@ -242,7 +245,7 @@ sub clone {
     my $columns = join(", ", grep {$_ ne 'case_run_id'} DB_COLUMNS);
 
     my $dbh = Bugzilla->dbh;    
-    $dbh->do("INSERT INTO test_case_runs ($columns) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+    $dbh->do("INSERT INTO test_case_runs ($columns) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
               undef,
               ($run_id,                       # run_id
                $case_id,                      # case_id
@@ -255,11 +258,13 @@ sub clone {
                undef,                         # notes
                undef,                         # running_date
                undef,                         # close_date
+               1,                             # iscurrent
                0,                             # sortkey
               ));
 
     my $key = $dbh->bz_last_key( 'test_case_runs', 'case_run_id' );
     
+    $self->set_as_current($key);
     return $key;
 }
 
@@ -296,8 +301,26 @@ sub switch {
        my $oldbuild = $self->{'build_id'};
        my $oldenv = $self->{'environment_id'};
        
-       $self = Bugzilla::Testopia::TestCaseRun->new($self->clone($build_id,$env_id));     
+       $self = Bugzilla::Testopia::TestCaseRun->new($self->clone($build_id,$env_id));
+       
+       if ($oldbuild != $build_id){
+           my $build = Bugzilla::Testopia::Build->new($oldbuild);
+           my $note  = "Build Changed by ". Bugzilla->user->login; 
+              $note .= ". Old build: '". $build->name;
+              $note .= "' New build: '". $self->build->name;
+              $note .= "'. Resetting to IDLE.";
+           $self->append_note($note);
+       }
+       if ($oldenv != $env_id){
+           my $environment = Bugzilla::Testopia::Environment->new($oldenv);
+           my $note  = "Environment Changed by ". Bugzilla->user->login;
+              $note .= ". Old environment: '". $environment->name;
+              $note .= "' New environment: '". $self->environment->name;
+              $note .= "'. Resetting to IDLE.";
+           $self->append_note($note);
+       }
    }
+   $self->set_as_current; 
    return $self;
 }
 
@@ -329,6 +352,32 @@ sub _update_fields{
     $dbh->bz_unlock_tables();
 
     return $self->{'case_run_id'};   
+}
+
+=head2 set_as_current
+
+Sets this case-run as the current or active one in the history
+list of case-runs of this build and case_id
+
+=cut
+
+sub set_as_current {
+    my $self = shift;
+    my ($caserun) = @_;
+    $caserun = $self->{'case_run_id'} unless defined $caserun;
+    my $dbh = Bugzilla->dbh;
+
+    $dbh->bz_lock_tables('test_case_runs WRITE');
+    $dbh->do("UPDATE test_case_runs
+              SET iscurrent = 0
+              WHERE case_id = ? AND run_id = ?",
+              undef, ($self->case_id, $self->run_id));
+              
+    $dbh->do("UPDATE test_case_runs
+              SET iscurrent = 1
+              WHERE case_run_id = ?",
+              undef, $caserun);
+    $dbh->bz_unlock_tables;
 }
 
 =head2 set_status
@@ -369,6 +418,7 @@ sub set_status {
     }
     
     my $note = "Status changed from $oldstatus to $newstatus by ". Bugzilla->user->login;
+    $note .= " for build '". $self->build->name ."' and environment '". $self->environment->name; 
     $self->append_note($note);
     $self->{'case_run_status_id'} = $status_id;
     $self->{'status'} = undef;
@@ -380,8 +430,8 @@ sub set_sortkey {
     my $dbh = Bugzilla->dbh;
     
     $dbh->do("UPDATE test_case_runs SET sortkey = ?
-              WHERE case_run_id = ?",
-              undef, ($sortkey, $self->id));
+              WHERE case_id = ? AND run_id = ?",
+              undef, ($sortkey, $self->case_id, $self->run_id));
     
 }
 
@@ -403,6 +453,8 @@ sub set_assignee {
     
     my $note = "Assignee changed from $oldassignee to ". $newassignee->login;
     $note   .= " by ". Bugzilla->user->login;
+    $note   .= " for build '". $self->build->name;
+    $note   .= "' and environment '". $self->environment->name;
     $self->append_note($note);
 }
 
@@ -465,8 +517,8 @@ sub append_note {
 
 Private method for updating blocked test cases. If the pre-requisite 
 case fails, the blocked test cases in a run get a status of BLOCKED
-if it passes they are set back to IDLE. This only happens if it doesn't 
-already have a closed status.
+if it passes they are set back to IDLE. This only happens to the
+current case run and only if it doesn't already have a closed status.
 =cut
  
 sub _update_deps {
@@ -480,7 +532,8 @@ sub _update_deps {
     my $caseruns = $dbh->selectcol_arrayref(
        "SELECT case_run_id 
           FROM test_case_runs    
-         WHERE run_id = ? 
+         WHERE iscurrent = 1 
+           AND run_id = ? 
            AND case_run_status_id IN(". join(',', (IDLE,RUNNING,PAUSED,BLOCKED)) .") 
            AND case_id IN (". join(',', @$deplist) .")",
            undef, $self->{'run_id'});
@@ -701,6 +754,10 @@ Returns the notes of the object
 
 Returns the time stamp of when this case-run was closed
 
+=head2 iscurrent
+
+Returns true if this is the current case-run in the history list
+
 =head2 status_id
 
 Returns the status id of the object
@@ -729,6 +786,7 @@ sub assignee          { return Bugzilla::User->new($_[0]->{'assignee'});   }
 sub case_text_version { return $_[0]->{'case_text_version'};   }
 sub running_date      { return $_[0]->{'running_date'};   }
 sub close_date        { return $_[0]->{'close_date'};   }
+sub iscurrent         { return $_[0]->{'iscurrent'};   }
 sub status_id         { return $_[0]->{'case_run_status_id'};   }
 sub sortkey           { return $_[0]->{'sortkey'};   }
 sub isprivate         { return $_[0]->{'isprivate'};   }
@@ -758,8 +816,9 @@ sub notes {
     my $notes = $dbh->selectcol_arrayref(
             "SELECT notes
                FROM test_case_runs
-              WHERE case_run_id = ?",
-           undef,($self->id));
+              WHERE case_id = ? AND run_id = ?
+           ORDER BY case_run_id",
+           undef,($self->case_id, $self->run_id));
     
     return join("\n", @$notes);
 }

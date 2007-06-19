@@ -1290,7 +1290,7 @@ sub test_case_run_count {
         "SELECT count(case_run_id) FROM test_case_runs 
          INNER JOIN test_runs ON test_case_runs.run_id = test_runs.run_id
          INNER JOIN test_plans ON test_runs.plan_id = test_plans.plan_id
-         WHERE test_plans.plan_id = ?";
+         WHERE test_case_runs.iscurrent = 1 AND test_plans.plan_id = ?";
        $query .= " AND test_case_runs.case_run_status_id = ?" if $status_id;
     my $count;
     if ($status_id){
@@ -1311,7 +1311,7 @@ sub builds_seen {
         "SELECT DISTINCT test_case_runs.build_id 
            FROM test_case_runs
      INNER JOIN test_runs ON test_case_runs.run_id = test_runs.run_id
-          WHERE test_runs.plan_id = ?",
+          WHERE test_runs.plan_id = ? AND test_case_runs.iscurrent = 1",
           undef,$self->id);
     
     my @o;      
@@ -1329,7 +1329,7 @@ sub environments_seen {
         "SELECT DISTINCT test_case_runs.environment_id 
            FROM test_case_runs
      INNER JOIN test_runs ON test_case_runs.run_id = test_runs.run_id
-          WHERE test_runs.plan_id = ?",
+          WHERE test_runs.plan_id = ? AND test_case_runs.iscurrent = 1",
           undef,$self->id);
           
     my @o; 

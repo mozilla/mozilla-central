@@ -105,6 +105,7 @@ $schema->{test_case_runs} = {
         running_date        => {TYPE => 'DATETIME'},
         close_date          => {TYPE => 'DATETIME'},
         notes               => {TYPE => 'TEXT'},
+        iscurrent           => {TYPE => 'BOOLEAN', NOTNULL => 1, DEFAULT => '0'},
         sortkey             => {TYPE => 'INT4'},
         environment_id      => {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1},
     ],
