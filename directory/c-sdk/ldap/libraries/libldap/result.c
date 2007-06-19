@@ -639,6 +639,7 @@ read1msg( LDAP *ld, int msgid, int all, Sockbuf *sb, LDAPConn *lc,
 	if ( id != LDAP_RES_UNSOLICITED && ( tag == LDAP_RES_SEARCH_REFERENCE ||
 	    tag != LDAP_RES_SEARCH_ENTRY )) {
 		int		refchasing, reftotal, simple_request = 0;
+		LDAPControl **ctrls = NULL;
 
 		check_for_refs( ld, lr, ber, lc->lconn_version, &reftotal,
 		    &refchasing );
@@ -695,6 +696,13 @@ read1msg( LDAP *ld, int msgid, int all, Sockbuf *sb, LDAPConn *lc,
 			 * into the parent.
 			 */
 			if ( has_parent ) {
+				/* Extract any response controls from ber before ditching it */
+				if( nsldapi_find_controls( ber, &ctrls ) != LDAP_SUCCESS ) {
+					ber_free( ber, 1 );
+					LDAP_SET_LDERRNO( ld, LDAP_DECODING_ERROR, NULL, NULL );
+					return( NSLDAPI_RESULT_ERROR );
+				}
+
 				ber_free( ber, 1 );
 				ber = NULLBER;
 			}
@@ -706,6 +714,19 @@ read1msg( LDAP *ld, int msgid, int all, Sockbuf *sb, LDAPConn *lc,
 				if ( !NSLDAPI_REQUEST_COMPLETE(lr)) {
 					break;
 				}
+			}
+			/* Stash response controls in original request so they can be baked
+			   into the manufactured result message later */
+			if( ctrls != NULL ) {
+				if( lr->lr_res_ctrls != NULL ) {
+					/* There are controls saved in original request already,
+					   replace them with the new ones because we only save
+					   the final controls received.
+					   May want to arrange for merging intermediate response
+					   controls into the array in the future */
+					ldap_controls_free( lr->lr_res_ctrls );
+				}
+				lr->lr_res_ctrls = ctrls;
 			}
 
 			/*
@@ -1048,10 +1069,15 @@ build_result_ber( LDAP *ld, BerElement **berp, LDAPRequest *lr )
 		return( err );
 	}
 	*berp = ber;
-	if ( ber_printf( ber, "{it{ess}}", lr->lr_msgid,
-	    lr->lr_res_msgtype, lr->lr_res_errno,
+	if ( ber_printf( ber, lr->lr_res_ctrls ? "{it{ess}" : "{it{ess}}",
+	    lr->lr_msgid, (long)lr->lr_res_msgtype, lr->lr_res_errno,
 	    lr->lr_res_matched ? lr->lr_res_matched : "",
 	    lr->lr_res_error ? lr->lr_res_error : "" ) == -1 ) {
+		return( LDAP_ENCODING_ERROR );
+	}
+
+	if ( NULL != lr->lr_res_ctrls && nsldapi_put_controls( ld,
+	    lr->lr_res_ctrls, 1 /* close seq */, ber ) != LDAP_SUCCESS ) {
 		return( LDAP_ENCODING_ERROR );
 	}
 

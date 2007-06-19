@@ -1035,6 +1035,10 @@ nsldapi_free_request( LDAP *ld, LDAPRequest *lr, int free_conn )
 	if ( lr->lr_binddn != NULL ) {
 		NSLDAPI_FREE( lr->lr_binddn );
 	}
+
+	if ( lr->lr_res_ctrls != NULL ) {
+		ldap_controls_free( lr->lr_res_ctrls );
+	}
 	NSLDAPI_FREE( lr );
 }
 

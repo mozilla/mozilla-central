@@ -272,6 +272,32 @@ free_and_return:;
 	return( rc );
 }
 
+/*
+ * Skips forward in a ber to find a control tag, then calls on
+ * nsldapi_get_controls() to parse them into an LDAPControl list.
+ * Returns an LDAP error code.
+ */
+int
+nsldapi_find_controls( BerElement *ber, LDAPControl ***controlsp )
+{
+	unsigned long tag, len;
+
+	if ( ber == NULLBER ) {
+		return( LDAP_DECODING_ERROR );
+	}
+
+	tag = ber_peek_tag( ber, &len );
+
+	while( tag != LDAP_TAG_CONTROLS && tag != LBER_DEFAULT ) {
+		tag = ber_skip_tag( ber, &len );
+		/* Skip ahead to the next sequence */
+		ber->ber_ptr += len;
+		tag = ber_peek_tag( ber, &len );
+	}
+
+	return( nsldapi_get_controls( ber, controlsp ) );
+}
+
 
 void
 LDAP_CALL

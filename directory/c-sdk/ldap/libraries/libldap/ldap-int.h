@@ -235,6 +235,7 @@ typedef struct ldapreq {
 	struct ldapreq	*lr_sibling;	/* next referral spawned */
 	struct ldapreq	*lr_prev;	/* ld->ld_requests previous request */
 	struct ldapreq	*lr_next;	/* ld->ld_requests next request */
+	LDAPControl	**lr_res_ctrls; /* result controls */
 } LDAPRequest;
 
 typedef struct ldappend {
@@ -829,6 +830,7 @@ struct hostent *nsldapi_compat_gethostbyname_r( const char *name,
 int nsldapi_put_controls( LDAP *ld, LDAPControl **ctrls, int closeseq,
 	BerElement *ber );
 int nsldapi_get_controls( BerElement *ber, LDAPControl ***controlsp );
+int nsldapi_find_controls( BerElement *ber, LDAPControl ***controlsp );
 int nsldapi_dup_controls( LDAP *ld, LDAPControl ***ldctrls,
 	LDAPControl **newctrls );
 int nsldapi_build_control( char *oid, BerElement *ber, int freeber,
