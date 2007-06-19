@@ -241,7 +241,8 @@ nsProfileMigrator::GetSuiteMigratorKey(nsACString& aKey,
   if (!internalName.IsEmpty()) {
     PRUint32 i;
     for (i = 0; i < NS_ARRAY_LENGTH(nameMap); ++i) {
-      if (internalName.LowerCaseEquals(nameMap[i].internalName)) {
+      if (internalName.Equals(NS_ConvertUTF8toUTF16(nameMap[i].internalName),
+                              CaseInsensitiveCompare)) {
         aKey.Assign(nameMap[i].key);
         break;
       }
