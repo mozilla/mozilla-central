@@ -103,6 +103,7 @@ static KeyTypes keyArray[] = {
     { CKK_JUNIPER, CKM_JUNIPER_CBC128, CKM_JUNIPER_WRAP, "juniper" },
     { CKK_CDMF, CKM_CDMF_CBC, CKM_CDMF_ECB, "cdmf" },
     { CKK_AES, CKM_AES_CBC, CKM_AES_ECB, "aes" },
+    { CKK_CAMELLIA, CKM_CAMELLIA_CBC, CKM_CAMELLIA_ECB, "camellia" },
 };
 
 static int keyArraySize = sizeof(keyArray)/sizeof(keyArray[0]);

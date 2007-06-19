@@ -130,7 +130,7 @@ OPTIONS
                      are:
 			generic, rc2, rc4, des, des2, des3, cast, cast3,
                         cast5, cast128, rc5, idea, skipjack, baton, juniper,
-                        cdmf, aes
+                        cdmf, aes, camellia
 
                      Not all tokens support all key types. The generic key
                      type is usually used in MACing and key derivation 
