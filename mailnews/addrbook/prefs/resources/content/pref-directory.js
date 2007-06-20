@@ -288,14 +288,21 @@ function newDirectory()
 
 function editDirectory()
 {
-  var args = { selectedDirectory: null,
-               selectedDirectoryString: null,
-               result: false};
   if(gCurrentDirectoryServer && gCurrentDirectoryServerId) {
-    args.selectedDirectory = gCurrentDirectoryServer;
-    args.selectedDirectoryString = gCurrentDirectoryServerId;
+    var RDF = Components.classes["@mozilla.org/rdf/rdf-service;1"]
+                      .getService(Components.interfaces.nsIRDFService);
+
+    // get the datasource for the addressdirectory
+    var addressbookDS = RDF.GetDataSource("rdf:addressdirectory");
+
+    // the RDF resource URI for LDAPDirectory will be moz-abldapdirectory://<prefName>
+    var selectedABURI = "moz-abldapdirectory://" + gCurrentDirectoryServerId;
+    var selectedABDirectory = RDF.GetResource(selectedABURI)
+                                 .QueryInterface(Components.interfaces.nsIAbDirectory);
     window.openDialog("chrome://messenger/content/addressbook/pref-directory-add.xul",
-                      "editDirectory", "chrome,modal=yes,resizable=no,centerscreen", args);
+                      "editDirectory",
+                      "chrome,modal=yes,resizable=no,centerscreen",
+                      { selectedDirectory: selectedABDirectory });
   }
   if(gUpdate) 
   {

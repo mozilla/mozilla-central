@@ -288,11 +288,8 @@ function AbEditSelectedDirectory()
     }
     else {
       if (directory instanceof Components.interfaces.nsIAbLDAPDirectory) {
-        var args = { selectedDirectory: directory.dirName,
-                     selectedDirectoryString: null};
-        args.selectedDirectoryString = selecteduri.substr(kLdapUrlPrefix.length);
         window.openDialog("chrome://messenger/content/addressbook/pref-directory-add.xul",
-                      "editDirectory", "chrome,modal=yes,resizable=no,centerscreen", args);
+                      "editDirectory", "chrome,modal=yes,resizable=no,centerscreen", { selectedDirectory: directory });
       }
       else {
         AbRenameAddressBook();

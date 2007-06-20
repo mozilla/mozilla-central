@@ -1,7 +1,6 @@
 /* -*- Mode: Java; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 var gPrefInt = null;
 var gCurrentDirectory = null;
-var gCurrentDirectoryString = null;
 var gReplicationBundle = null;
 var gReplicationService =
   Components.classes["@mozilla.org/addressbook/ldap-replication-service;1"].
@@ -38,7 +37,6 @@ function Startup()
 
   if ( "arguments" in window && window.arguments[0] ) {
     gCurrentDirectory = window.arguments[0].selectedDirectory;
-    gCurrentDirectoryString = window.arguments[0].selectedDirectoryString;
     try {
       fillSettings();
     } catch (ex) {
@@ -48,7 +46,8 @@ function Startup()
 
     // Only set up the download button for online/offline status toggling
     // if the pref isn't locked to disable the button.
-    if (!gPrefInt.prefIsLocked(gCurrentDirectoryString + ".disable_button_download")) {
+    if (!gPrefInt.prefIsLocked(gCurrentDirectory.dirPrefId +
+                               ".disable_button_download")) {
       // Now connect to the offline/online observer
       var observerService = Components.classes["@mozilla.org/observer-service;1"]
                                       .getService(Components.interfaces.nsIObserverService);
@@ -71,7 +70,8 @@ function onUnload()
 {
   if ("arguments" in window && 
       window.arguments[0] &&
-      !gPrefInt.prefIsLocked(gCurrentDirectoryString + ".disable_button_download")) {
+      !gPrefInt.prefIsLocked(gCurrentDirectory.dirPrefId +
+                             ".disable_button_download")) {
     // Remove the observer that we put in on dialog startup
     var observerService = Components.classes["@mozilla.org/observer-service;1"]
                                     .getService(Components.interfaces.nsIObserverService);
@@ -135,7 +135,7 @@ function DownloadNow()
     gReplicationCancelled = false;
 
     try {
-      gReplicationService.startReplication(gCurrentDirectoryString,
+      gReplicationService.startReplication(gCurrentDirectory.dirPrefId,
                                            progressListener);
     }
     catch (ex) {
@@ -144,7 +144,7 @@ function DownloadNow()
   } else {
     gReplicationCancelled = true;
     try {
-      gReplicationService.cancelReplication(gCurrentDirectoryString);
+      gReplicationService.cancelReplication(gCurrentDirectory.dirPrefId);
     }
     catch (ex) {
       // XXX todo
@@ -177,66 +177,39 @@ function EndDownload(aStatus)
 //
 function fillSettings()
 {
-  var ldapUrl = Components.classes["@mozilla.org/network/ldap-url;1"];
-  ldapUrl = ldapUrl.createInstance().
-    QueryInterface(Components.interfaces.nsILDAPURL);
+  document.getElementById("description").value = gCurrentDirectory.dirName;
 
-  try {
-    var prefValue = 
-      gPrefInt.getComplexValue(gCurrentDirectoryString + ".description",
-                               Components.interfaces.nsISupportsString).data;
-  } catch(ex) {
-    prefValue="";
-  }
-  
-  document.getElementById("description").value = prefValue;
-  ldapUrl.spec = gPrefInt.getComplexValue(gCurrentDirectoryString +".uri",
-                                          Components.interfaces.
-                                          nsISupportsString).data;
+  if (gCurrentDirectory instanceof Components.interfaces.nsIAbLDAPDirectory) {
+    var ldapUrl = gCurrentDirectory.lDAPURL;
 
-  document.getElementById("hostname").value = ldapUrl.host;
-  document.getElementById("port").value = ldapUrl.port;
+    document.getElementById("results").value = gCurrentDirectory.maxHits;
+    document.getElementById("login").value = gCurrentDirectory.authDn;
+    document.getElementById("hostname").value = ldapUrl.host;
+    document.getElementById("port").value = ldapUrl.port;
+    document.getElementById("basedn").value = ldapUrl.dn;
+    document.getElementById("search").value = ldapUrl.filter;
 
-  document.getElementById("basedn").value = ldapUrl.dn;
-  document.getElementById("search").value = ldapUrl.filter;
-
-  var sub = document.getElementById("sub");
-  switch(ldapUrl.scope) {
-  case Components.interfaces.nsILDAPURL.SCOPE_ONELEVEL:
-    sub.radioGroup.selectedItem = document.getElementById("one");
-    break;
-  default:
-    sub.radioGroup.selectedItem = sub;
-    break;
-  }
+    var sub = document.getElementById("sub");
+    switch(ldapUrl.scope) {
+    case Components.interfaces.nsILDAPURL.SCOPE_ONELEVEL:
+      sub.radioGroup.selectedItem = document.getElementById("one");
+      break;
+    default:
+      sub.radioGroup.selectedItem = sub;
+      break;
+    }
     
-  if (ldapUrl.options & ldapUrl.OPT_SECURE) {
-    document.getElementById("secure").setAttribute("checked", "true");
+    if (ldapUrl.options & ldapUrl.OPT_SECURE)
+      document.getElementById("secure").setAttribute("checked", "true");
   }
-
-  try {
-    prefValue = gPrefInt.getIntPref(gCurrentDirectoryString + ".maxHits");
-  } catch(ex) {
-    prefValue = kDefaultMaxHits;
-  }
-  document.getElementById("results").value = prefValue;
-
-  try {
-    prefValue = 
-      gPrefInt.getComplexValue(gCurrentDirectoryString + ".auth.dn",
-                               Components.interfaces.nsISupportsString).data;
-  } catch(ex) {
-    prefValue="";
-  }
-  document.getElementById("login").value = prefValue;
 
   // check if any of the preferences for this server are locked.
   //If they are locked disable them
-  DisableUriFields(gCurrentDirectoryString + ".uri");
-  DisableElementIfPrefIsLocked(gCurrentDirectoryString + ".description", "description");
-  DisableElementIfPrefIsLocked(gCurrentDirectoryString + ".disable_button_download", "download");
-  DisableElementIfPrefIsLocked(gCurrentDirectoryString + ".maxHits", "results");
-  DisableElementIfPrefIsLocked(gCurrentDirectoryString + ".auth.dn", "login");
+  DisableUriFields(gCurrentDirectory.dirPrefId + ".uri");
+  DisableElementIfPrefIsLocked(gCurrentDirectory.dirPrefId + ".description", "description");
+  DisableElementIfPrefIsLocked(gCurrentDirectory.dirPrefId + ".disable_button_download", "download");
+  DisableElementIfPrefIsLocked(gCurrentDirectory.dirPrefId + ".maxHits", "results");
+  DisableElementIfPrefIsLocked(gCurrentDirectory.dirPrefId + ".auth.dn", "login");
 }
 
 function DisableElementIfPrefIsLocked(aPrefName, aElementId)
@@ -257,11 +230,9 @@ function DisableUriFields(aPrefName)
 
 function onSecure()
 {
-  var port = document.getElementById("port");
-  if (document.getElementById("secure").checked)
-      port.value = kDefaultSecureLDAPPort;
-  else
-    port.value = kDefaultLDAPPort;
+  document.getElementById("port").value =
+    document.getElementById("secure").checked ? kDefaultSecureLDAPPort :
+                                                kDefaultLDAPPort;
 }
 
 function fillDefaultSettings()
@@ -360,23 +331,20 @@ function onAccept()
                           .getService(Components.interfaces.nsIRDFService);
 
       // check if we are modifying an existing directory or adding a new directory
-      if (gCurrentDirectory && gCurrentDirectoryString) {
+      if (gCurrentDirectory) {
         // we are modifying an existing directory
 
         // get the datasource for the addressdirectory
         var addressbookDS = RDF.GetDataSource("rdf:addressdirectory");
 
         // moz-abdirectory:// is the RDF root to get all types of addressbooks.
-        var parentDir = RDF.GetResource("moz-abdirectory://").QueryInterface(Components.interfaces.nsIAbDirectory);
+        var parentDir = RDF.GetResource("moz-abdirectory://")
+                           .QueryInterface(Components.interfaces.nsIAbDirectory);
 
-        // the RDF resource URI for LDAPDirectory will be moz-abldapdirectory://<prefName>
-        var selectedABURI = "moz-abldapdirectory://" + gCurrentDirectoryString;
-        var selectedABDirectory = RDF.GetResource(selectedABURI)
-          .QueryInterface(Components.interfaces.nsIAbDirectory);
- 
         // Now do the modification.
-        addressbook.modifyAddressBook(addressbookDS, parentDir, selectedABDirectory, properties);
-        window.opener.gNewServerString = gCurrentDirectoryString;       
+        addressbook.modifyAddressBook(addressbookDS, parentDir,
+                                      gCurrentDirectory, properties);
+        window.opener.gNewServerString = gCurrentDirectory.dirPrefId;       
       }
       else { // adding a new directory
         addressbook.newAddressBook(properties);
