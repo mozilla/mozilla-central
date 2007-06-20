@@ -1768,13 +1768,10 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
       CopyUTF8toUTF16(decodedCString, subject);
 
       // Check if (was: is present in the subject
-      nsAString::const_iterator wasStart, wasEnd;
-      subject.BeginReading(wasStart);
-      subject.EndReading(wasEnd);
-      PRBool wasFound = RFindInReadable(NS_LITERAL_STRING(" (was:"), wasStart, wasEnd);
+      PRInt32 wasOffset = subject.RFind(NS_LITERAL_STRING(" (was:"));
       PRBool strip = PR_TRUE;
 
-      if (wasFound) {
+      if (wasOffset >= 0) {
         // Check the number of references, to check if was: should be stripped
         // First, assume that it should be stripped; the variable will be set to
         // false later if stripping should not happen.
@@ -1800,10 +1797,7 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
                 nsCString refSubject;
                 rv = refHdr->GetSubject(getter_Copies(refSubject));
                 if (NS_SUCCEEDED(rv)) {
-                  nsACString::const_iterator start, end;
-                  refSubject.BeginReading(start);
-                  refSubject.EndReading(end);
-                  if (FindInReadable(NS_LITERAL_CSTRING(" (was:"), start, end))
+                  if (refSubject.Find(" (was:") >= 0)
                     strip = PR_FALSE;
                 }
               }
@@ -1814,11 +1808,9 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
           strip = PR_FALSE;
       }
 
-      if (strip && wasFound) {
+      if (strip && wasOffset >= 0) {
         // Strip off the "(was: old subject)" part
-        nsAString::const_iterator start;
-        subject.BeginReading(start);
-        subject.Assign(Substring(start, wasStart));
+        subject.Assign(Substring(subject, 0, wasOffset));
       }
 
       switch (type)
@@ -3636,13 +3628,9 @@ nsMsgCompose::LoadDataFromFile(nsILocalFile *file, nsString &sigData,
   {
     nsAutoString metaCharset(NS_LITERAL_STRING("charset="));
     AppendASCIItoUTF16(sigEncoding, metaCharset);
-    nsAString::const_iterator realstart, start, end;
-    sigData.BeginReading(start);
-    sigData.EndReading(end);
-    realstart = start;
-    if (FindInReadable(metaCharset, start, end,
-                       nsCaseInsensitiveStringComparator()))
-      sigData.Cut(Distance(realstart, start), Distance(start, end));
+    PRInt32 offset = sigData.Find(metaCharset, PR_TRUE);
+    if (offset >= 0)
+      sigData.Cut(offset, metaCharset.Length());
   }
 
   return NS_OK;
@@ -4498,10 +4486,10 @@ NS_IMETHODIMP nsMsgCompose::CheckAndPopulateRecipients(PRBool populateMailList, 
             if (atPos >= 0)
             {
               recipient->mEmail.Right(domain, recipient->mEmail.Length() - atPos - 1);
-              if (FindInReadable(domain, plaintextDomains, nsCaseInsensitiveStringComparator()))
+              if (plaintextDomains.Find(domain, PR_TRUE) >= 0)
                 recipient->mPreferFormat = nsIAbPreferMailFormat::plaintext;
               else
-                if (FindInReadable(domain, htmlDomains, nsCaseInsensitiveStringComparator()))
+                if (htmlDomains.Find(domain, PR_TRUE) >= 0)
                   recipient->mPreferFormat = nsIAbPreferMailFormat::html;
             }
           }

@@ -643,7 +643,7 @@ nsMessenger::LoadURL(nsIDOMWindowInternal *aWin, const char *aURL)
     loadingFromFile = PR_TRUE;
     getDummyMsgHdr = PR_TRUE;
   }
-  else if (FindInReadable(NS_LITERAL_STRING("type=application/x-message-display"), uriString))
+  else if (uriString.Find("type=application/x-message-display") >= 0)
     getDummyMsgHdr = PR_TRUE;
 
   nsCOMPtr<nsIURI> uri;

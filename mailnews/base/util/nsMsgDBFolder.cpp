@@ -4839,15 +4839,13 @@ NS_IMETHODIMP nsMsgDBFolder::GetMsgTextFromStream(nsIMsgDBHdr *msgHdr, nsIInputS
         nsCOMPtr<nsIMIMEHeaderParam> mimehdrpar = do_GetService(NS_MIMEHEADERPARAM_CONTRACTID, &rv);
         if (NS_SUCCEEDED(rv) && charset.IsEmpty())
           mimehdrpar->GetParameter(curLine, "charset", EmptyCString(), false, nsnull, charset);
-        if (FindInReadable(NS_LITERAL_CSTRING("text/html"), curLine,
-                           nsCaseInsensitiveCStringComparator()))
+        if (curLine.Find("text/html", PR_TRUE) >= 0)
           msgBodyIsHtml = PR_TRUE;
-        else if (FindInReadable(NS_LITERAL_CSTRING("multipart/"), curLine,
-                                nsCaseInsensitiveCStringComparator()))
+        else if (curLine.Find("multipart/", PR_TRUE) >= 0)
           lookingForBoundary = PR_TRUE;
       }
       else if (StringBeginsWith(curLine, NS_LITERAL_CSTRING("Content-Transfer-Encoding:"),
-                           nsCaseInsensitiveCStringComparator()))
+               nsCaseInsensitiveCStringComparator()))
       {
         curLine.Right(encoding, curLine.Length() - 27);
         if (encoding.EqualsLiteral("base64"))

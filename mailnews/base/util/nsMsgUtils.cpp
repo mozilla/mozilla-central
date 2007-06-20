@@ -86,7 +86,7 @@ static NS_DEFINE_CID(kCMailboxUrl, NS_MAILBOXURL_CID);
 static NS_DEFINE_CID(kCNntpUrlCID, NS_NNTPURL_CID);
 
 #define ILLEGAL_FOLDER_CHARS ";#"
-#define ILLEGAL_FOLDER_CHARS_AS_FIRST_LETTER "." 
+#define ILLEGAL_FOLDER_CHARS_AS_FIRST_LETTER "."
 #define ILLEGAL_FOLDER_CHARS_AS_LAST_LETTER  ".~ "
 
 #define NS_PASSWORDMANAGER_CATEGORY "passwordmanager"
@@ -143,16 +143,16 @@ nsresult CreateStartupUrl(const char *uri, nsIURI** aUrl)
   nsresult rv = NS_ERROR_NULL_POINTER;
   if (!uri || !*uri || !aUrl) return rv;
   *aUrl = nsnull;
-  
+
   // XXX fix this, so that base doesn't depend on imap, local or news.
   // we can't do NS_NewURI(uri, aUrl), because these are imap-message://, mailbox-message://, news-message:// uris.
-  // I think we should do something like GetMessageServiceFromURI() to get the service, and then have the service create the 
+  // I think we should do something like GetMessageServiceFromURI() to get the service, and then have the service create the
   // appropriate nsI*Url, and then QI to nsIURI, and return it.
   // see bug #110689
   if (PL_strncasecmp(uri, "imap", 4) == 0)
   {
     nsCOMPtr<nsIImapUrl> imapUrl = do_CreateInstance(kImapUrlCID, &rv);
-    
+
     if (NS_SUCCEEDED(rv) && imapUrl)
       rv = imapUrl->QueryInterface(NS_GET_IID(nsIURI),
       (void**) aUrl);
@@ -296,7 +296,7 @@ static PRUint32 StringHash(const char *ubuf, PRInt32 len = -1)
 {
   unsigned char * buf = (unsigned char*) ubuf;
   PRUint32 h=1;
-  unsigned char *end = buf + (len == -1 ? strlen(ubuf) : len); 
+  unsigned char *end = buf + (len == -1 ? strlen(ubuf) : len);
   while(buf < end) {
     h = 0x63c63cd9*h + 0x9c39c33d + (int32)*buf;
     buf++;
@@ -333,21 +333,21 @@ static PRBool ConvertibleToNative(const nsAutoString& str)
 
 nsresult NS_MsgHashIfNecessary(nsCAutoString &name)
 {
-  NS_NAMED_LITERAL_CSTRING (illegalChars, 
+  NS_NAMED_LITERAL_CSTRING (illegalChars,
                             FILE_PATH_SEPARATOR FILE_ILLEGAL_CHARACTERS ILLEGAL_FOLDER_CHARS);
   nsCAutoString str(name);
 
   // Given a filename, make it safe for filesystem
-  // certain filenames require hashing because they 
+  // certain filenames require hashing because they
   // are too long or contain illegal characters
   PRInt32 illegalCharacterIndex = str.FindCharInSet(illegalChars);
 
   // Need to check the first ('.') and last ('.', '~' and ' ') char
-  if (illegalCharacterIndex == kNotFound) 
+  if (illegalCharacterIndex == kNotFound)
   {
 	NS_NAMED_LITERAL_CSTRING (illegalFirstChars, ILLEGAL_FOLDER_CHARS_AS_FIRST_LETTER);
 	NS_NAMED_LITERAL_CSTRING (illegalLastChars, ILLEGAL_FOLDER_CHARS_AS_LAST_LETTER);
-	  
+
     PRInt32 lastIndex = str.Length() - 1;
     if(str.FindCharInSet(illegalFirstChars) == 0)
 	  illegalCharacterIndex = 0;
@@ -358,11 +358,11 @@ nsresult NS_MsgHashIfNecessary(nsCAutoString &name)
   }
 
   char hashedname[MAX_LEN + 1];
-  if (illegalCharacterIndex == kNotFound) 
+  if (illegalCharacterIndex == kNotFound)
   {
     // no illegal chars, it's just too long
     // keep the initial part of the string, but hash to make it fit
-    if (str.Length() > MAX_LEN) 
+    if (str.Length() > MAX_LEN)
     {
       PL_strncpy(hashedname, str.get(), MAX_LEN + 1);
       PR_snprintf(hashedname + MAX_LEN - 8, 9, "%08lx",
@@ -370,7 +370,7 @@ nsresult NS_MsgHashIfNecessary(nsCAutoString &name)
       name = hashedname;
     }
   }
-  else 
+  else
   {
       // found illegal chars, hash the whole thing
       // if we do substitution, then hash, two strings
@@ -382,7 +382,7 @@ nsresult NS_MsgHashIfNecessary(nsCAutoString &name)
                 (unsigned long) StringHash(str.get()));
       name = hashedname;
   }
-  
+
   return NS_OK;
 }
 
@@ -397,11 +397,11 @@ nsresult NS_MsgHashIfNecessary(nsAutoString &name)
                                   FILE_PATH_SEPARATOR FILE_ILLEGAL_CHARACTERS ILLEGAL_FOLDER_CHARS);
 
   // Need to check the first ('.') and last ('.', '~' and ' ') char
-  if (illegalCharacterIndex == kNotFound) 
+  if (illegalCharacterIndex == kNotFound)
   {
 	NS_NAMED_LITERAL_STRING (illegalFirstChars, ILLEGAL_FOLDER_CHARS_AS_FIRST_LETTER);
 	NS_NAMED_LITERAL_STRING (illegalLastChars, ILLEGAL_FOLDER_CHARS_AS_LAST_LETTER);
-	  
+
     PRInt32 lastIndex = name.Length() - 1;
     if(name.FindCharInSet(illegalFirstChars) == 0)
 	  illegalCharacterIndex = 0;
@@ -413,13 +413,13 @@ nsresult NS_MsgHashIfNecessary(nsAutoString &name)
 
   char hashedname[9];
   PRInt32 keptLength = -1;
-  if (illegalCharacterIndex != kNotFound) 
+  if (illegalCharacterIndex != kNotFound)
       keptLength = illegalCharacterIndex;
   else if (!ConvertibleToNative(name))
       keptLength = 0;
-  else if (name.Length() > MAX_LEN) 
+  else if (name.Length() > MAX_LEN)
   {
-    keptLength = MAX_LEN-8; 
+    keptLength = MAX_LEN-8;
     // To avoid keeping only the high surrogate of a surrogate pair
     if (NS_IS_HIGH_SURROGATE(name.CharAt(keptLength-1)))
         --keptLength;
@@ -439,16 +439,16 @@ nsresult NS_MsgCreatePathStringFromFolderURI(const char *aFolderURI,
                                              nsCString& aPathCString,
                                              PRBool aIsNewsFolder)
 {
-  // A file name has to be in native charset. Here we convert 
-  // to UTF-16 and check for 'unsafe' characters before converting 
+  // A file name has to be in native charset. Here we convert
+  // to UTF-16 and check for 'unsafe' characters before converting
   // to native charset.
-  NS_ENSURE_TRUE(IsUTF8(nsDependentCString(aFolderURI)), NS_ERROR_UNEXPECTED); 
+  NS_ENSURE_TRUE(IsUTF8(nsDependentCString(aFolderURI)), NS_ERROR_UNEXPECTED);
   NS_ConvertUTF8toUTF16 oldPath(aFolderURI);
 
   nsAutoString pathPiece, path;
 
   PRInt32 startSlashPos = oldPath.FindChar('/');
-  PRInt32 endSlashPos = (startSlashPos >= 0) 
+  PRInt32 endSlashPos = (startSlashPos >= 0)
     ? oldPath.FindChar('/', startSlashPos + 1) - 1 : oldPath.Length() - 1;
   if (endSlashPos < 0)
     endSlashPos = oldPath.Length();
@@ -469,10 +469,10 @@ nsresult NS_MsgCreatePathStringFromFolderURI(const char *aFolderURI,
       if (aIsNewsFolder)
       {
           nsCAutoString tmp;
-          CopyUTF16toMUTF7(pathPiece, tmp); 
+          CopyUTF16toMUTF7(pathPiece, tmp);
           CopyASCIItoUTF16(tmp, pathPiece);
       }
-        
+
       NS_MsgHashIfNecessary(pathPiece);
       path += pathPiece;
       haveFirst=PR_TRUE;
@@ -480,7 +480,7 @@ nsresult NS_MsgCreatePathStringFromFolderURI(const char *aFolderURI,
     // look for the next slash
     startSlashPos = endSlashPos + 1;
 
-    endSlashPos = (startSlashPos >= 0) 
+    endSlashPos = (startSlashPos >= 0)
       ? oldPath.FindChar('/', startSlashPos + 1)  - 1: oldPath.Length() - 1;
     if (endSlashPos < 0)
       endSlashPos = oldPath.Length();
@@ -517,10 +517,10 @@ PRBool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSub
   nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   if (NS_SUCCEEDED(rv))
     prefBranch->GetCharPref("mailnews.localizedRe", getter_Copies(localizedRe));
-    
-  // hardcoded "Re" so that noone can configure Mozilla standards incompatible 
+
+  // hardcoded "Re" so that noone can configure Mozilla standards incompatible
   nsCAutoString checkString("Re,RE,re,rE");
-  if (!localizedRe.IsEmpty()) 
+  if (!localizedRe.IsEmpty())
     checkString.Append(NS_LITERAL_CSTRING(",") + localizedRe);
 
   // decode the string
@@ -551,7 +551,7 @@ PRBool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSub
     //tokenize the comma separated list
     PRSize tokenLength = 0;
     while (*tokPtr && *tokPtr != ',') {
-      tokenLength++; 
+      tokenLength++;
       tokPtr++;
     }
     //check if the beginning of s is the actual token
@@ -566,7 +566,7 @@ PRBool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSub
       else if (s[tokenLength] == '[' || s[tokenLength] == '(')
       {
         const char *s2 = s + tokenLength + 1; /* Skip over "Re[" */
-        
+
         /* Skip forward over digits after the "[". */
         while (s2 < (s_end - 2) && IS_DIGIT(*s2))
           s2++;
@@ -584,7 +584,7 @@ PRBool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSub
     if (*tokPtr)
       tokPtr++;
   }
-  
+
   if (!decodedString.IsEmpty())
   {
     // encode the string back if any modification is made
@@ -593,30 +593,30 @@ PRBool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSub
       // extract between "=?" and "?"
       // e.g. =?ISO-2022-JP?
       const char *p1 = strstr(*stringP, "=?");
-      if (p1) 
+      if (p1)
       {
         p1 += sizeof("=?")-1;         // skip "=?"
-        const char *p2 = strchr(p1, '?');   // then search for '?' 
-        if (p2) 
+        const char *p2 = strchr(p1, '?');   // then search for '?'
+        if (p2)
         {
           char charset[kMAX_CSNAME] = "";
           if (kMAX_CSNAME >= (p2 - p1))
             strncpy(charset, p1, p2 - p1);
-          rv = mimeConverter->EncodeMimePartIIStr_UTF8(s, PR_FALSE, charset, sizeof("Subject:"), 
+          rv = mimeConverter->EncodeMimePartIIStr_UTF8(s, PR_FALSE, charset, sizeof("Subject:"),
                                                        kMIME_ENCODED_WORD_SIZE, modifiedSubject);
-          if (NS_SUCCEEDED(rv)) 
+          if (NS_SUCCEEDED(rv))
             return result;
         }
       }
     }
-    else 
+    else
       s = *stringP;   // no modification, set the original encoded string
   }
 
 
   /* Decrease length by difference between current ptr and original ptr.
 	 Then store the current ptr back into the caller. */
-  if (lengthP) 
+  if (lengthP)
 	  *lengthP -= (s - (*stringP));
   *stringP = s;
 
@@ -634,12 +634,12 @@ char * NS_MsgSACopy (char **destination, const char *source)
   }
   if (! source)
     *destination = nsnull;
-  else 
+  else
   {
     *destination = (char *) PR_Malloc (PL_strlen(source) + 1);
-    if (*destination == nsnull) 
+    if (*destination == nsnull)
       return(nsnull);
-    
+
     PL_strcpy (*destination, source);
   }
   return *destination;
@@ -672,7 +672,7 @@ char * NS_MsgSACat (char **destination, const char *source)
 
 nsresult NS_MsgEscapeEncodeURLPath(const nsAString& aStr, nsCString& aResult)
 {
-  char *escapedString = nsEscape(NS_ConvertUTF16toUTF8(aStr).get(), url_Path); 
+  char *escapedString = nsEscape(NS_ConvertUTF16toUTF8(aStr).get(), url_Path);
   if (!*escapedString)
     return NS_ERROR_OUT_OF_MEMORY;
   aResult.Adopt(escapedString);
@@ -683,7 +683,7 @@ nsresult NS_MsgDecodeUnescapeURLPath(const nsACString& aPath,
                                      nsAString& aResult)
 {
   nsCAutoString unescapedName;
-  NS_UnescapeURL(nsCString(aPath), 
+  NS_UnescapeURL(nsCString(aPath),
                  esc_FileBaseName|esc_Forced|esc_AlwaysCopy,
                  unescapedName);
   CopyUTF8toUTF16(unescapedName, aResult);
@@ -782,7 +782,7 @@ nsresult EscapeFromSpaceLine(nsIOutputStream *outputStream, char *start, const c
 
 nsresult CreateServicesForPasswordManager()
 {
-  if (!gInitPasswordManager) 
+  if (!gInitPasswordManager)
   {
      // Initialize the password manager category
     gInitPasswordManager = PR_TRUE;
@@ -792,7 +792,7 @@ nsresult CreateServicesForPasswordManager()
   }
   return NS_OK;
 }
-  
+
 nsresult IsRFC822HeaderFieldName(const char *aHdr, PRBool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aHdr);
@@ -801,7 +801,7 @@ nsresult IsRFC822HeaderFieldName(const char *aHdr, PRBool *aResult)
   for(PRUint32 i=0; i<length; i++)
   {
     char c = aHdr[i];
-    if ( c < '!' || c == ':' || c > '~') 
+    if ( c < '!' || c == ':' || c > '~')
     {
       *aResult = PR_FALSE;
       return NS_OK;
@@ -818,19 +818,19 @@ GetOrCreateFolder(const nsACString &aURI, nsIUrlListener *aListener)
   nsresult rv;
   nsCOMPtr <nsIRDFService> rdf = do_GetService("@mozilla.org/rdf/rdf-service;1", &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   // get the corresponding RDF resource
   // RDF will create the folder resource if it doesn't already exist
   nsCOMPtr<nsIRDFResource> resource;
   rv = rdf->GetResource(aURI, getter_AddRefs(resource));
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   nsCOMPtr <nsIMsgFolder> folderResource;
   folderResource = do_QueryInterface(resource, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
   // don't check validity of folder - caller will handle creating it
-  nsCOMPtr<nsIMsgIncomingServer> server; 
+  nsCOMPtr<nsIMsgIncomingServer> server;
   // make sure that folder hierarchy is built so that legitimate parent-child relationship is established
   rv = folderResource->GetServer(getter_AddRefs(server));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -846,7 +846,7 @@ GetOrCreateFolder(const nsACString &aURI, nsIUrlListener *aListener)
   if (NS_FAILED(rv) || !parent)
   {
     nsCOMPtr <nsILocalFile> folderPath;
-    // for local folders, path is to the berkeley mailbox. 
+    // for local folders, path is to the berkeley mailbox.
     // for imap folders, path needs to have .msf appended to the name
     msgFolder->GetFilePath(getter_AddRefs(folderPath));
 
@@ -865,7 +865,7 @@ GetOrCreateFolder(const nsACString &aURI, nsIUrlListener *aListener)
     {
       // Hack to work around a localization bug with the Junk Folder.
       // Please see Bug #270261 for more information...
-      nsString localizedJunkName; 
+      nsString localizedJunkName;
       msgFolder->GetName(localizedJunkName);
 
       // force the junk folder name to be Junk so it gets created on disk correctly...
@@ -883,14 +883,14 @@ GetOrCreateFolder(const nsACString &aURI, nsIUrlListener *aListener)
       // we have to do this (for now)
       // because imap and local are different (one creates folder asynch, the other synch)
       // one will notify the listener, one will not.
-      // I blame nsMsgCopy.  
+      // I blame nsMsgCopy.
       // we should look into making it so no matter what the folder type
       // we always call the listener
       // this code should move into local folder's version of CreateStorageIfMissing()
       if (!isImapFolder && aListener) {
         rv = aListener->OnStartRunningUrl(nsnull);
         NS_ENSURE_SUCCESS(rv,rv);
-        
+
         rv = aListener->OnStopRunningUrl(nsnull, NS_OK);
         NS_ENSURE_SUCCESS(rv,rv);
       }
@@ -902,7 +902,7 @@ GetOrCreateFolder(const nsACString &aURI, nsIUrlListener *aListener)
     if (aListener) {
       rv = aListener->OnStartRunningUrl(nsnull);
       NS_ENSURE_SUCCESS(rv,rv);
-      
+
       rv = aListener->OnStopRunningUrl(nsnull, NS_OK);
       NS_ENSURE_SUCCESS(rv,rv);
     }
@@ -921,12 +921,12 @@ nsresult IsRSSArticle(nsIURI * aMsgURI, PRBool *aIsRSSArticle)
 
   nsCString resourceURI;
   msgUrl->GetUri(getter_Copies(resourceURI));
-  
+
   // get the msg service for this URI
   nsCOMPtr<nsIMsgMessageService> msgService;
   rv = GetMessageServiceFromURI(resourceURI.get(), getter_AddRefs(msgService));
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   nsCOMPtr<nsIMsgDBHdr> msgHdr;
   rv = msgService->MessageURIToMsgHdr(resourceURI.get(), getter_AddRefs(msgHdr));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -968,7 +968,7 @@ nsresult MSGCramMD5(const char *text, PRInt32 text_len, const char *key, PRInt32
   char outerPad[65];    /* outer padding - key XORd with outerPad */
   int i;
   /* if key is longer than 64 bytes reset it to key=MD5(key) */
-  if (key_len > 64) 
+  if (key_len > 64)
   {
 
     rv = hasher->Init(nsICryptoHash::MD5);
@@ -1085,8 +1085,8 @@ NS_MSG_BASE nsresult NS_GetPersistentFile(const char *relPrefName,
     }
 
     nsCOMPtr<nsILocalFile> localFile;
-    
-    // Get the relative first    
+
+    // Get the relative first
     nsCOMPtr<nsIRelativeFilePref> relFilePref;
     prefBranch->GetComplexValue(relPrefName,
                                 NS_GET_IID(nsIRelativeFilePref), getter_AddRefs(relFilePref));
@@ -1095,13 +1095,13 @@ NS_MSG_BASE nsresult NS_GetPersistentFile(const char *relPrefName,
         NS_ASSERTION(localFile, "An nsIRelativeFilePref has no file.");
         if (localFile)
             gotRelPref = PR_TRUE;
-    }    
-    
+    }
+
     // If not, get the old absolute
     if (!localFile) {
         prefBranch->GetComplexValue(absPrefName,
                                     NS_GET_IID(nsILocalFile), getter_AddRefs(localFile));
-                                        
+
         // If not, and given a dirServiceProp, use directory service.
         if (!localFile && dirServiceProp) {
             nsCOMPtr<nsIProperties> dirService(do_GetService("@mozilla.org/file/directory_service;1"));
@@ -1110,13 +1110,13 @@ NS_MSG_BASE nsresult NS_GetPersistentFile(const char *relPrefName,
             if (!localFile) return NS_ERROR_FAILURE;
         }
     }
-    
+
     if (localFile) {
         *aFile = localFile;
         NS_ADDREF(*aFile);
         return NS_OK;
     }
-    
+
     return NS_ERROR_FAILURE;
 }
 
@@ -1141,7 +1141,7 @@ NS_MSG_BASE nsresult NS_SetPersistentFile(const char *relPrefName,
     // Write the absolute for backwards compatibilty's sake.
     // Or, if aPath is on a different drive than the profile dir.
     nsresult rv = prefBranch->SetComplexValue(absPrefName, NS_GET_IID(nsILocalFile), aFile);
-    
+
     // Write the relative path.
     nsCOMPtr<nsIRelativeFilePref> relFilePref;
     NS_NewRelativeFilePref(aFile, nsDependentCString(NS_APP_USER_PROFILE_50_DIR), getter_AddRefs(relFilePref));
@@ -1175,7 +1175,7 @@ NS_MSG_BASE nsresult NS_GetUnicharPreferenceWithDefault(nsIPrefBranch *prefBranc
     prefValue = defValue;
     return NS_OK;
 }
- 
+
 NS_MSG_BASE nsresult NS_GetLocalizedUnicharPreferenceWithDefault(nsIPrefBranch *prefBranch,  //can be null, if so uses the root branch
                                                                  const char *prefName,
                                                                  const nsAString& defValue,
@@ -1205,7 +1205,7 @@ NS_MSG_BASE nsresult NS_GetLocalizedUnicharPreferenceWithDefault(nsIPrefBranch *
 void PRTime2Seconds(PRTime prTime, PRUint32 *seconds)
 {
   PRInt64 microSecondsPerSecond, intermediateResult;
-  
+
   LL_I2L(microSecondsPerSecond, PR_USEC_PER_SEC);
   LL_DIV(intermediateResult, prTime, microSecondsPerSecond);
   LL_L2UI((*seconds), intermediateResult);
@@ -1214,7 +1214,7 @@ void PRTime2Seconds(PRTime prTime, PRUint32 *seconds)
 void PRTime2Seconds(PRTime prTime, PRInt32 *seconds)
 {
   PRInt64 microSecondsPerSecond, intermediateResult;
-  
+
   LL_I2L(microSecondsPerSecond, PR_USEC_PER_SEC);
   LL_DIV(intermediateResult, prTime, microSecondsPerSecond);
   LL_L2I((*seconds), intermediateResult);
@@ -1223,7 +1223,7 @@ void PRTime2Seconds(PRTime prTime, PRInt32 *seconds)
 void Seconds2PRTime(PRUint32 seconds, PRTime *prTime)
 {
   PRInt64 microSecondsPerSecond, intermediateResult;
-  
+
   LL_I2L(microSecondsPerSecond, PR_USEC_PER_SEC);
   LL_UI2L(intermediateResult, seconds);
   LL_MUL((*prTime), intermediateResult, microSecondsPerSecond);
@@ -1326,13 +1326,13 @@ PRBool MsgFindKeyword(const nsCString &keyword, nsCString &keywords, PRInt32 *aS
         *aLength = end - start;
         return PR_TRUE;
       }
-      else 
+      else
         start = end; // advance past bogus match.
     }
     else
-      break; 
+      break;
   }
-  
+
   *aStartOfKeyword = -1;
   *aLength = 0;
   return PR_FALSE;
@@ -1340,33 +1340,31 @@ PRBool MsgFindKeyword(const nsCString &keyword, nsCString &keywords, PRInt32 *aS
 
 PRBool MsgHostDomainIsTrusted(nsCString &host, nsCString &trustedMailDomains)
 {
-  const char *domain, *domainEnd, *end;
+  const char *end;
   PRUint32 hostLen, domainLen;
   PRBool domainIsTrusted = PR_FALSE;
-  
-  domain = trustedMailDomains.BeginReading();
-  domainEnd = trustedMailDomains.EndReading(); 
-  nsACString::const_iterator hostStart;
-  
-  host.BeginReading(hostStart);
+
+  const char *domain = trustedMailDomains.BeginReading();
+  const char *domainEnd = trustedMailDomains.EndReading();
+  const char *hostStart = host.BeginReading();
   hostLen = host.Length();
-  
+
   do {
     // skip any whitespace
     while (*domain == ' ' || *domain == '\t')
       ++domain;
-    
+
     // find end of this domain in the string
     end = strchr(domain, ',');
     if (!end)
       end = domainEnd;
-    
+
     // to see if the hostname is in the domain, check if the domain
     // matches the end of the hostname.
     domainLen = end - domain;
     if (domainLen && hostLen >= domainLen) {
-      const char *hostTail = hostStart.get() + hostLen - domainLen;
-      if (PL_strncasecmp(domain, hostTail, domainLen) == 0) 
+      const char *hostTail = hostStart + hostLen - domainLen;
+      if (PL_strncasecmp(domain, hostTail, domainLen) == 0)
       {
         // now, make sure either that the hostname is a direct match or
         // that the hostname begins with a dot.
@@ -1377,7 +1375,7 @@ PRBool MsgHostDomainIsTrusted(nsCString &host, nsCString &trustedMailDomains)
         }
       }
     }
-    
+
     domain = end + 1;
   } while (*end);
   return domainIsTrusted;
@@ -1385,16 +1383,16 @@ PRBool MsgHostDomainIsTrusted(nsCString &host, nsCString &trustedMailDomains)
 
 nsresult MsgMailboxGetURI(const char *uriPath, nsCString &mailboxUri)
 {
-  
+
   nsresult rv;
-  
-  nsCOMPtr<nsIMsgAccountManager> accountManager = 
+
+  nsCOMPtr<nsIMsgAccountManager> accountManager =
     do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
-  
+
   NS_ENSURE_SUCCESS(rv, rv);
   nsCOMPtr<nsISupportsArray> serverArray;
   accountManager->GetAllServers(getter_AddRefs(serverArray));
-  
+
   PRUint32 cnt;
   rv = serverArray->Count(&cnt);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -1402,11 +1400,11 @@ nsresult MsgMailboxGetURI(const char *uriPath, nsCString &mailboxUri)
   PRInt32 i;
 
   nsCString nativePath(uriPath);
-  for (i = 0; i < count; i++) 
+  for (i = 0; i < count; i++)
   {
     nsCOMPtr<nsIMsgIncomingServer> server = do_QueryElementAt(serverArray, i);
     if (!server) continue;
-    
+
     // get the path string
     nsCOMPtr<nsILocalFile> nativeServerPath;
     rv = server->GetLocalPath(getter_AddRefs(nativeServerPath));
@@ -1416,7 +1414,7 @@ nsresult MsgMailboxGetURI(const char *uriPath, nsCString &mailboxUri)
 
     nsCOMPtr<nsIFileURL> theFileURL = do_QueryInterface(fileURI, &rv);
     NS_ENSURE_SUCCESS(rv,rv);
-    
+
     nsCString serverPath;
     NS_ENSURE_SUCCESS(rv, rv);
     fileURI->GetSpec(serverPath);
@@ -1428,18 +1426,18 @@ nsresult MsgMailboxGetURI(const char *uriPath, nsCString &mailboxUri)
       nsCString serverURI;
       rv = server->GetServerURI(serverURI);
       if (NS_FAILED(rv)) continue;
-      
+
       // the relpath is just past the serverpath
       const char *relpath = nativePath.get() + len;
       // skip past leading / if any
       while (*relpath == '/')
         relpath++;
-      
+
       nsCAutoString pathStr(relpath);
       PRInt32 sbdIndex;
       while((sbdIndex = pathStr.Find(".sbd", PR_TRUE)) != -1)
         pathStr.Cut(sbdIndex, 4);
-      
+
       mailboxUri = serverURI;
       mailboxUri.Append('/');
       mailboxUri.Append(pathStr);
@@ -1452,19 +1450,19 @@ nsresult MsgMailboxGetURI(const char *uriPath, nsCString &mailboxUri)
 NS_MSG_BASE void MsgStripQuotedPrintable (unsigned char *src)
 {
   // decode quoted printable text in place
-  
+
   if (!*src)
     return;
   unsigned char *dest = src;
   int srcIdx = 0, destIdx = 0;
-  
+
   while (src[srcIdx] != 0)
   {
     if (src[srcIdx] == '=')
     {
       unsigned char *token = &src[srcIdx];
       unsigned char c = 0;
-      
+
       // decode the first quoted char
       if (token[1] >= '0' && token[1] <= '9')
         c = token[1] - '0';
@@ -1493,7 +1491,7 @@ NS_MSG_BASE void MsgStripQuotedPrintable (unsigned char *src)
         }
         continue;
       }
-      
+
       // decode the second quoted char
       c = (c << 4);
       if (token[2] >= '0' && token[2] <= '9')
@@ -1508,18 +1506,18 @@ NS_MSG_BASE void MsgStripQuotedPrintable (unsigned char *src)
         dest[destIdx++] = src[srcIdx++]; // aka token[0]
         continue;
       }
-      
+
       // if we got here, we successfully decoded a quoted printable sequence,
       // so bump each pointer past it and move on to the next char;
-      dest[destIdx++] = c; 
+      dest[destIdx++] = c;
       srcIdx += 3;
-      
+
     }
     else
       dest[destIdx++] = src[srcIdx++];
   }
-  
+
   dest[destIdx] = src[srcIdx]; // null terminate
-}  
+}
 
 

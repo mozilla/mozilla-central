@@ -500,7 +500,7 @@ NS_IMETHODIMP nsURLFetcherStreamConsumer::OnStopRequest(nsIRequest *aRequest, ns
     nsCOMPtr <nsIURI> channelURI;
     channel->GetURI(getter_AddRefs(channelURI));
     channelURI->GetSpec(uriSpec);
-    if (FindInReadable(NS_LITERAL_CSTRING("&realtype=message/rfc822"), uriSpec))
+    if (uriSpec.Find("&realtype=message/rfc822") >= 0)
       mURLFetcher->mContentType = MESSAGE_RFC822;
     else
       mURLFetcher->mContentType = contentType;

@@ -954,11 +954,11 @@ nsresult nsMsgSearchTerm::MatchString (const char *stringToMatch,
   switch (m_operator)
   {
   case nsMsgSearchOp::Contains:
-    if (CaseInsensitiveFindInReadable(needle, utf16StrToMatch))
+    if (utf16StrToMatch.Find(needle, PR_TRUE) >= 0)
       result = PR_TRUE;
     break;
   case nsMsgSearchOp::DoesntContain:
-    if(!CaseInsensitiveFindInReadable(needle, utf16StrToMatch))
+    if (utf16StrToMatch.Find(needle, PR_TRUE) == -1)
       result = PR_TRUE;
     break;
   case nsMsgSearchOp::Is:

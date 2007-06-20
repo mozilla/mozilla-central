@@ -559,9 +559,7 @@ NS_IMETHODIMP nsMailboxService::NewChannel(nsIURI *aURI, nsIChannel **_retval)
   nsCAutoString spec;
   aURI->GetSpec(spec);
 
-  nsACString::const_iterator b, e;
-  if (FindInReadable(NS_LITERAL_CSTRING("?uidl="), spec.BeginReading(b), spec.EndReading(e)) ||
-      FindInReadable(NS_LITERAL_CSTRING("&uidl="), spec.BeginReading(b), spec.EndReading(e)))
+  if (spec.Find("?uidl=") >= 0 || spec.Find("&uidl=") >= 0)
   {
     nsCOMPtr<nsIProtocolHandler> handler = 
              do_GetService(kCPop3ServiceCID, &rv);

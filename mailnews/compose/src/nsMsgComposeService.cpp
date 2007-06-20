@@ -1440,10 +1440,7 @@ nsMsgComposeService::LoadDraftOrTemplate(const nsACString& aMsgURI, nsMimeOutput
 
   nsCOMPtr<nsIURI> url;
   PRBool fileUrl = StringBeginsWith(aMsgURI, NS_LITERAL_CSTRING("file:"));
-  nsACString::const_iterator start, end;
-  aMsgURI.BeginReading(start);
-  aMsgURI.EndReading(end);
-  if (fileUrl || FindInReadable(NS_LITERAL_CSTRING("&type=application/x-message-display"), start, end))
+  if (fileUrl || nsDependentCString(aMsgURI).Find("&type=application/x-message-display") >= 0)
     rv = NS_NewURI(getter_AddRefs(url), aMsgURI);
   else
     rv = messageService->GetUrlForUri(PromiseFlatCString(aMsgURI).get(), getter_AddRefs(url), aMsgWindow);

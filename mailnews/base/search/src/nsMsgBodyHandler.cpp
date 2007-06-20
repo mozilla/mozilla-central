@@ -59,7 +59,7 @@ nsMsgBodyHandler::nsMsgBodyHandler (nsIMsgSearchScopeTerm * scope, PRUint32 offs
   m_Filtering = PR_FALSE; // make sure we set this before we call initialize...
   
   Initialize();  // common initialization stuff
-  OpenLocalFolder();	    
+  OpenLocalFolder();      
 }
 
 nsMsgBodyHandler::nsMsgBodyHandler(nsIMsgSearchScopeTerm * scope,
@@ -159,7 +159,7 @@ PRInt32 nsMsgBodyHandler::GetNextFilterLine(nsCString &buf)
       numBytesCopied = strlen(m_headers) + 1 ;
       buf.Assign(m_headers);
       m_headers += numBytesCopied;  
-      // be careful...m_headersSize is unsigned. Don't let it go negative or we overflow to 2^32....*yikes*	
+      // be careful...m_headersSize is unsigned. Don't let it go negative or we overflow to 2^32....*yikes*  
       if (m_headersSize < numBytesCopied)
         m_headersSize = 0;
       else
@@ -201,17 +201,17 @@ PRInt32 nsMsgBodyHandler::ApplyTransformations (nsCString &buf, PRInt32 length, 
   PRInt32 newLength = length;
   eatThisLine = PR_FALSE;
   
-  if (!m_passedHeaders)	// buf is a line from the message headers
+  if (!m_passedHeaders)  // buf is a line from the message headers
   {
     if (m_stripHeaders)
       eatThisLine = PR_TRUE;
     
-    if (StringBeginsWith(buf, NS_LITERAL_CSTRING("Content-Type:")) && FindInReadable(buf, NS_LITERAL_CSTRING("text/html")))
+    if (StringBeginsWith(buf, NS_LITERAL_CSTRING("Content-Type:")) && buf.Find("text/html") >= 0)
       m_messageIsHtml = PR_TRUE;
     
     m_passedHeaders = buf.IsEmpty() || buf.First() == '\r' || buf.First() == '\n';
   }
-  else	// buf is a line from the message body
+  else  // buf is a line from the message body
   {
     if (m_stripHtml && m_messageIsHtml)
     {
