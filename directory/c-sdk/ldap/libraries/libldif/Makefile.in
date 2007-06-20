@@ -86,7 +86,7 @@ endif
 
 # variable definitions for exported symbols
 ifeq ($(OS_ARCH), WINNT)
-        LDIF_EXPORT_DEFS= $(win_srcdir)/../msdos/winsock/nsldif32.def
+        LDIF_EXPORT_DEFS= $(srcdir)/../msdos/winsock/nsldif32.def
 else
 ifeq ($(OS_ARCH), OS2)
         LDIF_EXPORT_DEFS= $(OBJDIR_NAME)/libldif.def

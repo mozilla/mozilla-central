@@ -55,6 +55,8 @@ do
                         no_i=${i#-I}
                         driveletter=${no_i%%:*}
                         i=-I${mountpoint}/${driveletter}/${pathname}
+                    elif test "${pathname:0:1}" = "/" -a -e "${pathname}" ; then
+			i=-I`cygpath -m "${pathname}"`
                     fi
                 else
                     eval 'leader=${i%%'${mountpoint}'/[a-zA-Z]/*}'
@@ -63,7 +65,15 @@ do
                         eval 'no_mountpoint=${i#'${leader}${mountpoint}'/}'
                         driveletter=${no_mountpoint%%/*}
                         i=${leader}${driveletter}:/${pathname}
-                    fi
+                    elif test "${i:0:1}" = "/" -a -e "${i}" ; then
+			i=`cygpath -m "${i}"`
+		    elif test "${i:0:2}" = "-I" -a -e "${i:2}" ; then
+			i=/I`cygpath -m "${i:2}"`
+		    elif test "${i:0:2}" = "-L" -a -e "${i:2}" ; then
+			i=/L`cygpath -m "${i:2}"`
+		    elif test "${i:0:5}" = "-DEF:" -a -e "${i:5}" ; then
+			i=/DEF:`cygpath -m "${i:5}"`
+		    fi
                 fi
             fi
 

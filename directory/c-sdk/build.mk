@@ -241,6 +241,7 @@ ifdef NS_USE_GCC
 OFFLAG=-o #
 else
 OFFLAG=/Fo
+MT = mt.exe
 endif
 else
 OFFLAG=-o
@@ -459,7 +460,13 @@ endif
 LINK_EXE        = $(CYGWIN_WRAPPER) link $(DEBUG_LINK_OPT) -OUT:"$@" -MAP $(ALDFLAGS) $(LDFLAGS) $(ML_DEBUG) \
     $(LCFLAGS) -NOLOGO $(DEBUG_FLAGS) -INCREMENTAL:NO \
     -NODEFAULTLIB:MSVCRTD -SUBSYSTEM:$(SUBSYSTEM) $(DEPLIBS) \
-    $(filter %.$(OBJ_SUFFIX),$^) $(OBJS) $(EXTRA_LIBS) $(PLATFORMLIBS)
+    $(filter %.$(OBJ_SUFFIX),$^) $(OBJS) $(EXTRA_LIBS) $(PLATFORMLIBS) msvcrt.lib
+
+ifdef MT
+LINK_EXE += ; if test -f $@.manifest ; then \
+$(MT) -NOLOGO -MANIFEST $@.manifest -OUTPUTRESOURCE:$@\;1; \
+rm -f $@.manifest ; fi
+endif # MSVC with manifest tool - from NSS rules.mk
 
 # AR is set when doing an autoconf build
 ifdef AR
