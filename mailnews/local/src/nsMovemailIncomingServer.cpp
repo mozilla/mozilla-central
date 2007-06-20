@@ -73,10 +73,9 @@ nsMovemailIncomingServer::GetIsSecureServer(PRBool *aIsSecureServer)
 }
 
 nsresult
-nsMovemailIncomingServer::GetLocalStoreType(char **type)
+nsMovemailIncomingServer::GetLocalStoreType(nsACString &type)
 {
-    NS_ENSURE_ARG_POINTER(type);
-    *type = strdup("mailbox");
+    type.AssignLiteral("mailbox");
     return NS_OK;
 }
 
