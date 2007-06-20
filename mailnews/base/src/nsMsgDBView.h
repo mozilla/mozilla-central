@@ -107,6 +107,9 @@ public:
   nsMsgViewIndex GetInsertIndexHelper(nsIMsgDBHdr *msgHdr, nsMsgKeyArray *keys,
                                         nsMsgViewSortOrderValue sortOrder,
                                         nsMsgViewSortTypeValue sortType);
+  PRInt32  SecondarySort(nsMsgKey key1, nsISupports *folder1, nsMsgKey key2, nsISupports *folder2,
+                         struct viewSortInfo *comparisonContext);
+  nsMsgViewSortTypeValue m_secondarySort;
 protected:
   static nsrefcnt gInstanceCount;
   // atoms used for styling the view. we're going to have a lot of
