@@ -94,7 +94,7 @@ $GraphNameOverride        = 'fx-linux-tbox';
 #$results_server           = "build-graphs.mozilla.org";
 
 #$pageload_server          = "spider";  # localhost
-$pageload_server      = "axolotl.mozilla.org";
+$pageload_server      = "pageload.build.mozilla.org";
 
 
 #

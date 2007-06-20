@@ -87,7 +87,7 @@ $GraphNameOverride        = 'fx-win32-tbox';
 # - cmp@mozilla.org
 #$results_server           = "build-graphs.mozilla.org";
 
-$pageload_server          = "axolotl.mozilla.org";  # localhost
+$pageload_server          = "pageload.build.mozilla.org";  # localhost
 
 #
 # Timeouts, values are in seconds.
