@@ -90,7 +90,8 @@ nsMsgIncomingServer::nsMsgIncomingServer():
     m_canHaveFilters(PR_TRUE),
     m_displayStartupPage(PR_TRUE),
     mPerformingBiff(PR_FALSE)
-{
+{ 
+  m_downloadedHdrs.Init(50);
 }
 
 nsMsgIncomingServer::~nsMsgIncomingServer()
@@ -1983,14 +1984,14 @@ NS_IMETHODIMP nsMsgIncomingServer::GetIsDeferredTo(PRBool *aIsDeferredTo)
 
 const long kMaxDownloadTableSize = 500;
 
-// aData is the server, from that we get the cutoff point, below which we evict
-// element is the arrival index of the msg.
-/* static */PRBool nsMsgIncomingServer::evictOldEntries(nsHashKey *aKey, void *element, void *aData)
+// aClosure is the server, from that we get the cutoff point, below which we evict
+// aData is the arrival index of the msg.
+/* static */PLDHashOperator nsMsgIncomingServer::evictOldEntries(nsCStringHashKey::KeyType aKey, PRInt32 &aData, void *aClosure)
 {
-  nsMsgIncomingServer *server = (nsMsgIncomingServer *)aData;
-  if (NS_PTR_TO_INT32(element) < server->m_numMsgsDownloaded - kMaxDownloadTableSize/2)
-    return kHashEnumerateRemove;
-  return server->m_downloadedHdrs.Count() > kMaxDownloadTableSize/2;
+  nsMsgIncomingServer *server = (nsMsgIncomingServer *) aClosure;
+  if (aData < server->m_numMsgsDownloaded - kMaxDownloadTableSize/2)
+    return PL_DHASH_REMOVE;
+  return server->m_downloadedHdrs.Count() > kMaxDownloadTableSize/2 ? PL_DHASH_NEXT : PL_DHASH_STOP;
 }
 
 // hash the concatenation of the message-id and subject as the hash table key,
@@ -2009,15 +2010,15 @@ NS_IMETHODIMP nsMsgIncomingServer::IsNewHdrDuplicate(nsIMsgDBHdr *aNewHdr, PRBoo
   if (subject.IsEmpty() || messageId.IsEmpty())
     return NS_OK;
   strHashKey.Append(subject);
-  nsCStringKey hashKey(strHashKey);
-  PRInt32 hashValue = NS_PTR_TO_INT32(m_downloadedHdrs.Get(&hashKey));
+  PRInt32 hashValue = 0;
+  m_downloadedHdrs.Get(strHashKey, &hashValue);
   if (hashValue)
     *aResult = PR_TRUE;
   else
   {
     // we store the current size of the hash table as the hash
     // value - this allows us to delete older entries.
-    m_downloadedHdrs.Put(&hashKey, NS_INT32_TO_PTR(++m_numMsgsDownloaded));
+    m_downloadedHdrs.Put(strHashKey, ++m_numMsgsDownloaded);
     // Check if hash table is larger than some reasonable size
     // and if is it, iterate over hash table deleting messages
     // with an arrival index < number of msgs downloaded - half the reasonable size.
