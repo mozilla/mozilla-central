@@ -88,7 +88,7 @@ ifeq ($(OS_ARCH),Linux)
 INCLUDES	+= -I$(JAVAHOME)/include -I$(JAVAHOME)/include/linux
 else
 ifeq ($(OS_ARCH),WINNT)
- INCLUDES	+= -I$(JAVAHOME)/include -I$(JAVAHOME)/include/win32
+ INCLUDES := -I$(MOZ_JDKHOME)/include -I$(MOZ_JDKHOME)/include/win32 -I. $(INCLUDES)
 else
 INCLUDES	+= -I$(JAVAHOME)/include -I$(JAVAHOME)/include/solaris
 endif

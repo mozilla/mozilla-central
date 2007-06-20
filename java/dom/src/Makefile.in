@@ -79,7 +79,7 @@ ifeq ($(OS_ARCH),Linux)
  DEFINES	+= -DDISABLE_JIT
 endif # LINUX
 ifeq ($(OS_ARCH),WINNT)
- INCLUDES	+= -I$(JAVAHOME)/include -I$(JAVAHOME)/include/win32
+ INCLUDES := -I$(MOZ_JDKHOME)/include -I$(MOZ_JDKHOME)/include/win32 -I. $(INCLUDES)
  EXTRA_LIBS     += \
 			$(JAVAHOME)/lib/jvm.lib \
 			$(NULL)
