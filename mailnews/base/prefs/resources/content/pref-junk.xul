@@ -37,7 +37,12 @@
 
 <?xml-stylesheet href="chrome://messenger/skin/prefPanels.css" type="text/css"?>
 
-<!DOCTYPE page SYSTEM "chrome://messenger/locale/pref-junk.dtd">
+<!DOCTYPE page [
+<!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
+%brandDTD;
+<!ENTITY % prefJunkDTD SYSTEM "chrome://messenger/locale/pref-junk.dtd">
+%prefJunkDTD;
+]>
 
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
       onload="parent.initPanel('chrome://messenger/content/pref-junk.xul');"
@@ -46,7 +51,8 @@
   <script type="application/x-javascript">
     <![CDATA[
       var _elementIDs = ["manualMark", "manualMarkMode", 
-                         "markAsReadOnSpam", "enableJunkLogging"];
+                         "autoMarkAsRead", "manualMarkAsRead",
+                         "enableJunkLogging"];
     ]]>
   </script>
 
@@ -76,11 +82,22 @@
              accesskey="&manualMarkModeDelete.accesskey;"
              value="1"/>
     </radiogroup>
-    
-    <checkbox id="markAsReadOnSpam" 
-              label="&markAsReadOnSpam.label;"
-              accesskey="&markAsReadOnSpam.accesskey;"
-              prefstring="mail.spam.markAsReadOnSpam"/>
+
+    <separator class="thin"/>
+
+    <description>&markAsRead.intro;</description>
+    <vbox class="indent">
+      <checkbox id="autoMarkAsRead" 
+                label="&autoMarkAsRead.label;"
+                accesskey="&autoMarkAsRead.accesskey;"
+                prefstring="mail.spam.markAsReadOnSpam"/>
+      <checkbox id="manualMarkAsRead" 
+                label="&manualMarkAsRead.label;"
+                accesskey="&manualMarkAsRead.accesskey;"
+                prefstring="mailnews.ui.junk.manualMarkAsJunkMarksRead"/>
+    </vbox>
+
+    <separator class="thin"/>
   
     <hbox align="start">
       <checkbox id="enableJunkLogging"

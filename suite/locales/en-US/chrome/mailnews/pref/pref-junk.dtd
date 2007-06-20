@@ -45,8 +45,13 @@
 <!ENTITY manualMarkModeMove.accesskey   "M">
 <!ENTITY manualMarkModeDelete.label     "Delete them">
 <!ENTITY manualMarkModeDelete.accesskey "D">
-<!ENTITY markAsReadOnSpam.label         "Mark messages determined to be junk as read">
-<!ENTITY markAsReadOnSpam.accesskey     "r">
+
+<!ENTITY markAsRead.intro               "Mark messages as read:">
+<!ENTITY autoMarkAsRead.label           "When &brandShortName; determines that they are junk">
+<!ENTITY autoMarkAsRead.accesskey       "u">
+<!ENTITY manualMarkAsRead.label         "When I manually mark them as junk">
+<!ENTITY manualMarkAsRead.accesskey     "k">
+
 <!ENTITY enableJunkLogging.label        "Enable junk filter logging">
 <!ENTITY enableJunkLogging.accesskey    "E">
 <!ENTITY openJunkLog.label              "Show log">
