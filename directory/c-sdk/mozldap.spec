@@ -7,7 +7,7 @@
 
 %define major           6
 %define minor           0
-%define submin          3
+%define submin          4
 %define libsuffix       %{major}0
 
 Summary:          Mozilla LDAP C SDK
@@ -20,7 +20,6 @@ Group:            System Environment/Libraries
 Requires:         %{nspr_name} >= %{nspr_version}
 Requires:         %{nss_name} >= %{nss_version}
 Requires:         %{svrcore_name} >= %{svrcore_version}
-Requires:         cyrus-sasl-lib
 BuildRoot:        %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires:    %{nspr_name}-devel >= %{nspr_version}
 BuildRequires:    %{nss_name}-devel >= %{nss_version}
@@ -59,6 +58,7 @@ Requires:         %{name} = %{version}-%{release}
 Requires:         %{nspr_name}-devel >= %{nspr_version}
 Requires:         %{nss_name}-devel >= %{nss_version}
 Requires:         %{svrcore_name}-devel >= %{svrcore_version}
+Requires:         pkgconfig
 
 %description devel
 Header and Library files for doing development with the Mozilla LDAP C SDK
@@ -139,7 +139,7 @@ done
 # Copy the include files
 for file in mozilla/dist/public/ldap/*.h
 do
-  %{__install} -m 644 $file $RPM_BUILD_ROOT%{_includedir}/%{name}
+  %{__install} -p -m 644 $file $RPM_BUILD_ROOT%{_includedir}/%{name}
 done
 
 # Copy the developer files
@@ -186,6 +186,18 @@ cp -r mozilla/directory/c-sdk/ldap/examples $RPM_BUILD_ROOT%{_datadir}/%{name}
 %{_datadir}/%{name}
 
 %changelog
+* Wed Jun 20 2007 Rich Megginson <rmeggins@redhat.com> - 6.0.4-1
+- bump version to 6.0.4 - this version has some memory leak
+- fixes for SASL related code, fixes for control handling with
+- referral chasing, and packaging improvements
+- use -p when installing include files to preserve timestamps
+
+* Thu May 24 2007 Rich Megginson <rmeggins@redhat.com> - 6.0.3-3
+- We only need cyrus-sasl-devel as a BuildRequires in the main package
+
+* Mon May 21 2007 Rich Megginson <rmeggins@redhat.com> - 6.0.3-2
+- added cyrus-sasl-devel and pkgconfig to devel package Requires
+
 * Tue Mar 13 2007 Rich Megginson <richm@stanfordalumni.org> - 6.0.3-1
 - bumped version to 6.0.3
 - minor build fixes for some platforms
