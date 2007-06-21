@@ -505,6 +505,12 @@ sub init {
                     "ON test_". $obj ."s.environment_id = test_environments.environment_id");
                $f = 'test_environments.name';      
          },
+         "^environment_name," => sub {
+               push(@supptables,
+                    "INNER JOIN test_environments ".
+                    "ON test_". $obj ."s.environment_id = test_environments.environment_id");
+               $f = 'test_environments.name';
+         },
          "^plan_type," => sub {
                push(@supptables,
                     "INNER JOIN test_plan_types ".
