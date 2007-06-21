@@ -642,6 +642,7 @@ nsSeamonkeyProfileMigrator::TransformPreferences(const nsAString& aSourcePrefFil
     "mail.toolbars.",
     "mailnews.labels.",
     "mailnews.reply_",
+    "mailnews.tags.",
     "middlemouse.",
     "mousewheel.",
     "network.http.",
