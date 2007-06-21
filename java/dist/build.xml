@@ -56,6 +56,13 @@
   <property name="javadoc.protected"  value="true"/>
   <property name="dist.jar"  value="${dist.home}/lib/${name}-${version}.jar"/>
 
+  <target name="universal">
+    <antcall target="release">
+      <param name="objdir" value="${objdir}/ppc/dist/universal" />
+      <param name="core.java.classes.uptodate" value="true" />
+    </antcall>
+  </target>
+
   <target name="release"
           description="Build a Webclient Release">
 
@@ -223,7 +230,7 @@
   </target>
 
 
-  <target name="uptodate">
+  <target name="uptodate" unless="core.java.classes.uptodate">
     <uptodate property="core.java.classes.uptodate" 
               targetfile="${dist.jar}">
       <srcfiles dir="${dist.classes}" />

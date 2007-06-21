@@ -54,6 +54,62 @@
   <target name="main" 
           depends="external,util,dom,webclient"/>
 
+  <target name="clean.universal">
+
+    <antcall target="clean">
+       <param name="objdir" value="${objdir}/ppc" />
+    </antcall>
+    <antcall target="clean">
+       <param name="objdir" value="${objdir}/i386" />
+    </antcall>
+    <delete dir="${objdir}/ppc/dist/universal/java" />
+    
+  </target>
+
+  <target name="universal">
+
+    <antcall target="main">
+       <param name="objdir" value="${objdir}/ppc" />
+    </antcall>
+    <antcall target="main">
+       <param name="objdir" value="${objdir}/i386" />
+    </antcall>
+
+    <antcall target="prune.universal">
+       <param name="objdir" value="${objdir}/ppc" />
+    </antcall>
+    <antcall target="prune.universal">
+       <param name="objdir" value="${objdir}/i386" />
+    </antcall>
+
+    <delete dir="${objdir}/ppc/dist/universal/java" />
+
+    <exec os="Mac OS X" executable="${basedir}/../build/macosx/universal/unify" 
+                     failonerror="yes">
+      <arg line="${objdir}/ppc/java ${objdir}/i386/java ${objdir}/ppc/dist/universal/java" />
+    </exec>
+
+    <copy todir="${objdir}/ppc/dist/universal/dist/classes">
+      <fileset dir="${objdir}/dist/classes" />
+    </copy>
+
+  </target>
+
+  <target name="prune.universal">
+
+    <echo message="${objdir}/java" />
+
+    <delete>
+      <fileset dir="${objdir}/java">
+        <include name="**/*.o" />
+        <include name="**/*.a" />
+        <include name="**/*.h" />
+        <include name="**/.deps/" />
+      </fileset>
+    </delete>
+
+  </target>
+
   <target name="external">
 
     <mkdir dir="${build.home}"/>
