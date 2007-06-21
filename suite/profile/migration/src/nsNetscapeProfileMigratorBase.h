@@ -56,14 +56,14 @@ struct fileTransactionEntry {
                     // getting copied
 };
 
-#define FILE_NAME_BOOKMARKS       NS_LITERAL_STRING("bookmarks.html")
-#define FILE_NAME_COOKIES         NS_LITERAL_STRING("cookies.txt")
-#define FILE_NAME_PREFS           NS_LITERAL_STRING("prefs.js")
-#define FILE_NAME_JUNKTRAINING    NS_LITERAL_STRING("training.dat")
-#define FILE_NAME_VIRTUALFOLDERS  NS_LITERAL_STRING("virtualFolders.dat")
-#define FILE_NAME_USERCONTENT     NS_LITERAL_STRING("userContent.css")
-#define FILE_NAME_SEARCH          NS_LITERAL_STRING("search.rdf")
-#define FILE_NAME_DOWNLOADS       NS_LITERAL_STRING("downloads.rdf")
+#define FILE_NAME_BOOKMARKS       "bookmarks.html"
+#define FILE_NAME_COOKIES         "cookies.txt"
+#define FILE_NAME_PREFS           "prefs.js"
+#define FILE_NAME_JUNKTRAINING    "training.dat"
+#define FILE_NAME_VIRTUALFOLDERS  "virtualFolders.dat"
+#define FILE_NAME_USERCONTENT     "userContent.css"
+#define FILE_NAME_SEARCH          "search.rdf"
+#define FILE_NAME_DOWNLOADS       "downloads.rdf"
 
 #define F(a) nsNetscapeProfileMigratorBase::a
 
@@ -146,8 +146,8 @@ protected:
   nsresult GetProfileDataFromRegistry(nsILocalFile* aRegistryFile,
                                       nsISupportsArray* aProfileNames,
                                       nsISupportsArray* aProfileLocations);
-  nsresult CopyFile(const nsAString& aSourceFileName,
-                    const nsAString& aTargetFileName);
+  nsresult CopyFile(const char* aSourceFileName,
+                    const char* aTargetFileName);
   nsresult RecursiveCopy(nsIFile* srcDir, nsIFile* destDir);
   void ReadBranch(const char * branchName, nsIPrefService* aPrefService,
                   PBStructArray &aPrefs);
@@ -167,8 +167,8 @@ protected:
   // Browser Import Functions
   nsresult CopyBookmarks(PRBool aReplace);
   nsresult CopyOtherData(PRBool aReplace);
-  nsresult ImportNetscapeBookmarks(const nsAString& aBookmarksFileName,
-                                   const PRUnichar* aImportSourceNameKey);
+  nsresult ImportNetscapeBookmarks(const char* aBookmarksFileName,
+                                   const char* aImportSourceNameKey);
 
   // Mail Import Functions
   nsresult CopyAddressBookDirectories(PBStructArray &aLdapServers,

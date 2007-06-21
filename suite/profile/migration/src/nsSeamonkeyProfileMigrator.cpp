@@ -52,16 +52,16 @@
 ///////////////////////////////////////////////////////////////////////////////
 // nsSeamonkeyProfileMigrator
 
-#define FILE_NAME_SITEPERM_OLD    NS_LITERAL_STRING("cookperm.txt")
-#define FILE_NAME_SITEPERM_NEW    NS_LITERAL_STRING("hostperm.1")
-#define FILE_NAME_CERT8DB         NS_LITERAL_STRING("cert8.db")
-#define FILE_NAME_KEY3DB          NS_LITERAL_STRING("key3.db")
-#define FILE_NAME_SECMODDB        NS_LITERAL_STRING("secmod.db")
-#define FILE_NAME_HISTORY         NS_LITERAL_STRING("history.dat")
-#define FILE_NAME_MIMETYPES       NS_LITERAL_STRING("mimeTypes.rdf")
-#define FILE_NAME_USER_PREFS      NS_LITERAL_STRING("user.js")
-#define FILE_NAME_PERSONALDICTIONARY NS_LITERAL_STRING("persdict.dat")
-#define FILE_NAME_MAILVIEWS       NS_LITERAL_STRING("mailViews.dat")
+#define FILE_NAME_SITEPERM_OLD    "cookperm.txt"
+#define FILE_NAME_SITEPERM_NEW    "hostperm.1"
+#define FILE_NAME_CERT8DB         "cert8.db"
+#define FILE_NAME_KEY3DB          "key3.db"
+#define FILE_NAME_SECMODDB        "secmod.db"
+#define FILE_NAME_HISTORY         "history.dat"
+#define FILE_NAME_MIMETYPES       "mimeTypes.rdf"
+#define FILE_NAME_USER_PREFS      "user.js"
+#define FILE_NAME_PERSONALDICTIONARY "persdict.dat"
+#define FILE_NAME_MAILVIEWS       "mailViews.dat"
 
 NS_IMPL_ISUPPORTS2(nsSeamonkeyProfileMigrator, nsISuiteProfileMigrator,
                    nsITimerCallback)
@@ -585,8 +585,8 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
 };
 
 nsresult
-nsSeamonkeyProfileMigrator::TransformPreferences(const nsAString& aSourcePrefFileName,
-                                                 const nsAString& aTargetPrefFileName)
+nsSeamonkeyProfileMigrator::TransformPreferences(const char* aSourcePrefFileName,
+                                                 const char* aTargetPrefFileName)
 {
   PrefTransform* transform;
   PrefTransform* end = gTransforms + sizeof(gTransforms)/sizeof(PrefTransform);
@@ -597,7 +597,7 @@ nsSeamonkeyProfileMigrator::TransformPreferences(const nsAString& aSourcePrefFil
 
   nsCOMPtr<nsIFile> sourcePrefsFile;
   mSourceProfile->Clone(getter_AddRefs(sourcePrefsFile));
-  sourcePrefsFile->Append(aSourcePrefFileName);
+  sourcePrefsFile->AppendNative(nsDependentCString(aSourcePrefFileName));
   psvc->ReadUserPrefs(sourcePrefsFile);
 
   nsCOMPtr<nsIPrefBranch> branch(do_QueryInterface(psvc));
@@ -680,7 +680,7 @@ nsSeamonkeyProfileMigrator::TransformPreferences(const nsAString& aSourcePrefFil
 
   nsCOMPtr<nsIFile> targetPrefsFile;
   mTargetProfile->Clone(getter_AddRefs(targetPrefsFile));
-  targetPrefsFile->Append(aTargetPrefFileName);
+  targetPrefsFile->AppendNative(nsDependentCString(aTargetPrefFileName));
   psvc->SavePrefFile(targetPrefsFile);
 
   psvc->ResetPrefs();

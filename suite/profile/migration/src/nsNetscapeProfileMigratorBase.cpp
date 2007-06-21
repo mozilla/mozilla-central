@@ -241,7 +241,7 @@ nsNetscapeProfileMigratorBase::GetSourceHomePageURL(nsACString& aResult)
   nsCOMPtr<nsIFile> sourcePrefsFile;
   
   mSourceProfile->Clone(getter_AddRefs(sourcePrefsFile));
-  sourcePrefsFile->Append(FILE_NAME_PREFS);
+  sourcePrefsFile->AppendNative(NS_LITERAL_CSTRING(FILE_NAME_PREFS));
 
   psvc->ReadUserPrefs(sourcePrefsFile);
 
@@ -589,13 +589,13 @@ nsNetscapeProfileMigratorBase::GetProfileDataFromRegistry(nsILocalFile* aRegistr
 }
 
 nsresult
-nsNetscapeProfileMigratorBase::CopyFile(const nsAString& aSourceFileName,
-                                        const nsAString& aTargetFileName)
+nsNetscapeProfileMigratorBase::CopyFile(const char* aSourceFileName,
+                                        const char* aTargetFileName)
 {
   nsCOMPtr<nsIFile> sourceFile;
   mSourceProfile->Clone(getter_AddRefs(sourceFile));
 
-  sourceFile->Append(aSourceFileName);
+  sourceFile->AppendNative(nsDependentCString(aSourceFileName));
   PRBool exists = PR_FALSE;
   sourceFile->Exists(&exists);
   if (!exists)
@@ -604,12 +604,13 @@ nsNetscapeProfileMigratorBase::CopyFile(const nsAString& aSourceFileName,
   nsCOMPtr<nsIFile> targetFile;
   mTargetProfile->Clone(getter_AddRefs(targetFile));
   
-  targetFile->Append(aTargetFileName);
+  targetFile->AppendNative(nsDependentCString(aTargetFileName));
   targetFile->Exists(&exists);
   if (exists)
     targetFile->Remove(PR_FALSE);
 
-  return sourceFile->CopyTo(mTargetProfile, aTargetFileName);
+  return sourceFile->CopyToNative(mTargetProfile,
+                                  nsDependentCString(aTargetFileName));
 }
 
 // helper function, copies the contents of srcDir into destDir.
@@ -789,7 +790,7 @@ nsNetscapeProfileMigratorBase::CopyCookies(PRBool aReplace)
 
   nsCOMPtr<nsIFile> seamonkeyCookiesFile;
   mSourceProfile->Clone(getter_AddRefs(seamonkeyCookiesFile));
-  seamonkeyCookiesFile->Append(FILE_NAME_COOKIES);
+  seamonkeyCookiesFile->AppendNative(NS_LITERAL_CSTRING(FILE_NAME_COOKIES));
 
   return ImportNetscapeCookies(seamonkeyCookiesFile);
 }
@@ -803,15 +804,8 @@ nsNetscapeProfileMigratorBase::CopyFormData(PRBool aReplace)
   if (svFileName.IsEmpty())
     return NS_ERROR_FILE_NOT_FOUND;
 
-  nsAutoString fileName;
-  fileName.Append(NS_ConvertUTF8toUTF16(svFileName));
-
   if (aReplace)
-    return CopyFile(fileName, fileName);
-
-  nsCOMPtr<nsIFile> seamonkeyFormDataFile;
-  mSourceProfile->Clone(getter_AddRefs(seamonkeyFormDataFile));
-  seamonkeyFormDataFile->Append(fileName);
+    return CopyFile(svFileName.get(), svFileName.get());
 
   // We don't need to do anything else here - there's no import function
   // for form data, so instead we just let the pref functions copy the
@@ -829,15 +823,12 @@ nsNetscapeProfileMigratorBase::CopyPasswords(PRBool aReplace)
   if (signonsFileName.IsEmpty())
     return NS_ERROR_FILE_NOT_FOUND;
 
-  nsAutoString fileName;
-  fileName.Assign(NS_ConvertUTF8toUTF16(signonsFileName));
-
   if (aReplace)
-    return CopyFile(fileName, fileName);
+    return CopyFile(signonsFileName.get(), signonsFileName.get());
 
   nsCOMPtr<nsIFile> seamonkeyPasswordsFile;
   mSourceProfile->Clone(getter_AddRefs(seamonkeyPasswordsFile));
-  seamonkeyPasswordsFile->Append(fileName);
+  seamonkeyPasswordsFile->AppendNative(signonsFileName);
 
   nsCOMPtr<nsIPasswordManagerInternal> pmi(
     do_GetService("@mozilla.org/passwordmanager;1"));
@@ -850,7 +841,7 @@ nsNetscapeProfileMigratorBase::CopyUserContentSheet()
   nsCOMPtr<nsIFile> sourceUserContent;
   mSourceProfile->Clone(getter_AddRefs(sourceUserContent));
   sourceUserContent->Append(DIR_NAME_CHROME);
-  sourceUserContent->Append(FILE_NAME_USERCONTENT);
+  sourceUserContent->AppendNative(NS_LITERAL_CSTRING(FILE_NAME_USERCONTENT));
 
   PRBool exists = PR_FALSE;
   sourceUserContent->Exists(&exists);
@@ -862,13 +853,14 @@ nsNetscapeProfileMigratorBase::CopyUserContentSheet()
   targetUserContent->Append(DIR_NAME_CHROME);
   nsCOMPtr<nsIFile> targetChromeDir;
   targetUserContent->Clone(getter_AddRefs(targetChromeDir));
-  targetUserContent->Append(FILE_NAME_USERCONTENT);
+  targetUserContent->AppendNative(NS_LITERAL_CSTRING(FILE_NAME_USERCONTENT));
 
   targetUserContent->Exists(&exists);
   if (exists)
     targetUserContent->Remove(PR_FALSE);
 
-  return sourceUserContent->CopyTo(targetChromeDir, FILE_NAME_USERCONTENT);
+  return sourceUserContent->CopyTo(targetChromeDir,
+                                   NS_LITERAL_STRING(FILE_NAME_USERCONTENT));
 }
 
 nsresult
@@ -1053,8 +1045,7 @@ nsNetscapeProfileMigratorBase::CopyBookmarks(PRBool aReplace)
   if (aReplace)
     return CopyFile(FILE_NAME_BOOKMARKS, FILE_NAME_BOOKMARKS);
 
-  return ImportNetscapeBookmarks(FILE_NAME_BOOKMARKS,
-                                 NS_LITERAL_STRING("sourceNameSeamonkey").get());
+  return ImportNetscapeBookmarks(FILE_NAME_BOOKMARKS, "sourceNameSeamonkey");
 }
 
 nsresult
@@ -1069,14 +1060,15 @@ nsNetscapeProfileMigratorBase::CopyOtherData(PRBool aReplace)
 }
 
 nsresult
-nsNetscapeProfileMigratorBase::ImportNetscapeBookmarks(const nsAString& aBookmarksFileName,
-                                                       const PRUnichar* aImportSourceNameKey)
+nsNetscapeProfileMigratorBase::ImportNetscapeBookmarks(const char* aBookmarksFileName,
+                                                       const char* aImportSourceNameKey)
 {
   nsCOMPtr<nsIFile> bookmarksFile;
   mSourceProfile->Clone(getter_AddRefs(bookmarksFile));
-  bookmarksFile->Append(aBookmarksFileName);
-  
-  return ImportBookmarksHTML(bookmarksFile, aImportSourceNameKey);
+  bookmarksFile->AppendNative(nsDependentCString(aBookmarksFileName));
+
+  return ImportBookmarksHTML(bookmarksFile,
+                             NS_ConvertUTF8toUTF16(aImportSourceNameKey).get());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1097,10 +1089,8 @@ nsNetscapeProfileMigratorBase::CopyAddressBookDirectories(PBStructArray &aLdapSe
     PrefBranchStruct* pref = aLdapServers.ElementAt(i);
     nsDependentCString prefName(pref->prefName);
 
-    if (StringEndsWith(prefName, nsDependentCString(".filename"))) {
-      // should we be assuming utf-8 or ascii here?
-      CopyFile(NS_ConvertUTF8toUTF16(pref->stringValue),
-               NS_ConvertUTF8toUTF16(pref->stringValue));
+    if (StringEndsWith(prefName, NS_LITERAL_CSTRING(".filename"))) {
+      CopyFile(pref->stringValue, pref->stringValue);
     }
 
     // we don't need to do anything to the fileName pref itself
@@ -1128,7 +1118,7 @@ nsNetscapeProfileMigratorBase::CopySignatureFiles(PBStructArray &aIdentities,
     // old profile root, we'll copy it over to the new profile root and
     // then set the pref to the new value. Note, this doesn't work for
     // multiple signatures that live below the seamonkey profile root
-    if (StringEndsWith(prefName, nsDependentCString(".sig_file")))
+    if (StringEndsWith(prefName, NS_LITERAL_CSTRING(".sig_file")))
     {
       // turn the pref into a nsILocalFile
       nsCOMPtr<nsILocalFile> srcSigFile =
@@ -1165,8 +1155,8 @@ nsNetscapeProfileMigratorBase::CopySignatureFiles(PBStructArray &aIdentities,
 nsresult
 nsNetscapeProfileMigratorBase::CopyJunkTraining(PRBool aReplace)
 {
-  return aReplace ? CopyFile(FILE_NAME_JUNKTRAINING, FILE_NAME_JUNKTRAINING) :
-                    NS_OK;
+  return aReplace ? CopyFile(FILE_NAME_JUNKTRAINING,
+                             FILE_NAME_JUNKTRAINING) : NS_OK;
 }
 
 nsresult
@@ -1199,7 +1189,7 @@ nsNetscapeProfileMigratorBase::CopyMailFolderPrefs(PBStructArray &aMailServers,
       --i;
       --count;
     }
-    else if (StringEndsWith(prefName, nsDependentCString(".directory"))) {
+    else if (StringEndsWith(prefName, NS_LITERAL_CSTRING(".directory"))) {
       // let's try to get a branch for this particular server to simplify things
       prefName.Cut(prefName.Length() - strlen("directory"),
                    strlen("directory"));
@@ -1260,7 +1250,7 @@ nsNetscapeProfileMigratorBase::CopyMailFolderPrefs(PBStructArray &aMailServers,
         pref->stringValue = ToNewCString(descriptorString);
       }
     }
-    else if (StringEndsWith(prefName, nsDependentCString(".newsrc.file"))) {
+    else if (StringEndsWith(prefName, NS_LITERAL_CSTRING(".newsrc.file"))) {
       // copy the news RC file into \News. this won't work if the user has
       // different newsrc files for each account I don't know what to do in
       // that situation.

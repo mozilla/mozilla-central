@@ -137,7 +137,7 @@ void GetMigrateDataFromArray(MigrationData* aDataArray,
     // replacement can be imported.
     if (aReplace || !cursor->replaceOnly) {
       aSourceProfile->Clone(getter_AddRefs(sourceFile));
-      sourceFile->Append(cursor->fileName);
+      sourceFile->AppendNative(nsDependentCString(cursor->fileName));
       sourceFile->Exists(&exists);
       if (exists)
         *aResult |= cursor->sourceFlag;

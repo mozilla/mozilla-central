@@ -71,8 +71,8 @@ public:
 protected:
   nsresult FillProfileDataFromRegistry();
   nsresult CopyPreferences(PRBool aReplace);
-  nsresult TransformPreferences(const nsAString& aSourcePrefFileName,
-                                const nsAString& aTargetPrefFileName);
+  nsresult TransformPreferences(const char* aSourcePrefFileName,
+                                const char* aTargetPrefFileName);
   nsresult CopyHistory(PRBool aReplace);
   nsresult LocateSignonsFile(char** aResult);
 };
