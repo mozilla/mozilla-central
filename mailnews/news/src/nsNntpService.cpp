@@ -85,10 +85,7 @@
 #include "nsEscape.h"
 #include "nsNetUtil.h"
 #include "nsIWindowWatcher.h"
-
-#ifdef MOZ_XUL_APP
 #include "nsICommandLine.h"
-#endif
 
 #undef GetPort  // XXX Windows!
 #undef SetPort  // XXX Windows!
@@ -1595,8 +1592,6 @@ nsNntpService::GetListOfGroupsOnServer(nsINntpIncomingServer *aNntpServer, nsIMs
 }
 
 
-#ifdef MOZ_XUL_APP
-
 NS_IMETHODIMP
 nsNntpService::Handle(nsICommandLine* aCmdLine)
 {
@@ -1623,18 +1618,6 @@ nsNntpService::GetHelpInfo(nsACString& aResult)
   aResult.Assign(NS_LITERAL_CSTRING("  -news                Open the news client.\n"));
   return NS_OK;
 }
-
-#else // MOZ_XUL_APP
-
-CMDLINEHANDLER3_IMPL(nsNntpService,"-news","general.startup.news","Start with news.",NS_NEWSSTARTUPHANDLER_CONTRACTID,"News Cmd Line Handler", PR_FALSE,"", PR_TRUE)
-
-NS_IMETHODIMP nsNntpService::GetChromeUrlForTask(char **aChromeUrlForTask)
-{
-  if (!aChromeUrlForTask) return NS_ERROR_FAILURE;
-  *aChromeUrlForTask = PL_strdup("chrome://messenger/content/");
-  return NS_OK;
-}
-#endif // MOZ_XUL_APP
 
 NS_IMETHODIMP
 nsNntpService::HandleContent(const char * aContentType, nsIInterfaceRequestor* aWindowContext, nsIRequest *request)

@@ -42,14 +42,7 @@
 #include "nscore.h"
 #include "nsIServiceManager.h"
 #include "nsIMessengerWindowService.h"
-
-#ifdef MOZ_XUL_APP
 #include "nsICommandLineHandler.h"
-#define ICOMMANDLINEHANDLER nsICommandLineHandler
-#else
-#include "nsICmdLineHandler.h"
-#define ICOMMANDLINEHANDLER nsICmdLineHandler
-#endif
 
 #define NS_MESSENGERBOOTSTRAP_CID                 \
 { /* 4a85a5d0-cddd-11d2-b7f6-00805f05ffa5 */      \
@@ -57,7 +50,7 @@
   {0xb7, 0xf6, 0x00, 0x80, 0x5f, 0x05, 0xff, 0xa5}}
 
 class nsMessengerBootstrap :
-    public ICOMMANDLINEHANDLER,
+    public nsICommandLineHandler,
     public nsIMessengerWindowService
 {
   
@@ -67,13 +60,7 @@ public:
   
   NS_DECL_ISUPPORTS  
   NS_DECL_NSIMESSENGERWINDOWSERVICE
-
-#ifdef MOZ_XUL_APP
   NS_DECL_NSICOMMANDLINEHANDLER
-#else
-  NS_DECL_NSICMDLINEHANDLER
-  CMDLINEHANDLER_REGISTERPROC_DECLS
-#endif
 };
 
 #endif

@@ -87,10 +87,6 @@
 
 #include "nsEmbedCID.h"
 
-#ifndef MOZ_XUL_APP
-#include "nsICmdLineService.h"
-#endif
-
 extern PRLogModuleInfo *MAPI;
 
 class nsMAPISendListener : public nsIMsgSendListener
@@ -158,27 +154,6 @@ nsresult nsMAPISendListener::CreateMAPISendListener( nsIMsgSendListener **ppList
 }
 
 PRBool nsMapiHook::isMapiService = PR_FALSE;
-
-PRBool nsMapiHook::Initialize()
-{
-// XXX test for this as long as there are still non-xul-app suite builds
-#ifndef MOZ_XUL_APP
-    nsresult rv;
-    nsCOMPtr<nsINativeAppSupport> native;
-    nsCOMPtr<nsICmdLineService> cmdLineArgs (do_GetService(NS_COMMANDLINESERVICE_CONTRACTID, &rv));
-    if (NS_FAILED(rv)) return PR_FALSE;
-
-    nsCOMPtr<nsIAppStartup> appStartup (do_GetService(NS_APPSTARTUP_CONTRACTID, &rv));
-    if (NS_FAILED(rv)) return PR_FALSE;
-
-    rv = appStartup->GetNativeAppSupport(getter_AddRefs(native));
-    if (NS_FAILED(rv)) return PR_FALSE;
-
-    rv = native->EnsureProfile(cmdLineArgs);
-    if (NS_FAILED(rv)) return PR_FALSE;
-#endif
-    return PR_TRUE;
-}
 
 void nsMapiHook::CleanUp()
 {

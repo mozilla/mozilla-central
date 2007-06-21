@@ -47,13 +47,8 @@
 #include "nsIMimeStreamConverter.h"
 #include "nsInterfaceHashtable.h"
 
-#ifdef MOZ_XUL_APP
 #include "nsICommandLineHandler.h"
 #define ICOMMANDLINEHANDLER nsICommandLineHandler
-#else
-#include "nsICmdLineHandler.h"
-#define ICOMMANDLINEHANDLER nsICmdLineHandler
-#endif
 
 class nsMsgCachedWindowInfo
 {
@@ -89,13 +84,7 @@ public:
 	NS_DECL_ISUPPORTS
   NS_DECL_NSIMSGCOMPOSESERVICE
   NS_DECL_NSIOBSERVER
-
-#ifdef MOZ_XUL_APP
   NS_DECL_NSICOMMANDLINEHANDLER
-#else
-  NS_DECL_NSICMDLINEHANDLER
-  CMDLINEHANDLER_REGISTERPROC_DECLS
-#endif
 
   nsresult Init();
   void Reset();

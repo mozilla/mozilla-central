@@ -151,8 +151,7 @@ STDMETHODIMP CMapiImp::Initialize()
 
     nsMAPIConfiguration *pConfig = nsMAPIConfiguration::GetMAPIConfiguration();
     if (pConfig != nsnull)
-        if (nsMapiHook::Initialize())
-            hr = S_OK;
+      hr = S_OK;
 
     PR_Unlock(m_Lock);
 

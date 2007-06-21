@@ -59,10 +59,6 @@ include $(topsrcdir)/config/rules.mk
 
 GARBAGE		+= $(addprefix $(EXPORT_DIR)/, $(EXPORT_RESOURCE_FILES)) 
 
-ifndef MOZ_XUL_APP
-GARBAGE         += $(addprefix $(EXPORT_DIR_L10N)/, $(EXPORT_RESOURCE_FILES))
-endif
-
 ifneq ($(EXPORT_RESOURCE_FILES),$(NULL))
 libs:: $(EXPORT_RESOURCE_FILES)
 	$(INSTALL) $^ $(EXPORT_DIR)

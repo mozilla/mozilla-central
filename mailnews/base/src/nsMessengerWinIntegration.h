@@ -153,13 +153,7 @@ private:
   nsString  mEmailPrefix;
   nsCString mShellDllPath;
 
-  // XXX test for this as long as there are still non-xul-app suite builds
-#ifdef MOZ_XUL_APP
   nsString mProfilePath;
-#else
-  nsString mProfileName;
-#endif
-
 
   PRInt32   mCurrentUnreadCount;
   PRInt32   mLastUnreadCountWrittenToRegistry;

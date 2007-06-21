@@ -43,7 +43,6 @@ class nsMapiHook
 {
     public :
 
-        static PRBool Initialize();
         static PRBool DisplayLoginDialog(PRBool aLogin, PRUnichar **aUsername, 
                         PRUnichar **aPassword);
         static PRBool VerifyUserName(const nsString& aUsername, nsCString& aIdKey);

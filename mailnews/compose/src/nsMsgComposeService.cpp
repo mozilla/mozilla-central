@@ -95,10 +95,8 @@
 #include "nsIContentSink.h"
 #include "mozISanitizingSerializer.h"
 
-#ifdef MOZ_XUL_APP
 #include "nsICommandLine.h"
 #include "nsIAppStartup.h"
-#endif
 
 #ifdef XP_WIN32
 #include <windows.h>
@@ -332,7 +330,6 @@ void nsMsgComposeService::CloseHiddenCachedWindow(nsIDOMWindowInternal *domWindo
           nsCOMPtr<nsIBaseWindow> baseWindow;
           baseWindow = do_QueryInterface(treeOwner);
           if (baseWindow) {
-#ifdef MOZ_XUL_APP
             // HACK ALERT: when we hid this window we fired the "xul-window-destroyed"
             // notification for it. Now that it's being really-destroyed it will fire that
             // notification *again* for itself. The appstartup code maintains an internal
@@ -341,7 +338,6 @@ void nsMsgComposeService::CloseHiddenCachedWindow(nsIDOMWindowInternal *domWindo
             nsCOMPtr<nsIAppStartup> appStartup(do_GetService(NS_APPSTARTUP_CONTRACTID));
             if (appStartup)
               appStartup->EnterLastWindowClosingSurvivalArea();
-#endif
 
             baseWindow->Destroy();
           }
@@ -1481,7 +1477,6 @@ nsMsgComposeService::LoadDraftOrTemplate(const nsACString& aMsgURI, nsMimeOutput
                                         aMsgWindow, nsnull, mailCharset.get(), nsnull);;
 }
 
-#ifdef MOZ_XUL_APP
 NS_IMETHODIMP
 nsMsgComposeService::Handle(nsICommandLine* aCmdLine)
 {
@@ -1569,9 +1564,3 @@ nsMsgComposeService::GetHelpInfo(nsACString& aResult)
   aResult.Assign(NS_LITERAL_CSTRING("  -compose             Compose a mail or news message.\n"));
   return NS_OK;
 }
-
-#else
-CMDLINEHANDLER_IMPL(nsMsgComposeService, "-compose", "general.startup.messengercompose", DEFAULT_CHROME,
-                    "Start with messenger compose.", NS_MSGCOMPOSESTARTUPHANDLER_CONTRACTID, "Messenger Compose Startup Handler",
-                    PR_TRUE, "about:blank", PR_TRUE)
-#endif

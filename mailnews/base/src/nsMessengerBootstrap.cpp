@@ -57,7 +57,6 @@
 #include "nsIDialogParamBlock.h"
 #include "nsUnicharUtils.h"
 
-#ifdef MOZ_XUL_APP
 #include "nsICommandLine.h"
 #include "nsILocalFile.h"
 #include "nsNetUtil.h"
@@ -67,13 +66,12 @@
 #include "nsIRDFService.h"
 #include "nsIMsgHdr.h"
 #include "nsMsgUtils.h"
-#endif // MOZ_XUL_APP
 
 NS_IMPL_THREADSAFE_ADDREF(nsMessengerBootstrap)
 NS_IMPL_THREADSAFE_RELEASE(nsMessengerBootstrap)
 
 NS_IMPL_QUERY_INTERFACE2(nsMessengerBootstrap,
-                         ICOMMANDLINEHANDLER,
+                         nsICommandLineHandler,
                          nsIMessengerWindowService)
 
 nsMessengerBootstrap::nsMessengerBootstrap()
@@ -84,7 +82,6 @@ nsMessengerBootstrap::~nsMessengerBootstrap()
 {
 }
 
-#ifdef MOZ_XUL_APP
 NS_IMETHODIMP
 nsMessengerBootstrap::Handle(nsICommandLine* aCmdLine)
 {
@@ -227,18 +224,6 @@ nsMessengerBootstrap::GetHelpInfo(nsACString& aResult)
 
   return NS_OK;
 }
-
-#else
-CMDLINEHANDLER3_IMPL(nsMessengerBootstrap,"-mail","general.startup.mail","Start with mail.",NS_MAILSTARTUPHANDLER_CONTRACTID,"Mail Cmd Line Handler",PR_TRUE,"", PR_TRUE)
-
-NS_IMETHODIMP nsMessengerBootstrap::GetChromeUrlForTask(char **aChromeUrlForTask) 
-{ 
-  if (!aChromeUrlForTask) return NS_ERROR_FAILURE; 
-  *aChromeUrlForTask = PL_strdup("chrome://messenger/content/"); 
-
-  return NS_OK; 
-}
-#endif
 
 NS_IMETHODIMP nsMessengerBootstrap::OpenMessengerWindowWithUri(const char *windowType, const char * aFolderURI, nsMsgKey aMessageKey)
 {

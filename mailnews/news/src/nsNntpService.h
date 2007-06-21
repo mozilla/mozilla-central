@@ -52,13 +52,8 @@
 #include "nsIContentHandler.h"
 #include "nsICacheSession.h"
 
-#ifdef MOZ_XUL_APP
 #include "nsICommandLineHandler.h"
 #define ICOMMANDLINEHANDLER nsICommandLineHandler
-#else
-#include "nsICmdLineHandler.h"
-#define ICOMMANDLINEHANDLER nsICmdLineHandler
-#endif
 
 class nsIURI;
 class nsIUrlListener;
@@ -80,13 +75,7 @@ public:
   NS_DECL_NSIMSGPROTOCOLINFO
   NS_DECL_NSICONTENTHANDLER
   NS_DECL_NSIMSGMESSAGEFETCHPARTSERVICE
-  
-#ifdef MOZ_XUL_APP
   NS_DECL_NSICOMMANDLINEHANDLER
-#else
-  NS_DECL_NSICMDLINEHANDLER
-  CMDLINEHANDLER_REGISTERPROC_DECLS
-#endif
 
   // nsNntpService
   nsNntpService();

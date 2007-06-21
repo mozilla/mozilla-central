@@ -70,10 +70,7 @@
 #include "nsISupportsPrimitives.h"
 
 #include "nsNativeCharsetUtils.h"
-
-#ifdef MOZ_XUL_APP
 #include "nsToolkitCompsCID.h" 
-#endif
 
 #define ALERT_CHROME_URL "chrome://messenger/content/newmailalert.xul"
 #define NEW_MAIL_ALERT_ICON "chrome://messenger/skin/icons/new-mail-alert.png"

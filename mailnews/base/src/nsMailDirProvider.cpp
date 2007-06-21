@@ -37,9 +37,7 @@
 
 #include "nsMailDirProvider.h"
 #include "nsMailDirServiceDefs.h"
-#ifdef MOZ_XUL_APP
 #include "nsXULAppAPI.h"
-#endif
 #include "nsMsgBaseCID.h"
 #include "nsArrayEnumerator.h"
 #include "nsCOMArray.h"
@@ -86,9 +84,8 @@ nsMailDirProvider::GetFiles(const char *aKey,
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsISimpleEnumerator> combinedEnumerator;
-
-#ifdef MOZ_XUL_APP
   nsCOMPtr<nsISimpleEnumerator> extensionsEnum;
+
   rv = dirSvc->Get(XRE_EXTENSIONS_DIR_LIST,
 			    NS_GET_IID(nsISimpleEnumerator),
 			    getter_AddRefs(extensionsEnum));
@@ -96,10 +93,7 @@ nsMailDirProvider::GetFiles(const char *aKey,
 
   rv = NS_NewUnionEnumerator(getter_AddRefs(combinedEnumerator), directoryEnumerator, extensionsEnum);
   NS_ENSURE_SUCCESS(rv, rv);
-#else
-  directoryEnumerator.swap(combinedEnumerator);
-#endif
-   
+
   NS_IF_ADDREF(*aResult = new AppendingEnumerator(combinedEnumerator));
   return NS_SUCCESS_AGGREGATE_RESULT;
 }

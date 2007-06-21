@@ -77,14 +77,8 @@
 #include "nsIInterfaceRequestorUtils.h"
 #include "nsNativeCharsetUtils.h"
 
-// XXX test for this as long as there are still non-xul-app suite builds
-#ifdef MOZ_XUL_APP
 #include "nsToolkitCompsCID.h"
 #define PROFILE_COMMANDLINE_ARG " -profile "
-#else
-#include "nsIProfile.h"
-#define PROFILE_COMMANDLINE_ARG " -p "
-#endif
 
 #define XP_SHSetUnreadMailCounts "SHSetUnreadMailCountW"
 #define XP_SHEnumerateUnreadMailAccounts "SHEnumerateUnreadMailAccountsW"
@@ -413,8 +407,6 @@ nsMessengerWinIntegration::Init()
 
   if (mStoreUnreadCounts)
   {
-// XXX test for this as long as there are still non-xul-app suite builds
-#ifdef MOZ_XUL_APP
     // get current profile path for the commandliner
     nsCOMPtr<nsIFile> profilePath;
     rv = directoryService->Get(NS_APP_USER_PROFILE_50_DIR,
@@ -424,13 +416,6 @@ nsMessengerWinIntegration::Init()
 
     rv = profilePath->GetPath(mProfilePath);
     NS_ENSURE_SUCCESS(rv, rv);
-#else
-    // get current profile name to fill in commandliner.
-    nsCOMPtr<nsIProfile> profileService = do_GetService(NS_PROFILE_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv,rv);
-
-    profileService->GetCurrentProfile(getter_Copies(mProfileName));
-#endif
 
     // get application path
     char appPath[_MAX_PATH] = {0};
@@ -1068,14 +1053,9 @@ nsMessengerWinIntegration::UpdateRegistryWithCurrent()
   commandLinerForAppLaunch.Append(mAppName);
   commandLinerForAppLaunch.Append(NS_LITERAL_STRING(DOUBLE_QUOTE));
   commandLinerForAppLaunch.Append(NS_LITERAL_STRING(PROFILE_COMMANDLINE_ARG));
-// XXX test for this as long as there are still non-xul-app suite builds
-#ifdef MOZ_XUL_APP
   commandLinerForAppLaunch.Append(NS_LITERAL_STRING(DOUBLE_QUOTE));
   commandLinerForAppLaunch.Append(mProfilePath);
   commandLinerForAppLaunch.Append(NS_LITERAL_STRING(DOUBLE_QUOTE));
-#else
-  commandLinerForAppLaunch.Append(mProfileName);
-#endif
   commandLinerForAppLaunch.Append(NS_LITERAL_STRING(MAIL_COMMANDLINE_ARG));
 
   if (!commandLinerForAppLaunch.IsEmpty())
