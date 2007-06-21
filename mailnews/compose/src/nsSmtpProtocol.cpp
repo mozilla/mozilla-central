@@ -1329,10 +1329,6 @@ PRInt32 nsSmtpProtocol::SendMailResponse()
       buffer += ">";
       buffer += CRLF;
     }
-    /* take the address we sent off the list (move the pointer to just
-	   past the terminating null.) */
-    m_addresses += PL_strlen (m_addresses) + 1;
-    m_addressesLeft--;
     nsCOMPtr<nsIURI> url = do_QueryInterface(m_runningURL);
     status = SendData(url, buffer.get());
 
@@ -1355,7 +1351,8 @@ PRInt32 nsSmtpProtocol::SendRecipientResponse()
      (m_responseCode == 452) ? NS_ERROR_SMTP_TEMP_SIZE_EXCEEDED :
     ((m_responseCode == 552) ? NS_ERROR_SMTP_PERM_SIZE_EXCEEDED_2 :
                                NS_ERROR_SENDING_RCPT_COMMAND),
-                               m_responseText.get());
+                               m_responseText.get(),
+                               m_addresses);
 
     NS_ASSERTION(NS_SUCCEEDED(rv), "failed to explain SMTP error");
 
@@ -1363,7 +1360,11 @@ PRInt32 nsSmtpProtocol::SendRecipientResponse()
     return(NS_ERROR_SENDING_RCPT_COMMAND);
   }
 
-  if(m_addressesLeft > 0)
+  /* take the address we sent off the list (move the pointer to just
+     past the terminating null.)
+   */
+  m_addresses += PL_strlen (m_addresses) + 1;
+  if(--m_addressesLeft > 0)
   {
     /* more senders to RCPT to
     */
