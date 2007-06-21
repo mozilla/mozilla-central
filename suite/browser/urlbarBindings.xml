@@ -160,19 +160,19 @@
 
       <field name="mEnginesReady">false</field>
       
-      <method name="getOverrideValue">
-        <body><![CDATA[
+      <property name="overrideValue" readonly="true">
+        <getter><![CDATA[
           if (this.mSearchBox.selectedIndex != -1) {
             try {
               if (pref.getBoolPref("browser.search.opensidebarsearchpanel"))
                 RevealSearchPanel();
             } catch (ex) {
             }
-            return this.mSearchBox.getOverrideValue();
+            return this.mSearchBox.overrideValue;
           }
           return null;
-        ]]></body>
-      </method>
+        ]]></getter>
+      </property>
 
       <method name="updatePref">
         <parameter name="aPref"/>
@@ -425,8 +425,8 @@
         ]]></body>
       </method>
 
-      <method name="getOverrideValue">
-        <body><![CDATA[
+      <property name="overrideValue" readonly="true">
+        <getter><![CDATA[
           var item = this.activeChild;
           if (item) {
             const ISEARCH_CONTRACTID = "@mozilla.org/rdf/datasource;1?name=internetsearch";
@@ -443,8 +443,8 @@
             }
           }
           return null;
-        ]]></body>
-      </method>
+        ]]></getter>
+      </property>
 
     </implementation>
 
