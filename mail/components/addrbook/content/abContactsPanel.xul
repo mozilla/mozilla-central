@@ -139,8 +139,13 @@
     <hbox>
       <spring flex="1"/>
       <button id="toButton" label="&toButton.label;" accesskey="&toButton.accesskey;" oncommand="addSelectedAddresses('addr_to')"/> 
+      <spring flex="1"/>
+    </hbox>
+    <hbox>
+      <spring flex="1"/>
+      <button id="ccButton" label="&ccButton.label;" accesskey="&ccButton.accesskey;" oncommand="addSelectedAddresses('addr_cc')"/>
       <spacer class="thin"/>
-      <button id="ccButton" label="&ccButton.label;" accesskey="&ccButton.accesskey;" oncommand="addSelectedAddresses('addr_cc')"/> 
+      <button id="bccButton" label="&bccButton.label;" accesskey="&bccButton.accesskey;" oncommand="addSelectedAddresses('addr_bcc')"/> 
       <spring flex="1"/>
     </hbox>
     

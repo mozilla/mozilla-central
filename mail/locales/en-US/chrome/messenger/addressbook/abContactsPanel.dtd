@@ -1,6 +1,5 @@
-
 <!ENTITY addressbookPicker.label            "Address Book:">
-<!ENTITY addressbookPicker.accesskey        "B">
+<!ENTITY addressbookPicker.accesskey        "k">
 <!ENTITY searchInput.label                  "Search For:">
 <!ENTITY searchInput.accesskey              "o">
 <!ENTITY SearchNameOrEmail.label            "Name or Email">
@@ -13,8 +12,5 @@
 <!ENTITY toButton.accesskey                 "A">
 <!ENTITY ccButton.label                     "Add to Cc:">
 <!ENTITY ccButton.accesskey                 "d">
-
-
-
-
-
+<!ENTITY bccButton.label                    "Add to Bcc:">
+<!ENTITY bccButton.accesskey                "B">
