@@ -101,12 +101,16 @@ public class CocoaAppKitThreadDelegatingNativeEventThread extends NativeEventThr
                     LOGGER.finest("On NativeEventThread, non-blocking, about to call " +
                             finalToInvoke.toString() + " on AppKit Thread.");
                 }
-                CocoaAppKitThreadDelegatingNativeEventThread.this.
+                Object result = CocoaAppKitThreadDelegatingNativeEventThread.this.
                         runRunnableOnAppKitThread(finalToInvoke);
                 if (LOGGER.isLoggable(Level.FINEST)) {
                     LOGGER.finest("On NativeEventThread, non-blocking, returned from calling " +
                             finalToInvoke.toString() + " on AppKit Thread.");
                 }
+                if (result instanceof RuntimeException) {
+                    throw ((RuntimeException) result);
+                }
+                
             }
             public String toString() {
                 return finalToInvoke.toString();
@@ -143,7 +147,7 @@ public class CocoaAppKitThreadDelegatingNativeEventThread extends NativeEventThr
         return result;
     }
 
-    private void doRunRunnableOnAppKitThread(Runnable toInvoke) {
+    private Object doRunRunnableOnAppKitThread(Runnable toInvoke) {
         assert(-1 != Thread.currentThread().getName().indexOf("AppKit"));
         if (null == appKitThread) {
             appKitThread = Thread.currentThread();
@@ -153,6 +157,7 @@ public class CocoaAppKitThreadDelegatingNativeEventThread extends NativeEventThr
                     toInvoke.toString() + ".");
         }
         
+        Object result = null;
         try {
             toInvoke.run();
         }
@@ -161,16 +166,17 @@ public class CocoaAppKitThreadDelegatingNativeEventThread extends NativeEventThr
                 LOGGER.log(Level.SEVERE, "Exception while invoking " + 
                         toInvoke.toString() + " on AppKit Thread", e);
             }
-            throw e;
+            result = e;
         }
 
         if (LOGGER.isLoggable(Level.FINEST)) {
             LOGGER.finest("On AppKitThread, non-blocking, returned from calling " +
                     toInvoke.toString() + ".");
         }
+        return result;
     }
     
     private native Object runReturnRunnableOnAppKitThread(ReturnRunnable toInvoke);
-    private native void runRunnableOnAppKitThread(Runnable toInvoke);
+    private native Object runRunnableOnAppKitThread(Runnable toInvoke);
     
 }

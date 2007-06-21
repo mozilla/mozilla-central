@@ -212,7 +212,16 @@ public void runUntilEventOfType(Class returnRunnableClass) {
                 if (LOGGER.isLoggable(Level.FINEST)) {
                     LOGGER.finest("About to run " + runnable.toString());
                 }
-		runnable.run();
+                try {
+                    runnable.run();
+                }
+                catch (RuntimeException e) {
+                    if (LOGGER.isLoggable(Level.SEVERE)) {
+                        LOGGER.log(Level.SEVERE, "Exception thrown when running " + 
+                                runnable.toString(), e);
+                    }
+                    // Do not re-throw.
+                }
                 if (LOGGER.isLoggable(Level.FINEST)) {
                     LOGGER.finest("Return from run " + runnable.toString());
                 }

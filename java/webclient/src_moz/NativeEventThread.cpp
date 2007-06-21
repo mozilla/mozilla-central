@@ -453,10 +453,12 @@ Java_org_mozilla_webclient_impl_wrapper_1native_CocoaAppKitThreadDelegatingNativ
     return result;
 }
 
-JNIEXPORT void JNICALL 
+JNIEXPORT jobject JNICALL 
 Java_org_mozilla_webclient_impl_wrapper_1native_CocoaAppKitThreadDelegatingNativeEventThread_runRunnableOnAppKitThread
 (JNIEnv *env, jobject javaThis, jobject toInvoke)
 {
+    jobject result = nsnull;
+
     // Store our pointer to the global vm
     if (nsnull == gVm) { // declared in ../src_share/jni_util.h
         ::util_GetJavaVM(env, &gVm);  // save this vm reference
@@ -464,11 +466,14 @@ Java_org_mozilla_webclient_impl_wrapper_1native_CocoaAppKitThreadDelegatingNativ
 
     if (nsnull == javaThis || nsnull == toInvoke) {
         ::util_ThrowExceptionToJava(env, "CocoaAppKitThreadDelegatingNativeEventThread.runReturnRunnableOnAppKitThread: null arguments");
-        return;
+        return nsnull;
     }
     
-    CocoaBrowserControlCanvas::runRunnableOnAppKitThread(env, javaThis, 
-                                                         toInvoke);
+    result = CocoaBrowserControlCanvas::runRunnableOnAppKitThread(env, 
+                                                                  javaThis, 
+                                                                  toInvoke);
+
+    return result;
 }
 
 

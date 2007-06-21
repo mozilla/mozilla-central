@@ -34,8 +34,8 @@ public:
   static void cocoaPaint(JNIEnv *env, jobject canvas, jobject graphics);
   static jobject runReturnRunnableOnAppKitThread(JNIEnv *env, jobject javaThis,
                                                  jobject toInvoke);
-  static void runRunnableOnAppKitThread(JNIEnv *env, jobject javaThis,
-                                        jobject toInvoke);
+  static jobject runRunnableOnAppKitThread(JNIEnv *env, jobject javaThis,
+                                           jobject toInvoke);
 };
 
 #endif

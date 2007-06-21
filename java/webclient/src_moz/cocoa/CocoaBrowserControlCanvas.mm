@@ -96,15 +96,20 @@
     JNIEnv *env = (JNIEnv *) JNU_GetEnv(gVm, JNI_VERSION);
     jobject 
         javaThis = (jobject) [[args objectAtIndex:0] pointerValue],
-        toInvoke = (jobject) [[args objectAtIndex:1] pointerValue];
+        toInvoke = (jobject) [[args objectAtIndex:1] pointerValue],
+        result = nsnull;
+    NSValue *nsValue = nsnull;
     jclass clazz = env->GetObjectClass(javaThis);
     jmethodID mid = env->GetMethodID(clazz, "doRunRunnableOnAppKitThread", 
-                                     "(Ljava/lang/Runnable;)V");
+                                     "(Ljava/lang/Runnable;)Ljava/lang/Object;");
     env->ExceptionClear();
-    env->CallVoidMethod(javaThis, mid, toInvoke);
+    result = env->CallObjectMethod(javaThis, mid, toInvoke);
     if (env->ExceptionOccurred()) {
         ::util_ThrowExceptionToJava(env, "Cannot call back into Java from Objective-C doRunRunnableOnAppKitThread");
     }
+    nsValue = [NSValue value:&result withObjCType:@encode(jobject)];
+    [args addObject: nsValue];
+
     return;
 }
 
@@ -220,22 +225,28 @@ jobject CocoaBrowserControlCanvas::runReturnRunnableOnAppKitThread(JNIEnv *env, 
     return result;
 }
 
-void CocoaBrowserControlCanvas::runRunnableOnAppKitThread(JNIEnv *env, jobject javaThis, jobject toInvoke)
+jobject CocoaBrowserControlCanvas::runRunnableOnAppKitThread(JNIEnv *env, jobject javaThis, jobject toInvoke)
 {
     PR_ASSERT(javaThis);
     PR_ASSERT(toInvoke);
 
+    jobject result = 0;
     NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
 
     RunOnAppKitThread *appKitThreadRunner = [[RunOnAppKitThread alloc] init];
     NSMutableArray *args = [NSMutableArray arrayWithCapacity: 10];
     NSValue 
-	*inArg0 = [NSValue value:&javaThis withObjCType:@encode(jobject)],
-	*inArg1 = [NSValue value:&toInvoke withObjCType:@encode(jobject)];
+        *inArg0 = [NSValue value:&javaThis withObjCType:@encode(jobject)],
+        *inArg1 = [NSValue value:&toInvoke withObjCType:@encode(jobject)],
+        *outArg0;
     [args addObject: inArg0];
     [args addObject: inArg1];
     @try {
         [appKitThreadRunner runRunnableOnAppKitThread: args];
+        outArg0 = [args objectAtIndex:2];
+        if (outArg0) {
+            result = (jobject) [outArg0 pointerValue];
+        }
     }
     @catch (NSException *e) {
         NSString *reason = [e reason];
@@ -248,5 +259,6 @@ void CocoaBrowserControlCanvas::runRunnableOnAppKitThread(JNIEnv *env, jobject j
     }
 
     [pool release];
+    return result;
 }
 
