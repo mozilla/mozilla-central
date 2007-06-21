@@ -1,9 +1,9 @@
 import time
 
-from urllib2 import urlopen
 from twisted.python import log, failure
 from twisted.internet import defer, reactor
 from twisted.internet.task import LoopingCall
+from twisted.web.client import getPage
 
 from buildbot.changes import base, changes
 
@@ -52,11 +52,8 @@ class TinderboxResult:
 class TinderboxParser:
     """I parse the pipe-delimited result from a Tinderbox quickparse query."""
     
-    def __init__(self, tinderboxQuery):
+    def __init__(self, s):
         nodes = []
-        f = urlopen(tinderboxQuery.geturl())
-        s = f.read()
-        f.close()
         lines = s.split('\n')
         for line in lines:
             if line == "": continue
@@ -80,6 +77,7 @@ class TinderboxPoller(base.ChangeSource):
     loop = None
     volatile = ['loop']
     working = False
+    debug = False
     
     def __init__(self, tinderboxURL, branch, tree="Firefox", machine="", pollInterval=30):
         """
@@ -133,18 +131,23 @@ class TinderboxPoller(base.ChangeSource):
         else:
             self.working = True
             d = self._get_changes()
-            d.addCallback(self._process_changes)
-            d.addBoth(self._finished)
+            d.addCallbacks(self._gotPage, self._gotError)
         return
     
-    def _finished(self, res):
+    def _gotPage(self, content):
+        if self.debug:
+            log.msg("_gotPage: %s" % content.split('\n',1)[0])
+        self._process_changes(content)
+        self._finished()
+        pass
+    
+    def _gotError(self, error):
+        log.msg("quickparse.txt failed to load: %s" % error)
+        self._finished()
+    
+    def _finished(self):
         assert self.working
         self.working = False
-        
-        # check for failure
-        if isinstance(res, failure.Failure):
-            log.msg("Tinderbox poll failed: %s" % res)
-        return res
     
     def _make_url(self):
         # build the tinderbox URL
@@ -159,12 +162,12 @@ class TinderboxPoller(base.ChangeSource):
         log.msg("Polling Tinderbox tree at %s" % url)
         
         self.lastPoll = time.time()
-        # get the page, in pipe-delimited format
-        return defer.maybeDeferred(urlopen, url)
+        # send of the page load request
+        return getPage(url, timeout=self.pollInterval)
     
-    def _process_changes(self, query):
+    def _process_changes(self, content):
         try:
-            tp = TinderboxParser(query)
+            tp = TinderboxParser(content)
             result = tp.getData()
         except InvalidResultError, e:
             log.msg("Could not process Tinderbox query: " + e.value)
@@ -199,6 +202,7 @@ class TinderboxPoller(base.ChangeSource):
             buildDate = int(buildNode['date'])
             if self.lastChange > buildDate:
                 # change too old
+                log.msg("dropping old build from %s" % buildNode['hostname'])
                 continue
             allBuildDates.append(buildDate)
             c = changes.Change(who = buildNode['hostname'],
@@ -212,5 +216,31 @@ class TinderboxPoller(base.ChangeSource):
         # build start time that has been seen
         if allBuildDates:
             self.lastChange = max(allBuildDates)
-    
 
+if __name__ == '__main__':
+    import sys
+    log.startLogging(sys.stdout)
+
+    tb = TinderboxPoller("http://tinderbox.mozilla.org", "HEAD")
+    tb.debug = True
+
+    from datetime import datetime
+    def timestamp2iso(n):
+        ts = datetime.fromtimestamp(n)
+        return ts.isoformat(' ')
+
+    class dummyParent:
+        needsShutDown = True
+        def addChange(self, change):
+            log.msg("Found new build, : %s, %s" % (change.who,
+                                                   timestamp2iso(change.when)))
+            log.msg("SUCCESS")
+            if self.needsShutDown:
+                self.needsShutDown = False
+                reactor.callLater(3, tb.stopService)
+                reactor.callLater(6, reactor.stop)
+
+    tb.parent = dummyParent()
+    tb.startService()
+    
+    reactor.run()
