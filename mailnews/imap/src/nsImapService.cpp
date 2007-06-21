@@ -854,7 +854,7 @@ NS_IMETHODIMP nsImapService::Search(nsIMsgSearchSession *aSearchSession,
     // it will be unescaped in nsImapUrl::ParseUrl().
     char *search_cmd = nsEscape((char *)aSearchUri, url_XAlphas);
     urlSpec.Append(search_cmd);
-    nsCRT::free(search_cmd);
+    NS_Free(search_cmd);
     rv = mailNewsUrl->SetSpec(urlSpec);
     if (NS_SUCCEEDED(rv))
       rv = GetImapConnectionAndLoadUrl(NS_GetCurrentThread(), imapUrl, nsnull, nsnull);
@@ -1911,7 +1911,7 @@ nsresult nsImapService::OfflineAppendFromFile(nsIFile *aFile,
             {
               msgParser->ParseAFolderLine(newLine, numBytesInLine);
               rv = offlineStore->Write(newLine, numBytesInLine, &bytesWritten);
-              nsCRT::free(newLine);
+              NS_Free(newLine);
             }
           } while (newLine);
 
@@ -2163,7 +2163,7 @@ NS_IMETHODIMP nsImapService::RenameLeaf(nsIEventTarget *eventTarget,
       nsCString escapedSlashName;
       rv = nsImapUrl::EscapeSlashes(escapedNewName, getter_Copies(escapedSlashName));
       NS_ENSURE_SUCCESS(rv, rv);
-      nsCRT::free(escapedNewName);
+      NS_Free(escapedNewName);
       urlSpec.Append(escapedSlashName);
       
       rv = uri->SetSpec(urlSpec);
@@ -2214,7 +2214,7 @@ NS_IMETHODIMP nsImapService::CreateFolder(nsIEventTarget  *eventTarget,
       NS_ENSURE_SUCCESS(rv, rv);
       char* escapedFolderName = nsEscape(utfNewName.get(), url_Path);
       urlSpec.Append(escapedFolderName);
-      nsCRT::free(escapedFolderName);
+      NS_Free(escapedFolderName);
       
       rv = uri->SetSpec(urlSpec);
       if (NS_SUCCEEDED(rv))
@@ -2259,7 +2259,7 @@ NS_IMETHODIMP nsImapService::EnsureFolderExists(nsIEventTarget *eventTarget,
       CopyUTF16toMUTF7(nsDependentString(newFolderName), utfNewName);
       char* escapedFolderName = nsEscape(utfNewName.get(), url_Path);
       urlSpec.Append(escapedFolderName);
-      nsCRT::free(escapedFolderName);
+      NS_Free(escapedFolderName);
       
       rv = uri->SetSpec(urlSpec);
       if (NS_SUCCEEDED(rv))
@@ -2801,7 +2801,8 @@ NS_IMETHODIMP nsImapService::GetListOfFoldersWithPath(nsIImapIncomingServer *aSe
     else
       tokenStr.Assign(tempFolderName);
     
-    if ((nsCRT::strcasecmp(tokenStr.get(), "INBOX")==0) && (nsCRT::strcmp(tokenStr.get(), "INBOX") != 0))
+    if (tokenStr.Equals(NS_LITERAL_CSTRING("INBOX"), nsCaseInsensitiveCStringComparator()) && 
+        !tokenStr.Equals(NS_LITERAL_CSTRING("INBOX")))
       changedStr.Append("INBOX");
     else
       changedStr.Append(tokenStr);
@@ -2876,7 +2877,7 @@ nsresult nsImapService::ChangeFolderSubscription(nsIEventTarget *eventTarget,
       NS_ENSURE_SUCCESS(rv, rv);
       char* escapedFolderName = nsEscape(utfFolderName.get(), url_Path);
       urlSpec.Append(escapedFolderName);
-      nsCRT::free(escapedFolderName);
+      NS_Free(escapedFolderName);
       rv = uri->SetSpec(urlSpec);
       if (NS_SUCCEEDED(rv))
         rv = GetImapConnectionAndLoadUrl(eventTarget, imapUrl, nsnull, url);
@@ -3159,7 +3160,7 @@ NS_IMETHODIMP nsImapService::HandleContent(const char *aContentType,
   nsCOMPtr<nsIChannel> aChannel = do_QueryInterface(request, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  if (nsCRT::strcasecmp(aContentType, "x-application-imapfolder") == 0)
+  if (PL_strcasecmp(aContentType, "x-application-imapfolder") == 0)
   {
     nsCOMPtr<nsIURI> uri;
     rv = aChannel->GetURI(getter_AddRefs(uri));

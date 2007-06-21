@@ -188,12 +188,7 @@ void nsImapServerResponseParser::ParseIMAPServerResponse(const char *currentComm
   fNumberOfTaggedResponsesExpected = 1;
   int numberOfTaggedResponsesReceived = 0;
   
-  char *copyCurrentCommand = PL_strdup(currentCommand);
-  if (!copyCurrentCommand)
-  {
-    HandleMemoryFailure();
-    return;
-  }
+  nsCString copyCurrentCommand(currentCommand);
   if (!fServerConnection.DeathSignalReceived())
   {
     char *placeInTokenString = nsnull;
@@ -202,8 +197,9 @@ void nsImapServerResponseParser::ParseIMAPServerResponse(const char *currentComm
     PRBool inIdle = PR_FALSE;
     if (!sendingIdleDone)
     {
-      tagToken = nsCRT::strtok(copyCurrentCommand, WHITESPACE, &placeInTokenString);
-      commandToken = nsCRT::strtok(placeInTokenString, WHITESPACE,&placeInTokenString);
+      placeInTokenString = copyCurrentCommand.BeginWriting();
+      tagToken = NS_strtok(WHITESPACE, &placeInTokenString);
+      commandToken = NS_strtok(WHITESPACE, &placeInTokenString);
     }
     else
       commandToken = "DONE";
@@ -245,11 +241,11 @@ void nsImapServerResponseParser::ParseIMAPServerResponse(const char *currentComm
           NS_ASSERTION((fNumberOfTaggedResponsesExpected - numberOfTaggedResponsesReceived) == 1, 
             " didn't get the number of tagged responses we expected");
           numberOfTaggedResponsesReceived = fNumberOfTaggedResponsesExpected;
-          if (commandToken && !nsCRT::strcasecmp(commandToken, "authenticate") && placeInTokenString && 
-            (!nsCRT::strncasecmp(placeInTokenString, "CRAM-MD5", strlen("CRAM-MD5"))
-             || !nsCRT::strncasecmp(placeInTokenString, "NTLM", strlen("NTLM"))
-             || !nsCRT::strncasecmp(placeInTokenString, "GSSAPI", strlen("GSSAPI"))
-             || !nsCRT::strncasecmp(placeInTokenString, "MSN", strlen("MSN"))))
+          if (commandToken && !PL_strcasecmp(commandToken, "authenticate") && placeInTokenString && 
+            (!PL_strncasecmp(placeInTokenString, "CRAM-MD5", strlen("CRAM-MD5"))
+             || !PL_strncasecmp(placeInTokenString, "NTLM", strlen("NTLM"))
+             || !PL_strncasecmp(placeInTokenString, "GSSAPI", strlen("GSSAPI"))
+             || !PL_strncasecmp(placeInTokenString, "MSN", strlen("MSN"))))
           {
             // we need to store the challenge from the server if we are using CRAM-MD5 or NTLM. 
             authChallengeResponse_data();
@@ -293,7 +289,6 @@ void nsImapServerResponseParser::ParseIMAPServerResponse(const char *currentComm
   }
   else
     SetConnected(PR_FALSE);
-  PL_strfree(copyCurrentCommand);
 }
 
 void nsImapServerResponseParser::HandleMemoryFailure()
@@ -357,23 +352,18 @@ void nsImapServerResponseParser::PreProcessCommandToken(const char *commandToken
   }
   else if (!PL_strcasecmp(commandToken, "UID"))
   {
-    char *copyCurrentCommand = PL_strdup(currentCommand);
-    if (!copyCurrentCommand)
-    {
-      HandleMemoryFailure();
-      return;
-    }
+    nsCString copyCurrentCommand(currentCommand);
     if (!fServerConnection.DeathSignalReceived())
     {
-      char *placeInTokenString = nsnull;
-      char *tagToken           = nsCRT::strtok(copyCurrentCommand, WHITESPACE,&placeInTokenString);
-      char *uidToken           = nsCRT::strtok(placeInTokenString, WHITESPACE,&placeInTokenString);
-      char *fetchToken         = nsCRT::strtok(placeInTokenString, WHITESPACE,&placeInTokenString);
+      char *placeInTokenString = copyCurrentCommand.BeginWriting();
+      char *tagToken = NS_strtok(WHITESPACE, &placeInTokenString);
+      char *uidToken = NS_strtok(WHITESPACE, &placeInTokenString);
+      char *fetchToken = NS_strtok(WHITESPACE, &placeInTokenString);
       uidToken = nsnull; // use variable to quiet compiler warning
       tagToken = nsnull; // use variable to quiet compiler warning
       if (!PL_strcasecmp(fetchToken, "FETCH") )
       {
-        char *uidStringToken = nsCRT::strtok(placeInTokenString, WHITESPACE, &placeInTokenString);
+        char *uidStringToken = NS_strtok(WHITESPACE, &placeInTokenString);
         if (!PL_strchr(uidStringToken, ',') && !PL_strchr(uidStringToken, ':'))	// , and : are uid delimiters
         {
           fCurrentCommandIsSingleMessageFetch = PR_TRUE;
@@ -381,7 +371,6 @@ void nsImapServerResponseParser::PreProcessCommandToken(const char *commandToken
         }
       }
     }
-    PL_strfree(copyCurrentCommand);
   }
 }
 
@@ -1492,7 +1481,7 @@ void nsImapServerResponseParser::xaolenvelope_data()
 
 void nsImapServerResponseParser::parse_address(nsCAutoString &addressLine)
 {
-  if (!nsCRT::strcmp(fNextToken, "NIL"))
+  if (!strcmp(fNextToken, "NIL"))
     return;
   PRBool firstAddress = PR_TRUE;
   // should really look at chars here
@@ -1524,7 +1513,7 @@ void nsImapServerResponseParser::parse_address(nsCAutoString &addressLine)
         {
           addressLine += '@';
           addressLine += hostName;
-          nsCRT::free(hostName);
+          NS_Free(hostName);
         }
         if (personalName)
         {
@@ -1561,7 +1550,7 @@ void nsImapServerResponseParser::internal_date()
     if (strValue)
     {
       dateLine += strValue;
-      nsCRT::free(strValue);
+      NS_Free(strValue);
     }
     fServerConnection.HandleMessageDownLoadLine(dateLine.get(), PR_FALSE);
   }
@@ -2263,7 +2252,7 @@ void nsImapServerResponseParser::language_data()
 void nsImapServerResponseParser::authChallengeResponse_data()
 {
   AdvanceToNextToken();
-  fAuthChallenge = nsCRT::strdup(fNextToken);
+  fAuthChallenge = strdup(fNextToken);
   fWaitingForMoreClientInput = PR_TRUE; 
   
   skip_to_CRLF();
@@ -2548,8 +2537,9 @@ void nsImapServerResponseParser::bodystructure_data()
   if (ContinueParse() && fNextToken && *fNextToken == '(')  // It has to start with an open paren.
   {
     // Turn the BODYSTRUCTURE response into a form that the nsIMAPBodypartMessage can be constructed from.
+    // FIXME: Follow up on bug 384210 to investigate why the caller has to duplicate the two in-param strings.
     nsIMAPBodypartMessage *message = new nsIMAPBodypartMessage(NULL, NULL, PR_TRUE,
-                                                               nsCRT::strdup("message"), nsCRT::strdup("rfc822"),
+                                                               strdup("message"), strdup("rfc822"),
                                                                NULL, NULL, NULL, 0);
     nsIMAPBodypart *body = bodystructure_part(PL_strdup("1"), message);
     if (body)
@@ -3178,7 +3168,7 @@ void nsImapServerResponseParser::SetSyntaxError(PRBool error, const char *msg)
     }
     else
     {
-      if (!nsCRT::strcmp(fCurrentLine, CRLF))
+      if (!strcmp(fCurrentLine, CRLF))
         fServerConnection.Log("PARSER", "Internal Syntax Error: %s: <CRLF>", msg);
       else
       {

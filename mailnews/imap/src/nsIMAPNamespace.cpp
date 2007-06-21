@@ -366,10 +366,10 @@ int nsIMAPNamespaceList::UnserializeNamespaces(const char *str, char **prefixes,
       char *origOurStr = ourstr;
       if (ourstr)
       {
-        char *token = nsCRT::strtok( ourstr, SERIALIZER_SEPARATORS, &ourstr );
+        char *token = NS_strtok(SERIALIZER_SEPARATORS, &ourstr );
         while (token != nsnull)
         {
-          token = nsCRT::strtok( ourstr, SERIALIZER_SEPARATORS, &ourstr );
+          token = NS_strtok(SERIALIZER_SEPARATORS, &ourstr );
           count++;
         }
         PR_Free(origOurStr);
@@ -391,7 +391,7 @@ int nsIMAPNamespaceList::UnserializeNamespaces(const char *str, char **prefixes,
       char *origOurStr = ourstr;
       if (ourstr)
       {
-        char *token = nsCRT::strtok( ourstr, SERIALIZER_SEPARATORS, &ourstr );
+        char *token = NS_strtok(SERIALIZER_SEPARATORS, &ourstr );
         while ((count < len) && (token != nsnull))
         {
           
@@ -402,7 +402,7 @@ int nsIMAPNamespaceList::UnserializeNamespaces(const char *str, char **prefixes,
             where[PL_strlen(where)-1] = 0;
           prefixes[count] = PL_strdup(where);
           PR_FREEIF(current);
-          token = nsCRT::strtok( ourstr, SERIALIZER_SEPARATORS, &ourstr );
+          token = NS_strtok(SERIALIZER_SEPARATORS, &ourstr );
           count++;
         }
         PR_Free(origOurStr);
@@ -514,7 +514,7 @@ char *nsIMAPNamespaceList::AllocateServerFolderName(const char *canonicalFolderN
   if (delimiter)
     return nsImapUrl::ReplaceCharsInCopiedString(canonicalFolderName, '/', delimiter);
   else
-    return nsCRT::strdup(canonicalFolderName);
+    return NS_strdup(canonicalFolderName);
 }
 
 /*

@@ -222,7 +222,7 @@ NS_IMETHODIMP nsIMAPHostSessionList::SetPasswordForHost(const char *serverKey, c
   {
     PR_FREEIF(host->fCachedPassword);
     if (password)
-      host->fCachedPassword = nsCRT::strdup(password);
+      host->fCachedPassword = NS_strdup(password);
   }
   PR_ExitMonitor(gCachedHostInfoMonitor);
   return (host == NULL) ? NS_ERROR_ILLEGAL_VALUE : NS_OK;

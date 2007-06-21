@@ -1215,11 +1215,11 @@ void nsImapProtocol::EstablishServerConnection()
   if (serverResponse)
     SetFlag(IMAP_RECEIVED_GREETING);
 
-  if (!nsCRT::strncasecmp(serverResponse, "* OK", 4))
+  if (!PL_strncasecmp(serverResponse, "* OK", 4))
   {
     SetConnectionStatus(0);
   }
-  else if (!nsCRT::strncasecmp(serverResponse, "* PREAUTH", 9))
+  else if (!PL_strncasecmp(serverResponse, "* PREAUTH", 9))
   {
     // we've been pre-authenticated.
     // we can skip the whole password step, right into the
@@ -3001,7 +3001,7 @@ nsImapProtocol::FetchMessage(const nsCString &messageIds,
           what = PR_smprintf(" ENVELOPE BODY.PEEK[HEADER.FIELDS (%s)])", headersToDL);
         else
           what = PR_smprintf(" BODY.PEEK[HEADER.FIELDS (%s)])",headersToDL);
-        nsCRT::free(headersToDL);
+        NS_Free(headersToDL);
         if (what)
         {
           commandString.Append(" %s (UID ");
@@ -5033,7 +5033,7 @@ nsresult nsImapProtocol::AuthLogin(const char *userName, const nsCString &passwo
           }
 
           PR_snprintf(m_dataOutputBuf, OUTPUT_BUFFER_SIZE, "%s %s", userName, encodedDigest.get());
-          char *base64Str = PL_Base64Encode(m_dataOutputBuf, nsCRT::strlen(m_dataOutputBuf), nsnull);
+          char *base64Str = PL_Base64Encode(m_dataOutputBuf, strlen(m_dataOutputBuf), nsnull);
           PR_snprintf(m_dataOutputBuf, OUTPUT_BUFFER_SIZE, "%s" CRLF, base64Str);
           PR_Free(base64Str);
           PR_Free(digest);
@@ -5488,7 +5488,7 @@ char * nsImapProtocol::OnCreateServerSourceFolderPathString()
       && *onlineDelimiter != hierarchyDelimiter)
       m_runningUrl->SetOnlineSubDirSeparator (*onlineDelimiter);
   if (onlineDelimiter)
-      nsCRT::free(onlineDelimiter);
+    NS_Free(onlineDelimiter);
 
   m_runningUrl->CreateServerSourceFolderPathString(&sourceMailbox);
 
@@ -5542,7 +5542,7 @@ char * nsImapProtocol::OnCreateServerDestinationFolderPathString()
       && *onlineDelimiter != hierarchyDelimiter)
       m_runningUrl->SetOnlineSubDirSeparator (*onlineDelimiter);
   if (onlineDelimiter)
-      nsCRT::free(onlineDelimiter);
+      NS_Free(onlineDelimiter);
 
   m_runningUrl->CreateServerDestinationFolderPathString(&destinationMailbox);
 
@@ -5734,7 +5734,7 @@ void nsImapProtocol::OnRefreshAllACLs()
       if (onlineName)
       {
         RefreshACLForFolder(onlineName);
-        nsCRT::free(onlineName);
+        NS_Free(onlineName);
       }
       PercentProgressUpdateEvent(NULL, count, total);
       delete mb;

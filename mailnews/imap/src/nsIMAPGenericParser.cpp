@@ -165,7 +165,7 @@ void nsIMAPGenericParser::AdvanceToNextToken()
       fLineOfTokens = fStartOfLineOfTokens;
       fCurrentTokenPlaceHolder = fStartOfLineOfTokens;
     }
-    fNextToken = nsCRT::strtok(fCurrentTokenPlaceHolder, WHITESPACE, &fCurrentTokenPlaceHolder);
+    fNextToken = NS_strtok(WHITESPACE, &fCurrentTokenPlaceHolder);
     if (!fNextToken)
     {
       fAtEndOfLine = PR_TRUE;
@@ -458,7 +458,7 @@ char *nsIMAPGenericParser::CreateParenGroup()
     if (*fCurrentTokenPlaceHolder == '{')  // literal
     {
       // Ensure it is a properly formatted literal.
-      NS_ASSERTION(!nsCRT::strcmp("}\r\n", fCurrentTokenPlaceHolder + strlen(fCurrentTokenPlaceHolder) - 3), "not a literal");
+      NS_ASSERTION(!strcmp("}\r\n", fCurrentTokenPlaceHolder + strlen(fCurrentTokenPlaceHolder) - 3), "not a literal");
       
       // Append previous characters and the "{xx}\r\n" to buffer.
       returnString.Append(parenGroupStart);
