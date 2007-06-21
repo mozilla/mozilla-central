@@ -1,9 +1,0 @@
-messenger.jar:
-#ifdef MOZ_XUL_APP
-% content messenger-mapi %content/messenger-mapi/ xpcnativewrappers=yes
-% overlay chrome://messenger/content/pref-mailnews.xul chrome://messenger-mapi/content/pref-mailnewsOverlay.xul
-#else
-*    content/messenger-mapi/contents.rdf                              (contents.rdf)
-#endif
-     content/messenger-mapi/pref-mailnewsOverlay.xul                  (pref-mailnewsOverlay.xul)
-     content/messenger-mapi/pref-mailnewsOverlay.js                   (pref-mailnewsOverlay.js)

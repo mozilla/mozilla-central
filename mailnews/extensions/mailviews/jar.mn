@@ -1,10 +1,6 @@
 #ifdef MOZ_SUITE
 messenger.jar:
-#ifdef MOZ_XUL_APP
 % overlay chrome://messenger/content/mailWindowOverlay.xul chrome://messenger/content/msgViewPickerOverlay.xul
-#else
-*   content/messenger-views/contents.rdf                             (resources/content/contents.rdf)
-#endif
     content/messenger/msgViewPickerOverlay.xul                       (resources/content/msgViewPickerOverlay.xul)
     content/messenger/msgViewPickerOverlay.js                        (resources/content/msgViewPickerOverlay.js)
     content/messenger/mailViewSetup.js                               (resources/content/mailViewSetup.js)
