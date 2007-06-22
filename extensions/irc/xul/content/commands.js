@@ -2244,13 +2244,6 @@ function cmdGotoURL(e)
         return;
     }
 
-    if (e.command.name == "goto-url-newwin")
-    {
-        openTopWin(e.url);
-        dispatch("focus-input");
-        return;
-    }
-
     var window = getWindowByType("navigator:browser");
 
     if (!window)
@@ -2273,6 +2266,23 @@ function cmdGotoURL(e)
         
     }
 
+    if (e.command.name == "goto-url-newwin")
+    {
+        try
+        {
+            if (client.host == "Mozilla")
+                window.openNewWindowWith(e.url, false);
+            else
+                window.openNewWindowWith(e.url, null, null, null);
+        }
+        catch (ex)
+        {
+            dd(formatException(ex));
+        }
+        dispatch("focus-input");
+        return;
+    }
+
     if (e.command.name == "goto-url-newtab")
     {
         try
@@ -2280,7 +2290,7 @@ function cmdGotoURL(e)
             if (client.host == "Mozilla")
                 window.openNewTabWith(e.url, false, false);
             else
-                window.openNewTabWith(e.url, null, null, null, null, false);
+                window.openNewTabWith(e.url, null, null, null, null);
         }
         catch (ex)
         {
