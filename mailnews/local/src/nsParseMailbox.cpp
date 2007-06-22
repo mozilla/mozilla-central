@@ -1918,7 +1918,7 @@ NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWi
             nsCOMPtr<nsIMsgCopyService> copyService =
               do_GetService(NS_MSGCOPYSERVICE_CONTRACTID, &rv);
             NS_ENSURE_SUCCESS(rv, rv);
-            rv = copyService->CopyMessages(m_rootFolder, messageArray, dstFolder,
+            rv = copyService->CopyMessages(m_downloadFolder, messageArray, dstFolder,
                                            PR_FALSE, nsnull, msgWindow, PR_FALSE);
             NS_ENSURE_SUCCESS(rv, rv);
           }
