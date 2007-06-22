@@ -268,18 +268,16 @@ net_pop3_load_state(const char* searchhost,
       continue;
     if (firstChar == '*') {
       /* It's a host&user line. */
-      current = NULL;
-      nsCStringArray lineElems;
-      lineElems.ParseString(line.get(), " \t");
-      if (lineElems.Count() != 2)
-        continue;
-      nsCString *host = lineElems[0];
-      nsCString *user = lineElems[1];
-      host->Cut(0, 1); // remove the '*'
+      current = nsnull;
+      char *lineBuf = line.BeginWriting() + 1; // ok because we know the line isn't empty
+      char *host = NS_strtok(" \t\r\n", &lineBuf);
       /* without space to also get realnames - see bug 225332 */
+      char *user = NS_strtok("\t\r\n", &lineBuf);
+      if (!host || !user)
+        continue;
       for (tmp = result ; tmp ; tmp = tmp->next)
       {
-        if (host->Equals(tmp->host) && user->Equals(tmp->user))
+        if (!strcmp(host, tmp->host) && !strcmp(user, tmp->user))
         {
           current = tmp;
           break;
@@ -290,8 +288,8 @@ net_pop3_load_state(const char* searchhost,
         current = PR_NEWZAP(Pop3UidlHost);
         if (current)
         {
-          current->host = PL_strdup(host->get() + 1);
-          current->user = PL_strdup(user->get());
+          current->host = strdup(host);
+          current->user = strdup(user);
           current->hash = PL_NewHashTable(20, PL_HashString, PL_CompareStrings, PL_CompareValues, &gHashAllocOps, nsnull);
           if (!current->host || !current->user || !current->hash)
           {
@@ -305,7 +303,7 @@ net_pop3_load_state(const char* searchhost,
           {
             current->next = result->next;
             result->next = current;
-          }
+          } 
         }
       }
     }
@@ -320,9 +318,9 @@ net_pop3_load_state(const char* searchhost,
           continue;
         nsCString *flags = lineElems[0];
         nsCString *uidl = lineElems[1];
-        nsCString *dateReceivedStr = lineElems[2];
+        nsCString *dateReceivedStr = lineElems[2]; // will be null if only 2 elements.
         PRUint32 dateReceived = TimeInSecondsFromPRTime(PR_Now()); // if we don't find a date str, assume now.
-        if (!dateReceivedStr->IsEmpty())
+        if (dateReceivedStr && !dateReceivedStr->IsEmpty())
           dateReceived = atoi(dateReceivedStr->get());
         if (!flags->IsEmpty() && !uidl->IsEmpty())
         {
