@@ -1117,51 +1117,47 @@ function onShowAttachmentContextMenu()
   // if no attachments are selected, disable the Open and Save...
   var attachmentList = document.getElementById('attachmentList');
   var selectedAttachments = attachmentList.selectedItems;
+  var attachmentList = document.getElementById('attachmentListContext');
   var openMenu = document.getElementById('context-openAttachment');
   var saveMenu = document.getElementById('context-saveAttachment');
   var detachMenu = document.getElementById('context-detachAttachment');
   var deleteMenu = document.getElementById('context-deleteAttachment');
+  var menuSingleSeparator = document.getElementById('context-menu-singleSeparator');
+  var menuAllSeparator = document.getElementById('context-menu-allSeparator');
+  var saveAllMenu = document.getElementById('context-saveAllAttachments');
   var detachAllMenu = document.getElementById('context-detachAllAttachments');
   var deleteAllMenu = document.getElementById('context-deleteAllAttachments');
   var canDetach = CanDetachAttachments();
   var canOpen = false;
   for (var i = 0; i < selectedAttachments.length && !canOpen; i++)
     canOpen = selectedAttachments[i].attachment.contentType != 'text/x-moz-deleted';
-  if (canOpen && selectedAttachments.length == 1)
+  if (selectedAttachments.length == 1)
   {
-    openMenu.removeAttribute('disabled');
+    openMenu.setAttribute('hidden', !canOpen);
+    saveMenu.setAttribute('hidden', !canOpen);
+    menuSingleSeparator.setAttribute('hidden', !canOpen);
+
+    detachMenu.setAttribute('hidden', !canDetach || !canOpen);
+    deleteMenu.setAttribute('hidden', !canDetach || !canOpen);
+    menuSingleSeparator.setAttribute('hidden', !canDetach || !canOpen);
+
+    menuAllSeparator.setAttribute('hidden', 'true');
+    saveAllMenu.setAttribute('hidden', 'true');
+    detachAllMenu.setAttribute('hidden', 'true');
+    deleteAllMenu.setAttribute('hidden', 'true');
   }
   else
   {
-    openMenu.setAttribute('disabled', true);
-  }
-  if (canOpen)
-  {
-    saveMenu.removeAttribute('disabled');
-  }
-  else
-  {
-    saveMenu.setAttribute('disabled', true);
-  }
-  if (canDetach && canOpen)
-  {
-    detachMenu.removeAttribute('disabled');
-    deleteMenu.removeAttribute('disabled');
-  }
-  else
-  {
-    detachMenu.setAttribute('disabled', 'true');
-    deleteMenu.setAttribute('disabled', 'true');
-  }
-  if (canDetach)
-  {
-    detachAllMenu.removeAttribute('disabled');
-    deleteAllMenu.removeAttribute('disabled');
-  }
-  else
-  {
-    detachAllMenu.setAttribute('disabled', 'true');
-    deleteAllMenu.setAttribute('disabled', 'true');
+    openMenu.setAttribute('hidden', 'true');
+    saveMenu.setAttribute('hidden', 'true');
+    detachMenu.setAttribute('hidden', 'true');
+    deleteMenu.setAttribute('hidden', 'true');
+    saveAllMenu.setAttribute('hidden', 'false');
+    menuSingleSeparator.setAttribute('hidden', 'true');
+    menuAllSeparator.setAttribute('hidden', 'true');
+
+    detachAllMenu.setAttribute('hidden', !canDetach);
+    deleteAllMenu.setAttribute('hidden', !canDetach);
   }
 }
 
