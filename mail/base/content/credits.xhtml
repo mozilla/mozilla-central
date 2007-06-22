@@ -88,7 +88,7 @@
         bottom:8px;
         overflow: hidden;
         z-index: 1;
-        width: 280px; 
+        width: 280px;
         margin-left: 10px;
         margin-right: 10px;
         font-family: Arial, sans-serif;
@@ -194,7 +194,7 @@
 
       function openLicense()
       {
-        var fileLocator = 
+        var fileLocator =
             Components.classes["@mozilla.org/file/directory_service;1"].
             getService(Components.interfaces.nsIProperties);
         var appDir = fileLocator.get("XCurProcD", Components.interfaces.nsIFile);
@@ -220,19 +220,20 @@
         <h2 class="title">&brandFullName;&trade;
           <div class="motto">&brandMotto;</div>
         </h2>
- 
+
         <div class="creditsGroup">
           <h3>&credit.leads;</h3>
           <div class="credit">David Bienvenu</div>
           <div class="credit">Scott MacGregor</div>
         </div>
-                  
+
         <div class="creditsGroup">
           <h3>&credit.qa;</h3>
           <div class="credit">
             <ul>
+              <li>Juan Becerra</li>
+              <li>Carsten Book</li>
               <li>Mike Cowperthwaite</li>
-              <li>Asa Dotzler</li>
               <li>Marcia Knous</li>
               <li>MozillaZine Community</li>
               <li>Jay Patel</li>
@@ -244,9 +245,9 @@
           <h3>&credit.build;</h3>
           <div class="credit">
           <ul>
-            <li>T.R. Fullhart</li>
             <li>Rob Helmer</li>
             <li>J. Paul Reed</li>
+            <li>Nick Thomas</li>
           </ul>
           </div>
         </div>
@@ -259,19 +260,21 @@
             <li>David Baron</li>
             <li>Jon Baumgartner</li>
             <li>Christopher Beard</li>
+            <li>Juan Becerra</li>
             <li>Stefan Borggraefe</li>
             <li>Zbigniew Braniecki</li>
             <li>Daniel Burka</li>
             <li>Mary Colvig</li>
-            <li>Chris Cooper</li>            
+            <li>Chris Cooper</li>
             <li>Don Crandall</li>
             <li>André Dahlqvist</li>
-            <li>Bart Decrem</li>            
+            <li>Bart Decrem</li>
             <li>Stephen Desroches</li>
             <li>Gordon Dickens</li>
             <li>Sherman Dickman</li>
+            <li>Asa Dotzler</li>
             <li>Karsten Düsterloh</li>
-            <li>Rafael Ebron</li>            
+            <li>Rafael Ebron</li>
             <li>Brendan Eich</li>
             <li>Kai Engert</li>
             <li>Christian Eyrich</li>
@@ -284,7 +287,7 @@
             <li>Jon Hicks</li>
             <li>Chris Hofmann</li>
             <li>Alexander Ihrig</li>
-            <li>Blake Kaplan</li> 
+            <li>Blake Kaplan</li>
             <li>Jason Kersey</li>
             <li>Gary Kwong</li>
             <li>Sarah Liberman</li>
@@ -292,7 +295,7 @@
             <li>Myk Melez</li>
             <li>Magnus Melin</li>
             <li>Wayne Mery</li>
-            <li>Dave Miller</li>            
+            <li>Dave Miller</li>
             <li>Dan Mosedale</li>
             <li>Masayuki Nakano</li>
             <li>Ian Neal</li>
@@ -315,15 +318,17 @@
             <li>Trix Supremo</li>
             <li>Satoko Takita</li>
             <li>David Tenser</li>
+            <li>Nick Thomas</li>
             <li>Dan Veditz</li>
             <li>Stephen Walker</li>
             <li>Simon Wilkinson</li>
+            <li>Wayne Woods</li>
             <li>Kohei Yoshino</li>
           </ul>
           </div>
 
           &credit.translation;
-         
+
           <h3>&credit.theme;</h3>
           <div class="credit">
           <ul>
@@ -332,7 +337,7 @@
             <li>Stephen Horlander</li>
           </ul>
           </div>
-          
+
           <h3>&credit.thanks;</h3>
           <div class="credit">
           <ul>
@@ -342,7 +347,7 @@
           </ul>
           </div>
         </div>
-        
+
         <p id="gecko" class="center">&credit.poweredByGecko;</p>
 
         <p class="footnote">
@@ -353,8 +358,8 @@
           &license.part3;</p>
 
         <p class="footnote">
-          Mozilla Thunderbird&trade; and the Thunderbird logo are trademarks of the Mozilla 
-          Foundation. You are not granted rights or licenses to the trademarks 
+          Mozilla Thunderbird&trade; and the Thunderbird logo are trademarks of the Mozilla
+          Foundation. You are not granted rights or licenses to the trademarks
           of the Mozilla Foundation or any party, including without limitation the
           Thunderbird name or logo.</p>
 
