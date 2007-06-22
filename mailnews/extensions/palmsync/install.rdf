@@ -29,6 +29,6 @@
     <em:name>Palm Sync</em:name>
     <em:description>Palm address book synchronization.</em:description>
     <em:creator>Team Thunderbird</em:creator>
-    <em:homepageURL>http://www.mozilla.org/projects/thunderbird/palmsync/</em:homepageURL>
+    <em:homepageURL>http://kb.mozillazine.org/PalmSync_-_Thunderbird</em:homepageURL>
   </Description>
 </RDF>
