@@ -2458,7 +2458,40 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(PRBool copySucceeded)
       {
         // need to copy junk score and label from mCopyState->m_message to newHdr.
         if (mCopyState->m_message)
+        {
+          // deal with propagating the new flag on an imap to local folder filter action
+          PRUint32 msgFlags;
+          mCopyState->m_message->GetFlags(&msgFlags);
+          if (!(msgFlags & MSG_FLAG_READ))
+          {
+            nsCOMPtr <nsIMsgFolder> srcFolder;
+            mCopyState->m_message->GetFolder(getter_AddRefs(srcFolder));
+            if (srcFolder)
+            {
+              PRUint32 folderFlags;
+              srcFolder->GetFlags(&folderFlags);
+              // check if the src folder is an imap inbox.
+              if ((folderFlags & (MSG_FOLDER_FLAG_INBOX|MSG_FOLDER_FLAG_IMAPBOX))
+                            == (MSG_FOLDER_FLAG_INBOX|MSG_FOLDER_FLAG_IMAPBOX))
+              {
+                nsCOMPtr <nsIMsgDatabase> db;
+                srcFolder->GetMsgDatabase(nsnull, getter_AddRefs(db));
+                if (db)
+                {
+                  nsMsgKey srcKey;
+                  PRBool containsKey;
+                  mCopyState->m_message->GetMessageKey(&srcKey);
+                  db->ContainsKey(srcKey, &containsKey);
+                  // if the db doesn't have the key, it must be a filtered imap
+                  // message, getting moved to a local folder.
+                  if (!containsKey)
+                    newHdr->OrFlags(MSG_FLAG_NEW, &msgFlags);
+                }
+              }
+            }
+          }
           CopyPropertiesToMsgHdr(newHdr, mCopyState->m_message);
+        }
         msgDb->AddNewHdrToDB(newHdr, PR_TRUE);
         if (localUndoTxn)
         {
