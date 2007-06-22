@@ -74,6 +74,7 @@ REQUIRES	= xpcom \
       uriloader \
 		  windowwatcher \
 		  embed_base \
+                  exthandler \
 		  $(NULL)
 
 EXPORTS = \

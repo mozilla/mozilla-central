@@ -117,6 +117,8 @@
 #include "nsIMsgIdentity.h"
 #include "nsIMsgFolderNotificationService.h"
 #include "nsNativeCharsetUtils.h"
+#include "nsIExternalProtocolService.h"
+#include "nsCExternalHandlerService.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 static NS_DEFINE_CID(kCMailDB, NS_MAILDB_CID);
@@ -3443,15 +3445,23 @@ NS_IMETHODIMP nsImapMailFolder::FolderPrivileges(nsIMsgWindow *window)
 #endif
   if (!m_adminUrl.IsEmpty())
   {
-    nsCOMPtr <nsIDocShell> docShell;
-    rv = window->GetRootDocShell(getter_AddRefs(docShell));
-    if (NS_SUCCEEDED(rv) && docShell)
+    nsCOMPtr<nsIExternalProtocolService> extProtService = do_GetService(NS_EXTERNALPROTOCOLSERVICE_CONTRACTID);
+    if (extProtService) 
     {
+      nsCAutoString scheme;
       nsCOMPtr<nsIURI> uri;
       if (NS_FAILED(rv = NS_NewURI(getter_AddRefs(uri), m_adminUrl.get())))
         return rv;
-      rv = docShell->LoadURI(uri, nsnull, nsIWebNavigation::LOAD_FLAGS_IS_LINK, PR_FALSE);
-
+      uri->GetScheme(scheme);
+      if (!scheme.IsEmpty()) 
+      {
+        // if the URL scheme does not correspond to an exposed protocol, then we
+        // need to hand this link click over to the external protocol handler.
+        PRBool isExposed;
+        rv = extProtService->IsExposedProtocol(scheme.get(), &isExposed);
+        if (NS_SUCCEEDED(rv) && !isExposed) 
+          return extProtService->LoadUrl(uri);
+      }
     }
   }
   else
