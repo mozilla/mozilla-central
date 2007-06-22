@@ -1699,7 +1699,13 @@ nsresult
 nsNntpIncomingServer::AppendIfSearchMatch(nsCString& newsgroupName)
 {
   NS_ConvertUTF8toUTF16 groupName(newsgroupName);
-  if (groupName.Find(mSearchValue, PR_TRUE) >= 0)
+  // When we move to frozen linkage this should be:
+  //   if (groupName.Find(mSearchValue, CaseInsensitiveCompare) >= 0)
+  nsAString::const_iterator start, end;
+  groupName.BeginReading(start);
+  groupName.EndReading(end);
+  if (FindInReadable(mSearchValue, start, end, 
+                     nsCaseInsensitiveStringComparator()))
       mSubscribeSearchResult.AppendCString(newsgroupName);
   return NS_OK;
 }

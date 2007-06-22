@@ -954,11 +954,13 @@ nsresult nsMsgSearchTerm::MatchString (const char *stringToMatch,
   switch (m_operator)
   {
   case nsMsgSearchOp::Contains:
-    if (utf16StrToMatch.Find(needle, PR_TRUE) >= 0)
+    // When we move to frozen linkage, this should be:
+    // utf16StrToMatch.Find(needle, CaseInsensitiveCompare)  >= 0);
+    if (CaseInsensitiveFindInReadable(needle, utf16StrToMatch))
       result = PR_TRUE;
     break;
   case nsMsgSearchOp::DoesntContain:
-    if (utf16StrToMatch.Find(needle, PR_TRUE) == -1)
+    if (!CaseInsensitiveFindInReadable(needle, utf16StrToMatch))
       result = PR_TRUE;
     break;
   case nsMsgSearchOp::Is:

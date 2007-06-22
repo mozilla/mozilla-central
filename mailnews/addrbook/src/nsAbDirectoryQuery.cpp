@@ -594,9 +594,13 @@ nsresult nsAbDirectoryQuery::matchCardCondition (nsIAbCard* card,
             *matchFound = PR_TRUE;
             break;
         case nsIAbBooleanConditionTypes::Contains:
+            // When we move to frozen linkage, this should be:
+            // *matchFound = value.Find(matchValue, CaseInsensitiveCompare) >= 0;
             *matchFound = FindInReadable(matchValue, value, nsCaseInsensitiveStringComparator());
             break;
         case nsIAbBooleanConditionTypes::DoesNotContain:
+            // When we move to frozen linkage, this should be:
+            // *matchFound = value.Find(matchValue, CaseInsensitiveCompare) == -1;
             *matchFound = !FindInReadable(matchValue, value, nsCaseInsensitiveStringComparator());
             break;
         case nsIAbBooleanConditionTypes::Is:

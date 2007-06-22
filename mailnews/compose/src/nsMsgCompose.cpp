@@ -3628,9 +3628,17 @@ nsMsgCompose::LoadDataFromFile(nsILocalFile *file, nsString &sigData,
   {
     nsAutoString metaCharset(NS_LITERAL_STRING("charset="));
     AppendASCIItoUTF16(sigEncoding, metaCharset);
-    PRInt32 offset = sigData.Find(metaCharset, PR_TRUE);
-    if (offset >= 0)
-      sigData.Cut(offset, metaCharset.Length());
+    // When we move to frozen linkage, this should become:
+    // PRInt32 offset = sigData.Find(metaCharset, CaseInsensitiveCompare) ;
+    //  if (offset >= 0)
+    //    sigData.Cut(offset, metaCharset.Length());
+    nsAString::const_iterator realstart, start, end;
+    sigData.BeginReading(start);
+    sigData.EndReading(end);
+    realstart = start;
+    if (FindInReadable(metaCharset, start, end,
+                       nsCaseInsensitiveStringComparator()))
+      sigData.Cut(Distance(realstart, start), Distance(start, end));
   }
 
   return NS_OK;
@@ -4486,10 +4494,14 @@ NS_IMETHODIMP nsMsgCompose::CheckAndPopulateRecipients(PRBool populateMailList, 
             if (atPos >= 0)
             {
               recipient->mEmail.Right(domain, recipient->mEmail.Length() - atPos - 1);
-              if (plaintextDomains.Find(domain, PR_TRUE) >= 0)
+              // when we move to frozen linkage this should be:
+              // if (plaintextDomains.Find(domain, CaseInsensitiveCompare) >= 0)
+              if (FindInReadable(domain, plaintextDomains, nsCaseInsensitiveStringComparator()))
                 recipient->mPreferFormat = nsIAbPreferMailFormat::plaintext;
               else
-                if (htmlDomains.Find(domain, PR_TRUE) >= 0)
+                // when we move to frozen linkage this should be:
+                // if (htmlDomains.Find(domain, CaseInsensitiveCompare) >= 0)
+                if (FindInReadable(domain, htmlDomains, nsCaseInsensitiveStringComparator()))
                   recipient->mPreferFormat = nsIAbPreferMailFormat::html;
             }
           }
