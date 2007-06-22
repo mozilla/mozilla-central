@@ -35,7 +35,7 @@
 ** This header file defines the interface that the SQLite library
 ** presents to client programs.
 **
-** @(#) $Id: sqlite.h.in,v 1.201 2007/03/30 20:43:42 drh Exp $
+** @(#) $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 */
 #ifndef _SQLITE3_H_
 #define _SQLITE3_H_
@@ -1927,7 +1927,7 @@ int sqlite3_overload_function(sqlite3*, const char *zFuncName, int nArg);
 ** sqlite3RegisterDateTimeFunctions() found at the bottom of the file.
 ** All other code has file scope.
 **
-** $Id: date.c,v 1.62 2007/04/06 02:32:34 drh Exp $
+** $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 **
 ** NOTES:
 **
@@ -1973,7 +1973,7 @@ int sqlite3_overload_function(sqlite3*, const char *zFuncName, int nArg);
 *************************************************************************
 ** Internal interface definitions for SQLite.
 **
-** @(#) $Id: sqliteInt.h,v 1.552 2007/04/16 15:06:25 danielk1977 Exp $
+** @(#) $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 */
 #ifndef _SQLITEINT_H_
 #define _SQLITEINT_H_
@@ -2032,7 +2032,7 @@ int sqlite3_overload_function(sqlite3*, const char *zFuncName, int nArg);
 ** This is the header file for the generic hash-table implemenation
 ** used in SQLite.
 **
-** $Id: hash.h,v 1.9 2006/02/14 10:48:39 danielk1977 Exp $
+** $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 */
 #ifndef _SQLITE_HASH_H_
 #define _SQLITE_HASH_H_
@@ -2493,7 +2493,7 @@ struct BusyHandler {
 ** or VDBE.  The VDBE implements an abstract machine that runs a
 ** simple program to access and modify the underlying database.
 **
-** $Id: vdbe.h,v 1.108 2007/01/09 14:01:14 drh Exp $
+** $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 */
 #ifndef _SQLITE_VDBE_H_
 #define _SQLITE_VDBE_H_
@@ -2809,7 +2809,7 @@ void sqlite3VdbeSwap(Vdbe*,Vdbe*);
 ** subsystem.  See comments in the source code for a detailed description
 ** of what each interface routine does.
 **
-** @(#) $Id: btree.h,v 1.74 2007/03/30 14:06:34 drh Exp $
+** @(#) $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 */
 #ifndef _BTREE_H_
 #define _BTREE_H_
@@ -2964,7 +2964,7 @@ int sqlite3BtreePageDump(Btree*, int, int recursive);
 ** subsystem.  The page cache subsystem reads and writes a file a page
 ** at a time and provides a journal for rollback.
 **
-** @(#) $Id: pager.h,v 1.58 2007/04/13 02:14:30 drh Exp $
+** @(#) $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 */
 
 #ifndef _PAGER_H_
@@ -7291,7 +7291,7 @@ void sqlite3DebugPrintf(const char *zFormat, ...){
 ** Random numbers are used by some of the database backends in order
 ** to generate random integer keys for tables or random filenames.
 **
-** $Id: random.c,v 1.16 2007/01/05 14:38:56 drh Exp $
+** $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 */
 
 
@@ -7389,7 +7389,7 @@ void sqlite3Randomness(int N, void *pBuf){
 ** This file contains routines used to translate between UTF-8, 
 ** UTF-16, UTF-16BE, and UTF-16LE.
 **
-** $Id: utf.c,v 1.44 2007/03/31 15:28:00 drh Exp $
+** $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 **
 ** Notes on UTF-8:
 **
@@ -8431,7 +8431,7 @@ void sqlite3utfSelfTest(){
 ** This file contains functions for allocating memory, comparing
 ** strings, and stuff like that.
 **
-** $Id: util.c,v 1.199 2007/04/06 02:32:34 drh Exp $
+** $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 */
 
 /*
@@ -9924,7 +9924,7 @@ void sqlite3MallocAllow(){
 ** This is the implementation of generic hash-tables
 ** used in SQLite.
 **
-** $Id: hash.c,v 1.19 2007/03/31 03:59:24 drh Exp $
+** $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 */
 
 /* Turn bulk memory into a hash table object by initializing the
@@ -15791,7 +15791,7 @@ int sqlite3WinOpenExclusive(const char *zFilename, OsFile **pId, int delFlag){
   fileflags = FILE_FLAG_RANDOM_ACCESS;
 #if !OS_WINCE
   if( delFlag ){
-    fileflags |= FILE_ATTRIBUTE_TEMPORARY;// XXX sqlite Issue 2441 | FILE_FLAG_DELETE_ON_CLOSE;
+    fileflags |= FILE_ATTRIBUTE_TEMPORARY | FILE_FLAG_DELETE_ON_CLOSE;
   }
 #endif
   if( isNT() ){
@@ -16786,7 +16786,7 @@ ThreadData *sqlite3WinThreadSpecificData(int allocateFlag){
 ** file simultaneously, or one process from reading the database while
 ** another is writing.
 **
-** @(#) $Id: pager.c,v 1.329 2007/04/16 15:02:19 drh Exp $
+** @(#) $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 */
 #ifndef SQLITE_OMIT_DISKIO
 
@@ -21098,7 +21098,7 @@ void sqlite3PagerRefdump(Pager *pPager){
 **    May you share freely, never taking more than you give.
 **
 *************************************************************************
-** $Id: btree.c,v 1.358 2007/04/24 17:35:59 drh Exp $
+** $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 **
 ** This file implements a external (disk-based) database using BTrees.
 ** For a detailed discussion of BTrees, refer to
@@ -31845,7 +31845,7 @@ sqlite3 *sqlite3_db_handle(sqlite3_stmt *pStmt){
 ** in this file for details.  If in doubt, do not deviate from existing
 ** commenting and indentation practices when changing or adding code.
 **
-** $Id: vdbe.c,v 1.601 2007/04/18 16:45:24 drh Exp $
+** $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 */
 
 /*
@@ -36852,7 +36852,7 @@ abort_due_to_interrupt:
 ** This file contains routines used for analyzing expressions and
 ** for generating VDBE code that evaluates expressions in SQLite.
 **
-** $Id: expr.c,v 1.285 2007/04/18 17:07:58 drh Exp $
+** $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 */
 
 /*
@@ -39290,7 +39290,7 @@ int sqlite3ExprAnalyzeAggList(NameContext *pNC, ExprList *pList){
 ** This file contains C code routines that used to generate VDBE code
 ** that implements the ALTER TABLE command.
 **
-** $Id: alter.c,v 1.22 2006/09/08 12:27:37 drh Exp $
+** $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 */
 
 /*
@@ -39865,7 +39865,7 @@ exit_begin_add_column:
 *************************************************************************
 ** This file contains code associated with the ANALYZE command.
 **
-** @(#) $Id: analyze.c,v 1.17 2007/03/29 05:51:49 drh Exp $
+** @(#) $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 */
 #ifndef SQLITE_OMIT_ANALYZE
 
@@ -40270,7 +40270,7 @@ void sqlite3AnalysisLoad(sqlite3 *db, int iDb){
 *************************************************************************
 ** This file contains code used to implement the ATTACH and DETACH commands.
 **
-** $Id: attach.c,v 1.57 2007/03/27 21:47:07 drh Exp $
+** $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 */
 
 #ifndef SQLITE_OMIT_ATTACH
@@ -40784,7 +40784,7 @@ int sqlite3FixTriggerStep(
 ** systems that do not need this facility may omit it by recompiling
 ** the library with -DSQLITE_OMIT_AUTHORIZATION=1
 **
-** $Id: auth.c,v 1.25 2006/06/16 08:01:03 danielk1977 Exp $
+** $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 */
 
 /*
@@ -41028,7 +41028,7 @@ void sqlite3AuthContextPop(AuthContext *pContext){
 **     COMMIT
 **     ROLLBACK
 **
-** $Id: build.c,v 1.421 2007/04/18 14:47:24 danielk1977 Exp $
+** $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 */
 
 /*
@@ -44371,7 +44371,7 @@ KeyInfo *sqlite3IndexKeyinfo(Parse *pParse, Index *pIdx){
 ** This file contains functions used to access the internal hash tables
 ** of user defined functions and collation sequences.
 **
-** $Id: callback.c,v 1.17 2007/04/16 15:06:25 danielk1977 Exp $
+** $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 */
 
 
@@ -44749,7 +44749,7 @@ Schema *sqlite3SchemaGet(Btree *pBt){
 ** separating it out, the code will be automatically omitted from
 ** static links that do not use it.
 **
-** $Id: complete.c,v 1.3 2006/01/18 15:25:17 danielk1977 Exp $
+** $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 */
 #ifndef SQLITE_OMIT_COMPLETE
 
@@ -45010,7 +45010,7 @@ int sqlite3_complete16(const void *zSql){
 ** This file contains C code routines that are called by the parser
 ** in order to generate code for DELETE FROM statements.
 **
-** $Id: delete.c,v 1.129 2007/04/16 15:06:25 danielk1977 Exp $
+** $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 */
 
 /*
@@ -45483,7 +45483,7 @@ void sqlite3GenerateIndexKey(
 ** sqliteRegisterBuildinFunctions() found at the bottom of the file.
 ** All other code has file scope.
 **
-** $Id: func.c,v 1.139 2007/04/10 13:51:18 drh Exp $
+** $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 */
 /* #include <math.h> */
 
@@ -46821,7 +46821,7 @@ int sqlite3IsLikeFunction(sqlite3 *db, Expr *pExpr, int *pIsNocase, char *aWc){
 ** This file contains C code routines that are called by the parser
 ** to handle INSERT statements in SQLite.
 **
-** $Id: insert.c,v 1.185 2007/04/18 14:24:33 danielk1977 Exp $
+** $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 */
 
 /*
@@ -48409,7 +48409,7 @@ static int xferOptimization(
 ** other files are for internal use by SQLite and should not be
 ** accessed by users of the library.
 **
-** $Id: legacy.c,v 1.17 2007/04/25 11:28:17 drh Exp $
+** $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 */
 
 
@@ -48560,7 +48560,7 @@ exec_out:
 ** as extensions by SQLite should #include this file instead of 
 ** sqlite3.h.
 **
-** @(#) $Id: sqlite3ext.h,v 1.10 2007/03/29 18:46:01 drh Exp $
+** @(#) $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 */
 #ifndef _SQLITE3EXT_H_
 #define _SQLITE3EXT_H_
@@ -49262,7 +49262,7 @@ int sqlite3AutoLoadExtensions(sqlite3 *db){
 *************************************************************************
 ** This file contains code used to implement the PRAGMA command.
 **
-** $Id: pragma.c,v 1.132 2007/03/30 17:11:13 danielk1977 Exp $
+** $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 */
 
 /* Ignore this whole file if pragmas are disabled
@@ -50331,7 +50331,7 @@ pragma_out:
 ** interface, and routines that contribute to loading the database schema
 ** from disk.
 **
-** $Id: prepare.c,v 1.46 2007/04/19 11:09:01 danielk1977 Exp $
+** $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 */
 
 /*
@@ -51021,7 +51021,7 @@ int sqlite3_prepare16_v2(
 ** This file contains C code routines that are called by the parser
 ** to handle SELECT statements in SQLite.
 **
-** $Id: select.c,v 1.338 2007/04/16 17:07:55 drh Exp $
+** $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 */
 
 
@@ -55452,7 +55452,7 @@ int sqlite3CodeRowTrigger(
 ** This file contains C code routines that are called by the parser
 ** to handle UPDATE statements.
 **
-** $Id: update.c,v 1.137 2007/03/29 05:51:49 drh Exp $
+** $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 */
 
 #ifndef SQLITE_OMIT_VIRTUALTABLE
@@ -56082,7 +56082,7 @@ static void updateVirtualTable(
 ** Most of the code in this file may be omitted by defining the
 ** SQLITE_OMIT_VACUUM macro.
 **
-** $Id: vacuum.c,v 1.69 2007/03/27 16:19:52 danielk1977 Exp $
+** $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 */
 
 #if !defined(SQLITE_OMIT_VACUUM) && !defined(SQLITE_OMIT_ATTACH)
@@ -56341,7 +56341,7 @@ end_of_vacuum:
 *************************************************************************
 ** This file contains code used to help implement virtual tables.
 **
-** $Id: vtab.c,v 1.45 2007/04/19 14:48:37 danielk1977 Exp $
+** $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 */
 #ifndef SQLITE_OMIT_VIRTUALTABLE
 
@@ -57063,7 +57063,7 @@ FuncDef *sqlite3VtabOverloadFunction(
 ** so is applicable.  Because this module is responsible for selecting
 ** indices, you might also think of this module as the "query optimizer".
 **
-** $Id: where.c,v 1.247 2007/04/20 12:22:02 drh Exp $
+** $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 */
 
 /*
@@ -62908,7 +62908,7 @@ void sqlite3Parser(
 ** individual tokens and sends those tokens one-by-one over to the
 ** parser for analysis.
 **
-** $Id: tokenize.c,v 1.126 2007/04/16 15:06:25 danielk1977 Exp $
+** $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 */
 
 /*
@@ -62961,7 +62961,7 @@ const unsigned char ebcdicToAscii[] = {
 **
 ** The code in this file has been automatically generated by
 **
-**     $Header: /sqlite/sqlite/tool/mkkeywordhash.c,v 1.27 2007/04/06 11:26:00 drh Exp $
+**     $Header: /cvsroot/mozilla/db/sqlite3/src/sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 **
 ** The code in this file implements a function that determines whether
 ** or not a given identifier is really an SQL keyword.  The same thing
@@ -63528,7 +63528,7 @@ abort_parse:
 ** other files are for internal use by SQLite and should not be
 ** accessed by users of the library.
 **
-** $Id: main.c,v 1.370 2007/04/18 14:24:33 danielk1977 Exp $
+** $Id: sqlite3.c,v 1.3 2007/06/21 03:17:27 sdwilsh%shawnwilsher.com Exp $
 */
 
 /*
