@@ -152,7 +152,7 @@ else {
 sub display {
     my $dbh = Bugzilla->dbh;
     my @tags;
-    my $user = login_to_id($cgi->param('user')) if $cgi->param('user');
+    my $user = login_to_id($cgi->param('user'));
     
     if ($cgi->param('action') eq 'show_all' && Bugzilla->user->in_group('admin')){
         my $tags = $dbh->selectcol_arrayref(

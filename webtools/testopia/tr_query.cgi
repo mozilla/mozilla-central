@@ -239,7 +239,6 @@ elsif ($action eq 'get_valid_exp'){
     print $ret;
 }
 elsif ($action eq 'save_query'){
-    ;
     my $query = $cgi->param('query_part');
     my $qname = $cgi->param('query_name');
     

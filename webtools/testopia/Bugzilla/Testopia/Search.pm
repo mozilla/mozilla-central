@@ -790,7 +790,7 @@ sub init {
                       "LEFT JOIN test_case_runs AS case_run " . 
                       "ON case_run.run_id = test_runs.run_id");
                    push(@supptables,
-                      "INNER JOIN profiles AS map_$1 " . 
+                      "LEFT JOIN profiles AS map_$1 " . 
                       "ON case_run.". $1 ." = map_$1.userid");
                }
                else {
