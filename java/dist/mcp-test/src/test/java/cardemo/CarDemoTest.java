@@ -1,5 +1,5 @@
 /*
- * $Id: CarDemoTest.java,v 1.9 2007-06-19 20:18:12 edburns%acm.org Exp $
+ * $Id: CarDemoTest.java,v 1.10 2007-06-22 03:41:14 edburns%acm.org Exp $
  */
 
 /* 
@@ -73,7 +73,8 @@ public class CarDemoTest extends WebclientTestCase  {
         assertTrue(true);
     }
     
-    public void NOTtestCardemo() throws Exception {
+    public void testCardemo() throws Exception {
+        mcp.setBounds(30, 30, 960, 960);
         mcp.getRealizedVisibleBrowserWindow();
         final BitSet bitSet = new BitSet();
         AjaxListener listener = new AjaxListener() {
@@ -125,13 +126,13 @@ public class CarDemoTest extends WebclientTestCase  {
         mcp.addAjaxListener(listener);
         
         // Load the main page of the app
-        mcp.blockingLoad("http://webdev1.sun.com/jsf-ajax-cardemo/faces/chooseLocale.jsp");
+        mcp.blockingLoad("http://localhost:8080/jsf-ajax-cardemo/faces/chooseLocale.jsp");
         
         // Choose the "German" language button
         mcp.blockingClickElement("j_id_id73:Germany");
         
         // Choose the roadster
-        //mcp.blockingClickElement("j_id_id18:j_id_id43");
+        mcp.blockingClickElement("j_id_id18:j_id_id43");
         
         boolean neverend = true;
         while (neverend) {

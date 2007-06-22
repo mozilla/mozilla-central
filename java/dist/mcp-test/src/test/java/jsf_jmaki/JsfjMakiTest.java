@@ -1,5 +1,5 @@
 /*
- * $Id: JsfjMakiTest.java,v 1.2 2007-05-04 17:10:16 edburns%acm.org Exp $
+ * $Id: JsfjMakiTest.java,v 1.3 2007-06-22 03:41:15 edburns%acm.org Exp $
  */
 
 /* 
@@ -142,14 +142,18 @@ public class JsfjMakiTest extends WebclientTestCase  {
         mcp.addAjaxListener(listener);
         
         // Load the main page of the app
-        mcp.blockingLoad("http://webdev2.sun.com/jsf-jmaki/index-demo.jsf");
+        mcp.blockingLoad("http://localhost:8080/jsf-jmaki/index-demo.jsf");
         
         if (timeoutHandler.isDidTimeout()) {
             fail("timed out waiting for load");
         }
         
         // Choose the inplace test
-        mcp.blockingClickElement("inplace-test");
+        List<Element> anchors = mcp.getAnchors();
+        assertNotNull(anchors);
+        
+        mcp.blockingClickElement(anchors.get(4));
+        
         
         scrollToBeginningOfResultSet(mcp, bitSet);
         

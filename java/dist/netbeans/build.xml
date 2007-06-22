@@ -106,9 +106,9 @@
             </and>
         </condition>
 
-        <condition property="platform" value="mac">
+        <condition property="platform" value="macosx">
             <and>
-                <os family="mac" />
+                <os name="Mac OS X" />
             </and>
         </condition>
         
@@ -135,7 +135,7 @@
         <condition property="build.mac.classes">
             <and>
                 <isset property="platform" />
-                <equals arg1="${platform}" arg2="mac" />
+                <equals arg1="${platform}" arg2="macosx" />
             </and>
         </condition>
         
@@ -173,7 +173,7 @@
         </condition>
         
         <uptodate property="do.copy.binaries">
-            <srcfiles dir="${basedir}/../bin" includes="**/*.*" />
+            <srcfiles dir="${basedir}/../bin/${platform}/bin" includes="**/*.*" />
             <mapper type="identity" to="${browser.bin.dir}/**/*.*" />
         </uptodate>
         
@@ -203,7 +203,7 @@ ${so.prefix}xul.${so.extension}.
     
     <target name="copy.binaries" if="do.copy.binaries">
         <copy todir="${browser.bin.dir}">
-            <fileset dir="${basedir}/../bin" />
+            <fileset dir="${basedir}/../bin/${platform}/bin" />
         </copy>
     </target>
 

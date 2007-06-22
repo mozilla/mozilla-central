@@ -63,6 +63,14 @@
     </antcall>
   </target>
 
+  <target name="clean.universal">
+    <antcall target="clean">
+      <param name="objdir" value="${objdir}/ppc/dist/universal" />
+      <param name="core.java.classes.uptodate" value="true" />
+    </antcall>
+  </target>
+
+
   <target name="release"
           description="Build a Webclient Release">
 
@@ -100,7 +108,7 @@
       </and>
     </condition>
 
-    <condition property="platform" value="macosx-ppc">
+    <condition property="platform" value="macosx">
       <and>
         <os name="Mac OS X" />
       </and>
@@ -124,7 +132,7 @@
       </and>
     </condition>
 
-    <condition property="platform" value="macosx-ppc">
+    <condition property="platform" value="macosx">
       <and>
         <os name="Mac OS X" />
       </and>
@@ -210,15 +218,15 @@
       </and>
     </condition>
 
-    <condition property="platform" value="linux">
+    <condition property="platform" value="macosx">
       <and>
-        <os family="unix" />
+        <os name="Mac OS X" />
       </and>
     </condition>
 
-    <condition property="platform" value="darwin-ppc">
+    <condition property="platform" value="linux">
       <and>
-        <os name="Mac OS X" />
+        <os family="unix" />
       </and>
     </condition>
 
@@ -284,11 +292,11 @@
   </target>
 
   <target name="copy.binaries" depends="prepare">
-    <copy todir="${dist.home}/bin/components" 
+    <copy todir="${dist.home}/bin/${platform}/bin/components" 
           file="${objdir}/java/dom/src/${so.prefix}javadom.${so.extension}" />
-    <copy todir="${dist.home}/bin" 
+    <copy todir="${dist.home}/bin/${platform}/bin" 
          file="${objdir}/java/dom/jni/${so.prefix}javadomjni.${jni.extension}" />
-    <copy todir="${dist.home}/bin" 
+    <copy todir="${dist.home}/bin/${platform}/bin" 
           file="${objdir}/java/webclient/src_moz/${so.prefix}${name}.${jni.extension}" />
 
   </target>
