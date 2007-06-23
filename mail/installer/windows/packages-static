@@ -25,7 +25,6 @@ bin\components\xpcom_ds.xpt
 bin\components\xpcom_io.xpt
 bin\components\xpcom_thread.xpt
 bin\components\xpcom_xpti.xpt
-bin\components\xpcom_obsolete.xpt
 bin\nspr4.dll
 bin\plc4.dll
 bin\plds4.dll

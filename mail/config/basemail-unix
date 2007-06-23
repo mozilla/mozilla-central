@@ -139,7 +139,6 @@ components/xpcom_io.xpt
 components/xpcom_threads.xpt
 components/xpcom_xpti.xpt
 components/libxpcom_compat_c.so
-components/xpcom_obsolete.xpt
 
 ; xpconnect
 components/libxpconnect.so
