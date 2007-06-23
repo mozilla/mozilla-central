@@ -13,7 +13,6 @@ MOZILLA_INTERNAL_API = 1
 REQUIRES = \
 	string \
 	xpcom \
-	xpcom_obsolete \
 	xulapp \
 	libreg \
 	windowwatcher \

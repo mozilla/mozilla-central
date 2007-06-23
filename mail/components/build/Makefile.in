@@ -85,8 +85,7 @@ SHARED_LIBRARY_LIBS += ../shell/$(LIB_PREFIX)shellservice_s.$(LIB_SUFFIX)
 endif
 
 EXTRA_DSO_LDOPTS += \
-	$(DEPTH)/modules/libreg/src/$(LIB_PREFIX)mozreg_s.$(LIB_SUFFIX) \
-	$(MOZ_XPCOM_OBSOLETE_LIBS) \
+	$(LIBXUL_DIST)/../modules/libreg/src/$(LIB_PREFIX)mozreg_s.$(LIB_SUFFIX) \
 	$(MOZ_COMPONENT_LIBS) \
 	$(NULL)
 

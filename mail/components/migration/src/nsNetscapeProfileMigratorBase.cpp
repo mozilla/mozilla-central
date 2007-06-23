@@ -45,7 +45,7 @@
 #include "nsIPrefLocalizedString.h"
 #include "nsIPrefService.h"
 #include "nsIRDFService.h"
-#include "nsIRegistry.h"
+#include "NSReg.h"
 #include "nsIServiceManager.h"
 #include "nsISupportsArray.h"
 #include "nsISupportsPrimitives.h"
@@ -73,75 +73,124 @@ nsNetscapeProfileMigratorBase::nsNetscapeProfileMigratorBase()
   mFileCopyTransactionIndex = 0;
 }
 
+static nsresult
+regerr2nsresult(REGERR errCode)
+{
+  switch (errCode) {
+    case REGERR_PARAM:
+    case REGERR_BADTYPE:
+    case REGERR_BADNAME:
+      return NS_ERROR_INVALID_ARG;
+
+    case REGERR_MEMORY:
+      return NS_ERROR_OUT_OF_MEMORY;
+  }
+  return NS_ERROR_FAILURE;
+}
+
 nsresult
 nsNetscapeProfileMigratorBase::GetProfileDataFromRegistry(nsILocalFile* aRegistryFile,
                                                           nsISupportsArray* aProfileNames,
                                                           nsISupportsArray* aProfileLocations)
 {
-  nsresult rv = NS_OK;
+  nsresult rv;
+  REGERR errCode;
+
+  // Ensure aRegistryFile exists before opening it
+  PRBool regFileExists = PR_FALSE;
+  rv = aRegistryFile->Exists(&regFileExists);
+  NS_ENSURE_SUCCESS(rv, rv);
+  if (!regFileExists)
+    return NS_ERROR_FILE_NOT_FOUND;
 
   // Open It
-  nsCOMPtr<nsIRegistry> reg(do_CreateInstance("@mozilla.org/registry;1"));
-  reg->Open(aRegistryFile);
+  nsCAutoString regPath;
+  rv = aRegistryFile->GetNativePath(regPath);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  nsRegistryKey profilesTree;
-  rv = reg->GetKey(nsIRegistry::Common, NS_LITERAL_STRING("Profiles").get(), &profilesTree);
-  if (NS_FAILED(rv)) return rv;
+  if ((errCode = NR_StartupRegistry()))
+    return regerr2nsresult(errCode);
 
-  nsCOMPtr<nsIEnumerator> keys;
-  reg->EnumerateSubtrees(profilesTree, getter_AddRefs(keys));
+  HREG reg;
+  if ((errCode = NR_RegOpen(regPath.get(), &reg))) {
+    NR_ShutdownRegistry();
 
-  keys->First();
-  while (keys->IsDone() != NS_OK) {
-    nsCOMPtr<nsISupports> key;
-    keys->CurrentItem(getter_AddRefs(key));
+    return regerr2nsresult(errCode);
+  }
 
-    nsCOMPtr<nsIRegistryNode> node(do_QueryInterface(key));
+  RKEY profilesTree;
+  if ((errCode = NR_RegGetKey(reg, ROOTKEY_COMMON, "Profiles", &profilesTree))) {
+    NR_RegClose(reg);
+    NR_ShutdownRegistry();
 
-    nsRegistryKey profile;
-    node->GetKey(&profile);
+    return regerr2nsresult(errCode);
+  }
+
+  char profileStr[MAXREGPATHLEN];
+  REGENUM enumState = nsnull;
+
+  while (!NR_RegEnumSubkeys(reg, profilesTree, &enumState, profileStr,
+                            sizeof(profileStr), REGENUM_CHILDREN))
+  {
+    RKEY profileKey;
+    if (NR_RegGetKey(reg, profilesTree, profileStr, &profileKey))
+      continue;
 
     // "migrated" is "yes" for all valid Seamonkey profiles. It is only "no"
     // for 4.x profiles.
-    nsString isMigrated;
-    reg->GetString(profile, NS_LITERAL_STRING("migrated").get(), getter_Copies(isMigrated));
-
-    if (isMigrated.Equals(NS_LITERAL_STRING("no"))) {
-      keys->Next();
+    char migratedStr[3];
+    errCode = NR_RegGetEntryString(reg, profileKey, "migrated",
+                                   migratedStr, sizeof(migratedStr));
+    if ((errCode != REGERR_OK && errCode != REGERR_BUFTOOSMALL) ||
+        strcmp(migratedStr, "no") == 0)
       continue;
-    }
-
-    // Get the profile name and add it to the names array
-    nsString profileName;
-    node->GetName(getter_Copies(profileName));
 
     // Get the profile location and add it to the locations array
-    nsString directory;
-    reg->GetString(profile, NS_LITERAL_STRING("directory").get(), getter_Copies(directory));
+    REGINFO regInfo;
+    regInfo.size = sizeof(REGINFO);
+ 
+    if (NR_RegGetEntryInfo(reg, profileKey, "directory", &regInfo))
+      continue;
+
+    nsCAutoString dirStr;
+    dirStr.SetLength(regInfo.entryLength);
+
+    errCode = NR_RegGetEntryString(reg, profileKey, "directory",
+                                   dirStr.BeginWriting(), regInfo.entryLength);
+    // Remove trailing \0
+    dirStr.SetLength(regInfo.entryLength-1);
 
     nsCOMPtr<nsILocalFile> dir;
 #ifdef XP_MACOSX
     rv = NS_NewNativeLocalFile(EmptyCString(), PR_TRUE, getter_AddRefs(dir));
-    if (NS_FAILED(rv)) return rv;
-    dir->SetPersistentDescriptor(NS_LossyConvertUTF16toASCII(directory));
+    if (NS_FAILED(rv)) break;
+    dir->SetPersistentDescriptor(dirStr);
 #else
-    rv = NS_NewLocalFile(directory, PR_TRUE, getter_AddRefs(dir));
-    if (NS_FAILED(rv)) return rv;
+    rv = NS_NewLocalFile(NS_ConvertUTF8toUTF16(dirStr), PR_TRUE,
+                         getter_AddRefs(dir));
+    if (NS_FAILED(rv)) break;
 #endif
 
     PRBool exists;
     dir->Exists(&exists);
 
     if (exists) {
-      nsCOMPtr<nsISupportsString> profileNameString(do_CreateInstance("@mozilla.org/supports-string;1"));
+      aProfileLocations->AppendElement(dir);
+
+      // Get the profile name and add it to the names array
+      nsString profileName;
+      CopyUTF8toUTF16(nsDependentCString(profileStr), profileName);
+
+      nsCOMPtr<nsISupportsString> profileNameString(
+        do_CreateInstance("@mozilla.org/supports-string;1"));
+
       profileNameString->SetData(profileName);
       aProfileNames->AppendElement(profileNameString);
-
-      aProfileLocations->AppendElement(dir);
     }
-
-    keys->Next();
   }
+  NR_RegClose(reg);
+  NR_ShutdownRegistry();
+
   return rv;
 }
 
