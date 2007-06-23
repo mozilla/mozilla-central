@@ -377,6 +377,10 @@ components/libfileview.so
 ; updater
 updater
 
+; crash reporter
+crashreporter
+crashreporter.ini
+
 ; xmlextras, for XPointer support
 components/libxmlextras.so
 
