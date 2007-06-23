@@ -28,6 +28,9 @@
     filename = CGI.param('file');
     dirname = CGI.param('dir');
     cvsroot = CGI.param('cvsroot');
+    UNLESS cvsroot == '/cvsroot';
+      bonsai_root = bonsai_root _ '-' _ cvsroot.match('^/(.*)$').0;
+    END;
     rev = CGI.param('rev');
     prev_rev = CGI.param('prev_rev');
     linked_text = CGI.param('linked_text');

@@ -62,6 +62,9 @@
       [% fixed_email FILTER html %]<br>
       [% IF CGI.param('d') -%]
         [% last_checkin_data = CGI.param('d').split('\|') -%]
+        [% UNLESS last_checkin_data.2 == '/cvsroot' %]
+          [% bonsai_root = bonsai_root _ '-' _ last_checkin_data.2.match('^/(.*)$').0 %]
+        [% END %]
         [% FILTER null;
              cgi = CGI.new('');
              cgi.param('module',  last_checkin_data.0);
