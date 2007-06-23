@@ -61,23 +61,8 @@ nsAbLDAPReplicationQuery::nsAbLDAPReplicationQuery()
 
 nsresult nsAbLDAPReplicationQuery::InitLDAPData()
 {
-  nsresult rv;
-
-  nsCOMPtr<nsIRDFService> rdfService = do_GetService("@mozilla.org/rdf/rdf-service;1", &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
- 
-  nsCAutoString resourceURI(kLDAPDirectoryRoot);
-  resourceURI.Append(mDirPrefName);
-
-  nsCOMPtr<nsIRDFResource> resource;
-  rv = rdfService->GetResource(resourceURI, getter_AddRefs(resource));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  mDirectory = do_QueryInterface(resource, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
   nsCAutoString fileName;
-  rv = mDirectory->GetReplicationFileName(fileName);
+  nsresult rv = mDirectory->GetReplicationFileName(fileName);
   NS_ENSURE_SUCCESS(rv, rv);
 
   // this is done here to take care of the problem related to bug # 99124.
@@ -89,9 +74,17 @@ nsresult nsAbLDAPReplicationQuery::InitLDAPData()
     // Ensure fileName is empty for DIR_GenerateAbFileName to work
     // correctly.
     fileName.Truncate();
+
+    nsCOMPtr<nsIAbDirectory> standardDir(do_QueryInterface(mDirectory, &rv));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCString dirPrefId;
+    rv = standardDir->GetDirPrefId(dirPrefId);
+    NS_ENSURE_SUCCESS(rv, rv);
+
     // XXX This should be replaced by a local function at some stage.
     // For now we'll continue using the nsDirPrefs version.
-    DIR_Server* server = DIR_GetServerFromList(mDirPrefName.get());
+    DIR_Server* server = DIR_GetServerFromList(dirPrefId.get());
     if (server)
     {
       DIR_SetServerFileName(server);
@@ -174,27 +167,27 @@ nsresult nsAbLDAPReplicationQuery::ConnectToLDAPServer()
                              mLogin, listener, nsnull, protocolVersion);
 }
 
-NS_IMETHODIMP nsAbLDAPReplicationQuery::Init(const nsACString & aPrefName, nsIWebProgressListener *aProgressListener)
+NS_IMETHODIMP nsAbLDAPReplicationQuery::Init(nsIAbLDAPDirectory *aDirectory,
+                                             nsIWebProgressListener *aProgressListener)
 {
-    if (aPrefName.IsEmpty())
-        return NS_ERROR_UNEXPECTED;
+  NS_ENSURE_ARG_POINTER(aDirectory);
 
-    mDirPrefName = aPrefName;
+  mDirectory = aDirectory;
 
-    nsresult rv = InitLDAPData();
-    if (NS_FAILED(rv)) 
-        return rv;
+  nsresult rv = InitLDAPData();
+  if (NS_FAILED(rv)) 
+    return rv;
 
-    mDataProcessor =
-      do_CreateInstance(NS_ABLDAP_PROCESSREPLICATIONDATA_CONTRACTID, &rv);
-    if (NS_FAILED(rv)) 
-        return rv;
+  mDataProcessor =
+    do_CreateInstance(NS_ABLDAP_PROCESSREPLICATIONDATA_CONTRACTID, &rv);
+  if (NS_FAILED(rv)) 
+    return rv;
 
-    // 'this' initialized
-    mInitialized = PR_TRUE;
+  // 'this' initialized
+  mInitialized = PR_TRUE;
 
-    return mDataProcessor->Init(mDirectory, mConnection, mURL, this,
-                                aProgressListener);
+  return mDataProcessor->Init(mDirectory, mConnection, mURL, this,
+                              aProgressListener);
 }
 
 NS_IMETHODIMP nsAbLDAPReplicationQuery::DoReplicationQuery()

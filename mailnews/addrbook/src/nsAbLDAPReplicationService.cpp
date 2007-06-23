@@ -59,84 +59,94 @@ nsAbLDAPReplicationService::~nsAbLDAPReplicationService()
 }
 
 /* void startReplication(in string aURI, in nsIWebProgressListener progressListener); */
-NS_IMETHODIMP nsAbLDAPReplicationService::StartReplication(const nsACString & aPrefName, nsIWebProgressListener *progressListener)
+NS_IMETHODIMP nsAbLDAPReplicationService::StartReplication(nsIAbLDAPDirectory *aDirectory,
+							   nsIWebProgressListener *progressListener)
 {
-    if(aPrefName.IsEmpty())
-        return NS_ERROR_UNEXPECTED;
+  NS_ENSURE_ARG_POINTER(aDirectory);
 
 #ifdef DEBUG_rdayal
-    printf("Start Replication called");
+  printf("Start Replication called");
 #endif
 
-    // makes sure to allow only one replication at a time
-    if(mReplicating)
-        return NS_ERROR_FAILURE;
+  // makes sure to allow only one replication at a time
+  if(mReplicating)
+    return NS_ERROR_FAILURE;
 
-    mPrefName = aPrefName;
+  mDirectory = aDirectory;
 
-    nsresult rv = NS_ERROR_NOT_IMPLEMENTED;
+  nsresult rv = NS_ERROR_NOT_IMPLEMENTED;
 
-    switch(DecideProtocol())
-    {
-        case nsIAbLDAPProcessReplicationData::kDefaultDownloadAll :
-            mQuery = do_CreateInstance(NS_ABLDAP_REPLICATIONQUERY_CONTRACTID, &rv);
-            break ;
+  switch (DecideProtocol())
+  {
+  case nsIAbLDAPProcessReplicationData::kDefaultDownloadAll:
+    mQuery = do_CreateInstance(NS_ABLDAP_REPLICATIONQUERY_CONTRACTID, &rv);
+    break;
 // XXX Change log replication doesn't work. Bug 311632 should fix it.
-//        case nsIAbLDAPProcessReplicationData::kChangeLogProtocol :
-//            mQuery = do_CreateInstance (NS_ABLDAP_CHANGELOGQUERY_CONTRACTID, &rv);
-//            break ;
-        default :
-            break;
+//case nsIAbLDAPProcessReplicationData::kChangeLogProtocol:
+//  mQuery = do_CreateInstance (NS_ABLDAP_CHANGELOGQUERY_CONTRACTID, &rv);
+//  break;
+  default:
+    break;
+  }
+
+  if (NS_SUCCEEDED(rv) && mQuery)
+  {
+    rv = mQuery->Init(mDirectory, progressListener);
+    if (NS_SUCCEEDED(rv))
+    {
+      rv = mQuery->DoReplicationQuery();
+      if (NS_SUCCEEDED(rv))
+	{
+	  mReplicating = PR_TRUE;
+	  return rv;
+	}
     }
+  }
 
-            if(NS_SUCCEEDED(rv) && mQuery)
-            {
-               rv = mQuery->Init(aPrefName, progressListener);
-               if(NS_SUCCEEDED(rv))
-               {
-                   rv = mQuery->DoReplicationQuery();
-                   if(NS_SUCCEEDED(rv))
-                   {
-                       mReplicating = PR_TRUE;
-                       return rv;
-                   }
-               }
-            }
+  if (progressListener && NS_FAILED(rv))
+    progressListener->OnStateChange(nsnull, nsnull,
+				    nsIWebProgressListener::STATE_STOP,
+				    PR_FALSE);
 
-    if(progressListener && NS_FAILED(rv))
-        progressListener->OnStateChange(nsnull, nsnull, nsIWebProgressListener::STATE_STOP, PR_FALSE);
-       
-    return rv;
+  if (NS_FAILED(rv))
+  {
+    mDirectory = nsnull;
+    mQuery = nsnull;
+  }
+
+  return rv;
 }
 
 /* void cancelReplication(in string aURI); */
-NS_IMETHODIMP nsAbLDAPReplicationService::CancelReplication(const nsACString & aPrefName)
+NS_IMETHODIMP nsAbLDAPReplicationService::CancelReplication(nsIAbLDAPDirectory *aDirectory)
 {
-    if(aPrefName.IsEmpty())
-        return NS_ERROR_UNEXPECTED;
+  NS_ENSURE_ARG_POINTER(aDirectory);
 
-    nsresult rv = NS_ERROR_FAILURE;
+  nsresult rv = NS_ERROR_FAILURE;
 
-    if(aPrefName == mPrefName)
-    {
-        if(mQuery && mReplicating)
-            rv = mQuery->CancelQuery();  
-    }
+  if (aDirectory == mDirectory)
+  {
+    if (mQuery && mReplicating)
+      rv = mQuery->CancelQuery();  
+  }
 
-    // if query has been cancelled successfully
-    if(NS_SUCCEEDED(rv))
-        Done(PR_FALSE);
+  // if query has been cancelled successfully
+  if (NS_SUCCEEDED(rv))
+    Done(PR_FALSE);
 
-    return rv;
+  return rv;
 }
 
 NS_IMETHODIMP nsAbLDAPReplicationService::Done(PRBool aSuccess)
 {
-    mReplicating = PR_FALSE;
-    if(mQuery)
-        mQuery = nsnull;  // release query obj
+  mReplicating = PR_FALSE;
+  if (mQuery)
+  {
+    mQuery = nsnull;  // release query obj
+    mDirectory = nsnull; // release directory
+  }
 
-    return NS_OK;
+  return NS_OK;
 }
 
 

@@ -47,13 +47,14 @@ interface nsIAbLDAPDirectory;
 /**
  * this interface provides methods to perform LDAP Replication Queries
  */
-[scriptable, uuid(6d33127c-faef-4140-bb19-bb03c1590917)]
+[scriptable, uuid(460a739c-a8c1-4f24-b705-c89d136ab9f5)]
 interface nsIAbLDAPReplicationQuery : nsISupports
 {
   /**
    * initialize for the query
    */
-  void init(in ACString aPrefName, in nsIWebProgressListener aProgressListener);
+  void init(in nsIAbLDAPDirectory aDirectory,
+            in nsIWebProgressListener aProgressListener);
      
   /**
    * Starts an LDAP query to do replication as needed

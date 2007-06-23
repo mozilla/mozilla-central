@@ -57,7 +57,7 @@ public:
 protected:
   nsCOMPtr<nsIAbLDAPReplicationQuery> mQuery; 
   PRBool         mReplicating;
-  nsCString      mPrefName;
+  nsCOMPtr<nsIAbLDAPDirectory> mDirectory;
 
 };
 

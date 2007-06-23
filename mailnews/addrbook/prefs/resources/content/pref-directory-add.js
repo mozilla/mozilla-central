@@ -135,8 +135,11 @@ function DownloadNow()
     gReplicationCancelled = false;
 
     try {
-      gReplicationService.startReplication(gCurrentDirectory.dirPrefId,
-                                           progressListener);
+      if (gCurrentDirectory instanceof Components.interfaces.nsIAbLDAPDirectory)
+        gReplicationService.startReplication(gCurrentDirectory,
+                                             progressListener);
+      else
+        EndDownload(false);
     }
     catch (ex) {
       EndDownload(false);
