@@ -1846,8 +1846,11 @@ function my_sconnect (e)
     if ("_firstNick" in this)
         delete this._firstNick;
 
+    client.munger.getRule(".inline-buttons").enabled = true;
     this.display(getMsg(MSG_CONNECTION_ATTEMPT,
-                        [this.getURL(), e.server.getURL()]), "INFO");
+                        [this.getURL(), e.server.getURL(), this.unicodeName,
+                         "cancel"]), "INFO");
+    client.munger.getRule(".inline-buttons").enabled = false;
 
     if (this.prefs["identd.enabled"])
     {
@@ -1991,7 +1994,9 @@ function my_netdisconnect (e)
     if (e.quitting)
     {
         msgType = "DISCONNECT";
-        msg = getMsg(MSG_CONNECTION_QUIT, [this.getURL(), e.server.getURL()]);
+        msg = getMsg(MSG_CONNECTION_QUIT,
+                     [this.getURL(), e.server.getURL(), this.unicodeName,
+                      "reconnect"]);
         msgNetwork = msg;
     }
     // We won't reconnect if the error was really bad.
@@ -2005,19 +2010,23 @@ function my_netdisconnect (e)
         var delayStr = formatDateOffset(this.getReconnectDelayMs() / 1000);
         if (this.MAX_CONNECT_ATTEMPTS == -1)
         {
-            msgNetwork = getMsg(MSG_RECONNECTING_IN, [msg, delayStr]);
+            msgNetwork = getMsg(MSG_RECONNECTING_IN,
+                                [msg, delayStr, this.unicodeName, "cancel"]);
         }
         else if (this.connectAttempt < this.MAX_CONNECT_ATTEMPTS)
         {
             var left = this.MAX_CONNECT_ATTEMPTS - this.connectAttempt;
             if (left == 1)
             {
-                msgNetwork = getMsg(MSG_RECONNECTING_IN_LEFT1, [msg, delayStr]);
+                msgNetwork = getMsg(MSG_RECONNECTING_IN_LEFT1,
+                                    [msg, delayStr, this.unicodeName,
+                                     "cancel"]);
             }
             else
             {
                 msgNetwork = getMsg(MSG_RECONNECTING_IN_LEFT,
-                                    [msg, left, delayStr]);
+                                    [msg, left, delayStr, this.unicodeName,
+                                     "cancel"]);
             }
         }
         else
