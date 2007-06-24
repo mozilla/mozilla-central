@@ -1028,6 +1028,14 @@ function serv_disconnect(e)
         network.delayedConnect();
     };
 
+    /* If we're not connected and get this, it means we have almost certainly
+     * encountered a read or write error on the socket post-disconnect. There's
+     * no point propagating this any further, as we've already notified the
+     * user of the disconnect (with the right error).
+     */
+    if (!this.isConnected)
+        return;
+
     // Don't reconnect if our connection was aborted.
     var wasAborted = (e.disconnectStatus == NS_ERROR_ABORT);
     if (((this.parent.state == NET_CONNECTING) && !wasAborted) ||
