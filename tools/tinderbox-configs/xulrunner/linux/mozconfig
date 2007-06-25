@@ -11,5 +11,6 @@ mk_add_options MOZ_MAKE_FLAGS="-j8"
 
 ac_add_options --enable-application=xulrunner
 ac_add_options --disable-tests
-ac_add_options --enable-svg
-ac_add_options --enable-canvas
+
+# argo is old. Remove the following line when we start using the refplatform
+ac_add-options --disable-airbag
