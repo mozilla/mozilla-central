@@ -1303,7 +1303,12 @@ sub init {
             push(@groupby, $field) if !grep($_ eq $field, @groupby);
         }
     }
-    $query .= " " . $dbh->sql_group_by("test_${obj}s.${obj}_id", join(', ', @groupby));
+    if (scalar @groupby){
+        $query .= " " . $dbh->sql_group_by("test_${obj}s.${obj}_id", join(', ', @groupby));
+    }
+    else {
+        $query .= " " . $dbh->sql_group_by("test_${obj}s.${obj}_id");
+    }
 
 
     if (@having) {
