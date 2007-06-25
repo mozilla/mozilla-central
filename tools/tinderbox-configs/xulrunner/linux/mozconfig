@@ -13,4 +13,4 @@ ac_add_options --enable-application=xulrunner
 ac_add_options --disable-tests
 
 # argo is old. Remove the following line when we start using the refplatform
-ac_add-options --disable-airbag
+ac_add_options --disable-airbag
