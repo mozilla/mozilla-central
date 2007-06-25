@@ -42,17 +42,11 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
+MOZILLA_INTERNAL_API = 1
+
 AB_CD = $(MOZ_UI_LOCALE) 
 
-GRE_MILESTONE = $(shell $(PYTHON) $(topsrcdir)/config/printconfigsetting.py $(LIBXUL_DIST)/bin/platform.ini Build Milestone)
-GRE_BUILDID = $(shell $(PYTHON) $(topsrcdir)/config/printconfigsetting.py $(LIBXUL_DIST)/bin/platform.ini Build BuildID)
-
-DEFINES += \
-  -DTHUNDERBIRD_ICO=\"$(DIST)/branding/thunderbird.ico\" \
-  -DAB_CD=$(AB_CD) \
-  -DGRE_MILESTONE=$(GRE_MILESTONE) \
-  -DGRE_BUILDID=$(GRE_BUILDID) \
-   $(NULL)
+DEFINES += -DTHUNDERBIRD_ICO=\"$(DIST)/branding/thunderbird.ico\" -DAB_CD=$(AB_CD)
 
 DIRS		= profile
 
@@ -73,13 +67,10 @@ endif
 
 REQUIRES = \
 	xpcom \
-	string \
 	xulapp \
 	$(NULL)
 
 CPPSRCS = nsMailApp.cpp
-
-DIST_FILES = application.ini
 
 LOCAL_INCLUDES += -I$(topsrcdir)/toolkit/xre
 
@@ -102,18 +93,11 @@ ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 TK_LIBS := -framework Cocoa $(TK_LIBS)
 endif
 
-ifdef MOZ_ENABLE_LIBXUL
-APP_XPCOM_LIBS = $(XPCOM_GLUE_LDOPTS)
-else
-MOZILLA_INTERNAL_API = 1
-APP_XPCOM_LIBS = $(XPCOM_LIBS)
-endif
-
 LIBS += \
 	$(STATIC_COMPONENTS_LINKER_PATH) \
 	$(MOZ_JS_LIBS) \
 	$(EXTRA_DSO_LIBS) \
-	$(APP_XPCOM_LIBS) \
+	$(XPCOM_LIBS) \
 	$(NSPR_LIBS) \
 	$(TK_LIBS) \
 	$(NULL)
