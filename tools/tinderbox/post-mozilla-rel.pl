@@ -447,7 +447,21 @@ sub get_buildid {
   my $objdir = $args{'objdir'};
   my $buildid;
 
+  my $platformIni;
   if (defined($dist)) {
+      $platformIni = "$dist/bin/platform.ini";
+  }
+  else {
+      $platformIni = "$objdir/toolkit/xre/platform.ini";
+  }
+  if (-e $platformIni) {
+      my $c = read_file($platformIni);
+      if ($c =~ /^BuildID=(\d+)/m) {
+	  $buildid = $1;
+      }
+  }
+
+  if (!defined($buildid) && defined($dist)) {
       # First try to get the build ID from the files in dist/.
       my $find_master = `find $dist -iname master.ini -print`;
       my @find_output = split(/\n/, $find_master);
@@ -1252,6 +1266,7 @@ sub main {
   my $url_path = $Settings::url_path;
 
   my $buildid = get_buildid(objdir=>$objdir);
+  TinderUtils::print_log("buildid: $buildid\n");
 
   my $datestamp;
   if ($buildid ne '0000000000' &&
