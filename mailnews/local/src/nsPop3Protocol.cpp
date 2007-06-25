@@ -174,7 +174,13 @@ put_hash(PLHashTable* table, const char* key, char value, PRUint32 dateReceived)
   }
 }
 
-
+static PRIntn PR_CALLBACK
+net_pop3_copy_hash_entries(PLHashEntry* he, PRIntn msgindex, void *arg)
+{
+  Pop3UidlEntry *uidlEntry = (Pop3UidlEntry *) he->value;
+  put_hash((PLHashTable *) arg, uidlEntry->uidl, uidlEntry->status, uidlEntry->dateReceived);
+  return HT_ENUMERATE_NEXT;
+}
 
 static void * PR_CALLBACK
 AllocUidlTable(void * /* pool */, PRSize size)
@@ -2837,6 +2843,9 @@ PRInt32 nsPop3Protocol::GetMsg()
   /* Look at this message, and decide whether to ignore it, get it, just get
   the TOP of it, or delete it. */
 
+  // if this is a message we've seen for the first time, we won't find it in
+  // m_pop3ConData-uidlinfo->hash.  By default, we retrieve messages, unless they have a status,
+  // or are too big, in which case we figure out what to do.
   m_pop3Server->GetAuthLogin(&prefBool);
 
   if (prefBool && (TestCapFlag(POP3_HAS_XSENDER)))
@@ -2880,6 +2889,8 @@ PRInt32 nsPop3Protocol::GetMsg()
       }
       else if (c == KEEP)
       {
+        // this is a message we've already downloaded and left on server;
+        // Advance to next message.
         m_pop3ConData->next_state = POP3_GET_MSG;
       }
       else if (c == FETCH_BODY)
@@ -2899,8 +2910,6 @@ PRInt32 nsPop3Protocol::GetMsg()
         m_pop3ConData->truncating_cur_msg = PR_TRUE;
         m_pop3ConData->next_state = POP3_SEND_TOP;
         put_hash(m_pop3ConData->newuidl, info->uidl, TOO_BIG, popstateTimestamp);
-        // store in old hash table too, just in case our download is aborted.
-        put_hash(m_pop3ConData->uidlinfo->hash, info->uidl, TOO_BIG, popstateTimestamp);
       }
       else if (c == TOO_BIG)
       {
@@ -2920,11 +2929,8 @@ PRInt32 nsPop3Protocol::GetMsg()
         }
       }
     }
-    if ((m_pop3ConData->next_state != POP3_SEND_DELE) ||
-      m_pop3ConData->next_state == POP3_GET_MSG ||
-      m_pop3ConData->next_state == POP3_SEND_TOP)
+    if (m_pop3ConData->next_state != POP3_SEND_DELE)
     {
-
       /* This is a message we have decided to keep on the server.  Notate
       that now for the future.  (Don't change the popstate file at all
       if only_uidl is set; in that case, there might be brand new messages
@@ -2933,8 +2939,8 @@ PRInt32 nsPop3Protocol::GetMsg()
 
       // if this is a message we already know about (i.e., it was in popstate.dat already),
       // we need to maintain the original date the message was downloaded.
+      // if message is too big, we've already put it in the newuidl hash table.
       if (info->uidl && !m_pop3ConData->only_uidl && !m_pop3ConData->truncating_cur_msg)
-        /* message already marked as too_big */
         put_hash(m_pop3ConData->newuidl, info->uidl, KEEP, popstateTimestamp);
     }
     if (m_pop3ConData->next_state == POP3_GET_MSG)
@@ -3190,10 +3196,8 @@ nsPop3Protocol::RetrResponse(nsIInputStream* inputStream,
     buffer_size = status;  // status holds # bytes we've actually buffered so far...
 
     /* normal read. Yay! */
-    if ((PRInt32) (m_bytesInMsgReceived + buffer_size) >
-        m_pop3ConData->cur_msg_size)
-        buffer_size = m_pop3ConData->cur_msg_size -
-            m_bytesInMsgReceived;
+    if ((PRInt32) (m_bytesInMsgReceived + buffer_size) > m_pop3ConData->cur_msg_size)
+        buffer_size = m_pop3ConData->cur_msg_size - m_bytesInMsgReceived;
 
     m_bytesInMsgReceived += buffer_size;
     m_totalBytesReceived += buffer_size;
@@ -3497,15 +3501,22 @@ nsPop3Protocol::CommitState(PRBool remove_last_entry)
 
   // only use newuidl if we successfully finished looping through all the
   // messages in the inbox.
-  if (m_pop3ConData->newuidl && 
-      m_pop3ConData->last_accessed_msg >= m_pop3ConData->number_of_messages)
+  if (m_pop3ConData->newuidl)
   {
-    PL_HashTableDestroy(m_pop3ConData->uidlinfo->hash);
-    m_pop3ConData->uidlinfo->hash = m_pop3ConData->newuidl;
-    m_pop3ConData->newuidl = nsnull;
+    if (m_pop3ConData->last_accessed_msg >= m_pop3ConData->number_of_messages)
+    {
+      PL_HashTableDestroy(m_pop3ConData->uidlinfo->hash);
+      m_pop3ConData->uidlinfo->hash = m_pop3ConData->newuidl;
+      m_pop3ConData->newuidl = nsnull;
+    }
+    else
+    {
+      // Add the entries in newuidl to m_pop3ConData->uidlinfo->hash to keep
+      // track of the messages we *did* download in this session.
+      PL_HashTableEnumerateEntries(m_pop3ConData->newuidl, net_pop3_copy_hash_entries, (void *)m_pop3ConData->uidlinfo->hash);
+
+    }
   }
-  else
-    NS_ASSERTION(!m_pop3ConData->newuidl, "incomplete newuidl?");
 
   if (!m_pop3ConData->only_check_for_new_mail)
   {
