@@ -87,8 +87,8 @@ RCS file: /cvsroot/mozilla/webtools/bugzilla/Bugzilla/WebService.pm,v
 retrieving revision 1.5.2.1
 diff -u -r1.5.2.1 WebService.pm
 --- Bugzilla/WebService.pm	26 Mar 2007 07:57:32 -0000	1.5.2.1
-+++ Bugzilla/WebService.pm	15 Jun 2007 22:57:20 -0000
-@@ -14,14 +14,17 @@
++++ Bugzilla/WebService.pm	25 Jun 2007 21:41:54 -0000
+@@ -14,10 +14,12 @@
  #
  # Contributor(s): Marc Schumann <wurblzap@gmail.com>
  #                 Max Kanat-Alexander <mkanat@bugzilla.org>
@@ -101,18 +101,11 @@ diff -u -r1.5.2.1 WebService.pm
  use Bugzilla::WebService::Constants;
  use Date::Parse;
  
--sub fail_unimplemented {
-+sub fail_unimplemented 
-+{
-     my $this = shift;
- 
-     die SOAP::Fault
-@@ -48,12 +51,61 @@
+@@ -48,9 +50,48 @@
      Bugzilla->login;
  }
  
-+sub login
-+{
++sub login {
 +    my $self = shift;
 +    
 +    # Check for use of iChain first
@@ -156,21 +149,22 @@ diff -u -r1.5.2.1 WebService.pm
 +use Bugzilla::WebService::Constants;
  eval 'use base qw(XMLRPC::Transport::HTTP::CGI)';
  
--sub make_response {
-+sub make_fault 
-+{
+ sub make_response {
+@@ -65,6 +106,13 @@
+     }
+ }
+ 
++sub make_fault {
 +    my $self = shift;
 +
 +    # RPC Fault Code must be an integer
 +    $self->SUPER::make_fault(ERROR_FAULT_SERVER, $_[1]);
 +}
 +
-+sub make_response 
-+{
-     my $self = shift;
+ 1;
  
-     $self->SUPER::make_response(@_);
-@@ -131,4 +183,4 @@
+ __END__
+@@ -131,4 +179,4 @@
  
  Sometimes a function will throw an error that doesn't have a specific
  error code. In this case, the code will be C<-32000> if it's a "fatal"
@@ -274,13 +268,14 @@ diff -u -r1.86 Schema.pm
 +    $self->{abstract_schema} = $abstract_schema;
  
      return $self;
- Index: User.pm
+	 
+Index: Bugzilla/User.pm
 ===================================================================
 RCS file: /cvsroot/mozilla/webtools/bugzilla/Bugzilla/User.pm,v
 retrieving revision 1.148
 diff -u -r1.148 User.pm
---- User.pm	5 Feb 2007 21:34:20 -0000	1.148
-+++ User.pm	15 Jun 2007 23:20:35 -0000
+--- Bugzilla/User.pm	5 Feb 2007 21:34:20 -0000	1.148
++++ Bugzilla/User.pm	25 Jun 2007 21:45:17 -0000
 @@ -330,6 +330,16 @@
      return $self->{queries_available};
  }
@@ -371,5 +366,4 @@ diff -u -r1.148 User.pm
 +        'test_plan_permissions READ');
  
      my $user = $class->SUPER::create(@_);
- 
  
