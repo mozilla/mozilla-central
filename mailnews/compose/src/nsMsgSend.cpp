@@ -3231,7 +3231,7 @@ nsMsgComposeAndSend::Init(
     nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
     NS_ENSURE_SUCCESS(rv, rv);
     nsCOMPtr<nsIStringBundle> bundle;
-    rv = bundleService->CreateBundle("chrome://messenger/locale/localMsgs.properties", getter_AddRefs(mComposeBundle));
+    rv = bundleService->CreateBundle("chrome://messenger/locale/messengercompose/composeMsgs.properties", getter_AddRefs(mComposeBundle));
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
