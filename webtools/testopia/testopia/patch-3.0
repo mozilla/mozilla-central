@@ -430,5 +430,22 @@ diff -u -r1.4 User.pm
 +}
 +
  1;
- 
+
  __END__
+Index: Bugzilla/DB/Mysql.pm
+===================================================================
+RCS file: /cvsroot/mozilla/webtools/bugzilla/Bugzilla/DB/Mysql.pm,v
+retrieving revision 1.49
+diff -u -r1.49 Mysql.pm
+--- Bugzilla/DB/Mysql.pm	4 Feb 2007 16:59:30 -0000	1.49
++++ Bugzilla/DB/Mysql.pm	25 Jun 2007 22:32:22 -0000
+@@ -613,6 +613,9 @@
+                     if ($table eq 'bugs' && $name eq 'short_desc') {
+                         $self->bz_drop_index('bugs', 'bugs_short_desc_idx');
+                     }
++                    if ($table eq 'test_runs' && $name eq 'summary') {
++                        $self->bz_drop_index('test_runs', 'test_runs_summary_idx');
++                    }
+ 
+                     print "Converting $table.$name to be stored as UTF-8...\n";
+                     my $col_info = 
