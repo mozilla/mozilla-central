@@ -367,3 +367,68 @@ diff -u -r1.148 User.pm
  
      my $user = $class->SUPER::create(@_);
  
+Index: Bugzilla/WebService/Constants.pm
+===================================================================
+RCS file: /cvsroot/mozilla/webtools/bugzilla/Bugzilla/WebService/Constants.pm,v
+retrieving revision 1.6
+diff -u -r1.6 Constants.pm
+--- Bugzilla/WebService/Constants.pm	4 Feb 2007 16:23:21 -0000	1.6
++++ Bugzilla/WebService/Constants.pm	25 Jun 2007 22:07:59 -0000
+@@ -21,6 +21,9 @@
+ use base qw(Exporter);
+ 
+ @Bugzilla::WebService::Constants::EXPORT = qw(
++    ERROR_GENERAL
++    ERROR_FAULT_SERVER
++
+     WS_ERROR_CODE
+     ERROR_UNKNOWN_FATAL
+     ERROR_UNKNOWN_TRANSIENT
+Index: Bugzilla/WebService/User.pm
+===================================================================
+RCS file: /cvsroot/mozilla/webtools/bugzilla/Bugzilla/WebService/User.pm,v
+retrieving revision 1.4
+diff -u -r1.4 User.pm
+--- Bugzilla/WebService/User.pm	4 Feb 2007 16:23:21 -0000	1.4
++++ Bugzilla/WebService/User.pm	25 Jun 2007 22:08:46 -0000
+@@ -105,6 +105,40 @@
+     return { id => type('int')->value($user->id) };
+ }
+ 
++#################
++# User Lookup   #
++#################
++
++sub lookup_login_by_id {
++  my $self = shift;
++  my ($author_id) = @_;
++
++  $self->SUPER::login;
++  
++  my $user = new Bugzilla::User($author_id);
++
++  my $result = defined $user ? $user->login : '';
++  
++  $self->SUPER::logout;
++  
++  # Result is user login string or empty string if failed
++  return $result;
++}
++
++sub lookup_id_by_login {
++  my $self = shift;
++  my ($author) = @_;
++
++  $self->SUPER::login;
++
++  my $result = Bugzilla::User::login_to_id($author);
++  
++  $self->SUPER::logout;
++  
++  # Result is user id or 0 if failed
++  return $result;
++}
++
+ 1;
+ 
+ __END__
