@@ -405,69 +405,6 @@ NS_IMETHODIMP nsAbBSDirectory::DeleteDirectory(nsIAbDirectory *directory)
 	return rv;
 }
 
-NS_IMETHODIMP nsAbBSDirectory::ModifyDirectory(nsIAbDirectory *directory, nsIAbDirectoryProperties *aProperties)
-{
-  nsresult rv;
-
-  NS_ENSURE_ARG_POINTER(directory);
-  NS_ENSURE_ARG_POINTER(aProperties);
-
-  // if addressbook is not launched yet mSevers will not be initialized
-  // calling GetChildNodes will initialize mServers
-  if (!mInitialized) {
-    nsCOMPtr<nsISimpleEnumerator> subDirectories;
-    rv = GetChildNodes(getter_AddRefs(subDirectories));
-    NS_ENSURE_SUCCESS(rv, rv);
-  }
-
-  nsVoidKey key((void *)directory);
-  DIR_Server *server = (DIR_Server* )mServers.Get(&key);
-
-  if (!server)
-    return NS_ERROR_FAILURE;
-  GetDirectories getDirectories (server);
-  mServers.Enumerate (GetDirectories_getDirectory, (void *)&getDirectories);
-
-  nsAutoString description;
-  nsCString uri;
-
-  rv = aProperties->GetDescription(description);
-  NS_ENSURE_SUCCESS(rv, rv);
- 
-  NS_ConvertUTF8toUTF16 oldValue(server->description);
-  NS_Free(server->description);
-  NS_ConvertUTF16toUTF8 utf8str(description.get());
-  server->description = ToNewCString(utf8str);
-
-  rv = aProperties->GetURI(getter_Copies(uri));
-  NS_ENSURE_SUCCESS(rv, rv);
-  NS_Free(server->uri);
-  server->uri = ToNewCString(uri);
-
-  DIR_SavePrefsForOneServer(server);
-
-  if (!oldValue.Equals(description)) {
-    nsCOMPtr<nsIAbDirectory> modifiedDir;
-    getDirectories.directories->GetElementAt (0, getter_AddRefs(modifiedDir));
-
-    // First tell the directory it's new name
-    rv = modifiedDir->SetDirName(description.get());
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    // Then tell everyone else.
-    nsCOMPtr<nsIAddrBookSession> abSession = 
-              do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
-
-    if (NS_SUCCEEDED(rv))
-      abSession->NotifyItemPropertyChanged(modifiedDir, "DirName", oldValue.get(), description.get());
-  }
-
-  // Save modified address book into pref file.
-  nsCOMPtr<nsIPrefService> prefService(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv)); 
-  NS_ENSURE_SUCCESS(rv, rv);
-  return prefService->SavePrefFile(nsnull);
-}
-
 NS_IMETHODIMP nsAbBSDirectory::HasDirectory(nsIAbDirectory *dir, PRBool *hasDir)
 {
   if (!hasDir)

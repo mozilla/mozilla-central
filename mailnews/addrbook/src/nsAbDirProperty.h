@@ -77,9 +77,9 @@ protected:
 	nsresult GetAttributeName(PRUnichar **aName, nsString& value);
 	nsresult SetAttributeName(const PRUnichar *aName, nsString& arrtibute);
 
-	nsString m_DirName;
 	PRUint32 m_LastModifiedDate;
 
+	nsString m_ListDirName;
 	nsString m_ListName;
 	nsString m_ListNickName;
 	nsString m_Description;

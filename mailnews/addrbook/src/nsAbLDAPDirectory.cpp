@@ -208,7 +208,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::HasCard(nsIAbCard* card, PRBool* hasCard)
   return NS_OK;
 }
 
-nsresult nsAbLDAPDirectory::GetLDAPURL(nsILDAPURL** url)
+NS_IMETHODIMP nsAbLDAPDirectory::GetLDAPURL(nsILDAPURL** url)
 {
   NS_ENSURE_ARG_POINTER(url);
 
@@ -253,6 +253,17 @@ nsresult nsAbLDAPDirectory::GetLDAPURL(nsILDAPURL** url)
 
   result.swap(*url);
   return rv;
+}
+
+NS_IMETHODIMP nsAbLDAPDirectory::SetLDAPURL(nsILDAPURL *aUrl)
+{
+  NS_ENSURE_ARG_POINTER(aUrl);
+
+  nsCString tempLDAPURL;
+  nsresult rv = aUrl->GetSpec(tempLDAPURL);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return SetStringValue("uri", tempLDAPURL);
 }
 
 /* 

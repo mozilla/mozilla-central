@@ -217,12 +217,6 @@ nsresult nsAbMDBDirectory::RemoveCardFromAddressList(nsIAbCard* card)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbMDBDirectory::ModifyDirectory(nsIAbDirectory *directory, nsIAbDirectoryProperties *aProperties)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
 NS_IMETHODIMP nsAbMDBDirectory::DeleteDirectory(nsIAbDirectory *directory)
 {
   nsresult rv = NS_OK;
@@ -932,11 +926,11 @@ NS_IMETHODIMP nsAbMDBDirectory::OnListEntryChange
     NS_ENSURE_SUCCESS(rv,rv);
 
     if (bIsMailList) {
-        nsString pListName;
-      rv = list->GetDirName(getter_Copies(pListName));
+      nsString listName;
+      rv = list->GetDirName(listName);
       NS_ENSURE_SUCCESS(rv,rv);
 
-      rv = NotifyPropertyChanged(list, "DirName", nsnull, pListName.get());
+      rv = NotifyPropertyChanged(list, "DirName", nsnull, listName.get());
       NS_ENSURE_SUCCESS(rv,rv);
     }
   }

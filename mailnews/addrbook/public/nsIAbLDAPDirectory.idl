@@ -51,7 +51,7 @@ interface nsILDAPURL;
  * XXX This should really inherit from nsIAbDirectory, and some day it will.
  * But for now, doing that complicates implementation.
  */
-[scriptable, uuid(dbb5cd0a-d646-46e2-a640-3da0d8d4d70a)]
+[scriptable, uuid(fb4adf7f-a299-49d1-ac47-9ce181e8e80d)]
 interface nsIAbLDAPDirectory : nsISupports
 {
   /**
@@ -102,6 +102,6 @@ interface nsIAbLDAPDirectory : nsISupports
    * url, e.g. ldap://localhost:389/ whereas the uri will give you the
    * directories rdf uri, e.g. moz-abldapdirectory://<pref base name>/.
    */
-  readonly attribute nsILDAPURL lDAPURL;
+  attribute nsILDAPURL lDAPURL;
 };
 

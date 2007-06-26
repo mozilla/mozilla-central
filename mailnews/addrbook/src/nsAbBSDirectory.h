@@ -57,7 +57,6 @@ public:
 	NS_IMETHOD GetChildNodes(nsISimpleEnumerator* *result);
 	NS_IMETHOD CreateNewDirectory(nsIAbDirectoryProperties *aProperties);
 	NS_IMETHOD CreateDirectoryByURI(const PRUnichar *dirName, const char *uri, PRBool migrating);
-  NS_IMETHOD ModifyDirectory(nsIAbDirectory *directory, nsIAbDirectoryProperties *aProperties);
   NS_IMETHOD DeleteDirectory(nsIAbDirectory *directory);
 	NS_IMETHOD HasDirectory(nsIAbDirectory *dir, PRBool *hasDir);
 

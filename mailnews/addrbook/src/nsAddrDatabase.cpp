@@ -1698,7 +1698,7 @@ nsresult nsAddrDatabase::AddListAttributeColumnsToRow(nsIAbDirectory *list, nsIM
     {
         nsString unicodeStr;
 
-        list->GetDirName(getter_Copies(unicodeStr));
+        list->GetDirName(unicodeStr);
         if (!unicodeStr.IsEmpty())
             AddUnicodeToColumn(listRow, m_ListNameColumnToken, m_LowerListNameColumnToken, unicodeStr.get());
 
@@ -2979,7 +2979,7 @@ nsresult nsAddrDatabase::GetListFromDB(nsIAbDirectory *newList, nsIMdbRow* listR
   err = GetStringColumn(listRow, m_ListNameColumnToken, tempString);
   if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
   {
-    newList->SetDirName(tempString.get());
+    newList->SetDirName(tempString);
   }
   err = GetStringColumn(listRow, m_ListNickNameColumnToken, tempString);
   if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
@@ -3504,9 +3504,10 @@ nsresult nsAddrDatabase::CreateABList(nsIMdbRow* listRow, nsIAbDirectory **resul
             mdb_id existingID;
             dbmailList->GetDbRowID(&existingID);
             if (existingID != rowID) {
+              // Ensure IsMailList is set up first.
+              mailList->SetIsMailList(PR_TRUE);
               GetListFromDB(mailList, listRow);
               dbmailList->SetDbRowID(rowID);
-              mailList->SetIsMailList(PR_TRUE);
             }
 
             dbm_dbDirectory->AddMailListToDirectory(mailList);
@@ -3578,16 +3579,6 @@ NS_IMETHODIMP nsAddrDatabase::GetCardFromAttribute(nsIAbDirectory *aDirectory, c
     rv = NS_OK;
   }
   return rv;
-}
-
-NS_IMETHODIMP nsAddrDatabase::GetDirectoryName(PRUnichar **name)
-{
-    if (m_dbDirectory && name)
-    {
-        return m_dbDirectory->GetDirName(name);
-    }
-    else
-        return NS_ERROR_FAILURE;
 }
 
 NS_IMETHODIMP nsAddrDatabase::AddListDirNode(nsIMdbRow * listRow)

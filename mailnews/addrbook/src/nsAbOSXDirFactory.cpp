@@ -72,14 +72,8 @@ nsAbOSXDirFactory::CreateDirectory(nsIAbDirectoryProperties *aProperties,
                         getter_AddRefs(resource));
   NS_ENSURE_SUCCESS(rv, rv);
   
-  nsCOMPtr<nsIAbDirectory> directory = do_QueryInterface(resource, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-  
-  rv = directory->SetDirName(description.get());
-  NS_ENSURE_SUCCESS(rv, rv);
-  
   nsCOMPtr<nsIAbOSXDirectory> osxDirectory =
-    do_QueryInterface(directory, &rv);
+    do_QueryInterface(resource, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
   
   rv = osxDirectory->AssertChildNodes();

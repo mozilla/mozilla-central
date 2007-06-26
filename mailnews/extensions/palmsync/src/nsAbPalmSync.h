@@ -143,7 +143,7 @@ protected:
     void ConvertAssignPalmIDAttrib(PRUint32 id, nsIAbMDBCard * card);
     nsresult GetABInterface();
     nsresult UpdateABInfo(PRUint32 modTime, PRInt32 categoryId);
-    nsresult ModifyAB(const char * ABUrl, nsIAbDirectoryProperties *properties,
+    nsresult ModifyAB(const char * ABUrl, const nsString &aAbName,
                       const PRUint32 aModTime, const PRInt32 aCategoryId);
     nsresult NewAB(const nsString& aAbName);
 

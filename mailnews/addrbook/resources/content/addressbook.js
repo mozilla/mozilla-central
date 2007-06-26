@@ -379,11 +379,7 @@ function AbOnCreateNewAddressBook(aName)
 
 function AbOnRenameAddressBook(aName)
 {
-  // When the UI code for renaming addrbooks (bug #17230) is ready, just 
-  // change 'properties.description' setting below and it should just work.
-  // get select ab
   var selectedABURI = GetSelectedDirectory();
-  //dump("In AbRenameAddressBook() selectedABURI=" + selectedABURI + "\n");
 
   // the rdf service
   var RDF = Components.classes["@mozilla.org/rdf/rdf-service;1"].getService(Components.interfaces.nsIRDFService);
@@ -396,17 +392,7 @@ function AbOnRenameAddressBook(aName)
   // the RDF resource URI for LDAPDirectory will be like: "moz-abmdbdirectory://abook-3.mab"
   var selectedABDirectory = RDF.GetResource(selectedABURI).QueryInterface(Components.interfaces.nsIAbDirectory);
 
-  // Copy existing property items so they won't get reset.
-  var oldProperties = selectedABDirectory.directoryProperties;
-
-  // Create and fill in properties info
-  var properties = Components.classes["@mozilla.org/addressbook/properties;1"].createInstance(Components.interfaces.nsIAbDirectoryProperties);
-  properties.URI = selectedABURI;
-  properties.dirType = oldProperties.dirType;
-  properties.description = aName;
-
-  // Now do the modification.
-  addressbook.modifyAddressBook(addressbookDS, parentDir, selectedABDirectory, properties);
+  selectedABDirectory.dirName = aName;
 }
 
 function AbPrintCardInternal(doPrintPreview, msgType)

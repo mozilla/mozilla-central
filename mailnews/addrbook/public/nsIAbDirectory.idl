@@ -69,7 +69,7 @@ interface nsIAbDirectoryProperties : nsISupports {
   attribute long position;
 };
 
-[scriptable, uuid(2f8feba2-23fd-49cf-b154-41432506af8d)]
+[scriptable, uuid(215e6765-58d2-4809-9d9d-41991434143e)]
 interface nsIAbDirectory : nsISupports {
 
   // Types of operation
@@ -87,8 +87,12 @@ interface nsIAbDirectory : nsISupports {
   // The supported operations
   readonly attribute long operations;
 
-  // The description of the directory
-  attribute wstring dirName;
+  /**
+   * The description of the directory. If this directory is not a mailing list,
+   * then setting this attribute will send round a "DirName" update via
+   * nsIAddrBookSession.
+   */
+  attribute AString dirName;
 
   // XXX This should really be replaced by a QI or something better
   readonly attribute long dirType;
@@ -125,10 +129,6 @@ interface nsIAbDirectory : nsISupports {
    * associated with the mailing lists too.
    */
   readonly attribute nsISimpleEnumerator childCards;
-
-  // Modifies a top level directory, 
-  // which also updates the preferences
-  void modifyDirectory(in nsIAbDirectory directory, in nsIAbDirectoryProperties aProperties);
 
   // Deletes either a mailing list or a top
   // level directory, which also updates the

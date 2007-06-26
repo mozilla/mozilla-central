@@ -1014,23 +1014,10 @@ nsresult nsAbPalmHotSync::DeleteAB(long aCategoryIndex, const char * aABUrl)
 
 nsresult nsAbPalmHotSync::RenameAB(long aCategoryIndex, const char * aABUrl)
 {
-  // Fill in property info and call ModifyAB().
-  nsresult rv;
-  nsCOMPtr <nsIAbDirectoryProperties> properties(do_CreateInstance(NS_ABDIRECTORYPROPERTIES_CONTRACTID, &rv));
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  // For modify to work, we only need to set description, uri and dir type.
-  rv = properties->SetDescription(mAbName);
-  NS_ENSURE_SUCCESS(rv,rv);
-  rv = properties->SetURI(aABUrl);
-  NS_ENSURE_SUCCESS(rv,rv);
-  rv = properties->SetDirType(kPABDirectory); // pab dir type for PalmSync
-  NS_ENSURE_SUCCESS(rv,rv);
-
   PRUint32 modTimeInSec;
   PRTime2Seconds(PR_Now(), &modTimeInSec);
 
-  return ModifyAB(aABUrl, properties, modTimeInSec, aCategoryIndex);
+  return ModifyAB(aABUrl, mAbName, modTimeInSec, aCategoryIndex);
 }
 
 nsresult nsAbPalmHotSync::NewAB(const nsString& aAbName)
@@ -1049,25 +1036,11 @@ nsresult nsAbPalmHotSync::NewAB(const nsString& aAbName)
 
 nsresult nsAbPalmHotSync::UpdateABInfo(PRUint32 aModTime, PRInt32 aCategoryIndex)
 {
-  // Fill in property info and call ModifyAB().
-  nsresult rv;
-  nsCOMPtr <nsIAbDirectoryProperties> properties(do_CreateInstance(NS_ABDIRECTORYPROPERTIES_CONTRACTID, &rv));
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  // For modify to work, we only need to set description, uri and 
-  // dir type. Then add mod time and category id we want to modify.
-  rv = properties->SetDescription(mDescription);
-  NS_ENSURE_SUCCESS(rv,rv);
-  rv = properties->SetURI(mUri.get());
-  NS_ENSURE_SUCCESS(rv,rv);
-  rv = properties->SetDirType(mDirType);
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  return(ModifyAB(mUri.get(), properties, aModTime, aCategoryIndex));
+  return(ModifyAB(mUri.get(), mDescription, aModTime, aCategoryIndex));
 }
 
 nsresult nsAbPalmHotSync::ModifyAB(const char * aABUrl,
-				   nsIAbDirectoryProperties *aProperties,
+				   const nsString &aAbName,
 				   const PRUint32 aModTime,
 				   const PRInt32 aCategoryId)
 {
@@ -1091,20 +1064,12 @@ nsresult nsAbPalmHotSync::ModifyAB(const char * aABUrl,
   nsCOMPtr <nsIAbDirectory> selectedDirectory = do_QueryInterface(childResource, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
+  rv = selectedDirectory->SetDirName(aAbName);
+  NS_ENSURE_SUCCESS(rv, rv);
+
   // Now set the mod time and category id directly via the selected directory.
   rv = selectedDirectory->SetIntValue("PalmSyncTimeStamp", aModTime);
   NS_ENSURE_SUCCESS(rv, rv);
   
-  rv = selectedDirectory->SetIntValue("PalmSyncCategoryId", aCategoryId);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  // RDF data source for addrbook
-  nsCOMPtr<nsIRDFDataSource> ds;
-  rv = rdfService->GetDataSource("rdf:addressdirectory", getter_AddRefs(ds));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr <nsIAddressBook> ab = do_CreateInstance(NS_ADDRESSBOOK_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  return(ab->ModifyAddressBook(ds, parentDirectory, selectedDirectory, aProperties));
+  return selectedDirectory->SetIntValue("PalmSyncCategoryId", aCategoryId);
 }

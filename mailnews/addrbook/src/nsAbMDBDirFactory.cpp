@@ -132,9 +132,6 @@ NS_IMETHODIMP nsAbMDBDirFactory::CreateDirectory(nsIAbDirectoryProperties *aProp
     nsCOMPtr<nsIAbDirectory> directory(do_QueryInterface(resource, &rv));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    rv = directory->SetDirName(description.get());
-    NS_ENSURE_SUCCESS(rv, rv);
-
     rv = directory->SetDirPrefId(prefName);
     NS_ENSURE_SUCCESS(rv, rv);
 

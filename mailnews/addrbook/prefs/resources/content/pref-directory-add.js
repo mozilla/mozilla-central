@@ -278,9 +278,7 @@ function hasCharacters(number)
 
 function onAccept()
 {
-  var properties = Components.classes["@mozilla.org/addressbook/properties;1"].createInstance(Components.interfaces.nsIAbDirectoryProperties);
   var addressbook = Components.classes["@mozilla.org/addressbook;1"].createInstance(Components.interfaces.nsIAddressBook);
-  properties.dirType = kLDAPDirectory;
 
   try {
     var pref_string_content = "";
@@ -306,8 +304,6 @@ function onAccept()
     else if (results && hasCharacters(results))
       errorValue = "invalidResults";
     if (!errorValue) {
-      properties.description = description;
-  
       ldapUrl.host = hostname;
       ldapUrl.dn = document.getElementById("basedn").value;
       ldapUrl.filter = document.getElementById("search").value;
@@ -327,32 +323,27 @@ function onAccept()
       if (secure.checked)
         ldapUrl.options |= ldapUrl.OPT_SECURE;
 
-      properties.URI = ldapUrl.spec;
+      // check if we are modifying an existing directory or adding a new directory
+      if (gCurrentDirectory) {
+        gCurrentDirectory.dirName = description;
+        gCurrentDirectory.lDAPURL = ldapUrl;
+        window.opener.gNewServerString = gCurrentDirectory.dirPrefId;
+      }
+      else { // adding a new directory
+        var properties = Components.classes["@mozilla.org/addressbook/properties;1"]
+          .createInstance(Components.interfaces.nsIAbDirectoryProperties);
+
+        properties.dirType = kLDAPDirectory;
+        properties.description = description;
+        properties.URI = ldapUrl.spec;
+
+        addressbook.newAddressBook(properties);
+        window.opener.gNewServerString = properties.prefName;
+      }
 
       // the rdf service
       var RDF = Components.classes["@mozilla.org/rdf/rdf-service;1"]
                           .getService(Components.interfaces.nsIRDFService);
-
-      // check if we are modifying an existing directory or adding a new directory
-      if (gCurrentDirectory) {
-        // we are modifying an existing directory
-
-        // get the datasource for the addressdirectory
-        var addressbookDS = RDF.GetDataSource("rdf:addressdirectory");
-
-        // moz-abdirectory:// is the RDF root to get all types of addressbooks.
-        var parentDir = RDF.GetResource("moz-abdirectory://")
-                           .QueryInterface(Components.interfaces.nsIAbDirectory);
-
-        // Now do the modification.
-        addressbook.modifyAddressBook(addressbookDS, parentDir,
-                                      gCurrentDirectory, properties);
-        window.opener.gNewServerString = gCurrentDirectory.dirPrefId;       
-      }
-      else { // adding a new directory
-        addressbook.newAddressBook(properties);
-        window.opener.gNewServerString = properties.prefName;
-      }
 
       // XXX This is really annoying - both new/modify Address Book don't
       // give us back the new directory we just created - so go find it from

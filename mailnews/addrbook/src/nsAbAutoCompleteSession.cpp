@@ -440,10 +440,10 @@ nsresult nsAbAutoCompleteSession::SearchCards(nsIAbDirectory* directory, nsAbAut
                                       pFirstNameStr.get(), 
                                       pLastNameStr.get(), pEmailStr[i].get()))
             {
-              nsString pDirName;
+              nsString dirName;
               if (mAutoCompleteCommentColumn == 1)
               {
-                rv = directory->GetDirName(getter_Copies(pDirName));
+                rv = directory->GetDirName(dirName);
                 if (NS_FAILED(rv))
                   continue;
               }
@@ -451,7 +451,7 @@ nsresult nsAbAutoCompleteSession::SearchCards(nsIAbDirectory* directory, nsAbAut
               AddToResult(pNickNameStr.get(), pDisplayNameStr.get(), 
                           pFirstNameStr.get(), pLastNameStr.get(), 
                           pEmailStr[i].get(), pNotesStr.get(), 
-                          pDirName.get(), popularityIndex, bIsMailList, PR_FALSE, results);
+                          dirName.get(), popularityIndex, bIsMailList, PR_FALSE, results);
             }
           }
         }

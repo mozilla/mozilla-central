@@ -266,7 +266,6 @@ public:
 
 
 	NS_IMETHOD AddListDirNode(nsIMdbRow * listRow);
-	NS_IMETHOD GetDirectoryName(PRUnichar **name);
 
 	NS_IMETHOD FindMailListbyUnicodeName(const PRUnichar *listName, PRBool *exist);
 

@@ -137,7 +137,7 @@ interface nsAddrDBCommitType
   const long kCompressCommit = 3;
 };
 
-[scriptable, uuid(E59ABE11-1E97-46ec-A1C4-500971BBC4B4)]
+[scriptable, uuid(244d95ab-ca93-436b-9809-80ef21118bd4)]
 interface nsIAddrDatabase : nsIAddrDBAnnouncer {
 
   /**
@@ -199,7 +199,6 @@ interface nsIAddrDatabase : nsIAddrDBAnnouncer {
 	void editMailList(in nsIAbDirectory mailList, in nsIAbCard listCard, in boolean aNotify);
 	boolean containsMailList(in nsIAbDirectory mailList);
 	void deleteCardFromMailList(in nsIAbDirectory mailList, in nsIAbCard card, in boolean aNotify);
-	readonly attribute wstring directoryName;
 
   /**
    * aUTF8Value needs to be in UTF-8

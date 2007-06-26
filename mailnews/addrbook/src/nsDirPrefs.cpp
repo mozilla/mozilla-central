@@ -159,6 +159,10 @@ NS_IMETHODIMP DirPrefObserver::Observe(nsISupports *aSubject, const char *aTopic
           DIR_SetServerPosition(dir_ServerList, server, DIR_POS_DELETE);
       }
     }
+
+    if (id == idDescription)
+      // Ensure the local copy of the description is kept up to date.
+      server->description = DIR_GetStringPref(prefname, "description", nsnull);
   }
   /* If the server is not in the unified list, we may need to add it.  Servers
    * are only added when the position, serverName and description are valid.

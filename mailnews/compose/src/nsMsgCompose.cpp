@@ -4135,7 +4135,7 @@ nsresult nsMsgCompose::BuildMailListArray(nsIAddrDatabase* database, nsIAbDirect
             nsString listName;
             nsString listDescription;
 
-            directory->GetDirName(getter_Copies(listName));
+            directory->GetDirName(listName);
             directory->GetDescription(getter_Copies(listDescription));
 
             nsMsgMailList* mailList = new nsMsgMailList(listName,

@@ -132,8 +132,6 @@ protected:
 	nsresult getDirectoryArcLabelsOut(nsIAbDirectory *directory,
 										   nsISupportsArray **arcs);
 
-  nsresult DoModifyDirectory(nsISupportsArray *parentDir,
-                              nsISupportsArray *arguments);
 	nsresult DoDeleteFromDirectory(nsISupportsArray *parentDirs,
 							  nsISupportsArray *delDirs);
 	nsresult DoDeleteCardsFromDirectory(nsIAbDirectory *directory,
@@ -161,7 +159,6 @@ protected:
   nsCOMPtr<nsICollation> mCollationKeyGenerator;
   
   // commands
-  nsCOMPtr<nsIRDFResource> kNC_Modify;
   nsCOMPtr<nsIRDFResource> kNC_Delete;
   nsCOMPtr<nsIRDFResource> kNC_DeleteCards;
   

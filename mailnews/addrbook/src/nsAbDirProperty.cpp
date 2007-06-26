@@ -47,6 +47,7 @@
 #include "prmem.h"
 #include "nsCRT.h"
 #include "rdf.h"
+#include "nsIAddrBookSession.h"
 
 // From nsDirPrefs
 #define kDefaultPosition 1
@@ -89,25 +90,52 @@ NS_IMETHODIMP nsAbDirProperty::GetOperations(PRInt32 *aOperations)
 	return NS_OK;
 }
 
-NS_IMETHODIMP nsAbDirProperty::GetDirName(PRUnichar **aDirName)
+NS_IMETHODIMP nsAbDirProperty::GetDirName(nsAString &aDirName)
 {
-	if (aDirName)
-	{
-		*aDirName = ToNewUnicode(m_DirName);
-		if (!(*aDirName)) 
-			return NS_ERROR_OUT_OF_MEMORY;
-		else
-			return NS_OK;
-	}
-	else
-		return NS_ERROR_NULL_POINTER;
+  if (m_IsMailList)
+  {
+    aDirName = m_ListDirName;
+    return NS_OK;
+  }
+
+  nsCString dirName;
+  nsresult rv = GetLocalizedStringValue("description", EmptyCString(),
+                                        dirName);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  CopyUTF8toUTF16(dirName, aDirName);
+  return NS_OK;
 }
 
-NS_IMETHODIMP nsAbDirProperty::SetDirName(const PRUnichar * aDirName)
+// XXX Although mailing lists could use the NotifyItemPropertyChanged
+// mechanism here, it requires some rework on how we write/save data
+// relating to mailing lists, so we're just using the old method of a
+// local variable to store tha mailing list name.
+NS_IMETHODIMP nsAbDirProperty::SetDirName(const nsAString &aDirName)
 {
-	if (aDirName)
-		m_DirName = aDirName;
-	return NS_OK;
+  if (m_IsMailList)
+  {
+    m_ListDirName = aDirName;
+    return NS_OK;
+  }
+
+  // Store the old value.
+  nsString oldDirName;
+  nsresult rv = GetDirName(oldDirName);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // Save the new value
+  rv = SetStringValue("description", NS_ConvertUTF16toUTF8(aDirName));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIAddrBookSession> abSession =
+    do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
+
+  if (NS_SUCCEEDED(rv))
+    abSession->NotifyItemPropertyChanged(this, "DirName", oldDirName.get(),
+                                         nsString(aDirName).get());
+
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsAbDirProperty::GetDirType(PRInt32 *aDirType)
@@ -217,15 +245,15 @@ NS_IMETHODIMP nsAbDirProperty::SetAddressLists(nsISupportsArray * aAddressLists)
 
 NS_IMETHODIMP nsAbDirProperty::CopyMailList(nsIAbDirectory* srcList)
 {
+  SetIsMailList(PR_TRUE);
+
   nsString str;
-  srcList->GetDirName(getter_Copies(str));
-  SetDirName(str.get());
+  srcList->GetDirName(str);
+  SetDirName(str);
   srcList->GetListNickName(getter_Copies(str));
   SetListNickName(str.get());
   srcList->GetDescription(getter_Copies(str));
   SetDescription(str.get());
-
-  SetIsMailList(PR_TRUE);
 
   nsCOMPtr <nsISupportsArray> pAddressLists;
   srcList->GetAddressLists(getter_AddRefs(pAddressLists));
@@ -241,10 +269,6 @@ nsAbDirProperty::GetChildNodes(nsISimpleEnumerator **childList)
 
 NS_IMETHODIMP
 nsAbDirProperty::GetChildCards(nsISimpleEnumerator **childCards)
-{ return NS_ERROR_NOT_IMPLEMENTED; }
-
-NS_IMETHODIMP
-nsAbDirProperty::ModifyDirectory(nsIAbDirectory *directory, nsIAbDirectoryProperties *aProperties)
 { return NS_ERROR_NOT_IMPLEMENTED; }
 
 NS_IMETHODIMP

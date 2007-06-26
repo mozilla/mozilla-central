@@ -205,14 +205,15 @@ NS_IMETHODIMP nsAbOutlookDirectory::Init(const char *aUri)
   else
     prefix.AssignLiteral("OE ");
   prefix.Append(unichars);
-  SetDirName(prefix.get());
 
   if (objectType == MAPI_DISTLIST) {
-    SetDirName(unichars.get());
     SetIsMailList(PR_TRUE);
+    SetDirName(unichars);
   }
-  else
+  else {
     SetIsMailList(PR_FALSE);
+    SetDirName(prefix);
+  }
 
   return UpdateAddressList();
 }
@@ -421,12 +422,6 @@ NS_IMETHODIMP nsAbOutlookDirectory::DeleteCards(nsISupportsArray *aCardList)
     return NS_OK ;
 }
 
-NS_IMETHODIMP nsAbOutlookDirectory::ModifyDirectory(nsIAbDirectory *directory, nsIAbDirectoryProperties *aProperties)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
 NS_IMETHODIMP nsAbOutlookDirectory::DeleteDirectory(nsIAbDirectory *aDirectory)
 {
     if (mIsQueryURI) { return NS_ERROR_NOT_IMPLEMENTED ; }
@@ -544,7 +539,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::EditMailListToDatabase(const char *aUri, nsI
     nsAbWinHelperGuard mapiAddBook (mAbWinType) ;
 
     if (!mapiAddBook->IsOK()) { return NS_ERROR_FAILURE ; }
-    retCode = GetDirName(getter_Copies(name)) ;
+    retCode = GetDirName(name);
     NS_ENSURE_SUCCESS(retCode, retCode) ;
     if (!mapiAddBook->SetPropertyUString(*mMapiData, PR_DISPLAY_NAME_W, name.get())) {
         return NS_ERROR_FAILURE ;
