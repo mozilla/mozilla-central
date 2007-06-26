@@ -1,5 +1,5 @@
 /*
- * $Id: MCP.java,v 1.13 2007-06-19 20:18:12 edburns%acm.org Exp $
+ * $Id: MCP.java,v 1.14 2007-06-26 07:17:26 edburns%acm.org Exp $
  */
 
 /* 
@@ -30,6 +30,7 @@ import java.awt.BorderLayout;
 import java.awt.Frame;
 import java.awt.Robot;
 import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseListener;
 import java.io.FileNotFoundException;
@@ -93,6 +94,8 @@ public class MCP {
     private CountDownLatch latch = null;
     private TimeoutHandler timeoutHandler = null;
     private long Timeout = 30000L;
+    
+    private Element currentElement;
     
     private void createLatch() {
         if (null != latch) {
@@ -400,19 +403,54 @@ public class MCP {
     */
     
     public Element findElement(String id) {
-        Element result = null;
         Document dom = getCurrentPage().getDOM();
         try {
-            result = dom.getElementById(id);
+            currentElement = dom.getElementById(id);
         }
         catch (Exception e) {
             
         }
-        if (null == result) {
-            result = getDOMTreeDumper().findFirstElementWithName(dom, id);
+        if (null == currentElement) {
+            currentElement = getDOMTreeDumper().findFirstElementWithName(dom, id);
         }
         
-        return result;
+        return currentElement;
+    }
+    
+    public void setCurrentElementText(String newValue) {
+        if (null == currentElement) {
+            throw new IllegalStateException("You must find an element before you can set its text.");
+        }
+
+        String 
+                screenX = currentElement.getAttribute("screenX"),
+                screenY = currentElement.getAttribute("screenY");
+        int i,len,x,y;
+        if (null != screenX && null != screenY) {
+            try {
+                requestFocus();
+                x = Integer.valueOf(screenX).intValue();
+                y = Integer.valueOf(screenY).intValue();
+
+            } catch (NumberFormatException ex) {
+                LOGGER.throwing(this.getClass().getName(), "setElementText", ex);
+                throw new IllegalStateException(ex);
+            }
+            Robot robot = getRobot();
+            robot.mouseMove(x, y);
+            robot.mousePress(InputEvent.BUTTON1_MASK);
+            robot.mouseRelease(InputEvent.BUTTON1_MASK);
+            len = newValue.length();
+            for (i = 0; i < len; i++) {
+            }
+            // PENDING(edburns): make it so each character in newValue
+            // is translated into a keyCode.
+            robot.keyPress(KeyEvent.VK_8);
+            robot.keyRelease(KeyEvent.VK_8);
+            robot.keyPress(KeyEvent.VK_0);
+            robot.keyRelease(KeyEvent.VK_0);
+        }
+        
     }
     
     /**
@@ -626,6 +664,28 @@ public class MCP {
             }
         }
         requestFocus();
+    }
+    
+    public void waitUntilTextPresent(String textToFind) {
+        boolean found = false;
+        long 
+                maxWait = getTimeout(),
+                timeWaited = 0,
+                waitInterval = getTimeoutWaitInterval();
+
+        while (!(found = getCurrentPage().find(textToFind, true, true))) {
+            try {
+                Thread.currentThread().sleep(waitInterval);
+                timeWaited += waitInterval;
+                if (maxWait < timeWaited) {
+                    getTimeoutHandler().timeout();
+                }
+            } catch (InterruptedException ex) {
+                if (LOGGER.isLoggable(Level.WARNING)) {
+                    LOGGER.log(Level.WARNING, "waitUntilTextPresent", ex);
+                }
+            }
+        }
     }
     
     private void requestFocus() {
