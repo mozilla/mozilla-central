@@ -176,32 +176,67 @@ sub makefullsoft {
     $builddir = `cygpath -u $builddir`;
   }
   chomp($builddir);
-  # should go in config
-  my $moforoot = "cltbld\@cvs.mozilla.org:/mofo"; 
-  $ENV{CVS_RSH} = "ssh" unless defined($ENV{CVS_RSH});
-  my $fullsofttag = " ";
-  $fullsofttag = " -r $Settings::BuildTag"
-        unless not defined($Settings::BuildTag) or $Settings::BuildTag eq '';
-  TinderUtils::run_shell_command("cd $srcdir && cvs -d$moforoot co $fullsofttag -d fullsoft talkback/fullsoft");
+
+  my $rv = 0;
+
+  # Check to see whether we should be using a prebuilt Talkback extension vs.
+  # compiling one from scratch.
+  if ($Settings::UsePrebuiltTalkback && -e $Settings::UsePrebuiltTalkback) {
+    TinderUtils::run_shell_command("cd $builddir && tar jxvf $Settings::UsePrebuiltTalkback && cp -r fullsoft $srcdir");
+  } elsif ($Settings::MofoRoot) {
+    $ENV{CVS_RSH} = "ssh" unless defined($ENV{CVS_RSH});
+    my $fullsofttag = " ";
+    $fullsofttag = " -r $Settings::BuildTag"
+          unless not defined($Settings::BuildTag) or $Settings::BuildTag eq '';
+    TinderUtils::run_shell_command("cd $srcdir && cvs -d$Settings::MofoRoot co $fullsofttag -d fullsoft talkback/fullsoft");
+  } else {
+    # We're missing some key piece of data we need to build Talkback when 
+    # we think we should be able to. FAIIL.
+    return 1;
+  }
+
   if ($Settings::ObjDir ne '') {
-    TinderUtils::run_shell_command("mkdir $builddir/fullsoft && cd $builddir/fullsoft && $srcdir/build/autoconf/make-makefile -d ..");
+    $rv = TinderUtils::run_shell_command("mkdir -p $builddir/fullsoft && cd $builddir/fullsoft && $srcdir/build/autoconf/make-makefile -d ..");
+  } else {
+    $rv = TinderUtils::run_shell_command("cd $builddir/fullsoft && $builddir/build/autoconf/make-makefile -d ..");
   }
-  else {
-    TinderUtils::run_shell_command("cd $builddir/fullsoft && $builddir/build/autoconf/make-makefile -d ..");
+
+  if (!$rv) {
+    if (!$Settings::UsePrebuiltTalkback) {
+      TinderUtils::run_shell_command("make -C $builddir/fullsoft");
+    } else {
+      # We need to update the Talkback master.ini file with the current
+      # build ID.
+      TinderUtils::print_log("Setting build ID for prebuilt Talkback.\n");
+      my $talkback_path = TinderUtils::getPathToTalkbackClient("$builddir/dist/bin");
+      my $buildid = get_buildid(objdir=>$builddir);
+      if ($talkback_path and $buildid) {
+        unless (TinderUtils::setBuildIdInTalkbackMasterConfig(talkbackClientPath => $talkback_path,
+                                                              newBuildId         => $buildid)) {
+
+            TinderUtils::print_log("Failed to set build ID for prebuilt Talkback.\n");
+            $rv = 1;
+        }
+      } else {
+        TinderUtils::print_log("Could not find Talkback path ($talkback_path) or build ID ($buildid).\n");
+        $rv = 1;
+      }
+    }
   }
-  TinderUtils::run_shell_command("make -C $builddir/fullsoft");
-  if ($Settings::BinaryName ne 'Camino') {
-    TinderUtils::run_shell_command("make -C $builddir/fullsoft fullcircle-push");
+
+  if (!$rv) {
+    if ($Settings::BinaryName ne 'Camino') {
+      TinderUtils::run_shell_command("make -C $builddir/fullsoft fullcircle-push");
+    } else {
+      # Something completely different
+      TinderUtils::run_shell_command("make -C $builddir/fullsoft fullcircle-push UPLOAD_FILES='`find -X $builddir/dist/Camino.app -type f -perm -111 -exec file {} \\; | grep \": Mach-O\" | sed \"s/: Mach-O.*//\" | xargs`'");
+    }
   }
-  else {
-    # Something completely different
-    TinderUtils::run_shell_command("make -C $builddir/fullsoft fullcircle-push UPLOAD_FILES='`find -X $builddir/dist/Camino.app -type f -perm -111 -exec file {} \\; | grep \": Mach-O\" | sed \"s/: Mach-O.*//\" | xargs`'");
-  }
-  if (TinderUtils::is_mac()) {
+
+  if (!$rv and TinderUtils::is_mac()) {
     if ($Settings::BinaryName eq 'Camino') {
       TinderUtils::run_shell_command("rsync -a --copy-unsafe-links $builddir/dist/bin/components/*qfa* $builddir/dist/bin/components/talkback $builddir/dist/Camino.app/Contents/MacOS/components");
-    }
-    else {
+    } else {
       TinderUtils::run_shell_command("make -C $builddir/$Settings::mac_bundle_path");
     }
 
@@ -210,6 +245,8 @@ sub makefullsoft {
       TinderUtils::run_shell_command("$Settings::Make -C $Settings::Topsrcdir -f $Settings::moz_client_mk $Settings::MakeOverrides postflight_all");
     }
   }
+
+  return $rv;
 }
 
 sub processtalkback {
@@ -222,11 +259,12 @@ sub processtalkback {
   my $srcdir = shift;
   # put symbols in builddir/dist/buildid
   stagesymbols($builddir); 
+  my $rv = 0;
   if ($makefullsoft) {
     $ENV{FC_UPLOADSYMS} = 1;
-    makefullsoft($builddir, $srcdir);
+    $rv = makefullsoft($builddir, $srcdir);
   }
-  
+  return $rv;
 }
 
 sub packit {
@@ -1319,9 +1357,11 @@ sub main {
   if (!defined($store_name)) {
     $store_name = $pretty_build_name;
   }
-
   if (!TinderUtils::is_os2()) {
-    processtalkback($cachebuild && $Settings::shiptalkback, $objdir, "$mozilla_build_dir/${Settings::Topsrcdir}");
+    my $rv = processtalkback($cachebuild && $Settings::shiptalkback, $objdir, "$mozilla_build_dir/${Settings::Topsrcdir}");
+    if ($rv) {
+      return returnStatus("Talkback processing failed.", ("busted"));
+    }
   }
 
   if ($cachebuild && $Settings::crashreporter_buildsymbols) {

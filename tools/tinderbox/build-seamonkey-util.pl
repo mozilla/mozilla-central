@@ -24,7 +24,7 @@ use Config;         # for $Config{sig_name} and $Config{sig_num}
 use File::Find ();
 use File::Copy;
 
-$::UtilsVersion = '$Revision: 1.360 $ ';
+$::UtilsVersion = '$Revision: 1.361 $ ';
 
 package TinderUtils;
 
@@ -3761,7 +3761,9 @@ sub getPathToTalkbackClient
     my @possible_talkback_paths = (
         "$binary_dir/extensions/talkback\@mozilla.org/components",
         "$binary_dir/extensions/talkback\@mozilla.org/components/talkback",
-        "$binary_dir/components/",
+        "$binary_dir/components",
+        "$binary_dir/components/talkback",
+
         );
 
     foreach my $possible_talkback_path (@possible_talkback_paths) {
@@ -3884,6 +3886,28 @@ sub setTalkbackMasterConfigToAutoSubmit
             s/DisableDontAsk = 0/DisableDontAsk = 1/;
             s/DisableUI = 0/DisableUI = 1/;
             s/DisableWizard = 0/DisableWizard = 1/;
+            print MASTERCOPY;
+        }
+        close (MASTER);
+        close (MASTERCOPY);
+        File::Copy::move("$talkback_client_path/master.ini.copy", "$talkback_client_path/master.ini") or return 0;
+        return 1;
+    }
+    
+    return 0;
+}
+
+sub setBuildIdInTalkbackMasterConfig
+{
+    my %args = @_;
+    my $talkback_client_path = $args{'talkbackClientPath'};
+    my $new_build_id = $args{'newBuildId'};
+
+    if (-e "$talkback_client_path/master.ini") {
+        open (MASTERCOPY, ">$talkback_client_path/master.ini.copy") or return 0;
+        open (MASTER, "$talkback_client_path/master.ini") or return 0;
+        while (<MASTER>) {
+            s/^BuildID = "(\d+)"/BuildID = "$new_build_id"/;
             print MASTERCOPY;
         }
         close (MASTER);

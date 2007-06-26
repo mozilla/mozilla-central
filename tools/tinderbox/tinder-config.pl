@@ -130,6 +130,11 @@
 
 #$moz_cvsroot   = $ENV{CVSROOT};
 
+# Used for checking out sources (e.g. Talkback) from the internal
+# Mozilla repository. If you don't have a CVS account with access,
+# just leave this set to 0.
+#$MofoRoot = 0
+
 #- Set these proper values for your tinderbox server
 #$Tinderbox_server = 'tinderbox-daemon@tinderbox.mozilla.org';
 
@@ -176,6 +181,12 @@
 #$Compiler = 'gcc';
 #$NSPRArgs = '';
 #$ShellOverride = '';
+
+# UsePrebuiltTalkback:
+# If set to a filepath, tinderbox will use the file contents (presumed to be a bz2
+# archive of a compatible Talkback extension) rather than compiling Talkback
+# from source. 
+#$UsePrebuiltTalkback = 0;
 
 # Release build options
 #$ReleaseBuild  = 1;
