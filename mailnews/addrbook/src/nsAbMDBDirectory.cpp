@@ -659,16 +659,6 @@ NS_IMETHODIMP nsAbMDBDirectory::HasDirectory(nsIAbDirectory *dir, PRBool *hasDir
   return rv;
 }
 
-NS_IMETHODIMP nsAbMDBDirectory::CreateNewDirectory(nsIAbDirectoryProperties *aProperties)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP nsAbMDBDirectory::CreateDirectoryByURI(const PRUnichar *dirName, const char *uri, PRBool migrating)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
 NS_IMETHODIMP nsAbMDBDirectory::AddMailList(nsIAbDirectory *list)
 {
   if (mIsQueryURI)

@@ -379,7 +379,7 @@ function AbRenameAddressBook()
 
   var dialog = window.openDialog(
     "chrome://messenger/content/addressbook/abAddressBookNameDialog.xul", 
-     "", "chrome,modal=yes,resizable=no,centerscreen", {title: dialogTitle, canRename: canRename, name: selectedABDirectory.directoryProperties.description,
+     "", "chrome,modal=yes,resizable=no,centerscreen", {title: dialogTitle, canRename: canRename, name: selectedABDirectory.dirName,
       okCallback:AbOnRenameAddressBook});
 }
 

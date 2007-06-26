@@ -69,7 +69,7 @@ interface nsIAbDirectoryProperties : nsISupports {
   attribute long position;
 };
 
-[scriptable, uuid(215e6765-58d2-4809-9d9d-41991434143e)]
+[scriptable, uuid(95eb0c05-1c91-4daf-850e-066c495519c4)]
 interface nsIAbDirectory : nsISupports {
 
   // Types of operation
@@ -97,7 +97,6 @@ interface nsIAbDirectory : nsISupports {
   // XXX This should really be replaced by a QI or something better
   readonly attribute long dirType;
 
-  // XXX These are readonly for now, until we get nsIAbDirectoryProperties
   // eliminated a bit more.
 
   // The filename for address books within this directory.
@@ -109,17 +108,12 @@ interface nsIAbDirectory : nsISupports {
   // The position of the directory on the display.
   readonly attribute long position;
 
-  // XXX End "readonly XXX"
-
   // will be used for LDAP replication
   attribute unsigned long lastModifiedDate;
 
   // Defines whether this directory is a mail
   // list or not
   attribute PRBool isMailList;
-
-  // Get the directory properties
-  readonly attribute nsIAbDirectoryProperties directoryProperties;
 
   // Get the children directories
   readonly attribute nsISimpleEnumerator childNodes;

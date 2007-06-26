@@ -147,7 +147,7 @@ var gComposePane = {
         var addrbook = enumerator.getNext();
         if (addrbook instanceof Components.interfaces.nsIAbDirectory && !addrbook.isRemote && !addrbook.isMailList)
         {
-          var abURI = addrbook.directoryProperties.URI;
+          var abURI = addrbook.URI;
           item = document.createElement("menuitem");
           item.setAttribute("label", addrbook.dirName);
           item.setAttribute("value", abURI);

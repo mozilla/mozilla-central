@@ -356,65 +356,6 @@ NS_IMETHODIMP nsAbDirProperty::SetDirPrefId(const nsACString &aDirPrefId)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbDirProperty::GetDirectoryProperties(nsIAbDirectoryProperties **aDirectoryProperties)
-{
-  NS_ENSURE_ARG_POINTER(aDirectoryProperties);
-
-  nsresult rv;
-
-  nsCOMPtr<nsIAbDirectoryProperties> properties = do_CreateInstance(NS_ABDIRECTORYPROPERTIES_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = properties->SetPrefName(m_DirPrefId.get());
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCAutoString prefStringValue;
-  PRInt32 prefIntValue;
-  if (m_DirPrefId.EqualsLiteral("ldap_2.servers.pab") ||
-      m_DirPrefId.EqualsLiteral("ldap_2.servers.history"))
-  {
-    // get default address book name from addressbook.properties 
-    rv = GetLocalizedStringValue("description", EmptyCString(), prefStringValue);
-  }
-  else
-  {
-    rv = GetStringValue("description", EmptyCString(), prefStringValue);
-  }
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = properties->SetDescription(NS_ConvertUTF8toUTF16(prefStringValue));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = GetDirType(&prefIntValue);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = properties->SetDirType(prefIntValue);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = GetFileName(prefStringValue);
-  NS_ENSURE_SUCCESS(rv, rv);
-  
-  rv = properties->SetFileName(prefStringValue.get());
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  // the string "s" is the default uri ( <scheme> + "://" + <filename> )
-  rv = GetURI(prefStringValue);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = properties->SetURI(prefStringValue.get());
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = GetPosition(&prefIntValue);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = properties->SetPosition(prefIntValue);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  NS_ADDREF(*aDirectoryProperties = properties);
-
-  return rv;
-}
-
 nsresult nsAbDirProperty::InitDirectoryPrefs()
 {
   if (m_DirPrefId.IsEmpty())
