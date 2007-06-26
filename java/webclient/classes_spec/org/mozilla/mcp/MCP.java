@@ -1,5 +1,5 @@
 /*
- * $Id: MCP.java,v 1.14 2007-06-26 07:17:26 edburns%acm.org Exp $
+ * $Id: MCP.java,v 1.15 2007-06-26 11:29:27 edburns%acm.org Exp $
  */
 
 /* 
@@ -417,11 +417,7 @@ public class MCP {
         return currentElement;
     }
     
-    public void setCurrentElementText(String newValue) {
-        if (null == currentElement) {
-            throw new IllegalStateException("You must find an element before you can set its text.");
-        }
-
+    public void focusElement(Element toFocus) {
         String 
                 screenX = currentElement.getAttribute("screenX"),
                 screenY = currentElement.getAttribute("screenY");
@@ -440,17 +436,31 @@ public class MCP {
             robot.mouseMove(x, y);
             robot.mousePress(InputEvent.BUTTON1_MASK);
             robot.mouseRelease(InputEvent.BUTTON1_MASK);
-            len = newValue.length();
-            for (i = 0; i < len; i++) {
-            }
-            // PENDING(edburns): make it so each character in newValue
-            // is translated into a keyCode.
+        }
+
+    }
+    
+    public void appendToCurrentElementText(String toAppend) {
+        if (null == currentElement) {
+            throw new IllegalStateException("You must find an element before you can set its text.");
+        }
+
+        int i,len,x,y;
+        Robot robot = getRobot();
+        len = toAppend.length();
+        for (i = 0; i < len; i++) {
+        }
+
+        // PENDING(edburns): make it so each character in toAppend
+        // is translated into a keyCode.
+        if (toAppend.equals("8")) {
             robot.keyPress(KeyEvent.VK_8);
             robot.keyRelease(KeyEvent.VK_8);
+        }
+        if (toAppend.equals("0")) {
             robot.keyPress(KeyEvent.VK_0);
             robot.keyRelease(KeyEvent.VK_0);
         }
-        
     }
     
     /**
