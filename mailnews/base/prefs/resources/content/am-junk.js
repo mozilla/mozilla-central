@@ -38,6 +38,7 @@
 */
 
 const KEY_ISP_DIRECTORY_LIST = "ISPDL";
+var gPrefBranch = null;
 
 function onInit(aPageId, aServerId)
 {
@@ -88,15 +89,30 @@ function onInit(aPageId, aServerId)
 
 function onPreInit(account, accountValues)
 {
+  gPrefBranch = Components.classes["@mozilla.org/preferences-service;1"]
+                          .getService(Components.interfaces.nsIPrefService)
+                          .getBranch("mail.server." +
+                                      account.incomingServer.key + ".");
   buildServerFilterMenuList();
 }
 
 function updateMoveTargetMode(aEnable)
 {
   if (aEnable)
-    document.getElementById('broadcaster_moveMode').removeAttribute('disabled');
+    document.getElementById("broadcaster_moveMode").removeAttribute("disabled");
   else
-    document.getElementById('broadcaster_moveMode').setAttribute('disabled', "true");    
+    document.getElementById("broadcaster_moveMode").setAttribute("disabled", "true");
+
+  updatePurgeSpam(aEnable, "purgeSpam");
+  updatePurgeSpam(aEnable, "purgeSpamInterval");
+}
+
+function updatePurgeSpam(aEnable, aPref)
+{
+  if (!aEnable || gPrefBranch.prefIsLocked(aPref))
+    document.getElementById("server." + aPref).setAttribute("disabled", "true");
+  else
+    document.getElementById("server." + aPref).removeAttribute("disabled");
 }
 
 function updateSpamLevel()

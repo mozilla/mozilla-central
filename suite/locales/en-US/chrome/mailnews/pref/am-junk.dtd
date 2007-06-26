@@ -4,10 +4,13 @@
 <!ENTITY level.accesskey "E">
 
 <!ENTITY move.label "Move new junk messages to:">
+<!ENTITY move.accesskey "M">
 <!ENTITY junkFolderOn.label "&quot;Junk&quot; folder on:">
+<!ENTITY junkFolderOn.accesskey "u">
 <!ENTITY otherFolder.label "Other:">
+<!ENTITY otherFolder.accesskey "r">
 <!ENTITY purge1.label "Automatically delete junk mail older than">
-<!ENTITY purge1.accesskey "u">
+<!ENTITY purge1.accesskey "A">
 <!ENTITY purge2.label "days">
 
 <!ENTITY whitelist.label "Do not mark mail as junk if the sender is in: ">
