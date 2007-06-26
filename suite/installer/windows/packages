@@ -59,8 +59,6 @@ bin\README.txt,bin\readme.txt
 bin\LICENSE,bin\license.txt
 bin\jpeg3250.dll
 bin\seamonkey.exe
-bin\application.ini
-bin\platform.ini
 bin\regxpcom.exe
 bin\xpicleanup.exe
 bin\jsj3250.dll
