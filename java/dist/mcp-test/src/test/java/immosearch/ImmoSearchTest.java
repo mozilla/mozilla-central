@@ -1,5 +1,5 @@
 /*
- * $Id: ImmoSearchTest.java,v 1.2 2007-06-26 11:29:27 edburns%acm.org Exp $
+ * $Id: ImmoSearchTest.java,v 1.3 2007-06-26 12:39:01 edburns%acm.org Exp $
  */
 
 /* 
@@ -25,16 +25,15 @@
  */
 package immosearch;
 
+import java.awt.event.KeyEvent;
 import java.util.BitSet;
 import java.util.Map;
-import junit.framework.TestFailure;
 import org.mozilla.mcp.AjaxListener;
+import org.mozilla.mcp.Condition;
 import org.mozilla.mcp.MCP;
 import org.mozilla.mcp.TimeoutHandler;
 import org.mozilla.mcp.junit.WebclientTestCase;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.Document;
 
 /**
  *
@@ -77,10 +76,11 @@ public class ImmoSearchTest extends WebclientTestCase  {
     }
     
     public void testPlzAutoComplete() throws Exception {
+        int len,i;
         mcp.setBounds(30, 30, 960, 960);
         mcp.getRealizedVisibleBrowserWindow();
         final BitSet bitSet = new BitSet();
-        AjaxListener listener = new AjaxListener() {
+        AjaxListener autocompleteListener = new AjaxListener() {
             public void endAjax(Map eventMap) {
                 bitSet.set(TestFeature.RECEIVED_END_AJAX_EVENT.ordinal(),
                         true);
@@ -127,7 +127,7 @@ public class ImmoSearchTest extends WebclientTestCase  {
                 LOGGER.info("Received Ajax ResponseText: " + responseText);
             }
         };
-        mcp.addAjaxListener(listener);
+        mcp.addAjaxListener(autocompleteListener);
 
         final Thread mainThread = Thread.currentThread();
         
@@ -144,7 +144,16 @@ public class ImmoSearchTest extends WebclientTestCase  {
         mcp.blockingLoad("http://immo.search.ch/");
         
         // Wait for the instructions to appear
-        mcp.waitUntilTextPresent("Bedienung");
+        boolean conditionMet = 
+        mcp.waitUntilConditionMet(new Condition() { 
+            public boolean isConditionMet() {
+               if (!(conditionMet = (null != ImmoSearchTest.this.mcp.findElementById("statusfield")))) {
+                   conditionMet = ImmoSearchTest.this.mcp.findInPage("Bedienung");
+               }
+               return conditionMet;
+            }
+        });
+        assertTrue(conditionMet);
 
         // Get the Postleitzahl text field
         Element plzInput = mcp.findElement("basefield");
@@ -153,20 +162,55 @@ public class ImmoSearchTest extends WebclientTestCase  {
 
         // Append "8" into the text field
         bitSet.clear();
-        mcp.appendToCurrentElementText("8");
+        mcp.appendKeyCodeToCurrentElementText(KeyEvent.VK_8);
+        makeAutocompleteAjaxAssertions(bitSet);
+        for (i = 0; i < 10; i++) {
+            assertNotNull(mcp.findElement("basefield_ce" + i));
+        }
         
-        makeAjaxAssertions(bitSet);
         
         // Append "0" into the text field.
         bitSet.clear();
-        mcp.appendToCurrentElementText("0");
+        mcp.appendKeyCodeToCurrentElementText(KeyEvent.VK_0);
+        makeAutocompleteAjaxAssertions(bitSet);
+        for (i = 0; i < 10; i++) {
+            assertNotNull(mcp.findElement("basefield_ce" + i));
+        }
+
+        mcp.removeAjaxListener(autocompleteListener);
         
-        makeAjaxAssertions(bitSet);
+        // Select the first autocomplete suggestion
+        AjaxListener trefferUpdateListener = new AjaxListener() {
+            public void endAjax(Map eventMap) {
+                bitSet.set(TestFeature.RECEIVED_END_AJAX_EVENT.ordinal(),
+                        true);
+                if (null != eventMap) {
+                    bitSet.set(TestFeature.HAS_MAP.ordinal(), true);
+                }
+                String readyState = (String) eventMap.get("readyState");
+                bitSet.set(TestFeature.HAS_VALID_READYSTATE.ordinal(),
+                            null != readyState && readyState.equals("4"));
+
+                String responseText = (String) eventMap.get("responseText");
+                if (-1 != responseText.indexOf("8050 Z\u00fcrich")) {
+                    bitSet.set(TestFeature.STOP_WAITING.ordinal(), true);
+                }
+                
+                LOGGER.info("Received Ajax ResponseText: " + responseText);
+            }
+        };
+        
+        bitSet.clear();
+        mcp.addAjaxListener(trefferUpdateListener);
+        mcp.appendKeyCodeToCurrentElementText(KeyEvent.VK_DOWN);
+        mcp.appendKeyCodeToCurrentElementText(KeyEvent.VK_ENTER);
+        makeTrefferUpdateAjaxAssertions(bitSet);
+        
         
         mcp.deleteBrowserControl();
     }
     
-    private void makeAjaxAssertions(BitSet bitSet) throws Exception {
+    private void makeAutocompleteAjaxAssertions(BitSet bitSet) throws Exception {
         // Artifically wait for the ajax transaction to complete, or the timeout to be reached.
         int i = 0;
         while (true) {
@@ -185,6 +229,18 @@ public class ImmoSearchTest extends WebclientTestCase  {
         assertTrue(bitSet.get(TestFeature.HAS_VALID_READYSTATE.ordinal()));
     }
     
+    private void makeTrefferUpdateAjaxAssertions(BitSet bitSet) throws Exception {
+        // Artifically wait for the ajax transaction to complete, or the timeout to be reached.
+        int i = 0;
+        while (true) {
+            if (bitSet.get(TestFeature.STOP_WAITING.ordinal())) {
+                break;
+            }
+            i++;
+            Thread.currentThread().sleep(mcp.getTimeoutWaitInterval());
+        }
+
+    }
     
     
 }

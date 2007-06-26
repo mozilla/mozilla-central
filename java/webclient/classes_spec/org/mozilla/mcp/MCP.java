@@ -1,5 +1,5 @@
 /*
- * $Id: MCP.java,v 1.15 2007-06-26 11:29:27 edburns%acm.org Exp $
+ * $Id: MCP.java,v 1.16 2007-06-26 12:39:04 edburns%acm.org Exp $
  */
 
 /* 
@@ -403,6 +403,17 @@ public class MCP {
     */
     
     public Element findElement(String id) {
+        currentElement = findElementById(id);
+        if (null == currentElement) {
+            Document dom = getCurrentPage().getDOM();
+            
+            currentElement = getDOMTreeDumper().findFirstElementWithName(dom, id);
+        }
+        
+        return currentElement;
+    }
+    
+    public Element findElementById(String id) {
         Document dom = getCurrentPage().getDOM();
         try {
             currentElement = dom.getElementById(id);
@@ -410,10 +421,6 @@ public class MCP {
         catch (Exception e) {
             
         }
-        if (null == currentElement) {
-            currentElement = getDOMTreeDumper().findFirstElementWithName(dom, id);
-        }
-        
         return currentElement;
     }
     
@@ -440,27 +447,17 @@ public class MCP {
 
     }
     
-    public void appendToCurrentElementText(String toAppend) {
+    public void appendKeyCodeToCurrentElementText(int keyCode) {
         if (null == currentElement) {
             throw new IllegalStateException("You must find an element before you can set its text.");
         }
 
-        int i,len,x,y;
         Robot robot = getRobot();
-        len = toAppend.length();
-        for (i = 0; i < len; i++) {
-        }
 
         // PENDING(edburns): make it so each character in toAppend
         // is translated into a keyCode.
-        if (toAppend.equals("8")) {
-            robot.keyPress(KeyEvent.VK_8);
-            robot.keyRelease(KeyEvent.VK_8);
-        }
-        if (toAppend.equals("0")) {
-            robot.keyPress(KeyEvent.VK_0);
-            robot.keyRelease(KeyEvent.VK_0);
-        }
+        robot.keyPress(keyCode);
+        robot.keyRelease(keyCode);
     }
     
     /**
@@ -676,14 +673,20 @@ public class MCP {
         requestFocus();
     }
     
-    public void waitUntilTextPresent(String textToFind) {
+    public boolean waitUntilConditionMet(Condition condition) {
         boolean found = false;
         long 
                 maxWait = getTimeout(),
                 timeWaited = 0,
                 waitInterval = getTimeoutWaitInterval();
+        try {
+            
+            Thread.currentThread().sleep(3000);
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
+        }
 
-        while (!(found = getCurrentPage().find(textToFind, true, true))) {
+        while (!(found = condition.isConditionMet())) {
             try {
                 Thread.currentThread().sleep(waitInterval);
                 timeWaited += waitInterval;
@@ -696,6 +699,7 @@ public class MCP {
                 }
             }
         }
+        return found;
     }
     
     private void requestFocus() {
