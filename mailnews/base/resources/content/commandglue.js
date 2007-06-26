@@ -68,8 +68,8 @@ const MSG_FOLDER_FLAG_JUNK = 0x40000000;
 
 function OpenURL(url)
 {
-  messenger.SetWindow(window, msgWindow);
-  messenger.OpenURL(url);
+  messenger.setWindow(window, msgWindow);
+  messenger.openURL(url);
 }
 
 function GetMsgFolderFromResource(folderResource)

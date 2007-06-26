@@ -51,7 +51,7 @@ function CharacterSet(){}
 function MessengerSetForcedCharacterSet(aCharset)
 {
 //    dump(aCharset);dump("\n");
-  messenger.SetDocumentCharset(aCharset);
+  messenger.setDocumentCharset(aCharset);
   msgWindow.mailCharacterSet = aCharset;
   msgWindow.charsetOverride = true;
 

@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -239,66 +239,66 @@ class nsSaveMsgListener : public nsIUrlListener,
                           public nsICancelable
 {
 public:
-    nsSaveMsgListener(nsIFile* file, nsMessenger* aMessenger);
-    virtual ~nsSaveMsgListener();
+  nsSaveMsgListener(nsIFile* file, nsMessenger* aMessenger);
+  virtual ~nsSaveMsgListener();
 
-    NS_DECL_ISUPPORTS
+  NS_DECL_ISUPPORTS
 
-    NS_DECL_NSIURLLISTENER
-    NS_DECL_NSIMSGCOPYSERVICELISTENER
-    NS_DECL_NSISTREAMLISTENER
-    NS_DECL_NSIREQUESTOBSERVER
-    NS_DECL_NSICANCELABLE
+  NS_DECL_NSIURLLISTENER
+  NS_DECL_NSIMSGCOPYSERVICELISTENER
+  NS_DECL_NSISTREAMLISTENER
+  NS_DECL_NSIREQUESTOBSERVER
+  NS_DECL_NSICANCELABLE
 
-    nsCOMPtr<nsIFile> m_file;
-    nsCOMPtr<nsIOutputStream> m_outputStream;
-    char *m_dataBuffer;
-    nsCOMPtr<nsIChannel> m_channel;
-    nsCString m_templateUri;
-    nsMessenger *m_messenger; // not ref counted
-    nsSaveAllAttachmentsState *m_saveAllAttachmentsState;
+  nsCOMPtr<nsIFile> m_file;
+  nsCOMPtr<nsIOutputStream> m_outputStream;
+  char *m_dataBuffer;
+  nsCOMPtr<nsIChannel> m_channel;
+  nsCString m_templateUri;
+  nsMessenger *m_messenger; // not ref counted
+  nsSaveAllAttachmentsState *m_saveAllAttachmentsState;
 
-    // rhp: For character set handling
-    PRBool        m_doCharsetConversion;
-    nsString      m_charset;
-    enum {
-      eUnknown,
-      ePlainText,
-      eHTML
-    }             m_outputFormat;
-    nsString      m_msgBuffer;
+  // rhp: For character set handling
+  PRBool        m_doCharsetConversion;
+  nsString      m_charset;
+  enum {
+    eUnknown,
+    ePlainText,
+    eHTML
+  }             m_outputFormat;
+  nsString      m_msgBuffer;
 
-    nsCString     m_contentType;    // used only when saving attachment
+  nsCString     m_contentType;    // used only when saving attachment
 
-    nsCOMPtr<nsITransfer> mTransfer;
-    PRInt32 mProgress;
-    PRInt32 mContentLength;
-    PRBool  mCanceled;
-    PRBool  mInitialized;
-    nsresult InitializeDownload(nsIRequest * aRequest, PRInt32 aBytesDownloaded);
+  nsCOMPtr<nsITransfer> mTransfer;
+  PRInt32 mProgress;
+  PRInt32 mContentLength;
+  PRBool  mCanceled;
+  PRBool  mInitialized;
+  nsresult InitializeDownload(nsIRequest * aRequest, PRInt32 aBytesDownloaded);
 };
 
 class nsSaveAllAttachmentsState
 {
 public:
-    nsSaveAllAttachmentsState(PRUint32 count,
-                              const char **contentTypeArray,
-                              const char **urlArray,
-                              const char **displayNameArray,
-                              const char **messageUriArray,
-                              const char *directoryName,
-                              PRBool detachingAttachments);
-    virtual ~nsSaveAllAttachmentsState();
+  nsSaveAllAttachmentsState(PRUint32 count,
+                            const char **contentTypeArray,
+                            const char **urlArray,
+                            const char **displayNameArray,
+                            const char **messageUriArray,
+                            const char *directoryName,
+                            PRBool detachingAttachments);
+  virtual ~nsSaveAllAttachmentsState();
 
-    PRUint32 m_count;
-    PRUint32 m_curIndex;
-    char* m_directoryName;
-    char** m_contentTypeArray;
-    char** m_urlArray;
-    char** m_displayNameArray;
-    char** m_messageUriArray;
-    PRBool m_detachingAttachments;
-    nsCStringArray m_savedFiles; // if detaching first, remember where we saved to.
+  PRUint32 m_count;
+  PRUint32 m_curIndex;
+  char* m_directoryName;
+  char** m_contentTypeArray;
+  char** m_urlArray;
+  char** m_displayNameArray;
+  char** m_messageUriArray;
+  PRBool m_detachingAttachments;
+  nsCStringArray m_savedFiles; // if detaching first, remember where we saved to.
 };
 
 //
@@ -316,8 +316,8 @@ nsMessenger::nsMessenger()
 
 nsMessenger::~nsMessenger()
 {
-    // Release search context.
-    mSearchContext = nsnull;
+  // Release search context.
+  mSearchContext = nsnull;
 }
 
 
@@ -388,7 +388,7 @@ NS_IMETHODIMP nsMessenger::SetWindow(nsIDOMWindowInternal *aWin, nsIMsgWindow *a
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMessenger::SetDisplayCharset(const char * aCharset)
+NS_IMETHODIMP nsMessenger::SetDisplayCharset(const nsACString& aCharset)
 {
   // libmime always converts to UTF-8 (both HTML and XML)
   if (mDocShell)
@@ -400,7 +400,7 @@ NS_IMETHODIMP nsMessenger::SetDisplayCharset(const char * aCharset)
       nsCOMPtr<nsIMarkupDocumentViewer> muDV = do_QueryInterface(cv);
       if (muDV)
       {
-        muDV->SetHintCharacterSet(nsDependentCString(aCharset));
+        muDV->SetHintCharacterSet(aCharset);
         muDV->SetHintCharacterSetSource(9);
       }
 
@@ -449,95 +449,95 @@ nsMessenger::PromptIfFileExists(nsILocalFile *file)
   nsresult rv = NS_ERROR_FAILURE;
   PRBool exists;
   file->Exists(&exists);
-    if (exists)
+  if (exists)
+  {
+    nsCOMPtr<nsIPrompt> dialog(do_GetInterface(mDocShell));
+    if (!dialog) return rv;
+    nsAutoString path;
+    PRBool dialogResult = PR_FALSE;
+    nsString errorMessage;
+
+    file->GetPath(path);
+    const PRUnichar *pathFormatStrings[] = { path.get() };
+
+    if (!mStringBundle)
     {
-        nsCOMPtr<nsIPrompt> dialog(do_GetInterface(mDocShell));
-        if (!dialog) return rv;
-        nsAutoString path;
-        PRBool dialogResult = PR_FALSE;
-        nsString errorMessage;
+      rv = InitStringBundle();
+      NS_ENSURE_SUCCESS(rv, rv);
+    }
+    rv = mStringBundle->FormatStringFromName(NS_LITERAL_STRING("fileExists").get(),
+                                             pathFormatStrings, 1,
+                                             getter_Copies(errorMessage));
+    NS_ENSURE_SUCCESS(rv, rv);
+    rv = dialog->Confirm(nsnull, errorMessage.get(), &dialogResult);
+    NS_ENSURE_SUCCESS(rv, rv);
 
-        file->GetPath(path);
-        const PRUnichar *pathFormatStrings[] = { path.get() };
-
-        if (!mStringBundle)
-        {
-            rv = InitStringBundle();
-            if (NS_FAILED(rv)) return rv;
-        }
-        rv = mStringBundle->FormatStringFromName(NS_LITERAL_STRING("fileExists").get(),
-                                                 pathFormatStrings, 1,
-                                                 getter_Copies(errorMessage));
-        if (NS_FAILED(rv)) return rv;
-        rv = dialog->Confirm(nsnull, errorMessage.get(), &dialogResult);
-        if (NS_FAILED(rv)) return rv;
-
-        if (dialogResult)
-        {
-            return NS_OK; // user says okay to replace
-        }
-        else
-        {
-            // if we don't re-init the path for redisplay the picker will
-            // show the full path, not just the file name
-            nsCOMPtr<nsILocalFile> currentFile = do_CreateInstance("@mozilla.org/file/local;1");
-            if (!currentFile) return NS_ERROR_FAILURE;
-
-            rv = currentFile->InitWithPath(path);
-            if (NS_FAILED(rv)) return rv;
-
-            nsAutoString leafName;
-            currentFile->GetLeafName(leafName);
-            if (!leafName.IsEmpty())
-                path.Assign(leafName); // path should be a copy of leafName
-
-            nsCOMPtr<nsIFilePicker> filePicker =
-                do_CreateInstance("@mozilla.org/filepicker;1", &rv);
-            if (NS_FAILED(rv)) return rv;
-            nsString saveAttachmentStr;
-            GetString(NS_LITERAL_STRING("SaveAttachment"), saveAttachmentStr);
-            filePicker->Init(mWindow,
-                             saveAttachmentStr,
-                             nsIFilePicker::modeSave);
-            filePicker->SetDefaultString(path);
-            filePicker->AppendFilters(nsIFilePicker::filterAll);
-
-            nsCOMPtr <nsILocalFile> lastSaveDir;
-            rv = GetLastSaveDirectory(getter_AddRefs(lastSaveDir));
-            if (NS_SUCCEEDED(rv) && lastSaveDir) {
-              filePicker->SetDisplayDirectory(lastSaveDir);
-            }
-
-            PRInt16 dialogReturn;
-            rv = filePicker->Show(&dialogReturn);
-            if (NS_FAILED(rv) || dialogReturn == nsIFilePicker::returnCancel) {
-                // XXX todo
-                // don't overload the return value like this
-                // change this function to have an out boolean
-                // that we check to see if the user cancelled
-                return NS_ERROR_FAILURE;
-            }
-
-            nsCOMPtr<nsILocalFile> localFile;
-
-            rv = filePicker->GetFile(getter_AddRefs(localFile));
-            if (NS_FAILED(rv)) return rv;
-
-            rv = SetLastSaveDirectory(localFile);
-            NS_ENSURE_SUCCESS(rv,rv);
-
-            // reset the file to point to the new path
-            return file->InitWithFile(localFile);
-         }
+    if (dialogResult)
+    {
+      return NS_OK; // user says okay to replace
     }
     else
     {
-        return NS_OK;
+      // if we don't re-init the path for redisplay the picker will
+      // show the full path, not just the file name
+      nsCOMPtr<nsILocalFile> currentFile = do_CreateInstance("@mozilla.org/file/local;1");
+      if (!currentFile) return NS_ERROR_FAILURE;
+
+      rv = currentFile->InitWithPath(path);
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      nsAutoString leafName;
+      currentFile->GetLeafName(leafName);
+      if (!leafName.IsEmpty())
+        path.Assign(leafName); // path should be a copy of leafName
+
+      nsCOMPtr<nsIFilePicker> filePicker =
+        do_CreateInstance("@mozilla.org/filepicker;1", &rv);
+      NS_ENSURE_SUCCESS(rv, rv);
+      nsString saveAttachmentStr;
+      GetString(NS_LITERAL_STRING("SaveAttachment"), saveAttachmentStr);
+      filePicker->Init(mWindow,
+                       saveAttachmentStr,
+                       nsIFilePicker::modeSave);
+      filePicker->SetDefaultString(path);
+      filePicker->AppendFilters(nsIFilePicker::filterAll);
+
+      nsCOMPtr <nsILocalFile> lastSaveDir;
+      rv = GetLastSaveDirectory(getter_AddRefs(lastSaveDir));
+      if (NS_SUCCEEDED(rv) && lastSaveDir) {
+        filePicker->SetDisplayDirectory(lastSaveDir);
+      }
+
+      PRInt16 dialogReturn;
+      rv = filePicker->Show(&dialogReturn);
+      if (NS_FAILED(rv) || dialogReturn == nsIFilePicker::returnCancel) {
+        // XXX todo
+        // don't overload the return value like this
+        // change this function to have an out boolean
+        // that we check to see if the user cancelled
+        return NS_ERROR_FAILURE;
+      }
+
+      nsCOMPtr<nsILocalFile> localFile;
+
+      rv = filePicker->GetFile(getter_AddRefs(localFile));
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      rv = SetLastSaveDirectory(localFile);
+      NS_ENSURE_SUCCESS(rv,rv);
+
+      // reset the file to point to the new path
+      return file->InitWithFile(localFile);
     }
-    return rv;
+  }
+  else
+  {
+    return NS_OK;
+  }
+  return rv;
 }
 
-void nsMessenger::AddMsgUrlToNavigateHistory(const char *aURL)
+void nsMessenger::AddMsgUrlToNavigateHistory(const nsACString& aURL)
 {
   // mNavigatingToUri is set to a url if we're already doing a back/forward,
   // in which case we don't want to add the url to the history list.
@@ -564,19 +564,17 @@ void nsMessenger::AddMsgUrlToNavigateHistory(const char *aURL)
 }
 
 NS_IMETHODIMP
-nsMessenger::OpenURL(const char *aURL)
+nsMessenger::OpenURL(const nsACString& aURL)
 {
-  NS_ENSURE_ARG_POINTER(aURL);
-
   // This is to setup the display DocShell as UTF-8 capable...
-  SetDisplayCharset("UTF-8");
+  SetDisplayCharset(NS_LITERAL_CSTRING("UTF-8"));
 
   nsCOMPtr <nsIMsgMessageService> messageService;
-  nsresult rv = GetMessageServiceFromURI(aURL, getter_AddRefs(messageService));
+  nsresult rv = GetMessageServiceFromURI(PromiseFlatCString(aURL).get(), getter_AddRefs(messageService));
 
   if (NS_SUCCEEDED(rv) && messageService)
   {
-    messageService->DisplayMessage(aURL, mDocShell, mMsgWindow, nsnull, nsnull, nsnull);
+    messageService->DisplayMessage(PromiseFlatCString(aURL).get(), mDocShell, mMsgWindow, nsnull, nsnull, nsnull);
     AddMsgUrlToNavigateHistory(aURL);
     mLastDisplayURI = aURL; // remember the last uri we displayed....
     return NS_OK;
@@ -593,12 +591,12 @@ nsMessenger::OpenURL(const char *aURL)
   return rv;
 }
 
-NS_IMETHODIMP nsMessenger::LaunchExternalURL(const char * aURL)
+NS_IMETHODIMP nsMessenger::LaunchExternalURL(const nsACString& aURL)
 {
-  nsresult rv = NS_OK;
+  nsresult rv;
 
   nsCOMPtr<nsIURI> uri;
-  rv = NS_NewURI(getter_AddRefs(uri), aURL);
+  rv = NS_NewURI(getter_AddRefs(uri), PromiseFlatCString(aURL).get());
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIExternalProtocolService> extProtService = do_GetService(NS_EXTERNALPROTOCOLSERVICE_CONTRACTID, &rv);
@@ -607,13 +605,11 @@ NS_IMETHODIMP nsMessenger::LaunchExternalURL(const char * aURL)
 }
 
 NS_IMETHODIMP
-nsMessenger::LoadURL(nsIDOMWindowInternal *aWin, const char *aURL)
+nsMessenger::LoadURL(nsIDOMWindowInternal *aWin, const nsACString& aURL)
 {
-  NS_ENSURE_ARG_POINTER(aURL);
-
   nsresult rv;
 
-  SetDisplayCharset("UTF-8");
+  SetDisplayCharset(NS_LITERAL_CSTRING("UTF-8"));
 
   NS_ConvertASCIItoUTF16 uriString(aURL);
   // Cleanup the empty spaces that might be on each end.
@@ -628,7 +624,6 @@ nsMessenger::LoadURL(nsIDOMWindowInternal *aWin, const char *aURL)
 
   if (StringBeginsWith(uriString, NS_LITERAL_STRING("file:")))
   {
-
     nsCOMPtr<nsIURI> fileUri;
     rv = NS_NewURI(getter_AddRefs(fileUri), uriString);
     NS_ENSURE_SUCCESS(rv, rv);
@@ -689,10 +684,10 @@ nsMessenger::LoadURL(nsIDOMWindowInternal *aWin, const char *aURL)
 }
 
 nsresult
-nsMessenger::SaveAttachment(nsIFile * file,
-                            const char * url,
-                            const char * messageUri,
-                            const char * contentType,
+nsMessenger::SaveAttachment(nsIFile * aFile,
+                            const nsACString& aURL,
+                            const nsACString& aMessageUri,
+                            const nsACString& aContentType,
                             void *closure)
 {
   nsIMsgMessageService * messageService = nsnull;
@@ -700,18 +695,18 @@ nsMessenger::SaveAttachment(nsIFile * file,
   nsCOMPtr<nsIMsgMessageFetchPartService> fetchService;
   nsCAutoString urlString;
   nsCOMPtr<nsIURI> URL;
-  nsCAutoString fullMessageUri(messageUri);
+  nsCAutoString fullMessageUri(aMessageUri);
 
   // XXX todo
   // document the ownership model of saveListener
   // whacky ref counting here...what's the deal? when does saveListener get released? it's not clear.
-  nsSaveMsgListener *saveListener = new nsSaveMsgListener(file, this);
+  nsSaveMsgListener *saveListener = new nsSaveMsgListener(aFile, this);
   if (!saveListener)
     return NS_ERROR_OUT_OF_MEMORY;
 
   NS_ADDREF(saveListener);
 
-  saveListener->m_contentType = contentType;
+  saveListener->m_contentType = aContentType;
   if (saveState)
   {
     saveListener->m_saveAllAttachmentsState = saveState;
@@ -719,7 +714,7 @@ nsMessenger::SaveAttachment(nsIFile * file,
     {
 
       nsCOMPtr<nsIURI> outputURI;
-      nsresult rv = NS_NewFileURI(getter_AddRefs(outputURI), file);
+      nsresult rv = NS_NewFileURI(getter_AddRefs(outputURI), aFile);
       NS_ENSURE_SUCCESS(rv, rv);
       nsCAutoString fileUriSpec;
       outputURI->GetSpec(fileUriSpec);
@@ -727,7 +722,7 @@ nsMessenger::SaveAttachment(nsIFile * file,
     }
   }
 
-  urlString = url;
+  urlString = aURL;
   // strip out ?type=application/x-message-display because it confuses libmime
 
   PRInt32 typeIndex = urlString.Find("?type=application/x-message-display");
@@ -745,7 +740,7 @@ nsMessenger::SaveAttachment(nsIFile * file,
 
   if (NS_SUCCEEDED(rv))
   {
-    rv = GetMessageServiceFromURI(messageUri, &messageService);
+    rv = GetMessageServiceFromURI(PromiseFlatCString(aMessageUri).get(), &messageService);
     if (NS_SUCCEEDED(rv))
     {
       fetchService = do_QueryInterface(messageService);
@@ -756,8 +751,6 @@ nsMessenger::SaveAttachment(nsIFile * file,
         nsCString mimePart;
         urlString.Right(mimePart, urlString.Length() - sectionPos);
         fullMessageUri.Append(mimePart);
-
-        messageUri = fullMessageUri.get();
       }
 
       nsCOMPtr<nsIStreamListener> convertedListener;
@@ -767,7 +760,7 @@ nsMessenger::SaveAttachment(nsIFile * file,
 #ifndef XP_MACOSX
       // if the content type is bin hex we are going to do a hokey hack and make sure we decode the bin hex
       // when saving an attachment to disk..
-      if (contentType && !PL_strcasecmp(APPLICATION_BINHEX, contentType))
+      if (aContentType.LowerCaseEqualsLiteral(APPLICATION_BINHEX))
       {
         nsCOMPtr<nsIStreamListener> listener (do_QueryInterface(convertedListener));
         nsCOMPtr<nsIStreamConverterService> streamConverterService = do_GetService("@mozilla.org/streamConverters;1", &rv);
@@ -781,9 +774,9 @@ nsMessenger::SaveAttachment(nsIFile * file,
       }
 #endif
       if (fetchService)
-        rv = fetchService->FetchMimePart(URL, messageUri, convertedListener, mMsgWindow, nsnull,nsnull);
+        rv = fetchService->FetchMimePart(URL, fullMessageUri.get(), convertedListener, mMsgWindow, nsnull,nsnull);
       else
-        rv = messageService->DisplayMessage(messageUri, convertedListener, mMsgWindow, nsnull, nsnull, nsnull);
+        rv = messageService->DisplayMessage(fullMessageUri.get(), convertedListener, mMsgWindow, nsnull, nsnull, nsnull);
     } // if we got a message service
   } // if we created a url
 
@@ -796,8 +789,8 @@ nsMessenger::SaveAttachment(nsIFile * file,
 }
 
 NS_IMETHODIMP
-nsMessenger::OpenAttachment(const char * aContentType, const char * aURL, const
-                            char * aDisplayName, const char * aMessageUri, PRBool aIsExternalAttachment)
+nsMessenger::OpenAttachment(const nsACString& aContentType, const nsACString& aURL,
+                            const nsACString& aDisplayName, const nsACString& aMessageUri, PRBool aIsExternalAttachment)
 {
   nsresult rv = NS_OK;
 
@@ -808,17 +801,19 @@ nsMessenger::OpenAttachment(const char * aContentType, const char * aURL, const
   else
   {
     nsCOMPtr <nsIMsgMessageService> messageService;
-    rv = GetMessageServiceFromURI(aMessageUri, getter_AddRefs(messageService));
+    rv = GetMessageServiceFromURI(PromiseFlatCString(aMessageUri).get(), getter_AddRefs(messageService));
     if (messageService)
-      rv = messageService->OpenAttachment(aContentType, aDisplayName, aURL, aMessageUri, mDocShell, mMsgWindow, nsnull);
+      rv = messageService->OpenAttachment(PromiseFlatCString(aContentType).get(), PromiseFlatCString(aDisplayName).get(),
+                                          PromiseFlatCString(aURL).get(), PromiseFlatCString(aMessageUri).get(),
+                                          mDocShell, mMsgWindow, nsnull);
   }
 
   return rv;
 }
 
 NS_IMETHODIMP
-nsMessenger::SaveAttachmentToFolder(const char * contentType, const char * url, const char * displayName,
-                                    const char * messageUri, nsILocalFile * aDestFolder, nsILocalFile ** aOutFile)
+nsMessenger::SaveAttachmentToFolder(const nsACString& contentType, const nsACString& url, const nsACString& displayName,
+                                    const nsACString& messageUri, nsILocalFile * aDestFolder, nsILocalFile ** aOutFile)
 {
   NS_ENSURE_ARG_POINTER(aDestFolder);
   nsresult rv;
@@ -830,7 +825,7 @@ nsMessenger::SaveAttachmentToFolder(const char * contentType, const char * url, 
   nsCOMPtr<nsILocalFile> attachmentDestination = do_QueryInterface(clone);
 
   nsCString unescapedFileName;
-  rv = ConvertAndSanitizeFileName(displayName, nsnull, getter_Copies(unescapedFileName));
+  rv = ConvertAndSanitizeFileName(PromiseFlatCString(displayName).get(), nsnull, getter_Copies(unescapedFileName));
   NS_ENSURE_SUCCESS(rv, rv);
 
   rv = attachmentDestination->AppendNative(unescapedFileName);
@@ -842,15 +837,13 @@ nsMessenger::SaveAttachmentToFolder(const char * contentType, const char * url, 
 }
 
 NS_IMETHODIMP
-nsMessenger::SaveAttachment(const char * contentType, const char * url,
-                            const char * displayName, const char * messageUri, PRBool aIsExternalAttachment)
+nsMessenger::SaveAttachment(const nsACString& aContentType, const nsACString& aURL,
+                            const nsACString& aDisplayName, const nsACString& aMessageUri, PRBool aIsExternalAttachment)
 {
-  NS_ENSURE_ARG_POINTER(url);
-
   // open external attachments inside our message pane which in turn should trigger the
   // helper app dialog...
   if (aIsExternalAttachment)
-    return OpenURL(url);
+    return OpenURL(aURL);
 
   nsresult rv = NS_ERROR_OUT_OF_MEMORY;
   nsCOMPtr<nsIFilePicker> filePicker =
@@ -863,8 +856,9 @@ nsMessenger::SaveAttachment(const char * contentType, const char * url,
   nsCString filePath;
   nsString saveAttachmentStr;
   nsString defaultDisplayString;
-  rv = ConvertAndSanitizeFileName(displayName, getter_Copies(defaultDisplayString), nsnull);
-  if (NS_FAILED(rv)) goto done;
+  rv = ConvertAndSanitizeFileName(PromiseFlatCString(aDisplayName).get(), getter_Copies(defaultDisplayString), nsnull);
+  NS_ENSURE_SUCCESS(rv, rv);
+
   GetString(NS_LITERAL_STRING("SaveAttachment"), saveAttachmentStr);
   filePicker->Init(mWindow, saveAttachmentStr,
                    nsIFilePicker::modeSave);
@@ -872,22 +866,19 @@ nsMessenger::SaveAttachment(const char * contentType, const char * url,
   filePicker->AppendFilters(nsIFilePicker::filterAll);
 
   rv = GetLastSaveDirectory(getter_AddRefs(lastSaveDir));
-  if (NS_SUCCEEDED(rv) && lastSaveDir) {
+  if (NS_SUCCEEDED(rv) && lastSaveDir)
     filePicker->SetDisplayDirectory(lastSaveDir);
-  }
 
   rv = filePicker->Show(&dialogResult);
   if (NS_FAILED(rv) || dialogResult == nsIFilePicker::returnCancel)
-    goto done;
+    return rv;
 
   rv = filePicker->GetFile(getter_AddRefs(localFile));
-  if (NS_FAILED(rv)) goto done;
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  (void)SetLastSaveDirectory(localFile);
+  SetLastSaveDirectory(localFile);
 
-  rv = SaveAttachment(localFile, url, messageUri, contentType, nsnull);
-
-done:
+  rv = SaveAttachment(localFile, aURL, aMessageUri, aContentType, nsnull);
   return rv;
 }
 
@@ -912,62 +903,56 @@ nsMessenger::SaveAllAttachments(PRUint32 count,
                                 const char **messageUriArray,
                                 PRBool detaching)
 {
-    nsresult rv = NS_ERROR_OUT_OF_MEMORY;
-    nsCOMPtr<nsIFilePicker> filePicker =
-        do_CreateInstance("@mozilla.org/filepicker;1", &rv);
-    nsCOMPtr<nsILocalFile> localFile;
-    nsCOMPtr<nsILocalFile> lastSaveDir;
-    nsCString dirName;
-    nsSaveAllAttachmentsState *saveState = nsnull;
-    PRInt16 dialogResult;
-    nsString saveAttachmentStr;
+  nsresult rv = NS_ERROR_OUT_OF_MEMORY;
+  nsCOMPtr<nsIFilePicker> filePicker =
+    do_CreateInstance("@mozilla.org/filepicker;1", &rv);
+  nsCOMPtr<nsILocalFile> localFile;
+  nsCOMPtr<nsILocalFile> lastSaveDir;
+  nsCString dirName;
+  nsSaveAllAttachmentsState *saveState = nsnull;
+  PRInt16 dialogResult;
+  nsString saveAttachmentStr;
 
-    if (NS_FAILED(rv)) goto done;
-    GetString(NS_LITERAL_STRING("SaveAllAttachments"), saveAttachmentStr);
-    filePicker->Init(mWindow,
-                     saveAttachmentStr,
-                     nsIFilePicker::modeGetFolder);
+  NS_ENSURE_SUCCESS(rv, rv);
+  GetString(NS_LITERAL_STRING("SaveAllAttachments"), saveAttachmentStr);
+  filePicker->Init(mWindow,
+                   saveAttachmentStr,
+                   nsIFilePicker::modeGetFolder);
 
-    rv = GetLastSaveDirectory(getter_AddRefs(lastSaveDir));
-    if (NS_SUCCEEDED(rv) && lastSaveDir) {
-      filePicker->SetDisplayDirectory(lastSaveDir);
-    }
+  rv = GetLastSaveDirectory(getter_AddRefs(lastSaveDir));
+  if (NS_SUCCEEDED(rv) && lastSaveDir)
+    filePicker->SetDisplayDirectory(lastSaveDir);
 
-    rv = filePicker->Show(&dialogResult);
-    if (NS_FAILED(rv) || dialogResult == nsIFilePicker::returnCancel)
-        goto done;
-
-    rv = filePicker->GetFile(getter_AddRefs(localFile));
-    if (NS_FAILED(rv)) goto done;
-
-    rv = SetLastSaveDirectory(localFile);
-    if (NS_FAILED(rv))
-      goto done;
-
-    rv = localFile->GetNativePath(dirName);
-    if (NS_FAILED(rv)) goto done;
-
-    saveState = new nsSaveAllAttachmentsState(count,
-                                              contentTypeArray,
-                                              urlArray,
-                                              displayNameArray,
-                                              messageUriArray,
-                                              dirName.get(), detaching);
-    {
-        nsCString unescapedName;
-        rv = ConvertAndSanitizeFileName(displayNameArray[0], nsnull, getter_Copies(unescapedName));
-        if (NS_FAILED(rv))
-          goto done;
-
-        localFile->AppendNative(unescapedName);
-        rv = PromptIfFileExists(localFile);
-        if (NS_FAILED(rv))
-          return rv;
-        rv = SaveAttachment(localFile, urlArray[0], messageUriArray[0],
-                            contentTypeArray[0], (void *)saveState);
-    }
-done:
+  rv = filePicker->Show(&dialogResult);
+  if (NS_FAILED(rv) || dialogResult == nsIFilePicker::returnCancel)
     return rv;
+
+  rv = filePicker->GetFile(getter_AddRefs(localFile));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = SetLastSaveDirectory(localFile);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = localFile->GetNativePath(dirName);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  saveState = new nsSaveAllAttachmentsState(count,
+                                            contentTypeArray,
+                                            urlArray,
+                                            displayNameArray,
+                                            messageUriArray,
+                                            dirName.get(), detaching);
+  nsCString unescapedName;
+  rv = ConvertAndSanitizeFileName(displayNameArray[0], nsnull, getter_Copies(unescapedName));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  localFile->AppendNative(unescapedName);
+  rv = PromptIfFileExists(localFile);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = SaveAttachment(localFile, nsDependentCString(urlArray[0]), nsDependentCString(messageUriArray[0]),
+                      nsDependentCString(contentTypeArray[0]), (void *)saveState);
+  return rv;
 }
 
 enum MESSENGER_SAVEAS_FILE_TYPE
@@ -983,10 +968,8 @@ enum MESSENGER_SAVEAS_FILE_TYPE
 #define EML_FILE_EXTENSION  ".eml"
 
 NS_IMETHODIMP
-nsMessenger::SaveAs(const char *aURI, PRBool aAsFile, nsIMsgIdentity *aIdentity, const PRUnichar *aMsgFilename)
+nsMessenger::SaveAs(const nsACString& aURI, PRBool aAsFile, nsIMsgIdentity *aIdentity, const nsAString& aMsgFilename)
 {
-  NS_ENSURE_ARG_POINTER(aURI);
-
   nsCOMPtr<nsIMsgMessageService> messageService;
   nsCOMPtr<nsIUrlListener> urlListener;
   nsSaveMsgListener *saveListener = nsnull;
@@ -994,7 +977,7 @@ nsMessenger::SaveAs(const char *aURI, PRBool aAsFile, nsIMsgIdentity *aIdentity,
   nsCOMPtr<nsIStreamListener> convertedListener;
   PRInt32 saveAsFileType = EML_FILE_TYPE;
 
-  nsresult rv = GetMessageServiceFromURI(aURI, getter_AddRefs(messageService));
+  nsresult rv = GetMessageServiceFromURI(PromiseFlatCString(aURI).get(), getter_AddRefs(messageService));
   if (NS_FAILED(rv))
     goto done;
 
@@ -1009,13 +992,14 @@ nsMessenger::SaveAs(const char *aURI, PRBool aAsFile, nsIMsgIdentity *aIdentity,
                      nsIFilePicker::modeSave);
 
     // if we have a non-null filename use it, otherwise use default save message one
-    if (aMsgFilename)
-      filePicker->SetDefaultString(nsDependentString(aMsgFilename));
-    else {
+    if (aMsgFilename.IsEmpty())
+    {
       nsString saveMsgStr;
       GetString(NS_LITERAL_STRING("defaultSaveMessageAsFileName"), saveMsgStr);
       filePicker->SetDefaultString(saveMsgStr);
     }
+    else
+      filePicker->SetDefaultString(aMsgFilename);
 
     // because we will be using GetFilterIndex()
     // we must call AppendFilters() one at a time,
@@ -1140,7 +1124,7 @@ nsMessenger::SaveAs(const char *aURI, PRBool aAsFile, nsIMsgIdentity *aIdentity,
 
     if (saveAsFileType == EML_FILE_TYPE)
     {
-      rv = messageService->SaveMessageToDisk(aURI, localFile, PR_FALSE,
+      rv = messageService->SaveMessageToDisk(PromiseFlatCString(aURI).get(), localFile, PR_FALSE,
         urlListener, nsnull,
         PR_FALSE, mMsgWindow);
     }
@@ -1237,7 +1221,7 @@ nsMessenger::SaveAs(const char *aURI, PRBool aAsFile, nsIMsgIdentity *aIdentity,
     if (NS_FAILED(rv))
       goto done;
 
-    rv = messageService->SaveMessageToDisk(aURI, tmpFile,
+    rv = messageService->SaveMessageToDisk(PromiseFlatCString(aURI).get(), tmpFile,
       needDummyHeader,
       urlListener, nsnull,
       canonicalLineEnding, mMsgWindow);
@@ -1257,19 +1241,20 @@ done:
 nsresult
 nsMessenger::Alert(const char *stringName)
 {
-    nsresult rv = NS_OK;
+  nsresult rv = NS_OK;
 
-    if (mDocShell)
+  if (mDocShell)
+  {
+    nsCOMPtr<nsIPrompt> dialog(do_GetInterface(mDocShell));
+
+    if (dialog)
     {
-        nsCOMPtr<nsIPrompt> dialog(do_GetInterface(mDocShell));
-
-        if (dialog) {
-          nsString alertStr;
-          GetString(NS_ConvertASCIItoUTF16(stringName), alertStr);
-          rv = dialog->Alert(nsnull, alertStr.get());
-        }
+      nsString alertStr;
+      GetString(NS_ConvertASCIItoUTF16(stringName), alertStr);
+      rv = dialog->Alert(nsnull, alertStr.get());
     }
-    return rv;
+  }
+  return rv;
 }
 
 nsresult
@@ -1277,22 +1262,18 @@ nsMessenger::DoCommand(nsIRDFCompositeDataSource* db, const nsACString& command,
                        nsISupportsArray *srcArray,
                        nsISupportsArray *argumentArray)
 {
-
   nsresult rv;
 
-    nsCOMPtr<nsIRDFService> rdfService(do_GetService(kRDFServiceCID, &rv));
+  nsCOMPtr<nsIRDFService> rdfService(do_GetService(kRDFServiceCID, &rv));
   if(NS_FAILED(rv))
     return rv;
 
   nsCOMPtr<nsIRDFResource> commandResource;
   rv = rdfService->GetResource(command, getter_AddRefs(commandResource));
   if(NS_SUCCEEDED(rv))
-  {
     rv = db->DoCommand(srcArray, commandResource, argumentArray);
-  }
 
   return rv;
-
 }
 
 NS_IMETHODIMP nsMessenger::DeleteFolders(nsIRDFCompositeDataSource *db,
@@ -1307,18 +1288,10 @@ NS_IMETHODIMP nsMessenger::DeleteFolders(nsIRDFCompositeDataSource *db,
   nsCOMPtr<nsISupportsArray> parentArray, deletedArray;
 
   rv = NS_NewISupportsArray(getter_AddRefs(parentArray));
-
-  if(NS_FAILED(rv))
-  {
-    return NS_ERROR_OUT_OF_MEMORY;
-  }
+  NS_ENSURE_SUCCESS(rv, NS_ERROR_OUT_OF_MEMORY);
 
   rv = NS_NewISupportsArray(getter_AddRefs(deletedArray));
-
-  if(NS_FAILED(rv))
-  {
-    return NS_ERROR_OUT_OF_MEMORY;
-  }
+  NS_ENSURE_SUCCESS(rv, NS_ERROR_OUT_OF_MEMORY);
 
   parentArray->AppendElement(parentResource);
   deletedArray->AppendElement(deletedFolderResource);
@@ -1362,27 +1335,25 @@ nsMessenger::CopyMessages(nsIRDFCompositeDataSource *database,
   else
     rv = DoCommand(database, NS_LITERAL_CSTRING(NC_RDF_COPY), folderArray, argumentArray);
   return rv;
-
 }
 
 NS_IMETHODIMP
-nsMessenger::MessageServiceFromURI(const char *aUri, nsIMsgMessageService **aMsgService)
+nsMessenger::MessageServiceFromURI(const nsACString& aUri, nsIMsgMessageService **aMsgService)
 {
-   NS_ENSURE_ARG_POINTER(aUri);
    NS_ENSURE_ARG_POINTER(aMsgService);
 
-   return GetMessageServiceFromURI(aUri, aMsgService);
+   return GetMessageServiceFromURI(PromiseFlatCString(aUri).get(), aMsgService);
 }
 
 NS_IMETHODIMP
-nsMessenger::MsgHdrFromURI(const char *aUri, nsIMsgDBHdr **aMsgHdr)
+nsMessenger::MsgHdrFromURI(const nsACString& aUri, nsIMsgDBHdr **aMsgHdr)
 {
-  NS_ENSURE_ARG_POINTER(aUri);
   NS_ENSURE_ARG_POINTER(aMsgHdr);
   nsCOMPtr <nsIMsgMessageService> msgService;
   nsresult rv;
 
-  if (mMsgWindow && (!strncmp(aUri, "file:", 5) || PL_strstr(aUri, "type=application/x-message-display")))
+  if (mMsgWindow && (StringBeginsWith(aUri, NS_LITERAL_CSTRING("file:")) ||
+                     nsDependentCString(aUri).Find("type=application/x-message-display") >= -1))
   {
     nsCOMPtr <nsIMsgHeaderSink> headerSink;
     mMsgWindow->GetMsgHeaderSink(getter_AddRefs(headerSink));
@@ -1396,9 +1367,9 @@ nsMessenger::MsgHdrFromURI(const char *aUri, nsIMsgDBHdr **aMsgHdr)
     }
   }
 
-  rv = GetMessageServiceFromURI(aUri, getter_AddRefs(msgService));
+  rv = GetMessageServiceFromURI(PromiseFlatCString(aUri).get(), getter_AddRefs(msgService));
   NS_ENSURE_SUCCESS(rv, rv);
-  return msgService->MessageURIToMsgHdr(aUri, aMsgHdr);
+  return msgService->MessageURIToMsgHdr(PromiseFlatCString(aUri).get(), aMsgHdr);
 }
 
 NS_IMETHODIMP
@@ -1424,70 +1395,70 @@ nsMessenger::CopyFolders(nsIRDFCompositeDataSource *database,
     return DoCommand(database, NS_LITERAL_CSTRING(NC_RDF_MOVEFOLDER), folderArray, argumentArray);
 
   return DoCommand(database, NS_LITERAL_CSTRING(NC_RDF_COPYFOLDER), folderArray, argumentArray);
-
 }
 
 NS_IMETHODIMP
-nsMessenger::RenameFolder(nsIRDFCompositeDataSource* db,
-                          nsIRDFResource* folderResource,
-                          const PRUnichar* name)
+nsMessenger::RenameFolder(nsIRDFCompositeDataSource* aDB,
+                          nsIRDFResource* aFolderResource,
+                          const nsAString& aName)
 {
-  nsresult rv = NS_ERROR_NULL_POINTER;
-  if (!db || !folderResource || !name || !*name) return rv;
-    nsCOMPtr<nsISupportsArray> folderArray;
-    nsCOMPtr<nsISupportsArray> argsArray;
+  NS_ENSURE_ARG_POINTER(aDB);
+  NS_ENSURE_ARG_POINTER(aFolderResource);
+
+  nsresult rv;
+  nsCOMPtr<nsISupportsArray> folderArray;
+  nsCOMPtr<nsISupportsArray> argsArray;
 
   rv = NS_NewISupportsArray(getter_AddRefs(folderArray));
-  if (NS_FAILED(rv)) return rv;
-  folderArray->AppendElement(folderResource);
+  NS_ENSURE_SUCCESS(rv, rv);
+  folderArray->AppendElement(aFolderResource);
   rv = NS_NewISupportsArray(getter_AddRefs(argsArray));
-  if (NS_FAILED(rv)) return rv;
+  NS_ENSURE_SUCCESS(rv, rv);
   nsCOMPtr<nsIRDFService> rdfService(do_GetService(kRDFServiceCID, &rv));
-  if(NS_SUCCEEDED(rv))
-  {
-    nsCOMPtr<nsIRDFLiteral> nameLiteral;
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    rdfService->GetLiteral(name, getter_AddRefs(nameLiteral));
-    argsArray->AppendElement(nameLiteral);
-    rv = DoCommand(db, NS_LITERAL_CSTRING(NC_RDF_RENAME), folderArray, argsArray);
-  }
+  nsCOMPtr<nsIRDFLiteral> nameLiteral;
+
+  rdfService->GetLiteral(PromiseFlatString(aName).get(), getter_AddRefs(nameLiteral));
+  argsArray->AppendElement(nameLiteral);
+  rv = DoCommand(aDB, NS_LITERAL_CSTRING(NC_RDF_RENAME), folderArray, argsArray);
+
   return rv;
 }
 
 NS_IMETHODIMP
-nsMessenger::CompactFolder(nsIRDFCompositeDataSource* db,
-                           nsIRDFResource* folderResource, PRBool forAll)
+nsMessenger::CompactFolder(nsIRDFCompositeDataSource* aDB,
+                           nsIRDFResource* aFolderResource, PRBool forAll)
 {
   nsresult rv = NS_ERROR_NULL_POINTER;
 
-  if (!db || !folderResource) return rv;
+  if (!aDB || !aFolderResource) return rv;
   nsCOMPtr<nsISupportsArray> folderArray;
 
   rv = NS_NewISupportsArray(getter_AddRefs(folderArray));
-  if (NS_FAILED(rv)) return rv;
-  folderArray->AppendElement(folderResource);
+  NS_ENSURE_SUCCESS(rv, rv);
+  folderArray->AppendElement(aFolderResource);
   if (forAll)
-    rv = DoCommand(db, NS_LITERAL_CSTRING(NC_RDF_COMPACTALL),  folderArray, nsnull);
+    rv = DoCommand(aDB, NS_LITERAL_CSTRING(NC_RDF_COMPACTALL),  folderArray, nsnull);
   else
-    rv = DoCommand(db, NS_LITERAL_CSTRING(NC_RDF_COMPACT),  folderArray, nsnull);
+    rv = DoCommand(aDB, NS_LITERAL_CSTRING(NC_RDF_COMPACT),  folderArray, nsnull);
   if (NS_SUCCEEDED(rv) && mTxnMgr)
       mTxnMgr->Clear();
   return rv;
 }
 
 NS_IMETHODIMP
-nsMessenger::EmptyTrash(nsIRDFCompositeDataSource* db,
-                        nsIRDFResource* folderResource)
+nsMessenger::EmptyTrash(nsIRDFCompositeDataSource* aDB,
+                        nsIRDFResource* aFolderResource)
 {
-  nsresult rv = NS_ERROR_NULL_POINTER;
-
-  if (!db || !folderResource) return rv;
+  if (!aDB || !aFolderResource) return NS_ERROR_NULL_POINTER;
   nsCOMPtr<nsISupportsArray> folderArray;
 
+  nsresult rv;
   rv = NS_NewISupportsArray(getter_AddRefs(folderArray));
-  if (NS_FAILED(rv)) return rv;
-  folderArray->AppendElement(folderResource);
-  rv = DoCommand(db, NS_LITERAL_CSTRING(NC_RDF_EMPTYTRASH), folderArray, nsnull);
+  NS_ENSURE_SUCCESS(rv, rv);
+  folderArray->AppendElement(aFolderResource);
+  rv = DoCommand(aDB, NS_LITERAL_CSTRING(NC_RDF_EMPTYTRASH), folderArray, nsnull);
   if (NS_SUCCEEDED(rv) && mTxnMgr)
       mTxnMgr->Clear();
   return rv;
@@ -1495,62 +1466,62 @@ nsMessenger::EmptyTrash(nsIRDFCompositeDataSource* db,
 
 NS_IMETHODIMP nsMessenger::GetUndoTransactionType(PRUint32 *txnType)
 {
-    nsresult rv = NS_ERROR_NULL_POINTER;
-    if (!txnType || !mTxnMgr)
-        return rv;
-    *txnType = nsMessenger::eUnknown;
-    nsCOMPtr<nsITransaction> txn;
-    rv = mTxnMgr->PeekUndoStack(getter_AddRefs(txn));
-    if (NS_SUCCEEDED(rv) && txn)
-    {
-      nsCOMPtr <nsIPropertyBag2> propertyBag = do_QueryInterface(txn, &rv);
-      NS_ENSURE_SUCCESS(rv, rv);
-      return propertyBag->GetPropertyAsUint32(NS_LITERAL_STRING("type"), txnType);
-    }
-    return rv;
+  NS_ENSURE_TRUE(txnType && mTxnMgr, NS_ERROR_NULL_POINTER);
+
+  nsresult rv;
+  *txnType = nsMessenger::eUnknown;
+  nsCOMPtr<nsITransaction> txn;
+  rv = mTxnMgr->PeekUndoStack(getter_AddRefs(txn));
+  if (NS_SUCCEEDED(rv) && txn)
+  {
+    nsCOMPtr <nsIPropertyBag2> propertyBag = do_QueryInterface(txn, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+    return propertyBag->GetPropertyAsUint32(NS_LITERAL_STRING("type"), txnType);
+  }
+  return rv;
 }
 
 NS_IMETHODIMP nsMessenger::CanUndo(PRBool *bValue)
 {
-    nsresult rv = NS_ERROR_NULL_POINTER;
-    if (!bValue || !mTxnMgr)
-        return rv;
-    *bValue = PR_FALSE;
-    PRInt32 count = 0;
-    rv = mTxnMgr->GetNumberOfUndoItems(&count);
-    if (NS_SUCCEEDED(rv) && count > 0)
-        *bValue = PR_TRUE;
-    return rv;
+  NS_ENSURE_TRUE(bValue && mTxnMgr, NS_ERROR_NULL_POINTER);
+
+  nsresult rv;
+  *bValue = PR_FALSE;
+  PRInt32 count = 0;
+  rv = mTxnMgr->GetNumberOfUndoItems(&count);
+  if (NS_SUCCEEDED(rv) && count > 0)
+    *bValue = PR_TRUE;
+  return rv;
 }
 
 NS_IMETHODIMP nsMessenger::GetRedoTransactionType(PRUint32 *txnType)
 {
-    nsresult rv = NS_ERROR_NULL_POINTER;
-    if (!txnType || !mTxnMgr)
-        return rv;
-    *txnType = nsMessenger::eUnknown;
-    nsCOMPtr<nsITransaction> txn;
-    rv = mTxnMgr->PeekRedoStack(getter_AddRefs(txn));
-    if (NS_SUCCEEDED(rv) && txn)
-    {
-      nsCOMPtr <nsIPropertyBag2> propertyBag = do_QueryInterface(txn, &rv);
-      NS_ENSURE_SUCCESS(rv, rv);
-      return propertyBag->GetPropertyAsUint32(NS_LITERAL_STRING("type"), txnType);
-    }
-    return rv;
+  NS_ENSURE_TRUE(txnType && mTxnMgr, NS_ERROR_NULL_POINTER);
+
+  nsresult rv;
+  *txnType = nsMessenger::eUnknown;
+  nsCOMPtr<nsITransaction> txn;
+  rv = mTxnMgr->PeekRedoStack(getter_AddRefs(txn));
+  if (NS_SUCCEEDED(rv) && txn)
+  {
+    nsCOMPtr <nsIPropertyBag2> propertyBag = do_QueryInterface(txn, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+    return propertyBag->GetPropertyAsUint32(NS_LITERAL_STRING("type"), txnType);
+  }
+  return rv;
 }
 
 NS_IMETHODIMP nsMessenger::CanRedo(PRBool *bValue)
 {
-    nsresult rv = NS_ERROR_NULL_POINTER;
-    if (!bValue || !mTxnMgr)
-        return rv;
-    *bValue = PR_FALSE;
-    PRInt32 count = 0;
-    rv = mTxnMgr->GetNumberOfRedoItems(&count);
-    if (NS_SUCCEEDED(rv) && count > 0)
-        *bValue = PR_TRUE;
-    return rv;
+  NS_ENSURE_TRUE(bValue && mTxnMgr, NS_ERROR_NULL_POINTER);
+
+  nsresult rv;
+  *bValue = PR_FALSE;
+  PRInt32 count = 0;
+  rv = mTxnMgr->GetNumberOfRedoItems(&count);
+  if (NS_SUCCEEDED(rv) && count > 0)
+    *bValue = PR_TRUE;
+  return rv;
 }
 
 NS_IMETHODIMP
@@ -1600,8 +1571,7 @@ nsMessenger::Redo(nsIMsgWindow *msgWindow)
 NS_IMETHODIMP
 nsMessenger::GetTransactionManager(nsITransactionManager* *aTxnMgr)
 {
-  if (!mTxnMgr || !aTxnMgr)
-    return NS_ERROR_NULL_POINTER;
+  NS_ENSURE_TRUE(mTxnMgr && aTxnMgr, NS_ERROR_NULL_POINTER);
 
   *aTxnMgr = mTxnMgr;
   NS_ADDREF(*aTxnMgr);
@@ -1609,20 +1579,21 @@ nsMessenger::GetTransactionManager(nsITransactionManager* *aTxnMgr)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMessenger::SetDocumentCharset(const char *characterSet)
+NS_IMETHODIMP nsMessenger::SetDocumentCharset(const nsACString& aCharacterSet)
 {
   // We want to redisplay the currently selected message (if any) but forcing the
   // redisplay to use characterSet
   if (!mLastDisplayURI.IsEmpty())
   {
-    SetDisplayCharset("UTF-8");
+    SetDisplayCharset(NS_LITERAL_CSTRING("UTF-8"));
 
     nsCOMPtr <nsIMsgMessageService> messageService;
     nsresult rv = GetMessageServiceFromURI(mLastDisplayURI.get(), getter_AddRefs(messageService));
 
     if (NS_SUCCEEDED(rv) && messageService)
     {
-      messageService->DisplayMessage(mLastDisplayURI.get(), mDocShell, mMsgWindow, nsnull, characterSet, nsnull);
+      messageService->DisplayMessage(mLastDisplayURI.get(), mDocShell, mMsgWindow, nsnull,
+                                     PromiseFlatCString(aCharacterSet).get(), nsnull);
     }
   }
 
@@ -1630,14 +1601,9 @@ NS_IMETHODIMP nsMessenger::SetDocumentCharset(const char *characterSet)
 }
 
 NS_IMETHODIMP
-nsMessenger::GetLastDisplayedMessageUri(char ** aLastDisplayedMessageUri)
+nsMessenger::GetLastDisplayedMessageUri(nsACString& aLastDisplayedMessageUri)
 {
-  if (!aLastDisplayedMessageUri)
-    return NS_ERROR_NULL_POINTER;
-  *aLastDisplayedMessageUri = NS_STATIC_CAST(char*,
-    nsMemory::Clone(mLastDisplayURI.get(), mLastDisplayURI.Length()+1));
-  if (!*aLastDisplayedMessageUri)
-    return NS_ERROR_OUT_OF_MEMORY;
+  aLastDisplayedMessageUri = mLastDisplayURI;
   return NS_OK;
 }
 
@@ -1789,7 +1755,7 @@ nsSaveMsgListener::Cancel(nsresult status)
 NS_IMETHODIMP
 nsSaveMsgListener::OnStartRunningUrl(nsIURI* url)
 {
-    return NS_OK;
+  return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -1969,7 +1935,7 @@ NS_IMETHODIMP
 nsSaveMsgListener::OnStopRequest(nsIRequest* request, nsISupports* aSupport,
                                 nsresult status)
 {
-  nsresult    rv = NS_OK;
+  nsresult rv = NS_OK;
 
   // rhp: If we are doing the charset conversion magic, this is different
   // processing, otherwise, its just business as usual.
@@ -2033,9 +1999,9 @@ nsSaveMsgListener::OnStopRequest(nsIRequest* request, nsISupports* aSupport,
           rv = m_messenger->PromptIfFileExists(localFile);
           if (NS_FAILED(rv)) goto done;
           rv = m_messenger->SaveAttachment(localFile,
-                                           state->m_urlArray[i],
-                                           state->m_messageUriArray[i],
-                                           state->m_contentTypeArray[i],
+                                           nsDependentCString(state->m_urlArray[i]),
+                                           nsDependentCString(state->m_messageUriArray[i]),
+                                           nsDependentCString(state->m_contentTypeArray[i]),
                                            (void *)state);
       done:
           if (NS_FAILED(rv))
@@ -2088,7 +2054,6 @@ nsSaveMsgListener::OnDataAvailable(nsIRequest* request,
 
   if (!mInitialized)
     InitializeDownload(request, count);
-
 
   if (m_dataBuffer && m_outputStream)
   {
@@ -2259,13 +2224,13 @@ nsMessenger::SetLastSaveDirectory(nsILocalFile *aLocalFile)
 
 /* void getUrisAtNavigatePos (in long aPos, out ACString aFolderUri, out ACString aMsgUri); */
 // aPos is relative to the current history cursor - 1 is forward, -1 is back.
-NS_IMETHODIMP nsMessenger::GetMsgUriAtNavigatePos(PRInt32 aPos, char ** aMsgUri)
+NS_IMETHODIMP nsMessenger::GetMsgUriAtNavigatePos(PRInt32 aPos, nsACString& aMsgUri)
 {
   PRInt32 desiredArrayIndex = (mCurHistoryPos + (aPos << 1));
   if (desiredArrayIndex >= 0 && desiredArrayIndex < mLoadedMsgHistory.Count())
   {
     mNavigatingToUri = mLoadedMsgHistory[desiredArrayIndex]->get();
-    *aMsgUri = ToNewCString(mNavigatingToUri);
+    aMsgUri = mNavigatingToUri;
     return NS_OK;
   }
   return NS_ERROR_FAILURE;
@@ -2290,13 +2255,13 @@ NS_IMETHODIMP nsMessenger::GetNavigatePos(PRInt32 *aPos)
 }
 
 // aPos is relative to the current history cursor - 1 is forward, -1 is back.
-NS_IMETHODIMP nsMessenger::GetFolderUriAtNavigatePos(PRInt32 aPos, char ** aFolderUri)
+NS_IMETHODIMP nsMessenger::GetFolderUriAtNavigatePos(PRInt32 aPos, nsACString& aFolderUri)
 {
   PRInt32 desiredArrayIndex = (mCurHistoryPos + (aPos << 1));
   if (desiredArrayIndex >= 0 && desiredArrayIndex < mLoadedMsgHistory.Count())
   {
     mNavigatingToUri = mLoadedMsgHistory[desiredArrayIndex + 1]->get();
-    *aFolderUri = ToNewCString(mNavigatingToUri);
+    aFolderUri = mNavigatingToUri;
     return NS_OK;
   }
   return NS_ERROR_FAILURE;
@@ -2797,7 +2762,7 @@ void nsDelAttachListener::SelectNewMessage()
   nsCString displayUri;
   // all attachments refer to the same message
   const char * messageUri = mAttach->mAttachmentArray[0].mMessageUri;
-  mMessenger->GetLastDisplayedMessageUri(getter_Copies(displayUri));
+  mMessenger->GetLastDisplayedMessageUri(displayUri);
   if (displayUri.Equals(messageUri))
   {
     mMessageFolder->GenerateMessageURI(mNewMessageKey, displayUri);
@@ -3155,7 +3120,7 @@ nsMessenger::PromptIfDeleteAttachments(PRBool aSaveFirst,
   for (PRUint32 u = 0; u < aCount; ++u)
   {
     rv = ConvertAndSanitizeFileName(aDisplayNameArray[u], getter_Copies(displayString), nsnull);
-    if (NS_FAILED(rv)) return NS_ERROR_FAILURE;
+    NS_ENSURE_SUCCESS(rv, NS_ERROR_FAILURE);
     attachmentList.Append(displayString);
     attachmentList.Append(PRUnichar('\n'));
   }

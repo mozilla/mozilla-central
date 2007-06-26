@@ -63,9 +63,9 @@ public:
   NS_DECL_NSIFOLDERLISTENER
     
   nsresult Alert(const char * stringName);
-  nsresult SaveAttachment(nsIFile *file, const char* unescapedUrl,
-                            const char* messageUri, const char* contentType, 
-                            void *closure);
+  nsresult SaveAttachment(nsIFile *file, const nsACString& unescapedUrl,
+                          const nsACString& messageUri, const nsACString& contentType, 
+                          void *closure);
   nsresult PromptIfFileExists(nsILocalFile *file);
   nsresult DetachAttachments(PRUint32 aCount,
                                   const char ** aContentTypeArray,
@@ -89,7 +89,7 @@ protected:
   nsresult InitStringBundle();
   nsresult PromptIfDeleteAttachments(PRBool saveFirst, PRUint32 count, const char **displayNameArray);
 
-  void AddMsgUrlToNavigateHistory(const char *aURL);
+  void AddMsgUrlToNavigateHistory(const nsACString& aURL);
 
 private:
   nsresult GetLastSaveDirectory(nsILocalFile **aLastSaveAsDir);
@@ -122,9 +122,8 @@ private:
 };
 
 #define NS_MESSENGER_CID \
-{ /* 3f181950-c14d-11d2-b7f2-00805f05ffa5 */      \
-  0x3f181950, 0xc14d, 0x11d2,                     \
-    {0xb7, 0xf2, 0x0, 0x80, 0x5f, 0x05, 0xff, 0xa5}}
-
+{ /* f436a174-e2c0-4955-9afe-e3feb68aee56 */      \
+  0xf436a174, 0xe2c0, 0x4955,                     \
+    {0x9af, 0xe3, 0xe, 0xfe, 0xb6, 0x8a, 0xee, 0x56}}
 
 #endif

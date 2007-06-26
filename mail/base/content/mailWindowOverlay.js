@@ -2131,13 +2131,13 @@ function SetupUndoRedoCommand(command)
 
     if (command == "cmd_undo")
     {
-        canUndoOrRedo = messenger.CanUndo();
-        txnType = messenger.GetUndoTransactionType();
+        canUndoOrRedo = messenger.canUndo();
+        txnType = messenger.getUndoTransactionType();
     }
     else
     {
-        canUndoOrRedo = messenger.CanRedo();
-        txnType = messenger.GetRedoTransactionType();
+        canUndoOrRedo = messenger.canRedo();
+        txnType = messenger.getRedoTransactionType();
     }
 
     if (canUndoOrRedo)

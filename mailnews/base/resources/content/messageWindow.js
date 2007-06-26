@@ -253,7 +253,7 @@ function OnLoadMessageWindow()
 
 	InitMsgWindow();
 
-	messenger.SetWindow(window, msgWindow);
+	messenger.setWindow(window, msgWindow);
 	InitializeDataSources();
 	// FIX ME - later we will be able to use onload from the overlay
 	OnLoadMsgHeaderPane();
@@ -805,10 +805,10 @@ var MessageWindowController =
 				MsgGetMessage();
 				break;
             case "cmd_undo":
-                messenger.Undo(msgWindow);
+                messenger.undo(msgWindow);
                 break;
             case "cmd_redo":
-                messenger.Redo(msgWindow);
+                messenger.redo(msgWindow);
                 break;
       case "cmd_getMsgsForAuthAccounts":
         MsgGetMessagesForAllAuthenticatedAccounts();

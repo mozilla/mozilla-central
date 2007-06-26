@@ -316,14 +316,14 @@ function DropOnFolderTree(row, orientation)
         try {
             if (isSourceNews) {
                 // news to pop or imap is always a copy
-                messenger.CopyMessages(GetFolderDatasource(), sourceResource, targetResource, list, false);
+                messenger.copyMessages(GetFolderDatasource(), sourceResource, targetResource, list, false);
             }
             else if (dragSession.dragAction == nsIDragService.DRAGDROP_ACTION_COPY ||
                      dragSession.dragAction == nsIDragService.DRAGDROP_ACTION_MOVE) {
                 var isMove = (dragSession.dragAction == nsIDragService.DRAGDROP_ACTION_MOVE);
                 pref.setCharPref("mail.last_msg_movecopy_target_uri", targetFolder.URI);
                 pref.setBoolPref("mail.last_msg_movecopy_was_move", isMove);  
-                messenger.CopyMessages(GetFolderDatasource(), sourceResource, targetResource, list, isMove);
+                messenger.copyMessages(GetFolderDatasource(), sourceResource, targetResource, list, isMove);
             }
         }
         catch (ex) {
@@ -334,7 +334,7 @@ function DropOnFolderTree(row, orientation)
         sourceServer = sourceFolder.server;
         try 
         {
-            messenger.CopyFolders(GetFolderDatasource(), targetResource, list, (sourceServer == targetServer));
+            messenger.copyFolders(GetFolderDatasource(), targetResource, list, (sourceServer == targetServer));
         }
         catch(ex)
         {

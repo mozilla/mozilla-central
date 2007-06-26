@@ -106,7 +106,7 @@ function OnMailWindowUnload()
   }
 
   mailSession.RemoveMsgWindow(msgWindow);
-  messenger.SetWindow(null, null);
+  messenger.setWindow(null, null);
 
   var msgDS;
   var viewDataSources = [accountManagerDataSource, folderDataSource, 

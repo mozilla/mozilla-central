@@ -110,7 +110,7 @@ function RenameFolder(name,uri)
 
       try
       {
-        messenger.RenameFolder(GetFolderDatasource(), selectedFolder, name);
+        messenger.renameFolder(GetFolderDatasource(), selectedFolder, name);
       }
       catch(e)
       {
@@ -140,11 +140,11 @@ function MsgEmptyTrash()
     {
         var folderResource = GetFolderResource(folderTree, startIndex.value);
         try {
-            messenger.EmptyTrash(GetFolderDatasource(), folderResource);
+            messenger.emptyTrash(GetFolderDatasource(), folderResource);
         }
             catch(e)
         {  
-            dump ("Exception : messenger.EmptyTrash \n");
+            dump ("Exception : messenger.emptyTrash \n");
         }
     }
 }
@@ -183,11 +183,11 @@ function MsgCompactFolder(isAll)
     } 
     try
     {
-      messenger.CompactFolder(GetFolderDatasource(), resource, isAll);
+      messenger.compactFolder(GetFolderDatasource(), resource, isAll);
     }
     catch(ex)
     {
-      dump("Exception : messenger.CompactFolder : " + ex + "\n");
+      dump("Exception : messenger.compactFolder : " + ex + "\n");
     }
   }
 }

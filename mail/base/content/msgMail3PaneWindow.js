@@ -784,8 +784,8 @@ function UpdateMailPaneConfig(aMsgWindowInitialized) {
 
   if (aMsgWindowInitialized && msgPaneReRooted)
   {
-    messenger.SetWindow(null, null);
-    messenger.SetWindow(window, msgWindow);
+    messenger.setWindow(null, null);
+    messenger.setWindow(window, msgWindow);
     MsgReload(); 
   }
 
@@ -851,7 +851,7 @@ function delayedOnLoadMessenger()
   verifyAccounts(null);
     
   InitMsgWindow();
-  messenger.SetWindow(window, msgWindow);
+  messenger.setWindow(window, msgWindow);
 
   InitializeDataSources();
   InitPanes();

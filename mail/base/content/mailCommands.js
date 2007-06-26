@@ -237,7 +237,7 @@ function ComposeMessage(type, format, folder, messageArray)
     return;
   }
 
-  messenger.SetWindow(window, msgWindow);
+  messenger.setWindow(window, msgWindow);
 
   var object = null;
 
@@ -599,7 +599,7 @@ function performActionsOnJunkMsgs(aFolder, aMsgHdrs)
   {
     var copyService = Components.classes["@mozilla.org/messenger/messagecopyservice;1"].
                         getService(Components.interfaces.nsIMsgCopyService);
-    copyService.CopyMessages(aFolder, aMsgHdrs, actionParams.junkTargetFolder, true /* isMove */, null,
+    copyService.copyMessages(aFolder, aMsgHdrs, actionParams.junkTargetFolder, true /* isMove */, null,
                              msgWindow, true /* allow undo */);
   }
 }

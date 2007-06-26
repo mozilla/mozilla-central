@@ -550,10 +550,10 @@ var DefaultController =
 				SwitchView(command);
 				break;
 			case "cmd_undo":
-				messenger.Undo(msgWindow);
+				messenger.undo(msgWindow);
 				break;
 			case "cmd_redo":
-				messenger.Redo(msgWindow);
+				messenger.redo(msgWindow);
 				break;
 			case "cmd_expandAllThreads":
                 gDBView.doCommand(nsMsgViewCommandType.expandAll);
@@ -926,7 +926,7 @@ function MsgDeleteFolder()
                 if (gCurrentVirtualFolderUri == folderResource.Value)
                   gCurrentVirtualFolderUri = null;
                 parentResource = selectedFolder.parent.QueryInterface(Components.interfaces.nsIRDFResource);
-                messenger.DeleteFolders(GetFolderDatasource(), parentResource, folderResource);
+                messenger.deleteFolders(GetFolderDatasource(), parentResource, folderResource);
                 continue;
             }
             var protocolInfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + selectedFolder.server.type].getService(Components.interfaces.nsIMsgProtocolInfo);
@@ -953,7 +953,7 @@ function MsgDeleteFolder()
             else
             {
                 parentResource = selectedFolder.parent.QueryInterface(Components.interfaces.nsIRDFResource);
-                messenger.DeleteFolders(GetFolderDatasource(), parentResource, folderResource);
+                messenger.deleteFolders(GetFolderDatasource(), parentResource, folderResource);
             }
         }
     }

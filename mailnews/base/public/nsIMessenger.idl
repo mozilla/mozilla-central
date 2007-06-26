@@ -48,7 +48,7 @@ interface nsIDOMWindowInternal;
 interface nsITransactionManager;
 interface nsIMsgMessageService;
 
-[scriptable, uuid(0F6D0A77-AED8-4658-BEDD-8753A008F0D8)]
+[scriptable, uuid(3CFFB7E3-D7C6-4335-8941-7B94BBAFB607)]
 interface nsIMessenger : nsISupports {
 
     const long eUnknown = 0;
@@ -56,54 +56,54 @@ interface nsIMessenger : nsISupports {
     const long eMoveMsg = 2;
     const long eCopyMsg = 3;
 
-    void setDisplayCharset(in string aCharset);
+    void setDisplayCharset(in ACString aCharset);
 
     readonly attribute nsITransactionManager transactionManager;
 
-    void SetWindow(in nsIDOMWindowInternal ptr, in nsIMsgWindow msgWindow);
+    void setWindow(in nsIDOMWindowInternal ptr, in nsIMsgWindow msgWindow);
 
-    void DeleteFolders(in nsIRDFCompositeDataSource db,
+    void deleteFolders(in nsIRDFCompositeDataSource db,
                        in nsIRDFResource parentFolder,
                        in nsIRDFResource folder);
-    void CopyMessages(in nsIRDFCompositeDataSource database,
+    void copyMessages(in nsIRDFCompositeDataSource database,
                    in nsIRDFResource srcResource,
                    in nsIRDFResource dstResource,
                    in nsISupportsArray messages,
                    in boolean isMove);
 
-    void CopyFolders(in nsIRDFCompositeDataSource database,
+    void copyFolders(in nsIRDFCompositeDataSource database,
                    in nsIRDFResource dstResource,
                    in nsISupportsArray folders,
                    in boolean isMoveFolder);
     
 
-    void OpenURL(in string aURL);
+    void openURL(in ACString aURL);
 
     /** load a custom message by url, e.g load a attachment as a email
       */
-    void loadURL(in nsIDOMWindowInternal ptr, in string aURL); 
+    void loadURL(in nsIDOMWindowInternal ptr, in ACString aURL); 
 
-    void launchExternalURL(in string aURL);
+    void launchExternalURL(in ACString aURL);
 
-    void RenameFolder(in nsIRDFCompositeDataSource db, 
-                      in nsIRDFResource folder, in wstring name);
-    void CompactFolder(in nsIRDFCompositeDataSource db,
+    void renameFolder(in nsIRDFCompositeDataSource db, 
+                      in nsIRDFResource folder, in AString name);
+    void compactFolder(in nsIRDFCompositeDataSource db,
                        in nsIRDFResource folder, 
                        in boolean forAll);
-    void EmptyTrash(in nsIRDFCompositeDataSource db,
+    void emptyTrash(in nsIRDFCompositeDataSource db,
                     in nsIRDFResource folder);
 
-    boolean CanUndo();
-    boolean CanRedo();
-    unsigned long GetUndoTransactionType();
-    unsigned long GetRedoTransactionType();
-    void Undo(in nsIMsgWindow msgWindow);
-    void Redo(in nsIMsgWindow msgWindow);
+    boolean canUndo();
+    boolean canRedo();
+    unsigned long getUndoTransactionType();
+    unsigned long getRedoTransactionType();
+    void undo(in nsIMsgWindow msgWindow);
+    void redo(in nsIMsgWindow msgWindow);
     void sendUnsentMessages(in nsIMsgIdentity aIdentity, in nsIMsgWindow aMsgWindow);
-    void SetDocumentCharset(in string characterSet);
-    void saveAs(in string aURI, in boolean aAsFile, in nsIMsgIdentity aIdentity, in wstring aMsgFilename);
-    void openAttachment(in string contentTpe, in string url, in string displayName, in string messageUri, in boolean isExternalAttachment);
-    void saveAttachment(in string contentTpe, in string url, in string displayName, in string messageUri, in boolean isExternalAttachment);
+    void setDocumentCharset(in ACString characterSet);
+    void saveAs(in ACString aURI, in boolean aAsFile, in nsIMsgIdentity aIdentity, in AString aMsgFilename);
+    void openAttachment(in ACString contentTpe, in ACString url, in ACString displayName, in ACString messageUri, in boolean isExternalAttachment);
+    void saveAttachment(in ACString contentTpe, in ACString url, in ACString displayName, in ACString messageUri, in boolean isExternalAttachment);
     void saveAllAttachments(in unsigned long count, [array, size_is(count)] in string contentTypeArray,
                             [array, size_is(count)] in string urlArray, [array, size_is(count)] in string displayNameArray,
                             [array, size_is(count)] in string messageUriArray);
@@ -113,14 +113,14 @@ interface nsIMessenger : nsISupports {
                              [array, size_is(count)] in string messageUriArray, in boolean saveFirst);
     // saveAttachmentToFolder is used by the drag and drop code to drop an attachment to a destination folder
     // we need to return the actual file path (including the filename).
-    nsILocalFile saveAttachmentToFolder(in string contentType, in string url, in string displayName, in string messageUri, in nsILocalFile aDestFolder);
+    nsILocalFile saveAttachmentToFolder(in ACString contentType, in ACString url, in ACString displayName, in ACString messageUri, in nsILocalFile aDestFolder);
 
     attribute boolean sendingUnsentMsgs;
 
-    readonly attribute string lastDisplayedMessageUri;
+    readonly attribute ACString lastDisplayedMessageUri;
 
-    nsIMsgMessageService messageServiceFromURI(in string aUri);
-    nsIMsgDBHdr msgHdrFromURI(in string aUri);
+    nsIMsgMessageService messageServiceFromURI(in ACString aUri);
+    nsIMsgDBHdr msgHdrFromURI(in ACString aUri);
     // for back forward history, we need a list of visited messages,
     // and where we are in the list.
     
@@ -128,8 +128,8 @@ interface nsIMessenger : nsISupports {
     // Unfortunately, you must call this before navigating to this position,
     // because calling this has the side effect of making us adjust our current
     // history pos, and *not* adding the loaded message to the history queue.
-    string getMsgUriAtNavigatePos(in long aPos);
-    string getFolderUriAtNavigatePos(in long aPos);
+    ACString getMsgUriAtNavigatePos(in long aPos);
+    ACString getFolderUriAtNavigatePos(in long aPos);
     attribute long navigatePos;
     // if caller just wants the count and cur pos, they can pass in a null history pointer, which will be more efficent
     // if they want a list suitable for display in a back/forward menu drop down, they should pass in a aHistory pointer,

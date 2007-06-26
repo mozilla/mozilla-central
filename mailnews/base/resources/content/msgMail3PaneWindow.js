@@ -675,8 +675,8 @@ function UpdateMailPaneConfig() {
     desiredParent.appendChild(messagePaneSplitter);
     desiredParent.appendChild(messagePane);
     messagePaneSplitter.orient = desiredParent.orient;
-    messenger.SetWindow(null, null);
-    messenger.SetWindow(window, msgWindow);
+    messenger.setWindow(null, null);
+    messenger.setWindow(window, msgWindow);
     if (gDBView && GetNumSelectedMessages() == 1)
       gDBView.reloadMessage();
   }
@@ -704,7 +704,7 @@ function OnLoadMessenger()
   verifyAccounts(null);
 
   InitMsgWindow();
-  messenger.SetWindow(window, msgWindow);
+  messenger.setWindow(window, msgWindow);
 
   InitializeDataSources();
   InitPanes();

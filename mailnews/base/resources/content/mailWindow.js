@@ -114,7 +114,7 @@ function OnMailWindowUnload()
   }
 
   mailSession.RemoveMsgWindow(msgWindow);
-  messenger.SetWindow(null, null);
+  messenger.setWindow(null, null);
 
   var msgDS = folderDataSource.QueryInterface(Components.interfaces.nsIMsgRDFDataSource);
   msgDS.window = null;

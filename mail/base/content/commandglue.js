@@ -1070,12 +1070,12 @@ function GetSelectTrashUri(folder)
 
 function Undo()
 {
-    messenger.Undo(msgWindow);
+    messenger.undo(msgWindow);
 }
 
 function Redo()
 {
-    messenger.Redo(msgWindow);
+    messenger.redo(msgWindow);
 }
 
 function getSearchTermString(searchTerms)
