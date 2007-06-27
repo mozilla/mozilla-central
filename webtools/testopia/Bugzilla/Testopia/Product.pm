@@ -30,12 +30,16 @@ use Bugzilla::Testopia::Environment;
 
 sub environments {
     my $self = shift;
+    my($active) = @_;
     my $dbh = Bugzilla->dbh;
     
-    my $ref = $dbh->selectcol_arrayref("SELECT environment_id 
-                                        FROM test_environments
-                                        WHERE product_id = ?",
-                                        undef, $self->{'id'});
+    return $self->{'environments'} if defined $self->{'environments'};
+    
+    my $query = "SELECT environment_id"; 
+       $query .= " FROM test_environments";
+       $query .= " WHERE product_id = ?";
+       $query .= " AND isactive = 1" if $active;          
+    my $ref = $dbh->selectcol_arrayref($query, undef, $self->{'id'});
     my @objs;
     foreach my $id (@{$ref}){
         push @objs, Bugzilla::Testopia::Environment->new($id);
