@@ -243,6 +243,9 @@ bin\js\calWcapRequest.js
 bin\js\calWcapSession.js
 bin\js\calWcapUtils.js
 
+; [Modules]
+bin\modules\*
+
 ; [Calendar Chrome Files]
 bin\chrome\calendar.jar
 bin\chrome\calendar.manifest

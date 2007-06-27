@@ -273,6 +273,9 @@ bin\components\txEXSLTRegExFunctions.js
 bin\components\nsAboutAbout.js
 bin\components\nsDefaultCLH.js
 
+; Modules
+bin\modules\*
+
 ; NegotiateAuth
 bin\components\auth.dll
 

@@ -36,6 +36,9 @@ bin\msvcm80.dll
 bin\msvcp80.dll
 bin\msvcr80.dll
 
+; Modules
+bin\modules\*
+
 ; Optional RSS extension
 [newsblog]
 bin\chrome\newsblog.jar
