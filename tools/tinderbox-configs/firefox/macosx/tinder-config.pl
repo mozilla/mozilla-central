@@ -146,6 +146,8 @@ $DHTMLPerformanceTestTimeout      = 180;  # entire test, seconds
 $moz_cvsroot   = ":ext:cltbld\@cvs.mozilla.org:/cvsroot";
 #$moz_cvsroot   = "/builds/cvs.hourly/cvsroot";
 
+$MofoRoot = ":ext:cltbld\@cvs.mozilla.org:/mofo";
+
 #- Set these proper values for your tinderbox server
 #$Tinderbox_server = 'tinderbox-daemon@tinderbox.mozilla.org';
 
