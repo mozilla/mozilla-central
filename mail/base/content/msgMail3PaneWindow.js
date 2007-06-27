@@ -1014,6 +1014,8 @@ function loadStartFolder(initialUri)
       // this is the case where we're trying to auto-subscribe to a folder.
       if (initialUri && !startFolder.parent)
       {
+        // hack to force display of thread pane.
+        ShowingThreadPane();
         messenger.loadURL(window, initialUri);
         return;
       }
