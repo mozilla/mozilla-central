@@ -280,8 +280,10 @@ ${so.prefix}xul.${so.extension}.
             <sequential>
                 <echo message="overridden JUnit" />
                 <junit showoutput="true" fork="true" dir="${basedir}" failureproperty="tests.failed" errorproperty="tests.failed">
-                    <jvmarg value="-DNSPR_LOG_MODULES=webclient:4,webclientstub:4,pluglets:4"/>
-                    <jvmarg value="-DNSPR_LOG_FILE=${basedir}${FILE_PATH_SEP}${build.dir}${FILE_PATH_SEP}webclient.log"/>
+                    <jvmarg value="-DNSPR_LOG_MODULES=${nspr.log.modules}"/>
+                    <env key="NSPR_LOG_MODULES" value="${nspr.log.modules}" />
+                    <jvmarg value="-DNSPR_LOG_FILE=${basedir}${FILE_PATH_SEP}${build.dir}${FILE_PATH_SEP}${nspr.log.filename}"/>
+                    <env key="NSPR_LOG_FILE" file="${basedir}/${build.dir}/${nspr.log.filename}" />
                     <jvmarg value="-Dbuild.test.results.dir=${basedir}${FILE_PATH_SEP}${build.test.results.dir}" />
                     <jvmarg value="-DBROWSER_BIN_DIR=${browser.bin.dir}"/>
                     <jvmarg line="${debug.jvm.args}"/>
@@ -289,7 +291,8 @@ ${so.prefix}xul.${so.extension}.
                     <jvmarg line="-Djava.library.path=${browser.bin.dir}" />
                     
                     <batchtest todir="${build.test.results.dir}">
-                        <fileset dir="${test.src.dir}" includes="@{includes}"/>
+                        <fileset dir="${test.src.dir}" includes="@{includes}"
+                                 excludes="${test.excludes}"/>
                     </batchtest>
                     <classpath>
                         <path path="${run.test.classpath}"/>

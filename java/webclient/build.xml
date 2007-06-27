@@ -61,6 +61,7 @@
   <!-- Construct compile classpath -->
   <path id="compile.classpath">
     <pathelement location="${build.home}"/>
+    <pathelement location="${junit.jar}"/>
   </path>
 
   <target name="prepare">
