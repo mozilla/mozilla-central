@@ -29,6 +29,7 @@ use Bugzilla::Util;
 use Bugzilla::Error;
 use Bugzilla::Constants;
 use Bugzilla::Testopia::Util;
+use Bugzilla::Testopia::Classification;
 use Bugzilla::Testopia::TestPlan;
 use Bugzilla::Testopia::TestRun;
 use Bugzilla::Testopia::Environment::Category;
@@ -148,7 +149,7 @@ elsif ($action eq 'get_products'){
     if (Bugzilla->params->{'useclassification'}){
         my @classes = $cgi->param('class_ids');
         foreach my $id (@classes){
-            my $class = Bugzilla::Classification->new($id);
+            my $class = Bugzilla::Testopia::Classification->new($id);
             push @prod, @{$class->user_visible_products};
         }
     }
