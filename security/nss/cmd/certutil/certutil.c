@@ -609,6 +609,9 @@ ValidateCert(CERTCertDBHandle *handle, char *name, char *date,
 	case 'R':
 	    usage = certificateUsageEmailRecipient;
 	    break;
+	case 'J':
+	    usage = certificateUsageObjectSigner;
+	    break;
 	default:
 	    PORT_SetError (SEC_ERROR_INVALID_ARGS);
 	    return (SECFailure);
@@ -1153,6 +1156,7 @@ static void LongUsage(char *progName)
     FPS "%-25s S \t Email signer\n", "");
     FPS "%-25s R \t Email Recipient\n", "");   
     FPS "%-25s O \t OCSP status responder\n", "");   
+    FPS "%-25s J \t Object signer\n", "");   
     FPS "%-20s Cert database directory (default is ~/.netscape)\n",
 	"   -d certdir");
     FPS "%-20s Cert & Key database prefix\n",
@@ -2081,6 +2085,8 @@ secuCommandFlag certutil_options[] =
 			  certutil.options[opt_VerifySig].activated,
 			  certutil.options[opt_DetailedInfo].activated,
 	                  &pwdata);
+	if (rv != SECSuccess && PR_GetError() == SEC_ERROR_INVALID_ARGS)
+            SECU_PrintError(progName, "validation failed");
 	goto shutdown;
     }
 
