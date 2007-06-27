@@ -1669,7 +1669,7 @@ function OpenNewTab(tab)
     t.width = 0;
     t.setAttribute("flex", "100");
     t.setAttribute("validate", "never");
-    t.className = "tabemail-tab";
+    t.className = "tabbrowser-tab";
     
     if (!gTabInfoArray.length)
     {

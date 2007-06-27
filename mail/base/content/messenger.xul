@@ -37,7 +37,8 @@
 #
 # ***** END LICENSE BLOCK *****
 
-<?xml-stylesheet href="chrome://messenger/skin/mailWindow1.css" type="text/css"?> 
+<?xml-stylesheet href="chrome://messenger/skin/mailWindow1.css" type="text/css"?>
+<?xml-stylesheet href="chrome://global/skin/browser.css" type="text/css"?>
 
 <?xul-overlay href="chrome://global/content/globalOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/utilityOverlay.xul"?>
@@ -145,12 +146,12 @@
               oncommand="SendMailToNode(document.popupNode)"/>
     <menuitem label="&CopyEmailAddress.label;"
               accesskey="&CopyEmailAddress.accesskey;"
-              oncommand="CopyEmailAddress(document.popupNode)"/> 
-    <menuseparator/> 
+              oncommand="CopyEmailAddress(document.popupNode)"/>
+    <menuseparator/>
     <menuitem label="&CreateFilter.label;"
               accesskey="&CreateFilter.accesskey;"
               oncommand="CreateFilter(document.popupNode)"
-              observes="cmd_createFilterFromPopup"/>  
+              observes="cmd_createFilterFromPopup"/>
 </popup>
 
 <popup id="allHeadersPopup"  onpopupshowing="return fillAllHeadersPopup(document.popupNode);" popupanchor="bottomleft">
@@ -192,30 +193,28 @@
                     ondblclick="this.parentNode.parentNode.parentNode.onTabBarDblClick(event);">
             <tab selected="true" validate="never"
                      maxwidth="250" width="0" minwidth="100" flex="100"
-                     class="tabemail-tab" crop="end"/>
+                     class="tabbrowser-tab" crop="end"/>
           </tabs>
         </hbox>
         <tabpanels flex="1" class="plain" selectedIndex="0" anonid="panelcontainer">
 
-
-  
   <!-- when we move to the alternate 3-pane, mailContentWrapper gets toggled to a vertical orientation -->
   <box id="mailContentWrapper" orient="horizontal" flex="1">
 
   <hbox id="mailContent" flex="1">
-    
+
     <vbox id="folderPaneBox" minwidth="100" width="200" persist="collapsed width">
-    
+
       <label id="folderColumnLabel" hidden="true" value="&folderColumn.label;"/>
       <sidebarheader id="folderPaneHeader" align="center">
         <label id="folderpane-title"/>
         <spacer flex="1"/>
-        <toolbarbutton id="folderview-cycler-left"  class="folderview-cycler" 
+        <toolbarbutton id="folderview-cycler-left"  class="folderview-cycler"
                        onclick="CycleFolderView(false);"/>
-        <toolbarbutton id="folderview-cycler-right" class="folderview-cycler" 
+        <toolbarbutton id="folderview-cycler-right" class="folderview-cycler"
                        onclick="CycleFolderView(true);"/>
       </sidebarheader>
-      
+
       <tree id="folderTree" class="plain focusring" flex="1" seltype="text"
             context="folderPaneContext"
             disableKeyNavigation="true"
@@ -228,7 +227,7 @@
         <template>
           <rule>
             <conditions>
-              <content uri="?container"/> 
+              <content uri="?container"/>
               <member container="?container" child="?member" />
               <triple subject="?member" predicate="http://home.netscape.com/NC-rdf#IsDeferred" object="false"/>
             </conditions>
@@ -337,10 +336,10 @@
         </treecols>
       </tree>
     </vbox>
-      
+
     <splitter id="folderpane_splitter" collapse="before" persist="state"/>
-    
-    <vbox flex="1">   
+
+    <vbox flex="1">
       <box orient="vertical" id="messagesBox" flex="1">
         <hbox id="messengerBox" flex="1" minheight="100" height="100" persist="height">
           <deck id="displayDeck" flex="1" selectedIndex="0"
@@ -350,8 +349,8 @@
             <iframe name="accountCentralPane" width="150" flex="1" src="about:blank"/>
           </vbox>
           <!-- second panel is the threadPane -->
-          <vbox id="threadPaneBox" flex="1">          
-            <tree id="threadTree" persist="lastfoldersent" flex="2" enableColumnDrag="true" _selectDelay="500" class="plain focusring" lastfoldersent="false" 
+          <vbox id="threadPaneBox" flex="1">
+            <tree id="threadTree" persist="lastfoldersent" flex="2" enableColumnDrag="true" _selectDelay="500" class="plain focusring" lastfoldersent="false"
                          disableKeyNavigation="true"
                          context="threadPaneContext"
                          onkeypress="ThreadPaneKeyPress(event);"
@@ -368,7 +367,7 @@
                <treecol id="flaggedCol" persist="hidden ordinal" fixed="true" cycler="true"
                         class="treecol-image flagColumnHeader"
                         label="&starredColumn.label;" tooltiptext="&starredColumn.tooltip;"/>
-               <splitter class="tree-splitter"/>                
+               <splitter class="tree-splitter"/>
                <treecol id="subjectCol" persist="hidden ordinal width" flex="7" ignoreincolumnpicker="true"
                         label="&subjectColumn.label;" tooltiptext="&subjectColumn.tooltip;"/>
                <splitter class="tree-splitter"/>
@@ -376,11 +375,11 @@
                         class="treecol-image readColumnHeader"
                         label="&readColumn.label;" tooltiptext="&readColumn.tooltip;"/>
                <splitter class="tree-splitter"/>
-               <treecol id="senderCol" persist="hidden swappedhidden ordinal width" flex="4" 
+               <treecol id="senderCol" persist="hidden swappedhidden ordinal width" flex="4"
                         hidden="false" swappedhidden="true"
                         label="&fromColumn.label;" tooltiptext="&fromColumn.tooltip;"/>
                <splitter class="tree-splitter"/>
-               <treecol id="recipientCol" persist="hidden swappedhidden ordinal width" flex="4" 
+               <treecol id="recipientCol" persist="hidden swappedhidden ordinal width" flex="4"
                         hidden="true" swappedhidden="false"
                         label="&recipientColumn.label;" tooltiptext="&recipientColumn.tooltip;"/>
                <splitter class="tree-splitter"/>
@@ -440,9 +439,9 @@
           <splitter id="attachment-splitter" collapse="after" resizebefore="closest" resizeafter="closest" collapsed="true"/>
           <hbox id="attachmentView"/>
           <findbar id="FindToolbar" browserid="messagepane"/>
-        </vbox>  
+        </vbox>
       </box>
-    </vbox>             
+    </vbox>
   </hbox>
   </box> <!-- end of mailContentWrapper -->
 
