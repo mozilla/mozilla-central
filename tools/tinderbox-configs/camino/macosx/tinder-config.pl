@@ -164,6 +164,11 @@ $XULWindowOpenTestTimeout	      = 30;   # seconds
 
 $moz_cvsroot = ':ext:caminobld@cvs.mozilla.org:/cvsroot';
 
+# Used for checking out sources (e.g. Talkback) from the internal
+# Mozilla repository. If you don't have a CVS account with access,
+# just leave this set to 0.
+#$MofoRoot = 0;
+
 #- Set these proper values for your tinderbox server
 #$Tinderbox_server = 'tinderbox-daemon@tinderbox.mozilla.org';
 
@@ -216,18 +221,23 @@ $BinaryName = 'Camino';
 #$NSPRArgs = '';
 #$ShellOverride = '';
 
+# UsePrebuiltTalkback:
+# If set to a filepath, tinderbox will use the file contents (presumed to be a bz2
+# archive of a compatible Talkback extension) rather than compiling Talkback
+# from source. 
+$UsePrebuiltTalkback = "/builds/tinderbox/CmTrunk/talkback-camino-trunk-mac.tar.bz2";
+
 # Release build options
 $ReleaseBuild  = 1;
 #$clean_objdir = 1; # remove objdir when starting release cycle?
 #$clean_srcdir = 1; # remove srcdir when starting release cycle?
 #$LocaleProduct = "browser";
 $shiptalkback  = 1;
-$UsePrebuiltTalkback = "/builds/tinderbox/CmTrunk/talkback-camino-trunk-mac.tar.bz2";
 $ReleaseToLatest = 1; # Push the release to latest-<milestone>?
 $ReleaseToDated = 1; # Push the release to YYYY-MM-DD-HH-<milestone>?
 $OfficialBuildMachinery = 1; # Allow official clobber nightlies.  When false, $cachebuild in post-mozilla-rel.pl can never be true.
 #$ReleaseGroup = ''; # group to set uploaded files to (if non-empty)
-$build_hour    = "22";
+$build_hour    = "0";
 $package_creation_path = "/camino/installer";
 # path to make in to recreate mac bundle, needed for mac + talkback:
 $mac_bundle_path = "/camino";
