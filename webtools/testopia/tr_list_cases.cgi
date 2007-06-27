@@ -122,8 +122,11 @@ if ($action eq 'Commit'){
         my @comps       = $cgi->param("components");
         my $tester = $cgi->param('tester') || ''; 
         if ($tester && $tester ne '--Do Not Change--'){
-            $tester = login_to_id(trim($cgi->param('tester')))
-                || ThrowUserError("invalid_username", { name => $cgi->param('tester') });
+            $tester = login_to_id(trim($cgi->param('tester')));
+            unless ($tester){
+                print $cgi->multipart_end;
+                ThrowUserError("invalid_username", { name => $cgi->param('tester') });
+            }
         }
         else {
             $tester = $case->default_tester->id;
