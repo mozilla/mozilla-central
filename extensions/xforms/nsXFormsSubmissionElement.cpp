@@ -912,8 +912,12 @@ nsXFormsSubmissionElement::SerializeDataXML(nsIDOMDocument  *data,
 
     // Check for SOAP Envelope and handle SOAP
     nsAutoString nodeName, nodeNS;
-    data->GetLocalName(nodeName);
-    data->GetNamespaceURI(nodeNS);
+    nsCOMPtr<nsIDOMElement> docElem;
+    data->GetDocumentElement(getter_AddRefs(docElem));
+    if (docElem) {
+      docElem->GetLocalName(nodeName);
+      docElem->GetNamespaceURI(nodeNS);
+    }
     if (nodeName.Equals(NS_LITERAL_STRING("Envelope")) &&
         nodeNS.Equals(NS_LITERAL_STRING(NS_NAMESPACE_SOAP_ENVELOPE))) {
       mIsSOAPRequest = PR_TRUE;
