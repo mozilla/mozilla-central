@@ -213,7 +213,7 @@
 <h3>Test Cases</h3>
 <div id="plan_cases">
 [% IF case_table.list_count > 0 AND plan.canedit %]
-  <a href="tr_new_case.cgi?plan_id=[% plan.id FILTER none %]">Create a New Test Case</a> 
+  <a href="tr_new_case.cgi?plan_id=[% plan.id FILTER none %]">Create a New Test Case</a> | 
 [% END %]
 [% PROCESS testopia/case/table.html.tmpl
    table = case_table %]
