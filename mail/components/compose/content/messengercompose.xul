@@ -576,7 +576,7 @@
     </toolbarbutton>
     
     <toolbarbutton class="toolbarbutton-1"
-               id="button-address" label="&addressButton.label;" 
+               id="button-contacts" label="&addressButton.label;" 
                tooltiptext="&addressButton.tooltip;" 
                observes="viewAddressPicker"/>
     

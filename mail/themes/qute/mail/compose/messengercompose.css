@@ -67,16 +67,16 @@
   -moz-image-region: rect(48px 24px 72px 0px) !important;
 } 
 
-#button-address {
+#button-contacts {
   list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar.png");
   -moz-image-region: rect(0px 48px 24px 24px) !important;
 }
 
-#button-address:hover {
+#button-contacts:hover {
   -moz-image-region: rect(24px 48px 48px 24px) !important;
 } 
 
-#button-address[disabled="true"] {
+#button-contacts[disabled="true"] {
   -moz-image-region: rect(48px 48px 72px 24px) !important;
 } 
 
@@ -191,16 +191,16 @@ toolbar[iconsize="small"] #button-send[disabled] {
   -moz-image-region: rect(32px 16px 48px 0px) !important;
 } 
 
-toolbar[iconsize="small"] #button-address {
+toolbar[iconsize="small"] #button-contacts {
   list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar-small.png");
   -moz-image-region: rect(0px 32px 16px 16px) !important;
 }
 
-toolbar[iconsize="small"] #button-address:hover {
+toolbar[iconsize="small"] #button-contacts:hover {
   -moz-image-region: rect(16px 32px 32px 16px) !important;
 } 
 
-toolbar[iconsize="small"] #button-address[disabled] {
+toolbar[iconsize="small"] #button-contacts[disabled] {
    -moz-image-region: rect(32px 32px 48px 16px) !important;
 } 
 
