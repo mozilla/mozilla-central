@@ -1353,7 +1353,7 @@ nsMessenger::MsgHdrFromURI(const nsACString& aUri, nsIMsgDBHdr **aMsgHdr)
   nsresult rv;
 
   if (mMsgWindow && (StringBeginsWith(aUri, NS_LITERAL_CSTRING("file:")) ||
-                     nsDependentCString(aUri).Find("type=application/x-message-display") >= -1))
+                     nsDependentCString(aUri).Find("type=application/x-message-display") >= 0))
   {
     nsCOMPtr <nsIMsgHeaderSink> headerSink;
     mMsgWindow->GetMsgHeaderSink(getter_AddRefs(headerSink));
