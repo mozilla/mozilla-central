@@ -189,6 +189,7 @@ $ReleaseBuild  = 1;
 #$clean_objdir = 1; # remove objdir when starting release cycle?
 #$clean_srcdir = 1; # remove srcdir when starting release cycle?
 $shiptalkback  = 1;
+$UsePrebuiltTalkback = "/builds/tinderbox/SeaMonkey-Trunk//talkback-seamonkey-trunk-linux.tar.bz2";
 #$ReleaseToLatest = 1; # Push the release to latest-<milestone>?
 #$ReleaseToDated = 1; # Push the release to YYYY-MM-DD-HH-<milestone>?
 $ReleaseGroup = 'seamonkey'; # group to set uploaded files to
