@@ -1632,13 +1632,15 @@ nsXFormsSubmissionElement::CopyChildren(nsIModelElementPrivate *aModel,
         // node has an uploadFileProperty we need to copy it to the submission
         // document so that local files will be attached properly when the
         // submission format is multipart-related.
+        aDest->AppendChild(destChild, getter_AddRefs(node));
+
         void* uploadFileProperty = nsnull;
         nsCOMPtr<nsIContent> currentNodeContent(do_QueryInterface(currentNode));
         if (currentNodeContent) {
           uploadFileProperty =
             currentNodeContent->GetProperty(nsXFormsAtoms::uploadFileProperty);
           if (uploadFileProperty) {
-            nsCOMPtr<nsIContent> destChildContent(do_QueryInterface(destChild));
+            nsCOMPtr<nsIContent> destChildContent(do_QueryInterface(node));
             if (destChildContent) {
               // Clone the local file so the same pointer isn't released twice.
               nsIFile *file = NS_STATIC_CAST(nsIFile *, uploadFileProperty);
@@ -1651,8 +1653,6 @@ nsXFormsSubmissionElement::CopyChildren(nsIModelElementPrivate *aModel,
             }
           }
         }
-
-        aDest->AppendChild(destChild, getter_AddRefs(node));
 
         // recurse
         nsCOMPtr<nsIDOMNode> startNode;
