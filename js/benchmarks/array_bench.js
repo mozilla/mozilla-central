@@ -189,9 +189,26 @@ function array_6()
     total += elapsedTime;
 }
 
+// Push new elements into an array.
+function array_7()
+{
+    var t = "abcd";
+    var a = new Array();
+    var startTime = new Date();
+
+    for (var i = 0; i < 1000; i++) {
+        for (var j = 0; j < 100; j++) a.push(t);
+        //for (var j = 0; j < 100; j++) a[a.length] = t;
+    }
+    var elapsedTime = (new Date()).getTime() - startTime.getTime();
+    print("array_7 : " + elapsedTime);
+    total += elapsedTime;
+}
+
 array_1();
 array_2();
 array_3();
 array_4();
 array_5();
 array_6();
+array_7();
