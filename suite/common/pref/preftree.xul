@@ -199,24 +199,6 @@
       </treechildren>
     </treeitem>
 
-    <treeitem container="true" id="debugItem">
-      <treerow>       
-        <treecell url="chrome://communicator/content/pref/pref-debug.xul" label="&debug.label;"/> 
-      </treerow>
-      <treechildren id="debugChildren">
-        <treeitem>
-          <treerow>
-            <treecell url="chrome://communicator/content/pref/pref-debug1.xul" label="&debug1.label;"/> 
-          </treerow>
-        </treeitem>
-        <treeitem>
-          <treerow>
-            <treecell url="chrome://communicator/content/pref/pref-debug2.xul" label="&debug2.label;"/> 
-          </treerow>
-        </treeitem>
-      </treechildren>
-    </treeitem>
-
     <!-- commented out until bug 82487 is fixed -->
     <!--
     <treeitem id="offlineItem">

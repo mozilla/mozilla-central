@@ -41,6 +41,8 @@ add_makefiles "
   suite/branding/Makefile
   suite/browser/Makefile
   suite/build/Makefile
+  suite/debugQA/Makefile
+  suite/debugQA/locales/Makefile
   suite/common/Makefile
   suite/installer/Makefile
   suite/installer/windows/Makefile

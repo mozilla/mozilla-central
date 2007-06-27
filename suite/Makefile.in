@@ -55,6 +55,9 @@ DIRS		= \
 		app \
 		$(NULL)
 
+# XXX Disable for release builds
+DIRS += debugQA
+
 ifeq ($(OS_ARCH),WINNT)
 ifdef MOZ_INSTALLER
 DIRS += installer/windows

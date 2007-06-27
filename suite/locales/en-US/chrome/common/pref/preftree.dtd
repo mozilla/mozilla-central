@@ -29,9 +29,6 @@
 <!ENTITY proxies.label "Proxies">
 <!ENTITY httpnetworking.label "HTTP Networking">
 <!ENTITY smart.label "Software Installation">
-<!ENTITY debug.label  "Debug">
-<!ENTITY debug1.label "Events">
-<!ENTITY debug2.label "Networking">
 <!ENTITY download.label "Downloads">
 <!ENTITY keynav.label "Keyboard Navigation">
 <!ENTITY search.label "Internet Search">

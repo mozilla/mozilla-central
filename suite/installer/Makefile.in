@@ -62,6 +62,8 @@ MOZ_NONLOCALIZED_PKG_LIST = \
 	venkman \
 	chatzilla \
 	reporter \
+	debugqa \
+	palmsync \
 	$(NULL)
 
 MOZ_LOCALIZED_PKG_LIST = \

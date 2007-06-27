@@ -510,14 +510,6 @@ bin\components\mdn-service.js
 bin\components\nsSetDefaultMail.js
 bin\components\nsUnsetDefaultMail.js
 bin\components\offlineStartup.js
-;these Palm Sync files are conditionally built so would not exist unless built
-bin\extensions\p@m\install.rdf
-bin\extensions\p@m\mozABConduit.dll
-bin\extensions\p@m\PalmSyncInstall.exe
-bin\extensions\p@m\PalmSyncProxy.dll
-bin\extensions\p@m\palmsync.dll
-bin\extensions\p@m\palmsync.xpt
-bin\extensions\p@m\defaults\preferences\palmsync.js
 
 [chatzilla]
 bin\components\chatzilla-service.js
@@ -555,3 +547,16 @@ bin\extensions\inspector@mozilla.org\defaults\preferences\inspector.js
 bin\chrome\reporter.jar
 bin\chrome\reporter.manifest
 
+[debugqa]
+bin\extensions\debugQA@mozilla.org\install.rdf
+bin\extensions\debugQA@mozilla.org\chrome.manifest
+bin\extensions\debugQA@mozilla.org\chrome\debugqa.jar
+
+[palmsync]
+bin\extensions\p@m\install.rdf
+bin\extensions\p@m\mozABConduit.dll
+bin\extensions\p@m\PalmSyncInstall.exe
+bin\extensions\p@m\PalmSyncProxy.dll
+bin\extensions\p@m\palmsync.dll
+bin\extensions\p@m\palmsync.xpt
+bin\extensions\p@m\defaults\preferences\palmsync.js
