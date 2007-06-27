@@ -599,7 +599,7 @@ function performActionsOnJunkMsgs(aFolder, aMsgHdrs)
   {
     var copyService = Components.classes["@mozilla.org/messenger/messagecopyservice;1"].
                         getService(Components.interfaces.nsIMsgCopyService);
-    copyService.copyMessages(aFolder, aMsgHdrs, actionParams.junkTargetFolder, true /* isMove */, null,
+    copyService.CopyMessages(aFolder, aMsgHdrs, actionParams.junkTargetFolder, true /* isMove */, null,
                              msgWindow, true /* allow undo */);
   }
 }
