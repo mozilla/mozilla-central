@@ -400,9 +400,11 @@ $vars->{'status_list'} = $status_list;
 $vars->{'priority_list'} = $priority_list;
 $vars->{'table'} = $table;
 $vars->{'urlquerypart'} = $cgi->canonicalise_query('cmdtype');
-if ($cgi->param('plan_id')){
-    my $plan_id = $cgi->param('plan_id');
-    my $plan = Bugzilla::Testopia::TestPlan->new($plan_id);
+
+my @plan_ids = split(/[,]+/, $cgi->param('plan_id'));
+
+if (scalar @plan_ids == 1){
+    my $plan = Bugzilla::Testopia::TestPlan->new($plan_ids[0]);
     unless ($plan){
          print $cgi->multipart_end if $serverpush;
         ThrowUserError("invalid-test-id-non-existent", 
