@@ -1570,7 +1570,7 @@ function OpenFolderTab(tab)
 {
     ClearThreadPaneSelection(); 
     CreateMessenger();
-    messenger.SetWindow(window, msgWindow);
+    messenger.setWindow(window, msgWindow);
     tab.msgSelectedFolder = gMsgFolderSelected;
     // clear selection, because context clicking on a folder and opening in a new
     // tab needs to have SelectFolder think the selection has changed.
@@ -1603,7 +1603,7 @@ msgFolderTab.prototype =
     if (this.dbView)
       this.dbView.close();
     if (this.messenger)
-      this.messenger.SetWindow(null, null);
+      this.messenger.setWindow(null, null);
   },
   
   saveCurrentInfo : function()
@@ -1641,7 +1641,7 @@ msgMessageTab.prototype =
     if (this.dbView)
       this.dbView.close();
     if (this.messenger)
-      this.messenger.SetWindow(null, null);
+      this.messenger.setWindow(null, null);
   },
   saveCurrentInfo : function()
   {
