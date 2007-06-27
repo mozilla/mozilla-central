@@ -149,34 +149,28 @@ enum Pop3StatesEnum {
     POP3_DONE,                                  // 23
     POP3_ERROR_DONE,                            // 24
     POP3_FREE,                                  // 25
-    /* The following 3 states support the use of the 'TOP' command instead of UIDL
-       for leaving mail on the pop server -km */
-    POP3_START_USE_TOP_FOR_FAKE_UIDL,           // 26
-    POP3_SEND_FAKE_UIDL_TOP,                    // 27
-    POP3_GET_FAKE_UIDL_TOP,                     // 28
-    POP3_SEND_AUTH,                             // 29
-    POP3_AUTH_RESPONSE,                         // 30
-    POP3_SEND_CAPA,                             // 31
-    POP3_CAPA_RESPONSE,                         // 32
-    POP3_PROCESS_AUTH,                          // 33
-    POP3_AUTH_FALLBACK,                         // 34
+    POP3_SEND_AUTH,                             // 26
+    POP3_AUTH_RESPONSE,                         // 27
+    POP3_SEND_CAPA,                             // 28
+    POP3_CAPA_RESPONSE,                         // 29
+    POP3_PROCESS_AUTH,                          // 30
+    POP3_AUTH_FALLBACK,                         // 31
 
-    POP3_AUTH_LOGIN,                            // 35
-    POP3_AUTH_LOGIN_RESPONSE,                   // 36
-    POP3_AUTH_NTLM,                             // 37
-    POP3_AUTH_NTLM_RESPONSE,                    // 38
-    POP3_SEND_XSENDER,                          // 39
-    POP3_XSENDER_RESPONSE,                      // 40
-    POP3_SEND_GURL,                             // 41
+    POP3_AUTH_LOGIN,                            // 32
+    POP3_AUTH_LOGIN_RESPONSE,                   // 33
+    POP3_AUTH_NTLM,                             // 34
+    POP3_AUTH_NTLM_RESPONSE,                    // 35
+    POP3_SEND_XSENDER,                          // 36
+    POP3_XSENDER_RESPONSE,                      // 37
+    POP3_SEND_GURL,                             // 38
 
-    POP3_GURL_RESPONSE,                         // 42
-    POP3_QUIT_RESPONSE,                         // 43
-    POP3_INTERRUPTED,                           // 44
-    POP3_TLS_RESPONSE,                          // 45
-    
-    POP3_AUTH_GSSAPI,                           // 46
-    POP3_AUTH_GSSAPI_FIRST,                     // 47
-    POP3_AUTH_GSSAPI_STEP                       // 48
+    POP3_GURL_RESPONSE,                         // 39
+    POP3_QUIT_RESPONSE,                         // 40
+    POP3_TLS_RESPONSE,                          // 41
+
+    POP3_AUTH_GSSAPI,                           // 42
+    POP3_AUTH_GSSAPI_FIRST,                     // 43
+    POP3_AUTH_GSSAPI_STEP                       // 44
 };
 
 
@@ -252,25 +246,6 @@ typedef struct _Pop3ConData {
     PLHashTable *newuidl;
     char *only_uidl;              /* If non-NULL, then load only this UIDL. */
 
-    /* the following three fields support the 
-       use of the 'TOP' command instead of UIDL
-       for leaving mail on the pop server -km */
-    
-    /* the current message that we are retrieving 
-       with the TOP command */
-    PRInt32 current_msg_to_top;	
-
-    /* we will download this many in 
-       POP3_GET_MSG */
-    PRInt32 number_of_messages_not_seen_before;
-    /* reached when we have TOPped 
-       all of the new messages */
-    PRBool found_new_message_boundary; 
-    
-    /* if this is true then we don't stop 
-       at new message boundary, we have to 
-       TOP em all to delete some */
-    PRBool delete_server_message_during_top_traversal;
     PRBool get_url;
     PRBool seenFromHeader;
     PRInt32 parsed_bytes;
@@ -352,8 +327,6 @@ private:
   void FreeMsgInfo();
   void Abort();
 
-  PRBool m_parsingMultiLineMessageId;
-
   PRBool m_tlsEnabled;
   PRInt32 m_socketType;
   PRBool m_useSecAuth;
@@ -402,9 +375,7 @@ private:
   PRInt32 GurlResponse();
   PRInt32 SendList();
   PRInt32 GetList(nsIInputStream* inputStream, PRUint32 length);
-  PRInt32 SendFakeUidlTop();
-  PRInt32 StartUseTopForFakeUidl();
-  PRInt32 GetFakeUidlTop(nsIInputStream* inputStream, PRUint32 length);
+  PRInt32 HandleNoUidListAvailable();
   PRInt32 SendXtndXlstMsgid();
   PRInt32 GetXtndXlstMsgid(nsIInputStream* inputStream, PRUint32 length);
   PRInt32 SendUidlList();

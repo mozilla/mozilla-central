@@ -23,6 +23,7 @@
  * Contributor(s):
  *   Howard Chu <hyc@highlandsun.com>
  *   David Bienvenu <bienvenu@nventure.com>
+ *   Christian Eyrich <ch.ey@gmx.net>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -84,52 +85,6 @@
 
 static PRLogModuleInfo *POP3LOGMODULE = nsnull;
 
-/* km
- *
- *
- *  Process state: POP3_START_USE_TOP_FOR_FAKE_UIDL
- *
- *	If we get here then UIDL and XTND are not supported by the mail server.
- *
- *	Now we will walk backwards, from higher message numbers to lower,
- *  using the TOP command. Along the way, keep track of messages to down load
- *  by POP3_GET_MSG.
- *
- *  Stop when we reach a msg that we knew about before or we run out of
- *  messages.
- *
- *	There is also conditional code to handle:
- *		BIFF
- *		Pop3ConData->only_uidl == true (fetching one message only)
- *      emptying message hash table if all messages are new
- *		Deleting messages that are marked deleted.
- *
- *
-*/
-
-/* this function gets called for each hash table entry.  If it finds a message
-   marked delete, then we will have to traverse all of the server messages
-   with TOP in order to delete those that are marked delete.
-
-
-   If UIDL or XTND XLST are supported then this function will never get called.
-
-   A pointer to this function is passed to XP_Maphash     -km */
-
-static PRIntn PR_CALLBACK
-net_pop3_check_for_hash_messages_marked_delete(PLHashEntry* he,
-                                               PRIntn msgindex,
-                                               void *arg)
-{
-  Pop3UidlEntry *uidlEntry = (Pop3UidlEntry *) he->value;
-  if (uidlEntry->status == DELETE_CHAR)
-  {
-    ((Pop3ConData *) arg)->delete_server_message_during_top_traversal = PR_TRUE;
-    return HT_ENUMERATE_STOP;	/* XP_Maphash will stop traversing hash table now */
-  }
-
-  return HT_ENUMERATE_NEXT;		/* XP_Maphash will continue traversing the hash */
-}
 
 static PRIntn PR_CALLBACK
 net_pop3_remove_messages_marked_delete(PLHashEntry* he,
@@ -155,21 +110,21 @@ PRUint32 TimeInSecondsFromPRTime(PRTime prTime)
 static void
 put_hash(PLHashTable* table, const char* key, char value, PRUint32 dateReceived)
 {
-  Pop3UidlEntry* tmp;
-
-  tmp = PR_NEWZAP(Pop3UidlEntry);
-  if (tmp)
+  // don't put not used slots or empty uid into hash
+  if (key && *key)
   {
-    tmp->uidl = PL_strdup(key);
-    if (tmp->uidl)
+    Pop3UidlEntry* tmp = PR_NEWZAP(Pop3UidlEntry);
+    if (tmp)
     {
-      tmp->dateReceived = dateReceived;
-      tmp->status = value;
-      PL_HashTableAdd(table, (const void *)tmp->uidl, (void*) tmp);
-    }
-    else
-    {
-      PR_Free(tmp);
+      tmp->uidl = PL_strdup(key);
+      if (tmp->uidl)
+      {
+        tmp->dateReceived = dateReceived;
+        tmp->status = value;
+        PL_HashTableAdd(table, (const void *)tmp->uidl, (void*) tmp);
+      }
+      else
+        PR_Free(tmp);
     }
   }
 }
@@ -309,7 +264,7 @@ net_pop3_load_state(const char* searchhost,
           {
             current->next = result->next;
             result->next = current;
-          } 
+          }
         }
       }
     }
@@ -382,8 +337,8 @@ net_pop3_write_mapper(PLHashEntry* he, PRIntn msgindex, void* arg)
   nsIOutputStream* file = (nsIOutputStream*) arg;
   Pop3UidlEntry *uidlEntry = (Pop3UidlEntry *) he->value;
   NS_ASSERTION((uidlEntry->status == KEEP) ||
-    (uidlEntry->status ==  DELETE_CHAR) ||
-    (uidlEntry->status ==  FETCH_BODY) ||
+    (uidlEntry->status == DELETE_CHAR) ||
+    (uidlEntry->status == FETCH_BODY) ||
     (uidlEntry->status == TOO_BIG), "invalid status");
   char* tmpBuffer = PR_smprintf("%c %s %d" MSG_LINEBREAK, uidlEntry->status, (char*)
     uidlEntry->uidl, uidlEntry->dateReceived);
@@ -1954,8 +1909,8 @@ nsPop3Protocol::SendStat()
 PRInt32
 nsPop3Protocol::GetStat()
 {
-    /* check stat response */
-  if(!m_pop3ConData->command_succeeded)
+  // check stat response
+  if (!m_pop3ConData->command_succeeded)
     return(Error(POP3_STAT_FAILURE));
 
     /* stat response looks like:  %d %d
@@ -1965,11 +1920,11 @@ nsPop3Protocol::GetStat()
      *  grab the first and second arg of stat response
      */
   nsCString oldStr (m_commandResponse);
-  char * newStr = oldStr.BeginWriting();
-  char * num = NS_strtok(" ", &newStr);
+  char *newStr = oldStr.BeginWriting();
+  char *num = NS_strtok(" ", &newStr);  // msg num
   if (num)
   {
-    m_pop3ConData->number_of_messages = atol(num);
+    m_pop3ConData->number_of_messages = atol(num);  // bytes
     num = NS_strtok(" ", &newStr);
     m_commandResponse = newStr;
     if (num)
@@ -1981,38 +1936,38 @@ nsPop3Protocol::GetStat()
   m_pop3ConData->really_new_messages = 0;
   m_pop3ConData->real_new_counter = 1;
 
-  m_totalDownloadSize = -1; /* Means we need to calculate it, later. */
+  m_totalDownloadSize = -1; // Means we need to calculate it, later.
 
-  if(m_pop3ConData->number_of_messages <= 0)
+  if (m_pop3ConData->number_of_messages <= 0)
   {
-      /* We're all done.  We know we have no mail. */
-     m_pop3ConData->next_state = POP3_SEND_QUIT;
-     PL_HashTableEnumerateEntries(m_pop3ConData->uidlinfo->hash, hash_clear_mapper, nsnull);
-     /* Hack - use nsPop3Sink to wipe out any stale Partial messages */
-      m_nsIPop3Sink->BeginMailDelivery(PR_FALSE, nsnull, nsnull);
-      m_nsIPop3Sink->AbortMailDelivery(this);
-     return(0);
+    // We're all done. We know we have no mail.
+    m_pop3ConData->next_state = POP3_SEND_QUIT;
+    PL_HashTableEnumerateEntries(m_pop3ConData->uidlinfo->hash, hash_clear_mapper, nsnull);
+    // Hack - use nsPop3Sink to wipe out any stale Partial messages
+    m_nsIPop3Sink->BeginMailDelivery(PR_FALSE, nsnull, nsnull);
+    m_nsIPop3Sink->AbortMailDelivery(this);
+    return(0);
   }
 
   if (m_pop3ConData->only_check_for_new_mail && !m_pop3ConData->leave_on_server &&
-      m_pop3ConData->size_limit < 0)
+      m_pop3ConData->size_limit <= 0)
   {
-      /* We're just checking for new mail, and we're not playing any games that
-         involve keeping messages on the server.  Therefore, we now know enough
-         to finish up.  If we had no messages, that would have been handled
-         above; therefore, we know we have some new messages. */
-      m_pop3ConData->biffstate = nsIMsgFolder::nsMsgBiffState_NewMail;
-      m_pop3ConData->next_state = POP3_SEND_QUIT;
-      return(0);
+    /* We're just checking for new mail, and we're not playing any games that
+       involve keeping messages on the server.  Therefore, we now know enough
+       to finish up.  If we had no messages, that would have been handled
+       above; therefore, we know we have some new messages. */
+    m_pop3ConData->biffstate = nsIMsgFolder::nsMsgBiffState_NewMail;
+    m_pop3ConData->next_state = POP3_SEND_QUIT;
+    return(0);
   }
 
 
   if (!m_pop3ConData->only_check_for_new_mail)
   {
-      // The following was added to prevent the loss of Data when we try and
-      // write to somewhere we don't have write access error to (See bug 62480)
-      // (Note: This is only a temp hack until the underlying XPCOM is fixed
-      // to return errors)
+      /* The following was added to prevent the loss of Data when we try and
+         write to somewhere we don't have write access error to (See bug 62480)
+         (Note: This is only a temp hack until the underlying XPCOM is fixed
+         to return errors) */
 
       nsresult rv;
       nsCOMPtr <nsIMsgWindow> msgWindow;
@@ -2028,10 +1983,9 @@ nsPop3Protocol::GetStat()
           return(Error(POP3_MESSAGE_FOLDER_BUSY));
         else
           return(Error(POP3_MESSAGE_WRITE_ERROR));
+
       if(!m_pop3ConData->msg_del_started)
-      {
         return(Error(POP3_MESSAGE_WRITE_ERROR));
-      }
   }
 
   m_pop3ConData->next_state = POP3_SEND_LIST;
@@ -2100,10 +2054,6 @@ PRInt32
 nsPop3Protocol::GetList(nsIInputStream* inputStream,
                         PRUint32 length)
 {
-  char * line;
-  PRUint32 ln = 0;
-  PRInt32 msg_num;
-
   /* check list response
   * This will get called multiple times
   * but it's alright since command_succeeded
@@ -2112,13 +2062,14 @@ nsPop3Protocol::GetList(nsIInputStream* inputStream,
   if(!m_pop3ConData->command_succeeded)
     return(Error(POP3_LIST_FAILURE));
 
+  PRUint32 ln = 0;
   PRBool pauseForMoreData = PR_FALSE;
   nsresult rv;
-  line = m_lineStreamBuffer->ReadNextLine(inputStream, ln, pauseForMoreData, &rv);
+  char *line = m_lineStreamBuffer->ReadNextLine(inputStream, ln, pauseForMoreData, &rv);
   if (NS_FAILED(rv))
     return -1;
 
-  if(pauseForMoreData || !line)
+  if (pauseForMoreData || !line)
   {
     m_pop3ConData->pause_for_read = PR_TRUE;
     PR_Free(line);
@@ -2133,7 +2084,7 @@ nsPop3Protocol::GetList(nsIInputStream* inputStream,
   *
   * list data is terminated by a ".CRLF" line
   */
-  if(!PL_strcmp(line, "."))
+  if (!PL_strcmp(line, "."))
   {
     // limit the list if fewer entries than given in STAT response
     if(m_listpos < m_pop3ConData->number_of_messages)
@@ -2144,15 +2095,13 @@ nsPop3Protocol::GetList(nsIInputStream* inputStream,
     return(0);
   }
 
-  char *token;
   char *newStr = line;
-  token = NS_strtok(" ", &newStr);
+  char *token = NS_strtok(" ", &newStr);
   if (token)
   {
-    msg_num = atol(token);
-    m_listpos++;
+    PRInt32 msg_num = atol(token);
 
-    if(m_listpos <= m_pop3ConData->number_of_messages && m_listpos > 0)
+    if (++m_listpos <= m_pop3ConData->number_of_messages)
     {
       token = NS_strtok(" ", &newStr);
       if (token)
@@ -2167,240 +2116,92 @@ nsPop3Protocol::GetList(nsIInputStream* inputStream,
   return(0);
 }
 
-PRInt32 nsPop3Protocol::SendFakeUidlTop()
+
+/* UIDL and XTND are both unsupported for this mail server.
+   If not enabled any advanced features, we're able to live
+   without them. We're simply downloading and deleting everything
+   on the server.
+
+   Advanced features are:
+   *'Keep Mail on Server' with aging or deletion support
+   *'Fetch Headers Only'
+   *'Limit Message Size'
+   *only download a specific UID
+
+   These require knowledge of of all messages UID's on the server at
+   least when it comes to deleting deleting messages on server that
+   have been deleted on client or vice versa. TOP doesn't help here
+   without generating huge traffic and is mostly not supported at all
+   if the server lacks UIDL and XTND XLST.
+
+   In other cases the user has to join the 20th century.
+   Tell the user this, and refuse to download any messages until
+   they've gone into preferences and turned off any of the above
+   prefs.
+*/
+PRInt32 nsPop3Protocol::HandleNoUidListAvailable()
 {
-  char * cmd = PR_smprintf("TOP %ld 1" CRLF, m_pop3ConData->msg_info[m_pop3ConData->current_msg_to_top - 1].msgnum);
-  PRInt32 status = -1;
-  if (cmd)
-  {
-    m_pop3ConData->next_state_after_response = POP3_GET_FAKE_UIDL_TOP;
-    m_pop3ConData->pause_for_read = PR_TRUE;
-    m_parsingMultiLineMessageId = PR_FALSE;
-    status = SendData(m_url, cmd);
-  }
+  m_pop3ConData->pause_for_read = PR_FALSE;
 
-  PR_Free(cmd);
-  return status;
-}
-
-PRInt32 nsPop3Protocol::StartUseTopForFakeUidl()
-{
-    m_pop3ConData->current_msg_to_top = m_pop3ConData->number_of_messages;
-    m_pop3ConData->number_of_messages_not_seen_before = 0;
-    m_pop3ConData->found_new_message_boundary = PR_FALSE;
-    m_pop3ConData->delete_server_message_during_top_traversal = PR_FALSE;
-
-    /* may set delete_server_message_during_top_traversal to true */
-    PL_HashTableEnumerateEntries(m_pop3ConData->uidlinfo->hash,
-                                  net_pop3_check_for_hash_messages_marked_delete,
-                                  (void *)m_pop3ConData);
-
-    return (SendFakeUidlTop());
-}
-
-// This function is used when we have a server that doesn't support UIDL,
-// and we send the TOP command to use the MESSAGE-ID header as a replacement
-// for the UIDL. It parses the the data from the TOP command, looking
-// for the MESSAGE-ID: header, and then determines the next state to go to
-// in the state machine.
-PRInt32 nsPop3Protocol::GetFakeUidlTop(nsIInputStream* inputStream,
-                                       PRUint32 length)
-{
-  char * line, *newStr;
-  PRUint32 ln = 0;
-  nsresult rv;
-
-  /* check list response
-  * This will get called multiple times
-  * but it's alright since command_succeeded
-  * will remain constant
-  */
-  if(!m_pop3ConData->command_succeeded)
-  {
-
-    /* UIDL, XTND and TOP are all unsupported for this mail server.
-       Tell the user to join the 20th century.
-
-       Tell the user this, and refuse to download any messages until they've
-       gone into preferences and turned off the `Keep Mail on Server' and
-       `Maximum Message Size' prefs.  Some people really get their panties
-       in a bunch if we download their mail anyway. (bug 11561)
-    */
-
-    // set up status first, so if the rest fails, state is ok
-    m_pop3ConData->next_state = POP3_ERROR_DONE;
-    m_pop3ConData->pause_for_read = PR_FALSE;
-
-    // get the hostname first, convert to unicode
-    nsCAutoString hostName;
-    m_url->GetHost(hostName);
-
-    NS_ConvertUTF8toUTF16 hostNameUnicode(hostName);
-
-    const PRUnichar *formatStrings[] =
-    {
-      hostNameUnicode.get(),
-    };
-
-    // get the strings for the format
-    nsString statusString;
-    rv = mLocalBundle->FormatStringFromID(POP3_SERVER_DOES_NOT_SUPPORT_UIDL_ETC,
-      formatStrings, 1,
-      getter_Copies(statusString));
-    NS_ENSURE_SUCCESS(rv, -1);
-    UpdateStatusWithString(statusString.get());
-    return -1;
-  }
-
-  PRBool pauseForMoreData = PR_FALSE;
-  line = m_lineStreamBuffer->ReadNextLine(inputStream, ln, pauseForMoreData, &rv);
-  if (NS_FAILED(rv))
-    return -1;
-  
-  if(pauseForMoreData || !line)
-  {
-    m_pop3ConData->pause_for_read = PR_TRUE;
-    PR_Free(line);
-    return 0;
-  }
-
-  PR_LOG(POP3LOGMODULE, PR_LOG_ALWAYS,("RECV: %s", line));
-
-  if(!PL_strcmp(line, "."))
-  {
-    m_pop3ConData->current_msg_to_top--;
-    if (!m_pop3ConData->current_msg_to_top ||
-      (m_pop3ConData->found_new_message_boundary &&
-      !m_pop3ConData->delete_server_message_during_top_traversal))
-    {
-      /* we either ran out of messages or reached the edge of new
-      messages and no messages are marked deleted */
-      if (m_pop3ConData->only_check_for_new_mail)
-      {
-        m_pop3ConData->biffstate = nsIMsgFolder::nsMsgBiffState_NewMail;
-        m_nsIPop3Sink->SetBiffStateAndUpdateFE(nsIMsgFolder::nsMsgBiffState_NewMail, m_pop3ConData->really_new_messages, PR_TRUE);
-        m_pop3ConData->next_state = POP3_SEND_QUIT;
-      }
-      else
-      {
-        m_pop3ConData->list_done = PR_TRUE;
-        m_pop3ConData->next_state = POP3_GET_MSG;
-      }
-      m_pop3ConData->pause_for_read = PR_FALSE;
-
-      /* if all of the messages are new, toss all hash table entries */
-      if (!m_pop3ConData->current_msg_to_top &&
-        !m_pop3ConData->found_new_message_boundary)
-        PL_HashTableEnumerateEntries(m_pop3ConData->uidlinfo->hash, hash_clear_mapper, nsnull);
-    }
-    else
-    {
-      /* this message is done, go to the next */
-      m_pop3ConData->next_state = POP3_SEND_FAKE_UIDL_TOP;
-      m_pop3ConData->pause_for_read = PR_FALSE;
-    }
-  }
+  if(!m_pop3ConData->leave_on_server &&
+     !m_pop3ConData->headers_only &&
+     m_pop3ConData->size_limit <= 0 &&
+     !m_pop3ConData->only_uidl)
+    m_pop3ConData->next_state = POP3_GET_MSG;
   else
   {
-    if(m_parsingMultiLineMessageId && !(*line == ' ' || *line == '\t'))
+    m_pop3ConData->next_state = POP3_SEND_QUIT;
+
+    nsresult rv;
+
+    nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(m_url, &rv);
+    if (NS_SUCCEEDED(rv))
     {
-      // We already read the Message-Id-line, but didn't get
-      // a message id. Treat it as not present and continue.
-      m_pop3ConData->number_of_messages_not_seen_before++;
-      m_parsingMultiLineMessageId = PR_FALSE;
-    }
-
-    int state = 0;
-
-    /* we are looking for a string of the form
-    Message-Id: <199602071806.KAA14787@neon.netscape.com> */
-    if (!PL_strncasecmp(line, "MESSAGE-ID:", 11) || m_parsingMultiLineMessageId)
-    {
-      if(m_parsingMultiLineMessageId)
+      nsCOMPtr<nsIMsgWindow> msgWindow;
+      rv = mailnewsUrl->GetMsgWindow(getter_AddRefs(msgWindow));
+      if (NS_SUCCEEDED(rv) && msgWindow)
       {
-        m_parsingMultiLineMessageId = PR_FALSE;
-        // skip leading whitespace of folded header
-        newStr = line;
-        while(*newStr == ' ' || *newStr == '\t')
-          newStr++;
-      }
-      else
-        // skip "MESSAGE-ID:"
-        newStr = line + 11;
+        nsCOMPtr<nsIPrompt> dialog;
+        rv = msgWindow->GetPromptDialog(getter_AddRefs(dialog));
+        if (NS_SUCCEEDED(rv))
+        {
+          nsCString hostName;
+          nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(m_pop3Server);
+          if (server)
+            rv = server->GetRealHostName(hostName);
+          if (NS_SUCCEEDED(rv))
+          {
+            nsAutoString hostNameUnicode;
+            CopyASCIItoUTF16(hostName, hostNameUnicode);
+            const PRUnichar *formatStrings[] = { hostNameUnicode.get() };
+            nsString alertString;
+            rv = mLocalBundle->FormatStringFromID(POP3_SERVER_DOES_NOT_SUPPORT_UIDL_ETC,
+              formatStrings, 1, getter_Copies(alertString));
+            NS_ENSURE_SUCCESS(rv, -1);
 
-      char *message_id_token = NS_strtok(" ", &newStr);
-      if (message_id_token)
-      {
-        Pop3UidlEntry *uidlEntry = (Pop3UidlEntry *) PL_HashTableLookup(m_pop3ConData->uidlinfo->hash, message_id_token);
-        if (uidlEntry)
-          state = uidlEntry->status;
-      }
-      else
-      {
-        m_parsingMultiLineMessageId = PR_TRUE;
-        return 0;
-      }
-
-      if (!m_pop3ConData->only_uidl && message_id_token && (state == 0))
-      { /* we have not seen this message before */
-        m_pop3ConData->number_of_messages_not_seen_before++;
-        m_pop3ConData->msg_info[m_pop3ConData->current_msg_to_top-1].uidl =
-          PL_strdup(message_id_token);
-        if (!m_pop3ConData->msg_info[m_pop3ConData->current_msg_to_top-1].uidl)
-        {
-          PR_Free(line);
-          return MK_OUT_OF_MEMORY;
-        }
-      }
-      else if (m_pop3ConData->only_uidl && message_id_token &&
-        !PL_strcmp(m_pop3ConData->only_uidl, message_id_token))
-      {
-        m_pop3ConData->last_accessed_msg = m_pop3ConData->current_msg_to_top - 1;
-        m_pop3ConData->found_new_message_boundary = PR_TRUE;
-        m_pop3ConData->msg_info[m_pop3ConData->current_msg_to_top-1].uidl =
-          PL_strdup(message_id_token);
-        if (!m_pop3ConData->msg_info[m_pop3ConData->current_msg_to_top-1].uidl)
-        {
-          PR_Free(line);
-          return MK_OUT_OF_MEMORY;
-        }
-      }
-      else if (!m_pop3ConData->only_uidl)
-      { /* we have seen this message and we care about the edge,
-        stop looking for new ones */
-        if (m_pop3ConData->number_of_messages_not_seen_before != 0)
-        {
-          m_pop3ConData->last_accessed_msg = m_pop3ConData->current_msg_to_top;
-          m_pop3ConData->found_new_message_boundary = PR_TRUE;
-          /* we stay in this state so we can process the rest of the
-          lines in the top message */
-        }
-        else
-        {
-          m_pop3ConData->next_state = POP3_SEND_QUIT;
-          m_pop3ConData->pause_for_read = PR_FALSE;
+            dialog->Alert(nsnull, alertString.get());
+          }
         }
       }
     }
   }
 
-  PR_Free(line);
-  return 0;
+  return(0);
 }
 
 
 /* km
  *
- *	net_pop3_send_xtnd_xlst_msgid
+ *  net_pop3_send_xtnd_xlst_msgid
  *
  *  Process state: POP3_SEND_XTND_XLST_MSGID
  *
- *	If we get here then UIDL is not supported by the mail server.
+ *  If we get here then UIDL is not supported by the mail server.
  *  Some mail servers support a similar command:
  *
- *		XTND XLST Message-Id
+ *    XTND XLST Message-Id
  *
- * 	Here is a sample transaction from a QUALCOMM server
+ *  Here is a sample transaction from a QUALCOMM server
 
  >>XTND XLST Message-Id
  <<+OK xlst command accepted; headers coming.
@@ -2421,16 +2222,16 @@ PRInt32 nsPop3Protocol::SendXtndXlstMsgid()
     return SendData(m_url, "XTND XLST Message-Id" CRLF);
   }
   else
-      return StartUseTopForFakeUidl();
+    return HandleNoUidListAvailable();
 }
 
 
 /* km
  *
- *	net_pop3_get_xtnd_xlst_msgid
+ *  net_pop3_get_xtnd_xlst_msgid
  *
  *  This code was created from the net_pop3_get_uidl_list boiler plate.
- *	The difference is that the XTND reply strings have one more token per
+ *  The difference is that the XTND reply strings have one more token per
  *  string than the UIDL reply strings do.
  *
  */
@@ -2439,10 +2240,6 @@ PRInt32
 nsPop3Protocol::GetXtndXlstMsgid(nsIInputStream* inputStream,
                                  PRUint32 length)
 {
-  char * line;
-  PRUint32 ln = 0;
-  PRInt32 msg_num;
-
   /* check list response
   * This will get called multiple times
   * but it's alright since command_succeeded
@@ -2450,11 +2247,11 @@ nsPop3Protocol::GetXtndXlstMsgid(nsIInputStream* inputStream,
   */
   ClearCapFlag(POP3_XTND_XLST_UNDEFINED);
 
-  if(!m_pop3ConData->command_succeeded) {
+  if (!m_pop3ConData->command_succeeded)
+  {
     ClearCapFlag(POP3_HAS_XTND_XLST);
     m_pop3Server->SetPop3CapabilityFlags(m_pop3ConData->capability_flags);
-    m_pop3ConData->next_state = POP3_START_USE_TOP_FOR_FAKE_UIDL;
-    m_pop3ConData->pause_for_read = PR_FALSE;
+    HandleNoUidListAvailable();
     return(0);
   }
   else
@@ -2463,13 +2260,14 @@ nsPop3Protocol::GetXtndXlstMsgid(nsIInputStream* inputStream,
     m_pop3Server->SetPop3CapabilityFlags(m_pop3ConData->capability_flags);
   }
 
+  PRUint32 ln = 0;
   PRBool pauseForMoreData = PR_FALSE;
   nsresult rv;
-  line = m_lineStreamBuffer->ReadNextLine(inputStream, ln, pauseForMoreData, &rv);
+  char *line = m_lineStreamBuffer->ReadNextLine(inputStream, ln, pauseForMoreData, &rv);
   if (NS_FAILED(rv))
     return -1;
 
-  if(pauseForMoreData || !line)
+  if (pauseForMoreData || !line)
   {
     m_pop3ConData->pause_for_read = PR_TRUE;
     PR_Free(line);
@@ -2484,7 +2282,7 @@ nsPop3Protocol::GetXtndXlstMsgid(nsIInputStream* inputStream,
   *
   * list data is terminated by a ".CRLF" line
   */
-  if(!PL_strcmp(line, "."))
+  if (!PL_strcmp(line, "."))
   {
     // limit the list if fewer entries than given in STAT response
     if(m_listpos < m_pop3ConData->number_of_messages)
@@ -2497,23 +2295,20 @@ nsPop3Protocol::GetXtndXlstMsgid(nsIInputStream* inputStream,
   }
 
   char *newStr = line;
-  char *token = NS_strtok(" ", &newStr);
+  char *token = NS_strtok(" ", &newStr);  // msg num
   if (token)
   {
-    msg_num = atol(token);
-    m_listpos++;
-
-    if(m_listpos <= m_pop3ConData->number_of_messages && m_listpos > 0)
+    PRInt32 msg_num = atol(token);
+    if (++m_listpos <= m_pop3ConData->number_of_messages)
     {
-      char *eatMessageIdToken = NS_strtok(" ", &newStr);
-      char *uidl = NS_strtok(" ", &newStr); /* not really a uidl but a unique token -km */
-
-      if (!uidl)
+      NS_strtok(" ", &newStr);  // eat message ID token
+      char *uid = NS_strtok(" ", &newStr); // not really a UID but a unique token -km
+      if (!uid)
         /* This is bad.  The server didn't give us a UIDL for this message.
         I've seen this happen when somehow the mail spool has a message
         that contains a header that reads "X-UIDL: \n".  But how that got
         there, I have no idea; must be a server bug.  Or something. */
-        uidl = "";
+        uid = "";
 
       // seeking right entry, but try the one that should it be first
       PRInt32 i;
@@ -2524,11 +2319,16 @@ nsPop3Protocol::GetXtndXlstMsgid(nsIInputStream* inputStream,
                    m_pop3ConData->msg_info[i].msgnum != msg_num; i++)
           ;
 
-      m_pop3ConData->msg_info[i].uidl = PL_strdup(uidl);
-      if (!m_pop3ConData->msg_info[i].uidl)
+      // only if found a matching slot
+      if (i < m_pop3ConData->number_of_messages)
       {
-        PR_Free(line);
-        return MK_OUT_OF_MEMORY;
+        // to protect us from memory leak in case of getting a msg num twice
+        m_pop3ConData->msg_info[i].uidl = PL_strdup(uid);
+        if (!m_pop3ConData->msg_info[i].uidl)
+        {
+          PR_Free(line);
+          return MK_OUT_OF_MEMORY;
+        }
       }
     }
   }
@@ -2542,23 +2342,19 @@ PRInt32 nsPop3Protocol::SendUidlList()
 {
     if (TestCapFlag(POP3_HAS_UIDL | POP3_UIDL_UNDEFINED))
     {
-        m_pop3ConData->next_state_after_response = POP3_GET_UIDL_LIST;
-        m_pop3ConData->pause_for_read = PR_TRUE;
-        m_listpos = 0;
-        return SendData(m_url,"UIDL" CRLF);
+      m_pop3ConData->next_state_after_response = POP3_GET_UIDL_LIST;
+      m_pop3ConData->pause_for_read = PR_TRUE;
+      m_listpos = 0;
+      return SendData(m_url,"UIDL" CRLF);
     }
     else
-        return SendXtndXlstMsgid();
+      return SendXtndXlstMsgid();
 }
 
 
 PRInt32 nsPop3Protocol::GetUidlList(nsIInputStream* inputStream,
                             PRUint32 length)
 {
-    char * line;
-    PRUint32 ln;
-    PRInt32 msg_num;
-
     /* check list response
      * This will get called multiple times
      * but it's alright since command_succeeded
@@ -2566,31 +2362,32 @@ PRInt32 nsPop3Protocol::GetUidlList(nsIInputStream* inputStream,
      */
     ClearCapFlag(POP3_UIDL_UNDEFINED);
 
-    if(!m_pop3ConData->command_succeeded)
+    if (!m_pop3ConData->command_succeeded)
     {
-        m_pop3ConData->next_state = POP3_SEND_XTND_XLST_MSGID;
-        m_pop3ConData->pause_for_read = PR_FALSE;
-        ClearCapFlag(POP3_HAS_UIDL);
-        m_pop3Server->SetPop3CapabilityFlags(m_pop3ConData->capability_flags);
-        return(0);
+      m_pop3ConData->next_state = POP3_SEND_XTND_XLST_MSGID;
+      m_pop3ConData->pause_for_read = PR_FALSE;
+      ClearCapFlag(POP3_HAS_UIDL);
+      m_pop3Server->SetPop3CapabilityFlags(m_pop3ConData->capability_flags);
+      return(0);
     }
     else
     {
-        SetCapFlag(POP3_HAS_UIDL);
-        m_pop3Server->SetPop3CapabilityFlags(m_pop3ConData->capability_flags);
+      SetCapFlag(POP3_HAS_UIDL);
+      m_pop3Server->SetPop3CapabilityFlags(m_pop3ConData->capability_flags);
     }
 
+    PRUint32 ln = 0;
     PRBool pauseForMoreData = PR_FALSE;
     nsresult rv;
-    line = m_lineStreamBuffer->ReadNextLine(inputStream, ln, pauseForMoreData, &rv);
+    char *line = m_lineStreamBuffer->ReadNextLine(inputStream, ln, pauseForMoreData, &rv);
     if (NS_FAILED(rv))
       return -1;
 
-    if(pauseForMoreData || !line)
+    if (pauseForMoreData || !line)
     {
-        PR_Free(line);
-        m_pop3ConData->pause_for_read = PR_TRUE;
-        return ln;
+      PR_Free(line);
+      m_pop3ConData->pause_for_read = PR_TRUE;
+      return ln;
     }
 
     PR_LOG(POP3LOGMODULE, PR_LOG_ALWAYS,("RECV: %s", line));
@@ -2601,35 +2398,32 @@ PRInt32 nsPop3Protocol::GetUidlList(nsIInputStream* inputStream,
      *
      * list data is terminated by a ".CRLF" line
      */
-    if(!PL_strcmp(line, "."))
+    if (!PL_strcmp(line, "."))
     {
-        // limit the list if fewer entries than given in STAT response
-        if(m_listpos < m_pop3ConData->number_of_messages)
-          m_pop3ConData->number_of_messages = m_listpos;
-        m_pop3ConData->list_done = PR_TRUE;
-        m_pop3ConData->next_state = POP3_GET_MSG;
-        m_pop3ConData->pause_for_read = PR_FALSE;
-        PR_Free(line);
-        return(0);
+      // limit the list if fewer entries than given in STAT response
+      if (m_listpos < m_pop3ConData->number_of_messages)
+        m_pop3ConData->number_of_messages = m_listpos;
+      m_pop3ConData->list_done = PR_TRUE;
+      m_pop3ConData->next_state = POP3_GET_MSG;
+      m_pop3ConData->pause_for_read = PR_FALSE;
+      PR_Free(line);
+      return(0);
     }
 
     char *newStr = line;
-    char *token = NS_strtok(" ", &newStr);
+    char *token = NS_strtok(" ", &newStr);  // msg num
     if (token)
     {
-      msg_num = atol(token);
-      m_listpos++;
-
-      if(m_listpos <= m_pop3ConData->number_of_messages && m_listpos > 0)
+      PRInt32 msg_num = atol(token);
+      if (++m_listpos <= m_pop3ConData->number_of_messages)
       {
-        char *uidl = NS_strtok(" ", &newStr);
-
-        if (!uidl)
-            /* This is bad.  The server didn't give us a UIDL for this message.
-               I've seen this happen when somehow the mail spool has a message
-               that contains a header that reads "X-UIDL: \n".  But how that got
-               there, I have no idea; must be a server bug.  Or something. */
-            uidl = "";
+        char *uid = NS_strtok(" ", &newStr); // UID
+        if (!uid)
+          /* This is bad.  The server didn't give us a UIDL for this message.
+             I've seen this happen when somehow the mail spool has a message
+             that contains a header that reads "X-UIDL: \n".  But how that got
+             there, I have no idea; must be a server bug.  Or something. */
+          uid = "";
 
         // seeking right entry, but try the one that should it be first
         PRInt32 i;
@@ -2640,11 +2434,16 @@ PRInt32 nsPop3Protocol::GetUidlList(nsIInputStream* inputStream,
                      m_pop3ConData->msg_info[i].msgnum != msg_num; i++)
             ;
 
-        m_pop3ConData->msg_info[i].uidl = PL_strdup(uidl);
-        if (!m_pop3ConData->msg_info[i].uidl)
+        // only if found a matching slot
+        if (i < m_pop3ConData->number_of_messages)
         {
-          PR_Free(line);
-          return MK_OUT_OF_MEMORY;
+          // to protect us from memory leak in case of getting a msg num twice
+          m_pop3ConData->msg_info[i].uidl = PL_strdup(uid);
+          if (!m_pop3ConData->msg_info[i].uidl)
+          {
+            PR_Free(line);
+            return MK_OUT_OF_MEMORY;
+          }
         }
       }
     }
@@ -2654,16 +2453,12 @@ PRInt32 nsPop3Protocol::GetUidlList(nsIInputStream* inputStream,
 
 
 
-
 /* this function decides if we are going to do a
  * normal RETR or a TOP.  The first time, it also decides the total number
  * of bytes we're probably going to get.
  */
 PRInt32 nsPop3Protocol::GetMsg()
 {
-  char c = 0;
-  int i;
-  PRBool prefBool = PR_FALSE;
   PRInt32 popstateTimestamp = TimeInSecondsFromPRTime(PR_Now());
 
   if (m_pop3ConData->last_accessed_msg >= m_pop3ConData->number_of_messages)
@@ -2698,29 +2493,27 @@ PRInt32 nsPop3Protocol::GetMsg()
     to get. */
     m_pop3ConData->really_new_messages = 0;
     m_pop3ConData->real_new_counter = 1;
-    if (m_pop3ConData->msg_info) 
+    if (m_pop3ConData->msg_info)
     {
       m_totalDownloadSize = 0;
-      // init i with last_accessed_msg to prevent inspecting unpopulated
-      // msg_info[i].uidl when coming from GetFakeUidlTop() -
-      // because that would result in incorrect really_new_messages
-      for (i = m_pop3ConData->last_accessed_msg; i < m_pop3ConData->number_of_messages; i++)
+      for (PRInt32 i = 0; i < m_pop3ConData->number_of_messages; i++)
       {
-        c = 0;
-        popstateTimestamp = TimeInSecondsFromPRTime(PR_Now());
-        if (m_pop3ConData->only_uidl) 
+        if (m_pop3ConData->only_uidl)
         {
           if (m_pop3ConData->msg_info[i].uidl &&
             !PL_strcmp(m_pop3ConData->msg_info[i].uidl, m_pop3ConData->only_uidl))
           {
             m_totalDownloadSize = m_pop3ConData->msg_info[i].size;
             m_pop3ConData->really_new_messages = 1;
-            /* we are only getting one message */
+            // we are only getting one message
             m_pop3ConData->real_new_counter = 1;
             break;
           }
           continue;
         }
+
+        char c = 0;
+        popstateTimestamp = TimeInSecondsFromPRTime(PR_Now());
         if (m_pop3ConData->msg_info[i].uidl)
         {
           Pop3UidlEntry *uidlEntry = (Pop3UidlEntry *) PL_HashTableLookup(m_pop3ConData->uidlinfo->hash,
@@ -2732,8 +2525,8 @@ PRInt32 nsPop3Protocol::GetMsg()
           }
         }
         if ((c == KEEP) && !m_pop3ConData->leave_on_server)
-        {   /* This message has been downloaded but kept on server, we
-            * no longer want to keep it there */
+        { /* This message has been downloaded but kept on server, we
+           * no longer want to keep it there */
           if (!m_pop3ConData->newuidl)
           {
             m_pop3ConData->newuidl = PL_NewHashTable(20, PL_HashString, PL_CompareStrings, 
@@ -2742,18 +2535,18 @@ PRInt32 nsPop3Protocol::GetMsg()
               return MK_OUT_OF_MEMORY;
           }
           c = DELETE_CHAR;
-          /*Mark message to be deleted in new table */
+          // Mark message to be deleted in new table
           put_hash(m_pop3ConData->newuidl,
             m_pop3ConData->msg_info[i].uidl, DELETE_CHAR, popstateTimestamp);
-          /*and old one too */
+          // and old one too
           put_hash(m_pop3ConData->uidlinfo->hash,
             m_pop3ConData->msg_info[i].uidl, DELETE_CHAR, popstateTimestamp);
         }
         if ((c != KEEP) && (c != DELETE_CHAR) && (c != TOO_BIG))
-        { /* message left on server */
+        { // message left on server
           m_totalDownloadSize += m_pop3ConData->msg_info[i].size;
           m_pop3ConData->really_new_messages++;
-          /* a message we will really download */
+          // a message we will really download
         }
       }
     }
@@ -2772,9 +2565,9 @@ PRInt32 nsPop3Protocol::GetMsg()
       return(0);
     }
     /* get the amount of available space on the drive
-    * and make sure there is enough
-    */
-    if(m_totalDownloadSize > 0) // skip all this if there aren't any messages
+     * and make sure there is enough
+     */
+    if (m_totalDownloadSize > 0) // skip all this if there aren't any messages
     {
       nsresult rv;
       PRInt64 mailboxSpaceLeft = LL_Zero();
@@ -2846,6 +2639,7 @@ PRInt32 nsPop3Protocol::GetMsg()
   // if this is a message we've seen for the first time, we won't find it in
   // m_pop3ConData-uidlinfo->hash.  By default, we retrieve messages, unless they have a status,
   // or are too big, in which case we figure out what to do.
+  PRBool prefBool = PR_FALSE;
   m_pop3Server->GetAuthLogin(&prefBool);
 
   if (prefBool && (TestCapFlag(POP3_HAS_XSENDER)))
@@ -2866,7 +2660,7 @@ PRInt32 nsPop3Protocol::GetMsg()
     }
     else
     {
-      c = 0;
+      char c = 0;
       if (!m_pop3ConData->newuidl)
       {
         m_pop3ConData->newuidl = PL_NewHashTable(20, PL_HashString, PL_CompareStrings, PL_CompareValues, &gHashAllocOps, nsnull);
@@ -2882,7 +2676,6 @@ PRInt32 nsPop3Protocol::GetMsg()
           popstateTimestamp = uidlEntry->dateReceived;
         }
       }
-      m_pop3ConData->truncating_cur_msg = PR_FALSE;
       if (c == DELETE_CHAR)
       {
         m_pop3ConData->next_state = POP3_SEND_DELE;
@@ -2896,17 +2689,17 @@ PRInt32 nsPop3Protocol::GetMsg()
       else if (c == FETCH_BODY)
       {
         m_pop3ConData->next_state = POP3_SEND_RETR;
-        PL_HashTableRemove (m_pop3ConData->uidlinfo->hash, (void*)
-          info->uidl);
+        PL_HashTableRemove (m_pop3ConData->uidlinfo->hash, (void*)info->uidl);
       }
       else if ((c != TOO_BIG) &&
         (TestCapFlag(POP3_TOP_UNDEFINED | POP3_HAS_TOP)) &&
         (m_pop3ConData->headers_only ||
-        ((m_pop3ConData->size_limit > 0) &&
-        (info->size > m_pop3ConData->size_limit) &&
-        !m_pop3ConData->only_uidl)))
+         ((m_pop3ConData->size_limit > 0) &&
+          (info->size > m_pop3ConData->size_limit) &&
+          !m_pop3ConData->only_uidl)) &&
+        info->uidl && *info->uidl)
       {
-        /* message is too big */
+        // message is too big
         m_pop3ConData->truncating_cur_msg = PR_TRUE;
         m_pop3ConData->next_state = POP3_SEND_TOP;
         put_hash(m_pop3ConData->newuidl, info->uidl, TOO_BIG, popstateTimestamp);
@@ -2919,33 +2712,37 @@ PRInt32 nsPop3Protocol::GetMsg()
         if ((m_pop3ConData->size_limit > 0) && (info->size <=
           m_pop3ConData->size_limit))
           PL_HashTableRemove (m_pop3ConData->uidlinfo->hash, (void*)info->uidl);
-        /* remove from our table, and download */
+        // remove from our table, and download
         else
         {
           m_pop3ConData->truncating_cur_msg = PR_TRUE;
           m_pop3ConData->next_state = POP3_GET_MSG;
-          /* ignore this message and get next one */
+          // ignore this message and get next one
           put_hash(m_pop3ConData->newuidl, info->uidl, TOO_BIG, popstateTimestamp);
         }
       }
-    }
-    if (m_pop3ConData->next_state != POP3_SEND_DELE)
-    {
-      /* This is a message we have decided to keep on the server.  Notate
-      that now for the future.  (Don't change the popstate file at all
-      if only_uidl is set; in that case, there might be brand new messages
-      on the server that we *don't* want to mark KEEP; we just want to
-      leave them around until the user next does a GetNewMail.) */
 
-      // if this is a message we already know about (i.e., it was in popstate.dat already),
-      // we need to maintain the original date the message was downloaded.
-      // if message is too big, we've already put it in the newuidl hash table.
-      if (info->uidl && !m_pop3ConData->only_uidl && !m_pop3ConData->truncating_cur_msg)
-        put_hash(m_pop3ConData->newuidl, info->uidl, KEEP, popstateTimestamp);
+      if (m_pop3ConData->next_state != POP3_SEND_DELE &&
+          info->uidl)
+      {
+        /* This is a message we have decided to keep on the server. Notate
+            that now for the future. (Don't change the popstate file at all
+            if only_uidl is set; in that case, there might be brand new messages
+            on the server that we *don't* want to mark KEEP; we just want to
+            leave them around until the user next does a GetNewMail.) */
+
+        /* If this is a message we already know about (i.e., it was
+            in popstate.dat already), we need to maintain the original
+            date the message was downloaded. */
+        if (m_pop3ConData->truncating_cur_msg)
+          put_hash(m_pop3ConData->newuidl, info->uidl, TOO_BIG, popstateTimestamp);
+        else
+          put_hash(m_pop3ConData->newuidl, info->uidl, KEEP, popstateTimestamp);
+      }
     }
     if (m_pop3ConData->next_state == POP3_GET_MSG)
       m_pop3ConData->last_accessed_msg++;
-    /* Make sure we check the next message next time! */
+    // Make sure we check the next message next time!
   }
   return 0;
 }
@@ -3274,7 +3071,7 @@ nsPop3Protocol::RetrResponse(nsIInputStream* inputStream,
               if (uidlEntry)
                 put_hash(m_pop3ConData->uidlinfo->hash, m_pop3ConData->only_uidl, KEEP, uidlEntry->dateReceived);
             }
-        } 
+        }
         else
         {
            m_pop3ConData->next_state = POP3_SEND_DELE;
@@ -3418,14 +3215,14 @@ PRInt32 nsPop3Protocol::SendDele()
      */
     char * cmd = PR_smprintf("DELE %ld" CRLF, m_pop3ConData->msg_info[m_pop3ConData->last_accessed_msg].msgnum);
     m_pop3ConData->last_accessed_msg++;
-	PRInt32 status = -1;
-	if (cmd)
-	{
-   		m_pop3ConData->next_state_after_response = POP3_DELE_RESPONSE;
-		status = SendData(m_url, cmd);
-	}
-	PR_Free(cmd);
-	return status;
+    PRInt32 status = -1;
+    if (cmd)
+    {
+      m_pop3ConData->next_state_after_response = POP3_DELE_RESPONSE;
+      status = SendData(m_url, cmd);
+    }
+    PR_Free(cmd);
+    return status;
 }
 
 PRInt32 nsPop3Protocol::DeleResponse()
@@ -3440,7 +3237,7 @@ PRInt32 nsPop3Protocol::DeleResponse()
     return(Error(POP3_DELE_FAILURE));
 
 
-  /*	###chrisf
+  /*  ###chrisf
   the delete succeeded.  Write out state so that we
   keep track of all the deletes which have not yet been
   committed on the server.  Flush this state upon successful
@@ -3483,22 +3280,6 @@ PRInt32 nsPop3Protocol::DeleResponse()
 PRInt32
 nsPop3Protocol::CommitState(PRBool remove_last_entry)
 {
-  /* If we are leaving messages on the server, pull out the last
-    uidl from the hash, because it might have been put in there before
-    we got it into the database.
-  */
-  if (remove_last_entry && m_pop3ConData->msg_info &&
-      m_pop3ConData->last_accessed_msg < m_pop3ConData->number_of_messages)
-  {
-    Pop3MsgInfo* info = m_pop3ConData->msg_info + m_pop3ConData->last_accessed_msg;
-    if (info && info->uidl && !m_pop3ConData->only_uidl &&
-      m_pop3ConData->newuidl && m_pop3ConData->newuidl->nentries > 0)
-    {
-      PRBool val = PL_HashTableRemove (m_pop3ConData->newuidl, info->uidl);
-      NS_ASSERTION(val, "uidl not in hash table");
-    }
-  }
-
   // only use newuidl if we successfully finished looping through all the
   // messages in the inbox.
   if (m_pop3ConData->newuidl)
@@ -3511,10 +3292,24 @@ nsPop3Protocol::CommitState(PRBool remove_last_entry)
     }
     else
     {
+      /* If we are leaving messages on the server, pull out the last
+        uidl from the hash, because it might have been put in there before
+        we got it into the database.
+      */
+      if (remove_last_entry && m_pop3ConData->msg_info &&
+          !m_pop3ConData->only_uidl && m_pop3ConData->newuidl->nentries > 0)
+      {
+        Pop3MsgInfo* info = m_pop3ConData->msg_info + m_pop3ConData->last_accessed_msg;
+        if (info && info->uidl)
+        {
+          PRBool val = PL_HashTableRemove(m_pop3ConData->newuidl, info->uidl);
+          NS_ASSERTION(val, "uidl not in hash table");
+        }
+      }
+
       // Add the entries in newuidl to m_pop3ConData->uidlinfo->hash to keep
       // track of the messages we *did* download in this session.
       PL_HashTableEnumerateEntries(m_pop3ConData->newuidl, net_pop3_copy_hash_entries, (void *)m_pop3ConData->uidlinfo->hash);
-
     }
   }
 
@@ -3768,18 +3563,6 @@ nsresult nsPop3Protocol::ProcessProtocolState(nsIURI * url, nsIInputStream * aIn
       status = GetXtndXlstMsgid(aInputStream, aLength);
       break;
 
-    case POP3_START_USE_TOP_FOR_FAKE_UIDL:
-      status = StartUseTopForFakeUidl();
-      break;
-
-    case POP3_SEND_FAKE_UIDL_TOP:
-      status = SendFakeUidlTop();
-      break;
-
-    case POP3_GET_FAKE_UIDL_TOP:
-      status = GetFakeUidlTop(aInputStream, aLength);
-      break;
-
     case POP3_GET_MSG:
       status = GetMsg();
       break;
@@ -3886,12 +3669,6 @@ nsresult nsPop3Protocol::ProcessProtocolState(nsIURI * url, nsIInputStream * aIn
       if (mailnewsurl)
         mailnewsurl->SetUrlState(PR_FALSE, NS_OK);
       m_pop3ConData->next_state = POP3_FREE;
-      break;
-
-    case POP3_INTERRUPTED:
-      SendData(mailnewsurl, "QUIT" CRLF);
-      m_pop3ConData->pause_for_read = PR_FALSE;
-      m_pop3ConData->next_state = POP3_ERROR_DONE;
       break;
 
     case POP3_ERROR_DONE:

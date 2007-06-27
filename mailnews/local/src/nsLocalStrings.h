@@ -17,8 +17,6 @@
 #define POP3_CONNECT_HOST_CONTACTED_SENDING_LOGIN_INFORMATION 4007
 #define POP3_NO_MESSAGES                                      4008
 #define POP3_DOWNLOAD_COUNT                                   4009
-#define POP3_SERVER_DOES_NOT_SUPPORT_UIDL_ETC                 4010
-#define POP3_SERVER_DOES_NOT_SUPPORT_THE_TOP_COMMAND          4011
 #define POP3_RETR_FAILURE                                     4012
 #define POP3_PASSWORD_UNDEFINED                               4013
 #define POP3_USERNAME_UNDEFINED                               4014
@@ -37,7 +35,6 @@
 #define MOVING_MSGS_STATUS                                    4028
 #define POP3_MESSAGE_FOLDER_BUSY                              4029
 #define CANNOT_PROCESS_SECURE_AUTH                            4030
-#define CANNOT_PROCESS_APOP_AUTH                              4031
 #define MOVEMAIL_SPOOL_FILE_LOCKED                            4032
 #define MOVEMAIL_CANT_OPEN_SPOOL_FILE                         4033
 #define MOVEMAIL_CANT_CREATE_LOCK                             4034
@@ -45,6 +42,9 @@
 #define MOVEMAIL_CANT_TRUNCATE_SPOOL_FILE                     4036
 #define MOVEMAIL_SPOOL_FILE_NOT_FOUND                         4037
 #define POP3_TMP_DOWNLOAD_FAILED                              4038
-#define NS_ERROR_COULD_NOT_CONNECT_VIA_TLS                    4039
+#define POP3_SERVER_DOES_NOT_SUPPORT_UIDL_ETC                 4040
+#define POP3_SERVER_DOES_NOT_SUPPORT_THE_TOP_COMMAND          4041
+#define CANNOT_PROCESS_APOP_AUTH                              4042
+#define NS_ERROR_COULD_NOT_CONNECT_VIA_TLS                    4043
 
-#endif /* _nsLocalStringBundle_H__ */
+#endif /* _nsLocalStrings_H__ */
