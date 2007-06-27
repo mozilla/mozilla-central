@@ -1182,6 +1182,10 @@ function CycleFolderView(aCycleForward)
 
 function OnLoadFolderPane()
 {
+  // want to start up showing the folder pane, in case we shut down
+  // with the 3-pane showing a single message.
+  document.getElementById("folderpane_splitter").collapsed = false;
+  document.getElementById("folderPaneBox").collapsed = false;
   UpdateFolderColumnVisibility();
   var folderUnreadCol = document.getElementById("folderUnreadCol");
   folderUnreadCol.addEventListener("DOMAttrModified", OnFolderUnreadColAttrModified, false);
@@ -1403,6 +1407,7 @@ function ClearMessagePane()
 {
   if(gHaveLoadedMessage)
   {
+    dump("clearing message pane\n");
     gHaveLoadedMessage = false;
     if (GetMessagePaneFrame().location.href != "about:blank")
         GetMessagePaneFrame().location.href = "about:blank";
@@ -1705,6 +1710,7 @@ function SelectFolder(folderUri)
   // ancestors are expanded
   var folderIndex = EnsureFolderIndex(folderTree.builderView, msgFolder);
   ChangeSelection(folderTree, folderIndex);
+  UpdateCurTabTitle(msgFolder.prettyName);
 }
 
 function SelectMessage(messageUri)

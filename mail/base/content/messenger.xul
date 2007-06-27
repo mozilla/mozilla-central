@@ -164,6 +164,40 @@
 
   <toolbox id="mail-toolbox" class="toolbox-top">
   </toolbox>
+
+      <tabbox anonid="tabbox" flex="1" eventnode="document" inherits="handleCtrlPageUpDown"
+                  onselect="if (!event.target.localName != 'tabpanels') return; UpdateSelectedTab();">
+        <hbox class="tab-drop-indicator-bar">
+          <hbox class="tab-drop-indicator" mousethrough="always"/>
+        </hbox>
+        <hbox class="tabbrowser-strip" collapsed="true" tooltip="_child" context="_child"
+                  id="tabstrip"
+                  ondraggesture="nsDragAndDrop.startDrag(event, this.parentNode.parentNode); event.stopPropagation();"
+                  ondragover="nsDragAndDrop.dragOver(event, this.parentNode.parentNode); event.stopPropagation();"
+                  ondragdrop="nsDragAndDrop.drop(event, this.parentNode.parentNode); event.stopPropagation();"
+                  ondragexit="nsDragAndDrop.dragExit(event, this.parentNode.parentNode); event.stopPropagation();">
+          <tooltip onpopupshowing="return CreateToolbarTooltip(document, event);"/>
+          <menupopup anonid="tabContextMenu" onpopupshowing=";">
+            <menuitem label="&newTabCmd.label;" accesskey="&newTabCmd.accesskey;"
+                          inherits="oncommand=onnewtab"/>
+            <menuitem label="&closeTabCmd.label;" accesskey="&closeTabCmd.accesskey;"
+                          oncommand="MsgCloseTab(document.popupNode);"/>
+          </menupopup>
+
+          <tabs class="tabbrowser-tabs" flex="1"
+                    id="tabcontainer"
+                    setfocus="false"
+                    onclick="UpdateSelectedTab();"
+                    inherits="onnewtab"
+                    ondblclick="this.parentNode.parentNode.parentNode.onTabBarDblClick(event);">
+            <tab selected="true" validate="never"
+                     maxwidth="250" width="0" minwidth="100" flex="100"
+                     class="tabemail-tab" crop="end"/>
+          </tabs>
+        </hbox>
+        <tabpanels flex="1" class="plain" selectedIndex="0" anonid="panelcontainer">
+
+
   
   <!-- when we move to the alternate 3-pane, mailContentWrapper gets toggled to a vertical orientation -->
   <box id="mailContentWrapper" orient="horizontal" flex="1">
@@ -411,6 +445,9 @@
     </vbox>             
   </hbox>
   </box> <!-- end of mailContentWrapper -->
+
+        </tabpanels>
+      </tabbox>
 
   <statusbar id="status-bar" class="chromeclass-status">
     <statusbarpanel id="unreadMessageCount"/>

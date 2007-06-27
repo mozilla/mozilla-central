@@ -79,6 +79,7 @@ var gFakeAccountPageLoaded = false;
 
 function OnMailWindowUnload()
 {
+  CloseTabs();
   MailOfflineMgr.uninit();
   ClearPendingReadTimer();
 
