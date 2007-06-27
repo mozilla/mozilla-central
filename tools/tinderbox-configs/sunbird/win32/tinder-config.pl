@@ -219,6 +219,7 @@ $ReleaseBuild  = 1;
 $ReleaseGroup = 'calendar';
 $LocaleProduct = "calendar";
 $shiptalkback  = 1;
+$UsePrebuiltTalkback = "/cygdrive/d/builds/tinderbox/Sunbird-Trunk/talkback-sunbird-trunk-win32.tar.bz2";
 $ReleaseToLatest = 1; # Push the release to latest-<milestone>?
 $ReleaseToDated = 1; # Push the release to YYYY-MM-DD-HH-<milestone>?
 $build_hour    = "3";
