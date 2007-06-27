@@ -938,7 +938,7 @@ sub init {
                     detaint_natural($_);
                 }
                 my $exclusions = $dbh->selectcol_arrayref('SELECT DISTINCT case_id FROM test_case_runs WHERE run_id IN ('. join(',', @runs) .')');
-                push @wherepart, 'test_cases.case_id NOT IN ('. join(',', @$exclusions) .')';
+                push @wherepart, 'test_cases.case_id NOT IN ('. join(',', @$exclusions) .')' if scalar @$exclusions > 0;
             }
         }
         elsif ($obj eq 'run'){
