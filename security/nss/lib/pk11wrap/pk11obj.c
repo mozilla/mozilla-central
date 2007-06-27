@@ -237,6 +237,8 @@ PK11_GetAttributes(PRArenaPool *arena,PK11SlotInfo *slot,
      * now allocate space to store the results.
      */
     for (i=0; i < count; i++) {
+	if (attr[i].ulValueLen == 0)
+	    continue;
 	if (arena) {
 	    attr[i].pValue = PORT_ArenaAlloc(arena,attr[i].ulValueLen);
 	    if (attr[i].pValue == NULL) {
@@ -1484,7 +1486,10 @@ PK11_MatchItem(PK11SlotInfo *slot, CK_OBJECT_HANDLE searchID,
 
     if ((theTemplate[0].ulValueLen == 0) || (theTemplate[0].ulValueLen == -1)) {
 	PORT_FreeArena(arena,PR_FALSE);
-	PORT_SetError(SEC_ERROR_BAD_KEY);
+	if (matchclass == CKO_CERTIFICATE)
+	    PORT_SetError(SEC_ERROR_BAD_KEY);
+	else
+	    PORT_SetError(SEC_ERROR_NO_KEY);
 	return CK_INVALID_HANDLE;
      }
 	
